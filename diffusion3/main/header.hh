@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: header.hh,v 1.3 2001/11/20 22:28:17 haldar Exp $
+// $Id: header.hh,v 1.4 2001/12/11 23:21:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,12 +20,8 @@
 //
 //
 
-#ifdef NS_DIFFUSION
-
 #ifndef header_hh
 #define header_hh
-
-#include "nr.hh"
 
 typedef int *DiffPacket;
 
@@ -35,10 +31,10 @@ typedef int *DiffPacket;
 #define DIFFUSION_VERSION      2
 
 #ifdef NS_DIFFUSION
-#define DEFAULT_DIFFUSION_PORT 255
+#define DEFAULT_DIFFUSION_PORT  255
 #else
 #define DEFAULT_DIFFUSION_PORT 2000
-#endif //NS
+#endif // NS_DIFFUSION
 
 #define DIFFUSION_PORT         DEFAULT_DIFFUSION_PORT
 
@@ -59,7 +55,7 @@ typedef enum msg_t_ {
   POSITIVE_REINFORCEMENT,
   NEGATIVE_REINFORCEMENT,
   DATA,
-  FLAGGED_DATA,
+  EXPLORATORY_DATA,
   CONTROL,
   REDIRECT,
 } diff_msg_t;
@@ -90,4 +86,3 @@ public:
 };
 
 #endif
-#endif // NS

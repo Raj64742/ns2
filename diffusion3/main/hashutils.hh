@@ -1,5 +1,5 @@
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: hashutils.hh,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: hashutils.hh,v 1.3 2001/12/11 23:21:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -15,11 +15,9 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 // *********************************************************
-/* This file contains all the basic stuff from tcl.h. Additionally,
-   extra structures used for the Event Queue are defined here
-*/
 
-#ifdef NS_DIFFUSION
+// This file is derived from tcl.h and contains the includes for
+// the hashing code.
 
 #ifndef TCL_H
 #define TCL_H
@@ -231,4 +229,3 @@ EXTERN void		Tcl_InitHashTable _ANSI_ARGS_((Tcl_HashTable *tablePtr,
 EXTERN void		Tcl_DeleteHashEntry _ANSI_ARGS_((
 			    Tcl_HashEntry *entryPtr));
 #endif //TCL_H
-#endif // NS

@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.hh,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: tools.hh,v 1.3 2001/12/11 23:21:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,20 +20,36 @@
 //
 //
 
-#ifdef NS_DIFFUSION
+//
+// tools.hh contains OS abstractions to make it easy to use 
+// diffusion in different environments (i.e. in simulations,
+// where time is virtualized, and in embeddedd apps where
+// error logging happens in some non-trivial way).
+//
 
 #ifndef tools_hh
 #define tools_hh
 
 #include <stdio.h>
+#include <stdarg.h>
+#include <stdlib.h>
 #include <sys/time.h>
 #include <unistd.h>
 
 #include "config.hh"
 
-void getTime(struct timeval *tmv);
-void getSeed(struct timeval tv);
-void diffPrint(int msg_level, char *msg);
+extern int global_debug_level;
+extern char *application_id;
+
+#ifdef BBN_LOGGER
+#include "Logger.h"
+
+void InitMainLogger();
+#endif // BBN_LOGGER
+
+void getSeed(struct timeval *tv);
+void getTime(struct timeval *tv);
+int getRand();
+void diffPrint(int msg_level, const char *fmt, ...);
 
 #endif // tools_hh
-#endif // NS

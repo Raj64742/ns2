@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: filter.hh,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: filter.hh,v 1.3 2001/12/11 23:21:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,10 +20,14 @@
 //
 //
 
-#ifdef NS_DIFFUSION
-
 #ifndef filter_hh
 #define filter_hh
+
+#define FILTER_MIN_PRIORITY 1
+#define FILTER_MAX_PRIORITY 254
+#define FILTER_KEEP_PRIORITY 255
+#define FILTER_ZERO_PRIORITY 0
+#define FILTER_INVALID_PRIORITY 256
 
 #include <sys/time.h>
 #include <unistd.h>
@@ -71,5 +75,4 @@ public:
   virtual void recv(Message *msg, handle h) = 0;
 };
 
-#endif
-#endif // NS
+#endif // filter_hh

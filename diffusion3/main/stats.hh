@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: stats.hh,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: stats.hh,v 1.3 2001/12/11 23:21:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -19,8 +19,6 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
-
-#ifdef NS_DIFFUSION
 
 #ifndef stats_hh
 #define stats_hh
@@ -77,8 +75,8 @@ private:
   int num_interest_messages_recv;
   int num_data_messages_sent;
   int num_data_messages_recv;
-  int num_flagged_data_messages_sent;
-  int num_flagged_data_messages_recv;
+  int num_exploratory_data_messages_sent;
+  int num_exploratory_data_messages_recv;
   int num_pos_reinforcement_messages_sent;
   int num_pos_reinforcement_messages_recv;
   int num_neg_reinforcement_messages_sent;
@@ -97,4 +95,3 @@ private:
 
 
 #endif
-#endif // NS

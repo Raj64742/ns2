@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: message.hh,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: message.hh,v 1.3 2001/12/11 23:21:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -19,8 +19,6 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
-
-#ifdef NS_DIFFUSION
 
 #ifndef message_hh
 #define message_hh
@@ -42,12 +40,9 @@ public:
   int32_t next_hop;
   int32_t last_hop;
 
-  // Entire message
-  DiffPacket  msg;
-  int32_t msg_size;
-
-  // Other flags
+  // Added variables
   int new_message;
+  int16_t next_port;
 
   // Message attributes
   NRAttrVec *msg_attr_vec;
@@ -65,17 +60,14 @@ public:
     next_hop(_next_hop),
     last_hop(_last_hop)
   {
-    msg = NULL;
     msg_attr_vec = NULL;
+    next_port = 0;
     new_message = 1;             // New message by default, will be changed
                                  // later if message is found to be old
   }
 
   ~Message()
   {
-    //if (msg)
-    //delete [] msg;
-
     if (msg_attr_vec){
       ClearAttrs(msg_attr_vec);
       delete msg_attr_vec;
@@ -99,8 +91,7 @@ typedef enum ctl_t_ {
   ADD_FILTER,
   REMOVE_FILTER,
   KEEPALIVE_FILTER,
-  SEND_MESSAGE,
-  SEND_TO_NEXT
+  SEND_MESSAGE
 } ctl_t;
 
 class ControlMessage {
@@ -122,9 +113,9 @@ public:
   int32_t next_hop;
   int32_t last_hop;
   int32_t handle;
+  int16_t next_port;
 };
 
 Message * CopyMessage(Message *msg);
 
-#endif
-#endif // NS
+#endif // message_hh

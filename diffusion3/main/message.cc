@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: message.cc,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: message.cc,v 1.3 2001/12/11 23:21:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -19,8 +19,6 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
-
-#ifdef NS_DIFFUSION
 
 #include "message.hh"
 
@@ -39,16 +37,8 @@ Message * CopyMessage(Message *msg)
 			msg->rdm_id, msg->next_hop, msg->last_hop);
 
    newMsg->new_message = msg->new_message;
+   newMsg->next_port = msg->next_port;
    newMsg->msg_attr_vec = CopyAttrs(msg->msg_attr_vec);
-
-   // We currently don't use the original message packet
-   // So the following lines were commented to avoid allocating/
-   // dealocating memory all the time
-
-   // newMsg->msg_size = msg->msg_size;
-   // newMsg->msg = new int [(msg->msg_size / sizeof(int)) + 1];
-   // memcpy(newMsg->msg, msg->msg, msg->msg_size);
 
    return newMsg;
 }
-#endif // NS

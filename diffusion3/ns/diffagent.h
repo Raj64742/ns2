@@ -69,11 +69,11 @@ public:
 
 class DiffEventQueue : public eventQueue { 
 public: 
-	DiffEventQueue(DiffAppAgent* a) { a_ = a; } 
 	void eq_new() { }         ;//do nothing 
-	void eq_addAfter(int type, void *payload, int delay_msec); 
+	DiffEventQueue(DiffAppAgent *a) { a_ = a; } 
+	void eq_addAfter(int type, void *, int delay_msec); 
 private: 
-	DiffAppAgent *a_; 
+	DiffAppAgent *a_;
 }; 
 
 

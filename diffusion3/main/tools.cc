@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.cc,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: tools.cc,v 1.3 2001/12/11 23:21:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,44 +20,86 @@
 //
 //
 
-#ifdef NS_DIFFUSION
-
 #include "tools.hh"
 
 #ifdef NS_DIFFUSION
 #include "scheduler.h"
 #include "random.h"
-#endif
+#endif // NS_DIFFUSION
 
-int global_debug_level = DEFAULT_DEBUG_LEVEL;
+int global_debug_level = DEBUG_DEFAULT;
+int default_debug_level = DEBUG_DEFAULT;
 
-void getTime(struct timeval *tmv)
+char *application_id = NULL;
+
+#ifdef BBN_LOGGER
+Logger *log_general = NULL;
+
+void InitMainLogger()
+{
+  // Init logger
+  log_general = new Logger();
+
+  // Configure and start logging
+  log_general->initFromPropertiesFile(LOGGER_CONFIG_FILE);
+
+  log_general->Go();
+}
+#endif // BBN_LOGGER
+
+void getTime(struct timeval *tv)
 {
 #ifdef NS_DIFFUSION
-  tmv->tv_sec = (long)Scheduler::instance().clock();
-  tmv->tv_usec = 0; //using an arbitrary value as this is used as seed for random generators;
+  tv->tv_sec = (long)Scheduler::instance().clock();
+  tv->tv_usec = 0; //using an arbitrary value as this is used as seed for random generators;
 #else
-  gettimeofday(tmv, NULL);
-#endif //ns_diffusion
-
+  gettimeofday(tv, NULL);
+#endif // NS_DIFFUSION
 }
 
-void getSeed(struct timeval tv) 
+void getSeed(struct timeval *tv) 
 {
 #ifdef NS_DIFFUSION
   double seed = Random::seed_heuristically();
-  srand(seed);
+  //srand(seed);
 #else
-  srand(tv.tv_usec);
-#endif
+  srand(tv->tv_usec);
+#endif // NS_DIFFUSION
 }
 
-void diffPrint(int msg_level, char *msg)
+int getRand() 
 {
-  if (global_debug_level >= msg_level){
-    // Print message
-    fprintf(stderr, msg);
-    fflush(stderr);
-  }
+#ifdef NS_DIFFUSION
+  return (Random::random());
+#else
+  return (rand());
+#endif // NS_DIFFUSION
 }
-#endif // NS
+
+
+void diffPrint(int msg_level, const char *fmt, ...)
+{
+#ifdef BBN_LOGGER
+  char buf[LOGGER_BUFFER_SIZE];
+  int retval;
+#endif // BBN_LOGGER
+  va_list ap;
+
+  va_start(ap, fmt);
+
+  if (global_debug_level >= msg_level){
+
+#ifdef BBN_LOGGER
+    // Log into BBN logger
+    retval = vsnprintf(buf, LOGGER_BUFFER_SIZE, fmt, ap);
+    if (log_general && application_id)
+      log_general->LogMessage(application_id, buf);
+#else
+    // Print message
+    vfprintf(stderr, fmt, ap);
+    fflush(NULL);
+#endif
+  }
+
+  va_end(ap);
+}

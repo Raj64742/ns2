@@ -3,7 +3,7 @@
 // authors       : Lewis Girod and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: events.cc,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: events.cc,v 1.3 2001/12/11 23:21:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,13 +20,10 @@
 //
 //
 
-#ifdef NS_DIFFUSION
-
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "events.hh"
-
 
 // Safe malloc
 void *check_malloc(size_t s)
@@ -235,7 +232,6 @@ int eventQueue::eq_remove(event *e)
 
 int eventQueue::randDelay(int timer[2])
 {
-  return (int) (timer[0] + ((((float)rand())/((float)RAND_MAX)) - 0.5)*timer[1]);
+  //return (int) (timer[0] + ((((float)rand())/((float)RAND_MAX)) - 0.5)*timer[1]);
+  return (int) (timer[0] + ((((float)getRand())/((float)RAND_MAX)) - 0.5)*timer[1]);
 }
-
-#endif // NS

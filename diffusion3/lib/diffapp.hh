@@ -1,9 +1,9 @@
 //
-// agent.hh       : Agents Include File
-// author         : Fabio Silva
+// diffapp.hh     : Base Class for Diffusion Apps and Filters
+// author         : Fabio Silva and Padma Haldar
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: agent.hh,v 1.3 2001/12/11 23:21:43 haldar Exp $
+// $Id: diffapp.hh,v 1.1 2001/12/11 23:21:43 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,21 +20,33 @@
 //
 //
 
+#ifndef DIFFAPP_HH
+#define DIFFAPP_HH
+
 #include <stdlib.h>
 #include <stdio.h>
 #include "dr.hh"
 
-class MyReceive : public NR::Callback {
-
+#ifdef NS_DIFFUSION
+#include "app.h"
+class DiffApp : public Application {
+#else
+class DiffApp {
+#endif // NS_DIFFUSION
 public:
-  void recv(NRAttrVec *data, NR::handle my_handle);
+  virtual void run() = 0;
+#ifdef NS_DIFFUSION
+  int command(int argc, const char*const* argv);
+#endif //NS_DIFFUSION
+  
+protected:
+  NR *dr;
+  u_int16_t diffusion_port;
+
+#ifndef NS_DIFFUSION
+  void usage(char *s);
+  void ParseCommandLine(int argc, char **argv);
+#endif // NS_DIFFUSION
 };
 
-#define APP_KEY1 3500
-#define APP_KEY2 3600
-#define APP_KEY3 3601
-
-extern NRSimpleAttributeFactory<char *> TargetAttr;
-extern NRSimpleAttributeFactory<int> AppDummyAttr;
-extern NRSimpleAttributeFactory<char *> AppStringAttr;
-extern NRSimpleAttributeFactory<int> AppCounterAttr;
+#endif // DIFFAPP_HH

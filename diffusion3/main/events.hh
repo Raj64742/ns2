@@ -3,7 +3,7 @@
 // Authors       : Lewis Girod and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: events.hh,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: events.hh,v 1.3 2001/12/11 23:21:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -19,8 +19,6 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
-
-#ifdef NS_DIFFUSION
 
 #ifndef __EVENT_H
 #define __EVENT_H
@@ -63,15 +61,15 @@ public:
   };
 
   virtual void eq_new();
-  virtual void eq_add(event *n);
+  void eq_add(event *n);
   virtual void eq_addAfter(int type, void *payload, int delay_msec);
-  virtual event * eq_pop();
-  virtual event * eq_findEvent(int type);
-  virtual event * eq_findNextEvent(int type, event *e);
-  virtual struct timeval * eq_nextTimer();
-  virtual int eq_topInPast();
+  event * eq_pop();
+  event * eq_findEvent(int type);
+  event * eq_findNextEvent(int type, event *e);
+  struct timeval * eq_nextTimer();
+  int eq_topInPast();
   void eq_print();
-  virtual int eq_remove(event *e);
+  int eq_remove(event *e);
 
 //
 //  Event methods
@@ -89,7 +87,6 @@ private:
   event *head;
 
 };
-
 
 // timeval routines
 int timeval_cmp(struct timeval *x, struct timeval *y);
@@ -109,6 +106,4 @@ void *check_malloc(size_t s);
 #define MALLOC(type,size)   (type)check_malloc(size)
 #endif
 
-#endif
-
-#endif // NS
+#endif // __EVENT_H

@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: config.hh,v 1.2 2001/11/20 22:28:16 haldar Exp $
+// $Id: config.hh,v 1.3 2001/12/11 23:21:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,11 +20,9 @@
 //
 //
 
-#ifdef NS_DIFFUSION
-
 // Software information
-#define PROGRAM "Diffusion 3.0.5"
-#define RELEASE "Beta 1"
+#define PROGRAM "Diffusion 3.0.6"
+#define RELEASE "Steel Knight Release"
 #define DEFAULT_CONFIG_FILE "config.txt"
 
 // Timers
@@ -51,10 +49,12 @@
 #define DEBUG_IMPORTANT         2
 #define DEBUG_ALWAYS            1
 
-#define DEFAULT_DEBUG_LEVEL     1
+#define DEBUG_DEFAULT           1
 
-#define SMALL_DEBUG_MESSAGE   100
-#define MEDIUM_DEBUG_MESSAGE  200
+#ifdef BBN_LOGGER
+#define LOGGER_BUFFER_SIZE 512
+#define LOGGER_CONFIG_FILE "/sensit/Logger.ISI"
+#endif
 
 // Configurable parameters start here
 
@@ -67,6 +67,12 @@
 // to go to the network. It's used to establish a reinforced path as well
 // as discover new paths.
 #define EXPLORATORY_MESSAGE_DELAY    60      // sec bw sends
+
+// This parameter specifies how much time to wait before sending
+// a positive reinforcement message in response to an exploratory
+// data message.
+#define POS_REINFORCEMENT_SEND_DELAY  600
+#define POS_REINFORCEMENT_JITTER      200
 
 #ifdef USE_BROADCAST_MAC
 
@@ -125,5 +131,3 @@
 #define HASH_TABLE_REMOVE_AT_ONCE       20
 #define HASH_TABLE_DATA_MAX_SIZE       100
 #define HASH_TABLE_DATA_REMOVE_AT_ONCE  10
-
-#endif // NS

@@ -1,9 +1,9 @@
 //
-// agent.hh       : Agents Include File
+// ping_common.cc : Ping App Common File
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: agent.hh,v 1.3 2001/12/11 23:21:43 haldar Exp $
+// $Id: ping_common.cc,v 1.1 2001/12/11 23:21:42 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,21 +20,8 @@
 //
 //
 
-#include <stdlib.h>
-#include <stdio.h>
-#include "dr.hh"
+#include "ping.hh"
 
-class MyReceive : public NR::Callback {
-
-public:
-  void recv(NRAttrVec *data, NR::handle my_handle);
-};
-
-#define APP_KEY1 3500
-#define APP_KEY2 3600
-#define APP_KEY3 3601
-
-extern NRSimpleAttributeFactory<char *> TargetAttr;
-extern NRSimpleAttributeFactory<int> AppDummyAttr;
-extern NRSimpleAttributeFactory<char *> AppStringAttr;
-extern NRSimpleAttributeFactory<int> AppCounterAttr;
+NRSimpleAttributeFactory<char *> TargetAttr(NRAttribute::TARGET_KEY, NRAttribute::STRING_TYPE);
+NRSimpleAttributeFactory<int> AppCounterAttr(COUNTER_KEY, NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<void *> TimeAttr(TIME_KEY, NRAttribute::BLOB_TYPE);

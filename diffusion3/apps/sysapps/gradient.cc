@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: gradient.cc,v 1.2 2001/11/20 22:31:04 haldar Exp $
+// $Id: gradient.cc,v 1.3 2001/12/11 23:21:43 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -18,39 +18,23 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
-// *******************************************************************
-// Ported from SCADDS group's implementation of directed diffusion 
-// into ns-2. Padma Haldar, nov 2001.
-// ********************************************************************
 //
-
-#ifdef NS_DIFFUSION
 
 #include "gradient.hh"
 
-extern int global_debug_level;
-
-//GradientFilter *app;
-
-
-Routing_Entry::Routing_Entry() {
-  getTime(&tv);
-}
-
 #ifdef NS_DIFFUSION
-#include "diffagent.h"
-
 static class GradientFilterClass : public TclClass {
 public:
   GradientFilterClass() : TclClass("Application/GradientFilter") {}
   TclObject* create(int argc, const char*const* argv) {
     if (argc == 5)
       return(new GradientFilter(argv[4]));
-    else
+    else {
       fprintf(stderr, "Insufficient number of args for creating GradientFilter");
+      return(NULL);
+    }
   }
 } class_gradient_filter;
-
 
 int GradientFilter::command(int argc, const char*const* argv) {
   Tcl& tcl =  Tcl::instance();
@@ -65,7 +49,7 @@ int GradientFilter::command(int argc, const char*const* argv) {
     if (strcasecmp(argv[1], "debug") == 0) {
       global_debug_level = atoi(argv[2]);
       if (global_debug_level < 1 || global_debug_level > 10) {
-	global_debug_level = DEFAULT_DEBUG_LEVEL;
+	global_debug_level = DEBUG_DEFAULT;
 	printf("Error:Debug level outside range(1-10) or missing !\n");
       }
     }
@@ -73,58 +57,17 @@ int GradientFilter::command(int argc, const char*const* argv) {
   return Application::command(argc, argv);
 }
 
-void GradientFilter::start() {
-  struct timeval tv;
-  char *debug_str;
+#endif // NS_DIFFUSION
 
-  fcb = new MyFilterReceive(this);
-  tcb = new MyTimerReceive(this);
-  
-  // Initialize Hashing structures
-  Tcl_InitHashTable(&htable, 2);
-
-  // Set up the filter
-  filterHandle = setupFilter();
-
-  // Print filter information
-  debug_str = new char[SMALL_DEBUG_MESSAGE];
-  sprintf(debug_str, "Gradient filter subscribed to *, received handle %d\n",
-	  filterHandle);
-  diffPrint(DEBUG_IMPORTANT, debug_str);
-  delete [] debug_str;
-
-  // Add the Gradient Timer
-  TimerType *timer;
-
-  timer = new TimerType(GRADIENT_TIMER);
-  ((DiffusionRouting *)dr)->addTimer(GRADIENT_DELAY, (void *) timer, tcb);
-
-  timer = new TimerType(REINFORCEMENT_TIMER);
-  ((DiffusionRouting *)dr)->addTimer(REINFORCEMENT_DELAY, (void *) timer, tcb);
-
-  getTime(&tv);
-
-  debug_str = new char[SMALL_DEBUG_MESSAGE];
-  sprintf(debug_str, "Gradient filter initialized at time %ld:%ld!\n",
-	  tv.tv_sec, tv.tv_usec);
-  diffPrint(DEBUG_ALWAYS, debug_str);
-  delete [] debug_str;
-}
-
-#endif //ns
-
-
-
-void MyFilterReceive::recv(Message *msg, handle h)
+void GradientFilterReceive::recv(Message *msg, handle h)
 {
-  app_->recv(msg, h);
+  app->recv(msg, h);
 }
 
 int MyTimerReceive::recv(handle hdl, void *p)
 {
-  return app_->ProcessTimers(hdl, p);
+  return app->ProcessTimers(hdl, p);
 }
-
 
 void MyTimerReceive::del(void *p)
 {
@@ -162,55 +105,16 @@ void MyTimerReceive::del(void *p)
   delete timer;
 }
 
-
-#ifdef SCADDS
-void GradientFilter::usage()
-{
-  diffPrint(DEBUG_ALWAYS, "Usage: gradient [-d debug] [-t stoptime] [-p port] [-h]\n\n");
-  diffPrint(DEBUG_ALWAYS, "\t-d - Sets debug level (0-10)\n");
-  diffPrint(DEBUG_ALWAYS, "\t-t - Schedule this gradient module to exit after stoptime seconds\n");
-  diffPrint(DEBUG_ALWAYS, "\t-p - Uses port 'port' to talk to diffusion\n");
-  diffPrint(DEBUG_ALWAYS, "\t-h - Prints this information\n");
-  diffPrint(DEBUG_ALWAYS, "\n");
-  exit(0);
-}
-
-
-void GradientFilter::TimetoStop()
-{
-  struct timeval tv;
-  char *debug_str;
-
-  getTime(&tv);
-  debug_str = new char[SMALL_DEBUG_MESSAGE];
-  sprintf(debug_str, "Gradient is stopping at time %ld:%ld\n",
-	  tv.tv_sec, tv.tv_usec);
-  diffPrint(DEBUG_ALWAYS, debug_str);
-  delete [] debug_str;
-}
-#endif //scadds
-
-
 int GradientFilter::ProcessTimers(handle hdl, void *p)
 {
   TimerType *timer;
   NRAttrVec *attrs;
   Message *msg;
   int timeout = 0;
-  char *debug_str;
 
   timer = (TimerType *) p;
  
   switch (timer->which_timer){
-
-  case STOP_TIMER:
-#ifdef SCADDS
-    // Cancel timer
-    timeout = -1;
-    TimetoStop();
-    exit(0);
-#endif // scadds
-    break;
 
   case GRADIENT_TIMER:
 
@@ -256,11 +160,9 @@ int GradientFilter::ProcessTimers(handle hdl, void *p)
 
   default:
 
-    debug_str = new char[SMALL_DEBUG_MESSAGE];
-    sprintf(debug_str, "Error: ProcessTimers received unknown timer %d !\n",
-	    timer->which_timer);
-    diffPrint(DEBUG_IMPORTANT, debug_str);
-    delete [] debug_str;
+    diffPrint(DEBUG_IMPORTANT,
+	      "Error: ProcessTimers received unknown timer %d !\n",
+	      timer->which_timer);
 
     break;
   }
@@ -292,7 +194,6 @@ void GradientFilter::GradientTimeout()
   Routing_Entry *Rentry;
   Agents_Entry *Aentry;
   struct timeval tmv;
-  char *debug_str;
 
   diffPrint(DEBUG_MORE_DETAILS, "Gradient Timeout !\n");
 
@@ -309,11 +210,8 @@ void GradientFilter::GradientTimeout()
       Aentry = *Aitr;
       if (tmv.tv_sec > (Aentry->tv.tv_sec + GRADIENT_TIMEOUT)){
 
-	debug_str = new char[SMALL_DEBUG_MESSAGE];
-	sprintf(debug_str, "Deleting Gradient to node %d !\n",
-		Aentry->node_addr);
-	diffPrint(DEBUG_NO_DETAILS, debug_str);
-	delete [] debug_str;
+	diffPrint(DEBUG_NO_DETAILS, "Deleting Gradient to node %d !\n",
+		  Aentry->node_addr);
 
 	Aitr = Rentry->active.erase(Aitr);
 	delete Aentry;
@@ -328,10 +226,8 @@ void GradientFilter::GradientTimeout()
       Aentry = *Aitr;
       if (tmv.tv_sec > (Aentry->tv.tv_sec + GRADIENT_TIMEOUT)){
 
-	debug_str = new char[SMALL_DEBUG_MESSAGE];
-	sprintf(debug_str, "Deleting Gradient to agent %d !\n", Aentry->port);
-	diffPrint(DEBUG_NO_DETAILS, debug_str);
-	delete [] debug_str;
+	diffPrint(DEBUG_NO_DETAILS,
+		  "Deleting Gradient to agent %d !\n", Aentry->port);
 
 	Aitr = Rentry->agents.erase(Aitr);
 	delete Aentry;
@@ -362,8 +258,7 @@ void GradientFilter::ReinforcementTimeout()
   AgentsList::iterator Aitr;
   Routing_Entry *Rentry;
   Agents_Entry *Aentry;
-  Message *rmsg;
-  char *debug_str;
+  Message *neg_rmsg;
 
   diffPrint(DEBUG_MORE_DETAILS, "Reinforcement Timeout !\n");
 
@@ -377,22 +272,19 @@ void GradientFilter::ReinforcementTimeout()
     while (Aitr != Rentry->data_neighbors.end()){
       Aentry = *Aitr;
       if (Aentry->neighbor_flag == OLD_MESSAGE){
-	rmsg = new Message(DIFFUSION_VERSION, NEGATIVE_REINFORCEMENT,
-			   0, 0, Rentry->attrs->size(), pkt_count,
-			   rdm_id, Aentry->node_addr, LOCALHOST_ADDR);
-	rmsg->msg_attr_vec = CopyAttrs(Rentry->attrs);
+	neg_rmsg = new Message(DIFFUSION_VERSION, NEGATIVE_REINFORCEMENT,
+			       0, 0, Rentry->attrs->size(), pkt_count,
+			       rdm_id, Aentry->node_addr, LOCALHOST_ADDR);
+	neg_rmsg->msg_attr_vec = CopyAttrs(Rentry->attrs);
 
-	debug_str = new char[SMALL_DEBUG_MESSAGE];
-	
-	sprintf(debug_str, "Sending Negative Reinforcement to node %d !\n",
-		Aentry->node_addr);
-	diffPrint(DEBUG_NO_DETAILS, debug_str);
-	delete [] debug_str;
+	diffPrint(DEBUG_NO_DETAILS,
+		  "Sending Negative Reinforcement to node %d !\n",
+		  Aentry->node_addr);
 
-	((DiffusionRouting *)dr)->sendMessage(rmsg, filterHandle);
+	((DiffusionRouting *)dr)->sendMessage(neg_rmsg, filterHandle);
 
 	pkt_count++;
-	delete rmsg;
+	delete neg_rmsg;
 
 	// Done. Delete entry
 	Aitr = Rentry->data_neighbors.erase(Aitr);
@@ -553,8 +445,6 @@ void GradientFilter::UpdateAgent(Routing_Entry *entry, u_int16_t source_port)
   AgentsList::iterator itr;
   Agents_Entry *ae;
 
-  //itr = entry->agents.end();
-
   for (itr = entry->agents.begin(); itr != entry->agents.end(); ++itr){
     ae = *itr;
     if (ae->port == source_port){
@@ -578,7 +468,7 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
   AgentsList::iterator itr;
   Agents_Entry *ae, *Aentry;
   struct timeval tmv;
-  Message *mymsg, *rmsg, *dmsg;
+  Message *mymsg, *neg_rmsg, *dmsg, *pos_rmsg;
   TimerType *dtimer;
   unsigned int key[2];
   Hash_Entry *hEntry;
@@ -586,7 +476,6 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
   ReinforcementMessage *reinforcementblob;
   NRAttribute *reinfmsg;
   NRAttrVec *attrs;
-  char *debug_str;
 
   mymsg = CopyMessage(msg);
   getTime(&tmv);
@@ -599,13 +488,18 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
 
     // Forward DATA to local agents
     mymsg->next_hop = LOCALHOST_ADDR;
-    ((DiffusionRouting *)dr)->sendMessage(mymsg, filterHandle, ae->port);
+    mymsg->next_port = ae->port;
+
+    ((DiffusionRouting *)dr)->sendMessage(mymsg, filterHandle);
   }
 
-  if (msg->msg_type == FLAGGED_DATA && !reinforced &&
+  // Reset next_port to zero so message goes to other nodes
+  mymsg->next_port = 0;
+
+  if (msg->msg_type == EXPLORATORY_DATA && !reinforced &&
       entry->agents.size() > 0){
 
-    // Just send a single reinforcement per new flagged data message
+    // Just send a single reinforcement per new exploratory data message
     reinforced = true;
      
     // Send reinforcement to 'last_hop'
@@ -618,22 +512,25 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
     attrs = CopyAttrs(msg->msg_attr_vec);
     attrs->push_back(reinfmsg);
 
-    rmsg = new Message(DIFFUSION_VERSION, POSITIVE_REINFORCEMENT, 0, 0,
-		       attrs->size(), pkt_count, rdm_id, msg->last_hop,
-		       LOCALHOST_ADDR);
-    rmsg->msg_attr_vec = CopyAttrs(attrs);
+    pos_rmsg = new Message(DIFFUSION_VERSION, POSITIVE_REINFORCEMENT, 0, 0,
+			   attrs->size(), pkt_count, rdm_id, msg->last_hop,
+			   LOCALHOST_ADDR);
+    pos_rmsg->msg_attr_vec = CopyAttrs(attrs);
 
-    debug_str = new char[SMALL_DEBUG_MESSAGE];
+    diffPrint(DEBUG_NO_DETAILS,
+	      "Sending Positive Reinforcement to node %d !\n",
+	      msg->last_hop);
 
-    sprintf(debug_str, "Sending Positive Reinforcement to node %d !\n",
-	    msg->last_hop);
-    diffPrint(DEBUG_NO_DETAILS, debug_str);
-    delete [] debug_str;
+    // Create timer for sending this message later
+    dtimer = new TimerType(MESSAGE_SEND_TIMER);
+    dtimer->param = (void *) pos_rmsg;
 
-    ((DiffusionRouting *)dr)->sendMessage(rmsg, filterHandle);
+    // Add timer for forwarding the data packet
+    ((DiffusionRouting *)dr)->addTimer(POS_REINFORCEMENT_SEND_DELAY +
+				       (int) ((POS_REINFORCEMENT_JITTER * (rand() * 1.0 / RAND_MAX) - (POS_REINFORCEMENT_JITTER / 2))),
+				       (void *) dtimer, tcb);
 
     pkt_count++;
-    delete rmsg;
     ClearAttrs(attrs);
     delete reinforcementblob;
   }
@@ -643,15 +540,15 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
     if (tmv.tv_sec >= entry->tv.tv_sec){
       getTime(&(entry->tv));
       entry->tv.tv_sec = entry->tv.tv_sec + EXPLORATORY_MESSAGE_DELAY;
-      mymsg->msg_type = FLAGGED_DATA;
+      mymsg->msg_type = EXPLORATORY_DATA;
     }
   }
 
   // Step 3: Intermediate Processing
   SetReinforcementFlags(entry, msg->last_hop, NEW_MESSAGE);
 
-  // Add FLAGGED_DATA messages to hash table
-  if (msg->msg_type == FLAGGED_DATA){
+  // Add EXPLORATORY_DATA messages to hash table
+  if (msg->msg_type == EXPLORATORY_DATA){
     key[0] = msg->pkt_num;
     key[1] = msg->rdm_id;
 
@@ -661,7 +558,7 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
     PutHash(hEntry, key[0], key[1]);
   }
 
-  if (mymsg->msg_type == FLAGGED_DATA){
+  if (mymsg->msg_type == EXPLORATORY_DATA){
 #ifdef USE_BROADCAST_MAC
     if (entry->active.size() > 0){
       // Broadcast DATA message
@@ -697,10 +594,9 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
 	// Found reinforced path
 	mymsg->next_hop = ae->node_addr;
 
-	debug_str = new char[SMALL_DEBUG_MESSAGE];
-	sprintf(debug_str, "Forwarding data through Reinforced Gradient to node %d !\n", ae->node_addr);
-	diffPrint(DEBUG_NO_DETAILS, debug_str);
-	delete [] debug_str;
+	diffPrint(DEBUG_NO_DETAILS,
+		  "Forwarding data through Reinforced Gradient to node %d !\n",
+		  ae->node_addr);
 
 	((DiffusionRouting *)dr)->sendMessage(mymsg, filterHandle);
 
@@ -714,22 +610,19 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
       // No reinforced path found, send negative
       // reinforcement to last_hop
       if ((!has_sink) && (msg->last_hop != LOCALHOST_ADDR)){
-	rmsg = new Message(DIFFUSION_VERSION, NEGATIVE_REINFORCEMENT,
-			   0, 0, entry->attrs->size(), pkt_count,
-			   rdm_id, msg->last_hop, LOCALHOST_ADDR);
-	rmsg->msg_attr_vec = CopyAttrs(entry->attrs);
+	neg_rmsg = new Message(DIFFUSION_VERSION, NEGATIVE_REINFORCEMENT,
+			       0, 0, entry->attrs->size(), pkt_count,
+			       rdm_id, msg->last_hop, LOCALHOST_ADDR);
+	neg_rmsg->msg_attr_vec = CopyAttrs(entry->attrs);
 
-	debug_str = new char[SMALL_DEBUG_MESSAGE];
+	diffPrint(DEBUG_NO_DETAILS,
+		  "Sending Negative Reinforcement to node %d !\n",
+		  msg->last_hop);
 
-	sprintf(debug_str, "Sending Negative Reinforcement to node %d !\n",
-		msg->last_hop);
-	diffPrint(DEBUG_NO_DETAILS, debug_str);
-	delete [] debug_str;
-
-	((DiffusionRouting *)dr)->sendMessage(rmsg, filterHandle);
+	((DiffusionRouting *)dr)->sendMessage(neg_rmsg, filterHandle);
 
 	pkt_count++;
-	delete rmsg;
+	delete neg_rmsg;
       }
     }
   }
@@ -833,7 +726,9 @@ void GradientFilter::SendInterest(NRAttrVec *attrs, Routing_Entry *entry)
   for (itr = entry->agents.begin(); itr != entry->agents.end(); ++itr){
     ae = *itr;
 
-    ((DiffusionRouting *)dr)->sendMessage(msg, filterHandle, ae->port);
+    msg->next_port = ae->port;
+
+    ((DiffusionRouting *)dr)->sendMessage(msg, filterHandle);
   }
 
   delete msg;
@@ -866,15 +761,10 @@ void GradientFilter::SendDisinterest(NRAttrVec *attrs, Routing_Entry *entry)
 
 void GradientFilter::recv(Message *msg, handle h)
 {
-  char *debug_str;
-
   if (h != filterHandle){
-
-    debug_str = new char[SMALL_DEBUG_MESSAGE];
-    sprintf(debug_str, "Error: received msg for handle %d, subscribed to handle %d !\n", h, filterHandle);
-    diffPrint(DEBUG_ALWAYS, debug_str);
-    delete [] debug_str;
-
+    diffPrint(DEBUG_ALWAYS,
+	      "Error: received msg for handle %d, subscribed to handle %d !\n",
+	      h, filterHandle);
     return;
   }
 
@@ -888,7 +778,6 @@ void GradientFilter::ProcessOldMessage(Message *msg)
 {
   Routing_Entry *entry;
   RoutingList::iterator place;
-  char *debug_str;
 
   switch (msg->msg_type){
 
@@ -918,10 +807,8 @@ void GradientFilter::ProcessOldMessage(Message *msg)
     entry = FindRoutingEntry(msg->msg_attr_vec, place, &place);
 
     while (entry){
-      debug_str = new char[SMALL_DEBUG_MESSAGE];
-      sprintf(debug_str, "Set flags to %d to OLD_MESSAGE !\n", msg->last_hop);
-      diffPrint(DEBUG_NO_DETAILS, debug_str);
-      delete [] debug_str;
+      diffPrint(DEBUG_NO_DETAILS,
+		"Set flags to %d to OLD_MESSAGE !\n", msg->last_hop);
 
       SetReinforcementFlags(entry, msg->last_hop, OLD_MESSAGE);
       place++;
@@ -930,12 +817,11 @@ void GradientFilter::ProcessOldMessage(Message *msg)
 
     break;
 
-  case FLAGGED_DATA:
+  case EXPLORATORY_DATA:
 
     // Just drop it
-    
     diffPrint(DEBUG_NO_DETAILS,
-	      "Received an old Flagged Data. Loop detected !\n");
+	      "Received an old Exploratory Data. Loop detected !\n");
 
     break;
 
@@ -949,11 +835,8 @@ void GradientFilter::ProcessOldMessage(Message *msg)
 
     diffPrint(DEBUG_IMPORTANT, "Received an old Negative Reinforcement !\n");
 
-    debug_str = new char[SMALL_DEBUG_MESSAGE];
-    sprintf(debug_str, "pkt_num = %d, rdm_id = %d !\n",
-	    msg->pkt_num, msg->rdm_id);
-    diffPrint(DEBUG_IMPORTANT, debug_str);
-    delete [] debug_str;
+    diffPrint(DEBUG_IMPORTANT, "pkt_num = %d, rdm_id = %d !\n",
+	      msg->pkt_num, msg->rdm_id);
 
     break;
 
@@ -972,20 +855,20 @@ void GradientFilter::ProcessNewMessage(Message *msg)
   Attribute_Entry *ae;
   Agents_Entry *aentry;
   AgentsList::iterator al_itr;
-  Message *rmsg;
+  Message *neg_rmsg;
   bool new_data_type = false;
   bool reinforced = false;
   Hash_Entry *hEntry;
   unsigned int key[2];
   ReinforcementMessage *reinforcementMsg;
   NRSimpleAttribute<void *> *reinforcementAttr = NULL;
-  char *debug_str;
 
   switch (msg->msg_type){
 
   case INTEREST:
 
     diffPrint(DEBUG_NO_DETAILS, "Received Interest !\n");
+
     // Step 1: Look for the same data type
     entry = FindPerfectMatch(msg->msg_attr_vec);
 
@@ -1075,16 +958,12 @@ void GradientFilter::ProcessNewMessage(Message *msg)
       break;
 
   case DATA:
-  case FLAGGED_DATA:
+  case EXPLORATORY_DATA:
 
-    if (msg->msg_type == DATA) {
-
+    if (msg->msg_type == DATA)
       diffPrint(DEBUG_NO_DETAILS, "Received Data !\n");
-    }
-    else {
-
-      diffPrint(DEBUG_NO_DETAILS, "Received Flagged Data !\n");
-    }
+    else
+      diffPrint(DEBUG_NO_DETAILS, "Received Exploratory Data !\n");
 
     // Find the correct routing entry
     place = routing_list.begin();
@@ -1135,11 +1014,9 @@ void GradientFilter::ProcessNewMessage(Message *msg)
     if (hEntry){
       msg->next_hop = hEntry->last_hop;
 
-      debug_str = new char[SMALL_DEBUG_MESSAGE];
-      sprintf(debug_str, "Forwarding Positive Reinforcement to node %d !\n",
-	      hEntry->last_hop);
-      diffPrint(DEBUG_NO_DETAILS, debug_str);
-      delete [] debug_str;
+      diffPrint(DEBUG_NO_DETAILS,
+		"Forwarding Positive Reinforcement to node %d !\n",
+		hEntry->last_hop);
 
       ((DiffusionRouting *)dr)->sendMessage(msg, filterHandle);
     }
@@ -1163,18 +1040,18 @@ void GradientFilter::ProcessNewMessage(Message *msg)
 	// If there are no other reinforced outgoing gradients
 	// we need to send our own negative reinforcement
 	if (!aentry){
-	  rmsg = new Message(DIFFUSION_VERSION, NEGATIVE_REINFORCEMENT,
-			     0, 0, entry->attrs->size(), pkt_count,
-			     rdm_id, BROADCAST_ADDR, LOCALHOST_ADDR);
-	  rmsg->msg_attr_vec = CopyAttrs(entry->attrs);
+	  neg_rmsg = new Message(DIFFUSION_VERSION, NEGATIVE_REINFORCEMENT,
+				 0, 0, entry->attrs->size(), pkt_count,
+				 rdm_id, BROADCAST_ADDR, LOCALHOST_ADDR);
+	  neg_rmsg->msg_attr_vec = CopyAttrs(entry->attrs);
 
 	  diffPrint(DEBUG_NO_DETAILS,
 		    "Forwarding Negative Reinforcement to ALL !\n");
 
-	  ((DiffusionRouting *)dr)->sendMessage(rmsg, filterHandle);
+	  ((DiffusionRouting *)dr)->sendMessage(neg_rmsg, filterHandle);
 
 	  pkt_count++;
-	  delete rmsg;
+	  delete neg_rmsg;
 	}
       }
     }
@@ -1257,124 +1134,46 @@ handle GradientFilter::setupFilter()
   return h;
 }
 
-#ifdef SCADDS
+#ifndef NS_DIFFUSION
 void GradientFilter::run()
 {
   // Doesn't do anything
   while (1){
-    sleep(10);
+    sleep(1000);
   }
 }
-#endif //scadds
+#endif // NS_DIFFUSION
 
 #ifdef NS_DIFFUSION
-GradientFilter::GradientFilter(const char *diffrtg) {
+GradientFilter::GradientFilter(const char *diffrtg)
+{
+  DiffAppAgent *agent;
 #else
-GradientFilter::GradientFilter(int argc, char **argv) {
-#endif
-  int opt;
-  long stop_time;
+GradientFilter::GradientFilter(int argc, char **argv)
+{
+#endif // NS_DIFFUSION
   struct timeval tv;
-  u_int16_t diffusion_port = DEFAULT_DIFFUSION_PORT;
-  char *debug_str;
-
-  // Parse command line options
-  global_debug_level = DEFAULT_DEBUG_LEVEL;
-  opterr = 0;
-  stop_time = 0;
-
-#ifdef SCADDS
-  while (1){
-    opt = getopt(argc, argv, "hd:t:p:");
-    switch (opt){
-
-    case 'p':
-
-      diffusion_port = (u_int16_t) atoi(optarg);
-      if ((diffusion_port < 1024) || (diffusion_port >= 65535)){
-	diffPrint(DEBUG_ALWAYS, "Error: Diffusion port must be between 1024 and 65535 !\n");
-	exit(-1);
-      }
-
-      break;
-
-    case 't':
-
-      stop_time = atol(optarg);
-      if (stop_time <= 0){
-	diffPrint(DEBUG_ALWAYS, "Error: stop time must be > 0\n");
-	exit(0);
-      }
-      else{
-	debug_str = new char[SMALL_DEBUG_MESSAGE];
-	sprintf(debug_str, "Gradient will stop after %ld seconds\n",
-		stop_time);
-	diffPrint(DEBUG_ALWAYS, debug_str);
-	delete [] debug_str;
-      }
-
-      break;
-
-    case 'h':
-
-      usage();
-
-      break;
-
-    case 'd':
-
-      global_debug_level = atoi(optarg);
-
-      if (global_debug_level < 1 || global_debug_level > 10){
-	global_debug_level = DEFAULT_DEBUG_LEVEL;
-	diffPrint(DEBUG_ALWAYS, "Error: Debug level outside range or missing !\n");
-	usage();
-      }
-
-      break;
-
-    case '?':
-
-      debug_str = new char[SMALL_DEBUG_MESSAGE];
-      sprintf(debug_str, "Error: %c isn't a valid option or its parameter is missing !\n", optopt);
-      diffPrint(DEBUG_ALWAYS, debug_str);
-      delete [] debug_str;
-      usage();
-
-      break;
-
-    case ':':
-
-      diffPrint(DEBUG_ALWAYS, "Parameter missing !\n");
-      usage();
-
-      break;
-
-    }
-
-    if (opt == -1)
-      break;
-  }
-
-#endif //scadds
 
   getTime(&tv);
-  //srand(tv.tv_usec);
-  getSeed(tv);
+  getSeed(&tv);
   pkt_count = rand();
   rdm_id = rand();
 
   // Create Diffusion Routing class
 #ifdef NS_DIFFUSION
-  DiffAppAgent *agent;
   agent = (DiffAppAgent *)TclObject::lookup(diffrtg);
   dr = agent->dr();
 #else
+  ParseCommandLine(argc, argv);
   dr = NR::createNR(diffusion_port);
-#endif
+#endif // NS_DIFFUSION
 
-  fcb = new MyFilterReceive(this);
-  tcb = new MyTimerReceive(this);
+  // Create callback classes and set up pointers
+  fcb = new GradientFilterReceive;
+  tcb = new MyTimerReceive;
+
+  fcb->app = this;
+  tcb->app = this;
 
   // Initialize Hashing structures
   Tcl_InitHashTable(&htable, 2);
@@ -1383,13 +1182,9 @@ GradientFilter::GradientFilter(int argc, char **argv) {
   filterHandle = setupFilter();
 
   // Print filter information
-  debug_str = new char[SMALL_DEBUG_MESSAGE];
-  sprintf(debug_str, "GR: pkt_count=%d, rdm_id=%d\n", pkt_count, rdm_id);
-  diffPrint(DEBUG_ALWAYS, debug_str);
-  sprintf(debug_str, "Gradient filter subscribed to *, received handle %d\n",
-	  filterHandle);
-  diffPrint(DEBUG_IMPORTANT, debug_str);
-  delete [] debug_str;
+  diffPrint(DEBUG_IMPORTANT,
+	    "Gradient filter subscribed to *, received handle %d\n",
+	    filterHandle);
 
   // Add the Gradient Timer
   TimerType *timer;
@@ -1400,31 +1195,21 @@ GradientFilter::GradientFilter(int argc, char **argv) {
   timer = new TimerType(REINFORCEMENT_TIMER);
   ((DiffusionRouting *)dr)->addTimer(REINFORCEMENT_DELAY, (void *) timer, tcb);
 
-  if (stop_time > 0){
-    timer = new TimerType(STOP_TIMER);
-    ((DiffusionRouting *)dr)->addTimer(stop_time*1000, (void *) timer, tcb);
-  }
-
   getTime(&tv);
 
-  debug_str = new char[SMALL_DEBUG_MESSAGE];
-  sprintf(debug_str, "Gradient filter initialized at time %ld:%ld!\n",
-	  tv.tv_sec, tv.tv_usec);
-  diffPrint(DEBUG_ALWAYS, debug_str);
-  delete [] debug_str;
-
+  diffPrint(DEBUG_ALWAYS, "Gradient filter initialized at time %ld:%ld!\n",
+	    tv.tv_sec, tv.tv_usec);
 }
 
-
-#ifdef SCADDS
+#ifndef NS_DIFFUSION
 int main(int argc, char **argv)
 {
-  // Initialize and run the Gradient Filter
   GradientFilter *app;
+
+  // Initialize and run the Gradient Filter
   app = new GradientFilter(argc, argv);
   app->run();
 
   return 0;
 }
-#endif
-#endif // NS
+#endif // NS_DIFFUSION

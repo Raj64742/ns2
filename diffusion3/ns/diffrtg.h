@@ -34,8 +34,10 @@
 #ifndef DIFFUSION_RTG
 #define DIFFUSION_RTG
 
-#include "diffusion.hh"
+//#include "diffusion.hh"
 #include "difftimer.h"
+#include "iodev.hh"
+#include "events.hh"
 #include "classifier-port.h"
 #include "ll.h"
 #include "ns-process.h"
@@ -43,7 +45,9 @@
 #include "trace.h"
 
 
+class DiffusionCoreAgent;
 class DiffRoutingAgent;
+extern DiffPacket DupPacket(DiffPacket pkt);
 
 class LocalApp : public DiffusionIO {
 public:
@@ -80,8 +84,8 @@ private:
 public:
   DiffusionData(DiffPacket data, int len) : AppData(DIFFUSION_DATA), data_(0)
     { 
-      data_ = DupPacket(data);
-      len_ = len;
+	    data_ = DupPacket(data);
+	    len_ = len;
     }
   ~DiffusionData() { delete [] data_; }
   DiffPacket data() {return data_;}

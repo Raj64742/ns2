@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: gradient.hh,v 1.2 2001/11/20 22:31:04 haldar Exp $
+// $Id: gradient.hh,v 1.3 2001/12/11 23:21:43 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -18,29 +18,19 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
-// *******************************************************************
-// Ported from SCADDS group's implementation of directed diffusion 
-// into ns-2. Padma Haldar, nov 2001.
-// ********************************************************************
 //
-//
-
-#ifdef NS_DIFFUSION
 
 #ifndef GRADIENT_HH
 #define GRADIENT_HH
 
-#include <stdlib.h>
-#include <stdio.h>
-#include "dr.hh"
+#include "diffapp.hh"
 
 #ifdef NS_DIFFUSION
 #include <tcl.h>
+#include "diffagent.h"
 #else
 #include "hashutils.hh"
-#endif 
-
-#include "diffapp.h"
+#endif // NS_DIFFUSION
 
 #define GRADIENT_FILTER_PRIORITY 2
 #define OLD_MESSAGE -1
@@ -60,6 +50,7 @@ public:
 class Attribute_Entry;
 class Routing_Entry;
 class Agents_Entry;
+class GradientFilter;
 
 typedef list<Attribute_Entry *> AttributeList;
 typedef list<Routing_Entry *> RoutingList;
@@ -76,22 +67,19 @@ public:
   };
 };
 
-class GradientFilter;
-class MyFilterReceive : public FilterCallback {
+class GradientFilterReceive : public FilterCallback {
 public:
-  MyFilterReceive(GradientFilter *gf) { app_ = gf; }
+  GradientFilter *app;
+
   void recv(Message *msg, handle h);
-protected:
-  GradientFilter *app_;
 };
 
 class MyTimerReceive : public TimerCallbacks {
 public:
-  MyTimerReceive(GradientFilter *gf) { app_ = gf; }
+  GradientFilter *app;
+
   int recv(handle hdl, void *p);
   void del(void *p);
-protected:
-  GradientFilter *app_;  
 };
 
 class TimerType {
@@ -138,7 +126,10 @@ public:
   struct timeval  tv;
   AgentsList      data_neighbors;
  
-  Routing_Entry();
+  Routing_Entry() {
+    getTime(&tv);
+  };
+
   ~Routing_Entry() {
     AttributeList::iterator ATitr;
     AgentsList::iterator AGitr;
@@ -172,33 +163,25 @@ public:
     agents.clear();
   };
 };
-#ifdef NS_DIFFUSION
- //class GradientFilter : public DiffApp {
-class GradientFilter : public Application {
-#else
-class GradientFilter {
-#endif // NS
+
+class GradientFilter : public DiffApp {
 public:
 #ifdef NS_DIFFUSION
   GradientFilter(const char *dr);
   int command(int argc, const char*const* argv);
   void run() {}
-  void start();
 #else
   GradientFilter(int argc, char **argv);
-  void usage();
   void run();
-  void TimetoStop();
-#endif //ns
+#endif // NS_DIFFUSION
 
   void recv(Message *msg, handle h);
   int ProcessTimers(handle hdl, void *p);
 
 protected:
 
-  NR *dr;
-
   // General Variables
+  NR *dr;
   handle filterHandle;
   int pkt_count;
   int rdm_id;
@@ -208,7 +191,7 @@ protected:
   Tcl_HashTable htable;
 
   // Receive Callback for the filter
-  MyFilterReceive *fcb;
+  GradientFilterReceive *fcb;
   MyTimerReceive *tcb;
 
   // List of all known datatypes
@@ -246,7 +229,6 @@ protected:
   void GradientTimeout();
   void ReinforcementTimeout();
   int SubscriptionTimeout(NRAttrVec *attrs);
-
   
   // Hashing functions
   Hash_Entry *GetHash(unsigned int, unsigned int);
@@ -254,4 +236,3 @@ protected:
 };
 
 #endif //GRADIENT_HH
-#endif // NS

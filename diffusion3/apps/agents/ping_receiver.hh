@@ -1,9 +1,9 @@
 //
-// agent.hh       : Agents Include File
-// author         : Fabio Silva
+// ping_receiver.hh : Ping Receiver Include File
+// author           : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: agent.hh,v 1.3 2001/12/11 23:21:43 haldar Exp $
+// $Id: ping_receiver.hh,v 1.1 2001/12/11 23:21:42 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,21 +20,40 @@
 //
 //
 
-#include <stdlib.h>
-#include <stdio.h>
-#include "dr.hh"
+#include "ping.hh"
 
-class MyReceive : public NR::Callback {
+class MyReceiverReceive;
 
+class PingReceiverApp : public DiffApp {
 public:
+#ifdef NS_DIFFUSION
+  PingReceiverApp();
+  int command(int argc, const char*const* argv);
+#else
+  PingReceiverApp(int argc, char **argv);
+#endif // NS_DIFFUSION
+
   void recv(NRAttrVec *data, NR::handle my_handle);
+  void run();
+
+private:
+  // NR Specific variables
+  MyReceiverReceive *mr;
+  handle subHandle;
+  handle pubHandle;
+
+  // Ping App variables
+  int last_seq_recv;
+  int num_msg_recv;
+  int first_msg_recv;
+
+  handle setupSubscription();
+  handle setupPublication();
 };
 
-#define APP_KEY1 3500
-#define APP_KEY2 3600
-#define APP_KEY3 3601
+class MyReceiverReceive : public NR::Callback {
+public:
+  PingReceiverApp *app;
 
-extern NRSimpleAttributeFactory<char *> TargetAttr;
-extern NRSimpleAttributeFactory<int> AppDummyAttr;
-extern NRSimpleAttributeFactory<char *> AppStringAttr;
-extern NRSimpleAttributeFactory<int> AppCounterAttr;
+  void recv(NRAttrVec *data, NR::handle my_handle);
+};

@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.cc,v 1.3 2001/11/29 23:22:36 haldar Exp $
+// $Id: dr.cc,v 1.4 2001/12/11 23:21:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -18,44 +18,15 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
-// *******************************************************************
-// Ported from SCADDS group's implementation of directed diffusion 
-// into ns-2. Padma Haldar, nov 2001.
-// ********************************************************************
-#ifdef NS_DIFFUSION
+//
 
 #include <stdlib.h>
 #include <stdio.h>
 
 #include "dr.hh"
 
-
-#ifdef SCADDS
-
-NR *dr = NULL;
-
-void * ReceiveThread(void *dr)
-{
-  // Never returns
-  ((DiffusionRouting *)dr)->run();
-
-  return NULL;
-}
-
-#endif //scadds
-
 #ifdef NS_DIFFUSION
-
 class DiffEventQueue;
-
-// ********************************************************************
-// All major changes pertaining to NS go under here. 
-// Note all changes specific for NS have been marked off by 
-// ifdef NS_DIFFUSION statements.
-// scadds specific code not applicable to ns has been marked off
-// with ifdef SCADDS statements
-// ********************************************************************
-
 
 int DiffusionRouting::get_agentid(int id = -1) {
   if (id != -1)
@@ -66,52 +37,59 @@ int DiffusionRouting::get_agentid(int id = -1) {
 NR * NR::create_ns_NR(u_int16_t port, DiffAppAgent *da) {
   return(new DiffusionRouting(port, da));
 }
-#endif
+#else
+NR *dr = NULL;
 
+void * ReceiveThread(void *dr)
+{
+  // Never returns
+  ((DiffusionRouting *)dr)->run();
 
-#ifdef SCADDS
-NR * NR::createNR(u_int16_t port = 0) {
+  return NULL;
+}
 
+NR * NR::createNR(u_int16_t port = 0)
+{
   int retval;
   pthread_t thread;
-  
+
   // Create Diffusion Routing Class
   if (dr)
     return dr;
 
   dr = new DiffusionRouting(port);
+
   // Fork a thread for receiving Messages
   retval = pthread_create(&thread, NULL, &ReceiveThread, (void *)dr);
-  
+
   if (retval){
     diffPrint(DEBUG_ALWAYS, "Error creating receiving thread ! Aborting...\n");
     exit(-1);
   }
-  
+
   return dr;
 }
-#endif //scadds
-  
+#endif // NS_DIFFUSION
 
 #ifdef NS_DIFFUSION
 DiffusionRouting::DiffusionRouting(u_int16_t port, DiffAppAgent *da)
 #else
 DiffusionRouting::DiffusionRouting(u_int16_t port)
-#endif
+#endif // NS_DIFFUSION
 {
-  char *debug_str;
   struct timeval tv;
   DiffusionIO *device;
 
   // Initialize basic stuff
   next_handle = 1;
   getTime(&tv);
-  //srand(tv.tv_usec);
-  getSeed(tv);
-  pkt_count = rand();
-  rdm_id = rand();
+  getSeed(&tv);
+  //pkt_count = rand();
+  //rdm_id = rand();
+  pkt_count = getRand();
+  rdm_id = getRand();
   agent_id = 0;
-  
+
   if (port == 0)
     port = DEFAULT_DIFFUSION_PORT;
 
@@ -122,32 +100,25 @@ DiffusionRouting::DiffusionRouting(u_int16_t port)
   eq = new DiffEventQueue(da);
 #else
   eq = new eventQueue;
-#endif
+#endif // NS_DIFFUSION
   eq->eq_new();
 
   // Initialize input device
-
 #ifdef NS_DIFFUSION
   device = new NsLocal(da);
   local_out_devices.push_back(device);
-#endif //ns
+#endif // NS_DIFFUSION
 
 #ifdef UDP
   device = new UDPLocal(&agent_id);
   in_devices.push_back(device);
   local_out_devices.push_back(device);
-#endif
+#endif // UDP
 
   // Print initialization message
-  debug_str = new char[SMALL_DEBUG_MESSAGE];
-  sprintf(debug_str, "Diffusion Routing Agent initializing... Agent Id = %d\n",
-	  agent_id);
-  diffPrint(DEBUG_ALWAYS, debug_str);
-
-  sprintf(debug_str, "DR:pkt_count=%d, rdm_id=%d\n",pkt_count, rdm_id);
-  diffPrint(DEBUG_ALWAYS, debug_str);
-  
-  delete [] debug_str;
+  diffPrint(DEBUG_ALWAYS,
+	    "Diffusion Routing Agent initializing... Agent Id = %d\n",
+	    agent_id);
 
   listening = true;
 
@@ -198,7 +169,6 @@ handle DiffusionRouting::subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb)
 
   return my_handle->hdl;
 }
-
 
 int DiffusionRouting::unsubscribe(handle subscription_handle)
 {
@@ -252,7 +222,7 @@ handle DiffusionRouting::publish(NRAttrVec *publishAttrs)
     scopeAttr = NRScopeAttr.make(NRAttribute::IS, NRAttribute::NODE_LOCAL_SCOPE);
     my_handle->attrs->push_back(scopeAttr);
   }
-  
+
   // Release the lock
   pthread_mutex_unlock(drMtx);
 
@@ -386,6 +356,12 @@ handle DiffusionRouting::addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
   int len;
   char *pos;
 
+  // Check parameters
+  if (!filterAttrs || !cb || priority < FILTER_MIN_PRIORITY || priority > FILTER_MAX_PRIORITY){
+    diffPrint(DEBUG_ALWAYS, "Received invalid parameters when adding filter !\n");
+    return FAIL;
+  }
+
   // Get lock first
   pthread_mutex_lock(drMtx);
 
@@ -439,7 +415,6 @@ handle DiffusionRouting::addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
   pthread_mutex_unlock(queueMtx);
 
   delete [] out_pkt;
-
   ClearAttrs(attrs);
   delete attrs;
   delete controlblob;
@@ -507,7 +482,6 @@ int DiffusionRouting::removeFilter(handle filterHandle)
   entry->valid = false;
 
   delete [] out_pkt;
-
   ClearAttrs(&attrs);
   delete controlblob;
 
@@ -532,9 +506,8 @@ handle DiffusionRouting::addTimer(int timeout, void *p, TimerCallbacks *cb)
   return entry->hdl;
 }
 
-#ifdef SCADDS
-// Future work for NS: add support for removing events from event queue
-
+#ifndef NS_DIFFUSION
+// This function is currently unsupported in the NS implementation of diffusion
 int DiffusionRouting::removeTimer(handle hdl)
 {
   event *e;
@@ -573,7 +546,7 @@ int DiffusionRouting::removeTimer(handle hdl)
 
   return found;
 }
-#endif //scadds
+#endif // NS_DIFFUSION
 
 void DiffusionRouting::FilterKeepaliveTimeout(Filter_Entry *entry)
 {
@@ -629,9 +602,7 @@ void DiffusionRouting::FilterKeepaliveTimeout(Filter_Entry *entry)
 
     ClearAttrs(&attrs);
     delete controlblob;
-
     delete [] out_pkt;
-
   }
   else{
     // Filter was removed
@@ -683,14 +654,17 @@ void DiffusionRouting::InterestTimeout(Handle_Entry *entry)
 
     // Add another InterestTimeout to the queue
     pthread_mutex_lock(queueMtx);
+    //eq->eq_addAfter(INTEREST_TIMER, (void *) entry,
+    //INTEREST_DELAY +
+    //(int) ((INTEREST_JITTER * (rand() * 1.0 / RAND_MAX)) -
+    //     (INTEREST_JITTER / 2)));
     eq->eq_addAfter(INTEREST_TIMER, (void *) entry,
 		    INTEREST_DELAY +
-		    (int) ((INTEREST_JITTER * (rand() * 1.0 / RAND_MAX)) -
+		    (int) ((INTEREST_JITTER * (getRand() * 1.0 / RAND_MAX)) -
 			   (INTEREST_JITTER / 2)));
     pthread_mutex_unlock(queueMtx);
-
+    
     delete [] out_pkt;
-
   }
   else{
     // Interest was canceled. Just delete it from the handle_list
@@ -726,20 +700,23 @@ void DiffusionRouting::ApplicationTimeout(Timer_Entry *entry)
   }
 
   pthread_mutex_unlock(queueMtx);
-
 }
 
-void DiffusionRouting::sendMessage(Message *msg, handle h,
-				   u_int16_t dst_agent_id = 0)
+int DiffusionRouting::sendMessage(Message *msg, handle h,
+				  u_int16_t priority = FILTER_KEEP_PRIORITY)
 {
-  DiffPacket out_pkt;
-  struct hdr_diff *dfh;
   RedirectMessage *originalHdr;
   NRAttribute *originalAttr, *ctrlmsg;
   ControlMessage *controlblob;
   NRAttrVec *attrs;
+  DiffPacket out_pkt;
+  struct hdr_diff *dfh;
   int len;
   char *pos;
+
+  if ((priority < FILTER_MIN_PRIORITY) ||
+      (priority > FILTER_KEEP_PRIORITY))
+    return FAIL;
 
   // Create an attribute with the original header
   originalHdr = new RedirectMessage;
@@ -752,6 +729,7 @@ void DiffusionRouting::sendMessage(Message *msg, handle h,
   originalHdr->next_hop = msg->next_hop;
   originalHdr->last_hop = msg->last_hop;
   originalHdr->new_message = msg->new_message;
+  originalHdr->next_port = msg->next_port;
   originalHdr->handle = 0;
 
   originalAttr = OriginalHdrAttr.make(NRAttribute::IS, (void *)originalHdr, sizeof(RedirectMessage));
@@ -759,79 +737,8 @@ void DiffusionRouting::sendMessage(Message *msg, handle h,
   // Create the attribute with the control message
   controlblob = new ControlMessage;
   controlblob->command = SEND_MESSAGE;
-  controlblob->param1 = dst_agent_id;
-  controlblob->param2 = 0;
-
-  ctrlmsg = ControlMsgAttr.make(NRAttribute::IS, (void *)controlblob, sizeof(ControlMessage));
-
-  // Copy Attributes and add the originalAttr
-  attrs = CopyAttrs(msg->msg_attr_vec);
-  attrs->push_back(originalAttr);
-  attrs->push_back(ctrlmsg);
-
-  // Send the CONTROL message to diffusion
-  out_pkt = AllocateBuffer(attrs);
-  dfh = HDR_DIFF(out_pkt);
-
-  pos = (char *) out_pkt;
-  pos = pos + sizeof(struct hdr_diff);
-
-  len = PackAttrs(attrs, pos);
-
-  // Prepare packet header to send
-  LAST_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NEXT_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NUM_ATTR(dfh) = htons(attrs->size());
-  PKT_NUM(dfh) = htonl(pkt_count);
-  pkt_count++;
-  RDM_ID(dfh) = htonl(rdm_id);
-  SRC_PORT(dfh) = htons(agent_id);
-  VERSION(dfh) = DIFFUSION_VERSION;
-  MSG_TYPE(dfh) = CONTROL;
-  DATA_LEN(dfh) = htons(len);
-
-  // Send Packet
-  snd(out_pkt, sizeof(hdr_diff) + len, diffusion_port);
-
-  delete [] out_pkt;
-
-  ClearAttrs(attrs);
-  delete attrs;
-  delete controlblob;
-  delete originalHdr;
-}
-
-void DiffusionRouting::sendMessageToNext(Message *msg, handle h)
-{
-  RedirectMessage *originalHdr;
-  NRAttribute *originalAttr, *ctrlmsg;
-  ControlMessage *controlblob;
-  NRAttrVec *attrs;
-  DiffPacket out_pkt;
-  struct hdr_diff *dfh;
-  int len;
-  char *pos;
-
-  // Create an attribute with the original header
-  originalHdr = new RedirectMessage;
-  originalHdr->msg_type = msg->msg_type;
-  originalHdr->source_port = msg->source_port;
-  originalHdr->data_len = msg->data_len;
-  originalHdr->num_attr = msg->num_attr;
-  originalHdr->pkt_num = msg->pkt_num;
-  originalHdr->rdm_id = msg->rdm_id;
-  originalHdr->next_hop = msg->next_hop;
-  originalHdr->last_hop = msg->last_hop;
-  originalHdr->new_message = msg->new_message;
-  originalHdr->handle = 0;
-
-  originalAttr = OriginalHdrAttr.make(NRAttribute::IS, (void *)originalHdr, sizeof(RedirectMessage));
-
-  // Create the attribute with the control message
-  controlblob = new ControlMessage;
-  controlblob->command = SEND_TO_NEXT;
   controlblob->param1 = h;
-  controlblob->param2 = 0;
+  controlblob->param2 = priority;
 
   ctrlmsg = ControlMsgAttr.make(NRAttribute::IS, (void *)controlblob, sizeof(ControlMessage));
 
@@ -865,14 +772,15 @@ void DiffusionRouting::sendMessageToNext(Message *msg, handle h)
   snd(out_pkt, sizeof(hdr_diff) + len, diffusion_port);
 
   delete [] out_pkt;
-
   ClearAttrs(attrs);
   delete attrs;
   delete controlblob;
   delete originalHdr;
+
+  return OK;
 }
 
-#ifdef SCADDS
+#ifndef NS_DIFFUSION
 void DiffusionRouting::run()
 {
   DeviceList::iterator itr;
@@ -882,7 +790,6 @@ void DiffusionRouting::run()
   fd_set fds;
   struct timeval *tv;
   struct timeval tmv;
-  char *debug_str;
 
   while (listening){
     FD_ZERO(&fds);
@@ -974,16 +881,13 @@ void DiffusionRouting::run()
       }
       else
 	if (status < 0){
-	  debug_str = new char[SMALL_DEBUG_MESSAGE];
-	  sprintf(debug_str, "Select returned %d\n", status);
-	  diffPrint(DEBUG_IMPORTANT, debug_str);
-	  delete [] debug_str;
+	  diffPrint(DEBUG_IMPORTANT, "Select returned %d\n", status);
 	}
     }
   }
 }
-#endif //scadds
 
+#endif // NS_DIFFUSION
 
 void DiffusionRouting::snd(DiffPacket pkt, int len, int dst)
 {
@@ -1025,13 +929,7 @@ void DiffusionRouting::recv(DiffPacket pkt)
   rcv_message = new Message(version, msg_type, source_port, data_len,
 			    num_attr, pkt_num, rdm_id, next_hop, last_hop);
 
-  int total_size = sizeof(struct hdr_diff) + data_len;
-
-  //rcv_message->msg = pkt;
-  rcv_message->msg_size = total_size;
-
   // Read all attributes into the Message structure
-  //rcv_message->msg_attr_vec = UnpackAttrs(rcv_message->msg, num_attr);
   rcv_message->msg_attr_vec = UnpackAttrs(pkt, num_attr);
 
   // Process the incoming message
@@ -1041,14 +939,13 @@ void DiffusionRouting::recv(DiffPacket pkt)
     ProcessMessage(rcv_message);
 
   // We are dome
-
   delete rcv_message;
-#ifdef SCADDS
-  // diffPacket deleted when Packet::free() gets called
-  // from recv(Packet*, handler*)
-  delete [] pkt;
-#endif
 
+#ifndef NS_DIFFUSION
+  // In the NS implementation, the packet gets deleted when
+  // Packet::free() gets called from recv(Packet *, handler *)
+  delete [] pkt;
+#endif // NS_DIFFUSION
 }
 
 void DiffusionRouting::ProcessControlMessage(Message *msg)
@@ -1062,7 +959,7 @@ void DiffusionRouting::ProcessControlMessage(Message *msg)
   // Find the attribute containing the original packet header
   originalHeader = OriginalHdrAttr.find_from(msg->msg_attr_vec, place, &place);
   if (!originalHeader){
-    diffPrint(DEBUG_ALWAYS, "Error: DiffusionRouting::ProcessControlMessage: Received an invalid REDIRECT message !\n");
+    diffPrint(DEBUG_ALWAYS, "Error: Received an invalid REDIRECT message !\n");
     return;
   }
 
@@ -1077,6 +974,7 @@ void DiffusionRouting::ProcessControlMessage(Message *msg)
   msg->last_hop = originalHdr->last_hop;
   msg->num_attr = originalHdr->num_attr;
   msg->new_message = originalHdr->new_message;
+  msg->next_port = originalHdr->next_port;
 
   // Delete attribute from the original set
   msg->msg_attr_vec->erase(place);
@@ -1092,11 +990,11 @@ void DiffusionRouting::ProcessControlMessage(Message *msg)
       entry->cb->recv(msg, my_handle);
     }
     else{
-      diffPrint(DEBUG_ALWAYS, "Warning: DiffusionRouting::ProcessControlMessage: Filter specified doesn't match incoming message's attributes !\n");
+      diffPrint(DEBUG_ALWAYS, "Warning: Filter specified doesn't match incoming message's attributes !\n");
     }
   }
   else{
-    diffPrint(DEBUG_IMPORTANT, "Report: DiffusionRouting::ProcessControlMessage: Filter in REDIRECT message was not found (possibly deleted ?)\n");
+    diffPrint(DEBUG_IMPORTANT, "Report: Filter in REDIRECT message was not found (possibly deleted ?)\n");
   }
 
   pthread_mutex_unlock(drMtx);
@@ -1287,4 +1185,3 @@ bool DiffusionRouting::checkSend(NRAttrVec *attrs)
 
   return true;
 }
-#endif // NS

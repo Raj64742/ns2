@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: attrs.cc,v 1.2 2001/11/20 22:28:16 haldar Exp $
+// $Id: attrs.cc,v 1.3 2001/12/11 23:21:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -19,8 +19,6 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
-
-#ifdef NS_DIFFUSION
 
 #include "attrs.hh"
 #include <stdlib.h>
@@ -45,34 +43,39 @@ void printAttrs(NRAttrVec *attr_vec)
 
   for (itr = attr_vec->begin(); itr != attr_vec->end(); ++itr){
     aux = *itr;
-    printf("Attribute #%d\n", counter);
+    diffPrint(DEBUG_ALWAYS, "Attribute #%d\n", counter);
     counter++;
-    printf("-------------\n");
-    printf("Type = %d\n", aux->getType());
-    printf("Key  = %d\n", aux->getKey());
-    printf("Op   = %d\n", aux->getOp());
-    printf("Len  = %d\n", aux->getLen());
+    diffPrint(DEBUG_ALWAYS, "-------------\n");
+    diffPrint(DEBUG_ALWAYS, "Type = %d\n", aux->getType());
+    diffPrint(DEBUG_ALWAYS, "Key  = %d\n", aux->getKey());
+    diffPrint(DEBUG_ALWAYS, "Op   = %d\n", aux->getOp());
+    diffPrint(DEBUG_ALWAYS, "Len  = %d\n", aux->getLen());
     switch(aux->getType()){
     case NRAttribute::INT32_TYPE:
-      printf("Val  = %d\n", ((NRSimpleAttribute<int> *)aux)->getVal());
+      diffPrint(DEBUG_ALWAYS, "Val  = %d\n",
+		((NRSimpleAttribute<int> *)aux)->getVal());
       break;
     case NRAttribute::FLOAT32_TYPE:
-      printf("Val  = %f\n", ((NRSimpleAttribute<float> *)aux)->getVal());
+      diffPrint(DEBUG_ALWAYS, "Val  = %f\n",
+		((NRSimpleAttribute<float> *)aux)->getVal());
       break;
     case NRAttribute::FLOAT64_TYPE:
-      printf("Val  = %f\n", ((NRSimpleAttribute<double> *)aux)->getVal());
+      diffPrint(DEBUG_ALWAYS, "Val  = %f\n",
+		((NRSimpleAttribute<double> *)aux)->getVal());
       break;
     case NRAttribute::STRING_TYPE:
-      printf("Val  = %s\n", ((NRSimpleAttribute<char *> *)aux)->getVal());
+      diffPrint(DEBUG_ALWAYS, "Val  = %s\n",
+		((NRSimpleAttribute<char *> *)aux)->getVal());
       break;
     case NRAttribute::BLOB_TYPE:
-      printf("Val  = %s\n", ((NRSimpleAttribute<void *> *)aux)->getVal());
+      diffPrint(DEBUG_ALWAYS, "Val  = %s\n",
+		((NRSimpleAttribute<void *> *)aux)->getVal());
       break;
     default:
-      printf("Val  = Unknown\n");
+      diffPrint(DEBUG_ALWAYS, "Val  = Unknown\n");
       break;
     }
-    printf("\n");
+    diffPrint(DEBUG_ALWAYS, "\n");
   }
 }
 
@@ -424,9 +427,4 @@ bool OneWayMatch(NRAttrVec *attr_vec1, NRAttrVec *attr_vec2)
   // All attributes found !
   return true;
 }
-
-#endif // NS
-
-
-
 

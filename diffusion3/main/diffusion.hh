@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffusion.hh,v 1.3 2001/11/29 23:25:31 haldar Exp $
+// $Id: diffusion.hh,v 1.4 2001/12/11 23:21:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -18,12 +18,7 @@
 // with this program; if not, write to the Free Software Foundation, Inc.,
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
-// *******************************************************************
-// Ported from SCADDS group's implementation of directed diffusion 
-// into ns-2. Padma Haldar, nov 2001.
-// ********************************************************************
-
-#ifdef NS_DIFFUSION
+//
 
 #ifndef diffusion_hh
 #define diffusion_hh
@@ -44,14 +39,12 @@
 #include "tools.hh"
 #include "iodev.hh"
 
-
 #ifdef NS_DIFFUSION
 #include <tcl.h>
+#include "diffrtg.h"
 #else
 #include "hashutils.hh"
-#include "diffrtg.h"
-#endif // NS 
-
+#endif // NS_DIFFUSION
 
 #ifdef UDP
 #include "UDPlocal.hh"
@@ -81,6 +74,8 @@
 #include "drivers/rpc_stats.hh"
 #    endif
 #endif
+
+
 
 DiffPacket DupPacket(DiffPacket pkt);  // Allocate and copy pkt
 
@@ -114,24 +109,25 @@ public:
 };
 
 
+
 class DiffusionCoreAgent {
 public:
 #ifdef NS_DIFFUSION
   friend class DiffRoutingAgent;
-  friend class NeighborTimer;
-  friend class FilterTimer;
-  DiffusionCoreAgent(DiffRoutingAgent *dra);
+  //friend class NeighborTimer;
+  //friend class FilterTimer;
+  DiffusionCoreAgent(DiffRoutingAgent *diffrtg);
 #else
   DiffusionCoreAgent(int argc, char **argv);
   void DiffusionCoreAgent::usage();
   void run();
   void TimetoStop();
 #endif
-  
+
 protected:
   float lon;
   float lat;
-  
+
 #ifdef STATS
   DiffusionStats *stats;
 #  ifndef WIRED
@@ -139,7 +135,7 @@ protected:
   RPCStats *rpcstats;
 #     endif
 #  endif
-  
+
 #endif
 
   // Ids and counters
@@ -189,12 +185,13 @@ protected:
   FilterList * GetFilterList(NRAttrVec *attrs);
   Filter_Entry * FindFilter(int16_t handle, u_int16_t agent);
   Filter_Entry * DeleteFilter(int16_t handle, u_int16_t agent);
-  void AddFilter(NRAttrVec *attrs, u_int16_t agent, int16_t handle, u_int16_t priority);
+  bool AddFilter(NRAttrVec *attrs, u_int16_t agent, int16_t handle, u_int16_t priority);
   FilterList::iterator FindMatchingFilter(NRAttrVec *attrs, FilterList::iterator itr);
+  u_int16_t GetNextFilterPriority(int16_t handle, u_int16_t priority, u_int16_t agent);
 
   // Send messages to modules
   void ForwardMessage(Message *msg, Filter_Entry *dst);
-  void SendMessage(Message *msg, u_int16_t port);
+  void SendMessage(Message *msg);
 
   // Timer functions
   void NeighborsTimeOut();
@@ -202,17 +199,4 @@ protected:
   void EnergyTimeOut();
 };
 
-
-#endif
-
-#endif // NS
-
-
-
-
-
-
-
-
-
-
+#endif // diffusion_hh

@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: attrs.hh,v 1.3 2001/11/20 22:28:16 haldar Exp $
+// $Id: attrs.hh,v 1.4 2001/12/11 23:21:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -23,16 +23,15 @@
 #ifndef ATTRS_HH
 #define ATTRS_HH
 
-#ifdef NS_DIFFUSION
-
 #ifdef freeBSD
 #include <sys/param.h>
 #else
 #include <netinet/in.h>
-#endif
+#endif // freeBSD
 
 #include "nr.hh"
 #include "header.hh"
+#include "tools.hh"
 
 int CalculateSize(NRAttrVec *attr_vec);
 int PackAttrs(NRAttrVec *attr_vec, char *start_pos);
@@ -46,5 +45,3 @@ bool OneWayMatch(NRAttrVec *attr_vec1, NRAttrVec *attr_vec2);
 void printAttrs(NRAttrVec *attr_vec);
 
 #endif
-
-#endif // NS

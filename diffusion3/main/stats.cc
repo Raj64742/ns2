@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: stats.cc,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: stats.cc,v 1.3 2001/12/11 23:21:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -19,8 +19,6 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
-
-#ifdef NS_DIFFUSION
 
 #include "stats.hh"
 
@@ -45,8 +43,8 @@ DiffusionStats::DiffusionStats(int id)
   num_interest_messages_recv = 0;
   num_data_messages_sent = 0;
   num_data_messages_recv = 0;
-  num_flagged_data_messages_sent = 0;
-  num_flagged_data_messages_recv = 0;
+  num_exploratory_data_messages_sent = 0;
+  num_exploratory_data_messages_recv = 0;
   num_pos_reinforcement_messages_sent = 0;
   num_pos_reinforcement_messages_recv = 0;
   num_neg_reinforcement_messages_sent = 0;
@@ -97,9 +95,9 @@ void DiffusionStats::logIncomingMessage(Message *msg)
 
     break;
 
-  case FLAGGED_DATA:
+  case EXPLORATORY_DATA:
 
-    num_flagged_data_messages_recv++;
+    num_exploratory_data_messages_recv++;
 
     break;
 
@@ -157,9 +155,9 @@ void DiffusionStats::logOutgoingMessage(Message *msg)
 
     break;
 
-  case FLAGGED_DATA:
+  case EXPLORATORY_DATA:
 
-    num_flagged_data_messages_sent++;
+    num_exploratory_data_messages_sent++;
 
     break;
 
@@ -231,8 +229,8 @@ void DiffusionStats::printStats(FILE *output)
 	  num_interest_messages_sent, num_interest_messages_recv);
   fprintf(output, "Data              - Sent : %d - Recv : %d\n",
 	  num_data_messages_sent, num_data_messages_recv);
-  fprintf(output, "Flagged Data      - Sent : %d - Recv : %d\n",
-	  num_flagged_data_messages_sent, num_flagged_data_messages_recv);
+  fprintf(output, "Exploratory Data  - Sent : %d - Recv : %d\n",
+	  num_exploratory_data_messages_sent, num_exploratory_data_messages_recv);
   fprintf(output, "Pos Reinforcement - Sent : %d - Recv : %d\n",
 	  num_pos_reinforcement_messages_sent,
 	  num_pos_reinforcement_messages_recv);
@@ -248,11 +246,12 @@ void DiffusionStats::printStats(FILE *output)
   for (itr = nodes.begin(); itr != nodes.end(); ++itr){
     neighbor = *itr;
     if (neighbor){
-      fprintf(output, "Node : %d - Sent(U/U+B) : %d/%d - Recv(T/B) : %d/%d\n",
-	      neighbor->id, neighbor->sent_messages,
+      fprintf(output, "Node : %d - Sent(U/B/T) : %d/%d/%d - Recv(U/B/T) : %d/%d/%d\n",
+	      neighbor->id, neighbor->sent_messages, num_bcast_packets_sent,
 	      (neighbor->sent_messages + num_bcast_packets_sent),
-	      neighbor->recv_messages,
-	      neighbor->recv_bcast_messages);
+	      (neighbor->recv_messages - neighbor->recv_bcast_messages),
+	      neighbor->recv_bcast_messages,
+	      neighbor->recv_messages);
     }
   }
 
@@ -283,4 +282,3 @@ Neighbor_Stats_Entry * DiffusionStats::getNeighbor(int id)
 
   return (*itr);
 }
-#endif // NS

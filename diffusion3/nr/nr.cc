@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: nr.cc,v 1.2 2001/11/20 22:28:18 haldar Exp $
+// $Id: nr.cc,v 1.3 2001/12/11 23:21:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,8 +20,6 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 //
-
-#ifdef NS_DIFFUSION
 
 #include <stdio.h>   // for null
 #include <string.h>  // for strdup
@@ -252,4 +250,3 @@ void NRAttributeFactory::verify_unique(NRAttributeFactory *baby) {
       last->next_ = first_;
    first_ = baby;
 }
-#endif // NS

@@ -30,8 +30,9 @@
 
 #ifdef NS_DIFFUSION
 
-#include "address.h"
 #include "diffrtg.h"
+#include "diffusion.hh"
+#include "address.h"
 #include "scheduler.h"
 #include "diffagent.h"
 

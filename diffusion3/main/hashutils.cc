@@ -1,5 +1,5 @@
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: hashutils.cc,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: hashutils.cc,v 1.3 2001/12/11 23:21:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -15,12 +15,11 @@
 // 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
 //
 // *********************************************************
+
 /* This file contains all the basic functionality provided
-   by Tcl. The Hash functions came directly from Tcl while
-   the Event Queue was redesigned.
+   by Tcl. The Hash functions came directly from Tcl.
 */
 
-#ifdef NS_DIFFUSION
 /* 
  * tclHash.c --
  *
@@ -33,7 +32,7 @@
  * See the file "license.terms" for information on usage and redistribution
  * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
  *
- * RCS: @(#) $Id: hashutils.cc,v 1.2 2001/11/20 22:28:17 haldar Exp $
+ * RCS: @(#) $Id: hashutils.cc,v 1.3 2001/12/11 23:21:45 haldar Exp $
  */
 
 #include <malloc.h>
@@ -974,4 +973,3 @@ RebuildTable(register Tcl_HashTable *tablePtr)
     free((char *) oldBuckets);
   }
 }
-#endif // NS
