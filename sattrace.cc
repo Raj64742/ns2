@@ -32,11 +32,11 @@
  * SUCH DAMAGE.
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
- */
+ * speedup hack from Lloyd Wood, 11 October 1999 */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sattrace.cc,v 1.4 1999/09/09 03:22:46 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sattrace.cc,v 1.5 1999/10/19 05:07:56 tomh Exp $";
 #endif
 
 #include <stdio.h>
@@ -85,7 +85,7 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 	hdr_srm *sh = hdr_srm::access(p); 
 #endif
 	const char* sname = "null";
-
+	int lasth, nexth, snadd;
 	Node* n;
 
 	packet_t t = th->ptype();
@@ -151,24 +151,36 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 // only sat tracing elements go between sat nodes.
 	// SatNode *sn = dynamic_cast<SatNode*>(n);
 	if (n) {
-        	for (; n; n = n->nextnode() ) {
-			SatNode *sn = (SatNode*) n;
-			if (sn->address() == th->last_hop_) {
-				s_lat = (180/PI)*(sn->position()->get_latitude());
-				s_lon = (180/PI)*(sn->position()->get_longitude());
-			} else if (sn->address() == th->next_hop_) {
-				d_lat = (180/PI)*(sn->position()->get_latitude());
-				d_lon = (180/PI)*(sn->position()->get_longitude());
-			}
-		}
+		lasth = th->last_hop_;
+		nexth = th->next_hop_;
+		for (; n; n = n->nextnode() ) {
+                        SatNode *sn = (SatNode*) n;
+			snadd = sn->address();
+                        if (lasth == snadd) {
+                                s_lat = (180/PI)*(sn->position()->get_latitude());
+                                s_lon = (180/PI)*(sn->position()->get_longitude());
+                                if (d_lat != -999) {
+                                        break; // Lloyd thinks you can stop
+                                                // traversing the linked list now
+                                }
+                        }
+                        if (nexth == snadd) {
+                                d_lat = (180/PI)*(sn->position()->get_latitude()); 
+                                d_lon = (180/PI)*(sn->position()->get_longitude());
+                                if (s_lat != -999) {
+                                        break; // Lloyd thinks you can stop
+                                                // traversing the linked list now
+                                }
+                        }
+                }
 	}
 
 	if (!show_tcphdr_) {
 		sprintf(wrk_, "%c %.4f %d %d %s %d %s %d %s.%s %s.%s %d %d %.2f %.2f %.2f %.2f",
 			tt,
 			round(Scheduler::instance().clock()),
-			th->last_hop_,
-			th->next_hop_,
+			lasth,
+			nexth,
 			name,
 			th->size(),
 			flags,
@@ -192,8 +204,8 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 			"%c %.4f %d %d %s %d %s %d %s.%s %s.%s %d %d %d 0x%x %d %d %.2f %.2f %.2f %.2f",
 			tt,
 			round(Scheduler::instance().clock()),
-			th->last_hop_,
-			th->next_hop_,
+			lasth,
+			nexth,
 			name,
 			th->size(),
 			flags,

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.6 1999/10/14 22:19:29 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.7 1999/10/19 05:07:55 tomh Exp $";
 #endif
 
 #include "satroute.h"
@@ -68,7 +68,7 @@ SatRouteAgent::~SatRouteAgent()
 
 void SatRouteAgent::alloc(int slot)
 {
-	slot_entry* old = slot_;
+	slot_entry *old = slot_;
 	int n = nslot_;
 	if (old == 0)
 		nslot_ = 32;
@@ -127,7 +127,7 @@ void SatRouteAgent::forwardPacket(Packet * p)
 {
 	hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
   	hdr_cmn *hdrc = HDR_CMN (p);
-	NsObject* link_entry_;
+	NsObject *link_entry_;
 
 	hdrc->direction() = hdr_cmn::DOWN; // send it down the stack
 	int dst = Address::instance().get_nodeaddr(iph->daddr());
@@ -264,8 +264,8 @@ void SatRouteObject::compute_topology()
 {
 	Node *nodep;
 	Phy *phytxp, *phyrxp, *phytxp2, *phyrxp2;
-	SatLinkHead* lhp;
-	Channel* channelp, *channelp2;
+	SatLinkHead *slhp;
+	Channel *channelp, *channelp2;
 	int src, dst; 
 	double delay;
 
@@ -273,13 +273,13 @@ void SatRouteObject::compute_topology()
 	// Compute adjacencies.  Traverse linked list of nodes 
         for (nodep=Node::nodehead_.lh_first; nodep; nodep = nodep->nextnode()) {
 	    // Cycle through the linked list of linkheads
-	    for (lhp = (SatLinkHead*) nodep->linklisthead_.lh_first; lhp; 
-	      lhp = (SatLinkHead*) lhp->nextlinkhead()) {
-		if (lhp->type() == LINK_GSL_REPEATER)
+	    for (slhp = (SatLinkHead*) nodep->linklisthead_.lh_first; slhp; 
+	      slhp = (SatLinkHead*) slhp->nextlinkhead()) {
+		if (slhp->type() == LINK_GSL_REPEATER)
 		    continue;
-		if (!lhp->linkup_)
+		if (!slhp->linkup_)
 		    continue;
-		phytxp = (Phy *) lhp->phy_tx();
+		phytxp = (Phy *) slhp->phy_tx();
 		assert(phytxp);
 		channelp = phytxp->channel();
 		if (!channelp) 
@@ -323,7 +323,7 @@ void SatRouteObject::compute_topology()
 				delay = 1;
 				delay_firsthop = 0;
 			    }
-			    insert(src, dst, delay+delay_firsthop, (void*)lhp);
+			    insert(src, dst, delay+delay_firsthop, (void*)slhp);
 			}
 		    } else {
 		        // Found an adjacency relationship.
@@ -336,7 +336,7 @@ void SatRouteObject::compute_topology()
 			      phyrxp->node());
 			else
 			    delay = 1;
-			insert(src, dst, delay, (void*)lhp);
+			insert(src, dst, delay, (void*)slhp);
 		    }
 		}
 	    }
@@ -346,21 +346,21 @@ void SatRouteObject::compute_topology()
 
 void SatRouteObject::populate_routing_tables(int node)
 {
-	SatNode* nodep = (SatNode*) Node::nodehead_.lh_first;
-	SatNode* nodep2;
+	SatNode *snodep = (SatNode*) Node::nodehead_.lh_first;
+	SatNode *snodep2;
 	int next_hop, src, dst;
-	NsObject* target;
+	NsObject *target;
 
-        for (; nodep; nodep = (SatNode*) nodep->nextnode()) {
+        for (; snodep; snodep = (SatNode*) snodep->nextnode()) {
 		// First, clear slots of the current routing table
-		if (nodep->ragent())
-			nodep->ragent()->clear_slots();
-		src = nodep->address();
+		if (snodep->ragent())
+			snodep->ragent()->clear_slots();
+		src = snodep->address();
 		if (node != -1 && node != src)
 			continue;
-		nodep2 = (SatNode*) Node::nodehead_.lh_first;
-		for (; nodep2; nodep2 = (SatNode*) nodep2->nextnode()) {
-			dst = nodep2->address();
+		snodep2 = (SatNode*) Node::nodehead_.lh_first;
+		for (; snodep2; snodep2 = (SatNode*) snodep2->nextnode()) {
+			dst = snodep2->address();
 			next_hop = lookup(src, dst);
 			if (next_hop != -1 && src != dst) {
 				// Here need to insert target into slot table
@@ -370,7 +370,7 @@ void SatRouteObject::populate_routing_tables(int node)
 					printf("not populated %f\n", NOW); 
 					exit(1);
 				}
-				((SatNode*)nodep)->ragent()->install(dst, 
+				((SatNode*)snodep)->ragent()->install(dst, 
 				    next_hop, target); 
 			}
 		}

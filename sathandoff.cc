@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sathandoff.cc,v 1.4 1999/08/29 01:28:45 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sathandoff.cc,v 1.5 1999/10/19 05:07:56 tomh Exp $";
 #endif
 
 #include "random.h"
@@ -144,17 +144,17 @@ SatLinkHead* LinkHandoffMgr::get_peer_next_linkhead(SatNode* np)
 // is attached has one peer node (i.e., no other receive infs on channel)
 SatLinkHead* LinkHandoffMgr::get_peer_linkhead(SatLinkHead* slhp)
 {
-	SatChannel* chan_;
-	Phy* remote_phy_;
-	Node* remote_node_;
+	SatChannel *schan_;
+	Phy *remote_phy_;
+	Node *remote_node_;
 
-	chan_ = (SatChannel*) slhp->phy_tx()->channel();
-	if (chan_ == 0) {
+	schan_ = (SatChannel*) slhp->phy_tx()->channel();
+	if (schan_ == 0) {
 		printf("Error:  get_peer_linkhead called for a non-");
 		printf("connected link on node %d\n", slhp->node()->address());
 		return 0; // Link is not currently connected
 	}
-	remote_phy_ = chan_->ifhead_.lh_first; 
+	remote_phy_ = schan_->ifhead_.lh_first; 
 	if (remote_phy_ == 0) {
 		printf("Error:  node %d's tx phy ", slhp->node()->address());
 		printf("connected to channel with no receivers\n");
@@ -172,13 +172,13 @@ SatLinkHead* LinkHandoffMgr::get_peer_linkhead(SatLinkHead* slhp)
 // is attached has one peer node (i.e., no other receive infs on channel)
 SatNode* LinkHandoffMgr::get_peer(SatLinkHead* slhp)
 {
-	SatChannel* chan_;
-	Phy* remote_phy_;
+	SatChannel *schan_;
+	Phy *remote_phy_;
 
-	chan_ = (SatChannel*) slhp->phy_tx()->channel();
-	if (chan_ == 0)
+	schan_ = (SatChannel*) slhp->phy_tx()->channel();
+	if (schan_ == 0)
 		return 0; // Link is not currently connected
-	remote_phy_ = chan_->ifhead_.lh_first; 
+	remote_phy_ = schan_->ifhead_.lh_first; 
 	if (remote_phy_ == 0) {
 		printf("Error:  node %d's tx phy ", slhp->node()->address());
 		printf("connected to channel with no receivers\n");
@@ -239,12 +239,11 @@ double TermLinkHandoffMgr::check_elevation(coordinate satellite,
 int TermLinkHandoffMgr::handoff()
 {
 	coordinate sat_coord, earth_coord;
-	LinkHead* lhp;
 	SatLinkHead* slhp;
-	SatNode* peer_; // Polar satellite at opposite end of the GSL
-	SatNode* best_peer_; // Best found peer for handoff
-	Node* nodep_;  // Pointer used in searching the list of nodes
-	PolarSatPosition* nextpos_;
+	SatNode *peer_; // Polar satellite at opposite end of the GSL
+	SatNode *best_peer_; // Best found peer for handoff
+	Node *nodep;  // Pointer used in searching the list of nodes
+	PolarSatPosition *nextpos_;
 	int link_changes_flag_ = FALSE; // Flag indicating change took place 
 	int restart_timer_flag_ = FALSE; // Restart timer only if polar links
 	double found_flag_ = 0;  //``Flag'' indicates whether handoff can occur 
@@ -252,9 +251,8 @@ int TermLinkHandoffMgr::handoff()
 
 	earth_coord = ((SatNode *)node_)->position()->getCoordinate();
 	// Traverse the linked list of link interfaces
-	for (lhp = node_->linklisthead_.lh_first; lhp; 
-	    lhp = lhp->nextlinkhead() ) {
-		slhp = (SatLinkHead*) lhp;
+	for (slhp = (SatLinkHead*) node_->linklisthead_.lh_first; slhp; 
+	    slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
 		if (slhp->type() == LINK_GSL_GEO || 
 		    slhp->type() == LINK_GENERIC)
 			continue;
@@ -300,9 +298,9 @@ int TermLinkHandoffMgr::handoff()
 			}
 			// Next, check all remaining satellites if not found
 			if (!found_flag_) {
-				for (nodep_=Node::nodehead_.lh_first; nodep_;
-				    nodep_ = nodep_->nextnode()) {
-					peer_ = (SatNode*) nodep_;
+				for (nodep=Node::nodehead_.lh_first; nodep;
+				    nodep = nodep->nextnode()) {
+					peer_ = (SatNode*) nodep;
 					if (peer_->position() && 
 					    (peer_->position()->type() != 
 					    POSITION_SAT_POLAR))
@@ -378,7 +376,6 @@ SatLinkHandoffMgr::SatLinkHandoffMgr() : timer_(this)
 //
 int SatLinkHandoffMgr::handoff()
 {
-	LinkHead* lhp;
 	SatLinkHead *slhp, *peer_slhp, *peer_next_slhp;
 	SatNode *local_, *peer_, *peer_next_; 
 	PolarSatPosition *pos_, *peer_pos_, *peer_next_pos_;
@@ -400,9 +397,8 @@ int SatLinkHandoffMgr::handoff()
 		low_lat_flag_ = FALSE;
 
 	// First go through crossseam ISLs to search for handoffs
-	for (lhp = local_->linklisthead_.lh_first; lhp; 
-	    lhp = lhp->nextlinkhead() ) {
-		slhp = (SatLinkHead*) lhp;
+	for (slhp = (SatLinkHead*) local_->linklisthead_.lh_first; slhp; 
+	    slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
 		if (slhp->type() != LINK_ISL_CROSSSEAM)  
 			continue;
 		pos_ = (PolarSatPosition*)slhp->node()->position(); 
@@ -490,9 +486,8 @@ int SatLinkHandoffMgr::handoff()
 	// Now, work on interplane ISLs (intraplane ISLs are not handed off)
 	
 	// Now search for interplane ISLs
-	for (lhp = local_->linklisthead_.lh_first; lhp; 
-	    lhp = lhp->nextlinkhead() ) {
-		slhp = (SatLinkHead*) lhp;
+	for (slhp = (SatLinkHead*) local_->linklisthead_.lh_first; slhp; 
+	    slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
 		if (slhp->type() != LINK_ISL_INTERPLANE)  
 			continue;
 		peer_ = get_peer(slhp);
