@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.108 2000/07/17 01:55:40 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.109 2000/07/17 02:09:19 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -938,10 +938,12 @@ void TcpAgent::ecn(int seqno)
 }
 
 /*
- *  Is the connection limited by the congestion window?
+ *  Is the connection limited by the network (instead of by a lack
+ *    of data from the application?
  */
-int TcpAgent::cong_window_limited() {
-	if (t_seqno_ > (prev_highest_ack_ + cwnd_))
+int TcpAgent::network_limited() {
+	int win = window () ;
+	if (t_seqno_ > (prev_highest_ack_ + win))
 		return 1;
 	else
 		return 0;
@@ -959,7 +961,7 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 			 window limited, then do not increase the window size */
 		
 		if (!control_increase_ || 
-		   (control_increase_ && (cong_window_limited() == 1))) 
+		   (control_increase_ && (network_limited() == 1))) 
 	      		opencwnd();
 	}
 	if (ect_) {
