@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.15 1998/06/27 01:23:35 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.16 1998/08/12 23:41:00 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -68,7 +68,6 @@ class Classifier : public NsObject {
 	int offset_;		// offset for Packet::access()
 	int shift_;
 	int mask_;
-	int off_ip_;		// XXX to be removed
 };
 
 #endif

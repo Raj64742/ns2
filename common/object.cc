@@ -34,11 +34,25 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.10 1998/07/09 21:11:44 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.11 1998/08/12 23:41:09 gnguyen Exp $ (LBL)";
 #endif
 
 #include "object.h"
+#include "packet.h"
+#include "flags.h"
 
+NsObject::~NsObject()
+{
+}
+
+#ifndef OFF_HDR
+NsObject::NsObject()
+{
+	off_cmn_ = hdr_cmn::offset();
+	off_flags_ = hdr_flags::offset();
+}
+
+#else
 /*XXX*/
 NsObject::NsObject()
 {
@@ -47,10 +61,6 @@ NsObject::NsObject()
 	bind("off_cmn_", &off_cmn_);
 	bind("off_flags_", &off_flags_);
 #endif /* TCLCL_CLASSINSTVAR */
-}
-
-NsObject::~NsObject()
-{
 }
 
 #ifdef TCLCL_CLASSINSTVAR
@@ -69,6 +79,8 @@ NsObject::delay_bind_dispatch(const char *varName, const char *localName)
 	return TclObject::delay_bind_dispatch(varName, localName);
 }
 #endif /* TCLCL_CLASSINSTVAR */
+#endif  // OFF_HDR
+
 
 void NsObject::reset()
 {

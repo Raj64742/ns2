@@ -30,8 +30,13 @@ struct hdr_resv {
 	double rate_; 
 	int bucket_;
 	int decision_; //decision bit put in by intermediate routers
-	
+
 	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_resv* access(Packet* p) {
+		return (hdr_resv*) p->access(offset_);
+	}
+
 	//provide per field member functions
 	double& rate() { return rate_; }
 	int& bucket() { return bucket_; }

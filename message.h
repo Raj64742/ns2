@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.h,v 1.4 1998/06/27 01:24:11 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.h,v 1.5 1998/08/12 23:41:09 gnguyen Exp $
  */
 
 #ifndef ns_msg_h
@@ -39,6 +39,12 @@
 
 struct hdr_msg {
 	char msg_[64];
+
+	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_msg* access(Packet* p) {
+		return (hdr_msg*) p->access(offset_);
+	}
 
 	/* per-field member functions */
 	char* msg() { return (msg_); }

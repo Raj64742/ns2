@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.55 1998/08/05 01:58:41 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.56 1998/08/12 23:41:03 gnguyen Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.55 1998/08/05 01:58:41 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.56 1998/08/12 23:41:03 gnguyen Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -732,7 +732,6 @@ public:
  
 MrouteErrorModel::MrouteErrorModel() : TraceErrorModel()
 {
-	bind("off_prune_", &off_prune_);
 }
 
 int MrouteErrorModel::command(int argc, const char*const* argv)
@@ -754,7 +753,7 @@ int MrouteErrorModel::command(int argc, const char*const* argv)
 
 int MrouteErrorModel::match(Packet* p)
 {
-	hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+	hdr_prune* ph = hdr_prune::access(p);
 	int indx = strcspn(ph->type(),"/");
 	if (!strncmp(ph->type(),msg_type,indx)) {
 		return 1;

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.13 1998/08/05 01:19:54 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.14 1998/08/12 23:41:04 gnguyen Exp $
  */
 
 /*
@@ -62,8 +62,8 @@ struct hdr_flags {
 
 	static int offset_;
 	inline static int& offset() { return offset_; }
-	inline static hdr_flags* access(Packet* p, int off=-1) {
-		return (hdr_flags*) p->access(off < 0 ? offset_ : off);
+	inline static hdr_flags* access(Packet* p) {
+		return (hdr_flags*) p->access(offset_);
 	}
 
 	/*

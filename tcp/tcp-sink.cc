@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.25 1998/08/11 20:16:18 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.26 1998/08/12 23:41:19 gnguyen Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -107,7 +107,6 @@ int Acker::update(int seq, int numBytes)
 TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker)
 {
 	bind("packetSize_", &size_);
-	bind("off_tcp_", &off_tcp_);
 	bind("maxSackBlocks_", &max_sack_blocks_); // used only by sack
 	bind_bool("ts_echo_bugfix_", &ts_echo_bugfix_);
 }
@@ -131,8 +130,8 @@ void TcpSink::ack(Packet* opkt)
 	Packet* npkt = allocpkt();
 	double now = Scheduler::instance().clock();
 
-	hdr_tcp *otcp = (hdr_tcp*)opkt->access(off_tcp_);
-	hdr_tcp *ntcp = (hdr_tcp*)npkt->access(off_tcp_);
+	hdr_tcp *otcp = hdr_tcp::access(opkt);
+	hdr_tcp *ntcp = hdr_tcp::access(npkt);
 	ntcp->seqno() = acker_->Seqno();
 	ntcp->ts() = now;
 
@@ -169,7 +168,7 @@ void TcpSink::recv(Packet* pkt, Handler*)
 {
 	int numToDeliver;
 	int numBytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
-	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *th = hdr_tcp::access(pkt);
 	acker_->update_ts(th->seqno(),th->ts());
       	numToDeliver = acker_->update(th->seqno(), numBytes);
 	if (numToDeliver)
@@ -196,7 +195,7 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 {
 	int numToDeliver;
 	int numBytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
-	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *th = hdr_tcp::access(pkt);
 	acker_->update_ts(th->seqno(),th->ts());
 	numToDeliver = acker_->update(th->seqno(), numBytes);
 	if (numToDeliver)

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.h,v 1.12 1998/06/27 01:23:42 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.h,v 1.13 1998/08/12 23:41:02 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_delay_h
@@ -52,8 +52,7 @@ class LinkDelay : public Connector {
 	void handle(Event* e);
 	double delay() { return delay_; }
 	inline double txtime(Packet* p) {
-		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
-		return (hdr->size() * 8. / bandwidth_);
+		return (8. * hdr_cmn::access(p)->size() / bandwidth_);
 	}
 	double bandwidth() const { return bandwidth_; }
 	void pktintran(int src, int group);
@@ -67,9 +66,6 @@ class LinkDelay : public Connector {
 	Event inTransit_;
 	PacketQueue* itq_;
 	Packet* nextPacket_;
-	int off_ip_;
-	int off_prune_;
-	int off_CtrMcast_;
 	int total_[4];
 
 private:

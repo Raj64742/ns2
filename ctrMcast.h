@@ -19,7 +19,7 @@
  *
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.h,v 1.5 1998/06/27 01:23:40 gnguyen Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.h,v 1.6 1998/08/12 23:41:01 gnguyen Exp $ (USC/ISI)
  */
 
 #ifndef ns_ctrmcast_h
@@ -31,6 +31,12 @@ struct hdr_CtrMcast {
 	nsaddr_t	src_;		/* mcast data source */
 	nsaddr_t	group_;          /* mcast data destination group */
 	int		fid_;
+
+	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_CtrMcast* access(Packet* p) {
+		return (hdr_CtrMcast*) p->access(offset_);
+	}
 
 	/* per field member functions */
 	nsaddr_t& src() { return src_; }

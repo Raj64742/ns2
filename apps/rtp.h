@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.h,v 1.9 1998/08/05 01:19:56 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.h,v 1.10 1998/08/12 23:41:14 gnguyen Exp $
  */
 
 #ifndef ns_rtp_h
@@ -51,8 +51,8 @@ struct hdr_rtp {
 
 	static int offset_;
 	inline static int& offset() { return offset_; }
-	inline static hdr_rtp* access(Packet* p, int off=-1) {
-		return (hdr_rtp*) p->access(off < 0 ? offset_ : off);
+	inline static hdr_rtp* access(Packet* p) {
+		return (hdr_rtp*) p->access(offset_);
 	}
 
 	/* per-field member functions */

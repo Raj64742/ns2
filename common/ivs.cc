@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ivs.cc,v 1.11 1998/06/27 01:24:01 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ivs.cc,v 1.12 1998/08/12 23:41:06 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -55,40 +55,32 @@ struct hdr_ivs {
 	double maxrtt_;
 	int seqno_;
 
+	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_ivs* access(Packet* p) {
+		return (hdr_ivs*) p->access(offset_);
+	}
+
 	/* per-field member functions */
-	double& ts() {
-		return (ts_);
-	}
-	u_int8_t& S() {
-		return (S_);
-	}
-	u_int8_t& R() {
-		return (R_);
-	}
-	u_int8_t& state() {
-		return (state_);
-	}
-	u_int8_t& rshft() {
-		return (rshft_);
-	}
-	u_int8_t& kshft() {
-		return (kshft_);
-	}
-	u_int16_t& key() {
-		return (key_);
-	}
-	double& maxrtt() {
-		return (maxrtt_);
-	}
-	int& seqno() {
-		return (seqno_);
-	}
+	double& ts() { return (ts_); }
+	u_int8_t& S() { return (S_); }
+	u_int8_t& R() { return (R_); }
+	u_int8_t& state() { return (state_); }
+	u_int8_t& rshft() { return (rshft_); }
+	u_int8_t& kshft() { return (kshft_); }
+	u_int16_t& key() { return (key_); }
+	double& maxrtt() { return (maxrtt_); }
+	int& seqno() { return (seqno_); }
 };
+
+int hdr_ivs::offset_;
 
 static class IvsHeaderClass : public PacketHeaderClass {
 public:
 	IvsHeaderClass() : PacketHeaderClass("PacketHeader/IVS",
-					     sizeof(hdr_ivs)) {}
+					     sizeof(hdr_ivs)) {
+		bind_offset(&hdr_ivs::offset_);
+	}
 } class_ivshdr;
 
 class IvsSource : public CBR_Agent {

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.43 1998/07/09 21:11:39 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.44 1998/08/12 23:40:57 gnguyen Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -62,11 +62,14 @@ public:
 
 int Agent::uidcnt_;		/* running unique id */
 
+
+
 Agent::Agent(int pkttype) : 
 	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
 	prio_(-1), flags_(0), defttl_(32), channel_(0), traceName_(NULL),
 	oldValueList_(NULL), app_(0)
 {
+	off_ip_ = hdr_ip::offset();
 #if defined(TCLCL_CLASSINSTVAR)
 #else /* ! TCLCL_CLASSINSTVAR */
 	/*
@@ -86,7 +89,9 @@ Agent::Agent(int pkttype) :
 	bind("flags_", (int*)&flags_);
 	bind("ttl_", &defttl_);
 
+#ifdef OFF_HDR
 	bind("off_ip_", &off_ip_);
+#endif
 #endif /* TCLCL_CLASSINSTVAR */
 }
 
@@ -101,7 +106,9 @@ Agent::delay_bind_init_all()
 	delay_bind_init_one("flags_");
 	delay_bind_init_one("ttl_");
 	delay_bind_init_one("class_");
+#ifdef OFF_HDR
 	delay_bind_init_one("off_ip_");
+#endif
 	Connector::delay_bind_init_all();
 }
 
@@ -119,6 +126,7 @@ Agent::delay_bind_dispatch(const char *varName, const char *localName)
 	return Connector::delay_bind_dispatch(varName, localName);
 }
 #endif /* TCLCL_CLASSINSTVAR */
+
 
 Agent::~Agent()
 {
@@ -446,7 +454,7 @@ void Agent::recv(Packet* p, Handler*)
 void
 Agent::initpkt(Packet* p) const
 {
-	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(p);
 	ch->uid() = uidcnt_++;
 	ch->ptype() = type_;
 	ch->size() = size_;
@@ -455,14 +463,14 @@ Agent::initpkt(Packet* p) const
 	ch->ref_count() = 0;	/* reference count */
 	ch->error() = 0;	/* pkt not corrupt to start with */
 
-	hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
+	hdr_ip* iph = hdr_ip::access(p);
 	iph->src() = addr_;
 	iph->dst() = dst_;
 	iph->flowid() = fid_;
 	iph->prio() = prio_;
 	iph->ttl() = defttl_;
 
-	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
+	hdr_flags* hf = hdr_flags::access(p);
 	hf->ecn_capable_ = 0;
 	hf->ecn_ = 0;
 	hf->eln_ = 0;

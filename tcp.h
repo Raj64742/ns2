@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.53 1998/06/27 01:03:26 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.54 1998/08/12 23:41:23 gnguyen Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -55,8 +55,8 @@ struct hdr_tcp {
 
 	static int offset_;	// offset for this header
 	inline static int& offset() { return offset_; }
-	inline static hdr_tcp* access(Packet* p, int off=-1) {
-		return (hdr_tcp*) p->access(off < 0 ? offset_ : off);
+	inline static hdr_tcp* access(Packet* p) {
+		return (hdr_tcp*) p->access(offset_);
 	}
 
 	/* per-field member functions */
@@ -70,30 +70,6 @@ struct hdr_tcp {
 	int& hlen() { return (hlen_); }
 	int& ackno() { return (ackno_); }  
 	int& flags() { return (tcp_flags_); }
-};
-
-/* 
- * The TCP asym header. The sender includes information that the receiver could
- * use to decide by how much to delay acks.
- * XXXX some of the fields may not be needed
- */ 
-struct hdr_tcpasym {
-	int ackcount_;          /* the number of segments this ack represents */
-	int win_;               /* the amount of window remaining */
-	int highest_ack_;       /* the highest ack seen */
-	int max_left_to_send_;  /* the max. amount of data that remains to be sent */
-	int& ackcount() {
-		return (ackcount_);
-	}
-	int& win() {
-		return (win_);
-	}
-	int& highest_ack() {
-		return (highest_ack_);
-	}
-	int& max_left_to_send() {
-		return (max_left_to_send_);
-	}
 };
 
 /* these are used to mark packets as to why we xmitted them */

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.49 1998/07/20 18:09:58 haoboy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.50 1998/08/12 23:41:23 gnguyen Exp $ (LBL)";
 
 #endif
 
@@ -72,10 +72,12 @@ Trace::Trace(int type)
 	bind("callback_", &callback_);
 	bind("show_tcphdr_", &show_tcphdr_);
 
+#ifdef OFF_HDR
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
 	bind("off_rtp_", &off_rtp_);
 	bind("off_srm_", &off_srm_);
+#endif
 }
 
 Trace::~Trace()
@@ -179,12 +181,19 @@ char* srm_names[] = {
 // scripts don't break.
 void Trace::format(int tt, int s, int d, Packet* p)
 {
+#ifdef OFF_HDR
 	hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
 	hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
 	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
 	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
-
 	hdr_srm *sh = (hdr_srm*)p->access(off_srm_); 
+#else
+	hdr_cmn *th = hdr_cmn::access(p);
+	hdr_ip *iph = hdr_ip::access(p);
+	hdr_tcp *tcph = hdr_tcp::access(p);
+	hdr_rtp *rh = hdr_rtp::access(p);
+	hdr_srm *sh = hdr_srm::access(p); 
+#endif
 	const char* sname = "null";
 
 	int t = th->ptype();
@@ -218,7 +227,11 @@ void Trace::format(int tt, int s, int d, Packet* p)
 		flags[i] = '-';
         flags[NUMFLAGS] = 0;
 
+#ifdef OFF_HDR
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
+#else
+	hdr_flags* hf = hdr_flags::access(p);
+#endif
 	flags[0] = hf->ecn_ ? 'C' : '-';          // Ecn Echo
 	flags[1] = hf->pri_ ? 'P' : '-'; 
 	flags[2] = '-';
@@ -410,9 +423,15 @@ DequeTrace::recv(Packet* p, Handler* h)
 
 #ifdef NAM_TRACE
 	if (namChan_ != 0) {
+#ifdef OFF_HDR
 		hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
 		hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
 		hdr_srm *sh = (hdr_srm*)p->access(off_srm_);
+#else
+		hdr_cmn *th = hdr_cmn::access(p);
+		hdr_ip *iph = hdr_ip::access(p);
+		hdr_srm *sh = hdr_srm::access(p);
+#endif
 		const char* sname = "null";   
 
 		int t = th->ptype();
@@ -434,7 +453,11 @@ DequeTrace::recv(Packet* p, Handler* h)
 			flags[i] = '-';
 		flags[NUMFLAGS] = 0;
 
+#ifdef OFF_HDR
 		hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
+#else
+		hdr_flags* hf = hdr_flags::access(p);
+#endif
 		flags[0] = hf->ecn_ ? 'C' : '-';          // Ecn Echo
 		flags[1] = hf->pri_ ? 'P' : '-'; 
 		flags[2] = '-';

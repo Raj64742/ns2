@@ -30,7 +30,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.19 1998/08/05 01:19:55 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.20 1998/08/12 23:41:17 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -48,6 +48,24 @@ static const char rcsid[] =
 
 
 int hdr_srm::offset_;
+int hdr_asrm::offset_;
+
+static class SRMHeaderClass : public PacketHeaderClass {
+public:
+	SRMHeaderClass() : PacketHeaderClass("PacketHeader/SRM",
+					     sizeof(hdr_srm)) {
+		bind_offset(&hdr_srm::offset_);
+	}
+} class_srmhdr;
+
+static class ASRMHeaderClass : public PacketHeaderClass {
+public:
+	ASRMHeaderClass() : PacketHeaderClass("PacketHeader/aSRM",
+					      sizeof(hdr_asrm)) {
+		bind_offset(&hdr_asrm::offset_);
+	}
+} class_adaptive_srmhdr;
+
 
 static class SRMAgentClass : public TclClass {
 public:
@@ -57,13 +75,14 @@ public:
 	}
 } class_srm_agent;
 
-static class SRMHeaderClass : public PacketHeaderClass {
+static class ASRMAgentClass : public TclClass {
 public:
-	SRMHeaderClass() : PacketHeaderClass("PacketHeader/SRM",
-					     sizeof(hdr_srm)) {
-		offset(&hdr_srm::offset_);
+	ASRMAgentClass() : TclClass("Agent/SRM/Adaptive") {}
+	TclObject* create(int, const char*const*) {
+		return (new ASRMAgent());
 	}
-} class_srmhdr;
+} class_adaptive_srm_agent;
+
 
 SRMAgent::SRMAgent() 
 	: Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1), siphash_(0)
@@ -329,17 +348,3 @@ void SRMAgent::recv_sess(Packet*, int sessCtr, int* data)
 			sp->ldata_ = dataCnt;
 	}
 }
-
-static class ASRMAgentClass : public TclClass {
-public:
-	ASRMAgentClass() : TclClass("Agent/SRM/Adaptive") {}
-	TclObject* create(int, const char*const*) {
-		return (new ASRMAgent());
-	}
-} class_adaptive_srm_agent;
-
-static class ASRMHeaderClass : public PacketHeaderClass {
-public:
-	ASRMHeaderClass() : PacketHeaderClass("PacketHeader/aSRM",
-					      sizeof(hdr_asrm)) {}
-} class_adaptive_srmhdr;

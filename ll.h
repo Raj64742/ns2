@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.16 1998/06/27 01:24:01 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.17 1998/08/12 23:41:06 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -58,8 +58,8 @@ struct hdr_ll {
 
 	static int offset_;
 	inline int& offset() { return offset_; }
-	static hdr_ll* access(Packet* p, int off=-1) {
-		return (hdr_ll*) p->access(off < 0 ? offset_ : off);
+	static hdr_ll* access(Packet* p) {
+		return (hdr_ll*) p->access(offset_);
 	}
 
 	inline LLFrameType& lltype() { return lltype_; }

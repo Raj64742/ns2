@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.9 1998/07/07 22:48:47 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.10 1998/08/12 23:41:25 gnguyen Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -122,13 +122,13 @@ int UDP_Agent::command(int argc, const char*const* argv)
 void UDP_Agent::sendpkt()
 {
 	Packet* p = allocpkt();
-	hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+	hdr_rtp* rh = hdr_rtp::access(p);
 	rh->seqno() = ++seqno_;
 	rh->flags()=0;
 	
 	double local_time=Scheduler::instance().clock();
 	/*put in "rtp timestamps" and begining of talkspurt labels */
-	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(p);
 	ch->timestamp()=(u_int32_t)(SAMPLERATE*local_time);
 	if ((nextPkttime_ != trafgen_->interval()) || (nextPkttime_ == -1))
 		rh->flags() |= RTP_M;

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.h,v 1.9 1998/06/27 01:24:51 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.h,v 1.10 1998/08/12 23:41:15 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_snoop_h
@@ -77,6 +77,12 @@ struct hdr_snoop {
 	int senderRxmit_;
 	double sndTime_;
 
+	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_snoop* access(Packet* p) {
+		return (hdr_snoop*) p->access(offset_);
+	}
+
 	inline int& seqno() { return seqno_; }
 	inline int& numRxmit() { return numRxmit_; }
 	inline int& senderRxmit() { return senderRxmit_; }
@@ -100,12 +106,6 @@ class LLSnoop : public LL {
 	double snoopTick_;	/* minimum rxmission timer granularity */
 };
 
-
-class SnoopHeaderClass : public PacketHeaderClass {
-public:
-        SnoopHeaderClass() : PacketHeaderClass("PacketHeader/Snoop",
-						sizeof(hdr_snoop)) {}
-} class_snoophdr;
 
 class SnoopRxmitHandler;
 class SnoopPersistHandler;

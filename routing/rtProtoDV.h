@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtProtoDV.h,v 1.3 1998/06/27 01:24:37 gnguyen Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtProtoDV.h,v 1.4 1998/08/12 23:41:13 gnguyen Exp $ (USC/ISI)
  */
 
 #ifndef ns_rtprotodv_h
@@ -28,6 +28,12 @@
 
 struct hdr_DV {
 	u_int32_t mv_;			// metrics variable identifier
+
+	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_DV* access(Packet* p) {
+		return (hdr_DV*) p->access(offset_);
+	}
 
 	// per field member functions
 	u_int32_t& metricsVar() { return mv_; }

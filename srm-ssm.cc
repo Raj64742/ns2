@@ -14,6 +14,16 @@
 #include "srm-ssm.h"
 #include "trace.h"
 
+int hdr_srm_ext::offset_;
+
+static class SRMEXTHeaderClass : public PacketHeaderClass {
+public:
+	SRMEXTHeaderClass() : PacketHeaderClass("PacketHeader/SRMEXT",
+						sizeof(hdr_srm_ext)) {
+		bind_offset(&hdr_srm_ext::offset_);
+	}
+} class_srmexthdr;
+
 
 static class SSMSRMAgentClass : public TclClass {
 public:
@@ -22,13 +32,6 @@ public:
     return (new SSMSRMAgent());
   }
 } class_srm_ssm_agent;
-
-static class SRMEXTHeaderClass : public PacketHeaderClass {
-public:
-  SRMEXTHeaderClass() : PacketHeaderClass("PacketHeader/SRMEXT",
-					  sizeof(hdr_srm_ext)) {}
-} class_srmexthdr;
-
 
 
 SSMSRMAgent::SSMSRMAgent() 

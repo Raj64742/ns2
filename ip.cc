@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.cc,v 1.7 1998/06/27 01:23:59 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.cc,v 1.8 1998/08/12 23:41:05 gnguyen Exp $";
 #endif
 
 #include "packet.h"
@@ -47,7 +47,7 @@ static class IPHeaderClass : public PacketHeaderClass {
 public:
         IPHeaderClass() : PacketHeaderClass("PacketHeader/IP",
 					    sizeof(hdr_ip)) {
-		offset(&hdr_ip::offset_);
+		bind_offset(&hdr_ip::offset_);
 	}
 	void export_offsets() {
 		field_offset("src_", OFFSET(hdr_ip, src_));

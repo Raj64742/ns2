@@ -23,12 +23,23 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.cc,v 1.6 1998/06/27 01:23:39 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.cc,v 1.7 1998/08/12 23:41:01 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
 #include "ip.h"
 #include "ctrMcast.h"
+
+int hdr_CtrMcast::offset_;
+
+static class CtrMcastHeaderClass : public PacketHeaderClass {
+public:
+	CtrMcastHeaderClass() : PacketHeaderClass("PacketHeader/CtrMcast",
+						  sizeof(hdr_CtrMcast)) {
+		bind_offset(&hdr_CtrMcast::offset_);
+	} 
+} class_CtrMcast_hdr;
+
 
 class CtrMcastEncap : public Agent {
 public:
@@ -51,12 +62,6 @@ public:
 protected:
 	int off_CtrMcast_;
 };
-
-static class CtrMcastHeaderClass : public PacketHeaderClass {
-public:
-	CtrMcastHeaderClass() : PacketHeaderClass("PacketHeader/CtrMcast",
-						  sizeof(hdr_CtrMcast)) { } 
-} class_CtrMcast_hdr;
 
 static class CtrMcastEncapclass : public TclClass {
 public:

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.32 1998/06/27 01:24:18 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.33 1998/08/12 23:41:10 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -114,8 +114,8 @@ struct hdr_cmn {
 
 	static int offset_;	// offset for this header
 	inline static int& offset() { return offset_; }
-	inline static hdr_cmn* access(Packet* p, int off=-1) {
-		return (hdr_cmn*) p->access(off < 0 ? offset_ : off);
+	inline static hdr_cmn* access(Packet* p) {
+		return (hdr_cmn*) p->access(offset_);
 	}
 
 	/* per-field member functions */
@@ -134,7 +134,7 @@ protected:
 	PacketHeaderClass(const char* classname, int hdrsize);
 	virtual int method(int argc, const char*const* argv);
 	void field_offset(const char* fieldname, int offset);
-	inline void offset(int* off) { offset_ = off; }
+	inline void bind_offset(int* off) { offset_ = off; }
 	int hdrlen_;		// # of bytes for this header
 	int* offset_;		// offset for this header
 public:

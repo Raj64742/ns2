@@ -55,15 +55,19 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym.cc,v 1.13 1998/06/27 01:24:58 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym.cc,v 1.14 1998/08/12 23:41:18 gnguyen Exp $ (UCB)";
 #endif
 
 #include "tcp-asym.h"
 
+int hdr_tcpasym::offset_;
+
 static class TCPAHeaderClass : public PacketHeaderClass {
 public:
         TCPAHeaderClass() : PacketHeaderClass("PacketHeader/TCPA",
-					     sizeof(hdr_tcpasym)) {}
+					     sizeof(hdr_tcpasym)) {
+		bind_offset(&hdr_tcpasym::offset_);
+	}
 } class_tcpahdr;
 
 static class TcpAsymClass : public TclClass {
@@ -74,10 +78,10 @@ public:
 	} 
 } class_tcpasym;
 
+
 TcpAsymAgent::TcpAsymAgent() : TcpAgent(), ecn_to_echo_(0), t_exact_srtt_(0)
 {
 /*	bind("exact_srtt_", &t_exact_srtt_);*/
-	bind("off_tcpasym_", &off_tcpasym_);
 	bind("g_", &g_);
 /*	bind("avg_win_", &avg_win_);*/
 /*	bind("damp_", &damp_);*/
@@ -107,8 +111,8 @@ public:
 /* fill in the TCP asym header before packet is sent out */
 void TcpAsymAgent::output_helper(Packet* p) 
 {
-	hdr_tcpasym *tcpha = (hdr_tcpasym*)p->access(off_tcpasym_);
-	hdr_flags *flagsh = (hdr_flags*)p->access(off_flags_);
+	hdr_tcpasym *tcpha = hdr_tcpasym::access(p);
+	hdr_flags *flagsh = hdr_flags::access(p);
 
 	tcpha->win() = min(highest_ack_+window(), curseq_) - t_seqno_;
 	tcpha->highest_ack() = highest_ack_;
@@ -135,7 +139,7 @@ void TcpAsymAgent::send_helper(int maxburst)
 /* check if the received ack has an ECN that needs to be echoed back to the sink */
 void TcpAsymAgent::recv_helper(Packet *pkt) 
 {
-	if (((hdr_flags*)pkt->access(off_flags_))->ce())
+	if (hdr_flags::access(pkt)->ce())
 		ecn_to_echo_ = 1;
 }
 
@@ -143,7 +147,7 @@ void TcpAsymAgent::recv_helper(Packet *pkt)
 void TcpAsymAgent::recv_newack_helper(Packet *pkt) 
 {
 	int i;
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	int ackcount = tcph->seqno() - last_ack_;
 	double tao = Scheduler::instance().clock() - tcph->ts_echo();
 

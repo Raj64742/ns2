@@ -22,13 +22,24 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.cc,v 1.6 1998/06/27 01:24:20 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.cc,v 1.7 1998/08/12 23:41:10 gnguyen Exp $ (LBL)";
 #endif
 
 #include "agent.h"
 #include "random.h"
 #include "prune.h"
 #include "ip.h"
+
+int hdr_prune::offset_;
+
+static class PruneHeaderClass : public PacketHeaderClass {
+public:
+	PruneHeaderClass() : PacketHeaderClass("PacketHeader/Prune",
+					       sizeof(hdr_prune)) {
+		bind_offset(&hdr_prune::offset_);
+	}
+} class_prunehdr;
+
 
 class PruneAgent : public Agent {
 public:
@@ -38,13 +49,6 @@ public:
 protected:
 	int off_prune_;
 };
-
-
-static class PruneHeaderClass : public PacketHeaderClass {
-public:
-	PruneHeaderClass() : PacketHeaderClass("PacketHeader/Prune",
-					       sizeof(hdr_prune)) {}
-} class_prunehdr;
 
 static class PruneClass : public TclClass {
 public:

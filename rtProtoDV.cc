@@ -22,16 +22,20 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtProtoDV.cc,v 1.4 1998/06/27 01:24:36 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtProtoDV.cc,v 1.5 1998/08/12 23:41:13 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
 #include "rtProtoDV.h"
 
+int hdr_DV::offset_;
+
 static class rtDVHeaderClass : public PacketHeaderClass {
 public:
 	rtDVHeaderClass() : PacketHeaderClass("PacketHeader/rtProtoDV",
-					      sizeof(hdr_DV)) { } 
+					      sizeof(hdr_DV)) {
+		bind_offset(&hdr_DV::offset_);
+	} 
 } class_rtProtoDV_hdr;
 
 static class rtProtoDVclass : public TclClass {

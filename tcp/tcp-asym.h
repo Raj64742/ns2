@@ -43,6 +43,30 @@
 #include "random.h"
 #include "template.h"
 
+/* 
+ * The TCP asym header. The sender includes information that the receiver could
+ * use to decide by how much to delay acks.
+ * XXXX some of the fields may not be needed
+ */ 
+struct hdr_tcpasym {
+	int ackcount_;          /* the number of segments this ack represents */
+	int win_;               /* the amount of window remaining */
+	int highest_ack_;       /* the highest ack seen */
+	int max_left_to_send_;  /* the max. amount of data that remains to be sent */
+
+	static int offset_;	// offset for this header
+	inline static int& offset() { return offset_; }
+	inline static hdr_tcpasym* access(Packet* p) {
+		return (hdr_tcpasym*) p->access(offset_);
+	}
+
+	int& ackcount() { return (ackcount_); }
+	int& win() { return (win_); }
+	int& highest_ack() { return (highest_ack_); }
+	int& max_left_to_send() { return (max_left_to_send_); }
+};
+
+
 /* TCP Asym with Tahoe */
 class TcpAsymAgent : public virtual TcpAgent {
 public:

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.13 1998/06/27 01:23:32 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.14 1998/08/12 23:40:59 gnguyen Exp $";
 #endif
 
 #include <stdlib.h>
@@ -124,8 +124,8 @@ MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst) const
 
 int MCastClassifier::classify(Packet *const pkt)
 {
-	hdr_cmn* h = (hdr_cmn*)pkt->access(off_cmn_);
-	hdr_ip* ih = (hdr_ip*)pkt->access(off_ip_);
+	hdr_cmn* h = hdr_cmn::access(pkt);
+	hdr_ip* ih = hdr_ip::access(pkt);
 
 	nsaddr_t src = ih->src() >> 8; /*XXX*/
 	nsaddr_t dst = ih->dst();

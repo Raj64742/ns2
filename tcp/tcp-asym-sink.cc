@@ -52,12 +52,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.10 1998/07/09 21:11:45 heideman Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.11 1998/08/12 23:41:18 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
 #include "flags.h"
 #include "tcp-sink.h"
+#include "tcp-asym.h"
+
 
 class TcpAsymSink : public DelAckSink {
 public:
@@ -66,7 +68,6 @@ public:
 	virtual void timeout(int tno);
 protected:
 	virtual void add_to_ack(Packet* pkt);
-	int off_tcpasym_;
 	int delackcount_;	/* the number of consecutive packets that have
 				   not been acked yet */
 	int maxdelack_;		/* the maximum extent to which acks can be
@@ -91,13 +92,12 @@ public:
 TcpAsymSink::TcpAsymSink(Acker* acker) : delackcount_(0), delackfactor_(1), delacklim_(0), ts_ecn_(0), ts_decrease_(0), DelAckSink(acker)
 {
 	bind("maxdelack_", &maxdelack_);
-	bind("off_tcpasym_", &off_tcpasym_);
 }
 
 /* Add fields to the ack. Not needed? */
 void TcpAsymSink::add_to_ack(Packet* pkt) 
 {
-	hdr_tcpasym *tha = (hdr_tcpasym*)pkt->access(off_tcpasym_);
+	hdr_tcpasym *tha = hdr_tcpasym::access(pkt);
 	tha->ackcount() = delackcount_;
 }
 
@@ -107,11 +107,11 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 	int olddelacklim = delacklim_; 
 	int max_sender_can_send = 0;
 	int numToDeliver;
-	hdr_flags *fh = (hdr_flags*)pkt->access(off_flags_); 
-	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
-	hdr_tcpasym *tha = (hdr_tcpasym*)pkt->access(off_tcpasym_);
+	hdr_flags *fh = hdr_flags::access(pkt);
+	hdr_tcp *th = hdr_tcp::access(pkt);
+	hdr_tcpasym *tha = hdr_tcpasym::access(pkt);
 	double now = Scheduler::instance().clock();
-	int numBytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
+	int numBytes = hdr_cmn::access(pkt)->size();
 
 
 	acker_->update_ts(th->seqno(),th->ts());
@@ -187,7 +187,7 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 			delay_timer_.resched(interval_);
 		}
 		else {
-			hdr_tcp *sth = (hdr_tcp*)save_->access(off_tcp_);
+			hdr_tcp *sth = hdr_tcp::access(save_);
 			/* save the pkt with the more recent timestamp */
 			if (th->ts() > sth->ts()) {
 				Packet::free(save_);
@@ -202,7 +202,7 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 			Packet::free(save_);
 			save_ = 0;
 		}
-		hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
+		hdr_flags* hf = hdr_flags::access(pkt);
 		hf->ect() = 1;
 		ack(pkt);
 		delackcount_ = 0;

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.9 1998/06/27 01:03:25 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.10 1998/08/12 23:41:21 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_tcpsink_h
@@ -97,7 +97,6 @@ protected:
 	void ack(Packet*);
 	virtual void add_to_ack(Packet* pkt);
 	Acker* acker_;
-	int off_tcp_;
 	int ts_echo_bugfix_;
 
 	friend void Sacker::configure(TcpSink*);

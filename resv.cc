@@ -23,12 +23,11 @@
 
 int hdr_resv::offset_;
 
-
 static class ResvHeaderClass : public PacketHeaderClass {
 public:
 	ResvHeaderClass() : PacketHeaderClass("PacketHeader/Resv",
 					      sizeof(hdr_resv)) {
-		offset(&hdr_resv::offset_);
+		bind_offset(&hdr_resv::offset_);
 	}
 	void export_offsets() {
 		field_offset("rate_", OFFSET(hdr_resv, rate_));

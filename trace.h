@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.18 1998/07/01 22:17:12 yaxu Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.19 1998/08/12 23:41:24 gnguyen Exp $
  */
 
 #ifndef ns_trace_h
@@ -72,10 +72,12 @@ class Trace : public Connector {
 	void namdump();
 #endif
 
+#ifdef OFF_HDR
 	int off_ip_;
 	int off_tcp_;
 	int off_rtp_;
 	int off_srm_;
+#endif
 };
 
 class DequeTrace : public Trace {

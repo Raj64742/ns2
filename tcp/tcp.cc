@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.76 1998/06/27 01:03:39 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.77 1998/08/12 23:41:22 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -50,7 +50,7 @@ static class TCPHeaderClass : public PacketHeaderClass {
 public:
         TCPHeaderClass() : PacketHeaderClass("PacketHeader/TCP",
 					     sizeof(hdr_tcp)) {
-		offset(&hdr_tcp::offset_);
+		bind_offset(&hdr_tcp::offset_);
 	}
 } class_tcphdr;
 
@@ -112,8 +112,13 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("rttvar_", &t_rttvar_);
 	bind("backoff_", &t_backoff_);
 	bind("maxseq_", &maxseq_);
+#ifdef OFF_HDR
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
+#else
+	off_ip_ = hdr_ip::offset();
+	off_tcp_ = hdr_tcp::offset();
+#endif
         bind("ndatapack_", &ndatapack_);
         bind("ndatabytes_", &ndatabytes_);
         bind("nackpack_", &nackpack_);
@@ -318,8 +323,8 @@ void TcpAgent::output(int seqno, int reason)
 {
 	int force_set_rtx_timer = 0;
 	Packet* p = allocpkt();
-	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
-	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
+	hdr_tcp *tcph = hdr_tcp::access(p);
+	hdr_flags* hf = hdr_flags::access(p);
 	tcph->seqno() = seqno;
 	tcph->ts() = Scheduler::instance().clock();
 	tcph->ts_echo() = ts_peer_;
@@ -333,8 +338,8 @@ void TcpAgent::output(int seqno, int reason)
         }
 	/* Check if this is the initial SYN packet. */
 	if (syn_ && (seqno == 0)) 
-		((hdr_cmn*)p->access(off_cmn_))->size() = tcpip_base_hdr_size_;
-        int bytes = ((hdr_cmn*)p->access(off_cmn_))->size();
+		hdr_cmn::access(p)->size() = tcpip_base_hdr_size_;
+        int bytes = hdr_cmn::access(p)->size();
 
 	/* if no outstanding data, be sure to set rtx timer again */
 	if (highest_ack_ == maxseq_)
@@ -517,7 +522,7 @@ void TcpAgent::set_rtx_timer()
  */
 void TcpAgent::newtimer(Packet* pkt)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	if (t_seqno_ > tcph->seqno())
 		set_rtx_timer();
 	else
@@ -640,7 +645,7 @@ TcpAgent::slowdown(int how)
 void TcpAgent::newack(Packet* pkt)
 {
 	double now = Scheduler::instance().clock();
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	newtimer(pkt);
 	dupacks_ = 0;
 	last_ack_ = tcph->seqno();
@@ -654,7 +659,7 @@ void TcpAgent::newack(Packet* pkt)
 	 * in the network intersperse acks (e.g., ack-reconstructors) for
 	 * various reasons (without violating e2e semantics).
 	 */	
-	hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
+	hdr_flags *fh = hdr_flags::access(pkt);
 	if (!fh->no_ts_) {
 		if (ts_option_)
 			rtt_update(now - tcph->ts_echo());
@@ -692,10 +697,9 @@ void TcpAgent::ecn(int seqno)
 }
 
 void TcpAgent::recv_newack_helper(Packet *pkt) {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	newack(pkt);
-	if (ecn_ && !ecn_burst_ &&
-             ((hdr_flags*)pkt->access(off_flags_))->ecnecho())
+	if (ecn_ && !ecn_burst_ && hdr_flags::access(pkt)->ecnecho())
 		ecn_burst_ = TRUE;
         else {
 		/* This is not the first ACK carrying ECN-Echo
@@ -703,7 +707,7 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 		 * Therefore, open the congestion window. */
 	        opencwnd();
 	}
-	if (ecn_burst_ && !((hdr_flags*)pkt->access(off_flags_))->ecnecho())
+	if (ecn_burst_ && ! hdr_flags::access(pkt)->ecnecho())
 		ecn_burst_ = FALSE;
 	/* if the connection is done, call finish() */
 	if ((highest_ack_ >= curseq_-1) && !closed_) {
@@ -791,7 +795,7 @@ tahoe_action:
  */
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
-	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",
@@ -802,7 +806,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 #endif
 	++nackpack_;
 	ts_peer_ = tcph->ts();
-	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho() && ecn_)
+	if (hdr_flags::access(pkt)->ecnecho() && ecn_)
 		ecn(tcph->seqno());
 	recv_helper(pkt);
 	/* grow cwnd and check if the connection is done */ 
@@ -812,7 +816,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 			cwnd_ = initial_window();
 		}
 	} else if (tcph->seqno() == last_ack_) {
-                if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
+                if (hdr_flags::access(pkt)->eln_ && eln_) {
                         tcp_eln(pkt);
                         return;
                 }
@@ -901,7 +905,7 @@ void TcpAgent::timeout(int tno)
 void TcpAgent::tcp_eln(Packet *pkt)
 {
         int eln_rxmit;
-        hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+        hdr_tcp *tcph = hdr_tcp::access(pkt);
         int ack = tcph->seqno();
 
         if (++dupacks_ == eln_rxmit_thresh_ && ack > eln_last_rxmit_) {

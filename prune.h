@@ -19,7 +19,7 @@
  *
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.h,v 1.4 1998/06/27 01:24:21 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.h,v 1.5 1998/08/12 23:41:11 gnguyen Exp $
  */
 
 #ifndef ns_prune_h
@@ -30,6 +30,12 @@ struct hdr_prune {
         nsaddr_t       from_;
         nsaddr_t       src_;
         nsaddr_t       group_;
+
+	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_prune* access(Packet* p) {
+		return (hdr_prune*) p->access(offset_);
+	}
 
         /* per-field member functions */
         char*     type()  { return type_;   }

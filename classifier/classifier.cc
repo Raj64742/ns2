@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.22 1998/06/27 01:23:34 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.23 1998/08/12 23:41:00 gnguyen Exp $";
 #endif
 
 #include <stdlib.h>
@@ -57,7 +57,6 @@ Classifier::Classifier() : slot_(0), nslot_(0), maxslot_(-1)
 	bind("offset_", &offset_);
 	bind("shift_", &shift_);
 	bind("mask_", &mask_);
-	bind("off_ip_", &off_ip_); // XXX to be removed
 }
 
 int Classifier::classify(Packet *const p)

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.21 1998/07/09 18:46:28 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.22 1998/08/12 23:41:02 gnguyen Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -53,9 +53,6 @@ LinkDelay::LinkDelay() : Connector(), dynamic_(0), itq_(0), nextPacket_(0)
 {
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);
-	bind("off_ip_", &off_ip_);
-	bind("off_prune_", &off_prune_);
-	bind("off_CtrMcast_", &off_CtrMcast_);
 }
 
 int LinkDelay::command(int argc, const char*const* argv)
@@ -148,19 +145,19 @@ void LinkDelay::pktintran(int src, int group)
 	while (len) {
 		len--;
 		Packet* p = itq_->lookup(len);
-		hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
+		hdr_ip* iph = hdr_ip::access(p);
 		if (iph->flowid() == prune) {
-			hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+			hdr_prune* ph = hdr_prune::access(p);
 			if (ph->src() == src && ph->group() == group) {
 				total_[0]++;
 			}
 		} else if (iph->flowid() == graft) {
-			hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+			hdr_prune* ph = hdr_prune::access(p);
 			if (ph->src() == src && ph->group() == group) {
 				total_[1]++;
 			}
 		} else if (iph->flowid() == reg) {
-			hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
+			hdr_CtrMcast* ch = hdr_CtrMcast::access(p);
 			if (ch->src() == src+1 && ch->group() == group) {
 				total_[2]++;
 			}

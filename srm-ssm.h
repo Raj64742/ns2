@@ -12,11 +12,18 @@
 #define SRM_RINFO  3  /* Session Message with reps information */
 
 struct hdr_srm_ext {
-  int     repid_;
-  int     origTTL_;
-  // per field member functions
-  int& repid()	{ return repid_; }
-  int& ottl()    { return origTTL_; } 
+	int     repid_;
+	int     origTTL_;
+
+	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_srm_ext* access(Packet* p) {
+		return (hdr_srm_ext*) p->access(offset_);
+	}
+
+	// per field member functions
+	int& repid()	{ return repid_; }
+	int& ottl()    { return origTTL_; } 
 };
 
 class SSMSRMAgent : public SRMAgent {

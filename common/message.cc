@@ -34,17 +34,21 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/message.cc,v 1.12 1998/06/27 01:24:11 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/message.cc,v 1.13 1998/08/12 23:41:08 gnguyen Exp $ (LBL)";
 #endif
 
 #include "agent.h"
 #include "random.h"
 #include "message.h"
 
+int hdr_msg::offset_;
+
 static class MessageHeaderClass : public PacketHeaderClass {
 public:
 	MessageHeaderClass() : PacketHeaderClass("PacketHeader/Message",
-						 sizeof(hdr_msg)) {}
+						 sizeof(hdr_msg)) {
+		bind_offset(&hdr_msg::offset_);
+	}
 } class_msghdr;
 
 class MessageAgent : public Agent {
@@ -52,8 +56,6 @@ class MessageAgent : public Agent {
 	MessageAgent();
 	int command(int argc, const char*const* argv);
 	void recv(Packet*, Handler*);
-protected:
-	int off_msg_;
 };
 
 static class MessageClass : public TclClass {
@@ -67,12 +69,11 @@ public:
 MessageAgent::MessageAgent() : Agent(PT_MESSAGE)
 {
 	bind("packetSize_", &size_);
-	bind("off_msg_", &off_msg_);
 }
 
 void MessageAgent::recv(Packet* pkt, Handler*)
 {
-	hdr_msg* mh = (hdr_msg*)pkt->access(off_msg_);
+	hdr_msg* mh = hdr_msg::access(pkt);
 	char wrk[128];/*XXX*/
 	sprintf(wrk, "%s recv {%s}", name(), mh->msg());
 
@@ -92,7 +93,7 @@ int MessageAgent::command(int argc, const char*const* argv)
 	if (argc == 3) {
 		if (strcmp(argv[1], "send") == 0) {
 			Packet* pkt = allocpkt();
-			hdr_msg* mh = (hdr_msg*)pkt->access(off_msg_);
+			hdr_msg* mh = hdr_msg::access(pkt);
 			const char* s = argv[2];
 			int n = strlen(s);
 			if (n >= mh->maxmsg()) {

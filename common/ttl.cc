@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.10 1998/06/27 01:25:10 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.11 1998/08/12 23:41:24 gnguyen Exp $";
 #endif
 
 #include "packet.h"
@@ -43,9 +43,7 @@ static const char rcsid[] =
 
 class TTLChecker : public Connector {
 public:
-	TTLChecker() : noWarn_(1), tick_(1) {
-		bind("off_ip_", &off_ip_);
-	}
+	TTLChecker() : noWarn_(1), tick_(1) {}
 	int command(int argc, const char*const* argv) {
 		if (argc == 3) {
 			if (strcmp(argv[1], "warning") == 0) {
@@ -68,7 +66,7 @@ public:
 		return Connector::command(argc, argv);
 	}
 	void recv(Packet* p, Handler* h) {
-		hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
+		hdr_ip* iph = hdr_ip::access(p);
 		int ttl = iph->ttl() - tick_;
 		if (ttl <= 0) {
 			/* XXX should send to a drop object.*/
@@ -83,7 +81,6 @@ public:
 		send(p, h);
 	}
 protected:
-	int off_ip_;
 	int noWarn_;
 	int tick_;
 };
@@ -99,12 +96,10 @@ public:
 
 class SessionTTLChecker : public Connector {
 public:
-	SessionTTLChecker() {
-		bind("off_ip_", &off_ip_);
-	}
+	SessionTTLChecker() {}
 	int command(int argc, const char*const* argv);
 	void recv(Packet* p, Handler* h) {
-		hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
+		hdr_ip* iph = hdr_ip::access(p);
 		int ttl = iph->ttl() - tick_;
 		if (ttl <= 0) {
 			/* XXX should send to a drop object.*/
@@ -118,7 +113,6 @@ public:
 		send(p, h);
 	}
 protected:
-	int off_ip_;
 	int tick_;
 };
 

@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.34 1998/06/27 01:23:48 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.35 1998/08/12 23:41:04 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -189,7 +189,6 @@ public:
 	inline int maxtype() { return sizeof(msg_type); }
 protected:
 	int command(int argc, const char*const* argv);
-	int off_prune_; /* don't forget to bind this to tcl */
 	char msg_type[15]; /* to which to copy the message code (e.g.
 			    *  "prune","join"). It's size is the same
 			    * as type_ in prune.h [also returned by maxtype.]
