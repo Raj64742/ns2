@@ -1,24 +1,36 @@
 ########## CtrMcast Class: Individual Node join-group, leave-group, etc #####
 Class CtrMcast -superclass McastProtocol
 
-CtrMcast instproc init { sim node agent confArgs} {
+CtrMcast instproc init { sim node agent confArgs } {
     $self next
     $self instvar ns Node type Agent
     $self instvar c_rp c_bsr rpset priority
     $self instvar SPT RPT default decapagent
-    $self instvar MRT
 
     set ns $sim
     set Node $node
     set type "CtrMcast"
-    set Agent $agent
+    if {$agent != 0} {
+	set Agent $agent
+    } else {	
+	set Agent [$ns set MrtHandle_]
+    }	
     set SPT 1
     set RPT 2
     set default $RPT
 
+    set c_rp      1
+    set c_bsr     1
+    set priority  0
+
     [$Node getArbiter] addproto $self
     set decapagent [new Agent/CtrMcast/Decap]
     $ns attach-agent $Node $decapagent
+
+    set tracefile [$ns gettraceAllFile]
+    if { $tracefile != 0 } {
+	$self trace $ns $tracefile $node
+    }
 
     ### config PIM nodes
     if ![info exists confArgs] { return 0 }
@@ -28,13 +40,16 @@ CtrMcast instproc init { sim node agent confArgs} {
     if { $len == 1 } { return 1 }
     set c_bsr [lindex $confArgs 1]
     if { $len == 2 } { 
-	set priority 0
-	return 1
+        set priority 0
+        return 1
     }
     set priority [lindex $confArgs 2]
 }
 
 CtrMcast instproc join-group  { group } {
+    $self instvar group_
+    set group_ $group
+    $self next
     $self instvar Node ns Agent
     $self instvar SPT RPT default
     #puts "_node [$Node id], joining group $group"
@@ -68,6 +83,9 @@ CtrMcast instproc join-group  { group } {
 }
 
 CtrMcast instproc leave-group  { group } {
+    $self instvar group_
+    set group_ $group
+    $self next
     $self instvar Node ns Agent default
     #puts "_node [$Node id], leaving group $group"
 
@@ -124,13 +142,13 @@ CtrMcast instproc handle-cache-miss { argslist } {
 	}
     }
     if { [$Node id] == $srcID } {
-	if { [$Agent set treetype($group)] == $RPT && $srcID != [$self getrp $group]} {
+	if { [$Agent set treetype($group)] == $RPT && $srcID != [$self get_rp $group]} {
 	    ### create encapsulation agent
 	    set encapagent [new Agent/CtrMcast/Encap]
 	    $ns attach-agent $Node $encapagent
 
 	    ### find decapsulation agent and connect encap and decap agents
-	    set RP [$self getrp $group]
+	    set RP [$self get_rp $group]
 	    set n [$ns set Node_($RP)]
 	    set arbiter [$n getArbiter]
 	    set ctrmcast [$arbiter getType "CtrMcast"]
@@ -166,27 +184,39 @@ CtrMcast instproc handle-cache-miss { argslist } {
 }
 
 CtrMcast instproc drop  { replicator src group } {
+    #packets got dropped only due to null oiflist
     #puts "drop"
 }
 
-##### Two functions to help get RP for a group #####
-##### getrp {group}                            #####
-##### hash {rp group}                          #####
-CtrMcast instproc getrp group {
-    $self instvar rpset
+McastProtocol instproc handle-wrong-iif { argslist } {
+    set srcID [lindex $argslist 0]
+    set group [lindex $argslist 1]
+    set iface [lindex $argslist 2]
+    puts "warning: $self wrong incoming interface src:$srcID group:$group iface:$iface"
 
-    if { $rpset != ""} {
-	set returnrp 32768
-	set hashval 32768
-	foreach rp $rpset {
-	    if {[$self hash $rp $group] < $hashval} {
-		set hashval [$self hash $rp $group]
-		set returnrp $rp
+}
+##### Two functions to help get RP for a group #####
+##### get_rp {group}                            #####
+##### hash {rp group}                          #####
+CtrMcast instproc get_rp group {
+    $self instvar rpset Agent
+
+    if [info exists rpset] {
+	if { $rpset != ""} {
+	    set returnrp -1
+	    set hashval -1
+	    foreach rp $rpset {
+		if {[$self hash $rp $group] > $hashval} {
+		    set hashval [$self hash $rp $group]
+		    set returnrp $rp
+		}
 	    }
+	    return $returnrp
+	} else {
+	    return -1
 	}
-	return $returnrp
     } else {
-	return -1
+	[$Agent set ctrrpcomp] compute-rpset
     }
 }
 
@@ -194,7 +224,20 @@ CtrMcast instproc hash {rp group} {
     return $rp
 }
 
+CtrMcast instproc get_bsr {} {
+    puts "CtrMcast doesn't require a BSR"
+}
 
+CtrMcast instproc set_c_bsr { prior } {
+    $self instvar c_bsr priority
+    set c_bsr 1
+    set priority $prior
+}
+
+CtrMcast instproc set_c_rp {} {
+    $self instvar c_rp
+    set c_rp 1
+}
 
 ################# Agent/CtrMcast/Encap ###############
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.14 1997/05/13 22:27:57 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.15 1997/06/26 01:48:10 polly Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -70,7 +70,7 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
         #added for interface code
         $self instvar ifacein_ ifaceout_
         set ifacein_ 0
-        set ifaceout_ 0
+        set ifaceout_ $dst
 
 	set queue_ $q
 	set link_ [new $lltype]

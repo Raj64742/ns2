@@ -17,8 +17,12 @@ MultiSim instproc run-mcast {} {
 
 MultiSim instproc upstream-node { id src } {
 	$self instvar routingTable_ Node_
-	set nbr [$routingTable_ lookup $id $src]
-	return $Node_($nbr)
+        if [info exists routingTable_] {
+	    set nbr [$routingTable_ lookup $id $src]
+	    return $Node_($nbr)
+	} else {
+	    return ""
+	}
 }
 
 MultiSim instproc RPF-link { src from to } {
@@ -26,9 +30,12 @@ MultiSim instproc RPF-link { src from to } {
 	#
 	# If this link is on the RPF tree, return the link object.
 	#
-	set reverse [$routingTable_ lookup $to $src]
-	if { $reverse == $from } {
+        if [info exists routingTable_] {
+	    set reverse [$routingTable_ lookup $to $src]
+	    if { $reverse == $from } {
 		return $link_($from:$to)
+	    }
+	    return ""
 	}
 	return ""
 }
@@ -58,6 +65,36 @@ MultiSim instproc getPIMProto { index } {
         return -1
 }
 
+MultiSim instproc mrtproto {mproto nodeList} {
+    $self instvar Node_ MrtHandle_
+
+    set MrtHandle_ 0
+    if {$mproto == "CtrMcast"} {
+	set MrtHandle_ [new CtrMcastComp $self]
+	$MrtHandle_ set ctrrpcomp [new CtrRPComp $self]
+	if {[llength $nodeList] == 0} {
+		foreach n [array names Node_] {
+		    new $mproto $self $Node_($n) 0 [list]
+		}
+	} else {
+		foreach node $nodeList {
+		    new $mproto $self $node 0 [list]
+		}
+	}
+    } else {
+        if {[llength $nodeList] == 0} {
+                foreach n [array names Node_] {
+                    new $mproto $self $Node_($n)
+                }
+        } else {
+                foreach node $nodeList {
+                    new $mproto $self $node
+                }
+        }
+    }
+    $self at 0.0 "$self run-mcast"
+    return $MrtHandle_
+}
 
 ###############
 Class MultiNode -superclass Node
@@ -173,10 +210,21 @@ MultiNode instproc RPF-interface { src from to } {
         $self instvar ns_
         set oifInfo ""  
         set link [$ns_ RPF-link $src $from $to]
+
         if { $link != "" } {
                 set oifInfo [$self get-oif $link]
         }
         return $oifInfo
+}
+
+MultiNode instproc ifaceGetNode { iface } {
+        $self instvar ns_ id_ neighbor_
+        foreach node $neighbor_ {
+                set link [$ns_ set link_([$node id]:$id_)]
+	    if {[[$link set ifaceout_] id] == $iface} {
+		return $node
+	    }
+        }
 }
 
 MultiNode instproc init-outLink { } {
@@ -203,6 +251,19 @@ MultiNode instproc getRep { src group } {
 		return $replicator_($src:$group)
 	}
 	return ""
+}
+
+MultiNode instproc getRepBySource { src } {
+        $self instvar replicator_
+	  
+	  set replist ""
+	  foreach n [array names replicator_] {
+		set pair [split $n :]
+		if {[lindex $pair 0] == $src} {
+			lappend replist [lindex $pair 1]:$replicator_($n)
+		}
+	  }
+	  return $replist
 }
 
 MultiNode instproc exists-Rep { src group } {
@@ -315,6 +376,7 @@ MultiNode instproc add-mfc { src group iif oiflist } {
     # leave the replicator in place even when it's empty since
     # the replicator::drop callback triggers the prune.
     #
+    # puts "mcast classifier been added $src $group $iif $r"
     $multiclassifier_ add-rep $r $src $group $iif
 }
 
@@ -381,7 +443,7 @@ Classifier/Replicator/Demuxer instproc insert target {
                 if !$active_($target) {    
                         $self install $index_($target) $target
                         incr nactive_
-		        puts "$self $nactive_ (+1)"
+		        # puts "$self $nactive_ (+1)"
                         set active_($target) 1
                         set ignore 0
                         return 1
@@ -432,3 +494,12 @@ Classifier/Replicator/Demuxer instproc drop { src dst } {
         return 1
 }
 
+Classifier/Replicator/Demuxer instproc change-iface { src dst oldiface newiface} {
+	#
+	# No downstream listeners
+	# Send a prune back toward the source
+	#
+	$self instvar node_
+        [$node_ set multiclassifier_] change-iface $src $dst $oldiface $newiface
+        return 1
+}

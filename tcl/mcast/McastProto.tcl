@@ -23,6 +23,7 @@ McastProtocol instproc getStatus {} {
 McastProtocol instproc upcall { argslist } {
         set code [lindex $argslist 0]
         set argslist [lreplace $argslist 0 0]
+        # puts "does this upcalled"
         switch $code {
                 "CACHE_MISS" { $self handle-cache-miss $argslist }
                 "WRONG_IIF" { $self handle-wrong-iif $argslist }  
@@ -32,6 +33,33 @@ McastProtocol instproc upcall { argslist } {
  
 McastProtocol instproc handle-wrong-iif { argslist } {
 
+}
+
+McastProtocol instproc join-group {} {
+        $self instvar dynT_ Node group_
+        if [info exists dynT_] {
+	    foreach tr $dynT_ {
+		$tr format annotation "[$Node id]-join-group-$group_"
+	    }
+	}
+}
+
+McastProtocol instproc leave-group {} {
+        $self instvar dynT_ Node group_
+        if [info exists dynT_] {
+	    foreach tr $dynT_ {
+		$tr format annotation "[$Node id]-leave-group-$group_"
+	    }
+	}
+}
+
+McastProtocol instproc trace-dynamics { ns f src } {
+        $self instvar dynT_
+        lappend dynT_ [$ns create-trace Generic $f $src $src]
+}
+
+McastProtocol instproc trace { ns f src } {
+	$self trace-dynamics $ns $f $src
 }
 
 #############################################

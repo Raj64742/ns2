@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.7 1997/05/13 22:27:55 polly Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.8 1997/06/26 01:48:03 polly Exp $";
 #endif
 
 #include <stdlib.h>
@@ -66,7 +66,8 @@ protected:
 	};
 	hashnode* ht_[256];
 	const hashnode* lookup(nsaddr_t src, nsaddr_t dst) const;
-	const hashnode* lookupiface(nsaddr_t src, nsaddr_t dst, int iface) const;
+	hashnode* lookupiface(nsaddr_t src, nsaddr_t dst, int iface) const;
+        void change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface);
 };
 
 static class MCastClassifierClass : public TclClass {
@@ -128,6 +129,7 @@ int MCastClassifier::classify(Packet *const pkt)
 		if ( (p->iif != -1) && (p->iif != iface) ) {
 		  Tcl::instance().evalf("%s new-group %u %u %d %s", 
 					name(), src, dst, iface, "WRONG_IIF");
+		  //printf ("wrong_iff: %s %u %u %d\n", name(), src, dst, iface);
 		  return (-1);
 		}
 	}
@@ -169,12 +171,22 @@ int MCastClassifier::command(int argc, const char*const* argv)
                         set_hash(src, dst, slot, iface);
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "change-iface") == 0) {
+			nsaddr_t src = strtol(argv[2], (char**)0, 0);
+			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
+			int oldiface = atoi(argv[4]);
+                        int newiface = atoi(argv[5]);
+                        change_iface(src, dst, oldiface, newiface);
+			return (TCL_OK);
+		}
 	}
 	return (Classifier::command(argc, argv));
 }
 
+
 /* interface look up for the interface code*/
-const MCastClassifier::hashnode*
+
+MCastClassifier::hashnode*
 MCastClassifier::lookupiface(nsaddr_t src, nsaddr_t dst, int iface) const
 {
 	int h = hash(src, dst);
@@ -184,4 +196,11 @@ MCastClassifier::lookupiface(nsaddr_t src, nsaddr_t dst, int iface) const
 			break;
 	}
 	return (p);
+}
+
+void MCastClassifier::change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface)
+{
+
+        hashnode* p = lookupiface(src, dst, oldiface);
+	p->iif = newiface;
 }

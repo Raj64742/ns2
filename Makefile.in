@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.39 1997/06/23 16:55:28 heideman Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.40 1997/06/26 01:48:01 polly Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -173,6 +173,8 @@ NS_TCL_LIB = \
         tcl/mcast/ns-mcast.tcl \
         tcl/mcast/McastProto.tcl \
         tcl/mcast/DM.tcl \
+        tcl/mcast/dynamicDM.tcl \
+        tcl/mcast/pimDM.tcl \
 	tcl/mcast/srm.tcl \
         tcl/ctr-mcast/CtrMcast.tcl \
         tcl/ctr-mcast/CtrMcastComp.tcl \

@@ -138,6 +138,9 @@ tcl/ex/newmcast/dense-mode2-nam.tcl
 tcl/ex/newmcast/dense-mode2.tcl
 tcl/ex/newmcast/dense-mode3-nam.tcl
 tcl/ex/newmcast/dense-mode3.tcl
+tcl/ex/newmcast/mcast1.tcl
+tcl/ex/newmcast/mcast2-nam.tcl
+tcl/ex/newmcast/mcast2.tcl
 tcl/ex/newmcast/pim1-nam.tcl
 tcl/ex/newmcast/pim1.tcl
 tcl/ex/newmcast/pim2-nam.tcl
@@ -168,7 +171,9 @@ tcl/lib/ns-agent.tcl
 tcl/lib/ns-random.tcl
 tcl/mcast/DM.tcl
 tcl/mcast/McastProto.tcl
+tcl/mcast/dynamicDM.tcl
 tcl/mcast/ns-mcast.tcl
+tcl/mcast/pimDM.tcl
 tcl/mcast/srm.tcl
 tcl/mcast/srm-debug.tcl
 tcl/mcast/srm-debug++.tcl

@@ -1,5 +1,7 @@
 Class DM -superclass McastProtocol
 
+DM set PruneTimeout 0.5
+
 DM instproc init { sim node } {
 	$self next
 	$self instvar ns Node type
@@ -7,17 +9,26 @@ DM instproc init { sim node } {
 	set Node $node
 	set type "DM"
 	$self initialize
+        set tracefile [$ns gettraceAllFile]
+        if { $tracefile != 0 } {
+	    $self trace $ns $tracefile $node
+	}
 }
 
 DM instproc initialize { } {
 	$self instvar Node prune
+        # puts "initialize DM-like: creating prune msg agents"
 	set prune [new Agent/Message/Prune $self]
         [$Node getArbiter] addproto $self
 	$Node attach $prune
 }
 
 DM instproc join-group  { group } {
-	$self instvar Node
+        $self instvar group_
+        set group_ $group
+        $self next
+	$self instvar Node ns
+
 	# puts "_node [$Node id], joining group $group"
 	set listOfReps [$Node getRepByGroup $group]
 	foreach r $listOfReps {
@@ -29,7 +40,9 @@ DM instproc join-group  { group } {
 }
 
 DM instproc leave-group { group } {
-
+        $self instvar group_
+        set group_ $group
+        $self next
 }
 
 DM instproc handle-cache-miss { argslist } {
@@ -38,7 +51,8 @@ DM instproc handle-cache-miss { argslist } {
         set iface [lindex $argslist 2]
 
         # puts "$self handel-cache-miss $srcID $group $iface"
-        $self instvar Node
+        $self instvar Node 
+
 	set neighbor [$Node set neighbor_]
         # init a list of lan indexes
         set indexList ""
@@ -84,14 +98,31 @@ DM instproc drop { replicator src dst } {
 }
 
 DM instproc recv-prune { from src group } {
-        $self instvar Node
+        $self instvar Node PruneTimer_ ns
 
-	#puts "_node [$Node id], recv prune from $from, src $src, group $group"
+	# puts "_node [$Node id], recv prune from $from, src $src, group $group"
 	set r [$Node getRep $src $group]
 	if { $r == "" } { 
 		return 0
 	}
-        $r disable [$Node set outLink_([$Node get-oifIndex $from])]
+
+	set oifInfo [$Node RPF-interface $src [$Node id] $from]
+	set tmpoif [$Node set outLink_([$Node get-oifIndex $from])]
+	$r instvar active_
+	if [$r exists $tmpoif] {
+	    if !$active_($tmpoif) {
+		#puts "recv prune when iface is already pruned"
+		#$ns cancel $PruneTimer_($src:$group:$tmpoif)
+		#set PruneTimer_($src:$group:$tmpoif) [$ns at [expr [$ns now] + [DM set PruneTimeout]] "$r enable $tmpoif"]
+	    } else {
+		# puts "prune oif $tmpoif [$ns now]"
+		$r disable $tmpoif
+		set PruneTimer_($src:$group:$tmpoif) [$ns at [expr [$ns now] + [DM set PruneTimeout]] "$r enable $tmpoif"]
+	    }
+	} else {
+	    puts "warning: try to prune interface not existing?"
+	}
+
         #
         # If there are no remaining active output links
         # then send a prune upstream.
@@ -100,13 +131,13 @@ DM instproc recv-prune { from src group } {
         if {$nactive_ == 0} {
 	    # set src [expr $src >> 8]
 	    if { $src != [$Node id] } {
-		    $self send-ctrl prune $src $group
+		$self send-ctrl prune $src $group
 	    }
 	}
 }
 
 DM instproc recv-graft { from src group } {
-        $self instvar Node
+        $self instvar Node PruneTimer_ ns
         #puts "_node [Node id], RECV-GRAFT from $from src $src group $group"
 	set id [$Node id]
         set r [$Node set replicator_($src:$group)]
@@ -121,7 +152,12 @@ DM instproc recv-graft { from src group } {
         #
         # restore the flow
         #
-        $r enable [$Node set outLink_([$Node get-oifIndex $from])]
+	set tmpoif [$Node set outLink_([$Node get-oifIndex $from])] 
+	$r instvar active_
+	if {[$r exists $tmpoif] && !($active_($tmpoif))} {
+	    $ns cancel $PruneTimer_($src:$group:$tmpoif)
+	}
+        $r enable $tmpoif
 }
 
 #
@@ -165,4 +201,14 @@ Agent/Message/Prune instproc handle msg {
         } else {
                 $proto recv-graft $from $src $group
         }
+}
+
+#####
+Simulator instproc gettraceAllFile {} {
+        $self instvar traceAllFile_
+        if [info exists traceAllFile_] {
+	    return $traceAllFile_
+	} else {
+	    return 0
+	}
 }

@@ -340,11 +340,27 @@ rtModel instproc down {} {
 }
 
 rtModel instproc notify {} {
-    $self instvar nodes_
+    $self instvar nodes_ ns_
     foreach n [array names nodes_] {
 	$nodes_($n) intf-changed
     }
     [RouteLogic info instances] notify
+
+    if {[$ns_ info class] == "MultiSim"} {
+	if {[[$nodes_(0) getArbiter] getType "CtrMcast"] != -1} {
+	    [CtrMcastComp info instances] notify
+	}
+	if {[[$nodes_(0) getArbiter] getType "dynamicDM"] != -1} {
+	    if ![dynamicDM set periodic] {
+		set i 0
+		set n [Node set nn_]
+		while { $i < $n } {
+		    [[[$ns_ set Node_($i)] getArbiter] getType "dynamicDM"] check-downstream-list
+		    incr i
+		}
+	    }
+	}
+    }
 }
 
 rtModel instproc trace { ns f } {

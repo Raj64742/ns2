@@ -13,16 +13,20 @@ proc nam_config {net} {
         $net queue 3 1 0.5
 
 	$net color 2 black
-
-	$net color 112 red
-	$net color 106 green
-	$net color 104 blue
 	$net color 1 blue
         $net color 0 yellow
+        $net color 30 purple
+        $net color 31 green
+
 }
 
 
 
+proc annotation msg {
+        set msg [split $msg -]
+        global sim_annotation
+        set sim_annotation $msg
+}
 
 
 

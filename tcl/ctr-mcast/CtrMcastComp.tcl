@@ -11,13 +11,31 @@ Class CtrMcastComp
 CtrMcastComp instproc init sim {
     $self instvar ns Glist Mlist Slist treetype 
     $self instvar RPT SPT
+    $self instvar ctrrpcomp dynT_
 
     set ns $sim
     set Glist ""
     set SPT 1
     set RPT 2
+    set tracefile [$ns gettraceAllFile]
+    if { $tracefile != 0 } {
+	$self trace $ns $tracefile
+    }
 }
-    
+
+CtrMcastComp instproc id {} {
+    return 0
+}
+
+CtrMcastComp instproc trace-dynamics { ns f } {
+        $self instvar dynT_
+        lappend dynT_ [$ns create-trace Generic $f $self $self]
+}
+
+CtrMcastComp instproc trace { ns f } {
+	$self trace-dynamics $ns $f
+}  
+
 ##### Main computation functions #####
 CtrMcastComp instproc reset-mroutes {} {
     $self instvar ns Glist Slist
@@ -86,9 +104,7 @@ CtrMcastComp instproc compute-branch { src group member } {
 	#puts "compute RPT branch"
 
         set n [$ns set Node_($member)]
-	set arbiter [$n getArbiter]
-	set ctrmcast [$arbiter getType "CtrMcast"]
-	set RP [$ctrmcast getrp $group]
+	set RP [$self get_rp $n $group]
 	set target $RP
     }
 
@@ -155,9 +171,7 @@ CtrMcastComp instproc prune-branch { src group member } {
 	#puts "prune RPT branch"
 
         set n [$ns set Node_($member)]
-	set arbiter [$n getArbiter]
-	set ctrmcast [$arbiter getType "CtrMcast"]
-	set RP [$ctrmcast getrp $group]
+	set RP [$self get_rp $n $group]
 	set target $RP
     }
 
@@ -231,9 +245,14 @@ CtrMcastComp instproc exists-treetype group {
 }
 
 CtrMcastComp instproc switch-treetype group {
-    $self instvar treetype SPT Glist
-
+    $self instvar treetype SPT Glist dynT_
     set group [expr $group]
+
+    if [info exists dynT_] {
+	foreach tr $dynT_ {
+	    $tr format annotation "$group-switch-tree-type"
+	}
+    }
     set treetype($group) $SPT
     if { [lsearch $Glist $group] < 0 } {
 	lappend Glist $group
@@ -241,6 +260,47 @@ CtrMcastComp instproc switch-treetype group {
 
     $self compute-mroutes
 }
+
+CtrMcastComp instproc set_c_rp { nodeList } {
+    foreach node $nodeList {
+	set arbiter [$node getArbiter]
+	set ctrmcast [$arbiter getType "CtrMcast"]
+	$ctrmcast set_c_rp
+    }
+}
+
+CtrMcastComp instproc set_c_bsr { nodeList } {
+    foreach node $nodeList {
+	set tmp [split $node :]
+	set node [lindex $tmp 0]
+	set prior [lindex $tmp 1]
+	set arbiter [$node getArbiter]
+	set ctrmcast [$arbiter getType "CtrMcast"]
+	$ctrmcast set_c_bsr $prior
+    }
+}
+
+CtrMcastComp instproc get_rp { node group } {
+    set arbiter [$node getArbiter]
+    set ctrmcast [$arbiter getType "CtrMcast"]
+    $ctrmcast get_rp $group
+}
+
+CtrMcastComp instproc get_bsr { node } {
+    set arbiter [$node getArbiter]
+    set ctrmcast [$arbiter getType "CtrMcast"]
+    $ctrmcast get_bsr
+}
+
+############# notify(): adapt to rtglib dynamics ####################
+CtrMcastComp instproc notify {} {
+    $self instvar ctrrpcomp
+
+    ### need to add a delay before recomputation
+    $ctrrpcomp compute-rpset
+    $self compute-mroutes
+}
+
 
 ###########Classifier/Replicator/Demuxer ###############
 Classifier/Replicator/Demuxer instproc reset {} {
