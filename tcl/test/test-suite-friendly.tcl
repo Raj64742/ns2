@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.2 1998/09/22 02:20:06 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.3 1998/09/23 00:46:16 sfloyd Exp $
 #
 
 # UNDER CONSTRUCTION!!
@@ -92,37 +92,80 @@ TestSuite instproc setTopo {} {
 }
 
 # 
-# Arrange for TFCC stats to be dumped for $Src every
+# Arrange for TFCC stats to be dumped for $src every
 # $interval seconds of simulation time
 # 
-TestSuite instproc tfccDump { label Src interval } {
+TestSuite instproc tfccDump { label src interval file } {
         global quiet
-        $self instvar dump_inst_ ns_
-        if ![info exists dump_inst_($Src)] {
-                set dump_inst_($Src) 1
-                $ns_ at 0.0 "$self tfccDump $label $Src $interval"
+	set dumpfile temp.s
+        $self instvar dump_inst_ ns_ f
+        if ![info exists dump_inst_($src)] {
+                set dump_inst_($src) 1
+                $ns_ at 0.0 "$self tfccDump $label $src $interval $file"
                 return
         }
-        $ns_ at [expr [$ns_ now] + $interval] "$self tfccDump $label $Src $interval"
-        set report "time [$ns_ now] tfcc $label total_packets_sent ?"
+        $ns_ at [expr [$ns_ now] + $interval] "$self tfccDump $label $src $interval $file"
+        set report "[$ns_ now] $label [$src set packets_] " 
         if {$quiet == "false"} {
-                puts $report
+                puts $file $report
+		puts -nonewline [$ns_ now]..; flush stdout
         }
 }
 
-TestSuite instproc pktsDump { label tcp interval } {
+#
+# Arrange for TCP stats to be dumped for $tcp every
+# $interval seconds of simulation time
+#
+TestSuite instproc pktsDump { label tcp interval file } {
     global quiet
     $self instvar dump_inst_ ns_
     if ![info exists dump_inst_($tcp)] {
         set dump_inst_($tcp) 1
-        $ns_ at 0.0 "$self pktsDump $label $tcp $interval"
+        $ns_ at 0.0 "$self pktsDump $label $tcp $interval $file"
         return
     }
-    $ns_ at [expr [$ns_ now] + $interval] "$self pktsDump $label $tcp $interval"
-    set report "time [$ns_ now] tcp $label total_packets_acked [$tcp set ack_]"
+    $ns_ at [expr [$ns_ now] + $interval] "$self pktsDump $label $tcp $interval $file"
+    set report "[$ns_ now] $label [$tcp set ack_]"
     if {$quiet == "false"} {
-        puts $report
+        puts $file $report
     }
+}
+
+# display graph of results
+TestSuite instproc finish_1 testname {
+        global quiet
+        $self instvar topo_
+
+        set graphfile temp.rands
+
+        set awkCode  {
+		{
+                if ($2 == fid) { print $1, $3 - last; last = $3 }
+		}
+        }
+
+        set f [open $graphfile w]
+        puts $f "TitleText: $testname"
+        puts $f "Device: Postscript"
+
+        exec rm -f temp.p
+        exec touch temp.p
+        foreach i { 1 2 3 4 5} {
+                exec echo "\n\"flow $i" >> temp.p
+		puts $i
+                exec awk $awkCode fid=$i temp.s > temp.$i
+                exec cat temp.$i >> temp.p
+                exec echo " " >> temp.p
+        }
+
+        exec cat temp.p >@ $f
+        close $f
+        if {$quiet == "false"} {
+                exec xgraph -bb -tk -x time -y packets $graphfile &
+        }
+#       exec csh figure2.com $file
+
+        exit 0
 }
 
 proc stop {tracefile} {
@@ -130,25 +173,9 @@ proc stop {tracefile} {
     exit
 }
 
-# single packet drop
-Class Test/test1 -superclass TestSuite
-Test/test1 instproc init {} {
-    $self instvar net_ test_
-    set net_	net2
-    set test_	test1
-    $self next
-}
-Test/test1 instproc run {} {
-    $self instvar ns_ node_ testName_
-    $self setTopo
-    set interval 5.0
+TestSuite instproc runFriendly {} {
+    $self instvar ns_ node_ interval_ dumpfile_
 
-    set tracefile [open all.tr w]
-    $ns_ trace-all $tracefile
-
-    # Set up TCP connection
-    Agent/RTP/TFCC set packetSize_ 1000
-    
     set tf1 [new Agent/RTP/TFCC $ns_]
     set tfr1 [new Agent/RTP/TFCC $ns_]
     set tf2 [new Agent/RTP/TFCC $ns_]
@@ -161,32 +188,93 @@ Test/test1 instproc run {} {
     $ns_ attach-agent $node_(s2) $tf2
     $ns_ attach-agent $node_(s4) $tfr2
     $ns_ connect $tf2 $tfr2
-    
+
+    $ns_ at 0.0 "$tf1 start"
+    $ns_ at 10.0 "$tf2 start"
+
+    $ns_ at 40 "$tf1 stop"
+    $ns_ at 40 "$tf2 stop"
+
+    $self tfccDump 1 $tfr1 $interval_ $dumpfile_
+    $self tfccDump 2 $tfr2 $interval_ $dumpfile_
+}
+
+TestSuite instproc runTcps {} {
+    $self instvar ns_ node_ interval_ dumpfile_
+
     set tcp1 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s4) 0]
     set ftp1 [$tcp1 attach-app FTP] 
     set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s4) 0]
     set ftp2 [$tcp2 attach-app FTP] 
     set tcp3 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s4) 0]
     set ftp3 [$tcp3 attach-app FTP] 
-    $ns_ at 0.0 "$tf1 start"
-    $ns_ at 10.0 "$tf2 start"
     $ns_ at 19.0 "$ftp1 start"
     $ns_ at 20.0 "$ftp2 start"
     $ns_ at 21.0 "$ftp3 start"
-    $ns_ at 40 "$tf1 stop"
-    $ns_ at 40 "$tf2 stop"
     $ns_ at 50 "$ftp2 stop"
     $ns_ at 40 "$ftp3 stop"
-    $ns_ at 60 "stop $tracefile"
 
-    $self tfccDump 1 $tf1 $interval
-    $self tfccDump 2 $tf2 $interval
-    $self pktsDump 1 $tcp1 $interval
-    $self pktsDump 2 $tcp2 $interval
-    $self pktsDump 3 $tcp3 $interval
+    $self pktsDump 3 $tcp1 $interval_ $dumpfile_
+    $self pktsDump 4 $tcp2 $interval_ $dumpfile_
+    $self pktsDump 5 $tcp3 $interval_ $dumpfile_
+}
+
+# single packet drop
+Class Test/test1 -superclass TestSuite
+Test/test1 instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	test1
+    $self next
+}
+Test/test1 instproc run {} {
+    $self instvar ns_ node_ testName_ interval_ dumpfile_
+    $self setTopo
+    set interval_ 1.0
+    set stopTime 60.0
+
+    set dumpfile_ [open temp.s w]
+
+    # Set up TCP connection
+    Agent/RTP/TFCC set packetSize_ 1000
+
+    $self runFriendly 
+    $self runTcps
+    
+    $ns_ at $stopTime "close $dumpfile_; $self finish_1 $testName_"
 
     # trace only the bottleneck link
-#    $self traceQueues $node_(r1) [$self openTrace 20.0 $testName_]
+    $ns_ run
+}
+
+# single packet drop
+Class Test/test2 -superclass TestSuite
+Test/test2 instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	test2
+    $self next
+}
+Test/test2 instproc run {} {
+    $self instvar ns_ node_ testName_ interval_ dumpfile_
+    $self setTopo
+    set interval_ 1.0
+    set stopTime 30.0
+
+    set dumpfile_ [open temp.s w]
+    set tracefile [open all.tr w]
+    $ns_ trace-all $tracefile
+
+    # Set up TCP connection
+    Agent/RTP/TFCC set packetSize_ 1000
+
+    $self runFriendly 
+    $self runTcps
+    
+    $ns_ at $stopTime "stop $tracefile;"
+
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 20.0 $testName_]
     $ns_ run
 }
 
