@@ -1414,9 +1414,11 @@ tcl/test/queuemon-test.tcl
 tcl/test/recommended-defaults.tcl
 tcl/test/remove.com
 tcl/test/route-test.tcl
+tcl/test/rtts.awk
 tcl/test/sack-v1.tcl
 tcl/test/sack.tcl
 tcl/test/scen-800x800-30-500-1.0-1
+tcl/test/seqnos.awk
 tcl/test/session-hier-1000.tcl
 tcl/test/sflowcdf
 tcl/test/sk-30-1-1-1-1-6-64.tcl
