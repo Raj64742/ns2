@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.195 2000/06/12 03:52:29 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.196 2000/06/13 05:14:19 xuanc Exp $
 
 
 #
@@ -623,8 +623,8 @@ Mac set debug_ false
 ARPTable set debug_ false
 God set debug_ false
 
-Mac/Tdma set slot_packet_len_	1500
-Mac/Tdma set max_node_num_	64
+#Mac/Tdma set slot_packet_len_	1500
+#Mac/Tdma set max_node_num_	64
 
 LL set mindelay_                50us
 LL set delay_                   25us
