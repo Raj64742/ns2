@@ -16,7 +16,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.c,v 1.2 1998/02/21 03:02:32 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.c,v 1.3 1998/02/23 23:50:23 kfall Exp $ (LBL)";
 
 #include <stdlib.h>
 #include <string.h>
@@ -121,16 +121,58 @@ LookupHostName(u_int32_t addr)
 	return p;
 }
 
+/*  
+ * in_cksum --
+ *      Checksum routine for Internet Protocol family headers (C Version)
+ *	[taken from ping.c]
+ */ 
+u_short  
+in_cksum(addr, len)
+        u_short *addr; 
+        int len;
+{   
+        register int nleft = len;       
+        register u_short *w = addr;
+        register int sum = 0;
+        u_short answer = 0;
+    
+        /*                      
+         * Our algorithm is simple, using a 32 bit accumulator (sum), we add
+         * sequential 16 bit words to it, and at the end, fold back all the
+         * carry bits from the top 16 bits into the lower 16 bits.
+         */      
+        while (nleft > 1)  {
+                sum += *w++;
+                nleft -= 2;
+        }       
+    
+        /* mop up an odd byte, if necessary */
+        if (nleft == 1) {
+                *(u_char *)(&answer) = *(u_char *)w ;
+                sum += answer;
+        }
+
+        /* add back carry outs from top 16 bits to low 16 bits */
+        sum = (sum >> 16) + (sum & 0xffff);     /* add hi 16 to low 16 */
+        sum += (sum >> 16);                     /* add carry */
+        answer = ~sum;                          /* truncate to 16 bits */
+        return(answer);
+}
+
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 print_ip(struct ip *ip)
 {
 	char buf[64];
-	printf("IP v:%d, ihl:%d, tos:%d, id:%d, off:%d, sum:%d, prot:%d\n",
-		ip->ip_v, ip->ip_hl, ip->ip_tos,
-		ip->ip_id, ip->ip_off, ip->ip_sum, ip->ip_p);
+	u_short off = ntohs(ip->ip_off);
+	printf("IP v:%d, ihl:%d, tos:%d, id:%d, off:%d [df:%d, mf:%d], sum:%d, prot:%d\n",
+		ip->ip_v, ip->ip_hl, ip->ip_tos, ntohs(ip->ip_id),
+		off & IP_OFFMASK,
+		(off & IP_DF) ? 1 : 0,
+		(off & IP_MF) ? 1 : 0,
+		ip->ip_sum, ip->ip_p);
 	addr2ascii(AF_INET, &ip->ip_src, 4, buf);
 	printf("IP len:%d ttl: %d, src: %s, dst: %s\n",
-		ip->ip_len, ip->ip_ttl, buf,
+		ntohs(ip->ip_len), ip->ip_ttl, buf,
 			addr2ascii(AF_INET, &ip->ip_dst, 4, 0));
 }
