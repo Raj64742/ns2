@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code*/
 /* 
    tora_api.cc
-   $Id: tora_api.cc,v 1.2 1999/08/12 21:12:27 yaxu Exp $
+   $Id: tora_api.cc,v 1.3 1999/09/09 04:02:52 salehi Exp $
    
    Implement the API used by IMEP
    */
@@ -133,7 +133,7 @@ toraAgent::rtRoutePacket(Packet *p)
 
 	// Non-data packets and BROADCAST packets can be dropped.
 	if(DATA_PACKET(ch->ptype()) == 0 || 
-	   ip->dst() == (nsaddr_t) IP_BROADCAST) {
+	   ip->daddr() == (nsaddr_t) IP_BROADCAST) {
 		drop(p, DROP_RTR_MAC_CALLBACK);
 		return;
 	}

@@ -35,7 +35,7 @@
 
 /*
   imep_io.cc
-  $Id: imep_io.cc,v 1.2 1999/08/12 21:17:18 yaxu Exp $
+  $Id: imep_io.cc,v 1.3 1999/09/09 04:02:46 salehi Exp $
 
   marshall IMEP packets 
 */
@@ -64,10 +64,10 @@ imepAgent::sendBeacon()
         ch->prev_hop_ = ipaddr;
 	ch->uid() = uidcnt_++;
 
-	ih->src_ = ipaddr;
-	ih->dst_ = IP_BROADCAST;
-	ih->sport_ = RT_PORT;
-	ih->dport_ = RT_PORT;
+	ih->saddr() = ipaddr;
+	ih->daddr() = IP_BROADCAST;
+	ih->sport() = RT_PORT;
+	ih->dport() = RT_PORT;
 	ih->ttl_ = 1;
 
 	im->imep_version = IMEP_VERSION;
@@ -95,10 +95,10 @@ imepAgent::sendHello(nsaddr_t index)
         ch->prev_hop_ = ipaddr;
 	ch->uid() = uidcnt_++;
 
-	ih->src_ = ipaddr;
-	ih->dst_ = IP_BROADCAST;
-	ih->sport_ = RT_PORT;
-	ih->dport_ = RT_PORT;
+	ih->saddr() = ipaddr;
+	ih->daddr() = IP_BROADCAST;
+	ih->sport() = RT_PORT;
+	ih->dport() = RT_PORT;
 	ih->ttl_ = 1;
 
 	im->imep_version = IMEP_VERSION;
@@ -139,10 +139,10 @@ imepAgent::sendAck(nsaddr_t index, u_int32_t seqno)
         ch->prev_hop_ = ipaddr;
 	ch->uid() = uidcnt_++;
 
-	ih->src_ = ipaddr;
-	ih->dst_ = IP_BROADCAST;
-	ih->sport_ = RT_PORT;
-	ih->dport_ = RT_PORT;
+	ih->saddr() = ipaddr;
+	ih->daddr() = IP_BROADCAST;
+	ih->sport() = RT_PORT;
+	ih->dport() = RT_PORT;
 	ih->ttl_ = 1;
 
 	im->imep_version = IMEP_VERSION;

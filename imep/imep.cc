@@ -36,7 +36,7 @@
 
 /*
   imep.cc
-  $Id: imep.cc,v 1.6 1999/08/31 06:49:28 yaxu Exp $
+  $Id: imep.cc,v 1.7 1999/09/09 04:02:45 salehi Exp $
   */
 
 #include <packet.h>
@@ -411,10 +411,10 @@ MAKE_PACKET:
 	ch->addr_type() = AF_NONE;
         ch->prev_hop_ = ipaddr;
 
-	ih->src_ = ipaddr;
-	ih->dst_ = IP_BROADCAST;
-	ih->sport_ = RT_PORT;
-	ih->dport_ = RT_PORT;
+	ih->saddr() = ipaddr;
+	ih->daddr() = IP_BROADCAST;
+	ih->sport() = RT_PORT;
+	ih->dport() = RT_PORT;
 	ih->ttl_ = 1;
 
 	im->imep_version = IMEP_VERSION;
@@ -523,7 +523,7 @@ imepAgent::handlerIncomingTimer()
 	while((p = incomingQ.getNextPacket(s))) {
 		stats.num_holes_retired++;
 		
-		index = HDR_IP(p)->src();
+		index = HDR_IP(p)->saddr();
 		imepLink *l = findLink(index);		
 		assert(l);  // if there's no link entry, then the incoming
 		// q should have been cleared, when the link entry was destroyed
@@ -558,8 +558,9 @@ imepAgent::handlerIncomingTimer()
 		while((p0 = incomingQ.getPacket(index, l->lastSeq() + 1)))
 		  {
 		    if (verbose)
-		      trace("T %.9f _%d_ inorder - src %d seq %d (chain timer delivery)",
-			    CURRENT_TIME, ipaddr, HDR_IP(p0)->src(), l->lastSeq() + 1);
+		      trace("T %.9f _%d_ inorder - src %d seq %d (chain" 
+			    " timer delivery)", CURRENT_TIME, ipaddr, 
+			    HDR_IP(p0)->saddr(), l->lastSeq() + 1);
 		    l->lastSeq() += 1;
 		    stats.num_recvd_from_queue++;
 		    imep_object_process(p0);
@@ -593,7 +594,7 @@ imepAgent::scheduleIncoming(Packet *p, u_int32_t s)
 {
 	struct hdr_ip *ip = HDR_IP(p);
 
-	incomingQ.addEntry(ip->src(), CURRENT_TIME + MAX_RETRANS_TIME, s, p);
+	incomingQ.addEntry(ip->saddr(), CURRENT_TIME + MAX_RETRANS_TIME, s, p);
   
 	// start the timer
 	if (!incomingTimer.busy()) {
@@ -639,7 +640,7 @@ imepAgent::recv_outgoing(Packet *p)
 		return;
 	}
 
-	if(ip->dst() != (nsaddr_t) IP_BROADCAST) {
+	if(ip->daddr() != (nsaddr_t) IP_BROADCAST) {
 		fprintf(stderr, "IP dst is unicast - not encapsulating\n");
 		imep_output(p);
 		return;
@@ -685,7 +686,7 @@ imepAgent::recv_incoming(Packet *p)
 	// so we can't use it for link indications.  If we RARPd the 
 	// MAC source addr, we could use that...
 
-	imepSetLinkInStatus(ih->src());
+	imepSetLinkInStatus(ih->saddr());
 	// XXX: this could be done at the MAC layer.  In fact, I will 
 	// augment the IEEE 802.11 layer so that the receipt of an
 	// ACK confirms bidirectional status. -josh
@@ -722,7 +723,7 @@ imepAgent::imep_beacon_input(Packet *p)
 {
 	struct hdr_ip *ip = HDR_IP(p);
 
-	sendHello(ip->src());
+	sendHello(ip->saddr());
 }
 
 
@@ -749,15 +750,16 @@ imepAgent::imep_ack_input(Packet *p)
 			if (NULL == p0)
 			  {
 			    if(verbose) 
-			      trace("T %.9f _%d_ %d acks seq %d : no obj block",
-				    CURRENT_TIME, ipaddr, ih->src(), ack->ack_seqno);
+			      trace("T %.9f _%d_ %d acks seq %d : no obj"
+				    " block", CURRENT_TIME, ipaddr, 
+				    ih->saddr(), ack->ack_seqno);
 			    stats.num_unexpected_acks++;
 			    continue;
 			  }
 
-			removeObjectResponse(p0, ih->src());
+			removeObjectResponse(p0, ih->saddr());
 
-			imepSetLinkBiStatus(ih->src());
+			imepSetLinkBiStatus(ih->saddr());
 		}
 	}
 }
@@ -775,7 +777,7 @@ imepAgent::imep_hello_input(Packet *p)
 	for(int i = 0; i < hb->hb_num_hellos; i++, hello++) {
 		if(INT32_T(hello->hello_ipaddr) == ipaddr) {
 
-			imepSetLinkBiStatus(ip->src());
+			imepSetLinkBiStatus(ip->saddr());
 
 			break;
 		}
@@ -795,7 +797,7 @@ imepAgent::imep_object_input(Packet *p)
 	assert(ob);
 
 	struct hdr_ip *iph = HDR_IP(p);
-	imepLink *l = findLink(iph->src());
+	imepLink *l = findLink(iph->saddr());
 	assert(l);  // if we have an object, a link entry should already exist
 
 	if (!l->lastSeqValid()) 
@@ -851,7 +853,7 @@ imepAgent::imep_object_input(Packet *p)
 
 	// now deliver as many in-sequence packets to ULP as possible
 	Packet *p0;
-	while((p0 = incomingQ.getPacket(iph->src(), l->lastSeq() + 1)))
+	while((p0 = incomingQ.getPacket(iph->saddr(), l->lastSeq() + 1)))
 	  {
 	    stats.num_recvd_from_queue++;
 	    if (verbose)
@@ -914,7 +916,7 @@ imepAgent::imep_ack_object(Packet *p)
 
   if (31 == ob->ob_num_responses) 
     { // a ``broadcast'' response list to which everyone replies
-      sendAck(iph->src(), ob->ob_sequence);
+      sendAck(iph->saddr(), ob->ob_sequence);
       return;
     }
 
@@ -932,7 +934,7 @@ imepAgent::imep_ack_object(Packet *p)
     {
       if (INT32_T(r->resp_ipaddr) == ipaddr)
 	{
-	  sendAck(iph->src(), ob->ob_sequence);
+	  sendAck(iph->saddr(), ob->ob_sequence);
 	  break;
 	}
       r = r + 1;

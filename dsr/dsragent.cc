@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.12 1999/08/28 22:21:25 yaxu Exp $
+   $Id: dsragent.cc,v 1.13 1999/09/09 04:02:41 salehi Exp $
 */
 
 #include <assert.h>
@@ -536,8 +536,8 @@ DSRAgent::recv(Packet* packet, Handler*)
   assert(cmh->size() >= 0);
 
   SRPacket p(packet, srh);
-  p.dest = ID((Address::instance().get_nodeaddr(iph->dst())),::IP);
-  p.src = ID((Address::instance().get_nodeaddr(iph->src())),::IP);
+  p.dest = ID((Address::instance().get_nodeaddr(iph->daddr())),::IP);
+  p.src = ID((Address::instance().get_nodeaddr(iph->saddr())),::IP);
 
   assert(logtarget != 0);
   
@@ -707,11 +707,13 @@ DSRAgent::handPktToDmux(SRPacket &p)
 {
 	hdr_ip *iph = HDR_IP(p.pkt);
 	assert(p.dest == net_id || p.dest == MAC_id);
+#if 0
 	if (iph->dport() == 255) {
 		int mask = Address::instance().portmask();
 		int shift = Address::instance().portshift();  
-		iph->dst() = ((iph->dport() & mask) << shift) | ((~(mask) << shift) & iph->dst());
+		iph->daddr() = ((iph->dport() & mask) << shift) | ((~(mask) << shift) & iph->dst());
 	}
+#endif
 	target_->recv(p.pkt, (Handler*)0);
 	p.pkt = 0;
 }
@@ -951,9 +953,9 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
   p.pkt = allocpkt();
 
   hdr_ip *iph =  (hdr_ip*)p.pkt->access(off_ip_);
-  iph->src() = Address::instance().create_ipaddr(p.src.addr,RT_PORT);
+  iph->saddr() = Address::instance().create_ipaddr(p.src.addr,RT_PORT);
   iph->sport() = RT_PORT;
-  iph->dst() = Address::instance().create_ipaddr(p.dest.addr,RT_PORT);
+  iph->daddr() = Address::instance().create_ipaddr(p.dest.addr,RT_PORT);
   iph->dport() = RT_PORT;
   iph->ttl() = 255;
 
@@ -1098,9 +1100,9 @@ DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
   hdr_sr *srh =  (hdr_sr*)rrp.pkt->access(off_sr_);
   hdr_ip *iph =  (hdr_ip*)rrp.pkt->access(off_ip_);
   hdr_cmn *cmnh =  (hdr_cmn*)rrp.pkt->access(off_cmn_);
-  iph->dst() = Address::instance().create_ipaddr(dest.getNSAddr_t(),RT_PORT);
+  iph->daddr() = Address::instance().create_ipaddr(dest.getNSAddr_t(),RT_PORT);
   iph->dport() = RT_PORT;
-  iph->src() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT);
+  iph->saddr() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT);
   iph->sport() = RT_PORT;
   cmnh->ptype() = PT_DSR;
   cmnh->size() = size_;
@@ -1116,10 +1118,11 @@ DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
   hdr_ip *iph =  (hdr_ip*)rrp.pkt->access(off_ip_);
   hdr_cmn *cmnh =  (hdr_cmn*)rrp.pkt->access(off_cmn_);
   
-  iph->dst() = Address::instance().create_ipaddr(dest.getNSAddr_t(),RT_PORT);
+  iph->daddr() = Address::instance().create_ipaddr(dest.getNSAddr_t(),RT_PORT);
   
   iph->dport() = RT_PORT;
-  iph->src() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT);
+  iph->saddr() =
+	  Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT); 
   iph->sport() = RT_PORT;
   cmnh->ptype() = PT_DSR;
   cmnh->size() = size_ + IP_HDR_LEN; // add in IP header
@@ -1245,9 +1248,10 @@ DSRAgent::returnSrcRteForOutsideDomainToRequestor(SRPacket &p)
   p_copy.route.appendToPath(p_copy.src);
   
   hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
-  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
+  new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
-  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
+  new_iph->saddr() =
+	  Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT); 
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1307,9 +1311,10 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
   p_copy.route.appendToPath(net_id);
 
   hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
-  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
+  new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
-  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
+  new_iph->saddr() =
+	  Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT); 
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1510,10 +1515,10 @@ DSRAgent::processBrokenRouteError(SRPacket& p)
   p_copy.src = net_id;
 
   //new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
-  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
+  new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
   //new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
-  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
+  new_iph->saddr() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
       
@@ -1541,8 +1546,8 @@ DSRAgent::tap(const Packet *packet)
   if (next_hop == net_id || next_hop == MAC_id) return;
 
   SRPacket p((Packet *) packet, srh);
-  p.dest = ID((Address::instance().get_nodeaddr(iph->dst())),::IP);
-  p.src = ID((Address::instance().get_nodeaddr(iph->src())),::IP);
+  p.dest = ID((Address::instance().get_nodeaddr(iph->daddr())),::IP);
+  p.src = ID((Address::instance().get_nodeaddr(iph->saddr())),::IP);
 
   // don't trouble me with my own packets
   if (p.src == net_id) return; 
@@ -1690,10 +1695,10 @@ DSRAgent::sendRouteShortening(SRPacket &p, int heard_at, int xmit_at)
 
   hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
   //new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
-  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
+  new_iph->daddr() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
   //new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
-  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
+  new_iph->saddr() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1768,8 +1773,8 @@ DSRAgent::undeliverablePkt(Packet *pkt, int mine)
   hdr_cmn *cmh;
 
   SRPacket p(pkt,srh);
-  p.dest = ID((Address::instance().get_nodeaddr(iph->dst())),::IP);
-  p.src = ID((Address::instance().get_nodeaddr(iph->src())),::IP);
+  p.dest = ID((Address::instance().get_nodeaddr(iph->daddr())),::IP);
+  p.src = ID((Address::instance().get_nodeaddr(iph->saddr())),::IP);
   p.pkt = mine ? pkt : pkt->copy();
 
   srh =  (hdr_sr*)p.pkt->access(off_sr_);
@@ -2003,10 +2008,10 @@ DSRAgent::xmitFailed(Packet *pkt)
   srh->route_request() = 0;
 
   //iph->dst() = (deadlink->tell_addr) << Address::instance().nodeshift();
-  iph->dst() = Address::instance().create_ipaddr(deadlink->tell_addr,RT_PORT);
+  iph->daddr() = Address::instance().create_ipaddr(deadlink->tell_addr,RT_PORT);
   iph->dport() = RT_PORT;
   //iph->src() = (net_id.addr) << Address::instance().nodeshift();
-  iph->src() = Address::instance().create_ipaddr(net_id.addr,RT_PORT);
+  iph->saddr() = Address::instance().create_ipaddr(net_id.addr,RT_PORT);
   iph->sport() = RT_PORT;
   iph->ttl() = 255;
 

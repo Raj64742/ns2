@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code*/
 
 /*
-  $Id: tora_io.cc,v 1.2 1999/08/12 21:12:32 yaxu Exp $
+  $Id: tora_io.cc,v 1.3 1999/09/09 04:02:53 salehi Exp $
   
   marshall TORA packets 
   */
@@ -61,10 +61,10 @@ toraAgent::sendQRY(nsaddr_t id)
 	ch->addr_type() = AF_NONE;
         ch->prev_hop_ = ipaddr();
 
-	ih->src_ = ipaddr();
-	ih->dst_ = IP_BROADCAST;
-	ih->sport_ = RT_PORT;
-	ih->dport_ = RT_PORT;
+	ih->saddr() = ipaddr();
+	ih->daddr() = IP_BROADCAST;
+	ih->sport() = RT_PORT;
+	ih->dport() = RT_PORT;
 	ih->ttl_ = 1;
 
 	th->tq_type = TORATYPE_QRY;
@@ -97,10 +97,10 @@ toraAgent::sendUPD(nsaddr_t id)
 	ch->addr_type() = AF_NONE;
         ch->prev_hop_ = ipaddr();
 
-	ih->src_ = ipaddr();
-	ih->dst_ = IP_BROADCAST;
-	ih->sport_ = RT_PORT;
-	ih->dport_ = RT_PORT;
+	ih->saddr() = ipaddr();
+	ih->daddr() = IP_BROADCAST;
+	ih->sport() = RT_PORT;
+	ih->dport() = RT_PORT;
 	ih->ttl_ = 1;
 
 	th->tu_type = TORATYPE_UPD;
@@ -131,10 +131,10 @@ toraAgent::sendCLR(nsaddr_t id, double tau, nsaddr_t oid)
 	ch->addr_type() = AF_NONE;
         ch->prev_hop_ = ipaddr();
 
-	ih->src_ = ipaddr();
-	ih->dst_ = IP_BROADCAST;
-	ih->sport_ = RT_PORT;
-	ih->dport_ = RT_PORT;
+	ih->saddr() = ipaddr();
+	ih->daddr() = IP_BROADCAST;
+	ih->sport() = RT_PORT;
+	ih->dport() = RT_PORT;
 	ih->ttl_ = 1;
 
 	th->tc_type = TORATYPE_CLR;

@@ -30,7 +30,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.8 1999/08/24 04:16:18 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.9 1999/09/09 04:02:50 salehi Exp $
 
 #include "rap.h"
 
@@ -171,7 +171,7 @@ void RapAgent::UpdateTimeValues(double sampleRtt)
 void RapAgent::start()
 {
 	if (debugEnable_)
-		logfile_ = DebugEnable(this->addr_ >> 
+		logfile_ = DebugEnable(this->addr() >> 
 				       Address::instance().NodeShift_[1]);
 	else
 		// Should initialize it regardless of whether it'll be used.
@@ -189,7 +189,7 @@ void RapAgent::start()
 void RapAgent::listen()
 {
 	if (debugEnable_)
-		logfile_ = DebugEnable(this->addr_ >> 
+		logfile_ = DebugEnable(this->addr() >> 
 				       Address::instance().NodeShift_[1]);
 }
 

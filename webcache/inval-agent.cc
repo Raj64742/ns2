@@ -17,7 +17,7 @@
 //
 // Agents used to send and receive invalidation records
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.11 1999/08/24 04:16:25 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.12 1999/09/09 04:02:55 salehi Exp $
 
 #include "inval-agent.h"
 #include "ip.h"
@@ -48,7 +48,7 @@ HttpInvalAgent::HttpInvalAgent() : Agent(PT_INVAL)
 void HttpInvalAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_ip *ip = (hdr_ip *)pkt->access(off_ip_);
-	if (ip->src() == addr_)
+	if ((ip->saddr() == addr()) && (ip->sport() == port()))
 		// XXX Why do we need this?
 		return;
 	if (app_ == 0) 

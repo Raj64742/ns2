@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.166 1999/08/17 04:30:57 sfloyd Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.167 1999/09/09 04:02:37 salehi Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -100,7 +100,7 @@ OBJ_CC = \
 	trace.o trace-ip.o \
 	classifier.o classifier-addr.o classifier-hash.o classifier-virtual.o \
 	classifier-mcast.o classifier-bst.o classifier-mpath.o replicator.o \
-	classifier-mac.o \
+	classifier-mac.o classifier-port.o \
 	app.o telnet.o tcplib-telnet.o \
 	trafgen.o traffictrace.o pareto.o expoo.o cbr_traffic.o \
 	tbf.o resv.o sa.o saack.o \

@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code*/
 /*
   tora.cc
-  $Id: tora.cc,v 1.6 1999/08/31 06:49:32 yaxu Exp $
+  $Id: tora.cc,v 1.7 1999/09/09 04:02:52 salehi Exp $
   */
 
 #include <agent.h>
@@ -222,9 +222,9 @@ toraAgent::rt_resolve(Packet *p)
 	TORADest *td;
 	TORANeighbor *tn;
 
-	td = dst_find(ih->dst_);
+	td = dst_find(ih->daddr());
 	if(td == 0) {
-		td = dst_add(ih->dst_);
+		td = dst_add(ih->daddr());
 	}
 
 	tn = td->nb_find_next_hop();
@@ -237,7 +237,7 @@ toraAgent::rt_resolve(Packet *p)
 
 		if(!td->rt_req)
 		  { // if no QRY pending, then send one
-		    sendQRY(ih->dst_);
+		    sendQRY(ih->daddr());
 		    td->time_tx_qry = CURRENT_TIME;
 		    td->rt_req = 1;
 		  }
@@ -269,7 +269,7 @@ toraAgent::recv(Packet *p, Handler *)
         /*
          *  Must be a packet I'm originating...
          */
-	if(ih->src_ == ipaddr() && ch->num_forwards() == 0) {
+	if(ih->saddr() == ipaddr() && ch->num_forwards() == 0) {
                 /*
                  *  Add the IP Header.
                  */
@@ -283,7 +283,7 @@ toraAgent::recv(Packet *p, Handler *)
          *  I received a packet that I sent.  Probably
          *  a routing loop.
          */
-        else if(ih->src_ == ipaddr()) {
+        else if(ih->saddr() == ipaddr()) {
                 drop(p, DROP_RTR_ROUTE_LOOP);
                 return;
         }
@@ -307,7 +307,6 @@ toraAgent::recv(Packet *p, Handler *)
 void
 toraAgent::recvTORA(Packet *p)
 {
-	struct hdr_ip *ih = HDR_IP(p);
 	struct hdr_tora *th = HDR_TORA(p);
 	TORADest *td;
 	TORANeighbor *tn;
@@ -315,8 +314,8 @@ toraAgent::recvTORA(Packet *p)
 	/*
 	 * Fix the source IP address.
 	 */
-	assert(ih->sport_ == RT_PORT);
-	assert(ih->dport_ == RT_PORT);
+	assert(ih->sport() == RT_PORT);
+	assert(ih->dport() == RT_PORT);
 
 	/*
 	 * Incoming Packets.
@@ -392,7 +391,7 @@ toraAgent::recvQRY(Packet *p)
 	}
 
 	if(td->height.r == 0) {					// II, A
-		tn = td->nb_find(ih->src_);
+		tn = td->nb_find(ih->saddr());
 
 		if(tn && tn->time_act > td->time_upd) {		// II, A, 1
 			td->time_upd = Scheduler::instance().clock();
@@ -449,7 +448,7 @@ toraAgent::recvUPD(Packet *p)
 	if(td == 0)
 		td = dst_add(uh->tu_dst);
 
-	tn = td->nb_find(ih->src_);
+	tn = td->nb_find(ih->saddr());
 	if(tn == 0) {
 		/*
 		 * update link status? -josh
@@ -639,7 +638,7 @@ toraAgent::recvCLR(Packet *p)
 		}
 	}
 	else {
-		tn = td->nb_find(ih->src_);			// II
+		tn = td->nb_find(ih->saddr());			// II
 		if(tn == 0) {
 			/*
 			 *  XXX - update link status?
