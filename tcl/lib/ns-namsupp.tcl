@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.17 1998/10/02 19:25:26 yuriy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.18 1998/10/06 01:26:24 haoboy Exp $
 #
 
 #
@@ -54,6 +54,21 @@ Node instproc color { color } {
 	} else {
 		set attr_(COLOR) $color
 	}
+}
+
+Node instproc label { str } {
+	$self instvar attr_ id_
+
+	set ns [Simulator instance]
+
+	if [info exists attr_(DLABEL)] {
+		$ns puts-nam-config \
+		  "n -t [$ns now] -s $id_ -S DLABEL -l $str -L $attr_(DLABEL)"
+	} else {
+		$ns puts-nam-config \
+			"n -t [$ns now] -s $id_ -S DLABEL -l $str -L \"\""
+	}
+	set attr_(DLABEL) $str
 }
 
 Node instproc dump-namconfig {} {
