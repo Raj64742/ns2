@@ -1,5 +1,5 @@
 #
-# Copyright (c) 1995 The Regents of the University of California.
+# cOPYRight (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.8 1999/07/10 17:18:13 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.9 1999/07/21 02:31:52 sfloyd Exp $
 #
 
 # UNDER CONSTRUCTION!!
@@ -41,14 +41,13 @@ Agent/TFRM set df_ 0.5
 TestSuite instproc finish file {
         global quiet PERL
         exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-          $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+          $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp1.rands
         if {$quiet == "false"} {
-		exec cp -f temp.rands temp1.rands
                 exec xgraph -bb -tk -nl -m -x time -y packets temp1.rands &
         }
         ## now use default graphing tool to make a data file
         ## if so desired
-        exit 0
+###        exit 0
 }
 
 Class Topology
@@ -156,17 +155,12 @@ TestSuite instproc finish_1 testname {
         exec cat temp.p >@ $f
         close $f
         if {$quiet == "false"} {
-		exec cp -f $graphfile temp1.rands
-                exec xgraph -bb -tk -x time -y packets temp1.rands &
+		exec cp -f $graphfile temp2.rands
+                exec xgraph -bb -tk -x time -y packets temp2.rands &
         }
 #       exec csh figure2.com $file
 
-        exit 0
-}
-
-proc stop {tracefile} {
-    close $tracefile
-    exit
+###        exit 0
 }
 
 TestSuite instproc runFriendly {} {
@@ -175,10 +169,9 @@ TestSuite instproc runFriendly {} {
     set tf1 [$ns_ create-connection TFRM $node_(s1) TFRMSink $node_(s3) 3]
     set tf2 [$ns_ create-connection TFRM $node_(s2) TFRMSink $node_(s4) 4]
     $ns_ at 0.0 "$tf1 start"
-#    $ns_ at 5.0 "$tf1 start"
-    $ns_ at 10.0 "$tf2 start"
-    $ns_ at 40 "$tf1 stop"
-    $ns_ at 40 "$tf2 stop"
+    $ns_ at 4.0 "$tf2 start"
+    $ns_ at 30 "$tf1 stop"
+    $ns_ at 30 "$tf2 stop"
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
     $self tfccDump 2 $tf2 $interval_ $dumpfile_
@@ -193,12 +186,11 @@ TestSuite instproc runTcps {} {
     set ftp2 [$tcp2 attach-app FTP] 
     set tcp3 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s4) 2]
     set ftp3 [$tcp3 attach-app FTP] 
-    $ns_ at 19.0 "$ftp1 start"
-#    $ns_ at 0.0 "$ftp1 start"
-    $ns_ at 20.0 "$ftp2 start"
-    $ns_ at 21.0 "$ftp3 start"
-    $ns_ at 50 "$ftp2 stop"
-    $ns_ at 40 "$ftp3 stop"
+    $ns_ at 8.0 "$ftp1 start"
+    $ns_ at 12.0 "$ftp2 start"
+    $ns_ at 16.0 "$ftp3 start"
+    $ns_ at 24 "$ftp2 stop"
+    $ns_ at 20 "$ftp3 stop"
 
     $self pktsDump 3 $tcp1 $interval_ $dumpfile_
     $self pktsDump 4 $tcp2 $interval_ $dumpfile_
@@ -206,64 +198,9 @@ TestSuite instproc runTcps {} {
 }
 
 # Two TFRM connections and three TCP connections.
-Class Test/test1 -superclass TestSuite
-Test/test1 instproc init {} {
-    $self instvar net_ test_
-    set net_	net2
-    set test_	test1
-    Agent/TFRM set version_ 1
-    Agent/TFRM set slowincr_ 0
-    $self next
-}
-Test/test1 instproc run {} {
-    $self instvar ns_ node_ testName_ interval_ dumpfile_
-    $self setTopo
-    set interval_ 1.0
-    set stopTime 60.0
-
-    set dumpfile_ [open temp.s w]
-
-    $self runFriendly 
-    $self runTcps
-    
-    $ns_ at $stopTime "close $dumpfile_; $self finish_1 $testName_"
-
-    # trace only the bottleneck link
-    $ns_ run
-}
-
-# Two TFRM connections and three TCP connections.
-Class Test/test2 -superclass TestSuite
-Test/test2 instproc init {} {
-    $self instvar net_ test_
-    set net_	net2
-    set test_	test2
-    Agent/TFRM set version_ 1
-    Agent/TFRM set slowincr_ 0
-    $self next
-}
-Test/test2 instproc run {} {
-    $self instvar ns_ node_ testName_ interval_ dumpfile_
-    $self setTopo
-    set interval_ 1.0
-    set stopTime 31.0
-
-    set dumpfile_ [open temp.s w]
-    set tracefile [open all.tr w]
-    $ns_ trace-all $tracefile
-
-    $self runFriendly 
-    $self runTcps
-    
-    $ns_ at $stopTime "stop $tracefile;"
-
-    # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 30.0 $testName_]
-    $ns_ run
-}
-
-
-# Two TFRM connections and three TCP connections.
+# Version 1: decrease down to equation.
+# Slowincr 3: multiplicative increase.
+# Incrrate 1: double sending rate every congestion epoch.
 Class Test/multIncr -superclass TestSuite
 Test/multIncr instproc init {} {
     $self instvar net_ test_
@@ -275,51 +212,78 @@ Test/multIncr instproc init {} {
     $self next
 }
 Test/multIncr instproc run {} {
+    global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
     set interval_ 1.0
-    set stopTime 60.0
+    set stopTime 30.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
 
     set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
 
     $self runFriendly 
     $self runTcps
     
-    $ns_ at $stopTime "close $dumpfile_; $self finish_1 $testName_"
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
 
     # trace only the bottleneck link
     $ns_ run
 }
 
-# Two TFRM connections and three TCP connections.
-Class Test/multIncr2 -superclass TestSuite
-Test/multIncr2 instproc init {} {
+# Additive increase.
+# Slowincr 0: additive increase.
+Class Test/addIncr -superclass TestSuite
+Test/addIncr instproc init {} {
     $self instvar net_ test_
     set net_	net2
-    set test_	multIncr2
+    set test_	addIncr
+    Agent/TFRM set version_ 1
+    Agent/TFRM set slowincr_ 0
+    Test/addIncr instproc run {} [Test/multIncr info instbody run ]
+    $self next
+}
+
+# BAD PARAMETERS! - small measurement interval
+# SampleSizeMult_: controls interval for measuring packet drop rate
+# MinNumLoss_: controls number of losses required in measurement interval
+Class Test/BadParams -superclass TestSuite
+Test/BadParams instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	BadParams
     Agent/TFRM set version 1
     Agent/TFRM set incrrate_ 1
     Agent/TFRM set slowincr_ 3
+    Agent/TFRM set SampleSizeMult_ 0.5
+    Agent/TFRM set MinNumLoss_ 0
+    Agent/TFRMSink set SampleSizeMult_ 0.5
+    Agent/TFRMSink set MinNumLoss_ 0 
+    Test/BadParams instproc run {} [Test/multIncr info instbody run ]
     $self next
 }
-Test/multIncr2 instproc run {} {
-    $self instvar ns_ node_ testName_ interval_ dumpfile_
-    $self setTopo
-    set interval_ 1.0
-    set stopTime 31.0
 
-    set dumpfile_ [open temp.s w]
-    set tracefile [open all.tr w]
-    $ns_ trace-all $tracefile
-
-    $self runFriendly 
-    $self runTcps
-    
-    $ns_ at $stopTime "stop $tracefile;"
-
-    # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 30.0 $testName_]
-    $ns_ run
+# BAD PARAMETERS! - very aggressive increase
+#  Incrrate_ : controls the increase rate.
+Class Test/BadParams2 -superclass TestSuite
+Test/BadParams2 instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	BadParams2
+    Agent/TFRM set version 1
+    Agent/TFRM set incrrate_ 5
+    Agent/TFRM set slowincr_ 3
+    Test/BadParams2 instproc run {} [Test/multIncr info instbody run ]
+    $self next
 }
 
 TestSuite runTest
