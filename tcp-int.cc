@@ -75,7 +75,8 @@ public:
 } class_tcp_int;
 
 IntTcpAgent::IntTcpAgent() : TcpAgent(), slink(), 
-	rxmitPend_(0), closecwTS_(0), session_(0), count_(0), lastTS_(-1)
+	rxmitPend_(0), closecwTS_(0), session_(0), count_(0), lastTS_(-1), 
+	wt_(1), wndIncSeqno_(0)
 {
 	bind("rightEdge_", &rightEdge_);
 	bind("uniqTS_", &uniqTS_);
@@ -85,6 +86,20 @@ IntTcpAgent::IntTcpAgent() : TcpAgent(), slink(),
 	bind("shift_", &shift_);
 	bind("mask_", &mask_);
 #endif
+}
+
+int
+IntTcpAgent::command(int argc, const char*const* argv)
+{
+	if (argc == 3) {
+		if (!strcmp(argv[1], "setwt")) {
+			if (!session_)
+				createTcpSession();
+			session_->set_weight(this,atoi(argv[2]));
+			return (TCL_OK);
+		}
+	}
+	return (TcpAgent::command(argc,argv));
 }
 
 /* 
@@ -130,7 +145,7 @@ IntTcpAgent::createTcpSession()
 	Tcl& tcl = Tcl::instance();
 
 	tcl.evalf("%s set node_", name());
-	tcl.evalf("%s createTcpSession %d", tcl.result(), dst_);
+	tcl.evalf("%s createTcpSession %d", tcl.result(), (dst_/256)*256);
 	Islist_iter<TcpSessionAgent> session_iter(TcpSessionAgent::sessionList_);
 	TcpSessionAgent *cur;
 
@@ -174,13 +189,16 @@ IntTcpAgent::output(int seqno, int reason = 0)
         	++nrexmitpack_;
         	nrexmitbytes_ += bytes;
 	}
+	if (wndIncSeqno_ == 0)
+		wndIncSeqno_ = maxseq_;
 }
 
 
 /*
- * Unlike in other flavors of TCP, IntTcpAgent does not decide when to send packets
- * and how many of them to send. That decision is made by TcpSessionAgent. So
- * send_much() does little more than defer to TcpSessionAgent.
+ * Unlike in other flavors of TCP, IntTcpAgent does not decide when to send 
+ * packets and how many of them to send. That decision is made by 
+ * TcpSessionAgent. So send_much() does little more than defer to 
+ * TcpSessionAgent.
  */
 void
 IntTcpAgent::send_much(int force, int reason, int maxburst)
@@ -238,11 +256,13 @@ IntTcpAgent::closecwnd(int how)
 int
 IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double ts)
 {
-	if (uniqTS_ || 
-	    (seqno == last_ack_+1 && (ts == rxmitPend_ || rxmitPend_ == 0))) {
+	if (seqno == last_ack_ + 1 && (ts == rxmitPend_ || rxmitPend_ == 0)) {
 		rxmitPend_ = Scheduler::instance().clock();
 		session_->agent_rcov(this);
-		/* XXX kludge -- IntTcpAgent is not supposed to deal with rtx timer */
+		/* 
+		 * XXX kludge -- IntTcpAgent is not supposed to deal with 
+		 * rtx timer 
+		 */
 		session_->reset_rtx_timer(1,0); 
 		output(seqno, reason);
 		daddr_ = dst_/256;

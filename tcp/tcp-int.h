@@ -46,6 +46,7 @@ class IntTcpAgent : public TcpAgent, public slink {
 	friend class TcpSessionAgent;
   public:
 	IntTcpAgent();
+	int command(int argc, const char*const* argv);
 	void createTcpSession();
 	void send_much(int force, int reason, int maxburst = 0);
 	void send_one(int sessionSeqno);
@@ -74,5 +75,8 @@ class IntTcpAgent : public TcpAgent, public slink {
 	int sport_;
 	int shift_;
 	int mask_;
+	int wt_;
+	int dynWt_;
+	int wndIncSeqno_;       /* used to mark RTTs for window inc. algorithm */
 };
 #endif
