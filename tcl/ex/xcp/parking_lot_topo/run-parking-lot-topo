@@ -46,7 +46,7 @@ foreach exp ( XCP )
         ${out_dir}q.${l}.${e}.dat >>! ${out_dir}q.${e}
 	
 
-	grep "q$l drops" tmp.log| awk -v L=$l '{print L+1, $4}' >>! ${out_dir}d.${e}
+	grep "q$l drops" ${out_dir}tmp.log| awk -v L=$l '{print L+1, $4}' >>! ${out_dir}d.${e}
 
 	@ l = ($l + 1)
     end

@@ -6,6 +6,9 @@
 # Descrp: parking lot topo
 #         
 
+Queue/RED set bytes_ false ;
+Queue/RED set queue_in_bytes_ false ;
+
  #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Utility Functions -*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-#
 
 

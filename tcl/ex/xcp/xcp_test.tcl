@@ -17,6 +17,9 @@
 #
 
 Agent/TCP/Reno/XCP      set tcpTick_                    0.001
+Queue/RED set bytes_ false ;
+Queue/RED set queue_in_bytes_ false ;
+
 
 proc create-topology2 { BW delay qtype qsize numSideLinks deltaDelay } {
     global ns 

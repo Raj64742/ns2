@@ -16,7 +16,10 @@
 #       ni                         
 #
 
+Queue/RED set bytes_ false ;
+Queue/RED set queue_in_bytes_ false ;
 Queue/XCP set tcp_xcp_on_ 1
+
 proc create-topology2 { BW delay qtype qsize numSideLinks deltaDelay } {
     global ns 
     
