@@ -64,6 +64,7 @@ int LinkHead::command(int argc, const char*const* argv)
 {
         //Tcl& tcl = Tcl::instance();
         if (argc == 2) {
+
         } else if (argc == 3) {
 		if(strcmp(argv[1], "setnetinf") == 0) {
 			net_if_ =
@@ -91,12 +92,11 @@ public:
 
 struct node_head Node::nodehead_ = { 0 }; // replaces LIST_INIT macro
 
-Node::Node(void) : address_(-1)
+Node::Node(void) : address_(-1), energy_model_(NULL)
 {
 	LIST_INIT(&ifhead_);
 	LIST_INIT(&linklisthead_);
 	insert(&(Node::nodehead_)); // insert self into static list of nodes
-	
 }
 
 int
@@ -121,6 +121,11 @@ Node::command(int argc, const char*const* argv)
 			address_ = Address::instance().\
 				str2addr(argv[2]);
 			return TCL_OK;
+		} else if (strcmp(argv[1], "addenergymodel") == 0) {
+			energy_model_ = (EnergyModel *) TclObject::lookup(argv[2]);
+			if(!energy_model_)
+				return TCL_ERROR;
+			return TCL_OK;
 		} else if(strcmp(argv[1], "addlinkhead") == 0) {
 			LinkHead* slhp = (LinkHead*) TclObject::lookup(argv[2]);
 			if (slhp == 0)
@@ -132,6 +137,7 @@ Node::command(int argc, const char*const* argv)
 	return TclObject::command(argc,argv);
 }
 
+
 // Given an interface label for a NetworkInterface on this node, we return 
 // the head of that link
 NsObject* Node::intf_to_target(int32_t label)
@@ -142,6 +148,7 @@ NsObject* Node::intf_to_target(int32_t label)
 			return ((NsObject*) lhp);
 	return NULL;
 }
+
 
 
 #ifdef zero	

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.9 1999/06/21 18:13:59 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.10 1999/07/29 23:51:33 kkumar Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -48,6 +48,7 @@
 #include "phy.h"
 #include "list.h"
 #include "net-interface.h"
+#include "energy-model.h"
 
 class LinkHead;
 LIST_HEAD(linklist_head, LinkHead); // declare list head structure 
@@ -99,6 +100,9 @@ class Node : public TclObject {
 	Node(void);
 	virtual int command(int argc, const char*const* argv);
 	inline int address() { return address_;}
+	inline double energy() { return energy_model_->energy();}
+	inline EnergyModel *energy_model() { return energy_model_; }
+
 	int address_;
 
 	// XXX can we deprecate the next line (used in MobileNode)
@@ -116,7 +120,7 @@ class Node : public TclObject {
 	inline Node* nextnode() { return entry.le_next; }
 protected:
 	LIST_ENTRY(Node) entry;  // declare list entry structure
-	
+	EnergyModel *energy_model_;
 };
 
 #ifdef zero
