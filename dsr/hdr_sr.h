@@ -37,7 +37,7 @@
    hdr_sr.h
 
    source route header
-   $Id: hdr_sr.h,v 1.4 1999/12/21 02:39:38 salehi Exp $
+   $Id: hdr_sr.h,v 1.5 2000/08/18 18:34:02 haoboy Exp $
 */
 #ifndef sr_hdr_h
 #define sr_hdr_h
@@ -52,97 +52,108 @@
 #define MAX_ROUTE_ERRORS 3	// how many route errors can fit in one pkt?
 
 struct sr_addr {
-  int addr_type;		/* same as hdr_cmn in packet.h */
-  nsaddr_t addr;
+	int addr_type;		/* same as hdr_cmn in packet.h */
+	nsaddr_t addr;
 };
 
 struct link_down {
-  int addr_type;		/* same as hdr_cmn in packet.h */
-  nsaddr_t tell_addr;		// tell this host
-  nsaddr_t from_addr;		// that from_addr host can no longer
-  nsaddr_t to_addr;		// get packets to to_addr host
+	int addr_type;		/* same as hdr_cmn in packet.h */
+	nsaddr_t tell_addr;	// tell this host
+	nsaddr_t from_addr;	// that from_addr host can no longer
+	nsaddr_t to_addr;	// get packets to to_addr host
 };
 
 struct hdr_sr {
-  int valid_;			/* is this header actually in the packet? 
+	int valid_;		/* is this header actually in the packet? 
 				   and initialized? */
-  int num_addrs_;
-  int cur_addr_;
-  struct sr_addr addrs[MAX_SR_LEN];
+	int num_addrs_;
+	int cur_addr_;
+	struct sr_addr addrs[MAX_SR_LEN];
   
-  int route_request_;		/* is this a route request? */
-  int rtreq_seq_;		// route request sequence number
-  int max_propagation_;		// how many times can RTreq be forwarded?
+	int route_request_;	/* is this a route request? */
+	int rtreq_seq_;		// route request sequence number
+	int max_propagation_;	// how many times can RTreq be forwarded?
 
-#if defined(sun)
-  // The following field is to bypass what seems to be a compiler bug.
-  // Under Solaris and gcc 2.7.2.2 (and apparently higher version)
-  // route_reply_ and route_reply_len_ become part of reply_addrs_!
-  // this causes the wireless code to malfunction.  This seems like a
-  // byte alignment problem
-  // Nader Salehi 12/20/99
-  char dummy_variable_to_bypass_byte_alignment_problem_in_solaris_[8];
-#endif // defined(sun)
-  int route_reply_;		// is the reply below valid?
-  int route_reply_len_;
-  struct sr_addr reply_addrs_[MAX_SR_LEN];
+	// XXX Following is wrong and commented out. This is in fact 
+	// an off_*_ setting problem. - haoboy
 
-  int route_error_;		// are we carrying a route reply?
-  int num_route_errors_;
-  struct link_down down_links_[MAX_ROUTE_ERRORS];
+//  #if defined(sun)
+//    // The following field is to bypass what seems to be a compiler bug.
+//    // Under Solaris and gcc 2.7.2.2 (and apparently higher version)
+//    // route_reply_ and route_reply_len_ become part of reply_addrs_!
+//    // this causes the wireless code to malfunction.  This seems like a
+//    // byte alignment problem
+//    // Nader Salehi 12/20/99
+//    char dummy_variable_to_bypass_byte_alignment_problem_in_solaris_[8];
+//  #endif // defined(sun)
 
-  static int offset_;		/* offset for this header */
-  inline int& offset() { return offset_; }
+	int route_reply_;		// is the reply below valid?
+	int route_reply_len_;
+	struct sr_addr reply_addrs_[MAX_SR_LEN];
 
-  inline int& valid() {return valid_;}
-  inline int& num_addrs() {return num_addrs_;}
-  inline int& cur_addr() {return cur_addr_;}
+	int route_error_;		// are we carrying a route reply?
+	int num_route_errors_;
+	struct link_down down_links_[MAX_ROUTE_ERRORS];
 
-  inline int& route_request() {return route_request_;}
-  inline int& rtreq_seq() {return rtreq_seq_;}
-  inline int& max_propagation() {return max_propagation_;}
+	static int offset_;		/* offset for this header */
+	inline static int& offset() { return offset_; }
+	inline static hdr_sr* access(Packet* p) {
+		return (hdr_sr*)p->access(offset_);
+	}
 
-  inline int& route_reply() {return route_reply_;}
-  inline int& route_reply_len() {return route_reply_len_;}
-  inline struct sr_addr* reply_addrs() {return reply_addrs_;}
+	inline int& valid() { return valid_; }
+	inline int& num_addrs() { return num_addrs_; }
+	inline int& cur_addr() { return cur_addr_; }
 
-  inline int& route_error() {return route_error_;}
-  inline int& num_route_errors() {return num_route_errors_;}
-  inline struct link_down* down_links() {return down_links_;}
+	inline int& route_request() { return route_request_; }
+	inline int& rtreq_seq() { return rtreq_seq_; }
+	inline int& max_propagation() { return max_propagation_; }
 
-  inline nsaddr_t& get_next_addr() { 
-    assert(cur_addr_ < num_addrs_);
-    return (addrs[cur_addr_ + 1].addr); }
+	inline int& route_reply() { return route_reply_; }
+	inline int& route_reply_len() { return route_reply_len_; }
+	inline struct sr_addr* reply_addrs() { return reply_addrs_; }
 
-  inline int& get_next_type() {
-    assert(cur_addr_ < num_addrs_);
-    return (addrs[cur_addr_ + 1].addr_type); }
+	inline int& route_error() { return route_error_; }
+	inline int& num_route_errors() { return num_route_errors_; }
+	inline struct link_down* down_links() { return down_links_; }
 
-  inline void append_addr(nsaddr_t a, int type) {
-    assert(num_addrs_ < MAX_SR_LEN-1);
-    addrs[num_addrs_].addr_type = type;
-    addrs[num_addrs_++].addr = a; }
+	inline nsaddr_t& get_next_addr() { 
+		assert(cur_addr_ < num_addrs_);
+		return (addrs[cur_addr_ + 1].addr); 
+	}
 
-  inline void init() {
-    valid_ = 1;
-    num_addrs_ = 0;
-    cur_addr_ = 0;
-    route_request_ = 0;
-    route_reply_ = 0;
-    route_reply_len_ = 0;
-    route_error_ = 0;
-    num_route_errors_ = 0;}
+	inline int& get_next_type() {
+		assert(cur_addr_ < num_addrs_);
+		return (addrs[cur_addr_ + 1].addr_type); 
+	}
 
-  inline int size() { 
-	int sz = SR_HDR_SZ +
-		 4 * (num_addrs_ - 1) +
-		 4 * (route_reply_ ? route_reply_len_ : 0) +
-		 8 * (route_error_ ? num_route_errors_ : 0);
-	assert(sz >= 0);
-	return sz;
-  }
-  void dump(char *);
-  char* dump();
+	inline void append_addr(nsaddr_t a, int type) {
+		assert(num_addrs_ < MAX_SR_LEN-1);
+		addrs[num_addrs_].addr_type = type;
+		addrs[num_addrs_++].addr = a; 
+	}
+
+	inline void init() {
+		valid_ = 1;
+		num_addrs_ = 0;
+		cur_addr_ = 0;
+		route_request_ = 0;
+		route_reply_ = 0;
+		route_reply_len_ = 0;
+		route_error_ = 0;
+		num_route_errors_ = 0;
+	}
+
+	inline int size() { 
+		int sz = SR_HDR_SZ +
+			4 * (num_addrs_ - 1) +
+			4 * (route_reply_ ? route_reply_len_ : 0) +
+			8 * (route_error_ ? num_route_errors_ : 0);
+		assert(sz >= 0);
+		return sz;
+	}
+	void dump(char *);
+	char* dump();
 };
 
 

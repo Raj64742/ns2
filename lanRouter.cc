@@ -24,7 +24,6 @@ static const char rcsid[] =
 #endif
 
 #include <tcl.h>
-#include <iostream.h>
 #include "lanRouter.h"
 #include "address.h"
 #include "ip.h"

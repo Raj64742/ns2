@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.76 2000/08/17 00:03:38 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.77 2000/08/18 18:34:01 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -46,11 +46,10 @@
 #include "lib/bsd-list.h"
 #include "packet-stamp.h"
 #include "ns-process.h"
-#include "dsr/hdr_sr.h"
 
 #define RT_PORT		255	/* port that all route msgs are sent to */
 #define HDR_CMN(p)      ((struct hdr_cmn*)(p)->access(hdr_cmn::offset_))
-#define HDR_ARP(p)      ((struct hdr_arp*)(p)->access(off_arp_))
+#define HDR_ARP(p)      ((struct hdr_arp*)(p)->access(hdr_arp::offset_))
 #define HDR_MAC(p)      ((struct hdr_mac*)(p)->access(hdr_mac::offset_))
 #define HDR_MAC802_11(p) ((struct hdr_mac802_11*)(p)->access(hdr_mac::offset_))
 #define HDR_MAC_TDMA(p) ((struct hdr_mac_tdma*)(p)->access(hdr_mac::offset_))

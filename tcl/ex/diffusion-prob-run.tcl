@@ -39,8 +39,6 @@ set opt(suppression)    "false"
 LL set mindelay_		50us
 LL set delay_			25us
 LL set bandwidth_		0	;# not used
-LL set off_prune_		0	;# not used
-LL set off_CtrMcast_		0	;# not used
 
 Queue/DropTail/PriQueue set Prefer_Routing_Protocols    1
 

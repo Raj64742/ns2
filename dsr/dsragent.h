@@ -36,7 +36,7 @@
 /* -*- c++ -*-
    dsragent.h
 
-   $Id: dsragent.h,v 1.5 1999/05/07 01:02:37 haldar Exp $
+   $Id: dsragent.h,v 1.6 2000/08/18 18:34:02 haoboy Exp $
    */
 
 #ifndef _DSRAgent_h
@@ -46,6 +46,7 @@ class DSRAgent;
 
 #include <stdarg.h>
 
+#include "lib/bsd-list.h"
 #include "object.h"
 #include "agent.h"
 #include "trace.h"

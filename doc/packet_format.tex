@@ -1,8 +1,3 @@
-%
-% personal commentary:
-%        DRAFT DRAFT DRAFT
-%        - KFALL
-%
 \chapter{Packet Headers and Formats}
 \label{chap:pformat}
 
@@ -62,6 +57,13 @@ The following classes create the needed header
                 /* {\cf per-field member functions } */
                 u_int32_t& srcid() \{ return (srcid_); \}
                 int& seqno() \{ return (seqno_); \}
+
+                /* {\cf Packet header access functions} */
+                static int offset_;
+                inline static int& offset() \{ return offset_; \}
+                inline static hdr_rtp* access(Packet* p) \{
+                        return (hdr_rtp*) p->access(offset_);
+                \}
         \};
 
 {\rm From rtp.cc:}
@@ -74,13 +76,15 @@ The following classes create the needed header
         class RTPHeaderClass : public PacketHeaderClass \{
         public: 
                 RTPHeaderClass() : PacketHeaderClass("PacketHeader/RTP",
-                                                     sizeof(hdr_rtp)) \{\}
+                                                     sizeof(hdr_rtp)) \{
+                        bind_offset(&hdr_rtp::offset_);
+                \}
         \} class_rtphdr;
 
         void RTPAgent::sendpkt()
         \{
                 Packet* p = allocpkt();
-                hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
+                hdr_rtp *rh = hdr_rtp::access(p);
                 lastpkttime_ = Scheduler::instance().clock();
 
                 /* {\cf Fill in srcid_ and seqno} */
@@ -94,11 +98,10 @@ The following classes create the needed header
         \{
                 type_ = PT_RTP;
                 bind("seqno_", &seqno_);
-                bind("off_rtp_", &off_rtp_);
         \}
 \end{program}
-The first structure defines the layout
-(in terms of words and their placement):
+The first structure, \code{hdr_rtp}, defines the layout
+of the RTP packet header (in terms of words and their placement):
 which fields are needed and how big they are.
 This structure definition is only used by the
 compiler to compute byte offsets of fields;
@@ -106,22 +109,37 @@ no objects of this structure type are ever directly allocated.
 The structure also provides member functions which in turn
 provide a layer of data hiding for objects wishing to read
 or modify header fields of packets.
-Note that the variable \code{off_rtp_} is used
+Note that the static class variable \code{offset_} is used
 to find the byte offset at which the rtp header is located
-in an arbitrary packet.
-To access any packet header other than the ``common'' header
-(see below, Section~\ref{sec:commonhdr}),
-the accessing code must obtain the appropriate header offset.
-This is accomplished by declaring and binding
-the integer variable \code{off_\tup{hdrname}_}
-where \code{\tup{hdrname}} refers to a shorthand name
-of the header of interest which must match the
-name assigned in \nsf{tcl/lib/ns-packet.tcl}.
-This is performed above by the RTPAgent's constructor.
-Generally, one header object for each type of header
-in the simulation is instantiated at simulator run-time.
-A particular header is enabled via OTcl in the simulation during
-simulator configuration time (see Section~\ref{sec:configpacket}).
+in an arbitrary \ns packet.
+Two methods are provided to utilize this variable to access this
+header in any packet: \code{offset()} and \code{access()}.
+The latter is what most users should choose to access this particular
+header in a packet; the former is used by the packet header management
+class and should seldom be used.
+For example, to access the RTP packet header in a packet pointed by
+\code{p}, one simply says \code{hdr_rtp::access(p)}.
+The actual binding of \code{offset_} to the position of this header in
+a packet is done by routines inside \nsf{tcl/lib/ns-packet.tcl} and
+\nsf{packet.cc}.
+
+{\bf IMPORTANT}: Notice that this is completely different from the
+original method to access a packet header, which requires that an
+integer variable, \code{off_\tup{hdrname}_}, be defined for any packet
+header that one needs to access.
+This is now an obsolete method; its usage is tricky and its misuse can
+be very difficult to detect. 
+
+% which is accomplished by declaring and binding the integer variable
+% \code{off_\tup{hdrname}_}
+% where \code{\tup{hdrname}} refers to a shorthand name
+% of the header of interest which must match the
+% name assigned in \nsf{tcl/lib/ns-packet.tcl}.
+% This is performed above by the RTPAgent's constructor.
+% Generally, one header object for each type of header
+% in the simulation is instantiated at simulator run-time.
+% A particular header is enabled via OTcl in the simulation during
+% simulator configuration time (see Section~\ref{sec:configpacket}).
 
 The static object \code{class_rtphdr} of
 \clsref{RTPHeaderClass}{../ns-2/rtp.cc} 
@@ -133,6 +151,10 @@ the \code{PacketHeaderClass} constructor with arguments
 This causes the size of the RTP header to be stored
 and made available to the packet header manager
 at configuration time (see below, Section~\ref{sec:packethdrmgr}).
+Notice that \code{bind_offset()} {\bf MUST} be called in the 
+constructor of this class, so that the packet
+header manager knows where to store the offset for this particular
+packet header. 
 
 The sample member function \fcn[]{sendpkt} method
 of \code{RTPAgent} creates a new packet
@@ -152,12 +174,17 @@ Assuming we wish to create a new header called \code{newhdr}
 the following steps are performed:
 \begin{enumerate}\itemsep0pt
   \item create a new structure defining the raw fields
-        (called \code{hdr_newhdr})
-  \item define member functions for needed fields
+        (called \code{hdr_newhdr}), define \code{offset_} and access
+        methods. 
+  \item define member functions for needed fields.
   \item create a static class to perform OTcl linkage
-        (defines \code{PacketHeader/Newhdr})
+        (defines \code{PacketHeader/Newhdr}), do \code{bind_offset()}
+        in its constructor. 
   \item edit \nsf{tcl/lib/ns-packet.tcl} to enable new packet format
-        (see \ref{sec:pinfoclass}, \ref{sec:configpacket})
+        (see \ref{sec:pinfoclass}, \ref{sec:configpacket}).
+        Alternatively, one may call \code{create-packet-header} in
+        one's own code (see \nsf{tcl/lib/ns-packet.tcl} for example
+        of using this Tcl function. 
 \end{enumerate}
 
 \section{Packet Classes}
@@ -328,23 +355,23 @@ enumeration.} and its symbolic name should be added to the constructor
 of \code{p_info}:
 \begin{program}
 enum packet_t \{
-	PT_TCP,
-	...
-	PT_NTYPE // This MUST be the LAST one
+        PT_TCP,
+        ...
+        PT_NTYPE // This MUST be the LAST one
 \};
 
 class p_info \{
 public:
-	p_info() \{
-		name_[PT_TCP]= "tcp";
-		...
+        p_info() \{
+                name_[PT_TCP]= "tcp";
+                ...
         \}
 \}
 \end{program}
 \subsection{The hdr\_cmn Class}
 \label{sec:commonhdr}
 
-Each packet in the simulator has a ``common''
+Every packet in the simulator has a ``common''
 header which is defined in \nsf{packet.h} as follows:
 \begin{program}
         struct hdr_cmn \{
@@ -354,6 +381,13 @@ header which is defined in \nsf{packet.h} as follows:
                 int       size_;          \* simulated packet size */
                 int       iface_;         \* receiving interface (label) */
          
+                /* {\cf Packet header access functions} */
+                static int offset_;
+                inline static int& offset() \{ return offset_; \}
+                inline static hdr_cmn* access(Packet* p) \{
+                        return (hdr_cmn*) p->access(offset_);
+                \}
+
                 /* {\cf per-field member functions} */
                 int& ptype() \{ return (ptype_); \}
                 int& uid() \{ return (uid_); \}
@@ -456,7 +490,7 @@ It is defined in both the C++ and OTcl code:
                         bind("hdrlen_", &Packet::hdrlen_);
                 \}
         \};
-\end{program}
+\end{program} %$
 The code in \nsf{tcl/lib/ns-packet.tcl} is executed
 when the simulator initializes.
 Thus, the {\tt foreach} statement is executed before the
@@ -466,6 +500,10 @@ the name and the name of the variable used to contain
 that class's header in a packet (which is initialized later).
 For example, the value of \code{vartab_(IP)} is set to
 \code{off_ip_}.
+Notice that here the \code{off_\tup{hdrname}_} stuff is only provided
+for backward compatibility reasons;
+as discussed above (\ref{label:sec:ppackethdr}), packet headers should
+be accessed using \code{hdr_\tup{hdrname}::access()}. 
 
 The \proc[]{create\_packetformat} instance procedure is part of the
 basic Simulator class and is called one time during simulator

@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.1 2000/07/27 01:29:16 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.2 2000/08/18 18:34:03 haoboy Exp $
 
 #ifndef ns_ls_h
 #define ns_ls_h
@@ -62,8 +62,6 @@ const unsigned int LS_INVALID_MESSAGE_ID = 0;
 const unsigned int LS_BIG_NUMBER = 1048576;
 const unsigned int LS_WRAPAROUND_THRESHOLD = 1073741824; // 2^30
 const unsigned int LS_MESSAGE_TYPES = 6;
-
-void ls_error(char* msg);
 
 enum ls_status_t { 
 	LS_STATUS_DOWN = 0, 
@@ -126,8 +124,7 @@ public:
 /* 
    LsLinkState -- representing a link, contains neighborId, cost and status
 */
-struct  LsLinkState 
-{
+struct LsLinkState {
 	// public data
 	int neighborId_;  
 	ls_status_t status_;
@@ -404,8 +401,13 @@ public:
 			return other_messages.findPtr(msgId);
 		}
 	}
+	static LsMessageCenter& instance() { 
+		return msgctr_;
+	}
 
 private:
+	static LsMessageCenter msgctr_;	// Singleton class
+
 	u_int32_t current_lsa_id ;
 	u_int32_t current_other_id;
 	unsigned int max_size; // if size() greater than this number, erase begin().
@@ -537,7 +539,7 @@ public:
 	// constructor and distructor
 	LsRouting() : myNodePtr_(NULL),  myNodeId_(LS_INVALID_NODE_ID), 
 		peerIdListPtr_(NULL), linkStateListPtr_(NULL),
-		messageCenterPtr_(NULL), routingTablePtr_(NULL),
+		routingTablePtr_(NULL),
 		linkStateDatabase_(), lsaHistory_(), ackManager_(*this) {}
 	~LsRouting() {
 		//delete pLinkStateDatabase;
@@ -588,6 +590,7 @@ private:
 	MessageBuffer messageBuffer_;
 
 private:
+	LsMessageCenter& msgctr() { return LsMessageCenter::instance(); }
 	LsPaths* _computeRoutes();
 	bool isUp(int neighborId);
 

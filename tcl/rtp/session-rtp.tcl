@@ -30,51 +30,12 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.9 1997/12/08 00:46:30 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.10 2000/08/18 18:34:05 haoboy Exp $
 #
 
 proc mvar args {
 	upvar self _s
 	uplevel $_s instvar $args
-}
-
-proc bw_parse { bspec } {
-	if { [scan $bspec "%f%s" b unit] == 1 } {
-		set unit bps
-	}
-	regsub {[/p]s(ec)?$} $unit {} unit
-	if [string match {*B} $unit] {
-		set b [expr $b*8]
-		set unit "[string trimright B $unit]b"
-	}
-	switch $unit {
-		b { return $b }
-		kb { return [expr $b*1000] }
-		Mb { return [expr $b*1000000] }
-		Gb { return [expr $b*1000000000] }
-		default { 
-			puts "error: bw_parse: unknown unit `$unit'" 
-			exit 1
-		}
-	}
-}
-
-proc time_parse { spec } {
-	if { [scan $spec "%f%s" t unit] == 1 } {
-		set unit s
-	}
-	regsub {sec$} $unit {s} unit
-	switch $unit {
-		s { return $t }
-		ms { return [expr $t*1e-3] }
-		us { return [expr $t*1e-6] }
-		ns { return [expr $t*1e-9] }
-		ps { return [expr $t*1e-12] }
-		default { 
-			puts "error: time_parse: unknown unit `$unit'" 
-			exit 1
-		}
-	}
 }
 
 Session/RTP set uniq_srcid 0

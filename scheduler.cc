@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.54 2000/01/13 22:15:48 salehi Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.55 2000/08/18 18:34:01 haoboy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.54 2000/01/13 22:15:48 salehi Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.55 2000/08/18 18:34:01 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -48,8 +48,6 @@ static const char rcsid[] =
 #ifdef MEMDEBUG_SIMULATIONS
 #include "mem-trace.h"
 #endif
-
-#include <iostream.h>
 
 Scheduler* Scheduler::instance_;
 int Scheduler::uid_ = 1;

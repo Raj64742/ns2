@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.214 2000/08/12 21:45:19 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.215 2000/08/18 18:34:04 haoboy Exp $
 
 
 #
@@ -340,11 +340,8 @@ Agent/rtProto/DV set preference_	120
 Agent/rtProto/DV set INFINITY		 [Agent set ttl_]
 Agent/rtProto/DV set advertInterval	  2
 
-#Agent/Decapsulator set off_encap_ 0
-#Agent/Encapsulator set off_encap_ 0
 Agent/Encapsulator set status_ 1
 Agent/Encapsulator set overhead_ 20
-
 
 Integrator set lastx_ 0.0
 Integrator set lasty_ 0.0
@@ -694,8 +691,6 @@ Mac/Tdma set max_node_num_	64
 LL set mindelay_                50us
 LL set delay_                   25us
 LL set bandwidth_               0       ;# not used
-LL set off_prune_               0       ;# not used
-LL set off_CtrMcast_            0       ;# not used
 LL set debug_ false
 
 # unity gain, omni-directional antennas
@@ -745,7 +740,5 @@ Application/Traffic/CBR_PP set random_ 0
 Application/Traffic/CBR_PP set maxpkts_ 268435456; # 0x10000000
 Application/Traffic/CBR_PP set PBM_ 2
 
-# LS stuffs
-#Agent/rtProto/LS set preference_        120
-#Agent/rtProto/LS set INFINITY            [Agent set ttl_]
-#Agent/rtProto/LS set advertInterval       1800 ;# seconds = 30 minutes
+# variables of the link state module is moved to ns-rtProtoLS.tcl
+

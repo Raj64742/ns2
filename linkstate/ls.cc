@@ -34,17 +34,16 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.cc,v 1.1 2000/07/27 01:29:16 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.cc,v 1.2 2000/08/18 18:34:03 haoboy Exp $
 
 #include "ls.h"
 
 // a global variable
-LsMessageCenter messageCenter;
+LsMessageCenter LsMessageCenter::msgctr_;
 
 int LsRouting::msgSizes[LS_MESSAGE_TYPES];
 
-class initRouting 
-{
+static class initRouting {
 public:
 	initRouting() {
 		LsRouting::msgSizes[LS_MSG_LSA] = LS_LSA_MESSAGE_SIZE;
@@ -54,8 +53,7 @@ public:
 	}
 } lsRoutingInitializer;
 
-
-void ls_error(char* msg) 
+static void ls_error(char* msg) 
 { 
 	fprintf(stderr, "%s\n", msg);
 	abort();
@@ -492,7 +490,6 @@ bool LsRouting::init(LsNode * nodePtr)
 	linkStateListPtr_ = myNodePtr_->getLinkStateListPtr();
 	if (linkStateListPtr_ != NULL) 
 		linkStateDatabase_.insert(myNodeId_, *linkStateListPtr_);
-	messageCenterPtr_ = &messageCenter;
 
 	LsDelayMap* delayMapPtr = myNodePtr_->getDelayMapPtr();
 	if (delayMapPtr != NULL)
@@ -570,9 +567,9 @@ bool LsRouting::isUp(int neighborId)
 /* return true if there's a need to re-compute routes */
 bool LsRouting::receiveMessage (int senderId, u_int32_t msgId)
 {
-	if ((messageCenterPtr_ == NULL) || (senderId == LS_INVALID_NODE_ID))
+	if (senderId == LS_INVALID_NODE_ID)
 		return false;
-	LsMessage* msgPtr = messageCenterPtr_->retrieveMessagePtr(msgId);
+	LsMessage* msgPtr = msgctr().retrieveMessagePtr(msgId);
 	if (msgPtr == NULL)
 		return false;
 
@@ -592,7 +589,7 @@ bool LsRouting::receiveMessage (int senderId, u_int32_t msgId)
 	case LS_MSG_LSAACK: 
 	case LS_MSG_TPMACK: 
 		receiveAck(senderId, msgPtr);
-		messageCenterPtr_->deleteMessage(msgId);
+		msgctr().deleteMessage(msgId);
 		break;
 	default:
 		break;
@@ -655,7 +652,7 @@ bool LsRouting::sendLinkStates(bool buffer = false )
 	if ((myLSLptr == NULL) || myLSLptr->empty())
 		return false;
 
-	LsMessage* msgPtr = messageCenter.newMessage(myNodeId_, LS_MSG_LSA);
+	LsMessage* msgPtr = msgctr().newMessage(myNodeId_, LS_MSG_LSA);
 	if (msgPtr == NULL) 
 		return false; // can't get new message
 
@@ -670,7 +667,7 @@ bool LsRouting::sendLinkStates(bool buffer = false )
 	if (newLSLptr == NULL) {
 		ls_error ("Can't get new link state list, in LsRouting::sendLinkStates\n");
 		// can't get new link state list
-		messageCenter.deleteMessage(msgId);
+		msgctr().deleteMessage(msgId);
 		return false;
 	}
 
@@ -695,7 +692,7 @@ bool LsRouting::sendAck (int nbrId, ls_message_type_t type,
 			 int originNodeIdAcked, u_int32_t seqAcked) 
 {
 	// Get a new message fom messageCenter
-	LsMessage * msgPtr = messageCenter.newMessage(myNodeId_, type);
+	LsMessage * msgPtr = msgctr().newMessage(myNodeId_, type);
 	if (msgPtr == NULL)
 		return false; // can't get new message
 
@@ -780,7 +777,7 @@ void LsRouting::regenAndSend(int exception, int origin,
 	}
 
 	// replicate the LSA 
-	LsMessage* msgPtr =  messageCenterPtr_->newMessage(origin, LS_MSG_LSA);
+	LsMessage* msgPtr =  msgctr().newMessage(origin, LS_MSG_LSA);
 	msgPtr->sequenceNumber_ = (*lsl.begin()).sequenceNumber_;
 	msgPtr->originNodeId_ = origin;
 
@@ -801,8 +798,7 @@ void LsRouting::sendTopo(int neighborId)
 {
 	// if we've gone so far, messageCenterPtr should not be null, 
 	// don't check
-	LsMessage* msgPtr= messageCenterPtr_->newMessage(myNodeId_, 
-							 LS_MSG_TPM);
+	LsMessage* msgPtr= msgctr().newMessage(myNodeId_, LS_MSG_TPM);
 	// XXX, here we are going to send the pointer that points
 	// to my own topo, because sending the who topomap is too costly in
 	// simulation

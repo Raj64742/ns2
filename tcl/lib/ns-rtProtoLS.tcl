@@ -41,14 +41,18 @@
 # $Header
 
 Agent/rtProto/LS set UNREACHABLE  [rtObject set unreach_]
+Agent/rtProto/LS set preference_        120
+Agent/rtProto/LS set INFINITY           [Agent set ttl_]
+Agent/rtProto/LS set advertInterval     1800
+
+create-packet-header rtProtoLS off_LS_
 
 Simulator instproc get-number-of-nodes {} {
 	$self instvar Node_
 	return  [array size Node_] 
 }
     
-# like DV's , except $self cmd initialize 
-# and  cmd setNodeNumber
+# like DV's, except $self cmd initialize and cmd setNodeNumber
 Agent/rtProto/LS proc init-all args {
 	if { [llength $args] == 0 } {
 		set nodeslist [[Simulator instance] all-nodes-list]
@@ -96,8 +100,10 @@ Agent/rtProto/LS instproc init node {
 	global rtglibRNG
 
 	$self next $node
-	$self instvar ns_ rtObject_ ifsUp_ rtsChanged_
-	$self instvar preference_ rtpref_ nextHop_ nextHopPeer_ metric_ multiPath_
+	$self instvar ns_ rtObject_ ifsUp_ rtsChanged_ rtpref_ nextHop_ \
+		nextHopPeer_ metric_ multiPath_
+	Agent/rtProto/LS instvar preference_ 
+	
 	;# -- LS stuffs -- 
 	$self instvar LS_ready
 	set LS_ready 0
@@ -263,34 +269,6 @@ Agent/rtProto/LS instproc get-peers {} {
 	set peers
 }
 
-# needed to convert different time format to a number, 
-# used by instproc get-delay-estimates below
-proc convert-time time {
-	regsub \[mupn\]*s|\[mupn\] $time "" number
-	set factor 1
-	switch -regexp $time {
-		m { set factor 0.001 }
-		u { set factor 0.000001 }
-		n { set factor 0.000000001 }
-		p { set factor 0.000000000001 }
-		s* { set factor 1 }
-	}
-	expr $number * $factor 
-}
-
-# needed to convert different bandwidth format to a number, 
-# used by instproc get-delay-estimates below
-proc convert-bandwidth bandwidth {
-	regsub \[kKmM\]*\[bB\]|\[kKmM\] $bandwidth "" number
-	set factor 1 
-	switch -regexp $bandwidth {
-		\[kK\] { set factor 1000 }
-		{[mM]} { set factor 1000000 }
-		{[bB]*} { set factor 1 }
-	}
-	expr $number * $factor 
-}
-
 # needed to calculate the appropriate timeout value for retransmission 
 # of unack'ed LSA or Topo messages
 Agent/rtProto/LS instproc get-delay-estimates {} {
@@ -300,8 +278,8 @@ Agent/rtProto/LS instproc get-delay-estimates {} {
 	foreach nbr [array names ifs_] {
 		set intf $ifs_($nbr)
 		set q_limit [ [$intf queue ] set limit_]
-		set bw [ convert-bandwidth [ [$intf link ] set bandwidth_ ] ]
-		set p_delay [convert-time [ [$intf link ] set delay_] ]
+		set bw [bw_parse [ [$intf link ] set bandwidth_ ] ]
+		set p_delay [time_parse [ [$intf link ] set delay_] ]
 		set total_delay [expr $q_limit * $packet_size / $bw + $p_delay]
 		$self cmd setDelay [$nbr id] $total_delay
 	}

@@ -3,7 +3,7 @@
 
 /*#include <sys/queue.h>*/
 #include "../../../config.h"
-#include "../../../list.h"
+#include "../../../lib/bsd-list.h"
 
 #ifndef LIST_FIRST
 #define LIST_FIRST(head)	((head)->lh_first)

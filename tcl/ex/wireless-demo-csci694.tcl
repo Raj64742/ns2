@@ -62,8 +62,6 @@ set opt(stop)		200.0		;# simulation time
 LL set mindelay_		50us
 LL set delay_			25us
 LL set bandwidth_		0	;# not used
-LL set off_prune_		0	;# not used
-LL set off_CtrMcast_		0	;# not used
 
 Agent/Null set sport_		0
 Agent/Null set dport_		0

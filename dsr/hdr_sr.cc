@@ -37,7 +37,7 @@
    hdr_sr.cc
 
    source route header
-   $Id: hdr_sr.cc,v 1.3 1999/02/14 00:56:18 haoboy Exp $
+   $Id: hdr_sr.cc,v 1.4 2000/08/18 18:34:02 haoboy Exp $
 */
 
 #include <stdio.h>
@@ -49,7 +49,7 @@ static class SRHeaderClass : public PacketHeaderClass {
 public:
 	SRHeaderClass() : PacketHeaderClass("PacketHeader/SR",
 					     sizeof(hdr_sr)) {
-		offset(&hdr_sr::offset_);
+		bind_offset(&hdr_sr::offset_);
 	}
 	void export_offsets() {
 		field_offset("valid_", OFFSET(hdr_sr, valid_));

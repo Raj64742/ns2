@@ -257,14 +257,14 @@ TrafficGen/ManyTCP instproc init_network {} {
     #
     set expected_load_per_client_in_bps [expr ($opts_(client-mouse-chance)/100.0)*$opts_(client-mouse-packets)*$opts_(client-pkt-size)*8 + (1.0-$opts_(client-mouse-chance)/100.0)*$opts_(client-elephant-packets)*$opts_(client-pkt-size)*8]
     if {$opts_(debug)} {
-	set max_clients_per_second [expr [$ns_ bw_parse $opts_(bottle-bw)]/$expected_load_per_client_in_bps]
+	set max_clients_per_second [expr [bw_parse $opts_(bottle-bw)]/$expected_load_per_client_in_bps]
 	puts [format "maximum clients per second: %.3f" $max_clients_per_second]
     }
     
     # Compute optimal (?) bottleneck queue size
     # as the bw-delay product.
     if {$opts_(bottle-queue-length) == "bw-delay-product"} {
-	set opts_(bottle-queue-length) [expr ([$ns_ bw_parse $opts_(bottle-bw)] * ([$ns_ delay_parse $opts_(bottle-delay)] + [$ns_ delay_parse $opts_(client-delay-range)]) + $opts_(client-pkt-size)*8 - 1)/ ($opts_(client-pkt-size) * 8)]
+	set opts_(bottle-queue-length) [expr ([bw_parse $opts_(bottle-bw)] * ([time_parse $opts_(bottle-delay)] + [time_parse $opts_(client-delay-range)]) + $opts_(client-pkt-size)*8 - 1)/ ($opts_(client-pkt-size) * 8)]
 	puts "optimal bw queue size: $opts_(bottle-queue-length)"
     }
     
@@ -340,7 +340,7 @@ TrafficGen/ManyTCP instproc create_client_nodes {node} {
     # Set delay.
     set delay $opts_(client-delay)
     if {$delay == "random"} {
-	set delay [$rng_ exponential [$ns_ delay_parse $opts_(client-delay-range)]]
+	set delay [$rng_ exponential [time_parse $opts_(client-delay-range)]]
     }
     # Now divide the delay into the two haves and set up the network.
     set ldelay [$rng_ uniform 0 $delay]

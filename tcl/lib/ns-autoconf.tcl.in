@@ -48,4 +48,3 @@ checkout_executable TCLSH "@V_TCLSH@" tclsh "\
 	The wrong version of tclsh may break the test suites.\
 	Reconfigure and rebuild ns if this is a problem.\
 "
-

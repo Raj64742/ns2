@@ -30,55 +30,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
+
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/Attic/ns-stl.tcl.in,v 1.1 2000/08/18 18:34:05 haoboy Exp $
+
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-cmutrace.tcl,v 1.2 2000/08/18 18:34:04 haoboy Exp $
+# Scripts that depends on STL-based modules. It will be compiled into 
+# ns in the same way as scripts sourced in ns-lib.tcl. We put these 
+# scripts in this separate file so as not to touch ns-lib.tcl
+#
 
-CMUTrace instproc init { tname type } {
-	$self next $tname $type
-	$self instvar type_ src_ dst_ callback_ show_tcphdr_
-
-	set type_ $type
-	set src_ 0
-	set dst_ 0
-	set callback_ 0
-	set show_tcphdr_ 0
-}
-
-CMUTrace instproc attach fp {
-	$self instvar fp_
-	set fp_ $fp
-	$self cmd attach $fp_
-}
-
-Class CMUTrace/Send -superclass CMUTrace
-CMUTrace/Send instproc init { tname } {
-	$self next $tname "s"
-}
-
-Class CMUTrace/Recv -superclass CMUTrace
-CMUTrace/Recv instproc init { tname } {
-	$self next $tname "r"
-}
-
-Class CMUTrace/Drop -superclass CMUTrace
-CMUTrace/Drop instproc init { tname } {
-	$self next $tname "D"
-}
-
-# XXX MUST NOT initialize off_*_ here!! 
-# They should be automatically initialized in ns-packet.tcl!!
-
-CMUTrace/Recv set src_ 0
-CMUTrace/Recv set dst_ 0
-CMUTrace/Recv set callback_ 0
-CMUTrace/Recv set show_tcphdr_ 0
-
-CMUTrace/Send set src_ 0
-CMUTrace/Send set dst_ 0
-CMUTrace/Send set callback_ 0
-CMUTrace/Send set show_tcphdr_ 0
-
-CMUTrace/Drop set src_ 0
-CMUTrace/Drop set dst_ 0
-CMUTrace/Drop set callback_ 0
-CMUTrace/Drop set show_tcphdr_ 0
+@V_LSSCRIPT@

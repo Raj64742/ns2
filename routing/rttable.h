@@ -51,8 +51,8 @@ redistribute these changes without encumbrance.
 #include <sys/types.h>
 
 #include "config.h"
-#include "lib/bsd-list.h"
 #include "scheduler.h"
+#include "lib/bsd-list.h"
 
 #define CURRENT_TIME    Scheduler::instance().clock()
 #define INFINITY2        0xff

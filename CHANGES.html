@@ -7,7 +7,7 @@
 <!-- Changed by: Sandeep Bajaj, 24-Apr-1998 -->
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.412 2000/08/17 00:03:37 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.413 2000/08/18 18:34:00 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>
 ns: Change History</h1>
 <!--
@@ -24,9 +24,69 @@ of ns-2.1b7</a> [PENDING]</h3>
 
 <p><li>
 	<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
-	<b>Wed Aug 16 16:59:15 PDT 2000</b><br>
-	Moved list.h to lib/bsd-list.h to prepare for STL support, since
-	list.h conflicts with STL's list.h
+	<b>Thu Aug 17 22:16:32 PDT 2000</b><br>
+	<ol>
+
+	<li> Autoconf support for checking compatibility of compiler's
+	STL support. Basically it tries to see if template inheritance
+	is supported, which some earlier gcc does not seem so.
+	<br>
+	Currently this is used only for the link state routing
+	protocol module, which uses STL extensively. However, this
+	mechanism can be easily extended to enhance the modularity of
+	ns, in the sense that the user may actively choose which
+	module to compile into her/his ns binary, thus save
+	memory/disk space/initialization time/etc.
+	<br>
+	<b>IMPORTANT</b>: validate is now moved to validate.in,
+	because link state module may or may not be present depending
+	on availability of STL.
+
+	<li> Removed numerous <code>... set off_*_ 0</code> in
+	tcl/*/*.tcl. Although off_[hdr]_ is an obsolete way to access
+	packet headers, it is still used in much existing
+	code. These offsets MUST be set through the code in
+	tcl/lib/ns-packet.tcl. Explicitly setting it to 0 will result
+	in accessing packet header in the wrong place. However, this
+	is a very treachrous bug, because ns packet header is 'sparse'
+	in that much of the space is not used in a
+	simulation. Therefore, most of the time this bug will not lead
+	to segmentation fault or incorrect functionality. Usually it
+	only results in mysterious segmentation faults in completely
+	irrerelevant places. 
+	<br>
+	The most significant bug related to this problem is
+	<code>off_arp_</code> and <code>off_sr_</code>. The former
+	results in the crash of <code>wireless3</code> test in
+	<code>WLtutorial</code> test suite. The latter results in
+	incorrect output of <code>CMUTrace</code> in dsr-related tests
+	in <code>wireless-lan</code>,
+	<code>wireless-lan-newnode</code>, and
+	<code>wireless-tdma</code> test suites.
+
+	<li> Merged all the <code>delay_parse</code>,
+	<code>time_parse</code>, <code>bw_parse</code> in
+	tcl/*/*.tcl. There exists at least 3 versions of these codes
+	with slightly different implementations. Now they all converge
+	to John's <code>time_parse</code> and <code>bw_parse</code> in
+	tcl/lib/ns-lib.tcl.
+
+	<li> test-output-wireless-lan/dsr.Z was truncated at
+	the end because test-suite-wireless-lan.tcl (and
+	-lan-newnode.tcl) did not flush the trace file before
+	rewriting it.
+
+	<li> Removed dmalloc 3.* support because their headers do not
+	carry version information. 
+
+	<li> Removed unused iostream.h in various files.
+	</ol>
+
+<p><li>
+        <b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
+        <b>Wed Aug 16 16:59:15 PDT 2000</b><br>
+        Moved list.h to lib/bsd-list.h to prepare for STL support, since
+        list.h conflicts with STL's list.h
 
 <p>
   <li>

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.37 2000/07/27 04:57:55 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.38 2000/08/18 18:34:05 haoboy Exp $
 #
 #
 # set up the packet format for the simulation
@@ -47,6 +47,14 @@ PacketHeaderManager set hdrlen_ 0
 
 foreach cl [PacketHeader info subclass] {
 	PacketHeaderManager set vartab_($cl) ""
+}
+
+# So that not all packet headers should be initialized here.
+# E.g., the link state routing header is initialized using this proc in 
+# ns-rtProtoLS.tcl; because link state may be turned off when STL is not 
+# available, this saves us from ns-packet.tcl.in
+proc create-packet-header { cl var } {
+	PacketHeaderManager set vartab_(PacketHeader/$cl) $var
 }
 
 # If you need to save some memory, you can disable unneeded packet headers
@@ -85,11 +93,11 @@ foreach pair {
 	{ UMP off_ump_ }
 	{ TFRC off_tfrm_}
 	{ Ping off_ping_}
-#	{ rtProtoLS off_LS_ }
 } {
-	set cl PacketHeader/[lindex $pair 0]
-	set var [lindex $pair 1]
-	PacketHeaderManager set vartab_($cl) $var
+	create-packet-header [lindex $pair 0] [lindex $pair 1]
+#  	set cl [lindex $pair 0]
+#  	set var [lindex $pair 1]
+#  	PacketHeaderManager set vartab_(PacketHeader/$cl) $var
 }
 
 proc PktHdr_offset {hdrName {field ""}} {

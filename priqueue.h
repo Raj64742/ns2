@@ -41,10 +41,10 @@
 #ifndef _priqueue_h
 #define _priqueue_h
 
-#include <object.h>
-#include <queue.h>
-#include <drop-tail.h>
-#include <packet.h>
+#include "object.h"
+#include "queue.h"
+#include "drop-tail.h"
+#include "packet.h"
 #include "lib/bsd-list.h"
 
 class PriQueue;

@@ -34,69 +34,17 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.h,v 1.2 2000/08/18 18:34:03 haoboy Exp $
-
-#ifndef ns_rtprotols_h
-#define ns_rtprotols_h
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/hdr-ls.cc,v 1.1 2000/08/18 18:34:03 haoboy Exp $
 
 #include "packet.h"
-#include "agent.h"
-#include "ip.h"
-#include "ls.h" 
 #include "hdr-ls.h"
 
-extern LsMessageCenter messageCenter;
+int hdr_LS::offset_;
 
-class rtProtoLS : public Agent , public LsNode {
+static class rtLSHeaderClass : public PacketHeaderClass {
 public:
-        rtProtoLS() : Agent(PT_RTPROTO_LS) { 
-		bind("off_LS_", &off_LS_);
-		LS_ready_ = 0;
-	}
-        int command(int argc, const char*const* argv);
-        void sendpkt(ns_addr_t dst, u_int32_t z, u_int32_t mtvar);
-        void recv(Packet* p, Handler*);
-
-protected:
-	int off_LS_;
-
-	void initialize(); // init nodeState_ and routing_
-	void setDelay(int nbrId, double delay) {
-		delayMap_.insert(nbrId, delay);
-	}
-	void sendBufferedMessages() { routing_.sendBufferedMessages(); }
-	void computeRoutes() { routing_.computeRoutes(); }
-	void intfChanged();
-	void sendUpdates() { routing_.sendLinkStates(); }
-	void lookup(int destinationNodeId);
-
-public:
-	bool sendMessage(int destId, u_int32_t messageId, int size);
-	void receiveMessage(int sender, u_int32_t msgId);
-
-	int getNodeId() { return nodeId_; }
-	LsLinkStateList* getLinkStateListPtr()  { return &linkStateList_; }
-	LsNodeIdList* getPeerIdListPtr() { return &peerIdList_; }
-	LsDelayMap* getDelayMapPtr() { 
-		return delayMap_.empty() ? (LsDelayMap *)NULL : &delayMap_;
-	}
-	void installRoutes() {
-		Tcl::instance().evalf("%s route-changed", name());
-	}
-
-private:
-	typedef LsMap<int, ns_addr_t> PeerAddrMap; // addr for peer Id
-	PeerAddrMap peerAddrMap_;
-	int nodeId_;
-	int LS_ready_;	// to differentiate fake and real LS, debug, 0 == no
-			// needed in recv and sendMessage;
-
-	LsLinkStateList linkStateList_;
-	LsNodeIdList peerIdList_;
-	LsDelayMap delayMap_;
-	LsRouting routing_;
-
-	int findPeerNodeId(ns_addr_t agentAddr);
-};
-
-#endif // ns_rtprotols_h
+        rtLSHeaderClass() : PacketHeaderClass("PacketHeader/rtProtoLS",
+					      sizeof(hdr_LS)) { 
+		bind_offset(&hdr_LS::offset_);
+	} 
+} class_rtProtoLS_hdr;

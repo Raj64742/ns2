@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.200 2000/07/27 04:57:55 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.201 2000/08/18 18:34:04 haoboy Exp $
 
 #
 
@@ -76,6 +76,48 @@ proc find-max list {
 	return $max
 }
 
+proc bw_parse { bspec } {
+	if { [scan $bspec "%f%s" b unit] == 1 } {
+		set unit bps
+	}
+	regsub {[/p]s(ec)?$} $unit {} unit
+	if [string match {*B} $unit] {
+		set b [expr $b*8]
+		set unit "[string trimright B $unit]b"
+	}
+	switch $unit {
+		b { return $b }
+		kb { return [expr $b*1000] }
+		Mb { return [expr $b*1000000] }
+		Gb { return [expr $b*1000000000] }
+		default { 
+			puts "error: bw_parse: unknown unit `$unit'" 
+			exit 1
+		}
+	}
+}
+
+proc time_parse { spec } {
+	if { [scan $spec "%f%s" t unit] == 1 } {
+		set unit s
+	}
+	regsub {sec$} $unit {s} unit
+	switch $unit {
+		s { return $t }
+		ms { return [expr $t*1e-3] }
+		us { return [expr $t*1e-6] }
+		ns { return [expr $t*1e-9] }
+		ps { return [expr $t*1e-12] }
+		default { 
+			puts "error: time_parse: unknown unit `$unit'" 
+			exit 1
+		}
+	}
+}
+
+proc delay_parse { spec } {
+	return [time_parse $spec]
+}
 
 #
 # Create the core OTcl class called "Simulator".
@@ -141,9 +183,6 @@ source ../plm/plm.tcl
 source ../plm/plm-ns.tcl
 source ../plm/plm-topo.tcl
 
-# link state routing
-#source ns-rtProtoLS.tcl
-
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl
 
@@ -176,6 +215,14 @@ Simulator instproc use-scheduler type {
 	}
 	set scheduler_ [new Scheduler/$type]
 	$scheduler_ now
+}
+
+Simulator instproc delay_parse { spec } {
+	return [time_parse $spec]
+}
+
+Simulator instproc bw_parse { spec } {
+	return [bw_parse $spec]
 }
 
 #
@@ -262,40 +309,34 @@ Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
 
 Simulator instproc get-nodetype {} {
 
-      $self instvar addressType_ routingAgent_ wiredRouting_
-      set val ""
+	$self instvar addressType_ routingAgent_ wiredRouting_
+	set val ""
 
-    if { [info exists addressType_] && $addressType_ == "hierarchical" } {
-	set val Hier
-    }
-    
-    if { [info exists routingAgent_] && $routingAgent_ != "" } {
-	set val Mobile
-    }
-
-    if { [info exists wiredRouting_] && $wiredRouting_ == "ON" } {
-	set val Base
-    }
-
-    if { [info exists wiredRouting_] && $wiredRouting_ == "OFF"} {
-	set val Base
-    }
-
-
-    if { [Simulator set mobile_ip_] } {
-	if { $val == "Base" && $wiredRouting_ == "ON" } {
-	    set val MIPBS
+	if { [info exists addressType_] && $addressType_ == "hierarchical" } {
+		set val Hier
 	}
 	
-	if { $val == "Base" && $wiredRouting_ == "OFF" } {
-            set val MIPMH
-        }
+	if { [info exists routingAgent_] && $routingAgent_ != "" } {
+		set val Mobile
+	}
+	
+	if { [info exists wiredRouting_] && $wiredRouting_ == "ON" } {
+		set val Base
+	}
+	
+	if { [info exists wiredRouting_] && $wiredRouting_ == "OFF"} {
+		set val Base
+	}
 
-
-    }
-
-    return $val
-
+	if { [Simulator set mobile_ip_] } {
+		if { $val == "Base" && $wiredRouting_ == "ON" } {
+			set val MIPBS
+		}
+		if { $val == "Base" && $wiredRouting_ == "OFF" } {
+			set val MIPMH
+		}
+	}
+	return $val
 }
 
 Simulator instproc node-config args {
@@ -381,9 +422,7 @@ Simulator instproc node-config args {
 	       Simulator set mobile_ip_ 0
 	   }
     }
-
 }
-
 
 # Default behavior is changed: consider nam as not initialized if 
 # no shape OR color parameter is given
@@ -439,11 +478,9 @@ Simulator instproc imep-support {} {
        }
        
        return ""
-
 }
 
 Simulator instproc create-wireless-node { args } {
-
         $self instvar routingAgent_ wiredRouting_
         $self instvar propInstance_ llType_ macType_ ifqType_ ifqlen_ phyType_ chan
         $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  idlePower_
@@ -1707,39 +1744,6 @@ Simulator instproc lossmodel {lossobj from to} {
 Simulator instproc link-lossmodel {lossobj from to} {
 	set link [$self link $from $to]
 	$link insert-linkloss $lossobj
-}
-
-Simulator instproc bw_parse { bspec } {
-        if { [scan $bspec "%f%s" b unit] == 1 } {
-                set unit b
-        }
-	# xxx: all units should support X"ps" --johnh
-        switch $unit {
-        b  { return $b }
-        bps  { return $b }
-        kb { return [expr $b*1000] }
-        Mb { return [expr $b*1000000] }
-        Gb { return [expr $b*1000000000] }
-        default { 
-                  puts "error: bw_parse: unknown unit `$unit'" 
-                  exit 1
-                }
-        }
-}
-
-Simulator instproc delay_parse { dspec } {
-        if { [scan $dspec "%f%s" b unit] == 1 } {
-                set unit s
-        }
-        switch $unit {
-        s  { return $b }
-        ms { return [expr $b*0.001] }
-        ns { return [expr $b*0.000001] }
-        default { 
-                  puts "error: bw_parse: unknown unit `$unit'" 
-                  exit 1
-                }
-        }
 }
 
 #### Polly Huang: Simulator class instproc to support abstract tcp simulations

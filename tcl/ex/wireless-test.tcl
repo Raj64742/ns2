@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless-test.tcl,v 1.4 1999/08/02 18:44:30 yaxu Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless-test.tcl,v 1.5 2000/08/18 18:34:04 haoboy Exp $
 #
 # A simple wireless example file that simulates a 3-mobilenode 
 # topology. Traffic used are CBR and TCP flows.
@@ -70,8 +70,6 @@ set MacTrace			OFF
 LL set mindelay_		50us
 LL set delay_			25us
 LL set bandwidth_		0	;# not used
-LL set off_prune_		0	;# not used
-LL set off_CtrMcast_		0	;# not used
 
 Agent/Null set sport_		0
 Agent/Null set dport_		0

@@ -7,9 +7,8 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
-#include <iomanip.h>
 #include <assert.h>
+
 #include "config.h"
 #include "trace.h"
 #include "rng.h"

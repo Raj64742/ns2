@@ -82,9 +82,7 @@ proc default_options {} {
     set opt(seed)	0.0
     set opt(tr)		temp.rands    ;# trace file
     set opt(lm)         "off"          ;# log movement
-
 }
-
 
 # =====================================================================
 # Other default settings
@@ -96,8 +94,6 @@ set MacTrace			OFF
 LL set mindelay_		50us
 LL set delay_			25us
 LL set bandwidth_		0	;# not used
-LL set off_prune_		0	;# not used
-LL set off_CtrMcast_		0	;# not used
 
 Agent/Null set sport_		0
 Agent/Null set dport_		0
@@ -227,6 +223,7 @@ Test/dsr instproc init {} {
 
     $self next
 
+    puts "creating mobile nodes"
     for {set i 0} {$i < $opt(nn) } {incr i} {
         $testName_-create-mobile-node $i
     }
@@ -250,10 +247,12 @@ Test/dsr instproc init {} {
 }
 
 TestSuite instproc finish-dsr {} {
-	$self instvar ns_
-	global quiet opt
+	$self instvar ns_ 
+	global quiet opt tracefd
 
 	$ns_ flush-trace
+	flush $tracefd
+	close $tracefd
         
         set tracefd	[open $opt(tr) r]
         set tracefd2    [open $opt(tr).w w]
@@ -462,10 +461,8 @@ Test/dsdv-wireless-mip instproc run {} {
     $ns_ run
 }
 
-
-
 proc cmu-trace { ttype atype node } {
-	global ns tracefd
+	global ns tracefd sc
     
         set ns [Simulator instance]
 	if { $tracefd == "" } {

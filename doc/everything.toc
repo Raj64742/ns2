@@ -101,7 +101,7 @@
 \contentsline {subsection}{\numberline {11.2.2}p\_info Class}{97}
 \contentsline {subsection}{\numberline {11.2.3}The hdr\_cmn Class}{97}
 \contentsline {subsection}{\numberline {11.2.4}The PacketHeaderManager Class}{98}
-\contentsline {section}{\numberline {11.3}Commands at a glance}{99}
+\contentsline {section}{\numberline {11.3}Commands at a glance}{100}
 \contentsline {chapter}{\numberline {12}Error Model}{101}
 \contentsline {section}{\numberline {12.1}Implementation}{101}
 \contentsline {section}{\numberline {12.2}Configuration}{102}

@@ -159,40 +159,6 @@ SessionSim instproc get-bw { src dst } {
     return $accu_bw
 }
 
-### Create sessoin links and nodes
-SessionSim instproc bw_parse { bspec } {
-        if { [scan $bspec "%f%s" b unit] == 1 } {
-                set unit b
-        }
-	# xxx: all units should support X"ps" --johnh
-        switch $unit {
-        b  { return $b }
-        bps  { return $b }
-        kb { return [expr $b*1000] }
-        Mb { return [expr $b*1000000] }
-        Gb { return [expr $b*1000000000] }
-        default { 
-                  puts "error: bw_parse: unknown unit `$unit'" 
-                  exit 1
-                }
-        }
-}
-
-SessionSim instproc delay_parse { dspec } {
-        if { [scan $dspec "%f%s" b unit] == 1 } {
-                set unit s
-        }
-        switch $unit {
-        s  { return $b }
-        ms { return [expr $b*0.001] }
-        ns { return [expr $b*0.000001] }
-        default { 
-                  puts "error: bw_parse: unknown unit `$unit'" 
-                  exit 1
-                }
-        }
-}
-
 SessionSim instproc node args {
     $self instvar sessionNode_
     if {[llength $args] == 0} {
@@ -210,8 +176,8 @@ SessionSim instproc simplex-link { n1 n2 bw delay type } {
     set sid [$n1 id]
     set did [$n2 id]
 
-    set bw_($sid:$did) [$self bw_parse $bw]
-    set delay_($sid:$did) [$self delay_parse $delay]
+    set bw_($sid:$did) [bw_parse $bw]
+    set delay_($sid:$did) [delay_parse $delay]
 
 	set linkAttr_($sid:$did:ORIENT) ""
 	set linkAttr_($sid:$did:COLOR) "black"

@@ -88,8 +88,6 @@ proc default_options {} {
 LL set mindelay_		50us
 LL set delay_			25us
 LL set bandwidth_		0	;# not used
-LL set off_prune_		0	;# not used
-LL set off_CtrMcast_		0	;# not used
 
 Agent/Null set sport_		0
 Agent/Null set dport_		0
@@ -284,9 +282,11 @@ Test/dsr instproc run {} {
 
 TestSuite instproc finish-dsr {} {
 	$self instvar ns_
-	global quiet opt
+	global quiet opt tracefd
 
 	$ns_ flush-trace
+	flush $tracefd
+	close $tracefd
         
         set tracefd	[open $opt(tr) r]
         set tracefd2    [open $opt(tr).w w]

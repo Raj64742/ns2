@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.25 1999/09/24 17:04:37 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.26 2000/08/18 18:34:01 haoboy Exp $";
 #endif
 
 
@@ -67,7 +67,6 @@ RTPAgent::RTPAgent() : Agent(PT_RTP), session_(0), lastpkttime_(-1e6),
     running_(0), rtp_timer_(this)
 {
 	bind("seqno_", &seqno_);
-	bind("off_rtp_", &off_rtp_);
 	bind_time("interval_", &interval_);
 	bind("packetSize_", &size_);
 	bind("maxpkts_", &maxpkts_);
@@ -104,14 +103,14 @@ void RTPAgent::sendmsg(int nbytes, const char* /*flags*/)
                 }
                 while (n-- > 0) {
                         p = allocpkt();
-                        hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+                        hdr_rtp* rh = hdr_rtp::access(p);
                         rh->seqno() = seqno_;
                         target_->recv(p);
                 }
                 n = nbytes % size_;
                 if (n > 0) {
                         p = allocpkt();
-                        hdr_rtp* rh = (hdr_rtp*)p->access(off_rtp_);
+                        hdr_rtp* rh = hdr_rtp::access(p);
                         rh->seqno() = seqno_;
                         target_->recv(p);
                 }
@@ -222,7 +221,7 @@ void RTPAgent::sendpkt()
 
 void RTPAgent::makepkt(Packet* p)
 {
-	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
+	hdr_rtp *rh = hdr_rtp::access(p);
 	/* Fill in srcid_ and seqno */
 	rh->seqno() = seqno_++;
 	rh->srcid() = session_ ? session_->srcid() : 0;

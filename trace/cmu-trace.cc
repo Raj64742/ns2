@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.56 2000/07/27 01:29:15 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.57 2000/08/18 18:34:01 haoboy Exp $
  */
 
 #include <packet.h>
@@ -281,7 +281,7 @@ CMUTrace::format_arp(Packet *p, int offset)
 void
 CMUTrace::format_dsr(Packet *p, int offset)
 {
-	hdr_sr *srh = (hdr_sr*)p->access(off_sr_);
+	hdr_sr *srh = hdr_sr::access(p);
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset, 

@@ -34,18 +34,35 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.1 2000/07/27 01:29:16 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.2 2000/08/18 18:34:03 haoboy Exp $
 
-
+#include "hdr-ls.h"
 #include "rtProtoLS.h"
 #include "agent.h"
 #include "string.h" // for strtok
 
-static class rtLSHeaderClass : public PacketHeaderClass {
+// Helper classes
+class LsTokenList : public LsList<char *> {
 public:
-        rtLSHeaderClass() : PacketHeaderClass("PacketHeader/rtProtoLS",
-					      sizeof(hdr_LS)) { } 
-} class_rtProtoLS_hdr;
+	LsTokenList (char * str, const char * delim ) 
+		: LsList<char*> () { 
+		for ( char * token = strtok (str, delim);
+		      token != NULL; token = strtok(NULL, delim) ) {
+			push_back (token);
+		}
+	}
+};
+   
+class LsIntList : public LsList<int> {
+public:
+	LsIntList (char * str, const char * delim)
+		: LsList<int> () {
+		for ( char * token = strtok (str, delim);
+		      token != NULL; token = strtok(NULL, delim) ) {
+			push_back ( atoi(token) );
+		}
+	}
+};
 
 static class rtProtoLSclass : public TclClass {
 public:
@@ -90,8 +107,8 @@ int rtProtoLS::command(int argc, const char*const* argv)
 	}
 	if (strcmp(argv[1], "setNodeNumber" ) == 0 ) {
 		if ( argc == 3 ) {
-			int number_of_nodes = atoi (argv[2]);
-			messageCenter.setNodeNumber ( number_of_nodes );
+			int number_of_nodes = atoi(argv[2]);
+			LsMessageCenter::instance().setNodeNumber(number_of_nodes);
 		}
 		return TCL_OK;
 	}
@@ -154,30 +171,6 @@ int rtProtoLS::findPeerNodeId (ns_addr_t agentAddr)
 	}
 	return LS_INVALID_NODE_ID;
 }
-
-/* --------- LsTokenList ----------- */
-// A helper class 
-class LsTokenList : public LsList<char *> {
-public:
-	LsTokenList (char * str, const char * delim ) 
-		: LsList<char*> () { 
-		for ( char * token = strtok (str, delim);
-		      token != NULL; token = strtok(NULL, delim) ) {
-			push_back (token);
-		}
-	}
-};
-   
-class LsIntList : public LsList<int> {
-public:
-	LsIntList (char * str, const char * delim)
-		: LsList<int> () {
-		for ( char * token = strtok (str, delim);
-		      token != NULL; token = strtok(NULL, delim) ) {
-			push_back ( atoi(token) );
-		}
-	}
-};
 
 void rtProtoLS::initialize() // init nodeState_ and routing_
 {

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.6 1999/09/24 17:04:28 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.7 2000/08/18 18:34:01 haoboy Exp $";
 #endif
 extern "C" {
 #include <tcl.h>
@@ -47,7 +47,6 @@ extern "C" {
 #include "object.h"
 #include "address.h"
 
-#include <iostream.h>
 class VirtualClassifier : public Classifier {
 public:
 	VirtualClassifier() : routelogic_(0) {
@@ -76,7 +75,6 @@ protected:
 			tcl.eval("[Simulator instance] get-routelogic");
 			routelogic_= (RouteLogic*) TclObject::lookup(tcl.result());
 			//tcl.evalf("%s info class", tcl.result());
-			//cout << "created..." << tcl.result() << endl;
 		}
 		/* first we find the next hop by asking routelogic
 		 * then we use a hash next_hop -> target_object

@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/lib/dmalloc_support.cc,v 1.3 1999/09/18 00:51:17 haoboy Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/lib/dmalloc_support.cc,v 1.4 2000/08/18 18:34:03 haoboy Exp $ (USC/ISI)
  */
 
 
@@ -26,16 +26,11 @@
 
 #ifdef HAVE_LIBDMALLOC
 
-/* 
- * NOTE: If dmalloc does not work for you (e.g., it hangs), make sure that
- * you are using dmalloc 4.2.0 or above. If you are using lower versions, 
- * change the following to:
- * 
- * #define DMALLOC_MAJOR_VERSION 3
- */ 
-#define DMALLOC_MAJOR_VERSION 4
-
-#if DMALLOC_MAJOR_VERSION > 3
+/*
+ * XXX dmalloc 3.x is no longer supported
+ *
+ * - haoboy, Aug 2000
+ */
 
 /* 
  * This portion copied from ~dmalloc/dmalloc.cc 
@@ -49,6 +44,10 @@ extern "C" {
 #include "dmalloc.h"
 #include "return.h"
 }
+
+#ifndef DMALLOC_VERSION_MAJOR
+#error DMALLOC 3.x is no longer supported.
+#endif
 
 /*
  * An overload function for the C++ new.
@@ -83,38 +82,5 @@ operator delete[](void *pnt)
 	GET_RET_ADDR(file);
 	_free_leap(file, 0, pnt);
 }
-
-#else /* DMALLOC_MAJOR_VERSION == 3 */
-
-extern "C" {
-#include <stdlib.h>
-#include "dmalloc.h"
-#include "return.h"
-}
-
-void *
-operator new(size_t n)
-{
-	SET_RET_ADDR(_dmalloc_file, _dmalloc_line);
-	return _malloc_leap(_dmalloc_file, _dmalloc_line, n);
-}
-
-void *
-operator new[](size_t n)
-{
-	SET_RET_ADDR(_dmalloc_file, _dmalloc_line);
-	return _malloc_leap(_dmalloc_file, _dmalloc_line, n);
-}
-
-void
-operator delete(void * cp)
-{
-	if (!cp)   // silently ignore null pointers
-		return;
-	SET_RET_ADDR(_dmalloc_file, _dmalloc_line);
-	_free_leap(_dmalloc_file, _dmalloc_line, cp);
-}
-
-#endif /* DMALLOC_VERSION */
 
 #endif /* HAVE_LIBDMALLOC */

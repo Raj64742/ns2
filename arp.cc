@@ -35,7 +35,7 @@
 
    /* arp.cc
    basic arp cache and MAC addr resolution
-   $Id: arp.cc,v 1.9 1999/10/22 05:47:24 yaxu Exp $
+   $Id: arp.cc,v 1.10 2000/08/18 18:34:01 haoboy Exp $
 
    Note: code in this file violates the convention that addresses of
    type Af_INET stored in nsaddr_t variables are stored in 24/8 format.
@@ -65,12 +65,15 @@ public:
         }
 } class_arptable;
 
+int hdr_arp::offset_;
+
 static class ARPHeaderClass : public PacketHeaderClass {
 public:
         ARPHeaderClass() : PacketHeaderClass("PacketHeader/ARP",
-                                             sizeof(hdr_arp)) { }
+                                             sizeof(hdr_arp)) { 
+		bind_offset(&hdr_arp::offset_);
+	}
 } class_arphdr;
-
 
 /* ======================================================================
    Address Resolution (ARP) Table
@@ -99,10 +102,10 @@ ARPTable::ARPTable(const char *tclnode, const char *tclmac) : LinkDelay() {
 
 	mac_ = (Mac*) TclObject::lookup(tclmac);
 	assert(mac_);
-	off_mac_ = hdr_mac::offset_;
-	bind("off_ll_", &off_ll_);
+//  	off_mac_ = hdr_mac::offset_;
+//  	bind("off_ll_", &off_ll_);
 	//bind("off_mac_", &off_mac_);
-	bind("off_arp_", &off_arp_);
+//  	bind("off_arp_", &off_arp_);
 
 	LIST_INSERT_HEAD(&athead_, this, link_);
 }

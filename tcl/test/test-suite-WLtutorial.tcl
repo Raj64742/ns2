@@ -116,12 +116,11 @@ Test/wireless1 instproc init {} {
   
   for {set i 0} {$i < $opt(nn)} {incr i} {
     $ns_ initial_node_pos $node_($i) 20
- }
+  }
   for {set i 0} {$i < $opt(nn) } {incr i} {
     $ns_ at $opt(stop).000000001 "$node_($i) reset";
- }
+  }
   $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"  
-
 }
 
 Test/wireless1 instproc run {} {
@@ -334,11 +333,17 @@ Test/wireless3 instproc init {} {
     $ns_ initial_node_pos $node_($i) 20
   }
   for {set i 0} {$i < $opt(nn) } {incr i} {
-    $ns_ at $opt(stop).0000010 "$node_($i) reset";
+    $ns_ at $opt(stop).0000010 "$node_($i) reset"
   }
-  $ns_ at $opt(stop).0000010 "$HA reset";
-  $ns_ at $opt(stop).0000010 "$FA reset";
+  $ns_ at $opt(stop).0000010 "$HA reset"
+  $ns_ at $opt(stop).0000010 "$FA reset"
   $ns_ at $opt(stop).1 "puts \"NS EXITING...\" ; $ns_ halt"
+}
+
+Test/wireless3 instproc finish {} {
+	$self instvar ns_
+	$ns_ flush-trace
+	exit 0
 }
 
 Test/wireless3 instproc run {} {

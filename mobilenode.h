@@ -1,4 +1,3 @@
-/* test.h*/
 #ifndef __mobilenode_h__
 #define __mobilenode_h__
 

@@ -34,69 +34,34 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.h,v 1.2 2000/08/18 18:34:03 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/hdr-ls.h,v 1.1 2000/08/18 18:34:03 haoboy Exp $
 
-#ifndef ns_rtprotols_h
-#define ns_rtprotols_h
+// Link state header should be present in ns regardless if the link state
+// module is included (it may be omitted if standard STL is not supported
+// by the compiler). The reason is we do not want a ns-packet.tcl.in, 
+// and we cannot initialize a packet header in ns-stl.tcl.in. 
+// Mysteriously the latter solution does not work; the only victim is DSR
+// tests (e.g., DSR tests in wireless-lan, wireless-lan-newnode, wireless-tdma)
 
+#ifndef ns_ls_hdr_h
+#define ns_ls_hdr_h
+
+#include "config.h"
 #include "packet.h"
-#include "agent.h"
-#include "ip.h"
-#include "ls.h" 
-#include "hdr-ls.h"
 
-extern LsMessageCenter messageCenter;
+struct hdr_LS {
+        u_int32_t mv_;  // metrics variable identifier
+	int msgId_;
 
-class rtProtoLS : public Agent , public LsNode {
-public:
-        rtProtoLS() : Agent(PT_RTPROTO_LS) { 
-		bind("off_LS_", &off_LS_);
-		LS_ready_ = 0;
+        u_int32_t& metricsVar() { return mv_; }
+	int& msgId() { return msgId_; }
+
+	// Header access methods
+	static int offset_; // required by PacketHeaderManager
+	inline static int& offset() { return offset_; }
+	inline static hdr_LS* access(Packet* p) {
+		return (hdr_LS*) p->access(offset_);
 	}
-        int command(int argc, const char*const* argv);
-        void sendpkt(ns_addr_t dst, u_int32_t z, u_int32_t mtvar);
-        void recv(Packet* p, Handler*);
-
-protected:
-	int off_LS_;
-
-	void initialize(); // init nodeState_ and routing_
-	void setDelay(int nbrId, double delay) {
-		delayMap_.insert(nbrId, delay);
-	}
-	void sendBufferedMessages() { routing_.sendBufferedMessages(); }
-	void computeRoutes() { routing_.computeRoutes(); }
-	void intfChanged();
-	void sendUpdates() { routing_.sendLinkStates(); }
-	void lookup(int destinationNodeId);
-
-public:
-	bool sendMessage(int destId, u_int32_t messageId, int size);
-	void receiveMessage(int sender, u_int32_t msgId);
-
-	int getNodeId() { return nodeId_; }
-	LsLinkStateList* getLinkStateListPtr()  { return &linkStateList_; }
-	LsNodeIdList* getPeerIdListPtr() { return &peerIdList_; }
-	LsDelayMap* getDelayMapPtr() { 
-		return delayMap_.empty() ? (LsDelayMap *)NULL : &delayMap_;
-	}
-	void installRoutes() {
-		Tcl::instance().evalf("%s route-changed", name());
-	}
-
-private:
-	typedef LsMap<int, ns_addr_t> PeerAddrMap; // addr for peer Id
-	PeerAddrMap peerAddrMap_;
-	int nodeId_;
-	int LS_ready_;	// to differentiate fake and real LS, debug, 0 == no
-			// needed in recv and sendMessage;
-
-	LsLinkStateList linkStateList_;
-	LsNodeIdList peerIdList_;
-	LsDelayMap delayMap_;
-	LsRouting routing_;
-
-	int findPeerNodeId(ns_addr_t agentAddr);
 };
 
-#endif // ns_rtprotols_h
+#endif // ns_ls_hdr_h
