@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.4 1997/07/25 21:20:21 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.5 1997/07/26 00:10:42 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_cdls_h
@@ -77,13 +77,10 @@ protected:
 	void enque_weight(Packet*, IdPacketQueue*);
 	double weight(IdPacketQueue*);
 
-	IdPacketQueue** q_;
+	int qlen_;
 	int maxq_;
 	int numq_;
-	int qlen_;
-	double totalweight_;
-	int gqid_;
-	int bqid_;
+	IdPacketQueue** q_;
 	int off_ll_;
 	int off_mac_;
 };

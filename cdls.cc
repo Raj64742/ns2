@@ -49,7 +49,7 @@ public:
 } class_cdls;
 
 
-Cdls::Cdls() : maxq_(4), numq_(0), qlen_(0), totalweight_(0), gqid_(0), bqid_(0)
+Cdls::Cdls() : qlen_(0), maxq_(4), numq_(0)
 {
 	bind("off_ll_", &off_ll_);
 	bind("off_mac_", &off_mac_);
@@ -126,15 +126,7 @@ Cdls::getQueue(int id)
 void
 Cdls::enque_weight(Packet* p, IdPacketQueue* q)
 {
-	// Save the oldweight, enqueue, then recompute the weight
-//	double oldweight = weight(q);
 	q->enque(p);
-/*
-	if (((hdr_ll*)p->access(off_ll_))->error())
-		q->loss()++;
-	q->total()++;
-	totalweight_ += weight(q) - oldweight;
-*/
 }
 
 
@@ -150,23 +142,10 @@ Cdls::selectQueue()
 	for (i = 0;  i < numq_;  i++) {
 		w = weight(q_[i]);
 		r -= w;
-		if (r <= 0) {
-//			totalweight_ += weight(q) - w;
+		if (r <= 0)
 			return q_[i];
-		}
 	}
 	return 0;
-
-/*
-	double r = Random::uniform(totalweight_);
-	for (int i = 0;  i < numq_;  i++) {
-		gqid_ = (gqid_ + 1) % numq_;
-		if (q_[gqid_]->length() > 0) {
-			return q_[gqid_]->deque();
-		}
-	}
-	return 0;
-*/
 }
 
 
