@@ -31,11 +31,22 @@ Class BST -superclass McastProtocol
 
 BST instproc init { sim node } {
 	$self instvar mctrl_ oiflist_
-	set mctrl_ [new Agent/Mcast/Control $self]
-	$node attach $mctrl_
-	set oiflist_ ""
+	BST instvar RP_
 
 	$self next $sim $node
+
+	set mctrl_ [new Agent/Mcast/Control $self]
+	$node attach $mctrl_
+
+	foreach grpx [array names RP_] {
+                set grp [expr $grpx]
+               	$self dbg "BST: grp $grp, node [$node id]"
+               	if { [string compare $grp $grpx] } {
+    	           	set RP_($grp) $RP_(grpx)
+        	      	unset RP_($grpx)
+               	}
+               	set oiflist_($grp) ""
+	}
 }
 
 BST instproc join-group  { group {src "x"} } {
@@ -75,7 +86,7 @@ BST instproc handle-wrong-iif { srcID group iface } {
 	#debug 1
 	set rep [$node_ getReps "x" $group]
 	
-	$node_ add-mfc "x" $group $iface $oiflist_
+	$node_ add-mfc "x" $group $iface $oiflist_($group)
 	set iif [$node_ lookup-iface "x" $group]
 	if { $iface >= 0 } {
 		set oif [$node_ iif2oif $iface]
@@ -110,11 +121,11 @@ BST instproc handle-cache-miss { srcID group iface } {
 		set rpfoif ""
 	}
 	#puts "rpfoif= $rpfoif"
-	if { [lsearch $oiflist_ $rpfoif] < 0 } {
-		set oiflist_ [concat $oiflist_ $rpfoif]
+	if { [lsearch $oiflist_($group) $rpfoif] < 0 } {
+		set oiflist_($group) [concat $oiflist_($group) $rpfoif]
 	}
-	$self dbg "********* miss: adding <x, $group, $iface, $oiflist_>"
-	$node_ add-mfc "x" $group $iface $oiflist_
+	$self dbg "********* miss: adding <x, $group, $iface, $oiflist_($group)>"
+	$node_ add-mfc "x" $group $iface $oiflist_($group)
 
 	if { $iface > 0 } {
 		#disable reverse iface
@@ -146,11 +157,11 @@ BST instproc recv-prune { from src group iface} {
 	set rep [$node_ getReps "x" $group]
 	if {$rep != ""} {
 		set oif [$node_ iif2oif $iface]
-		set idx [lsearch $oiflist_ $oif]
+		set idx [lsearch $oiflist_($group) $oif]
 		if { $idx >= 0 } {
-			set oiflist_ [lreplace $oiflist_ $idx $idx]
+			set oiflist_($group) [lreplace $oiflist_($group) $idx $idx]
 			$rep disable $oif
-			if { $oiflist_ == "" } {
+			if { $oiflist_($group) == "" } {
 				# propagate
 				$self send-ctrl "prune" $RP_($group) $group
 			}
@@ -171,12 +182,12 @@ BST instproc recv-graft { from to group iface } {
 		set rpfoif ""
 	}
 
-	if { $oiflist_ == "" || $oiflist_ == $rpfoif } {
+	if { $oiflist_($group) == "" || $oiflist_($group) == $rpfoif } {
 		# propagate
 		$self send-ctrl "graft" $RP_($group) $group
 	}
-	if { [lsearch $oiflist_ $oif] < 0 } {
-		lappend oiflist_ $oif
+	if { [lsearch $oiflist_($group) $oif] < 0 } {
+		lappend oiflist_($group) $oif
 		if { [$node_ lookup-iface "x" $group] != $iface } {
 			set rep [$node_ getReps "x" $group]
 			if { $rep != "" } {
@@ -195,7 +206,7 @@ BST instproc recv-graft { from to group iface } {
 		}
 	}
 	}
-	$self dbg "oiflist: $oiflist_"
+	$self dbg "oiflist: $oiflist_($group)"
 }
 
 #
