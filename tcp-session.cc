@@ -499,7 +499,7 @@ TcpSessionAgent::recv(IntTcpAgent *agent, Packet *pkt, int amt_data_acked)
 {
 	hdr_tcp *tcph = (hdr_tcp *) pkt->access(off_tcp_);
 
-	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && ecn_)
+	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho() && ecn_)
 		quench(1, agent, tcph->seqno());
 	clean_segs(size_, pkt, agent, sessionSeqno_,amt_data_acked);
 	/* XXX okay to do this after clean_segs? */
@@ -525,7 +525,7 @@ TcpSessionAgent::setflags(Packet *pkt)
 {
 	hdr_flags *hf = (hdr_flags *) pkt->access(off_flags_);
 	if (ecn_)
-		hf->ecn_capable_ = 1;
+		hf->ect() = 1;
 }
 
 int
