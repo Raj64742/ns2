@@ -31,22 +31,29 @@ RTMechanisms instproc test_unresponsive_initial { flow flow_bw droprate lastidx 
 }
 
 # is a flow unresponsive for a 2nd time
-RTMechanisms instproc test_unresponsive_again { flow flow_bw droprate } {
-	$self instvar bwhist_ drophist_
-	$self instvar Ufrac_
-	if { $flow_bw >= $Ufrac_ * $flowhist_($flow,bandwidth) &&
-		($droprate >= $Ufrac_ * $flowhist_($flow,droprate)) } {
+RTMechanisms instproc test_unresponsive_again { flow flow_bw droprate bwfrac drfrac } {
+	$self instvar flowhist_
+	if { $flow_bw == "0" } {
+		return "ok"
+	}
+	if { $flow_bw >= $bwfrac * $state_($flow,bandwidth) &&
+		($droprate >= $drfrac * $state_($flow,droprate)) } {
 		return "fail"
 	}
 	return "ok"
 }
 
 
-RTMechanisms instproc test_high { flow_bw droprate avgbps } {
+RTMechanisms instproc test_high { flow_bw droprate etime } {
 	$self instvar okboxfm_
 	$self instvar High_const_
+	$self instvar okmon_
+
 	set numflows [$okboxfm_ fwdrops]
-	if { $flow_bw > log(3*$numflows) * $avgbps  &&
+	set gbarrivals [$okmon_ barrivals]
+	set goodBps [expr $gbarrivals / $etime]
+	set fBps [expr $goodBps / $numflows]
+	if { $flow_bw > log(3*$numflows) * $fBps  &&
 		$flow_bw * sqrt($droprate) > $High_const_ } {
 		return "fail"
 	}
