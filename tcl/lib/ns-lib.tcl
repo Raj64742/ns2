@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.24.2.2 1997/04/20 01:14:53 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.24.2.3 1997/04/20 01:31:22 gnguyen Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -48,6 +48,7 @@ Class Simulator
 source ns-node.tcl
 source ns-link.tcl
 source ns-shlink.tcl
+source ns-mhmac.tcl
 source ns-mcast.tcl
 source ns-source.tcl
 source ns-default.tcl

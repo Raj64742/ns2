@@ -35,6 +35,9 @@
 
 LL/Base set bandwidth_ 1.5Mb
 LL/Base set delay_ 1ms
+LL/Blocking set bandwidth_ 10Mb
+LL/Blocking set delay_ 1ms
+LL/Blocking set off_ll_ 0
 
 Channel set delay_ 16us
 Mac/Base set bandwidth_ 1.5Mb
