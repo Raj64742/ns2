@@ -122,7 +122,7 @@ mac.cc
 mac.h
 makefile.vc
 makefile.win
-measremod.cc
+measuremod.cc
 measuremod.h
 mem-trace.h
 message.cc
@@ -377,6 +377,9 @@ tcl/pim/pim-mrt.tcl
 tcl/pim/pim-recvr.tcl
 tcl/pim/pim-sender.tcl
 tcl/pim/pim-vifs.tcl
+tcl/rlm/misc.tcl
+tcl/rlm/rlm-cmn.tcl
+tcl/rlm/rlm-thesis.tcl
 tcl/rtglib/dynamics.tcl
 tcl/rtglib/route-proto.tcl
 tcl/rtmechanisms/Collapse.v2.tcl
@@ -683,4 +686,4 @@ validate.out
 win32.c
 tcl/ex/test-suite-intserv.tcl
 tcl/ex/test-suite-intserv.txt
-
+tcl/ex/test-rlm.tcl

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.97 1998/02/19 00:04:17 kfall Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.98 1998/02/20 20:46:44 bajaj Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -228,6 +228,9 @@ NS_TCL_LIB = \
         tcl/pim/pim-recvr.tcl \
         tcl/pim/pim-sender.tcl \
         tcl/pim/pim-vifs.tcl \
+	tcl/rlm/rlm-cmn.tcl \
+	tcl/rlm/rlm-thesis.tcl \
+	tcl/rlm/misc.tcl \
 	tcl/session/session.tcl \
 	tcl/lib/ns-route.tcl \
 	tcl/emulate/ns-emulate.tcl

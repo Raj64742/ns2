@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.82 1998/02/17 22:00:21 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.83 1998/02/20 20:46:45 bajaj Exp $
 #
 
 #
@@ -100,6 +100,9 @@ source ../pim/pim-vifs.tcl
 source ../mcast/srm.tcl
 source ../mcast/srm-ssm.tcl
 source ../mcast/McastMonitor.tcl
+source ../rlm/rlm-cmn.tcl
+source ../rlm/rlm-thesis.tcl
+source ../rlm/misc.tcl
 source ../session/session.tcl
 source ns-namsupp.tcl
 
