@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.1 2001/06/11 19:42:21 kclan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.2 2001/06/14 07:17:18 kclan Exp $
 
 PagePool/EmpWebTraf set debug_ false
 PagePool/EmpWebTraf set TCPTYPE_ Reno
@@ -60,7 +60,6 @@ PagePool/EmpWebTraf instproc launch-req { id clnt svr ctcp csnk stcp ssnk size r
         #puts "req + $id [$clnt id] [$svr id] $size [$ns now]"
 
 	# Send request packets based on empirical distribution
-	puts "reqest size $reqSize"
 	$ctcp advanceby $reqSize
 }
 
@@ -102,6 +101,26 @@ PagePool/EmpWebTraf instproc done-resp { id clnt svr stcp ssnk size {startTime 0
 	puts "recycled $stcp $ssnk"
 }
 
+PagePool/EmpWebTraf instproc teardown-conn { clnt svr ctcp csnk stcp ssnk } {
+
+
+	set ns [Simulator instance]
+
+	$ns detach-agent $clnt $ctcp
+	$ns detach-agent $svr $csnk
+	$ctcp reset
+	$csnk reset
+	$self recycle $ctcp $csnk
+
+	$ns detach-agent $clnt $ssnk
+	$ns detach-agent $svr $stcp
+	$stcp reset
+	$ssnk reset
+	$self recycle $stcp $ssnk
+
+}
+
+
 # XXX Should allow customizable TCP types. Can be easily done via a 
 # class variable
 PagePool/EmpWebTraf instproc alloc-tcp {} {
@@ -124,4 +143,73 @@ PagePool/EmpWebTraf instproc alloc-tcp {} {
 
 PagePool/EmpWebTraf instproc alloc-tcp-sink {} {
 	return [new Agent/[PagePool/EmpWebTraf set TCPSINKTYPE_]]
+}
+
+PagePool/EmpWebTraf instproc launch-reqP { id clnt svr ctcp csnk stcp ssnk size reqSize } {
+
+	set ns [Simulator instance]
+
+	if {[PagePool/EmpWebTraf set FID_ASSIGNING_MODE_] == 0} {
+		$stcp set fid_ $id
+		$ctcp set fid_ $id
+	}
+
+	$ctcp proc done {} "$self done-reqP $id $clnt $svr $ctcp $csnk $stcp $size"
+	$stcp proc done {} "$self done-respP $id $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
+	
+	# modified to trace web traffic flows (send request: client==>server).
+        #puts "req + $id [$clnt id] [$svr id] $size [$ns now]"
+
+	# Send request packets based on empirical distribution
+	$ctcp advanceby $reqSize
+}
+
+PagePool/EmpWebTraf instproc done-reqP { id clnt svr ctcp csnk stcp size } {
+	set ns [Simulator instance]
+
+	# modified to trace web traffic flows (recv request: client==>server).
+        puts "req - $id [$clnt id] [$svr id] [$ns now]"
+	
+	# modified to trace web traffic flows (send responese: server->client).
+	puts "resp + $id [$svr id] [$clnt id] $size [$ns now]"
+	
+	# Advance $size packets
+	$stcp advanceby $size
+}
+
+PagePool/EmpWebTraf instproc done-respP { id clnt svr stcp ssnk size {startTime 0} {fid 0}} {
+	set ns [Simulator instance]
+
+	# modified to trace web traffic flows (recv responese: server->client).
+	if {[PagePool/EmpWebTraf set VERBOSE_] == 1} {
+		puts "done-resp - $id [$svr id] [$clnt id] $size $startTime [$ns now] $fid"
+	}
+
+}
+
+PagePool/EmpWebTraf instproc first-launch-reqP { id clnt svr ctcp csnk stcp ssnk size reqSize } {
+	set ns [Simulator instance]
+
+	$ns attach-agent $svr $stcp
+	$ns attach-agent $clnt $ssnk
+	$ns connect $stcp $ssnk
+	
+	$ns attach-agent $clnt $ctcp
+	$ns attach-agent $svr $csnk
+	$ns connect $ctcp $csnk
+
+	if {[PagePool/EmpWebTraf set FID_ASSIGNING_MODE_] == 0} {
+		$stcp set fid_ $id
+		$ctcp set fid_ $id
+	}
+
+	$ctcp proc done {} "$self done-reqP $id $clnt $svr $ctcp $csnk $stcp $size"
+	$stcp proc done {} "$self done-respP $id $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
+	
+	# modified to trace web traffic flows (send request: client==>server).
+        #puts "req + $id [$clnt id] [$svr id] $size [$ns now]"
+
+	# Send request packets based on empirical distribution
+	puts "reqest size $reqSize"
+	$ctcp advanceby $reqSize
 }
