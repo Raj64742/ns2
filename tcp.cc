@@ -109,7 +109,15 @@ public:
 	}
 } class_tcp;
 
-TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_time_(0), old_maxseq_(0), old_highest_ack_(0), old_t_seqno_(0), old_cwnd_(0), old_ssthresh_(0), old_dupacks_(0), old_t_rtt_(0), old_t_srtt_(0), old_t_rttvar_(0), old_t_backoff_(0), ts_peer_(0), dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), t_backoff_(0), curseq_(0), maxseq_(0), closed_(0)
+TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
+	last_log_time_(0), old_maxseq_(0), old_highest_ack_(0),
+	old_t_seqno_(0), old_cwnd_(0), old_ssthresh_(0),
+	old_dupacks_(0), old_t_rtt_(0), old_t_srtt_(0),
+	old_t_rttvar_(0), old_t_backoff_(0), ts_peer_(0),
+	dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0),
+	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
+	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0),
+	slow_start_restart_(1)
 {
 	bind("window_", &wnd_);
 	bind("windowInit_", &wnd_init_);
@@ -121,6 +129,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_tim
 	bind("ecn_", &ecn_);
 	bind("packetSize_", &size_);
 	bind_bool("bugFix_", &bug_fix_);
+	bind_bool("slow_start_restart_", &slow_start_restart_);
 	bind("maxburst_", &maxburst_);
 	bind("maxcwnd_", &maxcwnd_);
 
@@ -670,6 +679,13 @@ void TcpAgent::timeout(int tno)
 {
 	/* retransmit timer */
 	if (tno == TCP_TIMER_RTX) {
+		if (highest_ack_ == maxseq_ && !slow_start_restart_) {
+			/*
+			 * TCP option:
+			 * If no outstanding data, then don't do anything.
+			 */
+			return;
+		};
 		recover_ = maxseq();
 		recover_cause_ = 2;
 		closecwnd(0);
