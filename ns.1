@@ -1919,7 +1919,6 @@ duplicates, when we should adjust parameters to decrease delay.
 .RE
 
 .SH "CONSTANT BIT-RATE OBJECTS"
-[NOTE: This section has not been verified to be up-to-date with the release.]
 CBR objects generate packets at a constant bit rate.
 They inherit all of the generic agent functionality.
 .IP "\fB$cbr start\fP"
@@ -1936,6 +1935,16 @@ The amount of time to delay between packet transmission times.
 .IP \fIpacketSize_\fP
 The size in bytes to use for all packets from this source.
 .IP \fIrandom_\fP
+This parameter determines whether random noise is introduced into the
+packet generation process.
+If \fIrandom_\fP is zero, the inter-packet
+time is \fIinterval_\fP.  If \fIrandom_\fP is
+non-zero, inter-packet times are chosen uniformly from
+[.5 * \fIinterval_\fP, 1.5 * \fIinterval_\fP].
+.IP \fImaxpkts_\fP
+The maximum number of packets to be sent.  The CBR object stops
+once it has sent \fImaxpkts_\fP packets.
+
 .RE
 
 .SH "SOURCE OBJECTS"

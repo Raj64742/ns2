@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.49 1997/07/29 02:52:28 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.50 1997/07/29 21:53:10 breslau Exp $
 
 
 #
@@ -178,6 +178,7 @@ Agent/TCPSink/Sack1/DelAck set interval_ 100ms
 Agent/CBR set interval_ 3.75ms
 Agent/CBR set random_ 0
 Agent/CBR set packetSize_ 210
+Agent/CBR set maxpkts_ 0x10000000
 
 Agent/CBR/RTP set seqno_ 0
 Agent/RTCP set seqno_ 0

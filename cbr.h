@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.4 1997/03/29 01:42:46 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.5 1997/07/29 21:53:08 breslau Exp $ (LBL)
  */
 
 #ifndef ns_cbr_h
@@ -49,6 +49,7 @@ class CBR_Agent : public Agent {
 	virtual void sendpkt();
 	int running_;
 	int random_;
+	int maxpkts_;
 	double interval_;
 	int seqno_;
 

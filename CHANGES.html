@@ -2,27 +2,32 @@
 <HTML>
 <HEAD>
    <TITLE>ns Change Log</TITLE>
+   <META NAME="GENERATOR" CONTENT="Mozilla/3.01Gold (X11; U; SunOS 4.1.3_U1 sun4m) [Netscape]">
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.115 1997/07/28 23:14:15 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.116 1997/07/29 21:53:07 breslau Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
-<!--
+<P><!--
  This ChangeLog is updated in the reverse order
   with the most recent changes coming first.
-  -->
+  --></P>
 
 <P>
 <HR></P>
 
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0b18.tar.gz">ns-2.0b18</A>
 [PENDING RELEASE DATE]</H3>
-<ul>
-  <li> (your work here)
-</ul>
 
+<UL>
+<LI>(your work here) </LI>
+
+<LI><A HREF="mailto:breslau@parc.xerox.com">[LB]</A> <B>Tue Jul 29 14:31:34
+PDT 1997<BR></B> ported ability to limit the amount of data sent by a CBR source
+(maxpkts_) from ns-1 to ns-2. Files changed: cbr.cc, cbr.h.</LI>
+</UL>
 
 <P>
 <HR></P>
@@ -30,402 +35,448 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0b17.tar.gz">ns-2.0b17</A>
 Fri, 25 Jul 1997 22:50:34 -0700</H3>
 
-<p>
-This release is CVS-tagged with ``NS_2_0B17''.
+<P>This release is CVS-tagged with ``NS_2_0B17''. </P>
 
-<p>
-<ul>
-  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a> and
-       <a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a>
-       Fri Jul 25 17:29:12 PDT 1997</b><br>
-       ns-compat now catches access to old default variables
-       (like ns_tcp(window)).
-       This approach is a stop-gap, eventually we could
-       map the old reads/writes to the new variables
-       if we think we must.
+<UL>
+<LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> and <A HREF="http://www-nrg.ee.lbl.gov/kfall">[KF]</A>
+Fri Jul 25 17:29:12 PDT 1997<BR>
+</B>ns-compat now catches access to old default variables (like ns_tcp(window)).
+This approach is a stop-gap, eventually we could map the old reads/writes
+to the new variables if we think we must. </LI>
 
-  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
-       Fri Jul 25 17:00:00 PDT 1997</b><br>
-       Configure now checks for libTcl-1.0b2.
+<LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Fri Jul 25 17:00:00
+PDT 1997<BR>
+</B>Configure now checks for libTcl-1.0b2. </LI>
 
-    <li><b><a href="http://www.isi.edu/~kkumar/">[SK]</a>
-	  Fri Jul 25 12:49:36 PDT 1997</b><br>
-      Made modifications to remove MultiSim and MultiNode.
-      Files affected: ns-lib.tcl, ns-node.tcl, ns-mcast.tcl, CtrMcast.tcl
+<LI><B><A HREF="http://www.isi.edu/~kkumar/">[SK]</A> Fri Jul 25 12:49:36
+PDT 1997<BR>
+</B>Made modifications to remove MultiSim and MultiNode. Files affected:
+ns-lib.tcl, ns-node.tcl, ns-mcast.tcl, CtrMcast.tcl </LI>
 
-<LI><B><A HREF="http://www-nrg.ee.lbl.gov:80/floyd/">[SF]</A></B>
-<B>Fri Jul 25 11:18:16 PDT 1997</B><BR>
-        <UL>
-	<LI> Changed tcp-sack1.cc to correctly use the receiver's advertised
-window during Fast Recovery.
-        </UL>
+<LI><B><A HREF="http://www-nrg.ee.lbl.gov:80/floyd/">[SF]</A></B> <B>Fri
+Jul 25 11:18:16 PDT 1997</B><BR>
 </LI>
 
-<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B>
-<B>Fri Jul 25 02:32:43 PDT 1997</B><BR>
-	<UL>
-	<LI> Added semantic-packetqueue.{cc,h}: a derived class of PacketQueue that understands higher-layer (e.g., TCP) semantics. To enable the creation and configuration of a PacketQueue/Semantic object in Tcl, PacketQueue is now derived from TclObject.
-	<LI> tcp*.{cc,h}: Got rid of the return-by-reference functions for the traced member variables of TcpAgent.
-	</UL>
-    <LI><B><A HREF="mailto:breslau@parc.xerox.com">[LB]</A></B> <B>Thu Jul 24 16:02:27 PDT 1997<BR>
-</B>Ported telnet source from ns-1 to ns-2.
-	 new files: telnet.{cc,h}.  Changed files: tcp.{cc,h}, ns-agent.tcl,
-	 ns-source.tcl, ns-default.tcl
-       <BR>
+<UL>
+<LI>Changed tcp-sack1.cc to correctly use the receiver's advertised window
+during Fast Recovery. </LI>
+</UL>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B> <B>Fri
+Jul 25 02:32:43 PDT 1997</B><BR>
 </LI>
 
-  
-<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B>
-<B>Thu Jul 24 02:08:31 PDT 1997</B><BR>
-	<UL>	
-	<LI> tcp.{cc,h}: Got rid of the old-style tracing and replaced it with Giao's TracedVar stuff. It is <i>no longer necessary</i> to use the return-by-reference functions to refer to the traced variables (e.g., cwnd() instead of cwnd_), but this will still work for now.
-	</UL>
-<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B>
-<B>Tue Jul 22 02:13:12 PDT 1997</B><BR>
-	<UL>	
-	<LI> tcp.cc: finish() is called whenever there is no unacknowledged data 
-	<LI> tcp{,-reno,-newreno,-fack}.cc: 
-		<UL>
-		<LI> rtx timer is NOT backed off at the time of fast retransmission
-		<LI> during fast recovery mode, we compare new ack with recover_ only if recover_cause_==1 
-		</UL>
-	<LI> tcp-fack.h: separate file for definition of FackTcpAgent to enable derived classes
-	<LI> tcp-nonfifo.cc: added support for priority drop
-	<LI> red.cc: moved code that picks drop victim into pickPacketToDrop(). This allows derived
-          classes to use a different algorithm for this.  
-	<LI> queue-monitor.{cc,h}: option to exactly trace queue length (rather than just sample it)
-	</UL>
-<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
-<B>Thu Jul 17 08:16:16 PDT 1997</B><BR>
-- srm.cc/srmAgent::recv() did not free packets appropriately, causing
-  wastage of memory for large simulations. (Noted by
-  <a href=mailto:puneetsh@catarina.usc.edu>Puneet</a>)<BR>
-- streamlined bin/raw2gp to attempt to unify the raw2* programs.
+<UL>
+<LI>Added semantic-packetqueue.{cc,h}: a derived class of PacketQueue that
+understands higher-layer (e.g., TCP) semantics. To enable the creation
+and configuration of a PacketQueue/Semantic object in Tcl, PacketQueue
+is now derived from TclObject. </LI>
 
-<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
-<B>Tue Jul 15 14:44:19 PDT 1997</B><BR>
-Minor bug fixes in rtglib, and raw2xg.
+<LI>tcp*.{cc,h}: Got rid of the return-by-reference functions for the traced
+member variables of TcpAgent. </LI>
+</UL>
 
-  <LI><B><A HREF="http://www.cs.berkeley.edu/~tomh">[TH]</A></B> <B>Mon Jul  14 15:05:09 PDT 1997<BR>
-</B>Ported fulltcp.cc, fulltcp.h, and test-suite-fulltcp.tcl.  
-New files: tcp-full.cc, tcp-full.h, and tcl/test/test-suite-full.tcl.  
-Changed files:  trace.h, trace.cc, tcp.h, ns-compat.tcl, ns-default.tcl, 
-ns-source.tcl.  <BR>
+<LI><B><A HREF="mailto:breslau@parc.xerox.com">[LB]</A></B> <B>Thu Jul
+24 16:02:27 PDT 1997<BR>
+</B>Ported telnet source from ns-1 to ns-2. new files: telnet.{cc,h}. Changed
+files: tcp.{cc,h}, ns-agent.tcl, ns-source.tcl, ns-default.tcl <BR>
 </LI>
 
-<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
-<B>Fri Jul 11 09:53:33 PDT 1997</B></LI><BR>
-Major Updates: SRM
-	<UL>
-	<LI>Adaptive Timers as described in
-		<A HREF="http://ftp.ee.lbl.gov/pub/papers/srm.ps.Z">[Floyd
-			etal. sigcomm '95]</A>
-	<BR>Files Affected: tcl/mcast/srm-adaptive.tcl (<B>new</B>),
-		srm.cc, srm.h, tcl/ex/srm-adapt-req.tcl (<B>new</B>),
-		tcl/ex/srm-adapt-rep.tcl (<B>new</B>)
-	<LI>Cleanup of the tracing in srm.tcl
-	<LI>Added tcl/mcast/srm-nam.tcl, so that, if sourced, will
-		separate SRM packets based on the type of packet.
-		Data messages will have flowId_ 0, session, request
-		and repair messages have flow ids 40, 41, and 42
-		respectively.  The start number is specified by the
-		global variable, <CODE>ctrlFid_</CODE>.
-	<LI>Cleanup of the example scripts in tcl/ex.
-		See tcl/mcast/srm.txt for details.
-	</UL>
-
-<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
-<B>Fri Jul 11 09:53:33 PDT 1997</B><BR>
-Minor mods
-	<UL>
-	<LI>Hooks for DelayLink object to have a drop-target.
-		Currently no OTcl support yet.  Should be there
-		when I get around to it... someday... maybe...
-	<BR>Files Affected: delay.cc, delay.h
-	<LI>Cleanup compile time errors in scheduler.cc, scheduler.h.
-	<LI>The default static routing now takes a cost parameter;
-		it is now possible to do asymetric paths by configuring
-		link costs appropriately.
-	<BR>Files Affected: route.cc, tcl/lib/ns-lib.tcl
-	<LI>Bug fixes to proc gen-map() in tcl/lib/ns-trace.tcl.
-	<LI> Fix multicast-rtglib interaction API.
-	<BR>Files Affected: tcl/mcast/McastProto.tcl, tcl/mcast/ns-mcast.tcl,
-		tcl/mcast/dynamicDM.tcl, tcl/rtglib/route-proto.tcl.
-	<LI>Bug fix to proc all-connectors() in rtglib.  Routine did
-		not instance the appropriate variable.  Hence, links
-		did not drop packets in flight when a link fails (hey,
-		this may be a feature... :-)
-	<BR>Files Affected: tcl/rtglib/dynamics.tcl.
-	<LI><FONT SIZE=-2>Created a *hacky* loss module to fake periodic
-		loss of packets.  (maybe I can sneak it in if I use real
-		small print, and hope no one notices...).</FONT>
-	</UL>
-
-  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
-       Wed Jul  9 15:16:42 PDT 1997</b><br>
-       RBP updates, including Agent/TCP/Reno/RBP.
-
-  <LI><B><A HREF="mailto:breslau@parc.xerox.com">[LB]</A></B> <B>Thu Jul  3 12:37:09 PDT 1997<BR>
-</B>Created RandomVariable class, a pure virtual class for random
-       variables, and derived classes for Uniform, Constant, Pareto,
-       Exponential and HyperExponential distributions.  New files:
-       ranvar.{h,cc}, tcl/ex/ranvar.{tcl,txt}.  Changed files:
-       ns-random.tcl, ns-default.tcl.
-       <BR>
+<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B> <B>Thu
+Jul 24 02:08:31 PDT 1997</B><BR>
 </LI>
 
-  <li><b><a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a>
-       Wed Jul  2 20:37:33 PDT 1997</b><br>
-     Add the "flowmon" module and update supporting scripts in tcl/rtmechanisms.
-     This module is able to keep per-flow state.  A flow is defined by
-     creating a classifier (typically of the classifier-hash variety) and
-     giving it to the flowmon.  Examples are to be found in the rtmechanisms
-     directory.  Files affected:<ul>
-        <li>flowmon.cc              -> new functionality
-        <li>tcl/lib/ns-default.tcl  -> defaults for Flow and Flowmon
-        <li>tcl/lib/ns-queue.tcl    -> rework the way CBQ handles drops
-        <li>tcl/lib/ns-lib.tcl      -> add hack to allow specification of a
-                                   classifier object with a CBQ or CBQ/WRR
-                                   queue type when creating a "simplex-link"
-        <li>Makefile.in		    -> include flowmon.o
-	<li>FILES		    -> add flowmon.cc + rtm stuff
-	</ul>
+<UL>
+<LI>tcp.{cc,h}: Got rid of the old-style tracing and replaced it with Giao's
+TracedVar stuff. It is <I>no longer necessary</I> to use the return-by-reference
+functions to refer to the traced variables (e.g., cwnd() instead of cwnd_),
+but this will still work for now. </LI>
+</UL>
 
-  <li><b><a href="http://www-scf.usc.edu/~bhuang/">[PH]</a>
-       Fri Jun 27 20:13:23 PDT 1997</b><br>
-       <ul>
-       <li> Added a general mcast control message agent(a 1st pass) to make tracing easier: prune.[h, cc]
-       <li> Fixed minor bugs in dynamicDM and pimDM
-       </ul>
-
-  <li><b><a href="http://www-scf.usc.edu/~bhuang/">[PH]</a>
-       Wed Jun 25 18:19:07 PDT 1997</b><br>
-       <ul>
-       <li> Added dynamic DVMRP and PIM-DM multicast: tcl/mcast/[dynamic, pim]DM.tcl
-       <li> Cleaned up mulicast API(1st pass): tcl/ex/newmcast/mcast[1,2].tcl
-       </ul>
-
-  <li><b><a href="http://www.isi.edu/~kkumar/">[SK]</a>
-       Mon Jun 23 13:19:15 PDT 1997</b><br>
-       Added man page for ns-2.
-
-  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
-       Thu Jun 19 20:03:35 PDT 1997</b><br>
-       tcp-rbp and friends added.
-       Rate-based pacing is an experimental addition to TCP
-       to address the slow-start restart problem.
-       See <http://www.isi.edu/lsam/publications/rate_based_pacing/index.html>
-       for details.
-
-  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
-       Thu Jun 19 20:00:51 PDT 1997</b><br>
-       raw2xg updated with more features (better usage and -qs:m: options).
-
-  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
-       Thu Jun 19 20:00:28 PDT 1997</b><br>
-       agent-timer.{h,cc} implements timers for agents with
-       classes (rather than pending_[] and timer_[]).
-
-<li><b><a href=http://www.cs.berkeley.edu/~gnguyen>[GN]</a>
-Thursday, Jun 19 16:03:23 PDT 1997</b><br>
-	Minor enhancement to scheduler to make debugging easier by using
-	the uid_ field of each event:
-		positive uid_:  inside the scheduling queue
-		negative uid_:  NOT in the scheduling queue
-
-  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
-       Mon Jun 16 17:18:46 PDT 1997</b><br>
-       Added TCP Vegas
-       (ported from Ted Kuo's implementation for ns-v1).
-       Changed TcpAgent::send to TcpAgent::send_much.
-
-<LI><B><A HREF="http://www.cs.berkeley.edu/~elan">[EA]</A></B>
-<b>Mon Jun 16 11:15:45 PDT 1997</b><br>
-Added simple simulation-level annotation (ns-trace.tcl, trace.cc).
-</li>
-
-<li><b><a href=http://www.cs.berkeley.edu/~gnguyen>[GN]</a>
-Friday, Jun 13 19:03:23 PDT 1997</b><br>
-<a href=http://daedalus.cs.berkeley.edu>Daedalus Research Group</a>
-extensions by:
-	<a href=http://www.cs.berkeley.edu/~gnguyen>Giao Nguyen</a>,
-	<a href=http://www.cs.berkeley.edu/~hari>Hari Balakrishnan</a>,
-	<a href=http://www.cs.berkeley.edu/~padmanab>Venkata Padmanabhan</a>.
-<ul>
-<li>	LAN and wireless networks:
- <ul>
- <li>	Link-layer protocols:<br>
-		simple stop-and-wait protocol<br>
-		TCP-aware snoop protocol<br>
- <li>	Scheduling algorithms at LAN interface queues
- <li>
-	MAC protocols:<br>
-		CSMA/CD (10 Mbps Ethernet)<br>
-		CSMA/CA (WaveLAN)<br>
-		IEEE 802.11<br>
-		Metricom's Ricochet MAC<br>
- <li>	Shared channel with wireless error models
- </ul>
-
-<li>	TCP router enhancements for asymmetric networks
-<li>	Tracing of TCP variables
-</ul>
-
-
-  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
-       Fri Jun 13 18:06:33 PDT 1997</b><br>
-       Added slow_start_restart option to TcpAgent.
-       
-<LI><B><A HREF="http://www.cs.berkeley.edu/~elan">[EA]</A></B>
-<b>Fri Jun 13 17:18:13 PDT 1997</b><br>
-Added SCUBA protocol module in tcl/rtp.  Added some demos in ex/scuba.
-</li>
-
-<LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall">[KF]</A></B>
-<B>Thu Jun 12 12:32:31 PDT 1997</B><BR>
+<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B> <B>Tue
+Jul 22 02:13:12 PDT 1997</B><BR>
 </LI>
 
-Small change to conf/config.head.in to look for socket() rather than
-poll() when searching for the -lsocket library.  Also a new version
-of the configure script based on this.
-
-<LI><B><A HREF="http://www.cs.berkeley.edu/~mccanne">[SM]</A></B>
-<B>Wed Jun 11 11:49:28 PDT 1997</B><BR>
+<UL>
+<LI>tcp.cc: finish() is called whenever there is no unacknowledged data
 </LI>
 
-Bug fixes to emulation rig.  Previous version didn't properly account
-for the fact that external events (i.e., packet arrivals)
-could come before the next future event.  Now, the scheduler
-sets a tcl timer to advance time (instead of waiting in
-a null select) and the tap-agent sync's simulation
-time to real time when an external packet arrives.
+<LI>tcp{,-reno,-newreno,-fack}.cc: </LI>
 
-<LI><B><A HREF="mailto:huang@isi.edu">[PH]</A></B> <B>Wed Jun 
-11 09:34:33 PDT 1997<BR>
-</B>Changed centralized mcast test files to use MultiNode expandaddr 
-option, provided by <A HREF="mailto:breslau@parc.xerox.com">Lee Breslau</A>.
-It solves the limitation that MultiSim only allow 128 unicast nodes. 
-Also, made minor changes to reduce memory used in simulations
-File changed:  tcl/ex/newmcast/cmcast-[50,100,150,200,250].tcl. <BR>       
+<UL>
+<LI>rtx timer is NOT backed off at the time of fast retransmission </LI>
+
+<LI>during fast recovery mode, we compare new ack with recover_ only if
+recover_cause_==1 </LI>
+</UL>
+
+<LI>tcp-fack.h: separate file for definition of FackTcpAgent to enable
+derived classes </LI>
+
+<LI>tcp-nonfifo.cc: added support for priority drop </LI>
+
+<LI>red.cc: moved code that picks drop victim into pickPacketToDrop().
+This allows derived classes to use a different algorithm for this. </LI>
+
+<LI>queue-monitor.{cc,h}: option to exactly trace queue length (rather
+than just sample it) </LI>
+</UL>
+
+<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B> <B>Thu Jul 17
+08:16:16 PDT 1997<BR>
+</B>- srm.cc/srmAgent::recv() did not free packets appropriately, causing
+wastage of memory for large simulations. (Noted by <A HREF="mailto:puneetsh@catarina.usc.edu">Puneet</A>)<BR>
+- streamlined bin/raw2gp to attempt to unify the raw2* programs. </LI>
+
+<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B> <B>Tue Jul 15
+14:44:19 PDT 1997<BR>
+</B>Minor bug fixes in rtglib, and raw2xg. </LI>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~tomh">[TH]</A></B> <B>Mon Jul
+14 15:05:09 PDT 1997<BR>
+</B>Ported fulltcp.cc, fulltcp.h, and test-suite-fulltcp.tcl. New files:
+tcp-full.cc, tcp-full.h, and tcl/test/test-suite-full.tcl. Changed files:
+trace.h, trace.cc, tcp.h, ns-compat.tcl, ns-default.tcl, ns-source.tcl.
+<BR>
 </LI>
 
-<LI><B><A HREF="mailto:huang@isi.edu">[PH]</A></B> <B>Mon Jun  
-9 15:59:01 PDT 1997<BR>
-</B>Bug fix:  Changed CtrMcastComp:compute-branch() to work in 
-source = RP case for RPT.  
-File changed:  tcl/ctr-mcast/CtrMcastComp.tcl. <BR>       
+<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B> <B>Fri Jul 11
+09:53:33 PDT 1997</B></LI>
+
+<P><BR>
+Major Updates: SRM </P>
+
+<UL>
+<LI>Adaptive Timers as described in <A HREF="http://ftp.ee.lbl.gov/pub/papers/srm.ps.Z">[Floyd
+etal. sigcomm '95]</A> <BR>
+Files Affected: tcl/mcast/srm-adaptive.tcl (<B>new</B>), srm.cc, srm.h,
+tcl/ex/srm-adapt-req.tcl (<B>new</B>), tcl/ex/srm-adapt-rep.tcl (<B>new</B>)
 </LI>
 
-<LI><B><A HREF="mailto:tomh@cs.berkeley.edu">[TH]</A></B> <B>Mon Jun
-9 15:00:34 PDT 1997<BR>
-</B>Bug fix:  Changed Newreno::recv() static variables acked, 
-new_ssthresh, ack2, ack3, and basertt to be class member variables.  
-File changed:  tcp-newreno.cc. <BR>
+<LI>Cleanup of the tracing in srm.tcl </LI>
+
+<LI>Added tcl/mcast/srm-nam.tcl, so that, if sourced, will separate SRM
+packets based on the type of packet. Data messages will have flowId_ 0,
+session, request and repair messages have flow ids 40, 41, and 42 respectively.
+The start number is specified by the global variable, <TT>ctrlFid_</TT>.
+</LI>
+
+<LI>Cleanup of the example scripts in tcl/ex. See tcl/mcast/srm.txt for
+details. </LI>
+</UL>
+
+<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B> <B>Fri Jul 11
+09:53:33 PDT 1997<BR>
+</B>Minor mods </LI>
+
+<UL>
+<LI>Hooks for DelayLink object to have a drop-target. Currently no OTcl
+support yet. Should be there when I get around to it... someday... maybe...
+<BR>
+Files Affected: delay.cc, delay.h </LI>
+
+<LI>Cleanup compile time errors in scheduler.cc, scheduler.h. </LI>
+
+<LI>The default static routing now takes a cost parameter; it is now possible
+to do asymetric paths by configuring link costs appropriately. <BR>
+Files Affected: route.cc, tcl/lib/ns-lib.tcl </LI>
+
+<LI>Bug fixes to proc gen-map() in tcl/lib/ns-trace.tcl. </LI>
+
+<LI>Fix multicast-rtglib interaction API. <BR>
+Files Affected: tcl/mcast/McastProto.tcl, tcl/mcast/ns-mcast.tcl, tcl/mcast/dynamicDM.tcl,
+tcl/rtglib/route-proto.tcl. </LI>
+
+<LI>Bug fix to proc all-connectors() in rtglib. Routine did not instance
+the appropriate variable. Hence, links did not drop packets in flight when
+a link fails (hey, this may be a feature... :-) <BR>
+Files Affected: tcl/rtglib/dynamics.tcl. </LI>
+
+<LI><FONT SIZE=-2>Created a *hacky* loss module to fake periodic loss of
+packets. (maybe I can sneak it in if I use real small print, and hope no
+one notices...).</FONT> </LI>
+</UL>
+
+<LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Wed Jul 9 15:16:42
+PDT 1997<BR>
+</B>RBP updates, including Agent/TCP/Reno/RBP. </LI>
+
+<LI><B><A HREF="mailto:breslau@parc.xerox.com">[LB]</A></B> <B>Thu Jul
+3 12:37:09 PDT 1997<BR>
+</B>Created RandomVariable class, a pure virtual class for random variables,
+and derived classes for Uniform, Constant, Pareto, Exponential and HyperExponential
+distributions. New files: ranvar.{h,cc}, tcl/ex/ranvar.{tcl,txt}. Changed
+files: ns-random.tcl, ns-default.tcl. <BR>
+</LI>
+
+<LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall">[KF]</A> Wed Jul 2 20:37:33
+PDT 1997<BR>
+</B>Add the &quot;flowmon&quot; module and update supporting scripts in
+tcl/rtmechanisms. This module is able to keep per-flow state. A flow is
+defined by creating a classifier (typically of the classifier-hash variety)
+and giving it to the flowmon. Examples are to be found in the rtmechanisms
+directory. Files affected:</LI>
+
+<UL>
+<P> </P>
+
+<LI>flowmon.cc -&gt; new functionality </LI>
+
+<LI>tcl/lib/ns-default.tcl -&gt; defaults for Flow and Flowmon </LI>
+
+<LI>tcl/lib/ns-queue.tcl -&gt; rework the way CBQ handles drops </LI>
+
+<LI>tcl/lib/ns-lib.tcl -&gt; add hack to allow specification of a classifier
+object with a CBQ or CBQ/WRR queue type when creating a &quot;simplex-link&quot;
+</LI>
+
+<LI>Makefile.in -&gt; include flowmon.o </LI>
+
+<LI>FILES -&gt; add flowmon.cc + rtm stuff </LI>
+</UL>
+
+<LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH]</A> Fri Jun 27 20:13:23
+PDT 1997</B><BR>
+</LI>
+
+<UL>
+<LI>Added a general mcast control message agent(a 1st pass) to make tracing
+easier: prune.[h, cc] </LI>
+
+<LI>Fixed minor bugs in dynamicDM and pimDM </LI>
+</UL>
+
+<LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH]</A> Wed Jun 25 18:19:07
+PDT 1997</B><BR>
+</LI>
+
+<UL>
+<LI>Added dynamic DVMRP and PIM-DM multicast: tcl/mcast/[dynamic, pim]DM.tcl
+</LI>
+
+<LI>Cleaned up mulicast API(1st pass): tcl/ex/newmcast/mcast[1,2].tcl </LI>
+</UL>
+
+<LI><B><A HREF="http://www.isi.edu/~kkumar/">[SK]</A> Mon Jun 23 13:19:15
+PDT 1997<BR>
+</B>Added man page for ns-2. </LI>
+
+<LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Thu Jun 19 20:03:35
+PDT 1997<BR>
+</B>tcp-rbp and friends added. Rate-based pacing is an experimental addition
+to TCP to address the slow-start restart problem. See <http://www.isi.edu/lsam/publications/rate_based_pacing/index.html>for
+details. </LI>
+
+<LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Thu Jun 19 20:00:51
+PDT 1997<BR>
+</B>raw2xg updated with more features (better usage and -qs:m: options).
+</LI>
+
+<LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Thu Jun 19 20:00:28
+PDT 1997<BR>
+</B>agent-timer.{h,cc} implements timers for agents with classes (rather
+than pending_[] and timer_[]). </LI>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~gnguyen">[GN]</A> Thursday,
+Jun 19 16:03:23 PDT 1997<BR>
+</B>Minor enhancement to scheduler to make debugging easier by using the
+uid_ field of each event: positive uid_: inside the scheduling queue negative
+uid_: NOT in the scheduling queue </LI>
+
+<LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Mon Jun 16 17:18:46
+PDT 1997<BR>
+</B>Added TCP Vegas (ported from Ted Kuo's implementation for ns-v1). Changed
+TcpAgent::send to TcpAgent::send_much. </LI>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~elan">[EA]</A></B> <B>Mon Jun
+16 11:15:45 PDT 1997<BR>
+</B>Added simple simulation-level annotation (ns-trace.tcl, trace.cc).
+</LI>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~gnguyen">[GN]</A> Friday, Jun
+13 19:03:23 PDT 1997<BR>
+</B><A HREF="http://daedalus.cs.berkeley.edu">Daedalus Research Group</A>
+extensions by: <A HREF="http://www.cs.berkeley.edu/~gnguyen">Giao Nguyen</A>,
+<A HREF="http://www.cs.berkeley.edu/~hari">Hari Balakrishnan</A>, <A HREF="http://www.cs.berkeley.edu/~padmanab">Venkata
+Padmanabhan</A>. </LI>
+
+<UL>
+<LI>LAN and wireless networks: </LI>
+
+<UL>
+<LI>Link-layer protocols:<BR>
+simple stop-and-wait protocol<BR>
+TCP-aware snoop protocol<BR>
+</LI>
+
+<LI>Scheduling algorithms at LAN interface queues </LI>
+
+<LI>MAC protocols:<BR>
+CSMA/CD (10 Mbps Ethernet)<BR>
+CSMA/CA (WaveLAN)<BR>
+IEEE 802.11<BR>
+Metricom's Ricochet MAC<BR>
+</LI>
+
+<LI>Shared channel with wireless error models </LI>
+</UL>
+
+<LI>TCP router enhancements for asymmetric networks </LI>
+
+<LI>Tracing of TCP variables </LI>
+</UL>
+
+<LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Fri Jun 13 18:06:33
+PDT 1997<BR>
+</B>Added slow_start_restart option to TcpAgent. </LI>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~elan">[EA]</A></B> <B>Fri Jun
+13 17:18:13 PDT 1997<BR>
+</B>Added SCUBA protocol module in tcl/rtp. Added some demos in ex/scuba.
+</LI>
+
+<LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall">[KF]</A></B> <B>Thu Jun
+12 12:32:31 PDT 1997</B><BR>
+</LI>
+
+<P>Small change to conf/config.head.in to look for socket() rather than
+poll() when searching for the -lsocket library. Also a new version of the
+configure script based on this. </P>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~mccanne">[SM]</A></B> <B>Wed
+Jun 11 11:49:28 PDT 1997</B><BR>
+</LI>
+
+<P>Bug fixes to emulation rig. Previous version didn't properly account
+for the fact that external events (i.e., packet arrivals) could come before
+the next future event. Now, the scheduler sets a tcl timer to advance time
+(instead of waiting in a null select) and the tap-agent sync's simulation
+time to real time when an external packet arrives. </P>
+
+<LI><B><A HREF="mailto:huang@isi.edu">[PH]</A></B> <B>Wed Jun 11 09:34:33
+PDT 1997<BR>
+</B>Changed centralized mcast test files to use MultiNode expandaddr option,
+provided by <A HREF="mailto:breslau@parc.xerox.com">Lee Breslau</A>. It
+solves the limitation that MultiSim only allow 128 unicast nodes. Also,
+made minor changes to reduce memory used in simulations File changed: tcl/ex/newmcast/cmcast-[50,100,150,200,250].tcl.
+<BR>
+</LI>
+
+<LI><B><A HREF="mailto:huang@isi.edu">[PH]</A></B> <B>Mon Jun 9 15:59:01
+PDT 1997<BR>
+</B>Bug fix: Changed CtrMcastComp:compute-branch() to work in source =
+RP case for RPT. File changed: tcl/ctr-mcast/CtrMcastComp.tcl. <BR>
+</LI>
+
+<LI><B><A HREF="mailto:tomh@cs.berkeley.edu">[TH]</A></B> <B>Mon Jun 9
+15:00:34 PDT 1997<BR>
+</B>Bug fix: Changed Newreno::recv() static variables acked, new_ssthresh,
+ack2, ack3, and basertt to be class member variables. File changed: tcp-newreno.cc.
+<BR>
 </LI>
 
 <LI><B><A HREF="mailto:breslau@parc.xerox.com">[LB]</A></B> <B>Sun Jun
 8 14:09:16 PDT 1997<BR>
-</B>Provided a fix so that more than 127 nodes can exist in a
-simulation that uses both unicast and multicast transport.  Also added
-a proc to allocate unique multicast addresses.  File changed:
-tcl/mcast/ns-mcast.tcl<BR>
+</B>Provided a fix so that more than 127 nodes can exist in a simulation
+that uses both unicast and multicast transport. Also added a proc to allocate
+unique multicast addresses. File changed: tcl/mcast/ns-mcast.tcl<BR>
 </LI>
 
-<LI><B><A HREF="mailto:tomh@cs.berkeley.edu">[TH]</A></B> <B>Fri Jun
-6 17:30:16 PDT 1997<BR>
-</B>Ported tcp-fack.cc from ns-1 to ns-2.  File added:  tcp-fack.cc. <BR>       
+<LI><B><A HREF="mailto:tomh@cs.berkeley.edu">[TH]</A></B> <B>Fri Jun 6
+17:30:16 PDT 1997<BR>
+</B>Ported tcp-fack.cc from ns-1 to ns-2. File added: tcp-fack.cc. <BR>
 </LI>
 
-<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
-<b>Thu Jun  5 09:24:50 PDT 1997</b><br>
-ktest-all will stored compress files in test-output-raw, to save space.<br>
-minor mods to srm test suite, documentation in srm.txt.<br>
-minor bug fixes in srm.
+<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B> <B>Thu Jun 5
+09:24:50 PDT 1997<BR>
+</B>ktest-all will stored compress files in test-output-raw, to save space.<BR>
+minor mods to srm test suite, documentation in srm.txt.<BR>
+minor bug fixes in srm. </LI>
 
-<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
-<b>Tue Jun  3 14:08:45 PDT 1997</b><br>
-<b>Major mods</B> SRM for <em>ns</em><br>
-Currently, some of the fixed timer functions have been implemented.
-The adaptive functions, as well as local recovery mechanisms will 
-be coming along soon.
-<br>
-An earlier almost entirely C++-based version (ported from the ns-1
-implementation) is also checked in, tagged, and overwritten.  It can be
-accessed by vint members should they want to take a look at it later.
-<br>
-Files affected:  new files:  srm.cc, srm.h, srm-state.h,
-tcl/mcast/srm.tcl, tcl/mcast/srm-debug.tcl, tcl/mcast/srm-debug++.tcl,
-tcl/ex/simple-srm.tcl, tcl/ex/srm2.tcl, tcl/ex/srm_star.tcl,
-tcl/ex/simple-srm-nam.tcl, tcl/ex/srm2-nam.tcl, tcl/ex/srm_star-nam.tcl.
-Also modified:  Makefile.in, trace.h, tcl/lib/ns-packet.tcl.
+<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B> <B>Tue Jun 3
+14:08:45 PDT 1997<BR>
+Major mods</B> SRM for <I>ns<BR>
+</I>Currently, some of the fixed timer functions have been implemented.
+The adaptive functions, as well as local recovery mechanisms will be coming
+along soon. <BR>
+An earlier almost entirely C++-based version (ported from the ns-1 implementation)
+is also checked in, tagged, and overwritten. It can be accessed by vint
+members should they want to take a look at it later. <BR>
+Files affected: new files: srm.cc, srm.h, srm-state.h, tcl/mcast/srm.tcl,
+tcl/mcast/srm-debug.tcl, tcl/mcast/srm-debug++.tcl, tcl/ex/simple-srm.tcl,
+tcl/ex/srm2.tcl, tcl/ex/srm_star.tcl, tcl/ex/simple-srm-nam.tcl, tcl/ex/srm2-nam.tcl,
+tcl/ex/srm_star-nam.tcl. Also modified: Makefile.in, trace.h, tcl/lib/ns-packet.tcl.
+</LI>
 
-<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
-<b>Tue Jun  3 14:08:45 PDT 1997</b><br>
-Bug fixes in rtglib:
-<ul>
-<li>  dynamics.tcl: rtModel/Manual did not work.  Fixed, and tested.
-This code is now used in tcl/ex/srm2.tcl and tcl/ex/srm_star.tcl to
-create ``interesting'' single packet drops.
-<li>  route-proto, RouteLogic::lookup would return OIDs when
-dynamic routing is enabled, which breaks the multicast.  (It now breaks
-when equal cost multipath routing is used, which needs to be fixed, to
-make multicast happy).
-<li> The new interfaces code defines additional instance variables to
-point to nodes.  Link dynamics wants to reset most everything (except
-nodes).  Resetting nodes can do bad thigns to agents.
-</ul>
+<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B> <B>Tue Jun 3
+14:08:45 PDT 1997<BR>
+</B>Bug fixes in rtglib: </LI>
 
-<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
-<b>Tue Jun  3 14:08:45 PDT 1997</b><br>
-minor fixes:
-<ol><li>
-In C++, Stoustrup [sic] recommands that array storage should
-be freed as "<code>delete[] variable</code>", instead of simply
-"<code>delete variable</code>".  Changes made to
-AtHandler::handle(), Scheduler::command(), and
-RouteLogic::compute_routes().
-<li>Fixed annoying compiler warnings when used with -Wall in gcc.
-	<ul>
-	<li>"member initializers for &lt;member1&gt; and 
- &lt;member2&gt; will be re-ordered to march declaration order."
- warnings
- fixed in packet.h,
-	classifier-hash.cc,
-	trace.cc, and
-	queue-monitor.h.
+<UL>
+<LI>dynamics.tcl: rtModel/Manual did not work. Fixed, and tested. This
+code is now used in tcl/ex/srm2.tcl and tcl/ex/srm_star.tcl to create ``interesting''
+single packet drops. </LI>
 
-	<li>"control reaches end of non-void function" fixed in
-	Replicator::classify(Packet*) and QueueMonitor::command(int,
-	const char*const*)
+<LI>route-proto, RouteLogic::lookup would return OIDs when dynamic routing
+is enabled, which breaks the multicast. (It now breaks when equal cost
+multipath routing is used, which needs to be fixed, to make multicast happy).
+</LI>
 
-	<li>"suggest parentheses around assignment used as truth value"
-	fixed in delay.h
-	</ul>
-<li>configure.in.head should not set -O2 if the .devel file is
-present.  Furthermore, as Johnh noted, -O2 is only relevant for gcc, so
-we really should fix this better.
-<li>RouteLogic now only works in the context of a Simulator.  Fix route-test
-to instantiate a dummy Simulator.
-<li>Test Suites
-Modified misc.tcl and topologies.tcl to add hooks for a multicast test
-suite.<br>
+<LI>The new interfaces code defines additional instance variables to point
+to nodes. Link dynamics wants to reset most everything (except nodes).
+Resetting nodes can do bad thigns to agents. </LI>
+</UL>
+
+<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B> <B>Tue Jun 3
+14:08:45 PDT 1997<BR>
+</B>minor fixes: </LI>
+
+<OL>
+<LI>In C++, Stoustrup [sic] recommands that array storage should be freed
+as &quot;<TT>delete[] variable</TT>&quot;, instead of simply &quot;<TT>delete
+variable</TT>&quot;. Changes made to AtHandler::handle(), Scheduler::command(),
+and RouteLogic::compute_routes(). </LI>
+
+<LI>Fixed annoying compiler warnings when used with -Wall in gcc. </LI>
+
+<UL>
+<LI>&quot;member initializers for &lt;member1&gt; and &lt;member2&gt; will
+be re-ordered to march declaration order.&quot; warnings fixed in packet.h,
+classifier-hash.cc, trace.cc, and queue-monitor.h. </LI>
+
+<LI>&quot;control reaches end of non-void function&quot; fixed in Replicator::classify(Packet*)
+and QueueMonitor::command(int, const char*const*) </LI>
+
+<LI>&quot;suggest parentheses around assignment used as truth value&quot;
+fixed in delay.h </LI>
+</UL>
+
+<LI>configure.in.head should not set -O2 if the .devel file is present.
+Furthermore, as Johnh noted, -O2 is only relevant for gcc, so we really
+should fix this better. </LI>
+
+<LI>RouteLogic now only works in the context of a Simulator. Fix route-test
+to instantiate a dummy Simulator. </LI>
+
+<LI>Test Suites Modified misc.tcl and topologies.tcl to add hooks for a
+multicast test suite.<BR>
 ns-trace.tcl:gen-map did not show enough information within a node, for
-example inside a MultiNode.
-<li>
-Changed simplex-link, duplex-link to directly generate interfaces when told.
-Use by
-<pre>        Simulator set NumberInterfaces_ 1</pre>
-</ul>
+example inside a MultiNode. </LI>
 
-  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
-       Thu May 30 1997</b><br>
-       Added support for dmalloc for memory debugging.
-       Configure using <tt>--with-dmalloc</tt>.
-       
-  <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
-       Thu May 27 1997</b><br>
-       Revised configure scripts to eliminiate code duplication.
-       
+<LI>Changed simplex-link, duplex-link to directly generate interfaces when
+told. Use by </LI>
+
+<PRE>        Simulator set NumberInterfaces_ 1</PRE>
+</OL>
+</UL>
+
+<LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Thu May 30 1997<BR>
+</B>Added support for dmalloc for memory debugging. Configure using <TT>--with-dmalloc</TT>.
+</LI>
+
+<LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Thu May 27 1997<BR>
+</B>Revised configure scripts to eliminiate code duplication. </LI>
+
 <LI><B><A HREF="http://www.cs.berkeley.edu/~tomh">[TH]</A> Tues May 27
 19:00:00 PDT 1997</B><BR>
 </LI>
@@ -745,37 +796,46 @@ to random.h.</LI>
 </LI>
 
 <UL>
-<LI>CBQ is now part of the simulator</LI><BR>
-Generally works.
+<LI>CBQ is now part of the simulator</LI>
+
+<P><BR>
+Generally works. </P>
 
 <LI>ALL default queue sizes are now 50 [per ns-1 defaults]</LI>
 
 <LI>QueueMonitors now know the difference between</LI>
 
-<BR>
-drops, arrivals, and departures and can monitor these
+<P><BR>
+drops, arrivals, and departures and can monitor these </P>
 
-<LI>new class called 'Samples' which collects samples</LI><BR>
+<LI>new class called 'Samples' which collects samples</LI>
+
+<P><BR>
 points of something and can provide a mean and variance of the points (see
-integrator.cc)
+integrator.cc) </P>
 
-<LI>Queues can be flow controlled</LI><BR>
-by forcing them to be blocked or unblocked as needed.
-Also it's possible to make it so
-that when they send a packet they become blocked rather than unblocked.
+<LI>Queues can be flow controlled</LI>
 
-<LI>common packet header</LI><br>
+<P><BR>
+by forcing them to be blocked or unblocked as needed. Also it's possible
+to make it so that when they send a packet they become blocked rather than
+unblocked. </P>
+
+<LI>common packet header</LI>
+
+<P><BR>
 contains a timestamp field; this is used to compute queueing delay for
-individual packets at queues
+individual packets at queues </P>
 
-<LI>classifier-hash</LI><br>
+<LI>classifier-hash</LI>
+
+<P><BR>
 a classifier to identify 'flows' ... still in development, but presently
-used by cbq
+used by cbq </P>
 
 <LI>bug fixes/mintor changes to red.cc, test-suite-red.tcl</LI>
 
 <LI>test-suite.tcl updated to ns-1 version (stats test minor change)</LI>
-</UL>
 </UL>
 
 <UL>
