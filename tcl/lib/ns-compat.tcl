@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.11 1997/02/23 06:00:47 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.12 1997/02/26 00:48:31 tomh Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -197,7 +197,7 @@ OldSim instproc init args {
 
 	$self instvar queueMap_
 	set queueMap_(drop-tail) DropTail
-	et queueMap_(sfq) SFQ
+	set queueMap_(sfq) SFQ
 	set queueMap_(red) RED
 }
 
