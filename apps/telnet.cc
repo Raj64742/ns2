@@ -31,6 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/telnet.cc,v 1.4 1998/07/20 22:38:12 tomh Exp $
  */
 
 #include "random.h"
@@ -48,9 +49,8 @@ static class TelnetSourceClass : public TclClass {
 } class_source_telnet;
 
 
-TelnetSource::TelnetSource() : maxpkts_(1<<28), running_(0), timer_(this)
+TelnetSource::TelnetSource() : running_(0), timer_(this)
 {
-	bind("maxpkts_", &maxpkts_);
 	bind("interval_", &interval_);
 }
 

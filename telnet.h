@@ -31,6 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/telnet.h,v 1.5 1998/07/20 22:37:55 tomh Exp $
  */
 
 #ifndef ns_telnet_h
@@ -61,7 +62,6 @@ class TelnetSource : public Application {
 	inline double next();
 
 	double interval_;
-	int maxpkts_;
 	int running_;
 	TelnetSourceTimer timer_;
 };
