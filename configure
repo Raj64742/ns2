@@ -24,7 +24,7 @@ ac_help="$ac_help
 ac_help="$ac_help
 --with-Tcl: old command now replaced by --with-TclCL"
 ac_help="$ac_help
---with-TclCL=path	specify a pathname for TclCL (the ex-libTcl)"
+--with-tclcl=path	specify a pathname for TclCL (the ex-libTcl)"
 ac_help="$ac_help
 --with-tcldebug=path specify a pathname for the tcl debugger (path=no disables the debugger)"
 ac_help="$ac_help
@@ -2201,8 +2201,8 @@ EOF
 fi
 
 
-echo $ac_n "checking for libTcl$TclCL_VERS""... $ac_c" 1>&6
-echo "configure:2206: checking for libTcl$TclCL_VERS" >&5
+echo $ac_n "checking for libtclcl$TclCL_VERS""... $ac_c" 1>&6
+echo "configure:2206: checking for libtclcl$TclCL_VERS" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_TclCL=FAIL
@@ -2219,7 +2219,7 @@ else
 	fi
 
 	V_LIB_TclCL=""
-		full_lib_name="Tcl$TclCL_VERS"
+		full_lib_name="tclcl$TclCL_VERS"
 		simple_lib_name=`echo $full_lib_name | sed -e 's/\.//'`
 		simpler_lib_name=`echo $simple_lib_name | sed -e 'y/0123456789/          /'`
 	double_break=false
@@ -2243,7 +2243,7 @@ else
 			V_LIB_TclCL="-R$dir $V_LIB_TclCL"
 		fi
 
-				ac_tr_lib=HAVE_LIB`echo Tcl$TclCL_VERS | sed -e 's/[^a-zA-Z0-9_]/_/g' \
+				ac_tr_lib=HAVE_LIB`echo tclcl$TclCL_VERS | sed -e 's/[^a-zA-Z0-9_]/_/g' \
 		    -e 'y/abcdefghijklmnopqrstuvwxyz/ABCDEFGHIJKLMNOPQRSTUVWXYZ/'`
 				cat >> confdefs.h <<EOF
 #define $ac_tr_lib 1
