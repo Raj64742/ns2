@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.4 2001/06/28 06:21:50 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.5 2001/07/17 02:25:09 kclan Exp $
 
 #include <tclcl.h>
 
@@ -267,12 +267,13 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 
 	// Debug only
 	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
-#if 0
+
+if (mgr_->isdebug()) {
 	printf("%d \t %d \t %d \t %d \t %g %d %d\n", size, obj, pg->id(), id_,
 	       Scheduler::instance().clock(), 
 	       src_->address(), pg->dst()->address());
 	printf("** Tcp agents %d, Tcp sinks %d\n", mgr_->nTcp(),mgr_->nSink());
-#endif
+}
 }
 
 // Lookup for a particular persistent connection
@@ -498,6 +499,7 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 		       
 		        // decide to use either persistent or non-persistent
 			int opt = (int)ceil(p->persistSel()->value());
+			opt = 0;
 			p->setPersOpt(opt);
                         p->initPersConn();
                            
