@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.2 1998/09/12 02:08:47 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.3 1998/09/12 02:56:36 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -52,20 +52,14 @@ struct hdr_tfcc {
 	double ts_;	// ts at sender
 	double ts_echo_;	// echo'd ts (for rtt estimates)
 	double interval_;	// sender's sending interval
-
-	// these are based on rtp receiver reports
-	int plost_;	// # packets lost
-	int maxseq_;	// max seq # recvd
-	float lossfrac_;// fraction of packets lost
+	int cong_seq_;		// congestion sequence number
 
 	// per-var methods
 	double& rttest() { return (rttest_); }
 	double& ts() { return (ts_); }
 	double& ts_echo() { return (ts_echo_); }
 	double& interval() { return (interval_); }
-	int& plost() { return (plost_); }
-	int& maxseq() { return (maxseq_); }
-	float& lossfrac() { return (lossfrac_); }
+	int& cseq() { return (cong_seq_); }
 
 	static int offset_;	// offset of tfcc header
 };
@@ -82,10 +76,7 @@ public:
                 field_offset("rttest_", OFFSET(hdr_tfcc, rttest_));
                 field_offset("ts_", OFFSET(hdr_tfcc, ts_));
                 field_offset("ts_echo_", OFFSET(hdr_tfcc, ts_echo_));
-                field_offset("interval_", OFFSET(hdr_tfcc, interval_));
-                field_offset("plost_", OFFSET(hdr_tfcc, plost_));
-                field_offset("maxseq_", OFFSET(hdr_tfcc, maxseq_));
-                field_offset("lossfrac_", OFFSET(hdr_tfcc, lossfrac_));
+                field_offset("cong_seq_", OFFSET(hdr_tfcc, cong_seq_));
         }
 } class_tfcchdr;
 
@@ -106,8 +97,9 @@ class TFCCAgent : public RTPAgent {
 public:
 	TFCCAgent() : ack_timer_(this),
 	srtt_(-1.0), rttvar_(-1.0), peer_rtt_est_(-1.0),
-	last_rtime_(-1.0), last_ts_(-1.0), expected_(-1), seqno_(0), ploss_(0),
-	lastploss_(0), lastexpected_(0), needresponse_(0), last_ecn_(0) {
+	last_rtime_(-1.0), last_ts_(-1.0), last_loss_time_(-1.0),
+	expected_(-1), seqno_(0), cseq_(0), highest_cseq_seen_(-1),
+	needresponse_(0), last_ecn_(0) {
 		bind("alpha_", &alpha_);
 		bind("beta_", &beta_);
 		bind("srtt_", &srtt_);
@@ -120,9 +112,11 @@ protected:
 	virtual void recv(Packet*, Handler*);
 	virtual void loss_event(int);	// called when a loss is detected
 	virtual void ecn_event();	// called when seeing an ECN
-	virtual void peer_rttest_known(); // called when peer knows rtt
-	virtual void rtt_known();	// called when we know rtt
+	virtual void peer_rttest_known(double); // called when peer knows rtt
+	virtual void rtt_known(double);	// called when we know rtt
 	void ack_rate_change();		// changes the ack gen rate
+	void slowdown();	// reason to slow down
+	void speedup();		// possible opportunity to speed up
         double now() const { return Scheduler::instance().clock(); };
 	double rtt_sample(double samp);
 
@@ -133,15 +127,15 @@ protected:
 	double rttvar_;
 	double peer_rtt_est_;	// peer's est of the rtt
 	double last_ts_;	// ts field carries on last pkt
+	double last_loss_time_;	// last time we saw a loss
 	double ack_interval_;	// "ack" sending rate
 
 	double last_rtime_;	// last time a pkt was received
 
 	int expected_;		// next expected sequence number
 	int seqno_;		// first seq# of a series of pkts
-	int ploss_;		// total # packets lost
-	int lastploss_;		// last ploss_ reported
-	int lastexpected_;	// last expected_ reported
+	int cseq_;		// congest epoch seq # (as receiver)
+	int highest_cseq_seen_;	// peer's last cseq seen (I am sender)
 	int needresponse_;	// send a packet in response to current one
 	int last_ecn_;		// last recv had an ecn
 
@@ -185,18 +179,10 @@ TFCCAgent::makepkt(Packet* p)
 	th->ts() = now();
 	th->interval() = interval_;
 	th->rttest() = srtt_;
-	th->plost() = ploss_;
-	th->maxseq() = expected_;
+	th->cseq() = cseq_;
+
 	fh->ecnecho() = last_ecn_;
 	fh->ect() = 1;
-	double denom = expected_ - lastexpected_;
-	if (denom)
-		th->lossfrac() = (ploss_ - lastploss_) / denom;
-	else
-		th->lossfrac() = -1.0;
-
-	lastploss_ = ploss_;
-	lastexpected_ = expected_;
 
 	RTPAgent::makepkt(p);
 }
@@ -206,8 +192,6 @@ TFCCAgent::makepkt(Packet* p)
  * and may also contain data
  */
 
-#define	MAX(a,b)	((a)>(b)?(a):(b))
-
 void
 TFCCAgent::recv(Packet* pkt, Handler*)
 {
@@ -215,47 +199,65 @@ TFCCAgent::recv(Packet* pkt, Handler*)
 	hdr_tfcc* th = (hdr_tfcc*)pkt->access(hdr_tfcc::offset_);
 	hdr_flags* fh = (hdr_flags*)pkt->access(hdr_flags::offset_);
 
-	Tcl& tcl = Tcl::instance();
+	/*
+	 * do the duties of a receiver
+	 */
 
-	// update our picture of our peer's rtt est
 	if (th->rttest() > 0.0) {
+		// update our picture of our peer's rtt est
 		if (peer_rtt_est_ <= 0.0) {
-			peer_rttest_known();
+			peer_rttest_known(th->rttest());
 		}
 		peer_rtt_est_ = th->rttest();
 	} else {
 		// peer has no rtt estimate, so respond right
-		// away so it can get on
+		// away so it can get one
 		needresponse_ = 1;
 	}
 
-	// call tcl once we get our first rtt estimate
-	if (th->ts_echo() > 0.0) {
-		double sample = now() - th->ts_echo();
-		if (srtt_ <= 0.0) {
-			rtt_known();
-		}
-		rtt_sample(now() - th->ts_echo());
-	}
 	if (rh->seqno() > seqno_) {
+		// last seqno and ts we've seen
         	seqno_ = rh->seqno();
 		last_ts_ = th->ts();
 	}
-        /*
-         * Check for lost packets or CE bits
-         */
 
-	int loss = 0;
 	if (fh->ect()) {
-		if (fh->ce())
+		// turn around ecn's we see
+		if (fh->ce()) {
 			last_ecn_ = 1;
-		else if (fh->cong_action())
+			ecn_event();
+		} else if (fh->cong_action())
 			last_ecn_ = 0;
 	}
-	if (expected_ >= 0 && (loss = seqno_ - expected_) > 0) {
-		ploss_ += loss;
+
+	int loss = 0;
+	if (expected_ >= 0 && (loss = seqno_ - expected_) > 0)
 		loss_event(loss);
-        }
+
+	/*
+	 * do the duties of a sender
+	 */
+
+	if (th->ts_echo() > 0.0) {
+		// update our rtt estimate
+		double sample = now() - th->ts_echo();
+		if (srtt_ <= 0.0) {
+			rtt_known(sample);
+		}
+		rtt_sample(sample);
+	}
+
+	if (th->cseq() > highest_cseq_seen_) {
+		// look at receiver's congestion report
+		highest_cseq_seen_ = th->cseq();
+		slowdown();
+	} else if (th->cseq() == highest_cseq_seen_) {
+		speedup();
+	} else {
+		fprintf(stderr, "%s: oops! decreasing cseqs!\n",
+			name());
+		abort();
+	}
 
         last_rtime_ = now();
         expected_ = seqno_ + 1;
@@ -267,33 +269,75 @@ TFCCAgent::recv(Packet* pkt, Handler*)
 }
 
 /*
- * this is called when there is a packet loss detected
+ * as a receiver, this
+ * is called when there is a packet loss detected
  */
 
 void
 TFCCAgent::loss_event(int nlost)
 {
+	// if its been awhile (more than an rtt estimate) since the last loss,
+	// this is a new indication of congestion
+	if (peer_rtt_est_ < 0.0 || (now() - last_loss_time_) > peer_rtt_est_) {
+		++cseq_;
+		needresponse_ = 1;
+	}
+	last_loss_time_ = now();
 }
 
+/*
+ * as a receiver, this is called when a packet arrives with a CE
+ * bit set
+ */
 void
 TFCCAgent::ecn_event()
 {
+	loss_event(0);	// for now
 }
 
+/*
+ * as a receiver, this is called once when the peer first known
+ * the rtt
+ */
 void
-TFCCAgent::peer_rttest_known()
+TFCCAgent::peer_rttest_known(double peerest)
 {
 	// first time our peer has indicated it knows the rtt
 	// so, adjust our "ack" sending rate to be once per rtt
-	ack_interval_ = peer_rtt_est_;
+printf("%s: setting ack_interval to %f\n", name(), peerest);
+	ack_interval_ = peerest;
 	ack_rate_change();
 }
 
+/*
+ * as a sender, this is called when we first know the rtt
+ */
 void
-TFCCAgent::rtt_known()
+TFCCAgent::rtt_known(double rtt)
 {
 }
 
+/*
+ * as a sender, this is called when we are receiving acks with no
+ * new congestion indications
+ */
+
+void
+TFCCAgent::speedup()
+{
+printf("%s SPEEDUP\n", name());
+}
+
+/*
+ * as a sender, this is called when we are receiving acks with
+ * new congestion indications
+ */
+
+void
+TFCCAgent::slowdown()
+{
+printf("%s SLOWDOWN\n", name());
+}
 
 void
 TFCCAgent::ack_rate_change()
