@@ -21,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-bst.cc,v 1.7 1999/09/18 03:34:45 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-bst.cc,v 1.8 1999/09/20 01:54:56 heideman Exp $";
 #endif
 
 #include <iostream.h>
@@ -53,7 +53,7 @@ public:
 	~MCastBSTClassifier();
 	static const char STARSYM[]; //"source" field for shared trees
 protected:
-	virtual int classify(const Packet * p);
+	virtual int classify(Packet * p);
 	upstream_info *oif2RP_;
 	int32_t node_id_;
 
@@ -85,7 +85,7 @@ MCastBSTClassifier::~MCastBSTClassifier()
 	clearAll();
 }
 
-int MCastBSTClassifier::classify(const Packet *pkt)
+int MCastBSTClassifier::classify(Packet *pkt)
 {
 	hdr_cmn* h = hdr_cmn::access(pkt);
 	hdr_ip* ih = hdr_ip::access(pkt);

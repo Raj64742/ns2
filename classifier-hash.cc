@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.23 1999/09/18 03:34:46 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.24 1999/09/20 01:54:58 heideman Exp $ (LBL)";
 #endif
 
 //
@@ -66,7 +66,7 @@ public:
 	~HashClassifier() {
 		Tcl_DeleteHashTable(&ht_);
 	};
-	int classify(const Packet * p) {
+	int classify(Packet * p) {
 		int slot= lookup(p);
 		if (slot >= 0 && slot <=maxslot_)
 			return (slot);
