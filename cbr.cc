@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.17 1998/06/26 02:52:19 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.18 1998/06/26 19:09:18 gnguyen Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
@@ -103,8 +103,8 @@ void CBR_Agent::sendpkt()
 void CBR_Agent::finish()
 {
 	running_ = 0;
-	idle();
-	//	Tcl::instance().evalf("%s done", this->name());
+	// idle();
+	Tcl::instance().evalf("%s done", this->name());
 }
 
 void CBR_Agent::advanceby(int delta)
