@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.13.2.1 1998/07/15 18:34:11 kannan Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.13.2.2 1998/07/16 19:28:20 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -48,27 +48,34 @@ public:
 	MCastClassifier();
 	~MCastClassifier();
 protected:
+        const int HASHSIZE= 256;
+	struct hashnode {
+		int slot;
+		nsaddr_t src;
+		nsaddr_t dst;
+		hashnode* next;
+                int iif; // for RPF checking
+	};
 	int command(int argc, const char*const* argv);
 	int classify(Packet *const p);
 	int findslot();
-	void set_hash(nsaddr_t src, nsaddr_t dst, int slot, int iface);
+	void set_hash(hashnode *ht[], nsaddr_t src, nsaddr_t dst, int slot, int iface);
 	int hash(nsaddr_t src, nsaddr_t dst) const {
 		u_int32_t s = src ^ dst;
 		s ^= s >> 16;
 		s ^= s >> 8;
 		return (s & 0xff);
 	}
-	struct hashnode {
-		int slot;
-		nsaddr_t src;
-		nsaddr_t dst;
-		hashnode* next;
-		int iif; // for RPF checking
-	};
-	void clearAll();
-	hashnode* ht_[256];
-	const hashnode* lookup(nsaddr_t src, nsaddr_t dst, int iface = -1) const;
+        void clearHash(hashnode* h[], int size);
+        void clearAll();
+	hashnode* ht_[HASHSIZE];
+    	hashnode* ht_star_[HASHSIZE]; //for search by group only (not <s,g>)
+
+	hashnode* const lookup(nsaddr_t src, nsaddr_t dst, int iface = -1) const;
+	hashnode* const lookup_star(nsaddr_t dst, int iface = -1) const;
+    
         void change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface);
+        void change_iface(nsaddr_t dst, int oldiface, int newiface);
 };
 
 static class MCastClassifierClass : public TclClass {
@@ -82,6 +89,7 @@ public:
 MCastClassifier::MCastClassifier()
 {
 	memset(ht_, 0, sizeof(ht_));
+	memset(ht_star_, 0, sizeof(ht_star_));
 }
 
 MCastClassifier::~MCastClassifier()
@@ -89,27 +97,45 @@ MCastClassifier::~MCastClassifier()
 	clearAll();
 }
 
-void MCastClassifier::clearAll()
+void MCastClassifier::clearHash (hashnode* h[], int size) 
 {
-	for (int i = 0; i < 256; ++i) {
-		hashnode* p = ht_[i];
-		while (p != 0) {
-			hashnode* n = p->next;
-			delete p;
-			p = n;
-		}
-	}
-	memset(ht_, 0, sizeof(ht_));
+        for (int i = 0; i < size; ++i) {
+                hashnode* p = h[i];
+                while (p != 0) {
+                        hashnode* n = p->next;
+                        delete p;
+                        p = n;
+                }
+        }
+        memset(h, 0, sizeof(hashnode [size]));
 }
 
-const MCastClassifier::hashnode*
+void MCastClassifier::clearAll()
+{
+        clearHash(ht_, HASHSIZE);
+	clearHash(ht_star_, HASHSIZE);
+}
+
+MCastClassifier::hashnode* const
 MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst, int iface = -1) const
 {
 	int h = hash(src, dst);
-	const hashnode* p;
+	hashnode* p;
 	for (p = ht_[h]; p != 0; p = p->next) {
 		if (p->src == src && p->dst == dst && p->iif == iface)
 			break;
+	}
+	return (p);
+}
+
+MCastClassifier::hashnode* const
+MCastClassifier::lookup_star(nsaddr_t dst, int iface = -1) const
+{
+	int h = hash(0, dst);
+	hashnode* p;
+	for (p = ht_star_[h]; p != 0; p = p->next) {
+		if (p->dst == dst && p->iif == iface)
+		       break;
 	}
 	return (p);
 }
@@ -124,15 +150,19 @@ int MCastClassifier::classify(Packet *const pkt)
 
 	int iface = h->iface();
 
-	const hashnode* p = lookup(src, dst, iface);
+	// first lookup (S,G) - entries
+	hashnode* p = lookup(src, dst, iface);
+	if (p == 0)
+	        p = lookup_star(dst, iface);
 	if (p == 0) {
 		p = lookup(src, dst);
-		/*
-		 * Didn't find an entry.
-		 * Call tcl exactly once to install one.
-		 * If tcl doesn't come through then fail.
-		 */
+		if (p==0) p = lookup_star(dst);
 		if (p == 0) {
+			/*
+			 * Didn't find an entry.
+			 * Call tcl exactly once to install one.
+			 * If tcl doesn't come through then fail.
+			 */
 			Tcl::instance().evalf("%s new-group %u %u %d cache-miss", 
 					      name(), src, dst, iface);
 			return (-1);
@@ -155,16 +185,16 @@ int MCastClassifier::findslot()
 	return (i);
 }
 
-void MCastClassifier::set_hash(nsaddr_t src, nsaddr_t dst, int slot, int iface)
+void MCastClassifier::set_hash(hashnode *ht[], nsaddr_t src, nsaddr_t dst, int slot, int iface)
 {
 	int h = hash(src, dst);
 	hashnode* p = new hashnode;
 	p->src = src;
 	p->dst = dst;
 	p->slot = slot;
-	p->iif = iface;
-	p->next = ht_[h];
-	ht_[h] = p;
+        p->iif = iface;
+	p->next = ht[h];
+	ht[h] = p;
 }
 
 int MCastClassifier::command(int argc, const char*const* argv)
@@ -177,16 +207,28 @@ int MCastClassifier::command(int argc, const char*const* argv)
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int slot = atoi(argv[4]);
-			int iface = atoi(argv[5]);
-			set_hash(src, dst, slot, iface);
+                        int iface = atoi(argv[5]);
+			if (strcmp("*", argv[2]) == 0) {
+			    // install a <*,G> entry
+			    set_hash(ht_star_, 0, dst, slot, iface);
+			} else {
+			    //install a <S,G> entry
+			    set_hash(ht_, src, dst, slot, iface);
+			}
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "change-iface") == 0) {
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int oldiface = atoi(argv[4]);
-			int newiface = atoi(argv[5]);
-			change_iface(src, dst, oldiface, newiface);
+                        int newiface = atoi(argv[5]);
+			if (strcmp("*", argv[2]) == 0) {
+			    // change interface for a <*,G>
+			    change_iface(dst, oldiface, newiface);
+			} else {
+			    // change interface for a <S,G>
+			    change_iface(src, dst, oldiface, newiface);
+			}
 			return (TCL_OK);
 		}
 	} else if (argc == 5) {
@@ -198,25 +240,39 @@ int MCastClassifier::command(int argc, const char*const* argv)
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int iface = atoi(argv[4]);
-			hashnode *p = lookup(src, dst, iface);
-			if ((p == NULL) || (slot_[p->slot] == 0))
+
+			// source specific entries have higher precedence
+			hashnode *p = lookup(src, dst, iface); 
+			if (p == 0)
+				p= lookup_star(dst, iface); // if they aren't found, lookup <*,G>
+			if ((p == 0) || (slot_[p->slot] == 0))
 				tcl.resultf("");
 			else 
 				tcl.resultf("%s", slot_[p->slot]->name());
 			return (TCL_OK);
 		}
 	}
-	if (argc == 2) {
-		if (strcmp(argv[1], "clearAll") == 0) {
-			clearAll();
-			return (TCL_OK);
-		}
-	}
+        if (argc == 2) {
+                if (strcmp(argv[1], "clearAll") == 0) {
+                        clearAll();
+                        return (TCL_OK);
+                }
+        }
 	return (Classifier::command(argc, argv));
 }
 
 void MCastClassifier::change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface)
 {
         hashnode* p = lookup(src, dst, oldiface);
-	p->iif = newiface;
+	if (!p) p->iif = newiface;
 }
+void MCastClassifier::change_iface(nsaddr_t dst, int oldiface, int newiface)
+{
+        hashnode* p = lookup_star(dst, oldiface);
+	if (!p) p->iif = newiface;
+}
+
+
+
+
+

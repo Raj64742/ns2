@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.47 1998/07/02 02:50:52 kfall Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.47.2.1 1998/07/16 19:28:22 yuriy Exp $ (LBL)";
 
 #endif
 
@@ -47,6 +47,7 @@ static char rcsid[] =
 #include "srm.h"
 #include "flags.h"
 #include "address.h"
+#include "Decapsulator.h"
 #include "trace.h"
 
 
@@ -184,31 +185,25 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
 	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
 
-	hdr_srm *sh = (hdr_srm*)p->access(off_srm_); 
 	const char* sname = 0;
 
-	int t = th->ptype();
-	const char* name = pt_names[t];
-
-        /* SRM-specific */
-	if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0) {
-            if ( sh->type() < 5 && sh->type() >= 0 ) {
-	        sname = srm_names[sh->type()];
-	    }
-	}
-
+	const int ptype= th->ptype();
+	const char* name = pt_names[ptype];
 	if (name == 0)
 		abort();
 
-	int seqno;
-	/* XXX */
-	/* CBR's now have seqno's too */
-	if (t == PT_RTP || t == PT_CBR)
-		seqno = rh->seqno();
-	else if (t == PT_TCP || t == PT_ACK)
-		seqno = tcph->seqno();
-	else
-		seqno = -1;
+	int t = ptype; // t is used to determine seqno
+	if (Packet* const dp= Decapsulator::decapPacket(p)) {
+		// if encapsulated, reach inside to find the real packet type
+		hdr_cmn* ch_d= (hdr_cmn*)dp->access(off_cmn_);
+		t= ch_d->ptype();
+	};		
+	int seqno= 
+		(t == PT_RTP || t == PT_CBR) ? rh->seqno() /* CBR's now have seqno's too */
+		:
+		(t == PT_TCP || t == PT_ACK) ? tcph->seqno()
+		: 
+		-1; /* no sequence numbers */
         /* 
          * When new flags are added, make sure to change NUMFLAGS
          * in trace.h

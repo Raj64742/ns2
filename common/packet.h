@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.32.2.1 1998/07/15 18:34:15 kannan Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.32.2.2 1998/07/16 19:28:21 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -67,14 +67,19 @@
 #define PT_TEARDOWN    	22
 #define	PT_LIVE		23	/* packet from live network */
 #define PT_REJECT       24
+//new encapsulator
+#define PT_ENCAPSULATED 25
 
-#define PT_NTYPE        25
+#define PT_UDP          26 // why wasn't it defined???
+
+#define PT_NTYPE        27
 
 #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack",	\
 	"start", "stop", "message", "rtcp", "rtp",  "rtProtoDV",	\
 	"prune", "graft", "join", "assert",				\
 	"CtrMcast_Encap", "CtrMcast_Decap", "SRM",			\
-        "sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject"
+        "sa_req", "sa_accept", "sa_conf", "sa_teardown", "live",        \
+	"sa_reject", "Encapsulated", "udp"
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 
