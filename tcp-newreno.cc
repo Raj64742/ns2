@@ -15,10 +15,16 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
+
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.14 1997/07/21 21:58:10 kfall Exp $ (LBL)";
+#endif
+
 //
 // newreno-tcp: a revised reno TCP source, without sack
 //
-// first cut, Nov 1995; not yet debugged
+// first cut, Nov 1995;
 //
 
 #include <stdio.h>
@@ -33,7 +39,7 @@
 static class NewRenoTcpClass : public TclClass {
 public:
 	NewRenoTcpClass() : TclClass("Agent/TCP/Newreno") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new NewRenoTcpAgent());
 	}
 } class_newreno;
@@ -81,7 +87,6 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
 void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 
 	/* Use first packet to calculate the RTT  --contributed by Allman */
 
