@@ -287,6 +287,15 @@ follows:
 $ns satnode polar $alt $inc $lon $alpha $plane
 \end{program}
 
+Note that the above methods use the atomic \code{satnode} instproc.  In 
+Section \ref{sec:satellite/usage/links}, we introduce wrapper methods
+that may be more convenient for generating various types of satellite nodes:
+\begin{program}
+$ns satnode-terminal $latitude $longitude
+$ns satnode-polar $alt $inc $lon $alpha $plane $linkargs $chan
+$ns satnode-geo $longitude $linkargs $chan
+$ns satnode-geo-repeater $longitude $chan
+\end{program}
 \end{itemize}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
