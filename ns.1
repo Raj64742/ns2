@@ -30,13 +30,13 @@
 .\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 .\" SUCH DAMAGE.
 .\"
-.TH NS 1 "24 June 1997"
+.TH NS 1 "25 July 1997"
 .de HD
 .sp 1.5
 .B
 ..
 .SH NAME
-ns \- network simulator
+ns \- network simulator (version 2)
 .SH SYNOPSIS
 .na
 .B ns
@@ -134,7 +134,7 @@ in the subclass of class Agent i.e.,
 .I Agent/type
 where type specifies 
 the nature of the agent.
-For example a TCP agent
+For example, a TCP agent
 is created using the command:
 .br
 .nf
@@ -332,8 +332,9 @@ A FQ link is for Fair Queuing (for details see [?]).
 A SFQ link is for Stochastic Fair Queuing (for details see [?]).
 A DRR link is for deficit round robin scheduling (for details see [9]).
 A RED link is a random-early drop queue (for details see [2]).
-A CBQ link is for class-based queuing (for details see [3]).
-A CBQ/WRR link is for class-based queuing with weighted round robin ???
+A CBQ link is for class-based queuing using a packet-by-packet round-robin
+scheduler (for details see [3]).
+A CBQ/WRR link is for class-based queuing with a weighted round robin scheduler.
 If multicast routing is used
 links with interface labels are required.
 Such links are created by 
@@ -384,8 +385,9 @@ A FQ link is for Fair Queuing (for details see [?]).
 A SFQ link is for Stochastic Fair Queuing (for details see [?]).
 A DRR link is for deficit round robin scheduling (for details see [9]).
 A RED link is a random-early drop queue (for details see [2]).
-A CBQ link is for class-based queuing (for details see [3]).
-A CBQ/WRR link is for class-based queuing with weighted round robin ???
+A CBQ link is for class-based queuing using a packet-by-packet round-robin
+scheduler (for details see [3]).
+A CBQ/WRR link is for class-based queuing with a weighted round robin scheduler.
 If multicast routing is used
 links with interface labels are required.
 Such links are created by 
