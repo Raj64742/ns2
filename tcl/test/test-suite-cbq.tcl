@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.5 1997/11/04 03:33:43 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.6 1997/11/04 03:50:08 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -191,10 +191,10 @@ TestSuite instproc finish testname {
 	
 	set awkCode  { {
 	  if ($1 == "maxbytes") maxbytes = $2;
-	  if ($2 == class) print $1, $3/maxbytes > "temp.t"; 
+	  if ($2 == class) print $1, $3/maxbytes >> "temp.t"; 
 	} }
 	set awkCodeAll { { 
-	  if ($2 == class) { print time, sum > "temp.t"; sum = 0; }
+	  if ($2 == class) { print time, sum >> "temp.t"; sum = 0; }
 	  if ($1 == "maxbytes") maxbytes = $2;
 	  sum += $3/maxbytes;
 	  if (NF==3) time = $1; else time = 0;
@@ -207,16 +207,16 @@ TestSuite instproc finish testname {
 	puts $f "TitleText: $testname"
 	puts $f "Device: Postscript"
 	
+	exec touch temp.p temp.t
 	foreach i { 1 2 3 4 } {
-		exec rm -f temp.p temp.t
-		exec touch temp.p temp.t
 		exec awk $awkCode class=$i temp.s 
 		exec cat temp.t >> temp.p
 		exec echo " " >> temp.p
 		exec mv temp.t temp.$i
+		exec touch temp.t
 	}
 
-	exec rm -f temp.p temp.t
+	exec rm -f temp.t
 	exec touch temp.p temp.t
 	exec awk $awkCodeAll class=1 temp.s 
 	exec cat temp.t >> temp.p 
