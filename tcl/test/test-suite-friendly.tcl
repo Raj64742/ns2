@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.19 1999/12/21 21:45:28 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.20 2000/02/01 17:47:23 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -38,6 +38,7 @@ source misc_simple.tcl
 Agent/TFRC set df_ 0.25
 Agent/TFRC set aggr_incr_ 0
 Agent/TFRC set aggr_dec_  1
+Agent/TFRC set smooth_ 0
 
 Agent/TCP set window_ 100
 # Uncomment the line below to use a random seed for the
@@ -234,6 +235,17 @@ Test/slowStartDiscount instproc init {} {
     $self next
 }
 
+Class Test/smooth -superclass TestSuite
+Test/smooth instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	smooth
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 1
+    Test/smooth instproc run {} [Test/slowStart info instbody run ]
+    $self next
+}
+
 Class Test/slowStart -superclass TestSuite
 Test/slowStart instproc init {} {
     $self instvar net_ test_
@@ -242,6 +254,7 @@ Test/slowStart instproc init {} {
     Agent/TFRCSink set discount_ 0
     $self next
 }
+
 Test/slowStart instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_
@@ -261,11 +274,13 @@ Test/slowStart instproc run {} {
     $ns_ at 0.0 "$tf1 start"
     $ns_ at 30 "$tf1 stop"
     set tf2 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 1]
-    $ns_ at 16 "$tf2 start"
-    $ns_ at $stopTime "$tf2 stop"
+    if {$stopTime > 16} {
+        $ns_ at 16 "$tf2 start"
+        $ns_ at $stopTime "$tf2 stop"
+        $self tfccDump 2 $tf2 $interval_ $dumpfile_
+    }
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
-    $self tfccDump 2 $tf2 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
     $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
@@ -551,6 +566,16 @@ Test/OnlyTcp instproc run {} {
     $ns_ run
 }
 
+## Random factor added to sending times
+Class Test/randomized -superclass TestSuite
+Test/randomized instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	randomized
+    Agent/TFRCSink set overhead_ 1.0
+    Test/randomized instproc run {} [Test/slowStart info instbody run]
+    $self next
+}
 
 # BAD PARAMETERS! - very fast increase
 #
