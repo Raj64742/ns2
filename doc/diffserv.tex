@@ -51,7 +51,7 @@ Policy is specified by network administrator about
 Edge router marks packets with a code point according to the policy specified.
 
 \item [Core router:]
-Core router examines packets' code point marking and forwards them accordingly.
+Core router examines packets' code point marking and forwarding them accordingly.
 
 \end{description}
 
@@ -508,6 +508,10 @@ Although each code point in this example maps to
 
 Finally, the~\code{configQ} commands set the RED parameters for 
   each virtual queue.  
+It specifies the virtual queue by first two parameters,
+  for example, 0 and 1.
+The next three parameters are the minimum threshold, maximum threshold,
+  and the maximum dropping probability.
 Note that as the precedence value increases, 
   the RED parameters become harsher.
 
