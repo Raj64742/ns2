@@ -34,7 +34,6 @@
 
 source misc_simple.tcl
 Agent/TCP set singledup_ 0
-Agent/TCP set packetSize_ 500
 Agent/TCP set overhead_ 0.001
 Queue/Vq set buflim_ 0.25
 # The default is being changed to 1
