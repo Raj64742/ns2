@@ -101,43 +101,36 @@ proc create-error {num rate errmodel unit} {
 }
 
 #
-# the following is a "ErrorModule"
-# it contains a classifier, a set of ErrModels, and enough
+# the following is a "ErrorModule";
+# it contains a classifier, a set of dynamically-added ErrModels, and enough
 # plumbing to construct flow-based Errors.
 #
-# It may be placed in a Link at the place you would ordinarily
-# put a queue
+# It's derived from a connector
+#
 
-Class ErrorModule
 ErrorModule instproc init { cltype { clslots 29 } } {
-	$self next
-	$self instvar classifier_ out_ dropout_
 
+	$self next
 	set nullagent [[Simulator instance] set nullAgent_]
 
-	set classifier_ [new Classifier/Hash/$cltype $clslots]
-	set out_ [new Connector]
-	set dropout_ [new Connector]
-	$dropout_ target $nullagent
-	$dropout_ drop-target $nullagent
-	$out_ target $nullagent
-	$out_ drop-target $nullagent
-	$classifier_ proc unknown-flow { src dst fid bucket } {
+	set classifier [new Classifier/Hash/$cltype $clslots]
+	$self cmd classifier $classifier
+	$self cmd target [new Connector]
+	$self cmd drop-target [new Connector]
+	$classifier proc unknown-flow { src dst fid bucket } {
 		puts "warning: classifier $self unknown flow s:$src, d:$dst, fid:$fid, bucket:$bucket"
 	}
 }
 
 ErrorModule instproc insert errmodel {
-	$self instvar out_ dropout_
-	$errmodel target $out_
-	$errmodel drop-target $dropout_
+	$errmodel target [$self cmd target]
+	$errmodel drop-target [$self cmd drop-target]
 }
 
 ErrorModule instproc bind args {
         # this is to perform '$fem bind $errmod id'
         # and '$fem bind $errmod idstart idend'
     
-        $self instvar classifier_
         set nargs [llength $args]
         set errmod [lindex $args 0]
         set a [lindex $args 1]
@@ -147,35 +140,33 @@ ErrorModule instproc bind args {
                 set b $a
         }       
         # bind the errmodel to the flow id's [a..b]
+	set cls [$self cmd classifier]
         while { $a <= $b } {
                 # first install the class to get its slot number
                 # use the flow id as the hash bucket
-                set slot [$classifier_ installNext $errmod] 
-                $classifier_ set-hash $a 0 0 $a $slot
+                set slot [$cls installNext $errmod] 
+                $cls set-hash $a 0 0 $a $slot
                 incr a  
-        }       
-}
-
-ErrorModule instproc drop-target args {
-	$self instvar dropout_
-	set nargs [llength $args]
-	if { $nargs == 1 } {
-		set t [lindex $args 0]
-		$dropout_ drop-target $t
-		$dropout_ target $t
-	} elseif { $nargs == 0 } {
-		return [$dropout_ target]
-	}
+        }
 }
 
 ErrorModule instproc target args {
-	$self instvar out_
-	set nargs [llength $args]
-	if { $nargs == 1 } {
-		set t [lindex $args 0]
-		$out_ drop-target $t
-		$out_ target $t
-	} elseif { $nargs == 0 } {
-		return [$out_ target]
+	if { $args == "" } {
+		return [[$self cmd target] target]
 	}
+	set obj [lindex $args 0]
+
+	[$self cmd target] target $obj
+	[$self cmd target] drop-target $obj
+}
+
+ErrorModule instproc drop-target args {
+	if { $args == "" } {
+		return [[$self cmd drop-target] target]
+	}
+
+	set obj [lindex $args 0]
+
+	[$self cmd drop-target] drop-target $obj
+	[$self cmd drop-target] target $obj
 }
