@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.16 2000/11/08 05:39:08 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.17 2000/11/08 05:46:36 haoboy Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -377,7 +377,9 @@ then
 echo "gt-itm:   $CUR_PATH/itm, edriver, sgb2alt, sgb2ns, sgb2comns, sgb2hierns"
 fi
 
-echo "-----------------------------------------------------"
+echo ""
+echo "----------------------------------------------------------------------------------"
+echo ""
 echo "Please put $CUR_PATH/bin:$CUR_PATH/tcl$TCLVER/unix:$CUR_PATH/tk$TKVER/unix" 
 echo "into your PATH environment; so that you'll be able to run itm/tclsh/wish/xgraph."
 echo ""
@@ -395,12 +397,16 @@ echo ""
 echo "(2) You MUST put $CUR_PATH/tcl$TCLVER/library into your TCL_LIBRARY environmental"
 echo "    variable. Otherwise ns/nam will complain during startup."
 echo ""
+echo "(3) [OPTIONAL] To save disk space, you can now delete directories tcl$TCLVER "
+echo "    and tk$TKVER. They are now installed under $CUR_PATH/{bin,include,lib}"
+echo ""
 echo "After these steps, you can now run the ns validation suite with"
 echo "cd ns-$NSVER; ./validate"
 echo ""
 echo "For trouble shooting, please first read ns problems page "
 echo "http://www.isi.edu/nsnam/ns/ns-problems.html. Also search the ns mailing list archive"
 echo "for related posts." 
+echo ""
 
 exit 0
 
