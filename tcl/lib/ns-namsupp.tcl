@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.22 1999/02/19 22:44:07 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.23 1999/03/15 21:45:13 yuriy Exp $
 #
 
 #
@@ -483,25 +483,4 @@ Simulator instproc set-animation-rate { rate } {
 	# time_parse defined in tcl/rtp/session-rtp.tcl
 	set r [time_parse $rate]
 	$self puts-nam-config "v -t [$self now] set_rate [expr 10*log10($r)] 1"
-}
-
-#Berkeley LAN dump
-
-LanLink instproc dump-namconfig {} {
-        $self instvar nid_ bw_ delay_ nodelist_ ns_
-	
-	$ns_ puts-nam-config \
-	"X -t * -n $nid_ -r $bw_ -D $delay_ -o left"
-
-	set cnt 0
-	set LanOrient(0) up
-	set LanOrient(1) down
-
-	foreach dst $nodelist_ {
-            $ns_ puts-nam-config \
-	    "L -t * -s $nid_ -d [$dst id] -o $LanOrient($cnt)"
-	    incr cnt
-	    set cnt [expr $cnt % 2]
-	}
-
 }
