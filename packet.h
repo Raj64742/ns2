@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.13.2.1 1997/04/20 23:30:05 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.13.2.2 1997/04/26 01:47:46 hari Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -48,6 +48,8 @@ public:
 	virtual void bind();
         TclObject* create(int argc, const char*const* argv);
 };
+
+struct hdr_cmn;
 
 class Packet : public Event {
 private:
@@ -71,6 +73,8 @@ public:
         static Packet* alloc();
         static void free(Packet*);
 	inline u_char* access(int off) { if (off < 0) abort(); return (&bits_[off]); }
+	int &size();
+	int &type();
 };
 
 #include "trace.h"

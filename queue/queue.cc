@@ -33,10 +33,23 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.11.2.2 1997/04/20 19:11:29 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.11.2.3 1997/04/26 01:47:48 hari Exp $ (LBL)";
 #endif
 
 #include "queue.h"
+
+void
+PacketQueue::purge(Packet *pkt, Packet *prev) 
+{
+	prev->next_ = pkt->next_;
+	if (tail_ == &pkt)
+		tail_ = &prev;
+	--len_;
+	if (qm_)
+		qm_->out(pkt);
+	return;
+}
+
 
 void PacketQueue::remove(Packet* target)
 {

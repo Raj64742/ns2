@@ -33,31 +33,12 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.2.2.3 1997/04/26 01:00:32 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.2.2.4 1997/04/26 01:47:43 hari Exp $ (LBL)";
 #endif
 
 #include <string.h>
 #include "queue.h"
-
-/*
- * A bounded, drop-tail queue
- */
-class DropTail : public Queue {
- protected:
-	int command(int argc, const char*const* argv) {
-		return Queue::command(argc, argv);
-	}
-	void enque(Packet*);
-	Packet* deque();
-};
-
-static class DropTailClass : public TclClass {
-public:
-	DropTailClass() : TclClass("Queue/DropTail") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new DropTail);
-	}
-} class_drop_tail;
+#include "drop-tail.h"
 
 /*
  * drop-tail

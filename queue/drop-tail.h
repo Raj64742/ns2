@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1994-1997 Regents of the University of California.
+ * Copyright (c) 1994 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,71 +31,25 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.5.2.1 1997/04/26 01:47:45 hari Exp $ (LBL)";
-#endif
+#include <string.h>
+#include "queue.h"
 
-#include "packet.h"
-#include "flags.h"
-
-int Packet::hdrlen_ = 0;	/* size of a packet's header */
-Packet* Packet::free_;		/* free list */
-
-PacketHeaderClass::PacketHeaderClass(const char* className, int hdrlen) : 
-	TclClass(className), hdrlen_(hdrlen)
-{
-}
-
-void PacketHeaderClass::bind()
-{
-	TclClass::bind();
-	Tcl& tcl = Tcl::instance();
-	tcl.evalf("%s set hdrlen_ %d", classname_, hdrlen_);
-}
-
-TclObject* PacketHeaderClass::create(int argc, const char*const* argv)
-{
-	return (0);
-}
-
-class CommonHeaderClass : public PacketHeaderClass {
-public:
-        CommonHeaderClass() : PacketHeaderClass("PacketHeader/Common",
-						sizeof(hdr_cmn)) {}
-} class_cmnhdr;
-
-class FlagsHeaderClass : public PacketHeaderClass {
-public:
-        FlagsHeaderClass() : PacketHeaderClass("PacketHeader/Flags",
-						sizeof(hdr_flags)) {}
-} class_flagshdr;
-
-/* manages active packet header types */
-class PacketHeaderManager : public TclObject {
-public:
-	PacketHeaderManager() {
-		bind("hdrlen_", &Packet::hdrlen_);
+/*
+ * A bounded, drop-tail queue
+ */
+class DropTail : public Queue {
+ protected:
+	int command(int argc, const char*const* argv) {
+		return Queue::command(argc, argv);
 	}
+	void enque(Packet*);
+	Packet* deque();
 };
 
-static class PacketHeaderManagerClass : public TclClass {
+static class DropTailClass : public TclClass {
 public:
-        PacketHeaderManagerClass() : TclClass("PacketHeaderManager") {}
-        TclObject* create(int argc, const char*const* argv) {
-                return (new PacketHeaderManager);
-        }
-} class_packethdr_mgr;
-
-int &
-Packet::size()
-{
-	return ((hdr_cmn*)access(0))->size();
-}
-
-int &
-Packet::type()
-{
-	return ((hdr_cmn*)access(0))->ptype();
-}
-
+	DropTailClass() : TclClass("Queue/DropTail") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new DropTail);
+	}
+} class_drop_tail;

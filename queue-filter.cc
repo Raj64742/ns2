@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 1994 Regents of the University of California.
+ * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -12,12 +12,12 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *	This product includes software developed by the Computer Systems
- *	Engineering Group at Lawrence Berkeley Laboratory.
+ * 	This product includes software developed by the Network Research
+ * 	Group at Lawrence Berkeley National Laboratory.
  * 4. Neither the name of the University nor of the Laboratory may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,28 +31,54 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.2.2.4 1997/04/26 01:47:43 hari Exp $ (LBL)";
-#endif
+#include "packet.h"
+#include "queue-filter.h"
 
-#include <string.h>
-#include "queue.h"
-#include "drop-tail.h"
-
-/*
- * drop-tail
- */
-void DropTail::enque(Packet* p)
+int
+QueueFilter::compareFlows(hdr_ip *ip1, hdr_ip *ip2)
 {
-	q_.enque(p);
-	if (q_.length() > qlim_) { /* changed >= to > */
-		q_.remove(p);
-		drop(p);
-	}
+	return ((ip1->src_ == ip2->src_) && (ip1->dst == ip2->dst));
 }
 
-Packet* DropTail::deque()
+void
+QueueFilter::filter(PacketQueue *queue, Packet *p) 
 {
-	return (q_.deque());
+	/* first check for ack */
+	if (p->type() != PT_ACK)
+		return;
+
+	Packet *q, *qq;
+	hdr_tcp *tcph = (hdr_tcp*) p->access(off_tcp_);
+	int &ack = tcph->seqno();
+
+	hdr_ip *iph = (hdr_ip*) p->access(off_ip_);
+	for (q = queue->head(), qq = q; q != 0; q = q->next()) {
+		if (compareFlows((hdr_ip*) q->access(off_ip_), iph)) {
+			if (q->type() == PT_ACK) {
+				hdr_tcp *th = (hdr_tcp*) q->access(off_tcp_);
+				if (th->seqno() < ack) { // remove this ack
+				      printf("Removing ack %d\n", th->seqno());
+					queue->purge(q, qq);
+				}
+			}
+		}
+		qq = q;
+	}
+}
+	  
+DropTailFilter::DropTailFilter()
+{
+	bind("off_ip_", &off_ip_);
+        bind("off_tcp_", &off_tcp_);
+	QueueFilter::off_ip(off_ip_);
+	QueueFilter::off_tcp(off_tcp_);
+}
+
+
+void
+DropTailFilter::recv(Packet* p, Handler* handler)
+{
+	/* First filter packet/queue, and then enque it. */
+	filter(&q_, p);
+	Queue::recv(p);
 }

@@ -86,11 +86,13 @@ if [info exists flags(mh)] {
 	set ftp(3) [$tcp(3) attach-source FTP]
 	
 	set tcpfd(1) [open ${tcpfile}.1 w]
+	set tcpfd(2) [open ${tcpfile}.2 w]
 	$tcp(1) trace $tcpfd(1)
+	$tcp(2) trace $tcpfd(2)
 
 	# $ns at 0 "$ftp(0) start"
 	$ns at 0 "$ftp(1) start"
-	# $ns at 0.02 "$ftp(2) start"
+	$ns at 0.02 "$ftp(2) start"
 	# $ns at 0.03 "$ftp(3) start"
 } else {
 	set n(0) [$ns node]

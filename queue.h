@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.10.2.3 1997/04/20 23:30:06 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.10.2.4 1997/04/26 01:47:49 hari Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -75,7 +75,7 @@ public:
 	}
 	/* remove a specific packet, which must be in the queue */
 	void remove(Packet*);
-
+	void purge(Packet *, Packet *);	/* remove pkt 1 (located after 2) */
 	inline Packet* head() { return head_; }
 	QueueMonitor*& qm() { return qm_; }
 protected:

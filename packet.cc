@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.5 1997/03/29 01:42:57 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.5.2.1 1997/04/26 01:47:45 hari Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -86,4 +86,16 @@ public:
                 return (new PacketHeaderManager);
         }
 } class_packethdr_mgr;
+
+int &
+Packet::size()
+{
+	return ((hdr_cmn*)access(0))->size();
+}
+
+int &
+Packet::type()
+{
+	return ((hdr_cmn*)access(0))->ptype();
+}
 

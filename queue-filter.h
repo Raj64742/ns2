@@ -1,7 +1,7 @@
 /*
- * Copyright (c) 1994 Regents of the University of California.
+ * Copyright (c) 1997 The Regents of the University of California.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -12,12 +12,12 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *	This product includes software developed by the Computer Systems
- *	Engineering Group at Lawrence Berkeley Laboratory.
+ * 	This product includes software developed by the Network Research
+ * 	Group at Lawrence Berkeley National Laboratory.
  * 4. Neither the name of the University nor of the Laboratory may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -31,28 +31,55 @@
  * SUCH DAMAGE.
  */
 
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.2.2.4 1997/04/26 01:47:43 hari Exp $ (LBL)";
-#endif
-
-#include <string.h>
 #include "queue.h"
+#include "ip.h"
+#include "tcp.h"
 #include "drop-tail.h"
 
-/*
- * drop-tail
- */
-void DropTail::enque(Packet* p)
-{
-	q_.enque(p);
-	if (q_.length() > qlim_) { /* changed >= to > */
-		q_.remove(p);
-		drop(p);
+class PacketCompress : public Connector {
+public:
+	PacketCompress() {
+		bind("packetSize_", &packetSize_);
 	}
-}
+	void recv(Packet* p, Handler* h) {
+		((hdr_cmn*)p->access(0))->size() = packetSize_;
+		send(p, h);
+	}
+private:
+	int packetSize_;
+};
 
-Packet* DropTail::deque()
-{
-	return (q_.deque());
-}
+class QueueFilter {
+ public:
+	QueueFilter() {};
+//	int command(int argc, const char*const* argv);
+	void filter(PacketQueue *q, Packet *p);
+	void compress(Packet *p);
+	int compareFlows(hdr_ip *, hdr_ip *);
+	int off_ip(int val) { return off_ip_ = val; }
+	int off_tcp(int val) { return off_tcp_ = val; }
+ private:
+	int off_ip_;
+	int off_tcp_;
+};
+
+class DropTailFilter : public QueueFilter, public DropTail {
+ public:
+	DropTailFilter();
+	int command(int argc, const char*const* argv) {
+		return DropTail::command(argc, argv);
+//		return QueueFilter::command(argc, argv);
+	}
+	void recv(Packet *, Handler *);
+  private:
+	int off_ip_;
+	int off_tcp_;
+};
+
+class DropTailFilterClass : public TclClass {
+ public: 
+	DropTailFilterClass() : TclClass("Queue/DropTail/Filter") {}
+	TclObject* create(int argc, const char*const* argv) {
+                return (new DropTailFilter);
+        }
+} class_drop_tail_filter;
