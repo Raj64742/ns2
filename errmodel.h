@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.17 1997/11/11 00:21:12 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.18 1997/11/11 20:11:13 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -105,7 +105,5 @@ protected:
 	int drop_offset_;
         int off_srm_;
 };
-
-#include "srm-headers.h"		// to get the hdr_srm structure
 
 #endif

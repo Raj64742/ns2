@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.19 1997/11/11 00:21:12 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.20 1997/11/11 20:11:12 gnguyen Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -41,6 +41,7 @@ static const char rcsid[] =
 #include "ll.h"
 #include "mac.h"
 #include "errmodel.h"
+#include "srm-headers.h"		// to get the hdr_srm structure
 
 static class ErrorModelClass : public TclClass {
 public:
