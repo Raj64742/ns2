@@ -27,10 +27,10 @@ Therefore, the user must specify multicast requirements
 to the Simulator class before creating the topology.
 This is done in one of two ways:
 \begin{program}
-        set ns [new Simulator -multicast ignored_flag]
+        set ns [new Simulator -multicast on]
     {\rm or}
         set ns [new Simulator]
-        $ns multicast ignored_argument
+        $ns multicast
 \end{program}			%$
 When multicast extensions are thus enabled, nodes will be created with
 additional classifiers and replicators for multicast forwarding, and
@@ -39,26 +39,30 @@ packets entering a node.
 
 A multicast routing strategy is the mechanism by which
 the multicast distribution tree is computed in the simulation.
-\ns\ supports two multiast route computation strategies:
-	centralised or detailed.
+\ns\ supports three multiast route computation strategies:
+	centralised, dense mode(DM) or shared tree mode(ST).
 
 The method \proc[]{mrtproto} in the Class Simulator specifies either
 the route computation strategy, for centralised multicast routing, or
 the specific detailed multicast routing protocol that should be used.
-For detailed multicast routing, \proc[]{mrtproto} will accept, as
-additional arguments, a list of nodes that will run an instance of
-that routing protocol.  Thus, the following are examples of valid
+
+%%For detailed multicast routing, \proc[]{mrtproto} will accept, as
+%%additional arguments, a list of nodes that will run an instance of
+%%that routing protocol.  
+%%Polly Huang Wed Oct 13 09:58:40 EDT 199: the above statement
+%%is no longer supported.
+
+The following are examples of valid
 invocations of multicast routing in \ns:
 \begin{program}
-        set cmc [$ns mrtproto CtrMcast \{\}]    \; specify centralized multicast for all nodes;
+        set cmc [$ns mrtproto CtrMcast]    \; specify centralized multicast for all nodes;
         \; cmc is the handle for multicast protocol object;
-        $ns mrtproto DM $n1 $n2 $n3 \; specify dense mode multicast for nodes n1, n2 and n3;
-        $ns mrtproto detailedDM                  \; specify dynamic dense mode to run on all nodes;
+        $ns mrtproto DM                   \; specify dense mode multicast for all nodes;
+        $ns mrtproto ST                  \; specify shared tree mode to run on all nodes;
 \end{program}
 Notice in the above examples that CtrMcast returns a handle that can
 be used for additional configuration of centralised multicast routing.
-The other routing protocols will return a null string.  If no
-additional nodes are specified for detailed multicast routing, all the
+The other routing protocols will return a null string.  All the
 nodes in the topology will run instances of the same protocol.
 
 Multiple multicast routing protocols can be run at a node, but in this
@@ -67,12 +71,13 @@ interface.  For this finer control \proc[]{mrtproto-iifs} is used.
 
 New/unused multicast address are allocated using the procedure
 \proc[]{allocaddr}.
-The default configuration in \ns\ only provides for 128 node
-topologies when multicast routing is enabled.  The procedure
-\proc[]{expandaddr} expands the address space to support $2^{30} - 1$
-node topologies.
-\proc[]{allocaddr} and \proc[]{expandaddr} are class
-procedures in the class Node.
+%%The default configuration in \ns\ only provides for 128 node
+%%topologies when multicast routing is enabled.  The procedure
+%%\proc[]{expandaddr} expands the address space to support $2^{30} - 1$
+%%node topologies.
+\proc[]{allocaddr} 
+%%and \proc[]{expandaddr} 
+is a class procedure in the class Node.
 
 The agents use the instance procedures
 \proc[]{join-group} and \proc[]{leave-group}, in
@@ -83,20 +88,19 @@ corresponding agent and second argument specifies the group address.
 An example of a relatively simple multicast configuration is:
 \begin{program}
         set ns [new Simulator {\bfseries{}-multicast on}] \; enable multicast routing;
-        Node expandaddr  \; expand address space, required if more than 128 nodes;
         set group [{\bfseries{}Node allocaddr}]   \; allocate a multicast address;
         set node0 [$ns node]         \; create multicast capable nodes;
         set node1 [$ns node]
-        $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
+        $ns duplex-link $node0 $node1 1.5Mb 10ms DropTail
 
-        set mproto detailedDM          \; configure multicast protocol;
-        set mrthandle [{\bfseries{}$ns mrtproto $mproto \{\}}] \; if an empty list is give,;
-                \; all nodes will contain multicast protocol agents;
+        set mproto DM          \; configure multicast protocol;
+        set mrthandle [{\bfseries{}$ns mrtproto $mproto}] \; all nodes will contain multicast protocol agents;
         set udp [new Agent/UDP]		\; create a source agent at node 0;
         $ns attach-agent $node0 $udp 
         set src [new Application/Traffic/CBR]        
         $src attach-agent $udp
-        {\bfseries{}$udp set dst_ $group}
+        {\bfseries{}$udp set dst_addr_ $group}
+        {\bfseries{}$udp set dst_port_ 0}
 
         set rcvr [new Agent/LossMonitor]  \; create a receiver agent at node 1;
         $ns attach-agent $node1 $rcvr
@@ -105,27 +109,42 @@ An example of a relatively simple multicast configuration is:
 
 \subsection{Multicast Behavior Monitor Configuration}
 \ns\ supports a multicast monitor module that can trace
-some types of packet activity about a specific source group pair.
+user-defined packet activity.
 The module counts the number of packets in transit periodically
-and prints the results to stdout. \proc[]{trace-topo} counts
-all links.  \proc[]{trace-tree} counts only links on the tree.
-Currently, it only traces prune, join, register, and data packets.
+and prints the results to specified files. \proc[]{attach} enables a 
+monitor module to print output to a file. 
+\proc[]{trace-topo} insets monitor modules into all links. 
+\proc[]{filter} allows accounting on specified packet header, 
+field in the header), and value for the field).  Calling \proc[]{filter}
+repeatedly will result in an AND effect on the filtering condition.
+\proc[]{print-trace} notifies the monitor module to begin dumping data.
+\code{ptype()} is a global arrary that takes a packet type name (as seen in
+\proc[]{trace-all} output) and maps it into the corresponding value.  
+A simple configuration to filter cbr packets on a particular group is:
 
 \begin{program}
         set mcastmonitor [$ns McastMonitor]
+        set chan [open cbr.tr w] \; open trace file;
+        $mmonitor attach $chan1  \; attach trace file to McastMoniotor object;
         $mcastmonitor set period_ 0.02         \; default 0.03 (sec);
-        $mcastmonitor trace-topo $src $group   \; trace the entire topology;
+        $mmonitor trace-topo   \; trace entire topology;
+        $mmonitor filter Common ptype_ $ptype(cbr) \; filter on ptype_ in Common header;
+        $mmonitor filter IP dst_ $group \; AND filter on dst_ address in IP header;
+        $mmonitor print-trace  \; begin dumping periodic traces to specified files;
+
 \end{program} %$
 
 % SAMPLE OUTPUT?
-The following sample output illustrates the output file format (time, prune, join, register, data, source, group):
+The following sample output illustrates the output file format (time, count):
 {\small
 \begin{verbatim}
-0.14999999999999999 0 0 4 0 0 32770
-0.17999999999999999 0 0 4 0 0 32770
-0.20999999999999999 0 0 4 2 0 32770
-0.23999999999999999 0 0 4 7 0 32770
-0.27000000000000002 0 0 4 8 0 32770
+0.16 0
+0.17999999999999999 0
+0.19999999999999998 0
+0.21999999999999997 6
+0.23999999999999996 11
+0.25999999999999995 12
+0.27999999999999997 12
 \end{verbatim}
 }
 
@@ -150,13 +169,13 @@ unicast to the RP even if there are no receivers for the group.
 The method of enabling centralised multicast routing in a simulation is:
 \begin{program}
         set mproto CtrMcast    \; set multicast protocol;
-        set mrthandle [$ns mrtproto $mproto \{\}]
+        set mrthandle [$ns mrtproto $mproto] 
 \end{program}
 The command procedure \proc[]{mrtproto}
 returns a handle to the multicast protocol object.
 This handle can be used to control the RP and the boot-strap-router (BSR),
 switch tree-types for a particular group,
-from shared trees to source specific trees or vice-versa, and
+from shared trees to source specific trees, and
 recompute multicast routes.
 \begin{program}
         $mrthandle set_c_rp $node0 $node1          \; set the RPs;
@@ -208,7 +227,7 @@ Simplified sparse mode \code{ST.tcl} is a version of a shared--tree
 multicast protocol.  Class variable array \code{RP\_} indexed by group
 determines which node is the RP for a particular group.  For example:
 \begin{program}
-        ST set RP_(0x8002) $node_(n0)
+        ST set RP_($group) $node0
         $ns mrtproto ST
 \end{program}
 At the time the multicast simulation is started, the protocol will
