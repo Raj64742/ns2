@@ -1,2 +1,31 @@
 # To run simulations:
 ns red-pd.tcl one netTestIdent TestIdent
+# TFRC test, 4 flows (set in traffic.tcl), 
+ns red-pd.tcl one netTFRC TFRC
+ns red-pd.tcl one netTFRC TFRC disable
+#
+#
+## Tests:
+# one: for tests with a single congested link
+# multi: multiple congested link tests
+#
+## Topologies:
+# netAllUDP:
+# netMix:
+# netTFRC:
+# netAllTCP: 
+# netWeb: For Web Traffic Simulations
+# netMulti: For multiple congested links
+# netTestFRp:
+# netTestIdent:
+#
+## Traffic:
+# Mix:
+# AllTCP: 
+# AllUDP:
+# TestIdent:
+# Web:
+# Multi:
+# TFRC:
+# TestFRp:
+
