@@ -609,7 +609,10 @@ CMUTrace::nam_format(Packet *p, int offset)
 	// this value 250 is pre-calculated by using 
 	// two-ray ground refelction model with fixed
 	// transmission power 3.652e-10
-	if ((op == 'h')  && (distance > 250 )) return ;
+	if ((type_ == SEND)  && (distance > 250 )) return ;
+
+	if(tracetype == TR_ROUTER && type_ == RECV && dst != -1 ) return ;
+	if(type_ == RECV && dst == -1 )dst = src_ ; //broadcasting event
 
 	sprintf(nwrk_ ,
 		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
