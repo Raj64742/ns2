@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.126 1998/10/27 00:50:15 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.127 1998/10/27 23:48:09 yuriy Exp $
 
 #
 
@@ -850,14 +850,6 @@ Classifier/Hash instproc init nbuck {
 	$self instvar shift_ mask_
 	set shift_ [AddrParams set NodeShift_(1)]
 	set mask_ [AddrParams set NodeMask_(1)]
-}
-
-Simulator instproc getlink { id1 id2 } {
-	$self instvar link_
-	if [info exists link_($id1:$id2)] {
-		return $link_($id1:$id2)
-	}
-	return -1
 }
 
 Simulator instproc multi-link { nodes bw delay type } {
