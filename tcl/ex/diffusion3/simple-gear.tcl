@@ -14,6 +14,7 @@ set opt(mac)		Mac/802_11
 set opt(ifq)		Queue/DropTail/PriQueue
 set opt(ll)		LL
 set opt(ant)            Antenna/OmniAntenna
+set opt(diffFilters)    GradientFilter/GeoRoutingFilter
 set opt(x)		670	;# X dimension of the topography
 set opt(y)		670     ;# Y dimension of the topography
 set opt(ifqlen)		50	;# max packet in ifq
@@ -93,6 +94,7 @@ $ns_ node-config -adhocRouting $opt(adhocRouting) \
 		 -phyType $opt(netif) \
 		 -channelType $opt(chan) \
 		 -topoInstance $topo \
+                 -diffusionFilter $opt(diffFilters) \
 		 -agentTrace ON \
                  -routerTrace ON \
                  -macTrace ON \
@@ -136,7 +138,7 @@ $node_(1) set Z_ 0.000000000000
 set src_(0) [new Application/DiffApp/PingSender]
 $ns_ attach-diffapp $node_(0) $src_(0)
 $ns_ at 0.123 "$src_(0) publish"
-$ns_ add-gear $node_(0)
+#$ns_ add-gear $node_(0)
 
 # another diff application
 
@@ -150,7 +152,7 @@ $ns_ add-gear $node_(0)
 set snk_(0) [new Application/DiffApp/PingReceiver]
 $ns_ attach-diffapp $node_(1) $snk_(0)
 $ns_ at 1.456 "$snk_(0) subscribe"
-$ns_ add-gear $node_(1)
+#$ns_ add-gear $node_(1)
 
 # Define node initial position in nam
 

@@ -14,6 +14,8 @@ set opt(mac)		Mac/802_11
 set opt(ifq)		Queue/DropTail/PriQueue
 set opt(ll)		LL
 set opt(ant)            Antenna/OmniAntenna
+set opt(filters)        GradientFilter    ;# options can be one or more of 
+                                ;# TPP/OPP/Gear/Rmst/SourceRoute/Log/TagFilter
 set opt(x)		670	;# X dimension of the topography
 set opt(y)		670     ;# Y dimension of the topography
 set opt(ifqlen)		50	;# max packet in ifq
@@ -93,6 +95,7 @@ $ns_ node-config -adhocRouting $opt(adhocRouting) \
 		 -phyType $opt(netif) \
 		 -channelType $opt(chan) \
 		 -topoInstance $topo \
+                 -diffusionFilter $opt(filters) \
 		 -agentTrace ON \
                  -routerTrace OFF \
                  -macTrace ON
