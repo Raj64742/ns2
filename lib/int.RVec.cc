@@ -36,6 +36,7 @@
 #pragma implementation
 #endif
 #include "lib/int.RVec.h"
+#include <string.h>   // for memset
 
 
 void
