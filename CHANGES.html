@@ -2,11 +2,11 @@
 <html>
 <head>
    <meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1">
-   <meta name="GENERATOR" content="Mozilla/4.75 [en] (X11; U; Linux 2.2.12 i386) [Netscape]">
+   <meta name="GENERATOR" content="Mozilla/4.72 [en] (X11; U; Linux 2.2.14-5.0 i686) [Netscape]">
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.466 2001/06/12 23:57:10 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.467 2001/06/14 22:32:21 weiye Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -14,256 +14,300 @@ This ChangeLog is updated in the reverse order
 with the most recent changes coming first.
 -->
 <hr>
-<H3>ns-2.1b9 release PENDING</h3>
+<h3>
+ns-2.1b9 release PENDING</h3>
 
-<li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
-Tue Jun 12 16:55:03 PDT 2001<br>
-Added a parameter summarystats_ to Queue/RED to report the true
-average queue size since the beginning of the simulation.  The 
-validation test and example is in ``./test-all-simple stats2'' in ``tcl/tests''.
+<li>
+<b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> Thu Jun 14 15:20:55
+PDT 2001</li>
 
-<li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
-Sat Jun  9 13:44:00 PDT 2001<br>
-Added options to ErrorModel for delaying packets.
-The validation test and example is ``./test-all-links delayPacket''
-in ``tcl/test''.
+<br>Added the visibility-based shadowing propagation model, shadowing-vis.{h,
+cc}. It uses a bitmap to represent the environment of the wireless network.
+Two shadowing models are used for either line-of-sight or obstructed transmission.
+The example script wireless-shadowing-vis-test.tcl and the bitmap environment.pnm
+can be found at ns-2/tcl/ex/.
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> Tue Jun 12 16:55:03
+PDT 2001</li>
 
+<br>Added a parameter summarystats_ to Queue/RED to report the true average
+queue size since the beginning of the simulation. The validation test and
+example is in ``./test-all-simple stats2'' in ``tcl/tests''.
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> Sat Jun 9 13:44:00
+PDT 2001</li>
+
+<br>Added options to ErrorModel for delaying packets. The validation test
+and example is ``./test-all-links delayPacket'' in ``tcl/test''.&nbsp;
 <hr>
-<h3><a href="http://www.isi.edu/nsnam/dist/ns-src-2.1b8.tar.gz">ns-2.1b8 </a>released on Wed June 06 11:05:52 PDT 2001</h3>
+<h3>
+<a href="http://www.isi.edu/nsnam/dist/ns-src-2.1b8.tar.gz">ns-2.1b8 </a>released
+on Wed June 06 11:05:52 PDT 2001</h3>
 
-<li><b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b>
-Wed May 30 16:20:46 PDT 2001
-<br>
- Bug fix in Mac 802.3 Collision trace code. 
- Added separate drop head for mac layer. Now collision are reported in trace file as 'c' 
- If there are 17 collisions for a packet, it indicates that it is dropped due to extensive collisions 
- 
-<li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
-Sun May 27 22:56:14 PDT 2001<br>
-Made several small changes to two-way TCP, in tcp-full.cc.<br>
-Made a small change so that a timeout after an ECN, for the same window of
-data, does not result in another reduction in the congestion window.<br>
-Made a small fix so that "overhead_" works correctly with FullTcp, to
-add a random overhead to the packet sending time.<br>
-Added the ability to specify packetSize and have segsize derived from
+<li>
+<b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b> Wed May
+30 16:20:46 PDT 2001</li>
+
+<br>Bug fix in Mac 802.3 Collision trace code. Added separate drop head
+for mac layer. Now collision are reported in trace file as 'c' If there
+are 17 collisions for a packet, it indicates that it is dropped due to
+extensive collisions
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> Sun May 27 22:56:14
+PDT 2001</li>
+
+<br>Made several small changes to two-way TCP, in tcp-full.cc.
+<br>Made a small change so that a timeout after an ECN, for the same window
+of data, does not result in another reduction in the congestion window.
+<br>Made a small fix so that "overhead_" works correctly with FullTcp,
+to add a random overhead to the packet sending time.
+<br>Added the ability to specify packetSize and have segsize derived from
 that, and vice versa.
-<br>
-Created the Tcl procedure create-connection-listen for creating
-two-way TCP connections.
-<br>
-Added three new validation tests for two-way TCP,
-test-all-ecn-full, test-all-simple-full, and test-all-tcp-init-win-full.
-There are several validation tests commented out because they don't yet
-work correctly.  One example is sack4 in test-all-tcp-init-win-full.
-There are also many validation tests for one-way TCP that have not
-yet been ported to two-way TCP.
+<br>Created the Tcl procedure create-connection-listen for creating two-way
+TCP connections.
+<br>Added three new validation tests for two-way TCP, test-all-ecn-full,
+test-all-simple-full, and test-all-tcp-init-win-full. There are several
+validation tests commented out because they don't yet work correctly. One
+example is sack4 in test-all-tcp-init-win-full. There are also many validation
+tests for one-way TCP that have not yet been ported to two-way TCP.
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> Sun May 27 13:38:04
+PDT 2001</li>
 
-<li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
-Sun May 27 13:38:04 PDT 2001<br>
-Changed some defaults for TCP and RED, over the last few weeks.
-<br>
-Added minrto_ to TCP, with a minimum RTO, with a default of 1 second.
-Added the variable timerfix_, with default set to true, to update the
-TCP RTO timer *after* the RTT is updated, instead of before. 
-<br>
-Changed the defaults for the Agent/TCP variables syn_ and delay_growth_ to
-true, and changed the default for Agent/TCP/windowInit_ to 2,
-so that the first packet is 40 bytes, like a SYN packet,
-and the initial window of two packets starts after the ACK 
-for the first packet has been received.
-<br>
-Changed the default for Queue/RED/gentle_ to true, so that
-the dropping probability increases gradually as the average
-queue size exceeds maxthresh.
+<br>Changed some defaults for TCP and RED, over the last few weeks.
+<br>Added minrto_ to TCP, with a minimum RTO, with a default of 1 second.
+Added the variable timerfix_, with default set to true, to update the TCP
+RTO timer *after* the RTT is updated, instead of before.
+<br>Changed the defaults for the Agent/TCP variables syn_ and delay_growth_
+to true, and changed the default for Agent/TCP/windowInit_ to 2, so that
+the first packet is 40 bytes, like a SYN packet, and the initial window
+of two packets starts after the ACK for the first packet has been received.
+<br>Changed the default for Queue/RED/gentle_ to true, so that the dropping
+probability increases gradually as the average queue size exceeds maxthresh.
+<li>
+<b><a href="mailto:intanago@isi.edu">[Chalermek Intanagonwiwat]</a></b>
+Fri May 25 02:42:21 PDT 2001</li>
 
-<LI><B><A HREF="mailto:intanago@isi.edu">[Chalermek Intanagonwiwat]</A></B>
-Fri May 25 02:42:21 PDT 2001
-<BR>Small bug fixes in diffusion. Get rid of a random number that is generated from a pointer. Start() should be virtual.
+<br>Small bug fixes in diffusion. Get rid of a random number that is generated
+from a pointer. Start() should be virtual.
+<li>
+<b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b> Tue May 22 09:58:13
+PDT 2001</li>
 
+<br>Ported Rishi Bhargava's source-routing code into ns. Most files under
+~ns/src_rtg/. Example script tcl/ex/src_test.tcl &amp; tcl/test/test-suite-source-routing.tcl
+<li>
+<b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b> Mon May 21 12:11:42
+PDT 2001</li>
 
-<LI><B><A HREF="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
-Tue May 22 09:58:13 PDT 2001
-<BR>Ported Rishi Bhargava's source-routing code into ns. Most files under ~ns/src_rtg/. Example script tcl/ex/src_test.tcl & tcl/test/test-suite-source-routing.tcl
+<br>First cut for event-tracing support added - support added for Tcp only.
+Shall be extended to cover all tcp test-suites in future. also support
+to be added for agents other than tcp.
+<li>
+<b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b> Tue May
+15 5:30:45 PDT 2001</li>
 
+<br>Bug Fix in BayTcp code to prevent packets being sent to absent application
+agent.
+<li>
+<b><a href="mailto:sheth@usc.edu">[Ankur Sheth]</a></b> Tue May 15 2:00:45
+PDT 2001</li>
 
-<LI><B><A HREF="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
-Mon May 21 12:11:42 PDT 2001
-<BR>First cut for event-tracing support added - support added for Tcp only. Shall be extended to cover all tcp test-suites in future. also support to be added for agents other than tcp.
+<br>Added emulation code for passing TCP/UDP traffic through ns. TTL values
+are updated in live network packets to reflect ns hops. Example script
+provided in ~ns/emulate/thrutcp.tcl along with configuration instructions.
+<li>
+<b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b> Tue May
+15 2:00:45 PDT 2001</li>
 
-<LI><B><A href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</A></B>
-Tue May 15 5:30:45 PDT 2001
-<BR>Bug Fix in BayTcp code to prevent packets being sent to 
-absent application agent.
-
-
-<LI><B><A href="mailto:sheth@usc.edu">[Ankur Sheth]</A></B>
-Tue May 15 2:00:45 PDT 2001
-<br>Added emulation code for passing TCP/UDP traffic through ns. 
-TTL values are updated in live network packets to reflect ns hops.
-Example script provided in ~ns/emulate/thrutcp.tcl along with
-configuration instructions.
-
-
-<LI><B><A href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</A></B>
-Tue May 15 2:00:45 PDT 2001
-<BR>Added emulation support to allow ns BayFullTCP agent to interact with
+<br>Added emulation support to allow ns BayFullTCP agent to interact with
 real world TCP application. Active and passive connections are supported.
-Example script provided in ~ns/emulate/tcpemu.tcl along with 
-configuration instructions.
+Example script provided in ~ns/emulate/tcpemu.tcl along with configuration
+instructions.
+<li>
+<b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b> Thu Apr 5 15:50:46
+PDT 2001</li>
 
+<br>Ported Kathy Nichole's version of full-tcp into ns (calling it BayTcp).
+files are under ~ns/baytcp dir. ex script ~ns/tcl/ex/redlight.tcl first
+cut and yet to be thoroughly tested for all corners and bugs.
+<li>
+<b><a href="mailto:jahn@isi.edu">[Jong-Suk Ahn]</a></b> Thu Mar 15 12:00:00
+PST 2001</li>
 
-<LI><B><A href="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
-Thu Apr  5 15:50:46 PDT 2001
-<BR>Ported Kathy Nichole's version of full-tcp into ns (calling it BayTcp).
-files are under ~ns/baytcp dir. ex script ~ns/tcl/ex/redlight.tcl
-first cut and yet to be thoroughly tested for all corners and bugs.
+<br>Expanded node-config command to add error models into a protocol stack
+of wireless nodes. For the usage, see test-suite-wireless-lan-newnode-err.tcl.
+Furthermore, an experimental bit-error model and a simple FEC module are
+added in errmodel.cc and fec.cc
+<li>
+<b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b> Tue Mar 6 12:32:23
+PST 2001</li>
 
+<br>Added bind function for binding TclObjects in tclcl. Files modified:
+tclcl.h, Tcl.cc. See rtmodule.cc &amp; ns-rtmodule.tcl for example.
+<li>
+<b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b> Fri Mar 2 10:59:12
+PST 2001</li>
 
-<LI><B><A href="mailto:jahn@isi.edu">[Jong-Suk Ahn]</A></B>
-Thu Mar 15  12:00:00 PST 2001
-<BR>Expanded node-config command to add error models into a protocol
-stack of wireless nodes. For the usage, see
-test-suite-wireless-lan-newnode-err.tcl. Furthermore, an
-experimental bit-error model and a simple FEC module are added in
-errmodel.cc and fec.cc
-
-<LI><B><A href="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
-Tue Mar  6 12:32:23 PST 2001
-<BR>Added bind function for binding TclObjects in tclcl. Files modified: tclcl.h, Tcl.cc. See rtmodule.cc & ns-rtmodule.tcl for example.
-
-<LI><B><A href="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
-Fri Mar  2 10:59:12 PST 2001
-<BR>Nix-Vector Routing contributed to ns from George F.Riley, Georgia Tech, was integrated into ns source code.
-<UL>
-List of files added/modified:
-<LI>Makefile.in
-<LI>addition of new directory ~ns/nix:
-<UL>
-<LI>classifier-nix{.cc,.h}
-<LI>hdr_nv{.cc,.h}
-<LI>nixnode{.cc,.h}
-<LI>nixroute.cc
-<LI>nixvector{.cc,.h}
-</UL>
-<LI>tcl/lib/ns-rtmodule.tcl
-<LI>tcl/lib/ns-lib.tcl
-<LI>tcl/lib/ns-packet.tcl
-<LI>tcl/test/test-all-nixvec
-<LI>tcl/test/test-suite-nixvec.tcl
-<LI>tcl/test/test-output-nixvec/{NixVec.Z,NoNixVec.Z,quite.Z}
-</UL>
-Contact info of contributor: George Riley(riley@cc.gatech.edu)
-
-<LI><B><A href="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
-Thu Mar  1 10:27:46 PST 2001
-<BR>
-Error checking added for out of range address for ascii-to-interger conversions in addr2str routine.
-
-<LI><B><A href="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
-Thu Feb 22 11:10:01 PST 2001
-<BR>
-The following modifications made to the routing code in NS:
-1. In order to increase run-time efficiency, we moved iteration-heavy parts of routing from OTcl to C++. The classifier-population has been moved to C++ which have resulted in run-time efficiency increase of more 50%.
-2. Simulator is now a split object. It manitains a list of node both in OTCl and C++. will try to reduce it down to a single list: routing-modification partII.
-3. Every node now maintains a pointer to the head of routing module chain. so incase of a routing add/update, the info flows from head of the chain to the other modules connected in the chain. same model should be there in Otcl which will replace the routing module list maintained by each node. --to-do-for-partII.
-4. Population of classifiers now done by routing modules entirely in C++.
-5. A new ParentNode class added that acts as parent class for different kinds of nodes like Node, LanNode, AbsLanNode, BroadcastNode etc.
-6. Wireless routing modules to be added in future --PartII. 
-
-<li><b>Yuri</b>
-Mon Feb 19 12:31:47 PST 2001<br>
-Fixed the "packet RX while in IFS" bug in 802.3, that could lead to packet
-duplication.
-
-<li><b><a href="mailto:yaxu@isi.edu">[Ya Xu]</a>
-Wed Feb  7 01:24:56 PST 2001 </b></li>
-<br>
-<pre>
-Add GAF algorithm (for AODV and DSR) into ns
-Validation test suite is added too.
-A bug regarding multicast address in AODV code has been fixed
-</pre>
-
-<li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
-Thu Jan 18 19:34:44 PST 2001<br>
-Added ECN to TFRC, the equation-based congestion control module.
-
-<li><b><a href="mailto:tomh@geocast.com">[Tom Henderson]</a>
-Fri Jan 12 09:45:00 PST 2000</b></li>
-<br>
-Bug fix in satellite repeater code (ns-sat.tcl)-- interface queue limit was not changeable.  Reported by Haroldo Zattar.
-
-<li><b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b> </li>
-<br>
-Implemented an abstract LAN, in which CSMA/CD mechanism is
-replaced by a DropTail queue. <br>
-Validation tests provided in ~ns/tcl/test/test-suite-lan.tcl 
-
-
-
-<li><b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b> </li>
-<br>
-Added support for collision (MAC level) traces on the IEEE 802.3 LAN <br>
-Traces are indicated by  a 'c' in the trace file. These traces can be
-generated using a trace option in make-lan command.<br>
-Validation tests provided in ~ns/tcl/test/test-suite-lan.tcl 
-
+<br>Nix-Vector Routing contributed to ns from George F.Riley, Georgia Tech,
+was integrated into ns source code.
+<ul>List of files added/modified:
+<li>
+Makefile.in</li>
 
 <li>
-<b><a href="http://www.aciri.org/floyd/">[floyd]</a>
-Tue Dec 19 14:48:32 PST 2000</b></li>
-<br>
-Added DelAckSink::reset() to TCP sinks, to prevent a core dump when a TCP 
-connection is reset but the delay timer for delayed acks does not get reset 
-also.
-Bug report and fix from Joseph Ishac.  Validation test in
-"test-all-tcpReset".
-
-<li>
-<b><a href="http://www.isi.edu/~xuanc/">[Xuan Chen]</a></b>
-<b> Wed Dec 13 21:08:35 PST 2000</b>
-</li>
-<br>Added patch from <a href="mailto:ehw@lanl.gov">Eric Weigle</a> for
-TCP vegas. 
-
-<li>
-<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Tue Dec 12 10:36:34 PST 2000</b></li>
-    <br> Updated config.guess to autoconf's current one.
-
-<li>
-<b><a href="http://www.isi.edu/~xuanc/">[Xuan Chen]</a></b> <b>
-Mon Nov 27 20:22:49 PST 2000
-</b></li>
+addition of new directory ~ns/nix:</li>
 
 <ul>
 <li>
-Reorganized the policy related code in diffserv module, make different policies
-as seperate classes. Users can add their own policy easily.
-</li>
+classifier-nix{.cc,.h}</li>
+
 <li>
-Create a new class PolicyClassifier to keep states for different policies and 
-flows. 
-</li>
+hdr_nv{.cc,.h}</li>
+
+<li>
+nixnode{.cc,.h}</li>
+
+<li>
+nixroute.cc</li>
+
+<li>
+nixvector{.cc,.h}</li>
 </ul>
 
 <li>
-<b><a href="http://www.cs.washington.edu/homes/ratul">[ratul]</a></b> <b>Fri Nov 
-17 14:00:00 PST 2000</b></li>
+tcl/lib/ns-rtmodule.tcl</li>
+
+<li>
+tcl/lib/ns-lib.tcl</li>
+
+<li>
+tcl/lib/ns-packet.tcl</li>
+
+<li>
+tcl/test/test-all-nixvec</li>
+
+<li>
+tcl/test/test-suite-nixvec.tcl</li>
+
+<li>
+tcl/test/test-output-nixvec/{NixVec.Z,NoNixVec.Z,quite.Z}</li>
+</ul>
+Contact info of contributor: George Riley(riley@cc.gatech.edu)
+<li>
+<b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b> Thu Mar 1 10:27:46
+PST 2001</li>
+
+<br>Error checking added for out of range address for ascii-to-interger
+conversions in addr2str routine.
+<li>
+<b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b> Thu Feb 22 11:10:01
+PST 2001</li>
+
+<br>The following modifications made to the routing code in NS: 1. In order
+to increase run-time efficiency, we moved iteration-heavy parts of routing
+from OTcl to C++. The classifier-population has been moved to C++ which
+have resulted in run-time efficiency increase of more 50%. 2. Simulator
+is now a split object. It manitains a list of node both in OTCl and C++.
+will try to reduce it down to a single list: routing-modification partII.
+3. Every node now maintains a pointer to the head of routing module chain.
+so incase of a routing add/update, the info flows from head of the chain
+to the other modules connected in the chain. same model should be there
+in Otcl which will replace the routing module list maintained by each node.
+--to-do-for-partII. 4. Population of classifiers now done by routing modules
+entirely in C++. 5. A new ParentNode class added that acts as parent class
+for different kinds of nodes like Node, LanNode, AbsLanNode, BroadcastNode
+etc. 6. Wireless routing modules to be added in future --PartII.
+<li>
+<b>Yuri</b> Mon Feb 19 12:31:47 PST 2001</li>
+
+<br>Fixed the "packet RX while in IFS" bug in 802.3, that could lead to
+packet duplication.
+<li>
+<b><a href="mailto:yaxu@isi.edu">[Ya Xu]</a> Wed Feb 7 01:24:56 PST 2001</b></li>
+
+<pre>Add GAF algorithm (for AODV and DSR) into ns
+Validation test suite is added too.
+A bug regarding multicast address in AODV code has been fixed</pre>
+
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> Thu Jan 18 19:34:44
+PST 2001</li>
+
+<br>Added ECN to TFRC, the equation-based congestion control module.
+<li>
+<b><a href="mailto:tomh@geocast.com">[Tom Henderson]</a> Fri Jan 12 09:45:00
+PST 2000</b></li>
+
+<br>Bug fix in satellite repeater code (ns-sat.tcl)-- interface queue limit
+was not changeable. Reported by Haroldo Zattar.
+<li>
+<b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b></li>
+
+<br>Implemented an abstract LAN, in which CSMA/CD mechanism is replaced
+by a DropTail queue.
+<br>Validation tests provided in ~ns/tcl/test/test-suite-lan.tcl
+<li>
+<b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b></li>
+
+<br>Added support for collision (MAC level) traces on the IEEE 802.3 LAN
+<br>Traces are indicated by a 'c' in the trace file. These traces can be
+generated using a trace option in make-lan command.
+<br>Validation tests provided in ~ns/tcl/test/test-suite-lan.tcl
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a> Tue Dec 19 14:48:32
+PST 2000</b></li>
+
+<br>Added DelAckSink::reset() to TCP sinks, to prevent a core dump when
+a TCP connection is reset but the delay timer for delayed acks does not
+get reset also. Bug report and fix from Joseph Ishac. Validation test in
+"test-all-tcpReset".
+<li>
+<b><a href="http://www.isi.edu/~xuanc/">[Xuan Chen]</a>Wed Dec 13 21:08:35
+PST 2000</b></li>
+
+<br>Added patch from <a href="mailto:ehw@lanl.gov">Eric Weigle</a> for
+TCP vegas.
+<li>
+<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Tue Dec 12 10:36:34
+PST 2000</b></li>
+
+<br>Updated config.guess to autoconf's current one.
+<li>
+<b><a href="http://www.isi.edu/~xuanc/">[Xuan Chen]</a></b> <b>Mon Nov
+27 20:22:49 PST 2000</b></li>
 
 <ul>
-<li> Added RED-PD code to ns. RED-PD intorduces a pre-filter in front
-    of a RED queue to drop selected flows preferentially. 
-</li>
-<li> Added RED-PD simulation scripts containing the identification
-	engine to ns distribution at ~ns/tcl/red-pd.
-</li>
-<li> Added a preliminary version of Pushback code to ns. Pushback is
-    used to detect and control high bandwidth aggregates.
-</li>
-<li> Added a simple list structure in node.cc to help a Node keep a list
-    of neighbors. A similar list structure is present in mobile node I 
-    think, wonder if that can be brought down to base node.
-</li>
+<li>
+Reorganized the policy related code in diffserv module, make different
+policies as seperate classes. Users can add their own policy easily.</li>
+
+<li>
+Create a new class PolicyClassifier to keep states for different policies
+and flows.</li>
+</ul>
+
+<li>
+<b><a href="http://www.cs.washington.edu/homes/ratul">[ratul]</a></b> <b>Fri
+Nov 17 14:00:00 PST 2000</b></li>
+
+<ul>
+<li>
+Added RED-PD code to ns. RED-PD intorduces a pre-filter in front of a RED
+queue to drop selected flows preferentially.</li>
+
+<li>
+Added RED-PD simulation scripts containing the identification engine to
+ns distribution at ~ns/tcl/red-pd.</li>
+
+<li>
+Added a preliminary version of Pushback code to ns. Pushback is used to
+detect and control high bandwidth aggregates.</li>
+
+<li>
+Added a simple list structure in node.cc to help a Node keep a list of
+neighbors. A similar list structure is present in mobile node I think,
+wonder if that can be brought down to base node.</li>
 </ul>
 
 <li>
@@ -298,7 +342,6 @@ web traffic generator code</li>
 <li>
 bug fix in ReassemblyQueue::add(), full-tcp.cc, according to Li Fan's <a href="http://www.isi.edu/nsnam/archive/ns-users/webarch/2000/msg00551.html">report</a>
 on 10 Feb 2000</li>
-</ul>
 </ul>
 
 <hr>
@@ -3349,6 +3392,8 @@ PDT 1997</b></li>
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>Major Updates: SRM
 <ul>
 <li>
@@ -3579,6 +3624,8 @@ PDT 1997</b></li>
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>Small change to conf/config.head.in to look for socket() rather than
 poll() when searching for the -lsocket library. Also a new version of the
 configure script based on this.
@@ -3588,6 +3635,8 @@ configure script based on this.
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
@@ -4065,34 +4114,46 @@ to random.h.</li>
 <li>
 CBQ is now part of the simulator</li>
 
-<p><br>Generally works.
+<br>&nbsp;
+<p>&nbsp;
+<p>Generally works.
 <li>
 ALL default queue sizes are now 50 [per ns-1 defaults]</li>
 
 <li>
 QueueMonitors now know the difference between</li>
 
-<p><br>drops, arrivals, and departures and can monitor these
+<br>&nbsp;
+<p>&nbsp;
+<p>drops, arrivals, and departures and can monitor these
 <li>
 new class called 'Samples' which collects samples</li>
 
-<p><br>points of something and can provide a mean and variance of the points
+<br>&nbsp;
+<p>&nbsp;
+<p>points of something and can provide a mean and variance of the points
 (see integrator.cc)
 <li>
 Queues can be flow controlled</li>
 
-<p><br>by forcing them to be blocked or unblocked as needed. Also it's
-possible to make it so that when they send a packet they become blocked
-rather than unblocked.
+<br>&nbsp;
+<p>&nbsp;
+<p>by forcing them to be blocked or unblocked as needed. Also it's possible
+to make it so that when they send a packet they become blocked rather than
+unblocked.
 <li>
 common packet header</li>
 
-<p><br>contains a timestamp field; this is used to compute queueing delay
-for individual packets at queues
+<br>&nbsp;
+<p>&nbsp;
+<p>contains a timestamp field; this is used to compute queueing delay for
+individual packets at queues
 <li>
 classifier-hash</li>
 
-<p><br>a classifier to identify 'flows' ... still in development, but presently
+<br>&nbsp;
+<p>&nbsp;
+<p>a classifier to identify 'flows' ... still in development, but presently
 used by cbq
 <li>
 bug fixes/mintor changes to red.cc, test-suite-red.tcl</li>
