@@ -38,40 +38,41 @@ Class Http
 Http set srcType_ TCP/FullTcp
 Http set snkType_ ""
 Http set phttp_ 0
-Http set maxConnections_ 4
+Http set maxConn_ 4
 
 # The following rv* parameters can take a value or a RandomVariable object
 Http set rvThinkTime_ 3.0
 Http set rvReqLen_ 256
 Http set rvRepLen_ 4000
-Http set rvNumImg_ 4
 Http set rvImgLen_ 8000
+Http set rvNumImg_ 4
 
 Http instproc srcType {val} { $self set srcType_ $val }
 Http instproc snkType {val} { $self set snkType_ $val }
 Http instproc phttp {val} { $self set phttp_ $val }
-Http instproc maxConnections {val} { $self set maxConnections_ $val }
+Http instproc maxConn {val} { $self set maxConn_ $val }
 Http instproc rvThinkTime {{val ""}} { $self set rvThinkTime_ $val }
 Http instproc rvReqLen {val} { $self set rvReqLen_ $val }
 Http instproc rvRepLen {val} { $self set rvRepLen_ $val }
+Http instproc rvImgLen {val} { $self set rvImgLen_ $val }
 Http instproc rvNumImg {val} { $self set rvNumImg_ $val }
-Http instproc rvImgLen {val} { $self set rvNumImg_ $val }
 
 Http instproc init {ns client server args} {
 	$self init-all-vars $class
 	eval $self next $args
-	$self instvar srcType_ snkType_ phttp_ maxConnections_
+	$self instvar srcType_ snkType_
 	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar ns_ client_ server_ agents_
+	$self instvar phttp_ maxConn_ numImg_ numGet_ numPut_
+	$self instvar ns_ agents_ client_ server_ tStart_
 
 	set ns_ $ns
 	set client_(node) $client
 	set server_(node) $server
 	if {$phttp_ > 0} {
-		set $maxConnections_ 1
+		set $maxConn_ 1
 	}
 
-	for {set i 0} {$i <= $maxConnections_} {incr i} {
+	for {set i 0} {$i <= $maxConn_} {incr i} {
 		set csrc [new Agent/$srcType_]
 		set ssrc [new Agent/$srcType_]
 		lappend agents_(source) $csrc $ssrc
@@ -111,63 +112,78 @@ Http instproc value {rv} {
 	return $rv
 }
 
+Http instproc integer {rv} {
+	if ![catch "$rv value" val] {
+		return [expr int($val)]
+	}
+	return $rv
+}
+
 
 Http instproc start {} {
-	$self instvar srcType_ snkType_ phttp_ maxConnections_
 	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar ns_ client_ server_ agents_
-	$self instvar tStart_ numReq_
+	$self instvar phttp_ maxConn_ numImg_ numGet_ numPut_
+	$self instvar ns_ agents_ client_ server_ tStart_
 
 	set tStart_ [$ns_ now]
-	set numReq_ 0
-	$client_(0) produceByte [$self value $rvReqLen_]
+	set numGet_ 0
+	set numPut_ 0
+	set len [$self value $rvReqLen_]
+	$client_(0) produceByte $len
+	puts "Http $self starts at $tStart_"
+	puts "$self reqH$numGet_ [$client_(0) set agent_] $len"
 }
 
 Http instproc doneRequest {id} {
-	$self instvar srcType_ snkType_ phttp_ maxConnections_
 	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar ns_ client_ server_ agents_
-	$self instvar tStart_ numReq_
+	$self instvar phttp_ maxConn_ numImg_ numGet_ numPut_
+	$self instvar ns_ agents_ client_ server_ tStart_
 
 	if {$id == 0} {
-		set nbyte [$self value $rvRepLen_]
+		set len [$self value $rvRepLen_]
 	} else {
-		set nbyte [$self value $rvImgLen_]
+		set len [$self value $rvImgLen_]
 	}
-	$server_($id) produceByte $nbyte
+	$server_($id) produceByte $len
+	puts "$self send$numPut_ [$server_(0) set agent_] $len"
 }
 
 Http instproc doneReply {id} {
-	$self instvar srcType_ snkType_ phttp_ maxConnections_
 	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar ns_ client_ server_ agents_
-	$self instvar tStart_ numReq_
+	$self instvar phttp_ maxConn_ numImg_ numGet_ numPut_
+	$self instvar ns_ agents_ client_ server_ tStart_
 
 	if {$id == 0} {
-		set numReq_ [value $rvNumImg_]
-		for {set i 0} {$numReq_ > 0} {decr numReq_} {
-			set id [expr 1 + ($i % $maxConnections_)]
-			if {[incr i] > $maxConnections_} break
-			$client_($id) produceByte [$self value $rvReqLen_]
-		}
+		set numOpen $maxConn_
+		set numImg_ [$self integer $rvNumImg_]
+	} else {
+		set numOpen 1
+		incr numPut_
+	}
+	if {$numPut_ == $numImg_} {
+		$self donePage
 		return
 	}
 
-	if {$numReq_ <= 0} {
-		$self donePage
-	} else {
-		$client_($id) produceByte [$self value $rvReqLen_]
-		decr numReq_
+	for {set i 0} {$i < $numOpen} {incr i} {
+		if {[incr numGet_] > $numImg_} {
+			break
+		}
+		set id [expr $id ? $id : 1 + ($i % $maxConn_)]
+		set len [$self value $rvReqLen_]
+		$client_($id) produceByte $len
+		puts "$self reqI$numGet_ [$client_($id) set agent_] $len"
 	}
 }
 
 Http instproc donePage {} {
-	$self instvar srcType_ snkType_ phttp_ maxConnections_
 	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
-	$self instvar ns_ client_ server_ agents_
-	$self instvar tStart_ numReq_
+	$self instvar phttp_ maxConn_ numImg_ numGet_ numPut_
+	$self instvar ns_ agents_ client_ server_ tStart_
 
-	puts -nonewline " [format " %.3f" [expr [$ns_ now] - $tStart_]]"
-	set thinkTime [$self value $rvThinkTime_]
-	$ns_ at [expr [$ns_ now] + thinkTime] "$self start"
+	set now [$ns_ now]
+	set tt [$self value $rvThinkTime_]
+	set out [format "%.3f %.0f %.3f" [expr $now - $tStart_] $numImg_ $tt]
+	puts "Http $self donePage $out"
+	$ns_ at [expr $now + $tt] "$self start"
 }
