@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.230 2001/06/29 21:58:44 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.231 2001/07/05 21:17:47 haldar Exp $
 
 
 #
@@ -207,9 +207,11 @@ source ../mpls/ns-mpls-classifier.tcl
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl
 
-
 #pushback
 source ns-pushback.tcl
+
+# PGM
+source ../pgm/ns-pgm.tcl
 
 # Obsolete modules
 #source ns-wireless-mip.tcl
@@ -331,6 +333,14 @@ Simulator instproc MPLS { val } {
 	} else {
 		Node disable-module "MPLS"
 	}
+}
+
+Simulator instproc PGM { val } { 
+        if { $val == "ON" } {
+                Node enable-module "PGM"
+        } else {
+                Node disable-module "PGM"
+        }
 }
 
 Simulator instproc get-nodetype {} {

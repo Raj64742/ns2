@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.43 2001/03/02 19:31:01 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.44 2001/07/05 21:17:47 haldar Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -127,6 +127,9 @@ foreach prot {
 	Message
         MIP 
 	Ping
+	PGM
+	PGM_SPM
+	PGM_NAK
 	RAP 
 	RTP
 	Resv 

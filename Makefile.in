@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.225 2001/07/03 21:38:52 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.226 2001/07/05 21:17:46 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -55,7 +55,7 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK -DNIXVECTOR @V_DEFINE@ @V_DEFINES@ @DEFS@
+DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK -DNIXVECTOR @V_DEFINE@ @V_DEFINES@ @DEFS@ -DPGM -DPGM_DEBUG
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
@@ -192,6 +192,8 @@ OBJ_CC = \
 	parentnode.o \
 	basetrace.o \
 	simulator.o \
+	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
+	pgm/pgm-receiver.o pgm/rcvbuf.o \
 	@V_STLOBJ@
 
 

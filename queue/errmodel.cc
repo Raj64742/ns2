@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.70 2001/06/09 03:24:10 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.71 2001/07/05 21:17:46 haldar Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.70 2001/06/09 03:24:10 sfloyd Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.71 2001/07/05 21:17:46 haldar Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -920,3 +920,75 @@ int ErrorModule::command(int argc, const char*const* argv)
 	}
 	return (Connector::command(argc, argv));
 }
+
+#ifdef PGM
+
+#include "pgm/pgm.h"
+
+static class PGMErrorModelClass : public TclClass {
+public:
+       PGMErrorModelClass() : TclClass("PGMErrorModel") {}
+        TclObject* create(int, const char*const*) {
+                return (new PGMErrorModel);
+        }
+} class_pgm_errormodel;
+
+PGMErrorModel::PGMErrorModel() : ErrorModel(), pgm_type_(-1), count_(0)
+{
+        ndrops_ = 0;
+
+        bind("ndrops_", &ndrops_);
+}
+
+int PGMErrorModel::command(int argc, const char*const* argv)
+{
+        if (strcmp(argv[1], "drop-packet") == 0) {
+		if (!strcasecmp(argv[2], "SPM")) {
+			pgm_type_ = PGM_SPM;
+		}
+		else if (!strcasecmp(argv[2], "ODATA")) {
+			pgm_type_ = PGM_ODATA;
+		}
+		else if (!strcasecmp(argv[2], "RDATA")) {
+			pgm_type_ = PGM_RDATA;
+		}
+		else if (!strcasecmp(argv[2], "NAK")) {
+			pgm_type_ = PGM_NAK;
+		}
+		else if (!strcasecmp(argv[2], "NCF")) {
+			pgm_type_ = PGM_NCF;
+		}
+		else {
+			fprintf(stderr, "PGMErrorModel: drop-packet PGM type \"%s\" unknown.\n", argv[2]);
+			return TCL_ERROR;
+		}
+
+                drop_cycle_ = atoi(argv[3]);
+                drop_offset_ = atoi(argv[4]);
+                return TCL_OK;
+        }
+        return ErrorModel::command(argc, argv);
+}
+
+int PGMErrorModel::corrupt(Packet* p)
+{
+        if (unit_ == EU_PKT) {
+
+                hdr_cmn *ch = HDR_CMN(p);
+                hdr_pgm *hp = HDR_PGM(p);
+
+                if ((ch->ptype() == PT_PGM) && (hp->type_ == pgm_type_)) {
+			count_++;
+			if (count_ % drop_cycle_ == drop_offset_) {
+#ifdef PGM_DEBUG
+				printf ("DROPPING PGM packet type %d, seqno %d\n", pgm_type_, hp->seqno_);
+#endif
+				++ndrops_;
+				return 1;
+			}
+		}
+        }
+        return 0;
+}
+
+#endif // PGM

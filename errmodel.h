@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.43 2001/06/09 03:24:10 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.44 2001/07/05 21:17:46 haldar Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -211,5 +211,25 @@ protected:
 	void recv(Packet*, Handler*);
 	Classifier* classifier_;
 };
+
+#ifdef PGM
+
+// PGM error model
+class PGMErrorModel : public ErrorModel {
+public:
+        PGMErrorModel();
+        virtual int corrupt(Packet*);
+
+protected:
+        int ndrops_;
+        int command(int argc, const char*const* argv);
+        int pgm_type_;
+        int drop_cycle_;
+        int drop_offset_;
+
+	int count_;
+};
+
+#endif
 
 #endif
