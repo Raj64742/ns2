@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.23 1998/06/27 01:23:26 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.24 1998/08/24 21:46:53 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -146,7 +146,8 @@ public:
 	Packet*	pending_pkt() const { return (pending_pkt_); }
 	void		sched();
 	int		toplevel() {	// are we using toplevel?
-		return (eligible_ == &eligible_toplevel);
+// 		return (eligible_ == &eligible_toplevel);
+		return (eligible_ == TOPLEVEL);
 	}
 	void		toplevel_arrival(CBQClass*, double);
 protected:
@@ -168,8 +169,10 @@ protected:
 	int		maxlevel_;		// highest level# seen
 	int		toplevel_;		// for top-level LS
 
-	typedef int (CBQueue::*eligible_type_)(CBQClass*, double);
-	eligible_type_ eligible_;		// eligible function
+// 	typedef int (CBQueue::*eligible_type_)(CBQClass*, double);
+// 	eligible_type_ eligible_;		// eligible function
+	enum eligible_type_ { NONE, FORMAL, ANCESTORS, TOPLEVEL };
+	eligible_type_ eligible_;
 	int	eligible_formal(CBQClass*, double);
 	int	eligible_ancestors(CBQClass*, double) { return (1); }
 	int	eligible_toplevel(CBQClass* cl, double) {
@@ -195,7 +198,8 @@ public:
 
 CBQueue::CBQueue() : last_lender_(NULL), pending_pkt_(NULL), link_(NULL),
 	maxprio_(-1), maxpkt_(-1), maxlevel_(-1), toplevel_(MAXLEVEL),
-	eligible_((eligible_type_)NULL)
+// 	eligible_((eligible_type_)NULL)
+	eligible_(NONE)
 {
 	bind("maxpkt_", &maxpkt_);
 	memset(active_, '\0', sizeof(active_));
@@ -243,13 +247,16 @@ CBQueue::algorithm(const char *arg)
 {
 
 	if (*arg == '0' || (strcmp(arg, "ancestor-only") == 0)) {
-		eligible_ = &eligible_ancestors;
+// 		eligible_ = &eligible_ancestors;
+		eligible_ = ANCESTORS;
 		return (1);
 	} else if (*arg == '1' || (strcmp(arg, "top-level") == 0)) {
-		eligible_ = &eligible_toplevel;
+// 		eligible_ = &eligible_toplevel;
+		eligible_ = TOPLEVEL;
 		return (1);
 	} else if (*arg == '2' || (strcmp(arg, "formal") == 0)) {
-		eligible_ = &eligible_formal;
+// 		eligible_ = &eligible_formal;
+		eligible_ = FORMAL;
 		return (1);
 	} else if (*arg == '3' || (strcmp(arg, "old-formal") == 0)) {
 		fprintf(stderr, "CBQ: old-formal LS not supported\n");
@@ -424,8 +431,25 @@ CBQueue::find_lender(CBQClass* cl, double now)
 		// XXX we explicitly invoke this indirect method with
 		// the "this" pointer because MS VC++ can't parse it
 		// without it...
-		if ((this->*eligible_)(cl, now))
-			return (cl);
+// 		if ((this->*eligible_)(cl, now))
+// 			return (cl);
+		switch (eligible_) {
+		case TOPLEVEL:
+			if (eligible_toplevel(cl, now))
+				return (cl);
+			break;
+		case ANCESTORS:
+			if (eligible_ancestors(cl, now))
+				return (cl);
+			break;
+		case FORMAL:
+			if (eligible_formal(cl, now))
+				return (cl);
+			break;
+		default:
+			fprintf(stderr, "Wrong eligible_\n");
+			abort();
+		}
 		cl = cl->lender_;
 	}
 	return (cl);
