@@ -340,9 +340,9 @@ void TfrcAgent::increase_rate (double p)
 	if (maxrate_ > maximumrate) {
 		maximumrate = maxrate_;
 	}
-        if (rate_ > maxrate_)
+        if (rate_ > maximumrate)
 		// max allowed rate is max of: 2*receive rate, one pkt/RTT
-                rate_ = maxrate_;
+                rate_ = maximumrate;
         if (rate_ > rcvrate)
                 rate_ = rcvrate;
         oldrate_ = rate_;
