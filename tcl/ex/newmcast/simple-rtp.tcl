@@ -30,7 +30,9 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/newmcast/Attic/simple-rtp.tcl,v 1.3 1997/05/22 23:47:24 breslau Exp $
+# Modified by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/newmcast/Attic/simple-rtp.tcl,v 1.4 1997/07/25 00:12:52 polly Exp $
 #
 
 set ns [new MultiSim]
