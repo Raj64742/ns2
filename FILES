@@ -914,7 +914,13 @@ tcl/test/test-all-wireless-lan
 tcl/test/test-alloc-address.tcl
 tcl/test/test-output-aimd/tcp.Z
 tcl/test/test-output-aimd/tcpA.Z
+tcl/test/test-output-aimd/tcpA_newreno.Z
+tcl/test/test-output-aimd/tcpA_reno.Z
+tcl/test/test-output-aimd/tcpA_tahoe.Z
 tcl/test/test-output-aimd/tcpB.Z
+tcl/test/test-output-aimd/tcp_newreno.Z
+tcl/test/test-output-aimd/tcp_reno.Z
+tcl/test/test-output-aimd/tcp_tahoe.Z
 tcl/test/test-output-algo-routing
 tcl/test/test-output-algo-routing/Algo1.Z
 tcl/test/test-output-algo-routing/Algo2.Z
