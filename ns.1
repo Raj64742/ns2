@@ -334,8 +334,8 @@ A DRR link is for deficit round robin scheduling (for details see [9]).
 A RED link is a random-early drop queue (for details see [2]).
 A CBQ link is for class-based queuing (for details see [3]).
 A CBQ/WRR link is for class-based queuing with weighted round robin ???
-Some multicast routing protocols 
-require links with interface labels.
+If multicast routing is used
+links with interface labels are required.
 Such links are created by 
 setting Simulator NumberInterfaces_ variable to 1.
 All the subsequently created links will have interface labels.
@@ -386,8 +386,8 @@ A DRR link is for deficit round robin scheduling (for details see [9]).
 A RED link is a random-early drop queue (for details see [2]).
 A CBQ link is for class-based queuing (for details see [3]).
 A CBQ/WRR link is for class-based queuing with weighted round robin ???
-Some multicast routing protocols 
-require links with interface labels.
+If multicast routing is used
+links with interface labels are required.
 Such links are created by 
 setting Simulator NumberInterfaces_ variable to 1.
 All the subsequently created links will have interface labels.
@@ -709,6 +709,29 @@ Reset all agents attached to this node.
 This would re-initialize the state variables
 associated with the various agents
 at this node.
+.IP "\fB$node rtObject?\fP"
+Returns a handle to rtObject
+if there exists an instance
+of the object at that node.
+Only nodes that take part in
+a dynamic unicast routing protocol
+will have this object 
+(see UNICAST ROUTING METHODS and RTOBJECT OBJECTS section).
+.IP "\fB$node join-group \fIagent group\fP"
+Add the agent specified by the object handle
+.I agent
+to the multicast host group identified by the address
+.I group.
+This causes the group membership protocol to arrange for the appropriate
+multicast traffic to reach this agent.
+Multicast group address should be 
+in the range 0x8000 - 0xFFFF.
+.IP "\fB$node allocaddr\fP"
+Returns multicast group address
+in ascending order 
+on each invocation
+starting from 0x8000
+and ending at 0xFFFF.
 .LP
 There are no state variables or configuration parameters
 specific to the node class.
@@ -1174,14 +1197,56 @@ the node with id
 .I srcid
 to the node with id
 .I destid.
+.IP "\fB$routelogic dump \fInodeid\fP"
+Dump the routing tables of all nodes
+whose id is less than
+.I nodeid.
+Node ids are typically assigned to nodes
+in ascending fashion starting from 0
+by their order of creation.
+
+.SH "RTOBJECT OBJECTS"
+Every node that takes part in a dynamic
+unicast routing protocol will have an instance
+of rtObject
+(see NODE OBJECTS section for the method
+to get an handle to this object at a particular node).
+Note that nodes will not have an instance of this
+object if Session routing is done as a detailed
+routing protocol is not being simulated in this case.
+.IP "\fB$rtobject dump-routes \fIfileID\fP"
+Dump the routing table to the output channel
+specified by
+.I fileID.
+.I fileID
+must be a file handle returned by the Tcl
+.I open
+command and it must have been opened for writing.
+.IP "\fB$rtobject rtProto? \fIproto\fP"
+Returns a handle to 
+the routing protocol agent
+specified by
+.I proto
+if it exists at that node.
+Returns an empty string otherwise.
+.IP "\fB$rtobject nextHop? \fIdestID\fP"
+Returns the id of the node 
+that is the next hop
+to the destination specified by the node id,
+.I destID.
+.IP "\fB$rtobject rtpref? \fIdestID\fP"
+.IP "\fB$rtobject metric? \fIdestID\fP"
 
 .SH "MULTICAST ROUTING METHODS"
-Multicast routing is enabled in the simulation
+Multicast routing is enabled
 by setting Simulator EnableMcast_ variable
 to 1 at the beginning of the simulation.
 Note that this variable must be set before
 any node, link or agent objects are created
 in the simulation.
+Also links must have been created with
+interface labels 
+(see simplex-link and duplex-link methods in NS COMMANDS section).
 .IP "\fB$ns mrtproto \fIproto node-list\fP"
 Specifies the multicast routing protocol
 .I proto 
@@ -1191,26 +1256,117 @@ Currently
 .I proto
 can be one of
 CtrMcast, DM, dynamicDM, pimDM.
-If proto is 'CtrMcast' 
-centralized computation is done to build
-a shared tree rooted at the Rendezvous Point.
-If proto is 'DM'
-DVMRP-like dense mode is simulated.
-This does not adapt to network changes.
-If proto is 'dynamicDM'
-DVMRP-like dense mode protocol that
-adapts to network changes is simulated.
-If proto is 'pimDM'
-PIM-Dense mode is simulated.
 .I node-list
 defaults to all the nodes in the topology.
 Returns an handle to a protocol-specific object
 that has methods, configuration parameters
 specific to that protocol.
+Note that currently CtrMcastComp object
+is returned if CtrMcast is used
+but a null string is returned
+if DM, dynamicDM or pimDM are used.
+
+If proto is 'CtrMcast'
+a Rendezvous Point (RP) rooted shared tree is built
+for a multicast group.
+The actual sending
+of prune, join messages etc.
+to set up state at the nodes is not simulated.
+A centralized computation agent is used
+to compute the fowarding trees and set up 
+multicast forwarding state, (*,G) at the relevant nodes
+as new receivers join a group.
+If a sender to a group sends data less than
+a certain threshold(?), 
+packets are unicast to the RP.
+Only when the data rate threshold is crossed,
+multicast forwarding state 
+is set up from the sender to the RP.
+Methods are provided in the CtrMcastComp object
+that is returned by mrtproto 
+to switch to source-specific trees,
+choose some nodes as candidate RPs etc.
+Note that the above mechanisms reflect the
+Protocol Independent Multicast - Sparse Mode (PIM-SM) [cite]
+specifications.
+When a node/link on a multicast distribution tree
+goes down, the tree is instanteously recomputed.
+
+If proto is 'DM'
+DVMRP-like dense mode is simulated.
+Parent-child lists are used
+to reduce the number of links over which
+the data packets are broadcast.
+Prune messages are sent by nodes
+to remove branches from the multicast forwarding tree
+that do not lead to any group members.
+This does not adapt to network changes.
+
+If proto is 'dynamicDM'
+DVMRP-like dense mode protocol that
+adapts to network changes is simulated.
+In addition to parent-child lists 
+a downstream-member list per source is maintained
+for every outgoing interface
+and 'poison-reverse' information
+(i.e. the information that a particular neighbouring node
+uses me to reach a particular network)
+is read from the routing tables of neighbouring nodes
+(DVMRP runs its own unicast routing protocol
+that exchanges this information).
+
+If proto is 'pimDM'
+Protocol Independent Multicast - Dense mode is simulated.
+In this case the data packets are broadcast
+over all the outgoing links except the incoming link.
+Prune messages are sent by nodes to remove
+the branches of the multicast forwarding tree
+that do not lead to any group members.
 
 .SH "CTRMCASTCOMP OBJECTS"
-An handle to this object is returned
+A handle to the CtrMcastComp object is returned
 when the protocol is specified as 'CtrMcast'
+in mrtproto.
+.IP "\fB$ctrmcastcomp switch-treetype \fIgroup-addr\fP"
+Switch from the Rendezvous Point rooted shared tree
+to source-specific trees 
+for the group specified by
+.I group-addr.
+Note that it's not possible to switch back
+from source-specific trees to 
+a shared tree for the group 
+(on the lines of Protocol Independent Multicast - Sparse Mode [cite]).
+.IP "\fB$ctrmcastcomp set_c_rp \fInode-list\fP"
+Make all the nodes specified in
+.I node-list
+as candidate RPs.
+All nodes are candidate RPs by default
+and currently the node with the highest node id
+serves as the RP for all multicast groups.
+This is likely to change soon.
+.IP "\fB$ctrmcastcomp set_c_bsr \fInode-priority-list\fP"
+Make all the specified nodes as 
+candidate bootstrap routers with 
+the specified priorities as given in
+.I node-priority-list.
+.I node-priority-list
+is a list of the form node:priority
+where node is a node object handle
+and priority is an integer that determines
+the priority of the node in becoming the Bootstrap router.
+.IP "\fB$ctrmcastcomp get_rp \fInode group\fP"
+.IP "\fB$ctrmcastcomp get_bsr \fInode\fP"
+
+.SH "DM OBJECTS"
+DM Objects implement DVMRP style densemode multicast
+where parent-child lists are used to reduce
+the number of links over which 
+initial data packets are broadcast.
+There are no methods or state variables specific to this object.
+.LP
+Configuration parameters
+PruneTimeout
+Timeout value for the prune state at nodes.
 
 .SH "AGENT OBJECTS"
 .IP "\fB$agent port\fP"
@@ -1245,11 +1401,6 @@ Traffic/Trace generates traffic from a trace file.
 The relevant configuration parameters for 
 each of the above objects can be 
 found in the TRAFFIC METHODS section.
-.IP "\fB$agent join\fI group\fP"
-Add this agent to the multicast host group identified by the address
-.I group.
-This causes the group membership protocol to arrange for the appropriate
-multicast traffic to reach this agent.
 .IP "\fB$agent connect\fI addr port\fP"
 Connect this agent to the agent identified by the address
 .I addr
@@ -1308,41 +1459,6 @@ Number of bytes received.
 Time at which the last packet was received.
 .IP \fIexpected_\fP
 The expected sequence number of the next packet.
-.RE
-
-.SH "TCPSIMPLE OBJECTS"
-TCPSimple objects are a subclass of agent objects that implement the
-TCP transport protocol with the basic slow start and congestion
-avoidance algorithms. They do not implement fast retransmit and fast
-recovery modifications to the congestion avoidance algorithms. They
-inherit all of the generic agent functionality.
-.IP "\fB$tcpsimple opencwnd\fP"
-Increase the congestion window, cwnd_ to (cwnd_ + 1.0)/cwnd_ .
-.IP "\fB$tcpsimple closecwnd\fP"
-Reduce the congestion window by half.
-.LP
-.HD
-Configuration Parameters \fP
-.RS
-.IP \fIt_seqno_\fP
-.IP \fIpacketSize_\fP
-The size in bytes to use for all packets from this source.
-.IP \fIwindow_\fP
-The upper bound on the advertised window for the TCP connection.
-.RE
-.LP  
-.HD 
-State Variables
-.RS
-.LP
-.IP \fIdupacks_\fP
-Number of duplicate acks seen since any new data was acknowledged.
-.IP \fIseqno_\fP
-Current position in the sequence space (can move backwards).
-.IP \fIack_\fP
-Highest acknowledgment seen from receiver.
-.IP \fIcwnd_\fP
-Current value of the congestion window.
 .RE
 
 .SH "TCP OBJECTS"
