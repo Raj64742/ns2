@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.19 1997/11/26 23:31:12 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.20 1997/12/01 06:16:22 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -174,7 +174,7 @@ FullTcpAgent::~FullTcpAgent()
  * 'curseq_' is the last byte number provided by the application
  */
 void
-FullTcpAgent::advance(int np)
+FullTcpAgent::advanceby(int np)
 {
 	// XXX hack:
 	//	because np is in packets and a data source
@@ -1284,7 +1284,11 @@ int FullTcpAgent::command(int argc, const char*const* argv)
 	}
 	if (argc == 3) {
 		if (strcmp(argv[1], "advance") == 0) {
-			advance(atoi(argv[2]));
+			advanceby(atoi(argv[2]));
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "advance-bytes") == 0) {
+			advance_bytes(atoi(argv[2]));
 			return (TCL_OK);
 		}
 	}
