@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.17 1997/11/11 01:36:38 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.18 1997/11/11 01:41:16 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -461,7 +461,7 @@ TestSuite instproc four_cbrs {} {
 	$ns_ at 24.0 "$cbr2 start"
 	$ns_ at 4.0 "$cbr3 stop"
 	$ns_ at 8.0 "$cbr3 start"
-	$ns_ at 36.0 "$cbr3 start"
+	$ns_ at 36.0 "$cbr3 stop"
 	$ns_ at 28.0 "$cbr4 stop"
 	$ns_ at 32.0 "$cbr4 start"
 }
