@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.15 2003/07/28 20:53:37 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.16 2003/07/29 20:30:45 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -776,6 +776,17 @@ Test/timeouts_reno instproc run {} {
         $self setup2 Reno {7 8 9 10 11 12 13 14 21} 8
 }
 
+Class Test/timeouts_reno_noexitFR -superclass TestSuite
+Test/timeouts_reno_noexitFR instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_reno_noexitFR
+	set guide_      "Reno, timeouts, bugfix, without exitFastRetrans_"
+	Agent/TCP set exitFastRetrans_ false
+	Test/timeouts_reno_noexitFR instproc run {} [Test/timeouts_reno info instbody run ]
+        $self next pktTraceFile
+}
+
 Class Test/timeouts_reno1 -superclass TestSuite
 Test/timeouts_reno1 instproc init {} {
         $self instvar net_ test_ guide_
@@ -821,6 +832,17 @@ Test/timeouts_newreno instproc init {} {
 }
 Test/timeouts_newreno instproc run {} {
         $self setup2 Newreno {7 8 9 10 11 12 13 14 21} 8
+}
+
+Class Test/timeouts_newreno_noexitFR -superclass TestSuite
+Test/timeouts_newreno_noexitFR instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       timeouts_newreno_noexitFR
+	set guide_      "NewReno, timeouts, bugfix, without exitFastRetrans_"
+	Agent/TCP set exitFastRetrans_ false
+	Test/timeouts_newreno_noexitFR instproc run {} [Test/timeouts_newreno info instbody run ]
+        $self next pktTraceFile
 }
 
 Class Test/timeouts_newreno1 -superclass TestSuite
