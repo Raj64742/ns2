@@ -1178,7 +1178,7 @@ rather than drop packets.
 .IP \fIdrop-tail_\fP
 Set to true to use drop-tail rather than random-drop or
 drop-from-front when the queue overflows or the average queue size 
-exceeds "maxthresh_".  This is th default behavior.
+exceeds "maxthresh_".  This is the default behavior.
 For a further explanation of these variables, see [2].
 .IP \fIdrop-rand_\fP
 Set to true to use random-drop rather than drop-tail or
@@ -1188,6 +1188,10 @@ exceeds "maxthresh_".
 Set to true to use drop-from-front rather than drop-tail or random drop
 when the queue overflows or the average queue size exceeds
 "maxthresh_".
+.IP \fIns1-compat_\fP
+Set to true to avoid resetting the count since the last packet drop,
+after a forced packet is dropped.  This gives compatibility with
+previous behavior of RED.  The default is set to false.
 .LP
 .HD
 State Variables
