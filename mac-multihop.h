@@ -45,7 +45,8 @@
 #define MAC_RCV 1
 #define MAC_SND 2
 #define MAC_POLLING 3
-#define MAC_SENDING 3
+
+#define MAC_TICK 10000		/* for now */
 
 class PollHandler;
 class PollAckHandler;
@@ -58,13 +59,10 @@ class MultihopMac;
  * network prior to sending and receiving packets.
  */
 
-// XXX really want to derive this from Packet (maybe tonight -- 4/11)
-
 class PollEvent : public Event {
   public:
 	PollEvent(MultihopMac* m, MultihopMac* pm) : 
 		mac_(m), peerMac_(pm), backoffTime_(0) {}
-//	int pollType_;		/* Poll/AckPoll/NackPoll etc. */
 	int backoffTime_;	/* valid only for NackPoll */
 	inline MultihopMac *peerMac() { return peerMac_; }
   protected:
@@ -108,13 +106,13 @@ class PollTimeoutHandler : public PollHandler {
 	void handle(Event *);
 };
 
-class BackoffHandler:: public PollHandler {
+class BackoffHandler : public PollHandler {
   public: 
 	BackoffHandler(MultihopMac *m) : PollHandler(m) {}
 	void handle(Event *);
   protected:
-	backoffTime_;
-}
+	int backoffTime_;
+};
 
 class MultihopMacHandler : public MacHandler {
   public:
@@ -136,8 +134,8 @@ class MultihopMac : public Mac {
 	inline double tx_rx() { return tx_rx_; } /* access tx_rx time */
 	inline double rx_tx() { return rx_tx_; } /* access rx_tx time */
 	inline double rx_rx() { return rx_rx_; } /* access rx_rx time */
-	inline int attempt() { return attempt_; }
-	inline int attempt(int a) { return attempt_ = a; }
+	inline int backoffTime() { return backoffTime_; }
+	inline int backoffTime(int bt) { return backoffTime_ = bt; }
 	inline PollEvent *pendingPE() { return pendingPollEvent_; }
 	inline Packet *pkt() { return pkt_; }
 	inline PollHandler* ph() { return &ph_; } /* access poll handler */
@@ -154,7 +152,7 @@ class MultihopMac : public Mac {
 	double tx_rx_;		/* Turnaround times: transmit-->recv */
 	double rx_tx_;		/* recv-->transmit */
 	double rx_rx_;		/* recv-->recv */
-	int attempt_;		/*  */
+	int backoffTime_;
 	PollEvent *pendingPollEvent_; /* pending in scheduler */
 	Packet *pkt_;		/* packet stored for poll retries */
 	PollHandler ph_;	/* handler for POLL events */

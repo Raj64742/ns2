@@ -45,7 +45,7 @@ public:
 
 MultihopMac::MultihopMac() : Mac(), mode_(MAC_IDLE), peer_(0),
 	pkt_(0), pendingPollEvent_(0),
-	ph_(this), pah_(this), pnh_(this), pth_(this), mh_(this)
+	ph_(this), pah_(this), pnh_(this), pth_(this), bh_(this), mh_(this)
 {
 	/* Bind a bunch of variables to access from Tcl */
 //	bind("mode_", &mode_);
@@ -81,13 +81,13 @@ double now = s.clock();
 	MultihopMac *pm = getPeerMac(p);
 	PollEvent *pe = new PollEvent(pm, this);
 	
-	cout << "polling\n";
+cout << "polling\n";
 	
-	if (mode_ == MAC_SND || mode_ == MAC_RCV) { // schedule poll for later
+        if (mode_ != MAC_IDLE) {
 		s.schedule(&bh_, pe, 0);
 		return;
 	}
-
+	mode_ = MAC_POLLING;
 	peer_ = pm;
 	pkt_ = new Packet;
 	memcpy(pkt_, p, sizeof(Packet));
@@ -107,7 +107,7 @@ PollHandler::handle(Event *e)
 double now = s.clock();
 	MultihopMac* myMac = (MultihopMac *) (&mac_);
 	MultihopMac* pm = myMac->peer(); // here, random unless in MAC_RCV mode
-
+	
 	cout << "handling poll\n";
 
 	/*
@@ -141,7 +141,7 @@ PollAckHandler::handle(Event *e)
 	cout << "handling pollack\n";
 	if (myMac->mode() == MAC_POLLING ||
 	    (myMac->mode() == MAC_SND && pe->peerMac() == pm)) {
-		myMac->backoffTime_(0);
+		myMac->backoffTime(0);
 		myMac->mode(MAC_SND);
 		myMac->peer(pe->peerMac());
 		s.cancel(myMac->pendingPE()); // cancel pending timeout
@@ -156,16 +156,18 @@ PollNackHandler::handle(Event *e)
 }
 
 void
-BackoffHandler::handle(Packet *p)
+BackoffHandler::handle(Event *e)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
-	cout << "backing off...\n";
-	backoffTime_ = 2*backoffTime_;
+	MultihopMac *myMac = (MultihopMac *)(&mac_);
+
+cout << "backing off...\n";
+	myMac->mode(MAC_IDLE);
+	myMac->backoffTime(2*myMac->backoffTime());
 	double bTime = (1+Random::integer(MAC_TICK)*1./MAC_TICK) *
 		backoffTime_ + 0.5;
-	pendingPollEvent_ = new PollEvent(pm, this);
-	s.schedule(pollTimeoutHandler, pendingPollEvent_, bTime);
+	s.schedule(myMac->pth(), e, bTime);
 }
 
 void 
