@@ -7,13 +7,11 @@
 #ifndef ns_routing_table_h
 #define ns_routing_table_h
 
-extern "C" {
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <signal.h>
 #include <float.h>
-}
 
 #include <tcl.h>
 #include <stdlib.h>

@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.6 2000/09/01 03:04:08 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.7 2000/10/18 01:17:50 haoboy Exp $
 
 /****************************************************************/
 /* diffusion.cc : Chalermek Intanagonwiwat (USC/ISI)  05/18/99  */
@@ -420,7 +420,7 @@ void DiffusionAgent::MACprepare(Packet *pkt, nsaddr_t next_hop,
 }
 
 
-void DiffusionAgent::MACsend(Packet *pkt, Time delay=0)
+void DiffusionAgent::MACsend(Packet *pkt, Time delay)
 {
   hdr_cmn*  cmh = HDR_CMN(pkt);
   hdr_diff* dfh = HDR_DIFF(pkt);

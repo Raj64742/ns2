@@ -4,13 +4,11 @@
 
 // Important Note: Work still in progress !
 
-extern "C" {
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <signal.h>
 #include <float.h>
-}
 
 #include <tcl.h>
 #include <stdlib.h>

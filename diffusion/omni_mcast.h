@@ -9,14 +9,12 @@
 #ifndef ns_omni_mcast_h
 #define ns_omni_mcast_h
 
-extern "C" {
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <signal.h>
 #include <float.h>
 #include <stdlib.h>
-}
 
 #include <tcl.h>
 

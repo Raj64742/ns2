@@ -9,14 +9,12 @@
 #ifndef ns_flooding_h
 #define ns_flooding_h
 
-extern "C" {
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <signal.h>
 #include <float.h>
 #include <stdlib.h>
-}
 
 #include <tcl.h>
 

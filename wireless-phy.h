@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/wireless-phy.h,v 1.8 2000/08/31 20:11:49 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/wireless-phy.h,v 1.9 2000/10/18 01:17:50 haoboy Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  *
@@ -72,7 +72,7 @@ public:
 	
 	inline double getL() const {return L_;}
 	inline double getLambda() const {return lambda_;}
-	inline MobileNode* node(void) const { return (MobileNode*)node_; }
+	inline MobileNode* mobilenode(void) const { return (MobileNode*)node_; }
   
 	virtual int command(int argc, const char*const* argv);
 	virtual void dump(void) const;

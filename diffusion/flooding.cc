@@ -5,14 +5,12 @@
 // Share api with diffusion and omnicient multicast
 // Using diffusion packet header 
 
-extern "C" {
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <signal.h>
 #include <float.h>
 #include <stdlib.h>
-}
 
 #include <tcl.h>
 
@@ -260,7 +258,7 @@ void FloodingAgent::MACprepare(Packet *pkt)
 }
 
 
-void FloodingAgent::MACsend(Packet *pkt, Time delay=0)
+void FloodingAgent::MACsend(Packet *pkt, Time delay)
 {
   hdr_cmn*  cmh = HDR_CMN(pkt);
   hdr_diff* dfh = HDR_DIFF(pkt);
