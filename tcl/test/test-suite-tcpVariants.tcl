@@ -30,30 +30,15 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.15 2002/03/08 21:55:44 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.16 2002/12/28 22:26:18 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
 source misc_simple.tcl
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set useHeaders_ false
-# The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
 Agent/TCP set singledup_ 0
-# The default is being changed to 1
-
-Agent/TCP set minrto_ 0
-# The default is being changed to minrto_ 1
-Agent/TCP set syn_ false
-Agent/TCP set delay_growth_ false
-# In preparation for changing the default values for syn_ and delay_growth_.
+# The default has been changed to 1
 
 Trace set show_tcphdr_ 1
 
@@ -160,7 +145,7 @@ TestSuite instproc setup {tcptype list} {
         $self instvar ns_ node_ testName_
 	$self setTopo
 
-        Agent/TCP set bugFix_ false
+        ###Agent/TCP set bugFix_ false
 	set fid 1
         # Set up TCP connection
     	if {$tcptype == "Tahoe"} {
@@ -359,16 +344,16 @@ Test/onedrop_SA_sack instproc init {} {
 	$self next
 }
 
-#Class Test/onedrop_sack_full -superclass TestSuite
-#Test/onedrop_sack_full instproc init {} {
-#	$self instvar net_ test_
-#	set net_	net4
-#	set test_	onedrop_sack_full
-#	$self next
-#}
-#Test/onedrop_sack_full instproc run {} {
-#        $self setup FullTcpSack1 {16}
-#}
+Class Test/onedrop_sack_full -superclass TestSuite
+Test/onedrop_sack_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	onedrop_sack_full
+	$self next
+}
+Test/onedrop_sack_full instproc run {} {
+        $self setup FullTcpSack1 {16}
+}
 
 Class Test/onedrop_fack -superclass TestSuite
 Test/onedrop_fack instproc init {} {
@@ -407,6 +392,16 @@ Test/twodrops_tahoe instproc run {} {
         $self setup Tahoe {14 28}
 }
 
+Class Test/twodrops_SA_tahoe -superclass TestSuite
+Test/twodrops_SA_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	twodrops_SA_tahoe
+	Agent/TCP set singledup_ 1
+	Test/twodrops_SA_tahoe instproc run {} [Test/twodrops_tahoe info instbody run ]
+	$self next
+}
+
 Class Test/twodrops_tahoe_full -superclass TestSuite
 Test/twodrops_tahoe_full instproc init {} {
 	$self instvar net_ test_
@@ -427,6 +422,16 @@ Test/twodrops_reno instproc init {} {
 }
 Test/twodrops_reno instproc run {} {
         $self setup Reno {14 28}
+}
+
+Class Test/twodrops_SA_reno -superclass TestSuite
+Test/twodrops_SA_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	twodrops_SA_reno
+	Agent/TCP set singledup_ 1
+	Test/twodrops_SA_reno instproc run {} [Test/twodrops_reno info instbody run ]
+	$self next
 }
 
 Class Test/twodrops_reno_full -superclass TestSuite
@@ -451,6 +456,16 @@ Test/twodrops_newreno instproc run {} {
         $self setup Newreno {14 28}
 }
 
+Class Test/twodrops_SA_newreno -superclass TestSuite
+Test/twodrops_SA_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	twodrops_SA_newreno
+	Agent/TCP set singledup_ 1
+	Test/twodrops_SA_newreno instproc run {} [Test/twodrops_newreno info instbody run ]
+	$self next
+}
+
 Class Test/twodrops_newreno_full -superclass TestSuite
 Test/twodrops_newreno_full instproc init {} {
 	$self instvar net_ test_
@@ -473,16 +488,26 @@ Test/twodrops_sack instproc run {} {
         $self setup Sack1 {14 28}
 }
 
-#Class Test/twodrops_sack_full -superclass TestSuite
-#Test/twodrops_sack_full instproc init {} {
-#	$self instvar net_ test_
-#	set net_	net4
-#	set test_	twodrops_sack_full
-#	$self next
-#}
-#Test/twodrops_sack_full instproc run {} {
-#       $self setup FullTcpSack1 {16 30}
-#}
+Class Test/twodrops_SA_sack -superclass TestSuite
+Test/twodrops_SA_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	twodrops_SA_sack
+	Agent/TCP set singledup_ 1
+	Test/twodrops_SA_sack instproc run {} [Test/twodrops_sack info instbody run ]
+	$self next
+}
+
+Class Test/twodrops_sack_full -superclass TestSuite
+Test/twodrops_sack_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	twodrops_sack_full
+	$self next
+}
+Test/twodrops_sack_full instproc run {} {
+        $self setup FullTcpSack1 {16 30}
+}
 
 Class Test/twodrops_fack -superclass TestSuite
 Test/twodrops_fack instproc init {} {
@@ -521,6 +546,16 @@ Test/threedrops_tahoe instproc run {} {
         $self setup Tahoe {14 26 28}
 }
 
+Class Test/threedrops_SA_tahoe -superclass TestSuite
+Test/threedrops_SA_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	threedrops_SA_tahoe
+	Agent/TCP set singledup_ 1
+	Test/threedrops_SA_tahoe instproc run {} [Test/threedrops_tahoe info instbody run ]
+	$self next
+}
+
 Class Test/threedrops_tahoe_full -superclass TestSuite
 Test/threedrops_tahoe_full instproc init {} {
 	$self instvar net_ test_
@@ -541,6 +576,16 @@ Test/threedrops_reno instproc init {} {
 }
 Test/threedrops_reno instproc run {} {
         $self setup Reno {14 26 28}
+}
+
+Class Test/threedrops_SA_reno -superclass TestSuite
+Test/threedrops_SA_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	threedrops_SA_reno
+	Agent/TCP set singledup_ 1
+	Test/threedrops_SA_reno instproc run {} [Test/threedrops_reno info instbody run ]
+	$self next
 }
 
 Class Test/threedrops_reno_full -superclass TestSuite
@@ -565,6 +610,16 @@ Test/threedrops_newreno instproc run {} {
         $self setup Newreno {14 26 28}
 }
 
+Class Test/threedrops_SA_newreno -superclass TestSuite
+Test/threedrops_SA_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	threedrops_SA_newreno
+	Agent/TCP set singledup_ 1
+	Test/threedrops_SA_newreno instproc run {} [Test/threedrops_newreno info instbody run ]
+	$self next
+}
+
 Class Test/threedrops_newreno_full -superclass TestSuite
 Test/threedrops_newreno_full instproc init {} {
 	$self instvar net_ test_
@@ -587,16 +642,26 @@ Test/threedrops_sack instproc run {} {
         $self setup Sack1 {14 26 28}
 }
 
-#Class Test/threedrops_sack_full -superclass TestSuite
-#Test/threedrops_sack_full instproc init {} {
-#	$self instvar net_ test_
-#	set net_	net4
-#	set test_	threedrops_sack_full
-#	$self next
-#}
-#Test/threedrops_sack_full instproc run {} {
-#       $self setup FullTcpSack1 {16 28 30}
-#}
+Class Test/threedrops_SA_sack -superclass TestSuite
+Test/threedrops_SA_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	threedrops_SA_sack
+	Agent/TCP set singledup_ 1
+	Test/threedrops_SA_sack instproc run {} [Test/threedrops_sack info instbody run ]
+	$self next
+}
+
+Class Test/threedrops_sack_full -superclass TestSuite
+Test/threedrops_sack_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	threedrops_sack_full
+	$self next
+}
+Test/threedrops_sack_full instproc run {} {
+        $self setup FullTcpSack1 {16 28 30}
+}
 
 Class Test/threedrops_fack -superclass TestSuite
 Test/threedrops_fack instproc init {} {
@@ -636,6 +701,16 @@ Test/fourdrops_tahoe instproc run {} {
         $self setup Tahoe {14 24 26 28}
 }
 
+Class Test/fourdrops_SA_tahoe -superclass TestSuite
+Test/fourdrops_SA_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	fourdrops_SA_tahoe
+	Agent/TCP set singledup_ 1
+	Test/fourdrops_SA_tahoe instproc run {} [Test/fourdrops_tahoe info instbody run ]
+	$self next
+}
+
 Class Test/fourdrops_tahoe_full -superclass TestSuite
 Test/fourdrops_tahoe_full instproc init {} {
 	$self instvar net_ test_
@@ -656,6 +731,16 @@ Test/fourdrops_reno instproc init {} {
 }
 Test/fourdrops_reno instproc run {} {
         $self setup Reno {14 24 26 28}
+}
+
+Class Test/fourdrops_SA_reno -superclass TestSuite
+Test/fourdrops_SA_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	fourdrops_SA_reno
+	Agent/TCP set singledup_ 1
+	Test/fourdrops_SA_reno instproc run {} [Test/fourdrops_reno info instbody run ]
+	$self next
 }
 
 Class Test/fourdrops_reno_full -superclass TestSuite
@@ -680,6 +765,16 @@ Test/fourdrops_newreno instproc run {} {
         $self setup Newreno {14 24 26 28}
 }
 
+Class Test/fourdrops_SA_newreno -superclass TestSuite
+Test/fourdrops_SA_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	fourdrops_SA_newreno
+	Agent/TCP set singledup_ 1
+	Test/fourdrops_SA_newreno instproc run {} [Test/fourdrops_newreno info instbody run ]
+	$self next
+}
+
 Class Test/fourdrops_newreno_full -superclass TestSuite
 Test/fourdrops_newreno_full instproc init {} {
 	$self instvar net_ test_
@@ -702,16 +797,26 @@ Test/fourdrops_sack instproc run {} {
         $self setup Sack1 {14 24 26 28}
 }
 
-#Class Test/fourdrops_sack_full -superclass TestSuite
-#Test/fourdrops_sack_full instproc init {} {
-#	$self instvar net_ test_
-#	set net_	net4
-#	set test_	fourdrops_sack_full
-#	$self next
-#}
-#Test/fourdrops_sack_full instproc run {} {
-#       $self setup FullTcpSack1 {16 26 28 30}
-#}
+Class Test/fourdrops_SA_sack -superclass TestSuite
+Test/fourdrops_SA_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	fourdrops_SA_sack
+	Agent/TCP set singledup_ 1
+	Test/fourdrops_SA_sack instproc run {} [Test/fourdrops_sack info instbody run ]
+	$self next
+}
+
+Class Test/fourdrops_sack_full -superclass TestSuite
+Test/fourdrops_sack_full instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	fourdrops_sack_full
+	$self next
+}
+Test/fourdrops_sack_full instproc run {} {
+        $self setup FullTcpSack1 {16 26 28 30}
+}
 
 Class Test/fourdrops_fack -superclass TestSuite
 Test/fourdrops_fack instproc init {} {
@@ -732,6 +837,98 @@ Test/fourdrops_sackRH instproc init {} {
 }
 Test/fourdrops_sackRH instproc run {} {
         $self setup SackRH {14 24 26 28}
+}
+
+###################################################
+## Multiple drops
+###################################################
+
+Class Test/multiple_tahoe -superclass TestSuite
+Test/multiple_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple_tahoe
+	$self next
+}
+Test/multiple_tahoe instproc run {} {
+        $self setup Tahoe {11 12 13 14 16 17 18 19 }
+}
+
+## This can result in an unnecessary packet transmission, unless the
+## Limited Transmit option checks not to send packets less than maxseq_,
+## the highest sequence number sent to far.
+Class Test/multiple_SA_tahoe -superclass TestSuite
+Test/multiple_SA_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple_SA_tahoe
+	Agent/TCP set singledup_ 1
+	Test/multiple_SA_tahoe instproc run {} [Test/multiple_tahoe info instbody run ]
+	$self next
+}
+
+Class Test/multiple_reno -superclass TestSuite
+Test/multiple_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple_reno
+	$self next
+}
+Test/multiple_reno instproc run {} {
+	$self setup Reno {11 12 13 14 16 17 18 19 }
+}
+
+Class Test/multiple_SA_reno -superclass TestSuite
+Test/multiple_SA_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple_SA_reno
+	Agent/TCP set singledup_ 1
+	Test/multiple_SA_reno instproc run {} [Test/multiple_reno info instbody run ]
+	$self next
+}
+
+Class Test/multiple_newreno -superclass TestSuite
+Test/multiple_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple_newreno
+	$self next
+}
+Test/multiple_newreno instproc run {} {
+	$self setup Newreno {11 12 13 14 16 17 18 19 }
+}
+
+Class Test/multiple_SA_newreno -superclass TestSuite
+Test/multiple_SA_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple_SA_newreno
+	Agent/TCP set singledup_ 1
+	Test/multiple_SA_newreno instproc run {} [Test/multiple_newreno info instbody run ]
+	$self next
+}
+
+Class Test/multiple_sack -superclass TestSuite
+Test/multiple_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple_sack
+	$self next
+}
+Test/multiple_sack instproc run {} {
+	$self setup Sack1 {11 12 13 14 16 17 18 19 } 
+}
+
+
+Class Test/multiple_SA_sack -superclass TestSuite
+Test/multiple_SA_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple_SA_sack
+	Agent/TCP set singledup_ 1
+	Test/multiple_SA_sack instproc run {} [Test/multiple_sack info instbody run ]
+	$self next
 }
 
 TestSuite runTest
