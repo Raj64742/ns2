@@ -20,10 +20,8 @@
 
 class GridHandler : public Handler {
  public:
-  GridHandler(MobileNode *mn);
+  GridHandler();
   void handle(Event *);
- private:
-  MobileNode * token_;
 };
 
 class GridKeeper : public TclObject {
@@ -33,13 +31,22 @@ public:
   ~GridKeeper();
   int command(int argc, const char*const* argv);
   int get_neighbors(MobileNode *mn, MobileNode **output);
-
-
-protected:
-  int dim_x_;
-  int dim_y_;
-  MobileNode ***grid_;
   void new_moves(MobileNode *);
+  void dump();
+  static GridKeeper* instance() { assert(instance_); return instance_;}
+  int size_;                     /* how many nodes are kept */
+protected:
+
+  MobileNode ***grid_;
+
+  int dim_x_;
+  int dim_y_;                    /* dimension */
+  GridHandler *gh_; 
+
+private:
+
+  static GridKeeper* instance_;
+
 };
 
 class MoveEvent : public Event {
@@ -49,6 +56,7 @@ public:
   MobileNode **leave_;	/* grid to leave */
   int grid_x_;
   int grid_y_;
+  MobileNode *token_;    /* what node ?*/
 };
 
 

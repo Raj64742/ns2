@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.28 1999/04/10 00:10:33 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.29 1999/05/06 00:29:08 yaxu Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -55,7 +55,7 @@ static const char rcsid[] =
 #include "mobilenode.h"
 #include "ip.h"
 #include "dsr/hdr_sr.h"
-
+#include "gridkeeper.h"
 
 
 static class ChannelClass : public TclClass {
@@ -155,7 +155,39 @@ Channel::sendUp(Packet* p, Phy *tifp)
 	struct hdr_cmn *hdr = HDR_CMN(p);
 	
 	hdr->direction() = 1;
-	for( ; rifp; rifp = rifp->nextchnl()) {
+	
+        if (GridKeeper::instance()) {
+	    int i;
+	    GridKeeper* gk = GridKeeper::instance();
+	    int size = gk->size_; 
+	    
+	    MobileNode **outlist = new (MobileNode *)[size];
+	    //    memset(outlist, 0, size * sizeof(MobileNode *));
+	 
+       	    int out_index = gk->get_neighbors((MobileNode*)tnode,
+						         outlist);
+
+	    for (i=0; i < out_index; i ++) {
+		
+		  newp = p->copy();
+		  rnode = outlist[i];
+		  propdelay = get_pdelay(tnode, rnode);
+
+		  rifp = (rnode->ifhead_).lh_first; 
+		  for(; rifp; rifp = rifp->nextnode()){
+			  if (rifp->channel() == this){
+				 s.schedule(rifp, newp, propdelay); 
+				 break;
+			  }
+		  }
+ 
+	    }
+	    
+	    delete [] outlist; 
+
+	} else {
+
+	    for( ; rifp; rifp = rifp->nextchnl()) {
 		rnode = rifp->node();
 		if(rnode == tnode)
 			continue;
@@ -178,6 +210,7 @@ Channel::sendUp(Packet* p, Phy *tifp)
 		 */
 		
 		s.schedule(rifp, newp, propdelay);
+	    }
 	}
 	Packet::free(p);
 }

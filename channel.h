@@ -34,12 +34,13 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.20 1999/03/13 03:52:42 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.21 1999/05/06 00:29:09 yaxu Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
 #define ns_channel_h
 
+#include <string.h>
 #include "object.h"
 #include "packet.h"
 #include "phy.h"
