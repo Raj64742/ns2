@@ -65,9 +65,16 @@ proc parse_line line {
 	set field(tcphlen) [lindex $sline 14]
 
 	if { !($synfound) && [expr $field(tcpflags) & 0x02] } {
+		global reverse
 		set synfound 1
-		set active_opener $field(src)
-		set passive_opener $field(dst)
+		if { [info exists reverse] && $reverse } {
+			set active_opener $field(dst)
+			set passive_opener $field(src)
+		} else {
+			set active_opener $field(src)
+			set passive_opener $field(dst)
+		}
+
 	}
 
 	set interesting 0
@@ -81,7 +88,7 @@ proc parse_line line {
 		if { $field(src) == $active_opener && \
 		    $field(dst)  == $passive_opener } {
 			ctrl $field(time) $field(tcpflags) \
-				$field(seqno)
+				[expr $field(seqno) + $field(len) - $field(tcphlen)]
 		} elseif { $field(src) == $passive_opener && \
 		    $field(dst) == $active_opener } {
 			ctrl $field(time) $field(tcpflags) \
@@ -159,9 +166,14 @@ proc dofile { infile outfile } {
 	close $ctrlchan
 }
 
-if { $argc != 2 } {
-	puts stderr "usage: tclsh tcpfull-summarize.tcl tracefile outprefix"
+if { $argc < 2 || $argc > 3 } {
+	puts stderr "usage: tclsh tcpfull-summarize.tcl tracefile outprefix [reverse]"
 	exit 1
+} elseif { $argc == 3 } {
+	if { [lindex $argv 2] == "reverse" } {
+		global reverse
+		set reverse 1
+	}
 }
 dofile [lindex $argv 0] [lindex $argv 1]
 exit 0
