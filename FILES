@@ -803,10 +803,14 @@ tcl/test/test-output-mcast/detailedDM5.Z
 tcl/test/test-output-mcast/detailedDM6.Z
 tcl/test/test-output-mcast/detailedDM7.Z
 tcl/test/test-output-newreno/newreno.Z
+tcl/test/test-output-newreno/newreno_B.Z
 tcl/test/test-output-newreno/newreno1.Z
 tcl/test/test-output-newreno/newreno1_A.Z
+tcl/test/test-output-newreno/newreno1_B.Z
 tcl/test/test-output-newreno/newreno2_A.Z
 tcl/test/test-output-newreno/newreno2_A_bugfix.Z
+tcl/test/test-output-newreno/newreno2_B.Z
+tcl/test/test-output-newreno/newreno2_B_bugfix.Z
 tcl/test/test-output-newreno/reno.Z
 tcl/test/test-output-newreno/reno1.Z
 tcl/test/test-output-newreno/reno2.Z
