@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.190 2000/03/15 22:28:26 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.191 2000/03/24 19:40:53 haoboy Exp $
 
 
 #
@@ -41,10 +41,19 @@
 # (this happens in the Tcl/tcl-object.tcl helper library)
 #
 
+# Increased Floating Point Precision
+set tcl_precision 17
+
+Connector set debug_ false
+TTLChecker set debug_ false
+
 Trace set src_ -1
 Trace set dst_ -1
 Trace set callback_ 0
 Trace set show_tcphdr_ 0
+Trace set debug_ false
+
+CMUTrace set debug_ false
 
 Agent set fid_ 0
 Agent set prio_ 0
@@ -54,6 +63,8 @@ Agent set dst_addr_ -1
 Agent set dst_port_ -1
 Agent set flags_ 0
 Agent set ttl_ 32 ; # arbitrary choice here
+Agent set debug_ false
+Agent set class_ 0
 
 Scheduler/RealTime set maxslop_ 0.010; # max allowed slop b4 error (sec)
 
@@ -132,17 +143,23 @@ Agent/TCP set eln_ 0
 Agent/TCP set eln_rxmit_thresh_ 1
 Agent/TCP set delay_growth_ false
 
-# Default values used by wireless simulations
-Agent/Null set sport_           0
-Agent/Null set dport_           0
-
-Agent/CBR set sport_            0
-Agent/CBR set dport_            0
+Agent/TCP set CoarseTimer_      0
 
 Agent/TCPSink set sport_        0
 Agent/TCPSink set dport_        0         
 
-Agent/TCP set CoarseTimer_      0
+#XXX other kinds of sinks -> should reparent
+Agent/TCPSink set packetSize_ 40
+Agent/TCPSink set maxSackBlocks_ 3
+Agent/TCPSink set ts_echo_bugfix_ false
+Agent/TCPSink set generateDSacks_ false
+
+Agent/TCPSink/DelAck set interval_ 100ms
+catch {
+	Agent/TCPSink/Asym set interval_ 100ms
+	Agent/TCPSink/Asym set maxdelack_ 5
+}
+Agent/TCPSink/Sack1/DelAck set interval_ 100ms
 
 # setting this to 1 implements some changes to reno 
 # proposed by Janey Hoe (other than fixing reno's
@@ -238,9 +255,71 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp/Sack set max_sack_blocks_ 3; # max # of sack blks
 }
 
+# Default values used by wireless simulations
+Agent/Null set sport_           0
+Agent/Null set dport_           0
+
+Agent/CBR set sport_            0
+Agent/CBR set dport_            0
+
 # Http invalidation agent
 Agent/HttpInval set inval_hdr_size_ 40
 
+Agent/RTP set seqno_ 0
+Agent/RTP set interval_ 3.75ms
+Agent/RTP set random_ 0
+Agent/RTP set packetSize_ 210
+Agent/RTP set maxpkts_ 0x10000000
+Agent/RTP instproc done {} { }
+
+Agent/RTCP set seqno_ 0
+
+Agent/Message set packetSize_ 180
+
+Agent/LossMonitor set nlost_ 0
+Agent/LossMonitor set npkts_ 0
+Agent/LossMonitor set bytes_ 0
+Agent/LossMonitor set lastPktTime_ 0
+Agent/LossMonitor set expected_ 0
+
+# RAP
+Agent/RAP set packetSize_ 512
+Agent/RAP set seqno_ 0
+Agent/RAP set sessionLossCount_ 0
+Agent/RAP set ipg_ 2.0
+Agent/RAP set alpha_ 1.0
+Agent/RAP set beta_ 0.5
+Agent/RAP set srtt_ 2.0
+Agent/RAP set variance_ 0.0
+Agent/RAP set delta_ 0.5
+Agent/RAP set mu_ 1.2
+Agent/RAP set phi_ 4.0
+Agent/RAP set timeout_ 2.0
+Agent/RAP set overhead_ 0
+Agent/RAP set useFineGrain_ 0
+Agent/RAP set kfrtt_ 0.9
+Agent/RAP set kxrtt_ 0.01
+Agent/RAP set debugEnable_ 0
+Agent/RAP set rap_base_hdr_size_ 44
+Agent/RAP set dpthresh_ 50
+Agent/RAP instproc done {} { }
+
+# Routing protocol agents
+Agent/Mcast/Control set packetSize_ 80
+
+# Dynamic routing defaults
+Agent/rtProto set preference_ 200		;# global default preference
+Agent/rtProto/Direct set preference_ 100
+Agent/rtProto/DV set preference_	120
+Agent/rtProto/DV set INFINITY		 [Agent set ttl_]
+Agent/rtProto/DV set advertInterval	  2
+
+#Agent/Decapsulator set off_encap_ 0
+#Agent/Encapsulator set off_encap_ 0
+Agent/Encapsulator set status_ 1
+Agent/Encapsulator set overhead_ 20
+
+
 Integrator set lastx_ 0.0
 Integrator set lasty_ 0.0
 Integrator set sum_ 0.0
@@ -250,6 +329,11 @@ Queue set limit_ 50
 Queue set blocked_ false
 Queue set unblock_on_resume_ true
 
+Queue set interleave_ false
+Queue set acksfirst_ false
+Queue set ackfromfront_ false
+Queue set debug_ false
+
 Queue/SFQ set maxqueue_ 40
 Queue/SFQ set buckets_ 16
 
@@ -257,11 +341,9 @@ Queue/FQ set secsPerByte_ 0
 # change DropTail to RED for RED on individual queues
 FQLink set queueManagement_ DropTail
 
-Queue set interleave_ false
-Queue set acksfirst_ false
-Queue set ackfromfront_ false
-
 Queue/DropTail set drop_front_ false
+
+Queue/DropTail/PriQueue set Prefer_Routing_Protocols    1
 
 Queue/RED set bytes_ false
 Queue/RED set queue_in_bytes_ false
@@ -296,6 +378,12 @@ CBQClass set extradelay_ 0.0
 CBQClass set def_qtype_ DropTail
 CBQClass set okborrow_ true
 CBQClass set automaxidle_gain_ 0.9375
+CBQClass set debug_ false
+
+SnoopQueue/In set debug_ false
+SnoopQueue/Out set debug_ false
+SnoopQueue/Drop set debug_ false
+SnoopQueue/EDrop set debug_ false
 
 PacketQueue/Semantic set acksfirst_ false
 PacketQueue/Semantic set filteracks_ false
@@ -305,34 +393,14 @@ PacketQueue/Semantic set random_drop_ false
 PacketQueue/Semantic set reconsAcks_ false
 PacketQueue/Semantic set random_ecn_ false
 
-#XXX other kinds of sinks -> should reparent
-Agent/TCPSink set packetSize_ 40
-Agent/TCPSink set maxSackBlocks_ 3
-Agent/TCPSink set ts_echo_bugfix_ false
-Agent/TCPSink set generateDSacks_ false
-
-Agent/TCPSink/DelAck set interval_ 100ms
-catch {
-	Agent/TCPSink/Asym set interval_ 100ms
-	Agent/TCPSink/Asym set maxdelack_ 5
-}
-Agent/TCPSink/Sack1/DelAck set interval_ 100ms
-
-Agent/RTP set seqno_ 0
-Agent/RTP set interval_ 3.75ms
-Agent/RTP set random_ 0
-Agent/RTP set packetSize_ 210
-Agent/RTP set maxpkts_ 0x10000000
-Agent/RTP instproc done {} { }
-
-Agent/RTCP set seqno_ 0
-
-Agent/Message set packetSize_ 180
-
 DelayLink set bandwidth_ 1.5Mb
 DelayLink set delay_ 100ms
-DynamicLink set status_ 1
+DelayLink set debug_ false
 
+DynamicLink set status_ 1
+DynamicLink set debug_ false
+
+Filter set debug_ false
 Filter/Field set offset_ 0
 Filter/Field set match_  -1
 
@@ -340,20 +408,19 @@ Filter/Field set match_  -1
 Classifier set offset_ 0
 Classifier set shift_ 0
 Classifier set mask_ 0xffffffff
+Classifier set debug_ false
 
 Classifier/Hash set default_ -1; # none
+Classifier/Replicator set ignore_ 0
 
-Agent/LossMonitor set nlost_ 0
-Agent/LossMonitor set npkts_ 0
-Agent/LossMonitor set bytes_ 0
-Agent/LossMonitor set lastPktTime_ 0
-Agent/LossMonitor set expected_ 0
-
+ErrorModule set debug_ false
 
 ErrorModel set enable_ 1
 ErrorModel set markecn_ false
 ErrorModel set rate_ 0
 ErrorModel set bandwidth_ 2Mb
+ErrorModel set debug_ false
+
 ErrorModel/Trace set good_ 123456789
 ErrorModel/Trace set loss_ 0
 ErrorModel/Periodic set period_ 1.0
@@ -370,6 +437,7 @@ SelectErrorModel set bandwidth_ 2Mb
 SelectErrorModel set pkt_type_ 2
 SelectErrorModel set drop_cycle_ 10
 SelectErrorModel set drop_offset_ 1
+SelectErrorModel set debug_ false
 SRMErrorModel set enable_ 1
 SRMErrorModel set markecn_ false
 SRMErrorModel set rate_ 0
@@ -377,6 +445,7 @@ SRMErrorModel set bandwidth_ 2Mb
 SRMErrorModel set pkt_type_ 2
 SRMErrorModel set drop_cycle_ 10
 SRMErrorModel set drop_offset_ 1
+SRMErrorModel set debug_ false
 #MrouteErrorModel set enable_ 1
 #MrouteErrorModel set rate_ 0
 #MrouteErrorModel set bandwidth_ 2Mb
@@ -404,8 +473,6 @@ QueueMonitor/ED/Flow set src_ -1
 QueueMonitor/ED/Flow set dst_ -1
 QueueMonitor/ED/Flow set flowid_ -1
 
-Agent set class_ 0
-
 Application/Traffic/Exponential set burst_time_ .5
 Application/Traffic/Exponential set idle_time_ .5
 Application/Traffic/Exponential set rate_ 64Kb
@@ -422,7 +489,7 @@ Application/Traffic/CBR set packetSize_ 210
 Application/Traffic/CBR set random_ 0
 Application/Traffic/CBR set maxpkts_ 268435456; # 0x10000000
 
-Agent/Mcast/Control set packetSize_ 80
+Application/Telnet set interval_ 1.0
 
 RandomVariable/Uniform set min_ 0.0
 RandomVariable/Uniform set max_ 1.0
@@ -444,15 +511,28 @@ RandomVariable/LogNormal set avg_ 1.0
 RandomVariable/LogNormal set std_ 1.0
 
 SessionHelper set rc_ 0                      ;# just to eliminate warnings
+SessionHelper set debug_ false
 
-Application/Telnet set interval_ 1.0
+NetworkInterface set debug_ false
 
+ADC/MS set debug_ false
+ADC/HB set debug_ false
+ADC/Param set debug_ false
+ADC/ACTP set debug_ false
+ADC/ACTO set debug_ false
+
+Est/Null set debug_ false
+Est/TimeWindow set debug_ false
+Est/ExpAvg set debug_ false
+Est/PointSample set debug_ false
+
+MeasureMod set debug_ false
+SALink set debug_ false
 
 #
 # The following are defautls for objects that are not necessarily TclObjects
 #
 Node set multiPath_ 0
-
 
 ####  Bits are allocated for different fields like port, nodeid, mcast, hierarchical-levels
 ####  All Mask and Shift values are stored in Class AddrParams.
@@ -460,6 +540,18 @@ AddrParams set ALL_BITS_SET 0xffffffff
 AddrParams set PortShift_ 0
 AddrParams set PortMask_ [AddrParams set ALL_BITS_SET]
 
+Agent/MIPBS set adSize_ 48
+Agent/MIPBS set shift_ 0
+Agent/MIPBS set mask_ [AddrParams set ALL_BITS_SET]
+Agent/MIPBS set ad_lifetime_ 2
+ 
+Agent/MIPMH set home_agent_ 0
+Agent/MIPMH set rreqSize_ 52
+Agent/MIPMH set reg_rtx_ 0.5
+Agent/MIPMH set shift_ 0
+Agent/MIPMH set mask_ [AddrParams set ALL_BITS_SET]
+Agent/MIPMH set reg_lifetime_ 2
+ 
 ####  Default and Maximum Address space - leaving the MSB as signed bit
 AllocAddrBits set DEFADDRSIZE_ 32
 AllocAddrBits set MAXADDRSIZE_ 32                ;# leaving the signed bit
@@ -472,7 +564,6 @@ Simulator set mobile_ip_ 0			 ;# flag for mobileIP
 
 Simulator set EnableHierRt_ 0                    ;# is hierarchical routing on?  (to turn it on, call set-hieraddress)
 SessionSim set rc_ 0                             ;# to enable packet reference count
-
 
 ### Default settings for Hierarchical topology
 AddrParams set domain_num_ 1
@@ -492,13 +583,6 @@ AddrParams set def_nodes 5
 Simulator set McastBaseAddr_ 0x80000000
 Simulator set McastAddr_ 0x80000000
 
-# Dynamic routing defaults
-Agent/rtProto set preference_ 200		;# global default preference
-Agent/rtProto/Direct set preference_ 100
-Agent/rtProto/DV set preference_	120
-Agent/rtProto/DV set INFINITY		 [Agent set ttl_]
-Agent/rtProto/DV set advertInterval	  2
-
 rtModel set startTime_ 0.5
 rtModel set finishTime_ "-"
 rtModel/Exponential set upInterval_   10.0
@@ -508,22 +592,12 @@ rtModel/Deterministic set downInterval_ 1.0
 
 # SRM Agent defaults are in ../tcl/mcast/srm.tcl and ../mcast/srm-adaptive.tcl
 
-#
-
 #IntServ Object specific defaults are in ../tcl/lib/ns-intserv.tcl
 
 # defaults for tbf
 TBF set rate_ 64k
 TBF set bucket_ 1024
 TBF set qlen_ 0
-
-#Increased Floating Point Precision
-set tcl_precision 17
-
-#Agent/Decapsulator set off_encap_ 0
-#Agent/Encapsulator set off_encap_ 0
-Agent/Encapsulator set status_ 1
-Agent/Encapsulator set overhead_ 20
 
 #mobile Ip
  
@@ -532,60 +606,28 @@ MIPEncapsulator set port_ 0
 MIPEncapsulator set shift_ 0
 MIPEncapsulator set mask_ [AddrParams set ALL_BITS_SET]
 MIPEncapsulator set ttl_ 32
+MIPEncapsulator set debug_ false
  
-Agent/MIPBS set adSize_ 48
-Agent/MIPBS set shift_ 0
-Agent/MIPBS set mask_ [AddrParams set ALL_BITS_SET]
-Agent/MIPBS set ad_lifetime_ 2
- 
-Agent/MIPMH set home_agent_ 0
-Agent/MIPMH set rreqSize_ 52
-Agent/MIPMH set reg_rtx_ 0.5
-Agent/MIPMH set shift_ 0
-Agent/MIPMH set mask_ [AddrParams set ALL_BITS_SET]
-Agent/MIPMH set reg_lifetime_ 2
- 
-Classifier/Replicator set ignore_ 0
-
 # HTTP-related defaults are in ../tcl/webcache/http-agent.tcl
 
 Node/MobileNode set REGAGENT_PORT 0
 Node/MobileNode set DECAP_PORT 1
-
-# RAP
-Agent/RAP set packetSize_ 512
-Agent/RAP set seqno_ 0
-Agent/RAP set sessionLossCount_ 0
-Agent/RAP set ipg_ 2.0
-Agent/RAP set alpha_ 1.0
-Agent/RAP set beta_ 0.5
-Agent/RAP set srtt_ 2.0
-Agent/RAP set variance_ 0.0
-Agent/RAP set delta_ 0.5
-Agent/RAP set mu_ 1.2
-Agent/RAP set phi_ 4.0
-Agent/RAP set timeout_ 2.0
-Agent/RAP set overhead_ 0
-Agent/RAP set useFineGrain_ 0
-Agent/RAP set kfrtt_ 0.9
-Agent/RAP set kxrtt_ 0.01
-Agent/RAP set debugEnable_ 0
-Agent/RAP set rap_base_hdr_size_ 44
-Agent/RAP set dpthresh_ 50
-Agent/RAP instproc done {} { }
 
 # Default values used for wireless simulations
 Simulator set AgentTrace_ ON
 Simulator set RouterTrace_ OFF
 Simulator set MacTrace_   OFF
 
+Mac set debug_ false
+ARPTable set debug_ false
+God set debug_ false
+
 LL set mindelay_                50us
 LL set delay_                   25us
 LL set bandwidth_               0       ;# not used
 LL set off_prune_               0       ;# not used
 LL set off_CtrMcast_            0       ;# not used
-
-Queue/DropTail/PriQueue set Prefer_Routing_Protocols    1
+LL set debug_ false
 
 # unity gain, omni-directional antennas
 # set up the antennas to be centered in the node and 1.5 meters above it
@@ -604,6 +646,13 @@ Phy/WirelessPhy set Rb_ 2*1e6
 Phy/WirelessPhy set Pt_ 0.2818
 Phy/WirelessPhy set freq_ 914e+6
 Phy/WirelessPhy set L_ 1.0  
+Phy/WirelessPhy set debug_ false
 
 Phy/WiredPhy set bandwidth_ 10e6
+Phy/WiredPhy set debug_ false
+Phy/Repeater set debug_ false
+LanRouter set debug_ false
 
+Phy/Sat set debug_ false
+Mac/Sat set debug_ false
+LL/Sat set debug_ false

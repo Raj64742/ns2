@@ -34,8 +34,10 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.16 2000/01/05 00:00:58 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.17 2000/03/24 19:40:50 haoboy Exp $ (LBL)";
 #endif
+
+#include <stdarg.h>
 
 #include "object.h"
 #include "packet.h"
@@ -52,6 +54,8 @@ NsObject::NsObject()
 	off_cmn_ = hdr_cmn::offset();
 	off_flags_ = hdr_flags::offset();
 #endif
+	// Turn off debug by default
+	debug_ = 0;
 }
 
 void
@@ -61,15 +65,20 @@ NsObject::delay_bind_init_all()
 	delay_bind_init_one("off_cmn_");
 	delay_bind_init_one("off_flags_");
 #endif
+	delay_bind_init_one("debug_");
 }
 
 int
 NsObject::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
 {
 #ifdef OFF_HDR
-	if (delay_bind(varName, localName, "off_cmn_", &off_cmn_, tracer)) return TCL_OK;
-	if (delay_bind(varName, localName, "off_flags_", &off_flags_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "off_cmn_", &off_cmn_, tracer)) 
+		return TCL_OK;
+	if (delay_bind(varName, localName, "off_flags_", &off_flags_, tracer)) 
+		return TCL_OK;
 #endif
+	if (delay_bind_bool(varName, localName, "debug_", &debug_, tracer)) 
+		return TCL_OK;
 	return TclObject::delay_bind_dispatch(varName, localName, tracer);
 }
 
@@ -104,4 +113,14 @@ void NsObject::handle(Event* e)
 void NsObject::recv(Packet *p, const char*)
 {
 	Packet::free(p);
+}
+
+// Debugging output for all TclObjects. By default, print to stdout
+void NsObject::debug(const char *fmt, ...)
+{
+	if (!debug_)
+		return;
+	va_list ap;
+	va_start(ap, fmt);
+	vprintf(fmt, ap);
 }

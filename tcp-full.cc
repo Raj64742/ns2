@@ -42,6 +42,9 @@
  * connection establishment/clearin.  Additional fixes have followed
  * theirs.
  *
+ * Fixes for gensack() and ReassemblyQueue::add() contributed by Richard 
+ * Mortier <Richard.Mortier@cl.cam.ac.uk>
+ *
  * Some warnings and comments:
  *	this version of TCP will not work correctly if the sequence number
  *	goes above 2147483648 due to sequence number wrap
@@ -78,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.77 2000/01/05 00:00:58 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.78 2000/03/24 19:40:51 haoboy Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1995,7 +1998,6 @@ void ReassemblyQueue::clear()
 int
 ReassemblyQueue::gensack(int *sacks, int maxsblock)
 {
-
 	seginfo *p, *q;
 
 	if (head_ == NULL)
@@ -2006,15 +2008,21 @@ ReassemblyQueue::gensack(int *sacks, int maxsblock)
 	// most recently received segment.  Update the timestamps
 	// to match the most recent of the contig block
 	//
+
+	// Hmmm.  Leave max. time (ie. time of most recent segment in
+	// block) in the time_ field of the last segment in the block
 	p = head_;
 	while (p != NULL) {
 		q = p;
 		while (p->next_ &&
 		    (p->next_->startseq_ == p->endseq_)) {
-			p->time_ = MAX(p->time_, p->next_->time_);
+			// RMM fix
+			//p->time_ = MAX(p->time_, p->next_->time_);
+			p->next_->time_ = MAX(p->time_, p->next_->time_);
 			p = p->next_;
 		}
-		p->time_ = MAX(q->time_, p->time_);
+		// RMM fix
+		//p->time_ = MAX(q->time_, p->time_);
 		p = p->next_;
 	}
 
@@ -2022,6 +2030,92 @@ ReassemblyQueue::gensack(int *sacks, int maxsblock)
 	// look for maxsblock most recent blocks
 	//
 
+	// RMM fix
+
+	// Start at tail & work back; common case: most recent n are
+	// at end of list...  Put first n (counting from tail_) on
+	// return list.
+
+	// num_sack_blocks is how many blocks have been found & is returned
+
+	int *sacks_base_p = sacks; 
+	register int num_sack_blocks=0;
+	double sacks_times[maxsblock];
+
+	p = q = tail_;
+	while (p && num_sack_blocks < maxsblock) {
+		while (p->prev_ && 
+		       (p->prev_->endseq_ == p->startseq_))
+		{
+			p = p->prev_;
+		}
+		
+		// stash the start & end of the block
+		sacks[2*num_sack_blocks + 0] = p->startseq_;
+		sacks[2*num_sack_blocks + 1] = q->endseq_;
+		
+		// stash the time corresp. to the SACK block
+		// entered in list
+		sacks_times[num_sack_blocks] = q->time_;
+		
+		q = p = p->prev_;
+		num_sack_blocks++;
+	}
+
+	// p and q point to the end of the first remaining block; one
+	// should really be storing sacks[] in time order, so as to
+	// make replacing least recent with more recent easy, but I
+	// will cop out for now, and simply examine the entire list
+	// for each element remaining -- maxsblocks defaults to 3 (and
+	// is, I think, always <5) so this isn't too great a
+	// penalty... (he hopes)
+
+	// replacement policy is: go through sacks[] and replace
+	// 2-tuple with values from current list element (enumerated
+	// only once) iff (last PDU) time for SACK block corresp. to
+	// 2-tuple is >= (more recent than) time for block in list...
+	
+	while (p) {
+		// set up prev. SACK block for consideration...
+		while (p->prev_ && (p->prev_->endseq_ == p->startseq_))	{
+			p = p->prev_;
+		}
+
+		// now have previous SACK block in [p, q]...
+		// NB. dodgy ptr. comparison/arith. below?
+		int *ip, *tip=NULL;
+		double *dp, *tdp=NULL;
+		for (ip=sacks_base_p, dp=sacks_times; 
+		     ip<sacks; 
+		     ip+=2, dp++) {
+			if (q->time_ >= *dp) {
+				if (!tip && !tdp) {
+					// first candidate => accept
+					tip = ip;
+					tdp = dp;
+				} else {
+					// not first candidate => must
+					// be older than prior
+					// candidate
+					if (*dp < *tdp) {
+						tip = ip;
+						tdp = dp;
+					}
+				}
+			}
+		}
+
+		if (tdp && tip) {
+			*tdp   = q->time_;
+			tip[0] = p->startseq_;
+			tip[1] = q->endseq_;
+		}
+
+		p = q = p->prev_;
+	}
+
+	return (num_sack_blocks);
+#if 0
 	double max;
 	register int i;
 	seginfo *maxp, *maxq;
@@ -2067,6 +2161,7 @@ ReassemblyQueue::gensack(int *sacks, int maxsblock)
 		p = p->next_;
 	}
 	return (i);
+#endif
 }
 
 /*

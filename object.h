@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.h,v 1.13 2000/01/05 00:00:58 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.h,v 1.14 2000/03/24 19:40:51 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_object_h
@@ -54,11 +54,14 @@ class NsObject : public TclObject, public Handler {
 	virtual int command(int argc, const char*const* argv);
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
+	int isdebug() const { return debug_; }
+	virtual void debug(const char *fmt, ...);
  protected:
 	virtual void reset();
 	void handle(Event*);
 	int off_cmn_;
 	int off_flags_;
+	int debug_;
 };
 
 #endif
