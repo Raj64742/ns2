@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.29 1998/01/22 00:16:03 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.30 1998/01/22 02:32:53 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -424,7 +424,7 @@ send:
 	 */
 
 	int ctrl;
-	if (ctrl = pflags & (TH_SYN|TH_FIN)) {
+	if (ctrl = (pflags & (TH_SYN|TH_FIN))) {
 		if (pflags & TH_SYN) {
                         ++t_seqno_;
 		}
