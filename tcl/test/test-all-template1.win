@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1.win,v 1.1 2000/06/23 02:11:56 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1.win,v 1.2 2000/10/03 03:43:56 xuanc Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -126,7 +126,7 @@ for t in $tests; do
 		cp $datafile $directory/$t.test
 		gzip -dc $directory/$t.Z > $directory/$t
 		echo "Diagnose with: diff $directory/$t.test $directory/$t"
-		echo "Or see URL \"http://www-mash.cs.berkeley.edu/ns/ns-problems.html\"."
+		echo "Or see URL \"http://www.isi.edu/nsnam/ns/ns-problems.html\"."
 
 	    fi
 	 fi
