@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.61 2004/11/10 02:46:06 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.62 2004/11/10 03:24:38 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -81,7 +81,7 @@ Agent/TCP set window_ 100
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.
-# ns-random 0
+#ns-random 0
 
 TestSuite instproc finish file {
         global quiet PERL
@@ -1675,6 +1675,14 @@ Test/initRateRFC3390 instproc init {} {
     $self next pktTraceFile
 }
 
+TestSuite instproc printdrops { fid fmon } {
+        set fcl [$fmon classifier]; # flow classifier
+        #
+        set flow [$fcl lookup auto 0 0 $fid]
+        puts "fid: $fid drops [$flow set pdrops_] marks [$flow set pmarks_]"
+        puts "fid: $fid packets [$flow set pdepartures_] _bytes [$flow set bdepartures_]"
+}
+
 Class Test/tfrcOnly superclass TestSuite
 Test/tfrcOnly instproc init {} {
     $self instvar net_ test_ guide_ voip
@@ -1696,6 +1704,10 @@ Test/tfrcOnly instproc run {} {
     set stopTime2 [expr $stopTime + 0.001]
     set pktsize 120
     set cbrInterval 0.01
+
+    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon    
 
     set dumpfile_ [open temp.s w]
     if {$quiet == "false"} {
@@ -1719,6 +1731,7 @@ Test/tfrcOnly instproc run {} {
     $self tfccDump 1 $tf1 $interval_ $dumpfile_ 
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $ns_ at $stopTime0 "$self printdrops 0 $fmon"
     $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
@@ -1751,6 +1764,10 @@ Test/voip instproc run {} {
     set pktsize 120
     set cbrInterval 0.01
 
+    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon    
+
     set dumpfile_ [open temp.s w]
     if {$quiet == "false"} {
         set tracefile [open all.tr w]
@@ -1781,6 +1798,7 @@ Test/voip instproc run {} {
     $self pktsDump 2 $tcp1 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $ns_ at $stopTime0 "$self printdrops 0 $fmon; $self printdrops 1 $fmon"
     $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
