@@ -7,3 +7,6 @@ recommended dense mode protocol for use in ns.
 To run these scripts do:
 ns detailedDM1.tcl
 ns detailedDM2.tcl
+
+NOTE: detailedDM2.tcl uses LANs created by multi-link-of-interfaces
+that currently cannot be visualized using nam-1.0a2.
