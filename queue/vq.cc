@@ -32,9 +32,8 @@
  * SUCH DAMAGE.
  */
 
-/* Marking scheme proposed by Kunniyur and Srikant in "End-to-End 
-   Congestion Control Schemes: Utility Functions, Random Losses and
-   ECN Marks" published in the Proceedings of Infocom2000, Tel-Aviv, 
+/* Marking scheme proposed by Kunniyur and Srikant in "Decentralized Adaptive
+   ECN Algorithms" published in the Proceedings of Infocom2000, Tel-Aviv, 
    Israel, March 2000.
  * Central Idea:
  * ------------
@@ -59,17 +58,12 @@
  * If the packet sizes are not fixed, then it is recommended to use 
  * bytes instead of packets as units of length. If the variable (qib_)
  * is set, then the virtual queue is measured in bytes, else it is
- * measured in packets.  
- *	 - Srisankar 
- *     01/07/2001.
+ * measured in packets and the mean packet size is set to 1000.
 
- * Intrdouced mean_pktsize_ and related changes to 
- * ensure corerct behavior when qib_ is set. also removed drop-front and mark-front. 
- * replaced with more generic functions similar to red.
- *   - Jitu
- *     06/19/2001
+ 
+                         - Srisankar
+						   01/07/2001.
  */
-
 #ifndef lint
 static const char rcsid[] =
     "@(#) $Header: /usr/src/mash/repository/vint/ns-2/drop-tail.cc,v 1.9 1998/06/27
@@ -79,7 +73,6 @@ static const char rcsid[] =
 #include "delay.h"
 #include "vq.h"
 #include "math.h"
-
 
 static class VqClass : public TclClass {
 public:
@@ -92,27 +85,26 @@ public:
 	}
 } class_vq;
 
-Vq::Vq(const char * trace) : link_(NULL), bcount_(0), EDTrace(NULL), tchan_(0){
+Vq::Vq(const char * trace) : link_(NULL), EDTrace(NULL), tchan_(0){
 	q_ = new PacketQueue;
 	pq_ = q_;
+	bind_bool("drop_front_", &drop_front_);
 	bind("ecnlim_", &ecnlim_); //  = ctilde/c ; Initial value set to 0.8
-	bind("buflim_", &buflim_); /* Fraction of the original buffer */
-			/* that the VQ buffer has. Default is 1.0 */
+	bind("buflim_", &buflim_); /* Fraction of the original buffer that the VQ buffer has. Default is 1.0 */
 	bind_bool("queue_in_bytes_", &qib_);	 // boolean: q in bytes?
 	bind("gamma_", &gamma_); // Defines the utilization. Default is 0.98
-	bind_bool("markpkts_", &markpkts_); /* Whether to mark or drop?  */
-					/* Default is drop */
-	bind("mean_pktsize_", &mean_pktsize_);	// avg pkt size
-	bind("curq_", &curq_);	        // current queue size
-
+	bind_bool("markpkts_", &markpkts_); /* Whether to mark or drop?  Default is drop */
+	bind_bool("markfront_", &markfront_); /* Mark from front?  Deafult is false */
+	bind("mean_pktsize_", &mean_pktsize_);  // avg pkt size
+	bind("curq_", &curq_);          // current queue size
+	
 	vq_len = 0.0;
 	prev_time = 0.0;
 	vqprev_time = 0.0;
-	mark_count = 0;
-	IsPktdrop = 0; // Flag
 	alpha2 = 0.15; // Determines how fast we adapt at the link
 	Pktdrp = 0; /* Useful if we are dropping pkts instead of marking */
 	firstpkt = 1;
+	qlength = 0; /* Tracks the queue length */
 }
 
 int Vq::command(int argc, const char*const* argv) {
@@ -154,13 +146,15 @@ int Vq::command(int argc, const char*const* argv) {
 
 void Vq::enque(Packet* p)
 {
-	int qlim = qib_ ? (qlim_ * mean_pktsize_) : qlim_;
-	double now = Scheduler::instance().clock();
+	q_->enque(p);
 	hdr_cmn* ch = hdr_cmn::access(p);
-
+	qlength = qlength + (qib_ * ch->size()) + (1 - qib_);
+	
 	if(firstpkt){
 		/* Changing c_ so that it is measured in packets per second */
-		if (qib_) c_ = c_ / (8.0);
+		/* Assuming packets are fixed size with 1000 bytes */
+		
+		if(qib_) c_ = c_ / (8.0);
 		else c_ = c_ / (8.0 * mean_pktsize_);
 		firstpkt = 0;
 		ctilde = c_ * ecnlim_;
@@ -168,97 +162,139 @@ void Vq::enque(Packet* p)
 		vqprev_time = Scheduler::instance().clock();
 	}
 
-	q_->enque(p); 
-	bcount_ = bcount_ + ch->size();
-	int qlen = qib_ ? bcount_ : q_->length();
-
-	/*Whenever a packet arrives, the actual length of the virtual queue is determined */
-
-	vq_len = vq_len - (ctilde * (now - vqprev_time));
-	vqprev_time = now;
+	/* Update the Virtual Queue length */ 	
+	curr_time = Scheduler::instance().clock();
+	vq_len = vq_len - (ctilde * (curr_time - vqprev_time));
+	vqprev_time = curr_time;
 	if(vq_len < 0.0) vq_len = 0.0;
 	vq_len = vq_len + qib_ * ch->size() + (1 - qib_);
-
-	if (qlen >= qlim) {
-		q_->remove(p);
-		drop(p);
-		bcount_ = bcount_ - ch->size();
-		Pktdrp = 1;	
-		vq_len = vq_len - qib_ * ch->size() - (1.0 - qib_);
-		if(vq_len < 0.0) vq_len = 0.0;
+	
+	/* checkPacketForECN() returns 1 if we need to mark or drop a packet*/
+	
+	if(checkPacketForECN()){
+		if(markpkts_)
+			markPacketForECN(p);
+		else
+			dropPacketForECN(p);
 	}
-	else {
-		if(vq_len > (buflim_ * qlim)){ // Mark or drop packets accordingly
-			if(markpkts_ == 1){ // Mark packets  
-				Packet *pp = pickPacketForECN(p);
-				hdr_flags* hdr = hdr_flags::access(pp);
-				// hdr_cmn* chpp = hdr_cmn::access(pp);
-				hdr->ce() = 1; // For TCP Flows
-			}
-			else{ // If the router AQM policy is to drop packets
-				Packet *pp = pickPacketToDrop();
-				hdr_cmn* chpp = hdr_cmn::access(pp);
-				q_->remove(pp);
-				drop(pp);
-				bcount_ = bcount_ - chpp->size ();
-				Pktdrp = 1; // Do not update tilde(C)
-			}
-			/* Update the VQ length */
-			vq_len = vq_len - qib_ * ch->size() - (1.0 - qib_);
-			if(vq_len < 0.0) vq_len = 0.0;
-		}
-	}
+	
 	/* Adaptation of the virtual capacity, tilde(C) */
-	if(Pktdrp == 0){ 
-		ctilde = ctilde + alpha2*gamma_*c_*(now - prev_time) - alpha2*(1.0 - qib_) - alpha2*qib_*ch->size();
+	/* Use the token bucket system  */
+	/* Scale alpha appropriately if qib_ is set */
+	
+	if(Pktdrp == 0){ // Do the adaptation
+		/* Pktdrp = 0 always when marking */
+		ctilde = ctilde + alpha2*gamma_*c_*(curr_time - prev_time) - alpha2*(1.0 - qib_) - alpha2*qib_*ch->size();
 		if(ctilde > c_) ctilde = c_;
 		if(ctilde <0.0) ctilde = 0.0;
-		prev_time = now;
+		prev_time = curr_time;
 	}
 	else{ // No adaptation and reset Pktdrp
 		Pktdrp = 0;
 	}
-	qlen = qib_ ? bcount_ : q_->length();
-	curq_ = qlen; 
-/*
-printf ("now=%.4f qlim=%d qlen=%d vq_len=%f buflim_*qlim=%.3f ctilde=%f gamma=%f\n\n", 
-now, qlim, qlen, vq_len, (buflim_ * qlim), ctilde,gamma_);
-*/
+	
+	if (qlength > qlim_*( 1 - qib_ + qib_*mean_pktsize_)) {
+		if (drop_front_) { /* remove from head of queue */
+			if(q_->length() > 0){
+				Packet *pp = q_->head();
+				hdr_cmn* chh = hdr_cmn::access(pp);
+				qlength = qlength - qib_ * ch->size() - (1 - qib_);
+				q_->remove(pp); 
+				drop(pp);
+			}
+		} 
+		else {
+			q_->remove(p);
+			qlength = qlength - qib_ * ch->size() - (1 - qib_);
+			drop(p);
+		}
+	}
+	curq_ = qlength;
 }
 
-Packet* Vq::deque() 
+/* This is a simple DropTail on the VQ. However, one Can add 
+   any AQM scheme on VQ here */
+int Vq::checkPacketForECN(){
+	if(vq_len > (buflim_ * qlim_ * ( 1 - qib_ + qib_*mean_pktsize_))){
+		return 1;
+	}
+	else{
+		return 0;
+	}
+}
+
+/* Implements a simple mark-tail/mark-front here. If needed other
+   mechanism (like mark-random ) can also be implemented */ 
+void  Vq::markPacketForECN(Packet* pkt)
 {
-	Packet *p;
-	p = q_->deque();
-	if (p != 0) {
-		bcount_ -= hdr_cmn::access(p)->size();
-	} 
-	curq_ = qib_ ? bcount_ : q_->length();
-	return (p);
-}
+	/* Update the VQ length */
+	hdr_cmn* ch = hdr_cmn::access(pkt);
+	vq_len = vq_len - qib_ * ch->size() - (1.0 - qib_);
+	if(vq_len < 0.0) vq_len = 0.0;
+	
+	if(markfront_){ 
+		Packet *pp = q_->head();
+		hdr_flags* hf = hdr_flags::access(pp);
+		if(hf->ect() == 1)  // ECN capable flow
+			hf->ce() = 1; // Mark the TCP Flow;
+	}
+	else{ 
+		/* Mark the current packet and forget about it */
+		hdr_flags* hdr = hdr_flags::access(pkt);
+		if(hdr->ect() == 1)  // ECN capable flow
+			hdr->ce() = 1; // For TCP Flows
+	}
+}	
 
-/*
- * Pick packet for early congestion notification (ECN). This packet is then
- * marked or dropped. Having a separate function do this is convenient for
- * supporting derived classes that use the standard PI algorithm to compute
- * average queue size but use a different algorithm for choosing the packet for 
- * ECN notification.
- */
-Packet* Vq::pickPacketForECN(Packet* pkt)
+/* Implements a simple drop-tail/drop-front here. If needed other
+   mechanism (like drop-random ) can also be implemented */ 
+void Vq::dropPacketForECN(Packet* pkt) 
 {
-	return pkt; /* pick the packet that just arrived */
-}
+	/* Update the VQ length */
+	hdr_cmn* ch = hdr_cmn::access(pkt);
+	vq_len = vq_len - qib_ * ch->size() - (1.0 - qib_);
+	if(vq_len < 0.0) vq_len = 0.0;
 
-/*
- * Pick packet to drop. Same as above. 
- */
-Packet* Vq::pickPacketToDrop() 
+	if(drop_front_){
+		/* If drop from front is enabled, then deque a 
+		   packet from the front of the queue and drop it ...
+		   Usually not recommended */ 
+		if(q_->length() > 0 ){
+			Packet *pp = q_->head();
+			hdr_cmn* chh = hdr_cmn::access(pp);
+			qlength = qlength - qib_ * ch->size() - (1 - qib_);
+			q_->remove(pp); /* The queue length is taken care of in
+										 in the deque program */
+			drop(pp);
+
+		}
+	}
+	else{
+		q_->remove(pkt);
+		qlength = qlength - qib_ * ch->size() - (1 - qib_);
+		drop(pkt);
+	}
+	
+	/* If one is dropping packets, one needs to be careful about 
+	   measuring the total arrival rate to calculate the virtual
+	   capacity, tilde(C). In this case, the arrival rate that is
+	   taken into the adaptation algorithm is the accepted rate and
+	   not the offered rate. */
+	Pktdrp = 1; // Do not update tilde(C)
+	
+}	
+
+Packet* Vq::deque()
 {
-	int victim;
-	victim = q_->length() - 1;
-	return(q_->lookup(victim)); 
+	if((q_->length() > 0)){
+		Packet *ppp = q_->deque();
+		hdr_cmn* ch = hdr_cmn::access(ppp);
+		qlength = qlength - qib_ * ch->size() - (1 - qib_);
+		curq_ = qlength;
+		return ppp;
+	}
+	else return q_->deque();
 }
-
 
 /*
  * Routine called by TracedVar facility when variables change values.
@@ -292,3 +328,11 @@ void Vq::trace(TracedVar* v)
 	}
 	return; 
 }
+
+
+
+
+
+
+
+
