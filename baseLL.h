@@ -15,6 +15,7 @@ public:
 protected:
 	int command(int argc, const char*const* argv);
 	ErrorModel* em_;	// error model
+	Queue* ifq_;		// interface queue
         NsObject* sendtarget_;  // usually the link layer of the peer
 	NsObject* recvtarget_;  // usually the classifier of the same node
 };

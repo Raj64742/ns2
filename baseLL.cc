@@ -58,6 +58,10 @@ BaseLL::command(int argc, const char*const* argv)
 			em_ = (ErrorModel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
+		else if (strcmp(argv[1], "ifq") == 0) {
+			ifq_ = (Queue*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
 		else if (strcmp(argv[1], "sendtarget") == 0) {
 			sendtarget_ = (NsObject*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
@@ -70,6 +74,10 @@ BaseLL::command(int argc, const char*const* argv)
 	if (argc == 2) {
 		if (strcmp(argv[1], "error") == 0) {
 			tcl.resultf("%s", em_->name());
+			return (TCL_OK);
+		}
+		else if (strcmp(argv[1], "ifq") == 0) {
+			tcl.resultf("%s", ifq_->name());
 			return (TCL_OK);
 		}
 		else if (strcmp(argv[1], "sendtarget") == 0) {
@@ -93,7 +101,7 @@ BaseLL::recv(Packet* p, Handler* h)
 		p->error(1);
 	}
 	p->target(sendtarget_);	// set target to peer link layer
-	target_->recv(p, h);	// send it down to the interface queue
+	ifq_->recv(p, h);	// send it down to the interface queue
 	s.schedule(h, &intr_, 0);
 }
 
