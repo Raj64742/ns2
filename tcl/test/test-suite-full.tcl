@@ -64,10 +64,24 @@ TestSuite instproc finish testname {
 	}
 
 	if { $outtype != "text" } {
-		exec tclsh ../../bin/cplot.tcl $outtype $testname \
-		  $fname.p "segments" \
-		  $fname.acks "acks w/data" \
-		  $fname.packs "pure acks" $fname.d "drops" | $outtype &
+		if { $outtype == "gnuplot" } {
+			# writing .gnuplot is really gross, but if we
+			# don't do that it's tough to get gnuplot to
+			# display our graph and hang around for more user input
+			exec tclsh ../../bin/cplot.tcl $outtype $testname \
+			  $fname.p "segments" \
+			  $fname.acks "acks w/data" \
+			  $fname.packs "pure acks" $fname.d "drops" > .gnuplot
+			exec xterm -T "Gnuplot: $testname" -e gnuplot &
+			exec sleep 1
+			exec rm -f .gnuplot
+		} else {
+	  
+			exec tclsh ../../bin/cplot.tcl $outtype $testname \
+			  $fname.p "segments" \
+			  $fname.acks "acks w/data" \
+			  $fname.packs "pure acks" $fname.d "drops" | $outtype &
+		}
 		exec sleep 1
 		exec rm -f $fname.p $fname.acks $fname.packs $fname.d
 	} else {
