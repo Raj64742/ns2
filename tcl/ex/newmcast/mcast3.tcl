@@ -15,25 +15,17 @@ set n1 [$ns node]
 set n2 [$ns node]
 set n3 [$ns node]
 
-set f [open out-cmcast.tr w]
+set f [open out-mcast.tr w]
 $ns trace-all $f
-
-### Start multicast configuration: 4 mproto options
-### CtrMcast : centralized multicast
-### DM       : static DVMRP (can't adapt to link up/down or node up/down)
-### dynamicDM: dynamic DVMRP 
-### pimDM    : PIM dense mode
 
 ### Uncomment following lines to change default
 #DM set PruneTimeout 0.3               ;# default 0.5 (sec)
-#dynamicDM set ReportRouteTimeout 0.5  ;# default 1 (sec)
 
-set mproto dynamicDM
+set mproto DM
 set mrthandle [$ns mrtproto $mproto  {}]
 
 if {$mproto == "CtrMcast"} {
     $mrthandle set_c_rp [list $n2 $n3]
-    $mrthandle set_c_bsr [list $n1:0]
 }
 ### End of multicast configuration
 
@@ -67,9 +59,7 @@ $ns at 0.6.5 "$n2 join-group  $rcvr2 0x8003"
 
 $ns at 0.7 "$n0 leave-group $rcvr0 0x8003"
 $ns at 0.8 "$n2 leave-group  $rcvr2 0x8003"
-if {$mproto == "CtrMcast"} {
-    #$ns at 0.85 "$mrthandle compute-mroutes"
-}
+
 $ns at 0.9 "$n3 leave-group  $rcvr3 0x8003"
 $ns at 1.0 "$n1 leave-group $rcvr1 0x8003"
 
@@ -79,7 +69,7 @@ $ns at 1.1 "finish"
 proc finish {} {
         global ns
         $ns flush-trace
-        exec awk -f ../../nam-demo/nstonam.awk out-cmcast.tr > cmcast-nam.tr
+        exec awk -f ../../nam-demo/nstonam.awk out-mcast.tr > cmcast-nam.tr
         # exec rm -f out
         #XXX
         puts "running nam..."
