@@ -18,7 +18,20 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fsm.cc,v 1.10 2000/05/24 21:08:26 johnh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fsm.cc,v 1.11 2001/08/23 23:31:13 johnh Exp $ (LBL)
+ */
+
+/*
+ * The contents of this file are described in the paper:
+ *   Polly Huang and John Heidemann.
+ *     Capturing TCP Burstiness in Light-weight Simulations.
+ *     In Proceedings of the SCS Conference on Communication Networks and Distributed Systems Modeling and Simulation, pp. 90-96.
+ *     Phoenix, Arizona, USA, USC/Information Sciences Institute, Society for Computer Simulation.
+ *     January, 2001.
+ *     <http://www.isi.edu/~johnh/PAPERS/Huang01a.html>.
+ *
+ * (Although this code talks about FSMs or Finite-State Machines,
+ * the paper uses the term FSA or Finite-State Automoton.)
  */
 
 #include "fsm.h"
