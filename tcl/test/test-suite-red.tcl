@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.29 1999/07/01 00:11:05 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.30 1999/12/04 16:26:59 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -802,6 +802,18 @@ Test/gentle instproc init {} {
     set test_ gentle
     Queue/RED set gentle_ true
     Test/gentle instproc run {} [Test/ungentle info instbody run ]
+    $self next
+}
+
+Class Test/gentleEcn -superclass TestSuite
+Test/gentleEcn instproc init {} {
+    $self instvar net_ test_
+    Queue/RED set setbit_ true
+    Agent/TCP set ecn_ 1
+    set net_ net3 
+    set test_ gentleEcn
+    Queue/RED set gentle_ true
+    Test/gentleEcn instproc run {} [Test/ungentle info instbody run ]
     $self next
 }
 
