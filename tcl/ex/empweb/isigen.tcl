@@ -29,7 +29,7 @@
 global num_node n verbose num_ftp_client num_nonisi_web_client num_isi_server 
 set verbose 1
 set enableWEB 1
-set enableFTP 0
+set enableFTP 1
 
 source isitopo.tcl
 
@@ -94,9 +94,9 @@ $defaultRNG seed 0
 
 # Inter-session Interval
 set WWWinterSessionO [new RandomVariable/Empirical]
-$WWWinterSessionO loadCDF cdf/2pm.www.out.sess.inter.cdf
+$WWWinterSessionO loadCDF cdf/2pm.dump.www.out.sess.inter.cdf
 set WWWinterSessionI [new RandomVariable/Empirical]
-$WWWinterSessionI loadCDF cdf/2pm.www.in.sess.inter.cdf
+$WWWinterSessionI loadCDF cdf/2pm.dump.www.in.sess.inter.cdf
 #set WWWinterSessionO [new RandomVariable/Exponential]
 #$WWWinterSessionO set avg_ 13.6
 #set WWWinterSessionI [new RandomVariable/Exponential]
@@ -104,9 +104,9 @@ $WWWinterSessionI loadCDF cdf/2pm.www.in.sess.inter.cdf
 
 ## Number of Pages per Session
 set WWWsessionSizeO [new RandomVariable/Empirical]
-$WWWsessionSizeO loadCDF cdf/2pm.www.out.pagecnt.cdf
+$WWWsessionSizeO loadCDF cdf/2pm.dump.www.out.pagecnt.cdf
 set WWWsessionSizeI [new RandomVariable/Empirical]
-$WWWsessionSizeI loadCDF cdf/2pm.www.in.pagecnt.cdf
+$WWWsessionSizeI loadCDF cdf/2pm.dump.www.in.pagecnt.cdf
 
 
 
@@ -116,22 +116,28 @@ $poolWWW set-num-session [expr $numSessionI + $numSessionO]
 puts "creating WWW outbound session"
 
 set interPage [new RandomVariable/Empirical]
-$interPage loadCDF cdf/2pm.www.out.idle.cdf
+$interPage loadCDF cdf/2pm.dump.www.out.idle.cdf
 
 set pageSize [new RandomVariable/Constant]
 $pageSize set val_ 1
 set interObj [new RandomVariable/Empirical]
-$interObj loadCDF cdf/2pm.www.out.obj.cdf  
+$interObj loadCDF cdf/2pm.dump.www.out.obj.cdf  
 
 set objSize [new RandomVariable/Empirical]
-$objSize loadCDF cdf/2pm.www.out.pagesize.cdf
+$objSize loadCDF cdf/2pm.dump.www.out.pagesize.cdf
 set reqSize [new RandomVariable/Empirical]
-$reqSize loadCDF cdf/2pm.www.out.req.cdf
+$reqSize loadCDF cdf/2pm.dump.www.out.req.cdf
 
 set persistSel [new RandomVariable/Empirical]
 $persistSel loadCDF cdf/persist.cdf
 set serverSel [new RandomVariable/Empirical]
-$serverSel loadCDF cdf/outbound.server.cdf
+$serverSel loadCDF cdf/2pm.dump.outbound.server.cdf
+
+set windowS [new RandomVariable/Empirical]
+$windowS loadCDF cdf/2pm.dump.www.outbound.wins.cdf
+set windowC [new RandomVariable/Empirical]
+$windowC loadCDF cdf/2pm.dump.www.outbound.winc.cdf
+
 
 set launchTime 0
 for {set i 0} {$i < $numSessionO} {incr i} {
@@ -142,7 +148,7 @@ for {set i 0} {$i < $numSessionO} {incr i} {
 	   $poolWWW create-session  $i  \
 	                $numPage [expr $launchTime + 0.1] \
 			$interPage $pageSize $interObj $objSize \
-                        $reqSize $persistSel $serverSel 1
+                        $reqSize $persistSel $serverSel $windowS $windowC 1
 
 	   set launchTime [expr $launchTime + [$WWWinterSessionO value]]
 	}
@@ -151,22 +157,27 @@ for {set i 0} {$i < $numSessionO} {incr i} {
 puts "creating WWW inbound session"
 
 set interPage [new RandomVariable/Empirical]
-$interPage loadCDF cdf/2pm.www.in.idle.cdf
+$interPage loadCDF cdf/2pm.dump.www.in.idle.cdf
 
 set pageSize [new RandomVariable/Constant]
 $pageSize set val_ 1
 set interObj [new RandomVariable/Empirical]
-$interObj loadCDF cdf/2pm.www.in.obj.cdf  
+$interObj loadCDF cdf/2pm.dump.www.in.obj.cdf  
 
 set objSize [new RandomVariable/Empirical]
-$objSize loadCDF cdf/2pm.www.in.pagesize.cdf
+$objSize loadCDF cdf/2pm.dump.www.in.pagesize.cdf
 set reqSize [new RandomVariable/Empirical]
-$reqSize loadCDF cdf/2pm.www.in.req.cdf
+$reqSize loadCDF cdf/2pm.dump.www.in.req.cdf
 
 set persistSel [new RandomVariable/Empirical]
 $persistSel loadCDF cdf/persist.cdf
 set serverSel [new RandomVariable/Empirical]
-$serverSel loadCDF cdf/2pm.www.inbound.server.cdf
+$serverSel loadCDF cdf/2pm.dump.www.inbound.server.cdf
+
+set windowS [new RandomVariable/Empirical]
+$windowS loadCDF cdf/2pm.dump.www.inbound.wins.cdf
+set windowC [new RandomVariable/Empirical]
+$windowC loadCDF cdf/2pm.dump.www.inbound.winc.cdf
 
 set launchTime 0
 for {set i 0} {$i < $numSessionI} {incr i} {
@@ -177,7 +188,7 @@ for {set i 0} {$i < $numSessionI} {incr i} {
 	   $poolWWW create-session [expr $i + $numSessionO] \
 	                $numPage [expr $launchTime + 0.1] \
 			$interPage $pageSize $interObj $objSize \
-                        $reqSize $persistSel $serverSel 0
+                        $reqSize $persistSel $serverSel $windowS $windowC 0
 
 	   set launchTime [expr $launchTime + [$WWWinterSessionI value]]
         }
@@ -209,28 +220,33 @@ foreach s [$ns set dstF_] {
 
 # Inter-session Interval
 set FTPinterSessionO [new RandomVariable/Empirical]
-$FTPinterSessionO loadCDF cdf/ftp.outbound.sess.inter.cdf
+$FTPinterSessionO loadCDF cdf/2pm.dump.ftp.outbound.sess.inter.cdf
 set FTPinterSessionI [new RandomVariable/Empirical]
-$FTPinterSessionI loadCDF cdf/ftp.inbound.sess.inter.cdf
+$FTPinterSessionI loadCDF cdf/2pm.dump.ftp.inbound.sess.inter.cdf
 
 ## Number of File per Session
 set FTPsessionSizeO [new RandomVariable/Empirical]
-$FTPsessionSizeO loadCDF cdf/ftp.outbound.fileno.cdf
+$FTPsessionSizeO loadCDF cdf/2pm.dump.ftp.outbound.fileno.cdf
 set FTPsessionSizeI [new RandomVariable/Empirical]
-$FTPsessionSizeI loadCDF cdf/ftp.inbound.fileno.cdf
+$FTPsessionSizeI loadCDF cdf/2pm.dump.ftp.inbound.fileno.cdf
 
 $poolFTP set-num-session [expr $numSessionI + $numSessionO]
 
 puts "creating FTP outbound session"
 
 set interFile [new RandomVariable/Empirical]
-$interFile loadCDF cdf/ftp.outbound.file.inter.cdf
+$interFile loadCDF cdf/2pm.dump.ftp.outbound.file.inter.cdf
 
 set fileSize [new RandomVariable/Empirical]
-$fileSize loadCDF cdf/ftp.outbound.size.cdf
+$fileSize loadCDF cdf/2pm.dump.ftp.outbound.size.cdf
 
 set serverSel [new RandomVariable/Empirical]
-$serverSel loadCDF cdf/outbound.server.cdf
+$serverSel loadCDF cdf/2pm.dump.outbound.server.cdf
+
+set windowS [new RandomVariable/Empirical]
+$windowS loadCDF cdf/2pm.dump.ftp.outbound.wins.cdf
+set windowC [new RandomVariable/Empirical]
+$windowC loadCDF cdf/2pm.dump.ftp.outbound.winc.cdf
 
 set launchTime 0
 for {set i 0} {$i < $numSessionO} {incr i} {
@@ -241,7 +257,7 @@ for {set i 0} {$i < $numSessionO} {incr i} {
 
        		$poolFTP create-session  $i  \
                          $numFile [expr $launchTime + 0.1] \
-		         $interFile $fileSize $serverSel 1
+		         $interFile $fileSize $serverSel $windowS $windowC 1
            	set launchTime [expr $launchTime + [$FTPinterSessionO value]]
         }
 }
@@ -250,13 +266,18 @@ for {set i 0} {$i < $numSessionO} {incr i} {
 puts "creating FTP inbound session"
 
 set interFile [new RandomVariable/Empirical]
-$interFile loadCDF cdf/ftp.inbound.file.inter.cdf
+$interFile loadCDF cdf/2pm.dump.ftp.inbound.file.inter.cdf
 
 set fileSize [new RandomVariable/Empirical]
-$fileSize loadCDF cdf/ftp.inbound.size.cdf
+$fileSize loadCDF cdf/2pm.dump.ftp.inbound.size.cdf
 
 set serverSel [new RandomVariable/Empirical]
-$serverSel loadCDF cdf/ftp.inbound.server.cdf
+$serverSel loadCDF cdf/2pm.dump.ftp.inbound.server.cdf
+
+set windowS [new RandomVariable/Empirical]
+$windowS loadCDF cdf/2pm.dump.ftp.inbound.wins.cdf
+set windowC [new RandomVariable/Empirical]
+$windowC loadCDF cdf/2pm.dump.ftp.inbound.winc.cdf
 
 set launchTime 0
 for {set i 0} {$i < $numSessionI} {incr i} {
@@ -267,7 +288,7 @@ for {set i 0} {$i < $numSessionI} {incr i} {
 
 		$poolFTP create-session [expr $i + $numSessionO] \
                          $numFile [expr $launchTime + 0.1] \
-                         $interFile $fileSize $serverSel 0
+                         $interFile $fileSize $serverSel $windowS $windowC 0
 
 	        set launchTime [expr $launchTime + [$FTPinterSessionI value]]
          }

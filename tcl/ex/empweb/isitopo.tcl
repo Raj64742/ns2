@@ -18,7 +18,7 @@
 
 #
 # Maintainer: Kun-chan Lan <kclan@isi.edu>
-# Version Date: $Date: 2001/11/28 18:47:54 $
+# Version Date: $Date: 2001/12/03 08:43:13 $
 #
 #
 # Unbalanced dumbell topology
@@ -63,22 +63,22 @@ set num_nonisi_web_client [expr $num_web_client - $num_isi_client]
 set num_node [expr 15 + [expr $num_web_client + $num_web_server + $num_ftp_server + $num_ftp_client]]
 
 set wwwInDelay [new RandomVariable/Empirical]
-$wwwInDelay loadCDF cdf/www.inbound.delay.cdf
+$wwwInDelay loadCDF cdf/2pm.dump.www.inbound.delay.cdf
 set wwwOutDelay [new RandomVariable/Empirical]
-$wwwOutDelay loadCDF cdf/www.outbound.delay.cdf
+$wwwOutDelay loadCDF cdf/2pm.dump.www.outbound.delay.cdf
 set WWWinBW [new RandomVariable/Empirical]
-$WWWinBW loadCDF cdf/www.inbound.BW.cdf
+$WWWinBW loadCDF cdf/2pm.dump.www.inbound.BW.cdf
 set WWWoutBW [new RandomVariable/Empirical]
-$WWWoutBW loadCDF cdf/www.outbound.BW.cdf
+$WWWoutBW loadCDF cdf/2pm.dump.www.outbound.BW.cdf
 
 set ftpInDelay [new RandomVariable/Empirical]
-$ftpInDelay loadCDF cdf/ftp.inbound.delay.cdf
+$ftpInDelay loadCDF cdf/2pm.dump.ftp.inbound.delay.cdf
 set ftpOutDelay [new RandomVariable/Empirical]
-$ftpOutDelay loadCDF cdf/ftp.outbound.delay.cdf
+$ftpOutDelay loadCDF cdf/2pm.dump.ftp.outbound.delay.cdf
 set FTPinBW [new RandomVariable/Empirical]
-$FTPinBW loadCDF cdf/ftp.inbound.BW.cdf
+$FTPinBW loadCDF cdf/2pm.dump.ftp.inbound.BW.cdf
 set FTPoutBW [new RandomVariable/Empirical]
-$FTPoutBW loadCDF cdf/ftp.outbound.BW.cdf
+$FTPoutBW loadCDF cdf/2pm.dump.ftp.outbound.BW.cdf
 
 if {$verbose} { puts "Creating dumbell topology..." }
 
