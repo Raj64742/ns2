@@ -140,6 +140,7 @@ protected:
 	void fremove(seginfo*);	// remove from FIFO
 	void sremove(seginfo*); // remove from LIFO
 	void push(seginfo*); // add to LIFO
+	void cnts(seginfo *, int&, int&); // byte/blk counts
 };
 
 #endif
