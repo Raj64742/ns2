@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.93 2003/02/02 22:33:53 xuanc Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.94 2003/03/18 23:56:40 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -153,6 +153,9 @@ enum packet_t {
 	PT_LMS,
 	PT_LMS_SETUP,
 
+	// SMAC packet
+	PT_SMAC,
+
 	// insert new packet types here
 	PT_NTYPE // This MUST be the LAST one
 };
@@ -236,6 +239,9 @@ public:
 		// LMS entries
 		name_[PT_LMS]="LMS";
 		name_[PT_LMS_SETUP]="LMS_SETUP";
+
+		// smac
+		name_[PT_SMAC]="smac";
 
 		name_[PT_NTYPE]= "undefined";
 	}

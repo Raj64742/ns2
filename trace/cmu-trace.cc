@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.72 2003/02/22 03:53:35 buchheim Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.73 2003/03/18 23:56:39 haldar Exp $
  */
 
 #include <packet.h>
@@ -45,6 +45,7 @@
 #include <dsr/hdr_sr.h>	// DSR
 #include <mac.h>
 #include <mac-802_11.h>
+#include <smac.h>
 #include <address.h>
 #include <tora/tora_packet.h> //TORA
 #include <imep/imep_spec.h>         // IMEP
@@ -66,12 +67,6 @@ public:
 		return (new CMUTrace(argv[4], *argv[5]));
 	}
 } cmutrace_class;
-
-
-
-double CMUTrace::bradius = 0.0;
-double CMUTrace::radius_scaling_factor_ = 0.0;
-double CMUTrace::duration_scaling_factor_ = 0.0;
 
 
 CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
@@ -105,15 +100,17 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 	for (int i=0 ; i < MAX_NODE ; i++) 
 		nodeColor[i] = 3 ;
         node_ = 0;
-
 }
 
 void
-CMUTrace::format_mac(Packet *p, const char *why, int offset)
+CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 {
 	struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_ip *ih = HDR_IP(p);
-	struct hdr_mac802_11 *mh = HDR_MAC802_11(p);
+	struct hdr_mac802_11 *mh = HDR_MAC802_11(p);	
+	struct hdr_smac *sh = HDR_SMAC(p);
+
+
 	double x = 0.0, y = 0.0, z = 0.0;
        
 	char op = (char) type_;
@@ -149,8 +146,8 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 
 		sprintf(pt_->buffer() + offset,
 			"%c "TIME_FORMAT" -s %d -d %d -p %s -k %3s -i %d "
-			"-N:loc {%.2f %.2f %.2f} -N:en %f "
-			"-M:dur %x -M:s %x -M:d %x -M:t %x ",
+			"-N:loc {%.2f %.2f %.2f} -N:en %f ",
+			
 			op,				// event type
 			Scheduler::instance().clock(),	// time
 			src_,				// this node
@@ -159,12 +156,14 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 			tracename,			// trace level
 			ch->uid(),			// event id
 			x, y, z,			// location
-			energy,				// energy
-			mh->dh_duration,		// MAC: duration
-			ETHER_ADDR(mh->dh_da),		// MAC: source
-			ETHER_ADDR(mh->dh_sa),		// MAC: destination
-			GET_ETHER_TYPE(mh->dh_body)	// MAC: type
-			);
+			energy);				// energy
+
+		offset = strlen(pt_->buffer());
+		if (ch->ptype() == PT_SMAC) {
+			format_smac(p, offset);
+		} else {
+			format_mac(p, offset);
+		}
 		return;
 	}
 
@@ -195,15 +194,12 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	    // mac layer extension
 
 	    offset = strlen(pt_->buffer());
-
-	    sprintf(pt_->buffer() + offset, 
-		    "-Ma %x -Md %x -Ms %x -Mt %x ",
-		    mh->dh_duration,
-		    ETHER_ADDR(mh->dh_da),
-		    ETHER_ADDR(mh->dh_sa),
-		    GET_ETHER_TYPE(mh->dh_body));
-		    
-	     return;
+	    if (ch->ptype() == PT_SMAC) {
+		    format_smac(p, offset);
+	    } else {
+		    format_mac(p, offset);
+	    }
+	    return;
 	}
 
 
@@ -216,7 +212,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 #ifdef LOG_POSITION
 		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d [%x %x %x %x] ",
 #else
-		"%c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x] ",
+		"%c %.9f _%d_ %3s %4s %d %s %d",
 #endif
 		op,
 		Scheduler::instance().clock(),
@@ -234,17 +230,24 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_RTS) ? "RTS"  :
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_CTS) ? "CTS"  :
 		  (mh->dh_fc.fc_subtype == MAC_Subtype_ACK) ? "ACK"  :
-		  "UNKN"
-		  ) : packet_info.name(ch->ptype())),
-		
-		ch->size(),
+		  "UNKN") :
+		 (ch->ptype() == PT_SMAC) ? (
+		  (sh->type == RTS_PKT) ? "RTS" :
+		  (sh->type == CTS_PKT) ? "CTS" :
+		  (sh->type == ACK_PKT) ? "ACK" :
+		  (sh->type == SYNC_PKT) ? "SYNC" :
+		  "UNKN") : 
+		 packet_info.name(ch->ptype())),
+		ch->size());
+	
+	offset = strlen(pt_->buffer());
 
-		//*((u_int16_t*) &mh->dh_fc),
-		mh->dh_duration,
-		ETHER_ADDR(mh->dh_da),
-		ETHER_ADDR(mh->dh_sa),
-		GET_ETHER_TYPE(mh->dh_body));
-
+	if (ch->ptype() == PT_SMAC) {
+		format_smac(p, offset);
+	} else {
+		format_mac(p, offset);
+        }
+	
 	offset = strlen(pt_->buffer());
 
 	if (thisnode) {
@@ -255,6 +258,48 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 		}
         }
 }
+
+void
+CMUTrace::format_mac(Packet *p, int offset)
+{
+	struct hdr_mac802_11 *mh = HDR_MAC802_11(p);
+	
+	if (pt_->tagged()) {
+		sprintf(pt_->buffer() + offset,
+			"-M:dur %x -M:s %x -M:d %x -M:t %x ",
+			mh->dh_duration,		// MAC: duration
+			ETHER_ADDR(mh->dh_da),		// MAC: source
+			ETHER_ADDR(mh->dh_sa),		// MAC: destination
+			GET_ETHER_TYPE(mh->dh_body));	// MAC: type
+	} else if (newtrace_) {
+		sprintf(pt_->buffer() + offset, 
+			"-Ma %x -Md %x -Ms %x -Mt %x ",
+			mh->dh_duration,
+			ETHER_ADDR(mh->dh_da),
+			ETHER_ADDR(mh->dh_sa),
+			GET_ETHER_TYPE(mh->dh_body));
+	} else {
+		sprintf(pt_->buffer() + offset,
+			" [%x %x %x %x] ",
+			//*((u_int16_t*) &mh->dh_fc),
+			mh->dh_duration,
+			ETHER_ADDR(mh->dh_da),
+			ETHER_ADDR(mh->dh_sa),
+			GET_ETHER_TYPE(mh->dh_body));
+	}
+}
+
+void
+CMUTrace::format_smac(Packet *p, int offset)
+{
+	struct hdr_smac *sh = HDR_SMAC(p);
+	sprintf(pt_->buffer() + offset,
+		" [%.2f %d %d] ",
+		sh->duration,
+		sh->dstAddr,
+		sh->srcAddr);
+}
+	
 
 void
 CMUTrace::format_ip(Packet *p, int offset)
@@ -832,13 +877,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 	    }   
         }
 
-
-	// don't generate an "r" event for a broadcast packet
-	// as it was already generated when the "h" event was written
-	if (next_hop == -1 && op == 'r')
-		return;
-	
-	sprintf(pt_->nbuffer(),
+	sprintf(pt_->nbuffer() ,
 		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s",
 		op,
 		Scheduler::instance().clock(),
@@ -849,42 +888,6 @@ CMUTrace::nam_format(Packet *p, int offset)
 		pkt_color,
 		ch->uid(),
 		tracename);
-
-	if (next_hop == -1 && op == 'h') {
-		// print extra fields for broadcast packets
-
-		// bradius is calculated assuming 2-ray ground reflectlon
-		// model using default settings of Phy/WirelessPhy and
-		// Antenna/OmniAntenna
-		if (bradius == 0.0) calculate_broadcast_parameters();
-
-		double radius = bradius*radius_scaling_factor_; 
-
-		// duration is calculated based on the radius and
-		// the speed of light (299792458 m/s)
-		double duration = (bradius/299792458.0)*duration_scaling_factor_;
-
-
-		sprintf(pt_->nbuffer() + strlen(pt_->nbuffer()),
-			" -R %.2f -D %.2f",
-			radius,
-			duration);
-
-		// schedule "r" event
-		Tcl& tcl = Tcl::instance();
-		tcl.evalf("[Simulator instance] at %f {[Simulator instance] puts-nam-traceall {r -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s -R %.2f -D %.2f}}",
-			Scheduler::instance().clock() + duration,
-			Scheduler::instance().clock() + duration,
-			src_,
-			next_hop,
-			packet_info.name(ch->ptype()),
-			ch->size(),
-			pkt_color,
-			ch->uid(),
-			tracename,
-			radius,
-			duration);
-	}
 
 	offset = strlen(pt_->nbuffer());
 	pt_->namdump();
@@ -898,13 +901,14 @@ void CMUTrace::format(Packet* p, const char *why)
 	/*
 	 * Log the MAC Header
 	 */
-	format_mac(p, why, offset);
+	format_mac_common(p, why, offset);
 
 	if (pt_->namchannel()) 
 		nam_format(p, offset);
 	offset = strlen(pt_->buffer());
 	switch(ch->ptype()) {
 	case PT_MAC:
+	case PT_SMAC:
 		break;
 	case PT_ARP:
 		format_arp(p, offset);
@@ -1039,34 +1043,3 @@ int CMUTrace::node_energy()
 	if (energy > 0) return 1;
 	return 0;
 }
-
-void CMUTrace::calculate_broadcast_parameters() {
-	// Calculate the maximum distance at which a packet can be received
-	// based on the two-ray reflection model using the current default
-	// values for Phy/WirelessPhy and Antenna/OmniAntenna.
-
-	double P_t, P_r, G_t, G_r, h, L;
-	Tcl& tcl = Tcl::instance();
-
-	tcl.evalc("Phy/WirelessPhy set Pt_");
-	P_t = atof(tcl.result());
-	tcl.evalc("Phy/WirelessPhy set RXThresh_");
-	P_r = atof(tcl.result());
-	tcl.evalc("Phy/WirelessPhy set L_");
-	L = atof(tcl.result());
-	tcl.evalc("Antenna/OmniAntenna set Gt_");
-	G_t = atof(tcl.result());
-	tcl.evalc("Antenna/OmniAntenna set Gr_");
-	G_r = atof(tcl.result());
-	tcl.evalc("Antenna/OmniAntenna set Z_");
-	h = atof(tcl.result());
-	bradius = pow(P_t*G_r*G_t*pow(h,4.0)/(P_r*L), 0.25);
-
-	// Also get the scaling factors
-	tcl.evalc("CMUTrace set radius_scaling_factor_");
-	radius_scaling_factor_ = atof(tcl.result());
-	tcl.evalc("CMUTrace set duration_scaling_factor_");
-	duration_scaling_factor_ = atof(tcl.result());
-}
-
-

@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.46 2002/01/14 20:05:43 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.47 2003/03/18 23:56:41 haldar Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -154,6 +154,7 @@ foreach prot {
 	GAF
 	UMP 
 	Pushback
+	Smac
 	NV
 } {
 	add-packet-header $prot

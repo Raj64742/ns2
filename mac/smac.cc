@@ -25,8 +25,8 @@
 // smac is designed and developed by Wei Ye (SCADDS/ISI)
 // and is re-written for ns by Padma Haldar (CONSER/ISI).
 
-// This module implements Sensor-MAC as described in 
-//  http://www.isi.edu/scadds/papers/smac_infocom.pdf
+// This module implements Sensor-MAC
+//  http://www.isi.edu/scadds/papers/smac_report.pdf
 //
 // It has the following functions.
 //  1) Both virtual and physical carrier sense
@@ -292,8 +292,8 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
 		//double cw = (Random::random() % SYNC_CW) * slotTime_sec_ ;
   
 		// The foll (higher) CW value allows neigh nodes to follow a single schedule
-		//double w = (Random::random() % (SYNC_CW)) ;
-		//double cw = w/10.0;
+		// double w = (Random::random() % (SYNC_CW)) ;
+		// double cw = w/10.0;
 		double c = CLKTICK2SEC(listenTime_) + CLKTICK2SEC(sleepTime_);
 		double s = SYNCPERIOD + 1;
 		double t = c * s ;
@@ -1345,7 +1345,7 @@ bool SMAC::sendRTS() {
 	struct hdr_cmn *ch = HDR_CMN(p);
 
 	ch->uid() = 0;
-	ch->ptype() = PT_MAC;
+	ch->ptype() = PT_SMAC;
 	ch->size() = SIZEOF_SMAC_CTRLPKT;
 	ch->iface() = UNKN_IFACE.value();
 	ch->direction() = hdr_cmn::DOWN;
@@ -1384,7 +1384,7 @@ bool SMAC::sendCTS(double duration) {
 	struct hdr_cmn *ch = HDR_CMN(p);
 
 	ch->uid() = 0;
-	ch->ptype() = PT_MAC;
+	ch->ptype() = PT_SMAC;
 	ch->size() = SIZEOF_SMAC_CTRLPKT;
 	ch->iface() = UNKN_IFACE.value();
 	ch->direction() = hdr_cmn::DOWN;
@@ -1437,7 +1437,7 @@ bool SMAC::sendACK(double duration) {
 	struct hdr_cmn *ch = HDR_CMN(p);
 
 	ch->uid() = 0;
-	ch->ptype() = PT_MAC;
+	ch->ptype() = PT_SMAC;
 	ch->size() = SIZEOF_SMAC_CTRLPKT;
 	ch->iface() = UNKN_IFACE.value();
 	ch->direction() = hdr_cmn::DOWN;
@@ -1472,7 +1472,7 @@ bool SMAC::sendSYNC()
   struct hdr_cmn *ch = HDR_CMN(p);
 
   ch->uid() = 0;
-  ch->ptype() = PT_MAC;
+  ch->ptype() = PT_SMAC;
   ch->size() = SIZEOF_SMAC_SYNCPKT;
   ch->iface() = UNKN_IFACE.value();
   ch->direction() = hdr_cmn::DOWN;

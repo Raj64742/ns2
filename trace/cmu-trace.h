@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.18 2003/02/22 03:53:35 buchheim Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.19 2003/03/18 23:56:40 haldar Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -99,11 +99,6 @@ private:
         MobileNode *node_;
 	int     newtrace_;
 
-	static double  bradius;
-	static double  radius_scaling_factor_;
-	static double  duration_scaling_factor_;
-	static void calculate_broadcast_parameters();
-
         int initialized() { return node_ && 1; }
 	int node_energy();
 	int	command(int argc, const char*const* argv);
@@ -111,7 +106,9 @@ private:
 
         void    nam_format(Packet *p, int offset);
 
-	void	format_mac(Packet *p, const char *why, int offset);
+	void	format_mac_common(Packet *p, const char *why, int offset);
+	void    format_mac(Packet *p, int offset);
+	void    format_smac(Packet *p, int offset);
 	void	format_ip(Packet *p, int offset);
 
 	void	format_arp(Packet *p, int offset);
