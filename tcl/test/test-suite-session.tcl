@@ -1,11 +1,12 @@
 # This test suite is for validating the session level simulation support
 # in ns.
 #
-# To run all tests:  test-session
+# To run all tests:  test-all-session
 #
 # To run individual tests:
-# ns test-suite-session.tcl DM1
-# ns test-suite-session.tcl DM2
+# ns test-suite-session.tcl Session1
+# ns test-suite-session.tcl Session2
+# ns test-suite-session.tcl Session3
 # ...
 #
 # To view a list of available tests to run with this script:
@@ -48,10 +49,17 @@ TestSuite instproc init {} {
 	}
 }
 
-TestSuite instproc finish { file } {
+TestSuite instproc finish args {
 	$self instvar ns_
 	
 	$ns_ flush-trace
+	puts "\t#pkt\t#pkt"
+	puts "rcvr\trcvd\tlost"
+	set i 0
+	foreach index $args {
+		puts "$i\t[$index set npkts_]\t[$index set nlost_]"
+		incr i
+	}
 #	exec awk -f ../nam-demo/nstonam.awk all.tr > [append file \.tr]
 #	puts "running nam ..."
 #	exec nam $file &
@@ -254,7 +262,7 @@ Topology/net6 instproc init ns {
 
 # Definition of test-suite tests
 
-# Testing group join/leave in a simple topology
+# Testing group join for SessionSim in a simple topology
 Class Test/Session1 -superclass TestSuite
 Test/Session1 instproc init net {
 	$self instvar defNet_ test_ net_
@@ -287,10 +295,11 @@ Test/Session1 instproc run {} {
 	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 0x8001"
 	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 0x8001"
 	
-	$ns_ at 1.1 "$self finish 1-nam"
+	$ns_ at 1.1 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3]"
 	$ns_ run
 }
 
+# Testing group join for SessionSim in a 6-node topology
 Class Test/Session2 -superclass TestSuite
 Test/Session2 instproc init net {
 	$self instvar net_ defNet_ test_
@@ -329,11 +338,13 @@ Test/Session2 instproc run {} {
 	$ns_ at 0.2 "$node_(n5) join-group $rcvr5 0x8002"
 	
 	$ns_ at 0.1 "$cbr0 start"
-	$ns_ at 1.6 "$self finish 2-nam"
+	$ns_ at 1.6 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3 \
+$rcvr4 $rcvr5]"
 	
 	$ns_ run
 }
 
+# Testing loss dependency for SessionSim in a 6-node topology
 Class Test/Session3 -superclass TestSuite
 Test/Session3 instproc init net {
 	$self instvar net_ defNet_ test_
@@ -389,7 +400,8 @@ Test/Session3 instproc run {} {
 	$ns_ insert-loss $loss_module3 0 2
 
 	$ns_ at 0.1 "$cbr0 start"
-	$ns_ at 1.6 "$self finish 3-nam"
+	$ns_ at 1.6 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3 \
+$rcvr4 $rcvr5]"
 	
 	$ns_ run
 }
