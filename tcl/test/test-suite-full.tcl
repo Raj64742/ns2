@@ -1063,7 +1063,7 @@ Test/droppedfin instproc run {} {
 		exit 1
 	}
 
-	$errmodel set offset_ 9.0
+	$errmodel set offset_ 10.0
 	$errmodel set period_ 100.0
 
 	# set up connection (do not use "create-connection" method because
