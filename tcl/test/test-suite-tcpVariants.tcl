@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.6 1999/01/22 02:37:32 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.7 2000/03/16 02:06:38 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -231,6 +231,16 @@ Test/onedrop_tahoe instproc run {} {
         $self setup Tahoe {14}
 }
 
+Class Test/onedrop_SA_tahoe -superclass TestSuite
+Test/onedrop_SA_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	onedrop_SA_tahoe
+	Agent/TCP set singledup_ 1
+	Test/onedrop_SA_tahoe instproc run {} [Test/onedrop_tahoe info instbody run ]
+	$self next
+}
+
 Class Test/onedrop_tahoe_full -superclass TestSuite
 Test/onedrop_tahoe_full instproc init {} {
 	$self instvar net_ test_
@@ -251,6 +261,16 @@ Test/onedrop_reno instproc init {} {
 }
 Test/onedrop_reno instproc run {} {
         $self setup Reno {14}
+}
+
+Class Test/onedrop_SA_reno -superclass TestSuite
+Test/onedrop_SA_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	onedrop_SA_reno
+	Agent/TCP set singledup_ 1
+	Test/onedrop_SA_reno instproc run {} [Test/onedrop_reno info instbody run ]
+	$self next
 }
 
 Class Test/onedrop_reno_full -superclass TestSuite
@@ -276,6 +296,16 @@ Test/onedrop_newreno instproc run {} {
         $self setup Newreno {14}
 }
 
+Class Test/onedrop_SA_newreno -superclass TestSuite
+Test/onedrop_SA_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	onedrop_SA_newreno
+	Agent/TCP set singledup_ 1
+	Test/onedrop_SA_newreno instproc run {} [Test/onedrop_newreno info instbody run ]
+	$self next
+}
+
 Class Test/onedrop_newreno_full -superclass TestSuite
 Test/onedrop_newreno_full instproc init {} {
 	$self instvar net_ test_
@@ -296,6 +326,16 @@ Test/onedrop_sack instproc init {} {
 }
 Test/onedrop_sack instproc run {} {
         $self setup Sack1 {14}
+}
+
+Class Test/onedrop_SA_sack -superclass TestSuite
+Test/onedrop_SA_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	onedrop_SA_sack
+	Agent/TCP set singledup_ 1
+	Test/onedrop_SA_sack instproc run {} [Test/onedrop_sack info instbody run ]
+	$self next
 }
 
 Class Test/onedrop_sack_full -superclass TestSuite
