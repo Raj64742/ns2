@@ -445,7 +445,6 @@ node.cc
 node.h
 ns-process.cc
 ns-process.h
-ns.1
 ns_tclsh.cc
 null-estimator.cc
 object.cc
