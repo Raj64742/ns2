@@ -22,15 +22,16 @@
  #
 ##
 ##      0
-##    +-+--+
-##    1    2
-## +--+-+--+--+
-## 3    4     5
+##     / \
+##    1   2
+##   / \ / \
+##  3   4   5
 ##
 
-set ns [new Simulator]
-Simulator set EnableMcast_ 1
-Simulator set NumberInterfaces_ 1
+sourcing dynamicDM.tcl
+source ../mcast/dynamicDM.tcl
+
+set ns [new Simulator -multicast on]
 
 $ns color 2 black
 $ns color 1 blue
@@ -46,9 +47,9 @@ set n3 [$ns node]
 set n4 [$ns node]
 set n5 [$ns node]
 
-set f [open out-mc2.tr w]
+set f [open temp.rands w]
 $ns trace-all $f
-set nf [open out-mc2.nam w]
+set nf [open temp.rands.nam w]
 $ns namtrace-all $nf
 
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
@@ -67,7 +68,7 @@ $ns duplex-link-op $n2 $n5 orient right-down
 
 $ns rtproto Session
 ### Start multicast configuration
-DM set PruneTimeout 0.3
+dynamicDM set PruneTimeout 0.3
 dynamicDM set ReportRouteTimeout 0.15
 set mproto dynamicDM
 set mrthandle [$ns mrtproto $mproto  {}]
@@ -98,14 +99,10 @@ $ns at 0.1 "$cbr0 start"
 $ns at 1.6 "finish"
 
 proc finish {} {
-        puts "converting output to nam format..."
         global ns
         $ns flush-trace
-        global rcvr
-        # puts "lost [$rcvr set nlost_] pkt, rcv [$rcvr set npkts_]"
-
         puts "running nam..."
-        exec nam out-mc2 &
+        exec nam temp.rands.nam &
         exit 0
 }
 

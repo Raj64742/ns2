@@ -625,14 +625,14 @@ Test/pimDM1 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
 	set defNet_	net6a
-	set test_	DM2
+	set test_	pimDM1
 	$self next
 }
 Test/pimDM1 instproc run {} {
 	$self instvar ns_ node_ testName_
 	
 	### Start multicast configuration
-	DM set PruneTimeout 0.3
+	pimDM set PruneTimeout 0.3
 	set mproto pimDM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
@@ -656,6 +656,54 @@ Test/pimDM1 instproc run {} {
 	
 	$ns_ at 0.3 "$cbr0 start"
 	$ns_ at 1.0 "$self finish 6a-nam"
+	
+	$ns_ run
+}
+
+# Testing dynamics of links going up/down.
+Class Test/dynamicDM1 -superclass TestSuite
+Test/dynamicDM1 instproc init topo {
+	source ../mcast/DM.tcl
+	source ../mcast/dynamicDM.tcl
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6a
+	set test_	dynamicDM1
+	$self next
+}
+Test/dynamicDM1 instproc run {} {
+	$self instvar ns_ node_ testName_
+	$ns_ rtproto Session
+	### Start multicast configuration
+	dynamicDM set PruneTimeout 0.3
+	dynamicDM set ReportRouteTimeout 0.15
+	set mproto dynamicDM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+	
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n0) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n4) $rcvr
+	$ns_ attach-agent $node_(n5) $rcvr
+	
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
+	$ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
+	$ns_ at 0.8 "$node_(n3) join-group $rcvr 0x8002"
+	#### Link between n0 & n1 down at 1.0, up at 1.2
+	$ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
+	$ns_ rtmodel-at 1.2 up   $node_(n0) $node_(n1)
+	####
+	
+	$ns_ at 0.1 "$cbr0 start"
+	$ns_ at 1.6 "$self finish 6a-nam"
 	
 	$ns_ run
 }

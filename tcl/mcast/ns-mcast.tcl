@@ -333,6 +333,19 @@ Classifier/Replicator/Demuxer instproc insert target {
 	}
 }
 
+Classifier/Replicator/Demuxer instproc dump-oifs {} {
+	set oifs ""
+	if [$self is-active] {
+		$self instvar active_
+		foreach target [array names active_] {
+			if { $active_($target) >= 0 } {
+				lappend oifs [$self slot $active_($target)]
+			}
+		}
+	}
+	return [lsort $oifs]
+}
+
 Classifier/Replicator/Demuxer instproc disable target {
 	$self instvar nactive_ active_
 	if {[info exists active_($target)] && $active_($target) >= 0} {
@@ -370,12 +383,15 @@ Classifier/Replicator/Demuxer instproc drop { src dst {iface -1} } {
 	[$node_ getArbiter] drop $self [expr $src >> 8] $dst $iface
 }
 
+Node instproc change-iface { src dst oldiface newiface} {
+	$self instvar multiclassifier_
+	#puts "[$node_ id] change-iface src $src dst $dst old $oldiface new $newiface"
+        $multiclassifier_ change-iface $src $dst $oldiface $newiface
+}
 
-Classifier/Replicator/Demuxer instproc change-iface { src dst oldiface newiface} {
-	$self instvar node_
-        [$node_ set multiclassifier_] change-iface $src $dst \
-			$oldiface $newiface
-        return 1
+Node instproc lookup-iface { src dst } {
+	$self instvar multiclassifier_
+        $multiclassifier_ lookup-iface $src $dst
 }
 
 Classifier/Replicator/Demuxer instproc reset {} {
@@ -433,7 +449,7 @@ Node instproc oifGetNode { iface } {
 # given an iif, find oifs in (S,G)
 Node instproc getRepByIIF { src group iif } {
 	$self instvar multiclassifier_
-	return [$multiclassifier_ lookup-iface [$src id] $group $iif]
+	return [$multiclassifier_ lookup [$src id] $group $iif]
 }
 
 Simulator instproc find-next-child { parent sl } {
@@ -636,6 +652,11 @@ Node instproc add-oif {head link} {
 	set outLink_($head) $link
 }
 
+Node instproc add-iif {iflbl link} {
+	# array mapping ifnum -> link
+	$self set inLink_($iflbl) $link
+}
+
 Node instproc get-all-oifs {} {
         $self instvar outLink_
 	# return a sorted lists of all "heads"
@@ -651,21 +672,20 @@ Node instproc iif2oif ifid {
 	return [$self link2oif $outlink]
 }
 
-Node instproc add-iif {iflbl link} {
-	# array mapping ifnum -> link
-	$self set inLink_($iflbl) $link
-}
-
 Node instproc iif2link ifid {
         $self set inLink_($ifid)
 }
 
 Node instproc link2iif link {
-	return [$link set iif_] label
+	return [[$link set iif_] label]
 }
 
 Node instproc link2oif link {
 	$link head
+}
+
+Node instproc oif2link oif {
+	$oif set link_
 }
 
 # Timers

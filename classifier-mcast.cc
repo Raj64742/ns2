@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.16 1998/10/28 19:26:44 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.17 1998/10/29 03:52:40 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -253,13 +253,14 @@ int MCastClassifier::command(int argc, const char*const* argv)
 		/*
 		 * $classifier lookup-iface $src $group $iface
 		 */
-		if (strcmp(argv[1], "lookup-iface") == 0) {
+		if (strcmp(argv[1], "lookup") == 0) {
 			Tcl &tcl = Tcl::instance();
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int iface = atoi(argv[4]);
-
+			
 			// source specific entries have higher precedence
+			// XXX shouldn't we check if argv[2]=="*", instead?
 			hashnode* p = lookup(src, dst, iface); 
 			if (p == 0)
 				p= lookup_star(dst, iface); // if they aren't found, lookup <*,G>
@@ -269,8 +270,26 @@ int MCastClassifier::command(int argc, const char*const* argv)
 				tcl.resultf("%s", slot_[p->slot]->name());
 			return (TCL_OK);
 		}
-	}
-	if (argc == 2) {
+	} else if (argc == 4) {
+		if (strcmp(argv[1], "lookup-iface") == 0) {
+			Tcl &tcl = Tcl::instance();
+			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
+			hashnode* p;
+			// source specific entries have higher precedence
+			if (0 == strcmp(argv[2], "*")) {
+				p= lookup_star(dst);
+			}
+			else {
+				nsaddr_t src = strtol(argv[2], (char**)0, 0);
+				p= lookup(src, dst);
+			}
+			if (p == 0)
+				tcl.resultf("");
+			else 
+				tcl.resultf("%d", p->iif);
+			return (TCL_OK);
+		}
+	} else if (argc == 2) {
 		if (strcmp(argv[1], "clearAll") == 0) {
 			clearAll();
 			return (TCL_OK);
