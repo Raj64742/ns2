@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.228 2001/06/19 17:21:57 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.229 2001/06/26 20:21:41 sfloyd Exp $
 
 
 #
@@ -890,6 +890,7 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	#XXX yuck
 	if {[string first "RED" $qtype] != -1 || 
 		[string first "PI" $qtype] != -1 || 
+		[string first "Vq" $qtype] != -1 ||
 		[string first "RIO" $qtype] != -1} {
 		$q link [$link_($sid:$did) set link_]
 	}

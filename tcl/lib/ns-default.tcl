@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.249 2001/06/17 04:56:56 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.250 2001/06/26 20:21:41 sfloyd Exp $
 
 
 #
@@ -172,6 +172,14 @@ Queue/PI set mean_pktsize_ 500
 Queue/PI set setbit_ false
 Queue/PI set prob_ 0
 Queue/PI set curq_ 0
+
+Queue/Vq set queue_in_bytes_ false 
+Queue/Vq set markpkts_ false 
+Queue/Vq set ecnlim_ 0.8
+Queue/Vq set buflim_ 1.0 
+Queue/Vq set gamma_ 0.9
+Queue/Vq set mean_pktsize_ 500
+Queue/Vq set curq_ 0
 
 Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000
