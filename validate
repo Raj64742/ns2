@@ -37,7 +37,7 @@ failed_list=""
 
 cd tcl/test
 
-for i in simple tcp full red sack schedule cbq red-v1 cbq-v1 sack-v1 v1 vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing hier-routing intserv webcache mcast newreno srm session mixmode algo-routing vc simultaneous lan wireless-lan ecn-ack mip wireless-gridkeeper satellite
+for i in simple tcp full red sack schedule cbq red-v1 cbq-v1 sack-v1 v1 vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing hier-routing intserv webcache mcast newreno srm session mixmode algo-routing vc simultaneous lan wireless-lan ecn-ack mip wireless-gridkeeper satellite mcache
 do
 	try ./test-all-$i
 done
