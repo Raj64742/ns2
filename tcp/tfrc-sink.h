@@ -163,4 +163,6 @@ protected:
 	double sendrate ;
 	int minlc ; 
 
+	int bytes_ ;		// For reporting on received bytes.
+
 }; 

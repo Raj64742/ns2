@@ -72,6 +72,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	// for RBPH use only
 	bind("minlc_", &minlc); 
 
+	bind("bytes_", &bytes_);
 	rtt_ =  0; 
 	tzero_ = 0;
 	last_timestamp_ = 0;
@@ -153,6 +154,8 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	int newdata = 0;	// a new data packet received
 
 	rcvd_since_last_report ++;
+	// bytes_ was added by Tom Phelan, for reporting bytes received.
+	bytes_ += hdr_cmn::access(pkt)->size();
 
 	if (maxseq < 0) {
 		// This is the first data packet.
