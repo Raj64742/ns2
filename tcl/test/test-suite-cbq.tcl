@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.28 2001/05/15 19:08:56 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.29 2001/05/27 02:14:58 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -46,6 +46,11 @@
 set dir [pwd]
 catch "cd tcl/test"
 source misc.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 source topologies.tcl
 catch "cd $dir"
 Agent/TCP set syn_ false

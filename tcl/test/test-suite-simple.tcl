@@ -1,4 +1,9 @@
 #
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
@@ -30,7 +35,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.9 2001/05/15 19:08:57 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.10 2001/05/27 02:14:59 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:

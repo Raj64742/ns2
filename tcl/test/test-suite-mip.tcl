@@ -1,4 +1,9 @@
 #
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
 #                                                                

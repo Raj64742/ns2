@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.8 2001/05/15 19:08:56 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.9 2001/05/27 02:14:58 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 Agent/TCP set syn_ false
@@ -40,6 +40,11 @@ Agent/TCP set delay_growth_ false
 set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 catch "cd $dir"
 
 set flowfile fairflow.tr; # file where flow data is written

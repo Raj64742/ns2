@@ -1,4 +1,9 @@
 # This test suite is for validating the algorithmic routing support
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 # in ns.
 #
 # To run all tests:  test-all-algo-routing

@@ -1,4 +1,9 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 #
 # Copyright (c) 1998,2000 University of Southern California.
 # All rights reserved.                                            
@@ -16,7 +21,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode-err.tcl,v 1.1 2001/03/15 22:22:58 jahn Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode-err.tcl,v 1.2 2001/05/27 02:15:00 sfloyd Exp $
 
 # This test suite is for validating wireless lans with transmission errors 
 # To run all tests: test-all-wireless-lan

@@ -1,4 +1,9 @@
 source misc_simple.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 
 Agent/TCP set minrto_ 0
 # The default is being changed to minrto_ 1

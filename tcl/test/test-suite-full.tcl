@@ -42,6 +42,11 @@
 set dir [pwd]
 catch "cd tcl/test"
 source misc.tcl
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 source topologies.tcl
 catch "cd $dir"
 
