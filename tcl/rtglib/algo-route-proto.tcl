@@ -17,29 +17,49 @@ RouteLogic/Algorithmic instproc BFS {} {
     $self instvar ns_ children_ root_ rank_
 
     set ns_ [Simulator instance]
-    $ns_ instvar link_
-
-    foreach ln [array names link_] {
-	set L [split $ln :]
-	set srcID [lindex $L 0]
-	set dstID [lindex $L 1]
-	if ![info exist adj($srcID)] {
-	    set adj($srcID) ""
+    if {[$ns_ info class] == "Simulator"} {
+	$ns_ instvar link_
+	foreach ln [array names link_] {
+	    set L [split $ln :]
+	    set srcID [lindex $L 0]
+	    set dstID [lindex $L 1]
+	    if ![info exist adj($srcID)] {
+		set adj($srcID) ""
+	    }
+	    if ![info exist adj($dstID)] {
+		set adj($dstID) ""
+	    }
+	    if {[lsearch $adj($srcID) $dstID] < 0} {
+		lappend adj($srcID) $dstID
+	    }
+	    if {[lsearch $adj($dstID) $srcID] < 0} {
+		lappend adj($dstID) $srcID
+	    }
 	}
-	if ![info exist adj($dstID)] {
-	    set adj($dstID) ""
-	}
-	if {[lsearch $adj($srcID) $dstID] < 0} {
-	    lappend adj($srcID) $dstID
-	}
-	if {[lsearch $adj($dstID) $srcID] < 0} {
-	    lappend adj($dstID) $srcID
+    } elseif {[$ns_ info class] == "SessionSim"} {
+	$ns_ instvar delay_
+	foreach ln [array names delay_] {
+	    set L [split $ln :]
+	    set srcID [lindex $L 0]
+	    set dstID [lindex $L 1]
+	    if ![info exist adj($srcID)] {
+		set adj($srcID) ""
+	    }
+	    if ![info exist adj($dstID)] {
+		set adj($dstID) ""
+	    }
+	    if {[lsearch $adj($srcID) $dstID] < 0} {
+		lappend adj($srcID) $dstID
+	    }
+	    if {[lsearch $adj($dstID) $srcID] < 0} {
+		lappend adj($dstID) $srcID
+	    }
 	}
     }
 
-#    foreach index [array names adj] {
-#	puts "$index: $adj($index)"
-#    }
+    # foreach index [array names adj] {
+	# puts "$index: $adj($index)"
+    # }
 
     set rank_ 0
     set root_ 0

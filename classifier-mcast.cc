@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.18 1998/11/02 23:07:52 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.19 1998/11/06 02:12:33 polly Exp $";
 #endif
 
 #include <stdlib.h>
@@ -158,7 +158,9 @@ int MCastClassifier::classify(Packet *const pkt)
 
 	int iface = h->iface();
 
+
 	hashnode* p = lookup(src, dst, iface);
+	//printf("%s, src %d, dst %d, iface %d, p %d\n", name(), src, dst, iface, p);
  	if (p == 0)
  	        p = lookup_star(dst, iface);
 		

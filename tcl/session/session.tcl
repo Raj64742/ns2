@@ -61,9 +61,9 @@ SessionSim instproc join-group { rcvAgent group } {
     $self instvar session_ routingTable_ delay_ bw_
 
     foreach index [array names session_] {
-	set pair [split $index :]
-	if {[lindex $pair 1] == $group} {
-	    set src [lindex $pair 0]
+	set tri [split $index :]
+	if {[lindex $tri 1] == $group} {
+	    set src [lindex $tri 0]
 	    set dst [[$rcvAgent set node_] id]
 	    set delay 0
 	    set accu_bw 0
@@ -110,8 +110,8 @@ SessionSim instproc leave-group { rcvAgent group } {
     $self instvar session_
 
     foreach index [array names session_] {
-	set pair [split $index :]
-	if {[lindex $pair 1] == $group} {
+	set tri [split $index :]
+	if {[lindex $tri 1] == $group} {
 	    #$session_($index) delete-dst [[$rcvAgent set node_] id] $rcvAgent
 		set dst [[$rcvAgent set node_] id]
 		# remove the receiver from packet distribution list
@@ -193,8 +193,13 @@ SessionSim instproc delay_parse { dspec } {
 
 SessionSim instproc node args {
     $self instvar sessionNode_
-    set node [new SessionNode $args]
+    if {[llength $args] == 0} {
+        set node [new SessionNode]
+    } else {
+	set node [new SessionNode $args]
+    }
     set sessionNode_([$node id]) $node
+    $node set ns_ $self
     return $node
 }
 
@@ -240,16 +245,19 @@ SessionSim instproc detailed-node { id address } {
 	$self multicast
 	Simulator unset EnableMcast_
     }
-    set node [new [Simulator set node_factory_] $address]
-    Node set nn_ [expr [Node set nn_] - 1]
-    $node set id_ $id
-    set Node_($id) $node
+    if ![info exist Node_($id)] {
+	set node [new [Simulator set node_factory_] $address]
+	Node set nn_ [expr [Node set nn_] - 1]
+	$node set id_ $id
+	set Node_($id) $node
 
-    if [$self multicast?] {
-	$node enable-mcast $self
+	if [$self multicast?] {
+	    $node enable-mcast $self
+	}
+	return $node
+    } else {
+	return $Node_($id)
     }
-
-    return $node
 }
 
 SessionSim instproc detailed-duplex-link { from to } {
@@ -609,8 +617,8 @@ SessionSim instproc get-mcast-tree { src grp } {
 
 	# get member list
 	foreach idx [array names session_] {
-		set pair [split $idx :]
-		if {[lindex $pair 0] == $sid && [lindex $pair 1] == $grp} {
+		set tri [split $idx :]
+		if {[lindex $tri 0] == $sid && [lindex $tri 1] == $grp} {
 			set mbrs [$session_($idx) list-mbr]
 			break
 		}
@@ -665,11 +673,22 @@ SessionSim instproc get-node-by-id id {
 	set sessionNode_($id)
 }
 
+SessionSim instproc get-node-id-by-addr address {
+        $self instvar sessionNode_
+        set n [Node set nn_]
+        for {set q 0} {$q < $n} {incr q} {
+                set nq $sessionNode_($q)
+                if {[string compare [$nq node-addr] $address] == 0} {
+                        return $q
+                }
+        }
+        error "get-node-id-by-addr:Cannot find node with given address"
+}
+
 ############## SessionNode ##############
 Class SessionNode -superclass Node
 SessionNode instproc init args {
     $self instvar id_ np_ address_
-    set args [lreplace $args 0 1]
     set id_ [Node getid]
     set np_ 0
     if {[llength $args] > 0} {
@@ -740,10 +759,34 @@ Agent/LossMonitor instproc show-delay { seqno delay } {
 ### I.e., Create an intermediate session for mix mode operation       ###
 ### Return the obj to perform detailed join                           ###
 
-SessionSim instproc create-intermediate-session { src group thisNode } {
+
+SessionSim instproc RPF-link { src from to } {
+	$self instvar routingTable_ link_
+	#
+	# If this link is on the RPF tree, return the link object.
+	#
+        if [info exists routingTable_] {
+	    set tmp $to
+	    while {$tmp != $src} {
+		set reverse [$routingTable_ lookup $tmp $src]
+		if [info exists link_($reverse:$tmp)] {
+		    return $link_($reverse:$tmp)
+		}
+		set tmp $reverse
+	    }
+	}
+	return ""
+}
+
+SessionSim instproc detailed-link? { from to } {
+    $self instvar link_
+    
+    return [info exist link_($from:$to)]
+}
+
+SessionSim instproc create-intermediate-session { src group nid } {
     $self instvar session_
 
-    set nid [$thisNode id]
     set session_($src:$group:$nid) [new SessionHelper]
     $session_($src:$group:$nid) set-node $nid
 	
@@ -766,14 +809,15 @@ SessionSim instproc create-intermediate-session { src group thisNode } {
 }
 
 SessionSim instproc join-intermediate-session { rcvAgent group } {
-    $self instvar session_ routingTable_ delay_ bw_
+    $self instvar session_ routingTable_ delay_ bw_ link_ Node_ dlist_
 
     foreach index [array names session_] {
-	set pair [split $index :]
-	set src [lindex $pair 0]
-	set grp [lindex $pair 1]
-	set owner [lindex $pair 2]
+	set tri [split $index :]
+	set src [lindex $tri 0]
+	set grp [lindex $tri 1]
+	set owner [lindex $tri 2]
 	if {$grp == $group && $src == $owner} {
+	    set session_area 1
 	    set dst [[$rcvAgent set node_] id]
 	    set delay 0
 	    set accu_bw 0
@@ -781,17 +825,50 @@ SessionSim instproc join-intermediate-session { rcvAgent group } {
 	    set tmp $dst
 	    while {$tmp != $src} {
 		set next [$routingTable_ lookup $tmp $src]
-		set delay [expr $delay + $delay_($tmp:$next)]
-		if {$accu_bw} {
-		    set accu_bw [expr 1 / (1 / $accu_bw + 1 / $bw_($tmp:$next))]
-		} else {
-		    set accu_bw $bw_($tmp:$next)
-		}
-		incr ttl
-
 		# Conditions to perform session/detailed join
-		
-		
+		if {$session_area} {
+		    if [info exist link_($tmp:$next)] {
+			# walking into detailed area from session area
+			set session_area 0
+			if ![info exist session_($src:$grp:$tmp)] {
+			    set inter_session [$self create-intermediate-session $src $grp $tmp]
+			} else {
+			    set inter_session $session_($src:$grp:$tmp)
+			}
+			if {![info exist dlist_($src:$grp:$tmp)] || [lsearch $dlist_($src:$grp:$tmp) $rcvAgent] < 0 } {
+			    $inter_session add-dst $accu_bw $delay $ttl $dst $rcvAgent
+			    lappend dlist_($src:$grp:$tmp) $rcvAgent
+			}
+			$self update-loss-dependency $src $dst $rcvAgent $group
+			$Node_($tmp) join-group $inter_session $group
+			# puts "s->d: $dst, $rcvAgent, [$rcvAgent info class], join session $inter_session which detailed-joined the group $group, $delay, $accu_bw, $ttl"
+		    } else {
+			# stay in session area, keep track of accumulative
+			# delay, bw, ttl
+			set delay [expr $delay + $delay_($tmp:$next)]
+			if {$accu_bw} {
+			    set accu_bw [expr 1 / (1 / $accu_bw + 1 / $bw_($tmp:$next))]
+			} else {
+			    set accu_bw $bw_($tmp:$next)
+			}
+			incr ttl
+			# puts "s->s: $dst, $rcvAgent, [$rcvAgent info class], $group, $delay, $accu_bw, $ttl"
+		    }
+		} else {
+		    if [info exist link_($tmp:$next)] {
+			# stay in detailed area, do nothing
+			# puts "d->d"
+		    } else {
+			# walking into session area from detailed area
+			set session_area 1
+			set accu_bw $bw_($tmp:$next)
+			set delay $delay_($tmp:$next)
+			set ttl 1
+			set dst $tmp
+			set rcvAgent [$Node_($tmp) entry]
+			# puts "d->s: $dst, $rcvAgent, [$rcvAgent info class], $group, $delay, $accu_bw, $ttl"
+		    }
+		}
 		set tmp $next
 	    }
 	    
@@ -806,15 +883,40 @@ SessionSim instproc join-intermediate-session { rcvAgent group } {
 	    # because only this will capture the packet before it 
 	    # reaches the receiver and after it left the sender
 	    set f [$self get-nam-traceall]
-	    if {$f != ""} { 
-		set p [$self create-trace SessDeque $f $src $dst "nam"]
-		$p target $rcvAgent
-		$session_($index) add-dst $accu_bw $delay $ttl $dst $p
-		$self update-loss-dependency $src $dst $p $group
+	    if {$session_area} {
+		if {$f != ""} { 
+		    set p [$self create-trace SessDeque $f $src $dst "nam"]
+		    $p target $rcvAgent
+		    if {![info exist dlist_($index)] || [lsearch $dlist_($index) $rcvAgent] < 0 } {
+			$session_($index) add-dst $accu_bw $delay $ttl $dst $p
+			lappend dlist_($index) $rcvAgent
+		    }
+		    $self update-loss-dependency $src $dst $p $group
+		} else {
+		    # puts "session area: add-dst $accu_bw $delay $ttl $src $dst $rcvAgent [$rcvAgent info class]"
+		    if {![info exist dlist_($index)] || [lsearch $dlist_($index) $rcvAgent] < 0 } {
+			$session_($index) add-dst $accu_bw $delay $ttl $dst $rcvAgent
+			lappend dlist_($index) $rcvAgent
+		    }
+		    $self update-loss-dependency $src $dst $rcvAgent $group
+		}
 	    } else {
-		#puts "add-dst $accu_bw $delay $ttl $src $dst"
-		$session_($index) add-dst $accu_bw $delay $ttl $dst $rcvAgent
-		$self update-loss-dependency $src $dst $rcvAgent $group
+		if {$f != ""} { 
+		    set p [$self create-trace SessDeque $f $src $src "nam"]
+		    $p target [$Node_($tmp) entry]
+		    if {![info exist dlist_($index)] || [lsearch $dlist_($index) [$Node_($tmp) entry]] < 0 } {
+			$session_($index) add-dst 0 0 0 $src $p
+			lappend dlist_($index) [$Node_($tmp) entry]
+		    }
+		    $self update-loss-dependency $src $src $p $group
+		} else {
+		    # puts "detailed area: add-dst $accu_bw $delay $ttl $src $dst[$Node_($tmp) entry] [[$Node_($tmp) entry] info class]"
+		    if {![info exist dlist_($index)] || [lsearch $dlist_($index) [$Node_($tmp) entry]] < 0 } {
+			$session_($index) add-dst 0 0 0 $src [$Node_($tmp) entry]
+			lappend dlist_($index) [$Node_($tmp) entry]
+		    }
+		    $self update-loss-dependency $src $src [$Node_($tmp) entry] $group
+		}
 	    }
 	}
     }

@@ -153,7 +153,7 @@ CtrMcast instproc handle-cache-miss { srcID group iface } {
 	    $Agent set Glist $tmp
 	}
     }
-    if { [$Node id] == $srcID } {
+    if { ![SessionSim set MixMode_] && [$Node id] == $srcID } {
 	set RP [$self get_rp $group]
 	if { [$Agent set treetype($group)] == $RPT && $srcID != $RP} {
 	    ### create encapsulation agent
@@ -171,27 +171,27 @@ CtrMcast instproc handle-cache-miss { srcID group iface } {
 	    $Node add-mfc-reg $srcID $group -1 $oiflist
 	    #puts "creat (S,G) oif to register $srcID $group -1 $oiflist"
 	}
+    }
     
-	### add into global source list
-	if [$Agent exists-Slist $group] {
-	    set k [lsearch [$Agent set Slist($group)] [$Node id]]
-	    if { $k < 0 } {
-		set tmp [$Agent set Slist($group)]
-		lappend tmp [$Node id] 
-		$Agent set Slist($group) $tmp
-		set change 1
-	    }
-	} else { 
-	    $Agent set Slist($group) "[$Node id]" 
+    ### add into global source list
+    if [$Agent exists-Slist $group] {
+	set k [lsearch [$Agent set Slist($group)] $srcID]
+	if { $k < 0 } {
+	    set tmp [$Agent set Slist($group)]
+	    lappend tmp $srcID
+	    $Agent set Slist($group) $tmp
 	    set change 1
 	}
+    } else { 
+	$Agent set Slist($group) "$srcID" 
+	set change 1
+    }
 
-	### decide what tree to build acrding to tree type
-	if { $change } {
-	    ### new source, so compute tree
-	    $Agent compute-tree [$Node id] $group
-	    #puts "CACHE-MISS: compute-tree [$Node id] $group"
-	}
+    ### decide what tree to build acrding to tree type
+    if { $change } {
+	### new source, so compute tree
+	$Agent compute-tree $srcID $group
+	# puts "CACHE-MISS: compute-tree $srcID $group"
     }
 }
 

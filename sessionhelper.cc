@@ -23,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.12 1998/08/22 02:41:12 haoboy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.13 1998/11/06 02:12:33 polly Exp $ (USC/ISI)";
 #endif
 
 #include "Tcl.h"
@@ -105,7 +105,7 @@ void SessionHelper::recv(Packet* pkt, Handler*)
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 	double tmp_arrival;
 
-	//printf (" size %d\n", th->size());
+	//printf ("src %d,  size %d, iface %d\n", src_, th->size(), th->iface());
 	clear_dropped();
 
 	get_dropped(loss_dependency_->loss_dep, pkt);

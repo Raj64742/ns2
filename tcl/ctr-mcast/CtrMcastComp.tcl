@@ -136,12 +136,20 @@ CtrMcastComp instproc compute-branch { src group member } {
 		#when member is at RP, find iif from RP to source
 		set upstreamtmp [[$ns get-node-by-id $tmp] rpf-nbr $src]	
 		set iilink [$ns RPF-link $src [$upstreamtmp id] $tmp]
-		set iif [[$iilink set iif_] label]
+		if {$iilink != ""} {
+		    set iif [[$iilink set iif_] label]
+		} else {
+		    set iif -1
+		}
 	    }
 	} else {
 	    set upstreamtmp [[$ns get-node-by-id $tmp] rpf-nbr $target]
 	    set iilink [$ns RPF-link $target [$upstreamtmp id] $tmp]
-	    set iif [[$iilink set iif_] label]
+	    if {$iilink != ""} {
+		set iif [[$iilink set iif_] label]
+	    } else {
+		set iif -1
+	    }
 	}
 
 	### set oif : RPF link
@@ -175,6 +183,10 @@ CtrMcastComp instproc compute-branch { src group member } {
 
 	set downstreamtmp $tmp
 	set tmp [[[$ns get-node-by-id $tmp] rpf-nbr $target] id]
+	if {[SessionSim set MixMode_] && ![$ns detailed-link? $tmp $downstreamtmp]} {
+	    # puts "joining into session area"
+	    return
+	}
     }
 }
 
