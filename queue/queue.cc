@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.17 1997/08/10 07:49:48 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.18 1997/10/26 05:43:12 hari Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -61,7 +61,7 @@ void PacketQueue::remove(Packet* pkt, Packet *prev)
 {
 	if (pkt) {
 		if (head_ == pkt)
-			deque(); /* decrements len_ internally */
+			PacketQueue::deque(); /* decrements len_ internally */
 		else {
 			prev->next_ = pkt->next_;
 			if (tail_ == &pkt->next_)
