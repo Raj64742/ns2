@@ -48,7 +48,7 @@ public:
 		if (args >= 5)
 			return (new TraceGen(*argv[4]));
 		else
-			return NULL;
+			return (new TraceGen('f'));
 	}
 } tracegen_class;
 
@@ -109,9 +109,13 @@ void TraceGen::dump()
 void TraceGen::trace(TracedVar* var)
 {
 	char tmp[256];
-	sprintf(wrk_, "%c t%g n%s v%s",
+	Scheduler& s = Scheduler::instance();
+	if (&s == 0)
+		return;
+	sprintf(wrk_, "%c t%g a%s n%s v%s",
 		type_,
-		Scheduler::instance().clock(),
+		s.clock(),
+		var->owner()->name(),
 		var->name(),
 		var->value(tmp));
 	dump();
