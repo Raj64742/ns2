@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.10 1997/04/25 02:17:32 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.11 1997/04/30 23:35:16 kfall Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -335,8 +335,9 @@ int REDQueue::drop_early(Packet* pkt)
 		if (edp_.setbit) {
 			hdr_flags* hf = (hdr_flags*)pkt->access(off_flags_);
 			hf->ecn_ = 1;
-		} else
+		} else {
 			return (1);
+		}
 	}
 	return (0);
 }
@@ -352,6 +353,7 @@ void REDQueue::enque(Packet* pkt)
 {
 	double now = Scheduler::instance().clock();
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+
 	int m;
         if (idle_) {
 		/* To account for the period when the queue was empty.  */
@@ -396,7 +398,7 @@ void REDQueue::enque(Packet* pkt)
 		int metric = qib_ ? bcount_ : q_.length();
 		int limit = qib_ ?
 			(qlim_ * edp_.mean_pktsize) : qlim_;
-		if (metric > qlim_) {
+		if (metric > limit) {
 			int victim;
 			if (drop_tail_)
 				victim = q_.length() - 1;
