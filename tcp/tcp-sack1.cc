@@ -45,12 +45,17 @@ class Sack1TcpAgent : public TcpAgent {
 	void reset();
 	virtual void timeout(int tno);
 	virtual void dupack_action();
+	virtual void partial_ack_action();
 	void plot();
 	virtual void send_much(int force, int reason, int maxburst);
  protected:
 	u_char timeout_;	/* boolean: sent pkt from timeout? */
 	u_char fastrecov_;	/* boolean: doing fast recovery? */
 	int pipe_;		/* estimate of pipe size (fast recovery) */ 
+	int partial_ack_;	/* Set to "true" to ensure sending */
+				/*  a packet on a partial ACK.     */
+	int next_pkt_;		/* Next packet to transmit during Fast */
+				/*  Retransmit as a result of a partial ack. */
 	ScoreBoard* scb_;
 	static const int SBSIZE=64; /* Initial scoreboard size */
 };
@@ -65,6 +70,7 @@ public:
 
 Sack1TcpAgent::Sack1TcpAgent() : fastrecov_(FALSE), pipe_(-1)
 {
+	bind_bool("partial_ack_", &partial_ack_);
 	scb_ = new ScoreBoard(new ScoreBoardNode[SBSIZE],SBSIZE);
 }
 
@@ -166,15 +172,26 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 		} else if ((int)tcph->seqno() > highest_ack_) {
 			/* Not out of fast recovery yet.
 			 * Update highest_ack_, but not last_ack_. */
-			--pipe_;
-			/* If this partial ACK is from a retransmitted pkt, 
-			 * then we decrement pipe_ again, so that we never
-			 * do worse than slow-start.  If this partial ACK
-			 * was instead from the original packet, reordered,
-			 * then this might be too aggressive. */
 			highest_ack_ = (int)tcph->seqno();
 			scb_->UpdateScoreBoard (highest_ack_, tcph);
 			t_backoff_ = 1;
+			if (partial_ack_) {
+			  /* partial_ack_ is needed to guarantee that */
+			  /*  a new packet is sent in response to a   */
+			  /*  partial ack.                            */
+				if (next_pkt_ < highest_ack_ + 1) {
+					next_pkt_ = highest_ack_ + 1;
+				}
+				partial_ack_action();
+				++pipe_;
+			} else {
+				--pipe_;
+ 			 /* If this partial ACK is from a retransmitted pkt,*/
+ 			 /* then we decrement pipe_ again, so that we never */
+ 			 /* do worse than slow-start.  If this partial ACK  */
+ 			 /* was instead from the original packet, reordered,*/
+ 			 /* then this might be too aggressive. */
+			}
 			newtimer(pkt);
 		} else if (timeout_ == FALSE) {
 			/* got another dup ack */
@@ -259,6 +276,34 @@ sack_action:
 	 * If dynamically adjusting numdupacks_, record information
 	 *  at this point.
 	 */
+	return;
+}
+
+/*
+ * Process a packet that acks previously unacknowleges data, but
+ * does not take us out of Fast Retransmit.
+ *
+ * The need for a mechanism to ensure that Sack TCP sends a packet in
+ * response to a partial ACK has been discussed in
+ * "Challenges to Reliable Data Transport over Heterogeneous
+ * Wireless Networks", Hari Balakrishnan, 1998, and in
+ * "Responding to Spurious Timeouts in TCP", Andrei Gurtov and Reiner Ludwig, 
+ * 2003. 
+ */
+void
+Sack1TcpAgent::partial_ack_action()
+{
+	scb_->MarkRetran(highest_ack_+1);
+	// Output two packets in response to a partial ack,
+	//   so as not to do worse than slow-start.
+	int i;
+	for (i = 1; i<=2; i++) {
+		// Some TCP implementations might want to check if
+		//  the packet has been acknowledged in a SACK block
+		//  before sending it.
+		output(next_pkt_, TCP_REASON_PARTIALACK);	
+		++next_pkt_;
+	}
 	return;
 }
 

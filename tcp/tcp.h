@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.102 2002/12/28 16:44:54 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.103 2002/12/28 23:39:20 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -81,6 +81,7 @@ struct hdr_tcp {
 #define TCP_REASON_TIMEOUT	0x01
 #define	TCP_REASON_DUPACK	0x02
 #define	TCP_REASON_RBP		0x03   // used only in tcp-rbp.cc
+#define TCP_REASON_PARTIALACK   0x04
 
 /* these are reasons we adjusted our congestion window */
 

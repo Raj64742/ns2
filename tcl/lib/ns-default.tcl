@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.302 2002/12/19 05:23:26 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.303 2002/12/28 23:39:20 sfloyd Exp $
 
 
 #
@@ -698,6 +698,8 @@ Agent/TCP set maxburst_ 0
 Agent/TCP set maxcwnd_ 0
 Agent/TCP set numdupacks_ 3
 Agent/TCP set numdupacksFrac_ 100 ;	# Added 2002/10/18.
+					# Set to 100000 for this to have
+					# no effect even for large windows.
 Agent/TCP set window_ 20
 # Agent/TCP set windowInit_ 1
 Agent/TCP set windowInit_ 2 ;		# default changed on 2001/5/26.
@@ -743,6 +745,9 @@ Agent/TCP set rfc2988_ true ;		# Default set to "true" on 2002/03/07.
 					#  compliant behavior for timers.
 Agent/TCP instproc done {} { }
 Agent/TCP set noFastRetrans_ false
+Agent/TCP set partial_ack_ false ;	# Variable added on 2002/12/28.
+					# Set to "true" to ensure sending
+					#  a packet on a partial ACK.
 
 Agent/TCP set dupacks_ 0
 Agent/TCP set ack_ 0

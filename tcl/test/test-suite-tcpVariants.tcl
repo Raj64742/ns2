@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.16 2002/12/28 22:26:18 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.17 2002/12/28 23:39:20 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -920,7 +920,7 @@ Test/multiple_sack instproc run {} {
 	$self setup Sack1 {11 12 13 14 16 17 18 19 } 
 }
 
-
+# Limited Transmit
 Class Test/multiple_SA_sack -superclass TestSuite
 Test/multiple_SA_sack instproc init {} {
 	$self instvar net_ test_
@@ -928,6 +928,17 @@ Test/multiple_SA_sack instproc init {} {
 	set test_	multiple_SA_sack
 	Agent/TCP set singledup_ 1
 	Test/multiple_SA_sack instproc run {} [Test/multiple_sack info instbody run ]
+	$self next
+}
+
+# Partial_ack 
+Class Test/multiple_partial_ack_sack -superclass TestSuite
+Test/multiple_partial_ack_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple_partial_ack_sack
+	Agent/TCP set partial_ack_ 1
+	Test/multiple_partial_ack_sack instproc run {} [Test/multiple_sack info instbody run ]
 	$self next
 }
 
