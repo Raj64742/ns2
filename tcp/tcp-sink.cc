@@ -190,7 +190,7 @@ TcpSink::delay_bind_init_all()
         delay_bind_init_one("packetSize_");
         delay_bind_init_one("ts_echo_bugfix_");
         delay_bind_init_one("generateDSacks_"); // used only by sack
-	delay_bind_init_one("enable_QuickStart_");
+	delay_bind_init_one("qs_enabled_");
 	delay_bind_init_one("RFC2581_immediate_ack_");
 #if defined(TCP_DELAY_BIND_ALL) && 0
         delay_bind_init_one("maxSackBlocks_");
@@ -205,7 +205,7 @@ TcpSink::delay_bind_dispatch(const char *varName, const char *localName, TclObje
         if (delay_bind(varName, localName, "packetSize_", &size_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "ts_echo_bugfix_", &ts_echo_bugfix_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "generateDSacks_", &generate_dsacks_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "enable_QuickStart_", &enable_QuickStart_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "qs_enabled_", &qs_enabled_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "RFC2581_immediate_ack_", &RFC2581_immediate_ack_, tracer)) return TCL_OK;
 #if defined(TCP_DELAY_BIND_ALL) && 0
         if (delay_bind(varName, localName, "maxSackBlocks_", &max_sack_blocks_, tracer)) return TCL_OK;
@@ -260,7 +260,7 @@ void TcpSink::ack(Packet* opkt)
 	hdr_ip *oiph = hdr_ip::access(opkt);
 	hdr_tcp *ntcp = hdr_tcp::access(npkt);
 
-	if (enable_QuickStart_) {
+	if (qs_enabled_) {
 		// QuickStart code from Srikanth Sundarrajan.
 		hdr_qs *oqsh = hdr_qs::access(opkt);
 		hdr_qs *nqsh = hdr_qs::access(npkt);

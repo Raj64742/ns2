@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.304 2003/01/24 21:59:10 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.305 2003/01/25 04:52:44 sfloyd Exp $
 
 
 #
@@ -778,7 +778,7 @@ Agent/TCP set cwnd_frac_ 0.0
 
 # For Quick-Start:
 Agent/TCP set rate_request_ 0
-Agent/TCP set enable_QuickStart_ false
+Agent/TCP set qs_enabled_ false
 
 # These are all variables for tracing information.
 Agent/TCP set ndatapack_ 0

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.140 2003/01/25 01:58:58 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.141 2003/01/25 04:52:45 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -167,7 +167,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("rfc2988_");
 	delay_bind_init_one("singledup_");
 	delay_bind_init_one("rate_request_");
-	delay_bind_init_one("enable_QuickStart_");
+	delay_bind_init_one("qs_enabled_");
 
 #ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
@@ -259,7 +259,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
 	if (delay_bind_bool(varName, localName, "rfc2988_", &rfc2988_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "singledup_", &singledup_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "rate_request_", &rate_request_ , tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "enable_QuickStart_", &enable_QuickStart_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "qs_enabled_", &qs_enabled_, tracer)) return TCL_OK;
 
 
 #ifdef TCP_DELAY_BIND_ALL
@@ -614,7 +614,7 @@ void TcpAgent::output(int seqno, int reason)
 //			hf->cong_action() = 1;
 			hf->ect() = 0;
 		}
-		if (enable_QuickStart_) {
+		if (qs_enabled_) {
 			hdr_qs *qsh = hdr_qs::access(p);
 		    	if (rate_request_ > 0) {
 				// QuickStart code from Srikanth Sundarrajan.

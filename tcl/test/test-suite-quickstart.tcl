@@ -43,8 +43,8 @@ Agent/QSAgent set qs_enabled_ 1
 Agent/QSAgent set state_delay_ 0.35  
 # 0.35 seconds for past approvals
 Agent/TCP/Newreno/QS set rbp_scale_ 1.0
-Agent/TCPSink set enable_QuickStart_ true
-Agent/TCP set enable_QuickStart_ true
+Agent/TCPSink set qs_enabled_ true
+Agent/TCP set qs_enabled_ true
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.
@@ -196,6 +196,82 @@ Test/quickstart4 instproc init {} {
     set qs ON
     Test/quickstart4 instproc run {} [Test/no_quickstart info instbody run ]
     $self next pktTraceFile
+}
+
+Class Test/high_request -superclass TestSuite
+Test/high_request instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net2
+    set test_ high_request	
+    set guide_  \
+    "A high quickstart request."
+    set sndr TCP/Sack1
+    set rcvr TCPSink/Sack1
+    set qs ON
+    $self next pktTraceFile
+}
+Test/high_request instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    if {$quiet == "false"} {puts $guide_}
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 6
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 8
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0 "$ftp1 start"
+
+    set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s3) 1]
+    $tcp2 set window_ 1000
+    $tcp2 set rate_request_ 1000
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 2 "$ftp2 produce 80"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+Class Test/bad_router -superclass TestSuite
+Test/bad_router instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net2
+    set test_ bad_router	
+    set guide_  \
+    "Not all routers support quickstart."
+    set sndr TCP/Sack1
+    set rcvr TCPSink/Sack1
+    set qs ON
+    $self next pktTraceFile
+}
+Test/bad_router instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    if {$quiet == "false"} {puts $guide_}
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 6
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 8
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0 "$ftp1 start"
+
+    set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s3) 1]
+    $tcp2 set window_ 1000
+    $tcp2 set rate_request_ 20
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 2 "$ftp2 produce 80"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
 }
 
 TestSuite runTest

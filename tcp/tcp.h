@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.104 2003/01/24 21:59:10 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.105 2003/01/25 04:52:45 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -367,7 +367,7 @@ protected:
 
 	/* for Quick-Start, experimental. */
 	int rate_request_;	/* Rate request in pps, for QuickStart. */
-	int enable_QuickStart_; /* to enable QuickStart. */
+	int qs_enabled_; /* to enable QuickStart. */
 	int qs_requested_;
 	int qs_approved_;
 	int ttl_diff_;
