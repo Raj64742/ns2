@@ -91,12 +91,31 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind_bool("conservative_", &conservative_);
 	bind_bool("ecn_", &ecn_);
 	bind("maxHeavyRounds_", &maxHeavyRounds_);
+	bind("SndrType_", &SndrType_);
+	seqno_ = -1;
+	maxseq_ = 0;
 }
+
+void TfrcAgent::advanceby(int delta)
+{
+  maxseq_ += delta;
+	
+	// if no packets hve been sent so far, 
+	// we call start. Otherwise, we wiat for
+	// next packet send timer to expire, which
+	// can be aftera long time. Is this the desired
+	// behavior?
+	
+	if (seqno_ == -1) {
+  	start(); 
+	}
+} 
 
 int TfrcAgent::command(int argc, const char*const* argv)
 {
 	if (argc==2) {
-		if (strcmp(argv[1],"start")==0) {
+		// are we an infinite sender?
+		if ( (strcmp(argv[1],"start")==0) && (SndrType_ == 0)) {
 			start();
 			return TCL_OK;
 		}
@@ -104,6 +123,17 @@ int TfrcAgent::command(int argc, const char*const* argv)
 			stop();
 			return TCL_OK;
 		}
+	}
+  if ((argc == 3) && (SndrType_ == 1)) {
+		// or do we need an FTP type app? 
+    if (strcmp(argv[1], "advance") == 0) {
+      advanceby(atoi(argv[2]));
+      return (TCL_OK);
+    }
+    if (strcmp(argv[1], "advanceby") == 0) {
+      advanceby(atoi(argv[2]));
+      return (TCL_OK);
+    }
 	}
 	return (Agent::command(argc, argv));
 }
@@ -117,8 +147,8 @@ void TfrcAgent::start()
 	rate_change_ = SLOW_START;
 	UrgentFlag = 1;
 	rtt_=0;	 
-        sqrtrtt_=1;
-        rttcur_=1;
+	sqrtrtt_=1;
+	rttcur_=1;
 	tzero_ = 0;
 	last_change_=0;
 	maxrate_ = 0; 
@@ -153,7 +183,14 @@ void TfrcAgent::nextpkt()
 	double next = -1;
 	double xrate = -1; 
 
-	sendpkt();
+	if (SndrType_ == 0) {
+		sendpkt();
+	}
+	else {
+		if (maxseq_ > seqno_) {
+			sendpkt();
+		}
+	}
 	
 	// during slow start and congestion avoidance, we increase rate
 	// slowly - by amount delta per packet 
@@ -395,7 +432,6 @@ void TfrcAgent::sendpkt()
 		tfrch->psize=size_;
 		tfrch->UrgentFlag=UrgentFlag;
 		tfrch->round_id=round_id;
-
 		ndatapack_++;
 		send(p, 0);
 	}
