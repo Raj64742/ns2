@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.20 2000/07/05 19:07:18 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.21 2000/07/28 23:14:19 johnh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: TODO list</H1>
 
@@ -37,8 +37,22 @@ test suite for error models
 <hr>
 
 <ul>
+  <hr>
 
   <p>
+  <li>
+       <b>introduction</b>
+       Here's the format:  a boldface set of keywords about what
+       part of ns is relevant,
+       text describing what's going on,
+       then a signature and date.
+       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
+       Thu Jun 17 18:04:37 PDT 1999)</em>
+
+  <hr>
+<!-----add stuff AFTER here----------------------------->
+       
+       <p>
   <li>
        <b>Queueing:</b>
        Change the Drop-Tail queue size so that it includes the
@@ -72,15 +86,6 @@ test suite for error models
 	  Thu Sep 30 15:30:37 PDT 1999)</em>
 	<p>
 
-  <p>
-  <li>
-       <b>introduction</b>
-       Here's the format:  a boldface set of keywords about what
-       part of ns is relevant,
-       text describing what's going on,
-       then a signature and date.
-       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
-       Thu Jun 17 18:04:37 PDT 1999)</em>
   <p>
   <li>
        <b>gen-map update</b>
@@ -122,6 +127,7 @@ test suite for error models
   <p>
   <li> <strong>code cleanup, interfaces</strong>
        <b>Aligning bound variable names</b>
+              [ns3?]
        Aligning bound variable names in OTcl and C++, where possible
        (change the C++ name, not the OTcl name).
        <em>(<a href="http://www.cs.berkeley.edu/~tomh">[tomh]</a>
@@ -223,25 +229,6 @@ test suite for error models
        <b>documentation</b>
        Describe the ns programming model (event driven and the IO model).
        <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>Wed Sep  8 13:38:19 PDT 1999)</em>
-
-       <p>
-  <li>
-       <b>documentation</b>
-       Make sure that nN&amper;D includes all of
-       the reference info in the man page.
-
-       <p>
-       For exmaple, from Ravindra Jejurikar &lt;jezz@ics.uci.edu&gt;:
-       <blockquote>
-	e.g  once I know how to create a new node, the man page has given
-all the functions associated with a node,  viz  $node id, $node neighbors,
-$node attach, $node reset, $node shape, $node color etc.
-	Some node functions are given is nsDoc.ps also ( page 36, 37)
-but  it has just 3 contol functions specified and some  port management
-functions.  I was looking where I could get most of the functions ( the
-interface) and the ns.1 explanation seemed faster.
-       </blockquote>
-       <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>Thu Aug 19 17:56:33 PDT 1999)</em>
 
        <p>
   <li>
@@ -352,7 +339,7 @@ from <a href="http://www-scf.usc.edu/~grahamph/contrib/index.html">http://www-sc
 
        <p>
   <li>
-       <b>binding</b>
+       <b>binding</b> [ns3?]
        We need to clean up inconsistent binding of variables
        (but this is hard to do while keeping backwards compatibility).
        <pre>
