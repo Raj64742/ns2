@@ -273,6 +273,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 			x = 2 ;
 		}
 	}
+//	printf("time: %5.2f rate: %5.2f\n", now, rate_);
 	prevflost = flost ; 
 	prevrtt = rtt_ ; 
 	prevto = tzero_ ;
