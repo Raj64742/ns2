@@ -249,6 +249,8 @@ internal packet queue (which has no size restrictions), and then
 checks the size of the packet queue versus \code{qlim_}.
 Drop-on-overflow is implemented by dropping the packet most recently
 added to the packet queue if the limit is reached or exceeded.
+\emph{Note:} in the implementation of \code{enque} above, 
+ setting \code{qlim_} to \code{n} actually means a queue size of \code{n-1}.
 Simple FIFO scheduling is implemented in the \code{deque} function
 by always returning the first packet in the packet queue.
 
