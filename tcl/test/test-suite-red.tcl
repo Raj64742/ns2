@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.8 1997/10/31 18:18:18 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.9 1997/11/01 01:58:02 kfall Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -542,6 +542,7 @@ TestSuite instproc new_cbr { startTime source dest pktSize interval class } {
 
 TestSuite instproc dumpflows interval {
     $self instvar dumpflows_inst_ ns_ r1fm_
+    $self instvar awkprocedure_ dump_pthresh_
     global flowchan
 
     if ![info exists dumpflows_inst_] {
@@ -549,12 +550,27 @@ TestSuite instproc dumpflows interval {
         $ns_ at 0.0 "$self dumpflows $interval"
         return  
     }
-    $r1fm_ dump
-    flush $flowchan
-    foreach f [$r1fm_ flows] {
-	$f reset
+    if { $awkprocedure_ == "unforcedmakeawk" } {
+	set pcnt [$r1fm_ set epdrops_]
+    } elseif { $awkprocedure_ == "forcedmakeawk" } {
+	set pcnt [expr [$r1fm_ set pdrops_] - [$r1fm_ epdrops]]
+    } elseif { $awkprocedure_ == "combined" } {
+	set pcnt [$r1fm_ set pdrops_]
+    } else {
+	puts stderr "unknown handling of flow dumps!"
+	exit 1
     }
-    $r1fm_ reset
+    if { $pcnt >= $dump_pthresh_ } {
+	    $r1fm_ dump
+	    flush $flowchan
+	    foreach f [$r1fm_ flows] {
+		$f reset
+	    }
+	    $r1fm_ reset
+	    set interval 2.0
+    } else {
+	    set interval 1.0
+    }
     $ns_ at [expr [$ns_ now] + $interval] "$self dumpflows $interval"
 }   
 
@@ -571,10 +587,12 @@ Test/flows-unforced instproc init topo {
 Test/flows-unforced instproc run {} {
 
 	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
+	$self instvar dump_pthresh_
  
         set stoptime 500.0
 	set testName_ test_flows_unforced
 	set awkprocedure_ unforcedmakeawk
+	set dump_pthresh_ 100
 
 	[$ns_ link $node_(r1) $node_(r2)] set mean_pktsize 1000
 	[$ns_ link $node_(r2) $node_(r1)] set mean_pktsize 1000
