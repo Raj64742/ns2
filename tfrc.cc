@@ -126,9 +126,15 @@ void TfrcAgent::start()
 	t_rttvar_ = int(rttvar_init_/tcp_tick_) << T_RTTVAR_BITS;
 	t_rtxcur_ = rtxcur_init_;
 	prevflost = 1 ; prevrtt = 999 ; prevto = 999 ;
-	sendpkt();
-	send_timer_.resched(size_/rate_);
 	rcvrate = 0 ;
+
+	// send the first packet
+	sendpkt();
+	// ... at initial rate
+	send_timer_.resched(size_/rate_);
+	// ... and start timer so we can cut rate 
+	// in half if we do not get feedback
+	NoFeedbacktimer_.resched(2*size_/rate_); 
 }
 
 void TfrcAgent::stop()
@@ -233,10 +239,10 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	rcvrate = p_to_b(flost, rtt_, tzero_, size_, bval_);
 
 	/* if we get no more feedback for some time, cut rate in half */
-	if (NumFeedback_ < 1) 
-		NoFeedbacktimer_.resched(2*rtt_/NumFeedback_);
-	else 
-		NoFeedbacktimer_.resched(2*rtt_); 
+	double t = 2*rtt_ ; 
+	if (t < 2*size_/rate_) 
+		t = 2*size_/rate_ ; 
+	NoFeedbacktimer_.resched(t);
 	
 	/* if we are in slow start and we just saw a loss */
 	/* then come out of slow start */
@@ -397,7 +403,10 @@ void TfrcAgent::reduce_rate_on_no_feedback()
 	rate_*=0.5;
 	delta_ = 0;
 	UrgentFlag = 1;
-	NoFeedbacktimer_.resched(2*rtt_);
+	double t = 2*rtt_ ; 
+	if (t < 2*size_/rate_) 
+		t = 2*size_/rate_ ; 
+	NoFeedbacktimer_.resched(t);
 	round_id ++ ;
 	nextpkt();
 }

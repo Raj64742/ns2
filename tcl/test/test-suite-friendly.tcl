@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.24 2000/05/12 21:37:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.25 2000/05/12 23:10:15 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -808,8 +808,10 @@ Test/manyDrops instproc init {} {
     Agent/TFRCSink set smooth_ 1
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
+##  set stopTime1_ 100.0
     set stopTime1_ 100.0
-    set drops_ " 0 1 "
+#    set drops_ " 0 1 "
+    set drops_ " 0 1 2 3 4 5 6 7 "
     Test/manyDrops instproc run {} [Test/twoDrops info instbody run ]
     $self next
 }

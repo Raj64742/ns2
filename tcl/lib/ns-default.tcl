@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.193 2000/04/15 03:09:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.194 2000/05/12 23:10:14 sfloyd Exp $
 
 
 #
@@ -206,7 +206,7 @@ Agent/TCP/RFC793edu set rto_               60
 Agent/TCP/RFC793edu set syn_               true
 Agent/TCP/RFC793edu set add793exponinc_    false
 
-Agent/TFRC set packetSize_ 1000
+Agent/TFRC set packetSize_ 1000 
 Agent/TFRC set df_ 0.95 ;	# decay factor for accurate RTT estimate
 Agent/TFRC set tcp_tick_ 0.1 ;	
 Agent/TFRC set ndatapack_ 0 ;	# Number of packets sent
@@ -216,7 +216,7 @@ Agent/TFRC set rtxcur_init_ 6.0
 Agent/TFRC set rttvar_exp_ 2	
 Agent/TFRC set T_SRTT_BITS 3	
 Agent/TFRC set T_RTTVAR_BITS 2	
-Agent/TFRC set InitRate_ 1 ;	# Initial send rate	
+Agent/TFRC set InitRate_ 300 ;	# Initial send rate	
 Agent/TFRC set overhead_ 0 ;	# If > 0, dither outgoing packets
 Agent/TFRC set ssmult_ 2 ; 	# Rate of increase during slow-start:
 Agent/TFRC set bval_ 1 ;	# Value of B for TCP formula
