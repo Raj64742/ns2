@@ -1353,24 +1353,24 @@ Test/simple-ping instproc run {} {
 #     $ns_ run
 # }
 
-# proc runtest {arg} {
-# 	global quiet
-# 	set quiet 0
+proc runtest {arg} {
+ 	global quiet
+ 	set quiet 0
 
-# 	set b [llength $arg]
-# 	if {$b == 1} {
-# 		set test $arg
-# 	} elseif {$b == 2} {
-# 		set test [lindex $arg 0]
-# 	    if {[lindex $arg 1] == "QUIET"} {
-# 		set quiet 1
-# 	    }
-# 	} else {
-# 		usage
-# 	}
-# 	set t [new Test/$test]
-# 	$t run
-# }
+ 	set b [llength $arg]
+ 	if {$b == 1} {
+ 		set test $arg
+ 	} elseif {$b == 2} {
+ 		set test [lindex $arg 0]
+ 	    if {[lindex $arg 1] == "QUIET"} {
+ 		set quiet 1
+ 	    }
+ 	} else {
+ 		usage
+ 	}
+ 	set t [new Test/$test]
+ 	$t run
+ }
 
-# global argv arg0
-# runtest $argv
+ global argv arg0
+ runtest $argv
