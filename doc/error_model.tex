@@ -71,7 +71,7 @@ error rate, either in packets of bits.  More sophisticated dropping
 policy can be implemented in C++ by deriving from \code{ErrorModel} and
 redefining its \code{corrupt} method.
 
-{\bf To be completed.}
+%{\bf To be completed.}
 
 \section{Configuration}
 
@@ -130,6 +130,52 @@ to insert an error module into three different places.
   placeholder for possible future extensions. 
 \end{itemize}
 
+\section{Multi-state error model}
+
+Contributed by Jianping Pan (jpan@bbcr.uwaterloo.ca).
+
+The multi-state error model implements time-based error state
+transitions. Transitions to the next  
+error state occur at the end of the duration of the current state. The
+next error state is then selected using the 
+transition state matrix.
+
+To create a multi-state error model, the following parameters should
+be supplied (as defined in \ns/tcl/lib/ns-errmodel.tcl): 
+\begin{itemize}
+\item {\tt states}: an array of states (error models).
+\item {\tt periods}: an array of state durations.
+\item {\tt trans}: the transition state model matrix.
+\item {\tt transunit}: one of {\tt [pkt|byte|time]}.
+\item {\tt sttype}: type of state transitions to use: either {\tt
+    time} or {\tt pkt}.
+\item {\tt nstates}: number of states.
+\item {\tt start}: the start state.
+\end{itemize}
+
+Here is a simple example script to create a multi-state error model:
+\begin{program}
+        set tmp [new ErrorModel/Uniform 0 pkt]
+        set tmp1 [new ErrorModel/Uniform .9 pkt]
+        set tmp2 [new ErrorModel/Uniform .5 pkt]
+
+        # {\cf Array of states (error models)}
+        set m_states [list $tmp $tmp1 $tmp2]
+        # {\cf Durations for each of the states, tmp, tmp1 and tmp2, respectively}
+        set m_periods [list 0 .0075 .00375]
+        # {\cf Transition state model matrix}
+        set m_transmx \{ \{0.95 0.05 0\}
+          \{0   0   1\}
+          \{1   0   0\} \}
+        set m_trunit pkt
+        # {\cf Use time-based transition}
+        set m_sttype time
+        set m_nstates 3
+        set m_nstart [lindex $m_states 0]
+
+        set em [new ErrorModel/MultiState $m_states $m_periods $m_transmx \\
+                $m_trunit $m_sttype $m_nstates $m_nstart]
+\end{program} %$
 
 \section{Commands at a glance}
 \label{sec:errmodelcommand}
