@@ -41,6 +41,7 @@ class Classifier : public NsObject {
  public:
 	~Classifier();
 	void recv(Packet*, Handler* h = 0);
+	NsObject* index(int slot) { return (slot < nslot_) ? slot_[slot] : 0; }
  protected:
 	Classifier();
 	void install(int slot, NsObject*);
