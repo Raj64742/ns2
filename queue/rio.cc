@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.5 2000/07/03 06:43:24 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.6 2000/07/04 01:59:31 sfloyd Exp $ (LBL)";
 #endif
 
 #include "rio.h"
@@ -72,49 +72,26 @@ public:
 
 RIOQueue::RIOQueue() : in_len_(0), in_bcount_(0), in_idle_(1)
 {
-	bind_bool("bytes_", &edp_.bytes);	    // boolean: use bytes?
-	bind_bool("queue_in_bytes_", &qib_);	    // boolean: q in bytes?
-	bind("thresh_", &edp_.th_min);	    // minthresh
-	bind("maxthresh_", &edp_.th_max);	    // maxthresh
 	bind("in_thresh_", &edp_in_.th_min);	    // In_minthresh
 	bind("in_maxthresh_", &edp_in_.th_max);	    // In_maxthresh
 	bind("out_thresh_", &edp_out_.th_min);	    // Out_minthresh
 	bind("out_maxthresh_", &edp_out_.th_max);   // Out_maxthresh
-	bind("mean_pktsize_", &edp_.mean_pktsize);  // avg pkt size
-	bind("q_weight_", &edp_.q_w);		    // for EWMA
-	bind_bool("wait_", &edp_.wait);
-	bind("linterm_", &edp_.max_p_inv);
 	bind("in_linterm_", &edp_in_.max_p_inv);
-	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
-	
-	bind_bool("gentle_", &edp_.gentle);         // increase the packet
+
 	/* added by ratul- allows a finer control over the policy.
 	   gentle automatically means both the below are gentle */
 	bind_bool("in_gentle_",&edp_in_.gentle);    // drop prob. slowly
 	bind_bool("out_gentle_",&edp_out_.gentle);  // when ave queue
 						    // exceeds maxthresh
-
-	bind_bool("drop_tail_", &drop_tail_);	    // drop last pkt
-	bind_bool("drop_front_", &drop_front_);	    // drop first pkt
-	bind_bool("drop_rand_", &drop_rand_);	    // drop pkt at random
-	bind_bool("ns1_compat_", &ns1_compat_);	    // ns-1 compatibility
-
-	bind("ave_", &edv_.v_ave);		    // average queue sie
 	bind("in_ave_", &edv_in_.v_ave);	    // In average queue sie
 	bind("out_ave_", &edv_out_.v_ave);	    // Out average queue sie
-	bind("prob1_", &edv_.v_prob1);		    // dropping probability
 	bind("in_prob1_", &edv_in_.v_prob1);	    // In dropping probability
 	bind("out_prob1_", &edv_out_.v_prob1);	    // Out dropping probability
-	bind("curq_", &curq_);			    // current queue size
 	bind("priority_method_", &priority_method_); // method for setting
 						    // priority
-	q_ = new PacketQueue();			    // underlying queue
-	pq_ = q_;
-	reset();
-#ifdef notdef
-print_edp();
-print_edv();
-#endif
+//	q_ = new PacketQueue();			    // underlying queue
+//	pq_ = q_;
+//	reset();
 
 }
 
@@ -180,33 +157,19 @@ void RIOQueue::reset()
 Packet* RIOQueue::deque()
 {
 	Packet *p;
-	p = q_->deque();
+	p = REDQueue::deque();
         // printf( "qlen %d %d\n", q_->length(), length());
 	if (p != 0) {
-		idle_ = 0;
 		hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
-                if (hf->pri_)   /* Regular In packets */
-		{
+                if (hf->pri_) {   
+		  /* Regular In packets */
                   in_idle_ = 0;
 		  in_bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size();
 		  --in_len_;
 		}
-
-		bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size();
 	} else {
-		idle_ = 1;
                 in_idle_ = 1;
-		// deque() may invoked by Queue::reset at init
-		// time (before the scheduler is instantiated).
-		// deal with this case
-		if (&Scheduler::instance() != NULL) {
-			idletime_ = Scheduler::instance().clock();
-			in_idletime_ = idletime_;
-                   }
-		else {
-			idletime_ = 0.0;
-			in_idletime_ = 0.0;
-                  }
+		in_idletime_ = idletime_;
 	}
 	return (p);
 }
@@ -214,49 +177,17 @@ Packet* RIOQueue::deque()
 /*
  * should the packet be dropped/marked due to a probabilistic drop?
  */
-
 int
 RIOQueue::drop_in_early(Packet* pkt)
 {
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 
-	double p;
-
-	if (edp_in_.gentle && edv_in_.v_ave >= edp_in_.th_max) {
-		// p ranges from max_p to 1 as the average queue
-		// size ranges from th_max to twice th_max 
-		p = edv_in_.v_c * edv_in_.v_ave + edv_in_.v_d;
-	} else {
-		// p ranges from 0 to max_p as the average queue
-		// size ranges from th_min to th_max 
-		p = edv_in_.v_a * edv_in_.v_ave + edv_in_.v_b;
-		p /= edp_in_.max_p_inv;
-	}
-	edv_in_.v_prob1 = p;
-	if (edv_in_.v_prob1 > 1.0)
-		edv_in_.v_prob1 = 1.0;
-	double count1 = edv_in_.count;
-	if (edp_.bytes)
-		count1 = (double) (edv_in_.count_bytes/edp_.mean_pktsize);
-	if (edp_.wait) {
-		if (count1 * p < 1.0)
-			p = 0.0;
-		else if (count1 * p < 2.0)
-			p /= (2 - count1 * p);
-		else
-			p = 1.0;
-	} else {
-		if (count1 * p < 1.0)
-			p /= (1.0 - count1 * p);
-		else
-			p = 1.0;
-	}
-	if (edp_.bytes && p < 1.0) {
-		p = p * ch->size() / edp_.mean_pktsize;
-	}
-	if (p > 1.0)
-		p = 1.0;
-	edv_in_.v_prob = p;
+        edv_in_.v_prob1 = REDQueue::calculate_p(edv_in_.v_ave, edp_in_.th_max, 
+	  edp_in_.gentle, edv_in_.v_a, edv_in_.v_b, edv_in_.v_c, 
+	  edv_in_.v_d, edp_in_.max_p_inv);
+        edv_in_.v_prob = REDQueue::modify_p(edv_in_.v_prob1, edv_in_.count, 
+	  edv_in_.count_bytes, edp_.bytes, edp_.mean_pktsize, edp_.wait, 
+	  ch->size());
 
 	// drop probability is computed, pick random number and act
 	double u = Random::uniform();
@@ -266,7 +197,8 @@ RIOQueue::drop_in_early(Packet* pkt)
 		edv_in_.count_bytes = 0;
 		hdr_flags* hf = 
                   (hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
-		if (edp_.setbit && hf->ect()) {
+		if (edp_.setbit && hf->ect() && 
+				edv_in_.v_ave < edp_in_.th_max) {
 			hf->ce() = 1; 	// mark Congestion Experienced bit
 			return (0);	// no drop
 		} else {
@@ -276,9 +208,11 @@ RIOQueue::drop_in_early(Packet* pkt)
 	return (0);			// no DROP/mark
 }
 
-/* The rationale here is that if the edv_in_.v_ave is close
+/*
+ * Obsolete note from original version of code:
+ * The rationale here is that if the edv_in_.v_ave is close
  * to the edp_in_.th_max, (we are about to turn over to the
- * congestion control phase, presumably because of Out packets.
+ * congestion control phase, presumably because of Out packets),
  * then we should drop Out packets more severely.
  */
 
@@ -286,53 +220,28 @@ int RIOQueue::drop_out_early(Packet* pkt)
 {
         hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 
-	double p;
-        if (edp_out_.gentle && edv_.v_ave >= edp_out_.th_max)
-		// p ranges from max_p to 1 as the average queue   
-            p = edv_out_.v_c * edv_.v_ave + edv_out_.v_d;
-        else {
-	        p = edv_out_.v_a * edv_.v_ave + edv_out_.v_b;
-		//modified by ratul - changed out_max_p_inv to max_p_inv
-	        p /= edp_.max_p_inv;
-        }
-       	edv_out_.v_prob1 = p;
-	if (edv_out_.v_prob1 > 1.0)
-	        edv_out_.v_prob1 = 1.0;
-	double count1 = edv_out_.count;
-	if (edp_.bytes)
-	   count1 = (double) (edv_out_.count_bytes/edp_.mean_pktsize);
-	if (edp_.wait) {
-	        if (count1 * p < 1.0)
-	                p = 0.0;
-	        else if (count1 * p < 2.0)
-	                p /= (2 - count1 * p);
-	        else
-	                p = 1.0;
-	} else {
-	        if (count1 * p < 1.0)
-	                p /= (1.0 - count1 * p);
-	        else
-	                p = 1.0;
-	}
-	if (edp_.bytes && p < 1.0) {
-	        p = p * ch->size() / edp_.mean_pktsize;
-	}
-	if (p > 1.0)
-	        p = 1.0;
-	edv_out_.v_prob = p;
+        edv_out_.v_prob1 = REDQueue::calculate_p(edv_.v_ave, edp_out_.th_max, 
+	  edp_out_.gentle, edv_out_.v_a, edv_out_.v_b, edv_out_.v_c, 
+	  edv_out_.v_d, edp_.max_p_inv);
+        edv_out_.v_prob = REDQueue::modify_p(edv_out_.v_prob1, edv_out_.count, 
+	  edv_out_.count_bytes, edp_.bytes, edp_.mean_pktsize, edp_.wait, 
+	  ch->size());
 
         // drop probability is computed, pick random number and act
         double u = Random::uniform();
         if (u <= edv_out_.v_prob) {
-           // DROP or MARK
-           edv_out_.count = 0;
-           edv_out_.count_bytes = 0;
-           hdr_flags* hf = (hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
-           if (edp_.setbit && hf->ecn_capable_) {
-             hf->ecn_to_echo_ = 1;
-             } else {
-             return (1);
-             }
+           	// DROP or MARK
+           	edv_out_.count = 0;
+           	edv_out_.count_bytes = 0;
+           	hdr_flags* hf = 
+			(hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
+           	if (edp_.setbit && hf->ecn_capable_ &&
+				edv_.v_ave < edp_out_.th_max) {
+			hf->ce() = 1; 	// mark Congestion Experienced bit
+			return (0);	// no drop
+             	} else {
+             		return (1);
+             	}
         }
         return (0);  // no DROP/mark
 }

@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  *
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.h,v 1.4 2000/07/03 06:00:13 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.h,v 1.5 2000/07/04 01:59:31 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_rio_h
@@ -69,7 +69,6 @@ struct edv_rio {
         double v_slope;       /* used in computing average queue size */
         double v_r;
         double v_prob;        /* prob. of packet drop */
-        struct dlist* drops;
         double v_a;           /* v_prob = v_a * v_ave + v_b */
         double v_b;
 	double v_c;
@@ -77,6 +76,7 @@ struct edv_rio {
         int count;           /* # of packets since last drop */
         int count_bytes;     /* # of bytes since last drop */
         int old;             /* 0 when average queue first exceeds thresh */
+        struct dlist* drops;
 
 	edv_rio() : v_ave(0.0), v_prob1(0.0), v_slope(0.0), v_prob(0.0),
 		v_a(0.0), v_b(0.0), count(0), count_bytes(0), old(0) { }
