@@ -1261,33 +1261,56 @@ else
   d=""
 fi
 
+TCL_VERS=7.6
+TCL_ALT_VERS=76
+
 if test "$d" != "" ; then 
 	if test ! -d $d ; then 
 		echo "'$d' is not a directory"
 		exit 1
 	fi
-	V_INCLUDE_TCL=-I$d/include
-	if test ! -r $d/include/tcl.h ; then
-		echo "can't find tcl.h in $d/include"
-		exit 1
-	fi
-	places="$d/lib/libtcl7.5.so \
-		$d/lib/libtcl7.5.a \
-		$d/lib/libtcl.so \
-		$d/lib/libtcl.a"
-	V_LIB_TCL=FAIL
-	for dir in $places; do
-		if test -r $dir ; then
-			V_LIB_TCL=$dir
-			break
-		fi
-	done
-	if test $V_LIB_TCL = FAIL ; then
-		echo "can't find libtcl.a in $d/lib"
-		exit 1
-	fi
-	places="$d/lib/tcl7.5 \
-		$d/lib/tcl"
+        places="$d \
+                $d/generic \
+                $d/include"
+	echo -n "checking for tcl.h..."
+        V_INCLUDE_TCL=FAIL
+        for f in $places; do
+                if test -r $f/tcl.h ; then
+                        V_INCLUDE_TCL=-I$f
+                        break   
+                fi      
+        done    
+        if test "$V_INCLUDE_TCL" = FAIL; then
+                echo "not found" 
+                exit 1  
+        fi
+        echo "found ($V_INCLUDE_TCL)"
+
+	echo -n "checking for libtcl (ver $TCL_VERS)..."
+        places="$d \
+                $d/lib"  
+        V_LIB_TCL=FAIL 
+        for f in $places; do
+                if test -r $f/libtcl$TCL_VERS.a -o -r $f/libtcl$TCL_VERS.so ; then
+                        V_LIB_TCL="-L$f -ltcl$TCL_VERS"
+                        break
+                fi
+                if test -r $f/libtcl$TCL_ALT_VERS.a -o -r $f/libtcl$TCL_ALT_VERS.so ; then
+                        V_LIB_TCL="-L$f -ltcl$TCL_ALT_VERS"
+                        break
+                fi
+        done
+        if test "$V_LIB_TCL" = FAIL ; then
+                echo "not found"
+                exit 1  
+        fi
+        echo "found ($V_LIB_TCL)"
+
+	echo -n "checking for library/init.tcl..."
+	places="$d \
+		$d/library \
+		$d/lib/tcl \
+		$d/lib"
 	V_LIBRARY_TCL=FAIL
 	for dir in $places; do
 		if test -r $dir/init.tcl ; then
@@ -1295,18 +1318,44 @@ if test "$d" != "" ; then
 			break
 		fi
 	done
-	if test $V_LIBRARY_TCL = FAIL ; then
-		echo "can't find init.tcl in $d/lib/tcl"
+	if test "$V_LIBRARY_TCL" = FAIL ; then
+		echo "not found"
 		exit 1
 	fi
+	echo "found ($V_LIBRARY_TCL)"
 else
-	cat > conftest.$ac_ext <<EOF
-#line 1305 "configure"
+	V_INCLUDE_TCL=FAIL
+	echo -n "checking for tcl.h..."
+	places="$PWD/../tcl$TCL_VERS/generic \
+		$PWD/../tcl$TCL_ALT_VERS/generic \
+		/usr/src/local/tcl$TCL_VERS/generic \
+		/usr/src/local/tcl$TCL_ALT_VERS/generic \
+		/usr/local/lib/tcl$TCL_VERS \
+		/usr/local/lib/tcl$TCL_ALT_VERS \
+		/usr/local/include \
+		/usr/local/include/tcl$TCL_VERS \
+		/usr/local/include/tcl$TCL_ALT_VERS \
+		/import/tcl/include/tcl$TCL_VERS \
+		/import/tcl/include/tcl$TCL_ALT_VERS \
+		$prefix/include \
+		$x_includes/tk \
+		$x_includes \
+		/usr/contrib/include \
+		/usr/include"
+	for dir in $places; do
+		if test -r $dir/tcl.h ; then
+			V_INCLUDE_TCL=-I$dir
+			break
+		fi
+	done
+	if test "$V_INCLUDE_TCL" = FAIL; then
+		cat > conftest.$ac_ext <<EOF
+#line 1354 "configure"
 #include "confdefs.h"
 #include <tcl.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1310: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1359: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1317,29 +1366,39 @@ else
   V_INCLUDE_TCL=FAIL
 fi
 rm -f conftest*
-	if test "$V_INCLUDE_TCL" = FAIL; then
-		echo "checking for tcl.h"
-		places="$PWD/../tcl7.5 \
-			/usr/src/local/tcl7.5 \
-			/import/tcl/include/tcl7.5 \
-			$prefix/include \
-			$x_includes/tk \
-			$x_includes \
-			/usr/local/include \
-			/usr/contrib/include \
-			/usr/include"
-		for dir in $places; do
-			if test -r $dir/tcl.h ; then
-				V_INCLUDE_TCL=-I$dir
-			        break
-			fi
-		done
-		if test "$V_INCLUDE_TCL" = FAIL; then
-			echo "can't find tcl.h"
-			exit 1
-		fi
 	fi
-	echo $ac_n "checking for -ltcl""... $ac_c" 1>&6
+	if test "$V_INCLUDE_TCL" = FAIL; then
+		echo "not found"
+		exit 1
+	fi
+	echo "found ($V_INCLUDE_TCL)"
+
+	V_LIB_TCL=FAIL
+	echo -n "checking for libtcl$TCL_VERS..."
+        places="$PWD/../tcl$TCL_VERS/unix \
+                $PWD/../tcl$TCL_ALT_VERS/unix \
+                /usr/src/local/tcl$TCL_VERS/unix \
+                /usr/src/local/tcl$TCL_ALT_VERS/unix \
+                /usr/local/lib/tcl$TCL_VERS \
+                /usr/local/lib/tcl$TCL_ALT_VERS \
+                /usr/local/lib \
+                $prefix/lib \
+                $x_libs/tk \
+                $x_libs \
+                /usr/contrib/lib \
+                /usr/lib"
+        for f in $places; do
+                if test -r $f/libtcl$TCL_VERS.a -o -r $f/libtcl$TCL_VERS.so ; then
+                        V_LIB_TCL="-L$f -ltcl$TCL_VERS"
+                        break
+                fi
+                if test -r $f/libtcl$TCL_ALT_VERS.a -o -r $f/libtcl$TCL_ALT_VERS.so ; then
+                        V_LIB_TCL="-L$f -ltcl$TCL_ALT_VERS"
+                        break
+                fi
+        done
+	if test "$V_LIB_TCL" = FAIL; then
+		echo $ac_n "checking for -ltcl""... $ac_c" 1>&6
 ac_lib_var=`echo tcl'_'main | tr './+\055' '__p_'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1347,7 +1406,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ltcl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1351 "configure"
+#line 1410 "configure"
 #include "confdefs.h"
 
 int main() { return 0; }
@@ -1355,7 +1414,7 @@ int t() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:1359: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1418: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1374,53 +1433,33 @@ else
 V_LIB_TCL="FAIL"
 fi
 
+	fi
 	if test "$V_LIB_TCL" = FAIL; then
-		echo "checking for libtcl.a"
-		places="\
-			$prefix/lib \
-			$x_libraries \
-			/usr/contrib/lib \
-			/usr/local/lib \
-			/usr/lib \
-			$PWD/../tcl7.5b3 \
-			/usr/src/local/tcl7.5b3 \
-			/import/tcl/lib/tcl7.5b3 \
-			"
-		for dir in $places; do
-			if test -r $dir/libtcl7.5.so -o -r $dir/libtcl7.5.a; then
-				V_LIB_TCL="-L$dir -ltcl7.5"
-				break
-			fi
-			if test -r $dir/libtcl.so -o -r $dir/libtcl.a; then
-				V_LIB_TCL="-L$dir -ltcl"
-				break
-			fi
-		done
-		if test "$V_LIB_TCL" = FAIL; then
-			echo "can't find libtcl.a"
-			exit 1
-		else
-			if test $solaris ; then
-				V_LIB_TCL="-R$dir $V_LIB_TCL"
-			fi
+		echo "not found"
+		exit 1
+	else
+		if test $solaris ; then
+			V_LIB_TCL="-R$dir $V_LIB_TCL"
 		fi
 	fi
-	echo "checking for tcl/init.tcl"
+	echo "found ($V_LIB_TCL)"
+
+	echo -n "checking for tcl/init.tcl..."
 	V_LIBRARY_TCL=FAIL
-	places="/usr/local/lib/tcl7.5 \
-		/usr/contrib/lib/tcl7.5 \
-		/usr/lib/tcl7.5 \
-		/usr/lib/tk/tcl7.5 \
-		/import/tcl/lib/tcl7.5 \
-		$prefix/lib/tcl7.5 \
-		$x_libraries/tcl7.5 \
-		/usr/local/lib/tcl \
-		/usr/lib/tcl \
-		/usr/lib/tk/tcl \
-		/import/tcl/lib/tcl \
-		$prefix/lib/tcl \
-		$x_libraries/tcl \
-		$x_libraries/tcl"
+        places="$PWD/../tcl$TCL_VERS/library \
+                $PWD/../tcl$TCL_ALT_VERS/library \
+                /usr/src/local/tcl$TCL_VERS/library \
+                /usr/src/local/tcl$TCL_ALT_VERS/library \
+                /usr/local/lib/tcl$TCL_VERS \
+                /usr/local/lib/tcl$TCL_ALT_VERS \
+                /usr/local/include \
+                /usr/local/include/tcl$TCL_VERS \
+                /usr/local/include/tcl$TCL_ALT_VERS \
+                $prefix/include \
+                $x_includes/tk \
+                $x_includes \
+                /usr/contrib/include \
+                /usr/include"
 	for dir in $places; do
 		if test -r $dir/init.tcl; then
 			V_LIBRARY_TCL=$dir
@@ -1428,9 +1467,10 @@ fi
 		fi
 	done
 	if test "$V_LIBRARY_TCL" = FAIL; then
-		echo "can't find tcl/init.tcl"
+		echo "not found"
 		exit 1
 	fi
+	echo "found ($V_LIBRARY_TCL)"
 fi
 
 
@@ -1450,32 +1490,63 @@ if test "$d" != "" ; then
 		echo "'$d' is not a directory"
 		exit 1
 	fi
-	V_INCLUDE_OTCL=-I$d/include
-	if test ! -r $d/include/otcl.h ; then
-		echo "can't find otcl.h in $d/include"
+	echo -n "checking for otcl.h..."
+	places="$d \
+		$d/include"
+	V_INCLUDE_OTCL=FAIL
+	for f in $places; do
+		if test -r $f/otcl.h ; then
+			V_INCLUDE_OTCL=-I$f
+			break
+		fi
+	done
+	if test "V_INCLUDE_OTCL" = FAIL; then
+		echo "not found"
 		exit 1
 	fi
-	places="$d/lib/libotcl.so \
-		$d/lib/libotcl.a"
+	echo "found ($V_INCLUDE_OTCL)"
+
+	echo -n "checking for libotcl..."
+	places="$d \
+		$d/lib"
 	V_LIB_OTCL=FAIL
 	for f in $places; do
-		if test -r $f ; then
+		if test -r $f/libotcl.a ; then
 			V_LIB_OTCL=$f
 			break
 		fi
 	done
-	if test $V_LIB_OTCL = FAIL ; then
-		echo "can't find libotcl.a in $d"
+	if test "$V_LIB_OTCL" = FAIL ; then
+		echo "not found"
 		exit 1
 	fi
+	echo "found ($V_LIB_OTCL)"
 else
-	cat > conftest.$ac_ext <<EOF
-#line 1474 "configure"
+	V_INCLUDE_OTCL=FAIL
+	echo -n "checking for otcl.h..."
+	places="$PWD/../otcl \
+		/usr/src/local/otcl \
+		$PWD/../otcl-0.96 \
+		/import/otcl/include \
+		/usr/src/local/otcl-0.96 \
+		$prefix/include \
+		/usr/local/include \
+		/usr/contrib/include \
+		/usr/include"
+	for dir in $places; do
+		if test -r $dir/otcl.h ; then
+			V_INCLUDE_OTCL=-I$dir
+			break
+		fi
+	done
+	if test "$V_INCLUDE_OTCL" = FAIL; then
+		cat > conftest.$ac_ext <<EOF
+#line 1545 "configure"
 #include "confdefs.h"
 #include <otcl.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1479: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1550: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1486,29 +1557,34 @@ else
   V_INCLUDE_OTCL=FAIL
 fi
 rm -f conftest*
-	if test "$V_INCLUDE_OTCL" = FAIL; then
-		echo "checking for otcl.h"
-		places="$PWD/../otcl \
-			/usr/src/local/otcl \
-			$PWD/../otcl-0.96 \
-			/import/otcl/include \
-			/usr/src/local/otcl-0.96 \
-			$prefix/include \
-			/usr/local/include \
-			/usr/contrib/include \
-			/usr/include"
-		for dir in $places; do
-			if test -r $dir/otcl.h ; then
-				V_INCLUDE_OTCL=-I$dir
-			        break
-			fi
-		done
-		if test "$V_INCLUDE_OTCL" = FAIL; then
-			echo "can't find otcl.h"
-			exit 1
-		fi
 	fi
-	echo $ac_n "checking for -lotcl""... $ac_c" 1>&6
+	if test "$V_INCLUDE_OTCL" = FAIL; then
+		echo "not found"
+		exit 1
+	fi
+	echo "found ($V_INCLUDE_OTCL)"
+
+	echo -n "checking for libotcl..."
+	V_LIB_OTCL=FAIL
+	places="\
+		$PWD/../otcl \
+		$PWD/../otcl-0.96 \
+		$prefix/lib \
+		$x_libraries \
+		/usr/contrib/lib \
+		/usr/local/lib \
+		/usr/lib \
+		/usr/src/local/otcl \
+		/usr/src/local/otcl-0.96 \
+		"
+	for dir in $places; do
+		if test -r $dir/libotcl.so -o -r $dir/libotcl.a; then
+			V_LIB_OTCL="-L$dir -lotcl"
+			break
+		fi
+	done
+	if test "$V_LIB_OTCL" = FAIL; then
+		echo $ac_n "checking for -lotcl""... $ac_c" 1>&6
 ac_lib_var=`echo otcl'_'main | tr './+\055' '__p_'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1516,7 +1592,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lotcl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1520 "configure"
+#line 1596 "configure"
 #include "confdefs.h"
 
 int main() { return 0; }
@@ -1524,7 +1600,7 @@ int t() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:1528: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1604: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1543,34 +1619,16 @@ else
 V_LIB_OTCL="FAIL"
 fi
 
+	fi
 	if test "$V_LIB_OTCL" = FAIL; then
-		echo "checking for libotcl.a"
-		places="\
-			$prefix/lib \
-			$x_libraries \
-			/usr/contrib/lib \
-			/usr/local/lib \
-			/usr/lib \
-			$PWD/../otcl \
-			$PWD/../otcl-0.96 \
-			/usr/src/local/otcl \
-			/usr/src/local/otcl-0.96 \
-			"
-		for dir in $places; do
-			if test -r $dir/libotcl.so -o -r $dir/libotcl.a; then
-				V_LIB_OTCL="-L$dir -lotcl"
-				break
-			fi
-		done
-		if test "$V_LIB_OTCL" = FAIL; then
-			echo "can't find libotcl.a"
-			exit 1
-		else
-			if test $solaris ; then
-				V_LIB_OTCL="-R$dir $V_LIB_OTCL"
-			fi
+		echo "not found"
+		exit 1
+	else
+		if test $solaris ; then
+			V_LIB_OTCL="-R$dir $V_LIB_OTCL"
 		fi
 	fi
+	echo "found ($V_LIB_OTCL)"
 fi
 
 
@@ -1589,24 +1647,39 @@ if test "$d" != "" ; then
 		echo "'$d' is not a directory"
 		exit 1
 	fi
-	V_INCLUDE_BTCL=-I$d
-	if test ! -r $d/Tcl.h ; then
-		echo "can't find Tcl.h in $d"
-		exit 1
-	fi
-	places="$d/libTcl.so \
-		$d/libTcl.a"
+	V_INCLUDE_BTCL=FAIL
+	echo -n "checking for Tcl.h..."
+        places="$d \
+                $d/include"
+        for f in $places; do
+                if test -r $f/Tcl.h ; then
+                        V_INCLUDE_BTCL=-I$f
+                        break   
+                fi      
+        done    
+        if test "V_INCLUDE_BTCL" = FAIL; then
+                echo "not found"
+                exit 1
+        fi
+	echo "found ($f)"
+
+	echo -n "checking for libTcl..."
+        places="$d \
+                $d/lib"  
 	V_LIB_BTCL=FAIL
 	for dir in $places; do
-		if test -r $dir ; then
-			V_LIB_BTCL=$dir
+		if test -r $dir/libTcl.so -o -r $dir/libTcl.a ; then
+			V_LIB_BTCL="-L$dir -lTcl"
 			break
 		fi
 	done
 	if test $V_LIB_BTCL = FAIL ; then
-		echo "can't find libTcl.a in $d"
+		echo "not found"
 		exit 1
 	fi
+	echo "found ($dir)"
+
+	echo -n "checking for tcl2c++..."
 	places="$d \
 		"
 	V_TCL2CPP=FAIL
@@ -1616,18 +1689,37 @@ if test "$d" != "" ; then
 			break
 		fi
 	done
-	if test $V_TCL2CPP = FAIL ; then
-		echo "can't tcl2c++ in $d"
+	if test "$V_TCL2CPP = FAIL" ; then
+		echo "not found"
 		exit 1
 	fi
+	echo "found ($dir)"
 else
-	cat > conftest.$ac_ext <<EOF
-#line 1626 "configure"
+	V_INCLUDE_BTCL=FAIL
+	echo -n "checking for Tcl.h..."
+        places="$PWD/../Tcl \
+                /usr/src/local/Tcl \
+                $PWD/../Tcl-1.0 \
+                /import/Tcl/include \
+                /usr/src/local/Tcl-1.0 \
+                $prefix/include \
+                /usr/local/include \
+                /usr/contrib/include \
+                /usr/include"
+        for dir in $places; do
+                if test -r $dir/Tcl.h ; then
+                        V_INCLUDE_BTCL=-I$dir
+                        break
+                fi
+        done
+	if test "$V_INCLUDE_BTCL" = FAIL; then
+		cat > conftest.$ac_ext <<EOF
+#line 1718 "configure"
 #include "confdefs.h"
 #include <Tcl.h>
 EOF
 ac_try="$ac_cpp conftest.$ac_ext >/dev/null 2>conftest.out"
-{ (eval echo configure:1631: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
+{ (eval echo configure:1723: \"$ac_try\") 1>&5; (eval $ac_try) 2>&5; }
 ac_err=`grep -v '^ *+' conftest.out`
 if test -z "$ac_err"; then
   rm -rf conftest*
@@ -1638,27 +1730,32 @@ else
   V_INCLUDE_BTCL=FAIL
 fi
 rm -f conftest*
-	if test "$V_INCLUDE_BTCL" = FAIL; then
-		echo "checking for tcl.h"
-		places="$PWD/../Tcl \
-			/usr/src/local/Tcl \
-			/import/tcl/include/Tcl \
-			$prefix/include \
-			/usr/local/include \
-			/usr/contrib/include \
-			/usr/include"
-		for dir in $places; do
-			if test -r $dir/Tcl.h ; then
-				V_INCLUDE_BTCL=-I$dir
-			        break
-			fi
-		done
-		if test "$V_INCLUDE_BTCL" = FAIL; then
-			echo "can't find Tcl.h"
-			exit 1
-		fi
 	fi
-	echo $ac_n "checking for -lTcl""... $ac_c" 1>&6
+	if test "$V_INCLUDE_BTCL" = FAIL; then
+		echo "not found"
+		exit 1
+	fi
+	echo "found ($V_INCLUDE_BTCL)"
+
+	V_LIB_BTCL=FAIL
+	echo -n "checking for libTcl..."
+        places="$PWD/../Tcl \
+                $PWD/../Tcl-1.0 \
+                $prefix/lib \
+                $x_libraries \
+                /usr/contrib/lib \
+                /usr/local/lib \
+                /usr/lib \
+                /usr/src/local/Tcl \
+                /usr/src/local/Tcl-1.0"
+        for dir in $places; do
+                if test -r $dir/libTcl.so -o -r $dir/libTcl.a; then
+                        V_LIB_BTCL="-L$dir -lTcl"
+                        break
+                fi
+        done    
+        if test "$V_LIB_BTCL" = FAIL; then
+		echo $ac_n "checking for -lTcl""... $ac_c" 1>&6
 ac_lib_var=`echo Tcl'_'main | tr './+\055' '__p_'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -1666,7 +1763,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-lTcl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1670 "configure"
+#line 1767 "configure"
 #include "confdefs.h"
 
 int main() { return 0; }
@@ -1674,7 +1771,7 @@ int t() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:1678: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1775: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1693,38 +1790,31 @@ else
 V_LIB_BTCL="FAIL"
 fi
 
-	if test "$V_LIB_BTCL" = FAIL; then
-		echo "checking for libTcl.a"
-		places="\
-			$prefix/lib \
-			/usr/contrib/lib \
-			/usr/local/lib \
-			/usr/lib \
-			$PWD/../Tcl \
-			/usr/src/local/Tcl \
-			/import/tcl/lib/Tcl \
-			"
-		for dir in $places; do
-			if test -r $dir/libTcl.so -o -r $dir/libTcl.a; then
-				V_LIB_BTCL="-L$dir -lTcl"
-				break
-			fi
-		done
-		if test "$V_LIB_BTCL" = FAIL; then
-			echo "can't find libTcl.a"
-			exit 1
-		else
-			if test $solaris ; then
-				V_LIB_BTCL="-R$dir $V_LIB_BTCL"
-			fi
+        fi
+        if test "$V_LIB_BTCL" = FAIL; then
+		echo "not found"
+		exit 1
+	else
+		if test $solaris ; then
+			V_LIB_BTCL="-R$dir $V_LIB_BTCL"
 		fi
 	fi
-	echo "checking for tcl2c++"
+	echo "found ($V_LIB_BTCL)"
+
+	echo -n "checking for tcl2c++..."
 	V_TCL2CPP=FAIL
-	places="$PWD/../Tcl \
-		/usr/local/bin \
-		/usr/contrib/bin \
-		/usr/bin/local"
+        places="\
+                $PWD/../Tcl \
+                $PWD/../Tcl-1.0 \
+                $prefix/bin \
+                $x_libraries \
+                /usr/contrib/bin \
+                /usr/local/bin \
+                /usr/bin \
+                /usr/src/local/Tcl \
+                /usr/src/local/Tcl-1.0 \
+                "       
+
 	for dir in $places; do
 		if test -x $dir/tcl2c++; then
 			V_TCL2CPP=$dir/tcl2c++
@@ -1732,9 +1822,10 @@ fi
 		fi
 	done
 	if test "$V_TCL2CPP" = FAIL; then
-		echo "can't find tcl2c++"
+		echo "not found"
 		exit 1
 	fi
+	echo "found ($dir)"
 fi
 
 
@@ -1784,7 +1875,7 @@ sparc-sun-sunos*)
 	V_SHM=""
 	V_TARCMD="tar cfL"
 	V_CCOPT="-O2 -m486"
-	V_LIB="$V_LIB -ldl"
+	V_LIB="$V_LIB -lipc"
 	;;
 *-*-netbsd*)
 	V_TARCMD="tar -h -c -f"
@@ -1875,7 +1966,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1879 "configure"
+#line 1970 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -1887,7 +1978,7 @@ int t() {
 dlopen()
 ; return 0; }
 EOF
-if { (eval echo configure:1891: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:1982: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -1917,7 +2008,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-l$V_LIB_DL $V_STATIC $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 1921 "configure"
+#line 2012 "configure"
 #include "confdefs.h"
 
 int main() { return 0; }
@@ -1925,7 +2016,7 @@ int t() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:1929: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
+if { (eval echo configure:2020: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; }; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
