@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.4 1998/06/29 23:57:37 heideman Exp $
+# $Id: many_tcp.tcl,v 1.5 1998/06/30 17:17:58 heideman Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -445,7 +445,13 @@ Main instproc finish {} {
 		set q ""
 	}
 	set title $opts(title)
-	exec raw2xg -a $q < $trace_filename_.tr >$trace_filename_.xg
+	# Make sure that we run in place even without raw2xg in our path
+	# (for the test suites).
+	set raw2xg raw2xg
+	if [file exists ../../raw2xg] {
+		set raw2xg ../../raw2xg
+	}
+	exec $raw2xg -a $q < $trace_filename_.tr >$trace_filename_.xg
 	if {$opts(test-suite)} {
 		exec cp $trace_filename_.xg $opts(test-suite-file)
 	}
