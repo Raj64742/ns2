@@ -24,6 +24,7 @@ set opt(nn)		50		;# number of nodes
 set opt(seed)		0.0
 set opt(stop)		1500.0		;# simulation time
 set opt(tr)		estudy-aodv.tr	;# trace file
+set opt(nam)		demo.nam
 set opt(rp)             AODV            ;# routing protocol script
 set opt(lm)             "off"           ;# log movement
 set opt(energymodel)    EnergyModel     ;
@@ -130,12 +131,14 @@ set topo	[new Topography]
 set god_         [new God]
 
 set tracefd	[open $opt(tr) w]
+set namtrace    [open $opt(nam) w]
 
 $topo load_flatgrid $opt(x) $opt(y)
 
 $ns_ trace-all $tracefd
+$ns_ namtrace-all-wireless $namtrace $opt(x) $opt(y)
 
-$ns_ use-newtrace
+#$ns_ use-newtrace
 
 #
 # Create God
@@ -203,6 +206,18 @@ if { $opt(sc) == "" } {
 	source $opt(sc)
 	puts "Load complete..."
 }
+
+# Define node initial position in nam
+
+for {set i 0} {$i < $opt(nn)} {incr i} {
+
+    # 20 defines the node size in nam, must adjust it according to your scenario
+    # The function must be called after mobility model is defined
+
+    $ns_ initial_node_pos $node_($i) 20
+}
+
+
 
 puts $tracefd "G -t * -N $opt(nn) -X $opt(x) -Y $opt(y) -p $opt(rp) -E $opt(initialenergy)"
 puts $tracefd "G -t * -sc $opt(sc) -cp $opt(cp) -seed $opt(seed)"
