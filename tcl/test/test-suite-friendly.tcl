@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.49 2002/12/17 06:08:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.50 2002/12/19 05:28:01 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -65,13 +65,14 @@ Agent/TCP set minrto_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
-Agent/TCP set window_ 100
-
 Agent/TFRCSink set PreciseLoss_ 1
 # The default for PreciseLoss_ will be changed to 0, at some point.
 Agent/TFRCSink set numPkts_ 1
 # The default for numPkts_ will be changed to 3, at some point.
+Agent/TFRC set oldCode_ true
+# This is a new variable with a default of false.
 
+Agent/TCP set window_ 100
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.
