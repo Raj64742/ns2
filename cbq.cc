@@ -33,15 +33,16 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.7 1997/04/08 02:39:19 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.8 1997/04/22 18:32:35 kfall Exp $ (LBL)";
 #endif
 
 //
-// attempt at new version of cbq using the ns-2 fine-grain
+// new version of cbq using the ns-2 fine-grain
 // objects.  Also, re-orginaize CBQ to look more like how
 // its description reads in ToN v3n4 and simplify extraneous stuff -KF
 //
-// there is a 1-1 relationship between classes and queues
+// there is a 1-1 relationship between classes and queues, except
+// that internal nodes in the LS tree don't have queues
 //
 // Definitions:
 //	overlimit:
@@ -79,7 +80,7 @@ static char rcsid[] =
 #include "queue.h"
 #include "delay.h"
 
-#define	MAXPRIO		8	/* # priorities in scheduler */
+#define	MAXPRIO		10	/* # priorities in scheduler */
 #define	MAXLEVEL	32	/* max depth of link-share tree(s) */
 #define	LEAF_LEVEL	1	/* level# for leaves */
 #define	POWEROFTWO	16
@@ -132,20 +133,24 @@ protected:
 class CBQueue : public Queue {
 public:
 	CBQueue();
-	virtual int	command(int argc, const char*const* argv);
-	void		enque(Packet*) { abort(); /* shouldn't happen */ }
+	void		reset();
+	void		enque(Packet*) { abort(); }
 	void		recv(Packet*, Handler*);
 	LinkDelay*	link() const { return (link_); }
 	CBQClass*	level(int n) const { return levels_[n]; }
 	Packet*		deque();
+	virtual int	command(int argc, const char*const* argv);
 	virtual void	addallot(int prio, double diff) { }
-
+	Packet*	pending_pkt() const { return (pending_pkt_); }
+	void		sched();
 protected:
+	Event		intr_;
+	int		algorithm(const char *);
 	virtual int	insert_class(CBQClass*);
 	int		send_permitted(CBQClass*, double);
 	CBQClass*	find_lender(CBQClass*, double);
 
-	Packet*		pending_pkt_;
+	Packet*		pending_pkt_;		// queued packet
 	LinkDelay*	link_;			// managed link
 
 	CBQClass*	active_[MAXPRIO];	// classes at prio of index
@@ -162,6 +167,22 @@ protected:
 	}
 };
 
+static class CBQQueueClass : public TclClass {
+public:
+	CBQQueueClass() : TclClass("Queue/CBQ") { }
+	TclObject* create(int argc, const char*const* argv) {
+		return (new CBQueue);
+	}
+} class_cbq;
+
+static class CBQClassClass : public TclClass {
+public:
+	CBQClassClass() : TclClass("CBQClass") { }
+	TclObject* create(int argc, const char*const* argv) {
+		return (new CBQClass);
+	}
+} class_cbqclass;
+
 CBQueue::CBQueue() : pending_pkt_(NULL), link_(NULL),
 	maxprio_(-1), maxlevel_(-1), toplevel_(-1), eligible_(NULL)
 {
@@ -171,42 +192,82 @@ CBQueue::CBQueue() : pending_pkt_(NULL), link_(NULL),
 }
 
 /*
- * invoked by passing a packet from one of our managed queues
+ * schedule ourselves, used by CBQClass::recv
  */
 
 void
-CBQueue::recv(Packet* p, Handler*)
+CBQueue::sched()
 {
-if (pending_pkt_ != NULL)
-abort();
-	pending_pkt_ = p;
-	if (!blocked_) {
-		blocked_ = 1;
-		resume();
-	}
-	return;
+	Scheduler& s = Scheduler::instance();
+	s.schedule(&qh_, &intr_, 0);
 }
 
 /*
- * deque: this gets invoked by way of our downstream neighbor
- * doing a 'resume' on us via our handler (by Queue::resume()).
- * (or by our own recv when we weren't busy sending anything else).
- *
- * produce the packet that last arrived and cause another class to
- * sending something
+ * invoked by passing a packet from one of our managed queues
+ * basically provides a queue of one packet
+ */
+
+void
+CBQueue::recv(Packet* p, Handler* h)
+{
+
+	if (pending_pkt_ != NULL)
+		abort();
+
+	blocked_ = 1;
+	pending_pkt_ = p;
+}
+
+void
+CBQueue::reset()
+{
+	// don't do anything
+	// in particular, don't let Queue::reset() call
+	// our deque() method
+}
+
+int
+CBQueue::algorithm(const char *arg)
+{
+
+	if (*arg == '0' || (strcmp(arg, "ancestor-only") == 0)) {
+		eligible_ = eligible_ancestors;
+		return (1);
+	} else if (*arg == '1' || (strcmp(arg, "top-level") == 0)) {
+		eligible_ = eligible_toplevel;
+		return (1);
+	} else if (*arg == '2' || (strcmp(arg, "formal") == 0)) {
+		eligible_ = eligible_formal;
+		return (1);
+	} else if (*arg == '3' || (strcmp(arg, "old-formal") == 0)) {
+		fprintf(stderr, "CBQ: old-formal LS not supported\n");
+		return (-1);
+	}
+	return (-1);
+}
+
+/*
+ * deque: this gets invoked by way of our downstream
+ * (i.e. linkdelay) neighbor doing a 'resume' on us
+ * via our handler (by Queue::resume()), or by our upstream
+ * neighbor when it gives us a packet when we were
+ * idle
  */
 
 Packet *
 CBQueue::deque()
 {
-	double now = Scheduler::instance().clock();
+
+	Scheduler& s = Scheduler::instance();
+	double now = s.clock();
 
 	CBQClass* first = NULL;
+	CBQClass* eligible = NULL;
 	CBQClass* cl;
 	register int prio;
+	Packet* rval;
 
-	Packet* rval = pending_pkt_;
-	pending_pkt_ = NULL;
+	int none_found = 0;
 
 	/*
 	 * prio runs from 0 .. maxprio_
@@ -216,6 +277,7 @@ CBQueue::deque()
 	 * go on to next lowest priority (higher prio nuber) and repeat
 	 * [lowest priority number is the highest priority]
 	 */
+
 	for (prio = 0; prio <= maxprio_; prio++) {
 		// see if there is any class at this prio
 		if ((cl = active_[prio]) == NULL) {
@@ -223,6 +285,7 @@ CBQueue::deque()
 			continue;
 		}
 
+		// look for underlimit peer with something to send
 		do {
 			// anything to send?
 			if (cl->demand()) {
@@ -230,11 +293,8 @@ CBQueue::deque()
 					first = cl;
 				if (send_permitted(cl, now)) {
 					// ok to send
-					cl->delayed_ = 0;
-					active_[prio] = cl->peer_;
-// question if this happens RIGHT AWAY?
-					cl->q_->resume();
-					return (rval);
+					eligible = cl;
+					goto found;
 				} else {
 					// not ok right now
 					cl->delayed(now);
@@ -243,10 +303,24 @@ CBQueue::deque()
 			cl = cl->peer_;	// move to next at same prio
 		} while (cl != active_[prio]);
 	}
+	// did not find anyone so let first go
+	// eligible will be NULL at this point
 	if (first != NULL) {
-		active_[first->pri_] = first->peer_;
-		first->q_->resume();
+		none_found = 1;
+		eligible = first;
 	}
+
+found:
+	if (eligible != NULL) {
+		active_[eligible->pri_] = eligible->peer_;
+		// eligible->q_->unblock();
+		eligible->q_->resume();	// fills in pending
+		if (pending_pkt_ && !none_found)
+			eligible->update(pending_pkt_, now);
+	}
+	rval = pending_pkt_;
+	pending_pkt_ = NULL;
+
 	return (rval);
 }
 
@@ -261,6 +335,7 @@ CBQueue::deque()
 int CBQueue::send_permitted(CBQClass* cl, double now)
 {
 	if (cl->undertime_ < now) {
+		cl->delayed_ = 0;
 		return (1);
 	} else if ((cl = find_lender(cl, now)) != NULL) {
 		return (1);
@@ -291,6 +366,8 @@ CBQueue::find_lender(CBQClass* cl, double now)
 			continue;
 		}
 
+		// found what may be an eligible
+		// lender
 		if (eligible_(cl, last_level, now))
 			return (cl);
 		last_level = cl->level_;
@@ -337,18 +414,25 @@ CBQueue::insert_class(CBQClass *p)
 	 *    of peers for the given priority.
          */
 
-	if (p->pri_ < 0 || p->pri_ > (MAXPRIO-1))
+	if (p->pri_ < 0 || p->pri_ > (MAXPRIO-1)) {
+		fprintf(stderr, "CBQ class %s has invalid pri %d\n",
+			p->name(), p->pri_);
 		return (-1);
+	}
 
-        if (active_[p->pri_] != NULL) {
-                p->peer_ = active_[p->pri_]->peer_;
-                active_[p->pri_]->peer_ = p;
-        } else {
-                p->peer_ = p;
-                active_[p->pri_] = p;
-        }
-	if (p->pri_ > maxprio_)
-		maxprio_ = p->pri_;
+	if (p->q_ != NULL) {
+		// only leaf nodes (which have associated queues)
+		// are scheduled
+		if (active_[p->pri_] != NULL) {
+			p->peer_ = active_[p->pri_]->peer_;
+			active_[p->pri_]->peer_ = p;
+		} else {
+			p->peer_ = p;
+			active_[p->pri_] = p;
+		}
+		if (p->pri_ > maxprio_)
+			maxprio_ = p->pri_;
+	}
 
         /*
          * Compute maxrate from allotment.
@@ -356,8 +440,22 @@ CBQueue::insert_class(CBQClass *p)
 	 *	and store the highest prio# we've seen
          */
 
-	if (p->allotment_ < 0.0 || link_->bandwidth() <= 0.0)
+	if (p->allotment_ < 0.0 || p->allotment_ > 1.0) {
+		fprintf(stderr, "CBQ class %s has invalid allot %f\n",
+			p->name(), p->allotment_);
 		return (-1);
+	}
+
+	if (link_ == NULL) {
+		fprintf(stderr, "CBQ obj %s has no link!\n", name());
+		return (-1);
+	}
+	if (link_->bandwidth() <= 0.0) {
+		fprintf(stderr, "CBQ obj %s has invalid link bw %f on link %s\n",
+			name(), link_->bandwidth(), link_->name());
+		return (-1);
+	}
+
         p->maxrate_ = p->allotment_ * (link_->bandwidth() / 8.0);
 
 	/*
@@ -365,8 +463,11 @@ CBQueue::insert_class(CBQClass *p)
 	 *     and store the highest level# we've seen
 	 */
 
-	if (p->level_ <= 0 || p->level_ > MAXLEVEL)
+	if (p->level_ <= 0 || p->level_ > MAXLEVEL) {
+		fprintf(stderr, "CBQ class %s has invalid level %d\n",
+			p->name(), p->level_);
 		return (-1);
+	}
 
 	p->level_peer_ = levels_[p->level_];
 	levels_[p->level_] = p;
@@ -385,12 +486,36 @@ CBQueue::insert_class(CBQClass *p)
 
 int CBQueue::command(int argc, const char*const* argv)
 {
-	if (argc == 3) {
-		if (strcmp(argv[1], "insert") == 0) {
-			CBQClass *cl = (CBQClass*)TclObject::lookup(argv[2]);
-			if (insert_class(cl) < 0)
-				return (TCL_ERROR);
 
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		if (strcmp(argv[1], "insert-class") == 0) {
+			CBQClass *cl = (CBQClass*)TclObject::lookup(argv[2]);
+			if (cl == 0) {
+				tcl.resultf("CBQ: no class object %s",
+					argv[2]);
+				return (TCL_ERROR);
+			}
+			if (insert_class(cl) < 0) {
+				tcl.resultf("CBQ: trouble inserting class %s",
+					argv[2]);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "link") == 0) {
+			LinkDelay* del = (LinkDelay*)TclObject::lookup(argv[2]);
+			if (del == 0) {
+				tcl.resultf("CBQ: no LinkDelay object %s",
+					argv[2]);
+				return(TCL_ERROR);
+			}
+			link_ = del;
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "algorithm") == 0) {
+			if (algorithm(argv[2]) < 0)
+				return (TCL_ERROR);
 			return (TCL_OK);
 		}
 	}
@@ -399,45 +524,86 @@ int CBQueue::command(int argc, const char*const* argv)
 
 class WRR_CBQueue : public CBQueue {
 public:
-	WRR_CBQueue() {
+	WRR_CBQueue() : maxpkt_(0) {
 		memset(M_, '\0', sizeof(M_));
 		memset(alloc_, '\0', sizeof(alloc_));
 		memset(cnt_, '\0', sizeof(cnt_));
+		bind("maxpkt_", &maxpkt_);
 	}
 	void	addallot(int prio, double diff) {
 		alloc_[prio] += diff;
 	}
 protected:
 	Packet *deque();
-	virtual int	insert_class(CBQClass*);
+	int	insert_class(CBQClass*);
 	void	setM();
 	double	alloc_[MAXPRIO];
 	double	M_[MAXPRIO];
 	int	cnt_[MAXPRIO];		// # classes at prio of index
 	int	maxpkt_;		// max packet size
+	int	command(int argc, const char*const* argv);
 };
+
+static class WRR_CBQQueueClass : public TclClass {
+public:
+	WRR_CBQQueueClass() : TclClass("Queue/CBQ/WRR") { }
+	TclObject* create(int argc, const char*const* argv) {
+		return (new WRR_CBQueue);
+	}
+} class_wrr_cbq;
+
+int WRR_CBQueue::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (strcmp(argv[1], "insert-class") == 0) {
+		CBQClass *cl = (CBQClass*)TclObject::lookup(argv[2]);
+		if (cl == 0) {
+			tcl.resultf("WRR-CBQ: no class object %s",
+				argv[2]);
+			return (TCL_ERROR);
+		}
+		if (insert_class(cl) < 0) {
+			tcl.resultf("WRR-CBQ: trouble inserting class %s",
+				argv[2]);
+			return (TCL_ERROR);
+		}
+		return (TCL_OK);
+	}
+	return (CBQueue::command(argc, argv));
+}
 
 Packet *
 WRR_CBQueue::deque()
 {
-// this needs work
+
 	double now = Scheduler::instance().clock();
 
 	CBQClass* first = NULL;
+	CBQClass* eligible = NULL;
+	CBQClass* next_eligible = NULL;
 	CBQClass* cl;
+
 	register int prio;
 	int deficit, done;
+	int none_found = 0;
 
-	Packet* rval = pending_pkt_;
-	pending_pkt_ = NULL;
+	Packet* rval;
 
-	/*
-	 * prio runs from 0 .. maxprio_
-	 */
-	for (prio = 0; prio <= maxprio_; prio++) {
-		// see if there is any class at this prio
-		if ((cl = active_[prio]) == NULL)
-			continue;
+        /*
+         * prio runs from 0 .. maxprio_
+         *
+         * round-robin through all the classes at priority 'prio'
+         *      if any class is ok to send, resume it's queue
+         * go on to next lowest priority (higher prio nuber) and repeat
+         * [lowest priority number is the highest priority]
+         */
+
+        for (prio = 0; prio <= maxprio_; prio++) {
+                // see if there is any class at this prio
+                if ((cl = active_[prio]) == NULL) {
+                        // nobody at this prio level
+                        continue;
+                }
 		deficit = done = 0;
 		while (!done) {
 			do {
@@ -447,15 +613,18 @@ WRR_CBQueue::deque()
 				if (cl->demand()) {
 					if (first == NULL && cl->lender_ != NULL)
 						first = cl;
-					if (send_permitted(cl, now)) {
-						cl->delayed_ = 0;
-						active_[prio] = cl->peer_;
-						cl->q_->resume();
-						return (rval);
-					} else {
+					if (!send_permitted(cl, now)) {
 						cl->delayed(now);
+					} else {
+						int bytes = cl->bytes_alloc_;
+						if (bytes > 0 || deficit > 1) {
+							eligible = cl;
+							goto found;
+						} else
+							deficit = 1;
 					}
 				}
+				cl->bytes_alloc_ = 0;
 				cl = cl->peer_;
 			} while (cl != active_[prio] && cl != 0);
 			if (deficit == 1)
@@ -464,11 +633,37 @@ WRR_CBQueue::deque()
 				done = 1;
 		}
 	}
-	if (first != NULL) {
-		active_[first->pri_] = first->peer_;
-		first->q_->resume();
+	if ((eligible == NULL) && first != NULL) {
+		none_found = 1;
+		eligible = first;
 	}
-	return (rval);
+
+found:
+        // do accounting
+        if (eligible != NULL) {
+		next_eligible = eligible->peer_;
+                eligible->q_->resume();
+		if (pending_pkt_ != NULL && !none_found) {
+			// reduce our alloc
+			// by the packet size.  If we're
+			// still positive, we get to go again
+			int bytes = eligible->bytes_alloc_;
+			hdr_cmn* hdr = (hdr_cmn*)pending_pkt_->access(off_cmn_);
+			if (bytes > 0) {
+				eligible->bytes_alloc_ -= hdr->size();
+			}
+			bytes = eligible->bytes_alloc_;
+			if (bytes > 0) {
+				next_eligible = eligible;
+			}
+			eligible->update(pending_pkt_, now);
+		}
+		active_[eligible->pri_] = next_eligible;
+	}
+	rval = pending_pkt_;
+	pending_pkt_ = NULL;
+
+        return (rval);
 }
 
 int
@@ -486,11 +681,12 @@ void
 WRR_CBQueue::setM()
 {
 	int i;
-	for (i = 0; i < maxprio_; i++) {
+	for (i = 0; i <= maxprio_; i++) {
 		if (alloc_[i] > 0.0)
 			M_[i] = cnt_[i] * maxpkt_ * 1.0 / alloc_[i];
 		else
 			M_[i] = 0.0;
+
 	}
 	return;
 }
@@ -500,7 +696,7 @@ WRR_CBQueue::setM()
 CBQClass::CBQClass() : cbq_(0), peer_(0), level_peer_(0), lender_(0),
 	q_(0), qmon_(0), allotment_(0.0), maxidle_(0.0), maxrate_(0.0),
 	extradelay_(0.0), last_time_(0.0), undertime_(0.0), avgidle_(0.0),
-	pri_(-1), level_(-1), delayed_(0), bytes_alloc_(-1)
+	pri_(-1), level_(-1), delayed_(0), bytes_alloc_(0)
 {
 	bind("maxidle_", &maxidle_);
 	bind("priority_", &pri_);
@@ -528,17 +724,21 @@ CBQClass::leaf()
 }
 
 /*
- * the queue directly upstream from us is the one we're
- * in charge of.  If it gets to send something it must
- * be because it was unblocked by the CBQueue downstream.
- * Thus, its time to perform accounting...
+ * we are upstream from the queue
+ * the queue should be unblocked if the downstream
+ * cbq is not busy and blocked otherwise
+ *
+ * we get our packet from the classifier, because of
+ * this the handler is NULL.  Besides the queue downstream
+ * from us (Queue::recv) ignores the handler anyhow
+ * 
  */
 void
 CBQClass::recv(Packet *pkt, Handler *h)
 {
-	double now = Scheduler::instance().clock();
-	update(pkt, now);
-	send(pkt, h);		// Connector::send()
+	send(pkt, h);	// queue packet downstream
+	if (!cbq_->blocked())
+		cbq_->sched();
 	return;
 }
 
@@ -554,7 +754,7 @@ void CBQClass::update(Packet* p, double now)
 	int pktsize = hdr->size();
 
 	double tx_time = cbq_->link()->txtime(p);
-	double fin_time = now + tx_time; // should this include delay?
+	double fin_time = now + tx_time;
 
 	idle = (fin_time - last_time_) - (pktsize / maxrate_);
 	avgidle = avgidle_;
@@ -562,6 +762,7 @@ void CBQClass::update(Packet* p, double now)
 	if (avgidle > maxidle_)
 		avgidle = maxidle_;
 	avgidle_ = avgidle;
+
 	if (avgidle <= 0) {
 		undertime_ = fin_time + tx_time *
 			(1.0 / allotment_ - 1.0);
@@ -661,7 +862,7 @@ CBQClass::newallot(double bw)
 /* 
  * $class1 parent $class2
  * $class1 borrow $class2
- * $class1 qdisc $class2
+ * $class1 qdisc $queue
  * $class1 allot
  * $class1 allot new-bw
  */
@@ -674,23 +875,40 @@ int CBQClass::command(int argc, const char*const* argv)
                         return (TCL_OK);
                 }
                 if (strcmp(argv[1], "cbq") == 0) {
-                        tcl.resultf("%s", cbq_->name());
+			if (cbq_ != NULL)
+				tcl.resultf("%s", cbq_->name());
+			else
+				tcl.resultf("");
                         return(TCL_OK);
                 }
                 if (strcmp(argv[1], "qdisc") == 0) {
-                        tcl.resultf("%s", q_->name());
+			if (q_ != NULL)
+				tcl.resultf("%s", q_->name());
+			else
+				tcl.resultf("");
                         return (TCL_OK);
                 }
                 if (strcmp(argv[1], "qmon") == 0) {
-                        tcl.resultf("%s", qmon_->name());
+			if (qmon_ != NULL)
+				tcl.resultf("%s", qmon_->name());
+			else
+				tcl.resultf("");
                         return (TCL_OK);
 		}
 	} else if (argc == 3) {
 		// for now these are the same
                 if ((strcmp(argv[1], "parent") == 0) ||
 		    (strcmp(argv[1], "borrow") == 0)) {
+
+			if (strcmp(argv[2], "none") == 0) {
+				lender_ = NULL;
+				return (TCL_OK);
+			}
                         lender_ = (CBQClass*)TclObject::lookup(argv[2]);
-                        return (TCL_OK);
+			if (lender_ != NULL)
+				return (TCL_OK);
+
+                        return (TCL_ERROR);
                 }
                 if (strcmp(argv[1], "qdisc") == 0) {
                         q_ = (Queue*) TclObject::lookup(argv[2]);
@@ -708,7 +926,14 @@ int CBQClass::command(int argc, const char*const* argv)
                         double bw = atof(argv[2]);
                         if (bw < 0)
                                 return (TCL_ERROR);
-                        newallot(bw);
+			// allow a special case where we don't
+			// know about our cbq yet, because it
+			// will be set when insert_class is called
+			// helps the compat code
+			if (cbq_)
+				newallot(bw);
+			else
+				allotment_ = bw;
                         return (TCL_OK);
                 }
 	}
