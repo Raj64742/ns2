@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.239 2002/01/07 18:51:17 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.240 2002/01/24 01:43:31 xuanc Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -166,7 +166,7 @@ OBJ_CC = \
 	adc/simple-intserv-sched.o queue/red.o \
 	queue/semantic-packetqueue.o queue/semantic-red.o \
 	tcp/ack-recons.o \
-	queue/sfq.o queue/fq.o queue/drr.o queue/cbq.o \
+	queue/sfq.o queue/fq.o queue/drr.o queue/srr.o queue/cbq.o \
 	link/hackloss.o queue/errmodel.o queue/fec.o\
 	link/delay.o tcp/snoop.o \
 	gaf/gaf.o \

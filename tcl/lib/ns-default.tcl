@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.276 2002/01/03 04:33:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.277 2002/01/24 01:43:34 xuanc Exp $
 
 
 #
@@ -221,6 +221,12 @@ Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000
 Queue/DRR set quantum_ 250
 Queue/DRR set mask_ 0
+
+# Integrated SRR (1/20/2002, xuanc)
+Queue/SRR set maxqueuenumber_ 16
+Queue/SRR set mtu_ 1000
+Queue/SRR set granularity_ 1000
+Queue/SRR set blimit_ 25000
 
 Queue/CBQ set algorithm_ 0 ;# used by compat only, not bound
 Queue/CBQ set maxpkt_ 1024

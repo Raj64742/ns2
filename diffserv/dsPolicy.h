@@ -234,6 +234,7 @@ void printFlowTable();
 
 // Record the detection result
 struct AListEntry {
+  int chosen;
   int src_id;
   int dst_id;
   int fid;
@@ -301,6 +302,11 @@ class EW {
   void detectPr();
   // Enable the detector on bit rate (resp rate)
   void detectBr();
+
+  // Enable packet incoming rate (req rate) debugging
+  void debugPr(int);
+  // Enable bit rate (resp rate) debugging
+  void debugBr(int);
   
   // output contents in SWin
   void printSWin();
@@ -324,8 +330,10 @@ class EW {
   // EW can choose to detect packet arrival rate (Pr)
   //   or aggregated response rate (Br)
   //   or not to detect traffic change on one direction of the link
-  int detectorPr, detectorBr;
-  
+  int detect_p, detect_b;
+  int debug_p, debug_b;
+  int last_debug_t;
+
   // Current time for detection
   double now;
   
@@ -378,16 +386,16 @@ class EW {
   struct AListEntry * searchAList(int, int);
   // Add new entry to AList
   struct AListEntry * newAListEntry(int, int, int);
-  // Choose the high-bandwidth aggregates
-  void choseHBA();
+  // Calculate the aggragated response rate for high-bandwidth flows
+  int computeARR(); 
   // Reset AList
   void resetAList();
 
   // update the long term average aggregated response rate
   void updateAvgRate();
 
-  // update flip-flop filter
-  void updateFF(int);
+  // update high-low filter
+  void updateHLF(int);
 
   // update swin with the latest measurement for one HTab entry.
   void updateSWin(int);
@@ -405,6 +413,11 @@ class EW {
   // Increase/decrease the sample interval to adjust the detection latency.
   void decSInv();
   void incSInv();
+
+  // Trace packet incoming rate (req rate)
+  void tracePr();
+  // Trace bit rate (resp rate)
+  void traceBr();
 };
 
 class EWPolicy : public Policy {

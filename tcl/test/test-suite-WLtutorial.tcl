@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.10 2001/11/28 23:04:25 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.11 2002/01/24 01:43:34 xuanc Exp $
 
 ###########################################################################
 # IMPORTANT NOTE:
@@ -166,7 +166,7 @@ Test/wireless2 instproc init {} {
 
   set topo   [new Topography]
   $topo load_flatgrid $opt(x) $opt(y)
-  create-god $opt(nn)
+  create-god [expr $opt(nn) + $num_wired_nodes + $num_bs_nodes]
 
   #create wired nodes
   set temp {0.0.0 0.1.0}        
@@ -265,7 +265,8 @@ Test/wireless3 instproc init {} {
 
   set topo   [new Topography]
   $topo load_flatgrid $opt(x) $opt(y)
-  create-god $opt(nn)
+  # 2 for the FA / the HA
+  create-god [expr $opt(nn) + 2]
 
   #create wired nodes
   set temp {0.0.0 0.1.0}           

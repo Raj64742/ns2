@@ -120,17 +120,25 @@ int edgeQueue::command(int argc, const char*const* argv) {
 
   // Enable EW detector on a link
   if (strcmp(argv[1], "detectPr") == 0) {
-    //    printf("%d, %s, %s\n", argc, argv[0], argv[1]);
+    //printf("%d, %s, %s\n", argc, argv[0], argv[1]);
     EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
     ewp->ew->detectPr();
+
+    if (argc > 2)
+      ewp->ew->debugPr(atoi(argv[2]));
+
     return(TCL_OK);
   };
 
   // Enable EW detector on a link
   if (strcmp(argv[1], "detectBr") == 0) {
-    //    printf("%d, %s, %s\n", argc, argv[0], argv[1]);
+    //printf("%d, %s, %s\n", argc, argv[0], argv[1]);
     EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
     ewp->ew->detectBr();
+
+    if (argc > 2)
+      ewp->ew->debugBr(atoi(argv[2]));
+
     return(TCL_OK);
   };
 

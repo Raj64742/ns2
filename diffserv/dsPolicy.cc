@@ -1025,8 +1025,10 @@ EW::EW() {
   ew_src = ew_dst = -1;
   // default value: no EW coupled, no detection
   cew = NULL;
-  detectorPr = detectorBr = 0;
-  
+  detect_p = detect_b = 0;
+  debug_p = debug_b = 0;
+  last_debug_t = 0;
+
   // random sampling timer setup:
   // EW sleeps initially for EW_SAMPLE_INTERVAL 
   timer = EW_SAMPLE_INTERVAL;
@@ -1083,7 +1085,7 @@ void EW::init(int ew_adj, int ew_inv, int qsrc, int qdst) {
 // Enter EW processing
 void EW::runEW(Packet *pkt) {
   // test if the detector is on (when there is an EW coupled.)
-  if (!detectorBr && !detectorPr)
+  if (!detect_b && !detect_p)
     return;
 
   // can't count ACKs:
@@ -1096,13 +1098,23 @@ void EW::runEW(Packet *pkt) {
   // get the time
   now = Scheduler::instance().clock();
   
-  if (detectorPr)
+  if (detect_p)
     p_count++;
 
   // Conduct detection continously
-  if (detectorBr)
+  if (detect_b)
     updateAList(pkt, now);
 
+  // Debug information
+  if (debug_p && now - last_debug_t > debug_p) {
+    tracePr();
+    last_debug_t = (int)now;
+  }
+  if (debug_b && now - last_debug_t > debug_b) {
+    traceBr();
+    last_debug_t = (int)now;
+  }
+  
   // There is a timeout!
   if (now >= timer) {
     // Start detection
@@ -1110,38 +1122,39 @@ void EW::runEW(Packet *pkt) {
     
     // 1. Update the current rate (req/resp) from measurement
     // update the request rate
-    if (detectorPr) {
+    if (detect_p) {
       cur_req = (int)(p_count / s_inv);
     }
     // update the aggregated response rate
-    if (detectorBr) {
+    if (detect_b) {
       //printAList();
-      choseHBA();
+      // Record current aggregated response rate
+      cur_rate = computeARR();
     }
 
     // 2. Detect change and Trigger alarm if necessary
     // Compare the current rate with the long term average for
     //   both req and resp
-    if (detectorPr) {
+    if (detect_p) {
       detectChangeP();
     }
-    if (detectorBr) {
+    if (detect_b) {
       detectChangeB();
     }
 
     // 3. Update the long term averages
     // update the request rate
-    if (detectorPr) {
+    if (detect_p) {
       avg_req = (int)(hlf.alpha * avg_req + (1 - hlf.alpha) * cur_req);
     }
     // update the aggregated response rate
-    if (detectorBr) {
+    if (detect_b) {
       // Update flip-flop filter
-      updateFF(cur_rate);
+      updateHLF(cur_rate);
       
-      // Update SWIN
-      updateSWin(cur_rate);
-      ravgSWin();
+      // Update SWIN, not used any more.
+      //updateSWin(cur_rate);
+      //ravgSWin();
       //printSWin();
       
       // Update the long term average of aggregated response rate
@@ -1238,31 +1251,37 @@ void EW::updateAList(Packet *pkt, double now) {
   //printf("%f: %d %f\n", now, p->fid, p->avg_rate);
 }
 
-// Choose the high-bandwidth aggregates
-void EW::choseHBA() {
+// Calculate the aggragated response rate for high-bandwidth flows
+int EW::computeARR() {
   int i, agg_rate;
   struct AListEntry *max;
-  int k = (int) (alist.count * 0.1 + 1);
+  int k;
 
-  // Pick the highest K bandwidth aggregates
+  // Pick the 10% highest bandwidth flows
+  k = (int) (alist.count * 0.1 + 1);
+
+  // Calculate the ARR for HBA
   i = 0;
   agg_rate = 0;
 
-  while (i < k) {
+  printf("before ARR...");
+
+  while (i < k && max) {
     max = maxAList();
     //printAListEntry(max, i);
     
-    agg_rate += (int)max->avg_rate;
-
-    max->avg_rate = 0;
-    i++;
+    if (max) {
+      agg_rate += (int)max->avg_rate;
+      i++;
+    }
   }
+  printf("after ARR\n");
+
   // Just use simple average!
   agg_rate = (int) (agg_rate / i);
   //printf("%f %d %d\n", now, agg_rate, k);
 
-  // Record current aggregated response rate
-  cur_rate = agg_rate;  
+  return(agg_rate);
 }
 
 // Find the matched AList entry
@@ -1287,6 +1306,7 @@ struct AListEntry * EW::newAListEntry(int src_id, int dst_id, int fid) {
   AListEntry *p;
 
   p = new AListEntry;
+  p->chosen = 0;
   p->src_id = src_id;
   p->dst_id = dst_id;
   p->fid = fid;
@@ -1317,14 +1337,22 @@ struct AListEntry * EW::maxAList() {
   double interval;
 
   //printAList();
-  p = max = alist.head;
-
+  max = alist.head;
+  while (max && max->chosen) {
+    max = max->next;
+  }
+ 
+  p = max;
   while(p) {
-    if (p->avg_rate > max->avg_rate)
+    if (!(p->chosen) && p->avg_rate > max->avg_rate)
       max = p;
     p = p->next;
   }
-  assert(max);
+
+  // set the chosen flag
+  // Clean the chosen flag is in timeoutAList
+  if (max) 
+    max->chosen = 1;
 
   return(max);
 }
@@ -1358,6 +1386,9 @@ void EW::timeoutAList() {
       }
       alist.count--;
     } else {
+      // clean the chosen flag.
+      if (p->chosen)
+	p->chosen = 0;
       q = p;
       p = q->next;
     }
@@ -1392,10 +1423,10 @@ void EW::updateAvgRate() {
   }
 }
 
-// update flip-flop filter
+// update high-low filter
 // high(t) = alpha * high(t-1) + (1 - alpha) * o(t)
 // low(t) = (1 - alpha) * low(t-1) + alpha * o(t)
-void EW::updateFF(int rate) {
+void EW::updateHLF(int rate) {
   hlf.high = hlf.alpha * hlf.high + (1 - hlf.alpha) * rate;
   hlf.low = (1 - hlf.alpha) * hlf.low + hlf.alpha * rate;
   //  printf("%f Flip-flop filter [%.2f, %.2f]\n", now, hlf.high, hlf.low);
@@ -1469,22 +1500,19 @@ void EW::ravgSWin() {
 
 // Detect the change in packet arrival rate
 void EW::detectChangeP() {
-  if (!detectorPr)
+  if (!detect_p)
     return;
 
-  printf("P %d %d %d", (int)now, cur_req, avg_req);
   if (cur_req > avg_req) {
     alarm = 1;
-    printf(" A");
   }
-  printf("\n");
 }
 
 // detect the traffic change by 
 // comparing the current measurement with the long-term average
 //   trigger alarm if necessary.
 void EW::detectChangeB() {
-  if (!detectorBr)
+  if (!detect_b)
     return;
 
   float p = 0;
@@ -1547,12 +1575,6 @@ void EW::detectChangeB() {
       }
     }
   }
-
-  printf("B %d %d %d [%d %d]", (int)now, cur_rate, avg_rate,
-         (int)hlf.high, (int)hlf.low);  
-  if (alarm)
-    printf(" A");
-  printf(" %.2f %.2f\n", drop_p, p);
 }
 
 // Decreas the sample interval
@@ -1620,6 +1642,22 @@ void EW::printAList() {
   printf("\n");
 }
 
+// Trace packet incoming rate (req rate)
+void EW::tracePr() {
+  printf("P %d %d %d", (int)now, cur_req, avg_req);
+  if (alarm)
+    printf(" A");
+  printf("\n");
+}
+
+// Trace bit rate (resp rate)
+void EW::traceBr() {
+  int db_rate;
+
+  db_rate = computeARR();
+  printf("B %d %d\n", (int)now, db_rate);
+}
+
 // Setup the coupled EW
 void EW::coupleEW(EW *ew) {
   if (!ew) {
@@ -1633,10 +1671,25 @@ void EW::coupleEW(EW *ew) {
 
 // Enable the detector on packet incoming rate (req rate)
 void EW::detectPr() {
-  detectorPr = 1;
+  detect_p = 1;
 }
 
 // Enable the detector on bit rate (resp rate)
 void EW::detectBr() {
-  detectorBr = 1;
+  detect_b = 1;
 }
+
+// Enable packet incoming rate (req rate) debugging
+void EW::debugPr(int debug_inv) {
+  debug_p = debug_inv;
+  //printf("%d\n", debug_p);
+}
+
+// Enable bit rate (resp rate) debugging
+void EW::debugBr(int debug_inv) {
+  debug_b = debug_inv;
+  //printf("%d\n", debug_b);
+}
+
+
+

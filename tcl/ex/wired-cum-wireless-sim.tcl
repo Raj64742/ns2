@@ -16,12 +16,12 @@ set opt(ifqlen)         50
 set opt(tr)          wired-and-wireless.tr
 set opt(namtr)       wired-and-wireless.nam
 set opt(nn)             3                       
-  set opt(adhocRouting)   DSDV                      
-  set opt(cp)             ""                        
-  set opt(sc)             "../mobility/scene/scen-3-test"   
-  set opt(stop)           250                           
-  set num_wired_nodes      2
-  set num_bs_nodes         1
+set opt(adhocRouting)   DSDV                      
+set opt(cp)             ""                        
+set opt(sc)             "../mobility/scene/scen-3-test"   
+set opt(stop)           250                           
+set num_wired_nodes      2
+set num_bs_nodes         1
 
 
 set ns_   [new Simulator]
@@ -41,7 +41,7 @@ set ns_   [new Simulator]
 
   set topo   [new Topography]
   $topo load_flatgrid $opt(x) $opt(y)
-  create-god $opt(nn)
+  create-god [expr $opt(nn) + $num_wired_nodes + $num_bs_nodes]
 
   #create wired nodes
   set temp {0.0.0 0.1.0}        
