@@ -38,21 +38,25 @@
 
 struct hdr_tcp {
 #define NSA 3
-        double ts_;             /* time packet generated (at source) */
+	double ts_;             /* time packet generated (at source) */
 	double ts_echo_;        /* the echoed timestamp (originally sent by
-				   the peer */
-	int seqno_;		/* sequence number */
-	int reason_;		/* reason for a retransmit */
-        int sa_start_[NSA+1];   /* selective ack "holes" in packet stream */
-        int sa_end_[NSA+1];     /* For each hole i, sa_start[i] contains the
-                                 * starting packet sequence no., and sa_end[i]  
-                                 * contains the ending packet sequence no. */
-        int sa_left_[NSA+1];
-        int sa_right_[NSA+1];   /* In Jamshid's implementation, this    *
-                                 * pair of variables represents the blocks*
-                                 * not the holes.                         */
-        int sa_length_;         /* Indicate the number of SACKs in this  *
-                                 * packet.  Adds 2+sack_length*8 bytes   */ 
+	                           the peer */
+	int seqno_;             /* sequence number */
+	int reason_;            /* reason for a retransmit */
+	int sa_start_[NSA+1];   /* selective ack "holes" in packet stream */
+	int sa_end_[NSA+1];     /* For each hole i, sa_start[i] contains the
+	                         * starting packet sequence no., and sa_end[i]  
+	                         * contains the ending packet sequence no. */
+	int sa_left_[NSA+1];
+	int sa_right_[NSA+1];   /* In Jamshid's implementation, this    *
+	                         * pair of variables represents the blocks*
+	                         * not the holes.                         */
+	int sa_length_;         /* Indicate the number of SACKs in this  *
+	                         * packet.  Adds 2+sack_length*8 bytes   */ 
+	int ackno_;             /* ACK number for FullTcp */
+	int hlen_;              /* header len (bytes) for FullTcp */
+	int tcp_flags_;         /* TCP flags for FullTcp */
+
 
 	/* per-field member functions */
 	double& ts() {
@@ -81,6 +85,15 @@ struct hdr_tcp {
 	}
 	int& sa_length() {
 		return (sa_length_);
+	}
+	int& hlen() {
+		return (hlen_);
+	}
+	int& ackno() {
+		return (ackno_);
+	}  
+	int& flags() {
+		return (tcp_flags_);
 	}
 };
 
@@ -128,7 +141,8 @@ struct hdr_tcpasym {
 
 #define TCP_TIMER_RTX		0
 #define TCP_TIMER_DELSND	1
-#define TCP_TIMER_BURSTSND	2
+#define TCP_TIMER_DELACK	2
+#define TCP_TIMER_BURSTSND	3
 
 
 /*
