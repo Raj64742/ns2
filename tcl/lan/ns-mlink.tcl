@@ -157,12 +157,13 @@ Class DummyLink -superclass Link
 # XXX this only works with ifaces... for simplicity.. !!
 DummyLink instproc init { src dst q del mlink } {
         $self next $src $dst
-        $self instvar head_ queue_ link_ ifacein_ rep_ fromNode_
+        $self instvar head_ queue_ link_ ifacein_ rep_ fromNode_ ifaceout_
         $self setContainingObject $mlink
         set rep_ [$mlink getReplicator [$fromNode_ id]]
         set queue_ $q
         set link_ $del
         set ifacein_ [$src exitpoint]
+	set ifaceout_ $dst
         # XXX need ifacein to mcast
         $ifacein_ target $rep_
         # XXX we need head to be Q for unicast not to loop !!
