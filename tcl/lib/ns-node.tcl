@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.66 1999/10/29 02:15:50 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.67 1999/10/29 07:11:16 klan Exp $
 #
 
 # for MobileIP
@@ -1182,7 +1182,9 @@ Node instproc agenttrace {tracefd} {
        [$self set imep_(0)] log-target $T
     }
 
-    $drpT namattach $namtraceFile_
+    if [info exists namtraceFile_]  {
+       $drpT namattach $namtraceFile_
+    }
 }
 
 Node instproc nodetrace { tracefd } {
