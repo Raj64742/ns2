@@ -76,13 +76,14 @@ redefining its \code{corrupt} method.
 \section{Configuration}
 
 The previous section talked about error model, in this section we
-discuss how to use error models in ns. 
+discuss how to use error models in ns over either wired networks or
+wireless ones. 
 
-To use an error model, it has to be inserted into a SimpleLink
-object. Because a SimpleLink is a composite object (Chapter
-\ref{chap:links}), an error model can
-be inserted to many places. Currently we provide the following methods
-to insert an error module into three different places. 
+To use an error model for wired networks, at first it has to be
+inserted into a SimpleLink object. Because a SimpleLink is a composite
+object (Chapter \ref{chap:links}), an error model can be inserted to
+many places. Currently we provide the following methods to insert an
+error module into three different places.
 
 \begin{itemize}
 \item Insert an error module in a SimpleLink BEFORE the queue module. 
@@ -130,6 +131,31 @@ to insert an error module into three different places.
   Currently this API doesn't produce any trace. It only serves as a
   placeholder for possible future extensions. 
 \end{itemize}
+
+To use an error model over wireless networks, each node need to add
+the error model in its protocol stack depicted in
+Figure \ref{fig:mobilenode-dsr}. Precisely, the instanciated error
+model would be stuck between mac and the netif modules. Since it is
+pointed by the downtarget\_ of the mac module, it only implants
+wireless errors into outgoing packets, not incoming packets.
+
+The insertion into the wireless protocol stack can be done by calling
+node-config command explained in section \ref{sec:newnode-API} with
+the option errProc. The argument of the errProc option would be the
+name of the global procedure which creates an error model object,
+feeds it with necessary initial values appropriate for the new error
+module, and finally returns the object pointer. The following shows a
+simple TCL example script to add an error module into the wireless
+protocol stack.
+\begin{program}
+	$ns node-config -errProc UnifomErr
+
+	proc UniformErr {} {
+		set err [new ErrorModel]
+		$err unit packet
+		return $err
+	}
+\end{program}
 
 \section{Multi-state error model}
 
@@ -230,4 +256,4 @@ can be found in \ns/tcl/lib/(ns-errmodel.tcl and ns-default.tcl).
 % Local Variables:
 % TeX-master: "everything"
 % LocalWords:
-% End:
+% End
