@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.cc,v 1.11 1998/08/12 23:41:09 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.cc,v 1.12 1998/08/13 00:28:31 gnguyen Exp $ (LBL)";
 #endif
 
 #include "object.h"
@@ -45,41 +45,41 @@ NsObject::~NsObject()
 {
 }
 
-#ifndef OFF_HDR
 NsObject::NsObject()
 {
-	off_cmn_ = hdr_cmn::offset();
-	off_flags_ = hdr_flags::offset();
-}
-
-#else
-/*XXX*/
-NsObject::NsObject()
-{
+#ifdef OFF_HDR
 #ifdef TCLCL_CLASSINSTVAR
 #else /* ! TCLCL_CLASSINSTVAR */
 	bind("off_cmn_", &off_cmn_);
 	bind("off_flags_", &off_flags_);
 #endif /* TCLCL_CLASSINSTVAR */
+
+#else
+	off_cmn_ = hdr_cmn::offset();
+	off_flags_ = hdr_flags::offset();
+#endif
 }
 
 #ifdef TCLCL_CLASSINSTVAR
 void
 NsObject::delay_bind_init_all()
 {
+#ifdef OFF_HDR
 	delay_bind_init_one("off_cmn_");
 	delay_bind_init_one("off_flags_");
+#endif
 }
 
 int
 NsObject::delay_bind_dispatch(const char *varName, const char *localName)
 {
+#ifdef OFF_HDR
 	DELAY_BIND_DISPATCH(varName, localName, "off_cmn_", delay_bind, &off_cmn_);
 	DELAY_BIND_DISPATCH(varName, localName, "off_flags_", delay_bind, &off_flags_);
 	return TclObject::delay_bind_dispatch(varName, localName);
+#endif
 }
 #endif /* TCLCL_CLASSINSTVAR */
-#endif  // OFF_HDR
 
 
 void NsObject::reset()
