@@ -67,6 +67,7 @@ class ScoreBoard {
 	virtual int UpdateScoreBoard (int last_ack_, hdr_tcp*);
 	virtual int CheckUpdate() {return (changed_);}
 	virtual int CheckSndNxt (hdr_tcp*);
+	virtual int GetNextUnacked (int seqno);
 	
   protected:
 	int first_, length_, sbsize_, changed_;
