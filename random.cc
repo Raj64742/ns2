@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.cc,v 1.9 1998/02/07 02:11:36 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.cc,v 1.10 1998/02/12 01:15:26 kfall Exp $ (LBL)";
 #endif
 
 #ifndef WIN32
@@ -41,11 +41,11 @@ static const char rcsid[] =
 #endif
 #include "random.h"
 
-#if defined(sun)
-extern "C" int srandom(...);
-#endif
-
+#ifdef linux
 int
+#else
+long
+#endif
 random()
 {
 	printf("random() called in ns.\nRandom is not portable, please use Random::uniform() instead.\n");
