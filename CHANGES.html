@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.306 1999/02/20 02:15:02 yuriy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.307 1999/02/20 02:18:44 yuriy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -23,8 +23,10 @@
 
     <LI> <B><A href="mailto:yuri@isi.edu">[YP]</A></B>
            <b>Fri Feb 19 18:04:57 PST 1999</b><br>
-	   Modified implementation of <tt>PacketQueue</tt>: tail() is now
-           pointing to the last packet in the queue.
+	   Modified implementation of
+           <tt>PacketQueue</tt>. Method <code>tail()</code>
+	    now returns the last packet in the queue; meaning of
+           <code>PacketQueue::tail_</code> is also changed.
 
     <LI> <B><A href="mailto:yuri@isi.edu">[YP]</A></B>
            <b>Wed Feb 17 19:10:00  PST 1999</b><br>
