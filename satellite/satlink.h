@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.h,v 1.2 1999/06/23 23:41:55 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.h,v 1.3 1999/06/25 20:48:16 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -44,6 +44,7 @@
 #include "phy.h"
 #include "queue.h"
 #include "net-interface.h"
+#include "timer-handler.h"
 #include "sat.h"
 
 #define LINK_HDRSIZE 16 
@@ -63,29 +64,71 @@ protected:
         int arpcachedst_;
 };
 
+///////////////////////////////////////////////////////////////////////
+
+class SatMac;
+class MacSendTimer : public TimerHandler {
+public:
+        MacSendTimer(SatMac *a) : TimerHandler() {a_ = a; }
+protected:
+        virtual void expire(Event *e);
+        SatMac *a_;
+};
+
+class MacRecvTimer : public TimerHandler {
+public:
+        MacRecvTimer(SatMac *a) : TimerHandler() {a_ = a; }
+protected:
+        virtual void expire(Event *e);
+        SatMac *a_;
+};
+
+class MacHandlerRcv : public Handler {
+public:
+        MacHandlerRcv(SatMac* m) : mac_(m) {}
+        void handle(Event* e);
+protected:
+        SatMac* mac_;
+};
+
 class SatMac : public Mac {
 public:
-	SatMac() : Mac() {}
-	virtual void recv(Packet* p, Handler* h);
-	virtual void sendDown(Packet* p);
-	virtual void sendUp(Packet *p);
+	SatMac() : Mac(), send_timer_(this), recv_timer_(this) {}
+	void sendDown(Packet* p);
+	void sendUp(Packet *p);
+	virtual void send_timer() {}
+	virtual void recv_timer() {}
 
 protected:
 	int command(int argc, const char*const* argv);
+	MacSendTimer send_timer_; 
+	MacRecvTimer recv_timer_; 
 };
 
-/*
-class PureAlohaMac : public SatMac {
+
+class UnslottedAlohaMac : public SatMac {
 public:
-	PureAlohaMac : Mac() {}
-	virtual void recv(Packet* p, Handler* h);
-	virtual void sendDown(Packet* p);
-	virtual void sendUp(Packet *p);
+	UnslottedAlohaMac();
+	void sendDown(Packet* p); 
+	void sendUp(Packet *p); 
+	void send_timer(); 
+	void recv_timer(); 
+	void end_of_contention(Packet* p);
 
 protected:
-	int command(int argc, const char*const* argv);
+	virtual void backoff(double delay=0);
+	Packet* snd_pkt_;	// stores packet currently being sent
+	Packet* rcv_pkt_;	// stores packet currently being recieved
+	MacState tx_state_;	// transmit state (SEND or COLL or IDLE)
+	MacState rx_state_;	// receive state (RECV or IDLE)
+	int rtx_; 		// # of retransmissions so far
+	int rtx_limit_;		// Set in OTcl-- retransmission limit
+	double mean_backoff_;	// Set in OTcl-- mean backoff time 
+	double send_timeout_;	// Set in OTcl-- time out after this interval
+	double end_of_contention_; // Saves time that contention will be over
 };
-*/
+
+///////////////////////////////////////////////////////////////////////
 
 class SatPhy : public Phy {
  public:
@@ -105,6 +148,8 @@ class RepeaterPhy : public Phy {
  protected:
 };
 
+///////////////////////////////////////////////////////////////////////
+
 /*
  * Class SatChannel
  */
@@ -122,6 +167,8 @@ friend class SatRouteObject;
  private:
 
 };
+
+///////////////////////////////////////////////////////////////////////
 
 class SatNode;
 class ErrorModel;

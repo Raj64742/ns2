@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.2 1999/06/23 23:41:57 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.3 1999/06/25 20:48:15 tomh Exp $";
 #endif
 
 /*
@@ -268,6 +268,16 @@ public:
 	}
 } sat_class_mac;
 
+void MacSendTimer::expire(Event*)
+{
+        a_->send_timer();
+}
+
+void MacRecvTimer::expire(Event*)
+{
+        a_->recv_timer();
+}
+
 int SatMac::command(int argc, const char*const* argv)
 {
 	if(argc == 2) {
@@ -287,28 +297,11 @@ int SatMac::command(int argc, const char*const* argv)
 	return Mac::command(argc, argv);
 }
 
-
-void SatMac::recv(Packet* p, Handler* h)
-{
-	// dir : 1 = up, -1 = down; 
-	if (hdr_cmn::access(p)->direction() == 1) {
-		sendUp(p);
-		return;
-	}
-
-	callback_ = h;
-	hdr_mac* mh = HDR_MAC(p);
-	mh->set(MF_DATA, index_);
-	state(MAC_SEND);
-	sendDown(p);
-}
-
 void SatMac::sendUp(Packet* p) 
 {
 	hdr_mac* mh = HDR_MAC(p);
 	int dst = this->hdr_dst((char*)mh); // mac destination address
 	
-	state(MAC_IDLE);
 	if (((u_int32_t)dst != MAC_BROADCAST) && (dst != index_)) {
 		drop(p);
 		return;
@@ -323,7 +316,7 @@ void SatMac::sendUp(Packet* p)
 void SatMac::sendDown(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	double txt = 0.0001;
+	double txt;
 	// LINK_HDRSIZE is defined in satlink.h.  This is the size of header
 	// information for all layers below IP.  Alternatively, one could
 	// derive this information dynamically from packet headers. 
@@ -338,6 +331,158 @@ void SatMac::sendDown(Packet* p)
 	// Callback for when this packet's transmission will be done
 	s.schedule(&hRes_, &intr_, txt);
 }
+
+static class UnslottedAlohaMacClass : public TclClass {
+public:
+	UnslottedAlohaMacClass() : TclClass("Mac/Sat/UnslottedAloha") {}
+	TclObject* create(int, const char*const*) {
+		return (new UnslottedAlohaMac());
+	}
+} sat_class_unslottedalohamac;
+
+/*==========================================================================*/
+/*
+ * _UnslottedAlohaMac
+ */
+
+UnslottedAlohaMac::UnslottedAlohaMac() : SatMac(), tx_state_(MAC_IDLE), 
+    rx_state_(MAC_IDLE), rtx_(0), end_of_contention_(0) 
+{
+	bind_time("mean_backoff_", &mean_backoff_);
+	bind("rtx_limit_", &rtx_limit_);
+	bind_time("send_timeout_", &send_timeout_);
+}
+
+void UnslottedAlohaMac::send_timer() 
+{
+	switch (tx_state_) {
+	
+	case MAC_SEND:
+		// We've timed out on send-- back off
+		backoff();
+		break;
+	case MAC_COLL:
+		// Our backoff timer has expired-- resend
+		sendDown(snd_pkt_);
+		break;
+	default:
+		printf("Error: wrong tx_state in unslotted aloha: %d\n",
+		    tx_state_);
+		break;
+	}
+}
+
+void UnslottedAlohaMac::recv_timer() 
+{
+	switch (rx_state_) {
+
+	case MAC_RECV:
+		// We've successfully waited out the reception
+		end_of_contention(rcv_pkt_);
+		break;
+	default:
+		printf("Error: wrong rx_state in unslotted aloha: %d\n",
+		    rx_state_);
+		break;
+	}
+	
+}
+
+void UnslottedAlohaMac::sendUp(Packet* p) 
+{
+	hdr_mac* mh = HDR_MAC(p);
+	
+	if (rx_state_ == MAC_IDLE) {
+		// First bit of packet has arrived-- wait for 
+		// txtime to make sure no collisions occur 
+		rcv_pkt_ = p;
+		end_of_contention_ = NOW + mh->txtime();
+		rx_state_ = MAC_RECV;
+		recv_timer_.resched(mh->txtime());
+	} else {
+		// Collision: figure out if contention phase must be lengthened
+		double temp = NOW + mh->txtime();
+		if (temp > end_of_contention_) {
+			recv_timer_.resched(temp - NOW);
+		}
+		drop(p);
+		if (rcv_pkt_)
+			drop(rcv_pkt_);
+		rcv_pkt_ = 0;
+	}
+}
+
+void UnslottedAlohaMac::sendDown(Packet* p)
+{
+	double txt;
+	
+	// compute transmission delay:
+	int packetsize_ = HDR_CMN(p)->size() + LINK_HDRSIZE;
+	if (bandwidth_ != 0)
+		txt = txtime(packetsize_);
+        HDR_MAC(p)->txtime() = txt;
+
+	// Send the packet down 
+	tx_state_ = MAC_SEND;
+	snd_pkt_ = p->copy();  // save a copy in case it gets retransmitted
+	downtarget_->recv(p, this);
+
+	// Set a timer-- if we do not hear our own transmission within this
+	// interval (and cancel the timer), the send_timer will expire and
+	// we will backoff and retransmit.
+	send_timer_.resched(send_timeout_ + txt);
+}
+
+// Called when contention period ends
+void UnslottedAlohaMac::end_of_contention(Packet* p) 
+{
+	rx_state_ = MAC_IDLE;
+	if (!p)  
+		return; // No packet to free or send up.
+
+	hdr_mac* mh = HDR_MAC(p);
+	int dst = this->hdr_dst((char*)mh); // mac destination address
+	int src = this->hdr_src((char*)mh); // mac source address
+	
+	if (((u_int32_t)dst != MAC_BROADCAST) && (dst != index_) && 
+    	    (src != index_)) {
+		drop(p);
+		return;
+	} 
+	if (src == index_) {
+		// received our own packet: free up transmit side, drop this
+		// packet, and perform callback to queue which is blocked
+		if (!callback_) {
+			printf("Error, queue callback_ is not valid\n");
+			exit(1);
+		}
+		send_timer_.force_cancel();
+		tx_state_ = MAC_IDLE;
+		rtx_ = 0;
+		resume(p);
+	} else {
+		// wait for processing delay (delay_) to send packet upwards 
+		Scheduler::instance().schedule(uptarget_, p, delay_);
+	}
+}
+
+void UnslottedAlohaMac::backoff(double delay)
+{
+	double backoff_ = Random::exponential(mean_backoff_);
+
+	// if number of retransmissions is within limit, do exponential backoff
+	// else drop the packet and resume
+	if (++rtx_ <= rtx_limit_) {
+		tx_state_ = MAC_COLL;
+		delay += backoff_;
+		send_timer_.resched(delay);
+	} else {
+		tx_state_ = MAC_IDLE;
+		rtx_ = 0;
+		resume(snd_pkt_);
+	}
+}
+
 
 /*==========================================================================*/
 /*
