@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.21 1998/08/14 20:14:18 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.22 1999/01/07 20:15:07 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -1086,5 +1086,40 @@ Test/TwoF instproc run {} {
     
         $ns_ run
 }   
+
+#
+# This tests the dynamic allocation of bandwidth to classes.
+#
+Class Test/TwoDynamic -superclass TestSuite
+Test/TwoDynamic instproc init topo { 
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-prr
+        set test_ CBQ_TwoDynamic
+        $self next 0
+} 
+Test/TwoDynamic instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        $self instvar topclass_ audioclass_ dataclass_
+
+        set stopTime 8.1
+        set maxbytes 187500
+        set cbqalgorithm_ formal
+
+        $topo_ instvar cbqlink_ 
+        $self create_flat3 1.0 auto
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 190 500 0.001 0.002 0
+        $self make_fmon $cbqlink_
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+
+        $self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
+        $self openTrace $stopTime CBQ_TwoDynamic
+
+        $ns_ at 2.0 "$audioclass_ newallot 0.4; $dataclass_ newallot 0.6"
+        $ns_ at 5.0 "$audioclass_ newallot 0.2; $dataclass_ newallot 0.8"
+
+        $ns_ run
+}
 
 TestSuite runTest
