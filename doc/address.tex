@@ -58,8 +58,8 @@ default and the specified.
 
 \subsection{Default Hierarchical Setting}
 \label{sec:def-hier}
-The default hierarchical node-id consists of 3 levels with 8 bits
-assigned to each level. The hierarchical configuration may be invoked as
+The default hierarchical node-id consists of 3 levels with (10 11 11) bits
+in the three levels. The hierarchical configuration may be invoked as
 follows: 
 
 \$ns set-address-format hierarchical
@@ -70,9 +70,8 @@ This sets :
 * 8 bits for port-id, 
 * 24 bits for node-id assigned in 
   - 3 levels of hierarchy 
-  - 8 bits for each level 
-  - looks like 8 8 8
-  - or 7 8 8, if multicast is enabled. 
+  - (10 11 11) bits for the three levels. 
+  - or (9 11 11) if multicast is enabled. 
 \end{quote}
 
 \subsection{Specific Hierarchical Setting}
