@@ -7,17 +7,17 @@
  * modification, are permitted provided that the following conditions
  * are met:
  * 1. Redistributions of source code must retain the above copyright
- *		notice, this list of conditions and the following disclaimer.
+ *    notice, this list of conditions and the following disclaimer.
  * 2. Redistributions in binary form must reproduce the above copyright
- *		notice, this list of conditions and the following disclaimer in the
- *		documentation and/or other materials provided with the distribution.
+ *    notice, this list of conditions and the following disclaimer in the
+ *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
- *		must display the following acknowledgement:
+ *    must display the following acknowledgement:
  *	This product includes software developed by the Computer Systems
  *	Engineering Group at Lawrence Berkeley Laboratory.
  * 4. Neither the name of the University nor of the Laboratory may be used
- *		to endorse or promote products derived from this software without
- *		specific prior written permission.
+ *    to endorse or promote products derived from this software without
+ *    specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -173,8 +173,6 @@ protected:
 	int UrgentFlag;		// urget flag
 	int active_;		// have we shut down? 
 	int round_id ;		// round id
-	int first_pkt_rcvd ; 	
-	double prevflost, prevrtt, prevto ; // previous values of flost, 
-					    // rtt and tzero
+	int first_pkt_rcvd ;	// first ack received yet?
 
 };

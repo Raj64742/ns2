@@ -75,8 +75,8 @@ protected:
 	double adjust_history(double);
 	double est_loss();
 	double est_thput(); 
-	void shift_array(int *a, int sz) ;
-	void shift_array_new(double *a, int sz, double defval) ;
+	void shift_array(int *a, int sz, int defval) ;
+	void shift_array(double *a, int sz, double defval) ;
 	void multiply_array(double *a, int sz, double multiplier);
 	void print_loss(int sample, double ave_interval);
 	double weighted_average(int start, int end, double factor, double *m, double *w, int *sample);
@@ -86,10 +86,8 @@ protected:
 	TfrcNackTimer nack_timer_;
 
 	int psize_;		// size of received packet
-	double rate_;		// sender's reported send rate
 	double rtt_;		// rtt value reported by sender
 	double tzero_;		// timeout value reported by sender
-	double flost_;		// frequency of loss events computed by the receiver
 	int smooth_;		// for the smoother method for incorporating
 				//  incorporating new loss intervals
 

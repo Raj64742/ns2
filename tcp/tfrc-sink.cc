@@ -60,30 +60,30 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind ("printLoss_", &printLoss_);
 	bind ("smooth_", &smooth_);
 
-	rate_ = 0; 
 	rtt_ =  0; 
 	tzero_ = 0;
-	flost_ = 0;
 	last_timestamp_ = 0;
 	last_arrival_ = 0;
-	rtvec_ = NULL;
-	tsvec_ = NULL;
-	lossvec_ = NULL;
-	total_received_ = 0;
-	loss_seen_yet = 0;
 	last_report_sent=0;
+
 	maxseq = -1;
 	rcvd_since_last_report  = 0;
+	loss_seen_yet = 0;
 	lastloss = 0;
 	false_sample = 0;
 	lastloss_round_id = -1 ;
 	sample_count = 1 ;
 	last_sample = 0;
+	mult_factor_ = 1.0;
+	UrgentFlag = 0 ;
+
+	rtvec_ = NULL;
+	tsvec_ = NULL;
+	lossvec_ = NULL;
 	sample = NULL ; 
 	weights = NULL ;
 	mult = NULL ;
-	mult_factor_ = 1.0;
-	UrgentFlag = 0 ;
+
 }
 
 /*
@@ -91,17 +91,17 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
  */
 void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 {
-	double prevrtt;
 	hdr_tfrc *tfrch = hdr_tfrc::access(pkt); 
 	double now = Scheduler::instance().clock();
 	int prevmaxseq = maxseq;
-	total_received_++;
-	rcvd_since_last_report ++;
 	double p = -1;
+
+	rcvd_since_last_report ++;
 
 	if (numsamples < 0) {
 		// This is the first packet received.
 		numsamples = DEFAULT_NUMSAMPLES ;	
+		// forget about losses before this
 		prevmaxseq = maxseq = tfrch->seqno-1 ; 
 		if (smooth_ == 1) {
 			numsamples = numsamples + 1;
@@ -141,20 +141,11 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 
 	UrgentFlag = tfrch->UrgentFlag;
 	round_id = tfrch->round_id ;
-
-	if (tfrch->seqno - last_sample > hsz) {
-		printf ("time=%f, pkt=%d, last=%d history to small\n",
-		         now, tfrch->seqno, last_sample);
-		abort();
-	}
-
-	prevrtt=rtt_;
 	rtt_=tfrch->rtt;
 	tzero_=tfrch->tzero;
 	psize_=tfrch->psize;
 	last_arrival_=now;
 	last_timestamp_=tfrch->timestamp;
-	rate_=tfrch->rate;
 	
 	add_packet_to_history (pkt);
 
@@ -163,10 +154,8 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	 * and if we saw a loss, report it immediately
 	 */
 
-	if ((rate_ < SMALLFLOAT) || (prevrtt < SMALLFLOAT) || (UrgentFlag) ||
-		  ((rtt_ > SMALLFLOAT) && 
-			 (now - last_report_sent >= rtt_/(float)NumFeedback_)) ||
-		  ((loss_seen_yet ==0) && (tfrch->seqno-prevmaxseq > 1))) {
+	if ((UrgentFlag) || ((rtt_ > SMALLFLOAT) && (now - last_report_sent >= rtt_/(float)NumFeedback_)) ||
+	    ((loss_seen_yet ==0) && (tfrch->seqno-prevmaxseq > 1))) {
 		/*
 		 * time to generate a new report
 		 */
@@ -211,6 +200,13 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 			abort (); 
 		}
 	}
+
+	if (tfrch->seqno - last_sample > hsz) {
+		printf ("time=%f, pkt=%d, last=%d history to small\n",
+		         now, tfrch->seqno, last_sample);
+		abort();
+	}
+
 
 	/* for the time being, we will ignore out of order and duplicate 
 	   packets etc. */
@@ -266,9 +262,9 @@ double TfrcSinkAgent::est_loss ()
 		if (lossvec_[i%hsz] == LOST) {
 		        //  new loss event
 			sample_count ++;
-			shift_array (sample, numsamples+1); 
+			shift_array (sample, numsamples+1, 0); 
 			multiply_array(mult, numsamples+1, mult_factor_);
-			shift_array_new (mult, numsamples+1, 1.0); 
+			shift_array (mult, numsamples+1, 1.0); 
 			mult_factor_ = 1.0;
 		}
 	}
@@ -367,17 +363,15 @@ double TfrcSinkAgent::weighted_average(int start, int end, double factor, double
 }
 
 // Shift array a[] up, starting with a[sz-2] -> a[sz-1].
-void TfrcSinkAgent::shift_array(int *a, int sz) 
+void TfrcSinkAgent::shift_array(int *a, int sz, int defval) 
 {
 	int i ;
 	for (i = sz-2 ; i >= 0 ; i--) {
 		a[i+1] = a[i] ;
 	}
-	a[0] = 0;
+	a[0] = defval;
 }
-
-// Shift array a[], inserting default value defval at the bottom.
-void TfrcSinkAgent::shift_array_new(double *a, int sz, double defval) {
+void TfrcSinkAgent::shift_array(double *a, int sz, double defval) {
 	int i ;
 	for (i = sz-2 ; i >= 0 ; i--) {
 		a[i+1] = a[i] ;
@@ -402,12 +396,14 @@ double TfrcSinkAgent::est_thput ()
 {
 	double time_for_rcv_rate;
 	double now = Scheduler::instance().clock();
+	double thput = 1 ;
+
 	if ((rtt_ > 0) && ((now - last_report_sent) >= rtt_)) {
 		// more than an RTT since the last report
 		time_for_rcv_rate = (now - last_report_sent);
-		if (time_for_rcv_rate > 0 && rcvd_since_last_report > 0) 
-			return rcvd_since_last_report/time_for_rcv_rate;
-		else return 1;
+		if (time_for_rcv_rate > 0 && rcvd_since_last_report > 0) {
+			thput = rcvd_since_last_report/time_for_rcv_rate;
+		}
 	}
 	else {
 		// count number of packets received in the last RTT
@@ -415,17 +411,20 @@ double TfrcSinkAgent::est_thput ()
 			double last = rtvec_[maxseq%hsz]; 
 			int rcvd = 0;
 			int i = maxseq;
-			while (((rtvec_[i%hsz] + rtt_) > last) && (i >= 0)) {
-				if (lossvec_[i%hsz] == RCVD) 
-					rcvd++; 
+			while (i > 0) {
+				if (lossvec_[i%hsz] == RCVD) {
+					if ((rtvec_[i%hsz] + rtt_) > last) 
+						rcvd++; 
+					else
+						break ;
+				}
 				i--; 
 			}
 			if (rcvd > 0)
-				return rcvd/rtt_; 
-			else return 1; 
+				thput = rcvd/rtt_; 
 		}
-		else return 1;
 	}
+	return thput ;
 }
 
 /*
@@ -470,30 +469,30 @@ void TfrcSinkAgent::sendpkt(double p)
 	/*if we're sending slower than one packet per RTT, don't need*/
 	/*multiple responses per data packet.*/
 
-	if (last_arrival_ < last_report_sent)
-		return;
+	if (last_arrival_ >= last_report_sent) {
 
-	Packet* pkt = allocpkt();
-	if (pkt == NULL) {
-		printf ("error allocating packet\n");
-		abort(); 
+		Packet* pkt = allocpkt();
+		if (pkt == NULL) {
+			printf ("error allocating packet\n");
+			abort(); 
+		}
+	
+		hdr_tfrc_ack *tfrc_ackh = hdr_tfrc_ack::access(pkt);
+	
+		tfrc_ackh->seqno=maxseq;
+		tfrc_ackh->timestamp_echo=last_timestamp_;
+		tfrc_ackh->timestamp_offset=now-last_arrival_;
+		tfrc_ackh->timestamp=now;
+		tfrc_ackh->NumFeedback_ = NumFeedback_;
+		if (p < 0) 
+			tfrc_ackh->flost = est_loss (); 
+		else
+			tfrc_ackh->flost = p;
+		tfrc_ackh->rate_since_last_report = est_thput ();
+		last_report_sent = now; 
+		rcvd_since_last_report = 0;
+		send(pkt, 0);
 	}
-
-	hdr_tfrc_ack *tfrc_ackh = hdr_tfrc_ack::access(pkt);
-
-	tfrc_ackh->seqno=maxseq;
-	tfrc_ackh->timestamp_echo=last_timestamp_;
-	tfrc_ackh->timestamp_offset=now-last_arrival_;
-	tfrc_ackh->timestamp=now;
-	tfrc_ackh->NumFeedback_ = NumFeedback_;
-	if (p < 0) 
-		tfrc_ackh->flost = est_loss (); 
-	else
-		tfrc_ackh->flost = p;
-	tfrc_ackh->rate_since_last_report = est_thput ();
-	last_report_sent = now; 
-	rcvd_since_last_report = 0;
-	send(pkt, 0);
 }
 
 int TfrcSinkAgent::command(int argc, const char*const* argv) 

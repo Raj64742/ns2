@@ -125,7 +125,6 @@ void TfrcAgent::start()
 	t_srtt_ = int(srtt_init_/tcp_tick_) << T_SRTT_BITS;
 	t_rttvar_ = int(rttvar_init_/tcp_tick_) << T_RTTVAR_BITS;
 	t_rtxcur_ = rtxcur_init_;
-	prevflost = 1 ; prevrtt = 999 ; prevto = 999 ;
 	rcvrate = 0 ;
 
 	first_pkt_rcvd = 0 ;
@@ -158,24 +157,19 @@ void TfrcAgent::nextpkt()
 		xrate = oldrate_;
 	}
 	else {
-		if (ca_) {
+		if (ca_) 
 			xrate = rate_ * sqrtrtt_/sqrt(rttcur_);
-		} else {
+		else
 			xrate = rate_;
-		}
 	}
 	if (xrate > SMALLFLOAT) {
-		next = size_/xrate; 
-		if (overhead_ > SMALLFLOAT) {
-			// overhead_ set to 1.0 gives randomization of
-			//  plus or minus half the interdeparture time
-			// overhead_ set to 0.1 gives smaller randomization
-			double extra = 1.0 - overhead_/2;
-			next = next*(overhead_*Random::uniform()+extra);
-		}
-		if (next > SMALLFLOAT ) {
+		next = size_/xrate;
+		//
+		// randomize between next*(1 +/- woverhead_) 
+		//
+		next = next*(2*overhead_*Random::uniform()-overhead_+1);
+		if (next > SMALLFLOAT)
 			send_timer_.resched(next);
-		}
 	}
 }
 
@@ -251,41 +245,31 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	if (first_pkt_rcvd == 0) {
 		first_pkt_rcvd = 1 ; 
 		slowstart ();
-		Packet::free(pkt);
-		return;
-	}
-	if ((rate_change_ == SLOW_START) && !(flost > 0)) {
-		slowstart ();
-		Packet::free(pkt);
-		return;
-	}
-	else if ((rate_change_ == SLOW_START) && (flost > 0)) {
-		rate_change_ = OUT_OF_SLOW_START;
-		oldrate_ = rate_ = rcvrate;
-		prevflost = flost ; 
-		prevrtt = rtt_ ; 
-		prevto = tzero_ ;
-		Packet::free(pkt);
 		nextpkt();
-		return;
 	}
-
-	int x = 0 ;
-	if (rcvrate>rate_) {
-		increase_rate(flost);
-		x = 1 ;
-	} else {
-		decrease_rate ();		
-		x = 2 ;
+	else {
+		if (rate_change_ == SLOW_START) {
+			if (flost > 0) {
+				rate_change_ = OUT_OF_SLOW_START;
+				oldrate_ = rate_ = rcvrate;
+			}
+			else {
+				slowstart ();
+				nextpkt();
+			}
+		}
+		else {
+			if (rcvrate>rate_) 
+				increase_rate(flost);
+			else 
+				decrease_rate ();		
+		}
 	}
 	if (printStatus_) {
 		printf("time: %5.2f rate: %5.2f\n", now, rate_);
 		double packetrate = rate_ * rtt_ / size_;
 		printf("time: %5.2f packetrate: %5.2f\n", now, packetrate);
 	}
-	prevflost = flost ; 
-	prevrtt = rtt_ ; 
-	prevto = tzero_ ;
 	Packet::free(pkt);
 }
 
@@ -333,47 +317,21 @@ void TfrcAgent::slowstart ()
 			last_change_=now;
 		}
 	}
-	nextpkt();
 }
 
 void TfrcAgent::increase_rate (double p)
 {               
-        double newrate, newrate1, mult;
         double now = Scheduler::instance().clock();
-	double maximumrate = size_/rtt_;
-	if (p < 0) {
-		printf ("error\n"); 
-		abort();
-	}
-        rate_change_ = CONG_AVOID;  
-        // Calculate the new sending rate for increase of one pkt/RTT.
-        mult = (now-last_change_)/rtt_ ;
-        if (mult > 2)
-                mult = 2 ;
-#ifdef OLDWAY
-        newrate = rate_ + (size_/rtt_)*mult ; 
-        // Calculate the new sending rate for a limited increase.
-        newrate1 = (rate_ + rcvrate)/2;
-        // Make the increase in the sending rate:
-        if (rate_ < size_/rtt_ && newrate1 < newrate) {
-                // The sending rate is less than one pkt/RTT.
-                rate_ = newrate1;
-        } else {
-                // Increase the sending rate by at most one pkt/RTT.
-                rate_ = newrate;
-        }
-#else
+
+	double mult = (now-last_change_)/rtt_ ;
+	if (mult > 2) mult = 2 ;
+
 	rate_ = rate_ + (size_/rtt_)*mult ;
-#endif
-	if (maxrate_ > maximumrate) {
-		maximumrate = maxrate_;
-	}
-        if (rate_ > maximumrate)
-		// max allowed rate is max of: 2*receive rate, one pkt/RTT
-                rate_ = maximumrate;
-        if (rate_ > rcvrate)
-                rate_ = rcvrate;
-        oldrate_ = rate_;
+	double maximumrate = (maxrate_>size_/rtt_)?maxrate_:size_/rtt_ ;
+	maximumrate = (maximumrate>rcvrate)?rcvrate:maximumrate;
+	rate_ = (rate_ > maximumrate)?maximumrate:rate_ ;
+
+        rate_change_ = CONG_AVOID;  
         last_change_ = now;
 }       
 
@@ -408,13 +366,12 @@ void TfrcAgent::reduce_rate_on_no_feedback()
 {
 	rate_change_ = RATE_DECREASE; 
 	rate_*=0.5;
-	delta_ = 0;
 	UrgentFlag = 1;
+	round_id ++ ;
 	double t = 2*rtt_ ; 
 	if (t < 2*size_/rate_) 
 		t = 2*size_/rate_ ; 
 	NoFeedbacktimer_.resched(t);
-	round_id ++ ;
 	nextpkt();
 }
 
