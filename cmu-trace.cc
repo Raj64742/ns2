@@ -604,10 +604,12 @@ CMUTrace::nam_format(Packet *p, int offset)
 	}
 
         // if nodes are too far from each other
-	// nam won't show SEND event 'cuz it's
+	// nam won't dump SEND event 'cuz it's
 	// gonna be dropped later anyway
-	// this value 242 is calculated from tworayground.cc
-	if ((op == 'h')  && (distance > 242 )) return ;
+	// this value 250 is pre-calculated by using 
+	// two-ray ground refelction model with fixed
+	// transmission power 3.652e-10
+	if ((op == 'h')  && (distance > 250 )) return ;
 
 	sprintf(nwrk_ ,
 		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
