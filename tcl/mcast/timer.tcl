@@ -14,7 +14,7 @@ Class Timer
 # sched aborts if the timer is already set. C++ timers maintain state 
 # (e.g. IDLE, PENDING..etc) that is checked before the timer is scheduled.
 Timer instproc sched delay {
-	global ns
+	$self instvar ns
 	$self instvar id_
 	$self cancel
 	set id_ [$ns at [expr [$ns now] + $delay] "$self timeout"]
@@ -25,7 +25,7 @@ Timer instproc destroy {} {
 }
 
 Timer instproc cancel {} {
-	global ns
+	$self instvar ns
 	$self instvar id_
 	if [info exists id_] {
 		$ns cancel $id_
