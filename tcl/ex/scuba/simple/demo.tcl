@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/simple/demo.tcl,v 1.2 1997/06/16 22:16:51 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/simple/demo.tcl,v 1.3 1997/11/04 22:03:42 haoboy Exp $
 #
 
 set tcldir ../../../
@@ -38,14 +38,30 @@ set tcldir ../../../
 source $tcldir/rtp/session-scuba.tcl
 source $tcldir/rtp/session-rtp.tcl
 
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
+Simulator set NumberInterfaces_ 1
+
+# rtcp reports
+$ns color 32 red
+# scuba reports
+$ns color 33 white
+
+$ns color 1 gold
+$ns color 2 blue
+$ns color 3 green
+$ns color 4 magenta
 
 for { set i 0 } { $i < 8 } { incr i } {
 	set node($i) [$ns node]
 }
+$node(3) shape "square"
+$node(7) shape "square"
 
 set f [open out.tr w]
 $ns trace-all $f
+set nf [open out.nam w]
+$ns namtrace-all $nf
 
 Queue set limit_ 8
 
@@ -55,25 +71,27 @@ proc makelinks { bw delay pairs } {
 		set src $node([lindex $p 0])
 		set dst $node([lindex $p 1])
 		$ns duplex-link $src $dst $bw $delay DropTail
+		$ns duplex-link-op $src $dst orient [lindex $p 2]
 	}
 }
 
 makelinks 1.5Mb 10ms {
-	{ 0 3 }
-	{ 1 3 }
-	{ 2 3 }
-	{ 4 7 }
-	{ 5 7 }
-	{ 6 7 }
+	{ 0 3 right-down }
+	{ 1 3 right }
+	{ 2 3 right-up }
+	{ 7 4 right-up }
+	{ 7 5 right }
+	{ 7 6 right-down }
 }
 
 makelinks 400kb 50ms {
-	{ 3 7 }
+	{ 3 7 right }
 }
 
-for { set i 0 } { $i < 8 } { incr i } {
-	set dm($i) [new DM $ns $node($i)]
-}
+$ns duplex-link-op $node(3) $node(7) queuePos 0.5
+
+set mproto DM
+set mrthandle [$ns mrtproto $mproto {}]
 
 $ns at 0.0 "$ns run-mcast"
 
@@ -99,7 +117,7 @@ foreach n { 0 1 2 } {
 
 $ns at 1.0 "trace_annotate {Starting receivers...}"
 # start receivers
-$ns at 1.0 {
+$ns at 1.1 {
 	global sess
 	$sess(4) start 0
 	$sess(5) start 0
@@ -142,11 +160,9 @@ proc finish {} {
 	puts "converting output to nam format..."
         global ns
         $ns flush-trace
-	exec awk -f $tcldir/nam-demo/nstonam.awk out.tr > demo-nam.tr
-	exec rm -f out
-        #XXX
+
 	puts "running nam..."
-	exec /usr/local/src/nam/nam demo-nam &
+	exec nam out.nam &
         exit 0
 }
 
