@@ -44,6 +44,7 @@ Agent/TCP/Session set fixedIw_ false
 Agent/TCP/Session set count_bytes_acked_ false
 Agent/TCP/Session set schedDisp_ $FINE_ROUND_ROBIN
 Agent/TCP/Session set fs_enable_ false
+Agent/TCP/Session set disableIntLossRecov_ false
 
 Agent/TCP/Newreno/FS set fs_enable_ false
 Agent/TCPSink set ts_echo_bugfix_ true
@@ -209,7 +210,7 @@ proc createTcpSink { type {sinktrace 0} { ackSize 40 } { maxdelack 25 } } {
 	return $sink0
 }
 
-proc setupTcpSession { tcp { count_bytes_acked false } { schedDisp $FINE_ROUND_ROBIN} {fs_enable false} } {
+proc setupTcpSession { tcp { count_bytes_acked false } { schedDisp $FINE_ROUND_ROBIN} {fs_enable false} {disableIntLossRecov false} } {
 	set dst [expr ([$tcp set dst_]/256)*256]
 	if {![[$tcp set node_] existsTcpSession $dst]} {
 		set session [[$tcp set node_] createTcpSession $dst]
@@ -224,6 +225,7 @@ proc setupTcpSession { tcp { count_bytes_acked false } { schedDisp $FINE_ROUND_R
 
 		$session set count_bytes_acked_ $count_bytes_acked
 		$session set schedDisp_ $schedDisp
+		$session set disableIntLossRecov_ $disableIntLossRecov
 		return true
 	}
 	return false
