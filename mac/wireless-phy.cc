@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.18 2002/05/30 00:10:15 buchheim Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.19 2002/12/11 01:22:52 difa Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -339,7 +339,7 @@ DONE:
 	   capture.  This will be moved into the net-if family of 
 	   objects in the future. */
 	p->txinfo_.RxPr = Pr;
-	p->txinfo_.CPThresh = CPThresh_;
+	p->txinfo_.CPThresh = pow(10,CPThresh_/10); /* CPThresh_ is in db */
 
 	/*
 	 * Decrease energy if packet successfully received
