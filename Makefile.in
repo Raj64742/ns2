@@ -67,7 +67,8 @@ INCLUDES = \
 	-I./routing -I./tools -I./classifier -I./mcast \
 	-I./diffusion3/lib/main -I./diffusion3/lib \
 	-I./diffusion3/lib/nr -I./diffusion3/ns \
-	-I./diffusion3/filter_core -I./asim/ -I./qs
+	-I./diffusion3/filter_core -I./asim/ -I./qs \
+	-I./diffserv
 
 
 LIB	= \
@@ -293,6 +294,7 @@ OBJ_CC = \
 	mcast/classifier-lms.o mcast/lms-agent.o mcast/lms-receiver.o \
 	mcast/lms-sender.o \
 	queue/delayer.o \
+	xcp/xcpq.o xcp/xcp.o xcp/xcp-end-sys.o \
 	@V_STLOBJ@
 
 
