@@ -46,7 +46,7 @@ set flowgraphfile fairflow.xgr; # file given to graph tool
 
 TestSuite instproc finish file {
 	global quiet PERL
-	$self instvar ns_ tchan_ testName_ tmpschan_
+	$self instvar ns_ tchan_ testName_ tmpschan_ maxAggregates_
 	# was: -s 2 -d 3 
         #exec $PERL ../../bin/getrc -s 12 -d 13 all.tr | \
         #  $PERL ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp2.rands
@@ -60,7 +60,7 @@ TestSuite instproc finish file {
 		#$self plotQueue $testName_
 	}
 	if { [info exists tmpschan_]} {
-		$self finishflows $testName_
+		$self finishflows $testName_ $maxAggregates_
 		close $tmpschan_
 	}
 	$ns_ halt
@@ -72,7 +72,7 @@ TestSuite instproc finish file {
 # time: 4.000 LinkUtilThisTime  1.002 totalLinkUtil: 1.000 totalOQPkts: 1250
 # fid: 1 Util: 0.124 OQdroprate: 0.320 OQpkts: 155 OQdrops: 73
 #
-TestSuite instproc finishflows testname {
+TestSuite instproc finishflows {testname maxAggregate} {
         global quiet
         $self instvar tmpschan_ tmpqchan_ topo_ node_ ns_
 	$self instvar packetsize_
@@ -117,23 +117,24 @@ TestSuite instproc finishflows testname {
 
         exec rm -f temp.p
         exec touch temp.p
-        foreach i { 1 2 3 4 5 } {
+	for {set i 1} {$i < $maxAggregate + 1 } {incr i} {
                 exec echo "\n\"flow $i" >> temp.p
-                exec awk $awkCode flow=$i maxpkts=$maxpkts temp.s > temp.$i
-                exec cat temp.$i >> temp.p
+                exec awk $awkCode flow=$i maxpkts=$maxpkts temp.s > flow$i
+                exec cat flow$i >> temp.p
                 exec echo " " >> temp.p
         }
 
-        exec awk $awkCodeAll maxpkts=$maxpkts temp.s > temp.all
+        exec awk $awkCodeAll maxpkts=$maxpkts temp.s > all
         exec echo "\n\"all " >> temp.p
-        exec cat temp.all >> temp.p
+        exec cat all >> temp.p  
 
         exec cat temp.p >@ $f
         close $f
-	if {$quiet == "false"} {
-               	exec xgraph -bb -tk -ly 0,1 -x time -y bandwidth $graphfile &
-	}
-#       exec csh figure2.com $file
+        if {$quiet == "false"} {
+                exec xgraph -bb -tk -ly 0,1 -x time -y bandwidth $graphfile &
+        }
+#       exec csh gnuplotE.com $testname
+#       exec csh gnuplotF.com $testname
 
         exit 0
 }
@@ -250,12 +251,15 @@ TestSuite instproc statsDump { interval fmon packetsize oldpkts } {
 	## $quiet == "false"
         if { $time > 0} {
             set totalPkts [$fmon set pdepartures_]
+            set totalArrivals [$fmon set parrivals_]
+	    set totalDrops [$fmon set pdrops_]
             set packets [expr $totalPkts - $oldpkts]
             set oldpkts $totalPkts
     	    set linkBps [ expr 500000/8 ]
     	    set recentUtil [expr (1.0*$packets*$packetsize)/($interval*$linkBps)]
     	    set totalLinkUtil [expr (1.0*$totalPkts*$packetsize)/($time*$linkBps)]
             set now [$ns_ now]
+	    puts $f "time: [format %.3f $now] totalOQArrivals: $totalArrivals totalOQDrops: $totalDrops"
     	    puts $f "time: [format %.3f $now] LinkUtilThisTime  [format %.3f $recentUtil] totalLinkUtil: [format %.3f $totalLinkUtil] totalOQPkts: $totalPkts" 
     	    set fcl [$fmon classifier];
 	    ## this 
@@ -275,6 +279,7 @@ TestSuite instproc statsDump { interval fmon packetsize oldpkts } {
 
 TestSuite instproc setup {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
+    $self instvar maxAggregates_
     $self setTopo
 
     set stoptime 100.0
@@ -316,6 +321,8 @@ TestSuite instproc setup {} {
     set cbr5 [$udp5 attach-app Traffic/CBR]
     $cbr5 set rate_ 0.1Mb
     $cbr5 set random_ 0.005
+
+    set maxAggregates_ 5
 
     $ns_ at 0.2 "$cbr1 start"
     $ns_ at 0.1 "$cbr2_ start"
@@ -394,9 +401,10 @@ Test/cbrs-acc1 instproc init {} {
 
 TestSuite instproc setup1 {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
+    $self instvar maxAggregates_
     $self setTopo
 
-    set stoptime 100.0
+    set stoptime 35.0
     #set dumptime 5.0
     set dumptime 1.0
     #set stoptime 5.0
@@ -439,6 +447,9 @@ TestSuite instproc setup1 {} {
     set cbr_ [$udp attach-app Traffic/CBR]
     $cbr_ set rate_ 0.1Mb
     $cbr_ set random_ 0.001
+
+    set maxAggregates_ 5
+
     $ns_ at 0.0 "$cbr_ start"
     $ns_ at 1.0 "$cbr_ set rate_ 0.15Mb"
     $ns_ at 2.0 "$cbr_ set rate_ 0.2Mb"
@@ -513,6 +524,7 @@ Test/slowgrow-acc instproc init {} {
 
 TestSuite instproc setup2 {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
+    $self instvar maxAggregates_
     $self setTopo
 
     set stoptime 100.0
@@ -552,6 +564,8 @@ TestSuite instproc setup2 {} {
     set cbr5 [$udp5 attach-app Traffic/CBR]
     $cbr5 set rate_ 0.1Mb
     $cbr5 set random_ 0.005
+
+    set maxAggregates_ 5
 
     $ns_ at 0.2 "$cbr1 start"
     $ns_ at 0.1 "$cbr2_ start"
