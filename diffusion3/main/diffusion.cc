@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffusion.cc,v 1.5 2002/01/08 19:08:20 haldar Exp $
+// $Id: diffusion.cc,v 1.6 2002/02/25 20:23:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -144,7 +144,7 @@ void DiffusionCoreAgent::run()
 	    in_pkt = (*itr)->RecvPacket(fd);
 
 	    if (in_pkt)
-	      recv(in_pkt);
+	      recvPacket(in_pkt);
 
 	    // Clear this fd
 	    FD_CLR(fd, &fds);
@@ -225,27 +225,18 @@ void DiffusionCoreAgent::FilterTimeOut()
 
 void DiffusionCoreAgent::SendMessage(Message *msg)
 {
-  DiffPacket out_pkt;
-  struct hdr_diff *dfh;
-  DeviceList::iterator itr;
   Tcl_HashEntry *entryPtr;
   unsigned int key[2];
-  int len;
-  char *pos;
+  Message *myMessage;
   
-  out_pkt = AllocateBuffer(msg->msg_attr_vec);
-  dfh = HDR_DIFF(out_pkt);
+  //myMessage = new Message(DIFFUSION_VERSION, msg->msg_type, diffusion_port, 0,0, msg->pkt_num, msg->rdm_id, 0, msg->next_hop);
+  myMessage = new Message(DIFFUSION_VERSION, msg->msg_type, diffusion_port, 0,0, msg->pkt_num, msg->rdm_id, msg->next_hop, 0);
 
-  pos = (char *) out_pkt;
-  pos = pos + sizeof(struct hdr_diff);
-
-  // Clear the buffer
-  len = CalculateSize(msg->msg_attr_vec);
-  bzero(out_pkt, (len + sizeof(struct hdr_diff)));
-  len = PackAttrs(msg->msg_attr_vec, pos);
+  myMessage->msg_attr_vec = CopyAttrs(msg->msg_attr_vec);
+  myMessage->num_attr = myMessage->msg_attr_vec->size();
+  myMessage->data_len = CalculateSize(myMessage->msg_attr_vec);
 
   // Adjust message size for logging and check hash
-  msg->data_len = len;
   key[0] = msg->pkt_num;
   key[1] = msg->rdm_id;
   entryPtr = Tcl_FindHashEntry(&htable, (char *) key);
@@ -254,35 +245,29 @@ void DiffusionCoreAgent::SendMessage(Message *msg)
   else
     msg->new_message = 1;
 
-  NEXT_HOP(dfh) = htonl(msg->next_hop);
-  NUM_ATTR(dfh) = htons(msg->msg_attr_vec->size());
-  SRC_PORT(dfh) = htons(diffusion_port);
-  MSG_TYPE(dfh) = msg->msg_type;
-  VERSION(dfh)  = DIFFUSION_VERSION;
-  DATA_LEN(dfh) = htons(len);
-  PKT_NUM(dfh)  = htonl(msg->pkt_num);
-  RDM_ID(dfh)   = htonl(msg->rdm_id);
+  myMessage->new_message = msg->new_message;
 
   // Check if message goes to an agent or the network
   if (msg->next_port){
     // Message goes to an agent
-    LAST_HOP(dfh) = htonl(LOCALHOST_ADDR);
+    myMessage->last_hop = LOCALHOST_ADDR;
 
-    if (msg->next_hop != LOCALHOST_ADDR){
+    // If it's a local message, it has to go to a local agent
+    if (myMessage->next_hop != LOCALHOST_ADDR){
       diffPrint(DEBUG_ALWAYS, "Error: Message destination is a local agent but next_hop != LOCALHOST_ADDR !\n");
+      delete myMessage;
       return;
     }
 
-    for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
-      (*itr)->SendPacket(out_pkt, sizeof(struct hdr_diff) + len, msg->next_port);
-    }
+    // Send the message to the agent specified
+    sendMessageToLibrary(myMessage, msg->next_port);
   }
   else{
     // Message goes to the network
-    LAST_HOP(dfh) = htonl(myId);
+    myMessage->last_hop = myId;
 
 #ifdef STATS
-    stats->logOutgoingMessage(msg);
+    stats->logOutgoingMessage(myMessage);
 #endif // STATS
 
     // Add message to the hash table      
@@ -292,20 +277,18 @@ void DiffusionCoreAgent::SendMessage(Message *msg)
       diffPrint(DEBUG_DETAILS, "Message being sent is an old message !\n");
 
     // Send Message
-    dvi_send((char *) out_pkt, sizeof(struct hdr_diff) + len);
+    sendMessageToNetwork(myMessage);
   }
-  delete [] out_pkt;
+
+  delete myMessage;
 }
 
 void DiffusionCoreAgent::ForwardMessage(Message *msg, Filter_Entry *dst)
 {
-  DiffPacket out_pkt;
-  struct hdr_diff *dfh;
   DeviceList::iterator itr;
   RedirectMessage *originalHdr;
   NRAttribute *originalAttr;
-  int len;
-  char *pos;
+  Message *myMessage;
 
   // Create an attribute with the original header
   originalHdr = new RedirectMessage;
@@ -323,7 +306,49 @@ void DiffusionCoreAgent::ForwardMessage(Message *msg, Filter_Entry *dst)
 
   originalAttr = OriginalHdrAttr.make(NRAttribute::IS, (void *)originalHdr, sizeof(RedirectMessage));
 
-  msg->msg_attr_vec->push_back(originalAttr);
+  myMessage = new Message(DIFFUSION_VERSION, REDIRECT, diffusion_port, 0,
+			  0, pkt_count, rdm_id, LOCALHOST_ADDR, myId);
+
+  // Increment pkt_counter
+  pkt_count++;
+
+  // Duplicate the message's attributes
+  myMessage->msg_attr_vec = CopyAttrs(msg->msg_attr_vec);
+  
+  // Add the extra attribute
+  myMessage->msg_attr_vec->push_back(originalAttr);
+  myMessage->num_attr = myMessage->msg_attr_vec->size();
+  myMessage->data_len = CalculateSize(myMessage->msg_attr_vec);
+
+  sendMessageToLibrary(myMessage, dst->agent);
+
+  delete myMessage;
+  delete originalHdr;
+}
+
+#ifdef NS_DIFFUSION
+void DiffusionCoreAgent::sendMessageToLibrary(Message *msg, int dst_agent_id)
+{
+  Message* myMsg;
+  DeviceList::iterator itr;
+  int len;
+  
+  myMsg = CopyMessage(msg);
+  len = CalculateSize(myMsg->msg_attr_vec);
+  len = len + sizeof(struct hdr_diff);
+
+  for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
+    (*itr)->SendPacket(myMsg, len, dst_agent_id);
+  }
+}
+
+#else
+void DiffusionCoreAgent::sendMessageToLibrary(Message *msg, int dst_agent_id)
+{
+  DiffPacket out_pkt = NULL;
+  struct hdr_diff *dfh;
+  int len;
+  char *pos;
 
   out_pkt = AllocateBuffer(msg->msg_attr_vec);
   dfh = HDR_DIFF(out_pkt);
@@ -333,24 +358,83 @@ void DiffusionCoreAgent::ForwardMessage(Message *msg, Filter_Entry *dst)
 
   len = PackAttrs(msg->msg_attr_vec, pos);
 
-  LAST_HOP(dfh) = htonl(myId);
-  NEXT_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NUM_ATTR(dfh) = htons(msg->num_attr + 1);
-  PKT_NUM(dfh) = htonl(pkt_count);
-  RDM_ID(dfh) = htonl(rdm_id);
-  SRC_PORT(dfh) = htons(diffusion_port);
-  VERSION(dfh) = DIFFUSION_VERSION;
-  MSG_TYPE(dfh) = REDIRECT;
+  LAST_HOP(dfh) = htonl(msg->last_hop);
+  NEXT_HOP(dfh) = htonl(msg->next_hop);
+  VERSION(dfh) = msg->version;
+  MSG_TYPE(dfh) = msg->msg_type;
   DATA_LEN(dfh) = htons(len);
+  PKT_NUM(dfh) = htonl(msg->pkt_num);
+  RDM_ID(dfh) = htonl(msg->rdm_id);
+  NUM_ATTR(dfh) = htons(msg->num_attr);
+  SRC_PORT(dfh) = htons(msg->source_port);
 
-  // Send Packet
-  for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
-    (*itr)->SendPacket(out_pkt, sizeof(hdr_diff) + len, dst->agent);
-  }
+  sendPacketToLibrary(out_pkt, sizeof(struct hdr_diff) + len, dst_agent_id);
 
-  pkt_count++;
-  delete originalHdr;
   delete [] out_pkt;
+}
+#endif // NS_DIFFUSION
+
+#ifdef NS_DIFFUSION
+void DiffusionCoreAgent::sendMessageToNetwork(Message *msg)
+{
+  Message* myMsg;
+  int len;
+  int32_t dst;
+  DeviceList::iterator itr;
+
+  myMsg = CopyMessage(msg);
+  len = CalculateSize(myMsg->msg_attr_vec);
+  len = len + sizeof(struct hdr_diff);
+  dst = myMsg->next_hop;
+  
+  for (itr = out_devices.begin(); itr != out_devices.end(); ++itr){
+    (*itr)->SendPacket(myMsg, len, dst);
+  }
+}
+#else
+void DiffusionCoreAgent::sendMessageToNetwork(Message *msg)
+{
+  DiffPacket out_pkt = NULL;
+  struct hdr_diff *dfh;
+  int len;
+  char *pos;
+
+  out_pkt = AllocateBuffer(msg->msg_attr_vec);
+  dfh = HDR_DIFF(out_pkt);
+
+  pos = (char *) out_pkt;
+  pos = pos + sizeof(struct hdr_diff);
+
+  len = PackAttrs(msg->msg_attr_vec, pos);
+
+  LAST_HOP(dfh) = htonl(msg->last_hop);
+  NEXT_HOP(dfh) = htonl(msg->next_hop);
+  VERSION(dfh) = msg->version;
+  MSG_TYPE(dfh) = msg->msg_type;
+  DATA_LEN(dfh) = htons(len);
+  PKT_NUM(dfh) = htonl(msg->pkt_num);
+  RDM_ID(dfh) = htonl(msg->rdm_id);
+  NUM_ATTR(dfh) = htons(msg->num_attr);
+  SRC_PORT(dfh) = htons(msg->source_port);
+
+  sendPacketToNetwork(out_pkt, sizeof(struct hdr_diff) + len, msg->next_hop);
+
+  delete [] out_pkt;
+}
+#endif // NS_DIFFUSION
+
+void DiffusionCoreAgent::sendPacketToLibrary(DiffPacket pkt, int len, int dst)
+{
+  DeviceList::iterator itr;
+
+  for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
+    (*itr)->SendPacket(pkt, len, dst);
+  }
+}
+
+void DiffusionCoreAgent::sendPacketToNetwork(DiffPacket pkt, int len, int dst)
+{
+  dvi_send((char *) pkt, len);
 }
 
 void DiffusionCoreAgent::UpdateNeighbors(int id)
@@ -563,13 +647,6 @@ u_int16_t DiffusionCoreAgent::GetNextFilterPriority(int16_t handle,
 
 void DiffusionCoreAgent::ProcessMessage(Message *msg)
 {
-  // First check if it's a control message
-  if (msg->msg_type == CONTROL){
-    ProcessControlMessage(msg);
-    return;
-  }
-
-  // Now process the incoming message
   FilterList *my_list;
   FilterList::iterator itr;
   Filter_Entry *entry;
@@ -807,7 +884,7 @@ void DiffusionCoreAgent::ProcessControlMessage(Message *msg)
 }
 
 void DiffusionCoreAgent::LogControlMessage(Message *msg, int command,
-				       int param1, int param2)
+					   int param1, int param2)
 {
   // Logs the incoming message
 }
@@ -833,7 +910,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
   application_id = strdup("DIFFUSION_NS");
 #else
   application_id = strdup(argv[0]);
-#endif //NS_DIFFUSION
+#endif // NS_DIFFUSION
   scadds_env = getenv("scadds_addr");
   diffusion_port = DEFAULT_DIFFUSION_PORT;
 
@@ -851,16 +928,14 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
     do{
       getTime(&tv);
       getSeed(&tv);
-      //myId = rand();
       myId = getRand();
+
     }
     while(myId == LOCALHOST_ADDR || myId == BROADCAST_ADDR);
   }
 
 #ifndef NS_DIFFUSION
   // Parse command line options
-  
-
   while (1){
     opt = getopt(argc, argv, "f:hd:vt:p:");
 
@@ -965,10 +1040,9 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 
   getTime(&tv);
   getSeed(&tv);
-  //pkt_count = rand();
-  //rdm_id = rand();
   pkt_count = getRand();
   rdm_id = getRand();
+
   Tcl_InitHashTable(&htable, 2);
 
   // Initialize eventQueue
@@ -1100,24 +1174,8 @@ void DiffusionCoreAgent::dvi_send(char *pkt, int length)
   }
 }
 
-DiffPacket DiffusionCoreAgent::AllocateBuffer(NRAttrVec *attrs)
-{
-  DiffPacket pkt;
-  int len;
-
-  len = CalculateSize(attrs);
-  len = len + sizeof(struct hdr_diff);
-  pkt = new int [1 + (len / sizeof(int))];
-
-  if (pkt == NULL){
-    diffPrint(DEBUG_ALWAYS, "Cannot allocate memory for outgoing message !\n");
-    exit(-1);
-  }
-
-  return pkt;
-}
-
-void DiffusionCoreAgent::recv(DiffPacket pkt)
+#ifndef NS_DIFFUSION
+void DiffusionCoreAgent::recvPacket(DiffPacket pkt)
 {
   struct hdr_diff *dfh = HDR_DIFF(pkt);
   Message *rcv_message = NULL;
@@ -1136,22 +1194,6 @@ void DiffusionCoreAgent::recv(DiffPacket pkt)
   last_hop = ntohl(LAST_HOP(dfh));
   data_len = ntohs(DATA_LEN(dfh));
 
-  // Check version
-  if (version != DIFFUSION_VERSION)
-    return;
-
-  // Check for ID conflict
-  if (last_hop == myId){
-    diffPrint(DEBUG_ALWAYS, "Error: A diffusion ID conflict has been detected !\n");
-    exit(-1);
-  }
-
-  // Address filtering
-  if ((next_hop != BROADCAST_ADDR) &&
-      (next_hop != LOCALHOST_ADDR) &&
-      (next_hop != myId))
-    return;
-
   // Packet is good, create a message
   rcv_message = new Message(version, msg_type, source_port, data_len,
 			    num_attr, pkt_num, rdm_id, next_hop, last_hop);
@@ -1159,42 +1201,70 @@ void DiffusionCoreAgent::recv(DiffPacket pkt)
   // Read all attributes into the Message structure
   rcv_message->msg_attr_vec = UnpackAttrs(pkt, num_attr);
 
-  // Control Messages are unique and don't go to the hash
-  if (rcv_message->msg_type != CONTROL){
-    // Hash table keeps info about packets
-    Tcl_HashEntry *entryPtr;
-    unsigned int key[2];
 
-    key[0] = pkt_num;
-    key[1] = rdm_id;
-    entryPtr = Tcl_FindHashEntry(&htable, (char *) key);
-
-    if (entryPtr != NULL){
-      diffPrint(DEBUG_DETAILS, "Received old message !\n");
-      rcv_message->new_message = 0;
-    }
-    else{
-      // Add message to the hash table
-      PutHash(key[0], key[1]);
-      rcv_message->new_message = 1;
-    }
-  }
-
-#ifdef STATS
-  stats->logIncomingMessage(rcv_message);
-#endif // STATS
-
-  // Now, we look to the current filters to find a match
-  ProcessMessage(rcv_message);
+  // Process the incoming message
+  recvMessage(rcv_message);
 
   // Don't forget to message when we're done
   delete rcv_message;
 
-#ifndef NS_DIFFUSION
+  //#ifndef NS_DIFFUSION
   // Delete the incoming packet. In NS, it will be deleted then Packet::free() gets
   // called in the DiffRoutingAgent::recv(Packet *, handler *)
   delete [] pkt;
-#endif // NS_DIFFUSION
+  //#endif // NS_DIFFUSION
+}
+#endif //NOT_NS_DIFF
+
+void DiffusionCoreAgent::recvMessage(Message *msg)
+{
+  Tcl_HashEntry *entryPtr;
+  unsigned int key[2];
+
+  // Check version
+  if (msg->version != DIFFUSION_VERSION)
+    return;
+
+  // Check for ID conflict
+  if (msg->last_hop == myId){
+    diffPrint(DEBUG_ALWAYS, "Error: A diffusion ID conflict has been detected !\n");
+    exit(-1);
+  }
+
+  // Address filtering
+  if ((msg->next_hop != BROADCAST_ADDR) &&
+      (msg->next_hop != LOCALHOST_ADDR) &&
+      (msg->next_hop != myId))
+    return;
+
+  // Control Messages are unique and don't go to the hash
+  if (msg->msg_type != CONTROL){
+    // Hash table keeps info about packets
+  
+    key[0] = msg->pkt_num;
+    key[1] = msg->rdm_id;
+    entryPtr = Tcl_FindHashEntry(&htable, (char *) key);
+
+    if (entryPtr != NULL){
+      diffPrint(DEBUG_DETAILS, "Received old message !\n");
+      msg->new_message = 0;
+    }
+    else{
+      // Add message to the hash table
+      PutHash(key[0], key[1]);
+      msg->new_message = 1;
+    }
+  }
+
+#ifdef STATS
+  stats->logIncomingMessage(msg);
+#endif // STATS
+
+  // Check if it's a control of a regular message
+  if (msg->msg_type == CONTROL)
+    ProcessControlMessage(msg);
+  else
+    ProcessMessage(msg);
 }
 
 DiffPacket DupPacket(DiffPacket pkt)

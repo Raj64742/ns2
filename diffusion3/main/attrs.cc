@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: attrs.cc,v 1.3 2001/12/11 23:21:44 haldar Exp $
+// $Id: attrs.cc,v 1.4 2002/02/25 20:23:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -24,6 +24,89 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+NRAttrVec * CopyAttrs(NRAttrVec *src_attrs)
+{
+  NRAttrVec *dst_attrs;
+  NRAttrVec::iterator itr;
+  NRAttribute *src;
+
+  dst_attrs = new NRAttrVec;
+
+  for (itr = src_attrs->begin(); itr != src_attrs->end(); ++itr){
+    src = *itr;
+    switch (src->getType()){
+    case NRAttribute::INT32_TYPE:
+      dst_attrs->push_back(new NRSimpleAttribute<int>(src->getKey(),
+						NRAttribute::INT32_TYPE,
+					        src->getOp(),
+					       ((NRSimpleAttribute<int> *)src)->getVal()));
+      break;
+
+    case NRAttribute::FLOAT32_TYPE:
+      dst_attrs->push_back(new NRSimpleAttribute<float>(src->getKey(),
+						NRAttribute::FLOAT32_TYPE,
+						src->getOp(),
+						((NRSimpleAttribute<float> *)src)->getVal()));
+      break;
+
+    case NRAttribute::FLOAT64_TYPE:
+      dst_attrs->push_back(new NRSimpleAttribute<double>(src->getKey(),
+						 NRAttribute::FLOAT64_TYPE,
+						 src->getOp(),
+						 ((NRSimpleAttribute<double> *)src)->getVal()));
+      break;
+
+    case NRAttribute::STRING_TYPE:
+      dst_attrs->push_back(new NRSimpleAttribute<char *>(src->getKey(),
+						NRAttribute::STRING_TYPE,
+						src->getOp(),
+						((NRSimpleAttribute<char *> *)src)->getVal()));
+      break;
+
+    case NRAttribute::BLOB_TYPE:
+      dst_attrs->push_back(new NRSimpleAttribute<void *>(src->getKey(),
+					      NRAttribute::BLOB_TYPE,
+					      src->getOp(),
+					      ((NRSimpleAttribute<void *> *)src)->getVal(),
+					      src->getLen()));
+      break;
+
+    default:
+
+      printf("Unknown attribute type found while copying attributes !\n");
+      break;
+    }
+  }
+  return dst_attrs;
+}
+
+void AddAttrs(NRAttrVec *attr_vec1, NRAttrVec *attr_vec2)
+{
+  NRAttrVec *copied_attrs;
+  NRAttrVec::iterator itr;
+  NRAttribute *src;
+
+  if (attr_vec1 == NULL)
+    attr_vec1 = new NRAttrVec;
+
+  // Check if there's something to do
+  if (attr_vec2 == NULL)
+    return;
+
+  // Duplicate source attributes so they can be added to the dst set
+  copied_attrs = CopyAttrs(attr_vec2);
+
+  // Add all attributes in the copied set into the dst set
+  for (itr = copied_attrs->begin(); itr != copied_attrs->end(); ++itr){
+    src = *itr;
+
+    attr_vec1->push_back(src);
+  }
+
+  // Delete the copied_attr vector without deleting its attributes
+  delete copied_attrs;
+}
+
 void ClearAttrs(NRAttrVec *attr_vec)
 {
   NRAttrVec::iterator itr;
@@ -35,7 +118,7 @@ void ClearAttrs(NRAttrVec *attr_vec)
   attr_vec->clear();
 }
 
-void printAttrs(NRAttrVec *attr_vec)
+void PrintAttrs(NRAttrVec *attr_vec)
 {
   NRAttrVec::iterator itr;
   NRAttribute *aux;
@@ -77,6 +160,23 @@ void printAttrs(NRAttrVec *attr_vec)
     }
     diffPrint(DEBUG_ALWAYS, "\n");
   }
+}
+
+DiffPacket AllocateBuffer(NRAttrVec *attr_vec)
+{
+  DiffPacket pkt;
+  int len;
+
+  len = CalculateSize(attr_vec);
+  len = len + sizeof(struct hdr_diff);
+  pkt = new int [1 + (len / sizeof(int))];
+
+  if (pkt == NULL){
+    diffPrint(DEBUG_ALWAYS, "Cannot allocate memory for packet !\n");
+    exit(-1);
+  }
+
+  return pkt;
 }
 
 int CalculateSize(NRAttrVec *attr_vec)
@@ -217,62 +317,6 @@ NRAttrVec * UnpackAttrs(DiffPacket pkt, int num_attr)
   }
 
   return attr_vec;
-}
-
-NRAttrVec * CopyAttrs(NRAttrVec *src_attrs)
-{
-  NRAttrVec *dst_attrs;
-  NRAttrVec::iterator itr;
-  NRAttribute *src;
-
-  dst_attrs = new NRAttrVec;
-
-  for (itr = src_attrs->begin(); itr != src_attrs->end(); ++itr){
-    src = *itr;
-    switch (src->getType()){
-    case NRAttribute::INT32_TYPE:
-      dst_attrs->push_back(new NRSimpleAttribute<int>(src->getKey(),
-						NRAttribute::INT32_TYPE,
-					        src->getOp(),
-					       ((NRSimpleAttribute<int> *)src)->getVal()));
-      break;
-
-    case NRAttribute::FLOAT32_TYPE:
-      dst_attrs->push_back(new NRSimpleAttribute<float>(src->getKey(),
-						NRAttribute::FLOAT32_TYPE,
-						src->getOp(),
-						((NRSimpleAttribute<float> *)src)->getVal()));
-      break;
-
-    case NRAttribute::FLOAT64_TYPE:
-      dst_attrs->push_back(new NRSimpleAttribute<double>(src->getKey(),
-						 NRAttribute::FLOAT64_TYPE,
-						 src->getOp(),
-						 ((NRSimpleAttribute<double> *)src)->getVal()));
-      break;
-
-    case NRAttribute::STRING_TYPE:
-      dst_attrs->push_back(new NRSimpleAttribute<char *>(src->getKey(),
-						NRAttribute::STRING_TYPE,
-						src->getOp(),
-						((NRSimpleAttribute<char *> *)src)->getVal()));
-      break;
-
-    case NRAttribute::BLOB_TYPE:
-      dst_attrs->push_back(new NRSimpleAttribute<void *>(src->getKey(),
-					      NRAttribute::BLOB_TYPE,
-					      src->getOp(),
-					      ((NRSimpleAttribute<void *> *)src)->getVal(),
-					      src->getLen()));
-      break;
-
-    default:
-
-      printf("Unknown attribute type found while copying attributes !\n");
-      break;
-    }
-  }
-  return dst_attrs;
 }
 
 bool PerfectMatch(NRAttrVec *attr_vec1, NRAttrVec *attr_vec2)

@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: attrs.hh,v 1.4 2001/12/11 23:21:44 haldar Exp $
+// $Id: attrs.hh,v 1.5 2002/02/25 20:23:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -33,15 +33,25 @@
 #include "header.hh"
 #include "tools.hh"
 
+// Here we define a few functions that will help developers create
+// and manipulate attribute sets.
+
+// These functions allow easy attribute manipulation
+NRAttrVec * CopyAttrs(NRAttrVec *src_attrs);
+void AddAttrs(NRAttrVec *attr_vec1, NRAttrVec *attr_vec2);
+void ClearAttrs(NRAttrVec *attr_vec);
+void PrintAttrs(NRAttrVec *attr_vec);
+
+// These functions allow attributes to be placed into packets
+DiffPacket AllocateBuffer(NRAttrVec *attr_vec);
 int CalculateSize(NRAttrVec *attr_vec);
 int PackAttrs(NRAttrVec *attr_vec, char *start_pos);
-NRAttrVec * CopyAttrs(NRAttrVec *src_attrs);
 NRAttrVec * UnpackAttrs(DiffPacket pkt, int num_attr);
-void ClearAttrs(NRAttrVec *attr_vec);
+
+// These functions can be used to match attribute sets
 bool PerfectMatch(NRAttrVec *attr_vec1, NRAttrVec *attr_vec2);
 bool OneWayPerfectMatch(NRAttrVec *attr_vec1, NRAttrVec *attr_vec2);
 bool MatchAttrs(NRAttrVec *attr_vec1, NRAttrVec *attr_vec2);
 bool OneWayMatch(NRAttrVec *attr_vec1, NRAttrVec *attr_vec2);
-void printAttrs(NRAttrVec *attr_vec);
 
 #endif

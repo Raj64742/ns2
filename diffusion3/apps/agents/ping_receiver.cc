@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping_receiver.cc,v 1.1 2001/12/11 23:21:42 haldar Exp $
+// $Id: ping_receiver.cc,v 1.2 2002/02/25 20:23:52 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -67,7 +67,7 @@ void PingReceiverApp::recv(NRAttrVec *data, NR::handle my_handle)
   if (!counterAttr || !timeAttr){
     diffPrint(DEBUG_ALWAYS, "Received a BAD packet !\n");
     fflush(NULL);
-    printAttrs(data);
+    PrintAttrs(data);
     return;
   }
 

@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffusion.hh,v 1.4 2001/12/11 23:21:44 haldar Exp $
+// $Id: diffusion.hh,v 1.5 2002/02/25 20:23:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -75,8 +75,6 @@
 #    endif
 #endif
 
-
-
 DiffPacket DupPacket(DiffPacket pkt);  // Allocate and copy pkt
 
 #define SKT_INFO(x)       x->skt_info
@@ -108,14 +106,10 @@ public:
   }
 };
 
-
-
 class DiffusionCoreAgent {
 public:
 #ifdef NS_DIFFUSION
   friend class DiffRoutingAgent;
-  //friend class NeighborTimer;
-  //friend class FilterTimer;
   DiffusionCoreAgent(DiffRoutingAgent *diffrtg);
 #else
   DiffusionCoreAgent(int argc, char **argv);
@@ -159,14 +153,18 @@ protected:
   eventQueue *eq;
   Tcl_HashTable htable;
 
-  // Methods start here
-
   // Device-Independent send
+  void sendMessageToLibrary(Message *msg, int dst_agent_id);
+  void sendPacketToLibrary(DiffPacket pkt, int len, int dst);
+
+  void sendMessageToNetwork(Message *msg);
+  void sendPacketToNetwork(DiffPacket pkt, int len, int dst);
+
   void dvi_send(char *pkt, int length);
 
-  // Receive and packet processing
-  void recv(DiffPacket pkt);
-  DiffPacket AllocateBuffer(NRAttrVec *attrs);
+  // Receive functions
+  void recvPacket(DiffPacket pkt);
+  void recvMessage(Message *msg);
 
   // Hashing functions
   Hash_Entry *GetHash(unsigned int, unsigned int);

@@ -43,8 +43,8 @@ public:
 } class_diffusion_app_agent;
 
 
-void NsLocal::SendPacket(DiffPacket pkt, int len, int dst) {
-  agent_->sendPacket(pkt, len, dst);
+void NsLocal::SendPacket(Message *msg, int len, int dst) {
+  agent_->sendPacket(msg, len, dst);
 }
 
 DiffPacket NsLocal::RecvPacket(int fd) {
@@ -136,48 +136,46 @@ int DiffAppAgent::command(int argc, const char*const* argv) {
 
 
 void DiffAppAgent::recv(Packet* p, Handler* h) {
-  DiffPacket pkt;
+  Message *msg;
   DiffusionData *diffdata;
 
   diffdata = (DiffusionData *)(p->userdata());
-  pkt = diffdata->data();
+  msg = diffdata->data();
   
   DiffusionRouting *dr = (DiffusionRouting*)dr_;
-  dr->recv(pkt);
+  dr->recvMessage(msg);
   
+  //delete msg;
   Packet::free(p);
+  
   
 }
 
 
-Packet* DiffAppAgent::createNsPkt(DiffPacket pkt, int len, int dst) {
+Packet* DiffAppAgent::createNsPkt(Message *msg, int len) {
   Packet *p;
   AppData *diffdata;
   
-  struct hdr_diff *dfh = HDR_DIFF(pkt);
-  
   p = allocpkt();
-  diffdata  = new DiffusionData(pkt, len);
+  diffdata  = new DiffusionData(msg, len);
   p->setdata(diffdata);
-  
   return p;
 }
 
 
-void DiffAppAgent::sendPacket(DiffPacket pkt, int len, int dst) {
+void DiffAppAgent::sendPacket(Message *msg, int len, int dst) {
   Packet *p;
-  Handler *h=0;
   hdr_ip *iph;
-  struct hdr_diff *dfh = HDR_DIFF(pkt);
+  //struct hdr_diff *dfh = HDR_DIFF(pkt);
 
-  p = createNsPkt(pkt, len, dst); 
+  p = createNsPkt(msg, len); 
   iph = HDR_IP(p);
   iph->saddr() = addr();
   iph->sport() = ((DiffusionRouting*)dr_)->get_agentid();
   iph->daddr() = addr();
   iph->dport() = dst;
 
-  // schedule for realistic delay : set to 1 sec for now
+  // schedule for realistic delay : set to 0 sec for now
   (void)Scheduler::instance().schedule(target_, p, 1);
 
 }

@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.cc,v 1.4 2001/12/11 23:21:44 haldar Exp $
+// $Id: dr.cc,v 1.5 2002/02/25 20:23:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -40,24 +40,27 @@ NR * NR::create_ns_NR(u_int16_t port, DiffAppAgent *da) {
 #else
 NR *dr = NULL;
 
+#ifdef USE_THREADS
 void * ReceiveThread(void *dr)
 {
   // Never returns
-  ((DiffusionRouting *)dr)->run();
+  ((DiffusionRouting *)dr)->run(true, WAIT_FOREVER);
 
   return NULL;
 }
+#endif // USE_THREADS
 
 NR * NR::createNR(u_int16_t port = 0)
 {
-  int retval;
-  pthread_t thread;
-
   // Create Diffusion Routing Class
   if (dr)
     return dr;
 
   dr = new DiffusionRouting(port);
+
+#ifdef USE_THREADS
+  int retval;
+  pthread_t thread;
 
   // Fork a thread for receiving Messages
   retval = pthread_create(&thread, NULL, &ReceiveThread, (void *)dr);
@@ -66,10 +69,25 @@ NR * NR::createNR(u_int16_t port = 0)
     diffPrint(DEBUG_ALWAYS, "Error creating receiving thread ! Aborting...\n");
     exit(-1);
   }
+#endif // USE_THREADS
 
   return dr;
 }
 #endif // NS_DIFFUSION
+
+void getLock(pthread_mutex_t *mutex)
+{
+#ifdef USE_THREADS
+  pthread_mutex_lock(mutex);
+#endif // USE_THREADS
+}
+
+void releaseLock(pthread_mutex_t *mutex)
+{
+#ifdef USE_THREADS
+  pthread_mutex_unlock(mutex);
+#endif // USE_THREADS
+}
 
 #ifdef NS_DIFFUSION
 DiffusionRouting::DiffusionRouting(u_int16_t port, DiffAppAgent *da)
@@ -84,8 +102,6 @@ DiffusionRouting::DiffusionRouting(u_int16_t port)
   next_handle = 1;
   getTime(&tv);
   getSeed(&tv);
-  //pkt_count = rand();
-  //rdm_id = rand();
   pkt_count = getRand();
   rdm_id = getRand();
   agent_id = 0;
@@ -120,14 +136,14 @@ DiffusionRouting::DiffusionRouting(u_int16_t port)
 	    "Diffusion Routing Agent initializing... Agent Id = %d\n",
 	    agent_id);
 
-  listening = true;
-
+#ifdef USE_THREADS
   // Initialize Semaphores
   drMtx = new pthread_mutex_t;
   queueMtx = new pthread_mutex_t;
 
   pthread_mutex_init(drMtx, NULL);
   pthread_mutex_init(queueMtx, NULL);
+#endif // USE_THREADS
 }
 
 handle DiffusionRouting::subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb)
@@ -136,12 +152,12 @@ handle DiffusionRouting::subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb)
   NRAttribute *scopeAttr;
 
   // Get lock first
-  pthread_mutex_lock(drMtx);
+  getLock(drMtx);
 
   // Check the published attributes
   if (!checkSubscription(subscribeAttrs)){
     diffPrint(DEBUG_ALWAYS, "Error : Invalid class/scope attributes in the subscribe attributes !\n");
-    pthread_mutex_unlock(drMtx);
+    releaseLock(drMtx);
     return FAIL;
   }
 
@@ -165,7 +181,7 @@ handle DiffusionRouting::subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb)
   InterestTimeout(my_handle);
 
   // Release lock
-  pthread_mutex_unlock(drMtx);
+  releaseLock(drMtx);
 
   return my_handle->hdl;
 }
@@ -175,12 +191,12 @@ int DiffusionRouting::unsubscribe(handle subscription_handle)
   Handle_Entry *my_handle = NULL;
 
   // Get the lock first
-  pthread_mutex_lock(drMtx);
+  getLock(drMtx);
 
   my_handle = findHandle(subscription_handle, &sub_list);
   if (!my_handle){
     // Handle doesn't exist, return FAIL
-    pthread_mutex_unlock(drMtx);
+    releaseLock(drMtx);
     return FAIL;
   }
 
@@ -188,7 +204,7 @@ int DiffusionRouting::unsubscribe(handle subscription_handle)
   my_handle->valid = false;
 
   // Release the lock
-  pthread_mutex_unlock(drMtx);
+  releaseLock(drMtx);
 
   return OK;
 }
@@ -199,12 +215,12 @@ handle DiffusionRouting::publish(NRAttrVec *publishAttrs)
   NRAttribute *scopeAttr;
 
   // Get the lock first
-  pthread_mutex_lock(drMtx);
+  getLock(drMtx);
 
   // Check the published attributes
   if (!checkPublication(publishAttrs)){
     diffPrint(DEBUG_ALWAYS, "Error : Invalid class/scope attributes in the publish attributes !\n");
-    pthread_mutex_unlock(drMtx);
+    releaseLock(drMtx);
     return FAIL;
   }
 
@@ -224,7 +240,7 @@ handle DiffusionRouting::publish(NRAttrVec *publishAttrs)
   }
 
   // Release the lock
-  pthread_mutex_unlock(drMtx);
+  releaseLock(drMtx);
 
   return my_handle->hdl;
 }
@@ -234,12 +250,12 @@ int DiffusionRouting::unpublish(handle publication_handle)
   Handle_Entry *my_handle = NULL;
 
   // Get the lock first
-  pthread_mutex_lock(drMtx);
+  getLock(drMtx);
 
   my_handle = removeHandle(publication_handle, &pub_list);
   if (!my_handle){
     // Handle doesn't exist, return FAIL
-    pthread_mutex_unlock(drMtx);
+    releaseLock(drMtx);
     return FAIL;
   }
 
@@ -247,7 +263,7 @@ int DiffusionRouting::unpublish(handle publication_handle)
   delete my_handle;
 
   // Release the lock
-  pthread_mutex_unlock(drMtx);
+  releaseLock(drMtx);
 
   return OK;
 }
@@ -255,106 +271,62 @@ int DiffusionRouting::unpublish(handle publication_handle)
 int DiffusionRouting::send(handle publication_handle,
 			   NRAttrVec *sendAttrs)
 {
-  DiffPacket out_pkt = NULL;
-  struct hdr_diff *dfh;
+  Message *sendMessage;
   Handle_Entry *my_handle;
-  Packed_Attribute *aux;
-  char *pos;
-  int len;
 
   // Get the lock first
-  pthread_mutex_lock(drMtx);
+  getLock(drMtx);
 
   // Get attributes associated with handle
   my_handle = findHandle(publication_handle, &pub_list);
   if (!my_handle){
-    pthread_mutex_unlock(drMtx);
+    releaseLock(drMtx);
     return FAIL;
   }
 
   // Check the send attributes
   if (!checkSend(sendAttrs)){
     diffPrint(DEBUG_ALWAYS, "Error : Invalid class/scope attributes in the send attributes !\n");
-    pthread_mutex_unlock(drMtx);
+    releaseLock(drMtx);
     return FAIL;
   }
 
-  // Special case for calculating packet size
-  len = CalculateSize(my_handle->attrs);
-  len = len + CalculateSize(sendAttrs);
-  len = len + sizeof(struct hdr_diff);
-
-  out_pkt = new int [1 + (len / sizeof(int))];
-
-  if (out_pkt == NULL){
-    diffPrint(DEBUG_ALWAYS, "Cannot allocate memory for outgoing message !\n");
-    exit(-1);
-  }
-
-  dfh = HDR_DIFF(out_pkt);
-
-  pos = (char *) out_pkt;
-  pos = pos + sizeof(struct hdr_diff);
-
-  len = PackAttrs(my_handle->attrs, pos);
-
-  // Move pointer ahead
-  pos = pos + len;
-
-  // Add the attributes passed in send
-  len = len + PackAttrs(sendAttrs, pos);
-
-  // Prepare packet header to send
-  LAST_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NEXT_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NUM_ATTR(dfh) = htons(sendAttrs->size() + my_handle->attrs->size());
-  PKT_NUM(dfh) = htonl(pkt_count);
-  RDM_ID(dfh) = htonl(rdm_id);
+  // Initialize message structure
+  sendMessage = new Message(DIFFUSION_VERSION, DATA, agent_id, 0,
+			    0, pkt_count, rdm_id, LOCALHOST_ADDR,
+			    LOCALHOST_ADDR);
+  // Increment pkt_counter
   pkt_count++;
-  SRC_PORT(dfh) = htons(agent_id);
-  VERSION(dfh) = DIFFUSION_VERSION;
-  MSG_TYPE(dfh) = DATA;
-  DATA_LEN(dfh) = htons(len);
 
-  // Send Packet
-  snd(out_pkt, sizeof(struct hdr_diff) + len, diffusion_port);
+  // First, we duplicate the 'publish' attributes
+  sendMessage->msg_attr_vec = CopyAttrs(my_handle->attrs);
 
-  delete [] out_pkt;
+  // Now, we add the send attributes
+  AddAttrs(sendMessage->msg_attr_vec, sendAttrs);
+
+  // Compute the total number and size of the joined attribute sets
+  sendMessage->num_attr = sendMessage->msg_attr_vec->size();
+  sendMessage->data_len = CalculateSize(sendMessage->msg_attr_vec);
 
   // Release the lock
-  pthread_mutex_unlock(drMtx);
+  releaseLock(drMtx);
+
+  // Send Packet
+  sendMessageToDiffusion(sendMessage);
+
+  delete sendMessage;
 
   return OK;
-}
-
-DiffPacket DiffusionRouting::AllocateBuffer(NRAttrVec *attrs)
-{
-  DiffPacket pkt;
-  int len;
-
-  len = CalculateSize(attrs);
-  len = len + sizeof(struct hdr_diff);
-  pkt = new int [1 + (len / sizeof(int))];
-
-  if (pkt == NULL){
-    diffPrint(DEBUG_ALWAYS, "Cannot allocate memory for outgoing message !\n");
-    exit(-1);
-  }
-
-  return pkt;
 }
 
 handle DiffusionRouting::addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
 				   FilterCallback *cb)
 {
-  DiffPacket out_pkt;
-  struct hdr_diff *dfh;
   Filter_Entry *my_filter;
   NRAttrVec *attrs;
   NRAttribute *ctrlmsg;
   ControlMessage *controlblob;
-  int len;
-  char *pos;
+  Message *myMessage;
 
   // Check parameters
   if (!filterAttrs || !cb || priority < FILTER_MIN_PRIORITY || priority > FILTER_MAX_PRIORITY){
@@ -363,7 +335,7 @@ handle DiffusionRouting::addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
   }
 
   // Get lock first
-  pthread_mutex_lock(drMtx);
+  getLock(drMtx);
 
   // Create and Initialize the handle_entry structute
   my_filter = new Filter_Entry(next_handle, priority, agent_id);
@@ -385,64 +357,53 @@ handle DiffusionRouting::addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
 
   attrs->push_back(ctrlmsg);
 
-  out_pkt = AllocateBuffer(attrs);
-  dfh = HDR_DIFF(out_pkt);
+  // Initialize message structure
+  myMessage = new Message(DIFFUSION_VERSION, CONTROL, agent_id, 0,
+			  0, pkt_count, rdm_id, LOCALHOST_ADDR,
+			  LOCALHOST_ADDR);
 
-  pos = (char *) out_pkt;
-  pos = pos + sizeof(struct hdr_diff);
-
-  len = PackAttrs(attrs, pos);
-
-  // Prepare packet header to send
-  LAST_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NEXT_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NUM_ATTR(dfh) = htons(attrs->size());
-  PKT_NUM(dfh) = htonl(pkt_count);
+  // Increment pkt_counter
   pkt_count++;
-  RDM_ID(dfh) = htonl(rdm_id);
-  SRC_PORT(dfh) = htons(agent_id);
-  VERSION(dfh) = DIFFUSION_VERSION;
-  MSG_TYPE(dfh) = CONTROL;
-  DATA_LEN(dfh) = htons(len);
 
-  // Send Packet
-  snd(out_pkt, sizeof(hdr_diff) + len, diffusion_port);
-
-  // Add keepalive to event queue
-  pthread_mutex_lock(queueMtx);
-  eq->eq_addAfter(FILTER_KEEPALIVE_TIMER, (void *) my_filter,
-		  FILTER_KEEPALIVE_DELAY);
-  pthread_mutex_unlock(queueMtx);
-
-  delete [] out_pkt;
-  ClearAttrs(attrs);
-  delete attrs;
-  delete controlblob;
+  // Add attributes to the message
+  myMessage->msg_attr_vec = attrs;
+  myMessage->num_attr = attrs->size();
+  myMessage->data_len = CalculateSize(attrs);
 
   // Release the lock
-  pthread_mutex_unlock(drMtx);
+  releaseLock(drMtx);
+
+  // Send Packet
+  sendMessageToDiffusion(myMessage);
+
+  // Add keepalive to event queue
+  getLock(queueMtx);
+  eq->eq_addAfter(FILTER_KEEPALIVE_TIMER, (void *) my_filter,
+		  FILTER_KEEPALIVE_DELAY);
+  releaseLock(queueMtx);
+
+  // Delete message, attribute set and controlblob
+  delete myMessage;
+  delete controlblob;
 
   return my_filter->handle;
 }
 
 int DiffusionRouting::removeFilter(handle filterHandle)
 {
-  DiffPacket out_pkt;
-  struct hdr_diff *dfh;
   Filter_Entry *entry = NULL;
   ControlMessage *controlblob;
   NRAttribute *ctrlmsg;
-  NRAttrVec attrs;
-  int len;
-  char *pos;
+  NRAttrVec *attrs;
+  Message *myMessage;
 
   // Get lock first
-  pthread_mutex_lock(drMtx);
+  getLock(drMtx);
 
   entry = findFilter(filterHandle);
   if (!entry){
     // Handle doesn't exist, return FAIL
-    pthread_mutex_unlock(drMtx);
+    releaseLock(drMtx);
     return FAIL;
   }
 
@@ -453,40 +414,33 @@ int DiffusionRouting::removeFilter(handle filterHandle)
 
   ctrlmsg = ControlMsgAttr.make(NRAttribute::IS, (void *)controlblob, sizeof(ControlMessage));
 
-  attrs.push_back(ctrlmsg);
+  attrs = new NRAttrVec;
+  attrs->push_back(ctrlmsg);
 
-  out_pkt = AllocateBuffer(&attrs);
-  dfh = HDR_DIFF(out_pkt);
+  myMessage = new Message(DIFFUSION_VERSION, CONTROL, agent_id, 0,
+			  0, pkt_count, rdm_id, LOCALHOST_ADDR,
+			  LOCALHOST_ADDR);
 
-  pos = (char *) out_pkt;
-  pos = pos + sizeof(struct hdr_diff);
-
-  len = PackAttrs(&attrs, pos);
-
-  // Prepare packet header to send
-  LAST_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NEXT_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NUM_ATTR(dfh) = htons(attrs.size());
-  PKT_NUM(dfh) = htonl(pkt_count);
+  // Increment pkt_counter
   pkt_count++;
-  RDM_ID(dfh) = htonl(rdm_id);
-  SRC_PORT(dfh) = htons(agent_id);
-  VERSION(dfh) = DIFFUSION_VERSION;
-  MSG_TYPE(dfh) = CONTROL;
-  DATA_LEN(dfh) = htons(len);
 
-  // Send Packet
-  snd(out_pkt, sizeof(hdr_diff) + len, diffusion_port);
+  // Add attributes to the message
+  myMessage->msg_attr_vec = attrs;
+  myMessage->num_attr = attrs->size();
+  myMessage->data_len = CalculateSize(attrs);
 
   // Handle will be destroyed when next keepalive timer happens
   entry->valid = false;
 
-  delete [] out_pkt;
-  ClearAttrs(&attrs);
-  delete controlblob;
+  // Send Packet
+  sendMessageToDiffusion(myMessage);
 
   // Release the lock
-  pthread_mutex_unlock(drMtx);
+  releaseLock(drMtx);
+
+  // Delete message
+  delete myMessage;
+  delete controlblob;
 
   return OK;
 }
@@ -497,9 +451,9 @@ handle DiffusionRouting::addTimer(int timeout, void *p, TimerCallbacks *cb)
 
   entry = new Timer_Entry(next_handle, timeout, p, cb);
 
-  pthread_mutex_lock(queueMtx);
+  getLock(queueMtx);
   eq->eq_addAfter(APPLICATION_TIMER, (void *) entry, timeout);
-  pthread_mutex_unlock(queueMtx);
+  releaseLock(queueMtx);
 
   next_handle++;
 
@@ -514,7 +468,7 @@ int DiffusionRouting::removeTimer(handle hdl)
   Timer_Entry *entry;
   int found = -1;
 
-  pthread_mutex_lock(queueMtx);
+  getLock(queueMtx);
 
   // Find the timer in the queue
   e = eq->eq_findEvent(APPLICATION_TIMER);
@@ -532,7 +486,7 @@ int DiffusionRouting::removeTimer(handle hdl)
   if (e){
     if (eq->eq_remove(e) != 0){
       diffPrint(DEBUG_ALWAYS, "Error: Can't remove event from queue !\n");
-      abort();
+      exit(-1);
     }
 
     // Call the application provided delete function
@@ -542,7 +496,7 @@ int DiffusionRouting::removeTimer(handle hdl)
     free(e);
   }
 
-  pthread_mutex_unlock(queueMtx);
+  releaseLock(queueMtx);
 
   return found;
 }
@@ -550,18 +504,14 @@ int DiffusionRouting::removeTimer(handle hdl)
 
 void DiffusionRouting::FilterKeepaliveTimeout(Filter_Entry *entry)
 {
-  DiffPacket out_pkt;
-  struct hdr_diff *dfh;
   Filter_Entry *my_handle = NULL;
   ControlMessage *controlblob;
   NRAttribute *ctrlmsg;
-  NRAttrVec attrs;
-  char *pos;
-  int len;
+  NRAttrVec *attrs;
+  Message *myMessage;
 
   if (entry->valid){
     // Send keepalive
-
     controlblob = new ControlMessage;
     controlblob->command = KEEPALIVE_FILTER;
     controlblob->param1 = entry->handle;
@@ -569,40 +519,32 @@ void DiffusionRouting::FilterKeepaliveTimeout(Filter_Entry *entry)
 
     ctrlmsg = ControlMsgAttr.make(NRAttribute::IS, (void *)controlblob, sizeof(ControlMessage));
 
-    attrs.push_back(ctrlmsg);
+    attrs = new NRAttrVec;
+    attrs->push_back(ctrlmsg);
 
-    out_pkt = AllocateBuffer(&attrs);
-    dfh = HDR_DIFF(out_pkt);
+    myMessage = new Message(DIFFUSION_VERSION, CONTROL, agent_id, 0,
+			    0, pkt_count, rdm_id, LOCALHOST_ADDR,
+			    LOCALHOST_ADDR);
 
-    pos = (char *) out_pkt;
-    pos = pos + sizeof(struct hdr_diff);
-
-    len = PackAttrs(&attrs, pos);
-
-    // Prepare packet header to send
-    LAST_HOP(dfh) = htonl(LOCALHOST_ADDR);
-    NEXT_HOP(dfh) = htonl(LOCALHOST_ADDR);
-    NUM_ATTR(dfh) = htons(attrs.size());
-    PKT_NUM(dfh) = htonl(pkt_count);
+    // Increment pkt_counter
     pkt_count++;
-    RDM_ID(dfh) = htonl(rdm_id);
-    SRC_PORT(dfh) = htons(agent_id);
-    VERSION(dfh) = DIFFUSION_VERSION;
-    MSG_TYPE(dfh) = CONTROL;
-    DATA_LEN(dfh) = htons(len);
 
-    // Send Packet
-    snd(out_pkt, sizeof(hdr_diff) + len, diffusion_port);
+    // Add attributes to the message
+    myMessage->msg_attr_vec = attrs;
+    myMessage->num_attr = attrs->size();
+    myMessage->data_len = CalculateSize(attrs);
+
+    // Send Message
+    sendMessageToDiffusion(myMessage);
 
     // Add another keepalive to event queue
-    pthread_mutex_lock(queueMtx);
+    getLock(queueMtx);
     eq->eq_addAfter(FILTER_KEEPALIVE_TIMER, (void *) entry,
 		    FILTER_KEEPALIVE_DELAY);
-    pthread_mutex_unlock(queueMtx);
+    releaseLock(queueMtx);
 
-    ClearAttrs(&attrs);
+    delete myMessage;
     delete controlblob;
-    delete [] out_pkt;
   }
   else{
     // Filter was removed
@@ -620,51 +562,35 @@ void DiffusionRouting::FilterKeepaliveTimeout(Filter_Entry *entry)
 
 void DiffusionRouting::InterestTimeout(Handle_Entry *entry)
 {
-  DiffPacket out_pkt;
-  struct hdr_diff *dfh;
   Handle_Entry *my_handle = NULL;
-  char *pos;
-  int len;
+  Message *myMessage;
 
   if (entry->valid){
     // Send the interest
+    myMessage = new Message(DIFFUSION_VERSION, INTEREST, agent_id, 0,
+			    0, pkt_count, rdm_id, LOCALHOST_ADDR,
+			    LOCALHOST_ADDR);
 
-    out_pkt = AllocateBuffer(entry->attrs);
-    dfh = HDR_DIFF(out_pkt);
-
-    pos = (char *) out_pkt;
-    pos = pos + sizeof(struct hdr_diff);
-
-    len = PackAttrs(entry->attrs, pos);
-
-    // Prepare packet header to send
-    LAST_HOP(dfh) = htonl(LOCALHOST_ADDR);
-    NEXT_HOP(dfh) = htonl(LOCALHOST_ADDR);
-    NUM_ATTR(dfh) = htons(entry->attrs->size());
-    PKT_NUM(dfh) = htonl(pkt_count);
+    // Increment pkt_counter
     pkt_count++;
-    RDM_ID(dfh) = htonl(rdm_id);
-    SRC_PORT(dfh) = htons(agent_id);
-    VERSION(dfh) = DIFFUSION_VERSION;
-    MSG_TYPE(dfh) = INTEREST;
-    DATA_LEN(dfh) = htons(len);
+
+    // Add attributes to the message
+    myMessage->msg_attr_vec = CopyAttrs(entry->attrs);
+    myMessage->num_attr = entry->attrs->size();
+    myMessage->data_len = CalculateSize(entry->attrs);
 
     // Send Packet
-    snd(out_pkt, sizeof(hdr_diff) + len, diffusion_port);
+    sendMessageToDiffusion(myMessage);
 
     // Add another InterestTimeout to the queue
-    pthread_mutex_lock(queueMtx);
-    //eq->eq_addAfter(INTEREST_TIMER, (void *) entry,
-    //INTEREST_DELAY +
-    //(int) ((INTEREST_JITTER * (rand() * 1.0 / RAND_MAX)) -
-    //     (INTEREST_JITTER / 2)));
+    getLock(queueMtx);
     eq->eq_addAfter(INTEREST_TIMER, (void *) entry,
 		    INTEREST_DELAY +
 		    (int) ((INTEREST_JITTER * (getRand() * 1.0 / RAND_MAX)) -
 			   (INTEREST_JITTER / 2)));
-    pthread_mutex_unlock(queueMtx);
-    
-    delete [] out_pkt;
+    releaseLock(queueMtx);
+
+    delete myMessage;
   }
   else{
     // Interest was canceled. Just delete it from the handle_list
@@ -685,7 +611,7 @@ void DiffusionRouting::ApplicationTimeout(Timer_Entry *entry)
   int new_timeout;
 
   new_timeout = entry->cb->recv(entry->hdl, entry->p);
-  pthread_mutex_lock(queueMtx);
+  getLock(queueMtx);
   if (new_timeout >= 0){
     if (new_timeout > 0){
       // Change the timer's timeout
@@ -699,7 +625,7 @@ void DiffusionRouting::ApplicationTimeout(Timer_Entry *entry)
     delete entry;
   }
 
-  pthread_mutex_unlock(queueMtx);
+  releaseLock(queueMtx);
 }
 
 int DiffusionRouting::sendMessage(Message *msg, handle h,
@@ -709,10 +635,7 @@ int DiffusionRouting::sendMessage(Message *msg, handle h,
   NRAttribute *originalAttr, *ctrlmsg;
   ControlMessage *controlblob;
   NRAttrVec *attrs;
-  DiffPacket out_pkt;
-  struct hdr_diff *dfh;
-  int len;
-  char *pos;
+  Message *myMessage;
 
   if ((priority < FILTER_MIN_PRIORITY) ||
       (priority > FILTER_KEEP_PRIORITY))
@@ -747,33 +670,22 @@ int DiffusionRouting::sendMessage(Message *msg, handle h,
   attrs->push_back(originalAttr);
   attrs->push_back(ctrlmsg);
 
-  // Send the CONTROL message to diffusion
-  out_pkt = AllocateBuffer(attrs);
-  dfh = HDR_DIFF(out_pkt);
+  myMessage = new Message(DIFFUSION_VERSION, CONTROL, agent_id, 0,
+			  0, pkt_count, rdm_id, LOCALHOST_ADDR,
+			  LOCALHOST_ADDR);
 
-  pos = (char *) out_pkt;
-  pos = pos + sizeof(struct hdr_diff);
-
-  len = PackAttrs(attrs, pos);
-
-  // Prepare packet header to send
-  LAST_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NEXT_HOP(dfh) = htonl(LOCALHOST_ADDR);
-  NUM_ATTR(dfh) = htons(attrs->size());
-  PKT_NUM(dfh) = htonl(pkt_count);
+  // Increment pkt_counter
   pkt_count++;
-  RDM_ID(dfh) = htonl(rdm_id);
-  SRC_PORT(dfh) = htons(agent_id);
-  VERSION(dfh) = DIFFUSION_VERSION;
-  MSG_TYPE(dfh) = CONTROL;
-  DATA_LEN(dfh) = htons(len);
+
+  // Add attributes to the message
+  myMessage->msg_attr_vec = attrs;
+  myMessage->num_attr = attrs->size();
+  myMessage->data_len = CalculateSize(attrs);
 
   // Send Packet
-  snd(out_pkt, sizeof(hdr_diff) + len, diffusion_port);
+  sendMessageToDiffusion(myMessage);
 
-  delete [] out_pkt;
-  ClearAttrs(attrs);
-  delete attrs;
+  delete myMessage;
   delete controlblob;
   delete originalHdr;
 
@@ -781,7 +693,17 @@ int DiffusionRouting::sendMessage(Message *msg, handle h,
 }
 
 #ifndef NS_DIFFUSION
-void DiffusionRouting::run()
+void DiffusionRouting::doIt()
+{
+  run(true, WAIT_FOREVER);
+}
+
+void DiffusionRouting::doOne(long timeout = WAIT_FOREVER)
+{
+  run(false, timeout);
+}
+
+void DiffusionRouting::run(bool wait_condition, long max_timeout)
 {
   DeviceList::iterator itr;
   int status, max_sock, fd;
@@ -791,7 +713,7 @@ void DiffusionRouting::run()
   struct timeval *tv;
   struct timeval tmv;
 
-  while (listening){
+  do{
     FD_ZERO(&fds);
     max_sock = 0;
 
@@ -799,35 +721,51 @@ void DiffusionRouting::run()
       (*itr)->AddInFDS(&fds, &max_sock);
     }
 
-    // Get the next timeout
-    pthread_mutex_lock(queueMtx);
+    // Check for the next timer
+    getLock(queueMtx);
     tv = eq->eq_nextTimer();
-    pthread_mutex_unlock(queueMtx);
+    releaseLock(queueMtx);
 
-    // If we don't have any timeouts, we wait for POLLING_INTERVAL
     if (!tv){
+      // If we don't have any timers, we wait for POLLING_INTERVAL
       tv = &tmv;
-      tmv.tv_sec = POLLING_INTERVAL;
-      tmv.tv_usec = 0;
+      if (max_timeout == WAIT_FOREVER){
+	tmv.tv_sec = POLLING_INTERVAL;
+	tmv.tv_usec = 0;
+      }
+      else{
+	tmv.tv_sec = (int) (max_timeout / 1000);
+	tmv.tv_usec = (int) ((max_timeout % 1000) * 1000);
+      }
+    }
+    else{
+      tmv.tv_sec = (int) (max_timeout / 1000);
+      tmv.tv_usec = (int) ((max_timeout % 1000) * 1000);
+      if ((max_timeout != WAIT_FOREVER) && ((tv->tv_sec > tmv.tv_sec)
+					    || ((tv->tv_sec == tmv.tv_sec) &&
+					(tv->tv_usec > tmv.tv_usec)))){
+	// Timeout value is smaller than next timer's time
+	// so, we use the max_timeout value instead
+	tv = &tmv;
+      }
     }
 
-    fflush(stdout);
     status = select(max_sock+1, &fds, NULL, NULL, tv);
 
-    pthread_mutex_lock(queueMtx);
+    getLock(queueMtx);
     if (eq->eq_topInPast()){
       // We got a timeout
       event *e = eq->eq_pop();
-      pthread_mutex_unlock(queueMtx);
+      releaseLock(queueMtx);
 
       // Timeouts
       switch (e->type){
 
       case INTEREST_TIMER:
 
-	pthread_mutex_lock(drMtx);
+	getLock(drMtx);
 	InterestTimeout((Handle_Entry *) e->payload);
-	pthread_mutex_unlock(drMtx);
+	releaseLock(drMtx);
 
 	free(e);
 
@@ -835,9 +773,9 @@ void DiffusionRouting::run()
 
       case FILTER_KEEPALIVE_TIMER:
 
-	pthread_mutex_lock(drMtx);
+	getLock(drMtx);
 	FilterKeepaliveTimeout((Filter_Entry *) e->payload);
-	pthread_mutex_unlock(drMtx);
+	releaseLock(drMtx);
 
 	free(e);
 
@@ -859,7 +797,7 @@ void DiffusionRouting::run()
     }
     else{
       // Don't forget to release the lock
-      pthread_mutex_unlock(queueMtx);
+      releaseLock(queueMtx);
 
       if (status > 0){
 	do{
@@ -869,7 +807,7 @@ void DiffusionRouting::run()
 	    if (fd != 0){
 	      // Message waiting
 	      in_pkt = (*itr)->RecvPacket(fd);
-	      recv(in_pkt);
+	      recvPacket(in_pkt);
 
 	      // Clear this fd
 	      FD_CLR(fd, &fds);
@@ -884,12 +822,60 @@ void DiffusionRouting::run()
 	  diffPrint(DEBUG_IMPORTANT, "Select returned %d\n", status);
 	}
     }
-  }
+  } while (wait_condition);
 }
 
 #endif // NS_DIFFUSION
 
-void DiffusionRouting::snd(DiffPacket pkt, int len, int dst)
+#ifdef NS_DIFFUSION
+void DiffusionRouting::sendMessageToDiffusion(Message *msg)
+{
+  Message* myMsg;
+  DeviceList::iterator itr;
+  int len;
+  
+  myMsg = CopyMessage(msg);
+  len = CalculateSize(myMsg->msg_attr_vec);
+  len = len + sizeof(struct hdr_diff);
+
+  for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
+    (*itr)->SendPacket(myMsg, len, diffusion_port);
+  }
+}
+
+#else
+void DiffusionRouting::sendMessageToDiffusion(Message *msg)
+{
+  DiffPacket out_pkt = NULL;
+  struct hdr_diff *dfh;
+  char *pos;
+  int len;
+
+  out_pkt = AllocateBuffer(msg->msg_attr_vec);
+  dfh = HDR_DIFF(out_pkt);
+
+  pos = (char *) out_pkt;
+  pos = pos + sizeof(struct hdr_diff);
+
+  len = PackAttrs(msg->msg_attr_vec, pos);
+
+  LAST_HOP(dfh) = htonl(msg->last_hop);
+  NEXT_HOP(dfh) = htonl(msg->next_hop);
+  VERSION(dfh) = msg->version;
+  MSG_TYPE(dfh) = msg->msg_type;
+  DATA_LEN(dfh) = htons(len);
+  PKT_NUM(dfh) = htonl(msg->pkt_num);
+  RDM_ID(dfh) = htonl(msg->rdm_id);
+  NUM_ATTR(dfh) = htons(msg->num_attr);
+  SRC_PORT(dfh) = htons(msg->source_port);
+
+  sendPacketToDiffusion(out_pkt, sizeof(struct hdr_diff) + len, diffusion_port);
+  
+  delete [] out_pkt;
+}
+#endif
+
+void DiffusionRouting::sendPacketToDiffusion(DiffPacket pkt, int len, int dst)
 {
   DeviceList::iterator itr;
 
@@ -898,7 +884,8 @@ void DiffusionRouting::snd(DiffPacket pkt, int len, int dst)
   }
 }
 
-void DiffusionRouting::recv(DiffPacket pkt)
+#ifndef NS_DIFFUSION
+void DiffusionRouting::recvPacket(DiffPacket pkt)
 {
   struct hdr_diff *dfh = HDR_DIFF(pkt);
   Message *rcv_message = NULL;
@@ -917,15 +904,7 @@ void DiffusionRouting::recv(DiffPacket pkt)
   last_hop = ntohl(LAST_HOP(dfh));
   data_len = ntohs(DATA_LEN(dfh));
 
-  // Check version
-  if (version != DIFFUSION_VERSION)
-    return;
-
-  // Check destination
-  if (next_hop != LOCALHOST_ADDR)
-    return;
-
-  // Packet is good, create a message
+  // Create a message structure from the incoming packet
   rcv_message = new Message(version, msg_type, source_port, data_len,
 			    num_attr, pkt_num, rdm_id, next_hop, last_hop);
 
@@ -933,22 +912,37 @@ void DiffusionRouting::recv(DiffPacket pkt)
   rcv_message->msg_attr_vec = UnpackAttrs(pkt, num_attr);
 
   // Process the incoming message
-  if (rcv_message->msg_type == REDIRECT)
-    ProcessControlMessage(rcv_message);
-  else
-    ProcessMessage(rcv_message);
+  recvMessage(rcv_message);
 
-  // We are dome
+  // We are done
   delete rcv_message;
 
-#ifndef NS_DIFFUSION
+  //#ifndef NS_DIFFUSION
   // In the NS implementation, the packet gets deleted when
   // Packet::free() gets called from recv(Packet *, handler *)
   delete [] pkt;
-#endif // NS_DIFFUSION
+  //#endif // NS_DIFFUSION
+}
+#endif //NOT_NS_DIFF
+
+void DiffusionRouting::recvMessage(Message *msg)
+{
+  // Check version
+  if (msg->version != DIFFUSION_VERSION)
+    return;
+
+  // Check destination
+  if (msg->next_hop != LOCALHOST_ADDR)
+    return;
+
+  // Process the incoming message
+  if (msg->msg_type == REDIRECT)
+    processControlMessage(msg);
+  else
+    processMessage(msg);
 }
 
-void DiffusionRouting::ProcessControlMessage(Message *msg)
+void DiffusionRouting::processControlMessage(Message *msg)
 {
   NRSimpleAttribute<void *> *originalHeader = NULL;
   NRAttrVec::iterator place = msg->msg_attr_vec->begin();
@@ -981,13 +975,15 @@ void DiffusionRouting::ProcessControlMessage(Message *msg)
   delete originalHeader;
 
   // Find the right callback
-  pthread_mutex_lock(drMtx);
+  getLock(drMtx);
 
   entry = findFilter(my_handle);
   if (entry && entry->valid){
     // Just to confirm
     if (OneWayMatch(entry->filterAttrs, msg->msg_attr_vec)){
+      releaseLock(drMtx);
       entry->cb->recv(msg, my_handle);
+      return;
     }
     else{
       diffPrint(DEBUG_ALWAYS, "Warning: Filter specified doesn't match incoming message's attributes !\n");
@@ -997,10 +993,10 @@ void DiffusionRouting::ProcessControlMessage(Message *msg)
     diffPrint(DEBUG_IMPORTANT, "Report: Filter in REDIRECT message was not found (possibly deleted ?)\n");
   }
 
-  pthread_mutex_unlock(drMtx);
+  releaseLock(drMtx);
 }
 
-void DiffusionRouting::ProcessMessage(Message *msg)
+void DiffusionRouting::processMessage(Message *msg)
 {
   CallbackList cbl;
   Callback_Entry *aux;
@@ -1009,8 +1005,8 @@ void DiffusionRouting::ProcessMessage(Message *msg)
   Handle_Entry *entry; 
   NRAttrVec *callbackAttrs;
 
-  // Now, acquire the lock
-  pthread_mutex_lock(drMtx);
+  // First, acquire the lock
+  getLock(drMtx);
 
   for (sub_itr = sub_list.begin(); sub_itr != sub_list.end(); ++sub_itr){
     entry = *sub_itr;
@@ -1024,7 +1020,7 @@ void DiffusionRouting::ProcessMessage(Message *msg)
   }
 
   // We can release the lock now
-  pthread_mutex_unlock(drMtx);
+  releaseLock(drMtx);
 
   // Now we just call all callback functions
   for (cbl_itr = cbl.begin(); cbl_itr != cbl.end(); ++cbl_itr){

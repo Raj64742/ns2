@@ -46,8 +46,8 @@ public:
 } class_diffusion_routing_agent;
 
 
-void LocalApp::SendPacket(DiffPacket pkt, int len, int dst) {
-  agent_->sendPacket(pkt, len, dst); 
+void LocalApp::SendPacket(Message *msg, int len, int dst) {
+  agent_->sendPacket(msg, len, dst); 
 }
 
 
@@ -60,12 +60,12 @@ DiffPacket LocalApp::RecvPacket(int fd) {
 }
 
 
-void LinkLayerAbs::SendPacket(DiffPacket pkt, int len, int dst) {
+void LinkLayerAbs::SendPacket(Message *msg, int len, int dst) {
   Packet *p;
   Handler *h;
   hdr_ip *iph;
   
-  p = agent_->createNsPkt(pkt, len, dst); 
+  p = agent_->createNsPkt(msg, len, dst); 
   iph = HDR_IP(p);
   iph->saddr() = agent_->addr();
   iph->sport() = agent_->port();    //RT_PORT;
@@ -138,43 +138,45 @@ void DiffRoutingAgent::diffTimeout(Event *de) {
 }
 
 
-void DiffRoutingAgent::sendPacket(DiffPacket pkt, int len, int dst) {
+void DiffRoutingAgent::sendPacket(Message *msg, int len, int dst) {
   Packet *p;
-  Handler *h;
+  // Handler *h;
   hdr_ip *iph;
 
-  p = createNsPkt(pkt, len, dst); 
+  p = createNsPkt(msg, len, dst); 
   iph = HDR_IP(p);
   iph->saddr() = addr();
   iph->sport() = port();  //RT_PORT;
   iph->daddr() = addr();
   iph->dport() = dst;
 
-  // schedule for a realistic delay : 1 sec for now
+  // schedule for a realistic delay : 0 sec for now
   (void)Scheduler::instance().schedule(port_dmux(), p, 1);
   
 }
 
 
 Packet* 
-DiffRoutingAgent::createNsPkt(DiffPacket pkt, int len, int dst) {
+DiffRoutingAgent::createNsPkt(Message *msg, int len, int dst) {
   Packet *p;
   AppData *diffdata;
   
   p = allocpkt();
-  diffdata  = new DiffusionData(pkt, len);
+  diffdata  = new DiffusionData(msg, len);
   p->setdata(diffdata);
   return p;
 }
 
 void DiffRoutingAgent::recv(Packet *p, Handler *h) {
-  DiffPacket pkt;
+  Message *msg;
   DiffusionData *diffdata;
 
   diffdata = (DiffusionData *)(p->userdata());
-  pkt = diffdata->data();
+  msg = diffdata->data();
 
-  agent_->recv(pkt);
+  agent_->recvMessage(msg);
+
+  //delete msg;
   Packet::free(p);
 }
 

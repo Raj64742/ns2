@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.hh,v 1.4 2001/12/11 23:21:44 haldar Exp $
+// $Id: dr.hh,v 1.5 2002/02/25 20:23:53 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -41,6 +41,7 @@
 #include "UDPlocal.hh"
 #endif // UDP
 
+#define WAIT_FOREVER       -1
 #define POLLING_INTERVAL   10 // seconds
 
 class Handle_Entry;
@@ -102,7 +103,7 @@ public:
   int get_agentid(int id = -1);
 #else
   DiffusionRouting(u_int16_t port);
-  void run();
+  void run(bool wait_condition, long max_timeout);
 #endif // NS_DIFFUSION
 
   ~DiffusionRouting()
@@ -149,12 +150,17 @@ public:
 
   int removeTimer(handle hdl);
 
+  void doIt();
+
+  void doOne(long timeout = WAIT_FOREVER);
+
 #ifndef NS_DIFFUSION
   // Outside NS, all this can be protected members
 protected:
 #endif // NS_DIFFUSION
 
-  void recv(DiffPacket pkt);
+  void recvPacket(DiffPacket pkt);
+  void recvMessage(Message *msg);
   void InterestTimeout(Handle_Entry *entry);
   void FilterKeepaliveTimeout(Filter_Entry *entry);
   void ApplicationTimeout(Timer_Entry *entry);
@@ -164,11 +170,11 @@ protected:
 protected:
 #endif // NS_DIFFUSION
 
-  void snd(DiffPacket pkt, int len, int dst);
-  DiffPacket AllocateBuffer(NRAttrVec *attrs);
+  void sendMessageToDiffusion(Message *msg);
+  void sendPacketToDiffusion(DiffPacket pkt, int len, int dst);
 
-  void ProcessMessage(Message *msg);
-  void ProcessControlMessage(Message *msg);
+  void processMessage(Message *msg);
+  void processControlMessage(Message *msg);
 
   bool checkSubscription(NRAttrVec *attrs);
   bool checkPublication(NRAttrVec *attrs);
@@ -190,14 +196,9 @@ protected:
   // Threads and Mutexes
   pthread_mutex_t *drMtx;
   pthread_mutex_t *queueMtx;
-  bool listening;
 
   // Data structures
-  //#ifdef NS_DIFFUSION
-  //  DiffEventQueue *eq;
-  //#else
   eventQueue *eq;
-  //#endif // NS_DIFFUSION
 
   // Lists
   DeviceList in_devices;

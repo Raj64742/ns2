@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping_sender.hh,v 1.1 2001/12/11 23:21:42 haldar Exp $
+// $Id: ping_sender.hh,v 1.2 2002/02/25 20:23:52 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -27,6 +27,7 @@ class PingSenderApp;
 
 #ifdef NS_DIFFUSION
 #define SEND_DATA_INTERVAL 5
+//#define SEND_DATA_INTERVAL 1
 
 class sendDataTimer : public TimerHandler {
   public:

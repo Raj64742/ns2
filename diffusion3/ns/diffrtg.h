@@ -51,85 +51,87 @@ extern DiffPacket DupPacket(DiffPacket pkt);
 
 class LocalApp : public DiffusionIO {
 public:
-  LocalApp(DiffRoutingAgent *agent) { agent_ = agent;}
-  DiffPacket RecvPacket(int fd);
-  void SendPacket(DiffPacket pkt, int len, int dst); 
+	LocalApp(DiffRoutingAgent *agent) { agent_ = agent;}
+	DiffPacket RecvPacket(int fd);
+	void SendPacket(Message *msg, int len, int dst); 
 protected:
-  DiffRoutingAgent *agent_;
+	DiffRoutingAgent *agent_;
 };
 
 class LinkLayerAbs : public DiffusionIO {
 public:
-  LinkLayerAbs(DiffRoutingAgent *agent) { agent_ = agent;}
-  DiffPacket RecvPacket(int fd);
-  void SendPacket(DiffPacket pkt, int len, int dst); 
+	LinkLayerAbs(DiffRoutingAgent *agent) { agent_ = agent;}
+	DiffPacket RecvPacket(int fd);
+	void SendPacket(Message *msg, int len, int dst); 
 protected:
-  DiffRoutingAgent *agent_;
+	DiffRoutingAgent *agent_;
 };
  
 class DiffusionCoreEQ : public eventQueue {
 public:
-  void eq_new() { }         ;//do nothing 
-  DiffusionCoreEQ(DiffRoutingAgent *agent) { a_ = agent; }
-  void eq_addAfter(int type, void *, int delay);
+	void eq_new() { }         ;//do nothing 
+	DiffusionCoreEQ(DiffRoutingAgent *agent) { a_ = agent; }
+	void eq_addAfter(int type, void *, int delay);
 private:
-  DiffRoutingAgent *a_;
+	DiffRoutingAgent *a_;
 };
 
 
 class DiffusionData : public AppData {
 private:
-  DiffPacket data_;
-  int len_;
+	Message *data_;
+	int len_;
 public:
-  DiffusionData(DiffPacket data, int len) : AppData(DIFFUSION_DATA), data_(0)
-    { 
-	    data_ = DupPacket(data);
-	    len_ = len;
-    }
-  ~DiffusionData() { delete [] data_; }
-  DiffPacket data() {return data_;}
-  int size() const { return (len_ + sizeof(struct hdr_diff)); }
-  AppData* copy() { 
-    DiffusionData *dup = new DiffusionData(data_, len_);
-    return dup; 
-  } 
+	DiffusionData(Message *data, int len) : AppData(DIFFUSION_DATA), data_(0)
+	{ 
+		data_ = data;
+		len_ = len;
+	}
+	~DiffusionData() { delete data_; }
+	Message *data() {return data_;}
+	int size() const { return len_; }
+	AppData* copy() { 
+		Message *newdata = CopyMessage(data_);
+		DiffusionData *dup = new DiffusionData(newdata, len_);
+		return dup; 
+	} 
 };
 
 
 class DiffRoutingAgent : public Agent {
- public:
-  DiffRoutingAgent();
-  int command(int argc, const char*const* argv);
+public:
+	DiffRoutingAgent();
+	int command(int argc, const char*const* argv);
+	
+	Packet* createNsPkt(Message *msg, int len, int dst);  
+	void recv(Packet*, Handler*);
+	void sendPacket(Message *msg, int len, int dst);
+  
+	DiffusionCoreAgent *getagent() { return agent_; }
+	
+	//trace support
+	void trace (char *fmt,...);
+	
+	//timer functions
+	CoreDiffEventHandler *getDiffTimer() { return difftimer_ ; }
+	void diffTimeout(Event *de);
 
-  Packet* createNsPkt(DiffPacket pkt, int len, int dst);  
-  void recv(Packet*, Handler*);
-  void sendPacket(DiffPacket pkt, int len, int dst);
-  
-  DiffusionCoreAgent *getagent() { return agent_; }
-
-  //trace support
-  void trace (char *fmt,...);
-  
-  //timer functions
-  CoreDiffEventHandler *getDiffTimer() { return difftimer_ ; }
-  void diffTimeout(Event *de);
-
-  PortClassifier *port_dmux() {return port_dmux_; }
- private:
-  int addr_;
-  Trace *tracetarget_;
-  
-  //  diffusion core agent 
-  DiffusionCoreAgent *agent_;
-
-  // timer
-  CoreDiffEventHandler *difftimer_;
-  
-  //port-dmux
-  PortClassifier *port_dmux_;
-  
+	PortClassifier *port_dmux() {return port_dmux_; }
+private:
+	int addr_;
+	Trace *tracetarget_;
+	
+	//  diffusion core agent 
+	DiffusionCoreAgent *agent_;
+	
+	// timer
+	CoreDiffEventHandler *difftimer_;
+	
+	//port-dmux
+	PortClassifier *port_dmux_;
+	
 }; 
 
 #endif //diffrtg
 #endif // NS
+
