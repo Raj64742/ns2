@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.70 1997/11/27 05:40:02 padmanab Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.71 1997/11/29 03:15:15 elan Exp $
 #
 
 #
@@ -216,12 +216,11 @@ Simulator instproc dump-namnodes {} {
 }
 
 Simulator instproc dump-namqueues {} {
-	$self instvar Node_
+	$self instvar link_
 	if ![$self is-started] {
 		return
 	}
         foreach qn [array names link_] {
-                set q [$link_($qn) queue]
 		$link_($qn) dump-nam-queueconfig
         }
 }

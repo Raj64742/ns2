@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/complete/demo.tcl,v 1.1 1997/06/22 19:04:24 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/complete/demo.tcl,v 1.2 1997/11/29 03:15:14 elan Exp $
 #
 
 set tcldir ../../../
@@ -41,45 +41,67 @@ source $tcldir/rtp/session-rtp.tcl
 proc flash_annotate { start duration msg } {
 	global ns
 	$ns at $start "trace_annotate {$msg}"
-	$ns at [expr $start+$duration] "trace_annotate {}"
+#	$ns at [expr $start+$duration] "trace_annotate  {}"
 }
 
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
+Simulator set NumberInterfaces_ 1
+
+# rtcp reports
+$ns color 32 red
+# scuba reports
+$ns color 33 white
+
+$ns color 1 gold
+$ns color 2 blue
+$ns color 3 green
+$ns color 4 magenta
 
 for { set i 0 } { $i < 8 } { incr i } {
 	set node($i) [$ns node]
 }
+$node(3) shape "square"
+$node(7) shape "square"
 
 set f [open out.tr w]
 $ns trace-all $f
+set nf [open out.nam w]
+$ns namtrace-all $nf
 
 Queue set limit_ 8
 
 proc makelinks { bw delay pairs } {
-	global ns node
-	foreach p $pairs {
-		set src $node([lindex $p 0])
-		set dst $node([lindex $p 1])
-		$ns duplex-link $src $dst $bw $delay DropTail
-	}
+        global ns node
+        foreach p $pairs {
+                set src $node([lindex $p 0])
+                set dst $node([lindex $p 1])
+                $ns duplex-link $src $dst $bw $delay DropTail
+                $ns duplex-link-op $src $dst orient [lindex $p 2]
+        }
 }
 
 makelinks 1.5Mb 10ms {
-	{ 0 3 }
-	{ 1 3 }
-	{ 2 3 }
-	{ 4 7 }
-	{ 5 7 }
-	{ 6 7 }
+        { 0 3 right-down }
+        { 1 3 right }
+        { 2 3 right-up }
+        { 7 4 right-up }
+        { 7 5 right }
+        { 7 6 right-down }
 }
 
 makelinks 400kb 50ms {
-	{ 3 7 }
+	{ 3 7 right }
 }
 
-for { set i 0 } { $i < 8 } { incr i } {
-	set dm($i) [new DM $ns $node($i)]
-}
+$ns duplex-link-op $node(3) $node(7) queuePos 0.5
+set mproto DM
+set mrthandle [$ns mrtproto $mproto {}]
+
+
+#for { set i 0 } { $i < 8 } { incr i } {
+#	set dm($i) [new DM $ns $node($i)]
+#}
 
 $ns at 0.0 "$ns run-mcast"
 
@@ -115,15 +137,15 @@ $ns at 0.25 {
 }
 
 # start senders
-flash_annotate 0.5 0.2 "Starting sender 1 at 200kb/s..."
+flash_annotate 0.5 0.2 "Starting sender 0 at 200kb/s..."
 $ns at 0.5 "$sess(0) start"
 $ns at 0.5 "$sess(0) transmit 200kb/s"
 
-flash_annotate 1.0 0.2 "Starting sender 2 at 200kb/s..."
+flash_annotate 1.0 0.2 "Starting sender 1 at 200kb/s..."
 $ns at 1.0 "$sess(1) start"
 $ns at 1.0 "$sess(1) transmit 200kb/s"
 
-flash_annotate 1.5 0.2 "Starting sender 3 at 200kb/s..."
+flash_annotate 1.5 0.2 "Starting sender 2 at 200kb/s..."
 $ns at 1.5 "$sess(2) start"
 $ns at 1.5 "$sess(2) transmit 200kb/s"
 
@@ -140,15 +162,15 @@ $ns at 2.0 "trace_annotate {End}"
 $ns at 2.5 "trace_annotate {Equal Bandwidth - No Saturation}"
 
 # start senders
-flash_annotate 3.0 0.2 "Starting sender 1 at 130kb/s..."
+flash_annotate 3.0 0.2 "Starting sender 0 at 130kb/s..."
 $ns at 3.0 "$sess(0) start"
 $ns at 3.0 "$sess(0) transmit 130kb/s"
 
-flash_annotate 3.5 0.2 "Starting sender 2 at 130kb/s..."
+flash_annotate 3.5 0.2 "Starting sender 1 at 130kb/s..."
 $ns at 3.5 "$sess(1) start"
 $ns at 3.5 "$sess(1) transmit 130kb/s"
 
-flash_annotate 4.0 0.2 "Starting sender 3 at 130kb/s..."
+flash_annotate 4.0 0.2 "Starting sender 2 at 130kb/s..."
 $ns at 4.0 "$sess(2) start"
 $ns at 4.0 "$sess(2) transmit 130kb/s"
 
@@ -199,13 +221,13 @@ proc scuba_sim { start } {
 	}
 
 	# start senders
-	flash_annotate [expr $start+1.1] 0.05 "Starting sender 1..."
+	flash_annotate [expr $start+1.1] 0.05 "Starting sender 0..."
 	$ns at [expr $start+1.1] "$sess(0) start 1"
 
-	flash_annotate [expr $start+1.2] 0.05 "Starting sender 2..."
+	flash_annotate [expr $start+1.2] 0.05 "Starting sender 1..."
 	$ns at [expr $start+1.2] "$sess(1) start 1"
 
-	flash_annotate [expr $start+1.3] 0.05 "Starting sender 3..."
+	flash_annotate [expr $start+1.3] 0.05 "Starting sender 2..."
 	$ns at [expr $start+1.3] "$sess(2) start 1"
 
 	# 4 focus on 0
@@ -239,11 +261,9 @@ proc finish {} {
 	puts "converting output to nam format..."
         global ns
         $ns flush-trace
-	exec awk -f $tcldir/nam-demo/nstonam.awk out.tr > demo-nam.tr
-	exec rm -f out
-        #XXX
+
 	puts "running nam..."
-	exec /usr/local/src/nam/nam demo-nam &
+	exec /usr/local/src/nam-1/nam out.nam &
         exit 0
 }
 
