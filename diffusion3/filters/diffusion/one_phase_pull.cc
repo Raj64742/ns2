@@ -3,7 +3,7 @@
 // author               : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: one_phase_pull.cc,v 1.2 2003/07/10 21:18:56 haldar Exp $
+// $Id: one_phase_pull.cc,v 1.3 2003/08/05 23:38:36 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -38,13 +38,6 @@ public:
 
 int OnePhasePullFilter::command(int argc, const char*const* argv) {
   if (argc == 3) {
-    if (strcasecmp(argv[1], "dr") == 0) {
-      DiffAppAgent *agent;
-      agent = (DiffAppAgent *) TclObject::lookup(argv[2]);
-      dr_ = agent->dr();
-      start();
-      return TCL_OK;
-    }
     if (strcasecmp(argv[1], "debug") == 0) {
       global_debug_level = atoi(argv[2]);
       if (global_debug_level < 1 || global_debug_level > 10) {
@@ -53,7 +46,7 @@ int OnePhasePullFilter::command(int argc, const char*const* argv) {
       }
     }
   }
-  return Application::command(argc, argv);
+  return DiffApp::command(argc, argv);
 }
 
 #endif // NS_DIFFUSION

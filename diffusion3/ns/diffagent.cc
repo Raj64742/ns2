@@ -80,31 +80,67 @@ int DiffAppAgent::command(int argc, const char*const* argv) {
 
 
 
-void DiffAppAgent::recv(Packet* p, Handler* h) {
-  Message *msg;
-  DiffusionData *diffdata;
-
-  diffdata = (DiffusionData *)(p->userdata());
-  msg = diffdata->data();
-  
-  DiffusionRouting *dr = (DiffusionRouting*)dr_;
-  dr->recvMessage(msg);
-  
-  //delete msg;
-  Packet::free(p);
-  
-  
+void DiffAppAgent::recv(Packet* p, Handler* h) 
+{
+	Message *msg;
+	DiffusionData *diffdata;
+	
+	diffdata = (DiffusionData *)(p->userdata());
+	msg = diffdata->data();
+	
+	DiffusionRouting *dr = (DiffusionRouting*)dr_;
+	dr->recvMessage(msg);
+	
+	Packet::free(p);
+	
 }
 
+void
+DiffAppAgent::initpkt(Packet* p, Message* msg, int len)
+{
+	hdr_cmn* ch = HDR_CMN(p);
+	hdr_ip* iph = HDR_IP(p);
+	AppData *diffdata;
+		
+	diffdata  = new DiffusionData(msg, len);
+	p->setdata(diffdata);
+	
+	// initialize pkt
+	ch->uid() = msg->pkt_num_; /* copy pkt_num from diffusion msg */
+	ch->ptype() = type_;
+	ch->size() = size_;
+	ch->timestamp() = Scheduler::instance().clock();
+	ch->iface() = UNKN_IFACE.value(); // from packet.h (agent is local)
+	ch->direction() = hdr_cmn::NONE;
+	ch->error() = 0;	/* pkt not corrupt to start with */
 
-Packet* DiffAppAgent::createNsPkt(Message *msg, int len) {
-  Packet *p;
-  AppData *diffdata;
+	iph->saddr() = addr();
+	iph->sport() = ((DiffusionRouting*)dr_)->getAgentId();
+	iph->daddr() = addr();
+	iph->flowid() = fid_;
+	iph->prio() = prio_;
+	iph->ttl() = defttl_;
+	
+	hdr_flags* hf = hdr_flags::access(p);
+	hf->ecn_capable_ = 0;
+	hf->ecn_ = 0;
+	hf->eln_ = 0;
+	hf->ecn_to_echo_ = 0;
+	hf->fs_ = 0;
+	hf->no_ts_ = 0;
+	hf->pri_ = 0;
+	hf->cong_action_ = 0;
+	
+}
+
+Packet* 
+DiffAppAgent::createNsPkt(Message *msg, int len) 
+{
+	Packet *p;
   
-  p = allocpkt();
-  diffdata  = new DiffusionData(msg, len);
-  p->setdata(diffdata);
-  return p;
+	p =  Packet::alloc();
+	initpkt(p, msg, len);
+	return (p);
 }
 
 
@@ -116,9 +152,6 @@ void DiffAppAgent::sendPacket(DiffPacket dp, int len, int dst) {
   msg = (Message *)dp;
   p = createNsPkt(msg, len); 
   iph = HDR_IP(p);
-  iph->saddr() = addr();
-  iph->sport() = ((DiffusionRouting*)dr_)->getAgentId();
-  iph->daddr() = addr();
   iph->dport() = dst;
 
   // schedule for realistic delay : set to 0 sec for now

@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <tclcl.h>
 #include <agent.h>
+#include <flags.h>
 #include <mobilenode.h>
 #include <dr.hh>
 
@@ -56,7 +57,7 @@ public:
   
 	DiffAppAgent();
 	int command(int argc, const char*const* argv);
-	
+	void initpkt(Packet *p, Message* msg, int len);
 	Packet* createNsPkt(Message *msg, int len);	
 	void recv(Packet*, Handler*);
 	void sendPacket(DiffPacket msg, int len, int dst);

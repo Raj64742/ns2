@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2002 by the University of Southern California
 // Copyright (C) 2000-2002 by the University of California
-// $Id: gear.hh,v 1.1 2003/07/08 18:06:44 haldar Exp $
+// $Id: gear.hh,v 1.2 2003/08/05 23:38:37 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -189,7 +189,7 @@ public:
 class GeoRoutingFilter : public DiffApp {
 public:
 #ifdef NS_DIFFUSION
-  GeoRoutingFilter();
+  GeoRoutingFilter(const char *diffrtg);
   int command(int argc, const char*const* argv);
 #else
   GeoRoutingFilter(int argc, char **argv);

@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Padma Haldar
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: diffapp.cc,v 1.9 2003/07/09 17:50:00 haldar Exp $
+// $Id: diffapp.cc,v 1.10 2003/08/05 23:38:37 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -24,16 +24,12 @@
 
 #ifdef NS_DIFFUSION
 int DiffApp::command(int argc, const char*const* argv) {
-  //if (argc == 2) {
-  //if (strcmp(argv[1], "subscribe") == 0) {
-  //  start();
-  //  return TCL_OK;
-  //}
-  //if (strcmp(argv[1], "unsubscribe") == 0) {
-  //  dr->unsubscribe(subHandle);
-  //exit(0);
-  //  }
-  //}
+  if (argc == 2) {
+    if (strcmp(argv[1], "start") == 0) {
+      start();
+      return TCL_OK;
+    }
+  }
   if (argc == 3) {
     if (strcmp(argv[1], "dr") == 0) {
       DiffAppAgent *agent;

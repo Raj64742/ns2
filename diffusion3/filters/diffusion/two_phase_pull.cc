@@ -3,7 +3,7 @@
 // author             : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: two_phase_pull.cc,v 1.3 2003/07/14 23:44:49 haldar Exp $
+// $Id: two_phase_pull.cc,v 1.4 2003/08/05 23:38:36 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -25,7 +25,7 @@
 #ifdef NS_DIFFUSION
 static class GradientFilterClass : public TclClass {
 public:
-  GradientFilterClass() : TclClass("Application/GradientFilter") {}
+  GradientFilterClass() : TclClass("Application/DiffApp/GradientFilter") {}
   TclObject* create(int argc, const char*const* argv) {
     if (argc == 5)
       return(new GradientFilter(argv[4]));
@@ -37,13 +37,6 @@ public:
 
 int GradientFilter::command(int argc, const char*const* argv) {
   if (argc == 3) {
-    if (strcasecmp(argv[1], "dr") == 0) {
-      DiffAppAgent *agent;
-      agent = (DiffAppAgent *) TclObject::lookup(argv[2]);
-      dr_ = agent->dr();
-      start();
-      return TCL_OK;
-    }
     if (strcasecmp(argv[1], "debug") == 0) {
       global_debug_level = atoi(argv[2]);
       if (global_debug_level < 1 || global_debug_level > 10) {
@@ -52,7 +45,7 @@ int GradientFilter::command(int argc, const char*const* argv) {
       }
     }
   }
-  return Application::command(argc, argv);
+  return DiffApp::command(argc, argv);
 }
 
 #endif // NS_DIFFUSION

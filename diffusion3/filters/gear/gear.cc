@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2003 by the University of Southern California
 // Copyright (C) 2000-2003 by the University of California
-// $Id: gear.cc,v 1.1 2003/07/08 18:06:43 haldar Exp $
+// $Id: gear.cc,v 1.2 2003/08/05 23:38:37 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -28,7 +28,11 @@ static class GeoRoutingFilterClass : public TclClass {
 public:
   GeoRoutingFilterClass() : TclClass("Application/DiffApp/GeoRoutingFilter") {}
   TclObject * create(int argc, const char*const* argv) {
-    return (new GeoRoutingFilter());
+    if (argc == 5)
+      return (new GeoRoutingFilter(argv[4]));
+    else 
+      fprintf(stderr, "Insufficient number of args for creating GeoRoutingFilter");
+    return (NULL);
   }
 } class_geo_routing_filter;
 
@@ -588,8 +592,8 @@ handle GeoRoutingFilter::setupPostFilter()
 
 void GeoRoutingFilter::run()
 {
-#ifdef NS_DIFFUSION
-  TimerCallback *neighbor_timer, *beacon_timer;
+  /*#ifdef NS_DIFFUSION
+    TimerCallback *neighbor_timer, *beacon_timer;
 
   // Set up node location
   getNodeLocation(&geo_longitude_, &geo_latitude_);
@@ -615,7 +619,7 @@ void GeoRoutingFilter::run()
   DiffPrintWithTime(DEBUG_ALWAYS, "Gear - Post-filter: received handle %d !\n",
 		    post_filter_handle_);
   DiffPrintWithTime(DEBUG_ALWAYS, "Gear - Initialized !\n");
-#endif // NS_DIFFUSION
+  #endif // NS_DIFFUSION */
 
   // Sends a beacon request upon start-up
   beaconTimeout();
@@ -629,17 +633,17 @@ void GeoRoutingFilter::run()
 }
 
 #ifdef NS_DIFFUSION
-GeoRoutingFilter::GeoRoutingFilter()
+GeoRoutingFilter::GeoRoutingFilter(const char *diffrtg)
 {
+  DiffAppAgent *agent;
 #else
-GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
+  GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
 {
-  TimerCallback *neighbor_timer, *beacon_timer;
-
   // Parse command line options
   parseCommandLine(argc, argv);
 #endif // NS_DIFFUSION
-
+  
+  TimerCallback *neighbor_timer, *beacon_timer;
   struct timeval tv;
 
   // Initialize a few parameters
@@ -655,9 +659,12 @@ GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
   last_neighbor_request_tv_.tv_sec = 0;
   last_neighbor_request_tv_.tv_usec = 0;
 
-#ifndef NS_DIFFUSION
+#ifdef NS_DIFFUSION
+  agent = (DiffAppAgent *)TclObject::lookup(diffrtg);
+  dr_ = agent->dr();
+#endif // NS_DIFFUSION
+
   getNodeLocation(&geo_longitude_, &geo_latitude_);
-#endif // !NS_DIFFUSION
 
   DiffPrintWithTime(DEBUG_ALWAYS, "Gear - Location %f,%f\n",
 		    geo_longitude_, geo_latitude_);
@@ -674,7 +681,7 @@ GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
 
   filter_callback_ = new GeoFilterReceive(this);
 
-#ifndef NS_DIFFUSION
+  //#ifndef NS_DIFFUSION
   // Set up filters
   pre_filter_handle_ = setupPreFilter();
   post_filter_handle_ = setupPostFilter();
@@ -695,7 +702,7 @@ GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
 		    "Gear - Post-filter received handle %d !\n",
 		    post_filter_handle_);
   DiffPrintWithTime(DEBUG_ALWAYS, "Gear - Initialized !\n");
-#endif // !NS_DIFFUSION
+  //#endif // !NS_DIFFUSION
 }
 
 void GeoRoutingFilter::getNodeLocation(double *longitude, double *latitude)
