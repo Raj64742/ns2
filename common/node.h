@@ -1,6 +1,6 @@
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- 
  *
- * Copyright (c) 1997 Regents of the University of California.
+ * Copyright (c) 1997-2000 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.25 2000/09/01 03:04:06 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.26 2000/09/14 18:19:25 haoboy Exp $
  */
 
 /*
@@ -69,9 +69,6 @@ LIST_HEAD(linklist_head, LinkHead); // declare list head structure
  * right now it is a placeholder.  See satlink.h for now.  It is declared in
  * node.h for now since all nodes have a linked list of LinkHeads.
  */
-class AdaptiveFidelityEntity;
-class SoftNeighborHandler;
-
 class Node;
 class NetworkInterface;
 class LinkHead : public Connector {
@@ -102,11 +99,7 @@ protected:
 
 LIST_HEAD(node_head, Node); // declare list head structure 
 
-// srm-topo.h already uses class Node- hence the odd name "Node"
-//
-// For now, this is a dummy split object for class Node. In future, we
-// may move somethings over from OTcl.
-
+// Size of the buffer for dumping nam traces.
 const int NODE_NAMLOG_BUFSZ = 256;
 
 class Node : public TclObject {
@@ -114,11 +107,12 @@ public:
 	Node(void);
 	~Node();
 
-	virtual int command(int argc, const char*const* argv);
 	inline int address() { return address_;}
 	inline int nodeid() { return nodeid_;}
 	inline bool exist_namchan() const { return (namChan_ != 0); }
-	void namlog(const char *fmt, ...);
+
+	virtual int command(int argc, const char*const* argv);
+	virtual void namlog(const char *fmt, ...);
 
 	NsObject* intf_to_target(int32_t); 
 
@@ -129,7 +123,7 @@ public:
 	inline Node* nextnode() { return entry.le_next; }
 
 	// The remaining objects handle a (static) linked list of nodes
-	// Used by Tom's satallite code
+	// Used by Tom's satallite code and the wireless code
 	inline const struct if_head& ifhead() const { return ifhead_; }
 	inline const struct linklist_head& linklisthead() const { 
 		return linklisthead_; 
@@ -156,10 +150,10 @@ public:
 	// XXX Energy related stuff. Should be moved later to a wireless 
 	// routing plugin module instead of sitting here.
 	inline EnergyModel* energy_model() { return energy_model_; }
-	inline Location* location() { return location_;}
+	inline Location* location() { return location_; }
 protected:
 	EnergyModel* energy_model_;
-	// XXX Currently this is a placeholder only. This is supposed to 
+	// XXX Currently this is a placeholder only. It is supposed to 
 	// hold the position-related stuff in MobileNode. Yet another 
 	// 'Under Construction' sign :(
 	Location* location_;

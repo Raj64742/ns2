@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.26 2000/09/01 03:04:05 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.27 2000/09/14 18:19:25 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -45,20 +45,26 @@ class Classifier : public NsObject {
  public:
 	Classifier();
 	virtual ~Classifier();
-	virtual void recv(Packet* p, Handler* h);
-	int maxslot() const { return maxslot_; }
+
+	inline int maxslot() const { return maxslot_; }
 	inline NsObject* slot(int slot) {
 		if ((slot >= 0) && (slot < nslot_))
 			return slot_[slot];
 		return 0;
 	}
-	int mshift(int val) { return ((val >> shift_) & mask_); }
+	inline int mshift(int val) { return ((val >> shift_) & mask_); }
+	inline void set_default_target(NsObject *obj) { 
+		default_target_ = obj;
+	}
+
+	virtual void recv(Packet* p, Handler* h);
 	virtual NsObject* find(Packet*);
 	virtual int classify(Packet *);
+	virtual void clear(int slot);
 	enum classify_ret {ONCE= -2, TWICE= -1};
+
  protected:
 	void install(int slot, NsObject*);
-	virtual void clear(int slot);
 	virtual int getnxt(NsObject *);
 	virtual int command(int argc, const char*const* argv);
 	void alloc(int);
@@ -68,7 +74,7 @@ class Classifier : public NsObject {
 	int offset_;		// offset for Packet::access()
 	int shift_;
 	int mask_;
-	NsObject	*default_target_;
+	NsObject *default_target_;
 };
 
 #endif

@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.34 2000/08/29 19:28:02 haoboy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.35 2000/09/14 18:19:25 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -47,6 +47,7 @@ static const char rcsid[] =
 #include "config.h"
 #include "route.h"
 #include "address.h"
+
 class RouteLogicClass : public TclClass {
 public:
 	RouteLogicClass() : TclClass("RouteLogic") {}
@@ -69,38 +70,27 @@ int RouteLogic::command(int argc, const char*const* argv)
 	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
 		if (strcmp(argv[1], "compute") == 0) {
-			if (adj_ == 0) {
-				//fprintf(stderr, "No adjacency info; Probably a disconnected topology! Route not computed..\n");
+			if (adj_ == 0)
 				return (TCL_OK);
-			}
 			compute_routes();
 			return (TCL_OK);
-		}
-		
-		if (strcmp(argv[1], "hier-compute") == 0) {
+		} else if (strcmp(argv[1], "hier-compute") == 0) {
 			if (hadj_ == 0) {
 				return (TCL_OK);
 			}
 			hier_compute();
 			return (TCL_OK);
-		}
-	
-		if (strcmp(argv[1], "hier-print") == 0) {
+		} else if (strcmp(argv[1], "hier-print") == 0) {
 			hier_print_hadj();
 			return (TCL_OK);
-		}
-	
-		if (strcmp(argv[1], "hier-print-route") == 0) {
+		} else if (strcmp(argv[1], "hier-print-route") == 0) {
 			hier_print_route();
 			return (TCL_OK);
-		}
-	
-		if (strcmp(argv[1], "reset") == 0) {
+		} else if (strcmp(argv[1], "reset") == 0) {
 			reset_all();
 			return (TCL_OK);
 		}
-	} 
-	else if (argc > 2) {
+	} else if (argc > 2) {
 		if (strcmp(argv[1], "insert") == 0) {
 			int src = atoi(argv[2]) + 1;
 			int dst = atoi(argv[3]) + 1;
@@ -111,27 +101,21 @@ int RouteLogic::command(int argc, const char*const* argv)
 			double cost = (argc == 5 ? atof(argv[4]) : 1);
 			insert(src, dst, cost);
 			return (TCL_OK);
-		}
-	
-		if (strcmp(argv[1], "hlevel-is") == 0) {
+		} else if (strcmp(argv[1], "hlevel-is") == 0) {
 			level_ = atoi(argv[2]);
 			if (level_ < 1) {
 				tcl.result("send-hlevel: # hierarchy levels should be non-zero");
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
-		}
-	
-		if (strcmp(argv[1], "send-num-of-domains") == 0) {
+		} else if (strcmp(argv[1], "send-num-of-domains") == 0) {
 			D_ = atoi(argv[2]) + 1;
 			if (D_ <= 1) {
 				tcl.result("send-num-of-domains: # domains should be larger than 1");
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
-		}
-
-		if (strcmp(argv[1], "send-num-of-clusters") == 0) {
+		} else if (strcmp(argv[1], "send-num-of-clusters") == 0) {
 			if (argc != D_ + 1) {
 				tcl.resultf("send-num-of-clusters: # of "
 					    "clusters %d != domain (%d) + 1\n",
@@ -146,9 +130,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 			}
 			hier_init();
 			return (TCL_OK);
-		}
-
-		if(strcmp(argv[1], "send-num-of-nodes") == 0) {
+		} else if(strcmp(argv[1], "send-num-of-nodes") == 0) {
 			int i, j, k=2, Ctotal=0 ;
 			for (i=1; i < D_; i++)
 				Ctotal = Ctotal + (C_[i]-1);
@@ -162,22 +144,14 @@ int RouteLogic::command(int argc, const char*const* argv)
 					k++;
 				}
 			return (TCL_OK);
-		}
-
-		if (strcmp(argv[1], "hier-insert") == 0) {
+		} else if (strcmp(argv[1], "hier-insert") == 0) {
 			if(Cmax_== 0 || D_== 0) {
 				tcl.result("Required Hier_data not sent");
 				return (TCL_ERROR);
 			}
 			int i;
 			int src_addr[SMALL_LEN], dst_addr[SMALL_LEN];
-			/* initializing src and dst addr */
-			// for (i=0; i < SMALL_LEN; i++){
-// 				src_addr[i] = 0;
-// 				dst_addr[i] = 0;
-// 			}
 			str2address(argv, src_addr, dst_addr);
-			// for (i=0; i < HIER_LEVEL; i++)
 			for (i=0; i < level_; i++)
 				if (src_addr[i]<=0 || dst_addr[i]<=0){
 					tcl.result ("negative node number");
@@ -186,32 +160,26 @@ int RouteLogic::command(int argc, const char*const* argv)
 			int cost = (argc == 5 ? atoi(argv[4]) : 1);
 			hier_insert(src_addr, dst_addr, cost);
 			return (TCL_OK);
-		}
-
-		if (strcmp(argv[1], "hier-reset") == 0) {
+		} else if (strcmp(argv[1], "hier-reset") == 0) {
 			int i;
 			int  src_addr[SMALL_LEN], dst_addr[SMALL_LEN];
 			
 			str2address(argv, src_addr, dst_addr);
-			// assuming node-node addresses (instead of node-cluster or node-domain pair) 
+			// assuming node-node addresses (instead of 
+			// node-cluster or node-domain pair) 
 			// are sent for hier_reset  
-			// for (i=0; i < HIER_LEVEL; i++)
 			for (i=0; i < level_; i++)
 				if (src_addr[i]<=0 || dst_addr[i]<=0){
 					tcl.result ("negative node number");
 					return (TCL_ERROR);
 				}
 			hier_reset(src_addr, dst_addr);
-		}
-
-		if (strcmp(argv[1], "hier-lookup") == 0) {
+		} else if (strcmp(argv[1], "hier-lookup") == 0) {
 			int nh;
 			int res = lookup_hier((char*)argv[2], (char*)argv[3],
 					      nh);
 			return res;
-		}
-
-		if (strcmp(argv[1], "reset") == 0) {
+		} else if (strcmp(argv[1], "reset") == 0) {
 			int src = atoi(argv[2]) + 1;
 			int dst = atoi(argv[3]) + 1;
 			if (src <= 0 || dst <= 0) {
@@ -220,8 +188,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 			}
 			reset(src, dst);
 			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "lookup") == 0) {
+		} else if (strcmp(argv[1], "lookup") == 0) {
 			int nh;
 			int res = lookup_flat((char*)argv[2], (char*)argv[3], 
 					      nh);
@@ -288,10 +255,9 @@ int RouteLogic::lookup_hier(char* asrc, char* adst, int& result) {
 	if ((src[0] < D_) || (dst[0] < D_)) {
 		if((src[1] < C_[d]) || (dst[1] < C_[dst[0]]))
 			if((src[2] <= size) ||
-			   (dst[2] <= cluster_size_[INDEX(dst[0], dst[1], Cmax_)]))
+			   (dst[2]<=cluster_size_[INDEX(dst[0],dst[1],Cmax_)]))
 				;
-	}
-	else { 
+	} else { 
 		tcl.result("node out of range");
 		return TCL_ERROR;
 	}
@@ -301,12 +267,10 @@ int RouteLogic::lookup_hier(char* asrc, char* adst, int& result) {
 	    (src[0] != dst[0])){
 		next_hop = hroute_[index][N_D_INDEX(src[2], dst[0], size, C_[d], D_)];
 	}
-
 	/* if node-cluster lookup */
 	else if ((dst[2] <= 0) || (src[1] != dst[1])) {
 		next_hop = hroute_[index][N_C_INDEX(src[2], dst[1], size, C_[d], D_)];
 	}
-
 	/* if node-node lookup */
 	else {
 		next_hop = hroute_[index][N_N_INDEX(src[2], dst[2], size, C_[d], D_)];	
@@ -501,9 +465,13 @@ void RouteLogic::compute_routes()
 }
 
 /* hierarchical routing support */
-/* This function creates adjacency matrix for each cluster at the lowest level of the hierarchy for every node in the cluster, for every other cluster in the domain, and every other domain. can be extended from 3-level hierarchy to n-level along similar lines*/
 
-
+/*
+ * This function creates adjacency matrix for each cluster at the lowest level
+ * of the hierarchy for every node in the cluster, for every other cluster in 
+ * the domain, and every other domain. can be extended from 3-level hierarchy 
+ * to n-level along similar lines
+ */
 void RouteLogic::hier_alloc(int i)
 {
 	hsize_[i] = cluster_size_[i]+ Cmax_+ D_ ;
@@ -582,9 +550,8 @@ void RouteLogic::ns_strtok(char *addr, int *addrstr)
 	}
 }
 
-
-
-void RouteLogic::get_address(char *address, int next_hop, int index, int d, int size, int *src)
+void RouteLogic::get_address(char *address, int next_hop, int index, int d, 
+			     int size, int *src)
 {
 	if (next_hop <= size) {
 		sprintf(address,"%d.%d.%d", src[0]-1, src[1]-1, next_hop-1);
@@ -601,7 +568,6 @@ void RouteLogic::get_address(char *address, int next_hop, int index, int d, int 
 	}
 }
 
-
 void RouteLogic::hier_reset(int *src, int *dst)
 {
 	int i, d, n;
@@ -611,9 +577,7 @@ void RouteLogic::hier_reset(int *src, int *dst)
 			i = INDEX(src[0], src[1], Cmax_);
 			n = cluster_size_[i];
 			hadj_[i][N_N_INDEX(src[2], dst[2], n, C_[d], D_)] = INFINITY;
-		}
-
-		else {
+		} else {
 			for (int y=1; y < C_[d]; y++) { 
 				i = INDEX(src[0], y, Cmax_);
 				n = cluster_size_[i];
@@ -656,9 +620,7 @@ void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
 			n = cluster_size_[i];
 			hier_check(i);
 			hadj_[i][N_N_INDEX(Z1, Z2, n, C_[X1], D_)] = cost;
-		}
-
-		else { 
+		} else { 
 			/* 
 			 * For the same domain but diff clusters 
 			 */
@@ -676,7 +638,6 @@ void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
 				}
 			}
 		}
-
 	else { 
 		/* 
 		 * For different domains 
@@ -704,7 +665,6 @@ void RouteLogic::hier_insert(int *src_addr, int *dst_addr, int cost)
 		sprintf(hconnect_[i][I],"%d.%d.%d",X2-1,Y2-1,Z2-1);
 	}
 }
-
 
 void RouteLogic::hier_compute_routes(int i, int j)
 {
@@ -860,4 +820,3 @@ public:
 		return (new RouteLogicAlgo);
 	}
 } class_routelogic_algo;
-

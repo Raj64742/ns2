@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.5 2000/08/30 18:54:04 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.6 2000/09/14 18:19:31 haoboy Exp $
 
 ###########################################################################
 # IMPORTANT NOTE:
@@ -188,8 +188,7 @@ Test/wireless2 instproc init {} {
   for {set j 0} {$j < $opt(nn)} {incr j} {
     set node_($j) [ $ns_ node [lindex $temp \
             [expr $j+1]] ]
-    $node_($j) base-station [AddrParams set-hieraddr \
-            [$BS(0) node-addr]]
+    $node_($j) base-station [AddrParams addr2id [$BS(0) node-addr]]
   }
   #create links between wired and BS nodes
   $ns_ duplex-link $W(0) $W(1) 5Mb 2ms DropTail
@@ -294,7 +293,7 @@ Test/wireless3 instproc init {} {
   $ns_ node-config -wiredRouting OFF
   set MH [$ns_ node 1.0.2]
   set node_(0) $MH
-  set HAaddress [AddrParams set-hieraddr [$HA node-addr]]
+  set HAaddress [AddrParams addr2id [$HA node-addr]]
   [$MH set regagent_] set home_agent_ $HAaddress
 
   $MH set Z_ 0.000000000000

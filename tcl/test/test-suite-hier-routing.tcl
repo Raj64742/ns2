@@ -28,7 +28,6 @@
 #  whether mcast is on, why in the test suite test-suite-hier-routing.tcl,
 #  multicast is turned on AFTER hierarchical routing? Is this a bug? Should
 #  there be this dependence? 
- 
 
 # This test suite is for validating hierarchical routing
 # To run all tests: test-all-hier-routing
@@ -274,18 +273,18 @@ Test/hier-session instproc run {} {
 #
 # Backward compatibility tests 
 #
-Class Test-BackCompat -superclass TestSuite
+#  Class Test-BackCompat -superclass TestSuite
 
-Test-BackCompat instproc init-hier-routing {} {
-	$self instvar ns_
-	puts "testing backward compatibility of hierarchical routing"
-	Simulator set node_factory_ HierNode
-	$ns_ set-address-format hierarchical
-}
+#  Test-BackCompat instproc init-hier-routing {} {
+#  	$self instvar ns_
+#  	puts "testing backward compatibility of hierarchical routing"
+#  	Simulator set node_factory_ HierNode
+#  	$ns_ set-address-format hierarchical
+#  }
 
-Class Test/hier-simple-bc -superclass {Test-BackCompat Test/hier-simple}
-Class Test/hier-cmcast-bc -superclass {Test-BackCompat Test/hier-cmcast}
-Class Test/hier-session-bc -superclass {Test-BackCompat Test/hier-session}
+#  Class Test/hier-simple-bc -superclass {Test-BackCompat Test/hier-simple}
+#  Class Test/hier-cmcast-bc -superclass {Test-BackCompat Test/hier-cmcast}
+#  Class Test/hier-session-bc -superclass {Test-BackCompat Test/hier-session}
 
 proc runtest {arg} {
 	global quiet

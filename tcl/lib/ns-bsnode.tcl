@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-bsnode.tcl,v 1.7 2000/08/30 23:27:50 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-bsnode.tcl,v 1.8 2000/09/14 18:19:27 haoboy Exp $
 #
 
 #THE CODE INCLUDED IN THIS FILE IS USED FOR BACKWARD COMPATIBILITY ONLY
@@ -58,11 +58,11 @@ Node/MobileNode/BaseStationNode instproc init args {
 
 Node/MobileNode/BaseStationNode instproc mk-default-classifier {} {
 	$self instvar classifiers_ 
-	set levels [AddrParams set hlevel_]
+	set levels [AddrParams hlevel]
 	for {set n 1} {$n <= $levels} {incr n} {
 		set classifiers_($n) [new Classifier/Hash/Dest/Bcast 32]
-		$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
-		$classifiers_($n) set shift_ [AddrParams set NodeShift_($n)]
+		$classifiers_($n) set mask_ [AddrParams NodeMask $n]
+		$classifiers_($n) set shift_ [AddrParams NodeShift $n]
 	}
 }
 
@@ -81,46 +81,10 @@ Node/MobileNode/BaseStationNode instproc entry {} {
 	return $classifiers_(1)
 }
 
-Node/MobileNode/BaseStationNode instproc add-hroute { dst target } {
-	$self instvar classifiers_ rtsize_
-	set al [$self split-addrstr $dst]
-	set l [llength $al]
-	for {set i 1} {$i <= $l} {incr i} {
-		set d [lindex $al [expr $i-1]]
-		if {$i == $l} {
-			$classifiers_($i) install $d $target
-		} else {
-			$classifiers_($i) install $d $classifiers_([expr $i + 1]) 
-		}
-	}
-	#
-	# increase the routing table size counter - keeps track of rtg table size for 
-	# each node
-	set rtsize_ [expr $rtsize_ + 1]
-}
-
-# remove an entry from the hier classifiers
-Node/MobileNode/BaseStationNode instproc clear-hroute args {
-	$self instvar classifiers_
-	set a [split $args]
-	set l [llength $a]
-	$classifiers_($l) clear [lindex $a [expr $l-1]] 
-}
-
-Node/MobileNode/BaseStationNode instproc node-addr {} {
-	$self instvar address_
-	return $address_
-}
-
-Node/MobileNode/BaseStationNode instproc split-addrstr addrstr {
-	set L [split $addrstr .]
-	return $L
-}
-
 Node/MobileNode/BaseStationNode instproc add-target {agent port } {
 	$self instvar dmux_ classifiers_
 	$agent set sport_ $port
-	set level [AddrParams set hlevel_]
+	set level [AddrParams hlevel]
 
 	if { $port == [Node set rtagent_port_] } {	
 		if { [Simulator set RouterTrace_] == "ON" } {

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.198 2000/09/01 03:04:04 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.199 2000/09/14 18:19:25 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -164,7 +164,8 @@ OBJ_CC = \
 	rio.o semantic-rio.o tcp-sack-rh.o scoreboard-rh.o \
 	plm/loss-monitor-plm.o plm/cbr-traffic-PP.o \
 	linkstate/hdr-ls.o \
-	mpls/classifier-addr-mpls.o mpls/ldp.o \
+	mpls/classifier-addr-mpls.o mpls/ldp.o mpls/mpls-module.o \
+	rtmodule.o classifier-hier.o addr-params.o \
 	@V_STLOBJ@ 
 
 # don't allow comments to follow continuation lines
@@ -253,6 +254,7 @@ NS_TCL_LIB = \
 	tcl/lib/ns-sat.tcl \
 	tcl/lib/ns-cmutrace.tcl \
 	tcl/lib/ns-node.tcl \
+	tcl/lib/ns-rtmodule.tcl \
 	tcl/lib/ns-hiernode.tcl \
 	tcl/lib/ns-packet.tcl \
 	tcl/lib/ns-queue.tcl \

@@ -1,6 +1,6 @@
 // -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
 //
-// Time-stamp: <2000-08-30 11:59:11 haoboy>
+// Time-stamp: <2000-09-11 15:24:28 haoboy>
 //
 // Copyright (c) 2000 by the University of Southern California
 // All rights reserved.
@@ -28,13 +28,12 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.cc,v 1.2 2000/08/30 19:15:05 haoboy Exp $
-//
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.cc,v 1.3 2000/09/14 18:19:25 haoboy Exp $
+
 // XXX
 //
 // - Because MPLS header contains pointers, it cannot be used WITH multicast 
 //   routing which replicates packets
-//
 // - Currently it works only with flat routing.
 
 /**************************************************************************
@@ -165,7 +164,7 @@ int MPLSAddressClassifier::delay_bind_dispatch(const char *vn,
 int MPLSAddressClassifier::classify(Packet* p)
 {
 	int nexthop = MPLSclassify(p);
-    
+
 	if ((enable_reroute_ == 1) && (size_ > 0) && 
 	    (is_link_down(nexthop)))
 		// Use alternative path if it exist
@@ -180,7 +179,7 @@ int MPLSAddressClassifier::classify(Packet* p)
 int MPLSAddressClassifier::is_link_down(int node)
 {
 	Tcl& tcl = Tcl::instance();   
-	tcl.evalf("[%s set mpls_node_] get-link-status %d", name(), node);
+	tcl.evalf("[%s set mpls_mod_] get-link-status %d", name(), node);
 	return (strcmp(tcl.result(), "down") == 0) ? 1 : 0;
 }
 

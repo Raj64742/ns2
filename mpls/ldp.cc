@@ -1,6 +1,6 @@
 // -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
 //
-// Time-stamp: <2000-08-29 11:27:32 haoboy>
+// Time-stamp: <2000-09-11 15:12:48 haoboy>
 //
 // Copyright (c) 2000 by the University of Southern California
 // All rights reserved.
@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.2 2000/08/30 23:27:50 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.3 2000/09/14 18:19:26 haoboy Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *
@@ -66,12 +66,24 @@ public:
 	}
 } class_agentldp;
 
-LDPAgent::LDPAgent() : Agent(PT_LDP)
+LDPAgent::LDPAgent() : 
+	new_msgid_(0), trace_ldp_(0), peer_(0), Agent(PT_LDP)
 {
-	bind("packetSize_", &size_);
-	bind("new_msgid_", &new_msgid_);
-	bind("trace_ldp_", &trace_ldp_);
 	MSGT_.NB      = 0;
+}
+
+void LDPAgent::delay_bind_init_all()
+{
+	delay_bind_init_one("trace_ldp_");
+	Agent::delay_bind_init_all();
+}
+
+int LDPAgent::delay_bind_dispatch(const char *varName, const char *localName, 
+				  TclObject *tracer)
+{
+	if (delay_bind_bool(varName,localName,"trace_ldp_",&trace_ldp_,tracer))
+		return TCL_OK;
+	return Agent::delay_bind_dispatch(varName, localName, tracer);
 }
 
 int LDPAgent::PKTsize(const char *pathvec, const char *er)
@@ -141,8 +153,20 @@ int LDPAgent::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "msgtbl-dump") == 0) {              
 			MSGTdump();
 			return (TCL_OK);
+		} else if (strcmp(argv[1], "new-msgid") == 0) {
+			tcl.resultf("%d", ++new_msgid_);
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "peer-ldpnode") == 0) {
+			tcl.resultf("%d", peer_);
+			return (TCL_OK);
 		}
-	} else if (argc == 3) {      
+	} else if (argc == 3) {
+		if (strcmp(argv[1], "set-peer") == 0) {
+			peer_ = atoi(argv[2]);
+			return (TCL_OK);
+		}
+
+		// The following is shared by all if-s in this branch
 		int MsgID = atoi(argv[2]);
 		int msgid,fec,lspid,src,pmsgid,labelop;
 		int entrynb = MSGTlocate(MsgID);
@@ -183,7 +207,7 @@ int LDPAgent::command(int argc, const char*const* argv)
 			/* 
 			 * <agent> notification-msg <status> <lspid>
 			 */
-			size_ = PKTsize("*","*");
+			size_ = PKTsize("*", "*");
 			if ( atoi(argv[3]) > -1 )  /* packet size adjustment */
 				size_ += 16;
 			else

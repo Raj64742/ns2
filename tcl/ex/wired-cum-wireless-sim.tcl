@@ -162,8 +162,7 @@ $BS(1) set Z_ 0.0
 for {set j 0} {$j < $num_wireless_nodes} {incr j} {
     set node_($j) [ $opt(rp)-create-mobile-node $j [lindex $temp \
 	    [expr $j+1]] ]
-    $node_($j) base-station [AddrParams set-hieraddr \
-	    [$BS(0) node-addr]]
+    $node_($j) base-station [AddrParams addr2id [$BS(0) node-addr]]
 }
 
 if { $opt(x) == 0 || $opt(y) == 0 } {

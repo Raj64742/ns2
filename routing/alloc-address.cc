@@ -30,6 +30,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/alloc-address.cc,v 1.10 2000/09/14 18:19:25 haoboy Exp $
  */
 
 /* functions invoked to allocate bits to the ns-address space */

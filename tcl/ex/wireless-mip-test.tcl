@@ -150,7 +150,7 @@ $FA set Z_ 0.000000000000
 # note address of MH indicates its in the same domain as HA.
 
 set MH [$opt(rp)-create-mobile-node 0 1.0.2]
-set HAaddress [AddrParams set-hieraddr [$HA node-addr]]
+set HAaddress [AddrParams addr2id [$HA node-addr]]
 [$MH set regagent_] set home_agent_ $HAaddress
 
 # movement of the MH

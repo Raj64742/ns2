@@ -18,14 +18,14 @@
 
 #
 # Maintainer: Polly Huang <huang@isi.edu>
-# Version Date: $Date: 1999/07/02 01:49:46 $
+# Version Date: $Date: 2000/09/14 18:19:26 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/virtual-classifier.tcl,v 1.7 1999/07/02 01:49:46 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/virtual-classifier.tcl,v 1.8 2000/09/14 18:19:26 haoboy Exp $ (USC/ISI)
 #
 # An example script using virtual classifier
 #
 set ns [new Simulator]
-Simulator set node_factory_ VirtualClassifierNode
+Node enable-module VC
 
 $ns color 0 blue
 $ns color 1 red

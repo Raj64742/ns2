@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.34 2000/08/29 19:28:02 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.35 2000/09/14 18:19:25 haoboy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -240,9 +240,9 @@ int Classifier::command(int argc, const char*const* argv)
 			tcl.result("-1");
 			return (TCL_OK);
 		}
-		if(strcmp(argv[1], "defaulttarget") == 0) {
+		if (strcmp(argv[1], "defaulttarget") == 0) {
 			default_target_=(NsObject*)TclObject::lookup(argv[2]);
-			if(default_target_ == 0)
+			if (default_target_ == 0)
 				return TCL_ERROR;
 			return TCL_OK;
 		}

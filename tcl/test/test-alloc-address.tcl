@@ -12,11 +12,11 @@ $ns set-address-format def
 
 #$ns expand-port-field-bits 24
 
-set Mcastshift [AddrParams set McastShift_]
-set Portmask [AddrParams set PortMask_]
-set Portshift [AddrParams set PortShift_]
-set Nodemask [AddrParams set NodeMask_(1)]
-set Nodeshift [AddrParams set NodeShift_(1)]
+set Mcastshift [AddrParams McastShift]
+set Portmask [AddrParams PortMask]
+set Portshift [AddrParams PortShift]
+set Nodemask [AddrParams NodeMask 1]
+set Nodeshift [AddrParams NodeShift 1]
 
 puts "mcastshift = $Mcastshift"
 puts "portmask= $Portmask"

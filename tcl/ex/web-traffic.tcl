@@ -72,8 +72,9 @@ set numPage 10
 # Session 0 starts from 0.1s, session 1 starts from 0.2s
 $pool set-num-session 2
 
-# XXX Can't initialize instvars using something like:
-#set interPage [new RandomVariable/Exponential -avg_ 1]
+# XXX Can't initialize instvars using something like this:
+# set interPage [new RandomVariable/Exponential -avg_ 1]
+# Must explicitly set variable values
 set interPage [new RandomVariable/Exponential] 
 $interPage set avg_ 1
 set pageSize [new RandomVariable/Constant]

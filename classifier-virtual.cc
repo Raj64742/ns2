@@ -34,8 +34,9 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.7 2000/08/18 18:34:01 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.8 2000/09/14 18:19:25 haoboy Exp $";
 #endif
+
 extern "C" {
 #include <tcl.h>
 }

@@ -30,8 +30,8 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
-
-# @(#) $Header: 
+#
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mobility/com.tcl,v 1.8 2000/09/14 18:19:28 haoboy Exp $
 #
 
 proc create-base-station-node {address } {
@@ -42,11 +42,8 @@ proc create-base-station-node {address } {
     } else {
 	Simulator set node_factory_ Node/MobileNode/BaseStationNode
     }
-    #set ns_ $ns
     set node [$ns_ node $address]
     set id [$node id]
-    #set node_($id) $node    ;#XXX does wireless code use this global
-	                         # array?
 	
     $node random-motion 0		;# disable random motion
     $node topography $topo
@@ -59,9 +56,7 @@ proc create-base-station-node {address } {
     $T attach $tracefd
     $T set src_ $id
     $node log-target $T
-    #$node base-station $node
-    $node base-station [AddrParams set-hieraddr [$node node-addr]]
-    
+    $node base-station [AddrParams addr2id [$node node-addr]]
     
     create-$opt(rp)-bs-node $node $id
     
@@ -71,19 +66,19 @@ proc create-base-station-node {address } {
 
 
 proc create-dsdv-bs-node {node id} {
-    global ns_ chan prop opt node_
-    $node instvar regagent_ ragent_
+	global ns_ chan prop opt node_
+	$node instvar regagent_ ragent_
 
-    $node add-interface $chan $prop $opt(ll) $opt(mac)	\
-	    $opt(ifq) $opt(ifqlen) $opt(netif) \
-	    $opt(ant)
+	$node add-interface $chan $prop $opt(ll) $opt(mac)	\
+		    $opt(ifq) $opt(ifqlen) $opt(netif) \
+		    $opt(ant)
     
-    create-$opt(rp)-routing-agent $node $id
+	create-$opt(rp)-routing-agent $node $id
 
-    if [info exists regagent_] {
-	$regagent_ ragent $ragent_
-    }
-    if { $opt(pos) == "Box" } {
+	if [info exists regagent_] {
+		$regagent_ ragent $ragent_
+	}
+	if { $opt(pos) == "Box" } {
 		#
 		# Box Configuration
 		#
@@ -97,7 +92,7 @@ proc create-dsdv-bs-node {node id} {
 		$node set speed_ 0.0
 
 		$ns_ at 0.0 "$node_($id) start"
-    }
+	}
 }
 
 proc create-dsr-bs-node {node id} {
@@ -142,20 +137,16 @@ proc create-dsr-routing-agent { node id } {
     set dmux [$node set dmux_]
     if {$dmux == "" } {
 	set dmux [new Classifier/Hash/Dest 32]
-	$dmux set mask_ [AddrParams set PortMask_]
-	$dmux set shift_ [AddrParams set PortShift_]
+	$dmux set mask_ [AddrParams PortMask]
+	$dmux set shift_ [AddrParams PortShift]
 	#
 	# point the node's routing entry to itself
 	# at the port demuxer (if there is one)
 	#
-	if [Simulator set EnableHierRt_] {
-	    $node add-hroute $address $ragent
-	} else {
-	    $node add-route $address $ragent
-	}
+	$node add-route $address $ragent
 	$node set dmux_ $dmux
     }
-    set level [AddrParams set hlevel_]
+    set level [AddrParams hlevel]
     
     if { [Simulator set RouterTrace_] == "ON" } {
 	#

@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.7 2000/08/30 23:27:51 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.8 2000/09/14 18:19:28 haoboy Exp $
 
 
 # ======================================================================
@@ -56,8 +56,6 @@ Node/SatNode instproc init args {
 		set dropT_ [$ns_ create-trace Sat/Drop $trace_ $self $self ""]
 		$self set_trace $dropT_
 	}
-
-
 }
 
 Node/SatNode instproc reset {} {

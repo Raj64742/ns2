@@ -17,7 +17,7 @@
 #
 # Implementation of web cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.12 2000/09/13 03:06:58 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.13 2000/09/14 18:19:48 haoboy Exp $
 
 Http/Cache instproc init args {
 	eval $self next $args
@@ -77,7 +77,7 @@ Http/Cache instproc disconnect-server { server } {
 	# Clear all states related to the server. 
 	# XXX Assume the server isn't a cache!
 	$self instvar pending_
-	foreach p [lsort -dictionary [array names pending_]] {
+	foreach p [array names pending_] {
 		if {$server == [lindex [split $p :] 0]} {
 			unset pending_($p)
 		}

@@ -1,6 +1,6 @@
 // -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
 //
-// Time-stamp: <2000-08-31 17:42:02 haoboy>
+// Time-stamp: <2000-09-11 10:04:09 haoboy>
 //
 // Copyright (c) 2000 by the University of Southern California
 // All rights reserved.
@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.h,v 1.2 2000/09/01 03:04:11 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.h,v 1.3 2000/09/14 18:19:26 haoboy Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *

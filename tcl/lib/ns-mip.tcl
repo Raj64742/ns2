@@ -27,33 +27,50 @@
 #
 # These notices must be retained in any copies of any part of this software.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mip.tcl,v 1.7 2000/08/30 23:27:51 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mip.tcl,v 1.8 2000/09/14 18:19:27 haoboy Exp $
+
+# XXX It is stupid to have both MIP implementation here and in mobile node. 
+# However, there is no test suite that covers test-suite-mip.tcl, which relies
+# on this file, and is implemented using mobile node. WHAT IS GOING ON?? 
 
 #     
 # Broadcast Nodes:
 # accept limited broadcast packets
 #     
 Class Node/Broadcast -superclass Node
- 
-Node/Broadcast instproc mk-default-classifier {} {
+
+Node/Broadcast instproc init {} {
+	$self next
         $self instvar address_ classifier_ id_ dmux_
         set classifier_ [new Classifier/Hash/Dest/Bcast 32]
- 
-        $classifier_ set mask_ [AddrParams set NodeMask_(1)]
-        $classifier_ set shift_ [AddrParams set NodeShift_(1)]
+        $classifier_ set mask_ [AddrParams NodeMask 1]
+        $classifier_ set shift_ [AddrParams NodeShift 1]
         set address_ $id_
         if { $dmux_ == "" } {
                 set dmux_ [new Classifier/Port/Reserve]
 		$dmux_ set mask_ [AddrParams set ALL_BITS_SET]
                 $dmux_ set shift_ 0
- 
-                if [Simulator set EnableHierRt_] {  
-                        $self add-hroute $address_ $dmux_
-                } else {
-                        $self add-route $address_ $dmux_
-                }
+		$self add-route $address_ $dmux_
         }
         $classifier_ bcast-receiver $dmux_
+}
+
+# XXX The following three instprocs are used to keep this version of MIP
+# work. This is all work-in-progress and everything in this file should 
+# be converted into a routing module and merged with mobile node.
+Node/Broadcast instproc add-route { dst target } {
+	[$self set classifier_] install $dst $target
+}
+
+Node/Broadcast instproc delete-route { dst nullagent } {
+	[$self set classifier_] install $dst $nullagent
+}
+
+Node/Broadcast instproc add-target { agent port } {
+	# Send target
+	$agent target [$self entry]
+	# Recv target
+	[$self demux] install $port $agent
 }
 
 MIPEncapsulator instproc tunnel-exit mhaddr {
@@ -72,9 +89,9 @@ Node/MIPBS instproc init { args } {
 	}
 	set regagent_ [new Agent/MIPBS $self]
 	$self attach $regagent_ 0
-	$regagent_ set mask_ [AddrParams set NodeMask_(1)]
-	$regagent_ set shift_ [AddrParams set NodeShift_(1)]
-  	$regagent_ set dst_addr_ [expr (~0) << [AddrParams set NodeShift_(1)]]
+	$regagent_ set mask_ [AddrParams NodeMask 1]
+	$regagent_ set shift_ [AddrParams NodeShift 1]
+  	$regagent_ set dst_addr_ [expr (~0) << [AddrParams NodeShift 1]]
 	$regagent_ set dst_port_ 0
 
 	set encap_ [new MIPEncapsulator]
@@ -88,21 +105,7 @@ Node/MIPBS instproc init { args } {
 	#
 	# Check if number of agents exceeds length of port-address-field size
 	#
-	set mask [AddrParams set ALL_BITS_SET]
-	set shift 0
-	
-# 	if {[expr [llength $agents_] - 1] > $mask} {
-# 		error "\# of agents attached to node $self exceeds port-field length of $mask bits\n"
-# 	}
-	
-	if [Simulator set EnableHierRt_] {
-		set nodeaddr [AddrParams set-hieraddr $address_]
-		
-	} else {
-		set nodeaddr [expr ( $address_ &			\
-				[AddrParams set NodeMask_(1)] ) <<	\
-					[AddrParams set NodeShift_(1) ]]
-	}
+	set nodeaddr [AddrParams addr2id $address_]
 	$encap_ set addr_ $nodeaddr
 	$encap_ set port_ 1
 	$encap_ target [$self entry]
@@ -110,11 +113,10 @@ Node/MIPBS instproc init { args } {
 	
 	$dmux_ install 1 $decap_
 
-	$encap_ set mask_ [AddrParams set NodeMask_(1)]
-	$encap_ set shift_ [AddrParams set NodeShift_(1)]
-	$decap_ set mask_ [AddrParams set NodeMask_(1)]
-	$decap_ set shift_ [AddrParams set NodeShift_(1)]
-    
+	$encap_ set mask_ [AddrParams NodeMask 1]
+	$encap_ set shift_ [AddrParams NodeShift 1]
+	$decap_ set mask_ [AddrParams NodeMask 1]
+	$decap_ set shift_ [AddrParams NodeShift 1]
 }
 
 Class Node/MIPMH -superclass Node/Broadcast
@@ -124,22 +126,24 @@ Node/MIPMH instproc init { args } {
 	$self instvar regagent_
 	set regagent_ [new Agent/MIPMH $self]
 	$self attach $regagent_ 0
-	$regagent_ set mask_ [AddrParams set NodeMask_(1)]
-	$regagent_ set shift_ [AddrParams set NodeShift_(1)]
- 	$regagent_ set dst_addr_ [expr (~0) << [AddrParams set NodeShift_(1)]]
+	$regagent_ set mask_ [AddrParams NodeMask 1]
+	$regagent_ set shift_ [AddrParams NodeShift 1]
+ 	$regagent_ set dst_addr_ [expr (~0) << [AddrParams NodeShift 1]]
 	$regagent_ set dst_port_ 0
 }
 
+
 Agent/MIPBS instproc init { node args } {
-    eval $self next $args
+	eval $self next $args
     
-    # if mobilenode, donot use bcasttarget; use target_ instead;
-    if {[$node info class] != "MobileNode/MIPBS" && [$node info class] != "Node/MobileNode"} {
-	$self instvar BcastTarget_
-	set BcastTarget_ [new Classifier/Replicator]
-	$self bcast-target $BcastTarget_
-    }
-    $self beacon-period 1.0	;# default value
+	# if mobilenode, donot use bcasttarget; use target_ instead;
+	if {[$node info class] != "MobileNode/MIPBS" && \
+			[$node info class] != "Node/MobileNode"} {
+		$self instvar BcastTarget_
+		set BcastTarget_ [new Classifier/Replicator]
+		$self bcast-target $BcastTarget_
+	}
+	$self beacon-period 1.0	;# default value
 }
 
 Agent/MIPBS instproc clear-reg mhaddr {
@@ -148,7 +152,7 @@ Agent/MIPBS instproc clear-reg mhaddr {
 		$node_ add-route $mhaddr $OldRoute_($mhaddr)
 	}
 	if {[$node_ info class] == "MobileNode/MIPBS" || [$node_ info class] =="Node/MobileNode" } {
-	    eval $node_ delete-hroute [AddrParams get-hieraddr $mhaddr]
+		eval $node_ delete-route [AddrParams id2addr $mhaddr]
 	}
 	if { [info exists RegTimer_($mhaddr)] && $RegTimer_($mhaddr) != "" } {
 		[Simulator instance] cancel $RegTimer_($mhaddr)
@@ -162,13 +166,12 @@ Agent/MIPBS instproc encap-route { mhaddr coa lifetime } {
         set encap [$node_ set encap_]
 
         if {[$node_ info class] == "MobileNode/MIPBS" || [$node_ info class] == "Node/MobileNode"} {
-	    set addr [AddrParams get-hieraddr $mhaddr]
+	    set addr [AddrParams id2addr $mhaddr]
 	    set a [split $addr]
 	    set b [join $a .]
-	    #puts "b=$b"
-	    $node_ add-hroute $b $encap
+	    $node_ add-route $b $encap
 	} else {
-	    set or [[$node_ set classifier_] slot $mhaddr]
+	    set or [[$node_ entry] slot $mhaddr]
 	    if { $or != $encap } {
 		set OldRoute_($mhaddr) $or
 		$node_ add-route $mhaddr $encap
@@ -183,43 +186,45 @@ Agent/MIPBS instproc encap-route { mhaddr coa lifetime } {
 }
 
 Agent/MIPBS instproc decap-route { mhaddr target lifetime } {
-    $self instvar node_ RegTimer_
-    # decap's for mobilenodes can have a default-target; in this 
-    # case the def-target is the routing-agent.
+	$self instvar node_ RegTimer_
+	# decap's for mobilenodes can have a default-target; in this 
+	# case the def-target is the routing-agent.
     
-    if {[$node_ info class] != "MobileNode/MIPBS" && [$node_ info class] != "Node/MobileNode" } {
-	set ns [Simulator instance]
-	[$node_ set decap_] install $mhaddr $target
+	if {[$node_ info class] != "MobileNode/MIPBS" && \
+			[$node_ info class] != "Node/MobileNode" } {
+		set ns [Simulator instance]
+		[$node_ set decap_] install $mhaddr $target
 	
-	if { [info exists RegTimer_($mhaddr)] && $RegTimer_($mhaddr) != "" } {
-	    $ns cancel $RegTimer_($mhaddr)
+		if { [info exists RegTimer_($mhaddr)] && \
+				$RegTimer_($mhaddr) != "" } {
+			$ns cancel $RegTimer_($mhaddr)
+		}
+		set RegTimer_($mhaddr) [$ns at [expr [$ns now] + $lifetime] \
+				"$self clear-decap $mhaddr"]
+	} else {
+		[$node_ set decap_] defaulttarget [$node_ set ragent_]
 	}
-	set RegTimer_($mhaddr) [$ns at [expr [$ns now] + $lifetime] \
-		"$self clear-decap $mhaddr"]
-    } else {
-	
-	[$node_ set decap_] defaulttarget [$node_ set ragent_]
-    }
 }
 
 Agent/MIPBS instproc clear-decap mhaddr {
 	$self instvar node_ RegTimer_
-    if { [info exists RegTimer_($mhaddr)] && $RegTimer_($mhaddr) != "" } {
-	[Simulator instance] cancel $RegTimer_($mhaddr)
-	set RegTimer_($mhaddr) ""
-    }
-    [$node_ set decap_] clear $mhaddr
+	if { [info exists RegTimer_($mhaddr)] && $RegTimer_($mhaddr) != "" } {
+		[Simulator instance] cancel $RegTimer_($mhaddr)
+		set RegTimer_($mhaddr) ""
+	}
+	[$node_ set decap_] clear $mhaddr
 }
 
 Agent/MIPBS instproc get-link { src dst } {
-    $self instvar node_
-    if {[$node_ info class] != "MobileNode/MIPBS" && [$node_ info class] != "Node/MobileNode"} {
-	set ns [Simulator instance]
-	return [[$ns link [$ns get-node-by-addr $src] \
-		[$ns get-node-by-addr $dst]] head]
-    } else { 
-	return ""
-    }
+	$self instvar node_
+	if {[$node_ info class] != "MobileNode/MIPBS" && \
+			[$node_ info class] != "Node/MobileNode"} {
+		set ns [Simulator instance]
+		return [[$ns link [$ns get-node-by-addr $src] \
+				[$ns get-node-by-addr $dst]] head]
+	} else { 
+		return ""
+	}
 }
 
 Agent/MIPBS instproc add-ads-bcast-link { ll } {
@@ -228,44 +233,47 @@ Agent/MIPBS instproc add-ads-bcast-link { ll } {
 }
 
 Agent/MIPMH instproc init { node args } {
-    eval $self next $args
-    # if mobilenode, donot use bcasttarget; use target_ instead;
-    if {[$node info class] != "MobileNode/MIPMH" && \
-	    [$node info class] != "SRNode/MIPMH" && [$node info class] != "Node/MobileNode" } {
-	$self instvar BcastTarget_
-	set BcastTarget_ [new Classifier/Replicator]
-	$self bcast-target $BcastTarget_
-    }
-    $self beacon-period 1.0	;# default value
+	eval $self next $args
+	# if mobilenode, donot use bcasttarget; use target_ instead;
+	if {[$node info class] != "MobileNode/MIPMH" && \
+			[$node info class] != "SRNode/MIPMH" && \
+			[$node info class] != "Node/MobileNode" } {
+		$self instvar BcastTarget_
+		set BcastTarget_ [new Classifier/Replicator]
+		$self bcast-target $BcastTarget_
+	}
+	$self beacon-period 1.0	;# default value
 }
 
 Agent/MIPMH instproc update-reg coa {
-    $self instvar node_
-    ## dont need to set up routing for mobilenodes, so..
-    if {[$node_ info class] != "MobileNode/MIPMH" && \
-	    [$node_ info class] != "SRNode/MIPMH" && [$node_ info class] != "Node/MobileNode" } {
-	set n [Node set nn_]
-	set ns [Simulator instance]
-	set id [$node_ id]
-	set l [[$ns link $node_ [$ns get-node-by-addr $coa]] head]
-	for { set i 0 } { $i < $n } { incr i } {
-	    if { $i != $id } {
-		$node_ add-route $i $l
-	    }
+	$self instvar node_
+	## dont need to set up routing for mobilenodes, so..
+	if {[$node_ info class] != "MobileNode/MIPMH" && \
+			[$node_ info class] != "SRNode/MIPMH" && \
+			[$node_ info class] != "Node/MobileNode" } {
+		set n [Node set nn_]
+		set ns [Simulator instance]
+		set id [$node_ id]
+		set l [[$ns link $node_ [$ns get-node-by-addr $coa]] head]
+		for { set i 0 } { $i < $n } { incr i } {
+			if { $i != $id } {
+				$node_ add-route $i $l
+			}
+		}
 	}
-    }
 }
     
 Agent/MIPMH instproc get-link { src dst } {
-    $self instvar node_
-    if {[$node_ info class] != "MobileNode/MIPMH" && \
-	    [$node_ info class] != "SRNode/MIPMH" &&  [$node_ info class] != "Node/MobileNode" } {
-	set ns [Simulator instance]
-	return [[$ns link [$ns get-node-by-addr $src] \
-		[$ns get-node-by-addr $dst]] head]
-    } else {
-	return ""
-    }
+	$self instvar node_
+	if {[$node_ info class] != "MobileNode/MIPMH" && \
+			[$node_ info class] != "SRNode/MIPMH" && \
+			[$node_ info class] != "Node/MobileNode" } {
+		set ns [Simulator instance]
+		return [[$ns link [$ns get-node-by-addr $src] \
+			[$ns get-node-by-addr $dst]] head]
+	} else {
+		return ""
+	}
 }
 
 Agent/MIPMH instproc add-sol-bcast-link { ll } {

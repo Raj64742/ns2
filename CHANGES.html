@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.421 2000/09/13 03:06:51 haoboy Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.422 2000/09/14 18:19:24 haoboy Exp $-->
 
 <h1>ns: Change History</h1>
 
@@ -23,6 +23,41 @@ with the most recent changes coming first.
 of ns-2.1b7</a> [PENDING]</h3>
 
 <ul>
+
+<p><li>
+<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
+<b>Thu Sep 14 11:01:49 PDT 2000</b>
+<br>
+Partially completely node restructuring:
+<ul>
+<li> A node can be considered as a collection of classifiers
+and routing modules. An important function that Node should
+provide is how to interface classifiers to routing
+modules. There are two aspects to this: (1) what is the
+organization of these classifiers, and (2) when there is a
+routing change, which classifiers should be notified and how.
+<li> Hierarchical routing, manual routing, virtual classifier, MPLS
+have been converted to the new scheme.
+<li> Multicast code is partially converted, in that the hookup of
+switch_ is done via RtModule/Mcast, however, existing mcast code is
+not changed to be wrapped entired in this module; it is still in the
+forms of a bunch of Simulator and Node instprocs.
+<li> Mobile node and satellite node are not converted. Mobile code in
+itself needs to be cleaned up. For instance, MobileNode partially
+duplicates the functionality of MIP, however it does not entirely
+replace old Node/MIPBS and Node/MIPMH. The conversion of these two
+modules to the new scheme also requires changing their c++ code, which
+is not trivial.
+</ul>
+Other changes include:
+<ul>
+<li> Move AddrParams class to a singleton split object class. Most 
+of its parameters are now stored in c++ space.
+<li> Created a wrapper hierarchical classifier to present a single
+classifier interface to node configuration. This allows us to avoid
+those gazillions of <code>if [Simulator set EnableHierRt_] ...</code>
+that were all over the place.
+</ul>
 
 <p><li>
 <b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>

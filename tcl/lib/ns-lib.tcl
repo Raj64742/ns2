@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.210 2000/09/13 03:25:14 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.211 2000/09/14 18:19:27 haoboy Exp $
 
 #
 # Word of warning to developers:
@@ -129,6 +129,7 @@ Class Simulator
 source ns-autoconf.tcl
 source ns-address.tcl
 source ns-node.tcl
+source ns-rtmodule.tcl
 source ns-hiernode.tcl
 source ns-mobilenode.tcl
 source ns-bsnode.tcl
@@ -197,13 +198,6 @@ source ../emulate/ns-emulate.tcl
 
 Simulator instproc init args {
 	$self create_packetformat
-
-	# When did this happen? Is it still around? - Aug 30, 2000, [haoboy]
-	# 
-	# The calendar scheduler doesn't work on big mobile network runs
-	# it dies around 240 secs...
-	#$self use-scheduler List
-
 	$self use-scheduler Calendar
 	$self set nullAgent_ [new Agent/Null]
 	$self set-address-format def
@@ -305,14 +299,14 @@ Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
 Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
 Simulator instproc MPLS { val } { 
 	if { $val == "ON" } {
-		$self set EnableMPLS_ 1
+		Node enable-module "MPLS"
 	} else {
-		$self set EnableMPLS_ 0
+		Node disable-module "MPLS"
 	}
 }
 
 Simulator instproc get-nodetype {} {
-	$self instvar addressType_ routingAgent_ wiredRouting_ EnableMPLS_
+	$self instvar addressType_ routingAgent_ wiredRouting_ 
 	set val ""
 
 	if { [info exists addressType_] && $addressType_ == "hierarchical" } {
@@ -334,9 +328,6 @@ Simulator instproc get-nodetype {} {
 		if { $val == "Base" && $wiredRouting_ == "OFF" } {
 			set val MIPMH
 		}
-	}
-	if { [info exists EnableMPLS_] && $EnableMPLS_ } {
-		set val "MPLS"
 	}
 	return $val
 }
@@ -426,7 +417,7 @@ Simulator instproc node args {
         }
         if { [Simulator info vars NumberInterfaces_] != "" } {
                 warn "Flag variable Simulator::NumberInterfaces_ discontinued.\n\t\
-                      Setting (or not) this variable will not affect the simulations."
+                      Setting this variable will not affect simulations."
                 Simulator unset NumberInterfaces_
         }
 	
@@ -462,6 +453,8 @@ Simulator instproc imep-support {} {
 	return [Simulator set IMEPFlag_]
 }
 
+# XXX This should be moved into the node initialization procedure instead 
+# of standing here in ns-lib.tcl.
 Simulator instproc create-wireless-node args {
         $self instvar routingAgent_ wiredRouting_ propInstance_ llType_ \
 		macType_ ifqType_ ifqlen_ phyType_ chan antType_ energyModel_ \
@@ -475,7 +468,7 @@ Simulator instproc create-wireless-node args {
         
         # basestation address setting
         if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
-		$node base-station [AddrParams set-hieraddr [$node node-addr]]
+		$node base-station [AddrParams addr2id [$node node-addr]]
     	}
         switch -exact $routingAgent_ {
 	    DSDV {
@@ -523,7 +516,7 @@ Simulator instproc create-wireless-node args {
             $routingAgent_ == "DIFFUSION/PROB" ||
             $routingAgent_ == "FLOODING" ||
             $routingAgent_ == "OMNIMCAST" } {
-		$ragent port-dmux [$node set dmux_]
+		$ragent port-dmux [$node demux]
 		$node instvar ll_
 		$ragent add-ll $ll_(0)
 	}
@@ -615,7 +608,7 @@ Simulator instproc create-dsdv-agent { node } {
 	$ragent addr $addr
 	$ragent node $node
 	if [Simulator set mobile_ip_] {
-		$ragent port-dmux [$node set dmux_]
+		$ragent port-dmux [$node demux]
 	}
 	$node addr $addr
 	$node set ragent_ $ragent
@@ -668,9 +661,8 @@ Simulator instproc after {ival args} {
 # where <n=node field size in address>
 #
 Simulator instproc check-node-num {} {
-	AddrParams instvar nodebits_ 
-	if {[Node set nn_] > [expr pow(2, $nodebits_)]} {
-		error "Number of nodes exceeds node-field-size of $nodebits_ bits"
+	if {[Node set nn_] > [expr pow(2, [AddrParams nodebits])]} {
+		error "Number of nodes exceeds node-field-size of [AddrParams nodebits] bits"
 	}
 }
 
@@ -680,21 +672,21 @@ Simulator instproc check-node-num {} {
 # modified to support n-level of hierarchies
 #
 Simulator instproc chk-hier-field-lengths {} {
-	AddrParams instvar domain_num_ cluster_num_ nodes_num_ NodeMask_
+	AddrParams instvar domain_num_ cluster_num_ nodes_num_
 	if [info exists domain_num_] {
-		if {[expr $domain_num_ - 1]> $NodeMask_(1)} {
+		if {[expr $domain_num_ - 1]> [AddrParams NodeMask 1]} {
 			error "\# of domains exceed dom-field-size "
 		}
 	} 
 	if [info exists cluster_num_] {
 		set maxval [expr [find-max $cluster_num_] - 1] 
-		if {$maxval > [expr pow(2, $NodeMask_(2))]} {
+		if {$maxval > [expr pow(2, [AddrParams NodeMask 2])]} {
 			error "\# of clusters exceed clus-field-size "
 		}
 	}
 	if [info exists nodes_num_] {
 		set maxval [expr [find-max $nodes_num_] -1]
-		if {$maxval > [expr pow(2, $NodeMask_(3))]} {
+		if {$maxval > [expr pow(2, [AddrParams NodeMask 3])]} {
 			error "\# of nodess exceed node-field-size"
 		}
 	}
@@ -1252,14 +1244,31 @@ Simulator proc instance {} {
 	error "Cannot find instance of simulator"
 }
 
+Simulator instproc get-number-of-nodes {} {
+	return  [$self array size Node_]
+}
+
 Simulator instproc get-node-by-id id {
 	$self instvar Node_
 	return $Node_($id)
 }
 
-Simulator instproc get-number-of-nodes {} {
+# Given an node's address, Return the node-id
+Simulator instproc get-node-id-by-addr address {
 	$self instvar Node_
-	return  [array size Node_] 
+	set n [Node set nn_]
+	for {set q 0} {$q < $n} {incr q} {
+		set nq $Node_($q)
+		if {[string compare [$nq node-addr] $address] == 0} {
+			return $q
+		}
+	}
+	error "get-node-id-by-addr:Cannot find node with given address"
+}
+
+# Given an node's address, return the node 
+Simulator instproc get-node-by-addr address {
+	return [$self get-node-by-id [$self get-node-id-by-addr $address]]
 }
 
 Simulator instproc all-nodes-list {} {
@@ -1393,8 +1402,8 @@ Classifier/Hash instproc init nbuck {
 	# so we set them after they get their default values
 	$self next $nbuck
 	$self instvar shift_ mask_
-	set shift_ [AddrParams set NodeShift_(1)]
-	set mask_ [AddrParams set NodeMask_(1)]
+	set shift_ [AddrParams NodeShift 1]
+	set mask_ [AddrParams NodeMask 1]
 }
 
 Classifier/Port/Reserve instproc init args {
@@ -1547,6 +1556,7 @@ Simulator instproc link-lossmodel {lossobj from to} {
 	set link [$self link $from $to]
 	$link insert-linkloss $lossobj
 }
+
 
 #### Polly Huang: Simulator class instproc to support abstract tcp simulations
 
@@ -1720,3 +1730,4 @@ Simulator instproc prepare-to-stop {} {
 		$i stop
 	}
 }
+    

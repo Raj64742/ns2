@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.36 2000/04/10 03:29:26 hyunahpa Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.37 2000/09/14 18:19:27 haoboy Exp $
 #
 
 #
@@ -450,15 +450,14 @@ Simulator instproc dump-namqueues {} {
 
 # Write hierarchical masks/shifts into trace file
 Simulator instproc dump-namaddress {} {
-	AddrParams instvar hlevel_ NodeShift_ NodeMask_ McastShift_ McastMask_
-	
 	# First write number of hierarchies
 	$self puts-nam-config \
-	    "A -t * -n $hlevel_ -p 0 -o [AddrParams set ALL_BITS_SET] -c $McastShift_ -a $McastMask_"
+	    "A -t * -n [AddrParams hlevel] -p 0 -o [AddrParams set \
+ALL_BITS_SET] -c [AddrParams McastShift] -a [AddrParams McastMask]"
 	
-	for {set i 1} {$i <= $hlevel_} {incr i} {
-		$self puts-nam-config \
-		    "A -t * -h $i -m $NodeMask_($i) -s $NodeShift_($i)"
+	for {set i 1} {$i <= [AddrParams hlevel]} {incr i} {
+		$self puts-nam-config "A -t * -h $i -m [AddrParams \
+NodeMask $i] -s [AddrParams NodeShift $i]"
 	}
 }
 

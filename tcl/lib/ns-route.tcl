@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.25 2000/08/29 19:28:03 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.26 2000/09/14 18:19:27 haoboy Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -64,7 +64,7 @@ RouteLogic instproc lookup { nodeid destid } {
 	set ns [Simulator instance]
 	set node [$ns get-node-by-id $nodeid]
 
-	if [Simulator set EnableHierRt_] {
+	if [Simulator hier-addr?] {
 		set dest [$ns get-node-by-id $destid]
 		set nh [$self hier-lookup [$node node-addr] [$dest node-addr]]
 		return [$ns get-node-id-by-addr $nh]
@@ -176,7 +176,7 @@ Simulator instproc dump-routelogic-nh {} {
 				    puts -nonewline "$nh\t"
 				}
 			} else {
-			    puts -nonewline "--\t"
+				puts -nonewline "--\t"
 			}
 			incr j
 		}
@@ -205,37 +205,34 @@ Simulator instproc dump-routelogic-distance {} {
 	    incr i
 	}
 
-	set i 0
-	while { $i < $n } {
+	for {set i 0} {$i < $n} {incr i} {
 		if ![info exists Node_($i)] {
-		    incr i
 		    continue
 		}
 		puts -nonewline "\n$i\t"
 		set n1 $Node_($i)
-		set j 0
-		while { $j < $n } {
-			if { $i != $j } {
-				set nh [$routingTable_ lookup $i $j]
-				if { $nh >= 0 } {
-				    set distance 0
-				    set tmpfrom $i
-				    set tmpto $j
-				    while {$tmpfrom != $tmpto} {
-					set tmpnext [$routingTable_ lookup $tmpfrom $tmpto]
-					set distance [expr $distance + [$link_($tmpfrom:$tmpnext) cost?]]
-					set tmpfrom $tmpnext
-				    }
-				    puts -nonewline "$distance\t"
-				} else {
-				    puts -nonewline "0\t"
-				}
-			} else {
-			    puts -nonewline "0\t"
+		for {set j 0} {$j < $n} {incr j} {
+			if { $i == $j } {
+				puts -nonewline "0\t"
+				continue
 			}
-			incr j
+			set nh [$routingTable_ lookup $i $j]
+			if { $nh < 0 } {
+				puts -nonewline "0\t"
+				continue
+			}
+			set distance 0
+			set tmpfrom $i
+			set tmpto $j
+			while {$tmpfrom != $tmpto} {
+				set tmpnext [$routingTable_ lookup \
+					$tmpfrom $tmpto]
+				set distance [expr $distance + \
+					[$link_($tmpfrom:$tmpnext) cost?]]
+				set tmpfrom $tmpnext
+			}
+			puts -nonewline "$distance\t"
 		}
-		incr i
 	}
 	puts ""
 }
@@ -245,7 +242,7 @@ Simulator instproc compute-routes {} {
 	#
 	# call hierarchical routing, if applicable
 	#
-	if [Simulator set EnableHierRt_] {
+	if [Simulator hier-addr?] {
 		$self compute-hier-routes 
 	} else {
 		$self compute-flat-routes
@@ -288,8 +285,8 @@ Simulator instproc compute-flat-routes {} {
 				# shortened nexthop to nh, to fit add-route in
 				# a single line
 				set nh [$r lookup $i $j]
-			    if { $nh >= 0 } {
-				$n1 add-route $j [$link_($i:$nh) head]
+				if { $nh >= 0 } {
+					$n1 add-route $j [$link_($i:$nh) head]
 				}
 			} 
 			incr j
@@ -305,10 +302,10 @@ Simulator instproc hier-topo {rl} {
 	#
 	# if topo info not found, use default values
 	#
-	AddrParams instvar domain_num_ cluster_num_ nodes_num_ hlevel_
+	AddrParams instvar domain_num_ cluster_num_ nodes_num_ 
     
 	if ![info exists cluster_num_] {
-		if {$hlevel_ > 1} {
+		if {[AddrParams hlevel] > 1} {
 			### set default value of clusters/domain 
 			set def [AddrParams set def_clusters]
 			puts "Default value for cluster_num set to $def\n"
@@ -356,7 +353,7 @@ Simulator instproc compute-hier-routes {} {
         if ![info exists link_] {
 		return
 	}
-        set level [AddrParams set hlevel_]
+        set level [AddrParams hlevel]
         $r hlevel-is $level
 	$self hier-topo $r
 	foreach ln [array names link_] {
@@ -383,7 +380,7 @@ Simulator instproc compute-hier-routes {} {
 		}
 		set n1 $Node_($i)
 		set addr [$n1 node-addr]
-		set L [$n1 split-addrstr $addr]
+		set L [AddrParams split-addrstr $addr]
 		#
 		# for each hierarchy level, populate classifier for that level
 		#
@@ -414,7 +411,7 @@ Simulator instproc compute-hier-routes {} {
 				}
 				set node [$self get-node-id-by-addr $nh]
 				if { $node >= 0 } {
-					$n1 add-hroute $str \
+					$n1 add-route $str \
 							[$link_($i:$node) head]
 				}
 			}
@@ -422,7 +419,7 @@ Simulator instproc compute-hier-routes {} {
 	}
 }
 
-#####
+#
 # Now source the dynamic routing protocol methods
 #
 source ../rtglib/route-proto.tcl
@@ -470,79 +467,3 @@ Simulator instproc compute-algo-routes {} {
 		incr i
 	}
 }
-
-# XXX Not used anywhere?
-#  Simulator instproc compute-route-for-mobilenodes {} {
-#  	$self instvar MobileNode_
-#  	Simulator instvar mn_
-	
-#  	set r [$self get-routelogic]
-	
-#  	set level [AddrParams set hlevel_]
-#  	$r hlevel-is $level
-#  	$self hier-topo $r
-	
-#  	for {set i 0} {$i < $mn_} {incr i} {
-#  		set srcID [$MobileNode_($i) node-addr]
-#  		set bs [$MobileNode_($i) base-station?]
-#  		set dstID [$bs node-addr]
-#  		$r hier-insert $srcID $dstID 1  
-#  		## we donot setup basestn nodes as compute-hier 
-#  		## takes care of them
-#  	}
-#  	$r hier-compute
-
-#  	$self populate-mobilenode $level
-#  }
-
-#  Simulator instproc populate-mobilenode {level} {
-#  	Simulator instvar mn_
-#  	$self instvar MobileNode_
-#  	set i 0
-	
-#  	while { $i < $mn_ } {
-#  		set n1 $MobileNode_($i)
-#  		set addr [$n1 node-addr]
-#  		set L [$n1 split-addrstr $addr]
-#  		#
-#  		# for each hierarchy level, populate classifier 
-#  		# for that level
-#  		#
-#  		for {set k 0} {$k < $level} {incr k} {
-#  			set csize [AddrParams elements-in-level? $addr $k]
-#  			#
-#  			# for each element in that level 
-#  			# (elements maybe nodes or clusters or domains 
-#  			#
-#  			if {$k > 0} {
-#  				set prefix [$r append-addr $k $L]
-#  			}
-#  			for {set m 0} {$m < $csize} {incr m} {
-#  				if { $m != [lindex $L $k]} {
-#  					if {$k > 0} {
-#  						set str $prefix
-#  						append str . $m
-#  					} else {
-#  						set str $m
-#  					}
-
-#  					set nh [$r hier-lookup $addr \
-#  							$str]
-#  					# add entry in clasifier 
-#  					# only if hier-lookup 
-#  					# returns a value. 
-#  					if {$nh != -1} {
-#  						set node [$self get-node-by-addr $nh]
-#  						if { $node > 0 } {
-#  							$n1 add-hroute $str $node
-#  						}
-#  					}
-#  				}
-#  			}
-#  		}
-#  		incr i
-#  	}
-#  }
-
-
-

@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.17 1999/12/20 19:20:43 haoboy Exp $
+# $Id: many_tcp.tcl,v 1.18 2000/09/14 18:19:26 haoboy Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -280,8 +280,8 @@ Main instproc init_network {} {
 #	[$bottle_r_ set classifier_] resize 511
 
 	# Default routes to the other.
-	$bottle_l_ add-route-to-adj-node -default $bottle_r_
-	$bottle_r_ add-route-to-adj-node -default $bottle_l_
+	[$bottle_l_ get-module "Manual"] add-route-to-adj-node -default $bottle_r_
+	[$bottle_r_ get-module "Manual"] add-route-to-adj-node -default $bottle_l_
 
 	# Clients are built dynamically.
 	set cs_count_ 0
@@ -311,10 +311,10 @@ Main instproc create_client_nodes {node} {
 	my-duplex-link $ns_ $cs_r_($node) $bottle_r_ $opts(client-bw) $rdelay $opts(client-queue-method) $opts(client-queue-length)
 
 	# Add routing in all directions
-	$cs_l_($node) add-route-to-adj-node -default $bottle_l_
-	$cs_r_($node) add-route-to-adj-node -default $bottle_r_
-	$bottle_l_ add-route-to-adj-node $cs_l_($node)
-	$bottle_r_ add-route-to-adj-node $cs_r_($node)
+	[$cs_l_($node) get-module "Manual"] add-route-to-adj-node -default $bottle_l_
+	[$cs_r_($node) get-module "Manual"] add-route-to-adj-node -default $bottle_r_
+	[$bottle_l_ get-module "Manual"] add-route-to-adj-node $cs_l_($node)
+	[$bottle_r_ get-module "Manual"] add-route-to-adj-node $cs_r_($node)
 
 	if {$opts(debug)} {
 		 # puts "t=[format %.3f $now]: node pair $node created"

@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-08-30 12:06:18 haoboy>
+# Time-stamp: <2000-09-11 15:22:45 haoboy>
 #
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mpls.tcl,v 1.3 2000/08/30 19:15:06 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mpls.tcl,v 1.4 2000/09/14 18:19:31 haoboy Exp $
 
 Class TestSuite
 
@@ -261,6 +261,12 @@ Test/simple instproc init args {
 	$ns_ at 0.1  "$Src0 start"
 	$ns_ at 0.1  "$Src1 start"
 
+	for {set i 2} {$i < 9} {incr i} {
+		set a LSR$i
+		set m [eval $$a get-module "MPLS"]
+		eval set LSR$i $m
+	}
+
 	$ns_ at 0.2  "$LSR7 ldp-trigger-by-withdraw 9 -1"
 	$ns_ at 0.2  "$LSR8 ldp-trigger-by-withdraw 10 -1"
 
@@ -369,7 +375,8 @@ Test/control-driven instproc init args {
 			set b LSR$j
 			eval $ns_ LDP-peer $$a $$b
 		}
-		eval $$a enable-reroute "drop"
+		set m [eval $$a get-module "MPLS"]
+		$m enable-reroute "drop"
 	}
 
 	#
@@ -442,7 +449,8 @@ Test/data-driven instproc init args {
 			set b LSR$j
 			eval $ns_ LDP-peer $$a $$b
 		}
-		eval $$a enable-reroute "new"
+		set m [eval $$a get-module "MPLS"]
+		$m enable-reroute "new"
 	}
 
 	#
@@ -460,8 +468,8 @@ Test/data-driven instproc init args {
 	Classifier/Addr/MPLS enable-on-demand
 	Classifier/Addr/MPLS enable-ordered-control
 	
-	$LSR1 enable-data-driven
-	$LSR3 enable-data-driven
+	[$LSR1 get-module "MPLS"] enable-data-driven
+	[$LSR3 get-module "MPLS"] enable-data-driven
 
 	# Create a traffic sink and attach it to the node node8
 	$self instvar sink0_
@@ -524,7 +532,8 @@ Test/reroute instproc init args {
 			set b LSR$j
 			eval $ns_ LDP-peer $$a $$b
 		}
-		eval $$a enable-reroute "new"
+		set m [eval $$a get-module "MPLS"]
+		$m enable-reroute "new"
 	}
 
 	#
@@ -538,8 +547,8 @@ Test/reroute instproc init args {
 
 	Classifier/Addr/MPLS enable-on-demand
 	Classifier/Addr/MPLS enable-ordered-control
-	$LSR1 enable-data-driven
-	$LSR3 enable-data-driven
+	[$LSR1 get-module "MPLS"] enable-data-driven
+	[$LSR3 get-module "MPLS"] enable-data-driven
 
 	# Create a traffic sink and attach it to the node node8
 	$self instvar sink0_
@@ -550,11 +559,11 @@ Test/reroute instproc init args {
 
 	$ns_ at 00 "$self record"
 	$ns_ at 0.1  "$src0 start"
-	$ns_ at 0.1  "$LSR1 make-explicit-route  7  2_4_6_7  1000  -1"
-	$ns_ at 0.2  "$LSR7 make-explicit-route  7  5_3_1_1000  1005  -1"
-	$ns_ at 0.3  "$LSR1 reroute-binding      8 -1    1005"
-	$ns_ at 0.3  "$LSR3 reroute-binding      8 -1    1005"
-	$ns_ at 0.3  "$LSR5 reroute-binding      8 -1    1005"
+	$ns_ at 0.1  "[$LSR1 get-module MPLS] make-explicit-route 7 2_4_6_7 1000 -1"
+	$ns_ at 0.2  "[$LSR7 get-module MPLS] make-explicit-route  7  5_3_1_1000  1005  -1"
+	$ns_ at 0.3  "[$LSR1 get-module MPLS] reroute-binding      8 -1    1005"
+	$ns_ at 0.3  "[$LSR3 get-module MPLS] reroute-binding      8 -1    1005"
+	$ns_ at 0.3  "[$LSR5 get-module MPLS] reroute-binding      8 -1    1005"
 	$ns_ rtmodel-at 0.3 down $LSR3 $LSR5
 	$ns_ rtmodel-at 0.5 up   $LSR3 $LSR5
 	$ns_ at 0.6 "$src0 stop"

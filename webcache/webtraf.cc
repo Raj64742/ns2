@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.9 2000/09/07 19:56:07 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.10 2000/09/14 18:19:48 haoboy Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -188,11 +188,6 @@ public:
 	}
 } class_webtrafpool;
 
-void WebTrafPool::delay_bind_init_all()
-{
-	delay_bind_init_one("debug_");
-}
-
 WebTrafPool::~WebTrafPool()
 {
 	if (session_ != NULL) {
@@ -207,12 +202,18 @@ WebTrafPool::~WebTrafPool()
 	// XXX Destroy tcpPool_ and sinkPool_ ?
 }
 
+void WebTrafPool::delay_bind_init_all()
+{
+	delay_bind_init_one("debug_");
+	PagePool::delay_bind_init_all();
+}
+
 int WebTrafPool::delay_bind_dispatch(const char *varName,const char *localName,
 				     TclObject *tracer)
 {
 	if (delay_bind_bool(varName, localName, "debug_", &debug_, tracer)) 
 		return TCL_OK;
-	return TclObject::delay_bind_dispatch(varName, localName, tracer);
+	return PagePool::delay_bind_dispatch(varName, localName, tracer);
 }
 
 // By default we use constant request interval and page size

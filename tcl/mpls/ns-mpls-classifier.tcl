@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-08-29 11:19:56 haoboy>
+# Time-stamp: <2000-09-11 15:34:10 haoboy>
 # 
 #  Copyright (c) 1997 by the University of Southern California
 #  All rights reserved.
@@ -28,7 +28,7 @@
 # 
 #  Original source contributed by Gaeil Ahn. See below.
 #
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mpls/ns-mpls-classifier.tcl,v 1.1 2000/08/29 19:28:03 haoboy Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mpls/ns-mpls-classifier.tcl,v 1.2 2000/09/14 18:19:28 haoboy Exp $
 
 ###########################################################################
 # Copyright (c) 2000 by Gaeil Ahn                                	  #
@@ -46,12 +46,13 @@
 
 
 Classifier/Addr/MPLS instproc init {args} {
-       eval $self next $args
-       $self instvar mpls_node_
-       $self instvar rtable_
-       
-       set mpls_node_ ""
-       set rtable_ ""
+	eval $self next $args
+	$self set rtable_ ""
+}
+
+Classifier/Addr/MPLS instproc set-node { node module } {
+	$self set mpls_node_ $node
+	$self set mpls_mod_ $module
 }
 
 Classifier/Addr/MPLS instproc no-slot args {
@@ -75,13 +76,13 @@ Classifier/Addr/MPLS instproc trace-packet-switching { time src dst ptype \
 # from the classifier.
 
 Classifier/Addr/MPLS instproc ldp-trigger-by-switch { fec } {
-	$self instvar mpls_node_
+	$self instvar mpls_node_ mpls_mod_
 	if { [Classifier/Addr/MPLS on-demand?] == 1 } {
 		set msgid  1
 	} else {
 		set msgid -1
 	}
-	$mpls_node_ ldp-trigger-by-data $msgid [$mpls_node_ id] $fec *
+	$mpls_mod_ ldp-trigger-by-data $msgid [$mpls_node_ id] $fec *
 }
 
 # XXX This is a really bad way to check if routing table is built.
@@ -117,7 +118,7 @@ Classifier/Addr/MPLS instproc rtable-ready { fec } {
 }
 
 Classifier/Addr/MPLS instproc routing-new { slot time } {
-	$self instvar mpls_node_ rtable_
+	$self instvar mpls_node_ rtable_ mpls_mod_
 	if { [$self control-driven?] != 1 } {
 		return
 	}
@@ -127,10 +128,10 @@ Classifier/Addr/MPLS instproc routing-new { slot time } {
 	if { [$self rtable-ready $slot] == 1 } {
 		# Now, routing table is built.  really ?
 		# Check whether static routing or dynamic routing
-		set rtlen   [llength $rtable_]
+		set rtlen [llength $rtable_]
 		for {set i 0} {$i < $rtlen} {incr i 1} {
 			set nodeid [lindex $rtable_ $i]
-			if { [$mpls_node_ get-nexthop $nodeid] == -1 } {
+			if { [$mpls_mod_ get-nexthop $nodeid] == -1 } {
 				#
 				# It's Dynamic Routing
 				#
@@ -146,12 +147,13 @@ Classifier/Addr/MPLS instproc routing-new { slot time } {
 		# have all finished yet. 
 		set rtable_ "" 
 		[Simulator instance] at [expr $time] \
-				"$mpls_node_ ldp-trigger-by-routing-table"
+				"$mpls_mod_ ldp-trigger-by-routing-table"
 	}
 }
 
+# XXX Why routing table should be updated when there is no change??
 Classifier/Addr/MPLS instproc routing-nochange {slot time} {
-	$self instvar mpls_node_ rtable_
+	$self instvar mpls_node_ rtable_ mpls_mod_
 	
 	if { [$self control-driven?] != 1 } {
 		return
@@ -162,22 +164,22 @@ Classifier/Addr/MPLS instproc routing-nochange {slot time} {
 	if { [$self rtable-ready $slot] == 1 } {
 		set rtable_ "" 
   		[Simulator instance] at $time \
-				"$mpls_node_ ldp-trigger-by-routing-table"
+				"$mpls_mod_ ldp-trigger-by-routing-table"
 	}
 }
 
 Classifier/Addr/MPLS instproc routing-update {slot time} {
-	$self instvar mpls_node_ rtable_
+	$self instvar mpls_mod_ rtable_
 	if {[$self control-driven?] != 1} {
 		return
 	}
 	set fec $slot
-	set pft_outif [$mpls_node_ get-outgoing-iface $fec -1]
-	set rt_outif  [$mpls_node_ get-nexthop $fec]
+	set pft_outif [$mpls_mod_ get-outgoing-iface $fec -1]
+	set rt_outif  [$mpls_mod_ get-nexthop $fec]
 	if { $pft_outif == -1 || $rt_outif == -1 } {
 		return
 	}
-	$mpls_node_ ldp-trigger-by-control $fec *
+	$mpls_mod_ ldp-trigger-by-control $fec *
 	return
 }
 

@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan.tcl,v 1.18 2000/08/31 18:59:23 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan.tcl,v 1.19 2000/09/14 18:19:31 haoboy Exp $
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan
@@ -336,7 +336,7 @@ Test/dsdv-wired-cum-wireless instproc init {} {
     for {set j 0} {$j < $num_wireless_nodes} {incr j} {
 	set node_($j) [ $opt(rp)-create-mobile-node $j [lindex $temp \
 		[expr $j+1]] ]
-	$node_($j) base-station [AddrParams set-hieraddr \
+	$node_($j) base-station [AddrParams addr2id \
 		[$BS(0) node-addr]]
     }
     
@@ -422,7 +422,7 @@ Test/dsdv-wireless-mip instproc init {} {
     # note address of MH indicates its in the same domain as HA.
     
     set MH [$opt(rp)-create-mobile-node 0 1.0.2]
-    set HAaddress [AddrParams set-hieraddr [$HA node-addr]]
+    set HAaddress [AddrParams addr2id [$HA node-addr]]
     [$MH set regagent_] set home_agent_ $HAaddress
     
     # movement of MH

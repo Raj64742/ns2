@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.12 2000/08/31 20:11:51 haoboy Exp $
+# $Id: dsr.tcl,v 1.13 2000/09/14 18:19:28 haoboy Exp $
 
 # ======================================================================
 # Default Script Options
@@ -72,17 +72,12 @@ SRNode instproc init {args} {
 	eval $self next $args	;# parent class constructor
 	if {$dmux_ == "" } {
 		set dmux_ [new Classifier/Port]
-		$dmux_ set mask_ [AddrParams set PortMask_]
-		$dmux_ set shift_ [AddrParams set PortShift_]
+		$dmux_ set mask_ [AddrParams PortMask]
+		$dmux_ set shift_ [AddrParams PortShift]
 		#
 		# point the node's routing entry to itself
 		# at the port demuxer (if there is one)
 		#
-		#if [Simulator set EnableHierRt_] {
-		    #$self add-hroute $address_ $dmux_
-		#} else {
-		    #$self add-route $address_ $dmux_
-		#}
 	}
 	# puts "making dsragent for node [$self id]"
 	set dsr_agent_ [new Agent/DSRAgent]
@@ -189,7 +184,7 @@ SRNode instproc reset args {
 proc dsr-create-mobile-node { id args } {
 	global ns_ chan prop topo tracefd opt node_
 	set ns_ [Simulator instance] 
-        if {[Simulator set EnableHierRt_]} {
+        if [Simulator hier-addr?] {
 	    if [Simulator set mobile_ip_] {
 		set node_($id) [new SRNode/MIPMH $args]
 	    } else {

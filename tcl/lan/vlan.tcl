@@ -1,4 +1,3 @@
-
 #
 # vlan.tcl
 #
@@ -18,6 +17,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.31 2000/09/14 18:19:26 haoboy Exp $
 
 # LanNode----------------------------------------------------
 #
@@ -60,7 +60,7 @@ LanNode instproc init {ns args} {
 
 	set id_ [Node getid]
 	set Node_($id_) $self
-	if [Simulator set EnableHierRt_] {
+	if [Simulator hier-addr?] {
 		if {$address_ == ""} {
 			error "LanNode: use \"-address\" option \
 					with hierarchical routing"
@@ -71,8 +71,8 @@ LanNode instproc init {ns args} {
 	set defRouter_ [new LanRouter $ns $self]
 	if [$ns multicast?] {
 		set switch_ [new Classifier/Hash/Dest 32]
-		$switch_ set mask_ [AddrParams set McastMask_]
-		$switch_ set shift_ [AddrParams set McastShift_]
+		$switch_ set mask_ [AddrParams McastMask]
+		$switch_ set shift_ [AddrParams McastShift]
 
 		$defRouter_ switch $switch_
 	}
@@ -227,12 +227,6 @@ LanNode instproc add-hroute {args} {
 	# NOTHING: use defRouter to find routes
 }
 
-LanNode instproc split-addrstr addrstr {
-	set L [split $addrstr .]
-	return $L
-}
-
-
 # LanIface---------------------------------------------------
 #
 # node's interface to a LanNode
@@ -278,7 +272,6 @@ LanIface instproc init {node lan args} {
 	
 	$ifq_ target $mac_
 	
-	#$mac_ target $ll_
 	$mac_ up-target $ll_
 	$mac_ down-target $phy_
 	$mac_ netif $phy_
@@ -402,8 +395,7 @@ Vlink instproc cost? {} {
 #------------------------------------------------------------
 LanRouter instproc init {ns lan} {
 	$self next
-	Simulator instvar EnableHierRt_
-	if {$EnableHierRt_} {
+	if [Simulator hier-addr?] {
 		$self routing hier
 	} else {
 		$self routing flat
@@ -451,17 +443,3 @@ Simulator instproc make-lan {nodelist bw delay \
 	
 	return $lan
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.24 2000/09/01 03:04:06 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.25 2000/09/14 18:19:25 haoboy Exp $
  *
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
@@ -82,6 +82,7 @@ int LinkHead::command(int argc, const char*const* argv)
 	return (Connector::command(argc, argv));
 }
 
+
 static class NodeClass : public TclClass {
 public:
 	NodeClass() : TclClass("Node") {}

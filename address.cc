@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.19 1999/12/11 01:54:21 heideman Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.20 2000/09/14 18:19:25 haoboy Exp $
  */
 
 #include <stdio.h>
@@ -48,12 +48,13 @@ public:
 } class_address;
 
 
-
 Address* Address::instance_;
 
-
-Address::Address() : NodeShift_(NULL), NodeMask_(NULL), McastShift_(0),McastMask_(0), levels_(0)
-{ }
+Address::Address() : 
+	NodeShift_(NULL), NodeMask_(NULL), McastShift_(0), McastMask_(0), 
+	levels_(0)
+{
+}
 
 
 Address::~Address() 
@@ -61,7 +62,6 @@ Address::~Address()
 	delete [] NodeShift_;
 	delete [] NodeMask_;
 }
-
 
 int Address::command(int argc, const char*const* argv)
 {
@@ -77,14 +77,6 @@ int Address::command(int argc, const char*const* argv)
 		}
 	}
  	if (argc == 4) {
-		// The following code is no longer supported in the
-		// 32-bit addressing
-// 		if (strcmp(argv[1], "portbits-are") == 0) {
-// 			PortShift_ = atoi(argv[2]);
-// 			PortMask_ = atoi(argv[3]);
-// 			return (TCL_OK);
-// 		}
-
 		if (strcmp(argv[1], "mcastbits-are") == 0) {
 			McastShift_ = atoi(argv[2]);
 			McastMask_ = atoi(argv[3]);

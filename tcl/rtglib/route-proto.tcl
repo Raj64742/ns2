@@ -23,14 +23,14 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtglib/route-proto.tcl,v 1.29 2000/09/13 03:06:52 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtglib/route-proto.tcl,v 1.30 2000/09/14 18:19:30 haoboy Exp $
 
 #
 # Author: <kannan@isi.edu> (this email address has deprecated.)
 #
-
-# This file only contains the methods for dynamic routing
-# Check ../lib/ns-route.tcl for the Simulator routing support
+#
+# This file only contains the methods for dynamic routing.
+# Check ../lib/ns-route.tcl for the Simulator (static) routing support
 #
 
 set rtglibRNG [new RNG]
@@ -214,14 +214,6 @@ rtObject instproc intf-changed {} {
 
 rtObject instproc dump-routes chan {
     $self instvar ns_ node_ nextHop_ rtpref_ metric_ rtVia_
-
-#    if {[info proc SplitObjectCompare] == ""} {
-#        # XXX: in tcl8 we need to find this in the global namespace
-#        if {[info proc ::SplitObjectCompare] == {}} {
-#            puts stderr "${class}::${proc} failed.  Update your TclCL library"
-#            return
-#        }
-#    }
 
     if {$ns_ != ""} {
 	set time [$ns_ now]
@@ -725,7 +717,7 @@ Agent/rtProto/DV proc compute-all {} {
 Class Agent/rtProto/Manual -superclass Agent/rtProto
 
 Agent/rtProto/Manual proc pre-init-all args {
-    Simulator set node_factory_ ManualRtNode
+    Node enable-module Manual
 }
 
 Agent/rtProto/Manual proc init-all args {

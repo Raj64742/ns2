@@ -16,8 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.16 2000/08/31 18:59:23 haoboy Exp $
-
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.17 2000/09/14 18:19:31 haoboy Exp $
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan
@@ -357,7 +356,7 @@ Test/dsdv-wired-cum-wireless instproc init {} {
     for {set j 0} {$j < $num_wireless_nodes} {incr j} {
 	set node_($j) [$ns_ node [lindex $temp [expr $j+1]] ]
 
-        $node_($j) base-station [AddrParams set-hieraddr \
+        $node_($j) base-station [AddrParams addr2id \
                 [$BS(0) node-addr]]
     }
 
@@ -434,7 +433,7 @@ Test/dsdv-wireless-mip instproc init {} {
                          -channel [new $opt(chan)] \
                          -topoInstance $topo \
 		 	 -wiredRouting ON \
-                        -agentTrace ON \
+                         -agentTrace ON \
                          -routerTrace OFF \
                          -macTrace OFF \
                          -movementTrace OFF
@@ -459,9 +458,8 @@ Test/dsdv-wireless-mip instproc init {} {
     $ns_ node-config -wiredRouting OFF 
     set MH [$ns_ node 1.0.2]
     set node_(0) $MH
-    #set MH [$opt(rp)-create-mobile-node 0 1.0.2]
 
-    set HAaddress [AddrParams set-hieraddr [$HA node-addr]]
+    set HAaddress [AddrParams addr2id [$HA node-addr]]
 
     [$MH set regagent_] set home_agent_ $HAaddress
     

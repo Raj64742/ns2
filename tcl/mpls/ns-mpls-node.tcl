@@ -1,8 +1,8 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-#  Time-stamp: <2000-08-30 10:55:26 haoboy>
+#  Time-stamp: <2000-09-11 15:10:21 haoboy>
 # 
-#  Copyright (c) 1997 by the University of Southern California
+#  Copyright (c) 2000 by the University of Southern California
 #  All rights reserved.
 # 
 #  Permission to use, copy, modify, and distribute this software and its
@@ -28,7 +28,7 @@
 # 
 #  Original source contributed by Gaeil Ahn. See below.
 #
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mpls/ns-mpls-node.tcl,v 1.2 2000/08/30 18:54:04 haoboy Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mpls/ns-mpls-node.tcl,v 1.3 2000/09/14 18:19:30 haoboy Exp $
 
 ###########################################################################
 # Copyright (c) 2000 by Gaeil Ahn                                	  #
@@ -37,196 +37,144 @@
 # this sources.								  #
 ###########################################################################
 
-#############################################################
-#                                                           #
-#     File: File for MPLS Node class                        #
-#     Author: Gaeil Ahn (fog1@ce.cnu.ac.kr), Jan. 2000      #
-#                                                           #
-#############################################################
-
-# XXX
-# This is so DUMB to not to have defaults for these *MPLS instprocs!
-# It's like writing C in a single huge C++ class veneer. 
 #
-# All of the following will be repackaged into a standalone MPLS plugin 
-# module, and attached to each node where MPLS is turned on. Most instprocs
-# in this file will remain unchanged, except the following five, which are
-# used as interfaces with current node-config{} architecture.
-
-Node instproc mk-default-classifierMPLS {} {
-	# This is MPLS-specific initialization procedure. It's ridiculous to
-	# put these stuff here, but we don't have another hook, and it's not 
-	# OTcl any more!
-	$self instvar linked_ldpagents_ in_label_range_ out_label_range_
-	set linked_ldpagents_ ""
-	set in_label_range_  0
-	set out_label_range_ 1000
-
-	$self instvar address_ classifier_ id_
+# XXX MPLS is NOT compatible with hierarchical routing, because:
+#
+# 1) MPLS classifier is explicitly coupled with unicast address classifier,
+#    which does not support hierarchical routing. The reason is MPLS needs 
+#    to check whether a route update is an update, a new entry, or a 
+#    "no change". This is not as straightforward and efficient when the 
+#    MPLS classifier is decoupled from the unicast address classifier, because
+#    through add-route{} interface, Node can only tell this module that a new
+#    route is added, but not whether this is an update, a new entry, or 
+#    a "no change". I don't have a clean solution yet. - haoboy
+#
+RtModule/MPLS instproc register { node } {
+	$self instvar classifier_
+	$self attach-node $node
+	$node route-notify $self
+	$node port-notify $self
         set classifier_ [new Classifier/Addr/MPLS]
-        $classifier_ set mpls_node_ $self
-	set address_ $id_
+        $classifier_ set-node $node $self
+	$node install-entry $self $classifier_ 0
 }
 
-# Now we're done with those dumb configurations and we can finally do
-# something useful! Phew!
+# Done common routing module interfaces. Now is our own processing.
 
-Node instproc enable-data-driven {} {
+RtModule/MPLS instproc enable-data-driven {} {
 	[$self set classifier_] cmd enable-data-driven
 }
 
-Node instproc enable-control-driven {} {
+RtModule/MPLS instproc enable-control-driven {} {
 	[$self set classifier_] cmd enable-control-driven
 }
 
-Node instproc new-incoming-label {} {
-        $self instvar in_label_range_
-        incr in_label_range_ 
-        return $in_label_range_
-}
-
-Node instproc new-outgoing-label {} {
-        $self instvar out_label_range_
-        incr out_label_range_ -1
-        return $out_label_range_
-}
-
-Node instproc make-ldp {} {
+RtModule/MPLS instproc make-ldp {} {
 	set ldp [new Agent/LDP]
-	$self attach-ldp $ldp
+	$self cmd attach-ldp $ldp
+	$ldp set-mpls-module $self
+	[$self node] attach $ldp
 	return $ldp
 }
 
-Node instproc attach-ldp { agent } {
-	$self instvar linked_ldpagents_
-	lappend linked_ldpagents_ $agent
-	$self attach $agent
+RtModule/MPLS instproc exist-fec {fec phb} {
+        return [[$self set classifier_] exist-fec $fec $phb]
 }
 
-Node instproc detach-ldp { agent } {
-	$self instvar linked_ldpagents_
-	# remove agent from list
-	set k [lsearch -exact $linked_ldpagents_ $agent]
-	if { $k >= 0 } {
-		set linked_ldpagents_ [lreplace $linked_ldpagents_ $k $k]
-	}
-	$self detach $agent
+RtModule/MPLS instproc get-incoming-iface {fec lspid} {
+        return [[$self set classifier_] GetInIface $fec $lspid]
 }
 
-Node instproc exist-fec {fec phb} {
-	$self instvar classifier_ 
-        return [$classifier_ exist-fec $fec $phb]
+RtModule/MPLS instproc get-incoming-label {fec lspid} {
+        return [[$self set classifier_] GetInLabel $fec $lspid]
 }
 
-Node instproc get-incoming-iface {fec lspid} {
-	$self instvar classifier_ 
-        return [$classifier_ GetInIface $fec $lspid]
+RtModule/MPLS instproc get-outgoing-label {fec lspid} {
+        return [[$self set classifier_] GetOutLabel $fec $lspid]
 }
 
-Node instproc get-incoming-label {fec lspid} {
-	$self instvar classifier_ 
-        return [$classifier_ GetInLabel $fec $lspid]
+RtModule/MPLS instproc get-outgoing-iface {fec lspid} {
+        return [[$self set classifier_] GetOutIface $fec $lspid]
 }
 
-Node instproc get-outgoing-label {fec lspid} {
-	$self instvar classifier_ 
-        return [$classifier_ GetOutLabel $fec $lspid]
+RtModule/MPLS instproc get-fec-for-lspid {lspid} {
+        return [[$self set classifier_] get-fec-for-lspid $lspid]
 }
 
-Node instproc get-outgoing-iface {fec lspid} {
-	$self instvar classifier_ 
-        return [$classifier_ GetOutIface $fec $lspid]
-}
-
-Node instproc get-fec-for-lspid {lspid} {
-	$self instvar classifier_ 
-        return [$classifier_ get-fec-for-lspid $lspid]
-}
-
-Node instproc in-label-install {fec lspid iface label} {
-	$self instvar classifier_
+RtModule/MPLS instproc in-label-install {fec lspid iface label} {
 	set dontcare [Classifier/Addr/MPLS dont-care]
 	$self label-install $fec $lspid $iface $label $dontcare $dontcare
 }
 
-Node instproc out-label-install {fec lspid iface label} {
-	$self instvar classifier_
+RtModule/MPLS instproc out-label-install {fec lspid iface label} {
 	set dontcare [Classifier/Addr/MPLS dont-care]
 	$self label-install $fec $lspid $dontcare $dontcare $iface $label
 }
 
-Node instproc in-label-clear {fec lspid} {
-	$self instvar classifier_ 
+RtModule/MPLS instproc in-label-clear {fec lspid} {
 	set dontcare [Classifier/Addr/MPLS dont-care]
 	$self label-clear $fec $lspid -1 -1 $dontcare $dontcare
 }
 
-Node instproc out-label-clear {fec lspid} {
-	$self instvar classifier_ 
+RtModule/MPLS instproc out-label-clear {fec lspid} {
 	set dontcare [Classifier/Addr/MPLS dont-care]
 	$self label-clear $fec $lspid $dontcare $dontcare -1 -1
 }
 
-Node instproc label-install {fec lspid iif ilbl oif olbl} {
-	$self instvar classifier_ 
-        $classifier_ LSPsetup $fec $lspid $iif $ilbl $oif $olbl
+RtModule/MPLS instproc label-install {fec lspid iif ilbl oif olbl} {
+        [$self set classifier_] LSPsetup $fec $lspid $iif $ilbl $oif $olbl
 }
 
-Node instproc label-clear {fec lspid iif ilbl oif olbl} {
-        $self instvar classifier_ 
-        $classifier_ LSPrelease $fec $lspid $iif $ilbl $oif $olbl
+RtModule/MPLS instproc label-clear {fec lspid iif ilbl oif olbl} {
+        [$self set classifier_] LSPrelease $fec $lspid $iif $ilbl $oif $olbl
 }
 
-Node instproc flow-erlsp-install {fec phb lspid} {
-        $self instvar classifier_ 
-        $classifier_ ErLspBinding $fec $phb $lspid
+RtModule/MPLS instproc flow-erlsp-install {fec phb lspid} {
+        [$self set classifier_] ErLspBinding $fec $phb $lspid
 }
 
-Node instproc erlsp-stacking {erlspid tunnelid} {
-        $self instvar classifier_ 
-        $classifier_ ErLspStacking -1 $erlspid -1 $tunnelid
+RtModule/MPLS instproc erlsp-stacking {erlspid tunnelid} {
+        [$self set classifier_] ErLspStacking -1 $erlspid -1 $tunnelid
 }
 
-Node instproc flow-aggregation {fineFec finePhb coarseFec coarsePhb} {
-        $self instvar classifier_ 
-        $classifier_ FlowAggregation $fineFec $finePhb $coarseFec $coarsePhb
+RtModule/MPLS instproc flow-aggregation {fineFec finePhb coarseFec coarsePhb} {
+        [$self set classifier_] FlowAggregation $fineFec $finePhb $coarseFec \
+			$coarsePhb
 }
 
-Node instproc enable-reroute {option} {
+RtModule/MPLS instproc enable-reroute {option} {
         $self instvar classifier_ 
         $classifier_ set enable_reroute_ 1
-        $classifier_ set reroute_option_ 0
         if {$option == "drop"} {
 		$classifier_ set reroute_option_ 0
-        }
-        if {$option == "L3"} {
+        } elseif {$option == "L3"} {
 		$classifier_ set reroute_option_ 1
-        }
-        if {$option == "new"} {
+        } elseif {$option == "new"} {
 		$classifier_ set reroute_option_ 2
-        }
+        } else {
+		$classifier_ set reroute_option_ 0
+	}
 }
 
-Node instproc reroute-binding {fec phb lspid} {
-        $self instvar classifier_ 
-        $classifier_ aPathBinding $fec $phb -1 $lspid
+RtModule/MPLS instproc reroute-binding {fec phb lspid} {
+        [$self set classifier_] aPathBinding $fec $phb -1 $lspid
 }
 
-Node instproc lookup-nexthop {node fec} {
+RtModule/MPLS instproc lookup-nexthop {node fec} {
         set ns [Simulator instance]
         set routingtable [$ns get-routelogic]
         set nexthop [$routingtable lookup $node $fec]
         return $nexthop
 }
 
-Node instproc get-nexthop {fec} {
+RtModule/MPLS instproc get-nexthop {fec} {
 	# find a next hop for fec
-        set nodeid [$self id]
+        set nodeid [[$self node] id]
         set nexthop [$self lookup-nexthop $nodeid $fec]
         return $nexthop
 }
 
-Node instproc get-link-status {hop} {
+RtModule/MPLS instproc get-link-status {hop} {
 	if {$hop < 0} {
 		return "down"
 	}
@@ -239,62 +187,30 @@ Node instproc get-link-status {hop} {
 	return $status
 }
 
-Node instproc is-egress-lsr { fec } {
+RtModule/MPLS instproc is-egress-lsr { fec } {
         # Determine whether I am a egress-lsr for fec. 
-        if { [$self id] == $fec } {
+        if { [[$self node] id] == $fec } {
 		return  "1"
         }
-        set ns [Simulator instance]
         set nexthopid [$self get-nexthop $fec]
         if { $nexthopid < 0 } {
 		return "-1"
         }
-        set nexthop [$ns set Node_($nexthopid)]
-	if { [$nexthop node-type] != "MPLS" } {
+        set nexthop [[Simulator instance] get-node-by-id $nexthopid]
+	if { [$nexthop get-module "MPLS"] == "" } {
 		return  "1"
         } else {
 		return  "-1"
         }
 }
 
-Node instproc get-ldp-agents {} {
-	# find ldp agents attached to this node
-	$self instvar linked_ldpagents_
-	return $linked_ldpagents_
-}
-
-Node instproc exist-ldp-agent { dst } {
-	# determine whether or not a ldp agent attached to a dst node exists
-	$self instvar linked_ldpagents_
-	for {set i 0} {$i < [llength $linked_ldpagents_]} {incr i} {
-		set ldpagent [lindex $linked_ldpagents_ $i]
-		if { [$ldpagent peer-ldpnode] == $dst } {
-			return "1"
-		}
-	}
-	return "0"
-}
-
-Node instproc get-ldp-agent { dst } {
-	# find a ldp agent attached to a dst
-	$self instvar linked_ldpagents_
-	for {set i 0} {$i < [llength $linked_ldpagents_]} {incr i} {
-		set ldpagent [lindex $linked_ldpagents_ $i]
-		if { [$ldpagent peer-ldpnode] == $dst } {
-			return $ldpagent
-		}
-	}
-	error "(non-existent ldp-agent for peer [$dst id] on node [$self id]) \
---- in Node::get-ldp-agent{}"
-}
-
 # distribute labels based on routing protocol
-Node instproc ldp-trigger-by-routing-table {} {
+RtModule/MPLS instproc ldp-trigger-by-routing-table {} {
         if { [[$self set classifier_] cmd control-driven?] != 1 } {
 		return
         }
         set ns [Simulator instance]
-	for {set i 0} {$i < [$ns array size Node_]} {incr i} {
+	for {set i 0} {$i < [$ns get-number-of-nodes]} {incr i} {
 		# select a node
 		set host [$ns get-node-by-id $i]
 		if { [$self is-egress-lsr [$host id]] == 1 } {
@@ -304,31 +220,31 @@ Node instproc ldp-trigger-by-routing-table {} {
         }
 }
 
-Node instproc ldp-trigger-by-control {fec pathvec} {
-	$self instvar linked_ldpagents_
-	lappend pathvec [$self id]
+RtModule/MPLS instproc ldp-trigger-by-control {fec pathvec} {
+	lappend pathvec [[$self node] id]
 	set inlabel [$self get-incoming-label $fec -1]
 	set nexthop [$self get-nexthop $fec]
-	for {set i 0} {$i < [llength $linked_ldpagents_]} {incr i 1} {
-		set ldpagent [lindex $linked_ldpagents_ $i]
-		if { [$ldpagent peer-ldpnode] != $nexthop } {
-			if { $inlabel == -1 } {
-				if { [$self is-egress-lsr $fec] == 1 } {
-					# This is egress LSR
-					set inlabel 0
-				} else {
-					set inlabel [$self new-incoming-label]
-					$self in-label-install $fec -1 -1 $inlabel
-				}
-			}
-			$ldpagent new-msgid
-			$ldpagent send-mapping-msg $fec $inlabel $pathvec -1
+	set ldpagents [lsort [$self get-ldp-agents]]
+	for {set i 0} {$i < [llength $ldpagents]} {incr i 1} {
+		set ldpagent [lindex $ldpagents $i]
+		if { [$ldpagent peer-ldpnode] == $nexthop } {
+			continue
 		}
-	}   
+		if { $inlabel == -1 } {
+			if { [$self is-egress-lsr $fec] == 1 } {
+				# This is egress LSR
+				set inlabel 0
+			} else {
+				set inlabel [$self new-incoming-label]
+				$self in-label-install $fec -1 -1 $inlabel
+			}
+		}
+		$ldpagent new-msgid
+		$ldpagent send-mapping-msg $fec $inlabel $pathvec -1
+	}
 }
 
-Node instproc ldp-trigger-by-data {reqmsgid src fec pathvec} {
-	$self instvar linked_ldpagents_
+RtModule/MPLS instproc ldp-trigger-by-data {reqmsgid src fec pathvec} {
 	if { [$self is-egress-lsr $fec] == 1 } {
 		# This is a egress node
 		return
@@ -342,62 +258,62 @@ Node instproc ldp-trigger-by-data {reqmsgid src fec pathvec} {
 			return
 		}
 	}
-	lappend pathvec [$self id]      
+	lappend pathvec [[$self node] id]      
 	set nexthop [$self get-nexthop $fec]
-	for {set i 0} {$i < [llength $linked_ldpagents_]} {incr i 1} {
-		set ldpagent [lindex $linked_ldpagents_ $i]
-		if { [$ldpagent peer-ldpnode] != $nexthop } {
-			continue
-		}
-		if {$reqmsgid > -1} {
-			# on-demand mode
-			set working [$ldpagent msgtbl-get-msgid $fec -1 $src]
-			if { $working < 0 } {
-				# have to make new request-msg
-				set newmsgid [$ldpagent new-msgid]
-				$ldpagent msgtbl-install $newmsgid $fec -1 \
-						$src $reqmsgid
-				$ldpagent send-request-msg $fec $pathvec
-			} else {
-				# $self is already tring to setup a LSP
-				# So, need not to send a request-msg
-			}
-		} else {
-			# not on-demand mode
-			if {$fec == $nexthop} {
-				# This is a penultimate hop
-				set outlabel 0
-			} else {
-				set outlabel [$self new-outgoing-label]
-			}
-			$self out-label-install $fec -1 $nexthop $outlabel
-			$ldpagent new-msgid
-			$ldpagent send-mapping-msg $fec $outlabel $pathvec -1
-		}
+	set ldpagent [$self get-ldp-agent $nexthop]
+	if { $ldpagent == "" } {
 		return
+	}
+	if {$reqmsgid > -1} {
+		# on-demand mode
+		set working [$ldpagent msgtbl-get-msgid $fec -1 $src]
+		if { $working < 0 } {
+			# have to make new request-msg
+			set newmsgid [$ldpagent new-msgid]
+			$ldpagent msgtbl-install $newmsgid $fec -1 \
+					$src $reqmsgid
+			$ldpagent send-request-msg $fec $pathvec
+		} else {
+			# $self is already tring to setup a LSP
+			# So, need not to send a request-msg
+		}
+	} else {
+		# not on-demand mode
+		if {$fec == $nexthop} {
+			# This is a penultimate hop
+			set outlabel 0
+		} else {
+			set outlabel [$self new-outgoing-label]
+		}
+		$self out-label-install $fec -1 $nexthop $outlabel
+		$ldpagent new-msgid
+		$ldpagent send-mapping-msg $fec $outlabel $pathvec -1
 	}
 }
 
-Node instproc make-explicit-route {fec er lspid rc} {
-	$self ldp-trigger-by-explicit-route -1 [$self id] $fec "*" $er $lspid $rc
+RtModule/MPLS instproc make-explicit-route {fec er lspid rc} {
+	$self ldp-trigger-by-explicit-route -1 [[$self node] id] $fec "*" \
+			$er $lspid $rc
 }
 
-Node instproc ldp-trigger-by-explicit-route {reqmsgid src fec pathvec \
-		er lspid rc} {
-	$self instvar linked_ldpagents_ classifier_
+RtModule/MPLS instproc ldp-trigger-by-explicit-route {reqmsgid src fec \
+		pathvec er lspid rc} {
+	$self instvar classifier_
 	set outlabel [$self get-outgoing-label $fec $lspid]
 	if { $outlabel > -1 } {
 		# LSP was already setup
 		return
 	}
-	if { [$self id] != $src && [$self id] == $fec } {
+	if { [[$self node] id] != $src && [[$self node] id] == $fec } {
 		# This is a egress node
 		set ldpagent [$self get-ldp-agent $src]
-		$ldpagent new-msgid
-		$ldpagent send-cr-mapping-msg $fec 0 $lspid $reqmsgid
+		if { $ldpagent != "" } {
+			$ldpagent new-msgid
+			$ldpagent send-cr-mapping-msg $fec 0 $lspid $reqmsgid
+		}
 		return
 	}
-	lappend pathvec [$self id]
+	lappend pathvec [[$self node] id]
 	set er [split $er "_"]
 	set erlen [llength $er]
 	for {set i 0} {$i <= $erlen} {incr i 1} {
@@ -501,32 +417,31 @@ Node instproc ldp-trigger-by-explicit-route {reqmsgid src fec pathvec \
 		}
 	}
 	set ldpagent [$self get-ldp-agent $src]
-	$ldpagent new-msgid
-	$ldpagent send-notification-msg "NoRoute" $lspid
+	if { $ldpagent != "" } {
+		$ldpagent new-msgid
+		$ldpagent send-notification-msg "NoRoute" $lspid
+	}
 }
 
-Node instproc ldp-trigger-by-withdraw {fec lspid} {
-	$self instvar linked_ldpagents_ 
-
+RtModule/MPLS instproc ldp-trigger-by-withdraw {fec lspid} {
 	set inlabel  [$self get-incoming-label $fec $lspid]
 	set iniface  [$self get-incoming-iface $fec $lspid]
 
 	$self in-label-clear $fec $lspid
 	
 	if {$iniface > -1} {
-		for {set i 0} {$i < [llength $linked_ldpagents_]} {incr i 1} {
-			set ldpagent [lindex $linked_ldpagents_ $i]
-			if { [$ldpagent peer-ldpnode] == $iniface } {
-				$ldpagent new-msgid
-				$ldpagent send-withdraw-msg $fec $lspid
-			}
+		set ldpagent [$self get-ldp-agent $iniface]
+		if { $ldpagent != "" } {
+			$ldpagent new-msgid
+			$ldpagent send-withdraw-msg $fec $lspid
 		}
 	} else {
 		# several upstream nodes may share a label.
 		# so inform all upstream nodes to withdraw the label
 		set nexthop [$self get-nexthop $fec]
-		for {set i 0} {$i < [llength $linked_ldpagents_]} {incr i 1} {
-			set ldpagent [lindex $linked_ldpagents_ $i]
+		set ldpagents [lsort [$self get-ldp-agents]]
+		for {set i 0} {$i < [llength $ldpagents]} {incr i 1} {
+			set ldpagent [lindex $ldpagents $i]
 			if { [$ldpagent peer-ldpnode] == $nexthop } {
 				continue
 			}
@@ -536,67 +451,40 @@ Node instproc ldp-trigger-by-withdraw {fec lspid} {
 	}   
 }
 
-Node instproc ldp-trigger-by-release {fec lspid} {
-	$self instvar linked_ldpagents_ 
+RtModule/MPLS instproc ldp-trigger-by-release {fec lspid} {
 	set outlabel  [$self get-outgoing-label $fec $lspid]
 	if {$outlabel < 0} {
 		return
 	}
 	set nexthop [$self get-outgoing-iface $fec $lspid]
 	$self out-label-clear $fec $lspid 
-	for {set i 0} {$i < [llength $linked_ldpagents_]} {incr i 1} {
-		set ldpagent [lindex $linked_ldpagents_ $i]
-		if { [$ldpagent peer-ldpnode] == $nexthop } {
-			$ldpagent new-msgid
-			$ldpagent send-release-msg $fec $lspid
-		}
+	set ldpagent [$self get-ldp-agent $nexthop]
+	if { $ldpagent != "" } {
+		$ldpagent new-msgid
+		$ldpagent send-release-msg $fec $lspid
 	}   
 }
 
 # Debugging
 
-Node instproc trace-mpls {} {
-        $self instvar classifier_ 
-        $classifier_ set trace_mpls_ 1
+RtModule/MPLS instproc trace-mpls {} {
+        [$self set classifier_] set trace_mpls_ 1
 }
 
-Node instproc trace-ldp {} {
-        $self instvar linked_ldpagents_
-        for {set i 0} {$i < [llength $linked_ldpagents_]} {incr i 1} {
-		set ldpagent [lindex $linked_ldpagents_ $i]
-		$ldpagent set trace_ldp_ 1
-	}
-}
-
-Node instproc trace-msgtbl {} {
-	$self instvar linked_ldpagents_
-	puts "[$self id] : message-table"
-	for {set i 0} {$i < [llength $linked_ldpagents_]} {incr i 1} {
-		set ldpagent [lindex $linked_ldpagents_ $i]
-		$ldpagent msgtbl-dump
-	}
-}
-
-Node instproc pft-dump {} {
-	$self instvar classifier_ 
-        
+RtModule/MPLS instproc pft-dump {} {
         # dump the records within Partial Forwarding Table(PFT)
-        set nodeid [$self id]
-        $classifier_ PFTdump $nodeid
+        set nodeid [[$self node] id]
+        [$self set classifier_] PFTdump $nodeid
 }
 
-Node instproc erb-dump {} {
-	$self instvar classifier_ 
-        
+RtModule/MPLS instproc erb-dump {} {
         # dump the records within Explicit Route information Base(ERB)
-        set nodeid [$self id]
-        $classifier_ ERBdump $nodeid
+        set nodeid [[$self node] id]
+        [$self set classifier_] ERBdump $nodeid
 }
 
-Node instproc lib-dump {} {
-	$self instvar classifier_ 
-        
+RtModule/MPLS instproc lib-dump {} {
         # dump the records within Label Information Base(LIB)
-        set nodeid [$self id]
-        $classifier_ LIBdump $nodeid
+        set nodeid [[$self node] id]
+        [$self set classifier_] LIBdump $nodeid
 }

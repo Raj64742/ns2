@@ -39,32 +39,31 @@
 # DEFADDRSIZE_ and MAXADDRSIZE_ defined in ns-default.tcl
 
 
-# Name :            set-address-format ()
-# Options :         default, expanded, hierarchical (default) and hierarchical (with
-#                    specific allocations) 
-# Synopsis :        set-address-format <option> <additional info, if required by option> 
+# Name :        set-address-format ()
+# Options :     default, expanded, hierarchical (default) and hierarchical
+#		(with specific allocations) 
+# Synopsis :    set-address-format <option> <additional info, if required
+# 		by option> 
 #
-# Option:1          def (default settings)
-# Synopsis :        set-address-format def
-# Description:      This allows default settings in the following manner:
-#                    * 8bits portid
-#                    * 1 bit for mcast and 7 bits nodeid (mcast should be enabled
-#                      before Simulator is inited (new Simulator is called)--> leads to
-#                      unnecessary wasting of 1 bit even if mcast is not set.
+# Option:1      def (default settings)
+# Synopsis :    set-address-format def
+# Description:  This allows default settings in the following manner:
+#               * 8bits portid
+#               * 1 bit for mcast and 7 bits nodeid (mcast should be enabled
+#               before Simulator is inited (new Simulator is called)--> leads 
+# 		to unnecessary wasting of 1 bit even if mcast is not set.
 #
+# Option 2:     expanded
+# Synopsis :    set-address-format expanded
+# Description:  This allows to expand the address space from default size 16 
+# 		to 32 with bit allocated to the field in the foll manner:
+#               * 8bits portid
+#               * 1 bit for mcast and 21 bits nodeid (and same comments 
+# 		regarding setting mcast as for default option above)
 #
-# Option :2         expanded
-# Synopsis :        set-address-format expanded
-# Description:      This allows to expand the address space from default size 16 to 32
-#                   with bit allocated to the field in the foll manner:
-#                    * 8bits portid
-#                    * 1 bit for mcast and 21 bits nodeid (and same comments regarding
-#                       setting mcast as for default option above)
-#
-#
-# Option :3         hierarchical (default)
-# Synopsis :        set-address-format hierarchical
-# Description:      This allows setting of hierarchical address as follows:
+# Option :3     hierarchical (default)
+# Synopsis :    set-address-format hierarchical
+# Description:  This allows setting of hierarchical address as follows:
 #                   * Sets 8bits portid
 #                   * Sets mcast bit (if specified)
 #                   * Sets default hierchical levels with:
@@ -72,75 +71,73 @@
 #                      * 8 bits in each level (looks like 8 8 8)
 #                      * 8 8 7 if mcast is enabled.
 #
-#
-# Option :4        hierarchical (specified)
-# Synopsis :        set-address-format hierarchical <#n hierarchy levels> <#bits for 
-#                   level1> <#bits for level 2> ....<#bits for nth level>
-#                   e.g  
+# Option 4:     hierarchical (specified)
+# Synopsis:     set-address-format hierarchical <#n hierarchy levels> 
+#		<#bits for level1> <#bits for level 2> ....
+#		<#bits for nth level>
+#               e.g  
 #                   set-address-format hierarchical 4 2 2 2 10
-# Description:      This allows setting of hierarchical address as specified for each 
-#                   level.
-#                   * Sets 8bits portid
-#                   * Sets mcast bit (if specified)
-#                   * Sets hierchical levels with bits specified for each level.
+# Description:  This allows setting of hierarchical address as specified for 
+#		each level.
+#                 * Sets 8bits portid
+#                 * Sets mcast bit (if specified)
+#                 * Sets hierchical levels with bits specified for each level.
 
-
-
-# Name :            expand-port-field-bits ()
-# Synopsis :        expand-port-field-bits <#bits for portid> 
-# Status:	    Obsolete.  It is no longer needed in the 32-bit addressing
-#		    scheme
-# Description :     This should be used incase of need to extend portid. 
-#                   This commnad may be used in conjuction with 
-#                   set-address-format command explained above.
-#                   expand-port-field-bits checks and raises error in the foll. cases
-#                    * if the requested portsize cannot be accomodated (i.e  
-#                         if sufficient num.of free bits are not available)
-#                    * if requested portsize is less than equal to existing portsize.
-#                   and incase of no errors sets port field with bits as specified.
-#2
+# Name:         expand-port-field-bits ()
+# Synopsis:     expand-port-field-bits <#bits for portid> 
+# Status:	Obsolete.  It is no longer needed in the 32-bit addressing
+#		scheme
+# Description : This should be used incase of need to extend portid. 
+#               This commnad may be used in conjuction with 
+#               set-address-format command explained above.
+#               expand-port-field-bits checks and raises error in the foll. 
+#		cases
+#                 * if the requested portsize cannot be accomodated (i.e  
+#                   if sufficient num.of free bits are not available)
+#                 * if requested portsize is less than equal to existing 
+#		    portsize, and incase of no errors sets port field with 
+# 		    bits as specified.
 #
-#
-#
+# Errors: 	* if # of bits specified less than 0.
+#               * if bit positions clash (contiguous # of requested free bits 
+#		  not found)
+#               * if total # of bits exceed MAXADDRSIZE_
+#               * if expand-port-field-bits is attempted with portbits less or
+#		  equal to the existing portsize.
+#               * if # hierarchy levels donot match with #bits specified (for
+#                 each level). 
 
-
-# Errors returned : * if # of bits specified less than 0.
-#                   * if bit positions clash (contiguous # of requested free bits not 
-#                     found)
-#                   * if total # of bits exceed MAXADDRSIZE_
-#                   * if expand-port-field-bits is attempted with portbits less or equal
-#                     to the existing portsize.
-#                   * if # hierarchy levels donot match with #bits specified (for
-#                     each level). 
-# 
-######################################################################################
-
-
-
-Class AddrParams 
 Class AllocAddrBits
 
-Simulator instproc get-AllocAddrBits {prog} {
-	$self instvar allocAddr_
-	if ![info exists allocAddr_] {
-		set allocAddr_ [new AllocAddrBits]
-	} elseif ![string compare $prog "new"] {
-		# puts "Warning: existing Address Space was destroyed\n"
-		set allocAddr_ [new AllocAddrBits]
-	}
-	return $allocAddr_
+Simulator proc address-format {} {
+	return [Simulator set AddressFormat_]
 }
 
+Simulator proc default-addr? {} {
+	if { [Simulator set AddressFormat_] == "DEF" } {
+		return 1
+	} else { 
+		return 0
+	}
+}
+
+Simulator proc hier-addr? {} {
+	if { [Simulator set AddressFormat_] == "HIER" } {
+		return 1
+	} else {
+		return 0
+	}
+}
 
 Simulator instproc set-address-format {opt args} {
 	set len [llength $args]
 	if {[string compare $opt "def"] == 0} {
 		$self set-address 32
-		set mcastshift [AddrParams set McastShift_]
+		set mcastshift [AddrParams McastShift]
 		Simulator set McastAddr_ [expr 1 << $mcastshift]
 		mrtObject expandaddr
+		Simulator set AddressFormat_ DEF
 	} elseif {[string compare $opt "expanded"] == 0} {
-		#$self expand-address
 		puts "set-address-format expanded is obsoleted by 32-bit addressing."
 	} elseif {[string compare $opt "hierarchical"] == 0 && $len == 0} {
 		if [$self multicast?] {
@@ -148,29 +145,33 @@ Simulator instproc set-address-format {opt args} {
 		} else {
 			$self set-hieraddress 3 10 11 11
 		}
+	} elseif {[string compare $opt "hierarchical"] == 0 && $len > 0} {
+		eval $self set-hieraddress [lindex $args 0] \
+				[lrange $args 1 [expr $len - 1]]
 	} else {
-		if {[string compare $opt "hierarchical"] == 0 && $len > 0} {
-			eval $self set-hieraddress [lindex $args 0] [lrange $args 1 [expr $len - 1]]
-		}
-	} 
+		error "ns-address.tcl:set-address-format: Unknown address format $opt"
+	}
 }
 
-
-Simulator instproc expand-port-field-bits nbits {
-	# The function is obsolete, given that ports are now 32 bits wide
-	puts "Warning: Simulator::expand-port-field-bits is obsolete.  Ports are 32 bits wide"
-	return
+Simulator instproc set-hieraddress {hlevel args} {
+	set a [$self get-AllocAddrBits "new"]
+	$a set size_ [AllocAddrBits set MAXADDRSIZE_]
+	# By default, setting hierarchical addressing turns on hier rtg
+	Simulator set AddressFormat_ HIER
+	Node enable-module "Hier"
+	if [$self multicast?] {
+		$a set-mcastbits 1
+	}
+	eval $a set-idbits $hlevel $args
 }
 
-
-# sets address for nodeid and port fields 
-# The order of setting bits for different fields does matter
-# and should be as follows:
-# mcast
-# idbits
-# and finally portbits
+# Sets address for nodeid and port fields
+# The order of setting bits for different fields does matter and should 
+# be as follows:
+#   mcast
+#   idbits
+#   portbits
 # this is true for both set-address and set-hieraddress
-
 Simulator instproc set-address {node} {
 	set a [$self get-AllocAddrBits "new"]
 	$a set size_ [AllocAddrBits set DEFADDRSIZE_]
@@ -178,11 +179,28 @@ Simulator instproc set-address {node} {
 		$a set size_ [AllocAddrBits set MAXADDRSIZE_]
 	}
 		
-	# one bit is set aside for mcast as default :: this waste of 1 bit may be avoided, if 
-	# mcast option is enabled before the initialization of Simulator.
+	# One bit is set aside for mcast as default :: this waste of 1 bit 
+	# may be avoided, if mcast option is enabled before the initialization
+	# of Simulator.
 	$a set-mcastbits 1
 	set lastbit [expr $node - [$a set mcastsize_]]
 	$a set-idbits 1 $lastbit
+}
+
+Simulator instproc get-AllocAddrBits {prog} {
+	$self instvar allocAddr_
+	if ![info exists allocAddr_] {
+		set allocAddr_ [new AllocAddrBits]
+	} elseif ![string compare $prog "new"] {
+		set allocAddr_ [new AllocAddrBits]
+	}
+	return $allocAddr_
+}
+
+Simulator instproc expand-port-field-bits nbits {
+	# The function is obsolete, given that ports are now 32 bits wide
+	puts "Warning: Simulator::expand-port-field-bits is obsolete.  Ports are 32 bits wide"
+	return
 }
 
 Simulator instproc expand-address {} {
@@ -190,22 +208,7 @@ Simulator instproc expand-address {} {
 	return
 }
 
-Simulator instproc set-hieraddress {hlevel args} {
-	set a [$self get-AllocAddrBits "new"]
-	$a set size_ [AllocAddrBits set MAXADDRSIZE_]
-	if { ![Simulator set EnableHierRt_] && $hlevel > 1} {
-		### By default, setting hierarchical addressing also turns on hier rtg, 
-		### provided the level is greater than 1
-		Simulator set EnableHierRt_ 1
-		# HierNode subsumed by node-config
-		#Simulator set node_factory_ HierNode
-	}
-	if [$self multicast?] {
-		$a set-mcastbits 1
-	}
-	eval $a set-idbits $hlevel $args
-}
-
+
 AllocAddrBits instproc init {} {
 	eval $self next
 	$self instvar size_ portsize_ idsize_ mcastsize_
@@ -214,7 +217,6 @@ AllocAddrBits instproc init {} {
 	set idsize_ 0
 	set mcastsize_ 0
 }
-
 
 AllocAddrBits instproc get-AllocAddr {} {
 	$self instvar addrStruct_
@@ -231,7 +233,6 @@ AllocAddrBits instproc get-Address {} {
 	}
 	return $address_
 }
-
 
 AllocAddrBits instproc chksize {bit_num prog} {
 	$self instvar size_ portsize_ idsize_ mcastsize_  
@@ -252,15 +253,11 @@ AllocAddrBits instproc chksize {bit_num prog} {
 
 }
 
-
-
 AllocAddrBits instproc set-portbits {bit_num} {
 	# The function is obsolete, given that ports are now 32 bits wide
 	puts "Warning: AllocAddrBits::set-portbits is obsolete.  Ports are 32 bits wide."
 	return
 }
-
-
 
 AllocAddrBits instproc expand-portbits nbits {
 	# The function is obsolete, given that ports are now 32 bits wide
@@ -282,18 +279,16 @@ AllocAddrBits instproc set-mcastbits {bit_num} {
 	}
 	set a [$self get-AllocAddr] 
 	set v [$a setbit $bit_num $size_]
-	AddrParams set McastMask_ [lindex $v 0]
-	AddrParams set McastShift_ [lindex $v 1]
+	AddrParams McastMask [lindex $v 0]
+	AddrParams McastShift [lindex $v 1]
 	### TESTING
 	# set mask [lindex $v 0]
 	# set shift [lindex $v 1]
 	# puts "Mcastshift = $shift \n McastMask = $mask\n"
 
 	set ad [$self get-Address]
-	$ad mcastbits-are [AddrParams set McastShift_] [AddrParams set McastMask_]
-
+	$ad mcastbits-are [AddrParams McastShift] [AddrParams McastMask]
 }
-
 
 AllocAddrBits instproc set-idbits {nlevel args} {
 	$self instvar size_ portsize_ idsize_ hlevel_ hbits_
@@ -304,7 +299,8 @@ AllocAddrBits instproc set-idbits {nlevel args} {
 	set old 0
 	set idsize_ 0
 	set nodebits 0
-	AddrParams set hlevel_ $nlevel
+	# Set two global variables
+	AddrParams hlevel $nlevel
 	set hlevel_ $nlevel
 	for {set i 0} {$i < $nlevel} {incr i} {
 		set bpl($i) [lindex $args $i]
@@ -317,14 +313,14 @@ AllocAddrBits instproc set-idbits {nlevel args} {
 			error "set-idbits: size_ has been changed."
 		}
 		set v [$a setbit $bpl($i) $size_]
-		AddrParams set NodeMask_([expr $i+1]) [lindex $v 0]
+		AddrParams NodeMask [expr $i+1] [lindex $v 0]
 		set m([expr $i+1]) [lindex $v 0]
-		AddrParams set NodeShift_([expr $i+1]) [lindex $v 1]
+		AddrParams NodeShift [expr $i+1] [lindex $v 1]
 		set s([expr $i+1]) [lindex $v 1]
 		lappend hbits_ $bpl($i)
 		
 	}
-	AddrParams set nodebits_ $idsize_
+	AddrParams nodebits $idsize_
 	set ad [$self get-Address]
 	eval $ad idsbits-are [array get s]
 	eval $ad idmbits-are [array get m]
@@ -335,47 +331,45 @@ AllocAddrBits instproc set-idbits {nlevel args} {
 	# puts "Nodeshift = $shift \n NodeMask = $mask\n"
 }
 
-
-### Hierarchical routing support
-
-#
-# create a real hier address from addr string 
-#
-
-
-AddrParams proc set-hieraddr addrstr {
-	set ns [Simulator instance]
-	set addressObj [[$ns get-AllocAddrBits ""] get-Address]
-	set ip [$addressObj str2addr $addrstr]
-
-	return $ip
+
+# Create an integer address from addr string 
+AddrParams proc addr2id addrstr {
+	if [Simulator hier-addr?] {
+		set addressObj [[[Simulator instance] get-AllocAddrBits ""] \
+				get-Address]
+		return [$addressObj str2addr $addrstr]
+	} else {
+		return [expr $addrstr & [AddrParams NodeMask 1] << \
+				[AddrParams NodeShift 1]]
+	}
 }
 
-#
-# returns address string from address :reverse of set-hieraddr.
-#
-AddrParams proc get-hieraddr addr {
-	AddrParams instvar hlevel_ NodeMask_ NodeShift_
-	for {set i 1} {$i <= $hlevel_} {incr i} {
-		set a [expr [expr $addr >> $NodeShift_($i)] & $NodeMask_($i)]
+# Returns address string from an integer address: reverse of set-hieraddr.
+AddrParams proc id2addr addr {
+	for {set i 1} {$i <= [AddrParams hlevel]} {incr i} {
+		set a [expr ($addr >> [AddrParams NodeShift $i]) & \
+				[AddrParams NodeMask $i]]
 		lappend str $a
 	}
 	return $str
 }
 
-#
+# Splitting up address string
+AddrParams proc split-addrstr addrstr {
+	return [split $addrstr .]
+}
+
 # Returns number of elements at a given hierarchical level, that is visible to 
 # a node.
-#
 AddrParams proc elements-in-level? {nodeaddr level} {
-	AddrParams instvar hlevel_ domain_num_ cluster_num_ nodes_num_ def_
-	set L [split $nodeaddr .] 
+	AddrParams instvar domain_num_ cluster_num_ nodes_num_ 
+	set L [AddrParams split-addrstr $nodeaddr]
 	set level [expr $level + 1]
 	#
 	# if no topology info found for last level, set default values
 	#
 	
-	### for now, assuming only 3 levels of hierarchy 
+	# For now, assuming only 3 levels of hierarchy 
 	if { $level == 1} {
 		return $domain_num_
 	}
@@ -391,38 +385,4 @@ AddrParams proc elements-in-level? {nodeaddr level} {
 		}
 		return [lindex $nodes_num_ [expr $index + [lindex $L 1]]]
 	}
-		
-}
-
-
-
-
-#
-# Given an node's address, Return the node 
-#
-Simulator instproc get-node-by-addr address {
-	$self instvar Node_
-	set n [Node set nn_]
-	for {set q 0} {$q < $n} {incr q} {
-		set nq $Node_($q)
-		if {[string compare [$nq node-addr] $address] == 0} {
-			return $nq
-		}
-	}
-	error "get-node-by-addr:Cannot find node with given address"
-}
-
-#
-# Given an node's address, Return the node-id
-#
-Simulator instproc get-node-id-by-addr address {
-	$self instvar Node_
-	set n [Node set nn_]
-	for {set q 0} {$q < $n} {incr q} {
-		set nq $Node_($q)
-		if {[string compare [$nq node-addr] $address] == 0} {
-			return $q
-		}
-	}
-	error "get-node-id-by-addr:Cannot find node with given address"
 }

@@ -215,13 +215,10 @@ SessionSim instproc detailed-node { id address } {
     }
     if ![info exist Node_($id)] {
 	set node [new [Simulator set node_factory_] $address]
+	# Do not count this a "real" node, and keep the old node id. 
 	Node set nn_ [expr [Node set nn_] - 1]
 	$node set id_ $id
 	set Node_($id) $node
-
-	if [$self multicast?] {
-	    $node enable-mcast $self
-	}
 	return $node
     } else {
 	return $Node_($id)
@@ -426,12 +423,13 @@ SessionSim instproc dump-namnodes {} {
                 }
         }
 }     
+
 ### Routing support
 SessionSim instproc compute-routes {} {
     #
     # call hierarchical routing, if applicable
     #
-    if [Simulator set EnableHierRt_] {
+    if [Simulator hier-addr?] {
 	$self compute-hier-routes 
     } else {
 	$self compute-flat-routes
@@ -439,7 +437,7 @@ SessionSim instproc compute-routes {} {
 }
 
 SessionSim instproc compute-flat-routes {} {
-    $self instvar bw_
+	$self instvar bw_
 	#
 	# Compute all the routes using the route-logic helper object.
 	#
@@ -468,7 +466,7 @@ SessionSim instproc compute-hier-routes {} {
         # n-levels of hierarchy
         #
         # puts "Computing Hierarchical routes\n"
-        set level [AddrParams set hlevel_]
+        set level [AddrParams hlevel]
         $r hlevel-is $level
         $self hier-topo $r
 
@@ -697,21 +695,11 @@ SessionNode instproc alloc-port {} {
 }
 
 SessionNode instproc attach agent {
-    $self instvar id_ address_
-
-    $agent set node_ $self
-    set port [$self alloc-port]
-
-    set mask 0xffffffff
-    set shift 0
-    if [Simulator set EnableHierRt_] {
-	set nodeaddr [AddrParams set-hieraddr $address_]
-    } else {
-	set nodeaddr [expr [expr $address_ & [AddrParams set NodeMask_(1)]]\
-			  << [AddrParams set NodeShift_(1)]]
-    }
-    $agent set agent_addr_ $nodeaddr
-    $agent set agent_port_ $port
+	$self instvar id_ address_
+	$agent set node_ $self
+	set port [$self alloc-port]
+	$agent set agent_addr_ [AddrParams addr2id $address_]
+	$agent set agent_port_ $port
 }
 
 SessionNode instproc join-group { rcvAgent group } {

@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mobility/dsdv.tcl,v 1.10 2000/08/31 20:11:51 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mobility/dsdv.tcl,v 1.11 2000/09/14 18:19:28 haoboy Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 
@@ -122,7 +122,7 @@ proc dsdv-create-mobile-node { id args } {
 	global chan prop tracefd topo opt
 	
 	set ns_ [Simulator instance]
-	if {[Simulator set EnableHierRt_]} {
+	if [Simulator hier-addr?] {
 		if [Simulator set mobile_ip_] {
 			set node_($id) [new MobileNode/MIPMH $args]
 		} else {

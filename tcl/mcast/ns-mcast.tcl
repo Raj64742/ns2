@@ -57,6 +57,7 @@ Simulator instproc clear-mcast {} {
                 $Node_($n) stop-mcast
         }
 }
+
 Simulator instproc mrtproto { mproto { nodelist "" } } {
 	$self instvar Node_ MrtHandle_
 
@@ -66,16 +67,16 @@ Simulator instproc mrtproto { mproto { nodelist "" } } {
 		$MrtHandle_ set ctrrpcomp [new CtrRPComp $self]
 	}
 
+	# XXX This is a ugly hack! Why not delete existing classifier???
 	if { $mproto == "BST" } {
 		foreach n [array names Node_] {
 			if ![$Node_($n) is-lan?] {
 			    $Node_($n) instvar multiclassifier_ switch_
 # 			    delete $multiclassifier_
 			    set multiclassifier_ [new Classifier/Multicast/Replicator/BST]
-			    [$Node_($n) set multiclassifier_] set node_ $Node_($n)
+			    $multiclassifier_ set node_ $Node_($n)
 			    $switch_ install 1 $multiclassifier_
 			}
-
 		}
 	}
 
@@ -109,23 +110,12 @@ Node proc allocaddr {} {
 }
 
 Node proc expandaddr {} {
-	# reset the bit used by mcast/unicast switch to expand
-	# number of nodes that can be used
-        #Simulator set McastShift_ 30
-	#Simulator set McastAddr_ [expr 1 << 30]
-
-        # calling set-address-format with expanded option (sets nodeid with 21 bits 
+        # calling set-address-format with expanded option (sets nodeid with 
+	# 21 bits 
         # & sets aside 1 bit for mcast) and sets portid with 8 bits
 	# if hierarchical address format is set, just expands the McastAddr_
-	#if ![Simulator set EnableHierRt_] {
-	set ns [Simulator instance]
-	$ns set-address-format expanded
-		puts "Backward compatibility: Use \"set-address-format expanded\" instead of \"Node expandaddr\";" 
-		
-	#}
-	#set mcastshift [AddrParams set McastShift_]
-	#Simulator set McastAddr_ [expr 1 << $mcastshift]
-	#mrtObject expandaddr
+	[Simulator instance] set-address-format expanded
+	puts "Backward compatibility: Use \"set-address-format expanded\" instead of \"Node expandaddr\";" 
 }
 
 Node instproc start-mcast {} {

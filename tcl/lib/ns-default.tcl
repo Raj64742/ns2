@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-09-07 12:33:27 haoboy>
+# Time-stamp: <2000-09-13 13:48:04 haoboy>
 #
 # Copyright (c) 1996-1997 Regents of the University of California.
 # All rights reserved.
@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.219 2000/09/07 19:56:06 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.220 2000/09/14 18:19:27 haoboy Exp $
 
 
 #
@@ -362,8 +362,8 @@ Node/MobileNode set DECAP_PORT 1
 # hierarchical-levels. 
 # All Mask and Shift values are stored in Class AddrParams.
 AddrParams set ALL_BITS_SET 0xffffffff
-AddrParams set PortShift_ 0
-AddrParams set PortMask_ [AddrParams set ALL_BITS_SET]
+AddrParams PortShift 0
+AddrParams PortMask [AddrParams set ALL_BITS_SET]
 AddrParams set domain_num_ 1
 AddrParams set def_clusters 4
 AddrParams set def_nodes 5
@@ -375,8 +375,6 @@ AllocAddrBits set MAXADDRSIZE_ 32                ;# leaving the signed bit
 Simulator set node_factory_ Node
 Simulator set nsv1flag 0
 Simulator set mobile_ip_ 0			 ;# flag for mobileIP
-# is hierarchical routing on?  (to turn it on, call set-hieraddress)
-Simulator set EnableHierRt_ 0                    
 Simulator set routingAgent_ ""
 Simulator set addressType_   ""
 Simulator set MovementTrace_ OFF
@@ -783,7 +781,5 @@ Agent/LossMonitor/PLM set fid_PP_ 0
 Agent/LossMonitor/PLM set seqno_ 0
 
 # MPLS Label Distribution Protocol agent
-Agent/LDP set packetSize_  64
-Agent/LDP set new_msgid_ 0
 Agent/LDP set trace_ldp_ 0
 

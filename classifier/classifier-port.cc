@@ -17,17 +17,18 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.4 2000/02/15 21:20:54 salehi Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.5 2000/09/14 18:19:25 haoboy Exp $ (USC/ISI)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.4 2000/02/15 21:20:54 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.5 2000/09/14 18:19:25 haoboy Exp $";
 #endif
 
 #include "classifier-port.h"
 
-int PortClassifier::classify(Packet *p) {
+int PortClassifier::classify(Packet *p) 
+{
 	// Port classifier returns the destination port.  No shifting
 	// or masking is required since in the 32-bit addressing,
 	// ports are stored in a seperate variable.
@@ -53,8 +54,6 @@ public:
 
 int ReservePortClassifier::command(int argc, const char*const* argv)
 {
-        // Tcl& tcl = Tcl::instance();
-
         if (argc == 3 && strcmp(argv[1],"reserve-port") == 0) {
                 reserved_ = atoi(argv[2]);
                 alloc((maxslot_ = reserved_ - 1));

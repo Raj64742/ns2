@@ -1,5 +1,5 @@
 #
-#  Time-stamp: <2000-08-29 11:12:16 haoboy>
+#  Time-stamp: <2000-09-11 10:21:47 haoboy>
 # 
 #  Copyright (c) 1997 by the University of Southern California
 #  All rights reserved.
@@ -27,7 +27,7 @@
 # 
 #  Original source contributed by Gaeil Ahn. See below.
 #
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mpls/ns-mpls-simulator.tcl,v 1.1 2000/08/29 19:28:03 haoboy Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mpls/ns-mpls-simulator.tcl,v 1.2 2000/09/14 18:19:30 haoboy Exp $
 
 ###########################################################################
 # Copyright (c) 2000 by Gaeil Ahn                                	  #
@@ -56,10 +56,10 @@ Simulator instproc LDP-peer { src dst } {
         if { ![$src is-neighbor $dst] } {
 		return
 	}
-	set ldpsrc [$src make-ldp]
-	set ldpdst [$dst make-ldp]
-	$ldpsrc set peer_node_ [$dst id]
-	$ldpdst set peer_node_ [$src id]
+	set ldpsrc [[$src get-module "MPLS"] make-ldp]
+	set ldpdst [[$dst get-module "MPLS"] make-ldp]
+	$ldpsrc set-peer [$dst id]
+	$ldpdst set-peer [$src id]
         $self connect $ldpsrc $ldpdst
 }
 

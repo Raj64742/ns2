@@ -1,6 +1,6 @@
 // -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
 //
-// Time-stamp: <2000-08-31 17:42:19 haoboy>
+// Time-stamp: <2000-09-08 17:14:21 haoboy>
 //
 // Copyright (c) 2000 by the University of Southern California
 // All rights reserved.
@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.h,v 1.2 2000/09/01 03:04:11 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.h,v 1.3 2000/09/14 18:19:26 haoboy Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *
@@ -117,9 +117,17 @@ struct MsgT {
 class LDPAgent : public Agent {
 public:
 	LDPAgent();
+
 	virtual int command(int argc, const char*const* argv);
 	virtual void recv(Packet*, Handler*);
+
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char *, const char *, 
+					TclObject *);
   
+	inline int peer() const { return peer_; }
+	inline void turn_on_trace() { trace_ldp_ = 1; }
+
 	void PKTinit(hdr_ldp *hdrldp, int msgtype, const char *pathvec, 
 		     const char *er);
 	int  PKTsize(const char *pathvec, const char *er);
@@ -135,6 +143,7 @@ public:
 protected:
 	int    new_msgid_;
 	int    trace_ldp_;
+	int    peer_;
 	void   trace(ns_addr_t src, hdr_ldp *hdrldp);
   
 	char* parse_msgtype(int msgtype, int lspid);

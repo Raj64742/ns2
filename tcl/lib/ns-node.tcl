@@ -1,8 +1,8 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-08-30 13:59:20 haoboy>
+# Time-stamp: <2000-09-13 17:57:54 haoboy>
 #
-# Copyright (c) 1996-1998 Regents of the University of California.
+# Copyright (c) 1996-2000 Regents of the University of California.
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.78 2000/09/13 03:06:52 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.79 2000/09/14 18:19:27 haoboy Exp $
 #
 
 Node set nn_ 0
@@ -43,11 +43,30 @@ Node proc getid {} {
 	return $id
 }
 
+# The list of modules to be installed. More can be added via node-config. 
+# Base should always be the first module in this list.
+Node set module_list_ { Base }
+
+Node proc enable-module { mod_name } {
+	Node instvar module_list_
+	if { [lsearch $module_list_ $mod_name] < 0 } {
+		lappend module_list_ $mod_name
+	}
+}
+
+Node proc disable-module { mod_name } {
+	Node instvar module_list_
+	set pos [lsearch $module_list_ $mod_name]
+	if { $pos >= 0 } {
+		set module_list_ [lreplace $module_list_ $pos $pos]
+	}
+}
+
 Node instproc init args {
 	eval $self next $args
 
         $self instvar id_ agents_ dmux_ neighbor_ rtsize_ address_ \
-			nodetype_ multiPath_ ns_
+			nodetype_ multiPath_ ns_ rtnotif_ ptnotif_
 
 	set ns_ [Simulator instance]
 	set id_ [Node getid]
@@ -57,97 +76,100 @@ Node instproc init args {
 	} else {
 		set address_ $id_
 	}
+	$self cmd addr $address_; # new by tomh
 
-        set nodetype_ [$ns_ get-nodetype]
 	set neighbor_ ""
 	set agents_ ""
 	set dmux_ ""
         set rtsize_ 0
-	$self mk-default-classifier$nodetype_
-	$self cmd addr $address_; # new by tomh
-	set multiPath_ [$class set multiPath_]
+	set ptnotif_ {}
+	set rtnotif_ {}
+	set nodetype_ [$ns_ get-nodetype]
+
 	if [$ns_ multicast?] {
-		$self enable-mcast $ns_
+		#$self enable-mcast $ns_
+		Node enable-module Mcast
+	}
+
+	$self mk-default-classifier
+
+	# XXX Eventually these two should also be converted to modules
+	set multiPath_ [$class set multiPath_]
+}
+
+# XXX This instproc is backward compatibility; when satellite node, mobile
+# node (incl. MIP) are converted to routing modules, this should be merged 
+# into init{}
+Node instproc mk-default-classifier {} {
+	Node instvar module_list_
+	# At minimum we should enable base module
+	foreach modname [Node set module_list_] {
+		set m [new RtModule/$modname]
+		$self register-module $m
 	}
 }
 
+Node instproc id {} {
+	return [$self set id_]
+}
+
+Node instproc node-addr {} {
+	return [$self set address_]
+}
+
+#----------------------------------------------------------------------
+# XXX This should eventually go away, as we replace nodetype_ with 
+# routing modules
 Node instproc node-type {} {
 	return [$self set nodetype_]
 }
+#----------------------------------------------------------------------
 
-# XXX We shall replace these mk-default-classifer* stuff with a more 
-# modular approach.
-Node instproc mk-default-classifierMIPMH {} {
-	$self mk-default-classifier
+
+#
+# Module registration
+#
+Node instproc register-module { mod } {
+	$self instvar reg_module_
+	$mod register $self
+	set reg_module_([$mod module-name]) $mod
 }
 
-Node instproc mk-default-classifierMIPBS {} {
-	$self mk-default-classifier
+Node instproc unregister-module { mod } {
+	$self instvar reg_module_
+	$mod unregister
+	# We do not explicitly check the existence of reg_module_($name).
+	# If not, tcl will issue an error by itself. 
+	unset reg_module_([$mod module-name])
+	delete $mod
 }
 
-Node instproc mk-default-classifierBase {} {
-	$self mk-default-classifier
+Node instproc list-modules {} {
+	$self instvar reg_module_
+	set ret ""
+	foreach n [array names reg_module_] {
+		lappend ret $reg_module_($n)
+	}
+	return $ret
 }
 
-Node instproc mk-default-classifierMobile {} {
-	$self mk-default-classifier
-}
-
-Node instproc mk-default-classifierHier {} {
-	$self mk-default-classifier
-}
-
-Node instproc mk-default-classifier {} {
-	$self instvar classifier_ 
-	# Set up classifer as a router. Hierarchical routing, or multi-path
-	# routing, cannot be specified as a plugin routing module, because 
-	# its installation is too closely tied to the node initialization 
-	# process.  - Aug 30, 2000
-	if [Simulator set EnableHierRt_] {
-		$self instvar classifiers_
-		set levels [AddrParams set hlevel_]
-		for {set n 1} {$n <= $levels} {incr n} {
-			set classifiers_($n) [new Classifier/Addr]
-			$classifiers_($n) set mask_ \
-					[AddrParams set NodeMask_($n)]
-			$classifiers_($n) set shift_ \
-					[AddrParams set NodeShift_($n)]
-		}
-		$self set classifier_ $classifiers_(1)
+Node instproc get-module { name } {
+	$self instvar reg_module_
+	# Must do an error check here.
+	if [info exists reg_module_($name)] {
+		return $reg_module_($name)
 	} else {
-		set classifier_ [new Classifier/Hash/Dest 32]
-		$classifier_ set mask_ [AddrParams set NodeMask_(1)]
-		$classifier_ set shift_ [AddrParams set NodeShift_(1)]
+		return ""
 	}
 }
 
-# We no longer take $sim as argument, since ns_ is set in Node::init{}
-Node instproc enable-mcast args {
-	$self instvar classifier_ multiclassifier_ ns_ switch_ mcastproto_
-	
-	$self set switch_ [new Classifier/Addr]
-	#
-	# set up switch to route unicast packet to slot 0 and
-	# multicast packets to slot 1
-	#
-	[$self set switch_] set mask_ [AddrParams set McastMask_]
-	[$self set switch_] set shift_ [AddrParams set McastShift_]
-	#
-	# create a classifier for multicast routing
-	#
-	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
-	[$self set multiclassifier_] set node_ $self
-	
-	$self set mrtObject_ [new mrtObject $self]
-
-	$switch_ install 0 $classifier_
-	$switch_ install 1 $multiclassifier_
-}
-
+
 #
+# Address classifier manipulation
+#
+
 # Increase the routing table size counter - keeps track of rtg table 
 # size for each node. For bookkeeping only.
-#
 Node instproc incr-rtgtable-size {} {
 	$self instvar rtsize_
 	incr rtsize_
@@ -159,184 +181,106 @@ Node instproc decr-rtgtable-size {} {
 }
 
 Node instproc entry {} {
-	$self instvar ns_
-	if [info exists router_supp_] {
-		return $router_supp_
-	}
-	if [$ns_ multicast?] {
-		$self instvar switch_
-		return $switch_
-	}
-	$self instvar classifier_
-	return $classifier_
+	return [$self set classifier_]
 }
 
-Node instproc id {} {
-	$self instvar id_
-	return $id_
-}
-
-Node instproc node-addr {} {
-	$self instvar address_
-	return $address_
-}
-
-# XXX np_ (number of ports allocated) is now only used in SessionNode.
-Node instproc alloc-port { nullagent } {
-	return [[$self set dmux_] alloc-port $nullagent]
-}
-
+# Place classifier $clsfr at the node entry point. 
 #
-# Attach an agent to a node.  Pick a port and
-# bind the agent to the port number.
+# - Place the existing entry at slot $hook of the new classifier. Usually 
+#   it is an address classifier sitting in a node entry, so this means that
+#   a special address should be assigned to pass packets to the original 
+#   classifier, if this is necessary. 
 #
-Node instproc attach { agent { port "" } } {
-	$self instvar agents_ address_ dmux_ 
-	#
-	# assign port number (i.e., this agent receives
-	# traffic addressed to this host and port)
-	#
-	lappend agents_ $agent
-	#
-	# Attach agents to this node (i.e., the classifier inside).
-	# We call the entry method on ourself to find the front door
-	# (e.g., for multicast the first object is not the unicast
-	# classifier)
-	# Also, stash the node in the agent and set the
-	# local addr of this agent.
-	#
-	$agent set node_ $self
-	if [Simulator set EnableHierRt_] {
-		$agent set agent_addr_ [AddrParams set-hieraddr $address_]
-	} else {
-		$agent set agent_addr_ [expr ($address_ & \
-				[AddrParams set NodeMask_(1)]) \
-				<< [AddrParams set NodeShift_(1) ]]
-	}
-	#
-	# If a port demuxer doesn't exist, create it.
-	#
-	if { $dmux_ == "" } {
-		set dmux_ [new Classifier/Port]
-		$dmux_ set mask_ [AddrParams set ALL_BITS_SET]
-		$dmux_ set shift_ 0
-		#
-		# point the node's routing entry to itself
-		# at the port demuxer (if there is one)
-		#
-		if {[Simulator set EnableHierRt_]} {
-			$self add-hroute $address_ $dmux_
-		} else {
-			$self add-route $address_ $dmux_
+# - Associate the new classifier with $module (stored in mod_assoc_). This
+#   information is used later when the associated classifier is replaced, 
+#   then $module will be notified of this event and requested to unregister.
+#
+# - The original classifier is stored in hook_assoc_, this is used in 
+#   install-entry{} to connect the new classifier to the "classifier chain"
+#   to which the replaced classifier is linked.
+#
+# - To install at the entry something derived from Connector rather than 
+#   Classifier, you should specify $hook as "target". 
+Node instproc insert-entry { module clsfr {hook ""} } {
+	$self instvar classifier_ mod_assoc_ hook_assoc_
+	if { $hook != "" } {
+		# Build a classifier "chain" when specified
+		set hook_assoc_($clsfr) $classifier_
+		if { $hook == "target" } {
+			$clsfr target $classifier_
+		} elseif { $hook != "" } {
+			$clsfr install $hook $classifier_
 		}
 	}
-	if {$port == ""} {
-		set port [$self alloc-port [[Simulator instance] \
-				set nullAgent_]]
-	}
-	$agent set agent_port_ $port
-	$self add-target $agent $port
+	# Associate this module to the classifier, so if the classifier is
+	# removed later, we'll remove the module as well.
+	set mod_assoc_($clsfr) $module
+	set classifier_ $clsfr
 }
 
-#
-# add target to agent and add entry for port-id in port-dmux
-#
-Node instproc add-target {agent port} {
-	$self instvar dmux_
-	#
-	# Send Target
-	#
-	$agent target [$self entry]
-	#
-	# Recv Target
-	#
-	$dmux_ install $port $agent
-}
-	
-#
-# Detach an agent from a node.
-#
-Node instproc detach { agent nullagent } {
-	$self instvar agents_ dmux_
-	#
-	# remove agent from list
-	#
-	set k [lsearch -exact $agents_ $agent]
-	if { $k >= 0 } {
-		set agents_ [lreplace $agents_ $k $k]
-	}
-	#
-	# sanity -- clear out any potential linkage
-	#
-	$agent set node_ ""
-	$agent set agent_addr_ 0
-	$agent target $nullagent
-	
-	set port [$agent set agent_port_]
-	
-	#Install nullagent to sink transit packets   
-	$dmux_ install $port $nullagent
-}
-
-Node instproc agent port {
-	$self instvar agents_
-	foreach a $agents_ {
-		if { [$a set agent_port_] == $port } {
-			return $a
+# We separate insert-entry from install-entry because we need a method to 
+# replace the current entry classifier and _remove_ routing functionality 
+# associated with that classifier. These two methods cannot be merged by 
+# checking whether $hook is empty. 
+Node instproc install-entry { module clsfr {hook ""} } {
+	$self instvar classifier_ mod_assoc_ hook_assoc_
+	if [info exists classifier_] {
+		if [info exists mod_assoc_($classifier_)] {
+			$self unregister-module $mod_assoc_($classifier_)
+			unset mod_assoc_($classifier_)
+		}
+		# Connect the new classifier to the existing classifier chain,
+		# if there is any.
+		if [info exists hook_assoc_($classifier_)] {
+			if { $hook == "target" } {
+				$clsfr target $hook_assoc($classifier_)
+			} elseif { $hook != "" } {
+				$clsfr install $hook $hook_assoc_($classifier_)
+			}
+			set hook_assoc_($clsfr) $hook_assoc_($classifier_)
+			unset hook_assoc_($classifier_)
 		}
 	}
-	return ""
+	set mod_assoc_($clsfr) $module
+	set classifier_ $clsfr
 }
 
-#
-# reset all agents attached to this node
-#
-Node instproc reset {} {
-	$self instvar agents_
-	foreach a $agents_ {
-		$a reset
+# Whenever a route is added or deleted, $module should be notified
+Node instproc route-notify { module } {
+	$self instvar rtnotif_
+	lappend rtnotif_ $module
+}
+
+Node instproc unreg-route-notify { module } {
+	$self instvar rtnotif_
+	set pos [lsearch $rtnotif_ $module]
+	if { $pos >= 0 } {
+		set rtnotif_ [lreplace $rtnotif_ $pos $pos]
 	}
 }
 
-#
-# Some helpers
-#
-Node instproc neighbors {} {
-	$self instvar neighbor_
-	return [lsort $neighbor_]
-}
-
-Node instproc add-neighbor p {
-	$self instvar neighbor_
-	lappend neighbor_ $p
-}
-
-Node instproc is-neighbor { node } {
-	$self instvar neighbor_
-	return [expr [lsearch $neighbor_ $node] != -1]
-}
-
-#
-# Address classifier manipulation
-#
 Node instproc add-route { dst target } {
-	$self instvar classifier_
-	$classifier_ install $dst $target
+	$self instvar rtnotif_
+	# Notify every module that is interested about this route installation
+	foreach m $rtnotif_ {
+		$m add-route $dst $target
+	}
 	$self incr-rtgtable-size
 }
 
-Node instproc delete-route { dst nullagent } {
-	$self instvar classifier_
-	$classifier_ install $dst $nullagent
+Node instproc delete-route args {
+	$self instvar rtnotif_
+	foreach m $rtnotif_ {
+		eval $m delete-route $args
+	}
 	$self decr-rtgtable-size
 }
 
 #
-# Node support for detailed dynamic routing
+# Node support for detailed dynamic unicast routing
 #
 Node instproc init-routing rtObject {
 	$self instvar multiPath_ routes_ rtObject_
-	set multiPath_ [$class set multiPath_]
 	set nn [$class set nn_]
 	for {set i 0} {$i < $nn} {incr i} {
 		set routes_($i) 0
@@ -356,36 +300,20 @@ Node instproc rtObject? {} {
     }
 }
 
-# Splitting up address string
-Node instproc split-addrstr addrstr {
-	set L [split $addrstr .]
-	return $L
-}
-
-# method to remove an entry from the hier classifiers
-Node/MobileNode instproc delete-hroute args {
-	$self instvar classifiers_
-	set l [llength $args]
-	$classifiers_($l) clear [lindex $args [expr $l-1]] 
-}
-
-Node instproc add-hroute { dst target } {
-	$self instvar classifiers_ rtsize_
-	set al [$self split-addrstr $dst]
-	set l [llength $al]
-	for {set i 1} {$i < $l} {incr i} {
-		set d [lindex $al [expr $i-1]]
-		$classifiers_($i) install $d $classifiers_([expr $i + 1]) 
+Node instproc intf-changed {} {
+	$self instvar rtObject_
+	if [info exists rtObject_] {	;# i.e. detailed dynamic routing
+		$rtObject_ intf-changed
 	}
-	$classifiers_($l) install [lindex $al [expr $l-1]] $target
-	# increase the routing table size counter - keeps track of rtg 
-	# table size for each node
-	$self incr-rtgtable-size
 }
 
-#
+
+#----------------------------------------------------------------------
+
+# XXX Eventually add-routes{} and delete-routes{} should be 
+# unified with add-route{} for a single interface to install routes.
+
 # Node support for equal cost multi path routing
-#
 Node instproc add-routes {id ifs} {
 	$self instvar classifier_ multiPath_ routes_ mpathClsfr_
 	if !$multiPath_ {
@@ -397,7 +325,7 @@ Node instproc add-routes {id ifs} {
 		set routes_($id) 1
 		return
 	}
-	if {$routes_($id) <= 0 && [llength $ifs] == 1 && 	\
+	if {$routes_($id) <= 0 && [llength $ifs] == 1 && \
 			![info exists mpathClsfr_($id)]} {
 		$self add-route $id [$ifs head]
 		set routes_($id) 1
@@ -439,103 +367,197 @@ Node instproc delete-routes {id ifs nullagent} {
 		$self delete-route $id $nullagent
 		incr routes_($id) -1
 		# Notice that after this operation routes_($id) may not 
-		# necessarily be 0, because 
+		# necessarily be 0.
 	}
 }
 
-Node instproc intf-changed {} {
-	$self instvar rtObject_
-	if [info exists rtObject_] {	;# i.e. detailed dynamic routing
-		$rtObject_ intf-changed
-	}
-}
-
-#
-# Manual Routing Nodes:
-# like normal nodes, but with a hash classifier.
-#
-Class ManualRtNode -superclass Node
-
-ManualRtNode instproc mk-default-classifier {} {
-	$self instvar address_ classifier_ id_ dmux_
-	# Note the very small hash size---
-	# you're supposed to resize it if you want more.
-	set classifier_ [new Classifier/Hash/Dest 2]
-	$classifier_ set mask_ [AddrParams set NodeMask_(1)]
-	$classifier_ set shift_ [AddrParams set NodeShift_(1)]
-	set address_ $id_
+# Enable multicast routing support in this node
+Node instproc enable-mcast args {
+	$self instvar classifier_ multiclassifier_ ns_ switch_ mcastproto_
+	
+	$self set switch_ [new Classifier/Addr]
 	#
-	# When an agent is created,
-	# $self add-route $address_ $dmux_ is called
-	# which will do this.
+	# set up switch to route unicast packet to slot 0 and
+	# multicast packets to slot 1
 	#
+	[$self set switch_] set mask_ [AddrParams McastMask]
+	[$self set switch_] set shift_ [AddrParams McastShift]
+	#
+	# create a classifier for multicast routing
+	#
+	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
+	[$self set multiclassifier_] set node_ $self
+	
+	$self set mrtObject_ [new mrtObject $self]
+
+	$switch_ install 0 $classifier_
+	$switch_ install 1 $multiclassifier_
 }
 
-ManualRtNode instproc add-route {dst_address target} {
-	$self instvar classifier_ 
-	set slot [$classifier_ installNext $target]
-	if {$dst_address == "default"} {
-		$classifier_ set default_ $slot
-	} else {
-		# don't encode the address here, set-hash bypasses that for us
-		set encoded_dst_address [expr $dst_address << [AddrParams set NodeShift_(1)]]
-		$classifier_ set-hash auto 0 $encoded_dst_address 0 $slot
-	}
+#----------------------------------------------------------------------
+
+
+#
+# Port classifier manipulation
+#
+
+Node instproc alloc-port { nullagent } {
+	return [[$self set dmux_] alloc-port $nullagent]
 }
 
-ManualRtNode instproc add-route-to-adj-node { args } {
-	$self instvar classifier_ address_
+Node instproc agent port {
+	$self instvar agents_
+	foreach a $agents_ {
+		if { [$a set agent_port_] == $port } {
+			return $a
+		}
+	}
+	return ""
+}
 
-	set dst ""
-	if {[lindex $args 0] == "-default"} {
-		set dst default
-		set args [lrange $args 1 end]
+Node instproc demux {} {
+	return [$self set dmux_]
+}
+
+# Install $demux as the default demuxer of the node, place the existing demux
+# at $port of the new demuxer. 
+#
+# XXX Here we do not have a similar difference like that between 
+# "insert-entry" and "install-entry", because even if a demux 
+# is replaced, the associated routing module should not be removed. 
+#
+# This is a rather arbitrary decision, but we do not have better clue
+# how demuxers will be used among routing modules.
+Node instproc install-demux { demux {port ""} } {
+	$self instvar dmux_ address_
+	if { $dmux_ != "" } {
+		$self delete-route $dmux_
+		if { $port != "" } {
+			$demux install $port $dmux_
+		}
 	}
-	if {[llength $args] != 1} {
-		error "ManualRtNode::add-route-to-adj-node [-default] node"
+	set dmux_ $demux
+	$self add-route $address_ $dmux_
+}
+
+# Whenever an agent is attached or detached, $module should be notified.
+Node instproc port-notify { module } {
+	$self instvar ptnotif_
+	lappend ptnotif_ $module
+}
+
+Node instproc unreg-port-notify { module } {
+	$self instvar ptnotif_
+	set pos [lsearch $ptnotif_ $module]
+	if { $pos >= 0 } {
+		set ptnotif_ [lreplace $ptnotif_ $pos $pos]
 	}
-	set target_node $args
-	if {$dst == ""} {
-		set dst [$target_node set address_]
-	}
-	set ns [Simulator instance]
-	set link [$ns link $self $target_node]
-	set target [$link head]
-	return [$self add-route $dst $target]
 }
 
 #
-# Virtual Classifier Nodes:
-# like normal nodes, but with a virtual unicast classifier.
+# Attach an agent to a node: pick a port and bind the agent to the port.
 #
-Class VirtualClassifierNode -superclass Node
-
-VirtualClassifierNode instproc mk-default-classifier {} {
-	$self instvar address_ classifier_ id_
-
-	set classifier_ [new Classifier/Virtual]
-	$classifier_ set node_ $self
-	$classifier_ set mask_ [AddrParams set NodeMask_(1)]
-	$classifier_ set shift_ [AddrParams set NodeShift_(1)]
-	set address_ $id_
-	$classifier_ nodeaddr $address_
-}
-
-VirtualClassifierNode instproc add-route { dst target } {
-}
-
-Classifier/Virtual instproc find dst {
-	$self instvar node_ ns_ 
-
-	if ![info exist ns_] {
-		set ns_ [Simulator instance]
+# To install module-specific demuxers, do that in your module's register{}
+# method. Since this method will be called during Node::init{}, when 
+# Node::attach{} is called dmux_ will already be present hence the following
+# default dmux_ construction will not be triggered.
+#
+Node instproc attach { agent { port "" } } {
+	$self instvar agents_ address_ dmux_ 
+	#
+	# Assign port number (i.e., this agent receives
+	# traffic addressed to this host and port)
+	#
+	lappend agents_ $agent
+	#
+	# Attach agents to this node (i.e., the classifier inside).
+	# We call the entry method on ourself to find the front door
+	# (e.g., for multicast the first object is not the unicast classifier)
+	#
+	# Also, stash the node in the agent and set the local addr of 
+	# this agent.
+	#
+	$agent set node_ $self
+	$agent set agent_addr_ [AddrParams addr2id $address_]
+	#
+	# If a port demuxer doesn't exist, create it.
+	#
+	if { $dmux_ == "" } {
+		# Use the default mask_ and port_ values
+		set dmux_ [new Classifier/Port]
+		# point the node's routing entry to itself
+		# at the port demuxer (if there is one)
+		$self add-route $address_ $dmux_
 	}
-	if {[$node_ id] == $dst} {
-		return [$node_ set dmux_]
-	} else {
-		return [[$ns_ link $node_ [$ns_ set Node_($dst)]] head]
+	if { $port == "" } {
+		set port [$dmux_ alloc-port [[Simulator instance] nullagent]]
+	}
+	$agent set agent_port_ $port
+
+	$self add-target $agent $port
+}
+
+# XXX For backward compatibility. When both satellite node and mobile node
+# are converted to modules, this should be merged into attach{}.
+Node instproc add-target { agent port } {
+	$self instvar ptnotif_
+	# Replaces the following line from old ns (2.1b7 and earlier)
+	#   $self add-target $agent $port
+	foreach m [$self set ptnotif_] {
+		$m attach $agent $port
 	}
 }
 
-Classifier/Virtual instproc install {dst target} {
+# Detach an agent from a node.
+Node instproc detach { agent nullagent } {
+	$self instvar agents_ dmux_
+	#
+	# remove agent from list
+	#
+	set k [lsearch -exact $agents_ $agent]
+	if { $k >= 0 } {
+		set agents_ [lreplace $agents_ $k $k]
+	}
+	#
+	# sanity -- clear out any potential linkage
+	#
+	$agent set node_ ""
+	$agent set agent_addr_ 0
+	$agent target $nullagent
+	# Install nullagent to sink transit packets   
+	$dmux_ install [$agent set agent_port_] $nullagent
+
+	foreach m [$self set ptnotif_] {
+		$m detach $agent $nullagent
+	}
+}
+
+# reset all agents attached to this node
+Node instproc reset {} {
+	$self instvar agents_
+	foreach a $agents_ {
+		$a reset
+	}
+	foreach m [$self list-modules] {
+		$m reset
+	}
+}
+
+
+#
+# Some helpers
+#
+Node instproc neighbors {} {
+	$self instvar neighbor_
+	return [lsort $neighbor_]
+}
+
+Node instproc add-neighbor p {
+	$self instvar neighbor_
+	lappend neighbor_ $p
+}
+
+Node instproc is-neighbor { node } {
+	$self instvar neighbor_
+	return [expr [lsearch $neighbor_ $node] != -1]
 }
