@@ -1114,7 +1114,7 @@ Test/smallpkts instproc run {} {
 	$ns_ attach-agent $node_(k1) $sink
 	$src set fid_ 0
 	$sink set fid_ 0
-	$sink set interval_ 0.2
+	$sink set interval_ 200ms
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
@@ -1160,7 +1160,7 @@ Test/telnet instproc run {} {
 	$ns_ attach-agent $node_(k1) $sink
 	$src set fid_ 0
 	$sink set fid_ 0
-	$sink set interval_ 0.2; # generate acks/adverts each 200ms
+	$sink set interval_ 200ms
 	$sink set segsize_ 4192; # or wait up to 3*4192 bytes to ACK
 	$sink set segsperack_ 3
 	$ns_ connect $src $sink
@@ -1168,7 +1168,7 @@ Test/telnet instproc run {} {
 	# set up TCP-level connections
 	$sink listen
 	set telnet1 [$src attach-app Telnet]
-	$telnet1 set interval_ 0
+	$telnet1 set interval_ 0ms
 	$ns_ at 0.5 "$telnet1 start"
 
 	# set up special params for this test
@@ -1208,7 +1208,7 @@ Test/telnet2 instproc run {} {
 	$ns_ attach-agent $node_(k1) $sink
 	$src set fid_ 0
 	$sink set fid_ 0
-	$sink set interval_ 0.6; # generate acks/adverts each 600ms
+	$sink set interval_ 600ms
 	$sink set segsize_ 536; # or wait up to 3*536 bytes to ACK
 	$sink set segsperack_ 3
 	$ns_ connect $src $sink
@@ -1216,7 +1216,7 @@ Test/telnet2 instproc run {} {
 	# set up TCP-level connections
 	$sink listen
 	set telnet1 [$src attach-app Telnet]
-	$telnet1 set interval_ 0
+	$telnet1 set interval_ 0ms
 	$ns_ at 0.5 "$telnet1 start"
 
 	# set up special params for this test
