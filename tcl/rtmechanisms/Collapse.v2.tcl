@@ -13,8 +13,7 @@ proc create_flowstats { redlink stoptime } {
     set r1fm [$ns makeflowmon Fid]
     set flowdesc [open $flowfile w]
     $r1fm attach $flowdesc
-#    $ns attach-fmon $redlink $r1fm 1
-    $ns attach-fmon $redlink $r1fm
+    $ns attach-fmon $redlink $r1fm; # don't use edrop stats
     $ns at $stoptime "$r1fm dump; close $flowdesc"
 }
 
@@ -58,12 +57,12 @@ proc finish_flowstats { infile outfile } {
     exec awk $awkCode $infile >@ $outfile
 }
 
-proc printTcpPkts { tcp class file } {
-    puts $file "class $class total_packets_acked [$tcp set ack_]"
+proc printTcpPkts { tcp fid file } {
+    puts $file "fid $fid total_packets_acked [$tcp set ack_]"
 }
 
-proc printCbrPkts { cbrsnk class file } {
-    puts $file "class $class total_packets_received [$cbrsnk set npkts_]"
+proc printCbrPkts { cbrsnk fid file } {
+    puts $file "fid $fid total_packets_received [$cbrsnk set npkts_]"
 }
 
 proc printstop { stoptime file } {
@@ -90,34 +89,34 @@ proc create-connection-list {s_type source d_type dest pktClass} {
 #
 # create and schedule a cbr source/dst 
 #
-proc new_cbr { startTime source dest pktSize class dump interval file stoptime } {
+proc new_cbr { startTime source dest pktSize fid dump interval file stoptime } {
     global ns
-    set cbrboth [create-connection-list CBR $source LossMonitor $dest $class ]
+    set cbrboth [create-connection-list CBR $source LossMonitor $dest $fid ]
     set cbr [lindex $cbrboth 0]
     $cbr set packetSize_ $pktSize
     $cbr set interval_ $interval
     set cbrsnk [lindex $cbrboth 1]
     $ns at $startTime "$cbr start"
     if {$dump == 1 } {
-	puts $file "class $class packet-size $pktSize"
-	$ns at $stoptime "printCbrPkts $cbrsnk $class $file"
+	puts $file "fid $fid packet-size $pktSize"
+	$ns at $stoptime "printCbrPkts $cbrsnk $fid $file"
     }
 }
 
 #
 # create and schedule a tcp source/dst
 #
-proc new_tcp { startTime source dest window class dump size file stoptime } {
+proc new_tcp { startTime source dest window fid dump size file stoptime } {
     global ns
-    set tcp [$ns create-connection TCP/Sack1 $source TCPSink/Sack1/DelAck $dest $class ]
+    set tcp [$ns create-connection TCP/Sack1 $source TCPSink/Sack1/DelAck $dest $fid ]
     $tcp set window_ $window
 #   $tcp set tcpTick_ 0.1
     $tcp set tcpTick_ 0.01
     if {$size > 0}  {$tcp set packetSize_ $size }
     set ftp [$tcp attach-source FTP]
     $ns at $startTime "$ftp start"
-    $ns at $stoptime "printTcpPkts $tcp $class $file"
-    if {$dump == 1 } {puts $file "class $class packet-size [$tcp set packetSize_]"}
+    $ns at $stoptime "printTcpPkts $tcp $fid $file"
+    if {$dump == 1 } {puts $file "fid $fid packet-size [$tcp set packetSize_]"}
 }
 proc make_queue { cl qt qlim } {
         set q [new Queue/$qt]
@@ -130,12 +129,14 @@ proc create_flat { link qtype qlim number} {
         set topclass_ [new CBQClass]
         # (topclass_ doesn't have a queue)
         $topclass_ setparams none 0 0.98 auto 8 2 0
-
+	$link insert $topclass_
 	set share [expr 100. / $number ]
        for {set i 0} {$i < $number} {incr i 1} {
+puts "create_flat: insert $i"
 		set cls [new CBQClass]
                 $cls setparams $topclass_ true .$share auto 1 1 0
 		make_queue $cls $qtype $qlim
+puts "qdisc is [$cls qdisc] in link $link"
                 $link insert $cls
                 $link bind $cls $i
         }
@@ -187,6 +188,7 @@ proc test_simple { interval bandwidth datafile scheduling cbrs tcps } {
     
     if { $scheduling == "wrr" } {
 	    set xlink [create_testnet5 CBQ/WRR $bandwidth]
+puts "cbqlink should be $xlink"
 	    create_flat $xlink $qtype $qlim [expr $cbrs + $tcps]
     } elseif { $scheduling == "fifo" } {
 	    set xlink [create_testnet5 RED $bandwidth]
