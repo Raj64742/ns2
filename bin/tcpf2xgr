@@ -7,20 +7,23 @@ PROGDIR=`dirname $PROGNAME`
 $PROGDIR/getrc -s 2 -f 0 $1 > $TMPNAM
 tclsh $PROGDIR/tcpfull-summarize.tcl $TMPNAM $TMPNAM
 tclsh $PROGDIR/tcpfull-summarize.tcl $TMPNAM $TMPNAM.r reverse
-tclsh $PROGDIR/cplot.tcl xgraph $1.FORW $TMPNAM.p "segments sent" \
+tclsh $PROGDIR/cplot.tcl xgraph $1.FORW \
+	$TMPNAM.p "segments sent" \
 	$TMPNAM.acks "acks w/data rcvd" \
 	$TMPNAM.packs "pure acks rcvd" \
 	$TMPNAM.d "drops" \
 	$TMPNAM.es "zero-len segments sent" \
-	$TMPNAM.ctrl "SYN or FIN" | xgraph &
+	$TMPNAM.ctrl "SYN or FIN" \
+	$TMPNAM.ecn "EcnEcho ACKs" | xgraph &
 
 tclsh $PROGDIR/cplot.tcl xgraph $1.REV $TMPNAM.r.p "segments sent" \
 	$TMPNAM.r.acks "acks w/data rcvd" \
 	$TMPNAM.r.packs "pure acks rcvd" \
 	$TMPNAM.r.d "drops" \
 	$TMPNAM.r.es "zero-len segments sent" \
-	$TMPNAM.r.ctrl "SYN or FIN" | xgraph &
+	$TMPNAM.r.ctrl "SYN or FIN" \
+	$TMPNAM.r.ecn "EcnEcho ACKs" | xgraph &
 
 sleep 2
-rm -f $TMPNAM.p $TMPNAM.acks $TMPNAM.packs $TMPNAM.d $TMPNAM.ctrl $TMPNAM.es
-rm -f $TMPNAM.r.p $TMPNAM.r.acks $TMPNAM.r.packs $TMPNAM.r.d $TMPNAM.r.ctrl $TMPNAM.r.es
+rm -f $TMPNAM.p $TMPNAM.acks $TMPNAM.packs $TMPNAM.d $TMPNAM.ctrl $TMPNAM.es $TMPNAM.ecn
+rm -f $TMPNAM.r.p $TMPNAM.r.acks $TMPNAM.r.packs $TMPNAM.r.d $TMPNAM.r.ctrl $TMPNAM.r.es $TMPNAM.r.ecn
