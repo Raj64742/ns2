@@ -135,13 +135,13 @@
 \contentsline {subsection}{\numberline {14.5.2}Mac Methods}{124}
 \contentsline {subsection}{\numberline {14.5.3}Mac Class in C++}{124}
 \contentsline {subsection}{\numberline {14.5.4}CSMA-based MAC}{125}
-\contentsline {section}{\numberline {14.6}LL (link-layer) Class}{125}
+\contentsline {section}{\numberline {14.6}LL (link-layer) Class}{126}
 \contentsline {subsection}{\numberline {14.6.1}LL Class in C++}{126}
 \contentsline {subsection}{\numberline {14.6.2}Example: Link Layer configuration}{126}
 \contentsline {section}{\numberline {14.7}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily LanRouter\egroup class}{127}
 \contentsline {section}{\numberline {14.8}Other Components}{127}
 \contentsline {section}{\numberline {14.9}LANs and \emph {ns}\ routing}{127}
-\contentsline {section}{\numberline {14.10}Commands at a glance}{128}
+\contentsline {section}{\numberline {14.10}Commands at a glance}{129}
 \contentsline {chapter}{\numberline {15}The (Revised) Addressing Structure in NS}{130}
 \contentsline {section}{\numberline {15.1}The Default Address Format}{130}
 \contentsline {section}{\numberline {15.2}The Hierarchical Address Format}{131}
@@ -490,16 +490,18 @@
 \contentsline {section}{\numberline {36.7}Animation Objects}{325}
 \contentsline {chapter}{\numberline {37}Nam Trace}{326}
 \contentsline {section}{\numberline {37.1}Nam Trace Format}{326}
-\contentsline {subsection}{\numberline {37.1.1}Initialization}{327}
+\contentsline {subsection}{\numberline {37.1.1}Initialization Events}{327}
 \contentsline {subsection}{\numberline {37.1.2}Nodes}{328}
-\contentsline {subsection}{\numberline {37.1.3}Links}{329}
+\contentsline {subsection}{\numberline {37.1.3}Links}{328}
 \contentsline {subsection}{\numberline {37.1.4}Queues}{329}
-\contentsline {subsection}{\numberline {37.1.5}Packets}{330}
-\contentsline {subsection}{\numberline {37.1.6}Node Marking}{331}
+\contentsline {subsection}{\numberline {37.1.5}Packets}{329}
+\contentsline {subsection}{\numberline {37.1.6}Node Marking}{330}
 \contentsline {subsection}{\numberline {37.1.7}Agent Tracing}{331}
 \contentsline {subsection}{\numberline {37.1.8}Variable Tracing}{331}
-\contentsline {subsection}{\numberline {37.1.9}Miscellaneous Trace Events}{332}
-\contentsline {subsection}{\numberline {37.1.10}Using Streams for Realtime Applications}{333}
+\contentsline {subsection}{\numberline {37.1.9}Executing Tcl Procedures and External Code within Nam}{331}
+\contentsline {subsubsection}{Annotation}{332}
+\contentsline {subsubsection}{Node Exec Button}{332}
+\contentsline {subsection}{\numberline {37.1.10}Using Streams for Realtime Applications}{332}
 \contentsline {subsection}{\numberline {37.1.11}Nam Trace File Format Lookup Table}{335}
 \contentsline {section}{\numberline {37.2}Ns commands for creating and controlling nam animations}{341}
 \contentsline {subsection}{\numberline {37.2.1}Node}{342}

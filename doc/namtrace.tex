@@ -56,7 +56,7 @@ There are 2 sections in that file, static intial configuration events and animat
 
 Following we describe nam trace file format for different classes events and animation objects.
 
-\subsection {Initialization}
+\subsection {Initialization Events}
 
 The first section of a trace file must contain initialization information. All initialization events will have the flag \code{-t *}.  This tells nam that this event needs to be parsed before any animation has started. 
 \begin{description}
@@ -81,11 +81,11 @@ If you want to use wireless nodes in nam you need the wireless intialization eve
 W -t * -x 600 -y 600
 \end{program}
 
-This gives nam the size of the layout for the wireless world.  The -x value is the width and -y is height. For more information look at the file/animator.tcl under the procedure infer-network-model.
+This gives nam the size of the layout for the wireless world.  The -x value is the width and -y is height. For more information look at the file animator.tcl in the procedure infer-network-model.
 
 \item[Hierarchy] Hierarchical address information is defined by:
 
-  \code{A -t <time> -n <levels> -o <address-space size> -c <mcastshift> -a <mcastmask> -h <nth level> -m <mask in nth level> -s <shift in nth level>}
+  \code{A -t <time> -n <levels> -o <address-space size> -c <mcastshift> -a <mcastmask> -h <nth level> -m <mask in nth level> -s <shift in nth level>}\\
   
   This trace gives the details of hierarchy, if hierarchical
   addressing is being used for simulation. 
@@ -109,10 +109,8 @@ A -t * -h 3 -m 2047 -s 0
 Look at tcl/netModel.tcl under the nam\_addressing procedure for more information.
 
 \item[Color Table Entry]
-A table of color entries can be built using:
-\begin{program}
-c -t <time> -i <color id> -n <color name>
-\end{program}
+A table of color entries can be built using:\\
+\code{c -t <time> -i <color id> -n <color name>}\\
 Nam allows one to associate color names with
 integers. This is very useful in coloring packets. The flow id of
 a packet is used to color the packet using the corresponding color
@@ -130,8 +128,7 @@ The nam trace format defining node state is:\\
 \code{n -t <time> -a <src-addr> -s <src-id> -S <state> -v <shape> -c <color> -i <l-color> -o <color>}\\
 "n" denotes the node state.\\
 Flags "-t" indicates time and "-a" and "-s" denotes the node address and id.\\
-"-S" gives the node state transition.\\
-The possible state transition values are: 
+"-S" gives the node state transition. The possible state transition values are: 
 \begin{itemize}
 \item UP, DOWN indicates node recovery and failure.
 \item COLOR indicates node color change. If COLOR is given, a
@@ -159,10 +156,8 @@ circle, and color of tan and label-color (-i) of tan.
 
 \subsection{Links}
 
-The nam trace for link states is given by:
-\begin{program}
-l -t <time> -s <src> -d <dst> -S <state> -c <color> -o orientation -r <bw> -D <delay>
-\end{program}
+The nam trace for link states is given by:\\
+\code{l -t <time> -s <src> -d <dst> -S <state> -c <color> -o orientation -r <bw> -D <delay>}\\
 where {\tt <state>} and {\tt <color>} indicate the same attributes
 (and the same format) as described above in the node state traces. 
 Flag {\tt -o} gives the link orientation (angle between link and
@@ -176,7 +171,7 @@ the horizon).  Valid orientation values are:
 \item down-right
 \item up-left
 \item down-left
-\item <angle between 0 and 2$\pi$>
+\item angle between 0 and 2pi
 \end{itemize}
 
 Flags {\tt -r} and {\tt -D} give the bandwidth (in Mb) and delay (in
@@ -186,12 +181,11 @@ An example of a link trace is:
 l -t * -s 0 -d 1 -S UP -r 1500000 -D 0.01 -c black -o right
 \end{program}
 
+
 \subsection{Queues}
 
-The nam trace queue states is given by:
-\begin{program}
-q -t <time> -s <src> -d <dst> -a <attr>
-\end{program}
+The nam trace queue states is given by:\\
+\code{q -t <time> -s <src> -d <dst> -a <attr>}\\
 Queues are visualized in nam as a straight line along which packets
 (small squares) are packed.
 In queue trace events, the flag {\tt -a} specifies the orientation of the
@@ -199,7 +193,8 @@ line of the queue (angle between the queue line and the horizontal
 line, counter-clockwise). 
 For example, the following line specifies a queue that grows
 vertically upwards with respect to the screen (here {\tt 0.5} means
-the angle of the queue line is $\frac{\pi}{2}$):
+the angle of the queue line is pi/2):
+
 \begin{program}
 q -t * -s 0 -d 1 -a 0.5
 \end{program}
@@ -211,9 +206,7 @@ When a trace line describes a packet, the event type may be
  + (enqueue), - (dequeue), r (receive), d (drop), 
 or h (hop). 
 
-\begin{program}
-<type> -t <time> -e <extent> -s <source id> -d <destination id> -c <conv> -i <id>
-\end{program}
+\code{<type> -t <time> -e <extent> -s <source id> -d <destination id> -c <conv> -i <id>}\\
 
 \code{<type>} is one of:
 \begin{description}
@@ -272,14 +265,10 @@ Additional flags may be added for some protocols.
 \subsection{Node Marking}
 
 Node marks are colored concentric circles, boxes, or hexagons around nodes. 
-They are created by:
-\begin{program}
-m -t <time> -n <mark name> -s <node> -c <color> -h <shape> -o <color>
-\end{program}
-and can be deleted by:
-\begin{program}
-m -t <time> -n <mark name> -s <node> -X
-\end{program}
+They are created by:\\
+\code{m -t <time> -n <mark name> -s <node> -c <color> -h <shape> -o <color>}\\
+and can be deleted by:\\
+\code{m -t <time> -n <mark name> -s <node> -X}\\
 Note that once created, a node mark cannot change its shape. The possible
 choices for shapes are, circle, box, and hexagon. They are defined as 
 lowercase strings exactly as above. A nam trace showing a node mark is:
@@ -298,15 +287,11 @@ agent.
 An agent is shown as a square with its name inside, and a line link
 the square to its associated node 
 
-Agent events are constructed using the following format:
-\begin{program}
-a -t <time> -n <agent name> -s <src> 
-\end{program}
+Agent events are constructed using the following format:\\
+\code{a -t <time> -n <agent name> -s <src>}\\
 Because in \ns, agents may be detached from nodes, an agent may be 
-''destructed'' in nam with:
-\begin{program}
-a -t <time> -n <agent name> -s <src> -X
-\end{program}
+deleted in nam with:\\
+\code{a -t <time> -n <agent name> -s <src> -X}\\
 For example, the following nam trace line creates an agent named {\tt
   srm(5)} associated with node 5 at time 0:
 \begin{program}
@@ -324,10 +309,8 @@ Notice that the value is simple treated as a string (without
 white space).
 Every feature is required to be associated with an agent. 
 Then, it can be added or modified at any time after its agent is created.
-The trace line to create a feature is:
-\begin{program}
-f -t <time> -s <src> -a <agentname> -T <type> -n <varname> -v <value> -o <prev value>
-\end{program}
+The trace line to create a feature is:\\
+\code{f -t <time> -s <src> -a <agentname> -T <type> -n <varname> -v <value> -o <prev value>}\\
 Flag {\tt <type>} is 
 \begin{description}
 \item[v] for a simple variable
@@ -344,41 +327,57 @@ quoting conventions.
 List values obey the TCL list conventions. 
 Timer values are ASCII numeric. 
 Flag {\tt -o <prev value>} gives the previous value of the variable. 
-This is used in backward animation. 
-Here is an example of a simple feature event:
-\begin{program}
-f -t 0.00000000000000000 -s 1 -n C1\_ -a srm(1) -v 2.25000 -T v
-\end{program}
+This is used in backward animation.
+Here is an example of a simple feature event:\\
+\code{f -t 0.00000000000000000 -s 1 -n C1_ -a srm(1) -v 2.25000 -T v}\\
 
-Features may be deleted using:
-\begin{program}
-f -t <time> -a <agent name> -n <var name> -o <prev value> -X
-\end{program}
+Features may be deleted using:\\
+\code{f -t <time> -a <agent name> -n <var name> -o <prev value> -X}\\
 
-\subsection{Miscellaneous Trace Events}
+\subsection{Executing Tcl Procedures and External Code from within Nam}
 
-There are other trace events in addition to the formats described above:
-\begin{description}
-\item[Annotation] This event is represented by event type {\tt v}. 
-  It is used for generic annotation:
-\begin{program}
-v -t <time> -e <TCL script string>  
-\end{program}
-  Notice that this event is very generic, in that it may include an
-  arbitrary tcl script to be executed at a given
-  time, as long as it is in one line (no more than 256
-  characters).
-  There may be white spaces in the string.
-  The order of flags and the string is important.
+There is a special event that can be put in a nam tracefile which allows us
+to run different tcl procedures. This event is represented by event type {\tt v}.\\
+\code{v -t <time> -e <nam tcl procedure call>}\\
+This event is very generic, in that it may execute several different procedures
+at a given time, as long as it is in one line (no more than 256 characters).
+There may be white spaces in the string which are passed as arguments to the tcl
+procedure.  Unlike other events, the order of flags and the tcl procedure
+call is important.
 
-  Here is an example of this event:
-\begin{program}
-v -t 4 -e sim\_annotation 4 3 node 0 added one mark
-\end{program}
-  This line calls a special tcl function {\tt sim\_annotation} in
-  nam, which inserts the given string \code{node 0 added one mark}
-  into nam's annotation pane.  Look at ''Animator instproc sim\_annotation { time seq args }'' in tcl/annotation.tcl for implementation details.
-\end{description}
+Here are some examples of this event in use:
+
+\subsubsection{Annotation}
+This procedure is used for displaying text annotation at specfic times:
+
+\code{v -t <time> -e sim_annotation <time> <unique sequence id> <text to display>}\\
+
+For example:\\
+\code{v -t 4 -e sim_annotation 4 3 node 0 added one mark}\\
+
+This line calls a special tcl function {\tt sim\_annotation} in
+nam, which inserts the given string \code{node 0 added one mark}
+into nam's annotation pane.  Look at  
+\code{Animator instproc sim_annotation} in 
+tcl/annotation.tcl for the implementation details.
+
+\subsubsection{Node Exec Button}
+In nam releases, version 1.0a10 and later there is support for running external
+userdefinable scripts or programs from nam by clicking on a node button.
+
+\code{v -t 1.0 -e node_tclscript <node_id> <button label> <tcl script>}\\
+
+This line when read in a tracefile will add an extra button to node objects that
+will execute a tcl script when clicked.
+
+For example:\\
+\code{v -t 1.0 -e node_tclscript 2 "Echo Hello" \{puts [exec echo hello]\}}\\
+
+The above line adds a button to node 2's info window with the label 
+"Echo Hello" and when this button is pressed the shell command 
+"echo hello" will be run and it's output will be returned to nam and
+then output to the terminal via the tcl procedure puts.
+
 
 The functions that implement the different nam trace formats described
 above may be found in the following files: \ns/trace.cc, 
