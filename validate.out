@@ -1886,24 +1886,6 @@ Running test tagging:
 ../../ns test-suite-rio.tcl tagging QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-*** ./test-all-pi
-Tests: pi1 ecn pi2 pi_twoway pi_twowaybytes
-Running test pi1:
-../../ns test-suite-pi.tcl pi1 QUIET
-Test output agrees with reference output
-Running test ecn:
-../../ns test-suite-pi.tcl ecn QUIET
-Test output agrees with reference output
-Running test pi2:
-../../ns test-suite-pi.tcl pi2 QUIET
-Test output agrees with reference output
-Running test pi_twoway:
-../../ns test-suite-pi.tcl pi_twoway QUIET
-Test output agrees with reference output
-Running test pi_twowaybytes:
-../../ns test-suite-pi.tcl pi_twowaybytes QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
 *** ./test-all-vq
 Tests: vq1 ecn vq2 vq_twoway vq_twowaybytes
 Running test vq1:
@@ -1938,6 +1920,18 @@ Running test rem_twoway:
 Test output agrees with reference output
 Running test rem_twowayecn:
 ../../ns test-suite-rem.tcl rem_twowayecn QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-gk
+Tests: gk1 gk2 gk_twoway
+Running test gk1:
+../../ns test-suite-gk.tcl gk1 QUIET
+Test output agrees with reference output
+Running test gk2:
+../../ns test-suite-gk.tcl gk2 QUIET
+Test output agrees with reference output
+Running test gk_twoway:
+../../ns test-suite-gk.tcl gk_twoway QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-cbq
@@ -2169,29 +2163,19 @@ Running test ottl-PB:
 Test output agrees with reference output
 Running test Mcast-PBtr:
 ../../ns test-suite-webcache.tcl Mcast-PBtr QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-webcache/Mcast-PBtr.test test-output-webcache/Mcast-PBtr
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Test output agrees with reference output
 Running test Mcast-PBPtr:
 ../../ns test-suite-webcache.tcl Mcast-PBPtr QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-webcache/Mcast-PBPtr.test test-output-webcache/Mcast-PBPtr
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Test output agrees with reference output
 Running test Mcast-PBUtr:
 ../../ns test-suite-webcache.tcl Mcast-PBUtr QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-webcache/Mcast-PBUtr.test test-output-webcache/Mcast-PBUtr
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Test output agrees with reference output
 Running test ttl-PBtr:
 ../../ns test-suite-webcache.tcl ttl-PBtr QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-webcache/ttl-PBtr.test test-output-webcache/ttl-PBtr
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Test output agrees with reference output
 Running test ottl-PBtr:
 ../../ns test-suite-webcache.tcl ottl-PBtr QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-webcache/ottl-PBtr.test test-output-webcache/ottl-PBtr
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Test output agrees with reference output
 Running test mmcast-PB:
 ../../ns test-suite-webcache.tcl mmcast-PB QUIET
 Test output agrees with reference output
@@ -2207,7 +2191,7 @@ Test output agrees with reference output
 Running test mcast-dreq:
 ../../ns test-suite-webcache.tcl mcast-dreq QUIET
 Test output agrees with reference output
-Some test failed.
+All test output agrees with reference output.
 *** ./test-all-mcache
 Tests: media1 media2 media3 media3a media4 media5
 Running test media1:
@@ -2352,11 +2336,11 @@ Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
-NS EXITING...
-finish..
 num_nodes is set 50
-Test output agrees with reference output
-All test output agrees with reference output.
+Test output differs from reference output
+Diagnose with: diff test-output-wireless-lan/aodv.test test-output-wireless-lan/aodv
+Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Some test failed.
 *** ./test-all-wireless-tdma
 Tests: dsdv dsr
 Running test dsdv:
@@ -2582,10 +2566,11 @@ Running test aodv:
 Loading connection pattern...
 Loading scenario file...
 Load complete...
-NS EXITING...
 num_nodes is set 5
-Test output agrees with reference output
-All test output agrees with reference output.
+Test output differs from reference output
+Diagnose with: diff test-output-energy/aodv.test test-output-energy/aodv
+Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Some test failed.
 *** ./test-all-v1
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
 Running test tahoe1:
@@ -2849,9 +2834,6 @@ Tests: simple-ping
 Running test simple-ping:
 ../../ns test-suite-diffusion3.tcl simple-ping QUIET
 num_nodes is set 3
-creating new DiffAppAgent_
-creating new DiffAppAgent_
-creating new DiffAppAgent_
 NS EXITING...
 Test output agrees with reference output
 All test output agrees with reference output.
@@ -2871,7 +2853,7 @@ bdep * 1:                       -1312283256
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: some tests failed:
-     ./test-all-webcache
+     ./test-all-wireless-lan-aodv ./test-all-energy
 to re-run a specific test, cd tcl/test; ../../ns test-all-TEST-NAME
 Notice that some tests in webcache will fail on freebsd when -O is turned on.
 This is due to some event reordering, which will disappear when -g is turned on.

@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.62 2001/11/08 18:12:17 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.63 2002/01/31 00:29:53 haldar Exp $
  */
 
 #include <packet.h>
@@ -477,7 +477,9 @@ CMUTrace::format_aodv(Packet *p, int offset)
         struct hdr_aodv_request *rq = HDR_AODV_REQUEST(p);
         struct hdr_aodv_reply *rp = HDR_AODV_REPLY(p);
 
+
         switch(ah->ah_type) {
+		char type[24];
         case AODVTYPE_RREQ:
 
 		if (newtrace_) {
@@ -508,37 +510,40 @@ CMUTrace::format_aodv(Packet *p, int offset)
                 break;
 
         case AODVTYPE_RREP:
-        case AODVTYPE_UREP:
         case AODVTYPE_HELLO:
-
+	case AODVTYPE_RERR:
+		
+		if (ah->ah_type == AODVTYPE_RREP)
+			sprintf(type, "REPLY");
+		else if (ah->ah_type == AODVTYPE_HELLO)
+			sprintf(type, "HELLO");
+		else if (ah->ah_type == AODVTYPE_RERR)
+			sprintf(type, "ERROR");
+			
 		if (newtrace_) {
-
-		    sprintf(pt_->buffer() + offset,
-			"-P aodv -Pt 0x%x -Ph %d -Pd %d -Pds %d -Pl %d -Pc %s ",
-			rp->rp_type,
-                        rp->rp_hop_count,
-                        rp->rp_dst,
-                        rp->rp_dst_seqno,
-                        rp->rp_lifetime,
-                        rp->rp_type == AODVTYPE_RREP ? "REPLY" :
-                        (rp->rp_type == AODVTYPE_UREP ? "UNSOLICITED REPLY" :
-                         "HELLO"));
-
+			
+			sprintf(pt_->buffer() + offset,
+			    "-P aodv -Pt 0x%x -Ph %d -Pd %d -Pds %d -Pl %d -Pc %s ",
+				rp->rp_type,
+				rp->rp_hop_count,
+				rp->rp_dst,
+				rp->rp_dst_seqno,
+				rp->rp_lifetime,
+				type);
 	        } else {
-
-		    sprintf(pt_->buffer() + offset,
-			"[0x%x %d [%d %d] %d] (%s)",
-			rp->rp_type,
-                        rp->rp_hop_count,
-                        rp->rp_dst,
-                        rp->rp_dst_seqno,
-                        rp->rp_lifetime,
-                        rp->rp_type == AODVTYPE_RREP ? "REPLY" :
-                        (rp->rp_type == AODVTYPE_UREP ? "UNSOLICITED REPLY" :
-                         "HELLO"));
+			
+			sprintf(pt_->buffer() + offset,
+				"[0x%x %d [%d %d] %d] (%s)",
+				rp->rp_type,
+				rp->rp_hop_count,
+				rp->rp_dst,
+				rp->rp_dst_seqno,
+				rp->rp_lifetime,
+				type);
+			//printf("TYPE: %s\n",type);
 		}
                 break;
-
+		
         default:
 #ifdef WIN32
                 fprintf(stderr,

@@ -21,7 +21,7 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-aodv.tcl,v 1.8 2001/05/27 02:15:00 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-aodv.tcl,v 1.9 2002/01/31 00:29:47 haldar Exp $
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan-tora
@@ -39,7 +39,7 @@ Class Test/aodv -superclass TestSuite
 proc usage {} {
 	global argv0
 	puts stderr "usage: ns $argv0 <tests> "
-	puts "Valid Tests: dsdv dsr"
+	puts "Valid Tests: aodv"
 	exit 1
 }
 
@@ -190,36 +190,37 @@ Test/aodv instproc run {} {
 
 TestSuite instproc finish-aodv {} {
 	$self instvar ns_
-	global quiet opt
+	global quiet opt tracefd
 
 	$ns_ flush-trace
         
-        set tracefd	[open $opt(tr) r]
-        set tracefd2    [open $opt(tr).w w]
+        #set tracefd	[open $opt(tr) r]
+        #set tracefd2    [open $opt(tr).w w]
 
-        while { [eof $tracefd] == 0 } {
+        #while { [eof $tracefd] == 0 } {
 
-	    set line [gets $tracefd]
-	    set items [split $line " "]
+	 #   set line [gets $tracefd]
+	 #   set items [split $line " "]
 
-	    set time [lindex $items 1]
+	  #set time [lindex $items 1]
 	    
-	    set times [split $time "."]
-	    set time1 [lindex $times 0]
-	    set time2 [lindex $times 1]
-	    set newtime2 [string range $time2 0 2]
-	    set time $time1.$newtime2
-	    
-	    set newline [lreplace $line 1 1 $time] 
+	   # set times [split $time "."]
+	   # set time1 [lindex $times 0]
+	   # set time2 [lindex $times 1]
+	   # set newtime2 [string range $time2 0 2]
+	   # set time $time1.$newtime2
+	   # puts $line
+	   #	puts $items
+	   # set newline [lreplace $line 1 1 $time] 
 
-	    puts $tracefd2 $newline
+	   # puts $tracefd2 $newline
 
-	}
+	#}
 	
 	close $tracefd
-	close $tracefd2
+	#close $tracefd2
 
-	exec mv $opt(tr).w $opt(tr)
+	#exec mv $opt(tr).w $opt(tr)
 
 	puts "finish.."
 	exit 0

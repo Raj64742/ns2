@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.240 2002/01/24 01:43:31 xuanc Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.241 2002/01/31 00:29:45 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -212,6 +212,7 @@ OBJ_CC = \
 	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
 	dsr/requesttable.o dsr/routecache.o \
 	aodv/aodv_logs.o aodv/aodv.o \
+	aodv/aodv_rtable.o aodv/aodv_rqueue.o \
 	common/ns-process.o \
 	satellite/satgeometry.o satellite/sathandoff.o \
 	satellite/satlink.o satellite/satnode.o \
