@@ -8,7 +8,8 @@
 #include <arpa/inet.h>
 
 
-#include "internet.h"
+#include "emulate/internet.h"
+#include "scheduler.h"
 
 /*  
  * in_cksum --
@@ -64,3 +65,26 @@ rot:%d\n",
         printf("IP len:%d ttl: %d\n",
                 ntohs(ip->ip_len), ip->ip_ttl);
 }   
+
+/*
+ * cons up a basic-looking ip header, no options
+ * multi-byte quantities are assumed to be in HOST byte order
+ */
+void
+Internet::makeip(ip* iph, u_short len, u_char ttl, u_char proto, in_addr& src, 
+in_addr& dst)
+{
+        u_char *p = (u_char*) iph;
+        *p = 0x45;      /* ver + hl */
+        iph->ip_tos = 0;
+        iph->ip_len = htons(len);
+        iph->ip_id = (u_short) Scheduler::instance().clock();   // why not?
+        iph->ip_off = 0x0000;   // mf and df bits off, offset zero
+        iph->ip_ttl = ttl;
+        iph->ip_p = proto;
+        memcpy(&iph->ip_src, &src, 4);
+        memcpy(&iph->ip_dst, &dst, 4);
+        iph->ip_sum = Internet::in_cksum((u_short*) iph, 20);
+        return;
+}
+
