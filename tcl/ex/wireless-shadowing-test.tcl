@@ -102,6 +102,11 @@ set ns_		[new Simulator]
 #set wchan	[new $opt(chan)]
 
 #define propagation model
+# pathlossExp_ is path-loss exponent, for predicting mean received power
+# std_db_ is shadowing deviation (dB), reflecting how large the propagation
+# property changes within the environment.
+# dist0_ is a close-in reference distance, usually 1.0 m for indoor
+#
 set prop	[new Propagation/Shadowing]
 $prop set pathlossExp_ 2.0
 $prop set std_db_ 4.0
