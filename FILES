@@ -2570,6 +2570,7 @@ tcl/test/test-output-tcpHighspeed/tcp1.Z
 tcl/test/test-output-tcpHighspeed/tcp1A.Z
 tcl/test/test-output-tcpHighspeed/tcpHighspeed.Z
 tcl/test/test-output-tcpHighspeed/tcpHighspeed1.Z
+tcl/test/test-output-tcpHighspeed/tcpHighspeed1A.Z
 tcl/test/test-output-tcpHighspeed/tcpHighspeed2.Z
 tcl/test/test-output-tcpHighspeed/tcpHighspeed3.Z
 tcl/test/test-output-tcpHighspeed/tcpHighspeed4.Z
