@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.21 1998/09/05 00:03:10 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.22 1998/09/29 21:38:14 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -98,7 +98,7 @@ protected:
         NsObject* sendtarget_;		// for outgoing packet 
 	NsObject* recvtarget_;		// for incoming packet
 
-        lanRouter* lanrouter_; // for lookups of the next hop
+        LanRouter* lanrouter_; // for lookups of the next hop
 };
 
 #endif

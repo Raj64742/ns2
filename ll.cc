@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.29 1998/09/05 01:13:56 yuriy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.30 1998/09/29 21:38:13 yuriy Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -88,7 +88,7 @@ int LL::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "lanrouter") == 0) {
-			lanrouter_ = (lanRouter*) TclObject::lookup(argv[2]);
+			lanrouter_ = (LanRouter*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
 

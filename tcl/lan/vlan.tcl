@@ -64,7 +64,7 @@ LanNode instproc init {ns args} {
 	} else {
 		set address_ $id_
 	}
-	set defRouter_ [new lanRouter $ns $self]
+	set defRouter_ [new LanRouter $ns $self]
 	if [Simulator set EnableMcast_] {
 		set switch_ [new Classifier/Addr]
 		$switch_ set mask_ [AddrParams set McastMask_]
@@ -105,7 +105,6 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} }
 
 		set ll [$nif set ll_]
 		$ll set bandwidth_ $bw
-		# half of delay is done at Mac, and half at LL layers
 		$ll set delay_ $delay
 
 		set mac [$nif set mac_]
@@ -113,7 +112,6 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} }
 		set macAddr [$self assign-mac $ipAddr] ;# cf LL's arp(int ip)
 		$mac set addr_ $macAddr
 		$mac set bandwidth_ $bw
-		$mac set delay_ $delay
 
 		$mac channel $channel_
 		$mac classifier $mcl_
@@ -322,12 +320,12 @@ Vlink instproc cost? {} {
 	return $cost_
 }
 
-# lanRouter--------------------------------------------------
+# LanRouter--------------------------------------------------
 #
 # "Virtual node lan" needs to know which of the lan nodes is
 # the next hop towards the packet's (maybe remote) destination.
 #------------------------------------------------------------
-lanRouter instproc init {ns lan} {
+LanRouter instproc init {ns lan} {
 	$self next
 	Simulator instvar EnableHierRt_
 	if {$EnableHierRt_} {
@@ -355,7 +353,7 @@ Simulator instproc newLan {nodelist bw delay args} {
 Simulator instproc make-lan {nodelist bw delay \
 		{llType LL} \
 		{ifqType Queue/DropTail} \
-		{macType Mac} \
+		{macType Mac/Csma/Cd} \
 		{chanType Channel}} {
 	set lan [new LanNode $self \
 			-bw $bw \
