@@ -389,6 +389,7 @@ tcl/test/test-all-cbq-v1
 tcl/test/test-all-full
 tcl/test/test-all-red
 tcl/test/test-all-red-v1
+tcl/test/test-all-sack
 tcl/test/test-all-sack-v1
 tcl/test/test-all-schedule
 tcl/test/test-all-tcp
@@ -398,6 +399,19 @@ tcl/test/test-output-red/ecn.Z
 tcl/test/test-output-red/red1.Z
 tcl/test/test-output-red/red1_bytes.Z
 tcl/test/test-output-red/red2.Z
+tcl/test/test-output-sack/sack1.Z
+tcl/test/test-output-sack/sack1a.Z   
+tcl/test/test-output-sack/sack1aa.Z   
+tcl/test/test-output-sack/sack1b.Z   
+tcl/test/test-output-sack/sack1c.Z   
+tcl/test/test-output-sack/sack1d.Z 
+tcl/test/test-output-sack/sack1z.Z   
+tcl/test/test-output-sack/sack3.Z 
+tcl/test/test-output-sack/sack5.Z   
+tcl/test/test-output-sack/sack5a.Z   
+tcl/test/test-output-sack/sackB2.Z   
+tcl/test/test-output-sack/sackB4.Z   
+tcl/test/test-output-sack/sackB4a.Z   
 tcl/test/test-output-schedule/drr.Z
 tcl/test/test-output-schedule/fifo-droptail.Z
 tcl/test/test-output-schedule/fifo-red.Z 
@@ -419,6 +433,8 @@ tcl/test/test-suite-red-v1.tcl
 tcl/test/test-suite-red-v1a.tcl
 tcl/test/test-suite-red.tcl
 tcl/test/test-suite-routed.tcl
+tcl/test/test-suite-sack.tcl
+tcl/test/test-suite-sack.tex
 tcl/test/test-suite-sack-v1.tcl
 tcl/test/test-suite-sack-v1a.tcl
 tcl/test/test-suite-sack.tcl
