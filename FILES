@@ -349,7 +349,8 @@ tcl/ex/tg.tcl
 tcl/ex/tg.txt
 tcl/ex/timer.tcl
 tcl/http/README
-tcl/http/http-ex.tcl
+tcl/http/http-ex.tc
+tcl/http/http-mod.tcl
 tcl/http/http-mult.tcl
 tcl/http/http-single.tcl
 tcl/http/http.tcl

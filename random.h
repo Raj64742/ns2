@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.13 1998/06/27 01:24:27 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.14 1998/09/21 22:56:54 polly Exp $ (LBL)
  */
 
 #ifndef ns_random_h
@@ -57,6 +57,7 @@ public:
 	static int integer(int k) { return rng()->uniform(k); }
 	static double exponential(double r) { return rng()->exponential(r); }
 	static double pareto(double scale, double shape) { return rng()->pareto(scale, shape); }
+        static double paretoII(double scale, double shape) { return rng()->paretoII(scale, shape);}
 };
 
 #endif

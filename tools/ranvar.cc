@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.11 1998/08/22 02:41:06 haoboy Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.cc,v 1.12 1998/09/21 22:56:55 polly Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -134,7 +134,32 @@ double ParetoRandomVariable::value()
 	 */
 	return(rng_->pareto(avg_ * (shape_ -1)/shape_, shape_));
 }
-	
+
+/* Pareto distribution of the second kind, aka. Lomax distribution */
+static class ParetoIIRandomVariableClass : public TclClass {
+ public:
+        ParetoIIRandomVariableClass() : TclClass("RandomVariable/ParetoII") {}
+        TclObject* create(int, const char*const*) {
+                return(new ParetoIIRandomVariable());
+        }
+} class_paretoIIranvar;
+
+ParetoIIRandomVariable::ParetoIIRandomVariable()
+{
+        bind("avg_", &avg_);
+        bind("shape_", &shape_);
+}
+
+ParetoIIRandomVariable::ParetoIIRandomVariable(double avg, double shape)
+{
+        avg_ = avg;
+        shape_ = shape;
+}
+
+double ParetoIIRandomVariable::value()
+{
+        return(rng_->paretoII(avg_ * (shape_ - 1), shape_));
+}
 
 static class ConstantRandomVariableClass : public TclClass {
  public:

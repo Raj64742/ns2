@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.9 1998/08/22 02:41:06 haoboy Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.10 1998/09/21 22:56:56 polly Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
@@ -81,6 +81,23 @@ class ParetoRandomVariable : public RandomVariable {
 	double avg_;
 	double shape_;
 	double scale_;
+};
+
+class ParetoIIRandomVariable : public RandomVariable {
+ public:
+        virtual double value();
+        ParetoIIRandomVariable();
+        ParetoIIRandomVariable(double, double);
+        double* avgp() { return &avg_; };
+        double* shapep() { return &shape_; };
+        double avg()   { return avg_; };
+        double shape()   { return shape_; };
+        void setavg(double d)  { avg_ = d; };
+        void setshape(double d)  { shape_ = d; };
+ private:
+        double avg_;
+        double shape_;
+        double scale_;
 };
 
 class ConstantRandomVariable : public RandomVariable {
