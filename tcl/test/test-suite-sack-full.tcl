@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.2 2001/07/17 19:01:46 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.3 2001/08/22 01:26:23 kfall Exp $
 #
 
 source misc_simple.tcl
@@ -59,7 +59,7 @@ TestSuite instproc finish file {
 		global TCLSH PERL
 		exec rm -f $tfile
 		exec $PERL ../../bin/getrc -b -s 2 -d 3 all.tr > $tfile
-		exec ../../bin/tcpf2xgr $TCLSH $tfile $outtype $file
+		exec ../../bin/tcpf2xgr -m $wrap1 $TCLSH $tfile $outtype $file
 		exec cp $tfile temp.rands
 		exec rm -f $tfile
                 exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
