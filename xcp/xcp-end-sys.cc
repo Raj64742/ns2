@@ -1,43 +1,28 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
- * Copyright (c) 1996-1997 The Regents of the University of California.
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
+ * Copyright (C) 2004 by USC/ISI
+ *               2002 by Dina Katabi
+ *
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- * 	This product includes software developed by the Network Research
- * 	Group at Lawrence Berkeley National Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
  */
-/*   Author: Dina Katabi 
-     Date  : Jan 2002
-*/
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.3 2004/09/29 21:48:22 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.4 2004/10/04 20:28:17 yuri Exp $";
 #endif
 
 #include <stdio.h>
@@ -89,7 +74,6 @@ public:
 		return (new XcpSink(new Acker));
 	}
 } class_xcpsink;
-
 
 XcpAgent::XcpAgent(): RenoTcpAgent(), shrink_cwnd_timer_(this)
 {
@@ -305,7 +289,7 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 
 		if (bw < 0.0)
 			bw = estimated_throughput_;
-
+		
 		/* XXX we add xcp_feedback here, because we change
 		 * snd_cnwd for every received reverse_feedback;
 		 * alternatively, we could keep an old copy of cnwd
@@ -314,13 +298,13 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 		 * without explicitly using srtt. */
 
 		if (bw != 0.0) {
-			delta_cwnd = (xh->reverse_feedback_ 
+			delta_cwnd = (xh->reverse_feedback_
 				      * double(cwnd_)
 				      / bw);
 		}
 	} else {
-		delta_cwnd = (xh->reverse_feedback_ 
-			      * srtt_estimate_ 
+		delta_cwnd = (xh->reverse_feedback_
+			      * srtt_estimate_
 			      / size_);
 // 		delta_cwnd =  xh->reverse_feedback_ * xh->rtt_ / size_;
 	}
@@ -396,7 +380,6 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 void XcpAgent::rtt_update(double tao)
 {
 #define FIX1 1 /* 1/0 : 1 for experimental XCP changes, works only with timestamps */
-#define FIX2 1 /* 1/0 : 1 for experimental XCP changes */
 	double now = Scheduler::instance().clock();
 	double sendtime = now - tao; // XXX instead, better pass send/recv times as args
 	if (ts_option_) {
@@ -418,6 +401,22 @@ void XcpAgent::rtt_update(double tao)
 		double tickoff = fmod(sendtime, tcp_tick_);
 		t_rtt_ = int((tao + tickoff) / tcp_tick_);
 	}
+	// XCP changes
+	assert(t_rtt_ >= 0);
+	if (xcp_srtt_ != 0)
+		xcp_srtt_ = XCP_UPDATE_SRTT(xcp_srtt_, t_rtt_);
+	else 
+		xcp_srtt_ = XCP_INIT_SRTT(t_rtt_);
+	if (xcp_srtt_ == 0)
+		xcp_srtt_ = 0;
+	srtt_estimate_ = double(xcp_srtt_) * tcp_tick_ / double(1 << XCP_RTT_SHIFT);
+
+	if (TRACE) {
+		printf("%d:  %g  SRTT %g, RTT %g \n", tcpId_, now, srtt_estimate_, tao);
+	}
+	// End of XCP changes
+
+	// XXX does the following check make sense?
 	if (t_rtt_ < 1)
 		t_rtt_ = 1;
 
@@ -427,11 +426,9 @@ void XcpAgent::rtt_update(double tao)
 	//
         if (t_srtt_ != 0) {
 		register short delta;
-#if FIX2
-		delta = t_rtt_ - ((t_srtt_+(1<<(T_SRTT_BITS-1))) >> T_SRTT_BITS);	// d = (m - a0)
-#else
+
 		delta = t_rtt_ - (t_srtt_ >> T_SRTT_BITS);	// d = (m - a0)
-#endif /* FIX2 */
+
 		if ((t_srtt_ += delta) <= 0)	// a1 = 7/8 a0 + 1/8 m
 			t_srtt_ = 1;
 		if (delta < 0)
@@ -443,15 +440,6 @@ void XcpAgent::rtt_update(double tao)
 		t_srtt_ = t_rtt_ << T_SRTT_BITS;		// srtt = rtt
 		t_rttvar_ = t_rtt_ << (T_RTTVAR_BITS-1);	// rttvar = rtt / 2
 	}
-
-	// XCP changes
-	srtt_estimate_ = double(t_srtt_) * tcp_tick_ / double(1<<T_SRTT_BITS);
-
-	if (TRACE) {
-		printf("%d:  %g  SRTT %g, RTT %g \n", tcpId_, now, srtt_estimate_, tao);
-	}
-	//printf("%d:  %g  SRTT %g, RTT %g \n", tcpId_, now, srtt_estimate_, rtt_estimate_);
-	// End of XCP Changes
 
 	t_rtxcur_ = (((t_rttvar_ << (rttvar_exp_ + (T_SRTT_BITS - T_RTTVAR_BITS))) +
 		      t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
@@ -480,12 +468,8 @@ void XcpAgent::trace_var(char * var_name, double var)
 		wrk[n+1] = 0;
 		(void)Tcl_Write(channel_, wrk, n+1);
 	}
-	return; 
 }
 
-
-
- 
 
 XcpSink::XcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL),
 				 lastreset_(0.0)
@@ -544,8 +528,9 @@ void XcpSink::reset()
 {
 	acker_->reset();	
 	save_ = NULL;
-	lastreset_ = Scheduler::instance().clock(); /* W.N. - for detecting */
-	/* packets from previous incarnations */
+	lastreset_ = Scheduler::instance().clock(); /* W.N. - for detecting
+						     * packets from previous 
+						     * incarnations */
 }
 
 void XcpSink::ack(Packet* opkt)
@@ -619,9 +604,8 @@ void XcpSink::recv(Packet* pkt, Handler*)
 	int numToDeliver;
 	// number of bytes in the packet just received
 	int numBytes = hdr_cmn::access(pkt)->size();
-	
-
 	hdr_tcp *th = hdr_tcp::access(pkt);
+
 	/* W.N. Check if packet is from previous incarnation */
 	if (th->ts() < lastreset_) {
 		// Remove packet and do nothing
@@ -635,7 +619,7 @@ void XcpSink::recv(Packet* pkt, Handler*)
 	// (if any) can be removed from the window and handed to the
 	// application
       	numToDeliver = acker_->update(th->seqno(), numBytes);
-	
+
 	// send any packets to the application
 	if (numToDeliver)
 		recvBytes(numToDeliver);
@@ -643,7 +627,6 @@ void XcpSink::recv(Packet* pkt, Handler*)
 	// ACK the packet
       	ack(pkt);
 	
-        // remove it from the system
+	// remove it from the system
 	Packet::free(pkt);
-
 }

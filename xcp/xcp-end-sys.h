@@ -1,37 +1,25 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
- * Copyright (c) 1996-1997 The Regents of the University of California.
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
+ * Copyright (C) 2004 by USC/ISI
+ *               2002 by Dina Katabi
+ *
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- * 	This product includes software developed by the Network Research
- * 	Group at Lawrence Berkeley National Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.3 2004/10/04 20:28:17 yuri Exp $
  */
-/*  Based on: Dina Katabi, Jan 2002 */
 
 #ifndef ns_xcp_end_sys_h
 #define ns_xcp_end_sys_h
@@ -58,9 +46,9 @@ struct hdr_xcp {
 		XCP_DISABLED = 0,
 		XCP_ENABLED,
 		XCP_ACK
-	} 	xcp_enabled_;       // to indicate that the flow is CC enabled
-	int	xcpId_;             // Sender's ID
-	double	cwnd_;              // The current window 
+	} 	xcp_enabled_;		// to indicate that the flow is XCP enabled
+	int	xcpId_;			// Sender's ID (debugging only)
+	double	cwnd_;			// The current window (debugging only) 
 	double	reverse_feedback_;
 
 	// --- Initialized by source and Updated by Router 
@@ -95,16 +83,16 @@ class XcpAgent;
   
 class cwndShrinkingTimer : public TimerHandler {
 public: 
-        cwndShrinkingTimer(XcpAgent *a) : TimerHandler() { a_ = a; }
+	cwndShrinkingTimer(XcpAgent *a) : TimerHandler() { a_ = a; }
 protected:
-        virtual void expire(Event *e);
-        XcpAgent *a_;
+	virtual void expire(Event *e);
+	XcpAgent *a_;
 };
 
 class XcpAgent : public RenoTcpAgent {
- public:
+public:
 	XcpAgent();
- protected:
+protected:
 	double time_now()  { return  Scheduler::instance().clock(); };
 	void trace_var(char * var_name, double var);
 	
@@ -112,21 +100,34 @@ class XcpAgent : public RenoTcpAgent {
 		flag_first_ack_received_ = 0.0;
 		srtt_estimate_           = 0.0;
 	}
-        virtual void delay_bind_init_all();
-        virtual int delay_bind_dispatch(const char *varName, 
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char *varName, 
 					const char *localName, 
 					TclObject *tracer);
-
+	
 	virtual void output(int seqno, int reason = 0);
 	virtual void recv_newack_helper(Packet *); 
 	virtual void opencwnd(); 
 	virtual void rtt_init(); // called in reset()
 	virtual void rtt_update(double tao);
-
+	
 	/*--------- Variables --------------*/
 	double current_positive_feedback_ ;
 	int    tcpId_;
 	double srtt_estimate_;
+	/* more bits in delta for better precision, just for SRTT */
+#define	XCP_DELTA_SHIFT		5
+#define XCP_EXPO_SHIFT		3
+#define	XCP_RTT_SHIFT		(XCP_DELTA_SHIFT + XCP_EXPO_SHIFT)	
+	/* macros for SRTT calculations */
+#define XCP_INIT_SRTT(rtt)					\
+	((rtt) << XCP_RTT_SHIFT)
+	   
+#define XCP_UPDATE_SRTT(srtt, rtt)				\
+	((srtt) + (((rtt) << XCP_DELTA_SHIFT)			\
+		   - (((srtt) + (1 << (XCP_EXPO_SHIFT - 1)))	\
+		      >> XCP_EXPO_SHIFT)))
+	long   xcp_srtt_; // srtt estimate using the above macros
 	double flag_first_ack_received_;
 
 	// these are used if xcp_metered_output_ is true
@@ -151,24 +152,23 @@ protected:
 	void ack(Packet*);
 	virtual void add_to_ack(Packet* pkt);
 
-        virtual void delay_bind_init_all();
-        virtual int delay_bind_dispatch(const char *varName, 
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char *varName, 
 					const char *localName, 
 					TclObject *tracer);
 	Acker* acker_;
 	int ts_echo_bugfix_;
-        int ts_echo_rfc1323_;   // conforms to rfc1323 for timestamps echo
-                                // Added by Andrei Gurtov
+	int ts_echo_rfc1323_;   // conforms to rfc1323 for timestamps echo
+	// Added by Andrei Gurtov
 	friend void Sacker::configure(TcpSink*);
 // 	TracedInt max_sack_blocks_;	/* used only by sack sinks */
 	Packet* save_;		/* place to stash saved packet while delaying */
 				/* used by DelAckSink */
-        int RFC2581_immediate_ack_;     // Used to generate ACKs immediately
-        int bytes_;     // for JOBS
+	int RFC2581_immediate_ack_;     // Used to generate ACKs immediately
+	int bytes_;     // for JOBS
 	// for RFC2581-compliant gap-filling.
-        double lastreset_;      /* W.N. used for detecting packets  */
-                                /* from previous incarnations */
+	double lastreset_;      /* W.N. used for detecting packets
+				 * from previous incarnations */
 };
-
 
 #endif /* ns_xcp_end_sys_h */
