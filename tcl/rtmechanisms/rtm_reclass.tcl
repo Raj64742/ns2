@@ -163,22 +163,22 @@ Topology/net2 instproc init ns {
 #
 # prints "time: $time class: $class bytes: $bytes" for the link.
 #
-TestSuite instproc linkDumpFlows { link interval stoptime } {
+TestSuite instproc linkDumpFlows { linkmon interval stoptime } {
 	$self instvar ns_ flowfile_
         set f [open $flowfile_ w]
-        TestSuite instproc dump1 { file link interval } {
-		$self instvar ns_ maxfid_
+        TestSuite instproc dump1 { file linkmon interval } {
+		$self instvar ns_ linkmon_
                 $ns_ at [expr [$ns_ now] + $interval] \
-			"$self dump1 $file $link $interval"
-                for {set i 0} {$i <= $maxfid_} {incr i 1} {
-  set bytes [$link stat $i bytes] ; # NOT IN NS2!!
-                  if {$bytes > 0} {
-                  	puts $file \
-			    "time: [$ns_ now] class: $i bytes: $bytes $interval"     
-                  }
-                }
+			"$self dump1 $file $linkmon $interval"
+		foreach flow [$linkmon flows] {
+			set bytes [$flow set bdepartures_]
+			if {$bytes > 0} {
+				puts $file \
+			    "time: [$ns_ now] class: [$flow set flowid_] bytes: $bytes $interval"     
+			}
+		}
         }
-        $ns_ at $interval "$self dump1 $f $link $interval"
+        $ns_ at $interval "$self dump1 $f $linkmon $interval"
         $ns_ at $stoptime "close $f"
 }
 
@@ -258,8 +258,7 @@ Test/one instproc run {} {
 
 	$rtm makeboxes $gfm $bfm 100 1000
 	$rtm bindboxes
-
-	set L1 [$ns_ link $node_(r1) $node_(r2)]
+	set L1 [$rtm monitor-link]
 	$self linkDumpFlows $L1 1.0 $stoptime
 
 	$self traffic1
