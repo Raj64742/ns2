@@ -17,7 +17,7 @@
 #
 # Implementation of web cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.8 1999/03/09 05:20:41 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.9 1999/05/26 01:20:32 haoboy Exp $
 
 Http/Cache instproc init args {
 	eval $self next $args
@@ -25,6 +25,16 @@ Http/Cache instproc init args {
 	$self instvar node_ stat_
 	$node_ color "yellow"	;# no page
 	array set stat_ [list hit-num 0 barrival 0 ims-num 0]
+}
+
+Http instproc set-cachesize { size } {
+	$self instvar pool_
+	$pool_ set max_size_ $size
+}
+
+Http instproc get-cachesize {} {
+	$self instvar pool_
+	return [$pool_ set max_size_]
 }
 
 # It's the user's responsibility to connect clients to caches, and caches to
@@ -215,6 +225,7 @@ Http/Cache instproc cache-hit { cl type pageid } {
 	}
 	set server [lindex [split $pageid :] 0]
 	$self evTrace E HIT p $pageid c [$cl id] s [$server id]
+
 	# XXX don't send any response here. Classify responses according
 	# to request type.
 	eval $self answer-request-$type $cl $pageid [$self get-page $pageid]

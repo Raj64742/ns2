@@ -17,7 +17,8 @@
 #
 # HTTP agents: server, client, cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.9 1999/03/09 05:20:41 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.10 1999/05/26 01:20:30 haoboy Exp $
+
 
 Http set id_ 0	;# required by TclCL
 # Type of Tcp agent. Can be SimpleTcp or FullTcp
@@ -25,6 +26,18 @@ Http set id_ 0	;# required by TclCL
 Http set TRANSPORT_ FullTcp
 Http set HB_FID_ 40
 Http set PINV_FID_ 41
+
+# XXX invalidation message size should be proportional to the number of
+# invalidations inside the message
+Http set INVSize_ 43	;# unicast invalidation
+Http set REQSize_ 43	;# Request
+Http set REFSize_ 50	;# Refetch request
+Http set IMSSize_ 50	;# If-Modified-Since
+Http set JOINSize_ 10	;# Server join/leave
+Http set HBSize_ 1	;# Used by Http/Server/Inval only
+Http set PFSize_ 1	;# Pro forma
+Http set NTFSize_ 10	;# Request Notification
+Http set MPUSize_ 10	;# Mandatory push request
 
 Http/Server set id_ 0
 Http/Server/Inval set id_ 0
@@ -52,17 +65,42 @@ PagePool/CompMath set num_pages_ 1
 PagePool/CompMath set main_size_ 1024
 PagePool/CompMath set comp_size_ 10240
 
+# Transport protocol used for multimedia connections
+Http set MEDIA_TRANSPORT_ RAP
+# Application-level handler for multimedia connections. 
+# Currently there are two available:
+# - MediaApp: simply extract data from packets and pass it to cache
+# - QA: do quality adaptation
+Http set MEDIA_APP_ MediaApp
+# 1K per multimedia segment
+Application/MediaApp set segmentSize_ 1024
+Application/MediaApp set MAX_LAYER_ 10
+# Constants related to quality adaptation
+Application/MediaApp/QA set LAYERBW_ 2500 ;# Byte per-second
+Application/MediaApp/QA set MAXACTIVELAYERS_ 10
+Application/MediaApp/QA set SRTTWEIGHT_ 0.95
+Application/MediaApp/QA set SMOOTHFACTOR_ 4
+Application/MediaApp/QA set MAXBKOFF_ 100
+Application/MediaApp/QA set debug_output_ 0
+# Prefetching lookahead SRTT 200ms
+Application/MediaApp/QA set pref_srtt_ 0.6
+# 100M buffer size at cache/server/client
+PagePool/Client/Media set max_size_ 104857600 
+
+
 Http instproc init { ns node } {
 	$self next
-	$self instvar ns_ node_ id_
+	$self instvar ns_ node_ id_ pool_
 	set ns_ $ns
 	set node_ $node
 	$self set id_ [$node_ id]
-	$self create-pagepool
+	set pool_ [$self create-pagepool]
 }
 
 Http instproc create-pagepool {} {
-	$self set-pagepool [new PagePool/Client]
+	set pool [new PagePool/Client]
+	$self set-pagepool $pool
+	return $pool
 }
 
 Http instproc addr {} {
@@ -76,18 +114,6 @@ Http instproc getfid {} {
 	set fid_ [Http set fid_]
 	Http set fid_ [incr fid_]
 }
-
-# XXX invalidation message size should be proportional to the number of
-# invalidations inside the message
-Http set INVSize_ 43	;# unicast invalidation
-Http set REQSize_ 43	;# Request
-Http set REFSize_ 50	;# Refetch request
-Http set IMSSize_ 50	;# If-Modified-Since
-Http set JOINSize_ 10	;# Server join/leave
-Http set HBSize_ 1	;# Used by Http/Server/Inval only
-Http set PFSize_ 1	;# Pro forma
-Http set NTFSize_ 10	;# Request Notification
-Http set MPUSize_ 10	;# Mandatory push request
 
 Http instproc get-mpusize {} {
 	return [Http set MPUSize_]
@@ -335,7 +361,7 @@ Http/Client instproc gen-request {} {
 	# rvInterPage_ should only be set when PagePool/ProxyTrace is 
 	# *NOT* used
 	if [info exists rvInterPage_] {
-		return [list [$rvInterPage_ value] [$pgtr_ gen-pageid]]
+		return [list [$rvInterPage_ value] [$pgtr_ gen-pageid $id_]]
 	} else {
 		return [$pgtr_ gen-request $id_]
 	}
@@ -358,6 +384,11 @@ Http/Client instproc next-request { server pageid } {
 		set nextreq_([$server id]) [$ns_ at [expr [$ns_ now] + $itvl] \
 			"$self next-request $server $pageid"]
 	} ;# otherwise it's the end of the request stream 
+}
+
+Http/Client instproc set-cache { cache } {
+	$self instvar cache_
+	set cache_ $cache
 }
 
 # Assuming everything is setup, this function starts sending requests

@@ -17,7 +17,7 @@
 #
 # Implementation of an HTTP server
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.9 1999/03/09 05:20:42 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.10 1999/05/26 01:20:34 haoboy Exp $
 
 
 #
@@ -28,7 +28,13 @@
 # modification time. That's the job of web servers.
 PagePool instproc gen-page { pageid thismod } {
 	set size [$self gen-size $pageid]
-	set age [expr [$self gen-modtime $pageid $thismod] - $thismod]
+	# If $thismod == -1, we set age to -1, which means this page
+	# never changes
+	if {$thismod >= 0} {
+		set age [expr [$self gen-modtime $pageid $thismod] - $thismod]
+	} else {
+		set age -1
+	}
 	return "size $size age $age modtime $thismod"
 }
 
@@ -143,6 +149,7 @@ Http/Server instproc gen-pageinfo { pageid } {
 
 	set id [lindex [split $pageid :] end]
 
+	# XXX If a page never changes, set modtime to -1 here!!
 	set modtime [$self gen-init-modtime $id]
 	if [info exists pgtr_] {
 		set pginfo [$pgtr_ gen-page $id $modtime]
@@ -151,7 +158,9 @@ Http/Server instproc gen-pageinfo { pageid } {
 	}
 	array set data $pginfo
 	set age $data(age)
-	$self schedule-nextmod [expr [$ns_ now] + $age] $pageid
+	if {$modtime >= 0} {
+		$self schedule-nextmod [expr [$ns_ now] + $age] $pageid
+	}
 	$self evTrace S MOD p $pageid m [$ns_ now] n [expr [$ns_ now] + $age]
 
 	$self instvar modtimes_ modseq_

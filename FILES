@@ -1344,6 +1344,7 @@ tcl/test/webtrace-pglog
 tcl/test/webtrace-reqlog
 tcl/webcache/http-agent.tcl
 tcl/webcache/http-cache.tcl
+tcl/webcache/http-mcache.tcl
 tcl/webcache/http-server.tcl
 tclAppInit.cc
 tcp-abs.cc
@@ -1407,6 +1408,8 @@ webcache/http.cc
 webcache/http.h
 webcache/inval-agent.cc
 webcache/inval-agent.h
+webcache/mcache.cc
+webcache/mcache.h
 webcache/pagepool.cc
 webcache/pagepool.h
 webcache/tcp-simple.cc

@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.12 1999/03/13 03:53:21 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.13 1999/05/26 01:20:12 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -34,6 +34,7 @@
 #include "http-aux.h"
 #include "trace.h"
 #include "tcpapp.h"
+#include "mcache.h"
 
 //----------------------------------------------------------------------
 // Http Application
@@ -126,6 +127,13 @@ int HttpApp::command(int argc, const char*const* argv)
 				tcl.resultf("%d", id_);
 			} else
 				tcl.resultf("%d", id_);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "log") == 0) {
+			// Return the name of the log channel
+			if (log_ != NULL)
+				tcl.resultf("%s", Tcl_GetChannelName(log_));
+			else
+				tcl.result("");
 			return TCL_OK;
 		}
 	} else if (argc == 3) {
@@ -229,7 +237,47 @@ int HttpApp::command(int argc, const char*const* argv)
 				(HttpApp *)TclObject::lookup(argv[2]);
 			delete_cnc(client);
 			return TCL_OK;
-		} 
+		} else if (strcmp(argv[1], "get-pagetype") == 0) {
+			/*
+			 * <http> get-pagetype <pageid>
+			 * return the page type
+			 */
+			ClientPage *pg = 
+				(ClientPage*)pool_->get_page(argv[2]);
+			if (pg == NULL) {
+				tcl.resultf("%d get-pagetype: No page %s", 
+					    id_, argv[2]);
+				return TCL_ERROR;
+			}
+			switch (pg->type()) {
+			case HTML:
+				tcl.result("HTML");
+				break;
+			case MEDIA:
+				tcl.result("MEDIA");
+				break;
+			default:
+				fprintf(stderr, "Unknown page type %d", 
+					pg->type());
+				return TCL_ERROR;
+			}
+			return TCL_OK;
+		} else if (strcmp(argv[1], "get-layer") == 0) {
+			// Assume the page is a MediaPage
+			MediaPage *pg = (MediaPage *)pool_->get_page(argv[2]);
+			if (pg == NULL) {
+				tcl.resultf("%d get-layer: No page %s", 
+					    id_, argv[2]);
+				return TCL_ERROR;
+			}
+			if (pg->type() != MEDIA) {
+				tcl.resultf("%d get-layer %s not a media page",
+					    id_, argv[2]);
+				return TCL_ERROR;
+			}
+			tcl.resultf("%d", pg->num_layer());
+			return TCL_OK;
+		}
 	} else if (argc == 4) {
 		if (strcmp(argv[1], "connect") == 0) {
 			/*
@@ -284,13 +332,12 @@ int HttpApp::command(int argc, const char*const* argv)
 				// Tolerate it
 				return TCL_OK;
 			}
-			char *buf = new char[strlen(argv[4])+1];
-			strcpy(buf, argv[4]);
+			char *buf = strdup(argv[4]);
 			HttpNormalData *d = 
 				new HttpNormalData(id_, bytes, buf);
 			cnc->send(bytes, d);
 			delete d;
-			delete []buf;
+			free(buf);
 			return TCL_OK;
 		
 		} else if (strcmp(argv[1], "enter-page") == 0) {
@@ -324,7 +371,7 @@ int HttpApp::command(int argc, const char*const* argv)
 
 void HttpApp::log(const char* fmt, ...)
 {
-	char buf[1024], *p;
+	char buf[10240], *p;
 	sprintf(buf, "%.17g i %d ", Scheduler::instance().clock(), id_);
 	p = &(buf[strlen(buf)]);
 	va_list ap;

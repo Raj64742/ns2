@@ -17,7 +17,7 @@
 //
 // Definition of the HTTP agent
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.9 1999/03/14 21:09:41 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.10 1999/05/26 01:20:13 haoboy Exp $
 
 #ifndef ns_http_h
 #define ns_http_h

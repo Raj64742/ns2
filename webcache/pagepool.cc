@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.11 1999/03/09 05:20:45 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.12 1999/05/26 01:20:19 haoboy Exp $
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -67,6 +67,11 @@ ClientPage::ClientPage(const char *n, int s, double mt, double et, double a) :
 	tmp = strtok(NULL, ":");
 	id_ = atol(tmp);
 	delete []buf;
+}
+
+void ClientPage::print_name(char* name, PageID& id)
+{
+	sprintf(name, "%s:%-d", id.s_->name(), id.id_);
 }
 
 void ClientPage::split_name(const char* name, PageID& id)
@@ -282,20 +287,7 @@ int TracePagePool::command(int argc, const char *const* argv)
 	Tcl &tcl = Tcl::instance();
 
 	if (argc == 2) {
-		if (strcmp(argv[1], "gen-pageid") == 0) {
-			/* 
-			 * <pgpool> gen-pageid
-			 * Randomly generate a page id from page pool
-			 */
-			double tmp = ranvar_ ? ranvar_->value() : 
-				Random::uniform();
-			// tmp should be in [0, num_pages_-1]
-			tmp = (tmp < 0) ? 0 : (tmp >= num_pages_) ? 
-				(num_pages_-1):tmp;
-			if ((int)tmp >= num_pages_) abort();
-			tcl.resultf("%d", (int)tmp);
-			return TCL_OK;
-		} else 	if (strcmp(argv[1], "get-poolsize") == 0) {
+		if (strcmp(argv[1], "get-poolsize") == 0) {
 			/* 
 			 * <pgpool> get-poolsize
 			 * Get the number of pages currently in pool
@@ -310,7 +302,20 @@ int TracePagePool::command(int argc, const char *const* argv)
 			return TCL_OK;
 		}
 	} else if (argc == 3) {
-		if (strcmp(argv[1], "gen-size") == 0) {
+		if (strcmp(argv[1], "gen-pageid") == 0) {
+			/* 
+			 * <pgpool> gen-pageid <client_id>
+			 * Randomly generate a page id from page pool
+			 */
+			double tmp = ranvar_ ? ranvar_->value() : 
+				Random::uniform();
+			// tmp should be in [0, num_pages_-1]
+			tmp = (tmp < 0) ? 0 : (tmp >= num_pages_) ? 
+				(num_pages_-1):tmp;
+			if ((int)tmp >= num_pages_) abort();
+			tcl.resultf("%d", (int)tmp);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "gen-size") == 0) {
 			/*
 			 * <pgpool> gen-size <pageid>
 			 */
@@ -388,11 +393,7 @@ int MathPagePool::command(int argc, const char *const* argv)
 
 	// Keep the same tcl interface as PagePool/Trace
 	if (argc == 2) {
-		if (strcmp(argv[1], "gen-pageid") == 0) {
-			// Single page
-			tcl.result("0");
-			return TCL_OK;
-		} else if (strcmp(argv[1], "get-poolsize") == 0) { 
+		if (strcmp(argv[1], "get-poolsize") == 0) { 
 			tcl.result("1");
 			return TCL_OK;
 		} else if (strcmp(argv[1], "get-start-time") == 0) {
@@ -403,7 +404,11 @@ int MathPagePool::command(int argc, const char *const* argv)
 			return TCL_OK;
 		}
 	} else if (argc == 3) {
-		if (strcmp(argv[1], "gen-size") == 0) {
+		if (strcmp(argv[1], "gen-pageid") == 0) {
+			// Single page
+			tcl.result("0");
+			return TCL_OK;
+		} else if (strcmp(argv[1], "gen-size") == 0) {
 			if (rvSize_ == 0) {
 				tcl.add_errorf("%s: no page size generator", 
 					       name_);
@@ -496,11 +501,7 @@ int CompMathPagePool::command(int argc, const char *const* argv)
 
 	// Keep the same tcl interface as PagePool/Trace
 	if (argc == 2) {
-		if (strcmp(argv[1], "gen-pageid") == 0) {
-			// Main pageid, never return id of component pages
-			tcl.result("0");
-			return TCL_OK;
-		} else if (strcmp(argv[1], "get-poolsize") == 0) { 
+		if (strcmp(argv[1], "get-poolsize") == 0) { 
 			tcl.result("1");
 			return TCL_OK;
 		} else if (strcmp(argv[1], "get-start-time") == 0) {
@@ -512,7 +513,11 @@ int CompMathPagePool::command(int argc, const char *const* argv)
 		}
 
 	} else if (argc == 3) {
-		if (strcmp(argv[1], "gen-size") == 0) {
+		if (strcmp(argv[1], "gen-pageid") == 0) {
+			// Main pageid, never return id of component pages
+			tcl.result("0");
+			return TCL_OK;
+		} else if (strcmp(argv[1], "gen-size") == 0) {
 			int id = atoi(argv[2]);
 			if (id == 0) 
 				tcl.resultf("%d", main_size_);
@@ -640,6 +645,36 @@ ClientPagePool::~ClientPagePool()
 	}
 }
 
+// In case client/cache/server needs details, e.g., page listing
+int ClientPagePool::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 2) {
+		if (strcmp(argv[1], "list-pages") == 0) {
+			Tcl_HashEntry *he;
+			Tcl_HashSearch hs;
+			char *buf = new char[num_pages_*20];
+			char *p = buf;
+			for (he = Tcl_FirstHashEntry(namemap_, &hs); 
+			     he != NULL;
+			     he = Tcl_NextHashEntry(&hs)) {
+				int* t2 = (int*)Tcl_GetHashKey(namemap_, he);
+				PageID t1(t2);
+#ifdef NEED_SUNOS_PROTOS
+				sprintf(p, "%s:%-d ", t1.s_->name(),t1.id_);
+				p += strlen(p);
+#else
+				p += sprintf(p,"%s:%-d ",t1.s_->name(),t1.id_);
+#endif
+			}
+			tcl.resultf("%s", buf);
+			delete []buf;
+			return TCL_OK;
+		}
+	}
+	return PagePool::command(argc, argv);
+}
+
 ClientPage* ClientPagePool::get_page(const char *name)
 {
 	PageID t1;
@@ -678,8 +713,8 @@ ClientPage* ClientPagePool::enter_page(int argc, const char*const* argv)
 				// non-cacheable flag
 			noc = 1;
 	}
-	// XXX allow mod time < 0
-	if ((size < 0) || (age < 0)) {
+	// XXX allow mod time < 0 and age < 0!!
+	if (size < 0) {
 		fprintf(stderr, "PagePool %s: wrong information for page %s\n",
 			name_, argv[2]);
 		return NULL;
@@ -745,9 +780,13 @@ int ClientPagePool::add_page(ClientPage* pg)
 						&newEntry);
 	if (he == NULL)
 		return -1;
-	if (newEntry)
+
+	// XXX If cache replacement algorithm is added, should change 
+	// cache size here!!
+	if (newEntry) {
 		Tcl_SetHashValue(he, (ClientData)pg);
- 	else {
+		num_pages_++;
+ 	} else {
 		// Replace the old one
 		ClientPage *q = (ClientPage *)Tcl_GetHashValue(he);
 		// XXX must copy the counter value
@@ -757,8 +796,6 @@ int ClientPagePool::add_page(ClientPage* pg)
 			pg->set_mpush(q->mpush_time());
 		Tcl_SetHashValue(he, (ClientData)pg);
 		delete q;
- 		//fprintf(stderr, "ClientPagePool: Replaced entry %s\n", 
- 		//	pg->name());
 	}
 	return 0;
 }
@@ -778,6 +815,9 @@ int ClientPagePool::remove_page(const char *name)
 	ClientPage *pg = (ClientPage *)Tcl_GetHashValue(he);
 	Tcl_DeleteHashEntry(he);
 	delete pg;
+	num_pages_--;
+	// XXX If cache replacement algorithm is added, should change
+	// cache size here!!
 	return 0;
 }
 

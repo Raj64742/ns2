@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.9 1999/03/09 05:20:49 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.10 1999/05/26 01:20:26 haoboy Exp $
 //
 // Tcp application: transmitting real application data
 // 
@@ -175,8 +175,8 @@ void TcpApp::recv(int size)
 	}
 	curbytes_ += size;
 #ifdef TCPAPP_DEBUG
-	fprintf(stderr, "[%g] Get data size %d, %s\n", 
-		Scheduler::instance().clock(), curbytes_, 
+	fprintf(stderr, "[%g] %s gets data size %d, %s\n", 
+		Scheduler::instance().clock(), name(), curbytes_, 
 		curdata_->data());
 #endif
 	if (curbytes_ == curdata_->bytes()) {
@@ -194,8 +194,10 @@ void TcpApp::recv(int size)
 			process_data(curdata_->size(), curdata_->data());
 			curbytes_ -= curdata_->bytes();
 #ifdef TCPAPP_DEBUG
-			fprintf(stderr, "[%g] Get data size %d(left %d) %s\n", 
+			fprintf(stderr, 
+				"[%g] %s gets data size %d(left %d) %s\n", 
 				Scheduler::instance().clock(), 
+				name(),
 				curdata_->bytes(), curbytes_, 
 				curdata_->data());
 #endif
@@ -206,12 +208,21 @@ void TcpApp::recv(int size)
 			if ((curdata_ == 0) && (curbytes_ > 0)) {
 				fprintf(stderr, "[%g] %s gets extra data!\n",
 					Scheduler::instance().clock(), name_);
+				// XXX Remove this before commit!!!
+				Tcl::instance().eval("[Test instance] flush-trace");
 				abort();
 			} else
 				// Get out of the look without doing a check
 				break;
 		}
 	}
+// 	else if (curbytes_ < curdata_->bytes()) {
+// 		fprintf(stderr, "[%g] %s gets less data than expected!!\n",
+// 			Scheduler::instance().clock(), name_);
+// 		// XXX Remove this before commit!!!
+// 		Tcl::instance().eval("[Test instance] flush-trace");
+// 		abort();
+// 	}
 }
 
 void TcpApp::resume()

@@ -17,7 +17,7 @@
 //
 // Definitions for class PagePool
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.9 1999/03/09 05:20:46 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.10 1999/05/26 01:20:20 haoboy Exp $
 
 #ifndef ns_pagepool_h
 #define ns_pagepool_h
@@ -85,6 +85,11 @@ const int HTTP_PAGE_ACTION_MASK = 0xFF00; // Page action bit mask
 const int HTTP_MANDATORY_PUSH	= 0x1000; // If the page is mandatory pushed
 
 struct PageID {
+	PageID() : s_(NULL), id_(0) {}
+	PageID(int* t) {
+		s_ = (HttpApp*)t[0];
+		id_ = t[1];
+	}
 	HttpApp* s_;
 	int id_;
 };
@@ -194,6 +199,7 @@ public:
 
 	// Used to split page names into page identifiers
 	static void split_name(const char* name, PageID& id);
+	static void print_name(char* name, PageID& id);
 
 protected:
 	void set_page_state(int state) {
@@ -309,6 +315,8 @@ public:
 	int get_etime(const char *name, double &et);
 	int set_etime(const char *name, double et);
 	int get_pageinfo(const char *name, char *buf);
+
+	virtual int command(int argc, const char*const* argv);
 
 protected:
 
