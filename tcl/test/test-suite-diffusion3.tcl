@@ -30,6 +30,11 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 
+if {![TclObject is-class Agent/DiffusionRouting]} {
+	puts "Diffusion3 module is not present; validation skipped"
+	exit 2
+}
+
 # ======================================================================
 # Define options
 # ======================================================================

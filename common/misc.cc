@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.13 2002/05/31 23:11:30 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.14 2002/06/04 23:25:19 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -173,11 +173,12 @@ public:
 
 class HasSTLCommand : public TclCommand {
 public:
-	HasSTLCommand() : TclCommand("ns-hasSTL") { }
-	virtual int command(int, const char*const*);
+	HasSTLCommand() : TclCommand("ns-hasSTL") {}
+	virtual int command(int argc, const char*const* argv);
 };
 
-int HasSTLCommand::command(int argc, const char*const* argv) {
+int HasSTLCommand::command(int argc, const char*const* argv) 
+{
 	Tcl& tcl = Tcl::instance();
 	char res[2];
 	int flag = 0;

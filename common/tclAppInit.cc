@@ -170,9 +170,10 @@ Tcl_AppInit(Tcl_Interp *interp)
 
 	Tcl_SetVar(interp, "tcl_rcFileName", "~/.ns.tcl", TCL_GLOBAL_ONLY);
 	Tcl::init(interp, "ns");
+	init_misc();
         et_ns_ptypes.load();
 	et_ns_lib.load();
-	init_misc();
+
 
 #ifdef TCL_TEST
 	if (Tcltest_Init(interp) == TCL_ERROR) {

@@ -27,6 +27,8 @@ Agent/TCP set rfc2988_ false
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 
+
+
 Simulator instproc progress { } {
     global progress_interval
     puts [format "Progress to %6.1f seconds" [$self now]]
@@ -119,6 +121,12 @@ TestSuite instproc init {} {
 
 
 Test/NixVec instproc init {} {
+
+# check if nixvector module is disabled
+    if {![TclObject is-class RtModule/Nix]} {
+	puts "Nixvector module is not present; validation skipped"
+	exit 2
+    }
     $self instvar ns
     set ns [new Simulator]
     $ns set-nix-routing

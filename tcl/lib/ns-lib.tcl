@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.246 2002/05/31 23:11:31 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.247 2002/06/04 23:25:19 haldar Exp $
 
 
 #
@@ -210,11 +210,13 @@ source ns-pushback.tcl
 
 # STL dependent modules get included
 # ONLY when STL is found
-#if {[ns-hasSTL] == 1} {
-#	source ns-nix.tcl
-#	source ../pgm/ns-pgm.tcl
-#	source ../rtglib/ns-rtProtoLS.tcl
-#}
+set NSPATH "/nfs/ruby/haldar/conser/ns-2.test3"
+
+if {[ns-hasSTL] == 1} {
+	source "$NSPATH/tcl/lib/ns-nix.tcl"
+	source "$NSPATH/tcl/pgm/ns-pgm.tcl"
+	source "$NSPATH/tcl/rtglib/ns-rtProtoLS.tcl"
+}
 
 # Obsolete modules
 #source ns-wireless-mip.tcl
@@ -229,7 +231,7 @@ Simulator instproc init args {
 	$self instvar nconn_
 	$self instvar sflows_
 	$self instvar nsflows_
-
+		
 	set slinks_(0:0) 0
 	set nconn_ 0
 	set conn_ ""

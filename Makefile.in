@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.250 2002/05/31 23:11:29 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.251 2002/06/04 23:25:17 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -127,10 +127,7 @@ OBJ_STL = diffusion3/lib/nr/nr.o diffusion3/lib/dr.o \
 	diffusion3/apps/gear/geo-routing.o \
 	diffusion3/apps/gear/geo-tools.o 
 
-NS_TCL_LIB_STL = tcl/lib/ns-diffusion.tcl \
-	tcl/lib/ns-nix.tcl \
-	tcl/pgm/ns-pgm.tcl\
-	tcl/rtglib/ns-rtProtoLS.tcl
+NS_TCL_LIB_STL = tcl/lib/ns-diffusion.tcl 
 
 
 
