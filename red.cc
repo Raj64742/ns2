@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.18 1997/07/22 01:47:20 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.19 1997/07/22 08:30:26 padmanab Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -297,6 +297,18 @@ int REDQueue::drop_early(Packet* pkt)
 }
 
 /*
+ * Pick packet to drop. Having a separate function do this is convenient for
+ * supporting derived classes that use the standard RED algorithm to compute
+ * average queue size but use a (slightly) different algorithm for choosing
+ * the victim.
+ */
+Packet*
+REDQueue::pickPacketToDrop() {
+	int victim = drop_tail_ ? q()->length() - 1 : Random::integer(q()->length());
+	return(q()->lookup(victim));
+}
+
+/*
  * Receive a new packet arriving at the queue.
  * The average queue size is computed.  If the average size
  * exceeds the threshold, then the dropping probability is computed,
@@ -377,6 +389,7 @@ void REDQueue::enque(Packet* pkt)
 
 	enque(q(), pkt);
 	bcount_ += ch->size();
+	qlen = qib_ ? bcount_ : q()->length();
 
 	if (qlen > qlim) {
 		droptype = DTYPE_FORCED;
@@ -387,12 +400,7 @@ void REDQueue::enque(Packet* pkt)
 
 dropv:
 	/* drop random victim or last one */
-	{
-		int victim = drop_tail_ ?
-			q()->length() - 1 :
-			Random::integer(q()->length());
-		pkt = q()->lookup(victim);
-	}
+	pkt = pickPacketToDrop();
 	remove(q(), pkt);
 	bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
 dropme:
@@ -400,7 +408,6 @@ dropme:
 		de_drop_->recv(pkt);
 		return;
 	}
-
 	drop(pkt);
 	return;
 }

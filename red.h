@@ -52,7 +52,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.4 1997/07/07 04:15:57 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.5 1997/07/22 08:30:27 padmanab Exp $ (LBL)
  */
 
 #include <math.h>
@@ -118,6 +118,7 @@ class REDQueue : public Queue {
  protected:
 	int command(int argc, const char*const* argv);
 	void enque(Packet* pkt);
+	virtual Packet *pickPacketToDrop();
 	Packet* deque();
 	void reset();
 	void run_estimator(int nqueued, int m);
