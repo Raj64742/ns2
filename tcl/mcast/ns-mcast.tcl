@@ -32,16 +32,21 @@ MultiSim instproc init args {
 
 Simulator instproc run-mcast {} {
         $self instvar Node_
-        #puts "run mcast... "
         foreach n [array names Node_] {
                 set node $Node_($n)
-#               if { [$node info class] == "Node" } {
                         $node init-outLink
-                        #puts "Node $n init-outLink done"
                         $node start-mcast
-#               }
         }
         $self next
+}
+
+Simulator instproc clear-mcast {} {
+        $self instvar Node_
+        #puts "Clearing mcast"
+        foreach n [array names Node] {
+                set node $Node_($n)
+                $node stop-mcast
+        }
 }
 
 Simulator instproc upstream-node { id src } {
@@ -136,6 +141,28 @@ Node proc expandaddr {} {
 	# number of nodes that can be used
 	Simulator set McastShift_ 30
 	Simulator set McastAddr_ [expr 1 << 30]
+	McastProtoArbiter expandaddr
+}
+
+Node instproc stop-mcast {} {
+        $self instvar mcastproto_
+        $self clear-caches
+        $mcastproto_ stop
+}
+
+Node instproc clear-caches {} {
+        $self instvar Agents_ repByGroup_ multiclassifier_ replicator_
+        $multiclassifier_ clearAll
+        if [info exists repByGroup_] {
+                unset repByGroup_
+        }
+        if [info exists Agents_] {
+                unset Agents_
+        }
+        if [info exists replicator_] {
+                unset replicator_
+        }
+        # XXX watch out for memory leaks
 }
 
 Node instproc start-mcast {} {
@@ -166,30 +193,23 @@ Node instproc get-oifs {} {
 }
 
 Node instproc get-oif { link } {
-        $self instvar id_
         set oif ""
-        # check if this is a dummy link
-         if { [$link info class] == "DummyLink" } {
-                # then this is part of a LAN
-                set container [$link getContainingObject]
-                if { [$container info class] == "NonReflectingMultiLink" } {
-                        lappend oif [[lindex [$container set nodes_] 0] id]
-                        lappend oif [$container getReplicator $id_]
-                }
-        } else {
-                lappend oif [[$link set toNode_] id]
-                lappend oif [$link head]
-        }
+        # XXX assume we are connected to interfaces
+        lappend oif [[$link set ifacein_] set intf_label_]
+        lappend oif [$link set ifacein_]
         return $oif
 }
 
 Node instproc get-oifIndex { node_id } {
         $self instvar ns_ id_
-        set link [$ns_ set link_($id_:$node_id)]
-        if { [$link info class] == "DummyLink" } {
-                return [[lindex [[$link getContainingObject] set nodes_] 0] id]
-        }
-        return [[$link set toNode_] id]
+        # XXX assume link head is iface, for simplicity
+        set link [$ns set link_($id_:$node_id)]
+        return [[$link set ifacein_] set intf_label_]
+}
+
+Node instproc label2iface { label } {
+        $self instvar outLink_
+        return $outLink_($label)
 }
 
 Node instproc RPF-interface { src from to } {
@@ -272,21 +292,11 @@ Node instproc join-group { agent group } {
     lappend Agents_($group) $agent
     if [info exists repByGroup_($group)] {
 	#
-	# there are active replicators on this group
-	# see if any are idle, and if so send a graft
-	# up the RPF tree for the respective S,G
-	#
-	foreach r $repByGroup_($group) {
-	    if ![$r exists $agent] {
-		$r insert $agent
-	    }
-	}
-	#
 	# make sure agent is enabled in each replicator
 	# for this group
 	#
 	foreach r $repByGroup_($group) {
-	    $r enable $agent
+	    $r insert $agent
 	}
     }
 }
@@ -296,12 +306,10 @@ Node instproc leave-group { agent group } {
     set group [expr $group]
     $self instvar repByGroup_ Agents_ mcastproto_
 
-    if ![info exists repByGroup_($group)] {
-	return 0
-    }
-    #XXX info exists 
-    foreach r $repByGroup_($group) {
-	$r disable $agent
+    if [info exists repByGroup_($group)] {
+	    foreach r $repByGroup_($group) {
+		$r disable $agent
+	    }
     }
     set k [lsearch -exact $Agents_($group) $agent]
     if { $k >= 0 } {
@@ -314,21 +322,40 @@ Node instproc leave-group { agent group } {
     
 }
 
+Node instproc join-group-source { agent group source } {
+        set group [expr $group]
+        set source [expr $source]
+
+       $self instvar id_
+
+        $self instvar Agents_ mcastproto_ replicator_
+        ## send a message for the mcastproto agent to inform the mcast protocols
+        $mcastproto_ join-group-source $group $source
+        lappend Agents_($source:$group) $agent
+        if [info exists replicator_($source:$group)] {
+                $replicator_($source:$group) insert $agent
+        }
+}
+
+Node instproc leave-group-source { agent group source } {
+        set group [expr $group]
+        set source [expr $source]
+        $self instvar replicator_ Agents_ mcastproto_
+        if [info exists replicator_($source:$group)] {
+                $replicator_($source:$group) disable $agent
+        }
+        $mcastproto leave-group-source $group $source
+}
+
 Node instproc new-group { src group iface code } {
     $self instvar mcastproto_
 	
-    # node addr is in upper 24 bits
-    # set srcID [expr $src >> 8]
-
-    # puts "node $self id [$self id] upcall [list $code $src $group $iface]"
     $mcastproto_ upcall [list $code $src $group $iface]
 }
 
 Node instproc add-mfc { src group iif oiflist } {
     $self instvar multiclassifier_ \
 	    replicator_ Agents_ repByGroup_ 
-
-    #XXX node addr is in upper 24 bits
 
     if [info exists replicator_($src:$group)] {
 	foreach oif $oiflist {
@@ -356,18 +383,29 @@ Node instproc add-mfc { src group iif oiflist } {
 	    $r insert $a
 	}
     }
-    
+    # we also need to check Agents($srcID:$group)
+    if [info exists Agents_($src:$group)] {
+            foreach a $Agents_($src:$group) {
+                    $r insert $a
+            }
+    }
     #
-    # Install the replicator.  We do this only once and leave
-    # it forever.  Since prunes are data driven, we want to
-    # leave the replicator in place even when it's empty since
-    # the replicator::drop callback triggers the prune.
+    # Install the replicator.  
     #
-    # puts "mcast classifier been added $src $group $iif $r"
     $multiclassifier_ add-rep $r $src $group $iif
 }
 
-
+Node instproc del-mfc { srcID group oiflist } {
+        $self instvar replicator_ multiclassifier_
+        if [info exists replicator_($srcID:$group)] {
+                set r $replicator_($srcID:$group)  
+                foreach oif $oiflist {
+                        $r disable $oif
+                }
+                return 1
+        } 
+        return 0
+}
 
 ####################
 Class Classifier/Multicast/Replicator -superclass Classifier/Multicast
@@ -430,7 +468,6 @@ Classifier/Replicator/Demuxer instproc insert target {
                 if !$active_($target) {    
                         $self install $index_($target) $target
                         incr nactive_
-		        # puts "$self $nactive_ (+1)"
                         set active_($target) 1
                         set ignore 0
                         return 1
@@ -471,10 +508,6 @@ Classifier/Replicator/Demuxer instproc exists target {
 }
 
 Classifier/Replicator/Demuxer instproc drop { src dst } {
-	#
-	# No downstream listeners
-	# Send a prune back toward the source
-	#
 	set src [expr $src >> 8]
 	$self instvar node_
         if [info exists node_] {
@@ -484,10 +517,6 @@ Classifier/Replicator/Demuxer instproc drop { src dst } {
 }
 
 Classifier/Replicator/Demuxer instproc change-iface { src dst oldiface newiface} {
-	#
-	# No downstream listeners
-	# Send a prune back toward the source
-	#
 	$self instvar node_
         [$node_ set multiclassifier_] change-iface $src $dst $oldiface $newiface
         return 1
