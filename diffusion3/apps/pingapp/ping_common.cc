@@ -1,9 +1,9 @@
 //
-// ping.hh        : Ping Include File
+// ping_common.cc : Ping App Common File
 // author         : Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping.hh,v 1.2 2002/03/20 22:49:39 haldar Exp $
+// Copyright (C) 2000-2002 by the Unversity of Southern California
+// $Id: ping_common.cc,v 1.1 2002/05/06 23:04:07 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,18 +20,8 @@
 //
 //
 
-#include "diffapp.hh"
+#include "ping.hh"
 
-#define COUNTER_KEY 3601
-#define TIME_KEY    3602
-
-extern NRSimpleAttributeFactory<char *> TargetAttr;
-extern NRSimpleAttributeFactory<int> AppCounterAttr;
-extern NRSimpleAttributeFactory<void *> TimeAttr;
-
-class EventTime {
-public:
-  long seconds;
-  long useconds;
-};
-
+NRSimpleAttributeFactory<char *> TargetAttr(NRAttribute::TARGET_KEY, NRAttribute::STRING_TYPE);
+NRSimpleAttributeFactory<int> AppCounterAttr(COUNTER_KEY, NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<void *> TimeAttr(TIME_KEY, NRAttribute::BLOB_TYPE);

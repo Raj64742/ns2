@@ -2,8 +2,8 @@
 // ping_receiver.hh : Ping Receiver Include File
 // author           : Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping_receiver.hh,v 1.2 2002/03/20 22:49:39 haldar Exp $
+// Copyright (C) 2000-2002 by the Unversity of Southern California
+// $Id: ping_receiver.hh,v 1.1 2002/05/06 23:04:07 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,9 +20,16 @@
 //
 //
 
+#ifndef _PING_RECEIVER_HH_
+#define _PING_RECEIVER_HH_
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif // HAVE_CONFIG_H
+
 #include "ping.hh"
 
-class MyReceiverReceive;
+class PingReceiverReceive;
 
 class PingReceiverApp : public DiffApp {
 public:
@@ -38,23 +45,23 @@ public:
 
 private:
   // NR Specific variables
-  MyReceiverReceive *mr;
-  handle subHandle;
-  handle pubHandle;
+  PingReceiverReceive *mr_;
+  handle subHandle_;
 
   // Ping App variables
-  int last_seq_recv;
-  int num_msg_recv;
-  int first_msg_recv;
+  int last_seq_recv_;
+  int num_msg_recv_;
+  int first_msg_recv_;
 
   handle setupSubscription();
-  handle setupPublication();
 };
 
-class MyReceiverReceive : public NR::Callback {
+class PingReceiverReceive : public NR::Callback {
 public:
-  PingReceiverApp *app;
-
-  MyReceiverReceive(PingReceiverApp *_app) : app(_app) {};
+  PingReceiverReceive(PingReceiverApp *app) : app_(app) {};
   void recv(NRAttrVec *data, NR::handle my_handle);
+
+  PingReceiverApp *app_;
 };
+
+#endif // !_PING_RECEIVER_HH_

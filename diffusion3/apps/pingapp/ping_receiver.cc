@@ -2,8 +2,8 @@
 // ping_receiver.cc : Ping Receiver Main File
 // author           : Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping_receiver.cc,v 1.4 2002/03/21 19:30:54 haldar Exp $
+// Copyright (C) 2000-2002 by the Unversity of Southern California
+// $Id: ping_receiver.cc,v 1.1 2002/05/06 23:04:07 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -32,7 +32,6 @@ public:
 } class_ping_receiver;
 
 int PingReceiverApp::command(int argc, const char*const* argv) {
-  
   if (argc == 2) {
     if (strcmp(argv[1], "subscribe") == 0) {
       run();
@@ -44,9 +43,9 @@ int PingReceiverApp::command(int argc, const char*const* argv) {
 
 #endif // NS_DIFFUSION
 
-void MyReceiverReceive::recv(NRAttrVec *data, NR::handle my_handle)
+void PingReceiverReceive::recv(NRAttrVec *data, NR::handle my_handle)
 {
-  app->recv(data, my_handle);
+  app_->recv(data, my_handle);
 }
 
 void PingReceiverApp::recv(NRAttrVec *data, NR::handle my_handle)
@@ -59,14 +58,13 @@ void PingReceiverApp::recv(NRAttrVec *data, NR::handle my_handle)
   float total_delay;
   struct timeval tmv;
 
-  getTime(&tmv);
+  GetTime(&tmv);
 
   counterAttr = AppCounterAttr.find(data);
   timeAttr = TimeAttr.find(data);
 
   if (!counterAttr || !timeAttr){
-    diffPrint(DEBUG_ALWAYS, "Received a BAD packet !\n");
-    fflush(NULL);
+    DiffPrint(DEBUG_ALWAYS, "Received a BAD packet !\n");
     PrintAttrs(data);
     return;
   }
@@ -76,53 +74,49 @@ void PingReceiverApp::recv(NRAttrVec *data, NR::handle my_handle)
   delay_seconds = tmv.tv_sec;
   delay_useconds = tmv.tv_usec;
 
-  if ((delay_seconds < probe_event->seconds) ||
-      ((delay_seconds == probe_event->seconds) &&
-       (delay_useconds < probe_event->useconds))){
+  if ((delay_seconds < probe_event->seconds_) ||
+      ((delay_seconds == probe_event->seconds_) &&
+       (delay_useconds < probe_event->useconds_))){
     // Time's not synchronized
     delay_seconds = -1;
     delay_useconds = 0;
-    diffPrint(DEBUG_ALWAYS, "Error calculating delay !\n");
-    fflush(NULL);
+    DiffPrint(DEBUG_ALWAYS, "Error calculating delay !\n");
   }
   else{
-    delay_seconds = delay_seconds - probe_event->seconds;
-    if (delay_useconds < probe_event->useconds){
+    delay_seconds = delay_seconds - probe_event->seconds_;
+    if (delay_useconds < probe_event->useconds_){
       delay_seconds--;
       delay_useconds = delay_useconds + 1000000;
     }
-    delay_useconds = delay_useconds - probe_event->useconds;
+    delay_useconds = delay_useconds - probe_event->useconds_;
   }
   total_delay = (float) (1.0 * delay_seconds) + ((float) delay_useconds / 1000000.0);
 
   // Check if this is the first message received
-  if (first_msg_recv < 0){
-    first_msg_recv = counterAttr->getVal();
+  if (first_msg_recv_ < 0){
+    first_msg_recv_ = counterAttr->getVal();
   }
 
   // Print output message
-  if (last_seq_recv >= 0){
-    if (counterAttr->getVal() < last_seq_recv){
+  if (last_seq_recv_ >= 0){
+    if (counterAttr->getVal() < last_seq_recv_){
       // Multiple sources detected, disabling statistics
-      last_seq_recv = -1;
-      diffPrint(DEBUG_ALWAYS, "Received data %d, total latency = %f!\n",
+      last_seq_recv_ = -1;
+      DiffPrint(DEBUG_ALWAYS, "Received data %d, total latency = %f!\n",
 		counterAttr->getVal(), total_delay);
-      fflush(NULL);
     }
     else{
-      last_seq_recv = counterAttr->getVal();
-      num_msg_recv++;
-      diffPrint(DEBUG_ALWAYS, "Received data: %d, total latency = %f, %% messages received: %f !\n",
-		last_seq_recv, total_delay,
-		(float) ((num_msg_recv * 100.00) /
-			 ((last_seq_recv - first_msg_recv) + 1)));
-      fflush(NULL);
+      last_seq_recv_ = counterAttr->getVal();
+      num_msg_recv_++;
+      DiffPrint(DEBUG_ALWAYS, "Received data: %d, total latency = %f, %% messages received: %f !\n",
+		last_seq_recv_, total_delay,
+		(float) ((num_msg_recv_ * 100.00) /
+			 ((last_seq_recv_ - first_msg_recv_) + 1)));
     }
   }
   else{
-    diffPrint(DEBUG_ALWAYS, "Received data %d, total latency = %f !\n",
+    DiffPrint(DEBUG_ALWAYS, "Received data %d, total latency = %f !\n",
 	      counterAttr->getVal(), total_delay);
-    fflush(NULL);
   }
 }
 
@@ -135,7 +129,7 @@ handle PingReceiverApp::setupSubscription()
   attrs.push_back(LongitudeAttr.make(NRAttribute::LE, 87.32));
   attrs.push_back(TargetAttr.make(NRAttribute::IS, "F117A"));
 
-  handle h = dr->subscribe(&attrs, mr);
+  handle h = dr_->subscribe(&attrs, mr_);
 
   ClearAttrs(&attrs);
 
@@ -144,7 +138,7 @@ handle PingReceiverApp::setupSubscription()
 
 void PingReceiverApp::run()
 {
-  subHandle = setupSubscription();
+  subHandle_ = setupSubscription();
 
 #ifndef NS_DIFFUSION
   // Do nothing
@@ -160,15 +154,15 @@ PingReceiverApp::PingReceiverApp()
 PingReceiverApp::PingReceiverApp(int argc, char **argv)
 #endif // NS_DIFFUSION
 {
-  last_seq_recv = 0;
-  num_msg_recv = 0;
-  first_msg_recv = -1;
+  last_seq_recv_ = 0;
+  num_msg_recv_ = 0;
+  first_msg_recv_ = -1;
 
-  mr = new MyReceiverReceive(this);
+  mr_ = new PingReceiverReceive(this);
 
 #ifndef NS_DIFFUSION
-  ParseCommandLine(argc, argv);
-  dr = NR::createNR(diffusion_port);
+  parseCommandLine(argc, argv);
+  dr_ = NR::createNR(diffusion_port_);
 #endif // !NS_DIFFUSION
 }
 

@@ -2,8 +2,8 @@
 // ping_sender.cc : Ping Server Main File
 // author         : Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping_sender.cc,v 1.3 2002/03/21 19:30:54 haldar Exp $
+// Copyright (C) 2000-2002 by the Unversity of Southern California
+// $Id: ping_sender.cc,v 1.1 2002/05/06 23:04:07 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -32,7 +32,7 @@ public:
   }
 } class_ping_sender;
 
-void sendDataTimer::expire(Event *e) {
+void PingSendDataTimer::expire(Event *e) {
   a_->send();
 }
 
@@ -42,24 +42,23 @@ void PingSenderApp::send()
   int retval;
 
   // Update time in the packet
-  getTime(&tmv);
-  lastEventTime->seconds = tmv.tv_sec;
-  lastEventTime->useconds = tmv.tv_usec;
+  GetTime(&tmv);
+  lastEventTime_->seconds_ = tmv.tv_sec;
+  lastEventTime_->useconds_ = tmv.tv_usec;
 
   // Send data probe
-  diffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent);
-  retval = dr->send(pubHandle, &data_attr);
+  DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
+  retval = dr_->send(pubHandle_, &data_attr_);
 
   // Update counter
-  last_seq_sent++;
-  counterAttr->setVal(last_seq_sent);
+  last_seq_sent_++;
+  counterAttr_->setVal(last_seq_sent_);
 
   // re-schedule the timer 
-  sdt.resched(SEND_DATA_INTERVAL);
+  sdt_.resched(SEND_DATA_INTERVAL);
 }
 
 int PingSenderApp::command(int argc, const char*const* argv) {
-
   if (argc == 2) {
     if (strcmp(argv[1], "publish") == 0) {
       run();
@@ -70,9 +69,9 @@ int PingSenderApp::command(int argc, const char*const* argv) {
 }
 #endif // NS_DIFFUSION
 
-void MySenderReceive::recv(NRAttrVec *data, NR::handle my_handle)
+void PingSenderReceive::recv(NRAttrVec *data, NR::handle my_handle)
 {
-  app->recv(data, my_handle);
+  app_->recv(data, my_handle);
 }
 
 void PingSenderApp::recv(NRAttrVec *data, NR::handle my_handle)
@@ -82,7 +81,7 @@ void PingSenderApp::recv(NRAttrVec *data, NR::handle my_handle)
   nrclass = NRClassAttr.find(data);
 
   if (!nrclass){
-    diffPrint(DEBUG_ALWAYS, "Received a BAD packet !\n");
+    DiffPrint(DEBUG_ALWAYS, "Received a BAD packet !\n");
     return;
   }
 
@@ -90,17 +89,17 @@ void PingSenderApp::recv(NRAttrVec *data, NR::handle my_handle)
 
   case NRAttribute::INTEREST_CLASS:
 
-    diffPrint(DEBUG_ALWAYS, "Received an Interest message !\n");
+    DiffPrint(DEBUG_ALWAYS, "Received an Interest message !\n");
     break;
 
   case NRAttribute::DISINTEREST_CLASS:
 
-    diffPrint(DEBUG_ALWAYS, "Received a Disinterest message !\n");
+    DiffPrint(DEBUG_ALWAYS, "Received a Disinterest message !\n");
     break;
 
   default:
 
-    diffPrint(DEBUG_ALWAYS, "Received an unknown message (%d)!\n", nrclass->getVal());
+    DiffPrint(DEBUG_ALWAYS, "Received an unknown message (%d)!\n", nrclass->getVal());
     break;
 
   }
@@ -116,7 +115,7 @@ handle PingSenderApp::setupSubscription()
   attrs.push_back(LatitudeAttr.make(NRAttribute::IS, 60.00));
   attrs.push_back(LongitudeAttr.make(NRAttribute::IS, 54.00));
 
-  handle h = dr->subscribe(&attrs, mr);
+  handle h = dr_->subscribe(&attrs, mr_);
 
   ClearAttrs(&attrs);
 
@@ -132,7 +131,7 @@ handle PingSenderApp::setupPublication()
   attrs.push_back(LongitudeAttr.make(NRAttribute::IS, 54.00));
   attrs.push_back(TargetAttr.make(NRAttribute::IS, "F117A"));
 
-  handle h = dr->publish(&attrs);
+  handle h = dr_->publish(&attrs);
 
   ClearAttrs(&attrs);
 
@@ -142,30 +141,35 @@ handle PingSenderApp::setupPublication()
 void PingSenderApp::run()
 {
   struct timeval tmv;
+#ifndef NS_DIFFUSION
+  int retval;
+#endif // !NS_DIFFUSION
+
 #ifdef INTERACTIVE
+  char input;
   fd_set FDS;
 #endif // INTERATIVE
 
   // Setup publication and subscription
-  subHandle = setupSubscription();
-  pubHandle = setupPublication();
+  subHandle_ = setupSubscription();
+  pubHandle_ = setupPublication();
 
   // Create time attribute
-  getTime(&tmv);
-  lastEventTime = new EventTime;
-  lastEventTime->seconds = tmv.tv_sec;
-  lastEventTime->useconds = tmv.tv_usec;
-  timeAttr = TimeAttr.make(NRAttribute::IS, (void *) &lastEventTime,
-			   sizeof(EventTime));
-  data_attr.push_back(timeAttr);
+  GetTime(&tmv);
+  lastEventTime_ = new EventTime;
+  lastEventTime_->seconds_ = tmv.tv_sec;
+  lastEventTime_->useconds_ = tmv.tv_usec;
+  timeAttr_ = TimeAttr.make(NRAttribute::IS, (void *) &lastEventTime_,
+			    sizeof(EventTime));
+  data_attr_.push_back(timeAttr_);
 
   // Change pointer to point to attribute's payload
-  delete lastEventTime;
-  lastEventTime = (EventTime *) timeAttr->getVal();
+  delete lastEventTime_;
+  lastEventTime_ = (EventTime *) timeAttr_->getVal();
 
   // Create counter attribute
-  counterAttr = AppCounterAttr.make(NRAttribute::IS, last_seq_sent);
-  data_attr.push_back(counterAttr);
+  counterAttr_ = AppCounterAttr.make(NRAttribute::IS, last_seq_sent_);
+  data_attr_.push_back(counterAttr_);
 
 #ifndef NS_DIFFUSION
   // Main thread will send ping probes
@@ -176,26 +180,22 @@ void PingSenderApp::run()
     fflush(NULL);
     select(1, &FDS, NULL, NULL, NULL);
     input = getc(stdin);
-    if (input == 'c'){
-      dr->unsubscribe(subHandle);
-      exit(0);
-    }
 #else
     sleep(5);
 #endif // INTERACTIVE
 
     // Update time in the packet
-    getTime(&tmv);
-    lastEventTime->seconds = tmv.tv_sec;
-    lastEventTime->useconds = tmv.tv_usec;
+    GetTime(&tmv);
+    lastEventTime_->seconds_ = tmv.tv_sec;
+    lastEventTime_->useconds_ = tmv.tv_usec;
 
     // Send data probe
-    diffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent);
-    retval = dr->send(pubHandle, &data_attr);
+    DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
+    retval = dr_->send(pubHandle_, &data_attr_);
 
     // Update counter
-    last_seq_sent++;
-    counterAttr->setVal(last_seq_sent);
+    last_seq_sent_++;
+    counterAttr_->setVal(last_seq_sent_);
   }
 #else
   send();
@@ -203,19 +203,18 @@ void PingSenderApp::run()
 }
 
 #ifdef NS_DIFFUSION
-PingSenderApp::PingSenderApp() : sdt(this)
+PingSenderApp::PingSenderApp() : sdt_(this)
 #else
 PingSenderApp::PingSenderApp(int argc, char **argv)
 #endif // NS_DIFFUSION
 {
-  last_seq_sent = 0;
+  last_seq_sent_ = 0;
 
-  mr = new MySenderReceive;
-  mr->app = this;
+  mr_ = new PingSenderReceive(this);
 
 #ifndef NS_DIFFUSION
-  ParseCommandLine(argc, argv);
-  dr = NR::createNR(diffusion_port);
+  parseCommandLine(argc, argv);
+  dr_ = NR::createNR(diffusion_port_);
 #endif // NS_DIFFUSION
 }
 

@@ -2,8 +2,8 @@
 // ping_sender.hh : Ping Sender Include File
 // author         : Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping_sender.hh,v 1.3 2002/03/20 22:49:39 haldar Exp $
+// Copyright (C) 2000-2002 by the Unversity of Southern California
+// $Id: ping_sender.hh,v 1.1 2002/05/06 23:04:07 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,17 +20,24 @@
 //
 //
 
+#ifndef _PING_SENDER_HH_
+#define _PING_SENDER_HH_
+
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif // HAVE_CONFIG_H
+
 #include "ping.hh"
 
-class MySenderReceive;
+class PingSenderReceive;
 class PingSenderApp;
 
 #ifdef NS_DIFFUSION
 #define SEND_DATA_INTERVAL 5
 
-class sendDataTimer : public TimerHandler {
+class PingSendDataTimer : public TimerHandler {
   public:
-  sendDataTimer(PingSenderApp *a) : TimerHandler() { a_ = a; }
+  PingSendDataTimer(PingSenderApp *a) : TimerHandler() { a_ = a; }
   void expire(Event *e);
 protected:
   PingSenderApp *a_;
@@ -47,32 +54,40 @@ public:
   PingSenderApp(int argc, char **argv);
 #endif // NS_DIFFUSION
 
+  virtual ~PingSenderApp()
+  {
+    // Nothing to do
+  };
+
   void run();
   void recv(NRAttrVec *data, NR::handle my_handle);
 
 private:
   // NR Specific variables
-  MySenderReceive *mr;
-  handle subHandle;
-  handle pubHandle;
+  PingSenderReceive *mr_;
+  handle subHandle_;
+  handle pubHandle_;
 
   // Ping App variables
-  int last_seq_sent;
-  NRAttrVec data_attr;
-  NRSimpleAttribute<void *> *timeAttr;
-  NRSimpleAttribute<int> *counterAttr;
-  EventTime *lastEventTime;
+  int last_seq_sent_;
+  NRAttrVec data_attr_;
+  NRSimpleAttribute<void *> *timeAttr_;
+  NRSimpleAttribute<int> *counterAttr_;
+  EventTime *lastEventTime_;
 
   handle setupSubscription();
   handle setupPublication();
 #ifdef NS_DIFFUSION
-  sendDataTimer sdt;
+  PingSendDataTimer sdt_;
 #endif // NS_DIFFUSION
 };
 
-class MySenderReceive : public NR::Callback {
+class PingSenderReceive : public NR::Callback {
 public:
-  PingSenderApp *app;
-
+  PingSenderReceive(PingSenderApp *app) : app_(app) {};
   void recv(NRAttrVec *data, NR::handle my_handle);
+
+  PingSenderApp *app_;
 };
+
+#endif // !_PING_SENDER_HH_
