@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satnode.cc,v 1.4 1999/10/26 17:35:09 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satnode.cc,v 1.5 1999/10/27 01:19:17 tomh Exp $";
 #endif
 
 #include "satnode.h"
@@ -147,7 +147,6 @@ int SatNode::command(int argc, const char*const* argv) {
 // on demand from OTcl.
 void SatNode::dumpSats()
 {
-        int i, j, size;
 	SatNode *snodep, *peer_snodep;
 	SatPosition *sposp, *peer_sposp;
 	SatLinkHead *slhp;

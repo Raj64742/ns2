@@ -83,7 +83,7 @@ public:
 
 protected: 
 	// Define "command" appropriately if you want OTcl access to this class
-        int command(int argc, const char*const* argv) {}
+        int command(int argc, const char*const* argv) { return 0; }
 };
 
 #endif // __ns_sat_geometry_h__
