@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.5 2000/01/15 19:30:15 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.6 2000/01/19 00:22:18 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -49,6 +49,8 @@
 #
 # Much more extensive test scripts are available in tcl/test
 # This script is a simplified version of tcl/test/test-suite-routed.tcl
+
+# ns-random 0
 
 Class TestSuite
 
@@ -1055,6 +1057,44 @@ Test/timers instproc run {} {
 
 	# Trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ run
+}
+
+# Many small TCP flows.
+Class Test/manyflows -superclass TestSuite
+Test/manyflows instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0
+	set test_	manyflows
+	$self next
+}
+Test/manyflows instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	# Set up TCP connections
+
+	set rng_ [new RNG]
+	## $rng_ seed [ns random 0]
+	set stoptime 5
+	set randomflows 10
+	for {set i 0} {$i < $randomflows} {incr i} {
+	    set tcp [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
+	    set ftp [[set tcp] attach-app FTP]    
+	    set numpkts [$rng_ uniform 0 10]
+	    set starttime [$rng_ uniform 0 $stoptime]
+	    $ns_ at $starttime "[set ftp] produce $numpkts" 
+	    $ns_ at $stoptime "[set ftp] stop"  
+	}   
+
+	# Trace only the bottleneck link
+	#
+	# Actually, we now trace all activity at the node around the
+	# bottleneck link.  This allows us to track acks, as well
+	# packets taking any alternate paths around the bottleneck
+	# link.
+	#
+	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 	$ns_ run
 }
 
