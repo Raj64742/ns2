@@ -17,5 +17,5 @@ awk '{print $2, $1}' t > Dist.sum.$run.data
 #
 set total=4910
 csh Dist.com Dist.sum.$run.data $run $total
-cp Dist.$run.ps ~/paper/red/penalty/figures
+##cp Dist.$run.ps ~/paper/red/penalty/figures
 
