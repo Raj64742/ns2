@@ -31,17 +31,23 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.39 2001/07/11 21:24:25 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.40 2001/07/17 18:00:45 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
 #define ns_tcp_full_h
 
 #include "tcp.h"
+#include "rq.h"
 
 /*
- * these defines are directly from tcp_var.h in "real" TCP
- * they are used in the 'tcp_flags_' member variable
+ * these defines are directly from tcp_var.h or tcp_fsm.h
+ * in "real" TCP
+ */
+
+
+/*
+ * these are used in 'tcp_flags_' member variable
  */
 
 #define TF_ACKNOW       0x0001          /* ack peer immediately */
@@ -55,10 +61,14 @@
 /* these are simulator-specific */
 #define	TF_NEEDCLOSE	0x10000		/* perform close on empty */
 
+/*
+ * these are used in state_ member variable
+ */
+
 #define TCPS_CLOSED             0       /* closed */
 #define TCPS_LISTEN             1       /* listening for connection */
 #define TCPS_SYN_SENT           2       /* active, have sent syn */
-#define TCPS_SYN_RECEIVED       3       /* have send and received syn */
+#define TCPS_SYN_RECEIVED       3       /* have sent and received syn */
 #define TCPS_ESTABLISHED        4       /* established */
 #define TCPS_CLOSE_WAIT		5	/* rcvd fin, waiting for app close */
 #define TCPS_FIN_WAIT_1         6       /* have closed, sent fin */
@@ -67,6 +77,7 @@
 #define TCPS_FIN_WAIT_2         9       /* have closed, fin is acked */
 
 #define TCPS_HAVERCVDFIN(s) ((s) == TCPS_CLOSING || (s) == TCPS_CLOSED || (s) == TCPS_CLOSE_WAIT)
+#define	TCPS_HAVERCVDSYN(s) ((s) >= TCPS_SYN_RECEIVED)
 
 #define TCPIP_BASE_PKTSIZE      40      /* base TCP/IP header in real life */
 /* these are used to mark packets as to why we xmitted them */
@@ -97,34 +108,6 @@ public:
 protected:
 	virtual void expire(Event *);
 	FullTcpAgent *a_;
-};
-
-class ReassemblyQueue : public TclObject {
-	struct seginfo {
-		seginfo* next_;	// forw link
-		seginfo* prev_;	// back link
-		int startseq_;	// starting seq
-		int endseq_;	// ending seq + 1
-		int flags_;
-		double time_;	// time added
-	};
-
-public:
-	ReassemblyQueue(int& rcvnxt);
-	int empty() { return (head_ == NULL); }
-	int add(Packet*);
-	int add(int sseq, int eseq, int flags);
-	int gensack(int *sacks, int maxsblock);
-	int nextblk(int *sacks);
-	void sync();
-	void clear();
-	void dumplist();	// for debugging
-
-protected:
-	seginfo* head_;		// head of segs linked list
-	seginfo* tail_;		// end of segs linked list
-	seginfo* ptr_;		// used for nextblk() iterator
-	int& rcv_nxt_;		// start seq of next expected thing
 };
 
 class FullTcpAgent : public TcpAgent {
@@ -166,6 +149,7 @@ class FullTcpAgent : public TcpAgent {
 	int dupack_reset_;  // zero dupacks on dataful dup acks?
 	int halfclose_;	    // allow simplex closes?
 	int nopredict_;	    // disable header predication
+	int dsack_;	    // do DSACK as well as SACK?
 	double delack_interval_;
 
 	int headersize();   // a tcp header w/opts
@@ -199,6 +183,7 @@ class FullTcpAgent : public TcpAgent {
 	void dooptions(Packet*);	// process option(s)
 	DelAckTimer delack_timer_;	// other timers in tcp.h
 	void cancel_timers();		// cancel all timers
+	int reass(Packet*);		// reassemble: pass to ReassemblyQueue
 
 	/*
 	* the following are part of a tcpcb in "real" RFC793 TCP
