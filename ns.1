@@ -1000,19 +1000,25 @@ flow consists of packets having the same node and port ids.
 
 .SH "RED OBJECTS"
 RED objects are a subclass of Queue objects that implement
-random early-drop queuing.  There are no methods
-that are specific to RED objects.
+random early-detection gateways.  The object can be configured
+to either drop or ``mark'' packets.
+There are no methods that are specific to RED objects.
 .LP
 .HD
 Configuration Parameters \fP
 .RS
 .IP \fIbytes_\fP
-Set to "1" to measure the queue in bytes rather than in packets.
+Set to "true" to enable ``byte-mode'' RED, where the size of arriving
+packets affect the likelihood of marking (dropping) packets.
 .IP \fIqueue-in-bytes_\fP
+Set to "true" to measure the average queue size in bytes rather than
+packets.
+Enabling this option also causes \fIthresh_\fP and \fImaxthresh_\fP to
+be automatically scaled by \fImean_pktsize_\fP (see below).
 .IP \fIthresh_\fP
-The minimum threshold for the average queue size.
+The minimum threshold for the average queue size in packets.
 .IP \fImaxthresh_\fP
-The maximum threshold for the average queue size.
+The maximum threshold for the average queue size in packets.
 .IP \fImean_pktsize_\fP
 A rough estimate of the average packet size in bytes.  Used in updating
 the calculated average queue size after an idle period.
@@ -1022,19 +1028,15 @@ calculating the average queue size.
 .IP \fIwait_\fP
 Set to true to maintain an interval between dropped packets.
 .IP \fIlinterm_\fP
-As the average queue size varies between "thresh" and "maxthresh",
+As the average queue size varies between "thresh_" and "maxthresh_",
 the packet dropping probability varies between 0 and "1/linterm".
 .IP \fIsetbit_\fP
-Set to true to set the congestion indication bit in packet headers 
+Set to "true" to mark packets by setting
+the congestion indication bit in packet headers 
 rather than drop packets.
 .IP \fIdrop-tail_\fP
 Set to true to use drop-tail rather than random-drop when the queue
-overflows.
-.IP \fIdoubleq_\fP
-Set to true to give priority to small packets.  The default is false.
-.IP \fIdqthresh_\fP
-The largest size in bytes of a "small" packet.  This is only used if
-"doubleq" is set to true.
+overflows or the average queue size exceeds "maxthresh_".
 For a further explanation of these variables, see [2].
 .LP
 .HD
@@ -1052,53 +1054,76 @@ Insert traffic class
 into the link-sharing structure associated with link object 
 .I cbq.
 .IP "\fB$cbq bind $cbqclass $id1 [$id2]\fP"
-Bind class ID
+Cause packets containing flow id
 .I $id1
-or a range if
+(or those in the range
+.I $id1
+to
 .I $id2
-is also specified
-to the traffic class
-.I class
-associated with link object
-.I cbq.
+inclusive)
+to be associated with the traffic class
+.I $cbqclass.
+.IP "\fB$cbq algorithm $alg"
+Select the CBQ internal algorithm.
+.I $alg
+may be set to one of: "ancestor-only", "top-level", or "formal".
 .LP
 .HD
-Configuration Parameters \fP
-.RS
-.IP \fIalgorithm_\fP
-Set to "0" for Ancestor-Only link-sharing, to "1" for Top-Level
-link-sharing, to "2" for Formal link-sharing.
-.IP \fImaxpkt_\fP
-Used in implementing weighted round-robin.
 
 .SH "CBQ/WRR OBJECTS"
 CBQ/WRR objects are a subclass of CBQ objects that implement
 weighted round-robin scheduling among classes of the same
 priority level.  In contrast, CBQ objects implement packet-by-packet
 round-robin scheduling among classes of the same priority level.
+.HD
+Configuration Parameters \fP
+.RS
+.IP \fImaxpkt_\fP
+The maximum size of a packet in bytes.
+This is used only by CBQ/WRR objects in
+computing maximum bandwidth allocations
+for the weighted round-robin scheduler.
 
 .SH "CBQCLASS OBJECTS"
 CBQClass objects implement the traffic classes associated with CBQ objects. 
-.IP "\fB$cbqclass setparams \fIparent okborrow allot maxidle prio
-level xdelay\fP"
-.IP "\fB$cbqclass install-queue q\fP"
+.IP "\fB$cbqclass setparams \fIparent okborrow allot maxidle prio level extradelay\fP"
+Sets several of the configuration parameters for the CBQ traffic class (see below).
+.IP "\fB$cbqclass parent [$cbqcl|none]"
+specify the parent of this class in the link-sharing tree.
+The parent may be specified as ``none'' to indicate this class is a root.
+.IP "\fB$cbqclass newallot $a"
+Change the link allocation of this class to the specified amount (in range
+0.0 to 1.0).
+Note that only the specified class is affected.
+.IP "\fB$cbqclass install-queue $q\fP"
+Install a Queue object into the compound CBQ or CBQ/WRR link structure.
+When a CBQ object is initially created, it includes no internal
+queue (only a packet classifier and scheduler).
 .LP
 .HD
 Configuration Parameters \fP
 .RS 
-.IP \fIpriority_\fP
-The class's priority level for packet scheduling.  Priority-0 classes
-have the highest priority.
-.IP \fImaxidle_\fP
-Used in calculating the bandwidth used by the class.
-.IP \fIextradelay_\fP
-Used in delaying an overlimit class.
-.IP \fIlevel_\fP
-???
-.IP \fIdef_qtype_\fP
-.IP \fIokborrow_\fP
-For a further explanation of the CBQ variables, see [5] and [6].
-
+.IP \fBokborrow_\fP
+is a boolean indicating the class is permitted to borrow bandwidth
+from its parent.
+.IP \fBallot_\fP
+is the maximum fraction of link bandwidth allocated to the class
+expressed as a real number between 0.0 and 1.0.
+.IP \fBmaxidle_\fP
+is the maximum amount of time a class may be required to have its
+packets queued before they are permitted to be forwarded
+.IP \fBpriority_\fP
+is the class' priority level with respect to other classes.
+This value may range from 0 to 10, and more than one class
+may exist at the same priority.
+Priority 0 is the highest priority.
+.IP \fBlevel_\fP
+is the level of this class in the link-sharing tree.
+Leaf nodes in the tree are considered to be at level 1;
+their parents are at level 2, etc.
+.IP \fBextradelay_\fP
+increase the delay experienced by a delayed class by the specified
+time
 
 .SH "QUEUEMONITOR Objects"
 QueueMonitor Objects are used to monitor
