@@ -8,7 +8,7 @@
 
 #include "object.h"
 #include "trace.h"
-#include "list.h"
+#include "lib/bsd-list.h"
 #include "phy.h"
 #include "topography.h"
 #include "arp.h"

@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.5 2000/04/12 17:09:19 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.6 2000/08/17 00:03:39 haoboy Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -39,7 +39,7 @@
 #include "random.h"
 #include "timer-handler.h"
 
-#include "list.h"
+#include "lib/bsd-list.h"
 #include "node.h"
 #include "tcp.h"
 #include "tcp-sink.h"

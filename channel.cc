@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.34 1999/12/11 01:54:22 heideman Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.35 2000/08/17 00:03:38 haoboy Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -49,7 +49,7 @@ static const char rcsid[] =
 #include "packet.h"
 #include "mac.h"
 #include "channel.h"
-#include "list.h"
+#include "lib/bsd-list.h"
 #include "phy.h"
 #include "wireless-phy.h"
 #include "mobilenode.h"

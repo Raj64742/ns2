@@ -31,11 +31,13 @@
  * SUCH DAMAGE.
  *
  *	@(#)queue.h	8.5 (Berkeley) 8/20/94
- * $Id: list.h,v 1.2 1999/03/13 03:52:49 haoboy Exp $
+ * $Id: bsd-list.h,v 1.1 2000/08/17 00:04:21 haoboy Exp $
  */
 
-#ifndef _NS_LIST_H_
-#define	_NS_LIST_H_
+#ifndef _NS_BSD_LIST_H_
+#define	_NS_BSD_LIST_H_
+
+// Copied from sys/queue.h in FreeBSD
 
 /*
  * This file defines five types of data structures: singly-linked lists,
@@ -137,4 +139,4 @@ struct {								\
 	*(elm)->field.le_prev = (elm)->field.le_next;			\
 }
 
-#endif /* !_NS_LIST_H_ */
+#endif /* !_NS_BSD_LIST_H_ */

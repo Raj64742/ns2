@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/phy.h,v 1.6 1999/06/21 18:14:02 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/phy.h,v 1.7 2000/08/17 00:03:38 haoboy Exp $
  *
  * superclass for all network interfaces
  
@@ -52,7 +52,7 @@
 
 #include <assert.h>
 #include "bi-connector.h"
-#include "list.h"
+#include "lib/bsd-list.h"
 
 class Phy;
 LIST_HEAD(if_head, Phy);

@@ -35,13 +35,13 @@
 
 /* -*- c++ -*-
    rexmit_queue.cc
-   $Id: rxmit_queue.cc,v 1.2 1999/08/12 21:17:29 yaxu Exp $
+   $Id: rxmit_queue.cc,v 1.3 2000/08/17 00:03:38 haoboy Exp $
    */
 
 #include <assert.h>
 
 #include <packet.h>
-#include <list.h>
+#include "lib/bsd-list.h"
 
 #include <imep/rxmit_queue.h>
 

@@ -50,9 +50,9 @@ redistribute these changes without encumbrance.
 #include <assert.h>
 #include <sys/types.h>
 
-#include <config.h>
-#include <list.h>
-#include <scheduler.h>
+#include "config.h"
+#include "lib/bsd-list.h"
+#include "scheduler.h"
 
 #define CURRENT_TIME    Scheduler::instance().clock()
 #define INFINITY2        0xff

@@ -35,7 +35,7 @@
 
 /* -*- c++ -*-
    imep.h
-   $Id: imep.h,v 1.3 1999/08/12 21:17:14 yaxu Exp $
+   $Id: imep.h,v 1.4 2000/08/17 00:03:38 haoboy Exp $
    */
 
 #ifndef __imep_h__
@@ -49,7 +49,7 @@
 #include <drop-tail.h>
 #include <trace.h>
 
-#include <list.h>
+#include "lib/bsd-list.h"
 #include <rtproto/rtproto.h>
 #include <imep/rxmit_queue.h>
 #include <imep/dest_queue.h>

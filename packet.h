@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.75 2000/07/27 01:29:16 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.76 2000/08/17 00:03:38 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -43,7 +43,7 @@
 #include "config.h"
 #include "scheduler.h"
 #include "object.h"
-#include "list.h"
+#include "lib/bsd-list.h"
 #include "packet-stamp.h"
 #include "ns-process.h"
 #include "dsr/hdr_sr.h"

@@ -50,7 +50,8 @@ redistribute these changes without encumbrance.
 #define __aodv_h__
 
 #include <sys/types.h>
-#include <list.h>
+
+#include "lib/bsd-list.h"
 
 #include <agent.h>
 #include <packet.h>

@@ -45,7 +45,7 @@
 #include <queue.h>
 #include <drop-tail.h>
 #include <packet.h>
-#include <list.h>
+#include "lib/bsd-list.h"
 
 class PriQueue;
 typedef int (*PacketFilter)(Packet *, void *);

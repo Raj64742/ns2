@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.20 2000/08/16 23:06:01 intanago Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.21 2000/08/17 00:03:38 haoboy Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -52,7 +52,7 @@
 #include "connector.h"
 #include "object.h"
 #include "phy.h"
-#include "list.h"
+#include "lib/bsd-list.h"
 #include "net-interface.h"
 #include "energy-model.h"
 #include "location.h"

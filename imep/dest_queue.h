@@ -35,14 +35,14 @@
 
 /* -*- c++ -*-
    rexmit_queue.h
-   $Id: dest_queue.h,v 1.2 1999/08/12 21:17:12 yaxu Exp $
+   $Id: dest_queue.h,v 1.3 2000/08/17 00:03:38 haoboy Exp $
    */
 
 #ifndef __dest_queue_h__
 #define __dest_queue_h__
 
 #include <packet.h>
-#include <list.h>
+#include "lib/bsd-list.h"
 
 #define ILLEGAL_SEQ 257
 

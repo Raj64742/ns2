@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code */
 /* -*- c++ -*-
    tora.h
-   $Id: tora.h,v 1.3 1999/08/12 21:12:25 yaxu Exp $
+   $Id: tora.h,v 1.4 2000/08/17 00:03:39 haoboy Exp $
   
   */
 
@@ -47,7 +47,7 @@
 #include <cmu-trace.h>
 #include <priqueue.h>
 #include <rtqueue.h>
-#include <list.h>
+#include "lib/bsd-list.h"
 
 #include <rtproto/rtproto.h>
 #include <imep/imep.h>

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.h,v 1.8 2000/06/21 17:44:10 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.h,v 1.9 2000/08/17 00:03:38 haoboy Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  * Modified to use period_ and offer isascending(), Lloyd Wood, March 2000. */
@@ -40,10 +40,10 @@
 #define __satposition_h__
 
 #include <trace.h>
-#include <list.h>
-#include <phy.h>
-#include <node.h>
 #include <stdlib.h>
+#include "lib/bsd-list.h"
+#include "phy.h"
+#include "node.h"
 #include "object.h"
 #include "satgeometry.h"
 

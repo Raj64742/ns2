@@ -41,7 +41,7 @@
 #define ns_antenna_h
 
 #include "object.h"
-#include "list.h"
+#include "lib/bsd-list.h"
 
 class Antenna;
 LIST_HEAD(an_head, Antenna);

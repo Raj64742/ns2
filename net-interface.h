@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.h,v 1.1 1999/06/21 17:54:23 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.h,v 1.2 2000/08/17 00:03:38 haoboy Exp $
  *
  * Ported by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  */
@@ -27,7 +27,7 @@
 
 #include "connector.h"
 #include "packet.h"
-#include "list.h"
+#include "lib/bsd-list.h"
 
 class NetworkInterface;
 LIST_HEAD(netint_head, NetworkInterface); // declare list head structure

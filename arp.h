@@ -39,7 +39,7 @@
 
 #include "scheduler.h"
 #include "delay.h"
-#include "list.h"
+#include "lib/bsd-list.h"
 
 #ifndef EADDRNOTAVAIL
 #define EADDRNOTAVAIL 125
