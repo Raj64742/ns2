@@ -127,7 +127,6 @@ Test/full instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen ; # will figure out who its peer is
 	$src set window_ 100
 	set ftp1 [$src attach-source FTP]
@@ -161,7 +160,6 @@ Test/close instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	$src set window_ 100
 	set ftp1 [$src attach-source FTP]
@@ -197,7 +195,6 @@ Test/twoway instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	$sink set iss_ 2144
 	$src set window_ 100
@@ -235,7 +232,6 @@ Test/twoway1 instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	$sink set iss_ 2144
 	$src set window_ 100
@@ -274,7 +270,6 @@ Test/twoway_bsdcompat instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	$src set window_ 100
 	$sink set window_ 100
@@ -314,7 +309,6 @@ Test/oneway_bsdcompat instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen ; # will figure out who its peer is
 	$src set window_ 100
 	$sink set window_ 100
@@ -358,7 +352,6 @@ Test/twowayrandom instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	$sink set iss_ 2144
 	$src set window_ 100
@@ -396,7 +389,6 @@ Test/delack instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	$src set window_ 100
 	$sink set segsperack_ 2
@@ -435,7 +427,6 @@ Test/iw=4 instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.0 "$ftp1 start"
@@ -485,7 +476,6 @@ Test/droppedsyn instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -534,7 +524,6 @@ Test/droppedfirstseg instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -584,7 +573,6 @@ Test/droppedsecondseg instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -634,7 +622,6 @@ Test/simul-open instproc run {} {
 	$ns_ connect $src $sink; # this is bi-directional
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	set ftp1 [$src attach-source FTP]
 	set ftp2 [$sink attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start; $ftp2 start"
@@ -679,7 +666,6 @@ Test/simul-close instproc run {} {
 	$ns_ connect $src $sink; # this is bi-directional
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	set ftp1 [$src attach-source FTP]
 	set ftp2 [$sink attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -737,7 +723,6 @@ Test/droppednearfin instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -788,7 +773,6 @@ Test/droppedlastseg instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -839,7 +823,6 @@ Test/droppedretransmit instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -889,7 +872,6 @@ Test/droppednearretransmit instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -939,7 +921,6 @@ Test/droppedfastrexmit instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -990,7 +971,6 @@ Test/ecn1 instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -1045,7 +1025,6 @@ Test/ecn2 instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -1098,7 +1077,6 @@ Test/droppedfin instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
@@ -1139,7 +1117,6 @@ Test/smallpkts instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.5 "$src advance-bytes 30"
@@ -1189,7 +1166,6 @@ Test/telnet instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set telnet1 [$src attach-source Telnet]
 	$telnet1 set interval_ 0
@@ -1238,7 +1214,6 @@ Test/telnet2 instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	set telnet1 [$src attach-source Telnet]
 	$telnet1 set interval_ 0
@@ -1284,7 +1259,6 @@ Test/SSR instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$src set slow_start_restart_ false
 	$sink listen
 	$ns_ at 0.5 "$src advance-bytes 10000"
@@ -1329,7 +1303,6 @@ Test/SSR2 instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$src set slow_start_restart_ true
 	$sink listen
 	$ns_ at 0.5 "$src advance-bytes 10000"
@@ -1375,7 +1348,6 @@ Test/tsopt instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$src set timestamps_ true
 	$sink listen
 	$ns_ at 0.5 "$src advance-bytes 100000"
@@ -1418,7 +1390,6 @@ Test/winlimited instproc run {} {
 	$ns_ connect $src $sink
 
 	# set up TCP-level connections
-	$src set dst_ [$sink set addr_]
 	$sink listen
 	$ns_ at 0.5 "$src advance-bytes 100000"
 
