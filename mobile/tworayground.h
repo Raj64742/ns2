@@ -47,12 +47,10 @@
 class TwoRayGround : public Propagation {
 public:
   TwoRayGround();
-  virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *ifp)
-    {return Pr(tx, rx, ifp->getL(), ifp->getLambda());}
+  virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *ifp);
 
 protected:
-  virtual double Pr(PacketStamp *tx, PacketStamp *rx, double L, double lambda);
-
+  double TwoRay(double Pt, double Gt, double Gr, double ht, double hr, double L, double d);
   double last_hr, last_ht;
   double crossover_dist;
 };

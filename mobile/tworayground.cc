@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  */
 /* tworayground.cc
-   $Id: tworayground.cc,v 1.4 2000/07/21 04:56:58 yewei Exp $
+   $Id: tworayground.cc,v 1.5 2000/10/02 20:23:16 yewei Exp $
  */
 
 #include <math.h>
@@ -61,30 +61,35 @@ TwoRayGround::TwoRayGround()
   crossover_dist = 0.0;
 }
 
-// use Friss at less than crossover distance
+// use Friis at less than crossover distance
 // use two-ray at more than crossover distance
-static double
-TwoRay(double Pt, double Gt, double Gr, double ht, double hr, double d)
+//static double
+double TwoRayGround::TwoRay(double Pt, double Gt, double Gr, double ht, double hr, double L, double d)
 {
         /*
          *  Two-ray ground reflection model.
          *
-         *	 Pt * Gt * Gr * (ht^2 * hr^2)
+         *	     Pt * Gt * Gr * (ht^2 * hr^2)
          *  Pr = ----------------------------
-         *           d^4
+         *           d^4 * L
          *
+         * The original equation in Rappaport's book assumes L = 1.
+         * To be consistant with the free space equation, L is added here.
          */
-  return Pt * Gt * Gr * (hr * hr * ht * ht) / (d * d * d * d);
+  return Pt * Gt * Gr * (hr * hr * ht * ht) / (d * d * d * d * L);
 }
 
 double
-TwoRayGround::Pr(PacketStamp *t, PacketStamp *r, double L, double lambda)
+TwoRayGround::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 {
-  double rX, rY, rZ;		// loc of receiver
-  double tX, tY, tZ;		// loc of xmitter
-  double d;			// dist
+  double rX, rY, rZ;		// location of receiver
+  double tX, tY, tZ;		// location of transmitter
+  double d;				// distance
   double hr, ht;		// height of recv and xmit antennas
-  double Pr;
+  double Pr;			// received signal power
+
+  double L = ifp->getL();			// system loss
+  double lambda = ifp->getLambda();	// wavelength
 
   r->getNode()->getLoc(&rX, &rY, &rZ);
   t->getNode()->getLoc(&tX, &tY, &tZ);
@@ -113,12 +118,14 @@ TwoRayGround::Pr(PacketStamp *t, PacketStamp *r, double L, double lambda)
   if (hr != last_hr || ht != last_ht)
     { // recalc the cross-over distance
       /* 
-	         16 * PI^2 * L * hr^2 * ht^2
-	 d^2 = ---------------------------------
-                      lambda^2
+	         4 * PI * hr * ht
+	 d = ----------------------------
+	             lambda
+	   * At the crossover distance, the received power predicted by the two-ray
+	   * ground model equals to that predicted by the Friis equation.
        */
-      crossover_dist = sqrt((16 * PI * PI * L * ht * ht * hr * hr)
-			    / (lambda * lambda));
+
+      crossover_dist = (4 * PI * ht * hr) / lambda;
       last_hr = hr; last_ht = ht;
 #if DEBUG > 3
       printf("TRG: xover %e.10 hr %f ht %f\n",
@@ -128,7 +135,7 @@ TwoRayGround::Pr(PacketStamp *t, PacketStamp *r, double L, double lambda)
 
   /*
    *  If the transmitter is within the cross-over range , use the
-   *  Friss equation.  Otherwise, use the two-ray
+   *  Friis equation.  Otherwise, use the two-ray
    *  ground reflection model.
    */
 
@@ -148,14 +155,14 @@ TwoRayGround::Pr(PacketStamp *t, PacketStamp *r, double L, double lambda)
 #endif
 
   if(d <= crossover_dist) {
-    Pr = Friss(t->getTxPr(), Gt, Gr, lambda, L, d);
+    Pr = Friis(t->getTxPr(), Gt, Gr, lambda, L, d);
 #if DEBUG > 3
-    printf("Friss %e\n",Pr);
+    printf("Friis %e\n",Pr);
 #endif
     return Pr;
   }
   else {
-    Pr = TwoRay(t->getTxPr(), Gt, Gr, ht, hr, d);
+    Pr = TwoRay(t->getTxPr(), Gt, Gr, ht, hr, L, d);
 #if DEBUG > 3
     printf("TwoRay %e\n",Pr);
 #endif    

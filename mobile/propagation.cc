@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  * 
  propagation.cc
- $Id: propagation.cc,v 1.4 2000/07/21 04:56:58 yewei Exp $
+ $Id: propagation.cc,v 1.5 2000/10/02 20:22:43 yewei Exp $
 */
 
 #include <stdio.h>
@@ -89,15 +89,60 @@ Propagation::Pr(PacketStamp *, PacketStamp *, WirelessPhy *)
 }
 
 double
-Propagation::Friss(double Pt, double Gt, double Gr, double lambda, double L, double d)
+Propagation::Friis(double Pt, double Gt, double Gr, double lambda, double L, double d)
 {
         /*
-         * Friss free space equation:
+         * Friis free space equation:
          *
          *       Pt * Gt * Gr * (lambda^2)
          *   P = --------------------------
-         *       (4 *pi * d)^2 * L
+         *       (4 * pi * d)^2 * L
          */
   double M = lambda / (4 * PI * d);
   return (Pt * Gt * Gr * (M * M)) / L;
+}
+
+
+// methods for free space model
+static class FreeSpaceClass: public TclClass {
+public:
+	FreeSpaceClass() : TclClass("Propagation/FreeSpace") {}
+	TclObject* create(int, const char*const*) {
+		return (new FreeSpace);
+	}
+} class_freespace;
+
+
+double FreeSpace::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
+{
+	double L = ifp->getL();		// system loss
+	double lambda = ifp->getLambda();   // wavelength
+
+	double Xt, Yt, Zt;		// location of transmitter
+	double Xr, Yr, Zr;		// location of receiver
+
+	t->getNode()->getLoc(&Xt, &Yt, &Zt);
+	r->getNode()->getLoc(&Xr, &Yr, &Zr);
+
+	// Is antenna position relative to node position?
+	Xr += r->getAntenna()->getX();
+	Yr += r->getAntenna()->getY();
+	Zr += r->getAntenna()->getZ();
+	Xt += t->getAntenna()->getX();
+	Yt += t->getAntenna()->getY();
+	Zt += t->getAntenna()->getZ();
+
+	double dX = Xr - Xt;
+	double dY = Yr - Yt;
+	double dZ = Zr - Zt;
+	double d = sqrt(dX * dX + dY * dY + dZ * dZ);
+
+	// get antenna gain
+	double Gt = t->getAntenna()->getTxGain(dX, dY, dZ, lambda);
+	double Gr = r->getAntenna()->getRxGain(dX, dY, dZ, lambda);
+
+	// calculate receiving power at distance
+	double Pr = Friis(t->getTxPr(), Gt, Gr, lambda, L, d);
+
+	return Pr;
 }

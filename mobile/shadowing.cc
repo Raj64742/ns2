@@ -52,15 +52,20 @@ Shadowing::Shadowing()
 	bind("dist0_", &dist0_);
 	bind("seed_", &seed_);
 	
-//	ranVar = RNG::defaultrng();
 	ranVar = new RNG;
 	ranVar->set_seed(RNG::PREDEF_SEED_SOURCE, seed_);
 }
 
 
+Shadowing::~Shadowing()
+{
+	delete ranVar;
+}
+
+
 double Shadowing::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 {
-	double sysLoss = ifp->getL();		// system loss
+	double L = ifp->getL();		// system loss
 	double lambda = ifp->getLambda();   // wavelength
 
 	double Xt, Yt, Zt;		// loc of transmitter
@@ -87,7 +92,7 @@ double Shadowing::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 	double Gr = r->getAntenna()->getRxGain(dX, dY, dZ, lambda);
 
 	// calculate receiving power at reference distance
-	double Pr0 = Friss(t->getTxPr(), Gt, Gr, lambda, sysLoss, dist0_);
+	double Pr0 = Friis(t->getTxPr(), Gt, Gr, lambda, L, dist0_);
 
 	// calculate average power loss predicted by path loss model
 	double avg_db = -10.0 * pathlossExp_ * log10(dist/dist0_);

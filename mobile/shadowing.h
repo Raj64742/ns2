@@ -34,6 +34,7 @@
 class Shadowing : public Propagation {
 public:
 	Shadowing();
+	~Shadowing();
 	virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *ifp);
 	virtual int command(int argc, const char*const* argv);
 

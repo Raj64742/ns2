@@ -74,16 +74,29 @@ public:
   // type
   virtual double Pr(PacketStamp *tx, PacketStamp *rx, Phy *);
   virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *);
-
   virtual int command(int argc, const char*const* argv);
 
-  // Friss free space model, likely to be used by other propagation models.
-  // So moved here from tworayground.cc -Wei Ye
-  double Friss(double Pt, double Gt, double Gr, double lambda, double L, double d);
+  // Friis free space equation, likely to be used by other propagation models.
+  double Friis(double Pt, double Gt, double Gr, double lambda, double L, double d);
+  	// Pt -- transmitted signal power
+  	// Gt -- transmitter antenna gain
+  	// Gr -- receiver antenna gain
+  	// lambda -- wavelength
+  	// L -- system loss (L >= 1)
+  	// d -- distance between transmitter and receiver
+  	// return -- received signal power
 
 protected:
   char *name;
   Topography *topo;
+};
+
+
+// Friis free space propagation model
+class FreeSpace : public Propagation {
+public:
+//	FreeSpace();
+	virtual double Pr(PacketStamp *tx, PacketStamp *rx, WirelessPhy *ifp);
 };
 
 #endif /* __propagation_h__ */
