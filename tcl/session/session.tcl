@@ -12,9 +12,9 @@ SessionSim instproc create-session { node agent } {
 
     set nid [$node id]
     set dst [$agent set dst_]
-    set session_($nid:$dst) [new SessionHelper]
-    $session_($nid:$dst) set-node $nid
+    set session_($nid:$dst) [new Classifier/Replicator/Demuxer]
     $agent target $session_($nid:$dst)
+    return $session_($nid:$dst)
 }
 
 SessionSim instproc join-group { agent group } {
@@ -23,16 +23,44 @@ SessionSim instproc join-group { agent group } {
     foreach index [array names session_] {
 	set pair [split $index :]
 	if {[lindex $pair 1] == $group} {
+	    #Note: must insert the chain of loss, delay, 
+	    # and destination agent in this order:
+
+	    #1. insert destination agent into session replicator
+	    $session_($index) insert $agent
+
+	    #2. find accumulated bandwidth and delay
 	    set src [lindex $pair 0]
 	    set dst [[$agent set node_] id]
 	    set accu_bw [$self get-bw $dst $src]
 	    set delay [$self get-delay $dst $src]
+
+	    #3. set up a constant delay module
+	    set random_variable [new RandomVariable/Constant]
+	    $random_variable set avg_ $delay
+	    set delay_module [new DelayModel]
+	    $delay_module bandwidth $accu_bw
+	    $delay_module ranvar $random_variable
+	    
+	    #4. insert the delay module in front of the dest agent
+	    $session_($index) insert-module $delay_module $agent
+
+	    #5. set up a constant loss module
+	    #set loss_random_variable [new RandomVariable/Constant]
+	    #$loss_random_variable set avg_ 2
+	    #set loss_module [new ErrorModel]
+	    # when ranvar avg_ < erromodel rate_ pkts are dropped
+	    #$loss_module drop-target [new Agent/Null]
+	    #$loss_module set rate_ 1
+	    #$loss_module ranvar $loss_random_variable
+
+	    #6. insert the loss module in front of the delay module
+	    #$session_($index) insert-module $loss_module $delay_module
+
 	    # puts "add-dst $accu_bw $delay $src $dst"
-	    $session_($index) add-dst $accu_bw $delay $dst $agent
 	}
     }
 }
-
 
 SessionSim instproc get-delay { src dst } {
     $self instvar routingTable_ delay_
@@ -170,3 +198,23 @@ Agent/LossMonitor instproc show-delay { seqno delay } {
 
     puts "[$node_ id] $seqno $delay"
 }
+
+Classifier/Replicator/Demuxer instproc insert-module {module target} {
+        $self instvar active_ index_
+
+        if ![info exists active_($target)] {
+	    puts "error: insert module, but $target does not exist in any slot of replicator $self."
+	    exit 0
+        } elseif {!$active_($target)} {
+	    puts "error: insert module, but $target is not active in replicator $self."
+	    exit 0
+	}
+        
+	$module target $target
+	set n $index_($target)
+        $self install $n $module
+        set active_($module) 1
+	set index_($module) $n
+	unset active_($target)
+}
+
