@@ -313,7 +313,7 @@ An Exponential On/Off object is embodied in the OTcl class
 Application/Traffic/Exponential.  The member variables that parameterize this
 object are:
 \begin{alist}
-\code{packet\_size\_} & the constant size of the packets generated\\
+\code{packetSize\_} & the constant size of the packets generated\\
 \code{burst\_time\_} & the average ``on'' time for the generator\\
 \code{idle\_time\_} & the average ``off'' time for the generator\\
 \code{rate\_} & the sending rate during ``on'' times\\
@@ -322,7 +322,7 @@ Hence a new Exponential On/Off traffic generator can be created and
 parameterized as follows:
 \begin{program}
         set e [new Application/Traffic/Exponential]
-        $e set packet_size_ 210
+        $e set packetSize_ 210
         $e set burst_time_ 500ms
         $e set idle_time_ 500ms
         $e set rate_ 100k
@@ -332,7 +332,7 @@ parameterized as follows:
 A Pareto On/Off object is embodied in the OTcl class Application/Traffic/Pareto.
 The member variables that parameterize this object are:
 \begin{alist}
-\code{packet\_size\_} & the constant size of the packets generated\\
+\code{packetSize\_} & the constant size of the packets generated\\
 \code{burst\_time\_} & the average "on" time for the generator\\
 \code{idle\_time\_} & the average "off" time for the generator\\
 \code{rate\_} & the sending rate during "on" times\\
@@ -341,7 +341,7 @@ The member variables that parameterize this object are:
 A new Pareto On/Off traffic generator can be created as follows:
 \begin{program}
         set p [new Application/Traffic/Pareto]
-        $p set packet_size_ 210
+        $p set packetSize_ 210
         $p set burst_time_ 500ms
         $p set idle_time_ 500ms
         $p set rate_ 200k
@@ -354,7 +354,8 @@ Application/Traffic/CBR.  The member variables that parameterize this
 object are:  
 \begin{alist}
 \code{rate\_} & the sending rate \\
-\code{packet\_size\_} & the constant size of the packets generated\\
+\code{interval\_} & (Optional) interval between packets \\
+\code{packetSize\_} & the constant size of the packets generated\\
 \code{random\_} & flag indicating whether or not to introduce random ``noise'' 
 in the scheduled departure times (default is off)\\
 \code{maxpkts\_} & the maximum number of packets to send (default is (\(2^28\))\\
@@ -363,10 +364,17 @@ Hence a new CBR traffic generator can be created and parameterized
 as follows:
 \begin{program}
         set e [new Application/Traffic/CBR]
-        $e set packet_size_ 48
+        $e set packetSize_ 48
         $e set rate_ 64Kb
         $e set random_ 1
 \end{program}
+
+The setting of a CBR object's \code{rate_} and \code{interval_} are mutually
+exclusive (the interval between packets is maintained as an interval 
+variable in C++,
+and some example \ns~scripts specify an interval rather than a rate).  In
+a simulation, either a rate or an interval (but not both) should be 
+specified for a CBR object.  
 
 \paragraph{Traffic Trace}
 A Traffic Trace object is instantiated by the OTcl class 
@@ -408,7 +416,7 @@ node \code{k1}:
 	
         set e [new Application/Traffic/Exponential]
         $e attach-agent $src
-        $e set packet_size_ 210
+        $e set packetSize_ 210
         $e set burst_time_ 500ms
         $e set idle_time_ 500ms
         $e set rate_ 100k
@@ -416,7 +424,7 @@ node \code{k1}:
         $ns_ at 0.0 "$e start"
 \end{program}
 
-\section{Simulated applications}
+\section{Simulated applications:  Telnet and FTP}
 \label{sec:simapps}
  
 There are currently two ``simulate application'' classes derived from 

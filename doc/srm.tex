@@ -79,7 +79,7 @@ how a traffic generation agent can be attached to an SRM agent:
 \begin{program}
         set packetSize 210
         set exp0 [new Application/Traffic/Exponential]    \; configure traffic generator;
-        $exp0 set packet_size_ $packetSize
+        $exp0 set packetSize_ $packetSize
         $exp0 set burst_time_ 500ms 
         $exp0 set idle_time_ 500ms
         $exp0 set rate_ 100k 
