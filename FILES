@@ -604,6 +604,7 @@ tcl/test/test-all-tcpVariants
 tcl/test/test-all-tcpVariants2
 tcl/test/test-all-template1
 tcl/test/test-all-v1
+tcl/test/test-all-vc
 tcl/test/test-all-vegas-v1
 tcl/test/test-all-webcache
 tcl/test/test-alloc-address.tcl
@@ -633,6 +634,7 @@ tcl/test/test-output-tcp
 tcl/test/test-output-tcp-init-win
 tcl/test/test-output-tcpVariants
 tcl/test/test-output-v1
+tcl/test/test-output-vc
 tcl/test/test-output-vegas-v1
 tcl/test/test-output-webcache
 tcl/test/test-sack-v1
@@ -675,6 +677,7 @@ tcl/test/test-suite-tcp.txt
 tcl/test/test-suite-tcpVariants.tcl
 tcl/test/test-suite-v1.tcl
 tcl/test/test-suite-v1a.tcl
+tcl/test/test-suite-vc.tcl
 tcl/test/test-suite-vegas-v1.tcl
 tcl/test/test-suite-webcache.tcl
 tcl/test/topologies.tcl
@@ -1001,6 +1004,9 @@ tcl/test/test-output-v1/tahoe3.Z
 tcl/test/test-output-v1/tahoe4.Z
 tcl/test/test-output-v1/telnet.Z
 tcl/test/test-output-v1/timers.Z
+tcl/test/test-output-vc/VC1.Z
+tcl/test/test-output-vc/VC2.Z
+tcl/test/test-output-vc/VC3.Z
 tcl/test/test-output-vegas-v1/one_14.Z
 tcl/test/test-output-vegas-v1/one_drop.Z
 tcl/test/test-output-vegas-v1/two_2.Z
