@@ -18,6 +18,9 @@ Kannan Varadhan \tup{kannan@catarina.usc.edu}, Editor}
 \date{\timestamp}
 
 \begin{document}
+
+% End-Of-Header
+
 \begin{titlepage}
   \begin{center}\makeatletter%
     {\Large\@title\footnotemark\par}%
@@ -79,14 +82,13 @@ Kannan Varadhan \tup{kannan@catarina.usc.edu}, Editor}
 \include{timers}
 \include{events}
 \include{packet_format}
-
-\include{applications}
 \include{error_model}
 \include{lan}
 
 \part{Support}
 \include{math}
 \include{trace}
+%\include{nam}
 
 \part{Routing}
 \include{unicast}
@@ -98,6 +100,10 @@ Kannan Varadhan \tup{kannan@catarina.usc.edu}, Editor}
 \include{tcp}
 \include{srm}
 
+\part{Application}
+\include{applications}
+\include{webcache}
+
 \part{Scale}
 \include{session}
 
@@ -107,6 +113,8 @@ Kannan Varadhan \tup{kannan@catarina.usc.edu}, Editor}
 %\part{Other}
 %\include{debugging}
 
+% Start-Of-Trailer
+
 \bibliography{ns}
 
 \printindex
@@ -114,17 +122,16 @@ Kannan Varadhan \tup{kannan@catarina.usc.edu}, Editor}
 \AtEndDocument{
 \typeout{*****^^J%
          *^^J%
-	 * If you have changed the tex files, and generated new^^J%
-	 * postscript documentation, please compress (using gzip)^^J%
-	 * and copy it over to your www directory, as www/ns/nsDoc.ps.gz^^J%
-	 * and check in the new documentation.^^J%
-	 * Also, please update the "last updated" field in 
-	 * www/ns/ns-documentation.html
-	 *^^J%
-	 * -- Thanks^^J%
-	 *^^J%
-	 *****^^J%
-}
-}
-
+         * If you have changed the tex files, and generated new^^J%
+         * postscript documentation, please compress (using gzip)^^J%
+         * and copy it over to your www directory, as www/ns/nsDoc.ps.gz^^J%
+         * and check in the new documentation.^^J%
+         * Also, please update the "last updated" field in 
+         * www/ns/ns-documentation.html
+         *^^J%
+         * -- Thanks^^J%
+         *^^J%
+         *****^^J%
+         }
+       }
 \end{document}
