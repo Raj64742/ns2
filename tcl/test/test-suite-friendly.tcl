@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.39 2001/05/10 20:49:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.40 2001/05/11 16:34:51 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -663,6 +663,8 @@ Test/two-friendly instproc init {} {
     set net_	net2
     set test_	two-friendly
     Agent/TFRCSink set discount_ 0
+    Agent/TCP set timerfix_ false
+    # The default is being changed to true.
     $self next
 }
 
@@ -675,6 +677,8 @@ Test/two-friendlyCA instproc init {} {
     Agent/TFRCSink set discount_ 0
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
+    Agent/TCP set timerfix_ false
+    # The default is being changed to true.
     Test/two-friendlyCA instproc run {} [Test/two-friendly info instbody run ]
     $self next
 }
@@ -715,6 +719,8 @@ Test/OnlyTcp instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	OnlyTcp
+    Agent/TCP set timerfix_ false
+    # The default is being changed to true.
     $self next
 }
 Test/OnlyTcp instproc run {} {

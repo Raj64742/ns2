@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.24 2001/05/11 05:19:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.25 2001/05/11 16:34:52 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -256,6 +256,8 @@ Test/timersA1 instproc init topo {
 	set defNet_	net4
 	set test_	timersA1_(multiple_of_8_instead_of_4)
 	Agent/TCP set rttvar_exp_ 3
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
         Test/timersA1 instproc run {} [Test/timersA info instbody run ]
 	$self next
 }
@@ -270,6 +272,8 @@ Test/timersA2 instproc init topo {
 	set test_	timersA2_(timestamps,_fine-grained_clock)
         Agent/TCP set timestamps_ true
 	Agent/TCP set tcpTick_ 0.001
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
         Test/timersA2 instproc run {} [Test/timersA info instbody run ]
 	$self next
 }
@@ -286,6 +290,8 @@ Test/timersA3 instproc init topo {
 	Agent/TCP set tcpTick_ 0.001
 	Agent/TCP set T_SRTT_BITS 5
 	Agent/TCP set T_RTTVAR_BITS 4
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
         Test/timersA3 instproc run {} [Test/timersA info instbody run ]
 	$self next
 }

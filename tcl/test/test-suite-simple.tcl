@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.7 2001/05/10 20:49:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.8 2001/05/11 16:34:52 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -864,6 +864,8 @@ Test/telnet instproc init topo {
 	set net_	$topo
 	set defNet_	net0
 	set test_	telnet
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
 	$self next
 }
 Test/telnet instproc run {} {
@@ -1033,6 +1035,8 @@ Test/timers instproc init topo {
 	set net_	$topo
 	set defNet_	net0
 	set test_	timers
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
 	$self next
 }
 Test/timers instproc run {} {

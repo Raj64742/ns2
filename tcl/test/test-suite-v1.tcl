@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-v1.tcl,v 1.2 1999/09/17 22:48:19 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-v1.tcl,v 1.3 2001/05/11 16:34:52 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -61,6 +61,10 @@
 #         /
 #        s2
 #
+
+Agent/TCP set timerfix_ false
+# The default is being changed to true.
+
 proc create_testnet { } {
 
 	global s1 s2 r1 k1

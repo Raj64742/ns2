@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.25 2001/05/10 20:49:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.26 2001/05/11 16:34:51 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -659,6 +659,8 @@ Test/ecn_smallwin_tahoe instproc init {} {
         $self instvar net_ test_
         Queue/RED set setbit_ true
 	Agent/TCP set bugFix_ true
+	Agent/TCP set timerfix_ false
+	# The default is being changed to true.
         set net_	net2-lossy
         set test_	ecn_smallwin_tahoe
         $self next
