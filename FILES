@@ -1963,6 +1963,12 @@ tcl/test/test-output-tcpReset
 tcl/test/test-output-tcpReset/reset.Z
 tcl/test/test-output-tcpReset/resetDelAck.Z
 tcl/test/test-output-tcpReset/resetDelAck1.Z
+tcl/test/test-output-tcpReset/reset1.Z
+tcl/test/test-output-tcpReset/resetDelAck2.Z
+tcl/test/test-output-tcpReset/resetDelAck3.Z
+tcl/test/test-output-tcpReset/resetNewreno.Z
+tcl/test/test-output-tcpReset/resetReno.Z
+tcl/test/test-output-tcpReset/resetSack1.Z
 tcl/test/test-output-tcpVariants/fourdrops_fack.Z
 tcl/test/test-output-tcpVariants/fourdrops_newreno.Z
 tcl/test/test-output-tcpVariants/fourdrops_newreno_full.Z
