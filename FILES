@@ -1846,8 +1846,10 @@ tcl/test/test-output-simple/stats.Z
 tcl/test/test-output-simple/stats1.Z
 tcl/test/test-output-simple/stats2.Z
 tcl/test/test-output-simple/tahoe1.Z
+tcl/test/test-output-simple/tahoe1RED.Z
 tcl/test/test-output-simple/tahoe2.Z
 tcl/test/test-output-simple/tahoe3.Z
+tcl/test/test-output-simple/tahoe3RED.Z
 tcl/test/test-output-simple/tahoe4.Z
 tcl/test/test-output-simple/telnet.Z
 tcl/test/test-output-simple/timers.Z
