@@ -43,7 +43,7 @@ void XCPQueue::config() {
 	// The following RED setup attempts to disable RED
 	edp_.th_min = limit();		// minthresh
 	edp_.th_max = limit();		// maxthresh
-	edp_.q_w = 0.01 / limit();	// for EWMA
+	edp_.q_w = 0.002;		// for EWMA
 	edp_.max_p_inv = 3;
 	edp_.th_min_pkts = limit();
 	edp_.th_max_pkts = limit();
