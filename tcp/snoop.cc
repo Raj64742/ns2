@@ -31,18 +31,23 @@
  * SUCH DAMAGE.
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.3 1997/07/22 22:08:32 kfall Exp $ (UCB)";
+#endif
+
 #include "snoop.h"
 
 static class SnoopClass : public TclClass {
  public:
         SnoopClass() : TclClass("LL/Snoop") {}
-        TclObject* create(int argc, const char*const* argv) {
+        TclObject* create(int, const char*const*) {
                 return (new Snoop(SNOOP_MAKEHANDLER));
         }
 } snoop_class;
 
 
-Snoop::Snoop(int makeHandler = 0) : LL(), 
+Snoop::Snoop(int = 0) : LL(), 
 	fstate_(0), lastWin_(0), lastSeen_(-1), lastSize_(0), lastAck_(-1), 
 	expNextAck_(0), expDupacks_(0), bufhead_(0), buftail_(0),
 	toutPending_(0)
@@ -387,7 +392,7 @@ Snoop::snoop_rxmit(Packet *pkt)
 }
 
 void
-SnoopRxmitHandler::handle(Event *e)
+SnoopRxmitHandler::handle(Event *)
 {
 	Packet *p = snoop_->pkts_[snoop_->buftail_];
 	snoop_->toutPending_ = 0;
@@ -404,7 +409,6 @@ SnoopRxmitHandler::handle(Event *e)
 }
 
 void
-SnoopPersistHandler::handle(Event *e) 
+SnoopPersistHandler::handle(Event *) 
 {
-	Packet *p = snoop_->pkts_[snoop_->buftail_];
 }
