@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.30 1997/07/26 00:14:55 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.31 1997/07/26 00:15:25 heideman Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -166,7 +166,6 @@ proc trace_old_defaults {} {
 OldSim instproc init args {
 	eval $self next $args
 	puts stderr "warning: using backward compatibility mode"
-	trace_old_defaults
 	$self instvar classMap_
 	#
 	# in CBQ, setting the algorithm_ variable becomes invoking
