@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.29 1997/07/25 05:26:06 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.30 1997/07/25 06:54:06 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -73,7 +73,6 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("overhead_", &overhead_);
 	bind("tcpTick_", &tcp_tick_);
 	bind("ecn_", &ecn_);
-	bind("disable_ecn_", &disable_ecn_);
 	bind("packetSize_", &size_);
 	bind_bool("bugFix_", &bug_fix_);
 	bind_bool("slow_start_restart_", &slow_start_restart_);
@@ -632,7 +631,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	}
 #endif
 	ts_peer_ = tcph->ts();
-	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && !disable_ecn_)
+	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && ecn_)
 		quench(1);
 	recv_helper(pkt);
 	/* grow cwnd and check if the connection is done */ 
