@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ether.cc,v 1.1 1998/02/19 00:04:56 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ether.cc,v 1.2 1998/02/27 23:59:05 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -57,7 +57,7 @@ Ethernet::ether_print(const u_char *bp)
 	     etheraddr_string(ep->ether_shost));
 	printf("dst: %s\n",
 	     etheraddr_string(ep->ether_dhost));
-	printf("prot: %hd\n",
+	printf("prot: %hx\n",
 	     ntohs(ep->ether_type));
 }
 
