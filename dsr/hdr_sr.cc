@@ -37,7 +37,7 @@
    hdr_sr.cc
 
    source route header
-   $Id: hdr_sr.cc,v 1.2 1999/01/04 19:59:10 haldar Exp $
+   $Id: hdr_sr.cc,v 1.3 1999/02/14 00:56:18 haoboy Exp $
 */
 
 #include <stdio.h>
@@ -73,9 +73,8 @@ hdr_sr::dump(char *buf)
   *ptr++ = '[';
   for (int i = 0; i < num_addrs_; i++)
     {
-      ptr += strlen(sprintf(ptr, "%s%d ",
-		     (i == cur_addr_) ? "|" : "",
-		     addrs[i].addr));
+      sprintf(ptr, "%s%d ", (i == cur_addr_) ? "|" : "", addrs[i].addr);
+      ptr += strlen(ptr);
     }
   *ptr++ = ']';
   *ptr = '\0';

@@ -36,7 +36,7 @@
 /* path.cc
 
    handles source routes
-   $Id: path.cc,v 1.2 1999/01/04 19:59:13 haldar Exp $
+   $Id: path.cc,v 1.3 1999/02/14 00:56:19 haoboy Exp $
 */
 
 extern "C" {
@@ -375,8 +375,8 @@ Path::dump() const
   for (int c = 0 ; c < len ; c ++)
     {
       if (c == cur_index) *ptr++ = '(';
-      ptr += strlen(sprintf(ptr,"%s%s ",path[c].dump(), c == cur_index ? ")" : ""));
-      
+      sprintf(ptr,"%s%s ",path[c].dump(), c == cur_index ? ")" : "");
+      ptr += strlen(ptr);
     }
   *ptr++ = ']';
   *ptr++ = '\0';
