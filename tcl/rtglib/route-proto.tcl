@@ -216,11 +216,10 @@ Classifier instproc install {slot val} {
     $self cmd install $slot $val
 }
 
-Classifier instproc installNext args {
+Classifier instproc installNext val {
     $self instvar elements_
-    foreach val $args {
-	set elements_($val) [$self cmd installNext $val]
-    }
+    set elements_($val) [$self cmd installNext $val]
+    return $elements_($val)
 }
 
 Classifier instproc adjacents {} {
