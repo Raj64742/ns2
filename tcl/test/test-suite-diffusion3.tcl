@@ -103,6 +103,8 @@ TestSuite instproc init {} {
     set ns_ [new Simulator]
     set tracefd [open temp.rands w]
     $ns_ trace-all $tracefd
+    # stealing seed from another test-suite
+    ns-random 188312339
 } 
 
 

@@ -94,8 +94,8 @@ $ns_ node-config -adhocRouting $opt(adhocRouting) \
 		 -channelType $opt(chan) \
 		 -topoInstance $topo \
 		 -agentTrace ON \
-                 -routerTrace ON \
-                 -macTrace ON 
+                 -routerTrace OFF \
+                 -macTrace OFF
                   
 
 #  Create the specified number of nodes [$opt(nn)] and "attach" them

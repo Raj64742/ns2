@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.cc,v 1.3 2001/12/11 23:21:45 haldar Exp $
+// $Id: tools.cc,v 1.4 2001/12/13 22:29:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -60,7 +60,7 @@ void getTime(struct timeval *tv)
 void getSeed(struct timeval *tv) 
 {
 #ifdef NS_DIFFUSION
-  double seed = Random::seed_heuristically();
+  //double seed = Random::seed_heuristically();
   //srand(seed);
 #else
   srand(tv->tv_usec);
@@ -70,7 +70,10 @@ void getSeed(struct timeval *tv)
 int getRand() 
 {
 #ifdef NS_DIFFUSION
-  return (Random::random());
+  int num = Random::random();
+  printf(".............num=%d.......\n", num);
+  return num;
+  //return (Random::random());
 #else
   return (rand());
 #endif // NS_DIFFUSION

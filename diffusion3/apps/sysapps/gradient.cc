@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
 
-// $Id: gradient.cc,v 1.4 2001/12/12 00:48:56 haldar Exp $
+// $Id: gradient.cc,v 1.5 2001/12/13 22:29:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -527,10 +527,10 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
     dtimer->param = (void *) pos_rmsg;
 
     // Add timer for forwarding the data packet
-    ((DiffusionRouting *)dr)->addTimer(POS_REINFORCEMENT_SEND_DELAY +
-				       (int) ((POS_REINFORCEMENT_JITTER * (rand() * 1.0 / RAND_MAX) - (POS_REINFORCEMENT_JITTER / 2))),
-				       (void *) dtimer, tcb);
-
+    //((DiffusionRouting *)dr)->addTimer(POS_REINFORCEMENT_SEND_DELAY +
+    //(int) ((POS_REINFORCEMENT_JITTER * (rand() * 1.0 / RAND_MAX) - (POS_REINFORCEMENT_JITTER / 2))),
+    //(void *) dtimer, tcb);
+    ((DiffusionRouting *)dr)->addTimer(POS_REINFORCEMENT_SEND_DELAY + (int) ((POS_REINFORCEMENT_JITTER * (getRand() * 1.0 / RAND_MAX) - (POS_REINFORCEMENT_JITTER / 2))), (void *) dtimer, tcb);
     pkt_count++;
     ClearAttrs(attrs);
     delete reinforcementblob;
@@ -570,9 +570,8 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
       dtimer->param = (void *) dmsg;
 
       // Add timer for forwarding the data packet
-      ((DiffusionRouting *)dr)->addTimer(DATA_FORWARD_DELAY +
-					 (int) ((DATA_FORWARD_JITTER * (rand() * 1.0 / RAND_MAX) - (DATA_FORWARD_JITTER / 2))),
-					 (void *) dtimer, tcb);
+      //((DiffusionRouting *)dr)->addTimer(DATA_FORWARD_DELAY + (int) ((DATA_FORWARD_JITTER * (rand() * 1.0 / RAND_MAX) - (DATA_FORWARD_JITTER / 2))), (void *) dtimer, tcb);
+      ((DiffusionRouting *)dr)->addTimer(DATA_FORWARD_DELAY + (int) ((DATA_FORWARD_JITTER * (getRand() * 1.0 / RAND_MAX) - (DATA_FORWARD_JITTER / 2))), (void *) dtimer, tcb);
     }
 #else
     // Forward DATA to all output gradients
@@ -907,11 +906,9 @@ void GradientFilter::ProcessNewMessage(Message *msg)
 
       timer = new TimerType(INTEREST_TIMER);
       timer->param = (void *) CopyMessage(msg);
-
-      ((DiffusionRouting *)dr)->addTimer(INTEREST_FORWARD_DELAY +
-					 (int) ((INTEREST_FORWARD_JITTER * (rand() * 1.0 / RAND_MAX) - (INTEREST_FORWARD_JITTER / 2))),
-					 (void *) timer, tcb);
-
+      
+      //((DiffusionRouting *)dr)->addTimer(INTEREST_FORWARD_DELAY + (int) ((INTEREST_FORWARD_JITTER * (rand() * 1.0 / RAND_MAX) - (INTEREST_FORWARD_JITTER / 2))), (void *) timer, tcb);
+      ((DiffusionRouting *)dr)->addTimer(INTEREST_FORWARD_DELAY + (int) ((INTEREST_FORWARD_JITTER * (getRand() * 1.0 / RAND_MAX) - (INTEREST_FORWARD_JITTER / 2))), (void *) timer, tcb);
     }
     else{
       if ((nrclass->getOp() != NRAttribute::IS) &&
@@ -923,9 +920,8 @@ void GradientFilter::ProcessNewMessage(Message *msg)
 	timer = new TimerType(SUBSCRIPTION_TIMER);
 	timer->param = (void *) CopyAttrs(msg->msg_attr_vec);
 
-	((DiffusionRouting *)dr)->addTimer(SUBSCRIPTION_DELAY +
-					   (int) (SUBSCRIPTION_DELAY * (rand() * 1.0 / RAND_MAX)),
-					   (void *) timer, tcb);
+	//((DiffusionRouting *)dr)->addTimer(SUBSCRIPTION_DELAY + (int) (SUBSCRIPTION_DELAY * (rand() * 1.0 / RAND_MAX)), (void *) timer, tcb);
+	((DiffusionRouting *)dr)->addTimer(SUBSCRIPTION_DELAY + (int) (SUBSCRIPTION_DELAY * (getRand() * 1.0 / RAND_MAX)), (void *) timer, tcb);
       }
 
       // Subscriptions don't have to match other subscriptions
@@ -1157,8 +1153,8 @@ GradientFilter::GradientFilter(int argc, char **argv)
 
   getTime(&tv);
   getSeed(&tv);
-  pkt_count = rand();
-  rdm_id = rand();
+  pkt_count = getRand();
+  rdm_id = getRand();
 
   // Create Diffusion Routing class
 #ifdef NS_DIFFUSION
