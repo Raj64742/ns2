@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.114 1998/06/19 22:17:08 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.115 1998/06/27 21:29:17 tomh Exp $
 
 
 #
@@ -311,16 +311,16 @@ QueueMonitor/ED/Flow set flowid_ -1
 
 Agent set class_ 0
 
-Traffic/Expoo set burst-time .5
-Traffic/Expoo set idle-time .5
-Traffic/Expoo set rate 64Kb
-Traffic/Expoo set packet-size 210
+Application/Traffic/Expoo set burst-time .5
+Application/Traffic/Expoo set idle-time .5
+Application/Traffic/Expoo set rate 64Kb
+Application/Traffic/Expoo set packet-size 210
 
-Traffic/Pareto set burst-time 500ms
-Traffic/Pareto set idle-time 500ms
-Traffic/Pareto set rate 64Kb
-Traffic/Pareto set packet-size 210
-Traffic/Pareto set shape 1.5
+Application/Traffic/Pareto set burst-time 500ms
+Application/Traffic/Pareto set idle-time 500ms
+Application/Traffic/Pareto set rate 64Kb
+Application/Traffic/Pareto set packet-size 210
+Application/Traffic/Pareto set shape 1.5
 
 Agent/Mcast/Prune set packetSize_ 80
 
