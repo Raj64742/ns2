@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.20 1998/08/15 02:03:31 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.21 1998/09/01 17:21:56 tomh Exp $
 #
 
 #  NOTE:  Could consider renaming this file to ns-app.tcl and moving the
@@ -77,7 +77,9 @@ Application/Traffic/CBR instproc set args {
 	$self instvar packet_size_ rate_
 	if { [lindex $args 0] == "interval_" } {
 		if { [llength $args] == 2 } {
-			$self set rate_ [expr $packet_size_ * 8.0/[lindex $args 1]]
+			set ns_ [Simulator instance]
+			set interval_ [$ns_ delay_parse [lindex $args 1]]
+			$self set rate_ [expr $packet_size_ * 8.0/$interval_]
 			return
 		} elseif { [llength $args] == 1 } {
 			return [expr $packet_size_ * 8.0/$rate_]
