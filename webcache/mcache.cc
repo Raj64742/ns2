@@ -26,7 +26,7 @@
 //
 // Multimedia cache implementation
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.5 1999/08/04 21:04:02 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.6 1999/08/04 21:06:52 haoboy Exp $
 
 #include <assert.h>
 #include <stdio.h>
@@ -812,12 +812,12 @@ void MediaClient::process_data(int size, char* data)
 	case MEDIA_DATA: {
 		HttpMediaData d(data);
 		// XXX Don't pass any data to page pool!!
-// 		if (mpool()->add_segment(d.page(), d.layer(), 
-// 					 MediaSegment(d)) == -1) {
-// 			fprintf(stderr, "MediaCache %s gets a segment for an \
-// unknown page %s\n", name(), d.page());
-// 			abort();
-// 		}
+//   		if (mpool()->add_segment(d.page(), d.layer(), 
+//   					 MediaSegment(d)) == -1) {
+//   			fprintf(stderr, 
+//  "MediaCache %s gets a segment for an unknown page %s\n", name(), d.page());
+//   			abort();
+//   		}
 		// Note: we store the page only to produce some statistics
 		// later so that we need not do postprocessing of traces.
 		log("C RSEG p %s l %d s %d e %d z %d\n", 
