@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.91 2001/08/03 17:34:47 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.92 2001/08/15 00:38:21 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -807,6 +807,9 @@ FullTcpAgent::send_much(int force, int reason, int maxburst)
 	if ((topwin > highest_ack_ + win) || infinite_send_)
 		topwin = highest_ack_ + win;
 
+//printf("%f: send_much(f:%d, win:%d, pipectrl:%d, pipe:%d, t_seqno:%d, topwin:%d\n",
+//now(), force, win, pipectrl_, pipe_, int(t_seqno_), topwin);
+
 	if (!force && (delsnd_timer_.status() == TIMER_PENDING))
 		return;
 
@@ -816,7 +819,7 @@ FullTcpAgent::send_much(int force, int reason, int maxburst)
 	 */
 
 	while (force ||
-	      (pipectrl_ ? (pipe_ < window()) : (t_seqno_ < topwin))) {
+	      (pipectrl_ ? (pipe_ < win) : (t_seqno_ < topwin))) {
 
 		if (!force && overhead_ != 0 &&
 		    (delsnd_timer_.status() != TIMER_PENDING)) {
@@ -834,10 +837,9 @@ FullTcpAgent::send_much(int force, int reason, int maxburst)
 		int seq = nxt_tseq();
 		if ((amt = foutput(seq, reason)) <= 0)
 			break;
-		t_seqno_ += amt;
-if ((outflags() & TH_FIN))
---t_seqno_;
-		pipe_ += amt;
+		if ((outflags() & TH_FIN))
+			--amt;	// don't count FINs
+		sent(seq, amt);
 		force = 0;
 
 		if ((outflags() & (TH_SYN|TH_FIN)) ||
@@ -886,6 +888,12 @@ FullTcpAgent::newack(Packet* pkt)
 //if (state_ > TCPS_ESTABLISHED)
 //printf("%f %s: newack: %d, state %d, maxseq:%d\n", now(), name(),
 //ackno, int(state_), int(maxseq_));
+
+	if (progress) {
+		pipe_ -= (ackno - highest_ack_);
+//printf("%f: newack: pipe decr by %d to %d\n", now(), (ackno - highest_ack_), pipe_);
+
+	}
 
 
 	if (ackno == maxseq_) {
@@ -983,7 +991,7 @@ FullTcpAgent::predict_ok(Packet* pkt)
  *	Also, stash our current location in recover_
  */
 
-void
+int
 FullTcpAgent::fast_retransmit(int seq)
 {
 	// we are now going to fast-retransmit and willtrace that event
@@ -992,7 +1000,7 @@ FullTcpAgent::fast_retransmit(int seq)
 //int onxt = t_seqno_;		// output() changes t_seqno_
 	recover_ = maxseq_;		// keep a copy of highest sent
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
-	(void)foutput(seq, REASON_DUPACK);	// send one pkt
+	return(foutput(seq, REASON_DUPACK));	// send one pkt
 //t_seqno_ = onxt;
 }
 
@@ -1562,10 +1570,13 @@ trimthenstep6:
 		//
 		// do fast retransmit/recovery if at/past thresh
 		if (ackno <= highest_ack_) {
-			// an pure ACK which doesn't advance highest_ack_
+			// a pure ACK which doesn't advance highest_ack_
 			if (datalen == 0 && (!dupseg_fix_ || !dupseg)) {
 
 				pipe_ -= maxseg_; // ACK indicates pkt cached @ receiver
+//printf("%f: newack: pipe decr by %d to %d\n", now(), maxseg_, pipe_);
+					          // what if small pkts in use?
+							
 
                                 /*
                                  * If we have outstanding data
@@ -1587,32 +1598,40 @@ trimthenstep6:
                                  */
 
 				if ((rtx_timer_.status() != TIMER_PENDING) ||
-				    ackno != highest_ack_) {
-					// not timed, or re-ordered ACK
-					dupacks_ = 0;
+				    ackno < highest_ack_) {
+					// Q: significance of timer not pending?
+					// ACK below highest_ack_
+					oldack();
 				} else if (++dupacks_ == tcprexmtthresh_) {
+					// ACK at highest_ack_ AND meets threshold
 					//trace_event("FAST_RECOVERY");
-					fastrecov_ = TRUE;
-					
-					/* re-sync the pipe_ estimate */
-					pipe_ = maxseq_ - highest_ack_;
-					pipe_ -= (dupacks_ + 1);
+#ifdef notdef
+fastrecov_ = TRUE;
+/* re-sync the pipe_ estimate */
+pipe_ = maxseq_ - highest_ack_;
+pipe_ -= (dupacks_ + 1);
 
 pipe_ = int(cwnd_) - dupacks_ - 1;
+#endif
 
 					dupack_action(); // maybe fast rexmt
 					goto drop;
 
 				} else if (dupacks_ > tcprexmtthresh_) {
+					// ACK at highest_ack_ AND above threshole
 					//trace_event("FAST_RECOVERY");
-					if (reno_fastrecov_) {
-						// we just measure cwnd in
-						// packets, so don't scale by
-						// maxseg_ as real
-						// tcp does
-						
-						cwnd_++;
-					}
+					extra_ack();
+#ifdef notdef
+if (reno_fastrecov_) {
+	// we just measure cwnd in
+	// packets, so don't scale by
+	// maxseg_ as real
+	// tcp does
+	cwnd_++;
+}
+#endif
+
+					// send whatever window allows
 					send_much(0, REASON_DUPACK, maxburst_);
 					goto drop;
 				}
@@ -1946,8 +1965,11 @@ drop:
 void
 FullTcpAgent::dupack_action()
 {   
+
         int recovered = (highest_ack_ > recover_);
-	//int recovered = !fastrecov_;
+
+	fastrecov_ = TRUE;
+
         if (recovered || (!bug_fix_ && !ecn_) ||
 	    last_cwnd_action_ == CWND_ACTION_DUPACK) {
                 goto full_reno_action;
@@ -1957,7 +1979,7 @@ FullTcpAgent::dupack_action()
                 slowdown(CLOSE_CWND_HALF);
 		cancel_rtx_timer();
 		rtt_active_ = FALSE;
-		fast_retransmit(highest_ack_);
+		(void)fast_retransmit(highest_ack_);
                 return; 
         }      
     
@@ -1974,7 +1996,8 @@ full_reno_action:
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	cancel_rtx_timer();
 	rtt_active_ = FALSE;
-	fast_retransmit(highest_ack_);
+	recover_ = maxseq_;
+	(void)fast_retransmit(highest_ack_);
 	// we measure cwnd in packets,
 	// so don't scale by maxseg_
 	// as real TCP does
@@ -2019,7 +2042,7 @@ void FullTcpAgent::reset_rtx_timer(int /* mild */)
 void FullTcpAgent::connect()
 {
 	newstate(TCPS_SYN_SENT);	// sending a SYN now
-	t_seqno_ += foutput(iss_, REASON_NORMAL);
+	sent(iss_, foutput(iss_, REASON_NORMAL));
 	return;
 }
 
@@ -2249,6 +2272,9 @@ void
 TahoeFullTcpAgent::dupack_action()
 {  
         int recovered = (highest_ack_ > recover_);
+
+	fastrecov_ = TRUE;
+
         if (recovered || (!bug_fix_ && !ecn_) ||
             last_cwnd_action_ == CWND_ACTION_DUPACK) {
                 goto full_tahoe_action;
@@ -2302,7 +2328,7 @@ NewRenoFullTcpAgent::NewRenoFullTcpAgent() : save_maxburst_(-1)
 void
 NewRenoFullTcpAgent::pack_action(Packet*)
 {
-	fast_retransmit(highest_ack_);
+	(void)fast_retransmit(highest_ack_);
 	cwnd_ = ssthresh_;
 	if (save_maxburst_ < 0) {
 		save_maxburst_ = maxburst_;
@@ -2327,7 +2353,7 @@ NewRenoFullTcpAgent::ack_action(Packet* p)
  * for Sack, do the following
  */
 
-SackFullTcpAgent::SackFullTcpAgent() : sack_min_(-1), sq_(sack_min_)
+SackFullTcpAgent::SackFullTcpAgent() : sack_min_(-1), sq_(sack_min_), h_seqno_(-1)
 {
 	bind("sack_option_size_", &sack_option_size_);
 	bind("sack_block_size_", &sack_block_size_);
@@ -2345,7 +2371,7 @@ void
 SackFullTcpAgent::reset()
 {
 	sq_.clear();			// no SACK blocks
-	sack_min_ = -1;			// no left edge of SACK blocks
+	sack_min_ = h_seqno_ -1;	// no left edge of SACK blocks
 	reno_fastrecov_ = FALSE;	// always F for sack
 	pipectrl_ = FALSE;		// start in window mode
 	FullTcpAgent::reset();
@@ -2415,6 +2441,12 @@ SackFullTcpAgent::dupack_action()
 
         int recovered = (highest_ack_ > recover_);
 
+	fastrecov_ = TRUE;
+	pipe_ = maxseq_ - highest_ack_ - (dupacks_ + 1)*maxseg_;
+
+//printf("%f: DUPACK-ACTION:pipe_:%d\n",
+//now(), pipe_);
+
         if (recovered || (!bug_fix_ && !ecn_) ||
             last_cwnd_action_ == CWND_ACTION_DUPACK) {
                 goto full_sack_action;
@@ -2449,10 +2481,11 @@ full_sack_action:
 	pipectrl_ = TRUE;
 	recover_ = maxseq_;	// where I am when recovery starts
 
-	// this arranges to retransmit the pkt the receiver
-	// next expects
-	t_seqno_ = highest_ack_;
-	send_much(1, REASON_DUPACK, 1);
+	int amt = fast_retransmit(highest_ack_);
+	h_seqno_ = highest_ack_ + amt;
+
+//send_much(0, REASON_DUPACK, maxburst_);
+
         return;
 }
 
@@ -2621,17 +2654,7 @@ SackFullTcpAgent::process_sack(hdr_tcp* tcph)
 				now(), name(), tcph->sa_left(i), tcph->sa_right(i));
 			continue;
 		}
-
-//printf("%f recv'd SACK: about to add sack data(%d,%d); highest_ack_:%d\n",
-//now(), tcph->sa_left(i), tcph->sa_right(i), int(highest_ack_));
-//sq_.dumplist();
-
 		sq_.add(tcph->sa_left(i), tcph->sa_right(i), 0);  
-
-//printf("%f recv'd SACK: added sack data(%d,%d); highest_ack_:%d\n",
-//now(), tcph->sa_left(i), tcph->sa_right(i), int(highest_ack_));
-//sq_.dumplist();
-
 	}
 }
 
@@ -2646,29 +2669,45 @@ SackFullTcpAgent::process_sack(hdr_tcp* tcph)
 int
 SackFullTcpAgent::nxt_tseq()
 {
+
+	int in_recovery = (highest_ack_ < recover_);
+	int seq = h_seqno_;
+
+	if (!in_recovery) {
+//printf("%f: non-recovery nxt_tseq called w/t_seqno:%d\n",
+//now(), int(t_seqno_));
+//sq_.dumplist();
+		return (t_seqno_);
+	}
+
 	int fcnt;	// following count-- the
 			// count field in the block
 			// after the seq# we are about
 			// to send
 
-	int seq = t_seqno_;
-
-//printf("%f: nxt_tseq called w/t_seqno:%d\n",
-//now(), int(t_seqno_));
+//printf("%f: recovery nxt_tseq called w/t_seqno:%d, seq:%d\n",
+//now(), int(t_seqno_), seq);
 //sq_.dumplist();
 
 	while ((seq = sq_.nexthole(seq, fcnt)) > 0) {
-		// if we either have a following block
-		// with a large enough count OR we don't
-		// have a following block (fcnt == -1),
-		// we should use the seq# we got
-		if (fcnt > SACKTHRESH || fcnt < 0) {
-//printf("%f: nxt_tseq<1> returning %d\n",
+		// if we have a following block
+		// with a large enough count
+		// we should use the seq# we get
+		// from nexthole()
+		if (fcnt >= SACKTHRESH) {
+
+//printf("%f: nxt_tseq<hole> returning %d\n",
 //now(), int(seq));
+			// adjust h_seqno, as we may have
+			// been "jumped ahead" by learning
+			// about a filled hole
+			if (seq > h_seqno_)
+				h_seqno_ = seq;
 			return (seq);
-		}
+		} else if (fcnt <= 0)
+			break;
 	}
-//printf("%f: nxt_tseq<2> returning %d\n",
+//printf("%f: nxt_tseq<top> returning %d\n",
 //now(), int(t_seqno_));
 	return (t_seqno_);
 }
