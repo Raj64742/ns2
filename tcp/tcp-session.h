@@ -20,6 +20,14 @@ protected:
 	TcpSessionAgent *a_;
 };
 
+class SessionResetTimer : public TimerHandler {
+public: 
+	SessionResetTimer(TcpSessionAgent *a) : TimerHandler() { a_ = a; }
+protected:
+	virtual void expire(Event *e);
+	TcpSessionAgent *a_;
+};
+
 class SessionBurstSndTimer : public TimerHandler {
 public: 
 	SessionBurstSndTimer(TcpSessionAgent *a) : TimerHandler() { a_ = a; }
@@ -40,7 +48,10 @@ public:
 	void reset_rtx_timer(int mild, int backoff = 1); /* XXX mild needed ? */
 	void set_rtx_timer();
 	void cancel_rtx_timer();
+	void cancel_timers();
 	void newack(Packet *pkt);
+	int fs_pkt();
+	void rtt_update_exact(double tao);
 	void timeout(int tno);
 	virtual Segment* add_pkts(int size, int seqno, int sessionSeqno, int daddr, 
 		      int dport, int sport, double ts, IntTcpAgent *sender); 

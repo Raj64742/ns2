@@ -76,13 +76,14 @@ public:
 TcpSessionAgent::TcpSessionAgent() : CorresHost(), 
 	rtx_timer_(this), burstsnd_timer_(this), sessionSeqno_(0),
 	last_send_time_(-1), curConn_(0), numConsecSegs_(0), 
-	schedDisp_(FINE_ROUND_ROBIN), wtSum_(0), dynWtSum_(0)
+	schedDisp_(FINE_ROUND_ROBIN), wtSum_(0), dynWtSum_(0) 
 {
 	bind("ownd_", &ownd_);
 	bind("owndCorr_", &owndCorrection_);
 	bind_bool("proxyopt_", &proxyopt_);
 	bind_bool("fixedIw_", &fixedIw_);
 	bind("schedDisp_", &schedDisp_);
+
 	sessionList_.append(this);
 }
 
@@ -110,6 +111,12 @@ SessionRtxTimer::expire(Event*)
 }
 
 void
+SessionResetTimer::expire(Event*)
+{
+	a_->timeout(TCP_TIMER_RESET);
+}
+
+void
 SessionBurstSndTimer::expire(Event*)
 {
 	a_->timeout(TCP_TIMER_BURSTSND);
@@ -127,14 +134,63 @@ TcpSessionAgent::reset_rtx_timer(int mild, int backoff)
 void
 TcpSessionAgent::set_rtx_timer()
 {
-	rtx_timer_.resched(rtt_timeout());
+	if (rtx_timer_.status() == TIMER_PENDING)
+		rtx_timer_.cancel();
+	if (reset_timer_.status() == TIMER_PENDING)
+		reset_timer_.cancel();
+	if (fs_enable_ && fs_mode_)
+		reset_timer_.resched(rtt_exact_timeout());
+	else
+		rtx_timer_.resched(rtt_timeout());
 }
 
 void
 TcpSessionAgent::cancel_rtx_timer()
 {
 	rtx_timer_.force_cancel();
+	reset_timer_.force_cancel();
 }
+
+void
+TcpSessionAgent::cancel_timers()
+{
+	rtx_timer_.force_cancel();
+	reset_timer_.force_cancel();
+	burstsnd_timer_.force_cancel();
+	delsnd_timer_.force_cancel();
+}
+
+int
+TcpSessionAgent::fs_pkt() {
+	return (fs_enable_ && fs_mode_ && sessionSeqno_-1 >= fs_startseq_ &&
+		sessionSeqno_-1 < fs_endseq_);
+}
+
+void
+TcpSessionAgent::rtt_update_exact(double tao)
+{
+	double g = 1/8; /* gain used for smoothing rtt */
+	double h = 1/4; /* gain used for smoothing rttvar */
+	double delta;
+
+	if (t_exact_srtt_ != 0) {
+		delta = tao - t_exact_srtt_;
+		if (delta < 0)
+			delta = -delta;
+		/* update the fine-grained estimate of the smoothed RTT */
+		if (t_exact_srtt_ != 0) 
+			t_exact_srtt_ = g*tao + (1-g)*t_exact_srtt_;
+		else
+			t_exact_srtt_ = tao;
+		/* update the fine-grained estimate of mean deviation in RTT */
+		delta -= t_exact_rttvar_;
+		t_exact_rttvar_ += h*delta;
+	}
+	else {
+		t_exact_srtt_ = tao;
+		t_exact_rttvar_ = tao/2;
+	}
+}	
 
 void
 TcpSessionAgent::newack(Packet *pkt) 
@@ -146,8 +202,10 @@ TcpSessionAgent::newack(Packet *pkt)
 
 	if (!fh->no_ts_) {
 		/* if the timestamp option is being used */
-		if (ts_option_)
+		if (ts_option_) {
 			rtt_update(now - tcph->ts_echo());
+			rtt_update_exact(now - tcph->ts_echo());
+		}
 		/* if segment being timed just got acked */
 		if (rtt_active_ && rtt_seg_ == NULL) {
 			t_backoff_ = 1;
@@ -167,6 +225,45 @@ TcpSessionAgent::timeout(int tno)
 {
 	if (tno == TCP_TIMER_BURSTSND)
 		send_much(NULL,0,0);
+	else if (tno == TCP_TIMER_RESET) {
+		Islist_iter<Segment> seg_iter(seglist_);
+		Segment *curseg;
+		Islist_iter<IntTcpAgent> conn_iter(conns_);
+		IntTcpAgent *curconn;
+
+		fs_mode_ = 0;
+		if (seg_iter.count() == 0 && !slow_start_restart_) {
+			return;
+		}
+		recover_ = sessionSeqno_ - 1;
+		recover_cause_ = 2;
+		ownd_ = 0;
+		owndCorrection_ = 0;
+		while ((curconn = conn_iter()) != NULL) {
+			curconn->maxseq_ = curconn->highest_ack_;
+			curconn->t_seqno_ = curconn->highest_ack_ + 1;
+			curconn->recover_ = curconn->maxseq_;
+			curconn->recover_cause_ = 2;
+		}
+		while ((curseg = seg_iter()) != NULL) {
+			/* XXX exclude packets sent "recently"? */
+			curseg->size_ = 0;
+		}
+
+		/* 
+		 * If first pkt sent before fast start has not gotten through, 
+		 * treat this as a regular rtx timeout. Otherwise, close cwnd
+		 * and reset timer but don't back off timer.
+		 */
+		if (connWithPktBeforeFS_) {
+			connWithPktBeforeFS_ = NULL;
+			timeout(TCP_TIMER_RTX);
+		}
+		else {
+			closecwnd(3);
+			reset_rtx_timer(0,0);
+		}
+	}
 	else if (tno == TCP_TIMER_RTX) {
 		Islist_iter<Segment> seg_iter(seglist_);
 		Segment *curseg;
@@ -326,26 +423,46 @@ TcpSessionAgent::send_much(IntTcpAgent *agent, int force, int reason)
 	int npackets = 0;
 	Islist_iter<Segment> seg_iter(seglist_);
 
+/*	if (reason != TCP_REASON_TIMEOUT && !force && 
+	    burstsnd_timer_.status() == TIMER_PENDING)
+		return;*/
+	if (reason != TCP_REASON_TIMEOUT &&  
+	    burstsnd_timer_.status() == TIMER_PENDING)
+		return;
 	/* no outstanding data and idle time >= t_rtxcur_ */
 	if ((seg_iter.count() == 0) && (last_send_time_ != -1) &&
 	    (Scheduler::instance().clock() - last_send_time_ >= t_rtxcur_)) {
-		if (restart_bugfix_)
+		if (slow_start_restart_ && restart_bugfix_)
 			closecwnd(3);
-		else
+		else if (slow_start_restart_)
 			closecwnd(0);
+		else if (fs_enable_) {
+			if (cwnd_ < ssthresh_)
+				cwnd_ = int(cwnd_/2);
+			else
+				cwnd_ -= 1;
+			fs_startseq_ = sessionSeqno_ + 1;
+			fs_endseq_ = sessionSeqno_ + window();
+			fs_mode_ = 1;
+		}
 	}
-	if (reason != TCP_REASON_TIMEOUT && !force && 
-	    burstsnd_timer_.status() == TIMER_PENDING)
-		return;
-	while (ok_to_snd(size_) || (reason == TCP_REASON_TIMEOUT) || 
-	       (force && agent)) {
-		if (force && agent) {
+/*	while (ok_to_snd(size_) || (reason == TCP_REASON_TIMEOUT) || 
+	       (force && agent)) {*/
+	while (ok_to_snd(size_)) {
+/*		if (force && agent) {
 			agent->send_one(sessionSeqno_++);
 			npackets++;
 		}
-		else {
+		else */ {
 			IntTcpAgent *sender = who_to_snd(schedDisp_);
 			if (sender) {
+				/*
+				 * remember the connection over which the first
+				 * packet just before fast start is sent
+				 */
+				if (fs_enable_ && fs_mode_ && 
+				    sessionSeqno_ == fs_startseq_)
+					connWithPktBeforeFS_ = sender;
 				/* if retransmission */
 				/* XXX we pick random conn even if rtx timeout */
 				if (sender->t_seqno_ < sender->maxseq_) {
@@ -384,14 +501,21 @@ TcpSessionAgent::recv(IntTcpAgent *agent, Packet *pkt, int amt_data_acked)
 
 	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && ecn_)
 		quench(1, agent, tcph->seqno());
-	if (amt_data_acked > 0) {
+	clean_segs(size_, pkt, agent, sessionSeqno_,amt_data_acked);
+	/* XXX okay to do this after clean_segs? */
+	/* if new data acked and this is not a partial ack */
+	if (amt_data_acked > 0 && (tcph->seqno() >= agent->recover_ ||
+		agent->recover_cause_ != 1) && !pktReordered_) {
 		int i = count_bytes_acked_ ? amt_data_acked:1;
 		while (i-- > 0)
 			opencwnd(size_,agent);
 	}
-	clean_segs(size_, pkt, agent, sessionSeqno_,amt_data_acked);
-	if (amt_data_acked > 0)
+	pktReordered_ = 0;
+	if (amt_data_acked > 0) {
+		if (fs_enable_ && fs_mode_ && connWithPktBeforeFS_ == agent)
+			connWithPktBeforeFS_ = NULL;
 		newack(pkt);
+	}
 	Packet::free(pkt);
 	send_much(NULL,0,0);
 }
