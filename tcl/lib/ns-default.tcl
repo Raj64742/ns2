@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.246 2001/06/15 00:18:13 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.247 2001/06/16 01:18:29 sfloyd Exp $
 
 
 #
@@ -161,6 +161,17 @@ Queue/RED/PD set targetBW_ 0
 Queue/RED/PD set unresponsive_penalty_ 1
 Queue/RED/PD set P_testFRp_ -1
 Queue/RED/PD set noidle_ false
+
+Queue/PI set bytes_ false
+Queue/PI set queue_in_bytes_ false
+Queue/PI set a_ 0.00001822
+Queue/PI set b_ 0.00001816
+Queue/PI set w_ 170
+Queue/PI set qref_ 50
+Queue/PI set mean_pktsize_ 500
+Queue/PI set setbit_ false
+Queue/PI set prob_ 0
+Queue/PI set curq_ 0
 
 Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000
