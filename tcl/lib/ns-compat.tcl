@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.26 1997/07/14 21:42:36 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.27 1997/07/24 23:33:52 breslau Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -107,6 +107,14 @@ OldSim instproc init args {
 		}
 		eval $self next $args
 	}
+	Source/Telnet instproc set args {
+		if { [llength $args] == 2 &&
+			[lindex $args 0] == "interval" } {
+			$self set interval_ [lindex $args 1]
+			return
+		}
+		eval $self next $args
+	}
 	#
 	# Support for things like "set ftp [$tcp source ftp]"
 	#
@@ -114,8 +122,11 @@ OldSim instproc init args {
 		if { $type == "ftp" } {
 			set type FTP
 		}
+		if { $type == "telnet" } {
+			set type Telnet
+		}
 		set src [new Source/$type]
-		$src set agent_ $self
+		$src attach $self
 		return $src
 	}
 	#
