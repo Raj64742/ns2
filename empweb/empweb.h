@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.4 2001/06/14 21:36:37 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.5 2001/06/15 20:24:18 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -121,7 +121,7 @@ public:
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
 		if (isdebug())
 			printf("deleted session %d \n", idx );
-		// delete session_[idx];
+		delete session_[idx];
 		session_[idx] = NULL; 
 	}
 	TcpAgent* picktcp();
