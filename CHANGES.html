@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.123 1997/08/10 09:15:03 ahelmy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.124 1997/08/10 18:34:00 mccanne Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -40,6 +40,19 @@ classifier-mcast.cc.
 <LI>Major change to tcl/mcast/McastProto.tcl to support well-known-groups 
 for local multicast on LANs. Also changes to ns-mcast.tcl for various 
 fixes and source-group-joins.
+</UL>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~mccanne">[SM]</A></B> <B>Sat
+Aug 09 11:49:33 PDT 1997</B><BR>
+</LI>
+<UL>
+<LI>First cut at port to win32 API (should work under both Windows 95 and NT).
+<LI>
+This version still limps ... the new Windows makefile
+(makefile.vc) needs much more work.
+<LI> This rev requires
+the latest TclCL (new name for libTcl) since several changes
+were required by the fact that Windows file names are case insensitive.
 </UL>
 
 <LI><A HREF="mailto:huang@isi.edu">[PH]</A> <B>Thu Aug  7 19:53:17 PDT 1997<BR></B>

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.51 1997/08/01 00:43:26 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.52 1997/08/10 18:34:01 mccanne Exp $
 
 
 #
@@ -105,15 +105,18 @@ Agent/TCP/Reno/RBP set rbp_scale_ 0.75
 # Reno/RBP supports only RBP_CWND_ALGORITHM 
 # Agent/TCP/Reno/RBP set rbp_rate_algorithm_ 2
 
-Agent/TCP/FullTcp set segsperack_ 1
-Agent/TCP/FullTcp set segsize_ 536
-Agent/TCP/FullTcp set tcprexmtthresh_ 3
-Agent/TCP/FullTcp set iss_ 0
-Agent/TCP/FullTcp set nodelay_ false
-Agent/TCP/FullTcp set data_on_syn_ false
-Agent/TCP/FullTcp set dupseg_fix_ true 
-Agent/TCP/FullTcp set dupack_reset_ false
-Agent/TCP/FullTcp set interval_ 0.1 ; # 100ms 
+#XXX catch this in case this class not defined
+catch {
+	Agent/TCP/FullTcp set segsperack_ 1
+	Agent/TCP/FullTcp set segsize_ 536
+	Agent/TCP/FullTcp set tcprexmtthresh_ 3
+	Agent/TCP/FullTcp set iss_ 0
+	Agent/TCP/FullTcp set nodelay_ false
+	Agent/TCP/FullTcp set data_on_syn_ false
+	Agent/TCP/FullTcp set dupseg_fix_ true 
+	Agent/TCP/FullTcp set dupack_reset_ false
+	Agent/TCP/FullTcp set interval_ 0.1 ; # 100ms 
+}
 
 Integrator set lastx_ 0.0
 Integrator set lasty_ 0.0
@@ -172,8 +175,10 @@ Agent/TCPSink set packetSize_ 40
 Agent/TCPSink set maxSackBlocks_ 3
 
 Agent/TCPSink/DelAck set interval_ 100ms
-Agent/TCPSink/Asym set interval_ 100ms
-Agent/TCPSink/Asym set maxdelack_ 5
+catch {
+    Agent/TCPSink/Asym set interval_ 100ms
+    Agent/TCPSink/Asym set maxdelack_ 5
+}
 Agent/TCPSink/Sack1/DelAck set interval_ 100ms
 
 Agent/CBR set interval_ 3.75ms
