@@ -18,7 +18,7 @@ TestSuite instproc create-connection-list {s_type source d_type dest pktClass} {
 #
 # create and schedule a cbr source/dst 
 #
-TestSuite instproc new_cbr { startTime source dest pktSize fid dump interval file stoptime } {
+TestSuite instproc new_cbr { startTime source dest pktSize interval fid } {
 	$self instvar ns_
 	set cbrboth \
 	    [$self create-connection-list CBR $source LossMonitor $dest $fid ]
@@ -27,28 +27,21 @@ TestSuite instproc new_cbr { startTime source dest pktSize fid dump interval fil
 	$cbr set interval_ $interval
 	set cbrsnk [lindex $cbrboth 1]
 	$ns_ at $startTime "$cbr start"
-	if { $dump == 1 } {
-		puts $file "class $class packet-size $pktSize"
-		$ns_ at $stoptime "printCbrPkts $cbrsnk $class $file"
-	}
 }
 
 #
 # create and schedule a tcp source/dst
 #
-TestSuite instproc new_tcp { startTime source dest window class dump size file stoptime } {
+TestSuite instproc new_tcp { startTime source dest window fid dump size } {
 	$self instvar ns_
-	set tcp [$ns_ create-connection TCP/Sack1 $source TCPSink/Sack1 $dest $class ]
+	set tcp [$ns_ create-connection TCP/Sack1 $source TCPSink/Sack1 $dest $fid]
 	$tcp set window_ $window
 	#   $tcp set tcpTick_ 0.1
 	$tcp set tcpTick_ 0.01
+
 	if {$size > 0}  {
 		$tcp set packetSize_ $size
 	}
 	set ftp [$tcp attach-source FTP]
 	$ns_ at $startTime "$ftp start"
-	$ns_ at $stoptime "puts $file \"class $class total_packets_acked [$tcp set ack_]\""
-	if { $dump == 1 } {
-		puts $file "class $class packet-size [$tcp set packetSize_]"
-	}
 }
