@@ -102,6 +102,6 @@ proc finish {} {
         exit 0
 }
 
-$ns run Session
+$ns run
 
 

@@ -154,10 +154,10 @@ SessionSim instproc compute-routes {} {
 	$r compute
 }
 
-SessionSim instproc run args {
+SessionSim instproc run {} {
 	#$self compute-routes
 	$self rtmodel-configure			;# in case there are any
-	eval RouteLogic configure $args
+	[$self get-routelogic] configure
 	$self instvar scheduler_ Node_
 	#
 	# Reset every node, which resets every agent
