@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.95 2003/08/21 18:22:00 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.96 2004/04/22 20:12:30 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -160,6 +160,9 @@ enum packet_t {
 	// SMAC packet
 	PT_SMAC,
 
+	// XCP packet
+	PT_XCP,
+
 	// insert new packet types here
 	PT_NTYPE // This MUST be the LAST one
 };
@@ -249,6 +252,8 @@ public:
 		
 		// smac
 		name_[PT_SMAC]="smac";
+
+		name_[PT_XCP]="xcp";
 
 		name_[PT_NTYPE]= "undefined";
 	}
