@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.43 1998/05/08 22:02:02 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.44 1998/05/27 20:35:56 kfall Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.43 1998/05/08 22:02:02 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.44 1998/05/27 20:35:56 kfall Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -456,60 +456,121 @@ ListErrorModel::intcomp(const void *p1, const void *p2)
 	int b = *((int*) p2);
 	return (a - b);
 }
+
+/*
+ * nextval: find the next value in the string
+ *
+ * skip white space, update pointer to first non-white-space
+ * character.  Return the number of characters in the next
+ * token.
+ */
+int
+ListErrorModel::nextval(const char*& p)
+{
+	while (*p && isspace(*p))
+		++p;
+
+	if (!*p) {
+		/* end of string */
+		return (0);
+	}
+	const char *q = p;
+	while (*q && !isspace(*q))
+		++q;
+	return (q-p);
+}
 int
 ListErrorModel::parse_droplist(int argc, const char *const* argv)
 {
 
-//printf("parse_droplist: argc:%d, argv[0]: %s\n", argc, *argv);
-	int cnt = 0;
-	int spaces = 0;
-	int total = 0;
-	const char *p;
+printf("parse_droplist: argc:%d, argv[0]: %s\n", argc, *argv);
+	int cnt = 0;		// counter for argc list
+	int spaces = 0;		// counts # of spaces in an argv entry
+	int total = 0;		// total entries in the drop list
+	int n;			// # of chars in the next drop number
+	const char *p;		// ptr into current string
+
+	/*
+	 * loop over argc list:  figure out how many numbers
+	 * have been specified
+	 */
 	while (cnt < argc) {
 		p = argv[cnt];
 		spaces = 0;
-		while (*p) {
-			if (*p == ' ')
-				spaces++;
-			else if (!isdigit(*p)) {
+		while (n = nextval(p)) {
+			if (!isdigit(*p)) {
 				/* problem... */
-//printf("PROBLEM1 at spaces: %d, %s\n", spaces, p);
+				fprintf(stderr,
+				    "ListErrorModel(%s): parse_droplist: unknown drop specifier starting at >>>%s\n",
+					name(), p);
 				return (-1);
 			}
-			p++;
+			++spaces;
+			p += n;
 		}
-		total += (spaces + 1);
+		total += spaces;
 		cnt++;
 	}
 
-//printf("total drop list entries: %d\n", total);
+	/*
+	 * parse the numbers, put them in an array (droplist_)
+	 * set dropcnt_ to the total # of drops.  Also, free any
+	 * previous drop list.
+	 */
 
-	dropcnt_ = total;
+	if ((total == 0) || (dropcnt_ > 0 && droplist_ != NULL)) {
+		delete[] droplist_;
+		droplist_ = NULL;
+	}
+
+	if ((dropcnt_ = total) == 0)
+		return (0);
+
 	droplist_ = new int[dropcnt_];
-	cnt = 0;
+	if (droplist_ == NULL) {
+		fprintf(stderr,
+		   "ListErrorModel(%s): no memory for drop list!\n",
+		   name());
+		return (-1);
+	}
 
-	int val, n = 0;
+	int idx = 0;
+	cnt = 0;
 	while (cnt < argc) {
 		p = argv[cnt];
-		while (*p) {
-			if (p == argv[cnt]) {
-				val = atoi(p);
-				droplist_[n++] = val;
-			} else if (*p == ' ') {
-				val = atoi(p+1);
-				droplist_[n++] = val;
-			}
-			if ((n > 1) && droplist_[n-1] == droplist_[n-2]) {
-				fprintf(stderr, "ListErrorModel: dups in list\n");
-				delete droplist_;
-				droplist_ = NULL;
-				return (-1);
-			}
-			p++;
+		while (n = nextval(p)) {
+			/*
+			 * this depends on atoi(s) returning the
+			 * value of the first number in s
+			 */
+			droplist_[idx++] = atoi(p);
+			p += n;
 		}
 		cnt++;
 	}
 	qsort(droplist_, dropcnt_, sizeof(int), intcomp);
+
+	/*
+	 * sanity check the array, looking for (wrong) dups
+	 */
+	cnt = 0;
+	while (cnt < (dropcnt_ - 1)) {
+		if (droplist_[cnt] == droplist_[cnt+1]) {
+			fprintf(stderr,
+			   "ListErrorModel: error: dup %d in list\n",
+			   droplist_[cnt]);
+			total = -1;	/* error */
+		}
+		++cnt;
+	}
+
+	if (total < 0) {
+		if (droplist_)
+			delete[] droplist_;
+		dropcnt_ = 0;
+		droplist_ = NULL;
+		return (-1);
+	}
 
 #ifdef notdef
 printf("sorted list:\n");
