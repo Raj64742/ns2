@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.227 2000/12/01 23:38:37 johnh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.228 2000/12/20 10:15:02 alefiyah Exp $
 
 
 #
@@ -491,6 +491,20 @@ LL set delay_                   25us
 LL set bandwidth_               0       ;# not used
 LL set debug_ false
 
+
+# 
+# Support for Abstract LAN
+#
+
+Classifier/Replicator set direction_ false
+Mac set abstract_ false
+
+#
+# Support for MAC Level trace
+#
+Mac/802_3 set trace_ false
+
+#
 # Unity gain, omni-directional antennas
 # Set up the antennas to be centered in the node and 1.5 meters above it
 Antenna/OmniAntenna set X_ 0
