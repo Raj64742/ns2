@@ -8,7 +8,6 @@ proc view-topology { infile outfile } {
         $ns namtrace-all $f
 
         # create-topology ... [params]..
-        set node(-1) 5; # hack to deal with converter output.. XXX
         create-topology ns node 1.5Mb
 
         #... dump the file
