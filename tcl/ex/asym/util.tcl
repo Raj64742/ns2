@@ -43,7 +43,9 @@ Agent/TCP/Session set proxyopt_ false
 Agent/TCP/Session set fixedIw_ false
 Agent/TCP/Session set count_bytes_acked_ false
 Agent/TCP/Session set schedDisp_ $FINE_ROUND_ROBIN
+Agent/TCP/Session set fs_enable_ false
 
+Agent/TCP/Newreno/FS set fs_enable_ false
 Agent/TCPSink set ts_echo_bugfix_ true
 
 proc processtrace { midtime turnontime turnofftime { qtraceflag false } { dir "." } } {
@@ -116,7 +118,7 @@ proc trace_queue {ns n0 n1 queuetrace} {
 }
 
 
-proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } { slow_start_restart false} } {
+proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } { slow_start_restart false } { fs_enable false } } {
 	set tcp0 [new Agent/$type]
 	$tcp0 set class_ 1
 	$tcp0 set maxburst_ $maxburst
@@ -126,6 +128,9 @@ proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } { slow
 	$tcp0 set ecn_ 1
 	$tcp0 set g_ 0.125
 	$tcp0 set slow_start_restart_ $slow_start_restart
+	if {$fs_enable} {
+		$tcp0 set fs_enable_ $fs_enable
+	}
 	return $tcp0
 } 
 
@@ -187,12 +192,13 @@ proc createTcpSink { type sinktrace { ackSize 40 } { maxdelack 25 } } {
 	return $sink0
 }
 
-proc setupTcpSession { tcp { count_bytes_acked false } { schedDisp $FINE_ROUND_ROBIN}} {
+proc setupTcpSession { tcp { count_bytes_acked false } { schedDisp $FINE_ROUND_ROBIN} {fs_enable false} } {
 	set dst [expr ([$tcp set dst_]/256)*256]
 	if {![[$tcp set node_] existsTcpSession $dst]} {
 		set session [[$tcp set node_] createTcpSession $dst]
 		$session set maxburst_ [$tcp set maxburst_]
 		$session set slow_start_restart_ [$tcp set slow_start_restart_]
+		$session set fs_enable_ $fs_enable
 		$session set restart_bugfix_ [$tcp set restart_bugfix_]
 		$session set packetSize_ [$tcp set packetSize_]
 		$session set ecn_ [$tcp set ecn_]
@@ -241,9 +247,9 @@ proc configQueue { ns n0 n1 type qtrace { size -1 } { nonfifo 0 } { acksfirst fa
 		}
 		$q01 packetqueue-attach $spq
 	}
-	if {[string first "RED" $type] != -1} {
-		configREDQueue $ns $n0 $n1 [$q01 set q_weight_] 1
-	}
+#	if {[string first "RED" $type] != -1} {
+#		configREDQueue $ns $n0 $n1 [$q01 set q_weight_] 1
+#	}
 #	$q01 trace $trace
 	if { $qtrace != 0 } {
 		trace_queue $ns $n0 $n1 $qtrace
@@ -251,11 +257,12 @@ proc configQueue { ns n0 n1 type qtrace { size -1 } { nonfifo 0 } { acksfirst fa
 	$q01 reset
 }
 
-proc configREDQueue { ns n0 n1 { q_weight -1 } { fracthresh 0 } { fracminthresh 0.4 } { fracmaxthresh 0.8} } {
+proc configREDQueue { ns n0 n1 { redtrace } { q_weight -1 } { fracthresh 0 } { fracminthresh 0.4 } { fracmaxthresh 0.8} } {
 	set id0 [$n0 id]
 	set id1 [$n1 id]
 	set l01 [$ns set link_($id0:$id1)]
 	set q01 [$l01 set queue_]
+	$q01 attach $redtrace
 	if {$q_weight >= 0} {
 		$q01 set q_weight_ $q_weight
 	}
