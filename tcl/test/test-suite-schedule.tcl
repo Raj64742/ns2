@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-schedule.tcl,v 1.3 1998/08/14 20:14:24 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-schedule.tcl,v 1.4 1998/12/16 23:03:21 breslau Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-schedule.tcl
@@ -111,6 +111,22 @@ Topology/netSFQ instproc init ns {
         $ns duplex-link $node_(r1) $node_(k1) 800Kb 2ms SFQ
         $ns queue-limit $node_(r1) $node_(k1) 25
         $ns queue-limit $node_(k1) $node_(r1) 25 
+	if {[$class info instprocs config] != ""} {
+	 $self config $ns
+ 	}
+
+}
+
+Class Topology/netFQ -superclass NodeTopology/4nodes
+
+Topology/netFQ instproc init ns {
+	$self next $ns
+	$self instvar node_
+        $ns duplex-link $node_(s1) $node_(r1) 8Mb 2ms DropTail
+        $ns duplex-link $node_(s2) $node_(r1) 8Mb 20ms DropTail
+        $ns duplex-link $node_(r1) $node_(k1) 800Kb 2ms FQ
+        $ns queue-limit $node_(r1) $node_(k1) 25
+        $ns queue-limit $node_(k1) $node_(r1) 25
 	if {[$class info instprocs config] != ""} {
 	 $self config $ns
  	}
@@ -198,6 +214,19 @@ Test/sfq instproc init topo {
 }
 
 Test/sfq instproc run {} {
+	$self runDetailed
+}
+
+Class Test/fq -superclass TestSuite
+Test/fq instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     netFQ
+        set test_       fq
+        $self next
+}
+
+Test/fq instproc run {} {
 	$self runDetailed
 }
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.142 1998/12/01 01:44:13 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.143 1998/12/16 23:03:19 breslau Exp $
 
 
 #
@@ -188,6 +188,8 @@ Queue/SFQ set maxqueue_ 40
 Queue/SFQ set buckets_ 16
 
 Queue/FQ set secsPerByte_ 0
+# change DropTail to RED for RED on individual queues
+FQLink set queueManagement_ DropTail
 
 Queue set interleave_ false
 Queue set acksfirst_ false

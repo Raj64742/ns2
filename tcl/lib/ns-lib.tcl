@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.133 1998/12/12 02:06:53 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.134 1998/12/16 23:03:20 breslau Exp $
 
 #
 
@@ -368,6 +368,9 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
                         set link_($sid:$did) [new CBQLink       \
                                         $n1 $n2 $bw $delay $q $c]
                 }
+		FQ      {
+			set link_($sid:$did) [new FQLink $n1 $n2 $bw $delay $q]
+		}
                 intserv {
                         #XX need to clean this up
                         set link_($sid:$did) [new IntServLink   \

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.16 1998/10/27 00:50:17 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.17 1998/12/16 23:03:20 breslau Exp $
 #
 
 #
@@ -378,4 +378,60 @@ Agent/AckReconsClass instproc ackbw {ack time} {
 	set sample [expr $time - $lastRealTime_]
 	# EWMA
 	set ackInterArr_ [expr $alpha_*$sample + (1-$alpha_)*$ackInterArr_]
+}
+
+Class Classifier/Hash/Fid/FQ -superclass Classifier/Hash/Fid
+
+Classifier/Hash/Fid/FQ instproc unknown-flow { src dst fid buck } {
+	$self instvar fq_
+	$fq_ new-flow $src $dst $fid
+}
+
+Class FQLink -superclass SimpleLink
+
+FQLink instproc init { src dst bw delay q } {
+	$self next $src $dst $bw $delay $q
+	$self instvar link_ queue_ head_ toNode_ ttl_ classifier_ \
+		nactive_ 
+	$self instvar drophead_		;# idea stolen from CBQ and Kevin
+
+	set nactive_ 0
+
+	set classifier_ [new Classifier/Hash/Fid/FQ 33]
+	$classifier_ set fq_ $self
+
+	#$self add-to-head $classifier_
+	$head_ target $classifier_
+
+	# XXX
+	# put the ttl checker after the delay
+	# so we don't have to worry about accounting
+	# for ttl-drops within the trace and/or monitor
+	# fabric
+	#
+
+	$queue_ set secsPerByte_ [expr 8.0 / [$link_ set bandwidth_]]
+}
+FQLink instproc new-flow { src dst fid } {
+	$self instvar classifier_ nactive_ queue_ link_ drpT_
+	incr nactive_
+
+	set type [$class set queueManagement_]
+	set q [new Queue/$type]
+
+	#XXX yuck
+	if { $type == "RED" } {
+	 	set bw [$link_ set bandwidth_]
+		$q set ptc_ [expr $bw / (8. * [$q set mean_pktsize_])]
+	}
+	$q drop-target $drpT_
+
+	set slot [$classifier_ installNext $q]
+	$classifier_ set-hash auto $src $dst $fid $slot
+	$q target $queue_
+	$queue_ install $fid $q
+}
+#XXX ask Kannan why this isn't in otcl base class.
+FQLink instproc up? { } {
+	return up
 }

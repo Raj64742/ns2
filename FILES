@@ -966,6 +966,7 @@ tcl/test/test-output-schedule/drr.Z
 tcl/test/test-output-schedule/fifo-droptail.Z
 tcl/test/test-output-schedule/fifo-red.Z
 tcl/test/test-output-schedule/fifo.Z
+tcl/test/test-output-schedule/fq.Z
 tcl/test/test-output-schedule/sfq.Z
 tcl/test/test-output-session/Session1.Z
 tcl/test/test-output-session/Session2.Z
