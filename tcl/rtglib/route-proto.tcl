@@ -281,10 +281,11 @@ rtObject instproc metric? dest {
 #
 Class rtPeer
 
-rtPeer instproc init {addr cls} {
+rtPeer instproc init {addr port cls} {
     $self next
-    $self instvar addr_ metric_ rtpref_
+    $self instvar addr_ port_ metric_ rtpref_
     set addr_ $addr
+    set port_ $port
     foreach dest [[Simulator instance] all-nodes-list] {
 	set metric_($dest) [$cls set INFINITY]
 	set rtpref_($dest) [$cls set preference_]
@@ -294,6 +295,11 @@ rtPeer instproc init {addr cls} {
 rtPeer instproc addr? {} {
     $self instvar addr_
     return $addr_
+}
+
+rtPeer instproc port? {} {
+    $self instvar port_
+    return $port_
 }
 
 rtPeer instproc metric {dest val} {
@@ -453,7 +459,7 @@ Agent/rtProto/DV proc init-all args {
 	    if { $rtobj != "" } {
 		set rtproto [$rtobj rtProto? DV]
 		if { $rtproto != "" } {
-		    $proto($node) add-peer $nbr [$rtproto set agent_addr_]
+		    $proto($node) add-peer $nbr [$rtproto set agent_addr_] [$rtproto set agent_port_]
 		}
 	    }
 	}
@@ -480,9 +486,9 @@ Agent/rtProto/DV instproc init node {
     $ns_ at $updateTime "$self send-periodic-update"
 }
 
-Agent/rtProto/DV instproc add-peer {nbr agentAddr} {
+Agent/rtProto/DV instproc add-peer {nbr agentAddr agentPort} {
     $self instvar peers_
-    $self set peers_($nbr) [new rtPeer $agentAddr $class]
+    $self set peers_($nbr) [new rtPeer $agentAddr $agentPort $class]
 }
 
 Agent/rtProto/DV instproc send-periodic-update {} {
@@ -664,7 +670,7 @@ Agent/rtProto/DV instproc send-to-peer nbr {
     if $j { puts ""; }
 
     # XXX Note the singularity below...
-    $self send-update [$peers_($nbr) addr?] $id [array size update]
+    $self send-update [$peers_($nbr) addr?] [$peers_($nbr) port?] $id [array size update]
 }
 
 Agent/rtProto/DV instproc recv-update {peerAddr id} {

@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtProtoDV.cc,v 1.6 1999/09/09 03:22:44 salehi Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtProtoDV.cc,v 1.7 2000/02/14 16:37:06 polly Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
@@ -52,9 +52,9 @@ int rtProtoDV::command(int argc, const char*const* argv)
 	if (strcmp(argv[1], "send-update") == 0) {
 		ns_addr_t dst;
 		dst.addr_ = atoi(argv[2]);
-		dst.port_ = 0;
-		u_int32_t mtvar = atoi(argv[3]);
-		u_int32_t size  = atoi(argv[4]);
+		dst.port_ = atoi(argv[3]);
+		u_int32_t mtvar = atoi(argv[4]);
+		u_int32_t size  = atoi(argv[5]);
 		sendpkt(dst, mtvar, size);
 		return TCL_OK;
 	}
