@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.43 2003/04/17 02:07:57 buchheim Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.44 2003/04/23 00:15:44 buchheim Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -552,7 +552,7 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 		if {$imepflag != ""} {
 			set drpT [$self mobility-trace Drop "MAC"]
 		} else {
-			set drpT [cmu-trace Drop "MAC" $self]`
+			set drpT [cmu-trace Drop "MAC" $self]
 		}
 		$mac drop-target $drpT
 		if { $namfp != "" } {
