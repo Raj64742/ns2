@@ -44,7 +44,7 @@ then
         flag=$1
         ./test-all-template1 $file $directory $version $flag
 else
-        #echo "testing: SRR"
+        #echo "testing: srr"
         ./test-all-template1 $file $directory $version srr
 fi
 

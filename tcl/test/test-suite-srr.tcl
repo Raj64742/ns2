@@ -41,124 +41,131 @@ Simulator instproc get-link { node1 node2 } {
 
 #Simple SRR Test-suite 
 proc set_queue {} {
-    global q 
-    $q maxqueuenumber 7
-    $q mtu 250
-    $q granularity 250 
-    $q blimit 25000
-    
-    $q setqueue 1 0 
-    $q setqueue 2 1 
-    $q setqueue 3 2 
-    $q setqueue 4 3 
-    
-    $q setrate 0 80000
-    $q setrate 1 40000
-    $q setrate 2 20000
-    $q setrate 3 10000
+	global q 
+	$q maxqueuenumber 256
+	$q mtu 250
+	$q granularity  10000
+#	$q qlimit	30
+#	$q maxqueuelen  20
+
+	$q setqueue 1 0 
+	$q setqueue 2 1 
+	$q setqueue 3 2 
+	$q setqueue 4 3 
+
+	$q setrate 0 80000
+	$q setrate 1 40000
+	$q setrate 2 20000
+	$q setrate 3 10000
 }
 
 # create 4 cbr sources 
 proc create_traffic {} {
-    global ns lm0 n0 n1
-    for {set i 0} {$i < 4} { incr i} {
-	global udp$i cbr$i
-    }
-    
-    for {set i 0} {$i < 4} { incr i} {
-	set agt [new Agent/UDP]
-	set app [new Application/Traffic/CBR]
+
+	global ns lm0 n0 n1
+	for {set i 0} {$i < 4} { incr i} {
+		global udp$i cbr$i
+	}
+
 	
-	$agt set fid_ [expr $i + 1 ] 
-	$ns attach-agent $n0 $agt
-	$app attach-agent $agt
+	for {set i 0} {$i < 4} { incr i} {
+		set agt [new Agent/UDP]
+		set app [new Application/Traffic/CBR]
 	
-	$app set packetSize_ 250
-	$app set rate_ 80kb
-	$app set random_ 0 
-	
-	set udp$i $agt
-	set cbr$i $app
-    }
-    
-    
-    # receiver 0 :
-    set lm0 [new Agent/Null]
-    $ns attach-agent $n1 $lm0
-    
-    for {set i 0} {$i < 4} { incr i} {
-	global udp$i
-	set agent [set udp$i]
-	$ns connect $agent $lm0
-    }
+		$agt set fid_ [expr $i + 1 ] 
+		$ns attach-agent $n0 $agt
+		$app attach-agent $agt
+
+		$app set packetSize_ 250
+		$app set rate_ 100kb
+		$app set random_ 0 
+
+		set udp$i $agt
+		set cbr$i $app
+	}
+
+
+	# receiver 0 :
+	set lm0 [new Agent/Null]
+	$ns attach-agent $n1 $lm0
+
+	for {set i 0} {$i < 4} { incr i} {
+		global udp$i
+		set agent [set udp$i]
+		$ns connect $agent $lm0
+	}
 }
 
 
 proc start_sim {} {
-    global ns cbr0 cbr1 cbr2 cbr3
-    
-    $ns at 0.0 "$cbr0 start"
-    $ns at 0.0 "$cbr1 start"
-    $ns at 0.0 "$cbr2 start"
-    $ns at 0.0 "$cbr3 start"
+	global ns cbr0 cbr1 cbr2 cbr3
+	
+	$ns at 0.0 "$cbr0 start"
+	$ns at 0.0 "$cbr1 start"
+	$ns at 0.0 "$cbr2 start"
+	$ns at 0.0 "$cbr3 start"
+
 }
 
 proc stop_sim {} {
-    global ns f cbr0 cbr1 cbr2 cbr3
-    $ns at 5.0 "$cbr0 stop"
-    $ns at 5.0 "$cbr1 stop"
-    $ns at 5.0 "$cbr2 stop"
-    $ns at 5.0 "$cbr3 stop"
-    
-    $ns at 5.0 "close $f;finish"
+	global ns f cbr0 cbr1 cbr2 cbr3
+	$ns at 5.0 "$cbr0 stop"
+	$ns at 5.0 "$cbr1 stop"
+	$ns at 5.0 "$cbr2 stop"
+	$ns at 5.0 "$cbr3 stop"
+
+	$ns at 5.0 "close $f;finish"
 }
+
 
 proc finish {} {
     puts "processing output ..."
     exec awk  { 
 	{
 	    n[$8]=$8; \
-		    if ($1=="-") r[$8]++; \
-		    if ($1=="+") s[$8]++; \
-		    if ($1=="d") d[$8]++ \
-		}
+	    if ($1=="-") r[$8]++; \
+	    if ($1=="+") s[$8]++; \
+	    if ($1=="d") d[$8]++ \
+	    }
 	END \
-		{ 
-	    printf ("Flow#\t#sent\t#recvd\t#drop\t%%recvd\n"); \
+	    { 
+		printf ("Flow#\t#sent\t#recvd\t#drop\t%%recvd\n"); \
 		    for (i in r) \
 		    printf ("%d\t%d\t%d\t%d\t%f\n",n[i],s[i],r[i],d[i],r[i]*1.0/s[i])\
 		}
     } temp.rands > srr_out.txt
-	#    exec cat srr_out.txt &
-	exit 0
-    }
-
+#    exec cat srr_out.txt &
+    exit 0
+}
 proc test_srr {} {
-    global  ns n0 n1 f l q argv
-    
-    set ns [new Simulator]
-    set n0 [$ns node]
-    set n1 [$ns node]
-    set f [open temp.rands w]
-    
-    $ns duplex-link $n0 $n1 150kb 1ms SRR
-    
-    # trace the bottleneck queue 
-    $ns trace-queue $n0 $n1 $f
-    
-    
-    #Alternate way for setting parameters for the SRR queue
-    set l [$ns get-link $n0 $n1]
-    set q [$l queue]
-    
-    create_traffic
-    set_queue
-    start_sim 
-    stop_sim
-    $ns run
+	global  ns n0 n1 f l q argv
+
+	set ns [new Simulator]
+	set xx0 [$ns node]
+	set xy0 [$ns node]
+	set n0 [$ns node]
+	set n1 [$ns node]
+	set f [open temp.rands w]
+
+
+	$ns duplex-link $n0 $n1 150kb 1ms SRR
+
+	# trace the bottleneck queue 
+	$ns trace-queue $n0 $n1 $f
+
+
+	#Alternate way for setting parameters for the SRR queue
+	set l [$ns get-link $n0 $n1]
+	set q [$l queue]
+
+	create_traffic
+	set_queue
+	start_sim 
+	stop_sim
+	$ns run
 }
 
 global argv arg0
 
-test_srr
+test_srr 
 
