@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.12 2001/05/27 02:14:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.13 2001/07/18 02:14:23 kfall Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -353,16 +353,16 @@ Test/onedrop_SA_sack instproc init {} {
 	$self next
 }
 
-Class Test/onedrop_sack_full -superclass TestSuite
-Test/onedrop_sack_full instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	onedrop_sack_full
-	$self next
-}
-Test/onedrop_sack_full instproc run {} {
-        $self setup FullTcpSack1 {16}
-}
+#Class Test/onedrop_sack_full -superclass TestSuite
+#Test/onedrop_sack_full instproc init {} {
+#	$self instvar net_ test_
+#	set net_	net4
+#	set test_	onedrop_sack_full
+#	$self next
+#}
+#Test/onedrop_sack_full instproc run {} {
+#        $self setup FullTcpSack1 {16}
+#}
 
 Class Test/onedrop_fack -superclass TestSuite
 Test/onedrop_fack instproc init {} {
@@ -467,16 +467,16 @@ Test/twodrops_sack instproc run {} {
         $self setup Sack1 {14 28}
 }
 
-Class Test/twodrops_sack_full -superclass TestSuite
-Test/twodrops_sack_full instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	twodrops_sack_full
-	$self next
-}
-Test/twodrops_sack_full instproc run {} {
-        $self setup FullTcpSack1 {16 30}
-}
+#Class Test/twodrops_sack_full -superclass TestSuite
+#Test/twodrops_sack_full instproc init {} {
+#	$self instvar net_ test_
+#	set net_	net4
+#	set test_	twodrops_sack_full
+#	$self next
+#}
+#Test/twodrops_sack_full instproc run {} {
+#       $self setup FullTcpSack1 {16 30}
+#}
 
 Class Test/twodrops_fack -superclass TestSuite
 Test/twodrops_fack instproc init {} {
@@ -581,16 +581,16 @@ Test/threedrops_sack instproc run {} {
         $self setup Sack1 {14 26 28}
 }
 
-Class Test/threedrops_sack_full -superclass TestSuite
-Test/threedrops_sack_full instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	threedrops_sack_full
-	$self next
-}
-Test/threedrops_sack_full instproc run {} {
-        $self setup FullTcpSack1 {16 28 30}
-}
+#Class Test/threedrops_sack_full -superclass TestSuite
+#Test/threedrops_sack_full instproc init {} {
+#	$self instvar net_ test_
+#	set net_	net4
+#	set test_	threedrops_sack_full
+#	$self next
+#}
+#Test/threedrops_sack_full instproc run {} {
+#       $self setup FullTcpSack1 {16 28 30}
+#}
 
 Class Test/threedrops_fack -superclass TestSuite
 Test/threedrops_fack instproc init {} {
@@ -696,16 +696,16 @@ Test/fourdrops_sack instproc run {} {
         $self setup Sack1 {14 24 26 28}
 }
 
-Class Test/fourdrops_sack_full -superclass TestSuite
-Test/fourdrops_sack_full instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	fourdrops_sack_full
-	$self next
-}
-Test/fourdrops_sack_full instproc run {} {
-        $self setup FullTcpSack1 {16 26 28 30}
-}
+#Class Test/fourdrops_sack_full -superclass TestSuite
+#Test/fourdrops_sack_full instproc init {} {
+#	$self instvar net_ test_
+#	set net_	net4
+#	set test_	fourdrops_sack_full
+#	$self next
+#}
+#Test/fourdrops_sack_full instproc run {} {
+#       $self setup FullTcpSack1 {16 26 28 30}
+#}
 
 Class Test/fourdrops_fack -superclass TestSuite
 Test/fourdrops_fack instproc init {} {
