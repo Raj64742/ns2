@@ -1490,6 +1490,8 @@ tcl/test/test-output-WLtutorial/wireless1.Z
 tcl/test/test-output-WLtutorial/wireless2.Z
 tcl/test/test-output-WLtutorial/wireless3.Z
 tcl/test/test-output-adaptive-red/cautious.Z
+tcl/test/test-output-adaptive-red/cautious2.Z
+tcl/test/test-output-adaptive-red/cautious3.Z
 tcl/test/test-output-adaptive-red/fastlink.Z
 tcl/test/test-output-adaptive-red/fastlinkAdapt.Z
 tcl/test/test-output-adaptive-red/fastlinkAllAdapt.Z
@@ -1772,6 +1774,7 @@ tcl/test/test-output-hier-routing/hier-session-bc.Z
 tcl/test/test-output-hier-routing/hier-session.Z
 tcl/test/test-output-hier-routing/hier-simple-bc.Z
 tcl/test/test-output-hier-routing/hier-simple.Z
+tcl/test/test-output-tcpHighspeed
 tcl/test/test-output-intserv/ACTO.Z
 tcl/test/test-output-intserv/ACTP.Z
 tcl/test/test-output-intserv/HB.Z
@@ -2004,11 +2007,15 @@ tcl/test/test-output-simple/reno5.Z
 tcl/test/test-output-simple/renoA.Z
 tcl/test/test-output-simple/stats.Z
 tcl/test/test-output-simple/stats1.Z
+tcl/test/test-output-simple/stats1Bytes.Z 
 tcl/test/test-output-simple/stats1a.Z
+tcl/test/test-output-simple/stats1aBytes.Z
 tcl/test/test-output-simple/stats2.Z
 tcl/test/test-output-simple/statsHeaders.Z
 tcl/test/test-output-simple/tahoe1.Z
+tcl/test/test-output-simple/tahoe1Bytes.Z
 tcl/test/test-output-simple/tahoe1RED.Z
+tcl/test/test-output-simple/tahoe1REDbytes.Z 
 tcl/test/test-output-simple/tahoe2.Z
 tcl/test/test-output-simple/tahoe3.Z
 tcl/test/test-output-simple/tahoe3RED.Z
