@@ -56,7 +56,7 @@ TestSuite instproc finish {} {
     $ns_ flush-trace
     if { !$quiet } {
 	puts "running nam..."
-	exec ../../../nam-1/nam ../../temp.rands.nam &
+	exec ../../../nam-1/nam temp.rands.nam &
     }
     exit 0
 }
@@ -66,8 +66,8 @@ TestSuite instproc init {} {
     set ns_ [new Simulator]
     $ns_ instvar link_
     
-    $ns_ trace-all [open ../../temp.rands w]
-    $ns_ namtrace-all [open ../../temp.rands.nam w]
+    $ns_ trace-all [open temp.rands w]
+    $ns_ namtrace-all [open temp.rands.nam w]
     
     set node_(s) [$ns_ node]
     set node_(g) [$ns_ node]

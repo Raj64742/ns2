@@ -95,8 +95,10 @@ public:
 	inline MobileNode* nextnode() { return link.le_next; }
 
 	void dump(void);
-
-	inline MobileNode* base_stn() { return base_stn_; }
+	
+	//inline MobileNode* base_stn() { return base_stn_; }
+	inline int base_stn() { return base_stn_;}
+	inline void set_base_stn(int addr) {base_stn_ = addr;}
 
 	/*
 	 * Last time the position of this node was updated.
@@ -188,10 +190,11 @@ private:
 	 */
 	Trace* log_target;
 
-        /* a base_stn for mobilenodes communicating with
-         *  wired nodes
-         */
-        MobileNode* base_stn_;
+	/* a base_stn for mobilenodes communicating with 
+	 *  wired nodes
+	 */
+	//MobileNode* base_stn_;
+	int base_stn_;
 };
 
 

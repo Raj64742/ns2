@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.15 1999/04/22 18:53:36 haldar Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.16 1999/05/05 19:59:20 haldar Exp $";
 #endif
 
 #include "classifier-addr.h"
@@ -107,7 +107,7 @@ NsObject* BcastAddressClassifier::find(Packet* p)
         NsObject* node = NULL;
         int cl = classify(p);
         if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) {
-                if (cl == BCAST_ADDR) {
+                if (cl == BCAST_ADDR_MASK) {
                         // limited broadcast; assuming no such packet
                         // would be delivered back to sender
                         return bcast_recver_;

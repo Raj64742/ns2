@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.7 1999/04/22 18:54:03 haldar Exp $
+# $Id: dsr.tcl,v 1.8 1999/05/05 19:59:37 haldar Exp $
 
 # ======================================================================
 # Default Script Options
@@ -70,6 +70,7 @@ Class SRNode -superclass Node/MobileNode
 SRNode instproc init {args} {
 	global ns ns_ opt tracefd RouterTrace
 	$self instvar dsr_agent_ dmux_ entry_point_ address_
+        set ns_ [Simulator instance]
 
 	eval $self next $args	;# parent class constructor
 	if {$dmux_ == "" } {

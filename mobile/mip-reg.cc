@@ -29,9 +29,11 @@
 
 // #ident "@(#)mip-reg.cc  1.4     98/08/30 SMI"
 
-#include "template.h"
-#include "mip.h"
-#include "random.h"
+#include <template.h>
+#include <mip.h>
+#include <random.h>
+#include <address.h>
+#include <mobilenode.h>
 
 #define AGENT_ADS_SIZE		48
 #define REG_REQUEST_SIZE	52
@@ -51,12 +53,12 @@ public:
 	}
 } class_mipbsagent;
 
-MIPBSAgent::MIPBSAgent() : Agent(PT_UDP), beacon_(1.0), bcast_target_(0), 
-            timer_(this), mask_(0xffffffff), shift_(8), adlftm_(~0)
+MIPBSAgent::MIPBSAgent() : Agent(PT_UDP), beacon_(1.0), 
+  bcast_target_(0), ragent_(0), timer_(this), adlftm_(~0)
 {
 	bind("adSize_", &size_);
-	bind("shift_", &shift_);
-	bind("mask_", &mask_);
+	//bind("shift_", &shift_);
+	//bind("mask_", &mask_);
 	bind("ad_lifetime_", &adlftm_);
 	bind("off_mip_", &off_mip_);
 	size_ = AGENT_ADS_SIZE;
@@ -66,56 +68,73 @@ MIPBSAgent::MIPBSAgent() : Agent(PT_UDP), beacon_(1.0), bcast_target_(0),
 void MIPBSAgent::recv(Packet* p, Handler *)
 {
 	Tcl& tcl = Tcl::instance();
-	char *objname;
-	NsObject *obj;
+	char *objname = NULL;
+	NsObject *obj = NULL;
 	hdr_mip *miph = (hdr_mip *)p->access(off_mip_);
 	hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
-
+	hdr_cmn *ch = (hdr_cmn*)p->access(off_cmn_);
+	int nodeaddr = Address::instance().get_nodeaddr(addr_);
+	
 	switch (miph->type_) {
 	case MIPT_REG_REQUEST:
-		if (miph->ha_ == (addr_ >> shift_ & mask_)) {
-			if (miph->ha_ == miph->coa_) { // back home
-				tcl.evalf("%s clear-reg %d", name_,
-					  miph->haddr_);
-			}
-			else {
-				tcl.evalf("%s encap-route %d %d %lf", name_,
-					  miph->haddr_, miph->coa_,
-					  miph->lifetime_);
-			}
-			iph->dst() = iph->src();
-			miph->type_ = MIPT_REG_REPLY;
-		}
-		else {
-			iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) |
-				(miph->ha_ & mask_) << shift_;
-		}
-		iph->src() = addr_;
-		// by now should be back to normal route
-		// if dst is the mobile
-		send(p, 0);
-		break;
+	  //if (miph->ha_ == (addr_ >> shift_ & mask_)) {
+	  if (miph->ha_ == (Address::instance().get_nodeaddr(addr_))){
+	    if (miph->ha_ == miph->coa_) { // back home
+	      tcl.evalf("%s clear-reg %d", name_,
+			miph->haddr_);
+	    }
+	    else {
+	      tcl.evalf("%s encap-route %d %d %lf", name_,
+			miph->haddr_, miph->coa_,
+			miph->lifetime_);
+	    }
+	    iph->dst() = iph->src();
+	    miph->type_ = MIPT_REG_REPLY;
+	  }
+	  else {
+	    //iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) | (miph->ha_ & mask_) << shift_;
+	    iph->dst() = Address::instance().create_ipaddr(miph->ha_,0);
+	  }
+	  iph->src() = addr_;
+	  // by now should be back to normal route
+	  // if dst is the mobile
+	  // also initialise forward counter to 0. otherwise routing
+	  // agent is going to think pkt is looping and drop it!!
+	  ch->num_forwards() = 0;
+	  
+	  send(p, 0);
+	  break;
 	case MIPT_REG_REPLY:
-		assert(miph->coa_ == (addr_ >> shift_ & mask_));
-		tcl.evalf("%s get-link %d %d", name_, addr_ >> shift_ & mask_,
-			  miph->haddr_);
-		obj = (NsObject*)tcl.lookup(objname = tcl.result());
-		tcl.evalf("%s decap-route %d %s %lf", name_, miph->haddr_,
-			  objname, miph->lifetime_);
-		iph->src() = iph->dst();
-		iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) |
-			(miph->haddr_ & mask_) << shift_;
-		obj->recv(p, (Handler*)0);
-		break;
+	  //assert(miph->coa_ == (addr_ >> shift_ & mask_));
+
+	  assert(miph->coa_ == nodeaddr);
+	  tcl.evalf("%s get-link %d %d", name_, nodeaddr, miph->haddr_);
+	  //
+	  // XXX hacking mobileip. all this should go away
+	  // when mobileIP for sun-wired model is no longer reqd.
+	  //
+	  obj = (NsObject*)tcl.lookup(objname = tcl.result());
+	  if (strlen(objname) == 0)
+	    objname = "XXX";
+	  tcl.evalf("%s decap-route %d %s %lf", name_, miph->haddr_,
+		    objname, miph->lifetime_);
+	  
+	  iph->src() = iph->dst();
+	  //iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) |(miph->haddr_ & mask_) << shift_;
+	  iph->dst() = Address::instance().create_ipaddr(miph->haddr_,0);
+	  if (obj == NULL)
+	    obj = ragent_;
+	  obj->recv(p, (Handler*)0);
+	  break;
 	case MIPT_SOL:
-		tcl.evalf("%s get-link %d %d", name_, addr_ >> shift_ & mask_,
-			  miph->haddr_);
-		send_ads(miph->haddr_, (NsObject*)tcl.lookup(tcl.result()));
-		Packet::free(p);
-		break;
+	  //tcl.evalf("%s get-link %d %d", name_, addr_ >> shift_ & mask_,miph->haddr_);
+	  tcl.evalf("%s get-link %d %d",name_,nodeaddr,miph->haddr_);
+	  send_ads(miph->haddr_, (NsObject*)tcl.lookup(tcl.result()));
+	  Packet::free(p);
+	  break;
 	default:
-		Packet::free(p);
-		break;
+	  Packet::free(p);
+	  break;
 	}
 }
 
@@ -137,6 +156,10 @@ int MIPBSAgent::command(int argc, const char*const* argv)
 			bcast_target_ = (NsObject *)TclObject::lookup(argv[2]);
 			return TCL_OK;
 		}
+		if (strcmp(argv[1], "ragent") == 0) {
+		  ragent_ = (NsObject *)TclObject::lookup(argv[2]);
+			return TCL_OK;
+		}
 	}
 	return (Agent::command(argc, argv));
 }
@@ -145,21 +168,38 @@ void MIPBSAgent::send_ads(int dst, NsObject *target)
 {
 	Packet *p = allocpkt();
 	hdr_mip *h = (hdr_mip *)p->access(off_mip_);
+	hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
 	h->haddr_ = h->ha_ = -1;
-	h->coa_ = addr_ >> shift_ & mask_;
+	//h->coa_ = addr_ >> shift_ & mask_;
+	h->coa_ = Address::instance().get_nodeaddr(addr_);
 	h->type_ = MIPT_ADS;
 	h->lifetime_ = adlftm_;
 	h->seqno_ = ++seqno_;
 	if (dst != -1) {
-		hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
-		iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) |
-			(dst & mask_) << shift_;
+	  //hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
+	  //iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) | (dst & mask_) << shift_;
+	  iph->dst() = Address::instance().create_ipaddr(dst,0);
+	}
+	else {
+	  // if bcast pkt
+	  sendOutBCastPkt(p);
 	}
 	if (target == NULL) {
-		if (bcast_target_) bcast_target_->recv(p, (Handler*) 0);
-		else Packet::free(p); // drop; may log in future code
+	  if (bcast_target_) bcast_target_->recv(p, (Handler*) 0);
+	  else if (target_) target_->recv(p, (Handler*) 0);
+	  else Packet::free(p); // drop; may log in future code
 	}
 	else target->recv(p, (Handler*)0);
+}
+
+void
+MIPBSAgent::sendOutBCastPkt(Packet *p)
+{
+  hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+  hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
+  hdrc->next_hop_ = IP_BROADCAST;
+  hdrc->addr_type_ = AF_INET;
+  iph->dst_ = Address::instance().create_ipaddr(IP_BROADCAST,0);
 }
 
 void AgtListTimer::expire(Event *) {
@@ -176,13 +216,13 @@ public:
 
 MIPMHAgent::MIPMHAgent() : Agent(PT_UDP), ha_(-1), coa_(-1),
 	beacon_(1.0),bcast_target_(0),agts_(0),rtx_timer_(this), 
-	agtlist_timer_(this),mask_(0xffffffff),shift_(8),reglftm_(~0),adlftm_(0.0)
+	agtlist_timer_(this),reglftm_(~0),adlftm_(0.0), node_ (0)
 {
 	bind("home_agent_", &ha_);
 	bind("rreqSize_", &size_);
 	bind("reg_rtx_", &reg_rtx_);
-	bind("shift_", &shift_);
-	bind("mask_", &mask_);
+	//bind("shift_", &shift_);
+	//bind("mask_", &mask_);
 	bind("reg_lifetime_", &reglftm_);
 	bind("off_mip_", &off_mip_);
 	size_ = REG_REQUEST_SIZE;
@@ -201,42 +241,49 @@ void MIPMHAgent::recv(Packet* p, Handler *)
 			rtx_timer_.cancel();
 		break;
 	case MIPT_ADS:
-		{
-			AgentList **ppagts = &agts_, *ptr;
-			while (*ppagts) {
-				if ((*ppagts)->node_ == miph->coa_) break;
-				ppagts = &(*ppagts)->next_;
-			}
-			if (*ppagts) {
-				ptr = *ppagts;
-				*ppagts = ptr->next_;
-				ptr->expire_time_ = beacon_ +
-					Scheduler::instance().clock();
-				ptr->lifetime_ = miph->lifetime_;
-				ptr->next_ = agts_;
-				agts_ = ptr;
-				if (coa_ == miph->coa_) {
-					seqno_++;
-					reg();
-				}
-			}
-			else { // new ads
-				ptr = new AgentList;
-				ptr->node_ = miph->coa_;
-				ptr->expire_time_ = beacon_ +
-					Scheduler::instance().clock();
-				ptr->lifetime_ = miph->lifetime_;
-				ptr->next_ = agts_;
-				agts_ = ptr;
-				coa_ = miph->coa_;
-				adlftm_ = miph->lifetime_;
-				seqno_++;
-				reg();
-			}
-		}
-		break;
+	  {
+	    AgentList **ppagts = &agts_, *ptr;
+	    while (*ppagts) {
+	      if ((*ppagts)->node_ == miph->coa_) break;
+	      ppagts = &(*ppagts)->next_;
+	    }
+	    if (*ppagts) {
+	      ptr = *ppagts;
+	      *ppagts = ptr->next_;
+	      ptr->expire_time_ = beacon_ +
+		Scheduler::instance().clock();
+	      ptr->lifetime_ = miph->lifetime_;
+	      ptr->next_ = agts_;
+	      agts_ = ptr;
+	      if (coa_ == miph->coa_) {
+		seqno_++;
+		reg();
+	      }
+	    }
+	    else { // new ads
+	      ptr = new AgentList;
+	      ptr->node_ = miph->coa_;
+	      ptr->expire_time_ = beacon_ +
+		Scheduler::instance().clock();
+	      ptr->lifetime_ = miph->lifetime_;
+	      ptr->next_ = agts_;
+	      agts_ = ptr;
+	      coa_ = miph->coa_;
+	  
+	      // The MHagent now should update the Mobilenode
+	      // about the changed coa_ : node updates its 
+	      // base-station to new coa_ accordingly.
+	      if(node_)
+		node_->set_base_stn(coa_);
+	      
+	      adlftm_ = miph->lifetime_;
+	      seqno_++;
+	      reg();
+	    }
+	  }
+	  break;
 	default:
-		break;
+	  break;
 	}
 	Packet::free(p);
 }
@@ -286,9 +333,17 @@ int MIPMHAgent::command(int argc, const char*const* argv)
 			rtx_timer_.resched(Random::uniform(0, beacon_));
 			return TCL_OK;
 		}
-		if (strcmp(argv[1], "bcast-target") == 0) {
+		else if (strcmp(argv[1], "bcast-target") == 0) {
 			bcast_target_ = (NsObject *)TclObject::lookup(argv[2]);
 			return TCL_OK;
+		}
+		else if (strcmp (argv[1], "node") == 0) {
+		  node_ = (MobileNode*)TclObject::lookup(argv[2]);
+		  if (node_ == 0) {
+		    fprintf (stderr, "%s: %s lookup of %s failed\n", __FILE__, argv[1], argv[2]);
+		    return TCL_ERROR;
+		  }
+		  return TCL_OK;
 		}
 	}
 	// later: agent solicitation (now done!), start of simulation, ...
@@ -309,17 +364,22 @@ void MIPMHAgent::reg()
 	Tcl& tcl = Tcl::instance();
 	Packet *p = allocpkt();
 	hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
-	iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) |
-		(coa_ & mask_) << shift_;
+	//iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) | (coa_ & mask_) << shift_;
+	iph->dst() = Address::instance().create_ipaddr(coa_,0);
 	hdr_mip *h = (hdr_mip *)p->access(off_mip_);
-	h->haddr_ = addr_ >> shift_ & mask_;
+	//h->haddr_ = addr_ >> shift_ & mask_;
+	h->haddr_ = Address::instance().get_nodeaddr(addr_);
 	h->ha_ = ha_;
 	h->coa_ = coa_;
 	h->type_ = MIPT_REG_REQUEST;
 	h->lifetime_ = min(reglftm_, adlftm_);
 	h->seqno_ = seqno_;
 	tcl.evalf("%s get-link %d %d", name_, h->haddr_, coa_);
-	((NsObject *)tcl.lookup(tcl.result()))->recv(p, (Handler*) 0);
+	NsObject *target = (NsObject *)tcl.lookup(tcl.result());
+	if (target != NULL)
+	  ((NsObject *)tcl.lookup(tcl.result()))->recv(p, (Handler*) 0);
+	else
+	  send(p, 0);
 }
 
 void MIPMHAgent::send_sols()
@@ -327,11 +387,27 @@ void MIPMHAgent::send_sols()
 	Packet *p = allocpkt();
 	hdr_mip *h = (hdr_mip *)p->access(off_mip_);
 	h->coa_ = -1;
-	h->haddr_ = addr_ >> shift_ & mask_;
+	//h->haddr_ = addr_ >> shift_ & mask_;
+	h->haddr_ = Address::instance().get_nodeaddr(addr_);
 	h->ha_ = ha_;
 	h->type_ = MIPT_SOL;
 	h->lifetime_ = reglftm_;
 	h->seqno_ = seqno_;
-	if (bcast_target_) bcast_target_->recv(p, (Handler*) 0);
-	else Packet::free(p); // drop; may log in future code
+	sendOutBCastPkt(p);
+	if (bcast_target_) 
+	  bcast_target_->recv(p, (Handler*) 0);
+	else if (target_) 
+	  target_->recv(p, (Handler*) 0);
+	else 
+	  Packet::free(p); // drop; may log in future code
+}
+
+
+void MIPMHAgent::sendOutBCastPkt(Packet *p)
+{
+  hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+  hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
+  hdrc->next_hop_ = IP_BROADCAST;
+  hdrc->addr_type_ = AF_INET;
+  iph->dst_ = Address::instance().create_ipaddr(IP_BROADCAST,0);
 }

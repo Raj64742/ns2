@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.8 1999/04/22 18:53:46 haldar Exp $
+   $Id: dsragent.cc,v 1.9 1999/05/05 19:59:29 haldar Exp $
 */
 
 #include <assert.h>
@@ -592,7 +592,8 @@ DSRAgent::handlePktWithoutSR(SRPacket& p, bool retry)
 
   ID dest;
   if (diff_subnet(p.dest,net_id)) 
- 	  dest = ID(node_->base_stn()->address(),::IP);
+ 	  //dest = ID(node_->base_stn()->address(),::IP);
+	  dest = ID(node_->base_stn(),::IP);
   else
 	  dest = p.dest;
 
@@ -935,7 +936,8 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
 
   ID dest;
   if (diff_subnet(p.dest,net_id)) 
-	  dest = ID(node_->base_stn()->address(),::IP);
+	  //dest = ID(node_->base_stn()->address(),::IP);
+	  dest = ID(node_->base_stn(),::IP);
   else
 	  dest = p.dest;
   if (dest == net_id)
@@ -1334,7 +1336,9 @@ DSRAgent::acceptRouteReply(SRPacket &p)
       if (send_buf[c].p.pkt == NULL) continue;
       // check if pkt is destined to outside domain
       if (diff_subnet(send_buf[c].p.dest,net_id)) 
-	      dest = ID(node_->base_stn()->address(),::IP);
+	      //dest = ID(node_->base_stn()->address(),::IP);
+	      dest = ID(node_->base_stn(),::IP);
+      
       else
 	      dest = send_buf[c].p.dest;
       if (route_cache->findRoute(dest, send_buf[c].p.route, 1))

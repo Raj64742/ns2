@@ -53,7 +53,9 @@ public:
 
 Node::Node(void) : address_(-1)
 {
-	LIST_INIT(&ifhead_);	
+	LIST_INIT(&ifhead_);
+	
+	
 }
 
 int
@@ -74,7 +76,7 @@ Node::command(int argc, const char*const* argv)
 			n->insertnode(&ifhead_);
 			n->setnode(this);
 			return TCL_OK;
-		}else if (strcmp(argv[1], "addr") == 0) {
+		} else if (strcmp(argv[1], "addr") == 0) {
 			address_ = Address::instance().\
 				str2addr(argv[2]);
 			return TCL_OK;
@@ -110,4 +112,14 @@ public:
         }
 } class_VirtualClassifier_node;
 #endif
+
+
+
+
+
+
+
+
+
+
 

@@ -34,10 +34,14 @@
 #
 
 proc create-base-station-node {address } {
-    global ns ns_ topo tracefd opt node node_
-    
-    Simulator set node_factory_ Node/MobileNode/BaseStationNode
-    set ns_ $ns
+    global topo tracefd opt node node_ ns_
+    set ns_ [Simulator instance]
+    if [Simulator set mobile_ip_] {
+	Simulator set node_factory_ MobileNode/MIPBS
+    } else {
+	Simulator set node_factory_ Node/MobileNode/BaseStationNode
+    }
+    #set ns_ $ns
     set node [$ns_ node $address]
     set id [$node id]
     #set node_($id) $node    ;#XXX does wireless code use this global
@@ -54,7 +58,9 @@ proc create-base-station-node {address } {
     $T attach $tracefd
     $T set src_ $id
     $node log-target $T
-    $node base-station $node
+    #$node base-station $node
+    $node base-station [AddrParams set-hieraddr [$node node-addr]]
+    
     
     create-$opt(rp)-bs-node $node $id
     
@@ -64,13 +70,18 @@ proc create-base-station-node {address } {
 
 
 proc create-dsdv-bs-node {node id} {
-    global ns ns_ chan prop opt node_
+    global ns_ chan prop opt node_
+    $node instvar regagent_ ragent_
 
     $node add-interface $chan $prop $opt(ll) $opt(mac)	\
 	    $opt(ifq) $opt(ifqlen) $opt(netif) \
 	    $opt(ant)
     
     create-$opt(rp)-routing-agent $node $id
+
+    if [info exists regagent_] {
+	$regagent_ ragent $ragent_
+    }
     if { $opt(pos) == "Box" } {
 		#
 		# Box Configuration
@@ -89,7 +100,7 @@ proc create-dsdv-bs-node {node id} {
 }
 
 proc create-dsr-bs-node {node id} {
-    global ns ns_ chan prop opt
+    global ns_ chan prop opt
     
     $node add-interface $chan $prop $opt(ll) $opt(mac)	\
 	    $opt(ifq) $opt(ifqlen) $opt(netif) \
@@ -179,7 +190,7 @@ proc create-dsr-routing-agent { node id } {
 
 
 Node/MobileNode/BaseStationNode instproc create-xtra-interface { } {
-    global ns ns_ opt RouterTrace
+    global ns_ opt RouterTrace
     $self instvar ragent_ ll_ mac_ ifq_
     
     $ragent_ mac-addr [$mac_(0) id]

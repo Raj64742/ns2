@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.7 1999/04/22 18:53:44 haldar Exp $
+   $Id: dsdv.cc,v 1.8 1999/05/05 19:59:27 haldar Exp $
 
    */
 
@@ -871,6 +871,8 @@ DSDV_Agent::forwardPacket (Packet * p)
   Scheduler & s = Scheduler::instance ();
   double now = s.clock ();
   hdr_cmn *hdrc = HDR_CMN (p);
+  int dst;
+  rtable_ent *prte;
   
   // We should route it.
   //printf("(%d)-->forwardig pkt\n",myaddr_);
@@ -880,28 +882,19 @@ DSDV_Agent::forwardPacket (Packet * p)
   // if the destination is outside mobilenode's domain
   // forward it to base_stn node
   // Note: pkt is not buffered if route to base_stn is unknown
-  
+
+  dst = Address::instance().get_nodeaddr(iph->dst_);  
   if (diff_subnet(iph->dst_)) {
-	  int dst = (node_->base_stn())->address();
-	  rtable_ent *prte = table_->GetEntry (dst);
-	  if (prte && prte->metric != BIG) {
-		  hdrc->addr_type_ = AF_INET;
-		  hdrc->xmit_failure_ = mac_callback;
-		  hdrc->xmit_failure_data_ = this;
-		  if (prte->metric > 1)
-			hdrc->next_hop_ = prte->hop;
-		  else
-			  hdrc->next_hop_ = dst;
-		  if (verbose_)
-			  trace ("Routing pkts outside domain:
-VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
-				 iph->sport_, iph->dst_,
-				 iph->dport_);  
-		  assert (!HDR_CMN (p)->xmit_failure_ ||
-			 HDR_CMN (p)->xmit_failure_ == mac_callback);
-		  target_->recv(p, (Handler *)0);
-		  return;
-	  }
+	   prte = table_->GetEntry (dst);
+	  if (prte && prte->metric != BIG) 
+		  goto send;
+	  
+	  //int dst = (node_->base_stn())->address();
+	  dst = node_->base_stn();
+	  prte = table_->GetEntry (dst);
+	  if (prte && prte->metric != BIG) 
+		  goto send;
+	  
 	  else {
 		  //drop pkt with warning
 		  fprintf(stderr, "warning: Route to base_stn not known: dropping pkt\n");
@@ -909,40 +902,18 @@ VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
 		  return;
 	  }
   }
-  int dst = Address::instance().get_nodeaddr(iph->dst_);
-  rtable_ent *prte = table_->GetEntry (dst);
-
-      //    trace("VDEBUG-RX %d %d->%d %d %d 0x%08x 0x%08x %d %d", 
-      //  myaddr_, iph->src_, iph->dst_, hdrc->next_hop_, hdrc->addr_type_,
-      //  hdrc->xmit_failure_, hdrc->xmit_failure_data_,
-      //  hdrc->num_forwards_, hdrc->opt_num_forwards);
+  
+  prte = table_->GetEntry (dst);
+  
+  //  trace("VDEBUG-RX %d %d->%d %d %d 0x%08x 0x%08x %d %d", 
+  //  myaddr_, iph->src_, iph->dst_, hdrc->next_hop_, hdrc->addr_type_,
+  //  hdrc->xmit_failure_, hdrc->xmit_failure_data_,
+  //  hdrc->num_forwards_, hdrc->opt_num_forwards);
 
   if (prte && prte->metric != BIG)
     {
-	    //printf("(%d)-have route for dst\n",myaddr_);
-      hdrc->addr_type_ = AF_INET;
-
-      hdrc->xmit_failure_ = mac_callback;
-      hdrc->xmit_failure_data_ = this;
-
-      if (prte->metric > 1)
-	hdrc->next_hop_ = prte->hop;
-      else
-	hdrc->next_hop_ = dst;
-
-      if (verbose_)
-	trace ("VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
-	       iph->sport_, iph->dst_, iph->dport_);
-
-      //trace("VDEBUG-TX %d %d->%d %d %d 0x%08x 0x%08x %d %d", 
-      //    myaddr_, iph->src_, iph->dst_, hdrc->next_hop_, hdrc->addr_type_,
-      //    hdrc->xmit_failure_, hdrc->xmit_failure_data_,
-      //    hdrc->num_forwards_, hdrc->opt_num_forwards);
-
-      assert (!HDR_CMN (p)->xmit_failure_ ||
-	      HDR_CMN (p)->xmit_failure_ == mac_callback);	// DEBUG 0x2
-
-      target_->recv(p, (Handler *)0);
+       //printf("(%d)-have route for dst\n",myaddr_);
+       goto send;
     }
   else if (prte)
     { /* must queue the packet */
@@ -959,7 +930,8 @@ VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
 	       iph->sport_, iph->dst_, iph->dport_);
 
       while (prte->q->length () > MAX_QUEUE_LENGTH)
-	drop (prte->q->deque (), DROP_RTR_QFULL);
+	      drop (prte->q->deque (), DROP_RTR_QFULL);
+      return;
     }
   else
     { // Brand new destination
@@ -983,13 +955,48 @@ VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
 	  
       assert (rte.q->length() == 1 && 1 <= MAX_QUEUE_LENGTH);
       table_->AddEntry(rte);
-
+      
       if (verbose_)
-	trace ("VBP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
+	      trace ("VBP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
 	       iph->sport_, iph->dst_, iph->dport_);
+      return;
     }
 
+
+ send:
+  hdrc->addr_type_ = AF_INET;
+  hdrc->xmit_failure_ = mac_callback;
+  hdrc->xmit_failure_data_ = this;
+  if (prte->metric > 1)
+	  hdrc->next_hop_ = prte->hop;
+  else
+	  hdrc->next_hop_ = dst;
+  if (verbose_)
+	  trace ("Routing pkts outside domain:
+VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
+		 iph->sport_, iph->dst_,
+		 iph->dport_);  
+  assert (!HDR_CMN (p)->xmit_failure_ ||
+	  HDR_CMN (p)->xmit_failure_ == mac_callback);
+  target_->recv(p, (Handler *)0);
+  return;
+  
 }
+
+void 
+DSDV_Agent::sendOutBCastPkt(Packet *p)
+{
+  Scheduler & s = Scheduler::instance ();
+  //hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+  //hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
+  //hdrc->next_hop_ = IP_BROADCAST;
+  //hdrc->addr_type_ = AF_INET;
+  //iph->dst_ = IP_BROADCAST << Address::instance().nodeshift();
+  //iph->dport_ = 0;
+  // send out bcast pkt with jitter to avoid sync
+  s.schedule (target_, p, jitter(DSDV_BROADCAST_JITTER, be_random_));
+}
+
 
 void
 DSDV_Agent::recv (Packet * p, Handler *)
@@ -997,7 +1004,7 @@ DSDV_Agent::recv (Packet * p, Handler *)
   hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
   hdr_cmn *cmh = (hdr_cmn *)p->access (off_cmn_);
   int src = Address::instance().get_nodeaddr(iph->src_);
-  
+  int dst = cmh->next_hop();
   /*
    *  Must be a packet I'm originating...
    */
@@ -1031,15 +1038,32 @@ DSDV_Agent::recv (Packet * p, Handler *)
   
   if ((src != myaddr_) && (iph->dport_ == ROUTER_PORT))
     {
-	    //drop pkt if rtg update from some other domain
-	    if (diff_subnet(iph->src_)) 
-		    drop(p, DROP_OUTSIDE_SUBNET);
-	    else    
-		    processUpdate(p);
+	    // XXX disable this feature for mobileIP where
+	    // the MH and FA (belonging to diff domains)
+	    // communicate with each other.
+
+	    // Drop pkt if rtg update from some other domain:
+	    // if (diff_subnet(iph->src_)) 
+	    // drop(p, DROP_OUTSIDE_SUBNET);
+	    //else    
+	    processUpdate(p);
     }
-  else
+  else if ((u_int32_t) dst == IP_BROADCAST && 
+	   (iph->dport_ != ROUTER_PORT)) 
+	  {
+	     if (src == myaddr_) {
+		     // handle brdcast pkt
+		     sendOutBCastPkt(p);
+	     }
+	     else {
+		     // hand it over to the port-demux
+		    
+		    port_dmux_->recv(p, (Handler*)0);
+	     }
+	  }
+  else 
     {
-      forwardPacket(p);
+	    forwardPacket(p);
     }
 }
 
@@ -1187,6 +1211,10 @@ DSDV_Agent::command (int argc, const char *const *argv)
 	}
       else if (strcasecmp (argv[1], "node") == 0) {
 	      node_ = (MobileNode*) obj;
+	      return TCL_OK;
+      }
+      else if (strcasecmp (argv[1], "port-dmux") == 0) {
+	      port_dmux_ = (NsObject *) obj;
 	      return TCL_OK;
       }
     }

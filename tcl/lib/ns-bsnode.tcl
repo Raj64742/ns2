@@ -96,6 +96,14 @@ Node/MobileNode/BaseStationNode instproc add-hroute { dst target } {
 	set rtsize_ [expr $rtsize_ + 1]
 }
 
+## method to remove an entry from the hier classifiers
+Node/MobileNode/BaseStationNode instproc clear-hroute args {
+    $self instvar classifiers_
+    set a [split $args]
+    set l [llength $a]
+    $classifiers_($l) clear [lindex $a [expr $l-1]] 
+}
+
 
 Node/MobileNode/BaseStationNode instproc node-addr {} {
 	$self instvar address_

@@ -89,9 +89,13 @@ proc create-dsdv-routing-agent { node id } {
     
     $ragent addr $addr
     $ragent node $node
-
+    if [Simulator set mobile_ip_] {
+	$ragent port-dmux [$node set dmux_]
+    }
     $node addr $addr
     $node set ragent_ $ragent
+    
+    
     
     $node attach $ragent 255
 
@@ -125,9 +129,13 @@ proc dsdv-create-mobile-node { id args } {
         
         set ns_ [Simulator instance]
 	if {[Simulator set EnableHierRt_]} {
-	   set node_($id) [new Node/MobileNode/BaseStationNode $args]
+	    if [Simulator set mobile_ip_] {
+		set node_($id) [new MobileNode/MIPMH $args]
+	    } else {
+		set node_($id) [new Node/MobileNode/BaseStationNode $args]
+	    }
 	} else {
-	   set node_($id) [new Node/MobileNode]
+	    set node_($id) [new Node/MobileNode]
 	}
 	set node $node_($id)
 	$node random-motion 0		;# disable random motion
@@ -150,6 +158,8 @@ proc dsdv-create-mobile-node { id args } {
 	# Create a Routing Agent for the Node
 	#
 	create-$opt(rp)-routing-agent $node $id
+	
+	    
 
 	# ============================================================
 

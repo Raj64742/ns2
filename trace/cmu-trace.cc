@@ -259,9 +259,10 @@ void CMUTrace::format(Packet* p, const char *why)
 			break;
 
 		case PT_MESSAGE:
+		case PT_UDP:
 			format_msg(p, offset);
 			break;
-
+			
 		case PT_TCP:
 		case PT_ACK:
 			format_tcp(p, offset);

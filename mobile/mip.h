@@ -72,11 +72,15 @@ protected:
 
 class MIPDecapsulator : public AddressClassifier {
 public:
-	MIPDecapsulator();
-	void recv(Packet* p, Handler* h);
-protected:
-	int off_ipinip_;		/* XXX to be removed */
-	int off_ip_;
+  MIPDecapsulator();
+  void recv(Packet* p, Handler* h);
+ protected:
+  //int command(int argc, const char*const*argv);
+  int off_ipinip_;		/* XXX to be removed */
+  int off_ip_;
+  /* the default target for decapsulator in mobilenodes 
+     shall be the node entry point */
+  //NsObject *def_target_;
 };
 
 class SimpleTimer : public TimerHandler {
@@ -90,13 +94,15 @@ protected:
 class MIPBSAgent : public Agent {
 public:
 	MIPBSAgent();
-	void recv(Packet *, Handler *);
+	virtual void recv(Packet *, Handler *);
 	void timeout(int);
 protected:
 	int command(int argc, const char*const*argv);
 	void send_ads(int dst = -1, NsObject *target = NULL);
+	void sendOutBCastPkt(Packet *p);
 	double beacon_; /* beacon period */
 	NsObject *bcast_target_; /* where to send out ads */
+	NsObject *ragent_;     /* where to send reg-replies to MH */
 	SimpleTimer timer_;
 	int mask_;
 	int shift_;
@@ -133,6 +139,7 @@ protected:
 	int command(int argc, const char*const*argv);
 	void reg();
 	void send_sols();
+	void sendOutBCastPkt(Packet *p);
 	int ha_;
 	int coa_;
 	double reg_rtx_;
@@ -149,6 +156,8 @@ protected:
 	double reglftm_;	/* registration lifetime */
 	double adlftm_;		/* current ads lifetime */
 	int off_mip_;
+	MobileNode *node_;      /* ptr to my mobilenode,if appl. */
+
 };
 
 #endif

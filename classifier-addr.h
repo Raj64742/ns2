@@ -35,7 +35,7 @@
 #include "ip.h"
 #include "classifier.h"
 
-#define BCAST_ADDR	mask_
+#define BCAST_ADDR_MASK	mask_
 
 class AddressClassifier : public Classifier {
 protected:

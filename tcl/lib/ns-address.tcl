@@ -405,7 +405,18 @@ AddrParams proc set-hieraddr addrstr {
 	return $ip
 }
 
-
+#
+# returns address string from address :reverse of set-hieraddr.
+#
+AddrParams proc get-hieraddr addr {
+    AddrParams instvar hlevel_ NodeMask_ NodeShift_
+    for {set i 1} {$i <= $hlevel_} {incr i} {
+	set a [expr [expr $addr >> $NodeShift_($i)] & $NodeMask_($i)]
+	lappend str $a
+    }
+    #puts "get-hieraddr: string=$str\n"
+    return $str
+}
 
 #
 # Returns number of elements at a given hierarchical level, that is visible to 

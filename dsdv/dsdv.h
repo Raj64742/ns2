@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.h -*- c++ -*-
-   $Id: dsdv.h,v 1.4 1999/04/22 18:53:45 haldar Exp $
+   $Id: dsdv.h,v 1.5 1999/05/05 19:59:28 haldar Exp $
 
    */
 
@@ -96,6 +96,8 @@ protected:
   void forwardPacket (Packet * p);
   void startUp();
   int diff_subnet(int dst);
+  void sendOutBCastPkt(Packet *p);
+  
   
   // update old_rte in routing table to to new_rte
   Trace *tracetarget;       // Trace Target
@@ -112,6 +114,7 @@ protected:
   MobileNode *node_;        // My node
   // for debugging
   char *address;
+  NsObject *port_dmux_;    // my port dmux
 
   Event *periodic_callback_;           // notify for periodic update
   

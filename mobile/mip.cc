@@ -29,7 +29,9 @@
 
 // #ident "@(#)mip.cc  1.4     98/08/21 SMI"
 
+#include <address.h>
 #include "mip.h"
+
 
 #define IP_HEADER_SIZE	20
 
@@ -81,7 +83,8 @@ void MIPEncapsulator::recv(Packet* p, Handler *h)
 		return;
 	}
 	hdr_ipinip *inhdr = new hdr_ipinip;
-	int dst = ((hdr->dst() >> shift_) & mask_);
+	//int dst = ((hdr->dst() >> shift_) & mask_);
+	int dst = Address::instance().get_nodeaddr(hdr->dst());
 	tcl.evalf("%s tunnel-exit %d", name_, dst);
 	int te = atoi(tcl.result());
 
@@ -90,8 +93,8 @@ void MIPEncapsulator::recv(Packet* p, Handler *h)
 	inhdr->hdr_ = *hdr;
 
 	hdr->src() = addr_;
-	hdr->dst() = addr_ & ~(~(nsaddr_t)0 << shift_) |
-		(te & mask_) << shift_;;
+	//hdr->dst() = addr_ & ~(~(nsaddr_t)0 << shift_) | (te & mask_) << shift_;;
+	hdr->dst() = Address::instance().create_ipaddr(te,1);
 	hdr->ttl() = defttl_;
 
 	((hdr_cmn*)p->access(off_cmn_))->size() += IP_HEADER_SIZE;
@@ -109,9 +112,23 @@ public:
 
 MIPDecapsulator::MIPDecapsulator() : AddressClassifier()
 {
+  //def_target_ = NULL;
 	bind("off_ipinip_", &off_ipinip_);
 	bind("off_ip_", &off_ip_);
 }
+
+
+// int MIPDecapsulator::command(int argc, const char*const* argv)
+// {
+//   if (argc == 3) {
+//     if (strcmp(argv[1], "def-target") == 0) {
+//       def_target_ = (NsObject *)TclObject::lookup(argv[2]);
+//       return TCL_OK;
+//     }
+//   }
+//   return (AddressClassifier::command(argc, argv));
+// }
+
 
 void MIPDecapsulator::recv(Packet* p, Handler *h)
 {
@@ -124,6 +141,10 @@ void MIPDecapsulator::recv(Packet* p, Handler *h)
 	*pouthdr = *pinhdr;
 
 	NsObject* link = find(p);
+	// for mobilenodes use default-target which is probably the 
+	// node entry point
+	//if (link == NULL)
+	//link = def_target_;
 
 	if (link == NULL || pinhdr->ttl_ <= 0) {
 		/*
@@ -147,3 +168,13 @@ void MIPDecapsulator::recv(Packet* p, Handler *h)
 
 	link->recv(p,h);
 }
+
+
+
+
+
+
+
+
+
+
