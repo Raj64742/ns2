@@ -40,15 +40,17 @@ Node instproc create-diffusionApp-agent { diffFilters } {
 	puts "Error: No filter defined for diffusion!\n"
 	exit 1
     }
+    #XXXX FOR NOW
     set n 0
     foreach filtertype [split $diffFilters "/"] {
+	if {$filtertype == "GeoRoutingFilter" } continue
 	set filter($n) [new Application/DiffApp/$filtertype $da]
-	$self set filtertype_($n) $filter($n)
+	#$self set filtertype_($n) $filter($n)
 	$filter($n) start         ;# starts filter
 	incr n
     }
     
-    return $da
+    #return $da
 }
 
 
