@@ -1,5 +1,14 @@
 #!/bin/sh
 # \
+test -x ../../../ns && nshome=../../../
+# \
+exec ${nshome}ns "$0" "$@"
+
+set nshome ""
+if [file executable ../../../ns] {
+	set nshome ../../../
+}
+
 # Test script for the snoop protocol (and other link protocols).
 
 # Example ways of running this script are:
@@ -47,19 +56,10 @@
 # SUCH DAMAGE.
 #
 
-test [ -x ../../ns ] && nshome=../../
-# \
-exec ${nshome}ns "$0" "$@"
-
-set nshome ""
-if [file executable ../../ns] {
-	set nshome ../../
-}
-
 source ${nshome}tcl/lan/ns-mac.tcl
 source ${nshome}tcl/lan/ns-lan.tcl
 source ${nshome}tcl/lib/ns-ber.tcl
-source util.tcl
+source ${nshome}tcl/ex/snoop/util.tcl
 
 set env(PATH) "${nshome}bin:$env(PATH)"
 
