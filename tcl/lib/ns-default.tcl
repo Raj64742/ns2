@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.41 1997/07/23 02:19:39 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.42 1997/07/23 03:42:10 kfall Exp $
 
 
 #
@@ -51,6 +51,7 @@ Agent set prio_ 0
 Agent set addr_ 0
 Agent set dst_ 0
 Agent set flags_ 0
+Agent set ttl_ 32 ; # arbitrary choice here
 
 ##Agent set seqno_ 0 now is gone
 ##Agent set class_ 0 now is gone
