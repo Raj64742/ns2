@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.104 2001/09/07 01:15:11 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.105 2001/09/26 23:24:45 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -569,6 +569,7 @@ FullTcpAgent::reset()
 	last_ack_sent_ = -1;
 	rcv_nxt_ = -1;
 	pipe_ = 0;
+	rtxbytes_ = 0;
 	flags_ = 0;
 	t_seqno_ = iss_;
 	maxseq_ = -1;
@@ -2315,6 +2316,7 @@ FullTcpAgent::dupack_action()
         int recovered = (highest_ack_ > recover_);
 
 	fastrecov_ = TRUE;
+	rtxbytes_ = 0;
 
         if (recovered || (!bug_fix_ && !ecn_) ||
 	    // Q: is last_cwnd_action == dupack enough to trigger?
@@ -2500,6 +2502,7 @@ TahoeFullTcpAgent::dupack_action()
         int recovered = (highest_ack_ > recover_);
 
 	fastrecov_ = TRUE;
+	rtxbytes_ = 0;
 
         if (recovered || (!bug_fix_ && !ecn_) ||
 	    // Q: is last_cwnd_action dupack enough?
@@ -2616,6 +2619,7 @@ SackFullTcpAgent::dupack_action()
         int recovered = (highest_ack_ > recover_);
 
 	fastrecov_ = TRUE;
+	rtxbytes_ = 0;
 	pipe_ = maxseq_ - highest_ack_ - sq_.total();
 
 //printf("%f: SACK DUPACK-ACTION:pipe_:%d, sq-total:%d, bugfix:%d, cwnd:%d, highest_ack:%d, recover_:%d\n",
