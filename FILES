@@ -24,6 +24,7 @@ bin/dynamics.pl
 bin/getrc
 bin/gnuplot.pl
 bin/ktest-all
+bin/msign
 bin/raw2gp
 bin/raw2xg
 bin/rt
@@ -176,8 +177,6 @@ packet.h
 param-adc.cc
 pareto.cc
 pointsample-est.cc
-prune.cc
-prune.h
 queue-monitor.cc
 queue-monitor.h
 queue.cc
