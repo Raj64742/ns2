@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.4 1997/06/03 21:33:38 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.5 1997/06/12 22:51:35 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -65,7 +65,7 @@ protected:
 		hnode *next;
 	};
 	virtual const hnode* lookup(Packet*) = 0;
-	virtual void set_hash(nsaddr_t src, nsaddr_t dst, int fid, int slot) = 0;
+	virtual int find_hash(nsaddr_t src, nsaddr_t dst, int fid) = 0;
 	int command(int argc, const char*const* argv);
 	int newflow(Packet*);
 	void insert(int, nsaddr_t, nsaddr_t, int, int);
@@ -74,10 +74,13 @@ protected:
 		const hnode *hn = lookup(p);
 		if (hn != NULL)
 			return (hn->slot);
+		else if (default_ >= 0)
+			return (default_);
 		return (newflow(p));
 	}
 	nsaddr_t mask_;
 	int shift_;
+	int default_;
 	int buckets_;
 	hnode* htab_;
 };
@@ -100,9 +103,9 @@ protected:
 			hn->dst == ((h->dst() >> shift_) & mask_)
 			&& hn->fid == h->flowid());
 	}
-	void set_hash(nsaddr_t src, nsaddr_t dst, int fid, int slot) {
+	int find_hash(nsaddr_t src, nsaddr_t dst, int fid) {
 		int buck = hash(src, dst, fid);
-		insert(buck, src, dst, fid, slot);
+		return (buck);
 	}
 };
 
@@ -123,9 +126,9 @@ protected:
 		return (hn->active && hn->src == h->src() &&
 			hn->dst == ((h->dst() >> shift_) & mask_));
 	}
-	void set_hash(nsaddr_t src, nsaddr_t dst, int fid, int slot) {
+	int find_hash(nsaddr_t src, nsaddr_t dst, int fid) {
 		int buck = hash(src, dst);
-		insert(buck, src, dst, fid, slot);
+		return (buck);
 	}
 };
 
@@ -142,9 +145,8 @@ protected:
 		hdr_ip* h = (hdr_ip*)p->access(off_ip_);
 		return (hn->active && hn->fid == h->flowid());
 	}
-	void set_hash(nsaddr_t src, nsaddr_t dst, int fid, int slot) {
-		int buck = hash(fid);
-		insert(buck, src, dst, fid, slot);
+	int find_hash(nsaddr_t src, nsaddr_t dst, int fid) {
+		return(hash(fid));
 	}
 };
 
@@ -153,11 +155,11 @@ static class SrcDestHashClassifierClass : public TclClass {
 public:
 	SrcDestHashClassifierClass() : TclClass("Classifier/Hash/SrcDest") {}
 	TclObject* create(int argc, const char*const* argv) {
-		if (argc < 2) {
+		if (argc < 5) {
 			fprintf(stderr, "SrcDestHashClassifier ctor requires buckets arg\n");
 			exit(1);
 		}
-		int buckets = atoi(argv[1]);
+		int buckets = atoi(argv[4]);
 		return (new SrcDestHashClassifier(buckets));
 	}
 } class_hash_srcdest_classifier;
@@ -181,11 +183,11 @@ public:
 		TclClass("Classifier/Hash/SrcDestFid") {}
 
 	TclObject* create(int argc, const char*const* argv) {
-		if (argc < 2) {
+		if (argc < 5) {
 			fprintf(stderr, "SrcDstFidHashClassifier ctor requires buckets arg\n");
 			exit(1);
 		}
-		int buckets = atoi(argv[1]);
+		int buckets = atoi(argv[4]);
 		return (new SrcDestFidHashClassifier(buckets));
 	}
 } class_hash_srcdestfid_classifier;
@@ -193,11 +195,12 @@ public:
 /****************** HashClassifier Methods ************/
 
 HashClassifier::HashClassifier(int b) : mask_(~0), shift_(0),
-	buckets_(b), htab_(NULL)
+	default_(-1), htab_(NULL), buckets_(b)
 { 
 	// shift and mask operations on dest address
 	bind("mask_", (int*)&mask_);
 	bind("shift_", &shift_);
+	bind("default_", &default_);
 	// number of buckets in hashtable
 	htab_ = new hnode[buckets_];
 	if (htab_ != NULL)
@@ -224,21 +227,22 @@ HashClassifier::~HashClassifier()
 int HashClassifier::command(int argc, const char*const* argv)
 {
         /*
-         * $classifier set-hash $src $dst $fid $slot
+         * $classifier set-hash $hashbucket src dst fid $slot
          */
 
-	if (argc < 5) 
+	if (argc != 7) 
 		return (Classifier::command(argc, argv));
 
 	if (strcmp(argv[1], "set-hash") == 0) {
-		if (strcmp(argv[2], "fid") == 0) {
-			NsObject* cl = (NsObject*)TclObject::lookup(argv[3]);
-			int fid = atoi(argv[4]);
-			set_hash(0, 0, fid, fid);
-			install(fid, cl);	// Classifier::install()
-			return (TCL_OK);
-		}
+		int buck = atoi(argv[2]);
+		nsaddr_t src = atoi(argv[3]);
+		nsaddr_t dst = atoi(argv[4]);
+		int fid = atoi(argv[5]);
+		int slot = atoi(argv[6]);
+		insert(buck, src, dst, fid, slot);
+		return (TCL_OK);
 	}
+
         return (Classifier::command(argc, argv));
 }
 
@@ -247,8 +251,10 @@ int
 HashClassifier::newflow(Packet* pkt)
 {
 	hdr_ip* h = (hdr_ip*)pkt->access(off_ip_);
-	Tcl::instance().evalf("%s unknown-flow %u %u %u",
-		name(), h->src(), h->dst(), h->flowid());
+
+	int buck = find_hash(h->src(), h->dst(), h->flowid());
+	Tcl::instance().evalf("%s unknown-flow %u %u %u %u",
+		name(), h->src(), h->dst(), h->flowid(), buck);
 	const hnode* hn = lookup(pkt);
 	if (hn == NULL)
 		return (-1);
