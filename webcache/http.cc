@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.15 1999/07/23 01:35:01 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.16 1999/08/04 00:11:07 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -52,7 +52,7 @@ public:
 // What states should be in a http agent?
 HttpApp::HttpApp() : log_(0)
 {
-#ifndef JOHNH_CLASSINSTVAR
+#ifndef TCLCL_CLASSINSTVAR
 	bind("id_", &id_);
 #endif
 
@@ -61,7 +61,7 @@ HttpApp::HttpApp() : log_(0)
 	Tcl_InitHashTable(tpa_, TCL_ONE_WORD_KEYS);
 }
 
-#ifdef JOHNH_CLASSINSTVAR
+#ifdef TCLCL_CLASSINSTVAR
 void HttpApp::delay_bind_init_all()
 {
 	delay_bind_init_one("id_");
@@ -73,7 +73,7 @@ int HttpApp::delay_bind_dispatch(const char *varName, const char *localName)
 	DELAY_BIND_DISPATCH(varName, localName, "id_", delay_bind, &id_);
 	return TclObject::delay_bind_dispatch(varName, localName);
 }
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 
 HttpApp::~HttpApp()
 {
@@ -393,7 +393,7 @@ void HttpApp::process_data(int, char* data)
 
 	switch (AppData::type(data)) {
 	case HTTP_NORMAL: {
-		HttpNormalData *tmp=new HttpNormalData(data);
+		HttpNormalData *tmp = new HttpNormalData(data);
 		Tcl::instance().eval(tmp->str());
 		delete tmp;
 		break;
@@ -451,8 +451,8 @@ public:
 HttpYucInvalServer::HttpYucInvalServer() :
 	inv_sender_(0), invlist_(0), num_inv_(0)
 {
-#ifdef JOHNH_CLASSINSTVAR
-#else /* ! JOHNH_CLASSINSTVAR */
+#ifdef TCLCL_CLASSINSTVAR
+#else /* ! TCLCL_CLASSINSTVAR */
 	bind("hb_interval_", &hb_interval_);
 	bind("enable_upd_", &enable_upd_);
 	bind("Ca_", &Ca_);
@@ -463,8 +463,8 @@ HttpYucInvalServer::HttpYucInvalServer() :
 #endif
 }
 
-#ifdef JOHNH_CLASSINSTVAR
-HttpYucInvalServer::delay_bind_init_all()
+#ifdef TCLCL_CLASSINSTVAR
+void HttpYucInvalServer::delay_bind_init_all()
 {
 	delay_bind_init_one("hb_interval_");
 	delay_bind_init_one("enable_upd_");
@@ -493,7 +493,7 @@ int HttpYucInvalServer::delay_bind_dispatch(const char *varName,
 			    delay_bind, &push_low_bound_);
 	return HttpApp::delay_bind_dispatch(varName, localName);
 }
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 
 int HttpYucInvalServer::command(int argc, const char*const* argv)
 {
@@ -732,8 +732,8 @@ HttpMInvalCache::HttpMInvalCache() :
 	invlist_(0), num_inv_(0), inv_parent_(NULL),
 	upd_sender_(NULL), num_updater_(0), size_updater_(0)
 {
-#ifdef JOHNH_CLASSINSTVAR
-#else /* ! JOHNH_CLASSINSTVAR */
+#ifdef TCLCL_CLASSINSTVAR
+#else /* ! TCLCL_CLASSINSTVAR */
 	bind("hb_interval_", &hb_interval_);
 	bind("enable_upd_", &enable_upd_);	// If we allow push
 	bind("Ca_", &Ca_);
@@ -747,7 +747,7 @@ HttpMInvalCache::HttpMInvalCache() :
 	Tcl_InitHashTable(&nbr_, TCL_ONE_WORD_KEYS);
 }
 
-#ifdef JOHNH_CLASSINSTVAR
+#ifdef TCLCL_CLASSINSTVAR
 void HttpMInvalCache::delay_bind_init_all()
 {
 	delay_bind_init_one("hb_interval_");
@@ -777,7 +777,7 @@ int HttpMInvalCache::delay_bind_dispatch(const char *varName,
 			    delay_bind, &push_low_bound_);
 	return HttpApp::delay_bind_dispatch(varName, localName);
 }
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 
 HttpMInvalCache::~HttpMInvalCache() 
 {
@@ -1582,13 +1582,13 @@ public:
 
 HttpPercInvalCache::HttpPercInvalCache() 
 {
-#ifdef JOHNH_CLASSINSTVAR
-#else /* ! JOHNH_CLASSINSTVAR */
+#ifdef TCLCL_CLASSINSTVAR
+#else /* ! TCLCL_CLASSINSTVAR */
 	bind("direct_request_", &direct_request_);
 #endif
 }
 
-#ifdef JOHNH_CLASSINSTVAR
+#ifdef TCLCL_CLASSINSTVAR
 void HttpPercInvalCache::delay_bind_init_all()
 {
 	delay_bind_init_one("direct_request_");
@@ -1602,7 +1602,7 @@ int HttpPercInvalCache::delay_bind_dispatch(const char *varName,
 			    delay_bind, &direct_request_);
 	return HttpMInvalCache::delay_bind_dispatch(varName, localName);
 }
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 
 int HttpPercInvalCache::command(int argc, const char*const* argv)
 {

@@ -26,7 +26,7 @@
 //
 // Multimedia caches
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.1 1999/05/26 01:20:18 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.2 1999/08/04 00:11:09 haoboy Exp $
 
 #ifndef ns_mcache_h
 #define ns_mcache_h
@@ -44,7 +44,7 @@
 class HitCount : public DoubleListElem {
 public:
 	HitCount(ClientPage *pg, short layer) : 
-		pg_(pg), layer_(layer), hc_(0), DoubleListElem() {}
+		DoubleListElem(), pg_(pg), layer_(layer), hc_(0) {}
 
 	void update(float hc) { hc_ += hc; }
 	float hc() { return hc_; }
@@ -192,11 +192,11 @@ class MClientPagePool : public ClientPagePool {
 public:
 	MClientPagePool();
 
-#ifdef JOHNH_CLASSINSTVAR
+#ifdef TCLCL_CLASSINSTVAR
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, 
 					const char *localName);
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 
 	virtual ClientPage* enter_page(int argc, const char*const* argv);
 	virtual int remove_page(const char *name);

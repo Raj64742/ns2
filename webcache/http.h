@@ -17,7 +17,7 @@
 //
 // Definition of the HTTP agent
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.10 1999/05/26 01:20:13 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.11 1999/08/04 00:11:08 haoboy Exp $
 
 #ifndef ns_http_h
 #define ns_http_h
@@ -40,10 +40,10 @@ public:
 	virtual ~HttpApp();
 
 	virtual int command(int argc, const char*const* argv);
-#ifdef JOHNH_CLASSINSTVAR
+#ifdef TCLCL_CLASSINSTVAR
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName);
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 
 	void log(const char *fmt, ...);
 	int id() const { return id_; }
@@ -86,10 +86,10 @@ class HttpYucInvalServer : public HttpInvalServer {
 public:
 	HttpYucInvalServer();
 
-#ifdef JOHNH_CLASSINSTVAR
+#ifdef TCLCL_CLASSINSTVAR
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName);
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 	virtual int command(int argc, const char*const* argv);
 	void add_inv(const char *name, double mtime);
 
@@ -143,10 +143,10 @@ public:
 	HttpMInvalCache();
 	virtual ~HttpMInvalCache();
 
-#ifdef JOHNH_CLASSINSTVAR
+#ifdef TCLCL_CLASSINSTVAR
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName);
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 
 	virtual int command(int argc, const char*const* argv);
 	virtual void process_data(int size, char* data);
@@ -238,10 +238,10 @@ class HttpPercInvalCache : virtual public HttpMInvalCache {
 public:
 	HttpPercInvalCache();
 
-#ifdef JOHNH_CLASSINSTVAR
+#ifdef TCLCL_CLASSINSTVAR
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName);
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 	int command(int argc, const char*const* argv);
 
 protected: 
