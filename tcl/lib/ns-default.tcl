@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.258 2001/08/02 03:59:54 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.259 2001/08/17 19:01:47 kfall Exp $
 
 
 #
@@ -840,6 +840,27 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp/Sack set sack_block_size_ 8; # bytes in a SACK block
 	Agent/TCP/FullTcp/Sack set sack_option_size_ 2; # bytes in opt hdr
 	Agent/TCP/FullTcp/Sack set max_sack_blocks_ 3; # max # of sack blks
+	Agent/TCP/FullTcp/Sack set clear_on_timeout_ true; # clear sq at sender on timeout?
+
+	Agent/TCP/FullTcp/Tahoe instproc init {} {
+		$self next
+		$self instvar reno_fastrecov_
+		set reno_fastrecov_ false
+	}
+
+	Agent/TCP/FullTcp/Sack instproc init {} {
+		$self next
+		$self instvar reno_fastrecov_ open_cwnd_on_pack_
+		set reno_fastrecov_ false
+		set open_cwnd_on_pack_ false
+	}
+
+	Agent/TCP/FullTcp/Newreno instproc init {} {
+		$self next
+		$self instvar open_cwnd_on_pack_
+		set open_cwnd_on_pack_ false
+	}
+
 }
 
 if [TclObject is-class Agent/TCP/BayFullTcp] {
