@@ -49,8 +49,7 @@ set opt(lm)             "off"           ;# log movement
 set opt(x)		670	;# X dimension of the topography
 set opt(y)		670     ;# Y dimension of the topography
 set opt(nn)		3	;# number of nodes
-set opt(stop)		50	;# simulation time
-set opt(prestop)        198      ;# time to prepare to stop
+set opt(stop)		300	;# simulation time
 set opt(adhocRouting)   Directed_Diffusion
 # ======================================================================
 
