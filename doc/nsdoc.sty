@@ -67,9 +67,10 @@
 \newcommand{\xref}{\htmladdnormallink}
 
 % Define some convenient environments
+\def\cf{\rmfamily\itshape}
 \def\program{\bgroup%
-  \def\;##1;{\hfill;\#{\rmfamily\itshape ##1}}%
-  \def\*##1*/{\hfill/*{\rmfamily\itshape ##1}*/}%
+  \def\;##1;{\hfill;\#{\cf ##1}}%
+  \def\*##1*/{\hfill/*{\cf ##1}*/}%
   \alltt%
   \def\bs{\ifmmode\backslash\else\(\backslash\)\fi}%
 }
