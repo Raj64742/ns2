@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -29,11 +30,16 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by the Daedalus Research Group, UC Berkeley 
+ * (http://daedalus.cs.berkeley.edu)
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.39 1998/04/08 20:09:40 gnguyen Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.38 1998/03/19 01:07:14 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.39 1998/04/08 20:09:40 gnguyen Exp $ (UCB)";
 #endif
 
 #include <stdio.h>

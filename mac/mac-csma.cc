@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -35,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.20 1998/03/11 04:34:57 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.21 1998/04/08 20:09:45 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -32,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.11 1998/02/16 20:37:51 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.12 1998/04/08 20:09:43 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_ll_h

@@ -1,4 +1,4 @@
-eval 'exec perl -S $0 ${1+"$@"}'
+eval 'exec perl -S $0 ${1+"$@"}'  # -*-Mode:Perl; perl-indent-level:8-*-
     if 0;
 
 #require 5.003;
@@ -66,7 +66,7 @@ $force = $opt{'f'};
 $fid = 0	if (! $fid);
 $pt = 'tcp'	if (! $pt);
 foreach $key (keys %opt) {
-	if (index("psize:tt", $key) >= 0 || $key =~ /^c(\w+)$/o) {
+	if (index("psize:tt", $key) >= 0 || $key =~ /^c(\w+)$/) {
 		$_ = "\$$key";
 		eval "$_ = $opt{$key}";
 	}
