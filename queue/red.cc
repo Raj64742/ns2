@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.65 2001/10/25 23:40:04 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.66 2001/10/27 00:09:10 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -167,9 +167,21 @@ void REDQueue::initialize_params()
  * This corresponds to choosing q_weight to be of that value for
  * which the packet time constant -1/ln(1-q_weight) per default RTT 
  * of 100ms is an order of magnitude more than the link capacity, C.
+ *
+ * If q_weight=-1, then the queue weight is set to be a function of
+ * the bandwidth and the link propagation delay.  In particular, 
+ * the default RTT is assumed to be three times the link delay and 
+ * transmission delay, if this gives a default RTT greater than 100 ms. 
  */
-	if (edp_.q_w == 0.0)
+	if (edp_.q_w == 0.0) {
 		edp_.q_w = 1.0 - exp(-1.0/edp_.ptc);
+ 	} else if (edp_.q_w == -1.0) {
+		double rtt = 3.0*(edp_.delay+1.0/edp_.ptc);
+		//printf("delay: %5.4f rtt: %5.4f\n", edp_.delay, rtt);
+		if (rtt < 0.1) 
+			rtt = 0.1;
+		edp_.q_w = 1.0 - exp(-1.0/(10*rtt*edp_.ptc));
+	}
 	// printf("ptc: %7.5f bandwidth: %5.3f pktsize: %d\n", edp_.ptc, link_->bandwidth(), edp_.mean_pktsize);
         // printf("th_min_pkts: %7.5f th_max_pkts: %7.5f\n", edp_.th_min_pkts, edp_.th_max);
 	if (edp_.th_min_pkts == 0) {
@@ -685,8 +697,9 @@ int REDQueue::command(int argc, const char*const* argv)
 			link_ = del;
 			edp_.ptc = link_->bandwidth() /
 				(8. * edp_.mean_pktsize);
+			edp_.delay = link_->delay();
 			if (
-			  (edp_.q_w == 0.0 || edp_.th_min_pkts == 0 ||
+			  (edp_.q_w <= 0.0 || edp_.th_min_pkts == 0 ||
 					edp_.th_max_pkts == 0))
                         	initialize_params();
 			return (TCL_OK);

@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.33 2001/10/25 23:40:04 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.34 2001/10/27 00:09:10 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -98,6 +98,7 @@ struct edp {
 	 * Computed as a function of user supplied paramters.
 	 */
 	double ptc;		/* packet time constant in packets/second */
+	double delay;		/* link delay */
 };
 
 /*
