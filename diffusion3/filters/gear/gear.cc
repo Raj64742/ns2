@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2003 by the University of Southern California
 // Copyright (C) 2000-2003 by the University of California
-// $Id: gear.cc,v 1.2 2003/08/05 23:38:37 haldar Exp $
+// $Id: gear.cc,v 1.3 2003/09/24 17:45:13 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -592,10 +592,11 @@ handle GeoRoutingFilter::setupPostFilter()
 
 void GeoRoutingFilter::run()
 {
-  /*#ifdef NS_DIFFUSION
-    TimerCallback *neighbor_timer, *beacon_timer;
+#ifdef NS_DIFFUSION
+  TimerCallback *neighbor_timer, *beacon_timer;
 
   // Set up node location
+  DiffPrintWithTime(DEBUG_ALWAYS, "Initializing GEAR IN NS!\n");
   getNodeLocation(&geo_longitude_, &geo_latitude_);
 
   DiffPrintWithTime(DEBUG_ALWAYS, "Gear - Location %f,%f\n",
@@ -619,7 +620,7 @@ void GeoRoutingFilter::run()
   DiffPrintWithTime(DEBUG_ALWAYS, "Gear - Post-filter: received handle %d !\n",
 		    post_filter_handle_);
   DiffPrintWithTime(DEBUG_ALWAYS, "Gear - Initialized !\n");
-  #endif // NS_DIFFUSION */
+#endif // NS_DIFFUSION
 
   // Sends a beacon request upon start-up
   beaconTimeout();
@@ -662,12 +663,12 @@ GeoRoutingFilter::GeoRoutingFilter(const char *diffrtg)
 #ifdef NS_DIFFUSION
   agent = (DiffAppAgent *)TclObject::lookup(diffrtg);
   dr_ = agent->dr();
-#endif // NS_DIFFUSION
-
+#else
   getNodeLocation(&geo_longitude_, &geo_latitude_);
 
   DiffPrintWithTime(DEBUG_ALWAYS, "Gear - Location %f,%f\n",
 		    geo_longitude_, geo_latitude_);
+#endif // NS_DIFFUSION
 
   GetTime(&tv);
   SetSeed(&tv);
@@ -681,7 +682,7 @@ GeoRoutingFilter::GeoRoutingFilter(const char *diffrtg)
 
   filter_callback_ = new GeoFilterReceive(this);
 
-  //#ifndef NS_DIFFUSION
+#ifndef NS_DIFFUSION
   // Set up filters
   pre_filter_handle_ = setupPreFilter();
   post_filter_handle_ = setupPostFilter();
@@ -702,7 +703,7 @@ GeoRoutingFilter::GeoRoutingFilter(const char *diffrtg)
 		    "Gear - Post-filter received handle %d !\n",
 		    post_filter_handle_);
   DiffPrintWithTime(DEBUG_ALWAYS, "Gear - Initialized !\n");
-  //#endif // !NS_DIFFUSION
+#endif // !NS_DIFFUSION
 }
 
 void GeoRoutingFilter::getNodeLocation(double *longitude, double *latitude)

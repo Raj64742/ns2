@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: ping_receiver.cc,v 1.1 2003/07/09 17:45:02 haldar Exp $
+// $Id: ping_receiver.cc,v 1.2 2003/09/24 17:45:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -125,6 +125,7 @@ handle PingReceiverApp::setupSubscription()
   NRAttrVec attrs;
 
   attrs.push_back(NRClassAttr.make(NRAttribute::IS, NRAttribute::INTEREST_CLASS));
+  attrs.push_back(NRAlgorithmAttr.make(NRAttribute::IS, NRAttribute::ONE_PHASE_PULL_ALGORITHM));
   attrs.push_back(LatitudeAttr.make(NRAttribute::GT, 54.78));
   attrs.push_back(LongitudeAttr.make(NRAttribute::LE, 87.32));
   attrs.push_back(TargetAttr.make(NRAttribute::IS, "F117A"));

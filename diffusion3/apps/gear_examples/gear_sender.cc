@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_sender.cc,v 1.2 2003/07/10 21:18:55 haldar Exp $
+// $Id: gear_sender.cc,v 1.3 2003/09/24 17:45:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -64,12 +64,12 @@ void GearSenderApp::send()
 
 int GearSenderApp::command(int argc, const char*const* argv) {
   if (argc == 2) {
-    if (strcmp(argv[1], "subscribe") == 0) {
+    if (strcmp(argv[1], "publish") == 0) {
       run();
       return TCL_OK;
     }
   }
-  else if (argc == 8) {
+  else if (argc >= 6) {
     // TCL API $app push-pull-option <push/pull> <point/region> <co-od1> <co-od2> <co-od3> <co-od4>
     if (strcmp(argv[1], "push-pull-options") == 0) {
       if (strcmp(argv[2], "push") == 0) 
@@ -80,16 +80,22 @@ int GearSenderApp::command(int argc, const char*const* argv) {
       if (strcmp(argv[3], "point") == 0) 
 	{
 	  using_points_ = true;
-	  lat_pt_ = atoi(argv[4]);
-	  long_pt_ = atoi(argv[5]);
+	  if (argv[4] != NULL && argv[5] != NULL) 
+	    {
+	      lat_pt_ = atoi(argv[4]);
+	      long_pt_ = atoi(argv[5]);
+	    }
 	}
       else
 	{
 	  using_points_ = false;
-	  lat_min_ = atoi(argv[4]);
-	  lat_max_ = atoi(argv[5]);
-	  long_min_ = atoi(argv[6]);
-	  long_max_ = atoi(argv[7]);
+	  if (argv[4] != NULL && argv[5] != NULL && argv[6] != NULL && argv[7] != NULL)
+	    {
+	      lat_min_ = atoi(argv[4]);
+	      lat_max_ = atoi(argv[5]);
+	      long_min_ = atoi(argv[6]);
+	      long_max_ = atoi(argv[7]);
+	    }
 	}
       return TCL_OK;
     }

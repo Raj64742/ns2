@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: ping_sender.cc,v 1.1 2003/07/09 17:45:02 haldar Exp $
+// $Id: ping_sender.cc,v 1.2 2003/09/24 17:45:12 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -115,6 +115,7 @@ handle PingSenderApp::setupSubscription()
   NRAttrVec attrs;
 
   attrs.push_back(NRClassAttr.make(NRAttribute::NE, NRAttribute::DATA_CLASS));
+  attrs.push_back(NRAlgorithmAttr.make(NRAttribute::IS, NRAttribute::ONE_PHASE_PULL_ALGORITHM));
   attrs.push_back(NRScopeAttr.make(NRAttribute::IS, NRAttribute::NODE_LOCAL_SCOPE));
   attrs.push_back(TargetAttr.make(NRAttribute::EQ, "F117A"));
   attrs.push_back(LatitudeAttr.make(NRAttribute::IS, 60.00));
@@ -132,6 +133,7 @@ handle PingSenderApp::setupPublication()
   NRAttrVec attrs;
 
   attrs.push_back(NRClassAttr.make(NRAttribute::IS, NRAttribute::DATA_CLASS));
+  attrs.push_back(NRAlgorithmAttr.make(NRAttribute::IS, NRAttribute::ONE_PHASE_PULL_ALGORITHM));
   attrs.push_back(LatitudeAttr.make(NRAttribute::IS, 60.00));
   attrs.push_back(LongitudeAttr.make(NRAttribute::IS, 54.00));
   attrs.push_back(TargetAttr.make(NRAttribute::IS, "F117A"));

@@ -3,7 +3,7 @@
 // author               : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: one_phase_pull.cc,v 1.3 2003/08/05 23:38:36 haldar Exp $
+// $Id: one_phase_pull.cc,v 1.4 2003/09/24 17:45:12 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -25,7 +25,7 @@
 #ifdef NS_DIFFUSION
 static class OnePhasePullFilterClass : public TclClass {
 public:
-  OnePhasePullFilterClass() : TclClass("Application/OnePhasePullFilter") {}
+  OnePhasePullFilterClass() : TclClass("Application/DiffApp/OnePhasePullFilter") {}
   TclObject* create(int argc, const char*const* argv) {
     if (argc == 5)
       return(new OnePhasePullFilter(argv[4]));
