@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.312 1999/03/05 18:52:50 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.313 1999/03/06 02:12:18 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,16 @@
     <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b5.tar.gz">
     Release of ns-2.1b5<a> [PENDING]</a></h3>
     <UL>  
+
+    <li> <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
+        <b>Fri Mar  5 18:09:31 PST 1999</b><br>
+	Previous ErrorModel won't work with ECN turned on if it is
+        situated after the QUEUE module. It's because ECN doesn't drop
+        the packet, but an event is scheduled to resume the handler
+        from inside the ErrorModel instead of from DelayLink. Added a
+        check to avoid this. 
+	This will only affect scripts using
+        SimpleLink::insert-linkloss{} or Simulator::link-lossmodel{}. 
 
     <li> <b><a href="http://www-nrg.ee.lbl.gov/floyd/">[floyd]</a></b>
 	<b>Fri Mar  5 10:47:07 PST 1999</b><br>
