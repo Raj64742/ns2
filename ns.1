@@ -660,7 +660,9 @@ how the methods and configuration parameters
 associated with the various objects
 are inherited.
 For more complete information
-see [ns internals document].
+see "ns notes & documentation"
+and the automatically generated class library information
+on the ns web page.
 .LP
 Objects are associated with 
 configuration parameters that can be
@@ -675,7 +677,7 @@ link bandwidth), but can be changed dynamically if desired.
 State variables represent values that are specific to a
 given object and that object's implementation.
 .LP
-The following diagram depicts the object hierarchy:
+The following diagram depicts a portion the object hierarchy:
 .nf
     Simulator
           MultiSim
@@ -737,6 +739,12 @@ The following diagram depicts the object hierarchy:
     Integrator
     Samples
 .fi
+.LP
+For a complete, automatically generated, object hierarchy,
+see the link "class hierarchy" (which points to
+http://www-sop.inria.fr/rodeo/personnel/Antoine.Clerget/ns/)
+on the ns web pages.  (Thanks to Antoine Clerget for maintaining
+this!)
 .LP
 For example, any method that is supported by a
 .I TCP
