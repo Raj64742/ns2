@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.cc,v 1.19 1998/06/27 01:24:03 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.cc,v 1.20 1998/08/05 01:58:42 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -260,7 +260,7 @@ void Mac802_11::sendRts()
 	}
 	Packet* p = pkt_->copy();
 	CHECK_PKT(p);
-	((hdr_cmn*)p->access(off_cmn_))->size() = 0;
+	hdr_cmn::access(p)->size() = 0;
 	hdr_mac* mh = hdr_mac::access(p);
 	mh->ftype() = MF_RTS;
 	transmit(p, difs_);
@@ -301,7 +301,7 @@ void Mac802_11::sendAck(Packet* p)
 {
 	p = p->copy();
 	CHECK_PKT(p);
-	((hdr_cmn*)p->access(off_cmn_))->size() = 0;
+	hdr_cmn::access(p)->size() = 0;
 	hdr_mac* mh = hdr_mac::access(p);
 	swap(mh->macSA(), mh->macDA());
 	mh->ftype() = MF_ACK;

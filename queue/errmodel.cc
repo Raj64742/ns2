@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.54 1998/07/08 19:14:06 polly Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.55 1998/08/05 01:58:41 gnguyen Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.54 1998/07/08 19:14:06 polly Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.55 1998/08/05 01:58:41 gnguyen Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -126,7 +126,7 @@ void ErrorModel::recv(Packet* p, Handler* h)
 	// 3.  If there is no error,  no drop_ target or markecn is true,
 	//	let pkt continue, otherwise hand the corrupted packet to drop_
 
-	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* ch = hdr_cmn::access(p);
 	int error = corrupt(p);
 
 	if (h && ((error && drop_) || !target())) {
@@ -137,7 +137,7 @@ void ErrorModel::recv(Packet* p, Handler* h)
 	if (error) {
 		ch->error() |= error;
 		if (markecn_) {
-			hdr_flags* hf = (hdr_flags*) p->access(off_flags_);
+			hdr_flags* hf = hdr_flags::access(p);
 			hf->ce() = 1;
 		} else if (drop_) {
 			drop_->recv(p);
@@ -171,7 +171,7 @@ double ErrorModel::PktLength(Packet* p)
 	double now;
 	if (unit_ == EU_PKT)
 		return 1;
-	int byte = ((hdr_cmn*)p->access(off_cmn_))->size();
+	int byte = hdr_cmn::access(p)->size();
 	if (unit_ == EU_BYTE)
 		return byte;
 	return 8.0 * byte / bandwidth_;
@@ -341,7 +341,7 @@ PeriodicErrorModel::PeriodicErrorModel() : cnt_(0), last_time_(0.0), first_time_
 
 int PeriodicErrorModel::corrupt(Packet* p)
 {
-	hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
+	hdr_cmn *ch = hdr_cmn::access(p);
 	double now = Scheduler::instance().clock();
 
 	if (unit_ == EU_TIME) {
@@ -418,7 +418,7 @@ int ListErrorModel::corrupt(Packet* p)
 		cnt_++;
 
 	} else if (unit_ == EU_BYTE) {
-		int sz = ((hdr_cmn*)p->access(off_cmn_))->size();
+		int sz = hdr_cmn::access(p)->size();
 		if ((cur_ < dropcnt_) && (cnt_ + sz) >= droplist_[cur_]) {
 			rval = 1;
 			cur_++;
@@ -614,7 +614,7 @@ int SelectErrorModel::command(int argc, const char*const* argv)
 int SelectErrorModel::corrupt(Packet* p)
 {
 	if (unit_ == EU_PKT) {
-		hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
+		hdr_cmn *ch = hdr_cmn::access(p);
 		if (ch->ptype() == pkt_type_ && ch->uid() % drop_cycle_ 
 		    == drop_offset_) {
 			//printf ("dropping packet type %d, uid %d\n", 
@@ -632,7 +632,6 @@ public:
 	virtual int corrupt(Packet*);
 protected:
 	int command(int argc, const char*const* argv);
-	int off_srm_;
 };
 
 static class SRMErrorModelClass : public TclClass {
@@ -645,7 +644,6 @@ public:
 
 SRMErrorModel::SRMErrorModel()
 {
-	bind("off_srm_", &off_srm_);
 }
 
 int SRMErrorModel::command(int argc, const char*const* argv)
@@ -663,8 +661,8 @@ int SRMErrorModel::command(int argc, const char*const* argv)
 int SRMErrorModel::corrupt(Packet* p)
 {
 	if (unit_ == EU_PKT) {
-		hdr_srm *sh = (hdr_srm*) p->access(off_srm_);
-		hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
+		hdr_srm *sh = hdr_srm::access(p);
+		hdr_cmn *ch = hdr_cmn::access(p);
 		if ((ch->ptype() == pkt_type_) && (sh->type() == SRM_DATA) && 
 		    (sh->seqnum() % drop_cycle_ == drop_offset_)) {
 			//printf ("dropping packet type SRM-DATA, seqno %d\n", 

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.22 1998/08/03 19:55:33 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.23 1998/08/05 01:58:42 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -135,7 +135,7 @@ Packet* LL::sendto(Packet* p, Handler* h)
 Packet* LL::recvfrom(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	if (((hdr_cmn*)p->access(off_cmn_))->error() > 0)
+	if (hdr_cmn::access(p)->error() != 0)
 		drop(p);
 	else
 		s.schedule(recvtarget_, p, delay_);
