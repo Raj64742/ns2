@@ -11,7 +11,7 @@
 #include "routealgo/rbitmap.h"
 
 #include <iostream.h>
-#ifdef USE_HASH
+#ifdef USE_HASH_MAP
 #include <hash_map>
 #include <hash_set>
 #else
@@ -137,8 +137,10 @@ private:
 };
 
 // The "HashMap" lookup is used when the previous two methods do not work.
-// Uses the STL "hash_map" associative container to store non-default routes
-#ifdef USE_HASH
+// Uses the STL "hash_map" associative container to store non-default routes.
+// By default, this is OFF because hash_map is an SGI extension to STL,
+// not part of standard STL.
+#ifdef USE_HASH_MAP
 typedef hash_map<nodeid_t, nodeid_t,
                  hash<nodeid_t>, equal_to<nodeid_t> > RouteMap_t;
 #else
