@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.24 1997/11/18 22:32:16 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.25 1997/11/20 22:50:38 hari Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -106,6 +106,10 @@ int ErrorModel::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "enabled?") == 0) {
 			tcl.resultf("%d", enable_);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "corrupt") == 0) {
+			tcl.resultf("%d", corrupt(pkt_));
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "reset") == 0) {
