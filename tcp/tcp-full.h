@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.33 1998/07/08 23:39:17 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.34 1998/07/29 21:14:00 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -51,6 +51,9 @@
 #define TF_SENTFIN      0x0010          /* have sent FIN */
 #define	TF_RCVD_TSTMP	0x0100		/* timestamp rcv'd in SYN */
 #define	TF_NEEDFIN	0x0800		/* send FIN (implicit state) */
+
+/* these are simulator-specific */
+#define	TF_NEEDCLOSE	0x10000		/* perform close on empty */
 
 #define TCPS_CLOSED             0       /* closed */
 #define TCPS_LISTEN             1       /* listening for connection */
