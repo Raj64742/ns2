@@ -41,13 +41,19 @@ class Classifier : public NsObject {
  public:
 	~Classifier();
 	void recv(Packet*, Handler* h = 0);
-	NsObject* index(int slot) { return (slot < nslot_) ? slot_[slot] : 0; }
+	int maxslot() const { return maxslot_; }
+	inline NsObject* index(int slot) {
+		if ((slot < 0) || (slot >= nslot_))
+			return (NsObject*)NULL;
+		return slot_[slot];
+	}
+	NsObject* find(Packet*);
+	virtual int classify(Packet *const) = 0;
  protected:
 	Classifier();
 	void install(int slot, NsObject*);
 	void clear(int slot);
 	virtual int command(int argc, const char*const* argv);
-	virtual int classify(Packet *const) = 0;
 	void alloc(int);
 	NsObject** slot_;	/* table that maps slot number to a NsObject */
 	int nslot_;
