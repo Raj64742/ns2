@@ -34,11 +34,12 @@ sub ParseArgv
 	if (/^-d$/) {
 	    $delim = shift @ARGV;
 	}
-	elsif (/^-pt$/) {
+	elsif (/^-(pt|fid)$/) {
 	    $val = shift @ARGV;
-	    $pt = $pt ? $pt . " $val" : $val;
+	    s/-(\w+)/\$$1/;
+	    eval "$_ = $_ . '$val '";
 	}
-	elsif (/^-(tt|pt|c|psize|ctt|cpt|ctime|csrc|cdst)$/) {
+	elsif (/^-(tt|psize|c|ctt|cpt|ctime|csrc|cdst)$/) {
 	    $val = shift @ARGV;
 	    s/-(\w+)/\$$1/;
 	    eval "$_ = '$val'";
@@ -57,7 +58,6 @@ sub ParseArgv
 $delim = " ";
 $psize = 1000;
 $tt = '-';
-$fid = 0;
 
 $ctt = 1;
 $ctime = 2;
@@ -69,6 +69,7 @@ $cseq = 11;
 
 &ParseArgv;
 $pt = 'tcp'  if !$pt;
+$fid = 0  if !$fid;
 $ctt--; $ctime--;
 $cpt--; $cfid--; $csrc--; $cdst--; $cseq--;
 
@@ -80,13 +81,14 @@ while (<>)
     @col = split(/$delim/);
     $count{$col[0]}++;
     next if ($col[0] ne $tt);
-    next if ($col[$cfid] ne $fid);
     next if !grep(/$col[$cpt]/, $pt);
+    next if !grep(/$col[$cfid]/, $fid);
 
     $src = $col[$csrc];
     $dst = $col[$cdst];
     $key = "$col[$cpt].$src.$dst";
     $time{$key} = $col[$ctime];
+    $pktcnt{$key}++;
     $seqno{$key} = $col[$cseq];
 
     if ($opt{f}) {
@@ -103,6 +105,9 @@ while (<>)
 foreach $key (@keys) {
     $t = $time{$key};
     $s = $seqno{$key};
+    if ($s > $pktcnt{$key}) {
+	$s = $pktcnt{$key};
+    }
     $maxtime = $t  if ($t > $maxtime);
     $maxpkt += $s;
     printf("%s\t%0.6f\t%d\t%0.6f\t%0.6f\n",
