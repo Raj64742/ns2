@@ -1,28 +1,19 @@
 #! /bin/sh
 
-# compile and install tcl
+die() {
+      echo "$@" 
+      exit 1
+}
+# Get current path
 CUR_PATH=`pwd`
 
+# install and install Tcl8.0
+
 cd ./tcl8.0/unix
-if ./configure --prefix="$CUR_PATH/tcl8.0"
-then
-    if make
-    then 
-	if make install
-	then
-	   echo "tcl8.0 has been installed successfully!"
-	else
-	   echo "tcl8.0 installation failed! Exiting ..."
-	   exit 1
-	fi
-    else
-	echo "tcl8.0 make failed! Exiting ..."
-	exit 1
-    fi
-else
-	echo "tcl8.0 configuration failed! Exiting ..."
-	exit 1
-fi
+
+./configure --prefix="$CUR_PATH/tcl8.0" || die "tcl8.0 configuration failed! Exiting ..."
+make || die "tcl8.0 make failed! Exiting ..."
+make install || die "tcl8.0 installation failed! Exiting ..."
 
 cd ../../
 
@@ -30,25 +21,9 @@ cd ../../
 
 cd ./tk8.0/unix
 
-if ./configure --prefix="$CUR_PATH/tk8.0"
-then
-    if make
-    then
-        if make install
-        then
-           echo "tk8.0 has been installed successfully!"
-        else
-           echo "tk8.0 installation failed! Exiting ..."
-           exit 1
-        fi
-    else
-        echo "tk8.0 make failed! Exiting ..."
-        exit 1
-    fi
-else
-        echo "tk8.0 configuration failed! Exiting ..."
-        exit 1
-fi
+./configure --prefix="$CUR_PATH/tk8.0" || die "tk8.0 configuration failed! Exiting ..."
+make || die "tk8.0 make failed! Exiting ..."
+make install || die "tk8.0 installation failed! Exiting ..."
 
 cd ../../
 
@@ -56,37 +31,23 @@ cd ../../
 
 cd ./otcl 
 
-if ./configure --with-tcl=../tcl8.0 --with-tk=../tk8.0
-then 
-    if make
-    then
-	echo "otcl has been installed successfully!"
-    else
-        echo "otcl make failed! Exiting ..."
-	exit 1
-    fi
-else
-    echo "otcl configuration failed! Exiting ..."
-    exit 1
-fi
+./configure --with-tcl=../tcl8.0 --with-tk=../tk8.0 || die "otcl configuration failed! Exiting ..."
+
+make || die "otcl make failed! Exiting ..."
+
+echo "otcl has been installed successfully !"
+
 cd ../
 
 # compile and install TclCL
 
 cd ./TclCL
-if ./configure --with-otcl=../otcl --with-tcl=../tcl8.0 --with-tk=../tk8.0  --with-tcl-ver=8.0 --with-tk-ver=8.0
-then 
-    if make
-    then
-        echo "TclCL has been installed successfully!" 
-    else
-        echo "TclCL make failed! Exiting ..."
-        exit 1
-    fi
-else
-    echo "TclCL configuration failed! Exiting ..."
-    exit 1
-fi
+
+./configure --with-otcl=../otcl --with-tcl=../tcl8.0 --with-tk=../tk8.0  --with-tcl-ver=8.0 --with-tk-ver=8.0 || die "TclCL configuration failed! Exiting ..."
+
+make || die "TclCL make failed! Exiting ..."
+
+echo "TclCL has been installed successfully!"
 
 cd ../
 
@@ -110,19 +71,11 @@ cd ../
 #compile and install ns
 
 cd ./ns-2
-if ./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tcl8.0 --with-tk=../tk8.0 --disable-static
-then
-    if make
-    then
-	echo " Ns has been installed successfully!" 
-    else
-        echo "Ns make failed! Exiting ..."
-        exit 1
-    fi
-else
-    echo "Ns configuration failed! Exiting ..."
-    exit 1
-fi
+./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tcl8.0 --with-tk=../tk8.0 --disable-static || die "Ns configuration failed! Exiting ..."
+
+make || "Ns make failed! Exiting ..."
+
+echo " Ns has been installed successfully!" 
 
 cd ../
 
@@ -130,32 +83,31 @@ cd ../
 
 cd ./nam-1
 
-if ./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tcl8.0 --with-tk=../tk8.0 --disable-static
-then
-    if make
-    then
-	echo "Nam has been installed successfully!" 
-    else
-        echo "Nam make failed! Exiting ..."
-        exit 1
-    fi
-else
-    echo "Nam configuration failed! Exiting ..."
-    exit 1
-fi
+./configure --with-otcl=../otcl --with-tclcl=../TclCL --with-tcl=../tcl8.0 --with-tk=../tk8.0 --disable-static || die "Nam configuration failed! Exiting ..."
+
+make || die "Nam make failed! Exiting ..."
+
+echo "Nam has been installed successfully!"
 
 cd ../
 
 # install nam, ns, xgraph into bin
+
+if [ ! -d bin ]
+then
 mkdir bin
+fi
+
 cd bin
 
 ln -s $CUR_PATH/ns-2/ns ns
 ln -s $CUR_PATH/nam-1/nam nam
-#test xgraph here
+
 if test -x $CUR_PATH/xgraph/xgraph
 then
     ln -s $CUR_PATH/xgraph/xgraph xgraph
+else
+    echo "Please compiling your xgraph separately!"
 fi
 
 echo "Ns-allinone package has been installed successfully !"
@@ -166,10 +118,17 @@ echo "otcl:	$CUR_PATH/otcl"
 echo "TclCL:	$CUR_PATH/TclCL"
 echo "tcl8.0:	$CUR_PATH/tcl8.0"
 echo "tk8.0:	$CUR_PATH/tcl8.0"
+if [ -x $CUR_PATH/xgraph/xgraph ]
+then
 echo "xgraph:	$CUR_PATH/xgraph"
+fi
+
 echo "-----------------------------------------------------"
 echo "Please put $CUR_PATH/bin into your PATH environment!"
 echo "Please put $CUR_PATH/otcl into your LD_LIBRARY_PATH environment!"
+echo ""
+echo "You can run the ns validation suite with"
+echo "cd ns-2; ./validate"
 
 exit 0
 
