@@ -30,7 +30,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.18 1998/06/27 01:24:55 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.19 1998/08/05 01:19:55 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -47,6 +47,8 @@ static const char rcsid[] =
 #include "trace.h"
 
 
+int hdr_srm::offset_;
+
 static class SRMAgentClass : public TclClass {
 public:
 	SRMAgentClass() : TclClass("Agent/SRM") {}
@@ -58,7 +60,9 @@ public:
 static class SRMHeaderClass : public PacketHeaderClass {
 public:
 	SRMHeaderClass() : PacketHeaderClass("PacketHeader/SRM",
-					     sizeof(hdr_srm)) {}
+					     sizeof(hdr_srm)) {
+		offset(&hdr_srm::offset_);
+	}
 } class_srmhdr;
 
 SRMAgent::SRMAgent() 

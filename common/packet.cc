@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.12 1998/06/27 01:24:17 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.13 1998/08/05 01:19:54 gnguyen Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -43,6 +43,7 @@ static const char rcsid[] =
 int Packet::hdrlen_ = 0;		// size of a packet's header
 Packet* Packet::free_;			// free list
 int hdr_cmn::offset_;			// static offset of common header
+int hdr_flags::offset_;			// static offset of flags header
 
 
 PacketHeaderClass::PacketHeaderClass(const char* classname, int hdrlen) : 
@@ -120,7 +121,9 @@ public:
 class FlagsHeaderClass : public PacketHeaderClass {
 public:
 	FlagsHeaderClass() : PacketHeaderClass("PacketHeader/Flags",
-						sizeof(hdr_flags)) {}
+						sizeof(hdr_flags)) {
+		offset(&hdr_flags::offset_);
+	}
 } class_flagshdr;
 
 

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.12 1998/06/27 01:23:51 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.13 1998/08/05 01:19:54 gnguyen Exp $
  */
 
 /*
@@ -59,6 +59,13 @@ struct hdr_flags {
 				      *	sender notifying transport
 				      * receiver of responses to
 				      * congestion. */
+
+	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_flags* access(Packet* p, int off=-1) {
+		return (hdr_flags*) p->access(off < 0 ? offset_ : off);
+	}
+
 	/*
 	 * these functions use the newer ECN names but leaves the actual field
 	 * names above to maintain backward compat

@@ -26,7 +26,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-headers.h,v 1.7 1998/07/17 22:37:24 yaxu Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-headers.h,v 1.8 1998/08/05 01:19:55 gnguyen Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_headers_h
@@ -43,6 +43,12 @@ struct hdr_srm {
 	int	sender_;
 	int	seqnum_;
 	int	round_;
+
+	static int offset_;
+	inline static int& offset() { return offset_; }
+	inline static hdr_srm* access(Packet* p, int off=-1) {
+		return (hdr_srm*) p->access(off < 0 ? offset_ : off);
+	}
 	
 	// per field member functions
 	int& type()	{ return type_; }
