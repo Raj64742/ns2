@@ -1,3 +1,12 @@
+/* psd.c - main file for spectrum
+
+This program is free software; you can redistribute or modify it under the
+terms of GNU general public license as published by the free software foundation
+
+*/
+
+
+
 #include "spect.h"
 main(int argc,char *argv[])
 {
