@@ -36,7 +36,7 @@ source isitopo.tcl
 # Basic ns setup
 set ns [new Simulator]
 
-#$ns rtproto Manual
+$ns rtproto Manual
 
 create_topology
 

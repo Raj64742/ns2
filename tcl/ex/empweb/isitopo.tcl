@@ -18,7 +18,7 @@
 
 #
 # Maintainer: Kun-chan Lan <kclan@isi.edu>
-# Version Date: $Date: 2001/12/03 08:43:13 $
+# Version Date: $Date: 2002/01/29 01:03:01 $
 #
 #
 # Unbalanced dumbell topology
@@ -41,8 +41,6 @@
 proc my-duplex-link {ns n1 n2 bw delay queue_method queue_length} {
 
        $ns duplex-link $n1 $n2 $bw $delay $queue_method
-#       [$n1 get-module "Manual"] add-route-to-adj-node -default $n2
-#       [$n2 get-module "Manual"] add-route-to-adj-node -default $n1
        $ns queue-limit $n1 $n2 $queue_length
        $ns queue-limit $n2 $n1 $queue_length
 }
@@ -54,13 +52,14 @@ set num_web_server 40
 set num_web_client 960      
 set num_isi_client 160     
 set num_isi_server 1           
+set num_isi_lan 4
 set num_ftp_server 10    
 set num_ftp_client 100     
 set queue_method RED
-set queue_method DropTail
 set queue_length 50
 set num_nonisi_web_client [expr $num_web_client - $num_isi_client]
 set num_node [expr 15 + [expr $num_web_client + $num_web_server + $num_ftp_server + $num_ftp_client]]
+set num_isi_client_per_lan [expr $num_isi_client/$num_isi_lan]
 
 set wwwInDelay [new RandomVariable/Empirical]
 $wwwInDelay loadCDF cdf/2pm.dump.www.inbound.delay.cdf
@@ -102,17 +101,37 @@ my-duplex-link $ns $n(0) $n(6) 2Mb 10ms $queue_method $queue_length
 my-duplex-link $ns $n(0) $n(7) 100Mb 2ms $queue_method $queue_length
 my-duplex-link $ns $n(0) $n(8) 2Mb 10ms $queue_method $queue_length
 
-my-duplex-link $ns $n(1) $n([expr $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client + 10]) 100Mb 500us $queue_method $queue_length
-my-duplex-link $ns $n(1) $n([expr $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client + 11]) 100Mb 500us $queue_method $queue_length
-my-duplex-link $ns $n(1) $n([expr $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client + 12]) 100Mb 500us $queue_method $queue_length
-my-duplex-link $ns $n(1) $n([expr $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client + 13]) 100Mb 500us $queue_method $queue_length
+set remote_host [expr $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client]
+
+my-duplex-link $ns $n(1) $n([expr $remote_host + 10]) 100Mb 500us $queue_method $queue_length
+my-duplex-link $ns $n(1) $n([expr $remote_host + 11]) 100Mb 500us $queue_method $queue_length
+my-duplex-link $ns $n(1) $n([expr $remote_host + 12]) 100Mb 500us $queue_method $queue_length
+my-duplex-link $ns $n(1) $n([expr $remote_host + 13]) 100Mb 500us $queue_method $queue_length
 
 for {set i 0} {$i < $num_web_server} {incr i} {
     set base [expr $i / 10]
     set delay [$wwwInDelay value]
     set bandwidth [$WWWinBW value]
+
     my-duplex-link $ns $n([expr $base + 2]) $n([expr $i + 10]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method $queue_length
     if {$verbose} {puts "\$ns duplex-link \$n([expr $base + 2]) \$n([expr $i + 10]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
+
+    #setup manual routes
+
+    [$n([expr $i + 10]) get-module "Manual"] add-route-to-adj-node -default $n([expr $base + 2])
+
+    [$n([expr $remote_host + 10]) get-module "Manual"] add-route [$n([expr $i + 10]) set address_]  [[$ns link $n([expr $remote_host + 10]) $n(1)] head]
+    [$n([expr $remote_host + 11]) get-module "Manual"] add-route [$n([expr $i + 10]) set address_]  [[$ns link $n([expr $remote_host + 11]) $n(1)] head]
+    [$n([expr $remote_host + 12]) get-module "Manual"] add-route [$n([expr $i + 10]) set address_]  [[$ns link $n([expr $remote_host + 12]) $n(1)] head]
+    [$n([expr $remote_host + 13]) get-module "Manual"] add-route [$n([expr $i + 10]) set address_]  [[$ns link $n([expr $remote_host + 13]) $n(1)] head]
+
+    [$n(1) get-module "Manual"] add-route [$n([expr $i + 10]) set address_]  [[$ns link $n(1) $n(9)] head]
+    [$n(9) get-module "Manual"] add-route [$n([expr $i + 10]) set address_]  [[$ns link $n(9) $n([expr $num_node - 1])] head]
+    [$n([expr $num_node - 1]) get-module "Manual"] add-route [$n([expr $i + 10]) set address_]  [[$ns link $n([expr $num_node - 1]) $n(0)] head]
+    [$n(0) get-module "Manual"] add-route [$n([expr $i + 10]) set address_]  [[$ns link $n(0) $n([expr $base + 2])] head]
+    [$n([expr $base + 2]) get-module "Manual"] add-route [$n([expr $i + 10]) set address_]  [[$ns link $n([expr $base + 2]) $n([expr $i + 10])] head]
+
+
 }
 if {$verbose} {puts "done creating web server"}
 
@@ -120,8 +139,21 @@ if {$verbose} {puts "done creating web server"}
 for {set i 0} {$i < $num_nonisi_web_client} {incr i} {
     	set delay [$wwwOutDelay value]
     	set bandwidth [$WWWoutBW value]
-    	my-duplex-link $ns $n(6) $n([expr $i + $num_web_server + 10]) [expr $bandwidth * 1000000 ] [expr $delay * 0.001] $queue_method $queue_length
-    	if {$verbose} {puts "\$ns duplex-link \$n(6) \$n([expr $i + $num_web_server + 10]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
+
+    	set c [expr $i + $num_web_server + 10]
+	
+    	my-duplex-link $ns $n(6) $n($c) [expr $bandwidth * 1000000 ] [expr $delay * 0.001] $queue_method $queue_length
+    	if {$verbose} {puts "\$ns duplex-link \$n(6) \$n($c) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
+
+    #setup manual routes
+
+    [$n($c) get-module "Manual"] add-route-to-adj-node -default $n(6)
+
+    [$n(9) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(9) $n([expr $num_node - 1])] head]
+    [$n([expr $num_node - 1]) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n([expr $num_node - 1]) $n(0)] head]
+    [$n(0) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(0) $n(6)] head]
+    [$n(6) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(6) $n($c)] head]
+
 }
 if {$verbose} {puts "done creating non-isi web clients"}
 
@@ -131,8 +163,26 @@ if {$verbose} {puts "done creating non-isi web clients"}
 for {set i 0} {$i < $num_ftp_server} {incr i} {
     	set delay [$ftpInDelay value]
     	set bandwidth [$FTPinBW value]
-    	my-duplex-link $ns $n(7) $n([expr $i + $num_web_server + $num_nonisi_web_client + 10]) [expr $bandwidth * 1000000 ] [expr $delay * 0.001] $queue_method $queue_length
-    	if {$verbose} {puts "\$ns duplex-link \$n(7) \$n([expr $i + $num_web_server + $num_nonisi_web_client + 10]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
+
+    	set s [expr $i + $num_web_server + $num_nonisi_web_client + 10]
+
+    	my-duplex-link $ns $n(7) $n($s) [expr $bandwidth * 1000000 ] [expr $delay * 0.001] $queue_method $queue_length
+    	if {$verbose} {puts "\$ns duplex-link \$n(7) \$n($s) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
+
+    #setup manual routes
+
+    [$n($s) get-module "Manual"] add-route-to-adj-node -default $n(7)
+
+    [$n([expr $remote_host + 10]) get-module "Manual"] add-route [$n($s) set address_]  [[$ns link $n([expr $remote_host + 10]) $n(1)] head]
+    [$n([expr $remote_host + 11]) get-module "Manual"] add-route [$n($s) set address_]  [[$ns link $n([expr $remote_host + 11]) $n(1)] head]
+    [$n([expr $remote_host + 12]) get-module "Manual"] add-route [$n($s) set address_]  [[$ns link $n([expr $remote_host + 12]) $n(1)] head]
+    [$n([expr $remote_host + 13]) get-module "Manual"] add-route [$n($s) set address_]  [[$ns link $n([expr $remote_host + 13]) $n(1)] head]
+
+    [$n(1) get-module "Manual"] add-route [$n($s) set address_]  [[$ns link $n(1) $n(9)] head]
+    [$n(9) get-module "Manual"] add-route [$n($s) set address_]  [[$ns link $n(9) $n([expr $num_node - 1])] head]
+    [$n([expr $num_node - 1]) get-module "Manual"] add-route [$n($s) set address_]  [[$ns link $n([expr $num_node - 1]) $n(0)] head]
+    [$n(0) get-module "Manual"] add-route [$n($s) set address_]  [[$ns link $n(0) $n(7)] head]
+    [$n(7) get-module "Manual"] add-route [$n($s) set address_]  [[$ns link $n(7) $n($s)] head]
 }
 if {$verbose} {puts "done creating ftp servers"}
 
@@ -140,22 +190,61 @@ if {$verbose} {puts "done creating ftp servers"}
 for {set i 0} {$i < $num_ftp_client} {incr i} {
     	set delay [$ftpOutDelay value]
     	set bandwidth [$FTPoutBW value]
-    	my-duplex-link $ns $n(8) $n([expr $i + $num_web_server + $num_nonisi_web_client + $num_ftp_server + 10]) [expr $bandwidth * 1000000 ] [expr $delay * 0.001] $queue_method $queue_length
-    	if {$verbose} {puts "\$ns duplex-link \$n(8) \$n([expr $i + $num_web_server + $num_nonisi_web_client + $num_ftp_server + 10]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
+
+    	set c [expr $i + $num_web_server + $num_nonisi_web_client + $num_ftp_server + 10]
+	
+    	my-duplex-link $ns $n(8) $n($c) [expr $bandwidth * 1000000 ] [expr $delay * 0.001] $queue_method $queue_length
+    	if {$verbose} {puts "\$ns duplex-link \$n(8) \$n($c) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
+
+    #setup manual routes
+
+    [$n($c) get-module "Manual"] add-route-to-adj-node -default $n(8)
+
+    [$n(9) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(9) $n([expr $num_node - 1])] head]
+    [$n([expr $num_node - 1]) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n([expr $num_node - 1]) $n(0)] head]
+    [$n(0) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(0) $n(8)] head]
+    [$n(8) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(8) $n($c)] head]
 }
 if {$verbose} {puts "done creating ftp clients"}
 
 
 
 for {set i 0} {$i < $num_isi_client} {incr i} {
-    set base [expr $i / 10]
+#    set base [expr $i / 10]
+    set base [expr $i / $num_isi_client_per_lan]
     set delay [uniform 0.5 1.0]
     set bandwidth 10.0
-    my-duplex-link $ns $n([expr $base + [expr $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client + 10]]) $n([expr [expr $i + $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client] + 14]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method $queue_length
-    if {$verbose} {puts "\$ns duplex-link \$n([expr $base + [expr $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client + 10]]) \$n([expr [expr $i + $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client]  + 14]) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
+
+    set b [expr $base + [expr $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client + 10]]
+    set c [expr [expr $i + $num_web_server + $num_nonisi_web_client + $num_ftp_server + $num_ftp_client] + 14]
+
+    my-duplex-link $ns $n($b) $n($c) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method $queue_length
+    if {$verbose} {puts "\$ns duplex-link \$n($b) \$n($c) [expr $bandwidth * 1000000] [expr $delay * 0.001] $queue_method"}
+
+    #setup manual routes
+
+    [$n($c) get-module "Manual"] add-route-to-adj-node -default $n($b)
+
+    [$n(2) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(2) $n(0)] head]
+    [$n(3) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(3) $n(0)] head]
+    [$n(4) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(4) $n(0)] head]
+    [$n(5) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(5) $n(0)] head]
+    [$n(7) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(7) $n(0)] head]
+
+    [$n(0) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(0) $n([expr $num_node - 1])] head]
+    [$n([expr $num_node - 1]) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n([expr $num_node - 1]) $n(9)] head]
+    [$n(9) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(9) $n(1)] head]
+    [$n(1) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n(1) $n($b)] head]
+    [$n($b) get-module "Manual"] add-route [$n($c) set address_]  [[$ns link $n($b) $n($c)] head]
 }
 if {$verbose} {puts "done creating isi clients"}
 
+#route to ISI server
+
+    [$n(6) get-module "Manual"] add-route [$n(9) set address_]  [[$ns link $n(6) $n(0)] head]
+    [$n(8) get-module "Manual"] add-route [$n(9) set address_]  [[$ns link $n(8) $n(0)] head]
+    [$n(0) get-module "Manual"] add-route [$n(9) set address_]  [[$ns link $n(0) $n([expr $num_node - 1])] head]
+    [$n([expr $num_node - 1]) get-module "Manual"] add-route [$n(9) set address_]  [[$ns link $n([expr $num_node - 1]) $n(9)] head]
 
 $ns set dstW_ "";  #define list of web servers
 for {set i 0} {$i <= $num_web_server} {incr i} {
