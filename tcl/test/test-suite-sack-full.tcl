@@ -1,5 +1,4 @@
 #
-#
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
@@ -31,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.5 2001/08/23 00:09:06 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.6 2001/08/23 19:25:17 kfall Exp $
 #
 
 source misc_simple.tcl
@@ -47,8 +46,8 @@ Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
 
-set style raw2xg
-# set style tcpf2xgr
+# set style raw2xg
+set style tcpf2xgr
 
 Trace set show_tcphdr_ 1 ;	# needed for plotting ACK numbers
 
@@ -62,6 +61,8 @@ TestSuite instproc finish file {
         global quiet PERL style
 	set wrap 90
 	set wrap1 [expr $wrap * 512 + 40]
+	set space 512
+	set scale 0.005
 	if { $style == "tcpf2xgr" } {
 		set outtype "xgraph"
 		set tfile "xxx.tr"
@@ -69,10 +70,11 @@ TestSuite instproc finish file {
 			global TCLSH PERL
 			exec rm -f $tfile
 			exec $PERL ../../bin/getrc -b -s 2 -d 3 all.tr > $tfile
-			exec ../../bin/tcpf2xgr -m $wrap1 $TCLSH $tfile $outtype $file
-			exec cp $tfile temp.rands
-			exec rm -f $tfile
-	                exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+			puts "Wrote file $tfile (output from getrc -b -s 2 -d 3)..."
+			exec ../../bin/tcpf2xgr -n $space -s $scale -m $wrap1 $TCLSH $tfile $outtype $file &
+			puts "copying $tfile to temp.rands"
+			exec cp $tfile temp.rands ; # needed for compare script
+			# tcpf2xgr runs xgraph for us
 		}
  	} elseif { $style == "raw2xg" } {
 		set space 512
