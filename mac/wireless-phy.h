@@ -70,6 +70,8 @@ class WirelessPhy : public Phy {
 	
  protected:
   double Pt_;			// transmission power (W)
+  double Pr_;                   // reception power (W)
+
   double freq_;                  // frequency
   double lambda_;		// wavelength (m)
   double L_;			// system loss factor

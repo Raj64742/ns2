@@ -47,6 +47,11 @@
 #include <omni-antenna.h>
 #include <wireless-phy.h>
 
+#include <packet.h>
+#include <ip.h>
+#include <agent.h>
+#include <trace.h>
+
 /* ======================================================================
    WirelessPhy Interface
    ====================================================================== */
@@ -64,8 +69,10 @@ WirelessPhy::WirelessPhy() : Phy()
 	node_ = 0;
 	propagation_ = 0;
 	modulation_ = 0;
-	bandwidth_ = 2*1e6;                 // 2 Mb
+	bandwidth_ = 2*1e6;                 // 100 kb
+	//	Pt_ = 16.267 * 1e-3;   // 16.267 mW for 100m range with TwoRay model
 	Pt_ = pow(10, 2.45) * 1e-3;         // 24.5 dbm, ~ 281.8mw
+	Pr_ = Pt_;
 	lambda_ = SPEED_OF_LIGHT / (914 * 1e6);  // 914 mHz
 	L_ = 1.0;
 	freq_ = -1.0;
@@ -109,7 +116,15 @@ WirelessPhy::command(int argc, const char*const* argv)
 {
   TclObject *obj;    
   if(argc == 3) {
-          if( (obj = TclObject::lookup(argv[2])) == 0) {
+	  if (strcasecmp(argv[1], "setTxPower") == 0) {
+		  Pt_ = atof(argv[2]);
+		  return TCL_OK;
+	  }
+	  else if (strcasecmp(argv[1], "setRxPower") == 0) {
+		  Pr_ = atof(argv[2]);
+		  return TCL_OK;
+	  }
+          else if( (obj = TclObject::lookup(argv[2])) == 0) {
 		  fprintf(stderr, "WirelessPhy: %s lookup of %s failed\n", 
 			  argv[1], argv[2]);
 		  return TCL_ERROR;
@@ -140,6 +155,14 @@ WirelessPhy::sendDown(Packet *p)
 	 */
 	assert(initialized());
 	
+	/*
+	 * Decrease node's energy
+	 */
+	if(node_->energy_model()) {
+		double txtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
+		(node_->energy_model())->DecrTxEnergy(txtime,Pt_);
+	}
+
 	/*
 	 *  Stamp the packet with the interface arguments
 	 */
@@ -188,11 +211,10 @@ WirelessPhy::sendUp(Packet *p)
 #endif
     }
   }
-  
 
   if(modulation_) {
-    hdr_cmn *hdr = HDR_CMN(p);
-    hdr->error() = modulation_->BitError(Pr);
+	  hdr_cmn *hdr = HDR_CMN(p);
+	  hdr->error() = modulation_->BitError(Pr);
   }
   
   /*
@@ -201,6 +223,7 @@ WirelessPhy::sendUp(Packet *p)
    * it can properly do Collision Avoidance / Detection.
    */
   pkt_recvd = 1;
+
 
 DONE:
   p->txinfo_.getAntenna()->release();
@@ -213,6 +236,14 @@ DONE:
      objects in the future. */
   p->txinfo_.RxPr = Pr;
   p->txinfo_.CPThresh = CPThresh_;
+
+  /*
+   * Decrease energy if packet successfully received
+   */
+  if(pkt_recvd 	&& node_->energy_model()) {
+	  double rcvtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
+	  (node_->energy_model())->DecrRcvEnergy(rcvtime,Pr);
+  }
 
   return pkt_recvd;
 }
@@ -227,6 +258,13 @@ WirelessPhy::dump(void) const
 	fprintf(stdout, "\tbandwidth: %f\n", bandwidth_);
 	fprintf(stdout, "--------------------------------------------------\n");
 }
+
+
+
+
+
+
+
 
 
 
