@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.30 1997/05/14 02:47:31 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.31 1997/05/14 19:49:11 polly Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -388,7 +388,7 @@ RouteLogic instproc dump nn {
 Classifier instproc no-slot slot {
 	#XXX should say something better for routing problem
 	puts stderr "$self: no target for slot $slot"
-	#exit 1
+	exit 1
 }
 
 

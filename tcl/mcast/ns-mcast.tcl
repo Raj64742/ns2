@@ -318,6 +318,12 @@ Classifier/Multicast instproc new-group { src group iface code} {
 	$node_ new-group $src $group $iface $code
 }
 
+Classifier/Multicast instproc no-slot slot {
+	#XXX should say something better for routing problem
+	puts stderr "$self: no target for slot $slot"
+	#exit 1
+}
+
 Classifier/Multicast/Replicator instproc init args {
 	$self next
 	$self instvar nrep_

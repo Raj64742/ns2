@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.5 1997/05/13 22:27:55 polly Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.6 1997/05/14 19:49:10 polly Exp $";
 #endif
 
 #include <stdlib.h>
@@ -95,7 +95,7 @@ void Classifier::recv(Packet* p, Handler*)
 	NsObject* node;
 	int cl = classify(p);
 	if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) {
-	  //Tcl::instance().evalf("%s no-slot %d", name(), cl);
+	        Tcl::instance().evalf("%s no-slot %d", name(), cl);
 		/*
 		 * Try again.  Maybe callback patched up the table.
 		 */
