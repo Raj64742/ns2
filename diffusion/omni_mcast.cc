@@ -121,7 +121,7 @@ void OmniMcastAgent::GodForwardData(Packet *pkt)
       MACsend(cur_pkt, 0);
   }
 
-   delete next_oif;
+   delete []next_oif;
    Packet::free(pkt);
 }
 

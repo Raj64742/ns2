@@ -35,7 +35,7 @@ void Agent_List::FreeAll(Agent_List **prev)
 
   for (temp = *prev; temp != NULL; temp=next) {
     next = temp->next;
-    free(temp);
+    delete temp;
   }
 
   *prev = NULL;
