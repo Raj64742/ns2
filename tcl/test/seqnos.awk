@@ -17,7 +17,7 @@ if ($1=="Distribution"&&$3=="Seqnos,") {
   halfbin = binsize/2
 }
 if (binsize > 0) {
-if ($2=="to"&&$4==":")
+if ($2=="to"&&$4=="seqnos:") {
    bin = $3;
    frac = $6;
    for (i=thisbin; i<bin; i += binsize) {
@@ -29,7 +29,7 @@ if ($2=="to"&&$4==":")
    if (aveSeqno < 0) aveSeqno = 0;
    printf "%4.3f %5.3f\n", aveSeqno, frac
    thisbin = bin + binsize
-}}
+}}}
 END{
   for (i=thisbin; i<=maxbin; i += binsize) {
      aveSeqno = i - halfbin;

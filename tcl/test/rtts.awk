@@ -21,9 +21,9 @@ if (binsize > 0) {
      frac = $6;
      if (bin > 0) {
        for (i=thisbin; i<bin; i += binsize) {
-    	avertt = (i-halfbin)/1000; 
-    	if (avertt < 0) avertt = 0;
-    	printf "%4.3f 0.0\n", avertt;
+    	 avertt = (i-halfbin)/1000; 
+    	 if (avertt < 0) avertt = 0;
+    	 printf "%4.3f 0.0\n", avertt;
        }
        avertt = (bin - halfbin)/1000;
        if (avertt < 0) avertt = 0;
