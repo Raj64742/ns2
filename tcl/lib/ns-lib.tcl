@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.102 1998/05/22 18:37:34 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.103 1998/05/23 02:50:33 kfall Exp $
 
 #
 
@@ -739,23 +739,13 @@ Simulator instproc delay { n1 n2 delay } {
 
 #XXX need to check that agents are attached to nodes already
 Simulator instproc connect {src dst} {
-	#
-	# connect agents (low eight bits of addr are port,
-	# high 24 bits are node number)
-	# the above assumption is no longer true; port bits may be more than 8
-	#
-	set srcNode [$src set node_]
-	set dstNode [$dst set node_]
-	
+	$self simplex-connect $src $dst
+	$self simplex-connect $dst $src
+	return $src
+}
+
+Simulator instproc simplex-connect { src dst } {
 	$src set dst_ [$dst set addr_] 
-	$dst set dst_ [$src set addr_]
-	#
-	# Do we need to generate the dst address again? coz its already available as the 
-	# destination agent's address
-	#
-	# $src set dst_ [expr [$dstNode id] << [AddrParams set NodeShift_(1)]  | [expr [$dst port] << [AddrParams set PortShift_]]]
-	# $dst set dst_ [expr [$srcNode id] << [AddrParams set NodeShift_(1)] | [expr [$src port] << [AddrParams set PortShift_]]]
-	
 	return $src
 }
 
