@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.13 1997/07/21 19:29:35 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.14 1997/07/22 08:21:24 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -97,6 +97,7 @@ public:
 	int blocked() const { return (blocked_ == 1); }
 	void unblock() { blocked_ = 0; }
 	void block() { blocked_ = 1; }
+	virtual void drop(Packet* p) {DropConnector::drop(p);}
 protected:
 	Queue();
 	void reset();
