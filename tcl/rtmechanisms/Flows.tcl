@@ -1,4 +1,3 @@
-source awkstuff.tcl
 #
 # Set xgraph to 1 to use xgraph, and to 0 to use S.
 # Set xgraph to 2 to make S-graphs later
