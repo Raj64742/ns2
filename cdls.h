@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.8 1997/08/12 09:12:12 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cdls.h,v 1.9 1997/08/12 22:38:55 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_cdls_h
@@ -66,6 +66,7 @@ protected:
 class Cdls : public Queue {
 public:
 	Cdls();
+	virtual ~Cdls();
 	void enque(Packet*);
 	Packet* deque();
 

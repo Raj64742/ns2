@@ -53,7 +53,14 @@ Cdls::Cdls() : qlen_(0), total_(0), maxq_(4), numq_(0)
 {
 	bind("off_ll_", &off_ll_);
 	bind("off_mac_", &off_mac_);
-	q_ = new IdPacketQueue*[maxq_];
+	q_ = (IdPacketQueue**) malloc(sizeof(IdPacketQueue*) * maxq_);
+}
+
+Cdls::~Cdls()
+{
+	for (int i = 0_;  i < numq_;  i++)
+		delete q_[i];
+	free(q_);
 }
 
 
