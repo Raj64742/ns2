@@ -139,6 +139,9 @@ while (<>) {
 	}
 }
 
+#print the last FTP session
+print FFILE "$fileno\n";
+
 
 close(FFARRIVE);
 close(FSIZE);
