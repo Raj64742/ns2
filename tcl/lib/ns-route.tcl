@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.3 1998/04/17 22:45:41 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.4 1998/04/28 21:24:37 haldar Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -180,8 +180,9 @@ Simulator instproc compute-hier-routes {} {
     puts "Computing Hierarchical routes\n"
     set level [AddrParams set hlevel_]
     $r hlevel-is $level
-    eval $r send-hdata [AddrParams set eilevel_]
-    eval $r send-hlastdata [AddrParams set eilastlevel_]
+    eval $r send-num-of-domains [AddrParams set domain_num_]
+    eval $r send-num-of-clusters [AddrParams set cluster_num_] 
+    eval $r send-num-of-nodes [AddrParams set nodes_num_]
     
     foreach ln [array names link_] {
 	set L [split $ln :]
@@ -240,6 +241,7 @@ Simulator instproc compute-hier-routes {} {
 	}
 	incr i
     }
+    $self clearMemTrace;
 }
 
 
@@ -265,3 +267,6 @@ RouteLogic instproc dump nn {
 #
 source ../rtglib/route-proto.tcl
 source ../rtglib/dynamics.tcl
+
+
+
