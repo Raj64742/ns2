@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.114 2002/05/07 21:58:49 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.115 2002/06/11 08:02:43 johnh Exp $
 
 try () {
 	echo "*** $1"
@@ -60,8 +60,14 @@ do
 	try ./test-all-$i
 done
 
+echo "These messages are NOT errors and can be ignored:"
+echo "    warning: using backward compatibility mode"
+echo "    This test is not implemented in backward compatibility mode"
+echo
+
 if $any_failed
 then
+    	echo
 	echo "validate overall report: some tests failed:"
 	echo "    $failed_list"
 	echo "to re-run a specific test, cd tcl/test; ../../ns test-all-TEST-NAME"
