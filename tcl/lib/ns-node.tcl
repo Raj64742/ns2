@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.28 1998/04/24 17:07:35 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.29 1998/04/28 21:26:34 haldar Exp $
 #
 
 Class Node
@@ -49,11 +49,14 @@ Node instproc init args {
     set dmux_ ""
     set np_ 0
     set id_ [Node getid]
-    set classifier_ [new Classifier/Addr]
-    # set up classifer as a router (default value is , 8 bit of addr and 8 bit port)
-    $classifier_ set mask_ [AddrParams set NodeMask_(1)]
-    $classifier_ set shift_ [AddrParams set NodeShift_(1)]
-    set address_ $id_
+    #### temporary hack
+    if {![Simulator set EnableHierRt_]} {
+	set classifier_ [new Classifier/Addr]
+      # set up classifer as a router (default value is 8 bit of addr and 8 bit port)
+	$classifier_ set mask_ [AddrParams set NodeMask_(1)]
+	$classifier_ set shift_ [AddrParams set NodeShift_(1)]
+	set address_ $id_
+    }
     
 }
 
