@@ -1,0 +1,276 @@
+#
+# nodes: 50, max conn: 30, send rate: 0.25, seed: 465948.234
+#
+#
+# 1 connecting to 2 at time 138.476
+#
+set cbr_(0) [$ns_ create-connection  CBR $node_(1) CBR $node_(2) 0]
+$cbr_(0) set packetSize_ 512
+$cbr_(0) set interval_ 0.25
+$cbr_(0) set random_ 1
+$cbr_(0) set maxpkts_ 10000
+$ns_ at 138.476 "$cbr_(0) start"
+#
+# 2 connecting to 3 at time 20.1005
+#
+set cbr_(1) [$ns_ create-connection  CBR $node_(2) CBR $node_(3) 0]
+$cbr_(1) set packetSize_ 512
+$cbr_(1) set interval_ 0.25
+$cbr_(1) set random_ 1
+$cbr_(1) set maxpkts_ 10000
+$ns_ at 20.1005 "$cbr_(1) start"
+#
+# 2 connecting to 4 at time 149.173
+#
+set cbr_(2) [$ns_ create-connection  CBR $node_(2) CBR $node_(4) 0]
+$cbr_(2) set packetSize_ 512
+$cbr_(2) set interval_ 0.25
+$cbr_(2) set random_ 1
+$cbr_(2) set maxpkts_ 10000
+$ns_ at 149.173 "$cbr_(2) start"
+#
+# 3 connecting to 4 at time 62.0705
+#
+set cbr_(3) [$ns_ create-connection  CBR $node_(3) CBR $node_(4) 0]
+$cbr_(3) set packetSize_ 512
+$cbr_(3) set interval_ 0.25
+$cbr_(3) set random_ 1
+$cbr_(3) set maxpkts_ 10000
+$ns_ at 62.0705 "$cbr_(3) start"
+#
+# 4 connecting to 5 at time 144.307
+#
+set cbr_(4) [$ns_ create-connection  CBR $node_(4) CBR $node_(5) 0]
+$cbr_(4) set packetSize_ 512
+$cbr_(4) set interval_ 0.25
+$cbr_(4) set random_ 1
+$cbr_(4) set maxpkts_ 10000
+$ns_ at 144.307 "$cbr_(4) start"
+#
+# 8 connecting to 9 at time 145.036
+#
+set cbr_(5) [$ns_ create-connection  CBR $node_(8) CBR $node_(9) 0]
+$cbr_(5) set packetSize_ 512
+$cbr_(5) set interval_ 0.25
+$cbr_(5) set random_ 1
+$cbr_(5) set maxpkts_ 10000
+$ns_ at 145.036 "$cbr_(5) start"
+#
+# 10 connecting to 11 at time 128.378
+#
+set cbr_(6) [$ns_ create-connection  CBR $node_(10) CBR $node_(11) 0]
+$cbr_(6) set packetSize_ 512
+$cbr_(6) set interval_ 0.25
+$cbr_(6) set random_ 1
+$cbr_(6) set maxpkts_ 10000
+$ns_ at 128.378 "$cbr_(6) start"
+#
+# 11 connecting to 12 at time 136.015
+#
+set cbr_(7) [$ns_ create-connection  CBR $node_(11) CBR $node_(12) 0]
+$cbr_(7) set packetSize_ 512
+$cbr_(7) set interval_ 0.25
+$cbr_(7) set random_ 1
+$cbr_(7) set maxpkts_ 10000
+$ns_ at 136.015 "$cbr_(7) start"
+#
+# 11 connecting to 13 at time 1.23971
+#
+set cbr_(8) [$ns_ create-connection  CBR $node_(11) CBR $node_(13) 0]
+$cbr_(8) set packetSize_ 512
+$cbr_(8) set interval_ 0.25
+$cbr_(8) set random_ 1
+$cbr_(8) set maxpkts_ 10000
+$ns_ at 1.23971 "$cbr_(8) start"
+#
+# 12 connecting to 13 at time 66.9202
+#
+set cbr_(9) [$ns_ create-connection  CBR $node_(12) CBR $node_(13) 0]
+$cbr_(9) set packetSize_ 512
+$cbr_(9) set interval_ 0.25
+$cbr_(9) set random_ 1
+$cbr_(9) set maxpkts_ 10000
+$ns_ at 66.9202 "$cbr_(9) start"
+#
+# 12 connecting to 14 at time 87.9815
+#
+set cbr_(10) [$ns_ create-connection  CBR $node_(12) CBR $node_(14) 0]
+$cbr_(10) set packetSize_ 512
+$cbr_(10) set interval_ 0.25
+$cbr_(10) set random_ 1
+$cbr_(10) set maxpkts_ 10000
+$ns_ at 87.9815 "$cbr_(10) start"
+#
+# 14 connecting to 15 at time 73.8106
+#
+set cbr_(11) [$ns_ create-connection  CBR $node_(14) CBR $node_(15) 0]
+$cbr_(11) set packetSize_ 512
+$cbr_(11) set interval_ 0.25
+$cbr_(11) set random_ 1
+$cbr_(11) set maxpkts_ 10000
+$ns_ at 73.8106 "$cbr_(11) start"
+#
+# 14 connecting to 16 at time 154.245
+#
+set cbr_(12) [$ns_ create-connection  CBR $node_(14) CBR $node_(16) 0]
+$cbr_(12) set packetSize_ 512
+$cbr_(12) set interval_ 0.25
+$cbr_(12) set random_ 1
+$cbr_(12) set maxpkts_ 10000
+$ns_ at 154.245 "$cbr_(12) start"
+#
+# 19 connecting to 20 at time 80.5485
+#
+set cbr_(13) [$ns_ create-connection  CBR $node_(19) CBR $node_(20) 0]
+$cbr_(13) set packetSize_ 512
+$cbr_(13) set interval_ 0.25
+$cbr_(13) set random_ 1
+$cbr_(13) set maxpkts_ 10000
+$ns_ at 80.5485 "$cbr_(13) start"
+#
+# 20 connecting to 21 at time 158.753
+#
+set cbr_(14) [$ns_ create-connection  CBR $node_(20) CBR $node_(21) 0]
+$cbr_(14) set packetSize_ 512
+$cbr_(14) set interval_ 0.25
+$cbr_(14) set random_ 1
+$cbr_(14) set maxpkts_ 10000
+$ns_ at 158.753 "$cbr_(14) start"
+#
+# 20 connecting to 22 at time 14.6154
+#
+set cbr_(15) [$ns_ create-connection  CBR $node_(20) CBR $node_(22) 0]
+$cbr_(15) set packetSize_ 512
+$cbr_(15) set interval_ 0.25
+$cbr_(15) set random_ 1
+$cbr_(15) set maxpkts_ 10000
+$ns_ at 14.6154 "$cbr_(15) start"
+#
+# 21 connecting to 22 at time 171.559
+#
+set cbr_(16) [$ns_ create-connection  CBR $node_(21) CBR $node_(22) 0]
+$cbr_(16) set packetSize_ 512
+$cbr_(16) set interval_ 0.25
+$cbr_(16) set random_ 1
+$cbr_(16) set maxpkts_ 10000
+$ns_ at 171.559 "$cbr_(16) start"
+#
+# 22 connecting to 23 at time 148.131
+#
+set cbr_(17) [$ns_ create-connection  CBR $node_(22) CBR $node_(23) 0]
+$cbr_(17) set packetSize_ 512
+$cbr_(17) set interval_ 0.25
+$cbr_(17) set random_ 1
+$cbr_(17) set maxpkts_ 10000
+$ns_ at 148.131 "$cbr_(17) start"
+#
+# 22 connecting to 24 at time 49.4402
+#
+set cbr_(18) [$ns_ create-connection  CBR $node_(22) CBR $node_(24) 0]
+$cbr_(18) set packetSize_ 512
+$cbr_(18) set interval_ 0.25
+$cbr_(18) set random_ 1
+$cbr_(18) set maxpkts_ 10000
+$ns_ at 49.4402 "$cbr_(18) start"
+#
+# 25 connecting to 26 at time 139.836
+#
+set cbr_(19) [$ns_ create-connection  CBR $node_(25) CBR $node_(26) 0]
+$cbr_(19) set packetSize_ 512
+$cbr_(19) set interval_ 0.25
+$cbr_(19) set random_ 1
+$cbr_(19) set maxpkts_ 10000
+$ns_ at 139.836 "$cbr_(19) start"
+#
+# 26 connecting to 27 at time 168.053
+#
+set cbr_(20) [$ns_ create-connection  CBR $node_(26) CBR $node_(27) 0]
+$cbr_(20) set packetSize_ 512
+$cbr_(20) set interval_ 0.25
+$cbr_(20) set random_ 1
+$cbr_(20) set maxpkts_ 10000
+$ns_ at 168.053 "$cbr_(20) start"
+#
+# 26 connecting to 28 at time 93.0862
+#
+set cbr_(21) [$ns_ create-connection  CBR $node_(26) CBR $node_(28) 0]
+$cbr_(21) set packetSize_ 512
+$cbr_(21) set interval_ 0.25
+$cbr_(21) set random_ 1
+$cbr_(21) set maxpkts_ 10000
+$ns_ at 93.0862 "$cbr_(21) start"
+#
+# 27 connecting to 28 at time 3.89526
+#
+set cbr_(22) [$ns_ create-connection  CBR $node_(27) CBR $node_(28) 0]
+$cbr_(22) set packetSize_ 512
+$cbr_(22) set interval_ 0.25
+$cbr_(22) set random_ 1
+$cbr_(22) set maxpkts_ 10000
+$ns_ at 3.89526 "$cbr_(22) start"
+#
+# 28 connecting to 29 at time 28.8793
+#
+set cbr_(23) [$ns_ create-connection  CBR $node_(28) CBR $node_(29) 0]
+$cbr_(23) set packetSize_ 512
+$cbr_(23) set interval_ 0.25
+$cbr_(23) set random_ 1
+$cbr_(23) set maxpkts_ 10000
+$ns_ at 28.8793 "$cbr_(23) start"
+#
+# 29 connecting to 30 at time 52.6366
+#
+set cbr_(24) [$ns_ create-connection  CBR $node_(29) CBR $node_(30) 0]
+$cbr_(24) set packetSize_ 512
+$cbr_(24) set interval_ 0.25
+$cbr_(24) set random_ 1
+$cbr_(24) set maxpkts_ 10000
+$ns_ at 52.6366 "$cbr_(24) start"
+#
+# 30 connecting to 31 at time 125.463
+#
+set cbr_(25) [$ns_ create-connection  CBR $node_(30) CBR $node_(31) 0]
+$cbr_(25) set packetSize_ 512
+$cbr_(25) set interval_ 0.25
+$cbr_(25) set random_ 1
+$cbr_(25) set maxpkts_ 10000
+$ns_ at 125.463 "$cbr_(25) start"
+#
+# 30 connecting to 32 at time 144.284
+#
+set cbr_(26) [$ns_ create-connection  CBR $node_(30) CBR $node_(32) 0]
+$cbr_(26) set packetSize_ 512
+$cbr_(26) set interval_ 0.25
+$cbr_(26) set random_ 1
+$cbr_(26) set maxpkts_ 10000
+$ns_ at 144.284 "$cbr_(26) start"
+#
+# 32 connecting to 33 at time 148.913
+#
+set cbr_(27) [$ns_ create-connection  CBR $node_(32) CBR $node_(33) 0]
+$cbr_(27) set packetSize_ 512
+$cbr_(27) set interval_ 0.25
+$cbr_(27) set random_ 1
+$cbr_(27) set maxpkts_ 10000
+$ns_ at 148.913 "$cbr_(27) start"
+#
+# 36 connecting to 37 at time 165.386
+#
+set cbr_(28) [$ns_ create-connection  CBR $node_(36) CBR $node_(37) 0]
+$cbr_(28) set packetSize_ 512
+$cbr_(28) set interval_ 0.25
+$cbr_(28) set random_ 1
+$cbr_(28) set maxpkts_ 10000
+$ns_ at 165.386 "$cbr_(28) start"
+#
+# 36 connecting to 38 at time 80.7146
+#
+set cbr_(29) [$ns_ create-connection  CBR $node_(36) CBR $node_(38) 0]
+$cbr_(29) set packetSize_ 512
+$cbr_(29) set interval_ 0.25
+$cbr_(29) set random_ 1
+$cbr_(29) set maxpkts_ 10000
+$ns_ at 80.7146 "$cbr_(29) start"
+#
+#Total CBR sources/connections: 21/30
+#
