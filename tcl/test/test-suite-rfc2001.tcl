@@ -30,11 +30,15 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rfc2001.tcl,v 1.4 1999/01/22 02:37:29 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rfc2001.tcl,v 1.5 2000/09/20 19:24:01 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
+
+# This validation test does not need to be included in "./validate", but it 
+# should be kept for documentation purposes, as it is referred to in
+# other documents.  
 
 source misc.tcl
 source topologies.tcl
