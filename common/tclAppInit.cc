@@ -93,8 +93,8 @@ Tcl_AppInit(Tcl_Interp *interp)
 		return TCL_ERROR;
 
 #ifdef HAVE_LIBTCLDBG
-	extern int Dbg_Init(Tcl_Interp *);   // hackorama
-	if (Dbg_Init(interp) == TCL_ERROR) {
+	extern int Tcldbg_Init(Tcl_Interp *);   // hackorama
+	if (Tcldbg_Init(interp) == TCL_ERROR) {
 		return TCL_ERROR;
 	}
 #endif
