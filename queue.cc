@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.11.2.1 1997/04/20 03:26:19 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.11.2.2 1997/04/20 19:11:29 gnguyen Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -90,7 +90,7 @@ int Queue::command(int argc, const char*const* argv)
 			drop_ = p;
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "drop-target") == 0) {
+		if (strcmp(argv[1], "set-monitor") == 0) {
 			NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
 			if (p == 0) {
 				tcl.resultf("no object %s", argv[2]);

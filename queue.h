@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.10.2.1 1997/04/20 03:26:19 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.10.2.2 1997/04/20 19:11:29 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -57,13 +57,13 @@ public:
 	Packet* deque() {
 		Packet* p = head_;
 		if (p != 0) {
-			--len_;
 			head_ = p->next_;
 			if (head_ == 0)
 				tail_ = &head_;
+			--len_;
+			if (qm_)
+				qm_->out(p);
 		}
-		if (qm_)
-			qm_->out(p);
 		return (p);
 	}
 	Packet* lookup(int n) {

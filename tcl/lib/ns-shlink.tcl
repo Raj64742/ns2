@@ -97,10 +97,76 @@ SharedDuplexLink instproc init {nodelist bw delay lltype ifqtype mactype} {
 	}
 }
 
+SharedDuplexLink instproc init-monitor {ns qfile sampleInterval src dst} {
+	$self instvar ns_ qfile_ sampleInterval_
+	$self instvar qMonitor_
+	$self instvar ifq_
+
+	set ns_ $ns
+	set qfile_($src) $qfile
+	set sampleInterval_($src) $sampleInterval
+
+	set qMonitor_($src) [new QueueMonitor]
+	set bytesInt_ [new BytesIntegrator]
+	set pktsInt_ [new BytesIntegrator]
+	$qMonitor_($src) set-bytes-integrator $bytesInt_
+	$qMonitor_($src) set-pkts-integrator $pktsInt_
+
+	$ifq_($src) set-monitor $qMonitor_($src)
+	return $qMonitor_($src)
+}
+
+SharedDuplexLink instproc queue-sample-timeout {} {
+	$self instvar ns_ qfile_ sampleInterval_
+	$self instvar qMonitor_
+
+	set nodelist [array names qMonitor_]
+	set numnodes [llength $nodelist]
+	for {set i 0} {$i < $numnodes} {incr i} {
+		set src [lindex $nodelist $i]
+		set qavg [$self sample-queue-size $src]
+		puts $qfile_($src) "[$ns_ now] n[$src id]:n* $qavg"
+	}
+	$ns_ at [expr [$ns_ now] + $sampleInterval_($src)] \
+			"$self queue-sample-timeout"
+}
+
+SharedDuplexLink instproc sample-queue-size {src} {
+	$self instvar ns_ qfile_ sampleInterval_
+	$self instvar qMonitor_
+
+	set now [$ns_ now]
+	set qBytesMonitor_ [$qMonitor_($src) get-bytes-integrator]
+	set qPktsMonitor_ [$qMonitor_($src) get-pkts-integrator]
+	
+	$qBytesMonitor_ newpoint $now [$qBytesMonitor_ set lasty_]
+	set bsum [$qBytesMonitor_ set sum_]
+
+	$qPktsMonitor_ newpoint $now [$qPktsMonitor_ set lasty_]
+	set psum [$qPktsMonitor_ set sum_]
+
+	if ![info exists lastSample_] {
+		set lastSample_ 0
+	}
+	set dur [expr $now - $lastSample_]
+	if { $dur != 0 } {
+		set meanBytesQ [expr $bsum / $dur]
+		set meanPktsQ [expr $psum / $dur]
+	} else {
+		set meanBytesQ 0
+		set meanPktsQ 0
+	}
+	$qBytesMonitor_ set sum_ 0.0
+	$qPktsMonitor_ set sum_ 0.0
+	set lastSample_ $now
+
+	return "$meanBytesQ $meanPktsQ"
+}
+
 
 Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } { lltype "LL/Base" } { ifqtype "Queue/DropTail" } { mactype "Mac/Base" } } {
 	$self instvar link_ queueMap_ nullAgent_ traceAllFile_
-	$self instvar shlink_ shlink_count_
+	$self instvar shlink_
 
 	set shlink_($nodelist) [new SharedDuplexLink $nodelist $bw $delay $lltype $ifqtype $mactype]
 	$shlink_($nodelist) instvar ifq_ numnodes_

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.2.2.1 1997/04/20 03:26:18 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.2.2.2 1997/04/20 19:11:28 gnguyen Exp $ (LBL)";
 #endif
 
 #include <string.h>
@@ -44,6 +44,9 @@ static char rcsid[] =
  */
 class DropTail : public Queue {
  protected:
+	int command(int argc, const char*const* argv) {
+		return Queue::command(argc, argv);
+	}
 	void enque(Packet*);
 	Packet* deque();
 };

@@ -49,7 +49,12 @@ set n2 [$ns node]
 set n3 [$ns node]
 
 #$ns duplex-link $n0 $n1 2Mb 32us DropTail
-$ns shared-duplex-link "$n0 $n1 $n2 $n3" $bw $delay DropTail $ll $ifq $mac
+set shl [$ns shared-duplex-link "$n0 $n1 $n2 $n3" $bw $delay DropTail $ll $ifq $mac]
+
+set qfile [open "q.dat" w]
+$shl init-monitor $ns $qfile 1 $n0
+$shl init-monitor $ns $qfile 1 $n1
+$ns at 0 "$shl queue-sample-timeout"
 
 
 set tcpSource1 [new Agent/TCP/Reno]
