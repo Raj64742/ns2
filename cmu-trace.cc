@@ -557,6 +557,7 @@ CMUTrace::nam_format(Packet *p, int offset)
         struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_ip *ih = HDR_IP(p);
 	char op = (char) type_;
+	char colors[32];
 
 	int src = Address::instance().get_nodeaddr(ih->saddr());
 	int dst = Address::instance().get_nodeaddr(ih->daddr());
@@ -597,6 +598,11 @@ CMUTrace::nam_format(Packet *p, int offset)
         if ((energyLeft <= 1 ) && (energyLeft >= l1 )) energyLevel = 3;	
         if ((energyLeft >= l2 ) && (energyLeft < l1 )) energyLevel = 2;	
         if ((energyLeft > 0 ) && (energyLeft < l2 )) energyLevel = 1;	
+
+	if (energyLevel == 0) strcpy(colors,"-c black -o red");
+        else if (energyLevel == 1) strcpy(colors,"-c red -o yellow");
+        else if (energyLevel == 2) strcpy(colors,"-c yellow -o green");
+        else if (energyLevel == 3) strcpy(colors,"-c green -o black");
 
 	// convert to nam format 
 	if (op == 's') op = 'h' ;
@@ -640,8 +646,17 @@ CMUTrace::nam_format(Packet *p, int offset)
 	if(tracetype == TR_ROUTER && type_ == RECV && dst != -1 ) return ;
 	if(type_ == RECV && dst == -1 )dst = src_ ; //broadcasting event
 
+
 	sprintf(nwrk_ ,
-		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -l %d -k %3s",
+	        "n -t %.9f -s %d -S COLOR %s",
+	         Scheduler::instance().clock(),
+	         src,                           // this node
+	         colors);
+        offset = strlen(nwrk_);
+        namdump();
+
+	sprintf(nwrk_ ,
+		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
 		op,
 		Scheduler::instance().clock(),
 		src,                           // this node
@@ -649,7 +664,6 @@ CMUTrace::nam_format(Packet *p, int offset)
 		packet_info.name(ch->ptype()),
 		ch->size(),
 		ch->uid(),
-		energyLevel,
 		tracename);
 
 	offset = strlen(nwrk_);
