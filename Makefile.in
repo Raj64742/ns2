@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.168 1999/09/10 22:27:09 heideman Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.169 1999/09/16 23:16:09 heideman Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -169,20 +169,6 @@ OBJ_C =
 OBJ_COMPAT = $(OBJ_GETOPT) win32.o
 #XXX compat/win32x.o compat/tkConsole.o
 
-OBJ_NAM = \
-	nam/animation.o \
-	nam/nam-drop.o \
-	nam/nam-edge.o \
-	nam/nam-node.o \
-	nam/nam-packet.o \
-	nam/nam-queue.o \
-	nam/nam-trace.o \
-	nam/paint.o \
-	nam/state.o \
-	nam/transform.o \
-	nam/netview.o \
-	nam/netmodel.o
-
 OBJ_EMULATE_CC = \
 	emulate/net-ip.o \
 	emulate/net.o \
@@ -200,13 +186,13 @@ OBJ_EMULATE_C = \
 
 OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o $(GEN_DIR)ptypes.o
 
-SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
+SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) \
 	$(OBJ_EMULATE_C:.o=.c) $(OBJ_EMULATE_CC:.o=.cc) \
 	tclAppInit.cc tkAppInit.cc
 
 OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 
-CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) $(OBJ_EMULATE_CC) \
+CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) tclAppInit.o \
 	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE) \
 	ptypes2tcl ptypes2tcl.o
@@ -224,10 +210,6 @@ $(NSE): $(OBJ) tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
 		tclAppInit.o $(OBJ) \
 		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB) -lpcap
-
-$(NSX): $(OBJ) tkAppInit.o $(OBJ_NAM)
-	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
-		tkAppInit.o $(OBJ) $(OBJ_NAM) $(LIB)
 
 ns.dyn: $(OBJ) tclAppInit.o
 	$(LINK) $(LDFLAGS) -o $@ \

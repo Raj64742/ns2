@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.15 1998/12/24 22:58:52 polly Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.16 1999/09/16 23:16:11 heideman Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -92,4 +92,74 @@ protected:
 	static Scheduler* instance_;
 	static int uid_;
 };
+
+class ListScheduler : public Scheduler {
+public:
+	inline ListScheduler() : queue_(0) {}
+	virtual void cancel(Event*);
+	virtual void insert(Event*);
+	virtual Event* deque();
+	virtual Event* lookup(int uid);
+protected:
+	Event* queue_;
+};
+
+#include "heap.h"
+
+class HeapScheduler : public Scheduler {
+public:
+	inline HeapScheduler() { hp_ = new Heap; } 
+	virtual void cancel(Event* e) {
+		if (e->uid_ <= 0)
+			return;
+		e->uid_ = - e->uid_;
+		hp_->heap_delete((void*) e);
+	}
+	virtual void insert(Event* e) {
+		hp_->heap_insert(e->time_, (void*) e);
+	}
+	virtual Event* lookup(int uid);
+	virtual Event* deque();
+protected:
+	Heap* hp_;
+};
+
+class CalendarScheduler : public Scheduler {
+public:
+	CalendarScheduler();
+	virtual ~CalendarScheduler();
+	virtual void cancel(Event*);
+	virtual void insert(Event*);
+	virtual Event* lookup(int uid);
+	virtual Event* deque();
+
+protected:
+	int resizeenabled_;
+	double width_;
+	double oneonwidth_; /* this variable is always equal 1/width_
+			     * we use it for a speedup (mul is cheaper than div),
+			     * but we may also lose precision with it.
+			     */
+	double buckettop_;
+	double last_clock_;
+	double prevtop_;
+	int nbuckets_;
+	int buckbits_;
+	int lastbucket_;
+	int top_threshold_;
+	int bot_threshold_;
+
+	Event** buckets_;
+	int qsize_;
+	double max_;
+
+	virtual void reinit(int nbuck, double bwidth, double start);
+	virtual void resize(int newsize);
+	virtual double newwidth();
+
+private:
+	virtual void insert2(Event*);
+
+};
+
 #endif

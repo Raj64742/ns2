@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.50 1999/09/15 19:33:02 yuriy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.51 1999/09/16 23:16:10 heideman Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.50 1999/09/15 19:33:02 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.51 1999/09/16 23:16:10 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -82,11 +82,11 @@ void Scheduler::schedule(Handler* h, Event* e, double delay)
 		fprintf(stderr, "warning: ns Scheduler::schedule: scheduling event\n\twith negative delay (%f) at time %f.\n", delay, clock_);
 	}
 
-	e->uid_ = uid_++;
-	if (e->uid_ < 0) {
+	if (uid_ < 0 || uid_ >= INT_MAX) {
 		fprintf(stderr, "Scheduler: UID space exhausted!\n");
 		abort();
 	}
+	e->uid_ = uid_++;
 	e->handler_ = h;
 	double t = clock_ + delay;
 	e->time_ = t;
@@ -252,17 +252,6 @@ Scheduler::dumpq()
 	}
 }
 
-class ListScheduler : public Scheduler {
-public:
-	inline ListScheduler() : queue_(0) {}
-	virtual void cancel(Event*);
-	virtual void insert(Event*);
-	virtual Event* deque();
-	virtual Event* lookup(int uid);
-protected:
-	Event* queue_;
-};
-
 static class ListSchedulerClass : public TclClass {
 public:
 	ListSchedulerClass() : TclClass("Scheduler/List") {}
@@ -322,23 +311,185 @@ ListScheduler::deque()
 
 #include "heap.h"
 
-class HeapScheduler : public Scheduler {
-public:
-	inline HeapScheduler() { hp_ = new Heap; } 
-	virtual void cancel(Event* e) {
-		if (e->uid_ <= 0)
-			return;
-		e->uid_ = - e->uid_;
-		hp_->heap_delete((void*) e);
+Heap::Heap(int size =HEAP_DEFAULT_SIZE)
+		: h_s_key(0), h_size(0), h_maxsize(size), h_iter(0)
+{
+	h_elems = new Heap_elem[h_maxsize];
+	memset(h_elems, 0, h_maxsize*sizeof(Heap_elem));
+	//for (unsigned int i = 0; i < h_maxsize; i++)
+	//	h_elems[i].he_elem = 0;
+}
+
+Heap::~Heap()
+{
+	delete [] h_elems;
+}
+
+/*
+ * int	heap_member(Heap *h, void *elem):		O(n) algorithm.
+ *
+ *	Returns index(elem \in h->he_elems[]) + 1,
+ *			if elem \in h->he_elems[],
+ *		0,	otherwise.
+ *	External callers should just test for zero, or non-zero.
+ *	heap_delete() uses this routine to find an element in the heap.
+ */
+int
+Heap::heap_member(void* elem)
+{
+	unsigned int i;
+	Heap::Heap_elem* he;
+	for (i = 0, he = h_elems; i < h_size; i++, he++)
+		if (he->he_elem == elem)
+			return ++i;
+	return 0;
+}
+
+/*
+ * int	heap_delete(Heap *h, void *elem):		O(n) algorithm
+ *
+ *	Returns 1 for success, 0 otherwise.
+ *
+ * find elem in h->h_elems[] using heap_member()
+ *
+ * To actually remove the element from the tree, first swap it to the
+ * root (similar to the procedure applied when inserting a new
+ * element, but no key comparisons--just get it to the root).
+ *
+ * Then call heap_extract_min() to remove it & fix the tree.
+ * 	This process is not the most efficient, but we do not
+ *	particularily care about how fast heap_delete() is.
+ *	Besides, heap_member() is already O(n), 
+ *	and is the dominating cost.
+ *
+ * Actually remove the element by calling heap_extract_min().
+ * 	The key that is now at the root is not necessarily the
+ *	minimum, but heap_extract_min() does not care--it just
+ *	removes the root.
+ */
+int
+Heap::heap_delete(void* elem)
+{
+	int	i;
+		if ((i = heap_member(elem)) == 0)
+		return 0;
+		for (--i; i; i = parent(i)) {
+		swap(i, parent(i));
 	}
-	virtual void insert(Event* e) {
-		hp_->heap_insert(e->time_, (void*) e);
+	(void) heap_extract_min();
+	return 1;
+}
+
+/*
+ * void	heap_insert(Heap *h, heap_key_t *key, void *elem)
+ *
+ * Insert <key, elem> into heap h.
+ * Adjust heap_size if we hit the limit.
+ * 
+ *	i := heap_size(h)
+ *	heap_size := heap_size + 1
+ *	while (i > 0 and key < h[Parent(i)])
+ *	do	h[i] := h[Parent(i)]
+ *		i := Parent(i)
+ *	h[i] := key
+ */
+void
+Heap::heap_insert(heap_key_t key, void* elem) 
+{
+	unsigned int	i, par;
+	if (h_maxsize == h_size) {	/* Adjust heap_size */
+		unsigned int osize = h_maxsize;
+		Heap::Heap_elem *he_old = h_elems;
+		h_maxsize *= 2;
+		h_elems = new Heap::Heap_elem[h_maxsize];
+		memcpy(h_elems, he_old, osize*sizeof(Heap::Heap_elem));
+		//for (i = 0; i < osize; i++)
+		//	h_elems[i] = he_old[i];
+		//delete he_old;
 	}
-	virtual Event* lookup(int uid);
-	virtual Event* deque();
-protected:
-	Heap* hp_;
+
+	i = h_size++;
+	par = parent(i);
+	while ((i > 0) && 
+	       (KEY_LESS_THAN(key, h_s_key,
+			      h_elems[par].he_key, h_elems[par].he_s_key))) {
+		h_elems[i] = h_elems[par];
+		i = par;
+		par = parent(i);
+	}
+	h_elems[i].he_key  = key;
+	h_elems[i].he_s_key= h_s_key++;
+	h_elems[i].he_elem = elem;
+	return;
 };
+		
+/*
+ * void *heap_extract_min(Heap *h)
+ *
+ *	Returns the smallest element in the heap, if it exists.
+ *	NULL otherwise.
+ *
+ *	if heap_size[h] == 0
+ *		return NULL
+ *	min := h[0]
+ *	heap_size[h] := heap_size[h] - 1   # C array indices start at 0
+ *	h[0] := h[heap_size[h]]
+ *	Heapify:
+ *		i := 0
+ *		while (i < heap_size[h])
+ *		do	l = HEAP_LEFT(i)
+ *			r = HEAP_RIGHT(i)
+ *			if (r < heap_size[h])
+ *				# right child exists =>
+ *				#       left child exists
+ *				then	if (h[l] < h[r])
+ *						then	try := l
+ *						else	try := r
+ *				else
+ *			if (l < heap_size[h])
+ *						then	try := l
+ *						else	try := i
+ *			if (h[try] < h[i])
+ *				then	HEAP_SWAP(h[i], h[try])
+ *					i := try
+ *				else	break
+ *		done
+ */
+void*
+Heap::heap_extract_min()
+{
+	void*	min;				  /* return value */
+	unsigned int	i;
+	unsigned int	l, r, x;
+		if (h_size == 0)
+		return 0;
+		min = h_elems[0].he_elem;
+	h_elems[0] = h_elems[--h_size];
+// Heapify:
+	i = 0;
+	while (i < h_size) {
+		l = left(i);
+		r = right(i);
+		if (r < h_size) {
+			if (KEY_LESS_THAN(h_elems[l].he_key, h_elems[l].he_s_key,
+					  h_elems[r].he_key, h_elems[r].he_s_key))
+				x= l;
+			else
+				x= r;
+		} else
+			x = (l < h_size ? l : i);
+		if ((x != i) && 
+		    (KEY_LESS_THAN(h_elems[x].he_key, h_elems[x].he_s_key,
+				   h_elems[i].he_key, h_elems[i].he_s_key))) {
+			swap(i, x);
+			i = x;
+		} else {
+			break;
+		}
+	}
+	return min;
+}
+
 
 static class HeapSchedulerClass : public TclClass {
 public:
@@ -377,44 +528,6 @@ HeapScheduler::deque()
  *  for the simulation event set problem." 
  *  Comm. of ACM, 31(10):1220-1227, Oct 1988
  */
-
-class CalendarScheduler : public Scheduler {
-public:
-	CalendarScheduler();
-	virtual ~CalendarScheduler();
-	virtual void cancel(Event*);
-	virtual void insert(Event*);
-	virtual Event* lookup(int uid);
-	virtual Event* deque();
-
-protected:
-	int resizeenabled_;
-	double width_;
-	double oneonwidth_; /* this variable is always equal 1/width_
-			     * we use it for a speedup (mul is cheaper than div),
-			     * but we may also lose precision with it.
-			     */
-	double buckettop_;
-	double last_clock_;
-	double prevtop_;
-	int nbuckets_;
-	int buckbits_;
-	int lastbucket_;
-	int top_threshold_;
-	int bot_threshold_;
-
-	Event** buckets_;
-	int qsize_;
-	double max_;
-
-	virtual void reinit(int nbuck, double bwidth, double start);
-	virtual void resize(int newsize);
-	virtual double newwidth();
-
-private:
-	virtual void insert2(Event*);
-
-};
 
 static class CalendarSchedulerClass : public TclClass {
 public:
