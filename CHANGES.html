@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.77 1997/06/05 16:28:35 kannan Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.78 1997/06/08 21:20:37 breslau Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,6 +21,15 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+<LI><B><A HREF="mailto:breslau@parc.xerox.com">[LB]</A></B> <B>Sun Jun
+8 14:09:16 PDT 1997<BR>
+</B>Provided a fix so that more than 127 nodes can exist in a
+simulation that uses both unicast and multicast transport.  Also added
+a proc to allocate unique multicast addresses.  File changed:
+tcl/mcast/ns-mcast.tcl<BR>
+</LI>
+
+
 <li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
 <b>Thu Jun  5 09:24:50 PDT 1997</b><br>
 ktest-all will stored compress files in test-output-raw, to save space.<br>

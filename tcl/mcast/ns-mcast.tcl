@@ -62,6 +62,23 @@ MultiSim instproc getPIMProto { index } {
 ###############
 Class MultiNode -superclass Node
 
+MultiNode set shift_ 15
+MultiNode set addr_ 0x8000
+
+MultiNode proc allocaddr {} {
+	# return a unique mcast address
+	set addr [MultiNode set addr_]
+	MultiNode set addr_ [expr $addr + 1]
+	return $addr
+}
+
+MultiNode proc expandaddr {} {
+	# reset the bit used by mcast/unicast switch to expand
+	# number of nodes that can be used
+	MultiNode set shift_ 30
+	MultiNode set addr_ [expr 1 << 30]
+}
+
 MultiNode instproc entry {} {
 	$self instvar switch_
 	return $switch_
@@ -78,8 +95,7 @@ MultiNode instproc init sim {
 	# multicast packets to slot 1
 	#
 	$switch_ set mask_ 1
-	$switch_ set shift_ 15
-
+	$switch_ set shift_ [MultiNode set shift_]
 	#
 	# create a classifier for multicast routing
 	#
@@ -301,6 +317,8 @@ MultiNode instproc add-mfc { src group iif oiflist } {
     #
     $multiclassifier_ add-rep $r $src $group $iif
 }
+
+
 
 ####################
 Class Classifier/Multicast/Replicator -superclass Classifier/Multicast
