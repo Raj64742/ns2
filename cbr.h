@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.2 1997/02/27 04:38:35 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.h,v 1.3 1997/03/28 08:54:07 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_cbr_h
@@ -50,6 +50,7 @@ class CBR_Agent : public Agent {
 	int running_;
 	int random_;
 	double interval_;
+	int seqno_;
 };
 
 #endif

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.12 1997/03/17 23:23:40 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.13 1997/03/28 08:54:08 mccanne Exp $
 
 
 #
@@ -55,6 +55,7 @@ Agent set flags_ 0
 ##Agent set class_ 0 now is gone
 
 Agent/TCP set seqno_ 0
+Agent/TCP set t_seqno_ 0
 Agent/TCP set maxburst_ 0
 Agent/TCP set maxcwnd_ 0
 Agent/TCP set window_ 20
@@ -82,6 +83,8 @@ Queue set limit_ 10
 
 Queue/SFQ set maxqueue_ 40
 Queue/SFQ set buckets_ 16
+
+Queue/FQ set secsPerByte_ 0
 
 Queue/RED set bytes_ false
 Queue/RED set thresh_ 5
@@ -117,6 +120,9 @@ Delay/Link set delay_ 100ms
 
 Classifier/Addr set shift_ 12
 Classifier/Addr set mask_ 0xffffffff
+
+Classifier/Flow set shift_ 0
+Classifier/Flow set mask_ 0xffffffff
 
 Agent/LossMonitor set nlost_ 0
 Agent/LossMonitor set npkts_ 0

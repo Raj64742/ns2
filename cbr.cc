@@ -33,10 +33,11 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.5 1997/02/27 04:38:34 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbr.cc,v 1.6 1997/03/28 08:54:06 mccanne Exp $ (LBL)";
 #endif
 
 #include "cbr.h"
+#include "rtp.h"
 #include "Tcl.h"
 #include "packet.h"
 #include "random.h"
@@ -86,6 +87,8 @@ void CBR_Agent::timeout(int)
 void CBR_Agent::sendpkt()
 {
 	Packet* p = allocpkt();
+	RTPHeader* rh = RTPHeader::access(p->bits());
+	rh->seqno() = ++seqno_;
 	target_->recv(p);
 }
 

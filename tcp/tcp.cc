@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.10 1997/03/14 02:35:49 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.11 1997/03/28 08:54:08 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -80,6 +80,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1)
 
 	bind("dupacks_", &dupacks_);
 	bind("seqno_", &curseq_);
+	bind("t_seqno_", &t_seqno_);
 	bind("ack_", &highest_ack_);
 	bind("cwnd_", &cwnd_);
 	bind("awnd_", &awnd_);
