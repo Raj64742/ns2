@@ -1,5 +1,6 @@
 /*-
- * Copyright (c) 1993-1994 The Regents of the University of California.
+ * Copyright (c) 1993-1994, 1998
+ * The Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.1 1998/01/06 01:45:10 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.2 1998/01/30 23:38:59 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -57,13 +58,40 @@ static const char rcsid[] =
 
 #include "config.h"
 #include "net.h"
+#include "inet.h"
 #include "tclcl.h"
 
 class IPNetwork : public Network {
     public:
-	virtual int command(int argc, const char*const* argv);
-	virtual void reset();
+	IPNetwork();
+
+        void send(u_char* buf, int len);
+        int recv(u_char* buf, int len, u_int32_t& from);
+	void reset();
+	int command(int argc, const char*const* argv);
+
+	inline int rchannel() { return(rsock_); }
+	inline int schannel() { return(ssock_); }
+        inline int port() const { return (port_); }
+        inline int ttl() const { return (ttl_); }
+        inline int noloopback_broken() const {
+		return (noloopback_broken_);
+	}
+
+        inline u_int32_t addr() const { return (addr_); }
+        inline u_int32_t interface() const { return (local_); }
+
     protected:
+        u_int32_t addr_;
+        u_int32_t local_;
+        u_short lport_;
+        u_short port_;
+	int rsock_;
+	int ssock_;
+        int ttl_;
+        int noloopback_broken_;
+
+
 	int open(u_int32_t addr, int port, int ttl);
 	int open(int port);
 	int close();
@@ -83,6 +111,107 @@ static class IPNetworkClass : public TclClass {
 		return (new IPNetwork);
 	}
 } nm_ip;
+
+IPNetwork::IPNetwork() :
+        addr_(0), 
+        local_(0),
+        lport_(0), 
+        port_(0),
+        ttl_(0),  
+        rsock_(-1), 
+        ssock_(-1),
+        noloopback_broken_(0)
+{
+}
+
+void
+IPNetwork::send(u_char* buf, int len)
+{
+	int cc = ::send(ssock_, (char*)buf, len, 0);
+	if (cc < 0) {
+		switch (errno) {
+		case ECONNREFUSED:
+			/* no one listening at some site - ignore */
+#if defined(__osf__) || defined(_AIX) || defined(__FreeBSD__)
+			/*
+			 * Due to a bug in kern/uipc_socket.c, on several
+			 * systems, datagram sockets incorrectly persist
+			 * in an error state on receipt of an ICMP
+			 * port-unreachable.  This causes unicast connection
+			 * rendezvous problems, and worse, multicast
+			 * transmission problems because several systems
+			 * incorrectly send port unreachables for 
+			 * multicast destinations.  Our work around
+			 * is to simply close and reopen the socket
+			 * (by calling reset() below).
+			 *
+			 * This bug originated at CSRG in Berkeley
+			 * and was present in the BSD Reno networking
+			 * code release.  It has since been fixed
+			 * in 4.4BSD and OSF-3.x.  It is know to remain
+			 * in AIX-4.1.3.
+			 *
+			 * A fix is to change the following lines from
+			 * kern/uipc_socket.c:
+			 *
+			 *	if (so_serror)
+			 *		snderr(so->so_error);
+			 *
+			 * to:
+			 *
+			 *	if (so->so_error) {
+			 * 		error = so->so_error;
+			 *		so->so_error = 0;
+			 *		splx(s);
+			 *		goto release;
+			 *	}
+			 *
+			 */
+			reset();
+#endif
+			break;
+
+		case ENETUNREACH:
+		case EHOSTUNREACH:
+			/*
+			 * These "errors" are totally meaningless.
+			 * There is some broken host sending
+			 * icmp unreachables for multicast destinations.
+			 * UDP probably aborted the send because of them --
+			 * try exactly once more.  E.g., the send we
+			 * just did cleared the errno for the previous
+			 * icmp unreachable, so we should be able to
+			 * send now.
+			 */
+			(void)::send(ssock_, (char*)buf, len, 0);
+			break;
+
+		default:
+			perror("send");
+			return;
+		}
+	}
+}
+
+int
+IPNetwork::recv(u_char* buf, int len, u_int32_t& from)
+{
+	sockaddr_in sfrom;
+	int fromlen = sizeof(sfrom);
+	int cc = ::recvfrom(rsock_, (char*)buf, len, 0,
+			    (sockaddr*)&sfrom, &fromlen);
+	if (cc < 0) {
+		if (errno != EWOULDBLOCK)
+			perror("recvfrom");
+		return (-1);
+	}
+	from = sfrom.sin_addr.s_addr;
+	if (noloopback_broken_ && from == local_ && sfrom.sin_port == lport_)
+		return (0);
+
+	return (cc);
+}
+
 
 int IPNetwork::command(int argc, const char*const* argv)
 {
