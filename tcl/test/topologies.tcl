@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.8 1997/11/05 22:05:41 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.9 1997/11/06 00:32:33 haoboy Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -213,8 +213,8 @@ Topology/net1 instproc init ns {
     $ns duplex-link-op $node_(s1) $node_(r1) orient right-down
     $ns duplex-link-op $node_(s2) $node_(r1) orient right-up
     $ns duplex-link-op $node_(r1) $node_(k1) orient right
-    $ns duplex-link-op $node_(r1) $node(k1) queuePos 0
-    $ns duplex-link-op $node_(k1) $node(r1) queuePos 0
+    $ns duplex-link-op $node_(r1) $node_(k1) queuePos 0
+    $ns duplex-link-op $node_(k1) $node_(r1) queuePos 0
 
     $self checkConfig $class $ns
 }
