@@ -1,15 +1,19 @@
 There are three example scripts to demonstrate the implementation of
 SRM.  These are simple-srm.tcl, srm2.tcl, and srm_star.tcl.  When the
 results from each of these scripts is viewed in nam, data traffic is
-coloured black, traffic from the source is coloured white, and traffic
-from the the receivers is multi-coloured.
+coloured white, traffic from the source is coloured blue, and traffic
+from the the receivers is multi-coloured in various shades of red.
 
 Traffic from the source consists of session messages, and repairs.
 Traffic from the receivers is session messages, requests, and
 (occasionally) repairs.
 
-(NB:  If DM multicasting is used, then expect to send periodic prunes and
-joins as explicit messages).
+In addition, sources are square, leaf nodes are circle, transit nodes
+are hexagonal.  In general, all nodes are members of the group.  The
+exception is the star topology, in which the central node is not.
+
+(NB:  If DM multicasting is used, then expect to send periodic prunes
+and joins as explicit messages).
 
 Example 1:  simple-srm.tcl is a Y topology, with the source at the
 center, and receivers at each of the arms.  The data source is an
@@ -19,8 +23,9 @@ is unlike earlier situations where the traffic generator feeds the node
 directly).  Data generation starts at 0.5s.  Nodes 1, 2, and 3 join at
 1.0s., 1.1s., and 1.2s respectively.  As each node comes up, it
 requests the initial sequence of data from the source that it is
-currently missing.  Request messages will start appearing after about 3s.
-because the nodes have nto computed distances to each other accurately yet.
+currently missing.  Request messages will start appearing after about
+3s.  because the nodes have nto computed distances to each other
+accurately yet.
 
 Example 2: srm2.tcl is chain topology, with a CBR source at node 0.
 All the nodes join the group at time t =~ 1.0s.  They take another 3.0s
@@ -35,4 +40,6 @@ topology by editing srm_star.tcl.  However, the nam config file is
 written for a 8 (+1) node topology.
 
 In each of the examples, output statistics is written out to
-srm-stats.tr.
+srm-stats.tr.  Additional tracing can be turned on/off by
+uncommenting/commenting the trace lines at the start of each test
+file.
