@@ -123,7 +123,8 @@ $ns at 3.0 "close $f;finish"
 
 proc finish {} {
     puts "processing output ..."
-    exec awk -f drr-awkfile out.tr >out
+    exec awk -f drr-awkfile out.tr >out; exec cat out & 
+    exec sleep 1
     exit 0
 }
 
