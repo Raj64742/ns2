@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.84 1997/12/30 20:46:52 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.85 1998/01/06 17:18:04 kannan Exp $
 
 
 #
@@ -322,11 +322,10 @@ Simulator set McastShift_ 15
 Simulator set McastAddr_ 0x8000
 
 # Dynamic routing defaults
-rtObject set maxpref_   255
 Agent/rtProto set preference_ 200		;# global default preference
 Agent/rtProto/Direct set preference_ 100
 Agent/rtProto/DV set preference_	120
-Agent/rtProto/DV set INFINITY		 32
+Agent/rtProto/DV set INFINITY		 [Agent set ttl_]
 Agent/rtProto/DV set advertInterval	  2
 
 rtModel set startTime_ 0.5

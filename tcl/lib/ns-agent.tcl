@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.5 1997/07/24 23:07:36 breslau Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.6 1998/01/06 17:18:03 kannan Exp $
 #
 
 #
@@ -71,4 +71,26 @@ Agent/Null instproc init args {
 }
 
 Agent/LossMonitor instproc log-loss {} {
+}
+
+#
+# A lot of agents want to store the maxttl locally.  However,
+# setting a class variable based on the Agent::ttl_ variable
+# does not help if the user redefines Agent::ttl_.  Therefore,
+# Agents interested in the maxttl_ should call this function
+# with the name of their class variable, and it is set to the
+# maximum of the current/previous value.
+#
+# The function itself returns the value of ttl_ set.
+#
+# I use this function from agent constructors to set appropriate vars:
+# for instance to set Agent/rtProto/DV::INFINITY, or
+# Agent/SRM/SSM::ttlGroupScope_
+# 
+Agent proc set-maxttl {objectOrClass var} {
+	if { [catch "$objectOrClass set $var" value] ||	\
+	     ($value < [Agent set ttl_]) } {
+		$objectOrClass set $var [Agent set ttl_]
+	}
+	$objectOrClass set $var
 }
