@@ -44,7 +44,7 @@ public:
 } class_ll;
 
 
-BaseLL::BaseLL() : LinkDelay(), em_(0), sendtarget_(0), recvtarget_(0), seqno_(0), ack_(0)
+BaseLL::BaseLL() : LinkDelay(), em_(0), sendtarget_(0), recvtarget_(0), seqno_(0)
 {
 	bind("off_ll_", &off_ll_);
 }
