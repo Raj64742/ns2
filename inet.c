@@ -16,7 +16,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/inet.c,v 1.1 1997/05/14 02:47:26 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/inet.c,v 1.2 1997/07/21 21:00:22 kfall Exp $ (LBL)";
 
 #include <stdlib.h>
 #include <string.h>
@@ -51,9 +51,10 @@ LookupLocalAddr(void)
 {
 	static u_int32_t local_addr;
 	char name[MAXHOSTNAMELEN];
+	extern int gethostname();
 	
 	if (local_addr == 0) {
-		gethostname(name, sizeof(name));
+		(void)gethostname(name, sizeof(name));
 		local_addr = LookupHostAddr(name);
 	}
 	return (local_addr);
