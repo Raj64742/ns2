@@ -8,7 +8,6 @@ PROGNAME=$0
 
 while [ $# -ne 0 ] # loop over arguments
 do
-echo "1 is $1"
 	case $1 in
 	-[mM])	opts="$opts $1 $2"
 		shift;;
@@ -24,8 +23,6 @@ echo "1 is $1"
 	shift
 done
 
-echo "argv now is $0"
-
 if [ $# -lt 3 ]; then
 	echo "Usage: $PROGNAME [-m wrap] [-r] [-s scale] TclShPath tracefile <xgraph | gnuplot> testname"
 	exit 1;
@@ -36,7 +33,6 @@ if [ $# -eq 3 ]; then
 	GNAME=$3;
 fi
 PROGDIR=`dirname $PROGNAME`
-echo "it is: $TCLSH $PROGDIR/tcpfull-summarize.tcl $opts $1 $1"
 $TCLSH $PROGDIR/tcpfull-summarize.tcl $opts $1 $1
 $TCLSH $PROGDIR/tcpfull-summarize.tcl $opts $1 $1.r reverse
 $TCLSH $PROGDIR/cplot.tcl $2 $GNAME.forw \
