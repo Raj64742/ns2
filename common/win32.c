@@ -35,8 +35,10 @@
  */
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/win32.c,v 1.1 1997/08/10 07:50:04 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/win32.c,v 1.2 1997/08/14 05:38:36 gnguyen Exp $ (LBL)";
 #endif
+
+#ifdef WIN32
 
 #include <assert.h>
 #include <io.h>
@@ -594,3 +596,4 @@ int platformInit(Tcl_Interp* interp)
         return TCL_OK;
 }
 
+#endif
