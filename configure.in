@@ -8,9 +8,11 @@ V_SHELL=""
 
 builtin(include, ./conf/configure.in.head)
 builtin(include, ./conf/configure.in.tcl)
+builtin(include, ./conf/configure.in.tk)
 builtin(include, ./conf/configure.in.otcl)
 builtin(include, ./conf/configure.in.Tcl)
 builtin(include, ./conf/configure.in.misc)
+builtin(include, ./conf/configure.in.x11)
 
 #XXX
 if test $ac_cv_prog_gcc = yes ; then
