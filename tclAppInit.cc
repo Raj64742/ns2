@@ -71,6 +71,7 @@ main(int argc, char **argv)
  |                     W. Metzenthen, 22 Parker St, Ormond, Vic 3163,        |
  |                     Australia.                                            |
  |                     E-mail   billm@melbpc.org.au                          |
+ * used here with permission.
  */
 #define FE_FLTPREC       0x000
 #define FE_INVALIDPREC   0x100
@@ -82,6 +83,7 @@ main(int argc, char **argv)
  | Copyright (C) 1999                                                        |
  |                     W. Metzenthen, 22 Parker St, Ormond, Vic 3163,        |
  |                     Australia.  E-mail   billm@melbpc.org.au              |
+ * used here with permission.
  */
 /*
   Set the precision to prec if it is a valid
