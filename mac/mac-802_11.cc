@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.11 1998/01/23 21:08:34 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.12 1998/01/23 21:36:04 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -71,7 +71,7 @@ public:
 } class_mac_802_11;
 
 
-Mac802_11::Mac802_11() : MacCsmaCa(), mode_(MM_RTS_CTS), rtxAck_(0), rtxRts_(0), sender_(-1), pkt_(0), pktTx_(0), hRts_(this), hData_(this), hIdle_(this)
+Mac802_11::Mac802_11() : mode_(MM_RTS_CTS), rtxAck_(0), rtxRts_(0), sender_(-1), pkt_(0), pktTx_(0), hRts_(this), hData_(this), hIdle_(this)
 {
 	bind("bssId_", &bssId_);
 	bind_time("sifs_", &sifs_);
@@ -82,8 +82,7 @@ Mac802_11::Mac802_11() : MacCsmaCa(), mode_(MM_RTS_CTS), rtxAck_(0), rtxRts_(0),
 }
 
 
-int
-Mac802_11::command(int argc, const char*const* argv)
+int Mac802_11::command(int argc, const char*const* argv)
 {
 	if (argc == 3) {
 		if (strcmp(argv[1], "mode") == 0) {
@@ -100,8 +99,7 @@ Mac802_11::command(int argc, const char*const* argv)
 }
 
 
-void
-Mac802_11::recv(Packet* p, Handler* h)
+void Mac802_11::recv(Packet* p, Handler* h)
 {
 	if (mode_ == MM_RTS_CTS) {
 		if (h != 0) {
@@ -115,8 +113,7 @@ Mac802_11::recv(Packet* p, Handler* h)
 }
 
 
-void
-Mac802_11::transmit(Packet* p, double ifs)
+void Mac802_11::transmit(Packet* p, double ifs)
 {
 	Scheduler& s = Scheduler::instance();
 	if (pktTx_ && pktTx_->uid_ > 0) {
@@ -133,8 +130,7 @@ Mac802_11::transmit(Packet* p, double ifs)
 }
 
 
-void
-Mac802_11::RtsCts_send(Packet* p)
+void Mac802_11::RtsCts_send(Packet* p)
 {
 	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
 	mh->macSA() = label_;
@@ -148,8 +144,7 @@ Mac802_11::RtsCts_send(Packet* p)
 }
 
 
-void
-Mac802_11::RtsCts_recv(Packet* p)
+void Mac802_11::RtsCts_recv(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	hdr_mac* mh = (hdr_mac*) p->access(off_mac_);
@@ -194,8 +189,7 @@ Mac802_11::RtsCts_recv(Packet* p)
 }
 
 
-void
-Mac802_11::resume(Packet* p)
+void Mac802_11::resume(Packet* p)
 {
 	if (mode_ != MM_RTS_CTS) {
 		MacCsmaCa::resume(p);
@@ -232,8 +226,7 @@ Mac802_11::resume(Packet* p)
 }
 
 
-void
-Mac802_11::backoff(Handler* h, Packet* p, double delay)
+void Mac802_11::backoff(Handler* h, Packet* p, double delay)
 {
 	if (delay == 0)
 		delay = lengthNAV(channel_->pkt());
@@ -241,8 +234,7 @@ Mac802_11::backoff(Handler* h, Packet* p, double delay)
 }
 
 
-double
-Mac802_11::lengthNAV(Packet* p)
+double Mac802_11::lengthNAV(Packet* p)
 {
 	if (p == 0)
 		return 0;
@@ -262,8 +254,7 @@ Mac802_11::lengthNAV(Packet* p)
 }
 
 
-void
-Mac802_11::sendRts()
+void Mac802_11::sendRts()
 {
 	Scheduler& s = Scheduler::instance();
 	if (pktTx_ || (state_ & ~MAC_RTS) != MAC_IDLE
@@ -287,8 +278,7 @@ Mac802_11::sendRts()
 }
 
 
-void
-Mac802_11::sendCts(Packet* p)
+void Mac802_11::sendCts(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	s.schedule(&hIdle_, &eIdle_, lengthNAV(p));
@@ -301,8 +291,7 @@ Mac802_11::sendCts(Packet* p)
 }
 
 
-void
-Mac802_11::sendData()
+void Mac802_11::sendData()
 {
 	if (++rtxAck_ > rtxAckLimit_) {
 		resume(pkt_);
@@ -318,8 +307,7 @@ Mac802_11::sendData()
 }
 
 
-void
-Mac802_11::sendAck(Packet* p)
+void Mac802_11::sendAck(Packet* p)
 {
 	p = p->copy();
 	CHECK_PKT(p);

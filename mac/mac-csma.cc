@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.17 1998/01/23 21:08:34 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.18 1998/01/23 21:36:04 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -68,6 +68,13 @@ public:
 } class_mac_csma_ca;
 
 
+void
+MacHandlerEoc::handle(Event* e)
+{
+	mac_->endofContention((Packet*)e);
+}
+
+
 MacCsma::MacCsma() : Mac(), txstart_(0), rtx_(0), csense_(1), hEoc_(this)
 {
 	bind_time("delay_", &delay_);
@@ -80,17 +87,8 @@ MacCsma::MacCsma() : Mac(), txstart_(0), rtx_(0), csense_(1), hEoc_(this)
 	cw_ = cwmin_;
 }
 
-MacCsmaCd::MacCsmaCd() : MacCsma()
-{
-}
 
-MacCsmaCa::MacCsmaCa() : MacCsma()
-{
-}
-
-
-void
-MacCsma::resume(Packet* p)
+void MacCsma::resume(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	s.schedule(callback_, &intr_, ifs_ + slotTime_ * cwmin_);
@@ -103,8 +101,7 @@ MacCsma::resume(Packet* p)
 }
 
 
-void
-MacCsma::send(Packet* p)
+void MacCsma::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
@@ -120,8 +117,7 @@ MacCsma::send(Packet* p)
 }
 
 
-void
-MacCsma::backoff(Handler* h, Packet* p, double delay)
+void MacCsma::backoff(Handler* h, Packet* p, double delay)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
@@ -139,8 +135,7 @@ MacCsma::backoff(Handler* h, Packet* p, double delay)
 }
 
 
-void
-MacCsma::endofContention(Packet* p)
+void MacCsma::endofContention(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p) - (s.clock() - txstart_);
@@ -152,8 +147,12 @@ MacCsma::endofContention(Packet* p)
 }
 
 
-void
-MacCsmaCd::endofContention(Packet* p)
+MacCsmaCd::MacCsmaCd()
+{
+}
+
+
+void MacCsmaCd::endofContention(Packet* p)
 {
 	// If there is a collision, backoff
 	if (channel_->collision()) {
@@ -165,8 +164,12 @@ MacCsmaCd::endofContention(Packet* p)
 }
 
 
-void
-MacCsmaCa::send(Packet* p)
+MacCsmaCa::MacCsmaCa()
+{
+}
+
+
+void MacCsmaCa::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
@@ -177,11 +180,4 @@ MacCsmaCa::send(Packet* p)
 		txstart_ = now;
 		channel_->contention(p, &hEoc_);
 	}
-}
-
-
-void
-MacHandlerEoc::handle(Event* e)
-{
-	mac_->endofContention((Packet*)e);
 }

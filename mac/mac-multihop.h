@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.h,v 1.5 1997/10/26 05:44:24 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.h,v 1.6 1998/01/23 21:36:05 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_multihop_h
@@ -162,7 +162,6 @@ class MultihopMac : public Mac {
 //	inline MultihopMacHandler* mh() { return &mh_; }
 	inline double pollTxtime(int s) { return (double) s*8.0/bandwidth(); }
   protected:
-	int command(int argc, const char*const* argv);
 	int mode_;		/* IDLE/SND/RCV */
 	MultihopMac *peer_;	/* peer mac */
 	double tx_rx_;		/* Turnaround times: transmit-->recv */

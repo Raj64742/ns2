@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.19 1998/01/23 21:08:35 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.20 1998/01/23 21:36:05 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -88,8 +88,7 @@ Mac::Mac() : Connector(), hlen_(0), state_(MAC_IDLE), channel_(0), callback_(0),
 }
 
 
-int
-Mac::command(int argc, const char*const* argv)
+int Mac::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
@@ -123,8 +122,7 @@ Mac::command(int argc, const char*const* argv)
 }
 
 
-void
-Mac::recv(Packet* p, Handler* h)
+void Mac::recv(Packet* p, Handler* h)
 {
 	// if h is NULL, packet comes from the lower layer, ie. MAC classifier
 	if (h == 0) {
@@ -140,8 +138,7 @@ Mac::recv(Packet* p, Handler* h)
 }
 
 
-void
-Mac::send(Packet* p)
+void Mac::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p);
@@ -153,8 +150,7 @@ Mac::send(Packet* p)
 }
 
 
-void
-Mac::resume(Packet* p)
+void Mac::resume(Packet* p)
 {
 	if (p != 0)
 		drop(p);
@@ -163,8 +159,7 @@ Mac::resume(Packet* p)
 }
 
 
-Mac*
-Mac::getPeerMac(Packet* p)
+Mac* Mac::getPeerMac(Packet* p)
 {
 	return (Mac*) mcl_->slot(((hdr_mac*)p->access(off_mac_))->macDA());
 }
