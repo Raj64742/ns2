@@ -51,23 +51,23 @@ static class UniformRandomVariableClass : public TclClass {
 
 UniformRandomVariable::UniformRandomVariable()
 {
-        bind("min", &min_);
-	bind("max", &max_); 
+        bind("min_", &min_);
+	bind("max_", &max_); 
 }
 
 UniformRandomVariable::UniformRandomVariable(double min, double max)
 {
-        bind("min", &min_);
-	bind("max", &max_); 
+        bind("min_", &min_);
+	bind("max_", &max_); 
         min_ = min;
 	max_ = max;
 }
-
 
 double UniformRandomVariable::value()
 {
         return(Random::uniform(min_, max_));
 }
+
 
 class ExponentialRandomVariable : public RandomVariable {
  public:
@@ -88,12 +88,12 @@ static class ExponentialRandomVariableClass : public TclClass {
 
 ExponentialRandomVariable::ExponentialRandomVariable()
 {
-        bind("avg", &avg_);
+        bind("avg_", &avg_);
 }
 
 ExponentialRandomVariable::ExponentialRandomVariable(double avg)
 {
-        bind("avg", &avg_);
+        bind("avg_", &avg_);
         avg_ = avg;
 }
 
@@ -101,6 +101,7 @@ double ExponentialRandomVariable::value()
 {
         return(Random::exponential(avg_));
 }
+
 
 class ParetoRandomVariable : public RandomVariable {
  public:
@@ -123,14 +124,14 @@ static class ParetoRandomVariableClass : public TclClass {
 
 ParetoRandomVariable::ParetoRandomVariable()
 {
-        bind("avg", &avg_);
-	bind("shape", &shape_);
+        bind("avg_", &avg_);
+	bind("shape_", &shape_);
 }
 
 ParetoRandomVariable::ParetoRandomVariable(double avg, double shape)
 {
-        bind("avg", &avg_);
-	bind("shape", &shape_);
+        bind("avg_", &avg_);
+	bind("shape_", &shape_);
         avg_ = avg;
 	shape_ = shape;
 }
@@ -147,7 +148,6 @@ double ParetoRandomVariable::value()
         return(Random::pareto(avg_ * (shape_ - 1)/shape_, shape_));
 }
 	
-
 
 class ConstantRandomVariable : public RandomVariable {
  public:
@@ -168,12 +168,12 @@ static class ConstantRandomVariableClass : public TclClass {
 
 ConstantRandomVariable::ConstantRandomVariable()
 {
-        bind("avg", &avg_);
+        bind("avg_", &avg_);
 }
 
 ConstantRandomVariable::ConstantRandomVariable(double avg)
 {
-        bind("avg", &avg_);
+        bind("avg_", &avg_);
         avg_ = avg;
 }
 
@@ -181,6 +181,7 @@ double ConstantRandomVariable::value()
 {
         return(avg_);
 }
+
 
 /* Hyperexponential distribution code adapted from code provided
  * by Ion Stoica.
@@ -208,15 +209,15 @@ static class HyperExponentialRandomVariableClass : public TclClass {
 
 HyperExponentialRandomVariable::HyperExponentialRandomVariable()
 {
-        bind("avg", &avg_);
-	bind("cov", &cov_);
+        bind("avg_", &avg_);
+	bind("cov_", &cov_);
 	alpha_ = .95;
 }
 
 HyperExponentialRandomVariable::HyperExponentialRandomVariable(double avg, double cov)
 {
-        bind("avg", &avg_);
-	bind("cov", &cov_);
+        bind("avg_", &avg_);
+	bind("cov_", &cov_);
 	alpha_ = .95;
         avg_ = avg;
 	cov_ = cov;
@@ -225,17 +226,12 @@ HyperExponentialRandomVariable::HyperExponentialRandomVariable(double avg, doubl
 double HyperExponentialRandomVariable::value()
 {
         double temp, res;
-
 	double u = Random::uniform();
 
 	temp = sqrt((cov_ * cov_ - 1.0)/(2.0 * alpha_ * (1.0 - alpha_)));
-
 	if (u < alpha_)
 	        res = Random::exponential(avg_ - temp * (1.0 - alpha_) * avg_);
 	else
 	        res = Random::exponential(avg_ + temp * (alpha_) * avg_);
-
 	return(res);
 }
-
-

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.37 1997/07/14 21:42:20 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.38 1997/07/21 19:30:54 gnguyen Exp $
 
 
 #
@@ -235,11 +235,11 @@ Traffic/Pareto set shape 1.5
 
 Agent/Mcast/Prune set packetSize_ 80
 
-RandomVariable/Uniform set min 0.0
-RandomVariable/Uniform set max 1.0
-RandomVariable/Exponential set avg 1.0
-RandomVariable/Pareto set avg 1.0
-RandomVariable/Pareto set shape 1.5
-RandomVariable/Constant set avg 1.0
-RandomVariable/HyperExponential set avg 1.0
-RandomVariable/HyperExponential set cov 4.0
+RandomVariable/Uniform set min_ 0.0
+RandomVariable/Uniform set max_ 1.0
+RandomVariable/Exponential set avg_ 1.0
+RandomVariable/Pareto set avg_ 1.0
+RandomVariable/Pareto set shape_ 1.5
+RandomVariable/Constant set avg_ 1.0
+RandomVariable/HyperExponential set avg_ 1.0
+RandomVariable/HyperExponential set cov_ 4.0
