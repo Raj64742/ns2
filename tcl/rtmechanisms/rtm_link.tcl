@@ -114,13 +114,13 @@ RTMechanisms instproc makeflowmon {} {
                 set fdesc [new QueueMonitor/ED/Flow]
                 set slot [$self installNext $fdesc]
 		$rtm_ vprint 2 "(self:$self) installing flow $fdesc (s:$src,d:$dst,f:$fid) in buck: $hashbucket, slot >$slot<"
-                $self set-hash $hashbucket $src $dst $fid $slot
+                $self set-hash auto $src $dst $fid $slot
 		$rtm_ vprint 2 "(self: $self) unknown-flow done"
 flush stdout
         }
 	set pbody "set rtm_ $self ; $pbody"
 
-        $cl proc unknown-flow { src dst fid hashbucket } $pbody
+        $cl proc unknown-flow { src dst fid } $pbody
 	$cl proc no-slot slotnum {
 		#
 		# note: we can wind up here when a packet passes
@@ -148,10 +148,10 @@ RTMechanisms instproc monitor-link {} {
 	set flowmon [new QueueMonitor/ED/Flowmon]
 	set cl [new Classifier/Hash/SrcDestFid 33]
 	$flowmon classifier $cl
-	$cl proc unknown-flow { src dst fid hashbucket } {
+	$cl proc unknown-flow { src dst fid } {
 		set nflow [new QueueMonitor/ED/Flow]
 		set slot [$self installNext $nflow]
-		$self set-hash $hashbucket $src $dst $fid $slot
+		$self set-hash auto $src $dst $fid $slot
 	}
 	$cl proc no-slot slotnum {
 		puts stderr "classifier $self, no-slot for slotnum $slotnum"

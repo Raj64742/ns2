@@ -119,7 +119,7 @@ IntServLink instproc create-meas-classifier {} {
 	set measclassifier_ [new Classifier/Hash/Fid 1 ]
 	#set slots for measclassifier
 	set slot [$measclassifier_ installNext $queue_]
-	$measclassifier_ set-hash 0 0 0 0 $slot 
+	$measclassifier_ set-hash auto 0 0 0 $slot 
 	
 	#Currently measure all flows with fid.ne.0 alone
 	set slot [$measclassifier_ installNext $measmod_]

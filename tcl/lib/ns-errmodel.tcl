@@ -228,8 +228,8 @@ ErrorModule instproc init { cltype { clslots 29 } } {
 	$self cmd classifier $classifier
 	$self cmd target [new Connector]
 	$self cmd drop-target [new Connector]
-	$classifier proc unknown-flow { src dst fid bucket } {
-		puts "warning: classifier $self unknown flow s:$src, d:$dst, fid:$fid, bucket:$bucket"
+	$classifier proc unknown-flow { src dst fid } {
+		puts "warning: classifier $self unknown flow s:$src, d:$dst, fid:$fid"
 	}
 }
 
@@ -291,7 +291,7 @@ ErrorModule instproc bind args {
                 # first install the class to get its slot number
                 # use the flow id as the hash bucket
                 set slot [$cls installNext $errmod] 
-                $cls set-hash $a 0 0 $a $slot
+                $cls set-hash auto 0 0 $a $slot
                 incr a  
         }
 }

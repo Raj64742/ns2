@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.21 1999/04/22 19:22:04 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.22 1999/09/15 19:34:19 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -44,7 +44,7 @@ class Packet;
 class Classifier : public NsObject {
  public:
 	Classifier();
-	~Classifier();
+	virtual ~Classifier();
 	virtual void recv(Packet* p, Handler* h);
 	int maxslot() const { return maxslot_; }
 	inline NsObject* slot(int slot) {
@@ -53,8 +53,8 @@ class Classifier : public NsObject {
 		return 0;
 	}
 	int mshift(int val) { return ((val >> shift_) & mask_); }
-	virtual NsObject* find(Packet*);
-	virtual int classify(Packet *const);
+	virtual NsObject* find(const Packet*);
+	virtual int classify(Packet *);
 	enum classify_ret {ONCE= -2, TWICE= -1};
  protected:
 	void install(int slot, NsObject*);

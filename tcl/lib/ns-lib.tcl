@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.165 1999/09/09 17:13:03 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.166 1999/09/15 19:34:24 yuriy Exp $
 
 #
 
@@ -1236,12 +1236,12 @@ Simulator instproc makeflowmon { cltype { clslots 29 } } {
 	set flowmon [new QueueMonitor/ED/Flowmon]
 	set cl [new Classifier/Hash/$cltype $clslots]
 	
-	$cl proc unknown-flow { src dst fid hashbucket }  {
+	$cl proc unknown-flow { src dst fid }  {
 		set fdesc [new QueueMonitor/ED/Flow]
 		set dsamp [new Samples]
 		$fdesc set-delay-samples $dsamp
 		set slot [$self installNext $fdesc] 
-		$self set-hash $hashbucket $src $dst $fid $slot
+		$self set-hash auto $src $dst $fid $slot
 	}
 	
 	$cl proc no-slot slotnum {

@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.15 1998/09/02 20:38:42 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.16 1999/09/15 19:34:21 yuriy Exp $
 #
 
 set ns [new Simulator]
@@ -48,7 +48,7 @@ $ns proc simplex-link { n1 n2 bw delay type } {
 
 Class Classifier/Hash/Fid/FQ -superclass Classifier/Hash/Fid
 
-Classifier/Hash/Fid/FQ instproc unknown-flow { src dst fid buck } {
+Classifier/Hash/Fid/FQ instproc unknown-flow { src dst fid } {
 	$self instvar fq_
 	$fq_ new-flow $src $dst $fid
 }

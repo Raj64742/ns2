@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.29 1999/09/15 02:20:46 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.30 1999/09/15 19:34:18 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -62,7 +62,7 @@ Classifier::Classifier() : slot_(0), nslot_(0), maxslot_(-1)
 	bind("mask_", &mask_);
 }
 
-int Classifier::classify(Packet *const p)
+int Classifier::classify(Packet *p)
 {
 	return (mshift(*((int*) p->access(offset_))));
 }
@@ -140,7 +140,7 @@ void Classifier::recv(Packet* p, Handler*h)
  * perform upcall if no mapping
  */
 
-NsObject* Classifier::find(Packet* p)
+NsObject* Classifier::find(const Packet* p)
 {
 	NsObject* node = NULL;
 	int cl = classify(p);

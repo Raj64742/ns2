@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.17 1998/12/16 23:03:20 breslau Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.18 1999/09/15 19:34:24 yuriy Exp $
 #
 
 #
@@ -142,7 +142,7 @@ CBQLink instproc bind args {
 		# first install the class to get its slot number
 		# use the flow id as the hash bucket
 		set slot [$classifier_ installNext $cbqcl]
-		$classifier_ set-hash $a 0 0 $a $slot
+		$classifier_ set-hash auto 0 0 $a $slot
 		incr a
 	}
 }
@@ -382,7 +382,7 @@ Agent/AckReconsClass instproc ackbw {ack time} {
 
 Class Classifier/Hash/Fid/FQ -superclass Classifier/Hash/Fid
 
-Classifier/Hash/Fid/FQ instproc unknown-flow { src dst fid buck } {
+Classifier/Hash/Fid/FQ instproc unknown-flow { src dst fid } {
 	$self instvar fq_
 	$fq_ new-flow $src $dst $fid
 }

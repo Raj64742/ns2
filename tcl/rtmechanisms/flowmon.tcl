@@ -4,10 +4,10 @@ proc makeflowmon {} {
     set flowmon [new QueueMonitor/ED/Flowmon]
     set cl [new Classifier/Hash/SrcDestFid 33]
     
-    $cl proc unknown-flow { src dst fid hashbucket } {
+    $cl proc unknown-flow { src dst fid } {
 	set fdesc [new QueueMonitor/ED/Flow]
 	set slot [$self installNext $fdesc]
-	$self set-hash $hashbucket $src $dst $fid $slot
+	$self set-hash auto $src $dst $fid $slot
     }
     $cl proc no-slot slotnum {
     }
