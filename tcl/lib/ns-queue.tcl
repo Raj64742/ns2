@@ -1,128 +1,140 @@
 #
-# XXX hack: add some methods to the internal SimpleLink class
-# to get at queue delay.  XXX only works if queue monitoring
-# was enabled on this link
+# This file contains auxillary support for CBQ and CBQ links, and
+# some embryonic stuff for Queue Monitors. -KF
 #
-# Returns 2 element list of mean bytes and mean number of packets in queue
+
 #
-SimpleLink instproc sample-queue-size {} {
-	$self instvar qMonitor_ lastSample_ qBytes_ qPkts_
-	global ns
-	set now [$ns now]
-	
-	set qBytesMonitor_ [$qMonitor_ get-bytes-integrator]
-	set qPktsMonitor_ [$qMonitor_ get-pkts-integrator]
+# CBQ
+#
+#
+# set up the cbqueue object and link
+# the cbq classes and classifier are added separately
+#
+Class CBQLink -superclass SimpleLink
+CBQLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
+        $self next $src $dst $bw $delay $q $lltype
+        $self instvar head_ queue_ link_ classifier_
+	$queue_ link $link_
+        set classifier_ [new Classifier/Hash/Fid 32]
+	set head_ $classifier_
+	#
+	# the following is merely to inject 'algorithm_' in the
+	# $queue_ class' name space.  It is not used in ns-2, but
+	# is needed here for the compat code to recognize that
+	# 'set algorithm_ foo' commands should work
+	#
+	$queue_ set algorithm_ [Queue/CBQ set algorithm_]
 
-	$qBytesMonitor_ newpoint $now [$qBytesMonitor_ set lasty_]
-	set bsum [$qBytesMonitor_ set sum_]
+}
 
-	$qPktsMonitor_ newpoint $now [$qPktsMonitor_ set lasty_]
-	set psum [$qPktsMonitor_ set sum_]
+#
+# bind $cbqclass id
+#    or
+# bind $cbqclass idstart idend
+#
+# these use flow id's as id's
+#
+CBQLink instproc bind args {
+	# this is to perform '$cbqlink bind $cbqclass id'
+	# and '$cbqlink insert $cbqclass bind $cbqclass idstart idend'
 
-	if ![info exists lastSample_] {
-		set lastSample_ 0
-	}
-	set dur [expr $now - $lastSample_]
-	if { $dur != 0 } {
-		set meanBytesQ [expr $bsum / $dur]
-		set meanPktsQ [expr $psum / $dur]
+	$self instvar classifier_
+	set nargs [llength $args]
+	set cbqcl [lindex $args 0]
+	set a [lindex $args 1]
+	if { $nargs == 3 } {
+		set b [lindex $args 2]
 	} else {
-		set meanBytesQ 0
-		set meanPktsQ 0
+		set b $a
 	}
-	$qBytesMonitor_ set sum_ 0.0
-	$qPktsMonitor_ set sum_ 0.0
-	set lastSample_ $now
-
-	set qBytes_ $meanBytesQ
- 	set qPkts_ $meanPktsQ
-	if { ($qBytes_ * $qPkts_ == 0) && ($qBytes_ || $qPkts_) } {
-		puts "inconsistent: bytes: $qBytes_ pkts: $qPkts_"
+	# bind the class to the flow id's [a..b]
+	while { $a <= $b } {
+		$classifier_ set-hash fid $cbqcl $a
+		incr a
 	}
-	return "$meanBytesQ $meanPktsQ"
 }
 
-SimpleLink instproc sample-queue-size-old {} {
-        $self instvar qMonitor_ lastSample_
-        global ns
-        set now [$ns now]
-        $qMonitor_ newpoint $now [$qMonitor_ set lasty_]
-        set sum [$qMonitor_ set sum_]
-        #XXX
-        if ![info exists lastSample_] {
-                set lastSample_ 0
-        }
-        set dur [expr $now - $lastSample_]
-        if { $dur != 0 } {
-                set meanq [expr $sum / $dur]
-        } else {
-                set meanq 0
-        }
-        $qMonitor_ set sum_ 0.0
-        set lastSample_ $now
-
-        return $meanq
-}
-
-
-set queueSampleInterval 1.
-
-# This routine is called every $queueSampleInterval seconds
-# to update our estimator of the queue size on this link.
+#
+# insert the class into the link
+# each class will have an associated queue
+# we must create a set of queue monitors around these queues which
+# cbq uses to monitor demand
 #
 #
-# The default output file is "queue.dat" for the queue lengths
-# Format of file is:
-#        <time> (node_i,node_j) <size_in_bytes> <num_packets>
+CBQLink instproc insert cbqcl {
+	# queue_ refers to the cbq object
+	$self instvar classifier_ queue_ drpT_
+	set qdisc [$cbqcl qdisc]
 
+	# qdisc can be null for internal classes
+	if { $qdisc != "" } {
+		# create in, out, and drop snoop queues
+		# and attach them to the same monitor
+		# we don't need bytes/pkt integrator or stats here
+		set qmon [new QueueMonitor]
+		set in [new SnoopQueue/In]
+		set out [new SnoopQueue/Out]
+		set drop [new SnoopQueue/Drop]
+		$in set-monitor $qmon
+		$out set-monitor $qmon
+		$drop set-monitor $qmon
 
-set qfile_ [open "queue.dat" w]
-SimpleLink instproc queue-sample-timeout { } {
-	global ns queueSampleInterval
-	global qfile_ 
-	
-	$self instvar qBytesEstimate_
-	$self instvar qPktsEstimate_
+		# output of cbqclass -> snoopy inq
+		$in target $qdisc
+		$cbqcl target $in
 
-	set qlist [$self sample-queue-size]
-	set qBytes_ [lindex $qlist 0]
-	set qPkts_ [lindex $qlist 1]
+		# drop from qdisc -> snoopy dropq
+		# snoopy dropq's target is overall cbq drop target
+		$qdisc drop-target $drop
+		if [info exists drpT_] {
+			$drop target [$drpT_ target]
+			$drpT_ target $drop
+		} else {
+			$drop target [ns set nullAgent_]
+		}
 
-# We don't really want an EWMA here since the individual samples are 
-# themselves integrated (averaged) estimates over $queueSampleInterval seconds.
+		# output of queue -> snoopy outq
+		# output of snoopy outq is cbq
+		$qdisc target $out
+		$out target $queue_
+		# tell this class about its new queue monitor
+		$cbqcl qmon $qmon
 
-#	set qBytesEstimate_ [expr 0.9 * $qBytesEstimate_ + 0.1 * $qBytes_]
-#	set qPktsEstimate_ [expr 0.9 * $qPktsEstimate_ + 0.1 * $qPkts_]
-
-	set qBytesEstimate_ $qBytes_
-	set qPktsEstimate_ $qPkts_
-
-	$self instvar fromNode_ toNode_
-	puts $qfile_ "[$ns now] n[$fromNode_ id]:n[$toNode_ id] \
-			$qBytesEstimate_ $qPktsEstimate_"
-	if { ($qBytes_ * $qPkts_ == 0) && ($qBytes_ || $qPkts_) } {
-		puts "inconsistent: bytes: $qBytes_ pkts: $qPkts_"
+		#
+		# this is some ugly compat support, but
+		# has to go here
+		#
+		if { [lsearch [$queue_ info vars] compat_qlim_] >= 0 } {
+			$qdisc set limit_ [$queue_ set compat_qlim_]
+		}
 	}
-	$ns at [expr [$ns now] + $queueSampleInterval] \
-		"$self queue-sample-timeout"
+
+	# tell cbq about this class
+	# (this also tells the cbqclass about the cbq)
+	$queue_ insert-class $cbqcl
+}
+#
+# procedures on a cbq class
+#
+CBQClass instproc init {} {
+	$self next
 }
 
-# This is useful if you're experimenting with asymmetric networks and
-# connections and tracing them.
+CBQClass instproc setparams { parent allot maxidle prio level xdelay } {
 
-Simulator instproc trace-simplex-link { n1 n2 bw delay type } {
-	$self simplex-link $n1 $n2 $bw $delay $type
-	$self instvar traceAllFile_
-	if [info exists traceAllFile_] {
-		$self trace-queue $n1 $n2 $traceAllFile_
-	}
-#	puts "Delay: $delay"
+        $self allot $allot
+	$self parent $parent
+
+        $self set maxidle_ $maxidle
+        $self set priority_ $prio
+        $self set level_ $level
+        $self set extradelay_ $xdelay
+
+        return $self
 }
 
-# This returns the link that connects a node and its specified neighbour
-# XXX This really wants to be in ns-node.tcl
-
-Node instproc get-link neighbor {
-        global ns
-        return [$ns set link_([$self id]:[$neighbor id])]
+CBQClass instproc install-queue q {
+	$q set blocked_ true
+	$q set unblock_on_resume_ false
+	$self qdisc $q
 }
