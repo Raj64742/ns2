@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.245 2002/03/15 19:01:01 ddutta Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.246 2002/05/06 23:24:30 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -65,8 +65,9 @@ INCLUDES = \
 	-I./tcp -I./common -I./link -I./queue \
 	-I./adc -I./apps -I./mac -I./mobile -I./trace \
 	-I./routing -I./tools -I./classifier -I./mcast \
-	-I./diffusion3/main -I./diffusion3/lib \
-	-I./diffusion3/nr -I./diffusion3/ns -I./asim/
+	-I./diffusion3/lib/main -I./diffusion3/lib \
+	-I./diffusion3/lib/nr -I./diffusion3/ns \
+	-I./diffusion3/diffusion -I./asim/
 
 
 LIB	= \
@@ -104,19 +105,27 @@ NSE	= nse
 OBJ_STL = linkstate/ls.o linkstate/rtProtoLS.o \
 	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
 	pgm/pgm-receiver.o pgm/rcvbuf.o \
-	diffusion3/nr/nr.o diffusion3/lib/dr.o \
+	diffusion3/lib/nr/nr.o diffusion3/lib/dr.o \
 	diffusion3/ns/diffagent.o diffusion3/ns/diffrtg.o \
-	diffusion3/ns/difftimer.o diffusion3/main/diffusion.o \
-	diffusion3/main/attrs.o diffusion3/main/iodev.o \
-	diffusion3/main/events.o diffusion3/main/message.o \
-	diffusion3/main/hashutils.o diffusion3/main/stats.o \
-	diffusion3/main/tools.o diffusion3/main/drivers/rpc_stats.o \
-	diffusion3/apps/sysapps/gradient.o \
-	diffusion3/apps/sysapps/log.o \
+	diffusion3/ns/difftimer.o \
+	diffusion3/diffusion/diffusion.o \
+	diffusion3/lib/main/attrs.o \
+	diffusion3/lib/main/iodev.o \
+	diffusion3/lib/main/events.o \
+	diffusion3/lib/main/message.o \
+	diffusion3/lib/main/stats.o \
+	diffusion3/lib/main/tools.o \
+	diffusion3/lib/drivers/rpc_stats.o \
+	diffusion3/apps/sysfilters/gradient.o \
+	diffusion3/apps/sysfilters/log.o \
+	diffusion3/apps/sysfilters/tag.o \
+	diffusion3/apps/sysfilters/srcrt.o \
 	diffusion3/lib/diffapp.o \
-	diffusion3/apps/agents/ping_sender.o \
-	diffusion3/apps/agents/ping_receiver.o \
-	diffusion3/apps/agents/ping_common.o \
+	diffusion3/apps/pingapp/ping_sender.o \
+	diffusion3/apps/pingapp/ping_receiver.o \
+	diffusion3/apps/pingapp/ping_common.o \
+	diffusion3/apps/pingapp/push_receiver.o \
+	diffusion3/apps/pingapp/push_sender.o \
 	diffusion3/apps/gear/geo-attr.o \
 	diffusion3/apps/gear/geo-routing.o \
 	diffusion3/apps/gear/geo-tools.o		
