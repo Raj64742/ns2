@@ -33,10 +33,33 @@
 
 #include "webtraf.h"
 
+// Data structure for next request
+struct request_s {
+	int time;
+	int client;
+	int server;
+	int size;
+};
+
+class LogWebTrafPool;
+
+// Data structure for the timer to send requests
+class RequestTimer : public TimerHandler{
+public:
+	RequestTimer(LogWebTrafPool*);
+	
+	virtual void expire(Event *e);
+
+private:
+	LogWebTrafPool *lwp;
+};
+
 class LogWebTrafPool : public WebTrafPool {
 public: 
 	LogWebTrafPool(); 
 	virtual ~LogWebTrafPool(); 
+
+	int run();
 protected:
 	virtual int command(int argc, const char*const* argv);
 
@@ -45,8 +68,17 @@ private:
 	FILE* fp;
 	int num_obj;
 
+	double start_t;
+	RequestTimer *req_timer;
+	request_s next_req;
+
 	int loadLog(const char*);
-	int launchReq(int, int, int, int);
+	int start();
+	int launchReq(int, int, int);
+	int processLog();
+
+	Node* picksrc(int);
+	Node* pickdst(int);
 };
 
 

@@ -31,6 +31,15 @@
 
 #include "logweb.h"
 
+// Timer to send requests
+RequestTimer::RequestTimer(LogWebTrafPool* pool) {
+	lwp = pool;
+};
+
+void RequestTimer::expire(Event *e) {
+	lwp->run();
+}
+
 
 static class LogWebTrafPoolClass : public TclClass {
 public:
@@ -42,6 +51,15 @@ public:
 
 LogWebTrafPool::LogWebTrafPool() {
 	num_obj = 0;
+	// initialize next request
+	next_req.time = 0;
+	next_req.client = 0;
+	next_req.server = 0;
+	next_req.size = 0;
+
+	// initialize request timer
+	req_timer = new RequestTimer(this);
+	start_t = 0;
 }
 
 LogWebTrafPool::~LogWebTrafPool() {
@@ -54,37 +72,67 @@ int LogWebTrafPool::loadLog(const char* filename) {
 	if (fp == 0)
 		return(0);
 	
-	int time, client, server, size;
-	while (!feof(fp)) {
-		fscanf(fp, "%d %d %d %d\n", 
-		       &time, &client, &server, &size);
-		printf("%d %d %d %d\n", 
-		       time, client, server, size);
-		launchReq(time, client, server, size);
-	}
-	
 	return(1);
 }
 
-int LogWebTrafPool::launchReq(int time, int cid, int sid, int size) {
+int LogWebTrafPool::start() {
+	start_t = Scheduler::instance().clock();
+	processLog();
+	return(1);
+}
+
+int LogWebTrafPool::processLog() {
+	int time, client, server, size;
+
+	if (!feof(fp)) {
+		fscanf(fp, "%d %d %d %d\n", &time, &client, &server, &size);
+		// save information for next request
+		next_req.time = time;
+		next_req.client = client;
+		next_req.server = server;
+		next_req.size = size;	
+
+		double now = Scheduler::instance().clock();
+		double delay = time + start_t - now;
+		req_timer->resched(delay);
+
+		return(1);
+
+	} else 
+		return(0);
+}
+
+int LogWebTrafPool::run() {
+	launchReq(next_req.client, next_req.server, next_req.size);
+	processLog();
+	return(1);
+}
+
+Node* LogWebTrafPool::picksrc(int id) {
+	int n = id % nClient_;
+	assert((n >= 0) && (n < nClient_));
+	return client_[n];
+}
+
+Node* LogWebTrafPool::pickdst(int id) {
+	int n = id % nServer_;
+	assert((n >= 0) && (n < nServer_));
+	return server_[n].node;
+}
+
+int LogWebTrafPool::launchReq(int cid, int sid, int size) {
 	// Choose source and dest TCP agents for both source and destination
-	TcpAgent* ctcp = this->picktcp();
-	TcpAgent* stcp = this->picktcp();
+	TcpAgent* ctcp = picktcp();
+	TcpAgent* stcp = picktcp();
 
-	Agent* csnk = this->picksink();
-	Agent* ssnk = this->picksink();
+	Agent* csnk = picksink();
+	Agent* ssnk = picksink();
 
-	Node* client = picksrc();
-	Node* server = pickdst();
+	// pick client and server nodes
+	Node* client = picksrc(cid);
+	Node* server = pickdst(sid);
 
 	int num_pkt = size / 1000 + 1;
-
-	printf("%s launch-req %d %d %s %s %s %s %s %s %d %d",
-			      this->name(), num_obj++, num_obj, 
-			      client->name(), server->name(),
-			      ctcp->name(), csnk->name(), 
-			      stcp->name(), ssnk->name(), 
-			      num_pkt, this);
 
 	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d",
 			      this->name(), num_obj++, num_obj, 
@@ -92,10 +140,20 @@ int LogWebTrafPool::launchReq(int time, int cid, int sid, int size) {
 			      ctcp->name(), csnk->name(), 
 			      stcp->name(), ssnk->name(), 
 			      num_pkt, this);
+	return(1);
 }
 
 int LogWebTrafPool::command(int argc, const char*const* argv) {
-	if (argc == 3) {
+	if (argc == 2) {
+		if (strcmp(argv[1], "start") == 0) {
+			if (start())
+				return (TCL_OK);
+			else
+				return (TCL_ERROR);
+			
+		}
+		
+	} else if (argc == 3) {
 		if (strcmp(argv[1], "loadLog") == 0) {
 			if (loadLog(argv[2]))
 				return (TCL_OK);
@@ -104,7 +162,7 @@ int LogWebTrafPool::command(int argc, const char*const* argv) {
 
 		} else if (strcmp(argv[1], "doneObj") == 0) {
 			return (TCL_OK);
-		}
+		} 
 	}
 	return WebTrafPool::command(argc, argv);
 }
