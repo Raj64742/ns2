@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.3 1999/05/27 21:50:26 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.4 2000/01/15 19:13:09 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1058,18 +1058,10 @@ Test/timers instproc run {} {
 	$ns_ run
 }
 
-Class Test/stats -superclass TestSuite
-Test/stats instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	stats
-	$self next
+TestSuite instproc printpkts { label tcp } {
+	puts "tcp $label highest_pkt_num_acked [$tcp set ack_]"
 }
-Test/stats instproc printpkts { label tcp } {
-	puts "tcp $label total_packets_acked [$tcp set ack_]"
-}
-Test/stats instproc printdrops { fid fmon } {
+TestSuite instproc printdrops { fid fmon } {
 	set fcl [$fmon classifier]; # flow classifier
 	#
 	# look up the flow using the classifier.  Because we are
@@ -1087,12 +1079,21 @@ Test/stats instproc printdrops { fid fmon } {
 	# that isn't being printed here.
 	#
 }
-Test/stats instproc printstop { stoptime } {
+TestSuite instproc printstop { stoptime } {
 	puts "stop-time $stoptime"
 }
-Test/stats instproc printall { fmon } {
+TestSuite instproc printall { fmon } {
  	puts "aggregate per-link total_drops [$fmon set pdrops_]"
 	puts "aggregate per-link total_packets [$fmon set pdepartures_]"
+}
+
+Class Test/stats -superclass TestSuite
+Test/stats instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0
+	set test_	stats
+	$self next
 }
 Test/stats instproc run {} {
 	$self instvar ns_ node_ testName_ 
@@ -1121,6 +1122,57 @@ Test/stats instproc run {} {
 
 	$self tcpDumpAll $tcp0 5.0 tcp0
 	$self tcpDumpAll $tcp1 5.00001 tcp1
+
+	set almosttime [expr $stoptime - 0.001]
+	$ns_ at $almosttime "$self printpkts 0 $tcp0"
+	$ns_ at $almosttime "$self printpkts 1 $tcp1"
+	$ns_ at $stoptime "$self printdrops 0 $fmon; $self printdrops 1 $fmon"
+	$ns_ at $stoptime "$self printall $fmon"
+
+	# trace only the bottleneck link
+	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+	$ns_ run
+}
+
+Class Test/stats1 -superclass TestSuite
+Test/stats1 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0
+	set test_	stats1
+	$self next
+}
+Test/stats1 instproc run {} {
+	$self instvar ns_ node_ testName_ 
+
+	$ns_ delay $node_(s2) $node_(r1) 200ms
+	$ns_ delay $node_(r1) $node_(s2) 200ms
+	$ns_ queue-limit $node_(r1) $node_(k1) 10
+	$ns_ queue-limit $node_(k1) $node_(r1) 10
+	set packetSize_ 100
+	Agent/TCP set packetSize_ $packetSize_
+	puts "packetSize=[Agent/TCP set packetSize_]"
+
+	set slink [$ns_ link $node_(r1) $node_(k1)]; # link to collect stats on
+	set fmon [$ns_ makeflowmon Fid]
+	$ns_ attach-fmon $slink $fmon
+
+	set stoptime 10.1 
+
+	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	$tcp0 set window_ 30
+	set tcp1 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
+	$tcp1 set window_ 30
+
+	set ftp0 [$tcp0 attach-app FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+
+	set packets_ftp 10
+	set bytes_ftp [expr $packets_ftp * $packetSize_]
+	$ns_ at 1.0 "$ftp0 produce $packets_ftp"
+	puts "ftp 0 packets_produced $packets_ftp (using `FTP produce pktcnt')"
+	$ns_ at 1.0 "$ftp1 send $bytes_ftp"
+	puts "ftp 1 bytes_produced $bytes_ftp (using `FTP send nbytes')"
 
 	set almosttime [expr $stoptime - 0.001]
 	$ns_ at $almosttime "$self printpkts 0 $tcp0"
