@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.301 1999/01/26 18:30:38 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.302 1999/01/28 23:42:35 yuriy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,6 +21,17 @@
     <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b5.tar.gz">
     Release of ns-2.1b5<a> [PENDING]</a></h3>
     <UL>  
+    <LI> <B><A href="mailto:yuri@isi.edu">[YP]</A></B>
+           <b>Thu Jan 28 15:20:00 PDT 1999</b><br>
+	      Changed Calendar and Heap schedulers not to re-order
+	      simultaneous events.  All three schedulers now
+	      produce the same result.  Added a simple test
+	      test-suite-simultaneous for checking ordering of
+	      simultaneous events.  Commented out "use-scheduler"
+	      lines from all test suites which had it so that they all 
+	      use Calendar as default.  Re-generated failing test-outputs.
+	      Validation passed. <br>
+	      
     <li> <B><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
          <b>Tue Jan 26 10:18:47 PST 1999</b>
 	 <ul>
@@ -46,6 +57,10 @@
 	 The proper way to invoke a perl program from within ns
 	 is { global PERL; exec $PERL path/to/script.pl args; }.
 	 For examples in context, see test-suite-tcp.tcl.
+    <LI> <B><A href="mailto:yuri@isi.edu">[YP]</A></B>
+           <b>Thu Jan 21 15:53:07 PDT 1999</b><br>
+	   Changed ns configure to support tcldebug v1.9.  Upgraded NS
+	    and NAM config.guess and config.sub.<br>
 
     <LI> <B><A href="http://www.isi.edu/~haldar">[haldar]</a></b>
     <b>Mon Jan  4 14:20:34 PST 1999</b><br>
