@@ -40,7 +40,7 @@ ac_help="$ac_help
 ac_help="$ac_help
 --with-dmalloc=path specify a pathname for the dmalloc debugger (path=no disables the dmalloc)"
 ac_help="$ac_help
-	-with-tclcl-classinstvar	assume classinstvars are present in tclcl"
+-enable-tclcl-classinstvar	assume classinstvars are present in tclcl"
 ac_help="$ac_help
 --with-perl=path specify a pathname for perl"
 ac_help="$ac_help
@@ -3327,20 +3327,26 @@ fi
 
 
 
+default_classinstvar=yes
 
+
+if test x$default_classinstvar = x
+then
+	default_classinstvar=no
+fi
 
 # Check whether --enable-tclcl-classinstvar or --disable-tclcl-classinstvar was given.
 if test "${enable_tclcl_classinstvar+set}" = set; then
   enableval="$enable_tclcl_classinstvar"
   enable_classinstvar=$enableval
 else
-  enable_classinstvar=no
+  enable_classinstvar=$default_classinstvar
 fi
 
 
 if test "$enable_classinstvar" = "yes";
 then
-	V_DEFINE="-DJOHNH_CLASSINSTVAR $V_DEFINE"
+	V_DEFINE="-DTCLCL_CLASSINSTVAR $V_DEFINE"
 fi
 
 
@@ -3368,7 +3374,7 @@ PERL_OPTIONAL=${PERL_OPTIONAL:-false}
 
 
 echo $ac_n "checking for perl""... $ac_c" 1>&6
-echo "configure:3372: checking for perl" >&5
+echo "configure:3378: checking for perl" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	PERL=FAIL
@@ -3426,7 +3432,7 @@ if test "x$PERL" = "x"
 then
     
 echo $ac_n "checking for perl5""... $ac_c" 1>&6
-echo "configure:3430: checking for perl5" >&5
+echo "configure:3436: checking for perl5" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	PERL=FAIL
@@ -3563,7 +3569,7 @@ if test ! -z "$V_NEED_DL" ; then
 		;;
 	*-*-linux*)
 		echo $ac_n "checking for dlopen in -ldl""... $ac_c" 1>&6
-echo "configure:3567: checking for dlopen in -ldl" >&5
+echo "configure:3573: checking for dlopen in -ldl" >&5
 ac_lib_var=`echo dl'_'dlopen | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3571,7 +3577,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3575 "configure"
+#line 3581 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -3582,7 +3588,7 @@ int main() {
 dlopen()
 ; return 0; }
 EOF
-if { (eval echo configure:3586: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:3592: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3611,7 +3617,7 @@ fi
 			;;
 		*)
 			echo $ac_n "checking for main in -l$V_LIB_DL""... $ac_c" 1>&6
-echo "configure:3615: checking for main in -l$V_LIB_DL" >&5
+echo "configure:3621: checking for main in -l$V_LIB_DL" >&5
 ac_lib_var=`echo $V_LIB_DL'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3619,14 +3625,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-l$V_LIB_DL $V_STATIC $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3623 "configure"
+#line 3629 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:3630: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:3636: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3728,7 +3734,7 @@ V_TAR_TARGET=$target_os
 # SVR4 /usr/ucb/install, which tries to use the nonexistent group "staff"
 # ./install, which can be erroneously created by make from ./install.sh.
 echo $ac_n "checking for a BSD compatible install""... $ac_c" 1>&6
-echo "configure:3732: checking for a BSD compatible install" >&5
+echo "configure:3738: checking for a BSD compatible install" >&5
 if test -z "$INSTALL"; then
 if eval "test \"`echo '$''{'ac_cv_path_install'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6

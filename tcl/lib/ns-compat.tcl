@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.38 1998/06/19 20:53:18 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.39 1998/07/09 21:11:46 heideman Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -257,16 +257,22 @@ OldSim instproc init args {
 	# mapping across all objects and hope this
 	# doesn't cause any collisions...
 	#
-	TclObject instproc set args {
+	SplitObject instproc set args {
 		SplitObject instvar varMap_
 		set var [lindex $args 0] 
 		if [info exists varMap_($var)] {
 			set var $varMap_($var)
 			set args "$var [lrange $args 1 end]"
 		}
-		return [eval $self next $args]
+		# xxx: re-implement the code from tcl-object.tcl
+		$self instvar -parse-part1 $var
+		if {[llength $args] == 1} {
+			return [subst $[subst $var]]
+		} else {
+			return [set $var [lrange $args 1 end]]
+		}
 	}
-	TclObject instproc get {var} {
+	SplitObject instproc get {var} {
 		SplitObject instvar varMap_
 		if [info exists varMap_($var)] {
 			# puts stderr "TclObject::get $var -> $varMap_($var)."

@@ -17,6 +17,7 @@ builtin(include, ./conf/configure.in.misc)
 builtin(include, ./conf/configure.in.x11)
 builtin(include, ./conf/configure.in.tcldebug)
 builtin(include, ./conf/configure.in.dmalloc)
+default_classinstvar=yes
 builtin(include, ./conf/configure.in.debugopts)
 
 PERL_OPTIONAL=true

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.116 1998/07/07 22:53:46 tomh Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.117 1998/07/09 21:11:38 heideman Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -307,6 +307,9 @@ srctar:
 	     rm ../$$name; chmod 444 $$tar
 
 force:
+
+test:	force
+	./validate
 
 # Create makefile.vc for Win32 development by replacing:
 # "# !include ..." 	-> 	"!include ..."

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.42 1998/06/27 01:03:29 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.43 1998/07/09 21:11:39 heideman Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -67,8 +67,8 @@ Agent::Agent(int pkttype) :
 	prio_(-1), flags_(0), defttl_(32), channel_(0), traceName_(NULL),
 	oldValueList_(NULL), app_(0)
 {
-#ifdef JOHNH_CLASSINSTVAR
-#else /* ! JOHNH_CLASSINSTVAR */
+#if defined(TCLCL_CLASSINSTVAR)
+#else /* ! TCLCL_CLASSINSTVAR */
 	/*
 	 * the following is a workaround to allow
 	 * older scripts that use "class_" instead of
@@ -87,10 +87,10 @@ Agent::Agent(int pkttype) :
 	bind("ttl_", &defttl_);
 
 	bind("off_ip_", &off_ip_);
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 }
 
-#ifdef JOHNH_CLASSINSTVAR
+#if defined(TCLCL_CLASSINSTVAR)
 void
 Agent::delay_bind_init_all()
 {
@@ -118,7 +118,7 @@ Agent::delay_bind_dispatch(const char *varName, const char *localName)
 	DELAY_BIND_DISPATCH(varName, localName, "class_", delay_bind, (int*)&fid_);
 	return Connector::delay_bind_dispatch(varName, localName);
 }
-#endif /* JOHNH_CLASSINSTVAR */
+#endif /* TCLCL_CLASSINSTVAR */
 
 Agent::~Agent()
 {
