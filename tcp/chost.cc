@@ -32,13 +32,14 @@
  */
 
 /*
- * These functions are used by tcp-int.cc
+ * Functions invoked by TcpSessionAgent
  */
 #include "nilist.h"
 #include "chost.h"
 #include "tcp-int.h"
 #include "random.h"
 
+#ifdef 0
 static class ChostClass : public TclClass {
 public:
 	ChostClass() : TclClass("Agent/Chost") {}
@@ -48,24 +49,30 @@ public:
 				       atoi(argv[8])));
 	}
 } class_chost;
+#endif
 
-CorresHost::CorresHost(int addr, int cwndinit = 0, int pathmtu = 1500, 
+CorresHost::CorresHost() : slink(), TcpFsAgent()
+/* CorresHost::CorresHost(int addr, int cwndinit = 0, int pathmtu = 1500, 
 		       int maxcwnd = 999999, int wndOption = 0 ) : 
-	TclObject(), slink(addr)
+	TclObject(), slink(addr)*/
 {
-	bind("off_tcp_", &off_tcp_);
-	addr_ = addr;
 	nActive_ = nTimeout_ = nFastRec_ = 0;
-	maxcwnd_ = maxcwnd;
 	ownd_ = 0;
+#ifdef 0
+	recover_ = 0;
+	maxcwnd_ = maxcwnd;
 	ssthresh_ = 10000;	// XXX
 	count_ = 0;
 	fcnt_ = 0;
-	closecwTS_ = 0;
 	wndOption_ = wndOption;
 	pathmtu_ = pathmtu;
+#endif
+	wndOption_ = 0;
+	pathmtu_ = 1500; /* XXX */
+	closecwTS_ = 0;
 	pending_ = 0;
 	connIter_ = new Islist_iter<IntTcpAgent> (conns_);
+	rtt_seg_ = NULL;
 	//    segfirst_ = seglast_ = NULL;
 }
 
@@ -78,22 +85,21 @@ CorresHost::opencwnd(int size, IntTcpAgent *sender = 0)
 {
 	if (cwnd_ < ssthresh_) {
 		/* slow-start (exponential) */
-		cwnd_ += size;
+		cwnd_ += 1;
 	} else {
 		/* linear */
 		double f;
-		size = size * winInc_;
 		if (!proxyopt_) {
 			switch (wndOption_) {
 			case 0:
-				if ((count_ = count_ + size) >= cwnd_) {
+				if ((count_ = count_ + winInc_) >= cwnd_) {
 					count_ = 0;
-					cwnd_ += size;
+					cwnd_ += winInc_;
 				}
 				break;
 			case 1:
 				/* This is the standard algorithm. */
-				cwnd_ += size*size / cwnd_;
+				cwnd_ += winInc_ / cwnd_;
 				break;
 			default:
 #ifdef notdef
@@ -105,14 +111,14 @@ CorresHost::opencwnd(int size, IntTcpAgent *sender = 0)
 		} else {	// proxy
 			switch (wndOption_) {
 			case 0:
-				if ((sender->count_ = sender->count_+size) >= 
+				if ((sender->count_ = sender->count_+winInc_) >= 
 				    cwnd_/nActive_) {
 					sender->count_ = 0;
-					cwnd_ += size;
+					cwnd_ += winInc_;
 				}
 				break;
 			case 1:
-				cwnd_ += size*size / (cwnd_/nActive_);
+				cwnd_ += winInc_ / (cwnd_/nActive_);
 				break;
 			default:
 #ifdef notdef
@@ -173,8 +179,8 @@ CorresHost::closecwnd(int how, IntTcpAgent *sender=0)
 		/* Reno dup acks, or after a recent congestion indication. */
 		cwnd_ = ownd_ * winMult_;
 		ssthresh_ = int(cwnd_);
-		if (ssthresh_ < 2*sender->size_)
-			ssthresh_ = 2*sender->size_;
+		if (ssthresh_ < 2)
+			ssthresh_ = 2;
 		break;
 
 	case 11:
@@ -190,6 +196,12 @@ CorresHost::closecwnd(int how, IntTcpAgent *sender=0)
 		/* Tahoe dup acks after a recent congestion indication */
 		cwnd_ = wndInit_;
 		break;
+
+	case 3:
+	case 31:
+		/* idle time >= t_rtxcur_ */
+		cwnd_ = wndInit_;
+		break;
 		
 	default:
 		abort();
@@ -201,27 +213,28 @@ CorresHost::closecwnd(int how, IntTcpAgent *sender=0)
 }
 
 
-void 
-CorresHost::add_pkts(int size, int seqno, int daddr, int dport, int sport, 
-		     double ts, IntTcpAgent *sender)
+Segment* 
+CorresHost::add_pkts(int size, int seqno, int sessionSeqno, int daddr, int dport, 
+		     int sport, double ts, IntTcpAgent *sender)
 {
 	struct Segment *news;
 
-	ownd_ += size;
+	ownd_ += 1;
 	news = new Segment;
 	news->seqno_ = seqno;
+	news->sessionSeqno_ = sessionSeqno;
 	news->daddr_ = daddr;
 	news->dport_ = dport;
 	news->sport_ = sport;
 	news->ts_ = ts;
-	news->size_ = size;
+	news->size_ = 1;
 	news->sender_ = sender;
 	seglist_.append(news);
+	return news;
 }
 
-
 int
-CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender,
+CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSeqno,
 		       int clean_dup = 1, int uniq_ts = 0)
 { 
     Segment *cur, *prev=NULL;
@@ -242,25 +255,37 @@ CorresHost::clean_segs(int size, Packet *pkt, IntTcpAgent *sender,
 	if ( (cur->ts_ < lastackTS_ - (0.2 * 2) ) || 
 	     sender == cur->sender_) {
 		// delack interval or current packet a dupack from sender
+		if (cur->sessionSeqno_ > recover_) { /* new loss window */
+			closecwnd(1, cur->ts_, cur->sender_);
+			recover_ = sessionSeqno - 1;
+		}
 		if (cur->sender_->rxmit_last(TCP_REASON_DUPACK, cur->seqno_, 
-					     cur->ts_)) {
+					     cur->sessionSeqno_, cur->ts_)) {
 			ownd_ -= start->size_;
 			seglist_.remove(cur, prev);
-			return 0;	// should I still check other senders
+			return 0;	// XXX should I still check other senders
 		}
 	}
 
 	while (((match = match_iter()) != NULL) && 
 	       (match->ts_ <= lastackTS_)) {
+		/* XXX we need to slide "start" through the list in order
+		   to find the first pkt of each connection */
 		if (start->sender_ == match->sender_){
-		if (start->sender_->rxmit_last(TCP_REASON_DUPACK, start->seqno_, 
-					       start->ts_)) {
-			ownd_ -= start->size_;
-			seglist_.remove(start, prev); 
-			// can send one for every other DUPACK XXXX
-			return 0;	// should I still check other senders
-		} else
-			break;
+			if (start->sessionSeqno_ > recover_) { /* new loss window */
+				closecwnd(1, start->ts_, start->sender_);
+				recover_ = sessionSeqno - 1;
+			}
+			if (start->sender_->rxmit_last(TCP_REASON_DUPACK, 
+						       start->seqno_, 
+						       start->sessionSeqno_, 
+						       start->ts_)) {
+				ownd_ -= start->size_;
+				seglist_.remove(start, prev); 
+				// can send one for every other DUPACK XXXX
+				return 0;	// should I still check other senders
+			} else
+				break;
 		}		
 	}
 	
@@ -302,6 +327,8 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int clean_dup = 1,
 					prev = seg_iter.get_last();
 				if (prev == cur) 
 					prev = NULL;
+				if (cur == rtt_seg_)
+					rtt_seg_ = NULL;
 				delete cur;
 				seg_iter.set_cur(prev);
 			} else {
@@ -320,6 +347,8 @@ CorresHost::rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int clean_dup = 1,
 								prev = seg_iter.get_last();
 							if (prev == cur) 
 								prev = NULL;
+							if (cur == rtt_seg_)
+								rtt_seg_ = NULL;
 							delete cur;
 							seg_iter.set_cur(prev);
 							found = 1;
@@ -338,42 +367,53 @@ CorresHost::add_agent(IntTcpAgent *agent, int size, double winMult,
 		      int winInc, int ssthresh)
 {
 	nActive_++; 
-	cwnd_ += size; 
-	wndInit_ = size;
+	cwnd_ += 1; /* XXX should this be done? */
+	wndInit_ = 1;
 	winMult_ = winMult;
 	winInc_ = winInc;
-	ssthresh_ = ssthresh;
+/*	ssthresh_ = ssthresh;*/
 	conns_.append(agent);
 }
 
 int
 CorresHost::ok_to_snd(int size)
 {
-	return (cwnd_ >= ownd_ + size);
+	return (cwnd_ >= ownd_ + 1);
 }
 
 IntTcpAgent *
 CorresHost::who_to_snd(int how)
 {
+	int i = 0;
 	switch (how) {
 	case ROUND_ROBIN: {
 		IntTcpAgent *next;
 		
-		if ((next = (*connIter_)()) == NULL) {
-			connIter_->set_cur(connIter_->get_last());
-			next = (*connIter_)();
-		}
+		do {
+			if ((next = (*connIter_)()) == NULL) {
+				connIter_->set_cur(connIter_->get_last());
+				next = (*connIter_)();
+			}
+			i++;
+		} while (next && !next->data_left_to_send() && 
+			 (i < connIter_->count()));
+		if (!next->data_left_to_send())
+			next = NULL;
 		return next;
 	}
-	case RANDOM: 
-	{
-		int foo = int(random() * nActive_ + 1);
+	case RANDOM: {
+		IntTcpAgent *next;
 		
-		connIter_->set_cur(connIter_->get_last());
-		
-		for (;foo > 0; foo--)
-			(*connIter_)();
-		return((*connIter_)());
+		do {
+			int foo = int(random() * nActive_ + 1);
+			
+			connIter_->set_cur(connIter_->get_last());
+			
+			for (;foo > 0; foo--)
+				(*connIter_)();
+			next = (*connIter_)();
+		} while (next && !next->data_left_to_send());
+		return(next);
 	}
 	default:
 		return NULL;

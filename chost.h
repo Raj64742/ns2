@@ -36,6 +36,7 @@
 #include "agent.h"
 #include "packet.h"
 #include "tcp.h"
+#include "tcp-fs.h"
 #include "tcp-int.h"
 #include "nilist.h"
 
@@ -44,12 +45,14 @@
 
 class Segment : public slink {
 	friend class CorresHost;
+	friend class TcpSessionAgent;
   public:
 	Segment() {ts_ = 0;
 	seqno_ = later_acks_ = dport_ = sport_ = size_ = rxmitted_ = 
 		daddr_ = 0;};
   protected:
 	int seqno_;
+	int sessionSeqno_;
 	int daddr_;
 	int dport_;
 	int sport_;
@@ -60,16 +63,17 @@ class Segment : public slink {
 	class IntTcpAgent *sender_;
 };
 
-class CorresHost : public slink, public TclObject {
+class CorresHost : public slink, public TcpFsAgent {
 	friend class IntTcpAgent;
   public:
-	CorresHost(int addr, int cwndinit = 0, int path_mtu_ = 1500, 
-		   int maxcwnd = 999999, int wnd_option = 0 );
+	CorresHost();
+/*	CorresHost(int addr, int cwndinit = 0, int path_mtu_ = 1500, 
+		   int maxcwnd = 999999, int wnd_option = 0 );*/
 	/* add pkt to pipe */
-	void add_pkts(int size, int seqno, int daddr, int dport, int sport, 
-		      double ts, IntTcpAgent *sender); 
+	Segment* add_pkts(int size, int seqno, int sessionSeqno, int daddr, 
+		      int dport, int sport, double ts, IntTcpAgent *sender); 
 	/* remove pkt from pipe */
-	int clean_segs(int size, Packet *pkt, IntTcpAgent *sender,
+	int clean_segs(int size, Packet *pkt, IntTcpAgent *sender, int sessionSeqno,
 		       int clean_dup = 1, int uniq_ts = 0);
 	int rmv_old_segs(Packet *pkt, IntTcpAgent *sender, int clean_dup = 1,
 			 int uniq_ts = 0);
@@ -89,7 +93,7 @@ class CorresHost : public slink, public TclObject {
 	void quench(int how);
 
   protected:
-	int addr_;	     /* my addr */
+	/* int addr_;*/	     /* my addr */
 	class Islist<IntTcpAgent> conns_; /* active connections */
 	Islist_iter<IntTcpAgent> *connIter_;
 	u_int nActive_;	     /* number of active tcp conns to this host */
@@ -98,12 +102,7 @@ class CorresHost : public slink, public TclObject {
 	double closecwTS_; 
 	double winMult_;
 	int winInc_;
-	TracedDouble cwnd_;	     /* total cwnd for host */
-	int maxcwnd_;	     /* max # cwnd can ever be */
 	TracedDouble ownd_;	     /* outstanding data to host */
-	TracedInt ssthresh_;	     /* slow start threshold */
-	int count_;	     /* used in window increment algorithms */
-	double fcnt_;	     /* used in window increment algorithms */
 	int wndOption_;
 	int pathmtu_;	     /* should do path mtu discovery here */
 			     /* should also do t/tcp cache info here */
@@ -116,16 +115,8 @@ class CorresHost : public slink, public TclObject {
 	 * srtt and rttvar are stored as fixed point;
 	 * srtt has 3 bits to the right of the binary point, rttvar has 2.
 	 */
-	int t_rtt_;	     /* round trip time */
-	int t_srtt_;	     /* smoothed round-trip time */
-	int t_rttvar_;	     /* variance in round-trip time */
-	int t_backoff_;	     /* timer backoff value */
-	void rtt_init();
-	double rtt_timeout();
-	void rtt_update(double tao);
-	void rtt_backoff();
 	double wndInit_;    /* should = path_mtu_ */
-
+	Segment *rtt_seg_;  /* segment being timed for RTT computation */
 	/* following is for right-edge timer recovery */
 	int pending_;
 	Event timer_;
@@ -133,7 +124,6 @@ class CorresHost : public slink, public TclObject {
 		(void)Scheduler::instance().cancel(&timer_);
 		pending_ = 0;
 	}
-	int off_tcp_;
 };
 
 #endif
