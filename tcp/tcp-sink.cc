@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.44 2001/11/08 19:06:07 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.45 2001/12/30 04:54:39 sfloyd Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -49,17 +49,30 @@ public:
 	}
 } class_tcpsink;
 
-Acker::Acker() : next_(0), maxseen_(0), ecn_unacked_(0), ts_to_echo_(0)
+Acker::Acker() : next_(0), maxseen_(0), wndmask_(MWM), ecn_unacked_(0), 
+	ts_to_echo_(0)
 {
-	memset(seen_, 0, sizeof(seen_));
+	seen_ = new int[MWS]; 		// changed by Brad/Sylvia
+					// used dynamic alloc to eliminate fhuge-objects pb 
+					// when compiling with really large MWS 
+	memset(seen_, 0, (sizeof(int) * (MWS)));
 }
 
 void Acker::reset() 
 {
 	next_ = 0;
 	maxseen_ = 0;
-	memset(seen_, 0, sizeof(seen_));
+	memset(seen_, 0, (sizeof(int) * (wndmask_ + 1)));
 }	
+
+/* resize Acker's buffers for highspeed -- Sylvia */
+void Acker::resize_buffers() { 
+	wndmask_ = HS_MWM;
+	delete[] seen_;
+	seen_ = new int[HS_MWS]; 		
+	memset(seen_, 0, (sizeof(int) * (HS_MWS)));
+	return; 
+}
 
 void Acker::update_ts(int seqno, double ts)
 {
@@ -77,10 +90,10 @@ int Acker::update(int seq, int numBytes)
 	if (numBytes <= 0)
 		printf("Error, received TCP packet size <= 0\n");
 	int numToDeliver = 0;
-	if (seq - next_ >= MWM) {
-		// next_ is next packet expected; MWM is the maximum
+	if (seq - next_ >= wndmask_) {
+		// next_ is next packet expected; wndmask_ is the maximum
 		// window size minus 1; if somehow the seqno of the
-		// packet is greater than the one we're expecting+MWM,
+		// packet is greater than the one we're expecting+wndmask_,
 		// then ignore it.
 		return 0;
 	}
@@ -89,14 +102,14 @@ int Acker::update(int seq, int numBytes)
 		// the packet is the highest one we've seen so far
 		int i;
 		for (i = maxseen_ + 1; i < seq; ++i)
-			seen_[i & MWM] = 0;
+			seen_[i & wndmask_] = 0;
 		// we record the packets between the old maximum and
 		// the new max as being "unseen" i.e. 0 bytes of each
 		// packet have been received
 		maxseen_ = seq;
-		seen_[maxseen_ & MWM] = numBytes;
+		seen_[maxseen_ & wndmask_] = numBytes;
 		// store how many bytes have been seen for this packet
-		seen_[(maxseen_ + 1) & MWM] = 0;
+		seen_[(maxseen_ + 1) & wndmask_] = 0;
 		// clear the array entry for the packet immediately
 		// after this one
 		just_marked_as_seen = TRUE;
@@ -119,7 +132,7 @@ int Acker::update(int seq, int numBytes)
 		// missing packets in the recv window AND if current
 		// packet falls within those gaps
 
-		if (seen_[seq & MWM] && !just_marked_as_seen) {
+		if (seen_[seq & wndmask_] && !just_marked_as_seen) {
 		// Duplicate case 2: the segment has already been
 		// recorded as being received (AND not because we just
 		// marked it as such)
@@ -128,9 +141,9 @@ int Acker::update(int seq, int numBytes)
 			printf("%f\t Received duplicate packet %d\n",Scheduler::instance().clock(),seq);
 #endif
 		}
-		seen_[seq & MWM] = numBytes;
+		seen_[seq & wndmask_] = numBytes;
 		// record the packet as being seen
-		while (seen_[next & MWM]) {
+		while (seen_[next & wndmask_]) {
 			// this loop first gets executed if seq==next;
 			// i.e., this is the next packet in order that
 			// we've been waiting for.  the loop sets how
@@ -138,7 +151,8 @@ int Acker::update(int seq, int numBytes)
 			// application, due to this packet arriving
 			// (and the prior arrival of any segments
 			// immediately to the right)
-			numToDeliver += seen_[next & MWM];
+
+			numToDeliver += seen_[next & wndmask_];
 			++next;
 		}
 		next_ = next;
@@ -147,7 +161,7 @@ int Acker::update(int seq, int numBytes)
 	return numToDeliver;
 }
 
-TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL), 
+TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL),
 	lastreset_(0.0)
 {
 	/*
@@ -204,7 +218,12 @@ int TcpSink::command(int argc, const char*const* argv)
 			reset();
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "resize_buffers") == 0) {
+			resize_buffers();
+			return (TCL_OK);
+		}
 	}
+
 	return (Agent::command(argc, argv));
 }
 
@@ -212,8 +231,8 @@ void TcpSink::reset()
 {
 	acker_->reset();	
 	save_ = NULL;
-	lastreset_ = Scheduler::instance().clock(); /* W.N. - for detecting
-						       packets from previous incarnations */
+	lastreset_ = Scheduler::instance().clock(); /* W.N. - for detecting */
+				/* packets from previous incarnations */
 }
 
 void TcpSink::ack(Packet* opkt)
@@ -278,6 +297,12 @@ void TcpSink::ack(Packet* opkt)
 
 void TcpSink::add_to_ack(Packet*)
 {
+	return;
+}
+
+/* resize Acker's buffers for highspeed -- Sylvia */
+void TcpSink::resize_buffers() { 
+	acker_->resize_buffers();
 	return;
 }
 
@@ -578,7 +603,7 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 		// look rightward for first hole 
 		// start at the current packet 
                 for (i=old_seqno; i<=maxseen_; i++) {
-			if (!seen_[i & MWM]) {
+			if (!seen_[i & wndmask_]) {
 				sack_right=i;
 				break;
 			}
@@ -598,7 +623,7 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 		} else {
 			// look leftward from right edge for first hole 
 	                for (i = sack_right-1; i > seqno; i--) {
-				if (!seen_[i & MWM]) {
+				if (!seen_[i & wndmask_]) {
 					sack_left = i+1;
 					break;
 				}

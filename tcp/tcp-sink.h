@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.19 2001/11/08 19:06:08 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.20 2001/12/30 04:54:39 sfloyd Exp $ (LBL)
  */
  
 #ifndef ns_tcpsink_h
@@ -42,8 +42,10 @@
 #include "tcp.h"
 
 /* max window size */
-#define MWS 1024
+#define MWS 1024  
 #define MWM (MWS-1)
+#define HS_MWS 65536
+#define HS_MWM (MWS-1)
 /* For Tahoe TCP, the "window" parameter, representing the receiver's
  * advertised window, should be less than MWM.  For Reno TCP, the
  * "window" parameter should be less than MWM/2.
@@ -53,7 +55,7 @@ class TcpSink;
 class Acker {
 public:
 	Acker();
-	virtual ~Acker() {}
+	virtual ~Acker() { delete[] seen_; }
 	void update_ts(int seqno, double ts);
 	int update(int seqno, int numBytes);
 	void update_ecn_unacked(int value);
@@ -63,13 +65,15 @@ public:
 	double ts_to_echo() { return ts_to_echo_;}
 	int ecn_unacked() { return ecn_unacked_;}
 	inline int Maxseen() const { return (maxseen_); }
+	void resize_buffers();  // grow Acker's arrays for large window sizes -- Sylvia
 
 protected:
 	int next_;		/* next packet expected */
 	int maxseen_;		/* max packet number seen */
+	int wndmask_;		/* window mask - either MWM or HS_MWM - Sylvia */ 
 	int ecn_unacked_;	/* ECN forwarded to sender, but not yet
 				 * acknowledged. */
-	int seen_[MWS];		/* array of packets seen */
+	int *seen_;		/* array of packets seen */
 	double ts_to_echo_;	/* timestamp to echo to peer */
 	int is_dup_;		// A duplicate packet.
 };
@@ -99,6 +103,7 @@ public:
 	TracedInt& maxsackblocks() { return max_sack_blocks_; }
 protected:
 	void ack(Packet*);
+	void resize_buffers();  // grow Acker's arrays for large window sizes -- Sylvia
 	virtual void add_to_ack(Packet* pkt);
 
         virtual void delay_bind_init_all();
@@ -114,8 +119,8 @@ protected:
 	int generate_dsacks_;	// used only by sack sinks
 	int RFC2581_immediate_ack_;	// Used to generate ACKs immediately 
 					// for RFC2581-compliant gap-filling.
-
-	double lastreset_; /* W.N. used for detecting packets from previous incarnations */
+	double lastreset_; 	/* W.N. used for detecting packets  */
+				/* from previous incarnations */
 };
 
 class DelAckSink;
