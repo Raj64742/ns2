@@ -53,7 +53,7 @@ typedef struct n{
 }link_stats;
 
 
-class asim {
+class asim : public NsObject{
 
 public:
 
@@ -126,12 +126,50 @@ public:
 	CalcPerFlowDelays();
 	newupdate(niter);
       }
-      PrintResults();  
+      //PrintResults();  
       return (TCL_OK);
     }
     
     if (strcmp(argv[1], "readinput") == 0) {
       GetInputs((char*)argv[2]);
+      //cout << "All inputs properly obtained from " << argv[2] <<endl ; 
+      return (TCL_OK);
+    }
+
+    if (strcmp(argv[1], "get-link-drop") == 0) {
+      Tcl& tcl = Tcl::instance();
+      tcl.resultf("%lf",get_link_drop(atoi(argv[2])));
+      return (TCL_OK);
+    }
+
+    if (strcmp(argv[1], "get-link-delay") == 0) {
+      Tcl& tcl = Tcl::instance();
+      tcl.resultf("%lf",get_link_delay(atoi(argv[2])));
+      return (TCL_OK);
+    }  
+
+    if (strcmp(argv[1], "get-link-tput") == 0) {
+      Tcl& tcl = Tcl::instance();
+      //cout << "linkid = " << atoi(argv[2]) << " tput = " << get_link_tput(atoi(argv[2])) << endl;
+      tcl.resultf("%lf",get_link_tput(atoi(argv[2])));
+      return (TCL_OK);
+    }  
+
+    if (strcmp(argv[1], "get-flow-tput") == 0) {
+      Tcl& tcl = Tcl::instance();
+      tcl.resultf("%lf",get_flow_tput(atoi(argv[2])));
+      return (TCL_OK);
+    }
+
+    if (strcmp(argv[1], "get-flow-delay") == 0) {
+      Tcl& tcl = Tcl::instance();
+      tcl.resultf("%lf",get_flow_delay(atoi(argv[2])));
+      return (TCL_OK);
+    }      
+
+    if (strcmp(argv[1], "get-flow-drop") == 0) {
+      Tcl& tcl = Tcl::instance();
+      tcl.resultf("%lf",get_flow_drop(atoi(argv[2])));
       return (TCL_OK);
     }
 
@@ -142,12 +180,17 @@ public:
     return links[x].drop;
   }
 
+  double get_link_delay(int x){
+    assert(x<nLinks);
+    return links[x].qdelay + links[x].prop ;
+  }
+
   double get_link_qdelay(int x){
     assert(x<nLinks);
     return links[x].qdelay;
   }
 
-  double get_link_propdelay(int x){
+  double get_link_pdelay(int x){
     assert(x<nLinks);
     return links[x].prop;
   }
@@ -171,6 +214,7 @@ public:
     assert(x<nConnections);
     return flows[x].drop;
   }
+
   void GetInputs(char *argv) {
     
     // error if usage is wrong 
@@ -508,7 +552,7 @@ void  CalcLinkDelays(int flag = 0){
     }
 
 
-    cout << "delay = " << links[i].qdelay << " and drop = " << links[i].drop << endl;
+    //cout << "delay = " << links[i].qdelay << " and drop = " << links[i].drop << endl;
 
 
   }
@@ -637,7 +681,7 @@ void Update2(){
 
 int allscaled(){
 
-  cout << nConnections;
+  //cout << nConnections;
 
   for(int i=0; i<nConnections; i++)
     if(!flows[i].is_sflow && !flows[i].scaled){
@@ -645,7 +689,7 @@ int allscaled(){
       return 0;
     }
 
-  cout << "All are scaled\n";
+  //cout << "All are scaled\n";
 
   return 1;
 
@@ -768,9 +812,9 @@ void newupdate(int niter){
     }
   }
 
-  for(int i =0; i<nLinks; i++ ){
-    cout << i << sp << links[i].uc << sp << links[i].utput << endl;
-  }
+  //  for(int i =0; i<nLinks; i++ ){
+  //cout << i << sp << links[i].uc << sp << links[i].utput << endl;
+  //}
 
   double maxgamma; // most congested link
   int bneck;
@@ -788,7 +832,7 @@ void newupdate(int niter){
     }
   }    
 
-  cout << bneck << endl;
+  //cout << bneck << endl;
 
   //char c= getchar();
   /*
@@ -804,7 +848,7 @@ void newupdate(int niter){
 
   while(bneck+1){
 
-    cout << "bneck = " << bneck << sp << links[bneck].uc << sp << links[bneck].utput << sp << maxgamma << sp << links[bneck].nflows <<endl;
+    // cout << "bneck = " << bneck << sp << links[bneck].uc << sp << links[bneck].utput << sp << maxgamma << sp << links[bneck].nflows <<endl;
 
     for(int i=0; i<links[bneck].nflows; i++){
      // For all the connections passing through this link
@@ -827,7 +871,7 @@ void newupdate(int niter){
       }
     }
     
-    cout << links[bneck].uc << sp << links[bneck].utput << endl;
+    // cout << links[bneck].uc << sp << links[bneck].utput << endl;
     
     links[bneck].uc = 0;
 
@@ -863,19 +907,22 @@ void newupdate(int niter){
 
 
   asim(){
-    
+    // cout << "Reached here\n";
   }
+
+  void recv(Packet *, Handler * = 0){}
 
 };
 
-static class AsimClass : public TclClass {
 
+
+static class AsimClass : public TclClass {
 public:
-  AsimClass(): TclClass("Asim"){}
+  AsimClass(): TclClass("Asim"){ }
   TclObject * create(int, const char*const*) {
-    return ((TclObject *)(new asim));
+    return (new asim());
   }
-}asim_;
+} class_asim;
 
 /*
 
