@@ -24,6 +24,10 @@ $oldtime = 0;
 print "start processing http_active output\n";
 while (<>) {
         ($time1,$clientIP,$clientPort,$dummy,$serverIP,$port80,$type,$size,$time2) = split(' ',$_);
+
+	$dummy="";
+	$port80=80;
+
         if ($oldClient ne $clientIP) {
            if ($oldClient ne "") {
               print NUMPAGE "$pagePerSess\n";
@@ -236,10 +240,14 @@ $epoch[$i] = $cur_epoch;
 $sum = $sum + $count;
 $cum[$i] = $sum;
 
+$oldcum = 0;
 foreach $j (0 .. $#epoch) {
   $prob = $cum[$j]/$cum[$#cum];
   $e = $epoch[$j]/$dividend;
-  print CDF "$e $cum[$j] $prob\n";
+  if ($cum[$j] ne $oldcum) {
+      print CDF "$e $cum[$j] $prob\n";
+  }
+  $oldcum = $cum[$j];
 }
 
 close(CDF);

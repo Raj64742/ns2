@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.6 2001/06/28 06:21:50 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.7 2001/10/04 23:01:21 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -51,12 +51,13 @@ class EmpWebTrafPool;
 
 class EmpWebTrafSession : public TimerHandler {
 public: 
-	EmpWebTrafSession(EmpWebTrafPool *mgr, Node *src, int np, int id, int connNum) : 
+	EmpWebTrafSession(EmpWebTrafPool *mgr, Node *src, int np, int id, int connNum, int cl) : 
 		rvInterPage_(NULL), rvPageSize_(NULL),
 		rvInterObj_(NULL), rvObjSize_(NULL), 
 		rvReqSize_(NULL), rvPersistSel_(NULL), rvServerSel_(NULL),
-		numOfPersConn_(0), usePers_(0), 
-		maxNumOfPersConn_(connNum),
+//		numOfPersConn_(0), usePers_(0), 
+//		maxNumOfPersConn_(connNum), clientIdx_(cl),
+		clientIdx_(cl),
 		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
 		id_(id) {}
 	virtual ~EmpWebTrafSession();
@@ -77,17 +78,17 @@ inline RandomVariable*& pageSize() { return rvPageSize_; }
 	inline int id() const { return id_; }
 	inline EmpWebTrafPool* mgr() { return mgr_; }
 
-        PersConn* lookupPersConn(int client, int server);
+//        PersConn* lookupPersConn(int client, int server);
 
 	static int LASTPAGE_;
-	inline void setPersOpt(int opt) { usePers_ = opt; }
-	inline int getPersOpt() { return usePers_; }
-	inline void initPersConn() { 
-	       if (getPersOpt() == PERSIST) {
-	           persistConn_ = new PersConn*[maxNumOfPersConn_];  
-	           memset(persistConn_, 0, sizeof(PersConn*)*maxNumOfPersConn_);
-               }
-         }
+//	inline void setPersOpt(int opt) { usePers_ = opt; }
+//	inline int getPersOpt() { return usePers_; }
+//	inline void initPersConn() { 
+//	       if (getPersOpt() == PERSIST) {
+//	           persistConn_ = new PersConn*[maxNumOfPersConn_];  
+//	           memset(persistConn_, 0, sizeof(PersConn*)*maxNumOfPersConn_);
+//               }
+//         }
 
 private:
 	virtual void expire(Event *e = 0);
@@ -102,11 +103,13 @@ private:
 	int nPage_, curPage_, donePage_;
 	int id_;
 
+        int clientIdx_;
+
         //modeling HTTP1.1
-	PersConn** persistConn_; 
-	int numOfPersConn_ ;
-	int maxNumOfPersConn_ ;
-	int usePers_ ;  //0: http1.0  1: http1.1 ; use http1.0 as default
+//	PersConn** persistConn_; 
+//	int numOfPersConn_ ;
+//	int maxNumOfPersConn_ ;
+//	int usePers_ ;  //0: http1.0  1: http1.1 ; use http1.0 as default
 };
 
 class EmpWebTrafPool : public PagePool {
@@ -114,11 +117,11 @@ public:
 	EmpWebTrafPool(); 
 	virtual ~EmpWebTrafPool(); 
 
-	inline Node* picksrc() {
-		int n = int(floor(Random::uniform(0, nClient_)));
-		assert((n >= 0) && (n < nClient_));
-		return client_[n];
-	}
+//	inline Node* picksrc() {
+//		int n = int(floor(Random::uniform(0, nClient_)));
+//		assert((n >= 0) && (n < nClient_));
+//		return client_[n];
+//	}
 	inline void doneSession(int idx) { 
 
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
@@ -135,6 +138,9 @@ public:
 
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char*, const char*, TclObject*);
+
+	int nSrcL_;
+	int nClientL_;
 
 	int nSrc_;
 	Node** server_;		/* Web servers */
