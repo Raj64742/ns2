@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.19 2000/07/19 04:46:22 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.20 2000/07/20 00:41:19 ratul Exp $
 #
 
 #
@@ -436,33 +436,132 @@ FQLink instproc up? { } {
 	return up
 }
 
+# #
+# #Added by ratul for RedPDQueue
+# #
+# Queue/RED/PD instproc makeflowmon { link {cltype "SrcDestFid"} {cslots 29}} {
+
+#     set flowmon [new QueueMonitor/ED/Flowmon]
+#     set cl [new Classifier/Hash/$cltype $cslots]
+    
+#     $cl proc unknown-flow { src dst fid } {
+# 	set nflow [new QueueMonitor/ED/Flow/RedPD]
+# 	set slot [$self installNext $nflow]
+# 	#     	puts "New Flow : $nflow at slot $slot"
+# 	$self set-hash auto $src $dst $fid $slot
+# 	#     	puts "Installed It\n";
+#     }
+    
+#     $cl proc no-slot slotnum {
+# 	puts stderr "classifier $self, no-slot for slotnum $slotnum"
+#     }
+    
+#     $flowmon classifier $cl
+#     $self attach-flowmon $flowmon
+    
+#     set isnoop [new SnoopQueue/In]
+#     set osnoop [new SnoopQueue/Out]
+#     set dsnoop [new SnoopQueue/Drop]
+#     set edsnoop [new SnoopQueue/EDrop]
+    
+#     $link attach-monitors $isnoop $osnoop $dsnoop $flowmon
+#     $edsnoop set-monitor $flowmon
+#     $self early-drop-target $edsnoop 
+#     set ns [Simulator instance]
+#     $edsnoop target [$ns set nullAgent_]
+	
+#     # $edsnoop target [$dsnoop target]
+#     # $edsnoop drop-target [$dsnoop drop-target]
+ 
+#     $self drop-target $dsnoop
+    
+#     return $flowmon
+
+# }	
+
+#############################################################
+# Stuff below has been added to enable queue specific tracing
+#
+#Blame me if anything is broken below - ratul
+##########################################################
+
+#
+# attach-nam-traces: Only conventional trace objects are understood by nam currently. 
+# do not attach fancy trace objects here. nam will crash in this case.
+#
+Queue instproc attach-nam-traces {src dst file} {
+    
+	#valid only if the default trace type in attach-traces is Drop, Enque, Deque.
+	#see comment above.
+	#this function should be different for different queue when needed.
+	
+	$self attach-traces $src $dst $file "nam"
+}
+
 #
 # Dummy function for all the queues that don't implement attach-traces
 #
-Queue instproc attach-traces {src dst file} {
-    #Do nothing here
+Queue instproc attach-traces {src dst file {op ""}} {
+	#Do nothing here
 }
 
-#
-# Added to be able to trace the edrop events - ratul
-#
-Queue/RED instproc attach-traces {src dst file {type Drop}} {
 
-    set ns [Simulator instance]
+#
+# Added to be able to trace the edrop events 
+#
+Queue/RED instproc attach-traces {src dst file {op ""}} {
+	
+        set ns [Simulator instance]
+	set type [$self trace-type]
+	
+	#nam does not understand anything else yet. 
+	if {$op == "nam"} {
+		set type "Drop"
+	}
+	
+	set newtrace [$ns create-trace $type $file $src $dst $op]
+	
+	#    puts "In attach-trace"
+	set oldTrace [$self edrop-trace]
+	#    puts "oldTrace - $oldTrace"
+	if {$oldTrace!=0} {
+		#	puts "exists"
+		$newtrace target $oldTrace
+	} else {
+		#	puts "Does not exist"
+		$newtrace target [$ns set nullAgent_]
+	}
+	
+	$self edrop-trace $newtrace
+}
 
-    set newtrace [$ns create-trace $type $file $src $dst]
+# #
+# # Added to be able to trace the mon_edrop and edrop events
+# #
+# Queue/RED/PD instproc attach-traces {src dst file {op ""}} {
+
+#     $self next $src $dst $file $op
+
+#     set ns [Simulator instance]
+#     set type [$self mon-trace-type]
     
-    ##puts "In attach-trace"
-    set oldTrace [$self edrop-trace]
-    ##puts "oldTrace - $oldTrace"
-    if {$oldTrace!=0} {
-	##puts "exists"
-	$newtrace target $oldTrace
-    } else {
-	##puts "Does not exist"
-	$newtrace target [$ns set nullAgent_]
-    }
+#     #nam does not understand anything else yet
+#     if {$op == "nam"} {
+# 	set type "Drop"
+#     }
 
-    $self attach-edrop-trace $newtrace
-}
+#     set medtrace [$ns create-trace $type $file $src $dst $op]
+    
+#     set oldTrace [$self mon-edrop-trace]
+#     if {$oldTrace!=0} {
+# 	puts "exists"
+# 	$medtrace target $oldTrace
+#     } else {
+# 	puts "Does not exist"
+# 	$medtrace target [$ns set nullAgent_]
+#     }
+
+#     $self mon-edrop-trace $medtrace
+
+# }
 
