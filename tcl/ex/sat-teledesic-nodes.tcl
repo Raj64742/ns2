@@ -32,6 +32,12 @@
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #
 
+if {![info exists ns]} {
+	puts "Error: sat-teledesic-nodes.tcl is a supporting script for the "
+	puts "       sat-teledesic.tcl script-- run `sat-teledesic.tcl' instead"
+	exit
+}
+
 # 1. Configure initial classifier
 # 2. Label plane that the satellite is in (used to identifying intraplane isl)
 # 3. In each orbital plane, we need to "set_next" (set one-behind in orbit)
@@ -45,8 +51,8 @@ for {set a 1} {$a <= 12} {incr a} {
 			# set stagger 0 
 		}
 		set imod [expr $i % 100]
-		set n($i) [$ns satnode-polar $alt [expr $stagger + $imod * 15] \
-		    [expr 15 * ($a - 1)] $inc $a $linkargs $chan]
+		set n($i) [$ns satnode-polar $alt $inc [expr 15 * ($a - 1)] \
+		    [expr $stagger + $imod * 15] $a $linkargs $chan]
 	}
 }
 # Set up next pointer

@@ -66,9 +66,9 @@ Node/SatNode set time_advance_ 0
 HandoffManager/Term set elevation_mask_ 40 
 HandoffManager/Term set term_handoff_int_ 10
 HandoffManager/Sat set sat_handoff_int_ 10
-HandoffManager/Sat set latitude_threshold_ 70
+HandoffManager/Sat set latitude_threshold_ 60
 HandoffManager/Sat set longitude_threshold_ 8
-HandoffManager set handoff_randomization_ 1
+HandoffManager set handoff_randomization_ "true"
 SatRouteObject set metric_delay_ "true"
 SatRouteObject set data_driven_computation_ "true"
 # "ns-random 0" sets seed heuristically; other integers are deterministic
@@ -137,8 +137,7 @@ set satrouteobject_ [new SatRouteObject]
 $satrouteobject_ suppress_initial_computation 
 $ns at 0.5 "$satrouteobject_ compute_routes"; # anytime before data is sent
 
-#$ns at 86400.0 "finish" ; # one earth rotation 
-$ns at 100.0 "finish" ; # one earth rotation 
+$ns at 86400.0 "finish" ; # one earth rotation 
 
 proc finish {} {
 	global ns f nf

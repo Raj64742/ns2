@@ -41,8 +41,8 @@
 # This script relies on sourcing two additional files:
 # - sat-iridium-nodes.tcl
 # - sat-iridium-links.tcl
-# Iridium does not have crossseam ISLs-- to enable crossseam ISLs, source 
-# the file "sat-iridium-linkswithcross.tcl" instead of "sat-iridium-links.tcl"
+# Iridium does not have crossseam ISLs-- to enable crossseam ISLs, uncomment 
+# the last few lines of "sat-iridium-links.tcl"
 #
 # Iridium parameters [primary reference:  "Satellite-Based Global Cellular
 # Communications by Bruno Pattan (1997-- McGraw-Hill)]
@@ -66,9 +66,9 @@ $ns rtproto Dummy
 HandoffManager/Term set elevation_mask_ 8.2
 HandoffManager/Term set term_handoff_int_ 10
 HandoffManager/Sat set sat_handoff_int_ 10
-HandoffManager/Sat set latitude_threshold_ 80 
+HandoffManager/Sat set latitude_threshold_ 60 
 HandoffManager/Sat set longitude_threshold_ 10 
-HandoffManager set handoff_randomization_ 1
+HandoffManager set handoff_randomization_ "true"
 SatRouteObject set metric_delay_ "true"
 SatRouteObject set data_driven_computation_ "true"
 # "ns-random 0" sets seed heuristically; other integers are deterministic

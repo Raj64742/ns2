@@ -32,6 +32,11 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
+if {![info exists ns]} {
+	puts "Error:  sat-iridium-links.tcl is a supporting script for the "
+	puts "        sat-iridium.tcl script-- run `sat-iridium.tcl' instead"
+	exit
+}
 
 # Now that the positions are set up, configure the ISLs
 # Plane 1 intraplane
@@ -180,3 +185,17 @@ $ns add-isl interplane $n68 $n83 $opt(bw_isl) $opt(ifq) $opt(qlim)
 $ns add-isl interplane $n69 $n84 $opt(bw_isl) $opt(ifq) $opt(qlim)
 $ns add-isl interplane $n70 $n85 $opt(bw_isl) $opt(ifq) $opt(qlim)
 
+# Cross-seam 
+# To run the topology with crossseam ISLs, uncomment the remaining lines
+# 
+#$ns add-isl crossseam $n0 $n80 $opt(bw_isl) $opt(ifq) $opt(qlim)
+#$ns add-isl crossseam $n1 $n79 $opt(bw_isl) $opt(ifq) $opt(qlim)
+#$ns add-isl crossseam $n2 $n78 $opt(bw_isl) $opt(ifq) $opt(qlim)
+#$ns add-isl crossseam $n3 $n77 $opt(bw_isl) $opt(ifq) $opt(qlim)
+#$ns add-isl crossseam $n4 $n76 $opt(bw_isl) $opt(ifq) $opt(qlim)
+#$ns add-isl crossseam $n5 $n75 $opt(bw_isl) $opt(ifq) $opt(qlim)
+#$ns add-isl crossseam $n6 $n85 $opt(bw_isl) $opt(ifq) $opt(qlim)
+#$ns add-isl crossseam $n7 $n84 $opt(bw_isl) $opt(ifq) $opt(qlim)
+#$ns add-isl crossseam $n8 $n83 $opt(bw_isl) $opt(ifq) $opt(qlim)
+#$ns add-isl crossseam $n9 $n82 $opt(bw_isl) $opt(ifq) $opt(qlim)
+#$ns add-isl crossseam $n10 $n81 $opt(bw_isl) $opt(ifq) $opt(qlim)

@@ -32,7 +32,11 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-
+if {![info exists ns]} {
+	puts "Error: sat-teledesic-links.tcl is a supporting script for the "
+	puts "       sat-teledesic.tcl script-- run `sat-teledesic.tcl' instead"
+	exit
+}
 
 # Now that the positions are set up, configure the ISLs
 # Intraplane

@@ -47,7 +47,7 @@ $ns rtproto Dummy
 
 HandoffManager/Term set elevation_mask_ 8.2
 HandoffManager/Term set term_handoff_int_ 10
-HandoffManager set handoff_randomization_ 0
+HandoffManager set handoff_randomization_ "false"
 
 global opt
 set opt(chan)           Channel/Sat
@@ -74,17 +74,17 @@ set alt $opt(alt)
 set inc $opt(inc)
 set chan $opt(chan)
 set plane 1
-set n0 [$ns satnode-polar $alt 0 0 $inc $plane $linkargs $chan]
-set n1 [$ns satnode-polar $alt 32.73 0 $inc $plane $linkargs $chan]
-set n2 [$ns satnode-polar $alt 65.45 0 $inc $plane $linkargs $chan]
-set n3 [$ns satnode-polar $alt 98.18 0 $inc $plane $linkargs $chan]
-set n4 [$ns satnode-polar $alt 130.91 0 $inc $plane $linkargs $chan]
-set n5 [$ns satnode-polar $alt 163.64 0 $inc $plane $linkargs $chan]
-set n6 [$ns satnode-polar $alt 196.36 0 $inc $plane $linkargs $chan]
-set n7 [$ns satnode-polar $alt 229.09 0 $inc $plane $linkargs $chan]
-set n8 [$ns satnode-polar $alt 261.82 0 $inc $plane $linkargs $chan]
-set n9 [$ns satnode-polar $alt 294.55 0 $inc $plane $linkargs $chan]
-set n10 [$ns satnode-polar $alt 327.27 0 $inc $plane $linkargs $chan]
+set n0 [$ns satnode-polar $alt $inc 0 0 $plane $linkargs $chan]
+set n1 [$ns satnode-polar $alt $inc 0 32.73 $plane $linkargs $chan]
+set n2 [$ns satnode-polar $alt $inc 0 65.45 $plane $linkargs $chan]
+set n3 [$ns satnode-polar $alt $inc 0 98.18 $plane $linkargs $chan]
+set n4 [$ns satnode-polar $alt $inc 0 130.91 $plane $linkargs $chan]
+set n5 [$ns satnode-polar $alt $inc 0 163.64 $plane $linkargs $chan]
+set n6 [$ns satnode-polar $alt $inc 0 196.36 $plane $linkargs $chan]
+set n7 [$ns satnode-polar $alt $inc 0 229.09 $plane $linkargs $chan]
+set n8 [$ns satnode-polar $alt $inc 0 261.82 $plane $linkargs $chan]
+set n9 [$ns satnode-polar $alt $inc 0 294.55 $plane $linkargs $chan]
+set n10 [$ns satnode-polar $alt $inc 0 327.27 $plane $linkargs $chan]
 
 # By setting the next_ variable on polar sats; handoffs can be optimized  
 # This step must follow all polar node creation

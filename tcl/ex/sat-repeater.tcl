@@ -59,8 +59,7 @@ $ns trace-all $f
 # Set up satellite and terrestrial nodes
 
 # GEO satellite at 95 degrees longitude West
-set linkargs "$opt(ll) $opt(ifq) $opt(qlim) Mac/Sat/Repeater 0 $opt(phy)"
-set n1 [$ns satnode-geo-repeater -95 $linkargs $opt(chan)]
+set n1 [$ns satnode-geo-repeater -95 $opt(chan)]
 
 # Two terminals: one in NY and one in SF 
 set n2 [$ns satnode-terminal 40.9 -73.9]; # NY
