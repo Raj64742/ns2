@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.28 1998/06/27 01:25:40 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.29 1998/06/27 01:53:10 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -100,10 +100,11 @@ class ReassemblyQueue : public TclObject {
 		int startseq_;	// starting seq
 		int endseq_;	// ending seq + 1
 		int flags_;
+		double time_;	// time added
 	};
 
 public:
-	ReassemblyQueue(int& rcvnxt, FullTcpAgent* agent_);
+	ReassemblyQueue(int& rcvnxt);
 	int empty() { return (head_ == NULL); }
 	int add(Packet*);
 	int add(int sseq, int eseq, int flags);
@@ -118,7 +119,6 @@ protected:
 	seginfo* head_;		// head of segs linked list
 	seginfo* tail_;		// end of segs linked list
 	seginfo* ptr_;		// used for nextblk() iterator
-	seginfo* last_added_;	// last seginfo inserted
 	int& rcv_nxt_;		// start seq of next expected thing
 };
 
