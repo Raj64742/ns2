@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.28 1998/08/24 19:39:45 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.29 1998/11/29 05:26:15 sfloyd Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -157,13 +157,17 @@ void TcpSink::ack(Packet* opkt)
 
 	hdr_flags* of = (hdr_flags*)opkt->access(off_flags_);
 	hdr_flags* nf = (hdr_flags*)npkt->access(off_flags_);
-	if (of->cong_action())
-		/* Sender has responded to congestion. */
-		acker_->update_ecn_unacked(0);
-	if (of->ce() && of->ect())
-		/* New report of congestion. */
-		acker_->update_ecn_unacked(1);
- 	nf->ecnecho() = acker_->ecn_unacked();
+	if (of->ect()) { 
+		if (of->cong_action())
+			/* Sender has responded to congestion. */
+			acker_->update_ecn_unacked(0);
+		if (of->ce())
+			/* New report of congestion. */
+			acker_->update_ecn_unacked(1);
+		nf->ecnecho() = acker_->ecn_unacked();
+	}
+	if (!of->ect() && of->ecnecho() && of->cong_action())
+		nf->ecnecho() = 1;
 	acker_->append_ack((hdr_cmn*)npkt->access(off_cmn_),
 			   ntcp, otcp->seqno());
 	add_to_ack(npkt);
