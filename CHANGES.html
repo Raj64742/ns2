@@ -6,309 +6,321 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.422 2000/09/14 18:19:24 haoboy Exp $-->
-
-<h1>ns: Change History</h1>
-
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.423 2000/10/02 20:50:06 yewei Exp $-->
+<h1>
+ns: Change History</h1>
 <!--
 This ChangeLog is updated in the reverse order 
 with the most recent changes coming first.
 -->
-
-<br>
 <hr>
-
 <h3>
-<a href="http://www.isi.edu/nsnam/dist/ns-src-2.1b7.tar.gz">Release
-of ns-2.1b7</a> [PENDING]</h3>
+<a href="http://www.isi.edu/nsnam/dist/ns-src-2.1b7.tar.gz">Release of
+ns-2.1b7</a> [PENDING]</h3>
 
 <ul>
+<li>
+<b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> <b>Mon Oct&nbsp;
+2 13:39:46 PDT 2000</b></li>
 
-<p><li>
-<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
-<b>Thu Sep 14 11:01:49 PDT 2000</b>
-<br>
-Partially completely node restructuring:
+<br>Modifications of the propagation models: (1) The Friis free space model
+is added in propagation.{h, cc}. Users can directly use it in their simulations.&nbsp;
+(2) Thanks to Leonard Miller's suggestion, we modified the equations in
+the two-ray ground model. The system loss L is taken out from the calculation
+of the cross-over distance, and it is added in the calculation of the received
+power.
+<li>
+<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a>Thu Sep 14 11:01:49
+PDT 2000</b></li>
+
+<br>Partially completely node restructuring:
 <ul>
-<li> A node can be considered as a collection of classifiers
-and routing modules. An important function that Node should
-provide is how to interface classifiers to routing
-modules. There are two aspects to this: (1) what is the
-organization of these classifiers, and (2) when there is a
-routing change, which classifiers should be notified and how.
-<li> Hierarchical routing, manual routing, virtual classifier, MPLS
-have been converted to the new scheme.
-<li> Multicast code is partially converted, in that the hookup of
-switch_ is done via RtModule/Mcast, however, existing mcast code is
-not changed to be wrapped entired in this module; it is still in the
-forms of a bunch of Simulator and Node instprocs.
-<li> Mobile node and satellite node are not converted. Mobile code in
-itself needs to be cleaned up. For instance, MobileNode partially
-duplicates the functionality of MIP, however it does not entirely
-replace old Node/MIPBS and Node/MIPMH. The conversion of these two
-modules to the new scheme also requires changing their c++ code, which
-is not trivial.
+<li>
+A node can be considered as a collection of classifiers and routing modules.
+An important function that Node should provide is how to interface classifiers
+to routing modules. There are two aspects to this: (1) what is the organization
+of these classifiers, and (2) when there is a routing change, which classifiers
+should be notified and how.</li>
+
+<li>
+Hierarchical routing, manual routing, virtual classifier, MPLS have been
+converted to the new scheme.</li>
+
+<li>
+Multicast code is partially converted, in that the hookup of switch_ is
+done via RtModule/Mcast, however, existing mcast code is not changed to
+be wrapped entired in this module; it is still in the forms of a bunch
+of Simulator and Node instprocs.</li>
+
+<li>
+Mobile node and satellite node are not converted. Mobile code in itself
+needs to be cleaned up. For instance, MobileNode partially duplicates the
+functionality of MIP, however it does not entirely replace old Node/MIPBS
+and Node/MIPMH. The conversion of these two modules to the new scheme also
+requires changing their c++ code, which is not trivial.</li>
 </ul>
 Other changes include:
 <ul>
-<li> Move AddrParams class to a singleton split object class. Most 
-of its parameters are now stored in c++ space.
-<li> Created a wrapper hierarchical classifier to present a single
-classifier interface to node configuration. This allows us to avoid
-those gazillions of <code>if [Simulator set EnableHierRt_] ...</code>
-that were all over the place.
+<li>
+Move AddrParams class to a singleton split object class. Most of its parameters
+are now stored in c++ space.</li>
+
+<li>
+Created a wrapper hierarchical classifier to present a single classifier
+interface to node configuration. This allows us to avoid those gazillions
+of <tt>if [Simulator set EnableHierRt_] ...</tt> that were all over the
+place.</li>
 </ul>
 
-<p><li>
-<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
-<b>Tue Sep 12 20:01:53 PDT 2000</b>
-<br>
-Added 'lsort -dictionary' to DV routing code so its results will 
-not change as the shadow object names of nodes change due to addition
-of new objects. This paves the way to modular node configuration as 
-some new node routing modules would be added during the construction
-of each node. Also changed is [array names] code in web cache, a 
-lsort -dictionary will enhance its validation stability.
-<br>
-BTW I think SplitObjectCompare in tclcl/tcl-object.tcl is obsolete
-now since 'lsort -dictionary' does the same job but it's built in
-hence should be faster than an outside command.
+<li>
+<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a>Tue Sep 12 20:01:53
+PDT 2000</b></li>
 
-<p><li>
-<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
-<b>Thu Aug 31 13:34:25 PDT 2000</b>
-<br>
+<br>Added 'lsort -dictionary' to DV routing code so its results will not
+change as the shadow object names of nodes change due to addition of new
+objects. This paves the way to modular node configuration as some new node
+routing modules would be added during the construction of each node. Also
+changed is [array names] code in web cache, a lsort -dictionary will enhance
+its validation stability.
+<br>BTW I think SplitObjectCompare in tclcl/tcl-object.tcl is obsolete
+now since 'lsort -dictionary' does the same job but it's built in hence
+should be faster than an outside command.
+<li>
+<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a>Thu Aug 31 13:34:25
+PDT 2000</b></li>
+
 <ol>
-<li> Added procedures into ns-packet.tcl to help customizing
-packet headers in simulation. (Packet header chapter in ns manual has
-been updated; please read it for more information.)
-This may lead to big savings in
-packet-intensive applications. For instance, currently all
-protocol headers add up to about 2KB per packet, but including
-only the common header, IP header and TCP header takes only
-about 100 bytes. This may mean a lot of savings for, say,
-large-scale web traffic simulation. But I've not tested it. 
+<li>
+Added procedures into ns-packet.tcl to help customizing packet headers
+in simulation. (Packet header chapter in ns manual has been updated; please
+read it for more information.) This may lead to big savings in packet-intensive
+applications. For instance, currently all protocol headers add up to about
+2KB per packet, but including only the common header, IP header and TCP
+header takes only about 100 bytes. This may mean a lot of savings for,
+say, large-scale web traffic simulation. But I've not tested it.</li>
 
-<li> Get rid of all off_[hdr]_ stuff from all source
-files. Now ns-packet.tcl does not create these offset
-variables at all. This saves two bounded variables per
-NsObject.
+<li>
+Get rid of all off_[hdr]_ stuff from all source files. Now ns-packet.tcl
+does not create these offset variables at all. This saves two bounded variables
+per NsObject.</li>
 
-<li> Move static packet header declaration from encap.h to
-encap.cc. A variable _instantiation_ should not reside in a
-header file.
+<li>
+Move static packet header declaration from encap.h to encap.cc. A variable
+_instantiation_ should not reside in a header file.</li>
 </ol>
 
-<p><li>
-	<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
-	<b>Thu Aug 31 12:55:49 PDT 2000</b>
-	<br>
-	<ol>
-	<li> Node cleanup: move all energy-related variables and
-	methods in the base Node into EnergyModel. Note that node_on_
-	may be moved back later, but for now its handler is closely
-	tied to wireless routing.
-	<li> Added dependency of tcl/mobility/dsdv.tcl into Makefile.in
-	<li> Moved tcl/lib/rtProtoLS.tcl into tcl/rtglib, where all routing
-	protocols stay.
-	<li> Added a line about link state into unicast.tex, and
-	labeled link state and MPLS as undocumented.
-	</ol>
+<li>
+<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b> <b>Thu Aug
+31 12:55:49 PDT 2000</b></li>
 
-<p><li>
-	<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
-	<b>Tue Aug 29 17:03:43 PDT 2000</b>
-	<br>
-	Node cleanup: (1) moved nam tracing hookup to the base Node,
-	so we do not need to keep namtraceAllFile_ in Node, which
-	duplicates that in Simulator, nor do we need to keep a
-	namDefined_ flag. (2) Removed and commented out unused otcl
-	instprocs in Node which are masked (through inheritance) by
-	those in MobileNode.
+<ol>
+<li>
+Node cleanup: move all energy-related variables and methods in the base
+Node into EnergyModel. Note that node_on_ may be moved back later, but
+for now its handler is closely tied to wireless routing.</li>
 
-<p><li>
-	<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
-	<b>Thu Aug 24 14:25:08 PDT 2000</b>
-	<br>
-	<ol>
-	<li> Added MPLS package originally written by <a
-	href="mailto:fog1@ce.cnu.ac.kr">Gaeil Ahn</a>.
-	It was modified to reduce the amount of otcl calls, and moved
-	to use node-config instead of creating a new Node
-	subclass. However, there is still a long way to go when a new
-	routing module can be introduced into a Node
-	without interfering with other routing modules.
-	Please see <a href="TODO.html">TODO.html</a> for more
-	information.
-	<li> Fixed bugs in assert{} usage: what follows must be quotes
-	instead of braces, the latter does not perform substitution
-	and variables in the expression won't be visible inside
-	assert{}.
-	<li> Cosmetic changes in ns-node.tcl and
-	ns-route.tcl. Commented out unused code, including
-	Simulator::compute-routes-mobilenodes{}, Node::*TcpSession{}.
-	Commented code resides at the end of its corresponding file.
-	<li> Changed tcl/test/test-all-template1 to use case instead
-	of if(s) to redirect stdout to temp.rands.
-	</ol> 
+<li>
+Added dependency of tcl/mobility/dsdv.tcl into Makefile.in</li>
 
-<p><li>
-<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
-<b>Sun Aug 20 22:17:11 PDT 2000</b>
-<br>
-A change to setting the pipe_ variable in Sack TCP when entering
-in Fast Recovery for the non-ECN case, to make the performance the
-same as the ECN case.  Motivated by a suggestion from Mark Allman.
-Set oldCode_ to true to use the old code.
-Validated in "./test-all-tcp underutilized_100ms_control_Sack".
+<li>
+Moved tcl/lib/rtProtoLS.tcl into tcl/rtglib, where all routing protocols
+stay.</li>
 
-<p><li>
-	<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
-	<b>Thu Aug 17 22:16:32 PDT 2000</b><br>
-	<ol>
+<li>
+Added a line about link state into unicast.tex, and labeled link state
+and MPLS as undocumented.</li>
+</ol>
 
-	<li> Autoconf support for checking compatibility of compiler's
-	STL support. Basically it tries to see if template inheritance
-	is supported, which some earlier gcc does not seem so.
-	<br>
-	Currently this is used only for the link state routing
-	protocol module, which uses STL extensively. However, this
-	mechanism can be easily extended to enhance the modularity of
-	ns, in the sense that the user may actively choose which
-	module to compile into her/his ns binary, thus save
-	memory/disk space/initialization time/etc.
-	<br>
-	<b>IMPORTANT</b>: validate is now moved to validate.in,
-	because link state module may or may not be present depending
-	on availability of STL.
+<li>
+<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b> <b>Tue Aug
+29 17:03:43 PDT 2000</b></li>
 
-	<li> Removed numerous <code>... set off_*_ 0</code> in
-	tcl/*/*.tcl. Although off_[hdr]_ is an obsolete way to access
-	packet headers, it is still used in much existing
-	code. These offsets MUST be set through the code in
-	tcl/lib/ns-packet.tcl. Explicitly setting it to 0 will result
-	in accessing packet header in the wrong place. However, this
-	is a very treachrous bug, because ns packet header is 'sparse'
-	in that much of the space is not used in a
-	simulation. Therefore, most of the time this bug will not lead
-	to segmentation fault or incorrect functionality. Usually it
-	only results in mysterious segmentation faults in completely
-	irrerelevant places. 
-	<br>
-	The most significant bug related to this problem is
-	<code>off_arp_</code> and <code>off_sr_</code>. The former
-	results in the crash of <code>wireless3</code> test in
-	<code>WLtutorial</code> test suite. The latter results in
-	incorrect output of <code>CMUTrace</code> in dsr-related tests
-	in <code>wireless-lan</code>,
-	<code>wireless-lan-newnode</code>, and
-	<code>wireless-tdma</code> test suites.
+<br>Node cleanup: (1) moved nam tracing hookup to the base Node, so we
+do not need to keep namtraceAllFile_ in Node, which duplicates that in
+Simulator, nor do we need to keep a namDefined_ flag. (2) Removed and commented
+out unused otcl instprocs in Node which are masked (through inheritance)
+by those in MobileNode.
+<li>
+<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b> <b>Thu Aug
+24 14:25:08 PDT 2000</b></li>
 
-	<li> Merged all the <code>delay_parse</code>,
-	<code>time_parse</code>, <code>bw_parse</code> in
-	tcl/*/*.tcl. There exists at least 3 versions of these codes
-	with slightly different implementations. Now they all converge
-	to John's <code>time_parse</code> and <code>bw_parse</code> in
-	tcl/lib/ns-lib.tcl.
+<ol>
+<li>
+Added MPLS package originally written by <a href="mailto:fog1@ce.cnu.ac.kr">Gaeil
+Ahn</a>. It was modified to reduce the amount of otcl calls, and moved
+to use node-config instead of creating a new Node subclass. However, there
+is still a long way to go when a new routing module can be introduced into
+a Node without interfering with other routing modules. Please see <a href="TODO.html">TODO.html</a>
+for more information.</li>
 
-	<li> test-output-wireless-lan/dsr.Z was truncated at
-	the end because test-suite-wireless-lan.tcl (and
-	-lan-newnode.tcl) did not flush the trace file before
-	rewriting it.
+<li>
+Fixed bugs in assert{} usage: what follows must be quotes instead of braces,
+the latter does not perform substitution and variables in the expression
+won't be visible inside assert{}.</li>
 
-	<li> Removed dmalloc 3.* support because their headers do not
-	carry version information. 
+<li>
+Cosmetic changes in ns-node.tcl and ns-route.tcl. Commented out unused
+code, including Simulator::compute-routes-mobilenodes{}, Node::*TcpSession{}.
+Commented code resides at the end of its corresponding file.</li>
 
-	<li> Removed unused iostream.h in various files.
-	</ol>
+<li>
+Changed tcl/test/test-all-template1 to use case instead of if(s) to redirect
+stdout to temp.rands.</li>
+</ol>
 
-<p><li>
-        <b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
-        <b>Wed Aug 16 16:59:15 PDT 2000</b><br>
-        Moved list.h to lib/bsd-list.h to prepare for STL support, since
-        list.h conflicts with STL's list.h
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a>Sun Aug 20 22:17:11
+PDT 2000</b></li>
 
-<p>
-  <li>
-<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Tue Aug  1 15:30:30 PDT 2000
-</b><br>
-       Patches to allow ns to build with tcl-8.3
-       (still must specify --with-tcl-version=8.3 and --with-tk-version=8.3
-       in the configure).
-       Validation tests VC and monitor still fail
-       (segfault in tcl code)---this is work in progress.
-       
-<p><li>
-<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
-<b>Sun Aug 13 09:48:15 PDT 2000</b>
-<br>
-Added code (on July 18) for correctly tracing early packet drops from RED
-when flow monitors are attached.
-Code from Ratul Mahajan. 
+<br>A change to setting the pipe_ variable in Sack TCP when entering in
+Fast Recovery for the non-ECN case, to make the performance the same as
+the ECN case. Motivated by a suggestion from Mark Allman. Set oldCode_
+to true to use the old code. Validated in "./test-all-tcp underutilized_100ms_control_Sack".
+<li>
+<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b> <b>Thu Aug
+17 22:16:32 PDT 2000</b></li>
 
-<p><li>
-<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
-<b>Sun Aug 13 09:48:15 PDT 2000</b>
-<br>
-Added the following options to the one-way TCP, over the last few
-weeks:
+<ol>
+<li>
+Autoconf support for checking compatibility of compiler's STL support.
+Basically it tries to see if template inheritance is supported, which some
+earlier gcc does not seem so.</li>
+
+<br>Currently this is used only for the link state routing protocol module,
+which uses STL extensively. However, this mechanism can be easily extended
+to enhance the modularity of ns, in the sense that the user may actively
+choose which module to compile into her/his ns binary, thus save memory/disk
+space/initialization time/etc.
+<br><b>IMPORTANT</b>: validate is now moved to validate.in, because link
+state module may or may not be present depending on availability of STL.
+<li>
+Removed numerous <tt>... set off_*_ 0</tt> in tcl/*/*.tcl. Although off_[hdr]_
+is an obsolete way to access packet headers, it is still used in much existing
+code. These offsets MUST be set through the code in tcl/lib/ns-packet.tcl.
+Explicitly setting it to 0 will result in accessing packet header in the
+wrong place. However, this is a very treachrous bug, because ns packet
+header is 'sparse' in that much of the space is not used in a simulation.
+Therefore, most of the time this bug will not lead to segmentation fault
+or incorrect functionality. Usually it only results in mysterious segmentation
+faults in completely irrerelevant places.</li>
+
+<br>The most significant bug related to this problem is <tt>off_arp_</tt>
+and <tt>off_sr_</tt>. The former results in the crash of <tt>wireless3</tt>
+test in <tt>WLtutorial</tt> test suite. The latter results in incorrect
+output of <tt>CMUTrace</tt> in dsr-related tests in <tt>wireless-lan</tt>,
+<tt>wireless-lan-newnode</tt>,
+and <tt>wireless-tdma</tt> test suites.
+<li>
+Merged all the <tt>delay_parse</tt>, <tt>time_parse</tt>, <tt>bw_parse</tt>
+in tcl/*/*.tcl. There exists at least 3 versions of these codes with slightly
+different implementations. Now they all converge to John's <tt>time_parse</tt>
+and <tt>bw_parse</tt> in tcl/lib/ns-lib.tcl.</li>
+
+<li>
+test-output-wireless-lan/dsr.Z was truncated at the end because test-suite-wireless-lan.tcl
+(and -lan-newnode.tcl) did not flush the trace file before rewriting it.</li>
+
+<li>
+Removed dmalloc 3.* support because their headers do not carry version
+information.</li>
+
+<li>
+Removed unused iostream.h in various files.</li>
+</ol>
+
+<li>
+<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b> <b>Wed Aug
+16 16:59:15 PDT 2000</b></li>
+
+<br>Moved list.h to lib/bsd-list.h to prepare for STL support, since list.h
+conflicts with STL's list.h
+<li>
+<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Tue Aug 1 15:30:30
+PDT 2000</b></li>
+
+<br>Patches to allow ns to build with tcl-8.3 (still must specify --with-tcl-version=8.3
+and --with-tk-version=8.3 in the configure). Validation tests VC and monitor
+still fail (segfault in tcl code)---this is work in progress.
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a>Sun Aug 13 09:48:15
+PDT 2000</b></li>
+
+<br>Added code (on July 18) for correctly tracing early packet drops from
+RED when flow monitors are attached. Code from Ratul Mahajan.
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a>Sun Aug 13 09:48:15
+PDT 2000</b></li>
+
+<br>Added the following options to the one-way TCP, over the last few weeks:
 <ul>
-<li>Added noFastRetransmit_ for Tahoe TCP without Fast Retransmit.  
-Validated in "./test-all-testReno".  (July 8)
-<li>Added fixes to the scoreboard and TCP/Sack1 code, fixes contributed
-by Ethan Blanton.  The scoreboard did not properly advance the left
-edge of the SACK window during Fast Recovery *unless* the processed
-packet contained a SACK block.  (July 9)
-<li>Added  code contributed by Ethan Blanton, so that the Sack1 TCP
-sender checks if duplicate acknowledgements acknowledge the receipt
-of new data, for the one-way Sack1 TCP.  Validated in "test-all-ecn
-ecn_noBugfix_sack".  (July 22)
-<li>Added precisionReduce_ for non-integer reductions of the TCP
-congestion window.  Code contributed with Deepak Bansal.
-This is for use with TCP with non-standard values
-for the
-window increase and decrease parameters, and is validated in
-"./test-all-aimd".  (August 7)
-<li>Added "k_parameter_" and "l_parameter_" for binomial congestion
-control, used with wnd_option_ == 6.  Code contributed by Deepak Bansal.
-Validated in "./test-all-aimd".  (August 9)
-<li>Removing all uses of the defined constant NUMDUPACKS, replacing it
-with the use of the added variable numdupacks_
-instead.  Code from Ethan Blanton.  Validated in 
-"./test-all-tcpOptions".  (August 12)
+<li>
+Added noFastRetransmit_ for Tahoe TCP without Fast Retransmit. Validated
+in "./test-all-testReno". (July 8)</li>
+
+<li>
+Added fixes to the scoreboard and TCP/Sack1 code, fixes contributed by
+Ethan Blanton. The scoreboard did not properly advance the left edge of
+the SACK window during Fast Recovery *unless* the processed packet contained
+a SACK block. (July 9)</li>
+
+<li>
+Added code contributed by Ethan Blanton, so that the Sack1 TCP sender checks
+if duplicate acknowledgements acknowledge the receipt of new data, for
+the one-way Sack1 TCP. Validated in "test-all-ecn ecn_noBugfix_sack". (July
+22)</li>
+
+<li>
+Added precisionReduce_ for non-integer reductions of the TCP congestion
+window. Code contributed with Deepak Bansal. This is for use with TCP with
+non-standard values for the window increase and decrease parameters, and
+is validated in "./test-all-aimd". (August 7)</li>
+
+<li>
+Added "k_parameter_" and "l_parameter_" for binomial congestion control,
+used with wnd_option_ == 6. Code contributed by Deepak Bansal. Validated
+in "./test-all-aimd". (August 9)</li>
+
+<li>
+Removing all uses of the defined constant NUMDUPACKS, replacing it with
+the use of the added variable numdupacks_ instead. Code from Ethan Blanton.
+Validated in "./test-all-tcpOptions". (August 12)</li>
 </ul>
 
-<p>
-  <li>
-<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Tue Aug  1 15:30:30 PDT 2000
-</b><br>
-       Nam section of the documentation started with details about how to make animated gifs.
-       
-       <p>
-  <li>
-<b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
-<b>Wed Jul 26 18:11:09 PDT 2000</b><br>
-	<ul>
-	<li> Added link state routing code contributed by 
-	<a href="mailto:msun@rainfinity.com">Mingzhou Sun</a>.
-	<li> Remove conditional directive NAM_TRACE.
-	<li> Added further explaination to Classifier::no-slot{} error
-	messages in tcl/lib/ns-lib.tcl
-	</ul>
+<li>
+<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Tue Aug 1 15:30:30
+PDT 2000</b></li>
 
-<p><li>
-<b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
-<b>Tue Jul 25 14:59:09 PDT 2000</b><br>
-PLM code contributed by Arnaud Legout at EURECOM.
+<br>Nam section of the documentation started with details about how to
+make animated gifs.
+<li>
+<b><a href="http://www.isi.edu/~haoboy">[haoboy]</a>Wed Jul 26 18:11:09
+PDT 2000</b></li>
 
-<p><li>
-<b><a href="http://www.isi.edu/~xuanc/">[xuanc]</a></b> <b>Sat Jul 22 16:58:54 PDT 2000
-</b></li>
-<br>(1)New API (channel) added to node-config in ns-lib.tcl to support multiple
-interfaces for wireless node. A demo tcl script also included.
+<ul>
+<li>
+Added link state routing code contributed by <a href="mailto:msun@rainfinity.com">Mingzhou
+Sun</a>.</li>
+
+<li>
+Remove conditional directive NAM_TRACE.</li>
+
+<li>
+Added further explaination to Classifier::no-slot{} error messages in tcl/lib/ns-lib.tcl</li>
+</ul>
+
+<li>
+<b><a href="http://www.isi.edu/~haoboy">[haoboy]</a>Tue Jul 25 14:59:09
+PDT 2000</b></li>
+
+<br>PLM code contributed by Arnaud Legout at EURECOM.
+<li>
+<b><a href="http://www.isi.edu/~xuanc/">[xuanc]</a></b> <b>Sat Jul 22 16:58:54
+PDT 2000</b></li>
+
+<br>(1)New API (channel) added to node-config in ns-lib.tcl to support
+multiple interfaces for wireless node. A demo tcl script also included.
 (2)The URLs in README and CHANGES.html are fixed.
-
-<p><li>
+<li>
 <b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> <b>Fri Jul 21
 13:20:59 PDT 2000</b></li>
 
@@ -320,7 +332,7 @@ shadowing deviation represent different propagation environments. This
 statistical model is applicable to both outdoor and indoor. (2) A bug fixed
 in wireless-phy.cc. The bug disabled setting values of bound variables
 from Tcl.
-<p><li>
+<li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> <b>Sun Jul 9 09:38:26
 PDT 2000</b></li>
 
@@ -330,7 +342,7 @@ Wen Shushan. The option "queue-in-bytes_" had been working correctly in
 the validation test in "./test-all-red red_twowaybytes", but in other scripts
 REDQueue::reset() can be called twice, and in this case "queue-in-bytes_"
 had not been working correctly.
-<p><li>
+<li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> <b>Fri Jul 7 17:02:16
 PDT 2000</b></li>
 
@@ -339,33 +351,33 @@ Matt Mathis, Jeff Semke, Jamshid Mahdavi, and Kevin Lahey, from the web
 page ``http://www.psc.edu/networking/ftp/papers/draft-ratehalving.txt''.
 This is partially validated in the validation test "./test-all-tcpVariants",
 for example in "./test-all-tcpVariants/fourdrops_sackRH".
-<p><li>
+<li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> <b>Mon Jun 26
 20:07:50 PDT 2000</b></li>
 
 <br>First pass at adding RIO code to NS. This RIO code is from Yun Wang,
 based on the code used by Wenjia Fang, and was ported to ns-2.1b6 by J.
 Scott.
-<p><li>
+<li>
 <b><a href="http://www.cs.berkeley.edu/~tomh/">[tomh]</a></b> <b>Tue Jun
 21 17:44:10 PDT 2000</b></li>
 
 <br>Changes to support <a href="http://www.ee.surrey.ac.uk/Personal/L.Wood/ns/sat-plot-scripts/">Lloyd
 Wood's improved perl scripts</a> for the satellite code.
-<p><li>
+<li>
 <b><a href="http://www.isi.edu/~kclan/">[kclan]</a></b> <b>Tue Jun 21 11:12:54
 PDT 2000</b></li>
 
 <br>Fix to full-tcp reassembly from Matt Sanders and George Riley of Georgia
 Tech.
-<p><li>
+<li>
 <b><a href="http://www.isi.edu/~xuanc/">[xuanc]</a></b> <b>Mon Jun 12 17:13:45
 PDT 2000</b></li>
 
 <br>A single hop, preamble based TDMA mac layer (Mac/Tdma) was added. It
 can be used in wireless / sensor net simulations in the place of 802.11
 mac layer.
-<p><li>
+<li>
 <b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Thu Jun 1 13:55:39
 PDT 2000</b></li>
 
@@ -411,7 +423,6 @@ Joo, with fix from Changhee Joo and Lloyd Wood.
 
 <br>Smaller initial rate for Agent/TFRC, to correct overly-aggressive behavior
 with very low bandwidth paths. Fix from Jitendra Padhye.
-
 <li>
 <b><a href="http://www.isi.edu/~haoboy/">[haoboy]</a> Fri Mar 24 11:36:59
 PST 2000</b></li>
@@ -453,9 +464,7 @@ PST 2000</b></li>
 
 <br>Add an API to support visualization of energy depletion of wireless
 node in nam .
-<br>SYNTAX: $ns_ energy-color-change [level1] [level2]
-<br>&nbsp;
-<br>&nbsp;</ul>
+<br>SYNTAX: $ns_ energy-color-change [level1] [level2]</ul>
 
 <hr>
 <h3>
@@ -1068,9 +1077,7 @@ wiredLAN work again. Highlights:
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; exactly reflect the packet sequences under ll. It is
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; due to (a) no trace object is inserted below ll; (b) nam
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; is not in the good position so far to animate LAN behavior
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; below ll. We put it into TODO list.
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-</pre>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; below ll. We put it into TODO list.</pre>
 
 <li>
 <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b> <b>Mon Mar 8 21:11:47
@@ -1907,8 +1914,8 @@ output for test-all-full.
 using actual timestamps. A number of changes to tcp-full to make the simul-close
 test work (esp. handling of fins and retransmitted fins).
 <li>
-<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> and <b><a href="http://www.isi.edu/~visweswa/">[visweswa]</a></b>
-<b>Wed Jan 21 14:37:07 PST 1998</b></li>
+<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> and <b><a href="http://www.isi.edu/~visweswa/">[visweswa]</a>Wed
+Jan 21 14:37:07 PST 1998</b></li>
 
 <br>tcp-rbp was being too conservative in transmission after pacing ends.
 Also, the rbp test suite failed to honor QUIET (although it worked for
@@ -2966,6 +2973,10 @@ PDT 1997</b></li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>Major Updates: SRM
 <ul>
 <li>
@@ -3188,14 +3199,22 @@ PDT 1997</b></li>
 <b><a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a></b> <b>Thu Jun 12
 12:32:31 PDT 1997</b></li>
 
-<p><br>Small change to conf/config.head.in to look for socket() rather
-than poll() when searching for the -lsocket library. Also a new version
-of the configure script based on this.
+<br>&nbsp;
+<p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<p>Small change to conf/config.head.in to look for socket() rather than
+poll() when searching for the -lsocket library. Also a new version of the
+configure script based on this.
 <li>
 <b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b> <b>Wed Jun
 11 11:49:28 PDT 1997</b></li>
 
-<p><br>Bug fixes to emulation rig. Previous version didn't properly account
+<br>&nbsp;
+<p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<p>Bug fixes to emulation rig. Previous version didn't properly account
 for the fact that external events (i.e., packet arrivals) could come before
 the next future event. Now, the scheduler sets a tcl timer to advance time
 (instead of waiting in a null select) and the tap-agent sync's simulation
@@ -3655,6 +3674,10 @@ traffictrace.cc, traffictrace.h, udp.cc, udp.h.</li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <li>
 To support the pareto on/off source, added the function Random::pareto()
 to random.h.</li>
@@ -3670,6 +3693,10 @@ CBQ is now part of the simulator</li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>Generally works.
 <li>
 ALL default queue sizes are now 50 [per ns-1 defaults]</li>
@@ -3679,12 +3706,20 @@ QueueMonitors now know the difference between</li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>drops, arrivals, and departures and can monitor these
 <li>
 new class called 'Samples' which collects samples</li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>points of something and can provide a mean and variance of the points
 (see integrator.cc)
 <li>
@@ -3692,6 +3727,10 @@ Queues can be flow controlled</li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>by forcing them to be blocked or unblocked as needed. Also it's possible
 to make it so that when they send a packet they become blocked rather than
 unblocked.
@@ -3700,6 +3739,10 @@ common packet header</li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>contains a timestamp field; this is used to compute queueing delay for
 individual packets at queues
 <li>
@@ -3707,6 +3750,10 @@ classifier-hash</li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>a classifier to identify 'flows' ... still in development, but presently
 used by cbq
 <li>
@@ -4057,8 +4104,9 @@ and <a href="http://www-mash.cs.berkeley.edu/cs268/">CS268 students.</a></i>
 <ul>
 <li>
 <b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b> Bug fix from
-<a href="mailto:mjh@isi.edu">Mark Handley</a>. Reno tcp agent had wrong
-prototype for recv method and thus was not overriding the default virtual.</li>
+<a href="mailto:mjh@isi.edu">Mark
+Handley</a>. Reno tcp agent had wrong prototype for recv method and thus
+was not overriding the default virtual.</li>
 
 <li>
 <b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b> Added
@@ -4434,8 +4482,8 @@ for reporting both the bug and the fix.</li>
 Fixed bug in tcplib telnet module. Random number generator was being seeded
 on each call (from the system clock) rather than once at start-up. Replaced
 calls to random number routines with calls to Random::uniform. Thanks to
-<a href="mailto:vogels@CS.Cornell.EDU">Werner Vogels</a> for reporting
-this bug.</li>
+<a href="mailto:vogels@CS.Cornell.EDU">Werner
+Vogels</a> for reporting this bug.</li>
 
 <li>
 Added local explicit-join notification for experimentation with RLM.</li>
