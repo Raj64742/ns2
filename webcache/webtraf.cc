@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.1 1999/09/24 23:50:08 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.2 1999/10/11 23:31:59 haoboy Exp $
 
 #include <tclcl.h>
 
@@ -51,7 +51,7 @@ public:
 		schedNext();
 	}
 private:
-	virtual void expire(Event* e = 0) {
+	virtual void expire(Event* = 0) {
 		// Launch a request. Make sure size is not 0!
 		sess_->launchReq(id_, LASTOBJ_++, 
 				 (int)ceil(sess_->objSize()->value()));
@@ -95,7 +95,7 @@ WebTrafSession::~WebTrafSession()
 		Tcl::instance().evalf("delete %s", rvObjSize_->name());
 }
 
-void WebTrafSession::donePage(int id, void* ClntData) 
+void WebTrafSession::donePage(int /*id*/, void* ClntData) 
 {
 	donePage_++;
 	delete (WebPage*)ClntData;
@@ -125,7 +125,7 @@ void WebTrafSession::handle(Event *e)
 }
 
 // Launch a request for a particular object
-void WebTrafSession::launchReq(int page, int obj, int size)
+void WebTrafSession::launchReq(int /*page*/, int obj, int size)
 {
 	// Pick destination
 	Node* dst = mgr_->pickdst();
