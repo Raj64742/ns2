@@ -1,0 +1,8 @@
+detailedDM1.tcl and detailedDM2.tcl demonstrate the use of the dense
+mode protocol, detailedDM.
+detailedDM is a dense mode protocol based on PIM-Dense Mode. It adapts
+to network dynamics and works with LAN topologies (where LANs are
+created by the multi-link-of-interfaces method).
+To run these scripts do:
+ns detailedDM1.tcl
+ns detailedDM2.tcl
