@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.1 1998/05/28 02:06:03 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.2 1998/05/29 17:57:10 kfall Exp $";
 #endif
 
 #include "object.h"
@@ -80,6 +80,7 @@ protected:
 	ether_header	eh_template_;
 	ether_arp	ea_template_;
 	ether_addr	my_ether_;
+	in_addr		my_ip_;
 	int		base_size_;
 	char		callback_[80];
 	u_char*		rcv_buf_;
@@ -100,6 +101,8 @@ ArpAgent::ArpAgent() : net_(NULL)
 	eh_template_.ether_dhost[1] = 0xff;
 	eh_template_.ether_dhost[2] = 0xff;
 	eh_template_.ether_dhost[3] = 0xff;
+	eh_template_.ether_dhost[4] = 0xff;
+	eh_template_.ether_dhost[5] = 0xff;
 	/* src addr is mine */
 	memcpy(&eh_template_.ether_shost, &my_ether_, ETHER_ADDR_LEN);
 	/* type is ARP */
@@ -146,24 +149,36 @@ ArpAgent::sendreq(in_addr target)
 void
 ArpAgent::dispatch(int)
 {
+printf("DISPATCH\n");
 	recvpkt();
 }
 
+/*
+ * receive pkt from network:
+ *	note that net->recv() gives us the pkt starting
+ *	just BEYOND the frame header
+ */
 void
 ArpAgent::recvpkt()
 {
 	double ts;
 	sockaddr sa;
 	int cc = net_->recv(rcv_buf_, base_size_, sa, ts);
-	if (cc < base_size_) {
+	if (cc < (base_size_ - sizeof(ether_header))) {
                 fprintf(stderr,
-                    "ArpAgent(%s): recv small pkt (%d) : %s\n",
-                    name(), cc, strerror(errno));
+                    "ArpAgent(%s): recv small pkt (%d) [base sz:%d]: %s\n",
+                    name(), cc, base_size_, strerror(errno));
 		return;
 	}
 	ether_arp* ea = (ether_arp*) rcv_buf_;
+	if (ea->ea_hdr.ar_op != htons(ARPOP_REPLY)) {
+                fprintf(stderr,
+                    "ArpAgent(%s): NOT REPLY(%hx)\n", name(),
+			ntohs(ea->ea_hdr.ar_op));
+		return;
+	}
 	in_addr t;
-	memcpy(&t, ea->arp_tpa, 4);
+	memcpy(&t, ea->arp_tpa, 4);	// copy IP address
 	
 printf("IP %s -> Ether %s\n",
 inet_ntoa(t), Ethernet::etheraddr_string(ea->arp_tha));
@@ -200,6 +215,17 @@ ArpAgent::command(int argc, const char*const* argv)
 				ETHER_ADDR_LEN);
 			memcpy(&ea_template_.arp_sha,
 				&my_ether_, ETHER_ADDR_LEN);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "myip") == 0) {
+			u_long a = inet_addr(argv[2]);
+			if (a == 0)
+				return (TCL_ERROR);
+			in_addr ia;
+			ia.s_addr = a;
+			my_ip_ = ia;
+			memcpy(&ea_template_.arp_spa,
+				&my_ip_, 4);
 			return (TCL_OK);
 		}
 	} else if (argc == 4) {
