@@ -26,7 +26,7 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.1 1999/05/14 18:12:19 polly Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.2 1999/05/19 21:09:11 polly Exp $
 
 #include <stdarg.h>
 
@@ -362,9 +362,9 @@ HttpMediaData::HttpMediaData(const char* sender, const char* page, int layer,
 			     int st, int et) :
 	HttpData(MEDIA_DATA, 0), layer_(layer), st_(st), et_(et), flags_(0)
 {
-	assert(strlen(page)+1 <= HTTP_MAXURLLEN);
+	assert((int)strlen(page)+1 <= HTTP_MAXURLLEN);
 	strcpy(page_, page);
-	assert(strlen(sender)+1 <= HTTP_MAXURLLEN);
+	assert((int)strlen(sender)+1 <= HTTP_MAXURLLEN);
 	strcpy(sender_, sender);
 }
 
@@ -781,9 +781,9 @@ TotBuf(avail:%.1f, needed:%.1f), \n",
 		 ** filling phase **
 		 *******************/
       
-      //debug("-->> FILLING, layers: %d now: %.2f, rate: %.3f, avgrate: %.3f, \
-// srtt:%.3f, slope: %.3f\n",
-// 	  layers, now, rate, avgrate_, srtt, slope);
+      //debug("-->> FILLING, layers: %d now: %.2f, rate: %.3f, avgrate: %.3f, 
+		// srtt:%.3f, slope: %.3f\n",
+		// layers, now, rate, avgrate_, srtt, slope);
       
 		last_rate = rate; /* this is used for the next drain phase */
 		flag = 1;
@@ -866,7 +866,7 @@ TotBuf(avail:%.1f, needed:%.1f), \n",
 
 		/* debug */
 //       if ((totbufs2 <= TotalBuf(layers, buffer_)) && (bs2 <= MAXBKOFF_)) {
-// 	panic("# ERROR: totbufs1: %.2f,tot bufs2: %.2f, \
+// 	panic("# ERROR: totbufs1: %.2f,tot bufs2: %.2f, 
 // totbuf: %.2f, bs1: %d, bs2: %d, totneededbuf1: %.2f, totneededbuf2: %2f\n",
 // 	      totbufs1, totbufs2, TotalBuf(layers, buffer_), bs1, bs2,
 // 	      TotalBuf(layers, optbufs1), TotalBuf(layers, optbufs2));
@@ -1066,7 +1066,7 @@ scen: %d, totbufs1: %.2f, totbufs2: %.2f, totbufavail: %.2f\n",
 		 ** Draining phase **
 		 *******************/
 
-//    debug("-->> DRAINING, layers: %d rate: %.3f, avgrate: %.3f, srtt:%.3f, \
+//    debug("-->> DRAINING, layers: %d rate: %.3f, avgrate: %.3f, srtt:%.3f,
 // slope: %.3f\n", 
 // 	 layers, rate, avgrate_, srtt, seg_size_/srtt);
 
@@ -1619,7 +1619,7 @@ void QA::DrainBuffers()
 			/* Drop all higher layers if they still have data */
 			for (j = i+1; j < MAX_LAYER; j++)
 				if (sending_[j] == 1) {
-// 					panic("# ERROR: layer %d \
+// 					panic("# ERROR: layer %d 
 // is playing with %.2f buf but layer %d ran dry with %.2f buf\n",
 // 					      j, buffer_[j], i, buffer_[i]);
  					debug("# DROP layer %d: it \
@@ -1679,7 +1679,7 @@ void QA::DumpInfo(float t, float last_t, float rate,
 			if (last_t == 0) 
 				// Startup phase
 				return;
-// 			debug("WARNING: last_srtt: %.4f != \
+// 			debug("WARNING: last_srtt: %.4f != 
 // interval: %.4f, diff: %f t1: %f, t2: %f, last_t: %f, t: %f\n",
 // 				last_srtt, interval, diff, t1, t2, last_t, t);
 			//abort();

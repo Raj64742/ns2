@@ -27,7 +27,7 @@
 // rap.cc 
 //      Code for the 'RAP Source' Agent Class
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.1 1999/05/14 18:12:20 polly Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.2 1999/05/19 21:09:13 polly Exp $
 
 #include "rap.h"
 
@@ -199,9 +199,10 @@ void RapAgent::stop()
 		rttTimer_.cancel();
 
 	stopTime_ = Scheduler::instance().clock();
+	int debugSeqno = seqno_;
 	Debug(debugEnable_, logfile_, 
 	      "- numPackets %d, totalTime %f\n", 
-	      seqno_, stopTime_ - startTime_);
+	      debugSeqno, stopTime_ - startTime_);
 	flags_ |= RF_STOP;
 }
 
