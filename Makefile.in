@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.86 1997/12/25 00:13:33 padmanab Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.87 1998/01/06 01:46:58 kfall Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -84,6 +84,7 @@ GEN_DIR	= gen/
 LIB_DIR	= lib/
 NS	= ns
 NSX	= nsx
+NSE	= nse
 
 
 # WIN32: uncomment the following line to include specific make for VC++
@@ -117,10 +118,9 @@ OBJ_CC = \
 	sessionhelper.o delaymodel.o srm-ssm.o \
 	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
 	$(LIB_DIR)dmalloc_support.o \
-	net.o net-ip.o tap.o
 
-OBJ_C = \
-	inet.o
+# what was here is not in emulate/
+OBJ_C =
 
 OBJ_COMPAT = $(OBJ_GETOPT) win32.o
 #XXX compat/win32x.o compat/tkConsole.o
@@ -139,30 +139,34 @@ OBJ_NAM = \
 	nam/netview.o \
 	nam/netmodel.o
 
+OBJ_EMULATE_CC = \
+	emulate/net-ip.o \
+	emulate/net.o \
+	emulate/tap.o
+
+OBJ_EMULATE_C = \
+	emulate/inet.o
+
 OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o
 
 SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
+	$(OBJ_EMULATE_C:.o=.c) $(OBJ_EMULATE_CC:.o=.cc) \
 	tclAppInit.cc tkAppInit.cc
 
 OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
-HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
-	object.h packet.h random.h scheduler.h scoreboard.h tcp.h trace.h \
-	tcp-asym.h tcp-fs.h \
-	tcp-sink.h tcp-fack.h drop-tail.h red.h \
-	tcp-int.h chost.h tcp-session.h nilist.h \
-	queue-monitor.h semantic-packetqueue.h ack-recons.h \
-	cbr.h rtp.h cbr.h classifier.h connector.h ip.h \
-	delay.h \
-	snoop.h ll.h mac.h mac-multihop.h mac-csma.h mac-802_11.h \
-	rtProtoDV.h ctrMcast.h prune.h ranvar.h delaymodel.h timers.h \
-	srm-ssm.h mem-debug.h
 
-CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
-	$(GEN_DIR)* core core.ns core.nsx
+CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) $(OBJ_EMULATE_CC) \
+	$(OBJ_EMULATE_C) tclAppInit.o \
+	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE)
 
 $(NS): $(OBJ) tclAppInit.o
 	$(LINK) $(STATIC) $(LDFLAGS) $(LDOUT)$@ \
 		tclAppInit.o $(OBJ) $(LIB)
+
+$(NSE): $(OBJ) tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
+	$(LINK) $(STATIC) $(LDFLAGS) $(LDOUT)$@ \
+		tclAppInit.o $(OBJ) \
+		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB)
 
 $(NSX): $(OBJ) tkAppInit.o $(OBJ_NAM)
 	$(LINK) $(STATIC) $(LDFLAGS) $(LDOUT)$@ \
