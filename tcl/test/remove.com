@@ -109,7 +109,10 @@ goto doit
 t33: 
 set directory=test-output-satellite
 goto doit
-t34: 
+t34:
+set directory=test-output-aimd
+goto doit
+t35: 
 exit
 doit:
 echo $directory
