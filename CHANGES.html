@@ -7,7 +7,7 @@
 <!-- Changed by: Sandeep Bajaj, 24-Apr-1998 -->
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.409 2000/08/01 22:35:28 johnh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.410 2000/08/13 17:28:40 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>
 ns: Change History</h1>
 <!--
@@ -21,6 +21,46 @@ ns: Change History</h1>
 of ns-2.1b7</a> [PENDING]</h3>
 
 <ul>
+
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
+<b>Sun Aug 13 09:48:15 PDT 2000</b>
+<br>
+Added code (on July 18) for correctly tracing early packet drops from RED
+when flow monitors are attached.
+Code from Ratul Mahajan. 
+
+<li>
+<b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
+<b>Sun Aug 13 09:48:15 PDT 2000</b>
+<br>
+Added the following options to the one-way TCP, over the last few
+weeks:
+<ul>
+<li>Added noFastRetransmit_ for Tahoe TCP without Fast Retransmit.  
+Validated in "./test-all-testReno".  (July 8)
+<li>Added fixes to the scoreboard and TCP/Sack1 code, fixes contributed
+by Ethan Blanton.  The scoreboard did not properly advance the left
+edge of the SACK window during Fast Recovery *unless* the processed
+packet contained a SACK block.  (July 9)
+<li>Added  code contributed by Ethan Blanton, so that the Sack1 TCP
+sender checks if duplicate acknowledgements acknowledge the receipt
+of new data, for the one-way Sack1 TCP.  Validated in "test-all-ecn
+ecn_noBugfix_sack".  (July 22)
+<li>Added precisionReduce_ for non-integer reductions of the TCP
+congestion window.  Code contributed with Deepak Bansal.
+This is for use with TCP with non-standard values
+for the
+window increase and decrease parameters, and is validated in
+"./test-all-aimd".  (August 7)
+<li>Added "k_parameter_" and "l_parameter_" for binomial congestion
+control, used with wnd_option_ == 6.  Code contributed by Deepak Bansal.
+Validated in "./test-all-aimd".  (August 9)
+<li>Removing all uses of the defined constant NUMDUPACKS, replacing it
+with the use of the added variable numdupacks_
+instead.  Code from Ethan Blanton.  Validated in 
+"./test-all-tcpOptions".  (August 12)
+</ul>
 
   <li>
 <b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Tue Aug  1 15:30:30 PDT 2000
@@ -38,7 +78,6 @@ of ns-2.1b7</a> [PENDING]</h3>
 	<li> Added further explaination to Classifier::no-slot{} error
 	messages in tcl/lib/ns-lib.tcl
 	</ul>
-	<p>
 
 <li>
 <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
