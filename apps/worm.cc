@@ -41,11 +41,11 @@ void WormApp::process_data(int nbytes, AppData* data) {
 void WormApp::recv(int nbytes) {
   if (!first_probe_) {
     first_probe_ = 1;
-    printf("D FP %d\n", (int)Scheduler::instance().clock());
+    printf("D FP %.2f\n", Scheduler::instance().clock());
   }
 
-  //printf("D U %d %d\n",
-  //       (int)Scheduler::instance().clock(), my_addr_);
+  //printf("D U %.2f %d\n",
+  //       Scheduler::instance().clock(), my_addr_);
 }
 
 void WormApp::timeout() {
@@ -98,11 +98,11 @@ void DnhWormApp::recv(int nbytes) {
   } else {
     if (!first_probe_) {
         first_probe_ = 1;
-        printf("D FP %d\n", (int)Scheduler::instance().clock());
+        printf("D FP %.2f\n", Scheduler::instance().clock());
     }
 
-    printf("D C %d %d %d\n", 
-    	   (int)Scheduler::instance().clock(), infect_total_, my_addr_);
+    printf("D C %.2f %d %d\n", 
+    	   Scheduler::instance().clock(), infect_total_, my_addr_);
     
     // start to probe other hosts
     probe();
@@ -148,8 +148,8 @@ void DnhWormApp::send_probe() {
 
   // probe within my AS
   if (addr_low_ <= d_addr && d_addr <= addr_high_) {
-    //printf("D PD %d %d %d\n", 
-	//   (int)Scheduler::instance().clock(), my_addr_, d_addr);
+    //printf("D PD %.2f %d %d\n", 
+	//   Scheduler::instance().clock(), my_addr_, d_addr);
   } else {
     //printf("Node %d is probing node %d, within AN, send to node %d\n", 
     //	   my_addr_, d_addr, default_gw_);
@@ -267,15 +267,16 @@ void AnWormApp::update() {
   // use n = r + i + s
   s_ = n_ - r_ - i_;
 
-  printf("A %d %d %d %d %d %d\n",
-	 (int)Scheduler::instance().clock(),
+  printf("A %.2f %d %d %d %d %d\n",
+	 Scheduler::instance().clock(),
 	 (int)s_, (int)i_, (int)r_, (int)probe_in, (int)probe_out);
 
   // probe outside networks
   // should not be cumulated!!!
+  //probe_out = 2;
   if (probe_out > 1) { 
-    //printf("ANS %d %d %d %d %d %d\n", 
-    //        (int)Scheduler::instance().clock(), 
+    //printf("ANS %.2f %d %d %d %d %d\n", 
+    //        Scheduler::instance().clock(), 
     //        (int)s_, (int)i_, (int)r_, (int)probe_in, (int)probe_out);
     probe((int)(probe_out + 0.5));
   }
