@@ -316,7 +316,7 @@ detailedDM instproc handle-wrong-iif { argslist } {
 detailedDM instproc send-prune { src grp } {
 	set iif [$self get_iif $src $grp]
 	set rpf [$self get_rpf $src $grp]
-	puts "send-mcast prune $src $grp $rpf $iif "
+	#puts "send-mcast prune $src $grp $rpf $iif "
 	$self send-mcast prune $src $grp $rpf $iif ""
 }
 
@@ -347,12 +347,13 @@ detailedDM instproc send-assert { src grp iface } {
 	$self send-mcast assert $src $grp $rpf $iface $mesg
 }
 
-detailedDM instproc recv-prune { from src group msg msg} {
+detailedDM instproc recv-prune { from src grp iface msg} {
 	$self instvar Node ns
 	set to [lindex $msg 0]
 	# see if the message is destined to me
 	set iif [$self get_iif $src $grp]
 	set id [$Node id]
+#	puts "$id received a prune $src, $grp, $from, MSG:$msg"
 	set ifaceLabel [$Node get-oifIndex $from]
 	if { $to != $id } {
 	  # if I have a forwarding entry override by sending a join
@@ -388,7 +389,7 @@ detailedDM instproc recv-prune { from src group msg msg} {
 	$self delete_oif $src $grp $ifaceLabel
 }
 
-detailedDM instproc recv-graft { from src group msg } {
+detailedDM instproc recv-graft { from src group iface msg } {
 	$self instvar Node PruneTimer_ ns
 	# send a graft ack
 	$self send-unicast graftAck $src $group $from
@@ -424,7 +425,7 @@ detailedDM instproc send-join { src grp } {
         $self send-mcast join $src $grp $rpf $iif ""
 }
 
-detailedDM instproc recv-join { src grp from msg } {
+detailedDM instproc recv-join { from src grp iface msg } {
         $self instvar Node DelTimer_
 	set to [lindex $msg 0]
         # see if the message is destined to me
@@ -443,7 +444,7 @@ detailedDM instproc recv-join { src grp from msg } {
 	$Node add-mfc $src $grp $iif $oif
 }
 
-detailedDM instproc recv-graftAck { src grp from msg } {
+detailedDM instproc recv-graftAck { from src grp iface msg } {
 	$self instvar RtxTimer_
 	# if the retransmission timer is running, clear it
 	if [info exists RtxTimer_($src:$grp)] {
@@ -453,7 +454,7 @@ detailedDM instproc recv-graftAck { src grp from msg } {
 	}
 }
 
-detailedDM instproc recv-assert { src grp from msg } {
+detailedDM instproc recv-assert { from src grp iface msg } {
 	$self instvar Node iif_ RPF_
 	set r [$Node getRep $src $grp]
 	if { $r == "" } {
@@ -552,8 +553,8 @@ detailedDM instproc send-mcast { type src grp rpf oifLabel mesg } {
 	set id [$Node id]
 	set msg "$type/$rpf/$mesg"
 #	puts "msg= $msg"
-#	$prune transmit $msg $id $src $grp
-	$prune transmit $type $id $src $grp
+	$prune transmit $msg $id $src $grp
+#	$prune transmit $type $id $src $grp
 
 }
 
@@ -695,7 +696,10 @@ Deletion/Iface/Timer instproc timeout {} {
 ###################################
 
 Agent/Mcast/Control instproc transmit { msg id src grp } {
-	$self send $msg $id $src $grp
+	set L [split $msg /]
+	set type [lindex $L 0]
+	set L [lreplace $L 0 0]
+	$self send $type $id $src $grp $L
 }
 
 Class Agent/Mcast/Control/detailedDM -superclass Agent/Mcast/Control
