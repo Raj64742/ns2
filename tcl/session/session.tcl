@@ -45,8 +45,20 @@ SessionSim instproc create-session { node agent } {
     set dst [$agent set dst_]
     set session_($nid:$dst) [new SessionHelper]
     $session_($nid:$dst) set-node $nid
-    $agent target $session_($nid:$dst)
-    return $session_($nid:$dst)
+	
+	# If exists nam-traceall, we'll insert an intermediate trace object
+	set trace [$self get-nam-traceall]
+	if {$trace != ""} {
+		# This will write every packet sent and received to 
+		# the nam trace file
+		set p [$self create-trace SessEnque $trace $nid $dst "nam"]
+		$agent target $p
+		$p target $session_($nid:$dst)
+	} else {
+		$agent target $session_($nid:$dst)
+	}
+
+	return $session_($nid:$dst)
 }
 
 SessionSim instproc update-loss-dependency { src dst agent group } {
@@ -101,8 +113,27 @@ SessionSim instproc join-group { agent group } {
 		incr ttl
 		set tmp $next
 	    }
-	    #puts "add-dst $accu_bw $delay $ttl $src $dst"
-	    $session_($index) add-dst $accu_bw $delay $ttl $dst $agent
+
+	    # Create nam queues for all receivers if traceall is turned on
+	    # XXX 
+	    # nam will deal with the issue whether all groups share a 
+	    # single queue per receiver. The simulator simply writes 
+	    # this information there
+	    $self puts-nam-traceall "G -t [$self now] -i $group -a $dst"
+
+	    # And we should add a trace object before each receiver,
+	    # because only this will capture the packet before it 
+	    # reaches the receiver and after it left the sender
+	    set f [$self get-nam-traceall]
+	    if {$f != ""} { 
+		    set p [$self create-trace SessDeque $f $src $dst "nam"]
+		    $p target $agent
+		    $session_($index) add-dst $accu_bw $delay $ttl $dst $p
+	    } else {
+		    #puts "add-dst $accu_bw $delay $ttl $src $dst"
+		    $session_($index) add-dst $accu_bw $delay $ttl $dst $agent
+	    }
+
 	    $self update-loss-dependency $src $dst $agent $group
 	}
     }
@@ -151,6 +182,10 @@ SessionSim instproc leave-group { agent group } {
 	set pair [split $index :]
 	if {[lindex $pair 1] == $group} {
 	    #$session_($index) delete-dst [[$agent set node_] id] $agent
+		set dst [[$agent set node_] id]
+		# remove the receiver from packet distribution list
+		$self puts-nam-traceall \
+			"G -t [$self now] -i $group -x $dst"
 	}
     }
 }
@@ -337,7 +372,11 @@ SessionSim instproc get-mcast-tree { src grp } {
 	}		
 
 	foreach mbr $mbrs {
-		# find path from $mbr to $src
+		# Find path from $mbr to $src
+		while {![string match "Agent*" [$mbr info class]]} {
+			# In case agent is at the end of the chain... 
+			set mbr [$mbr target]
+		}
 		set mid [[$mbr set node_] id]
 		if {$sid == $mid} {
 			continue

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.14 1997/12/31 01:25:51 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.15 1998/02/09 20:58:42 haoboy Exp $
 #
 
 Trace instproc init type {
@@ -71,6 +71,17 @@ Trace/Enque instproc init {} {
 
 Trace/Deque instproc init {} {
 	$self next "-"
+}
+
+# Next two are for SessionSim's packet traces
+Class Trace/SessEnque -superclass Trace
+Trace/SessEnque instproc init {} {
+	$self next "E"	;# Should use '='? :)
+}
+
+Class Trace/SessDeque -superclass Trace
+Trace/SessDeque instproc init {} {
+	$self next "D"	;# Should use '_'?
 }
 
 Class Trace/Recv -superclass Trace 
