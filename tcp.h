@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.46 1998/05/11 18:51:26 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.47 1998/05/12 02:03:10 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -338,6 +338,7 @@ class RenoTcpAgent : public virtual TcpAgent {
 	virtual int window();
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
+	virtual void dupack_action();
  protected:
 	unsigned int dupwnd_;
 };

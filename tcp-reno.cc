@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.25 1998/05/11 19:09:30 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.26 1998/05/12 02:03:11 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -83,31 +83,12 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
                         return;
                 }
 		if (++dupacks_ == NUMDUPACKS) {
-			/*
-			 * Assume we dropped just one packet.
-			 * Retransmit last ack + 1
-			 * and try to resume the sequence.
-			 */
-                       /* The line below, for "bug_fix_" true, avoids
-                        * problems with multiple fast retransmits after
-			* a retransmit timeout.
-                        */
-			if ( !bug_fix_ || (highest_ack_ > recover_) ||
-			    ( last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
-				last_cwnd_action_ = CWND_ACTION_DUPACK;
-				recover_ = maxseq_;
-				slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
-				reset_rtx_timer(1,0);
-				output(last_ack_ + 1, TCP_REASON_DUPACK);
-                        }
-            /* the line below applies for NUMDUPACKS when
-             * bug_fix_ is true, we are not out of Fast
-             * Recovery, and the last Fast Recovery was
-             * followed by a retransmit timeout.  */
-//            else dupacks_ = 0;
+			dupack_action();
 			dupwnd_ = NUMDUPACKS;
-		} else if (dupacks_ > NUMDUPACKS)
-			++dupwnd_;
+		} else if (dupacks_ > NUMDUPACKS) {
+			++dupwnd_;	// fast recovery
+		}
+
 	}
 	Packet::free(pkt);
 #ifdef notyet
@@ -121,6 +102,65 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 
 	if (dupacks_ == 0 || dupacks_ > NUMDUPACKS - 1)
 		send_much(0, 0, maxburst_);
+}
+
+/*  
+ * Dupack-action: what to do on a DUP ACK.  After the initial check
+ * of 'recover' below, this function implements the following truth
+ * table:
+ *  
+ *      bugfix  ecn     last-cwnd == ecn        action  
+ *  
+ *      0       0       0                       reno_action
+ *      0       0       1                       reno_action    [impossible]
+ *      0       1       0                       reno_action
+ *      0       1       1                       retransmit, return  
+ *      1       0       0                       nothing 
+ *      1       0       1                       nothing        [impossible]
+ *      1       1       0                       nothing 
+ *      1       1       1                       retransmit, return
+ */ 
+    
+void
+RenoTcpAgent::dupack_action()
+{   
+        int recovered = (highest_ack_ > recover_);
+        if (recovered || (!bug_fix_ && !ecn_) ||
+		last_cwnd_action_ == CWND_ACTION_DUPACK) {
+                goto reno_action;
+        }       
+    
+        if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
+                last_cwnd_action_ = CWND_ACTION_DUPACK;
+		/* 
+		 * What if there is a DUPACK action followed closely by ECN
+		 * followed closely by a DUPACK action?
+		 * The optimal thing to do would be to remember all
+		 * congestion actions from the most recent window
+		 * of data.  Otherwise "bugfix" might not prevent
+		 * all unnecessary Fast Retransmits.
+		 */
+                reset_rtx_timer(1,0);
+		output(last_ack_ + 1, TCP_REASON_DUPACK);
+                return; 
+        }               
+    
+        if (bug_fix_) {
+                /*
+                 * The line below, for "bug_fix_" true, avoids
+                 * problems with multiple fast retransmits in one
+                 * window of data.
+                 */      
+                return;  
+        }       
+    
+reno_action:   
+        recover_ = maxseq_;
+        last_cwnd_action_ = CWND_ACTION_DUPACK;
+        slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
+        reset_rtx_timer(1,0);
+	output(last_ack_ + 1, TCP_REASON_DUPACK);	// from top
+        return;
 }
 
 void RenoTcpAgent::timeout(int tno)
