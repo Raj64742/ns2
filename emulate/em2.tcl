@@ -18,6 +18,17 @@ if { $dotrace } {
 $ns use-scheduler RealTime
 
 #
+# we want the test machine to have ip forwarding disabled, so
+# check this
+#
+
+set ipforw [exec sysctl -n net.inet.ip.forwarding]
+if { $ipforw } {
+	puts "can not run with ip forwarding enabled"
+	exit 1
+}
+
+#
 # allocate a BPF type network object and a raw-IP object
 #
 set bpf0 [new Network/Pcap/Live]
@@ -33,8 +44,14 @@ $ipnet open writeonly
 
 puts "bpf0($bpf0) on dev $nd0, bpf1($bpf1) on dev $nd1, ipnet is $ipnet"
 
-set f0len [$bpf0 filter "(ip dst host bit) and not ip host $me"]
-set f1len [$bpf1 filter "(ip src host bit) and not ip host $me"]
+#
+# try to filter out wierd stuff like netbios pkts, arp requests, dns, etc
+#
+set notme "(not ip host $me)"
+set notbcast "(not ether broadcast)"
+set ftp "and port ftp-data"
+set f0len [$bpf0 filter "(ip dst host bit) and $notme and $notbcast"]
+set f1len [$bpf1 filter "(ip src host bit) and $notme and $notbcast"]
 
 puts "filter lengths: $f0len (bpf0), $f1len (bpf1)"
 puts "dev $nd0 has address [$bpf0 linkaddr]"
@@ -80,8 +97,8 @@ $ns attach-agent $node2 $a2
 $ns connect $a0 $a2
 $ns connect $a1 $a2
 
-puts "scheduling termination at t=$stoptime"
-$ns at $stoptime "exit 0"
+#puts "scheduling termination at t=$stoptime"
+#$ns at $stoptime "exit 0"
 
 puts "let's rock"
 $ns run
