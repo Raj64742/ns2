@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.13 1999/08/24 04:16:28 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.14 1999/09/10 18:53:13 haoboy Exp $
 //
 // Tcp application: transmitting real application data
 // 
@@ -111,7 +111,7 @@ public:
 			strcpy(str_, s);
 		}
 	}
-	virtual TcpAppString* copy() {
+	virtual AppData* copy() {
 		return new TcpAppString(*this);
 	}
 };
