@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.8 2000/09/14 18:19:28 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.9 2001/01/12 17:43:52 tomh Exp $
 
 
 # ======================================================================
@@ -347,7 +347,7 @@ Node/SatNode instproc add-interface args {
 	# Interface Queue
 	#
 	$ifq target $mac
-	$ifq set qlim_ $qlen
+	$ifq set limit_ $qlen
         $drophead target [[Simulator instance] set nullAgent_]
         $ifq drop-target $drophead
 
