@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.9 1998/05/21 01:43:03 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.10 1998/05/21 02:40:12 kfall Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -74,6 +74,7 @@ public:
 	inline void reset() { clock_ = 0.; }/*XXX*/
 protected:
 	void dumpq();	// for debug: remove + print remaining events
+	void dispatch(Event*);	// execute an event
 	Scheduler();
 	int command(int argc, const char*const* argv);
 	double clock_;
