@@ -2,10 +2,7 @@
 # simulator for router mechanisms
 #
 
-source flow-link.tcl
-
-set goodslot 0
-set badslot 1
+source mechanisms.tcl
 
 #
 # create:
@@ -36,7 +33,8 @@ proc create_topology tf {
 
 	$ns duplex-link $s1 $r1 10Mb 2ms DropTail
 	$ns duplex-link $s2 $r1 10Mb 3ms DropTail
-	$ns simplex-link $r1 $r2 1.5Mb 20ms CBQ
+	set cl [new Classifier/Hash/SrcDestFid 33]
+	$ns simplex-link $r1 $r2 1.5Mb 20ms "CBQ $cl"
 	set cbqlink [$ns link $r1 $r2]
 	$ns simplex-link $r2 $r1 1.5Mb 20ms RED
 	[[$ns link $r2 $r1] queue] set limit_ 25
@@ -45,96 +43,6 @@ proc create_topology tf {
 
 #	$ns trace-queue $n2 $n3 $tf
 	return $cbqlink
-}
-
-#
-# set up the CBQ classifier for 2 classes (good and bad)
-# set default to the good class
-# also, put snoop queues between the classifier and
-# the cbq class
-#
-proc class_bindings { cbqlink garrsnoop barrsnoop } {
-	global goodcl badcl
-	global goodslot badslot
-
-	set classifier [$cbqlink classifier]
-	$classifier install $goodslot $goodcl
-	$classifier set default_ $goodslot
-
-	if { $garrsnoop != "" && $garrsnoop != "none" } {
-		$classifier install $goodslot $garrsnoop
-		$garrsnoop target $goodcl
-	}
-	if { $barrsnoop != "" && $barrsnoop != "none" } {
-		$classifier install $badslot $barrsnoop
-		$barrsnoop target $badcl
-	}
-}
-
-proc set_red_params { redq psize qlim bytes wait } {
-	$redq set mean_pktsize_ $psize
-	$redq set limit_ $qlim
-	$redq set bytes_ $bytes
-	$redq set wait_ $wait
-}
-
-#
-# create the CBQ classes and their queues
-# 	install queues into classes
-# 	install classes into CBQ
-#	set cbq class params
-#
-proc create_cbqclasses { cbqlink fm qsz } {
-	global ns goodcl badcl
-
-	set cbq [$cbqlink queue]
-	set rootcl [new CBQClass]
-	set badcl [new CBQClass]
-	set goodcl [new CBQClass]
-
-	set badq [new Queue/RED]
-	set goodq [new Queue/RED]
-	$badq link [$cbqlink link]
-	$goodq link [$cbqlink link]
-	set_red_params $badq 1000 $qsz true false
-	set_red_params $goodq 1000 $qsz true false
-
-	$badcl install-queue $badq
-	$goodcl install-queue $goodq
-
-	$badcl setparams $rootcl true 0.0 0.004 1 1 0
-	$goodcl setparams $rootcl true 0.98 0.004 1 1 0
-	$rootcl setparams none true 0.98 0.004 1 1 0
-
-	$cbqlink insert $rootcl
-	$cbqlink insert $badcl
-	$cbqlink insert $goodcl
-
-	#
-	# code to splice in a set of snoopdrop things
-	#
-	set btarget [$badq drop-target]
-	set gtarget [$goodq drop-target]
-
-	set dsnoop [new SnoopQueue/Drop]
-	$dsnoop set-monitor $fm
-	$badq drop-target $dsnoop
-	$dsnoop target $btarget
-
-	set dsnoop [new SnoopQueue/Drop]
-	$dsnoop set-monitor $fm
-	$goodq drop-target $dsnoop
-	$dsnoop target $gtarget
-
-	set edsnoop [new SnoopQueue/EDrop]
-	$edsnoop set-monitor $fm
-	$badq early-drop-target $edsnoop
-	$edsnoop target $btarget
-
-	set edsnoop [new SnoopQueue/EDrop]
-	$edsnoop set-monitor $fm
-	$goodq early-drop-target $edsnoop
-	$edsnoop target $gtarget
 }
 
 proc create_source { src sink fid } {
@@ -168,75 +76,6 @@ proc printflow f {
 	puts "flow $f: epdrops: [$f set epdrops_]; ebdrops: [$f set ebdrops_]; pdrops: [$f set pdrops_]; bdrops: [$f set bdrops_]"
 }
 
-proc dumpflows { fm interval } {
-	global ns
-	proc dump { f interval } {
-		global ns
-		$ns at [expr [$ns now] + $interval] "dump $f $interval"
-		$f dump
-		$f reset
-		#set kf [$f flows]
-		#puts "flows known: $kf"
-		#foreach ff $kf {
-		#	printflow $ff
-		#}
-	}
-	$ns at 0.0 "dump $fm $interval"
-}
-
-
-proc create_flowmon fch {
-	global ns
-
-	set flowmon [new QueueMonitor/ED/Flowmon]
-	set cl [new Classifier/Hash/SrcDestFid 33]
-	$cl proc unknown-flow { src dst fid hashbucket } {
-		global ns
-		set fdesc [new QueueMonitor/ED/Flow]
-		set slot [$self installNext $fdesc]
-puts "[$ns now]: (self:$self) installing flow $fdesc (s:$src,d:$dst,f:$fid) in buck: $hashbucket, slot >$slot<"
-		$self set-hash $hashbucket $src $dst $fid $slot
-	}
-
-	$flowmon classifier $cl
-	$flowmon attach $fch
-	return $flowmon
-}
-
-#
-# awk code used to produce:
-#       x axis: # arrivals for this flow+category / # total arrivals [bytes]
-#       y axis: # drops for this flow+category / # drops this category [pkts]
-proc unforcedmakeawk { } {
-        set awkCode {
-            BEGIN { print "\"flow 0" }
-            {
-                if ($2 != prev) {
-                        print " "; print "\"flow " $2; print 100.0 * $9/$13, 100.0 * $10 / $14; prev = $2
-                } else
-                        print 100.0 * $9 / $13, 100.0 * $10 / $14
-            }
-        }
-        return $awkCode
-}
-#
-# awk code used to produce:
-#       x axis: # arrivals for this flow+category / # total arrivals [bytes]
-#       y axis: # drops for this flow+category / # drops this category [bytes]
-proc forcedmakeawk { } {
-        set awkCode {
-            BEGIN { print "\"flow 0" }
-            {
-                if ($2 != prev) {
-                        print " "; print "\"flow " $2; print 100.0 * $9/$13, 100.0 * $11 / $15; prev = $2
-                } else
-                        print 100.0 * $9 / $13, 100.0 * $11 / $15
-            }
-        }
-        return $awkCode
-}
-
-
 proc finish { tf ff } {
 	close $tf
 	close $ff
@@ -257,20 +96,26 @@ proc sim1 {} {
 	set start3 1.4
 	set endsim 300.0
 
+	set rtt 0.06
+	set mtu 512
+
 	set ns [new Simulator]
 
 	set tracef [open out.tr w]
 	set cbqlink [create_topology $tracef]
 
-	set flowf [open flow.tr w]
-	set flowmon [create_flowmon $flowf]
-	dumpflows $flowmon 1.0
+	set rtm [new RTMechanisms $ns $cbqlink $rtt $mtu]
 
-	create_cbqclasses $cbqlink $flowmon 100
+	set gfm [$rtm makeflowmon]
+	set gflowf [open gflow.tr w]
+	$gfm attach $gflowf
 
-	set arrivalsnooper [new SnoopQueue/In]
-	class_bindings $cbqlink $arrivalsnooper none
-	$arrivalsnooper set-monitor $flowmon
+	set bfm [$rtm makeflowmon]
+	set bflowf [open bflow.tr w]
+	$bfm attach $bflowf
+
+	$rtm makeboxes $gfm $bfm 100 1000
+	$rtm bindboxes
 
 	set src1 [create_tcp_source $s1 $s3 1 100 1000]
 	set src2 [create_tcp_source $s2 $s4 2 100 50]
@@ -281,7 +126,7 @@ proc sim1 {} {
 	$ns at $start1 "$src1 start"
 	$ns at $start2 "$src2 start"
 	$ns at $start3 "$src3 start"
-	$ns at $endsim "finish $tracef $flowf"
+	$ns at $endsim "finish $gflowf $bflowf"
 	$ns run
 }
 sim1
