@@ -158,12 +158,12 @@ Test/simple-ping instproc run {} {
     $node_(2) set Z_ 0.000000000000
 
     #Diffusion application - ping src
-    set src_(0) [new Application/DiffApp/PingSource]
+    set src_(0) [new Application/DiffApp/PingSender]
     $ns_ attach-diffapp $node_(0) $src_(0)
     $ns_ at 0.123 "$src_(0) publish"
 
     #Diffusion application - ping sink
-    set snk_(0) [new Application/DiffApp/PingSink]
+    set snk_(0) [new Application/DiffApp/PingReceiver]
     $ns_ attach-diffapp $node_(2) $snk_(0)
     $ns_ at 1.456 "$snk_(0) subscribe"
 
