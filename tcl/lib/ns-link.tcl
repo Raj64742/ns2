@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.12 1997/04/30 23:41:01 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.13 1997/05/01 04:20:04 kfall Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -98,16 +98,8 @@ SimpleLink instproc trace { ns f } {
 	$deqT_ target [$queue_ target]
 	$queue_ target $deqT_
 
-        if {$head_ == $queue_} {
-		$enqT_ target $head_
-		set head_ $enqT_
-	} else {
-		for {set c $head_} {[$c target] != $queue_} {set c [$c target]} {
-			#NOTHING#
-		}
-		$enqT_ target $queue_
-		$c target $enqT_
-	}
+	$enqT_ target $head_
+	set head_ $enqT_
 
 	$self instvar dynamics_
 	if [info exists dynamics_] {
