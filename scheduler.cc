@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.61 2000/11/17 22:10:33 ratul Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.62 2000/11/17 22:24:01 ratul Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.61 2000/11/17 22:10:33 ratul Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.62 2000/11/17 22:24:01 ratul Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -88,10 +88,6 @@ void Scheduler::schedule(Handler* h, Event* e, double delay)
 	e->handler_ = h;
 	double t = clock_ + delay;
 
-// 	if (t==0) {
-// 		printf("Scheduler - got zero t\n");
-// 	}
-	
 	e->time_ = t;
 	insert(e);
 }
@@ -124,10 +120,6 @@ Scheduler::dispatch(Event* p, double t)
 	if (t < clock_) {
 		fprintf(stderr, "ns: scheduler going backwards in time from %f to %f.\n", clock_, t);
 	}
-// 	if (t==0) {
-// 		fprintf(stderr, "ns: scheduler event for time zero\n");
-// 		return;
-// 	}
 
 	clock_ = t;
 	p->uid_ = -p->uid_;	// being dispatched
