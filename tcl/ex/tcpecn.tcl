@@ -23,7 +23,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/tcpecn.tcl,v 1.5 1999/02/19 22:46:52 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/tcpecn.tcl,v 1.6 1999/10/25 21:53:17 klan Exp $
 #
 # A simple example for tcp ecn simulation/animation with namgraph support
 # This script is adopted from ns-2/tcl/test/test-suite-ecn.tcl
@@ -117,7 +117,7 @@ proc finish {} {
  
         #XXX
         puts "Filtering ..."
-	exec tclsh8.0 ../nam/bin/namfilter.tcl out.nam
+	exec tclsh8.0 ../../../nam-1/bin/namfilter.tcl out.nam
 
         puts "running nam..."
         exec nam out.nam &

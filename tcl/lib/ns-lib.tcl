@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.180 1999/10/24 09:11:50 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.181 1999/10/25 21:53:20 klan Exp $
 
 #
 
@@ -405,7 +405,7 @@ Simulator instproc create-wireless-node { args } {
         $self instvar propInstance_ llType_ macType_ ifqType_ ifqlen_ phyType_ chan
         $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  
         $self instvar imepflag_ topoInstance_
-	$self instvar namtraceAllFile_
+#	$self instvar namtraceAllFile_
 
 
         set imepflag_ OFF
@@ -414,7 +414,7 @@ Simulator instproc create-wireless-node { args } {
 
         set node [$self create-node-instance $args]
         
-	$node get-nam-traceall $namtraceAllFile_
+#	$node get-nam-traceall $namtraceAllFile_
     
         # basestation address setting
         if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
