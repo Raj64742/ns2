@@ -24,6 +24,8 @@ public:
   inline double level1() { return level1_; }
   inline double level2() { return level2_; }
   inline void setenergy(double e) {energy_ = e;}
+
+  /*
   virtual void DecrTxEnergy(double txtime, double P_tx) {
     energy_ -= (P_tx * txtime);
   }
@@ -38,6 +40,30 @@ public:
         energy_ = 0;
     }
   }
+  */
+
+
+// ------------------------------------
+// Modified by Chalermek 
+
+  virtual void DecrTxEnergy(double txtime, double P_tx);
+  virtual void DecrRcvEnergy(double rcvtime, double P_rcv);
+  virtual void DecrIdleEnergy(double idletime, double P_idle);
+
+   virtual double MaxTxtime(double P_tx) {
+ 	return(energy_/P_tx);
+   }
+ 
+   virtual double MaxRcvtime(double P_rcv) {
+ 	return(energy_/P_rcv);
+   }
+ 
+   virtual double MaxIdletime(double P_idle) {
+ 	return(energy_/P_idle);
+   }
+   
+// ------------------------------------
+
 
 protected:
   double energy_;

@@ -47,9 +47,24 @@
 #include "omni-antenna.h"
 #include "phy.h"
 #include "mobilenode.h"
+#include "timer-handler.h"
+
 
 class Phy;
 class Propagation;
+class WirelessPhy;
+
+
+// For idle energy consumption -- Chalermek
+
+class Idle_Timer : public TimerHandler {
+ public:
+	Idle_Timer(WirelessPhy *a) : TimerHandler() { a_ = a; }
+ protected:
+	virtual void expire(Event *e);
+	WirelessPhy *a_;
+};
+
 
 class WirelessPhy : public Phy {
  public:
@@ -69,8 +84,15 @@ class WirelessPhy : public Phy {
 	//void setnode (MobileNode *node) { node_ = node; }
 	
  protected:
-  double Pt_;			// transmission power (W)
-  double Pr_;                   // reception power (W)
+  double Pt_;			// transmission power consumption (W)
+  double Pr_;                   // reception power consumption (W)
+
+  double P_idle_;               // idle power consumption (W)
+  double Pt_signal_;            // This power defines transmission range !
+
+  double channel_idle_time_;    // channel idle time.
+  double update_energy_time_;   // the last time we update energy.
+  double last_send_time_;       // the last time the node sends somthing.
 
   double freq_;                  // frequency
   double lambda_;		// wavelength (m)
@@ -84,6 +106,12 @@ class WirelessPhy : public Phy {
   Propagation *propagation_;	// Propagation Model
   Modulation *modulation_;	// Modulation Schem
   MobileNode* node_;         // Mobile Node to which interface is attached .
+
+  Idle_Timer idle_timer_;
+
+  enum ChannelStatus { IDLE, RECV, SEND };
+  int status_;
+
   
  private:
   
@@ -91,7 +119,9 @@ class WirelessPhy : public Phy {
 	  return (node_ && uptarget_ && downtarget_ && propagation_);
   }
   
-
+  void UpdateIdleEnergy();
+  
+  friend class Idle_Timer;
 };
 
 #endif /* !ns_WirelessPhy_h */

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.18 2000/05/11 23:43:18 klan Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.19 2000/07/10 07:24:45 intanago Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -159,6 +159,17 @@ class Node : public TclObject {
 	void add_neighbor(u_int32_t);      // for adaptive fidelity
 	void scan_neighbor();
 	void start_powersaving();
+
+ 	// -------------------------------
+ 	// Just a hack for now : Chalermek
+
+ 	void color(char *c);	
+	char *GetColor();
+	bool node_on_;
+
+ 	// -------------------------------
+
+
 protected:
 	LIST_ENTRY(Node) entry;  // declare list entry structure
 	EnergyModel *energy_model_;

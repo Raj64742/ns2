@@ -113,6 +113,8 @@ public:
         int     command(int argc, const char*const* argv);
 	int     arpresolve(nsaddr_t dst, Packet *p, LL *ll);
 	void    arpinput(Packet *p, LL *ll);
+	ARPEntry* arplookup(nsaddr_t dst);
+	void arprequest(nsaddr_t src, nsaddr_t dst, LL *ll);
 
 	void	Terminate(void);
 protected:
@@ -122,8 +124,6 @@ protected:
 
 private:
 	inline int initialized() { return node_ && mac_; }
-	ARPEntry* arplookup(nsaddr_t dst);
-	void arprequest(nsaddr_t src, nsaddr_t dst, LL *ll);
 
 	ARPEntry_List	arphead_;
 	MobileNode	*node_;
@@ -139,4 +139,10 @@ public:
 };
 
 #endif /* __arp_h__ */
+
+
+
+
+
+
 

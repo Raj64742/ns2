@@ -306,6 +306,9 @@ MobileNode::log_energy(int flag)
 void
 MobileNode::idle_energy_patch(float total, float P_idle)
 {
+	fprintf(stderr,"MobileNode::idle_energy_patch is obsolete!\n");
+
+	/*
        float real_idle = total-(total_sndtime_+total_rcvtime_+total_sleeptime_);
        //printf("total=%f send=%f rcv=%f, slp=%f\n",total, total_sndtime_,total_rcvtime_,total_sleeptime_);
        
@@ -320,6 +323,7 @@ MobileNode::idle_energy_patch(float total, float P_idle)
 	      this->log_energy(0);
        }
 
+	*/
 }
 
 

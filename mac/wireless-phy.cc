@@ -46,11 +46,20 @@
 #include <modulation.h>
 #include <omni-antenna.h>
 #include <wireless-phy.h>
-
 #include <packet.h>
 #include <ip.h>
 #include <agent.h>
 #include <trace.h>
+
+#include "diffusion/diff_header.h"
+
+#define max(a,b) (((a)<(b))?(b):(a))
+
+
+void Idle_Timer::expire(Event *) {
+	a_->UpdateIdleEnergy();
+}
+
 
 /* ======================================================================
    WirelessPhy Interface
@@ -64,18 +73,56 @@ public:
 } class_WirelessPhy;
 
 
-WirelessPhy::WirelessPhy() : Phy()
+WirelessPhy::WirelessPhy() : Phy(), idle_timer_(this), status_(IDLE)
 {
+	/*
 	node_ = 0;
 	propagation_ = 0;
 	modulation_ = 0;
 	bandwidth_ = 2*1e6;                 // 100 kb
-	//	Pt_ = 16.267 * 1e-3;   // 16.267 mW for 100m range with TwoRay model
 	Pt_ = pow(10, 2.45) * 1e-3;         // 24.5 dbm, ~ 281.8mw
 	Pr_ = Pt_;
 	lambda_ = SPEED_OF_LIGHT / (914 * 1e6);  // 914 mHz
 	L_ = 1.0;
 	freq_ = -1.0;
+	*/
+
+
+	// Assume AT&T's Wavelan PCMCIA card -- Chalermek
+
+	node_ = 0;
+	propagation_ = 0;
+	modulation_ = 0;
+
+	//	bandwidth_ = 1.6e6;                
+
+	bandwidth_ = 2*1e6;                 // 2Mb
+
+	//	Pt_signal_ = 8.5872e-4; // For 40m transmission range.
+	//      Pt_signal_ = 7.214e-3;  // For 100m transmission range.
+	//      Pt_signal_ = 0.2818; // For 250m transmission range.
+
+	Pt_signal_ = pow(10, 2.45) * 1e-3;         // 24.5 dbm, ~ 281.8mw
+	Pt_ = 0.660;  // 1.6 W drained power for transmission 
+	Pr_ = 0.395;  // 1.2 W drained power for reception 
+
+	//	P_idle_ = 0.035; // 1.15 W drained power for idle
+
+	P_idle_ = 0.0;
+
+	channel_idle_time_ = NOW;
+	update_energy_time_ = NOW;
+	last_send_time_ = NOW;
+
+	//	lambda_ = SPEED_OF_LIGHT / (915 * 1e6);  // 915 mHz
+
+	lambda_ = SPEED_OF_LIGHT / (914 * 1e6);  // 914 mHz
+	L_ = 1.0;
+	freq_ = -1.0;
+
+	idle_timer_.resched(1.0);
+
+
 
   /*
    *  It sounds like 10db should be the capture threshold.
@@ -115,13 +162,40 @@ int
 WirelessPhy::command(int argc, const char*const* argv)
 {
   TclObject *obj;    
-  if(argc == 3) {
+
+  if (argc==2) {
+	  if (strcasecmp(argv[1], "NodeOn") == 0) {
+		  if (node_->energy_model() == NULL) 
+			  return TCL_OK;
+		  if (NOW > update_energy_time_) {
+			  update_energy_time_ = NOW;
+		  }
+		  return TCL_OK;
+	  }
+	  if (strcasecmp(argv[1], "NodeOff") == 0) {
+		  if (node_->energy_model() == NULL) 
+			  return TCL_OK;
+		  if (NOW > update_energy_time_) {
+			  (node_->energy_model())->
+				  DecrIdleEnergy(NOW-update_energy_time_,
+					 P_idle_);
+			  update_energy_time_ = NOW;
+		  }
+		  return TCL_OK;
+	  }
+  } 
+
+  else if(argc == 3) {
 	  if (strcasecmp(argv[1], "setTxPower") == 0) {
 		  Pt_ = atof(argv[2]);
 		  return TCL_OK;
 	  }
 	  else if (strcasecmp(argv[1], "setRxPower") == 0) {
 		  Pr_ = atof(argv[2]);
+		  return TCL_OK;
+	  }
+	  else if (strcasecmp(argv[1], "setIdlePower") == 0) {
+		  P_idle_ = atof(argv[2]);
 		  return TCL_OK;
 	  }
           else if( (obj = TclObject::lookup(argv[2])) == 0) {
@@ -155,6 +229,12 @@ WirelessPhy::sendDown(Packet *p)
 	 */
 	assert(initialized());
 	
+	if ( (node_->node_on_ != true) || (node_->sleep()) ) {
+		Packet::free(p);
+		return;
+	}
+
+
 	/*
 	 * Decrease node's energy
 	 */
@@ -164,8 +244,75 @@ WirelessPhy::sendDown(Packet *p)
 		if ((node_->energy_model())->energy() > 0) {
 
 		    double txtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
+		    /*
 		    node_->add_sndtime(txtime);
 		    (node_->energy_model())->DecrTxEnergy(txtime,Pt_);
+		    */
+
+		    double start_time = max(channel_idle_time_, NOW);
+		    double end_time = max(channel_idle_time_, NOW+txtime);
+		    double actual_txtime = end_time-start_time;
+
+		    if (start_time > update_energy_time_) {
+			    (node_->energy_model())->
+				 DecrIdleEnergy(start_time-update_energy_time_,
+						P_idle_);
+			    update_energy_time_ = start_time;
+		    }
+
+		   
+		    /* It turns out that MAC sends packet even though, it's
+		       receiving some packets.
+		    
+		    if (txtime-actual_txtime > 0.000001) {
+			    fprintf(stderr,"Something may be wrong at MAC\n");
+			    fprintf(stderr,"act_tx = %lf, tx = %lf\n", actual_txtime, txtime);
+		    }
+
+		    */
+
+
+		   // Sanity check
+
+		   double temp = max(NOW,last_send_time_);
+
+		   /*
+		   if (NOW < last_send_time_) {
+			   fprintf(stderr,"Argggg !! Overlapping transmission. NOW %lf last %lf temp %lf\n", NOW, last_send_time_, temp);
+		   }
+		   */
+	    
+		    double begin_adjust_time = min(channel_idle_time_, temp);
+		    double finish_adjust_time = min(channel_idle_time_, NOW+txtime);
+		    double gap_adjust_time = finish_adjust_time - begin_adjust_time;
+		    if (gap_adjust_time < 0.0) {
+			    fprintf(stderr,"What the heck ! negative gap time.\n");
+		    }
+
+		    if (gap_adjust_time > 0.0) {
+		       if (status_ == RECV) {
+			  (node_->energy_model())->DecrTxEnergy(
+						   gap_adjust_time, Pt_-Pr_);
+		       }
+		    }
+
+
+		    (node_->energy_model())->DecrTxEnergy(actual_txtime,Pt_);
+
+		    if (end_time > channel_idle_time_) {
+			    status_ = SEND;
+		    }
+							
+		    last_send_time_ = NOW+txtime;
+		    channel_idle_time_ = end_time;
+		    update_energy_time_ = end_time;
+
+		    /*
+		    hdr_diff *dfh = HDR_DIFF(p);
+		    printf("Node %d sends (%d, %d, %d) energy %lf.\n",
+			   node_->address(), dfh->sender_id.addr_, 
+			   dfh->sender_id.port_, dfh->pk_num, node_->energy());
+		    */
 
 		    if ((node_->energy_model())->energy() <= 0) {
 			    node_->energy_model()->setenergy(0);
@@ -182,8 +329,8 @@ WirelessPhy::sendDown(Packet *p)
 	/*
 	 *  Stamp the packet with the interface arguments
 	 */
-	p->txinfo_.stamp(node_, ant_->copy(), Pt_, lambda_);
-	
+	p->txinfo_.stamp(node_, ant_->copy(), Pt_signal_, lambda_);
+
 	// Send the packet
 	channel_->recv(p, this);
 }
@@ -203,7 +350,7 @@ WirelessPhy::sendUp(Packet *p)
 
   // if the node is in sleeping mode, drop the packet simply
 
-  if (node_->sleep()) {
+  if ( (node_->sleep()) || (node_->node_on_ != true)) {
      
       pkt_recvd = 0;
       goto DONE;
@@ -278,8 +425,38 @@ DONE:
   if(pkt_recvd 	&& node_->energy_model()) {
 	  double rcvtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
 	  // no way to reach here if the energy level < 0
+
+	  /*
  	  node_->add_rcvtime(rcvtime);	  
 	  (node_->energy_model())->DecrRcvEnergy(rcvtime,Pr_);
+	  */
+
+	  double start_time = max(channel_idle_time_, NOW);
+	  double end_time = max(channel_idle_time_, NOW+rcvtime);
+	  double actual_rcvtime = end_time-start_time;
+
+	  if (start_time > update_energy_time_) {
+		  (node_->energy_model())->
+			  DecrIdleEnergy(start_time-update_energy_time_,
+					 P_idle_);
+		  update_energy_time_ = start_time;
+	  }
+	  
+	  (node_->energy_model())->DecrRcvEnergy(actual_rcvtime,Pr_);
+
+	  if (end_time > channel_idle_time_) {
+		  status_ = RECV;
+	  }
+
+	  channel_idle_time_ = end_time;
+	  update_energy_time_ = end_time;
+
+	  /*
+	  hdr_diff *dfh = HDR_DIFF(p);
+	  printf("Node %d receives (%d, %d, %d) energy %lf.\n",
+		  node_->address(), dfh->sender_id.addr_, 
+		  dfh->sender_id.port_, dfh->pk_num, node_->energy());
+	  */
 
 	  if ((node_->energy_model())->energy() <= 0) {  
 	  // saying node died
@@ -290,6 +467,7 @@ DONE:
 
   return pkt_recvd;
 }
+
 
 void
 WirelessPhy::dump(void) const
@@ -303,6 +481,21 @@ WirelessPhy::dump(void) const
 }
 
 
+void WirelessPhy::UpdateIdleEnergy()
+{
+	if ( node_->energy_model() == NULL) {
+		return;
+	}
+
+	if (NOW > update_energy_time_ && node_->node_on_ == true) {
+		  (node_->energy_model())->
+			  DecrIdleEnergy(NOW-update_energy_time_,
+					 P_idle_);
+		  update_energy_time_ = NOW;
+	}
+
+	idle_timer_.resched(1.0);
+}
 
 
 

@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.26 1999/03/13 03:52:50 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.27 2000/07/10 07:24:45 intanago Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -96,6 +96,7 @@ public:
         inline Queue *ifq() { return ifq_; }
         inline NsObject* downtarget() { return downtarget_; }
         inline NsObject* uptarget() { return uptarget_; }
+ 	inline ARPTable *arp_table() { return arptable_; }
 	
 protected:
 	int command(int argc, const char*const* argv);

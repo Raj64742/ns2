@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.54 2000/05/24 19:00:07 kclan Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.55 2000/07/10 07:24:45 intanago Exp $
  */
 
 #include <packet.h>
@@ -51,6 +51,9 @@
 #include <aodv/aodv_packet.h> //AODV
 #include <cmu-trace.h>
 #include <mobilenode.h>
+
+#include "diffusion/diff_header.h" // DIFFUSION -- Chalermek
+
 
 //#define LOG_POSITION
 
@@ -631,30 +634,46 @@ CMUTrace::nam_format(Packet *p, int offset)
         else if (energyLevel == 2) strcpy(colors,"-c yellow -o green");
         else if (energyLevel == 3) strcpy(colors,"-c green -o black");
 
+
+	// A simple hack for scadds demo (fernandez's visit) -- Chalermek
+
+	int pkt_color = 0;
+
+	if (ch->ptype()==PT_DIFF) {
+		hdr_diff *dfh= HDR_DIFF(p);
+
+		if (dfh->mess_type != DATA) {
+			pkt_color = 1;
+		}
+	}
+
+
 	// convert to nam format 
 	if (op == 's') op = 'h' ;
 	if (op == 'D') op = 'd' ;
 
 	if (op == 'h') {
 	   sprintf(nwrk_ ,
-		"+ -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s ",
+		"+ -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s ",
 		Scheduler::instance().clock(),
 		src_,                           // this node
 		next_hop,
 		packet_info.name(ch->ptype()),
 		ch->size(),
+		pkt_color,   
 		ch->uid(),
 		tracename);
 
 	   offset = strlen(nwrk_);
 	   namdump();
 	   sprintf(nwrk_ ,
-		"- -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
+		"- -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s",
 		Scheduler::instance().clock(),
 		src_,                           // this node
 		next_hop,
 		packet_info.name(ch->ptype()),
 		ch->size(),
+		pkt_color,
 		ch->uid(),
 		tracename);
 
@@ -687,13 +706,14 @@ CMUTrace::nam_format(Packet *p, int offset)
         }
 
 	sprintf(nwrk_ ,
-		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
+		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s",
 		op,
 		Scheduler::instance().clock(),
 		src_,                           // this node
 		next_hop,
 		packet_info.name(ch->ptype()),
 		ch->size(),
+		pkt_color,
 		ch->uid(),
 		tracename);
 
@@ -759,6 +779,9 @@ void CMUTrace::format(Packet* p, const char *why)
 			
 		case PT_CBR:
 			format_rtp(p, offset);
+			break;
+		       
+	        case PT_DIFF:
 			break;
 
 		default:
@@ -875,7 +898,8 @@ CMUTrace::node_energy()
 	} 
 
 	if (energy > 0) return 1;
-	//printf("DEBUG: node %d dropping pkts due to energy = 0\n", src_);
+	//	 printf("DEBUG: node %d dropping pkts due to energy = 0 at time %lf\n",
+	//		src_, NOW);
 	return 0;
 
 }

@@ -35,7 +35,7 @@
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.17 2000/05/11 23:43:17 klan Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.18 2000/07/10 07:24:45 intanago Exp $
  */
 
 #include <phy.h>
@@ -43,6 +43,8 @@
 #include <address.h>
 #include <node.h>
 #include <random.h>
+
+#include "god.h"
 
 static class LinkHeadClass : public TclClass {
 public:
@@ -98,7 +100,7 @@ struct node_head Node::nodehead_ = { 0 }; // replaces LIST_INIT macro
 Node::Node(void) : address_(-1), energy_model_(NULL), sleep_mode_(0), total_sleeptime_(0),
 	           total_rcvtime_(0), total_sndtime_(0), adaptivefidelity_(0),
 	           powersavingflag_(0), namDefinedFlag_(0), last_time_gosleep(0),max_inroute_time_(300),
-	           maxttl_(5)
+	           maxttl_(5), node_on_(true)
 {
 	LIST_INIT(&ifhead_);
 	LIST_INIT(&linklisthead_);
@@ -149,6 +151,36 @@ Node::command(int argc, const char*const* argv)
 			total_rcvtime_ = 0;
 			total_sleeptime_ = 0;
 			return TCL_OK;
+		}
+
+		/*
+		else if (strcmp(argv[1], "energy") == 0) {
+			printf("NODE %d: energy %lf\n", address_, energy());
+		}
+		*/
+
+		else if (strcmp(argv[1], "on") == 0) {
+			node_on_ = true;
+			tcl.evalf("%s set netif_(0)", name_);
+			char *str = tcl.result();
+			tcl.evalf("%s NodeOn", str);
+
+			God::instance()->ComputeRoute();
+			return TCL_OK;
+		}
+
+		else if (strcmp(argv[1], "off") == 0) {
+			node_on_ = false;
+			tcl.evalf("%s set netif_(0)", name_);
+			char *str = tcl.result();
+			tcl.evalf("%s NodeOff", str);
+
+			tcl.evalf("%s set ragent_", name_);
+			str = tcl.result();
+			tcl.evalf("%s reset-state", str);
+
+			God::instance()->ComputeRoute();
+		     	return TCL_OK;
 		}
 	}
 	if (argc == 3) {
@@ -285,20 +317,6 @@ Node::set_node_state(int state)
 void
 Node::idle_energy_patch(float /*total*/, float /*P_idle*/)
 {
-	/*
-       float real_idle = total-(total_sndtime_+total_rcvtime_+total_sleeptime_);
-       
-       //printf("real_idle=%f\n",real_idle);
-       energy_model_-> DecrIdleEnergy(real_idle, P_idle);
-       
-       //set node energy into zero
-
-       if ((this->energy_model())->energy() <= 0) {  
-	  // saying node died
-	      this->energy_model()->setenergy(0);
-	      this->log_energy(0);
-       }
-	*/
 }
 
 void 
@@ -362,6 +380,27 @@ Node::scan_neighbor()
 	}
 
 }
+
+
+// ---------------------------------
+// Just a hack for now : Chalermek
+
+void Node::color(char* c)
+{
+  Tcl& tcl = Tcl::instance();
+
+  tcl.evalf("%s color %s", name_, c);
+}
+
+char *Node::GetColor() {
+  Tcl& tcl = Tcl::instance();
+  
+  tcl.evalf("%s get-attribute \"COLOR\"", name_);
+  return tcl.result();
+}
+		     
+// ---------------------------------
+
 
 void
 SoftNeighborHandler::start()

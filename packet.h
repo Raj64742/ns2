@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.73 2000/05/29 17:48:11 xuanc Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.74 2000/07/10 07:24:45 intanago Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -63,6 +63,11 @@
 #define HDR_TORA(p)     ((struct hdr_tora*)(p)->access(off_TORA_))
 #define HDR_IMEP(p)     ((struct hdr_imep*)(p)->access(off_IMEP_))
 
+/* Added for directed diffusion by Chalermek Intanagonwiwat 4/28/99    */
+ 
+#define HDR_DIFF(p)     ((struct hdr_diff*)(p)->access(hdr_diff::offset_))
+ 
+/* --------------------------------------------------------------------*/
 
 enum packet_t {
 	PT_TCP,
@@ -121,6 +126,14 @@ enum packet_t {
 	PT_TFRC,
 	PT_TFRC_ACK,
 	PT_PING,
+
+ 	/* Here is Diffusion packets : Chalermek */
+
+ 	PT_DIFF,
+
+ 	/* -------------------------------- */
+
+
 	PT_NTYPE // This MUST be the LAST one
 };
 
@@ -176,6 +189,12 @@ public:
  		name_[PT_TFRC]= "tcpFriend";
 		name_[PT_TFRC_ACK]= "tcpFriendCtl";
 		name_[PT_PING]="ping";
+
+	 	/* For diffusion : Chalermek */
+ 
+ 		name_[PT_DIFF] = "diffusion";
+ 
+ 		/* ------------------------- */
 
 		name_[PT_NTYPE]= "undefined";
 	}
