@@ -45,7 +45,7 @@ $ns attach-agent $n0 $tcp
 $ns attach-agent $n3 $sink
 $ns connect $tcp $sink
 set ftp [new Source/FTP]
-$ftp set agent $tcp
+$ftp set agent_ $tcp
 $ns at 1.2 "$ftp start"
 
 puts [$cbr0 set packetSize_]
