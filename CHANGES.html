@@ -19,6 +19,27 @@ with the most recent changes coming first.
 [PENDING RELEASE DATE]</h3>
 <ul>
 
+<p><li><b>[Sally Floyd]</b>
+<br>
+Mon Dec 30 2002
+<br>
+Fixed a bug for the "QOption_" option with Sack TCP,
+for responding to a quiescent period.  By default, this
+option is off.
+<p>
+
+<p><li><b>[Sally Floyd]</b>
+Sun Dec 29 2002
+<br>
+Added partial_ack_, for better performance for Sack TCP with
+partial acks during Fast Recovery.  For validation, see
+"./test-all-tcpVariants multiple_partial_ack_sack" and
+"./test-all-tcpVariants multiple_sack" in the directory tcl/test.
+<p>
+Adding GetNextUnacked() to scoreboard.cc for use by Sack TCP in responding   
+to partial ACKs.
+<p>
+
 <p><li><b>[Srikanth Sundarrajan]</b>
 Thu Dec 19 03:54:40 PST 2002
 <ul>
