@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.105 1998/05/27 19:46:48 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.106 1998/06/02 23:38:47 yaxu Exp $
 
 #
 
@@ -216,6 +216,10 @@ Simulator instproc dump-namagents {} {
 	}
 }
 
+Simulator instproc dump-namversion { v } {
+	$self puts-nam-config "V -t * -v $v -a 0"
+}
+
 Simulator instproc dump-namcolors {} {
 	$self instvar color_
 	if ![$self is-started] {
@@ -352,6 +356,9 @@ Simulator instproc run {} {
 		set q [$link_($qn) queue]
 		$q reset
 	}
+
+	# Setting nam trace file version first
+	$self dump-namversion 1.0b6
 	
 	# Addressing scheme
 	$self dump-namaddress
