@@ -17,7 +17,16 @@ with the most recent changes coming first.
 <h3>ns-2.27 [PENDING RELEASE]
 
 
-
+<p><li><b>[Sally Floyd]</b>
+<br>
+Thu Mar 27 2003
+<br>
+Adding avoidReordering_ to DelayLink, set to true to avoid reordering
+when changing link bandwidth or delay.  The code was contributed by
+Andrei Gurtov, and the validation test is in ./test-all-links
+in the directory tcl/test.  The default is for avoidReordering_ to
+be false, for no change in past behavior.
+<p>
 
 <hr>
 <h3>ns-2.1b10[OLD VERSION NO]/ns-2.26[NEW VERSION NO]
