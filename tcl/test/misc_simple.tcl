@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.9 2002/03/08 17:28:19 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.10 2002/12/19 16:12:48 sfloyd Exp $
 #
 
 Object instproc exit args {
@@ -182,7 +182,7 @@ TestSuite instproc cleanup { tfile testname } {
 	$self finish $testname; # calls finish procedure in test suite file
 }
 
-TestSuite instproc cleanupAll { testname } {
+TestSuite instproc cleanupAll { testname {stoptime 0}} {
 	$self instvar ns_ allchan_ namchan_
 	$ns_ halt
 	if { [info exists allchan_] } {
@@ -191,7 +191,12 @@ TestSuite instproc cleanupAll { testname } {
 	if { [info exists namchan_] } {
 		close $namchan_
 	}       
-	$self finish $testname; # calls finish procedure in test suite file
+	if { $stoptime > 0 } {
+		$self finish $testname $stoptime; 
+	} else {
+		$self finish $testname;
+	}
+	# calls finish procedure in test suite file
 }
 
 
