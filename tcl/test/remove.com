@@ -56,7 +56,7 @@ t15:
 set directory=test-output-tcpVariants
 goto doit
 t16:
-set directory=test-output-tcpVariants2
+set directory=test-output-srm
 goto doit
 t17:
 set directory=test-output-session
@@ -74,6 +74,24 @@ t21:
 set directory=test-output-ecn-ack
 goto doit
 t22:
+set directory=test-output-algo-routing
+goto doit
+t23:
+set directory=test-output-hier-routing
+goto doit
+t24:
+set directory=test-output-vc
+goto doit
+t25:
+set directory=test-output-wireless-lan
+goto doit
+t26:
+set directory=test-output-ecn-ack
+goto doit
+t27:
+set directory=test-output-ecn-ack
+goto doit
+t28:
 exit
 doit:
 echo $directory
