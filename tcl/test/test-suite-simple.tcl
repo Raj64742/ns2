@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.32 2003/07/29 20:52:19 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.33 2003/09/09 19:10:04 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1739,6 +1739,8 @@ Test/stats4 instproc run {} {
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 	$ns_ run
 }
+
+# printTimestamps.
 
 TestSuite runTest
 
