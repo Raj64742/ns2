@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.11 2003/01/16 01:58:49 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.12 2003/01/16 17:09:54 sfloyd Exp $
 #
 
 Object instproc exit args {
@@ -42,6 +42,7 @@ Object instproc exit args {
 Class TestSuite
 
 # Use "$self next 0" to avoid creating all.tr and all.nam.
+# Use "$self next 2" to create only all.tr, but not all.nam.
 TestSuite instproc init { {dotrace 1} } {
 	global quiet argv0
 	$self instvar ns_ test_ node_ testName_ 
@@ -49,15 +50,15 @@ TestSuite instproc init { {dotrace 1} } {
 	if [catch "$self get-simulator" ns_] {
 	    set ns_ [new Simulator]
 	}
-	if { $dotrace } {
+	if { $dotrace >= 1 } {
                 set allchan_ [open all.tr w]
                 $ns_ trace-all $allchan_
+        } 
+        if { $dotrace == 1 } {
 		set namchan_ [open all.nam w]
 		if {$quiet == "false"} {
                 	$ns_ namtrace-all $namchan_
 		}
-		## for now, till all tcp-test-suites get converted
-		#$ns_ eventtrace-all
 		if {[regexp {testReno} $argv0]} {
 			$ns_ eventtrace-all
 		}
