@@ -83,7 +83,7 @@ The actual definition of an event is found in \nsf{scheduler.h}:
          */  
         class Handler \{
          public: 
-                virtual void handle(Event* event) = 0;
+                virtual void handle(Event* event);
         \};   
 \end{program}
 Two types of objects are derived from the base
