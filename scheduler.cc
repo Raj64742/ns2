@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.10 1997/06/11 21:24:07 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.11 1997/06/12 01:46:20 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -517,8 +517,8 @@ void RealTimeScheduler::run()
 { 
 	/*XXX*/
 	instance_ = this;
-	double now = tod();
 	for (;;) {
+		double now = tod();
 		Event* p = queue_;
 		if (p == 0) {
 			Tcl_DoOneEvent(0);
@@ -530,7 +530,6 @@ void RealTimeScheduler::run()
 						       nullTimer, 0);
 			Tcl_DoOneEvent(0);
 			Tcl_DeleteTimerHandler(token);
-			now = tod();
 			continue;
 		}
 		queue_ = p->next_;
