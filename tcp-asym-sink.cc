@@ -45,6 +45,11 @@
  * the frequency of acks (up to a maximum of 1 per data packet(.
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.3 1997/07/21 22:15:57 kfall Exp $ (UCB)";
+#endif
+
 #include "tcp-sink.h"
 #include "template.h"
 
@@ -73,7 +78,7 @@ protected:
 static class TcpAsymSinkClass : public TclClass {
 public:
 	TcpAsymSinkClass() : TclClass("Agent/TCPSink/Asym") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new TcpAsymSink(new Acker));
 	}
 } class_tcpasymsink;
@@ -91,7 +96,7 @@ void TcpAsymSink::add_to_ack(Packet* pkt)
 	tha->ackcount() = delackcount_;
 }
 
-void TcpAsymSink::recv(Packet* pkt, Handler* h) 
+void TcpAsymSink::recv(Packet* pkt, Handler*) 
 {
 	int olddelackfactor = delackfactor_;
 	int olddelacklim = delacklim_; 
