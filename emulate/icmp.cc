@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/icmp.cc,v 1.2 1998/06/03 22:32:43 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/icmp.cc,v 1.3 1998/06/06 00:16:49 kfall Exp $";
 #endif
 
 #include <stdio.h>
@@ -61,12 +61,9 @@ public:
 	void recv(Packet*, Handler*) { abort(); }
 protected:
 	void	sendredirect(in_addr& me, in_addr& target, in_addr& dest, in_addr& gw);
-	u_char	buf_[64];
-
 	int	command(int argc, const char*const* argv);
 
 	int	ttl_;
-	in_addr	myip_;
 };
 
 static class IcmpAgentClass : public TclClass { 
