@@ -6,6 +6,16 @@ C.~Alaettino\u{g}lu, A.U. Shankar, K.~Dussa-Zeiger, and I.~Matta.
 \newblock Design and implementation of {MaRS}: A routing testbed.
 \newblock {\em Internetworking: Research and Experience}, 5:17--41, 1994.
 
+\bibitem{Bajaj99a}
+Sandeep Bajaj, Lee Breslau, Deborah Estrin, Kevin Fall, Sally Floyd, Padma
+  Haldar, Mark Handley, Ahmed Helmy, John Heidemann, Polly Huang, Satish Kumar,
+  Steven McCanne, Reza Rejaie, Puneet Sharma, Kannan Varadhan, Ya~Xu, Haobo Yu,
+  and Daniel Zappala.
+\newblock Improving simulation for network research.
+\newblock Technical Report 99-702b, University of Southern California, March
+  1999.
+\newblock (revised September 1999).
+
 \bibitem{Barf98:WebWorkload}
 Paul Barford and Mark Crovella.
 \newblock Generating representative web workloads for network and server
@@ -77,6 +87,11 @@ S.~McCanne and V.~Jacobson.
 \newblock The bsd packet filter: A new architecture for user-level packet
   capture.
 \newblock pages 259--269, January 1993.
+
+\bibitem{Ousterhout98a}
+John Ousterhout.
+\newblock Scripting: Higher-level programming for the 21st century.
+\newblock {\em {IEEE} Computer}, 31(3):23--30, March 1998.
 
 \bibitem{Park88:Random}
 S.K. Park and R.W. Miller.

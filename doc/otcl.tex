@@ -24,11 +24,86 @@ defined in the class TclObject.
 There are other hierarchies in the C++ code and OTcl scripts;
 these other hierarchies are not mirrored in the manner of TclObject.
 
+\section{Concept Overview}
+
+\emph{Why two languages?}
+\ns\ uses two languages because simulator has two different
+  kinds of things it needs to do.
+On one hand, detailed simulations of protocols
+  requires a systems programming language
+  which can efficiently manipulate bytes, packet headers,
+  and implement algorithms that run over large data sets.
+For these tasks run-time speed is important and
+  turn-around time (run simulation, find bug, fix bug, recompile, re-run)
+  is less important.
+
+On the other hand,
+  a large part of network research involves slightly varying
+  parameters or configurations,
+  or quickly exploring a number of scenarios.
+In these cases, iteration time (change the model and re-run)
+  is more important.
+Since configuration runs once (at the beginning of the simulation),
+  run-time of this part of the task is less important.
+
+\ns\ meets both of these needs with two languages,
+  C++ and OTcl.
+C++ is fast to run but slower to change, making it suitable
+  for detailed protocol implementation.
+OTcl runs much slower but can be changed very quickly (and interactively),
+  making it ideal for simulation configuration.
+\ns\ (via \code{tclcl})
+  provides glue to make objects and variables appear on both langauges.
+
+For more information about the idea of scripting languages
+  and split-language programming, see Ousterhout's article
+  in IEEE Computer~\cite{Ousterhout98a}.
+For more information about split level programming for network simulation,
+  see the ns paper~\cite{Bajaj99a}.
+
+
+\emph{Which language for what?}
+Having two languages raises the question of which language should
+be used for what purpose.
+
+Our basic advice is to use OTcl:
+\begin{itemize}
+\item for configuration, setup, and ``one-time'' stuff
+\item if you can do what you want by manipulating existing C++ objects
+\end{itemize}
+
+and use C++:
+\begin{itemize}
+\item if you are doing \emph{anything} that requires processing
+	each packet of a flow
+\item if you have to change the behavior of an existing C++ class
+	in ways that weren't anticipated
+\end{itemize}
+
+For example, links are OTcl objects that assemble delay, queueing, and
+possibly loss modules.  If your experiment can be done with those
+pieces, great.  If instead you want do something fancier (a special
+queueing dicipline or model of loss), then you'll need a new C++
+object.
+
+There are certainly grey areas in this spectrum:
+most routing is done in OTcl
+(although the core Dijkstra algorithm is in C++).
+We've had HTTP simulations where each flow was started in OTcl
+  and per-packet processing was all in C++.
+This approache worked OK until we had 100s of flows
+  starting per second of simulated time.
+In general, if you're ever having to invoke Tcl many times per second,
+  you problably should move that code to C++.
+
+
+\section{Code Overview}
+
 In this document,
 we use the term ``interpreter''
 to be synonymous with the OTcl interpreter.
 The code to interface with the interpreter resides
-in a separate directory, \code{Tcl}.
+in a separate directory, \code{tclcl}.
 The rest of the simulator code resides in the directory, \code{ns-2}.
 We will use the notation \Tclf{\tup{file}}\
 to refer to a particular \tup{file}\ in the

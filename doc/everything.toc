@@ -2,26 +2,28 @@
 \contentsline {chapter}{\numberline {2}Undocumented Facilities}{12}
 \contentsline {part}{I\hspace {1em}Interface to the Interpreter}{13}
 \contentsline {chapter}{\numberline {3}OTcl Linkage}{14}
-\contentsline {section}{\numberline {3.1}Class Tcl}{14}
-\contentsline {subsection}{\numberline {3.1.1}Obtain a Reference to the class Tcl instance}{15}
-\contentsline {subsection}{\numberline {3.1.2}Invoking OTcl Procedures}{15}
-\contentsline {subsection}{\numberline {3.1.3}Passing Results to/fro the Interpreter}{16}
-\contentsline {subsection}{\numberline {3.1.4}Error Reporting and Exit}{16}
-\contentsline {subsection}{\numberline {3.1.5}Hash Functions within the Interpreter}{17}
-\contentsline {subsection}{\numberline {3.1.6}Other Operations on the Interpreter}{17}
-\contentsline {section}{\numberline {3.2}Class TclObject}{17}
-\contentsline {paragraph}{Differences from \emph {ns}\nobreakspace {}v1}{17}
+\contentsline {section}{\numberline {3.1}Concept Overview}{14}
+\contentsline {section}{\numberline {3.2}Code Overview}{15}
+\contentsline {section}{\numberline {3.3}Class Tcl}{15}
+\contentsline {subsection}{\numberline {3.3.1}Obtain a Reference to the class Tcl instance}{16}
+\contentsline {subsection}{\numberline {3.3.2}Invoking OTcl Procedures}{16}
+\contentsline {subsection}{\numberline {3.3.3}Passing Results to/fro the Interpreter}{16}
+\contentsline {subsection}{\numberline {3.3.4}Error Reporting and Exit}{17}
+\contentsline {subsection}{\numberline {3.3.5}Hash Functions within the Interpreter}{17}
+\contentsline {subsection}{\numberline {3.3.6}Other Operations on the Interpreter}{18}
+\contentsline {section}{\numberline {3.4}Class TclObject}{18}
+\contentsline {paragraph}{Differences from \emph {ns}\nobreakspace {}v1}{18}
 \contentsline {paragraph}{Example configuration of a TclObject}{18}
-\contentsline {subsection}{\numberline {3.2.1}Creating and Destroying TclObjects}{18}
-\contentsline {paragraph}{Creating TclObjects}{18}
-\contentsline {paragraph}{Deletion of TclObjects}{19}
-\contentsline {subsection}{\numberline {3.2.2}Variable Bindings}{19}
-\contentsline {subsection}{\numberline {3.2.3}Variable Tracing}{21}
-\contentsline {subsection}{\numberline {3.2.4}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily command\egroup Methods: Definition and Invocation}{22}
-\contentsline {section}{\numberline {3.3}Class TclClass}{24}
-\contentsline {section}{\numberline {3.4}Class TclCommand}{25}
-\contentsline {section}{\numberline {3.5}Class EmbeddedTcl}{27}
-\contentsline {section}{\numberline {3.6}Class InstVar}{28}
+\contentsline {subsection}{\numberline {3.4.1}Creating and Destroying TclObjects}{19}
+\contentsline {paragraph}{Creating TclObjects}{19}
+\contentsline {paragraph}{Deletion of TclObjects}{20}
+\contentsline {subsection}{\numberline {3.4.2}Variable Bindings}{20}
+\contentsline {subsection}{\numberline {3.4.3}Variable Tracing}{22}
+\contentsline {subsection}{\numberline {3.4.4}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily command\egroup Methods: Definition and Invocation}{23}
+\contentsline {section}{\numberline {3.5}Class TclClass}{25}
+\contentsline {section}{\numberline {3.6}Class TclCommand}{26}
+\contentsline {section}{\numberline {3.7}Class EmbeddedTcl}{28}
+\contentsline {section}{\numberline {3.8}Class InstVar}{29}
 \contentsline {part}{II\hspace {1em}Simulator Basics}{30}
 \contentsline {chapter}{\numberline {4}The Class Simulator}{31}
 \contentsline {section}{\numberline {4.1}Simulator Initialization}{31}
