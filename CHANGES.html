@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.139 1997/08/26 04:39:41 hari Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.140 1997/08/28 18:48:21 hari Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -23,6 +23,15 @@
 
 <UL>
 
+<LI><B><A HREF="http://www.cs.berkeley.edu/~hari/">[hari]</A></B> <B>Thu Aug 28 11:43:13 PDT 1997</B><BR>
+</LI>
+Mainly 2 bug fixes:<br>
+1. Accounting of ack_count in filteracks<br>
+2. Big memory leak because packets weren't being freed correctly in filter.<br>
+Files affected: semantic-packetqueue.{cc,h}
+</UL>
+
+<UL>
 <LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B> <B>Mon Aug 25 20:52:30 PDT 1997</B><BR>
 </LI>
 
