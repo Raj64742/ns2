@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.h,v 1.4 1997/07/24 00:55:17 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.h,v 1.5 1997/11/06 04:17:07 hari Exp $ (UCB)
  */
 
 #ifndef ns_snoop_h
@@ -41,6 +41,7 @@
 #include "ip.h"
 #include "tcp.h"
 #include "ll.h"
+#include "template.h"
 
 /* Snoop states */
 #define SNOOP_ACTIVE    0x01	/* connection active */
@@ -91,7 +92,7 @@ class Snoop : public LL {
 	int  command(int argc, const char*const* argv);
 	void recv(Packet *, Handler *);	/* control of snoop actions */
 	void handle(Event *);	/* control of snoop actions */
-	void snoop_rxmit(Packet *);
+	int snoop_rxmit(Packet *);
 	inline int next(int i) { return (i+1) % SNOOP_MAXWIND; }
 	inline int prev(int i) { return ((i == 0) ? SNOOP_MAXWIND-1 : i-1); };
 
@@ -100,15 +101,13 @@ class Snoop : public LL {
 	int  snoop_ack_(Packet *);
 	double snoop_cleanbufs_(int);
 	void snoop_rtt_(double);
+	int snoop_qlong();
 	int insert_(Packet *);
 	inline int empty_(){return bufhead_==buftail_ &&!(fstate_&SNOOP_FULL);}
 	void savepkt_(Packet *, int, int);
 	void update_state_();
 	inline double timeout_() { 
-		if (2 * srtt_ > SNOOP_MIN_TIMO) 
-			return 2 * srtt_;
-		else 
-			return SNOOP_MIN_TIMO;
+		return max(srtt_+4*rttvar_, snoopTick_);
 	}
 	Handler  *callback_;
 	SnoopRxmitHandler *rxmitHandler_; /* used in rexmissions */
@@ -130,6 +129,8 @@ class Snoop : public LL {
 	Event    *toutPending_;	/* # pending timeouts */
 	Packet   *pkts_[SNOOP_MAXWIND]; /* ringbuf of cached mbufs */
 	
+	double   snoopTick_;	/* minimum rxmission timer granularity */
+	double   g_;		/* gain in EWMA for srtt_ and rttvar_ */
 	int      off_snoop_;	/* snoop header offset */
 	int      off_tcp_;	/* snoop header offset */
 };

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.8 1997/09/08 22:03:25 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.9 1997/11/06 04:17:06 hari Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -57,6 +57,8 @@ Snoop::Snoop(int makeHandler) : LL(),
 	bind("snoopDisable_", &snoopDisable_);
 	bind_time("srtt_", &srtt_);
 	bind_time("rttvar_", &rttvar_);
+	bind("snoopTick_", &snoopTick_);
+	bind("g_", &g_);
 	
 	rxmitHandler_ = new SnoopRxmitHandler(this);
 	persistHandler_ = new SnoopPersistHandler(this);
@@ -87,10 +89,11 @@ Snoop::recv(Packet* p, Handler* h)
         /* Put packet (if not ack) in cache after checking, and send it on */
 	if (type == PT_TCP)
 		snoop_data_(p);
-	else if (type == PT_ACK)
+/*	else if (type == PT_ACK)
 		printf("---- %f sending ack %d\n", 
 		       Scheduler::instance().clock(),
 		       ((hdr_tcp*)p->access(off_tcp_))->seqno());
+*/
 	callback_ = h;
 	LL::recv(p, h);
 }
@@ -111,18 +114,15 @@ Snoop::handle(Event *e)
 	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
 	if (((hdr_cmn*) p->access(off_cmn_))->error()) {
 		drop(p);        // drop packet if it's been corrupted
-		printf("... dropping %d\n", llh->seqno());
 		return;
 	}
 
 	if (type == PT_ACK)
 		prop = snoop_ack_(p);
-	else		// received data, send it up
-		printf("---- %f recd packet %d\n", s.clock(), seq);
 	if (prop == SNOOP_PROPAGATE)
 		s.schedule(recvtarget_, e, delay_);
 	else {			// suppress ack
-		printf("---- %f suppressing ack %d\n", s.clock(), seq);
+/*		printf("---- %f suppressing ack %d\n", s.clock(), seq);*/
 		Packet::free(p);
 	}
 }
@@ -137,7 +137,9 @@ Snoop::snoop_data_(Packet *p)
 	Scheduler &s = Scheduler::instance();
 	int seq = ((hdr_tcp*)p->access(off_tcp_))->seqno();
 	int size = ((hdr_cmn*)p->access(off_cmn_))->size();
-	printf("snoop_data_: %f sending packet %d\n", s.clock(), seq);
+	int resetPending = 0;
+
+/*	printf("snoop_data_: %f sending packet %d\n", s.clock(), seq);*/
 	if (fstate_ & SNOOP_FULL) {
 		if (seq > lastSeen_) {
 			lastSeen_ = seq;
@@ -145,7 +147,12 @@ Snoop::snoop_data_(Packet *p)
 		}
 		return;
 	}
-	int resetPending = insert_(p);
+	/* 
+	 * Only if the ifq is NOT full do we insert, since otherwise we want
+	 * congestion control to kick in.
+	 */
+	if (ifq_->length() < ifq_->limit()-1)
+		resetPending = insert_(p);
 	if (toutPending_ && resetPending == SNOOP_TAIL) {
 		s.cancel(toutPending_);
 		toutPending_ = 0;
@@ -253,7 +260,7 @@ Snoop::snoop_ack_(Packet *p)
 
 	int ack = ((hdr_tcp*)p->access(off_tcp_))->seqno();
 //	int win = ((hdr_tcp*)p->access(off_tcp_))->win();
-printf("snoop_ack_: %f got ack %d\n", Scheduler::instance().clock(), ack);
+/*printf("snoop_ack_: %f got ack %d\n", Scheduler::instance().clock(), ack);*/
 	/*
 	 * There are 3 cases:
 	 * 1. lastAck_ > ack.  In this case what has happened is
@@ -309,15 +316,13 @@ printf("snoop_ack_: %f got ack %d\n", Scheduler::instance().clock(), ack);
 			expDupacks_ -= RTX_THRESH + 1;
 			expNextAck_ = next(buftail_);
 			if (sh->numRxmit() == 0)
-				snoop_rxmit(pkt);
-			return SNOOP_SUPPRESS;
+				return snoop_rxmit(pkt);
 		} else if (expDupacks_ > 0) {
 			expDupacks_--;
 			return SNOOP_SUPPRESS;
 		} else if (expDupacks_ == -1) {
 			if (sh->numRxmit() < 2) {
-				snoop_rxmit(pkt);
-				return SNOOP_SUPPRESS;
+				return snoop_rxmit(pkt);
 			}
 		} else		// let sender deal with it
 			return SNOOP_PROPAGATE;
@@ -380,35 +385,58 @@ Snoop::snoop_cleanbufs_(int ack)
 void
 Snoop::snoop_rtt_(double sndTime)
 {
-	double diff = Scheduler::instance().clock() - sndTime;
-	if (diff > 0) {
-		srtt_ = 0.75*srtt_ + 0.25*diff;
+	double rtt = Scheduler::instance().clock() - sndTime;
+	if (rtt > 0) {
+		srtt_ = g_*srtt_ + (1-g_)*rtt;
+		double delta = rtt - srtt_;
+		if (delta < 0)
+			delta = -delta;
+		if (rttvar_ != 0)
+			rttvar_ = g_*delta + (1-g_)*rttvar_;
+		else 
+			rttvar_ = delta;
 	}
+}
 
+/*
+ * Returns 1 if recent queue length is <= half the maximum and 0 otherwise.
+ */
+int 
+Snoop::snoop_qlong()
+{
+	/* For now only instantaneous lengths */
+	if (ifq_->length() <= 3*ifq_->limit()/4)
+		return 1;
+	return 0;
 }
 
 /*
  * Ideally, would like to schedule snoop retransmissions at higher priority.
  */
-void
+int
 Snoop::snoop_rxmit(Packet *pkt)
 {
 	Scheduler& s = Scheduler::instance();
 	if (pkt != 0) {
 		hdr_snoop *sh = (hdr_snoop *)pkt->access(off_snoop_);
-		if (sh->numRxmit() < SNOOP_MAX_RXMIT) {
-			printf("%f Rxmitting packet %d\n", s.clock(), ((hdr_tcp*)pkt->access(off_tcp_))->seqno());
+		if (sh->numRxmit() < SNOOP_MAX_RXMIT && snoop_qlong() &&
+		    sh->seqno() == lastAck_+1) {
+/*			printf("%f Rxmitting packet %d\n", s.clock(), 
+			       ((hdr_tcp*)pkt->access(off_tcp_))->seqno());
+*/
 			sh->sndTime() = s.clock();
 			sh->numRxmit() = sh->numRxmit() + 1;
 			Packet *p = pkt->copy();
 			LL::recv(p, callback_);
-		}
+		} else 
+			return SNOOP_PROPAGATE;
 	}
 	/* Reset timeout for later time. */
 	if (toutPending_)
 		s.cancel(toutPending_);
 	toutPending_ = (Event *)pkt;
 	s.schedule(rxmitHandler_, toutPending_, timeout_());
+	return SNOOP_SUPPRESS;
 }
 
 void
@@ -423,8 +451,9 @@ SnoopRxmitHandler::handle(Event *)
 		return;
 	if ((snoop_->bufhead_ != snoop_->buftail_) || 
 	    (snoop_->fstate_ & SNOOP_FULL)) {
-		snoop_->snoop_rxmit(p);
-		snoop_->expNextAck_ = snoop_->next(snoop_->buftail_);
+/*		printf("%f timeout\n", Scheduler::instance().clock());*/
+		if (snoop_->snoop_rxmit(p) == SNOOP_SUPPRESS)
+			snoop_->expNextAck_ = snoop_->next(snoop_->buftail_);
 	}
 }
 
