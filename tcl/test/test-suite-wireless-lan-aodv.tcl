@@ -1,3 +1,4 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -15,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-aodv.tcl,v 1.7 2000/08/30 00:04:12 haoboy Exp $
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan-tora
@@ -104,15 +105,15 @@ TestSuite instproc init {} {
 	global node_ god_ 
 	$self instvar ns_ testName_
 	set ns_         [new Simulator]
-    if {[string compare $testName_ "aodv"] && \
-	    [string compare $testName_ "tora"]} {
-	     $ns_ set-address-format hierarchical
-	     AddrParams set domain_num_ 3
-	     lappend cluster_num 2 1 1
-	     AddrParams set cluster_num_ $cluster_num
-	     lappend eilastlevel 1 1 4 1
-	     AddrParams set nodes_num_ $eilastlevel
-        }  
+	if {[string compare $testName_ "aodv"] && \
+			[string compare $testName_ "tora"]} {
+		$ns_ set-address-format hierarchical
+		AddrParams set domain_num_ 3
+		lappend cluster_num 2 1 1
+		AddrParams set cluster_num_ $cluster_num
+		lappend eilastlevel 1 1 4 1
+		AddrParams set nodes_num_ $eilastlevel
+        } 
 
 	set topo	[new Topography]
 	set tracefd	[open $opt(tr) w]
@@ -129,60 +130,57 @@ TestSuite instproc init {} {
 }
 
 Test/aodv instproc init {} {
-    global opt node_ god_ chan topo
-    $self instvar ns_ testName_
-    set testName_       aodv
-    set opt(rp)         aodv
-    set opt(cp)		"../mobility/scene/cbr-50-20-4-512" 
-    set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0" 
-    set opt(nn)		50      
-    set opt(stop)       1000.0
+	global opt node_ god_ chan topo
+	$self instvar ns_ testName_
+	set testName_       aodv
+	set opt(rp)         aodv
+	set opt(cp)		"../mobility/scene/cbr-50-20-4-512" 
+	set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0" 
+	set opt(nn)		50      
+	set opt(stop)       1000.0
 
-    $self next
+	$self next
 
 	#
 	# Create God
 	#
-    
 	set god_ [create-god $opt(nn)]
 
-
-    $ns_ node-config -adhocRouting AODV \
-                         -llType $opt(ll) \
-                         -macType $opt(mac) \
-                         -ifqType $opt(ifq) \
-                         -ifqLen $opt(ifqlen) \
-                         -antType $opt(ant) \
-                         -propType $opt(prop) \
-                         -phyType $opt(netif) \
-			-channelType $opt(chan) \
-			 -topoInstance $topo \
-                         -agentTrace ON \
-                         -routerTrace ON \
-                         -macTrace OFF \
-			 -toraDebug OFF \
-                         -movementTrace OFF
+	$ns_ node-config -adhocRouting AODV \
+			-llType $opt(ll) \
+			-macType $opt(mac) \
+			-ifqType $opt(ifq) \
+			-ifqLen $opt(ifqlen) \
+			-antType $opt(ant) \
+			-propType $opt(prop) \
+			-phyType $opt(netif) \
+			-channel [new $opt(chan)] \
+			-topoInstance $topo \
+			-agentTrace ON \
+			-routerTrace ON \
+			-macTrace OFF \
+			-toraDebug OFF \
+			-movementTrace OFF
     
-    for {set i 0} {$i < $opt(nn) } {incr i} {
+	for {set i 0} {$i < $opt(nn) } {incr i} {
                 set node_($i) [$ns_ node]
                 $node_($i) random-motion 0              ;# disable random motion
-    }
-    puts "Loading connection pattern..."
-    source $opt(cp)
-    
-    puts "Loading scenario file..."
-    source $opt(sc)
-    puts "Load complete..."
+	}
+	puts "Loading connection pattern..."
+	source $opt(cp)
+	
+	puts "Loading scenario file..."
+	source $opt(sc)
+	puts "Load complete..."
 
-    $ns_ at $opt(stop) "puts \"NS EXITING...\";"
-    $ns_ at $opt(stop).1 "$self finish-aodv"
-
+	$ns_ at $opt(stop) "puts \"NS EXITING...\";"
+	$ns_ at $opt(stop).1 "$self finish-aodv"
 }
 
 Test/aodv instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_ run
+	$self instvar ns_
+	puts "Starting Simulation..."
+	$ns_ run
 }
 
 TestSuite instproc finish-aodv {} {

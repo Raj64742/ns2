@@ -1,5 +1,6 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Copyright (c) 1998 University of Southern California.
+# Copyright (c) 1998,2000 University of Southern California.
 # All rights reserved.                                            
 #                                                                
 # Redistribution and use in source and binary forms are permitted
@@ -15,6 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.4 2000/08/30 00:04:12 haoboy Exp $
 
 ###########################################################################
 # IMPORTANT NOTE:
@@ -35,19 +37,16 @@
 # ns test-suite-WLtutorial.tcl
 #
 
-# 
-#
-
 Class TestSuite
 
-Class Test/wireless1 -superclass TestSuite
 # tutorial example of a simple wireless scenario
+Class Test/wireless1 -superclass TestSuite
 
-Class Test/wireless2 -superclass TestSuite
 # tutorial example involving a wired-cum-wireless scenario
+Class Test/wireless2 -superclass TestSuite
 
-Class Test/wireless3 -superclass TestSuite
 # tutorial example on wirelessMIP
+Class Test/wireless3 -superclass TestSuite
 
 proc usage {} {
 	global argv0
@@ -55,7 +54,6 @@ proc usage {} {
         puts "Valid Tests: wireless1 wireless2 wireless3"
 	exit 1
 }
-
 
 proc default-options {} {
 global opt
@@ -100,7 +98,7 @@ Test/wireless1 instproc init {} {
                  -antType $opt(ant) \
                  -propType $opt(prop) \
                  -phyType $opt(netif) \
-                 -channelType $opt(chan) \
+                 -channel [new $opt(chan)] \
                  -topoInstance $topo \
                  -agentTrace ON \
                  -routerTrace OFF \
@@ -170,7 +168,7 @@ Test/wireless2 instproc init {} {
                  -antType $opt(ant) \
                  -propType $opt(prop) \
                  -phyType $opt(netif) \
-                 -channelType $opt(chan) \
+                 -channel [new $opt(chan)] \
                  -topoInstance $topo \
                  -wiredRouting ON \
                  -agentTrace ON \
@@ -272,7 +270,7 @@ Test/wireless3 instproc init {} {
                  -antType $opt(ant) \
                  -propType $opt(prop) \
                  -phyType $opt(netif) \
-                 -channelType $opt(chan) \
+                 -channel [new $opt(chan)] \
                  -topoInstance $topo \
                  -wiredRouting ON \
                  -agentTrace ON \
@@ -350,7 +348,7 @@ Test/wireless3 instproc run {} {
   $self instvar ns_
   puts "Starting Simulation..."	 
   $ns_ run     
-  }
+}
 
 proc runtest {arg} {
 	global quiet
@@ -376,5 +374,3 @@ proc runtest {arg} {
 global argv arg0
 default-options
 runtest $argv
-
-

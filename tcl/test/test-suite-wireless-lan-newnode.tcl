@@ -1,3 +1,4 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -15,6 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.15 2000/08/30 00:04:12 haoboy Exp $
 
 
 # This test suite is for validating wireless lans 
@@ -183,7 +185,7 @@ Test/dsdv instproc init {} {
                          -antType $opt(ant) \
                          -propType $opt(prop) \
                          -phyType $opt(netif) \
-			 -channelType $opt(chan) \
+			 -channel [new $opt(chan)] \
 			 -topoInstance $topo \
                         -agentTrace ON \
                          -routerTrace OFF \
@@ -241,7 +243,7 @@ Test/dsr instproc init {} {
                          -antType $opt(ant) \
                          -propType $opt(prop) \
                          -phyType $opt(netif) \
-                         -channelType $opt(chan) \
+                         -channel [new $opt(chan)] \
                          -topoInstance $topo \
                          -agentTrace ON \
                          -routerTrace OFF \
@@ -250,8 +252,7 @@ Test/dsr instproc init {} {
 
     for {set i 0} {$i < $opt(nn) } {incr i} {
                 set node_($i) [$ns_ node]
-                $node_($i) random-motion 0              ;# disable random motion
-#                $node_($i) topography $topo
+                $node_($i) random-motion 0          ;# disable random motion
     }
     puts "Loading connection pattern..."
     source $opt(cp)
@@ -263,21 +264,18 @@ Test/dsr instproc init {} {
     #
     # Tell all the nodes when the simulation ends
     #
-
     for {set i 0} {$i < $opt(nn) } {incr i} {
 	$ns_ at $opt(stop).000000001 "$node_($i) reset";
-   }
+    }
 
     $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;"
-    #$ns_ halt"
     $ns_ at $opt(stop).1 "$self finish-dsr"
 }
 
-
 Test/dsr instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_ run
+	$self instvar ns_
+	puts "Starting Simulation..."
+	$ns_ run
 }
 
 TestSuite instproc finish-dsr {} {
@@ -317,11 +315,7 @@ TestSuite instproc finish-dsr {} {
 	
 	puts "finishing.."
 	exit 0
-	
-
 }
-
-
 
 Test/dsdv-wired-cum-wireless instproc init {} {
     global opt god_ node_ topo
@@ -353,7 +347,7 @@ Test/dsdv-wired-cum-wireless instproc init {} {
                          -antType $opt(ant) \
                          -propType $opt(prop) \
                          -phyType $opt(netif) \
-                         -channelType $opt(chan) \
+                         -channel [new $opt(chan)] \
                          -topoInstance $topo \
 		 	 -wiredRouting ON \
                         -agentTrace ON \
@@ -362,11 +356,6 @@ Test/dsdv-wired-cum-wireless instproc init {} {
                          -movementTrace OFF
 
     set temp {1.0.0 1.0.1 1.0.2 1.0.3}
-
-#    set BS(0) [create-base-station-node [lindex $temp 0]]
-#    set BS(1) [create-base-station-node 2.0.0]
-
-
 
     set BS(0) [$ns_ node [lindex $temp 0]]
     set BS(1) [$ns_ node 2.0.0]
@@ -383,14 +372,10 @@ Test/dsdv-wired-cum-wireless instproc init {} {
     $BS(1) set Z_ 0.0
 
     # create mobilenode only
-
     $ns_ node-config -wiredRouting OFF  
 
     #create some mobilenodes in the same domain as BS_0
     for {set j 0} {$j < $num_wireless_nodes} {incr j} {
-#        set node_($j) [ $opt(rp)-create-mobile-node $j [lindex $temp \
-#                [expr $j+1]] ]
-
 	set node_($j) [$ns_ node [lindex $temp [expr $j+1]] ]
 
         $node_($j) base-station [AddrParams set-hieraddr \
@@ -448,15 +433,9 @@ Test/dsdv-wireless-mip instproc init {} {
     set opt(stop)          250.0
     set num_wired_nodes    2
     set num_wireless_nodes 1
-    #source ../lib/ns-wireless-mip.tcl
     
     $self next
     
-    # set mobileIP flag
-    #Simulator set mobile_ip_ 1
-
-
-
     ## setup the wired nodes
     set temp {0.0.0 0.1.0}
     for {set i 0} {$i < $num_wired_nodes} {incr i} {
@@ -473,7 +452,7 @@ Test/dsdv-wireless-mip instproc init {} {
                          -antType $opt(ant) \
                          -propType $opt(prop) \
                          -phyType $opt(netif) \
-                         -channelType $opt(chan) \
+                         -channel [new $opt(chan)] \
                          -topoInstance $topo \
 		 	 -wiredRouting ON \
                         -agentTrace ON \
@@ -481,11 +460,6 @@ Test/dsdv-wireless-mip instproc init {} {
                          -macTrace OFF \
                          -movementTrace OFF
 
-   
-    ## setup ForeignAgent and HomeAgent nodes
-    #set HA [create-base-station-node 1.0.0]
-    #set FA [create-base-station-node 2.0.0]
-    
     set HA [$ns_ node 1.0.0]
     set FA [$ns_ node 2.0.0]
     $HA random-motion 0
@@ -500,7 +474,6 @@ Test/dsdv-wireless-mip instproc init {} {
     $FA set Y_ 600.000000000000
     $FA set Z_ 0.000000000000
 
-    
     # create a mobilenode that would be moving between HA and FA.
     # note address of MH indicates its in the same domain as HA.
 
@@ -583,8 +556,6 @@ TestSuite instproc finish-basenode {} {
 	
 	puts "finishing.."
 	exit 0
-	
-
 }
 
 TestSuite instproc finish {} {

@@ -1,3 +1,4 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -15,6 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-tora.tcl,v 1.3 2000/08/30 00:04:12 haoboy Exp $
 
 
 # This test suite is for validating wireless lans 
@@ -104,14 +106,14 @@ TestSuite instproc init {} {
 	global node_ god_ 
 	$self instvar ns_ testName_
 	set ns_         [new Simulator]
-    if {[string compare $testName_ "dsdv"] && \
-	    [string compare $testName_ "tora"]} {
-	     $ns_ set-address-format hierarchical
-	     AddrParams set domain_num_ 3
-	     lappend cluster_num 2 1 1
-	     AddrParams set cluster_num_ $cluster_num
-	     lappend eilastlevel 1 1 4 1
-	     AddrParams set nodes_num_ $eilastlevel
+	if {[string compare $testName_ "dsdv"] && \
+			[string compare $testName_ "tora"]} {
+		$ns_ set-address-format hierarchical
+		AddrParams set domain_num_ 3
+		lappend cluster_num 2 1 1
+		AddrParams set cluster_num_ $cluster_num
+		lappend eilastlevel 1 1 4 1
+		AddrParams set nodes_num_ $eilastlevel
         }  
 
 	set topo	[new Topography]
@@ -119,69 +121,64 @@ TestSuite instproc init {} {
 	
 	$ns_ trace-all $tracefd
 
-	#set opt(rp) $testName_
 	$topo load_flatgrid $opt(x) $opt(y)
 
-	
 	puts $tracefd "M 0.0 nn:$opt(nn) x:$opt(x) y:$opt(y) rp:$opt(rp)"
 	puts $tracefd "M 0.0 sc:$opt(sc) cp:$opt(cp) seed:$opt(seed)"
 	puts $tracefd "M 0.0 prop:$opt(prop) ant:$opt(ant)"
 }
 
 Test/tora instproc init {} {
-    global opt node_ god_ chan topo
-    $self instvar ns_ testName_
-    set testName_       tora
-    set opt(rp)         tora
-    set opt(cp)		"../mobility/scene/cbr-3-test" 
-    set opt(sc)		"../mobility/scene/scen-3-test" 
-    set opt(nn)		3	      
-    set opt(stop)       200.0
+	global opt node_ god_ chan topo
+	$self instvar ns_ testName_
+	set testName_       tora
+	set opt(rp)         tora
+	set opt(cp)		"../mobility/scene/cbr-3-test" 
+	set opt(sc)		"../mobility/scene/scen-3-test" 
+	set opt(nn)		3	      
+	set opt(stop)       200.0
 
-    $self next
+	$self next
 
 	#
 	# Create God
 	#
-    
 	set god_ [create-god $opt(nn)]
 
-
-    $ns_ node-config -adhocRouting TORA \
-                         -llType $opt(ll) \
-                         -macType $opt(mac) \
-                         -ifqType $opt(ifq) \
-                         -ifqLen $opt(ifqlen) \
-                         -antType $opt(ant) \
-                         -propType $opt(prop) \
-                         -phyType $opt(netif) \
-			-channelType $opt(chan) \
-			 -topoInstance $topo \
-                         -agentTrace ON \
-                         -routerTrace ON \
-                         -macTrace OFF \
-			 -toraDebug OFF \
-                         -movementTrace OFF
-    
-    for {set i 0} {$i < $opt(nn) } {incr i} {
+	$ns_ node-config -adhocRouting TORA \
+			-llType $opt(ll) \
+			-macType $opt(mac) \
+			-ifqType $opt(ifq) \
+			-ifqLen $opt(ifqlen) \
+			-antType $opt(ant) \
+			-propType $opt(prop) \
+			-phyType $opt(netif) \
+			-channel [new $opt(chan)] \
+			-topoInstance $topo \
+			-agentTrace ON \
+			-routerTrace ON \
+			-macTrace OFF \
+			-toraDebug OFF \
+			-movementTrace OFF
+	
+	for {set i 0} {$i < $opt(nn) } {incr i} {
                 set node_($i) [$ns_ node]
-                $node_($i) random-motion 0              ;# disable random motion
-    }
-    puts "Loading connection pattern..."
-    source $opt(cp)
+                $node_($i) random-motion 0            ;# disable random motion
+	}
+	puts "Loading connection pattern..."
+	source $opt(cp)
     
-    puts "Loading scenario file..."
-    source $opt(sc)
-    puts "Load complete..."
-
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; exit"
-
+	puts "Loading scenario file..."
+	source $opt(sc)
+	puts "Load complete..."
+	
+	$ns_ at $opt(stop) "puts \"NS EXITING...\" ; exit"
 }
 
 Test/tora instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_ run
+	$self instvar ns_
+	puts "Starting Simulation..."
+	$ns_ run
 }
 
 TestSuite instproc finish {} {
@@ -189,14 +186,9 @@ TestSuite instproc finish {} {
 	global quiet
 
 	$ns_ flush-trace
-        #if { !$quiet } {
-        #        puts "running nam..."
-        #        exec nam temp.rands.nam &
-        #}
 	puts "finishing.."
 	exit 0
 }
-
 
 TestSuite instproc log-movement {} {
 	global ns
@@ -228,9 +220,7 @@ TestSuite instproc create-tcp-traffic {id src dst start} {
     set ftp_($id) [new Application/FTP]
     $ftp_($id) attach-agent $tcp_($id)
     $ns_ at $start "$ftp_($id) start"
-    
 }
-
 
 TestSuite instproc create-udp-traffic {id src dst start} {
     $self instvar ns_
@@ -246,9 +236,7 @@ TestSuite instproc create-udp-traffic {id src dst start} {
     $cbr_($id) attach-agent $udp_($id)
     $ns_ connect $udp_($id) $null_($id)
     $ns_ at $start "$cbr_($id) start"
-
 }
-
 
 proc runtest {arg} {
 	global quiet
@@ -266,20 +254,9 @@ proc runtest {arg} {
 		usage
 	}
 	set t [new Test/$test]
-	
-	
 	$t run
 }
 
 global argv arg0
 default_options
 runtest $argv
-
-
-
-
-
-
-
-
-

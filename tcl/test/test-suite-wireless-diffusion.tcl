@@ -1,3 +1,23 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
+#
+# Copyright (c) 1998,2000 University of Southern California.
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-diffusion.tcl,v 1.4 2000/08/30 00:04:12 haoboy Exp $
+
 # To run all tests: test-all-wireless-diffusion
 # to run individual test:
 # ns test-suite-wireless-diffusion.tcl diff-rate-default
@@ -172,7 +192,7 @@ Test/diff-rate-default instproc run {} {
 		 -antType $opt(ant) \
 		 -propType $opt(prop) \
 		 -phyType $opt(netif) \
-		 -channelType $opt(chan) \
+		 -channel [new $opt(chan)] \
 		 -topoInstance $topo \
 		 -agentTrace ON \
                  -routerTrace ON \
@@ -225,7 +245,7 @@ $ns_ at $opt(prestop) "$ns_ prepare-to-stop"
 for {set i 0} {$i < $opt(nn) } {incr i} {
     $ns_ at $opt(stop).000000001 "$node_($i) reset";
 }
-$ns_ at $opt(stop).00000001 "$self finish; puts \"NS EXITING...\" ; $ns_ halt"
+$ns_ at $opt(stop).00000001 "finish"
 
 
 # Define node initial position in nam
@@ -281,7 +301,7 @@ Test/diff-rate-other instproc run {} {
 		 -antType $opt(ant) \
 		 -propType $opt(prop) \
 		 -phyType $opt(netif) \
-		 -channelType $opt(chan) \
+		 -channel [new $opt(chan)] \
 		 -topoInstance $topo \
 		 -agentTrace ON \
                  -routerTrace ON \
@@ -334,7 +354,7 @@ $ns_ at $opt(prestop) "$ns_ prepare-to-stop"
 for {set i 0} {$i < $opt(nn) } {incr i} {
     $ns_ at $opt(stop).000000001 "$node_($i) reset";
 }
-$ns_ at $opt(stop).00000001 "$self finish; puts \"NS EXITING...\" ; $ns_ halt"
+$ns_ at $opt(stop).00000001 "finish"
 
 
 # Define node initial position in nam
@@ -352,8 +372,8 @@ $ns_ run
 
 
 Test/diff-prob instproc init {} {
-   global opt
-   $self instvar ns_ topo god_
+    global opt
+    $self instvar ns_ topo god_
 
     set opt(god)            on
     set opt(traf)	"sk-30-1-1-1-1-6-64.tcl"      ;# traffic file
@@ -364,11 +384,12 @@ Test/diff-prob instproc init {} {
     set opt(enableNeg)      "true"
     set opt(duplicate)      "enable-duplicate"
 
-   $self next
+    $self next
 }
+
 Test/diff-prob instproc run {} {
-   global opt
-   $self instvar ns_ topo god_
+    global opt
+    $self instvar ns_ topo god_
 
     $god_ $opt(god)
     $god_ allow_to_stop
@@ -382,7 +403,7 @@ Test/diff-prob instproc run {} {
 		 -antType $opt(ant) \
 		 -propType $opt(prop) \
 		 -phyType $opt(netif) \
-		 -channelType $opt(chan) \
+		 -channel [new $opt(chan)] \
 		 -topoInstance $topo \
 		 -agentTrace ON \
                  -routerTrace ON \
@@ -435,7 +456,7 @@ $ns_ at $opt(prestop) "$ns_ prepare-to-stop"
 for {set i 0} {$i < $opt(nn) } {incr i} {
     $ns_ at $opt(stop).000000001 "$node_($i) reset";
 }
-$ns_ at $opt(stop).00000001 "$self finish; puts \"NS EXITING...\" ; $ns_ halt"
+$ns_ at $opt(stop).00000001 "finish"
 
 
 # Define node initial position in nam
@@ -481,7 +502,7 @@ Test/omnimcast instproc run {} {
 		 -antType $opt(ant) \
 		 -propType $opt(prop) \
 		 -phyType $opt(netif) \
-		 -channelType $opt(chan) \
+		 -channel [new $opt(chan)] \
 		 -topoInstance $topo \
 		 -agentTrace ON \
                  -routerTrace ON \
@@ -534,7 +555,7 @@ $ns_ at $opt(prestop) "$ns_ prepare-to-stop"
 for {set i 0} {$i < $opt(nn) } {incr i} {
     $ns_ at $opt(stop).000000001 "$node_($i) reset";
 }
-$ns_ at $opt(stop).00000001 "$self finish; puts \"NS EXITING...\" ; $ns_ halt"
+$ns_ at $opt(stop).00000001 "finish"
 
 
 # Define node initial position in nam
@@ -580,7 +601,7 @@ Test/flooding instproc run {} {
 		 -antType $opt(ant) \
 		 -propType $opt(prop) \
 		 -phyType $opt(netif) \
-		 -channelType $opt(chan) \
+		 -channel [new $opt(chan)] \
 		 -topoInstance $topo \
 		 -agentTrace ON \
                  -routerTrace ON \
@@ -633,7 +654,7 @@ $ns_ at $opt(prestop) "$ns_ prepare-to-stop"
 for {set i 0} {$i < $opt(nn) } {incr i} {
     $ns_ at $opt(stop).000000001 "$node_($i) reset";
 }
-$ns_ at $opt(stop).00000001 "$self finish ; puts \"NS EXITING...\" ; $ns_ halt"
+$ns_ at $opt(stop).00000001 "finish"
 
 
 # Define node initial position in nam
@@ -649,28 +670,18 @@ for {set i 0} {$i < $opt(nn)} {incr i} {
 $ns_ run
 }
 
-
 proc finish {} {
+	puts "NS EXITING ..."
 
-    set ns_ [Simulator instance]
-    set god_ [God instance]
+	set ns_ [Simulator instance]
+	set god_ [God instance]
 
-    global quiet
+	$ns_ terminate-all-agents 
+	$god_ dump_num_send
 
-    $ns_ terminate-all-agents 
-    $god_ dump_num_send
-
-    $ns_ flush-trace
-    if { !$quiet } {
-            puts "running nam..."
-            exec nam temp.rands &
-    }
-
-    exit 0
+	$ns_ flush-trace
+	exit 0
 }
-
-
-
 
 proc runtest {arg} {
         global quiet
@@ -705,11 +716,3 @@ proc runtest {arg} {
 
 global argv arg0 
 runtest $argv
-
-
-
-
-
-
-
-
