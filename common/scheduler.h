@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.24 2002/07/18 23:09:53 yuri Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.25 2002/07/23 21:35:21 yuri Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -167,7 +167,7 @@ protected:
 
 	virtual void reinit(int nbuck, double bwidth, double start);
 	virtual void resize(int newsize, double start);
-	virtual double newwidth();
+	virtual double newwidth(int newsize);
 
 private:
 	virtual void insert2(Event*);

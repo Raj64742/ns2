@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.534 2002/07/19 02:41:08 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.535 2002/07/23 21:35:19 yuri Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -19,12 +19,17 @@ with the most recent changes coming first.
 [PENDING RELEASE DATE]</h3>
 <ul>
 <p><li><b>[Yuri Pryadkin]</b> 
+Tue Jul 23 14:30:05 PDT 2002<br>
+Tuned up CalendarScheduler::newwidth() using the tcp bottleneck
+benchmark. Files: common/scheduler.{h,cc}
+
+<p><li><b>[Yuri Pryadkin]</b> 
 Thu Jul 18 16:02:39 PDT 2002<br>
 Small cleanup of splay scheduler.  Small cleanup of calendar scheduler
 (common/scheduler.{h,cc}): removed clock_ as part of the internal
 state, so it can be freely modified in derived classes
 e.g. RT-scheduler.  Also removed resize_enabled_ checks, as they seem
-to be useless.
+to be useless.  RT scheduler can be derived from Calendar now.
 
 <p><li><b>[Yuri Pryadkin]</b> 
 Tue Jul 16 15:29:58 PDT 2002<br>

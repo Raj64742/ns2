@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.68 2002/07/18 23:09:53 yuri Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.69 2002/07/23 21:35:21 yuri Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.68 2002/07/18 23:09:53 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.69 2002/07/23 21:35:21 yuri Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -790,7 +790,7 @@ void CalendarScheduler::reinit(int nbuck, double bwidth, double start)
 
 void CalendarScheduler::resize(int newsize, double start)
 {
-	double bwidth = newwidth();
+	double bwidth = newwidth(newsize);
 
 	if (newsize < 4)
 		newsize = 4;
@@ -823,43 +823,26 @@ void CalendarScheduler::resize(int newsize, double start)
 
 // take samples from the most populated bucket.
 double
-CalendarScheduler::newwidth()
+CalendarScheduler::newwidth(int newsize)
 {
-#define MAX_HOLD  125
 	int i;
 	short max_bucket = 0; // index of the fullest bucket
-	for (i = 1; i<nbuckets_; ++i) {
+	for (i = 1; i < nbuckets_; ++i) {
 		if (buckets_[i].count_ > buckets_[max_bucket].count_)
 			max_bucket = i;
 	}
 	int nsamples = buckets_[max_bucket].count_;
 
 	if (nsamples <= 4) return width_;
-
-	if (nsamples > MAX_HOLD) 
-		nsamples = MAX_HOLD;
-	double hold[nsamples];
 	
-	i = 0;
-	for (Event *p = buckets_[max_bucket].list_; i<nsamples; ++i) {
-		hold[i] = p->time_;
-		for  (p = p->next_; p->time_ == hold[i]; p = p->next_)
-			;
-	}
+	double nw = buckets_[max_bucket].list_->prev_->time_ 
+		- buckets_[max_bucket].list_->time_;
+	assert(nw > 0);
 	
-	double asep = (hold[nsamples-1] - hold[0]) / (nsamples-1);
-	double asep2 = 0.0;
-	int count = 0;
-	for (i = 1; i < nsamples; i++) {
-		double diff = hold[i] - hold[i-1];
-		assert(diff > 0);
-		if (diff < 2.0*asep) { 
-			asep2 += diff; 
-			count++; 
-		}
-	}
-
-	return 3.0*asep2/count; //XXX TODO: is this OK?
+	nw /= ((newsize < nsamples) ? newsize : nsamples); // min (newsize, nsamples)
+	nw *= 4.0;
+	
+	return nw;
 }
 
 /*
