@@ -32,6 +32,7 @@
  */
 
 #include "random.h"
+#include "errmodel.h"
 #include "ll.h"
 #include "mac.h"
 #include "csdp.h"
@@ -46,7 +47,7 @@ public:
 } class_csdp;
 
 
-Csdp::Csdp() : maxq_(4), numq_(0), qlen_(0), totalweight_(0), gqid_(0), bqid_(0), em_(0)
+Csdp::Csdp() : maxq_(4), numq_(0), qlen_(0), totalweight_(0), gqid_(0), bqid_(0)
 {
 	bind("off_ll_", &off_ll_);
 	bind("off_mac_", &off_mac_);
@@ -57,9 +58,10 @@ Csdp::Csdp() : maxq_(4), numq_(0), qlen_(0), totalweight_(0), gqid_(0), bqid_(0)
 int
 Csdp::command(int argc, const char*const* argv)
 {
-	if (argc == 3) {
+	if (argc == 4) {
 		if (strcmp(argv[1], "errormodel") == 0) {
-			em_ = (ErrorModel*) TclObject::lookup(argv[2]);
+			IdPacketQueue* q = getQueue(atoi(argv[3]));
+			q->em() = (ErrorModel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
 	}
@@ -67,32 +69,36 @@ Csdp::command(int argc, const char*const* argv)
 }
 
 
-void
-Csdp::enque(Packet* p)
+IdPacketQueue*
+Csdp::getQueue(int id)
 {
-	int id = ((hdr_mac*)p->access(off_mac_)) ->macDA();
 	int i;
-
-	if (qlen_ >= qlim_) {
-		drop(p);
-		return;
-	}
-	qlen_++;
-
 	for (i = 0;  i < numq_;  i++) {
 		if (q_[i]->id() == id)
-			break;
+			return q_[i];
 	}
-	if (i == numq_) {
+	if (i >= numq_) {
 		if (++numq_ == maxq_) {
 			maxq_ *= 2;
 			q_ = (IdPacketQueue**)
 				realloc(q_, maxq_ * sizeof(IdPacketQueue*));
 		}
 		q_[i] = new IdPacketQueue;
-		q_[i]->id() = id;
 	}
-	enque(p, q_[i]);
+	q_[i]->id() = id;
+	return q_[i];
+}
+
+
+void
+Csdp::enque(Packet* p)
+{
+	if (qlen_ >= qlim_) {
+		drop(p);
+		return;
+	}
+	qlen_++;
+	enque(p, getQueue(((hdr_mac*)p->access(off_mac_))->macDA()));
 }
 
 
@@ -116,17 +122,23 @@ Csdp::deque()
 void
 Csdp::enque(Packet* p, IdPacketQueue* q)
 {
+	double oldweight = weight(q);
 	q->enque(p);
-	if (((hdr_ll*)p->access(off_ll_)) ->error())
+	if (q->em() && q->em()->corrupt(p)) {
+		((hdr_ll*)p->access(off_ll_)) ->error() |= 1;
 		q->loss()++;
+	}
 	q->total()++;
+	totalweight_ += weight(q) - oldweight;
 }
 
 
 Packet*
 Csdp::deque(IdPacketQueue* q)
 {
+	double oldweight = weight(q);
 	Packet *p = q->deque();
+	totalweight_ += weight(q) - oldweight;
 	return p;
 }
 

@@ -45,11 +45,6 @@ public:
 } class_csdp_ls;
 
 
-CsdpLs::CsdpLs() : Csdp()
-{
-}
-
-
 Packet*
 CsdpLs::deque()
 {
@@ -64,28 +59,6 @@ CsdpLs::deque()
 		}
 	}
 	return 0;
-}
-
-
-void
-CsdpLs::enque(Packet* p, IdPacketQueue* q)
-{
-	double oldweight = weight(q);
-	q->enque(p);
-	if (((hdr_ll*)p->access(off_ll_)) ->error())
-		q->loss()++;
-	q->total()++;
-	totalweight_ += weight(q) - oldweight;
-}
-
-
-Packet*
-CsdpLs::deque(IdPacketQueue* q)
-{
-	double oldweight = weight(q);
-	Packet *p = q->deque();
-	totalweight_ += weight(q) - oldweight;
-	return p;
 }
 
 

@@ -85,9 +85,9 @@ int
 ErrorModel::corrupt(Packet* p)
 {
 	double u = Random::uniform();
-	if (unit_ == EUpkt)
+	if (unit_ == EU_PKT)
 		return (u < rate_);
-	else if (unit_ == EUbit) {
+	else if (unit_ == EU_BIT) {
 		hdr_cmn *hdr = (hdr_cmn*) p->access(off_cmn_);
 		double per = 1 - pow((1-rate_), 8. * hdr->size());
 		return (u < per);

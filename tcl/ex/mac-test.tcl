@@ -1,10 +1,24 @@
-#!../../ns
-source ../lan/ns-mac.tcl
-source ../lan/ns-lan.tcl
+#!/bin/sh
+# \
+[ -x ns ] && nshome=.
+# \
+[ -x ../../ns ] && nshome=../..
+# \
+exec $nshome/ns "$0" "$@"
+
+if [file executable ../../ns] {
+	set nshome ../..
+} else {
+	set nshome .
+}
+source $nshome/tcl/lan/ns-mac.tcl
+source $nshome/tcl/lan/ns-lan.tcl
+set env(PATH) "$nshome/bin:$env(PATH)"
+
+
 set flags(0) 0
 set stop 10
 set trfile out
-set tcpfile tcpstats
 set bw 100Kb
 set delay 10ms
 set ll LL
@@ -14,28 +28,15 @@ set chan Channel
 
 if {$argc == 0} {
 	puts "Usage: $argv0 \[-stop $stop\] \[-seed #]"
-	puts "\t\[-tr $trfile\] \[-stat $tcpfile\]"
-	puts "\t\[-ll lltype\] \[-ifq ifqtype\] \[-mac mactype\]"
+	puts "\t\[-tr $trfile\]"
+	puts "\t\[-ll lltype\] \[-ifq ifqtype\] \[-mac mactype\] \[-ch chan\]"
 	puts "\t\[-bw $bw] \[-delay $delay\]"
 	exit 1
 }
 
-proc make-trace {ns} {
-	global trfile trfd
-
-	if [file exists ${trfile}] {
-		exec touch ${trfile}.${trfile}
-		eval exec rm $trfile [glob ${trfile}.*]
-	}
-
-	set trfd [open $trfile w]
-	$ns trace-all $trfd
-}
-
 proc get-options {argc argv} {
-	global stop bw delay ll ifq mac chan trfile flags 
-
-	# regexp {^(.+)\..*$} $argv0 match ext
+	global stop flags trfile
+	global bw delay ll ifq mac chan
 	for {set i 0} {$i < $argc} {incr i} {
 		set opt [lindex $argv $i]
 		if {$opt == "-stop"} {
@@ -50,16 +51,14 @@ proc get-options {argc argv} {
 			set ifq Queue/[lindex $argv [incr i]]
 		} elseif {$opt == "-mac"} {
 			set mac Mac/[lindex $argv [incr i]]
-		} elseif {$opt == "-dc"} {
-			set chan Channel/Duplex
+		} elseif {$opt == "-ch"} {
+			set chan Channel/[lindex $argv [incr i]]
 		} elseif {$opt == "-tr"} {
 			set trfile [lindex $argv [incr i]]
-		} elseif {$opt == "-stat"} {
-			set tcpfile [lindex $argv [incr i]]
 		} elseif {$opt == "-seed"} {
 			ns-random [lindex $argv [incr i]]
 		} elseif {[string range $opt 0 0] == "-"} {
-			set flags([string range $opt 1 1]) 1
+			set flags([string range $opt 1 end]) 1
 		}
 	}
 	if {$mac == "Mac/Multihop"}  {
@@ -67,63 +66,72 @@ proc get-options {argc argv} {
 	}
 }
 
+proc make-trace {} {
+	global ns trfile trfd
+	if [file exists ${trfile}] {
+		exec touch ${trfile}.${trfile}
+		eval exec rm $trfile [glob ${trfile}.*]
+	}
+	set trfd [open $trfile w]
+	$ns trace-all $trfd
+}
+
+proc make-error {lan} {
+	global ns n cbr ftp
+	set ifq [$lan getifq $n(0)]
+	foreach dst {1 2 3} {
+		set em(0:$dst) [new ErrorModel]
+		$ifq errormodel $em(0:$dst) [[$lan getmac $n($dst)] set label_]
+	}
+	$em(0:1) set rate_ 0.01
+	$em(0:2) set rate_ 0.02
+	$em(0:3) set rate_ 0.03
+}
+
+proc make-cbr-connections {} {
+	global ns n cbr ftp
+	set cbr(2:3) [$ns create-connection CBR $n(2) Null $n(3) 0]
+}
+
 proc make-tcp-connections {} {
-	global tcp ftp tcpfile tcpfd ns n
+	global ns n cbr ftp
 
 	set tcp(0) [$ns create-connection TCP/Reno $n(1) TCPSink $n(0) 0]
 	set ftp(0) [$tcp(0) attach-source FTP]
 	set tcp(1) [$ns create-connection TCP/Reno $n(0) TCPSink $n(1) 0]
 	set ftp(1) [$tcp(1) attach-source FTP]
-	set tcp(2) [$ns create-connection TCP/Reno $n(1) TCPSink $n(0) 0]
+	set tcp(2) [$ns create-connection TCP/Reno $n(0) TCPSink $n(2) 0]
 	set ftp(2) [$tcp(2) attach-source FTP]
-	set tcp(3) [$ns create-connection TCP/Reno $n(2) TCPSink $n(3) 0]
+	set tcp(3) [$ns create-connection TCP/Reno $n(0) TCPSink $n(3) 0]
 	set ftp(3) [$tcp(3) attach-source FTP]
-	
-	set tcpfd(1) [open ${tcpfile}.1 w]
-	set tcpfd(2) [open ${tcpfile}.2 w]
+
+	set tcpfd(1) [open ${trfile}-tcpstat.1 w]
+	set tcpfd(2) [open ${trfile}-tcpstat.2 w]
 	$tcp(1) trace $tcpfd(1)
 	$tcp(2) trace $tcpfd(2)
 }
 
-proc make-cbr-connections {} {
-	global n ns
-	set cbr(2:3) [$ns create-connection CBR $n(2) Null $n(3) 0]
-}
-
-proc fire-connections {} {
-	global ns ftp
-	# $ns at 0 "$ftp(0) start"
-	$ns at 0 "$ftp(1) start"
-	# $ns at 0.02 "$ftp(2) start"
-	# $ns at 0.03 "$ftp(3) start"
-	# $ns at 5.1 "$cbr(2:3) start"
+proc start-connections {} {
+	global ns n cbr ftp
+	$ns at 0 "$ftp(0) start"
+	$ns at 0.01 "$ftp(1) start"
+	$ns at 0.02 "$ftp(2) start"
+#	$ns at 0.03 "$ftp(3) start"
+#	$ns at 5.1 "$cbr(2:3) start"
 }
 
 proc monitor-lan {lan} {
+	global ns n cbr ftp
 	set qfile [open "q.dat" w]
 	$lan init-monitor $ns $qfile 1 $n(0)
 	$lan init-monitor $ns $qfile 1 $n(1)
 	$ns at 0 "$shl queue-sample-timeout"
 }
 
-proc create-error {ns nodearray} {
-	upvar $nodearray n
-	foreach dst {1 2 3} {
-		set em(0:$dst) [new ErrorModel]
-		[[$ns link $n(0) $n($dst)] link] errormodel $em(0:$dst)
-	}
-	$em(0:1) set rate_ 0.01
-	$em(0:2) set rate_ 0.02
-	$em(0:3) set rate_ 0.03
-
-	if [info exists flags(e)] {
-		create-error $ns n
-	}
-}
 
 get-options $argc $argv
 set ns [new Simulator]
-make-trace $ns
+make-trace
 
 for {set i 0} {$i < 4} {incr i} {
 	set n($i) [$ns node]
@@ -141,102 +149,33 @@ if [info exists flags(mh)] {
 	puts "LAN: $lan $bw $delay $ll $ifq $mac $chan"
 	if {$mac == "Mac/802_11"} {
 		foreach src "$n(0) $n(1) $n(2) $n(3)" {
-			set mac [$lan getmac $src]
-			puts "$mac mode RTS_CTS"
-			$mac mode RTS_CTS
+			[$lan getmac $src] mode RTS_CTS
 		}
 	}
 }
 $lan trace $ns $trfd
 
+if [info exists flags(monitor)] { monitor-lan $lan }
+if [info exists flags(e)] { make-error $lan }
 make-tcp-connections
 make-cbr-connections
-fire-connections
-# monitor-lan $lan
+start-connections
+
 
 proc finish {} {
-	global ns env flags
-	global trfd trfile
+	global env ns flags trfile trfd
+	global bw delay ll ifq mac chan
 
 	$ns flush-trace
 	close $trfd
+	exec trsplit -tt r -pt ack $trfile
 
-	exec gawk -v trfile=$trfile {
-	BEGIN {
-		trfile_tcp_1_0 = sprintf("%s.tcp.1.0", trfile);
-		trfile_ack_0_1 = sprintf("%s.ack.0.1", trfile);
-		trfile_cbr = sprintf("%s.cbr", trfile);
-		trfile_cbr_r = sprintf("%s.cbr.r", trfile);
-		trfile_tcp_0_1 = sprintf("%s.tcp.0.1", trfile);
-		trfile_ack_1_0 = sprintf("%s.ack.1.0", trfile);
-		trfile_tcp_0_2 = sprintf("%s.tcp.0.2", trfile);
-		trfile_ack_2_0 = sprintf("%s.ack.2.0", trfile);
-		trfile_tcp_0_3 = sprintf("%s.tcp.0.3", trfile);
-		trfile_ack_3_0 = sprintf("%s.ack.3.0", trfile);
-	}
-	END {
-		fflush("");
-		close(trfile_tcp_1_0);
-		close(trfile_ack_0_1);
-		close(trfile_cbr);
-		close(trfile_cbr_r);
-		close(trfile_tcp_0_1);
-		close(trfile_ack_1_0);
-		close(trfile_tcp_0_2);
-		close(trfile_ack_2_0);
-		close(trfile_tcp_0_3);
-		close(trfile_ack_3_0);
-	}
-	{
-		if ($1 == "r") {
-			if ($5 == "cbr") {
-				print $2, ($11) > trfile_cbr ;
-			}
-			else if ($5 == "tcp") {
-				if (($3 == 1) && ($4 == 0)) {
-					print $2, ($11) > trfile_tcp_1_0 ;
-				}
-				else if (($3 == 0) && ($4 == 1)) {
-					print $2, ($11) > trfile_tcp_0_1 ;
-				}
-				else if (($3 == 0) && ($4 == 2)) {
-					print $2, ($11) > trfile_tcp_0_2 ;
-				}
-				else if (($3 == 0) && ($4 == 3)) {
-					print $2, ($11) > trfile_tcp_0_3 ;
-				}
-			}
-			else if ($5 == "ack") {
-				if (($3 == 0) && ($4 == 1)) {
-					print $2, ($11) > trfile_ack_0_1 ;
-				}
-				else if (($3 == 1) && ($4 == 0)) {
-					print $2, ($11) > trfile_ack_1_0 ;
-				}
-				else if (($3 == 2) && ($4 == 0)) {
-					print $2, ($11) > trfile_ack_2_0 ;
-				}
-				else if (($3 == 3) && ($4 == 0)) {
-					print $2, ($11) > trfile_ack_3_0 ;
-				}
-			}
-		}
-		else if ($1 == "r") {
-			if ($5 == "cbr") {
-				print $2, ($11) > trfile_cbr_r ;
-			}
-		}
-	}
-	} $trfile
-
-	exec echo "" >> ${trfile}-bw
+	exec echo "	$bw $delay $ll $ifq $mac $chan" >> ${trfile}-bw
 	foreach af [lsort [glob ${trfile}.ack.*]] {
-		exec tail -1 $af | gawk -v af=$af {
-		{
+		exec tail -1 $af | awk -v af=$af { {
 			kbps = 8 * $2 / $1;
 			printf("%s\t%f\t%d\t%f\t%f\n", af,$1,$2, $2/$1, kbps);
-		}
-		} >> ${trfile}-bw
+		} } >> ${trfile}-bw
 	}
 	puts " Files \t\t Time\t   #packets \t pkts/s \t Kbps (1000 byte pkts)"
 	exec cat ${trfile}-bw >> /dev/stdout
@@ -245,10 +184,8 @@ proc finish {} {
 		eval exec xgraph -nl -M -display $env(DISPLAY) \
 				[lsort [glob $trfile.*]]
 	}
-
 	exit 0
 }
-
 
 $ns at $stop "finish"
 $ns run

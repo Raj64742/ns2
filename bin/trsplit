@@ -1,0 +1,71 @@
+eval 'exec perl -S $0 ${1+"$@"}'
+    if 0;
+
+
+sub Usage
+{
+    $0 =~ s/.*\/([^\/]+)$/$1/;
+    print <<EOF;
+Split ns trace file into files for individual connection
+Usage:  $0 [options] files
+options: -d   delim:  deliminator for spliting the data fields or columns
+	 -tt	trace type
+	 -pt	packet type
+	 -ctt	trace type column
+	 -ctime	time column
+	 -csrc	source address column
+	 -cdst	destination address column
+	 -cpt	packet type column
+EOF
+    exit;
+}
+
+sub ParseArgv
+{
+    local($val);
+    while ($_ = $ARGV[0], /^-/) {
+	shift @ARGV;
+	if (/^--$/)  { last; }
+	elsif (/^-(tt|pt|stop)$/) {
+	    $argv = shift @ARGV;
+	    s/-(\w+)/\$$1/;
+	    eval "$_ = $argv";
+	}
+	elsif (/^-d/)  { $delim = shift @ARGV; }
+	else { last; }
+    }
+}
+
+
+$delim = " ";
+$tt = 'r';
+$pt = 'ack';
+$ctt = 1;
+$ctime = 2;
+$csrc = 3;
+$cdst = 4;
+$cpt = 5;
+$cseq = 11;
+
+&ParseArgv;
+$ctt--; $ctime--;
+$cpt--; $csrc--; $cdst--; $cseq--;
+
+
+while (<>)
+{
+    chop;
+    @col = split(/$delim/);
+
+    next if ($col[0] ne $tt);
+    next if ($col[$cpt] ne $pt);
+
+    $src = $col[$csrc];
+    $dst = $col[$cdst];
+    $fid = $src * 0x10000 + $dst;
+    if (! $opened{$fid}) {
+	open($fid, ">$ARGV.$pt.$src.$dst");
+	$opened{$fid} = 1;
+    }
+    printf $fid "%0.6f\t%d\n", $col[$ctime], $col[$cseq];
+}

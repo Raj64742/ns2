@@ -35,19 +35,22 @@
 #define ns_csdp_h
 
 #include "queue.h"
-#include "errmodel.h"
 
+
+class ErrorModel;
 
 class IdPacketQueue : public PacketQueue {
 public:
-	IdPacketQueue() : id_(0), loss_(0), total_(0) {}
+	IdPacketQueue() : id_(0), loss_(0), total_(0), em_(0) {}
 	inline int& id() { return id_; }
 	inline int& loss() { return loss_; }
 	inline int& total() { return total_; }
+	inline ErrorModel*& em() { return em_; }
 protected:
 	int id_;		// unique identifier for this queue
 	int loss_;
 	int total_;
+	ErrorModel* em_;
 };
 
 
@@ -59,20 +62,20 @@ protected:
 	int command(int argc, const char*const* argv);
 	void enque(Packet*);
 	Packet* deque();
-	virtual void enque(Packet*, IdPacketQueue*);
-	virtual Packet* deque(IdPacketQueue*);
+	void enque(Packet*, IdPacketQueue*);
+	Packet* deque(IdPacketQueue*);
 	virtual double weight(IdPacketQueue*);
+	IdPacketQueue* getQueue(int id);
 
 	IdPacketQueue** q_;
 	int numq_;
 	int maxq_;
 	int qlen_;
 	double totalweight_;
-	ErrorModel* em_;	// per src-dst error model
-	int off_ll_;
-	int off_mac_;
 	int gqid_;
 	int bqid_;
+	int off_ll_;
+	int off_mac_;
 };
 
 #endif

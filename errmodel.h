@@ -38,12 +38,12 @@
 #include "connector.h"
 
 #define EUnames "pkt", "bit", "time"
-enum ErrorUnit { EUpkt, EUbit, EUtime };
+enum ErrorUnit { EU_PKT, EU_BIT, EU_TIME };
 
 
 class ErrorModel : public Connector {
 public:
-	ErrorModel(ErrorUnit eu=EUpkt);
+	ErrorModel(ErrorUnit eu=EU_PKT);
 	void recv(Packet*, Handler*);
 	virtual int corrupt(Packet*);
 	double per() { return loss_ / (loss_ + good_); }

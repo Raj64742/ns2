@@ -39,15 +39,12 @@
 
 class CsdpLs : public Csdp {
 public:
-	CsdpLs();
+	CsdpLs() : Csdp() {}
 
 protected:
 	Packet* deque();
-	virtual void enque(Packet*, IdPacketQueue*);
-	virtual Packet* deque(IdPacketQueue*);
-	virtual double weight(IdPacketQueue*);
-
-	double totalweight_;
+	inline Packet* deque(IdPacketQueue* q) { Csdp::deque(q); }
+	double weight(IdPacketQueue*);
 };
 
 #endif
