@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.3 1998/01/07 23:40:55 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.4 1998/01/08 01:27:28 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -116,7 +116,7 @@ protected:
 
 	int snaplen_;
 	int promisc_;
-	int livetimeout_;
+	double timeout_;
 
 	unsigned int local_net_;
 };
@@ -151,7 +151,7 @@ public:
 void
 PcapNetwork::bindvars()
 {
-	bind("optimize_", &optimize_);
+	bind_bool("optimize_", &optimize_);
 }
 
 void
@@ -223,8 +223,8 @@ int PcapNetwork::command(int argc, const char*const* argv)
 int
 PcapLiveNetwork::open(const char *devname)
 {
-	pcap_ = pcap_open_live(srcname_, snaplen_, promisc_,
-		livetimeout_, errbuf_);
+	pcap_ = pcap_open_live((char*) devname, snaplen_, promisc_,
+		int(timeout_ * 1000.), errbuf_);
 
 	if (pcap_ == NULL) {
 		fprintf(stderr,
@@ -260,8 +260,8 @@ void
 PcapLiveNetwork::bindvars()
 {
 	bind("snaplen_", &snaplen_);
-	bind("promisc_", &promisc_);
-	bind("livetimeout_", &livetimeout_);
+	bind_bool("promisc_", &promisc_);
+	bind_time("timeout_", &timeout_);
 	PcapNetwork::bindvars();
 }
 
