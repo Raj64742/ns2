@@ -59,36 +59,37 @@
 # enough plumbing to construct flow-based Errors.
 #
 
+ErrorModel/TwoState instproc init {rv0 rv1 {unit "pkt"}} {
+	$self next
+	$self unit $unit
+	$self ranvar 0 $rv0
+	$self ranvar 1 $rv1
+}
+
 Class ErrorModel/Uniform -superclass ErrorModel
 Class ErrorModel/Expo -superclass ErrorModel/TwoState
 Class ErrorModel/Empirical -superclass ErrorModel/TwoState
 
-ErrorModel/Uniform instproc init {rate unit} {
+ErrorModel/Uniform instproc init {rate {unit "pkt"}} {
 	$self next
 	$self unit $unit
 	$self set rate_ $rate
 }
 
-ErrorModel/Expo instproc init {avgList unit} {
-	$self next
-	$self unit $unit
+ErrorModel/Expo instproc init {avgList {unit "pkt"}} {
 	set rv0 [new RandomVariable/Exponential]
 	set rv1 [new RandomVariable/Exponential]
 	$rv0 set avg_ [lindex $avgList 0]
 	$rv1 set avg_ [lindex $avgList 1]
-	$self ranvar 0 $rv0
-	$self ranvar 1 $rv1
+	$self next $rv0 $rv1 $unit
 }
 
-ErrorModel/Empirical instproc initrv {fileList unit} {
-	$self next
-	$self unit $unit
+ErrorModel/Empirical instproc initrv {fileList {unit "pkt"}} {
 	set rv0 [new RandomVariable/Empirical]
 	set rv1 [new RandomVariable/Empirical]
 	$rv0 loadCDF [lindex $fileList 0]
 	$rv1 loadCDF [lindex $fileList 1]
-	$self ranvar 0 $rv0
-	$self ranvar 1 $rv1
+	$self next $rv0 $rv1 $unit
 }
 
 
@@ -157,6 +158,9 @@ ErrorModel/MultiState instproc transition { } {
 Class ErrorModel/TwoStateMarkov -superclass ErrorModel/TwoState
 
 ErrorModel/TwoStateMarkov instproc init {rate eu {transition}} {
+	$self next
+	$self unit time
+
 	set rv0 [new RandomVariable/Exponential]
 	set rv1 [new RandomVariable/Exponential]
 	$rv0 set avg_ [lindex $rate 0]

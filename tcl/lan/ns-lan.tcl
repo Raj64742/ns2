@@ -169,6 +169,7 @@ NetIface instproc init {node bw args} {
 
 NetIface instproc trace {ns f} {
 	$self instvar node_ lcl_ ifq_ mac_ drpT_ deqT_
+	if [info exists drpT_] return
 
 	set id [$node_ id]
 	[set drpT_ [new TraceIp/Drop $id]] attach $f
@@ -215,11 +216,18 @@ LanLink instproc init {ns args} {
 	$channel_ target $mcl_
 }
 
-LanLink instproc trace {ns f} {
+LanLink instproc trace {{ns ""} {f ""}} {
 	$self instvar ns_ nodelist_
-	$self instvar id_ channel_ mcl_ netIface_
+	$self instvar id_ channel_ mcl_ netIface_ drpT_
 
-	[set drpT_ [new TraceIp/Corrupt]] attach $f
+	if [info exists drpT_] {
+		puts "LanLink $self already setup tracing"
+		return
+	}
+	if {$ns == ""} { set ns $ns_ }
+	if {$f == ""} { set f [$ns_ get-ns-traceall] }
+	set drpT_ [new TraceIp/Corrupt]
+	$drpT_ attach $f
 	$channel_ drop-target $drpT_
 	foreach src $nodelist_ {
 		$netIface_($src) trace $ns $f
@@ -282,6 +290,7 @@ LanLink instproc attachLL {src dst} {
 	[$nif set lcl_] install $macDA $ll
 
 	# setup tracing after setting up linkage
+	$nif trace $ns_ [$ns_ get-ns-traceall]
 	$ns_ trace-queue $src $dst
 	$ns_ namtrace-queue $src $dst
 }
@@ -289,7 +298,7 @@ LanLink instproc attachLL {src dst} {
 
 LanLink instproc install-error {em {src ""} {dst ""}} {
 	$self instvar ns_ channel_ netIface_
-	if {$src == ""} {
+	if {$dst == ""} {
 		$em target [$channel_ target]
 		$channel_ target $em
 	} else {

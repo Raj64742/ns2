@@ -33,9 +33,10 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.37 1998/03/18 00:06:39 polly Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.38 1998/03/19 01:07:14 gnguyen Exp $ (UCB)";
 #endif
 
+#include <stdio.h>
 #include "packet.h"
 #include "errmodel.h"
 #include "srm-headers.h"		// to get the hdr_srm structure
@@ -111,22 +112,26 @@ void ErrorModel::recv(Packet* p, Handler* h)
 {
 	// 1.  Determine the error by calling corrupt(p)
 	// 2.  Set the packet's error flag if it is corrupted
-	// 3.  If drop_ target exists, hand the corrupted packet to drop_
-	//     Else let it continue
+	// 3.  If there is no error or drop_ target, let pkt continue
+	//     else hand the corrupted packet to drop_
+
+	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	int error = corrupt(p);
-	((hdr_cmn*)p->access(off_cmn_))->error() |= error;
-	if (error && drop_) {
-		if (h != 0) {
-			// if recv from queue, then resume
-			Scheduler::instance().schedule(h, &intr_, 0.000001);
-		}
-		drop_->recv(p);
+	ch->error() |= error;
+	if (! (error && drop_)) {
+		if (target_)
+			target_->recv(p, h);
 		return;
 	}
-	if (target_)
-		target_->recv(p, h);
-	// XXX if no target, assume packet is still used by other object
+
+	if (h != 0) {
+		// if pkt just come from queue, then resume queue
+		double delay = Random::uniform(ch->size() / bandwidth_);
+		Scheduler::instance().schedule(h, &intr_, delay);
+	}
+	drop_->recv(p);
 }
+
 
 int ErrorModel::corrupt(Packet* p)
 {
@@ -171,10 +176,8 @@ int ErrorModel::CorruptByte(Packet* p)
 
 int ErrorModel::CorruptTime(Packet *p)
 {
-	// compute pkt error rate, assume uniformly distributed time error
-	double per = 1 - pow(1.0 - rate_, PktLength(p));	// XXX
-	double u = ranvar_ ? ranvar_->value() : Random::uniform();
-	return (u < per);
+	fprintf(stderr, "Warning:  uniform rate error cannot be time-based\n");
+	return 0;
 }
 
 #if 0
@@ -251,7 +254,7 @@ int TwoStateErrorModel::corrupt(Packet* p)
 	int error;
 	if (firstTime_) {
 		firstTime_ = 0;
-		state_ = 0;	// 1 implies next state=0 (error-free)
+		state_ = 0;
 		remainLen_ = ranvar_[state_]->value();
 	}
 
@@ -265,7 +268,7 @@ int TwoStateErrorModel::corrupt(Packet* p)
 		remainLen_ += ranvar_[state_]->value();
 		error |= state_;
 	}
-	return (error | state_);
+	return error;
 }
 
 

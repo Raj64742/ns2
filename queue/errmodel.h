@@ -33,7 +33,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.25 1998/03/17 08:28:26 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.26 1998/03/19 01:07:14 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -88,9 +88,9 @@ public:
 	virtual int corrupt(Packet*);
 protected:
 	int command(int argc, const char*const* argv);
-	int state_;
+	int state_;		// state: 0=error-free, 1=error
 	double remainLen_;	// remaining length of the current state
-	RandomVariable *ranvar_[2];
+	RandomVariable *ranvar_[2]; // ranvar staying length for each state
 };
 
 
