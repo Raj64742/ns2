@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.126 2001/11/27 22:40:20 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.127 2001/12/03 16:55:32 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -546,6 +546,7 @@ void TcpAgent::output(int seqno, int reason)
 	Packet* p = allocpkt();
 	hdr_tcp *tcph = hdr_tcp::access(p);
 	hdr_flags* hf = hdr_flags::access(p);
+	int databytes = hdr_cmn::access(p)->size();
 	tcph->seqno() = seqno;
 	tcph->ts() = Scheduler::instance().clock();
 	tcph->ts_echo() = ts_peer_;
@@ -560,6 +561,8 @@ void TcpAgent::output(int seqno, int reason)
 	/* Check if this is the initial SYN packet. */
 	if (seqno == 0) {
 		if (syn_) {
+			databytes = 0;
+			curseq_ += 1;
 			hdr_cmn::access(p)->size() = tcpip_base_hdr_size_;
 		}
 		if (ecn_) {
@@ -571,7 +574,7 @@ void TcpAgent::output(int seqno, int reason)
 	else if (useHeaders_ == true) {
 		hdr_cmn::access(p)->size() += headersize();
 	}
-        int bytes = hdr_cmn::access(p)->size();
+        hdr_cmn::access(p)->size();
 
 	/* if no outstanding data, be sure to set rtx timer again */
 	if (highest_ack_ == maxseq_)
@@ -580,7 +583,7 @@ void TcpAgent::output(int seqno, int reason)
 	output_helper(p);
 
         ++ndatapack_;
-        ndatabytes_ += bytes;
+        ndatabytes_ += databytes;
 	send(p, 0);
 	if (seqno == curseq_ && seqno > maxseq_)
 		idle();  // Tell application I have sent everything so far
@@ -596,7 +599,7 @@ void TcpAgent::output(int seqno, int reason)
 		}
 	} else {
         	++nrexmitpack_;
-        	nrexmitbytes_ += bytes;
+        	nrexmitbytes_ += databytes;
 	}
 	if (!(rtx_timer_.status() == TIMER_PENDING) || force_set_rtx_timer)
 		/* No timer pending.  Schedule one. */

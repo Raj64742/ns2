@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.17 2001/12/03 02:44:30 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.18 2001/12/03 16:55:32 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -632,7 +632,7 @@ Test/no_bug instproc run {} {
 	set ftp2 [$tcp2 attach-app FTP]
 
 	$ns_ at 1.0 "$ftp1 start"
-	$ns_ at 1.75 "$ftp2 produce 100"
+	$ns_ at 1.75 "$ftp2 produce 99"
 
 	$self tcpDump $tcp1 1.0
 
@@ -747,9 +747,9 @@ Test/renoA instproc run {} {
 	set ftp1 [$tcp1 attach-app FTP]
 	$ns_ at 1.0 "$ftp1 start"
 	set ftp2 [$tcp2 attach-app FTP]
-	$ns_ at 1.2 "$ftp2 produce 7"
+	$ns_ at 1.2 "$ftp2 produce 6"
 	set ftp3 [$tcp3 attach-app FTP]
-	$ns_ at 1.2 "$ftp3 produce 7"
+	$ns_ at 1.2 "$ftp3 produce 6"
 
 	$self tcpDump $tcp1 1.0
 	$self tcpDump $tcp2 1.0
@@ -1159,6 +1159,7 @@ Test/manyflows instproc run {} {
 
 TestSuite instproc printpkts { label tcp } {
 	puts "tcp $label highest_seqment_acked [$tcp set ack_]"
+	puts "tcp $label data_bytes_sent [$tcp set ndatabytes_]"
 }
 TestSuite instproc printdrops { fid fmon } {
 	set fcl [$fmon classifier]; # flow classifier
@@ -1267,7 +1268,7 @@ Test/stats1 instproc run {} {
 	set ftp0 [$tcp0 attach-app FTP]
 	set ftp1 [$tcp1 attach-app FTP]
 
-	set packets_ftp 10
+	set packets_ftp 9
 	set bytes_ftp [expr $packets_ftp * $packetSize_]
 	$ns_ at 1.0 "$ftp0 produce $packets_ftp"
 	puts "ftp 0 segments_produced $packets_ftp (using `FTP produce pktcnt')"

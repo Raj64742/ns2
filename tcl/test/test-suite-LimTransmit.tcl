@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-LimTransmit.tcl,v 1.4 2001/11/29 17:50:28 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-LimTransmit.tcl,v 1.5 2001/12/03 16:55:33 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -183,7 +183,7 @@ TestSuite instproc setup { tcptype list {ecn 0}} {
     	}
         $tcp1 set window_ 28
         set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 0.0 "$ftp1 produce 8"
+        $ns_ at 0.0 "$ftp1 produce 7"
 
         $self tcpDump $tcp1 5.0
         $self drop_pkts $list $ecn
@@ -265,7 +265,7 @@ Test/badtimeout instproc run {} {
         TCPSink/Sack1/DelAck  $node_(k1) $fid]
         $tcp1 set window_ 20
         set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 0.0 "$ftp1 produce 100"
+        $ns_ at 0.0 "$ftp1 produce 99"
 	$self drop_pkts {1000}
 
         $self tcpDump $tcp1 5.0
@@ -310,7 +310,7 @@ Test/badretransmit instproc run {} {
         TCPSink/Sack1/DelAck  $node_(k1) $fid]
         $tcp1 set window_ 25
         set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 0.0 "$ftp1 produce 90"
+        $ns_ at 0.0 "$ftp1 produce 89"
 	$self drop_pkts {1000}
 
         $self tcpDump $tcp1 5.0
@@ -344,7 +344,7 @@ Test/nobadretransmit instproc run {} {
         TCPSink/Sack1/DelAck  $node_(k1) $fid]
         $tcp1 set window_ 25
         set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 0.0 "$ftp1 produce 90"
+        $ns_ at 0.0 "$ftp1 produce 89"
 	$self drop_pkts {1000}
 
         $self tcpDump $tcp1 5.0
