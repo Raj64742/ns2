@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.23 2003/03/03 17:42:20 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.24 2004/01/18 17:08:22 haldar Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -28,21 +28,156 @@ warn() {
 	echo "$@"
 }
 
+test_proceed() { 
+        echo "";
+        echo "The above test indicates that your installation of Cygwin";
+        echo "is probably NOT SUITABLE for installing ns-2 allinone.";
+        echo "(More details can be found in the specific error message above.)";
+        echo "";
+        echo -n "Do you wish to proceed regardless? [y/N] "
+        read answer;
+        if [ "$answer" != "y" ] && [ "$answer" != "Y" ]; then
+                die "Installation aborted...";
+                exit 1;
+        fi;
+        echo "";
+        echo "*** OK, but you're on your own... ***";
+        echo "";
+}
+
+cygwin_tests() {
+        echo -n "Checking Cygwin version is >=1.3.12... "
+        cmaj=` uname -r | sed -e 's/^\([0-9]*\)\.\([0-9]*\).\([0-9]*\).*/\1/'`;
+        echo $cmaj | grep -v [0-9] >/dev/null 2>&1
+        if [ "$?" -eq "0" ]; then
+                cmaj=0;
+        fi;
+        cmin=` uname -r | sed -e 's/^\([0-9]*\)\.\([0-9]*\).\([0-9]*\).*/\2/'`;
+        echo $cmin | grep -v [0-9] >/dev/null 2>&1
+        if [ "$?" -eq "0" ]; then
+                cmin=0;
+        fi;
+        cpat=` uname -r | sed -e 's/^\([0-9]*\)\.\([0-9]*\).\([0-9]*\).*/\3/'`;
+        echo $cpat | grep -v [0-9] >/dev/null 2>&1
+        if [ "$?" -eq "0" ]; then
+                cpat=0;
+        fi;
+        echo -n "$cmaj.$cmin.$cpat ";
+        if ([ "$cmaj" -gt "1" ]) || ([ "$cmaj" -eq "1" ] && [ $cmin -gt "3" ]) || ([ "$cmaj" -eq 1 ] && [ $cmin -eq "3" ] && [ "$cpat" -ge "12" ]); then
+                echo "(should be ok)";
+        else
+                echo "(NO!)";
+                echo "";
+                echo "ns-allinone-${NSVER} has not been tested under versions of Cygwin older than";
+                echo "1.3.12. Your version ($cmaj.$cmin.$cpat) appears to be older than that. Success of";
+                echo "the install process is therefore NOT GUARANTEED.";
+                echo "";
+                cygversion="failed";
+                test_proceed;
+        fi;
+        echo -n "Checking filesystems are mounted as UNIX filetype... ";
+        mount | grep "textmode" >/dev/null 2>&1;
+        if [ "$?" -eq "0" ]; then
+                echo "NO!";
+                mount_test="failed";
+                echo "";
+                echo "It appears that some of your Cygwin shares are mounted as DOS file";
+                echo "type. This has not been tested, but is likely to result in failure of";
+                echo "validation tests. Success of the install process is also NOT";
+                echo "GUARANTEED.";
+                echo "";
+                echo "Refer to the Cygwin user guide for how to install Cygwin with the UNIX";
+                echo "file text mode.";
+                test_proceed;
+        else
+                echo "yes";
+                echo -n "Checking default mode is binmode... ";
+                echo ${CYGWIN} | grep "nobinmode" >/dev/null 2>&1;
+                if [ "$?" -eq "0" ]; then
+                        cyg_env_var="failed";
+                        echo "*** NO! ***";
+                        echo "";
+                        echo "Your \$CYGWIN environment variable specifies \"nobinmode\". This is";
+                        echo "likely to result in failure of validation tests, and (possibly) of";
+                        echo "the whole install process. You need to have the \$CYGWIN environment";
+                        echo "variable set to \"binmode\". Please refer to the Cygwin user guide for";
+                        echo "details on how to change this.";
+                        test_proceed;
+                else 
+                        echo "yes";
+                fi;
+        fi;                           
+
+        login=`whoami`
+        echo -n "Checking legitimate login name...";
+        echo ${login} | grep " " >/dev/null 2>&1;
+        if [ "$?" -eq "0" ]; then
+                echo "NO!"; 
+                echo "";
+                echo "Your username (${login}) contains spaces,";
+                echo "which makes the installation of ns-2 impossible.";
+                echo "Please try to install ns-2 as a different user, whose";
+                echo "name does not contain any spaces.";
+                
+                test_proceed;
+        else 
+                echo "ok";
+        fi;
+
+        echo -n "Checking legitimate path name...";
+        
+        installpath=`cygpath -d /`;
+        echo ${installpath} | grep " " >/dev/null 2>&1;
+        if [ "$?" -eq "0" ]; then
+                echo "NO!"; 
+                echo "";
+                echo "Your Cygwin installation path (${installpath}) contains spaces,";
+                echo "which makes the installation of ns-2 impossible.";
+                echo "Please reinstall Cygwin in a different directory, which";
+                echo "does not contain any spaces.";
+                test_proceed;
+        else 
+                echo "ok";
+        fi;
+
+        echo "Checking required Cygwin packages are installed...";
+        for i in ${packages}; do 
+                echo -n "Checking for ${i}... ";
+                cygcheck -c ${i} | grep ${i} >/dev/null 2>&1;
+                if [ "$?" -eq "0" ]; then
+                        echo "ok"; 
+                else
+                        echo "NO!";
+                        echo "";
+                        echo "Package ${i} is not present on your system.";
+                        echo "";
+                        echo "Please install it using Cygwin's setup.exe";
+                        echo "before trying to install the ns-2 distribution.";
+                        test_proceed;
+                fi; 
+        done;
+}
+
 # Package VERSIONs. Change these when releasing new packages
-TCLVER=8.3.2
-TKVER=8.3.2
-OTCLVER=1.0a8
-TCLCLVER=1.0b13
-NSVER=2.26
-NAMVER=1.9
+TCLVER=8.4.5
+TKVER=8.4.5
+OTCLVER=1.8
+TCLCLVER=1.15
+NSVER=2.27
+NAMVER=1.10
 XGRAPHVER=12.1
 ZLIBVER=1.1.4
 
 # Get current path
 CUR_PATH=`pwd`
 
-# Check if we are using Cygwin, and if so, if it is a bona fide install
-# Cygwin patches contributed by Nicolas Christin <nicolas@cs.virginia.edu>
+# A Cygwin install requires these packages:
+packages="gcc gcc-g++ gawk tar gzip make diff patch perl w33api\
+           XFree86-base XFree86-bin XFree86-prog XFree86-lib XFree86-etc";
+
+# Check if we are using Cygwin, and if so, if it is a good install
+# Most Cygwin fixes in the tree and this part of the install script were 
+# contributed by Nicolas Christin <christin@sims.berkeley.edu>
 
 echo "============================================================"
 echo "* Testing for Cygwin environment"
@@ -55,82 +190,16 @@ if [ -x /usr/bin/uname ]; then
                 echo "Cygwin detected";
                 echo "Note: Cygwin install is still considered EXPERIMENTAL";
                 echo "";
-                echo -n "Checking Cygwin version is >=1.3.12... "
-                cmaj=` uname -r | sed -e 's/^\([0-9]*\)\.\([0-9]*\).\([0-9]*\).*/\1/'`;
-                echo $cmaj | grep -v [0-9] >/dev/null 2>&1
-                if [ "$?" -eq "0" ]; then
-                        cmaj=0;
-                fi;
-                cmin=` uname -r | sed -e 's/^\([0-9]*\)\.\([0-9]*\).\([0-9]*\).*/\2/'`;
-                echo $cmin | grep -v [0-9] >/dev/null 2>&1
-                if [ "$?" -eq "0" ]; then
-                        cmin=0;
-                fi;
-                cpat=` uname -r | sed -e 's/^\([0-9]*\)\.\([0-9]*\).\([0-9]*\).*/\3/'`;
-                echo $cpat | grep -v [0-9] >/dev/null 2>&1
-                if [ "$?" -eq "0" ]; then
-                        cpat=0;
-                fi;
-                echo -n "$cmaj.$cmin.$cpat ";
-                if ([ "$cmaj" -gt "1" ]) || ([ "$cmaj" -eq "1" ] && [ $cmin -gt "3" ]) || ([ "$cmaj" -eq 1 ] && [ $cmin -eq "3" ] && [ "$cpat" -ge "12" ]); then
-                        echo "should be ok";
-                else
-                        echo "*** POSSIBLE PROBLEM ***";
-                        echo "";
-                        echo "ns-allinone-${NSVER} has not been tested under versions of Cygwin older than";
-                        echo "1.3.12. Your version ($cmaj.$cmin.$cpat) appears to be older than that. Success of";
-                        echo "the install process is therefore NOT GUARANTEED.";
-                        echo "";
-                        cygversion="failed";                
-		fi;
-                echo -n "Checking filesystems are mounted as UNIX filetype... ";
-                mount | grep "textmode" >/dev/null 2>&1;
-                if [ "$?" -eq "0" ]; then
-                        echo "*** NO! ***";
-                        mount_test="failed";
-                        echo "";
-                        echo "It appears that some of your Cygwin shares are mounted as DOS file";
-                        echo "type. This has not been tested, but is likely to result in failure of";
-                        echo "validation tests. Success of the install process is also NOT";
-                        echo "GUARANTEED.";
-                        echo "";
-                        echo "Refer to the Cygwin user guide for how to install Cygwin with the UNIX";
-                        echo "file text mode.";
-                        echo "";
-                else
-                        echo "yes";
-                        echo -n "Checking default mode is binmode... ";
-                        echo ${CYGWIN} | grep "nobinmode" >/dev/null 2>&1;
-                        if [ "$?" -eq "0" ]; then
-                                cyg_env_var="failed";
-                                echo "*** NO! ***";
-                                echo "";
-                                echo "Your \$CYGWIN environment variable specifies \"nobinmode\". This is";
-                                echo "likely to result in failure of validation tests, and (possibly) of";
-                                echo "the whole install process. You need to have the \$CYGWIN environment";
-                                echo "variable set to \"binmode\". Please refer to the Cygwin user guide for";
-                                echo "details on how to change this.";
-                                echo "";
-                        else 
-                                echo "yes";
-                        fi;
-                fi;                           
-                if [ "$cygversion" = "failed" ] || [ "$cyg_env_var" = "failed" ] || [ "$mount_test" = "failed" ]; then
-                        echo "";
-                        echo "Tests indicate that your installation of Cygwin may not be suitable for";
-                        echo "installing ns-2 allinone.";
-                        echo "";
-                        echo -n "Do you wish to proceed regardless? [y/n] "
-                        read answer;
-                        if [ "$answer" != "y" ] && [ "$answer" != "Y" ]; then
-                                die "Installation aborted...";
-                        fi;
-                fi;
-                echo "Patching Tcl for Cygwin.";
+                cygwin_tests;
+               
+                echo "Patching Tcl/Tk for Cygwin.";
                 if [ ! -f ./tcl${TCLVER}/generic/tcl.h.orig ]; then
                         cp ./tcl${TCLVER}/generic/tcl.h ./tcl${TCLVER}/generic/tcl.h.orig;
                         echo "The original tcl${TCLVER}/generic/tcl.h is backed up as tcl${TCLVER}/generic/tcl.h.orig";
                         sed -e 's/\#define _TCL/\#define _TCL\`\`\#ifdef __CYGWIN__\`\#define HAVE_TM_ZONE 1\`\#endif \/\* __CYGWIN__ \*\//g' ./tcl${TCLVER}/generic/tcl.h.orig | tr '\`' '\n' > ./tcl${TCLVER}/generic/tcl.h;
+			cp ./tk${TCLVER}/generic/default.h ./tk${TCLVER}/generic/default.h.orig;
+                        echo "The original tk${TKVER}/generic/default.h is backed up as tk${TKVER}/generic/default.h.orig";
+                        sed -e 's/defined(__CYGWIN__) || defined(__MINGW32__)/0/g' ./tk${TKVER}/generic/default.h.orig > ./tk${TKVER}/generic/default.h;
                 fi;
                 touch ./tcl${TCLVER}/generic/tclStubInit.c;
                 echo "Patching sgb for Cygwin.";
@@ -265,7 +334,7 @@ echo "============================================================"
 echo "* Build zlib"
 echo "============================================================"
 
-cd ./zlib-1.1.4
+cd ./zlib-$ZLIBVER
 
 if ./configure --exec-prefix=../ --prefix=../
 then
@@ -276,12 +345,12 @@ then
 		warn "Zlib make failed, but it's optional Continue ..."
 	fi
 else
-	warn "Zlib-1.1.4 configuration failed, but it's optional, so continuing ..."
+	warn "Zlib-$ZLIBVER configuration failed, but it's optional, so continuing ..."
 fi
 
 cd ../
 
-# Build Tcl8.3.5
+# Build Tcl8.4.5
 
 echo "============================================================"
 echo "* Build tcl$TCLVER"
@@ -355,7 +424,11 @@ cd ./otcl-$OTCLVER
 
 blame='Please check http://www.isi.edu/nsnam/ns/ns-problems.html
 for common problems and bug fixes.'
-./configure || die "otcl-$OTCLVER configuration failed! Exiting ..."
+if  [ "${test_cygwin}" = "true" ]; then
+        ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include || die "otcl-$OTCLVER configuration failed! Exiting ...";
+else
+        ./configure || die "otcl-$OTCLVER configuration failed! Exiting ...";
+fi
 
 if make 
 then
@@ -376,7 +449,11 @@ echo "============================================================"
 
 cd ./tclcl-$TCLCLVER
 
-./configure || die "tclcl-$TCLCLVER configuration failed! Exiting ..."
+if  [ "${test_cygwin}" = "true" ]; then
+        ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include || die "tclcl-$TCLCLVER configuration failed! Exiting ...";
+else
+        ./configure || die "tclcl-$TCLCLVER configuration failed! Exiting ..."
+fi
 
 if make
 then
@@ -397,7 +474,11 @@ echo "* Build ns-$NSVER"
 echo "============================================================"
 
 cd ./ns-$NSVER
-./configure || die "Ns configuration failed! Exiting ..."
+if  [ "${test_cygwin}" = "true" ]; then
+        ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include || die "Ns configuration failed! Exiting ...";
+else
+        ./configure || die "Ns configuration failed! Exiting ...";
+fi
 
 if make
 then
@@ -418,7 +499,11 @@ echo "============================================================"
 
 cd ./nam-$NAMVER
 
-./configure --with-tclcl=$CUR_PATH/tclcl-$TCLCLVER  || die "Nam configuration failed! Exiting ..."
+if  [ "${test_cygwin}" = "true" ]; then
+        ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include --with-tclcl=$CUR_PATH/tclcl-$TCLCLVER  || die "Nam configuration failed! Exiting ...";
+else
+        ./configure --with-tclcl=$CUR_PATH/tclcl-$TCLCLVER  || die "Nam configuration failed! Exiting ...";
+fi
 
 if make
 then 

@@ -9,13 +9,13 @@ ns out, ns-allinone may be easier than getting all the pieces by hand.
  
 Currently the package contains:
   
-- Tcl       Tcl release 8.3.2     (required component)
-- Tk        Tk release 8.3.2      (required component)
-- Otcl      otcl release 1.0a8    (required component)
-- TclCL     tclcl release 1.0b13  (required component)
-- Ns        ns release 2.26       (required component)
+- Tcl       Tcl release 8.4.5     (required component)
+- Tk        Tk release 8.4.5     (required component)
+- Otcl      otcl release 1.8    (required component)
+- TclCL     tclcl release 1.15  (required component)
+- Ns        ns release 2.27    (required component)
 - TclDebug  tcl-debug relase 1.9  (optional component)
-- Nam       Nam release 1.9       (optional component)
+- Nam       Nam release 1.10       (optional component)
 - Xgraph    xgraph version 12     (optional component)
 - GT-ITM    Georgia Tech Internetwork
             Topology Modeler      (optional component)
@@ -24,7 +24,7 @@ Currently the package contains:
 - CWEB      CWeb version 1.0 (?)  (optional component)
 - ZLib      zlib version 1.1.4    (optional component) 
 
-2. FEATURES IN ns-allinone2.1b9
+2. FEATURES IN ns-allinone2.27
 -------------------------------
 
 Features in this version include:
@@ -34,8 +34,8 @@ Features in this version include:
 		   ns or nam does not need any ther support outside
 		   this directory
 
-- Bugs fixed:      All components inside the package, with the
-                   exception of Tcl/Tk, are the most recent versions;
+- Bugs fixed:      All components inside the package, are the most recent 
+                   versions;
 
 - Easy to use :    Only one-line command is needed to build all ns
 		   components
@@ -47,10 +47,6 @@ All you need to do is type "./install" under this directory. The install
 script will compile and install the whole package for you. The script also
 will tell you the final installation result.
 
-Caveat:
-
-- You may want to apply gt-itm/geog.patch. See 'man patch' on how to use 
-  the patch program.
 
 4. More information
 --------------------
