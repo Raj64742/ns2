@@ -30,19 +30,53 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.1 1998/08/29 23:33:08 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.2 1998/09/14 02:22:29 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
-source misc.tcl
-source topologies.tcl
+source misc_simple.tcl
 
 Trace set show_tcphdr_ 1
 
 set wrap 90
 set wrap1 [expr 90 * 512 + 40]
+
+Class Topology
+
+Topology instproc node? num {
+    $self instvar node_
+    return $node_($num)
+}
+
+#
+# Links1 uses 8Mb, 5ms feeders, and a 800Kb 10ms bottleneck.
+# Queue-limit on bottleneck is 2 packets.
+#
+Class Topology/net4 -superclass Topology
+Topology/net4 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 8Mb 0ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 8Mb 0ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 8
+    $ns queue-limit $node_(k1) $node_(r1) 8
+
+    $self instvar lossylink_
+    set lossylink_ [$ns link $node_(r1) $node_(k1)]
+    set em [new ErrorModule Fid] 
+    set errmodel [new ErrorModel/Periodic]
+    $errmodel unit pkt
+    $lossylink_ errormodule $em
+}
+
 
 TestSuite instproc finish file {
 	global quiet wrap
@@ -76,31 +110,6 @@ TestSuite instproc printtimersAll { tcp time interval } {
         $ns_ at $newTime "$self printtimersAll $tcp $newTime $interval"
 }
 
-#
-# Links1 uses 8Mb, 5ms feeders, and a 800Kb 10ms bottleneck.
-# Queue-limit on bottleneck is 2 packets.
-#
-Class Topology/net4 -superclass NodeTopology/4nodes
-Topology/net4 instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns duplex-link $node_(s1) $node_(r1) 8Mb 0ms DropTail
-    $ns duplex-link $node_(s2) $node_(r1) 8Mb 0ms DropTail
-    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
-    $ns queue-limit $node_(r1) $node_(k1) 8
-    $ns queue-limit $node_(k1) $node_(r1) 8
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
-
-    $self instvar lossylink_
-    set lossylink_ [$ns link $node_(r1) $node_(k1)]
-    set em [new ErrorModule Fid] 
-    set errmodel [new ErrorModel/Periodic]
-    $errmodel unit pkt
-    $lossylink_ errormodule $em
-}
-
 
 TestSuite instproc emod {} {
         $self instvar topo_
@@ -118,9 +127,21 @@ TestSuite instproc drop_pkts pkts {
     $emod bind $errmodel1 1
 }
 
+TestSuite instproc setTopo {} {
+    $self instvar node_ net_ ns_ topo_
+    
+    set topo_ [new Topology/$net_ $ns_]
+    set node_(s1) [$topo_ node? s1]
+    set node_(s2) [$topo_ node? s2]
+    set node_(r1) [$topo_ node? r1]
+    set node_(k1) [$topo_ node? k1]
+    [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
+}   
+
 TestSuite instproc setup {tcptype list} {
 	global wrap wrap1
         $self instvar ns_ node_ testName_
+	$self setTopo
 
 	set fid 1
         # Set up TCP connection
@@ -197,10 +218,9 @@ TestSuite instproc setup {tcptype list} {
 ###################################################
 
 Class Test/reno -superclass TestSuite
-Test/reno instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	reno
 	$self next
 }
@@ -210,10 +230,9 @@ Test/reno instproc run {} {
 }
 
 # Class Test/reno_bugfix -superclass TestSuite
-# Test/reno_bugfix instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/reno_bugfix instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	reno_bugfix
 # 	$self next
 # }
@@ -223,10 +242,9 @@ Test/reno instproc run {} {
 # }
 
 Class Test/newreno -superclass TestSuite
-Test/newreno instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	newreno
 	$self next
 }
@@ -236,10 +254,9 @@ Test/newreno instproc run {} {
 }
 
 # Class Test/newreno_bugfix -superclass TestSuite
-# Test/newreno_bugfix instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/newreno_bugfix instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	newreno_bugfix
 # 	$self next
 # }
@@ -249,10 +266,9 @@ Test/newreno instproc run {} {
 # }
 
 # Class Test/newreno_A -superclass TestSuite
-# Test/newreno_A instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/newreno_A instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	newreno_A
 # 	$self next
 # }
@@ -263,10 +279,9 @@ Test/newreno instproc run {} {
 # }
 
 # Class Test/newreno_bugfix_A -superclass TestSuite
-# Test/newreno_bugfix_A instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/newreno_bugfix_A instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	newreno_bugfix_A
 # 	$self next
 # }
@@ -282,10 +297,9 @@ Test/newreno instproc run {} {
 
 
 Class Test/reno1 -superclass TestSuite
-Test/reno1 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/reno1 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	reno1
 	$self next
 }
@@ -295,10 +309,9 @@ Test/reno1 instproc run {} {
 }
 
 # Class Test/reno1_bugfix -superclass TestSuite
-# Test/reno1_bugfix instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/reno1_bugfix instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	reno1_bugfix
 # 	$self next
 # }
@@ -308,10 +321,9 @@ Test/reno1 instproc run {} {
 # }
 
 Class Test/newreno1 -superclass TestSuite
-Test/newreno1 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/newreno1 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	newreno1
 	$self next
 }
@@ -321,10 +333,9 @@ Test/newreno1 instproc run {} {
 }
 
 # Class Test/newreno1_bugfix -superclass TestSuite
-# Test/newreno1_bugfix instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/newreno1_bugfix instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	newreno1_bugfix
 # 	$self next
 # }
@@ -334,10 +345,9 @@ Test/newreno1 instproc run {} {
 # }
 
 Class Test/newreno1_A -superclass TestSuite
-Test/newreno1_A instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/newreno1_A instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	newreno1_A
 	$self next
 }
@@ -348,10 +358,9 @@ Test/newreno1_A instproc run {} {
 }
 
 # Class Test/newreno1_A_bugfix -superclass TestSuite
-# Test/newreno1_A_bugfix instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/newreno1_A_bugfix instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	newreno1_A_bugfix
 # 	$self next
 # }
@@ -366,10 +375,9 @@ Test/newreno1_A instproc run {} {
 ###################################################
 
 Class Test/reno2 -superclass TestSuite
-Test/reno2 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/reno2 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	reno2
 	$self next
 }
@@ -379,10 +387,9 @@ Test/reno2 instproc run {} {
 }
 
 Class Test/reno2_bugfix -superclass TestSuite
-Test/reno2_bugfix instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/reno2_bugfix instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	reno2_bugfix
 	$self next
 }
@@ -393,10 +400,9 @@ Test/reno2_bugfix instproc run {} {
 }
 
 Class Test/newreno2_A -superclass TestSuite
-Test/newreno2_A instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/newreno2_A instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	newreno2_A
 	$self next
 }
@@ -407,10 +413,9 @@ Test/newreno2_A instproc run {} {
 }
 
 Class Test/newreno2_A_bugfix -superclass TestSuite
-Test/newreno2_A_bugfix instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net4
+Test/newreno2_A_bugfix instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
 	set test_	newreno2_A_bugfix
 	$self next
 }
@@ -421,10 +426,9 @@ Test/newreno2_A_bugfix instproc run {} {
 }
 
 # Class Test/newreno3 -superclass TestSuite
-# Test/newreno3 instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/newreno3 instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	newreno3
 # 	$self next
 # }
@@ -434,10 +438,9 @@ Test/newreno2_A_bugfix instproc run {} {
 # }
 
 # Class Test/newreno3_bugfix -superclass TestSuite
-# Test/newreno3_bugfix instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/newreno3_bugfix instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	newreno3_bugfix
 # 	$self next
 # }
@@ -447,10 +450,9 @@ Test/newreno2_A_bugfix instproc run {} {
 # }
 
 # Class Test/newreno4_A -superclass TestSuite
-# Test/newreno4_A instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/newreno4_A instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	newreno4_A
 # 	$self next
 # }
@@ -461,10 +463,9 @@ Test/newreno2_A_bugfix instproc run {} {
 # }
 
 # Class Test/newreno4_A_bugfix -superclass TestSuite
-# Test/newreno4_A_bugfix instproc init topo {
-# 	$self instvar net_ defNet_ test_
-# 	set net_	$topo
-# 	set defNet_	net4
+# Test/newreno4_A_bugfix instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net4
 # 	set test_	newreno4_A_bugfix
 # 	$self next
 # }
