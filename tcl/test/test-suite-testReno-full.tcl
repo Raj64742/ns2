@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno-full.tcl,v 1.3 2001/07/25 04:35:19 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno-full.tcl,v 1.4 2001/07/25 04:45:55 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-testReno-full.tcl
@@ -151,15 +151,15 @@ TestSuite instproc setup {tcptype window list} {
 	# set up TCP-level connections
 	$sink listen ; # will figure out who its peer is
     } elseif {$tcptype == "BayFullTcp"} {
-	set tcp1 [new Agent/TCP/BayFullTcp]
 	set sink [new Agent/TCP/BayFullTcp]
-	$ns_ attach-agent $node_(k1) $tcp1
-	$ns_ attach-agent $node_(s1) $sink
-	$tcp1 set fid_ $fid
+	set tcp1 [new Agent/TCP/BayFullTcp]
+	$ns_ attach-agent $node_(k1) $sink
+	$ns_ attach-agent $node_(s1) $tcp1
 	$sink set fid_ $fid
-	$ns_ connect $tcp1 $sink
+	$tcp1 set fid_ $fid
+	$ns_ connect $sink $tcp1
 	# set up TCP-level connections
-	$sink listen ; # will figure out who its peer is
+	$tcp1 listen ; # will figure out who its peer is
     } elseif {$tcptype == "FullTcpTahoe"} {
 	set tcp1 [new Agent/TCP/FullTcp/Tahoe]
 	set sink [new Agent/TCP/FullTcp/Tahoe]
@@ -198,13 +198,13 @@ TestSuite instproc setup {tcptype window list} {
     #$tcp1 set window_ 5
     $tcp1 set window_ $window
     if {$tcptype == "BayFullTcp"} {
-	$sink set window_ $window 
+	$tcp1 set window_ $window 
 	set cli [new Agent/BayTcpApp/FtpClient]
-	$tcp1 attach-application $cli
-	$cli tcp $tcp1
+	$sink attach-application $cli
+	$cli tcp $sink
 	set sftp [new Agent/BayTcpApp/FtpServer]
 	$sftp file_size 10000000
-	$sink attach-application $sftp
+	$tcp1 attach-application $sftp
         $ns_ at 1.0 "$cli start"
     } else {
         set ftp1 [$tcp1 attach-app FTP]
