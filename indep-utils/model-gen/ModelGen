@@ -50,11 +50,11 @@
 date
 echo "***  parsing tcpdump file  ***"
 #./tcpdump -n -tt -q -r $1  > $1.all
-./tcpdump -n -tt -r $1 tcp port 80 > $1.www
-./tcpdump -n -tt -r $1 port ftp or port ftp-data > $1.ftp
-./tcpdump -q -n -tt -r $1 port ftp or port ftp-data > $1.ftps
+#./tcpdump -n -tt -r $1 tcp port 80 > $1.www
+#./tcpdump -n -tt -r $1 port ftp or port ftp-data > $1.ftp
+#./tcpdump -q -n -tt -r $1 port ftp or port ftp-data > $1.ftps
 #./tcpdump -n -tt -r $1 port domain > $1.dns
-./tcpdump -n -tt -r $1 tcp src port 80 > $1.http-srv
+#./tcpdump -n -tt -r $1 tcp src port 80 > $1.http-srv
 
 date
 echo "***  analyze traffic mix  ***"
@@ -234,6 +234,39 @@ awk -f arrive2inter.awk < $1.ftp.outbound.sess.arrive.sort > $1.ftp.outbound.ses
 dat2cdf -e 0 -i 0.01 -d 1 -t $1.ftp.outbound.sess.inter
 awk -f arrive2inter.awk < $1.ftp.inbound.sess.arrive.sort > $1.ftp.inbound.sess.inter
 dat2cdf -e 0 -i 0.01 -d 1 -t $1.ftp.inbound.sess.inter
+
+######################################
+echo "Output TCP window size
+date
+
+echo "WWW"
+grep " S " $1.www.outbound | grep ".80 >" > $1.www.outbound.svr.win
+grep " S " $1.www.inbound | grep ".80 >" > $1.www.inbound.svr.win
+grep " S " $1.www.outbound | grep ".80:" > $1.www.outbound.clnt.win
+grep " S " $1.www.inbound | grep ".80:" > $1.www.inbound.clnt.win
+awk -f win.awk < $1.www.outbound.svr.win > $1.www.outbound.wins
+awk -f win.awk < $1.www.inbound.svr.win > $1.www.inbound.wins
+awk -f win.awk < $1.www.outbound.clnt.win > $1.www.outbound.winc
+awk -f win.awk < $1.www.inbound.clnt.win > $1.www.inbound.winc
+dat2cdf -e 1024 -i 1024 -d 1024 -t $1.www.outbound.wins
+dat2cdf -e 1024 -i 1024 -d 1024 -t $1.www.outbound.winc
+dat2cdf -e 1024 -i 1024 -d 1024 -t $1.www.inbound.wins
+dat2cdf -e 1024 -i 1024 -d 1024 -t $1.www.inbound.winc
+
+echo "FTP"
+grep " S " $1.ftp.outbound | grep ".20 >" > $1.ftp.outbound.svr.win
+grep " S " $1.ftp.inbound | grep ".20 >" > $1.ftp.inbound.svr.win
+grep " S " $1.ftp.outbound | grep ".20:" > $1.ftp.outbound.clnt.win
+grep " S " $1.ftp.inbound | grep ".20:" > $1.ftp.inbound.clnt.win
+awk -f win.awk < $1.ftp.outbound.svr.win > $1.ftp.outbound.wins
+awk -f win.awk < $1.ftp.inbound.svr.win > $1.ftp.inbound.wins
+awk -f win.awk < $1.ftp.outbound.clnt.win > $1.ftp.outbound.winc
+awk -f win.awk < $1.ftp.inbound.clnt.win > $1.ftp.inbound.winc
+dat2cdf -e 1024 -i 1024 -d 1024 -t $1.ftp.outbound.wins
+dat2cdf -e 1024 -i 1024 -d 1024 -t $1.ftp.outbound.winc
+dat2cdf -e 1024 -i 1024 -d 1024 -t $1.ftp.inbound.wins
+dat2cdf -e 1024 -i 1024 -d 1024 -t $1.ftp.inbound.winc
+
 
 date
 echo "execution complete"
