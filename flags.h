@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flags.h,v 1.16 2000/10/23 23:49:37 sfloyd Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flags.h,v 1.17 2000/10/24 00:20:52 sfloyd Exp $
  */
 
 /*
@@ -66,9 +66,13 @@ struct hdr_flags {
 	 * names above to maintain backward compat
 	 */
 	unsigned char& ect()	{ return ecn_capable_; }
+				      /* (ECT bit in IP header) */
 	unsigned char& ecnecho() { return ecn_; }
+				      /* (ECN Echo bit in TCP header) */
 	unsigned char& ce() { return ecn_to_echo_; }
+				      /* (CE bit in IP header) */
 	unsigned char& cong_action() { return cong_action_; }
+				      /* (CWR bit in TCP header) */
 
 	static int offset_;
 	inline static int& offset() { return offset_; }
