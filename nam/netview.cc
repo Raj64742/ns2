@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/netview.cc,v 1.1 1997/03/29 04:38:07 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/netview.cc,v 1.2 1997/03/29 04:52:07 mccanne Exp $ (LBL)";
 #endif
 
 #include <osfcn.h>
@@ -49,26 +49,6 @@ extern "C" {
 #include "Tcl.h"
 #include "paint.h"
 #include "nam-packet.h"
-
-/*XXX this goes somewhere else */
-#include "bitmap/play.xbm"
-#include "bitmap/stop.xbm"
-#include "bitmap/rewind.xbm"
-#include "bitmap/ff.xbm"
-
-void loadbitmaps(Tcl_Interp* tcl)
-{
-	Tk_DefineBitmap(tcl, Tk_GetUid("play"),
-			play_bits, play_width, play_height);
-	Tk_DefineBitmap(tcl, Tk_GetUid("stop"),
-			stop_bits, stop_width, stop_height);
-
-	Tk_DefineBitmap(tcl, Tk_GetUid("rewind"),
-			rewind_bits, rewind_width, rewind_height);
-	Tk_DefineBitmap(tcl, Tk_GetUid("ff"),
-			ff_bits, ff_width, ff_height);
-}
-
 
 void NetView::resize(int width, int height)
 {
