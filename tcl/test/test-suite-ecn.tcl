@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.3 1998/05/07 01:48:47 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.4 1998/05/07 01:53:10 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -434,17 +434,17 @@ Test/ecn_bursty_tahoe instproc run {} {
 }
 
 # Multiple dup acks following ECN
-Class Test/ecn_bursty3_tahoe -superclass TestSuite
-Test/ecn_bursty3_tahoe instproc init topo {
+Class Test/ecn_burstyEcn_tahoe -superclass TestSuite
+Test/ecn_burstyEcn_tahoe instproc init topo {
         $self instvar net_ defNet_ test_
         Queue/RED set setbit_ true
         set net_	$topo
         set defNet_	net2-lossy
-        set test_	ecn_bursty3_tahoe
+        set test_	ecn_burstyEcn_tahoe
         $self next
 }
 
-Test/ecn_bursty3_tahoe instproc run {} {
+Test/ecn_burstyEcn_tahoe instproc run {} {
 	$self instvar ns_
 	Agent/TCP set bugFix_ true
 
@@ -457,19 +457,19 @@ Test/ecn_bursty3_tahoe instproc run {} {
 }
 
 # Multiple dup acks without bugFix_
-Class Test/ecn_bursty2_tahoe -superclass TestSuite
-Test/ecn_bursty2_tahoe instproc init topo {
+Class Test/ecn_noBugfix_tahoe -superclass TestSuite
+Test/ecn_noBugfix_tahoe instproc init topo {
         $self instvar net_ defNet_ test_
 	Queue/RED set thresh_ 100 
 	Queue/RED set maxthresh_ 100
         Queue/RED set setbit_ true
         set net_	$topo
         set defNet_	net2-lossy
-        set test_	ecn_bursty2_tahoe
+        set test_	ecn_noBugfix_tahoe
         $self next
 }
 
-Test/ecn_bursty2_tahoe instproc run {} {
+Test/ecn_noBugfix_tahoe instproc run {} {
 	$self instvar ns_
 	Agent/TCP set bugFix_ false
 
