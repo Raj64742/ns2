@@ -42,9 +42,9 @@ for t in $tests; do
     echo 'Sack1:'
     ../../ns t4.tcl $t
     sleep 5
-#    echo 'Vegas:'
-#    ../../ns t8.tcl $t
-#    sleep 5
+    echo 'Vegas:'
+    ../../ns t8.tcl $t
+    sleep 5
     echo 'Fack with OverDamping and Rampdown:'
     ../../ns t5.tcl $t
     sleep 5
