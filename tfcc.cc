@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.1 1998/09/12 00:44:36 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.2 1998/09/12 02:08:47 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -45,6 +45,7 @@ static const char rcsid[] =
 #include "agent.h"
 #include "random.h"
 #include "rtp.h"
+#include "flags.h"
 
 struct hdr_tfcc {
 	double rttest_;	// sender's rtt estimate
@@ -88,21 +89,40 @@ public:
         }
 } class_tfcchdr;
 
+class TFCCAgent;
+
+class TFCCTimer : public TimerHandler {
+public: 
+        TFCCTimer(TFCCAgent *a) : TimerHandler() { a_ = a; }
+protected:
+        void expire(Event *e);
+        TFCCAgent *a_;
+};
+
 class TFCCAgent : public RTPAgent {
+
+	friend class TFCCTimer;
+
 public:
-	TFCCAgent() : srtt_(-1.0), rttvar_(-1.0), peer_rtt_est_(-1.0),
-	last_rtime_(-1.0), expected_(-1), seqno_(0), ploss_(0),
-	lastploss_(0), lastexpected_(0), needresponse_(0) {
+	TFCCAgent() : ack_timer_(this),
+	srtt_(-1.0), rttvar_(-1.0), peer_rtt_est_(-1.0),
+	last_rtime_(-1.0), last_ts_(-1.0), expected_(-1), seqno_(0), ploss_(0),
+	lastploss_(0), lastexpected_(0), needresponse_(0), last_ecn_(0) {
 		bind("alpha_", &alpha_);
 		bind("beta_", &beta_);
 		bind("srtt_", &srtt_);
 		bind("rttvar_", &rttvar_);
 		bind("peer_rtt_est_", &peer_rtt_est_);
+		bind("ack_interval_", &ack_interval_);
 	}
 protected:
 	virtual void makepkt(Packet*);
 	virtual void recv(Packet*, Handler*);
-	virtual void loss_event();	// called when a loss is detected
+	virtual void loss_event(int);	// called when a loss is detected
+	virtual void ecn_event();	// called when seeing an ECN
+	virtual void peer_rttest_known(); // called when peer knows rtt
+	virtual void rtt_known();	// called when we know rtt
+	void ack_rate_change();		// changes the ack gen rate
         double now() const { return Scheduler::instance().clock(); };
 	double rtt_sample(double samp);
 
@@ -112,6 +132,8 @@ protected:
 	double srtt_;
 	double rttvar_;
 	double peer_rtt_est_;	// peer's est of the rtt
+	double last_ts_;	// ts field carries on last pkt
+	double ack_interval_;	// "ack" sending rate
 
 	double last_rtime_;	// last time a pkt was received
 
@@ -121,6 +143,9 @@ protected:
 	int lastploss_;		// last ploss_ reported
 	int lastexpected_;	// last expected_ reported
 	int needresponse_;	// send a packet in response to current one
+	int last_ecn_;		// last recv had an ecn
+
+	RTPTimer ack_timer_;	// periodic timer for ack generation
 };
 
 static class TFCCAgentClass : public TclClass {
@@ -135,13 +160,15 @@ double
 TFCCAgent::rtt_sample(double m)
 {       
 	// m is new measurement
-        if (srtt_ != 0.0) {
+        if (srtt_ > 0.0) {
                 double delta = m - srtt_;
 		srtt_ += alpha_ * delta;
                 if (delta < 0.0)
                         delta = -delta;
 		rttvar_ += beta_ * (delta - rttvar_);
         } else {
+printf("%s: %f: srtt initialized to %f\n",
+name(), now(), m);
                 srtt_ = m;
                 rttvar_ = srtt_ / 2.0;
         }
@@ -152,13 +179,21 @@ void
 TFCCAgent::makepkt(Packet* p)
 {
 	hdr_tfcc* th = (hdr_tfcc*)p->access(hdr_tfcc::offset_);
-	th->ts_echo() = th->ts();
+	hdr_flags* fh = (hdr_flags*)p->access(hdr_flags::offset_);
+
+	th->ts_echo() = last_ts_;
 	th->ts() = now();
 	th->interval() = interval_;
 	th->rttest() = srtt_;
 	th->plost() = ploss_;
 	th->maxseq() = expected_;
-	th->lossfrac() = (ploss_ - lastploss_) / (expected_ - lastexpected_);
+	fh->ecnecho() = last_ecn_;
+	fh->ect() = 1;
+	double denom = expected_ - lastexpected_;
+	if (denom)
+		th->lossfrac() = (ploss_ - lastploss_) / denom;
+	else
+		th->lossfrac() = -1.0;
 
 	lastploss_ = ploss_;
 	lastexpected_ = expected_;
@@ -178,13 +213,14 @@ TFCCAgent::recv(Packet* pkt, Handler*)
 {
         hdr_rtp* rh = (hdr_rtp*)pkt->access(off_rtp_);
 	hdr_tfcc* th = (hdr_tfcc*)pkt->access(hdr_tfcc::offset_);
+	hdr_flags* fh = (hdr_flags*)pkt->access(hdr_flags::offset_);
+
 	Tcl& tcl = Tcl::instance();
 
 	// update our picture of our peer's rtt est
 	if (th->rttest() > 0.0) {
 		if (peer_rtt_est_ <= 0.0) {
-			tcl.evalf("%s peer_rttest_known %f",
-				name(), th->rttest());
+			peer_rttest_known();
 		}
 		peer_rtt_est_ = th->rttest();
 	} else {
@@ -197,20 +233,30 @@ TFCCAgent::recv(Packet* pkt, Handler*)
 	if (th->ts_echo() > 0.0) {
 		double sample = now() - th->ts_echo();
 		if (srtt_ <= 0.0) {
-			tcl.evalf("%s rtt_known %f",
-				name(), sample);
+			rtt_known();
 		}
 		rtt_sample(now() - th->ts_echo());
 	}
-        seqno_ = MAX(rh->seqno(), seqno_);
+	if (rh->seqno() > seqno_) {
+        	seqno_ = rh->seqno();
+		last_ts_ = th->ts();
+	}
         /*
-         * Check for lost packets
+         * Check for lost packets or CE bits
          */
+
 	int loss = 0;
-        if (expected_ >= 0 && (loss = seqno_ - expected_) > 0) {
+	if (fh->ect()) {
+		if (fh->ce())
+			last_ecn_ = 1;
+		else if (fh->cong_action())
+			last_ecn_ = 0;
+	}
+	if (expected_ >= 0 && (loss = seqno_ - expected_) > 0) {
 		ploss_ += loss;
-		loss_event();
+		loss_event(loss);
         }
+
         last_rtime_ = now();
         expected_ = seqno_ + 1;
         Packet::free(pkt);
@@ -225,11 +271,46 @@ TFCCAgent::recv(Packet* pkt, Handler*)
  */
 
 void
-TFCCAgent::loss_event()
+TFCCAgent::loss_event(int nlost)
 {
-        // if its been at least an rtt since we've sent something,
-        // send it now. lastpkttime_ is the last time we sent something
-	// and is updated in rtp.cc
-        if ((now() - lastpkttime_) > peer_rtt_est_)
-		needresponse_ = 1;
+}
+
+void
+TFCCAgent::ecn_event()
+{
+}
+
+void
+TFCCAgent::peer_rttest_known()
+{
+	// first time our peer has indicated it knows the rtt
+	// so, adjust our "ack" sending rate to be once per rtt
+	ack_interval_ = peer_rtt_est_;
+	ack_rate_change();
+}
+
+void
+TFCCAgent::rtt_known()
+{
+}
+
+
+void
+TFCCAgent::ack_rate_change()
+{   
+        ack_timer_.force_cancel();
+        double t = lastpkttime_ + ack_interval_;
+        if (t > now())
+                ack_timer_.resched(t - now());
+        else {  
+                sendpkt();
+                ack_timer_.resched(ack_interval_); 
+        }       
+}   
+
+void
+TFCCTimer::expire(Event*)
+{
+	a_->sendpkt();
+	resched(a_->ack_interval_);
 }
