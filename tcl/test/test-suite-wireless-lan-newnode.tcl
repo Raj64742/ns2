@@ -544,7 +544,7 @@ Test/dsdv-wireless-mip instproc init {} {
     $ns_ at $opt(stop).0000010 "$HA reset";
     $ns_ at $opt(stop).0000010 "$FA reset";
     
-    $ns_ at $opt(stop).21 "$self finish"
+    $ns_ at $opt(stop).21 "$self finish-basenode"
     $ns_ at $opt(stop).20 "puts \"NS EXITING...\" ; "
 }
 
