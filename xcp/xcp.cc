@@ -1,36 +1,29 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
- * Copyright (c) 1996-1997 The Regents of the University of California.
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
+ * Copyright (C) 2004 by USC/ISI
+ *               2002 by Dina Katabi
+ *
  * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- * 	This product includes software developed by the Network Research
- * 	Group at Lawrence Berkeley National Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
  */
+
+#ifndef lint
+static const char rcsid[] =
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp.cc,v 1.8 2005/01/13 18:39:06 haldar Exp $";
+#endif
 
 
 #include "xcp.h"
@@ -46,10 +39,15 @@ public:
 	}
 } class_xcp_queue;
 
-XCPWrapQ::XCPWrapQ():xcpq_(0)
+XCPWrapQ::XCPWrapQ() : xcpq_(0), qToDq_(0), spread_bytes_(0), tcp_xcp_on_(false)
 {
-	for (int i = 0; i<MAX_QNUM; ++i)
+	// If needed wrrTemp and queueWeight will be reset to more useful
+	// values in XCPWrapQ::setVirtualQueues
+	for (int i = 0; i<MAX_QNUM; ++i) {
 		q_[i] = 0;
+		wrrTemp_[i] = 0.0;
+		queueWeight_[i]=  1 / MAX_QNUM;
+	}
 	
 	bind("spread_bytes_", &spread_bytes_);
 	routerId_ = next_router++;
@@ -63,7 +61,10 @@ XCPWrapQ::XCPWrapQ():xcpq_(0)
 	Tcl& tcl = Tcl::instance();
 	tcl.evalf("Queue/XCP set tcp_xcp_on_");
 	if (strcmp(tcl.result(), "0") != 0)  
-		tcp_xcp_on_ = 1;              //tcp_xcp_on flag is set
+		tcp_xcp_on_ = true;              //tcp_xcp_on flag is set
+	else
+		tcp_xcp_on_ = false;		// Not strictly required with
+						// the initializer above.
 }
  
 void XCPWrapQ::setVirtualQueues() {
@@ -75,8 +76,8 @@ void XCPWrapQ::setVirtualQueues() {
 	// setup timers for xcp queue only
 	if (xcpq_) {
 		xcpq_->routerId(this, routerId_);
+		xcpq_->spread_bytes(spread_bytes_);// this order is important as Te_ depends on spread_bytes_ flag
 		xcpq_->setupTimers();
-		xcpq_->spread_bytes(spread_bytes_);
 	}
 }
 
@@ -98,17 +99,10 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 		} 
 
 	}
-
+	
 	if (argc == 3) {
 		if (strcmp(argv[1], "set-xcpQ") == 0) {
-			if (xcpq_) {
-				assert(xcpq_ == q_[XCPQ]);
-				
-				delete xcpq_;
-				
-				q_[XCPQ] = xcpq_ =  NULL;
-			}
-			
+
 			q_[XCPQ] = xcpq_ = (XCPQueue *)(TclObject::lookup(argv[2]));
 			
 			if (xcpq_ == NULL) {
@@ -119,10 +113,6 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 			return TCL_OK;
 		}
 		else if (strcmp(argv[1], "set-tcpQ") == 0) {
-			if (q_[TCPQ]) {
-				delete q_[TCPQ];
-				q_[TCPQ] = NULL;
-			}
 			
 			q_[TCPQ] = (XCPQueue *)(TclObject::lookup(argv[2]));
 			
@@ -133,10 +123,6 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 			return TCL_OK;
 		}
 		else if (strcmp(argv[1], "set-otherQ") == 0) {
-			if (q_[OTHERQ]) {
-				delete q_[OTHERQ];
-				q_[OTHERQ] = NULL;
-			}
 			
 			q_[OTHERQ] = (XCPQueue *)(TclObject::lookup(argv[2]));
 			
@@ -153,11 +139,9 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 				exit(1);
 			}
 			if (tcp_xcp_on_) // divide between xcp and tcp queues
-				link_capacity_bitps = link_capacity_bitps/2.0;
+				link_capacity_bitps = link_capacity_bitps * queueWeight_[XCPQ];
 			
 			xcpq_->setBW(link_capacity_bitps/8.0); 
-			xcpq_->limit(limit());
-			
 			return TCL_OK;
 		}
     
@@ -167,8 +151,9 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 				tcl.resultf("no object %s", argv[2]);
 				return (TCL_ERROR);
 			}
-			for (int n=0; n < MAX_QNUM; n++) 
-				((XCPQueue *)q_[n])->dropTarget(drop_);
+			for (int n=0; n < MAX_QNUM; n++)
+				if (q_[n])
+					q_[n]->setDropTarget(drop_);
 			
 			return (TCL_OK);
 		}
@@ -181,7 +166,12 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 				tcl.resultf("queue.cc: trace-drops: can't attach %s for writing", id);
 				return (TCL_ERROR);
 			}
-			xcpq_->setChannel(queue_trace_file);
+			xcpq_->setChannel(queue_trace_file); //XXX virtual queues had
+							     //better be attached from
+							     //tcl in a similar manner
+							     //(this way xcpq_ is
+							     //singled out).
+			
 			return (TCL_OK);
 		}
     

@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.5 2004/10/28 23:35:40 haldar Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.6 2005/01/13 18:39:06 haldar Exp $";
 #endif
 
 #include <stdio.h>
@@ -80,19 +80,17 @@ XcpAgent::XcpAgent(): RenoTcpAgent(), shrink_cwnd_timer_(this)
 	tcpId_   = next_xcp;
 	next_xcp++;
 	init_rtt_vars();
+	current_positive_feedback_ = 0.0;
+	xcp_srtt_ = 0;
 	type_ = PT_XCP;
 
-	tp_to_start_ticks_ = 0;
-	s_sent_bytes_ = 0;
-	estimated_throughput_ = 0;
-	sent_bytes_ = 0;
-	xcp_feedback_ = 0;
+	xcp_sparse_seqno_ = -1;
 }
 
 void
 XcpAgent::delay_bind_init_all()
 {
-        delay_bind_init_one("xcp_metered_output_");
+        delay_bind_init_one("xcp_sparse_");
 
 	RenoTcpAgent::delay_bind_init_all();
 }
@@ -102,9 +100,9 @@ XcpAgent::delay_bind_dispatch(const char *varName,
 			      const char *localName, 
 			      TclObject *tracer)
 {
-        if (delay_bind(varName, localName, 
-		       "xcp_metered_output_", &xcp_metered_output_, 
-		       tracer))
+        if (delay_bind_bool(varName, localName, 
+			    "xcp_sparse_", &xcp_sparse_, 
+			    tracer))
 		return TCL_OK;
 	
         return RenoTcpAgent::delay_bind_dispatch(varName, localName, tracer);
@@ -132,78 +130,42 @@ void XcpAgent::output(int seqno, int reason)
 
 	// Beginning of XCP Changes
 	hdr_xcp *xh = hdr_xcp::access(p);
+
+	if ( (xh->xcp_sparse_ = xcp_sparse_) ) {
+		if (xcp_sparse_seqno_ < 0)
+			xcp_sparse_seqno_ = tcph->seqno();
+		else {
+			xh->xcp_enabled_ = hdr_xcp::XCP_ACK; 
+			xh->delta_throughput_ = 0;
+			//XXX hack needed so that other XCP-controlled
+			//packets would get into the XCP queue and not
+			//TCP queue.  Alternatively, could set rtt_ to
+			//0 to stop XCP processing.
+
+			goto xcp_sparse_skip;
+		}
+	}
+
 	xh->xcp_enabled_ = hdr_xcp::XCP_ENABLED;
 	xh->cwnd_ = double(cwnd_);
 	xh->rtt_ = srtt_estimate_;
 	xh->xcpId_ = tcpId_;
 	
-	if (xcp_metered_output_) {
-		double now = Scheduler::instance().clock();
-		long now_ticks = long(now / tcp_tick_);
-		double to_s = srtt_estimate_;
-		if (tp_to_start_ticks_ == 0) {
-			if (to_s != 0) {
-				tp_to_start_ticks_ = now_ticks;
-				do {
-					tp_to_ticks_ = long(to_s / tcp_tick_);
-					to_s *= 2;
-				} while (tp_to_ticks_ < 1);
-				to_s /= 2; // XXX restore (just in case)
-
-				xcp_feedback_ = 0.0;
-				sent_bytes_ = 0;
-			}
-		} else {
-			long delta_ticks = now_ticks - tp_to_start_ticks_;
-			while (delta_ticks >= tp_to_ticks_) {
-				/* each iteration is a "timeout" */
-				if (sent_bytes_ > s_sent_bytes_)
-					s_sent_bytes_ = sent_bytes_;
-				else {
-					s_sent_bytes_ *= (TP_AVG_EXP - 1);
-					s_sent_bytes_ += sent_bytes_;
-					s_sent_bytes_ /= TP_AVG_EXP;
-				}
-				delta_ticks -= tp_to_ticks_;
-				sent_bytes_ = 0;
-				estimated_throughput_ = (s_sent_bytes_ 
-							 / tcp_tick_ 
-							 / tp_to_ticks_);
-				xcp_feedback_ = 0;
-				tp_to_start_ticks_ = now_ticks - delta_ticks;
-
-				if (to_s != 0.0) {
-					do {
-						tp_to_ticks_ = long(to_s / tcp_tick_);
-						to_s *= 2;
-					} while (tp_to_ticks_ < 1);
-					to_s /= 2; // XXX for multiple "timeouts"
-				}
-			}
-		}
-#define MAX_THROUGHPUT	1e24
-		xh->throughput_ = estimated_throughput_;
-		
-		if (srtt_estimate_ != 0)
-			xh->delta_throughput_ = (MAX_THROUGHPUT 
-						 - xh->throughput_);
-		else
-			xh->delta_throughput_ = 0;
+#define MAX_THROUGHPUT        1e24
+	if (srtt_estimate_ != 0) {
+		xh->throughput_ = window() * size_ / srtt_estimate_;
+		xh->delta_throughput_ = (MAX_THROUGHPUT 
+					 - xh->throughput_);
 	} else {
-		if (srtt_estimate_ != 0) {
-			xh->throughput_ = window() * size_ / srtt_estimate_;
-			xh->delta_throughput_ = (MAX_THROUGHPUT 
-						 - xh->throughput_);
-		} else {
-			xh->throughput_ = .1; //XXX
-			xh->delta_throughput_ = 0;
-		}
+		//XXX can do xh->xcp_enabled_ = hdr_xcp::XCP_DISABLED;
+		xh->throughput_ = .1; //XXX
+		xh->delta_throughput_ = 0;
 	}
+
 	if(channel_) {
-		trace_var("estimated_throughput", estimated_throughput_);
-		trace_var("xcp_feedback", xcp_feedback_);
 		trace_var("throughput", xh->throughput_);
 	}
+ xcp_sparse_skip:
 	// End of XCP Changes
 
 	/* Check if this is the initial SYN packet. */
@@ -228,11 +190,6 @@ void XcpAgent::output(int seqno, int reason)
         ++ndatapack_;
         ndatabytes_ += bytes;
 	send(p, 0);
-
-	// XCP Changes
-	if (xcp_metered_output_)
-		sent_bytes_ += bytes;
-	// End of XCP Changes
 
 	if (seqno == curseq_ && seqno > maxseq_)
 		idle();  // Tell application I have sent everything so far
@@ -274,48 +231,40 @@ void XcpAgent::opencwnd()
 void XcpAgent::recv_newack_helper(Packet *pkt) {
 	newack(pkt);
 	// XCP changes
-	hdr_xcp *xh = hdr_xcp::access(pkt);
-	if(channel_) {
-		trace_var("reverse_feedback_", xh->reverse_feedback_);
-		trace_var("controlling_hop_", xh->controlling_hop_);
-	}
-	if (xcp_metered_output_) {
-		xcp_feedback_ += xh->reverse_feedback_;
-	}
 
-	double delta_cwnd = 0;
-	if (xcp_metered_output_) {
-		double bw = estimated_throughput_ + xcp_feedback_;
-
-		if (bw < 0.0)
-			bw = estimated_throughput_;
-		
-		/* XXX we add xcp_feedback here, because we change
-		 * snd_cnwd for every received reverse_feedback;
-		 * alternatively, we could keep an old copy of cnwd
-		 * (cwnd at the beginning of metered "timeout"), use
-		 * it here and not add xcp_feedback.  This lets us do
-		 * without explicitly using srtt. */
-
-		if (bw != 0.0) {
-			delta_cwnd = (xh->reverse_feedback_
-				      * double(cwnd_)
-				      / bw);
+	if (channel_)
+		trace_var("xcp_sparse_seqno_", xcp_sparse_seqno_);
+	if (xcp_sparse_) {
+		hdr_tcp *tcph = hdr_tcp::access(pkt);
+		if (xcp_sparse_seqno_ == tcph->seqno()) {
+			xcp_sparse_seqno_ = -1; //signal to send again
 		}
-	} else {
+	}
+	hdr_xcp *xh = hdr_xcp::access(pkt);
+	if (xh->xcp_enabled_ != hdr_xcp::XCP_DISABLED) {
+		if(channel_) {
+			trace_var("reverse_feedback_", xh->reverse_feedback_);
+			trace_var("controlling_hop_", xh->controlling_hop_);
+		}
+
+		double delta_cwnd = 0;
+		
 		delta_cwnd = (xh->reverse_feedback_
 			      * srtt_estimate_
 			      / size_);
 // 		delta_cwnd =  xh->reverse_feedback_ * xh->rtt_ / size_;
+		
+		double newcwnd = (cwnd_ + delta_cwnd);
+
+		if (newcwnd < 1.0)
+			newcwnd = 1.0;
+		if (maxcwnd_ && (newcwnd > double(maxcwnd_)))
+			newcwnd = double(maxcwnd_);
+		cwnd_ = newcwnd;
+		if (channel_)
+			trace_var("newcwnd", newcwnd);
+	
 	}
-
-	double newcwnd = (cwnd_ + delta_cwnd);
-
-	if (newcwnd < 1.0)
-		newcwnd = 1.0;
-	if (maxcwnd_ && (newcwnd > double(maxcwnd_)))
-		newcwnd = double(maxcwnd_);
-	cwnd_ = newcwnd;
 	// End of XCP changes
 
 	// code below is old TCP
@@ -577,12 +526,17 @@ void XcpSink::ack(Packet* opkt)
 		nf->ecnecho() = 1;
 
 	// XCP Changes
+
 	int off_xcp_ = hdr_xcp::offset();
 	hdr_xcp* oxcp = (hdr_xcp*)opkt->access(off_xcp_);
 	hdr_xcp* nxcp = (hdr_xcp*)npkt->access(off_xcp_);
-	nxcp->xcp_enabled_ = hdr_xcp::XCP_ACK; // XXX can it just be disabled?
-       	nxcp->reverse_feedback_ = oxcp->delta_throughput_;
-	nxcp->rtt_ = oxcp->rtt_; /* XXX relay back original rtt for debugging */
+	if (oxcp->xcp_enabled_ != hdr_xcp::XCP_DISABLED) {
+		nxcp->xcp_enabled_ = hdr_xcp::XCP_ACK;
+		nxcp->reverse_feedback_ = oxcp->delta_throughput_;
+		nxcp->rtt_ = oxcp->rtt_; /* XXX relay back original rtt for debugging */
+	} else 
+		nxcp->xcp_enabled_ = hdr_xcp::XCP_DISABLED;
+
 	// End of XCP Changes
 
 	acker_->append_ack(hdr_cmn::access(npkt),

@@ -18,7 +18,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.5 2004/10/28 23:35:40 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.6 2005/01/13 18:39:06 haldar Exp $
  */
 
 #ifndef ns_xcp_end_sys_h
@@ -45,8 +45,9 @@ struct hdr_xcp {
 	enum {
 		XCP_DISABLED = 0,
 		XCP_ENABLED,
-		XCP_ACK
+		XCP_ACK,
 	} 	xcp_enabled_;		// to indicate that the flow is XCP enabled
+	bool	xcp_sparse_;		// flag used with xcp_sparse extension
 	int	xcpId_;			// Sender's ID (debugging only)
 	double	cwnd_;			// The current window (debugging only) 
 	double	reverse_feedback_;
@@ -99,7 +100,6 @@ protected:
 	void trace_var(char * var_name, double var);
 	
 	void init_rtt_vars(){
-		flag_first_ack_received_ = 0.0;
 		srtt_estimate_           = 0.0;
 	}
 	virtual void delay_bind_init_all();
@@ -129,17 +129,11 @@ protected:
 	((srtt) + (((rtt) << XCP_DELTA_SHIFT)			\
 		   - (((srtt) + (1 << (XCP_EXPO_SHIFT - 1)))	\
 		      >> XCP_EXPO_SHIFT)))
-	long   xcp_srtt_; // srtt estimate using the above macros
-	double flag_first_ack_received_;
+	long	xcp_srtt_; // srtt estimate using the above macros
 
-	// these are used if xcp_metered_output_ is true
-	int    xcp_metered_output_;
-	double xcp_feedback_;
-	long   sent_bytes_;
-	long   s_sent_bytes_;
-	long   tp_to_start_ticks_;
-	long   tp_to_ticks_;
-	double estimated_throughput_;
+	int	xcp_sparse_;
+	int	xcp_sparse_seqno_;
+
 	cwndShrinkingTimer shrink_cwnd_timer_;
 };
 

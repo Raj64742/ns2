@@ -1,41 +1,24 @@
-
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
- * Copyright (c) 1996-1997 The Regents of the University of California.
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- * 	This product includes software developed by the Network Research
- * 	Group at Lawrence Berkeley National Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.cc,v 1.5 2004/10/28 23:35:40 haldar Exp $ (LBL)
+ * Copyright (C) 2004 by USC/ISI
+ *               2002 by Dina Katabi
+ *
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
  */
-
-/* Author : Dina Katabi, dina@ai.mit.edu 1/15/2002 */
 
 #include "xcpq.h"
 #include "xcp.h"
@@ -52,7 +35,8 @@ public:
 
 XCPQueue::XCPQueue(): queue_timer_(NULL), 
 		      estimation_control_timer_(NULL),
-		      rtt_timer_(NULL), effective_rtt_(0.0)
+		      rtt_timer_(NULL), effective_rtt_(0.0),
+		      spread_bytes_(0)
 {
 	init_vars();
 }
@@ -68,10 +52,10 @@ void XCPQueue::setupTimers()
   
 	T = max(0.004, Random::normal(Tq_, 0.2 * Tq_));
 	queue_timer_->sched(T);
-  
+	
 	T = max(0.004, Random::normal(Te_, 0.2 * Te_));
 	estimation_control_timer_->sched(T);
-	
+
 	T = max(0.004, Random::normal(Tr_, 0.2 * Tr_));
 	rtt_timer_->sched(T);
 }
@@ -113,7 +97,7 @@ void XCPQueue::setChannel(Tcl_Channel queue_trace_file)
 Packet* XCPQueue::deque()
 {
 	double inst_queue = byteLength();
-/* L 36 */
+/* L 32 */
 	if (inst_queue < running_min_queue_bytes_) 
 		running_min_queue_bytes_= inst_queue;
   
@@ -141,7 +125,7 @@ void XCPQueue::do_on_packet_arrival(Packet* pkt){
 
 	/* L 1 */
 	input_traffic_bytes_ += pkt_size;
-  
+
 	hdr_xcp *xh = hdr_xcp::access(pkt); 
 	if (spread_bytes_) {
 		int i = int(xh->rtt_/BWIDTH + .5);
@@ -159,19 +143,26 @@ void XCPQueue::do_on_packet_arrival(Packet* pkt){
   
 	if (xh->rtt_ != 0.0 && xh->throughput_ != 0.0) {
 		/* L 2 */
-		sum_inv_throughput_ += pkt_size / xh->throughput_;
+		double x = pkt_size / xh->throughput_;
+
+		if (xh->xcp_sparse_)
+			x = Te_;
+
+		sum_inv_throughput_ += x;
 		/* L 3 */
 		if (xh->rtt_ < XCP_MAX_INTERVAL) {
 			/* L 4 */
-			sum_rtt_by_throughput_ += (xh->rtt_ 
-						   * pkt_size 
-						   / xh->throughput_);
+			double y = xh->rtt_ * pkt_size / xh->throughput_;
+			if (xh->xcp_sparse_)
+				y = Te_ * xh->rtt_;
+			sum_rtt_by_throughput_ += y;
 			/* L 5 */
 		} else {
 			/* L 6 */
-			sum_rtt_by_throughput_ += (XCP_MAX_INTERVAL 
-						   * pkt_size 
-						   / xh->throughput_);	
+			double y = XCP_MAX_INTERVAL * pkt_size / xh->throughput_;
+			if (xh->xcp_sparse_)
+				y = Te_ * XCP_MAX_INTERVAL;
+			sum_rtt_by_throughput_ += y;
 		}
 	}
 }
@@ -191,7 +182,7 @@ void XCPQueue::do_before_packet_departure(Packet* p)
 	}
 	if (xh->throughput_ == 0.0)
 		xh->throughput_ = .1;    // XXX 1bps is small enough
-	
+
 	double inv = 1.0/xh->throughput_;
 	double pkt_size = double(hdr_cmn::access(p)->size());
 	double frac = 1.0;
@@ -199,33 +190,41 @@ void XCPQueue::do_before_packet_departure(Packet* p)
 		// rtt-scaling
 		frac = (xh->rtt_ > Te_) ? Te_ / xh->rtt_ : xh->rtt_ / Te_;
 	}
-	/* L 19 */
-	double pos_fbk = min(residue_pos_fbk_, Cp_ * inv * pkt_size);
-	pos_fbk *= frac;
-	/* L 20 */
-	double neg_fbk = min(residue_neg_fbk_, Cn_ * pkt_size);
-	neg_fbk *= frac;
-	/* L 21 */
+	/* L 20, 21 */
+	double pos_fbk = Cp_ * inv * pkt_size;
+	double neg_fbk = Cn_ * pkt_size;
+
+	if (xh->xcp_sparse_) {
+		pos_fbk = Cp_ * xh->rtt_;
+		neg_fbk = Cn_ * xh->rtt_ * xh->throughput_;
+	}
+
+	pos_fbk = min(residue_pos_fbk_, pos_fbk);
+
+	neg_fbk = min(residue_neg_fbk_, neg_fbk);
+
+	/* L 22 */
 	double feedback = pos_fbk - neg_fbk;
-  
-	/* L 22 */	
+	 
+	/* L 23 */	
 	if (xh->delta_throughput_ >= feedback) {
-		/* L 23 */
+		/* L 24 */
 		xh->delta_throughput_ = feedback;
 		xh->controlling_hop_ = routerId_;
-		/* L 26 */
+		/* L 25 */
 	} else {
-		/* L 27-33 corrected */
+		/* L 26 */
 		neg_fbk = min(residue_neg_fbk_, neg_fbk + (feedback - xh->delta_throughput_));
+		/* L 27 */
 		pos_fbk = xh->delta_throughput_ + neg_fbk;
 	}
-	/* L 24-25 */
+	/* L 28, L 29 */
 	residue_pos_fbk_ = max(0.0, residue_pos_fbk_ - pos_fbk);
 	residue_neg_fbk_ = max(0.0, residue_neg_fbk_ - neg_fbk);
-	/* L 34 */
+	/* L 30 */
 	if (residue_pos_fbk_ == 0.0)
 		Cp_ = 0.0;
-	/* L 35 */
+	/* L 31 */
 	if (residue_neg_fbk_ == 0.0)
 		Cn_ = 0.0;
   
@@ -256,13 +255,13 @@ void XCPQueue::do_before_packet_departure(Packet* p)
 void XCPQueue::Tq_timeout()
 {
 	double inst_queue = byteLength();
-	/* L 37 */
+	/* L 33 */
 	queue_bytes_ = running_min_queue_bytes_;
-	/* L 37.5 corrected: min_queue = inst_queue */
+	/* L 34 */
 	running_min_queue_bytes_ = inst_queue;
-	/* L 38 */
+	/* L 35 */
 	Tq_ = max(0.002, (avg_rtt_ - inst_queue/link_capacity_bps_)/2.0); 
-	/* L 39 */
+	/* L 36 */
 	queue_timer_->resched(Tq_);
 	
 	if (TRACE && (queue_trace_file_ != 0)) {
@@ -298,13 +297,13 @@ void XCPQueue::Te_timeout()
 		input_traffic_bytes_ = spreaded_bytes;
 		sum_inv_throughput_ = tp;
 	}
-		
+	/* L 8 */
 	double input_bw = input_traffic_bytes_ / Te_;
 	double phi_bps = 0.0;
 	double shuffled_traffic_bps = 0.0;
 
 	if (spread_bytes_) {
-		avg_rtt_ = (maxb_ + 1)*BWIDTH/2; // XXX fix me
+		avg_rtt_ = (maxb_ + 1)* BWIDTH/2; // XXX fix me
 	} else {
 		if (sum_inv_throughput_ != 0.0) {
 /* L 7 */
@@ -314,28 +313,28 @@ void XCPQueue::Te_timeout()
 	}
 	
 	if (input_traffic_bytes_ > 0) {
-/* L 8 */
+/* L 9 */
 		phi_bps = ALPHA_ * (link_capacity_bps_- input_bw) 
 			- BETA_ * queue_bytes_ / avg_rtt_;
-/* L 9 corrected */
+/* L 10 */
 		shuffled_traffic_bps = GAMMA_ * input_bw;
 
 		if (shuffled_traffic_bps > abs(phi_bps))
 			shuffled_traffic_bps -= abs(phi_bps);
 		else
 			shuffled_traffic_bps = 0.0;
-/* L 9 ends here */
+/* L 10 ends here */
 	}
-/* L 12, 13 */	
+/* L 11, 12 */	
 	residue_pos_fbk_ = max(0.0,  phi_bps) + shuffled_traffic_bps;
 	residue_neg_fbk_ = max(0.0, -phi_bps) + shuffled_traffic_bps;
 
 	if (sum_inv_throughput_ == 0.0)
 		sum_inv_throughput_ = 1.0;
 	if (input_traffic_bytes_ > 0) {
-/* L 10 */
+/* L 13 */
 		Cp_ =  residue_pos_fbk_ / sum_inv_throughput_;
-/* L 11 */
+/* L 14 */
 		Cn_ =  residue_neg_fbk_ / input_traffic_bytes_;
 	} else 
 		Cp_ = Cn_ = 0.0;
@@ -354,19 +353,19 @@ void XCPQueue::Te_timeout()
 	} 
 	num_cc_packets_in_Te_ = 0;
 
-/* L 14 */  
+/* L 15 */  
 	input_traffic_bytes_ = 0.0;
-/* L 15 */
-	sum_inv_throughput_ = 0.0;
 /* L 16 */
-	sum_rtt_by_throughput_ = 0.0;
+	sum_inv_throughput_ = 0.0;
 /* L 17 */
+	sum_rtt_by_throughput_ = 0.0;
+/* L 18 */
 	if (spread_bytes_)
 		Te_ = BWIDTH;
 	else
 		Te_ = max(avg_rtt_, XCP_MIN_INTERVAL);
 
-/* L 18 */
+/* L 19 */
 	estimation_control_timer_->resched(Te_);
 
 	min_queue_ci_ = max_queue_ci_ = length();
@@ -441,7 +440,6 @@ void XCPQueue::init_vars()
 	queue_trace_file_ = 0;
 	myQueue_ = 0;
   
-	spread_bytes_ 		= 0;
 	for (int i = 0; i<BSIZE; ++i)
 		b_[i] = t_[i] = 0;
 	maxb_ = 0;
