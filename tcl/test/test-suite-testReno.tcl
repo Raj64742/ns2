@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.1 2000/03/18 20:13:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.2 2000/03/18 23:24:21 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-testReno.tcl
@@ -128,60 +128,13 @@ TestSuite instproc setup {tcptype list} {
         # Set up TCP connection
     	if {$tcptype == "Tahoe"} {
       		set tcp1 [$ns_ create-connection TCP $node_(s1) \
-          	TCPSink $node_(k1) $fid]
+          	TCPSink/DelAck $node_(k1) $fid]
     	} elseif {$tcptype == "Sack1"} {
       		set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) \
-          	TCPSink/Sack1  $node_(k1) $fid]
-    	} elseif {$tcptype == "Fack"} {
-      		set tcp1 [$ns_ create-connection TCP/Fack $node_(s1) \
-          	TCPSink/Sack1  $node_(k1) $fid]
-    	} elseif {$tcptype == "FullTcp"} {
-		set wrap $wrap1
-	        set tcp1 [new Agent/TCP/FullTcp]
-	        set sink [new Agent/TCP/FullTcp]
-	        $ns_ attach-agent $node_(s1) $tcp1
-	        $ns_ attach-agent $node_(k1) $sink
-	        $tcp1 set fid_ $fid
-	        $sink set fid_ $fid
-	        $ns_ connect $tcp1 $sink
-	        # set up TCP-level connections
-	        $sink listen ; # will figure out who its peer is
-    	} elseif {$tcptype == "FullTcpTahoe"} {
-		set wrap $wrap1
-	        set tcp1 [new Agent/TCP/FullTcp/Tahoe]
-	        set sink [new Agent/TCP/FullTcp/Tahoe]
-	        $ns_ attach-agent $node_(s1) $tcp1
-	        $ns_ attach-agent $node_(k1) $sink
-	        $tcp1 set fid_ $fid
-	        $sink set fid_ $fid
-	        $ns_ connect $tcp1 $sink
-	        # set up TCP-level connections
-	        $sink listen ; # will figure out who its peer is
-    	} elseif {$tcptype == "FullTcpNewreno"} {
-		set wrap $wrap1
-	        set tcp1 [new Agent/TCP/FullTcp/Newreno]
-	        set sink [new Agent/TCP/FullTcp/Newreno]
-	        $ns_ attach-agent $node_(s1) $tcp1
-	        $ns_ attach-agent $node_(k1) $sink
-	        $tcp1 set fid_ $fid
-	        $sink set fid_ $fid
-	        $ns_ connect $tcp1 $sink
-	        # set up TCP-level connections
-	        $sink listen ; # will figure out who its peer is
-    	} elseif {$tcptype == "FullTcpSack1"} {
-		set wrap $wrap1
-	        set tcp1 [new Agent/TCP/FullTcp/Sack]
-	        set sink [new Agent/TCP/FullTcp/Sack]
-	        $ns_ attach-agent $node_(s1) $tcp1
-	        $ns_ attach-agent $node_(k1) $sink
-	        $tcp1 set fid_ $fid
-	        $sink set fid_ $fid
-	        $ns_ connect $tcp1 $sink
-	        # set up TCP-level connections
-	        $sink listen ; # will figure out who its peer is
+          	TCPSink/Sack1/DelAck  $node_(k1) $fid]
     	} else {
       		set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) \
-          	TCPSink $node_(k1) $fid]
+          	TCPSink/DelAck $node_(k1) $fid]
     	}
         $tcp1 set window_ 5
         set ftp1 [$tcp1 attach-app FTP]
@@ -208,7 +161,7 @@ Test/twodrops_tahoe instproc init {} {
 	$self next
 }
 Test/twodrops_tahoe instproc run {} {
-        $self setup Tahoe {12 15}
+        $self setup Tahoe {15 18}
 }
 
 Class Test/twodrops_reno -superclass TestSuite
@@ -219,7 +172,7 @@ Test/twodrops_reno instproc init {} {
 	$self next
 }
 Test/twodrops_reno instproc run {} {
-        $self setup Reno {12 15}
+        $self setup Reno {15 18}
 }
 
 Class Test/twodrops_newreno -superclass TestSuite
@@ -230,7 +183,7 @@ Test/twodrops_newreno instproc init {} {
 	$self next
 }
 Test/twodrops_newreno instproc run {} {
-        $self setup Newreno {12 15}
+        $self setup Newreno {15 18}
 }
 
 Class Test/twodrops_sack -superclass TestSuite
@@ -241,7 +194,7 @@ Test/twodrops_sack instproc init {} {
 	$self next
 }
 Test/twodrops_sack instproc run {} {
-        $self setup Sack1 {12 15}
+        $self setup Sack1 {15 18}
 }
 
 TestSuite runTest
