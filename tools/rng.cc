@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.25 2002/01/23 22:50:31 buchheim Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.26 2002/01/29 19:29:03 buchheim Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -778,6 +778,7 @@ void RNG::set_seed (long seed)
 		seed_vec[i] = (unsigned long) seed;
 	}
 	set_package_seed (seed_vec);
+	init();
 }
 
 long RNG::seed() 
