@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.30 1998/07/02 02:51:41 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.31 1998/07/06 17:40:33 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -217,8 +217,13 @@ class FullTcpAgent : public TcpAgent {
 };
 
 class NewRenoFullTcpAgent : public FullTcpAgent {
+public:
+	NewRenoFullTcpAgent();
 protected:
+	int	save_maxburst_;		// saved value of maxburst_
+	int	recov_maxburst_;	// maxburst lim during recovery
 	void pack_action(Packet*);
+	void ack_action(Packet*);
 };
 
 class TahoeFullTcpAgent : public FullTcpAgent {
