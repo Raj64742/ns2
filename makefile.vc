@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.18 1999/05/24 04:45:49 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.19 1999/05/26 01:21:10 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -146,8 +146,8 @@ OBJ_CC = \
 	dsr/requesttable.o dsr/routecache.o \
 	ns-process.o \
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
-	fsm.o tcp-abs.o
-#	webcache/mcache.o \
+	fsm.o tcp-abs.o \
+	webcache/mcache.o 
 #mac-csma.o mac-multihop.o\
 
 
@@ -271,8 +271,8 @@ NS_TCL_LIB = \
 	tcl/lan/ns-mac.tcl \
 	tcl/webcache/http-agent.tcl \
 	tcl/webcache/http-server.tcl \
-	tcl/webcache/http-cache.tcl 
-#	tcl/webcache/http-mcache.tcl
+	tcl/webcache/http-cache.tcl \
+	tcl/webcache/http-mcache.tcl
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 	-mkdir $(GEN_DIR:\\=)
