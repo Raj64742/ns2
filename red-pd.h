@@ -1,6 +1,6 @@
 /* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
- * Copyright (c) 1999  International Computer Science Institute
+ * Copyright (c) 2000  International Computer Science Institute
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red-pd.h,v 1.2 2000/11/19 01:12:11 ratul Exp $ (ACIRI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red-pd.h,v 1.3 2000/11/21 20:58:11 ratul Exp $ (ACIRI)
  */
 
 
@@ -56,7 +56,7 @@ class RedPDQueue : public REDQueue {
 	double targetBW_;       // the global targetBW_ in bps
 	int noMonitored_;       // number of monitored flows
 	double unresponsive_penalty_;  //multiplicative penalty factor for flows marked unresponsive
-	                                      // they get bw = targetBW/unresponsive_penalty_
+	                               // they get dropped with probability $prob*unresponsive_penalty_
 	
 	double P_testFRp_;      // to test the FRP thing
  

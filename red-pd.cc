@@ -1,6 +1,6 @@
 /* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
- * Copyright (c) 1999  International Computer Science Institute
+ * Copyright (c) 2000  International Computer Science Institute
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red-pd.cc,v 1.2 2000/11/19 01:12:11 ratul Exp $ (ACIRI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red-pd.cc,v 1.3 2000/11/21 20:58:11 ratul Exp $ (ACIRI)";
 #endif
 
 #include "red-pd.h"
@@ -45,7 +45,7 @@ static class ReDPDClass : public TclClass {
 public:
 	ReDPDClass() : TclClass("Queue/RED/PD") {}
 	TclObject* create(int argc, const char*const* argv) {
-		printf("creating REDPD %d\n", argc);
+		//		printf("creating REDPD %d\n", argc);
 		if (argc==4) {
 			return (new RedPDQueue("Drop", "Drop"));
 		}
@@ -78,7 +78,7 @@ static class RedPDFlowClass : public TclClass {
 
 RedPDQueue::RedPDQueue(const char * medtype, const char * edtype): REDQueue(edtype),
 	auto_(0), global_target_(0), targetBW_(0), noMonitored_(0), 
-	unresponsive_penalty_(2), P_testFRp_(-1), flowMonitor_(NULL), MEDTrace(NULL) {
+	unresponsive_penalty_(1), P_testFRp_(-1), flowMonitor_(NULL), MEDTrace(NULL) {
 
 	//printf("In RedPD constructor with %s %s\n", medtype, edtype);
 	if (strlen(medtype) >=20) {
@@ -153,14 +153,15 @@ void RedPDQueue::enque(Packet* pkt) {
 		
 		//calculate drop probability - use the global target if global_target_ is set
 		if (global_target_) { 
-			if (flow->unresponsive()) {
-				P_monFlow = getP_monFlow(flow->currentBW_, 
-							 targetBW_/unresponsive_penalty_);
-			} else { 
-				P_monFlow = getP_monFlow(flow->currentBW_, targetBW_);
-			} 
-		} else { 
+			P_monFlow = getP_monFlow(flow->currentBW_, targetBW_);
+		} 
+		else { 
 			P_monFlow = getP_monFlow(flow->currentBW_, flow->targetBW_);
+		}
+		
+		if (flow->unresponsive_) {
+			//printf("unresponsive penalty = %g\n", unresponsive_penalty_);
+			P_monFlow *= unresponsive_penalty_;
 		}
 		
 		if (P_monFlow != 0) {
@@ -220,10 +221,10 @@ int RedPDQueue::command(int argc, const char*const* argv) {
 		if (strcmp(argv[1], "mon-edrop-trace") == 0) {
 			if (MEDTrace != NULL) {
 				tcl.resultf("%s", MEDTrace->name());
-				printf("Exists according to RedPD\n");
+				//printf("Exists according to RedPD\n");
 			}
 			else {
-				printf("Doesn't exist according to RedPD\n");
+				//printf("Doesn't exist according to RedPD\n");
 				tcl.resultf("0");
 			}
 			return (TCL_OK);
@@ -254,7 +255,6 @@ int RedPDQueue::command(int argc, const char*const* argv) {
 
 			RedPDFlow * flow = (RedPDFlow *) TclObject::lookup(argv[2]);
 			printf("showing now : %s = %d\n", flow->name(), flow->monitored_);
-			
 			return (TCL_OK);
 		}
 		//$queue mon-edrop-trace $trace
@@ -262,14 +262,12 @@ int RedPDQueue::command(int argc, const char*const* argv) {
 		else if (strcmp(argv[1], "mon-edrop-trace") == 0) {
 			
 			MEDTrace = (NsObject *) TclObject::lookup(argv[2]);
-			
-                        if (MEDTrace == NULL) {
+			if (MEDTrace == NULL) {
 				if (debug_) printf("Error Attaching Trace\n");
                                 return (TCL_ERROR);
 			}
 			if (debug_) 
 				printf("RedPD: MEDTrace Set to %s\n", flowMonitor_->name());
-		
 			return (TCL_OK);
 		}
 		//$queue unmonitor-flow $flow
@@ -293,7 +291,6 @@ int RedPDQueue::command(int argc, const char*const* argv) {
 				tcl.resultf("noMonitored gone below ZERO\n");
 				return TCL_ERROR;
 			}
-
 			return TCL_OK;
 		}
 		//$queue unresponsive-flow $flow
@@ -341,6 +338,7 @@ int RedPDQueue::command(int argc, const char*const* argv) {
 			//monitoring a flow with probability p, is same as 
 			//monitoring it with targetBW 1-p and currentBW 1. 
 			tcl.evalf("%s monitor-flow %s %g 1",name(), argv[2], 1 - atof(argv[3]));
+			return(TCL_OK);
 		}
 	}
 	else if (argc == 5) {
