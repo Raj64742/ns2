@@ -83,9 +83,9 @@ class SRM_Request {
  * Light-weight node abstraction only to store SRM 
  * protocol state information.
  */
-class Node : public Handler {
+class SrmNode : public Handler {
  public:
-	Node() : id_(0), expected_(0), pending_(0) {}
+	SrmNode() : id_(0), expected_(0), pending_(0) {}
 	void id(int i) { id_ = i; }
 	void handle(Event *);
 	void send(SRM_Event *);
@@ -140,7 +140,7 @@ class Topology : public TclObject {
 
 	int command(int argc, const char*const* argv);
 	inline int idx() { return idx_; }
-	Node *node(int nn);
+	SrmNode *node(int nn);
 	virtual double backoff(int dst) = 0;
 	inline double delay() { return delay_;}
 	inline double D() { return D_;}
@@ -148,7 +148,7 @@ class Topology : public TclObject {
 	int rtt_estimated() { return rtt_est_; }
 
  protected:
-	Node *node_; 
+	SrmNode *node_; 
 	int idx_;
 	int src_;
 

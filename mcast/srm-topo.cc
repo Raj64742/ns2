@@ -31,7 +31,7 @@
 
 Topology::Topology(int nn, int src) : idx_(nn), src_(src)
 {
-	node_ = new Node[nn];
+	node_ = new SrmNode[nn];
 	for (int i = 0; i < nn; i ++) 
 		node_[i].id(i);
 
@@ -62,7 +62,7 @@ int Topology::command(int argc, const char*const* argv)
 	return (TclObject::command(argc, argv));
 }
 
-Node* Topology::node(int nn) 
+SrmNode* Topology::node(int nn) 
 { 
 	if (nn < 0 || nn >= idx_) return 0;
 	return &(node_[nn]); 
@@ -300,10 +300,10 @@ public:
 
 
 /* 
- * Node -
+ * SrmNode -
  */
 
-void Node::dump_packet(SRM_Event *e) 
+void SrmNode::dump_packet(SRM_Event *e) 
 {
 #ifdef SRM_DEBUG
 	tprintf(("(type %d) (in %d) -- @ %d --> \n", e->type(), e->iif(), id_));
@@ -313,7 +313,7 @@ void Node::dump_packet(SRM_Event *e)
 /* This forwards an event by making multiple copies of the
  * event 'e'. Does NOT free event 'e'. 
  */
-void Node::send(SRM_Event *e) 
+void SrmNode::send(SRM_Event *e) 
 {
 	/* 
 	 * Copy the packet and send it over to 
@@ -333,7 +333,7 @@ void Node::send(SRM_Event *e)
 			int t = e->type();
 			//int i = id_; 
 			int snum = e->seqno();
-			Node *next = topology->node(nn);
+			SrmNode *next = topology->node(nn);
 			if (next) {
 				copy = new SRM_Event(snum, t, id_);
 				s.schedule(next, copy,
@@ -350,7 +350,7 @@ void Node::send(SRM_Event *e)
  * Demux the two types of events depending on 
  * the type field.
  */ 
-void Node::handle(Event* event)
+void SrmNode::handle(Event* event)
 {
 	SRM_Event *srm_event = (SRM_Event *) event;
 	int type  = srm_event->type();
@@ -394,7 +394,7 @@ void Node::handle(Event* event)
  * XXX Should take two sequence numbers. The iif field is a dummy. We should be
  * careful not to use it for NACKs 
  */
-void Node::sched_nack(int seqno) 
+void SrmNode::sched_nack(int seqno) 
 {
 	double backoff, time;
 	Scheduler& s = Scheduler::instance();
@@ -408,7 +408,7 @@ void Node::sched_nack(int seqno)
 	s.schedule(this, event, backoff);
 }
 
-void Node::append(SRM_Event *e) 
+void SrmNode::append(SRM_Event *e) 
 {
 	SRM_Request *req = new SRM_Request(e);
 	req->next_ = pending_;
@@ -416,7 +416,7 @@ void Node::append(SRM_Event *e)
 }
 
 /* If an event identical to e exists, cancel it */
-void Node::remove(int seqno, int flag)
+void SrmNode::remove(int seqno, int flag)
 {
 	SRM_Request *curr, *prev;
 	SRM_Event *ev;
