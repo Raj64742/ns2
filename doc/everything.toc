@@ -78,8 +78,7 @@
 \contentsline {subsection}{\numberline {9.2.2}Core and edge routers}{79}
 \contentsline {subsection}{\numberline {9.2.3}Policy}{80}
 \contentsline {section}{\numberline {9.3}Configuration}{81}
-\contentsline {section}{\numberline {9.4}Adding new policy}{83}
-\contentsline {section}{\numberline {9.5}Commands at a glance}{83}
+\contentsline {section}{\numberline {9.4}Commands at a glance}{83}
 \contentsline {chapter}{\numberline {10}Agents}{86}
 \contentsline {section}{\numberline {10.1}Agent state}{86}
 \contentsline {section}{\numberline {10.2}Agent methods}{86}

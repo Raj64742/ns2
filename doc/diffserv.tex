@@ -21,13 +21,10 @@ discarded than high priority packets.
 \section{Overview}
 \label{sec:diffservoverview}
 
-The procedures and functions described in this section can be found in
-\nsf{diffserv/dsred, dsredq, dsEdge, dsCore, dsPolicy.\{cc, h\}}.
-
 The Diffserv architecture provides QoS by dividing traffic into different 
 categories, marking each packet with a code point that indicates its category, 
-and scheduling packets according to their code points. The Diffserv model in ns 
-currently defines four classes of traffic, each of which has three drop 
+and scheduling packets according to their code points. The Diffserv module in 
+ns currently defines four classes of traffic, each of which has three drop 
 precedences.  Those drop precedences enable differential treatment of traffic 
 within a single class. A single class of traffic is enqueued into one 
 corresponding physical RED queue, which contains three virtual queues (one for
@@ -39,12 +36,12 @@ packet with a lower drop precedence is given better treatment in times of
 congestion because it is assigned a code point that corresponds to a virtual 
 queue with relatively lenient RED parameters.  
 
-The Diffserv model in ns has three major components:
+The Diffserv module in ns has three major components:
 \begin{description}
 
 \item [policy]
 Policy is specified by network administrator about the level of service a class
-of traffic shouldreceive in the network.  
+of traffic should receive in the network.  
 
 \item [edge routers]
 Edge routers marks packets with a code point according to the policy specified.
@@ -53,11 +50,13 @@ Edge routers marks packets with a code point according to the policy specified.
 Core routers examine packets' code point marking and forward them accordingly.
 
 \end{description}
+
 Diffserv attempts to restrict complexity to only the edge routers.
 
 
 \section{Implementation}
 \label{sec:diffservimplement}
+
 The procedures and functions described in this section can be found in
 \nsf{diffserv/dsred, dsredq, dsEdge, dsCore, dsPolicy.\{cc, h\}}.
 
@@ -68,6 +67,7 @@ In ns, the Diffserv functionality is captured in a Queue object, which is
 implemented as an alternative to other queue types such as DropTail, CBQ, and 
 RED.  A Diffserv queue (\code{dsREDQueue} derived from the base class 
 \code{Queue}, see \code{dsred.\{h,cc\}}) contains the abilities:
+
 \begin{itemize}
 \item
 to implement multiple physical RED queues along a single link;
@@ -79,28 +79,27 @@ to determine in which physical and virtual queue a packet is enqueued, according
 to policy specified.
 \end{itemize}
 
-The \code{dsREDQueue} consists of four (defined in \code{numQueues_}) physical 
-RED queues,
-each containing three (defined in \code{numPrec}) virtual queues, 
+The class \code{dsREDQueue} consists of four (defined as \code{numQueues_}) 
+physical RED queues,
+each containing three (defined as \code{numPrec}) virtual queues, 
 referred to as precedence levels. Each physical queue corresponds to a class of
 traffic; and each combination of a queue and precedence number is associated 
 with a code point (or a drop preference), which specifies a certain level of 
 service.
 
-Each physical RED queue is defined in \code{class redQueue} 
+The physical RED queue is defined in \code{class redQueue} 
 (see \code{dsredq.\{h,cc\}}). 
-The \code{redQueue class} enables that traffic differentiation by defining 
+The \code{redQueue} class enables that traffic differentiation by defining 
 virtual RED queues, each of which has independent configuration and state 
 parameters. 
 For example, the length of each virtual queue is calculated only on packets 
 mapped to that queue.  Thus, packet dropping decisions can be applied based on 
 the state and configuration parameters of the virtual queues.
 
-The redQueue class is not equivalent to the REDQueue class, which was already 
+The \code{redQueue} class is not equivalent to the \code{REDQueue} class, which was already 
 present in ns.  Instead, it is a modified copy of that class that includes the 
 notion of virtual queues.
-
-Instances of the redQueue class only exist inside instances of the dsREDQueue class.  All user interaction with the redQueue class is handled through the command interface of the dsREDQueue class.
+Instances of the redQueue class only exist inside instances of the \code{dsREDQueue} class.  All user interaction with the \code{redQueue} class is handled through the command interface of the \code{dsREDQueue} class.
 
 The \code{dsREDQueue} class contains a data structure known as the PHB Table 
 (per hop behaviour table).  Edge devices handle marking packets with code points
@@ -109,21 +108,22 @@ The \code{dsREDQueue} class contains a data structure known as the PHB Table
 level.
 
 The PHB Table handles this mapping by defining an array with three fields:
-\begin{itemize}
-\item
-Code point
-\item
-Class (Physical Queue)
-\item
-Precedence (Virtual Queue)
-\end{itemize}
+
+\begin{program}
+struct phbParam \{
+   int codePt_; // corresponding code point
+   int queue_;	// physical queue
+   int prec_;	// virtual queue (drop precedence)
+\};
+\end{program}
 
 
 \subsection{Core and edge routers}
 \label{sec:dsedge}
 The Diffserv edge and core routers are defined in class \code{edgeQueue} and 
 class \code{coreQueue}, which are both derived from class \code{dsREDQueue},
-see \code{dsEdge, dsCore.\{h,cc\}}.
+see \code{dsEdge, dsCore.\{h,cc\}}. Class \code{edgeQueue} has a reference to
+class \code{Policy}.
 
 \subsection{Policy}
 \label{sec:dspolicy}
@@ -199,9 +199,9 @@ TSW3CM (TSW3CMPolicer): uses a CIR, a PIR, and three drop precedences.  The medi
 \item
 Token Bucket (tokenBucketPolicer): uses a CIR and a CBS and two drop precedences.  An arriving packet is marked with the lower precedence if and only if it is larger than the token bucket.
 \item
-Single Rate Three Color Marker (srTCMPolicer): uses a CIR, CBS, and an EBS to choose from three drop precedences, as explained in [12].
+Single Rate Three Color Marker (srTCMPolicer): uses a CIR, CBS, and an EBS to choose from three drop precedences.
 \item
-Two Rate Three Color Marker (trTCMPolicer): uses a CIR, CBS, PIR, and a PBS to choose from three drop precdences, as explained in [13].
+Two Rate Three Color Marker (trTCMPolicer): uses a CIR, CBS, PIR, and a PBS to choose from three drop precdences.
 
 \end{enumerate}
 
@@ -225,12 +225,16 @@ The last field is not used for policer types with only two drop precedences; and
 
 The number of physical and virtual queues can be configured as:
 
-\code{$dsredq set numQueues_ 1}
-\code{$dsredq setNumPrec 2}
+\begin{program}
 
-\code{$dsredq configQ 0 1 10 20 0.10}
+\$dsredq set numQueues_ 1
+\$dsredq setNumPrec 2
+\$dsredq configQ 0 1 10 20 0.10
 
-This command configures the RED parameters for one virtual queue.  The above example specifies that physical queue 0/virtual queue 1 has a minth value of 10 packets, a maxth value of 20 packets, and a maxp value of 0.10.  [9] contains an explanation of these RED parameters. For DropTail queues, only the first three parameters are required and the second is disregarded because there is no notion of precedence level for a DropTail queue.
+\end{program}
+
+This command configures the RED parameters for one virtual queue.  The above example specifies that physical queue 0/virtual queue 1 has a minth value of 10 packets, a maxth value of 20 packets, and a maxp value of 0.10.  
+
 
 \code{$dsredq addPHBEntry 11 0 1}
 
@@ -242,14 +246,16 @@ This command specifies the mean packet size (in bytes), which is used for RED ca
 
 In addition, commands are available which allow the user to choose the scheduling mode between queues.
 
-\code{$dsredq setSchedularMode WRR}\\
-\code{$dsredq addQueueWeights 1 5}\\
+\code{$dsredq setSchedularMode WRR}
+
+\code{$dsredq addQueueWeights 1 5}
 
 The above pair of commands sets the scheduling mode to Weighted Round Robin and then sets the queue weight for queue 1 to 5. Other scheduling modes supported are Weighted Interleaved Round Robin (WIRR), Round Robin (RR), and Priority (PRI). The default scheduling mode is Round Robin.
 
 For Priority scheduling, priority is arranged in sequential order with queue 0 having the highest priority. Also, one can set the a limit on the maximum bandwidth a particular queue can get using the addQueueRate command.
 
 \code{$dsredq setSchedularMode PRI}
+
 \code{$dsredq addQueueRate 0 5000000}
 
 
@@ -322,8 +328,8 @@ This command prints the entire Policer Table, one line at a time.
 
 This query returns the current size of the C Bucket, in bytes.
 
-\section{Adding new policy}
-\label{sec:diffservaddnewpolicy}
+%\section{Adding new policy}
+%\label{sec:diffservaddnewpolicy}
 
 \section{Commands at a glance}
 \label{sec:diffservcommand}
@@ -332,27 +338,27 @@ The following is a list of error-model related commands commonly used in
 simulation scripts:
 
 \begin{program}
-$ns simplex-link $edge $core 10Mb 5ms dsRED/edge
-$ns simplex-link $core $edge 10Mb 5ms dsRED/core
+\$ns simplex-link \$edge \$core 10Mb 5ms dsRED/edge
+\$ns simplex-link \$core \$edge 10Mb 5ms dsRED/core
 \end{program}
 
 These two commands create the queues along the link between an edge router and 
 a core router.
 
 \begin{program}
-set qEC [[$ns link $edge $core] queue]
+set qEC [[\$ns link \$edge \$core] queue]
 
 # Set DS RED parameters from Edge to Core:
-$qEC meanPktSize $packetSize
-$qEC set numQueues_ 1
-$qEC setNumPrec 2
-$qEC addPolicyEntry [$s1 id] [$dest id] TokenBucket 10 $cir0 $cbs0
-$qEC addPolicyEntry [$s2 id] [$dest id] TokenBucket 10 $cir1 $cbs1
-$qEC addPolicerEntry TokenBucket 10 11
-$qEC addPHBEntry 10 0 0
-$qEC addPHBEntry 11 0 1
-$qEC configQ 0 0 20 40 0.02
-$qEC configQ 0 1 10 20 0.10
+\$qEC meanPktSize \$packetSize
+\$qEC set numQueues_ 1
+\$qEC setNumPrec 2
+\$qEC addPolicyEntry [$s1 id] [$dest id] TokenBucket 10 $cir0 $cbs0
+\$qEC addPolicyEntry [$s2 id] [$dest id] TokenBucket 10 $cir1 $cbs1
+\$qEC addPolicerEntry TokenBucket 10 11
+\$qEC addPHBEntry 10 0 0
+\$qEC addPHBEntry 11 0 1
+\$qEC configQ 0 0 20 40 0.02
+\$qEC configQ 0 1 10 20 0.10
 \end{program}
 
 This block of code obtains handle to the Diffserv queue from an edge router to
@@ -371,28 +377,28 @@ The addPolicerEntry line is required because each policer type/initial code poin
 
 The addPHBEntry commands map each code point to a queue/precedence pair.  Although each code point in this example maps to a unique queue/precedence pair, that need not be the case; multiple code points could receive identical treatment.
 
-Finally, the configQ commands set the RED parameters for each virtual queue.  Note that as the precedence value increases, the RED parameters become harsher, which follows [8].
+Finally, the configQ commands set the RED parameters for each virtual queue.  Note that as the precedence value increases, the RED parameters become harsher.
 
 \begin{program}
 
-set qCE [[$ns link $core $e1] queue]
+set qCE [[\$ns link \$core \$e1] queue]
 
 # Set DS RED parameters from Core to Edge:
-$qCE meanPktSize $packetSize
-$qCE set numQueues_ 1
-$qCE setNumPrec 2
-$qCE addPHBEntry 10 0 0
-$qCE addPHBEntry 11 0 1
-$qCE configQ 0 0 20 40 0.02
-$qCE configQ 0 1 10 20 0.10
+\$qCE meanPktSize \$packetSize
+\$qCE set numQueues_ 1
+\$qCE setNumPrec 2
+\$qCE addPHBEntry 10 0 0
+\$qCE addPHBEntry 11 0 1
+\$qCE configQ 0 0 20 40 0.02
+\$qCE configQ 0 1 10 20 0.10
 
 \end{program}
 
 Note that the configuration of a core queue matches that of an edge queue, except that there is no Policy Table or Policer Table to configure at a core router.  A core router's chief requirement is that it has a PHB entry for all code points that it will see.
 
 \begin{program}
-$qE1C printPolicyTable
-$qCE2 printCoreStats
+\$qE1C printPolicyTable
+\$qCE2 printCoreStats
 \end{program}
 
 These methods output the policy or policer tables on link and different statistics.  
