@@ -21,7 +21,7 @@ rfc793edu friendly rfc2581 links wireless-tdma rio testReno LimTransmit \
 pushback diffserv tcp-init-win-full ecn ecn-full simple-full \
 red-pd tcpReset LimTransmit pi adaptive-red gk rem vq sack-full \
 testReno-full testReno-bayfull source-routing snoop diffusion3 broken \
-tcpHighspeed smac quiescent example quickstart t
+tcpHighspeed smac quiescent example quickstart tcpOptions t
 do
 	echo test-output-$i
 	rm -f test-output-$i/*.test
