@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.25 1998/04/07 23:39:07 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.26 1998/04/08 22:44:19 haldar Exp $
 #
 
 Class Node
@@ -53,6 +53,7 @@ Node instproc init args {
 	# set up classifer as a router (default value is , 8 bit of addr and 8 bit port)
         $classifier_ set mask_ [AddrParams set NodeMask_(1)]
         $classifier_ set shift_ [AddrParams set NodeShift_(1)]
+        set address_ $id_
 	
 }
 
@@ -131,7 +132,7 @@ Node instproc alloc-port {} {
 # bind the agent to the port number.
 #
 Node instproc attach agent {
-	$self instvar agents_ classifier_ id_ dmux_
+	$self instvar agents_ classifier_ address_ dmux_
 	#
 	# assign port number (i.e., this agent receives
 	# traffic addressed to this host and port)
@@ -163,18 +164,34 @@ Node instproc attach agent {
 		# point the node's routing entry to itself
 		# at the port demuxer (if there is one)
 		#
-		$self add-route $id_ $dmux_
+		$self add-route $address_ $dmux_
 	}
     set port [$self alloc-port]
     $agent set portID_ $port
     
-    $agent set addr_ [expr [expr $id_ << [AddrParams set NodeShift_(1)]] | [expr $port << [AddrParams set PortShift_]]]
+    set mask [AddrParams set PortMask_]
+    set shift [AddrParams set PortShift_]
+    
+    if [Simulator set EnableHierRt_] {
+	set nodeaddr [AddrParams set-hieraddr $address_]
+	
+    } else {
+	set nodeaddr [expr [expr $address_  & [AddrParams set NodeMask_(1)]] << [AddrParams set NodeShift_(1)]]
+    }
+    $agent set addr_ [expr [expr [expr $port & $mask] << $shift] | [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
+    
+    #TESTING
+    # set addr [$agent set addr_]
+#     puts "Agent addr: $addr" 
+
     $dmux_ install $port $agent
+    
 }
 
 #
 # Detach an agent from a node.
 #
+
 Node instproc detach { agent nullagent } {
 	$self instvar agents_ dmux_
 	#
