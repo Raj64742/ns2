@@ -280,7 +280,7 @@ void QSNewRenoTcpAgent::output(int seqno, int reason)
 	tcph->ts_echo() = ts_peer_;
 	tcph->reason() = reason;
 	tcph->last_rtt() = int(int(t_rtt_)*tcp_tick_*1000);
-	iph->flowid() = session_id_;
+	//iph->flowid() = session_id_;
 
 	if (seqno == 0) {
 		qsh->flag() = QS_REQUEST;
@@ -439,7 +439,7 @@ void QSTcpSink::ack(Packet* opkt)
 	hdr_ip* oip = hdr_ip::access(opkt);
 	hdr_ip* nip = hdr_ip::access(npkt);
 	// get the ip headers
-	nip->flowid() = oip->flowid();
+	//nip->flowid() = oip->flowid();
 	// copy the flow id
 	
 	hdr_flags* of = hdr_flags::access(opkt);
