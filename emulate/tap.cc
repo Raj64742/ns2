@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.3 1998/02/28 00:06:01 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.4 1998/02/28 02:45:06 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -48,7 +48,9 @@ class TapAgent : public Agent, public IOHandler {
 	void recv(Packet* p, Handler*);
  protected:
 	void dispatch(int);
+	int linknet();
 	int off_tap_;
+	int mode_;
 	Network* net_;
 	int sendpkt(Packet*);
 	void recvpkt();
@@ -62,9 +64,53 @@ static class TapAgentClass : public TclClass {
 	}
 } class_tap_agent;
 
-TapAgent::TapAgent() : Agent(PT_LIVE), net_(NULL)
+TapAgent::TapAgent() : Agent(PT_LIVE), net_(NULL), mode_(O_RDWR)
 {
 	bind("off_tap_", &off_tap_);
+}
+
+//
+// link in a network to the agent.  Assumes net_ is non-zero
+//
+int
+TapAgent::linknet()
+{
+	int mode = net_->mode();
+	int rchan = net_->rchannel();
+	int wchan = net_->schannel();
+
+	unlink();
+	if (mode == O_RDONLY || mode == O_RDWR) {
+		// reading enabled?
+		if (rchan < 0) {
+			fprintf(stderr,
+			"TapAgent(%s): network %s not open for reading\n",
+			    name(), net_->name());
+			return (TCL_ERROR);
+		}
+		link(rchan, TCL_READABLE);
+	} else if (mode != O_WRONLY) {
+		fprintf(stderr,
+		    "TapAgent(%s): unknown mode %d in Network(%s)\n",
+			name(), mode, net_->name());
+		return (TCL_ERROR);
+	}
+
+	if (mode == O_WRONLY || mode == O_RDWR) {
+		// writing enabled?
+		if (wchan < 0) {
+			fprintf(stderr,
+			"TapAgent(%s): network %s not open for writing\n",
+			    name(), net_->name());
+			return (TCL_ERROR);
+		}
+	}
+	if (off_tap_ == 0) { 
+		fprintf(stderr, "TapAgent(%s): warning: off_tap == 0: ",
+		    name());
+		fprintf(stderr, "is RealTime scheduler on?\n");
+	}
+	return (TCL_OK);
 }
 
 int TapAgent::command(int argc, const char*const* argv)
@@ -80,27 +126,13 @@ int TapAgent::command(int argc, const char*const* argv)
 	if (argc == 3) {
 		if (strcmp(argv[1], "network") == 0) {
 			net_ = (Network *)TclObject::lookup(argv[2]);
-			unlink();
 			if (net_ != 0) {
-				int chan = net_->rchannel();
-				if (chan < 0) {
-					fprintf(stderr,
-					"TapAgent(%s): network %s not open\n",
-					    name(), argv[2]);
-					return (TCL_ERROR);
-				}
-				link(chan, TCL_READABLE);
+				return(linknet());
 			} else {
 				fprintf(stderr,
 				"TapAgent(%s): unknown network %s\n",
 				    name(), argv[2]);
 				return (TCL_ERROR);
-			}
-			if (off_tap_ == 0) {
-				fprintf(stderr,
-				"TapAgent(%s): warning: off_tap == 0: ",
-				    name(), argv[2]);
-				fprintf(stderr, "is RealTime scheduler on?\n");
 			}
 			return(TCL_OK);
 		}	
@@ -125,6 +157,13 @@ public:
 void TapAgent::recvpkt()
 {
 	sockaddr addr;
+
+	if (net_->mode() != O_RDWR && net_->mode() != O_RDONLY) {
+		fprintf(stderr,
+		  "TapAgent(%s): recvpkt called while in write-only mode!\n",
+		  name());
+		return;
+	}
 
 	Packet* p = allocpkt();
 	hdr_tap* ht = (hdr_tap*)p->access(off_tap_);
@@ -167,6 +206,13 @@ void TapAgent::recv(Packet* p, Handler*)
 int
 TapAgent::sendpkt(Packet* p)
 {
+	if (net_->mode() != O_RDWR && net_->mode() != O_WRONLY) {
+		fprintf(stderr,
+		    "TapAgent(%s): recvpkt called while in write-only mode!\n",
+		    name());
+		return;
+	}
+
 	// send packet into the live network
 	hdr_tap* ht = (hdr_tap*)p->access(off_tap_);
 	hdr_cmn* hc = (hdr_cmn*)p->access(off_cmn_);
