@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.5 1997/01/31 05:11:46 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.6 1997/02/02 18:57:33 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -287,6 +287,7 @@ public:
 		Sacker* sacker = new Sacker;
 		TcpSink* sink = new DelAckSink(sacker);
 		sacker->bind(sink);
+		return (sink);
 	}
 } class_sack1delacktcpsink;
 

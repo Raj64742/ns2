@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.8 1997/01/31 05:24:57 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.9 1997/02/02 18:57:34 mccanne Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -277,4 +277,9 @@ proc ns_create_connection { srcType srcNode sinkType sinkNode pktClass } {
 #
 Agent instproc connect d {
 	$self set dst_ $d
+}
+
+# XXX changed call from "handle" to "recv"
+Agent/Message instproc recv msg {
+	$self handle $msg
 }

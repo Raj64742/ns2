@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.cc,v 1.4 1997/01/27 01:16:16 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.cc,v 1.5 1997/02/02 18:57:33 mccanne Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -66,7 +66,7 @@ void MessageAgent::recv(Packet* pkt, Handler*)
 {
 	char wrk[128];/*XXX*/
 	Tcl& tcl = Tcl::instance();
-	sprintf(wrk, "%s handle {%s}", name(), pkt->bd_.msg_);
+	sprintf(wrk, "%s recv {%s}", name(), pkt->bd_.msg_);
 	Tcl::instance().eval(wrk);
 	Packet::free(pkt);
 }
