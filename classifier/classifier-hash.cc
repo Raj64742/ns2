@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.8 1997/06/26 01:48:02 polly Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.9 1997/07/03 03:18:06 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -76,19 +76,6 @@ protected:
 	int classify(Packet *const p) {
 
 		hnode *hn = lookup(p);
-
-//hdr_ip* h = (hdr_ip*)p->access(off_ip_);
-//hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
-//double t = Scheduler::instance().clock();
-//printf("%f: (%s): Pkt(%d/%d/%d;%d) -> hn:0x%p (%s)[slot:%d]\n", t, name(),
-//h->src(), h->dst(), h->flowid(), ch->uid(),
-//hn,  hn ? (slot_[hn->slot]->name()) : "none", hn ? hn->slot : -1);
-//if (t > 5.01) {
-//	volatile a = 1;
-//	while (a)
-//		;
-//}
-
 		if (hn != NULL)
 			return (hn->slot);
 		else if (default_ >= 0)
@@ -206,7 +193,7 @@ public:
 /****************** HashClassifier Methods ************/
 
 HashClassifier::HashClassifier(int b) : mask_(~0), shift_(0),
-	default_(-1), htab_(NULL), buckets_(b)
+	default_(-1), buckets_(b), htab_(NULL)
 { 
 	// shift and mask operations on dest address
 	bind("mask_", (int*)&mask_);
@@ -366,7 +353,6 @@ HashClassifier::lookup(int buck, nsaddr_t src, nsaddr_t dst, int fid)
 HashClassifier::hnode*
 HashClassifier::lookup(nsaddr_t src, nsaddr_t dst, int fid)
 {
-	HashClassifier::hnode* hn;
 	int bucknum = find_hash(src, ((dst >> shift_) & mask_), fid);
 	return (lookup(bucknum, src, dst, fid));
 }
