@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.156 1997/09/19 22:38:01 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.157 1997/09/29 23:56:26 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,12 @@
 [release pending]</H3>
 
 <UL>
+  <LI><B><A HREF="mailto:floyd@ee.lbl.gov">[SF]</A></B> 
+  Mon Sep 29 16:51:33 PDT 1997<BR>
+  Added an ECN-Capable flag to the packet header (ecn_capable_), and
+  modified tcp.cc and red.cc to set and check it.
+  </LI>
+
   <LI><A HREF="mailto:huang@isi.edu">[PH]</A> Fri Sep 19 15:19:08 PDT 1997<br>
   <UL>
   <LI>modified SRM example scripts, tcl/ex/srm-*.tcl, to use error model instead of rtmodel.
@@ -42,7 +48,7 @@ Sep 10, 1997</H3>
 
 <UL>
 
-  <LI><B><A HREF="http://catarina.usc.edu/~haoboy/">[haoboy]</A>
+  <LI><B><A HREF="http://catarina.usc.edu/~haoboy/">[haoboy]</A></B>
   Thu Sep 11 18:35:24 PDT 1997
   Support for Mark's new nam trace file format. All events except routing are 
   supported. It requires updates of Tcl.cc, which is already checked in. The 
@@ -52,7 +58,7 @@ Sep 10, 1997</H3>
   Also minor changes to nam-1 to make down link more visible.
   </LI>
 
-  <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A>
+  <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        and <a href="http://www.isi.edu/~haoboy/">[haoboy]</a>
        Wed Sep 10 22:51:33 PDT 1997</b><br>
        2.0 release.
