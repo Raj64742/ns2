@@ -1,5 +1,9 @@
 
 CHANGES.html
+Decapsulator.cc
+Decapsulator.h
+Encapsulator.cc
+Encapsulator.h
 FILES
 Makefile.in
 README
@@ -134,6 +138,7 @@ emulate/support/tfile
 emulate/support/thinkpad-arp-config
 emulate/support/src/nrgarp
 emulate/icmp.cc
+encap.h
 errmodel.cc
 errmodel.h
 estimator.cc
