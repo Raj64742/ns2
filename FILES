@@ -1711,6 +1711,7 @@ tcl/test/test-output-tcp-init-win-full/tahoe1.Z
 tcl/test/test-output-tcp-init-win-full/tahoe1A.Z
 tcl/test/test-output-tcp-init-win-full/tahoe2.Z
 tcl/test/test-output-tcp-init-win-full/tahoe3.Z
+tcl/test/test-output-tcp-init-win-full/tahoe4.Z
 tcl/test/test-output-tcpOptions/onedrop_newreno.Z
 tcl/test/test-output-tcpOptions/onedrop_newreno_full.Z
 tcl/test/test-output-tcpOptions/onedrop_numdup4_newreno.Z
