@@ -128,6 +128,9 @@ proc getopt {argc argv} {
 # ======================================================================
 # Main Program
 # ======================================================================
+
+puts "Warning: the test script will create a HUGE tracefile in you hardisk!!!"
+
 getopt $argc $argv
 
 if { $opt(x) == 0 || $opt(y) == 0 } {
