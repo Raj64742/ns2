@@ -12,6 +12,10 @@
 
 #define sp " " 
 
+// Optimization
+#include<vector>
+using namespace std;
+
 typedef struct c{
   int no; // no of edges in the connection
   double delay; // total delay;
@@ -38,7 +42,7 @@ typedef struct n{
   int    buffer; // Total buffer
   double drop; // probability of drop
   int nflows; // Number of flows through this link
-  int *theflows; // The flows through this link
+  vector<int> theflows; // The flows through this link
   double scaled_lambda;
   double unscaled_lambda;
 
@@ -221,75 +225,89 @@ public:
     // Enter each route 
     else if (!strcasecmp(t,"route")) {
 
-      assert (nConnections > 0);
-      assert (nLinks > 0);
-      t = strtok(NULL," \t");
-      assert(t);
-      int i = atoi(t);
-      assert(i > 0 && i<= nConnections);
-      i--;
- 
-     // We dunno whether this will be short flow specs
-      flows[i].is_sflow = 0; // Lets assume its a normal flow
-      flows[i].drop = 0; // Assume ideal case to start off
-      flows[i].scaled = 0; // Not scaled as yet
+	    assert (nConnections > 0);
+	    assert (nLinks > 0);
+	    t = strtok(NULL," \t");
+	    assert(t);
+	    int i = atoi(t);
+	    assert(i > 0 && i<= nConnections);
+	    i--;
+	    
+	    // We dunno whether this will be short flow specs
+	    flows[i].is_sflow = 0; // Lets assume its a normal flow
+	    flows[i].drop = 0; // Assume ideal case to start off
+	    flows[i].scaled = 0; // Not scaled as yet
+	    
+	    t = strtok(NULL," \t");
+	    assert(t);
+	    nAdj[i] = atoi(t);
+	    assert(nAdj[i] > 0 && nAdj[i] <= nLinks);
+	    // We know how many links it will use
+	    Adj[i] = new int[nAdj[i]];
+	    for (int j=0; j<nAdj[i]; ++j) {
+		    t = strtok(NULL," \t");
+		    assert(t);
+		    int l = atoi(t);
+		    assert(l > 0 && l <= nLinks);
+		    l--;
+		    Adj[i][j] = l;
+	    }
 
-      t = strtok(NULL," \t");
-      assert(t);
-      nAdj[i] = atoi(t);
-      assert(nAdj[i] > 0 && nAdj[i] <= nLinks);
-      Adj[i] = new int[nAdj[i]];
-      for (int j=0; j<nAdj[i]; ++j) {
-	t = strtok(NULL," \t");
-	assert(t);
-	int l = atoi(t);
-	assert(l > 0 && l <= nLinks);
-	l--;
-	Adj[i][j] = l;
-      }
+	    if (MaxHops < nAdj[i]) MaxHops = nAdj[i];
+	    
+	    
+	    t = strtok(NULL," \t");
+	    // assert(t);
+	    
+	    // Short flows stuff 
+	    
+	    if (t && !strcasecmp(t,"sh")) {
+		    // There are short flows on this route.
+		    flows[i].is_sflow = 1;
+		    
+		    // read the slambda
+		    t = strtok(NULL," \t");
+		    assert(t);
+		    double  tmp = atof(t);
+		    flows[i].slambda = tmp;
+		    
+		    // read the snopkts
+		    t = strtok(NULL," \t");
+		    assert(t);
+		    int  tmpi = atoi(t);
+		    flows[i].snopkts = tmpi;
+	    }
+	    
+	    
+	    // For cbr 
+	    // Treat almost like a short flow!
+	    
+	    if (t && !strcasecmp(t,"cbr")) {
+		    // There are short flows on this route.
+		    flows[i].is_sflow = 2;
+		    
+		    // read the rate
+		    t = strtok(NULL," \t");
+		    assert(t);
+		    double  tmp = atof(t);
+		    flows[i].slambda = tmp;
+		    flows[i].snopkts = 1;
+	    }      
+	    
 
-      if (MaxHops < nAdj[i]) MaxHops = nAdj[i];
+	    // Now, let us put the flows in persective
+	    // Insert the flow id trhough all the links
+	    int l_;
+	    for(int j=0;j<nAdj[i];j++){
+		    l_ = Adj[i][j];
+		    (links[l_].theflows).push_back(i);
+		    links[l_].nflows++;
+		    if(flows[i].is_sflow){
+			    links[l_].lambda+=flows[i].slambda*flows[i].snopkts;
+		    }
+	    }
 
-      
-      t = strtok(NULL," \t");
-      // assert(t);
-    
-      // Short flows stuff 
-
-      if (t && !strcasecmp(t,"sh")) {
-	// There are short flows on this route.
-	flows[i].is_sflow = 1;
-      
-	// read the slambda
-	t = strtok(NULL," \t");
-	assert(t);
-	double  tmp = atof(t);
-	flows[i].slambda = tmp;
-
-	// read the snopkts
-	t = strtok(NULL," \t");
-	assert(t);
-	int  tmpi = atoi(t);
-	flows[i].snopkts = tmpi;
-      }
-
-
-      // For cbr 
-      // Treat almost like a short flow!
-
-      if (t && !strcasecmp(t,"cbr")) {
-	// There are short flows on this route.
-	flows[i].is_sflow = 2;
-      
-	// read the rate
-	t = strtok(NULL," \t");
-	assert(t);
-	double  tmp = atof(t);
-	flows[i].slambda = tmp;
-	flows[i].snopkts = 1;
-      }      
-      
-      continue;
+	    continue;
     }
 
     else if(!strcasecmp(t,"link")){
@@ -376,6 +394,8 @@ public:
       else{
 	links[i].red=0;
       }
+
+      links[i].nflows = 0; // init the num of flows
 	
       continue;
 
@@ -390,6 +410,8 @@ public:
   for (int i=0; i<nConnections; ++i)
     assert(nAdj[i] > 0);
 
+
+#ifdef useold
   
   // check all the edges and store all the connections that flow 
   // through a particular link
@@ -433,16 +455,18 @@ public:
 
 
   }
+#endif
+
 
   /*
   char c= getchar();
 
   for(int i=0;i<nConnections;i++){
-    cout << "connection" << sp << i << sp << "-"; 
+    //cout << "connection" << sp << i << sp << "-"; 
     for(int j=0;j<nAdj[i];j++){
-      cout << sp << Adj[i][j];
+      //cout << sp << Adj[i][j];
     }
-    cout << endl;
+    //cout << endl;
   }
   */
   
@@ -508,7 +532,7 @@ void  CalcLinkDelays(int flag = 0){
     }
 
 
-    cout << "delay = " << links[i].qdelay << " and drop = " << links[i].drop << endl;
+    //cout << "delay = " << links[i].qdelay << " and drop = " << links[i].drop << endl;
 
 
   }
@@ -642,11 +666,11 @@ void Update2(){
 
 int allscaled(){
 
-  cout << nConnections;
+  //cout << nConnections;
 
   for(int i=0; i<nConnections; i++)
     if(!flows[i].is_sflow && !flows[i].scaled){
-      cout << "Connection " << i << " not scaled as yet\n";
+      //cout << "Connection " << i << " not scaled as yet\n";
       return 0;
     }
 
@@ -682,14 +706,14 @@ void Update3(int flag = 0){
     }
   }
 
-  cout << "bottleneck = " << bneck << sp << maxtlambda <<endl;
+  //cout << "bottleneck = " << bneck << sp << maxtlambda <<endl;
 
   double tk = links[bneck].mu*(1+links[bneck].drop)+5; 
   // We cant go above this tk ......
 
   while((maxtlambda > tk + 1) && ! allscaled()){
 
-    cout << "Maxtlambda = " << maxtlambda << " bneck = " << bneck << endl;
+    //cout << "Maxtlambda = " << maxtlambda << " bneck = " << bneck << endl;
 
     //    cout << "tk =  "<< tk << " maxlambda = " << maxtlambda << endl;
 
@@ -715,7 +739,7 @@ void Update3(int flag = 0){
     }
 
     for (int i =0; i<nLinks;i++){
-      cout << "Link " << i << " tlambda = " << links[i].tlambda << endl;
+      //cout << "Link " << i << " tlambda = " << links[i].tlambda << endl;
     }
 
     char x =getchar();
@@ -740,9 +764,9 @@ void Update3(int flag = 0){
   }
 
   Update(0);
-  cout << "Out of the converge loop\n";
+  //cout << "Out of the converge loop\n";
     for (int i =0; i<nLinks;i++){
-      cout << "Link " << i << " tlambda = " << links[i].tlambda << endl;
+      //cout << "Link " << i << " tlambda = " << links[i].tlambda << endl;
     }
 
 }
@@ -774,7 +798,7 @@ void newupdate(int niter){
   }
 
   for(int i =0; i<nLinks; i++ ){
-    cout << i << sp << links[i].uc << sp << links[i].utput << endl;
+    //cout << i << sp << links[i].uc << sp << links[i].utput << endl;
   }
 
   double maxgamma; // most congested link
@@ -793,23 +817,23 @@ void newupdate(int niter){
     }
   }    
 
-  cout << bneck << endl;
+  //cout << bneck << endl;
 
   //char c= getchar();
   /*
   for(int i=0;i<nConnections;i++){
-    cout << "connection" << sp << i << sp << "-"; 
+    //cout << "connection" << sp << i << sp << "-"; 
     for(int j=0;j<nAdj[i];j++){
-      cout << sp << Adj[i][j];
+      //cout << sp << Adj[i][j];
     }
-    cout << endl;
+    //cout << endl;
   }
   */
   // c= getchar();
 
   while(bneck+1){
 
-    cout << "bneck = " << bneck << sp << links[bneck].uc << sp << links[bneck].utput << sp << maxgamma << sp << links[bneck].nflows <<endl;
+    //cout << "bneck = " << bneck << sp << links[bneck].uc << sp << links[bneck].utput << sp << maxgamma << sp << links[bneck].nflows <<endl;
 
     for(int i=0; i<links[bneck].nflows; i++){
      // For all the connections passing through this link
@@ -832,7 +856,7 @@ void newupdate(int niter){
       }
     }
     
-    cout << links[bneck].uc << sp << links[bneck].utput << endl;
+    //cout << links[bneck].uc << sp << links[bneck].utput << endl;
     
     links[bneck].uc = 0;
 
@@ -851,11 +875,11 @@ void newupdate(int niter){
     c = getchar();
 
     for(int i=0;i<nConnections;i++){
-      cout << "connection" << sp << i << sp << "-"; 
+      //cout << "connection" << sp << i << sp << "-"; 
       for(int j=0;j<nAdj[i];j++){
-	cout << sp << Adj[i][j];
+	//cout << sp << Adj[i][j];
       }
-      cout << endl;
+      //cout << endl;
       }*/
     
     // c=getchar();
@@ -868,7 +892,7 @@ void newupdate(int niter){
 
 
   asim(){
-    cout << "Reached here\n";
+    //cout << "Reached here\n";
   }
 
 };
@@ -883,7 +907,7 @@ int main(int argc, char **argv) {
   //  PrintResults();
   cout << "Read the input .... \n";
 
-  for(int i=0; i<10; i++){
+  for(int i=0; i<2; i++){
     sim.CalcLinkDelays(1);
     cout << "Calculated link delays ... \n";
     //    PrintResults();
