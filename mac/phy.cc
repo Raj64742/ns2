@@ -111,8 +111,8 @@ Phy::recv(Packet* p, Handler*)
 	/*
 	 * Handle outgoing packets
 	 */
-	int d = hdr->direction();
-	if (d == -1) {
+	switch(hdr->direction()) {
+	case hdr_cmn::DOWN :
 		/*
 		 * The MAC schedules its own EOT event so we just
 		 * ignore the handler here.  It's only purpose
@@ -121,7 +121,7 @@ Phy::recv(Packet* p, Handler*)
 		 */
 		sendDown(p);
 		return;
-	} else if (d == 1) {
+	case hdr_cmn::UP :
 		if (sendUp(p) == 0) {
 			/*
 			 * XXX - This packet, even though not detected,
@@ -133,7 +133,8 @@ Phy::recv(Packet* p, Handler*)
 		} else {
 			uptarget_->recv(p, (Handler*) 0);
 		}
-	} else {
+		break;
+	default:
 		printf("Direction for pkt-flow not specified; Sending pkt up the stack on default.\n\n");
 		if (sendUp(p) == 0) {
 			/*

@@ -62,7 +62,7 @@ aggregate per-link total_packets 462
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcp
-Tests: ecn timers timersA timersA1 timersA2 timersA3 timers1 timers2 timers3 timers4 timers5 stats1 quiescent_100ms underutilized_100ms underutilized_100ms_control underutilized_100ms_control_Reno underutilized_100ms_control_Newreno underutilized_100ms_control_Sack quiescent_100ms_fine quiescent_100ms_coarse quiescent_1ms_fine quiescent_1ms_coarse quiescent_500ms_fine quiescent_500ms_coarse
+Tests: ecn timers timersA timersA1 timersA2 timersA3 timers1 timers2 timers3 timers4 timers5 stats1 quiescent_100ms quiescentB quiescentB_qoption underutilized_100ms underutilized_100ms_control underutilized_100ms_control_Q underutilized_100ms_Q underutilized_100ms_control_Reno underutilized_100ms_control_Newreno underutilized_100ms_control_Sack quiescent_100ms_fine quiescent_100ms_coarse quiescent_1ms_fine quiescent_1ms_coarse quiescent_500ms_fine quiescent_500ms_coarse
 ../../ns test-suite-tcp.tcl ecn QUIET
 Test output agrees with reference output
 ../../ns test-suite-tcp.tcl timers QUIET
@@ -108,9 +108,17 @@ tcp2/time=10/cwnd=9.1730/ssthresh=3/ack=38/rtt=7
 Test output agrees with reference output
 ../../ns test-suite-tcp.tcl quiescent_100ms QUIET
 Test output agrees with reference output
+../../ns test-suite-tcp.tcl quiescentB QUIET
+Test output agrees with reference output
+../../ns test-suite-tcp.tcl quiescentB_qoption QUIET
+Test output agrees with reference output
 ../../ns test-suite-tcp.tcl underutilized_100ms QUIET
 Test output agrees with reference output
 ../../ns test-suite-tcp.tcl underutilized_100ms_control QUIET
+Test output agrees with reference output
+../../ns test-suite-tcp.tcl underutilized_100ms_control_Q QUIET
+Test output agrees with reference output
+../../ns test-suite-tcp.tcl underutilized_100ms_Q QUIET
 Test output agrees with reference output
 ../../ns test-suite-tcp.tcl underutilized_100ms_control_Reno QUIET
 Test output agrees with reference output
@@ -263,7 +271,7 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-cbq
-Tests: WRR PRR AO TL FORMAL MAX1 MAX2 EXTRA1 EXTRA2 MIN1 MIN3 MIN4 MIN6 TwoAO TwoAO2 TwoAO3 TwoTL TwoF TwoDynamic TwoDynamic1 TwoDynamic1WRR TwoWRR
+Tests: WRR PRR AO TL FORMAL FORMAL_TCP MAX1 MAX2 EXTRA1 EXTRA2 MIN1 MIN3 MIN4 MIN6 TwoAO TwoAO2 TwoAO3 TwoTL TwoF TwoDynamic TwoDynamic1 TwoDynamic1WRR TwoWRR
 ../../ns test-suite-cbq.tcl WRR QUIET
 Test output agrees with reference output
 ../../ns test-suite-cbq.tcl PRR QUIET
@@ -273,6 +281,8 @@ Test output agrees with reference output
 ../../ns test-suite-cbq.tcl TL QUIET
 Test output agrees with reference output
 ../../ns test-suite-cbq.tcl FORMAL QUIET
+Test output agrees with reference output
+../../ns test-suite-cbq.tcl FORMAL_TCP QUIET
 Test output agrees with reference output
 ../../ns test-suite-cbq.tcl MAX1 QUIET
 Test output agrees with reference output
@@ -312,22 +322,16 @@ All test output agrees with reference output.
 *** ./test-all-red-v1
 Tests: red1 red1_bytes ecn red2 red_twoway red_twowaybytes flows flows1 flowsAll
 ../../ns test-suite-red-v1a.tcl red1 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl red1_bytes QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl ecn QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl red2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl red_twoway QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl red_twowaybytes QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-red-v1a.tcl flows QUIET
 WARNING:  This test was not run.
@@ -345,33 +349,28 @@ All test output agrees with reference output.
 *** ./test-all-cbq-v1
 Tests: cbqWRR cbqPRR cbqAO cbqTL cbqFor cbqForOld cbqMax1 cbqMax2 cbqExtra1 cbqExtra2 cbqMin1 cbqMin3 cbqMin4 cbqMin6 cbqTwoAO cbqTwoAO2 cbqTwoAO3 cbqTwoTL cbqTwoF
 ../../ns test-suite-cbq-v1a.tcl cbqWRR QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqPRR QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqAO QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTL QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqFor QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
@@ -382,71 +381,58 @@ WARNING:  This test was not run.
 This functionality is not implemented in ns-2.
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMax1 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMax2 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqExtra1 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqExtra2 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin1 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin3 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin4 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin6 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO2 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO3 QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoTL QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoF QUIET
-warning: using backward compatibility mode
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
@@ -454,106 +440,73 @@ All test output agrees with reference output.
 *** ./test-all-sack-v1
 Tests: sack1 sack1a sack1b sack1c sack3 sack4 sack5 sackB2 sackB4 phaseSack phaseSack2 phaseSack3
 ../../ns test-suite-sack-v1a.tcl sack1 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack1a QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack1b QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack1c QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack3 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack4 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sack5 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sackB2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl sackB4 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl phaseSack QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl phaseSack2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-sack-v1a.tcl phaseSack3 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-v1
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
 ../../ns test-suite-v1a.tcl tahoe1 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl tahoe2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl tahoe3 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl tahoe4 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl no_bug QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl bug QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno1 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl renoA QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno3 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno4 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno4a QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl reno5 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl telnet QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl delayed QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl phase QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl phase1 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl phase2 QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl timers QUIET
-warning: using backward compatibility mode
 Test output agrees with reference output
 ../../ns test-suite-v1a.tcl stats QUIET
-warning: using backward compatibility mode
 tcp1:window=30/packet-size=1000/bug-fix=1
 tcp2:window=30/packet-size=1000/bug-fix=1
 tcp1/time=0/cwnd=1.000000/ssthresh=30/ack=-1/rtt=0
@@ -576,23 +529,18 @@ All test output agrees with reference output.
 *** ./test-all-vegas-v1
 Tests: one_drop one_14 two_2 two_A two_B
 ../../ns test-suite-vegas-v1.tcl one_drop QUIET
-warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 ../../ns test-suite-vegas-v1.tcl one_14 QUIET
-warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 ../../ns test-suite-vegas-v1.tcl two_2 QUIET
-warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 ../../ns test-suite-vegas-v1.tcl two_A QUIET
-warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 ../../ns test-suite-vegas-v1.tcl two_B QUIET
-warning: using backward compatibility mode
 Calling xgraph.
 Test output agrees with reference output
 All test output agrees with reference output.
@@ -893,7 +841,7 @@ Tests: one_client
 ../../ns test-suite-manual-routing.tcl one_client QUIET
 maximum clients per second: 114.218
 optimal bw queue size: 226.69422743055557
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
+set-address-format expanded is obsoleted by 32-bit addressing.
 t=0.000: creating clients 0 to 15
 t=0.000: client 0 created
 t=0.000: client 0 started
@@ -905,90 +853,12 @@ All test output agrees with reference output.
 *** ./test-all-hier-routing
 Tests: hier-simple hier-cmcast hier-session
 ../../ns test-suite-hier-routing.tcl hier-simple QUIET
-0.0.1
-0.0.1
-0.0.1
-1.0.0
-0.1.0
-0.0.0
-0.0.1
-0.0.1
-0.1.1
-0.1.2
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-0.0.1
-1.0.1
-1.0.1
-1.0.0
-1.1.0
-1.0.0
-1.0.1
-1.0.1
-1.1.1
-1.1.1
-1.1.0
-1.1.0
-1.1.0
-1.1.2
-1.1.1
-1.1.1
-1.1.1
-1.1.1
 Test output agrees with reference output
 ../../ns test-suite-hier-routing.tcl hier-cmcast QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
-0.0.1
-0.0.1
-0.0.1
-1.0.0
-0.1.0
-0.0.0
-0.0.1
-0.0.1
-0.1.1
-0.1.2
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-0.0.1
-1.0.1
-1.0.1
-1.0.0
-1.1.0
-1.0.0
-1.0.1
-1.0.1
-1.1.1
-1.1.1
-1.1.0
-1.1.0
-1.1.0
-1.1.2
-1.1.1
-1.1.1
-1.1.1
-1.1.1
-Test output differs from reference output
-Diagnose with: diff test-output-hier-routing/hier-cmcast.test test-output-hier-routing/hier-cmcast
-Differences due to floating-point formatting are not significant.
-../../ns test-suite-hier-routing.tcl hier-session QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
-Some test failed.
+../../ns test-suite-hier-routing.tcl hier-session QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
 *** ./test-all-intserv
 Tests: MS HB ACTP ACTO Param
 ../../ns test-suite-intserv.tcl MS QUIET
@@ -1010,177 +880,99 @@ All test output agrees with reference output.
 *** ./test-all-webcache
 Tests: SimpleTcp TcpApp-2node http1 http1f http2 http2f http3 http3f http4 http4f PagePool cache0-inv cache0f-inv cache0-push cache0f-push cache0-ttl cache0f-ttl cache0-ottl cache0f-ottl TLC1 TLC1f TLC1-dreq Liveness Mcast-PB Mcast-PBP Mcast-PBU Mcast-PBU-MP ttl-PB ottl-PB Mcast-PBtr Mcast-PBPtr Mcast-PBUtr ttl-PBtr ottl-PBtr mmcast-PB mmcast-PBU mttl-PB mottl-PB mcast-dreq
 ../../ns test-suite-webcache.tcl SimpleTcp QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl TcpApp-2node QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl http1 QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl http1f QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl http2 QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl http2f QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl http3 QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl http3f QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl http4 QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl http4f QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl PagePool QUIET
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl cache0-inv QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl cache0f-inv QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl cache0-push QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl cache0f-push QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl cache0-ttl QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl cache0f-ttl QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl cache0-ottl QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl cache0f-ottl QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl TLC1 QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl TLC1f QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl TLC1-dreq QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Liveness QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PB QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PBP QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PBU QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PBU-MP QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl ttl-PB QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl ottl-PB QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PBtr QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PBPtr QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PBUtr QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl ttl-PBtr QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl ottl-PBtr QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl mmcast-PB QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl mmcast-PBU QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl mttl-PB QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl mottl-PB QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl mcast-dreq QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mcast
 Tests: DM1 DM2 DM3 DM4 CtrMcast1 CtrMcast2 ST1
 ../../ns test-suite-mcast.tcl DM1 QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
-Warning dst_ is no longer being supported in NS. dst_ -2147483647
-addr:-2147483647, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM2 QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM3 QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM4 QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl CtrMcast1 QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
-Backward compatibility: Use "set-address-format expanded" instead of "Node expandaddr";
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl CtrMcast2 QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl ST1 QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-newreno
@@ -1266,23 +1058,15 @@ All test output agrees with reference output.
 *** ./test-all-algo-routing
 Tests: Algo1 Algo2
 ../../ns test-suite-algo-routing.tcl Algo1 QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-algo-routing.tcl Algo2 QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-vc
 Tests: VC1 VC2 VC3
 ../../ns test-suite-vc.tcl VC1 QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-vc.tcl VC2 QUIET
-Warning dst_ is no longer being supported in NS. dst_ -2147483648
-addr:-2147483648, baseAddr: 0x80000000
 Test output agrees with reference output
 ../../ns test-suite-vc.tcl VC3 QUIET
 Test output agrees with reference output
@@ -1301,36 +1085,12 @@ Tests: lan-routing-flat lan-routing-hier lan-broadcast
 ../../ns test-suite-lan.tcl lan-routing-flat QUIET
 Test output agrees with reference output
 ../../ns test-suite-lan.tcl lan-routing-hier QUIET
-0.0.0
-0.0.0
-0.0.0
-0.0.0
-0.0.0
-0.1.0
-0.0.0
-0.0.0
-0.0.0
-0.0.0
-0.0.0
-0.2.0
-0.0.0
-0.0.0
-0.0.0
-0.0.2
-0.0.3
-0.0.1
-0.0.2
-0.0.3
-0.0.2
-0.0.2
-0.0.3
-0.0.3
 Test output agrees with reference output
 ../../ns test-suite-lan.tcl lan-broadcast QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-lan
-Tests: dsdv dsdv-wired-cum-wireless dsdv-wireless-mip
+Tests: dsdv dsr dsdv-wired-cum-wireless dsdv-wireless-mip
 ../../ns test-suite-wireless-lan.tcl dsdv QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1339,57 +1099,25 @@ Starting Simulation...
 NS EXITING...
 finishing..
 Test output agrees with reference output
+../../ns test-suite-wireless-lan.tcl dsr QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finish..
+Test output agrees with reference output
 ../../ns test-suite-wireless-lan.tcl dsdv-wired-cum-wireless QUIET
 Loading connection pattern...
 Loading scenario file...
 Load complete...
 Starting Simulation...
-0.1.0
-0.1.0
-0.1.0
-1.0.0
-2.0.0
-0.0.0
-0.1.0
-0.1.0
-0.1.0
-0.1.0
 NS EXITING...
 finishing..
 Test output agrees with reference output
 ../../ns test-suite-wireless-lan.tcl dsdv-wireless-mip QUIET
 Loading connection pattern...
 Starting Simulation...
-0.1.0
-0.1.0
-0.1.0
-1.0.0
-2.0.0
-0.0.0
-0.1.0
-0.1.0
-0.1.0
-0.1.0
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
-warning: Route to base_stn not known: dropping pkt
 finishing..
 Test output agrees with reference output
 All test output agrees with reference output.
@@ -1419,31 +1147,37 @@ finishing..
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mcache
-Tests: media1 media2
+Tests: media1 media2 media3 media3a media4 media4a media5 media5a media5b
 ../../ns test-suite-mcache.tcl media1 QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
 Test output agrees with reference output
 ../../ns test-suite-mcache.tcl media2 QUIET
-Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides
+Test output agrees with reference output
+../../ns test-suite-mcache.tcl media3 QUIET
+Test output agrees with reference output
+../../ns test-suite-mcache.tcl media3a QUIET
+Test output agrees with reference output
+../../ns test-suite-mcache.tcl media4 QUIET
+Test output agrees with reference output
+../../ns test-suite-mcache.tcl media4a QUIET
+Test output agrees with reference output
+../../ns test-suite-mcache.tcl media5 QUIET
+Test output agrees with reference output
+../../ns test-suite-mcache.tcl media5a QUIET
+Test output agrees with reference output
+../../ns test-suite-mcache.tcl media5b QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-satellite
 Tests: repeater mixed aloha
 ../../ns test-suite-satellite.tcl repeater QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-satellite/repeater.test test-output-satellite/repeater
-Differences due to floating-point formatting are not significant.
+Test output agrees with reference output
 ../../ns test-suite-satellite.tcl mixed QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-satellite/mixed.test test-output-satellite/mixed
-Differences due to floating-point formatting are not significant.
+Test output agrees with reference output
 ../../ns test-suite-satellite.tcl aloha QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-satellite/aloha.test test-output-satellite/aloha
-Differences due to floating-point formatting are not significant.
-Some test failed.
+Test output agrees with reference output
+All test output agrees with reference output.
 *** ./test-all-wireless-lan-newnode
-Tests: dsdv
+Tests: dsdv dsr dsdv-wired-cum-wireless dsdv-wireless-mip
 ../../ns test-suite-wireless-lan-newnode.tcl dsdv QUIET
 Loading connection pattern...
 Loading scenario file...
@@ -1452,7 +1186,26 @@ Starting Simulation...
 NS EXITING...
 finishing..
 Test output agrees with reference output
+../../ns test-suite-wireless-lan-newnode.tcl dsr QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finishing..
+Test output agrees with reference output
+../../ns test-suite-wireless-lan-newnode.tcl dsdv-wired-cum-wireless QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finishing..
+Test output agrees with reference output
+../../ns test-suite-wireless-lan-newnode.tcl dsdv-wireless-mip QUIET
+Loading connection pattern...
+Starting Simulation...
+finishing..
+Test output agrees with reference output
 All test output agrees with reference output.
-validate overall report: some tests failed:
-     ./test-all-hier-routing ./test-all-satellite
-to re-run a specific test, cd tcl/test; ../../ns test-all-TEST-NAME
+validate overall report: all tests passed

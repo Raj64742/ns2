@@ -841,7 +841,7 @@ Mac802_11::sendCTS(int dst, double rts_duration)
 	ch->size() = ETHER_CTS_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	//ch->direction() = -1;
+	//ch->direction() = hdr_cmn::DOWN;
 	bzero(cf, MAC_HDR_LEN);
 
 	cf->cf_fc.fc_protocol_version = MAC_ProtocolVersion;
@@ -884,7 +884,7 @@ Mac802_11::sendACK(int dst)
 	ch->size() = ETHER_ACK_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-	//ch->direction() = -1;
+	//ch->direction() = hdr_cmn::DOWN;
 	
 	bzero(af, MAC_HDR_LEN);
 
@@ -1133,7 +1133,7 @@ Mac802_11::recv(Packet *p, Handler *h)
 	/*
 	 *  Handle outgoing packets.
 	 */
-	if(hdr->direction() == -1) {
+	if(hdr->direction() == hdr_cmn::DOWN) {
                 send(p, h);
                 return;
         }

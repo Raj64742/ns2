@@ -303,11 +303,11 @@ LanIface instproc trace {ns f {op ""}} {
 	$self instvar iface_ entry_ node_ lan_ drophead_ 
 	$self instvar ll_ ifq_
 
-	set hopT_ [$ns create-trace Hop $f $node_ $lan_ $op]
-	set rcvT_ [$ns create-trace Recv $f $lan_ $node_ $op]
-	set enqT_ [$ns create-trace Enque $f $lan_ $node_ $op]
-	set deqT_ [$ns create-trace Deque $f $lan_ $node_ $op]
-	set drpT_ [$ns create-trace Drop $f $lan_ $node_ $op]
+	set hopT_ [$ns create-trace Hop   $f $node_ $lan_  $op]
+	set rcvT_ [$ns create-trace Recv  $f $lan_  $node_ $op]
+	set enqT_ [$ns create-trace Enque $f $node_ $lan_  $op]
+	set deqT_ [$ns create-trace Deque $f $node_ $lan_  $op]
+	set drpT_ [$ns create-trace Drop  $f $node_ $lan_  $op]
 
 	$hopT_ target [$entry_ target]
 	$entry_ target $hopT_

@@ -19,7 +19,7 @@ set env(PATH) "$nshome/bin:$env(PATH)"
 set opt(tr)	out
 set opt(namtr)	"lantest.nam"
 set opt(seed)	0
-set opt(stop)	20
+set opt(stop)	5 
 set opt(node)	8
 
 set opt(qsize)	100
@@ -27,7 +27,7 @@ set opt(bw)	10Mb
 set opt(delay)	1ms
 set opt(ll)	LL
 set opt(ifq)	Queue/DropTail
-set opt(mac)	Mac/Csma/Ca
+set opt(mac)	Mac/802_3
 set opt(chan)	Channel
 set opt(tcp)	TCP/Reno
 set opt(sink)	TCPSink

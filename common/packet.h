@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.69 1999/10/13 22:52:54 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.70 1999/10/14 22:19:27 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -346,13 +346,14 @@ static const iface_literal ANY_IFACE(iface_literal::ANY_IFACE, "*");
 enum ns_af_enum { NS_AF_NONE, NS_AF_ILINK, NS_AF_INET };
 
 struct hdr_cmn {
+	enum dir_t { DOWN= -1, NONE= 0, UP= 1 };
 	packet_t ptype_;	// packet type (see above)
 	int	size_;		// simulated packet size
 	int	uid_;		// unique id
 	int	error_;		// error flag
 	double	ts_;		// timestamp: for q-delay measurement
 	int	iface_;		// receiving interface (label)
-	int	direction_;	// direction: 0=none, 1=up, -1=down
+	dir_t	direction_;	// direction: 0=none, 1=up, -1=down
 	int	ref_count_;	// free the pkt until count to 0
 
 	//Monarch extn begins
@@ -393,7 +394,7 @@ struct hdr_cmn {
 	inline int& error() { return error_; }
 	inline double& timestamp() { return (ts_); }
 	inline int& iface() { return (iface_); }
-	inline int& direction() { return (direction_); }
+	inline dir_t& direction() { return (direction_); }
 	inline int& ref_count() { return (ref_count_); }
 	// monarch_begin
 	inline nsaddr_t& next_hop() { return (next_hop_); }
@@ -444,7 +445,7 @@ inline Packet* Packet::alloc()
 	(HDR_CMN(p))->next_hop_ = -2; // -1 reserved for IP_BROADCAST
 	(HDR_CMN(p))->last_hop_ = -2; // -1 reserved for IP_BROADCAST
 	p->fflag_ = TRUE;
-	(HDR_CMN(p))->direction() = -1;
+	(HDR_CMN(p))->direction() = hdr_cmn::DOWN;
 	/* setting all direction of pkts to be downward as default; 
 	   until channel changes it to +1 (upward) */
 	p->next_ = 0;

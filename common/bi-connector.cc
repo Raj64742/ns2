@@ -119,16 +119,17 @@ int BiConnector::command(int argc, const char*const* argv)
 void BiConnector::recv(Packet* p, Handler* h)
 {
 	hdr_cmn *ch = HDR_CMN(p);
-	int d = ch->direction();
-	if (d == 1) 
+	switch (ch->direction()) {
+	case hdr_cmn::UP :
 		sendUp(p, h);
-	else if (d == -1)
+		break;
+	case hdr_cmn::DOWN :
 		sendDown(p, h);
-	else {
+		break;
+	default:
 		printf("Error: Packet Direction not specified; Using default 'UP' direction\n\n");
 		sendUp(p, h);
 	}
-	
 }
 
 void BiConnector::drop(Packet* p)

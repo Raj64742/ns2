@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.18 1999/10/13 22:53:03 heideman Exp $
+   $Id: dsragent.cc,v 1.19 1999/10/14 22:19:33 yuriy Exp $
 */
 
 #include <assert.h>
@@ -1045,8 +1045,8 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
     }
   p.route.fillSR(srh);
   cmnh->size() += srh->size();
-  // set direction of pkt to -1 , i.e downward
-  cmnh->direction_ = -1;
+  // set direction of pkt to DOWN , i.e downward
+  cmnh->direction() = hdr_cmn::DOWN;
   
   if (srh->route_request())
     { // broadcast forward
@@ -1068,7 +1068,7 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
 
   // make sure we aren't cycling packets
   //assert(p.pkt->incoming == 0); // this is an outgoing packet
-  //assert(cmnh->direction() == -1);
+  //assert(cmnh->direction() == hdr_cmn::DOWN);
 
   if (ifq->length() > 25)
     trace("SIFQ %.5f _%s_ len %d",

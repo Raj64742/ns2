@@ -740,7 +740,7 @@ LandmarkAgent::ProcessHierUpdate(Packet *p)
   //  }
 
   // Need to send the packet down the stack
-  hdrc->direction() = -1;
+  hdrc->direction() = hdr_cmn::DOWN;
   
   //  if(debug_) printf("Node %d: Forwarding Hierarchy Update Packet", myaddr_);
   s.schedule(target_, p, 0);
@@ -1315,7 +1315,7 @@ LandmarkAgent::makeUpdate(ParentChildrenList *pcl, int pkt_type, int action)
   //  if(pcl->parent_ == NULL && action != DEMOTION) 
   //    hdrc->size_ = 20 + 4;
 
-  hdrc->direction() = -1;
+  hdrc->direction() = hdr_cmn::DOWN;
   return p;
 }
 
@@ -1890,7 +1890,7 @@ LandmarkAgent::recv(Packet *p, Handler *)
   //    }
   
   // Packet will be forwarded down (if it's not dropped)
-  cmh->direction_ = -1;
+  cmh->direction_ = hdr_cmn::DOWN;
   
   unsigned char *walk = p->accessdata();
   int action = *walk++;
@@ -2038,7 +2038,7 @@ LandmarkAgent::ForwardPacket(Packet *p)
 
   // Reduce the source route to just parent-children (O(#levels))
   // This is possible since parent and child in each others vicinity
-  cmh->direction() = -1;
+  cmh->direction() = hdr_cmn::DOWN;
   if((iph->dst_ >> 8) == myaddr_)
     query_for_us = TRUE;
 

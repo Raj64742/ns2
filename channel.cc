@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.30 1999/05/24 04:37:12 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.31 1999/10/14 22:19:23 yuriy Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -136,7 +136,7 @@ int Channel::command(int argc, const char*const* argv)
 void Channel::recv(Packet* p, Handler* h)
 {
 //      Scheduler& s = Scheduler::instance();
-// 	hdr_cmn::access(p)->direction() = 1;
+// 	hdr_cmn::access(p)->direction() = hdr_cmn::UP;
 // 	s.schedule(target_, p, txstop_ + delay_ - s.clock());
 	sendUp(p, (Phy*)h);
 }
@@ -154,7 +154,7 @@ Channel::sendUp(Packet* p, Phy *tifp)
 	double propdelay = 0.0;
 	struct hdr_cmn *hdr = HDR_CMN(p);
 	
-	hdr->direction() = 1;
+	hdr->direction() = hdr_cmn::UP;
 	
         if (GridKeeper::instance()) {
 	    int i;

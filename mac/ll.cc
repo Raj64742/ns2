@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.43 1999/10/13 22:52:50 heideman Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.44 1999/10/14 22:19:23 yuriy Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
@@ -147,9 +147,9 @@ void LL::recv(Packet* p, Handler* /*h*/)
                 p->incoming = 0;
 	}
 
-	// If direction = 1, then pass it up the stack
-	// Otherwise, set direction to -1 and pass it down the stack
-	if(ch->direction() == 1) {
+	// If direction = UP, then pass it up the stack
+	// Otherwise, set direction to DOWN and pass it down the stack
+	if(ch->direction() == hdr_cmn::UP) {
 		//if(mac_->hdr_type(mh) == ETHERTYPE_ARP)
 		if(ch->ptype_ == PT_ARP)
 			arptable_->arpinput(p, this);
@@ -158,7 +158,7 @@ void LL::recv(Packet* p, Handler* /*h*/)
 		return;
 	}
 
-	ch->direction() = -1;
+	ch->direction() = hdr_cmn::DOWN;
 	sendDown(p);
 }
 

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.6 1999/10/13 22:52:55 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.7 1999/10/14 22:19:28 yuriy Exp $";
 #endif
 
 /*
@@ -160,14 +160,14 @@ void SatLL::recv(Packet* p, Handler* /*h*/)
 	 */
 	assert(initialized());
 	
-	// If direction = 1, then pass it up the stack
-	// Otherwise, set direction to -1 and pass it down the stack
-	if(ch->direction() == 1) {
+	// If direction = UP, then pass it up the stack
+	// Otherwise, set direction to DOWN and pass it down the stack
+	if(ch->direction() == hdr_cmn::UP) {
 		uptarget_ ? sendUp(p) : drop(p);
 		return;
 	}
 
-	ch->direction() = -1;
+	ch->direction() = hdr_cmn::DOWN;
 	sendDown(p);
 }
 
@@ -546,10 +546,10 @@ public:
 void RepeaterPhy::recv(Packet* p, Handler*)
 {
 	struct hdr_cmn *hdr = HDR_CMN(p);
-	if (hdr->direction_ == 1) {
+	if (hdr->direction() == hdr_cmn::UP) {
 		// change direction and send to uptarget (which is
 		// really a Phy_tx that is also a RepeaterPhy)
-		hdr->direction_ = -1;
+		hdr->direction() = hdr_cmn::DOWN;
 		uptarget_->recv(p, (Handler*) 0);
 	} else {
 		sendDown(p);
@@ -559,7 +559,7 @@ void RepeaterPhy::recv(Packet* p, Handler*)
 void RepeaterPhy::sendDown(Packet *p)
 {
 	struct hdr_cmn *hdr = HDR_CMN(p);
-	hdr->direction_ =  -1;
+	hdr->direction() =  hdr_cmn::DOWN;
 
 	if (channel_)
 		channel_->recv(p, this);

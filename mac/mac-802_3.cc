@@ -1,23 +1,13 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.3 1999/04/29 17:43:40 haldar Exp $
+   $Id: mac-802_3.cc,v 1.4 1999/10/14 22:19:25 yuriy Exp $
    */
-#include <delay.h>
-#include <connector.h>
 #include <packet.h>
 #include <random.h>
-
-// #define DEBUG
-//#include <debug.h>
 #include <arp.h>
 #include <ll.h> 
-#include <mac.h>
 #include <mac-802_3.h>
 
-
-/* ======================================================================
-   TCL hooks for the 802.3 class.
-   ====================================================================== */
 static class Mac802_3Class : public TclClass {
 public:
 	Mac802_3Class() : TclClass("Mac/802_3") {}
@@ -26,96 +16,32 @@ public:
 	}
 } class_mac802_3;
 
-
-/* ======================================================================
-   Defer Handler Functions
-	- used to resume the upper layer
-   ====================================================================== */
-void
-MacHandlerDefer::handle(Event *)
-{
-	busy_ = 0;
-	callback->handle((Event*) 0);
-}
-
-
-void
-MacHandlerDefer::schedule(Handler *h, double t)
-{
-	Scheduler& s = Scheduler::instance();
-	assert(h && busy_ == 0);
-	// intr.uid_ = 0;
-	s.schedule(this, &intr, t);
-	busy_ = 1;
-	callback = h;
-}
-
-
-/* ======================================================================
-   Send Handler Functions
-	- called when a transmission completes without any collisions
-   ====================================================================== */
-void
-Mac8023HandlerSend::handle(Event*)
-{
-	busy_ = 0;
-	/*
-	 *  Transmission completed successfully
-	 */
+void Mac8023HandlerSend::handle(Event*) {
 	assert(mac->pktTx_);
-	//Packet::free(mac->pktTx_);
+	/* Transmission completed successfully */
+	busy_ = 0;
 	mac->pktTx_ = 0;
 	mac->pktTxcnt = 0;
-	mac->resume();
+	Packet::free(mac->mhRetx_.packet()); // free buffered copy
+	mac->mhRetx_.reset();
+	mac->mhIFS_.schedule(IEEE_8023_IFS);
 }
 
-void
-Mac8023HandlerSend::schedule(double t)
-{
+void Mac8023HandlerSend::schedule(double t) {
 	Scheduler& s = Scheduler::instance();
 	assert(busy_ == 0);
-	//intr.uid_ = 0;
 	s.schedule(this, &intr, t);
 	busy_ = 1;
 }
 
-
-/* ======================================================================
-   Backoff Handler Functions
-   ====================================================================== */
-void
-MacHandlerBack::handle(Event* e)
-{
+void MacHandlerRecv::handle(Event* e) {
+	/* Reception Successful */
 	busy_ = 0;
-	mac->send((Packet*) e);
-}
-
-void
-MacHandlerBack::schedule(Packet *p, double t) {
-	Scheduler& s = Scheduler::instance();
-	assert(p && busy_ == 0);
-	s.schedule(this, p, t);
-	busy_ = 1;
-}
-
-
-/* ======================================================================
-   Receive Handler Functions
-   ====================================================================== */
-void
-MacHandlerRecv::handle(Event* e)
-{
-	busy_ = 0;
-
-	/*
-	 * Reception Successful
-	 */
 	mac->pktRx_ = 0;
 	mac->recv_complete((Packet*) e);
 }
 
-void
-MacHandlerRecv::schedule(Packet *p, double t) {
+void MacHandlerRecv::schedule(Packet *p, double t) {
 	Scheduler& s = Scheduler::instance();
 	assert(p && busy_ == 0);
 	s.schedule(this, p, t);
@@ -123,345 +49,192 @@ MacHandlerRecv::schedule(Packet *p, double t) {
 	p_ = p;
 }
 
-
-/* ======================================================================
-   Packet Headers Routines
-inline int
-Mac802_3::hdr_dst(char* hdr, int dst)
-{
-	struct hdr_mac802_3 *mh = (struct hdr_mac802_3*) hdr;
-
-	if(dst > -2)
-		//ETHER_ADDR(mh->mh_da) = dst;
-		STORE4BYTE(&dst, (mh->mh_da));
-
-	return ETHER_ADDR(mh->mh_da);
+bool MacHandlerRetx::schedule() {
+	Scheduler& s = Scheduler::instance();
+	assert(p_ && !busy_);
+	int k, r;
+	if(try_ < IEEE_8023_ALIMIT) {
+		k = min(try_, IEEE_8023_BLIMIT);
+		r = Random::integer(1 << k);
+		s.schedule(this, &intr, r*IEEE_8023_SLOT);
+		busy_ = 1;
+		return true;
+	}
+	reset();
+	return false;
 }
 
-inline int 
-Mac802_3::hdr_src(char* hdr, int src)
-{
-	struct hdr_mac802_3 *mh = (struct hdr_mac802_3*) hdr;
-
-	if(src > -2)
-		//ETHER_ADDR(mh->mh_sa) = src;
-		STORE4BYTE(&src, (mh->mh_da));
-
-	return ETHER_ADDR(mh->mh_sa);
+void MacHandlerRetx::handle(Event *) {
+	assert(p_ && busy_);
+	busy_= 0;
+	++try_;
+	mac->send(p_);
 }
 
-inline int 
-Mac802_3::hdr_type(char* hdr, u_int16_t type)
-{
-	struct hdr_mac802_3 *mh = (struct hdr_mac802_3*) hdr;
-
-	if(type)
-		mh->mh_type = type;
-
-	return  mh->mh_type;
+inline void MacHandlerIFS::handle(Event*) { 
+	busy_= 0; 
+	mac->resume(); 
 }
-   ====================================================================== */
 
-/* ======================================================================
-   Mac Class Functions
-   ====================================================================== */
 
-Mac802_3::Mac802_3() : Mac(), mhBack(this),mhDefer(this), mhRecv(this), mhSend(this)
-{
+Mac802_3::Mac802_3() : Mac(), 
+	mhRecv_(this), mhRetx_(this), mhIFS_(this), mhSend_(this) {
         pktTxcnt = 0;
 }
 
-
-
-
-int
-Mac802_3::command(int argc, const char*const* argv)
-{
-	return Mac::command(argc, argv);
-}
-
-
-
-
-void Mac802_3::discard(Packet *p, const char*)
-{
-	hdr_mac802_3* mh = (hdr_mac802_3*)p->access(off_mac_);
-
-	if((u_int32_t)ETHER_ADDR(mh->mh_da) == (u_int32_t)index_)
-		drop(p);
-	else
-		Packet::free(p);
-}
-
-
-void
-Mac802_3::collision(Packet *p)
-{
-
-	switch(state_) {
-
-	case MAC_SEND:
-		assert(pktTx_);
-
-		/*
-		 *  Collisions occur at the receiver, so receiving a
-		 *  packet, while transmitting may not be a problem.
-		 *
-		 *  If the packet is for us, then drop() the packet -
-		 *  ie; log an event recording the collision.
-		 *  Otherwise, just free the packet and forget about
-		 *  it.
-		 */
-		discard(p);
-		break;
-
-	case MAC_RECV:
-		assert(pktRx_);
-
-		/*
-		 * Drop the packet that is presently being received.
-		 * Again, if the packet was not for us, then its not
-		 * really worth logging.
-		 */
-		mhRecv.cancel();
-		discard(pktRx_);
-		pktRx_ = 0;
-
-		/*
-		 *  If the packet is for us, then drop() the packet -
-		 *  ie; log an event recording the collision.
-		 *  Otherwise, just free the packet and forget about
-		 *  it.
-		 */
-		discard(p);
-		resume();		// restart the MAC
-
-		break;
-	default:
-	  assert("SHOULD NEVER HAPPEN" == 0);
-	}
-}
-
-
-void
-Mac802_3::send(Packet *p, Handler *h)
-{
-	hdr_cmn *hdr = HDR_CMN(p);
-	hdr->size() += ETHER_HDR_LEN;
-
-	callback_ = h;
-	send(p);
-}
-
-/*
- * This function gets called when packets are passed down from the
- * link layer.
- */
-void
-Mac802_3::recv(Packet *p, Handler *h)
-{
-
-	/*
-	 * Sanity Check
-	 */
+void Mac802_3::recv(Packet *p, Handler *h) {
 	assert(initialized());
 
-	/*
-	 *  Handle outgoing packets.
-	 */
-	if(h) {
+	/* Handle outgoing packets */
+	if (HDR_CMN(p)->direction() == hdr_cmn::DOWN) {
+		assert(h);
 		send(p, h);
 		return;
 	}
-
-	/*
-	 *  Handle incoming packets.
-	 *
-	 *  We just received the 1st bit of a packet on the network
-	 *  interface.
-	 *
-	 */
+	/* Handle incoming packets : just received the 1st bit of a packet */
 	if(state_ == MAC_IDLE) {
 		state_ = MAC_RECV;
 		pktRx_ = p;
 
-		/*
-		 * Schedule the reception of this packet, in
-		 * txtime seconds.
-		 */
-		mhRecv.schedule(p, netif_->txtime(p));
-
-#if 0
-		/*
-		 *  If we are in the first 2/3 of an IFS, then go
-		 *  ahead and cancel the timer.
-		 */
-		if(mhDefer.busy()) {
-			double now = Scheduler::instance().clock();
-			if(mhDefer.expire() - now > (IEEE_8023_IFS/3) ) {
-				mhDefer.cancel();
-			}
-			mhDefer.cancel();
-		}
-#endif
+		/* the last bit will arrive in txtime seconds */
+		mhRecv_.schedule(p, netif_->txtime(p));
 	}
 	else {
-		collision(p);
+		collision(p); //received packet while sending or receiving
 	}
 }
 
+void Mac802_3::send(Packet *p, Handler *h) {
+	HDR_CMN(p)->size() += ETHER_HDR_LEN; //XXX also preamble?
+	callback_ = h;
+	mhRetx_.packet()= p; //packet's buffered by mhRetx in case of retransmissions
+	send(p);
+}
 
-void
-Mac802_3::send(Packet *p)
-{
-	double txtime = netif_->txtime(p);
 
-
-	/*
-	 *  Sanity Check
-	 */
+void Mac802_3::send(Packet *p) {
+	assert(callback_);
 	if(pktTx_) {
-		drop(pktTx_);
-		drop(p);
 		fprintf(stderr, "index: %d\n", index_);
-		fprintf(stderr, "Backoff Timer: %d\n", mhBack.busy());
-		fprintf(stderr, "Defer Timer: %d\n", mhDefer.busy());
-		fprintf(stderr, "Recv Timer: %d\n", mhRecv.busy());
-		fprintf(stderr, "Send Timer: %d\n", mhSend.busy());
+		fprintf(stderr, "Retx Timer: %d\n", mhRetx_.busy());
+		fprintf(stderr, "IFS  Timer: %d\n", mhIFS_.busy());
+		fprintf(stderr, "Recv Timer: %d\n", mhRecv_.busy());
+		fprintf(stderr, "Send Timer: %d\n", mhSend_.busy());
 		exit(1);
 	}
-	assert(callback_ && pktTx_ == 0);
 
-	pktTx_ = p;
-
-	/*
-	 *  Perform carrier sense.  If the medium is not IDLE, then
-	 *  backoff again.  Otherwise, go for it!
-	 */
-	if(state_ != MAC_IDLE) {
-		backoff();
+	/* Perform carrier sense  - if we were sending before, never mind state_ */
+	if (mhIFS_.busy() || (state_ != MAC_IDLE)) {
+		/* we'll try again when IDLE. It'll happen either when
+                   reception completes, or if collision.  Either way,
+                   we call resume() */
 		return;
 	}
+	assert(state_!=MAC_SEND);
+		
+	pktTx_ = p;
+	HDR_CMN(p)->direction()= hdr_cmn::DOWN; //down
 
-	state_ = MAC_SEND;
+	double txtime = netif_->txtime(p);
+	/* Schedule transmission of the packet's last bit */
+	mhSend_.schedule(txtime);
 
-	/*
-	 * pass the packet on the "interface" which will in turn
-	 * place the packet on the channel.
-	 *
-	 * NOTE: a handler is passed along so that the Network Interface
-	 *	 can distinguish between incoming and outgoing packets.
-	 */
-	downtarget_->recv(p, this);
+	// pass the packet to the PHY: need to send a copy, 
+	// because there may be collision and it may be freed
+	downtarget_->recv(p->copy()); 
 
-	/*
-	 * This MAC will remain in the MAC_SEND state until packet
-	 * transmission completes.  Schedule an event that will
-	 * reset the MAC to the IDLE state.
-	 */
-	mhSend.schedule(txtime);
+	state_= MAC_SEND;
 }
 
+void Mac802_3::collision(Packet *p) {
+	Packet::free(p);
+	switch(state_) {
+	case MAC_SEND:
+		assert(pktTx_);
+		assert(mhSend_.busy());
+		mhSend_.cancel();
+		pktTx_= 0;
 
-void
-Mac802_3::recv_complete(Packet *p)
-{
-	hdr_cmn *hdr = HDR_CMN(p);
+		/* schedule retransmissions */
+		assert(mhRetx_.packet());
+		p= mhRetx_.packet();
+		if (!mhRetx_.schedule()) {
+			HDR_CMN(p)->size() -= ETHER_HDR_LEN;
+			drop(p); // drop if backed off far enough
+		}
+		break;
+	case MAC_RECV:
+		assert(pktRx_);
+		assert(!mhSend_.busy());
 
-	/*
-	 * Address Filtering
-	 */
+		mhRecv_.cancel();
+		Packet::free(pktRx_);
+		pktRx_ = 0;
+		break;
+	default:
+	  assert("SHOULD NEVER HAPPEN" == 0);
+	}
+	mhIFS_.schedule(netif_->txtime(IEEE_8023_JAMSIZE/8) + // jam time +
+			IEEE_8023_IFS);                       // IFS
+}
 
-//	hdr_mac802_3* mh = (hdr_mac802_3*)p->access(off_mac_);
-//	if((u_int32_t)ETHER_ADDR(mh->mh_da) != (u_int32_t) index_ &&
-//	   (u_int32_t)ETHER_ADDR(mh->mh_da) != MAC_BROADCAST) {
-	char* mha = (char*)p->access(hdr_mac::offset_);
-	int dst = this->hdr_dst(mha);
+void Mac802_3::recv_complete(Packet *p) {
+	assert(!mhRecv_.busy());
+	assert(!mhSend_.busy());
+	hdr_cmn *ch= HDR_CMN(p);
+	/* Address Filtering */
+	char* mha= (char*)p->access(hdr_mac::offset_);
+	int dst= hdr_dst(mha);
 
 	if (((u_int32_t)dst != MAC_BROADCAST) && (dst != index_)) {
-		/*
-		 *  We don't want to log this event, so we just free
-		 *  the packet instead of calling the drop routine.
-		 */
 		Packet::free(p);
 		goto done;
 	}
+	/* Strip off the mac header */
+	ch->size() -= ETHER_HDR_LEN;
 
-	/*
-	 * Now, check to see if this packet was received with enough
-	 * bit errors that the current level of FEC still could not
-	 * fix all of the problems - ie; after FEC, the checksum still
-	 * failed.
-	 */
-	if( hdr->error() ) {
-		discard(p);
+	/* xxx FEC here */
+	if( ch->error() ) {
+		HDR_CMN(p)->size() -= ETHER_HDR_LEN;
+		drop(p);
 		goto done;
 	}
 
-	/*
-	 * Adjust the MAC packet size - ie; strip off the mac header
-	 */
-	hdr->size() -= ETHER_HDR_LEN;
 
-	/*
-	 *  Pass the packet up to the link-layer.
-	 *  XXX - we could schedule an event to account
-	 *  for this processing delay.
-	 */
+	/* we could schedule an event to account */
 	uptarget_->recv(p, (Handler*) 0);
 
 	done:
-	/*
-	 * reset the MAC to the IDLE state
-	 */
-	resume();
+	mhIFS_.schedule(IEEE_8023_IFS); 	// wait for one IFS, then resume
 }
 
-
-void
-Mac802_3::backoff() {
-	int k, r;
-
-	pktTxcnt++;
-	k = min(pktTxcnt, IEEE_8023_BLIMIT);
-	r = Random::integer(1 << k);
-
-	if(pktTxcnt < IEEE_8023_ALIMIT) {
-		mhBack.schedule(pktTx_, r * IEEE_8023_SLOT);
-		pktTx_ = 0;
-		return;
-	}
-	else {
-		drop(pktTx_);
-		pktTx_ = 0;
-		pktTxcnt = 0;
-	}
-}
-
-
-void
-Mac802_3::resume()
-{
-	state_ = MAC_IDLE;
-
-	/*
-	 *  Sanity Check
-	 */
+/* we call resume() in these cases:
+   - successful transmission
+   - whole packet's received
+   - collision and backoffLimit's exceeded
+   - collision while receiving */
+void Mac802_3::resume() {
 	assert(pktRx_ == 0);
 	assert(pktTx_ == 0);
-	// assert(mhDefer.busy() == 0);
-	assert(mhRecv.busy() == 0);
-	assert(mhSend.busy() == 0);
+	assert(mhRecv_.busy() == 0);
+	assert(mhSend_.busy() == 0);
+	assert(mhIFS_.busy() == 0);
 
-	/*
-	 *  If we're not backing off right now, go ahead and unblock
-	 *  the upper layer so that we can get more packets to send.
-	 */
-	if(callback_ && mhBack.busy() == 0) {
+	state_= MAC_IDLE;
 
-		mhDefer.schedule(callback_, IEEE_8023_IFS);
-		callback_ = 0;
+	if (mhRetx_.packet()) {
+		if (!mhRetx_.busy()) {
+			// we're not backing off and not sensing carrier right now: send
+			send(mhRetx_.packet());
+		}
+	} else {
+		if (callback_ && !mhRetx_.busy()) {
+			assert(state_==MAC_IDLE && !mhSend_.busy());
+			//calling callback_->handle may or may not change the value of callback_
+			Handler* h= callback_; 
+			callback_= 0;
+			h->handle(0);
+		}
 	}
 }
-
 

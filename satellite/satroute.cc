@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.cc,v 1.5 1999/10/13 22:52:55 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.cc,v 1.6 1999/10/14 22:19:29 yuriy Exp $";
 #endif
 
 #include "satroute.h"
@@ -129,7 +129,7 @@ void SatRouteAgent::forwardPacket(Packet * p)
   	hdr_cmn *hdrc = HDR_CMN (p);
 	NsObject* link_entry_;
 
-	hdrc->direction_ = -1; // send it down the stack
+	hdrc->direction() = hdr_cmn::DOWN; // send it down the stack
 	int dst = Address::instance().get_nodeaddr(iph->daddr());
 	// Here we need to have an accurate encoding of the next hop routing
 	// information

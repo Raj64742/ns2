@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.34 1999/06/21 18:13:58 tomh Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.35 1999/10/14 22:19:26 yuriy Exp $ (UCB)";
 #endif
 
 //#include "classifier.h"
@@ -156,8 +156,7 @@ int Mac::command(int argc, const char*const* argv)
 
 void Mac::recv(Packet* p, Handler* h)
 {
-	// dir : 1 = up, -1 = down; 
-	if (hdr_cmn::access(p)->direction() == 1) {
+	if (hdr_cmn::access(p)->direction() == hdr_cmn::UP) {
 		sendUp(p);
 		return;
 	}

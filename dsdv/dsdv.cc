@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.18 1999/10/13 22:53:01 heideman Exp $
+   $Id: dsdv.cc,v 1.19 1999/10/14 22:19:32 yuriy Exp $
 
    */
 
@@ -884,7 +884,7 @@ DSDV_Agent::forwardPacket (Packet * p)
   // We should route it.
   //printf("(%d)-->forwardig pkt\n",myaddr_);
   // set direction of pkt to -1 , i.e downward
-  hdrc->direction_ = -1;
+  hdrc->direction() = hdr_cmn::DOWN;
 
   // if the destination is outside mobilenode's domain
   // forward it to base_stn node

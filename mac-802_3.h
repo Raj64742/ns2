@@ -2,13 +2,14 @@
 #define __mac_802_3_h__
 
 #include <assert.h>
+#include "mac.h"
 
 #define min(x, y)	((x) < (y) ? (x) : (y))
 #define ETHER_HDR_LEN		((ETHER_ADDR_LEN << 1) + ETHER_TYPE_LEN)
 
 
 #define IEEE_8023_SLOT		0.000051200	// 512 bit times
-#define	IEEE_8023_IFS		0.000009600	// 9.6us
+#define	IEEE_8023_IFS		0.000009600	// 9.6us interframe spacing
 #define IEEE_8023_ALIMIT	16		// attempt limit
 #define IEEE_8023_BLIMIT	10		// backoff limit
 #define IEEE_8023_JAMSIZE	32		// bits
@@ -33,13 +34,10 @@ public:
 	MacHandler(Mac802_3* m) :  callback(0), mac(m), busy_(0) {}
 	virtual void handle(Event *e) = 0;
 	virtual inline void cancel() {
-		assert(0);
-#if 0
 		Scheduler& s = Scheduler::instance();
 		assert(busy_);
 		s.cancel(&intr);
 		busy_ = 0;
-#endif
 	}
 	inline int busy(void) { return busy_; }
 	inline double expire(void) { return intr.time_; }
@@ -51,29 +49,18 @@ protected:
 };
 
 
-class MacHandlerDefer : public MacHandler {
-public:
-	MacHandlerDefer(Mac802_3* m) : MacHandler(m) {}
-	void handle(Event*);
-	void schedule(Handler *h, double t);
-};
-
-
 class Mac8023HandlerSend : public MacHandler {
 public:
 	Mac8023HandlerSend(Mac802_3* m) : MacHandler(m) {}
 	void handle(Event*);
 	void schedule(double t);
+	void cancel() {
+		assert(busy_);
+		Scheduler &s= Scheduler::instance();
+		s.cancel(&intr);
+		busy_= 0;
+	}
 };
-
-
-class MacHandlerBack : public MacHandler {
-public:
-	MacHandlerBack(Mac802_3* m) : MacHandler(m) {}
-	void handle(Event*);
-	void schedule(Packet *p, double t);
-};
-
 
 class MacHandlerRecv : public MacHandler {
 public:
@@ -90,14 +77,51 @@ private:
 	Packet *p_;
 };
 
+class MacHandlerRetx : public MacHandler {
+ public:
+	MacHandlerRetx(Mac802_3* m) : MacHandler(m), p_(0), try_(1) {}
+	void reset() {
+		// before calling reset, you MUST free or drop p_
+		if (busy_) cancel();
+		try_= 1;
+		p_= 0;
+	}
+	void handle(Event*);
+	bool schedule();
+	void cancel() {
+		Scheduler& s = Scheduler::instance();
+		assert(busy_ && p_);
+		s.cancel(&intr);
+		busy_ = 0;
+		Packet::free(p_);
+		p_= 0;
+	}
+	Packet*& packet() { return p_; }
+private:
+	Packet *p_;
+	int try_;
+};
+		
+class MacHandlerIFS : public MacHandler {
+ public:
+	MacHandlerIFS(Mac802_3* m) : MacHandler(m) {}
+	void handle (Event*); 
+	void schedule(double t) {
+		assert(!busy_);
+		Scheduler &s= Scheduler::instance();
+		s.schedule(this, &intr, t);
+		busy_= 1;
+	}
+};
+
 
 /* ======================================================================
    MAC data structure
    ====================================================================== */
 class Mac802_3 : public Mac {
-	friend class MacHandlerBack;
 	friend class MacHandlerRecv;
 	friend class Mac8023HandlerSend;
+	friend class MacHandlerRetx;
 public:
 	Mac802_3();
 
@@ -114,22 +138,16 @@ public:
 protected:
 	virtual void	send(Packet* p);
 private:
-	int		command(int argc, const char*const* argv);
 	void		send(Packet *p, Handler *h);
-	void		discard(Packet *p, const char* why = 0);
-
-	virtual void	backoff(void);
 	void		collision(Packet *p);
-
 
 	int		pktTxcnt;
 
-	MacHandlerBack	mhBack;
-	MacHandlerDefer	mhDefer;
-	MacHandlerRecv	mhRecv;
-	Mac8023HandlerSend	mhSend;
-
-
+	MacHandlerRecv	mhRecv_;
+	MacHandlerRetx  mhRetx_;
+	MacHandlerIFS   mhIFS_;
+	Mac8023HandlerSend	mhSend_;
 };
+
 
 #endif /* __mac_802_3_h__ */
