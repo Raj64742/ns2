@@ -46,11 +46,13 @@ Class Test/dsdv-wired-cum-wireless -superclass TestSuite
 # gateways called base-stations.
 
 #Class Test/dsr-wired-cum-wireless -superclass TestSuite
-# same as above , only with DSR routing.
+# same as above , only with DSR routing. see test-suite-wireless-lan.
+# txt for details
 
 Class Test/dsdv-wireless-mip -superclass TestSuite
 # Wireless Mobile IP model in which a mobilehost roams between 
-# a Home Agent and Foreign Agent.
+# a Home Agent and Foreign Agent. see test-suite-wireless-lan.txt for
+# details
 
 #Class Test/dsr-wireless-mip -superclass TestSuite
 # same as above, only with DSR routing
