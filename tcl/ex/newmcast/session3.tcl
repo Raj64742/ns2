@@ -46,7 +46,7 @@ $ns duplex-link $n2 $n4 1.5Mb 10ms DropTail
 $ns duplex-link $n2 $n5 1.5Mb 10ms DropTail
 
 set cbr0 [new Agent/CBR]
-#$cbr0 set ttl_ 2
+$cbr0 set ttl_ 3
 $ns attach-agent $n0 $cbr0
 $cbr0 set dst_ 0x8002
 set sessionhelper [$ns create-session $n0 $cbr0]
@@ -82,27 +82,40 @@ $ns at 0.2 "$n5 join-group $rcvr5 0x8002"
 #$loss_module set rate_ 3
 #$loss_module ranvar $loss_random_variable
 
-set loss_module [new SelectErrorModel]
-$loss_module drop-packet 2 10 1     ;# drop one PT_CBR packet every 20 packets
-$loss_module drop-target [$ns set nullAgent_]
+set loss_module1 [new SelectErrorModel]
+$loss_module1 drop-packet 2 20 1     ;# drop one PT_CBR packet every 20 packets
+$loss_module1 drop-target [$ns set nullAgent_]
 
+set loss_module2 [new SelectErrorModel]
+$loss_module2 drop-packet 2 10 1     ;# drop one PT_CBR packet every 10 packets
+$loss_module2 drop-target [$ns set nullAgent_]
 
-# insert the loss module in front of the rcvr5 and its delay module
-$ns at 0.25 "$sessionhelper insert-depended-loss  $loss_module $rcvr1 $cbr0 0x8002"
+set loss_module3 [new SelectErrorModel]
+$loss_module3 drop-packet 2 10 1     ;# drop one PT_CBR packet every 10 packets
+$loss_module3 drop-target [$ns set nullAgent_]
+
+# insert the loss module; must be done before receivers join groups
+$ns insert-loss  $loss_module1 0 1
+$ns insert-loss  $loss_module2 1 3
+$ns insert-loss  $loss_module3 0 2
+$ns at 0.3 "$sessionhelper show-loss-depobj"  ;# showing loss dependency
+$ns at 0.3 "$sessionhelper show-dstobj"       ;# showing receiver spec
 
 $ns at 0.1 "$cbr0 start"
  
 $ns at 1.6 "finish"
 
 proc finish {} {
-        global rcvr3 rcvr4 rcvr5  n0 rcvr2
-        puts "lost [$rcvr2 set nlost_] pkt, rcv [$rcvr2 set npkts_]"
-        puts "lost [$rcvr3 set nlost_] pkt, rcv [$rcvr3 set npkts_]"
-        puts "lost [$rcvr4 set nlost_] pkt, rcv [$rcvr4 set npkts_]"
-        puts "lost [$rcvr5 set nlost_] pkt, rcv [$rcvr5 set npkts_]"
-        puts "Showing Dependency List:"
-        $n0 dump-dependency 0 0x8002
-        puts "[$n0 get-dependency 0 0x8002]"
+        global rcvr3 rcvr4 rcvr5  n0 rcvr2 rcvr1 rcvr0
+        puts "rcvr 0 lost [$rcvr0 set nlost_] pkt, rcv [$rcvr0 set npkts_]"
+        puts "rcvr 1 lost [$rcvr1 set nlost_] pkt, rcv [$rcvr1 set npkts_]"
+        puts "rcvr 2 lost [$rcvr2 set nlost_] pkt, rcv [$rcvr2 set npkts_]"
+        puts "rcvr 3 lost [$rcvr3 set nlost_] pkt, rcv [$rcvr3 set npkts_]"
+        puts "rcvr 4 lost [$rcvr4 set nlost_] pkt, rcv [$rcvr4 set npkts_]"
+        puts "rcvr 5 lost [$rcvr5 set nlost_] pkt, rcv [$rcvr5 set npkts_]"
+#        puts "Showing Dependency List:"
+#        $n0 dump-dependency 0 0x8002
+#        puts "[$n0 get-dependency 0 0x8002]"
         exit 0
 }
 
