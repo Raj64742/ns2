@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.3 1997/03/11 00:41:20 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.4 1997/03/18 23:42:58 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -243,3 +243,226 @@ void HeapScheduler::run()
 		p->handler_->handle(p);
 	}
 }
+
+/*
+ * Calendar queue scheduler contributed by
+ * David Wetherall <djw@juniper.lcs.mit.edu>
+ * March 18, 1997.
+ */
+
+class CalendarScheduler : public Scheduler {
+public:
+	CalendarScheduler();
+	virtual ~CalendarScheduler();
+	virtual void run();
+	virtual void cancel(Event*);
+	virtual void insert(Event*);
+	virtual Event* lookup(int uid);
+
+protected:
+	int resizeenabled_;
+	double width_;
+	double oneonwidth_;
+	double buckettop_;
+	int nbuckets_;
+	int buckbits_;
+	int lastbucket_;
+	int top_threshold_;
+	int bot_threshold_;
+	Event** buckets_;
+	int qsize_;
+
+	virtual Event* dequeue();
+	virtual void reinit(int nbuck, double bwidth, double start);
+	virtual void resize(int newsize);
+	virtual double newwidth();
+};
+
+static class CalendarSchedulerClass : public TclClass {
+public:
+	CalendarSchedulerClass() : TclClass("Scheduler/Calendar") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new CalendarScheduler);
+	}
+} class_calendar_sched;
+
+CalendarScheduler::CalendarScheduler() {
+	reinit(2, 1.0, 0.0);
+	resizeenabled_ = 1;
+}
+
+CalendarScheduler::~CalendarScheduler() {
+	delete [] buckets_;
+	qsize_ = 0;
+}
+
+void CalendarScheduler::insert(Event* e)
+{
+	// bucket number and address
+	int i = (int)(((long)(e->time_ * oneonwidth_)) & buckbits_); 
+	Event** p = buckets_ + i;
+
+	// insert event in stable time sorted order
+	while ((*p != NULL) && (e->time_ >= (*p)->time_))
+		p = &(*p)->next_;
+  
+	e->next_ = *p;
+	*p = e;
+  
+	if (++qsize_ > top_threshold_) resize(2*nbuckets_);
+}
+
+Event* CalendarScheduler::dequeue()
+{
+	if (qsize_ == 0) return NULL;
+	int i = lastbucket_;
+
+	// check for an event this `year'
+	do {
+		Event* e = buckets_[i];
+		if ((e != NULL) && (e->time_ < buckettop_)) {
+			buckets_[i] = e->next_;
+			lastbucket_ = i;
+			clock_ = e->time_;
+			if (--qsize_ < bot_threshold_) resize(nbuckets_/2);
+			return e;
+		} else {
+			if (++i == nbuckets_) i = 0;
+			buckettop_ += width_;
+		}
+	} while (i != lastbucket_);
+
+	// or direct search for the minimum event
+	int pos = 0;
+	Event* min;
+	do { min =  buckets_[pos++]; } while (min == NULL); pos--;
+
+	for (int k = pos+1; k < nbuckets_; k++) {
+		Event* e = buckets_[k];
+		if ((e != NULL) && (e->time_ < min->time_)) {
+			min = e; pos = k;
+		}
+	}
+  
+	// adjust year and resume
+	lastbucket_ = pos;
+	clock_ = min->time_;
+	long n = (long)(clock_ * oneonwidth_);
+	buckettop_ = (n + 1) * width_ + 0.5 * width_;
+
+	return dequeue();
+}
+
+void CalendarScheduler::reinit(int nbuck, double bwidth, double start)
+{
+	buckets_ = new Event*[nbuck];
+	memset(buckets_, 0, sizeof(Event*)*nbuck);
+	width_ = bwidth;
+	oneonwidth_ = 1.0 / width_;
+	nbuckets_ = nbuck;
+	buckbits_ = nbuck-1;
+	qsize_ = 0;
+	clock_ = start;
+	long n = (long)(start * oneonwidth_);
+	lastbucket_ = n % nbuck;
+	buckettop_ = (n + 1) * width_ + 0.5 * width_;
+	bot_threshold_ = nbuck / 2 - 2;
+	top_threshold_ = 2 * nbuck;
+}
+
+void CalendarScheduler::resize(int newsize)
+{
+	if (!resizeenabled_) return;
+	resizeenabled_ = 0;
+	double bwidth = newwidth();
+	Event** oldb = buckets_;
+	int oldn = nbuckets_;
+
+	// copy events to new buckets
+	reinit(newsize, bwidth, clock_);
+	for (int i = oldn-1; i >= 0; i--) {
+		Event* e = oldb[i];
+		while (e != NULL) {
+			Event* en = e->next_;
+			insert(e);
+			e = en;
+		}
+	}
+	delete [] oldb;
+	resizeenabled_ = 1;
+}
+
+#define MIN_WIDTH (1.0e-6)
+#define MAX_HOLD  25
+
+double CalendarScheduler::newwidth()
+{
+	static Event* hold[MAX_HOLD];
+	int nsamples;
+  
+	if (qsize_ < 2) return 1.0;
+	if (qsize_ < 5) nsamples = qsize_;
+	else nsamples = 5 + qsize_ / 10;
+	if (nsamples > MAX_HOLD) nsamples = MAX_HOLD;
+
+	// dequue and requeue sample events to gauge width
+	double olp = clock_;
+	double olt = buckettop_;
+	int olb = lastbucket_;
+	for (int i = 0; i < nsamples; i++) hold[i] = dequeue();
+	for (int j = nsamples-1; j >= 0; j--) insert(hold[j]);
+	clock_ = olp;
+	buckettop_ = olt;
+	lastbucket_ = olb;
+
+	// try to work out average cluster separation
+	double asep = (hold[nsamples-1]->time_ - hold[0]->time_) / (nsamples-1);
+	double asep2 = 0.0;
+	double min = (clock_ + 1.0) * MIN_WIDTH; 
+	int count = 0;
+  
+	for (int k = 1; k < nsamples; k++) {
+		double diff = hold[k]->time_ - hold[k-1]->time_;
+		if (diff < 2.0*asep) { asep2 += diff; count++; }
+	}
+  
+	// but don't let things get too small for numerical stability
+	double nw = count ? 3.0*(asep2/count) : asep;
+	if (nw < min) nw = min;
+	return nw;
+}
+
+/*
+ * Cancel an event.  It is an error to call this routine
+ * when the event is not actually in the queue.  The caller
+ * must free the event if necessary; this routine only removes
+ * it from the scheduler queue.
+ */
+void CalendarScheduler::cancel(Event* e)
+{
+	for (int i = 0; i < nbuckets_; i++)
+		for (Event** p = &buckets_[i]; (*p) != NULL; p = &(*p)->next_)
+			if ((*p) == e) {
+				(*p) = (*p)->next_;
+				return;
+			}
+  
+	abort();
+}
+
+Event* CalendarScheduler::lookup(int uid)
+{
+	for (int i = 0; i < nbuckets_; i++)
+		for (Event* p = buckets_[i]; p != NULL; p = p->next_)
+			if (p->uid_== uid) return p;
+}
+
+void CalendarScheduler::run()
+{ 
+	Event* p;
+	/*XXX*/
+	instance_ = this;
+	while ((p = dequeue()) != NULL) 
+		p->handler_->handle(p);
+}
+

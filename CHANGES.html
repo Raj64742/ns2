@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.32 1997/03/16 02:15:57 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.33 1997/03/18 23:42:56 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -14,12 +14,32 @@ collaborators and
 <ul>
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<i>Tue Mar 18 15:32:01 PST 1997</i><br>
+Integrated
+<a href=http://tns-www.lcs.mit.edu/people/djw/bio.html>
+David Weatherall's</a> calendar queue.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<i>Tue Mar 18 15:32:01 PST 1997</i><br>
+Added a simple, completely contrived script to generate
+SRM-like sample paths to illustrate SRM in EECS colloquium
+(see tcl/ex/srm-demo.tcl).
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<i>Tue Mar 18 15:32:01 PST 1997</i><br>
+Fixed bug in Packet::copy.  "*p = *this" was bogus because
+bits are now allocated in a separate buffer and this was
+smashing the current packet's bits buffer to point to the
+old one, which was both leaking memory and causing unwanted
+sharing of private buffers.
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
 First cut at agent detaching code.  Suggested by
 <a href=http://www-video.eecs.berkeley.edu/~emile/>Emile Sahouria</a>.
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
 Fixed bug pointed out by
-<a href=http://www-video.eecs.berkeley.edu/~emile/>Emile Sahouria</a>
+<a href=http://www-video.eecs.berkeley.edu/~emile/>Emile Sahouria</a>,
 <a href=http://www.cs.berkeley.edu/~gnguyen>Giao Nguyen</a>,
 and
 <a href=http://www.cs.berkeley.edu/~tomh>Tom Henderson</a>,

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.5 1997/03/07 02:20:32 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.6 1997/03/18 23:42:57 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -95,8 +95,9 @@ inline void Packet::free(Packet* p)
 inline Packet* Packet::copy() const
 {
 	Packet* p = alloc();
-	*p = *this;
 	memcpy(p->bits(), bits_, hdrsize_);
+	TraceHeader *th = TraceHeader::access(p->bits_);
+	th->uid() = uidcnt_++;
 	return (p);
 }
 

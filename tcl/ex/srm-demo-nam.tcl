@@ -45,9 +45,13 @@ proc nam_config {net} {
 
         $net queue 14 12 0.5
         $net queue 12 14 0.5
+        $net queue 10 3 0.5
 
         $net color 1 red
         $net color 2 white
+        $net color 3 blue
+        $net color 4 yellow
+        $net color 5 LightBlue
 
         # chart utilization from 1 to 2 width 5sec
         # chart avgutilization from 1 to 2 width 5sec
