@@ -72,7 +72,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.12 1997/10/25 02:12:37 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.13 1997/11/18 01:28:35 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -132,7 +132,8 @@ FullTcpAgent::reset()
 	last_ack_sent_ = -1;
 	rcv_nxt_ = -1;
 	flags_ = 0;
-	t_seqno_ = maxseq_ = iss_;
+	t_seqno_ = iss_;
+	maxseq_ = iss_ - 1;
 	irs_ = -1;
 	idle_ = 0.0;
 }
@@ -192,12 +193,11 @@ FullTcpAgent::advance_bytes(int nb)
 
 	//
 	// state-specific operations:
-	//	if CLOSED, do an active open/connect
+	//	if CLOSED, reset and try a new active open/connect
 	//	if ESTABLISHED, just try to send more
 	//	if above ESTABLISHED, we are closing, so don't allow
 	//	if anything else (establishing), do nothing here
 	//
-
 
 	if (state_ > TCPS_ESTABLISHED) {
 		fprintf(stderr,
@@ -287,7 +287,7 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
 void FullTcpAgent::output(int seqno, int reason)
 {
 	int is_retransmit = (seqno <= maxseq_);
-	int idle = (highest_ack_ == maxseq_);
+	int idle = (highest_ack_ == (maxseq_+1));
 	int buffered_bytes = (curseq_ + iss_) - highest_ack_;
 	int win = window() * maxseg_;
 	int off = seqno - highest_ack_;
@@ -333,7 +333,7 @@ void FullTcpAgent::output(int seqno, int reason)
 		/* not emptying buffer, so can't be FIN */
 		pflags &= ~TH_FIN;
 	}
-			
+
 	/* sender SWS avoidance (Nagle) */
 
 	if (datalen > 0) {
@@ -369,6 +369,12 @@ void FullTcpAgent::output(int seqno, int reason)
 
 send:
 
+	if (pflags & TH_SYN) {
+		seqno = iss_;
+		if (!data_on_syn_)
+			datalen = 0;
+	}
+
 	/*
 	 * if this is a retransmission of a FIN, pre-adjust the
 	 * sequence number so we don't go above maxseq_
@@ -395,9 +401,11 @@ send:
 	last_ack_sent_ = rcv_nxt_;
 	flags_ &= ~(TF_ACKNOW|TF_DELACK);
 
-	t_seqno_ += datalen;		// update snd_nxt (t_seqno_)
-	if (t_seqno_ > maxseq_) {
-		maxseq_ = t_seqno_; 	// largest seq# we've sent
+	if (seqno == t_seqno_)
+		t_seqno_ += datalen;	// update snd_nxt (t_seqno_)
+
+	if ((seqno + datalen) > maxseq_) {
+		maxseq_ = seqno+datalen; 	// largest seq# we've sent
 		/*
 		 * Time this transmission if not a retransmission and
 		 * not currently timing anything.
@@ -672,8 +680,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
          */
 
 	case TCPS_SYN_SENT:	/* we sent SYN, expecting SYN+ACK */
-		if ((tiflags & TH_ACK) &&
-			((ackno > maxseq_) || (ackno < iss_))) {
+		if ((tiflags & TH_ACK) && (ackno < (iss_+1))) {
 			// not an ACK for our SYN, discard
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): bad ACK (%d) for our SYN(%d)\n",
@@ -694,9 +701,9 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		}
 		cancel_rtx_timer();	// cancel timer on our 1st SYN
 		irs_ = tcph->seqno();
-		rcv_nxt_ = tcph->seqno() + 1;	// initial expected seq#
+		rcv_nxt_ = irs_ + 1;	// initial expected seq#
 		flags_ |= TF_ACKNOW;	// ACK peer's SYN
-		if (tiflags & TH_ACK && (highest_ack_ >= iss_)) {
+		if (tiflags & TH_ACK && (highest_ack_ > iss_)) {
 			state_ = TCPS_ESTABLISHED;
                         /*
                          * if we didn't have to retransmit the SYN,
@@ -778,8 +785,8 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	 */
 
 	switch (state_) {
-	case TCPS_SYN_RECEIVED:	/* got ACK for our SYN+ACK */
-		if (ackno < highest_ack_ || ackno > maxseq_) {
+	case TCPS_SYN_RECEIVED:	/* want ACK for our SYN+ACK */
+		if (ackno < highest_ack_ || ackno > (maxseq_+1)) {
 			// not in useful range
 			goto dropwithreset;
 		}
@@ -881,7 +888,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			cwnd_ = ssthresh_;
 		}
 		dupacks_ = 0;
-		if (ackno > maxseq_) {
+		if (ackno > (maxseq_ + 1)) {
 			// ack more than we sent(!?)
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s) too-big ACK (ack: %d, maxseq:%d)\n",
