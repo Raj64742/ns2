@@ -6,7 +6,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
 
 #include <stdio.h>
 #include <routealgo/rlookup.h>
@@ -513,5 +512,4 @@ size_t   NHLookup::EstimateSize(
   return sizeof(u_long) * r.size();
 }
 
-#endif /* NIXVECTOR */
 #endif /* STL */

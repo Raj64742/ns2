@@ -1,5 +1,3 @@
-#ifdef PGM
-
 /*
  * Copyright (c) 2001 University of Southern California.
  * All rights reserved.                                            
@@ -27,6 +25,9 @@
  *
  * Christos Papadopoulos
  */
+
+#include "config.h"
+#ifdef HAVE_STL
 
 #include <stdio.h>
 #include "rcvbuf.h"
@@ -191,4 +192,4 @@ void RcvBuffer::print ()
 	printf ("nextpkt: %d\n", nextpkt_);
 }
 
-#endif
+#endif //HAVE_STL

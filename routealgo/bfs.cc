@@ -24,8 +24,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
-
 #include "routealgo/bfs.h"
 #include "routealgo/routealgo.h"
 #include "routealgo/rnode.h"
@@ -168,5 +166,4 @@ RoutingVec_t Parent;
 }
 #endif
 
-#endif /* NIXVECTOR */
-#endif
+#endif //HAVE_STL

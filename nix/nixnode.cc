@@ -24,7 +24,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
 
 // STL includes
 #include <vector>
@@ -300,5 +299,4 @@ void ReportNixStats()
 				 NVCount, NVMin, NVMax, (double)NVTot/(double)NVCount);
 }
 
-#endif /* NIXVECTOR */
 #endif /* STL */

@@ -23,7 +23,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
 
 #include <stdio.h>
 
@@ -75,5 +74,4 @@ Edge* pE;
     }
 }
 
-#endif /* NIXVECTOR */
-#endif
+#endif //HAVE_STL

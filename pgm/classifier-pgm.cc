@@ -1,5 +1,3 @@
-#ifdef PGM
-
 /*
  * Copyright (c) 2001 University of Southern California.
  * All rights reserved.                                            
@@ -27,6 +25,9 @@
  * Ryan S. Barnett, 2001
  * rbarnett@catarina.usc.edu
  */
+
+#include "config.h"
+#ifdef HAVE_STL
 
 #include "config.h"
 #include "packet.h"
@@ -62,4 +63,5 @@ public:
 
 PgmClassifier::PgmClassifier() {};
 
-#endif
+#endif //HAVE_STL
+

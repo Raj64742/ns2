@@ -23,7 +23,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
 
 #include "routealgo/dijkstra.h"
 #include "routealgo/routealgo.h"
@@ -177,5 +176,4 @@ RoutingVec_t Parent;
 }
 #endif
 
-#endif /* NIXVECTOR */
 #endif /* STL */

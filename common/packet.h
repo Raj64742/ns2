@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.88 2002/03/14 01:18:09 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.89 2002/05/30 17:44:03 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -142,10 +142,10 @@ enum packet_t {
 	// Pushback Messages
 	PT_PUSHBACK,
 
-#ifdef PGM
+#ifdef HAVE_STL
 	// Pragmatic General Multicast
 	PT_PGM,
-#endif
+#endif //STL
 
 	// insert new packet types here
 	PT_NTYPE // This MUST be the LAST one
@@ -222,10 +222,10 @@ public:
 		//pushback 
 		name_[PT_PUSHBACK] = "pushback";
 
-#ifdef PGM
+#ifdef HAVE_STL
 		// for PGM
 		name_[PT_PGM] = "PGM";
-#endif
+#endif //STL
 
 		name_[PT_NTYPE]= "undefined";
 	}

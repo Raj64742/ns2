@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.243 2002/03/30 20:08:54 buchheim Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.244 2002/05/30 17:44:07 haldar Exp $
 
 
 #
@@ -841,6 +841,7 @@ Simulator instproc log-simstart { } {
 
 Simulator instproc halt {} {
 	$self instvar scheduler_
+	puts "time: [clock format [clock seconds] -format %X]"
 	$scheduler_ halt
 }
 

@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.45 2001/07/09 18:37:02 jahn Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.46 2002/05/30 17:44:05 haldar Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -214,7 +214,7 @@ protected:
 	Classifier* classifier_;
 };
 
-#ifdef PGM
+#ifdef HAVE_STL //pgm code uses STL
 
 // PGM error model
 class PGMErrorModel : public ErrorModel {
@@ -232,6 +232,5 @@ protected:
 	int count_;
 };
 
-#endif
-
-#endif
+#endif//HAVE_STL
+#endif 

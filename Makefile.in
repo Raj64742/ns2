@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.248 2002/05/22 18:57:08 johnh Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.249 2002/05/30 17:44:02 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -57,7 +57,7 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK -DNIXVECTOR @V_DEFINE@ @V_DEFINES@ @DEFS@ -DPGM -DPGM_DEBUG -DNS_DIFFUSION -DSTL_NAMESPACE=@STL_NAMESPACE@
+DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@ -DNS_DIFFUSION -DSTL_NAMESPACE=@STL_NAMESPACE@
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
@@ -102,10 +102,7 @@ NSE	= nse
 # To allow conf/makefile.win overwrite this macro
 # We will set these two macros to empty in conf/makefile.win since VC6.0
 # does not seem to support the STL in gcc 2.8 and up. 
-OBJ_STL = linkstate/ls.o linkstate/rtProtoLS.o \
-	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
-	pgm/pgm-receiver.o pgm/rcvbuf.o \
-	diffusion3/lib/nr/nr.o diffusion3/lib/dr.o \
+OBJ_STL = diffusion3/lib/nr/nr.o diffusion3/lib/dr.o \
 	diffusion3/ns/diffagent.o diffusion3/ns/diffrtg.o \
 	diffusion3/ns/difftimer.o \
 	diffusion3/diffusion/diffusion.o \
@@ -128,10 +125,9 @@ OBJ_STL = linkstate/ls.o linkstate/rtProtoLS.o \
 	diffusion3/apps/pingapp/push_sender.o \
 	diffusion3/apps/gear/geo-attr.o \
 	diffusion3/apps/gear/geo-routing.o \
-	diffusion3/apps/gear/geo-tools.o		
+	diffusion3/apps/gear/geo-tools.o 
 
-NS_TCL_LIB_STL = tcl/rtglib/ns-rtProtoLS.tcl \
-	tcl/lib/ns-diffusion.tcl
+NS_TCL_LIB_STL = tcl/lib/ns-diffusion.tcl
 
 # WIN32: uncomment the following line to include specific make for VC++
 # !include <conf/makefile.win>
@@ -266,6 +262,9 @@ OBJ_CC = \
 	common/parentnode.o trace/basetrace.o \
 	common/simulator.o asim/asim.o \
 	common/scheduler-map.o \
+	linkstate/ls.o linkstate/rtProtoLS.o \
+	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
+	pgm/pgm-receiver.o pgm/rcvbuf.o \
 	@V_STLOBJ@
 
 
@@ -422,6 +421,7 @@ NS_TCL_LIB = \
 	tcl/mpls/ns-mpls-simulator.tcl \
 	tcl/lib/ns-pushback.tcl \
 	tcl/lib/ns-srcrt.tcl \
+	tcl/rtglib/ns-rtProtoLS.tcl \
 	@V_NS_TCL_LIB_STL@
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)

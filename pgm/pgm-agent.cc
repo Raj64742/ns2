@@ -1,4 +1,3 @@
-#ifdef PGM
 
 /*
  * Copyright (c) 2001 University of Southern California.
@@ -27,6 +26,9 @@
  * Ryan S. Barnett, 2001
  * rbarnett@catarina.usc.edu
  */
+
+#include "config.h"
+#ifdef HAVE_STL
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -1043,4 +1045,4 @@ void PgmAgent::display_packet(Packet *pkt)
 }
 #endif // PGM_DEBUG
 
-#endif // PGM
+#endif //HAVE_STL

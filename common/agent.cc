@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.72 2002/03/21 18:42:10 buchheim Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.73 2002/05/30 17:44:02 haldar Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -47,11 +47,9 @@ static const char rcsid[] =
 #include "address.h"
 #include "app.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
 #include "nix/hdr_nv.h"
 #include "nix/nixnode.h"
-#endif /* NIXVECTOR */
-#endif
+#endif //HAVE_STL
 
 
 
@@ -481,7 +479,6 @@ Agent::initpkt(Packet* p) const
 	hf->pri_ = 0;
 	hf->cong_action_ = 0;
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
 
  	hdr_nv* nv = hdr_nv::access(p);
  	if (0)
@@ -499,8 +496,7 @@ Agent::initpkt(Packet* p) const
  		nv->nv() = pNv; // And set the nixvec in the packet
  		nv->h_used = 0; // And reset used portion to 0
  	}
-#endif /* NIXVECTOR */
-#endif
+#endif //HAVE_STL
 }
 
 /*

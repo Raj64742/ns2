@@ -23,7 +23,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
 
 // Creates a bitmap object.  The 'entries' can be more than one bit,
 // but default to one bit.  Bits per entry can't be more than 32.
@@ -273,5 +272,4 @@ BitMap B3(64, 3);
 }
 #endif
 
-#endif /* NIXVECTOR */
 #endif /* STL */

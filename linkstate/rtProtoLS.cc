@@ -34,7 +34,10 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.4 2000/11/14 02:25:47 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.5 2002/05/30 17:44:04 haldar Exp $
+
+#include "config.h"
+#ifdef HAVE_STL
 
 #include "hdr-ls.h"
 #include "rtProtoLS.h"
@@ -309,3 +312,5 @@ bool rtProtoLS::sendMessage(int destId, u_int32_t messageId, int size)
 	// sendpkt( *agentAddrPtr , messageId, size);
 	return true;
 }
+
+#endif // HAVE_STL

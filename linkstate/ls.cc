@@ -34,7 +34,10 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.cc,v 1.2 2000/08/18 18:34:03 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.cc,v 1.3 2002/05/30 17:44:04 haldar Exp $
+
+#include "config.h"
+#ifdef HAVE_STL
 
 #include "ls.h"
 
@@ -904,3 +907,5 @@ LsPaths* LsRouting::_computeRoutes ()
 	delete pTentativePaths;
 	return pPaths;
 }
+
+#endif //HAVE_STL

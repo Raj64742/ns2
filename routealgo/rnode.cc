@@ -23,8 +23,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
-
 
 #include <stdio.h>
 #include "rnode.h"
@@ -58,5 +56,4 @@ Nixl_t RNode::GetNixl()
   return(0);
 }
 
-#endif /* NIXVECTOR */
 #endif /* STL */

@@ -25,7 +25,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
 
 #include "rtmodule.h"
 
@@ -54,5 +53,5 @@ int NixRoutingModule::command(int argc, const char*const* argv) {
 
 }  
 
-#endif /* NIXVECTOR */
-#endif
+
+#endif //HAVE_STL

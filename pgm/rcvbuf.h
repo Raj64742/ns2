@@ -26,7 +26,6 @@
  * Christos Papadopoulos
  */
 
-#ifdef PGM
 #ifndef RCVBUF_H_
 #define RCVBUF_H_
 class Gap;
@@ -65,4 +64,3 @@ class Gap {
 
 #endif
 
-#endif

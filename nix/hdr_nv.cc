@@ -27,7 +27,6 @@
 #ifdef HAVE_STL
 #include "nix/hdr_nv.h"
 
-#ifdef NIXVECTOR
 
 // Define the TCL glue for the packet header
 int hdr_nv::offset_;
@@ -40,5 +39,5 @@ public:
 	}
 } class_nvhdr;
 
-#endif /* NIXVECTOR */
-#endif
+
+#endif // HAVE_STL

@@ -25,7 +25,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
 
 
 #include <stdio.h>
@@ -107,5 +106,4 @@ int NixClassifier::command(int argc, const char*const* argv)
 	return (Classifier::command(argc, argv));
 }
  
-#endif /* NIXVECTOR */
-#endif
+#endif // HAVE_STL

@@ -24,7 +24,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
 
 #include <string.h> // for memcpy
 #include <stdio.h>
@@ -306,5 +305,4 @@ int main()
 
 #endif
 
-#endif /* NIXVECTOR */
 #endif /* STL */

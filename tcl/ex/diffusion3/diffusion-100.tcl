@@ -15,8 +15,8 @@ set opt(y)		500     ;# Y dimension of the topography
 set opt(ifqlen)		50	;# max packet in ifq
 set opt(nn)		100	;# number of nodes
 set opt(seed)		0.0
-set opt(stop)		500	;# simulation time
-set opt(prestop)        999       ;# time to prepare to stop
+set opt(stop)		100	;# simulation time
+#set opt(prestop)        999       ;# time to prepare to stop
 set opt(tr)		"diffusion100.tr"	;# trace file
 set opt(nam)            "diffusion100.nam"  ;# nam file
 set opt(adhocRouting)   Directed_Diffusion
@@ -55,14 +55,16 @@ Phy/WirelessPhy set L_ 1.0
 # Initialize Global Variables
 #
 
+puts "starting setup.... time: [clock format [clock seconds] -format %X]\n"
+
 set ns_		[new Simulator] 
 set topo	[new Topography]
 
 set tracefd	[open $opt(tr) w]
 $ns_ trace-all $tracefd
 
-set nf [open $opt(nam) w]
-$ns_ namtrace-all-wireless $nf $opt(x) $opt(y)
+#set nf [open $opt(nam) w]
+#$ns_ namtrace-all-wireless $nf $opt(x) $opt(y)
 
 #$ns_ use-newtrace
 
@@ -90,7 +92,7 @@ $ns_ node-config -adhocRouting $opt(adhocRouting) \
 		 -topoInstance $topo \
 		 -agentTrace ON \
                  -routerTrace ON \
-                 -macTrace ON 
+                 -macTrace ON
                   
 
 #  Create the specified number of nodes [$opt(nn)] and "attach" them
@@ -126,7 +128,7 @@ for {set i 0} {$i < $opt(nn) } {incr i} {
     $ns_ at $opt(stop).000000001 "$node_($i) reset";
 }
 # tell nam the simulation stop time
-$ns_ at  $opt(stop)	"$ns_ nam-end-wireless $opt(stop)"
+#$ns_ at  $opt(stop)	"$ns_ nam-end-wireless $opt(stop)"
 
 $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"
 
@@ -134,6 +136,7 @@ puts $tracefd "Directed Diffusion:"
 puts $tracefd "M 0.0 nn $opt(nn) x $opt(x) y $opt(y)"
 puts $tracefd "M 0.0 prop $opt(prop) ant $opt(ant)"
 
-puts "Starting Simulation..."
+puts "Finished setup; Starting Simulation...\
+	time: [clock format [clock seconds] -format %X]"
 $ns_ run
 

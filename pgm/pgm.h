@@ -1,5 +1,3 @@
-#ifdef PGM
-
 #ifndef PGM_H
 #define PGM_H
 
@@ -98,4 +96,3 @@ struct hdr_pgm_nak {
 
 #endif // PGM_H
 
-#endif // PGM

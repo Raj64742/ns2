@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.72 2001/07/09 18:37:02 jahn Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.73 2002/05/30 17:44:05 haldar Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.72 2001/07/09 18:37:02 jahn Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.73 2002/05/30 17:44:05 haldar Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -921,7 +921,8 @@ int ErrorModule::command(int argc, const char*const* argv)
 	return (Connector::command(argc, argv));
 }
 
-#ifdef PGM
+#include "config.h"
+#ifdef HAVE_STL //pgm uses STL
 
 #include "pgm/pgm.h"
 
@@ -991,4 +992,5 @@ int PGMErrorModel::corrupt(Packet* p)
         return 0;
 }
 
-#endif // PGM
+#endif //HAVE_STL
+

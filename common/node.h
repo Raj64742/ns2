@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.32 2002/01/25 20:22:16 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.33 2002/05/30 17:44:03 haldar Exp $
  */
 
 /*
@@ -182,9 +182,9 @@ protected:
 	// pointer to head of rtmodule chain
 	RoutingModule* rtnotif_;
 
-#ifdef NIXVECTOR
+#ifdef HAVE_STL
 	NixNode* nixnode_;   // used for nix routing (on-demand source routing for simulator performance)
-#endif /* NIXVECTOR */
+#endif /* STL */
 
 public:
 	// XXX Energy related stuff. Should be moved later to a wireless 

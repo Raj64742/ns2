@@ -23,8 +23,6 @@
 
 #include "config.h"
 #ifdef HAVE_STL
-#ifdef NIXVECTOR
-
 
 #include <stdio.h>
 
@@ -143,5 +141,4 @@ static void NixPred(nodeid_t s, nodeid_t p, RoutingVec_t& pred,
     }
 }
 
-#endif /* NIXVECTOR */
 #endif /* STL */
