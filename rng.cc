@@ -34,10 +34,28 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.20 2000/07/21 04:56:58 yewei Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.21 2001/11/30 22:30:49 buchheim Exp $ (LBL)";
 #endif
 
 /* new random number generator */
+
+/***********************************************************************\ 
+* 
+* File: RngStream.cc for multiple streams of Random Numbers 
+* Language: C++ 
+* Copyright: Pierre L'Ecuyer, University of Montreal 
+* Notice: This code can be used freely for personnal, academic, 
+* or non-commercial purposes. For commercial purposes, 
+* please contact P. L'Ecuyer at: lecuyer@iro.umontreal.ca 
+* Date: 14 August 2001 
+* 
+* Incorporated into rng.cc and modified to maintain backward 
+* compatibility with ns-2.1b8.  Users can use their current scripts 
+* unmodified with the new RNG.  To get the same results as with the 
+* previous RNG, define OLD_RNG when compiling (e.g., make -D OLD_RNG).
+* - Michele Weigle, University of North Carolina (mcweigle@cs.unc.edu)
+* October 10, 2001
+**********************************************************************/
 
 #ifndef WIN32
 #include <sys/time.h>			// for gettimeofday
@@ -45,14 +63,13 @@ static const char rcsid[] =
 #endif
 
 #include <stdio.h>
+#ifndef OLD_RNG
+#include <string.h>
+#endif /* !OLD_RNG */
 #include "rng.h"
 #include "config.h"  // for gettimeofday
 
-#ifndef MAXINT
-#define	MAXINT	2147483647	// XX [for now]
-#endif
-
-
+#ifdef OLD_RNG
 /*
  * RNGImplementation
  */
@@ -92,6 +109,7 @@ static const char rcsid[] =
  * It is important to check for s10000 and s551246 with s0=1, to guard 
  * against overflow.
 */
+
 /*
  * The sparc assembly code [no longer here] is based on Carta, D.G., "Two Fast
  * Implementations of the 'Minimal Standard' Random Number
@@ -152,7 +170,7 @@ RNGImplementation::next_double()
 	long i = next();
 	return i * INVERSE_M;
 }
-
+#endif /* OLD_RNG */
 
 /*
  * RNG implements a nice front-end around RNGImplementation
@@ -216,7 +234,7 @@ RNG::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "seed") == 0) {
 			int s = atoi(argv[2]);
-			// NEEDSWORK: should be a way to set seed to PRDEF_SEED_SORUCE
+			// NEEDSWORK: should be a way to set seed to PRDEF_SEED_SOURCE
 			if (s) {
 				if (s <= 0 || (unsigned int)s >= MAXINT) {
 					tcl.resultf("Setting random number seed to known bad value.");
@@ -232,9 +250,31 @@ RNG::command(int argc, const char*const* argv)
 			return(TCL_OK);
 		}
 		if (strcmp(argv[1], "seed") == 0) {
+#ifdef OLD_RNG
 			tcl.resultf("%u", stream_.seed());
+#else
+			tcl.resultf("%u", seed());
+#endif /* OLD_RNG */
 			return(TCL_OK);
 		}
+#ifndef OLD_RNG
+		if (strcmp (argv[1], "next-substream") == 0) {
+			reset_next_substream();
+			return (TCL_OK);
+		}
+		if (strcmp (argv[1], "all-seeds") == 0) {
+			unsigned long seeds[6];
+			get_state (seeds);
+			tcl.resultf ("%lu %lu %lu %lu %lu %lu",
+				     seeds[0], seeds[1], seeds[2], 
+				     seeds[3], seeds[4], seeds[5]);
+			return (TCL_OK);
+		}
+		if (strcmp (argv[1], "reset-start-substream") == 0) {
+			reset_start_substream();
+			return (TCL_OK);
+		}
+#endif /* !OLD_RNG */
 		if (strcmp(argv[1], "default") == 0) {
 			default_ = this;
 			return(TCL_OK);
@@ -330,7 +370,11 @@ RNG::set_seed(RNGSources source, int seed)
 	// (are there any?)
 	if (seed < 0)
 		seed = -seed;
+#ifdef OLD_RNG
 	stream_.set_seed(seed);
+#else
+	set_seed(seed);
+#endif /* OLD_RNG */
 
 	// Toss away the first few values of heuristic seed.
 	// In practice this makes sequential heuristic seeds
@@ -342,7 +386,11 @@ RNG::set_seed(RNGSources source, int seed)
 	if (source == HEURISTIC_SEED_SOURCE) {
 		int i;
 		for (i = 0; i < 128; i++) {
+#ifdef OLD_RNG			
 			stream_.next();
+#else
+			next();
+#endif /* OLD_RNG */
 		};
 	};
 }
@@ -353,29 +401,36 @@ RNG::set_seed(RNGSources source, int seed)
  * Make sure the RNG makes known values.
  * Optionally, print out some stuff.
  *
+ * gcc rng.cc -Dstand_alone -o rng_test -lm
+ *
  * Simple test program:
- * #include "rng.h"
- * void main() { RNGTest test; test.verbose(); }
  */
+#ifdef stand_alone
+int main() { RNGTest test; test.verbose(); }
+#endif 
 
 #ifdef rng_test
 RNGTest::RNGTest()
 {
-	RNG rng(RNG::RAW_SEED_SOURCE, 1L);
-	int i;
-	long r;
+	  RNG rng(RNG::RAW_SEED_SOURCE, 1L);
 
-	for (i = 0; i < 10000; i++) 
-		r = rng.uniform_positive_int();
+	  int i; 
+	  long r;
+	  for (i = 0; i < 10000; i++) 
+	  r = rng.uniform_positive_int();
 
-	if (r != 1043618065L)
-		abort();
+	  if (r != 1043618065L) {
+		  fprintf (stderr, "r (%lu) != 1043618065L\n", r);
+		  abort();
+	  }
+	  
+	  for (i = 10000; i < 551246; i++)
+		  r = rng.uniform_positive_int();
 
-	for (i = 10000; i < 551246; i++)
-		r = rng.uniform_positive_int();
-
-	if (r != 1003L)
-		abort();
+	  if (r != 1003L) {
+		  fprintf (stderr, "r (%lu) != 1003L\n", r);
+		  abort();
+	  }
 }
 
 void
@@ -384,8 +439,8 @@ RNGTest::first_n(RNG::RNGSources source, long seed, int n)
 	RNG rng(source, seed);
 
 	for (int i = 0; i < n; i++) {
-		int r = rng.uniform_positive_int();
-		printf("%10d ", r);
+		long r = rng.uniform_positive_int();
+		printf("%10lu ", r);
 	};
 	printf("\n");
 }
@@ -398,15 +453,514 @@ RNGTest::verbose()
 
 	int i;
 	for (i = 0; i < 64; i++) {
-		printf ("predef source %2d: ", i);
+		printf ("predef source %2u: ", i);
 		first_n(RNG::PREDEF_SEED_SOURCE, i, 5);
 	};
 
 	printf("heuristic seeds should be different from each other and on each run.\n");
 	for (i = 0; i < 64; i++) {
-		printf ("heuristic source %2d: ", i);
+		printf ("heuristic source %2u: ", i);
 		first_n(RNG::HEURISTIC_SEED_SOURCE, i, 5);
 	};
 }
+
 #endif /* rng_test */
 
+#ifndef OLD_RNG
+using namespace std; 
+namespace 
+{ 
+	const double m1 = 4294967087.0; 
+	const double m2 = 4294944443.0; 
+	const double norm = 1.0 / (m1 + 1.0); 
+	const double a12 = 1403580.0; 
+	const double a13n = 810728.0; 
+	const double a21 = 527612.0; 
+	const double a23n = 1370589.0; 
+	const double two17 = 131072.0; 
+	const double two53 = 9007199254740992.0; 
+	const double fact = 5.9604644775390625e-8; /* 1 / 2^24 */ 
+
+	// The following are the transition matrices of the two MRG 
+	// components (in matrix form), raised to the powers -1, 1, 
+	// 2^76, and 2^127, resp. 
+
+	const double InvA1[3][3] = { // Inverse of A1p0 
+		{ 184888585.0, 0.0, 1945170933.0 }, 
+		{ 1.0, 0.0, 0.0 }, 
+		{ 0.0, 1.0, 0.0 } 
+	}; 
+
+	const double InvA2[3][3] = { // Inverse of A2p0 
+		{ 0.0, 360363334.0, 4225571728.0 }, 
+		{ 1.0, 0.0, 0.0 }, 
+		{ 0.0, 1.0, 0.0 } 
+	}; 
+
+	const double A1p0[3][3] = { 
+		{ 0.0, 1.0, 0.0 }, 
+		{ 0.0, 0.0, 1.0 }, 
+		{ -810728.0, 1403580.0, 0.0 } 
+	}; 
+
+	const double A2p0[3][3] = { 
+		{ 0.0, 1.0, 0.0 }, 
+		{ 0.0, 0.0, 1.0 }, 
+		{ -1370589.0, 0.0, 527612.0 } 
+	}; 
+
+	const double A1p76[3][3] = { 
+		{ 82758667.0, 1871391091.0, 4127413238.0 }, 
+		{ 3672831523.0, 69195019.0, 1871391091.0 }, 
+		{ 3672091415.0, 3528743235.0, 69195019.0 } 
+	}; 
+
+	const double A2p76[3][3] = { 
+		{ 1511326704.0, 3759209742.0, 1610795712.0 }, 
+		{ 4292754251.0, 1511326704.0, 3889917532.0 }, 
+		{ 3859662829.0, 4292754251.0, 3708466080.0 } 
+	}; 
+
+	const double A1p127[3][3] = { 
+		{ 2427906178.0, 3580155704.0, 949770784.0 }, 
+		{ 226153695.0, 1230515664.0, 3580155704.0 }, 
+		{ 1988835001.0, 986791581.0, 1230515664.0 } 
+	}; 
+
+	const double A2p127[3][3] = { 
+		{ 1464411153.0, 277697599.0, 1610723613.0 }, 
+		{ 32183930.0, 1464411153.0, 1022607788.0 }, 
+		{ 2824425944.0, 32183930.0, 2093834863.0 } 
+	}; 
+
+	//------------------------------------------------------------------- 
+	// Return (a*s + c) MOD m; a, s, c and m must be < 2^35 
+	// 
+
+	double MultModM (double a, double s, double c, double m) 
+	{ 
+		double v; 
+		long a1; 
+		v=a*s+c; 
+
+		if (v >= two53 || v <= -two53) { 
+			a1 = static_cast<long> (a / two17); a -= a1 * two17; 
+			v =a1*s; 
+			a1 = static_cast<long> (v / m); v -= a1 * m; 
+			v = v * two17 + a * s + c; 
+		} 
+		a1 = static_cast<long> (v / m); 
+		/* in case v < 0)*/ 
+		if ((v -= a1 * m) < 0.0) return v += m; else return v; 
+	} 
+
+	//------------------------------------------------------------------- 
+	// Compute the vector v = A*s MOD m. Assume that -m < s[i] < m. 
+	// Works also when v = s. 
+	// 
+	void MatVecModM (const double A[3][3], const double s[3], double v[3], 
+			 double m) 
+	{ 
+		int i; 
+		double x[3]; // Necessary if v = s 
+		for (i = 0; i < 3; ++i) { 
+			x[i] = MultModM (A[i][0], s[0], 0.0, m); 
+			x[i] = MultModM (A[i][1], s[1], x[i], m); 
+			x[i] = MultModM (A[i][2], s[2], x[i], m); 
+		} 
+		for (i = 0; i < 3; ++i) 
+			v[i] = x[i]; 
+	} 
+
+	//------------------------------------------------------------------- 
+	// Compute the matrix C = A*B MOD m. Assume that -m < s[i] < m. 
+	// Note: works also if A = C or B = C or A = B = C. 
+	// 
+	void MatMatModM (const double A[3][3], const double B[3][3], 
+			 double C[3][3], double m) 
+	{ 
+		int i, j; 
+		double V[3], W[3][3]; 
+		for (i = 0; i < 3; ++i) { 
+			for (j = 0; j < 3; ++j) 
+				V[j] = B[j][i]; 
+			MatVecModM (A, V, V, m); 
+			for (j = 0; j < 3; ++j) 
+
+				W[j][i] = V[j]; 
+		} 
+		for (i = 0; i < 3; ++i) 
+			for (j = 0; j < 3; ++j) 
+				C[i][j] = W[i][j]; 
+	} 
+
+	//------------------------------------------------------------------- 
+	// Compute the matrix B = (A^(2^e) Mod m); works also if A = B. 
+	// 
+	void MatTwoPowModM (const double A[3][3], double B[3][3], double m, 
+			    long e) 
+	{ 
+		int i, j; 
+		/* initialize: B = A */ 
+		if (A != B) { 
+			for (i = 0; i < 3; ++i) 
+				for (j = 0; j < 3; ++j) 
+					B[i][j] = A[i][j]; 
+		} 
+		/* Compute B = A^(2^e) mod m */ 
+		for (i = 0; i < e; i++) 
+			MatMatModM (B, B, B, m); 
+	} 
+
+	//------------------------------------------------------------------- 
+	// Compute the matrix B = (A^n Mod m); works even if A = B. 
+	// 
+	void MatPowModM (const double A[3][3], double B[3][3], double m, 
+			 long n) 
+	{ 
+		int i, j; 
+		double W[3][3]; 
+		/* initialize: W = A; B = I */ 
+		for (i = 0; i < 3; ++i) 
+			for (j = 0; j < 3; ++j) { 
+				W[i][j] = A[i][j]; 
+				B[i][j] = 0.0; 
+			} 
+		for (j = 0; j < 3; ++j) 
+			B[j][j] = 1.0; 
+		/* Compute B = A^n mod m using the binary decomposition of n */
+		while (n > 0) { 
+			if (n % 2) MatMatModM (W, B, B, m); 
+			MatMatModM (W, W, W, m); 
+
+			n/=2; 
+		} 
+	} 
+
+	//-------------------------------------------------------------------- 
+	// Check that the seeds are legitimate values. Returns 0 if legal 
+	// seeds, -1 otherwise. 
+	// 
+	int CheckSeed (const unsigned long seed[6]) 
+	{ 
+		int i; 
+		for (i = 0; i < 3; ++i) { 
+			if (seed[i] >= m1) { 
+				fprintf (stderr, "****************************************\n\n");
+				fprintf (stderr, "ERROR: Seed[%d] >= 4294967087, Seed is not set.", i);
+				fprintf (stderr, "\n\n****************************************\n\n");
+				return (-1); 
+			} 
+		} 
+		for (i = 3; i < 6; ++i) { 
+			if (seed[i] >= m2) { 
+				fprintf (stderr, "****************************************\n\n");
+				fprintf (stderr, "ERROR: Seed[%d] >= 429444443, Seed is not set.", i);
+				fprintf (stderr, "\n\n****************************************\n\n");
+				return (-1); 
+			} 
+		} 
+		if (seed[0] == 0 && seed[1] == 0 && seed[2] == 0) { 
+			fprintf (stderr, "****************************************\n\n");
+			fprintf (stderr, "ERROR: First 3 seeds = 0.\n\n");
+			fprintf (stderr, "****************************************\n\n");
+			return (-1); 
+		} 
+		if (seed[3] == 0 && seed[4] == 0 && seed[5] == 0) { 
+			fprintf (stderr, "****************************************\n\n");
+			fprintf (stderr, "ERROR: Last 3 seeds = 0.\n\n");
+			fprintf (stderr, "****************************************\n\n");
+			return (-1); 
+		} 
+		return 0; 
+	} 
+} // end of anonymous namespace 
+
+//------------------------------------------------------------------------- 
+// Generate the next random number. 
+// 
+double RNG::U01 () 
+{ 
+	long k; 
+	double p1, p2, u; 
+	/* Component 1 */ 
+	p1 = a12 * Cg_[1] - a13n * Cg_[0]; 
+	k = static_cast<long> (p1 / m1); 
+	p1 -= k * m1; 
+	if (p1 < 0.0) p1 += m1; 
+	Cg_[0] = Cg_[1]; Cg_[1] = Cg_[2]; Cg_[2] = p1; 
+	/* Component 2 */ 
+	p2 = a21 * Cg_[5] - a23n * Cg_[3]; 
+	k = static_cast<long> (p2 / m2); 
+	p2 -= k * m2; 
+	if (p2 < 0.0) p2 += m2; 
+	Cg_[3] = Cg_[4]; Cg_[4] = Cg_[5]; Cg_[5] = p2; 
+	/* Combination */ 
+	u = ((p1 > p2) ? (p1 - p2) * norm : (p1 - p2 + m1) * norm); 
+	return (anti_ == false) ? u : (1 - u); 
+} 
+
+//------------------------------------------------------------------------- 
+// Generate the next random number with extended (53 bits) precision. 
+// 
+double RNG::U01d () 
+{ 
+	double u; 
+	u = U01(); 
+	if (anti_) { 
+		// Don't forget that U01() returns 1 - u in 
+		// the antithetic case 
+		u += (U01() - 1.0) * fact; 
+		return (u < 0.0) ? u + 1.0 : u; 
+	} else { 
+		u += U01() * fact; 
+		return (u < 1.0) ? u : (u - 1.0); 
+	} 
+} 
+
+//************************************************************************* 
+// Public members of the class start here 
+//------------------------------------------------------------------------- 
+
+/*
+ * Functions for backward compatibility:
+ *
+ *   RNG (long seed)
+ *   void set_seed (long seed)
+ *   long seed()
+ *   long next()
+ *   double next_double()
+ */
+RNG::RNG (long seed) 
+{
+	set_seed (seed);
+	init();
+}
+
+void RNG::init()
+{
+	anti_ = false; 
+	inc_prec_ = false; 
+
+	/* Information on a stream. The arrays {Cg_, Bg_, Ig_} contain the
+	   current state of the stream, the starting state of the current
+	   SubStream, and the starting state of the stream. This stream
+	   generates antithetic variates if anti_ = true. It also generates
+	   numbers with extended precision (53 bits if machine follows IEEE
+	   754 standard) if inc_prec_ = true. next_seed_ will be the seed of
+	   the next declared RngStream. */
+
+	for (int i = 0; i < 6; ++i) { 
+		Bg_[i] = Cg_[i] = Ig_[i] = next_seed_[i]; 
+	} 
+	MatVecModM (A1p127, next_seed_, next_seed_, m1); 
+	MatVecModM (A2p127, &next_seed_[3], &next_seed_[3], m2); 
+}
+
+void RNG::set_seed (long seed) 
+{
+	unsigned long seed_vec[6] = {0, 0, 0, 0, 0, 0};
+	for (int i=0; i<6; i++) {
+		seed_vec[i] = (unsigned long) seed;
+	}
+	set_package_seed (seed_vec);
+}
+
+long RNG::seed() 
+{
+	unsigned long seed[6];
+	get_state(seed);
+	return ((long) seed[0]);
+}
+
+long RNG::next()
+{
+	return (rand_int(0, MAXINT));
+}
+
+double RNG::next_double()
+{
+	return (rand_u01());
+}
+/* End of backward compatibility functions */
+
+// The default seed of the package; will be the seed of the first 
+// declared RNG, unless set_package_seed is called. 
+// 
+double RNG::next_seed_[6] = 
+{ 
+	12345.0, 12345.0, 12345.0, 12345.0, 12345.0, 12345.0 
+}; 
+
+//------------------------------------------------------------------------- 
+// constructor 
+// 
+RNG::RNG (const char *s) 
+{ 
+	if (strlen (s) > 99) {
+		strncpy (name_, s, 99);
+		name_[100] = 0;
+	}
+	else 
+		strcpy (name_, s);
+
+	init();
+}
+
+
+//------------------------------------------------------------------------- 
+// Reset Stream to beginning of Stream. 
+// 
+void RNG::reset_start_stream () 
+{ 
+	for (int i = 0; i < 6; ++i) 
+		Cg_[i] = Bg_[i] = Ig_[i]; 
+} 
+
+//------------------------------------------------------------------------- 
+// Reset Stream to beginning of SubStream. 
+// 
+void RNG::reset_start_substream () 
+{ 
+	for (int i = 0; i < 6; ++i) 
+		Cg_[i] = Bg_[i]; 
+} 
+
+//------------------------------------------------------------------------- 
+// Reset Stream to NextSubStream. 
+// 
+void RNG::reset_next_substream () 
+{ 
+	MatVecModM(A1p76, Bg_, Bg_, m1); 
+	MatVecModM(A2p76, &Bg_[3], &Bg_[3], m2); 
+	for (int i = 0; i < 6; ++i) 
+		Cg_[i] = Bg_[i]; 
+} 
+
+//------------------------------------------------------------------------- 
+void RNG::set_package_seed (const unsigned long seed[6]) 
+{ 
+	if (CheckSeed (seed)) 
+		abort();
+	for (int i = 0; i < 6; ++i) 
+		next_seed_[i] = seed[i]; 
+} 
+
+//------------------------------------------------------------------------- 
+void RNG::set_seed (const unsigned long seed[6]) 
+{ 
+	if (CheckSeed (seed)) 
+		abort();
+	for (int i = 0; i < 6; ++i) 
+		Cg_[i] = Bg_[i] = Ig_[i] = seed[i]; 
+} 
+
+//------------------------------------------------------------------------- 
+// if e > 0, let n = 2^e + c; 
+// if e < 0, let n = -2^(-e) + c; 
+// if e = 0, let n = c. 
+// Jump n steps forward if n > 0, backwards if n < 0. 
+// 
+void RNG::advance_state (long e, long c) 
+{ 
+	double B1[3][3], C1[3][3], B2[3][3], C2[3][3]; 
+	if (e > 0) { 
+		MatTwoPowModM (A1p0, B1, m1, e); 
+		MatTwoPowModM (A2p0, B2, m2, e); 
+	} else if (e < 0) { 
+		MatTwoPowModM (InvA1, B1, m1, -e); 
+		MatTwoPowModM (InvA2, B2, m2, -e); 
+	} 
+	if (c >= 0) { 
+		MatPowModM (A1p0, C1, m1, c); 
+		MatPowModM (A2p0, C2, m2, c); 
+	} else { 
+		MatPowModM (InvA1, C1, m1, -c); 
+		MatPowModM (InvA2, C2, m2, -c); 
+	} 
+	if (e) { 
+		MatMatModM (B1, C1, C1, m1); 
+		MatMatModM (B2, C2, C2, m2); 
+	} 
+	MatVecModM (C1, Cg_, Cg_, m1); 
+	MatVecModM (C2, &Cg_[3], &Cg_[3], m2); 
+} 
+
+//------------------------------------------------------------------------- 
+void RNG::get_state (unsigned long seed[6]) const 
+{ 
+	for (int i = 0; i < 6; ++i) 
+		seed[i] = static_cast<unsigned long> (Cg_[i]); 
+} 
+
+//------------------------------------------------------------------------- 
+void RNG::write_state () const 
+{ 
+	printf ("The current state of the Rngstream %s:\n", name_);
+	printf (" Cg_ = { ");
+	for(int i=0;i<5;i++) { 
+		printf ("%lu, ", (unsigned long) Cg_[i]);
+	} 
+	printf ("%lu }\n\n", (unsigned long) Cg_[5]);
+} 
+
+//------------------------------------------------------------------------- 
+void RNG::write_state_full () const 
+{ 
+	int i; 
+	printf ("The RNG %s:\n", name_);
+	printf (" anti_ = %s", (anti_ ? "true" : "false")); 
+	printf (" inc_prec_ = %s\n", (inc_prec_ ? "true" : "false")); 
+
+	printf (" Ig_ = { ");
+	for (i = 0; i < 5; i++) { 
+		printf ("%lu, ", (unsigned long) Ig_[i]);
+	} 
+	printf ("%lu }\n", (unsigned long) Ig_[5]);
+
+	printf (" Bg_ = { ");
+	for (i = 0; i < 5; i++) { 
+		printf ("%lu, ", (unsigned long) Bg_[i]);
+	} 
+	printf ("%lu }\n", (unsigned long) Bg_[5]);
+
+	printf (" Cg_ = { ");
+	for (i = 0; i < 5; i++) { 
+		printf ("%lu, ", (unsigned long) Cg_[i]);
+	} 
+	printf ("%lu }\n\n", (unsigned long) Cg_[5]);
+} 
+
+//------------------------------------------------------------------------- 
+void RNG::increased_precis (bool incp) 
+{ 
+	inc_prec_ = incp; 
+} 
+
+//------------------------------------------------------------------------- 
+void RNG::set_antithetic (bool a) 
+{ 
+	anti_ = a; 
+} 
+
+//------------------------------------------------------------------------- 
+// Generate the next random number. 
+// 
+double RNG::rand_u01 () 
+{ 
+	if (inc_prec_) 
+		return U01d(); 
+	else 
+		return U01(); 
+} 
+
+//------------------------------------------------------------------------- 
+// Generate the next random integer. 
+// 
+long RNG::rand_int (long low, long high) 
+{ 
+	//	return (long) low + (long) (((double) (high-low) * drn) + 0.5);
+	return ((long) (low + (unsigned long) (((unsigned long) 
+						(high-low+1)) * rand_u01())));
+}; 
+#endif /* !OLD_RNG */
