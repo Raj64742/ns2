@@ -1,4 +1,4 @@
-/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/* -*-  Mode:C++; c-basic-offset:4; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 2000  International Computer Science Institute
  * All rights reserved.
@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red-pd.cc,v 1.4 2001/01/10 23:30:14 sfloyd Exp $ (ACIRI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red-pd.cc,v 1.5 2001/04/12 20:41:01 ratul Exp $ (ACIRI)";
 #endif
 
 #include "red-pd.h"
@@ -55,7 +55,7 @@ public:
 			//strtok used for compatibility reasons
 			char * arg1 = strtok(args," ");
 			char * arg2 = strtok(NULL," ");
-			printf("got arguements :%s:  :%s:\n",arg1, arg2);
+			//printf("got arguements :%s:  :%s:\n",arg1, arg2);
 			if (arg2 == NULL) {
 				printf("calling null arg2\n");
 				return (new RedPDQueue(arg1, "Drop"));
@@ -173,33 +173,43 @@ void RedPDQueue::enque(Packet* pkt) {
 			P_monFlow = mod_p;
 			double u = Random::uniform();
 			
-			//don't drop a packet if ave q size is small 
-			//   and the flow is responsive.
-              		// don't drop a packet from an unresponsive flow
-			//   if noidle_ is set and queue is > th_min.
-			//drop packet from the unresponsive flow if probability says so.
-			int qlen = qib_ ? bcount_ : q_->length();
-			if ( (u <= P_monFlow && 2*edv_.v_ave >= edp_.th_min && 
-			      qlen > 1 && !flow->unresponsive_) || 
-			     (u <= P_monFlow && flow->unresponsive_ && 
-				  ( qlen > 1 || !noidle_ ))) {
-								
-				//first trace the monitored early drop
-				 if (MEDTrace!= NULL) 
-					((Trace *)MEDTrace)->recvOnly(pkt);
-								
-				flowMonitor_->mon_edrop(pkt);
-				
-				//there is a bug here, this packet drop does not go to
-				// any other flow monitor attached to the link. 
-				//departures and arrivals still go there if you wanna calculate.
-				Packet::free(pkt);
+			int drop=0;
+			
+			//don't apply link utilization optimization in testFRp mode
+			if (P_testFRp_ != -1 && u <= P_monFlow) {
+			    drop =1;
+			}
 
-				flow->count = 0;
-				return;
+			// drop a packet 
+			// 1. flow is responsive & (ave_q > min_th) & queue is not empty
+			// 2  flow is unresponsive & (noidle is not set or queue is not empty) 
+			int qlen = qib_ ? bcount_ : q_->length();
+			if ( P_testFRp_ == -1 && u<= P_monFlow &&
+			     (
+			      (!flow->unresponsive_ && edv_.v_ave >= edp_.th_min && qlen > 1) ||
+			      (flow->unresponsive_ && ( qlen > 1 || !noidle_))
+			      )
+			     ) {
+			    drop = 1;
+			}
+
+			if (drop) {
+			    //first trace the monitored early drop
+			    if (MEDTrace!= NULL) 
+				((Trace *)MEDTrace)->recvOnly(pkt);
+			    
+			    flowMonitor_->mon_edrop(pkt);
+			    
+			    //there is a bug here, this packet drop does not go to
+			    // any other flow monitor attached to the link. 
+			    //departures and arrivals still go there if you wanna calculate.
+			    Packet::free(pkt);
+			    
+			    flow->count = 0;
+			    return;
 			}
 			else {
-				flow->count++;
+			    flow->count++;
 			}
 		}
 	}
@@ -207,13 +217,18 @@ void RedPDQueue::enque(Packet* pkt) {
 	//if not dropped or a non-monitored packet - send it to the RED queue 
 	// - but before see if testFRp mode is on
 	if (P_testFRp_ != -1) {
-		if (debug_) 
-			printf("FRp_ mode ON with %g\n",P_testFRp_); 
-		double u = Random::uniform();
-		if (u <= P_testFRp_) {
-			drop(pkt);
-			return;
-		}
+	    double p = P_testFRp_;
+	    int size = 	(hdr_cmn::access(pkt))->size();
+	    if (edp_.bytes) {
+		p = (p * size) / edp_.mean_pktsize;
+	    }
+	    if (debug_) 
+		printf("FRp_ mode ON with %g\n",P_testFRp_); 
+	    double u = Random::uniform();
+	    if (u <= p) {
+		drop(pkt);
+		return;
+	    }
 	}
 	
 	REDQueue::enque(pkt);
