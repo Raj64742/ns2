@@ -18,7 +18,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hb-adc.cc,v 1.2 1998/05/08 00:30:33 bajaj Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hb-adc.cc,v 1.3 1998/06/05 20:51:38 breslau Exp $";
 #endif
 
 //Hoeffding Bounds Admission Control
@@ -66,7 +66,6 @@ void HB_ADC::rej_action(int cl,double r,int b)
 {
   double p=peak_rate(cl,r,b);
   sump2_ -= p*p;
-  rejected_=1;
 }
 
 
