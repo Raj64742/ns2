@@ -68,8 +68,8 @@
 #                   * Sets mcast bit (if specified)
 #                   * Sets default hierchical levels with:
 #                      * 3 levels of hierarchy and
-#                      * 8 bits in each level (looks like 8 8 8)
-#                      * 8 8 7 if mcast is enabled.
+#                      * (10 11 11) by default 
+#                      * (9 11 11) if mcast is enabled.
 #
 # Option 4:     hierarchical (specified)
 # Synopsis:     set-address-format hierarchical <#n hierarchy levels> 
