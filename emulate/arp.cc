@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.5 1998/09/10 02:23:00 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.6 2000/02/08 23:35:12 salehi Exp $";
 #endif
 
 #include "object.h"
@@ -68,6 +68,8 @@ static const char rcsid[] =
 class ArpAgent : public NsObject, public IOHandler {
 public:
 	ArpAgent();
+	~ArpAgent();
+
 protected:
 	struct acache_entry {
 		in_addr	ip;

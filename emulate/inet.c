@@ -16,7 +16,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.c,v 1.4 1998/11/30 23:35:16 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.c,v 1.5 2000/02/08 23:35:13 salehi Exp $ (LBL)";
 
 #include <stdlib.h>
 #include <string.h>
@@ -174,8 +174,18 @@ print_ip(struct ip *ip)
 		(off & IP_DF) ? 1 : 0,
 		(off & IP_MF) ? 1 : 0,
 		ip->ip_sum, ip->ip_p);
+#ifdef HAVE_ADDR2ASCII
 	addr2ascii(AF_INET, &ip->ip_src, 4, buf);
+#else
+	inet_ntoa(ip->ip_src);
+#endif /* HAVE_ADDR2ASCII */
+#ifdef HAVE_ADDR2ASCII
 	printf("IP len:%d ttl: %d, src: %s, dst: %s\n",
 		ntohs(ip->ip_len), ip->ip_ttl, buf,
 			addr2ascii(AF_INET, &ip->ip_dst, 4, 0));
+#else
+	printf("IP len:%d ttl: %d, src: %s, dst: %s\n",
+		ntohs(ip->ip_len), ip->ip_ttl, buf,
+	       inet_ntoa(ip->ip_src));
+#endif /* HAVE_ADDR2ASCII */
 }

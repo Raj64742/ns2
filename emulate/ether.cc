@@ -35,7 +35,7 @@
 #if 0
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ether.cc,v 1.3 1999/10/08 01:15:28 salehi Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ether.cc,v 1.4 2000/02/08 23:35:12 salehi Exp $ (LBL)";
 #endif
 #endif
 #include <stdio.h>
@@ -43,6 +43,7 @@ static const char rcsid[] =
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <net/ethernet.h>
 
 #include "config.h"
 #include "ether.h"

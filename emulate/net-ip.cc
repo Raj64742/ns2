@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.16 1998/09/09 23:35:44 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.17 2000/02/08 23:35:13 salehi Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -143,6 +143,8 @@ protected:
 
 class UDPIPNetwork : public IPNetwork {
 public:
+	UDPIPNetwork();
+
 	int send(u_char*, int);
 	int recv(u_char*, int, sockaddr&, double&);
 	int open(int mode);			// mode only
@@ -688,7 +690,7 @@ int
 IPNetwork::open(int mode)
 {
 	// obtain a raw socket we can use to send ip datagrams
-	Socket fd = socket(AF_INET, SOCK_RAW, IPPROTO_IP);
+	Socket fd = socket(AF_INET, SOCK_RAW, IPPROTO_RAW);
 	if (fd < 0) {
 		perror("socket(RAW)");
 		if (::getuid() != 0 && ::geteuid() != 0) {

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/icmp.cc,v 1.3 1998/06/06 00:16:49 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/icmp.cc,v 1.4 2000/02/08 23:35:12 salehi Exp $";
 #endif
 
 #include <stdio.h>
@@ -50,6 +50,10 @@ static const char rcsid[] =
 #include "packet.h"
 #include "emulate/net.h"
 #include "emulate/internet.h"
+
+#ifndef IPPROTO_GGP
+#define IPPROTO_GGP 3
+#endif // IPPROTO_GGP
 
 //
 // icmp.cc -- a very limited-functionality set of icmp routines

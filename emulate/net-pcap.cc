@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.16 1998/09/09 23:42:02 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.17 2000/02/08 23:35:13 salehi Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -187,8 +187,10 @@ protected:
 private:
 	// XXX somewhat specific to bpf-- this stuff is  a hack until pcap
 	// can be fixed to allow for opening the bpf r/w
+#ifdef MT_OWN_PCAP
 	pcap_t * pcap_open_live(char *, int slen, int prom, int, char *, int);
 	int bpf_open(pcap_t *p, char *errbuf, int how);
+#endif
 };
 
 class PcapFileNetwork : public PcapNetwork {
@@ -425,9 +427,13 @@ int
 PcapLiveNetwork::open(int mode, const char *devname)
 {
 	close();
+#ifdef MY_OWN_PCAP
 	pcap_ = pcap_open_live((char*) devname, snaplen_, promisc_,
-		int(timeout_ * 1000.), errbuf_, mode);
-
+			       int(timeout_ * 1000.), errbuf_, mode);
+#else
+	pcap_ = pcap_open_live((char*) devname, snaplen_, promisc_,
+			       int(timeout_ * 1000.), errbuf_);
+#endif // MY_OWN_PCAP
 	if (pcap_ == NULL) {
 		fprintf(stderr,
 		  "pcap/live object (%s) couldn't open packet source %s: %s\n",
@@ -442,11 +448,21 @@ PcapLiveNetwork::open(int mode, const char *devname)
 		// use SIOCGIFADDR hook in bpf to get link addr
 		struct ifreq ifr;
 		struct sockaddr *sa = &ifr.ifr_addr;
+#ifdef HAVE_SIOCGIFHWADDR
+		memset(&ifr, 0, sizeof(struct ifreq));
+		strcpy(ifr.ifr_name, devname);
+		if (ioctl(pfd_, SIOCGIFHWADDR, &ifr) < 0) {
+			fprintf(stderr,
+			  "pcap/live (%s) SIOCGIFHWADDR on bpf fd %d\n",
+			  name(), pfd_);
+		}
+#else
 		if (ioctl(pfd_, SIOCGIFADDR, &ifr) < 0) {
 			fprintf(stderr,
 			  "pcap/live (%s) SIOCGIFADDR on bpf fd %d\n",
 			  name(), pfd_);
 		}
+#endif
 		if (dlink_type_ != DLT_EN10MB) {
 			fprintf(stderr,
 				"sorry, only ethernet supported\n");
@@ -472,6 +488,7 @@ PcapLiveNetwork::open(int mode, const char *devname)
 			fprintf(stderr,
 				"warning: pcap/live (%s) couldn't set immed\n",
 				name());
+			perror("ioctl(BIOCIMMEDIATE)");
 		}
 	}
 	return 0;
@@ -753,6 +770,7 @@ struct pcap {
 
 #include <net/if.h>
 
+#ifdef MY_OWN_PCAP
 int
 PcapLiveNetwork::bpf_open(pcap_t *, char *errbuf, int how)
 {
@@ -864,3 +882,4 @@ PcapLiveNetwork::pcap_open_live(char *device, int snaplen, int promisc, int to_m
         free(p);
         return (NULL);
 }
+#endif // MY_OWN_PCAP
