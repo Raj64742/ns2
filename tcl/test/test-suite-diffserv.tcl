@@ -221,7 +221,7 @@ TestSuite instproc init {} {
     set tracefd	[open "temp.rands" w]
     $ns_ trace-all $tracefd
 
-    set finishTime_ 30.0
+    set finishTime_ 10.0
     set packetSize_ 1000
     
     if {$quiet == 0} {
