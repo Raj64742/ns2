@@ -46,10 +46,9 @@ static const char rcsid[] =
 #include <netinet/ip_icmp.h>
 #include <arpa/inet.h>
 
-extern short in_cksum(u_short*, int);
-
 #include "agent.h"
 #include "scheduler.h"
+#include "emulate/internet.h"
 
 //
 // ping_responder.cc -- this agent may be inserted into nse as
@@ -95,6 +94,7 @@ PingResponder::recv(Packet* pkt, Handler*)
 
 	icmp* icmph;
 	if ((icmph = validate(psize, (ip*) payload)) == NULL) {
+		Internet::print_ip((ip*) payload);
 		Packet::free(pkt);
 		return;
 	}
@@ -107,6 +107,11 @@ PingResponder::recv(Packet* pkt, Handler*)
 
 	icmph->icmp_type = ICMP_ECHOREPLY;
 	reflect((ip*) payload);		// like kernel routine icmp_reflect()
+
+printf("OK, should be done\n");
+if (target_ == this) {
+printf("EEK... myself!\n");
+}
 
 	target_->recv(pkt);
 	return;
@@ -154,7 +159,7 @@ PingResponder::validate(int sz, ip* iph)
 		return (NULL);
 	}
 
-	if (in_cksum((u_short*) iph, iphlen)) {
+	if (Internet::in_cksum((u_short*) iph, iphlen)) {
 		fprintf(stderr, "%f: PingResponder(%s): IP bad cksum\n",
 			Scheduler::instance().clock(), name());
 		return (NULL);
@@ -187,7 +192,7 @@ PingResponder::validate(int sz, ip* iph)
 		return (NULL);
 	}
 	icmp* icp = (icmp*) (iph + 1);
-	if (in_cksum((u_short*) icp, iplen - iphlen) != 0) {
+	if (Internet::in_cksum((u_short*) icp, iplen - iphlen) != 0) {
 		fprintf(stderr,
 			"%f: PingResponder(%s): bad ICMP cksum\n",
 			Scheduler::instance().clock(), name());
@@ -223,10 +228,10 @@ PingResponder::reflect(ip* iph)
 	iph->ip_dst = iph->ip_src;
 	iph->ip_src = daddr;
 	iph->ip_sum = 0;
-	iph->ip_sum = in_cksum((u_short*) iph, iphlen);
+	iph->ip_sum = Internet::in_cksum((u_short*) iph, iphlen);
 
 	/* recompute the icmp cksum */
 	icmp* icp = (icmp*)(iph + 1);	// just pass standard IP header
 	icp->icmp_cksum = 0;
-	icp->icmp_cksum = in_cksum((u_short*)icp, iplen - iphlen);
+	icp->icmp_cksum = Internet::in_cksum((u_short*)icp, iplen - iphlen);
 }
