@@ -30,11 +30,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.16 1999/10/12 23:21:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.17 1999/10/28 05:19:35 sfloyd Exp $
 #
 
 source misc_simple.tcl
 Agent/TFRC set df_ 0.5
+Agent/TFRC set aggr_incr_ 0
+Agent/TFRC set aggr_dec_  1
+
 Agent/TCP set window_ 100
 # Uncomment the line below to use a random seed for the
 #  random number generator.
