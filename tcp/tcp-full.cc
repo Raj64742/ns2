@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.42 1998/05/20 22:06:36 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.43 1998/05/20 23:59:41 sfloyd Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -1225,7 +1225,11 @@ trimthenstep6:
 			} else {
 //printf("%f TCP(%s): ECN ACTION\n",
 //now(), name());
-				ecn(tcph->seqno());
+				/* TCP-full has not been changed to
+				 * have the ECN-Echo sent on
+				 * multiple ACK packets.
+				 */
+				ecn(highest_ack_);
 			}
 		}
 
