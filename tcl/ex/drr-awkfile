@@ -1,4 +1,11 @@
-{if ($1=="-") r[$9]++;
+{
+ if ($1=="-") r[$9]++;
  if ($1=="+") s[$9]++;
-if ($1=="d") d[$9]++ }END { print "Flow#\t#sent\t#recvd\t#drop\t%recvd";for (i in r) printf ("%d\t%d\t%d\t%d\t%f\n",i,s[i],r[i],d[i],r[i]*1.0/s[i])}
+ if ($1=="d") d[$9]++ 
+}
+END { 
+print "Flow#\t#sent\t#recvd\t#drop\t%recvd";
+for (i in r) 
+  printf ("%d\t%d\t%d\t%d\t%f\n",i,s[i],r[i],d[i],r[i]*1.0/s[i])
+}
 
