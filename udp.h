@@ -13,6 +13,8 @@
  * express or implied warranty of any kind.
  *  
  * These notices must be retained in any copies of any part of this software.
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.2 1997/07/23 03:19:23 kfall Exp $ (Xerox)
  */
 
 #ifndef ns_udp_h

@@ -31,6 +31,8 @@
  * SUCH DAMAGE.
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/template.h,v 1.3 1997/07/23 03:17:15 kfall Exp $ (UCB)
  */
 
 #ifndef ns_template_h
