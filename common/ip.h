@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.13 1999/09/16 18:32:44 yuriy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.14 2000/01/25 20:59:43 salehi Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -44,6 +44,13 @@
 
 #define IP_HDR_LEN      20
 #define IP_DEF_TTL      32
+
+// The following undef is to suppress warnings on systems were
+// IP_BROADCAST is defined.
+#ifdef IP_BROADCAST		
+#undef IP_BROADCAST
+#endif
+
 #define IP_BROADCAST	((u_int32_t) 0xffffffff)
 
 struct hdr_ip {
