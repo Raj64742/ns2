@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.12 1997/10/26 05:47:03 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.13 1997/11/04 19:57:21 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1088,23 +1088,21 @@ Test/stats instproc run {} {
 
 	set stoptime 10.1 
 
-	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
+	$tcp0 set window_ 30
+	set tcp1 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
 	$tcp1 set window_ 30
-	set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(k1) 1]
-	$tcp2 set window_ 30
 
+	set ftp0 [$tcp0 attach-source FTP]
 	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
 
+	$ns_ at 1.0 "$ftp0 start"
 	$ns_ at 1.0 "$ftp1 start"
-	$ns_ at 1.0 "$ftp2 start"
 
-	$self tcpDumpAll $tcp1 5.0 tcp1
-	$self tcpDumpAll $tcp2 5.0 tcp2
+	$self tcpDumpAll $tcp0 5.0 tcp0
 
-	$ns_ at $stoptime "$self printstop $stoptime"
-	$ns_ at $stoptime "$self printpkts 0 $tcp1"
-	$ns_ at $stoptime "$self printpkts 1 $tcp2"
+	set almosttime [expr $stoptime - 0.001]
+	$ns_ at $almosttime "$self printpkts 0 $tcp0"
 	#XXX Awaiting completion of link stats
 	#$ns_ at $stoptime "$self printdrops 0 [$ns_ link $node_(r1) $node_(k1)]"
 	#$ns_ at $stoptime "$self printdrops 1 [$ns_ link $node_(r1) $node_(k1)]"
