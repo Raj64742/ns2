@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997 The Regents of the University of California.
+ * Copyright (c) 1997, 1998 The Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.26 1998/01/20 03:47:55 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.27 1998/01/21 21:41:22 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -446,13 +446,16 @@ send:
 	int highest = seqno + datalen + (ctrl ? 1 : 0);
 	if (highest > maxseq_) {
 		maxseq_ = highest;
-		/*
-		 * Time this transmission if not a retransmission and
-		 * not currently timing anything.
-		 */
-		if (rtt_active_ == FALSE) {
+		//
+		// if we are using conventional RTT estimation,
+		// establish timing on this segment
+		//
+		if (!ts_option_ && rtt_active_ == FALSE) {
+//printf("%f: tcp(%s): starting rtt timer on seq:%d\n",
+//now(), name(), seqno);
 			rtt_active_ = TRUE;	// set timer
 			rtt_seq_ = seqno; 	// timed seq #
+			rtt_ts_ = now();	// when set
 		}
 	}
 	/*
@@ -542,7 +545,7 @@ void FullTcpAgent::newack(Packet* pkt)
 	if (ackno == maxseq_) {
 		cancel_rtx_timer();	// all data ACKd
 	} else if (progress) {
-		set_rtx_timer();	// updates timeout
+		set_rtx_timer();
 	}
 
 	// advance the ack number if this is for new data
@@ -568,12 +571,16 @@ void FullTcpAgent::newack(Packet* pkt)
         hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
         if (!fh->no_ts_) {
 		ts_peer_ = tcph->ts();	// always set (even if ts_option_ == 0)
+//printf("%f: tcp(%s): wanna do an update: ts_opt:%d, ack:%d, rtseq:%d\n",
+//now(), name(), ts_option_, ackno, rtt_seq_);
+
                 if (ts_option_) {
                         rtt_update(now() - tcph->ts_echo());
-		} else if (rtt_active_ && ackno >= rtt_seq_) {
+		} else if (rtt_active_ && ackno > rtt_seq_) {
+			// got an RTT sample, record it
                         t_backoff_ = 1;
                         rtt_active_ = FALSE;
-			rtt_update(now() - tcph->ts_echo());
+			rtt_update(now() - rtt_ts_);
                 }
         }
 	return;
@@ -1178,9 +1185,16 @@ step6:
 			}
 		}
 	} else {
-		/* we're closing down or this is a pure ACK */
+		/*
+		 * we're closing down or this is a pure ACK that
+		 * wasn't handled by the header prediction part above
+		 * (e.g. because cwnd < wnd)
+		 */
 		// K: this is deleted
 		tiflags &= ~TH_FIN;
+//printf("%f: tcp(%s): FUNNY ACK: dlen:%d, ackno:%d\n",
+//now(), name(), datalen, ackno);
+
 	}
 
 	/*
@@ -1265,12 +1279,18 @@ drop:
 	return;
 }
 
+//
+// reset_rtx_timer: called during a retransmission timeout
+// to perform exponential backoff.  Also, note that because
+// we have performed a retransmission, our rtt timer is now
+// invalidated (indicate this by setting rtt_active_ false)
+//
 void FullTcpAgent::reset_rtx_timer(int /* mild */)
 {
 	// cancel old timer, set a new one
-        set_rtx_timer();	// set new timer
         rtt_backoff();		// double current timeout
-        rtt_active_ = FALSE;
+        set_rtx_timer();	// set new timer
+        rtt_active_ = FALSE;	// no timing during this window
 }
 
 
@@ -1491,6 +1511,8 @@ endfast:
 
 void FullTcpAgent::timeout(int tno)
 {
+//printf("%f: tcp(%s): timeout\n",
+//now(), name());
 
 	/*
 	 * shouldn't be getting timeouts here
