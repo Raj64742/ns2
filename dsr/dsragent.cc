@@ -100,6 +100,7 @@ DSRAgent_List DSRAgent::agthead = { 0 };
 Time arp_timeout = 30.0e-3;	// (sec) arp request timeout
 Time rt_rq_period = 0.5;	// (sec) length of one backoff period
 Time rt_rq_max_period = 10.0;	// (sec) maximum time between rt reqs
+Time send_timeout = SEND_TIMEOUT; // (sec) how long a packet can live in sendbuf
 
 #if 0
 /* used in route reply holdoffs, which are currently disabled -dam 5/98 */
@@ -252,7 +253,7 @@ DSRAgent::sendBufferCheck()
   for (c  = 0 ; c <SEND_BUF_SIZE ; c++) {
 	  if (send_buf[c].p.pkt == NULL)
 		  continue;
-	  if (Scheduler::instance().clock() - send_buf[c].t > SEND_TIMEOUT) {
+	  if (Scheduler::instance().clock() - send_buf[c].t > send_timeout) {
 		  dropSendBuff(send_buf[c].p);
 		  send_buf[c].p.pkt = 0;
 		  continue;
@@ -465,6 +466,22 @@ DSRAgent::command(int argc, const char*const* argv)
 	  route_cache->MAC_id = MAC_id;
 	  return TCL_OK;
 	}
+      else if(strcasecmp(argv[1], "rt_rq_max_period") == 0)
+        {
+          rt_rq_max_period = strtod(argv[2],NULL);
+          return TCL_OK;
+        }
+      else if(strcasecmp(argv[1], "rt_rq_period") == 0)
+        {
+          rt_rq_period = strtod(argv[2],NULL);
+          return TCL_OK;
+        }
+      else if(strcasecmp(argv[1], "send_timeout") == 0)
+        {
+          send_timeout = strtod(argv[2],NULL);
+          return TCL_OK;
+        }
+
       
       if( (obj = TclObject::lookup(argv[2])) == 0) 
 	{
