@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.5 2002/05/30 17:44:04 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.6 2003/10/12 21:13:12 xuanc Exp $
 
 #include "config.h"
 #ifdef HAVE_STL
@@ -58,9 +58,9 @@ public:
    
 class LsIntList : public LsList<int> {
 public:
-	LsIntList (char * str, const char * delim)
+	LsIntList (const char * str, const char * delim)
 		: LsList<int> () {
-		for ( char * token = strtok (str, delim);
+		for ( char * token = strtok ((char *)str, delim);
 		      token != NULL; token = strtok(NULL, delim) ) {
 			push_back ( atoi(token) );
 		}
@@ -180,7 +180,7 @@ void rtProtoLS::initialize() // init nodeState_ and routing_
 	Tcl & tcl = Tcl::instance();
 	// call tcl get-node-id, atoi, set nodeId
 	tcl.evalf("%s get-node-id", name());
-	char * resultString = tcl.result();
+	const char * resultString = tcl.result();
 	nodeId_ = atoi(resultString);
   
 	// call tcl get-peers, strtok, set peerAddrMap, peerIdList;
@@ -230,7 +230,7 @@ void rtProtoLS::initialize() // init nodeState_ and routing_
 	routing_.computeRoutes();
 	// debug
 	tcl.evalf("%s set LS_ready", name());
-	char* token = strtok(tcl.result(), " \t\n");
+	const char* token = strtok((char *)tcl.result(), " \t\n");
 	if (token == NULL) 
 		LS_ready_ = 0;
 	else
@@ -243,7 +243,7 @@ void rtProtoLS::intfChanged ()
 	Tcl & tcl = Tcl::instance();
 	// call tcl get-links-status, strtok, set linkStateList;
 	tcl.evalf("%s get-links-status", name());
-	char * resultString = tcl.result();
+	const char * resultString = tcl.result();
 
 	// destroy the old link states
 	linkStateList_.eraseAll();

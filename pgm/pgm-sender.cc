@@ -385,7 +385,7 @@ void PgmSender::handle_nak(Packet *pkt)
 
   hdr_cmn *hc = HDR_CMN(pkt);
   hdr_pgm *hp = HDR_PGM(pkt);
-  hdr_pgm_nak *pnak = HDR_PGM_NAK(pkt);
+  //hdr_pgm_nak *pnak = HDR_PGM_NAK(pkt);
 
   if (!(hp->tsi_ == here_)) {
     printf("%s received NAK with wrong TSI, discarding.\n", uname_);
@@ -673,7 +673,7 @@ NsObject* PgmSender::iface2link (int iface)
 
         sprintf (wrk, "[%s set node_] ifaceGetOutLink %d", name (), iface);
         tcl.evalc (wrk);
-        char* result = tcl.result ();
+        const char* result = tcl.result ();
 #ifdef PGM_DEBUG
 printf ("[iface2link] agent %s\n", result);
 #endif
@@ -685,11 +685,11 @@ NsObject* PgmSender::pkt2agent (Packet *pkt)
 {
         Tcl&            tcl = Tcl::instance();
         char            wrk[64];
-        char            *result;
+        const char            *result;
         int             port;
         NsObject*       agent;
         hdr_ip*         ih = HDR_IP(pkt);
-        nsaddr_t        src = ih->saddr();
+        //nsaddr_t        src = ih->saddr();
 
         port = ih->sport();
 

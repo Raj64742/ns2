@@ -526,7 +526,7 @@ void PgmAgent::handle_odata(Packet *pkt)
   // Pass the ODATA along to the rest of the multicast group.  ODATA
   // does not cancel NAK forwarding.
 
-  hdr_cmn *hc = HDR_CMN(pkt);
+  //hdr_cmn *hc = HDR_CMN(pkt);
 
   send(pkt, 0);
 }
@@ -536,7 +536,7 @@ void PgmAgent::handle_rdata(Packet *pkt)
 
   // Look for the TSI for this RDATA packet.
   hdr_pgm *hp = HDR_PGM(pkt);
-  hdr_ip *hip = HDR_IP(pkt);
+  //  hdr_ip *hip = HDR_IP(pkt);
 
   StateInfo *state = find_TSI(hp->tsi_);
   if (state == NULL) {
@@ -577,7 +577,7 @@ void PgmAgent::handle_rdata(Packet *pkt)
 
   trace_event("SEND RDATA", 0); //Repair is being forwarded
 
-  hdr_cmn *hc = HDR_CMN(pkt);
+  //  hdr_cmn *hc = HDR_CMN(pkt);
 
   if (!rstate->iface_list().empty()) {
     list<int>::iterator iter = rstate->iface_list().begin();
@@ -641,7 +641,7 @@ void PgmAgent::handle_nak(Packet *pkt)
   hdr_pgm *hp = HDR_PGM(pkt);
   hdr_pgm_nak *hpn = HDR_PGM_NAK(pkt);
   hdr_cmn *hc = HDR_CMN(pkt);
-  hdr_ip *hip = HDR_IP(pkt);
+  //  hdr_ip *hip = HDR_IP(pkt);
 
   // Check to see if there is a state control block for the given TSI.
   StateInfo *state = find_TSI(hp->tsi_);
@@ -977,7 +977,7 @@ NsObject* PgmAgent::iface2link (int iface)
 
         sprintf (wrk, "[%s set node_] ifaceGetOutLink %d", name (), iface);
         tcl.evalc (wrk);
-        char* result = tcl.result ();
+        const char* result = tcl.result ();
 #ifdef PGM_DEBUG
 printf ("[iface2link] agent %s\n", result);
 #endif
@@ -989,11 +989,11 @@ NsObject* PgmAgent::pkt2agent (Packet *pkt)
 {
         Tcl&            tcl = Tcl::instance();
         char            wrk[64];
-        char            *result;
+        const char     *result;
         int             port;
         NsObject*       agent;
         hdr_ip*         ih = HDR_IP(pkt);
-        nsaddr_t        src = ih->saddr();
+        //nsaddr_t        src = ih->saddr();
 
         port = ih->sport();
 

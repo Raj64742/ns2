@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/mip-reg.cc,v 1.7 2000/09/01 03:04:06 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/mip-reg.cc,v 1.8 2003/10/12 21:13:18 xuanc Exp $
 
 /*
  * Copyright (c) Sun Microsystems, Inc. 1998 All rights reserved.
@@ -95,7 +95,7 @@ MIPBSAgent::MIPBSAgent() : Agent(PT_UDP), beacon_(1.0),
 void MIPBSAgent::recv(Packet* p, Handler *)
 {
 	Tcl& tcl = Tcl::instance();
-	char *objname = NULL;
+	const char *objname = NULL;
 	NsObject *obj = NULL;
 	hdr_mip *miph = hdr_mip::access(p);
 	hdr_ip *iph = hdr_ip::access(p);

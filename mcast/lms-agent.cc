@@ -53,7 +53,7 @@ class LmsAgent : public Agent {
 	 send2replier (Packet *p)
 		{
 		hdr_ip* piph = HDR_IP(p);
-		hdr_cmn* c = HDR_CMN(p);
+		//hdr_cmn* c = HDR_CMN(p);
 #ifdef LMS_DEBUG
 printf("%s send2replier: Got piph->saddr: %d, downstream_addr: %d. Replier: %d\n", uname_, piph->saddr(), downstream_lms_.addr_, replier_ );
 #endif
@@ -137,7 +137,7 @@ void LmsAgent::recv (Packet* pkt, Handler*)
 {
     hdr_cmn* h = HDR_CMN(pkt);
     hdr_lms* lh = HDR_LMS(pkt);
-    double now = Scheduler::instance().clock();
+    //    double now = Scheduler::instance().clock();
     
 #ifdef LMS_DEBUG
 int a1 = lh->from_; int a2 = lh->src_;
@@ -311,7 +311,7 @@ printf ("LMS-DMCAST at agent %s, iface %d src %d:%d group %d\n\n",
 
                  if (tgt)
                  {
-                     packet_t t = h->ptype();
+		   //packet_t t = h->ptype();
                      iph->saddr() = lh->src_;
                      iph->daddr() = lh->group_;
                      tgt->recv (pkt);
@@ -378,7 +378,7 @@ printf ("%s upstream %d\n\n", uname_, upstream_lms_);
                  if (upstream_lms_ < 0)
                  {
                      struct lms_spm *spm = (struct lms_spm *)pkt->accessdata ();
-                     nsaddr_t adr = spm->spm_path_;
+                     //nsaddr_t adr = spm->spm_path_;
 #ifdef LMS_DEBUG    
 printf ("%s LMS_SPM seqno %d, upstream %d:%d\n\n",
   uname_, spm->spm_seqno_, adr>>8, adr&0xff);
@@ -419,7 +419,7 @@ printf ("%s LMS_SPM seqno %d, upstream %d:%d\n\n",
 
 int LmsAgent::command (int argc, const char*const* argv)
 {
-	Tcl& tcl = Tcl::instance();
+  //Tcl& tcl = Tcl::instance();
 
 	if (argc == 6) {
 		if (strcmp(argv[1], "send-lms") == 0) {
@@ -451,7 +451,7 @@ NsObject* LmsAgent::iface2link (int iface)
 
 	sprintf (wrk, "[%s set node_] ifaceGetOutLink %d", name (), iface);
 	tcl.evalc (wrk);
-	char* result = tcl.result ();
+	const char* result = tcl.result ();
 
 #ifdef LMS_DEBUG
 printf ("[iface2link] agent %s\n", result);
@@ -469,11 +469,11 @@ NsObject* LmsAgent::pkt2agent (Packet *pkt)
 {
 	Tcl&		tcl = Tcl::instance();
 	char		wrk[64];
-	char		*result;
+	const char		*result;
 	int		port;
 	NsObject*	agent;
 	hdr_ip*		ih = HDR_IP(pkt);
-	nsaddr_t	src = ih->saddr();
+	//nsaddr_t	src = ih->saddr();
 
 	port = ih->sport();
 

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.30 2002/12/20 18:29:49 buchheim Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.31 2003/10/12 21:13:04 xuanc Exp $
  *
  * Code in this file will be changed in the near future. From now on it 
  * should be treated as for backward compatibility only, although it is in
@@ -187,14 +187,14 @@ MobileNode::command(int argc, const char*const* argv)
 		} else if (strcmp(argv[1], "on") == 0) {
 			energy_model()->node_on() = true;
 			tcl.evalf("%s set netif_(0)", name_);
-			char *str = tcl.result();
+			const char *str = tcl.result();
 			tcl.evalf("%s NodeOn", str);
 			God::instance()->ComputeRoute();
 			return TCL_OK;
 		} else if (strcmp(argv[1], "off") == 0) {
 			energy_model()->node_on() = false;
 			tcl.evalf("%s set netif_(0)", name_);
-			char *str = tcl.result();
+			const char *str = tcl.result();
 			tcl.evalf("%s NodeOff", str);
 			tcl.evalf("%s set ragent_", name_);
 			str = tcl.result();

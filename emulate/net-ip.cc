@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.19 2001/09/20 19:05:50 alefiyah Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.20 2003/10/12 21:13:09 xuanc Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -599,13 +599,16 @@ int IPNetwork::command(int argc, const char*const* argv)
 			close();
 			return (TCL_OK);
 		}
-		char* cp = tcl.result();
+		// Old approach uses tcl.result() to get result buffer first
+		// char* cp = tcl.result();
+		// new approach uses tcl.result(const char*) directly.
+		// xuanc, 10/07/2003
 		if (strcmp(argv[1], "destaddr") == 0) {
-			strcpy(cp, inet_ntoa(destaddr_));
+			tcl.result(inet_ntoa(destaddr_));
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "localaddr") == 0) {
-			strcpy(cp, inet_ntoa(localaddr_));
+			tcl.result(inet_ntoa(localaddr_));
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "mttl") == 0) {
@@ -619,7 +622,7 @@ int IPNetwork::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "addr") == 0) {
-			strcpy(cp, inet_ntoa(destaddr_));
+			tcl.result(inet_ntoa(destaddr_));
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "ttl") == 0) {
@@ -627,7 +630,7 @@ int IPNetwork::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "interface") == 0) {
-			strcpy(cp, inet_ntoa(localaddr_));
+			tcl.result(inet_ntoa(localaddr_));
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
