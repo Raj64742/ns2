@@ -1212,6 +1212,7 @@ tcl/test/sk-30-1-1-1-1-6-64.tcl
 tcl/test/sk-30-3-3-1-1-6-64.tcl
 tcl/test/test-1000.tcl
 tcl/test/test-all-WLtutorial
+tcl/test/test-all-adaptive-red
 tcl/test/test-all-aimd
 tcl/test/test-all-algo-routing
 tcl/test/test-all-cbq
@@ -1288,6 +1289,14 @@ tcl/test/test-alloc-address.tcl
 tcl/test/test-output-WLtutorial/wireless1.Z
 tcl/test/test-output-WLtutorial/wireless2.Z
 tcl/test/test-output-WLtutorial/wireless3.Z
+tcl/test/test-output-adaptive-red/red1.Z
+tcl/test/test-output-adaptive-red/red1Adapt.Z
+tcl/test/test-output-adaptive-red/red2.Z
+tcl/test/test-output-adaptive-red/red2A-Adapt.Z
+tcl/test/test-output-adaptive-red/red2Adapt.Z
+tcl/test/test-output-adaptive-red/red3.Z
+tcl/test/test-output-adaptive-red/red3Adapt.Z
+tcl/test/test-output-adaptive-red/red4Adapt.Z
 tcl/test/test-output-aimd/binomial1.Z
 tcl/test/test-output-aimd/binomial2.Z
 tcl/test/test-output-aimd/ssthresh.Z
@@ -2021,6 +2030,7 @@ tcl/test/test-output-wireless-tdma/dsr.Z
 tcl/test/test-sack
 tcl/test/test-sack-v1
 tcl/test/test-suite-WLtutorial.tcl
+tcl/test/test-suite-adaptive-red.tcl
 tcl/test/test-suite-aimd.tcl
 tcl/test/test-suite-algo-routing.tcl
 tcl/test/test-suite-cbq-v1.tcl
