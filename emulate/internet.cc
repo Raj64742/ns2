@@ -51,7 +51,6 @@ Internet::in_cksum(u_short* addr, int len)
 void
 Internet::print_ip(ip *ip)
 {   
-        char buf[64];
         u_short off = ntohs(ip->ip_off);
         printf("IP v:%d, ihl:%d, tos:0x%x, id:%d, off:%d [df:%d, mf:%d], sum:%d, p
 rot:%d\n",
