@@ -2210,7 +2210,7 @@ else
 fi
 
 
-OTCL_VERS=1.0a2
+OTCL_VERS=1.0a3
 OTCL_ALT_VERS=1.0
 
 OTCL_H_PLACES_D="$d \
@@ -2398,7 +2398,7 @@ else
 fi
 
 
-TclCL_VERS=1.0b5
+TclCL_VERS=1.0b6
 TclCL_ALT_VERS=1.0
 
 TclCL_H_PLACES="\
