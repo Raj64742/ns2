@@ -30,17 +30,27 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/netmodel.h,v 1.1 1997/03/29 04:38:07 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/netmodel.h,v 1.2 1998/03/20 04:44:56 gnguyen Exp $ (LBL)
  */
 
 #ifndef nam_netmodel_h
 #define nam_netmodel_h
 
+#ifndef M_PI
+#define M_PI        3.14159265358979323846      /* pi */
+#endif
+#ifndef M_PI_2
+#define M_PI_2      1.57079632679489661923      /* pi/2 */
+#endif
+#ifndef M_PI_4
+#define M_PI_4      0.78539816339744830962      /* pi/4 */
+#endif
+
 #include "nam-trace.h"
 
 class NamEdge;
 class NamNode;
-class TraceEvent;
+struct TraceEvent;
 class NamQueue;
 class Animation;
 class NetView;

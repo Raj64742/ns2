@@ -30,13 +30,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-trace.h,v 1.1 1997/03/29 04:38:04 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-trace.h,v 1.2 1998/03/20 04:44:56 gnguyen Exp $ (LBL)
  */
 
 #ifndef nam_trace_h
 #define nam_trace_h
 
-#include "Tcl.h"
+#include "tclcl.h"
 
 /*
  * 'packet' events (hop, enqueue, dequeue & drop) all have the same

@@ -33,22 +33,26 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-trace.cc,v 1.2 1997/03/29 06:20:08 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam-trace.cc,v 1.3 1998/03/20 04:44:55 gnguyen Exp $ (LBL)";
 #endif
 
 #include <sys/types.h>
-#include <unistd.h>
 #include <sys/stat.h>
-#include <sys/file.h>
-
-#include <stdlib.h>
 #include <ctype.h>
+#include <fcntl.h>
 
+#ifdef WIN32
+#include <io.h>
+#endif
+
+#include "config.h"
 #include "nam-trace.h"
 #include "state.h"
 
+#ifndef WIN32
 extern "C" off_t tell();
 extern "C" double atof();
+#endif
 extern double time_atof(const char*);
 
 static class TraceClass : public TclClass {
