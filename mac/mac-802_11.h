@@ -423,8 +423,8 @@ private:
 	u_int16_t	sta_seqno_;	// next seqno that I'll use
 	int		cache_node_count_;
 	Host		*cache_;
+	
 };
-
 
 #endif /* __mac_80211_h__ */
 

@@ -36,7 +36,7 @@ extern "C" {
 #ifdef TCL_TEST
 EXTERN int		Tcltest_Init _ANSI_ARGS_((Tcl_Interp *interp));
 #endif /* TCL_TEST */
-
+
 /*
  *----------------------------------------------------------------------
  *
@@ -62,7 +62,6 @@ main(int argc, char **argv)
 }
 
 
-
 #if defined(linux) && defined(i386)
 #ifndef HAVE_FESETPRECISION
 /*
@@ -96,7 +95,7 @@ int fesetprecision(int prec)
   if ( !(prec & ~FE_LDBLPREC) && (prec != FE_INVALIDPREC) )
     {
       cw = (cw & ~FE_LDBLPREC) | (prec & FE_LDBLPREC);
-      asm volatile ("fldcw %0"::"m" (cw));
+      asm volatile ("fldcw %0":"=m" (cw));
       return 1;
     }
   else
@@ -123,7 +122,6 @@ fix_i386_linux_floats()
 #endif
 
 
-
 /*
  *----------------------------------------------------------------------
  *

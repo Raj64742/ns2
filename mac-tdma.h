@@ -1,4 +1,5 @@
 /* Centralized wireless TDMA (for single hop only),
+   Apply preamble style TDMA.
    mac-tdma.h
    by Xuan Chen (xuanc@isi.edu), ISI/USC. 
 */
@@ -61,6 +62,21 @@ public:
 
 // How many time slots in one frame.
 #define MAC_TDMA_SLOT_NUM       32           
+
+// The mode for MacTdma layer's defer timers. */
+#define SLOT_SCHE               0
+#define SLOT_SEND               1
+#define SLOT_RECV               2
+#define SLOT_BCAST              3
+
+// Indicate if there is a packet needed to be sent out.
+#define NOTHING_TO_SEND         -2
+// Indicate if this is the very first time the simulation runs.
+#define FIRST_ROUND             -1
+
+// Turn radio on /off
+#define ON                       1
+#define OFF                      0
 
 /* Quoted from MAC-802.11. */
 #define DATA_DURATION           5
@@ -144,32 +160,33 @@ protected:
 	double		slottime_;
 };
 
-
-class DeferTdmaTimer : public MacTdmaTimer {
+/* Timers to schedule transmitting and receiving. */
+class SlotTdmaTimer : public MacTdmaTimer {
 public:
-	DeferTdmaTimer(MacTdma *m) : MacTdmaTimer(m) {}
+	SlotTdmaTimer(MacTdma *m) : MacTdmaTimer(m) {}
 	void	handle(Event *e);
 };
 
-class RxTdmaTimer : public MacTdmaTimer {
+/* Timers to control packet sending and receiving time. */
+class RxPktTdmaTimer : public MacTdmaTimer {
 public:
-	RxTdmaTimer(MacTdma *m) : MacTdmaTimer(m) {}
+	RxPktTdmaTimer(MacTdma *m) : MacTdmaTimer(m) {}
 
 	void	handle(Event *e);
 };
 
-class TxTdmaTimer : public MacTdmaTimer {
+class TxPktTdmaTimer : public MacTdmaTimer {
 public:
-	TxTdmaTimer(MacTdma *m) : MacTdmaTimer(m) {}
+	TxPktTdmaTimer(MacTdma *m) : MacTdmaTimer(m) {}
 
 	void	handle(Event *e);
 };
 
 /* TDMA Mac layer. */
 class MacTdma : public Mac {
-  friend class DeferTdmaTimer;
-  friend class TxTdmaTimer;
-  friend class RxTdmaTimer;
+  friend class SlotTdmaTimer;
+  friend class TxPktTdmaTimer;
+  friend class RxPktTdmaTimer;
 
  public:
   MacTdma(PHY_MIB* p);
@@ -179,24 +196,33 @@ class MacTdma : public Mac {
   inline int	hdr_type(char* hdr, u_int16_t type = 0);
   
   /* Timer handler */
-  void deferHandler(Event *e);
+  void slotHandler(Event *e);
   void recvHandler(Event *e);
   void sendHandler(Event *e);
   
  protected:
   PHY_MIB		*phymib_;
   
+  // Both the slot length and max slot num (max node num) can be configged.
+  int			slot_packet_len_;
+  int                   max_node_num_;
+  
  private:
   int command(int argc, const char*const* argv);
-  
+
+  // Do slot scheduling for the active nodes within one cluster.
+  void re_schedule();
+  void makePreamble();
+  void radioSwitch(int i);
+
   /* Packet Transmission Functions.*/
   void    sendUp(Packet* p);
   void    sendDown(Packet* p);
   
   /* Actually receive data packet when rxTimer times out. */
   void recvDATA(Packet *p);
-  /* Actually send the packet. */
-  void send(Packet *p);
+  /* Actually send the packet buffered. */
+  void send();
 
   inline int	is_idle(void);
   
@@ -225,16 +251,16 @@ class MacTdma : public Mac {
   };
 
   /* Timers */
-  DeferTdmaTimer mhDefer_;
-  TxTdmaTimer mhTx_;
-  RxTdmaTimer mhRx_;
+  SlotTdmaTimer mhSlot_;
+  TxPktTdmaTimer mhTxPkt_;
+  RxPktTdmaTimer mhRxPkt_;
 
   /* Internal MAC state */
   MacState	rx_state_;	// incoming state (MAC_RECV or MAC_IDLE)
   MacState	tx_state_;	// outgoing state
   
   /* The indicator of the radio. */
-  int radio_active;
+  int radio_active_;
 
   int		tx_active_;	// transmitter is ACTIVE
   
@@ -243,6 +269,9 @@ class MacTdma : public Mac {
   /* TDMA scheduling state. 
      Currently, we only use a centralized simplified way to do 
      scheduling. Will work on the algorithm later.*/
+  // The max num of slot within one frame.
+  static int max_slot_num_;
+
   // The time duration for each slot.
   static double slot_time_;
 
@@ -250,18 +279,31 @@ class MacTdma : public Mac {
   static double start_time_;
   
   /* Data structure for tdma scheduling. */
-  static int slot_pointer_;
+  static int active_node_;            // How many nodes needs to be scheduled
+
   static char *tdma_schedule_;
-  //static char tdma_schedule_[MAC_TDMA_SLOT_NUM];
   int slot_num_;                      // The slot number it's allocated.
+
+  //  static char tdma_preamble_[MAC_TDMA_SLOT_NUM];
+  static char *tdma_preamble_;
+
+  // When slot_count_ = active_nodes_, a new preamble is needed.
+  int slot_count_;
+  
+  // How many packets has been sent out?
+  static int tdma_ps_;
+  static int tdma_pr_;
 };
 
 double MacTdma::slot_time_ = 0;
 double MacTdma::start_time_ = 0;
-int MacTdma::slot_pointer_ = 0;
-char *MacTdma::tdma_schedule_ = new char[MAC_TDMA_SLOT_NUM];
-//int MacTdma::tdma_schedule_[MAC_TDMA_SLOT_NUM] = "";
+int MacTdma::active_node_ = 0;
+int MacTdma::max_slot_num_ = 0;
+char *MacTdma::tdma_schedule_ = NULL;
+char *MacTdma::tdma_preamble_ = NULL;
 
+int MacTdma::tdma_ps_ = 0;
+int MacTdma::tdma_pr_ = 0;
 
 #endif /* __mac_tdma_h__ */
 
