@@ -1,6 +1,6 @@
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/messpass.cc,v 1.1 2003/03/13 02:19:29 buchheim Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/messpass.cc,v 1.2 2003/04/17 01:53:50 buchheim Exp $";
 #endif
 
 #include "messpass.h"
@@ -28,59 +28,31 @@ MessagePassingAgent::MessagePassingAgent(packet_t type) : Agent(type)
 	bind("packetSize_", &size_);
 }
 
-// put in timestamp and sequence number, even though UDP doesn't usually 
-// have one.
 void MessagePassingAgent::sendmsg(int nbytes, AppData* data, const char* flags)
 {
 	Packet *p;
-	int n;
-
-	if (size_)
-		n = nbytes / size_;
-	else
-		printf("Error: MessagePassingAgent size = 0\n");
 
 	if (nbytes == -1) {
 		printf("Error:  sendmsg() for MessagePassingAgent should not be -1\n");
 		return;
 	}	
 
-	// If they are sending data, then it must fit within a single packet.
-	if (data && nbytes > size_) {
-		printf("Error: data greater than maximum MessagePassingAgent packet size\n");
+	// check packet size (we don't fragment packets)
+	if (nbytes > size_) {
+		printf("Error: packet greater than maximum MessagePassingAgent packet size\n");
 		return;
 	}
 
 	double local_time = Scheduler::instance().clock();
-	while (n-- > 0) {
-		p = allocpkt();
-		hdr_cmn::access(p)->size() = size_;
-		hdr_rtp* rh = hdr_rtp::access(p);
-		rh->flags() = 0;
-		rh->seqno() = ++seqno_;
-		hdr_cmn::access(p)->timestamp() = 
-		    (u_int32_t)(SAMPLERATE*local_time);
-		// add "beginning of talkspurt" labels (tcl/ex/test-rcvr.tcl)
-		if (flags && (0 ==strcmp(flags, "NEW_BURST")))
-			rh->flags() |= RTP_M;
-		p->setdata(data);
-		target_->recv(p);
-	}
-	n = nbytes % size_;
-	if (n > 0) {
-		p = allocpkt();
-		hdr_cmn::access(p)->size() = n;
-		hdr_rtp* rh = hdr_rtp::access(p);
-		rh->flags() = 0;
-		rh->seqno() = ++seqno_;
-		hdr_cmn::access(p)->timestamp() = 
-		    (u_int32_t)(SAMPLERATE*local_time);
-		// add "beginning of talkspurt" labels (tcl/ex/test-rcvr.tcl)
-		if (flags && (0 == strcmp(flags, "NEW_BURST")))
-			rh->flags() |= RTP_M;
-		p->setdata(data);
-		target_->recv(p);
-	}
+	p = allocpkt();
+	hdr_cmn::access(p)->size() = nbytes;
+	hdr_rtp* rh = hdr_rtp::access(p);
+	rh->flags() = 0;
+	rh->seqno() = ++seqno_;
+	hdr_cmn::access(p)->timestamp() = 
+	    (u_int32_t)(SAMPLERATE*local_time);
+	p->setdata(data);
+	target_->recv(p);
 	idle();
 }
 
@@ -131,7 +103,8 @@ void MessagePassingAgent::recv(Packet* pkt, Handler*)
 
 		hdr_ip* iph = hdr_ip::access(pkt);
                 Tcl& tcl = Tcl::instance();
-		tcl.evalf("%s recv %d {%s}", name(),
+		tcl.evalf("%s recv %d %d %d {%s}", name(),
+			  iph->saddr(), iph->sport(),
 			  hdr_cmn::access(pkt)->size(), data->data());
 	} else {
 		// It wasn't PacketData, or userdata() was NULL
@@ -140,9 +113,9 @@ void MessagePassingAgent::recv(Packet* pkt, Handler*)
 
 		hdr_ip* iph = hdr_ip::access(pkt);
                 Tcl& tcl = Tcl::instance();
-		tcl.evalf("%s recv %d {}", name(),
+		tcl.evalf("%s recv %d %d %d {}", name(),
+			  iph->saddr(), iph->sport(),
 			  hdr_cmn::access(pkt)->size());
-//		          iph->src_.addr_ >> Address::instance().NodeShift_[1]);
 		
 	}
 	Packet::free(pkt);
