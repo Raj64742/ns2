@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112.2.1 1998/07/15 18:34:25 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112.2.2 1998/07/16 23:14:18 yuriy Exp $
 
 #
 
@@ -112,6 +112,7 @@ source ../mcast/timer.tcl
 source ../mcast/ns-mcast.tcl
 source ../mcast/McastProto.tcl
 source ../mcast/DM.tcl
+source ../mcast/ST.tcl
 source ../mcast/dynamicDM.tcl
 source ../mcast/pimDM.tcl
 source ../mcast/detailedDM.tcl
@@ -186,6 +187,7 @@ Simulator instproc node args {
 	$self instvar Node_
 	set node [new [Simulator set node_factory_] $args]
 	set Node_([$node id]) $node
+	$node set ns_ $self
 	if { [$self multicast?] } {
 		$node enable-mcast $self
 	}
