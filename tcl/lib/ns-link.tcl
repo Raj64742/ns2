@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.38 1998/10/27 21:51:58 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.39 1998/10/27 22:34:07 yuriy Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -483,7 +483,7 @@ SimpleLink instproc errormodule args {
 	set em [lindex $args 0]
 	set errmodule_ $em
 
-	$self add-to-target $em
+	$self add-to-head $em
 
 	$em drop-target $drophead_
 }
