@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.29 2000/01/05 00:00:58 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.30 2000/07/20 03:48:07 ratul Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -68,6 +68,10 @@ class Agent : public Connector {
 	Agent(packet_t pktType);
 	virtual ~Agent();
 	void recv(Packet*, Handler*);
+	
+	//added for edrop tracing - ratul
+	void recvOnly(Packet *) {};
+
 	void send(Packet* p, Handler* h) { target_->recv(p, h); }
 	virtual void timeout(int tno);
 
