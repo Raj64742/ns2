@@ -32,8 +32,6 @@ then
 	AC_MSG_WARN([Perl5 not found; test scripts will not run succesfully.])
 fi
 
-AC_ARG_ENABLE(debug,   --enable-debug		build with debugging enabled, V_CCOPT="-g -Wall", V_CCOPT="-O2")
-
 AC_HEADER_STDC
 
 dnl AC_CHECK_FUNCS will place -D's in @DEFS@
