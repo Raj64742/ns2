@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.38 2001/04/18 23:15:12 ratul Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.39 2001/04/23 20:45:22 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -674,6 +674,7 @@ Test/flows_unforced instproc init {} {
     $self instvar net_ test_
     set net_    net2   
     set test_   flows_unforced
+    Queue/RED set gentle_ false
     $self next 0; # zero here means don't product all.tr
 }   
 
@@ -696,6 +697,7 @@ Test/flows_forced instproc init {} {
     $self instvar net_ test_
     set net_    net2   
     set test_   flows_forced
+    Queue/RED set gentle_ false
     $self next 0; # zero here means don't product all.tr
 }   
 
@@ -718,6 +720,7 @@ Test/flows_combined instproc init {} {
     $self instvar net_ test_
     set net_    net2   
     set test_   flows_combined
+    Queue/RED set gentle_ false
     $self next 0; # zero here means don't product all.tr
 }   
 
@@ -746,6 +749,7 @@ Test/ungentle instproc init {} {
     $self instvar net_ test_
     set net_ net3 
     set test_ ungentle
+    Queue/RED set gentle_ false
     $self next
 }
 Test/ungentle instproc run {} {
