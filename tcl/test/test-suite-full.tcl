@@ -376,6 +376,8 @@ TestSuite instproc bsdcompat tcp {
 	$tcp set dupack_reset_ true
 	$tcp set bugFix_ false
 	$tcp set data_on_syn_ false
+#	Enable the line below to set the TCP slow timeout interval to 500ms
+#	$tcp set tcpTick_ 0.5
 }
 
 # Definition of test-suite tests
