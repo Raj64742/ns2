@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.15 1998/01/01 00:36:51 kannan Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.16 1998/01/01 01:10:04 kannan Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -63,8 +63,10 @@ public:
 } class_srmhdr;
 
 SRMAgent::SRMAgent() 
-        : Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1), sip_(0), siphash_(0)
+        : Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1), siphash_(0)
 {
+	sip_ = new SRMinfo(-1);
+
 	bind("off_srm_", &off_srm_);
 	bind("off_cmn_", &off_cmn_);
 	bind("packetSize_", &packetSize_);
@@ -105,7 +107,7 @@ int SRMAgent::command(int argc, const char*const* argv)
 	if (argc == 2) {
 		if (strcmp(argv[1], "distances?") == 0) {
 			tcl.result("");
-			if (sip_) {		 // i.e. this agent is active
+			if (sip_->sender_ >= 0) {  // i.e. this agent is active
 				for (SRMinfo* sp = sip_; sp; sp = sp->next_) {
 					tcl.resultf("%s %d %f", tcl.result(),
 						    sp->sender_,
