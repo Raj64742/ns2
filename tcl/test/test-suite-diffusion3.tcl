@@ -223,7 +223,7 @@ Test/2pp-5n-1s-1r instproc run {} {
 		 -topoInstance $topo \
 	         -diffusionFilter $opt(filters) \
 		 -agentTrace ON \
-                 -routerTrace ON \
+                 -routerTrace OFF \
                  -macTrace ON 
              
     for {set i 0} {$i < $opt(nn) } {incr i} {
@@ -274,201 +274,201 @@ Test/2pp-5n-1s-1r instproc run {} {
     $ns_ run
 }
     
-Class Test/2pp-10n-4s-1r -superclass TestSuite
+#Class Test/2pp-10n-4s-1r -superclass TestSuite
 
-Test/2pp-10n-4s-1r instproc init {} {
-    global opt
-    set opt(nn) 10
-    set opt(sndr) 4
-    set opt(rcvr) 1
-    set opt(filters) GradientFilter
-    $self instvar ns_ testName_
-    set testName_ 2pp-10n-4s-1r
-    $self next
-}
+# Test/2pp-10n-4s-1r instproc init {} {
+#     global opt
+#     set opt(nn) 10
+#     set opt(sndr) 4
+#     set opt(rcvr) 1
+#     set opt(filters) GradientFilter
+#     $self instvar ns_ testName_
+#     set testName_ 2pp-10n-4s-1r
+#     $self next
+# }
 
-Test/2pp-10n-4s-1r instproc run {} {
-    global opt
-    $self instvar ns_ topo god_
+# Test/2pp-10n-4s-1r instproc run {} {
+#     global opt
+#     $self instvar ns_ topo god_
 
-    set topo	[new Topography]
-    $topo load_flatgrid $opt(x) $opt(y)
-    set god_ [create-god $opt(nn)]
+#     set topo	[new Topography]
+#     $topo load_flatgrid $opt(x) $opt(y)
+#     set god_ [create-god $opt(nn)]
 
-    $ns_ node-config -adhocRouting $opt(adhocRouting) \
-		 -llType $opt(ll) \
-		 -macType $opt(mac) \
-		 -ifqType $opt(ifq) \
-		 -ifqLen $opt(ifqlen) \
-		 -antType $opt(ant) \
-		 -propType $opt(prop) \
-		 -phyType $opt(netif) \
-		 -channelType $opt(chan) \
-		 -topoInstance $topo \
-	         -diffusionFilter $opt(filters) \
-		 -agentTrace ON \
-                 -routerTrace ON \
-                 -macTrace ON 
+#     $ns_ node-config -adhocRouting $opt(adhocRouting) \
+# 		 -llType $opt(ll) \
+# 		 -macType $opt(mac) \
+# 		 -ifqType $opt(ifq) \
+# 		 -ifqLen $opt(ifqlen) \
+# 		 -antType $opt(ant) \
+# 		 -propType $opt(prop) \
+# 		 -phyType $opt(netif) \
+# 		 -channelType $opt(chan) \
+# 		 -topoInstance $topo \
+# 	         -diffusionFilter $opt(filters) \
+# 		 -agentTrace OFF \
+#                  -routerTrace OFF \
+#                  -macTrace ON 
              
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	set node_($i) [$ns_ node $i]
-        $node_($i) color black
-	$node_($i) random-motion 0		;# disable random motion
-        $god_ new_node $node_($i)
-    }
+#     for {set i 0} {$i < $opt(nn) } {incr i} {
+# 	set node_($i) [$ns_ node $i]
+#         $node_($i) color black
+# 	$node_($i) random-motion 0		;# disable random motion
+#         $god_ new_node $node_($i)
+#     }
 
-    # defining node positions
-    $node_(0) set X_ 18.587605569735
-    $node_(0) set Y_ 401.886827012678
-    $node_(0) set Z_ 0.000000000000
-    $node_(1) set X_ 11.901958617639
-    $node_(1) set Y_ 36.218497218617
-    $node_(1) set Z_ 0.000000000000
-    $node_(2) set X_ 224.282785411393
-    $node_(2) set Y_ 20.774608253697
-    $node_(2) set Z_ 0.000000000000
-    $node_(3) set X_ 158.840938304009
-    $node_(3) set Y_ 139.650216383776
-    $node_(3) set Z_ 0.000000000000
-    $node_(4) set X_ 101.186886005903
-    $node_(4) set Y_ 147.993190973633
-    $node_(4) set Z_ 0.000000000000
-    $node_(5) set X_ 321.560825121175
-    $node_(5) set Y_ 472.788096833600
-    $node_(5) set Z_ 0.000000000000
-    $node_(6) set X_ 149.543901734330
-    $node_(6) set Y_ 384.356581531832
-    $node_(6) set Z_ 0.000000000000
-    $node_(7) set X_ 381.066146464027
-    $node_(7) set Y_ 78.723958958779
-    $node_(7) set Z_ 0.000000000000
-    $node_(8) set X_ 113.578290026963
-    $node_(8) set Y_ 410.320583900348
-    $node_(8) set Z_ 0.000000000000
-    $node_(9) set X_ 258.053977148981
-    $node_(9) set Y_ 113.194171851670
-    $node_(9) set Z_ 0.000000000000
+#     # defining node positions
+#     $node_(0) set X_ 18.587605569735
+#     $node_(0) set Y_ 401.886827012678
+#     $node_(0) set Z_ 0.000000000000
+#     $node_(1) set X_ 11.901958617639
+#     $node_(1) set Y_ 36.218497218617
+#     $node_(1) set Z_ 0.000000000000
+#     $node_(2) set X_ 224.282785411393
+#     $node_(2) set Y_ 20.774608253697
+#     $node_(2) set Z_ 0.000000000000
+#     $node_(3) set X_ 158.840938304009
+#     $node_(3) set Y_ 139.650216383776
+#     $node_(3) set Z_ 0.000000000000
+#     $node_(4) set X_ 101.186886005903
+#     $node_(4) set Y_ 147.993190973633
+#     $node_(4) set Z_ 0.000000000000
+#     $node_(5) set X_ 321.560825121175
+#     $node_(5) set Y_ 472.788096833600
+#     $node_(5) set Z_ 0.000000000000
+#     $node_(6) set X_ 149.543901734330
+#     $node_(6) set Y_ 384.356581531832
+#     $node_(6) set Z_ 0.000000000000
+#     $node_(7) set X_ 381.066146464027
+#     $node_(7) set Y_ 78.723958958779
+#     $node_(7) set Z_ 0.000000000000
+#     $node_(8) set X_ 113.578290026963
+#     $node_(8) set Y_ 410.320583900348
+#     $node_(8) set Z_ 0.000000000000
+#     $node_(9) set X_ 258.053977148981
+#     $node_(9) set Y_ 113.194171851670
+#     $node_(9) set Z_ 0.000000000000
     
-    # 4 ping senders
-    for {set i 0} {$i < $opt(sndr)} {incr i} {
-	set src_($i) [new Application/DiffApp/PingSender]
-	$ns_ attach-diffapp $node_([expr $i+2]) $src_($i)
-	$ns_ at [expr 0.123 * $i] "$src_($i) publish"
-    }
+#     # 4 ping senders
+#     for {set i 0} {$i < $opt(sndr)} {incr i} {
+# 	set src_($i) [new Application/DiffApp/PingSender]
+# 	$ns_ attach-diffapp $node_([expr $i+2]) $src_($i)
+# 	$ns_ at [expr 0.123 * $i] "$src_($i) publish"
+#     }
 
-    # 1 ping receiver
-    set snk_(0) [new Application/DiffApp/PingReceiver]
-    $ns_ attach-diffapp $node_(9) $snk_(0)
-    $ns_ at 1.456 "$snk_(0) subscribe"
+#     # 1 ping receiver
+#     set snk_(0) [new Application/DiffApp/PingReceiver]
+#     $ns_ attach-diffapp $node_(9) $snk_(0)
+#     $ns_ at 1.456 "$snk_(0) subscribe"
 
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop).000000001 "$node_($i) reset";
-    }
-    $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"
-    $ns_ run
-}
+#     #
+#     # Tell nodes when the simulation ends
+#     #
+#     for {set i 0} {$i < $opt(nn) } {incr i} {
+# 	$ns_ at $opt(stop).000000001 "$node_($i) reset";
+#     }
+#     $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"
+#     $ns_ run
+# }
 
 
-Class Test/2pp-10n-1s-4r -superclass TestSuite
+# #Class Test/2pp-10n-1s-4r -superclass TestSuite
 
-Test/2pp-10n-1s-4r instproc init {} {
-    global opt
-    set opt(nn) 10
-    set opt(sndr) 1
-    set opt(rcvr) 4
-    set opt(filters) GradientFilter
-    $self instvar ns_ testName_
-    set testName_ 2pp-10n-1s-4r
-    $self next
-}
+# Test/2pp-10n-1s-4r instproc init {} {
+#     global opt
+#     set opt(nn) 10
+#     set opt(sndr) 1
+#     set opt(rcvr) 4
+#     set opt(filters) GradientFilter
+#     $self instvar ns_ testName_
+#     set testName_ 2pp-10n-1s-4r
+#     $self next
+# }
 
-Test/2pp-10n-1s-4r instproc run {} {
-    global opt
-    $self instvar ns_ topo god_
+# Test/2pp-10n-1s-4r instproc run {} {
+#     global opt
+#     $self instvar ns_ topo god_
 
-    set topo	[new Topography]
-    $topo load_flatgrid $opt(x) $opt(y)
-    set god_ [create-god $opt(nn)]
+#     set topo	[new Topography]
+#     $topo load_flatgrid $opt(x) $opt(y)
+#     set god_ [create-god $opt(nn)]
 
-    $ns_ node-config -adhocRouting $opt(adhocRouting) \
-		 -llType $opt(ll) \
-		 -macType $opt(mac) \
-		 -ifqType $opt(ifq) \
-		 -ifqLen $opt(ifqlen) \
-		 -antType $opt(ant) \
-		 -propType $opt(prop) \
-		 -phyType $opt(netif) \
-		 -channelType $opt(chan) \
-		 -topoInstance $topo \
-	         -diffusionFilter $opt(filters) \
-		 -agentTrace ON \
-                 -routerTrace ON \
-                 -macTrace ON 
+#     $ns_ node-config -adhocRouting $opt(adhocRouting) \
+# 		 -llType $opt(ll) \
+# 		 -macType $opt(mac) \
+# 		 -ifqType $opt(ifq) \
+# 		 -ifqLen $opt(ifqlen) \
+# 		 -antType $opt(ant) \
+# 		 -propType $opt(prop) \
+# 		 -phyType $opt(netif) \
+# 		 -channelType $opt(chan) \
+# 		 -topoInstance $topo \
+# 	         -diffusionFilter $opt(filters) \
+# 		 -agentTrace OFF \
+#                  -routerTrace OFF \
+#                  -macTrace ON 
              
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	set node_($i) [$ns_ node $i]
-        $node_($i) color black
-	$node_($i) random-motion 0		;# disable random motion
-        $god_ new_node $node_($i)
-    }
+#     for {set i 0} {$i < $opt(nn) } {incr i} {
+# 	set node_($i) [$ns_ node $i]
+#         $node_($i) color black
+# 	$node_($i) random-motion 0		;# disable random motion
+#         $god_ new_node $node_($i)
+#     }
 
-    # defining node positions
-    $node_(0) set X_ 18.587605569735
-    $node_(0) set Y_ 401.886827012678
-    $node_(0) set Z_ 0.000000000000
-    $node_(1) set X_ 11.901958617639
-    $node_(1) set Y_ 36.218497218617
-    $node_(1) set Z_ 0.000000000000
-    $node_(2) set X_ 224.282785411393
-    $node_(2) set Y_ 20.774608253697
-    $node_(2) set Z_ 0.000000000000
-    $node_(3) set X_ 158.840938304009
-    $node_(3) set Y_ 139.650216383776
-    $node_(3) set Z_ 0.000000000000
-    $node_(4) set X_ 101.186886005903
-    $node_(4) set Y_ 147.993190973633
-    $node_(4) set Z_ 0.000000000000
-    $node_(5) set X_ 321.560825121175
-    $node_(5) set Y_ 472.788096833600
-    $node_(5) set Z_ 0.000000000000
-    $node_(6) set X_ 149.543901734330
-    $node_(6) set Y_ 384.356581531832
-    $node_(6) set Z_ 0.000000000000
-    $node_(7) set X_ 381.066146464027
-    $node_(7) set Y_ 78.723958958779
-    $node_(7) set Z_ 0.000000000000
-    $node_(8) set X_ 113.578290026963
-    $node_(8) set Y_ 410.320583900348
-    $node_(8) set Z_ 0.000000000000
-    $node_(9) set X_ 258.053977148981
-    $node_(9) set Y_ 113.194171851670
-    $node_(9) set Z_ 0.000000000000
+#     # defining node positions
+#     $node_(0) set X_ 18.587605569735
+#     $node_(0) set Y_ 401.886827012678
+#     $node_(0) set Z_ 0.000000000000
+#     $node_(1) set X_ 11.901958617639
+#     $node_(1) set Y_ 36.218497218617
+#     $node_(1) set Z_ 0.000000000000
+#     $node_(2) set X_ 224.282785411393
+#     $node_(2) set Y_ 20.774608253697
+#     $node_(2) set Z_ 0.000000000000
+#     $node_(3) set X_ 158.840938304009
+#     $node_(3) set Y_ 139.650216383776
+#     $node_(3) set Z_ 0.000000000000
+#     $node_(4) set X_ 101.186886005903
+#     $node_(4) set Y_ 147.993190973633
+#     $node_(4) set Z_ 0.000000000000
+#     $node_(5) set X_ 321.560825121175
+#     $node_(5) set Y_ 472.788096833600
+#     $node_(5) set Z_ 0.000000000000
+#     $node_(6) set X_ 149.543901734330
+#     $node_(6) set Y_ 384.356581531832
+#     $node_(6) set Z_ 0.000000000000
+#     $node_(7) set X_ 381.066146464027
+#     $node_(7) set Y_ 78.723958958779
+#     $node_(7) set Z_ 0.000000000000
+#     $node_(8) set X_ 113.578290026963
+#     $node_(8) set Y_ 410.320583900348
+#     $node_(8) set Z_ 0.000000000000
+#     $node_(9) set X_ 258.053977148981
+#     $node_(9) set Y_ 113.194171851670
+#     $node_(9) set Z_ 0.000000000000
     
-    # 1 ping sender
-    for {set i 0} {$i < $opt(sndr)} {incr i} {
-	set src_($i) [new Application/DiffApp/PingSender]
-	$ns_ attach-diffapp $node_([expr $i+2]) $src_($i)
-	$ns_ at [expr 0.123 * [expr 1+$i]] "$src_($i) publish"
-    }
+#     # 1 ping sender
+#     for {set i 0} {$i < $opt(sndr)} {incr i} {
+# 	set src_($i) [new Application/DiffApp/PingSender]
+# 	$ns_ attach-diffapp $node_([expr $i+2]) $src_($i)
+# 	$ns_ at [expr 0.123 * [expr 1+$i]] "$src_($i) publish"
+#     }
 
-    # 4 ping receiver
-    for {set i 0} {$i < $opt(rcvr)} {incr i} {
-	set snk_($i) [new Application/DiffApp/PingReceiver]
-	$ns_ attach-diffapp $node_([expr $opt(nn)-1 -$i]) $snk_($i)
-	$ns_ at [expr 1.1*[expr 1+$i]] "$snk_($i) subscribe"
-    }
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop).000000001 "$node_($i) reset";
-    }
-    $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"
-    $ns_ run
-}
+#     # 4 ping receiver
+#     for {set i 0} {$i < $opt(rcvr)} {incr i} {
+# 	set snk_($i) [new Application/DiffApp/PingReceiver]
+# 	$ns_ attach-diffapp $node_([expr $opt(nn)-1 -$i]) $snk_($i)
+# 	$ns_ at [expr 1.1*[expr 1+$i]] "$snk_($i) subscribe"
+#     }
+#     #
+#     # Tell nodes when the simulation ends
+#     #
+#     for {set i 0} {$i < $opt(nn) } {incr i} {
+# 	$ns_ at $opt(stop).000000001 "$node_($i) reset";
+#     }
+#     $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"
+#     $ns_ run
+# }
 
 Class Test/push-5n-1s-1r -superclass TestSuite
 
@@ -501,7 +501,7 @@ Test/push-5n-1s-1r instproc run {} {
 		 -topoInstance $topo \
 	         -diffusionFilter $opt(filters) \
 		 -agentTrace ON \
-                 -routerTrace ON \
+                 -routerTrace OFF \
                  -macTrace ON 
              
     for {set i 0} {$i < $opt(nn) } {incr i} {
@@ -552,201 +552,201 @@ Test/push-5n-1s-1r instproc run {} {
     $ns_ run
 }
 
-Class Test/push-10n-1s-4r -superclass TestSuite
+#Class Test/push-10n-1s-4r -superclass TestSuite
 
-Test/push-10n-1s-4r instproc init {} {
-    global opt
-    set opt(nn) 10
-    set opt(sndr) 1
-    set opt(rcvr) 4
-    set opt(filters) GradientFilter
-    $self instvar ns_ testName_
-    set testName_ push-10n-1s-4r
-    $self next
-}
+# Test/push-10n-1s-4r instproc init {} {
+#     global opt
+#     set opt(nn) 10
+#     set opt(sndr) 1
+#     set opt(rcvr) 4
+#     set opt(filters) GradientFilter
+#     $self instvar ns_ testName_
+#     set testName_ push-10n-1s-4r
+#     $self next
+# }
 
-Test/push-10n-1s-4r instproc run {} {
-    global opt
-    $self instvar ns_ topo god_
+# Test/push-10n-1s-4r instproc run {} {
+#     global opt
+#     $self instvar ns_ topo god_
 
-    set topo	[new Topography]
-    $topo load_flatgrid $opt(x) $opt(y)
-    set god_ [create-god $opt(nn)]
+#     set topo	[new Topography]
+#     $topo load_flatgrid $opt(x) $opt(y)
+#     set god_ [create-god $opt(nn)]
 
-    $ns_ node-config -adhocRouting $opt(adhocRouting) \
-		 -llType $opt(ll) \
-		 -macType $opt(mac) \
-		 -ifqType $opt(ifq) \
-		 -ifqLen $opt(ifqlen) \
-		 -antType $opt(ant) \
-		 -propType $opt(prop) \
-		 -phyType $opt(netif) \
-		 -channelType $opt(chan) \
-		 -topoInstance $topo \
-	         -diffusionFilter $opt(filters) \
-		 -agentTrace ON \
-                 -routerTrace ON \
-                 -macTrace ON 
+#     $ns_ node-config -adhocRouting $opt(adhocRouting) \
+# 		 -llType $opt(ll) \
+# 		 -macType $opt(mac) \
+# 		 -ifqType $opt(ifq) \
+# 		 -ifqLen $opt(ifqlen) \
+# 		 -antType $opt(ant) \
+# 		 -propType $opt(prop) \
+# 		 -phyType $opt(netif) \
+# 		 -channelType $opt(chan) \
+# 		 -topoInstance $topo \
+# 	         -diffusionFilter $opt(filters) \
+# 		 -agentTrace OFF \
+#                  -routerTrace OFF \
+#                  -macTrace ON 
              
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	set node_($i) [$ns_ node $i]
-        $node_($i) color black
-	$node_($i) random-motion 0		;# disable random motion
-        $god_ new_node $node_($i)
-    }
+#     for {set i 0} {$i < $opt(nn) } {incr i} {
+# 	set node_($i) [$ns_ node $i]
+#         $node_($i) color black
+# 	$node_($i) random-motion 0		;# disable random motion
+#         $god_ new_node $node_($i)
+#     }
 
-    # defining node positions
-    $node_(0) set X_ 18.587605569735
-    $node_(0) set Y_ 401.886827012678
-    $node_(0) set Z_ 0.000000000000
-    $node_(1) set X_ 11.901958617639
-    $node_(1) set Y_ 36.218497218617
-    $node_(1) set Z_ 0.000000000000
-    $node_(2) set X_ 224.282785411393
-    $node_(2) set Y_ 20.774608253697
-    $node_(2) set Z_ 0.000000000000
-    $node_(3) set X_ 158.840938304009
-    $node_(3) set Y_ 139.650216383776
-    $node_(3) set Z_ 0.000000000000
-    $node_(4) set X_ 101.186886005903
-    $node_(4) set Y_ 147.993190973633
-    $node_(4) set Z_ 0.000000000000
-    $node_(5) set X_ 321.560825121175
-    $node_(5) set Y_ 472.788096833600
-    $node_(5) set Z_ 0.000000000000
-    $node_(6) set X_ 149.543901734330
-    $node_(6) set Y_ 384.356581531832
-    $node_(6) set Z_ 0.000000000000
-    $node_(7) set X_ 381.066146464027
-    $node_(7) set Y_ 78.723958958779
-    $node_(7) set Z_ 0.000000000000
-    $node_(8) set X_ 113.578290026963
-    $node_(8) set Y_ 410.320583900348
-    $node_(8) set Z_ 0.000000000000
-    $node_(9) set X_ 258.053977148981
-    $node_(9) set Y_ 113.194171851670
-    $node_(9) set Z_ 0.000000000000
+#     # defining node positions
+#     $node_(0) set X_ 18.587605569735
+#     $node_(0) set Y_ 401.886827012678
+#     $node_(0) set Z_ 0.000000000000
+#     $node_(1) set X_ 11.901958617639
+#     $node_(1) set Y_ 36.218497218617
+#     $node_(1) set Z_ 0.000000000000
+#     $node_(2) set X_ 224.282785411393
+#     $node_(2) set Y_ 20.774608253697
+#     $node_(2) set Z_ 0.000000000000
+#     $node_(3) set X_ 158.840938304009
+#     $node_(3) set Y_ 139.650216383776
+#     $node_(3) set Z_ 0.000000000000
+#     $node_(4) set X_ 101.186886005903
+#     $node_(4) set Y_ 147.993190973633
+#     $node_(4) set Z_ 0.000000000000
+#     $node_(5) set X_ 321.560825121175
+#     $node_(5) set Y_ 472.788096833600
+#     $node_(5) set Z_ 0.000000000000
+#     $node_(6) set X_ 149.543901734330
+#     $node_(6) set Y_ 384.356581531832
+#     $node_(6) set Z_ 0.000000000000
+#     $node_(7) set X_ 381.066146464027
+#     $node_(7) set Y_ 78.723958958779
+#     $node_(7) set Z_ 0.000000000000
+#     $node_(8) set X_ 113.578290026963
+#     $node_(8) set Y_ 410.320583900348
+#     $node_(8) set Z_ 0.000000000000
+#     $node_(9) set X_ 258.053977148981
+#     $node_(9) set Y_ 113.194171851670
+#     $node_(9) set Z_ 0.000000000000
     
-    # 1 ping sender
-    for {set i 0} {$i < $opt(sndr)} {incr i} {
-	set src_($i) [new Application/DiffApp/PushSender]
-	$ns_ attach-diffapp $node_([expr $i+2]) $src_($i)
-	$ns_ at [expr 0.123 * [expr 1+$i]] "$src_($i) publish"
-    }
+#     # 1 ping sender
+#     for {set i 0} {$i < $opt(sndr)} {incr i} {
+# 	set src_($i) [new Application/DiffApp/PushSender]
+# 	$ns_ attach-diffapp $node_([expr $i+2]) $src_($i)
+# 	$ns_ at [expr 0.123 * [expr 1+$i]] "$src_($i) publish"
+#     }
 
-    # 4 ping receiver
-    for {set i 0} {$i < $opt(rcvr)} {incr i} {
-	set snk_($i) [new Application/DiffApp/PushReceiver]
-	$ns_ attach-diffapp $node_([expr $opt(nn)-1 -$i]) $snk_($i)
-	$ns_ at [expr 1.1*[expr 1+$i]] "$snk_($i) subscribe"
-    }
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop).000000001 "$node_($i) reset";
-    }
-    $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"
-    $ns_ run
-}
+#     # 4 ping receiver
+#     for {set i 0} {$i < $opt(rcvr)} {incr i} {
+# 	set snk_($i) [new Application/DiffApp/PushReceiver]
+# 	$ns_ attach-diffapp $node_([expr $opt(nn)-1 -$i]) $snk_($i)
+# 	$ns_ at [expr 1.1*[expr 1+$i]] "$snk_($i) subscribe"
+#     }
+#     #
+#     # Tell nodes when the simulation ends
+#     #
+#     for {set i 0} {$i < $opt(nn) } {incr i} {
+# 	$ns_ at $opt(stop).000000001 "$node_($i) reset";
+#     }
+#     $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"
+#     $ns_ run
+# }
 
-Class Test/push-10n-4s-1r -superclass TestSuite
+# Class Test/push-10n-4s-1r -superclass TestSuite
 
-Test/push-10n-4s-1r instproc init {} {
-    global opt
-    set opt(nn) 10
-    set opt(sndr) 4
-    set opt(rcvr) 1
-    set opt(filters) GradientFilter
-    $self instvar ns_ testName_
-    set testName_ push-10n-4s-1r
-    $self next
-}
+# Test/push-10n-4s-1r instproc init {} {
+#     global opt
+#     set opt(nn) 10
+#     set opt(sndr) 4
+#     set opt(rcvr) 1
+#     set opt(filters) GradientFilter
+#     $self instvar ns_ testName_
+#     set testName_ push-10n-4s-1r
+#     $self next
+# }
 
-Test/push-10n-4s-1r instproc run {} {
-    global opt
-    $self instvar ns_ topo god_
+# Test/push-10n-4s-1r instproc run {} {
+#     global opt
+#     $self instvar ns_ topo god_
 
-    set topo	[new Topography]
-    $topo load_flatgrid $opt(x) $opt(y)
-    set god_ [create-god $opt(nn)]
+#     set topo	[new Topography]
+#     $topo load_flatgrid $opt(x) $opt(y)
+#     set god_ [create-god $opt(nn)]
 
-    $ns_ node-config -adhocRouting $opt(adhocRouting) \
-		 -llType $opt(ll) \
-		 -macType $opt(mac) \
-		 -ifqType $opt(ifq) \
-		 -ifqLen $opt(ifqlen) \
-		 -antType $opt(ant) \
-		 -propType $opt(prop) \
-		 -phyType $opt(netif) \
-		 -channelType $opt(chan) \
-		 -topoInstance $topo \
-	         -diffusionFilter $opt(filters) \
-		 -agentTrace ON \
-                 -routerTrace ON \
-                 -macTrace ON 
+#     $ns_ node-config -adhocRouting $opt(adhocRouting) \
+# 		 -llType $opt(ll) \
+# 		 -macType $opt(mac) \
+# 		 -ifqType $opt(ifq) \
+# 		 -ifqLen $opt(ifqlen) \
+# 		 -antType $opt(ant) \
+# 		 -propType $opt(prop) \
+# 		 -phyType $opt(netif) \
+# 		 -channelType $opt(chan) \
+# 		 -topoInstance $topo \
+# 	         -diffusionFilter $opt(filters) \
+# 		 -agentTrace OFF \
+#                  -routerTrace OFF \
+#                  -macTrace ON 
              
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	set node_($i) [$ns_ node $i]
-        $node_($i) color black
-	$node_($i) random-motion 0		;# disable random motion
-        $god_ new_node $node_($i)
-    }
+#     for {set i 0} {$i < $opt(nn) } {incr i} {
+# 	set node_($i) [$ns_ node $i]
+#         $node_($i) color black
+# 	$node_($i) random-motion 0		;# disable random motion
+#         $god_ new_node $node_($i)
+#     }
 
-    # defining node positions
-    $node_(0) set X_ 18.587605569735
-    $node_(0) set Y_ 401.886827012678
-    $node_(0) set Z_ 0.000000000000
-    $node_(1) set X_ 11.901958617639
-    $node_(1) set Y_ 36.218497218617
-    $node_(1) set Z_ 0.000000000000
-    $node_(2) set X_ 224.282785411393
-    $node_(2) set Y_ 20.774608253697
-    $node_(2) set Z_ 0.000000000000
-    $node_(3) set X_ 158.840938304009
-    $node_(3) set Y_ 139.650216383776
-    $node_(3) set Z_ 0.000000000000
-    $node_(4) set X_ 101.186886005903
-    $node_(4) set Y_ 147.993190973633
-    $node_(4) set Z_ 0.000000000000
-    $node_(5) set X_ 321.560825121175
-    $node_(5) set Y_ 472.788096833600
-    $node_(5) set Z_ 0.000000000000
-    $node_(6) set X_ 149.543901734330
-    $node_(6) set Y_ 384.356581531832
-    $node_(6) set Z_ 0.000000000000
-    $node_(7) set X_ 381.066146464027
-    $node_(7) set Y_ 78.723958958779
-    $node_(7) set Z_ 0.000000000000
-    $node_(8) set X_ 113.578290026963
-    $node_(8) set Y_ 410.320583900348
-    $node_(8) set Z_ 0.000000000000
-    $node_(9) set X_ 258.053977148981
-    $node_(9) set Y_ 113.194171851670
-    $node_(9) set Z_ 0.000000000000
+#     # defining node positions
+#     $node_(0) set X_ 18.587605569735
+#     $node_(0) set Y_ 401.886827012678
+#     $node_(0) set Z_ 0.000000000000
+#     $node_(1) set X_ 11.901958617639
+#     $node_(1) set Y_ 36.218497218617
+#     $node_(1) set Z_ 0.000000000000
+#     $node_(2) set X_ 224.282785411393
+#     $node_(2) set Y_ 20.774608253697
+#     $node_(2) set Z_ 0.000000000000
+#     $node_(3) set X_ 158.840938304009
+#     $node_(3) set Y_ 139.650216383776
+#     $node_(3) set Z_ 0.000000000000
+#     $node_(4) set X_ 101.186886005903
+#     $node_(4) set Y_ 147.993190973633
+#     $node_(4) set Z_ 0.000000000000
+#     $node_(5) set X_ 321.560825121175
+#     $node_(5) set Y_ 472.788096833600
+#     $node_(5) set Z_ 0.000000000000
+#     $node_(6) set X_ 149.543901734330
+#     $node_(6) set Y_ 384.356581531832
+#     $node_(6) set Z_ 0.000000000000
+#     $node_(7) set X_ 381.066146464027
+#     $node_(7) set Y_ 78.723958958779
+#     $node_(7) set Z_ 0.000000000000
+#     $node_(8) set X_ 113.578290026963
+#     $node_(8) set Y_ 410.320583900348
+#     $node_(8) set Z_ 0.000000000000
+#     $node_(9) set X_ 258.053977148981
+#     $node_(9) set Y_ 113.194171851670
+#     $node_(9) set Z_ 0.000000000000
     
-    # 4 ping sender
-    for {set i 0} {$i < $opt(sndr)} {incr i} {
-	set src_($i) [new Application/DiffApp/PingSender]
-	$ns_ attach-diffapp $node_([expr $i+2]) $src_($i)
-	$ns_ at [expr 0.123 * [expr 1+$i]] "$src_($i) publish"
-    }
+#     # 4 ping sender
+#     for {set i 0} {$i < $opt(sndr)} {incr i} {
+# 	set src_($i) [new Application/DiffApp/PingSender]
+# 	$ns_ attach-diffapp $node_([expr $i+2]) $src_($i)
+# 	$ns_ at [expr 0.123 * [expr 1+$i]] "$src_($i) publish"
+#     }
 
-    # 1 ping receiver
-    for {set i 0} {$i < $opt(rcvr)} {incr i} {
-	set snk_($i) [new Application/DiffApp/PingReceiver]
-	$ns_ attach-diffapp $node_([expr $opt(nn)-1 -$i]) $snk_($i)
-	$ns_ at [expr 1.1*[expr 1+$i]] "$snk_($i) subscribe"
-    }
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop).000000001 "$node_($i) reset";
-    }
-    $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"
-    $ns_ run
-}
+#     # 1 ping receiver
+#     for {set i 0} {$i < $opt(rcvr)} {incr i} {
+# 	set snk_($i) [new Application/DiffApp/PingReceiver]
+# 	$ns_ attach-diffapp $node_([expr $opt(nn)-1 -$i]) $snk_($i)
+# 	$ns_ at [expr 1.1*[expr 1+$i]] "$snk_($i) subscribe"
+#     }
+#     #
+#     # Tell nodes when the simulation ends
+#     #
+#     for {set i 0} {$i < $opt(nn) } {incr i} {
+# 	$ns_ at $opt(stop).000000001 "$node_($i) reset";
+#     }
+#     $ns_ at  $opt(stop).000000001 "puts \"NS EXITING...\" ; $ns_ halt"
+#     $ns_ run
+# }
 
 Class Test/1pp-5n-1s-1r -superclass TestSuite
 
@@ -781,7 +781,7 @@ Test/1pp-5n-1s-1r instproc run {} {
 		 -topoInstance $topo \
 	         -diffusionFilter $opt(filters) \
 		 -agentTrace ON \
-                 -routerTrace ON \
+                 -routerTrace OFF \
                  -macTrace ON 
              
     for {set i 0} {$i < $opt(nn) } {incr i} {
@@ -863,8 +863,8 @@ Test/1pp-10n-4s-1r instproc run {} {
 		 -channelType $opt(chan) \
 		 -topoInstance $topo \
 	         -diffusionFilter $opt(filters) \
-		 -agentTrace ON \
-                 -routerTrace ON \
+		 -agentTrace OFF \
+                 -routerTrace OFF \
                  -macTrace ON 
              
     for {set i 0} {$i < $opt(nn) } {incr i} {
@@ -961,8 +961,8 @@ Test/1pp-10n-1s-4r instproc run {} {
 		 -channelType $opt(chan) \
 		 -topoInstance $topo \
 	         -diffusionFilter $opt(filters) \
-		 -agentTrace ON \
-                 -routerTrace ON \
+		 -agentTrace OFF \
+                 -routerTrace OFF \
                  -macTrace ON 
              
     for {set i 0} {$i < $opt(nn) } {incr i} {
@@ -1058,7 +1058,7 @@ Test/gear-2pp-5n-1s-1r instproc run {} {
 		 -topoInstance $topo \
 	         -diffusionFilter $opt(filters) \
 		 -agentTrace ON \
-                 -routerTrace ON \
+                 -routerTrace OFF \
                  -macTrace ON 
              
     for {set i 0} {$i < $opt(nn) } {incr i} {
@@ -1147,8 +1147,8 @@ Test/gear-2pp-10n-4s-1r instproc run {} {
 	-channelType $opt(chan) \
 	-topoInstance $topo \
 	-diffusionFilter $opt(filters) \
-	-agentTrace ON \
-	-routerTrace ON \
+	-agentTrace OFF \
+	-routerTrace OFF \
 	-macTrace ON 
     
     for {set i 0} {$i < $opt(nn) } {incr i} {
@@ -1265,8 +1265,8 @@ Test/gear-push-10n-1s-4r instproc run {} {
 	-channelType $opt(chan) \
 	-topoInstance $topo \
 	-diffusionFilter $opt(filters) \
-	-agentTrace ON \
-	-routerTrace ON \
+	-agentTrace OFF \
+	-routerTrace OFF \
 	-macTrace ON 
     
     for {set i 0} {$i < $opt(nn) } {incr i} {
