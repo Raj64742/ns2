@@ -3,7 +3,7 @@
 // geo-routing.hh  : GEAR Include File
 // author          : Yan Yu
 //
-// $Id: geo-routing.hh,v 1.6 2002/05/13 22:33:43 haldar Exp $
+// $Id: geo-routing.hh,v 1.7 2002/05/29 18:46:11 haldar Exp $
 //
 // *********************************************************
 
@@ -278,7 +278,7 @@ private:
 class GeoRoutingFilter : public DiffApp {
 public:
 #ifdef NS_DIFFUSION
-  GeoRoutingFilter();
+  GeoRoutingFilter(const char * mnode);
   int command(int argc, const char*const* argv);
 #else
   GeoRoutingFilter(int argc, char **argv);

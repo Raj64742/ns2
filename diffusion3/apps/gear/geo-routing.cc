@@ -3,7 +3,7 @@
 // geo-routing.cc : GEAR Filter
 // author         : Yan Yu
 //
-// $Id: geo-routing.cc,v 1.7 2002/05/13 22:33:43 haldar Exp $
+// $Id: geo-routing.cc,v 1.8 2002/05/29 18:46:11 haldar Exp $
 //
 // *********************************************************
 
@@ -15,7 +15,12 @@ static class GeoRoutingFilterClass : public TclClass {
 public:
   GeoRoutingFilterClass() : TclClass("Application/DiffApp/GeoRoutingFilter") {}
   TclObject * create(int argc, const char*const* argv) {
-    return(new GeoRoutingFilter());
+    if (argc == 5)
+      return(new GeoRoutingFilter(argv[4]));
+    else
+      fprintf(stderr, "Insufficient number of args for creating GeoRoutingFilter");
+    return (NULL);
+    
   }
 } class_geo_routing_filter;
 
@@ -516,7 +521,7 @@ void GeoRoutingFilter::run()
 }
 
 #ifdef NS_DIFFUSION
-GeoRoutingFilter::GeoRoutingFilter()
+GeoRoutingFilter::GeoRoutingFilter(const char *mnode)
 #else
 GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
 #endif // NS_DIFFUSION
@@ -526,6 +531,8 @@ GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
 #ifndef NS_DIFFUSION
   // Parse command line options
   parseCommandLine(argc, argv);
+#else
+  node_ = (MobileNode *)TclObject::lookup(mnode);
 #endif // !NS_DIFFUSION
 
   // Initialize a few parameters
