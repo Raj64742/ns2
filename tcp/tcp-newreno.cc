@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.35 1998/11/05 03:11:58 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.36 1998/11/05 23:27:25 tomh Exp $ (LBL)";
 #endif
 
 //
@@ -196,8 +196,10 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 			tcph->seqno() > last_ack_)) {
 			if (dupwnd_ > 0 && exit_recovery_fix_) {
 				int outstanding = maxseq_ - tcph->seqno() + 1;
-				cwnd_ = (ssthresh_ < outstanding ?
-				    ssthresh_ : outstanding);
+				if (ssthresh_ < outstanding)
+					cwnd_ = ssthresh_;
+				else
+					cwnd_ = outstanding;
 			}
 			dupwnd_ = 0;
 			firstpartial_ = 0;
