@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.106 2001/12/14 22:47:52 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.107 2002/01/01 04:36:19 sfloyd Exp $
 
 try () {
 	echo "*** $1"
@@ -52,7 +52,7 @@ wireless-shadowing wireless-lan-aodv wireless-tdma wireless-gridkeeper \
 wireless-diffusion wireless-lan-newnode satellite WLtutorial energy \
 v1 red-v1 cbq-v1 sack-v1 vegas-v1 source-routing snoop diffusion3
 # wireless-lan-gaf
-# pi
+# pi vq rem gk
 
 do
 	try ./test-all-$i
