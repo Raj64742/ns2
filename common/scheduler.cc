@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.70 2002/08/02 01:35:20 yuri Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.71 2003/03/04 01:15:42 yuri Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.70 2002/08/02 01:35:20 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.71 2003/03/04 01:15:42 yuri Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -862,7 +862,7 @@ double
 CalendarScheduler::newwidth(int newsize)
 {
 	int i;
-	short max_bucket = 0; // index of the fullest bucket
+	int max_bucket = 0; // index of the fullest bucket
 	for (i = 1; i < nbuckets_; ++i) {
 		if (buckets_[i].count_ > buckets_[max_bucket].count_)
 			max_bucket = i;
