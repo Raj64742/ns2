@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.8 1997/03/29 01:43:06 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.9 1997/05/21 22:11:49 tomh Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -100,6 +100,11 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 				reset_rtx_timer(1);
 				output(last_ack_ + 1, TCP_REASON_DUPACK);
                         }
+            /* the line below applies for NUMDUPACKS when
+             * bug_fix_ is true, we are not out of Fast
+             * Recovery, and the last Fast Recovery was
+             * followed by a retransmit timeout.  */
+//            else dupacks_ = 0;
 			dupwnd_ = NUMDUPACKS;
 		} else if (dupacks_ > NUMDUPACKS)
 			++dupwnd_;
