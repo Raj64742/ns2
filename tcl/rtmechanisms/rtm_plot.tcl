@@ -414,7 +414,7 @@ PostProcess instproc create_bytes_graph { graphtitle in out bandwidth } {
         set tmpfile /tmp/fg1[pid]
 	# print: time class bytes interval
 	set awkCode {
-		{ printf "%4d %8d %16d $4d\n", $4, $2, $6, $7; }
+		{ printf "%4d %8d %16d %4d\n", $4, $2, $6, $7; }
 	}
 
 	puts "removing graph file: $out"
