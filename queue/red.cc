@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.44 1999/11/20 05:08:46 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.45 1999/12/04 16:25:01 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -240,12 +240,14 @@ int
 REDQueue::drop_early(Packet* pkt)
 {
 	double p;
+	int no_ecn = 0;
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 
 	if (edp_.gentle && edv_.v_ave >= edp_.th_max) {
 		// p ranges from max_p to 1 as the average queue
 		// size ranges from th_max to twice th_max 
 		p = edv_.v_c * edv_.v_ave + edv_.v_d;
+		no_ecn = 1;
 	} else {
 		// p ranges from 0 to max_p as the average queue
 		// size ranges from th_min to th_max 
@@ -285,7 +287,7 @@ REDQueue::drop_early(Packet* pkt)
 		edv_.count = 0;
 		edv_.count_bytes = 0;
 		hdr_flags* hf = (hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
-		if (edp_.setbit && hf->ect()) {
+		if (edp_.setbit && hf->ect() && no_ecn==0) {
 			hf->ce() = 1; 	// mark Congestion Experienced bit
 			return (0);	// no drop
 		} else {
