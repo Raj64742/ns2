@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.4 1997/08/25 04:04:41 breslau Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.5 1997/09/11 00:46:50 kannan Exp $
 #
 
 #Code to generate random numbers here
@@ -43,7 +43,7 @@ proc uniform {a b} {
 }
 
 proc integer k {
-    expr [ns-random] % abk($k)
+    expr [ns-random] % abs($k)
 }
 
 RNG instproc uniform {a b} {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.21 1997/09/10 17:33:17 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.22 1997/09/11 00:46:48 kannan Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -282,8 +282,8 @@ SimpleLink instproc attach-monitors { insnoop outsnoop dropsnoop qmon } {
 	$queue_ target $snoopOut_
 
 	set nxt [$drophead_ target]
-	$drophead_ target $dsnoop
-	$dsnoop target $nxt
+	$drophead_ target $snoopDrop_
+	$snoopDrop_ target $nxt
 
 #	if [info exists drpT_] {
 #		$snoopDrop_ target [$drpT_ target]
