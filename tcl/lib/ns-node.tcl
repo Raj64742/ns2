@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.65 1999/10/25 21:53:22 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.66 1999/10/29 02:15:50 klan Exp $
 #
 
 # for MobileIP
@@ -250,13 +250,13 @@ Node instproc add-route { dst target } {
 	$self incr-rtgtable-size
 }
 
-# Node instproc get-nam-traceall {args} {
-#
-#  $self instvar namtraceFile_
-#  set file [lindex $args 0]
-#  set namtraceFile_ $file
-#
-# }
+Node instproc get-nam-traceall {args} {
+
+  $self instvar namtraceFile_
+  set file [lindex $args 0]
+  set namtraceFile_ $file
+
+}
 
 
 Node instproc id {} {
@@ -860,6 +860,7 @@ Node instproc add-target-NewMobile {agent port} {
 	    } else {
 		set sndT [cmu-trace Send "RTR" $self]
 	    }
+
             if { $newapi == "ON" } {
                  $agent target $imep_(0)
                  $imep_(0) sendtarget $sndT
@@ -1009,7 +1010,6 @@ Node instproc add-interface { channel pmodel \
 
             set drpT [$ns_ mobility-trace Drop "RTR" $self]
             $imep drop-target $drpT
-
             $ns_ at 0.[$self id] "$imep_($t) start"     ;# start beacon timer
         }
 
@@ -1164,7 +1164,6 @@ Node instproc agenttrace {tracefd} {
     #
     set drpT [$ns_ mobility-trace Drop "RTR" $self]
     $ragent drop-target $drpT
-    
     #
     # Log Target
     #
@@ -1183,7 +1182,7 @@ Node instproc agenttrace {tracefd} {
        [$self set imep_(0)] log-target $T
     }
 
-#    $drpT namattach $namtraceFile_
+    $drpT namattach $namtraceFile_
 }
 
 Node instproc nodetrace { tracefd } {

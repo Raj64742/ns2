@@ -154,6 +154,7 @@ Node/MobileNode instproc makemip-NewMIPMH {} {
 }
 
 Node/MobileNode instproc attach-encap {} {
+
     $self instvar encap_ address_ 
     
     set encap_ [new MIPEncapsulator]
@@ -222,7 +223,7 @@ Node/MobileNode instproc add-target {agent port } {
     #global opt
     $self instvar dmux_ classifier_
     $self instvar imep_ toraDebug_
-#    $self instvar namtraceFile_ 
+    $self instvar namtraceFile_ 
  
     set ns_ [Simulator instance]
 
@@ -290,7 +291,6 @@ Node/MobileNode instproc add-target {agent port } {
 	    } else {
 		 set rcvT [cmu-trace Recv "RTR" $self]
 	    }
-
             if {$newapi == "ON" } {
             #    puts "Hacked for tora20 runs!! No RTR revc trace"
                 [$self set ll_(0)] up-target $imep_(0)
@@ -391,9 +391,11 @@ Node/MobileNode instproc add-target {agent port } {
 		
 	    } else {
 		set sndT [cmu-trace Send AGT $self]
-	    }
+            }
 
-#            $sndT namattach $namtraceFile_
+            if [info exists namtraceFile_]  {
+                $sndT namattach $namtraceFile_
+            }
 
 	    $sndT target [$self entry]
 	    $agent target $sndT
@@ -406,7 +408,10 @@ Node/MobileNode instproc add-target {agent port } {
 	    } else {
 		set rcvT [cmu-trace Recv AGT $self]
 	    }
-#	    $rcvT namattach $namtraceFile_
+
+            if [info exists namtraceFile_]  {
+	       $rcvT namattach $namtraceFile_
+	    }
 
 	    $rcvT target $agent
 	    $dmux_ install $port $rcvT
@@ -447,11 +452,10 @@ Node/MobileNode instproc setPr { val } {
 #
 Node/MobileNode instproc add-interface { channel pmodel \
 		lltype mactype qtype qlen iftype anttype} {
-
 	$self instvar arptable_ nifs_
 	$self instvar netif_ mac_ ifq_ ll_
 	$self instvar imep_
-#	$self instvar namtraceFile_
+	$self instvar namtraceFile_
 	
 	#global ns_ opt
 	#set MacTrace [Simulator set MacTrace_]
@@ -476,7 +480,6 @@ Node/MobileNode instproc add-interface { channel pmodel \
 
             set drpT [$ns_ mobility-trace Drop "RTR" $self]
             $imep drop-target $drpT
-
             $ns_ at 0.[$self id] "$imep_($t) start"     ;# start beacon timer
         }
 
@@ -505,7 +508,10 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    
 	    $arptable_ drop-target $drpT
 
-#	    $drpT namattach $namtraceFile_
+            if [info exists namtraceFile_] {
+	       $drpT namattach $namtraceFile_
+	    }
+
         }
 
 	#
@@ -538,7 +544,10 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    set drpT [cmu-trace Drop "IFQ" $self]
         }
 	$ifq drop-target $drpT
-#        $drpT namattach $namtraceFile_
+
+        if  [info exists namtraceFile_]  {
+           $drpT namattach $namtraceFile_
+	}
  
 	#
 	# Mac Layer
@@ -623,7 +632,6 @@ Node/MobileNode instproc add-interface { channel pmodel \
 }
 
 Node/MobileNode instproc nodetrace { tracefd } {
-
     set ns_ [Simulator instance]
     #
     # This Trace Target is used to log changes in direction
@@ -638,7 +646,7 @@ Node/MobileNode instproc nodetrace { tracefd } {
 }
 
 Node/MobileNode instproc agenttrace {tracefd} {
-#    $self instvar namtraceFile_
+    $self instvar namtraceFile_
  
     set ns_ [Simulator instance]
     
@@ -649,8 +657,12 @@ Node/MobileNode instproc agenttrace {tracefd} {
     # Drop Target (always on regardless of other tracing)
     #
     set drpT [$ns_ mobility-trace Drop "RTR" $self]
-    $ragent drop-target $drpT
 
+    if [info exists namtraceFile_] {
+       $drpT namattach $namtraceFile_
+    }
+
+    $ragent drop-target $drpT
     #
     # Log Target
     #
@@ -669,7 +681,6 @@ Node/MobileNode instproc agenttrace {tracefd} {
        [$self set imep_(0)] log-target $T
     }
 
-#    $drpT namattach $namtraceFile_
 }
 
 ## method to remove an entry from the hier classifiers
@@ -750,7 +761,6 @@ SRNodeNew instproc init {args} {
     #
     #set drpT [$ns_ mobility-trace Drop "RTR" $self]
     #$dsr_agent_ drop-target $drpT
-
     #
     # Log Target
     #
