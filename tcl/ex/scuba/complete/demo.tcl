@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/complete/demo.tcl,v 1.3 1997/11/29 05:42:53 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/complete/demo.tcl,v 1.4 1997/11/29 07:11:00 elan Exp $
 #
 
 set tcldir ../../../
@@ -186,7 +186,7 @@ $ns at 5.0 "trace_annotate {End}"
 
 set scuba_sim_time 5.5
 $ns at $scuba_sim_time "scuba_sim $scuba_sim_time"
-$ns at [expr $scuba_sim_time + 4.2] "finish"
+$ns at [expr $scuba_sim_time + 4.7] "finish"
 
 proc scuba_sim { start } {
 	global ns sess node sessbw
@@ -253,6 +253,17 @@ proc scuba_sim { start } {
 	$ns at [expr $start+3.0] "[$sess(5) set repAgent_] set class_ 4"
 	$ns at [expr $start+3.0] "$sess(5) scuba_unfocus $sess(0)"
 	$ns at [expr $start+3.05] "[$sess(5) set repAgent_] set class_ 33"
+
+	# 4,5 unfocus on 1,0  and focus on 2
+	flash_annotate [expr $start+3.5] 0.1 "4,5 unfocussing off 1,0 and focus on 2..."
+	$ns at [expr $start+3.5] "[$sess(5) set repAgent_] set class_ 4"
+	$ns at [expr $start+3.5] "[$sess(4) set repAgent_] set class_ 4"
+	$ns at [expr $start+3.5] "$sess(5) scuba_unfocus $sess(1)"
+	$ns at [expr $start+3.5] "$sess(4) scuba_unfocus $sess(0)"
+	$ns at [expr $start+3.5] "$sess(5) scuba_focus $sess(2)"
+	$ns at [expr $start+3.5] "$sess(4) scuba_focus $sess(2)"
+	$ns at [expr $start+3.55] "[$sess(5) set repAgent_] set class_ 33"
+	$ns at [expr $start+3.55] "[$sess(4) set repAgent_] set class_ 33"
 }
 
 proc finish {} {
