@@ -2840,9 +2840,11 @@ EOF
 fi
 
 
+NS_PACKAGE_tcldebug_VALID=false
 if $NS_PACKAGE_tcldebug_PARTIAL; then
 	if $NS_PACKAGE_tcldebug_COMPLETE; then
 		: All components of tcldebug found.
+		NS_PACKAGE_tcldebug_VALID=true
 	else
 		{ echo "configure: error: Installation of tcldebug seems incomplete.
 Please correct the problem or re-run with --with-tcldebug=no." 1>&2; exit 1; }
@@ -2878,7 +2880,7 @@ NS_PACKAGE_dmalloc_COMPLETE=true
 
 
 echo $ac_n "checking for libdmalloc""... $ac_c" 1>&6
-echo "configure:2882: checking for libdmalloc" >&5
+echo "configure:2884: checking for libdmalloc" >&5
 if test "x$d" = "xno"; then
 	: disable library
 	V_LIB_DMALLOC=FAIL
@@ -2927,7 +2929,7 @@ fi
 
 
 echo $ac_n "checking for dmalloc.h""... $ac_c" 1>&6
-echo "configure:2931: checking for dmalloc.h" >&5
+echo "configure:2933: checking for dmalloc.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_HEADER_DMALLOC=FAIL
@@ -2972,7 +2974,7 @@ fi
 
 
 echo $ac_n "checking for return.h""... $ac_c" 1>&6
-echo "configure:2976: checking for return.h" >&5
+echo "configure:2978: checking for return.h" >&5
 if test "x$d" = "xno"; then
 	: disable header
 	V_HEADER_RETURN=FAIL
@@ -3016,9 +3018,11 @@ EOF
 fi
 
 
+NS_PACKAGE_dmalloc_VALID=false
 if $NS_PACKAGE_dmalloc_PARTIAL; then
 	if $NS_PACKAGE_dmalloc_COMPLETE; then
 		: All components of dmalloc found.
+		NS_PACKAGE_dmalloc_VALID=true
 	else
 		{ echo "configure: error: Installation of dmalloc seems incomplete.
 Please correct the problem or re-run with --with-dmalloc=no." 1>&2; exit 1; }
@@ -3026,6 +3030,7 @@ Please correct the problem or re-run with --with-dmalloc=no." 1>&2; exit 1; }
 fi
 NS_PACKAGE_dmalloc_PARTIAL=false
 NS_PACKAGE_dmalloc_COMPLETE=true
+
 
 
 
@@ -3052,6 +3057,7 @@ if test "$host_cpu" = alpha ; then
 EOF
 
 fi
+
 
 
 
@@ -3094,7 +3100,7 @@ if test ! -z "$V_NEED_DL" ; then
 		;;
 	*-*-linux*)
 		echo $ac_n "checking for dlopen in -ldl""... $ac_c" 1>&6
-echo "configure:3098: checking for dlopen in -ldl" >&5
+echo "configure:3104: checking for dlopen in -ldl" >&5
 ac_lib_var=`echo dl'_'dlopen | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3102,7 +3108,7 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-ldl  $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3106 "configure"
+#line 3112 "configure"
 #include "confdefs.h"
 /* Override any gcc2 internal prototype to avoid an error.  */
 /* We use char because int might match the return type of a gcc2
@@ -3113,7 +3119,7 @@ int main() {
 dlopen()
 ; return 0; }
 EOF
-if { (eval echo configure:3117: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:3123: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3142,7 +3148,7 @@ fi
 			;;
 		*)
 			echo $ac_n "checking for main in -l$V_LIB_DL""... $ac_c" 1>&6
-echo "configure:3146: checking for main in -l$V_LIB_DL" >&5
+echo "configure:3152: checking for main in -l$V_LIB_DL" >&5
 ac_lib_var=`echo $V_LIB_DL'_'main | sed 'y%./+-%__p_%'`
 if eval "test \"`echo '$''{'ac_cv_lib_$ac_lib_var'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3150,14 +3156,14 @@ else
   ac_save_LIBS="$LIBS"
 LIBS="-l$V_LIB_DL $V_STATIC $LIBS"
 cat > conftest.$ac_ext <<EOF
-#line 3154 "configure"
+#line 3160 "configure"
 #include "confdefs.h"
 
 int main() {
 main()
 ; return 0; }
 EOF
-if { (eval echo configure:3161: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
+if { (eval echo configure:3167: \"$ac_link\") 1>&5; (eval $ac_link) 2>&5; } && test -s conftest; then
   rm -rf conftest*
   eval "ac_cv_lib_$ac_lib_var=yes"
 else
@@ -3248,7 +3254,7 @@ V_TAR_TARGET=$target_os
 # SVR4 /usr/ucb/install, which tries to use the nonexistent group "staff"
 # ./install, which can be erroneously created by make from ./install.sh.
 echo $ac_n "checking for a BSD compatible install""... $ac_c" 1>&6
-echo "configure:3252: checking for a BSD compatible install" >&5
+echo "configure:3258: checking for a BSD compatible install" >&5
 if test -z "$INSTALL"; then
 if eval "test \"`echo '$''{'ac_cv_path_install'+set}'`\" = set"; then
   echo $ac_n "(cached) $ac_c" 1>&6
@@ -3478,6 +3484,7 @@ s%@V_LIB_X11@%$V_LIB_X11%g
 s%@V_INCLUDES@%$V_INCLUDES%g
 s%@V_LIBS@%$V_LIBS%g
 s%@V_DEFINES@%$V_DEFINES%g
+s%@V_OBJS@%$V_OBJS%g
 s%@V_STATIC@%$V_STATIC%g
 s%@V_TAR_TARGET@%$V_TAR_TARGET%g
 s%@V_ALL@%$V_ALL%g
