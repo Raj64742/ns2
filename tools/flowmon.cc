@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.9 1997/07/31 18:33:36 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.10 1997/08/11 20:49:03 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -265,7 +265,7 @@ FlowMon::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "flows") == 0) {
-			tcl.resultf("%s", flow_list());
+			tcl.result(flow_list());
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
