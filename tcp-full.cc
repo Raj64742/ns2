@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.64 1998/08/03 23:29:33 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.65 1998/08/04 01:28:28 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -576,6 +576,7 @@ send:
 
 	syn = (pflags & TH_SYN) ? 1 : 0;
 	int fin = (pflags & TH_FIN) ? 1 : 0;
+	int sentfin = (flags_ & TF_SENTFIN);
 
 	/*
 	 * SYNs and FINs each use up one sequence number, but
@@ -583,11 +584,9 @@ send:
          * If resending a FIN, be sure not to use a new sequence number.
 	 */
 
-	if (fin) {
-		if ((flags_ & TF_SENTFIN) && (seqno == maxseq_))
-			--t_seqno_;
-		flags_ |= TF_SENTFIN;
-	}
+//if (fin)
+//printf("%f %s: FIN.. seq:%d, maxseq:%d\n",
+//now(), name(), seqno, int(maxseq_));
 
 	sendpacket(seqno, rcv_nxt_, pflags, datalen, reason);
 
@@ -611,8 +610,16 @@ send:
 	if (cong_action_ && reliable > 0)
 		cong_action_ = FALSE;
 
-	if (seqno == t_seqno_)
-		t_seqno_ += reliable;	// update snd_nxt (t_seqno_)
+	if ((!fin || !sentfin) && seqno == t_seqno_)
+		t_seqno_ += reliable;
+
+	if (fin)
+		flags_ |= TF_SENTFIN;
+
+#ifdef notdef
+if (!fin && seqno == t_seqno_) || (flags_ & TF_SENTFIN
+	t_seqno_ += reliable;	// update snd_nxt (t_seqno_)
+#endif
 
 	// highest: greatest sequence number sent + 1
 	//	and adjusted for SYNs and FINs which use up one number
@@ -2273,6 +2280,8 @@ FullTcpAgent::dooptions(Packet* pkt)
 
 void FullTcpAgent::newstate(int ns)
 {
+//printf("%f %s: newstate (%d)->(%d)\n",
+//now(), name(), state_, ns);
 	state_ = ns;
 }
 
