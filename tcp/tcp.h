@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.36 1998/01/21 21:28:48 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.37 1998/02/12 03:46:09 padmanab Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -239,7 +239,7 @@ protected:
 		burstsnd_timer_.force_cancel();
 		delsnd_timer_.force_cancel();
 	}
-	void cancel_rtx_timer() {
+	virtual void cancel_rtx_timer() {
 		rtx_timer_.force_cancel();
 	}
 	virtual void set_rtx_timer();
