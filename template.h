@@ -32,12 +32,22 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/template.h,v 1.3 1997/07/23 03:17:15 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/template.h,v 1.4 1997/08/12 09:08:32 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_template_h
 #define ns_template_h
 
+
+#ifdef WIN32
+#define swap(a,b)	\
+do {			\
+	int tmp = a;	\
+	a = b;		\
+	b = tmp;	\
+} while (0)
+
+#else
 
 template <class Type1, class Type2>
 inline Type1 min(Type1 a, Type2 b)
@@ -65,4 +75,5 @@ inline void swap(Type& a, Type& b)
 	b = t;
 }
 
+#endif /* WIN32 */
 #endif
