@@ -73,6 +73,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	 NoFeedbacktimer_(this), rate_(0), oldrate_(0), maxrate_(0)
 {
 	bind("packetSize_", &size_);
+	bind("rate_", &rate_);
 	bind("df_", &df_);
 	bind("tcp_tick_", &tcp_tick_);
 	bind("ndatapack_", &ndatapack_);

@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.248 2001/06/16 17:46:50 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.249 2001/06/17 04:56:56 sfloyd Exp $
 
 
 #
@@ -748,6 +748,7 @@ Agent/TCP/RFC793edu set syn_               true
 Agent/TCP/RFC793edu set add793exponinc_    false
 
 Agent/TFRC set packetSize_ 1000 
+Agent/TFRC set rate_ 0 
 Agent/TFRC set df_ 0.95 ;	# decay factor for accurate RTT estimate
 Agent/TFRC set tcp_tick_ 0.1 ;	
 Agent/TFRC set ndatapack_ 0 ;	# Number of packets sent
