@@ -38,6 +38,8 @@
 #
 #             example: ./ModelGen tracefile 1000 128.9
 #
+# Note that current it's only tested on Linux system
+#
 # This work is supported by DARPA through SAMAN Project
 # (http://www.isi.edu/saman/), administered by the Space and Naval
 # Warfare System Center San Diego under Contract No. N66001-00-C-8066
@@ -47,11 +49,11 @@
 
 date
 echo "***  parsing tcpdump file  ***"
-#tcpdump -n -tt -q -r $1  > $1.all
-#tcpdump -n -tt -r $1 tcp port 80 > $1.www
-#tcpdump -n -tt -r $1 port ftp or port ftp-data > $1.ftp
-#tcpdump -n -tt -r $1 port domain > $1.dns
-#tcpdump -n -tt -r $1 tcp src port 80 > $1.http-srv
+./tcpdump -n -tt -q -r $1  > $1.all
+./tcpdump -n -tt -r $1 tcp port 80 > $1.www
+./tcpdump -n -tt -r $1 port ftp or port ftp-data > $1.ftp
+./tcpdump -n -tt -r $1 port domain > $1.dns
+./tcpdump -n -tt -r $1 tcp src port 80 > $1.http-srv
 
 date
 echo "***  analyze traffic mix  ***"
@@ -66,7 +68,7 @@ echo "DNS"
 
 date
 echo "WWW"
-#cat $1.www | io.www.pl -s $3  -w $1.www
+cat $1.www | io.www.pl -s $3  -w $1.www
 cat $1.http-srv | io.www.pl -s $3  -w $1.http-srv
 
 date
