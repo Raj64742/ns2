@@ -1010,7 +1010,7 @@ struct hdr_ip *ih = HDR_IP(p);
    ch->direction() = hdr_cmn::DOWN;       //important: change the packet's direction
  }
  else { // if it is a broadcast packet
-   assert(ch->ptype() == PT_AODV);
+   // assert(ch->ptype() == PT_AODV); // maybe a diff pkt type like gaf
    assert(ih->daddr() == (nsaddr_t) IP_BROADCAST);
    ch->addr_type() = NS_AF_NONE;
    ch->direction() = hdr_cmn::DOWN;       //important: change the packet's direction
