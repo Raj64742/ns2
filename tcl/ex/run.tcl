@@ -1,7 +1,7 @@
 # ======================================================================
 # Default Script Options
 # ======================================================================
-set opt(chan)		newChannel
+set opt(chan)		newChannel/WirelessChannel
 set opt(prop)		Propagation/TwoRayGround
 #set opt(netif)		NetIf/SharedMedia
 set opt(netif)		Phy/WirelessPhy
@@ -19,10 +19,10 @@ set opt(sc)		""		;# scenario file
 set opt(ifqlen)		50		;# max packet in ifq
 set opt(nn)		50		;# number of nodes
 set opt(seed)		0.0
-set opt(stop)		900.0		;# simulation time
+set opt(stop)		10.0		;# simulation time
 set opt(tr)		out.tr		;# trace file
-set opt(rp)             dsdv            ;# routing protocol script
-set opt(lm)             "off"           ;# log movement
+set opt(rp)             dsr            ;# routing protocol script
+set opt(lm)             "on"           ;# log movement
 
 # ======================================================================
 
@@ -123,7 +123,7 @@ proc log-movement {} {
     global logtimer ns_ ns
 
     set ns $ns_
-    source tcl/ex/timer.tcl
+    source timer.tcl
     Class LogTimer -superclass Timer
     LogTimer instproc timeout {} {
 	global opt node_;
@@ -145,10 +145,10 @@ getopt $argc $argv
 #
 # Source External TCL Scripts
 #
-#source cmu/scripts/mobile_node.tcl
+source ../lib/ns-mobilenode.tcl
 
 #if { $opt(rp) != "" } {
- #       source $opt(rp)
+	source ../mobility/$opt(rp).tcl
 #} elseif { [catch { set env(NS_PROTO_SCRIPT) } ] == 1 } {
 	#puts "\nenvironment variable NS_PROTO_SCRIPT not set!\n"
 	#exit
@@ -156,7 +156,7 @@ getopt $argc $argv
 	#puts "\n*** using script $env(NS_PROTO_SCRIPT)\n\n";
         #source $env(NS_PROTO_SCRIPT)
 #}
-#source cmu/scripts/cmu-trace.tcl
+source ../lib/ns-cmutrace.tcl
 
 # do the get opt again incase the routing protocol file added some more
 # options to look for
@@ -225,6 +225,7 @@ if { $opt(cp) == "" } {
 	puts "*** NOTE: no connection pattern specified."
         set opt(cp) "none"
 } else {
+	puts "Loading connection pattern..."
 	source $opt(cp)
 }
 

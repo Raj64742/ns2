@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.22 1998/12/08 23:43:14 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.23 1998/12/12 02:06:54 haldar Exp $
 #
 #
 # set up the packet format for the simulation
@@ -50,30 +50,35 @@ foreach cl [PacketHeader info subclass] {
 }
 
 foreach pair {
-		{ Common off_cmn_ }
-		{ Mac off_mac_ }
-		{ LL off_ll_ }
-		{ Snoop off_snoop_ }
-		{ IP off_ip_ }
-		{ TCP off_tcp_ }
-		{ TCPA off_tcpasym_ }
-		{ Flags off_flags_ }
-		{ RTP off_rtp_ } 
-		{ Message off_msg_ }
-                { IVS off_ivs_ }
-                { rtProtoDV off_DV_ }
-	        { CtrMcast off_CtrMcast_ }
-                { mcastCtrl off_mcast_ctrl_ }
-	        { aSRM off_asrm_ }
-		{ SRM off_srm_ }
-                { SRMEXT off_srm_ext_}
-                { Resv off_resv_}
-		{ HttpInval off_inv_}
-		{ RTP/TFCC off_tfcc }
-		{ MFTP off_mftp_ }
-		{ newMac off_newmac_ }
-		{ newLL off_newll_ }
-	} {
+	{ Common off_cmn_ }
+	{ Mac off_mac_ }
+	{ LL off_ll_ }
+	{ ARP off_arp_ }
+	{ Snoop off_snoop_ }
+	{ SR off_SR_ }
+	{ IP off_ip_ }
+	{ TCP off_tcp_ }
+	{ TCPA off_tcpasym_ }
+	{ Flags off_flags_ }
+	{ TORA off_TORA_ }
+	{ AODV off_AODV_ }
+	{ IMEP off_IMEP_ }
+	{ RTP off_rtp_ } 
+	{ Message off_msg_ }
+	{ IVS off_ivs_ }
+	{ rtProtoDV off_DV_ }
+	{ CtrMcast off_CtrMcast_ }
+	{ mcastCtrl off_mcast_ctrl_ }
+	{ aSRM off_asrm_ }
+	{ SRM off_srm_ }
+	{ SRMEXT off_srm_ext_}
+	{ Resv off_resv_}
+	{ HttpInval off_inv_}
+	{ RTP/TFCC off_tfcc }
+	{ MFTP off_mftp_ }
+	{ newMac off_newmac_ }
+	{ newLL off_newll_ }
+} {
 	set cl PacketHeader/[lindex $pair 0]
 	set var [lindex $pair 1]
 	PacketHeaderManager set vartab_($cl) $var

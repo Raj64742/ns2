@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.132 1998/12/08 23:43:12 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.133 1998/12/12 02:06:53 haldar Exp $
 
 #
 
@@ -142,6 +142,11 @@ source ../emulate/ns-emulate.tcl
 
 Simulator instproc init args {
 	$self create_packetformat
+
+	#the calendar scheduler doesn't work on big mobile network runs
+	#it dies around 240 secs...
+	#$self use-scheduler List
+
 	$self use-scheduler Calendar
 	$self set nullAgent_ [new Agent/Null]
 	$self set-address-format def
