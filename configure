@@ -2100,7 +2100,7 @@ else
 fi
 
 
-TclCL_VERS=1.0b2
+TclCL_VERS=1.0b3
 TclCL_ALT_VERS=1.0
 
 TclCL_H_PLACES="\
