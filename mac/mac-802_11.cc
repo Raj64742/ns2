@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.13 1998/01/24 04:09:58 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.14 1998/03/17 03:47:31 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -86,12 +86,7 @@ int Mac802_11::command(int argc, const char*const* argv)
 {
 	if (argc == 3) {
 		if (strcmp(argv[1], "mode") == 0) {
-			if (strcmp(argv[2], "DCF") == 0)
-				mode_ = MM_DCF;
-			else if (strcmp(argv[2], "RTS_CTS") == 0)
-				mode_ = MM_RTS_CTS;
-			else if (strcmp(argv[2], "PCF") == 0)
-				mode_ = MM_PCF;
+			mode_ = STR2MM(argv[2]);
 			return (TCL_OK);
 		}
 	}
@@ -122,7 +117,7 @@ void Mac802_11::transmit(Packet* p, double ifs)
 	}
 	pktTx_ = p;
 	ifs_ = ifs;
-	double delay = channel_->txstop() + ifs_ - s.clock();
+	double delay = channel_->txstop() + ifs - s.clock();
 	if (delay > 0)
 		s.schedule(&hSend_, p, delay);
 	else
@@ -151,6 +146,8 @@ void Mac802_11::RtsCts_recv(Packet* p)
 	// process received packets
 	switch(mh->ftype()) {
 	case MF_RTS:
+		if (state_ != MAC_IDLE)	// XXX must be IDLE to send CTS
+			break;
 		if (eIdle_.uid_ > 0)
 			s.cancel(&eIdle_);
 		sendCts(p);
@@ -263,8 +260,8 @@ void Mac802_11::sendRts()
 	}
 
 	if (++rtxRts_ > rtxRtsLimit_) {
-//		resume(pkt_);
-		sendData();
+		resume(pkt_);
+		// sendData();
 		return;
 	}
 	Packet* p = pkt_->copy();

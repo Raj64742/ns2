@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.h,v 1.7 1998/01/13 03:30:13 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.h,v 1.8 1998/03/17 03:47:30 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_mac_802_11_h
@@ -41,15 +41,13 @@
 #include "mac-csma.h"
 
 
-/*
-// IEEE 802.11 MAC
-*/
-
 enum MacMode {
 	MM_DCF,			// Distributed Coordination Mode
 	MM_RTS_CTS,		// DCF with RCS/CTS option
 	MM_PCF,			// Point Coordination Mode
 };
+
+#define STR2MM(s) (!strcmp(s,"MM_PCF") ? MM_PCF : (!strcmp(s,"MM_DCF") ? MM_DCF : MM_RTS_CTS))
 
 
 class Mac802_11;
