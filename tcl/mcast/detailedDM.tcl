@@ -215,17 +215,36 @@ detailedDM instproc change-rpf { rep src grp oldrpf newrpf } {
 }
 
 detailedDM instproc change-iif { rep src grp newiif newrpf } {
-	$self instvar iif_ RPF_ Node PruneTimer_
+	$self instvar iif_ RPF_ Node PruneTimer_ ns
 	# remove the new iif from the oiflist
 	$rep disable [$Node label2iface $newiif]
-	# add the old iif to the oiflist
-	$rep insert [$Node label2iface $iif_($src)]
-	# prune off the old nbr, and graft the new nbr
-	$self send-prune $src $grp
+	# schedule to add the old iif to the oiflist
+	# check if the link is down first
+	$ns instvar link_
+	set id [$Node id]
+	set nbr [[$Node ifaceGetNode $iif_($src)] id]
+	set link $link_($id:$nbr)
+	if { [$link up?] == "up" } {
+	  set oldiif $iif_($src)
+	  $rep disable [$Node label2iface $oldiif]
+	  if ![info exists PruneTimer_($src:$grp:$oldiif)] {
+	    set PruneTimer_($src:$grp:$oldiif) \
+		[new Prune/Iface/Timer $self $src $grp $oldiif]
+	  }
+	  $PruneTimer_($src:$grp:$oldiif) schedule
+	  # prune off the old nbr
+	  if [$rep is-active] {
+	    $self send-prune $src $grp
+	  }
+	} 
+
 	$rep change-iface $src $grp $iif_($src) $newiif
 	set iif_($src) $newiif
 	set RPF_($src:$grp) $newrpf
-	$self send-graft $src $grp
+	# if we have active cache then graft the new nbr
+	if [$rep is-active] {
+		$self send-graft $src $grp
+	}
 	# destroy the prune timer for the new iif
 	if [info exists PruneTimer_($src:$grp:$newiif)] {
 		$PruneTimer_($src:$grp:$newiif) cancel
@@ -313,6 +332,10 @@ detailedDM instproc recv-prune { src grp from msg } {
 		  $self send-join $src $grp
 	  }
 	  return 1		
+	}
+	# drop prunes to you on iif
+	if { $iif_($src) == $ifaceLabel } {
+		return 0
 	}
 	$ns instvar link_
 	if { [detailedDM getLinkType $link_($id:$from)] == "lan" } {
@@ -521,9 +544,14 @@ detailedDM instproc timeoutPrune { oif src grp } {
 	if { $r == "" } {
 		return -1
 	}
+
+	# debugging
+	global ns
+
 	set oifObj [$Node label2iface $oif]
 	$r insert $oifObj
 	if [info exists PruneTimer_($src:$grp:$oif)] {
+		$PruneTimer_($src:$grp:$oif) cancel
 		delete $PruneTimer_($src:$grp:$oif)
 		unset PruneTimer_($src:$grp:$oif)
 	}
@@ -559,8 +587,6 @@ detailedDM instproc stop {} {
 }
 
 ###############################################
-
-source ../ex/timer.tcl
 
 Class GraftRtx/Timer -superclass Timer
 
