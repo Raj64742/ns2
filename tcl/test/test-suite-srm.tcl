@@ -118,16 +118,22 @@ Topology/star8 instproc init ns {
 }
 
 TestSuite instproc finish {src} {
+    global opts
     $self instvar ns_ n_
     $src stop
     $ns_ flush-trace
-    puts "finishing.."
+    if {$opts(quiet) == "false"} {
+    	puts "finishing.."
+    }
     exit 0
 }
 
 TestSuite instproc set-mcast {src num time} {
+    global opts
     $self instvar ns_ n_ g_
-    puts "seting mcast.."
+    if {$opts(quiet) == "false"} {
+    	puts "seting mcast.."
+    }
     set mh [$ns_ mrtproto CtrMcast {}]
     $ns_ at 0.3 "$mh switch-treetype $g_"
     
@@ -309,11 +315,17 @@ Test/srm-adapt-req instproc run {} {
 #}
 
 proc runtest {arg} {
+    global opts
+    set opts(quiet) false
     set b [llength $arg]
     if {$b == 1} {
 	set test $arg
     } elseif {$b == 2} {
 	set test [lindex $arg 0]
+	set second [lindex $arg 1]
+	if {$second == "QUIET" || $second == "quiet"} {
+		set opts(quiet) true
+	}
     } else {
 	usage
     }
