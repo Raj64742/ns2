@@ -8,6 +8,7 @@ terms of GNU general public license as published by the free software foundation
 
 
 #include "spect.h"
+#include "kiss_fft.h"
 main(int argc,char *argv[])
 {
 
@@ -42,11 +43,10 @@ main(int argc,char *argv[])
 	struct ele *ax;
 
 
-	/* FFTW initializations */
+	/* kiss-fft initializations */
 
-	fftw_complex *in,*out;
-	fftw_plan p;
-
+        kiss_fft_cfg cfg=kiss_fft_alloc(1024,0); 
+ 
 	/* To read the data from a file. */
 
 	FILE *fp;  // Input samples 
@@ -96,6 +96,14 @@ main(int argc,char *argv[])
 	int N=0; // Number of samples
 	float tim[3],temp_arr[2]; //Time Stamp
 	int index=0;
+
+	struct s
+	{
+	double re;
+	double im;
+	};
+	
+	
 	
 	
 	
@@ -176,24 +184,22 @@ main(int argc,char *argv[])
 	// The utilization of x is over
 
 
-	/* Now the autocorrelation results are ready so got to call fftw */
+	/* Now the autocorrelation results are ready so got to call kiss fftw */
 
 	NoSamples=2*N-1;
 
-	in=fftw_malloc(NoSamples*sizeof(fftw_complex));
-	out=fftw_malloc(NoSamples*sizeof(fftw_complex));
         j=0;
+	struct s in[NoSamples];
 
 	for(i=0;i<NoSamples;i++)
 		{
-			in[i][j]=ax[i].val;
-			in[i][j+1]=0;
+			in[i].re=ax[i].val;
+			in[i].im=0;
 		}
 
 
-	p=fftw_plan_dft_1d(NoSamples,in,out,FFTW_FORWARD,FFTW_ESTIMATE);
+kiss_fft(cfg,in,out);
 
-	fftw_execute(p);
 
 	abval=(double *)malloc(N*sizeof(double));
 
@@ -201,11 +207,12 @@ main(int argc,char *argv[])
 		for(j=0;j<1;j++)
 		{
 
-        	abval[i]=sqrt((out[i][j]*out[i][j])+(out[i][j+1]*out[i][j+1]));
+        	abval[i]=sqrt((out[i].re*out[i].re)+(out[i].im*out[i].im));
 	        freq=i/(float)NoSamples*sampling_frequency;
 		fprintf(fpsd,"%g %g\n",freq,abval[i]);
 		}
 
+       free(cfg);
        fflush(fpsd);    
 	
        /*To find the Cumulative power spectral density */
@@ -269,9 +276,6 @@ fprintf(statistics,"Sampling frequency : %g\nNumber of Samples : %d\nMean : %g\n
 	free(abval);
 	free(cumpsd);
 
-	fftw_destroy_plan(p);
-	fftw_free(in);
-	fftw_free(out);
 
 	fclose(fp);
 	fclose(fpsd);
