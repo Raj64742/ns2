@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.5 2000/08/08 02:42:31 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.6 2000/08/10 00:18:14 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -438,6 +438,45 @@ Test/tcpA_precise_newreno instproc init {} {
     Test/tcpA_precise_newreno instproc run {} [Test/tcp info instbody run ]
     $self next
 }
+
+############################################################
+
+
+# IIAD, Inverse Increase Additive Decrease
+Class Test/binomial1 -superclass TestSuite
+Test/binomial1 instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	binomial1{IIAD}
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    Agent/TCP set decrease_num_ 0.33
+    Agent/TCP set precisionReduce_ true
+    Agent/TCP set k_parameter_ 1.0
+    Agent/TCP set l_parameter_ 0.0
+    Agent/TCP set windowOption_ 6
+    Test/binomial1 instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
+
+# SQRT, Square Root
+Class Test/binomial2 -superclass TestSuite
+Test/binomial2 instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	binomial2{SQRT}
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    Agent/TCP set decrease_num_ 0.33
+    Agent/TCP set precisionReduce_ true
+    Agent/TCP set k_parameter_ 0.5
+    Agent/TCP set l_parameter_ 0.5
+    Agent/TCP set windowOption_ 6
+    Test/binomial2 instproc run {} [Test/tcp info instbody run ]
+    $self next
+}
+
+
 
 TestSuite runTest
 
