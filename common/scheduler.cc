@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.30 1998/05/21 02:25:14 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.31 1998/05/21 02:30:55 kfall Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.30 1998/05/21 02:25:14 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.31 1998/05/21 02:30:55 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -603,7 +603,11 @@ Event* CalendarScheduler::lookup(int uid)
  */
 
 #define	MAXSLOP	0.010	/* 10ms max slop */
+#ifdef notyet
 class RealTimeScheduler : public CalendarScheduler {
+#endif
+
+class RealTimeScheduler : public ListScheduler {
 public:
 	RealTimeScheduler();
 	virtual void run();
