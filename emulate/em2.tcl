@@ -3,7 +3,7 @@
 # send out whatever they are given
 #
 set dotrace 1
-set stoptime 20.0
+set stoptime 200.0
 
 set me "10.0.1.1"
 set ns [new Simulator]
@@ -27,11 +27,11 @@ $bpf1 set promisc_ true
 
 set ipnet [new Network/IP]
 
-set nd0 [$bpf0 open fxp0] ;# open some appropriate device (devname is optional)
-set nd1 [$bpf1 open fxp1] ;# open some appropriate device (devname is optional)
-$ipnet open
+set nd0 [$bpf0 open readonly fxp0]
+set nd1 [$bpf1 open readonly fxp1]
+$ipnet open writeonly
 
-puts "bpf0 on dev $nd0, bpf1 on dev $nd1"
+puts "bpf0($bpf0) on dev $nd0, bpf1($bpf1) on dev $nd1, ipnet is $ipnet"
 
 set f0len [$bpf0 filter "(ip dst host bit) and not ip host $me"]
 set f1len [$bpf1 filter "(ip src host bit) and not ip host $me"]
@@ -52,19 +52,30 @@ set node0 [$ns node]
 set node1 [$ns node]
 set node2 [$ns node]
 
+puts "node0: $node0 (id:[$node0 id]), node1: $node1 (id:[$node1 id]), node2: $node2 (id: [$node2 id])"
+
 $ns simplex-link $node0 $node2 8Mb 100ms DropTail
 $ns simplex-link $node1 $node2 8Mb 100ms DropTail
 
 #
-# attach-agent sets "target" of the agents to the node entrypoint
+# attach-agent winds up calling $node attach $agent which does
+# these things:
+#	append agent to list of agents in the node
+#	sets target in the agent to the entry of the node
+#	sets the node_ field of the agent to the node
+#	if not yet created,
+#		create port demuxer in node (Addr classifier),
+#		put in dmux_
+#		call "$self add-route $id_ $dmux_"
+#			installs id<->dmux mapping in classifier_
+#	allocate a port
+#	set agent's port id and address
+#	install port-agent mapping in dmux_
+#	
+#	
 $ns attach-agent $node0 $a0
 $ns attach-agent $node1 $a1
 $ns attach-agent $node2 $a2
-
-# let's detach the things
-set null [$ns set nullAgent_]
-###$a1 target $null
-###$a1 target $null
 
 $ns connect $a0 $a2
 $ns connect $a1 $a2
