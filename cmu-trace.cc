@@ -356,7 +356,7 @@ CMUTrace::format_rtp(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset,
-		"-p [ rtp [%d] %d %d ] ",
+		"-Pn cbr -Pi %d -Pf %d -Po %d ",
 		rh->seqno_,
 		ch->num_forwards(),
 		ch->opt_num_forwards());

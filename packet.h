@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.70 1999/10/14 22:19:27 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.71 1999/10/22 05:47:26 yaxu Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -502,11 +502,13 @@ inline void Packet::free(Packet* p)
 
 inline Packet* Packet::copy() const
 {
+	
 	Packet* p = alloc();
 	memcpy(p->bits(), bits_, hdrlen_);
 	if (data_) 
 		p->data_ = data_->copy();
 	p->txinfo_.init(&txinfo_);
+ 
 	return (p);
 }
 

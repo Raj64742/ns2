@@ -1,6 +1,6 @@
 /* 
    aodv.cc
-   $Id: aodv.cc,v 1.4 1999/10/15 09:04:15 yaxu Exp $
+   $Id: aodv.cc,v 1.5 1999/10/22 05:47:28 yaxu Exp $
  */
 
 /* The AODV code developed by the CMU/MONARCH group was optimized
@@ -1125,6 +1125,7 @@ AODV::forward(rt_entry *rt, Packet *p, double delay)
          * Keep the "official" Neighbor List up-to-date.
          */
         if(nb_lookup(ch->prev_hop_) == 0) {
+
                 nb_insert(ch->prev_hop_);
         }
 #endif
@@ -1150,12 +1151,15 @@ AODV::forward(rt_entry *rt, Packet *p, double delay)
             ch->prev_hop_ = index;
             ch->next_hop_ = rt->rt_nexthop;
             ch->addr_type() = NS_AF_INET;
+	    ch->direction() = hdr_cmn::DOWN;       //important: change the packet's direction
+
         }
         else { // if it is a broadcast packet
             assert(ch->ptype() == PT_AODV);
             //assert(ih->dst_ == (nsaddr_t) IP_BROADCAST);
 	    assert(ih->daddr() == (nsaddr_t) IP_BROADCAST);
             ch->addr_type() = NS_AF_NONE;
+	    ch->direction() = hdr_cmn::DOWN;
         }
 
 	//if (ih->dst_ == (nsaddr_t) IP_BROADCAST) {
@@ -1320,6 +1324,7 @@ rt_entry *rt = rtable.rt_lookup(ipdst);
     ch->addr_type() = NS_AF_INET;
     ch->next_hop_ = rt->rt_nexthop;
     ch->prev_hop_ = index;          // AODV hack
+    ch->direction() = hdr_cmn::DOWN;
     /*
     ih->src_ = index;
     ih->dst_ = ipdst;

@@ -35,7 +35,7 @@
 
    /* arp.cc
    basic arp cache and MAC addr resolution
-   $Id: arp.cc,v 1.8 1999/10/14 22:19:22 yuriy Exp $
+   $Id: arp.cc,v 1.9 1999/10/22 05:47:24 yaxu Exp $
 
    Note: code in this file violates the convention that addresses of
    type Af_INET stored in nsaddr_t variables are stored in 24/8 format.
@@ -238,6 +238,7 @@ ARPTable::arprequest(nsaddr_t src, nsaddr_t dst, LL *ll)
 	lh->seqno() = 0;
 	lh->lltype() = LL_DATA;
 
+	ch->direction() = hdr_cmn::DOWN; // send this pkt down
 	ah->arp_hrd = ARPHRD_ETHER;
 	ah->arp_pro = ETHERTYPE_IP;
 	ah->arp_hln = ETHER_ADDR_LEN;

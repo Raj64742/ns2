@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.31 1999/10/14 22:19:23 yuriy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.32 1999/10/22 05:47:24 yaxu Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -186,6 +186,7 @@ Channel::sendUp(Packet* p, Phy *tifp)
 	    delete [] outlist; 
 
 	} else {
+
 
 	    for( ; rifp; rifp = rifp->nextchnl()) {
 		rnode = rifp->node();
