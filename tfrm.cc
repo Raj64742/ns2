@@ -12,16 +12,16 @@ static class TFRMHeaderClass : public PacketHeaderClass {
 public:
         TFRMHeaderClass() : PacketHeaderClass("PacketHeader/TFRM",
                sizeof(hdr_tfrm)) {
-    bind_offset(&hdr_tfrm::offset_);
-  }
+    		bind_offset(&hdr_tfrm::offset_);
+  	}
 } class_tfrmhdr;
 
 static class TFRMCHeaderClass : public PacketHeaderClass {
 public:
         TFRMCHeaderClass() : PacketHeaderClass("PacketHeader/TFRMC",
                sizeof(hdr_tfrmc)) {
-    bind_offset(&hdr_tfrmc::offset_);
-  }
+    		bind_offset(&hdr_tfrmc::offset_);
+  	}
 } class_tfrmchdr;
 
 static class TfrmClass : public TclClass {
@@ -75,7 +75,7 @@ void TfrmAgent::start()
 {
 	rate_=InitRate_;  /* Starting rate */
 	rtt_=0.0;         /* "accurate" rtt */ 
-	seqno_=0;					/* Initial Sequence Number */
+	seqno_=0;	/* Initial Sequence Number */
 	run_=1;
 	last_change_=0.0;
 	sendpkt();
@@ -121,18 +121,18 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	// rttvar has 2
 	//
 	if (t_srtt_ != 0) {
-			          register short delta;
-			          delta = t_rtt_ - (t_srtt_ >> T_SRTT_BITS);    
-				  // d = (m - a0)
-			          if ((t_srtt_ += delta) <= 0)    
-				  	// a1 = 7/8 a0 + 1/8 m
-			                t_srtt_ = 1;
-			          if (delta < 0)
-			                delta = -delta;
-			          delta -= (t_rttvar_ >> T_RTTVAR_BITS);
-			          if ((t_rttvar_ += delta) <= 0)  
-					// var1 = 3/4 var0 + 1/4 |d|
-			                t_rttvar_ = 1;
+	          register short delta;
+	          delta = t_rtt_ - (t_srtt_ >> T_SRTT_BITS);    
+		  // d = (m - a0)
+	          if ((t_srtt_ += delta) <= 0)    
+		  	// a1 = 7/8 a0 + 1/8 m
+	                t_srtt_ = 1;
+	          if (delta < 0)
+	                delta = -delta;
+	          delta -= (t_rttvar_ >> T_RTTVAR_BITS);
+	          if ((t_rttvar_ += delta) <= 0)  
+			// var1 = 3/4 var0 + 1/4 |d|
+	               t_rttvar_ = 1;
 	} else {
 		t_srtt_ = t_rtt_ << T_SRTT_BITS;                
 		// srtt = rtt

@@ -69,7 +69,7 @@ struct hdr_tfrmc {
   static int offset_; // offset for this header
   inline static int& offset() { return offset_; }
   inline static hdr_tfrmc* access(Packet* p) {
-    return (hdr_tfrmc*) p->access(offset_);
+       return (hdr_tfrmc*) p->access(offset_);
   }
 
 };
@@ -82,42 +82,42 @@ class TfrmAgent;
 
 class TfrmSendTimer : public TimerHandler {
 public:
-    TfrmSendTimer(TfrmAgent *a) : TimerHandler() { a_ = a; }
-    virtual void expire(Event *e);
+       TfrmSendTimer(TfrmAgent *a) : TimerHandler() { a_ = a; }
+       virtual void expire(Event *e);
 protected:
-    TfrmAgent *a_;
+       TfrmAgent *a_;
 };  
 
 class TfrmAgent : public Agent {
-    friend TfrmSendTimer;
+       friend TfrmSendTimer;
 public:
-    TfrmAgent();
-    void recv(Packet*, Handler*);
-    void sendpkt();
-    void nextpkt();
-    int command(int argc, const char*const* argv);
-    void start();
-    void stop();
+       TfrmAgent();
+       void recv(Packet*, Handler*);
+       void sendpkt();
+       void nextpkt();
+       int command(int argc, const char*const* argv);
+       void start();
+       void stop();
 protected:
-    double rate_, rtt_, rttvar_, tzero_;
+       double rate_, rtt_, rttvar_, tzero_;
 
-    //for TCP tahoe RTO alg.
-    int t_srtt_, t_rtt_, t_rttvar_, rttvar_exp_;
-    double t_rtxcur_;
-    double tcp_tick_;
+       //for TCP tahoe RTO alg.
+       int t_srtt_, t_rtt_, t_rttvar_, rttvar_exp_;
+       double t_rtxcur_;
+       double tcp_tick_;
 		int T_SRTT_BITS, T_RTTVAR_BITS ;
 		int srtt_init_, rttvar_init_ ;
 		double rtxcur_init_ ;
 
 		int InitRate_ ;
-    double incrrate_;
-    int seqno_, psize_;
-    TfrmSendTimer send_timer_;
-    int run_;
-    double df_;       // decay factor for RTT EWMA
-    int version_;
-    int slowincr_;
-    int k_;
-    double last_change_;
-    TracedInt ndatapack_;   // number of packets sent
+       double incrrate_;
+       int seqno_, psize_;
+       TfrmSendTimer send_timer_;
+       int run_;
+       double df_;       // decay factor for RTT EWMA
+       int version_;
+       int slowincr_;
+       int k_;
+       double last_change_;
+       TracedInt ndatapack_;   // number of packets sent
 };
