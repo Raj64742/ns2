@@ -47,129 +47,31 @@ catch "cd $dir"
 
 Trace set show_tcphdr_ 1 ; # needed to plot ack numbers for tracing 
 
-TestSuite instproc finish_full {testname direction} {
+TestSuite instproc finish testname {
+	global env
 	$self instvar ns_
-	global env exit_scheduled
 
-	set now [$ns_ now]
-	if { ![info exists exit_scheduled] } {
-		$ns_ at [expr $now + 0.1] "exit 0"
-		set exit_scheduled true
+	$ns_ halt
+
+	set fname [pid]
+	exec tclsh ../../bin/tcpfull-summarize.tcl out.tr $fname
+
+	set outtype text
+	if { [info exists env(NSOUT)] } {
+		set outtype $env(NSOUT)
+	} elseif { [info exists env(DISPLAY)] } {
+		set outtype xgraph
 	}
-    
-	set fname [ns-random 0]
-	set ackstmp $fname.acks ; # data-full acks
-	set packstmp $fname.packs; # pure acks
-	set segstmp $fname.p
-	set dropstmp $fname.d
-	set grtmp $fname.xgr
 
-	exec rm -f $grtmp $ackstmp $segstmp $dropstmp $packstmp
-	set f [open $grtmp w]
-	puts $f "TitleText: $testname"
-	puts $f "Device: Postscript"
-
-	exec touch $ackstmp $segstmp $dropstmp
-
-	# search for SYN packet in "out.tr", and store source and dest IDs	
-	# the forward path is defined by $direction 
-	set str [exec awk { /0x2/ {print $9, $10; exit} } out.tr ]
-	if {$direction=="forward"} {
-		set source_ [lindex $str 0]
-		set dest_ [lindex $str 1]
-	} elseif {$direction=="reverse"} {
-		set dest_ [lindex $str 0]
-		set source_ [lindex $str 1]
-	}
-	
-	#
-	# $5: packet type
-	# $6: packet length
-	# $11: seq number
-	# $13: ack number
-	# $15: TCP header length
-	#
-	# XXX this is inefficient, scanning multiple times
-	exec awk -v source_=$source_ -v dest_=$dest_ { 
-		{
-			if ($1 == "+" && ($5 == "tcp" || $5 == "ack") \
-				&& $6 != $15 && $9 == source_ && $10 == dest_)
-				print $2, $11 + $6 - $15 
-		}
-	} out.tr > $segstmp
-	# this part uses the "ackno" field of the tcp header (for fulltcp)
-	#   ACKs with data
-	exec awk -v source_=$source_ -v dest_=$dest_ { 
-		{
-			if ($1 == "+" && ($5 == "tcp" || $5 == "ack") \
-				&& $6 != $15 && $9 == dest_ && $10 == source_ )
-				print $2, $13
-		}
-	} out.tr > $ackstmp
-	#   pure ACKS
-	exec awk -v source_=$source_ -v dest_=$dest_ { 
-		{
-			if ($1 == "+" && ($5 == "tcp" || $5 == "ack") \
-				&& $6 == $15 && $9 == dest_ && $10 == source_ )
-				print $2, $13
-		}
-	} out.tr > $packstmp 
-	exec awk -v source_=$source_ -v dest_=$dest_ {
-		{
-			if ($1 == "d" && $9 == source_ && $10 == dest_)
-				print $2, $11 + $6 - $15
-		}
-	} out.tr > $dropstmp
-
-	#
-	# build seqno data set
-	#
-	puts $f \"seqno
-	exec cat $segstmp >@ $f
-	
-	#
-	# build acks dataset
-	#
-	puts $f [format "\n\"acks w/data"]
-	exec cat $ackstmp >@ $f
-	
-	puts $f [format "\n\"pure acks"]
-	exec cat $packstmp >@ $f
-	
-	#
-	# build drops dataset
-	#   
-	puts $f [format "\n\"drops\n"]
-	#
-	# Repeat the first line twice in the drops file because
-	# often we have only one drop and xgraph won't print marks
-	# for data sets with only one point.
-	# 
-	exec head -1 $dropstmp >@ $f
-	exec cat $dropstmp >@ $f
-	flush $f
-	close $f
-	if [info exists env(DISPLAY)] {
-		exec xgraph -display $env(DISPLAY) -bb -nl -m -x time -y seqno $grtmp &
+	if { $outtype != "text" } {
+		exec tclsh ../../bin/cplot.tcl $outtype $testname \
+		  $fname.p "segments" \
+		  $fname.acks "acks w/data" \
+		  $fname.packs "pure acks" $fname.d "drops" | $outtype &
+		exec sleep 1
+		exec rm -f $fname.p $fname.acks $fname.packs $fname.d
 	} else {
-		puts stderr "output trace is in temp.rands"
-	}
-	exec /bin/sleep 1 
-	exec rm -f $grtmp $ackstmp $segstmp $dropstmp $packstmp
-	
-}
-
-TestSuite instproc finish testName {
-	$self instvar direction_
-	if {$direction_ == "forward"} {
-		$self finish_full ${testName}_forward $direction_
-	} elseif {$direction_ == "reverse"} {
-		$self finish_full ${testName}_reverse $direction_
-	} elseif {$direction_ == "bidirectional"} {
-		$self finish_full ${testName}_forward forward
-		$self finish_full ${testName}_reverse reverse
-	} else {
-		puts "Incorrect direction $direction_ specified"
+		puts "output files are $fname.{p,packs,acks,d}"
 	}
 }
 
