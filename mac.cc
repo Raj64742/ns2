@@ -60,14 +60,14 @@ Mac::command(int argc, const char*const* argv)
 			channel_ = (Channel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "set-maclist") == 0) { // circular list
+			macList_ = (Mac *) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
 	}
 	else if (argc == 2) {
 		if (strcmp(argv[1], "channel") == 0) {
 			tcl.resultf("%s", channel_->name());
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "set-maclist") == 0) { // circular list
-			macList_ = (Mac *) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
 	}
