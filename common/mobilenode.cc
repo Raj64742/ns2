@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.28 2001/05/21 19:27:31 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.29 2002/05/06 17:10:40 difa Exp $
  *
  * Code in this file will be changed in the near future. From now on it 
  * should be treated as for backward compatibility only, although it is in
@@ -125,6 +125,10 @@ MobileNode::MobileNode(void) :
 	random_motion_ = 0;
 	base_stn_ = -1;
 	T_ = 0;
+
+	log_target_ = 0;
+	next_ = 0;
+	radius_ = 0;
 
 	position_update_interval_ = POSITION_UPDATE_INTERVAL;
 	position_update_time_ = 0.0;
