@@ -34,7 +34,7 @@ public:
 }class_measuremod;
 
 
-MeasureMod::MeasureMod() : nbits_(0),ndelay_(0),npkts_(0),avdelay_(0)
+MeasureMod::MeasureMod() : nbits_(0),npkts_(0)
 {
 }
 
@@ -44,7 +44,5 @@ void MeasureMod::recv(Packet *p,Handler *h)
 	hdr_cmn *ch=(hdr_cmn*)p->access(off_cmn_);
 	nbits_ += ch->size()<<3;
 	npkts_++;
-	ndelay_+= Scheduler::instance().clock()-ch->timestamp();
-	avdelay_=ndelay_/npkts_;
 	send(p,h);
 }

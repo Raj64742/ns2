@@ -25,15 +25,10 @@ class MeasureMod : public Connector {
 public:
 	MeasureMod();
 	inline int &bitcnt() { return nbits_;}
-	double &delay() {return avdelay_;}
 	inline void resetbitcnt() { nbits_ = 0;}
-	inline void resetdelay() { ndelay_ =0; npkts_=0; avdelay_=0;}
-	
 protected:
 	int nbits_ ;
-	double ndelay_;
 	int npkts_;
-	double avdelay_;
 	void recv(Packet *, Handler *);
 };
 
