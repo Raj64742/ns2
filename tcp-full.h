@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.49 2001/09/07 01:13:16 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.50 2001/09/26 23:24:04 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -113,7 +113,7 @@ protected:
 class FullTcpAgent : public TcpAgent {
 public:
 	FullTcpAgent() :
-		closed_(0), pipe_(-1), fastrecov_(FALSE),
+		closed_(0), pipe_(-1), rtxbytes_(0), fastrecov_(FALSE),
         	last_send_time_(-1.0), infinite_send_(FALSE), irs_(-1),
         	delack_timer_(this), flags_(0),
         	state_(TCPS_CLOSED), ect_(FALSE), recent_ce_(FALSE),
@@ -135,6 +135,7 @@ protected:
 	int ts_option_size_;	// header bytes in a ts option
 	int pipe_;		// estimate of pipe occupancy (for Sack)
 	int pipectrl_;		// use pipe-style control
+	int rtxbytes_;		// retransmitted bytes last recovery
 	int open_cwnd_on_pack_;	// open cwnd on a partial ack?
 	int segs_per_ack_;  // for window updates
 	int spa_thresh_;    // rcv_nxt < spa_thresh? -> 1 seg per ack
@@ -185,6 +186,8 @@ protected:
 		if (seq == t_seqno_)
 			t_seqno_ += amt;
 		pipe_ += amt;
+		if (seq < int(maxseq_))
+			rtxbytes_ += amt;
 	}
 	virtual void oldack() {			// what to do on old ack
 		dupacks_ = 0;
