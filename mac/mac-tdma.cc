@@ -24,7 +24,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.10 2001/01/09 05:00:48 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.11 2001/08/25 23:51:20 xuanc Exp $
 //
 // mac-tdma.cc
 // by Xuan Chen (xuanc@isi.edu), ISI/USC
@@ -145,28 +145,27 @@ public:
 // Frame format:
 // Pamble Slot1 Slot2 Slot3...
 MacTdma::MacTdma(PHY_MIB* p) : 
-	Mac(), mhSlot_(this), mhTxPkt_(this), mhRxPkt_(this)
-{
+	Mac(), mhSlot_(this), mhTxPkt_(this), mhRxPkt_(this){
 	/* Global variables setting. */
 	// Setup the phy specs.
 	phymib_ = p;
-
+	
 	/* Get the parameters of the link (which in bound in mac.cc, 2M by default),
 	   the packet length within one TDMA slot (1500 byte by default), 
 	   and the max number of nodes (64) in the simulations.*/
 	bind("slot_packet_len_", &slot_packet_len_);
 	bind("max_node_num_", &max_node_num_);
-
+	
 	//  slot_packet_len_ = 1500;
 	//  max_node_num_ = 64;
 	// Calculate the slot time based on the MAX allowed data length.
 	slot_time_ = DATA_Time(slot_packet_len_);
-
+	
 	/* Calsulate the max slot num within on frame from max node num.
 	   In the simple case now, they are just equal. 
 	*/
 	max_slot_num_ = max_node_num_;
-
+	
 	/* Much simplified centralized scheduling algorithm for single hop
 	   topology, like WLAN etc. 
 	*/
@@ -273,8 +272,7 @@ int MacTdma::hdr_type(char* hdr, u_int16_t type)
 }
 
 /* Test if the channel is idle. */
-int MacTdma::is_idle() 
-{
+int MacTdma::is_idle() {
 	if(rx_state_ != MAC_IDLE)
 		return 0;
 	if(tx_state_ != MAC_IDLE)
@@ -285,8 +283,7 @@ int MacTdma::is_idle()
 /* Do the slot re-scheduling:
    The idea of postphone the slot scheduling for one slot time may be useful.
 */
-void MacTdma::re_schedule()
-{
+void MacTdma::re_schedule() {
 	static int slot_pointer = 0;
 	// Record the start time of the new schedule.
 	start_time_ = NOW;
@@ -298,22 +295,23 @@ void MacTdma::re_schedule()
 }
 
 /* To handle incoming packet. */
-void MacTdma::recv(Packet* p, Handler* h) 
-{
+void MacTdma::recv(Packet* p, Handler* h) {
 	struct hdr_cmn *ch = HDR_CMN(p);
 	
 	/* Incoming packets from phy layer, send UP to ll layer. 
 	   Now, it is in receiving mode. 
 	*/
 	if (ch->direction() == hdr_cmn::UP) {
-		// This is just a damn hick, the receiver should be turned off in fact.
+		// Since we can't really turn the radio off at lower level, 
+		// we just discard the packet.
 		if (!radio_active_) {
-			printf("<%d>, %f, I am sleeping...\n", index_, NOW);
+			free(p);
+			//printf("<%d>, %f, I am sleeping...\n", index_, NOW);
 			return;
 		}
 
 		sendUp(p);
-		//printf("packet recved: %d\n", tdma_pr_++);
+		//printf("<%d> packet recved: %d\n", index_, tdma_pr_++);
 		return;
 	}
 	
@@ -323,7 +321,7 @@ void MacTdma::recv(Packet* p, Handler* h)
 	callback_ = h;
 	state(MAC_SEND);
 	sendDown(p);
-	//printf("packet sent: %d\n", tdma_ps_++);
+	//printf("<%d> packet sent down: %d\n", index_, tdma_ps_++);
 }
 
 void MacTdma::sendUp(Packet* p) 
@@ -349,7 +347,7 @@ void MacTdma::sendUp(Packet* p)
 		/* Start the timer for receiving, will end when receiving finishes. */
 		mhRxPkt_.start(p, rtime);
 	} else {
-		/* Note: we don't take the channel status into account, ie. no collision,
+		/* Note: we don't take the channel status into account, 
 		   as collision should not happen...
 		*/
 		printf("<%d>, receiving, but the channel is not idle....???\n", index_);
@@ -357,8 +355,7 @@ void MacTdma::sendUp(Packet* p)
 }
 
 /* Actually receive data packet when RxPktTimer times out. */
-void MacTdma::recvDATA(Packet *p)
-{
+void MacTdma::recvDATA(Packet *p){
 	/*Adjust the MAC packet size: strip off the mac header.*/
 	struct hdr_cmn *ch = HDR_CMN(p);
 	ch->size() -= ETHER_HDR_LEN;
@@ -370,8 +367,7 @@ void MacTdma::recvDATA(Packet *p)
 
 /* Send packet down to the physical layer. 
    Need to calculate a certain time slot for transmission. */
-void MacTdma::sendDown(Packet* p) 
-{
+void MacTdma::sendDown(Packet* p) {
 	u_int32_t dst, src, size;
   
 	struct hdr_cmn* ch = HDR_CMN(p);
@@ -480,10 +476,10 @@ void MacTdma::makePreamble()
 	if (pktTx_) {
 		dh = HDR_MAC_TDMA(pktTx_);  
 		dst = ETHER_ADDR(dh->dh_da);
-		//     printf("<%d>, %f, write %d to slot %d in preamble\n", index_, NOW, dst, slot_num_);
+		//printf("<%d>, %f, write %d to slot %d in preamble\n", index_, NOW, dst, slot_num_);
 		tdma_preamble_[slot_num_] = (char) dst;
 	} else {
-		//    printf("<%d>, %f, write NO_PKT to slot %d in preamble\n", index_, NOW, slot_num_);
+		//printf("<%d>, %f, write NO_PKT to slot %d in preamble\n", index_, NOW, slot_num_);
 		tdma_preamble_[slot_num_] = (char) NOTHING_TO_SEND;
 	}
 }
@@ -501,7 +497,7 @@ void MacTdma::slotHandler(Event *e)
 
 	// Make a new presamble for next frame.
 	if ((slot_count_ == active_node_) || (slot_count_ == FIRST_ROUND)) {
-		//    printf("<%d>, %f, make the new preamble now.\n", index_, NOW);
+		//printf("<%d>, %f, make the new preamble now.\n", index_, NOW);
 		// We should turn the radio on for the whole slot time.
 		radioSwitch(ON);
 
@@ -512,7 +508,7 @@ void MacTdma::slotHandler(Event *e)
 
 	// If it is the sending slot for me.
 	if (slot_count_ == slot_num_) {
-		//    printf("<%d>, %f, time to send.\n", index_, NOW);
+		//printf("<%d>, %f, time to send.\n", index_, NOW);
 		// We have to check the preamble first to avoid the packets coming in the middle.
 		if (tdma_preamble_[slot_num_] != NOTHING_TO_SEND)
 			send();
@@ -525,7 +521,7 @@ void MacTdma::slotHandler(Event *e)
  
 	// If I am supposed to listen in this slot
 	if ((tdma_preamble_[slot_count_] == index_) || ((u_int32_t)tdma_preamble_[slot_count_] == MAC_BROADCAST)) {
-		//    printf("<%d>, %f, preamble[%d]=%d, I am supposed to receive now.\n", index_, NOW, slot_count_, tdma_preamble_[slot_count_]);
+		//printf("<%d>, %f, preamble[%d]=%d, I am supposed to receive now.\n", index_, NOW, slot_count_, tdma_preamble_[slot_count_]);
 		slot_count_++;
 
 		// Wake up the receive packets.
@@ -534,7 +530,7 @@ void MacTdma::slotHandler(Event *e)
 	}
 
 	// If I dont send / recv, do nothing.
-	//  printf("<%d>, %f, preamble[%d]=%d, nothing to do now.\n", index_, NOW, slot_count_, tdma_preamble_[slot_count_]);
+	//printf("<%d>, %f, preamble[%d]=%d, nothing to do now.\n", index_, NOW, slot_count_, tdma_preamble_[slot_count_]);
 	radioSwitch(OFF);
 	slot_count_++;
 	return;
@@ -558,7 +554,7 @@ void MacTdma::recvHandler(Event *e)
 	src = ETHER_ADDR(dh->dh_sa);
 	size = ch->size();
 
-	//  printf("<%d>, %f, recv a packet [from %d to %d], size = %d\n", index_, NOW, src, dst, size);
+	//printf("<%d>, %f, recv a packet [from %d to %d], size = %d\n", index_, NOW, src, dst, size);
 
 	// Turn the radio off after receiving the whole packet
 	radioSwitch(OFF);
