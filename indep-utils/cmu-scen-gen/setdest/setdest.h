@@ -1,7 +1,9 @@
 #ifndef __setdest_h__
 #define __setdest_h__
 
-#include <sys/queue.h>
+/*#include <sys/queue.h>*/
+#include "../../../config.h"
+#include "../../../list.h"
 
 #ifndef LIST_FIRST
 #define LIST_FIRST(head)	((head)->lh_first)

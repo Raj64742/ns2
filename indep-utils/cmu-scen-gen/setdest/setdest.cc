@@ -9,7 +9,9 @@ extern "C" {
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
+#if !defined(sun)
 #include <err.h>
+#endif
 };
 
 #include "setdest.h"
@@ -163,6 +165,7 @@ init()
 	memset(D2, '\xff', sizeof(u_int32_t) * NODES * NODES);
 }
 
+extern "C" char *optarg;
 
 int
 main(int argc, char **argv)
@@ -262,12 +265,16 @@ main(int argc, char **argv)
 	show_counters();
 
 	int of;
-	if ((of = open(".rand_state",O_WRONLY | O_TRUNC | O_CREAT, 0777)) < 0)
-	  err(-1,"open rand state");
+	if ((of = open(".rand_state",O_WRONLY | O_TRUNC | O_CREAT, 0777)) < 0) {
+	  fprintf(stderr, "open rand state\n");
+	  exit(-1);
+	  }
 	for (unsigned int i = 0; i < sizeof(random_state); i++)
 	  random_state[i] = 0xff & (int) (uniform() * 256);
-	if (write(of,random_state, sizeof(random_state)) < 0)
-	  err(-1,"writing rand state");
+	if (write(of,random_state, sizeof(random_state)) < 0) {
+	  fprintf(stderr, "writing rand state\n");
+	  exit(-1);
+	  }
 	close(of);
 }
 
