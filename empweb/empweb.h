@@ -28,8 +28,8 @@
 // Empirical Web traffic model that simulates Web traffic based on a set of
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.h
-
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.9 2001/10/11 20:01:50 kclan Exp $
+//
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.10 2001/11/15 23:04:54 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -56,7 +56,7 @@ public:
 		rvReqSize_(NULL), rvPersistSel_(NULL), rvServerSel_(NULL),
 //		numOfPersConn_(0), usePers_(0), 
 //		maxNumOfPersConn_(connNum), clientIdx_(cl),
-		clientIdx_(cl),
+		clientIdx_(cl), 
 		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
 		id_(id) {}
 	virtual ~EmpWebTrafSession();
@@ -116,6 +116,11 @@ public:
 	EmpWebTrafPool(); 
 	virtual ~EmpWebTrafPool(); 
 
+	inline void startSession() {
+	       	concurrentSess_++;
+		if (isdebug()) 
+			printf("concurrent number of sessions = %d \n", concurrentSess_ );
+	}
 //	inline Node* picksrc() {
 //		int n = int(floor(Random::uniform(0, nClient_)));
 //		assert((n >= 0) && (n < nClient_));
@@ -124,8 +129,11 @@ public:
 	inline void doneSession(int idx) { 
 
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
-		if (isdebug())
+		if (concurrentSess_ > 0) concurrentSess_--;
+		if (isdebug()) {
 			printf("deleted session %d \n", idx );
+			printf("concurrent number of sessions = %d \n", concurrentSess_ );
+                }
 		delete session_[idx];
 		session_[idx] = NULL; 
 	}
@@ -140,6 +148,8 @@ public:
 
 	int nSrcL_;
 	int nClientL_;
+
+	int concurrentSess_;
 
 	int nSrc_;
 	Node** server_;		/* Web servers */

@@ -28,7 +28,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.7 2001/10/11 19:20:58 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.8 2001/11/15 23:04:54 kclan Exp $
 
 #include <tclcl.h>
 
@@ -109,7 +109,7 @@ EmpWebTrafSession::~EmpWebTrafSession()
 		fprintf(stderr, "EmpWebTrafSession must be idle when deleted.\n");
 		abort();
 	}
-	
+/*	
 	if (rvInterPage_ != NULL)
 		Tcl::instance().evalf("delete %s", rvInterPage_->name());
 	if (rvPageSize_ != NULL)
@@ -125,7 +125,7 @@ EmpWebTrafSession::~EmpWebTrafSession()
 	if (rvServerSel_ != NULL)
 		Tcl::instance().evalf("delete %s", rvServerSel_->name());
 
-
+*/
 //        if ((persistConn_ != NULL) && (getPersOpt() == PERSIST)) {
 //            for (int i = 0; i < maxNumOfPersConn_; i++) {
 //	      if (persistConn_[i] != NULL) delete persistConn_[i];
@@ -188,6 +188,10 @@ void EmpWebTrafSession::expire(Event *)
 	if (mgr_->isdebug())
 		printf("Session %d starting page %d, curpage %d \n", 
 		       id_, LASTPAGE_-1, curPage_);
+
+        //count the concurrent session
+        if (curPage_ == 0) mgr_->startSession();
+
 	pg->start();
 }
 
@@ -345,10 +349,9 @@ int EmpWebTrafPool::delay_bind_dispatch(const char *varName,const char *localNam
 	return PagePool::delay_bind_dispatch(varName, localName, tracer);
 }
 
-// By default we use constant request interval and page size
 EmpWebTrafPool::EmpWebTrafPool() : 
 	session_(NULL), nSrc_(0), server_(NULL), nClient_(0), client_(NULL),
-	nTcp_(0), nSink_(0)
+	concurrentSess_(0), nTcp_(0), nSink_(0)
 {
 	LIST_INIT(&tcpPool_);
 	LIST_INIT(&sinkPool_);
@@ -530,6 +533,7 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 
 			EmpWebTrafSession* p = 
 				new EmpWebTrafSession(this, c, npg, n, nSrc_, cl);
+
 			int res = lookup_rv(p->interPage(), argv[5]);
 			res = (res == TCL_OK) ? 
 				lookup_rv1(p->pageSize(), argv[6]) : TCL_ERROR;
