@@ -1,5 +1,36 @@
 Class SessionSim -superclass Simulator
 
+SessionSim instproc bw_parse { bspec } {
+        if { [scan $bspec "%f%s" b unit] == 1 } {
+                set unit bps
+        }
+        switch $unit {
+        b  { return $b }
+        kb { return [expr $b*1000] }
+        Mb { return [expr $b*1000000] }
+        Gb { return [expr $b*1000000000] }
+        default { 
+                  puts "error: bw_parse: unknown unit `$unit'" 
+                  exit 1
+                }
+        }
+}
+
+SessionSim instproc delay_parse { dspec } {
+        if { [scan $dspec "%f%s" b unit] == 1 } {
+                set unit s
+        }
+        switch $unit {
+        s  { return $b }
+        ms { return [expr $b*0.001] }
+        ns { return [expr $b*0.000001] }
+        default { 
+                  puts "error: bw_parse: unknown unit `$unit'" 
+                  exit 1
+                }
+        }
+}
+
 SessionSim instproc node { {shape "circle"} {color "black"} } {
     $self instvar Node_ namtraceAllFile_
     set node [new SessionNode]
@@ -122,8 +153,8 @@ SessionSim instproc simplex-link { n1 n2 bw delay type } {
     set sid [$n1 id]
     set did [$n2 id]
 
-    set link_($sid:$did) [expr [string trimright $bw Mb] * 1000000]
-    set delay_($sid:$did) [expr [string trimright $delay ms] * 0.001]
+    set link_($sid:$did) [$self bw_parse $bw]
+    set delay_($sid:$did) [$self delay_parse $delay]
 }
 
 SessionSim instproc simplex-link-of-interfaces { n1 n2 bw delay type } {
@@ -341,3 +372,16 @@ Node instproc getAgents {} {
 	return ""
     }
 }
+
+### to insert loss module to regular links in detailed Simulator
+Simulator instproc lossmodel {lossobj from to} {
+    set link [$self link $from $to]
+    set head [$link head]
+    # puts "[[$head target] info class]"
+    $lossobj target [$head target]
+    $head target $lossobj
+    # puts "[[$head target] info class]"
+}
+    
+
+

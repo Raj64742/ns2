@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.12 1997/09/08 22:03:22 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.13 1997/09/19 22:28:49 polly Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -61,7 +61,6 @@ protected:
 	double rate_;
 };
 
-
 /* For Selective packet drop */
 class SelectErrorModel : public ErrorModel {
 public:
@@ -73,6 +72,37 @@ protected:
         int pkt_type_;
         int drop_cycle_;
 	int drop_offset_;
+};
+
+/* Error model for srm experiments */
+class SRMErrorModel : public ErrorModel {
+public:
+	SRMErrorModel();
+	virtual int corrupt(Packet*);
+
+protected:
+	int command(int argc, const char*const* argv);
+        int pkt_type_;
+        int drop_cycle_;
+	int drop_offset_;
+        int off_srm_;
+};
+
+struct hdr_srm {
+
+#define SRM_DATA 1
+#define SRM_SESS 2
+#define SRM_RQST 3
+#define SRM_REPR 4
+
+        int     type_;
+        int     sender_;
+        int     seqnum_;
+        
+        // per field member functions
+        int& type()     { return type_; }
+        int& sender()   { return sender_; }
+        int& seqnum()   { return seqnum_; }
 };
 
 #endif

@@ -81,7 +81,8 @@ $ns at 0.2 "$n5 join-group $rcvr5 0x8002"
 #$loss_module ranvar $loss_random_variable
 
 set loss_module [new SelectErrorModel]
-$loss_module drop-packet 2 20 1     ;# drop one PT_CBR packet every 20 packets
+$loss_module drop-packet 2 10 1     ;# drop one PT_CBR packet every 20 packets
+$loss_module drop-target [$ns set nullAgent_]
 
 
 # insert the loss module in front of the rcvr5 and its delay module

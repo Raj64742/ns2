@@ -35,11 +35,12 @@
 # to illustrate the basic srm suppression algorithms.
 # It is not an srm implementation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.9 1997/08/11 05:12:36 mccanne Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.10 1997/09/19 22:28:52 polly Exp $
 #
 
 Simulator set NumberInterfaces_ 1
-set ns [new MultiSim]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 # cause ACKs to get dropped
 Queue set limit_ 6

@@ -30,8 +30,9 @@ source ../mcast/srm-nam.tcl		;# to separate control messages.
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 
 Simulator set NumberInterfaces_ 1
-set ns [new MultiSim]
-#$ns trace-all [open out.tr w]
+set ns [new Simulator]
+Simulator set EnableMcast_ 1
+$ns trace-all [open out.tr w]
 
 # make the nodes
 for {set i 0} {$i <= 3} {incr i} {
@@ -58,7 +59,7 @@ foreach i [array names n] {
 	$srm($i) set fid_ [incr fid]
 	$srm($i) log $srmStats
 	$srm($i) trace $srmEvents
-	$ns at 1.0 "$srm($i) start"
+#	$ns at 1.0 "$srm($i) start"
 
 	$ns attach-agent $n($i) $srm($i)
 }

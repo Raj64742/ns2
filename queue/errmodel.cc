@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.15 1997/09/08 22:15:37 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.16 1997/09/19 22:28:48 polly Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -149,10 +149,50 @@ int SelectErrorModel::corrupt(Packet* p)
 {
 	if (eu_ == EU_PKT) {
 		hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
-		//printf ("may drop packet type %d, uid %d\n", pkt_type_, ch->uid());
 		if (ch->ptype() == pkt_type_ && ch->uid() % drop_cycle_ == drop_offset_) {
-			printf ("drop packet type %d, uid %d\n", pkt_type_, ch->uid());
-			return 1;
+		  printf ("dropping packet type %d, uid %d\n", ch->ptype(), ch->uid());
+		  return 1;
+		}
+	}
+	return 0;
+}
+
+
+
+static class SRMErrorModelClass : public TclClass {
+public:
+	SRMErrorModelClass() : TclClass("SRMErrorModel") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new SRMErrorModel);
+	}
+} class_srmerrormodel;
+
+
+SRMErrorModel::SRMErrorModel() : ErrorModel()
+{
+        bind("off_srm_", &off_srm_);
+}
+
+int SRMErrorModel::command(int argc, const char*const* argv)
+{
+        int ac = 0;
+        if (strcmp(argv[1], "drop-packet") == 0) {
+		pkt_type_ = atoi(argv[2]);
+		drop_cycle_ = atoi(argv[3]);
+		drop_offset_ = atoi(argv[4]);
+		return TCL_OK;
+        }
+        return ErrorModel::command(argc, argv);
+}
+
+int SRMErrorModel::corrupt(Packet* p)
+{
+	if (eu_ == EU_PKT) {
+                hdr_srm *sh = (hdr_srm*) p->access(off_srm_);
+		hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
+                if ((ch->ptype() == pkt_type_) && (sh->type() == SRM_DATA) && (sh->seqnum() % drop_cycle_ == drop_offset_)) {
+		  printf ("dropping packet type SRM-DATA, seqno %d\n", sh->seqnum());
+		  return 1;
 		}
 	}
 	return 0;
