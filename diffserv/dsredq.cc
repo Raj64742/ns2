@@ -55,11 +55,6 @@ redQueue::redQueue() {
 //   Added option to config q_w by Thilo, 
 //     xuanc (12/14/01)
 void redQueue::config(int prec, int argc, const char*const* argv) {
-  if (mredMode == dropTail) {
-    qParam_[0].edp_.th_min = atoi(argv[4]);
-    return;
-  }
-  
   qParam_[prec].qlen = 0;
   qParam_[prec].edp_.th_min = atoi(argv[4]);
   qParam_[prec].edp_.th_max = atoi(argv[5]);
@@ -163,12 +158,11 @@ int redQueue::enque(Packet *pkt, int prec, int ecn) {
   now = Scheduler::instance().clock();
   
   //now determining the avg for that queue
+  // fix to correct behavior of droptail mode
+  // contributed by  Alexander Sayenko <sayenko@cc.jyu.fi>
   if (mredMode == dropTail) {
-    if (q_->length() >= qParam_[0].edp_.th_min) {
+    if (qParam_[prec].qlen >= qParam_[prec].edp_.th_min) {
       return PKT_DROPPED;
-    } else {
-      q_->enque(pkt);
-      return PKT_ENQUEUED;		
     }
   } else if (mredMode == rio_c) {
     // Can't set idle_ flag to 0 now, because the incoming packet
