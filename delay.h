@@ -70,7 +70,7 @@ private:
 		if (! nextPacket_) {
 			Scheduler& s = Scheduler::instance();
 
-			if (nextPacket_ = itq_->deque()) { /* ASSIGN */
+			if ((nextPacket_ = itq_->deque())) { /* ASSIGN */
 				Event* pe = (Packet*) nextPacket_;
 				double delay = pe->time_ - s.clock();
 				assert(delay > 0);

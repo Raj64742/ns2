@@ -1,3 +1,29 @@
+#
+#  Copyright (c) 1997 by the University of Southern California
+#  All rights reserved.
+#
+#  Permission to use, copy, modify, and distribute this software and its
+#  documentation in source and binary forms for non-commercial purposes
+#  and without fee is hereby granted, provided that the above copyright
+#  notice appear in all copies and that both the copyright notice and
+#  this permission notice appear in supporting documentation. and that
+#  any documentation, advertising materials, and other materials related
+#  to such distribution and use acknowledge that the software was
+#  developed by the University of Southern California, Information
+#  Sciences Institute.  The name of the University may not be used to
+#  endorse or promote products derived from this software without
+#  specific prior written permission.
+#
+#  THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+#  the suitability of this software for any purpose.  THIS SOFTWARE IS
+#  PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+#  INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+#  Other copyrights might apply to parts of this software and are so
+#  noted when applicable.
+#
+
 Class rtQueue
 
 DynamicLink set status_ 1
@@ -38,15 +64,11 @@ Simulator instproc rtmodel-at {at op args} {
 
 Simulator instproc rtmodel-delete model {
     $self instvar rtModel_
-    set newRtModel ""
-    foreach i $rtModel_ {
-	if {$i == $model} {
-	    delete $i
-	} else {
-	    lappend newRtModel $i
-	}
+    set idx [lsearch -exact $rtModel_ $model]
+    if { $idx != -1 } {
+	delete $model
+	set rtModel_ [lreplace $rtModel_ $idx $idx]
     }
-    set rtModel_ $newRtModel
 }
 
 SimpleLink instproc dynamic {} {
@@ -98,10 +120,13 @@ Link instproc up? {} {
 
 Link instproc all-connectors op {
     foreach c [$self info vars] {
-	if {$c == "fromNode_" || $c == "toNode_"} {
-	} else {
-	    $self instvar $c
-	    catch "$$c $op"   ;# in case the instvar is not a connector
+	foreach var [$self set $c] {
+	    if [catch "$var info class"] {
+		continue
+	    }
+	    if ![$var info class Node] {  ;# $op on everything but the node
+	        catch "$var $op"   ;# in case the instvar is not a connector
+	    }
 	}
     }
 }
@@ -142,7 +167,7 @@ rtQueue instproc insq-exact { at obj iproc args } {
 	set at ""
     } else {
 	if ![info exists rtq_($at)] {
-	    $ns_ at $at "$self runq $time"
+	    $ns_ at $at "$self runq $at"
 	}
 	lappend rtq_($at) "$obj $iproc $args"
     }
@@ -236,12 +261,12 @@ rtModel instproc set-parms args {
     set dn  "-"
 
     switch [llength $args] {
-	2 {
+	3 {
 	    set off [lindex $args 0]
 	    set up  [lindex $args 1]
 	    set dn  [lindex $args 2]
 	}
-	1 {
+	2 {
 	    set up [lindex $args 0]
 	    set dn [lindex $args 1]
 	}
@@ -404,10 +429,13 @@ rtModel/Trace instproc set-events {} {
 
 rtModel/Trace instproc set-parms traceFile {
     $self instvar tracef_ nextEvent_
-    set tracef_ [open $traceFile "r"]
-    set nextEvent_ [$self get-next-event]
-    if {$nextEvent_ == ""} {
-	puts stderr "no relevant events in $traceFile"
+    if [catch "open $traceFile r" tracef_] {
+	puts stderr "cannot open $traceFile"
+    } else {
+	set nextEvent_ [$self get-next-event]
+	if {$nextEvent_ == ""} {
+	    puts stderr "no relevant events in $traceFile"
+	}
     }
 }
 
@@ -440,18 +468,13 @@ rtModel/Manual instproc set-first-event {} {
     [rtModel set rtq_] insq-exact $at_ $self $op_
 }
 
-rtModel/Manual instproc set-parms {$op $at} {
+rtModel/Manual instproc set-parms {op at} {
     $self instvar op_ at_
     set op_ $op
     set at_ $at
 }
 
-rtModel/Manual instproc up {} {
+rtModel/Manual instproc notify {} {
     $self next
-    delete $self
-}
-
-rtModel/Manual instproc down {} {
-    $self next
-    delete $self
+    delete $self		;# wierd code alert.
 }

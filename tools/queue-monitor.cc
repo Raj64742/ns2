@@ -90,6 +90,8 @@ int QueueMonitor::command(int argc, const char*const* argv)
                         return (TCL_OK);
                 }
         }
+	return TclObject::command(argc, argv);	// else control reaches end of
+						// non-void function, see? :-)
 }
 
 static class QueueMonitorClass : public TclClass {

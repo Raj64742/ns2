@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.2 1997/05/16 07:58:34 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.3 1997/06/03 21:33:58 kannan Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -52,7 +52,9 @@ Class TestSuite
 
 TestSuite instproc init {} {
 	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
-	set ns_ [new Simulator]
+	if [catch "$self get-simulator" ns_] {
+	    set ns_ [new Simulator]
+	}
 	$ns_ trace-all [open all.tr w]
 	if {$net_ == ""} {
 		set net_ $defNet_
@@ -91,6 +93,10 @@ TestSuite instproc init {} {
 
 TestSuite instproc finish file {
 #	global env
+#
+#	THIS CODE IS NOW SUPERSEDED BY THE NEWER EXTERNAL DRIVERS,
+#	raw2xg, and raw2gp, in ~ns/bin.  raw2xg generates output suitable
+#	for xgraph, and raw2gp, that suitable for gnuplot.
 #
 #	#
 #	# we don't bother checking for the link we're interested in

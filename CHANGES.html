@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.75 1997/05/28 02:19:18 tomh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.76 1997/06/03 21:33:35 kannan Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,6 +21,81 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue Jun  3 14:08:45 PDT 1997</b><br>
+<b>Major mods</B> SRM for <em>ns</em><br>
+Currently, some of the fixed timer functions have been implemented.
+The adaptive functions, as well as local recovery mechanisms will 
+be coming along soon.
+<br>
+An earlier almost entirely C++-based version (ported from the ns-1
+implementation) is also checked in, tagged, and overwritten.  It can be
+accessed by vint members should they want to take a look at it later.
+<br>
+Files affected:  new files:  srm.cc, srm.h, srm-state.h,
+tcl/mcast/srm.tcl, tcl/mcast/srm-debug.tcl, tcl/mcast/srm-debug++.tcl,
+tcl/ex/simple-srm.tcl, tcl/ex/srm2.tcl, tcl/ex/srm_star.tcl,
+tcl/ex/simple-srm-nam.tcl, tcl/ex/srm2-nam.tcl, tcl/ex/srm_star-nam.tcl.
+Also modified:  Makefile.in, trace.h, tcl/lib/ns-packet.tcl.
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue Jun  3 14:08:45 PDT 1997</b><br>
+Bug fixes in rtglib:
+<ul>
+<li>  dynamics.tcl: rtModel/Manual did not work.  Fixed, and tested.
+This code is now used in tcl/ex/srm2.tcl and tcl/ex/srm_star.tcl to
+create ``interesting'' single packet drops.
+<li>  route-proto, RouteLogic::lookup would return OIDs when
+dynamic routing is enabled, which breaks the multicast.  (It now breaks
+when equal cost multipath routing is used, which needs to be fixed, to
+make multicast happy).
+<li> The new interfaces code defines additional instance variables to
+point to nodes.  Link dynamics wants to reset most everything (except
+nodes).  Resetting nodes can do bad thigns to agents.
+</ul>
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue Jun  3 14:08:45 PDT 1997</b><br>
+minor fixes:
+<ol><li>
+In C++, Stoustrup [sic] recommands that array storage should
+be freed as "<code>delete[] variable</code>", instead of simply
+"<code>delete variable</code>".  Changes made to
+AtHandler::handle(), Scheduler::command(), and
+RouteLogic::compute_routes().
+<li>Fixed annoying compiler warnings when used with -Wall in gcc.
+	<ul>
+	<li>"member initializers for &lt;member1&gt; and 
+ &lt;member2&gt; will be re-ordered to march declaration order."
+ warnings
+ fixed in packet.h,
+	classifier-hash.cc,
+	trace.cc, and
+	queue-monitor.h.
+
+	<li>"control reaches end of non-void function" fixed in
+	Replicator::classify(Packet*) and QueueMonitor::command(int,
+	const char*const*)
+
+	<li>"suggest parentheses around assignment used as truth value"
+	fixed in delay.h
+	</ul>
+<li>configure.in.head should not set -O2 if the .devel file is
+present.  Furthermore, as Johnh noted, -O2 is only relevant for gcc, so
+we really should fix this better.
+<li>RouteLogic now only works in the context of a Simulator.  Fix route-test
+to instantiate a dummy Simulator.
+<li>Test Suites
+Modified misc.tcl and topologies.tcl to add hooks for a multicast test
+suite.<br>
+ns-trace.tcl:gen-map did not show enough information within a node, for
+example inside a MultiNode.
+<li>
+Changed simplex-link, duplex-link to directly generate interfaces when told.
+Use by
+<pre>        Simulator set NumberInterfaces_ 1</pre>
+</ul>
+
 <LI><B><A HREF="http://www.cs.berkeley.edu/~tomh">[TH]</A> Tues May 27
 19:00:00 PDT 1997</B><BR>
 </LI>

@@ -87,6 +87,7 @@ scoreboard.cc
 scoreboard.h
 session-rtp.cc
 sfq.cc
+srm-state.h
 srm.h
 srm.cc
 tap.cc
@@ -107,9 +108,12 @@ tcl/ex/simple-dyn.tcl
 tcl/ex/simple-rtg.tcl
 tcl/ex/simple-rtp.tcl
 tcl/ex/simple-srm.tcl
+tcl/ex/simple-srm-nam.tcl
 tcl/ex/srm-demo.tcl
 tcl/ex/srm-demo-nam.tcl
-tcl/ex/srm-nam.tcl
+tcl/ex/srm_star.tcl
+tcl/ex/srm_star-nam.tcl
+tcl/ex/srm2.tcl
 tcl/ex/srm2-nam.tcl
 tcl/ex/rc.tcl
 tcl/ex/rc-nam.tcl
@@ -165,6 +169,8 @@ tcl/mcast/DM.tcl
 tcl/mcast/McastProto.tcl
 tcl/mcast/ns-mcast.tcl
 tcl/mcast/srm.tcl
+tcl/mcast/srm-debug.tcl
+tcl/mcast/srm-debug++.tcl
 tcl/nam-demo/nstonam.awk
 tcl/old/ns_default.tcl
 tcl/old/test-suite.tcl

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/replicator.cc,v 1.6 1997/03/29 01:43:01 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/replicator.cc,v 1.7 1997/06/03 21:33:42 kannan Exp $";
 #endif
 
 #include "classifier.h"
@@ -50,7 +50,7 @@ class Replicator : public Classifier {
 public:
 	Replicator();
 	void recv(Packet*, Handler* h = 0);
-	virtual int classify(Packet* const) {};
+	virtual int classify(Packet* const) {/*NOTREACHED*/ return -1;};
 protected:
 	int ignore_;
 };

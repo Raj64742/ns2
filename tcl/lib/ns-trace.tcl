@@ -66,9 +66,20 @@ Simulator instproc gen-map {} {
     set nn [Node set nn_]
     for {set i 0} {$i < $nn} {incr i} {
 	set n $Node_($i)
-	set cf  [$n set classifier_]
-	set dm  [$n set dmux_]
-	puts "Node [$n tn], entry ${cf}([gc $cf]), dmux ${dm}([gc $dm])"
+	puts "Node [$n tn]"
+	foreach nc [$n info vars] {
+	    switch $nc {
+		"ns_" -
+		"id_" -
+		"neighbor_" -
+		"agents_" -
+		"np_" { continue }
+		default {
+		    set v [$n set $nc]
+		    puts "\t\t$nc${v}([gc $v])"
+		}
+	    }
+	}
 	foreach li [array names link_ [$n id]:*] {
 	    set L [split $li :]
 	    set nbr [[$self get-node-by-id [lindex $L 1]] entry]

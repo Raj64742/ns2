@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.15 1997/05/22 00:01:00 breslau Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.16 1997/06/03 21:33:39 kannan Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -60,7 +60,7 @@ protected:
 	static Packet* free_;
 public:
 	static int hdrlen_;
-	Packet() : bits_(0), next_(0), datalen_(0) { }
+	Packet() : bits_(0), datalen_(0), next_(0) { }
 	u_char* const bits() { return (bits_); }
 	Packet* copy() const;
         static Packet* alloc();

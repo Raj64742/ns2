@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.3 1997/04/22 18:35:17 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.4 1997/06/03 21:33:38 kannan Exp $ (LBL)";
 #endif
 
 //
@@ -193,7 +193,7 @@ public:
 /****************** HashClassifier Methods ************/
 
 HashClassifier::HashClassifier(int b) : mask_(~0), shift_(0),
-	htab_(NULL), buckets_(b)
+	buckets_(b), htab_(NULL)
 { 
 	// shift and mask operations on dest address
 	bind("mask_", (int*)&mask_);

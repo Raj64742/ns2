@@ -38,7 +38,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.4 1997/03/25 22:22:14 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.5 1997/06/03 21:33:42 kannan Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -248,6 +248,6 @@ void RouteLogic::compute_routes()
 	for (k = 1; k < n; ++k)
 		ROUTE(k, k) = k;
 
-	delete hopcnt;
-	delete parent;
+	delete[] hopcnt;
+	delete[] parent;
 }

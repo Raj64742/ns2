@@ -9,6 +9,6 @@ $r compute
 set L "0 1 2 3 4 5"
 foreach i $L {
 	foreach j $L {
-		puts "$i -> $j via [$r lookup $i $j]"
+		puts "$i -> $j via [$r cmd lookup $i $j]"
 	}
 }

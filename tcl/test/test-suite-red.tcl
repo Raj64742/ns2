@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.2 1997/05/16 07:58:34 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.3 1997/06/03 21:33:59 kannan Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -315,17 +315,15 @@ XTest/red_twoway instproc run {} {
 }
 
 # The queue is measured in "bytes".
-Class Test/red_twowaybytes -superclass TestSuite
-Test/red_twowaybytes instproc init topo {
-    puts stderr "need source TELNET"; exit 1
+Class XTest/red_twowaybytes -superclass TestSuite
+XTest/red_twowaybytes instproc init topo {
     $self instvar net_ defNet_ test_
     set net_	$topo
     set defNet_	net2
     set test_	red_twowaybytes
     $self next
 }
-
-Test/red_twowaybytes instproc run {} {
+XTest/red_twowaybytes instproc run {} {
     $self instvar ns_ node_ testName_
 
     set stoptime 10.0

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.8 1997/05/23 22:53:30 breslau Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.9 1997/06/03 21:33:43 kannan Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -75,7 +75,7 @@ void AtHandler::handle(Event* e)
 {
 	AtEvent* at = (AtEvent*)e;
 	Tcl::instance().eval(at->proc_);
-	delete at->proc_;
+	delete[] at->proc_;
 	delete at;
 }
 
@@ -101,7 +101,7 @@ int Scheduler::command(int argc, const char*const* argv)
 				/*XXX make sure it really is an atevent*/
 				cancel(p);
 				AtEvent* ae = (AtEvent*)p;
-				delete ae->proc_;
+				delete[] ae->proc_;
 				delete ae;
 			}
 		}

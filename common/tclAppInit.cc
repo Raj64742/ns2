@@ -78,17 +78,17 @@ Tcl_AppInit(Tcl_Interp *interp)
 	    Otcl_Init(interp) == TCL_ERROR)
 		return TCL_ERROR;
 
-	Tcl_SetVar(interp, "tcl_rcFileName", "~/.ns.tcl", TCL_GLOBAL_ONLY);
-	Tcl::init(interp, "ns");
-	extern EmbeddedTcl et_ns_lib;
-	et_ns_lib.load();
-	init_misc();
-
 #ifdef HAVE_LIBTCLDBG
 	if (Dbg_Init(interp) == TCL_ERROR) {
 		return TCL_ERROR;
 	}
 #endif
+
+	Tcl_SetVar(interp, "tcl_rcFileName", "~/.ns.tcl", TCL_GLOBAL_ONLY);
+	Tcl::init(interp, "ns");
+	extern EmbeddedTcl et_ns_lib;
+	et_ns_lib.load();
+	init_misc();
 
 #ifdef TCL_TEST
     if (Tcltest_Init(interp) == TCL_ERROR) {

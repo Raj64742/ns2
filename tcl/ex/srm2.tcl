@@ -1,82 +1,96 @@
-# This is a example file for C++ implementation of srm
-# This is a example file for C++ implementation of srm
+source ../mcast/srm.tcl
+source ../mcast/srm-debug.tcl
+set etrace_ [open srm-ev.tr w]
 
+#source ../mcast/srm-debug++.tcl
+#set etrace1_ [open srm-timers.tr w]
+
+Simulator set NumberInterfaces_ 1
 set ns [new MultiSim]
-
-set n1 [$ns node]
-set n2 [$ns node]
-set n3 [$ns node]
-set n4 [$ns node]
-set n5 [$ns node]
-set n6 [$ns node]
-
-set dm1 [new DM $ns $n1]
-set dm2 [new DM $ns $n2]
-set dm3 [new DM $ns $n3]
-set dm4 [new DM $ns $n4]
-set dm5 [new DM $ns $n5]
-set dm6 [new DM $ns $n6]
-
-
+#set cmc [new CtrMcastComp $ns]
+#$ns at 0.3 "$cmc switch-treetype 0x8000"
 $ns at 0.0 "$ns run-mcast"
 
+$ns trace-all [open out.tr w]
+set srmStats [open srm-stats.tr w]
 
+set group 0x8000
+set fid  -1
+for {set i 0} {$i <= 5} {incr i} {
+    set n($i) [$ns node]
+    #new CtrMcast $ns $n($i) $cmc {}
+    new DM $ns $n($i)
 
-set f [open srm-out.tr w]
-$ns trace-all $f
+    set srm($i) [new Agent/SRM/Deterministic]
+    $srm($i) set dst_ $group
+    $srm($i) set fid_ [incr fid]
+    $srm($i) trace $srmStats
 
-$ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
-$ns duplex-link $n2 $n3 1.5Mb 10ms DropTail
-$ns duplex-link $n3 $n4 1.5Mb 10ms DropTail
-$ns duplex-link $n4 $n5 1.5Mb 10ms DropTail
-$ns duplex-link $n4 $n6 1.5Mb 10ms DropTail
-
-set s1 [new Agent/SRM]
-set s2 [new Agent/SRM]
-set s3 [new Agent/SRM]
-set s4 [new Agent/SRM]
-set s5 [new Agent/SRM]
-set s6 [new Agent/SRM]
-
-$s1 attach-to $n1
-$s2 attach-to $n2
-$s3 attach-to $n3
-$s4 attach-to $n4
-$s5 attach-to $n5
-$s6 attach-to $n6
-
-
-$ns at 1.0 "$s1 join-group 0x8000"
-$ns at 1.0 "$s1 start"
-$ns at 6.0 "$s1 sender"
-
-$ns at 1.0 "$s2 join-group 0x8000"
-$ns at 1.0 "$s2 start"
-
-$ns at 1.0 "$s3 join-group 0x8000"
-$ns at 1.0 "$s3 start"
-
-$ns at 1.0 "$s4 join-group 0x8000"
-$ns at 1.0 "$s4 start"
-
-$ns at 1.0 "$s5 join-group 0x8000"
-$ns at 1.0 "$s5 start"
-
-$ns at 1.0 "$s6 join-group 0x8000"
-$ns at 1.0 "$s6 start"
-
-
-$ns at 20.0 "finish"
-
-proc finish {} {
-#	puts "converting output to nam format..."
-	global ns
-	$ns flush-trace
-	exec awk -f ../nam-demo/nstonam.awk srm-out.tr > srm2-nam.tr
-#	exec rm -f out
-	puts "running nam..."
-	exec nam srm2-nam &
-	exit 0
+    $ns attach-agent $n($i) $srm($i)
 }
 
+$ns duplex-link $n(0) $n(1) 1.5Mb 10ms DropTail
+$ns duplex-link $n(1) $n(2) 1.5Mb 10ms DropTail
+$ns duplex-link $n(2) $n(3) 1.5Mb 10ms DropTail
+$ns duplex-link $n(3) $n(4) 1.5Mb 10ms DropTail
+$ns duplex-link $n(3) $n(5) 1.5Mb 10ms DropTail
+
+$ns queue-limit $n(0) $n(1) 2	;# q-limit is 1 more than max #packets in q.
+$ns queue-limit $n(1) $n(0) 2
+
+set packetSize 800
+set s [new Agent/CBR]
+$s set interval_ 0.02
+$s set packetSize_ $packetSize
+$srm(0) traffic-source $s
+$srm(0) set packetSize_ $packetSize
+$s set fid_ [incr fid]
+
+$ns at 4.0 "$srm(0) start-source"
+
+
+# Fake a dropped packet by incrementing seqno.
+#$ns at 1.6 "$s1 set seqno 0"	;# need to figure out how to do this.
+#
+$ns rtmodel-at 4.019 down $n(0) $n(1)	;# this ought to drop exactly one
+$ns rtmodel-at 4.031 up   $n(0) $n(1)	;# data packet?
+
+foreach i [array names srm] {
+    $ns at 1.0 "$srm($i) start"
+}
+
+proc distDump {} {
+	global srm
+	foreach i [array names srm] {
+	    puts "distances [$srm($i) distances?]"
+	}
+	puts "---"
+}
+$ns at 4.0 "distDump"
+
+proc finish {} {
+    global s
+    $s stop
+
+    global ns srmStats
+    $ns flush-trace		;# NB>  Did not really close out.tr...:-)
+    close $srmStats
+
+    global argv0
+    if [string match {*.tcl} $argv0] {
+	set prog [string range $argv0 0 [expr [string length $argv0] - 5]]
+    } else {
+	set prog $argv0
+    }
+
+    puts "converting output to nam format..."
+    exec awk -f ../nam-demo/nstonam.awk out.tr > $prog-nam.tr 
+    exec rm -f out
+    #XXX
+    puts "running nam..."
+    exec nam $prog-nam &
+    exit 0
+}
+
+$ns at 9.0 "finish"
 $ns run

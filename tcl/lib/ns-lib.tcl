@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.34 1997/06/03 19:13:53 puneetsh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.35 1997/06/03 21:33:52 kannan Exp $
 #
 
 #
@@ -42,8 +42,13 @@
 
 
 if {[info commands debug] == ""} {
+    set warnedFlag 0
     proc debug args {
-	puts stderr "Script debugging disabled.  Reconfigure with the --with-tcldebug option, and recompile."
+	global warnedFlag
+	if !$warnedFlag {
+	    puts stderr "Script debugging disabled.  Reconfigure with --with-tcldebug, and recompile."
+	    set warnedFlag 1
+	}
     }
 }
 
@@ -162,6 +167,8 @@ Simulator instproc run args {
         return [$scheduler_ run]
 }
 
+Simulator set NumberInterfaces_ 0
+
 Simulator instproc simplex-link { n1 n2 bw delay type } {
 	$self instvar link_ queueMap_ nullAgent_
 	$self instvar traceAllFile_
@@ -170,14 +177,28 @@ Simulator instproc simplex-link { n1 n2 bw delay type } {
 	if [info exists queueMap_($type)] {
 		set type $queueMap_($type)
 	}
+	if [$class set NumberInterfaces_] {
+		$self instvar interfaces_
+		if ![info exists interfaces_($n1:$n2)] {
+			set interfaces_($n1:$n2) [new DuplexNetInterface]
+			set interfaces_($n2:$n1) [new DuplexNetInterface]
+			$n1 addInterface $interfaces_($n1:$n2)
+			$n2 addInterface $interfaces_($n2:$n1)
+		}
+		set nd1 $interfaces_($n1:$n2)
+		set nd2 $interfaces_($n2:$n1)
+	} else {
+		set nd1 $n1
+		set nd2 $n2
+	}
 	set q [new Queue/$type]
 	$q drop-target $nullAgent_
 
 	#XXX yuck
 	if { $type == "CBQ" || $type == "CBQ/WRR" } {
-		set link_($sid:$did) [new CBQLink $n1 $n2 $bw $delay $q]
+		set link_($sid:$did) [new CBQLink $nd1 $nd2 $bw $delay $q]
 	} else {
-		set link_($sid:$did) [new SimpleLink $n1 $n2 $bw $delay $q]
+		set link_($sid:$did) [new SimpleLink $nd1 $nd2 $bw $delay $q]
 	}
 	$n1 add-neighbor $n2
 

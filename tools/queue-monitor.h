@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.6 1997/05/31 00:35:52 heideman Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.7 1997/06/03 21:33:41 kannan Exp $ (UCB)
  */
 
 #include "integrator.h"
@@ -40,8 +40,8 @@
 class QueueMonitor : public TclObject {
  public: 
         QueueMonitor() : bytesInt_(NULL), pktsInt_(NULL), delaySamp_(NULL),
-	    size_(0), pkts_(0), parrivals_(0), barrivals_(0),
-	    pdepartures_(0), bdepartures_(0), pdrops_(0), bdrops_(0) {
+	    size_(0), pkts_(0), barrivals_(0), parrivals_(0),
+	    bdepartures_(0), pdepartures_(0), bdrops_(0), pdrops_(0) {
                 bind("size_", &size_);
                 bind("pkts_", &pkts_);
                 bind("parrivals_", &parrivals_);
