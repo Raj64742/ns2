@@ -21,7 +21,7 @@ fi
 echo Tests: $tlist
 some_failed=false
 for sched in $tlist; do
-    echo Running test $sched
+    echo Running test $sched:
     echo $NS test-suite-simultaneous.tcl $sched $quiet
     if $NS test-suite-simultaneous.tcl $sched $quiet; then
 	echo Test output agrees with reference output
