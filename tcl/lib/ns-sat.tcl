@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.2 1999/06/23 23:42:00 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.3 1999/06/27 22:45:29 tomh Exp $
 
 
 # ======================================================================
@@ -585,6 +585,9 @@ HandoffManager/Sat set longitude_threshold_ 0
 HandoffManager set handoff_randomization_ "false" 
 SatRouteObject set metric_delay_ "true"
 SatRouteObject set data_driven_computation_ "false"
+Mac/Sat/UnslottedAloha set mean_backoff_ 1s; # mean backoff time upon collision
+Mac/Sat/UnslottedAloha set rtx_limit_ 3; # Retransmission limit 
+Mac/Sat/UnslottedAloha set send_timeout_ 270ms; # Timer interval for new sends
 
 Agent/SatRoute set myaddr_       0        ;# My address
 Mac/Sat set bandwidth_ 2Mb 
