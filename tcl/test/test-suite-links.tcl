@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.9 2002/03/08 21:55:42 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.10 2002/12/12 04:07:58 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -284,6 +284,9 @@ Test/dropPacket instproc run {} {
         $ns_ run
 }
 
+###################################################
+## Two delayed packets.  
+###################################################
 Class Test/delayPacket -superclass TestSuite
 Test/delayPacket instproc init {} {
 	$self instvar net_ test_
