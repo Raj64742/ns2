@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.77 1998/01/05 18:56:57 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.78 1998/01/23 08:15:38 gnguyen Exp $
 #
 
 #
@@ -496,13 +496,21 @@ Simulator instproc create-trace { type file src dst {op ""} } {
 	return $p
 }
 
-Simulator instproc namtrace-queue { n1 n2 file } {
-	$self instvar link_
+Simulator instproc namtrace-queue { n1 n2 {file ""} } {
+	$self instvar link_ namtraceAllFile_
+	if {$file == ""} {
+		if ![info exists namtraceAllFile_] return
+		set file $namtraceAllFile_
+	}
 	$link_([$n1 id]:[$n2 id]) nam-trace $self $file
 }
 
-Simulator instproc trace-queue { n1 n2 file } {
-	$self instvar link_
+Simulator instproc trace-queue { n1 n2 {file ""} } {
+	$self instvar link_ traceAllFile_
+	if {$file == ""} {
+		if ![info exists traceAllFile_] return
+		set file $traceAllFile_
+	}
 	$link_([$n1 id]:[$n2 id]) trace $self $file
 }
 
