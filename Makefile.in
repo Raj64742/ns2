@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.50 1997/07/23 19:33:38 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.51 1997/07/24 04:44:01 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -72,33 +72,30 @@ RANLIB = @V_RANLIB@
 	$(CC) -o $@ -c $(CFLAGS) $*.c
 
 OBJ_CC = \
+	random.o ranvar.o misc.o timer-handler.o \
 	scheduler.o object.o \
-	classifier.o classifier-addr.o classifier-flow.o classifier-mcast.o \
-	classifier-hash.o replicator.o classifier-mpath.o \
+	classifier.o classifier-addr.o classifier-flow.o classifier-hash.o \
+	classifier-mcast.o classifier-mpath.o replicator.o \
 	classifier-mac.o \
-	packet.o connector.o agent.o cbr.o misc.o \
-	timer-handler.o \
-	delay.o queue.o drop-tail.o random.o trace.o \
-	queue-nonfifo.o drop-tail-nonfifo.o red-nonfifo.o \
+	packet.o ip.o route.o connector.o ttl.o \
+	trace.o	trace-ip.o tracegen.o \
+	cbr.o traffictrace.o pareto.o expoo.o tcplib-telnet.o \
+	agent.o message.o udp.o session-rtp.o rtp.o rtcp.o ivs.o \
 	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
 	tcp-vegas.o tcp-rbp.o tcp-full.o \
-	tcp-asym.o tcp-asym-sink.o \
-	tcplib-telnet.o red.o route.o ttl.o \
-	loss-monitor.o queue-monitor.o message.o ivs.o integrator.o \
 	scoreboard.o tcp-sack1.o tcp-fack.o \
-	session-rtp.o rtp.o rtcp.o ip.o sfq.o fq.o drr.o \
-	dynalink.o rtProtoDV.o cbq.o \
-	udp.o traffictrace.o pareto.o expoo.o \
-	connector-drop.o errmodel.o trace-ip.o \
-	ll.o snoop.o \
+	tcp-asym.o tcp-asym-sink.o \
+	integrator.o queue-monitor.o flowmon.o loss-monitor.o \
+	queue.o drop-tail.o red.o \
+	queue-nonfifo.o drop-tail-nonfifo.o red-nonfifo.o \
+	sfq.o fq.o drr.o cbq.o \
+	hackloss.o errmodel.o \
+	delay.o ll.o snoop.o \
 	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o \
-	net-interface.o	ctrMcast.o prune.o \
+	dynalink.o rtProtoDV.o net-interface.o \
+	ctrMcast.o prune.o srm.o \
 	net.o net-ip.o tap.o \
-	lib/int.Vec.o lib/int.RVec.o \
-	lib/dmalloc_support.o \
-	hackloss.o \
-	srm.o flowmon.o ranvar.o
-
+	lib/int.Vec.o lib/int.RVec.o lib/dmalloc_support.o
 
 OBJ_C = \
 	inet.o
