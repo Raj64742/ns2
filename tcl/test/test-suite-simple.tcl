@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.8 2001/05/11 16:34:52 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.9 2001/05/15 19:08:57 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -54,6 +54,9 @@
 
 Agent/TCP set minrto_ 0
 # The default is being changed to minrto_ 1
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 Class TestSuite
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpReset.tcl,v 1.1 2000/12/19 22:07:23 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpReset.tcl,v 1.2 2001/05/15 19:08:57 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -38,6 +38,9 @@
 
 source misc.tcl
 source topologies.tcl
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 TestSuite instproc finish file {
 	global quiet PERL

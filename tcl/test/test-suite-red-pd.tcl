@@ -39,6 +39,9 @@ catch "cd $dir"
 Queue/RED set gentle_ true
 Agent/TCP set minrto_ 0
 # The default is being changed to minrto_ 1
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 Agent/TCP set timerfix_ false
 # The default is being changed to true.
 

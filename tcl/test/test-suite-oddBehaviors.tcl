@@ -30,13 +30,16 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.1 2000/08/13 06:00:06 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.2 2001/05/15 19:08:56 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
 source misc_simple.tcl
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 Trace set show_tcphdr_ 1
 

@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.16 2001/05/11 16:34:52 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.17 2001/05/15 19:08:57 sfloyd Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -22,6 +22,9 @@ Agent/TCP set minrto_ 0
 # The default is being changed to minrto_ 1
 Agent/TCP set timerfix_ false
 # The default is being changed to true.
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 
 #----------------------------------------------------------------------

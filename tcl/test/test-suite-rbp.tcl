@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.7 1999/12/20 19:20:41 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.8 2001/05/15 19:08:56 sfloyd Exp $
 #
 
 #
@@ -23,6 +23,9 @@
 # expected to pop up xgraph output (unless QUIET)
 # and to leave the plot in temp.rands
 #
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 proc usage {} {
 	puts stderr {usage: ns test-suite-rbp.tcl test [QUIET]

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.27 1999/09/15 03:05:07 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.28 2001/05/15 19:08:56 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -48,6 +48,9 @@ catch "cd tcl/test"
 source misc.tcl
 source topologies.tcl
 catch "cd $dir"
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 TestSuite instproc make_queue { cl qlim } {
 	$self instvar cbq_qtype_

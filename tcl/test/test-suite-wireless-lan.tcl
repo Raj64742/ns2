@@ -15,13 +15,16 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan.tcl,v 1.21 2000/11/28 19:21:28 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan.tcl,v 1.22 2001/05/15 19:08:57 sfloyd Exp $
 
 # THIS TEST IS SUBSUMED BY TEST-SUITE-WIRELESS-LAN-NEWNODE.TCL 
 # - Sep 15, 2000
 
 puts "THIS TEST IS SUBSUMED BY TEST-SUITE-WIRELESS-LAN-NEWNODE.TCL" 
 exit 0
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 # This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan

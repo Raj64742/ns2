@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #    
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-satellite.tcl,v 1.1 1999/06/29 02:28:31 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-satellite.tcl,v 1.2 2001/05/15 19:08:57 sfloyd Exp $
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #    
@@ -47,6 +47,9 @@
 # To view a list of available tests to run with this script:
 # ns test-suite-satellite.tcl
 #
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 # Some OTcl bound variables
 HandoffManager/Term set elevation_mask_ 8.2

@@ -30,8 +30,11 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-vegas-v1.tcl,v 1.6 1999/09/17 22:48:24 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-vegas-v1.tcl,v 1.7 2001/05/15 19:08:57 sfloyd Exp $
 #
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 #
 # This file uses the ns-1 interfaces, not the newere v2 interfaces.

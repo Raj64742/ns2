@@ -11,6 +11,9 @@
 # To view a list of available tests to run with this script:
 # ns test-suite-mixmode.tcl
 #
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 Class TestSuite
 

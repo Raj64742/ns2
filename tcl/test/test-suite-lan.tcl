@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-lan.tcl,v 1.11 2000/12/20 10:19:45 alefiyah Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-lan.tcl,v 1.12 2001/05/15 19:08:56 sfloyd Exp $
 
 
 # To run all tests: test-all-lan
@@ -31,6 +31,9 @@
 # To view a list of available tests to run with this script:
 # ns test-suite-lan.tcl
 #
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 Class TestSuite
 

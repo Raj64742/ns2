@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.4 2000/09/13 03:06:53 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.5 2001/05/15 19:08:56 sfloyd Exp $
 
 # Simple test for Link State routing contributed by 
 # Mingzhou Sun <msun@rainfinity.com> based on Kannan's old equal-cost 
@@ -41,6 +41,9 @@
 # Furthermore, in this example, link <$n2, $n4> is made dynamic.  This allows
 # us to watch traffic between $n2 and $n4 alternate between taking multiple
 # equi-cost routes, and the only available route.
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 if {![TclObject is-class Agent/rtProto/LS]} {
 	puts "Linkstate module is not present; validation skipped"

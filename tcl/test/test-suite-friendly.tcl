@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.40 2001/05/11 16:34:51 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.41 2001/05/15 19:08:56 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -46,6 +46,9 @@ Agent/TCP set oldCode_ true
 # The default for oldCode_ is false.
 Agent/TCP set minrto_ 0
 # The default is being changed to minrto_ 1
+Agent/TCP set syn_ false
+Agent/TCP set delay_growth_ false
+# In preparation for changing the default values for syn_ and delay_growth_.
 
 Agent/TCP set window_ 100
 # Uncomment the line below to use a random seed for the
