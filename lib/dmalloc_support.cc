@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/lib/dmalloc_support.cc,v 1.6 2002/01/10 17:13:48 alefiyah Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/lib/dmalloc_support.cc,v 1.7 2002/01/30 00:58:55 alefiyah Exp $ (USC/ISI)
  */
 
 
@@ -37,7 +37,9 @@
  * Copyright 1999 by Gray Watson
  */
 extern "C" {
+#include <stdio.h>
 #include <stdlib.h>
+
 /* Prototype declaration for TclpAlloc originally
 defined in tcl8.3.2/generic/tclAlloc.c */ 
 char *TclpAlloc(unsigned int);
