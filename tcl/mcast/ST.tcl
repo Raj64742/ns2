@@ -86,6 +86,18 @@ ST instproc start {} {
 	}
 	$self next
 }
+ST instproc rpf-iface { from to } {
+	$self instvar ns_
+	set rpfnbr [$ns_ upstream-node [$from id] [$to id]]
+	if {$rpfnbr != ""} {
+		if {[catch { set rpflink [$ns_ link $rpfnbr $from]}]} {
+			return -1
+		} else {
+			return [$rpflink if-label?]
+		}
+	}
+	return -1
+}
 
 ST instproc join-group  { group {src "*"} } {
 	$self instvar node_ ns_
@@ -94,18 +106,10 @@ ST instproc join-group  { group {src "*"} } {
 	set r [$node_ getReps "*" $group]
 	
 	if {$r == ""} {
-		set iif -1
-		if {$RP_($group) != $node_} {
-			set rpfnbr [$ns_ upstream-node [$node_ id] [$RP_($group) id]]
-			if {$rpfnbr != ""} {
-				set rpflink [$ns_ link $rpfnbr $node_]
-				set iif [$rpflink if-label?]
-			}
-		}
+		set iif [$self rpf-iface $node_  $RP_($group)]
 		$node_ add-mfc "*" $group $iif ""
 		set r [$node_ getReps "*" $group]
 	}
-	puts "replicators: $r"
 	if { ![$r is-active] } {
 		$self send-ctrl "graft" $RP_($group) $group
 	}
@@ -152,7 +156,8 @@ ST instproc drop { replicator src dst iface} {
 	# Send a prune back toward the source
 	puts "node: $id drops src: $src, dst: $dst, replicator: [$replicator set srcID_]"
 	
-	if {$iface != -1} {
+	if {$iface == [$self rpf-iface $node_ $RP_($dst)]} {
+		# so, this packet came from outside of the node
 		$self send-ctrl "prune" $RP_($dst) $dst
 	}
 #	$self annotate "$id dropping a packet from $src to $dst"
@@ -169,7 +174,6 @@ ST instproc recv-prune { from src group } {
 	}
 
 	set id [$node_ id]
-	set oifInfo [$node_ RPF-interface $src $id $from]
 	set tmpoif  [[$ns_ link $id $from] head]
 	if ![$r exists $tmpoif] {
 		warn "node $id, got a prune from $from, trying to prune a non-existing interface?"
@@ -195,14 +199,7 @@ ST instproc recv-graft { from to group } {
 	set r [$node_ getReps "*" $group]
 	if {$r == ""} {
 		# it's a cache miss!
-		set iif -1
-		if {$RP_($group) != $node_} {
-			set rpfnbr [$ns_ upstream-node [$node_ id] [$RP_($group) id]]
-			if {$rpfnbr != ""} {
-				set rpflink [$ns_ link $rpfnbr $node_]
-				set iif [$rpflink if-label?]
-			}
-		}
+		set iif [$self rpf-iface $node_ $RP_($group)]
 		$node_ add-mfc "*" $group $iif ""
 		set r [$node_ getReps "*" $group]
 	}
