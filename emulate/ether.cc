@@ -32,13 +32,15 @@
  * SUCH DAMAGE.
  */
 
+#if 0
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ether.cc,v 1.2 1998/02/27 23:59:05 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ether.cc,v 1.3 1999/10/08 01:15:28 salehi Exp $ (LBL)";
 #endif
-
+#endif
 #include <stdio.h>
 #include <string.h>
+#include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
 
