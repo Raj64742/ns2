@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.9 1997/02/02 18:57:34 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.10 1997/02/05 00:57:26 mccanne Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -70,7 +70,7 @@ OldSim instproc init args {
 			set type FTP
 		}
 		set src [new Source/$type]
-		$src set agent $self
+		$src set agent_ $self
 		return $src
 	}
 	#
