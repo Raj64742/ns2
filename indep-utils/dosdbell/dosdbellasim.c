@@ -48,8 +48,8 @@ main(int argc, char **argv){
     TCL_Write_Nodes(filer);
     TCL_Write_Connections(filer);
     TCL_Write_Agents(filer);
-    /* TCL_Write_DDOS_Agent(filer);
-       TCL_Write_Final(filer);*/
+    TCL_Write_DDOS_Agent(filer);
+    /* TCL_Write_Final(filer);*/
     fclose(filer);
   }  
 }
@@ -123,10 +123,10 @@ void TCL_Write_Connections(FILE *filew){
 
   bw_ = ((int)bn_bw * 125);
   del_ = bn_delay*1.0/1000;
-  fprintf(filew,"m %d\n",topo.TCPNodes.NoNodes*2+1);
+  fprintf(filew,"m %d\n",topo.TCPNodes.NoNodes*2+3);
   fprintf(filew,"link 1  %.3lf %d %d 50 \n",del_,bw_,bw_);
 
-  c=1;
+  c=3;
   for(i=0;i<topo.TCPNodes.NoNodes;i++){
 	  bw_ = ((int)(bw*125));
 	  del_= topo.TCPNodes.TCPNode[i].delayTo*bn_delay/1000;
@@ -141,8 +141,8 @@ void TCL_Write_Agents(FILE *filew){
 	int i;
 	double time;
 	
-	int c = 1;
-	fprintf(filew,"n %d \n",topo.TCPNodes.NoNodes);
+	int c = 3;
+	fprintf(filew,"n %d \n",topo.TCPNodes.NoNodes+1);
 	for(i=1; i<=topo.TCPNodes.NoNodes; i++){
 		fprintf(filew,"route %d 3 %d 1 %d\n", i, c+1,c+2);
 		c=c+2;
@@ -152,35 +152,17 @@ void TCL_Write_Agents(FILE *filew){
 
 
 void TCL_Write_DDOS_Agent(FILE* filew){
-  int i;
 
-  fprintf(filew,"\n\n");
-  fprintf(filew,"set DDOSUDP [new Agent/UDP]\n");
-  fprintf(filew,"$ns attach-agent $DDOSNode $DDOSUDP\n");
-  fprintf(filew,"set DDOSTraffic [new Application/Traffic/CBR]\n");
-  fprintf(filew,"$DDOSTraffic attach-agent $DDOSUDP\n");
-  fprintf(filew,"set VictimAgent [new Agent/Null]\n");
-  fprintf(filew,"$ns attach-agent $Victim $VictimAgent\n");
-  fprintf(filew,"$ns connect $DDOSUDP $VictimAgent\n");
-  fprintf(filew,"$DDOSUDP set class_ 2\n");
-
-
-  fprintf(filew,"\n\n\n");
-
-  DDOS_start_time*=1000;
-  fprintf(filew,"$ns at %lf \"$DDOSTraffic set rate_ %lfMb \"\n",ceil(DDOS_start_time+topo.CBRTraffic.DDOSTraffic.Events[0].delay*bn_delay)/1000, \
-	                                   topo.CBRTraffic.DDOSTraffic.Events[0].NetCBR);
-  fprintf(filew,"$ns at %lf \"$DDOSTraffic set packet_size_ %d \"\n",\
-	                                   ceil(DDOS_start_time+topo.CBRTraffic.DDOSTraffic.Events[0].delay*bn_delay)/1000,pack_size);
-  fprintf(filew,"$ns at %lf \"$DDOSTraffic start\"\n",ceil(DDOS_start_time+topo.CBRTraffic.DDOSTraffic.Events[0].delay*bn_delay)/1000);
-
-  for(i=1;i<topo.CBRTraffic.DDOSTraffic.NoEvents;i++){
-    fprintf(filew,"$ns at %lf \"$DDOSTraffic set rate_ %lfMb\"\n",\
-	                                   ceil(DDOS_start_time+topo.CBRTraffic.DDOSTraffic.Events[i].delay*bn_delay)/1000, 
-	                                   topo.CBRTraffic.DDOSTraffic.Events[i].NetCBR);
-  }
-
-  fprintf(filew,"\n\n");
+	int i;
+	double ddosbw;	
+	fprintf(filew,"# Ddos stuff\n");
+	
+	ddosbw =  topo.CBRTraffic.DDOSTraffic.Events[0].NetCBR;
+	for(i=1;i<topo.CBRTraffic.DDOSTraffic.NoEvents;i++){
+		ddosbw+=topo.CBRTraffic.DDOSTraffic.Events[i].NetCBR;
+	}
+	fprintf(filew,"route %d 3 2 1 3 cbr %d\n",topo.TCPNodes.NoNodes+1,
+		((int)(ddosbw*125)));
 
 }
 
@@ -191,6 +173,18 @@ void TCL_Write_Final(FILE *filew){
   fprintf(filew,"$ns at %lf \"finish\"\n",finish_time);
   fprintf(filew, "$ns run\n");
 }
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
