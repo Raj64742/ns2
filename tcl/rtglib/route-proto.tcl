@@ -45,12 +45,12 @@ Simulator instproc cost {n1 n2 c} {
     $link_([$n1 id]:[$n2 id]) cost $c
 }
 
-SimpleLink instproc cost c {
+Link instproc cost c {
     $self instvar cost_
     set cost_ $c
 }
 
-SimpleLink instproc cost? {} {
+Link instproc cost? {} {
     $self instvar cost_
     if ![info exists cost_] {
 	set cost_ 1

@@ -30,10 +30,10 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.10 1997/07/24 23:07:37 breslau Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.11 1997/07/25 02:21:06 polly Exp $
 #
 
-#Class Source
+Class Source
 
 #set ns_telnet(interval) 1000ms
 #set ns_bursty(interval) 0
@@ -74,7 +74,7 @@ Source/FTP instproc attach o {
 	set agent_ $o
 }
 
-
+Class Source/Telnet -superclass Source
 Source/Telnet instproc attach o {
 	$self instvar agent_ 
 	set agent_ $o

@@ -15,8 +15,10 @@
  * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/ctrMcast.h,v 1.2 1997/07/23 02:05:16 kfall Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/ctrMcast.h,v 1.3 1997/07/25 02:21:02 polly Exp $ (USC/ISI)
  */
 
 #ifndef ns_ctrmcast_h

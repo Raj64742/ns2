@@ -16,6 +16,8 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
+ * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
+ * 
  */
 
 #ifndef lint

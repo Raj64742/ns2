@@ -43,7 +43,6 @@ $ns duplex-link-of-interfaces $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link-of-interfaces $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link-of-interfaces $n1 $n3 1.5Mb 10ms DropTail
 
-
 ### Start multicast configuration: 4 mproto options
 ### CtrMcast : centralized multicast
 ### DM       : static DVMRP (can't adapt to link up/down or node up/down)
@@ -74,7 +73,6 @@ set rcvr2  [new Agent/Null]
 $ns attach-agent $n2 $rcvr2
 set rcvr3 [new Agent/Null]
 $ns attach-agent $n3 $rcvr3
-
 
 $ns at 0.2 "$cbr1 start"
 $ns at 0.3 "$n1 join-group  $rcvr1 0x8003"

@@ -15,12 +15,14 @@
  * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ *
+ * Ported by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.3 1997/07/24 00:14:22 kfall Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.4 1997/07/25 02:21:02 polly Exp $ (USC/ISI)";
 #endif
 
 #include "connector.h"
