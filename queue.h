@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.10.2.6 1997/04/27 06:15:13 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.10.2.7 1997/04/29 06:30:22 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -85,7 +85,9 @@ public:
 		return (0);
 	}
 	/* interleave between TCP acks and others while dequeuing */
-	Packet* deque(int off_cmn);
+	Packet* deque_interleave(int off_cmn);
+	/* deque TCP acks before any other type of packet */
+	Packet* deque_acksfirst(int off_cmn);
 	/* remove a specific packet, which must be in the queue */
 	void remove(Packet*);
 	/* 
@@ -93,6 +95,11 @@ public:
 	 * ack_count_ and data_count_
 	 */
 	void remove(Packet*, int off_cmn);
+	/* 
+	 * If a packet needs to be removed because the queue is full, pick the TCP ack
+	 * closest to the head. Otherwise, drop the specified pkt (target).
+	 */
+	Packet* remove_ackfromfront(Packet* target, int off_cmn);
 	/* 
 	 * Remove a specific packet given pointers to it and its predecessor
 	 * in the queue. p and/or pp may be NULL.
@@ -148,6 +155,10 @@ class Queue : public Connector {
 	QueueHandler qh_;
 	int interleave_;        /* whether to interleave transmission of TCP
 				   acks and other data */
+	int acksfirst_;         /* whether to deque TCP acks before any other type
+				   of data */
+	int ackfromfront_;      /* whether to try and drop ack from front of the
+				 queue */
 };
 
 

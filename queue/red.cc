@@ -200,7 +200,9 @@ Packet* REDQueue::deque()
 	Packet* p;
 
 	if (interleave_) 
-		p = q_.deque(off_cmn_);
+		p = q_.deque_interleave(off_cmn_);
+	else if (acksfirst_)
+		p = q_.deque_acksfirst(off_cmn_);
 	else
 		p = q_.deque();
 	if (p != 0) {
@@ -255,13 +257,18 @@ int REDQueue::drop_early(Packet* pkt)
 		edv_.v_prob = p;
 	}
 
-/*
-	{
+	if (channel_) {
+		char wrk[500];
+		int n;
 		double now = Scheduler::instance().clock();
-		if (now >= 3.0 && now <= 5.0) 
-			printf("time: %g  v_ave: %f  v_prob: %f  count: %d\n", now, edv_.v_ave, edv_.v_prob, edv_.count);
+		sprintf(wrk, "time: %-6.3f  v_ave: %-6.3f  v_prob: %-6.3f  count: %2d\n", now, edv_.v_ave, edv_.v_prob, edv_.count);
+		n = strlen(wrk);
+		wrk[n] = '\n';
+		wrk[n+1] = 0;
+		(void)Tcl_Write(channel_, wrk, n+1);
+		wrk[n] = 0;
 	}
-*/
+
 
 	// drop probability is computed, pick random number and act
 	double u = Random::uniform();
@@ -328,7 +335,7 @@ void REDQueue::enque(Packet* pkt)
 	 * checking for absolute queue overflow.
 	 */
 	if (pkt != 0) {
-		if (interleave_)
+		if (interleave_ || acksfirst_)
 			q_.enque(pkt, off_cmn_);
 		else
 			q_.enque(pkt);
@@ -344,7 +351,9 @@ void REDQueue::enque(Packet* pkt)
 				victim = Random::integer(q_.length());
 				
 			pkt = q_.lookup(victim);
-			if (interleave_)
+			if (ackfromfront_) 
+				pkt = q_.remove_ackfromfront(pkt, off_cmn_);
+			else if (interleave_ || acksfirst_)
 				q_.remove(pkt, off_cmn_);
 			else
 				q_.remove(pkt);

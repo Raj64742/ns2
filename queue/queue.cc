@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.11.2.5 1997/04/27 06:15:12 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.11.2.6 1997/04/29 06:30:21 padmanab Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -82,6 +82,39 @@ void PacketQueue::remove(Packet* target, int off_cmn)
 	remove(target);
 }
 
+/* 
+ * If a packet needs to be removed because the queue is full, pick the TCP ack
+ * closest to the head. Otherwise, drop the specified pkt (target).
+ */
+Packet* PacketQueue::remove_ackfromfront(Packet* target, int off_cmn)
+{
+	Packet* p = head_;
+	Packet* pp = NULL;
+	int type;
+
+	if (ack_count_ > 0) {
+		while (p) {
+			type = ((hdr_cmn*)p->access(off_cmn))->ptype_;
+			if (type == PT_ACK)
+				break;
+			pp = p;
+			p = p->next_;
+		}
+		if (!p) 
+			fprintf(stderr, "In remove_ackfromfront(): ack_count_: %d but no acks in queue\n", ack_count_);
+		remove(p, pp);
+		ack_count_--;
+		return p;
+	}
+	else {
+		remove(target);
+		if (target)
+			data_count_--;
+		return target;
+	}
+}
+
+
 void PacketQueue::remove(Packet* p, Packet* pp) 
 {
 	if (p) {
@@ -102,8 +135,35 @@ void PacketQueue::remove(Packet* p, Packet* pp)
 	return;
 }
 
+/* deque TCP acks before any other type of packet */
+Packet* PacketQueue::deque_acksfirst(int off_cmn) {
+	Packet* p = head_;
+	Packet* pp = NULL;
+	int type;
+
+	if (ack_count_ > 0) {
+		while (p) {
+			type = ((hdr_cmn*)p->access(off_cmn))->ptype_;
+			if (type == PT_ACK)
+				break;
+			pp = p;
+			p = p->next_;
+		}
+		if (!p) 
+			fprintf(stderr, "In deque_acksfirst(): ack_count_: %d but no acks in queue\n", ack_count_);
+		remove(p, pp);
+		ack_count_--;
+	}
+	else {
+		p = deque();
+		if (p)
+			data_count_--;
+	}
+	return p;
+}
+
 /* interleave between TCP acks and others while dequeuing */
-Packet* PacketQueue::deque(int off_cmn) {
+Packet* PacketQueue::deque_interleave(int off_cmn) {
 	Packet *ack_p, *ack_pp, *data_p, *data_pp;
 	Packet* p = head_;
 	Packet* pp = NULL;
@@ -162,11 +222,13 @@ void QueueHandler::handle(Event*)
 	queue_.resume();
 }
 
-Queue::Queue() : drop_(0), blocked_(0), qh_(*this), interleave_(0)
+Queue::Queue() : drop_(0), blocked_(0), qh_(*this), interleave_(0), acksfirst_(0), ackfromfront_(0)
 {
 	Tcl& tcl = Tcl::instance();
 	bind("limit_", &qlim_);
 	bind_bool("interleave_", &interleave_);
+	bind_bool("acksfirst_", &acksfirst_);
+	bind_bool("ackfromfront_", &ackfromfront_);
 }
 
 int Queue::command(int argc, const char*const* argv)
