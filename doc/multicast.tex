@@ -761,7 +761,8 @@ and returns false if multicast is not turned on.
 \code{$ns_ mrtproto <mproto> <optional:nodelist>}\\
 This command specifies the type of multicast protocol <mproto> to be used
 like DM, CtrMcast etc. As an additional argument, the list of nodes <nodelist>
-that will run an instance of the routing protocol can also be passed.
+that will run an instance of detailed routing protocol (other than
+centralised mcast) can also be passed.
 
 
 \code{$ns_ mrtproto-iifs <mproto> <node> <iifs>}\\
@@ -802,12 +803,68 @@ This allows special mcast supporting mechanisms (like a mcast classifier) to
 be added to the mcast-enabled node. <sim> is the a handle to the simulator
 object.
 
-
 In addition to the internal methods listed here there are other methods specific to
 protocols like centralized mcast (CtrMcast), dense mode (DM), shared tree
 mode (ST) or bi-directional shared tree mode (BST), Node and Link class
 methods and NetworkInterface and Multicast classifier methods specific to
-multicast routing. All mcast related files may be found under \ns/tcl/mcast dir.
+multicast routing. All mcast related files may be found under
+\ns/tcl/mcast directory. 
+\begin{description}
+
+\item[Centralised Multicast] A handle to the CtrMcastComp object is
+returned when the protocol is specified as `CtrMcast' in mrtproto. 
+Ctrmcast methods are: \\
+
+\code{$ctrmcastcomp switch-treetype group-addr}\\
+Switch from the Rendezvous Point rooted shared tree to source-specific
+trees for the group specified by group-addr. Note that this method cannot
+be used to switch from source-specific trees back to a shared tree for a
+multicast group. 
+
+\code{$ctrmcastcomp set_c_rp <node-list>}\\
+This sets the RPs.
+
+\code{$ctrmcastcomp set_c_bsr <node0:0> <node1:1>}\\
+This sets the BSR, specified as list of node:priority.
+
+\code{$ctrmcastcomp get_c_rp <node> <group>}\\
+Returns the RP for the group as seen by the node node for the multicast
+group with address group-addr. Note that different nodes may see different
+RPs for the group if the network is partitioned as the nodes might be in
+different partitions. 
+
+\code{$ctrmcastcomp get_c_bsr <node>}\\
+Returns the current BSR for the group.
+
+\code{$ctrmcastcomp compute-mroutes}\\
+This recomputes multicast routes in the event of network dynamics or a
+change in unicast routes.
+
+
+\item[Dense Mode]
+The dense mode (DM) protocol can be run as PIM-DM (default) or DVMRP
+depending on the class variable \code{CacheMissMode}. There are no methods
+specific to this mcast protocol object. Class variables are:
+ \begin{description}
+   \item[PruneTimeout] Timeout value for prune state at nodes. defaults to
+0.5sec.
+   \item[CacheMissMode] Used to set PIM-DM or DVMRP type forwarding rules.
+ \end{description}
+
+
+\item[Shared Tree]
+There are no methods for this class. Variables are:
+\begin{description}
+\item[RP\_] RP\_ indexed by group determines which node is the RP for a
+particular group.
+\end{description}
+
+
+\item[Bidirectional Shared Tree]
+There are no methods for this class. Variable is same as that of Shared
+Tree described above.
+
+\end{description}
 
 \end{flushleft}
 

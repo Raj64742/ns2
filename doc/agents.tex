@@ -1,4 +1,4 @@
-%
+\%
 % personal commentary:
 %        handlers and how they are used are confusing
 %        Connector::send is needed, but so is just send()... confusing
@@ -678,6 +678,290 @@ Simulated applications may be implemented on top of protocol agents.  Chapter
 \ref{chap:applications} describes the API used by applications to  access the 
 services provided by the protocol agent.
 
+
+\section{Different agent objects}
+\label{sec:agentobjects}
+Class Agent forms the base class from which different types of objects
+like Nullobject, TCP etc are derived. The methods for Agent class are
+described in the next section. Configuration parameters for:
+\begin{description}
+\item[fid\_] Flowid.
+\item[prio\_] Priority. 
+\item[agent\_addr\_] Address of this agent. 
+\item[agent\_port\_] Port adress of this agent. 
+\item[dst\_addr\_ ] Destination address for the agent.
+\item[dst\_port\_] Destination port address for the agent.
+\item[flags\_]
+\item[ttl\_] TTL defaults to 32.
+\end{description}
+There are no state variables specific to the generic agent class. Other
+objects derived from Agent are given below:
+
+\begin{description}
+
+\item[Null Objects]
+Null objects are a subclass of agent objects that implement a traffic
+sink. They inherit all of the generic agent object functionality. There
+are no methods specific to this object. The state variables are:
+\begin{itemize}
+\item sport\_
+\item dport\_
+\end{itemize}
+
+\item[LossMonitor Objects]
+LossMonitor objects are a subclass of agent objects that implement a
+traffic sink which also maintains some statistics about the received data
+e.g., number of bytes received, number of packets lost etc. They inherit
+all of the generic agent object functionality. 
+
+\code{$lossmonitor clear}\\
+Resets the expected sequence number to -1. 
+
+State Variables are:
+\begin{description}
+\item[nlost\_] Number of packets lost. 
+
+\item[npkts\_] Number of packets received. 
+
+\item[bytes\_] Number of bytes received. 
+
+\item[lastPktTime\_] Time at which the last packet was received. 
+
+\item[expected\_] The expected sequence number of the next packet. 
+\end{description}
+
+\item[TCP objects]
+TCP objects are a subclass of agent objects that implement the BSD Tahoe
+TCP transport protocol as described in paper: "Fall, K., and Floyd, S.
+Comparisons of Tahoe, Reno, and Sack TCP. December 1995." URL ftp://
+ftp.ee.lbl.gov/papers/sacks.ps.Z. They inherit
+all of the generic agent functionality. Configuration Parameters are:
+\begin{description}
+
+\item[window\_] The upper bound on the advertised window for the TCP
+connection. 
+
+\item[maxcwnd\_]
+The upper bound on the congestion window for the TCP connection. Set to
+zero to ignore. (This is the default.) 
+
+\item[windowInit\_]
+The initial size of the congestion window on slow-start. 
+
+\item[windowOption\_]
+The algorithm to use for managing the congestion window. 
+
+\item[windowThresh\_]
+Gain constant to exponential averaging filter used to compute awnd (see
+below). For investigations of different window-increase algorithms. 
+
+\item[overhead\_]
+The range of a uniform random variable used to delay each output packet.
+The idea is to insert random delays at the source in order to avoid phase
+effects, when desired [see Floyd, S., and Jacobson, V. On Traffic Phase
+Effects in Packet-Switched Gateways. Internetworking: Research and
+Experience, V.3 N.3, September 1992. pp. 115-156 ]. This has only been
+implemented for the Tahoe ("tcp") version of tcp, not for tcp-reno. This
+is not intended to be a realistic model of CPU processing overhead. 
+
+\item[ecn\_] Set to true to use explicit congestion notification in
+addition to packet drops to signal congestion. This allows a Fast
+Retransmit after a quench() due to an ECN (explicit congestion
+notification) bit. 
+
+\item[packetSize\_]
+The size in bytes to use for all packets from this source. 
+
+\item[tcpTick\_]
+The TCP clock granularity for measuring roundtrip times. Note that it is
+set by default to the non-standard value of 100ms. 
+
+\item[bugFix\_]
+Set to true to remove a bug when multiple fast retransmits are allowed for
+packets dropped in a single window of data. 
+
+\item[maxburst\_]
+Set to zero to ignore. Otherwise, the maximum number of packets that the
+source can send in response to a single incoming ACK. 
+
+\item[slow\_start\_restart\_]
+Set to 1 to slow-start after the connection goes idle. On by default. 
+\end{description}
+
+Defined Constants are:
+\begin{description}
+\item[MWS] The Maximum Window Size in packets for a TCP connection. MWS
+determines the size of an array in tcp-sink.cc. The default for MWS is
+1024 packets. For Tahoe TCP, the "window" parameter, representing the
+receiver's advertised window, should be less than MWS-1. For Reno TCP, the
+"window" parameter should be less than (MWS-1)/2. 
+\end{description}
+
+State Variables are:
+\begin{description}
+
+\item[dupacks\_]
+Number of duplicate acks seen since any new data was acknowledged. 
+
+\item[seqno\_]
+Highest sequence number for data from data source to TCP. 
+
+\item[t\_seqno\_]
+Current transmit sequence number. 
+
+\item[ack\_] Highest acknowledgment seen from receiver. cwnd\_
+Current value of the congestion window. 
+
+\item[awnd\_]
+Current value of a low-pass filtered version of the congestion window. For
+investigations of different window-increase algorithms. 
+
+\item[ssthresh\_]
+Current value of the slow-start threshold. 
+
+\item[rtt\_] Round-trip time estimate. 
+
+\item[srtt\_]
+Smoothed round-trip time estimate. 
+
+\item[rttvar\_]
+Round-trip time mean deviation estimate. 
+
+\item[backoff\_]
+Round-trip time exponential backoff constant. 
+\end{description}
+
+\item[TCP/Reno Objects]
+TCP/Reno objects are a subclass of TCP objects that implement the Reno TCP
+transport protocol described in paper: "Fall, K., and Floyd, S.
+Comparisons of Tahoe, Reno, and Sack TCP. December 1995." URL ftp://
+ftp.ee.lbl.gov/papers/sacks.ps.Z. There are no methods,
+configuration parameters or state variables specific to this object. 
+
+\item[TCP/Newreno Objects]
+TCP/Newreno objects are a subclass of TCP objects that implement a
+modified version of the BSD Reno TCP transport protocol. 
+There are no methods or state variables specific to this object. 
+
+Configuration Parameters are:
+\begin{description}
+
+\item[newreno\_changes\_]
+Set to zero for the default NewReno described in "Fall, K., and Floyd, S.
+Comparisons of Tahoe, Reno, and Sack TCP. December 1995". Set to 1 for
+additional NewReno algorithms [see Hoe, J., Improving the Start-up
+Behavior of a Congestion Control Scheme for TCP. in SIGCOMM 96, August
+1996, pp. 270-280. URL 
+http://www.acm.org/sigcomm/sigcomm96/papers/hoe.html.]; this includes the
+estimation of the ssthresh parameter during slow-start. 
+\end{description}
+
+
+\item[TCP/Vegas Objects]
+There are no methods or configuration parameters specific to this
+object. State variables are:
+\begin{itemize}
+\item v\_alpha\_
+\item v\_beta\_
+\item v\_gamma\_
+\item v\_rtt\_
+\end{itemize}
+
+
+\item[TCP/Sack1 Objects]
+TCP/Sack1 objects are a subclass of TCP objects that implement the BSD
+Reno TCP transport protocol with Selective Acknowledgement Extensions
+described in "Fall, K., and Floyd, S. Comparisons of Tahoe, Reno, and
+Sack TCP. December 1995". URL ftp:// ftp.ee.lbl.gov/papers/sacks.ps.Z. 
+They inherit all of the TCP object functionality. There are no methods,
+configuration parameters or state variables specific to this object. 
+
+
+\item[TCP/FACK Objects]
+TCP/Fack objects are a subclass of TCP objects that implement the BSD Reno
+TCP transport protocol with Forward Acknowledgement congestion control. 
+They inherit all of the TCP object functionality. There are no methods or
+state variables specific to this object. 
+
+Configuration Parameters are:
+\begin{description}
+\item[ss-div4]
+Overdamping algorithm. Divides ssthresh by 4 (instead of 2) if congestion
+is detected within 1/2 RTT of slow-start. (1=Enable, 0=Disable) 
+
+\item[rampdown]
+Rampdown data smoothing algorithm. Slowly reduces congestion window rather
+than instantly halving it. (1=Enable, 0=Disable) 
+\end{description}
+
+
+\item[TCP/FULLTCP Objects]
+This section has not yet been added here. The implementation
+and the configuration parameters are described in paper: "Fall, K.,
+Floyd, S., and Henderson, T., Ns Simulator Tests for Reno FullTCP.
+July, 1997." URL ftp://ftp.ee.lbl.gov/papers/fulltcp.ps. 
+
+
+\item[TCPSINK Objects]
+TCPSink objects are a subclass of agent objects that implement a receiver
+for TCP packets. The simulator only implements "one-way" TCP connections,
+where the TCP source sends data packets and the TCP sink sends ACK
+packets. TCPSink objects inherit all of the generic agent functionality.
+There are no methods or state variables specific to the TCPSink object. 
+Configuration Parameters are
+\begin{description}
+\item[packetSize\_]
+The size in bytes to use for all acknowledgment packets. 
+
+\item[maxSackBlocks\_]
+The maximum number of blocks of data that can be acknowledged in a SACK
+option. For a receiver that is also using the time stamp option [RFC
+1323], the SACK option specified in RFC 2018 has room to include three
+SACK blocks. This is only used by the TCPSink/Sack1 subclass. This value
+may not be increased within any particular TCPSink object after that
+object has been allocated. (Once a TCPSink object has been allocated, the
+value of this parameter may be decreased but not increased). 
+\end{description}
+
+
+\item[TCPSINK/DELACK Objects]
+DelAck objects are a subclass of TCPSink that implement a delayed-ACK
+receiver for TCP packets. They inherit all of the TCPSink object
+functionality. There are no methods or state variables specific to the
+DelAck object. 
+Configuration Parameters are:
+\begin{description}
+\item[interval\_]
+The amount of time to delay before generating an acknowledgment for a
+single packet. If another packet arrives before this time expires,
+generate an acknowledgment immediately. 
+\end{description}
+
+
+\item[TCPSINK/SACK1 Objects]
+TCPSink/Sack1 objects are a subclass of TCPSink that implement a SACK
+receiver for TCP packets. They inherit all of the TCPSink object
+functionality. There are no methods, configuration parameters or state
+variables specific to this object. 
+
+
+\item[TCPSINK/SACK1/DELACK Objects]
+TCPSink/Sack1/DelAck objects are a subclass of TCPSink/Sack1 that
+implement a delayed-SACK receiver for TCP packets. They inherit all of the
+TCPSink/Sack1 object functionality. There are no methods or state
+variables specific to this object. 
+Configuration Parameters are:
+\begin{description}
+
+\item[interval\_]
+The amount of time to delay before generating an acknowledgment for a
+single packet. If another packet arrives before this time expires,
+generate an acknowledgment immediately. 
+\end{description}
+\end{description}
+
+
+
 \section{Commands at a glance}
 \label{sec:agentscommand}
 
@@ -757,10 +1041,11 @@ events.
 
 In addition to the agent related procedures described here, there are additional
 methods that support different type of agents like Agent/Null, Agent/TCP,
-Agent/CBR, Agent/TORA, Agent/mcast etc. These additional methods along with the
-procedures described here can be found in \ns/tcl/lib/(ns-agent.tcl,
+Agent/CBR, Agent/TORA, Agent/mcast etc. These additional methods along
+with the procedures described here can be found in \ns/tcl/lib/(ns-agent.tcl,
 ns-lib.tcl, ns-mip.tcl, ns-mobilenode.tcl, ns-namsupp.tcl, ns-queue.tcl,
-ns-route.tcl, ns-sat.tcl, ns-source.tcl).
+ns-route.tcl, ns-sat.tcl, ns-source.tcl). They are also described in the
+previous section.
 
 \end{flushleft} 
 

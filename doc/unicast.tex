@@ -843,6 +843,17 @@ ones.
 The agent will compute new routes if the update contains new information.
 
 
+\section{Unicast routing objects}
+\label{sec:routeobjects}
+Routelogic and rtobject are two objects that are significant to unicast
+routing in \ns. Routelogic, essentially, represents the routing table
+that is created and maintained centrally for every unicast simulation.
+Routeobject is the object that every node taking part in dynamic
+unicast routing, has an instance of. Note that nodes will not have an
+instance of this object if Session routing is done as a detailed
+routing protocol is not being simulated in this case. The methods for
+routelogic and routeobjects are mentioned in the next section.
+
 
 \section{Commands at a glance}
 \label{sec:unicastcommand}
@@ -850,9 +861,11 @@ The agent will compute new routes if the update contains new information.
 Following is a list of unicast routing related commands used in simulation
 scripts:
 \begin{flushleft}
-\code{$ns_ rtproto <routing-proto>}\\
+\code{$ns_ rtproto <routing-proto> <args>}\\
 where <routing-proto> defines the type of routing protocol to be used, like
-Static, Manual, Session , DV etc.
+Static, Manual, Session , DV etc. args may define the list of nodes on
+which the protocol is to be run. The node list defaults to all nodes in
+the topology.
 
 Internal methods:
 
@@ -881,6 +894,42 @@ This dumps the distance information in the routing table.
 This is a method used to add routing entries (nexthop information) in the node's
 routing table. The nexthop to <dst> from this node is the <target> object
 and this info is added to the node's classifier.
+
+
+\code{$routelogic lookup <srcid> <destid>}\\
+Returns the id of the node that is the next hop from the node with id
+srcid to the node with id destid. 
+
+
+\code{$routelogic dump <nodeid>}\\
+Dump the routing tables of all nodes whose id is less than nodeid. Node
+ids are typically assigned to nodes in ascending fashion starting from 0
+by their order of creation. 
+
+
+\code{rtobject dump-routes <fileID>}\\
+Dump the routing table to the output channel specified by fileID. fileID
+must be a file handle returned by the Tcl open command and it must have
+been opened for writing. 
+
+
+\code{$rtobject rtProto? <proto>}\\
+Returns a handle to the routing protocol agent specified by proto if it
+exists at that node. Returns an empty string otherwise. 
+
+
+\code{$rtobject nextHop? <destID>}\\
+Returns the id of the node that is the next hop to the destination
+specified by the node id, <destID>. 
+
+
+\code{$rtobject rtpref? destID }\\
+Returns the preference for the route to destination node given by destid.
+
+
+\code{$rtobject metric? destID }\\
+Returns metric for the route to destid.
+
 \end{flushleft}
 
 \endinput
