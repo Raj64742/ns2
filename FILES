@@ -526,6 +526,8 @@ scheduler.cc
 scheduler.h
 scoreboard.cc
 scoreboard.h
+scoreboard-rh.cc
+scoreboard-rh.h
 semantic-packetqueue.cc
 semantic-packetqueue.h
 semantic-red.cc
@@ -1230,6 +1232,7 @@ tcl/test/test-output-rfc793edu/rtt-jacobson.Z
 tcl/test/test-output-rfc793edu/rtt-rfc793.Z
 tcl/test/test-output-rfc793edu/seqno-fastrtx.Z
 tcl/test/test-output-rfc793edu/seqno-nofastrtx.Z
+tcl/test/test-output-rh
 tcl/test/test-output-sack
 tcl/test/test-output-sack-v1
 tcl/test/test-output-sack-v1/phaseSack.Z
@@ -1338,6 +1341,7 @@ tcl/test/test-output-tcpVariants/fourdrops_newreno_full.Z
 tcl/test/test-output-tcpVariants/fourdrops_reno.Z
 tcl/test/test-output-tcpVariants/fourdrops_reno_full.Z
 tcl/test/test-output-tcpVariants/fourdrops_sack.Z
+tcl/test/test-output-tcpVariants/fourdrops_sackRH.Z
 tcl/test/test-output-tcpVariants/fourdrops_sack_full.Z
 tcl/test/test-output-tcpVariants/fourdrops_tahoe.Z
 tcl/test/test-output-tcpVariants/fourdrops_tahoe_full.Z
@@ -1347,6 +1351,7 @@ tcl/test/test-output-tcpVariants/onedrop_newreno_full.Z
 tcl/test/test-output-tcpVariants/onedrop_reno.Z
 tcl/test/test-output-tcpVariants/onedrop_reno_full.Z
 tcl/test/test-output-tcpVariants/onedrop_sack.Z
+tcl/test/test-output-tcpVariants/onedrop_sackRH.Z
 tcl/test/test-output-tcpVariants/onedrop_sack_full.Z
 tcl/test/test-output-tcpVariants/onedrop_tahoe.Z
 tcl/test/test-output-tcpVariants/onedrop_tahoe_full.Z
@@ -1356,6 +1361,7 @@ tcl/test/test-output-tcpVariants/threedrops_newreno_full.Z
 tcl/test/test-output-tcpVariants/threedrops_reno.Z
 tcl/test/test-output-tcpVariants/threedrops_reno_full.Z
 tcl/test/test-output-tcpVariants/threedrops_sack.Z
+tcl/test/test-output-tcpVariants/threedrops_sackRH.Z
 tcl/test/test-output-tcpVariants/threedrops_sack_full.Z
 tcl/test/test-output-tcpVariants/threedrops_tahoe.Z
 tcl/test/test-output-tcpVariants/threedrops_tahoe_full.Z
@@ -1365,6 +1371,7 @@ tcl/test/test-output-tcpVariants/twodrops_newreno_full.Z
 tcl/test/test-output-tcpVariants/twodrops_reno.Z
 tcl/test/test-output-tcpVariants/twodrops_reno_full.Z
 tcl/test/test-output-tcpVariants/twodrops_sack.Z
+tcl/test/test-output-tcpVariants/twodrops_sackRH.Z
 tcl/test/test-output-tcpVariants/twodrops_sack_full.Z
 tcl/test/test-output-tcpVariants/twodrops_tahoe.Z
 tcl/test/test-output-tcpVariants/twodrops_tahoe_full.Z
@@ -1477,6 +1484,7 @@ tcl/test/test-suite-red.tcl
 tcl/test/test-suite-red.txt
 tcl/test/test-suite-rfc2001.tcl
 tcl/test/test-suite-rfc793edu.tcl
+tcl/test/test-suite-rh.tcl
 tcl/test/test-suite-routed.tcl
 tcl/test/test-suite-sack-v1.tcl
 tcl/test/test-suite-sack-v1a.tcl
@@ -1533,6 +1541,7 @@ tcp-reno.cc
 tcp-rfc793edu.cc
 tcp-rfc793edu.h
 tcp-sack1.cc
+tcp-sack-rh.cc
 tcp-session.cc
 tcp-session.h
 tcp-sink.cc
