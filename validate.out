@@ -1,11 +1,21 @@
 (Validation can take 1-30 hours to run.)
 *** ./test-all-simple
-Tests: tahoe1 tahoe1RED tahoe2 tahoe3 tahoe3RED tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers manyflows stats stats1 stats1a stats1aBytes statsHeaders stats2
+Tests: tahoe1 tahoe1Bytes tahoe1RED tahoe1REDbytes tahoe2 tahoe3 tahoe3RED tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers manyflows stats stats1 stats1Bytes stats1a stats1aBytes statsHeaders stats2
 Running test tahoe1:
 ../../ns test-suite-simple.tcl tahoe1 QUIET
+True average queue: 0.425 time: 4.997
+Test output agrees with reference output
+Running test tahoe1Bytes:
+../../ns test-suite-simple.tcl tahoe1Bytes QUIET
+True average queue: 425.245 (in bytes) time: 4.997
 Test output agrees with reference output
 Running test tahoe1RED:
 ../../ns test-suite-simple.tcl tahoe1RED QUIET
+True average queue: 0.425 time: 4.997
+Test output agrees with reference output
+Running test tahoe1REDbytes:
+../../ns test-suite-simple.tcl tahoe1REDbytes QUIET
+True average queue: 425.245 (in bytes) time: 4.997
 Test output agrees with reference output
 Running test tahoe2:
 ../../ns test-suite-simple.tcl tahoe2 QUIET
@@ -111,6 +121,25 @@ fid: 1 per-link total_bytes 940
 aggregate per-link total_drops 0
 aggregate per-link total_packets 20
 True average queue: 0.004 time: 3.007
+Test output agrees with reference output
+Running test stats1Bytes:
+../../ns test-suite-simple.tcl stats1Bytes QUIET
+TCP packetSize 100
+ftp 0 segments_produced 9 (using `FTP produce pktcnt')
+ftp 1 bytes_produced 900 (using `FTP send nbytes')
+tcp 0 highest_seqment_acked 9
+tcp 0 data_bytes_sent 900
+tcp 1 highest_seqment_acked 9
+tcp 1 data_bytes_sent 900
+fid: 0 per-link total_drops 0
+fid: 0 per-link total_packets 10
+fid: 0 per-link total_bytes 940
+fid: 1 per-link total_drops 0
+fid: 1 per-link total_packets 10
+fid: 1 per-link total_bytes 940
+aggregate per-link total_drops 0
+aggregate per-link total_packets 20
+True average queue: 0.439 (in bytes) time: 3.007
 Test output agrees with reference output
 Running test stats1a:
 ../../ns test-suite-simple.tcl stats1a QUIET
@@ -1736,12 +1765,15 @@ Running test q_weight_auto:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-adaptive-red
-Tests: red1 red1Adapt fastlink fastlinkAutowq fastlinkAutothresh fastlinkAdapt fastlinkAllAdapt fastlinkAllAdapt1 longlink longlinkAdapt longlinkAdapt1 red2 red2Adapt red2A-Adapt red3 red3Adapt red4Adapt transient transient1 transient2 notcautious cautious cautious2 cautious3
+Tests: red1 red1Adapt red1AdaptFeng fastlink fastlinkAutowq fastlinkAutothresh fastlinkAdapt fastlinkAllAdapt fastlinkAllAdapt1 longlink longlinkAdapt longlinkAdapt1 red2 red2Adapt red2A-Adapt red2-AdaptFeng red3 red3Adapt red4Adapt transient transient1 transient2 notcautious cautious cautious2 cautious3
 Running test red1:
 ../../ns test-suite-adaptive-red.tcl red1 QUIET
 Test output agrees with reference output
 Running test red1Adapt:
 ../../ns test-suite-adaptive-red.tcl red1Adapt QUIET
+Test output agrees with reference output
+Running test red1AdaptFeng:
+../../ns test-suite-adaptive-red.tcl red1AdaptFeng QUIET
 Test output agrees with reference output
 Running test fastlink:
 ../../ns test-suite-adaptive-red.tcl fastlink QUIET
@@ -1778,6 +1810,9 @@ Running test red2Adapt:
 Test output agrees with reference output
 Running test red2A-Adapt:
 ../../ns test-suite-adaptive-red.tcl red2A-Adapt QUIET
+Test output agrees with reference output
+Running test red2-AdaptFeng:
+../../ns test-suite-adaptive-red.tcl red2-AdaptFeng QUIET
 Test output agrees with reference output
 Running test red3:
 ../../ns test-suite-adaptive-red.tcl red3 QUIET
@@ -1849,6 +1884,60 @@ Running test notGentle:
 Test output agrees with reference output
 Running test tagging:
 ../../ns test-suite-rio.tcl tagging QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-pi
+Tests: pi1 ecn pi2 pi_twoway pi_twowaybytes
+Running test pi1:
+../../ns test-suite-pi.tcl pi1 QUIET
+Test output agrees with reference output
+Running test ecn:
+../../ns test-suite-pi.tcl ecn QUIET
+Test output agrees with reference output
+Running test pi2:
+../../ns test-suite-pi.tcl pi2 QUIET
+Test output agrees with reference output
+Running test pi_twoway:
+../../ns test-suite-pi.tcl pi_twoway QUIET
+Test output agrees with reference output
+Running test pi_twowaybytes:
+../../ns test-suite-pi.tcl pi_twowaybytes QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-vq
+Tests: vq1 ecn vq2 vq_twoway vq_twowaybytes
+Running test vq1:
+../../ns test-suite-vq.tcl vq1 QUIET
+Test output agrees with reference output
+Running test ecn:
+../../ns test-suite-vq.tcl ecn QUIET
+Test output agrees with reference output
+Running test vq2:
+../../ns test-suite-vq.tcl vq2 QUIET
+Test output agrees with reference output
+Running test vq_twoway:
+../../ns test-suite-vq.tcl vq_twoway QUIET
+Test output agrees with reference output
+Running test vq_twowaybytes:
+../../ns test-suite-vq.tcl vq_twowaybytes QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-rem
+Tests: rem1 ecn rem2 rem_twoway rem_twowayecn
+Running test rem1:
+../../ns test-suite-rem.tcl rem1 QUIET
+Test output agrees with reference output
+Running test ecn:
+../../ns test-suite-rem.tcl ecn QUIET
+Test output agrees with reference output
+Running test rem2:
+../../ns test-suite-rem.tcl rem2 QUIET
+Test output agrees with reference output
+Running test rem_twoway:
+../../ns test-suite-rem.tcl rem_twoway QUIET
+Test output agrees with reference output
+Running test rem_twowayecn:
+../../ns test-suite-rem.tcl rem_twowayecn QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-cbq
@@ -2764,6 +2853,21 @@ creating new DiffAppAgent_
 creating new DiffAppAgent_
 creating new DiffAppAgent_
 NS EXITING...
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-misc
+Tests: stats64
+Running test stats64:
+../../ns test-suite-misc.tcl stats64 QUIET
+This test is checking for problems with int64 counters.
+Byte departures in different data formats:
+Qmon set bdepartures_, or bdep: 2982684040
+ns-add64 bdep 0:                2982684040
+ns-int64todbl bdep:             2982684040.0
+ns-int64todbl bdep + 0:         2982684040.0
+These will give the wrong answer:
+bdep + 0:                       -1312283256
+bdep * 1:                       -1312283256
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: some tests failed:
