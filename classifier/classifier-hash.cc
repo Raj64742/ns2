@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.21 1999/09/15 19:34:16 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.22 1999/09/16 18:32:42 yuriy Exp $ (LBL)";
 #endif
 
 //
@@ -74,11 +74,11 @@ public:
 			return (default_);
 		return (unknown(p));
 	}
-	virtual int lookup(const Packet* p) {
+	virtual int lookup(Packet* p) {
 		hdr_ip* h = hdr_ip::access(p);
 		return get_hash(h->saddr(), h->daddr(), h->flowid());
 	}
-	virtual int unknown(const Packet* p) {
+	virtual int unknown(Packet* p) {
 		hdr_ip* h = hdr_ip::access(p);
 		Tcl::instance().evalf("%s unknown-flow %u %u %u",
 				      name(), h->saddr(), h->daddr(), h->flowid());
@@ -105,7 +105,7 @@ protected:
 	int lookup(nsaddr_t src, nsaddr_t dst, int fid) {
 		return get_hash(src, dst, fid);
 	}
-	int newflow(const Packet* pkt) {
+	int newflow(Packet* pkt) {
 		hdr_ip* h = hdr_ip::access(pkt);
 		Tcl::instance().evalf("%s unknown-flow %u %u %u",
 				      name(), h->saddr(), h->daddr(), h->flowid());

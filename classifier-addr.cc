@@ -34,13 +34,13 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-addr.cc,v 1.18 1999/09/15 19:34:14 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-addr.cc,v 1.19 1999/09/16 18:32:41 yuriy Exp $";
 #endif
 
 #include "classifier-addr.h"
 
 int AddressClassifier::classify(Packet *p) {
-		hdr_ip* iph = hdr_ip::access(p);
+		hdr_ip* iph = hdr_ip::access((Packet*)p);
 		return mshift(iph->daddr());
 };
 
@@ -83,7 +83,7 @@ void ReserveAddressClassifier::clear(int slot)
         }
 }
  
-int ReserveAddressClassifier::classify(Packet *const p) {
+int ReserveAddressClassifier::classify(Packet *p) {
 		hdr_ip* iph = hdr_ip::access(p);
 		return iph->dport();
 };
@@ -107,7 +107,7 @@ public:
         }
 } class_bcast_address_classifier;
  
-NsObject* BcastAddressClassifier::find(const Packet* p)
+NsObject* BcastAddressClassifier::find(Packet* p)
 {
         NsObject* node = NULL;
         int cl = classify(p);

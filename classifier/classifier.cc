@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.30 1999/09/15 19:34:18 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.31 1999/09/16 18:32:43 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -140,7 +140,7 @@ void Classifier::recv(Packet* p, Handler*h)
  * perform upcall if no mapping
  */
 
-NsObject* Classifier::find(const Packet* p)
+NsObject* Classifier::find(Packet* p)
 {
 	NsObject* node = NULL;
 	int cl = classify(p);

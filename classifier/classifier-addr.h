@@ -58,7 +58,7 @@ protected:
 class BcastAddressClassifier : public AddressClassifier {
 public:
 	BcastAddressClassifier() : AddressClassifier(), bcast_recver_(0) {}
-	NsObject *find(const Packet *);
+	NsObject *find(Packet *);
 protected:
 	int command(int argc, const char*const* argv);
 	NsObject *bcast_recver_;
