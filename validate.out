@@ -1188,4 +1188,13 @@ Starting Simulation...
 NS EXITING...
 Test output agrees with reference output
 All test output agrees with reference output.
+*** ./test-all-aimd
+Tests: tcp tcpA tcpB
+../../ns test-suite-aimd.tcl tcp QUIET
+Test output agrees with reference output
+../../ns test-suite-aimd.tcl tcpA QUIET
+Test output agrees with reference output
+../../ns test-suite-aimd.tcl tcpB QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
 validate overall report: all tests passed
