@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: log.cc,v 1.2 2002/05/07 00:10:06 haldar Exp $
+// $Id: log.cc,v 1.3 2002/05/13 22:33:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -24,7 +24,7 @@
 
 char *msg_types[] = {"INTEREST", "POSITIVE REINFORCEMENT",
 		     "NEGATIVE REINFORCEMENT", "DATA",
-		     "EXPLORATORY DATA", "GLOBAL EXPLORATORY DATA",
+		     "EXPLORATORY DATA", "PUSH EXPLORATORY DATA",
 		     "CONTROL", "REDIRECT"};
 
 #ifdef NS_DIFFUSION
@@ -75,11 +75,13 @@ void LogFilter::ProcessMessage(Message *msg)
     DiffPrint(DEBUG_ALWAYS, "n old ");
 
   if (msg->last_hop_ != LOCALHOST_ADDR)
-    DiffPrint(DEBUG_ALWAYS, "%s message from node %d\n", msg_types[msg->msg_type_],
-	      msg->last_hop_);
+    DiffPrint(DEBUG_ALWAYS, "%s message from node %d, %d bytes\n",
+	      msg_types[msg->msg_type_], msg->last_hop_,
+	      CalculateSize(msg->msg_attr_vec_));
   else
-    DiffPrint(DEBUG_ALWAYS, "%s message from agent %d\n", msg_types[msg->msg_type_],
-	      msg->source_port_);
+    DiffPrint(DEBUG_ALWAYS, "%s message from agent %d, %d bytes\n",
+	      msg_types[msg->msg_type_], msg->source_port_,
+	      CalculateSize(msg->msg_attr_vec_));
 }
 
 handle LogFilter::setupFilter()

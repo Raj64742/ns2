@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: gradient.hh,v 1.2 2002/05/07 00:10:06 haldar Exp $
+// $Id: gradient.hh,v 1.3 2002/05/13 22:33:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -257,8 +257,8 @@ protected:
   void sendPositiveReinforcement(NRAttrVec *reinf_attrs, int32_t data_rdm_id,
 				 int32_t data_pkt_num, int32_t destination);
   void forwardData(Message *msg, RoutingEntry *routing_entry);
+  void forwardExploratoryData(Message *msg, RoutingEntry *routing_entry);
   void forwardPushExploratoryData(Message *msg);
-  
 
   // Message Processing functions
   void processOldMessage(Message *msg);

@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tag.cc,v 1.2 2002/05/07 00:10:06 haldar Exp $
+// $Id: tag.cc,v 1.3 2002/05/13 22:33:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -133,7 +133,8 @@ void TagFilter::run()
 #ifdef NS_DIFFUSION
   // Set up the filter
   filterHandle = setupFilter();
-  fprintf(stderr, "Tag Filter subscribed to *, received handle %d\n", (int)filterHandle);
+  fprintf(stderr, "Tag Filter subscribed to *, received handle %d\n",
+	  (int) filterHandle);
   fprintf(stderr, "Tag Filter initialized !\n");
 #else
   // Doesn't do anything

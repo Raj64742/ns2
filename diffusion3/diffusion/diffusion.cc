@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffusion.cc,v 1.2 2002/05/07 00:13:09 haldar Exp $
+// $Id: diffusion.cc,v 1.3 2002/05/13 22:33:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -103,7 +103,7 @@ void DiffusionCoreAgent::run()
   DeviceList::iterator itr;
   DiffPacket in_pkt;
   fd_set fds;
-  Event *e;
+  DiffusionEvent *e;
   bool flag;
   int status, max_sock, fd;
   struct timeval *tv;

@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.hh,v 1.8 2002/05/07 00:43:28 haldar Exp $
+// $Id: dr.hh,v 1.9 2002/05/13 22:33:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -141,6 +141,7 @@ protected:
   bool checkSubscription(NRAttrVec *attrs);
   bool checkPublication(NRAttrVec *attrs);
   bool checkSend(NRAttrVec *attrs);
+  bool isPushData(NRAttrVec *attrs);
 
   HandleEntry * removeHandle(handle my_handle, HandleList *hl);
   HandleEntry * findHandle(handle my_handle, HandleList *hl);

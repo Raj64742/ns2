@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Padma Haldar
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffapp.cc,v 1.4 2002/05/07 00:43:28 haldar Exp $
+// $Id: diffapp.cc,v 1.5 2002/05/13 22:33:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -24,7 +24,6 @@
 
 #ifdef NS_DIFFUSION
 int DiffApp::command(int argc, const char*const* argv) {
-
   //if (argc == 2) {
   //if (strcmp(argv[1], "subscribe") == 0) {
   //  start();
@@ -63,7 +62,7 @@ void DiffApp::parseCommandLine(int argc, char **argv)
   int debug_level;
   int opt;
 
-  config_file = NULL;
+  config_file_ = NULL;
   opterr = 0;
   application_id = strdup(argv[0]);
 

@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: config.hh,v 1.2 2002/05/07 00:24:23 haldar Exp $
+// $Id: config.hh,v 1.3 2002/05/13 22:33:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -58,7 +58,8 @@
 // This parameter specifies how often an exploratory message is allowed
 // to go to the network. It's used to establish a reinforced path as well
 // as discover new paths.
-#define EXPLORATORY_MESSAGE_DELAY    60      // sec bw sends
+#define EXPLORATORY_DATA_DELAY    60      // seconds between sends
+#define PUSH_EXPLORATORY_DELAY    60      // seconds between sends
 
 // This parameter specifies how much time to wait before sending
 // a positive reinforcement message in response to an exploratory

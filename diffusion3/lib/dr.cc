@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.cc,v 1.9 2002/05/07 00:43:28 haldar Exp $
+// $Id: dr.cc,v 1.10 2002/05/13 22:33:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -51,9 +51,11 @@ public:
   bool valid_;
   NRAttrVec *attrs_;
   NR::Callback *cb_;
+  struct timeval exploratory_time_;
 
   HandleEntry()
   {
+    GetTime(&exploratory_time_);
     valid_ = true;
     cb_ = NULL;
   };
@@ -329,6 +331,8 @@ int DiffusionRouting::send(handle publication_handle,
 {
   Message *myMessage;
   HandleEntry *my_handle;
+  int8_t send_message_type = DATA;
+  struct timeval current_time;
 
   // Get the lock first
   getLock(dr_mtx_);
@@ -347,9 +351,35 @@ int DiffusionRouting::send(handle publication_handle,
     return FAIL;
   }
 
+  // Check if it is time to send another exploratory data message
+  GetTime(&current_time);
+
+  if (TimevalCmp(&current_time, &(my_handle->exploratory_time_)) > 0){
+
+    // Check if it is a push data message or a regular data message
+    if (isPushData(my_handle->attrs_)){
+      // Push data message
+
+      // Update time for the next push exploratory message
+      GetTime(&(my_handle->exploratory_time_));
+      my_handle->exploratory_time_.tv_sec += PUSH_EXPLORATORY_DELAY;
+
+      send_message_type = PUSH_EXPLORATORY_DATA;
+    }
+    else{
+      // Regular data message
+
+      // Update time for the next exploratory message
+      GetTime(&(my_handle->exploratory_time_));
+      my_handle->exploratory_time_.tv_sec += EXPLORATORY_DATA_DELAY;
+    
+      send_message_type = EXPLORATORY_DATA;
+    }
+  }
+
   // Initialize message structure
-  myMessage = new Message(DIFFUSION_VERSION, DATA, agent_id_, 0,
-			  0, pkt_count_, random_id_, LOCALHOST_ADDR,
+  myMessage = new Message(DIFFUSION_VERSION, send_message_type, agent_id_,
+			  0, 0, pkt_count_, random_id_, LOCALHOST_ADDR,
 			  LOCALHOST_ADDR);
   // Increment pkt_counter
   pkt_count_++;
@@ -514,7 +544,7 @@ handle DiffusionRouting::addTimer(int timeout, void *p, TimerCallbacks *cb)
 // This function is currently unsupported in the NS implementation of diffusion
 int DiffusionRouting::removeTimer(handle hdl)
 {
-  Event *e;
+  DiffusionEvent *e;
   TimerEntry *entry;
   int found = -1;
 
@@ -748,7 +778,7 @@ void DiffusionRouting::run(bool wait_condition, long max_timeout)
   bool flag;
   DiffPacket in_pkt;
   fd_set fds;
-  Event *e;
+  DiffusionEvent *e;
   struct timeval *tv;
   struct timeval tmv;
 
@@ -984,35 +1014,36 @@ void DiffusionRouting::recvMessage(Message *msg)
 
 void DiffusionRouting::processControlMessage(Message *msg)
 {
-  NRSimpleAttribute<void *> *originalHeader = NULL;
+  NRSimpleAttribute<void *> *original_header_attr = NULL;
   NRAttrVec::iterator place = msg->msg_attr_vec_->begin();
-  RedirectMessage *originalHdr;
+  RedirectMessage *original_header;
   FilterEntry *entry;
   handle my_handle;
 
   // Find the attribute containing the original packet header
-  originalHeader = OriginalHdrAttr.find_from(msg->msg_attr_vec_, place, &place);
-  if (!originalHeader){
+  original_header_attr = OriginalHdrAttr.find_from(msg->msg_attr_vec_,
+						   place, &place);
+  if (!original_header_attr){
     DiffPrint(DEBUG_ALWAYS, "Error: Received an invalid REDIRECT message !\n");
     return;
   }
 
   // Restore original message header
-  originalHdr = (RedirectMessage *) originalHeader->getVal();
-  my_handle = originalHdr->handle_;
-  msg->msg_type_ = originalHdr->msg_type_;
-  msg->source_port_ = originalHdr->source_port_;
-  msg->pkt_num_ = originalHdr->pkt_num_;
-  msg->rdm_id_ = originalHdr->rdm_id_;
-  msg->next_hop_ = originalHdr->next_hop_;
-  msg->last_hop_ = originalHdr->last_hop_;
-  msg->num_attr_ = originalHdr->num_attr_;
-  msg->new_message_ = originalHdr->new_message_;
-  msg->next_port_ = originalHdr->next_port_;
+  original_header = (RedirectMessage *) original_header_attr->getVal();
+  my_handle = original_header->handle_;
+  msg->msg_type_ = original_header->msg_type_;
+  msg->source_port_ = original_header->source_port_;
+  msg->pkt_num_ = original_header->pkt_num_;
+  msg->rdm_id_ = original_header->rdm_id_;
+  msg->next_hop_ = original_header->next_hop_;
+  msg->last_hop_ = original_header->last_hop_;
+  msg->num_attr_ = original_header->num_attr_;
+  msg->new_message_ = original_header->new_message_;
+  msg->next_port_ = original_header->next_port_;
 
   // Delete attribute from the original set
   msg->msg_attr_vec_->erase(place);
-  delete originalHeader;
+  delete original_header_attr;
 
   // Find the right callback
   getLock(dr_mtx_);
@@ -1026,11 +1057,13 @@ void DiffusionRouting::processControlMessage(Message *msg)
       return;
     }
     else{
-      DiffPrint(DEBUG_ALWAYS, "Warning: Filter specified doesn't match incoming message's attributes !\n");
+      DiffPrint(DEBUG_ALWAYS,
+		"Warning: Filter doesn't match incoming message's attributes !\n");
     }
   }
   else{
-    DiffPrint(DEBUG_IMPORTANT, "Report: Filter in REDIRECT message was not found (possibly deleted ?)\n");
+    DiffPrint(DEBUG_IMPORTANT,
+	      "Report: Cannot find filter (possibly deleted ?)\n");
   }
 
   releaseLock(dr_mtx_);
@@ -1246,4 +1279,25 @@ bool DiffusionRouting::checkSend(NRAttrVec *attrs)
     return false;
 
   return true;
+}
+
+bool DiffusionRouting::isPushData(NRAttrVec *attrs)
+{
+  NRSimpleAttribute<int> *nrclass = NULL;
+  NRSimpleAttribute<int> *nrscope = NULL;
+
+  // Currently only checks for Class and Scope attributes
+  nrclass = NRClassAttr.find(attrs);
+  nrscope = NRScopeAttr.find(attrs);
+
+  // We should have both class and scope
+  if (nrclass && nrscope){
+    if (nrscope->getVal() == NRAttribute::NODE_LOCAL_SCOPE)
+      return false;
+    return true;
+  }
+  else{
+    DiffPrint(DEBUG_ALWAYS, "Error: Cannot find class/scope attributes !\n");
+    return false;
+  }
 }

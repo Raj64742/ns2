@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: srcrt.cc,v 1.2 2002/05/07 00:10:06 haldar Exp $
+// $Id: srcrt.cc,v 1.3 2002/05/13 22:33:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -21,9 +21,10 @@
 //
 
 #include "srcrt.hh"
+
 #ifdef NS_DIFFUSION
 class DiffAppAgent;
-#endif //NS
+#endif // NS_DIFFUSION
 
 #ifdef NS_DIFFUSION
 static class SourceRouteFilterClass : public TclClass {
@@ -35,6 +36,7 @@ public:
 } class_source_route_filter;
 
 int SrcRtFilter::command(int argc, const char*const* argv) {
+  Tcl& tcl =  Tcl::instance();
   if (argc == 2) {
     if (strcmp(argv[1], "start") == 0) {
       run();
@@ -45,7 +47,7 @@ int SrcRtFilter::command(int argc, const char*const* argv) {
 }
 #endif // NS_DIFFUSION
 
-void SrcrtFilterReceive::recv(Message *msg, handle h)
+void SrcRtFilterReceive::recv(Message *msg, handle h)
 {
   app->recv(msg, h);
 }
@@ -151,27 +153,27 @@ void SrcRtFilter::run()
 
 #ifdef NS_DIFFUSION
 SrcRtFilter::SrcRtFilter()
-#else
-SrcRtFilter::SrcRtFilter(int argc, char **argv)
-#endif //NS
 {
-
-#ifdef NS_DIFFUSION
   DiffAppAgent *agent;
 #else
+SrcRtFilter::SrcRtFilter(int argc, char **argv)
+{
+#endif // NS_DIFFUSION
+
   // Create Diffusion Routing class
+#ifndef NS_DIFFUSION
   parseCommandLine(argc, argv);
   dr_ = NR::createNR(diffusion_port_);
-#endif // NS_DIFFUSION
-      
-  fcb = new SrcrtFilterReceive(this);
+#endif // !NS_DIFFUSION
+
+  fcb = new SrcRtFilterReceive(this);
 
 #ifndef NS_DIFFUSION
   // Set up the filter
   filterHandle = setupFilter();
   fprintf(stderr, "SrcRtFilter filter received handle %ld\n", filterHandle);
   fprintf(stderr, "SrcRtFilter filter initialized !\n");
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION
 }
 
 #ifndef NS_DIFFUSION

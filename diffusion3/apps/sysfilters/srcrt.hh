@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: srcrt.hh,v 1.2 2002/05/07 00:10:06 haldar Exp $
+// $Id: srcrt.hh,v 1.3 2002/05/13 22:33:44 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -29,18 +29,19 @@
 
 #ifdef NS_DIFFUSION
 #include "diffagent.h"
-#endif //NS
+#endif // NS_DIFFUSION
+
 #include "diffapp.hh"
 
 #define SRCRT_FILTER_PRIORITY 15
 
 class SrcRtFilter;
 
-class SrcrtFilterReceive : public FilterCallback {
+class SrcRtFilterReceive : public FilterCallback {
 public:
   SrcRtFilter *app;
 
-  SrcrtFilterReceive(SrcRtFilter *_app) : app(_app) {};
+  SrcRtFilterReceive(SrcRtFilter *_app) : app(_app) {};
   void recv(Message *msg, handle h);
 };
 
@@ -61,7 +62,7 @@ protected:
   handle filterHandle;
 
   // Receive Callback for the filter
-  SrcrtFilterReceive *fcb;
+  SrcRtFilterReceive *fcb;
 
   // Filter interface
   handle setupFilter();

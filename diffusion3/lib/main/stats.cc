@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: stats.cc,v 1.2 2002/05/07 00:24:24 haldar Exp $
+// $Id: stats.cc,v 1.3 2002/05/13 22:33:45 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
