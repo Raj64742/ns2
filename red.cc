@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.55 2000/11/17 22:10:33 ratul Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.56 2001/06/12 23:54:14 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -118,6 +118,7 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 						    // when ave queue
 						    // exceeds maxthresh
 
+	bind_bool("summarystats_", &edp_.summarystats);
 	bind_bool("drop_tail_", &drop_tail_);	    // drop last pkt
 	//	_RENAMED("drop-tail_", "drop_tail_");
 
@@ -172,6 +173,8 @@ void REDQueue::reset()
 			(8. * edp_.mean_pktsize);
 
 	edv_.v_ave = 0.0;
+	edv_.v_true_ave = 0.0;
+        edv_.v_total_time = 0.0;
 	edv_.v_slope = 0.0;
 	edv_.count = 0;
 	edv_.count_bytes = 0;
@@ -390,11 +393,11 @@ void REDQueue::enque(Packet* pkt)
 	 * of time we've been idle for
 	 */
 
+	double now = Scheduler::instance().clock();
 	int m = 0;
 	if (idle_) {
 		// A packet that arrives to an idle queue will never
 		//  be dropped.
-		double now = Scheduler::instance().clock();
 		/* To account for the period when the queue was empty. */
 		idle_ = 0;
 		m = int(edp_.ptc * (now - idletime_));
@@ -411,6 +414,17 @@ void REDQueue::enque(Packet* pkt)
 	//printf("v_ave: %6.4f (%13.12f) q: %d)\n", 
 	//	double(edv_.v_ave), double(edv_.v_ave), q_->length());
 	//run_estimator(qib_ ? bcount_ : q_->length(), m + 1);
+	if (edp_.summarystats) {
+		double oldave = edv_.v_true_ave;
+		double oldtime = edv_.v_total_time;
+		double newtime = now - edv_.v_total_time;
+		int newsize;
+		if (qib_) newsize = bcount_; else newsize = q_->length();
+		edv_.v_true_ave = (oldtime * oldave + newtime * newsize)/now;
+		edv_.v_total_time = now;
+	}
+	/* compute true average queue size for summary stats */
+
 
 	/*
 	 * count and count_bytes keeps a tally of arriving traffic
@@ -550,6 +564,10 @@ int REDQueue::command(int argc, const char*const* argv)
 			tcl.resultf("%s", traceType);
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "printstats") == 0) {
+			print_summarystats();
+			return (TCL_OK);
+		}
 	} 
 	else if (argc == 3) {
 		// attach a file for variable tracing
@@ -669,6 +687,12 @@ void REDQueue::print_edp()
 void REDQueue::print_edv()
 {
 	printf("v_a: %f, v_b: %f\n", edv_.v_a, edv_.v_b);
+}
+
+void REDQueue::print_summarystats()
+{
+	double now = Scheduler::instance().clock();
+	printf("True average queue: %5.3f time: %5.3f\n", edv_.v_true_ave, edv_.v_total_time);
 }
 
 /************************************************************/

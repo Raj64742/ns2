@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.11 2001/05/27 03:50:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.12 2001/06/12 23:54:14 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1227,6 +1227,38 @@ Test/stats1 instproc run {} {
 	$ns_ at $almosttime "$self printpkts 1 $tcp1"
 	$ns_ at $stoptime "$self printdrops 0 $fmon; $self printdrops 1 $fmon"
 	$ns_ at $stoptime "$self printall $fmon"
+
+	# trace only the bottleneck link
+	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+	$ns_ run
+}
+
+Class Test/stats2 -superclass TestSuite
+Test/stats2 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net2
+	Queue/RED set summarystats_ true
+	set test_	stats2
+	$self next
+}
+Test/stats2 instproc run {} {
+	$self instvar ns_ node_ testName_ 
+	set stoptime 10.1 
+
+	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 0]
+	$tcp0 set window_ 1000
+	set tcp1 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s3) 1]
+	$tcp1 set window_ 1000
+
+	set ftp0 [$tcp0 attach-app FTP]
+	set ftp1 [$tcp1 attach-app FTP]
+	$ns_ at 0.0 "$ftp0 start"
+	$ns_ at 1.0 "$ftp1 start"
+
+	set link1 [$ns_ link $node_(r1) $node_(r2)]
+	set queue1 [$link1 queue]
+	$ns_ at 10.0 "$queue1 printstats"
 
 	# trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]

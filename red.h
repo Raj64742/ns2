@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.25 2001/06/05 23:49:43 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.26 2001/06/12 23:54:14 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -77,6 +77,7 @@ struct edp {
 	int setbit;		/* true to set congestion indication bit */
 	int gentle;		/* true to increases dropping prob. slowly *
 				 * when ave queue exceeds maxthresh. */
+	int summarystats;	/* true to print true average queue size */
 	double th_min;		/* minimum threshold of average queue size */
 	double th_max;		/* maximum threshold of average queue size */
 	double max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
@@ -104,9 +105,12 @@ struct edv {
 	int count;		/* # of packets since last drop */
 	int count_bytes;	/* # of bytes since last drop */
 	int old;		/* 0 when average queue first exceeds thresh */
+	double v_true_ave;	/* true long-term average queue size */
+	double v_total_time;	/* total time average queue size compute for */
 
 	edv() : v_ave(0.0), v_prob1(0.0), v_slope(0.0), v_prob(0.0),
-		v_a(0.0), v_b(0.0), count(0), count_bytes(0), old(0) { }
+		v_a(0.0), v_b(0.0), count(0), count_bytes(0), old(0),
+		v_true_ave(0.0), v_total_time(0.0) { }
 };
 
 class REDQueue : public Queue {
@@ -128,6 +132,7 @@ class REDQueue : public Queue {
  	double calculate_p(double v_ave, double th_max, int gentle, 
 			   double v_a, double v_b, double v_c, double v_d, double max_p_inv);
 	virtual void reportDrop(Packet *) {}  //pushback
+	void print_summarystats();
 
 	LinkDelay* link_;	/* outgoing link */
 	int fifo_;		/* fifo queue? */

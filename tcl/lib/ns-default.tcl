@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.244 2001/06/09 04:08:40 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.245 2001/06/12 23:54:14 sfloyd Exp $
 
 
 #
@@ -114,6 +114,7 @@ Queue/RED set dqthresh_ 50
 Queue/RED set ave_ 0.0
 Queue/RED set prob1_ 0.0
 Queue/RED set curq_ 0
+Queue/RED set summarystats_ false
 
 Queue/RED/RIO set bytes_ false
 Queue/RED/RIO set queue_in_bytes_ false
