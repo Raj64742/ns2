@@ -1853,8 +1853,20 @@ The upper bound on the congestion window for the TCP connection.
 Set to zero to ignore.  (This is the default.)
 Measured in packets.
 .IP \fIwindowInit_\fP
-The initial size of the congestion window on slow-start
+The initial size of the congestion window on slow-start.
 (in packets).
+.IP \fIwnd_init_option_\fP 
+The algorithm used for determining the initial size of the
+congestion window.  Set to 1 for a static algorithm using the
+value in \fIwindowInit_\fP.  Set to 2 for a dynamic algorithm
+using a function of \fIpacketSize_\fP.
+.IP \fIsyn_\fP
+Set to true to model the initial SYN/ACK exchange in one-way TCP.
+Set to false as default.
+.IP \fIdelay_growth_\fP
+Set to true to delay the initial congestion window until after one
+packet has been sent and acked.
+Set to false as default.
 .IP \fIwindowOption_\fP
 The algorithm to use for managing the congestion window
 in linear phase.
@@ -1880,6 +1892,8 @@ This allows a Fast Retransmit after a quench() due to
 an ECN (explicit congestion notification) bit.
 .IP \fIpacketSize_\fP
 The size in bytes to use for all packets from this source.
+.IP \fItcpip_base_hdr_size_\fP
+The size in bytes of the base TCP/IP header.
 .IP \fItcpTick_\fP 
 The TCP clock granularity for measuring roundtrip times.  Note that it is set
 by default to the non-standard value of 100ms.  
