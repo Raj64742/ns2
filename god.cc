@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/god.cc,v 1.13 2000/10/18 01:17:50 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/god.cc,v 1.14 2000/10/18 02:34:46 haoboy Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -421,7 +421,8 @@ int *God::NextOIFs(int dt, int srcid, int curid, int *ret_num_oif)
   int *oif_map = SRC_TAB(dt, srcid);
   int count=0;
 
-  for (int i=0; i<num_nodes; i++) {
+  int i;
+  for (i=0; i<num_nodes; i++) {
     if (oif_map[curid*num_nodes +i] == 1)
       count++;
   }
