@@ -1,52 +1,6 @@
 #!../../../../ns
 source ../../../lan/ns-lan.tcl
-
-proc createTcpSource { type tcptrace { maxburst 0 } { tcpTick 0.1 } { window 100 } } {
-	set tcp0 [new Agent/$type]
-	$tcp0 set class_ 1
-	$tcp0 set maxburst_ $maxburst
-	$tcp0 set tcpTick_ $tcpTick
-	$tcp0 set window_ $window
-	$tcp0 trace $tcptrace
-	return $tcp0
-} 
-
-proc createTcpSink { type sinktrace { ackSize 40 } { maxdelack 25 } } {
-	set sink0 [new Agent/$type]
-	$sink0 set packetSize_ $ackSize
-	if {[string first "Asym" $type] != -1} { 
-		$sink0 set maxdelack_ $maxdelack
-	}
-	$sink0 trace $sinktrace
-	return $sink0
-}
-
-proc createFtp { ns n0 tcp0 n1 sink0 } {
-	$ns attach-agent $n0 $tcp0
-	$ns attach-agent $n1 $sink0
-	$ns connect $tcp0 $sink0
-	set ftp0 [new Source/FTP]
-	$ftp0 set agent_ $tcp0
-	return $ftp0
-}
-
-proc configQueue { ns n0 n1 type trace { size 50 } { acksfirst false } { filteracks false } { replace_head false } { acksfromfront false } { interleave false } } {
-	$ns queue-limit $n0 $n1 $size
-	set id0 [$n0 id]
-	set id1 [$n1 id]
-	set l01 [$ns set link_($id0:$id1)]
-	set q01 [$l01 set queue_]
-	if {[string first "NonFifo" $type] != -1} {
-		$q01 set acksfirst_ $acksfirst
-		$q01 set filteracks_ $filteracks
-		$q01 set replace_head_ $replace_head
-		$q01 set acksfromfront_ $acksfromfront
-		$q01 set interleave_ $interleave
-	}
-	$q01 trace $trace
-	$q01 reset
-}
-
+source ../../../ex/asym/util.tcl
 
 # set up simulation
 
@@ -80,24 +34,6 @@ set acksfromfront false
 set interleave false
 set midtime 0
 
-# configure RED parameters
-Queue/RED set setbit_ true
-Queue/RED set drop-tail_ true
-Queue/RED set fracthresh_ true
-Queue/RED set fracminthresh_ 0.4
-Queue/RED set fracmaxthresh_ 0.7
-Queue/RED set q_weight_ 0.25
-Queue/RED set wait_ false
-Queue/RED set linterm_ 1
-
-Queue set interleave_ false
-Queue set acksfirst_ false
-Queue set filteracks_ false
-Queue set replace_head_ false
-Queue set ackfromfront_ false
-
-Agent/TCP set disable_ecn_ 0
-
 proc printUsage {} {
 	puts "Usage: "
 	exit
@@ -111,27 +47,6 @@ proc finish {ns traceall tcptrace graph midtime} {
 	plotgraph $graph $midtime
 	exit 0
 }	
-
-proc plotgraph {graph midtime} {
-	exec gawk --lint -f ../../../ex/asym/seq.awk out.tr
-	exec gawk --lint -v mid=$midtime -f ../../../ex/asym/tcp.awk tcp.tr
-	if {$graph == 0} {
-		return
-	}
-
-        set if [open index.out r]
-	while {[gets $if i] >= 0} {
-		set seqfile [format "seq-%s.out" $i]
-		set ackfile [format "ack-%s.out" $i]
-		set cwndfile [format "cwnd-%s.out" $i]
-		set ssthreshfile [format "ssthresh-%s.out" $i]
-		set srttfile [format "srtt-%s.out" $i]
-		set rttvarfile [format "rttvar-%s.out" $i]
-		exec xgraph -display joyride:0.1 -bb -tk -m -x time -y seqno $seqfile $ackfile &
-		exec xgraph -display joyride:0.1 -bb -tk -m -x time -y window $cwndfile &
-	}
-	close $if
-}
 
 # read user options and act accordingly
 set count 0
