@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.15 1997/10/22 21:00:28 kannan Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.16 1997/11/06 04:22:23 hari Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -42,35 +42,49 @@
 #include "ranvar.h"
 
 
-enum ErrorUnit { EU_PKT=0, EU_BIT, EU_TIME };
-#define EU_NAMES "pkt", "bit", "time"
-#define STR2EU(s) (!strcmp(s,"bit") ? EU_BIT : (!strcmp(s,"time") ? EU_TIME : EU_PKT))
+enum ErrorUnit { EU_PKT=0, EU_BYTE, EU_TIME };
+#define EU_NAMES "pkt", "byte", "time"
+#define STR2EU(s) (!strcmp(s,"byte") ? EU_BYTE : (!strcmp(s,"time") ? EU_TIME : EU_PKT))
 
 
+/* 
+ * Basic object for error models.  This can be used unchanged by error 
+ * models that are characterized by a single parameter, the rate of errors 
+ * (or equivalently, the mean duration/spacing between errors).  Currently,
+ * this includes the uniform and exponentially-distributed models.
+ */
 class ErrorModel : public Connector {
-public:
+  public:
 	ErrorModel();
 	void recv(Packet*, Handler*);
 	virtual int corrupt(Packet*);
+	virtual int CorruptPkt(Packet *);
+	virtual int CorruptTime(Packet *);
+	virtual int CorruptByte(Packet *);
 	inline double rate() { return rate_; }
-
-protected:
+  protected:
 	int command(int argc, const char*const* argv);
-	ErrorUnit eu_;		// error unit in pkt, bit, or time
-	RandomVariable* ranvar_;
-	double rate_;
-	int onlink_;		// true if this is between a queue and a link
-	Event intr_;		// set callback to queue
+	ErrorUnit eu_;		/* error unit in pkts, bytes, or time */
+	RandomVariable* ranvar_;/* the underlying random variate generator */
+	double rate_;		/* mean pkts between errors (for EU_PKT), or
+				 * mean bytes between errors (for EU_BYTE), or 
+				 * mean time between errors (for EU_TIME). */
+	int errPkt_;		/* for the packet-based error model */
+	int errByte_;		/* for the byte-based error model */
+	double errTime_;	/* for the time-based error model */
+	int onlink_;		/* true if this is between an ifq and a link */
+	Event intr_;		/* set callback to queue */
+	int firstTime_;		/* to not corrupt first packet in byte model */
+	int off_mac_;
 };
 
 
 /* For Selective packet drop */
 class SelectErrorModel : public ErrorModel {
-public:
+  public:
 	SelectErrorModel();
 	virtual int corrupt(Packet*);
-
-protected:
+  protected:
 	int command(int argc, const char*const* argv);
         int pkt_type_;
         int drop_cycle_;
