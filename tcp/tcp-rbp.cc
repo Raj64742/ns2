@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.2 1997/06/23 17:03:17 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.3 1997/06/24 00:18:03 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -43,6 +43,10 @@ static char rcsid[] =
 #include "ip.h"
 #include "tcp.h"
 #include "flags.h"
+
+#ifndef MIN
+#define MIN(x, y) ((x)<(y) ? (x) : (y))
+#endif /* ! MIN */
 
 class RBPVegasTcpAgent;
 
@@ -65,6 +69,7 @@ class RBPVegasTcpAgent : public virtual VegasTcpAgent {
 	double rbp_scale_;   // conversion from actual -> rbp send rates
 protected:
 	void paced_send_one();
+	int able_to_rbp_send_one();
 
 	enum rbp_modes { RBP_GOING, RBP_POSSIBLE, RBP_OFF };
 	enum rbp_modes rbp_mode_;
@@ -95,6 +100,7 @@ RBPVegasTcpAgent::recv(Packet *pkt, Handler *hand)
 {
 	if (rbp_mode_ != RBP_OFF) {
 		// reciept of anything disables rbp
+		// change cwnd_ here?
 		rbp_mode_ = RBP_OFF;
 	};
 	VegasTcpAgent::recv(pkt, hand);
@@ -116,11 +122,15 @@ RBPVegasTcpAgent::timeout(int tno)
 void
 RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 {
-	if (rbp_mode_ == RBP_POSSIBLE && t_seqno() < curseq_) {
+	if (rbp_mode_ == RBP_POSSIBLE && able_to_rbp_send_one()) {
 		// start paced mode
 		rbp_mode_ = RBP_GOING;
 		double rbp_rate = v_actual_ * rbp_scale_;
 		inter_pace_delay_ = 1 / rbp_rate;
+		// prevent sending too much data in RBP mode
+#if 0
+		cwnd() = MIN(cwnd(), rbp_rate * v_rtt_);
+#endif
 		paced_send_one();
 	} else {
 		VegasTcpAgent::send_much(force,reason, maxburst);
@@ -130,8 +140,7 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 void
 RBPVegasTcpAgent::paced_send_one()
 {
-	// xxx: should prevent from overrunning cwnd as well
-	if (rbp_mode_ == RBP_GOING && t_seqno() < curseq_) {
+	if (rbp_mode_ == RBP_GOING && able_to_rbp_send_one()) {
 		// send one packet
 		output(t_seqno()++, TCP_REASON_RBP);
 		// schedule next pkt
@@ -139,3 +148,8 @@ RBPVegasTcpAgent::paced_send_one()
 	};
 }
 
+int
+RBPVegasTcpAgent::able_to_rbp_send_one()
+{
+	return t_seqno() < curseq_ && t_seqno() < highest_ack() + window();
+}
