@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.2 1997/01/26 22:32:25 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.3 1997/03/28 01:24:29 mccanne Exp $";
 #endif
 
 #include <stdlib.h>
@@ -95,8 +95,18 @@ void Classifier::recv(Packet* p, Handler*)
 	int cl = classify(p);
 	if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) {
 		Tcl::instance().evalf("%s no-slot %d", name(), cl);
-		Packet::free(p);
-		return;
+		/*
+		 * Try again.  Maybe callback patched up the table.
+		 */
+		cl = classify(p);
+		if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) {
+			/*
+			 * XXX this should be "dropped" somehow.  Right now,
+			 * these events aren't traced.
+			 */
+			Packet::free(p);
+			return;
+		}
 	}
 	node->recv(p);
 }

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.5 1997/03/25 22:22:14 kannan Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.6 1997/03/28 01:24:31 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -104,7 +104,6 @@ class Queue : public Connector {
 	inline void drop(Packet* p) { drop_->recv(p); }
 	NsObject* drop_;	/* node to send all dropped packets to */
 	int qlim_;		/* maximum allowed pkts in queue */
- private:
 	int blocked_;
 	QueueHandler qh_;
 };

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997 Regents of the University of California.
+ * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
  * 
  * Redistribution and use in source and binary forms, with or without
@@ -33,51 +33,33 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.cc,v 1.4 1997/03/28 01:24:30 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-flow.cc,v 1.1 1997/03/28 01:24:29 mccanne Exp $";
 #endif
 
-#include "connector.h"
+#include "config.h"
+#include "packet.h"
+#include "ip.h"
+#include "classifier.h"
 
-static class ConnectorClass : public TclClass {
+class FlowClassifier : public Classifier {
 public:
-	ConnectorClass() : TclClass("Connector") {}
+	FlowClassifier() : mask_(~0), shift_(0) {
+		bind("mask_", (int*)&mask_);
+		bind("shift_", &shift_);
+	}
+protected:
+	int classify(Packet *const p) {
+		IPHeader *h = IPHeader::access(p->bits());
+		return ((h->flowid() >> shift_) & mask_);
+	}
+	nsaddr_t mask_;
+	int shift_;
+};
+
+static class FlowClassifierClass : public TclClass {
+public:
+	FlowClassifierClass() : TclClass("Classifier/Flow") {}
 	TclObject* create(int argc, const char*const* argv) {
-		return (new Connector);
+		return (new FlowClassifier());
 	}
-} class_connector;
-
-Connector::Connector() : target_(0)
-{
-}
-
-
-int Connector::command(int argc, const char*const* argv)
-{
-	Tcl& tcl = Tcl::instance();
-	/*XXX*/
-	if (argc == 2) {
-		if (strcmp(argv[1], "target") == 0) {
-			if (target_ != 0)
-				tcl.result(target_->name());
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "dynamic") == 0) {
-			return TCL_OK;
-		}
-	} else if (argc == 3) {
-		if (strcmp(argv[1], "target") == 0) {
-			target_ = (NsObject*)TclObject::lookup(argv[2]);
-			if (target_ == 0) {
-				tcl.resultf("no such object %s", argv[2]);
-				return (TCL_ERROR);
-			}
-			return (TCL_OK);
-		}
-	}
-	return (NsObject::command(argc, argv));
-}
-
-void Connector::recv(Packet* p, Handler* h)
-{
-	send(p, h);
-}
+} class_flow_classifier;

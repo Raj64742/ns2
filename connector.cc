@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.cc,v 1.3 1997/03/25 22:22:11 kannan Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.cc,v 1.4 1997/03/28 01:24:30 mccanne Exp $";
 #endif
 
 #include "connector.h"
@@ -68,7 +68,7 @@ int Connector::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "target") == 0) {
 			target_ = (NsObject*)TclObject::lookup(argv[2]);
 			if (target_ == 0) {
-				tcl.resultf("no such node %s", argv[2]);
+				tcl.resultf("no such object %s", argv[2]);
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);

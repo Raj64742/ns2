@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.7 1997/03/25 22:22:13 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.8 1997/03/28 01:24:31 mccanne Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -94,7 +94,7 @@ void Queue::recv(Packet* p, Handler*)
 	enque(p);
 	if (!blocked_) {
 		/*
-		 * We're not block.  Get a packet and send it on.
+		 * We're not blocked.  Get a packet and send it on.
 		 * We perform an extra check because the queue
 		 * might drop the packet even if it was
 		 * previously empty!  (e.g., RED can do this.)

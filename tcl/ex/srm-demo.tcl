@@ -3,7 +3,7 @@
 # to illustrate the basic srm suppression algorithms.
 # It is not an srm implementation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.4 1997/03/27 07:05:07 elan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.5 1997/03/28 01:24:33 mccanne Exp $
 #
 
 set ns [new MultiSim]
@@ -141,7 +141,6 @@ Agent/Message/MC_SRM instproc recv msg {
 				global ns
 				set r [expr ([ns-random] / double(0x7fffffff) + 0.1) * $random_]
 				set r [expr [$ns now] + $r]
-puts "[$ns now] -> $r"
 				$ns at $r "$self send-nack $from $seqno"
 			} else {
 				$self send "nack $from $seqno"
@@ -156,7 +155,6 @@ Agent/Message/MC_SRM instproc send-nack { from seqno } {
 	if ![info exists nacked_($seqno)] {
 		set dst_ 0x8002
 		$self send "nack $from $seqno"
-puts SEND
 	}
 }
 
