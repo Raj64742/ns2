@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.13 1997/10/20 23:07:56 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.14 1997/10/23 04:24:49 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -83,9 +83,12 @@ protected:
 	void paced_send_one();
 	int able_to_rbp_send_one();
 
+	// stats on what we did
+	int rbp_segs_actually_paced_;
+
 	enum rbp_modes { RBP_GOING, RBP_POSSIBLE, RBP_OFF };
 	enum rbp_modes rbp_mode_;
-	double inter_pace_delay_;
+	double rbp_inter_pace_delay_;
 	RBPVegasPaceTimer pace_timer_;
 };
 
@@ -107,6 +110,8 @@ RBPVegasTcpAgent::RBPVegasTcpAgent() : VegasTcpAgent(),
 {
 	bind("rbp_scale_", &rbp_scale_);
 	bind("rbp_rate_algorithm_", &rbp_rate_algorithm_);
+	bind("rbp_segs_actually_paced_", &rbp_segs_actually_paced_);
+	bind("rbp_inter_pace_delay_", &rbp_inter_pace_delay_);
 }
 
 void
@@ -139,6 +144,7 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 	if (rbp_mode_ == RBP_POSSIBLE && able_to_rbp_send_one()) {
 		// start paced mode
 		rbp_mode_ = RBP_GOING; 
+		rbp_segs_actually_paced_ = 0;
 		double rbwin_vegas;
 		switch (rbp_rate_algorithm_) {
 		case RBP_VEGAS_RATE_ALGORITHM:
@@ -167,9 +173,9 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 
 		// Conservatively set the congestion window to min of
 		// congestion window and the smoothed rbwin_vegas
-		RBP_DEBUG_PRINTF(("cwnd before check = %g\n", cwnd_));
+		RBP_DEBUG_PRINTF(("cwnd before check = %g\n", double(cwnd_)));
 		cwnd_ = MIN(cwnd_, rbwin_vegas);
-		RBP_DEBUG_PRINTF(("cwnd after check = %g\n", cwnd_));
+		RBP_DEBUG_PRINTF(("cwnd after check = %g\n", double(cwnd_)));
 		RBP_DEBUG_PRINTF(("recv win = %g\n", wnd_));
 		// RBP timer calculations must be based on the actual
 		// window which is the min of the receiver's
@@ -177,9 +183,9 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 		// TcpAgent::window() does this job.
 		// What this means is we expect to send window() pkts
 		// in v_rtt_ time.
-		inter_pace_delay_ = (v_rtt_)/(window() * 1.0);
+		rbp_inter_pace_delay_ = (v_rtt_)/(window() * 1.0);
 		RBP_DEBUG_PRINTF(("window is %d\n", window()));
-		RBP_DEBUG_PRINTF(("ipt = %g\n", inter_pace_delay_));
+		RBP_DEBUG_PRINTF(("ipt = %g\n", rbp_inter_pace_delay_));
 		paced_send_one();
 	} else {
 		VegasTcpAgent::send_much(force,reason, maxburst);
@@ -193,8 +199,9 @@ RBPVegasTcpAgent::paced_send_one()
 		RBP_DEBUG_PRINTF(("Sending one rbp packet\n"));
 		// send one packet
 		output(t_seqno_++, TCP_REASON_RBP);
+		rbp_segs_actually_paced_++;
 		// schedule next pkt
-		pace_timer_.resched(inter_pace_delay_);
+		pace_timer_.resched(rbp_inter_pace_delay_);
 	};
 }
 
@@ -238,9 +245,12 @@ protected:
 	void paced_send_one();
 	int able_to_rbp_send_one();
 
+	// stats on what we did
+	int rbp_segs_actually_paced_;
+
 	enum rbp_modes { RBP_GOING, RBP_POSSIBLE, RBP_OFF };
 	enum rbp_modes rbp_mode_;
-	double inter_pace_delay_;
+	double rbp_inter_pace_delay_;
 	RBPRenoPaceTimer pace_timer_;
 };
 
@@ -262,6 +272,8 @@ RBPRenoTcpAgent::RBPRenoTcpAgent() : TcpAgent(),
 	bind("rbp_scale_", &rbp_scale_);
 	// algorithm is not used in Reno
 	// bind("rbp_rate_algorithm_", &rbp_rate_algorithm_);
+	bind("rbp_segs_actually_paced_", &rbp_segs_actually_paced_);
+	bind("rbp_inter_pace_delay_", &rbp_inter_pace_delay_);
 }
 
 void
@@ -270,6 +282,22 @@ RBPRenoTcpAgent::recv(Packet *pkt, Handler *hand)
 	if (rbp_mode_ != RBP_OFF) {
 		// reciept of anything disables rbp
 		rbp_mode_ = RBP_OFF;
+
+		// reset cwnd such that we're now ack clocked.
+		hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	        if (tcph->seqno() > last_ack_) {
+			/* reno does not do rate adjustments as Vegas;
+			 *  thus one needs to cap the cwnd value to 3
+			 * (increase cwnd by the amt acked, not by the
+			 * amt paced), which would be 2 + 1, since
+			 * a delayed ack recvr would ack 2 pkts. Not
+			 * having this cap will lead to reno bursting
+			 * after rbp, which is bad. In any case, we pace
+			 * a min. of 2, so sending 3 next time is ok
+			 */
+			cwnd_ = tcph->seqno() - last_ack_ + 2;
+		};
+
 	};
 	RenoTcpAgent::recv(pkt, hand);
 }
@@ -293,9 +321,10 @@ RBPRenoTcpAgent::send_much(int force, int reason, int maxburst)
 	if (rbp_mode_ == RBP_POSSIBLE && able_to_rbp_send_one()) {
 		// start paced mode
 		rbp_mode_ = RBP_GOING; 
-		double rbwin_reno;
+		rbp_segs_actually_paced_ = 0;
 
 		// Pace out scaled cwnd.
+		double rbwin_reno;
 		rbwin_reno = cwnd_ * rbp_scale_;
 
 		rbwin_reno = int(rbwin_reno + 0.5);   // round
@@ -306,9 +335,9 @@ RBPRenoTcpAgent::send_much(int force, int reason, int maxburst)
 
 		// Conservatively set the congestion window to min of
 		// congestion window and the smoothed rbwin_reno
-		RBP_DEBUG_PRINTF(("cwnd before check = %g\n", cwnd_));
+		RBP_DEBUG_PRINTF(("cwnd before check = %g\n", double(cwnd_)));
 		cwnd_ = MIN(cwnd_, rbwin_reno);
-		RBP_DEBUG_PRINTF(("cwnd after check = %g\n", cwnd_));
+		RBP_DEBUG_PRINTF(("cwnd after check = %g\n", double(cwnd_)));
 		RBP_DEBUG_PRINTF(("recv win = %g\n", wnd_));
 		// RBP timer calculations must be based on the actual
 		// window which is the min of the receiver's
@@ -316,9 +345,17 @@ RBPRenoTcpAgent::send_much(int force, int reason, int maxburst)
 		// TcpAgent::window() does this job.
 		// What this means is we expect to send window() pkts
 		// in v_srtt_ time.
-		inter_pace_delay_ = (t_srtt_)/(window() * 1.0);
+		static double srtt_scale = 0.0;
+		if (srtt_scale == 0.0) {  // yuck yuck yuck!
+			srtt_scale = 1.0; // why are we doing fixed point?
+			int i;
+			for (i = T_SRTT_BITS; i > 0; i--) {
+				srtt_scale /= 2.0;
+			};
+		}
+		rbp_inter_pace_delay_ = (t_srtt_ * srtt_scale * tcp_tick_) / (window() * 1.0);
 		RBP_DEBUG_PRINTF(("window is %d\n", window()));
-		RBP_DEBUG_PRINTF(("ipt = %g\n", inter_pace_delay_));
+		RBP_DEBUG_PRINTF(("ipt = %g\n", rbp_inter_pace_delay_));
 		paced_send_one();
 	} else {
 		RenoTcpAgent::send_much(force,reason, maxburst);
@@ -332,8 +369,9 @@ RBPRenoTcpAgent::paced_send_one()
 		RBP_DEBUG_PRINTF(("Sending one rbp packet\n"));
 		// send one packet
 		output(t_seqno_++, TCP_REASON_RBP);
+		rbp_segs_actually_paced_++;
 		// schedule next pkt
-		pace_timer_.resched(inter_pace_delay_);
+		pace_timer_.resched(rbp_inter_pace_delay_);
 	};
 }
 

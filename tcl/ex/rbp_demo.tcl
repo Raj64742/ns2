@@ -1,7 +1,7 @@
 
 #
 # rbp_simulation.tcl
-# $Id: rbp_demo.tcl,v 1.1 1997/10/13 22:24:58 mccanne Exp $
+# $Id: rbp_demo.tcl,v 1.2 1997/10/23 04:24:49 heideman Exp $
 #
 # Copyright (c) 1997 University of Southern California.
 # All rights reserved.                                            
@@ -73,6 +73,7 @@ proc default_options {} {
 		trial-jitter 3
 		inter-trial-pause 20
 
+		graph-results 1
 		graph-join-queueing 1
 
 		# For controlling algorithm rate or cwnd
@@ -206,12 +207,12 @@ Source/FTP instproc fire {} {
 	# puts "$self fire to $maxpkts_"
 }
 
-
 TestScale instproc init_connections {} {
 	global opts
 	$self instvar ns_ s_  tcp_ ftp_ cs_
 	for {set i 0} {$i < $opts(client-count)} {incr i} {
 		set tcp_($i) [$ns_ create-connection $opts(server-tcp-method) $s_ $opts(client-ack-method) $cs_($i) 0]
+		$tcp_($i) set restart_bugfix_ 1
 		$tcp_($i) set window_ $opts(server-tcp-window)
 		if {[regexp "RBP" $opts(server-tcp-method)]} {
 			$tcp_($i) set rbp_scale_ $opts(server-tcp-rbp-scale)
@@ -220,9 +221,25 @@ TestScale instproc init_connections {} {
 		$tcp_($i) set slow_start_restart_ $opts(server-tcp-slow-start-restart)
 		set ftp_($i) [$tcp_($i) attach-source FTP]
 		$ftp_($i) set maxpkts_ 0
+		# $ftp_($i) set experiment_matching_tcp_ $tcp_($i)
+		# $tcp_($i) set experiment_matching_ftp_ $ftp_($i)
+		$tcp_($i) set experiment_connection_i_ $i
 		if {$opts(debug)} {
 			puts "tcp_($i) $tcp_($i)"
 			puts "ftp_($i) $ftp_($i)"
+		}
+	}
+	# report on number paced
+	if [string match {*Vegas/RBP*} $opts(server-tcp-method)] {
+		Agent/$opts(server-tcp-method) instproc done {} {
+			$self instvar rbp_segs_actually_paced_ rbp_inter_pace_delay_ experiment_connection_i_ cwnd_ v_rtt_
+			puts "$experiment_connection_i_: cwnd_=$cwnd_ v_rtt_=$v_rtt_ rbp_segs_actually_paced_=$rbp_segs_actually_paced_ rbp_inter_pace_delay_=$rbp_inter_pace_delay_"
+		}
+	}
+	if [string match {*Reno/RBP*} $opts(server-tcp-method)] {
+		Agent/$opts(server-tcp-method) instproc done {} {
+			$self instvar rbp_segs_actually_paced_ rbp_inter_pace_delay_ experiment_connection_i_ cwnd_ rtt_ srtt_
+			puts "$experiment_connection_i_: cwnd_=$cwnd_ rtt=$rtt_ srtt=$srtt_ rbp_segs_actually_paced_=$rbp_segs_actually_paced_ rbp_inter_pace_delay_=$rbp_inter_pace_delay_"
 		}
 	}
 }
@@ -272,12 +289,16 @@ TestScale instproc finish {} {
         global opts
 	$self instvar trace_file_
 
+	if {!$opts(graph-results)} {
+		exit 0
+	}
+
 	if {$opts(graph-join-queueing)} {
 		set q "-q"
 	} else {
 		set q ""
 	}
-#	exec raw2xg -a -m $opts(web-page-size) -q < out.tr | xgraph -t "$opts(server-tcp-method)" &
+	exec raw2xg -a -m $opts(web-page-size) -q < out.tr | xgraph -t "$opts(server-tcp-method)" &
 #	exec raw2xg -a < out.tr | xgraph -t "$opts(server-tcp-method)" &
 	
 	exit 0
