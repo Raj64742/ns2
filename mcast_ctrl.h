@@ -19,11 +19,9 @@
  *
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mcast_ctrl.h,v 1.1.2.2 1998/08/10 19:49:27 yuriy Exp $ (LBL)
  */
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mcast_ctrl.h,v 1.1.2.1 1998/08/10 19:06:09 yuriy Exp $ (LBL)";
-#endif
+    
 
 #ifndef ns_mcast_ctrl_h
 #define ns_mcast_ctrl_h

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.h,v 1.12 1998/06/27 01:23:42 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.h,v 1.12.2.1 1998/08/10 19:49:25 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_delay_h
@@ -68,7 +68,7 @@ class LinkDelay : public Connector {
 	PacketQueue* itq_;
 	Packet* nextPacket_;
 	int off_ip_;
-	int off_prune_;
+	int off_mcast_ctrl_;
 	int off_CtrMcast_;
 	int total_[4];
 

@@ -34,11 +34,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.21.2.1 1998/07/15 18:34:12 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.21.2.2 1998/08/10 19:49:24 yuriy Exp $ (LBL)";
 #endif
 
 #include "delay.h"
-#include "prune.h"		// ick
+#include "mcast_ctrl.h"		
 #include "ctrMcast.h"
 
 static class LinkDelayClass : public TclClass {
@@ -54,7 +54,7 @@ LinkDelay::LinkDelay() : Connector(), dynamic_(0), itq_(0), nextPacket_(0)
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);
 	bind("off_ip_", &off_ip_);
-	bind("off_prune_", &off_prune_);
+	bind("off_mcast_ctrl_", &off_mcast_ctrl_);
 	bind("off_CtrMcast_", &off_CtrMcast_);
 }
 
@@ -150,12 +150,12 @@ void LinkDelay::pktintran(int src, int group)
 		Packet* p = itq_->lookup(len);
 		hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
 		if (iph->flowid() == prune) {
-			hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+			hdr_mcast_ctrl* ph = (hdr_mcast_ctrl*)p->access(off_mcast_ctrl_);
 			if (ph->src() == src && ph->group() == group) {
 				total_[0]++;
 			}
 		} else if (iph->flowid() == graft) {
-			hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+			hdr_mcast_ctrl* ph = (hdr_mcast_ctrl*)p->access(off_mcast_ctrl_);
 			if (ph->src() == src && ph->group() == group) {
 				total_[1]++;
 			}

@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.54 1998/07/08 19:14:06 polly Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.54.2.1 1998/08/10 19:49:26 yuriy Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.54 1998/07/08 19:14:06 polly Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.54.2.1 1998/08/10 19:49:26 yuriy Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -47,7 +47,7 @@ static const char rcsid[] =
 #include <string.h>
 #include "packet.h"
 #include "flags.h"
-#include "prune.h"
+#include "mcast_ctrl.h"
 #include "errmodel.h"
 #include "srm-headers.h"		// to get the hdr_srm structure
 #include "classifier.h"
@@ -734,7 +734,7 @@ public:
  
 MrouteErrorModel::MrouteErrorModel() : TraceErrorModel()
 {
-	bind("off_prune_", &off_prune_);
+	bind("off_mcast_ctrl_", &off_mcast_ctrl_);
 }
 
 int MrouteErrorModel::command(int argc, const char*const* argv)
@@ -756,7 +756,7 @@ int MrouteErrorModel::command(int argc, const char*const* argv)
 
 int MrouteErrorModel::match(Packet* p)
 {
-	hdr_prune* ph = (hdr_prune*)p->access(off_prune_);
+	hdr_mcast_ctrl* ph = (hdr_mcast_ctrl*)p->access(off_mcast_ctrl_);
 	int indx = strcspn(ph->type(),"/");
 	if (!strncmp(ph->type(),msg_type,indx)) {
 		return 1;
