@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.10 2001/11/06 06:21:47 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.11 2002/03/21 01:41:06 johnh Exp $";
 #endif
 
 /*
@@ -174,7 +174,6 @@ void SatLL::recv(Packet* p, Handler* /*h*/)
 }
 int SatLL::command(int argc, const char*const* argv)
 {
-	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
 		if (strcmp(argv[1], "setnode") == 0) {
 			satnode_ = (SatNode*) TclObject::lookup(argv[2]);
@@ -198,7 +197,6 @@ void SatLL::sendDown(Packet* p)
 
 	// wired-satellite integration
 	if (SatRouteObject::instance().wiredRouting()) {
-		double now_ = NOW;
 		// Wired/satellite integration
 		// We need to make sure packet headers are set correctly
 		// This code adapted from virtual-classifier.cc

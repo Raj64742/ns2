@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.10 2002/01/01 00:10:29 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.11 2002/03/21 01:42:36 johnh Exp $ (LBL)";
 #endif
 
 #include "rio.h"
@@ -273,8 +273,6 @@ int RIOQueue::drop_out_early(Packet* pkt)
 
 void RIOQueue::enque(Packet* pkt)
 {
-	double now = Scheduler::instance().clock();
-
         /* Duplicate the RED algorithm to carry out a separate
          * calculation for Out packets -- Wenjia */
 	hdr_flags* hf = hdr_flags::access(pkt);
