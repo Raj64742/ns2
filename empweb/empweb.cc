@@ -28,7 +28,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.9 2001/12/03 07:43:48 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.10 2001/12/03 23:05:38 kclan Exp $
 
 #include <tclcl.h>
 
@@ -178,6 +178,7 @@ void EmpWebTrafSession::expire(Event *)
 	else
            n = int(ceil(serverSel()->value()));
 //	   n = int(floor(Random::uniform(mgr()->nSrcL_, mgr()->nSrc_)));
+
 
         assert((n >= 0) && (n < mgr()->nSrc_));
         Node* dst = mgr()->server_[n];
@@ -550,11 +551,11 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			res = (res == TCL_OK) ? 
 				lookup_rv(p->persistSel(), argv[10]) : TCL_ERROR;
 			res = (res == TCL_OK) ? 
-				lookup_rv(p->serverWin(), argv[11]) : TCL_ERROR;
+				lookup_rv(p->serverSel(), argv[11]) : TCL_ERROR;
 			res = (res == TCL_OK) ? 
-				lookup_rv(p->clientWin(), argv[12]) : TCL_ERROR;
+				lookup_rv(p->serverWin(), argv[12]) : TCL_ERROR;
 			res = (res == TCL_OK) ? 
-				lookup_rv(p->serverSel(), argv[13]) : TCL_ERROR;
+				lookup_rv(p->clientWin(), argv[13]) : TCL_ERROR;
 			if (res == TCL_ERROR) {
 				delete p;
 				fprintf(stderr, "Invalid random variable\n");
