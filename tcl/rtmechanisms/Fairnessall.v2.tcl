@@ -20,7 +20,7 @@ set psfile Fairness.ps
 
 # Run a single simulation.
 proc run_sim {bandwidth scheduling cbrs tcps singlefile datafile i} {
-  set interval [expr $cbrs * 0.000$i]
+  set interval [expr $cbrs * 0.0$i]
   puts "../../ns Collapse.v2.tcl simple $interval $bandwidth $scheduling $cbrs $tcps"
   exec ../../ns Collapse.v2.tcl simple $interval $bandwidth $scheduling $cbrs $tcps
   append $singlefile $datafile $cbrs $tcps
@@ -31,17 +31,14 @@ exec rm -f $datafile
 # for interval=0.0008, CBR arrival rate is 1 Mbps
 # intervals 0.0001 to 0.0009
 for {set i 4} {$i <= 9} {incr i 1} {
-    puts "../../ns Collapse.v2.tcl simple 0.000$i $bandwidth"
-    run_sim $bandwidth $scheduling $cbrs $tcps $singlefile $datafile $i
+    run_sim $bandwidth $scheduling $cbrs $tcps $singlefile $datafile 00$i
 }
 # intervals 0.001 to 0.009
 for {set i 1} {$i <= 9} {incr i 1} {
-    puts "../../ns Collapse.v2.tcl simple 0.00$i $bandwidth"
-    run_sim $bandwidth $scheduling $cbrs $tcps $singlefile $datafile $i
+    run_sim $bandwidth $scheduling $cbrs $tcps $singlefile $datafile 0$i
 }
 # intervals 0.01 to 0.09
 for {set i 1} {$i <= 9} {incr i 1} {
-    puts "../../ns Collapse.v2.tcl simple 0.0$i $bandwidth"
     run_sim $bandwidth $scheduling $cbrs $tcps $singlefile $datafile $i
 }
 finish
