@@ -26,6 +26,7 @@ Agent/SA set bucket_ 0
 Agent/SA set packetSize_ 210
 
 ADC set backoff_ true
+ADC set dobump_ true
 ADC/MS set backoff_ false
 
 ADC set src_ -1
@@ -35,7 +36,9 @@ ADC/MSPK set utilization_ 0.95
 ADC/Param set utilization_ 1.0
 ADC/HB set epsilon_ 0.7
 ADC/ACTO set s_ 0.002
+ADC/ACTO set dobump_ false
 ADC/ACTP set s_ 0.002
+ADC/ACTP set dobump_ false
 
 
 Est/TimeWindow set T_ 3
@@ -89,12 +92,19 @@ IntServLink instproc init { src dst bw delay q arg {lltype "DelayLink"} } {
 	$signalmod_ set dst_ [$dst id]
 	$signalmod_ attach-adc $adc_
 	$self add-to-head $signalmod_
+
+
 	#Create a measurement classifier to decide which packets to measure
 	$self create-meas-classifier
 	$signalmod_ target $measclassifier_
 	
 	#Schedule to start the admission control object
 	$ns_ at 0.0 "$adc_ start"
+}
+IntServLink instproc buffersize { b } {
+	$self instvar est_ adc_
+	$est_ setbuf [set b]
+	$adc_ setbuf [set b]
 }
 
 

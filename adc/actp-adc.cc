@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/actp-adc.cc,v 1.4 1998/06/27 01:23:18 gnguyen Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/actp-adc.cc,v 1.5 1999/02/12 22:01:30 breslau Exp $";
 #endif
 
 
@@ -63,6 +63,9 @@ int ACTP_ADC::admit_flow(int cl,double r,int b)
 	//fprintf (stderr,"%f %f %f\n",sump_*(1-exp(-p*s_)),exp(-p*s_)*est_[cl]->avload(),est_[cl]->avload());
 	if (sump_*(1-exp(-p*s_))+exp(-p*s_)*est_[cl]->avload() <= bandwidth_) {
 		sump_+= p;
+		if (dobump_) {
+			est_[cl]->change_avload(p);
+		}
 		return 1;
 	}
 	else {

@@ -16,7 +16,7 @@
  *
  * These notices must be retained in any copies of any part of this
  * software.
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/estimator.h,v 1.6 1998/09/18 19:00:22 breslau Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/estimator.h,v 1.7 1999/02/12 22:01:29 breslau Exp $
  */
 
 //Estimator unit estimates average load every period interval of time
@@ -45,6 +45,7 @@ public:
 	inline double avload() { return double(avload_);};
 
 	inline virtual void change_avload(double incr) { avload_ += incr;}
+	inline virtual void newflow(double) {};
 	int command(int argc, const char*const* argv); 
 	virtual void timeout(int);
 	inline void recv(Packet *,Handler *){}

@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adc.cc,v 1.6 1998/12/22 23:11:24 breslau Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adc.cc,v 1.7 1999/02/12 22:01:31 breslau Exp $";
 #endif
 
 #include "adc.h"
@@ -31,6 +31,7 @@ ADC::ADC() :bandwidth_(0), tchan_(0)
 	bind_bool("backoff_",&backoff_);
 	bind("src_", &src_);
 	bind("dst_", &dst_);
+	bind_bool("dobump_", &dobump_);
 }
 
 int ADC::command(int argc,const char*const*argv)

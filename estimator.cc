@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/estimator.cc,v 1.5 1998/08/22 02:41:01 haoboy Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/estimator.cc,v 1.6 1999/02/12 22:01:28 breslau Exp $";
 #endif
 
 #include "estimator.h"
@@ -58,6 +58,10 @@ int Estimator::command(int argc, const char*const* argv)
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "setbuf") == 0) {
+			/* some sub classes actually do something here */
+			return(TCL_OK);
 		}
 	}
 	return NsObject::command(argc,argv);

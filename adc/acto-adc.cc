@@ -19,7 +19,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/acto-adc.cc,v 1.5 1998/08/22 02:40:52 haoboy Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/acto-adc.cc,v 1.6 1999/02/12 22:01:30 breslau Exp $";
 #endif
 
 
@@ -44,6 +44,7 @@ ACTO_ADC::ACTO_ADC() : rejected_(0)
 	bind("s_", &s_);
 	type_ = new char[5];
 	strcpy(type_, "ACTO");
+
 }
 
 
@@ -56,6 +57,9 @@ int ACTO_ADC::admit_flow(int cl,double r,int b)
 	}
 	
 	if (exp(p*s_)*est_[cl]->avload() <= bandwidth_) {
+		if (dobump_) {
+			est_[cl]->change_avload(p);
+		}
 		return 1;
 	}
 	else {

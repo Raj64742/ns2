@@ -16,7 +16,7 @@
  *
  * These notices must be retained in any copies of any part of this
  * software. 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adc.h,v 1.4 1998/06/27 01:23:23 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/adc.h,v 1.5 1999/02/12 22:01:31 breslau Exp $
  */
 
 #ifndef ns_adc_h
@@ -45,6 +45,7 @@ protected:
 	int src_;
 	int dst_;
 	int backoff_;
+	int dobump_;
 };
 
 #endif
