@@ -18,6 +18,7 @@ set tcptrace [open tcp.tr w]
 set sinktrace [open sink.tr w]
 set redtrace [open red.tr w]
 set graph 0
+set connGraphFlag("") 0
 set maxdelack 25
 set maxburst 3
 set upwin 0
@@ -38,12 +39,14 @@ proc printUsage {} {
 	exit
 }
 
-proc finish {ns traceall tcptrace graph midtime} {
+proc finish {ns traceall tcptrace graph connGraphFlag midtime} {
+	upvar $connGraphFlag graphFlag 
+
 	$ns flush-trace
 	close $traceall
 	flush $tcptrace
 	close $tcptrace
-	plotgraph $graph $midtime
+	plotgraph $graph $graphFlag $midtime
 	exit 0
 }	
 
@@ -165,6 +168,13 @@ while {$count < $argc} {
 	set startTime $arg
 	incr count 1
 
+	set connGraph 0 
+	set arg [lindex $argv $count]
+	if { $arg == "-graph" } {
+		set connGraph 1
+		incr count 1
+	}
+
 	if { $direction == "down" } {
 		set src $n0
 		set dst $n3
@@ -175,13 +185,13 @@ while {$count < $argc} {
 	}
 	
 	if { $type == "asym" } {
-		set tcp [createTcpSource "TCP/Reno/Asym" $tcptrace $maxburst $tcpTick]
+		set tcp [createTcpSource "TCP/Reno/Asym" $maxburst $tcpTick]
 		set sink [createTcpSink "TCPSink/Asym" $sinktrace $ackSize $maxdelack]
 	} elseif { $type == "asymsrc" } {
-		set tcp [createTcpSource "TCP/Reno/Asym" $tcptrace $maxburst $tcpTick]
+		set tcp [createTcpSource "TCP/Reno/Asym" $maxburst $tcpTick]
 		set sink [createTcpSink "TCPSink" $sinktrace $ackSize]
 	} elseif { $type == "reno" } {
-		set tcp [createTcpSource "TCP/Reno" $tcptrace $tcpTick]
+		set tcp [createTcpSource "TCP/Reno" $tcpTick]
 		set sink [createTcpSink "TCPSink" $sinktrace $ackSize]
 	}
 	
@@ -189,6 +199,8 @@ while {$count < $argc} {
 		$tcp set window_ $upwin
 	}
 	set ftp [createFtp $ns $src $tcp $dst $sink]
+	setupTcpTracing $tcp $tcptrace
+	setupGraphing $tcp $connGraph connGraphFlag
 	$ns at $startTime "$ftp start" 
 }
 
@@ -207,6 +219,6 @@ $ns duplex-link $n2 $n3 10Mb 1ms DropTail
 configQueue $ns $n2 $n1 $rgw $redtrace $rqsize $nonfifo $acksfirst $filteracks $replace_head
 
 # end simulation
-$ns at 30.0 "finish $ns $f $tcptrace $graph $midtime"
+$ns at 30.0 "finish $ns $f $tcptrace $graph connGraphFlag $midtime"
 
 $ns run
