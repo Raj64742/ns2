@@ -22,7 +22,7 @@ PagePool/EmpFtpTraf set TCPSINKTYPE_ TCPSink   ;#required for SACK1 Sinks.
 PagePool/EmpFtpTraf set FID_ASSIGNING_MODE_ 0 
 PagePool/EmpFtpTraf set VERBOSE_ 0
 
-PagePool/EmpFtpTraf instproc send-file { id svr clnt stcp ssnk size } {
+PagePool/EmpFtpTraf instproc send-file { id svr clnt stcp ssnk size color} {
 	set ns [Simulator instance]
 
 	$ns attach-agent $svr $stcp
@@ -30,7 +30,8 @@ PagePool/EmpFtpTraf instproc send-file { id svr clnt stcp ssnk size } {
 	$ns connect $stcp $ssnk
 	
 	if {[PagePool/EmpFtpTraf set FID_ASSIGNING_MODE_] == 0} {
-		$stcp set fid_ $id
+#		$stcp set fid_ $id
+		$stcp set fid_ $color
 	}
 
 	$stcp proc done {} "$self done-send $id $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
@@ -57,6 +58,8 @@ PagePool/EmpFtpTraf instproc done-send { id clnt svr stcp ssnk size {startTime 0
 	$self recycle $stcp $ssnk
 }
 
+
+
 # XXX Should allow customizable TCP types. Can be easily done via a 
 # class variable
 PagePool/EmpFtpTraf instproc alloc-tcp { size } {
@@ -75,7 +78,8 @@ PagePool/EmpFtpTraf instproc alloc-tcp { size } {
 		$self instvar sameFid_
 		$tcp set fid_ $sameFid_
 	}
-    
+
+	
 	return $tcp
 }
 
