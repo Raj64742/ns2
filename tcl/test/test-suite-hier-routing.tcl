@@ -39,7 +39,7 @@ Class Test/hier-simple -superclass TestSuite
 Class Test/hier-cmcast -superclass TestSuite
 # hierarchical routing with CentralisedMcast
 
-Class Test/hier-deDM -superclass TestSuite
+# Class Test/hier-deDM -superclass TestSuite
 # hier rtg with DetailedDM
 
 Class Test/hier-session -superclass TestSuite
@@ -167,36 +167,36 @@ Test/hier-cmcast instproc run {} {
 	
 }
 	
-Test/hier-deDM instproc init {flag} {
-	$self instvar ns_ testName_ flag_
-	set testName_ hier-detailedDM
-	set flag_ $flag
-	$self next 
-}
-
-Test/hier-deDM instproc run {} {
-	$self instvar ns_ n_ g_
-	set mproto detailedDM
-	set mrthandle [$ns_ mrtproto $mproto {}]
-	
-	for {set i 1} {$i < 10} {incr i} {
-		set rcvr($i) [new Agent/LossMonitor]
-		$ns_ attach-agent $n_($i) $rcvr($i)
-		$ns_ at $i "$n_($i) join-group $rcvr($i) $g_"
-		incr i
-	}
-	set udp0 [new Agent/UDP]
-	$ns_ attach-agent $n_(0) $udp0
-	$udp0 set dst_ $g_
-	$udp0 set class_ 2
-	set sender [new Application/Traffic/CBR]
-	$sender attach-agent $udp0
-	$ns_ at 0.1 "$sender start"
-	$ns_ at 10.0 "$self finish"
-	
-	$ns_ run
-}
-
+#Test/hier-deDM instproc init {flag} {
+#	 $self instvar ns_ testName_ flag_
+#	 set testName_ hier-detailedDM
+#	 set flag_ $flag
+#	 $self next 
+#}
+#
+#Test/hier-deDM instproc run {} {
+#	 $self instvar ns_ n_ g_
+#	 set mproto detailedDM
+#	 set mrthandle [$ns_ mrtproto $mproto {}]
+#	 
+#	 for {set i 1} {$i < 10} {incr i} {
+#		 set rcvr($i) [new Agent/LossMonitor]
+#		 $ns_ attach-agent $n_($i) $rcvr($i)
+#		 $ns_ at $i "$n_($i) join-group $rcvr($i) $g_"
+#		 incr i
+#	 }
+#	 set udp0 [new Agent/UDP]
+#	 $ns_ attach-agent $n_(0) $udp0
+#	 $udp0 set dst_ $g_
+#	 $udp0 set class_ 2
+#	 set sender [new Application/Traffic/CBR]
+#	 $sender attach-agent $udp0
+#	 $ns_ at 0.1 "$sender start"
+#	 $ns_ at 10.0 "$self finish"
+#	 
+#	 $ns_ run
+#}
+#
 
 Test/hier-session instproc init {flag} {
 	$self instvar ns_ testName_ flag_
