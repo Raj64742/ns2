@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.8 2000/09/25 16:00:51 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.9 2001/11/21 17:33:51 polly Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -55,7 +55,7 @@ public:
 		rvInterPage_(NULL), rvPageSize_(NULL),
 		rvInterObj_(NULL), rvObjSize_(NULL), 
 		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
-		id_(id) {}
+		id_(id), interPageOption_(1) {}
 	virtual ~WebTrafSession();
 
 	// Queried by individual pages/objects
@@ -68,6 +68,7 @@ public:
 	void launchReq(void* ClntData, int obj, int size);
 	inline int id() const { return id_; }
 	inline WebTrafPool* mgr() { return mgr_; }
+	inline void set_interPageOption(int option) { interPageOption_ = option; }
 
 	static int LASTPAGE_;
 
@@ -79,7 +80,7 @@ private:
 	WebTrafPool* mgr_;
 	Node* src_;		// One Web client (source of request) per session
 	int nPage_, curPage_, donePage_;
-	int id_;
+	int id_, interPageOption_;
 };
 
 class WebTrafPool : public PagePool {
@@ -165,3 +166,5 @@ protected:
 
 
 #endif // ns_webtraf_h
+
+

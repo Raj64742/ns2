@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.11 2001/08/17 05:21:34 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.12 2001/11/21 17:33:51 polly Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -44,7 +44,8 @@
 class WebPage : public TimerHandler {
 public:
 	WebPage(int id, WebTrafSession* sess, int nObj, Node* dst) :
-		id_(id), sess_(sess), nObj_(nObj), curObj_(0), dst_(dst) {}
+		id_(id), sess_(sess), nObj_(nObj), curObj_(0), doneObj_(0),
+		dst_(dst) {}
 	virtual ~WebPage() {}
 
 	inline void start() {
@@ -54,6 +55,15 @@ public:
 	}
 	inline int id() const { return id_; }
 	Node* dst() { return dst_; }
+
+	void doneObject() {
+		if (++doneObj_ >= nObj_) {
+			//printf("doneObject: %g %d %d \n", Scheduler::instance().clock(), doneObj_, nObj_);
+			sess_->donePage((void*)this);
+		}
+	}
+	inline int curObj() const { return curObj_; }
+	inline int doneObj() const { return doneObj_; }
 
 private:
 	virtual void expire(Event* = 0) {
@@ -72,18 +82,22 @@ private:
 		// schedule is only meant to be a hint to wait for the last
 		// request to finish, then we will ask our parent to delete
 		// this page.
-		if (curObj_ <= nObj_) {
+		// if (curObj_ <= nObj_) {
+		//
+		// Polly Huang: Wed Nov 21 18:18:51 CET 2001
+		// With explicit doneObject() upcalls from the tcl
+		// space, we don't need to play this trick anymore.
+		if (curObj_ < nObj_) {
 			// If this is not the last object, schedule the next 
 			// one. Otherwise stop and tell session to delete me.
 			TimerHandler::handle(e);
 			curObj_++;
 			sched(sess_->interObj()->value());
-		} else
-			sess_->donePage((void*)this);
+		}
 	}
 	int id_;
 	WebTrafSession* sess_;
-	int nObj_, curObj_;
+	int nObj_, curObj_, doneObj_;
 	Node* dst_;
 	static int LASTOBJ_;
 };
@@ -117,13 +131,27 @@ WebTrafSession::~WebTrafSession()
 
 void WebTrafSession::donePage(void* ClntData) 
 {
+	WebPage* pg = (WebPage*)ClntData;
 	if (mgr_->isdebug()) 
 		printf("Session %d done page %d\n", id_, 
-		       ((WebPage*)ClntData)->id());
-	delete (WebPage*)ClntData;
+		       pg->id());
+	if (pg->doneObj() != pg->curObj()) {
+		fprintf(stderr, "done objects %d != all objects %d\n",
+			pg->doneObj(), pg->curObj());
+		abort();
+	}
+	delete pg;
 	// If all pages are done, tell my parent to delete myself
+	//
 	if (++donePage_ >= nPage_)
 		mgr_->doneSession(id_);
+	else if (interPageOption_) {
+		// Polly Huang: Wed Nov 21 18:23:30 CET 2001
+		// add inter-page time option
+		// inter-page time = end of a page to the start of the next
+		sched(rvInterPage_->value());
+		// printf("donePage: %g %d %d\n", Scheduler::instance().clock(), donePage_, curPage_);
+	}
 }
 
 // Launch the current page
@@ -144,12 +172,22 @@ void WebTrafSession::handle(Event *e)
 {
 	// If I haven't scheduled all my pages, do the next one
 	TimerHandler::handle(e);
+	++curPage_;
 	// XXX Notice before each page is done, it will schedule itself 
 	// one more time, this makes sure that this session will not be
 	// deleted after the above call. Thus the following code will not
 	// be executed in the context of a deleted object. 
-	if (++curPage_ < nPage_)
-		sched(rvInterPage_->value());
+	//
+	// Polly Huang: Wed Nov 21 18:23:30 CET 2001
+	// add inter-page time option
+	// inter-page time = inter-page-start time
+	// If the interPageOption_ is not set, the XXX Notice above applies.
+	if (!interPageOption_) {
+		if (curPage_ < nPage_) {
+			sched(rvInterPage_->value());
+			// printf("schedule: %g %d %d\n", Scheduler::instance().clock(), donePage_, curPage_);
+		}
+	}
 }
 
 // Launch a request for a particular object
@@ -164,11 +202,11 @@ void WebTrafSession::launchReq(void* ClntData, int obj, int size)
 	TcpSink* ssnk = mgr_->picksink();
 
 	// Setup TCP connection and done
-	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d", 
+	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d", 
 			      mgr_->name(), obj, pg->id(),
 			      src_->name(), pg->dst()->name(),
 			      ctcp->name(), csnk->name(), stcp->name(),
-			      ssnk->name(), size);
+			      ssnk->name(), size, ClntData);
 	// Debug only
 	// $numPacket_ $objectId_ $pageId_ $sessionId_ [$ns_ now] src dst
 #if 0
@@ -281,6 +319,20 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			if (client_ != NULL) 
 				delete []client_;
 			client_ = new Node*[nClient_];
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "set-interPageOption") == 0) {
+			int option = atoi(argv[2]);
+			if (session_ != NULL) {
+				for (int i = 0; i < nSession_; i++) {
+					WebTrafSession* p = session_[i];
+					p->set_interPageOption(option);
+				}
+			}
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "doneObj") == 0) {
+			WebPage* p = (WebPage*)atoi(argv[2]);
+			// printf("doneObj for Page id: %d\n", p->id());
+			p->doneObject();
 			return (TCL_OK);
 		}
 	} else if (argc == 4) {
