@@ -19,6 +19,7 @@ ENDUSAGE
 $usage = "usage: $progname [-b] [-o outfile] -s node1 [-d node2] [-f flowid] [trace files...]\n";
 
 $opt_b = 0;
+$opt_f = -1;
 require 'getopts.pl';
 (&Getopts('bo:s:d:f:') && $opt_s) || usage;
 
@@ -30,14 +31,14 @@ while (<>) {
     };
     @F = split;
     if ($F[2] == $opt_s) {				# if src matches
-	if (($opt_f != '') && $F[7] != $opt_f) {
+	if (($opt_f != -1) && $F[7] != $opt_f) {
 		next;
 	}
 	print $_ unless ($opt_d && $F[3] != $opt_d);	# print unless dst & !match
 	next;
     }
     if ($opt_b && $F[3] == $opt_s) {			# else if bi && dst fld mch
-	if (($opt_f != '') && $F[7] != $opt_f) {
+	if (($opt_f != -1) && $F[7] != $opt_f) {
 		next;
 	}
 	print $_ unless ($opt_d && $F[2] != $opt_d);	# prt unless dst & !mch sfld
