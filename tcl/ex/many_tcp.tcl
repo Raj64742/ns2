@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.8 1998/07/01 01:43:05 sfloyd Exp $
+# $Id: many_tcp.tcl,v 1.9 1998/07/02 00:07:22 sfloyd Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -77,6 +77,13 @@ set raw_opt_info {
 	# cl_1                                                     cr_1
 	# ...     ---- bottleneck_left ---- bottleneck_right ---   ...
 	# cl_n                                                     cr_n
+	# client-number 0 specifies an unlimited number of nodes
+	# on the left and right
+	# NEEDSWORK:
+	# The number of agents attached to a node cannot exceed
+	# the port-field length (255 bits).  There is currently
+	# no check or warning message for this.
+	node-number 0
 	#
 	# Currently all data traffic flows left-to-right.
 	# NEEDSWORK: relax this assumption (but Poduri and Nichols
@@ -242,7 +249,7 @@ Main instproc init_network {} {
 	set expected_load_per_client_in_bps [expr ($opts(client-mouse-chance)/100.0)*$opts(client-mouse-packets)*$opts(client-pkt-size)*8 + (1.0-$opts(client-mouse-chance)/100.0)*$opts(client-elephant-packets)*$opts(client-pkt-size)*8]
 	if {$opts(debug)} {
 		set max_clients_per_second [expr [$ns_ bw_parse $opts(bottle-bw)]/$expected_load_per_client_in_bps]
-		puts [format "maximum clients per second: $max_clients_per_second"]
+		puts [format "maximum clients per second: %.3f" $max_clients_per_second]
 	}
 
 	# Compute optimal (?) bottleneck queue size
@@ -279,32 +286,63 @@ Main instproc init_network {} {
 	set cs_count_ 0
 }
 
+# create a new pair of end nodes
+Main instproc create_client_nodes {node} {
+	global opts 
+	$self instvar bottle_l_ bottle_r_ cs_l_ cs_r_ sources_lr_ cs_count_ ns_ rng_
+
+	set cs_l_($node) [$ns_ node]
+	set cs_r_($node) [$ns_ node]
+
+	# bw/delay are bogus for now
+	my-duplex-link $ns_ $cs_l_($node) $bottle_l_ $opts(client-bw) 10ms $opts(client-queue-method) $opts(client-queue-length)
+	my-duplex-link $ns_ $cs_r_($node) $bottle_r_ $opts(client-bw) 10ms $opts(client-queue-method) $opts(client-queue-length)
+
+	# Add routing in all directions
+	$cs_l_($node) add-route-to-adj-node -default $bottle_l_
+	$cs_r_($node) add-route-to-adj-node -default $bottle_r_
+	$bottle_l_ add-route-to-adj-node $cs_l_($node)
+	$bottle_r_ add-route-to-adj-node $cs_r_($node)
+
+	# Set delay.
+	set delay $opts(client-delay)
+	if {$delay == "random"} {
+		set delay [$rng_ exponential [$ns_ delay_parse $opts(client-delay-range)]]
+	}
+	# Now divide the delay into the two haves and set up the network.
+	set ldelay [$rng_ uniform 0 $delay]
+	set rdelay [expr $delay - $ldelay]
+	my-duplex-link-set-delay $ns_ $cs_l_($node) $bottle_l_ $ldelay
+	my-duplex-link-set-delay $ns_ $cs_r_($node) $bottle_r_ $rdelay
+
+	if {$opts(debug)} {
+		 # puts "t=[$ns_ now]: node pair $node created"
+	}
+}
+
 # return the client index
 Main instproc create_a_client {} {
 	global opts
-	$self instvar bottle_l_ bottle_r_ cs_l_ cs_r_ sources_lr_ cs_count_ ns_
+	$self instvar cs_l_ cs_r_ sources_lr_ cs_count_ ns_
 
 	set i $cs_count_
+	set node $i
 	incr cs_count_
 
-	set cs_l_($i) [$ns_ node]
-	set cs_r_($i) [$ns_ node]
-
-	# bw/delay are bogus for now
-	my-duplex-link $ns_ $cs_l_($i) $bottle_l_ $opts(client-bw) 10ms $opts(client-queue-method) $opts(client-queue-length)
-	my-duplex-link $ns_ $cs_r_($i) $bottle_r_ $opts(client-bw) 10ms $opts(client-queue-method) $opts(client-queue-length)
-
-	# Add routing in all directions
-	$cs_l_($i) add-route-to-adj-node -default $bottle_l_
-	$cs_r_($i) add-route-to-adj-node -default $bottle_r_
-	$bottle_l_ add-route-to-adj-node $cs_l_($i)
-	$bottle_r_ add-route-to-adj-node $cs_r_($i)
-
+	if {$opts(node-number) > 0} {
+		if {$node < $opts(node-number) } {
+			$self create_client_nodes $node
+		} else {
+			set node [expr $i % $opts(node-number)]
+		}
+	} else {
+		$self create_client_nodes $node
+	}
+	
 	# create sources and sinks in both directions
 	# (actually, only left-to-right for now)
-	set sources_lr_($i) [$ns_ create-connection $opts(source-tcp-method) $cs_l_($i) $opts(sink-ack-method) $cs_r_($i) $i]
-
-#	set sources_rl_($i) [$ns_ create-connection $opts(source-tcp-method) $cs_r_($i) $opts(sink-ack-method) $cs_l_($i) $i]
+	set sources_lr_($i) [$ns_ create-connection $opts(source-tcp-method) $cs_l_($node) $opts(sink-ack-method) $cs_r_($node) $i]
+#	set sources_rl_($i) [$ns_ create-connection $opts(source-tcp-method) $cs_r_($node) $opts(sink-ack-method) $cs_l_($node) $i]
 	$sources_lr_($i) set maxpkts_ 0
 	$sources_lr_($i) set packetSize_ $opts(client-pkt-size)
 #	$sources_lr_($i) set syn_ 1
@@ -327,9 +365,10 @@ Main instproc create_some_clients {} {
 	global opts
 	$self instvar idle_clients_ ns_ cs_count_
 
+	set now [$ns_ now]
 	set step 16
 	if {$opts(debug)} {
-		puts "t=[$ns_ now]: creating clients $cs_count_ to [expr $cs_count_ + $step - 1]"
+		puts "t=[format %.3f $now]: creating clients $cs_count_ to [expr $cs_count_ + $step - 1]"
 	}
 
 	for {set i 0} {$i < $step} {incr i} {
@@ -348,9 +387,10 @@ Main instproc create_some_clients {} {
 
 Main instproc start_a_client {} {
 	global opts
-	$self instvar idle_clients_ ns_ cs_l_ bottle_l_ cs_r_ bottle_r_ sources_lr_ rng_ source_start_ source_size_
+	$self instvar idle_clients_ ns_ sources_lr_ rng_ source_start_ source_size_
 
 	set i ""
+	set now [$ns_ now]
 	# can we reuse a dead client?
 	if {![info exists idle_clients_]} {
 		set idle_clients_ ""
@@ -361,16 +401,6 @@ Main instproc start_a_client {} {
 	set i [lindex $idle_clients_ 0]
 	set idle_clients_ [lrange $idle_clients_ 1 end]
 
-	# Set delay.
-	set delay $opts(client-delay)
-	if {$delay == "random"} {
-		set delay [$rng_ exponential [$ns_ delay_parse $opts(client-delay-range)]]
-	}
-	# Now divide the delay into the two haves and set up the network.
-	set ldelay [$rng_ uniform 0 $delay]
-	set rdelay [expr $delay - $ldelay]
-	my-duplex-link-set-delay $ns_ $cs_l_($i) $bottle_l_ $ldelay
-	my-duplex-link-set-delay $ns_ $cs_r_($i) $bottle_r_ $rdelay
 
 	# Start traffic for that client.
 	if {[$rng_ integer 100] < $opts(client-mouse-chance)} {
@@ -381,12 +411,12 @@ Main instproc start_a_client {} {
 
 	$sources_lr_($i) advanceby $len
 
-	set source_start_($i) [$ns_ now]
+	set source_start_($i) $now
 	set source_size_($i) $len
 	if {$opts(debug)} {
 #		puts "t=[$ns_ now]: client $i started, ldelay=$ldelay, rdelay=$rdelay"
 #		puts "t=[$ns_ now]: client $i started, ldelay=[format %.6f $ldelay], rdelay=[format %.6f $rdelay]"
-		puts "t=[$ns_ now]: client $i started"
+		puts "t=[format %.3f $now]: client $i started"
 	}
 }
 
@@ -394,9 +424,10 @@ Main instproc finish_a_client {i} {
 	global opts
 	$self instvar ns_ idle_clients_ source_start_ source_size_
 
+	set now [$ns_ now]
 	if {$opts(debug)} {
-		set delta [expr [$ns_ now] - $source_start_($i)]
-		puts "t=[$ns_ now]: client $i finished ($source_size_($i) pkts, $delta s)"
+		set delta [expr $now - $source_start_($i)]
+		puts "t=[format %.3f $now]: client $i finished ($source_size_($i) pkts, $delta s)"
 	}
 
 	lappend idle_clients_ $i
