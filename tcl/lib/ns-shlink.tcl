@@ -36,11 +36,12 @@
 LL/Base set bandwidth_ 1.5Mb
 LL/Base set delay_ 1ms
 
-Channel set delay_ 16us
+Channel set delay_ 4us
 Mac/Base set bandwidth_ 1.5Mb
 Mac/Base set hlen_ 0
 
 # WaveLAN settings
+Mac/Csma set delay_ 64us
 Mac/Csma set bandwidth_ 2Mb
 Mac/Csma set hlen_ 20
 Mac/Csma set ifs_ 16us

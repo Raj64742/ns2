@@ -70,8 +70,9 @@ MacHandlerEoc::handle(Event* e)
 }
 
 
-CsmaMac::CsmaMac() : Mac(), rtx_(0), mhEoc_(*this)
+CsmaMac::CsmaMac() : Mac(), rtx_(0), txstart_(0), mhEoc_(*this)
 {
+	bind_time("delay_", &delay_);
 	bind_time("ifs_", &ifs_);
 	bind_time("slotTime_", &slotTime_);
 	bind("cwmin_", &cwmin_);
@@ -127,7 +128,8 @@ CsmaMac::endofContention(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p) - (s.clock() - txstart_);
 	channel_->send(p, p->target(), txt);
-	s.schedule(callback_, &intr_, txt);
+	s.schedule(callback_, &intr_,
+		   txt + ifs_ + Random::uniform(delay_));
 	rtx_ = 0;
 	cw_ = cwmin_;
 }
@@ -153,7 +155,7 @@ CsmaCaMac::send(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
 
-	if (channel_->txstop() + ifs_ > now)
+	if (/*cw_ == cwmin_ ||*/ channel_->txstop() + ifs_ > now)
 		backoff(p);
 	else {
 		txstart_ = now;

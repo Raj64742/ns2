@@ -57,6 +57,7 @@ public:
 	virtual void endofContention(Packet*);
 
 protected:
+	double delay_;		// MAC overhead
 	double txstart_;	// when the transmission starts
 	double ifs_;		// interframe spacing
 	double slotTime_;	// duration of antenna slot in seconds
