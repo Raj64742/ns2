@@ -1,0 +1,88 @@
+Tool Name  :   spectrum
+
+Section 1 :
+------------------------------------------------------------------------------
+Usage=./spectrum -f data-file 
+
+ --   The time instant specified is in seconds.
+
+      The format of time series is as shown below.
+
+      Example :
+
+             Timestamp | no.packets
+                       |
+              0.001    |  5
+              0.002    |  10
+
+   0.001,0.002... the first column denotes the time in seconds
+   5,10.....  the second column denotes the Number of packets occuring in that  time instant.
+
+ -- It finally produces the following 4 plots.(*)
+
+       1. Time Series
+       2. Autocorrelation of the input time series samples
+       3. Power Specrum - Depicting the power at different frequencies.,
+       4. Cumulative Power Spectrum.
+       
+  --- A file named Details containing statistical values such as mean,
+      standard deviation and 60% quantile frequency is created.
+
+       Examples :
+
+       ./spectrum -f attack_1
+       The time series is present in the file attack_1
+  
+       The plot produced is stored in a file "4plot.ps"
+
+       * This tool uses Ghost-view to view the plots.
+
+
+Section 1
+------------------------------------------------------------------------------
+INSTALLATION :
+--------------
+        tar xvfz spectrum-0.1.tar.gz
+        cd spectrum-0.1
+        ./configure
+        make
+
+Section 2
+-------------------------------------------------------------------------------
+
+INSTALLATION OF FFTW LIBRARY
+----------------------------
+
+This tool requires the fftw library to be installed as it uses fftw to 
+find the fast fourier transform of a set of samples.
+
+To install the library.
+
+1.Link : www.fftw.org/fftw-3.0.1.tar.gz
+  Also this source is provided with the spectrum source files. 
+ 
+2.Compile the source code using the GNU-Build tools..
+
+3.The generated files libfftw3.a and fftw3.h needs to be copied to the directory  in which the spectrum-0.1 distribution files are present.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

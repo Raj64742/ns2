@@ -1,0 +1,13 @@
+AC_INIT(spectrum,0.1,rramani@isi.edu)
+AC_CONFIG_SRCDIR(./psd.c)
+AM_INIT_AUTOMAKE(spectrum,0.1)
+AC_PROG_CC
+AC_PROG_INSTALL
+AC_CHECK_FILE(libfftw3.a,echo 'file found',
+echo 'libfftw3.a file not found'
+echo 'View Section 2 of README for details'
+exit)
+AC_CHECK_FILE(fftw3.h,echo 'file found'
+,echo 'fftw3 header not found view Section 2 of README for details'
+exit)
+AC_OUTPUT(Makefile)
