@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.29 1998/06/27 01:53:10 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.30 1998/07/02 02:51:41 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -147,11 +147,12 @@ class FullTcpAgent : public TcpAgent {
 	int max_sack_blocks_;	// max # sack blocks to send
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
-	int fastrecov_;	    // fast recovery on?
+	int fastrecov_;	    // are we in fast recovery?
 	int deflate_on_pack_;	// deflate on partial acks (reno:yes)
 	int data_on_syn_;   // send data on initial SYN?
 	double last_send_time_;	// time of last send
 	int close_on_empty_;	// close conn when buffer empty
+	int reno_fastrecov_;	// do reno-style fast recovery?
 	int infinite_send_;	// Always something to send
 	int tcprexmtthresh_;    // fast retransmit threshold
 	int iss_;       // initial send seq number
@@ -172,7 +173,8 @@ class FullTcpAgent : public TcpAgent {
 	void finish();
 	void reset_rtx_timer(int);  // adjust the rtx timer
 	virtual void dupack_action();	// what to do on dup acks
-	virtual void pack_action() { }  // action on partial acks
+	virtual void pack_action(Packet*);	// action on partial acks
+	virtual void ack_action(Packet*);	// action on acks
 	virtual void sack_action(hdr_tcp*);	// process a sack
 	void reset();       		// reset to a known point
 	void connect();     		// do active open
@@ -188,9 +190,6 @@ class FullTcpAgent : public TcpAgent {
 	ReassemblyQueue sq_;		// SACK queue (only for sack_option_)
 	DelAckTimer delack_timer_;	// other timers in tcp.h
 	void cancel_timers();		// cancel all timers
-	virtual int in_recovery() {	// in fast recovery?
-		return (dupacks_ >= tcprexmtthresh_);
-	}
 
 	/*
 	* the following are part of a tcpcb in "real" RFC793 TCP
@@ -219,15 +218,12 @@ class FullTcpAgent : public TcpAgent {
 
 class NewRenoFullTcpAgent : public FullTcpAgent {
 protected:
-	void pack_action() {
-		fast_retransmit(highest_ack_);
-	}
-	int	in_recovery();
+	void pack_action(Packet*);
 };
 
 class TahoeFullTcpAgent : public FullTcpAgent {
 protected:
-	void	dupack_action();
+	void dupack_action();
 };
 
 #endif
