@@ -58,7 +58,7 @@ proc getopt {argc argv} {
 		set val [lindex $argv [incr i]]
 		set opt($key) $val
 		if [string match {-[A-z]*} $val] {
-			decr i
+			incr i -1
 			continue
 		}
 		switch $key {
