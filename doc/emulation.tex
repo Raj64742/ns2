@@ -75,4 +75,59 @@ route through the simulated topology.
 
 \section{Network Objects}
 
+Network objects provide access to a live network.
+There are several forms of network objects, depending on the
+protocol layer specified for access to the underlying network,
+in addition to the facilities provided by the host operating system.
+Use of some network objects requires special access
+privileges where noted.
+Generally, network objects provide an entrypoint into the live
+network at a particular protocol layer (e.g. link, raw IP, UDP, etc)
+and with a particular access mode (read-only, write-only, or read-write).
+Some network objects provide specialized facilities such as filtering
+or promiscuous access (i.e. the pcap/bpf network object)
+or group membership (i.e. UDP/IP multicast).
+The C++ class {\tt Network} is provided as a base class from
+which specific network objects are derived.
+Three network objects are currently supported: pcap/bpf, raw IP,
+and UDP/IP.
+Each are described below.
+
+\subsection{Pcap/BPF Network Objects}
+
+These objects provide an extended interface to the LBNL packet capture
+library (libpcap).
+(See {\tt ftp://ftp.ee.lbl.gov/libpcap.tar.Z} for more info).
+This library provides the ability to capture link-layer frames
+in a promiscuous fashion from network interface drivers
+(i.e. a copy is made for those programs making use of libpcap).
+It also provides the ability to read and write packet trace
+files in the ``tcpdump'' format.
+The extended interface provided by \ns also allows for writing
+frames out to the network interface driver, provided the driver
+itself allows this action.
+Use of the library to capture or create live traffic may be protected;
+one generally requires at least read access to the system's packet filter
+facility which may need to be arranged through a system administrator.
+
+The packet capture library works on several UNIX-based platforms.
+It is optimized for use with the Berkeley Packet Filter (BPF)~\cite{BPF},
+and provides a filter compiler for the BPF pseudomachine machine code.
+On most systems supporting it,
+a kernel-resident BPF implementation the filter code, and 
+applies the resulting pattern matching instructions to received frames.
+Those frames matching the patterns are received through the BPF machinery;
+those not matching the pattern are otherwise unaffected.
+BPF also supports sending link-layer frames.
+This is generally not suggested, as an entire properly-formatted frame
+must be created prior to handing it off to BPF.
+This may be problematic with respect to assigning proper link-layer headers
+for next-hop destinations.
+It is generally preferable to use the raw IP network object for sending
+IP packets, as the system's routing function will be used to determine
+proper link-layer encapsulating headers.
+
+\paragraph{Configuration}
+
+
 \endinput
