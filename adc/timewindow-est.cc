@@ -25,7 +25,7 @@
 class TimeWindow_Est : public Estimator {
 public:
 	TimeWindow_Est() :scnt(0),maxp(0){bind("T_",&T_);};
-	inline void change_avload(double incr) { avload_ += incr;maxp += incr; }
+	inline void change_avload(double incr) { avload_ += incr; if (incr >0) scnt=0;}
 protected:
 	void estimate();
 	double maxp;//maximum of previous interval
