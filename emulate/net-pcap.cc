@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.20 2002/05/12 21:21:21 difa Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.21 2002/09/23 23:25:05 alefiyah Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -67,6 +67,7 @@ extern "C" {
 #include "scheduler.h"
 #include "net.h"
 #include "tclcl.h"
+#include "packet.h"
 
 /*
  * observations about pcap library
@@ -117,6 +118,7 @@ public:
 	virtual double gents(pcap_pkthdr*) = 0;		// generate timestamp
 	int recv(u_char *buf, int len, sockaddr&, double&); // get from net
 	int send(u_char *buf, int len);			// write to net
+	int recv(netpkt_handler callback, void *clientdata); // get from net
 	void close();
 	void reset();
 
@@ -129,6 +131,7 @@ public:
 
 protected:
 	static void phandler(u_char* u, const pcap_pkthdr* h, const u_char* p);
+	static void phandler_callback(u_char* u, const pcap_pkthdr* h, const u_char* p);
 	virtual void bindvars() = 0;
 
 	char errbuf_[PCAP_ERRBUF_SIZE];		// place to put err msgs
@@ -307,12 +310,38 @@ struct pcap_singleton {
         const u_char *pkt;
 };   
 
+struct pcap_singleton_callback {
+        netpkt_handler callback;
+        void *clientdata;
+        PcapNetwork *net;
+};   
+
 void
 PcapNetwork::phandler(u_char* userdata, const pcap_pkthdr* ph, const u_char* pkt)
 {
 	pcap_singleton *ps = (pcap_singleton*) userdata;
 	ps->hdr = (pcap_pkthdr*)ph;
 	ps->pkt = (u_char*)pkt;
+}
+
+void
+PcapNetwork::phandler_callback(u_char* userdata, const pcap_pkthdr* ph, const u_char* pkt)
+{
+	pcap_singleton_callback *ps = (pcap_singleton_callback*) userdata;	
+
+	Packet *p = Packet::alloc(ph->caplen);
+	PcapNetwork *inst = ps->net;
+	
+	if (++(inst->pcnt_) == 1) {
+		// mark time stamp of first pkt
+		inst->t_firstpkt_ = ph->ts.tv_sec + ph->ts.tv_usec * 0.000001;
+	}
+
+	// link layer header will be placed at the beginning from pcap
+	int s = inst->skiphdr();	// go to IP header
+	memcpy(p->accessdata(), pkt + s, ph->caplen - s);
+
+	ps->callback(ps->clientdata, p, ph->ts);
 }
 
 int
@@ -363,6 +392,25 @@ PcapNetwork::recv(u_char *buf, int len, sockaddr& /*fromaddr*/, double &ts)
 	int s = skiphdr();	// go to IP header
 	memcpy(buf, ps.pkt + s, n - s);
 	return n - s;
+}
+
+int
+PcapNetwork::recv(netpkt_handler callback, void *clientdata)
+{
+	if (state_ != PNET_PSTATE_ACTIVE) {
+		fprintf(stderr, "warning: net/pcap obj(%s) read-- not active\n",
+			name());
+		return -1;
+	}
+
+	int pktcnt = -1;		// all in buffer, or until error
+	int np;			// counts # of pkts dispatched
+	pcap_singleton_callback ps = { callback, clientdata, this };
+	
+	np = pcap_dispatch(pcap_, pktcnt, phandler_callback, (u_char *)&ps);
+
+	assert( pcap_->cc == 0 ); // i.e. we have emptied pcap's buffer
+	return np;
 }
 
 /* send a packet out through the packet filter */

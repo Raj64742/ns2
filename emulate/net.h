@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.6 1998/05/23 02:44:57 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.7 2002/09/23 23:25:05 alefiyah Exp $ (LBL)
  */
 
 #ifndef ns_net_h
@@ -49,12 +49,22 @@
 #undef interface
 #endif
 
+class Packet;
+typedef void (*netpkt_handler)(void *userdata, Packet *p,
+			       const struct timeval &ts);
+
 class Network : public TclObject {
 public:
 	Network() : mode_(-1) { }
 	virtual int command(int argc, const char*const* argv);
 	virtual int send(u_char* buf, int len) = 0;
 	virtual int recv(u_char* buf, int len, sockaddr& from, double& ts) = 0;
+	virtual int recv(netpkt_handler callback, void *clientdata) {
+	  Tcl::instance().evalf("%s info class", name());
+	  fprintf( stderr, "Callback Interface to receiving packets"
+		           " unsupported in class %s\n",
+		   Tcl::instance().result() );
+	} // callback called for every packet
 	virtual int rchannel() = 0;
 	virtual int schannel() = 0;
 	int mode() { return mode_; }

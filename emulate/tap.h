@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.h,v 1.1 2001/05/15 21:23:38 alefiyah Exp $ (ISI) 
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.h,v 1.2 2002/09/23 23:25:05 alefiyah Exp $ (ISI) 
  */
 
 
@@ -43,7 +43,7 @@
 #include "agent.h"
 
 
-/* #define TAPDEBUG 1 */
+#define TAPDEBUG 1 
 #ifdef TAPDEBUG
 #define	TDEBUG(x) { if (TAPDEBUG) fprintf(stderr, (x)); }
 #define	TDEBUG2(x,y) { if (TAPDEBUG) fprintf(stderr, (x), (y)); }

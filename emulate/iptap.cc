@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/iptap.cc,v 1.2 2002/08/20 00:39:35 alefiyah Exp $ (ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/iptap.cc,v 1.3 2002/09/23 23:25:05 alefiyah Exp $ (ISI)";
 #endif
 
 #include "iptap.h"
@@ -120,17 +120,15 @@ IPTapAgent::in_cksum(unsigned short *addr, int len)
   
 }
 
-
-/*
- * ns scheduler calls TapAgent::dispatch which calls recvpkt.
- * 
- * recvpkt then calls the network (net_) to receive a packet from 
- * the bpf. Once it has the packet, it populates the ns packet ttl 
- * value and inject it into the simulator by calling target_->recv
- * 
- */
 void
-IPTapAgent::recvpkt()
+IPTapAgent::pkt_handler(void *clientdata, Packet *p, const struct timeval &ts)
+{
+  IPTapAgent *inst = (IPTapAgent *)clientdata;
+  inst->processpkt(p, ts);
+}
+
+void
+IPTapAgent::processpkt(Packet *p, const struct timeval &ts)
 {
   struct ip *ipheader;
   struct tcphdr *tcpheader;
@@ -144,37 +142,6 @@ IPTapAgent::recvpkt()
   /* TCP header info from the grabbed packet. */
   unsigned char tcphlen;
   
-  if (net_->mode() != O_RDWR && net_->mode() != O_RDONLY) {
-    fprintf(stderr,
-	    "IPTapAgent(%s): recvpkt called while in write-only mode!\n",
-	    name());
-    return;
-  }
-  
-  if (maxpkt_ <= 0) {
-    fprintf(stderr,
-	    "IPTapAgent(%s): recvpkt: maxpkt_ value too low (%d)\n",
-	    name(), maxpkt_);
-    return;
-  }
-  
-
-  // allocate packet and a data payload
-  Packet* p = allocpkt(maxpkt_);
-
-  // fill up payload
-  sockaddr addr;	// not really used (yet)
-  double tstamp;
-  int cc = net_->recv(p->accessdata(), maxpkt_, addr, tstamp);
-  if (cc <= 0) {
-    if (cc < 0) {
-      perror("recv");
-    }
-    Packet::free(p);
-    return;
-  }
-  TDEBUG4("%f: IPTapAgent(%s): recvpkt, cc:%d\n", now(), name(), cc);
-
   /* 
      At this point, all I have to do is to grab the ttl value 
      from the received packet and put it in p's ttl field after
@@ -216,6 +183,39 @@ IPTapAgent::recvpkt()
   // inject into simulator
   target_->recv(p);
   return;
+}
+
+/*
+ * ns scheduler calls TapAgent::dispatch which calls recvpkt.
+ * 
+ * recvpkt then calls the network (net_) to receive as many packets
+ * as there are from the packet capture facility.
+ * For every packet received through the callback, it populates the ns packet
+ * ttl value and inject it into the simulator by calling target_->recv
+ * 
+ */
+void
+IPTapAgent::recvpkt()
+{
+  if (net_->mode() != O_RDWR && net_->mode() != O_RDONLY) {
+    fprintf(stderr,
+	    "IPTapAgent(%s): recvpkt called while in write-only mode!\n",
+	    name());
+    return;
+  }
+  
+  int cc = net_->recv(pkt_handler, this);
+  if (cc <= 0) {
+    if (cc < 0) {
+      perror("recv");
+    }
+    return;
+  }
+  TDEBUG4("%f: IPTapAgent(%s): recvpkt, cc:%d\n", now(), name(), cc);
+
+  // nothing to do coz pkt_handler would have called processpkt()
+  // that would have injected packets into the simulator
+
 }
 
 

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.cc,v 1.3 2002/08/20 00:45:44 alefiyah Exp $ (ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.cc,v 1.4 2002/09/23 23:25:05 alefiyah Exp $ (ISI)";
 #endif
 
 #include "tcptap.h"
@@ -298,18 +298,15 @@ TCPTapAgent::tcp_gen(char *packet, unsigned short sport, unsigned short dport,
 
 }
 
-
-
-/*
- * ns scheduler calls TapAgent::dispatch which calls recvpkt.
- * 
- * recvpkt then calls the network (net_) to receive a packet from 
- * the bpf. Once it has the packet, it converts to ns FullTCP packet
- * format and inject it into the simulator by calling target_->recv
- * 
- */
 void
-TCPTapAgent::recvpkt()
+TCPTapAgent::pkt_handler(void *clientdata, Packet *p, const struct timeval &ts)
+{
+  TCPTapAgent *inst = (TCPTapAgent *)clientdata;
+  inst->processpkt(p, ts);
+}
+
+void
+TCPTapAgent::processpkt(Packet *p, const struct timeval &ts)
 {
   struct ip *ipheader;
   struct tcphdr *tcpheader;
@@ -318,36 +315,6 @@ TCPTapAgent::recvpkt()
   /* Ip header information from the grabbed packet. */
   unsigned char ttl;
   
-  if (net_->mode() != O_RDWR && net_->mode() != O_RDONLY) {
-    fprintf(stderr,
-	    "TCPTapAgent(%s): recvpkt called while in write-only mode!\n",
-	    name());
-    return;
-  }
-  
-  if (maxpkt_ <= 0) {
-    fprintf(stderr,
-	    "TCPTapAgent(%s): recvpkt: maxpkt_ value too low (%d)\n",
-	    name(), maxpkt_);
-    return;
-  }
-  
-  // allocate packet and a data payload
-  Packet* p = allocpkt(maxpkt_);
-
-  // fill up payload
-  sockaddr addr;	// not really used (yet)
-  double tstamp;
-  int cc = net_->recv(p->accessdata(), maxpkt_, addr, tstamp);
-  if (cc <= 0) {
-    if (cc < 0) {
-      perror("recv");
-    }
-    Packet::free(p);
-    return;
-  }
-  TDEBUG4("%f: TCPTapAgent(%s): recvpkt, cc:%d\n", now(), name(), cc);
-
   /* Code to drop packet, if needed 
   dropp++;
   if ((dropp % 10) == 0) {
@@ -468,6 +435,38 @@ TCPTapAgent::recvpkt()
   return;
 }
 
+/*
+ * ns scheduler calls TapAgent::dispatch which calls recvpkt.
+ * 
+ * recvpkt then calls the network (net_) to receive as many packets
+ * as there are from the packet capture facility.
+ * For every packet received through the callback, it converts to ns
+ * FullTcp packet and injects it into the simulator by calling target_->recv
+ * 
+ */
+void
+TCPTapAgent::recvpkt()
+{
+  if (net_->mode() != O_RDWR && net_->mode() != O_RDONLY) {
+    fprintf(stderr,
+	    "TCPTapAgent(%s): recvpkt called while in write-only mode!\n",
+	    name());
+    return;
+  }
+  
+  int cc = net_->recv(pkt_handler, this);
+  if (cc <= 0) {
+    if (cc < 0) {
+      perror("recv");
+    }
+    return;
+  }
+  TDEBUG4("%f: TCPTapAgent(%s): recvpkt, cc:%d\n", now(), name(), cc);
+
+  // nothing to do coz pkt_handler would have called processpkt()
+  // that would have injected packets into the simulator
+}
+
 
 
 
@@ -555,7 +554,7 @@ TCPTapAgent::sendpkt(Packet* p)
   }
   
   free(packet);
-  TDEBUG3("TCPTapAgent(%s): sent packet (sz: %d)\n", name(), hc->size());
+  TDEBUG3("TCPTapAgent(%s): sent packet (sz: %d)\n", name(), byteswritten);
   return 0;
 }
 

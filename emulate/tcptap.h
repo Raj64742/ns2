@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.h,v 1.3 2002/09/23 23:25:05 alefiyah Exp $ (ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tcptap.h,v 1.4 2002/09/23 23:27:10 alefiyah Exp $ (ISI)
  */
 
 #ifndef tcptap_h
@@ -94,11 +94,11 @@ class TCPTapAgent : public TapAgent {
   void recvpkt();
   int sendpkt(Packet*);
   void processpkt(Packet *, const struct timeval &);
+  static void pkt_handler(void *, Packet *, const struct timeval &);
   
  public:
   TCPTapAgent();
   int command(int, const char*const*);
-  static void pkt_handler(void *, Packet *, const struct timeval &);
 
 };
 
