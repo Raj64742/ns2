@@ -9,6 +9,35 @@
 This chapter describes the implementation and configuration of error
 models, which introduces packet losses into a simulation. 
 
+In addition to the basic class ErrorModel described in details below, 
+  there are several other types of error modules not being 
+  completely documented yet,
+  which include:
+  \begin{itemize}
+    \item SRMErrorModel, PGMErrorModel: 
+      error model for SRM and PGM.
+    \item ErrorModel/Trace: 
+      error model that reads a loss trace (instead of a math/computed model)
+    \item MrouteErrorModel:
+      error model for multicast routing, now inherits from trace.
+    \item ErrorModel/Periodic:
+      models periodic packet drops (drop every nth packet we see).
+      This model can be conveniently combined with a flow-based classifier
+      to achieve drops in particular flows
+    \item SelectErrorModel:
+       for Selective packet drop.
+    \item ErrorModel/TwoState:
+      Two-State:  error-free and error
+    \item ErrorModel/TwoStateMarkov, ErrorModel/Expo, ErrorModel/Empirical:
+      inerit from ErrorModel/TwoState.
+    \item ErrorModel/List:
+      specify a list of packets/bytes to drop,
+      which could be in any order.
+  \end{itemize}
+
+Their definitions can be found in \nsf{queue/errmodel.\{cc, h\}} and
+ \nsf{tcl/lib/ns-errmodel.tcl, ns-default.tcl}.
+
 \section{Implementation}
 
 The procedures and functions described in this section can be found in
@@ -251,14 +280,6 @@ drop-target points to the link's \code{drophead_} element.
 This too is a wrapper method for insert-linkloss method described above.
 That is this inserts the error-module right after the queue element in a
 simple link (src-dst).
-
-In addition to the methods described above for the class ErrorModel, there
-are several other types of error modules derived from this base class like
-SRMErrorModel, ErrorModel/Trace, ErrorModel/TwoState, 
-ErrorModel/TwoStateMarkov,
-ErrorModel/Expo, ErrorModel/Empirical, ErrorModel/Periodic etc. 
-These definitions
-can be found in \ns/tcl/lib/(ns-errmodel.tcl and ns-default.tcl).
 
 \end{flushleft}
 
