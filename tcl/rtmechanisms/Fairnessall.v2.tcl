@@ -1,5 +1,5 @@
 #
-# To run this:  "../../ns Fairnessall.v2.tcl"
+# To run this:  "../../ns Fairnessall.v2.tcl fifo 1 3 Fairness"
 #
 set datafile Fairness.data
 source Fairnessall1.v2.tcl
@@ -15,7 +15,6 @@ if {$type == "Collapse"} {
 #
 set singlefile temp.tr
 set label $type.$scheduling.$cbrs.$tcps
-set infile temp.tr
 set psfile Fairness.ps
 
 # Run a single simulation.
