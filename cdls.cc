@@ -58,7 +58,7 @@ Cdls::Cdls() : qlen_(0), total_(0), maxq_(4), numq_(0)
 
 Cdls::~Cdls()
 {
-	for (int i = 0_;  i < numq_;  i++)
+	for (int i = 0;  i < numq_;  i++)
 		delete q_[i];
 	free(q_);
 }
