@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.3 1997/06/03 21:34:00 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.4 1997/10/01 22:30:11 mjh Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -123,9 +123,9 @@ Class Topology/net0 -superclass NodeTopology/4nodes
 Topology/net0 instproc init ns {
     $self next $ns
     $self instvar node_
-    $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail
-    $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail
-    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
+    $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail right-down
+    $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail right-up
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail right
     $ns queue-limit $node_(r1) $node_(k1) 6
     $ns queue-limit $node_(k1) $node_(r1) 6
     $self checkConfig $class $ns
@@ -196,9 +196,9 @@ Class Topology/net1 -superclass NodeTopology/4nodes
 Topology/net1 instproc init ns {
     $self next $ns
     $self instvar node_
-    $ns duplex-link $node_(s1) $node_(r1) 10Mb 5ms DropTail
-    $ns duplex-link $node_(s2) $node_(r1) 10Mb 5ms DropTail
-    $ns duplex-link $node_(r1) $node_(k1) 1.5Mb 100ms DropTail
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 5ms DropTail right-down
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 5ms DropTail right-up
+    $ns duplex-link $node_(r1) $node_(k1) 1.5Mb 100ms DropTail right
     $ns queue-limit $node_(r1) $node_(k1) 23
     $ns queue-limit $node_(k1) $node_(r1) 23
     $self checkConfig $class $ns
@@ -292,13 +292,13 @@ Topology/net2 instproc init ns {
     $self next $ns
 
     $self instvar node_
-    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
-    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
-    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail right-down
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail right-up
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED right
     $ns queue-limit $node_(r1) $node_(r2) 25
     $ns queue-limit $node_(r2) $node_(r1) 25
-    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
-    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
+    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail left-down
+    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail left-up
     $self checkConfig $class $ns
 }
 
@@ -441,15 +441,15 @@ Topology/net3 instproc init ns {
     $self next $ns
     
     $self instvar node_
-    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
-    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
-    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail right-down
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail right-up
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED right
     $ns queue-limit $node_(r1) $node_(r2) 25
     $ns queue-limit $node_(r2) $node_(r1) 25
-    $ns duplex-link $node_(r2) $node_(r3) 1.5Mb 20ms DropTail
-    $ns duplex-link $node_(r3) $node_(r4) 1.5Mb 20ms DropTail
-    $ns duplex-link $node_(s3) $node_(r4) 10Mb 4ms DropTail
-    $ns duplex-link $node_(s4) $node_(r4) 10Mb 5ms DropTail
+    $ns duplex-link $node_(r2) $node_(r3) 1.5Mb 20ms DropTail right
+    $ns duplex-link $node_(r3) $node_(r4) 1.5Mb 20ms DropTail right
+    $ns duplex-link $node_(s3) $node_(r4) 10Mb 4ms DropTail left-down
+    $ns duplex-link $node_(s4) $node_(r4) 10Mb 5ms DropTail left-up
     $self checkConfig $class $ns
 }
 
@@ -595,3 +595,7 @@ Topology/net3RED-DVm1 instproc init ns {
     $ns rtproto DV
     $self checkConfig $class $ns
 }
+
+
+
+
