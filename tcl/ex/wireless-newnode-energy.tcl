@@ -56,8 +56,8 @@ set opt(rp)             dsdv            ;# routing protocol script
 set opt(lm)             "off"           ;# log movement
 set opt(agent)          Agent/DSDV
 set opt(energymodel)    EnergyModel     ;
-set opt(initialenergy)  100000          ;# Initial energy in Joules
-set opt(logenergy)      "on"           ;# log energy every 150 seconds
+set opt(initialenergy)  0.01               ;# Initial energy in Joules
+#set opt(logenergy)      "on"           ;# log energy every 150 seconds
 
 # ======================================================================
 # needs to be fixed later
@@ -129,53 +129,13 @@ proc getopt {argc argv} {
 	}
 }
 
-proc log-movement {} {
-    global logtimer ns_ ns
-
-    set ns $ns_
-    source ../mobility/timer.tcl
-    Class LogTimer -superclass Timer
-    LogTimer instproc timeout {} {
-	global opt node_;
-	for {set i 0} {$i < $opt(nn)} {incr i} {
-	    $node_($i) log-movement
-	}
-	$self sched 0.1
-    }
-
-    set logtimer [new LogTimer]
-    $logtimer sched 0.1
-}
-
-
-proc log-energy {} {
-    global logenergytimer ns_ ns
-
-    set ns $ns_
-    source ../mobility/timer.tcl
-    Class LogEnergyTimer -superclass Timer
-    LogEnergyTimer instproc timeout {} {
-        global opt node_;
-        for {set i 0} {$i < $opt(nn)} {incr i} {
-            $node_($i) log-energy
-        }
-        $self sched 150
-    }
-
-    set logenergytimer [new LogEnergyTimer]
-    $logenergytimer sched 150
-}
-
-
-
-
 # ======================================================================
 # Main Program
 # ======================================================================
 getopt $argc $argv
 
-source ../lib/ns-bsnode.tcl
-source ../mobility/com.tcl
+#source ../lib/ns-bsnode.tcl
+#source ../mobility/com.tcl
 
 # do the get opt again incase the routing protocol file added some more
 # options to look for
@@ -195,14 +155,11 @@ if {$opt(seed) > 0} {
 # Initialize Global Variables
 #
 set ns_		[new Simulator]
-#set chan	[new $opt(chan)]
-#set prop	[new $opt(prop)]
 set topo	[new Topography]
+
 set tracefd	[open $opt(tr) w]
 
 $topo load_flatgrid $opt(x) $opt(y)
-
-#$prop topography $topo
 
 $ns_ trace-all $tracefd
 
@@ -213,27 +170,12 @@ create-god $opt(nn)
 
 
 #
-# log the mobile nodes movements if desired
-#
-if { $opt(lm) == "on" } {
-    log-movement
-}
-
-
-
-#
 #  Create the specified number of nodes $opt(nn) and "attach" them
 #  the channel.
 #  Each routing protocol script is expected to have defined a proc
 #  create-mobile-node that builds a mobile node and inserts it into the
 #  array global $node_($i)
 #
-
-if { [string compare $opt(rp) "dsr"] == 0} { 
-	for {set i 0} {$i < $opt(nn) } {incr i} {
-		dsr-create-mobile-node $i
-	}
-} elseif { [string compare $opt(rp) "dsdv"] == 0} { 
 
 	#global node setting
 
@@ -248,23 +190,14 @@ if { [string compare $opt(rp) "dsr"] == 0} {
 			 -channelType $opt(chan) \
 			 -topoInstance $topo \
 			 -energyModel $opt(energymodel) \
+			 -rxPower 0.3 \
+			 -txPower 0.6 \
 			 -initialEnergy $opt(initialenergy)
 			 
 	for {set i 0} {$i < $opt(nn) } {incr i} {
 		set node_($i) [$ns_ node]	
 		$node_($i) random-motion 0		;# disable random motion
 	}
-}
-
-
-#
-# log the mobile nodes movements if desired
-#
-if { $opt(logenergy) == "on" } {
-    log-energy
-}
-
-
 
 #
 # Source the Connection and Movement scripts

@@ -139,14 +139,14 @@ public:
 	// 	int		grid_x_, grid_y_;
 	//int		dim_x_, dim_y_;	
 	double          radius_;
-
+	void log_energy(int);
 protected:
 	// Used to generate position updates
 	PositionHandler pos_handle;
 	Event pos_intr;
 
 	void	log_movement();
-	void log_energy();
+	
 	
 	void	random_direction();
 	void	random_speed();

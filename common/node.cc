@@ -149,6 +149,18 @@ NsObject* Node::intf_to_target(int32_t label)
 	return NULL;
 }
 
+// return the node instance from the static node list
+Node * Node::get_node_by_address (nsaddr_t id)
+{
+	Node * tnode = nodehead_.lh_first;
+	for (; tnode; tnode = tnode->nextnode()) {
+		if (tnode->address_ == id ) {
+			return (tnode);
+		}
+	}
+	return NULL;
+
+}
 
 
 #ifdef zero	

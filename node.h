@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.11 1999/08/07 21:17:59 yaxu Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.12 1999/09/29 18:45:24 yaxu Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -121,6 +121,8 @@ class Node : public TclObject {
 		LIST_INSERT_HEAD(head, this, entry);
 	}
 	inline Node* nextnode() { return entry.le_next; }
+
+	static Node* get_node_by_address(nsaddr_t);
 protected:
 	LIST_ENTRY(Node) entry;  // declare list entry structure
 	EnergyModel *energy_model_;

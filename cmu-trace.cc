@@ -105,7 +105,10 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	struct hdr_ip *ih = HDR_IP(p);
 	struct hdr_mac802_11 *mh = HDR_MAC802_11(p);
 	char op = (char) type_;
-	
+	Node* thisnode = Node::get_node_by_address(src_);
+
+	//printf("Node [%d] energy level = %f\n", src_, thisnode->energy());
+
 	// hack the IP address to convert pkt format to hostid format
 	// for now until port ids are removed from IP address. -Padma.
 	int src = Address::instance().get_nodeaddr(ih->saddr());
@@ -114,6 +117,8 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 		if(src_ != src)
 			op = FWRD;
 	}
+	
+	
 
 #ifdef LOG_POSITION
         double x = 0.0, y = 0.0, z = 0.0;
@@ -124,7 +129,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 #ifdef LOG_POSITION
 		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d [%x %x %x %x] ",
 #else
-		"%c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x] ",
+		"%c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x] [energy %f]",
 #endif
 		op,
 		Scheduler::instance().clock(),
@@ -144,7 +149,8 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 		mh->dh_duration,
 		ETHER_ADDR(mh->dh_da),
 		ETHER_ADDR(mh->dh_sa),
-		GET_ETHER_TYPE(mh->dh_body));
+		GET_ETHER_TYPE(mh->dh_body),
+	        thisnode->energy_model() ? thisnode->energy(): -1); 
 }
 
 void

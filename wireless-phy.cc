@@ -158,9 +158,24 @@ WirelessPhy::sendDown(Packet *p)
 	/*
 	 * Decrease node's energy
 	 */
+
 	if(node_->energy_model()) {
-		double txtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
-		(node_->energy_model())->DecrTxEnergy(txtime,Pt_);
+
+		if ((node_->energy_model())->energy() > 0) {
+
+		    double txtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
+		    (node_->energy_model())->DecrTxEnergy(txtime,Pt_);
+
+		    if ((node_->energy_model())->energy() <= 0) {
+			    node_->energy_model()->setenergy(0);
+			    node_->log_energy(0);
+		    }
+
+		} else {
+		     Packet::free(p);
+		     return;
+		}
+		
 	}
 
 	/*
@@ -185,6 +200,15 @@ WirelessPhy::sendUp(Packet *p)
   double Pr;
   int pkt_recvd = 0;
 
+  // if the energy goes to ZERO, drop the packet simply
+  if (node_->energy_model()) {
+       if ((node_->energy_model())->energy() <= 0) {
+	    pkt_recvd = 0;
+	    goto DONE;
+       }
+   }
+
+
   if(propagation_) {
 
     s.stamp(node_, ant_, 0, lambda_);
@@ -195,6 +219,8 @@ WirelessPhy::sendUp(Packet *p)
       pkt_recvd = 0;
       goto DONE;
     }
+
+
 
     if (Pr < RXThresh_) {
       /*
@@ -242,7 +268,15 @@ DONE:
    */
   if(pkt_recvd 	&& node_->energy_model()) {
 	  double rcvtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
+	  // no way to reach here if the energy level < 0
+	  
 	  (node_->energy_model())->DecrRcvEnergy(rcvtime,Pr);
+
+	  if ((node_->energy_model())->energy() <= 0) {  
+	  // saying node died
+	      node_->energy_model()->setenergy(0);
+	      node_->log_energy(0);
+	  }
   }
 
   return pkt_recvd;

@@ -383,13 +383,13 @@ Node/MobileNode instproc add-target {agent port } {
 # set receiving power
 Node/MobileNode instproc setPt { val } {
     $self instvar netif_
-    $netif(0) setTxPower $val
+    $netif_(0) setTxPower $val
 }
 
 # set transmission power
 Node/MobileNode instproc setPr { val } {
     $self instvar netif_
-    $netif(0) setRxPower $val
+    $netif_(0) setRxPower $val
 }
 
 #

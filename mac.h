@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.29 1999/04/22 18:53:39 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.30 1999/09/29 18:45:22 yaxu Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -206,6 +206,8 @@ public:
 			dh->hdr_type_ = type;
 		return dh->hdr_type();
 	}
+
+	
 
 private:
 	//virtual void discard(Packet *p, const char* why = 0) {};

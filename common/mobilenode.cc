@@ -163,10 +163,10 @@ MobileNode::command(int argc, const char*const* argv)
 		        log_movement();
 			return TCL_OK;
 		}		
-		if(strcmp(argv[1], "log-energy") == 0) {
-			log_energy();
-			return TCL_OK;
-		}		
+		//		if(strcmp(argv[1], "log-energy") == 0) {
+		//	log_energy();
+		//	return TCL_OK;
+			//}		
 	}
 	else if(argc == 3) {
                 if(strcmp(argv[1], "radius") == 0) {
@@ -291,11 +291,14 @@ MobileNode::log_movement()
 
 
 void
-MobileNode::log_energy()
+MobileNode::log_energy(int flag)
 {
 	if(!log_target) return;
 	Scheduler &s = Scheduler::instance();
-	sprintf(log_target->buffer(),"Node %d: Remaining energy at time %f: %f", address_, s.clock(), energy());
+	if (flag) {
+	   sprintf(log_target->buffer(),"%f %d [energy = %f]", s.clock(), address_,energy()); } else {
+	   sprintf(log_target->buffer(),"%f %d [energy = 0 ]", s.clock(), address_); 
+		}
 	log_target->dump();
 }
 

@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.173 1999/09/27 00:15:25 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.174 1999/09/29 18:45:31 yaxu Exp $
 
 #
 
@@ -235,7 +235,7 @@ Simulator instproc wiredRouting {val} {$self set wiredRouting_ $val}
 Simulator instproc mobileIP {val} {$self set mobileIP_ $val}
 Simulator instproc energyModel  {val} { $self set energyModel_  $val }
 Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
-Simulator instproc txPower  {val} { $self set txPower__  $val }
+Simulator instproc txPower  {val} { $self set txPower_  $val }
 Simulator instproc rxPower  {val} { $self set rxPower_  $val }
 Simulator instproc agentTrace  {val} { $self set agentTrace_  $val }
 Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
@@ -287,6 +287,7 @@ Simulator instproc node-config args {
         $self instvar  addressType_  routingAgent_ nodefactory_ propType_  
         $self instvar macTrace_ routerTrace_ agentTrace_ movementTrace_
         $self instvar channelType_ topoInstance_ propInstance_ chan mobileIP_
+        $self instvar rxPower_ txPower_
 
         if [info exists macTrace_] {
             Simulator set MacTrace_ $macTrace_
