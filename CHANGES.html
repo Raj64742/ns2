@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.353 1999/08/24 04:26:01 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.354 1999/08/24 05:40:44 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,17 @@
 
 
 <ul>
+        <p>
+        <li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
+        <b>Mon Aug 23 22:33:19 PDT 1999</b><br>
+        Added option control_increase_ to TCP to limit increases
+        to the congestion window when the congestion window is not
+        fully utilized.  Also added changes to the implementation
+        of QOption_, for an optional method for
+        reducing the congestion window after an idle period.
+        Code from Jitendra Padhye and Mark Handley.  Validation
+        tests in "tcl/test/test-all-tcp".
+
 	<p>
 	<li><b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
 	<b>Mon Aug 23 21:05:26 PDT 1999</b><br>
