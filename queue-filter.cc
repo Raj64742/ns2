@@ -32,6 +32,7 @@
  */
 
 #include "packet.h"
+#include "queue.h"
 #include "queue-filter.h"
 
 int
@@ -52,17 +53,20 @@ QueueFilter::filter(PacketQueue *queue, Packet *p)
 	int &ack = tcph->seqno();
 
 	hdr_ip *iph = (hdr_ip*) p->access(off_ip_);
-	for (q = queue->head(), qq = q; q != 0; q = q->next()) {
+	for (q = queue->head(), qq = q; q != 0; ) {
 		if (compareFlows((hdr_ip*) q->access(off_ip_), iph)) {
 			if (q->type() == PT_ACK) {
 				hdr_tcp *th = (hdr_tcp*) q->access(off_tcp_);
 				if (th->seqno() < ack) { // remove this ack
-				      printf("Removing ack %d\n", th->seqno());
-					queue->purge(q, qq);
+				      queue->purge(q, qq);
+				      Packet::free(q); // should really be drop
+				      q = qq->next();
+				      continue;
 				}
 			}
 		}
 		qq = q;
+		q = q->next();
 	}
 }
 	  

@@ -120,7 +120,7 @@ double now = s.clock();
 	
 //	cout << now << " polling " << ((hdr_cmn *)(p->access(0)))->uid()  << " size " << ((hdr_cmn*)p->access(0))->size() << " mode " << mode_ << "\n";
 	hdr_ip  *iph  = (hdr_ip *)p->access(24);
-	dump_iphdr(iph);
+//	dump_iphdr(iph);
 	
 	pkt_ = new Packet;
 	memcpy(pkt_, p, sizeof(Packet));
@@ -216,7 +216,7 @@ double now = s.clock();
 */     
 	Packet *p = myMac->pkt();
 //	cout << now << " backing off " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << " for " << bTime << " s " << ((hdr_cmn*)p->access(0))->size() << "\n";
-	dump_iphdr((hdr_ip *)p->access(24));
+//	dump_iphdr((hdr_ip *)p->access(24));
 	
 	s.schedule(myMac->pth(), myMac->pendingPE(), bTime);
 }
@@ -248,7 +248,7 @@ double now = s.clock();
 //	cout << now << " mhmac sending " << ((hdr_cmn *)(p->access(0)))->uid() << " size " << ((hdr_cmn*)p->access(off_cmn_))->size() << "\n";
 
 	hdr_ip  *iph  = (hdr_ip *)p->access(24);
-	dump_iphdr(iph);
+//	dump_iphdr(iph);
 	
 	double txt = txtime(p);
 	channel_->send(p, peer_->mh(), txt); // target is peer's mac handler
@@ -269,7 +269,7 @@ double now = s.clock();
 
 //	cout << now << " recv " << ((hdr_cmn *)(p->access(0)))->uid() << " from peer " << " size " << ((hdr_cmn*)p->access(0))->size() << "\n";
 	hdr_ip  *iph  = (hdr_ip *)p->access(24);
-	dump_iphdr(iph);	
+//	dump_iphdr(iph);	
 	s.schedule(p->target(), e, 0); // pass packet up to LL (which acks)
 	MultihopMac &myMac = (MultihopMac &) mac_;
 	myMac.mode(MAC_IDLE);

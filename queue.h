@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.10.2.4 1997/04/26 01:47:49 hari Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.10.2.5 1997/04/27 06:01:38 hari Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -82,7 +82,7 @@ protected:
 	Packet* head_;
 	Packet** tail_;
 	QueueMonitor* qm_;	// queue monitor
-	int len_;		// packet count
+	int len_;		// packet count XXX should be private
 };
 
 
