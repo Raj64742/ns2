@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.7 1997/02/27 04:39:16 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.8 1997/03/08 23:47:38 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -234,6 +234,8 @@ void TcpAgent::send(int force, int reason, int maxburst)
 	int win = window();
 	int npackets = 0;
 
+	if (!force && pending_[TCP_TIMER_DELSND])
+		return;
 	while (t_seqno_ <= highest_ack_ + win && t_seqno_ < curseq_) {
 		if (overhead_ == 0 || force) {
 			output(t_seqno_++, reason);
