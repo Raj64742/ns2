@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.50 1998/06/27 01:25:15 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.51 1998/06/27 01:53:40 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -128,9 +128,9 @@ public:
  */
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
-	rq_(rcv_nxt_, this), last_ack_sent_(-1), infinite_send_(0),
+	rq_(rcv_nxt_), last_ack_sent_(-1), infinite_send_(0),
 	last_send_time_(-1.0), irs_(-1), ect_(FALSE), recent_ce_(FALSE),
-	sq_(sack_min_, this)
+	sq_(sack_min_)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -357,7 +357,7 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
 
 	fh->ect() = ect_;	// on after mutual agreement on ECT
 
-	if (sack_option_) {
+	if (sack_option_ && !rq_.empty()) {
 		int nblk = rq_.gensack(&tcph->sa_left(0), max_sack_blocks_);
 		tcph->hlen() = headersize(nblk);
 		tcph->sa_length() = nblk;
@@ -638,7 +638,7 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 		sq_.sync(); // reset to beginning of sack list
 		while (sq_.nextblk(nxtblk)) {
 			// skip past anything old
-			if (t_seqno_ < nxtblk[0])
+			if (t_seqno_ <= nxtblk[0])
 				break;
 		}
 	}
@@ -653,7 +653,7 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 //printf("%f SENDER(%s): tseq: %d sacks [nxt: %d, %d]:",
 //now(), name(), int(t_seqno_), nxtblk[0], nxtblk[1]);
 //sq_.dumplist();
-			if (t_seqno_ <= maxseq_ && t_seqno_ > sack_max_)
+			if (t_seqno_ < maxseq_ && t_seqno_ > sack_max_)
 				break;	// no extra out-of-range retransmits
 
 			if (t_seqno_ >= nxtblk[0] && t_seqno_ <= nxtblk[1]) {
@@ -989,7 +989,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// recovery, go below so we can remember to deflate
 			// the window
 			if (ackno > highest_ack_ && ackno < maxseq_ &&
-			    cwnd_ >= wnd_ && !in_recovery()) {
+			    cwnd_ >= wnd_ && !in_recovery() && sq_.empty()) {
 				newack(pkt);
 				/* no adjustment of cwnd here */
 				if (((curseq_ + iss_) > highest_ack_) ||
@@ -1500,9 +1500,7 @@ process_ACK:
 //int(highest_ack_), int(cwnd_), int(recover_));
 			pack_action();
 		} else if (sack_option_) {
-			// if not partial, clear sack queue
-			sq_.clear();
-			sack_min_ = highest_ack_;
+			sq_.add(iss_, highest_ack_, 0);
 		}
 
 		// CHECKME: handling of rtx timer
@@ -1798,6 +1796,9 @@ FullTcpAgent::sack_action(hdr_tcp* tcph)
 	int slen = tcph->sa_length();
 	int i;
 
+	if (tcph->ackno() > sack_min_)
+		sack_min_ = tcph->ackno();
+
 	for (i = 0; i < slen; ++i) {
 		if (sack_max_ < tcph->sa_right(i))
 			sack_max_ = tcph->sa_right(i);
@@ -1947,8 +1948,8 @@ int FullTcpAgent::command(int argc, const char*const* argv)
  * allow it to find off_tcp_ and off_cmn_
  */
 
-ReassemblyQueue::ReassemblyQueue(int& nxt, FullTcpAgent* agent_) :
-	head_(NULL), tail_(NULL), rcv_nxt_(nxt) 
+ReassemblyQueue::ReassemblyQueue(int& nxt) :
+	head_(NULL), tail_(NULL), rcv_nxt_(nxt) , ptr_(NULL)
 {
 	bind("off_tcp_", &off_tcp_);
 	bind("off_cmn_", &off_cmn_);
@@ -1962,7 +1963,7 @@ void ReassemblyQueue::clear()
 	seginfo* p;
 	for (p = head_; p != NULL; p = p->next_)
 		delete p;
-	ptr_ = head_ = tail_ = last_added_ = NULL;
+	ptr_ = head_ = tail_ = NULL;
 	return;
 }
 
@@ -1974,60 +1975,78 @@ void ReassemblyQueue::clear()
 int
 ReassemblyQueue::gensack(int *sacks, int maxsblock)
 {
-	seginfo *p = head_;
-	seginfo *mark = NULL;
-	int cnt = 0;
-	int startseq, endseq;
 
-	if (last_added_) {
-		//
-		// look for the SACK block containing the
-		// most recently received segment
-		//
+	seginfo *p, *q;
+
+	if (head_ == NULL)
+		return (0);	// nothing there
+
+	//
+	// look for the SACK block containing the
+	// most recently received segment.  Update the timestamps
+	// to match the most recent of the contig block
+	//
+	p = head_;
+	while (p != NULL) {
+		q = p;
+		while (p->next_ &&
+		    (p->next_->startseq_ == p->endseq_)) {
+			p->time_ = MAX(p->time_, p->next_->time_);
+			p = p->next_;
+		}
+		p->time_ = MAX(q->time_, p->time_);
+		p = p->next_;
+	}
+
+	//
+	// look for maxsblock most recent blocks
+	//
+
+	double max;
+	register i;
+	seginfo *maxp, *maxq;
+
+	for (i = 0; i < maxsblock; ++i) {
+		p = head_;
+		max = 0.0;
+		maxp = maxq = NULL;
+
+		// find the max, q->ptr to left of max, p->ptr to right
 		while (p != NULL) {
-			startseq = p->startseq_;
+			q = p;
 			while (p->next_ &&
 			    (p->next_->startseq_ == p->endseq_)) {
 				p = p->next_;
 			}
-			endseq = p->endseq_;
-			if (startseq <= last_added_->startseq_ &&
-				last_added_->endseq_ <= endseq) {
-				*sacks++ = startseq;
-				*sacks++ = endseq;
-				mark = p;
-				++cnt;
-			} else {
-				mark = NULL;
+			if ((p->time_ > 0.0) && p->time_ > max) {
+				maxp = p;
+				maxq = q;
 			}
 			p = p->next_;
 		}
-		if (cnt == 0) {
-			fprintf(stderr,
-			  "Reassembly queue: couldn't find enclosing SACK block for last added blk [%d, %d]\n",
-				last_added_->startseq_,
-				last_added_->endseq_);
-			return (0);
-		}
-	}
-	p = head_;
 
-	while ((p != NULL) && (cnt < maxsblock)) {
-		startseq = p->startseq_;
-		while (p->next_ && (p->next_->startseq_ == p->endseq_)) {
-			p = p->next_;
-		}
-		endseq = p->endseq_;
-		// don't duplicate most recent addition
-		if (p != mark) {
-			*sacks++ = startseq;
-			*sacks++ = endseq;
-			++cnt;
-		}
+		// if we found a max, scrawl it away
+		if (maxp != NULL) {
+			*sacks++ = maxq->startseq_;
+			*sacks++ = maxp->endseq_;
+			// invert timestamp on max's
+			while (maxq != maxp) {
+				maxq->time_ = -maxq->time_;
+				maxq = maxq->next_;
+			}
+			maxp->time_ = -maxp->time_;
+		} else
+			break;
+	}
+
+	// now clean up all negatives
+	p = head_;
+	while (p != NULL) {
+		if (p->time_ < 0.0)
+			p->time_ = -p->time_;
 		p = p->next_;
 	}
-
-	return (cnt);
+	return (i);
 }
 
 /*
@@ -2114,13 +2133,16 @@ int ReassemblyQueue::add(int start, int end, int tiflags)
 {
 	seginfo *q, *p, *n;
 
+	double now = Scheduler::instance().clock();
+
 	if (head_ == NULL) {
 		// nobody there, just insert
-		last_added_ = tail_ = head_ = new seginfo;
+		tail_ = head_ = new seginfo;
 		head_->prev_ = head_->next_ = NULL;
 		head_->startseq_ = start;
 		head_->endseq_ = end;
 		head_->flags_ = tiflags;
+		head_->time_ = now;
 	} else {
 		if (tail_->endseq_ <= start) {
 			// common case of end of reass queue
@@ -2140,10 +2162,11 @@ int ReassemblyQueue::add(int start, int end, int tiflags)
 		if (p == NULL || (start >= p->endseq_)) {
 			// no overlap
 endfast:
-			last_added_ = n = new seginfo;
+			n = new seginfo;
 			n->startseq_ = start;
 			n->endseq_ = end;
 			n->flags_ = tiflags;
+			n->time_ = now;
 
 			if (p == NULL) {
 				// insert at head
@@ -2194,8 +2217,6 @@ endfast:
 		else
 			tail_ = q->prev_;
 
-		if (q == last_added_)
-			last_added_ = NULL;
 		if (q == ptr_)
 			ptr_ = NULL;
 		if (q->next_ && (q->endseq_ < q->next_->startseq_)) {
