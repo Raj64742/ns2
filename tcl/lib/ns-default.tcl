@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.18 1997/04/09 00:10:12 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.19 1997/04/24 03:15:58 kfall Exp $
 
 
 #
@@ -79,7 +79,10 @@ Agent/TCP set srtt_ 0
 Agent/TCP set rttvar_ 0
 Agent/TCP set backoff_ 0
 
-Queue set limit_ 10
+# 10->50 to be like ns-1
+Queue set limit_ 50
+Queue set blocked_ false
+Queue set unblock_on_resume_ true
 
 Queue/SFQ set maxqueue_ 40
 Queue/SFQ set buckets_ 16
@@ -99,12 +102,19 @@ Queue/RED set drop-tail_ false
 Queue/RED set doubleq_ false
 Queue/RED set dqthresh_ 50
 
-
 Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000
 Queue/DRR set quantum_ 250
 Queue/DRR set mask_ 0
 
+Queue/CBQ set toplevel_ 1
+Queue/CBQ set algorithm_ 0 ;# used by compat only, not bound
+Queue/CBQ/WRR set maxpkt_ 1024
+CBQClass set maxidle_ .004
+CBQClass set priority_ 0
+CBQClass set level_ 1
+CBQClass set extradelay_ 0.0
+CBQClass set def_qtype_ DropTail
 
 #XXX other kinds of sinks -> should reparent
 Agent/TCPSink set packetSize_ 40
@@ -131,6 +141,9 @@ Classifier/Addr set mask_ 0xffffffff
 Classifier/Flow set shift_ 0
 Classifier/Flow set mask_ 0xffffffff
 
+Classifier/Hash set shift_ 0
+Classifier/Hash set mask_ 0xffffffff
+
 Agent/LossMonitor set nlost_ 0
 Agent/LossMonitor set npkts_ 0
 Agent/LossMonitor set bytes_ 0
@@ -139,6 +152,12 @@ Agent/LossMonitor set expected_ 0
 
 QueueMonitor set size_ 0
 QueueMonitor set pkts_ 0
+QueueMonitor set parrivals_ 0
+QueueMonitor set barrivals_ 0
+QueueMonitor set pdepartures_ 0
+QueueMonitor set bdepartures_ 0
+QueueMonitor set pdrops_ 0
+QueueMonitor set bdrops_ 0
 BytesIntegrator set sum_ 0
 BytesIntegrator set lastx_ 0
 BytesIntegrator set lasty_ 0
