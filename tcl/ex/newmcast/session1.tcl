@@ -30,7 +30,7 @@
 #          |2|
 
 set ns [new SessionSim]
-#SessionSim set rc_ 1
+SessionSim set rc_ 1
 
 $ns namtrace-all [open s1.nam w]
 set n0 [$ns node]

@@ -29,7 +29,7 @@
 # 3    4     5
 #
 set ns [new SessionSim]
-#SessionSim set rc_ 1
+SessionSim set rc_ 1
 
 $ns namtrace-all [open s3.nam w]
 
@@ -107,9 +107,9 @@ $loss_module3 drop-packet 2 10 1     ;# drop one PT_CBR packet every 10 packets
 $loss_module3 drop-target [$ns set nullAgent_]
 
 # insert the loss module; must be done before receivers join groups
-$ns insert-loss  $loss_module1 0 1
-$ns insert-loss  $loss_module2 1 3
-$ns insert-loss  $loss_module3 0 2
+$ns insert-loss  $loss_module1 $n0 $n1
+$ns insert-loss  $loss_module2 $n1 $n3
+$ns insert-loss  $loss_module3 $n0 $n2
 $ns at 0.3 "$sessionhelper show-loss-depobj"  ;# showing loss dependency
 $ns at 0.3 "$sessionhelper show-dstobj"       ;# showing receiver spec
 

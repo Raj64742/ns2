@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.14 1998/06/27 01:24:43 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.15 1998/12/24 22:58:52 polly Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -68,7 +68,6 @@ public:
 		return (*instance_);		// general access to scheduler
 	}
 	void schedule(Handler*, Event*, double delay);	// sched later event
-	void rc_schedule(Handler*, Event*, double delay);
 	virtual void run();			// execute the simulator
 	virtual void cancel(Event*) = 0;	// cancel event
 	virtual void insert(Event*) = 0;	// schedule event

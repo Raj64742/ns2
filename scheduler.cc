@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.40 1998/12/17 18:47:08 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.41 1998/12/24 22:58:51 polly Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.40 1998/12/17 18:47:08 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.41 1998/12/24 22:58:51 polly Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -124,36 +124,6 @@ void AtHandler::handle(Event* e)
 	Tcl::instance().eval(at->proc_);
 	delete[] at->proc_;
 	delete at;
-}
-
-class RcEvent : public Event {
-public:
-	Packet* packet_;
-	Handler* real_handler_;
-};
-
-class RcHandler : public Handler {
-public:
-	void handle(Event* event);
-} rc_handler;
-
-void RcHandler::handle(Event* e)
-{
-	RcEvent* rc = (RcEvent*)e;
-	rc->real_handler_->handle(rc->packet_);
-	delete rc;
-}
-
-void Scheduler::rc_schedule(Handler* h, Event* e, double delay)
-{
-	RcEvent* rc = new RcEvent;
-	rc->uid_ = uid_++;
-	rc->handler_ = &rc_handler;
-	double t = clock_ + delay;
-	rc->time_ = t;
-	rc->packet_ = (Packet*)e;
-	rc->real_handler_ = h;
-	insert(rc);
 }
 
 int Scheduler::command(int argc, const char*const* argv)

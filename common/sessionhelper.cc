@@ -23,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/sessionhelper.cc,v 1.14 1998/11/30 22:29:13 polly Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/sessionhelper.cc,v 1.15 1998/12/24 22:58:52 polly Exp $ (USC/ISI)";
 #endif
 
 #include "Tcl.h"
@@ -31,6 +31,25 @@ static const char rcsid[] =
 #include "packet.h"
 #include "connector.h"
 #include "errmodel.h"
+
+//Definitions for special reference count events
+class RcEvent : public Event {
+public:
+	Packet* packet_;
+	Handler* real_handler_;
+};
+
+class RcHandler : public Handler {
+public:
+	void handle(Event* event);
+} rc_handler;
+
+void RcHandler::handle(Event* e)
+{
+	RcEvent* rc = (RcEvent*)e;
+	rc->real_handler_->handle(rc->packet_);
+	delete rc;
+}
 
 struct dstobj {
 	double bw;
@@ -129,7 +148,11 @@ void SessionHelper::recv(Packet* pkt, Handler*)
 	      tmpdst->prev_arrival = tmp_arrival;
 	      if (rc_) {
 		// reference count
-		s.rc_schedule(tmpdst->obj, pkt, tmp_arrival);
+		//s.rc_schedule(tmpdst->obj, pkt, tmp_arrival);
+		      RcEvent* rc = new RcEvent;
+		      rc->packet_ = pkt;
+		      rc->real_handler_ = tmpdst->obj;
+		      s.schedule(&rc_handler, rc, tmp_arrival);
 	      } else {
 		Packet* tmppkt = pkt->copy();
 		hdr_ip* tmpiph = (hdr_ip*)tmppkt->access(off_ip_);
