@@ -66,6 +66,7 @@ protected:
 	int cwmax_;		// maximum contention window (backoff range)
 	int rtx_;		// number of retransmission attempt
 	int rtxLimit_;		// maximum number of retransmission attempt
+	Event intrEoc_;		// event at the end-of-contention
 	MacHandlerEoc mhEoc_;	// handle end-of-contention
 };
 

@@ -95,6 +95,7 @@ proc make-cbr-connections {} {
 
 proc make-tcp-connections {} {
 	global ns n cbr ftp
+	global trfile
 
 	set tcp(0) [$ns create-connection TCP/Reno $n(1) TCPSink $n(0) 0]
 	set ftp(0) [$tcp(0) attach-source FTP]
@@ -162,23 +163,24 @@ make-cbr-connections
 start-connections
 
 
+proc cat {filename} {
+	set fd [open $filename r]
+	while {[gets $fd line] >= 0} {
+		puts $line
+	}
+	close $fd
+}
+
 proc finish {} {
-	global env ns flags trfile trfd
+	global env nshome ns flags trfile trfd
 	global bw delay ll ifq mac chan
 
 	$ns flush-trace
 	close $trfd
-	exec trsplit -tt r -pt ack $trfile
-
-	exec echo "	$bw $delay $ll $ifq $mac $chan" >> ${trfile}-bw
-	foreach af [lsort [glob ${trfile}.ack.*]] {
-		exec tail -1 $af | awk -v af=$af { {
-			kbps = 8 * $2 / $1;
-			printf("%s\t%f\t%d\t%f\t%f\n", af,$1,$2, $2/$1, kbps);
-		} } >> ${trfile}-bw
-	}
-	puts " Files \t\t Time\t   #packets \t pkts/s \t Kbps (1000 byte pkts)"
-	exec cat ${trfile}-bw >> /dev/stdout
+	exec echo " $bw $delay $ll $ifq $mac $chan" >> ${trfile}-bw
+	exec perl $nshome/bin/trsplit -tt "r" -pt "ack" $trfile >> ${trfile}-bw
+	puts " Files \t\t Time\t   packets \t pkts/s \t Kbps (1000 byte pkts)"
+	cat ${trfile}-bw
 
 	if [info exists flags(g)] {
 		eval exec xgraph -nl -M -display $env(DISPLAY) \

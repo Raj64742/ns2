@@ -110,10 +110,14 @@ public:
 		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
 		return (8. * (hdr->size() + hlen_) / bandwidth_);
 	}
+	inline double txtime(int bytes) {
+		return (8. * bytes / bandwidth_);
+	}
 	inline double bandwidth() const { return bandwidth_; }
 	inline int label() { return label_; }
 	inline MacState state() { return state_; }
 	inline MacState state(MacState m) { return state_ = m; }
+	inline MacState state(int m) { return state_ = (MacState) m; }
 	inline Mac*& macList() { return macList_; }
 
 protected:

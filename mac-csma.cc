@@ -88,7 +88,9 @@ CsmaMac::resume()
 	Scheduler& s = Scheduler::instance();
 	s.schedule(callback_, &intr_, ifs_ + slotTime_ * cw_);
 	callback_ = 0;
-	state(MAC_IDLE);
+	state((MacState) (state_ & ~MAC_SEND));
+	rtx_ = 0;
+	cw_ = cwmin_;
 }
 
 
@@ -124,10 +126,8 @@ CsmaMac::backoff(Handler* h, Packet* p, double delay)
 		cw_ = min(2 * cw_, cwmax_);
 	}
 	else {
-		rtx_ = 0;
-		cw_ = cwmin_;
 		drop(p);
-		resume();
+		CsmaMac::resume();
 	}
 }
 
@@ -138,7 +138,7 @@ CsmaMac::endofContention(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p) - (s.clock() - txstart_);
 	channel_->send(p, txt);
-	Scheduler::instance().schedule(&mh_, &intr_, txt);
+	s.schedule(&mh_, &intrEoc_, txt);
 	rtx_ = 0;
 	cw_ = cwmin_;
 }

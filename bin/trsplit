@@ -23,6 +23,7 @@ EOF
 sub ParseArgv
 {
     local($val);
+    &Usage if ($#ARGV < 0);
     while ($_ = $ARGV[0], /^-/) {
 	shift @ARGV;
 	if (/^--$/)  { last; }
@@ -62,10 +63,21 @@ while (<>)
 
     $src = $col[$csrc];
     $dst = $col[$cdst];
-    $fid = $src * 0x10000 + $dst;
+    $fid = ($src << 16) + $dst;
     if (! $opened{$fid}) {
 	open($fid, ">$ARGV.$pt.$src.$dst");
 	$opened{$fid} = 1;
     }
+
+    $time{"$src.$dst"} = $col[$ctime];
+    $seqno{"$src.$dst"} = $col[$cseq];
     printf $fid "%0.6f\t%d\n", $col[$ctime], $col[$cseq];
+}
+
+
+foreach $key (keys %seqno) {
+    $t = $time{$key};
+    $s = $seqno{$key};
+    printf("%s.%s\t%0.6f\t%d\t%0.6f\t%0.6f\n",
+	   $pt, $key, $t, $s, $s/$t, 8.0*$s/$t);
 }
