@@ -75,6 +75,7 @@ while (<>)
 {
     chop;
     @col = split(/$delim/);
+    $count{$col[0]}++;
     next if ($col[0] ne $tt);
     next if !grep(/$col[$cpt]/, $pt);
 
@@ -105,6 +106,12 @@ foreach $key (@keys) {
 }
 
 if ($maxtime > 0) {
-    printf STDERR " %d\t%0.6f\t%s\n",
+    printf STDERR " %d\t%0.6f\t%s\t",
 	$#keys+1, 0.008 * $psize * $maxpkt / $maxtime, $c;
+
+    @keys = sort (keys %count);
+    foreach $key (@keys) {
+	print STDERR $key, $count{$key}, " ";
+    }
+    print STDERR "\n";
 }
