@@ -198,7 +198,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 
 		}
 		if ((rtt_ > SMALLFLOAT) && 
-				(now - last_report_sent >= rtt_/(float)NumFeedback_)) {
+				(now - last_report_sent >= rtt_/NumFeedback_)) {
 			UrgentFlag = 1 ;
 		}
 		if (UrgentFlag) {
@@ -284,7 +284,7 @@ void TfrcSinkAgent::nextpkt(double p) {
 
 	/* schedule next report rtt/NumFeedback_ later */
 	if (rtt_ > 0.0 && NumFeedback_ > 0) 
-		nack_timer_.resched(1.5*rtt_/(float)NumFeedback_);
+		nack_timer_.resched(1.5*rtt_/NumFeedback_);
 }
 
 /*
