@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.88 2001/07/11 21:25:36 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.89 2001/07/17 18:01:20 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -204,8 +204,8 @@ FullTcpAgent::reset()
 {
 	cancel_timers();	// cancel timers first
       	TcpAgent::reset();	// resets most variables
-	rq_.clear();
-	rtt_init();
+	rq_.clear();		// clear reassembly queue
+	rtt_init();		// zero rtt, srtt, backoff
 
 	last_ack_sent_ = -1;
 	rcv_nxt_ = -1;
@@ -224,7 +224,7 @@ FullTcpAgent::reset()
 }
 
 /*
- * pack() -- is the ACK a partial ACK (not past recover_)
+ * pack() -- is the ACK a partial ACK? (not past recover_)
  */
 
 int
@@ -236,7 +236,7 @@ FullTcpAgent::pack(Packet *pkt)
 }
 
 /*
- * baseline reno TCP exist fast recovery on a partial ACK
+ * baseline reno TCP exists fast recovery on a partial ACK
  */
 
 void
@@ -250,7 +250,7 @@ FullTcpAgent::pack_action(Packet*)
 }
 
 /*
- * ack_action
+ * ack_action -- same as partial ACK action for base Reno TCP
  */
 
 void
@@ -262,6 +262,7 @@ FullTcpAgent::ack_action(Packet* p)
 /*
  * headersize:
  *	how big is an IP+TCP header in bytes; include options such as ts
+ * this function should be virtual so others (e.g. SACK) can override
  */
 int
 FullTcpAgent::headersize()
@@ -326,6 +327,7 @@ FullTcpAgent::advance_bytes(int nb)
 	// state-specific operations:
 	//	if CLOSED, reset and try a new active open/connect
 	//	if ESTABLISHED, just try to send more
+	//	if SYN_SENT, just queue
 	//	if above ESTABLISHED, we are closing, so don't allow
 	//	if anything else (establishing), do nothing here
 	//
@@ -339,12 +341,15 @@ FullTcpAgent::advance_bytes(int nb)
 		reset();
 		curseq_ = iss_ + nb;
 		connect();		// initiate new connection
-	} else if (state_ == TCPS_ESTABLISHED) {
+	} else if (state_ == TCPS_ESTABLISHED || state_ == TCPS_SYN_SENT) {
+		// allow queued data to accumulate even
+		// in SYN_SENT
 		closed_ = 0;
 		if (curseq_ < iss_)
 			curseq_ = iss_;
 		curseq_ += nb;
-		send_much(0, REASON_NORMAL, maxburst_);
+		if (state_ == TCPS_ESTABLISHED)
+			send_much(0, REASON_NORMAL, maxburst_);
 	}
 	return;
 }
@@ -353,10 +358,11 @@ FullTcpAgent::advance_bytes(int nb)
  * If MSG_EOF is set, by setting close_on_empty_ to TRUE, we ensure that
  * a FIN will be sent when the send buffer emptys.
  * 
- * When (in the future) FullTcpAgent implements T/TCP, avoidance of 3-way 
+ * When (in the future?) FullTcpAgent implements T/TCP, avoidance of 3-way 
  * handshake can be handled in this function.
  */
-void FullTcpAgent::sendmsg(int nbytes, const char *flags)
+void
+FullTcpAgent::sendmsg(int nbytes, const char *flags)
 {
 	if (flags && strcmp(flags, "MSG_EOF") == 0) 
 		close_on_empty_ = TRUE;	
@@ -371,7 +377,8 @@ void FullTcpAgent::sendmsg(int nbytes, const char *flags)
  * flags that are completely dependent on the tcp state
  * (in real TCP, see tcp_fsm.h, the "tcp_outflags" array)
  */
-int FullTcpAgent::outflags()
+int
+FullTcpAgent::outflags()
 {
 	int flags = 0;
 	if ((state_ != TCPS_LISTEN) && (state_ != TCPS_SYN_SENT))
@@ -387,14 +394,72 @@ int FullTcpAgent::outflags()
 }
 
 /*
+ * reaass() -- extract the appropriate fields from the packet
+ *	and pass this info the ReassemblyQueue add routine
+ *
+ * returns the TCP header flags representing the "or" of
+ *	the flags contained in the adjacent sequence # blocks
+ */
+
+int
+FullTcpAgent::reass(Packet* pkt)
+{  
+        hdr_tcp *tcph =  hdr_tcp::access(pkt);
+        hdr_cmn *th = hdr_cmn::access(pkt);
+   
+        int start = tcph->seqno();
+        int end = start + th->size() - tcph->hlen();
+        int tiflags = tcph->flags();
+	int fillshole = (start == rcv_nxt_);
+	int rval;
+   
+	// end contains the seq of the last byte of
+	// in the packet plus one
+
+	if (start == end && (tiflags & TH_FIN) == 0) {
+		fprintf(stderr, "%f: FullTcpAgent::reass() -- bad condition - adding non-FIN zero-len seg\n",
+			now());
+		abort();
+	}
+
+	rval = rq_.add(start, end, tiflags, 0);
+
+present:
+	 //
+	 // If we've never received a SYN (unlikely)
+	 // or this is an out of order addition, no reason to coalesce
+	 //
+
+	 if (TCPS_HAVERCVDSYN(state_) == 0 || !fillshole) {
+	 	return (0);
+	}
+	//
+	// If we get some data, no need to present to user yet
+	//
+	if (state_ == TCPS_SYN_RECEIVED && (end > start))
+		return (0);
+
+	// clear out data that has been passed up to rcv_nxt_,
+	// collects flags
+
+	rval = rq_.cleartonxt();
+
+        return (rval);
+}
+
+/*
  * utility function to set rcv_next_ during inital exchange of seq #s
  */
 
-int FullTcpAgent::rcvseqinit(int seq, int dlen)
+int
+FullTcpAgent::rcvseqinit(int seq, int dlen)
 {
 	return (seq + dlen + 1);
 }
 
+/*
+ * build a header with the timestamp option if asked
+ */
 int
 FullTcpAgent::build_options(hdr_tcp* tcph)
 {
@@ -551,6 +616,7 @@ void FullTcpAgent::output(int seqno, int reason)
 	// see if sending this packet will empty the send buffer
 	// a dataless SYN packet counts also
 	//
+
 	if (!infinite_send_ && ((seqno + datalen) > curseq_ || 
 	    (syn && datalen == 0))) {
 		emptying_buffer = TRUE;
@@ -615,6 +681,8 @@ void FullTcpAgent::output(int seqno, int reason)
 	return;
 
 send:
+
+	// is a syn or fin?
 
 	syn = (pflags & TH_SYN) ? 1 : 0;
 	int fin = (pflags & TH_FIN) ? 1 : 0;
@@ -696,7 +764,8 @@ send:
  * Try to send as much data as the window will allow.  The link layer will 
  * do the buffering; we ask the application layer for the size of the packets.
  */
-void FullTcpAgent::send_much(int force, int reason, int maxburst)
+void
+FullTcpAgent::send_much(int force, int reason, int maxburst)
 {
 	/*
 	 * highest_ack is essentially "snd_una" in real TCP
@@ -776,7 +845,8 @@ void FullTcpAgent::finish()
  * advance the ack number if appropriate
  * update segment to send next if appropriate
  */
-void FullTcpAgent::newack(Packet* pkt)
+void
+FullTcpAgent::newack(Packet* pkt)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
 
@@ -1034,6 +1104,10 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 				recent_ce_ = FALSE;
 		}
 
+		// Header predication basically looks to see
+		// if the incoming packet is an expected pure ACK
+		// or an expected data segment
+
 		if (datalen == 0) {
 			// check for a received pure ACK in the correct range..
 			// also checks to see if we are wnd_ limited
@@ -1076,7 +1150,9 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		}
 	}
 
-	// header predication failed (or pure ACK out of valid range, or SACK present, etc)...
+
+	// header prediction failed
+	// (e.g. pure ACK out of valid range, SACK present, etc)...
 	// do slow path processing
 
 	switch (state_) {
@@ -1293,7 +1369,7 @@ trimthenstep6:
 	// Yet one more modification: make sure that if the received
 	//	segment had datalen=0 and wasn't a SYN or FIN that
 	//	we don't turn on the ACKNOW status bit.  If we were to
-	//	allow ACKNO to be turned on, normal pure ACKs that happen
+	//	allow ACKNOW to be turned on, normal pure ACKs that happen
 	//	to have seq #s below rcv_nxt can trigger an ACK war by
 	//	forcing us to ACK the pure ACKs
 	//
@@ -1329,14 +1405,23 @@ trimthenstep6:
 
 			flags_ |= TF_ACKNOW;
 			todrop = datalen;
-			dupseg = TRUE;
+			dupseg = TRUE;	// *completely* duplicate
+
 		}
+
+		/*
+		 * Trim duplicate data from the front of the packet
+		 */
+
 		tcph->seqno() += todrop;
 		th->size() -= todrop;	// XXX Must decrease size too!!
+					// why? [kf]..prob when put in RQ
 		datalen -= todrop;
+
 	}
 
 	/*
+	 * If we are doing timstamps and this packet has one, and
 	 * If last ACK falls within this segment's sequence numbers,
 	 * record the timestamp.
 	 * See RFC1323 (now RFC1323 bis)
@@ -1358,7 +1443,6 @@ trimthenstep6:
 		goto dropwithreset;
 	}
 
-	// K: added TH_SYN, but it is already known here!
 	if ((tiflags & TH_ACK) == 0) {
 		fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (seq %d)\n",
 			now(), name(), tcph->seqno());
@@ -1647,12 +1731,18 @@ step6:
 /* dodata: this label is in the "real" code.. here only for reference */
 	/*
 	 * DATA processing
+	 * (only good/new data... dup data has already been trimmed above)
 	 */
 
 	if ((datalen > 0 || (tiflags & TH_FIN)) &&
 	    TCPS_HAVERCVDFIN(state_) == 0) {
+
+		//
+		// the following 'if' implements the "real" TCP
+		// TCP_REASS macro
+		//
+
 		if (tcph->seqno() == rcv_nxt_ && rq_.empty()) {
-			// see the "TCP_REASS" macro for this code:
 			// got the in-order packet we were looking
 			// for, nobody is in the reassembly queue,
 			// so this is the common case...
@@ -1665,10 +1755,12 @@ step6:
 			// require being in ESTABLISHED state)
 			flags_ |= TF_DELACK;
 			rcv_nxt_ += datalen;
+			tiflags = tcph->flags() & TH_FIN;
+
+			// give to "application" here
+			// in "real" TCP, this is sbappend() + sorwakeup()
 			if (datalen)
 				recvBytes(datalen); // notify app. of "delivery"
-			tiflags = tcph->flags() & TH_FIN;
-			// give to "application" here
 			needoutput = need_send();
 		} else {
 			// see the "tcp_reass" function:
@@ -1676,17 +1768,23 @@ step6:
 			// is but there's stuff on the reass queue);
 			// do whatever we need to do for out-of-order
 			// segments or hole-fills.  Also,
-			// send an ACK to the other side right now.
-			// K: some changes here, figure out
+			// send an ACK (or DSACK) to the other side right now.
+			// Note that we may have just a FIN here (datalen = 0)
 			int rcv_nxt_old_ = rcv_nxt_; // notify app. if changes
-			tiflags = rq_.add(pkt);
-			if (rcv_nxt_ > rcv_nxt_old_)
+			tiflags = reass(pkt);
+			if (rcv_nxt_ > rcv_nxt_old_) {
+				// if rcv_nxt_ has advanced, must have
+				// been a hole fill.  In this case, there
+				// is something to give to application
 				recvBytes(rcv_nxt_ - rcv_nxt_old_);
+			}
+			flags_ |= TF_ACKNOW;
+
 			if (tiflags & TH_PUSH) {
+				//
+				// ???: does this belong here
 				// K: APPLICATION recv
 				needoutput = need_send();
-			} else {
-				flags_ |= TF_ACKNOW;
 			}
 		}
 	} else {
@@ -1707,7 +1805,7 @@ step6:
 	if (tiflags & TH_FIN) {
 		if (TCPS_HAVERCVDFIN(state_) == 0) {
 			flags_ |= TF_ACKNOW;
-			rcv_nxt_++;
+ 			rcv_nxt_++;
 		}
 		switch (state_) {
                 /*
@@ -1977,425 +2075,6 @@ int FullTcpAgent::command(int argc, const char*const* argv)
 		}
 	}
 	return (TcpAgent::command(argc, argv));
-}
-/*
- * constructure for reassembly queue-- give it a ref
- * to the containing tcp's rcv_nxt_ field, plus
- * allow it to find off_tcp_ and off_cmn_
- */
-
-ReassemblyQueue::ReassemblyQueue(int& nxt) :
-	head_(NULL), tail_(NULL), ptr_(NULL), rcv_nxt_(nxt)
-{
-}
-
-/*
- * clear out reassembly queue
- */
-void ReassemblyQueue::clear()
-{
-	seginfo* p= head_;
-	while(head_) {
-		p= head_;
-		head_= head_->next_;
-		delete(p);
-	}
-	ptr_ = head_ = tail_ = NULL;
-	return;
-}
-
-/*
- * gensack() -- generate 'maxsblock' sack blocks (start/end seq pairs)
- * at specified address
- */
-
-int
-ReassemblyQueue::gensack(int *sacks, int maxsblock)
-{
-	seginfo *p, *q;
-
-	if (head_ == NULL)
-		return (0);	// nothing there
-
-	//
-	// look for the SACK block containing the
-	// most recently received segment.  Update the timestamps
-	// to match the most recent of the contig block
-	//
-
-	// Hmmm.  Leave max. time (ie. time of most recent segment in
-	// block) in the time_ field of the last segment in the block
-	p = head_;
-	while (p != NULL) {
-		q = p;
-		while (p->next_ &&
-		    (p->next_->startseq_ == p->endseq_)) {
-			// RMM fix
-			//p->time_ = MAX(p->time_, p->next_->time_);
-			p->next_->time_ = MAX(p->time_, p->next_->time_);
-			p = p->next_;
-		}
-		// RMM fix
-		//p->time_ = MAX(q->time_, p->time_);
-		p = p->next_;
-	}
-
-	//
-	// look for maxsblock most recent blocks
-	//
-
-	// RMM fix
-
-	// Start at tail & work back; common case: most recent n are
-	// at end of list...  Put first n (counting from tail_) on
-	// return list.
-
-	// num_sack_blocks is how many blocks have been found & is returned
-
-	int *sacks_base_p = sacks; 
-	register int num_sack_blocks=0;
-#ifdef WIN32
-	// MSVC does not support variable-sized array definition :(
-	double* sacks_times = new double[maxsblock];
-#else
-	double sacks_times[maxsblock];
-#endif
-
-	p = q = tail_;
-	while (p && num_sack_blocks < maxsblock) {
-		while (p->prev_ && 
-		       (p->prev_->endseq_ == p->startseq_))
-		{
-			p = p->prev_;
-		}
-		
-		// stash the start & end of the block
-		sacks[2*num_sack_blocks + 0] = p->startseq_;
-		sacks[2*num_sack_blocks + 1] = q->endseq_;
-		
-		// stash the time corresp. to the SACK block
-		// entered in list
-		sacks_times[num_sack_blocks] = q->time_;
-		
-		q = p = p->prev_;
-		num_sack_blocks++;
-	}
-
-	// p and q point to the end of the first remaining block; one
-	// should really be storing sacks[] in time order, so as to
-	// make replacing least recent with more recent easy, but I
-	// will cop out for now, and simply examine the entire list
-	// for each element remaining -- maxsblocks defaults to 3 (and
-	// is, I think, always <5) so this isn't too great a
-	// penalty... (he hopes)
-
-	// replacement policy is: go through sacks[] and replace
-	// 2-tuple with values from current list element (enumerated
-	// only once) iff (last PDU) time for SACK block corresp. to
-	// 2-tuple is >= (more recent than) time for block in list...
-	
-	while (p) {
-		// set up prev. SACK block for consideration...
-		while (p->prev_ && (p->prev_->endseq_ == p->startseq_))	{
-			p = p->prev_;
-		}
-
-		// now have previous SACK block in [p, q]...
-		// NB. dodgy ptr. comparison/arith. below?
-		int *ip, *tip=NULL;
-		double *dp, *tdp=NULL;
-		for (ip=sacks_base_p, dp=sacks_times; 
-		     ip<sacks; 
-		     ip+=2, dp++) {
-			if (q->time_ >= *dp) {
-				if (!tip && !tdp) {
-					// first candidate => accept
-					tip = ip;
-					tdp = dp;
-				} else {
-					// not first candidate => must
-					// be older than prior
-					// candidate
-					if (*dp < *tdp) {
-						tip = ip;
-						tdp = dp;
-					}
-				}
-			}
-		}
-
-		if (tdp && tip) {
-			*tdp   = q->time_;
-			tip[0] = p->startseq_;
-			tip[1] = q->endseq_;
-		}
-
-		p = q = p->prev_;
-	}
-#ifdef WIN32
-	delete sacks_times;
-#endif
-	return (num_sack_blocks);
-#if 0
-	double max;
-	register int i;
-	seginfo *maxp, *maxq;
-
-	for (i = 0; i < maxsblock; ++i) {
-		p = head_;
-		max = 0.0;
-		maxp = maxq = NULL;
-
-		// find the max, q->ptr to left of max, p->ptr to right
-		while (p != NULL) {
-			q = p;
-			while (p->next_ &&
-			    (p->next_->startseq_ == p->endseq_)) {
-				p = p->next_;
-			}
-			if ((p->time_ > 0.0) && p->time_ > max) {
-				maxp = p;
-				maxq = q;
-			}
-			p = p->next_;
-		}
-
-		// if we found a max, scrawl it away
-		if (maxp != NULL) {
-			*sacks++ = maxq->startseq_;
-			*sacks++ = maxp->endseq_;
-			// invert timestamp on max's
-			while (maxq != maxp) {
-				maxq->time_ = -maxq->time_;
-				maxq = maxq->next_;
-			}
-			maxp->time_ = -maxp->time_;
-		} else
-			break;
-	}
-
-	// now clean up all negatives
-	p = head_;
-	while (p != NULL) {
-		if (p->time_ < 0.0)
-			p->time_ = -p->time_;
-		p = p->next_;
-	}
-	return (i);
-#endif
-}
-
-/*
- * nextblk -- keep state, walk through
- */
-
-int
-ReassemblyQueue::nextblk(int* sacks)
-{
-	register seginfo* p = ptr_;
-	if (p != NULL) {
-		*sacks++ = p->startseq_;
-		while (p->next_ && (p->next_->startseq_ == p->endseq_)) {
-			p = p->next_;
-		}
-		*sacks = p->endseq_;
-	} else {
-		*sacks++ = -1;
-		*sacks = -1;
-		return (0);
-	}
-	ptr_ = p->next_;
-	return (1);
-}
-
-/*
- * dumplist -- print out list (for debugging)
- */
-
-void
-ReassemblyQueue::dumplist()
-{
-	register seginfo* p = head_;
-	if (!head_) {
-		printf("DUMPLIST: head_ is NULL\n");
-	}
-	while (p != NULL) {
-		if (p == ptr_) {
-			printf("[->%d, %d<-]",
-				p->startseq_, p->endseq_);
-		} else {
-			printf("[%d, %d]",
-				p->startseq_, p->endseq_);
-		}
-		p = p->next_;
-	}
-	printf("\n");
-}
-
-/*
- * sync the nextblk pointer to the head of the list
- */
-
-void
-ReassemblyQueue::sync()
-{
-	ptr_ = head_;
-}
-
-/*
- * add a packet to the reassembly queue..
- * will update FullTcpAgent::rcv_nxt_ by way of the
- * ReassemblyQueue::rcv_nxt_ integer reference (an alias)
- */
-
-int ReassemblyQueue::add(Packet* pkt)
-{
-	hdr_tcp *tcph = hdr_tcp::access(pkt);
-	hdr_cmn *th = hdr_cmn::access(pkt);
-
-	int start = tcph->seqno();
-	int end = start + th->size() - tcph->hlen();
-	int tiflags = tcph->flags();
-
-	return (add(start, end, tiflags));
-}
-
-/*
- * add start/end seq to reassembly queue
- * start specifies starting seq# for segment, end specifies
- * last seq# number in the segment plus one
- */
-int ReassemblyQueue::add(int start, int end, int tiflags)
-{
-	seginfo *q, *p, *n, *r;
-
-	double now = Scheduler::instance().clock();
-
-	if (head_ == NULL) {
-		// nobody there, just insert
-		tail_ = head_ = new seginfo;
-		head_->prev_ = head_->next_ = NULL;
-		head_->startseq_ = start;
-		head_->endseq_ = end;
-		head_->flags_ = tiflags;
-		head_->time_ = now;
-	} else {
-		if (tail_->endseq_ <= start) {
-			// common case of end of reass queue
-			p = tail_;
-			goto endfast;
-		}
-
-		// Look for the first segment AFTER this one
-		for (q = head_; q && (end > q->startseq_); q = q->next_)
-			;
-		// set p to the segment before this one
-		if (q == NULL)
-			p = tail_;
-		else
-			p = q->prev_;
-
-		// Put this one after p, regardless whether any segments 
-		// should be deleted
-		if (p == NULL || (start > p->endseq_)) {
-			// no overlap
-endfast:
-			n = new seginfo;
-			n->startseq_ = start;
-			n->endseq_ = end;
-			n->flags_ = tiflags;
-			n->time_ = now;
-
-			if (p == NULL) {
-				// insert at head
-				n->next_ = head_;
-				n->prev_ = NULL;
-				head_->prev_ = n;
-				head_ = n;
-			} else {
-				// insert in the middle or end
-				n->next_ = p->next_;
-				// Bug fix: provided by Li Fan(Feb 2000)
-				// point p->next_->prev_ to n
-				if(p->next_)
-                                        p->next_->prev_= n;
-				// end of Bug fix
-				p->next_ = n;
-				n->prev_ = p;
-				if (p == tail_)
-					tail_ = n;
-			}
-		} else {
-			// start or end overlaps p, so patch
-			// up p; will catch other overlaps below
-			p->startseq_ = MIN(p->startseq_, start);
-			p->endseq_ = MAX(p->endseq_, end);
-			p->flags_ |= tiflags;
-			n = p;
-		}
-
-		// Look for the first segment BEFORE p
-		for (q = head_; q && (n->startseq_ > q->endseq_); q = q->next_)
-			;
-		while (q != n) {
-			if (n->startseq_ > q->startseq_)
-				// q is partially included in n, merge it
-				n->startseq_ = q->startseq_;
-			// Delete q, which is already covered by n.
-			r = q;
-			q = q->next_;
-			if (r->prev_)
-				r->prev_->next_ = r->next_;
-			else
-				head_ = r->next_;
-			if (r->next_)
-				r->next_->prev_ = r->prev_;
-			else 
-				// This should not happen!!
-				abort();
-			if (r == ptr_)
-				ptr_ = NULL;
-			delete r;
-		}
-	}
-
-	//
-	// look for a sequence of in-order segments and
-	// set rcv_nxt if we can
-	//
-	if (head_->startseq_ > rcv_nxt_) {
-		return 0;	// still awaiting a hole-fill
-	}
-
-	tiflags = 0;
-	p = head_;
-	while (p != NULL) {
-		// update rcv_nxt_ to highest in-seq thing
-		// and delete the entry from the reass queue
-		// note that endseq is last contained seq# + 1
-		rcv_nxt_ = p->endseq_;
-		tiflags |= p->flags_;
-		q = p;
-		if (q->prev_)
-			q->prev_->next_ = q->next_;
-		else
-			head_ = q->next_;
-		if (q->next_)
-			q->next_->prev_ = q->prev_;
-		else
-			tail_ = q->prev_;
-
-		if (q == ptr_)
-			ptr_ = NULL;
-		if (q->next_ && (q->endseq_ < q->next_->startseq_)) {
-			delete q;
-			break;		// only the in-seq stuff
-		}
-		// continue cleaning out in-seq stuff
-		p = p->next_;
-		delete q;
-	}
-	return (tiflags);
 }
 
 /*
@@ -2740,6 +2419,9 @@ void
 SackFullTcpAgent::send_holes(int force, int maxburst)
 {
 
+#ifdef notdef	// for now, don't do anything for SACK
+		// as it is broken... will fix this next
+
 	int npack = 0;
 	int save_tseq = t_seqno_;
 	t_seqno_ = sack_nxt_;
@@ -2787,6 +2469,9 @@ SackFullTcpAgent::send_holes(int force, int maxburst)
 
 	sack_nxt_ = t_seqno_;	// update next hole fill
 	t_seqno_ = save_tseq;	// restore t_seqno_
+
+#endif
+
 	return;
 }
 
