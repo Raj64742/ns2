@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.8 1997/07/22 22:19:09 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.9 1997/07/25 09:13:44 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -69,7 +69,7 @@ public:
 } class_mac_csma_ca;
 
 
-CsmaMac::CsmaMac() : Mac(), txstart_(0), rtx_(0), mhEoc_(this)
+CsmaMac::CsmaMac() : Mac(), txstart_(0), rtx_(0), hEoc_(this)
 {
 	bind_time("delay_", &delay_);
 	bind_time("ifs_", &ifs_);
@@ -115,7 +115,7 @@ CsmaMac::send(Packet* p)
 		s.schedule(&mhSend_, p, channel_->txstop() + ifs_ - now);
 	else {
 		txstart_ = now;
-		channel_->contention(p, &mhEoc_);
+		channel_->contention(p, &hEoc_);
 	}
 }
 
@@ -145,7 +145,7 @@ CsmaMac::endofContention(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p) - (s.clock() - txstart_);
 	channel_->send(p, txt);
-	s.schedule(&mh_, &intrEoc_, txt);
+	s.schedule(&mh_, &eEoc_, txt);
 	rtx_ = 0;
 	cw_ = cwmin_;
 }
@@ -174,7 +174,7 @@ CsmaCaMac::send(Packet* p)
 		backoff(&mhSend_, p);
 	else {
 		txstart_ = now;
-		channel_->contention(p, &mhEoc_);
+		channel_->contention(p, &hEoc_);
 	}
 }
 

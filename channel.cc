@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.13 1997/07/24 04:45:03 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.14 1997/07/25 09:13:43 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -127,7 +127,7 @@ Channel::contention(Packet* p, Handler* h)
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
 	if (now > cwstop_) {
-		cwstop_ = now + delay_ - 0.0000005;
+		cwstop_ = now + delay_ /* - 0.0000005 */;
 		numtx_ = 0;
 	}
 	numtx_++;
