@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.45 2000/06/21 05:37:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.46 2000/06/27 00:05:01 sfloyd Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -216,25 +216,6 @@ OldSim instproc init args {
 		$self trace curq_
 		$self attach $file
 	}
-#         Queue/RIO instproc set args {
-#                 if { [llength $args] == 2 &&
-#                         [lindex $args 0] == "queue-limit" } {
-#                         # this will recursively call ourself
-#                         $self set limit_ [lindex $args 1]
-#                         return
-#                 }
-#                 eval $self next $args
-#         }
-#         Queue/RIO instproc enable-vartrace file {
-#                 $self trace ave_ 
-#                 $self trace in_ave_  
-#                 $self trace out_ave_
-#                 $self trace prob_
-#                 $self trace in_prob_
-#                 $self trace out_prob_
-#                 $self trace curq_
-#                 $self attach $file
-#         }
 	#
 	# Catch set maxpkts for FTP sources, (needed because Source objects are
 	# not derived from TclObject, and hence can't use varMap method below)
@@ -436,10 +417,6 @@ OldSim instproc init args {
 			$queue_ enable-vartrace $tfile
 		}
 	}
-                # XXX: special-case RIO queue for var tracing
-#                if { [string first Queue/RIO [$queue_ info class]] == 0 } {
-#                        $queue_ enable-vartrace $tfile
-#                }       
  	linkHelper instproc callback {fn} {
 		# Reach deep into the guts of the link and twist...
 		# (This code makes assumptions about how
@@ -677,7 +654,6 @@ OldSim instproc init args {
 	set queueMap_(drop-tail) DropTail
 	set queueMap_(sfq) SFQ
 	set queueMap_(red) RED
-#       set queueMap_(rio) RIO
 	set queueMap_(cbq) CBQ
 	set queueMap_(wrr-cbq) CBQ/WRR
 
