@@ -89,8 +89,6 @@ flowmon.cc
 fq.cc
 hackloss.cc
 heap.h
-inet.c
-inet.h
 install-sh
 integrator.cc
 integrator.h
@@ -153,9 +151,6 @@ nam/state.h
 nam/transform.cc
 nam/transform.h
 net-interface.cc
-net-ip.cc
-net.cc
-net.h
 nilist.cc
 nilist.h
 ns.1
@@ -205,7 +200,6 @@ srm-ssm.h
 srm-state.h
 srm.cc
 srm.h
-tap.cc
 tcl/ctr-mcast/CtrMcast.tcl
 tcl/ctr-mcast/CtrMcastComp.tcl
 tcl/ctr-mcast/CtrRPComp.tcl
@@ -544,3 +538,10 @@ udp.cc
 udp.h
 validate
 win32.c
+emulate/inet.c
+emulate/inet.h
+emulate/net-ip.cc
+emulate/net-pcap.cc
+emulate/net.cc
+emulate/net.h
+emulate/tap.cc
