@@ -66,7 +66,6 @@ class IntTcpAgent : public TcpAgent, public slink {
 	
   protected:
 	class TcpSessionAgent *session_;
-	double rxmitPend_;
 	double lastTS_;
 	int uniqTS_;
 	int rightEdge_;
