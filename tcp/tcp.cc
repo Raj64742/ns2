@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.62 1998/05/05 15:12:05 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.63 1998/05/06 23:55:35 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -664,21 +664,6 @@ void TcpAgent::newack(Packet* pkt)
 	awnd_ += wnd_th_ * cwnd_;
 }
 
-void TcpAgent::plot()
-{
-#ifdef notyet
-	double t = Scheduler::instance().clock();
-	sprintf(trace_->buffer(), "t %g %d rtt %g\n", t, class_, t_rtt_ * tcp_tick_);
-	trace_->dump();
-	sprintf(trace_->buffer(), "t %g %d dev %g\n", t, class_, t_rttvar_ * tcp_tick_);
-	trace_->dump();
-	sprintf(trace_->buffer(), "t %g %d win %f\n", t, class_, cwnd_);
-	trace_->dump();
-	sprintf(trace_->buffer(), "t %g %d bck %d\n", t, class_, t_backoff_);
-	trace_->dump();
-#endif
-}
-
 /*
  * Respond either to a source quench or to a congestion indication bit.
  * This is done at most once a roundtrip time;  after a source quench,
@@ -688,17 +673,9 @@ void TcpAgent::plot()
 void TcpAgent::quench(int how)
 {
 	if (highest_ack_ >= recover_) {
-		recover_ = t_seqno_ - 1;
+		recover_ =  maxseq_;
 		last_cwnd_action_ = CWND_ACTION_ECN;
 		closecwnd(how);
-#ifdef notdef
-		if (trace_) {
-			double now = Scheduler::instance().clock();
-			sprintf(trace_->buffer(),
-				"%g pkt %d\n", now, t_seqno_ - 1);
-			trace_->dump();
-		}
-#endif
 	}
 }
 
@@ -747,28 +724,42 @@ TcpAgent::dupack_action()
 	 * problems with multiple fast retransmits in one
 	 * window of data. 
 	 */
-
 	int recovered = (highest_ack_ > recover_);
-
-	if (bug_fix_) {
-		if (recovered)
-			goto tahoe_action;
-
+	if (recovered) 
+		goto tahoe_action;
+        else if (!bug_fix_ && (last_cwnd_action_ == CWND_ACTION_DUPACK
+	  	|| last_cwnd_action_ == CWND_ACTION_TIMEOUT)) {
+		goto tahoe_action;
+	}
+	else if (bug_fix_) {
 		/*
 		 * bug_fix_ is true and we are
 		 * in the middle of a previous recovery
 		 */
 		if (ecn_) {
 			switch (last_cwnd_action_) {
-			case CWND_ACTION_TIMEOUT:
 			case CWND_ACTION_ECN:
 				closecwnd(2);
 				reset_rtx_timer(0,0);
 			}
+			return;
 		}
 		// dupacks during recovery w/bug_fix on do nothing
 		return;
-	} 
+	} else {
+		/*
+		 * bug_fix_ is false and we are
+		 * in the middle of a previous recovery
+		 */
+		if (ecn_) {
+			switch (last_cwnd_action_) {
+			case CWND_ACTION_ECN:
+				closecwnd(2);
+				reset_rtx_timer(0,0);
+			}
+			return;
+		}
+	}
 
 tahoe_action:
 	recover_ = maxseq_;
@@ -814,10 +805,6 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 		}
 	}
 	Packet::free(pkt);
-#ifdef notdef
-	if (trace_)
-		plot();
-#endif
 	/*
 	 * Try to send more data.
 	 */

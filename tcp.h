@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.44 1998/05/05 15:11:48 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.45 1998/05/06 23:55:34 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -188,7 +188,6 @@ public:
 	virtual void advanceby(int delta);
 protected:
 	virtual int window();
-	virtual void plot();
 	print_if_needed(double memb_time);
 	void traceAll();
 	virtual void traceVar(TracedVar* v);
