@@ -153,13 +153,11 @@ void TfrcAgent::nextpkt()
 	}
 	if (xrate > SMALLFLOAT) {
 		next = size_/xrate; 
-		/*
 		if (overhead_ > SMALLFLOAT) {
 			next = next*(Random::uniform()+0.5);
 		}
-		*/
 		if (next > SMALLFLOAT ) {
-			send_timer_.resched(next); 
+			send_timer_.resched(next);
 		}
 	}
 }
