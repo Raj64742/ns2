@@ -282,7 +282,7 @@ IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double /*ts*/)
 				   dport_, sport_, lastTS_, this));
 	return NULL;
 }
-u_long output_helper_count=0;
+unsigned long output_helper_count=0;
 double last_clock=0;
 void
 IntTcpAgent::output_helper(Packet *p)

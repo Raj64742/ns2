@@ -36,8 +36,8 @@
 
 #include <stdlib.h>
 #include <assert.h>
-#include <tclcl.h>
 #include "config.h"
+#include <tclcl.h>
 
 
 class AllocAddr : public TclObject {

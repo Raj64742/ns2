@@ -25,6 +25,7 @@
 
 #include <assert.h>
 
+#include "config.h"
 #include "tclcl.h"
 #include "mftp_rcv.h"
 

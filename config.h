@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.43 1999/11/19 22:39:01 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.44 1999/11/20 00:40:08 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -56,6 +56,14 @@
 #include <tclcl.h>
 #endif /* __cplusplus */
 #endif
+
+/*
+ * add u_char and u_int
+ * Note: do NOT use these expecting them to be 8 and 32 bits long...
+ * use {,u_}int{8,16,32}_t if you care about size.
+ */
+typedef unsigned char u_char;
+typedef unsigned int u_int;
 
 typedef int32_t nsaddr_t; 
 typedef int32_t nsmask_t; 
