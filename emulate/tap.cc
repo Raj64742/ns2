@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.4 1998/02/28 02:45:06 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.5 1998/03/02 19:15:14 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -90,9 +90,17 @@ TapAgent::linknet()
 		}
 		link(rchan, TCL_READABLE);
 	} else if (mode != O_WRONLY) {
-		fprintf(stderr,
-		    "TapAgent(%s): unknown mode %d in Network(%s)\n",
-			name(), mode, net_->name());
+		if (mode == -1) {
+			fprintf(stderr,
+			   "TapAgent(%s): Network(%s) not opened properly.\n",
+				name(), net_->name());
+			fprintf(stderr,
+			   "(choose: readonly, readwrite, or writeonly)\n");
+		} else {
+			fprintf(stderr,
+			    "TapAgent(%s): unknown mode %d in Network(%s)\n",
+				name(), mode, net_->name());
+		}
 		return (TCL_ERROR);
 	}
 
