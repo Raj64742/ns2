@@ -1313,7 +1313,7 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-friendly
-Tests: slowStartDiscount slowStartDiscountCA smooth smoothCA slowStart slowStartCA slowStartTcp impulseDiscount impulseDiscountCA impulse impulseCA impulseMultReportDiscount impulseMultReportDiscountCA impulseMultReport impulseMultReportCA impulseTcp two-friendly two-friendlyCA OnlyTcp randomized randomizedCA randomized1 randomized1CA slow twoDrops manyDrops HighLoss HighLossTCP
+Tests: slowStartDiscount slowStartDiscountCA smooth smoothCA slowStart slowStartCA slowStartEWMA slowStartFixed slowStartTcp impulseDiscount impulseDiscountCA impulse impulseCA impulseMultReportDiscount impulseMultReportDiscountCA impulseMultReport impulseMultReportCA impulseTcp two-friendly two-friendlyCA OnlyTcp randomized randomizedCA randomized1 randomized1CA slow twoDrops manyDrops HighLoss HighLossTCP
 ../../ns test-suite-friendly.tcl slowStartDiscount QUIET
 Test output agrees with reference output
 ../../ns test-suite-friendly.tcl slowStartDiscountCA QUIET
@@ -1325,6 +1325,10 @@ Test output agrees with reference output
 ../../ns test-suite-friendly.tcl slowStart QUIET
 Test output agrees with reference output
 ../../ns test-suite-friendly.tcl slowStartCA QUIET
+Test output agrees with reference output
+../../ns test-suite-friendly.tcl slowStartEWMA QUIET
+Test output agrees with reference output
+../../ns test-suite-friendly.tcl slowStartFixed QUIET
 Test output agrees with reference output
 ../../ns test-suite-friendly.tcl slowStartTcp QUIET
 Test output agrees with reference output
@@ -1388,6 +1392,36 @@ Test output agrees with reference output
 ../../ns test-suite-rfc2581.tcl immediateAckSack QUIET
 Test output agrees with reference output
 ../../ns test-suite-rfc2581.tcl noImmediateAckSack QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-links
+Tests: links changeDelay links1 changeBandwidth
+../../ns test-suite-links.tcl links QUIET
+Test output agrees with reference output
+../../ns test-suite-links.tcl changeDelay QUIET
+Test output agrees with reference output
+../../ns test-suite-links.tcl links1 QUIET
+Test output agrees with reference output
+../../ns test-suite-links.tcl changeBandwidth QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-wireless-tdma
+Tests: dsdv dsr
+../../ns test-suite-wireless-tdma.tcl dsdv QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finishing..
+Test output agrees with reference output
+../../ns test-suite-wireless-tdma.tcl dsr QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+NS EXITING...
+finish..
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
