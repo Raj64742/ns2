@@ -42,15 +42,15 @@ The following definitions are provided in \code{queue.h}:
                 void recv(Packet*, Handler*);
                 void resume();
                 int blocked();
-		void unblock();
-		void block();
+                void unblock();
+                void block();
          protected:
                 Queue();
                 int command(int argc, const char*const* argv);
                 inline void drop(Packet* p) { drop_->recv(p); }
                 int qlim_;         /* maximum allowed pkts in queue */
                 int blocked_;
-		int unblock_on_resume_; /* unblock q on idle? */
+                int unblock_on_resume_; /* unblock q on idle? */
                 QueueHandler qh_;
         };
 \end{verbatim}
@@ -128,11 +128,11 @@ methods:
                 if (p != 0)
                         target_->recv(p, &qh_);
                 else {
-			if (unblock_on_resume_)
-				blocked_ = 0;
-			else
-				blocked_ = 1;
-		}
+                        if (unblock_on_resume_)
+                                blocked_ = 0;
+                        else
+                                blocked_ = 1;
+                }
         }
 \end{verbatim}
 \end{small}
