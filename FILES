@@ -75,6 +75,8 @@ queue-monitor.h
 queue-monitor.cc
 random.cc
 random.h
+ranvar.cc
+ranvar.h
 red.cc
 replicator.cc
 rlm.cc
@@ -126,6 +128,8 @@ tcl/ex/test-emulator.tcl
 tcl/ex/test-suite.tcl
 tcl/ex/tg.tcl
 tcl/ex/tg-nam.tcl
+tcl/ex/ranvar.tcl
+tcl/ex/ranvar.txt
 tcl/ex/newmcast/cmcast-100.tcl
 tcl/ex/newmcast/cmcast-150.tcl
 tcl/ex/newmcast/cmcast-200.tcl

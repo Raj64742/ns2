@@ -11,3 +11,9 @@ proc integer k {
     expr [ns-random] % abk($k)
 }
 
+RandomVariable instproc test count {
+	for {set i 0} {$i < $count} {incr i} {
+		puts stdout [$self value]
+	}
+}
+
