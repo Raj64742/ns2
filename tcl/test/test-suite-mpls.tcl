@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-08-29 12:00:14 haoboy>
+# Time-stamp: <2000-08-30 11:00:37 haoboy>
 #
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mpls.tcl,v 1.1 2000/08/29 19:28:04 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mpls.tcl,v 1.2 2000/08/30 18:54:05 haoboy Exp $
 
 Class TestSuite
 
@@ -165,18 +165,6 @@ TestSuite proc runTest {} {
 	}
 	set t [new Test/$test $test]
 	$t run
-}
-
-Node instproc mk-default-classifierMPLS {} {
-	$self instvar address_ classifier_ id_
-        set classifier_ [new Classifier/Addr/MPLS]
-        $classifier_ set mpls_node_ $self
-	set address_ $id_
-}
-
-Node instproc is-neighbor { node } {
-	$self instvar neighbor_
-	return [expr [lsearch $neighbor_ $node] != -1]
 }
 
 Class Test/simple -superclass TestSuite

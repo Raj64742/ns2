@@ -31,17 +31,25 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.22 2000/08/30 00:10:45 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.23 2000/08/30 18:54:03 haoboy Exp $
  *
  */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.
 
+/*
+ * XXX GUIDELINE TO ADDING FUNCTIONALITY TO THE BASE NODE
+ *
+ * One should never add something specific to one particular module into the
+ * base node, which is shared by all modules in ns. Otherwise you bloat other
+ * people's simulations with your junk.
+ */
+
+/*
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
  */
  
-#ifndef __node_h__
-#define __node_h__
+#ifndef __ns_node_h__
+#define __ns_node_h__
 
 #define CHECKFREQ  1
 #define WAITING 0
@@ -111,25 +119,18 @@ class Node : public TclObject {
 public:
 	Node(void);
 	~Node();
+
 	virtual int command(int argc, const char*const* argv);
 	inline int address() { return address_;}
 	inline int nodeid() { return nodeid_;}
-
-	NsObject* intf_to_target(int32_t); 
-
 	void namlog(const char *fmt, ...);
 
+	NsObject* intf_to_target(int32_t); 
 	inline const struct if_head& ifhead() const { return ifhead_; }
 	inline const struct linklist_head& linklisthead() const { 
 		return linklisthead_; 
 	}
 	
-	// I'm not sure who really use this, but it seems a useful function
-	// by itself - haoboy
-	void add_neighbor(u_int32_t);      // for adaptive fidelity
-	void scan_neighbor();
-	inline int getneighbors() {return neighbor_list.neighbor_cnt_;}
-
 	// The remaining objects handle a (static) linked list of nodes
 	// Used by Tom's satallite code
 	static struct node_head nodehead_;  // static head of list of nodes
@@ -138,7 +139,11 @@ public:
 	}
 	inline Node* nextnode() { return entry.le_next; }
 
-	// These are wireless stuff  to be moved out.
+	// These are wireless stuff to be moved out.
+	void add_neighbor(u_int32_t);      // for adaptive fidelity
+	void scan_neighbor();
+	inline int getneighbors() {return neighbor_list.neighbor_cnt_;}
+
 	inline double energy() { return energy_model_->energy();}
 	inline double initialenergy() { return energy_model_->initialenergy();}
 	inline double energy_level1() { return energy_model_->level1();}
@@ -169,19 +174,6 @@ protected:
 	int address_;
 	int nodeid_; 		 // for nam use
 
-	// XXX this structure below can be implemented by ns's LIST
-	struct neighbor_list_item {
-		u_int32_t id;        // node id
-		int       ttl;    // time-to-live
-		neighbor_list_item *next; // pointer to next item
-	};
-
-	struct {
-		int neighbor_cnt_;   // how many neighbors in this list
-		neighbor_list_item *head; 
-	} neighbor_list;
-	SoftNeighborHandler *snh_;
-
 	// Nam tracing facility
         Tcl_Channel namChan_;
 	// Single thread ns, so we can use one global storage for all 
@@ -190,8 +182,22 @@ protected:
 	void namdump();
 
 	// These are wireless stuff to be moved out.
-	EnergyModel *energy_model_;
-	Location * location_;
+	EnergyModel* energy_model_;
+	Location* location_;
+
+	// XXX this structure below can be implemented by ns's LIST
+	struct neighbor_list_item {
+		u_int32_t id;        		// node id
+		int       ttl;    		// time-to-live
+		neighbor_list_item *next; 	// pointer to next item
+	};
+
+	struct {
+		int neighbor_cnt_;   // how many neighbors in this list
+		neighbor_list_item *head; 
+	} neighbor_list;
+	SoftNeighborHandler *snh_;
+
       	int sleep_mode_;	 // = 1: radio is turned off
 	int state_;		 // used for AFECA state 
 	float state_start_time_; // starting time of one AFECA state
@@ -205,8 +211,9 @@ protected:
 				 // active 
 	int maxttl_;		 // how long a node can keep its neighbor
 				 // list. For AFECA only.
-	bool node_on_;   	 // on-off status of this node -- Chalermek
        	AdaptiveFidelityEntity *afe_;
+
+	bool node_on_;   	 // on-off status of this node -- Chalermek
 
 	// XXX can we deprecate the next line (used in MobileNode)
 	// in favor of accessing phys via a standard link API?
@@ -216,16 +223,17 @@ protected:
 
 class AdaptiveFidelityEntity : public Handler {
 public:  
-        Node *nid_;
+	AdaptiveFidelityEntity(Node *nid) : nid_(nid) {} 
+
 	virtual void start();
 	virtual void handle(Event *e);
 
 	virtual void adapt_it();
 	inline void set_sleeptime(float t) {sleep_time_ = t;}
 	inline void set_sleepseed(float t) {sleep_seed_ = t;}
-	AdaptiveFidelityEntity (Node *nid) {
-		nid_ = nid;
-	}
+
+	// Why this variable should be public??
+        Node *nid_;
 
 protected:
 	Event intr;
@@ -245,10 +253,6 @@ public:
 	}
 protected:
 	Event  intr;
-	
 };
 
-#endif /* __node_h__ */
-
-
-
+#endif /* __ns_node_h__ */

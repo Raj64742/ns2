@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.205 2000/08/30 00:10:45 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.206 2000/08/30 18:54:03 haoboy Exp $
 #
 
 #
@@ -348,52 +348,57 @@ Simulator instproc get-nodetype {} {
 }
 
 Simulator instproc node-config args {
+        # Object::init-vars{} is defined in ~tclcl/tcl-object.tcl.
+        # It initializes all default variables in the following way:
+        #  1.  Look for pairs of {-cmd val} in args
+        #  2.  If "$self $cmd $val" is not valid then put it in a list of 
+        #      arguments to be returned to the caller.
+        # 
+        # Since we do not handle undefined {-cmd val} pairs, we ignore 
+        # return value from init-vars{}.
         set args [eval $self init-vars $args]
-        $self instvar addressType_  routingAgent_ propType_  
-        $self instvar macTrace_ routerTrace_ agentTrace_ movementTrace_
-        $self instvar channelType_ channel_ chan
-	$self instvar topoInstance_ propInstance_ mobileIP_
-        $self instvar rxPower_ txPower_ idlePower_
+
+        $self instvar addressType_  routingAgent_ propType_  macTrace_ \
+		routerTrace_ agentTrace_ movementTrace_ channelType_ channel_ \
+		chan topoInstance_ propInstance_ mobileIP_ rxPower_ \
+		txPower_ idlePower_
 
         if [info exists macTrace_] {
-            Simulator set MacTrace_ $macTrace_
+		Simulator set MacTrace_ $macTrace_
 	}
         if [info exists routerTrace_] {
-            Simulator set RouterTrace_ $routerTrace_
+		Simulator set RouterTrace_ $routerTrace_
 	}
         if [info exists agentTrace_] {
-            Simulator set AgentTrace_ $agentTrace_
+		Simulator set AgentTrace_ $agentTrace_
 	}
         if [info exists movementTrace_] {
-            Simulator set MovementTrace_ $movementTrace_
+		Simulator set MovementTrace_ $movementTrace_
 	}
         # hacking for matching old cmu add-interface
         # not good style, for back-compability ONLY
 	#
 	# Only create 1 instance of prop
 	if {[info exists propType_] && [info exists propInstance_]} {
-	    warn "Both propType and propInstance are set."
+		warn "Both propType and propInstance are set."
 	}
 	if {[info exists propType_] && ![info exists propInstance_]} {
-            set propInstance_ [new $propType_] 
+		set propInstance_ [new $propType_] 
 	}
 	# Add multi-interface support: 
  	# User can only specify either channelType_ (single_interface as 
 	# before) or channel_ (multi_interface)
  	# If both variables are specified, error!
  	if {[info exists channelType_] && [info exists channel_]} { 
-  	   error "Can't specify both channel and channelType, error!"
-         } elseif {[info exists channelType_]} {
- 	    # Single channel, single interface
-	    warn "Please use -channel as shown in ns/tcl/ex/wireless-mitf.tcl"
- 	    if {![info exists chan]} {
-                set chan [new $channelType_]
-                #puts "no channel specified, create a new one."
-             } else {
-                #puts "use the existed chan."
-             } 
+		error "Can't specify both channel and channelType, error!"
+	} elseif {[info exists channelType_]} {
+		# Single channel, single interface
+		warn "Please use -channel as shown in tcl/ex/wireless-mitf.tcl"
+		if {![info exists chan]} {
+			set chan [new $channelType_]
+		}
  	} elseif {[info exists channel_]} {
-		#Multiple channel, multiple interfaces
+		# Multiple channel, multiple interfaces
 		set chan $channel_
  	}
 	if [info exists topoInstance_] {
@@ -434,7 +439,7 @@ Simulator instproc node args {
 	# wireless-ready node
 	if [info exists routingAgent_] {
 	    if  {[string compare $routingAgent_ ""] != 0} {
-	        set node [$self create-wireless-node $args]
+	        set node [eval $self create-wireless-node $args]
 		# for base node
 		if {[info exists wiredRouting_] && $wiredRouting_ == "ON"} {
 		   set Node_([$node id]) $node
@@ -443,7 +448,7 @@ Simulator instproc node args {
 	    }
 	}
 
-	set node [new [Simulator set node_factory_] $args]
+	set node [eval new [Simulator set node_factory_] $args]
 	set Node_([$node id]) $node
 	$node set ns_ $self
 	if [$self multicast?] {
@@ -463,7 +468,7 @@ Simulator instproc imep-support {} {
        return ""
 }
 
-Simulator instproc create-wireless-node { args } {
+Simulator instproc create-wireless-node args {
         $self instvar routingAgent_ wiredRouting_
         $self instvar propInstance_ llType_ macType_ ifqType_ ifqlen_ phyType_ chan
         $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  idlePower_
@@ -474,7 +479,7 @@ Simulator instproc create-wireless-node { args } {
         set imepflag_ OFF
 
         # create node instance
-        set node [$self create-node-instance $args]
+        set node [eval $self create-node-instance $args]
         
         # basestation address setting
         if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
@@ -503,22 +508,22 @@ Simulator instproc create-wireless-node { args } {
 	    }
 
 	    DIFFUSION/RATE {
-		$node addr $args
+		eval $node addr $args
 		set ragent [$self create-diffusion-rate-agent $node]
 	    }
 
 	    DIFFUSION/PROB {
-		$node addr $args
+		eval $node addr $args
 		set ragent [$self create-diffusion-probability-agent $node]
 	    }
 
 	    FLOODING {
-		$node addr $args
+		eval $node addr $args
 		set ragent [$self create-flooding-agent $node]
 	    }
 
 	    OMNIMCAST {
-		$node addr $args
+		eval $node addr $args
 		set ragent [$self create-omnimcast-agent $node]
 	    }
 
@@ -613,24 +618,24 @@ Simulator instproc create-wireless-node { args } {
 
 #Class BaseNode -superclass {HierNode Node/MobileNode}
 
-Simulator instproc create-node-instance { args } {
-              $self instvar routingAgent_
+Simulator instproc create-node-instance args {
+	$self instvar routingAgent_
 
-              set nodeclass Node/MobileNode
+	set nodeclass Node/MobileNode
 
-	      # DSR is a special case
-	      if {$routingAgent_ == "DSR"} {
-		  set nodeclass [$self set-dsr-nodetype]
-	      }
+	# DSR is a special case
+	if {$routingAgent_ == "DSR"} {
+		set nodeclass [$self set-dsr-nodetype]
+	}
 	      
-	      if {$args != "{}" && $args != "{{}}"} {
-		  set node [new $nodeclass $args]
-	      } else {
-		  set node [new $nodeclass]
-	      }
+	return [eval new $nodeclass $args]
+#  	if {$args != "{}" && $args != "{{}}"} {
+#  		set node [new $nodeclass $args]
+#  	} else {
+#  		set node [new $nodeclass]
+#  	}
 
-	      return $node
-
+	return $node
 }
 
 Simulator instproc set-dsr-nodetype {} {

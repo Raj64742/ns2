@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.4 2000/08/30 00:04:12 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-WLtutorial.tcl,v 1.5 2000/08/30 18:54:04 haoboy Exp $
 
 ###########################################################################
 # IMPORTANT NOTE:
@@ -96,7 +96,7 @@ Test/wireless1 instproc init {} {
                  -ifqType $opt(ifq) \
                  -ifqLen $opt(ifqlen) \
                  -antType $opt(ant) \
-                 -propType $opt(prop) \
+                 -propInstance [new $opt(prop)] \
                  -phyType $opt(netif) \
                  -channel [new $opt(chan)] \
                  -topoInstance $topo \
@@ -166,7 +166,7 @@ Test/wireless2 instproc init {} {
                  -ifqType $opt(ifq) \
                  -ifqLen $opt(ifqlen) \
                  -antType $opt(ant) \
-                 -propType $opt(prop) \
+                 -propInstance [new $opt(prop)] \
                  -phyType $opt(netif) \
                  -channel [new $opt(chan)] \
                  -topoInstance $topo \
@@ -268,8 +268,8 @@ Test/wireless3 instproc init {} {
                  -ifqType $opt(ifq) \
                  -ifqLen $opt(ifqlen) \
                  -antType $opt(ant) \
-                 -propType $opt(prop) \
                  -phyType $opt(netif) \
+                 -propInstance [new $opt(prop)] \
                  -channel [new $opt(chan)] \
                  -topoInstance $topo \
                  -wiredRouting ON \

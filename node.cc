@@ -30,12 +30,12 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.
+ *
+ * 
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.21 2000/08/30 00:10:45 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.22 2000/08/30 18:54:03 haoboy Exp $
  */
 
 #include <phy.h>
@@ -71,7 +71,7 @@ int LinkHead::command(int argc, const char*const* argv)
         if (argc == 3) {
 		if(strcmp(argv[1], "setnetinf") == 0) {
 			net_if_ =
-			   (NetworkInterface*) TclObject::lookup(argv[2]);
+				(NetworkInterface*) TclObject::lookup(argv[2]);
 			if (net_if_ == 0)
 				return TCL_ERROR;
 			return TCL_OK;
@@ -98,12 +98,11 @@ struct node_head Node::nodehead_ = { 0 }; // replaces LIST_INIT macro
 char Node::nwrk_[NODE_NAMLOG_BUFSZ];
 
 Node::Node() : 
-	address_(-1), namChan_(0), nodeid_ (-1),
-	// Following are the wireless BS!
+	address_(-1), nodeid_ (-1), namChan_(0), 
 	energy_model_(NULL), sleep_mode_(0), 
 	total_sleeptime_(0), total_rcvtime_(0), total_sndtime_(0), 
 	adaptivefidelity_(0), powersavingflag_(0), 
-	last_time_gosleep(0),max_inroute_time_(300), node_on_(true), maxttl_(5)
+	last_time_gosleep(0),max_inroute_time_(300), maxttl_(5), node_on_(true)
 {
 	LIST_INIT(&ifhead_);
 	LIST_INIT(&linklisthead_);
@@ -143,7 +142,6 @@ Node::command(int argc, const char*const* argv)
 			// assume every 10 sec schedule and 1.15 W 
 			// idle energy consumption. needs to be
 			// parameterized.
-
 			idle_energy_patch(10, 1.15);
 			total_sndtime_ = 0;
 			total_rcvtime_ = 0;
@@ -154,7 +152,6 @@ Node::command(int argc, const char*const* argv)
 			tcl.evalf("%s set netif_(0)", name_);
 			char *str = tcl.result();
 			tcl.evalf("%s NodeOn", str);
-
 			God::instance()->ComputeRoute();
 			return TCL_OK;
 		} else if (strcmp(argv[1], "off") == 0) {
@@ -172,26 +169,25 @@ Node::command(int argc, const char*const* argv)
 		}
 	} else if (argc == 3) {
 		if(strcmp(argv[1], "addif") == 0) {
-			WiredPhy* phyp = (WiredPhy*) TclObject::lookup(argv[2]);
+			WiredPhy* phyp = (WiredPhy*)TclObject::lookup(argv[2]);
 			if(phyp == 0)
 				return TCL_ERROR;
 			phyp->insertnode(&ifhead_);
 			phyp->setnode(this);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "addr") == 0) {
-			address_ = Address::instance().\
-				str2addr(argv[2]);
+			address_ = Address::instance().str2addr(argv[2]);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "nodeid") == 0) {
 			nodeid_ = atoi(argv[2]);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "addenergymodel") == 0) {
-			energy_model_ = (EnergyModel *) TclObject::lookup(argv[2]);
+			energy_model_=(EnergyModel*)TclObject::lookup(argv[2]);
 			if(!energy_model_)
 				return TCL_ERROR;
 			return TCL_OK;
 		} else if(strcmp(argv[1], "addlinkhead") == 0) {
-			LinkHead* slhp = (LinkHead*) TclObject::lookup(argv[2]);
+			LinkHead* slhp = (LinkHead*)TclObject::lookup(argv[2]);
 			if (slhp == 0)
 				return TCL_ERROR;
 			slhp->insertlink(&linklisthead_);
@@ -202,10 +198,8 @@ Node::command(int argc, const char*const* argv)
 			return TCL_OK;
 		} else if (strcmp(argv[1], "setenergy") == 0) {
 			energy_model_->setenergy(atof(argv[2]));
-	       
 			return TCL_OK;
 		} else if (strcmp(argv[1], "settalive") == 0) {
-			
 			max_inroute_time_ = atof(argv[2]);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "maxttl") == 0) {
@@ -213,11 +207,10 @@ Node::command(int argc, const char*const* argv)
 			return TCL_OK;
 		} else if (strcmp(argv[1], "namattach") == 0) {
                         int mode;
-                        const char* id = argv[2];
-                        namChan_ = Tcl_GetChannel(tcl.interp(), (char*)id,
+                        namChan_ = Tcl_GetChannel(tcl.interp(), (char*)argv[2],
                                                   &mode);
                         if (namChan_ == 0) {
-                                tcl.resultf("node: can't attach %s", id);
+                                tcl.resultf("node: can't attach %s", argv[2]);
                                 return (TCL_ERROR);
                         }
                         return (TCL_OK);
@@ -330,21 +323,19 @@ Node::set_node_state(int state)
 		state_ = state;
 		state_start_time_ = Scheduler::instance().clock();
 		break;
-		
 	case INROUTE:
 		if (state == POWERSAVING_STATE) {
-		    state_ = state;
+			state_ = state;
 		}
 		if (state == INROUTE) {
 			// a data packet is forwarded, needs to reset 
 			// state_start_time_
 			state_start_time_= Scheduler::instance().clock();
-
 		}
 		break;
 	default:
 		printf("Wrong state, quit...\n");
-		exit(1);
+		abort();
 	}
 }
 
@@ -409,8 +400,7 @@ Node::scan_neighbor()
 void
 SoftNeighborHandler::start()
 {
-	Scheduler &s = Scheduler::instance();
-	s.schedule(this, &intr, CHECKFREQ);
+	Scheduler::instance().schedule(this, &intr, CHECKFREQ);
 }
 
 void
@@ -424,18 +414,12 @@ SoftNeighborHandler::handle(Event *)
 void 
 AdaptiveFidelityEntity::start()
 {
-	float start_idletime;
-	Scheduler &s = Scheduler::instance();
-
 	sleep_time_ = 2;
 	sleep_seed_ = 2;
 	idle_time_ = 10;
-
-	start_idletime = Random::uniform(0, idle_time_);
-	//printf("node id_ = %d starttime=%f\n", nid_, start_idletime);
-
 	nid_->set_node_sleep(0);
-	s.schedule(this, &intr, start_idletime);
+	Scheduler::instance().schedule(this, &intr, 
+				       Random::uniform(0, idle_time_));
 }
 
 void 

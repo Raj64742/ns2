@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-08-29 15:58:19 haoboy>
+# Time-stamp: <2000-08-30 11:48:32 haoboy>
 #
 # Copyright (c) 1996-1998 Regents of the University of California.
 # All rights reserved.
@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.74 2000/08/30 00:10:46 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.75 2000/08/30 18:54:04 haoboy Exp $
 #
 
 Node set nn_ 0
@@ -45,18 +45,22 @@ Node proc getid {} {
 
 Node instproc init args {
 	eval $self next $args
-        $self instvar id_ agents_ dmux_ neighbor_ rtsize_ address_
-        $self instvar nodetype_
-        $self instvar multiPath_
+
+        $self instvar id_ agents_ dmux_ neighbor_ rtsize_ address_ \
+			nodetype_ multiPath_
+
+	set id_ [Node getid]
+	if {[llength $args] != 0} {
+		set address_ [lindex $args 0]
+	} else {
+		set address_ $id_
+	}
 
         set nodetype_ [[Simulator instance] get-nodetype]
-
 	set neighbor_ ""
 	set agents_ ""
 	set dmux_ ""
-	set id_ [Node getid]
         set rtsize_ 0
-        $self set-node-address$nodetype_ $args
 	$self mk-default-classifier$nodetype_
 	$self cmd addr $address_; # new by tomh
 	set multiPath_ [$class set multiPath_]
@@ -66,80 +70,46 @@ Node instproc node-type {} {
 	return [$self set nodetype_]
 }
 
-Node instproc set-node-address { args } {
-}
-
-Node instproc set-node-addressMIPBS { args } {
-}
-
-Node instproc set-node-addressMIPMH { args } {
-}
-
-Node instproc set-node-addressMobile { args } {
-    
-    $self instvar nifs_ arptable_
-    $self instvar netif_ mac_ ifq_ ll_
-    $self instvar X_ Y_ Z_
-
-    set X_ 0.0
-    set Y_ 0.0
-    set Z_ 0.0
-    set arptable_ ""                ;# no ARP table yet
-    set nifs_	0		;# number of network interfaces
-}
-
-Node instproc set-node-addressHier {args} {
-	$self instvar address_
-	set address_ $args
-}
-
-Node instproc set-node-addressBase {args} {
-}
-
+# XXX We shall replace these mk-default-classifer* stuff with a more 
+# modular approach.
 Node instproc mk-default-classifierMIPMH {} {
-    $self mk-default-classifierBase
+	$self mk-default-classifier
 }
 
 Node instproc mk-default-classifierMIPBS {} {
-    $self mk-default-classifierBase
+	$self mk-default-classifier
 }
 
 Node instproc mk-default-classifierBase {} {
-    $self mk-default-classifierHier
+	$self mk-default-classifier
+}
+
+Node instproc mk-default-classifierMobile {} {
+	$self mk-default-classifier
 }
 
 Node instproc mk-default-classifierHier {} {
-	$self instvar id_ classifiers_ agents_ dmux_ neighbor_ address_ 
-	set levels [AddrParams set hlevel_]
-	for {set n 1} {$n <= $levels} {incr n} {
-		set classifiers_($n) [new Classifier/Addr]
-		$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
-		$classifiers_($n) set shift_ [AddrParams set NodeShift_($n)]
-	}
-	$self set classifier_ $classifiers_(1)
-}
-
-# mobileNode
-
-Node instproc mk-default-classifierMobile {} {
-    $self mk-default-classifier
-}
-
-## splitting up address str: used by other non-hier classes
-Node instproc split-addrstr addrstr {
-	set L [split $addrstr .]
-	return $L
+	$self mk-default-classifier
 }
 
 Node instproc mk-default-classifier {} {
-	$self instvar address_ classifier_ id_
-	set classifier_ [new Classifier/Hash/Dest 32]
-	# set up classifer as a router (default value 8 bit of addr and 
-	# 8 bit port)
-	$classifier_ set mask_ [AddrParams set NodeMask_(1)]
-	$classifier_ set shift_ [AddrParams set NodeShift_(1)]
-	if ![info exists address_] {
-		set address_ $id_
+	$self instvar classifier_ 
+	# set up classifer as a router
+	if [Simulator set EnableHierRt_] {
+		$self instvar classifiers_
+		set levels [AddrParams set hlevel_]
+		for {set n 1} {$n <= $levels} {incr n} {
+			set classifiers_($n) [new Classifier/Addr]
+			$classifiers_($n) set mask_ \
+					[AddrParams set NodeMask_($n)]
+			$classifiers_($n) set shift_ \
+					[AddrParams set NodeShift_($n)]
+		}
+		$self set classifier_ $classifiers_(1)
+	} else {
+		set classifier_ [new Classifier/Hash/Dest 32]
+		$classifier_ set mask_ [AddrParams set NodeMask_(1)]
+		$classifier_ set shift_ [AddrParams set NodeShift_(1)]
 	}
 }
 
@@ -181,32 +151,6 @@ Node instproc decr-rtgtable-size {} {
 }
 
 Node instproc entry {} {
-        $self instvar nodetype_
-        return [$self entry-New$nodetype_]
-}
-
-Node instproc entry-NewMIPBS {} {
-    return [$self entry-NewBase]
-}
-
-Node instproc entry-NewMIPMH {} {
-    return [$self entry-NewBase]
-}
-
-Node instproc entry-NewBase {} {
-    $self instvar ns_
-    if ![info exist ns_] {
-	set ns_ [Simulator instance]
-    }
-    if [$ns_ multicast?] {
-	$self instvar switch_
-	return $switch_
-    }
-    $self instvar classifiers_
-    return $classifiers_(1)
-}
-
-Node instproc entry-New {} {
 	if [info exists router_supp_] {
 		return $router_supp_
 	}
@@ -219,14 +163,6 @@ Node instproc entry-New {} {
 	}
 	$self instvar classifier_
 	return $classifier_
-}
-
-Node instproc entry-NewHier {} {
-	return [$self entry-New]
-}
-
-Node instproc entry-NewMobile {} {
-	return [$self entry-New]
 }
 
 Node instproc id {} {
@@ -242,14 +178,6 @@ Node instproc node-addr {} {
 # XXX np_ (number of ports allocated) is now only used in SessionNode.
 Node instproc alloc-port { nullagent } {
 	return [[$self set dmux_] alloc-port $nullagent]
-	# XXX Why do this check at all, since now all ports are 32 bits?
-#  	if { $np_ < $p } {
-#  		set np_ $p
-#  	}
-#  	if {$np_ > [$dmux_ set mask_] && [$dmux_ set mask_] > 0 } {
-#  		warn "No. of ports($np_) attached to node $id_ is greater than allowed"
-#  	}
-#  	return $p
 }
 
 #
@@ -308,11 +236,6 @@ Node instproc attach { agent { port "" } } {
 # add target to agent and add entry for port-id in port-dmux
 #
 Node instproc add-target {agent port} {
-        $self instvar nodetype_
-        $self add-target-New$nodetype_ $agent $port
-}
-	
-Node instproc add-target-New {agent port} {
 	$self instvar dmux_
 	#
 	# Send Target
@@ -324,14 +247,6 @@ Node instproc add-target-New {agent port} {
 	$dmux_ install $port $agent
 }
 	
-Node instproc add-target-NewBase {agent port} {
-	$self add-target-NewMobile $agent $port
-}
-
-Node instproc add-target-NewHier {agent port} {
-	$self add-target-New $agent $port
-}
-
 #
 # Detach an agent from a node.
 #
@@ -396,7 +311,7 @@ Node instproc is-neighbor { node } {
 }
 
 #
-# Helpers for interface stuff
+# Helpers for interface stuff. XXX not used anymore??
 #
 Node instproc addInterface { iface } {
 	$self instvar ifaces_
@@ -441,6 +356,12 @@ Node instproc rtObject? {} {
 	} else {
 		return $rtObject_
     }
+}
+
+# Splitting up address string
+Node instproc split-addrstr addrstr {
+	set L [split $addrstr .]
+	return $L
 }
 
 Node instproc add-hroute { dst target } {
@@ -531,37 +452,6 @@ Node instproc intf-changed {} {
 	}
 }
 
-Node instproc install-defaulttarget {rcvT} {
-    #set nodetype [[Simulator instance] get-nodetype]
-    $self instvar nodetype_
-    $self install-defaulttarget-New$nodetype_ $rcvT
-
-}
-
-Node instproc install-defaulttarget-New {rcvT} {
-    [$self set classifier_] defaulttarget $rcvT
-}
-
-Node instproc install-defaulttarget-NewMobile {rcvT} {
-    [$self set classifier_] defaulttarget $rcvT
-}
-
-Node instproc install-defaulttarget-NewBase {rcvT} {
-    $self instvar classifiers_
-    set level [AddrParams set hlevel_]
-    for {set i 1} {$i <= $level} {incr i} {
-		$classifiers_($i) defaulttarget $rcvT
-    }
-}
-
-Node instproc install-defaulttarget-NewMIPMH {rcvT} {
-    $self install-defaulttarget-NewBase $rcvT
-}
-
-Node instproc install-defaulttarget-NewMIPBS {rcvT} {
-    $self install-defaulttarget-NewBase $rcvT
-}
-
 #
 # Manual Routing Nodes:
 # like normal nodes, but with a hash classifier.
@@ -592,13 +482,10 @@ ManualRtNode instproc add-route {dst_address target} {
 		# don't encode the address here, set-hash bypasses that for us
 		set encoded_dst_address [expr $dst_address << [AddrParams set NodeShift_(1)]]
 		$classifier_ set-hash auto 0 $encoded_dst_address 0 $slot
-		# $classifier_ set-hash auto 0 $dst_address 0 $slot
 	}
-# 	puts "ManualRtNode::add-route: $dst $target, classifier=$classifier_ slot=$slot"
-#	puts "\t*slot=[$classifier_ slot $slot]"
 }
 
-ManualRtNode instproc add-route-to-adj-node args {
+ManualRtNode instproc add-route-to-adj-node { args } {
 	$self instvar classifier_ address_
 
 	set dst ""
@@ -616,7 +503,6 @@ ManualRtNode instproc add-route-to-adj-node args {
 	set ns [Simulator instance]
 	set link [$ns link $self $target_node]
 	set target [$link head]
-	# puts "ManualRtNode::add-route-to-adj-node: in $self for addr $dst to target $target"
 	return [$self add-route $dst $target]
 }
 
@@ -655,515 +541,3 @@ Classifier/Virtual instproc find dst {
 
 Classifier/Virtual instproc install {dst target} {
 }
-
-#  # New node structure
-
-#  Node instproc add-target-NewMobile {agent port} {
-#      $self instvar dmux_ classifier_
-#      $self instvar imep_ toraDebug_
- 
-#      set ns_ [Simulator instance]
-
-#      set newapi [$ns_ imep-support]
-#      $agent set sport_ $port
-
-#      #special processing for TORA/IMEP node
-#      set toraonly [string first "TORA" [$agent info class]] 
-
-#      if {$toraonly != -1 } {
-#  	$agent if-queue [$self set ifq_(0)]    ;# ifq between LL and MAC
-#  	 #
-#          # XXX: The routing protocol and the IMEP agents needs handles
-#          # to each other.
-#          #
-#          $agent imep-agent [$self set imep_(0)]
-#          [$self set imep_(0)] rtagent $agent
-
-#      }
-    
-#      if { $port == 255 } {			# non-routing agents
-#  	if { [Simulator set RouterTrace_] == "ON" } {
-#  	    #
-#  	    # Send Target
-#  	    #
-#  	    if {$newapi != ""} {
-#  	        set sndT [$ns_ mobility-trace Send "RTR" $self]
-#  	    } else {
-#  		set sndT [cmu-trace Send "RTR" $self]
-#  	    }
-#              if [info exists namtraceFile_]  {
-#                 $sndT namattach $namtraceFile_
-#              }
-
-#              if { $newapi == "ON" } {
-#                   $agent target $imep_(0)
-#                   $imep_(0) sendtarget $sndT
-
-#  		 # second tracer to see the actual
-#                   # types of tora packets before imep packs them
-#  		  if { [info exists toraDebug_] && $toraDebug_ == "ON"} {
-#                         set sndT2 [$ns_ mobility-trace Send "TRP" $self]
-#                         $sndT2 target $imep_(0)
-#                         $agent target $sndT2
-#                   }
-#               } else {  ;#  no IMEP
-#                    $agent target $sndT
-#               }
-	    
-#  	    $sndT target [$self set ll_(0)]
-#  #	    $agent target $sndT
-	    
-#  	    #
-#  	    # Recv Target
-#  	    #
-	     
-#  	    if {$newapi != ""} {
-#  	         set rcvT [$ns_ mobility-trace Recv "RTR" $self]
-#  	    } else {
-#  		 set rcvT [cmu-trace Recv "RTR" $self]
-#  	    }
-#              if [info exists namtraceFile_]  {
-#                 $rcvT namattach $namtraceFile_
-#              }
-
-#              if {$newapi == "ON" } {
-#              #    puts "Hacked for tora20 runs!! No RTR revc trace"
-#                  [$self set ll_(0)] up-target $imep_(0)
-#                  $classifier_ defaulttarget $agent
-
-#                  # need a second tracer to see the actual
-#                  # types of tora packets after imep unpacks them
-#  		# no need to support any hier node
-
-#  		if {[info exists toraDebug_] && $toraDebug_ == "ON" } {
-#  		    set rcvT2 [$ns_ mobility-trace Recv "TRP" $self]
-#  		    $rcvT2 target $agent
-#  		    [$self set classifier_] defaulttarget $rcvT2
-#  		}
-		
-#               } else {
-#                   $rcvT target $agent
-#  		 $self install-defaulttarget $rcvT
-#                   $dmux_ install $port $rcvT
-#  	     }
-	    
-#  	} else {
-#  	    #
-#  	    # Send Target
-#  	    #
-#  	    $agent target [$self set ll_(0)]
-#  	    #
-#  	    # Recv Target
-#  	    #
-#  	    $self install-defaulttarget $agent
-#  	    $dmux_ install $port $agent
-#  	}
-	
-#      } else {
-#  	if { [Simulator set AgentTrace_] == "ON" } {
-#  	    #
-#  	    # Send Target
-#  	    #
-	   
-#  	    if {$newapi != ""} {
-#  	        set sndT [$ns_ mobility-trace Send AGT $self]
-#  	    } else {
-#  		set sndT [cmu-trace Send AGT $self]
-#  	    }
-
-#  	    $sndT target [$self entry]
-#  	    $agent target $sndT
-		
-#  	    #
-#  	    # Recv Target
-#  	    #
-#  	    if {$newapi != ""} {
-#  	        set rcvT [$ns_ mobility-trace Recv AGT $self]
-#  	    } else {
-#  		set rcvT [cmu-trace Recv AGT $self]
-#  	    }
-
-#  	    $rcvT target $agent
-#  	    $dmux_ install $port $rcvT
-		
-#  	} else {
-#  	    #
-#  	    # Send Target
-#  	    #
-#  	    $agent target [$self entry]
-	    
-#  	    #
-#  	    # Recv Target
-#  	    #
-#  	    $dmux_ install $port $agent
-#  	}
-#      }
-
-#  }
-
-#  # set transmission power
-#  Node instproc setPt { val } {
-#      $self instvar netif_
-#      $netif_(0) setTxPower $val
-#  }
-
-#  # set receiving power
-#  Node instproc setPr { val } {
-#      $self instvar netif_
-#      $netif_(0) setRxPower $val
-#  }
-
-#  # set idle power -- Chalermek
-#  Node instproc setPidle { val } {
-#      $self instvar netif_
-#      $netif_(0) setIdlePower $val
-#  }
-
-# List of corresponding peer TCP hosts from this node, used in IntTcp
-
-#  Node instproc addCorresHost {addr cw mtu maxcw wndopt } {
-#  	$self instvar chaddrs_
-	
-#  	if { ![info exists chaddrs_($addr)] } {
-#  		set chost [new Agent/Chost $addr $cw $mtu $maxcw $wndopt]
-#  		set chaddrs_($addr) $chost
-#  	}
-#  	return $chaddrs_($addr)
-#  }
-
-#  Node instproc createTcpSession {dst} {
-#  	$self instvar tcpSession_
-	
-#  	if { ![info exists tcpSession_($dst)] } {
-#  		set tcpsession [new Agent/TCP/Session]
-#  		$self attach $tcpsession
-#  		$tcpsession set dst_ $dst
-#  		set tcpSession_($dst) $tcpsession
-#  	}
-#  	return $tcpSession_($dst)
-#  }
-
-#  Node instproc getTcpSession {dst} {
-#  	$self instvar tcpSession_
-	
-#  	if { [info exists tcpSession_($dst)] } {
-#  		return $tcpSession_($dst)
-#  	} else {
-#  		puts "In getTcpSession(): no session exists for destination [$dst set addr_]"
-#  		return ""
-#      }
-#  }
-
-#  Node instproc existsTcpSession {dst} {
-#  	$self instvar tcpSession_
-	
-#  	if { [info exists tcpSession_($dst)] } {
-#  		return 1
-#  	} else {
-#  		return 0
-#  	}
-#  }
-
-#  #
-#  # helpers for PIM stuff
-#  #
-#  Node instproc get-vif {} {
-#  	$self instvar vif_ 
-#  	if [info exists vif_] { return $vif_ }
-#  	set vif_ [new NetInterface]
-#  	$self addInterface $vif_
-#  	return $vif_
-#  }
-
-#  Node instproc attachInterfaces ifs {
-#  	$self instvar ifaces_
-#  	set ifaces_ $ifs
-#  	foreach ifc $ifaces_ {
-#  		$ifc setNode $self
-#  	}
-#  }
-
-#  Node instproc createInterface { num } {
-#  	$self instvar ifaces_
-#  	set newInterface [new NetInterface]
-#  	if { $num < 0 } { return 0 }
-#  	$newInterface set-label $num
-#  	return 1
-#  }
-
-#  Node instproc getInterfaces {} {
-#  	$self instvar ifaces_
-#  	return $ifaces_
-#  }
-
-#  Node instproc getNode {} {  
-#  	return $self
-#  }
-
-#  Node instproc add-interface { channel pmodel \
-#  		lltype mactype qtype qlen iftype anttype} {
-
-#  	$self instvar arptable_ nifs_
-#  	$self instvar netif_ mac_ ifq_ ll_
-#  	$self instvar imep_
-	
-#  	#global ns_ opt
-#  	#set MacTrace [Simulator set MacTrace_]
-
-#  	set ns_ [Simulator instance]
-
-
-#  	set imepflag [$ns_ imep-support]
-
-#  	set t $nifs_
-#  	incr nifs_
-
-#  	set netif_($t)	[new $iftype]		;# interface
-#  	set mac_($t)	[new $mactype]		;# mac layer
-#  	set ifq_($t)	[new $qtype]		;# interface queue
-#  	set ll_($t)	[new $lltype]		;# link layer
-#          set ant_($t)    [new $anttype]
-
-#          if {$imepflag == "ON" } {              ;# IMEP layer
-#              set imep_($t) [new Agent/IMEP [$self id]]
-#              set imep $imep_($t)
-
-#              set drpT [$ns_ mobility-trace Drop "RTR" $self]
-#              $imep drop-target $drpT
-#              if [info exists namtraceFile_]  {
-#                 $drpT namattach $namtraceFile_
-#              }
-#              $ns_ at 0.[$self id] "$imep_($t) start"     ;# start beacon timer
-#          }
-
-
-#  	#
-#  	# Local Variables
-#  	#
-#  	set nullAgent_ [$ns_ set nullAgent_]
-#  	set netif $netif_($t)
-#  	set mac $mac_($t)
-#  	set ifq $ifq_($t)
-#  	set ll $ll_($t)
-
-#  	#
-#  	# Initialize ARP table only once.
-#  	#
-#  	if { $arptable_ == "" } {
-#              set arptable_ [new ARPTable $self $mac]
-#              # FOR backward compatibility sake, hack only
-	    
-#  	    if {$imepflag != ""} {
-#                  set drpT [$ns_ mobility-trace Drop "IFQ" $self]
-#  	    } else {
-#  		set drpT [cmu-trace Drop "IFQ" $self]
-#  	    }
-	    
-#  	    $arptable_ drop-target $drpT
-#          }
-
-#  	#
-#  	# Link Layer
-#  	#
-#  	$ll arptable $arptable_
-#  	$ll mac $mac
-#  #	$ll up-target [$self entry]
-#  	$ll down-target $ifq
-
-#  	if {$imepflag == "ON" } {
-#  	    $imep recvtarget [$self entry]
-#              $imep sendtarget $ll
-#              $ll up-target $imep
-#          } else {
-#              $ll up-target [$self entry]
-#  	}
-
-
-
-#  	#
-#  	# Interface Queue
-#  	#
-#  	$ifq target $mac
-#  	$ifq set qlim_ $qlen
-
-#  	if {$imepflag != ""} {
-#  	    set drpT [$ns_ mobility-trace Drop "IFQ" $self]
-#  	} else {
-#  	    set drpT [cmu-trace Drop "IFQ" $self]
-#          }
-#  	$ifq drop-target $drpT
-
-#  	#
-#  	# Mac Layer
-#  	#
-#  	$mac netif $netif
-#  	$mac up-target $ll
-#  	$mac down-target $netif
-#  	#$mac nodes $opt(nn)
-#  	set god_ [God instance]
-#  	$mac nodes [$god_ num_nodes]
-
-#  	#
-#  	# Network Interface
-#  	#
-#  	$netif channel $channel
-#  	$netif up-target $mac
-#  	$netif propagation $pmodel	;# Propagation Model
-#  	$netif node $self		;# Bind node <---> interface
-#  	$netif antenna $ant_($t)
-
-#  	#
-#  	# Physical Channel`
-#  	#
-#  	$channel addif $netif
-
-#  	# ============================================================
-
-#  	if { [Simulator set MacTrace_] == "ON" } {
-#  	    #
-#  	    # Trace RTS/CTS/ACK Packets
-#  	    #
-
-#  	    if {$imepflag != ""} {
-#  	        set rcvT [$ns_ mobility-trace Recv "MAC" $self]
-#  	    } else {
-#  		set rcvT [cmu-trace Recv "MAC" $self]
-#  	    }
-#  	    $mac log-target $rcvT
-#              if [info exists namtraceFile_]  {
-#                 $rcvT namattach $namtraceFile_
-#              }
-
-
-#  	    #
-#  	    # Trace Sent Packets
-#  	    #
-#  	    if {$imepflag != ""} {
-#  	        set sndT [$ns_ mobility-trace Send "MAC" $self]
-#  	    } else {
-#  		set sndT [cmu-trace Send "MAC" $self]
-#  	    }
-#  	    $sndT target [$mac down-target]
-#  	    $mac down-target $sndT
-#              if [info exists namtraceFile_]  {
-#                 $sndT namattach $namtraceFile_
-#              }
-
-#  	    #
-#  	    # Trace Received Packets
-#  	    #
-
-#  	    if {$imepflag != ""} {
-#  		set rcvT [$ns_ mobility-trace Recv "MAC" $self]
-	        
-#  	    } else {
-#  	        set rcvT [cmu-trace Recv "MAC" $self]
-#  	    }
-#  	    $rcvT target [$mac up-target]
-#  	    $mac up-target $rcvT
-#              if [info exists namtraceFile_]  {
-#                 $rcvT namattach $namtraceFile_
-#              }
-
-#  	    #
-#  	    # Trace Dropped Packets
-#  	    #
-#  	    if {$imepflag != ""} {
-#  	        set drpT [$ns_ mobility-trace Drop "MAC" $self]
-#  	    } else {
-#  		set drpT [cmu-trace Drop "MAC" $self]`
-#  	    }
-#  	    $mac drop-target $drpT
-#              if [info exists namtraceFile_]  {
-#                 $drpT namattach $namtraceFile_
-#              }
-#  	} else {
-#  	    $mac log-target [$ns_ set nullAgent_]
-#  	    $mac drop-target [$ns_ set nullAgent_]
-#  	}
-
-#  	# ============================================================
-
-#  	$self addif $netif
-#  }
-
-#  Node instproc agenttrace {tracefd} {
-#      set ns_ [Simulator instance]
-#      set ragent [$self set ragent_]
-#      #
-#      # Drop Target (always on regardless of other tracing)
-#      #
-#      set drpT [$ns_ mobility-trace Drop "RTR" $self]
-#      $ragent drop-target $drpT
-#      #
-#      # Log Target
-#      #
-#      set T [new Trace/Generic]
-#      $T target [$ns_ set nullAgent_]
-#      $T attach $tracefd
-#      $T set src_ [$self id]
-#      #$ragent log-target $T
-#      $ragent tracetarget $T
-#      #
-#      # XXX: let the IMEP agent use the same log target.
-#      #
-#      set imepflag [$ns_ imep-support]
-#      if {$imepflag == "ON"} {
-#         [$self set imep_(0)] log-target $T
-#      }
-
-#      if [info exists namtraceFile_]  {
-#         $drpT namattach $namtraceFile_
-#      }
-#  }
-
-#  Node instproc nodetrace { tracefd } {
-#      set ns_ [Simulator instance]
-#      #
-#      # This Trace Target is used to log changes in direction
-#      # and velocity for the mobile node.
-#      #
-#      set T [new Trace/Generic]
-#      $T target [$ns_ set nullAgent_]
-#      $T attach $tracefd
-#      $T set src_ [$self id]
-#      $self log-target $T    
-
-#  }
-
-#  Node instproc do-resetMobile {} {
-#      	$self instvar arptable_ nifs_
-#  	$self instvar netif_ mac_ ifq_ ll_
-#  	$self instvar imep_
-
-#          for {set i 0} {$i < $nifs_} {incr i} {
-#  	    $netif_($i) reset
-#  	    $mac_($i) reset
-#  	    $ll_($i) reset
-#  	    $ifq_($i) reset
-#  	    if { [info exists opt(imep)] && $opt(imep) == "ON" } { 
-#  		    $imep_($i) reset 
-#  	    }
-#  	}
-#  	if { $arptable_ != "" } {
-#  		$arptable_ reset 
-#  	}
-#  }
-
-#  Node instproc do-resetBase {} {
-#  	$self do-resetMobile
-#  }
-
-#  Node instproc do-resetHier {} {
-#  	$self do-reset
-#  }
-
-#  # Stupid hack. Can't you say [Simulator instance] get-nam-traceall{} ?
-#  Node instproc get-nam-traceall {args} {
-
-#    $self instvar namtraceFile_
-#    set file [lindex $args 0]
-#    set namtraceFile_ $file
-
-#  }
-

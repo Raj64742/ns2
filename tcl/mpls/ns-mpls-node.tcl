@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-#  Time-stamp: <2000-08-29 11:19:50 haoboy>
+#  Time-stamp: <2000-08-30 10:55:26 haoboy>
 # 
 #  Copyright (c) 1997 by the University of Southern California
 #  All rights reserved.
@@ -28,7 +28,7 @@
 # 
 #  Original source contributed by Gaeil Ahn. See below.
 #
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mpls/ns-mpls-node.tcl,v 1.1 2000/08/29 19:28:03 haoboy Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mpls/ns-mpls-node.tcl,v 1.2 2000/08/30 18:54:04 haoboy Exp $
 
 ###########################################################################
 # Copyright (c) 2000 by Gaeil Ahn                                	  #
@@ -53,29 +53,15 @@
 # in this file will remain unchanged, except the following five, which are
 # used as interfaces with current node-config{} architecture.
 
-Node instproc set-node-addressMPLS args {
-	# This is additional initialization procedures. It's ridiculous to
-	# put these stuff under something called 'set-node-address', but 
-	# we don't have another hook, and it's not OTcl any more!
+Node instproc mk-default-classifierMPLS {} {
+	# This is MPLS-specific initialization procedure. It's ridiculous to
+	# put these stuff here, but we don't have another hook, and it's not 
+	# OTcl any more!
 	$self instvar linked_ldpagents_ in_label_range_ out_label_range_
 	set linked_ldpagents_ ""
 	set in_label_range_  0
 	set out_label_range_ 1000
-}
 
-Node instproc entry-NewMPLS {} {
-	return [$self entry-New]
-}
-
-Node instproc add-target-NewMPLS { agent port } {
-	$self add-target-New $agent $port
-}
-
-Node instproc do-resetMPLS {} {
-	$self do-reset
-}
-
-Node instproc mk-default-classifierMPLS {} {
 	$self instvar address_ classifier_ id_
         set classifier_ [new Classifier/Addr/MPLS]
         $classifier_ set mpls_node_ $self

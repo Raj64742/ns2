@@ -19,8 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-
-
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.75 2000/08/30 18:54:03 haoboy Exp $
 
 try () {
 	echo "*** $1"

@@ -1,3 +1,4 @@
+# -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -15,6 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-lan.tcl,v 1.10 2000/08/30 18:54:05 haoboy Exp $
 
 
 # To run all tests: test-all-lan
@@ -76,9 +78,7 @@ Test/lan-routing-flat instproc init {} {
 		set node_($i) [$ns_ node]
 		lappend nodelist_ $node_($i)
 	}
-	#set lan_ [$ns_ make-lan $nodelist_ 10Mb 2ms LL Queue/DropTail Mac/Csma/Cd Channel]
 	set lan_ [$ns_ make-lan $nodelist_ 10Mb 2ms LL Queue/DropTail Mac/802_3 Channel]
-	#set lan_ [$ns_ make-lan $nodelist_ 10Mb 2ms LL Queue/DropTail Mac Channel]
 	set node0_ [$ns_ node]
 	$ns_ duplex-link $node0_ $node_(1) 10Mb 2ms DropTail
 	$ns_ duplex-link-op $node0_ $node_(1) orient right
@@ -86,6 +86,7 @@ Test/lan-routing-flat instproc init {} {
 	$ns_ duplex-link $nodex_ $node_(2) 20Mb 2ms DropTail
 	$ns_ duplex-link-op $nodex_ $node_(2) orient left
 
+	puts "nodex id [$nodex_ id] address [$nodex_ set address_]"
 	set tcp0_ [$ns_ create-connection TCP/Reno $node0_ TCPSink $nodex_ 0]
 	$tcp0_ set window_ 15
 	
