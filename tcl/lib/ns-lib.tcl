@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.226 2001/05/27 18:24:14 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.227 2001/06/14 08:01:15 kclan Exp $
 
 
 #
@@ -188,6 +188,7 @@ source ../webcache/http-cache.tcl
 source ../webcache/http-agent.tcl
 source ../webcache/http-mcache.tcl
 source ../webcache/webtraf.tcl
+source ../webcache/empweb.tcl
 source ns-namsupp.tcl
 source ../mobility/dsdv.tcl
 source ../mobility/dsr.tcl
