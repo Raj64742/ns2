@@ -75,9 +75,9 @@ Our basic advice is to use OTcl:
 and use C++:
 \begin{itemize}
 \item if you are doing \emph{anything} that requires processing
-	each packet of a flow
+        each packet of a flow
 \item if you have to change the behavior of an existing C++ class
-	in ways that weren't anticipated
+        in ways that weren't anticipated
 \end{itemize}
 
 For example, links are OTcl objects that assemble delay, queueing, and
@@ -421,8 +421,8 @@ The following example illustrates the configuration of
 an SRM agent (\clsref{Agent/SRM/Adaptive}{../ns-2/srm-adaptive.tcl}).
 \begin{program}
         set srm [new Agent/SRM/Adaptive]
-        $srm set packetSize_ 1024
-        $srm traffic-source $s0
+        \$srm set packetSize_ 1024
+        \$srm traffic-source \$s0
 \end{program}
 By convention in \ns,
 the class Agent/SRM/Adaptive is a subclass of Agent/SRM,
@@ -469,9 +469,9 @@ for further operations upon that object.
 The following example illustrates the Agent/SRM/Adaptive constructor:
 \begin{program}
         Agent/SRM/Adaptive instproc init args \{
-                eval $self next $args
-                $self array set closest_ "requestor 0 repairor 0"
-                $self set eps_    [$class set eps_]
+                eval \$self next \$args
+                \$self array set closest_ "requestor 0 repairor 0"
+                \$self set eps_    [\$class set eps_]
         \}
 \end{program}
 
@@ -603,7 +603,7 @@ for each variable type.
         $object set bwvar 1500kb
         $object set bwvar .1875MB
         $object set bwvar 187.5kB
-        $object set bwvar 1.5e6
+        \$object set bwvar 1.5e6
         \end{program}
 
 \item Time is specified as a real value, optionally suffixed by a
@@ -627,13 +627,13 @@ for each variable type.
   then it is assumed to be false.
         For example,
         \begin{program}
-        $object set boolvar t           \; set to true;
-        $object set boolvar true
-        $object set boolvar 1   \; or any non-zero value;
+        \$object set boolvar t           \; set to true;
+        \$object set boolvar true
+        \$object set boolvar 1   \; or any non-zero value;
 
-        $object set boolvar false       \; set to false;
-        $object set boolvar junk        
-        $object set boolvar 0
+        \$object set boolvar false       \; set to false;
+        \$object set boolvar junk        
+        \$object set boolvar 0
         \end{program}
 
 \end{itemize}
@@ -751,12 +751,12 @@ Below is a simple example for setting up variable tracing in Tcl:
 
 \begin{small}
 \begin{verbatim}
-        # $tcp tracing its own variable cwnd_
-        $tcp trace cwnd_
+        # \$tcp tracing its own variable cwnd_
+        \$tcp trace cwnd_
 
-        # the variable ssthresh_ of $tcp is traced by a generic $tracer
+        # the variable ssthresh_ of \$tcp is traced by a generic \$tracer
         set tracer [new Trace/Var]
-        $tcp trace ssthresh_ $tracer
+        \$tcp trace ssthresh_ \$tracer
 \end{verbatim}
 \end{small}
 
@@ -815,14 +815,14 @@ Consider the that the distance computation in SRM is done by
 the compiled object; however, it is often used by the interpreted object.
 It is usually invoked as:
 \begin{program}
-        $srmObject distance? \tup{agentAddress}
+        \$srmObject distance? \tup{agentAddress}
 \end{program}
 If there is no instance procedure called \code{distance?},
 the interpreter will invoke the instance procedure
 \proc[]{unknown}, defined in the base class TclObject.
 The unknown procedure then invokes
 \begin{program}
-        $srmObject cmd distance? \tup{agentAddress}
+        \$srmObject cmd distance? \tup{agentAddress}
 \end{program}
 to execute the operation through the compiled object's
 \fcn[]{command} procedure.
@@ -833,11 +833,11 @@ an instance procedure of the same name.
 For example,
 \begin{program}
         Agent/SRM/Adaptive instproc distance? addr \{
-                $self instvar distanceCache_
-                if ![info exists distanceCache_($addr)] \{
-                        set distanceCache_($addr) [{\bfseries{}$self cmd distance? $addr}]
+                \$self instvar distanceCache_
+                if ![info exists distanceCache_(\$addr)] \{
+                        set distanceCache_(\$addr) [{\bfseries{}\$self cmd distance? \$addr}]
                 \}
-                set distanceCache_($addr)
+                set distanceCache_(\$addr)
         \}
 \end{program}
 
@@ -968,7 +968,7 @@ We can make the following observations from this definition:
   --- \code{argv[0]} contains the name of the object.
 
   --- \code{argv[1\ldots3]} contain
-  \code{$self}, \code{$class}, and \code{$proc}.
+  \code{$self}, \code{$class}, and \code{$proc}.%$
   Since \code{create} is called
   through the instance procedure \code{create-shadow},
   \code{argv[3]} contains \code{create-shadow}.
@@ -1015,6 +1015,93 @@ interpreted class hierarchy is constructed:
 \item Finally, \fcn[]{bind} defines instance procedures
   \code{create-shadow} and \code{delete-shadow} for this new class.
 \end{enumerate}
+
+\subsection{How to Bind Static C++ Class Member Variables}
+
+In Section~\ref{sec:TclObject}, we have seen how to expose member
+variables of a C++ object into OTcl space. 
+This, however, does not apply to static member variables of a C++
+class. 
+Of course, one may create an OTcl variable for the static member
+variable of every C++ object; obviously this defeats the whole meaning
+of static members.
+
+We cannot solve this binding problem using a similar solution as
+binding in TclObject, which is based on InstVar, because InstVars in
+TclCL require the presence of a TclObject.
+However, we can create a method of the corresponding TclClass and
+access static members of a C++ class through the methods of its
+corresponding TclClass.
+The procedure is as follows:
+\begin{enumerate}
+\item Create your own derived TclClass as described above;
+\item Declare methods \fcn[]{bind} and \fcn[]{method} in your derived
+  class;
+\item Create your binding methods in the implementation of your
+  \fcn[]{bind} with \code{add_method("your_method")}, then implement
+  the handler in \fcn[]{method} in a similar way as you would do in
+  \fcn[]{TclObject::command}. 
+  Notice that the number of arguments passed to
+  \fcn[]{TclClass::method} are different from those passed to
+  \fcn[]{TclObject::command}.
+  The former has two more arguments in the front. 
+\end{enumerate}
+
+As an example, we show a simplified version of
+\code{PacketHeaderClass} in \nsf{packet.cc}. 
+Suppose we have the following class \code{Packet} which has a static
+variable \code{hdrlen_} that we want to access from OTcl:
+\begin{program}
+class Packet \{
+        ......
+        static int hdrlen_;
+\};
+\end{program}
+Then we do the following to construct an accessor for this variable:
+\begin{program}
+class PacketHeaderClass : public TclClass \{
+protected:
+        PacketHeaderClass(const char* classname, int hdrsize);
+        TclObject* create(int argc, const char*const* argv);
+        \* These two implements OTcl class access methods */
+        virtual void bind();
+        virtual int method(int argc, const char*const* argv);
+\};
+
+void PacketHeaderClass::bind()
+\{
+        \* Call to base class bind() must precede add_method() */
+        TclClass::bind();
+        add_method("hdrlen");
+\}
+
+int PacketHeaderClass::method(int ac, const char*const* av)
+\{
+        Tcl& tcl = Tcl::instance();
+        \* Notice this argument translation; we can then handle them \
+as if in TclObject::command() */
+        int argc = ac - 2;
+        const char*const* argv = av + 2;
+        if (argc == 2) \{
+                if (strcmp(argv[1], "hdrlen") == 0) \{
+                        tcl.resultf("%d", Packet::hdrlen_);
+                        return (TCL_OK);
+                \}
+        \} else if (argc == 3) \{
+                if (strcmp(argv[1], "hdrlen") == 0) \{
+                        Packet::hdrlen_ = atoi(argv[2]);
+                        return (TCL_OK);
+                \}
+        \}
+        return TclClass::method(ac, av);
+\}
+\end{program}
+After this, we can then use the following OTcl command to access and
+change values of \code{Packet::hdrlen_}:
+\begin{program}
+        PacketHeader hdrlen 120
+        set i [PacketHeader hdrlen]
+\end{program}
 
 \section{Class TclCommand}
 \label{sec:TclCommand}
@@ -1163,7 +1250,7 @@ the file \nsf{tcl/mcast/srm.tcl} defines some of the instance procedures
 to run SRM.
 In \nsf{tcl/lib/ns-lib.tcl}, we have the lines:
 \begin{program}
-	source tcl/mcast/srm.tcl
+        source tcl/mcast/srm.tcl
 \end{program}
 to automatically get srm.tcl sourced by \ns\ at startup.
 
@@ -1212,14 +1299,14 @@ explicitly evaluates the array.
   invokes \fcn[]{Tcl::Init}.
   The exact command syntax for the load is:
   \begin{program}
-	et_tclobject.load();
+        et_tclobject.load();
   \end{program}
 \item
   Similarly,
   \xref{\nsf{tcl/lib/ns-lib.tcl}}{../ns-2/tcl/lib/ns-lib.tcl}
   is evaluated directly by \code{Tcl_AppInit} in \nsf{ns\_tclsh.cc}.
   \begin{program}
-	et_ns_lib.load();
+        et_ns_lib.load();
   \end{program}
 \end{list}
 
