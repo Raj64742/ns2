@@ -56,7 +56,7 @@ set testIdent_ 0
 set verbosity_ -1
 set listMode_ multi
 set unresponsive_test_ 1
-source ../red-pd/helper.tcl
+source ../ex/red-pd/helper.tcl
 
 set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 
