@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.18 2001/09/04 23:34:55 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.19 2004/10/28 01:20:10 sfloyd Exp $
  */
 
 /*
@@ -61,6 +61,9 @@ struct hdr_flags {
 				      *	sender notifying transport
 				      * receiver of responses to congestion.
 				      * (CWR bit in TCP header) */
+	unsigned char qs_;	/* Packet is from Quick-Start window, i.e.
+				 * a window following an approved QS request.
+				 */
 	/*
 	 * these functions use the newer ECN names but leaves the actual field
 	 * names above to maintain backward compat
@@ -75,6 +78,8 @@ struct hdr_flags {
 				      /* (CWR bit in TCP header-old name) */
 	unsigned char& cwr() { return cong_action_; }
 				      /* (CWR bit in TCP header) */
+
+	unsigned char& qs() { return qs_; } /* Quick-Start packet */
 
 	static int offset_;
 	inline static int& offset() { return offset_; }

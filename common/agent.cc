@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.76 2003/10/12 21:15:10 xuanc Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.77 2004/10/28 01:20:10 sfloyd Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -488,6 +488,7 @@ Agent::initpkt(Packet* p) const
 	hf->no_ts_ = 0;
 	hf->pri_ = 0;
 	hf->cong_action_ = 0;
+	hf->qs_ = 0;
 #ifdef HAVE_STL
 
  	hdr_nv* nv = hdr_nv::access(p);
