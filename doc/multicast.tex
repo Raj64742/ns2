@@ -71,13 +71,9 @@ interface.  For this finer control \proc[]{mrtproto-iifs} is used.
 
 New/unused multicast address are allocated using the procedure
 \proc[]{allocaddr}.
-%%The default configuration in \ns\ only provides for 128 node
-%%topologies when multicast routing is enabled.  The procedure
-%%\proc[]{expandaddr} expands the address space to support $2^{30} - 1$
-%%node topologies.
-\proc[]{allocaddr} 
-%%and \proc[]{expandaddr} 
-is a class procedure in the class Node.
+%%The default configuration in \ns\ provides 32 bits each for node address and port address space.
+%%The procedure
+%%\proc[]{expandaddr} is now obsoleted.
 
 The agents use the instance procedures
 \proc[]{join-group} and \proc[]{leave-group}, in
@@ -385,8 +381,7 @@ interfaces on links incident on that node.
 \proc[]{expandaddr}, & \\
 \proc[]{allocaddr} &
         Class procedures for address management.
-        \proc[]{expandaddr} increases the address space from 128
-        multicast capable nodes to $2^{30} - 1$.
+        \proc[]{expandaddr} is now obsoleted.
         \proc[]{allocaddr} allocates the next available multicast
         address.\\[2ex]
 \proc[]{start-mcast}, & \\
@@ -777,6 +772,7 @@ address to a group.
 
 
 \code{Node expandaddr}\\
+THIS COMMAND IS OBSOLETE NOW
 This command expands the address space from 16 bits to 30 bits. However this
 command has been replaced by \code{"ns_ set-address-format-expanded"}.
 
