@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.41 1998/04/20 23:53:05 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.42 1998/04/21 02:34:50 kfall Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -204,10 +204,10 @@ protected:
 	double t_rtxcur_;	/* current retransmit value */
 	double rtxcur_init_;       /* initial value for t_rtxcur_ */
 	TracedInt t_backoff_;	/* current multiplier, 1 if not backed off */
-	void rtt_init();
-	double rtt_timeout();	/* provide an RTO based on RTT estimates */
-	void rtt_update(double tao);	/* update RTT estimate with sample */
-	void rtt_backoff();		/* double multiplier */
+	virtual void rtt_init();
+	virtual double rtt_timeout();	/* provide an RTO based on RTT estimates */
+	virtual void rtt_update(double tao);	/* update RTT estimate with sample */
+	virtual void rtt_backoff();		/* double multiplier */
 
 	double ts_peer_;        /* the most recent timestamp the peer sent */
 
@@ -217,7 +217,8 @@ protected:
 	virtual void newtimer(Packet*);
 	void opencwnd();
 	void closecwnd(int how);
-	void set_init_window();
+	virtual void set_initial_window();	/* set IW */
+	double initial_window();		/* what is IW? */
 	void reset();
 	void newack(Packet*);
 	void quench(int how);
@@ -259,6 +260,7 @@ protected:
 	int wnd_init_option_;   /* 1 for using wnd_init_ */
 				/* 2 for using large initial windows */
 	int syn_;		/* 1 for modeling SYN/ACK exchange */
+	int delay_growth_;  	/* delay opening cwnd until 1st data recv'd */
 	int tcpip_base_hdr_size_;  /* size of base TCP/IP header */
 	int bug_fix_;		/* 1 for multiple-fast-retransmit fix */
 	int ts_option_;		/* use RFC1323-like timestamps? */
