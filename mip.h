@@ -113,7 +113,7 @@ class AgtListTimer : public TimerHandler {
 public: 
 	AgtListTimer(MIPMHAgent *a) : TimerHandler() { a_ = a; }
 protected:
-	inline void expire(Event *e);
+	void expire(Event *e);
 	MIPMHAgent *a_;
 };
 
