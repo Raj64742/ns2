@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.53 1998/04/20 23:53:04 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.54 1998/04/21 02:35:24 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -75,6 +75,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("windowOption_", &wnd_option_);
 	bind("windowConstant_", &wnd_const_);
 	bind("windowThresh_", &wnd_th_);
+	bind_bool("delay_growth_", &delay_growth_);
 	bind("overhead_", &overhead_);
 	bind("tcpTick_", &tcp_tick_);
 	bind("ecn_", &ecn_);
@@ -176,17 +177,32 @@ TcpAgent::trace(TracedVar* v)
 		traceVar(v);
 }
 
-void TcpAgent::reset()
+//
+// in 1-way TCP, syn_ indicates we are modeling
+// a SYN exchange at the beginning.  If this is true
+// and we are delaying growth, then use the wnd_init
+// value.  If not, we do whatever initial_window()
+// says to do.
+//
+
+void
+TcpAgent::set_initial_window()
+{
+	if (syn_ && delay_growth_)
+		cwnd_ = wnd_init_;
+	else
+		cwnd_ = initial_window();
+}
+
+void
+TcpAgent::reset()
 {
 	rtt_init();
 	/*XXX lookup variables */
 	dupacks_ = 0;
 	curseq_ = 0;
-	if (syn_) {
-		cwnd_ = 1.0;
-	} else {
-		set_init_window();
-	}
+	set_initial_window();
+
 	t_seqno_ = 0;
 	maxseq_ = -1;
 	last_ack_ = -1;
@@ -702,18 +718,23 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 /*
  * Set the initial window. 
  */
-void TcpAgent::set_init_window()
+double
+TcpAgent::initial_window()
 {
+	//
+	// init_option = 1: static iw of wnd_init_
+	//
 	if (wnd_init_option_ == 1) {
-		cwnd_ = wnd_init_;
+		return (wnd_init_);
 	}
         else if (wnd_init_option_ == 2) {
+		// do iw according to Internet draft
  		if (size_ <= 1095) {
-			cwnd_ = 4;
+			return (4.0);
 	 	} else if (size_ < 2190) {
-	   		cwnd_ = 3;
+			return (3.0);
 		} else {
-			cwnd_ = 2;
+			return (2.0);
 		}
 	}
 }
@@ -743,7 +764,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	if (tcph->seqno() > last_ack_) {
 		recv_newack_helper(pkt);
 		if (last_ack_ == 0 && syn_) {
-			set_init_window();
+			cwnd_ = initial_window();
 		}
 	} else if (tcph->seqno() == last_ack_) {
                 if (((hdr_flags*)pkt->access(off_flags_))->eln_ && eln_) {
