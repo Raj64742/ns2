@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.30 1998/04/29 19:24:18 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.31 1998/04/30 21:29:56 bajaj Exp $
 #
 
 Class Node
@@ -139,7 +139,7 @@ Node instproc alloc-port { nullagent } {
 # Attach an agent to a node.  Pick a port and
 # bind the agent to the port number.
 #
-Node instproc attach { agent nullagent } {
+Node instproc attach { agent } {
 	$self instvar agents_ classifier_ address_ dmux_
 	#
 	# assign port number (i.e., this agent receives
@@ -181,7 +181,9 @@ Node instproc attach { agent nullagent } {
 			$self add-route $address_ $dmux_
 		}
 	}
-	set port [$self alloc-port $nullagent]
+	set ns_ [Simulator instance]
+	$ns_ instvar nullAgent_
+	set port [$self alloc-port $nullAgent_]
 	$agent set portID_ $port
 	
 	if [Simulator set EnableHierRt_] {

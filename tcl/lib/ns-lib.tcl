@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.92 1998/04/29 19:24:17 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.93 1998/04/30 21:29:55 bajaj Exp $
 
 #
 
@@ -667,13 +667,11 @@ Simulator instproc cost {n1 n2 c} {
 }
 
 Simulator instproc attach-agent { node agent } {
-	$self instvar nullAgent_
-	$node attach $agent $nullAgent_
+	$node attach $agent
 }
 
 Simulator instproc attach-tbf-agent { node agent tbf } {
-	$self instvar nullAgent_
-	$node attach $agent $nullAgent_
+	$node attach $agent
 	$agent attach-tbf $tbf
 }
 
