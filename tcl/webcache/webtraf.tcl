@@ -21,11 +21,9 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.12 2002/03/14 04:32:50 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.13 2002/03/15 05:38:33 xuanc Exp $
 
 PagePool/WebTraf set debug_ false
-# TCPTYPE_ could be set to FullTCP also (xuanc)
-PagePool/WebTraf set fulltcp_ 0
 PagePool/WebTraf set TCPTYPE_ Reno
 PagePool/WebTraf set TCPSINKTYPE_ TCPSink   ;#required for SACK1 Sinks.
 
@@ -42,6 +40,11 @@ PagePool/WebTraf set VERBOSE_ 0
 # Support the reuse of page level attributes to save
 #  memory for large simulations
 PagePool/WebTraf set recycle_page_ 1
+
+# To use fullTCP (xuanc), we need to:
+# 1. set the flag fulltcp_ to 1
+# 2. set TCPTYPE_ FullTcp
+PagePool/WebTraf set fulltcp_ 0
 
 # modified to trace web traffic flows (request and response).
 # used to evaluate SFD algorithm.
