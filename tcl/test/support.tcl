@@ -6,9 +6,15 @@ TestSuite instproc June01defaults {} {
 	 Agent/TCP set delay_growth_ true
 }
 
-TestSuite instproc dropPkts { link fid pkts } {
+TestSuite instproc dropPkts { link fid pkts {delayPkt no} {delay -1}} {
     set emod [new ErrorModule Fid]
     set errmodel1 [new ErrorModel/List]
+    if {$delayPkt != "no"} {
+        $errmodel1 set delay_pkt_ $delayPkt
+    }
+    if {$delay != -1} {
+        $errmodel1 set delay_ $delay
+    }
     $errmodel1 droplist $pkts
     $link errormodule $emod
     $emod insert $errmodel1
