@@ -38,7 +38,7 @@
 #include "logparse.h"
 #include "utils.h"
 
-extern int errno;
+// extern int errno; // -- this should come from errno.h
 
 /** 
  ** lf_get_next_entry will suck the next record out of the logfile, and

@@ -1,4 +1,11 @@
+
 #include <stdio.h>
+#include "../../../autoconf.h"
+#ifdef STDC_HEADERS
+// for exit()
+#include <unistd.h>
+#include <stdlib.h>
+#endif /* STDC_HEADERS */
 
 #include "proxytrace.h"
 
