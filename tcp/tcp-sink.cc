@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.17 1997/07/29 22:53:21 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.18 1997/08/12 02:00:34 kfall Exp $ (LBL)";
 #endif
 
 #include "tcp-sink.h"
@@ -253,22 +253,6 @@ SackStack::~SackStack()
 	delete SFE_;
 }
 
-#ifdef NOTDEF
-// derive Sacker from TclObject to allow for traced variable
-class Sacker : public Acker, public TclObject {
-public: 
-	Sacker() : base_nblocks_(-1), sf_(0) { };
-	~Sacker();
-	void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
-	void reset();
-	void configure(TcpSink*);
-protected:
-	int base_nblocks_;
-	SackStack *sf_;
-	void trace(TracedVar*);
-};
-#endif
-
 static class Sack1TcpSinkClass : public TclClass {
 public:
         Sack1TcpSinkClass() : TclClass("Agent/TCPSink/Sack1") {}
@@ -305,6 +289,7 @@ void Sacker::configure(TcpSink *sink)
 	}
 	sf_ = new SackStack(int(nblocks));
 	nblocks.tracer(this);
+	base_nblocks_ = int(nblocks);
 }
 
 void
