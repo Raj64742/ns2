@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.6 1997/04/08 01:09:48 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.7 1997/04/08 02:39:19 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -89,37 +89,42 @@ public:
 	friend class CBQueue;
 	friend class WRR_CBQueue;
 
-	void	update(Packet*, double);	// update when sending pkt
+	CBQClass();
+	int	command(int argc, const char*const* argv);
 	void	recv(Packet*, Handler*);	// from upstream classifier
-	void	delayed(double);		// when overlim/can't borrow
-
-	int	satisfied(double);		// satisfied?
-	int 	demand();
-	int 	leaf();
 
 protected:
-	int	ancestor(CBQClass*);		// are we an ancestor?
-	int	desc_with_demand();		// a desc has demand?
 
-	CBQueue*	cbq_;			// the CBQueue I send to
+	void	update(Packet*, double);	// update when sending pkt
+	void	delayed(double);		// when overlim/can't borrow
+	void	newallot(double);		// change an allotment
 
-	CBQClass*	peer_;			// peer at same prio level
+	int	satisfied(double);		// satisfied?
+	int 	demand();			// do I have demand?
+	int 	leaf();				// am I a leaf class?
+
+	int	ancestor(CBQClass*p);		// are we an ancestor of p?
+	int	desc_with_demand();		// any desc has demand?
+
+	CBQueue*	cbq_;			// the CBQueue I'm part of
+
+	CBQClass*	peer_;			// peer at same sched prio level
 	CBQClass*	level_peer_;		// peer at same LS level
-	CBQClass*	lender_;		// who I can borrow from
+	CBQClass*	lender_;		// parent I can borrow from
 
 	Queue*		q_;			// underlying queue
 	QueueMonitor*	qmon_;			// monitor for the queue
 
-	double		allotment_;		// frac link bw
+	double		allotment_;		// frac of link bw
 	double		maxidle_;		// bound on idle time
 	double		maxrate_;		// bound on bytes/sec rate
-	double		extradelay_;		// adjustment
+	double		extradelay_;		// adjustment to delay
 	double		last_time_;		// last xmit time this class
 	double		undertime_;		// will become unsat/eligible
 	double		avgidle_;		// EWMA of idle
-	int		pri_;			// priority
+	int		pri_;			// priority for scheduler
 	int		level_;			// depth in link-sharing tree
-	int		delayed_;		// boolean
+	int		delayed_;		// boolean-was I delayed
 	int		bytes_alloc_;		// for wrr only
 
 };
@@ -133,6 +138,7 @@ public:
 	LinkDelay*	link() const { return (link_); }
 	CBQClass*	level(int n) const { return levels_[n]; }
 	Packet*		deque();
+	virtual void	addallot(int prio, double diff) { }
 
 protected:
 	virtual int	insert_class(CBQClass*);
@@ -224,6 +230,7 @@ CBQueue::deque()
 					first = cl;
 				if (send_permitted(cl, now)) {
 					// ok to send
+					cl->delayed_ = 0;
 					active_[prio] = cl->peer_;
 // question if this happens RIGHT AWAY?
 					cl->q_->resume();
@@ -397,6 +404,9 @@ public:
 		memset(alloc_, '\0', sizeof(alloc_));
 		memset(cnt_, '\0', sizeof(cnt_));
 	}
+	void	addallot(int prio, double diff) {
+		alloc_[prio] += diff;
+	}
 protected:
 	Packet *deque();
 	virtual int	insert_class(CBQClass*);
@@ -438,6 +448,7 @@ WRR_CBQueue::deque()
 					if (first == NULL && cl->lender_ != NULL)
 						first = cl;
 					if (send_permitted(cl, now)) {
+						cl->delayed_ = 0;
 						active_[prio] = cl->peer_;
 						cl->q_->resume();
 						return (rval);
@@ -486,6 +497,23 @@ WRR_CBQueue::setM()
 
 /******************** CBQClass definitions **********************/
 
+CBQClass::CBQClass() : cbq_(0), peer_(0), level_peer_(0), lender_(0),
+	q_(0), qmon_(0), allotment_(0.0), maxidle_(0.0), maxrate_(0.0),
+	extradelay_(0.0), last_time_(0.0), undertime_(0.0), avgidle_(0.0),
+	pri_(-1), level_(-1), delayed_(0), bytes_alloc_(-1)
+{
+	bind("maxidle_", &maxidle_);
+	bind("priority_", &pri_);
+	bind("level_", &level_);
+	bind("extradelay_", &extradelay_);
+
+	if (pri_ < 0 || pri_ > (MAXPRIO-1))
+		abort();
+
+        if (level_ <= 0 || level_ > MAXLEVEL)
+		abort();
+}
+
 // why can't these two be inline (?)
 int
 CBQClass::demand()
@@ -500,6 +528,21 @@ CBQClass::leaf()
 }
 
 /*
+ * the queue directly upstream from us is the one we're
+ * in charge of.  If it gets to send something it must
+ * be because it was unblocked by the CBQueue downstream.
+ * Thus, its time to perform accounting...
+ */
+void
+CBQClass::recv(Packet *pkt, Handler *h)
+{
+	double now = Scheduler::instance().clock();
+	update(pkt, now);
+	send(pkt, h);		// Connector::send()
+	return;
+}
+
+/*
  * update a class' statistics and all parent classes
  * up to the root
  */
@@ -511,7 +554,7 @@ void CBQClass::update(Packet* p, double now)
 	int pktsize = hdr->size();
 
 	double tx_time = cbq_->link()->txtime(p);
-	double fin_time = now + tx_time;	// should this include delay?
+	double fin_time = now + tx_time; // should this include delay?
 
 	idle = (fin_time - last_time_) - (pktsize / maxrate_);
 	avgidle = avgidle_;
@@ -554,6 +597,8 @@ CBQClass::satisfied(double now)
 
 /*
  * desc_with_demand: is there a descendant of this class with demand
+ *	really, is there a leaf which is a descendant of me with
+ *	a backlog
  */
 
 int
@@ -594,4 +639,78 @@ CBQClass::ancestor(CBQClass *p)
 	else if (p->lender_ == this)
 		return (1);
 	return (ancestor(p->lender_));
+}
+
+/*
+ * change an allotment
+ */
+void
+CBQClass::newallot(double bw)
+{
+        maxrate_ = bw * ( cbq_->link()->bandwidth() / 8.0 );
+        double diff = allotment_ - bw;
+        allotment_ = bw;
+        cbq_->addallot(pri_, diff);
+        return;
+}
+
+
+/*
+ * OTcl Interface
+ */
+/* 
+ * $class1 parent $class2
+ * $class1 borrow $class2
+ * $class1 qdisc $class2
+ * $class1 allot
+ * $class1 allot new-bw
+ */
+int CBQClass::command(int argc, const char*const* argv)
+{
+        Tcl& tcl = Tcl::instance();
+        if (argc == 2) {
+                if (strcmp(argv[1], "allot") == 0) {
+                        tcl.resultf("%g", allotment_);
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "cbq") == 0) {
+                        tcl.resultf("%s", cbq_->name());
+                        return(TCL_OK);
+                }
+                if (strcmp(argv[1], "qdisc") == 0) {
+                        tcl.resultf("%s", q_->name());
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "qmon") == 0) {
+                        tcl.resultf("%s", qmon_->name());
+                        return (TCL_OK);
+		}
+	} else if (argc == 3) {
+		// for now these are the same
+                if ((strcmp(argv[1], "parent") == 0) ||
+		    (strcmp(argv[1], "borrow") == 0)) {
+                        lender_ = (CBQClass*)TclObject::lookup(argv[2]);
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "qdisc") == 0) {
+                        q_ = (Queue*) TclObject::lookup(argv[2]);
+                        if (q_ != NULL)
+                                return (TCL_OK);
+                        return (TCL_ERROR);
+                }
+                if (strcmp(argv[1], "qmon") == 0) {
+                        qmon_ = (QueueMonitor*) TclObject::lookup(argv[2]);
+                        if (qmon_ != NULL)
+                                return (TCL_OK);
+                        return (TCL_ERROR);
+                }
+                if (strcmp(argv[1], "allot") == 0) {
+                        double bw = atof(argv[2]);
+                        if (bw < 0)
+                                return (TCL_ERROR);
+                        newallot(bw);
+                        return (TCL_OK);
+                }
+	}
+	return (Connector::command(argc, argv));
 }
