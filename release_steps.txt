@@ -14,7 +14,7 @@ Steps in doing an ns release:
      etc.)
      (re-autoconf ns if you change things in conf/*).
 0.4. tag the revisions
-0.5. update the web page
+0.5. update the web page(s), e.g., "Building NS".
 1. make sure test suites all pass
 2. make sure that FILES is up-to-date
 	(diff "ls -R | sort" aginst FILES
