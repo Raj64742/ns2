@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.255 2003/01/16 21:06:02 buchheim Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.256 2003/08/07 17:43:07 haldar Exp $
 
 
 #
@@ -322,6 +322,7 @@ Simulator instproc dumper obj {
 #                  -macTrace OFF 
 #                  -toraDebug OFF                
 #                  -movementTrace OFF
+#                  -diffusionFilter "GradientFilter/OnePhasePullFilter/GeoRoutingFilter/RmstFilter/SourceRouteFilter/LogFilter/TagFilter"
 
 Simulator instproc addressType  {val} { $self set addressType_  $val }
 Simulator instproc adhocRouting  {val} { $self set routingAgent_  $val }
@@ -354,6 +355,7 @@ Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
 Simulator instproc satNodeType {val} {$self set satNodeType_ $val}
 Simulator instproc downlinkBW {val} {$self set downlinkBW_ $val}
 Simulator instproc stopTime {val} {$self set stopTime_ $val}
+Simulator instproc diffusionFilter {val} {$self set diffFilter_ $val}
 Simulator instproc MPLS { val } { 
 	if { $val == "ON" } {
 		Node enable-module "MPLS"
@@ -1985,7 +1987,7 @@ Simulator instproc create-diffusion-probability-agent {node} {
 # Diffusioncore agent (in diffusion) maps to the wireless routing agent
 # in ns
 Simulator instproc create-core-diffusion-rtg-agent {node} {
-	$self instvar stopTime_
+	$self instvar stopTime_ diffFilter_
 	Node instvar ragent_ dmux_
 	set ragent [new Agent/DiffusionRouting [$node id]]
 	$node set ragent_ $ragent
@@ -1994,8 +1996,11 @@ Simulator instproc create-core-diffusion-rtg-agent {node} {
 	if { [info exists stopTime_] } {
 		$ragent stop-time $stopTime_
 	}
-	
-	$node create-diffusionApp-agent
+	if { ![info exists diffFilter_] } {
+		puts stderr "Error: No filter defined for diffusion!\n"
+		exit 1
+	}
+	$node create-diffusionApp-agent $diffFilter_
 	return $ragent
 }
 

@@ -1,12 +1,5 @@
 # All diffusion related procedures go here
 
-
-Simulator instproc add-gear { node } {
-    set gear [new Application/DiffApp/GeoRoutingFilter]
-    $self attach-diffapp $node $gear
-    $self at 0.01 "$gear start"
-}
-
 Simulator instproc attach-diffapp { node diffapp } {
     $diffapp dr [$node get-dr]
 }
@@ -22,25 +15,38 @@ Node instproc get-dr {} {
 }
 
 
-Node instproc create-diffusionApp-agent {} {
+Node instproc create-diffusionApp-agent { diffFilters } {
     $self instvar gradient_ diffAppAgent_
     
     # first we create diffusion agent
     # if it doesnot exist already
-    # then we start the gradient filter
+    # do we really need this check, I mean for a given node
+    # is create-diffusionApp-agent{} called more than once??
+    
     if [info exists diffAppAgent_] {
 	puts "diffAppAgent_ exists: $diffAppAgent_"
 	return $diffAppAgent_
     }
-    #puts "creating new DiffAppAgent_"
+
+    # create diffApp agent for this node
     $self set diffAppAgent_ [new Agent/DiffusionApp]
     set da $diffAppAgent_
     set port [get-da-port $da $self]
     $da agent-id $port
     $da node $self
     
-    set gradient_ [new Application/GradientFilter $da] 
-    #$gradient_ debug 10
+    # now setup filters for this node
+    if {$diffFilters == ""} {
+	puts "Error: No filter defined for diffusion!\n"
+	exit 1
+    }
+    set n 0
+    foreach filtertype [split $diffFilters "/"] {
+	set filter($n) [new Application/DiffApp/$filtertype $da]
+	$self set filtertype_($n) $filter($n)
+	$filter($n) start         ;# starts filter
+	incr n
+    }
     
     return $da
 }
