@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.59 2004/10/25 19:17:52 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.60 2004/10/26 19:30:08 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -152,16 +152,16 @@ Topology/net2a instproc init ns {
 # $interval seconds of simulation time
 #
 TestSuite instproc tfccDump { label src interval file } {
-	set dumpfile temp.s
         $self instvar dump_inst_ ns_ f
         if ![info exists dump_inst_($src)] {
                 set dump_inst_($src) 1
                 $ns_ at 0.0 "$self tfccDump $label $src $interval $file"
                 return
         }
-        $ns_ at [expr [$ns_ now] + $interval] "$self tfccDump $label $src $interval $file"
+        set nexttime [expr [$ns_ now] + $interval]
+        $ns_ at $nexttime "$self tfccDump $label $src $interval $file"
         set report "[$ns_ now] $label [$src set ndatapack_] " 
-        puts $file $report
+	puts $file $report
 }
 
 #
@@ -1668,10 +1668,8 @@ Test/voip instproc run {} {
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
     if {$quiet == "false"} {puts $guide_}
     $self setTopo
-    $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.2Mbps duplex"
-    $ns_ queue-limit $node_(r1) $node_(r2) 10 
     set interval_ 0.1
-    set stopTime 5.0
+    set stopTime 20.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
     set pktsize 120
@@ -1683,6 +1681,9 @@ Test/voip instproc run {} {
         $ns_ trace-all $tracefile
     }
 
+    $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.2Mbps duplex"
+    $ns_ queue-limit $node_(r1) $node_(r2) 10 
+
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $tf1 set voip_ $voip
     $tf1 set packetSize_ $pktsize
@@ -1690,22 +1691,25 @@ Test/voip instproc run {} {
     $cbr set packetSize_ $pktsize
     $cbr set interval_ $cbrInterval
     $cbr attach-agent $tf1
+    $ns_ at 0.0 "$cbr start"
+    $ns_ at $stopTime0 "$cbr stop"
 
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s4) 1]
     $tcp1 set window_ 10
     $tcp1 set packetSize_ 1460
     set ftp1 [$tcp1 attach-app FTP]
-
-    $ns_ at 0.0 "$cbr start"
-    $ns_ at $stopTime0 "$cbr stop"
-    $ns_ at 0.1 "$ftp1 start"
+    $ns_ at 0.0 "$ftp1 start"
     $ns_ at $stopTime0 "$ftp1 stop"
 
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_ 
+    $self pktsDump 2 $tcp1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
     $ns_ at $stopTime "$self cleanupAll $testName_" 
     if {$quiet == "false"} {
 	$ns_ at $stopTime2 "close $tracefile"
     }
-    $ns_ at $stopTime2 "exec cp temp1.rands temp.rands; exit 0"
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
 
     # trace only the bottleneck link
     $ns_ run
@@ -1722,5 +1726,6 @@ Test/noVoip instproc init {} {
     Test/noVoip instproc run {} [Test/voip info instbody run ]
     $self next pktTraceFile
 }
+
 TestSuite runTest
 
