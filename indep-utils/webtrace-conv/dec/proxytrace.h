@@ -7,36 +7,34 @@
 typedef  unsigned int u_4bytes;       /* unsigned number - 4 bytes */
 typedef  unsigned short int u_2bytes; /* unsigned number - 2 bytes */
 
-enum method_t {
-    METHOD_NONE= 0,
-    METHOD_GET,
-    METHOD_POST,
-    METHOD_HEAD,
-    METHOD_CONNECT
-};
+typedef int method_t;
 
-enum protocol_t {
-    PROTO_NONE = 0,
-    PROTO_HTTP,
-    PROTO_FTP,
-    PROTO_GOPHER,
-    PROTO_WAIS,
-    PROTO_CACHEOBJ,
-    PROTO_MAX
-};
+const int METHOD_NONE= 0,
+	METHOD_GET = 1,
+	METHOD_POST = 2,
+	METHOD_HEAD = 3,
+	METHOD_CONNECT = 4;
 
-enum type_t {
-	EXT_NONE = 0,
-	EXT_HTML,
-	EXT_GIF,
-	EXT_CGI,
-	EXT_DATA,
-	EXT_CLASS,
-	EXT_MAP,
-	EXT_JPEG,
-	EXT_MPEG,
-	EXT_OTHER
-};
+typedef int protocol_t;
+const int PROTO_NONE = 0,
+	PROTO_HTTP = 1,
+	PROTO_FTP = 2,
+	PROTO_GOPHER= 3,
+	PROTO_WAIS = 4, 
+	PROTO_CACHEOBJ = 5,
+	PROTO_MAX = 6;
+
+typedef int pagetype_t;
+const int EXT_NONE = 0,
+	EXT_HTML = 1,
+	EXT_GIF = 2,
+	EXT_CGI = 3,
+	EXT_DATA = 4,
+	EXT_CLASS = 5,
+	EXT_MAP = 6,
+	EXT_JPEG = 7,
+	EXT_MPEG = 8, 
+	EXT_OTHER = 9;
 
 const char *MethodStr(int method);
 const char *ProtocolStr(int protocol);
