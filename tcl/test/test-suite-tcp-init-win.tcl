@@ -30,13 +30,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.11 2000/07/18 05:20:39 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.12 2001/05/10 00:47:21 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
 #
 
 source misc_simple.tcl
+set plotacks false
 
 Class Topology
 
@@ -77,12 +78,37 @@ Topology/net7 instproc init ns {
     $ns queue-limit $node_(k1) $node_(r1) 25
 }   
     
+Class Topology/net8 -superclass Topology
+Topology/net8 instproc init ns {
+    $self instvar node_
+    set node_(r1) [$ns node]
+    set node_(k1) [$ns node]
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    
+    Queue/RED set setbit_ true
+    $ns duplex-link $node_(s1) $node_(s2) 1000Mb 0ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 9.6Kb 1ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 10ms RED
+    $ns queue-limit $node_(r1) $node_(k1) 25
+    $ns queue-limit $node_(k1) $node_(r1) 25
+}   
+    
 TestSuite instproc finish file {
-	global quiet PERL
+	global quiet PERL plotacks
         exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
           $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+        if {$plotacks == "true"} {
+	  exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+	    $PERL ../../bin/raw2xg -a -e -s 0.01 -m 90 -t $file > temp1.rands
+	}
 	if {$quiet == "false"} {
-		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+		if {$plotacks == "false"} {
+		   exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+                } else {
+		   exec xgraph -bb -tk -nl -m -x time -y packets temp.rands \
+			       temp1.rands &
+		}
 	}
         ## now use default graphing tool to make a data file
 	## if so desired
@@ -175,6 +201,13 @@ TestSuite instproc setTopo {} {
         set node_(r1) [$topo_ node? r1]
         set node_(k1) [$topo_ node? k1]
         [$ns_ link $node_(r1) $node_(k1)] trace-dynamics $ns_ stdout
+    } 
+    if {$net_ == "net8"} {
+        set node_(s1) [$topo_ node? s1]
+        set node_(s2) [$topo_ node? s2] 
+        set node_(r1) [$topo_ node? r1]
+        set node_(k1) [$topo_ node? k1]
+        [$ns_ link $node_(s1) $node_(s2)] trace-dynamics $ns_ stdout
     } 
 }   
 
@@ -569,6 +602,87 @@ Test/sack4 instproc run {} {
         set tcp2 [$self make_tcp s2 k1 1 Sack]
 	$self second_test $tcp1 $tcp2
 }
+
+# This test shows the packets and acknowledgements at the source,
+# for a path with a 9.6Kbps link, and 1000-byte packets.
+Class Test/slowLink -superclass TestSuite
+Test/slowLink instproc init {} {
+	global plotacks
+	$self instvar net_ test_ 
+	set net_	net8
+	set test_	slowLink(9.6K-link,1000-byte-pkt)
+        set plotacks true
+        $self next
+}
+
+Test/slowLink instproc run {} {
+        $self instvar ns_ node_ testName_ 
+	$self setTopo
+	Agent/TCP set syn_ true
+	Agent/TCP set delay_growth_ true
+	Agent/TCP set windowInitOption_ 2
+	Agent/TCP set minrto_ 1
+	set tcp1 [$self make_tcp s1 k1 0 Sack]
+	$tcp1 set packetSize_ 1000
+	$self runall_test $tcp1 30.0 30.0 
+}
+
+# This test shows the packets and acknowledgements at the source,
+# for a path with a 9.6Kbps link, and 1500-byte packets.
+Class Test/slowLink1 -superclass TestSuite
+Test/slowLink1 instproc init {} {
+	global plotacks
+	$self instvar net_ test_ 
+	set net_	net8
+	set test_	slowLink1(9.6K-link,1500-byte-pkt)
+        set plotacks true
+        $self next
+}
+
+Test/slowLink1 instproc run {} {
+        $self instvar ns_ node_ testName_ 
+	$self setTopo
+	Agent/TCP set syn_ true
+	Agent/TCP set delay_growth_ true
+	Agent/TCP set windowInitOption_ 2
+	Agent/TCP set minrto_ 1
+	set tcp1 [$self make_tcp s1 k1 0 Sack]
+	$tcp1 set packetSize_ 1500
+	$self runall_test $tcp1 30.0 30.0 
+}
+
+# This test shows the packets and acknowledgements at the source,
+# for a path with a 9.6Kbps link, and 1500-byte packets.
+# Initial window of one packet.
+Class Test/slowLink2 -superclass TestSuite
+Test/slowLink2 instproc init {} {
+	global plotacks
+	$self instvar net_ test_ 
+	set net_	net8
+	set test_	slowLink2(9.6K-link,1500-byte-pkt)
+        set plotacks true
+        $self next
+}
+
+Test/slowLink2 instproc run {} {
+        $self instvar ns_ node_ testName_ 
+	$self setTopo
+	Agent/TCP set syn_ true
+	Agent/TCP set delay_growth_ true
+	Agent/TCP set windowInitOption_ 1
+	Agent/TCP set minrto_ 1
+	set tcp1 [$self make_tcp s1 k1 0 Sack]
+	$tcp1 set packetSize_ 1500
+	$self runall_test $tcp1 30.0 30.0 
+}
+# time 1.1: RTO, pkt 1 retransmitted, slow-start entered.
+# time 1.4: ACK arrives for (first) pkt 1, pkts 2 and 3 transmitted.
+# time 2.4: RTO, pkt 2 retransmitted, slow-start entered.
+# time 2.6: ACK arrives for (second) pkt 1. 
+# time 3.7: RTO, pkt 2 retransmitted, slow-start entered.
+# time 3.9: ACK arrives for (first) pkt 2, pkt 3 retransmitted, pkt 4
+#           transmitted
+# time 5.2: ACK arrives for (first) pkt 3, pkt 5 transmitted.
 
 TestSuite runTest
 
