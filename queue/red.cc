@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.52 2000/09/01 03:04:06 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.53 2000/10/05 15:26:20 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -204,17 +204,17 @@ void REDQueue::reset()
  */
 double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 {
-	float new_ave, old_ave;
+	double new_ave, old_ave;
 
-	new_ave = (float)ave;
+	new_ave = ave;
 	while (--m >= 1) {
 		old_ave = new_ave;
-		new_ave *= 1.0 - (float)q_w;
+		new_ave *= 1.0 - q_w;
 	}
 	old_ave = new_ave;
-	new_ave *= 1.0 - (float)q_w;
-	new_ave += (float)q_w * nqueued;
-	return double(new_ave);
+	new_ave *= 1.0 - q_w;
+	new_ave += q_w * nqueued;
+	return new_ave;
 }
 
 /*
@@ -408,6 +408,8 @@ void REDQueue::enque(Packet* pkt)
 	 * us knowing, then bcount_ will not be maintained properly!
 	 */
 	edv_.v_ave = estimator(qib_ ? bcount_ : q_->length(), m + 1, edv_.v_ave, edp_.q_w);
+	//printf("v_ave: %6.4f (%13.12f) q: %d)\n", 
+	//	double(edv_.v_ave), double(edv_.v_ave), q_->length());
 	//run_estimator(qib_ ? bcount_ : q_->length(), m + 1);
 
 	/*
