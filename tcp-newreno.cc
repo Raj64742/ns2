@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.6 1997/03/29 01:43:06 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.6.2.1 1997/04/16 03:21:24 padmanab Exp $ (LBL)";
 #endif
 
 //
@@ -61,13 +61,13 @@ int NewRenoTcpAgent::window()
         //      dupwnd_ will be non-zero during fast recovery,
         //      at which time it contains the number of dup acks
         //
-	int win = int(cwnd_) + dupwnd_;
+	int win = int(cwnd()) + dupwnd_;
         if (win > int(wnd_))
                 win = int(wnd_);
         return (win);
 }
 
-NewRenoTcpAgent::NewRenoTcpAgent() : dupwnd_(0)
+NewRenoTcpAgent::NewRenoTcpAgent() : TcpAgent(), dupwnd_(0)
 {
 }
 
@@ -84,12 +84,12 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
                 stp->endtime = (float) realtime();
 #endif
         last_ack_ = tcph->seqno();
-        highest_ack_ = last_ack_;
-        if (t_seqno_ < last_ack_ + 1)
+        highest_ack() = last_ack_;
+        if (t_seqno() < last_ack_ + 1)
                 t_seqno_ = last_ack_ + 1;
         if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
                 rtt_active_ = 0;
-                t_backoff_ = 1;
+                t_backoff() = 1;
         }
 }
 
@@ -120,7 +120,7 @@ void NewRenoTcpAgent::recv(Packet *pkt)
 		output(last_ack_ + 1, 0);
 	    }
    	} else if (tcph->seqno() == last_ack_)  {
-		if (++dupacks_ == NUMDUPACKS) {
+		if (++dupacks() == NUMDUPACKS) {
 			/*
 			 * Assume we dropped just one packet.
 			 * Retransmit last ack + 1
@@ -130,16 +130,16 @@ void NewRenoTcpAgent::recv(Packet *pkt)
                         * problems with multiple fast retransmits after
 			* a retransmit timeout.
                         */
-			if ( (highest_ack_ > recover_) ||
+			if ( (highest_ack() > recover_) ||
 			    ( recover_cause_ != 2)) {
 				recover_cause_ = 1;
-				recover_ = maxseq_;
+				recover_ = maxseq();
 				closecwnd(1);
 				reset_rtx_timer(1);
 				output(last_ack_ + 1, TCP_REASON_DUPACK);
                         }
 			dupwnd_ = NUMDUPACKS;
-		} else if (dupacks_ > NUMDUPACKS)
+		} else if (dupacks() > NUMDUPACKS)
 			++dupwnd_;
 	}
 	Packet::free(pkt);
@@ -151,13 +151,13 @@ void NewRenoTcpAgent::recv(Packet *pkt)
 	 * Try to send more data
 	 */
 
-	if (dupacks_ == 0) 
+	if (dupacks() == 0) 
                 /*
                  * Maxburst is really only needed for the first
                  *   window of data on exiting Fast Recovery.
                  */
 		send(0, 0, maxburst_);
-	else if (dupacks_ > NUMDUPACKS - 1)
+	else if (dupacks() > NUMDUPACKS - 1)
 		send(0, 0, 2);
 }
 
@@ -165,8 +165,8 @@ void NewRenoTcpAgent::timeout(int tno)
 {
 	if (tno == TCP_TIMER_RTX) {
 		dupwnd_ = 0;
-		dupacks_ = 0;
-		if (bug_fix_) recover_ = maxseq_;
+		dupacks() = 0;
+		if (bug_fix_) recover_ = maxseq();
 		TcpAgent::timeout(tno);
 	} else {
 		send(1, TCP_REASON_TIMEOUT);

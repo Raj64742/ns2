@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4 1997/03/29 01:43:10 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.4.2.1 1997/04/16 03:21:27 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -102,11 +102,99 @@ struct hdr_tcp {
 #define TCP_TIMER_RTX		0
 #define TCP_TIMER_DELSND	1
 
+
+/* Macro to log the *specified* member whenever its value changes */
+#define TCP_TRACE(memb, old_memb, memb_time, name) { \
+		       Scheduler& s = Scheduler::instance(); \
+		       if (memb != old_memb) { \
+			       fprintf(stderr,"time: %-6.3f %s %-6.3f\n", memb_time, name, memb); \
+			       old_memb = memb; \
+		       } \
+		       if (&s) \
+			       memb_time = s.clock(); \
+		       else \
+			       memb_time = 0; \
+}
+
+/*
+ * Macro to log a set of state variables. It is triggered when the value of one of
+ * the variables changes. All the state variables are printed out in a single line.
+ */ 
+#define TCP_TRACE_ALL(memb, old_memb, memb_time) { \
+		       double cur_time; \
+		       Scheduler& s = Scheduler::instance(); \
+		       if (&s) \
+			       cur_time = s.clock(); \
+		       else \
+			       cur_time = 0; \
+		       if (memb != old_memb && cur_time > memb_time) { \
+                               if (memb_time > last_log_time_) { \
+                                       fprintf(stderr,"time: %-6.3f maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d\n", memb_time, maxseq_, highest_ack_, t_seqno_, cwnd_, ssthresh_, dupacks_, t_rtt_*tcp_tick_, (t_srtt_ >> 3)*tcp_tick_, (t_rttvar_ >> 2)*tcp_tick_, t_backoff_); \
+			               last_log_time_ = memb_time; \
+			       } \
+			       old_memb = memb; \
+		       } \
+                       memb_time = cur_time; \
+}
+		       
+
 class TcpAgent : public Agent {
 public:
 	TcpAgent();
 	virtual void recv(Packet*, Handler*);
 	int command(int argc, const char*const* argv);
+
+	int& maxseq() {
+		TCP_TRACE_ALL(maxseq_, old_maxseq_, maxseq_time_);
+		return (maxseq_);
+	}
+
+	int& highest_ack() {
+		TCP_TRACE_ALL(highest_ack_, old_highest_ack_, highest_ack_time_);
+		return (highest_ack_);
+	}
+
+	int& t_seqno() {
+		TCP_TRACE_ALL(t_seqno_, old_t_seqno_, t_seqno_time_);
+		return (t_seqno_);
+	}
+
+	double& cwnd() {
+		TCP_TRACE_ALL(cwnd_, old_cwnd_, cwnd_time_);
+		return (cwnd_);
+	}
+
+	int& ssthresh() {
+		TCP_TRACE_ALL(ssthresh_, old_ssthresh_, ssthresh_time_);
+		return (ssthresh_);
+	}
+
+	int& dupacks() {
+		TCP_TRACE_ALL(dupacks_, old_dupacks_, dupacks_time_);
+		return (dupacks_);
+	}
+
+	int& t_rtt() {
+		TCP_TRACE_ALL(t_rtt_, old_t_rtt_, t_rtt_time_);
+		return (t_rtt_);
+	}
+
+	int& t_srtt() {
+		TCP_TRACE_ALL(t_srtt_, old_t_srtt_, t_srtt_time_);
+		return (t_srtt_);
+	}
+
+	int& t_rttvar() {
+		TCP_TRACE_ALL(t_rttvar_, old_t_rttvar_, t_rttvar_time_);
+		return (t_rttvar_);
+	}
+
+	int& t_backoff() {
+		TCP_TRACE_ALL(t_backoff_, old_t_backoff_, t_backoff_time_);
+		return (t_backoff_);
+	}
+
+
 protected:
 	virtual int window();
 	virtual void plot();
@@ -176,6 +264,34 @@ protected:
 
 	int off_ip_;
 	int off_tcp_;
+
+private:
+	double last_log_time_; /* the time at which the state variables were logged
+				  last */
+	/* 
+	 * The following members are used to keep track of the previous value
+	 * of various state variables and the time of the last change.
+	 */
+	int old_maxseq_;
+	double maxseq_time_;
+	int old_highest_ack_;
+	double highest_ack_time_;
+	int old_t_seqno_;
+	double t_seqno_time_;
+	double old_cwnd_;
+	double cwnd_time_;
+	int old_ssthresh_;
+	double ssthresh_time_;
+	int old_dupacks_;
+	double dupacks_time_;
+	int old_t_rtt_;
+	double t_rtt_time_;
+	int old_t_srtt_;
+	double t_srtt_time_;
+	int old_t_rttvar_;
+	double t_rttvar_time_;
+	int old_t_backoff_;
+	double t_backoff_time_;
 };
 
 #endif

@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.8 1997/03/29 01:43:06 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.8.2.1 1997/04/16 03:21:25 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -53,13 +53,13 @@ int RenoTcpAgent::window()
 	//	dupwnd_ will be non-zero during fast recovery,
 	//	at which time it contains the number of dup acks
 	//
-	int win = int(cwnd_) + dupwnd_;
+	int win = int(cwnd()) + dupwnd_;
 	if (win > int(wnd_))
 		win = int(wnd_);
 	return (win);
 }
 
-RenoTcpAgent::RenoTcpAgent() : dupwnd_(0)
+RenoTcpAgent::RenoTcpAgent() : TcpAgent(), dupwnd_(0)
 {
 }
 
@@ -82,7 +82,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 		newack(pkt);
                 opencwnd();
    	} else if (tcph->seqno() == last_ack_)  {
-		if (++dupacks_ == NUMDUPACKS) {
+		if (++dupacks() == NUMDUPACKS) {
 			/*
 			 * Assume we dropped just one packet.
 			 * Retransmit last ack + 1
@@ -92,16 +92,16 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
                         * problems with multiple fast retransmits after
 			* a retransmit timeout.
                         */
-			if ( !bug_fix_ || (highest_ack_ > recover_) ||
+			if ( !bug_fix_ || (highest_ack() > recover_) ||
 			    ( recover_cause_ != 2)) {
 				recover_cause_ = 1;
-				recover_ = maxseq_;
+				recover_ = maxseq();
 				closecwnd(1);
 				reset_rtx_timer(1);
 				output(last_ack_ + 1, TCP_REASON_DUPACK);
                         }
 			dupwnd_ = NUMDUPACKS;
-		} else if (dupacks_ > NUMDUPACKS)
+		} else if (dupacks() > NUMDUPACKS)
 			++dupwnd_;
 	}
 	Packet::free(pkt);
@@ -114,7 +114,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 	 * Try to send more data
 	 */
 
-	if (dupacks_ == 0 || dupacks_ > NUMDUPACKS - 1)
+	if (dupacks() == 0 || dupacks() > NUMDUPACKS - 1)
 		send(0, 0, maxburst_);
 }
 
@@ -122,8 +122,8 @@ void RenoTcpAgent::timeout(int tno)
 {
 	if (tno == TCP_TIMER_RTX) {
 		dupwnd_ = 0;
-		dupacks_ = 0;
-		if (bug_fix_) recover_ = maxseq_;
+		dupacks() = 0;
+		if (bug_fix_) recover_ = maxseq();
 		TcpAgent::timeout(tno);
 	} else {
 		send(1, TCP_REASON_TIMEOUT);
