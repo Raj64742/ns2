@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.116 1997/07/29 21:53:07 breslau Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.117 1997/07/29 23:00:14 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,7 +22,10 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
-<LI>(your work here) </LI>
+<LI><A HREF="http://ww-nrg.ee.lbl.gov/kfall">[KF]</A> <B>Tue Jul 29 15:56:34 PDT 1997<BR></B> Fixed bug in TCP Sack sink which made the initialization of
+max_sack_blocks unpredictable (changed tcp-sink.{cc,h}).  Also, removed
+redundant default for this variable in ns-default.tcl. </LI>
+<P>
 
 <LI><A HREF="mailto:breslau@parc.xerox.com">[LB]</A> <B>Tue Jul 29 14:31:34
 PDT 1997<BR></B> ported ability to limit the amount of data sent by a CBR source
