@@ -102,7 +102,8 @@ BST instproc join-group  { group {src "x"} } {
 		$self next $group ; #annotate
 	}
 
-	if {[$node_ getReps "x" $group] == ""} {
+	if { ![$node_ check-local $group] || [$node_ getReps "x" \
+					      $group] == ""} { 
 # 		$self dbg "Sending join-group"
 		$self send-ctrl "graft" $RP_($group) $group
 	}
