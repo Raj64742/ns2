@@ -35,7 +35,7 @@
 
 #include <math.h>
 #include <stdlib.h>
-
+#include <random.h>
 //#include <debug.h>
 #include <modulation.h>
 
@@ -73,7 +73,7 @@ BPSK::BitError(double Pr)
 	// scale the error probabilty
 	Pe *= 1e3;
 
-	x = random() % 1000;
+	x = (double)(((int)Random::uniform()) % 1000);
 
 	if(x < Pe)
 		return 1;		// bit error
