@@ -31,6 +31,8 @@
 
 set ns [new SessionSim]
 
+$ns namtrace-all [open s1.nam w]
+
 set n0 [$ns node]
 set n1 [$ns node]
 set n2 [$ns node]
@@ -59,7 +61,7 @@ $ns attach-agent $n2 $rcvr2
 set rcvr3 [new Agent/LossMonitor]
 $ns attach-agent $n3 $rcvr3
 
-$ns at 0.2 "$cbr1 start"
+$ns at 0.3 "$cbr1 start"
 $ns at 0.3 "$n1 join-group  $rcvr1 0x8003"
 $ns at 0.3 "$n0 join-group  $rcvr0 0x8003"
 $ns at 0.3 "$n3 join-group  $rcvr3 0x8003"
@@ -68,7 +70,8 @@ $ns at 0.3 "$n2 join-group  $rcvr2 0x8003"
 $ns at 1.1 "$ns finish"
 
 SessionSim instproc finish {} {
-    global rcvr0 rcvr1 rcvr2 rcvr3
+    global rcvr0 rcvr1 rcvr2 rcvr3 ns
+	$ns flush-trace
     puts "[$rcvr0 set npkts_] [$rcvr0 set nlost_]"
     puts "[$rcvr1 set npkts_] [$rcvr1 set nlost_]"
     puts "[$rcvr2 set npkts_] [$rcvr2 set nlost_]"

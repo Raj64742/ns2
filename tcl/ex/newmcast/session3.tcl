@@ -31,6 +31,18 @@
 set ns [new SessionSim]
 #SessionSim set EnableTTL_ 1
 
+$ns namtrace-all [open s3.nam w]
+
+$ns color 0 red
+$ns color 1 magenta
+$ns color 2 orange
+$ns color 3 yellow
+$ns color 4 purple
+$ns color 5 brown
+$ns color 6 chocolate
+$ns color 7 green
+$ns color 8 cyan
+
 set n0 [$ns node]
 set n1 [$ns node]
 set n2 [$ns node]
@@ -106,7 +118,8 @@ $ns at 0.1 "$cbr0 start"
 $ns at 1.6 "finish"
 
 proc finish {} {
-        global rcvr3 rcvr4 rcvr5  n0 rcvr2 rcvr1 rcvr0
+        global rcvr3 rcvr4 rcvr5  n0 rcvr2 rcvr1 rcvr0 ns
+	$ns flush-trace
         puts "rcvr 0 lost [$rcvr0 set nlost_] pkt, rcv [$rcvr0 set npkts_]"
         puts "rcvr 1 lost [$rcvr1 set nlost_] pkt, rcv [$rcvr1 set npkts_]"
         puts "rcvr 2 lost [$rcvr2 set nlost_] pkt, rcv [$rcvr2 set npkts_]"
