@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.33 2000/10/31 21:38:21 haoboy Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.34 2000/11/01 00:33:00 haoboy Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -109,15 +109,6 @@ VegasTcpAgent::reset()
 	v_baseRTT_ = 1000000000.;
 	v_incr_ = 0;
 	v_inc_flag_ = 1;
-
-	if (v_sendtime_) {
-		delete []v_sendtime_;
-                v_sendtime_ = NULL;
-        }
-        if (v_transmits_) {
-                delete []v_transmits_;
-                v_transmits_ = NULL;
-        }
 
 	TcpAgent::reset();
 }
@@ -440,6 +431,10 @@ VegasTcpAgent::output(int seqno, int reason)
 	 * cases which windows get set by each different tcp flows */
 	if (seqno==0) {
 		v_maxwnd_ = int(wnd_);
+		if (v_sendtime_)
+			delete []v_sendtime_;
+        	if (v_transmits_)
+               		delete []v_transmits_;
 		v_sendtime_ = new double[v_maxwnd_];
 		v_transmits_ = new int[v_maxwnd_];
 		for(int i=0;i<v_maxwnd_;i++) {
