@@ -30,43 +30,50 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.1 1997/04/08 01:02:25 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.2 1997/04/24 03:10:39 kfall Exp $ (UCB)
  */
 
 #include "integrator.h"
 #include "connector.h"
 #include "packet.h"
 
-class BytesIntegrator : public Integrator {
- public: 
-        BytesIntegrator() : Integrator() {}
-};   
-
-class PktsIntegrator : public Integrator {
- public: 
-        PktsIntegrator() : Integrator() {}
-};   
-
 class QueueMonitor : public TclObject {
  public: 
-        QueueMonitor() : bytesInt_(NULL), pktsInt_(NULL), size_(0), pkts_(0)
-	{
+        QueueMonitor() : bytesInt_(NULL), pktsInt_(NULL), delaySamp_(NULL),
+	    size_(0), pkts_(0), parrivals_(0), barrivals_(0),
+	    pdepartures_(0), bdepartures_(0), pdrops_(0), bdrops_(0) {
                 bind("size_", &size_);
                 bind("pkts_", &pkts_);
+                bind("parrivals_", &parrivals_);
+                bind("barrivals_", &barrivals_);
+                bind("pdepartures_", &pdepartures_);
+                bind("bdepartures_", &bdepartures_);
+                bind("bdrops_", &bdrops_);
+                bind("pdrops_", &pdrops_);
                 bind("off_cmn_", &off_cmn_);
         };      
 	int size() const { return (size_); }
 	int pkts() const { return (pkts_); }
-        void in(Packet*);
-        void out(Packet*);
-        int command(int argc, const char*const* argv);
+        virtual void in(Packet*);
+        virtual void out(Packet*);
+	virtual void drop(Packet*);
+        virtual int command(int argc, const char*const* argv);
 protected:
-        BytesIntegrator *bytesInt_;
-        PktsIntegrator  *pktsInt_;
-        int size_;
-        int pkts_;
+        Integrator  *bytesInt_;	// q-size integrator (bytes)
+        Integrator  *pktsInt_;	// q-size integrator (pkts)
+        Samples*	delaySamp_;	// stat samples of q delay
+        int size_;	// current queue size (bytes)
+        int pkts_;	// current queue size (packets)
+	// aggregate counters bytes/packets
+	int barrivals_;
+	int parrivals_;
+	int bdepartures_;
+	int pdepartures_;
+	int bdrops_;
+	int pdrops_;
         int off_cmn_;
 };   
+
 class SnoopQueue : public Connector {
  public: 
         SnoopQueue() : qm_(0) {}
@@ -75,6 +82,8 @@ class SnoopQueue : public Connector {
                         if (strcmp(argv[1], "set-monitor") == 0) {
                                 qm_ = (QueueMonitor*)
                                         TclObject::lookup(argv[2]);
+				if (qm_ == NULL)
+					return (TCL_ERROR);
                                 return (TCL_OK);
                         }
                 }
@@ -98,4 +107,31 @@ class SnoopQueueOut : public SnoopQueue {
                 qm_->out(p);
                 send(p, h);
         }       
-};      
+};
+
+class SnoopQueueDrop : public SnoopQueue {
+ public:
+        void recv(Packet* p, Handler* h) {
+                qm_->drop(p);
+                send(p, h);
+        }       
+};
+
+/*
+ * a 'QueueMonitorCompat', which is used by the compat
+ * code to produce the link statistics available in ns-1
+ */
+#define	QM_FIDMAX	13
+class QueueMonitorCompat : public QueueMonitor {
+public:
+	QueueMonitorCompat();
+        void in(Packet*);
+        void out(Packet*);
+        void drop(Packet*);
+        int command(int argc, const char*const* argv);
+protected:
+	int	off_ip_;
+	int	pkts_[QM_FIDMAX];
+	int	bytes_[QM_FIDMAX];
+	int	drops_[QM_FIDMAX];
+};
