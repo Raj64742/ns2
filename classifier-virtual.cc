@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.3 1999/09/09 03:22:33 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.4 1999/09/18 03:34:49 heideman Exp $";
 #endif
 extern "C" {
 #include <tcl.h>
@@ -66,7 +66,7 @@ protected:
 	bool enableHrouting_;
 	char nodeaddr_[SMALL_LEN];
 
-	int classify(Packet *const p) {
+	int classify(const Packet *const p) {
 		hdr_ip* iph = hdr_ip::access(p);
 		return mshift(iph->daddr());
 	}

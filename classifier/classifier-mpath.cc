@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mpath.cc,v 1.5 1999/09/15 19:34:17 yuriy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mpath.cc,v 1.6 1999/09/18 03:34:47 heideman Exp $ (USC/ISI)";
 #endif
 
 #include "classifier.h"
@@ -30,7 +30,7 @@ static const char rcsid[] =
 class MultiPathForwarder : public Classifier {
 public:
 	MultiPathForwarder() : ns_(0) {} 
-	virtual int classify(Packet*) {
+	virtual int classify(const Packet*) {
 		int cl;
 		int fail = ns_;
 		do {

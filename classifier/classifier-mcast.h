@@ -36,7 +36,7 @@ public:
 	static const char STARSYM[]; //"source" field for shared trees
 protected:
 	virtual int command(int argc, const char*const* argv);
-	virtual int classify(Packet *p);
+	virtual int classify(const Packet *p);
 	int findslot();
 	enum {HASHSIZE = 256};
 	struct hashnode {

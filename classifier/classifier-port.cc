@@ -17,17 +17,17 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.1 1999/09/09 03:22:32 salehi Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.2 1999/09/18 03:34:48 heideman Exp $ (USC/ISI)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.1 1999/09/09 03:22:32 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.cc,v 1.2 1999/09/18 03:34:48 heideman Exp $";
 #endif
 
 #include "classifier-port.h"
 
-int PortClassifier::classify(Packet *const p) {
+int PortClassifier::classify(const Packet *const p) {
 	// Port classifier returns the destination port.  No shifting
 	// or masking is required since in the 32-bit addressing,
 	// ports are stored in a seperate variable.
