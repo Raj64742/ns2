@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.126 2003/07/23 22:30:34 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.127 2003/07/29 17:55:30 difa Exp $
 
 try () {
         for excluding in $cygwin_exclude; do
@@ -54,6 +54,11 @@ else
 fi;
 
 echo "(Validation can take 1-30 hours to run.)"
+echo "--- Execution Environment"
+echo "LD_LIBRARY_PATH=$LD_LIBRARY_PATH"
+echo "TCL_LIBRARY=$TCL_LIBRARY"
+echo "TK_LIBRARY=$TK_LIBRARY"
+ldd -d ns
 
 cd tcl/test
 
