@@ -50,6 +50,7 @@
 #include <arp.h>
 #include <topography.h>
 #include <trace.h>
+#include <address.h>
 #include <ll.h>
 #include <mac.h>
 #include <propagation.h>
@@ -394,13 +395,11 @@ MobileNode::set_destination(double x, double y, double s)
      sprintf(nwrk_,     
              "n -t %f -s %d -x %f -y %f -u %f -v %f -T %f",
               Scheduler::instance().clock(),
-              address_,
+              nodeid_,
               X,Y,
               speed*dX, speed*dY,
               ((speed*dX) != 0 ) ? (destX-X)/speed*dX : speed*dX
-             );         
-                
-                
+             );   
      namdump();         
   }
 #endif                  

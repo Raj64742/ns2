@@ -554,18 +554,20 @@ CMUTrace::nam_format(Packet *p, int offset)
 {
 	Node* srcnode = 0 ;
 	Node* dstnode = 0 ;
+	Node* nextnode = 0 ;
         struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_ip *ih = HDR_IP(p);
 	char op = (char) type_;
 	char colors[32];
+	int next_hop = -1 ;
 
-	int src = Address::instance().get_nodeaddr(ih->saddr());
-	int dst = Address::instance().get_nodeaddr(ih->daddr());
-        int next_hop = ch->next_hop_ ;
+        int dst = Address::instance().get_nodeaddr(ih->daddr());
 
-	srcnode = Node::get_node_by_address(src);
-	dstnode = Node::get_node_by_address(next_hop);
+	nextnode = Node::get_node_by_address(ch->next_hop_);
+        if (nextnode) next_hop = nextnode->nodeid(); 
 
+	srcnode = Node::get_node_by_address(src_);
+	dstnode = Node::get_node_by_address(ch->next_hop_);
 
 	double distance = 0;
 
@@ -612,8 +614,8 @@ CMUTrace::nam_format(Packet *p, int offset)
 	   sprintf(nwrk_ ,
 		"+ -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s ",
 		Scheduler::instance().clock(),
-		src,                           // this node
-		dst,
+		src_,                           // this node
+		next_hop,
 		packet_info.name(ch->ptype()),
 		ch->size(),
 		ch->uid(),
@@ -624,8 +626,8 @@ CMUTrace::nam_format(Packet *p, int offset)
 	   sprintf(nwrk_ ,
 		"- -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
 		Scheduler::instance().clock(),
-		src,                           // this node
-		dst,
+		src_,                           // this node
+		next_hop,
 		packet_info.name(ch->ptype()),
 		ch->size(),
 		ch->uid(),
@@ -650,7 +652,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 	   sprintf(nwrk_ ,
 	        "n -t %.9f -s %d -S COLOR %s",
 	         Scheduler::instance().clock(),
-	         src,                           // this node
+	         src_,                           // this node
 	         colors);
            offset = strlen(nwrk_);
            namdump();
@@ -660,8 +662,8 @@ CMUTrace::nam_format(Packet *p, int offset)
 		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
 		op,
 		Scheduler::instance().clock(),
-		src,                           // this node
-		dst,
+		src_,                           // this node
+		next_hop,
 		packet_info.name(ch->ptype()),
 		ch->size(),
 		ch->uid(),

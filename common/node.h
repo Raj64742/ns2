@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.14 2000/01/09 03:45:40 klan Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.15 2000/01/24 18:03:40 klan Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -102,6 +102,7 @@ class Node : public TclObject {
 	Node(void);
 	virtual int command(int argc, const char*const* argv);
 	inline int address() { return address_;}
+	inline int nodeid() { return nodeid_;}
 	inline double energy() { return energy_model_->energy();}
 	inline double initialenergy() { return energy_model_->initialenergy();}
 	inline double energy_level1() { return energy_model_->level1();}
@@ -110,6 +111,8 @@ class Node : public TclObject {
 	inline Location *location() { return location_;}
 
 	int address_;
+
+	int nodeid_; //for nam use
 
 	// XXX can we deprecate the next line (used in MobileNode)
 	// in favor of accessing phys via a standard link API?

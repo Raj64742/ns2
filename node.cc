@@ -121,6 +121,9 @@ Node::command(int argc, const char*const* argv)
 			address_ = Address::instance().\
 				str2addr(argv[2]);
 			return TCL_OK;
+		} else if (strcmp(argv[1], "nodeid") == 0) {
+			nodeid_ = atoi(argv[2]);
+			return TCL_OK;
 		} else if (strcmp(argv[1], "addenergymodel") == 0) {
 			energy_model_ = (EnergyModel *) TclObject::lookup(argv[2]);
 			if(!energy_model_)
