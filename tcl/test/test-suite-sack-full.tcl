@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.6 2001/08/23 19:25:17 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.7 2001/08/23 20:07:50 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -50,12 +50,6 @@ Agent/TCP set delay_growth_ false
 set style tcpf2xgr
 
 Trace set show_tcphdr_ 1 ;	# needed for plotting ACK numbers
-
-TestSuite instproc finish_new { file wrap wrap1 } {
-}
-
-TestSuite instproc finish_old { file wrap wrap1 } {
-}
 
 TestSuite instproc finish file {
         global quiet PERL style
@@ -81,12 +75,13 @@ TestSuite instproc finish file {
 		exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
 		   $PERL ../../bin/raw2xg -n $space -s 0.01 -m $wrap1 -t $file \
 		   > temp.rands
-	#       exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
-	#          $PERL ../../bin/raw2xg -a -n $space -s 0.01 -m $wrap1 -t $file > temp1.rands
+	        exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+	           $PERL ../../bin/raw2xg -a -f -n $space -s 0.01 -m $wrap1 -t $file > temp1.rands
 	
 		if {$quiet == "false"} {
-			exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
-	# 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands temp1.rands &
+		#	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+		# to plot acks:
+			exec xgraph -bb -tk -nl -m -x time -y packets temp.rands temp1.rands &
 		}
         }
         ## now use default graphing tool to make a data file
