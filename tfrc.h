@@ -63,9 +63,11 @@ struct hdr_tfrc {
 	int psize;		//packet size	
 	int UrgentFlag;		//Urgent Flag
 	int round_id ; 		//round id.
-
 	static int offset_;	// offset for this header
-	inline static int& offset() { return offset_; }
+
+	inline static int& offset() { 
+		return offset_; 
+	}
 	inline static hdr_tfrc* access(Packet* p) {
 		return (hdr_tfrc*) p->access(offset_);
 	}
@@ -80,13 +82,14 @@ struct hdr_tfrc_ack {
 	double timestamp_echo;		//timestamp from the last data packet
 	double flost;		//frequnecy of loss indications
 	double rate_since_last_report;	//what it says ...
-	double NumFeedback_;
-	
+	double NumFeedback_;	// number of times feedback is to be sent per RTT
 	static int offset_;		 // offset for this header
-	inline static int& offset() 
-		{ return offset_; }
+
+	inline static int& offset() { 
+		return offset_; 
+	}
 	inline static hdr_tfrc_ack* access(Packet* p) {
-	return (hdr_tfrc_ack*) p->access(offset_);
+		return (hdr_tfrc_ack*) p->access(offset_);
 	}
 };
 

@@ -330,7 +330,7 @@ void TfrcAgent::increase_rate (double p)
 	double maximumrate = (maxrate_>size_/rtt_)?maxrate_:size_/rtt_ ;
 	maximumrate = (maximumrate>rcvrate)?rcvrate:maximumrate;
 	rate_ = (rate_ > maximumrate)?maximumrate:rate_ ;
-
+	
         rate_change_ = CONG_AVOID;  
         last_change_ = now;
 }       
@@ -339,7 +339,6 @@ void TfrcAgent::decrease_rate ()
 {
 	double now = Scheduler::instance().clock(); 
 	rate_ = rcvrate;
-	oldrate_ = rate_;
 	rate_change_ = RATE_DECREASE;
 	last_change_ = now;
 }
@@ -353,7 +352,7 @@ void TfrcAgent::sendpkt()
 		tfrch->timestamp=Scheduler::instance().clock();
 		tfrch->rtt=rtt_;
 		tfrch->tzero=tzero_;
-		tfrch->rate=oldrate_;
+		tfrch->rate=rate_;
 		tfrch->psize=size_;
 		tfrch->UrgentFlag=UrgentFlag;
 		tfrch->round_id=round_id;
