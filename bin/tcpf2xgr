@@ -5,18 +5,19 @@
 #
 PATH=$PATH:../../bin:.
 PROGNAME=$0
-if [ $# -lt 2 ]; then
-	echo "Usage: $0 tracefile <xgraph | gnuplot> testname"
+if [ $# -lt 3 ]; then
+	echo "Usage: $0 TclshPath tracefile <xgraph | gnuplot> testname"
 	exit 1;
 fi
+TCLSH=$1; shift
 GNAME=$1
 if [ $# -eq 3 ]; then
 	GNAME=$3;
 fi
 PROGDIR=`dirname $PROGNAME`
-tclsh $PROGDIR/tcpfull-summarize.tcl $1 $1
-tclsh $PROGDIR/tcpfull-summarize.tcl $1 $1.r reverse
-tclsh $PROGDIR/cplot.tcl $2 $GNAME.forw \
+$TCLSH $PROGDIR/tcpfull-summarize.tcl $1 $1
+$TCLSH $PROGDIR/tcpfull-summarize.tcl $1 $1.r reverse
+$TCLSH $PROGDIR/cplot.tcl $2 $GNAME.forw \
 	$1.p "segments sent" \
 	$1.acks "acks w/data rcvd" \
 	$1.packs "pure acks rcvd" \
@@ -27,7 +28,7 @@ tclsh $PROGDIR/cplot.tcl $2 $GNAME.forw \
 	$1.cact "Cong Action" \
 	$1.sack "Acks w/SACK info" | $2 &
 
-tclsh $PROGDIR/cplot.tcl $2 $GNAME.REV $1.r.p "segments sent" \
+$TCLSH $PROGDIR/cplot.tcl $2 $GNAME.REV $1.r.p "segments sent" \
 	$1.r.acks "acks w/data rcvd" \
 	$1.r.packs "pure acks rcvd" \
 	$1.r.d "drops" \
