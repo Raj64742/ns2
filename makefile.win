@@ -17,13 +17,15 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.4 1997/08/14 11:52:57 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.5 1997/08/14 13:02:43 gnguyen Exp $
 
 
 TOOLS32	= c:\msdev
 TOOLS32	= $(MSVCDIR)
 PATH	= $(MSVCDIR);$(PATH);c:\bin
 INCLUDE	= $(MSVCDIR)\include
+
+TARGETOS = BOTH
 !include <win32.mak>
 
 LOCAL_LIB = \usr\local\lib
