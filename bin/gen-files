@@ -16,7 +16,11 @@ sub listdir {
 	if (-d $f) {
 	    # Recurse all directories with a depth-first traversal
 	    chdir("$f");
-	    listdir("$f");
+	    if ($curdir ne ".") {
+		listdir("$curdir/$f");
+	    } else {
+		listdir("$f");
+	    }
 	    chdir("..");
 	} else {
 	    # Print a plain file to console
