@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.5 1997/07/23 05:05:08 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.6 1997/07/24 00:55:16 hari Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -104,27 +104,27 @@ Snoop::handle(Event *e)
 {
 	Packet *p = (Packet *) e;
 	int type = ((hdr_cmn*) p->access(off_cmn_))->ptype();
-	int prop = SNOOP_PROPAGATE; // by default. propagate ack or packet
+	int seq = ((hdr_tcp*)p->access(off_tcp_))->seqno();
+	int prop = SNOOP_PROPAGATE; // by default;  propagate ack or packet
 	Scheduler& s = Scheduler::instance();
 
 	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
 	if (llh->error()) {
 		drop(p);        // drop packet if it's been corrupted
+		printf("... dropping %d\n", llh->seqno());
 		return;
 	}
 
 	if (type == PT_ACK)
 		prop = snoop_ack_(p);
-	else {			// received data, send it up
-		int seq = ((hdr_tcp*)p->access(off_tcp_))->seqno();
+	else		// received data, send it up
 		printf("---- %f recd packet %d\n", s.clock(), seq);
-	}
-		
 	if (prop == SNOOP_PROPAGATE)
 		s.schedule(recvtarget_, e, delay_);
-	else			// suppress ack
+	else {			// suppress ack
+		printf("---- %f suppressing ack %d\n", s.clock(), seq);
 		Packet::free(p);
-	
+	}
 }
 
 /*
@@ -334,6 +334,9 @@ printf("snoop_ack_: %f got ack %d\n", Scheduler::instance().clock(), ack);
 	return SNOOP_PROPAGATE;
 }
 
+/*
+ * Clean snoop cache of packets that have been acked.
+ */
 double
 Snoop::snoop_cleanbufs_(int ack)
 {
@@ -354,7 +357,7 @@ Snoop::snoop_cleanbufs_(int ack)
 			sndTime = sh->sndTime();
 			Packet::free(pkts_[i]);
 			pkts_[i] = 0;
-			fstate_ &= ~SNOOP_FULL;	// xxx redundant?
+			fstate_ &= ~SNOOP_FULL;	// XXX redundant?
 		} else if (seq > ack)
 			break;
 		i = next(i);
@@ -371,6 +374,9 @@ Snoop::snoop_cleanbufs_(int ack)
 	return sndTime;
 }
 
+/* 
+ * Calculate smoothed rtt estimates.  XXX to be modified
+ */
 void
 Snoop::snoop_rtt_(double sndTime)
 {

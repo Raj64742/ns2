@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.3 1997/07/23 02:51:35 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.h,v 1.4 1997/07/24 00:55:17 hari Exp $ (UCB)
  */
 
 #ifndef ns_snoop_h
@@ -54,7 +54,7 @@
 
 #define SNOOP_MAXWIND   100	/* XXX */
 #define SNOOP_MAXCONN   64	/* XXX */
-#define SNOOP_MIN_TIMO  0.500	/* in seconds */
+#define SNOOP_MIN_TIMO  0.100	/* in seconds */
 #define SNOOP_MAX_RXMIT 10	/* quite arbitrary at this point */
 #define SNOOP_PROPAGATE 0
 #define SNOOP_SUPPRESS   1
