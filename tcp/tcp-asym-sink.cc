@@ -51,7 +51,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.5 1997/10/26 05:52:00 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.6 1997/12/25 21:36:22 padmanab Exp $ (UCB)";
 #endif
 
 #include "tcp-sink.h"
@@ -110,6 +110,7 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 	hdr_tcpasym *tha = (hdr_tcpasym*)pkt->access(off_tcpasym_);
 	double now = Scheduler::instance().clock();
 
+	acker_->update_ts(th->seqno(),th->ts());
 	acker_->update(th->seqno());
 
 	/* determine the highest timestamp the sender has echoed */

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.19 1997/08/14 00:03:11 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.20 1997/12/25 21:36:23 padmanab Exp $ (LBL)";
 #endif
 
 #include "tcp-sink.h"
@@ -46,7 +46,7 @@ public:
 	}
 } class_tcpsink;
 
-Acker::Acker() : next_(0), maxseen_(0)
+Acker::Acker() : next_(0), maxseen_(0), ts_to_echo_(0)
 {
 	memset(seen_, 0, sizeof(seen_));
 }
@@ -57,6 +57,12 @@ void Acker::reset()
 	maxseen_ = 0;
 	memset(seen_, 0, sizeof(seen_));
 }	
+
+void Acker::update_ts(int seqno, double ts)
+{
+	if (ts >= ts_to_echo_ && seqno <= next_)
+		ts_to_echo_ = ts;
+}
 
 void Acker::update(int seq)
 {
@@ -94,6 +100,7 @@ TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker)
 	bind("packetSize_", &size_);
 	bind("off_tcp_", &off_tcp_);
 	bind("maxSackBlocks_", &max_sack_blocks_); // used only by sack
+	bind_bool("ts_echo_bugfix_", &ts_echo_bugfix_);
 }
 
 void Acker::append_ack(hdr_cmn*, hdr_tcp*, int) const
@@ -114,7 +121,11 @@ void TcpSink::ack(Packet* opkt)
 	hdr_tcp *ntcp = (hdr_tcp*)npkt->access(off_tcp_);
 	ntcp->seqno() = acker_->Seqno();
 	ntcp->ts() = now;
-	ntcp->ts_echo() = otcp->ts();
+
+	if (ts_echo_bugfix_)  /* TCP/IP Illustrated, Vol. 2, pg. 870 */
+		ntcp->ts_echo() = acker_->ts_to_echo();
+	else
+		ntcp->ts_echo() = otcp->ts();
 
 	hdr_ip* oip = (hdr_ip*)opkt->access(off_ip_);
 	hdr_ip* nip = (hdr_ip*)npkt->access(off_ip_);
@@ -138,6 +149,7 @@ void TcpSink::add_to_ack(Packet*)
 void TcpSink::recv(Packet* pkt, Handler*)
 {
 	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
+	acker_->update_ts(th->seqno(),th->ts());
       	acker_->update(th->seqno());
       	ack(pkt);
 	Packet::free(pkt);
@@ -160,6 +172,7 @@ DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker), delay_timer_(this)
 void DelAckSink::recv(Packet* pkt, Handler*)
 {
 	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
+	acker_->update_ts(th->seqno(),th->ts());
 	acker_->update(th->seqno());
         /*
          * If there's no timer and the packet is in sequence, set a timer.

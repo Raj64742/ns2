@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.6 1997/08/14 00:02:47 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.7 1997/12/25 21:36:24 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_tcpsink_h
@@ -57,14 +57,18 @@ class Acker {
 public:
 	Acker();
 	virtual ~Acker() {}
+	void update_ts(int seqno, double ts);
 	void update(int seqno);
 	inline int Seqno() const { return (next_ - 1); }
 	virtual void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
 	void reset();
+	double ts_to_echo() { return ts_to_echo_;}
+
 protected:
 	int next_;		/* next packet expected  */
 	int maxseen_;		/* max packet number seen */
 	int seen_[MWS];		/* array of packets seen  */
+	double ts_to_echo_;     /* timestamp to echo to peer */
 };
 
 // derive Sacker from TclObject to allow for traced variable
@@ -93,6 +97,7 @@ protected:
 	virtual void add_to_ack(Packet* pkt);  
 	Acker* acker_;
 	int off_tcp_;
+	int ts_echo_bugfix_;
 
 	friend void Sacker::configure(TcpSink*);
 	TracedInt max_sack_blocks_;	/* used only by sack sinks */
