@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.27 1998/03/30 20:51:23 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.28 1998/04/07 23:59:04 haldar Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -43,21 +43,25 @@ static char rcsid[] =
 #include "tcp.h"
 #include "rtp.h"
 #include "flags.h"
+#include "address.h"
 #include "trace.h"
+
+
 
 /*
  * tcl command interface
  */
+
 class TraceClass : public TclClass {
 public:
-	TraceClass() : TclClass("Trace") { }
-	TclObject* create(int args, const char*const* argv) {
-		if (args >= 5)
-			return (new Trace(*argv[4]));
-		else
-			return NULL;
-	}
-} trace_class;
+    TraceClass() : TclClass("Trace") { }
+    TclObject* create(int args, const char*const* argv) {
+	if (args >= 5)
+	    return (new Trace(*argv[4]));
+	else
+	    return NULL;
+    }
+}trace_class;
 
 
 Trace::Trace(int type)
@@ -198,7 +202,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
          */
         char flags[NUMFLAGS+1];
         for (int i = 0; i < NUMFLAGS; i++)
-                flags[i] = '-';
+	    flags[i] = '-';
         flags[NUMFLAGS] = 0;
 
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
@@ -209,30 +213,33 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';
 	flags[5] = hf->fs_ ? 'F' : '-';
 	flags[6] = hf->ecn_capable_ ? 'N' : '-';
-
+	
 #ifdef notdef
-flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
-flags[2] = (iph->flags() & PF_USR1) ? '1' : '-';
-flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
-flags[5] = 0;
+	flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
+	flags[2] = (iph->flags() & PF_USR1) ? '1' : '-';
+	flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
+	flags[5] = 0;
 #endif
 
+
 	if (!show_tcphdr_) {
-		sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
-			tt,
-			Scheduler::instance().clock(),
-			s,
-			d,
-			name,
-			th->size(),
-			flags,
-			iph->flowid() /* was p->class_ */,
-			iph->src() >> NODESHIFT, iph->src() & PORTMASK,	// XXX
-			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK,	// XXX
-			seqno,
-			th->uid() /* was p->uid_ */);
+	    sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
+		    tt,
+		    Scheduler::instance().clock(),
+		    s,
+		    d,
+		    name,
+		    th->size(),
+		    flags,
+		    iph->flowid() /* was p->class_ */,
+		    iph->src() >> (Address::instance().NodeShift_[1]), 
+		    iph->src() & (Address::instance().PortMask_), 
+		    iph->dst() >> (Address::instance().NodeShift_[1]), 
+		    iph->dst() & (Address::instance().PortMask_),
+		    seqno,
+		    th->uid() /* was p->uid_ */);
 	} else {
-		sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x %d",
+	    sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x %d",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -241,8 +248,10 @@ flags[5] = 0;
 			th->size(),
 			flags,
 			iph->flowid() /* was p->class_ */,
-			iph->src() >> NODESHIFT, iph->src() & PORTMASK,	// XXX
-			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK,	// XXX
+		        iph->src() >> (Address::instance().NodeShift_[1]), 
+		        iph->src() & (Address::instance().PortMask_), 
+		        iph->dst() >> (Address::instance().NodeShift_[1]), 
+		        iph->dst() & (Address::instance().PortMask_),
 			seqno,
 			th->uid(), /* was p->uid_ */
 			tcph->ackno(),
