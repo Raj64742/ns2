@@ -343,6 +343,7 @@ $ns duplex-link-of-interfaces $n11 $n25 1.5Mb 560ms DropTail
 $ns duplex-link-of-interfaces $n11 $n24 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n11 $n20 1.5Mb 940ms DropTail
 if {$verbose} { puts -nonewline "200..."; flush stdout }
+# exit 0;
 $ns duplex-link-of-interfaces $n11 $n19 1.5Mb 410ms DropTail
 $ns duplex-link-of-interfaces $n11 $n17 1.5Mb 120ms DropTail
 $ns duplex-link-of-interfaces $n12 $n86 1.5Mb 630ms DropTail

@@ -42,13 +42,19 @@
 void
 intRVec::grow(const int desired_cap)
 {
-	int old_cap = capacity();
-	if (old_cap == 0)
-		old_cap = 4;
+	int *p;
+	int old_cap = len;
+
 	int new_cap = old_cap * 2;
-	if (new_cap < desired_cap)
-		new_cap = desired_cap + 1;
+	if (new_cap == 0)   // always alloc something
+		new_cap = 4;
+	if (new_cap < desired_cap)   // and make sure it's enough
+		new_cap = desired_cap;
+
 	resize(new_cap);
-	memset(&s[old_cap], '\0', old_cap * sizeof(int));
+
+	// zero new spaces
+	for (p = &s[old_cap]; p < &s[new_cap]; )
+		*p++ = 0;
 }
 

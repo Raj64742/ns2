@@ -36,6 +36,9 @@
  * RVec is a resizing vector.
  * Automatically resize the vector (and zero-fill the unused slots)
  * when elements beyond the end are accessed.
+ *
+ * RVecs are zero-filled on init.
+ * Vecs are garbage-filled on init.
  */
 
 #ifndef _intRVec_h
@@ -53,29 +56,29 @@ protected:
 	void			grow(const int n);
 public:
 				intRVec() : intVec() {};
-				intRVec(int l) : intVec(l) {};
+				intRVec(int l) : intVec(l,0) {};
 				intRVec(int l, int fill_value) : intVec(l,fill_value) {};
 				intRVec(const intVec&v) : intVec(v) {};
 				~intRVec() {};
 
-	int&                  	operator [] (const int n);
+	int&                  	operator [] (int n);
 	int			viable_range(const int n);
 };
-
-inline int&
-intRVec::operator [] (const int n)
-{
-	if (n < 0)
-		range_error();
-	if (n >= len)
-		grow(n);
-	return s[n];
-}
 
 inline int
 intRVec::viable_range (const int n)
 {
 	return n >= 0 && n < len;
+}
+
+inline int&
+intRVec::operator[] (int n)
+{
+	if (n < 0)
+		range_error();
+	if (n >= len)
+		grow(n + 1);
+	return s[n];
 }
 
 #endif
