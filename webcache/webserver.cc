@@ -31,7 +31,8 @@
 //
 #include "webserver.h"
 
-WebServer::WebServer(WebTrafPool *webpool) {
+void
+WebServer::WebServer_init(WebTrafPool *webpool) {
   web_pool_ = webpool;
   
   // clean busy flag

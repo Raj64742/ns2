@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.5 2002/10/09 03:47:00 difa Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.6 2004/12/10 22:07:13 johnh Exp $
 
 #ifndef ns_ls_h
 #define ns_ls_h
@@ -86,7 +86,7 @@ public:
 	LsList() : baseList() {}
 	LsList(const _Tp& x) : baseList(1, x) {}
 	void eraseAll() { 
-		baseList::erase(begin(), end()); 
+		baseList::erase(baseList::begin(), baseList::end()); 
 	}
 	LsList<_Tp>& operator= (const LsList<_Tp> & x) {
 		return (LsList<_Tp> &)baseList::operator= (x);
@@ -109,7 +109,7 @@ public:
 		return ib.second ? ib.first : baseMap::end();
 	}
 
-	void eraseAll() { erase(begin(), end()); }
+	void eraseAll() { erase(baseMap::begin(), baseMap::end()); }
 	T* findPtr(Key key) {
 		iterator it = baseMap::find(key);
 		return (it == baseMap::end()) ? (T *)NULL : &((*it).second);

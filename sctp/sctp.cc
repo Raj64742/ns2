@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.1 2003/08/21 18:29:15 haldar Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.2 2004/12/10 22:07:14 johnh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -151,7 +151,7 @@ SctpAgent::~SctpAgent()
       Packet::free(spDest->opRoutingAssistPacket);
       spDest->opRoutingAssistPacket = NULL;
       delete (SctpDest_S *) spCurrNode->vpData;  //spDest
-      (SctpDest_S *) spCurrNode->vpData = NULL;
+      spCurrNode->vpData = NULL;
     }
 
   if(spSctpTrace != NULL)

@@ -54,8 +54,12 @@ class WebTrafPool;
 
 // Data structure for web server
 class WebServer : public TimerHandler{
+ private:
+       void WebServer_init(WebTrafPool *);
+
  public:
-	WebServer(WebTrafPool*);
+	WebServer(WebTrafPool*pool_) { WebServer_init(pool_); };
+	WebServer() { WebServer_init(NULL); };
 	
 	// Assign node to server
 	void set_node(Node *);

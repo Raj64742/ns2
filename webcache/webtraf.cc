@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.27 2004/10/28 01:24:06 sfloyd Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.28 2004/12/10 22:07:14 johnh Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -413,8 +413,10 @@ int WebTrafPool::command(int argc, const char*const* argv) {
 			nServer_ = atoi(argv[2]);
 			if (server_ != NULL) 
 				delete []server_;
-			server_ = new WebServer[nServer_](this);
-
+			server_ = new WebServer[nServer_];
+			for (int i = 0; i < nServer_; i++) {
+				server_[i] = WebServer(this);
+			};
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "set-num-client") == 0) {
 			nClient_ = atoi(argv[2]);

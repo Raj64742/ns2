@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: nr.hh,v 1.9 2004/01/18 19:52:08 haldar Exp $
+// $Id: nr.hh,v 1.10 2004/12/10 22:07:13 johnh Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -221,6 +221,7 @@ public:
 };
 
 // string specialization
+template <>
 class NRSimpleAttribute<char *>: public NRAttribute {
 public:
   NRSimpleAttribute(int key, int type, int op, char *val, int size = 0);
@@ -236,6 +237,7 @@ public:
 };
 
 // blob specialization
+template <>
 class NRSimpleAttribute<void *>: public NRAttribute {
 public:
   NRSimpleAttribute(int key, int type, int op, void *val, int size);

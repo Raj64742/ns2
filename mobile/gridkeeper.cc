@@ -133,7 +133,7 @@ void GridKeeper::new_moves(MobileNode *mn)
   endy = mn->destY();
 
   if (vx > 0) {
-    endi = min(dim_x_-1, (int)endx);
+    endi = MIN(dim_x_-1, (int)endx);
     for (i = (int)x+1; i <= endi; i++) {
       tm = (i-x)/vx;
       pother = vy*tm + y;
@@ -182,7 +182,7 @@ void GridKeeper::new_moves(MobileNode *mn)
     }
   }
   if (vy > 0) {
-    endi = min(dim_y_-1, (int)endy);
+    endi = MIN(dim_y_-1, (int)endy);
     for (j = (int)y+1; j <= endi; j++) {
       tm = (j-y)/vy;
       pother = vx*tm + x;
@@ -237,11 +237,11 @@ int GridKeeper::get_neighbors(MobileNode* mn, MobileNode **output)
 
   adj = (int)ceil(mnr);
 
-  ulx = min(dim_x_-1, grid_x + adj);
-  uly = min(dim_y_-1, grid_y + adj);
-  lly = max(0, grid_y - adj);
+  ulx = MIN(dim_x_-1, grid_x + adj);
+  uly = MIN(dim_y_-1, grid_y + adj);
+  lly = MAX(0, grid_y - adj);
 
-  for (i = max(0, grid_x - adj); i <= ulx; i++) {
+  for (i = MAX(0, grid_x - adj); i <= ulx; i++) {
     for (j = lly; j <= uly; j++) {
       for (pgd = grid_[i][j]; pgd != 0; pgd = pgd->next()) {
 	if (mn->address() == pgd->address()) 

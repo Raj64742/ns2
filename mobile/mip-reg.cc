@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/mip-reg.cc,v 1.8 2003/10/12 21:13:18 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/mip-reg.cc,v 1.9 2004/12/10 22:07:13 johnh Exp $
 
 /*
  * Copyright (c) Sun Microsystems, Inc. 1998 All rights reserved.
@@ -400,7 +400,7 @@ void MIPMHAgent::reg()
 	h->ha_ = ha_;
 	h->coa_ = coa_;
 	h->type_ = MIPT_REG_REQUEST;
-	h->lifetime_ = min(reglftm_, adlftm_);
+	h->lifetime_ = MIN(reglftm_, adlftm_);
 	h->seqno_ = seqno_;
 	tcl.evalf("%s get-link %d %d", name_, h->haddr_, coa_);
 	NsObject *target = (NsObject *)tcl.lookup(tcl.result());

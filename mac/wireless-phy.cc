@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.20 2003/11/19 00:41:44 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.21 2004/12/10 22:07:13 johnh Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -55,7 +55,7 @@
 
 #include "diffusion/diff_header.h"
 
-#define max(a,b) (((a)<(b))?(b):(a))
+#define MAX(a,b) (((a)<(b))?(b):(a))
 
 void Idle_Timer::expire(Event *) {
 	a_->UpdateIdleEnergy();
@@ -200,8 +200,8 @@ WirelessPhy::sendDown(Packet *p)
 		if (em()->energy() > 0) {
 			//double txtime = (8.*hdr_cmn::access(p)->size())/bandwidth_;
 		    double txtime = hdr_cmn::access(p)->txtime();
-		    double start_time = max(channel_idle_time_, NOW);
-		    double end_time = max(channel_idle_time_, NOW+txtime);
+		    double start_time = MAX(channel_idle_time_, NOW);
+		    double end_time = MAX(channel_idle_time_, NOW+txtime);
 		    double actual_txtime = end_time-start_time;
 
 		    if (start_time > update_energy_time_) {
@@ -220,7 +220,7 @@ WirelessPhy::sendDown(Packet *p)
 		    */
 
 		   // Sanity check
-		   double temp = max(NOW,last_send_time_);
+		   double temp = MAX(NOW,last_send_time_);
 
 		   /*
 		   if (NOW < last_send_time_) {
@@ -228,8 +228,8 @@ WirelessPhy::sendDown(Packet *p)
 		   }
 		   */
 		   
-		   double begin_adjust_time = min(channel_idle_time_, temp);
-		   double finish_adjust_time = min(channel_idle_time_, NOW+txtime);
+		   double begin_adjust_time = MIN(channel_idle_time_, temp);
+		   double finish_adjust_time = MIN(channel_idle_time_, NOW+txtime);
 		   double gap_adjust_time = finish_adjust_time - begin_adjust_time;
 		   if (gap_adjust_time < 0.0) {
 			   fprintf(stderr,"What the heck ! negative gap time.\n");
@@ -354,8 +354,8 @@ DONE:
 		  em()->DecrRcvEnergy(rcvtime,Pr_consume_);
 		*/
 
-		double start_time = max(channel_idle_time_, NOW);
-		double end_time = max(channel_idle_time_, NOW+rcvtime);
+		double start_time = MAX(channel_idle_time_, NOW);
+		double end_time = MAX(channel_idle_time_, NOW+rcvtime);
 		double actual_rcvtime = end_time-start_time;
 
 		if (start_time > update_energy_time_) {

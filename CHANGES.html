@@ -17,6 +17,11 @@ with the most recent changes coming first.
 <h3>ns-2.28 [PENDING RELEASE]</h3>
 <ul>
 
+<p><li><b>[johnh]</b> Fri Dec 10 09:32:04 PST 2004
+ <br> Applied bug fixes to support building with gcc-3.4
+     (as ships in Fedora Core 3).
+     Changes based on fixes from Mathieu Robin <tt>mathieu.robin@cs.tcd.ie</tt>)
+
 <p><li><b>[johnh]</b> Tue Aug 17 08:25:18 PDT 2004
  <br> applied bug fix in tcp-newreno from Michael Redmond
      (mistaken == in dupack handling); no change to test suites
@@ -26,7 +31,7 @@ with the most recent changes coming first.
 <br> Updated xcp version to support Dina's parking lot experiment. Other minor changes and clean-ups as well.
   
 <p><li><b>[haldar]</b>Wed Sep  8 09:57:57 PDT 2004
-<br> Bug fix for list-based improvement for wireless simulations when using a single node (from Thomas King <tks435@yahoo.de>)
+<br> Bug fix for list-based improvement for wireless simulations when using a single node (from Thomas King <tt>tks435@yahoo.de</tt>)
 
 <p><li><b>[johnh]</b> Tue Aug 17 08:25:18 PDT 2004
  <br> head argument processing fix
@@ -56,7 +61,6 @@ with the most recent changes coming first.
    <li>node sleep schedule user configurable
  </ul>
 
-<ul>
 <p><li><b>[xuanc]</b> Tue Mar 30 10:16:06 PST 2004
  <br> Adding various patches to:
  <ul>
@@ -147,7 +151,7 @@ Diffusion changes made includes
 (1)Added tcl example scripts for 2 phase-pull, push, 1 phase-pull and gear (with push and 2pp) scenarios.
 For gear and other node-position dependent routing in diffusion, need to have a callback to update node positions. since the routing filter (like gear) is init'ed before node positions are assigned gear doesn't get the correct node positions, hence the callback is required. callback would also be reqd to support node movements in diffusion in future.
 For now start gear filters (in tcl scripts) after node positions are assigned to nodes. This will go away once callbacks are implemented.
-(2)Added fix suggested by Andreas Koepke <koepke@ee.tu-berlin.de> for overflow problem in lib/main/tools.cc
+(2)Added fix suggested by Andreas Koepke <tt>koepke@ee.tu-berlin.de</tt> for overflow problem in lib/main/tools.cc
 
 
 
@@ -203,7 +207,7 @@ Code contributed by Andrei Gurtov.
 
 <p><li><b>[Padma Haldar]</b>
 Wed Aug 20 15:52:01 PDT 2003
-Ported SCTP into ns-2. It was actually ported into ns-2.26 by Armando L. Caro Jr. <acaro@@cis.udel.edu> and his group at PEL, Univ of delaware. The implementation includes a test-suite-sctp and doc for sctp (see chapter on SCTP in ns-manual).
+Ported SCTP into ns-2. It was actually ported into ns-2.26 by Armando L. Caro Jr. <tt>acaro@cis.udel.edu</tt> and his group at PEL, Univ of delaware. The implementation includes a test-suite-sctp and doc for sctp (see chapter on SCTP in ns-manual).
 
 
 <p><li><b>[Padma Haldar]</b>

@@ -32,7 +32,7 @@ er in the
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.18 2002/05/30 00:03:17 buchheim Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.19 2004/12/10 22:07:13 johnh Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -645,7 +645,7 @@ void God::floyd_warshall()
   for(i = 0; i < num_nodes; i++) {
      for(j = 0; j < num_nodes; j++) {
 	 for(k = 0; k < num_nodes; k++) {
-	    MIN_HOPS(j,k) = min(MIN_HOPS(j,k), MIN_HOPS(j,i) + MIN_HOPS(i,k));
+	    MIN_HOPS(j,k) = MIN(MIN_HOPS(j,k), MIN_HOPS(j,i) + MIN_HOPS(i,k));
 	 }
      }
   }
