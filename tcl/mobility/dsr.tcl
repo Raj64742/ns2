@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.5 1999/04/10 00:10:54 haldar Exp $
+# $Id: dsr.tcl,v 1.6 1999/04/14 01:12:40 haldar Exp $
 
 # ======================================================================
 # Default Script Options
@@ -100,7 +100,7 @@ SRNode instproc init {args} {
 	set entry_point_ $rcvT	
     } else {
 	# Recv Target
-	set entry_point_ $dsr_agent
+	set entry_point_ $dsr_agent_
     }
 
     #
@@ -184,8 +184,8 @@ SRNode instproc reset args {
 # ======================================================================
 
 proc dsr-create-mobile-node { id } {
-	global ns ns_ chan prop topo tracefd opt node_
-	set ns_ $ns 
+	global ns_ chan prop topo tracefd opt node_
+	set ns_ [Simulator instance] 
 	set node_($id) [new SRNode]
 
 	set node $node_($id)

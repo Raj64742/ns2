@@ -75,7 +75,7 @@ proc default_options {} {
 # Other default settings
 
 set AgentTrace			ON
-set RouterTrace			ON
+set RouterTrace			OFF
 set MacTrace			OFF
 
 LL set mindelay_		50us
@@ -121,7 +121,7 @@ Phy/WirelessPhy set L_ 1.0
 
 TestSuite instproc init {} {
 	global opt tracefd topo chan prop 
-	global node_ god_
+	global node_ god_ 
 	$self instvar ns_ testName_
 	set ns_         [new Simulator]
 	set chan	[new $opt(chan)]
@@ -191,7 +191,7 @@ Test/dsdv instproc init {} {
 Test/dsdv instproc run {} {
     $self instvar ns_
     puts "Starting Simulation..."
-    	$ns_ run
+    $ns_ run
 }
 
 Test/dsr instproc init {} {
@@ -209,7 +209,8 @@ Test/dsr instproc run {} {
 
 proc cmu-trace { ttype atype node } {
 	global ns tracefd
-
+    
+        set ns [Simulator instance]
 	if { $tracefd == "" } {
 		return ""
 	}

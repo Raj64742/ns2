@@ -118,7 +118,7 @@ proc dsdv-create-mobile-node { id } {
 	global ns ns_ chan prop topo tracefd opt node_
 	global chan prop tracefd topo opt
 	
-	set ns_ $ns
+	set ns_ [Simulator instance]
 	set node_($id) [new Node/MobileNode]
 
 	set node $node_($id)

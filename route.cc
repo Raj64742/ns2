@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.25 1999/04/10 00:41:56 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.26 1999/04/14 01:12:42 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -65,7 +65,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 	if (argc == 2) {
 		if (strcmp(argv[1], "compute") == 0) {
 			if (adj_ == 0) {
-				fprintf(stderr, "No adjacency info; Probably a disconnected topology! Route not computed..\n");
+				//fprintf(stderr, "No adjacency info; Probably a disconnected topology! Route not computed..\n");
 				return (TCL_OK);
 			}
 			compute_routes();
