@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.3 1998/09/12 02:56:36 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.4 1998/09/14 21:47:30 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -47,12 +47,17 @@ static const char rcsid[] =
 #include "rtp.h"
 #include "flags.h"
 
+/*
+ * TFCC HEADER DEFINITIONS
+ */
+
 struct hdr_tfcc {
 	double rttest_;	// sender's rtt estimate
 	double ts_;	// ts at sender
 	double ts_echo_;	// echo'd ts (for rtt estimates)
 	double interval_;	// sender's sending interval
 	int cong_seq_;		// congestion sequence number
+	int dataful_;		// packet contains data
 
 	// per-var methods
 	double& rttest() { return (rttest_); }
@@ -60,6 +65,7 @@ struct hdr_tfcc {
 	double& ts_echo() { return (ts_echo_); }
 	double& interval() { return (interval_); }
 	int& cseq() { return (cong_seq_); }
+	int& dataful() { return (dataful_); }
 
 	static int offset_;	// offset of tfcc header
 };
@@ -80,11 +86,21 @@ public:
         }
 } class_tfcchdr;
 
+/**************************** class defn ********************************/
+
 class TFCCAgent;
 
-class TFCCTimer : public TimerHandler {
+class TFCCRttTimer : public TimerHandler {
 public: 
-        TFCCTimer(TFCCAgent *a) : TimerHandler() { a_ = a; }
+        TFCCRttTimer(TFCCAgent *a) : TimerHandler() { a_ = a; }
+protected:
+        void expire(Event *e);
+        TFCCAgent *a_;
+};
+
+class TFCCAckTimer : public TimerHandler {
+public: 
+        TFCCAckTimer(TFCCAgent *a) : TimerHandler() { a_ = a; }
 protected:
         void expire(Event *e);
         TFCCAgent *a_;
@@ -92,20 +108,22 @@ protected:
 
 class TFCCAgent : public RTPAgent {
 
-	friend class TFCCTimer;
+	friend class TFCCAckTimer;
+	friend class TFCCRttTimer;
 
 public:
-	TFCCAgent() : ack_timer_(this),
+	TFCCAgent() : ack_timer_(this), rtt_timer_(this),
 	srtt_(-1.0), rttvar_(-1.0), peer_rtt_est_(-1.0),
 	last_rtime_(-1.0), last_ts_(-1.0), last_loss_time_(-1.0),
-	expected_(-1), seqno_(0), cseq_(0), highest_cseq_seen_(-1),
-	needresponse_(0), last_ecn_(0) {
+	expected_(0), cseq_(0), highest_cseq_seen_(-1),
+	needresponse_(0), last_ecn_(0), last_cseq_checked_(-1) {
 		bind("alpha_", &alpha_);
 		bind("beta_", &beta_);
 		bind("srtt_", &srtt_);
 		bind("rttvar_", &rttvar_);
 		bind("peer_rtt_est_", &peer_rtt_est_);
 		bind("ack_interval_", &ack_interval_);
+		bind("silence_thresh_", &silence_thresh_);
 	}
 protected:
 	virtual void makepkt(Packet*);
@@ -117,6 +135,7 @@ protected:
 	void ack_rate_change();		// changes the ack gen rate
 	void slowdown();	// reason to slow down
 	void speedup();		// possible opportunity to speed up
+	void nopeer();		// lost ack stream from peer
         double now() const { return Scheduler::instance().clock(); };
 	double rtt_sample(double samp);
 
@@ -133,13 +152,17 @@ protected:
 	double last_rtime_;	// last time a pkt was received
 
 	int expected_;		// next expected sequence number
-	int seqno_;		// first seq# of a series of pkts
 	int cseq_;		// congest epoch seq # (as receiver)
 	int highest_cseq_seen_;	// peer's last cseq seen (I am sender)
+	int last_cseq_checked_;	// last cseq value at rtt heartbeat
+	int last_expected_;	// value of expected_ on last rtt beat
+	int silence_;		// # of beats we've been idle
+	int silence_thresh_;	// call nopeer() if silence_ > silence_thresh_
 	int needresponse_;	// send a packet in response to current one
 	int last_ecn_;		// last recv had an ecn
 
-	RTPTimer ack_timer_;	// periodic timer for ack generation
+	TFCCAckTimer ack_timer_;// periodic timer for ack generation
+	TFCCRttTimer rtt_timer_;// periodic rtt-based heartbeat
 };
 
 static class TFCCAgentClass : public TclClass {
@@ -149,6 +172,8 @@ public:
 		return (new TFCCAgent());
 	}
 } class_tfcc_agent;
+
+/************************** methods ********************************/
 
 double
 TFCCAgent::rtt_sample(double m)
@@ -180,6 +205,7 @@ TFCCAgent::makepkt(Packet* p)
 	th->interval() = interval_;
 	th->rttest() = srtt_;
 	th->cseq() = cseq_;
+	th->dataful() = running_;
 
 	fh->ecnecho() = last_ecn_;
 	fh->ect() = 1;
@@ -199,6 +225,9 @@ TFCCAgent::recv(Packet* pkt, Handler*)
 	hdr_tfcc* th = (hdr_tfcc*)pkt->access(hdr_tfcc::offset_);
 	hdr_flags* fh = (hdr_flags*)pkt->access(hdr_flags::offset_);
 
+printf("%f: %s: recv: seq: %d, cseq: %d, expect:%d\n", now(), name(),
+	rh->seqno(), th->cseq(), expected_);
+
 	/*
 	 * do the duties of a receiver
 	 */
@@ -215,11 +244,7 @@ TFCCAgent::recv(Packet* pkt, Handler*)
 		needresponse_ = 1;
 	}
 
-	if (rh->seqno() > seqno_) {
-		// last seqno and ts we've seen
-        	seqno_ = rh->seqno();
-		last_ts_ = th->ts();
-	}
+	last_ts_ = th->ts();
 
 	if (fh->ect()) {
 		// turn around ecn's we see
@@ -231,8 +256,11 @@ TFCCAgent::recv(Packet* pkt, Handler*)
 	}
 
 	int loss = 0;
-	if (expected_ >= 0 && (loss = seqno_ - expected_) > 0)
+	if (expected_ >= 0 && (loss = rh->seqno() - expected_) > 0) {
 		loss_event(loss);
+		expected_ = rh->seqno() + 1;
+	} else
+		++expected_;
 
 	/*
 	 * do the duties of a sender
@@ -250,17 +278,9 @@ TFCCAgent::recv(Packet* pkt, Handler*)
 	if (th->cseq() > highest_cseq_seen_) {
 		// look at receiver's congestion report
 		highest_cseq_seen_ = th->cseq();
-		slowdown();
-	} else if (th->cseq() == highest_cseq_seen_) {
-		speedup();
-	} else {
-		fprintf(stderr, "%s: oops! decreasing cseqs!\n",
-			name());
-		abort();
 	}
 
         last_rtime_ = now();
-        expected_ = seqno_ + 1;
         Packet::free(pkt);
 
 	if (needresponse_)
@@ -278,6 +298,7 @@ TFCCAgent::loss_event(int nlost)
 {
 	// if its been awhile (more than an rtt estimate) since the last loss,
 	// this is a new indication of congestion
+printf("%f %s: loss event: nlost:%d\n", now(), name(), nlost);
 	if (peer_rtt_est_ < 0.0 || (now() - last_loss_time_) > peer_rtt_est_) {
 		++cseq_;
 		needresponse_ = 1;
@@ -303,10 +324,12 @@ void
 TFCCAgent::peer_rttest_known(double peerest)
 {
 	// first time our peer has indicated it knows the rtt
-	// so, adjust our "ack" sending rate to be once per rtt
+	if (!running_) {
+		// if we are not a data sender, schedule acks
 printf("%s: setting ack_interval to %f\n", name(), peerest);
-	ack_interval_ = peerest;
-	ack_rate_change();
+		ack_interval_ = peerest / 2.0;
+		ack_rate_change();
+	}
 }
 
 /*
@@ -315,6 +338,8 @@ printf("%s: setting ack_interval to %f\n", name(), peerest);
 void
 TFCCAgent::rtt_known(double rtt)
 {
+printf("%s: RTT KNOWN (%f), starting timer\n", name(), rtt);
+	rtt_timer_.resched(rtt);
 }
 
 /*
@@ -325,7 +350,12 @@ TFCCAgent::rtt_known(double rtt)
 void
 TFCCAgent::speedup()
 {
-printf("%s SPEEDUP\n", name());
+	if (running_) {
+		interval_ = (srtt_ * interval_) / (srtt_ + interval_);
+printf("%s SPEEDUP [srtt:%f], new interval:%f, ppw:%d\n",
+	name(), srtt_, interval_, int(srtt_ / interval_));
+		rate_change();
+	}
 }
 
 /*
@@ -336,7 +366,25 @@ printf("%s SPEEDUP\n", name());
 void
 TFCCAgent::slowdown()
 {
-printf("%s SLOWDOWN\n", name());
+	if (running_) {
+		interval_ *= 2.0;
+printf("%s SLOWDOWN [srtt: %f], new interval:%f, ppw:%d\n",
+	name(), srtt_, interval_, int(srtt_ / interval_));
+		rate_change();
+	}
+}
+
+/*
+ * nopeer: called if we haven't heard any acks from the
+ * receiver in 'silence_thresh_' number of rtt ticks
+ */
+
+void
+TFCCAgent::nopeer()
+{
+	// for now, just 1/2 sending rate
+	slowdown();
+	silence_ = 0;
 }
 
 void
@@ -352,8 +400,53 @@ TFCCAgent::ack_rate_change()
         }       
 }   
 
+/*
+ * called on RTT periods to determine action to take
+ */
 void
-TFCCTimer::expire(Event*)
+TFCCRttTimer::expire(Event*)
+{
+printf(">>>>> %f: %s: RTT beat: last_checked:%d, highest_seen:%d\n",
+    a_->now(), a_->name(), a_->last_cseq_checked_, a_->highest_cseq_seen_);
+
+	if (a_->last_cseq_checked_ < 0) {
+		// initialize
+		a_->last_cseq_checked_ = a_->highest_cseq_seen_;
+		a_->last_expected_ = a_->expected_;
+		resched(a_->srtt_);
+	} else {
+		//
+		// check peer's congestion status
+		//
+		if (a_->last_cseq_checked_ == a_->highest_cseq_seen_) {
+			a_->speedup();
+		} else {
+			a_->slowdown();
+			a_->last_cseq_checked_ = a_->highest_cseq_seen_;
+		}
+
+		//
+		// check if we've heard anything from peer in awhile
+		//
+
+		if (a_->expected_ == a_->last_expected_) {
+			// nothing since last beat
+			if (++a_->silence_ >= a_->silence_thresh_)
+				a_->nopeer();
+		} else {
+			// yep, heard something
+			a_->silence_ = 0;
+			resched(a_->srtt_);
+		}
+	}
+	return;
+}
+
+/*
+ * called periodically to send acks
+ */
+void
+TFCCAckTimer::expire(Event*)
 {
 	a_->sendpkt();
 	resched(a_->ack_interval_);
