@@ -3,7 +3,7 @@ source ../lan/ns-mac.tcl
 source ../lan/ns-lan.tcl
 set flags(0) 0
 set stop 10
-set trfile temp
+set trfile out
 set tcpfile tcpstats
 set bw 100Kb
 set delay 10ms
