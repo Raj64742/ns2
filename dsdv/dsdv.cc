@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.16 1999/09/09 04:02:40 salehi Exp $
+   $Id: dsdv.cc,v 1.17 1999/09/09 18:44:26 yaxu Exp $
 
    */
 
@@ -572,17 +572,19 @@ DSDV_Agent::makeUpdate(int& periodic)
 void
 DSDV_Agent::updateRoute(rtable_ent *old_rte, rtable_ent *new_rte)
 {
+  int negvalue = -1;
   assert(new_rte);
 
   Time now = Scheduler::instance().clock();
 
   char buf[1024];
-  snprintf (buf, 1024, "%c %.5f _%d_ (%d,%d->%d,%d->%d,%d->%d,%lf)",
+  //  snprintf (buf, 1024, "%c %.5f _%d_ (%d,%d->%d,%d->%d,%d->%d,%lf)",
+  snprintf (buf, 1024, "%c %.5f _%d_ (%d,%d->%d,%d->%d,%d->%d,%f)",
 	    (new_rte->metric != BIG 
 	     && (!old_rte || old_rte->metric != BIG)) ? 'D' : 'U', 
 	    now, myaddr_, new_rte->dst, 
-	    old_rte ? old_rte->metric : -1, new_rte->metric, 
-	    old_rte ? old_rte->seqnum : -1,  new_rte->seqnum,
+	    old_rte ? old_rte->metric : negvalue, new_rte->metric, 
+	    old_rte ? old_rte->seqnum : negvalue,  new_rte->seqnum,
 	    old_rte ? old_rte->hop : -1,  new_rte->hop, 
 	    new_rte->advertise_ok_at);
 

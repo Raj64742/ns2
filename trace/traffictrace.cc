@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.10 1999/03/12 23:39:57 salehi Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/traffictrace.cc,v 1.11 1999/09/09 18:44:09 yaxu Exp $ (Xerox)";
 #endif
 
 /* XXX: have not dealt with errors.  e.g., if something fails during
@@ -146,8 +146,11 @@ int TraceFile::setup()
 		}
 
 		nrec_ = buf.st_size/sizeof(tracerec);
+		unsigned nrecplus = nrec_ * sizeof(tracerec);
+		unsigned bufst = buf.st_size;
 
-		if (nrec_ * sizeof(tracerec) != buf.st_size) {
+		//	if ((unsigned)(nrec_ * sizeof(tracerec)) != buf.st_size) {
+		if (nrecplus != bufst) {
 			printf("bad file size in %s\n", name_);
 			return -1;
 		}
@@ -165,6 +168,7 @@ int TraceFile::setup()
 				return -1 ;
 			}
 			else {
+		
 				t->trec_time = htonl(t->trec_time);
 				t->trec_size = htonl(t->trec_size);
 			}
