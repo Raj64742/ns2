@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.24 1999/09/20 01:54:58 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.25 1999/09/30 23:09:24 salehi Exp $ (LBL)";
 #endif
 
 //
@@ -54,96 +54,19 @@ extern "C" {
 #include "packet.h"
 #include "ip.h"
 #include "classifier.h"
+#include "classifier-hash.h"
 
-/* class defs for HashClassifier (base), SrcDest, SrcDestFid HashClassifiers */
-class HashClassifier : public Classifier {
-public:
-	HashClassifier(int keylen) : default_(-1), keylen_(keylen) {
-		// shift + mask picked up from underlying Classifier object
-		bind("default_", &default_);
-		Tcl_InitHashTable(&ht_, keylen);
-	}		
-	~HashClassifier() {
-		Tcl_DeleteHashTable(&ht_);
-	};
-	int classify(Packet * p) {
-		int slot= lookup(p);
-		if (slot >= 0 && slot <=maxslot_)
-			return (slot);
-		else if (default_ >= 0)
-			return (default_);
-		return (unknown(p));
-	}
-	virtual int lookup(Packet* p) {
-		hdr_ip* h = hdr_ip::access(p);
-		return get_hash(h->saddr(), h->daddr(), h->flowid());
-	}
-	virtual int unknown(Packet* p) {
-		hdr_ip* h = hdr_ip::access(p);
-		Tcl::instance().evalf("%s unknown-flow %u %u %u",
-				      name(), h->saddr(), h->daddr(), h->flowid());
-		return lookup(p);
-	};
-
-protected:
-	union hkey {
-		struct {
-			int fid;
-		} Fid;
-		struct {
-			nsaddr_t dst;
-		} Dst;
-		struct {
-			nsaddr_t src, dst;
-		} SrcDst;
-		struct {
-			nsaddr_t src, dst;
-			int fid;
-		} SrcDstFid;
-	};
-		
-	int lookup(nsaddr_t src, nsaddr_t dst, int fid) {
-		return get_hash(src, dst, fid);
-	}
-	int newflow(Packet* pkt) {
-		hdr_ip* h = hdr_ip::access(pkt);
-		Tcl::instance().evalf("%s unknown-flow %u %u %u",
-				      name(), h->saddr(), h->daddr(), h->flowid());
-		return lookup(pkt);
-	};
-	void reset() {
-		Tcl_DeleteHashTable(&ht_);
-		Tcl_InitHashTable(&ht_, keylen_);
-	}
-
-	virtual const char* hashkey(nsaddr_t, nsaddr_t, int)=0; 
-
-	int set_hash(nsaddr_t src, nsaddr_t dst, int fid, int slot) {
-		int newEntry;
-		Tcl_HashEntry *ep= Tcl_CreateHashEntry(&ht_, hashkey(src, dst, fid), &newEntry);
-		if (ep) {
-			Tcl_SetHashValue(ep, slot);
-			return slot;
-		}
-		return -1;
-	}
-	int get_hash(nsaddr_t src, nsaddr_t dst, int fid) {
-		Tcl_HashEntry *ep= Tcl_FindHashEntry(&ht_, hashkey(src, dst, fid));
-		if (ep)
-			return (int)Tcl_GetHashValue(ep);
-		return -1;
-	}
-	
-	int command(int argc, const char*const* argv);
-
-
-	int default_;
-	Tcl_HashTable ht_;
-	hkey buf_;
-	int keylen_;
-};
 
 /****************** HashClassifier Methods ************/
+int HashClassifier::classify(Packet * p) {
+	int slot= lookup(p);
+	if (slot >= 0 && slot <=maxslot_)
+		return (slot);
+	else if (default_ >= 0)
+		return (default_);
+	return (unknown(p));
+} // HashClassifier::classify
+
 int HashClassifier::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
@@ -182,8 +105,10 @@ int HashClassifier::command(int argc, const char*const* argv)
 			nsaddr_t src = atoi(argv[2]);
 			nsaddr_t dst = atoi(argv[3]);
 			int fid = atoi(argv[4]);
-
-			Tcl_HashEntry *ep= Tcl_FindHashEntry(&ht_, hashkey(src, dst, fid));
+			
+			Tcl_HashEntry *ep= Tcl_FindHashEntry(&ht_, 
+							     hashkey(src, dst,
+								     fid)); 
 			if (ep) {
 				int slot= (int)Tcl_GetHashValue(ep);
 				Tcl_DeleteHashEntry(ep);
@@ -196,50 +121,6 @@ int HashClassifier::command(int argc, const char*const* argv)
 	return (Classifier::command(argc, argv));
 }
 
-
-class SrcDestFidHashClassifier : public HashClassifier {
-public:
-	SrcDestFidHashClassifier() : HashClassifier(3) {
-	}
-protected:
-	const char* hashkey(nsaddr_t src, nsaddr_t dst, int fid) {
-		buf_.SrcDstFid.src= mshift(src);
-		buf_.SrcDstFid.dst= mshift(dst);
-		buf_.SrcDstFid.fid= fid;
-		return (const char*) &buf_;
-	}
-};
-
-class SrcDestHashClassifier : public HashClassifier {
-public:
-	SrcDestHashClassifier() : HashClassifier(2) {
-	}
-protected:
-	const char*  hashkey(nsaddr_t src, nsaddr_t dst, int) {
-		buf_.SrcDst.src= mshift(src);
-		buf_.SrcDst.dst= mshift(dst);
-		return (const char*) &buf_;
-	}
-};
-
-class FidHashClassifier : public HashClassifier {
-public:
-	FidHashClassifier() : HashClassifier(TCL_ONE_WORD_KEYS) {
-	}
-protected:
-	const char* hashkey(nsaddr_t, nsaddr_t, int fid) {
-		return (const char*) fid;
-	}
-};
-
-class DestHashClassifier : public HashClassifier {
-public:
-	DestHashClassifier() : HashClassifier(TCL_ONE_WORD_KEYS) {}
-protected:
-	const char* hashkey(nsaddr_t, nsaddr_t dst, int) {
-		return (const char*) mshift(dst);
-	}
-};
 
 /**************  TCL linkage ****************/
 static class SrcDestHashClassifierClass : public TclClass {
@@ -275,8 +156,31 @@ public:
 } class_hash_srcdestfid_classifier;
 
 
+// DestHashClassifier methods
+int DestHashClassifier::classify(Packet *p)
+{
+	int slot= lookup(p);
+	if (slot >= 0 && slot <=maxslot_)
+		return (slot);
+	else if (default_ >= 0)
+		return (default_);
+	return -1;
+} // HashClassifier::classify
 
-
-
-
-
+int DestHashClassifier::command(int argc, const char*const* argv)
+{
+	if (argc == 4) {
+		// $classifier install $dst $node
+		if (strcmp(argv[1], "install") == 0) {
+			nsaddr_t dst = atoi(argv[2]);
+			NsObject *node = (NsObject*)TclObject::lookup(argv[3]);
+			int slot = getnxt(node);
+			install(slot, node);
+			if (set_hash(0, dst, 0, slot) >= 0)
+				return TCL_OK;
+			else
+				return TCL_ERROR;
+		} // if
+	}
+	return(HashClassifier::command(argc, argv));
+} // command

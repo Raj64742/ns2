@@ -43,17 +43,11 @@ public:
 	~HashClassifier() {
 		Tcl_DeleteHashTable(&ht_);
 	};
-	int classify(Packet * p) {
-		int slot= lookup(p);
-		if (slot >= 0 && slot <=maxslot_)
-			return (slot);
-		else if (default_ >= 0)
-			return (default_);
-		return (unknown(p));
-	}
+	virtual int classify(Packet *p);
 	virtual int lookup(Packet* p) {
 		hdr_ip* h = hdr_ip::access(p);
-		return get_hash(h->saddr(), h->daddr(), h->flowid());
+		return get_hash(mshift(h->saddr()), mshift(h->daddr()), 
+				h->flowid());
 	}
 	virtual int unknown(Packet* p) {
 		hdr_ip* h = hdr_ip::access(p);
@@ -123,5 +117,51 @@ protected:
 	Tcl_HashTable ht_;
 	hkey buf_;
 	int keylen_;
+};
+
+class SrcDestFidHashClassifier : public HashClassifier {
+public:
+	SrcDestFidHashClassifier() : HashClassifier(3) {
+	}
+protected:
+	const char* hashkey(nsaddr_t src, nsaddr_t dst, int fid) {
+		buf_.SrcDstFid.src= mshift(src);
+		buf_.SrcDstFid.dst= mshift(dst);
+		buf_.SrcDstFid.fid= fid;
+		return (const char*) &buf_;
+	}
+};
+
+class SrcDestHashClassifier : public HashClassifier {
+public:
+	SrcDestHashClassifier() : HashClassifier(2) {
+	}
+protected:
+	const char*  hashkey(nsaddr_t src, nsaddr_t dst, int) {
+		buf_.SrcDst.src= mshift(src);
+		buf_.SrcDst.dst= mshift(dst);
+		return (const char*) &buf_;
+	}
+};
+
+class FidHashClassifier : public HashClassifier {
+public:
+	FidHashClassifier() : HashClassifier(TCL_ONE_WORD_KEYS) {
+	}
+protected:
+	const char* hashkey(nsaddr_t, nsaddr_t, int fid) {
+		return (const char*) fid;
+	}
+};
+
+class DestHashClassifier : public HashClassifier {
+public:
+	DestHashClassifier() : HashClassifier(TCL_ONE_WORD_KEYS) {}
+	int command(int argc, const char*const* argv);
+	int classify(Packet *p);
+protected:
+	const char* hashkey(nsaddr_t, nsaddr_t dst, int) {
+		return (const char*) mshift(dst);
+	}
 };
 
