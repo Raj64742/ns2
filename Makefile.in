@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.196 2000/08/31 20:11:48 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.197 2000/09/01 00:29:09 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -270,6 +270,7 @@ NS_TCL_LIB = \
 	tcl/rtglib/dynamics.tcl \
 	tcl/rtglib/route-proto.tcl \
 	tcl/rtglib/algo-route-proto.tcl \
+	tcl/rtglib/ns-rtProtoLS.tcl \
         tcl/interface/ns-iface.tcl \
 	tcl/mcast/BST.tcl \
         tcl/mcast/ns-mcast.tcl \
@@ -304,7 +305,6 @@ NS_TCL_LIB = \
 	tcl/plm/plm.tcl \
 	tcl/plm/plm-ns.tcl \
 	tcl/plm/plm-topo.tcl \
-	tcl/lib/ns-rtProtoLS.tcl \
 	tcl/mpls/ns-mpls-classifier.tcl \
 	tcl/mpls/ns-mpls-ldpagent.tcl \
 	tcl/mpls/ns-mpls-node.tcl \
