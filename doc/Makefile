@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.5 1999/04/07 17:41:59 salehi Exp $
+# $Id: Makefile,v 1.6 1999/05/11 23:45:34 haldar Exp $
 #
 
 LATEX2HTMLDIR=	/home/salehi/latex2html
@@ -41,7 +41,8 @@ FILES= \
 	unicast.tex \
 	webcache.tex \
 	address.tex \
-	hier-rtg.tex
+	hier-rtg.tex \
+	mobility.tex
 
 all: everything.dvi everything.ps everything.html
 
