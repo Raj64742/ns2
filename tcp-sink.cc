@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.15 1997/07/24 18:07:12 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.16 1997/07/25 01:39:34 kfall Exp $ (LBL)";
 #endif
 
 #include "tcp-sink.h"
@@ -61,14 +61,16 @@ void Acker::reset()
 void Acker::update(int seq)
 {
 
-	if (seq - next_ >= MWM)
+	if (seq - next_ >= MWM) {
 		// Protect seen_ array from overflow.
 		// The missing ACK will ultimately cause sender timeout
 		// and retransmission of packet next_.
 		return;
+	}
 
 	if (seq > maxseen_) {
-		for (int i = maxseen_ + 1; i < seq; ++i)
+		int i;
+		for (i = maxseen_ + 1; i < seq; ++i)
 			seen_[i & MWM] = 0;
 		maxseen_ = seq;
 		seen_[maxseen_ & MWM] = 1;
@@ -196,8 +198,6 @@ void DelAckSink::timeout(int)
 
 /* "sack1-tcp-sink" is for Matt and Jamshid's implementation of sack. */
 
-#define MAX_OLD_SACK 100
-
 class SackStack {
 protected:
 	int size_;
@@ -222,7 +222,8 @@ public:
 
 	inline void push(int n = 0) {
  		if (cnt_ >= size_) cnt_ = size_ - 1;  // overflow check
-		for (register i = cnt_-1; i >= n; i--)
+		register i;
+		for (i = cnt_-1; i >= n; i--)
 			SFE_[i+1] = SFE_[i];	// not efficient for big size
 		cnt_++;
 	}
@@ -238,9 +239,10 @@ public:
 
 SackStack::SackStack(int sz)
 {
+	register i;
 	size_ = sz;
 	SFE_ = new Sf_Entry[sz];
-	for (register i = 0; i < sz; i++)
+	for (i = 0; i < sz; i++)
 		SFE_[i].left_ = SFE_[i].right_ = -1;
 	cnt_ = 0;
 }
@@ -261,6 +263,7 @@ public:
 	void reset();
 protected:
         int max_sack_blocks_;
+	int base_nblocks_;
 	SackStack *sf_;
 };
 
@@ -289,6 +292,7 @@ public:
 Sacker::Sacker()
 {
 	sf_ = new SackStack(max_sack_blocks_);
+	base_nblocks_ = max_sack_blocks_;
 }
 
 void Sacker::reset() 
@@ -310,6 +314,7 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 	int seqno = Seqno();
 
         sack_index = 0;
+	sack_left = sack_right = -1;
 
         if (old_seqno < 0) {
                 printf("Error: invalid packet number %d\n", old_seqno);
@@ -328,7 +333,7 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 		}
 
                 if (sack_right == -1) {
-                                sack_right = maxseen_+1;
+			sack_right = maxseen_+1;
                 }
 
 		if (old_seqno <= seqno) {
@@ -336,10 +341,10 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 		} else {
 			/* look leftward from right edge for first hole */
 	                for (i = sack_right-1; i > seqno; i--) {
-	                                if (!seen_[i & MWM]) {
-	                                        sack_left = i+1;
-	                                        break;
-	                                }
+				if (!seen_[i & MWM]) {
+					sack_left = i+1;
+					break;
+				}
 	                }
 			h->sa_left()[sack_index] = sack_left;
 			h->sa_right()[sack_index] = sack_right;
@@ -350,8 +355,16 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 		recent_sack_right = sack_right;
 
 		/* first sack block is built, check the others */
+		/*
+		 * make sure that if max_sack_blocks has been made
+		 * large from tcl we don't over-run the stuff we
+		 * allocated in Sacker::Sacker()
+		 */
+
 		int k = 0;
-                while (sack_index < max_sack_blocks_) {
+		int bound = (max_sack_blocks_ < base_nblocks_) ?
+			max_sack_blocks_ : base_nblocks_;
+                while (sack_index < bound) {
 
 			sack_left = sf_->head_left(k);
 			sack_right = sf_->head_right(k);
