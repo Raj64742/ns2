@@ -2,7 +2,7 @@
 #include <ctype.h>
 #include "packet.h"
 
-char* p_info::name_[PT_NTYPE];
+char* p_info::name_[PT_NTYPE+1];
 
 void
 printLine(char *s) {
