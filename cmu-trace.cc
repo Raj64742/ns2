@@ -636,6 +636,10 @@ CMUTrace::command(int argc, const char*const* argv)
 void
 CMUTrace::recv(Packet *p, Handler *h)
 {
+	if (!node_energy()) {
+	    Packet::free(p);
+	    return;
+	}
 	//struct hdr_ip *ih = HDR_IP(p);
 	
 	// hack the IP address to convert pkt format to hostid format
@@ -674,7 +678,15 @@ CMUTrace::recv(Packet *p, Handler *h)
 void
 CMUTrace::recv(Packet *p, const char* why)
 {
+
         assert(initialized() && type_ == DROP);
+
+	if (!node_energy()) {
+	    Packet::free(p);
+	    return;
+	}
+
+
 #if 0
         /*
          * When the originator of a packet drops the packet, it may or may
@@ -690,4 +702,22 @@ CMUTrace::recv(Packet *p, const char* why)
 	Packet::free(p);
 }
 
+int
+CMUTrace::node_energy()
+{
 
+	Node* thisnode = Node::get_node_by_address(src_);
+
+	double energy = 1;
+
+	if (thisnode) {
+	    if (thisnode->energy_model()) {
+	       energy = thisnode->energy();
+	    }
+	} 
+
+	if (energy > 0) return 1;
+	printf("DEBUG: node $d dropping pkts due to energy = 0\n", src_);
+	return 0;
+
+}

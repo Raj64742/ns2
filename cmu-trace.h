@@ -97,7 +97,7 @@ private:
 	int     newtrace_;
 
         int initialized() { return node_ && 1; }
-
+	int node_energy();
 	int	command(int argc, const char*const* argv);
 	void	format(Packet *p, const char *why);
 

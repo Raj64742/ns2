@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.22 1999/07/01 00:08:43 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.23 1999/10/23 03:43:38 yaxu Exp $
 #
 
 #  NOTE:  Could consider renaming this file to ns-app.tcl and moving the
@@ -158,8 +158,13 @@ Agent/CBR instproc init {} {
 	$trafgen_ set maxpkts_ [$self set maxpkts_]
 	$trafgen_ set packetSize_ [$self set packetSize_]
 	# The line below is needed for backward compat with v1 test scripts 
-	puts "using backward compatible Agent/CBR; use Application/Traffic/CBR instead"
+        if {[Simulator set nsv1flag] == 0} { 
+        
+	    puts "using backward compatible Agent/CBR; use Application/Traffic/CBR instead"
+	}    
 }
+
+
 
 Agent/CBR instproc done {} { }
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.43 1999/09/09 03:34:33 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.44 1999/10/23 03:43:36 yaxu Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -158,6 +158,8 @@ OldSim instproc init args {
 	eval $self next $args
 	puts stderr "warning: using backward compatibility mode"
 	$self instvar classMap_
+ 
+        Simulator set nsv1flag 1
 
 	#
 	# Always use the list scheduler.

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.174 1999/10/11 23:28:46 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.175 1999/10/23 03:43:37 yaxu Exp $
 
 
 #
@@ -445,6 +445,7 @@ AllocAddrBits set DEFADDRSIZE_ 32
 AllocAddrBits set MAXADDRSIZE_ 32                ;# leaving the signed bit
 
 Simulator set node_factory_ Node
+Simulator set nsv1flag 0
 
 #Simulator set mn_ 0				 ;# counter for mobile nodes
 Simulator set mobile_ip_ 0			 ;# flag for mobileIP
