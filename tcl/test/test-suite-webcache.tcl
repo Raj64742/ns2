@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.3 1998/08/31 17:14:49 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.4 1998/10/21 16:54:38 tomh Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -923,7 +923,7 @@ Test/http1 instproc init {} {
 Test/http1 instproc set-members {} {
 	$self instvar ns_ src_ dst_ node_ ftp1_
 
-#	set ftp1_ [$src_ attach-source FTP]
+#	set ftp1_ [$src_ attach-app FTP]
 	$ns_ at 1.0 "$self start-connection 1 0"
 	$ns_ at 9.0 "$self finish-connection 1 0"
 	$ns_ at 10.0 "$self start-connection 1 2"
