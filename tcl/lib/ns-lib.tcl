@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.216 2000/12/09 02:14:44 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.217 2000/12/20 10:16:14 alefiyah Exp $
 
 #
 # Word of warning to developers:
@@ -152,6 +152,7 @@ source ../interface/ns-iface.tcl
 source ../lan/ns-mac.tcl
 source ../lan/ns-ll.tcl
 source ../lan/vlan.tcl
+source ../lan/abslan.tcl
 source ../mcast/timer.tcl
 source ../mcast/ns-mcast.tcl
 source ../mcast/McastProto.tcl
