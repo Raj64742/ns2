@@ -60,6 +60,23 @@ RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
         $cbqlink_ insert $rootcl
         $cbqlink_ insert $badclass_ $pboxfm_
         $cbqlink_ insert $goodclass_ $okboxfm_
+
+	# put in the edrop stuff
+	$cbqlink_ instvar snoopDrop_
+	if { [info exists snoopDrop_] } {
+		set ldrop $snoopDrop_
+	} else {
+		set ldrop [$ns_ set nullAgent_]
+	}
+	set edsnoop [new SnoopQueue/EDrop]
+	$edsnoop set-monitor $pboxfm_
+	$edsnoop target $ldrop
+	$badq early-drop-target $edsnoop
+
+	set edsnoop [new SnoopQueue/EDrop]
+	$edsnoop set-monitor $okboxfm_
+	$edsnoop target $ldrop
+	$goodq early-drop-target $edsnoop
 }
 
 RTMechanisms instproc makeflowmon {} {
