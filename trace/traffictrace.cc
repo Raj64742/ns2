@@ -46,6 +46,7 @@ struct tracerec {
 
 class TraceFile : public NsObject {
  public:
+	TraceFile();
 	void get_next(int&, struct tracerec&); /* called by TrafficGenerator
 						* to get next record in trace.
 						*/
