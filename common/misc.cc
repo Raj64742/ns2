@@ -35,7 +35,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.2 1997/02/03 16:59:09 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/misc.cc,v 1.3 1997/02/18 02:43:15 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -90,7 +90,7 @@ public:
         virtual int command(int argc, const char*const* argv) {
 		if (argc != 2)
 			return (TCL_ERROR);
-		char* s = argv[1];
+		char* s = (char*) argv[1];
 		char wrk[32];
 		char* cp = wrk;
 		while (isdigit(*s) || *s == 'e' ||
