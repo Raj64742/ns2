@@ -20,7 +20,7 @@ consisting of multiple point-to-point links cannot capture the sharing
 and contention properties of a LAN.  To simulate these properties, we
 created a new type of \code{Link}, called \code{LanLink}.  The OTcl
 configurations and interfaces for \code{LanLink} reside in the following
-two files in the main \ns directory:
+two files in the main \ns\ directory:
 
 \begin{verbatim}
         tcl/lan/ns-lan.tcl
@@ -30,15 +30,15 @@ two files in the main \ns directory:
 \section{Tcl configuration}
 \label{sec:lan_tcl}
 
-The interfaces for creating and configuring a LAN slightly differs from
+The interface for creating and configuring a LAN slightly differs from
 those of point-to-point link.  At the top level, the OTcl class
 \code{Simulator} exports a new method called \code{make-lan}.  The
-parameters to this method is similar to the method \code{duplex-link},
+parameters to this method are similar to the method \code{duplex-link},
 except that \code{make-lan} only accepts a list of nodes as a single
 parameter instead of 2 parameters as in \code{duplex-link}:
 
 \begin{verbatim}
-Simulator instproc make-lan {nodes bw delay lltype ifqtype mactype chantype }
+Simulator instproc make-lan {nodes bw delay lltype ifqtype mactype chantype}
 \end{verbatim}
 
 The optional parameters to \code{make-lan} specify the type of objects
@@ -48,9 +48,9 @@ is an example of how a new CSMA/CD (Ethernet) LAN is created.
 
 Example:
 \begin{verbatim}
-        [$ns make-lan "$n1 $n2" $bw $delay LL Queue/DropTail Mac/Csma/Cd]
+        $ns make-lan "$n1 $n2" $bw $delay LL Queue/DropTail Mac/Csma/Cd
 \end{verbatim}
-create a LAN with basic link-layer, drop-tail queue, and CSMA/CD MAC.
+creates a LAN with basic link-layer, drop-tail queue, and CSMA/CD MAC.
 
 
 \section{Components of a LAN}
@@ -107,7 +107,7 @@ the \code{Mac}, the link-layer \code{Classifier}, and the \code{LL}.
 
 At the bottom of the stack, the physical layer is composed of two
 simulation objects: the \code{Channel} and \code{Classifier/Mac}.  The
-\code{Channel} object simulates the shared medium and support the medium
+\code{Channel} object simulates the shared medium and supports the medium
 access mechanisms of the MAC objects on the sending side of the
 transmission.  On the receiving side, the \code{Classifier/Mac} is
 responsible for delivering and optionally replicating packets to the
@@ -116,7 +116,7 @@ receiving MAC objects.
 Depending on the type of physical layer, the MAC layer must contain a
 certain set of functionalities such as: carrier sense, collision
 detection, collision avoidance, etc.  Since these functionalities affect
-both the sending and receiving, they are implemented in a single
+both the sending and receiving sides, they are implemented in a single
 \code{Mac} object.  For sending, the \code{Mac} object must follow a certain
 medium access protocol before transmitting the packet on the channel.
 For receiving, the MAC layer is responsible for delivering the packet to
@@ -125,9 +125,9 @@ the link layer.
 Above the MAC layer, the link layer can potentially have many
 functionalities such as queuing and link-level retransmission.  The need
 of having a wide variety of link-level schemes leads to the division of
-functionalities into three components: \code{LL} (link-layer),
+functionality into three components: \code{LL} (link-layer),
 \code{Queue}, and \code{Classifier}.  The \code{LL} object implements
-a particular data link protocol, such as ARQ, on the per
+a particular data link protocol, such as ARQ, on a per
 source/destination basis.  By combining both the sending and receiving
 functionalities into one module, the \code{LL} object can also support
 other mechanisms such as piggybacking.
@@ -154,8 +154,8 @@ and handling.
 
 Since the transmission time is a function of the number of bits in the
 packet and the modulation speed of each individual interface (MAC), the
-\code{Channel} object only set its busy signal for the duration
-requested by the MAC object.  It also schedule the packets to be
+\code{Channel} object only sets its busy signal for the duration
+requested by the MAC object.  It also schedules the packets to be
 delivered to the destination MAC objects after the transmission time
 plus the propagation delay.
 
@@ -186,7 +186,8 @@ following OTcl configuration parameter:
 \subsection{Channel Class in C++}
 \label{sec:channelcplus}
 
-In C++, the class Channel extendsConnector with several new methods to
+In C++, the class Channel extends the Connector object
+with several new methods to
 support a variety of MAC protocols.  The class is defined as follow in
 \nsf{channel.h}:
 
@@ -219,7 +220,7 @@ detect collision.
 \item  \code{send()} method allows the MAC object to transmit a packet on the
 channel for a specified duration of time.
 \item  \code{hold()} method allows the MAC object to hold the channel for a
-specified duration of time without actually transmitting any packet.
+specified duration of time without actually transmitting any packets.
 This is useful in simulating the jamming mechanism of some MAC
 protocols.
 \end{itemize}
@@ -229,7 +230,7 @@ protocols.
 
 The \code{MacClassifier} class extends the \code{Classifier} class to
 implement a simple broadcasting mechanism.  It modifies the
-\code{recv()} method to replicate the packet to all receivers, ie. MAC
+\code{recv()} method to replicate the packet to all receivers, \ie, MAC
 objects, if it cannot find a single receiver that match the destination
 address.
 
@@ -258,8 +259,8 @@ address.
 The \code{Mac} object simulates the medium access protocols that are
 necessary in the shared medium environment such as the wireless and
 local area networks.  Since the sending and receiving mechanisms are
-tightly coupled in most MAC, it is essential for the \code{Mac} object
-to be duplex.
+tightly coupled in most types of MAC layers,
+it is essential for the \code{Mac} object to be duplex.
 
 On the sending side, the \code{Mac} object is responsible for adding the
 MAC header and transmitting the packet onto the channel.  On the
@@ -271,7 +272,7 @@ processing, it passes the data packet to the link layer.
 \label{sec:macstate}
 
 The C++ \clsref{Mac}{../ns-2/mac.h} class contains enough internal state
-simulate the particular MAC protocol.  It also exports the following
+to simulate the particular MAC protocol.  It also exports the following
 OTcl configuration parameter:
 
 \begin{tabularx}{\linewidth}{rX}
@@ -311,16 +312,17 @@ callback handler, the packet is outgoing, otherwise, it is incoming.
     \};
 \end{program}
 
-When a \code{Mac} object received a packet via its \code{recv()} method,
+When a \code{Mac} object receivs a packet via its \code{recv()} method,
 it checks whether the packet is outgoing or incoming.  For an outgoing
-packet, it assumes that the link-layer of the sender have obtained the
+packet, it assumes that the link-layer of the sender has obtained the
 destination MAC address and filled in the \code{macDA\_} field of the
 MAC header, \code{hdr_mac}.  The \code{Mac} object fills in the rest of
 the MAC header with the source MAC address and the frame type.  It then
 passes the packet to its \code{send()} method, which carries out the
 medium access protocol.  For the basic \code{Mac} object, the
 \code{send} method calls \code{txtime()} to compute the transmission
-time then invoke \code{Channel::send} to transmit the packet.  It then
+time, then invokes \code{Channel::send} to transmit the packet.  
+Finally, it 
 schedules itself to resume after the transmission time has elapsed.
 
 For an incoming packet, the MAC object does its protocol processing and
@@ -338,7 +340,7 @@ schedules the next carrier sense at the moment the channel turns idle.
 Once the channel is idle, the \code{CsmaMac} object initiates the
 contention period with \code{Channel::contention()}.  At the end of the
 contention period, the \code{endofContention()} method is invoked.  At
-this time, the basic \code{CsmaMac} just transmit the packet using
+this time, the basic \code{CsmaMac} just transmits the packet using
 \code{Channel::send}.
 
 \begin{program}
@@ -375,7 +377,7 @@ method to schedule the next carrier sense to retransmit the packet.
 The \code{CsmaCaMac} extends the \code{send} method of \code{CsmaMac} to
 carry out the collision avoidance (CSMA/CA) procedure.  Instead of
 transmitting immediately when the channel is idle, the \code{CsmaCaMac}
-object backoff a random number of slots, then transmit if the channel
+object backs off a random number of slots, then transmits if the channel
 remains idle until the end of the backoff period.
 
 \subsection{Example:  creating MAC layer from Mac, Queue, and Classifier}
@@ -457,10 +459,11 @@ incoming and outgoing packets respectively.
 In addition to the C++ components described above, simulating local area
 networks also requires a number of existing components in \ns such as
 \code{Classifier}, \code{Queue}, and \code{Trace}.  Configuring these
-objects requires the knowledge of what the user wants to simulate.  The
-default configuration are implemented in the two Tcl files mentioned at
+objects requires knowledge of what the user wants to simulate.  The
+default configuration is implemented in the two Tcl files mentioned at
 the beginning of this chapter.  To obtain more realistic simulations of
-wireless networks, one can use the \code{ErrorModel} described in the
-following chapter.
+wireless networks, one can use the \code{ErrorModel} described in 
+Chapter~\ref{chap:error_model}.
 
 %\end{document}
+\endinput

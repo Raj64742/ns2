@@ -60,6 +60,12 @@ S.~McCanne and S.~Floyd.
 \newblock ns---{N}etwork {S}imulator.
 \newblock \url{http://www-mash.cs.berkeley.edu/ns/}.
 
+\bibitem{BPF93}
+S.~McCanne and V.~Jacobson.
+\newblock The bsd packet filter: A new architecture for user-level packet
+  capture.
+\newblock pages 259--269, January 1993.
+
 \bibitem{Park88:Random}
 S.K. Park and R.W. Miller.
 \newblock Random number generation: Good ones are hard to find.
