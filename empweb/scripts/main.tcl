@@ -1,3 +1,5 @@
+#!/usr/bin/tclsh
+
 global pageIdx
 global server
 global nSvr
@@ -10,8 +12,16 @@ global outp
 
 source util.tcl
 
+if { $argc != 2} {
+   puts "usage: main.tcl <tcpdump file> <log file>"
+   exit
+} else {
+  set arg [split $argv " " ]
+  set tfile [lindex $arg 0]
+  set logfile [lindex $arg 1]
+}
 
-set tfile "request.dump"
+set logf [open $logfile w ]
 
 set defaultInterval 100
 set PageThreshold 1
@@ -25,7 +35,7 @@ set nSvr 0
 set nClnt 0
 
 set d [exec date +%X ]
-puts "Initialization $d"
+puts $logf "Initialization $d"
 
 catch { exec /bin/rm -rf CLIENT*} res
 catch { exec /bin/rm -rf *dat*} res
@@ -36,7 +46,7 @@ catch { exec tcpdump -S -n -r  $tfile dst port 80 and tcp | awk -f util1.awk  > 
 set outp [open "config.log" w ]
 
 set d [exec date +%X ]
-puts "Parsing tcpdump file $tfile $d"
+puts $logf "Parsing tcpdump file $tfile $d"
 
 set oldClient ""
 set fi [open "www1.dmp" r ]
@@ -138,7 +148,7 @@ close $fo
 close $fi
 
 
-puts "number of client = $nClnt"
+puts $logf "number of client = $nClnt"
 
 puts $outp "NUMSERVER $nSvr"
 puts $outp "NUMCLIENT $nClnt"
@@ -150,11 +160,11 @@ set svrf [open server.popularity.cdf w]
 for {set p 1} {$p<=$nClnt} {incr p} {
  
 set d [exec date +%X ]
-puts "parsing client $p $d"
+puts $logf "parsing client $p $d"
 
 for {set m 1} {$m<=$sessionIdx($p)} {incr m} {
 
-puts "parsing session $m $d"
+puts $logf "parsing session $m $d"
 
  puts $outp "NUMPAGE $pageIdx($p,$m)"
 
@@ -280,7 +290,7 @@ close $objf
 close $svrf 
 
 set d [exec date +%X ]
-puts "Calculate request size $d "
+puts $logf "Calculate request size $d "
 
 #
 #calculate request size for each connection
@@ -366,7 +376,7 @@ set maxREQUEST [max $maxREQUEST $requestSize]
 set minREQUEST [expr floor([min $minREQUEST $requestSize])]
 
 set d [exec date +%X ]
-puts "Calculate object inter-arrival time $d"
+puts $logf "Calculate object inter-arrival time $d"
 
 catch { exec sort +1 object.startTime -o object.start } res
 
@@ -397,7 +407,7 @@ close $fi
 close $fo
 
 set d [exec date +%X ]
-puts "Calculate CDF files $d"
+puts $logf "Calculate CDF files $d"
 
 set fi [open "config.log" r ]
 set fo1 [open "page.per.session.dat" w ]
