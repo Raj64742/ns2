@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.199 2000/06/21 05:29:56 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.200 2000/06/27 05:17:40 sfloyd Exp $
 
 
 #
@@ -400,6 +400,7 @@ Queue/RED set curq_ 0
 # Queue/RIO set in_prob1_ 0.0
 # Queue/RIO set out_prob1_ 0.0
 # Queue/RIO set curq_ 0
+# Queue/RIO set priority_method_ 0
 
 Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000
