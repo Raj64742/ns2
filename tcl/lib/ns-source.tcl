@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.7 1997/03/28 20:27:50 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.8 1997/07/14 21:43:11 tomh Exp $
 #
 
 Class Source
@@ -43,8 +43,9 @@ Class Source
 Source instproc init {} {
 	$self next
 	$self instvar maxpkts_
-	#XXX
-	set maxpkts_ 2147483647
+	#XXX Do not set this to 2^31; it breaks tcp-full.cc due to integer overflow
+	# Currently set to 2^28
+	set maxpkts_ 268435456
 }
 Class Source/FTP -superclass Source
 
