@@ -60,6 +60,9 @@
 void
 ReassemblyQueue::fremove(seginfo* p)
 {
+	if (hint_ == p)
+		hint_ = NULL;
+
 	if (p->prev_)
 		p->prev_->next_ = p->next_;
 	else
@@ -76,6 +79,9 @@ ReassemblyQueue::fremove(seginfo* p)
 void
 ReassemblyQueue::sremove(seginfo* p)
 {
+	if (hint_ == p)
+		hint_ = NULL;
+
 	if (p->sprev_)
 		p->sprev_->snext_ = p->snext_;
 	else
@@ -110,7 +116,7 @@ void
 ReassemblyQueue::clear()
 {
 	// clear stack and end of queue
-	tail_ = top_ = bottom_ = NULL;
+	tail_ = top_ = bottom_ = hint_ = NULL;
 
 	seginfo *p = head_;
 	while (head_) {
@@ -138,8 +144,6 @@ ReassemblyQueue::clearto(TcpSeq seq)
 			flag |= p->pflags_;
 			sremove(p);
 			fremove(p);
-			if (p == hint_)
-				hint_ = NULL;
 			delete p;
 			p = q;
 		} else
@@ -355,8 +359,6 @@ start, end, p, q,
 				initcnt += n->cnt_;
 				fremove(n);
 				sremove(n);
-				if (n == hint_)
-					hint_ = NULL;
 				delete n;
 				altered = TRUE;
 			} else
@@ -506,12 +508,8 @@ dumplist();
 		// delete the new block and the block after, update p
 		sremove(n);
 		fremove(n);
-		if (n == hint_)
-			hint_ = NULL;
 		sremove(q);
 		fremove(q);
-		if (q == hint_)
-			hint_ = NULL;
 		p->endseq_ = q->endseq_;
 		p->cnt_ += (n->cnt_ + q->cnt_);
 		flags = (p->pflags_ |= n->pflags_);
@@ -522,8 +520,6 @@ dumplist();
 		// update p with n's seq data, delete new block
 		sremove(n);
 		fremove(n);
-		if (n == hint_)
-			hint_ = NULL;
 		p->endseq_ = n->endseq_;
 		flags = (p->pflags_ |= n->pflags_);
 		p->cnt_ += n->cnt_;
@@ -533,8 +529,6 @@ dumplist();
 		// update q with n's seq data, delete new block
 		sremove(n);
 		fremove(n);
-		if (n == hint_)
-			hint_ = NULL;
 		q->startseq_ = n->startseq_;
 		flags = (q->pflags_ |= n->pflags_);
 		q->cnt_ += n->cnt_;
@@ -591,7 +585,7 @@ again:
 }
 
 
-#ifdef RQDEBUG
+//#ifdef RQDEBUG
 main()
 {
 	int rcvnxt = 1;
@@ -723,8 +717,10 @@ main()
 
 	int x;
 	rq.nexthole(3, x);
+	rq.clear();
+	rq.nexthole(5, x);
 
 	exit(0);
 }
-#endif
+//#endif
 
