@@ -90,7 +90,7 @@ while (<>)
 }
 
 
-@keys_seqno = keys %seqno;
+@keys_seqno = sort {$a <=> $b} (keys %seqno);
 foreach $key (@keys_seqno) {
     $t = $time{$key};
     $s = $seqno{$key};
