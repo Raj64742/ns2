@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.234 2001/12/03 08:11:16 kclan Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.235 2001/12/03 18:31:08 buchheim Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -57,12 +57,7 @@ STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
 
-DEF	= -DTCP_DELAY_BIND_ALL -DNO_TK -DNIXVECTOR @V_DEFINE@ @V_DEFINES@ @DEFS@ -DPGM -DPGM_DEBUG
-ifdef	OLD_RNG
-DEFINE	= $(DEF) -DOLD_RNG
-else
-DEFINE	= $(DEF)
-endif
+DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK -DNIXVECTOR @V_DEFINE@ @V_DEFINES@ @DEFS@ -DPGM -DPGM_DEBUG
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
