@@ -157,19 +157,21 @@ the following steps are performed:
   \item create a static class to perform OTcl linkage
         (defines \code{PacketHeader/Newhdr})
   \item edit \nsf{tcl/lib/ns-packet.tcl} to enable new packet format
-        (see \ref{sec:configpacket})
+        (see \ref{sec:pinfoclass}, \ref{sec:configpacket})
 \end{enumerate}
 
 \section{Packet Classes}
 \label{sec:packetclasses}
 
-There are three C++ classes relevant to the handling of packets
-and packet headers in general: \code{Packet},
+There are four C++ classes relevant to the handling of packets
+and packet headers in general: \code{Packet}, \code{p_info}
 \code{PacketHeader}, and \code{PacketHeaderManager}.
 The \clsref{Packet}{../ns-2/packet.h}
 defines the type for all packets in the simulation;
 it is a subclass of \code{Event} so that packets may
 be scheduled (e.g.~for later arrival at some queue).
+The \clsref{packet\_info}{../ns-2/packet.h} holds all text
+representations for packet names.
 The \clsref{PacketHeader}{../ns-2/packet.h} provides a base class for
 any packet header configured into the simulation.
 It essentially provides 
@@ -315,6 +317,31 @@ with the exception of the \code{uid_} field, which is unique.
 This function is used by \code{Replicator} objects to support
 multicast distribution and LANs.
 
+\subsection{p\_info Class}
+\label{sec:pinfoclass}
+
+This class is used as a ``glue'' to bind numeric packet type values
+with their symbolic names.  When a new packet type is defined, its
+numeric code should be added to the enumeration \code{packet_t} (see
+\nsf{packet.h}) \footnote{Note: \code{PT\_NTYPE} should remain the last element of this
+enumeration.} and its symbolic name should be added to the constructor
+of \code{p_info}:
+\begin{program}
+enum packet_t \{
+	PT_TCP,
+	...
+	PT_NTYPE // This MUST be the LAST one
+\};
+
+class p_info \{
+public:
+	p_info() \{
+		name_[PT_TCP]= "tcp";
+		...
+		name_[PT_NTYPE]= "undefined";
+        \}
+\}
+\end{program}
 \subsection{The hdr\_cmn Class}
 \label{sec:commonhdr}
 
@@ -322,11 +349,11 @@ Each packet in the simulator has a ``common''
 header which is defined in \nsf{packet.h} as follows:
 \begin{program}
         struct hdr_cmn \{
-                double  ts_;            \* timestamp: for q-delay measurement */
-                int     ptype_;         \* packet type (see above) */
-                int     uid_;           \* unique id */
-                int     size_;          \* simulated packet size */
-                int     iface_;         \* receiving interface (label) */
+                double    ts_;            \* timestamp: for q-delay measurement */
+                packet_t  ptype_;         \* packet type (see above) */
+                int       uid_;           \* unique id */
+                int       size_;          \* simulated packet size */
+                int       iface_;         \* receiving interface (label) */
          
                 /* {\cf per-field member functions} */
                 int& ptype() \{ return (ptype_); \}
@@ -469,3 +496,6 @@ some processer architectures, including the
 Sparc and HP-PA, double-word access must be performed on a double-word
 boundary (i.e. addresses ending in 0 mod 8).  Attempting to perform
 unaligned accesses result in an abnormal program termination.}.
+
+
+

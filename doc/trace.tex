@@ -358,8 +358,8 @@ The important pieces of its implementation are as follows:
                 hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
                 hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
                 hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
-                int t = th->ptype();
-                const char* name = pt_names[t];
+                packet_t t = th->ptype();
+                const char* name = packet_info.name(t);
 
                 if (name == 0)
                         abort();
@@ -493,32 +493,69 @@ The currently-supported definitions, their values, and their
 associated symblic names are as follows
 (defined in \nsf{packet.h}):
 \begin{program}
-        #define PT_TCP          0
-        #define PT_TELNET       1
-        #define PT_CBR          2
-        #define PT_AUDIO        3
-        #define PT_VIDEO        4
-        #define PT_ACK          5
-        #define PT_START        6
-        #define PT_STOP         7
-        #define PT_PRUNE        8
-        #define PT_GRAFT        9
-        #define PT_MESSAGE      10
-        #define PT_RTCP         11
-        #define PT_RTP          12
-        #define PT_RTPROTO_DV   13
-        #define PT_CtrMcast_Encap 14
-        #define PT_CtrMcast_Decap 15
-        #define PT_SRM          16
-        #define PT_NTYPE        17
+enum packet_t \{
+	PT_TCP,
+	PT_UDP,
+	PT_CBR,
+	PT_AUDIO,
+	PT_VIDEO,
+	PT_ACK,
+	PT_START,
+	PT_STOP,
+	PT_PRUNE,
+	PT_GRAFT,
+	PT_GRAFTACK,
+	PT_JOIN,
+	PT_ASSERT,
+	PT_MESSAGE,
+	PT_RTCP,
+	PT_RTP,
+	PT_RTPROTO_DV,
+	PT_CtrMcast_Encap,
+	PT_CtrMcast_Decap,
+	PT_SRM,
+	/* simple signalling messages */
+	PT_REQUEST,	
+	PT_ACCEPT,	
+	PT_CONFIRM,	
+	PT_TEARDOWN,	
+	PT_LIVE,	// packet from live network
+	PT_REJECT,
 
-        #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \bs
-                "start", "stop", "prune", "graft", "message", "rtcp", "rtp", \bs
-                "rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM"
+	PT_TELNET,	// not needed: telnet use TCP
+	PT_FTP,
+	PT_PARETO,
+	PT_EXP,
+	PT_INVAL,
+	PT_HTTP,
+	/* new encapsulator */
+	PT_ENCAPSULATED,
+	PT_MFTP,
+	/* CMU/Monarch's extnsions */
+	PT_ARP,
+	PT_MAC,
+	PT_TORA,
+	PT_DSR,
+	PT_AODV,
+
+	// insert new packet types here
+
+	PT_NTYPE // This MUST be the LAST one
+\};
 \end{program}
-The definition of \code{PT_NAMES} is used to initialize the
-n\code{pt_names} array as indicated above;
-\code{PT_NTYPE} is not presently used.
+The constructor of class \code{p_info} glues these constants with
+their string values:
+\begin{program}
+	p_info() \{
+		name_[PT_TCP]= "tcp";
+		name_[PT_UDP]= "udp";
+		name_[PT_CBR]= "cbr";
+		name_[PT_AUDIO]= "audio";
+		...
+		name_[PT_NTYPE]= "undefined";
+	\}
+\end{program}
+See also section~\ref{sec:pinfoclass} for more details.
 
 \section{Queue Monitoring}
 \label{sec:qmonitor}
