@@ -364,7 +364,6 @@ class NewRenoTcpAgent : public virtual TcpAgent {
 class VegasTcpAgent : public virtual TcpAgent {
  public:
 	VegasTcpAgent();
-	virtual int window();
 	virtual void recv(Packet *pkt, Handler *);
 	virtual void timeout(int tno);
 protected:

@@ -315,14 +315,22 @@ int TcpAgent::command(int argc, const char*const* argv)
 		 * Curtis Villamizar's trick to transfer tcp connection
 		 * parameters to emulate http persistent connections.
 		 *
-		 * This implementation may not correctly emulate
-		 * pure-BSD-based systems which close cwnd after the
-		 * connection goes idle.  See Jacobson and Karels
-		 * ``Congestion Avoidance and Control'' in CCR (*not*
-		 * the original '88 paper) for why BSD does this.
-		 * See ``Performance Interactions Between P-HTTP and
-		 * TCP Implementations'' in CCR 27(2) for descriptions
-		 * of what other systems do the same.
+		 * Another way to do the same thing is to open one tcp
+		 * object and use start/stop/maxpkts_ to control
+		 * how much data is sent in each burst.
+		 * With a single connection, slow_start_restart_
+		 * should be configured as desired.
+		 *
+		 * This implementation (persist) may not correctly
+		 * emulate pure-BSD-based systems which close cwnd
+		 * after the connection goes idle (slow-start
+		 * restart).  See Jacobson and Karels ``Congestion
+		 * Avoidance and Control'' in CCR (*not* the original
+		 * '88 paper) for why BSD does this.  See
+		 * ``Performance Interactions Between P-HTTP and TCP
+		 * Implementations'' in CCR 27(2) for descriptions of
+		 * what other systems do the same.
+		 *
 		 */
 		if (strcmp(argv[1], "persist") == 0) {
 			TcpAgent *other

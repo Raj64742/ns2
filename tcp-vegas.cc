@@ -28,7 +28,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.3 1997/06/19 19:20:05 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.4 1997/06/20 02:46:18 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -77,6 +77,7 @@ VegasTcpAgent::reset()
 	v_inc_flag_ = 1;
 }
 
+#if 0
 /*
  * xxx: johnh: it's not clear that this is the right def
  * but it's what was done in ns-1
@@ -92,6 +93,7 @@ VegasTcpAgent::window()
 {
 	return TcpAgent::window();
 }
+#endif /* 0 */
 
 void
 VegasTcpAgent::recv(Packet *pkt, Handler *)
@@ -344,6 +346,18 @@ void
 VegasTcpAgent::timeout(int tno)
 {
 	if (tno == TCP_TIMER_RTX) {
+		if (highest_ack_ == maxseq_ && !slow_start_restart_) {
+			/*
+			 * TCP option:
+			 * If no outstanding data, then don't do anything.
+			 *
+			 * Note:  in the USC implementation,
+			 * slow_start_restart_ == 0.
+			 * I don't know what the U. Arizona implementation
+			 * defaults to.
+			 */
+			return;
+		};
 		dupacks_ = 0;
 		recover_ = maxseq_;
 		recover_cause_ = 2;
