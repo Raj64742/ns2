@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red-pd.cc,v 1.3 2000/11/21 20:58:11 ratul Exp $ (ACIRI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red-pd.cc,v 1.4 2001/01/10 23:30:14 sfloyd Exp $ (ACIRI)";
 #endif
 
 #include "red-pd.h"
@@ -78,7 +78,8 @@ static class RedPDFlowClass : public TclClass {
 
 RedPDQueue::RedPDQueue(const char * medtype, const char * edtype): REDQueue(edtype),
 	auto_(0), global_target_(0), targetBW_(0), noMonitored_(0), 
-	unresponsive_penalty_(1), P_testFRp_(-1), flowMonitor_(NULL), MEDTrace(NULL) {
+	unresponsive_penalty_(1), P_testFRp_(-1), noidle_(0),
+	flowMonitor_(NULL), MEDTrace(NULL) {
 
 	//printf("In RedPD constructor with %s %s\n", medtype, edtype);
 	if (strlen(medtype) >=20) {
@@ -91,6 +92,7 @@ RedPDQueue::RedPDQueue(const char * medtype, const char * edtype): REDQueue(edty
 	
 	bind_bool("auto_", &auto_);
 	bind_bool("global_target_", &global_target_);
+	bind_bool("noidle_", &noidle_);
 	bind_bw("targetBW_", &targetBW_);
 	bind("noMonitored_", &noMonitored_);
 	bind("unresponsive_penalty_", &unresponsive_penalty_);
@@ -171,12 +173,16 @@ void RedPDQueue::enque(Packet* pkt) {
 			P_monFlow = mod_p;
 			double u = Random::uniform();
 			
-			//don't drop a packet if ave q size is small and the flow is responsive.
+			//don't drop a packet if ave q size is small 
+			//   and the flow is responsive.
+              		// don't drop a packet from an unresponsive flow
+			//   if noidle_ is set and queue is > th_min.
 			//drop packet from the unresponsive flow if probability says so.
 			int qlen = qib_ ? bcount_ : q_->length();
 			if ( (u <= P_monFlow && 2*edv_.v_ave >= edp_.th_min && 
 			      qlen > 1 && !flow->unresponsive_) || 
-			     (u <= P_monFlow) ) {
+			     (u <= P_monFlow && flow->unresponsive_ && 
+				  ( qlen > 1 || !noidle_ ))) {
 								
 				//first trace the monitored early drop
 				 if (MEDTrace!= NULL) 

@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.228 2000/12/20 10:15:02 alefiyah Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.229 2001/01/10 23:30:14 sfloyd Exp $
 
 
 #
@@ -154,6 +154,7 @@ Queue/RED/PD set noMonitored_ 0
 Queue/RED/PD set targetBW_ 0
 Queue/RED/PD set unresponsive_penalty_ 1
 Queue/RED/PD set P_testFRp_ -1
+Queue/RED/PD set noidle_ false
 
 Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000

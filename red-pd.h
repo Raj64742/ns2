@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red-pd.h,v 1.3 2000/11/21 20:58:11 ratul Exp $ (ACIRI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red-pd.h,v 1.4 2001/01/10 23:30:14 sfloyd Exp $ (ACIRI)
  */
 
 
@@ -59,6 +59,8 @@ class RedPDQueue : public REDQueue {
 	                               // they get dropped with probability $prob*unresponsive_penalty_
 	
 	double P_testFRp_;      // to test the FRP thing
+	int noidle_;		// boolean to decide if unresponsive flows
+				//   should be dropped when queue is idle
  
 	void setFlowMon(FlowMon * flowMon) {
 		flowMonitor_ = flowMon;

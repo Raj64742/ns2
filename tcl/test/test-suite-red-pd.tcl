@@ -36,7 +36,7 @@ set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
 catch "cd $dir"
-Agent/TCP set oldCode_ true
+Queue/RED set gentle_ true
 
 source ../red-pd/monitoring.tcl
 source ../red-pd/helper.tcl
@@ -378,4 +378,80 @@ Test/complete instproc run {} {
     $ns_ run
 }
 
+TestSuite instproc printall { fmon time packetsize} {
+	set packets [$fmon set pdepartures_]
+	set linkBps [ expr 500000/8 ]
+	set utilization [expr ($packets*$packetsize)/($time*$linkBps)]
+	puts "link utilization [format %.3f $utilization]"
+}
+
+#
+# one complete test using the identification engine, with CBR flows only
+#
+Class Test/cbrs -superclass TestSuite
+Test/cbrs instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ cbrs
+    Queue/RED/PD set noidle_ false
+    $self next
+}
+Test/cbrs instproc run {} {
+    $self instvar ns_ node_ testName_ net_ topo_
+    $self setTopo
+    $topo_ instvar redpdflowmon_ redpdq_ redpdlink_
+    set packetsize_ 200
+    Application/Traffic/CBR set random_ 0
+    Application/Traffic/CBR set packetSize_ $packetsize_
+
+    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
+
+    set stoptime 30.0
+    #set stoptime 5.0
+    set udp1 [$ns_ create-connection UDP $node_(s1) Null $node_(s3) 1]
+    set cbr1 [$udp1 attach-app Traffic/CBR]
+    $cbr1 set rate_ 0.1Mb
+    $cbr1 set random_ 0.005
+
+    set udp2 [$ns_ create-connection UDP $node_(s2) Null $node_(s3) 2]
+    set cbr2 [$udp2 attach-app Traffic/CBR]
+    $cbr2 set rate_ 0.1Mb
+    $cbr2 set random_ 0.005
+
+    $self enable_tracequeue $ns_
+    $ns_ at 0.2 "$cbr1 start"
+    $ns_ at 0.1 "$cbr2 start"
+
+    set udp [$ns_ create-connection UDP $node_(s1) Null $node_(s4) 3]
+    set cbr [$udp attach-app Traffic/CBR]
+    $cbr set rate_ 0.5Mb
+    $cbr set random_ 0.001
+    $ns_ at 0.0 "$cbr start"
+
+    set redpdsim [new REDPDSim $ns_ $redpdq_ $redpdflowmon_ $redpdlink_ 0 true]
+    
+    $self timeDump 5.0
+    # trace only the bottleneck link
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self printall $fmon $stoptime $packetsize_"
+    $ns_ at $stoptime "$self cleanupAll $testName_"
+    $ns_ run
+}
+
+#
+# one complete test using the identification engine, with CBR flows only,
+# with noidle set to true, so that we don't drop from unresponsive flows
+# when it would result in the link going idle
+#
+Class Test/cbrs-noidle -superclass TestSuite
+Test/cbrs-noidle instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ cbrs-noidle
+    Queue/RED/PD set noidle_ true
+    Test/cbrs-noidle instproc run {} [Test/cbrs info instbody run ]
+    $self next
+}
 TestSuite runTest
