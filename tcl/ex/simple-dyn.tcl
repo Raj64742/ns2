@@ -49,6 +49,8 @@ $ns attach-agent $n1 $null1
 
 $ns connect $cbr0 $null1
 
+$ns rtproto DV		;# or use Session
+
 $ns rtmodel Deterministic {} $n0
 [$ns link $n0 $n1] trace-dynamics $ns stdout
 
