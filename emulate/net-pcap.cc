@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.12 1998/02/28 02:44:22 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.13 1998/03/03 03:08:25 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -84,6 +84,9 @@ extern "C" {
  *	interface type codes could be via rfc1573
  *		see freebsd net/if_types.h
  *	want a way to set immed mode
+ *	pcap_next masks errors by returning 0 if pcap_dispatch fails
+ *	a pcap_t carries it's own internal buffer, and
+ *		_dispatch gives pointers into it when invoked [eek]
  *	
  */
 
@@ -117,6 +120,7 @@ public:
 	int stat_pdrops();
 
 protected:
+	static void phandler(u_char* u, pcap_pkthdr* h, u_char* p);
 	virtual void bindvars();
 
 	char errbuf_[PCAP_ERRBUF_SIZE];		// place to put err msgs
@@ -126,7 +130,6 @@ protected:
 	int optimize_;				// bpf optimizer enable
 	pcap_t* pcap_;				// reference to pcap state
 	struct bpf_program bpfpgm_;		// generated program
-	struct pcap_pkthdr pkthdr_;		// pkt hdr to fill in
 	struct pcap_stat pcs_;			// status
 
 	unsigned int local_netmask_;	// seems shouldn't be necessary :(
@@ -272,21 +275,58 @@ PcapNetwork::stat_pdrops()
 
 #include "ether.h"
 /* recv is what others call to grab a packet from the pfilter */
+
+struct pcap_singleton {
+        struct pcap_pkthdr *hdr;
+        const u_char *pkt;
+};   
+
+void
+PcapNetwork::phandler(u_char* userdata, pcap_pkthdr* ph, u_char* pkt)
+{
+	pcap_singleton *ps = (pcap_singleton*) userdata;
+	ps->hdr = ph;
+	ps->pkt = pkt;
+}
+
 int
 PcapNetwork::recv(u_char *buf, int len, sockaddr& fromaddr)
 {
+
 	if (state_ != PNET_PSTATE_ACTIVE) {
 		fprintf(stderr, "warning: net/pcap obj(%s) read-- not active\n",
 			name());
 		return -1;
 	}
 
+	int pktcnt = 1;		// all in buffer, or until error
+	int np;			// counts # of pkts dispatched
+	pcap_singleton ps = { 0, 0 };
 	const u_char *pkt;
-	pkt = pcap_next(pcap_, &pkthdr_);
-	int n = MIN(pkthdr_.caplen, len);
-	// link layer header will be placed at the beginning
-	int s = skiphdr();
-	memcpy(buf, pkt + s, n - s);
+	np = pcap_dispatch(pcap_, pktcnt, phandler, (u_char*) &ps);
+	if (np <= 0) {
+		fprintf(stderr,
+			"PcapNetwork(%s): recv: pcap_dispatch: %s\n",
+			    name(), pcap_strerror(errno));
+		return (np);
+	} else if (np != pktcnt) {
+		fprintf(stderr,
+			"PcapNetwork(%s): recv: pcap_dispatch: requested pktcnt (%d) doesn't match actual (%d)\n",
+			    name(), pktcnt, np);
+	}
+
+	if (ps.hdr == NULL || ps.pkt == NULL) {
+		fprintf(stderr,
+			"PcapNetwork(%s): recv: pcap_dispatch: no packet present\n",
+			    name());
+		return (-1);
+	}
+
+
+	int n = MIN(ps.hdr->caplen, len);
+	// link layer header will be placed at the beginning from pcap
+	int s = skiphdr();	// go to IP header
+	memcpy(buf, ps.pkt + s, n - s);
 	return n - s;
 }
 
