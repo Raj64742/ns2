@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: ping_receiver.cc,v 1.2 2003/09/24 17:45:11 haldar Exp $
+// $Id: 1pp_ping_receiver.cc,v 1.1 2004/01/08 22:56:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,18 +20,18 @@
 //
 //
 
-#include "ping_receiver.hh"
+#include "1pp_ping_receiver.hh"
 
 #ifdef NS_DIFFUSION
-static class PingReceiverAppClass : public TclClass {
+static class OPPPingReceiverAppClass : public TclClass {
 public:
-    PingReceiverAppClass() : TclClass("Application/DiffApp/PingReceiver") {}
+    OPPPingReceiverAppClass() : TclClass("Application/DiffApp/PingReceiver/OPP") {}
     TclObject* create(int , const char*const* ) {
-	    return(new PingReceiverApp());
+	    return(new OPPPingReceiverApp());
     }
 } class_ping_receiver;
 
-int PingReceiverApp::command(int argc, const char*const* argv) {
+int OPPPingReceiverApp::command(int argc, const char*const* argv) {
   if (argc == 2) {
     if (strcmp(argv[1], "subscribe") == 0) {
       run();
@@ -43,12 +43,12 @@ int PingReceiverApp::command(int argc, const char*const* argv) {
 
 #endif // NS_DIFFUSION
 
-void PingReceiverReceive::recv(NRAttrVec *data, NR::handle my_handle)
+void OPPPingReceiverReceive::recv(NRAttrVec *data, NR::handle my_handle)
 {
   app_->recv(data, my_handle);
 }
 
-void PingReceiverApp::recv(NRAttrVec *data, NR::handle my_handle)
+void OPPPingReceiverApp::recv(NRAttrVec *data, NR::handle my_handle)
 {
   NRSimpleAttribute<int> *counterAttr = NULL;
   NRSimpleAttribute<void *> *timeAttr = NULL;
@@ -102,25 +102,28 @@ void PingReceiverApp::recv(NRAttrVec *data, NR::handle my_handle)
     if (counterAttr->getVal() < last_seq_recv_){
       // Multiple sources detected, disabling statistics
       last_seq_recv_ = -1;
-      DiffPrint(DEBUG_ALWAYS, "Received data %d, total latency = %f!\n",
+      DiffPrint(DEBUG_ALWAYS, "Node%d: Received data %d, total latency = %f!\n",
+		((DiffusionRouting *)dr_)->getNodeId(),
 		counterAttr->getVal(), total_delay);
     }
     else{
       last_seq_recv_ = counterAttr->getVal();
       num_msg_recv_++;
-      DiffPrint(DEBUG_ALWAYS, "Received data: %d, total latency = %f, %% messages received: %f !\n",
+      DiffPrint(DEBUG_ALWAYS, "Node%d: Received data: %d, total latency = %f, %% messages received: %f !\n",
+		((DiffusionRouting *)dr_)->getNodeId(),
 		last_seq_recv_, total_delay,
 		(float) ((num_msg_recv_ * 100.00) /
 			 ((last_seq_recv_ - first_msg_recv_) + 1)));
     }
   }
   else{
-    DiffPrint(DEBUG_ALWAYS, "Received data %d, total latency = %f !\n",
+    DiffPrint(DEBUG_ALWAYS, "Node%d: Received data %d, total latency = %f !\n",
+	      ((DiffusionRouting *)dr_)->getNodeId(),
 	      counterAttr->getVal(), total_delay);
   }
 }
 
-handle PingReceiverApp::setupSubscription()
+handle OPPPingReceiverApp::setupSubscription()
 {
   NRAttrVec attrs;
 
@@ -137,7 +140,7 @@ handle PingReceiverApp::setupSubscription()
   return h;
 }
 
-void PingReceiverApp::run()
+void OPPPingReceiverApp::run()
 {
   subHandle_ = setupSubscription();
 
@@ -150,16 +153,16 @@ void PingReceiverApp::run()
 }
 
 #ifdef NS_DIFFUSION
-PingReceiverApp::PingReceiverApp()
+OPPPingReceiverApp::OPPPingReceiverApp()
 #else
-PingReceiverApp::PingReceiverApp(int argc, char **argv)
+OPPPingReceiverApp::OPPPingReceiverApp(int argc, char **argv)
 #endif // NS_DIFFUSION
 {
   last_seq_recv_ = 0;
   num_msg_recv_ = 0;
   first_msg_recv_ = -1;
 
-  mr_ = new PingReceiverReceive(this);
+  mr_ = new OPPPingReceiverReceive(this);
 
 #ifndef NS_DIFFUSION
   parseCommandLine(argc, argv);
@@ -170,9 +173,9 @@ PingReceiverApp::PingReceiverApp(int argc, char **argv)
 #ifndef NS_DIFFUSION
 int main(int argc, char **argv)
 {
-  PingReceiverApp *app;
+  OPPPingReceiverApp *app;
 
-  app = new PingReceiverApp(argc, argv);
+  app = new OPPPingReceiverApp(argc, argv);
   app->run();
 
   return 0;

@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: ping_sender.cc,v 1.2 2003/09/24 17:45:12 haldar Exp $
+// $Id: 2pp_ping_sender.cc,v 1.1 2004/01/08 22:56:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,23 +20,23 @@
 //
 //
 
-#include "ping_sender.hh"
+#include "2pp_ping_sender.hh"
 #include <unistd.h>
 
 #ifdef NS_DIFFUSION
-static class PingSenderAppClass : public TclClass {
+static class TPPPingSenderAppClass : public TclClass {
 public:
-  PingSenderAppClass() : TclClass("Application/DiffApp/PingSender") {}
+  TPPPingSenderAppClass() : TclClass("Application/DiffApp/PingSender/TPP") {}
   TclObject* create(int , const char*const*) {
-    return(new PingSenderApp());
+    return(new TPPPingSenderApp());
   }
 } class_ping_sender;
 
-void PingSendDataTimer::expire(Event *e) {
+void TPPPingSendDataTimer::expire(Event *e) {
   a_->send();
 }
 
-void PingSenderApp::send()
+void TPPPingSenderApp::send()
 {
   struct timeval tmv;
   int retval;
@@ -49,7 +49,7 @@ void PingSenderApp::send()
     lastEventTime_->useconds_ = tmv.tv_usec;
 
     // Send data probe
-    DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
+    DiffPrint(DEBUG_ALWAYS, "Node%d: Sending Data %d\n", ((DiffusionRouting *)dr_)->getNodeId(), last_seq_sent_);
     retval = dr_->send(pubHandle_, &data_attr_);
 
     // Update counter
@@ -61,7 +61,7 @@ void PingSenderApp::send()
   sdt_.resched(SEND_DATA_INTERVAL);
 }
 
-int PingSenderApp::command(int argc, const char*const* argv) {
+int TPPPingSenderApp::command(int argc, const char*const* argv) {
   if (argc == 2) {
     if (strcmp(argv[1], "publish") == 0) {
       run();
@@ -72,12 +72,12 @@ int PingSenderApp::command(int argc, const char*const* argv) {
 }
 #endif // NS_DIFFUSION
 
-void PingSenderReceive::recv(NRAttrVec *data, NR::handle my_handle)
+void TPPPingSenderReceive::recv(NRAttrVec *data, NR::handle my_handle)
 {
   app_->recv(data, my_handle);
 }
 
-void PingSenderApp::recv(NRAttrVec *data, NR::handle my_handle)
+void TPPPingSenderApp::recv(NRAttrVec *data, NR::handle my_handle)
 {
   NRSimpleAttribute<int> *nrclass = NULL;
 
@@ -110,12 +110,12 @@ void PingSenderApp::recv(NRAttrVec *data, NR::handle my_handle)
   }
 }
 
-handle PingSenderApp::setupSubscription()
+handle TPPPingSenderApp::setupSubscription()
 {
   NRAttrVec attrs;
 
   attrs.push_back(NRClassAttr.make(NRAttribute::NE, NRAttribute::DATA_CLASS));
-  attrs.push_back(NRAlgorithmAttr.make(NRAttribute::IS, NRAttribute::ONE_PHASE_PULL_ALGORITHM));
+  attrs.push_back(NRAlgorithmAttr.make(NRAttribute::IS, NRAttribute::TWO_PHASE_PULL_ALGORITHM));
   attrs.push_back(NRScopeAttr.make(NRAttribute::IS, NRAttribute::NODE_LOCAL_SCOPE));
   attrs.push_back(TargetAttr.make(NRAttribute::EQ, "F117A"));
   attrs.push_back(LatitudeAttr.make(NRAttribute::IS, 60.00));
@@ -128,12 +128,12 @@ handle PingSenderApp::setupSubscription()
   return h;
 }
 
-handle PingSenderApp::setupPublication()
+handle TPPPingSenderApp::setupPublication()
 {
   NRAttrVec attrs;
 
   attrs.push_back(NRClassAttr.make(NRAttribute::IS, NRAttribute::DATA_CLASS));
-  attrs.push_back(NRAlgorithmAttr.make(NRAttribute::IS, NRAttribute::ONE_PHASE_PULL_ALGORITHM));
+  attrs.push_back(NRAlgorithmAttr.make(NRAttribute::IS, NRAttribute::TWO_PHASE_PULL_ALGORITHM));
   attrs.push_back(LatitudeAttr.make(NRAttribute::IS, 60.00));
   attrs.push_back(LongitudeAttr.make(NRAttribute::IS, 54.00));
   attrs.push_back(TargetAttr.make(NRAttribute::IS, "F117A"));
@@ -145,7 +145,7 @@ handle PingSenderApp::setupPublication()
   return h;
 }
 
-void PingSenderApp::run()
+void TPPPingSenderApp::run()
 {
   struct timeval tmv;
 #ifndef NS_DIFFUSION
@@ -199,7 +199,7 @@ void PingSenderApp::run()
       lastEventTime_->useconds_ = tmv.tv_usec;
 
       // Send data probe
-      DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
+      DiffPrint(DEBUG_ALWAYS, "Node%d: Sending Data %d\n", ((DiffusionRouting *)dr_)->getNodeId(), last_seq_sent_);
       retval = dr_->send(pubHandle_, &data_attr_);
 
       // Update counter
@@ -213,15 +213,15 @@ void PingSenderApp::run()
 }
 
 #ifdef NS_DIFFUSION
-PingSenderApp::PingSenderApp() : sdt_(this)
+TPPPingSenderApp::TPPPingSenderApp() : sdt_(this)
 #else
-PingSenderApp::PingSenderApp(int argc, char **argv)
+TPPPingSenderApp::TPPPingSenderApp(int argc, char **argv)
 #endif // NS_DIFFUSION
 {
   last_seq_sent_ = 0;
   num_subscriptions_ = 0;
 
-  mr_ = new PingSenderReceive(this);
+  mr_ = new TPPPingSenderReceive(this);
 
 #ifndef NS_DIFFUSION
   parseCommandLine(argc, argv);
@@ -232,9 +232,9 @@ PingSenderApp::PingSenderApp(int argc, char **argv)
 #ifndef NS_DIFFUSION
 int main(int argc, char **argv)
 {
-  PingSenderApp *app;
+  TPPPingSenderApp *app;
 
-  app = new PingSenderApp(argc, argv);
+  app = new TPPPingSenderApp(argc, argv);
   app->run();
 
   return 0;

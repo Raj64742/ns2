@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: ping_sender.hh,v 1.1 2003/07/09 17:45:02 haldar Exp $
+// $Id: 1pp_ping_sender.hh,v 1.1 2004/01/08 22:56:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -29,32 +29,32 @@
 
 #include "ping.hh"
 
-class PingSenderReceive;
-class PingSenderApp;
+class OPPPingSenderReceive;
+class OPPPingSenderApp;
 
 #define SEND_DATA_INTERVAL 5
 
 #ifdef NS_DIFFUSION
-class PingSendDataTimer : public TimerHandler {
+class OPPPingSendDataTimer : public TimerHandler {
   public:
-  PingSendDataTimer(PingSenderApp *a) : TimerHandler() { a_ = a; }
+  OPPPingSendDataTimer(OPPPingSenderApp *a) : TimerHandler() { a_ = a; }
   void expire(Event *e);
 protected:
-  PingSenderApp *a_;
+  OPPPingSenderApp *a_;
 };
 #endif //NS_DIFFUSION
 
-class PingSenderApp : public DiffApp {
+class OPPPingSenderApp : public DiffApp {
 public:
 #ifdef NS_DIFFUSION
-  PingSenderApp();
+  OPPPingSenderApp();
   int command(int argc, const char*const* argv);
   void send();
 #else
-  PingSenderApp(int argc, char **argv);
+  OPPPingSenderApp(int argc, char **argv);
 #endif // NS_DIFFUSION
 
-  virtual ~PingSenderApp()
+  virtual ~OPPPingSenderApp()
   {
     // Nothing to do
   };
@@ -64,7 +64,7 @@ public:
 
 private:
   // NR Specific variables
-  PingSenderReceive *mr_;
+  OPPPingSenderReceive *mr_;
   handle subHandle_;
   handle pubHandle_;
 
@@ -79,16 +79,16 @@ private:
   handle setupSubscription();
   handle setupPublication();
 #ifdef NS_DIFFUSION
-  PingSendDataTimer sdt_;
+  OPPPingSendDataTimer sdt_;
 #endif // NS_DIFFUSION
 };
 
-class PingSenderReceive : public NR::Callback {
+class OPPPingSenderReceive : public NR::Callback {
 public:
-  PingSenderReceive(PingSenderApp *app) : app_(app) {};
+  OPPPingSenderReceive(OPPPingSenderApp *app) : app_(app) {};
   void recv(NRAttrVec *data, NR::handle my_handle);
 
-  PingSenderApp *app_;
+  OPPPingSenderApp *app_;
 };
 
 #endif // !_PING_SENDER_HH_

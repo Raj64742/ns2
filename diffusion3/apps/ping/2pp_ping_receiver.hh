@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: ping_receiver.hh,v 1.1 2003/07/09 17:45:02 haldar Exp $
+// $Id: 2pp_ping_receiver.hh,v 1.1 2004/01/08 22:56:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -29,15 +29,15 @@
 
 #include "ping.hh"
 
-class PingReceiverReceive;
+class TPPPingReceiverReceive;
 
-class PingReceiverApp : public DiffApp {
+class TPPPingReceiverApp : public DiffApp {
 public:
 #ifdef NS_DIFFUSION
-  PingReceiverApp();
+  TPPPingReceiverApp();
   int command(int argc, const char*const* argv);
 #else
-  PingReceiverApp(int argc, char **argv);
+  TPPPingReceiverApp(int argc, char **argv);
 #endif // NS_DIFFUSION
 
   void recv(NRAttrVec *data, NR::handle my_handle);
@@ -45,7 +45,7 @@ public:
 
 private:
   // NR Specific variables
-  PingReceiverReceive *mr_;
+  TPPPingReceiverReceive *mr_;
   handle subHandle_;
 
   // Ping App variables
@@ -56,12 +56,12 @@ private:
   handle setupSubscription();
 };
 
-class PingReceiverReceive : public NR::Callback {
+class TPPPingReceiverReceive : public NR::Callback {
 public:
-  PingReceiverReceive(PingReceiverApp *app) : app_(app) {};
+  TPPPingReceiverReceive(TPPPingReceiverApp *app) : app_(app) {};
   void recv(NRAttrVec *data, NR::handle my_handle);
 
-  PingReceiverApp *app_;
+  TPPPingReceiverApp *app_;
 };
 
 #endif // !_PING_RECEIVER_HH_
