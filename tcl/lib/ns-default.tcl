@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.182 1999/12/21 03:55:06 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.183 2000/01/07 06:24:32 sfloyd Exp $
 
 
 #
@@ -557,6 +557,7 @@ Agent/RAP set packetSize_ 512
 Agent/RAP set seqno_ 0
 Agent/RAP set sessionLossCount_ 0
 Agent/RAP set ipg_ 2.0
+Agent/RAP set alpha_ 1.0
 Agent/RAP set beta_ 0.5
 Agent/RAP set srtt_ 2.0
 Agent/RAP set variance_ 0.0
