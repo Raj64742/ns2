@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.42 2003/09/23 00:44:05 aditi Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.43 2003/09/30 18:42:06 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  */
@@ -2003,16 +2003,9 @@ Mac802_11::recvDATA(Packet *p)
 				return;
 			}
 			sendACK(src);
-// chnage wrt Mike's code
-			assert(mhSend_.busy() == 0);
-                        assert(0);
-
 			if(mhSend_.busy() == 0)
 				tx_resume();
 		}
-// change wrt Mike's code
-	} else {
-               tx_resume();
 	}
 
 	/* ============================================================
