@@ -881,6 +881,8 @@ qs/hdr_qs.h
 qs/qsagent.cc
 qs/qsagent.h
 queue/cbq.cc
+queue/delayer.cc
+queue/delayer.h
 queue/delaymodel.cc
 queue/delaymodel.h
 queue/demarker.cc
@@ -1919,6 +1921,7 @@ tcl/test/test-output-greis/example2.Z
 tcl/test/test-output-greis/example3.Z
 tcl/test/test-output-greis/example4.Z
 tcl/test/test-output-greis/ping.Z
+tcl/test/test-output-greis/pingOneWay.Z
 tcl/test/test-output-hier-routing/hier-cmcast-bc.Z
 tcl/test/test-output-hier-routing/hier-cmcast.Z
 tcl/test/test-output-hier-routing/hier-deDM.Z
@@ -1947,6 +1950,12 @@ tcl/test/test-output-links/delayPacket1.Z
 tcl/test/test-output-links/dropPacket.Z
 tcl/test/test-output-links/links.Z
 tcl/test/test-output-links/links1.Z
+tcl/test/test-output-links/delaySpike.Z 
+tcl/test/test-output-links/delaySpike1.Z 
+tcl/test/test-output-links/delaySpikes.Z 
+tcl/test/test-output-links/delaySpikes1.Z 
+tcl/test/test-output-links/channelAllocDelay.Z 
+tcl/test/test-output-links/channelAllocDelay1.Z 
 tcl/test/test-output-linkstate/eqp.Z
 tcl/test/test-output-manual-routing/one_client.Z
 tcl/test/test-output-mcache/media1.Z
@@ -2040,6 +2049,14 @@ tcl/test/test-output-newreno/reno5_noBF.Z
 tcl/test/test-output-newreno/reno5_noLT_noBF.Z 
 tcl/test/test-output-newreno/ reno5a.Z 
 tcl/test/test-output-newreno/reno5a_noLT_noBF.Z
+tcl/test/test-output-newreno/newreno_rto_dup.Z 
+tcl/test/test-output-newreno/newreno_rto_dup_ack.Z 
+tcl/test/test-output-newreno/newreno_rto_dup_ts.Z 
+tcl/test/test-output-newreno/newreno_rto_dup_tsh.Z 
+tcl/test/test-output-newreno/newreno_rto_loss.Z 
+tcl/test/test-output-newreno/newreno_rto_loss_ack.Z 
+tcl/test/test-output-newreno/newreno_rto_loss_ts.Z 
+tcl/test/test-output-newreno/newreno_rto_loss_tsh.Z 
 tcl/test/test-output-nixvec/NixVec.Z
 tcl/test/test-output-nixvec/NoNixVec.Z
 tcl/test/test-output-nixvec/quite.Z
