@@ -549,12 +549,11 @@ CMUTrace::format_aodv(Packet *p, int offset)
 }
 
 void
-CMUTrace::nam_format(Packet *p, const char *why, int offset)
+CMUTrace::nam_format(Packet *p, int offset)
 {
         struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_ip *ih = HDR_IP(p);
 	char op = (char) type_;
-	Node* thisnode = Node::get_node_by_address(src_);
 
 	int src = Address::instance().get_nodeaddr(ih->saddr());
 	int dst = Address::instance().get_nodeaddr(ih->daddr());
@@ -586,7 +585,7 @@ void CMUTrace::format(Packet* p, const char *why)
 	format_mac(p, why, offset);
 
 #ifdef NAM_TRACE
-	nam_format(p, why, offset);
+	nam_format(p, offset);
 #endif
 	offset = strlen(wrk_);
 

@@ -101,7 +101,7 @@ private:
 	int	command(int argc, const char*const* argv);
 	void	format(Packet *p, const char *why);
 
-        void    nam_format(Packet *p, const char *why, int offset);
+        void    nam_format(Packet *p, int offset);
 
 	void	format_mac(Packet *p, const char *why, int offset);
 	void	format_ip(Packet *p, int offset);
