@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.44 2001/07/05 21:17:47 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.45 2001/08/03 16:43:20 haldar Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -81,8 +81,11 @@ proc add-packet-header args {
 }
 
 proc add-all-packet-headers {} {
+	PacketHeaderManager instvar tab_
 	foreach cl [PacketHeader info subclass] {
-		PacketHeaderManager set tab_($cl) 1
+		if [info exists tab_($cl)] { 
+			PacketHeaderManager set tab_($cl) 1
+		}
 	}
 }
 
@@ -97,9 +100,12 @@ proc remove-packet-header args {
 }
 
 proc remove-all-packet-headers {} {
+	PacketHeaderManager instvar tab_
 	foreach cl [PacketHeader info subclass] {
 		if { $cl != "PacketHeader/Common" } {
-			PacketHeaderManager unset tab_($cl)
+			if [info exists tab_($cl)] { 
+				PacketHeaderManager unset tab_($cl)
+			}
 		}
 	}
 }
