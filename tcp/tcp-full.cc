@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.101 2001/08/22 00:05:40 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.102 2001/08/23 00:33:48 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1425,6 +1425,14 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 		if (ecn_ && fh->ecnecho()) {
 			ect_ = TRUE;
 		}
+		if (fid_ == 0) {
+			// XXX: sort of hack... If we do not
+			// have a special flow ID, pick up that
+			// of the sender (active opener)
+			hdr_ip* iph = hdr_ip::access(pkt);
+			fid_ = iph->flowid();
+		}
+
 		newstate(TCPS_SYN_RECEIVED);
 		goto trimthenstep6;
 
