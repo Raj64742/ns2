@@ -85,6 +85,12 @@ typedef int	RqFlag;		// meta data (owned by ReassemblyQueue)
  * kfall@intel.com
  */
 
+/* 01/03 Tom Kelly <ctk21@cam.ac.uk>
+ * 
+ * Made the newseginfo and deleteseginfo calls to avoid new/delete 
+ * overhead in generating SACK blocks good for HSTCP; see scoreboard-rq
+ */ 
+
 class ReassemblyQueue {
 	struct seginfo {
 		seginfo* next_;	// next on FIFO list
@@ -120,7 +126,13 @@ public:
 	}
 	void dumplist();	// for debugging
 
+	// cache of allocated seginfo blocks
+	static seginfo* newseginfo();
+	static void deleteseginfo(seginfo*);	
+	
 protected:
+	static seginfo* freelist_; // cache of free seginfo blocks
+	
 	seginfo* head_;		// head of segs linked list
 	seginfo* tail_;		// end of segs linked list
 

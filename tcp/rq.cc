@@ -53,6 +53,26 @@
 
 #include "rq.h"
 
+ReassemblyQueue::seginfo* ReassemblyQueue::freelist_ = NULL;
+
+ReassemblyQueue::seginfo* ReassemblyQueue::newseginfo()
+{
+	seginfo *s;
+	
+	if( (s = freelist_) ){
+		freelist_ = s->next_;
+		return s;
+	}else{
+		return new seginfo;
+	}
+}
+
+void ReassemblyQueue::deleteseginfo(ReassemblyQueue::seginfo* s)
+{
+	s->next_ = freelist_;
+	freelist_ = s;
+}
+
 /*
  * unlink a seginfo from its FIFO
  */
@@ -142,7 +162,7 @@ ReassemblyQueue::clear()
 	while (head_) {
 		p = head_;
 		head_= head_->next_;
-		delete(p);
+		ReassemblyQueue::deleteseginfo(p);
 	}
 	tail_ = NULL;
 	total_ = 0;
@@ -166,7 +186,7 @@ ReassemblyQueue::clearto(TcpSeq seq)
 			total_ -= (p->endseq_ - p->startseq_);
 			sremove(p);
 			fremove(p);
-			delete p;
+			ReassemblyQueue::deleteseginfo(p);
 			p = q;
 		} else
 			break;
@@ -305,7 +325,7 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		// nobody there, just insert this one
 
 
-		tail_ = head_ = top_ = bottom_ =  new seginfo;
+		tail_ = head_ = top_ = bottom_ =  ReassemblyQueue::newseginfo();
 		head_->prev_ = head_->next_ = head_->snext_ = head_->sprev_ = NULL;
 		head_->startseq_ = start;
 		head_->endseq_ = end;
@@ -391,7 +411,7 @@ start, end, p, q,
 				initcnt += n->cnt_;
 				fremove(n);
 				sremove(n);
-				delete n;
+				ReassemblyQueue::deleteseginfo(n);
 				altered = TRUE;
 			} else
 				r = r->next_;
@@ -474,7 +494,7 @@ start, end, p, q,
 		}
 
 endfast:
-		n = new seginfo;
+		n = ReassemblyQueue::newseginfo();
 		n->startseq_ = start;
 		n->endseq_ = end;
 		n->pflags_ = tiflags;
@@ -553,8 +573,8 @@ dumplist();
 		p->endseq_ = q->endseq_;
 		p->cnt_ += (n->cnt_ + q->cnt_);
 		flags = (p->pflags_ |= n->pflags_);
-		delete n;
-		delete q;
+		ReassemblyQueue::deleteseginfo(n);
+		ReassemblyQueue::deleteseginfo(q);
 	} else if (p && (p->endseq_ == n->startseq_)) {
 		// new block joins p, but not q
 		// update p with n's seq data, delete new block
@@ -563,7 +583,7 @@ dumplist();
 		p->endseq_ = n->endseq_;
 		flags = (p->pflags_ |= n->pflags_);
 		p->cnt_ += n->cnt_;
-		delete n;
+		ReassemblyQueue::deleteseginfo(n);
 	} else if (q && (n->endseq_ == q->startseq_)) {
 		// new block joins q, but not p
 		// update q with n's seq data, delete new block
@@ -572,7 +592,7 @@ dumplist();
 		q->startseq_ = n->startseq_;
 		flags = (q->pflags_ |= n->pflags_);
 		q->cnt_ += n->cnt_;
-		delete n;
+		ReassemblyQueue::deleteseginfo(n);
 		p = q;	// ensure p points to something
 	}
 
