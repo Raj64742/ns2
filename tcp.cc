@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.107 2000/07/08 14:31:26 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.108 2000/07/17 01:55:40 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -937,6 +937,16 @@ void TcpAgent::ecn(int seqno)
 	}
 }
 
+/*
+ *  Is the connection limited by the congestion window?
+ */
+int TcpAgent::cong_window_limited() {
+	if (t_seqno_ > (prev_highest_ack_ + cwnd_))
+		return 1;
+	else
+		return 0;
+}
+
 void TcpAgent::recv_newack_helper(Packet *pkt) {
 	//hdr_tcp *tcph = hdr_tcp::access(pkt);
 	newack(pkt);
@@ -948,17 +958,9 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 		/* if control option is set, and the sender is not
 			 window limited, then do not increase the window size */
 		
-		if (control_increase_ ) {
-			int win = window () ;
-			if (t_seqno_ > (prev_highest_ack_ + win)) {
-	      	opencwnd();
-			}
-		}
-		else {
-			if (!control_increase_) {
-				opencwnd();
-			}
-		}
+		if (!control_increase_ || 
+		   (control_increase_ && (cong_window_limited() == 1))) 
+	      		opencwnd();
 	}
 	if (ect_) {
 		if (!hdr_flags::access(pkt)->ecnecho())
