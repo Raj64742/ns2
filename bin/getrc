@@ -1,7 +1,7 @@
 eval 'exec perl -I ./bin -S $0 ${1+"$@"}'		#-*-Perl-*-
 	if 0;
 
-require 5.003;
+require 5.001;
 
 ($progname) = ($0 =~ m!([^/]+)$!);
 sub usage {
