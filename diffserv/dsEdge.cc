@@ -40,7 +40,7 @@
  */
 
 #include "dsEdge.h"
-#include "dsPolicy.h"
+#include "ew.h"
 #include "packet.h"
 #include "tcp.h"
 #include "random.h"
