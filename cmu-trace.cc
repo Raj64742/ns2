@@ -142,7 +142,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	        // basic trace infomation + basic exenstion
 
 	    sprintf(wrk_ + offset,
-		    "%c -t %.9f -Hs %d -Hd %d -Ni %d -Nx %.2f -Ny %.2f -Nz %.2f -Ne %f -Nl %3s -Nw %s ] ",
+		   "%c -t %.9f -Hs %d -Hd %d -Ni %d -Nx %.2f -Ny %.2f -Nz %.2f -Ne %f -Nl %3s -Nw %s ",
 		    op,                       // event type
 		    Scheduler::instance().clock(),  // time
 		    src_,                           // this node
@@ -160,7 +160,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	    offset = strlen(wrk_);
 
 	    sprintf(wrk_ + offset, 
-		    "-m [ %x %x %x %x ] ",
+		    "-Ma %x -Md %x -Ms %x -Mt %x ",
 		    mh->dh_duration,
 		    ETHER_ADDR(mh->dh_da),
 		    ETHER_ADDR(mh->dh_sa),
@@ -225,7 +225,7 @@ CMUTrace::format_ip(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset,
-		    "-Is %d.%d -Id %d.%d -It %s -Il %d -If %d -Ii %d -Iv %d ] ",
+		    "-Is %d.%d -Id %d.%d -It %s -Il %d -If %d -Ii %d -Iv %d ",
 		    src,                           // packet src
 		    ih->sport(),                   // src port
 		    dst,                           // packet dest
@@ -250,7 +250,7 @@ CMUTrace::format_arp(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset,
-		    "-p [ arp %s %d/%d %d/%d ] ",
+		    "-P arp -Po %s -Pms %d -Ps %d -Pmd %d -Pd %d ",
 		    ah->arp_op == ARPOP_REQUEST ?  "REQUEST" : "REPLY",
 		    ah->arp_sha,
 		    ah->arp_spa,
@@ -275,8 +275,8 @@ CMUTrace::format_dsr(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset, 
-		"-p [ dsr %d [ %d %d ] [ %d %d %d %d->%d ] [ %d %d %d %d->%d ] ] ",
-		srh->num_addrs(),
+		"-P dsr -Pn %d -Pq %d -Ps %d -Pp %d -Pl %d -Pe %d->%d -Pw %d -Pm %d -Pc %d -Pb %d->%d ",
+		    srh->num_addrs(),                   // how many nodes travered
 
 		srh->route_request(),
 		srh->rtreq_seq(),
@@ -748,7 +748,7 @@ CMUTrace::node_energy()
 	} 
 
 	if (energy > 0) return 1;
-	printf("DEBUG: node $d dropping pkts due to energy = 0\n", src_);
+	printf("DEBUG: node %d dropping pkts due to energy = 0\n", src_);
 	return 0;
 
 }

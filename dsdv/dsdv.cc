@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.19 1999/10/14 22:19:32 yuriy Exp $
+   $Id: dsdv.cc,v 1.20 1999/11/13 01:16:04 yaxu Exp $
 
    */
 
@@ -1108,7 +1108,7 @@ DSDV_Agent::DSDV_Agent (): Agent (PT_MESSAGE), ll_queue (0), seqno_ (0),
   bind ("trace_wst_", &trace_wst_);
   //DEBUG
   address = 0;
-  
+ 
 }
 
 void
