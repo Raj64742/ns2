@@ -1,4 +1,13 @@
 #!/bin/sh
+##
+## As a temporary measure, one of the ways to run automatic validation
+## is the following:
+## ./validate > out ; diff out validate.out
+##
+## If all that prints out is a list of messages about
+## "warning: using backward compatibility mode",
+## then the automatic validation scripts ran correctly.
+##
 
 echo "*** test-all"
 ./test-all quiet
