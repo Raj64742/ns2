@@ -453,7 +453,7 @@ Agent/rtProto/DV proc init-all args {
 	    if { $rtobj != "" } {
 		set rtproto [$rtobj rtProto? DV]
 		if { $rtproto != "" } {
-		    $proto($node) add-peer $nbr [$rtproto set addr_]
+		    $proto($node) add-peer $nbr [$rtproto set agent_addr_]
 		}
 	    }
 	}
