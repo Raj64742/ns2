@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.234 2001/03/07 18:30:02 jahn Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.235 2001/04/05 22:49:46 haldar Exp $
 
 
 #
@@ -774,6 +774,24 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp/Sack set sack_block_size_ 8; # bytes in a SACK block
 	Agent/TCP/FullTcp/Sack set sack_option_size_ 2; # bytes in opt hdr
 	Agent/TCP/FullTcp/Sack set max_sack_blocks_ 3; # max # of sack blks
+}
+
+if [TclObject is-class Agent/TCP/BayFullTcp] {
+	Agent/TCP/BayFullTcp set segsperack_ 1; # ACK frequency
+	Agent/TCP/BayFullTcp set segsize_ 536; # segment size
+	Agent/TCP/BayFullTcp set tcprexmtthresh_ 3; # num dupacks to enter recov
+	Agent/TCP/BayFullTcp set iss_ 0; # Initial send seq#
+	Agent/TCP/BayFullTcp set nodelay_ false; # Nagle disable?
+	Agent/TCP/BayFullTcp set data_on_syn_ false; # allow data on 1st SYN?
+	Agent/TCP/BayFullTcp set dupseg_fix_ true ; # no rexmt w/dup segs from peer
+	Agent/TCP/BayFullTcp set dupack_reset_ false; # exit recov on ack < highest
+	Agent/TCP/BayFullTcp set interval_ 0.1 ; # delayed ACK interval 100ms 
+	Agent/TCP/BayFullTcp set close_on_empty_ false; # close conn if sent all
+	#Agent/TCP/BayFullTcp set ts_option_size_ 10; # in bytes
+	#Agent/TCP/BayFullTcp set reno_fastrecov_ true; # fast recov true by default
+	#Agent/TCP/BayFullTcp set pipectrl_ false; # use "pipe" ctrl
+	#Agent/TCP/BayFullTcp set open_cwnd_on_pack_ true; # ^ win on partial acks?
+	#Agent/TCP/BayFullTcp set halfclose_ false; # do simplex closes (shutdown)?
 }
 
 # Default values used by wireless simulations

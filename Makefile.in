@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.214 2001/03/07 23:17:27 jahn Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.215 2001/04/05 22:49:45 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -116,6 +116,7 @@ OBJ_CC = \
 	agent.o message.o udp.o session-rtp.o rtp.o rtcp.o ivs.o \
 	tcp.o tcp-sink.o tcp-reno.o tcp-newreno.o \
 	tcp-vegas.o tcp-rbp.o tcp-full.o \
+	baytcp/tcp-full-bay.o baytcp/ftpc.o baytcp/ftps.o \
 	scoreboard.o tcp-sack1.o tcp-fack.o \
 	tcp-asym.o tcp-asym-sink.o tcp-fs.o tcp-asym-fs.o \
 	tcp-int.o chost.o tcp-session.o nilist.o \
