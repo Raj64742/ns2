@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.305 2003/01/25 04:52:44 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.306 2003/01/26 06:00:59 sfloyd Exp $
 
 
 #
@@ -818,7 +818,7 @@ Agent/TCPSink set packetSize_ 40
 Agent/TCPSink set maxSackBlocks_ 3
 Agent/TCPSink set ts_echo_bugfix_ false
 Agent/TCPSink set generateDSacks_ false
-Agent/TCPSink set enable_QuickStart_ false
+Agent/TCPSink set qs_enabled_ false
 Agent/TCPSink set RFC2581_immediate_ack_ true
 
 Agent/TCPSink/DelAck set interval_ 100ms
