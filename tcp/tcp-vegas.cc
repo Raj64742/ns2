@@ -25,11 +25,14 @@
  *					North Carolina St. Univ. and
  *					Networking Software Div, IBM
  *					tkuo@eos.ncsu.edu
+ **
+ * The ns-2 implementation includes contribued fixes described at the
+ * end of the file.
  */
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.23 1999/03/31 21:52:31 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.24 1999/07/16 17:06:19 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -59,6 +62,8 @@ VegasTcpAgent::VegasTcpAgent() : TcpAgent()
 	bind("v_beta_", &v_beta_);
 	bind("v_gamma_", &v_gamma_);
 	bind("v_rtt_", &v_rtt_);
+	// ns_vegas_fix_level_: see comment at the end of this file
+	bind("ns_vegas_fix_level_", &ns_vegas_fix_level_);
 
 	reset();
 }
@@ -133,7 +138,8 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 			cwnd_ = initial_window();
 		}
 		/* check if cwnd has been inflated */
-		if(dupacks_ > NUMDUPACKS &&  cwnd_ > v_newcwnd_) {
+		if ((dupacks_ > NUMDUPACKS || (ns_vegas_fix_level_ >= 3 && dupacks_ == NUMDUPACKS)) &&
+		    cwnd_ > v_newcwnd_) {
 			cwnd_ = v_newcwnd_;
 			// vegas ssthresh is used only during slow-start
 			ssthresh_ = 2;
@@ -292,13 +298,13 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 		if (expired>=0 || dupacks_ == NUMDUPACKS) {
 			double sendTime=v_sendtime_[(last_ack_+1) % v_maxwnd_]; 
 			int transmits=v_transmits_[(last_ack_+1) % v_maxwnd_];
+			int win = window();
        	                /* The line below, for "bug_fix_" true, avoids
                         * problems with multiple fast retransmits after
 			* a retransmit timeout.
                         */
 			if ( !bug_fix_ || (highest_ack_ > recover_) || \
 			    ( last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
-				int win = window();
 				last_cwnd_action_ = CWND_ACTION_DUPACK;
 				recover_ = maxseq_;
 				/* check for timeout after recv a new ack */
@@ -313,31 +319,33 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 				 * if cwnd hasnt changed since the pkt was sent
 				 * we need to decr it.
 				 */
-				if(t_cwnd_changed_ < sendTime ) {
+				if (t_cwnd_changed_ < sendTime) {
 					if(win<=3)
-						win=2;
+						win = 2;
 					else if(transmits > 1)
 						win >>=1;
 					else 
 						win -= (win>>2);
 
-					// record cwnd_
-					v_newcwnd_ = double(win);
-					// inflate cwnd_
-					cwnd_ = v_newcwnd_ + dupacks_;
-					t_cwnd_changed_ = currentTime;
+					// old behavior (pre fix-2)
+					// was to do: vegas_inflate_cwnd(win, currentTime);
+					// here.
 				} 
 
 				// update coarser grained rto
-				reset_rtx_timer(1);
+				reset_rtx_timer(1, 0);
+				++nrexmit_;
 				if(expired>=0) 
 					output(expired, TCP_REASON_DUPACK);
 				else
 					output(last_ack_ + 1, TCP_REASON_DUPACK);
-					 
-				if(transmits==1) 
-					dupacks_ = NUMDUPACKS;
                         }
+
+			// fix-2 is done always: // if (ns_vegas_fix_level_ >= 2)
+			vegas_inflate_cwnd(win, currentTime);
+					 
+			if(transmits==1) 
+				dupacks_ = NUMDUPACKS;
 		} else if (dupacks_ > NUMDUPACKS) 
 			++cwnd_;
 	}
@@ -352,6 +360,16 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 	 */
 	if (dupacks_ == 0 || dupacks_ > NUMDUPACKS - 1)
 		send_much(0, 0, maxburst_);
+}
+
+void
+VegasTcpAgent::vegas_inflate_cwnd(int win, double current_time)
+{
+	// record cwnd_
+	v_newcwnd_ = double(win);
+	// inflate cwnd_
+	cwnd_ = v_newcwnd_ + dupacks_;
+	t_cwnd_changed_ = current_time;
 }
 
 void
@@ -374,10 +392,11 @@ VegasTcpAgent::timeout(int tno)
 		recover_ = maxseq_;
 		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		reset_rtx_timer(0);
-		++nrexmit_;
 		slowdown(CLOSE_CWND_RESTART|CLOSE_SSTHRESH_HALF);
 		cwnd_ = double(v_slowstart_);
 		v_newcwnd_ = 0;
+		if (ns_vegas_fix_level_ >= 1)
+			v_worried_ = 0;
 		t_cwnd_changed_ = vegastime();
 		send_much(0, TCP_REASON_TIMEOUT);
 	} else {
@@ -449,3 +468,127 @@ VegasTcpAgent::vegas_expire(Packet* pkt)
 	return(-1);
 }
 
+
+
+/*
+ * Post-Arizona Vegas fixes:
+ *
+
+Date: Thu, 11 Mar 1999 15:01:22 -0500 (EST)
+From: Kuang-Yeh Wang <kwang@cs.umd.edu>
+To: ns-users@mash.cs.berkeley.edu
+Subject: bug report: VegasTcpAgent
+Message-ID: <Pine.OSF.3.95.990311133538.2890B-100000@congo.cs.umd.edu>
+MIME-Version: 1.0
+Content-Type: TEXT/PLAIN; charset=US-ASCII
+
+Problem:
+
+Under certain circumstances, TCP Vegas may set its cwnd_ (congestion
+window) to 0 and never transmit any packets again, even though there are
+packets waiting to be sent and the network is idle.
+
+Problem source and potential solutions:
+
+tcp-vegas.cc, line 137 "cwnd_ = v_newcwnd_".  It's meant to restore cwnd_
+to its value before it was inflated due to duplicate ACKs.  Obviously
+VegasTcpAgent should check if cwnd_ has indeed been inflated before doing
+this.  Problem is, the check (line 136) "if(dupacks_ > NUMDUPACKS &&
+cwnd_ > v_newcwnd_)" is *not enough*.
+
+Here's a case where things go wrong:
+1. Duplicate ACKs are received, and "v_worried_" is set to 2 (line 305).
+2. Before any new ACKs arrives, a timeout occurs, and therefore
+   "v_newcwnd_" is set to 0 (line 379).
+3. A new ACK arrives, and it's determined that an outstanding packet has
+   "expired" (line 281; note that v_worried_ > 0) and therefore dupacks_ =
+   NUMDUPACKS (= 3).
+4. A duplicate ACK arrives, so ++dupcaks_ (line 290).  "v_newcwnd_ =
+   double(win)" is not executed since we are in "CWND_ACTION_TIMEOUT" 
+   state and hence v_newcwnd_ stays 0.
+5. A new ACK arrives and cwnd_ is set to v_newcwnd_ (line 137), which is
+   0.  The TCP sender drops dead.
+
+I got this case using an error model on a link.
+
+Potential solutions:
+
+1. When timeout occurs, set v_worried_ to 0.  It seems to make no sense to
+   "keep worried" in common cases, since usually all outstanding packets
+   will be retransmitted anyway after a timeout.
+
+However, the problem may still occur if there are more than 3 duplicate
+ACKs right after a timeout and therefore v_newcwnd_ stays 0 and dupacks_
+becomes > 3.
+
+2. Inflate cwnd_ even though the test on lines 299, 300 fails.  This
+   closes a loophole in trying to guarantee that if dupacks_ > 3, cwnd_
+   must have been inflated.  I am not sure if there are other loopholes.
+   In fact, RenoTcpAgent does this in similar cases (tcp-reno.cc, line 88,
+   whether dupack_action() decides to "slow down" or not).  I've tried to
+   fix it this way but haven't come up with a "clean" code that I'm happy
+   with.
+
+3. Another curious problem is the test "if(dupacks_ > NUMDUPACKS &&  cwnd_
+   > v_newcwnd_)" itself (line 136).  I think it should be "if(dupacks_ >=
+   NUMDUPACKS &&  cwnd_ > v_newcwnd_)".  In "normal" cases (i.e., the
+   problems I mentioned above *not included*), dupacks_ == 3 means cwnd_
+   has been inflated, and I don't see why it shouldn't be restored to its
+   pre-inflation value in this particular case.
+
+A quick look at Brakmo's TCP Vegas implementation (on x-kernel;
+ftp://ftp.cs.arizona.edu/xkernel/new-protocols/Vegas.tar.Z) shows that it
+has the same problems of lingering "v_worried_" (1. above) and not
+"deflating" cwnd_ in some cases (3. above), so I'm not sure if they are
+bugs or features of TCP Vegas.  The x-kernel implementation may not have
+the "drop dead" syndrome because it doesn't set v_newcwnd_ to 0 when a
+timeout occurs.  However, it may still set a "wrong" cwnd_ value due to
+the "v_worried_" problem.
+
+In any case, I think we can't accept the "drop dead" phenomenon as a
+feature of VegasTcpAgent.  If anyone knows of a newer TCP Vegas
+implementation (than the x-kernel version mentioned above) that has
+addressed these three problems, please let us (me and other interested
+people) know.  Thanks a lot!
+
+========================================
+Kuang-Yeh Wang		kwang@cs.umd.edu
+University of Maryland at College Park
+Department of Computer Science
+========================================
+
+----------------------------------------------------------------------
+
+Date: Thu, 8 Apr 1999 13:39:11 -0400 (EDT)
+From: Kuang-Yeh Wang <kwang@cs.umd.edu>
+To: John Heidemann <johnh@ISI.EDU>
+Subject: Re: bug report: VegasTcpAgent 
+In-Reply-To: <199904080325.UAA22327@dash.usc.edu>
+Message-ID: <Pine.OSF.3.95.990408122429.1221i-400000@congo.cs.umd.edu>
+MIME-Version: 1.0
+Content-Type: MULTIPART/MIXED; BOUNDARY="0-1486779282-923593151=:1221"
+
+...
+
+... I found another potential bug in the current
+VegasTcpAgent:
+4. When it resets the rtx timer during a fast retransmission (due to
+   duplicate ACKs and/or fine-grained timeout), it causes RTO backoff
+   (line 332) and hurts performance.  It shouldn't behave this way (RTO
+   backoff should happen only when a timeout happens), Reno doesn't, and
+   I'm pretty sure Brakmo's Vegas doesn't either.  It could have been put
+   in place inadvertently as the backoff flag in reset_rtx_timer() is on
+   by default.
+
+The attached "fixes" address all four problems.  I think nos. 2 and 4 are
+not present in Brakmo's x-kernel implementation, so their fixes would be
+activated *without* the flag "ns_vegas_fixes_" on.
+
+Let me repeat my caveat: these "fixes" are based on my observations in
+this and my previous e-mail messages, and both the fixes and the
+observations may need closer scrutiny and debate.
+
+Best regards,
+Kuang-Yeh
+
+*/

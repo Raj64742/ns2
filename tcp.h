@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.62 1999/02/19 22:41:45 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.63 1999/07/16 17:06:21 heideman Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -355,6 +355,7 @@ protected:
 	virtual void recv_newack_helper(Packet*);
 	int vegas_expire(Packet*); 
 	void reset();
+	void vegas_inflate_cwnd(int win, double current_time);
 
 	double t_cwnd_changed_; // last time cwnd changed
 	double firstrecv_;	// time recv the 1st ack
@@ -391,6 +392,8 @@ protected:
 	int    v_inc_flag_;	// if cwnd is allowed to incr for this rtt
 
 	double v_actual_;	// actual send rate (pkt/s; needed for tcp-rbp)
+
+	int ns_vegas_fix_level_;   // see comment at end of tcp-vegas.cc for details of fixes
 };
 
 // Local Variables:

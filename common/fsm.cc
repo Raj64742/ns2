@@ -18,7 +18,7 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/fsm.cc,v 1.2 1999/05/31 20:40:44 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/fsm.cc,v 1.3 1999/07/16 17:06:18 heideman Exp $ (LBL)
  */
 
 #include "fsm.h"
@@ -90,7 +90,57 @@ FSMState::print_all_stats(int desired_pkts, int pkts,
 			  int qs,
 			  int num_states)
 {
-	// to be completed
+	int i;
+	static FSMState *states[17];
+
+	// remember us!
+	states[num_states] = this;
+	num_states++;
+
+	if (pkts >= desired_pkts || qs > 5) {
+		// done; print states and probability
+		printf("%s: p^%d*q^%d, %d rtt, %d to, %d states:",
+		       (pkts >= desired_pkts ? "desired_pkts" : "qs exceeded"),
+		       ps, qs,
+		       rtts, timeouts,
+		       num_states);
+		char ch = ' ';
+		for (i = 0; i < num_states; i++) {
+			printf ("%c#%d", ch, states[i]->print_i_);
+			ch = ',';
+		};
+		printf("\n");
+		return;
+	};
+
+#ifndef MAX
+#define MAX(a, b)  (((a) > (b)) ? (a) : (b))
+#endif
+#ifndef MIN
+#define MIN(a, b)  (((a) < (b)) ? (a) : (b))
+#endif
+	int desired_pkts_this_round = MIN(desired_pkts - pkts, batch_size_);
+	int desired_pkts_with_loss = MAX(desired_pkts_this_round - 1, 0);
+
+	// xxx: doesn't handle tail behavior
+
+	// no losses?
+	drop_[0]->print_all_stats(desired_pkts, pkts + desired_pkts_this_round,
+				  rtts + 1, timeouts,
+				  ps + desired_pkts_this_round, qs,
+				  num_states);
+	if (qs) {
+		printf ("unimplemented: p^%d*q^%d\n", ps + desired_pkts_with_loss, qs + 1);
+		return;
+	};
+	// losses
+	for (i = 1; i <= batch_size_; i++) {
+		drop_[i]->print_all_stats(desired_pkts, pkts + desired_pkts_with_loss,
+					  rtts + (transition_[i] == RTT ? 1 : 0),
+					  timeouts + (transition_[i] == TIMEOUT ? 1 : 0),
+					  ps + desired_pkts_with_loss, qs + 1,
+					  num_states);
+	};
 }
 
 
