@@ -22,10 +22,11 @@ if { $argc != 2} {
 }
 
 set logf [open $logfile w ]
+set srcf [open server.log w ]
 
 set defaultInterval 100
 set PageThreshold 1
-set SessionThreshold 30
+set SessionThreshold 600
 
 set timezero 0.0
 set isrc ""
@@ -96,6 +97,8 @@ while {[gets $fi line] >= 0} {
      set server($nSvr) $src
      set server_cnt($nSvr) 0
      set nSvr [expr $nSvr + 1]
+
+     puts $srcf $src
    }
 
 
@@ -146,6 +149,7 @@ while {[gets $fi line] >= 0} {
 
 close $fo
 close $fi
+close $srcf
 
 
 puts $logf "number of client = $nClnt"
@@ -205,7 +209,7 @@ puts $logf "parsing session $m $d"
    set field8 [lindex $line 8]
 
    if { $src != $isrc || $dst != $idst } {
-      if [info exists outf] {
+      if { $k != 0 } {
          close $outf
       }
       set k [expr $k + 1]
@@ -234,7 +238,7 @@ puts $logf "parsing session $m $d"
          set startTime  [lindex $line 2]
          set size [lindex $line 5]
          set ackSeq [lindex $line 7]
-         if { $size > 0 } {
+         if { $size > 0 && $size != "ack" } {
            if { $ackSeq > $oldAck } {
              if { $objSize > 0 } {
                  puts $outp "OBJSIZE $objSize"
@@ -259,6 +263,9 @@ puts $logf "parsing session $m $d"
            set oldAck $ackSeq
          }
       }
+
+      close $inf
+
       if { $objSize > 0 } {
           set numObjPerPage [expr $numObjPerPage + 1]
           puts $outp "OBJSIZE $objSize"
@@ -267,9 +274,9 @@ puts $logf "parsing session $m $d"
           puts $outp "PERSISTCONN"
       }
    }
-if { $numObjPerPage > 0 } {
-   puts $outp "NUMOBJPERPAGE $numObjPerPage"
-}
+   if { $numObjPerPage > 0 } {
+     puts $outp "NUMOBJPERPAGE $numObjPerPage"
+   }
 }
 }
 }
