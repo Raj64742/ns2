@@ -35,7 +35,6 @@
 /* functions invoked to allocate bits to the ns-address space */
 
 #include <stdlib.h>
-#include <math.h>
 #include <assert.h>
 #include <tclcl.h>
 #include "config.h"
@@ -188,10 +187,8 @@ void AllocAddr::mark(int i)
 
 void AllocAddr::get_mask(nsmask_t *mask, int fieldsize)
 {
-	int temp;
-	temp = (int)(pow(2, (double)fieldsize));
-	*mask = temp-1;
-	
+	// int temp = (int)(pow(2, (double)fieldsize));
+	*mask = (1 << fieldsize) - 1;
 }
 
 
