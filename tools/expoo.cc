@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *  
@@ -17,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/expoo.cc,v 1.5 1998/04/25 00:57:46 bajaj Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/expoo.cc,v 1.6 1998/06/27 01:03:32 gnguyen Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -57,7 +58,7 @@ class EXPOO_Source : public TrafficGenerator {
 
 static class EXPClass : public TclClass {
  public:
-	EXPClass() : TclClass("Traffic/Expoo") {}
+	EXPClass() : TclClass("Application/Traffic/Exponential") {}
 	TclObject* create(int, const char*const*) {
 		return (new EXPOO_Source());
 	}

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *  
@@ -14,14 +15,25 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.7 1998/06/10 18:23:20 breslau Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.8 1998/06/27 01:03:28 gnguyen Exp $ (Xerox)
  */
 
 #ifndef ns_udp_h
 #define ns_udp_h
 
+#include "agent.h"
 #include "cbr.h"
 #include "trafgen.h"
+
+class UdpAgent : public Agent {
+public:
+	UdpAgent();
+	void sendmsg(int nbytes, const char *flags = 0);
+protected:
+	int seqno_;
+	int off_rtp_;
+};
+
 
 class TrafficGenerator;
 

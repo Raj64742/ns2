@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1991-1997 Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.52 1998/06/18 01:15:32 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.53 1998/06/27 01:03:26 gnguyen Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -52,38 +53,23 @@ struct hdr_tcp {
 	int hlen_;              /* header len (bytes) for FullTcp */
 	int tcp_flags_;         /* TCP flags for FullTcp */
 
+	static int offset_;	// offset for this header
+	inline static int& offset() { return offset_; }
+	inline static hdr_tcp* access(Packet* p, int off=-1) {
+		return (hdr_tcp*) p->access(off < 0 ? offset_ : off);
+	}
 
 	/* per-field member functions */
-	double& ts() {
-		return (ts_);
-	}
-	double& ts_echo() {
-		return (ts_echo_);
-	}
-	int& seqno() {
-		return (seqno_);
-	}
-	int& reason() {
-		return (reason_);
-	}
-	int& sa_left(int n) {
-		return (sack_area_[n][0]);
-	}
-	int& sa_right(int n) {
-		return (sack_area_[n][1]);
-	}
-	int& sa_length() {
-		return (sa_length_);
-	}
-	int& hlen() {
-		return (hlen_);
-	}
-	int& ackno() {
-		return (ackno_);
-	}  
-	int& flags() {
-		return (tcp_flags_);
-	}
+	double& ts() { return (ts_); }
+	double& ts_echo() { return (ts_echo_); }
+	int& seqno() { return (seqno_); }
+	int& reason() { return (reason_); }
+	int& sa_left(int n) { return (sack_area_[n][0]); }
+	int& sa_right(int n) { return (sack_area_[n][1]); }
+	int& sa_length() { return (sa_length_); }
+	int& hlen() { return (hlen_); }
+	int& ackno() { return (ackno_); }  
+	int& flags() { return (tcp_flags_); }
 };
 
 /* 
@@ -137,6 +123,8 @@ struct hdr_tcpasym {
  */
 
 #define NUMDUPACKS 3		/* normally 3, sometimes 1 */
+#define TCP_MAXSEQ 1073741824   /* Number that curseq_ is set to for */
+				/* "infinite send" (2^30)            */
 
 #define TCP_TIMER_RTX		0
 #define TCP_TIMER_DELSND	1
@@ -178,6 +166,7 @@ public:
 	virtual void timeout(int tno);
 	virtual void timeout_nonrtx(int tno);
 	int command(int argc, const char*const* argv);
+	virtual void sendmsg(int nbytes, const char *flags = 0);
 
 	void trace(TracedVar* v);
 	virtual void advanceby(int delta);

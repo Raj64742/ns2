@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -29,6 +30,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by the Daedalus Research Group, U.C.Berkeley
+ * http://daedalus.cs.berkeley.edu
  */
 
 /*
@@ -180,6 +184,8 @@ IntTcpAgent::output(int seqno, int reason)
         ++ndatapack_;
 	ndatabytes_ += bytes;
 	send(pkt, 0);
+	if (seqno == curseq_ && seqno > maxseq_)
+		idle();  // Tell application I have sent everything so far
 	if (seqno > maxseq_) {
 		maxseq_ = seqno;
 	}

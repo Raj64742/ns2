@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 University of Southern California.
  * All rights reserved.                                            
@@ -28,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.20 1998/05/20 22:06:33 sfloyd Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.21 1998/06/27 01:03:38 gnguyen Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -414,6 +415,8 @@ VegasTcpAgent::output(int seqno, int reason)
 	++v_transmits_[index];
 
 	send(p, 0);
+	if (seqno == curseq_ && seqno > maxseq_)
+		idle();  // Tell application I have sent everything so far
 
 	if (seqno > maxseq_) {
 		maxseq_ = seqno;

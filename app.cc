@@ -31,64 +31,100 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
+ *
  */
 
-#include "random.h"
-#include "tcp.h"
-#include "telnet.h"
+#include "app.h"
+#include "agent.h"
 
-extern double tcplib_telnet_interarrival();
 
-static class TelnetSourceClass : public TclClass {
+static class ApplicationClass : public TclClass {
  public:
-	TelnetSourceClass() : TclClass("Application/Telnet") {}
+	ApplicationClass() : TclClass("Application") {}
 	TclObject* create(int, const char*const*) {
-		return (new TelnetSource);
+		return (new Application);
 	}
-} class_source_telnet;
+} class_application;
 
 
-TelnetSource::TelnetSource() : maxpkts_(1<<28), running_(0), timer_(this)
+Application::Application() : enableRecv_(0), enableResume_(0)
 {
-	bind("maxpkts_", &maxpkts_);
-	bind("interval_", &interval_);
 }
 
 
-void TelnetSourceTimer::expire(Event*)
+int Application::command(int argc, const char*const* argv)
 {
-        t_->timeout();
-}
+	Tcl& tcl = Tcl::instance();
 
-
-void TelnetSource::start()
-{
-        running_ = 1;
-	double t = next();
-	timer_.sched(t);
-}
-
-void TelnetSource::stop()
-{
-        running_ = 0;
-}
-
-void TelnetSource::timeout()
-{
-        if (running_) {
-	        /* call the TCP advance method */
-		agent_->sendmsg(agent_->size());
-		/* reschedule the timer */
-		double t = next();
-		timer_.resched(t);
+	if (argc == 2) {
+		if (strcmp(argv[1], "start") == 0) {
+			// enableRecv_ only if recv() exists in Tcl
+			tcl.evalf("[%s info class] info instprocs", name_);
+			char result[1024];
+			sprintf(result, " %s ", tcl.result());
+			enableRecv_ = (strstr(result, " recv ") != 0);
+			enableResume_ = (strstr(result, " resume ") != 0);
+			start();
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "stop") == 0) {
+			stop();
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "agent") == 0) {
+			tcl.resultf("%s", agent_->name());
+			return (TCL_OK);
+		}
 	}
+	else if (argc == 3) {
+		if (strcmp(argv[1], "attach-agent") == 0) {
+			agent_ = (Agent*) TclObject::lookup(argv[2]);
+			if (agent_ == 0) {
+				tcl.resultf("no such agent %s", argv[2]);
+				return(TCL_ERROR);
+			}
+			agent_->attachApp(this);
+			return(TCL_OK);
+		}
+		if (strcmp(argv[1], "send") == 0) {
+			send(atoi(argv[2]));
+			return(TCL_OK);
+		}
+	}
+	return (TclObject::command(argc, argv));
 }
 
-double TelnetSource::next()
+
+void Application::start()
 {
-        if (interval_ == 0)
-	        /* use tcplib */
-	        return tcplib_telnet_interarrival();
-	else
-	        return Random::exponential() * interval_;
+}
+
+
+void Application::stop()
+{
+}
+
+
+void Application::send(int nbytes)
+{
+	agent_->sendmsg(nbytes);
+}
+
+
+void Application::recv(int nbytes)
+{
+	if (! enableRecv_)
+		return;
+	Tcl& tcl = Tcl::instance();
+	tcl.evalf("%s recv %d", name_, nbytes);
+}
+
+
+void Application::resume()
+{
+	if (! enableResume_)
+		return;
+	Tcl& tcl = Tcl::instance();
+	tcl.evalf("%s resume", name_);
 }

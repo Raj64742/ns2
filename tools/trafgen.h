@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *  
@@ -11,18 +12,31 @@
  * MERCHANTABILITY OF THIS SOFTWARE OR THE SUITABILITY OF THIS SOFTWARE
  * FOR ANY PARTICULAR PURPOSE.  The software is provided "as is" without
  * express or implied warranty of any kind.
- *  
+ *
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/trafgen.h,v 1.5 1998/06/10 18:23:20 breslau Exp $ (Xerox)
+ * Changes by the Daedalus group, http://daedalus.cs.berkeley.edu
+ *	Add Application interface
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/trafgen.h,v 1.6 1998/06/27 01:03:28 gnguyen Exp $ (Xerox)
  */
- 
+
 #ifndef ns_trafgen_h
 #define ns_trafgen_h
 
-#include "object.h"
-#include "scheduler.h"
-#include "udp.h"
+#include "app.h"
+#include "timer-handler.h"
+
+class TrafficGenerator;
+
+class TrafficTimer : public TimerHandler {
+public:
+	TrafficTimer(TrafficGenerator* tg) : tgen_(tg) {}
+protected:
+	void expire(Event*);
+	TrafficGenerator* tgen_;
+};
+
 
 /* abstract class for traffic generation modules.  derived classes
  * must define  the next_interval() function.  the traffic generation 
@@ -41,20 +55,26 @@
  * needed by the traffic generation process.
  */
 
-class TrafficGenerator : public NsObject {
- public:
-	TrafficGenerator() {}
+class TrafficGenerator : public Application {
+public:
+	TrafficGenerator();
 	virtual double next_interval(int &) = 0;
 	virtual void init() {}
-	virtual double interval(){return 0;}
-	virtual int on() {return 0;}
- protected:
-	/* recv() shouldn't ever get called, it is needed because
-	 * all NsObjects are Handlers as well. 
-	 */
-	void recv(Packet*, Handler*) { abort(); }
+	virtual double interval() { return 0; }
+	virtual int on() { return 0; }
+	virtual void timeout();
+
+	virtual void recv() {}
+	virtual void resume() {}
+
+protected:
+	virtual void start();
+	virtual void stop();
+
+	double nextPkttime_;
 	int size_;
+	int running_;
+	TrafficTimer timer_;
 };
 
 #endif
-

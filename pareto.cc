@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *  
@@ -17,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/pareto.cc,v 1.3 1998/06/09 21:53:21 breslau Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/pareto.cc,v 1.4 1998/06/27 01:03:33 gnguyen Exp $ (Xerox)";
 #endif
  
 #include "random.h"
@@ -56,7 +57,7 @@ class POO_Source : public TrafficGenerator {
 
 static class POOClass : public TclClass {
  public:
-	POOClass() : TclClass("Traffic/Pareto") {}
+	POOClass() : TclClass("Application/Traffic/Pareto") {}
  	TclObject* create(int, const char*const*) {
 		return (new POO_Source());
 	}

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -51,12 +52,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.7 1998/05/02 01:37:15 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.8 1998/06/27 01:03:34 gnguyen Exp $ (UCB)";
 #endif
 
-#include "tcp-sink.h"
 #include "template.h"
-
+#include "flags.h"
+#include "tcp-sink.h"
 
 class TcpAsymSink : public DelAckSink {
 public:
@@ -66,15 +67,15 @@ public:
 protected:
 	virtual void add_to_ack(Packet* pkt);
 	int off_tcpasym_;
-	int delackcount_;       /* the number of consecutive packets that have
+	int delackcount_;	/* the number of consecutive packets that have
 				   not been acked yet */
-	int maxdelack_;         /* the maximum extent to which acks can be
+	int maxdelack_;		/* the maximum extent to which acks can be
 				   delayed */
-	int delackfactor_;      /* the dynamically varying limit on the extent
+	int delackfactor_;	/* the dynamically varying limit on the extent
 				   to which acks can be delayed */
-	int delacklim_;         /* limit on the extent of del ack based on the
+	int delacklim_;		/* limit on the extent of del ack based on the
 				   sender's window */
-	double ts_ecn_;         /* the time when an ECN was received last */
+	double ts_ecn_;		/* the time when an ECN was received last */
 	double ts_decrease_;    /* the time when delackfactor_ was decreased last */
 	double highest_ts_echo_;/* the highest timestamp echoed by the peer */
 };	
@@ -105,13 +106,18 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 	int olddelackfactor = delackfactor_;
 	int olddelacklim = delacklim_; 
 	int max_sender_can_send = 0;
+	int numToDeliver;
 	hdr_flags *fh = (hdr_flags*)pkt->access(off_flags_); 
 	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
 	hdr_tcpasym *tha = (hdr_tcpasym*)pkt->access(off_tcpasym_);
 	double now = Scheduler::instance().clock();
+	int numBytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
+
 
 	acker_->update_ts(th->seqno(),th->ts());
-	acker_->update(th->seqno());
+	numToDeliver = acker_->update(th->seqno(), numBytes);
+	if (numToDeliver)
+		recvBytes(numToDeliver);
 
 	/* determine the highest timestamp the sender has echoed */
 	highest_ts_echo_ = max(highest_ts_echo_, th->ts_echo());

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1991-1997 Regents of the University of California.
  * All rights reserved.
@@ -33,22 +34,24 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.75 1998/06/20 02:06:45 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.76 1998/06/27 01:03:39 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <math.h>
-#include "tclcl.h"
-#include "packet.h"
 #include "ip.h"
 #include "tcp.h"
 #include "flags.h"
 #include "random.h"
 
+int hdr_tcp::offset_;
+
 static class TCPHeaderClass : public PacketHeaderClass {
 public:
         TCPHeaderClass() : PacketHeaderClass("PacketHeader/TCP",
-					     sizeof(hdr_tcp)) {}
+					     sizeof(hdr_tcp)) {
+		offset(&hdr_tcp::offset_);
+	}
 } class_tcphdr;
 
 static class TcpClass : public TclClass {
@@ -342,6 +345,8 @@ void TcpAgent::output(int seqno, int reason)
         ++ndatapack_;
         ndatabytes_ += bytes;
 	send(p, 0);
+	if (seqno == curseq_ && seqno > maxseq_)
+		idle();  // Tell application I have sent everything so far
 	if (seqno > maxseq_) {
 		maxseq_ = seqno;
 		if (!rtt_active_) {
@@ -359,6 +364,20 @@ void TcpAgent::output(int seqno, int reason)
 	if (!(rtx_timer_.status() == TIMER_PENDING) || force_set_rtx_timer)
 		/* No timer pending.  Schedule one. */
 		set_rtx_timer();
+}
+
+/*
+ * Must convert bytes into packets for one-way TCPs.
+ * If nbytes == -1, this corresponds to infinite send.  We approximate
+ * infinite by a very large number (TCP_MAXSEQ).
+ */
+void TcpAgent::sendmsg(int nbytes, const char* flags)
+{
+	if (nbytes == -1 && curseq_ <= TCP_MAXSEQ)
+		curseq_ = TCP_MAXSEQ; 
+	else
+		curseq_ += (nbytes/size_ + (nbytes%size_ ? 1 : 0));
+	send_much(0, 0, maxburst_);
 }
 
 void TcpAgent::advanceby(int delta)

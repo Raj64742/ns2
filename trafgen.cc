@@ -31,64 +31,50 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
+ *
  */
 
-#include "random.h"
-#include "tcp.h"
-#include "telnet.h"
-
-extern double tcplib_telnet_interarrival();
-
-static class TelnetSourceClass : public TclClass {
- public:
-	TelnetSourceClass() : TclClass("Application/Telnet") {}
-	TclObject* create(int, const char*const*) {
-		return (new TelnetSource);
-	}
-} class_source_telnet;
+#include "trafgen.h"
+#include "agent.h"
 
 
-TelnetSource::TelnetSource() : maxpkts_(1<<28), running_(0), timer_(this)
+TrafficGenerator::TrafficGenerator() : nextPkttime_(-1), timer_(this)
 {
-	bind("maxpkts_", &maxpkts_);
-	bind("interval_", &interval_);
 }
 
 
-void TelnetSourceTimer::expire(Event*)
+void TrafficGenerator::start()
 {
-        t_->timeout();
+	init();
+	running_ = 1;
+	size_ = agent_->size();
+	timer_.resched(next_interval(size_));
 }
 
 
-void TelnetSource::start()
+void TrafficGenerator::stop()
 {
-        running_ = 1;
-	double t = next();
-	timer_.sched(t);
+	timer_.cancel();
+	running_ = 0;
 }
 
-void TelnetSource::stop()
+
+void TrafficGenerator::timeout()
 {
-        running_ = 0;
+        if (! running_)
+		return;
+
+	/* send a packet */
+	send(size_);
+	/* figure out when to send the next one */
+	nextPkttime_ = next_interval(size_);
+	/* schedule it */
+	timer_.resched(nextPkttime_);
 }
 
-void TelnetSource::timeout()
-{
-        if (running_) {
-	        /* call the TCP advance method */
-		agent_->sendmsg(agent_->size());
-		/* reschedule the timer */
-		double t = next();
-		timer_.resched(t);
-	}
-}
 
-double TelnetSource::next()
+void TrafficTimer::expire(Event *)
 {
-        if (interval_ == 0)
-	        /* use tcplib */
-	        return tcplib_telnet_interarrival();
-	else
-	        return Random::exponential() * interval_;
+	tgen_->timeout();
 }

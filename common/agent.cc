@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
@@ -33,18 +34,18 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.41 1998/06/11 01:04:46 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.42 1998/06/27 01:03:29 gnguyen Exp $ (LBL)";
 #endif
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 
-#include "tclcl.h"
 #include "agent.h"
-#include "packet.h"
 #include "ip.h"
 #include "flags.h"
 #include "address.h"
+#include "app.h"
 
 
 #ifndef min
@@ -64,7 +65,7 @@ int Agent::uidcnt_;		/* running unique id */
 Agent::Agent(int pkttype) : 
 	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
 	prio_(-1), flags_(0), defttl_(32), channel_(0), traceName_(NULL),
-	oldValueList_(NULL)
+	oldValueList_(NULL), app_(0)
 {
 #ifdef JOHNH_CLASSINSTVAR
 #else /* ! JOHNH_CLASSINSTVAR */
@@ -134,34 +135,65 @@ Agent::~Agent()
 int Agent::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
-	if (strcmp(argv[1], "attach") == 0) {
-		int mode;
-		const char* id = argv[2];
-		channel_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
-		if (channel_ == 0) {
-			tcl.resultf("trace: can't attach %s for writing", id);
-			return (TCL_ERROR);
-		}
-		return (TCL_OK);
-	} else if (strcmp(argv[1], "add-agent-trace") == 0) {
-		// we need to write nam traces and set agent trace name
-		if (channel_ == 0) {
-			tcl.resultf("agent %s: no trace file attached", name_);
+	if (argc == 2) {
+		if (strcmp(argv[1], "delete-agent-trace") == 0) {
+			if ((traceName_ == 0) || (channel_ == 0))
+				return (TCL_OK);
+			deleteAgentTrace();
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "show-monitor") == 0) {
+			if ((traceName_ == 0) || (channel_ == 0))
+				return (TCL_OK);
+			monitorAgentTrace();
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "close") == 0) {
+			close();
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "listen") == 0) {
+                        listen();
+                        return (TCL_OK);
+                }
+
+	}
+	else if (argc == 3) {
+		if (strcmp(argv[1], "attach") == 0) {
+			int mode;
+			const char* id = argv[2];
+			channel_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+			if (channel_ == 0) {
+				tcl.resultf("trace: can't attach %s for writing", id);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "add-agent-trace") == 0) {
+			// we need to write nam traces and set agent trace name
+			if (channel_ == 0) {
+				tcl.resultf("agent %s: no trace file attached", name_);
+				return (TCL_OK);
+			}
+			addAgentTrace(argv[2]);
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "connect") == 0) {
+			connect((nsaddr_t)atoi(argv[2]));
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "send") == 0) {
+			sendmsg(atoi(argv[2]));
 			return (TCL_OK);
 		}
-		addAgentTrace(argv[2]);
-		return (TCL_OK);
-	} else if (strcmp(argv[1], "delete-agent-trace") == 0) {
-		if ((traceName_ == 0) || (channel_ == 0))
+	}
+	else if (argc == 4) {	
+		if (strcmp(argv[1], "sendmsg") == 0) {
+			sendmsg(atoi(argv[2]), argv[3]);
 			return (TCL_OK);
-		deleteAgentTrace();
-		return (TCL_OK);
-	} else if (strcmp(argv[1], "show-monitor") == 0) {
-		if ((traceName_ == 0) || (channel_ == 0))
+		}
+	}
+	else if (argc == 5) {
+		if (strcmp(argv[1], "sendto") == 0) {
+			sendto(atoi(argv[2]), argv[3], (nsaddr_t)atoi(argv[4]));
 			return (TCL_OK);
-		monitorAgentTrace();
-		return (TCL_OK);
-	} else if (strcmp(argv[1], "tracevar") == 0) {
+		}
+	}
+	if (strcmp(argv[1], "tracevar") == 0) {
 		// wrapper of TclObject's trace command, because some tcl
 		// agents (e.g. srm) uses it.
 		const char *args[4];
@@ -336,8 +368,71 @@ void Agent::timeout(int)
 {
 }
 
+/* 
+ * Callback to application to notify the reception of a number of bytes  
+ */
+void Agent::recvBytes(int nbytes)
+{
+	if (app_)
+		app_->recv(nbytes);	
+}
+
+/* 
+ * Callback to application to notify the termination of a connection  
+ */
+void Agent::idle()
+{
+	if (app_)
+		app_->resume();
+}
+
+/* 
+ * Assign application pointer for callback purposes    
+ */
+void Agent::attachApp(Application *app)
+{
+	app_ = app;
+}
+
+void Agent::close()
+{
+}
+
+void Agent::listen()
+{
+}
+
+/* 
+ * This function is a placeholder in case applications want to dynamically
+ * connect to agents (presently, must be done at configuration time).
+ */
+void Agent::connect(nsaddr_t dst)
+{
+/*
+	dst_ = dst;
+*/
+}
+
+void Agent::sendmsg(int nbytes, const char *flags)
+{
+}
+
+/* 
+ * This function is a placeholder in case applications want to dynamically
+ * connect to agents (presently, must be done at configuration time).
+ */
+void Agent::sendto(int nbytes, const char flags[], nsaddr_t dst)
+{
+/*
+	dst_ = dst;
+	sendmsg(nbytes, flags);
+*/
+}
+
 void Agent::recv(Packet* p, Handler*)
 {
+	if (app_)
+		app_->recv(hdr_cmn::access(p)->size());
 	/*
 	 * didn't expect packet (or we're a null agent?)
 	 */

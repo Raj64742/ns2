@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Xerox Corporation 1997. All rights reserved.
  *  
@@ -17,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/traffictrace.cc,v 1.4 1997/07/22 21:49:07 kfall Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/traffictrace.cc,v 1.5 1998/06/27 01:03:41 gnguyen Exp $ (Xerox)";
 #endif
 
 /* XXX: have not dealt with errors.  e.g., if something fails during
@@ -173,7 +174,7 @@ void TraceFile::recv(Packet*, Handler*)
 
 static class TrafficTraceClass : public TclClass {
  public:
-	TrafficTraceClass() : TclClass("Traffic/Trace") {}
+	TrafficTraceClass() : TclClass("Application/Traffic/Trace") {}
 	TclObject* create(int, const char*const*) {
 	        return(new TrafficTrace());
 	}

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1991-1997 Regents of the University of California.
  * All rights reserved.
@@ -30,19 +31,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.8 1998/05/20 22:06:34 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.9 1998/06/27 01:03:25 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_tcpsink_h
 #define ns_tcpsink_h
 
 #include <math.h>
-#include "packet.h"
-#include "ip.h"
-#include "tcp.h"
 #include "agent.h"
-#include "flags.h"
-#include "tclcl.h"
+#include "tcp.h"
 
 /* max window size */
 #define MWS 1024
@@ -58,7 +55,7 @@ public:
 	Acker();
 	virtual ~Acker() {}
 	void update_ts(int seqno, double ts);
-	void update(int seqno);
+	int update(int seqno, int numBytes);
 	void update_ecn_unacked(int value);
 	inline int Seqno() const { return (next_ - 1); }
 	virtual void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
@@ -67,27 +64,27 @@ public:
 	int ecn_unacked() { return ecn_unacked_;}
 
 protected:
-	int next_;		/* next packet expected  */
+	int next_;		/* next packet expected */
 	int maxseen_;		/* max packet number seen */
 	int ecn_unacked_;	/* ECN forwarded to sender, but not yet
 				 * acknowledged. */
-	int seen_[MWS];		/* array of packets seen  */
-	double ts_to_echo_;     /* timestamp to echo to peer */
+	int seen_[MWS];		/* array of packets seen */
+	double ts_to_echo_;	/* timestamp to echo to peer */
 };
 
 // derive Sacker from TclObject to allow for traced variable
 class SackStack;
 class Sacker : public Acker, public TclObject {
 public: 
-        Sacker() : base_nblocks_(-1), sf_(0) { };
-        ~Sacker();
-        void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
-        void reset();
-        void configure(TcpSink*);
+	Sacker() : base_nblocks_(-1), sf_(0) { };
+	~Sacker();
+	void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
+	void reset();
+	void configure(TcpSink*);
 protected:
-        int base_nblocks_;
-        SackStack *sf_;
-        void trace(TracedVar*);
+	int base_nblocks_;
+	SackStack *sf_;
+	void trace(TracedVar*);
 };
 
 class TcpSink : public Agent {
@@ -98,7 +95,7 @@ public:
 	TracedInt& maxsackblocks() { return max_sack_blocks_; }
 protected:
 	void ack(Packet*);
-	virtual void add_to_ack(Packet* pkt);  
+	virtual void add_to_ack(Packet* pkt);
 	Acker* acker_;
 	int off_tcp_;
 	int ts_echo_bugfix_;

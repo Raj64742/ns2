@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1991-1997 Regents of the University of California.
  * All rights reserved.
@@ -33,9 +34,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.23 1998/06/18 01:16:38 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.24 1998/06/27 01:03:37 gnguyen Exp $ (LBL)";
 #endif
 
+#include "flags.h"
+#include "ip.h"
 #include "tcp-sink.h"
 
 static class TcpSinkClass : public TclClass {
@@ -64,14 +67,17 @@ void Acker::update_ts(int seqno, double ts)
 		ts_to_echo_ = ts;
 }
 
-void Acker::update(int seq)
+// returns number of bytes that can be "delivered" to application
+int Acker::update(int seq, int numBytes)
 {
-
+	if (numBytes <= 0)
+		printf("Error, received TCP packet size <= 0\n");
+	int numToDeliver = 0;
 	if (seq - next_ >= MWM) {
 		// Protect seen_ array from overflow.
 		// The missing ACK will ultimately cause sender timeout
 		// and retransmission of packet next_.
-		return;
+		return 0;
 	}
 
 	if (seq > maxseen_) {
@@ -79,7 +85,7 @@ void Acker::update(int seq)
 		for (i = maxseen_ + 1; i < seq; ++i)
 			seen_[i & MWM] = 0;
 		maxseen_ = seq;
-		seen_[maxseen_ & MWM] = 1;
+		seen_[maxseen_ & MWM] = numBytes;
 		seen_[(maxseen_ + 1) & MWM] = 0;
 	}
 	int next = next_;
@@ -88,11 +94,14 @@ void Acker::update(int seq)
 		 * setting the sequence number.
 		 * should be the last in sequence packet seen
 		 */
-		seen_[seq & MWM] = 1;
-		while (seen_[next & MWM])
+		seen_[seq & MWM] = numBytes;
+		while (seen_[next & MWM]) {
 			++next;
+			numToDeliver += seen_[next & MWM];
+		}
 		next_ = next;
 	}
+	return numToDeliver;
 }
 
 TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker)
@@ -158,9 +167,13 @@ void TcpSink::add_to_ack(Packet*)
 
 void TcpSink::recv(Packet* pkt, Handler*)
 {
+	int numToDeliver;
+	int numBytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
 	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
 	acker_->update_ts(th->seqno(),th->ts());
-      	acker_->update(th->seqno());
+      	numToDeliver = acker_->update(th->seqno(), numBytes);
+	if (numToDeliver)
+		recvBytes(numToDeliver);
       	ack(pkt);
 	Packet::free(pkt);
 }
@@ -181,9 +194,13 @@ DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker), delay_timer_(this)
 
 void DelAckSink::recv(Packet* pkt, Handler*)
 {
+	int numToDeliver;
+	int numBytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
 	hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
 	acker_->update_ts(th->seqno(),th->ts());
-	acker_->update(th->seqno());
+	numToDeliver = acker_->update(th->seqno(), numBytes);
+	if (numToDeliver)
+		recvBytes(numToDeliver);
         /*
          * If there's no timer and the packet is in sequence, set a timer.
          * Otherwise, send the ack and update the timer.

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.26 1998/06/24 23:40:02 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.27 1998/06/27 01:03:24 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -102,7 +102,7 @@ class ReassemblyQueue : public TclObject {
 	};
 
 public:
-	ReassemblyQueue(int& rcvnxt);
+	ReassemblyQueue(int& rcvnxt, FullTcpAgent* agent_);
 	int empty() { return (head_ == NULL); }
 	int add(Packet*);
 	int add(int sseq, int eseq, int flags);
@@ -119,16 +119,21 @@ protected:
 	seginfo* ptr_;		// used for nextblk() iterator
 	seginfo* last_added_;	// last seginfo inserted
 	int& rcv_nxt_;		// start seq of next expected thing
+	FullTcpAgent* sink_;	// back pointer to FullTcpAgent
 };
 
 class FullTcpAgent : public TcpAgent {
+	friend ReassemblyQueue;
  public:
 	FullTcpAgent();
 	~FullTcpAgent();
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno); 	// tcp_timers() in real code
+	virtual void close() { usrclosed(); }
 	void advanceby(int);	// over-rides tcp base version
 	void advance_bytes(int);	// unique to full-tcp
+        virtual void sendmsg(int nbytes, const char *flags = 0);
+        virtual int& size() { return maxseg_; } //FullTcp uses maxseg_ for size_
 	int command(int argc, const char*const* argv);
 
  protected:
@@ -147,6 +152,7 @@ class FullTcpAgent : public TcpAgent {
 	int data_on_syn_;   // send data on initial SYN?
 	double last_send_time_;	// time of last send
 	int close_on_empty_;	// close conn when buffer empty
+	int infinite_send_;	// Always something to send
 	int tcprexmtthresh_;    // fast retransmit threshold
 	int iss_;       // initial send seq number
 	int irs_;	// initial recv'd # (peer's iss)

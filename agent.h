@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1993-1997 Regents of the University of California.
  * All rights reserved.
@@ -30,18 +31,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.17 1998/06/11 01:04:47 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.18 1998/06/27 01:03:22 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
 #define ns_agent_h
 
-#include "config.h"
-#include "packet.h"
 #include "connector.h"
+#include "packet.h"
 #include "timer-handler.h"
-#include <tracedvar.h>
-#include <assert.h>
 
 #define TIMER_IDLE 0
 #define TIMER_PENDING 1
@@ -51,6 +49,9 @@
  */
 
 #define TRACEVAR_MAXVALUELENGTH 128
+
+class Application;
+
 
 // store old value of traced vars
 // work only for TracedVarTcl
@@ -64,37 +65,53 @@ class Agent : public Connector {
  public:
 	Agent(int pktType);
 	virtual ~Agent();
+	void recv(Packet*, Handler*);
+	void send(Packet* p, Handler* h) { target_->recv(p, h); }
 	virtual void timeout(int tno);
+
+	virtual void sendmsg(int nbytes, const char *flags = 0);
+	virtual void send(int nbytes) { sendmsg(nbytes); }
+	virtual void sendto(int nbytes, const char* flags, nsaddr_t dst);
+	virtual void connect(nsaddr_t dst);
+	virtual void close();
+	virtual void listen();
+	virtual void attachApp(Application* app);
+	virtual int& size() { return size_; }
+	inline nsaddr_t& addr() { return addr_; }
+
  protected:
 	int command(int argc, const char*const* argv);
 #ifdef JOHNH_CLASSINSTVAR
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName);
 #endif /* JOHNH_CLASSINSTVAR */
-	void recv(Packet*, Handler*);
-	Packet* allocpkt() const;	/* alloc + set up new pkt */
-	Packet* allocpkt(int) const;	/* same, but w/data buffer */
-	void initpkt(Packet*) const;	/* set up fields in a pkt */
-        Tcl_Channel channel_;
 
-	nsaddr_t addr_;		/* address of this agent */
-	nsaddr_t dst_;		/* destination address for pkt flow */
-	int size_;		/* fixed packet size */
-	int type_;		/* type to place in packet header */
-	int fid_;		/* for IPv6 flow id field */
-	int prio_;		/* for IPv6 prio field */
-	int flags_;		/* for experiments (see ip.h) */
-	int defttl_;		/* default ttl for outgoing pkts */
+	virtual void recvBytes(int bytes);
+	virtual void idle();
+	Packet* allocpkt() const;	// alloc + set up new pkt
+	Packet* allocpkt(int) const;	// same, but w/data buffer
+	void initpkt(Packet*) const;	// set up fields in a pkt
+	Tcl_Channel channel_;
+
+	nsaddr_t addr_;			// address of this agent
+	nsaddr_t dst_;			// destination address for pkt flow
+	int size_;			// fixed packet size
+	int type_;			// type to place in packet header
+	int fid_;			// for IPv6 flow id field
+	int prio_;			// for IPv6 prio field
+	int flags_;			// for experiments (see ip.h)
+	int defttl_;			// default ttl for outgoing pkts
+	Application *app_;		// ptr to application for callback
 
 #ifdef notdef
-int seqno_;		/* current seqno */
-int class_;		/* class to place in packet header */
+	int seqno_;		/* current seqno */
+	int class_;		/* class to place in packet header */
 #endif
 
 	static int uidcnt_;
 	int off_ip_;
 
-	char *traceName_;        // name used in agent traces
+	char *traceName_;		// name used in agent traces
 	OldValue *oldValueList_; 
 	virtual void trace(TracedVar *v);
 	void deleteAgentTrace();
@@ -105,9 +122,5 @@ int class_;		/* class to place in packet header */
  private:
 	void flushAVar(TracedVar *v);
 };
-
-// Local Variables:
-// mode:c++
-// End:
 
 #endif

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997, 1998 The Regents of the University of California.
  * All rights reserved.
@@ -77,10 +78,9 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.48 1998/06/24 23:45:38 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.49 1998/06/27 01:03:35 gnguyen Exp $ (LBL)";
 #endif
 
-#include "tclcl.h"
 #include "ip.h"
 #include "tcp-full.h"
 #include "flags.h"
@@ -128,9 +128,9 @@ public:
  */
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
-	rq_(rcv_nxt_), last_ack_sent_(-1),
+	rq_(rcv_nxt_, this), last_ack_sent_(-1), infinite_send_(0),
 	last_send_time_(-1.0), irs_(-1), ect_(FALSE), recent_ce_(FALSE),
-	sq_(sack_min_)
+	sq_(sack_min_, this)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -254,7 +254,7 @@ FullTcpAgent::advanceby(int np)
  * the byte-oriented interface: advance_bytes(int nbytes)
  */
 
-void    
+void
 FullTcpAgent::advance_bytes(int nb)
 {
 
@@ -283,6 +283,23 @@ FullTcpAgent::advance_bytes(int nb)
 	return;
 }
 
+/*
+ * If MSG_EOF is set, by setting close_on_empty_ to TRUE, we ensure that
+ * a FIN will be sent when the send buffer emptys.
+ * 
+ * When (in the future) FullTcpAgent implements T/TCP, avoidance of 3-way 
+ * handshake can be handled in this function.
+ */
+void FullTcpAgent::sendmsg(int nbytes, const char *flags)
+{
+	if (flags && strcmp(flags, "MSG_EOF") == 0) 
+		close_on_empty_ = 1;	
+	if (nbytes == -1) {
+		infinite_send_ = 1;
+		advance_bytes(0);
+	} else
+		advance_bytes(nbytes);
+}
 
 /*
  * flags that are completely dependent on the tcp state
@@ -401,8 +418,9 @@ void FullTcpAgent::cancel_timers()
 void FullTcpAgent::output(int seqno, int reason)
 {
 	int is_retransmit = (seqno < maxseq_);
-	int idle = (highest_ack_ == maxseq_);
-	int buffered_bytes = (curseq_ + iss_) - highest_ack_;
+	int idle_ = (highest_ack_ == maxseq_);
+	int buffered_bytes = (infinite_send_ ? TCP_MAXSEQ : (curseq_ + iss_) - 
+	    highest_ack_);
 	int win = window() * maxseg_;
 	int off = seqno - highest_ack_;
 	int datalen = min(buffered_bytes, win) - off;
@@ -427,7 +445,7 @@ void FullTcpAgent::output(int seqno, int reason)
 	// the slow-start is a sort that does not set ssthresh
 	//
 
-	if (slow_start_restart_ && idle && datalen > 0) {
+	if (slow_start_restart_ && idle_ && datalen > 0) {
 		if (idle_restart()) {
 			slowdown(CLOSE_CWND_INIT);
 		}
@@ -436,8 +454,16 @@ void FullTcpAgent::output(int seqno, int reason)
 	//
 	// see if sending this packet will empty the send buffer
 	//
-	if ((seqno + datalen) >= (curseq_ + iss_))
+	if (((seqno + datalen) >= (curseq_ + iss_)) && 
+	    (infinite_send_ == 0 || curseq_ == iss_)) {
 		emptying_buffer = TRUE;
+		//
+		// if not a retransmission, notify application that 
+		// everything has been sent out at least once.
+		//
+		if ((seqno + datalen) > maxseq_ && !(pflags & TH_SYN))
+			idle();
+	}
 		
 	if (emptying_buffer) {
 		pflags |= TH_PUSH;
@@ -461,7 +487,7 @@ void FullTcpAgent::output(int seqno, int reason)
 		if (datalen == maxseg_)
 			goto send;
 		// if Nagle disabled and buffer clearing, ok
-		if ((idle || nodelay_)  && emptying_buffer)
+		if ((idle_ || nodelay_)  && emptying_buffer)
 			goto send;
 		// if a retransmission
 		if (is_retransmit)
@@ -596,7 +622,7 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 	int win = window() * maxseg_;	// window() in pkts
 	int npackets = 0;
 	int topwin = curseq_ + iss_;
-	if (topwin > highest_ack_ + win)
+	if ((topwin > highest_ack_ + win) || infinite_send_)
 		topwin = highest_ack_ + win;
 
 	if (!force && (delsnd_timer_.status() == TIMER_PENDING))
@@ -966,7 +992,8 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			    cwnd_ >= wnd_ && !in_recovery()) {
 				newack(pkt);
 				/* no adjustment of cwnd here */
-				if ((curseq_ + iss_) > highest_ack_) {
+				if (((curseq_ + iss_) > highest_ack_) ||
+				    infinite_send_) {
 					/* more to send */
 					send_much(0, REASON_NORMAL, 0);
 				}
@@ -986,6 +1013,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			//	changes DELACK to ACKNOW and calls tcp_output()
 			rcv_nxt_ += datalen;
 			flags_ |= TF_DELACK;
+			recvBytes(datalen); // notify application of "delivery"
 			//
 			// special code here to simulate the operation
 			// of a receiver who always consumes data,
@@ -1590,6 +1618,8 @@ step6:
 			// require being in ESTABLISHED state)
 			flags_ |= TF_DELACK;
 			rcv_nxt_ += datalen;
+			if (datalen)
+				recvBytes(datalen); // notify app. of "delivery"
 			tiflags = tcph->flags() & TH_FIN;
 			// give to "application" here
 			needoutput = need_send();
@@ -1679,7 +1709,7 @@ step6:
 
 	if (needoutput || (flags_ & TF_ACKNOW))
 		send_much(1, REASON_NORMAL, 0);
-	else if ((curseq_ + iss_) > highest_ack_)
+	else if (((curseq_ + iss_) > highest_ack_) || infinite_send_)
 		send_much(0, REASON_NORMAL, 0);
 	// K: which state to return to when nothing left?
 	Packet::free(pkt);
@@ -1831,6 +1861,7 @@ void FullTcpAgent::usrclosed()
 //now(), name(), state_);
 
 	curseq_ = t_seqno_ - iss_;	// truncate buffer
+	infinite_send_ = 0;
 	switch (state_) {
 	case TCPS_CLOSED:
 	case TCPS_LISTEN:
@@ -1913,9 +1944,8 @@ int FullTcpAgent::command(int argc, const char*const* argv)
  * allow it to find off_tcp_ and off_cmn_
  */
 
-ReassemblyQueue::ReassemblyQueue(int& nxt) :
-	head_(NULL), tail_(NULL), rcv_nxt_(nxt), last_added_(NULL),
-	ptr_(NULL)
+ReassemblyQueue::ReassemblyQueue(int& nxt, FullTcpAgent* agent_) :
+	head_(NULL), tail_(NULL), rcv_nxt_(nxt), sink_(agent_) 
 {
 	bind("off_tcp_", &off_tcp_);
 	bind("off_cmn_", &off_cmn_);
@@ -2080,6 +2110,7 @@ int ReassemblyQueue::add(Packet* pkt)
 int ReassemblyQueue::add(int start, int end, int tiflags)
 {
 	seginfo *q, *p, *n;
+	int numToDeliver = 0;
 
 	if (head_ == NULL) {
 		// nobody there, just insert
@@ -2150,6 +2181,7 @@ endfast:
 		// and delete the entry from the reass queue
 		// note that endseq is last contained seq# + 1
 		rcv_nxt_ = p->endseq_;
+		numToDeliver = p->endseq_ - p->startseq_;
 		tiflags |= p->flags_;
 		q = p;
 		if (q->prev_)
@@ -2173,7 +2205,8 @@ endfast:
 		p = p->next_;
 		delete q;
 	}
-
+	if (numToDeliver) 
+		sink_->recvBytes(numToDeliver); // notify app. of "delivery"
 	return (tiflags);
 }
 

@@ -30,34 +30,70 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.17 1998/01/31 04:55:07 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.18 1998/06/27 01:03:43 gnguyen Exp $
 #
+
+#  NOTE:  Could consider renaming this file to ns-app.tcl and moving the
+#  Source code to ns-compat.tcl
 
 #set ns_telnet(interval) 1000ms
 #set ns_bursty(interval) 0
 #set ns_bursty(burst-size) 2
 #set ns_message(packet-size) 40
 
-#Class Source
-#Source instproc init {} {
-#	$self next
-#	$self instvar maxpkts_
-#	set maxpkts_ 268435456
-#}
+Class Application/FTP -superclass Application
 
-# XXX Do not set this to 2^31; it breaks tcp-full.cc due to integer overflow
-# Currently set to 2^28
-Source set maxpkts_ 268435456
+Application/FTP instproc init {} {
+	$self next
+}
 
-# Class Source/Telnet -superclass Source
-Source/Telnet instproc attach o {
-	$self instvar agent_ 
+Application/FTP instproc start {} {
+	[$self agent] send -1
+}
+
+# Causes TCP to send no more new data.
+Application/FTP instproc stop {} {
+	[$self agent] advance 0
+	[$self agent] close
+}
+
+Application/FTP instproc send {nbytes} {
+	[$self agent] send $nbytes
+}
+
+# For sending packets.  Sends $pktcnt packets.
+Application/FTP instproc produce { pktcnt } {
+	[$self agent] advance $pktcnt
+}
+
+# For sending packets.  Sends $pktcnt more packets.
+Application/FTP instproc producemore { pktcnt } {
+	[$self agent] advanceby $pktcnt
+}
+
+
+#
+# Below are backward compatible components
+#
+
+Class Traffic/Expoo -superclass Application/Traffic/Exponential
+Class Traffic/Pareto -superclass Application/Traffic/Pareto
+Class Traffic/Trace -superclass Application/Traffic/Trace
+
+Class Source/FTP -superclass Application
+Source/FTP set maxpkts_ 268435456
+
+Source/FTP instproc attach o {
+	$self instvar agent_
 	set agent_ $o
 	$self attach-agent $o
 }
 
-
-Class Source/FTP -superclass Source
+Source/FTP instproc init {} {
+	$self next
+	$self instvar maxpkts_ agent_
+	set maxpkts_ 268435456
+}
 
 Source/FTP instproc start {} {
 	$self instvar agent_ maxpkts_
@@ -75,11 +111,21 @@ Source/FTP instproc produce { pktcnt } {
 }
 
 Source/FTP instproc producemore { pktcnt } {
-	$self instvar agent_ 
+	$self instvar agent_
 	$agent_ advanceby $pktcnt
 }
 
-Source/FTP instproc attach o {
+
+#
+# For consistency with other applications
+#
+Class Source/Telnet -superclass Application/Telnet
+
+Source/Telnet set maxpkts_ 268435456
+
+Source/Telnet instproc attach o {
 	$self instvar agent_
 	set agent_ $o
+	$self attach-agent $o
 }
+

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (C) Xerox Corporation 1997. All rights reserved.
  *  
@@ -17,14 +18,51 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.7 1998/06/10 18:23:19 breslau Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.8 1998/06/27 01:03:43 gnguyen Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
 #include "rtp.h"
-#include "tclcl.h"
-#include "packet.h"
 #include "random.h"
+
+static class UdpAgentClass : public TclClass {
+public:
+	UdpAgentClass() : TclClass("Agent/UDP") {}
+	TclObject* create(int, const char*const*) {
+		return (new UdpAgent());
+	}
+} class_udp_agent;
+
+UdpAgent::UdpAgent() : Agent(PT_UDP), seqno_(0)
+{
+}
+
+void UdpAgent::sendmsg(int nbytes, const char* flags)
+{
+	Packet *p;
+	int n = nbytes / size_;
+
+	if (nbytes == -1) {
+		printf("Error:  sendmsg() for UDP should not be -1\n");
+		return;
+	}	
+	while (n-- > 0) {
+		p = allocpkt();
+		target_->recv(p);
+	}
+	n = nbytes % size_;
+	if (n > 0) {
+		p = allocpkt();
+		hdr_cmn::access(p)->size() = n;
+		target_->recv(p);
+	}
+	idle();
+}
+
+
+/*
+ * UDP_Agent below is a both an Agent and an application
+ */
 
 //"rtp timestamp" needs the samplerate
 #define SAMPLERATE 8000
@@ -43,8 +81,8 @@ UDP_Agent::UDP_Agent() : trafgen_(0),nextPkttime_(-1), rtd_(0), callback_(0)
 
 UDP_Agent::~UDP_Agent()
 {
-        if (callback_)
-	        delete[] callback_;
+	if (callback_)
+		delete[] callback_;
 
 }
 
@@ -57,7 +95,7 @@ int UDP_Agent::command(int argc, const char*const* argv)
 			start();
 			return(TCL_OK);
 		} else if (strcmp(argv[1], "stop") == 0) {
-		        stop();
+			stop();
 			return(TCL_OK);
 		}
 	}
@@ -83,9 +121,9 @@ void UDP_Agent::sendpkt()
 	
 	double local_time=Scheduler::instance().clock();
 	/*put in "rtp timestamps" and begining of talkspurt labels */
-        hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	ch->timestamp()=(u_int32_t)(SAMPLERATE*local_time);
-        if ((nextPkttime_ != trafgen_->interval()) || (nextPkttime_ == -1))
+	if ((nextPkttime_ != trafgen_->interval()) || (nextPkttime_ == -1))
 		rh->flags() |= RTP_M;
 	
 	target_->recv(p);
@@ -93,9 +131,9 @@ void UDP_Agent::sendpkt()
 
 void UDP_Agent::timeout(int)
 {
-        if (running_) {
-	        /* send a packet */
-	        sendpkt();
+	if (running_) {
+		/* send a packet */
+		sendpkt();
 		/* figure out when to send the next one */
 		nextPkttime_ = trafgen_->next_interval(size_);
 		/* schedule it */
@@ -105,14 +143,13 @@ void UDP_Agent::timeout(int)
 		 * before stopping . . .
 		 */
 		if (rtd_) {
-		        if (trafgen_->on() == 0) {
-			      stop();
-			    //Tcl::instance().evalf("puts \"%s burst over at %f\"", 
-				//		  name(), Scheduler::instance().clock());
-			      Tcl::instance().evalf("%s sched-stop %d", name(), 0);
+			if (trafgen_->on() == 0) {
+				stop();
+				//Tcl::instance().evalf("puts \"%s burst over at %f\"", 
+				// name(), Scheduler::instance().clock());
+				Tcl::instance().evalf("%s sched-stop %d", name(), 0);
 			}
-		}      
-
+		}
 	}
 }
 
@@ -125,17 +162,16 @@ void UDP_Agent::stop()
 
 void UDP_Agent::stoponidle(const char *s)
 {
-  
-  callback_ = new char[strlen(s)+1];
-  strcpy(callback_, s);
+	callback_ = new char[strlen(s)+1];
+	strcpy(callback_, s);
 
-        if (trafgen_->on()) {
-        	// Tcl::instance().evalf("puts \"%s waiting for burst at %f\"", name(), Scheduler::instance().clock());
-	        rtd_ = 1;
+	if (trafgen_->on()) {
+		// Tcl::instance().evalf("puts \"%s waiting for burst at %f\"", name(), Scheduler::instance().clock());
+		rtd_ = 1;
 	}
 	else {
-	        stop();
-	      Tcl::instance().evalf("%s %s", name(), callback_);
+		stop();
+		Tcl::instance().evalf("%s %s", name(), callback_);
 	}
 
 }

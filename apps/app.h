@@ -31,64 +31,32 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
+ *
  */
 
-#include "random.h"
-#include "tcp.h"
-#include "telnet.h"
+#ifndef ns_app_h
+#define ns_app_h
 
-extern double tcplib_telnet_interarrival();
+#include <tclcl.h>
 
-static class TelnetSourceClass : public TclClass {
- public:
-	TelnetSourceClass() : TclClass("Application/Telnet") {}
-	TclObject* create(int, const char*const*) {
-		return (new TelnetSource);
-	}
-} class_source_telnet;
+class Agent;
 
+class Application : public TclObject {
+public:
+	Application();
+	virtual void send(int nbytes);
+	virtual void recv(int nbytes);
+	virtual void resume();
 
-TelnetSource::TelnetSource() : maxpkts_(1<<28), running_(0), timer_(this)
-{
-	bind("maxpkts_", &maxpkts_);
-	bind("interval_", &interval_);
-}
+protected:
+	int command(int argc, const char*const* argv);
+	virtual void start();
+	virtual void stop();
 
+	Agent *agent_;
+	int enableRecv_;		// call Tcl recv or not
+	int enableResume_;		// call Tcl resume or not
+};
 
-void TelnetSourceTimer::expire(Event*)
-{
-        t_->timeout();
-}
-
-
-void TelnetSource::start()
-{
-        running_ = 1;
-	double t = next();
-	timer_.sched(t);
-}
-
-void TelnetSource::stop()
-{
-        running_ = 0;
-}
-
-void TelnetSource::timeout()
-{
-        if (running_) {
-	        /* call the TCP advance method */
-		agent_->sendmsg(agent_->size());
-		/* reschedule the timer */
-		double t = next();
-		timer_.resched(t);
-	}
-}
-
-double TelnetSource::next()
-{
-        if (interval_ == 0)
-	        /* use tcplib */
-	        return tcplib_telnet_interarrival();
-	else
-	        return Random::exponential() * interval_;
-}
+#endif
