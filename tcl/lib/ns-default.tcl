@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.54 1997/08/12 00:33:53 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.55 1997/08/12 22:28:33 gnguyen Exp $
 
 
 #
@@ -105,8 +105,7 @@ Agent/TCP/Reno/RBP set rbp_scale_ 0.75
 # Reno/RBP supports only RBP_CWND_ALGORITHM 
 # Agent/TCP/Reno/RBP set rbp_rate_algorithm_ 2
 
-#XXX catch this in case this class not defined
-catch {
+if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1
 	Agent/TCP/FullTcp set segsize_ 536
 	Agent/TCP/FullTcp set tcprexmtthresh_ 3
