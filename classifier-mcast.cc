@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.21 1998/11/30 23:36:35 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.22 1999/02/03 22:31:35 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -178,7 +178,7 @@ int MCastClassifier::classify(Packet *const pkt)
 			int res= atoi(tcl.result());
 			return (res)? Classifier::TWICE : Classifier::ONCE;
 		}
-		if (p->iif == ANY_IFACE.value() || iface == UNKN_IFACE.value())
+		if (p->iif == ANY_IFACE.value()) // || iface == UNKN_IFACE.value())
 			return p->slot;
 
 		tcl.evalf("%s new-group %u %u %d wrong-iif", 

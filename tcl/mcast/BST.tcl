@@ -37,16 +37,29 @@ BST instproc init { sim node } {
 
 	set mctrl_ [new Agent/Mcast/Control $self]
 	$node attach $mctrl_
+}
+
+BST instproc start {} {
+	$self instvar node_ oiflist_
+	BST instvar RP_
 
 	foreach grpx [array names RP_] {
                 set grp [expr $grpx]
-               	$self dbg "BST: grp $grp, node [$node id]"
+               	$self dbg "BST: grp $grp, node [$node_ id]"
                	if { [string compare $grp $grpx] } {
     	           	set RP_($grp) $RP_(grpx)
         	      	unset RP_($grpx)
                	}
-               	set oiflist_($grp) ""
+		set rpfiif [$node_ from-node-iface $RP_($grp)]
+		if { $rpfiif != "?" } {
+			set rpfoif [$node_ iif2oif $rpfiif]
+		} else {
+			set rpfoif ""
+		}
+		# initialize with the value of rpfoif
+               	set oiflist_($grp) $rpfoif
 	}
+
 }
 
 BST instproc join-group  { group {src "x"} } {
@@ -83,6 +96,7 @@ BST instproc handle-wrong-iif { srcID group iface } {
 	BST instvar RP_
 	
 	$self dbg "BST: wrong iif $iface, src $srcID, grp $group"
+	$self dbg "\t oiflist: $oiflist_($group)"
 	#debug 1
 	set rep [$node_ getReps "x" $group]
 	
@@ -121,9 +135,9 @@ BST instproc handle-cache-miss { srcID group iface } {
 		set rpfoif ""
 	}
 	#puts "rpfoif= $rpfoif"
-	if { [lsearch $oiflist_($group) $rpfoif] < 0 } {
-		set oiflist_($group) [concat $oiflist_($group) $rpfoif]
-	}
+	#if { [lsearch $oiflist_($group) $rpfoif] < 0 } {
+	#	set oiflist_($group) [concat $oiflist_($group) $rpfoif]
+	#}
 	$self dbg "********* miss: adding <x, $group, $iface, $oiflist_($group)>"
 	$node_ add-mfc "x" $group $iface $oiflist_($group)
 
@@ -182,7 +196,8 @@ BST instproc recv-graft { from to group iface } {
 		set rpfoif ""
 	}
 
-	if { $oiflist_($group) == "" || $oiflist_($group) == $rpfoif } {
+	if { ($oiflist_($group) == "" || $oiflist_($group) == $rpfoif) && \
+			![$node_ check-local $group] } {
 		# propagate
 		$self send-ctrl "graft" $RP_($group) $group
 	}
