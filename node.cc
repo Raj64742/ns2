@@ -34,6 +34,8 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.15 2000/03/14 20:21:29 haoboy Exp $
  */
 
 #include <phy.h>
@@ -268,7 +270,7 @@ Node::set_node_state(int state)
 }
 
 void
-Node::idle_energy_patch(float total, float P_idle)
+Node::idle_energy_patch(float /*total*/, float /*P_idle*/)
 {
 	/*
        float real_idle = total-(total_sndtime_+total_rcvtime_+total_sleeptime_);
@@ -440,7 +442,7 @@ AdaptiveFidelityEntity::handle(Event *)
 	    }
 	    break;
     default:
-	    error("Illegal Node State!");
+	    fprintf(stderr, "Illegal Node State!");
 	    abort();
     }
 
