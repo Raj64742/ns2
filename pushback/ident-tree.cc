@@ -118,13 +118,21 @@ PrefixTree::identifyAggregate(double arrRate, double linkBW) {
   
   double targetRate = linkBW/(1 - TARGET_DROPRATE);
   double excessRate = arrRate - targetRate;
+  ////////////////
+  //printf("arrRate: %5.2f targetRate: %5.2f excessRate %5.2f\n",
+  //   arrRate, targetRate, excessRate);
+  /////////////////
   double rateTillNow = 0;
   double requiredBottom;
   int id=0;
   for (; id<=lastIndex; id++) {
     rateTillNow+=clusterList[id].count_*(arrRate/countArray[0]);
     requiredBottom = (rateTillNow - excessRate)/(id+1);
+    //printf("id: %d excessRate: %5.2f rateTillNow: %5.2f requiredBottom: %5.2f\n",
+    //id, excessRate, rateTillNow, requiredBottom);
     if (clusterList[id+1].prefix_==-1) {
+      // I think that this means that no viable set of aggregates was found.
+      // Shouldn't it return failure in this case?  - Sally 
       break;
     }
     if (clusterList[id+1].count_* (arrRate/countArray[0]) < requiredBottom) break;
