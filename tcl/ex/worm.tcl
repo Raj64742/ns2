@@ -78,7 +78,7 @@ set an_id [expr $num_node - 1]
 create-topo $num_node
 
 # set up simulation scenario
-set total_host 5000
+set total_host 200000
 
 set probing_port [Application/Worm set ScanPort]
 # probing packet size
@@ -105,7 +105,7 @@ set w($an_id) [new Application/Worm/An]
 $w($an_id) attach-agent $a($an_id)
 $w($an_id) addr-range $an_id $total_host
 $w($an_id) dn-range 0 [expr $num_node - 2]
-$w($an_id) v_percent 0.5
+$w($an_id) v_percent 0.8
 
 # recv all packets coming in
 set p [$n($an_id) set dmux_]
@@ -119,7 +119,7 @@ proc finish {} {
     exit 0
 }
 
-$ns at 100.0 "finish"
+$ns at 65.0 "finish"
 
 $ns run
 
