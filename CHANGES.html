@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.505 2002/03/08 17:47:27 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.506 2002/03/08 22:08:45 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -24,11 +24,32 @@ ns-2.1b9 release PENDING</h3>
 <p><li><b><a href="http://www.icir.org/floyd/">[Sally Floyd]</a></b>
 Fri Mar 8 2002</li>
 <br>
+Changed the default for the Agent/TCP variable "tcpTick_" from 0.1 
+to 0.01 seconds, to more accurately reflect current reality.
+This variable controls the granularity for TCP's measurements of
+round-trip times, and affects the value of TCP's retransmit timer.
+
+<p><li><b><a href="http://www.icir.org/floyd/">[Sally Floyd]</a></b>
+Fri Mar 8 2002</li>
+<br>
+Adding a variable "rfc2988_" for TCP to enable code that makes
+TCP's retransmit timers RFC2988-compliant, by clamping minrto_ before
+applying t_backoff_.
+The default is for "rfc2988_" to be true.
+The code is from Tom Kelly.
+The validation test is in "./test-all-tcp dialup" and
+"./test-all-tcp dialup1".
+
+<p><li><b><a href="http://www.icir.org/floyd/">[Sally Floyd]</a></b>
+Fri Mar 8 2002</li>
+<br>
 Added bug-fixes to the retransmit timer backoff in two-way TCP.
 The backoff of the retransmit timer was not working correctly 
 when the timestamp option was enabled (it was backing off when 
 it didn't need to).  A bug in the backoff also was fixed for ECN with
 small windows.  Bug-fixes contributed by Tom Kelly.
+(Two-way TCP is still not completely validated, with some of the
+incomplete validation tests in "./test-all-broken".)
 
 <p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>
 Mon Feb 25 12:26:08 PST 2002
