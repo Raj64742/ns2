@@ -49,8 +49,8 @@ tcp0/time=5/cwnd=7.0000/ssthresh=7/ack=96/rtt=3
 tcp1/time=5.0000099999999996/cwnd=2.0000/ssthresh=13/ack=26/rtt=6
 tcp0/time=10/cwnd=11.4952/ssthresh=10/ack=328/rtt=2
 tcp1/time=10.000019999999999/cwnd=2.0000/ssthresh=7/ack=87/rtt=6
-tcp 1 total_packets_acked 87
 tcp 0 total_packets_acked 335
+tcp 1 total_packets_acked 87
 fid: 0 per-link total_drops 13
 fid: 0 per-link total_packets 359
 fid: 0 per-link total_bytes 359000
@@ -88,11 +88,14 @@ Test output agrees with reference output
 ../../ns test-suite-tcp.tcl stats1 QUIET
 tcp1/window=30/packetSize=1000/bugFix=1
 tcp2/window=3/packetSize=1000/bugFix=1
-tcp2/time=0/cwnd=1.0000/ssthresh=3/ack=-1/rtt=0
 tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
+tcp2/time=0/cwnd=1.0000/ssthresh=3/ack=-1/rtt=0
 
-tcp2/time=10/cwnd=9.1730/ssthresh=3/ack=38/rtt=7
-tcp1/time=10/cwnd=29.4693/ssthresh=7/ack=490/rtt=3
+tcp: 1 time: 10.0
+total_data_packets_sent: 530 data_bytes_sent: 530000
+packets_resent: 10 bytes_resent: 10000
+ack_packets_received: 496
+retransmit_timeouts: 1
 
 tcp: 2 time: 10.0
 total_data_packets_sent: 42 data_bytes_sent: 42000
@@ -100,11 +103,8 @@ packets_resent: 0 bytes_resent: 0
 ack_packets_received: 39
 retransmit_timeouts: 0
 
-tcp: 1 time: 10.0
-total_data_packets_sent: 530 data_bytes_sent: 530000
-packets_resent: 10 bytes_resent: 10000
-ack_packets_received: 496
-retransmit_timeouts: 1
+tcp1/time=10/cwnd=29.4693/ssthresh=7/ack=490/rtt=3
+tcp2/time=10/cwnd=9.1730/ssthresh=3/ack=38/rtt=7
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-full
@@ -227,7 +227,7 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-cbq
-Tests: WRR PRR AO TL FORMAL MAX1 MAX2 EXTRA1 EXTRA2 MIN1 MIN3 MIN4 MIN6 TwoAO TwoAO2 TwoAO3 TwoTL TwoF TwoDynamic TwoDynamic1
+Tests: WRR PRR AO TL FORMAL MAX1 MAX2 EXTRA1 EXTRA2 MIN1 MIN3 MIN4 MIN6 TwoAO TwoAO2 TwoAO3 TwoTL TwoF TwoDynamic TwoDynamic1 TwoDynamic1WRR TwoWRR
 ../../ns test-suite-cbq.tcl WRR QUIET
 Test output agrees with reference output
 ../../ns test-suite-cbq.tcl PRR QUIET
@@ -267,6 +267,10 @@ Test output agrees with reference output
 ../../ns test-suite-cbq.tcl TwoDynamic QUIET
 Test output agrees with reference output
 ../../ns test-suite-cbq.tcl TwoDynamic1 QUIET
+Test output agrees with reference output
+../../ns test-suite-cbq.tcl TwoDynamic1WRR QUIET
+Test output agrees with reference output
+../../ns test-suite-cbq.tcl TwoWRR QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red-v1
@@ -622,7 +626,7 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-ecn
-Tests: ecn ecn_nodrop_tahoe ecn_twoecn_tahoe ecn_drop_tahoe ecn_drop1_tahoe ecn_drop2_tahoe ecn_noecn_tahoe ecn_bursty_tahoe ecn_burstyEcn_tahoe ecn_noBugfix_tahoe ecn_timeout_tahoe ecn_timeout2_tahoe ecn_timeout3_tahoe ecn_smallwin_tahoe ecn_smallwinEcn_tahoe ecn_secondpkt_tahoe ecn_secondpktEcn_tahoe ecn_nodrop_reno ecn_twoecn_reno ecn_drop_reno ecn_drop1_reno ecn_noecn_reno ecn_bursty_reno ecn_burstyEcn_reno ecn_noBugfix_reno ecn_timeout_reno ecn_timeout1_reno ecn_smallwin_reno ecn_smallwinEcn_reno ecn_secondpkt_reno ecn_secondpktEcn_reno ecn_nodrop_sack ecn_twoecn_sack ecn_drop_sack ecn_drop1_sack ecn_noecn_sack ecn_bursty_sack ecn_burstyEcn_sack ecn_burstyEcn1_sack ecn_noBugfix_sack ecn_timeout_sack ecn_timeout1_sack ecn_fourdrops_sack ecn_smallwin_sack ecn_smallwinEcn_sack ecn_secondpkt_sack ecn_secondpktEcn_sack ecn_nodrop_newreno ecn_twoecn_newreno ecn_drop_newreno ecn_drop1_newreno ecn_noecn_newreno ecn_bursty_newreno ecn_burstyEcn_newreno ecn_timeout_newreno ecn_timeout1_newreno ecn_smallwin_newreno ecn_smallwinEcn_newreno ecn_secondpkt_newreno ecn_secondpktEcn_newreno ecn1
+Tests: ecn ecn_nodrop_tahoe ecn_twoecn_tahoe ecn_drop_tahoe ecn_drop1_tahoe ecn_drop2_tahoe ecn_noecn_tahoe ecn_bursty_tahoe ecn_burstyEcn_tahoe ecn_noBugfix_tahoe ecn_timeout_tahoe ecn_timeout2_tahoe ecn_timeout3_tahoe ecn_smallwin_tahoe ecn_smallwinEcn_tahoe ecn_secondpkt_tahoe ecn_secondpktEcn_tahoe ecn_nodrop_tahoe_delack ecn_twoecn_tahoe_delack ecn_drop_tahoe_delack ecn_drop1_tahoe_delack ecn_smallwinEcn_tahoe_delack ecn_nodrop_reno ecn_twoecn_reno ecn_drop_reno ecn_drop1_reno ecn_noecn_reno ecn_bursty_reno ecn_burstyEcn_reno ecn_noBugfix_reno ecn_timeout_reno ecn_timeout1_reno ecn_smallwin_reno ecn_smallwinEcn_reno ecn_secondpkt_reno ecn_secondpktEcn_reno ecn_nodrop_reno_delack ecn_twoecn_reno_delack ecn_drop_reno_delack ecn_drop1_reno_delack ecn_smallwinEcn_reno_delack ecn_nodrop_sack ecn_twoecn_sack ecn_drop_sack ecn_drop1_sack ecn_noecn_sack ecn_bursty_sack ecn_burstyEcn_sack ecn_burstyEcn1_sack ecn_noBugfix_sack ecn_timeout_sack ecn_timeout1_sack ecn_fourdrops_sack ecn_smallwin_sack ecn_smallwinEcn_sack ecn_secondpkt_sack ecn_secondpktEcn_sack ecn_nodrop_sack_delack ecn_twoecn_sack_delack ecn_drop_sack_delack ecn_drop1_sack_delack ecn_smallwinEcn_sack_delack ecn_nodrop_newreno ecn_twoecn_newreno ecn_drop_newreno ecn_drop1_newreno ecn_noecn_newreno ecn_bursty_newreno ecn_burstyEcn_newreno ecn_timeout_newreno ecn_timeout1_newreno ecn_smallwin_newreno ecn_smallwinEcn_newreno ecn_secondpkt_newreno ecn_secondpktEcn_newreno ecn_nodrop_newreno_delack ecn_twoecn_newreno_delack ecn_drop_newreno_delack ecn_drop1_newreno_delack ecn_smallwinEcn_newreno_delack ecn1
 ../../ns test-suite-ecn.tcl ecn QUIET
 Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_nodrop_tahoe QUIET
@@ -657,6 +661,16 @@ Test output agrees with reference output
 Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_tahoe QUIET
 Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_nodrop_tahoe_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_twoecn_tahoe_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_drop_tahoe_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_drop1_tahoe_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_smallwinEcn_tahoe_delack QUIET
+Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_nodrop_reno QUIET
 Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_twoecn_reno QUIET
@@ -684,6 +698,16 @@ Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_secondpkt_reno QUIET
 Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_reno QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_nodrop_reno_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_twoecn_reno_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_drop_reno_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_drop1_reno_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_smallwinEcn_reno_delack QUIET
 Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_nodrop_sack QUIET
 Test output agrees with reference output
@@ -717,6 +741,16 @@ Test output agrees with reference output
 Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_sack QUIET
 Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_nodrop_sack_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_twoecn_sack_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_drop_sack_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_drop1_sack_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_smallwinEcn_sack_delack QUIET
+Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_nodrop_newreno QUIET
 Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_twoecn_newreno QUIET
@@ -742,6 +776,16 @@ Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_secondpkt_newreno QUIET
 Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_newreno QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_nodrop_newreno_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_twoecn_newreno_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_drop_newreno_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_drop1_newreno_delack QUIET
+Test output agrees with reference output
+../../ns test-suite-ecn.tcl ecn_smallwinEcn_newreno_delack QUIET
 Test output agrees with reference output
 ../../ns test-suite-ecn.tcl ecn1 QUIET
 Test output agrees with reference output
@@ -873,6 +917,7 @@ Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM4 QUIET
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl CtrMcast1 QUIET
+Backward compatibility: Use "set-address-format expanded" instead of "Node expandaddr";
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl CtrMcast2 QUIET
 Test output agrees with reference output
@@ -973,6 +1018,44 @@ Test output agrees with reference output
 ../../ns test-suite-vc.tcl VC2 QUIET
 Test output agrees with reference output
 ../../ns test-suite-vc.tcl VC3 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-simultaneous
+Tests: List Calendar Heap
+../../ns test-suite-simultaneous.tcl List QUIET
+Test output agrees with reference output
+../../ns test-suite-simultaneous.tcl Calendar QUIET
+Test output agrees with reference output
+../../ns test-suite-simultaneous.tcl Heap QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-lan
+Tests: lan-routing-flat lan-routing-hier lan-broadcast
+../../ns test-suite-lan.tcl lan-routing-flat QUIET
+Test output agrees with reference output
+../../ns test-suite-lan.tcl lan-routing-hier QUIET
+Test output agrees with reference output
+../../ns test-suite-lan.tcl lan-broadcast QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-wireless-lan
+Tests: dsdv dsr
+../../ns test-suite-wireless-lan.tcl dsdv QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+Test output agrees with reference output
+../../ns test-suite-wireless-lan.tcl dsr QUIET
+Loading connection pattern...
+Loading scenario file...
+Load complete...
+Starting Simulation...
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-ecn-ack
+Tests: ecn_ack
+../../ns test-suite-ecn-ack.tcl ecn_ack QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
