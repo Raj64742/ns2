@@ -132,7 +132,8 @@ class RateLimitSessionList {
   RateLimitSession * getSessionByRemoteID(int remoteID);
   
   //returns number of sessions with sending rate strictly more than this rate.
-  int rankRate(int myID, double rate);	
+	int rankRate(int myID, double rate);	
+	int rankSession(int myID, RateLimitSession * session);
 };
 
 

@@ -1,4 +1,4 @@
-/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/* -*-  Mode:C++; c-basic-offset:4; tab-width:4; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 2000  International Computer Science Institute
  * All rights reserved.
@@ -41,6 +41,8 @@
 #include "rate-limit.h"
 #include "pushback-message.h"
 
+#define DEBUG  
+
 int hdr_pushback::offset_;
 
 static class PushbackHeaderClass : public PacketHeaderClass {
@@ -67,8 +69,8 @@ PushbackAgent::PushbackAgent() : Agent(PT_PUSHBACK), last_index_(0), intResult_(
   bind_bool("enable_pushback_", &enable_pushback_);
   bind_bool("verbose_", &verbose_);
   timer_ = new PushbackTimer(this);
-//  debugLevel = 3;
   debugLevel = 3;
+  //  debugLevel = 0;
 }
 
 int 
@@ -325,7 +327,9 @@ PushbackAgent::initialUpdate(RateLimitSession * rls) {
   //cancel right now, if arrRate is significantly less than lower bound.
   if (arrRate < 0.75*rls->lowerBound_) {
       double now = Scheduler::instance().clock();
-      //printf("Cancel pushback A time: %5.3f\n", now);
+      #ifdef DEBUG
+        printf("Cancel pushback A time: %5.3f\n", now);
+      #endif
       pushbackCancel(rls);
       return;
   }
@@ -459,7 +463,17 @@ PushbackAgent::pushbackRefresh(int qid) {
       if (noSessions!=oldSessions) {
 	      sprintf(prnMsg, " Some sessions merged. old = %d new = %d\n",  oldSessions, noSessions);
 	      printMsg(prnMsg,0);
-      } else {
+
+		  //get rid of merged RLS's
+		  RateLimitSession * listItem = pbq->rlsList_->first_;
+		  while (listItem != NULL) {
+			  if (listItem->origin_ == node_->nodeid() && listItem->merged_) {
+				  pushbackCancel(listItem);
+				  listItem = listItem->next_;
+				  
+			  }
+		  }
+	  } else {
 	      sprintf(prnMsg, " No sessions merged. number = %d\n", noSessions);
 	      printMsg(prnMsg,0);
       }
@@ -503,7 +517,7 @@ PushbackAgent::pushbackRefresh(int qid) {
       totalRateLimitedArrivalRate+= sessionArrRate;
       totalLimit+= (sessionArrRate > sessionLimit)? sessionLimit: sessionArrRate;
       if (listItem->lowerBound_ < lowerBound || lowerBound == -1) {
-	lowerBound = listItem->lowerBound_;
+		  lowerBound = listItem->lowerBound_;
       }
     }
     listItem = listItem->next_;
@@ -513,7 +527,6 @@ PushbackAgent::pushbackRefresh(int qid) {
 	  lowerBound = queue_list_[qid].idTree_->lowerBound_;
   }
 
-  double requiredLimit;
   double excessRate = (arrRate - totalLimit + totalRateLimitedArrivalRate) - targetRate;
   
   sprintf(prnMsg,"arr=%g totalLimit=%g totalRateLimit=%g excess=%g\n",  arrRate, totalLimit, 
@@ -521,81 +534,112 @@ PushbackAgent::pushbackRefresh(int qid) {
   printMsg(prnMsg,0);
   
   if (excessRate < 0) {
-    sprintf(prnMsg, "Negative Excess Rate. Things maybe fine now.\n");
-    printMsg(prnMsg,0);
-    //this would make all sessions go away after a while.
-    //printf("Negative Excess Rate - time: %5.3f\n", now);
-    requiredLimit = 2*totalRateLimitedArrivalRate;
+	  sprintf(prnMsg, "Negative Excess Rate. Things maybe fine now.\n");
+	  printMsg(prnMsg,0);
+	  //this would make all sessions go away after a while.
+#ifdef DEBUG
+	  printf("Negative Excess Rate - time: %5.3f\n", now);
+#endif
+	  requiredLimit_ = 2*totalRateLimitedArrivalRate;
   } else {
-    requiredLimit = (totalRateLimitedArrivalRate - excessRate)/noSessions;
-    if (requiredLimit < lowerBound) {
-      requiredLimit = lowerBound;
-    }
-    //printf("New requiredLimit - time: %5.3f limit: %5.3f\n", now, requiredLimit);
+	  //Should we allow such an abrupt increase when the number of sessions 
+	  // changes?
+	  // How about: Let L be the requiredLimit.
+	  // We need Sum (session arrival rate - L ) = excessRate
+	  requiredLimit_ = (totalRateLimitedArrivalRate - excessRate)/noSessions;
+	  if (requiredLimit_ < lowerBound) {
+		  requiredLimit_ = lowerBound;
+	  }
+#ifdef DEBUG
+      printf("New requiredLimit - time: %5.3f limit: %5.3f lowerBound:%5.3f \n", now, requiredLimit_, lowerBound);
+#endif
   }
 
-  sprintf(prnMsg,"Refresh. target=%g limit=%g floor=%g\n", targetRate, requiredLimit,
+  sprintf(prnMsg,"Refresh. target=%g limit=%g floor=%g\n", targetRate, requiredLimit_,
 	  lowerBound);
   printMsg(prnMsg,0);
 
-  //send refresh message for all sessions with arrival rate > requiredLimit;
-  listItem = pbq->rlsList_->first_;
-  while (listItem != NULL) {
-    if (listItem->origin_ == node_->nodeid()) {
-	
-	//get rid of merged RLS's
-	if (listItem->merged_) {
-	    pushbackCancel(listItem);
-	    listItem = listItem->next_;
-	    continue;
-	}
-	
-        double oldLimit = listItem->rlStrategy_->target_rate_;
-	//Sessions sending less than the limit.
-	if (listItem->getArrivalRateForStatus() < requiredLimit) {
-	    //if it has been sending less for "some" time.
-	    if (now - listItem->refreshTime_ >= MIN_TIME_TO_FREE) {
-      		//printf("Cancel pushback B time: %5.3f\n", now);
-		pushbackCancel(listItem);       //cancel rate-limiting
-	    } else {
-		//refresh upstream with double of max(sending rate, old limit)
-		//just using sending rate, limits the amount an aggregate can grow till next refresh
-		//using just old limit is tricky when different aggregates have different limits.
-		//at the same time, we would prefer not to loosen the hold too much in one step.
-      		//printf("Double limit time: %5.3f\n", now);
-		double sendRate = listItem->getArrivalRateForStatus();
-		double maxR = sendRate>oldLimit? sendRate: oldLimit;
-		if (now - listItem->refreshTime_ <= PRIMARY_WAITING_ZONE) {
-		    sprintf(prnMsg,"Waiting Zone 1: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
-		    printMsg(prnMsg,0);
-		    listItem->setLimit(maxR);
-		}
-		else {
-		    sprintf(prnMsg,"Waiting Zone 2: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
-		    printMsg(prnMsg,0);
-		    listItem->setLimit(1.5*maxR);
-		} 
-		if (listItem->pushbackON_) 
-		    refreshUpstreamLimits(listItem);
-	    }
-	}
+  //consider all sessions in ascending order of their arrival rate
+  for (int i=0; i<noSessions; i++) {
+	  listItem = pbq->rlsList_->first_;
+	  while (listItem != NULL ) {
+		  if (listItem->origin_ == node_->nodeid() && 
+			  pbq->rlsList_->rankSession(node_->nodeid(),listItem) == i) 
+			  break;
+		 listItem = listItem->next_;
+	  }
+	  if (listItem == NULL) {
+		  printf("Error: Rank not found\n");
+		  exit(0);
+	  }
+	  
+	  double oldLimit = listItem->rlStrategy_->target_rate_;
+	  double sendRate = listItem->getArrivalRateForStatus();
+#ifdef DEBUG
+	  printf("time: %5.3f ID: %d sendRate %5.3f oldLimit %5.3f requiredLimit %5.3f\n", now,
+			 listItem->localID_, sendRate, oldLimit, requiredLimit_);
+#endif
+	  //Session sending less than the limit.
+	  if (sendRate < requiredLimit_) {
+		  //if it has been sending less for "some" time.
+		  if (now - listItem->refreshTime_ >= MIN_TIME_TO_FREE) {
+#ifdef DEBUG
+			printf("time: %5.3f ID: %d refreshTime %5.3f MIN %d Cancel pushback B \n", 
+				   now, listItem->localID_, listItem->refreshTime_, MIN_TIME_TO_FREE);
+#endif
+			pushbackCancel(listItem);       //cancel rate-limiting
+			requiredLimit_+= (requiredLimit_ - sendRate)/(noSessions - i);
+		  } 
+		  else {
+			  //refresh upstream with double of max(sending rate, old limit)
+			  //just using sending rate, limits the amount an aggregate can grow till next refresh
+			  //using just old limit is tricky when different aggregates have different limits.
+			  //at the same time, we would prefer not to loosen the hold too much in one step.
+#ifdef DEBUG
+			  printf("time: %5.3f ID: %d double limit\n", now, listItem->localID_);
+#endif
+			  double maxR = sendRate>oldLimit? sendRate: oldLimit;
+			  if (now - listItem->refreshTime_ <= PRIMARY_WAITING_ZONE) {
+				  sprintf(prnMsg,"Waiting Zone 1: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
+				  printMsg(prnMsg,0);
+			  }
+			  else {
+				  sprintf(prnMsg,"Waiting Zone 2: sendRate=%g oldLimit=%g\n", sendRate, oldLimit);
+				  printMsg(prnMsg,0);
+				  maxR *= 1.5;
+			  }
+			  if (maxR < requiredLimit_) {
+				  listItem->setLimit(maxR);
+				  requiredLimit_ += (requiredLimit_ - maxR)/(noSessions - i);
+			  } 
+			  else {
+				  listItem->setLimit(requiredLimit_);
+			  }
+			  
+			  if (listItem->pushbackON_) 
+				  refreshUpstreamLimits(listItem);
+		  }
+	  }
       else {
-	  //reduce the rate limit most half way.
-	  //refresh rate-limiting
-	  double newLimit;
-	  if (oldLimit > requiredLimit)
-	    newLimit = 0.5*requiredLimit + 0.5*oldLimit;
-          else newLimit = requiredLimit;
-      	  //printf("Reduce limit - time: %5.3f\n", now);
-	  listItem->refreshed();
-	  listItem->setLimit(newLimit);
-   	if (listItem->pushbackON_) 
-	    refreshUpstreamLimits(listItem);
-	
+		  //change the rate limit most half way.
+		  double newLimit;
+		  if (oldLimit > 0) {
+			  //if (oldLimit > requiredLimit_) {
+			  newLimit = 0.5*requiredLimit_ + 0.5*oldLimit;
+			  if (newLimit < lowerBound) 
+				  newLimit = lowerBound;
+		  } else 								 
+			  newLimit = requiredLimit_;
+		  listItem->refreshed();
+		  listItem->setLimit(newLimit);
+		  if (listItem->pushbackON_) 
+			  refreshUpstreamLimits(listItem);
+#ifdef DEBUG
+		  printf("time: %5.3f ID: %d newLimit %5.3f oldLimit %5.3f requiredLimit %5.3f\n", 
+				 now, listItem->localID_, newLimit, oldLimit, requiredLimit_);
+#endif
       }
-    }    
-    listItem = listItem->next_;
-  }
+  }    
   
   //setup refresh timer again
   noSessions = pbq->rlsList_->noMySessions(node_->nodeid());
@@ -615,7 +659,9 @@ PushbackAgent::pushbackCancel(RateLimitSession * rls) {
   fflush(stdout);
 
   double now = Scheduler::instance().clock();
-  //printf("Cancel pushback C time: %5.3f\n", now);
+  #ifdef DEBUG
+    printf("time: %5.3f ID: %d Cancel pushback C\n", now, rls->localID_);
+  #endif
 
   if (rls->pushbackON_) {
     LoggingDataStructNode * lgdsNode = rls->logData_->first_;

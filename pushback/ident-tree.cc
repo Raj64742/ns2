@@ -1,4 +1,4 @@
-/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+//* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 2000  International Computer Science Institute
  * All rights reserved.
@@ -90,7 +90,9 @@ PrefixTree::calculateLowerBound() {
     }
   }
 
-  if (count == 0) return NULL;
+  //  printf("CLB: sum: %d count: %d\n",sum, count);
+
+  if (count < 2) return NULL;
 
   cluster *clusterList = (cluster *)malloc(sizeof(cluster)*MAX_CLUSTER);
   

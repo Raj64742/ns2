@@ -106,6 +106,7 @@ class PushbackAgent : public Agent {
 protected:
   int enable_pushback_;
   queue_rec queue_list_[MAX_QUEUES];
+  double requiredLimit_;
   
 
   RouteLogic * rtLogic_;

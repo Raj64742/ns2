@@ -1,4 +1,4 @@
-/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/* -*-  Mode:C++; c-basic-offset:4; tab-width:4; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 2000  International Computer Science Institute
  * All rights reserved.
@@ -272,15 +272,37 @@ RateLimitSessionList::rankRate(int myID, double rate) {
     int rank=0;
     RateLimitSession * listItem = first_;
     while (listItem != NULL) {
-	if (listItem->origin_ == myID && listItem->getArrivalRateForStatus() > rate) {
-	    rank++;
+		if (listItem->origin_ == myID && listItem->getArrivalRateForStatus() > rate) {
+			rank++;
+		}
+		listItem = listItem->next_;
 	}
-	listItem = listItem->next_;
-    }
     
     return rank;
-}	
-	
+}
+
+int 
+RateLimitSessionList::rankSession(int myID, RateLimitSession * session) {
+    int rank=0;
+    RateLimitSession * listItem = first_;
+    while (listItem != NULL) {
+		if (listItem->origin_ == myID) {
+			if (listItem->getArrivalRateForStatus() > session->getArrivalRateForStatus()) {
+				rank++;
+			}
+			//to enforce deterministic ordering between sessions with same rate
+			else if (listItem->getArrivalRateForStatus() == session->getArrivalRateForStatus() &&
+					 listItem > session) {
+				rank++;
+			}
+		}
+		listItem = listItem->next_;
+	}
+    
+    return rank;
+}
+
+
 // ############################# RateLmitSession Methods #####################
 
 //local constructor
