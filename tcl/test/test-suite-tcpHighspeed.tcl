@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.4 2002/03/29 19:17:39 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.5 2002/03/29 19:25:22 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -231,7 +231,7 @@ Test/tcpHighspeed3 instproc init {} {
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     Agent/TCP set windowOption_ 8
-    #Agent/TCP set high_p_ 0.000000001 	# the TCP formula would say this.
+    #Agent/TCP set high_p_ 0.0000000096 # the TCP formula would say this.
     Agent/TCP set high_p_ 0.00000001
     Agent/TCP set high_decrease_ 0.5
     Test/tcpHighspeed3 instproc run {} [Test/tcp info instbody run ]
