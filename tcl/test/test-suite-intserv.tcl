@@ -18,7 +18,7 @@
 #
 
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.2 1998/08/14 20:14:21 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.3 1998/10/14 02:24:32 yuriy Exp $
 #
 
 # 
@@ -389,14 +389,14 @@ Agent/SA instproc sched-stop { decision } {
                     puts $f_ \"Flow [$self set fid_] left @ $leavetime\" \
             }; \
             $ns_ detach-agent $node_ $self; \
-            delete [$self set trafgen_]; delete $self; $T flowdepart"
+            $T flowdepart"
         } else {
                 set leavetime [$ns_ now]
                 $ns_ at-now "if { $param_(trace_flow) } { \
                     puts $f_ \"Flow [$self set fid_] left @ $leavetime\"\
             }; \
             $ns_ detach-agent $node_ $self; \
-            delete [$self set trafgen_]; delete $self"
+            "
         }
 
 }
