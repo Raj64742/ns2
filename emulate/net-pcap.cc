@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.10 1998/02/28 00:02:06 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.11 1998/02/28 00:04:18 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -585,6 +585,15 @@ struct pcap {
         char errbuf[PCAP_ERRBUF_SIZE];
 };
 
+
+/*
+ * the routines bpf_open and pcap_open_live really
+ * should not be here, and instead should be part of the
+ * pcap library.  Unfortunately, if we ever want to writes to
+ * the bpf fd, we need to open it r/w, and the normal pcap
+ * library does not permit us to do this.  So for now, here
+ * are these routines.
+ */
 
 #include <net/if.h>
 
