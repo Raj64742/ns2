@@ -35,7 +35,7 @@
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.15 2000/03/14 20:21:29 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.16 2000/05/04 16:33:31 haoboy Exp $
  */
 
 #include <phy.h>
@@ -106,6 +106,11 @@ Node::Node(void) : address_(-1), energy_model_(NULL), sleep_mode_(0), total_slee
 
 	neighbor_list.neighbor_cnt_ = 0;
 	neighbor_list.head = NULL;
+}
+
+Node::~Node()
+{
+	LIST_REMOVE(this, entry);
 }
 
 int

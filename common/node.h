@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.16 2000/03/10 00:57:24 yaxu Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.17 2000/05/04 16:33:31 haoboy Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -109,6 +109,7 @@ LIST_HEAD(node_head, Node); // declare list head structure
 class Node : public TclObject {
  public:
 	Node(void);
+	~Node();
 	virtual int command(int argc, const char*const* argv);
 	inline int address() { return address_;}
 	inline int nodeid() { return nodeid_;}
