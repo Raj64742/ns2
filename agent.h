@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.31 2000/09/01 03:04:05 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.32 2001/07/03 21:38:52 haldar Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -42,6 +42,7 @@
 #include "timer-handler.h"
 #include "ns-process.h"
 #include "app.h"
+//#include "basetrace.h"
 
 #define TIMER_IDLE 0
 #define TIMER_PENDING 1
@@ -63,6 +64,7 @@ struct OldValue {
 	struct OldValue *next_;
 };
 
+class EventTrace;
 class Agent : public Connector {
  public:
 	Agent(packet_t pktType);
@@ -133,6 +135,11 @@ class Agent : public Connector {
 	OldValue* lookupOldValue(TracedVar *v);
 	void insertOldValue(TracedVar *v, const char *value);
 	void dumpTracedVars();
+
+	/* support for event-tracing */
+        EventTrace *et_;
+        virtual void trace_event(char *eventtype){}
+
  private:
 	void flushAVar(TracedVar *v);
 };

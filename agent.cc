@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.69 2001/06/06 21:49:26 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.70 2001/07/03 21:38:52 haldar Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -72,7 +72,7 @@ int Agent::uidcnt_;		/* running unique id */
 Agent::Agent(packet_t pkttype) : 
 	size_(0), type_(pkttype), 
 	channel_(0), traceName_(NULL),
-	oldValueList_(NULL), app_(0)
+	oldValueList_(NULL), app_(0), et_(0)
 {
 }
 

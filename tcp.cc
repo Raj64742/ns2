@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.123 2001/05/29 23:11:04 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.124 2001/07/03 21:38:52 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -72,7 +72,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
 	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
 	ect_(0), restart_bugfix_(1), closed_(0), nrexmit_(0),
-	first_decrease_(1), et_(0)
+	first_decrease_(1)
 	
 {
 #ifdef TCP_DELAY_BIND_ALL
@@ -853,10 +853,8 @@ TcpAgent::slowdown(int how)
 	double win, halfwin, decreasewin;
 	int slowstart = 0;
 	// we are in slowstart for sure if cwnd < ssthresh
-	if (cwnd_ < ssthresh_)
+	if (cwnd_ < ssthresh_) 
 		slowstart = 1;
-	// we are in slowstart - need to trace this event
-	trace_event("SLOW_START");
 
         if (precision_reduce_) {
 		halfwin = windowd() / 2;
@@ -926,6 +924,16 @@ TcpAgent::slowdown(int how)
 	fcnt_ = count_ = 0;
 	if (first_decrease_ == 1)
 		first_decrease_ = 0;
+	// for event tracing slow start
+	if (cwnd_ == 1 || slowstart) 
+		// Not sure if this is best way to capture slow_start
+		// This is probably tracing a superset of slowdowns of
+		// which all may not be slow_start's --Padma, 07/'01.
+		trace_event("SLOW_START");
+	
+
+
+	
 }
 
 
@@ -1531,13 +1539,14 @@ void TcpAgent::trace_event(char *eventtype)
 	char *nwrk = et_->nbuffer();
 	if (wrk != 0)
 		sprintf(wrk,
-			"E "TIME_FORMAT" %d %d TCP %s %d %d",
+			"E "TIME_FORMAT" %d %d TCP %s %d %d %d",
 			et_->round(Scheduler::instance().clock()),   // time
 			addr(),                       // owner (src) node id
 			daddr(),                      // dst node id
 			eventtype,                    // event type
 			fid_,                         // flow-id
-			seqno                         // current seqno
+			seqno,                        // current seqno
+			int(cwnd_)                         //cong. window
 			);
 	
 	if (nwrk != 0)

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.224 2001/06/29 21:58:44 sfloyd Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.225 2001/07/03 21:38:52 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -46,6 +46,7 @@ INSTALL	= @INSTALL@
 LN	= ln
 TEST	= test
 RM	= rm -f
+MV      = mv
 PERL	= @PERL@
 
 
@@ -377,7 +378,9 @@ clean:
 AUTOCONF_GEN = tcl/lib/ns-autoconf.tcl
 distclean:
 	$(RM) $(CLEANFILES) Makefile config.cache config.log config.status \
-	    gnuc.h os-proto.h $(AUTOCONF_GEN)
+	    gnuc.h os-proto.h $(AUTOCONF_GEN); \
+	$(MV) .configure .configure- ;\
+	echo "Moved .configure to .configure-"
 
 tags:	force
 	ctags -wtd *.cc *.h webcache/*.cc webcache/*.h dsdv/*.cc dsdv/*.h \

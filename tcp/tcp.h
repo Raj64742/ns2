@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.88 2001/05/21 19:27:32 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.89 2001/07/03 21:38:52 haldar Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -39,7 +39,7 @@
 #include "agent.h"
 #include "packet.h"
 
-class EventTrace;
+//class EventTrace;
 
 struct hdr_tcp {
 #define NSA 3
@@ -323,7 +323,7 @@ protected:
 
 
         /* support for event-tracing */
-        EventTrace *et_;
+        //EventTrace *et_;
         void trace_event(char *eventtype);
 
 	/* these function are now obsolete, see other above */

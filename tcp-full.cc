@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.86 2001/05/27 23:10:46 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.87 2001/07/03 21:38:52 haldar Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -882,6 +882,9 @@ FullTcpAgent::predict_ok(Packet* pkt)
 
 void FullTcpAgent::fast_retransmit(int seq)
 {
+	// we are now going to fast-retransmit and willtrace that event
+	trace_event("FAST_RETX");
+	
 	int onxt = t_seqno_;		// output() changes t_seqno_
 	recover_ = maxseq_;		// keep a copy of highest sent
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
@@ -1455,9 +1458,9 @@ trimthenstep6:
 					// not timed, or re-ordered ACK
 					dupacks_ = 0;
 				} else if (++dupacks_ == tcprexmtthresh_) {
-
+					//trace_event("FAST_RECOVERY");
 					fastrecov_ = TRUE;
-
+					
 					/* re-sync the pipe_ estimate */
 					pipe_ = maxseq_ - highest_ack_;
 					pipe_ /= maxseg_;
@@ -1469,11 +1472,13 @@ pipe_ = int(cwnd_) - dupacks_ - 1;
 					goto drop;
 
 				} else if (dupacks_ > tcprexmtthresh_) {
+					//trace_event("FAST_RECOVERY");
 					if (reno_fastrecov_) {
 						// we just measure cwnd in
 						// packets, so don't scale by
 						// maxseg_ as real
 						// tcp does
+						
 						cwnd_++;
 					}
 					send_much(0, REASON_NORMAL, maxburst_);
@@ -2530,6 +2535,7 @@ TahoeFullTcpAgent::dupack_action()
         }
    
 full_tahoe_action:
+	trace_event("FAST_RETX");
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_ONE);	// cwnd->1
@@ -2687,6 +2693,7 @@ SackFullTcpAgent::dupack_action()
         }
    
 full_sack_action:                               
+	trace_event("FAST_RECOVERY");
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
         cancel_rtx_timer();
         rtt_active_ = FALSE;
