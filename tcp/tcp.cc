@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.13.2.2 1997/04/20 01:45:48 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.13.2.3 1997/04/23 01:40:28 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -101,7 +101,7 @@ public:
 	}
 } class_tcp;
 
-TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_time_(0), old_maxseq_(0), old_highest_ack_(0), old_t_seqno_(0), old_cwnd_(0), old_ssthresh_(0), old_dupacks_(0), old_t_rtt_(0), old_t_srtt_(0), old_t_rttvar_(0), old_t_backoff_(0)
+TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1), last_log_time_(0), old_maxseq_(0), old_highest_ack_(0), old_t_seqno_(0), old_cwnd_(0), old_ssthresh_(0), old_dupacks_(0), old_t_rtt_(0), old_t_srtt_(0), old_t_rttvar_(0), old_t_backoff_(0), dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), t_backoff_(0), curseq_(0), maxseq_(0)
 {
 /*	InstVarTrace *ivt;*/
 
