@@ -1,4 +1,3 @@
-
 # copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
@@ -30,11 +29,16 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.7 2004/10/18 19:42:18 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.8 2004/10/22 04:39:44 sfloyd Exp $
 #
 
 source misc_simple.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TFRC set ss_changes_ 0 ; 	# Added on 10/21/2004
+Agent/TFRC set slow_increase_ 1 ; 	# Added on 10/20/2004
+Agent/TFRC set rate_init_ 1 ;          # Added on 10/20/2004
+Agent/TFRC set rate_init_option_ 1 ;    # Added on 10/20/2004
+
 source support.tcl
 Agent/TFRC set SndrType_ 1 
 Agent/TFRC set oldCode_ false
