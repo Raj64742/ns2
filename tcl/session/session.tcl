@@ -280,7 +280,7 @@ SessionSim instproc compute-routes {} {
 	$r compute
 }
 
-Simulator instproc compute-hier-routes {} {
+SessionSim instproc compute-hier-routes {} {
         $self instvar link_
         set r [$self get-routelogic]
         #
