@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.36 2002/03/21 23:21:09 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.37 2002/04/05 05:43:40 ddutta Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -750,5 +750,23 @@ Simulator instproc asim-getFlowTput { agent } {
 }
 
 
+Simulator instproc asim-getFlowDrop { agent } {
+
+    $self instvar conn_
+    $self instvar asim_
+
+    set srcnode [$self get-node-by-addr [$agent set agent_addr_]]
+    set dstnode [$self get-node-by-addr [$agent set dst_addr_]]
+
+    set src [$srcnode id]
+    set dst [$dstnode id]
+    set sport [$agent set agent_port_]
+    set dport [$agent set dst_port_]
+#    puts "searching $src:$dst in $conn_"
+    set tt [lsearch -exact $conn_ $src:$dst:$sport:$dport]
+    set t [$asim_ get-flow-drop $tt ]
+    return $t
+
+}
 
 
