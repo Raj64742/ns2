@@ -141,7 +141,7 @@ proc create-dsr-routing-agent { node id } {
     
     set dmux [$node set dmux_]
     if {$dmux == "" } {
-	set dmux [new Classifier/Addr]
+	set dmux [new Classifier/Hash/Dest 32]
 	$dmux set mask_ [AddrParams set PortMask_]
 	$dmux set shift_ [AddrParams set PortShift_]
 	#

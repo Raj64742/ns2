@@ -70,7 +70,7 @@ LanNode instproc init {ns args} {
 	}
 	set defRouter_ [new LanRouter $ns $self]
 	if [$ns multicast?] {
-		set switch_ [new Classifier/Addr]
+		set switch_ [new Classifier/Hash/Dest 32]
 		$switch_ set mask_ [AddrParams set McastMask_]
 		$switch_ set shift_ [AddrParams set McastShift_]
 

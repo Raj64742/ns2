@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-addr.cc,v 1.23 1999/09/27 20:51:08 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-addr.cc,v 1.24 1999/10/01 22:03:32 salehi Exp $";
 #endif
 
 #include "classifier-addr.h"
@@ -101,7 +101,7 @@ int ReserveAddressClassifier::getnxt(NsObject *nullagent)
 
 static class BcastAddressClassifierClass : public TclClass {
 public:
-        BcastAddressClassifierClass() : TclClass("Classifier/Addr/Bcast") {}
+        BcastAddressClassifierClass() : TclClass("Classifier/Hash/Dest/Bcast") {}
         TclObject* create(int, const char*const*) { 
                 return (new BcastAddressClassifier());
         }
