@@ -164,6 +164,32 @@ This only works for relatively slow network traffic data rates, as the
 simulator must be able to keep pace with the real-world packet arrival
 rate, and this synchronization is not presently enforced.
 
+
+\subsection{Precision of the scheduler clock used in ns}
+\label{sec:precision}
+
+Precision of the scheduler clock can be defined as the smallest time-scale 
+of the simulator that can be correctly represented. The clock variable for 
+ns is represented by a double. As per the IEEE std for floating numbers, 
+a double, consisting of 64 bits must allocate the following bits between 
+its sign, exponent and mantissa fields.
+
+\begin{program}
+
+sign     exponent      mantissa
+ 1 bit   11 bits        52 bits
+\end{program}
+
+Any floating number can be represented in the form ($X * 2^n$) where 
+X is the mantissa and n is the exponent. Thus the precision of timeclock in ns can be defined as ($1/2^(52)$).
+As simulation runs for longer times the number of remaining bits to represent 
+the time educes thus reducing the accuracy. Given 52 bits we can safely say 
+time upto around ($2^(40)$) can be represented with considerable accuracy. 
+Anything greater than that might not be very accurate as you have remaining 12 
+bits to represent the time change. However ($2^(40)$) is a very large number and 
+we donot anticipate any problem regarding precision of time in ns.
+
+
 \section{Other Methods}
 \label{sec:other}
 
@@ -173,31 +199,7 @@ They generally fall into three categories:
 methods to create and manage the topology 
 (which in turn consists of
 \href{managing the nodes}{Chapter}{chap:nodes} and
-\href{managing t                                                                                                                                                                                                                                               
-
-
-
-
-
-
-
-                                                                                                                                                                                                                                                               
-
-
-
-
-
-
-
-                                                                                                                                                                                                                                                               
-
-
-
-
-
-
-
-              he links}{Chapter}{chap:links}),
+\href{managing the links}{Chapter}{chap:links}),
 \href{methods to perform tracing}{Chapter}{chap:trace},
 and helper functions to deal with the scheduler.
 The following is a list of the non-topology related simulator methods:
