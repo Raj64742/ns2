@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/example.tcl,v 1.4 1998/08/14 20:34:44 tomh Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/example.tcl,v 1.5 2001/07/13 00:11:55 mehringe Exp $ (LBL)
 #
 
 #
@@ -91,5 +91,5 @@ $ns run
 #
 # For more examples, see the examples and test suite subdirectories
 # (tcl/ex and tcl/test)
-# and the on-line documentation (at <http://www-mash.cs.berkeley.edu/ns/>).
+# and the on-line documentation (at <http://www.isi.edu/nsnam/ns/>).
 #
