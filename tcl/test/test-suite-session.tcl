@@ -20,7 +20,7 @@ TestSuite instproc init {} {
 	set ns_ [new SessionSim]
 	$ns_ use-scheduler List
 
-	$ns_ namtrace-all [open all.tr w]
+	#$ns_ namtrace-all [open all.tr w]
 	puts "tracing"
 	if {$net_ == ""} {
 		set net_ $defNet_
@@ -64,16 +64,6 @@ TestSuite instproc finish args {
 #	puts "running nam ..."
 #	exec nam $file &
 	exit 0
-}
-
-TestSuite instproc openTrace { stopTime testName } {
-	$self instvar ns_
-	exec rm -f all.tr
-	set traceFile [open all.tr w]
-	puts $traceFile "v testName $testName"
-	$ns_ at $stopTime \
-		"close $traceFile ; $self finish $testName"
-	return $traceFile
 }
 
 proc usage {} {

@@ -36,9 +36,9 @@ for t in $tests; do
     echo Running test $t
 
     if test "$quiet" = "true"; then
-    	../../ns $file $t
+    	../../ns $file $t > all.tr
     else 
-	../../ns $file $t 
+	../../ns $file $t > all.tr
     fi
     if [ -f $datafile ]; then
 	if [ ! -f $directory/$t.Z ]; then
