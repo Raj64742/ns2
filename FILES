@@ -1214,6 +1214,7 @@ tcl/test/sflowcdf
 tcl/test/sk-30-1-1-1-1-6-64.tcl
 tcl/test/sk-30-3-3-1-1-6-64.tcl
 tcl/test/test-1000.tcl
+tcl/test/test-all-LimTransmit
 tcl/test/test-all-WLtutorial
 tcl/test/test-all-adaptive-red
 tcl/test/test-all-aimd
@@ -1290,6 +1291,14 @@ tcl/test/test-all-wireless-lan-tora
 tcl/test/test-all-wireless-shadowing
 tcl/test/test-all-wireless-tdma
 tcl/test/test-alloc-address.tcl
+test-output-LimTransmit/badretransmit.Z
+test-output-LimTransmit/badtimeout.Z
+test-output-LimTransmit/nobadretransmit.Z
+test-output-LimTransmit/nodrop_sack.Z
+test-output-LimTransmit/notimeout.Z
+test-output-LimTransmit/onedrop_ECN_sack.Z
+test-output-LimTransmit/onedrop_SA_sack.Z
+test-output-LimTransmit/onedrop_sack.Z
 tcl/test/test-output-WLtutorial/wireless1.Z
 tcl/test/test-output-WLtutorial/wireless2.Z
 tcl/test/test-output-WLtutorial/wireless3.Z
@@ -2038,6 +2047,7 @@ tcl/test/test-output-wireless-tdma/dsdv.Z
 tcl/test/test-output-wireless-tdma/dsr.Z
 tcl/test/test-sack
 tcl/test/test-sack-v1
+tcl/test/test-suite-LimTransmit.tcl
 tcl/test/test-suite-WLtutorial.tcl
 tcl/test/test-suite-adaptive-red.tcl
 tcl/test/test-suite-aimd.tcl
