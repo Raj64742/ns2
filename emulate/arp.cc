@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.3 1998/05/29 23:07:55 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.4 1998/09/09 23:59:38 kfall Exp $";
 #endif
 
 #include "object.h"
@@ -72,12 +72,15 @@ protected:
 	struct acache_entry {
 		in_addr	ip;
 		ether_addr ether;
+		char code;	// 'D' - dynamic, 'P' - publish
 	};
 		
+	char	icode(const char*);
 	acache_entry* find(in_addr&);
-	void 	insert(in_addr&, ether_addr&);
+	void 	insert(in_addr&, ether_addr&, char code);
 	void	dispatch(int);
-	int	sendreq(in_addr);
+	int	sendreq(in_addr&);
+	int	sendresp(ether_addr&, in_addr&, ether_addr&);
 	int	resolve(const char* host, char*& result, int sendreq);
 
 	void	doreq(ether_arp*);
@@ -160,8 +163,17 @@ ArpAgent::find(in_addr& target)
 	return (NULL);
 }
 
+char
+ArpAgent::icode(const char *how)
+{
+	if (strcmp(how, "publish") == 0)
+		return 'P';
+
+	return 'D';
+}
+
 void
-ArpAgent::insert(in_addr& target, ether_addr& eaddr)
+ArpAgent::insert(in_addr& target, ether_addr& eaddr, char code)
 {
 	acache_entry* ae;
 	if (--cur_ < 0)
@@ -170,11 +182,12 @@ ArpAgent::insert(in_addr& target, ether_addr& eaddr)
 	ae = &acache_[cur_];
 	ae->ip = target;
 	ae->ether = eaddr;
+	ae->code = code;
 	return;
 }
 		
 int
-ArpAgent::sendreq(in_addr target)
+ArpAgent::sendreq(in_addr& target)
 {
 	int pktsz = sizeof(eh_template_) + sizeof(ea_template_);
 	if (pktsz < 64)
@@ -198,6 +211,40 @@ ArpAgent::sendreq(in_addr target)
 	return (0);
 }
 
+int
+ArpAgent::sendresp(ether_addr& dest, in_addr& tip, ether_addr& tea)
+{
+	int pktsz = sizeof(eh_template_) + sizeof(ea_template_);
+	if (pktsz < 64)
+		pktsz = 64;
+	u_char* buf = new u_char[pktsz];
+	memset(buf, 0, pktsz);
+
+	ether_header* eh = (ether_header*) buf;
+	ether_arp* ea = (ether_arp*) (buf + sizeof(eh_template_));
+
+	// destination link layer address is back to sender
+	// (called dest here)
+	*eh = eh_template_;	/* set ether header */
+	memcpy(eh->ether_dhost, &dest, ETHER_ADDR_LEN);
+
+	// set code as ARP reply
+	*ea = ea_template_;	/* set ether/IP arp pkt */
+	ea->ea_hdr.ar_op = htons(ARPOP_REPLY);
+
+	memcpy(ea->arp_tpa, &tip, sizeof(in_addr));
+	memcpy(ea->arp_tha, &tea, ETHER_ADDR_LEN);
+
+	if (net_->send(buf, pktsz) < 0) {
+                fprintf(stderr,
+                    "ArpAgent(%s): sendpkt (%p, %d): %s\n",
+                    name(), buf, pktsz, strerror(errno));
+                return (-1);
+	}
+	delete[] buf;
+	return (0);
+}
+
 /*
  * receive pkt from network:
  *	note that net->recv() gives us the pkt starting
@@ -209,7 +256,7 @@ ArpAgent::dispatch(int)
 	double ts;
 	sockaddr sa;
 	int cc = net_->recv(rcv_buf_, base_size_, sa, ts);
-	if (cc < (base_size_ - sizeof(ether_header))) {
+	if (cc < int(base_size_ - sizeof(ether_header))) {
 		if (cc == 0)
 			return;
                 fprintf(stderr,
@@ -250,18 +297,30 @@ ArpAgent::doreply(ether_arp* ea)
 	ether_addr e;
 	memcpy(&t, ea->arp_spa, 4);	// copy IP address
 	memcpy(&e, ea->arp_sha, ETHER_ADDR_LEN);
-	insert(t, e);
+	insert(t, e, 'D');
 	return;
 }
 
 /*
- * process an ARP request frame -- don't do anything now,
- * but may be used in the future to implement proxy arp
+ * process an ARP request frame
  */
 
 void
 ArpAgent::doreq(ether_arp* ea)
 {
+	in_addr t;
+	memcpy(&t, ea->arp_tpa, 4);	// requested IP addr
+
+	acache_entry *ae;
+	if ((ae = find(t)) == NULL)
+		return;
+
+	if (ae->code == 'P') {
+		// return answer to the sender's hardware addr
+		ether_addr dst;
+		memcpy(&dst, ea->arp_sha, ETHER_ADDR_LEN);
+		sendresp(dst, t, ae->ether);
+	}
 	return;
 }
 
@@ -321,7 +380,20 @@ ArpAgent::command(int argc, const char*const* argv)
 				tcl.resultf("%s", p);
 			return (TCL_OK);
 		}
+	} else if (argc == 5) {
+		// $obj insert iaddr eaddr how
+		if (strcmp(argv[1], "insert") == 0) {
+			u_long a = inet_addr(argv[2]);
+			if (a == 0)
+				return (TCL_ERROR);
+			in_addr ia;
+			ia.s_addr = a;
+			ether_addr ea = *(::ether_aton(argv[3]));
+			insert(ia, ea, icode(argv[4]));
+			return (TCL_OK);
+		}
 	}
+
 	return (NsObject::command(argc, argv));
 }
 
@@ -339,4 +411,5 @@ ArpAgent::resolve(const char* host, char*& result, int doreq)
 		return (0);
 	}
 	result = Ethernet::etheraddr_string((u_char*) &ae->ether);
+	return (1);
 }
