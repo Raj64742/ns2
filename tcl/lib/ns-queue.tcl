@@ -98,8 +98,7 @@ SimpleLink instproc queue-sample-timeout { } {
 	set qPktsEstimate_ $qPkts_
 
 	$self instvar fromNode_ toNode_
-	puts $qfile_ "[$ns now] n[$fromNode_ id]:n[$toNode_ id] \
-			$qBytesEstimate_ $qPktsEstimate_"
+ 	puts $qfile_ [format "%6.3f n%d:n%d %8.2f %6.2f" [$ns now] [$fromNode_ id] [$toNode_ id] $qBytesEstimate_ $qPktsEstimate_]
 	if { ($qBytes_ * $qPkts_ == 0) && ($qBytes_ || $qPkts_) } {
 		puts "inconsistent: bytes: $qBytes_ pkts: $qPkts_"
 	}
