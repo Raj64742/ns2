@@ -15,8 +15,8 @@ options: -d   delim:  deliminator for spliting the data fields or columns
 	 -f	:  force new file for each connection
 	 -psize size of packet in bytes
 	 -tt	trace type
-	 -pt	packet type (multiple)
-	 -fid   flow id (multiple)
+	 -pt	packet type	(list)
+	 -fid   flow id 	(list)
 	 -ctt	trace type column
 	 -cpt	packet type column
 	 -ctime	time column
@@ -26,7 +26,7 @@ EOF
     exit;
 }
 
-sub ParseArgv
+sub getopt
 {
     local($val);
     &Usage if ($#ARGV < 0);
@@ -36,6 +36,7 @@ sub ParseArgv
 	    $delim = shift @ARGV;
 	}
 	elsif (/^-(pt|fid)$/) {
+	    # concat new value to get list of values for a field in the trace
 	    $val = shift @ARGV;
 	    s/-(\w+)/\$$1/;
 	    eval "$_ = $_ . '$val '";
@@ -56,10 +57,11 @@ sub ParseArgv
 }
 
 
-$delim = " ";
-$psize = 1000;
-$tt = '-';
-
+# default information on the trace
+$delim = " ";			# deliminator between fields of the trace
+$psize = 1000;			# packet size in bytes
+$tt = '-';			# trace type
+# Column numbers for each field in the trace
 $ctt = 1;
 $ctime = 2;
 $cpt = 5;
@@ -67,15 +69,20 @@ $cfid = 8;
 $csrc = 9;
 $cdst = 10;
 $cseq = 11;
+# the file descriptor number to started with
+$fdcount = 4;
 
-&ParseArgv;
+&getopt;			# get the command line arguments
+
+# Set a couple of defaults if not given at the command line
 $pt = 'tcp'  if !$pt;
 $fid = 0  if !$fid;
+# decrement column number for Perl internal usage
 $ctt--; $ctime--;
 $cpt--; $cfid--; $csrc--; $cdst--; $cseq--;
 
-$fdcount = 4;
 
+# process the trace file
 while (<>)
 {
     chop;
@@ -102,6 +109,8 @@ while (<>)
     }
 }
 
+
+# print the per-connection information to STDOUT
 @keys = sort (keys %time);
 foreach $key (@keys) {
     $t = $time{$key};
@@ -115,6 +124,7 @@ foreach $key (@keys) {
 	   $key, $t, $s, $s/$t, 0.008 * $psize * $s/$t);
 }
 
+# print summary information to STDERR
 if ($maxtime > 0) {
     printf STDERR " %d\t%0.6f\t%s\t",
 	$#keys+1, 0.008 * $psize * $maxpkt / $maxtime, $c;
