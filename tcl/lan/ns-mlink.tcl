@@ -149,51 +149,58 @@ NonReflectingMultiLink instproc getReplicator { node_id } {
         return $replicators_($node_id)
 }
 
-
-
 #
-#Polly: Dummy Link, lan stuff
+# Dummy Link, lan stuff
 #
 Class DummyLink -superclass Link
-DummyLink instproc init { src dst q del } {
+
+# XXX this only works with ifaces... for simplicity.. !!
+DummyLink instproc init { src dst q del mlink } {
         $self next $src $dst
-	$self instvar head_ queue_ link_
-#	$self instvar trace_ fromNode_ toNode_
-
-
-#	set fromNode_ [$src getNode]
-#	set toNode_ [$dst getNode]
-#	set trace_ ""
-	set queue_ $q
-	set link_ $del
-	set head_ $queue_
+        $self instvar head_ queue_ link_ ifacein_ rep_ fromNode_
+        $self setContainingObject $mlink
+        set rep_ [$mlink getReplicator [$fromNode_ id]]
+        set queue_ $q
+        set link_ $del
+        set ifacein_ [$src exitpoint]
+        # XXX need ifacein to mcast
+        $ifacein_ target $rep_
+        # XXX we need head to be Q for unicast not to loop !!
+        # unicast loops if it goes to replicator
+        set head_ $queue_
 }
 
 DummyLink instproc setContainingObject obj {
-	$self instvar containingObj_
-	set containingObj_ $obj
+        $self instvar containingObj_
+        set containingObj_ $obj
 }
-
+        
 DummyLink instproc getContainingObject { } {
-	$self instvar containingObj_
-	return $containingObj_
+        $self instvar containingObj_
+        return $containingObj_
 }
-
-DummyLink instproc traceLan { ns f } {
-        $self next $ns $f
-        $self instvar containingObj_ head_ queue_ fromNode_
-        set r [$containingObj_ getReplicator [$fromNode_ id]]
-        $r disable $queue_
-        $r insert $head_
-}
-
+        
 DummyLink instproc trace { ns f } {
-        $self instvar queue_ head_ fromNode_ toNode_
+        $self instvar queue_ fromNode_ toNode_
         set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_]
         set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_]
         $drpT_ target [$ns set nullAgent_]
         $deqT_ target $queue_
         $queue_ drop-target $drpT_
+ 
+        $self instvar rep_ head_
+        $rep_ disable $queue_
+        $rep_ insert $deqT_
         set head_ $deqT_
-        $self traceLan $ns $f
 }
+
+DummyLink instproc addloss { lossObject } {
+        $self instvar lossObj
+        set lossObj $lossObject
+        $self instvar rep_ head_
+        $lossObj target $head_
+        $rep_ disable $head_
+        set head_ $lossObj
+        $rep_ insert $head_
+}
+
