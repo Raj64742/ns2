@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win-full.tcl,v 1.4 2001/07/18 02:20:50 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win-full.tcl,v 1.5 2001/08/18 00:44:25 kfall Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -547,59 +547,59 @@ Test/newreno4 instproc run {} {
 }
 
 
-
-Class Test/sack1 -superclass TestSuite
-Test/sack1 instproc init {} {
-	$self instvar net_ test_ 
-	set net_	net6
-	set test_	sack1(variable_packet_sizes)
-        $self next
-}
-Test/sack1 instproc run {} {
-        $self instvar ns_ node_ testName_
-	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
-	Agent/TCP set windowInitOption_ 2
-	set tcp1 [$self make_tcp s1 k1 0 Sack]
-	$tcp1 set packetSize_ 1000
-	set tcp2 [$self make_tcp s2 k1 1 Sack]
-	$tcp2 set packetSize_ 1500
-	set tcp3 [$self make_tcp s2 k1 2 Sack]
-	$tcp3 set packetSize_ 2500
-	$self run_test $tcp1 $tcp2 $tcp3 1.0 1.0 16
-}
-
-Class Test/sack2 -superclass TestSuite
-Test/sack2 instproc init {} {
-	$self instvar net_ test_
-	set net_	net6
-	set test_	sack2(static_initial_windows)
-	$self next
-}
-Test/sack2 instproc run {} {
-	$self instvar ns_ node_ testName_
-	$self setTopo
-	set tcp1 [$self make_tcp s1 k1 0 Sack] 
-	$tcp1 set windowInit_ 6
-	set tcp2 [$self make_tcp s2 k1 1 Sack]
-	$tcp2 set syn_ true
-	$tcp2 set delay_growth_ true
-	set tcp3 [$self make_tcp s2 k1 2 Sack]
-	$tcp3 set windowInit_ 6
-	$tcp3 set syn_ true
-	$tcp3 set delay_growth_ true
-	$self run_test $tcp1 $tcp2 $tcp3 1.0 1.0 16
-}
-
-Class Test/sack3 -superclass TestSuite
-Test/sack3 instproc init {} {
-	$self instvar net_ test_ 
-	set net_	net6
-	set test_	sack3(dropped_syn)
-        $self next
-}
-
+#
+#Class Test/sack1 -superclass TestSuite
+#Test/sack1 instproc init {} {
+#	$self instvar net_ test_ 
+#	set net_	net6
+#	set test_	sack1(variable_packet_sizes)
+#        $self next
+#}
+#Test/sack1 instproc run {} {
+#        $self instvar ns_ node_ testName_
+#	$self setTopo
+#	Agent/TCP set syn_ true
+#	Agent/TCP set delay_growth_ true
+#	Agent/TCP set windowInitOption_ 2
+#	set tcp1 [$self make_tcp s1 k1 0 Sack]
+#	$tcp1 set packetSize_ 1000
+#	set tcp2 [$self make_tcp s2 k1 1 Sack]
+#	$tcp2 set packetSize_ 1500
+#	set tcp3 [$self make_tcp s2 k1 2 Sack]
+#	$tcp3 set packetSize_ 2500
+#	$self run_test $tcp1 $tcp2 $tcp3 1.0 1.0 16
+#}
+#
+#Class Test/sack2 -superclass TestSuite
+#Test/sack2 instproc init {} {
+#	$self instvar net_ test_
+#	set net_	net6
+#	set test_	sack2(static_initial_windows)
+#	$self next
+#}
+#Test/sack2 instproc run {} {
+#	$self instvar ns_ node_ testName_
+#	$self setTopo
+#	set tcp1 [$self make_tcp s1 k1 0 Sack] 
+#	$tcp1 set windowInit_ 6
+#	set tcp2 [$self make_tcp s2 k1 1 Sack]
+#	$tcp2 set syn_ true
+#	$tcp2 set delay_growth_ true
+#	set tcp3 [$self make_tcp s2 k1 2 Sack]
+#	$tcp3 set windowInit_ 6
+#	$tcp3 set syn_ true
+#	$tcp3 set delay_growth_ true
+#	$self run_test $tcp1 $tcp2 $tcp3 1.0 1.0 16
+#}
+#
+#Class Test/sack3 -superclass TestSuite
+#Test/sack3 instproc init {} {
+#	$self instvar net_ test_ 
+#	set net_	net6
+#	set test_	sack3(dropped_syn)
+#        $self next
+#}
+#
 ## Drop the n-th packet for flow on link.
 TestSuite instproc drop_pkt { link flow n } {
 	set em [new ErrorModule Fid]
@@ -611,19 +611,19 @@ TestSuite instproc drop_pkt { link flow n } {
 	$em insert $errmodel
 	$em bind $errmodel $flow
 }
-
-Test/sack3 instproc run {} {
-        $self instvar ns_ node_ testName_ 
-	$self setTopo
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
-	Agent/TCP set windowInitOption_ 2
-	set tcp1 [$self make_tcp s1 k1 0 Sack]
-	$tcp1 set packetSize_ 1000
-	$self drop_pkt [$ns_ link $node_(r1) $node_(k1)] 0 1
-	$self runall_test $tcp1 10.0 10.0 
-}
-
+#
+#Test/sack3 instproc run {} {
+#        $self instvar ns_ node_ testName_ 
+#	$self setTopo
+#	Agent/TCP set syn_ true
+#	Agent/TCP set delay_growth_ true
+#	Agent/TCP set windowInitOption_ 2
+#	set tcp1 [$self make_tcp s1 k1 0 Sack]
+#	$tcp1 set packetSize_ 1000
+#	$self drop_pkt [$ns_ link $node_(r1) $node_(k1)] 0 1
+#	$self runall_test $tcp1 10.0 10.0 
+#}
+#
 # This does not work correctly!
 
 # Class Test/sack4 -superclass TestSuite
