@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.83 1997/06/11 21:24:06 mccanne Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.84 1997/06/12 19:40:54 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,16 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</A>
 [PENDING RELEASE DATE]</H3>
 
+<UL>
+<LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall">[KF]</A></B>
+<B>Thu Jun 12 12:32:31 PDT 1997</B><BR>
+</LI>
+
+Small change to conf/config.head.in to look for socket() rather than
+poll() when searching for the -lsocket library.  Also a new version
+of the configure script based on this.
+
+
 <LI><B><A HREF="http://www.cs.berkeley.edu/~mccanne">[SM]</A></B>
 <B>Wed Jun 11 11:49:28 PDT 1997</B><BR>
 </LI>
@@ -31,7 +41,6 @@ sets a tcl timer to advance time (instead of waiting in
 a null select) and the tap-agent sync's simulation
 time to real time when an external packet arrives.
 
-<UL>
 <LI><B><A HREF="mailto:huang@isi.edu">[PH]</A></B> <B>Wed Jun 
 11 09:34:33 PDT 1997<BR>
 </B>Changed centralized mcast test files to use MultiNode expandaddr 
@@ -468,43 +477,32 @@ to random.h.</LI>
 </LI>
 
 <UL>
-<LI>CBQ is now part of the simulator</LI>
-
-<P><BR>
-it works for many of the tests, but Top-Level link sharing is yet to be
-completed </P>
+<LI>CBQ is now part of the simulator</LI><BR>
+Generally works.
 
 <LI>ALL default queue sizes are now 50 [per ns-1 defaults]</LI>
 
 <LI>QueueMonitors now know the difference between</LI>
 
-<P><BR>
-drops, arrivals, and departures and can monitor these </P>
+<BR>
+drops, arrivals, and departures and can monitor these
 
-<LI>new class called 'Samples' which collects samples</LI>
-
-<P><BR>
+<LI>new class called 'Samples' which collects samples</LI><BR>
 points of something and can provide a mean and variance of the points (see
-integrator.cc) </P>
+integrator.cc)
 
-<LI>Queues can be flow controlled by forcing them</LI>
-
-<P><BR>
-to be blocked or unblocked as needed. Also it's possible to make it so
+<LI>Queues can be flow controlled</LI><BR>
+by forcing them to be blocked or unblocked as needed.
+Also it's possible to make it so
 that when they send a packet they become blocked rather than unblocked.
-</P>
 
-<LI>common packet header</LI>
-
-<P><BR>
+<LI>common packet header</LI><br>
 contains a timestamp field; this is used to compute queueing delay for
-individual packets at queues </P>
+individual packets at queues
 
-<LI>classifier-hash</LI>
-
-<P><BR>
+<LI>classifier-hash</LI><br>
 a classifier to identify 'flows' ... still in development, but presently
-used by cbq </P>
+used by cbq
 
 <LI>bug fixes/mintor changes to red.cc, test-suite-red.tcl</LI>
 
