@@ -25,9 +25,9 @@ Steps in doing an ns release:
 5.2. tag the cvs archive
     (cd ~ns; cvs tag NS_2_1B1; )
 6. update the web pages
-7. send out the release announcement (ns-users)
+7. send out the release announcement (ns-users, ns-announce)
    (also send to end2end if it's a non-{alpha,beta} release)
 8. update the VERSION file to the next version
 8.1. update CHANGES.html with a placeholder for comments for the new
     version
-
+8.2 commit your changes to the VERSION and CHANGES.html for the next release
