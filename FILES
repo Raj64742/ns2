@@ -195,7 +195,6 @@ srm-ssm.h
 srm-state.h
 srm.cc
 srm.h
-t
 tap.cc
 tcl/ctr-mcast/CtrMcast.tcl
 tcl/ctr-mcast/CtrMcastComp.tcl
