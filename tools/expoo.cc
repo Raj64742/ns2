@@ -17,7 +17,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/expoo.cc,v 1.3 1997/08/25 04:04:39 breslau Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/expoo.cc,v 1.4 1997/12/01 23:56:46 breslau Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -27,7 +27,7 @@ static const char rcsid[] =
 #include "ranvar.h"
 
 
-/* implement an of/off source with exponentially distributed on and
+/* implement an on/off source with exponentially distributed on and
  * off times.  parameterized by average burst time, average idle time,
  * burst rate and packet size.
  */
@@ -59,7 +59,7 @@ static class EXPClass : public TclClass {
 	}
 } class_expoo;
 
-EXPOO_Source::EXPOO_Source() 
+EXPOO_Source::EXPOO_Source() : burstlen_(0.0), Offtime_(0.0)
 {
 	bind_time("burst-time", &ontime_);
 	bind_time("idle-time", Offtime_.avgp());
