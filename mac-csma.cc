@@ -87,12 +87,19 @@ CsmaMac::send(Packet* p)
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
 	double txstop = channel_->txstop();
+
+	// if there is an ongoing transmission, then backoff
+	// else if within the ifs, then wait until the end of ifs
+	// else do carrier sense
+
 	if (txstop > now)
 		backoff(p);
 	else if (txstop + ifs_ > now)
 		s.schedule(&mh_, p, txstop + ifs_ - now);
-	else
+	else {
+		txstart_ = now;
 		channel_->senseCarrier(p, &mhEoc_);
+	}
 }
 
 
@@ -121,7 +128,10 @@ CsmaMac::backoff(Packet* p, double delay)
 void
 CsmaMac::endofContention(Packet* p)
 {
-	Mac::send(p);
+	Scheduler& s = Scheduler::instance();
+	double txt = txtime(p) - (s.clock() - txstart_);
+	channel_->send(p, p->target(), txt);
+	s.schedule(callback_, &intr_, txt);
 }
 
 
@@ -130,7 +140,7 @@ CsmaCdMac::endofContention(Packet* p)
 {
 	// check for collision
 	if (channel_->numtx() == 1)
-		Mac::send(p);
+		CsmaMac::endofContention(p);
 	else {
 		// XXX jamming the channel
 		channel_->hold(0);
