@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 //
 // Copyright (c) 1997 by the University of Southern California
 // All rights reserved.
@@ -26,7 +27,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm-headers.h,v 1.4 1998/07/01 18:58:12 yaxu Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm-headers.h,v 1.5 1998/07/01 21:23:41 yaxu Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_headers_h
@@ -51,7 +52,6 @@ struct hdr_srm {
 	int& round()	{ return round_; }
 };
 
-#define SRM_NAMES "SRM_DATA", "SRM_DATA", "SRM_SESS", "SRM_RQST", "SRM_REPR"
 
 struct hdr_asrm {
 	double	distance_;
