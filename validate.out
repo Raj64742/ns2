@@ -1,12 +1,3 @@
-##################################################################
-###
-### to use:
-### ./validate > out ; diff out validate.out
-###
-### "Validate" ran correctly for Sally Floyd with this output
-### on Sun Sep 13 1998.
-###
-##################################################################
 *** ./test-all-simple
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
 ../../ns test-suite-simple.tcl tahoe1 QUIET
@@ -723,20 +714,12 @@ All test output agrees with reference output.
 *** ./test-all-hier-routing
 Tests: hier-simple hier-cmcast hier-deDM hier-session
 ../../ns test-suite-hier-routing.tcl hier-simple QUIET
-Computing Hierarchical routes
-
 Test output agrees with reference output
 ../../ns test-suite-hier-routing.tcl hier-cmcast QUIET
-Computing Hierarchical routes
-
 Test output agrees with reference output
 ../../ns test-suite-hier-routing.tcl hier-deDM QUIET
-Computing Hierarchical routes
-
 Test output agrees with reference output
 ../../ns test-suite-hier-routing.tcl hier-session QUIET
-Computing Hierarchical routes
-
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-intserv
@@ -824,20 +807,14 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mcast
-Tests: DM1 DM2 CtrMcast1 CtrMcast2 detailedDM1 detailedDM2 detailedDM3 detailedDM4
+Tests: DM1 DM2 CtrMcast1 detailedDM1 detailedDM4
 ../../ns test-suite-mcast.tcl DM1 QUIET
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM2 QUIET
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl CtrMcast1 QUIET
 Test output agrees with reference output
-../../ns test-suite-mcast.tcl CtrMcast2 QUIET
-Test output agrees with reference output
 ../../ns test-suite-mcast.tcl detailedDM1 QUIET
-Test output agrees with reference output
-../../ns test-suite-mcast.tcl detailedDM2 QUIET
-Test output agrees with reference output
-../../ns test-suite-mcast.tcl detailedDM3 QUIET
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl detailedDM4 QUIET
 Test output agrees with reference output
@@ -880,11 +857,20 @@ Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-session
 Tests: Session1 Session2 Session3
-Running test Session1
+../../ns test-suite-session.tcl Session1 QUIET
 Test output agrees with reference output
-Running test Session2
+../../ns test-suite-session.tcl Session2 QUIET
 Test output agrees with reference output
-Running test Session3
+../../ns test-suite-session.tcl Session3 QUIET
 Test output agrees with reference output
-All test outputs agree with reference outputs
+All test output agrees with reference output.
+*** ./test-all-lan
+Tests: lan-routing-flat lan-routing-hier lan-broadcast
+../../ns test-suite-lan.tcl lan-routing-flat QUIET
+Test output agrees with reference output
+../../ns test-suite-lan.tcl lan-routing-hier QUIET
+Test output agrees with reference output
+../../ns test-suite-lan.tcl lan-broadcast QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
 validate overall report: all tests passed
