@@ -25,7 +25,12 @@
 #
 # Makefile for CMU mobile code scenario generation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Makefile.in,v 1.3 1999/11/19 22:33:53 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Makefile.in,v 1.4 1999/11/24 01:31:53 heideman Exp $
+
+# Top level hierarchy
+prefix	= @prefix@
+# Pathname of directory to install the binary
+BINDEST	= @prefix@/bin
 
 CCX = @CXX@
 CC = @CC@
@@ -37,6 +42,10 @@ LDFLAGS = @V_STATIC@
 LIBS = @V_LIB@ -lm @LIBS@
 
 all: setdest calcdest
+
+install: setdest calcdest
+	$(INSTALL) -m 555 -o bin -g bin setdest $(DESTDIR)$(BINDEST)
+	$(INSTALL) -m 555 -o bin -g bin calcdest $(DESTDIR)$(BINDEST)
 
 setdest: rng.o setdest.o
 	$(CC) -o setdest $@.o rng.o $(DEFINE) $(LDFLAGS) $(CFLAGS) \

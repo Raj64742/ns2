@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.175 1999/11/23 23:43:31 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.176 1999/11/24 01:31:51 heideman Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -200,6 +200,18 @@ CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_EMULATE_CC) \
 	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE) \
 	ptypes2tcl ptypes2tcl.o
 
+SUBDIRS=\
+	indep-utils/cmu-scen-gen/setdest \
+	indep-utils/webtrace-conv/dec \
+	indep-utils/webtrace-conv/epa \
+	indep-utils/webtrace-conv/nlanr \
+	indep-utils/webtrace-conv/ucb
+
+all: $(NS) all-recursive
+
+all-recursive:
+	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) all; ) done
+
 $(NS): $(OBJ) tclAppInit.o Makefile
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
 		tclAppInit.o $(OBJ) $(LIB)
@@ -295,11 +307,16 @@ ptypes2tcl: ptypes2tcl.o
 
 ptypes2tcl.o: ptypes2tcl.cc packet.h
 
-install: force
+install: force install-ns install-man install-recursive
+
+install-ns: force
 	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)
 
 install-man: force
 	$(INSTALL) -m 444 -o bin -g bin ns.1 $(DESTDIR)$(MANDEST)/man1
+
+install-recursive: force
+	for i in $(SUBDIRS); do cd $$i; $(MAKE) install; done
 
 clean:
 	$(RM) $(CLEANFILES)
