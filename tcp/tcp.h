@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.23 1997/08/01 00:44:25 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.24 1997/08/13 23:58:57 tomh Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -143,15 +143,41 @@ struct hdr_tcpasym {
 
 #define TCP_TIMER_RTX		0
 #define TCP_TIMER_DELSND	1
-#define TCP_TIMER_DELACK	2
-#define TCP_TIMER_BURSTSND	3
+#define TCP_TIMER_BURSTSND	2
+#define TCP_TIMER_DELACK	3
 
+class TcpAgent;
+
+class RtxTimer : public TimerHandler {
+public: 
+	RtxTimer(TcpAgent *a) : TimerHandler() { a_ = a; }
+protected:
+	virtual void expire(Event *e);
+	TcpAgent *a_;
+};
+
+class DelSndTimer : public TimerHandler {
+public: 
+	DelSndTimer(TcpAgent *a) : TimerHandler() { a_ = a; }
+protected:
+	virtual void expire(Event *e);
+	TcpAgent *a_;
+};
+
+class BurstSndTimer : public TimerHandler {
+public: 
+	BurstSndTimer(TcpAgent *a) : TimerHandler() { a_ = a; }
+protected:
+	virtual void expire(Event *e);
+	TcpAgent *a_;
+};
 
 class TcpAgent : public Agent {
 public:
 	TcpAgent();
 
 	virtual void recv(Packet*, Handler*);
+	virtual void timeout(int tno);
 	int command(int argc, const char*const* argv);
 
 	void trace(TracedVar* v);
@@ -189,7 +215,6 @@ protected:
 	virtual void newtimer(Packet* pkt);
 	void opencwnd();
 	void closecwnd(int how);
-	virtual void timeout(int tno);
 	void reset();
 	void newack(Packet* pkt);
 	void quench(int how);
@@ -201,6 +226,11 @@ protected:
 	virtual void send_idle_helper() { return; }
 	virtual void recv_helper(Packet*) { return; }
 	virtual void recv_newack_helper(Packet* pkt);
+
+	/* Timers */
+	RtxTimer rtx_timer_;
+	DelSndTimer delsnd_timer_;
+	BurstSndTimer burstsnd_timer_;
 
 	double overhead_;
 	double wnd_;

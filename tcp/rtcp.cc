@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/rtcp.cc,v 1.10 1997/08/10 07:49:52 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/rtcp.cc,v 1.11 1997/08/14 00:07:48 tomh Exp $";
 #endif
 
 #include <stdlib.h>
@@ -44,6 +44,16 @@ static const char rcsid[] =
 #include "packet.h"
 #include "random.h"
 #include "rtp.h"
+
+class RTCPAgent;
+
+class RTCP_Timer : public TimerHandler {
+public: 
+	RTCP_Timer(RTCPAgent *a) : TimerHandler() { a_ = a; }
+protected:
+	virtual void expire(Event *e);
+	RTCPAgent *a_;
+};
 
 class RTCPAgent : public Agent {
 public:
@@ -62,6 +72,8 @@ protected:
 	double interval_;
 	RTPSession* session_;
 	int off_rtp_;
+
+	RTCP_Timer rtcp_timer_;
 };
 
 static class RTCPAgentClass : public TclClass {
@@ -72,9 +84,9 @@ public:
 	}
 } class_rtcp_agent;
 
-/* XXX Could perhaps derive this from CBR */
+/* XXX Could perhaps derive this from CBR.  If so, use cbr_timer_ */
 RTCPAgent::RTCPAgent()
-	: Agent(PT_RTCP), session_(0)
+	: Agent(PT_RTCP), session_(0), rtcp_timer_(this)
 {
 	size_ = 128;
 	bind_time("interval_", &interval_);
@@ -87,12 +99,12 @@ RTCPAgent::RTCPAgent()
 void RTCPAgent::start()
 {
 	running_ = 1;
-	sched(interval_, 0);
+	rtcp_timer_.resched(interval_);
 }
 
 void RTCPAgent::stop()
 {
-	cancel(0);
+	rtcp_timer_.cancel();
 	running_ = 0;
 }
 
@@ -121,7 +133,7 @@ void RTCPAgent::timeout(int)
 		if (random_)
 			/* add some zero-mean white noise */
 			t += interval_ * Random::uniform(-0.5, 0.5);	
-		sched(t, 0);
+		rtcp_timer_.resched(t);
 		/* XXX */
 		Tcl::instance().evalf("%s rtcp_timeout", session_->name());
 	}
@@ -152,4 +164,8 @@ int RTCPAgent::command(int argc, const char*const* argv)
 	}
 
 	return (Agent::command(argc, argv));
+}
+
+void RTCP_Timer::expire(Event *e) {
+	a_->timeout(0);
 }

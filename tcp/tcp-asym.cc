@@ -49,7 +49,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.6 1997/07/25 05:25:59 padmanab Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.7 1997/08/14 00:04:00 tomh Exp $ (UCB)";
 #endif
 
 
@@ -168,7 +168,7 @@ void TcpAsymAgent::send_helper(int maxburst)
 	 * so we do not need an explicit check here.
 	 */
 	if (t_seqno_ <= highest_ack_ + window() && t_seqno_ < curseq_) {
-		sched(t_exact_srtt_*maxburst/window(), TCP_TIMER_BURSTSND);
+		burstsnd_timer_.resched(t_exact_srtt_*maxburst/window());
 	}
 }
 

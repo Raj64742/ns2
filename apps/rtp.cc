@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.11 1997/08/10 07:49:52 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.12 1997/08/14 00:07:35 tomh Exp $";
 #endif
 
 
@@ -96,7 +96,7 @@ void RTPAgent::timeout(int)
 		if (random_)
 			/* add some zero-mean white noise */
 			t += interval_ * Random::uniform(-0.5, 0.5);
-		sched(t, 0);
+		cbr_timer_.resched(t);
 	}
 }
 
@@ -129,16 +129,16 @@ int RTPAgent::command(int argc, const char*const* argv)
  */
 void RTPAgent::rate_change()
 {
-	cancel(0);
+	cbr_timer_.cancel();
 	
 	double t = lastpkttime_ + interval_;
 	
 	double now = Scheduler::instance().clock();
 	if ( t > now)
-		sched(t - now, 0);
+		cbr_timer_.resched(t - now);
 	else {
 		sendpkt();
-		sched(interval_, 0);
+		cbr_timer_.resched(interval_);
 	}
 }
 

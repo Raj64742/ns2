@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.18 1997/08/12 02:00:34 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.19 1997/08/14 00:03:11 tomh Exp $ (LBL)";
 #endif
 
 #include "tcp-sink.h"
@@ -151,7 +151,7 @@ public:
 	}
 } class_delsink;
 
-DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker)
+DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker), delay_timer_(this)
 {
 	bind_time("interval_", &interval_);
 }
@@ -165,19 +165,20 @@ void DelAckSink::recv(Packet* pkt, Handler*)
          * If there's no timer and the packet is in sequence, set a timer.
          * Otherwise, send the ack and update the timer.
          */
-        if (!pending_[DELAY_TIMER] && th->seqno() == acker_->Seqno()) {
+        if (!(delay_timer_.status() == TIMER_PENDING) && 
+				th->seqno() == acker_->Seqno()) {
                 /*
                  * There's no timer, so set one and delay this ack.
                  */
 		save_ = pkt;
-		sched(interval_, DELAY_TIMER);
+		delay_timer_.resched(interval_);
                 return;
         }
         /*
          * If there was a timer, turn it off.
          */
-	if (pending_[DELAY_TIMER]) {
-		cancel(DELAY_TIMER);
+	if (delay_timer_.status() == TIMER_PENDING) {
+		delay_timer_.cancel();
 		Packet::free(save_);
 		save_ = 0;
 	}
@@ -195,6 +196,10 @@ void DelAckSink::timeout(int)
 	ack(pkt);
 	save_ = 0;
 	Packet::free(pkt);
+}
+
+void DelayTimer::expire(Event *e) {
+	a_->timeout(0);
 }
 
 /* "sack1-tcp-sink" is for Matt and Jamshid's implementation of sack. */

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.33 1997/08/10 07:50:00 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.34 1997/08/13 23:59:41 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -62,7 +62,8 @@ public:
 TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	ts_peer_(0),dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0),
 	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
-	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0)
+	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0), 
+	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this) 
 {
 	// Defaults for bound variables should be set in ns-default.tcl.
 	bind("window_", &wnd_);
@@ -254,7 +255,7 @@ void TcpAgent::output(int seqno, int reason)
 				rtt_seq_ = seqno;
 		}
 	}
-	if (!pending_[TCP_TIMER_RTX])
+	if (!(rtx_timer_.status() == TIMER_PENDING))
 		/* No timer pending.  Schedule one. */
 		set_rtx_timer();
 }
@@ -343,23 +344,23 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
 	int win = window();
 	int npackets = 0;
 
-	if (!force && pending_[TCP_TIMER_DELSND])
+	if (!force && delsnd_timer_.status() == TIMER_PENDING)
 		return;
 	/* Save time when first packet was sent, for newreno  --Allman */
 	if (t_seqno_ == 0)
 		firstsent_ = Scheduler::instance().clock();
 
-	if (pending_[TCP_TIMER_BURSTSND])
+	if (burstsnd_timer_.status() == TIMER_PENDING)
 		return;
 	while (t_seqno_ <= highest_ack_ + win && t_seqno_ < curseq_) {
 		if (overhead_ == 0 || force) {
 			output(t_seqno_++, reason);
 			npackets++;
-		} else if (!pending_[TCP_TIMER_DELSND]) {
+		} else if (!(delsnd_timer_.status() == TIMER_PENDING)) {
 			/*
 			 * Set a delayed send timeout.
 			 */
-			sched(Random::uniform(overhead_), TCP_TIMER_DELSND);
+			delsnd_timer_.resched(Random::uniform(overhead_));
 			return;
 		}
 		if (maxburst && npackets == maxburst)
@@ -400,14 +401,12 @@ void TcpAgent::reset_rtx_timer(int mild, int backoff)
 }
 
 /*
- * Set retransmit timer.  If one is already pending, cancel it
- * and set a new one based on the current rtt estimate.
+ * Set retransmit timer using current rtt estimate.  By calling resched(), 
+ * it does not matter whether the timer was already running.
  */
 void TcpAgent::set_rtx_timer()
 {
-	if (pending_[TCP_TIMER_RTX])
-		cancel(TCP_TIMER_RTX);
-	sched(rtt_timeout(), TCP_TIMER_RTX);
+	rtx_timer_.resched(rtt_timeout());
 }
 
 /*
@@ -418,10 +417,10 @@ void TcpAgent::set_rtx_timer()
 void TcpAgent::newtimer(Packet* pkt)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-        if (t_seqno_ > tcph->seqno())
+	if (t_seqno_ > tcph->seqno())
 		set_rtx_timer();
-        else if (pending_[TCP_TIMER_RTX])
-                cancel(TCP_TIMER_RTX);
+	else if (rtx_timer_.status() == TIMER_PENDING)
+		rtx_timer_.cancel();
 }
 
 /*
@@ -708,3 +707,16 @@ void TcpAgent::finish() {
 		Tcl::instance().eval(wrk);
 	}
 }
+
+void RtxTimer::expire(Event *e) {
+	a_->timeout(TCP_TIMER_RTX);
+}
+
+void DelSndTimer::expire(Event *e) {
+	a_->timeout(TCP_TIMER_DELSND);
+}
+
+void BurstSndTimer::expire(Event *e) {
+	a_->timeout(TCP_TIMER_BURSTSND);
+}
+

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.5 1997/08/10 07:50:00 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.6 1997/08/14 00:02:47 tomh Exp $ (LBL)
  */
 
 #ifndef ns_tcpsink_h
@@ -99,16 +99,25 @@ protected:
 
 };
 
-#define DELAY_TIMER 0
+class DelAckSink;
+
+class DelayTimer : public TimerHandler {
+public:
+	DelayTimer(DelAckSink *a) : TimerHandler() { a_ = a; }
+protected:
+	virtual void expire(Event *e);
+	DelAckSink *a_;
+};
 
 class DelAckSink : public TcpSink {
 public:
 	DelAckSink(Acker* acker);
 	void recv(Packet* pkt, Handler*);
-protected:
 	virtual void timeout(int tno);
+protected:
 	Packet* save_;		/* place to stash packet while delaying */
 	double interval_;
+	DelayTimer delay_timer_;
 };
 
 #endif

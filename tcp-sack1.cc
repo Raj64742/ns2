@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.16 1997/07/25 18:31:19 heideman Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.17 1997/08/14 00:03:45 tomh Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -188,7 +188,7 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 	int xmit_seqno;
 
 	found = 1;
-	if (!force && pending_[TCP_TIMER_DELSND])
+	if (!force && delsnd_timer_.status() == TIMER_PENDING)
 		return;
 	/*
 	 * as long as the pipe is open and there is app data to send...
@@ -227,13 +227,13 @@ void Sack1TcpAgent::send_much(int force, int reason, int maxburst)
 				npacket++;
 				pipe_++;
 			}
-		} else if (!pending_[TCP_TIMER_DELSND]) {
+		} else if (!(delsnd_timer_.status() == TIMER_PENDING)) {
 			/*
 			 * Set a delayed send timeout.
 			 * This is only for the simulator,to add some
 			 *   randomization if speficied.
 			 */
-			sched(Random::uniform(overhead_), TCP_TIMER_DELSND);
+			delsnd_timer_.resched(Random::uniform(overhead_));
 			return;
 		}
 		if (maxburst && npacket == maxburst)

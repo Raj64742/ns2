@@ -47,7 +47,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.3 1997/07/21 22:15:57 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.4 1997/08/14 00:04:19 tomh Exp $ (UCB)";
 #endif
 
 #include "tcp-sink.h"
@@ -169,9 +169,9 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 	/* check if we have waited long enough that we should send an ack */
 	if (delackcount_ < delacklim_) { /* it is not yet time to send an ack */
 		/* if the delayed ack timer is not set, set it now */
-		if (!pending_[DELAY_TIMER]) {
+		if (!(delay_timer_.status() == TIMER_PENDING)) {
 			save_ = pkt;
-			sched(interval_, DELAY_TIMER);
+			delay_timer_.resched(interval_);
 		}
 		else {
 			hdr_tcp *sth = (hdr_tcp*)save_->access(off_tcp_);
@@ -184,8 +184,8 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 		return;
 	}
 	else { /* send back an ack now */
-		if (pending_[DELAY_TIMER]) {
-			cancel(DELAY_TIMER);
+		if (delay_timer_.status() == TIMER_PENDING) {
+			delay_timer_.cancel();
 			Packet::free(save_);
 			save_ = 0;
 		}
@@ -202,7 +202,6 @@ void TcpAsymSink::timeout(int tno)
 	 * The timer expired so we ACK the last packet seen.
 	 */
 	Packet* pkt = save_;
-	cancel(tno);
 	delackcount_ = 0;
 	ack(pkt);
 	save_ = 0;

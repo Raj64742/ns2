@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.12 1997/08/12 09:07:13 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.13 1997/08/13 23:58:13 tomh Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -41,15 +41,21 @@
 #include "connector.h"
 #include "timer-handler.h"
 
+#define TIMER_IDLE 0
+#define TIMER_PENDING 1
+
+/* 
+ * Note that timers are now implemented using timer-handler.{cc,h}
+ */
 
 class Agent : public Connector {
  public:
 	Agent(int pktType);
 	virtual ~Agent();
+	virtual void timeout(int tno);
  protected:
 	int command(int argc, const char*const* argv);
 	void recv(Packet*, Handler*);
-	void handle(Event*);
 	Packet* allocpkt() const;
 	Packet* allocpkt(int) const;
         Tcl_Channel channel_;
@@ -67,23 +73,6 @@ class Agent : public Connector {
 int seqno_;		/* current seqno */
 int class_;		/* class to place in packet header */
 #endif
-
-
-	virtual void timeout(int tno);
-	void sched(double delay, int tno);
-	inline void cancel(int tno) {
-		if (pending_[tno] != 0) {
-			pending_[tno] = 0;
-			(void)Scheduler::instance().cancel(&timer_[tno]);
-		}
-	}
-#define NTIMER 4
-	/*
-	 * xxx:  timers done in this manner should go away.
-	 * Use C++-ish agent timers from agent-timer.h instead.
-	 */
-	int pending_[NTIMER];
-	Event timer_[NTIMER];
 
 	static int uidcnt_;
 	int off_ip_;

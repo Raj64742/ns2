@@ -28,7 +28,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.7 1997/07/25 05:26:05 padmanab Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.8 1997/08/14 00:05:23 tomh Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -394,7 +394,7 @@ VegasTcpAgent::output(int seqno, int reason)
 				rtt_seq_ = seqno;
 		}
 	}
-	if (!pending_[TCP_TIMER_RTX])
+	if (!(rtx_timer_.status() == TIMER_PENDING))
 		/* No timer pending.  Schedule one. */
 		set_rtx_timer();
 }

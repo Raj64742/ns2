@@ -17,7 +17,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.3 1997/08/10 07:50:04 mccanne Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.4 1997/08/14 00:06:45 tomh Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -80,22 +80,22 @@ void UDP_Agent::timeout(int)
 		/* figure out when to send the next one */
 		double t = trafgen_->next_interval(size_);
 		/* schedule it */
-		sched(t, 0);
+		cbr_timer_.resched(t);
 	}
 }
 
 void UDP_Agent::stop()
 {
-        cancel(0);
+	cbr_timer_.cancel();
 	running_ = 0;
 }
 
 void UDP_Agent::start()
 {
-        if (trafgen_) {
-	        trafgen_->init();
-	        running_ = 1;
+	if (trafgen_) {
+		trafgen_->init();
+		running_ = 1;
 		double t = trafgen_->next_interval(size_);
-		sched(t, 0);
+		cbr_timer_.resched(t);
 	}
 }

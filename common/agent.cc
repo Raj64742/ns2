@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.23 1997/08/10 07:49:33 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.24 1997/08/13 23:58:38 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -60,7 +60,7 @@ Agent::Agent(int pkttype) :
 	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
 	prio_(-1), flags_(0), defttl_(32), channel_(0)
 {
-	memset(pending_, 0, sizeof(pending_));
+//	memset(pending_, 0, sizeof(pending_));
 	// this is really an IP agent, so set up
 	// for generating the appropriate IP fields...
 	bind("addr_", (int*)&addr_);
@@ -99,31 +99,8 @@ int Agent::command(int argc, const char*const* argv)
 	return (Connector::command(argc, argv));
 }
 
-void Agent::sched(double delay, int tno)
-{
-	if (pending_[tno])
-		/*XXX timers botched*/
-		abort();
-
-	pending_[tno] = 1;
-	Scheduler& s = Scheduler::instance();
-	s.schedule(this, &timer_[tno], delay);
-}
-
 void Agent::timeout(int)
 {
-}
-
-void Agent::handle(Event* e)
-{
-	/*XXX use a subclass here*/
-	if (e >= &timer_[0] && e < &timer_[NTIMER]) {
-		int tno = e - &timer_[0];
-		pending_[tno] = 0;
-		timeout(tno);
-	} else
-		/* otherwise, can only be a packet */
-		recv((Packet*)e, 0);
 }
 
 void Agent::recv(Packet* p, Handler*)

@@ -69,7 +69,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.8 1997/08/10 07:49:59 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.9 1997/08/14 00:00:26 tomh Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -96,7 +96,7 @@ public:
  *	segsize: segment size to use when sending
  */
 FullTcpAgent::FullTcpAgent() : flags_(0),
-	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1), delack_timer_(this),	delsnd_timer_(this), rtx_timer_(this)
+	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1), delack_timer_(this)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -139,15 +139,10 @@ FullTcpAgent::headersize()
 }
 
 /*
- * cancel any pending timers
  * free up the reassembly queue if there's anything there
  */
 FullTcpAgent::~FullTcpAgent()
 {
-	register i;
-	for (i = 0; i < NTIMER; i++)
-		if (pending_[i])
-			cancel(i);
 	rq_.clear();
 }
 
@@ -470,51 +465,6 @@ int FullTcpAgent::need_send()
 	return ((rcv_nxt_ - last_ack_sent_) >= (segs_per_ack_ * maxseg_));
 }
 
-/*
- * deal with timers going off.
- * 2 types for now:
- *	retransmission timer (TCP_TIMER_RTX)
- *	delayed send (randomization) timer (TCP_TIMER_DELSND)
- *
- * real TCP initializes the RTO as 6 sec
- *	(A + 2D, where A=0, D=3), [Stevens p. 305]
- * and thereafter uses
- *	(A + 4D, where A and D are dynamic estimates)
- *
- * note that in the simulator t_srtt_, t_rttvar_ and t_rtt_
- * are all measured in 'tcp_tick_'-second units
- */
-void FullTcpAgent::timeout(int tno)
-{
-
-        /* retransmit timer */
-        if (tno == TCP_TIMER_RTX) {
-		recover_ = maxseq_;
-		recover_cause_ = REASON_TIMEOUT;
-                closecwnd(0);
-                reset_rtx_timer(1);
-		t_seqno_ = highest_ack_;
-		dupacks_ = 0;
-                send_much(0, PF_TIMEOUT);
-        } else if (tno == TCP_TIMER_DELSND) {
-                /*
-                 * delayed-send timer, with random overhead
-                 * to avoid phase effects
-                 */
-                send_much(1, PF_TIMEOUT);
-        } else if (tno == TCP_TIMER_DELACK) {
-		if (flags_ & TF_DELACK) {
-			flags_ &= ~TF_DELACK;
-			flags_ |= TF_ACKNOW;
-			send_much(1, REASON_NORMAL, 0);
-		}
-		delack_timer_.resched(delack_interval_);
-	} else {
-		double now = Scheduler::instance().clock();
-		fprintf(stderr, "%f: (%s) UNKNOWN TIMEOUT %d\n",
-			now, name(), tno);
-	}
-}
 
 /*
  * main reception path - 
@@ -974,15 +924,6 @@ drop:
 	return;
 }
 
-/*
- * Set retransmit timer.  By calling resched(), we handle the 
- * case in which the timer is already running.
- */
-void FullTcpAgent::set_rtx_timer()
-{
-    rtx_timer_.resched(rtt_timeout());
-}
-
 void FullTcpAgent::reset_rtx_timer(int /* mild */)
 {
 	// cancel old timer, set a new one
@@ -1180,26 +1121,55 @@ endfast:
 	return;
 }
 
+/*
+ * deal with timers going off.
+ * 2 types for now:
+ *	retransmission timer (rtx_timer_)
+ *  delayed ack timer (delack_timer_)
+ *	delayed send (randomization) timer (delsnd_timer_)
+ *
+ * real TCP initializes the RTO as 6 sec
+ *	(A + 2D, where A=0, D=3), [Stevens p. 305]
+ * and thereafter uses
+ *	(A + 4D, where A and D are dynamic estimates)
+ *
+ * note that in the simulator t_srtt_, t_rttvar_ and t_rtt_
+ * are all measured in 'tcp_tick_'-second units
+ */
+
+void FullTcpAgent::timeout(int tno)
+{
+ 
+	/* retransmit timer */
+	if (tno == TCP_TIMER_RTX) {
+		recover_ = maxseq_;
+		recover_cause_ = REASON_TIMEOUT;
+		closecwnd(0);
+		reset_rtx_timer(1);
+		t_seqno_ = highest_ack_;
+		dupacks_ = 0;
+		send_much(0, PF_TIMEOUT);
+	} else if (tno == TCP_TIMER_DELSND) {
+		/*
+		 * delayed-send timer, with random overhead
+		 * to avoid phase effects
+		 */
+		send_much(1, PF_TIMEOUT);
+	} else if (tno == TCP_TIMER_DELACK) {
+		if (flags_ & TF_DELACK) {
+			flags_ &= ~TF_DELACK;
+			flags_ |= TF_ACKNOW;
+			send_much(1, REASON_NORMAL, 0);
+		}
+		delack_timer_.resched(delack_interval_);
+	} else {
+		double now = Scheduler::instance().clock();
+		fprintf(stderr, "%f: (%s) UNKNOWN TIMEOUT %d\n",
+			now, name(), tno);
+	}
+}
+
 void DelAckTimer::expire(Event *e) {
-                if (a_->flags_ & TF_DELACK) {  
-                        a_->flags_ &= ~TF_DELACK;
-                        a_->flags_ |= TF_ACKNOW;
-                        a_->send_much(1, REASON_NORMAL, 0);
-                } 
-                a_->delack_timer_.resched(a_->delack_interval_);
-}
-
-void DelSndTimer::expire(Event *e) {
-                a_->send_much(1, PF_TIMEOUT);
-}
-void RtxTimer::expire(Event *e) {
-                a_->recover_ = a_->maxseq_;
-                a_->recover_cause_ = REASON_TIMEOUT;
-                a_->closecwnd(0);
-                a_->reset_rtx_timer(1);
-                a_->t_seqno_ = a_->highest_ack_;
-                a_->dupacks_ = 0;
-                a_->send_much(0, PF_TIMEOUT);
-
+	a_->timeout(TCP_TIMER_DELACK);
 }
 
