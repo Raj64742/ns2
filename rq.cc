@@ -253,11 +253,6 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 
 	int needmerge = FALSE;
 
-#ifdef notdef
-	if (end == start)
-		return tiflags;
-	else if (end < start) {
-#endif
 	if (end < start) {
 		fprintf(stderr, "ReassemblyQueue::add() - end(%d) before start(%d)\n",
 			end, start);
@@ -289,15 +284,16 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		return (tiflags);
 	} else {
 
-		seginfo *p = NULL, *q = NULL, *n;
+		seginfo *p = NULL, *q = NULL, *n, *r;
 
 		//
 		// in the code below, arrange for:
 		// q: points to segment after this one
 		// p: points to segment before this one
+		//
 
 		if (start >= tail_->endseq_) {
-			// at tail
+			// at tail, no overlap
 			p = tail_;
 			if (start == tail_->endseq_)
 				needmerge = TRUE;
@@ -305,41 +301,100 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		}
 
 		if (end <= head_->startseq_) {
-			// at head
+			// at head, no overlap
 			q = head_;
 			if (end == head_->startseq_)
 				needmerge = TRUE;
 			goto endfast;
 		}
 
-		// not first or last...
-		// look for segments before and after this one
-		for (p = head_, q = p->next_; q; p = q, q = q->next_) {
-			if (p->startseq_ <= start && p->endseq_ >= end) {
-				// completely covered by p segment
-				p->pflags_ |= tiflags;
-				return (p->pflags_);
-			} else if (q && q->startseq_ <= start && q->endseq_ >= end) {
-				// completely covered by q segment
-				q->pflags_ |= tiflags;
-				return (q->pflags_);
-			} else if (p->endseq_ == start || q->startseq_ == end) {
-				// new segment abuts an existing segment
+		//
+		// search for segments before and after
+		// the new one; could be overlapped
+		//
+		q = head_;
+		while (q && q->startseq_ < end)
+			q = q->next_;
+
+		p = tail_;
+		while (p && p->endseq_ > start)
+			p = p->prev_;
+
+#ifdef notdef
+printf("Thinking of merging (s:%d, e:%d), p:%p (%d,%d), q:%p (%d,%d) into: \n",
+start, end, p, q,
+	p ? p->startseq_ : 0,
+	p ? p->endseq_ : 0,
+	q ? n->startseq_ : 0,
+	q ? n->endseq_ : 0);
+#endif
+
+
+		//
+		// kill anything that is completely overlapped
+		//
+		r = p ? p : head_;
+		while (r && r != q)  {
+			if (start < r->startseq_ && end > r->endseq_) {
+				n = r;
+				r = r->next_;
+				tiflags |= n->pflags_;
+				fremove(n);
+				sremove(n);
+				delete n;
+			} else if (start == r->startseq_ && end == r->endseq_) {
+				// exact overlap
+				r->pflags_ |= tiflags;
+				return (r->pflags_);
+			} else
+				r = r->next_;
+		}
+
+		if (empty())
+			goto endfast;
+
+		// look for left-side merge
+		if (p == NULL || p->next_->startseq_ < start) {
+			if (p == NULL)
+				p = head_;
+			else
+				p = p->next_;
+				
+			p->startseq_ = MIN(p->startseq_, start);
+			start = p->endseq_;
+			needmerge = TRUE;
+			p->pflags_ |= tiflags;
+		}
+
+		// look for right-side merge
+		if (q == NULL || q->prev_->endseq_ > end) {
+			if (q == NULL)
+				q = tail_;
+			else
+				q = q->prev_;
+
+			q->endseq_ = MAX(q->endseq_, end);
+			end = q->startseq_;
+			needmerge = TRUE;
+			q->pflags_ |= tiflags;
+		}
+
+
+		if (end <= start) {
+			if (rcv_nxt_ >= head_->startseq_)
+				rcv_nxt_ = head_->endseq_;
+			return (tiflags);
+		}
+			
+
+		//
+		// if p & q are adjacent and new one
+		// fits between, that is an easy case
+		//
+
+		if (!needmerge && p->next_ == q && p->endseq_ <= start && q->startseq_ >= end) {
+			if (p->endseq_ == start || q->startseq_ == end)
 				needmerge = TRUE;
-				break;
-			} else if (p->endseq_ < start && q->startseq_ > end) {
-				// new segment between existing ones, but
-				// doesn't abut
-				break;
-			} else {
-				fprintf(stderr,
-				   "ReassemblyQueue::add(%d,%d,%d,%d) fault-- I don't (yet) handle repacketized segments\n",
-				   	start, end, tiflags, rqflags);
-				fprintf(stderr, "\tp(%d,%d), q(%d,%d)\n",
-					p->startseq_, p->endseq_,
-					q->startseq_, q->endseq_);
-				abort();
-			}
 		}
 
 endfast:
@@ -376,8 +431,9 @@ endfast:
 
 		if (needmerge)
 			return(coalesce(p, n, q));
-		else if (rcv_nxt_ >= start)
+		else if (rcv_nxt_ >= start) {
 			rcv_nxt_ = end;
+		}
 
 		return tiflags;
 	}
@@ -449,7 +505,7 @@ dumplist();
 #ifdef RQDEBUG
 main()
 {
-	int rcvnxt;
+	int rcvnxt = 1;
 	ReassemblyQueue rq(rcvnxt);
 
 	static int blockstore[64];
@@ -457,27 +513,115 @@ main()
 	int nblocks = 5;
 	int i;
 
-	rq.add(5, 10, 0, 0);
-	rq.dumplist();
-	rq.add(10, 20, 0, 0);
-	rq.dumplist();
-	rq.add(1, 3, 0, 0);
-	rq.dumplist();
-	rq.add(22, 25, 0, 0);
-	rq.dumplist();
+	printf("Simple---\n");
+	rq.add(2, 4, 0, 0);
+	rq.add(6, 8, 0, 0);	// disc
+	printf("D1\n");
+	rq.dumplist();	// [2,4], [6,8]
+
+	rq.add(1,2, 0, 0);	// l merge
+	printf("D2\n");
+	rq.dumplist();	// [1,4], [6,8]
+
+	rq.add(8, 10, 0, 00);	// r merge
+	printf("D3\n");
+	rq.dumplist();	// [1,4], [6, 10]
+
+	rq.add(4, 6, 0, 0);	// m merge
+	printf("Simple output:\n");
+	rq.dumplist();	// [1, 10]
+
+	printf("X0:\n");
+	rq.init(1);
+	rq.add(5,10, 0, 0);
+	rq.add(11,20, 0, 0);
+	rq.add(5,10, 0, 0);	// dup left
+	rq.dumplist();	// [5,10], [11,20]
+
+	printf("X1:\n");
+	rq.init(1);
+	rq.add(5,10, 0, 0);
+	rq.add(11,20, 0, 0);
+	rq.add(11, 20, 0, 0);	// dup rt
+	rq.dumplist();	// [5,10], [11,20]
+
+	printf("X2:\n");
+	rq.init(1);
+	rq.add(5,10, 0, 0);
+	rq.add(11,20, 0, 0);
+	rq.add(30, 40, 0, 0);	// dup mid
+	rq.add(11,20, 0, 0);
+	rq.dumplist();	// [5,10], [11,20], [30,40]
+
+	printf("C1:\n");
+	rq.init(1);
+	rq.add(2, 4, 0, 0);
+	rq.add(1, 4, 0, 0);	// l overlap full
+	rq.dumplist();	// [1,4]
+
+	printf("C2:\n");
+	rq.init(1);
+	rq.add(2, 4, 0, 0);
+	rq.add(1, 3, 0, 0);	// l overlap part
+	rq.dumplist();	// [1,4]
+
+	printf("C3:\n");
+	rq.init(1);
+	rq.add(2, 4, 0, 0);
+	rq.add(2, 7, 0, 0);	// r overlap full
+	rq.dumplist();	// [2,7]
+
+	printf("C4:\n");
+	rq.init(1);
+	rq.add(2, 4, 0, 0);
+	rq.add(3, 7, 0, 0);	// r overlap part
+	rq.dumplist();	// [2, 7]
+
+	printf("C5:\n");
+	rq.init(1);
+	rq.add(2, 4, 0, 0);
+	rq.add(6, 8, 0, 0);
+	rq.add(1, 9, 0, 0);	// double olap - ends
+	rq.dumplist();	// [1,9]
+
+	printf("C6:\n");
+	rq.init(1);
+	rq.add(2, 4, 0, 0);
+	rq.add(6, 8, 0, 0);
+	rq.add(15, 20, 0, 0);
+	rq.dumplist();	// [2,4], [6,8], [15,20]
+	rq.add(5, 9, 0, 0);	// overlap middle
+	rq.dumplist();	// [2,4], [5,9], [15,20]
+
+	printf("C7:\n");
+	rq.init(1);
+	rq.add(1, 2, 0, 0);
 	rq.add(3, 5, 0, 0);
+	rq.add(6, 8, 0, 0);
+	rq.add(9, 10, 0, 0);
+	rq.dumplist();	// [1,2],[3,5],[6,8],[9,10]
+	rq.add(4, 7, 0, 0);	// double olap middle
+	rq.dumplist();	// [1,2], [3,8], [9,10]
+
+	printf("C8:\n");
+	rq.init(1);
+	rq.add(1, 2, 0, 0);
+	rq.add(3, 5, 0, 0);
+	rq.add(10, 12, 0, 0);
+	rq.add(20, 30, 0, 0);
+	rq.dumplist();	// [1,2], [3,5], [10,12], [20,30]
+	rq.add(4, 8, 0, 0);	// single olap middle
+	rq.dumplist();	// [1,2], [3,8], [10,12], [20,30]
+
+	rq.init(1);
+	rq.add(1, 5, 0, 0);
+	rq.add(10, 20, 0, 0);
+	//rq.add(40321, 41281, 0, 0);
+	//rq.add(42241, 43201, 0, 0);
+	//rq.add(44161, 45121, 0, 0);
 	rq.dumplist();
-
-	printf("rcvnxt: %d\n", rcvnxt);
-	rq.gensack(blocks, nblocks);
-	for (i = 0; i < nblocks; i++) {
-		printf(">%d, %d<, ", blocks[0], blocks[1]);
-		++blocks;
-		++blocks;
-	}
-	printf("\n-->clrto20\n");
-
-	rq.clearto(20);
+	//rq.add(40321, 41281, 0, 0);
+	rq.add(1, 5, 0, 0);
 	rq.dumplist();
 
 	exit(0);
