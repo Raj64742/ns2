@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.h,v 1.2 1999/06/23 23:41:55 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.h,v 1.3 1999/07/09 05:05:21 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -55,8 +55,8 @@ class SatPosition : public TclObject {
 	virtual coordinate getCoordinate() = 0; 
 	virtual float get_latitude() = 0;
 	virtual float get_longitude() = 0;
-	static float distance(SatPosition*, SatPosition*);
-	float propdelay(SatPosition*);
+	static double distance(SatPosition*, SatPosition*);
+	double propdelay(SatPosition*);
 	static void spherical_to_cartesian(float, float, float,
 	    float &, float &, float &);
 

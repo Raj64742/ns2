@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.cc,v 1.3 1999/07/02 21:02:08 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.cc,v 1.4 1999/07/09 05:05:22 tomh Exp $";
 #endif
 
 #include "satposition.h"
@@ -101,7 +101,7 @@ SatPosition::SatPosition() : node_(0)
 }
 
 // Returns distance in km between two SatNodes
-float SatPosition::distance(SatPosition* first, SatPosition* second) 
+double SatPosition::distance(SatPosition* first, SatPosition* second) 
 {
 	coordinate a = first->getCoordinate();
 	coordinate b = second->getCoordinate();
@@ -113,9 +113,10 @@ float SatPosition::distance(SatPosition* first, SatPosition* second)
 }
 
 // Returns propagation delay in s between two SatNodes
-float SatPosition::propdelay(SatPosition* remote)
+double SatPosition::propdelay(SatPosition* remote)
 {
-	return (distance(this, remote)/LIGHT);
+	double delay = distance(this,remote)/LIGHT;
+	return (Trace::round(delay, 1.0E+8));
 }
 
 void SatPosition::spherical_to_cartesian(float R, float Theta,
