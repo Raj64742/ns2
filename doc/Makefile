@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.21 2000/08/24 18:51:51 johnh Exp $
+# $Id: Makefile,v 1.22 2000/08/24 18:55:45 johnh Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -82,6 +82,10 @@ everything.dvi: $(FILES)
 
 gv: everything.ps $(FILES)
 	gv everything.ps
+
+# xxx: doesn't redo bibliography
+clean:
+	rm *.aux *.log *.toc
 
 ns-doc-auto: everything.ps.gz everything.pdf everything.html
 	cp everything.ps.gz  $(WEB_TARGET_DIR)/ns_doc.ps.gz
