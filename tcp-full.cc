@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.68 1998/08/22 02:41:21 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.69 1998/10/14 01:09:10 yuriy Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1940,9 +1940,12 @@ ReassemblyQueue::ReassemblyQueue(int& nxt) :
  */
 void ReassemblyQueue::clear()
 {
-	seginfo* p;
-	for (p = head_; p != NULL; p = p->next_)
-		delete p;
+	seginfo* p= head_;
+	while(head_) {
+		p= head_;
+		head_= head_->next_;
+		delete(p);
+	}
 	ptr_ = head_ = tail_ = NULL;
 	return;
 }
