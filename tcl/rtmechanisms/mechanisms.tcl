@@ -18,6 +18,10 @@ RTMechanisms instproc tcp_ref_bw { mtu rtt droprate } {
 	if { $rtt == 0 || $droprate == 0 } {
 		return "none"
 	}
+	$self vprint 0 "mtu: $mtu rtt: $rtt droprate: $droprate"
+	set result [expr 1.22 * $mtu / ($rtt*sqrt($droprate))]
+	set sqrt [expr sqrt($droprate) ]
+	$self vprint 0 "sqrt: $sqrt result $result"
 	return [expr 1.22 * $mtu / ($rtt*sqrt($droprate))]
 }
 
@@ -64,11 +68,11 @@ RTMechanisms instproc mmetric { op flows } {
 
 	set flow "none"
 
+	set unforced_frac [$self frac $epdrops $pdrops]
+	set forced_frac [expr 1 - $unforced_frac ]
 	foreach f $flows {
 		set fepdrops [$f set epdrops_]
 		set fpdrops [$f set pdrops_]
-		set unforced_frac [$self frac $fepdrops $pdrops]
-		set forced_frac [$self frac [expr $fpdrops - $fepdrops] $pdrops]
 
 		set fbdrops [$f set bdrops_]
 		set febdrops [$f set ebdrops_]
@@ -101,9 +105,9 @@ RTMechanisms instproc pallot allotment {
 	$self instvar badclass_ goodclass_
 	$self instvar Maxallot_
 
+	$self vprint 0 "PALLOT: Allots: pbox: $allotment, okbox: [expr $Maxallot_ - $allotment]"
 	$badclass_ newallot $allotment
 	$goodclass_ newallot [expr $Maxallot_ - $allotment]
-	$self vprint 1 "PALLOT: Allots: pbox: $allotment, okbox: [expr $Maxallot_ - $allotment]"
 }
 
 # add a flow to the flow history array (for unresponsive test)
@@ -195,13 +199,15 @@ RTMechanisms instproc penalize { badflow guideline_bw } {
 	# reallocate allotment
 	#
 
-	set new_pbw [expr 0.5 * $guideline_bw * $npenalty_]
+	set new_pbw [expr 0.5 * $guideline_bw * $npenalty_ ]
+	$self vprint 0 "npenalty $npenalty_ guideline_bw $guideline_bw"
 	if { $new_pbw > $Max_cbw_ } {
 		set $new_pbw $Max_cbw_
 	}
 	$self instvar badclass_
 	# link bw is in bits/sec
 	set bw [expr [[$cbqlink_ link] set bandwidth_] / 8.0]
+	$self vprint 0 "new_pbw $new_pbw bw $bw" 
 	set nallot [expr $new_pbw / $bw]
 
 	$self pallot $nallot
@@ -343,14 +349,13 @@ RTMechanisms instproc do_detect {} {
 	set maxmetric [lindex $M 1]
 
 	$self vprint 2 "DO_DETECT: droprateG: $droprateG (drops:$ndrops, arrs:$parrivals"
-	$self vprint 2 "DO_DETECT: possible bad flow: $badflow ([$badflow set src_], [$badflow set dst_], [$badflow set flowid_]), maxmetric:$maxmetric"
-
 	if { $badflow == "none" } {
 		$self vprint 1 "DO_DETECT: no candidate bad flows... returning"
 		$self sched-detect
 		# nobody
 		return
 	}
+	$self vprint 2 "DO_DETECT: possible bad flow: $badflow ([$badflow set src_], [$badflow set dst_], [$badflow set flowid_]), maxmetric:$maxmetric"
 
 	set known false
 	if { [info exists state_($badflow,ctime)] } {
@@ -366,6 +371,7 @@ RTMechanisms instproc do_detect {} {
 	# estimate the bw's arrival rate without knowing it directly
 	#	note: in ns-1 maxmetric was a %age, here it is a frac
 	set flow_bw_est [expr $maxmetric * $barrivals / $elapsed]
+	$self vprint 1 "maxmetric $maxmetric barrivals $barrivals elapsed $elapsed"
 	set guideline_bw  [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateG]
 
 	set friendly [$self test_friendly $flow_bw_est $guideline_bw]
@@ -383,7 +389,7 @@ RTMechanisms instproc do_detect {} {
 			# is still unresponsive
 			$self setstate $badflow "UNRESPONSIVE2" \
 			    $flow_bw_est $droprateG
-			$self penalize $badflow $guideline_bw
+			$self penalize $badflow $flow_bw_est
 		}
 		$self sched-reward
 	} else {
@@ -396,7 +402,7 @@ RTMechanisms instproc do_detect {} {
 		} elseif { [$self test_high $flow_bw_est $droprateG $elapsed] == "fail" } {
 			$self setstate $badflow "HIGH" \
 			    $flow_bw_est $droprateG
-			$self penalize $badflow $guideline_bw
+			$self penalize $badflow $flow_bw_est
 			$self sched-reward
 		} else {
 			set ck1 [$self checkbw_fair $guideline_bw]
