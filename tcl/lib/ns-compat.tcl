@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.33 1997/07/30 23:41:24 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.34 1997/09/11 02:04:01 heideman Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -99,7 +99,7 @@ OldSim instproc default_assign {aname index newval} {
 	} else {
 		set ns2obj $classMap_($obj)
 	}
-	TclObject instvar varMap_ 
+	SplitObject instvar varMap_ 
 	if ![info exists varMap_($index)] {
 		puts "error: ns-2 compatibility library cannot map instvar $index in class $ns2obj"
 		exit 1
@@ -116,7 +116,7 @@ OldSim instproc default_assign {aname index newval} {
 #
 OldSim instproc map_ns_defaults old_arr {
 	global $old_arr ; # these were all globals in ns-1
-	TclObject instvar varMap_
+	SplitObject instvar varMap_
 
 	foreach el [array names $old_arr] {
 		set val [expr "$${old_arr}($el)"]
@@ -245,13 +245,22 @@ OldSim instproc init args {
 	# doesn't cause any collisions...
 	#
 	TclObject instproc set args {
-		TclObject instvar varMap_
+		SplitObject instvar varMap_
 		set var [lindex $args 0] 
 		if [info exists varMap_($var)] {
 			set var $varMap_($var)
 			set args "$var [lrange $args 1 end]"
 		}
 		return [eval $self next $args]
+	}
+	TclObject instproc get {var} {
+		SplitObject instvar varMap_
+		if [info exists varMap_($var)] {
+			# puts stderr "TclObject::get $var -> $varMap_($var)."
+			return [$self set $varMap_($var)]
+		} else {
+			return [$self next $var]
+		}
 	}
 	# Agent
 	TclObject set varMap_(addr) addr_
@@ -633,9 +642,11 @@ OldSim instproc create-agent { node type pktClass } {
 	$agent set fid_ $pktClass
 	$self attach-agent $node $agent
 
-	$agent proc get var {
-		return [$self set $var]
-	}
+# This has been replaced by TclObject instproc get.  -johnh, 10-Sep-97
+#
+#	$agent proc get var {
+#		return [$self set $var]
+#	}
 
 	return $agent
 }
