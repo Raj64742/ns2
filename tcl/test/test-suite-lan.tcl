@@ -82,7 +82,7 @@ Test/lan-routing-flat instproc init {} {
 	set tcp0_ [$ns_ create-connection TCP/Reno $node0_ TCPSink $nodex_ 0]
 	$tcp0_ set window_ 15
 	
-	set ftp0_ [$tcp0_ attach-source FTP]
+	set ftp0_ [$tcp0_ attach-app FTP]
 }
 
 Test/lan-routing-flat instproc run {} {
@@ -123,7 +123,7 @@ Test/lan-routing-hier instproc init {} {
 	set tcp0_ [$ns_ create-connection TCP/Reno $node0_ TCPSink $nodex_ 0]
 	$tcp0_ set window_ 15
 	
-	set ftp0_ [$tcp0_ attach-source FTP]
+	set ftp0_ [$tcp0_ attach-app FTP]
 }
 
 Test/lan-routing-hier instproc run {} {
