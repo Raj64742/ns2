@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.26 2000/11/17 22:10:33 ratul Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.27 2000/11/18 00:06:26 ratul Exp $
  *
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
@@ -101,8 +101,8 @@ Node::Node() :
 {
 	LIST_INIT(&ifhead_);
 	LIST_INIT(&linklisthead_);
-	LIST_INIT(&neighbor_list_);
 	insert(&(Node::nodehead_)); // insert self into static list of nodes
+	neighbor_list_ = NULL;
 }
 
 Node::~Node()
@@ -147,15 +147,24 @@ Node::command(int argc, const char*const* argv)
                         }
                         return (TCL_OK);
 		} else if (strcmp(argv[1], "add-neighbor") == 0) {
-		 	Node * node = (Node *)TclObject::lookup(argv[2]);
+			Node * node = (Node *)TclObject::lookup(argv[2]);
  			if (node == 0) {
  				tcl.resultf("Invalid node %s", argv[2]);
                                  return (TCL_ERROR);
 			}
-			LIST_INSERT_HEAD(&neighbor_list_, node, neighbor_list_entry_); 
+			addNeighbor(node);
+			return TCL_OK;
 		}
 	}
 	return TclObject::command(argc,argv);
+}
+
+void Node::addNeighbor(Node * neighbor) {
+
+	neighbor_list_node* nlistItem = (neighbor_list_node *)malloc(sizeof(neighbor_list_node));
+	nlistItem->nodeid = neighbor->nodeid();
+	nlistItem->next = neighbor_list_;
+	neighbor_list_=nlistItem; 
 }
 
 void Node::namlog(const char* fmt, ...)

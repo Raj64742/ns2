@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.27 2000/11/17 22:10:33 ratul Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.28 2000/11/18 00:06:26 ratul Exp $
  */
 
 /*
@@ -101,7 +101,12 @@ LIST_HEAD(node_head, Node); // declare list head structure
 
 //declare the neighbor list structure
 //added for pushback, but should be useful otherwise also.
-LIST_HEAD(node_neighbor, Node);
+//there was something here which was moved to energy model. 
+//since that work is in flux, i am not meddling with it.
+struct neighbor_list_node {
+	int nodeid;
+	neighbor_list_node* next;
+};
 
 // Size of the buffer for dumping nam traces.
 const int NODE_NAMLOG_BUFSZ = 256;
@@ -133,9 +138,10 @@ public:
 		return linklisthead_; 
 	}
 	
-	LIST_ENTRY(Node) neighbor_list_entry_;
-	struct node_neighbor neighbor_list_;
-
+	//neighbor list maintenance
+	neighbor_list_node* neighbor_list_;
+	void addNeighbor(Node *node);
+	
 	static Node* get_node_by_address(nsaddr_t);
 
 protected:
