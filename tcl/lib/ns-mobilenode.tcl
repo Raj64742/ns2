@@ -325,17 +325,58 @@ Node/MobileNode instproc add-target {agent port } {
 	    #
 	    # Send Target
 	    #
-	    $agent target [$self set ll_(0)]
+	    # if tora is used
+            if { $newapi == "ON" } {
+                 $agent target $imep_(0)
+
+                 # $imep_(0) sendtarget $sndT
+
+		 # second tracer to see the actual
+                 # types of tora packets before imep packs them
+                 #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
+		  if { [info exists toraDebug_] && $toraDebug_ == "ON"} {
+                       set sndT2 [$ns_ mobility-trace Send "TRP" $self]
+                       $sndT2 target $imep_(0)
+                       $agent target $sndT2
+                 }
+
+		 $imep_(0) sendtarget [$self set ll_(0)]
+
+             } else {  ;#  no IMEP
+		 
+		 $agent target [$self set ll_(0)]
+                 # $agent target $sndT
+             }    
+
+	    #$agent target [$self set ll_(0)]
 		
 	    #
 	    # Recv Target
 	    #
 
-	    $self install-defaulttarget $agent
-	    
-	    #$classifier_ defaulttarget $agent
+            if {$newapi == "ON" } {
+            #    puts "Hacked for tora20 runs!! No RTR revc trace"
 
-	    $dmux_ install $port $agent
+                [$self set ll_(0)] up-target $imep_(0)
+                $classifier_ defaulttarget $agent
+
+                # need a second tracer to see the actual
+                # types of tora packets after imep unpacks them
+                #if { [info exists opt(debug)] && $opt(debug) == "ON" } 
+		# no need to support any hier node
+
+		if {[info exists toraDebug_] && $toraDebug_ == "ON" } {
+		    set rcvT2 [$ns_ mobility-trace Recv "TRP" $self]
+		    $rcvT2 target $agent
+		    [$self set classifier_] defaulttarget $rcvT2
+		}
+	    } else {
+	        $self install-defaulttarget $agent
+	    
+	        #$classifier_ defaulttarget $agent
+
+	        $dmux_ install $port $agent
+	    }
 	}
 	
     } else {

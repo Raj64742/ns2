@@ -296,8 +296,8 @@ MobileNode::log_energy(int flag)
 	if(!log_target) return;
 	Scheduler &s = Scheduler::instance();
 	if (flag) {
-	   sprintf(log_target->buffer(),"%f %d [energy = %f]", s.clock(), address_,energy()); } else {
-	   sprintf(log_target->buffer(),"%f %d [Energy = 0 ]", s.clock(), address_); 
+	   sprintf(log_target->buffer(),"N -t %f -n %d -e %f", s.clock(), address_,energy()); } else {
+	   sprintf(log_target->buffer(),"N -t %f -n %d -e 0 ", s.clock(), address_); 
 		}
 	log_target->dump();
 }

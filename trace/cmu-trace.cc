@@ -110,10 +110,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	double x = 0.0, y = 0.0, z = 0.0;
        
 	char op = (char) type_;
-	char *src_nodeaddr = Address::instance().print_nodeaddr(ih->saddr());
-	char *src_portaddr = Address::instance().print_portaddr(ih->sport());
-	char *dst_nodeaddr = Address::instance().print_nodeaddr(ih->daddr());
-	char *dst_portaddr = Address::instance().print_portaddr(ih->dport());
+
 
 	Node* thisnode = Node::get_node_by_address(src_);
 	
@@ -145,20 +142,12 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	        // basic trace infomation + basic exenstion
 
 	    sprintf(wrk_ + offset,
-		    "%c %.9f %d %d %s %d ------- %d %s.%s %s.%s %d %d -x [ -x %.2f -y %.2f -z %.2f -e %f -l %3s -w %4s ] ",
+		    "%c -t %.9f -Hs %d -Hd %d -Ni %d -Nx %.2f -Ny %.2f -Nz %.2f -Ne %f -Nl %3s -Nw %s ] ",
 		    op,                       // event type
 		    Scheduler::instance().clock(),  // time
 		    src_,                           // this node
-                    (ch->next_hop_ < 0) ? 0 : ch->next_hop_,                  // next hop
-		    packet_info.name(ch->ptype()),  // packet type
-		    ch->size(),                     // packet size
-		    ih->flowid(),                   // flow id
-		    src_nodeaddr,                   // packet src
-		    src_portaddr,                   // src port
-		    dst_nodeaddr,                   // packet dest
-		    dst_portaddr,                   // dst port
-		    -1,                             // sequence #, not defined
-		    ch->uid(),                      // packet unique id
+                    ch->next_hop_,                  // next hop
+		    src_,                           // this node
 		    x,                              // x coordinate
 		    y,                              // y coordinate
 		    z,                              // z coordinate
@@ -236,8 +225,16 @@ CMUTrace::format_ip(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset,
-		    "-i [ %d ] ",
-		    ih->ttl_);
+		    "-Is %d.%d -Id %d.%d -It %s -Il %d -If %d -Ii %d -Iv %d ] ",
+		    src,                           // packet src
+		    ih->sport(),                   // src port
+		    dst,                           // packet dest
+		    ih->dport(),                   // dst port
+		    packet_info.name(ch->ptype()),  // packet type
+		    ch->size(),                     // packet size
+		    ih->flowid(),                   // flow id
+		    ch->uid(),                      // unique id
+		    ih->ttl_);                      // ttl
 	} else {
 	    sprintf(wrk_ + offset, "------- [%d:%d %d:%d %d %d] ",
 		src, ih->sport(),
