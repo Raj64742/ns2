@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flags.h,v 1.9 1998/05/02 01:43:47 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flags.h,v 1.10 1998/05/20 22:06:37 sfloyd Exp $
  */
 
 /*
@@ -45,16 +45,19 @@
 
 struct hdr_flags {
 	unsigned char ecn_;          /* transport receiver notifying
-				      *  transport sender of ECN */
+				      *  transport sender of ECN 
+				      *  (the ECN Echo bit) */
 	unsigned char ecn_to_echo_;  /* ecn to be echoed back in the
 					opposite direction (the CE bit) */
 	unsigned char eln_;     /* explicit loss notification (snoop) */
 	unsigned char fs_;	/* tcp fast start (work in progress --venkat) */
 	unsigned char no_ts_;	/* don't use the tstamp of this pkt for rtt */
 	unsigned char pri_;	/* unused */
-	unsigned char usr1_;	/* unused; also: usr2_ deleted */
 	unsigned char ecn_capable_;  /* an ecn-capable tranport (ECT bit) */
-
+	unsigned char cong_action_;  /* Congestion Action.  Transport 
+				      *	sender notifying transport
+				      * receiver of responses to
+				      * congestion. */
 	/*
 	 * these functions use the newer ECN names but leaves the actual field
 	 * names above to maintain backward compat
@@ -62,6 +65,7 @@ struct hdr_flags {
 	unsigned char& ect()	{ return ecn_capable_; }
 	unsigned char& ecnecho() { return ecn_; }
 	unsigned char& ce() { return ecn_to_echo_; }
+	unsigned char& cong_action() { return cong_action_; }
 };
 
 #endif

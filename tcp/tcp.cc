@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.69 1998/05/13 00:27:52 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.70 1998/05/20 22:06:32 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -648,7 +648,7 @@ void TcpAgent::newack(Packet* pkt)
  * Note that this procedure is called before "highest_ack_" is
  * updated to reflect the current ACK packet.  
  */
-void TcpAgent::ecn()
+void TcpAgent::ecn(int seqno)
 {
 	if (highest_ack_ >= recover_ || 
 	      last_cwnd_action_ == CWND_ACTION_TIMEOUT) {
@@ -762,7 +762,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	++nackpack_;
 	ts_peer_ = tcph->ts();
 	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho() && ecn_)
-		ecn();
+		ecn(tcph->seqno());
 	recv_helper(pkt);
 	/* grow cwnd and check if the connection is done */ 
 	if (tcph->seqno() > last_ack_) {

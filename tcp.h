@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.49 1998/05/14 01:15:16 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.50 1998/05/20 22:06:32 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -42,7 +42,7 @@ struct hdr_tcp {
 #define NSA 3
 	double ts_;             /* time packet generated (at source) */
 	double ts_echo_;        /* the echoed timestamp (originally sent by
-	                           the peer */
+	                           the peer) */
 	int seqno_;             /* sequence number */
 	int reason_;            /* reason for a retransmit */
 	int sa_start_[NSA+1];   /* selective ack "holes" in packet stream */
@@ -231,7 +231,7 @@ protected:
 	virtual void dupack_action();		/* do this on dupacks */
 	void opencwnd();
 	void slowdown(int how);			/* reduce cwnd/ssthresh */
-	void ecn();				/* react to quench */
+	void ecn(int seqno);		/* react to quench */
 	virtual void set_initial_window();	/* set IW */
 	double initial_window();		/* what is IW? */
 	void reset();
@@ -291,7 +291,7 @@ protected:
 				 *		Fast Recovery */
 	TracedInt highest_ack_;	/* not frozen during Fast Recovery */
 	int recover_;		/* highest pkt sent before dup acks, */
-				/*   timeout, or source quench 	*/
+				/*   timeout, or source quench/ecn */
 	int last_cwnd_action_;	/* CWND_ACTION_{TIMEOUT,DUPACK,ECN} */
 	TracedDouble cwnd_;	/* current window */
 	double base_cwnd_;	/* base window (for experimental purposes) */
@@ -305,6 +305,10 @@ protected:
 	TracedInt maxseq_;	/* used for Karn algorithm */
 				/* highest seqno sent so far */
 	int ecn_;		/* Explicit Congestion Notification */
+	int cong_action_;	/* Congestion Action.  True to indicate
+				   that the sender responded to congestion. */
+        int ecn_burst_;		/* True when the previous ACK packet
+				 *  carried ECN-Echo. */
         int eln_;               /* Explicit Loss Notification (wireless) */
         int eln_rxmit_thresh_;  /* Threshold for ELN-triggered rxmissions */
         int eln_last_rxmit_;    /* Last packet rxmitted due to ELN info */

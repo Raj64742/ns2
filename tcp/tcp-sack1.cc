@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.28 1998/05/12 02:04:35 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.29 1998/05/20 22:06:34 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -84,7 +84,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 #endif
 	++nackpack_;
 	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho())
-		ecn();
+		ecn(tcph->seqno());
 	if (!fastrecov_) {
 		/* normal... not fast recovery */
 		if ((int)tcph->seqno() > last_ack_) {

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.7 1997/12/25 21:36:24 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.8 1998/05/20 22:06:34 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_tcpsink_h
@@ -59,14 +59,18 @@ public:
 	virtual ~Acker() {}
 	void update_ts(int seqno, double ts);
 	void update(int seqno);
+	void update_ecn_unacked(int value);
 	inline int Seqno() const { return (next_ - 1); }
 	virtual void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
 	void reset();
 	double ts_to_echo() { return ts_to_echo_;}
+	int ecn_unacked() { return ecn_unacked_;}
 
 protected:
 	int next_;		/* next packet expected  */
 	int maxseen_;		/* max packet number seen */
+	int ecn_unacked_;	/* ECN forwarded to sender, but not yet
+				 * acknowledged. */
 	int seen_[MWS];		/* array of packets seen  */
 	double ts_to_echo_;     /* timestamp to echo to peer */
 };

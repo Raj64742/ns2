@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.41 1998/05/16 01:44:26 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.42 1998/05/20 22:06:36 sfloyd Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -1225,7 +1225,7 @@ trimthenstep6:
 			} else {
 //printf("%f TCP(%s): ECN ACTION\n",
 //now(), name());
-				ecn();
+				ecn(tcph->seqno());
 			}
 		}
 
