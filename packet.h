@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  *
 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.55 1999/03/06 02:26:49 yaxu Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.56 1999/03/07 19:49:59 yaxu Exp $ (LBL)
 
  */
 
@@ -376,7 +376,7 @@ inline void Packet::free(Packet* p)
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	if (p->fflag_) {
 		if (ch->ref_count() == 0) {
-		        assert(p_uid_<0);
+		        assert(p->uid_<0);
 			p->next_ = free_;
 			free_ = p;
 			//init();
