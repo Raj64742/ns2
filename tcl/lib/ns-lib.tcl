@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.150 1999/05/14 00:00:04 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.151 1999/05/26 01:28:26 haoboy Exp $
 
 #
 
@@ -88,7 +88,6 @@ source ns-address.tcl
 source ns-node.tcl
 source ns-hiernode.tcl
 source ns-mobilenode.tcl
-source ns-bsnode.tcl
 source ns-link.tcl
 source ns-source.tcl
 source ns-compat.tcl
@@ -103,7 +102,6 @@ source ns-errmodel.tcl
 source ns-intserv.tcl
 source ns-cmutrace.tcl
 source ns-mip.tcl
-#source ns-wireless-mip.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mac.tcl
@@ -128,10 +126,10 @@ source ../session/session.tcl
 source ../webcache/http-server.tcl
 source ../webcache/http-cache.tcl
 source ../webcache/http-agent.tcl
+source ../webcache/http-mcache.tcl
 source ns-namsupp.tcl
 source ../mobility/dsdv.tcl
 source ../mobility/dsr.tcl
-source ../mobility/com.tcl
 
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl
@@ -177,12 +175,10 @@ Simulator instproc dumper obj {
 	return $t
 }
 
-
-
 # Default behavior is changed: consider nam as not initialized if 
 # no shape OR color parameter is given
 Simulator instproc node args {
-	$self instvar Node_ 
+	$self instvar Node_
         if { [Simulator info vars EnableMcast_] != "" } {
                 warn "Flag variable Simulator::EnableMcast_ discontinued.\n\t\
                       Use multicast methods as:\n\t\t\
@@ -202,7 +198,6 @@ Simulator instproc node args {
 	if [$self multicast?] {
 		$node enable-mcast $self
 	}
-	
 	$self check-node-num
 	return $node
 }
@@ -511,26 +506,6 @@ Simulator instproc namtrace-all file {
 	} else {
 		unset namtraceAllFile_
 	}
-}
-
-Simulator instproc namtrace-all-wireless {file optx opty} {
-        $self instvar namtraceAllFile_  
- 
-
-        if {$file != ""} { 
-                set namtraceAllFile_ $file
- 
-        } else {
-                unset namtraceAllFile_
-        
-        }       
-        $self puts-nam-config "W -t * -x $optx -y $opty"
-}
-        
-Simulator instproc initial_node_pos {nodep size} {
-        $self puts-nam-config "n -t * -s [$nodep id] \
-        -x [$nodep set X_] -y [$nodep set Y_] -Z [$nodep set Z_] -z $size \
-        -v circle -c black"
 }
 
 Simulator instproc namtrace-some file {
