@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: gradient.cc,v 1.6 2002/11/26 22:45:38 haldar Exp $
+// $Id: gradient.cc,v 1.7 2003/04/02 20:56:06 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -52,6 +52,7 @@ int GradientFilter::command(int argc, const char*const* argv) {
 	global_debug_level = DEBUG_DEFAULT;
 	printf("Error: Debug level outside range(1-10) or missing !\n");
       }
+      return TCL_OK;
     }
   }
   return Application::command(argc, argv);
