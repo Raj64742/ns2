@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.15 1998/05/29 17:17:07 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.16 1998/09/09 23:42:02 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -106,8 +106,8 @@ extern "C" {
 class PcapNetwork : public Network {
 
 public:
-	PcapNetwork() : local_netmask_(0), pfd_(-1), pcnt_(0),
-		t_firstpkt_(0.0) { }
+	PcapNetwork() : t_firstpkt_(0.0),
+		pfd_(-1), pcnt_(0), local_netmask_(0) { }
 	int rchannel() { return(pfd_); }
 	int schannel() { return(pfd_); }
 	virtual int command(int argc, const char*const* argv);
@@ -314,7 +314,7 @@ PcapNetwork::phandler(u_char* userdata, pcap_pkthdr* ph, u_char* pkt)
 }
 
 int
-PcapNetwork::recv(u_char *buf, int len, sockaddr& fromaddr, double &ts)
+PcapNetwork::recv(u_char *buf, int len, sockaddr& /*fromaddr*/, double &ts)
 {
 
 	if (state_ != PNET_PSTATE_ACTIVE) {
@@ -326,7 +326,6 @@ PcapNetwork::recv(u_char *buf, int len, sockaddr& fromaddr, double &ts)
 	int pktcnt = 1;		// all in buffer, or until error
 	int np;			// counts # of pkts dispatched
 	pcap_singleton ps = { 0, 0 };
-	const u_char *pkt;
 	np = pcap_dispatch(pcap_, pktcnt, phandler, (u_char*) &ps);
 	if (np < 0) {
 		fprintf(stderr,
@@ -356,7 +355,7 @@ PcapNetwork::recv(u_char *buf, int len, sockaddr& fromaddr, double &ts)
 		t_firstpkt_ = ph->ts.tv_sec + ph->ts.tv_usec * 0.000001;
 	}
 
-	int n = MIN(ph->caplen, len);
+	int n = MIN(ph->caplen, (unsigned)len);
 	ts = gents(ph);	// mark with timestamp
 	// link layer header will be placed at the beginning from pcap
 	int s = skiphdr();	// go to IP header
@@ -495,7 +494,7 @@ PcapLiveNetwork::skiphdr()
 	default:
 		fprintf(stderr,
 		    "Network/Pcap/Live(%s): unknown link type: %d\n",
-			dlink_type_);
+			name(), dlink_type_);
 	}
 	return -1;
 }
@@ -554,7 +553,7 @@ PcapLiveNetwork::devtonaddr(const char *devname, NetworkAddress& na)
 	sockaddr_in* sin = (sockaddr_in*) sa;
 	na.len_ = 4;				// for now, assump IPv4
 	memset(na.addr_, 0, sizeof(na.addr_));
-	int sz = sizeof(na.addr_);
+	unsigned sz = sizeof(na.addr_);
 	if (sizeof(ifr) < sz)
 		sz = sizeof(ifr);
 	memcpy(na.addr_, &sin->sin_addr, sz);
@@ -636,7 +635,7 @@ int PcapLiveNetwork::command(int argc, const char*const* argv)
 //
 
 int
-PcapFileNetwork::open(int mode, const char *filename)
+PcapFileNetwork::open(int /*mode*/, const char *filename)
 {
 
 	close();
@@ -755,7 +754,7 @@ struct pcap {
 #include <net/if.h>
 
 int
-PcapLiveNetwork::bpf_open(pcap_t *p, char *errbuf, int how)
+PcapLiveNetwork::bpf_open(pcap_t *, char *errbuf, int how)
 {
         int fd;
         int n = 0;
