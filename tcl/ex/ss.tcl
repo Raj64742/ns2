@@ -1,5 +1,8 @@
 
+Queue set limit_ 6
+
 set ns [new Simulator]
+
 
 $ns color 0 blue
 $ns color 1 red
@@ -36,7 +39,7 @@ $ns attach-agent $n0 $cbr0
 
 set cbr1 [new Agent/CBR]
 $ns attach-agent $n3 $cbr1
-$cbr1 set cls 1
+$cbr1 set fid_ 1
 
 set null0 [new Agent/Null]
 $ns attach-agent $n3 $null0
@@ -51,7 +54,7 @@ $ns at 1.0 "$cbr0 start"
 $ns at 1.1 "$cbr1 start"
 
 set tcp [new Agent/TCP]
-$tcp set cls 2
+$tcp set fid_ 2
 set sink [new Agent/TCPSink]
 $ns attach-agent $n0 $tcp
 $ns attach-agent $n3 $sink
