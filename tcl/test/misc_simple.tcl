@@ -1,4 +1,4 @@
-#
+
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.1 1998/09/14 02:05:28 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.2 1999/11/19 00:44:44 sfloyd Exp $
 #
 
 Object instproc exit args {
@@ -78,6 +78,48 @@ TestSuite instproc tcpDump { tcpSrc interval } {
         }
 }
 
+#
+# Trace the TCP congestion window cwnd_.
+#
+TestSuite instproc enable_tracecwnd { ns tcp } { 
+        $self instvar cwnd_chan_
+        set cwnd_chan_ [open all.cwnd w]
+        $tcp trace cwnd_
+        $tcp attach $cwnd_chan_ 
+}       
+        
+#
+# Plot the TCP congestion window cwnd_.
+#
+TestSuite instproc plot_cwnd {} {
+        global quiet
+        $self instvar cwnd_chan_
+        set awkCode {
+              {
+              if ($6 == "cwnd_") {
+                print $1, $7 >> "temp.cwnd";
+              } }
+        }
+        set f [open cwnd.xgr w]
+        puts $f "TitleText: cwnd"
+        puts $f "Device: Postscript"
+ 
+        if { [info exists cwnd_chan_] } {
+                close $cwnd_chan_  
+        }
+        exec rm -f temp.cwnd
+        exec touch temp.cwnd
+        
+        exec awk $awkCode all.cwnd
+        
+        puts $f \"cwnd
+        exec cat temp.cwnd >@ $f
+        close $f                
+        if {$quiet == "false"} {
+                exec xgraph -bb -tk -x time -y cwnd cwnd.xgr &
+        }               
+}                               
+                
 TestSuite instproc cleanup { tfile testname } {
 	$self instvar ns_ allchan_ namchan_
 	$ns_ halt

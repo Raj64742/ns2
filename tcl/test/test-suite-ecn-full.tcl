@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.3 1999/08/09 22:50:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.4 1999/11/19 00:44:47 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -246,42 +246,6 @@ TestSuite instproc setTopo {} {
 }
 
 #######################################################################
-
-TestSuite instproc enable_tracecwnd { ns tcp } {
-        $self instvar cwnd_chan_ 
-        set cwnd_chan_ [open all.cwnd w]
-        $tcp trace cwnd_
-        $tcp attach $cwnd_chan_
-}
-
-TestSuite instproc plot_cwnd {} {
-        global quiet
-        $self instvar cwnd_chan_
-        set awkCode {
-              {
-	      if ($6 == "cwnd_") {
-	      	print $1, $7 >> "temp.cwnd";
-	      } }
-        } 
-        set f [open cwnd.xgr w]
-        puts $f "TitleText: cwnd"
-        puts $f "Device: Postscript"
-
-        if { [info exists cwnd_chan_] } {
-                close $cwnd_chan_
-        }
-        exec rm -f temp.cwnd 
-        exec touch temp.cwnd
-
-        exec awk $awkCode all.cwnd
-
-        puts $f \"cwnd
-        exec cat temp.cwnd >@ $f
-        close $f
-        if {$quiet == "false"} {
-                exec xgraph -bb -tk -x time -y cwnd cwnd.xgr &
-        }
-}
 
 TestSuite instproc ecnsetup { tcptype {stoptime 3.0} { tcp1fid 0 } { delack 0 }} {
     $self instvar ns_ node_ testName_ net_
