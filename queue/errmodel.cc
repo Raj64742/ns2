@@ -34,16 +34,17 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.40 1998/04/11 01:23:18 ahelmy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.41 1998/05/06 21:48:16 kfall Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.40 1998/04/11 01:23:18 ahelmy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.41 1998/05/06 21:48:16 kfall Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
 #include "packet.h"
+#include "flags.h"
 #include "errmodel.h"
 #include "srm-headers.h"		// to get the hdr_srm structure
 #include "classifier.h"
@@ -80,6 +81,7 @@ ErrorModel::ErrorModel() : unit_(EU_PKT), ranvar_(0), firstTime_(1)
 	bind("enable_", &enable_);
 	bind("rate_", &rate_);
 	bind_bw("bandwidth_", &bandwidth_); // required for EU_TIME
+	bind_bool("markecn_", &markecn_);
 }
 
 int ErrorModel::command(int argc, const char*const* argv)
@@ -118,17 +120,25 @@ void ErrorModel::recv(Packet* p, Handler* h)
 {
 	// 1.  Determine the error by calling corrupt(p)
 	// 2.  Set the packet's error flag if it is corrupted
-	// 3.  If there is no error or drop_ target, let pkt continue
-	//     else hand the corrupted packet to drop_
+	// 3.  If there is no error,  no drop_ target or markecn is true,
+	//	let pkt continue, otherwise hand the corrupted packet to drop_
 
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	int error = corrupt(p);
 	ch->error() |= error;
-	if (! (error && drop_)) {
-		if (target_)
+	if (!error || !drop_ || markecn_) {
+		if (error && markecn_) {
+			hdr_flags* hf = (hdr_flags*) p->access(off_flags_);
+			hf->ce() = 1;
+		}
+		if (target_) {
 			target_->recv(p, h);
-		return;
+			return;
+		}
 	}
+
+	// we are going to drop.  Since there won't be a downstream
+	// node to call the handler back, do so here.
 
 	if (h != 0) {
 		// if pkt just come from queue, then resume queue
