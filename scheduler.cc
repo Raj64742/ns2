@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.49 1999/09/09 03:22:46 salehi Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.50 1999/09/15 19:33:02 yuriy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.49 1999/09/09 03:22:46 salehi Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.50 1999/09/15 19:33:02 yuriy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -83,6 +83,10 @@ void Scheduler::schedule(Handler* h, Event* e, double delay)
 	}
 
 	e->uid_ = uid_++;
+	if (e->uid_ < 0) {
+		fprintf(stderr, "Scheduler: UID space exhausted!\n");
+		abort();
+	}
 	e->handler_ = h;
 	double t = clock_ + delay;
 	e->time_ = t;
