@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.11 2001/10/11 14:12:15 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.12 2001/11/06 06:16:21 tomh Exp $
 
 
 # ======================================================================
@@ -46,7 +46,7 @@ Node/SatNode instproc init args {
 	eval $self next $args		;# parent class constructor
 
 	$self instvar nifs_ 
-	$self instvar phy_tx_ phy_rx_ mac_ ifq_ ll_ pos_ hm_
+	$self instvar phy_tx_ phy_rx_ mac_ ifq_ ll_ pos_ hm_ id_
 
 	set nifs_	0		;# number of network interfaces
 	# Create a drop trace to log packets for which no route exists
@@ -56,6 +56,7 @@ Node/SatNode instproc init args {
 		set dropT_ [$ns_ create-trace Sat/Drop $trace_ $self $self ""]
 		$self set_trace $dropT_
 	}
+	$self cmd set_address $id_ ; # Used to indicate satellite node in array
 }
 
 Node/SatNode instproc reset {} {
@@ -441,6 +442,7 @@ Node/SatNode instproc add-interface args {
 	$ll up-target $iif
 	$ll down-target $ifq
 	$ll set delay_ 0ms; # processing delay between ll and ifq
+	$ll setnode $self
 
 	#
 	# Interface Queue
@@ -558,6 +560,90 @@ Class Agent/rtProto/Dummy -superclass Agent/rtProto
 Agent/rtProto/Dummy proc init-all args {
 	# Nothing
 }
+
+# ======================================================================
+#
+# methods for wired/wireless integration
+#
+# ======================================================================
+
+# For wired routing to work, the following are needed:
+# - the link_(src:dst) array must point to the LinkHead at the top of the link
+# - the call "link_(src:dst) up?" must return "up"
+# - the call "link_(src:dst) cost?" must return the current cost
+# However, in wireless case, the same linkhead may be used to connect to
+# multiple destinations on the channel.  Therefore, a new data structure
+# is needed that can perform the above functions
+
+
+Class Connector/RoutingHelper -superclass Connector
+
+Simulator instproc sat_link_up {src dst cost handle queue_handle} {
+	$self instvar link_
+
+	global slink_
+	set slink_($src:$dst) $self; # what is this?
+
+	if {![info exists link_($src:$dst)]} {
+		set link_($src:$dst) [new Connector/RoutingHelper]
+	}
+	if {[$link_($src:$dst) info class] == "Connector/RoutingHelper"} {
+		$link_($src:$dst) set cost_ $cost
+		$link_($src:$dst) set up_ "up"
+		$link_($src:$dst) set queue_ $queue_handle
+		$link_($src:$dst) target $handle
+		$link_($src:$dst) set head_ $handle
+	} else {
+		puts -nonewline "link_(${src}:${dst}) have non-connector "
+		puts "[$link_($src:$dst) info class]"
+		exit 1
+	}
+}
+
+# Upcall to enable wired routing
+# Normally, in satellite routing we insert directly to adjacency table 
+# in C++, but we upcall here to allow the OTcl link_ array to be populated
+
+Simulator instproc sat_link_destroy {src dst} {
+	$self instvar link_
+
+	global slink_
+	if {[info exists slink_($src:$dst)]} {
+		unset slink_($src:$dst)
+	}
+
+	if {[info exists link_($src:$dst)]} {
+		delete $link_($src:$dst)
+		unset link_($src:$dst)
+	} else {
+		# This warning pops up when running sat-teledesic.tcl script,
+		# which uses crossseam ISLs (not yet debugged)
+		puts -nonewline "Warning: trying to delete a link_ "
+		puts "link_(${src}:${dst}) that doesn't exist at [$self now]"
+	}
+}
+
+Connector/RoutingHelper instproc up? {} {
+	$self instvar up_
+	return $up_
+}
+
+Connector/RoutingHelper instproc queue {} {
+	$self instvar queue_
+	return $queue_
+}
+
+Connector/RoutingHelper instproc head {} {
+	$self instvar head_
+	return $head_
+}
+
+Connector/RoutingHelper instproc cost? {} {
+	$self instvar cost_
+	return $cost_
+}                                                     
+# XXX this is because we can't support all of these nam calls
+Connector/RoutingHelper instproc dump-nam-queueconfig {} { return 0}
 
 # ======================================================================
 #
@@ -709,6 +795,7 @@ HandoffManager/Sat set longitude_threshold_ 0
 HandoffManager set handoff_randomization_ false 
 SatRouteObject set metric_delay_ true
 SatRouteObject set data_driven_computation_ false
+SatRouteObject set wiredRouting_ false
 Mac/Sat set trace_drops_ true
 Mac/Sat set trace_collisions_ true
 Mac/Sat/UnslottedAloha set mean_backoff_ 1s; # mean backoff time upon collision

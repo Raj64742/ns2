@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.88 2001/03/08 18:52:19 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.89 2001/11/06 06:16:21 tomh Exp $
 #
 
 Node set nn_ 0
@@ -77,7 +77,7 @@ Node instproc init args {
 	} else {
 		set address_ $id_
 	}
-	$self cmd addr $address_; # new by tomh
+	$self cmd addr $address_; # Propagate address_ into C++ space
 	#$ns_ add-node $self $id_        
 	set neighbor_ ""
 	set agents_ ""

@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.233 2001/08/17 07:24:58 kclan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.234 2001/11/06 06:16:21 tomh Exp $
 
 
 #
@@ -480,6 +480,13 @@ Simulator instproc node args {
 	# Satellite node
 	if { [info exists satNodeType_] } {
 		set node [eval $self create-satnode]
+		#simulator's nodelist in C++ space
+		if {[info exists wiredRouting_] && $wiredRouting_ == "ON"} {
+			# add node to simulator's nodelist in C++ space
+			$self add-node $node [$node id]
+			# Want to keep global state of wiredRouting info 
+			SatRouteObject set wiredRouting_ true
+		}
 		return $node
 	}
 
