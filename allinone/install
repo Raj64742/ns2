@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.27 2005/01/26 18:22:21 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.28 2005/02/01 18:04:45 haldar Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -45,8 +45,26 @@ test_proceed() {
         echo "";
 }
 
+test_packages() {
+         for i in $@; do 
+                echo -n "Checking for ${i}... ";
+                cygcheck -c ${i} | grep ${i} >/dev/null 2>&1;
+                if [ "$?" -eq "0" ]; then
+                        echo "ok"; 
+                else
+                        echo "NO!";
+                        echo "";
+                        echo "Package ${i} is not present on your system.";
+                        echo "";
+                        echo "Please install it using Cygwin's setup.exe";
+                        echo "before trying to install the ns-2 distribution.";
+                        test_proceed;
+                fi; 
+        done;
+}
+
 cygwin_tests() {
-        echo -n "Checking Cygwin version is >=1.3.12... "
+        echo -n "Checking Cygwin version is >= 1.3.12... "
         cmaj=` uname -r | sed -e 's/^\([0-9]*\)\.\([0-9]*\).\([0-9]*\).*/\1/'`;
         echo $cmaj | grep -v [0-9] >/dev/null 2>&1
         if [ "$?" -eq "0" ]; then
@@ -109,7 +127,7 @@ cygwin_tests() {
         fi;                           
 
         login=`whoami`
-        echo -n "Checking legitimate login name...";
+        echo -n "Checking legitimate login name... ";
         echo ${login} | grep " " >/dev/null 2>&1;
         if [ "$?" -eq "0" ]; then
                 echo "NO!"; 
@@ -124,7 +142,7 @@ cygwin_tests() {
                 echo "ok";
         fi;
 
-        echo -n "Checking legitimate path name...";
+        echo -n "Checking legitimate path name... ";
         
         installpath=`cygpath -d /`;
         echo ${installpath} | grep " " >/dev/null 2>&1;
@@ -140,23 +158,47 @@ cygwin_tests() {
                 echo "ok";
         fi;
 
-        echo "Checking required Cygwin packages are installed...";
-        for i in ${packages}; do 
-                echo -n "Checking for ${i}... ";
-                cygcheck -c ${i} | grep ${i} >/dev/null 2>&1;
+        test_packages ${packages_base}        
+
+        echo -n "Checking for diff... ";
+        diff -v 2>&1 | grep -iv "not found" >/dev/null 2>&1;
+        if [ "$?" -eq "0" ]; then
+                echo "ok";
+        else
+                echo "NO!";
+                echo "";
+                echo "diff is not present on your system.";
+                echo "";
+                echo "Please install it using Cygwin's setup.exe";
+                echo "before trying to install the ns-2 distribution.";
+                test_proceed;
+        fi;     
+
+        echo -n "Checking for X... ";
+        cygcheck -c xorg-x11-base | grep xorg-x11-base >/dev/null 2>&1;
+        if [ "$?" -eq "0" ]; then
+                echo "X.org";
+                test_packages ${packages_xorg}
+                
+        else
+                cygcheck -c XFree86-base | grep XFree86-base >/dev/null 2>&1;
                 if [ "$?" -eq "0" ]; then
-                        echo "ok"; 
-                else
-                        echo "NO!";
+                        echo "XFree86";
+                        test_packages ${packages_xfree}                                              
+                else 
+                        echo "None found!";
+                        
                         echo "";
-                        echo "Package ${i} is not present on your system.";
+                        echo "Neither Package xorg-x11-base nor XFree86-base is present on your system.";
                         echo "";
-                        echo "Please install it using Cygwin's setup.exe";
+                        echo "Please install one of it using Cygwin's setup.exe";
                         echo "before trying to install the ns-2 distribution.";
                         test_proceed;
-                fi; 
-        done;
-}
+                        
+                 fi;
+        fi;
+    }
+
 
 # Package VERSIONs. Change these when releasing new packages
 TCLVER=8.4.5
@@ -172,8 +214,9 @@ ZLIBVER=1.1.4
 CUR_PATH=`pwd`
 
 # A Cygwin install requires these packages:
-packages="gcc gcc-g++ gawk tar gzip make diff patch perl w32api\
-           XFree86-base XFree86-bin XFree86-prog XFree86-lib XFree86-etc";
+packages_base="gcc gcc-g++ gawk tar gzip make patch perl w32api"
+packages_xfree="XFree86-bin XFree86-prog XFree86-lib XFree86-etc"
+packages_xorg="xorg-x11-bin xorg-x11-bin-dlls xorg-x11-devel xorg-x11-libs-data xorg-x11-etc"
 
 # Check if we are using Cygwin, and if so, if it is a good install
 # Most Cygwin fixes in the tree and this part of the install script were 
