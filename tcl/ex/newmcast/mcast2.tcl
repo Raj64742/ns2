@@ -27,9 +27,7 @@
 ##   / \ / \
 ##  3   4   5
 ##
-
-sourcing dynamicDM.tcl
-source ../mcast/dynamicDM.tcl
+##### XXX probably don't need it anymore, as test suite contains exactly the same.
 
 set ns [new Simulator -multicast on]
 
@@ -74,9 +72,11 @@ set mproto dynamicDM
 set mrthandle [$ns mrtproto $mproto  {}]
 ### End of multicast  config
 
-set cbr0 [new Agent/CBR]
-$ns attach-agent $n0 $cbr0
-$cbr0 set dst_ 0x8002
+set udp0 [new Agent/UDP]
+$ns attach-agent $n0 $udp0
+$udp0 set dst_ 0x8002
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
  
 set rcvr [new Agent/LossMonitor]
 $ns attach-agent $n3 $rcvr
