@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.102 2000/03/16 03:19:18 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.103 2000/05/16 05:49:48 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -692,8 +692,9 @@ void TcpAgent::set_rtx_timer()
 
 /*
  * Set new retransmission timer if not all outstanding
- * or available data acked.  Otherwise, if a timer is still
- * outstanding, cancel it.
+ * or available data acked, or if we are unable to send because 
+ * cwnd is less than one (as when the ECN bit is set when cwnd was 1).
+ * Otherwise, if a timer is still outstanding, cancel it.
  */
 void TcpAgent::newtimer(Packet* pkt)
 {
@@ -702,7 +703,7 @@ void TcpAgent::newtimer(Packet* pkt)
 	 * t_seqno_ is reset (decreased) to highest_ack_ + 1 after a timeout,
 	 *   so we also have to check maxseq_, the highest seqno sent.
 	 */
-	if (t_seqno_ > tcph->seqno() || tcph->seqno() < maxseq_) 
+	if (t_seqno_ > tcph->seqno() || tcph->seqno() < maxseq_ || cwnd_ < 1) 
 		set_rtx_timer();
 	else
 		cancel_rtx_timer();
@@ -1125,36 +1126,41 @@ void TcpAgent::timeout(int tno)
 {
 	/* retransmit timer */
 	if (tno == TCP_TIMER_RTX) {
-		if (highest_ack_ == maxseq_ && !slow_start_restart_)
+	        if (cwnd_ < 1) cwnd_ = 1;
+		if (highest_ack_ == maxseq_ && !slow_start_restart_) {
 			/*
 			 * TCP option:
-			 * If no outstanding data, then don't do anything.
+			 * If no outstanding data, then don't do anything.  
 			 */
-			return;
-		recover_ = maxseq_;
-		if (highest_ack_ == -1 && wnd_init_option_ == 2)
-			/* 
-			 * First packet dropped, so don't use larger
-			 * initial windows. 
-			 */
-			wnd_init_option_ = 1;
-		if (highest_ack_ == maxseq_ && restart_bugfix_)
-		       /* 
-			* if there is no outstanding data, don't cut 
-			* down ssthresh_.
-			*/
-			slowdown(CLOSE_CWND_ONE);
-		else if (highest_ack_ < recover_ &&
-		  last_cwnd_action_ == CWND_ACTION_ECN) {
-		       /*
-			* if we are in recovery from a recent ECN,
-			* don't cut down ssthresh_.
-			*/
-			slowdown(CLOSE_CWND_ONE);
-		}
-		else {
-			++nrexmit_;
-			slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
+			 // Should this return be here?
+			 // What if CWND_ACTION_ECN and cwnd < 1?
+			 // return;
+		} else {
+			recover_ = maxseq_;
+			if (highest_ack_ == -1 && wnd_init_option_ == 2)
+				/* 
+				 * First packet dropped, so don't use larger
+				 * initial windows. 
+				 */
+				wnd_init_option_ = 1;
+			if (highest_ack_ == maxseq_ && restart_bugfix_)
+			       /* 
+				* if there is no outstanding data, don't cut 
+				* down ssthresh_.
+				*/
+				slowdown(CLOSE_CWND_ONE);
+			else if (highest_ack_ < recover_ &&
+			  last_cwnd_action_ == CWND_ACTION_ECN) {
+			       /*
+				* if we are in recovery from a recent ECN,
+				* don't cut down ssthresh_.
+				*/
+				slowdown(CLOSE_CWND_ONE);
+			}
+			else {
+				++nrexmit_;
+				slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
+			}
 		}
 		/* if there is no outstanding data, don't back off rtx timer */
 		if (highest_ack_ == maxseq_ && restart_bugfix_) {
@@ -1165,7 +1171,6 @@ void TcpAgent::timeout(int tno)
 		}
 		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		send_much(0, TCP_REASON_TIMEOUT, maxburst_);
-
 	} 
 	else {
 		timeout_nonrtx(tno);
