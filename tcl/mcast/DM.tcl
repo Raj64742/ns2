@@ -28,7 +28,7 @@ DM instproc init { sim node } {
 	$self instvar mctrl_
 	set mctrl_ [new Agent/Mcast/Control $self]
 	$node attach $mctrl_
-	Timer/Iface/Prune set timeout [DM set PruneTimeout]
+	Timer/Iface/Prune set timeout [[$self info class] set PruneTimeout]
 	$self next $sim $node
 }
 
@@ -64,14 +64,16 @@ DM instproc handle-cache-miss { srcID group iface } {
 }
 
 DM instproc drop { replicator src dst iface} {
-	$self instvar node_
+	$self instvar node_ ns_
 
-        if { $src == [$node_ id] } {
-                # if no listeners, set the ignore bit in replicator
-		# (optimization)
+	#XXX move iface to ip_hdr???
+        if { $iface < 0 } {
+                # optimization for sender: if no listeners, set the ignore bit, 
+		# so this function isn't called for every packet.
 		$replicator set ignore_ 1
         } else {
-	        $self send-ctrl prune $src $dst
+		set from [[[$node_ iif2link $iface] src] id]
+		$self send-ctrl "prune" $src $dst $from
         }
 }
 

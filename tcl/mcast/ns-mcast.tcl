@@ -141,12 +141,12 @@ Node instproc stop-mcast {} {
 }
 
 Node instproc clear-caches {} {
-        $self instvar Agents_ repByGroup_ multiclassifier_ replicator_
+        $self instvar Agents_  multiclassifier_ replicator_
 
         $multiclassifier_ clearAll
 	$multiclassifier_ set nrep_ 0
 
-	foreach var {repByGroup_ Agents_ replicator_} {
+	foreach var {Agents_ replicator_} {
 		$self instvar $var
 		if { [info exists $var] } {
 			unset $var
@@ -228,45 +228,39 @@ Node instproc leave-group-source { agent group source } {
 
 Node instproc add-mfc { src group iif oiflist } {
 	$self instvar multiclassifier_ \
-			replicator_ Agents_ repByGroup_ 
+			replicator_ Agents_ 
 
 	if [info exists replicator_($src:$group)] {
-		foreach oif $oiflist {
-			$replicator_($src:$group) insert $oif
+		set r $replicator_($src:$group)
+	} else {
+		set r [new Classifier/Replicator/Demuxer]
+		$r set srcID_ $src
+		$r set grp_ $group
+		set replicator_($src:$group) $r
+		$r set node_ $self
+		#
+		# install each agent that has previously joined this group
+		#
+		if [info exists Agents_($group)] {
+			foreach a $Agents_($group) {
+				$r insert $a
+			}
 		}
-		return 1
+		# we also need to check Agents($srcID:$group)
+		if [info exists Agents_($src:$group)] {
+			foreach a $Agents_($src:$group) {
+				$r insert $a
+			}
+		}
+		#
+		# Install the replicator.  
+		#
+		$multiclassifier_ add-rep $r $src $group $iif
 	}
-
-	set r [new Classifier/Replicator/Demuxer]
-	$r set srcID_ $src
-	$r set grp_ $group
-	set replicator_($src:$group) $r
-
-	lappend repByGroup_($group) $r
-	$r set node_ $self
 
 	foreach oif $oiflist {
 		$r insert $oif
 	}
-
-	#
-	# install each agent that has previously joined this group
-	#
-	if [info exists Agents_($group)] {
-		foreach a $Agents_($group) {
-			$r insert $a
-		}
-	}
-	# we also need to check Agents($srcID:$group)
-	if [info exists Agents_($src:$group)] {
-		foreach a $Agents_($src:$group) {
-			$r insert $a
-		}
-	}
-	#
-	# Install the replicator.  
-	#
-	$multiclassifier_ add-rep $r $src $group $iif
 }
 
 Node instproc del-mfc { srcID group oiflist } {
@@ -663,6 +657,10 @@ Node instproc add-iif {iflbl link} {
 
 Node instproc iif2link ifid {
         $self set inLink_($ifid)
+}
+
+Node instproc link2iif link {
+	return [$link set iif_] label
 }
 
 Node instproc link2oif link {

@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.127 1998/10/27 23:48:09 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.128 1998/10/28 19:26:48 yuriy Exp $
 
 #
 
@@ -735,12 +735,16 @@ Simulator instproc all-nodes-list {} {
 
 Simulator instproc link { n1 n2 } {
         $self instvar Node_ link_
-        if { [catch "$n1 info class Node"] } {
-                # $n1 is not a Node object
-                set link_($n1:$n2)
-        } else {
-                set link_([$n1 id]:[$n2 id])
-        }
+        if { ![catch "$n1 info class Node"] } {
+		set n1 [$n1 id]
+	}
+        if { ![catch "$n2 info class Node"] } {
+		set n2 [$n2 id]
+	}
+	if [info exists link_($n1:$n2)] {
+		return $link_($n1:$n2)
+	}
+	return ""
 }
 
 # Creates connection. First creates a source agent of type s_type and binds

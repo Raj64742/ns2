@@ -712,12 +712,10 @@ total clients finished: 1
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-hier-routing
-Tests: hier-simple hier-cmcast hier-deDM hier-session
+Tests: hier-simple hier-cmcast hier-session
 ../../ns test-suite-hier-routing.tcl hier-simple QUIET
 Test output agrees with reference output
 ../../ns test-suite-hier-routing.tcl hier-cmcast QUIET
-Test output agrees with reference output
-../../ns test-suite-hier-routing.tcl hier-deDM QUIET
 Test output agrees with reference output
 ../../ns test-suite-hier-routing.tcl hier-session QUIET
 Test output agrees with reference output
@@ -807,18 +805,250 @@ Test output agrees with reference output
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mcast
-Tests: DM1 DM2 CtrMcast1 detailedDM1 detailedDM4
+Tests: DM1 DM2 pimDM1 CtrMcast1
 ../../ns test-suite-mcast.tcl DM1 QUIET
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+2 : Classifier/Replicator/Demuxer drop 257 32769 3
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+2 : Classifier/Replicator/Demuxer drop 257 32769 3
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+2 : Classifier/Replicator/Demuxer drop 257 32769 3
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+2 : Classifier/Replicator/Demuxer drop 257 32769 3
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+1 : Classifier/Replicator/Demuxer drop 257 32769 4294967294
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+2 : Classifier/Replicator/Demuxer drop 257 32769 3
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+2 : Classifier/Replicator/Demuxer drop 257 32769 3
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+3 : Classifier/Replicator/Demuxer drop 769 32770 4294967294
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+2 : Classifier/Replicator/Demuxer drop 769 32770 3
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+3 : Classifier/Replicator/Demuxer drop 769 32770 4294967294
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+1 : Classifier/Replicator/Demuxer drop 769 32770 6
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+3 : Classifier/Replicator/Demuxer drop 257 32769 5
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 257 32769 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
+0 : Classifier/Replicator/Demuxer drop 769 32770 2
 Test output agrees with reference output
 ../../ns test-suite-mcast.tcl DM2 QUIET
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
 Test output agrees with reference output
+../../ns test-suite-mcast.tcl pimDM1 QUIET
+0.32224000000000003 cache miss 0 32770 11
+	cache miss oiflist: 
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+5 : Classifier/Replicator/Demuxer drop 1 32770 11
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+2 : Classifier/Replicator/Demuxer drop 1 32770 3
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+4 : Classifier/Replicator/Demuxer drop 1 32770 7
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+3 : Classifier/Replicator/Demuxer drop 1 32770 5
+Test output differs from reference output
+Diagnose with: diff test-output-mcast/pimDM1.test test-output-mcast/pimDM1
+Differences due to floating-point formatting are not significant.
 ../../ns test-suite-mcast.tcl CtrMcast1 QUIET
+0 : Classifier/Replicator/Demuxer drop 513 1073741824 2
+0 : Classifier/Replicator/Demuxer drop 769 1073741824 2
+0 : Classifier/Replicator/Demuxer drop 513 1073741824 2
+0 : Classifier/Replicator/Demuxer drop 769 1073741824 2
+0 : Classifier/Replicator/Demuxer drop 513 1073741824 2
+0 : Classifier/Replicator/Demuxer drop 769 1073741824 2
+2 : Classifier/Replicator/Demuxer drop 769 1073741824 3
+2 : Classifier/Replicator/Demuxer drop 769 1073741824 3
+2 : Classifier/Replicator/Demuxer drop 769 1073741824 3
+3 : Classifier/Replicator/Demuxer drop 513 1073741824 5
+3 : Classifier/Replicator/Demuxer drop 513 1073741824 5
+3 : Classifier/Replicator/Demuxer drop 513 1073741824 5
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+1 : Classifier/Replicator/Demuxer drop 513 1073741824 4
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+1 : Classifier/Replicator/Demuxer drop 769 1073741824 6
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+1 : Classifier/Replicator/Demuxer drop 513 1073741824 4
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+1 : Classifier/Replicator/Demuxer drop 769 1073741824 6
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+1 : Classifier/Replicator/Demuxer drop 513 1073741824 4
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
+2 : Classifier/Replicator/Demuxer drop 513 1073741824 4294967294
+3 : Classifier/Replicator/Demuxer drop 769 1073741824 4294967294
 Test output agrees with reference output
-../../ns test-suite-mcast.tcl detailedDM1 QUIET
-Test output agrees with reference output
-../../ns test-suite-mcast.tcl detailedDM4 QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
+Some test failed.
 *** ./test-all-newreno
 Tests: reno newreno reno1 newreno1 newreno1_A reno2 reno2_bugfix newreno2_A newreno2_A_bugfix
 ../../ns test-suite-newreno.tcl reno QUIET
@@ -873,4 +1103,5 @@ Test output agrees with reference output
 ../../ns test-suite-lan.tcl lan-broadcast QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
-validate overall report: all tests passed
+validate overall report: some tests failed:
+     ./test-all-mcast

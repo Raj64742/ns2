@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.25 1998/10/19 19:37:34 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.26 1998/10/28 19:26:45 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -147,12 +147,14 @@ NsObject* Classifier::find(Packet* p)
 		 * not an object.
 		 */
 		Tcl::instance().evalf("%s no-slot %d", name(), cl);
-		/*
-		 * Try again.  Maybe callback patched up the table.
-		 */
-		cl = classify(p);
-		if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0)
-			return (NULL);
+		if (cl == TWICE) {
+			/*
+			 * Try again.  Maybe callback patched up the table.
+			 */
+			cl = classify(p);
+			if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0)
+				return (NULL);
+		}
 	}
 	return (node);
 }

@@ -22,9 +22,12 @@ TestSuite instproc init {} {
 	if {$test_ == "CtrMcast1"} {
 		Node expandaddr
 	}
-
+	
 	$ns_ trace-all [open temp.rands w]
 	$ns_ namtrace-all [open temp.rands.nam w]
+	$ns_ color 30 purple
+	$ns_ color 31 green
+	
 	if {$net_ == ""} {
 		set net_ $defNet_
 	}
@@ -33,7 +36,7 @@ TestSuite instproc init {} {
 		puts "$argv0: cannot run test $test_ over topology $net_"
 		exit 1
 	}
-
+	
 	set topo_ [new Topology/$net_ $ns_]
 	foreach i [$topo_ array names node_] {
 		# This would be cool, but lets try to be compatible
@@ -44,7 +47,7 @@ TestSuite instproc init {} {
 		#
 		set node_($i) [$topo_ node? $i]
 	}
-
+	
 	if {$net_ == $defNet_} {
 		set testName_ "$test_"
 	} else {
@@ -91,7 +94,7 @@ proc isProc? {cls prc} {
 proc get-subclasses {cls pfx} {
 	set ret ""
 	set l [string length $pfx]
-
+	
 	set c $cls
 	while {[llength $c] > 0} {
 		set t [lindex $c 0]
@@ -137,42 +140,42 @@ TestSuite proc runTest {} {
 Class SkelTopology
 
 SkelTopology instproc init {} {
-    $self next
+	$self next
 }
 
 SkelTopology instproc node? n {
-    $self instvar node_
-    if [info exists node_($n)] {
-	set ret $node_($n)
-    } else {
-	set ret ""
-    }
-    set ret
+	$self instvar node_
+	if [info exists node_($n)] {
+		set ret $node_($n)
+	} else {
+		set ret ""
+	}
+	set ret
 }
 
 SkelTopology instproc add-fallback-links {ns nodelist bw delay qtype args} {
-   $self instvar node_
-    set n1 [lindex $nodelist 0]
-    foreach n2 [lrange $nodelist 1 end] {
-	if ![info exists node_($n2)] {
-	    set node_($n2) [$ns node]
+	$self instvar node_
+	set n1 [lindex $nodelist 0]
+	foreach n2 [lrange $nodelist 1 end] {
+		if ![info exists node_($n2)] {
+			set node_($n2) [$ns node]
+		}
+		$ns duplex-link $node_($n1) $node_($n2) $bw $delay $qtype
+		foreach opt $args {
+			set cmd [lindex $opt 0]
+			set val [lindex $opt 1]
+			if {[llength $opt] > 2} {
+				set x1 [lindex $opt 2]
+				set x2 [lindex $opt 3]
+			} else {
+				set x1 $n1
+				set x2 $n2
+			}
+			$ns $cmd $node_($x1) $node_($x2) $val
+			$ns $cmd $node_($x2) $node_($x1) $val
+		}
+		set n1 $n2
 	}
-	$ns duplex-link $node_($n1) $node_($n2) $bw $delay $qtype
-	foreach opt $args {
-	    set cmd [lindex $opt 0]
-	    set val [lindex $opt 1]
-	    if {[llength $opt] > 2} {
-		set x1 [lindex $opt 2]
-		set x2 [lindex $opt 3]
-	    } else {
-		set x1 $n1
-		set x2 $n2
-	    }
-	    $ns $cmd $node_($x1) $node_($x2) $val
-	    $ns $cmd $node_($x2) $node_($x1) $val
-	}
-	set n1 $n2
-    }
 }
 
 
@@ -180,13 +183,13 @@ Class NodeTopology/4nodes -superclass SkelTopology
 
 
 NodeTopology/4nodes instproc init ns {
-    $self next
-
-    $self instvar node_
-    set node_(n0) [$ns node]
-    set node_(n1) [$ns node]
-    set node_(n2) [$ns node]
-    set node_(n3) [$ns node]
+	$self next
+	
+	$self instvar node_
+	set node_(n0) [$ns node]
+	set node_(n1) [$ns node]
+	set node_(n2) [$ns node]
+	set node_(n3) [$ns node]
 }
 
 
@@ -204,14 +207,14 @@ Class Topology/net4a -superclass NodeTopology/4nodes
 #
 
 Topology/net4a instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
+	$self next $ns
+	$self instvar node_
+	$ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail
+	if {[$class info instprocs config] != ""} {
+		$self config $ns
+	}
 }
 
 Class Topology/net4b -superclass NodeTopology/4nodes
@@ -227,25 +230,25 @@ Class Topology/net4b -superclass NodeTopology/4nodes
 #
  
 Topology/net4b instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
-     if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
+	$self next $ns
+	$self instvar node_
+	$ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
+	if {[$class info instprocs config] != ""} {
+		$self config $ns
+	}
 }
 
 Class NodeTopology/5nodes -superclass SkelTopology
 
 NodeTopology/5nodes instproc init ns {
-    $self next
-
-    $self instvar node_
-    set node_(n0) [$ns node]
-    set node_(n1) [$ns node]
-    set node_(n2) [$ns node]
-    set node_(n3) [$ns node]
-    set node_(n4) [$ns node]
+	$self next
+	
+	$self instvar node_
+	set node_(n0) [$ns node]
+	set node_(n1) [$ns node]
+	set node_(n2) [$ns node]
+	set node_(n3) [$ns node]
+	set node_(n4) [$ns node]
 }
 
 
@@ -264,15 +267,15 @@ Class Topology/net5a -superclass NodeTopology/5nodes
 #
 
 Topology/net5a instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n1) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
+	$self next $ns
+	$self instvar node_
+	$ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n1) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
+	if {[$class info instprocs config] != ""} {
+		$self config $ns
+	}
 }
 
 
@@ -292,14 +295,14 @@ Class Topology/net5b -superclass NodeTopology/5nodes
 
 Topology/net5b instproc init ns {
     $self next $ns
-    $self instvar node_
-    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n1) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
+	$self instvar node_
+	$ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n1) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
+	if {[$class info instprocs config] != ""} {
+		$self config $ns
     }
 }
 
@@ -320,18 +323,18 @@ Class Topology/net5c -superclass NodeTopology/5nodes
 #
 
 Topology/net5c instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
-    if {[$class info instprocs config] != ""} {
-	    $self config $ns
-    }
+	$self next $ns
+	$self instvar node_
+	$ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
+	if {[$class info instprocs config] != ""} {
+		$self config $ns
+	}
 }
 
 
@@ -352,19 +355,19 @@ Class Topology/net5d -superclass NodeTopology/5nodes
 #
 
 Topology/net5d instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
-    if {[$class info instprocs config] != ""} {
-	    $self config $ns
-    }
+	$self next $ns
+	$self instvar node_
+	$ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
+	if {[$class info instprocs config] != ""} {
+		$self config $ns
+	}
 }
 
 
@@ -385,29 +388,29 @@ Class Topology/net5e -superclass NodeTopology/5nodes
 #
 
 Topology/net5e instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail
-    if {[$class info instprocs config] != ""} {
-	    $self config $ns
-    }
+	$self next $ns
+	$self instvar node_
+	$ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail
+	if {[$class info instprocs config] != ""} {
+		$self config $ns
+	}
 }
 
 
 Class NodeTopology/6nodes -superclass SkelTopology
 
 NodeTopology/6nodes instproc init ns {
-    $self next
-
-    $self instvar node_
-    set node_(n0) [$ns node]
-    set node_(n1) [$ns node]
-    set node_(n2) [$ns node]
-    set node_(n3) [$ns node]
-    set node_(n4) [$ns node]
-    set node_(n5) [$ns node]
+	$self next
+	
+	$self instvar node_
+	set node_(n0) [$ns node]
+	set node_(n1) [$ns node]
+	set node_(n2) [$ns node]
+	set node_(n3) [$ns node]
+	set node_(n4) [$ns node]
+	set node_(n5) [$ns node]
 }
 
 
@@ -426,17 +429,17 @@ Class Topology/net6a -superclass NodeTopology/6nodes
 #
 
 Topology/net6a instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n5) 1.5Mb 10ms DropTail 
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
+	$self next $ns
+	$self instvar node_
+	$ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n1) $node_(n4) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
+	$ns duplex-link $node_(n2) $node_(n5) 1.5Mb 10ms DropTail 
+	if {[$class info instprocs config] != ""} {
+		$self config $ns
+	}
 }
 
 Class Topology/net6b -superclass NodeTopology/6nodes
@@ -457,32 +460,32 @@ Class Topology/net6b -superclass NodeTopology/6nodes
 #
 
 Topology/net6b instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns multi-link-of-interfaces [list $node_(n5) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n4) $node_(n3) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n5) $node_(n0) 1.5Mb 10ms DropTail
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
+	$self next $ns
+	$self instvar node_
+	$ns multi-link-of-interfaces [list $node_(n5) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n4) $node_(n3) 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n5) $node_(n0) 1.5Mb 10ms DropTail
+	if {[$class info instprocs config] != ""} {
+		$self config $ns
+	}
 }
 
 
 Class NodeTopology/8nodes -superclass SkelTopology
 
 NodeTopology/8nodes instproc init ns {
-    $self next
-
-    $self instvar node_
-    set node_(n0) [$ns node]
-    set node_(n1) [$ns node]
-    set node_(n2) [$ns node]
-    set node_(n3) [$ns node]
-    set node_(n4) [$ns node]
-    set node_(n5) [$ns node]
-    set node_(n6) [$ns node]
-    set node_(n7) [$ns node]
+	$self next
+	
+	$self instvar node_
+	set node_(n0) [$ns node]
+	set node_(n1) [$ns node]
+	set node_(n2) [$ns node]
+	set node_(n3) [$ns node]
+	set node_(n4) [$ns node]
+	set node_(n5) [$ns node]
+	set node_(n6) [$ns node]
+	set node_(n7) [$ns node]
 }
 
 Class Topology/net8a -superclass NodeTopology/8nodes
@@ -503,17 +506,17 @@ Class Topology/net8a -superclass NodeTopology/8nodes
 #
 
 Topology/net8a instproc init ns {
-    $self next $ns
-    $self instvar node_
-    $ns multi-link-of-interfaces [list $node_(n2) $node_(n3) $node_(n4) $node_(n5)] 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n4) $node_(n6) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n5) $node_(n7) 1.5Mb 10ms DropTail
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
+	$self next $ns
+	$self instvar node_
+	$ns multi-link-of-interfaces [list $node_(n2) $node_(n3) $node_(n4) $node_(n5)] 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n4) $node_(n6) 1.5Mb 10ms DropTail
+	$ns duplex-link $node_(n5) $node_(n7) 1.5Mb 10ms DropTail
+	if {[$class info instprocs config] != ""} {
+		$self config $ns
+	}
 }
 
 
@@ -522,6 +525,7 @@ Topology/net8a instproc init ns {
 # Testing group join/leave in a simple topology
 Class Test/DM1 -superclass TestSuite
 Test/DM1 instproc init topo {
+	source ../mcast/DM.tcl
 	$self instvar net_ defNet_ test_
 	set net_	$topo
 	set defNet_	net4a
@@ -573,42 +577,87 @@ Test/DM1 instproc run {} {
 # the source starts sending pkts to the group.
 Class Test/DM2 -superclass TestSuite
 Test/DM2 instproc init topo {
-	 $self instvar net_ defNet_ test_
-	 set net_	$topo
-	 set defNet_	net6a
-	 set test_	DM2
-	 $self next
+	source ../mcast/DM.tcl
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6a
+	set test_	DM2
+	$self next
 }
 Test/DM2 instproc run {} {
-	 $self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_
+	
+	### Start multicast configuration
+	DM set PruneTimeout 0.3
+	set mproto DM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+	
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n0) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n4) $rcvr
+	$ns_ attach-agent $node_(n5) $rcvr
+	
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
+	$ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
+	$ns_ at 0.95 "$node_(n3) join-group $rcvr 0x8002"
+	
+	$ns_ at 0.3 "$cbr0 start"
+	$ns_ at 1.0 "$self finish 6a-nam"
+	
+	$ns_ run
+}
 
-	 ### Start multicast configuration
-	 DM set PruneTimeout 0.3
-	 set mproto DM
-	 set mrthandle [$ns_ mrtproto $mproto  {}]
-	 ### End of multicast  config
-	 
-	 set udp0 [new Agent/UDP]
-	 $ns_ attach-agent $node_(n0) $udp0
-	 $udp0 set dst_ 0x8002
-	 set cbr0 [new Application/Traffic/CBR]
-	 $cbr0 attach-agent $udp0
-	 
-	 set rcvr [new Agent/LossMonitor]
-	 $ns_ attach-agent $node_(n3) $rcvr
-	 $ns_ attach-agent $node_(n4) $rcvr
-	 $ns_ attach-agent $node_(n5) $rcvr
-	 
-	 $ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
-	 $ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
-	 $ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
-	 $ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
-	 $ns_ at 0.95 "$node_(n3) join-group $rcvr 0x8002"
-	 
-	 $ns_ at 0.3 "$cbr0 start"
-	 $ns_ at 1.0 "$self finish 6a-nam"
-	 
-	 $ns_ run
+# Testing group join/leave in a richer topology. Testing rcvr join before
+# the source starts sending pkts to the group.
+Class Test/pimDM1 -superclass TestSuite
+Test/pimDM1 instproc init topo {
+	source ../mcast/DM.tcl
+	source ../mcast/pimDM.tcl
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6a
+	set test_	DM2
+	$self next
+}
+Test/pimDM1 instproc run {} {
+	$self instvar ns_ node_ testName_
+	
+	### Start multicast configuration
+	DM set PruneTimeout 0.3
+	set mproto pimDM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+	
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n0) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n4) $rcvr
+	$ns_ attach-agent $node_(n5) $rcvr
+	
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
+	$ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
+	$ns_ at 0.95 "$node_(n3) join-group $rcvr 0x8002"
+	
+	$ns_ at 0.3 "$cbr0 start"
+	$ns_ at 1.0 "$self finish 6a-nam"
+	
+	$ns_ run
 }
 
 # Testing group join/leave in a simple topology, changing the RP set. 
@@ -624,16 +673,16 @@ Test/CtrMcast1 instproc init topo {
 # source and RP on same node
 Test/CtrMcast1 instproc run {} {
 	$self instvar ns_ node_ testName_
-
+	
 	set mproto CtrMcast
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	$mrthandle set_c_rp [list $node_(n2)]
-
+	
 	set udp1 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp1
 	
 	set grp [Node allocaddr]
-
+	
 	$udp1 set dst_ $grp
 	##$udp1 set dst_ 0x8003
 	

@@ -22,36 +22,46 @@
  #
 Class pimDM -superclass DM
 
+pimDM set PruneTimeout 0.5
+
 pimDM instproc init { sim node } {
 	set type "pimDM"
 	$self next $sim $node
 }
 
 pimDM instproc handle-cache-miss { srcID group iface } {
-        $self instvar node_
+        $self instvar node_ ns_
 
 	set oiflist ""
-	set alloifs [$node_ get-oifs]
-	set iifx [$node_ get-oifIndex [[$node_ rpf-nbr $srcID] id]]
 
-	if { $iifx != $iface && $iface >= 0} {
-		$self handle-wrong-iif $srcID $group $iface
-		return
+	if { $iface >= 0 } {
+		set rpf_nbr [$node_ rpf-nbr $srcID]
+		set inlink  [$node_ iif2link $iface]
+		set rpflink [$ns_ link $rpf_nbr $node_]
+
+		if { $inlink != $rpflink } {
+			set from [$inlink src]
+			$self send-ctrl "prune" $srcID $group [$from id]
+			$node_ add-mfc $srcID $group $iface ""
+			return
+		}
+		set rpfoif [$node_ link2oif [$ns_ link $node_ $rpf_nbr]]
+	} else {
+		set rpfoif ""
 	}
-	$node_ instvar outLink_
-
-	foreach oifx $alloifs {
-		if { $iifx != $oifx } {
-			lappend oiflist $outLink_($oifx)
+	foreach oif [$node_ get-all-oifs] {
+		if { $rpfoif != $oif } {
+			lappend oiflist $oif
 		}
 	}
-	$node_ add-mfc $srcID $group $iifx $oiflist
+	$node_ add-mfc $srcID $group $iface $oiflist
 }
 
 pimDM instproc handle-wrong-iif { srcID group iface } {
-	$self instvar node_
-	puts "warning: pimDM $self wrong incoming interface src:$srcID group:$group iface:$iface"
-	$self instvar node_
-	set from [[$node_ ifaceGetNode $iface] id]
-	$self send-ctrl "prune" $srcID $group $from
+	$self instvar node_ ns_
+	set inlink  [$node_ iif2link $iface]
+	set from [$inlink src]
+	$self send-ctrl "prune" $srcID $group [$from id]
 }
+
+

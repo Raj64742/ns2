@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.15 1998/10/27 00:50:08 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.16 1998/10/28 19:26:44 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -165,11 +165,6 @@ int MCastClassifier::classify(Packet *const pkt)
 	if (p == 0) {
 		if ((p = lookup(src, dst)) == 0)
 			p = lookup_star(dst);
-		/*
-		 * Didn't find an entry.
-		 * Call tcl exactly once to install one.
-		 * If tcl doesn't come through then fail.
-		 */
 		if (p == 0) {
   			/*
   			 * Didn't find an entry.
@@ -178,14 +173,14 @@ int MCastClassifier::classify(Packet *const pkt)
   			 */
 			Tcl::instance().evalf("%s new-group %u %u %d cache-miss", 
 					      name(), src, dst, iface);
-			return -1;
+			return Classifier::TWICE;
 		}
 		if (p->iif == ANY_IFACE.value() || iface == UNKN_IFACE.value())
 			return p->slot;
 
 		Tcl::instance().evalf("%s new-group %u %u %d wrong-iif", 
 				      name(), src, dst, iface);
-		return -1;
+		return Classifier::ONCE; //don't call wrong-iif twice
 	}
 	return p->slot;
 }

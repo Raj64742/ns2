@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.46 1998/10/27 21:51:59 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.47 1998/10/28 19:26:49 yuriy Exp $
 #
 
 Class Node
@@ -532,7 +532,7 @@ ManualRtNode instproc add-route-to-adj-node args {
 		set dst [$target_node set address_]
 	}
 	set ns [Simulator instance]
-	set link [$ns nodes-to-link $self $target_node]
+	set link [$ns link $self $target_node]
 	set target [$link head]
 	# puts "ManualRtNode::add-route-to-adj-node: in $self for addr $dst to target $target"
 	return [$self add-route $dst $target]
