@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.1 1996/12/19 03:22:44 mccanne Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.2 1996/12/20 02:49:49 mccanne Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -31,26 +31,18 @@ BINDEST = @bindir@
 # Pathname of directory to install the man page
 MANDEST = @mandir@
 
-#XXX
-TCL2C++ = ../Tcl/tcl2c++
-
-#
-# You shouldn't need to edit anything below here.
-#
-
 CC = @CC@
 C++ = @CXX@
-#CCOPT = @V_CCOPT@
-CCOPT = -g
+CCOPT = @V_CCOPT@
+TCL2C++ = @V_TCL2CPP@
 
 MKDEP = ./mkdep
-LIB =  /usr/src/mash/Tcl/libTcl.a /usr/src/local/otcl/libotcl.a \
-	@V_LIB_TCL@ @V_LIB@ -lm @LIBS@
-INCLS = -I/usr/src/local/otcl -I/usr/src/mash/Tcl -I. @V_INCLUDE_TCL@ @V_INCLUDE_MISC@
-DEFS = @DEFS@ -DNO_TK
+LIB =  @V_LIB_BTCL@ @V_LIB_OTCL@ @V_LIB_TCL@ @V_LIB@ -lm @LIBS@
+INCLUDE = @V_INCLUDE_BTCL@ @V_INCLUDE_OTCL@ @V_INCLUDE_TCL@
+DEFINE = @V_DEFINE@ -DNO_TK
 STATIC = @V_STATIC@
 
-CFLAGS =  $(INCLS) $(DEFS) $(CCOPT)
+CFLAGS =  $(INCLUDE) $(DEFINE) $(CCOPT)
 
 INSTALL = @INSTALL@
 RANLIB = @V_RANLIB@
@@ -92,10 +84,10 @@ HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 
 CLEANFILES = ns ns.dyn $(OBJ) $(GENSRC) core core.ns
 
-ns: $(OBJ) @V_DEP@
+ns: $(OBJ)
 	$(C++) $(STATIC) -o $@ $(CFLAGS) $(OBJ) $(LIB)
 
-ns.dyn: $(OBJ) @V_DEP@
+ns.dyn: $(OBJ)
 	$(C++) -o $@ $(CFLAGS) $(OBJ) $(LIB)
 
 gen/version.c: VERSION
