@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.4 1997/07/07 04:16:16 padmanab Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.5 1997/07/21 21:33:19 kfall Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -41,7 +41,7 @@ static char rcsid[] =
 static class DropTailClass : public TclClass {
  public:
 	DropTailClass() : TclClass("Queue/DropTail") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new DropTail);
 	}
 } class_drop_tail;

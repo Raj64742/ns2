@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.14 1997/07/21 19:29:35 gnguyen Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.15 1997/07/21 21:32:10 kfall Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -79,7 +79,6 @@ void QueueHandler::handle(Event*)
 
 Queue::Queue() : DropConnector(), blocked_(0), unblock_on_resume_(1), qh_(*this)
 {
-	Tcl& tcl = Tcl::instance();
 	bind("limit_", &qlim_);
 	bind_bool("blocked_", &blocked_);
 	bind_bool("unblock_on_resume_", &unblock_on_resume_);
