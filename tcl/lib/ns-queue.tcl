@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.10 1997/07/24 21:18:59 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.11 1997/08/12 00:34:30 kfall Exp $
 #
 
 #
@@ -165,7 +165,7 @@ CBQLink instproc bind args {
 #
 CBQLink instproc insert args {
 	# queue_ refers to the cbq object
-	$self instvar queue_ drophead_
+	$self instvar queue_ drophead_ link_
 	set nargs [llength $args]
 	set cbqcl [lindex $args 0]
 	set qdisc [$cbqcl qdisc]
@@ -209,6 +209,14 @@ CBQLink instproc insert args {
 		$cbqcl qmon $qmon
 	}
 
+	$cbqcl instvar maxidle_
+	if { $maxidle_ == "auto" } {
+		$cbqcl automaxidle [$link_ set bandwidth_] \
+			[$queue_ set maxpkt_]
+		set maxidle_ [$cbqcl set maxidle_]
+	}
+	$cbqcl maxidle $maxidle_
+
 	# tell cbq about this class
 	# (this also tells the cbqclass about the cbq)
 	$queue_ insert-class $cbqcl
@@ -216,6 +224,35 @@ CBQLink instproc insert args {
 #
 # procedures on a cbq class
 #
+
+CBQClass instproc init {} {
+	$self next
+	$self instvar automaxidle_gain_
+	set automaxidle_gain_ [$class set automaxidle_gain_]
+}
+
+CBQClass instproc automaxidle { linkbw maxpkt } {
+	$self instvar automaxidle_gain_ maxidle_
+	$self instvar priority_
+
+	set allot [$self allot]
+	set g $automaxidle_gain_
+	set n [expr 8 * $priority_]
+	if { $g == 0 || $allot == 0 || $linkbw == 0 } {
+		set maxidle_ 0.0
+		return
+	}
+	set gTOn [expr pow($g, $n)]
+	set first [expr ((1/$allot) - 1) * (1-$gTOn) / $gTOn ]
+	set second [expr (1 - $g)]
+	set t [expr ($maxpkt * 8)/$linkbw]
+	if { $first > $second } {
+		set maxidle_ [expr $t * $first]
+	} else {
+		set maxidle_ [expr $t * $second]
+	}
+}
+
 
 CBQClass instproc setparams { parent okborrow allot maxidle prio level xdelay } {
 
