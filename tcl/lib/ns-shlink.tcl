@@ -41,9 +41,11 @@ LL/Blocking set off_ll_ 0
 
 Channel set delay_ 16us
 Mac/Base set bandwidth_ 1.5Mb
+Mac/Base set hlen_ 0
 
 # WaveLAN settings
 Mac/Csma set bandwidth_ 2Mb
+Mac/Csma set hlen_ 20
 Mac/Csma set ifs_ 16us
 Mac/Csma set slotTime_ 16us
 Mac/Csma set cwmin_ 16

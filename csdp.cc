@@ -105,9 +105,5 @@ Csdp::deque()
 double
 Csdp::score(Packet* p)
 {
-	BlockingLL* ll = (BlockingLL*) p->source();
-	if (ll->em())
-		return (- ll->em()->rate());
-	else
-		return 0;
+	return Random::uniform(2.0 - p->error()); // XXX
 }

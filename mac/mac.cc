@@ -44,8 +44,9 @@ public:
 } class_mac;
 
 
-Mac::Mac() : BiConnector(), channel_(0), callback_(0), mh_(*this), macList_(0)
+Mac::Mac() : BiConnector(), hlen_(0), channel_(0), callback_(0), mh_(*this), macList_(0)
 {
+	bind("hlen_", &hlen_);
 	bind_bw("bandwidth_", &bandwidth_);
 }
 

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.7 1997/03/29 01:42:53 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/loss-monitor.cc,v 1.7.2.1 1997/04/20 23:30:03 gnguyen Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -84,7 +84,7 @@ LossMonitor::LossMonitor() : Agent(-1)
 void LossMonitor::recv(Packet* pkt, Handler*)
 {
 	hdr_rtp* p = (hdr_rtp*)pkt->access(off_rtp_);
-	hdr_ip* q = 
+// XXX	hdr_ip* q = 
 	seqno_ = p->seqno();
 	bytes_ += ((hdr_cmn*)pkt->access(off_cmn_))->size_;
 

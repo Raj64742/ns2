@@ -35,6 +35,7 @@
 #include <iostream.h>
 #include <stdlib.h>
 #include "random.h"
+#include "packet.h"
 #include "errmodel.h"
 
 
@@ -73,12 +74,22 @@ ErrorModel::command(int argc, const char*const* argv)
 }
 
 
+void
+ErrorModel::recv(Packet* p)
+{
+	corrupt(p);
+	target_->recv(p);
+}
+
+
 int
-ErrorModel::corrupt(Packet* pkt)
+ErrorModel::corrupt(Packet* p)
 {
 	double u = Random::uniform();
-	if (u < rate_)
+	if (u < rate_) {
 		loss_++;
+		p->error() |= 1;
+	}
 	else {
 		if (loss_) {
 			dump();

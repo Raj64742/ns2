@@ -53,12 +53,12 @@ void
 BlockingLL::recv(Packet* p, Handler* h)
 {
 	if (em_ && em_->corrupt(p)) {
-		p->error(1);
+		p->error() |= 1;
 	}
 
 	callback_ = h;
-	p->source(this);
-	p->target(sendtarget_);	// set target to peer link layer
+	p->source() = this;
+	p->target() = sendtarget_; // set target to peer link layer
 	ifq_->recv(p);		// send it down to the interface queue
 	// rely ifq to callback to let the pkt->source() resume
 }

@@ -60,12 +60,13 @@ public:
 	inline double bandwidth() const { return bandwidth_; }
 	inline double txtime(Packet* p) {
 		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
-		return (hdr->size() * 8. / bandwidth_);
+		return (8. * (hdr->size() + hlen_) / bandwidth_);
 	}
 	inline Mac *macList() { return macList_; }
 
 protected:
 	int command(int argc, const char*const* argv);
+	int hlen_;		// MAC header length
 	double bandwidth_;	// bandwidth of this MAC
 	Channel* channel_;	// channel this MAC is connected to
 	Handler* callback_;	// callback for end-of-transmission
