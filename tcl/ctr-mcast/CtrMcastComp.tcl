@@ -195,11 +195,11 @@ CtrMcastComp instproc prune-branch { src group member } {
 
     ### set (S,G) prune target
     if { $treetype($group) == $SPT } {
-	#puts "prune SPT branch: remove ($src, $group) cache from $member to $src"
+	# puts "prune SPT branch: remove ($src, $group) cache from $member to $src"
 	
 	set target $src
     } elseif { $treetype($group) == $RPT } {
-	#puts "prune RPT branch"
+	# puts "prune RPT branch"
 
         set n [$ns set Node_($member)]
 	set RP [$self get_rp $n $group]

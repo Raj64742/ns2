@@ -471,7 +471,7 @@ Classifier/Replicator/Demuxer instproc insert target {
                         $self install $index_($target) $target
                         incr nactive_
                         set active_($target) 1
-                        set ignore_ 0
+                        # set ignore_ 0
                         return 1
                 }
                 return 0
@@ -482,7 +482,7 @@ Classifier/Replicator/Demuxer instproc insert target {
 	incr nactive_
 	$self install $n $target
 	set active_($target) 1
-	set ignore_ 0
+	# set ignore_ 0
 	set index_($target) $n
 }
 
@@ -501,7 +501,7 @@ Classifier/Replicator/Demuxer instproc enable target {
 		$self install $index_($target) $target
 		incr nactive_
 		set active_($target) 1
-		set ignore_ 0
+		# set ignore_ 0
 	}
 }
 
@@ -513,7 +513,7 @@ Classifier/Replicator/Demuxer instproc exists target {
 Classifier/Replicator/Demuxer instproc drop { src dst } {
 	set src [expr $src >> 8]
 	$self instvar node_ ignore_
-        set ignore_ 1
+        # set ignore_ 1
         if [info exists node_] {
 	    [$node_ set mcastproto_] drop $self $src $dst
 	}

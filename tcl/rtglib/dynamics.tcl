@@ -422,5 +422,5 @@ rtModel/Manual instproc set-parms {op at} {
 
 rtModel/Manual instproc notify {} {
     $self next
-    delete $self		;# XXX wierd code alert.
+#    delete $self		;# XXX wierd code alert.
 }

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.23 1997/09/12 01:31:26 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.24 1997/09/15 17:41:14 polly Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -423,8 +423,11 @@ SimpleLink instproc dynamic {} {
 	if [info exists dynamics_] return
 	
 	set dynamics_ [new DynamicLink]
-	$dynamics_ target $head_
-	set head_ $dynamics_
+#	$dynamics_ target head_
+#	set head_ $dynamics_
+	$dynamics_ target [$head_ target]
+	$head_ target $dynamics_
+
 	
 	$self transit-drop-trace
 	$self all-connectors dynamic

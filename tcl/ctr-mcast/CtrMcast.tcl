@@ -109,7 +109,7 @@ CtrMcast instproc leave-group  { group } {
     set group_ $group
     $self next
     $self instvar Node ns Agent default
-    #puts "_node [$Node id], leaving group $group"
+    # puts "_node [$Node id], leaving group $group"
 
     if [$Agent exists-Mlist $group] { 
 
@@ -131,7 +131,7 @@ CtrMcast instproc leave-group  { group } {
 	    }
 
 	    ### prune off branches
-	    if [info exists Slist($group)] {
+	    if [$Agent exists-Slist $group] {
 		foreach s [$Agent set Slist($group)] {
 		    $Agent prune-branch $s $group [$Node id]
 		}

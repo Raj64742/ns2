@@ -308,15 +308,15 @@ Classifier/Replicator/Demuxer instproc insert-depended-loss {loss_module target 
     set src [[$src set node_] id]
     set alldepended [[$target set node_] get-dependency $src $group]
 
-    puts "found bad node dependency: $alldepended"
-    puts -nonewline "real member in dependency: "
+    #puts "found bad node dependency: $alldepended"
+    #puts -nonewline "real member in dependency: "
 
     set newrep [new Classifier/Replicator/Demuxer]
 
     foreach depended $alldepended {
-	puts -nonewline "$depended "
+	# puts -nonewline "$depended "
 	foreach agent [$depended getAgents] {
-	    puts "insert loss for [$agent info class]"
+	    # puts "insert loss for [$agent info class]"
 	    if [info exists index_($agent)] {
 		set current_target [$self slot $index_($agent)]
 		$newrep insert $current_target

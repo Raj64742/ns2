@@ -25,11 +25,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/dynalink.cc,v 1.6 1997/09/10 16:59:55 kannan Exp $ (USC/ISI)";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/dynalink.cc,v 1.7 1997/09/15 17:41:04 polly Exp $ (USC/ISI)";
 #endif
 
 #include "connector.h"
-
+#include "scheduler.h"
 // #include "packet.h"
 // #include "queue.h"
 
@@ -65,8 +65,8 @@ int DynamicLink::command(int argc, const char*const* argv)
 
 void DynamicLink::recv(Packet* p, Handler* h)
 {
-	if (status_)
+        if (status_)
 		target_->recv(p, h);
-	else
+        else
 		drop(p);
 }
