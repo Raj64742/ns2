@@ -1,0 +1,59 @@
+Scenarios:
+
+---------------------------------------------------
+
+Look at time-sequence plot, infer TCP characteristics.
+One-way bulk data transfer.
+
+Scenario                        Characteristics
+
+NO losses.                      Delayed Ack or not.
+                                (or worse that one ack per 2 packets.)
+                                Initial windows.
+                                No slow start?
+
+One loss after a while.         Fast Retransmit or not.
+
+Multiple losses after a while.  Tahoe/Reno/NewReno/Sack
+                                Does it wait for a retransmit timeout?
+                                Does it slow-start?
+                                Etc.
+
+First packet lost.              Initial RTO.
+
+Third packet lost.              Early RTO.
+
+Single packet lost, small       RTO after estimates are all stable.
+  cwnd, after a long time.      Clock granularity.
+                                Slow-start after timeout?
+
+                                TCP Multiple Fast Retransmits?
+
+
+---------------------------------------------------
+Two-way TCP:
+
+---------------------------------------------------
+TCP with funny data arrival patterns, idle periods, etc.:
+(Persistent HTTP).
+
+Period of no demand             Initial window on restart.
+
+---------------------------------------------------
+
+---------------------------------------------------
+Tcp impl:
+
+Some Testing Tools for TCP Implementors:
+<draft-ietf-tcpimpl-tools-01.txt>
+
+---------------------------------------------------
+Uses:
+Testing researchers' experimental implementations - SACK, ECN, NewReno.
+Testing production TCP implementations.
+Testing beta TCP implementations (e.g., Windows 98, NT 5, etc.)
+Testing a TCP connection when you don't have access to the remote
+  end, and are curious about what generation of TCP they are using.
+Plug into tcpanaly:
+
+
