@@ -13,3 +13,8 @@ all.q
 out.*
 fairflow.tr
 fairflow.xgr
+all.nam
+cwnd.xgr
+*.rands
+all.cwnd
+gkeeper.nam

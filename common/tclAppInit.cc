@@ -4,6 +4,7 @@
  *	Provides a default version of the main program and Tcl_AppInit
  *	procedure for Tcl applications (without Tk).
  *
+ * Copyright (C) 2000 USC/ISI
  * Copyright (c) 1993 The Regents of the University of California.
  * Copyright (c) 1994-1995 Sun Microsystems, Inc.
  *
@@ -59,6 +60,69 @@ main(int argc, char **argv)
     Tcl_Main(argc, argv, Tcl_AppInit);
     return 0;			/* Needed only to prevent compiler warning. */
 }
+
+
+
+#if defined(linux) && defined(i386)
+#ifndef HAVE_FESETPRECISION
+/*
+ * From:
+ |  Floating-point environment <fenvwm.h>                                    |
+ | Copyright (C) 1996, 1997, 1998, 1999                                      |
+ |                     W. Metzenthen, 22 Parker St, Ormond, Vic 3163,        |
+ |                     Australia.                                            |
+ |                     E-mail   billm@melbpc.org.au                          |
+ */
+#define FE_FLTPREC       0x000
+#define FE_INVALIDPREC   0x100
+#define FE_DBLPREC       0x200
+#define FE_LDBLPREC      0x300
+/*
+ * From:
+ * fenvwm.c
+ | Copyright (C) 1999                                                        |
+ |                     W. Metzenthen, 22 Parker St, Ormond, Vic 3163,        |
+ |                     Australia.  E-mail   billm@melbpc.org.au              |
+ */
+/*
+  Set the precision to prec if it is a valid
+  floating point precision macro.
+  Returns 1 if precision set, 0 otherwise.
+  */
+int fesetprecision(int prec)
+{
+  unsigned short cw;
+  asm volatile ("fnstcw %0":"=m" (cw));
+  if ( !(prec & ~FE_LDBLPREC) && (prec != FE_INVALIDPREC) )
+    {
+      cw = (cw & ~FE_LDBLPREC) | (prec & FE_LDBLPREC);
+      asm volatile ("fldcw %0"::"m" (cw));
+      return 1;
+    }
+  else
+    return 0;
+}
+#endif /* !HAVE_FESETPRECISION */
+
+/*
+ * Linux i386 uses 60-bit floats for calculation,
+ * not 56-bit floats, giving different results.
+ * Fix that.
+ *
+ * See <http://www.linuxsupportline.com/~billm/faq.html>
+ * for why we do this fix.
+ *
+ * This function is derived from wmexcep
+ *
+ */
+void
+fix_i386_linux_floats()
+{
+	fesetprecision(FE_DBLPREC);
+}
+#endif
+
+
 
 /*
  *----------------------------------------------------------------------
@@ -86,6 +150,10 @@ Tcl_AppInit(Tcl_Interp *interp)
         extern MemTrace *globalMemTrace;
         globalMemTrace = new MemTrace;
 #endif
+
+#if defined(linux) && defined(i386)
+	fix_i386_linux_floats();
+#endif
        
 	if (Tcl_Init(interp) == TCL_ERROR ||
 	    Otcl_Init(interp) == TCL_ERROR)
@@ -105,14 +173,14 @@ Tcl_AppInit(Tcl_Interp *interp)
 	init_misc();
 
 #ifdef TCL_TEST
-    if (Tcltest_Init(interp) == TCL_ERROR) {
-	return TCL_ERROR;
-    }
-    Tcl_StaticPackage(interp, "Tcltest", Tcltest_Init,
-            (Tcl_PackageInitProc *) NULL);
+	if (Tcltest_Init(interp) == TCL_ERROR) {
+		return TCL_ERROR;
+	}
+	Tcl_StaticPackage(interp, "Tcltest", Tcltest_Init,
+			  (Tcl_PackageInitProc *) NULL);
 #endif /* TCL_TEST */
 
-    return TCL_OK;
+	return TCL_OK;
 }
 
 #ifndef WIN32
@@ -132,3 +200,5 @@ abort()
 #endif
 
 }
+
+
