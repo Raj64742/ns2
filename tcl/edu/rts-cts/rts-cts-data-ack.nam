@@ -1,0 +1,346 @@
+n -t * -s 0  -x 200 -y 30 -Z 0 -z 30  -v circle -c black
+n -t * -s 1  -x 330 -y 150 -Z 0 -z 30  -v circle -c black
+n -t * -s 2  -x 60 -y 30 -Z 0 -z 30  -v circle -c black
+V -t * -v 1.0a5 -a 0
+W -t * -x 700 -y 200
+A -t * -n 1 -p 0 -o 0xffffffff -c 31 -a 1
+A -t * -h 1 -m 2147483647 -s 0
+c -t * -i 8 -n red
+c -t * -i 1 -n black
+c -t * -i 2 -n orange
+c -t * -i 6 -n tan
+c -t * -i 7 -n purple
+c -t * -i 3 -n green
+v -t 0.0 -e sim_annotation 0.0 1 In a Wireless network topology,when not all nodes are within each other's range, 
+v -t 0.001 -e sim_annotation 0.001 2 carrier sense only provides information about collisions at the sender,not at 
+v -t 0.002 -e sim_annotation 0.002 3 the receiver. This leads to problems like hidden terminal where two sender 
+v -t 0.003 -e sim_annotation 0.003 4 nodes out of range of each other transmit packets at the same time, 
+v -t 0.004 -e sim_annotation 0.004 5 to the same receiver, resulting in  collisions at the receiver. To solve 
+v -t 0.005 -e sim_annotation 0.005 6 such problems, control packets, RTS & CTS are used. When a node wants to 
+v -t 0.006 -e sim_annotation 0.006 7 transmit packets, it first sends a RTS packet to the receiver.All nodes within 
+v -t 0.007 -e sim_annotation 0.007 8 the sender's range receive this RTS packet. Every node hearing this RTS packet 
+v -t 0.008 -e sim_annotation 0.008 9 will defer transmission. If receiver is not receiving data from any other node, 
+v -t 0.009 -e sim_annotation 0.009 10 it responds with a CTS packet.This packet is again received by every node 
+v -t 0.01 -e sim_annotation 0.01 11 within range of receiver. So all nodes in this range defer transmission. 
+v -t 0.02 -e sim_annotation 0.02 12 Sender node sends data packet after receiving CTS. If sender node does not 
+v -t 0.03 -e sim_annotation 0.03 13 hear the CTS, it will time-out and schedule retransmission of RTS. On 
+v -t 0.04 -e sim_annotation 0.04 14 receiving data packet, receiver sends an ACK to sender. RTS and CTS packets 
+v -t 0.05 -e sim_annotation 0.05 15 are very short, hence their collision is very less lilkely. If 2 RTS packets 
+v -t 0.06 -e sim_annotation 0.06 16 from sender nodes collide at the receiver, sender nodes will not receive a 
+v -t 0.07 -e sim_annotation 0.07 17 CTS packet and the nodes, as a result will schedule retransmission of RTS. 
+v -t 0.10000000 -e set_rate_ext 0.550ms 1
+v -t 0.100 -e sim_annotation 0.100 18 COLOR LEGEND : 
+v -t 0.110 -e sim_annotation 0.110 19 RTS packets : Purple color. Node turns purple  while sending an RTS packet 
+v -t 0.120 -e sim_annotation 0.120 20 CTS packets : Green color . Node turns  green while sending CTS packets 
+v -t 0.130 -e sim_annotation 0.130 21 Data packets : Tan color . Node turns tan while sending data packets 
+v -t 0.140 -e sim_annotation 0.140 22 ACK packets : Orange color. Node turns  orange while sending ACK packets 
+v -t 0.19 -e sim_annotation  0.19 23 Nodes 0 and 2 are in range of each other
+v -t 0.19 -e sim_annotation  0.19 24 and hence can hear the RTS packet
+v -t 0.19 -e sim_annotation  0.19 25 of the other node. After hearing RTS packet
+v -t 0.19 -e sim_annotation  0.19 26 node backs off
+n -t 0.19 -s 0 -S COLOR -c red -o black -i red -I black
+n -t 0.19 -s 2 -S COLOR -c red -o black -i red -I black
+n -t 0.19 -s 0 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.19 -s 2 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.195 -s 0 -S COLOR -c purple -o red -i purple -I red
+n -t 0.195 -s 0 -S DLABEL -l "Sending RTS packet" -L ""
++ -t 0.195 -s 0 -d -1 -p message -e 500 -a 7
+- -t 0.195 -s 0 -d -1 -p message -e 500 -a 7
+h -t 0.195 -s 0 -d -1 -p message -e 500 -a 7
+r -t 0.195 -s 0 -d -1 -p message -e 500 -a 7
+n -t 0.205 -s 0 -S COLOR -c black -o purple -i black -I purple
+n -t 0.205 -s 0 -S DLABEL -l "" -L ""
+n -t 0.205 -s 2 -S COLOR -c DarkOliveGreen -o red -i DarkOliveGreen -I red
+n -t 0.205 -s 2 -S DLABEL -l "Data Waiting" -L ""
+v -t 0.225 -e sim_annotation 0.225 28 Since nodes 0 \,2 and 1 are in range of each other 
+v -t 0.225 -e sim_annotation 0.225 29 they can back off after hearing CTS packets  
+v -t 0.225 -e sim_annotation 0.225 30 from another node  
+n -t 0.225 -s 1 -S DLABEL -l "Sending CTS packets" -L ""
+n -t 0.225 -s 1 -S COLOR -c green -o black -i green -I black
++ -t 0.225 -s 1 -d -1 -p message -e 500 -a 3
+- -t 0.225 -s 1 -d -1 -p message -e 500 -a 3
+h -t 0.225 -s 1 -d -1 -p message -e 500 -a 3
+r -t 0.225 -s 1 -d -1 -p message -e 500 -a 3
+n -t 0.235 -s 1 -S COLOR -c black -o green -i black -I green
+n -t 0.235 -s 1 -S DLABEL -l "" -L ""
+n -t 0.255 -s 0 -S DLABEL -l "Sending Data packets" -L ""
+n -t 0.255 -s 0 -S COLOR -c tan -o black -i tan -I black
++ -t 0.255 -s 0 -d 1 -p message -e 2500 -a 6
+- -t 0.255 -s 0 -d 1 -p message -e 2500 -a 6
+h -t 0.255 -s 0 -d 1 -p message -e 2500 -a 6
+r -t 0.255 -s 0 -d 1 -p message -e 2500 -a 6
+n -t 0.265 -s 0 -S COLOR -c black -o tan -i black -I tan
+n -t 0.265 -s 0 -S DLABEL -l "" -L "" 
+n -t 0.31 -s 1 -S DLABEL -l "Sending ACK packet" -L ""
+n -t 0.31 -s 1 -S COLOR -c orange -o black -i orange -I black
++ -t 0.31 -s 1 -d 0 -p message -e 500 -a 2
+- -t 0.31 -s 1 -d 0 -p message -e 500 -a 2
+h -t 0.31 -s 1 -d 0 -p message -e 500 -a 2
+r -t 0.31 -s 1 -d 0 -p message -e 500 -a 2
+n -t 0.32 -s 1  -S COLOR -c black -o orange -i black -I orange
+n -t 0.32 -s 1 -S DLABEL -l "" -L ""
+v -t 0.32 -e sim_annotation 0.32 34 Node 2 sending RTS to Node 0
+n -t 0.32 -s 2 -S COLOR -c purple -o DarkOliveGreen -i purple -I DarkOliveGreen
+n -t 0.32 -s 2 -S DLABEL -l "Sending RTS packet" -L ""
++ -t 0.32 -s 2 -d -1 -p message -e 500 -a 7
+- -t 0.32 -s 2 -d -1 -p message -e 500 -a 7
+h -t 0.32 -s 2 -d -1 -p message -e 500 -a 7
+r -t 0.32 -s 2 -d -1 -p message -e 500 -a 7
+n -t 0.325 -s 2 -S COLOR -c black -o purple -i black -I purple
+n -t 0.325 -s 2 -S DLABEL -l "" -L ""
+n -t 0.335 -s 0 -S DLABEL -l "Sending CTS packets" -L ""
+n -t 0.335 -s 0 -S COLOR -c green -o black -i green -I black
++ -t 0.335 -s 0 -d -1 -p message -e 500 -a 3
+- -t 0.335 -s 0 -d -1 -p message -e 500 -a 3
+h -t 0.335 -s 0 -d -1 -p message -e 500 -a 3
+r -t 0.335 -s 0 -d -1 -p message -e 500 -a 3
+n -t 0.345 -s 0 -S COLOR -c black -o green -i black -I green
+n -t 0.345 -s 0 -S DLABEL -l "" -L ""
+n -t 0.35 -s 2 -S DLABEL -l "Sending Data packets" -L ""
+n -t 0.35 -s 2 -S COLOR -c tan -o DarkOliveGreen -i tan -I DarkOliveGreen
++ -t 0.35 -s 2 -d 0 -p message -e 2500 -a 6
+- -t 0.35 -s 2 -d 0 -p message -e 2500 -a 6
+h -t 0.35 -s 2 -d 0 -p message -e 2500 -a 6
+r -t 0.35 -s 2 -d 0 -p message -e 2500 -a 6
+n -t 0.36 -s 2 -S COLOR -c black -o tan -i black -I tan
+n -t 0.36 -s 2 -S DLABEL -l "" -L "" 
+n -t 0.37 -s 0 -S DLABEL -l "Sending ACK packet" -L ""
+n -t 0.37 -s 0 -S COLOR -c orange -o black -i orange -I black
++ -t 0.37 -s 0 -d 2 -p message -e 500 -a 2
+- -t 0.37 -s 0 -d 2 -p message -e 500 -a 2
+h -t 0.37 -s 0 -d 2 -p message -e 500 -a 2
+r -t 0.37 -s 0 -d 2 -p message -e 500 -a 2
+n -t 0.38 -s 0  -S COLOR -c black -o orange -i black -I orange
+n -t 0.38 -s 0 -S DLABEL -l "" -L ""
+n -t 0.385 -s 2 -x 60.00 -y 30.00 -U 10000.00 -V 0.00 -T 0.027
+v -t 0.415 -e sim_annotation  0.415 38 Nodes 0 and 2 are in range of each other
+v -t 0.415 -e sim_annotation  0.415 39 and hence can hear the RTS packet
+v -t 0.415 -e sim_annotation  0.415 40 of the other node. After hearing RTS packet
+v -t 0.415 -e sim_annotation  0.415 41 node backs off
+n -t 0.415 -s 0 -S COLOR -c red -o black -i red -I black
+n -t 0.415 -s 2 -S COLOR -c red -o black -i red -I black
+n -t 0.415 -s 0 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.415 -s 2 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.42 -s 0 -S COLOR -c purple -o red -i purple -I red
+n -t 0.42 -s 0 -S DLABEL -l "Sending RTS packet" -L ""
++ -t 0.42 -s 0 -d -1 -p message -e 500 -a 7
+- -t 0.42 -s 0 -d -1 -p message -e 500 -a 7
+h -t 0.42 -s 0 -d -1 -p message -e 500 -a 7
+r -t 0.42 -s 0 -d -1 -p message -e 500 -a 7
+n -t 0.43 -s 0 -S COLOR -c black -o purple -i black -I purple
+n -t 0.43 -s 0 -S DLABEL -l "" -L ""
+n -t 0.43 -s 2 -S COLOR -c DarkOliveGreen -o red -i DarkOliveGreen -I red
+n -t 0.43 -s 2 -S DLABEL -l "Data Waiting" -L ""
+n -t 0.45 -s 1 -S DLABEL -l "Sending CTS packets" -L ""
+n -t 0.45 -s 1 -S COLOR -c green -o black -i green -I black
++ -t 0.45 -s 1 -d -1 -p message -e 500 -a 3
+- -t 0.45 -s 1 -d -1 -p message -e 500 -a 3
+h -t 0.45 -s 1 -d -1 -p message -e 500 -a 3
+r -t 0.45 -s 1 -d -1 -p message -e 500 -a 3
+n -t 0.46 -s 1 -S COLOR -c black -o green -i black -I green
+n -t 0.46 -s 1 -S DLABEL -l "" -L ""
+n -t 0.48 -s 0 -S DLABEL -l "Sending Data packets" -L ""
+n -t 0.48 -s 0 -S COLOR -c tan -o black -i tan -I black
++ -t 0.48 -s 0 -d 1 -p message -e 2500 -a 6
+- -t 0.48 -s 0 -d 1 -p message -e 2500 -a 6
+h -t 0.48 -s 0 -d 1 -p message -e 2500 -a 6
+r -t 0.48 -s 0 -d 1 -p message -e 2500 -a 6
+n -t 0.49 -s 0 -S COLOR -c black -o tan -i black -I tan
+n -t 0.49 -s 0 -S DLABEL -l "" -L "" 
+n -t 0.535 -s 1 -S DLABEL -l "Sending ACK packet" -L ""
+n -t 0.535 -s 1 -S COLOR -c orange -o black -i orange -I black
++ -t 0.535 -s 1 -d 0 -p message -e 500 -a 2
+- -t 0.535 -s 1 -d 0 -p message -e 500 -a 2
+h -t 0.535 -s 1 -d 0 -p message -e 500 -a 2
+r -t 0.535 -s 1 -d 0 -p message -e 500 -a 2
+n -t 0.545 -s 1  -S COLOR -c black -o orange -i black -I orange
+n -t 0.545 -s 1 -S DLABEL -l "" -L ""
+v -t 0.545 -e sim_annotation 0.545 46 Node 2 sending RTS to Node 0
+n -t 0.545 -s 2 -S COLOR -c purple -o DarkOliveGreen -i purple -I DarkOliveGreen
+n -t 0.545 -s 2 -S DLABEL -l "Sending RTS packet" -L ""
++ -t 0.545 -s 2 -d -1 -p message -e 500 -a 7
+- -t 0.545 -s 2 -d -1 -p message -e 500 -a 7
+h -t 0.545 -s 2 -d -1 -p message -e 500 -a 7
+r -t 0.545 -s 2 -d -1 -p message -e 500 -a 7
+n -t 0.55 -s 2 -S COLOR -c black -o purple -i black -I purple
+n -t 0.55 -s 2 -S DLABEL -l "" -L ""
+n -t 0.56 -s 1 -S DLABEL -l "Sending CTS packets" -L ""
+n -t 0.56 -s 1 -S COLOR -c green -o black -i green -I black
++ -t 0.56 -s 1 -d -1 -p message -e 500 -a 3
+- -t 0.56 -s 1 -d -1 -p message -e 500 -a 3
+h -t 0.56 -s 1 -d -1 -p message -e 500 -a 3
+r -t 0.56 -s 1 -d -1 -p message -e 500 -a 3
+n -t 0.57 -s 1 -S COLOR -c black -o green -i black -I green
+n -t 0.57 -s 1 -S DLABEL -l "" -L ""
+n -t 0.575 -s 2 -S DLABEL -l "Sending Data packets" -L ""
+n -t 0.575 -s 2 -S COLOR -c tan -o DarkOliveGreen -i tan -I DarkOliveGreen
++ -t 0.575 -s 2 -d 1 -p message -e 2500 -a 6
+- -t 0.575 -s 2 -d 1 -p message -e 2500 -a 6
+h -t 0.575 -s 2 -d 1 -p message -e 2500 -a 6
+r -t 0.575 -s 2 -d 1 -p message -e 2500 -a 6
+n -t 0.585 -s 2 -S COLOR -c black -o tan -i black -I tan
+n -t 0.585 -s 2 -S DLABEL -l "" -L "" 
+n -t 0.595 -s 1 -S DLABEL -l "Sending ACK packet" -L ""
+n -t 0.595 -s 1 -S COLOR -c orange -o black -i orange -I black
++ -t 0.595 -s 1 -d 2 -p message -e 500 -a 2
+- -t 0.595 -s 1 -d 2 -p message -e 500 -a 2
+h -t 0.595 -s 1 -d 2 -p message -e 500 -a 2
+r -t 0.595 -s 1 -d 2 -p message -e 500 -a 2
+n -t 0.605 -s 1  -S COLOR -c black -o orange -i black -I orange
+n -t 0.605 -s 1 -S DLABEL -l "" -L ""
+v -t 0.665 -e sim_annotation  0.665 49 Nodes 0 and 2 are in range of each other
+v -t 0.665 -e sim_annotation  0.665 50 and hence can hear the RTS packet
+v -t 0.665 -e sim_annotation  0.665 51 of the other node. After hearing RTS packet
+v -t 0.665 -e sim_annotation  0.665 52 node backs off
+n -t 0.665 -s 0 -S COLOR -c red -o black -i red -I black
+n -t 0.665 -s 2 -S COLOR -c red -o black -i red -I black
+n -t 0.665 -s 0 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.665 -s 2 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.67 -s 2 -S COLOR -c purple -o red -i purple -I red
+n -t 0.67 -s 2 -S DLABEL -l "Sending RTS packet" -L ""
++ -t 0.67 -s 2 -d -1 -p message -e 500 -a 7
+- -t 0.67 -s 2 -d -1 -p message -e 500 -a 7
+h -t 0.67 -s 2 -d -1 -p message -e 500 -a 7
+r -t 0.67 -s 2 -d -1 -p message -e 500 -a 7
+n -t 0.68 -s 2 -S COLOR -c black -o purple -i black -I purple
+n -t 0.68 -s 2 -S DLABEL -l "" -L ""
+n -t 0.68 -s 0 -S COLOR -c DarkOliveGreen -o red -i DarkOliveGreen -I red
+n -t 0.68 -s 0 -S DLABEL -l "Data Waiting" -L ""
+n -t 0.700000000000001 -s 1 -S DLABEL -l "Sending CTS packets" -L ""
+n -t 0.700000000000001 -s 1 -S COLOR -c green -o black -i green -I black
++ -t 0.700000000000001 -s 1 -d -1 -p message -e 500 -a 3
+- -t 0.700000000000001 -s 1 -d -1 -p message -e 500 -a 3
+h -t 0.700000000000001 -s 1 -d -1 -p message -e 500 -a 3
+r -t 0.700000000000001 -s 1 -d -1 -p message -e 500 -a 3
+n -t 0.710000000000001 -s 1 -S COLOR -c black -o green -i black -I green
+n -t 0.710000000000001 -s 1 -S DLABEL -l "" -L ""
+n -t 0.730000000000001 -s 2 -S DLABEL -l "Sending Data packets" -L ""
+n -t 0.730000000000001 -s 2 -S COLOR -c tan -o black -i tan -I black
++ -t 0.730000000000001 -s 2 -d 1 -p message -e 2500 -a 6
+- -t 0.730000000000001 -s 2 -d 1 -p message -e 2500 -a 6
+h -t 0.730000000000001 -s 2 -d 1 -p message -e 2500 -a 6
+r -t 0.730000000000001 -s 2 -d 1 -p message -e 2500 -a 6
+n -t 0.740000000000001 -s 2 -S COLOR -c black -o tan -i black -I tan
+n -t 0.740000000000001 -s 2 -S DLABEL -l "" -L "" 
+n -t 0.785000000000001 -s 1 -S DLABEL -l "Sending ACK packet" -L ""
+n -t 0.785000000000001 -s 1 -S COLOR -c orange -o black -i orange -I black
++ -t 0.785000000000001 -s 1 -d 2 -p message -e 500 -a 2
+- -t 0.785000000000001 -s 1 -d 2 -p message -e 500 -a 2
+h -t 0.785000000000001 -s 1 -d 2 -p message -e 500 -a 2
+r -t 0.785000000000001 -s 1 -d 2 -p message -e 500 -a 2
+n -t 0.795000000000001 -s 1  -S COLOR -c black -o orange -i black -I orange
+n -t 0.795000000000001 -s 1 -S DLABEL -l "" -L ""
+v -t 0.795000000000001 -e sim_annotation 0.795000000000001 57 Node 0 sending RTS to Node 2
+n -t 0.795000000000001 -s 0 -S COLOR -c purple -o DarkOliveGreen -i purple -I DarkOliveGreen
+n -t 0.795000000000001 -s 0 -S DLABEL -l "Sending RTS packet" -L ""
++ -t 0.795000000000001 -s 0 -d -1 -p message -e 500 -a 7
+- -t 0.795000000000001 -s 0 -d -1 -p message -e 500 -a 7
+h -t 0.795000000000001 -s 0 -d -1 -p message -e 500 -a 7
+r -t 0.795000000000001 -s 0 -d -1 -p message -e 500 -a 7
+n -t 0.800000000000001 -s 0 -S COLOR -c black -o purple -i black -I purple
+n -t 0.800000000000001 -s 0 -S DLABEL -l "" -L ""
+n -t 0.810000000000001 -s 1 -S DLABEL -l "Sending CTS packets" -L ""
+n -t 0.810000000000001 -s 1 -S COLOR -c green -o black -i green -I black
++ -t 0.810000000000001 -s 1 -d -1 -p message -e 500 -a 3
+- -t 0.810000000000001 -s 1 -d -1 -p message -e 500 -a 3
+h -t 0.810000000000001 -s 1 -d -1 -p message -e 500 -a 3
+r -t 0.810000000000001 -s 1 -d -1 -p message -e 500 -a 3
+n -t 0.820000000000001 -s 1 -S COLOR -c black -o green -i black -I green
+n -t 0.820000000000001 -s 1 -S DLABEL -l "" -L ""
+n -t 0.825000000000001 -s 0 -S DLABEL -l "Sending Data packets" -L ""
+n -t 0.825000000000001 -s 0 -S COLOR -c tan -o DarkOliveGreen -i tan -I DarkOliveGreen
++ -t 0.825000000000001 -s 0 -d 1 -p message -e 2500 -a 6
+- -t 0.825000000000001 -s 0 -d 1 -p message -e 2500 -a 6
+h -t 0.825000000000001 -s 0 -d 1 -p message -e 2500 -a 6
+r -t 0.825000000000001 -s 0 -d 1 -p message -e 2500 -a 6
+n -t 0.835000000000001 -s 0 -S COLOR -c black -o tan -i black -I tan
+n -t 0.835000000000001 -s 0 -S DLABEL -l "" -L "" 
+n -t 0.845000000000001 -s 1 -S DLABEL -l "Sending ACK packet" -L ""
+n -t 0.845000000000001 -s 1 -S COLOR -c orange -o black -i orange -I black
++ -t 0.845000000000001 -s 1 -d 0 -p message -e 500 -a 2
+- -t 0.845000000000001 -s 1 -d 0 -p message -e 500 -a 2
+h -t 0.845000000000001 -s 1 -d 0 -p message -e 500 -a 2
+r -t 0.845000000000001 -s 1 -d 0 -p message -e 500 -a 2
+n -t 0.855000000000001 -s 1  -S COLOR -c black -o orange -i black -I orange
+n -t 0.855000000000001 -s 1 -S DLABEL -l "" -L ""
+n -t 0.860000000000001 -s 2 -x 330.00 -y 30.00 -U 10000.00 -V 0.00 -T 0.017
+v -t 0.885000000000001 -e sim_annotation  0.885000000000001 60 Here nodes 0 and 2 are out of range of each other
+v -t 0.885000000000001 -e sim_annotation  0.885000000000001 61 hence they donot detect carrier and send RTS packets
+v -t 0.885000000000001 -e sim_annotation  0.885000000000001 62 at the same time
+n -t 0.885000000000001 -s 0 -S COLOR -c red -o black -i red -I black
+n -t 0.885000000000001 -s 2 -S COLOR -c red -o black -i red -I black
+n -t 0.885000000000001 -s 0 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.885000000000001 -s 2 -S DLABEL -l "Carrier sense" -L ""
+v -t 0.890000000000001 -e sim_annotation 0.890000000000001 63 Node 0 sending RTS to Node 1 
+n -t 0.890000000000001 -s 0 -S COLOR -c purple -o red -i purple -I red
+n -t 0.890000000000001 -s 0 -S DLABEL -l "Sending RTS packet" -L ""
++ -t 0.890000000000001 -s 0 -d -1 -p message -e 500 -a 7
+- -t 0.890000000000001 -s 0 -d -1 -p message -e 500 -a 7
+h -t 0.890000000000001 -s 0 -d -1 -p message -e 500 -a 7
+r -t 0.890000000000001 -s 0 -d -1 -p message -e 500 -a 7
+n -t 0.895000000000001 -s 0 -S COLOR -c black -o purple -i black -I purple
+n -t 0.895000000000001 -s 0 -S DLABEL -l "" -L ""
+n -t 0.915000000000001 -s 1 -S DLABEL -l "Sending CTS packets" -L ""
+n -t 0.915000000000001 -s 1 -S COLOR -c green -o black -i green -I black
++ -t 0.915000000000001 -s 1 -d -1 -p message -e 500 -a 3
+- -t 0.915000000000001 -s 1 -d -1 -p message -e 500 -a 3
+h -t 0.915000000000001 -s 1 -d -1 -p message -e 500 -a 3
+r -t 0.915000000000001 -s 1 -d -1 -p message -e 500 -a 3
+n -t 0.925000000000001 -s 1 -S COLOR -c black -o green -i black -I green
+n -t 0.925000000000001 -s 1 -S DLABEL -l "" -L ""
+n -t 0.945000000000001 -s 0 -S DLABEL -l "Sending Data packets" -L ""
+n -t 0.945000000000001 -s 0 -S COLOR -c tan -o black -i tan -I black
+n -t 0.945000000000001 -s 2 -S COLOR -c DarkOliveGreen -o black -i DarkOliveGreen -I black
+n -t 0.945000000000001 -s 2 -S DLABEL -l "Data waiting" -L ""
++ -t 0.945000000000001 -s 0 -d 1 -p message -e 2500 -a 6
+- -t 0.945000000000001 -s 0 -d 1 -p message -e 2500 -a 6
+h -t 0.945000000000001 -s 0 -d 1 -p message -e 2500 -a 6
+r -t 0.945000000000001 -s 0 -d 1 -p message -e 2500 -a 6
+n -t 0.955000000000001 -s 0 -S COLOR -c black -o tan -i black -I tan
+n -t 0.955000000000001 -s 0 -S DLABEL -l "" -L "" 
+n -t 1 -s 1 -S DLABEL -l "Sending ACK packets" -L ""
+n -t 1 -s 1 -S COLOR -c orange -o black -i orange -I black
++ -t 1 -s 1 -d 0 -p message -e 500 -a 2
+- -t 1 -s 1 -d 0 -p message -e 500 -a 2
+h -t 1 -s 1 -d 0 -p message -e 500 -a 2
+r -t 1 -s 1 -d 0 -p message -e 500 -a 2
+n -t 1.01 -s 1  -S COLOR -c black -o orange -i black -I orange
+n -t 1.01 -s 1 -S DLABEL -l "" -L ""
+v -t 1.015 -e sim_annotation  1.015 67 Here nodes 0 and 2 are out of range of each other
+v -t 1.015 -e sim_annotation  1.015 68 hence they donot detect carrier and send RTS packets
+v -t 1.015 -e sim_annotation  1.015 69 at the same time
+n -t 1.015 -s 2 -S COLOR -c red -o black -i red -I black
+n -t 1.015 -s 2 -S DLABEL -l "Carrier sense" -L ""
+v -t 1.02 -e sim_annotation 1.02 70 Node 2 sending RTS to Node 1 
+n -t 1.02 -s 2 -S COLOR -c purple -o red -i purple -I red
+n -t 1.02 -s 2 -S DLABEL -l "Sending RTS packet" -L ""
++ -t 1.02 -s 2 -d -1 -p message -e 500 -a 7
+- -t 1.02 -s 2 -d -1 -p message -e 500 -a 7
+h -t 1.02 -s 2 -d -1 -p message -e 500 -a 7
+r -t 1.02 -s 2 -d -1 -p message -e 500 -a 7
+n -t 1.025 -s 2 -S COLOR -c black -o purple -i black -I purple
+n -t 1.025 -s 2 -S DLABEL -l "" -L ""
+n -t 1.045 -s 1 -S DLABEL -l "Sending CTS packets" -L ""
+n -t 1.045 -s 1 -S COLOR -c green -o black -i green -I black
++ -t 1.045 -s 1 -d -1 -p message -e 500 -a 3
+- -t 1.045 -s 1 -d -1 -p message -e 500 -a 3
+h -t 1.045 -s 1 -d -1 -p message -e 500 -a 3
+r -t 1.045 -s 1 -d -1 -p message -e 500 -a 3
+n -t 1.055 -s 1 -S COLOR -c black -o green -i black -I green
+n -t 1.055 -s 1 -S DLABEL -l "" -L ""
+n -t 1.075 -s 2 -S DLABEL -l "Sending Data packets" -L ""
+n -t 1.075 -s 2 -S COLOR -c tan -o black -i tan -I black
++ -t 1.075 -s 2 -d 1 -p message -e 2500 -a 6
+- -t 1.075 -s 2 -d 1 -p message -e 2500 -a 6
+h -t 1.075 -s 2 -d 1 -p message -e 2500 -a 6
+r -t 1.075 -s 2 -d 1 -p message -e 2500 -a 6
+n -t 1.085 -s 2 -S COLOR -c black -o tan -i black -I tan
+n -t 1.085 -s 2 -S DLABEL -l "" -L "" 
+n -t 1.13 -s 1 -S DLABEL -l "Sending ACK packets" -L ""
+n -t 1.13 -s 1 -S COLOR -c orange -o black -i orange -I black
++ -t 1.13 -s 1 -d 2 -p message -e 500 -a 2
+- -t 1.13 -s 1 -d 2 -p message -e 500 -a 2
+h -t 1.13 -s 1 -d 2 -p message -e 500 -a 2
+r -t 1.13 -s 1 -d 2 -p message -e 500 -a 2
+n -t 1.14 -s 1  -S COLOR -c black -o orange -i black -I orange
+n -t 1.14 -s 1 -S DLABEL -l "" -L ""

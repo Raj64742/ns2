@@ -1,0 +1,111 @@
+n -t * -s 0  -x 200 -y 30 -Z 0 -z 30  -v circle -c black
+n -t * -s 1  -x 330 -y 150 -Z 0 -z 30  -v circle -c black
+n -t * -s 2  -x 60 -y 30 -Z 0 -z 30  -v circle -c black
+V -t * -v 1.0a5 -a 0
+W -t * -x 700 -y 200
+A -t * -n 1 -p 0 -o 0xffffffff -c 31 -a 1
+A -t * -h 1 -m 2147483647 -s 0
+c -t * -i 8 -n red
+c -t * -i 1 -n black
+c -t * -i 7 -n purple
+c -t * -i 3 -n green
+v -t 0.000 -e sim_annotation 0.0 1 COLOR LEGEND : 
+v -t 0.001 -e sim_annotation 0.001 2 Nodes turn green when they are sensing carrier 
+v -t 0.002 -e sim_annotation 0.002 3 Nodes turn purple when they backoff 
+v -t 0.003 -e sim_annotation 0.003 4 Nodes turn red when there is a collision 
+v -t 0.10000000 -e set_rate_ext 0.200ms 1
+n -t 0.101025 -s 2 -S COLOR -c green -o black -i green -I black 
+n -t 0.101025 -s 2 -S DLABEL -l "Carrier sense" -L ""
+v -t 0.101025 -e sim_annotation 0.101025 5 Since Nodes 0 and 2 are in 
+v -t 0.101075 -e sim_annotation 0.101075 6 range of each other, a node can 
+v -t 0.101125 -e sim_annotation 0.101125 7 detect carrier if the other node 
+v -t 0.101175 -e sim_annotation 0.101175 8 is sending data and hence it backs off.
+n -t 0.111025 -s 0 -S COLOR -c green -o black -i green -I black 
+n -t 0.111025 -s 0 -S DLABEL -l "Carrier Sense" -L ""
+n -t 0.111025 -s 2 -S COLOR -c black -o green -i black -I green 
+n -t 0.111025 -s 2 -S DLABEL -l "" -L ""
++ -t 0.111025 -s 2 -d 1 -p message -e 2500 -a 1 
+- -t 0.111025 -s 2 -d 1 -p message -e 2500 -a 1 
+h -t 0.111025 -s 2 -d 1 -p message -e 2500 -a 1 
+r -t 0.111025 -s 2 -d 1 -p message -e 2500 -a 1 
+n -t 0.116025 -s 0 -S COLOR -c purple -o green -i purple -I green 
+n -t 0.116025 -s 0 -S DLABEL -l "Backing off" -L ""
+n -t 0.121025 -s 0 -S COLOR -c green -o purple -i green -I purple 
+n -t 0.121025 -s 0 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.126025 -s 0 -S COLOR -c black -o green -i black -I green 
+n -t 0.126025 -s 0 -S DLABEL -l "" -L ""
++ -t 0.126025 -s 0 -d 1 -p message -e 2500 -a 1 
+- -t 0.126025 -s 0 -d 1 -p message -e 2500 -a 1 
+h -t 0.126025 -s 0 -d 1 -p message -e 2500 -a 1 
+r -t 0.126025 -s 0 -d 1 -p message -e 2500 -a 1 
+n -t 0.200025 -s 0 -S COLOR -c green -o black -i green -I black 
+n -t 0.200025 -s 0 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.200025 -s 2 -S COLOR -c green -o black -i green -I black 
+n -t 0.200025 -s 2 -S DLABEL -l "Carrier Sense" -L ""
+v -t 0.200025 -e sim_annotation 0.200025 9 Even though nodes 0 and 2 
+v -t 0.200075 -e sim_annotation 0.200075 10 are in range of each other since they 
+v -t 0.200125 -e sim_annotation 0.200125 11 do carrier sense at the same time they 
+v -t 0.200175 -e sim_annotation 0.200175 12 are not able to detect carrier and hence
+v -t 0.200225 -e sim_annotation 0.200225 13 their data packets collide at the destination
+n -t 0.210025 -s 0 -S COLOR -c black -o green -i black -I green 
+n -t 0.210025 -s 0 -S DLABEL -l "" -L ""
+n -t 0.210025 -s 2 -S COLOR -c black -o green -i black -I green 
+n -t 0.210025 -s 2 -S DLABEL -l "" -L ""
++ -t 0.210025 -s 0 -d 1 -p message -e 2500 -a 1 
+- -t 0.210025 -s 0 -d 1 -p message -e 2500 -a 1 
+h -t 0.210025 -s 0 -d 1 -p message -e 2500 -a 1 
++ -t 0.210025 -s 2 -d 1 -p message -e 2500 -a 1 
+- -t 0.210025 -s 2 -d 1 -p message -e 2500 -a 1 
+h -t 0.210025 -s 2 -d 1 -p message -e 2500 -a 1 
+n -t 0.220025 -s 1 -S COLOR -c red -o black -i red -I black 
+n -t 0.220025 -s 1 -S DLABEL -l "Collision " -L ""
+d -t 0.220025 -s 1 -d 2 -p message -e 5000 -a 8 
+n -t 0.230025 -s 1 -S COLOR -c black -o red -i black -I red 
+n -t 0.230025 -s 1 -S DLABEL -l "" -L ""
+n -t 0.25000 -s 2 -x 60.00 -y 30.00 -U 10000.00 -V 0.00 -T 0.044
+v -t 0.25000 -e sim_annotation 0.25000 14 Node 2 moves 
+v -t 0.25005 -e sim_annotation 0.25005 15 and hence is out of range of 
+v -t 0.2501 -e sim_annotation 0.2501 16 node 0   
+n -t 0.350025 -s 0 -S COLOR -c green -o black -i green -I black 
+n -t 0.350025 -s 0 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.355025 -s 2 -S COLOR -c green -o black -i green -I black 
+n -t 0.355025 -s 2 -S DLABEL -l "Carrier Sense" -L ""
+v -t 0.355025 -e sim_annotation 0.355025 17 Even though nodes 0 and 2 
+v -t 0.355075 -e sim_annotation 0.355075 18 are out of range of each other since they 
+v -t 0.355125 -e sim_annotation 0.355125 19 do carrier sense at different times and  
+v -t 0.355175 -e sim_annotation 0.355175 20 their data packets reach the destination
+v -t 0.355225 -e sim_annotation 0.355225 21 at different times there is no collision
+n -t 0.360025 -s 0 -S COLOR -c black -o green -i black -I green 
+n -t 0.360025 -s 0 -S DLABEL -l "" -L ""
++ -t 0.360025 -s 0 -d 1 -p message -e 2500 -a 1 
+- -t 0.360025 -s 0 -d 1 -p message -e 2500 -a 1 
+h -t 0.360025 -s 0 -d 1 -p message -e 2500 -a 1 
+n -t 0.365025 -s 2 -S COLOR -c black -o green -i black -I green 
+n -t 0.365025 -s 2 -S DLABEL -l "" -L ""
++ -t 0.365025 -s 2 -d 1 -p message -e 2500 -a 1 
+- -t 0.365025 -s 2 -d 1 -p message -e 2500 -a 1 
+h -t 0.365025 -s 2 -d 1 -p message -e 2500 -a 1 
+n -t 0.450025 -s 0 -S COLOR -c green -o black -i green -I black 
+n -t 0.450025 -s 0 -S DLABEL -l "Carrier sense" -L ""
+n -t 0.450025 -s 2 -S COLOR -c green -o black -i green -I black 
+n -t 0.450025 -s 2 -S DLABEL -l "Carrier Sense" -L ""
+v -t 0.450025 -e sim_annotation 0.450025 22 Since nodes 0 and 2 
+v -t 0.450075 -e sim_annotation 0.450075 23 are out of range of each other and they 
+v -t 0.450125 -e sim_annotation 0.450125 24 do carrier sense at the same time   
+v -t 0.450175 -e sim_annotation 0.450175 25 their data packets reach the destination
+v -t 0.450225 -e sim_annotation 0.450225 26 at the same time and hence there is collision
+n -t 0.455025 -s 0 -S COLOR -c black -o green -i black -I green 
+n -t 0.455025 -s 0 -S DLABEL -l "" -L ""
++ -t 0.455025 -s 0 -d 1 -p message -e 2500 -a 1 
+- -t 0.455025 -s 0 -d 1 -p message -e 2500 -a 1 
+h -t 0.455025 -s 0 -d 1 -p message -e 2500 -a 1 
+n -t 0.455025 -s 2 -S COLOR -c black -o green -i black -I green 
+n -t 0.455025 -s 2 -S DLABEL -l "" -L ""
++ -t 0.455025 -s 2 -d 1 -p message -e 2500 -a 1 
+- -t 0.455025 -s 2 -d 1 -p message -e 2500 -a 1 
+h -t 0.455025 -s 2 -d 1 -p message -e 2500 -a 1 
+n -t 0.465025 -s 1 -S COLOR -c red -o black -i red -I black 
+n -t 0.465025 -s 1 -S DLABEL -l "Collision " -L ""
+d -t 0.465025 -s 1 -d 2 -p message -e 5000 -a 8 
+n -t 0.475025 -s 1 -S COLOR -c black -o red -i black -I red 
+n -t 0.475025 -s 1 -S DLABEL -l "" -L ""
