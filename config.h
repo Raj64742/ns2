@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.14 1998/03/19 23:45:44 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.15 1998/03/25 20:46:30 amc Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -41,18 +41,24 @@
 #include <sys/types.h>
 #else
 /*XXX*/
+/* Checking defined(sun) is probably not sufficient.  I know that  */
+/* typedef signed char int8_t breaks under Solaris 2.6.  Shouldn't */
+/* autoconf handle stuff like this?  Shouldn't autoconf generate   */
+/* config.h?  Who knows autoconf well enough to fix this?  --AMC   */
 #if defined(sun)
+#include <sys/types.h>
 typedef unsigned char u_char;
 typedef unsigned short u_short;
 typedef unsigned int u_int;
 typedef unsigned long u_long;
-#endif
+#else
 typedef signed char int8_t;
-typedef unsigned char u_int8_t;
 typedef short int16_t;
+typedef int int32_t;
+#endif
+typedef unsigned char u_int8_t;
 typedef unsigned short u_int16_t;
 typedef unsigned int u_int32_t;
-typedef int int32_t;
 #endif
 
 typedef int32_t nsaddr_t;

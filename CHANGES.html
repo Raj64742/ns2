@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.222 1998/03/18 20:05:56 bajaj Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.223 1998/03/25 20:46:28 amc Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,15 @@
 	HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">Release of ns-2.1b3</A> [PENDING]
 </H3>
 <UL>
+      <li><b><a href="http://www.cs.berkeley.edu/~amc/">[AMC]</a>
+          Wed Mar 25 20:23:42 GMT 1998</b>
+          <ul>
+          <li>tcl/lib/ns-random.tcl: Bug fix, and exponential now takes
+              optional argument mu.
+          <li>config.h: int8_t would break under Solaris 2.6 (it's still
+              a mess)
+          <li>Makefile.in: Now tells you if you need to re-run configure.
+          </ul>
       <LI><B><A Href="mailto:bajaj@parc.xerox.com">[SB]</A></B>
         <b> Wed Mar 18 12:03:35 PST 1998 </b> <br>
         Added token bucket filter support

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.101 1998/03/20 02:55:49 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.102 1998/03/25 20:46:29 amc Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -167,9 +167,14 @@ CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) tclAppInit.o \
 	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE)
 
-$(NS): $(OBJ) tclAppInit.o
+$(NS): $(OBJ) tclAppInit.o Makefile
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
 		tclAppInit.o $(OBJ) $(LIB)
+
+Makefile: Makefile.in
+	@echo "Makefile.in is newer than Makefile."
+	@echo "You need to re-run configure."
+	false
 
 $(NSE): $(OBJ) tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \

@@ -30,23 +30,23 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.8 1998/01/05 18:39:52 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.9 1998/03/25 20:46:30 amc Exp $
 #
 
 #Code to generate random numbers here
-proc exponential {} {
+proc exponential {args} {
 	global defaultRNG
-	$defaultRNG exponential
+	eval [list $defaultRNG exponential] $args
 }
 
-proc uniform {a b} {
+proc uniform {args} {
 	global defaultRNG
-	$defaultRNG uniform $a $b
+	eval [list $defaultRNG uniform] $args
 }
 
-proc integer k {
+proc integer {args} {
 	global defaultRNG
-	$defaultRNG integer $k
+	eval [list $defaultRNG integer] $args
 }
 
 RNG instproc uniform {a b} {
@@ -57,8 +57,8 @@ RNG instproc integer k {
 	expr [$self next-random] % abs($k)
 }
 
-RNG instproc exponential {} {
-	expr - log ([$self uniform 0 1])
+RNG instproc exponential {{mu 1.0}} {
+	expr - $mu * log(([$self next-random] + 1.0) / (0x7fffffff + 1.0))
 }
 
 
