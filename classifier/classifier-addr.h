@@ -39,7 +39,7 @@
 
 class AddressClassifier : public Classifier {
 protected:
-	int classify(Packet * p);
+	int classify(const Packet * p);
 };
 
 /* addr. classifier that enforces reserved ports */
@@ -47,7 +47,7 @@ class ReserveAddressClassifier : public AddressClassifier {
 public:
 	ReserveAddressClassifier() : AddressClassifier(), reserved_(0) {}
 protected:
-	int classify(Packet *p);
+	int classify(const Packet *p);
 	void clear(int slot);
 	int getnxt(NsObject *);
 	int command(int argc, const char*const* argv);

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-cbq-v1.tcl,v 1.3 1997/07/31 00:24:38 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-cbq-v1.tcl,v 1.4 1999/09/17 22:48:02 heideman Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -41,6 +41,12 @@
 # 	./ns test-suite-cbq.tcl cbqPRR 
 # 	./ns test-suite-cbq.tcl cbqWRR
 # 	...
+#
+
+#
+# This file uses the ns-1 interfaces, not the newere v2 interfaces.
+# Don't copy this code for use in new simulations,
+# copy the new code with the new interfaces!
 #
 
 # ~/newr/rm/testB

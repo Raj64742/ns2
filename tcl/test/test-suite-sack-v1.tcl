@@ -30,12 +30,20 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-sack-v1.tcl,v 1.2 1997/06/17 00:57:12 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-sack-v1.tcl,v 1.3 1999/09/17 22:48:15 heideman Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., Simulator Tests. July 1995.  
 # URL ftp://ftp.ee.lbl.gov/papers/simtests.ps.Z.
+#
+
+#
+# This file uses the ns-1 interfaces, not the newere v2 interfaces.
+# Don't copy this code for use in new simulations,
+# copy the new code with the new interfaces!
+#
+
 #
 # To run all tests:  test-all
 # To run individual tests:

@@ -30,7 +30,15 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-vegas-v1.tcl,v 1.5 1998/01/21 22:11:34 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-vegas-v1.tcl,v 1.6 1999/09/17 22:48:24 heideman Exp $
+#
+
+#
+# This file uses the ns-1 interfaces, not the newere v2 interfaces.
+# Don't copy this code for use in new simulations,
+# copy the new code with the new interfaces!
+#
+
 #
 # Create a simple four node topology:
 #

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-v1a.tcl,v 1.1 1997/10/15 03:33:27 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-v1a.tcl,v 1.2 1999/09/17 22:48:22 heideman Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -42,6 +42,12 @@
 # ns test-suite.tcl tahoe1
 # ns test-suite.tcl tahoe2
 # ...
+#
+
+#
+# This file uses the ns-1 interfaces, not the newere v2 interfaces.
+# Don't copy this code for use in new simulations,
+# copy the new code with the new interfaces!
 #
 
 set quiet false

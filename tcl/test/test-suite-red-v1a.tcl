@@ -30,12 +30,20 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-red-v1a.tcl,v 1.4 1999/05/27 21:50:24 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-red-v1a.tcl,v 1.5 1999/09/17 22:48:12 heideman Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
 # Ns Simulator Tests for Random Early Detection (RED), October 1996.
 # URL ftp://ftp.ee.lbl.gov/papers/redsims.ps.Z.
+#
+
+#
+# This file uses the ns-1 interfaces, not the newere v2 interfaces.
+# Don't copy this code for use in new simulations,
+# copy the new code with the new interfaces!
+#
+
 #
 # To run all tests: test-all-red
 #       
