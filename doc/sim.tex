@@ -4,7 +4,7 @@
 %        DRAFT DRAFT DRAFT
 %        - KFALL
 %
-\section{\shdr{The Simulator Class}{tcl/lib/ns-lib.h}{sec:sim}}
+\chapter{\shdr{The Simulator Class}{tcl/lib/ns-lib.h}{sec:sim}}
 
 The overall simulator is described by a \code{Simulator} tcl class.
 It provides a set of interfaces for configuring a simulation
@@ -21,9 +21,9 @@ ns-1 backward compatibility.
 When a new simulation object is created in tcl, the initialization
 procedure performs the following operations:
 \begin{itemize}
-	\item initialize the packet format (calls {\tt create\_packetformat})
-	\item create a scheduler (defaults to a simple linked-list scheduler)
-	\item create a ``null agent'' (a discard sink used in varios places)
+        \item initialize the packet format (calls {\tt create\_packetformat})
+        \item create a scheduler (defaults to a simple linked-list scheduler)
+        \item create a ``null agent'' (a discard sink used in varios places)
 \end{itemize}
 The packet format initialization sets up field offsets within packets
 used by the entire simulation.  It is described in more detail
@@ -60,23 +60,23 @@ An {\em event} generally comprises a ``firing time'' and a handler function.
 The actual definition of an event is found in \code{scheduler.h}:
 \begin{small}
 \begin{verbatim}
-	class Event { 
-	public: 
-		Event* next_;           /* event list */ 
-		Handler* handler_;      /* handler to call when event ready */
-		double time_;           /* time at which event is ready */
-		int uid_;               /* unique ID */
-		Event() : time_(0), uid_(0) {}
-	};   
-	/*   
-	 * The base class for all event handlers.  When an event's scheduled
-	 * time arrives, it is passed to handle which must consume it.
-	 * i.e., if it needs to be freed it, it must be freed by the handler.
-	 */  
-	class Handler {
-	 public: 
-		virtual void handle(Event* event) = 0;
-	};   
+        class Event { 
+        public: 
+                Event* next_;           /* event list */ 
+                Handler* handler_;      /* handler to call when event ready */
+                double time_;           /* time at which event is ready */
+                int uid_;               /* unique ID */
+                Event() : time_(0), uid_(0) {}
+        };   
+        /*   
+         * The base class for all event handlers.  When an event's scheduled
+         * time arrives, it is passed to handle which must consume it.
+         * i.e., if it needs to be freed it, it must be freed by the handler.
+         */  
+        class Handler {
+         public: 
+                virtual void handle(Event* event) = 0;
+        };   
 \end{verbatim}
 \end{small}
 
@@ -89,11 +89,11 @@ This is frequently used in simulation scripts.
 A simple example of how it is used is as follows:
 \begin{small}
 \begin{verbatim}
-	...
-	set ns_ [new Simulator]
-	$ns_ use-scheduler Heap
-	$ns_ at 300.5 "$self complete_sim"
-	...
+        ...
+        set ns_ [new Simulator]
+        $ns_ use-scheduler Heap
+        $ns_ at 300.5 "$self complete_sim"
+        ...
 \end{verbatim}
 \end{small}
 This tcl code fragment first creates a simulation object,
