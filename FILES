@@ -431,7 +431,6 @@ tcl/ex/newmcast/dense-mode1.tcl
 tcl/ex/newmcast/dense-mode2.tcl
 tcl/ex/newmcast/dense-mode3.tcl
 tcl/ex/newmcast/detailed-algo.tcl
-tcl/ex/newmcast/detailedDM.txt
 tcl/ex/newmcast/detailedDM1-nam.tcl
 tcl/ex/newmcast/detailedDM1.tcl
 tcl/ex/newmcast/detailedDM2-nam.tcl
@@ -440,7 +439,6 @@ tcl/ex/newmcast/loss.tcl
 tcl/ex/newmcast/mcast.txt
 tcl/ex/newmcast/mcast1.tcl
 tcl/ex/newmcast/mcast2-nam.tcl
-tcl/ex/newmcast/mcast2.tcl
 tcl/ex/newmcast/mcast3.tcl
 tcl/ex/newmcast/mix-mode1.tcl
 tcl/ex/newmcast/mix-mode2.tcl
@@ -533,7 +531,6 @@ tcl/ex/test-suite.tcl
 tcl/ex/test-tbf.tcl
 tcl/ex/tg.tcl
 tcl/ex/tg.txt
-tcl/ex/timer.tcl
 tcl/ex/topo-gen-script.tcl
 tcl/ex/topo-gen.tcl
 tcl/ex/topo-gen.txt
@@ -557,10 +554,8 @@ tcl/http/http-mult.tcl
 tcl/http/http-single.tcl
 tcl/http/http.tcl
 tcl/interface/ns-iface.tcl
-tcl/lan/ns-lan.tcl
 tcl/lan/ns-ll.tcl
 tcl/lan/ns-mac.tcl
-tcl/lan/ns-mlink.tcl
 tcl/lan/vlan.tcl
 tcl/lib/ns-address.tcl
 tcl/lib/ns-agent.tcl
@@ -588,13 +583,10 @@ tcl/lib/ns-trafficgen.tcl
 tcl/mcast/DM.tcl
 tcl/mcast/McastMonitor.tcl
 tcl/mcast/McastProto.tcl
-tcl/mcast/detailedDM.tcl
-tcl/mcast/dynamicDM.tcl
 tcl/mcast/mftp_rcv.tcl
 tcl/mcast/mftp_rcv_stat.tcl
 tcl/mcast/mftp_snd.tcl
 tcl/mcast/ns-mcast.tcl
-tcl/mcast/pimDM.tcl
 tcl/mcast/srm-adaptive.tcl
 tcl/mcast/srm-debug.tcl
 tcl/mcast/srm-nam.tcl
@@ -607,17 +599,9 @@ tcl/mobility/dsr.tcl
 tcl/mobility/scene/cbr-50-20-4-512
 tcl/mobility/scene/loopize
 tcl/mobility/scene/scen-670x670-50-600-20-2
-tcl/mobility/scene/scen-test
 tcl/nam-demo/nstonam.awk
 tcl/old/ns_default.tcl
 tcl/old/test-suite.tcl
-tcl/pim/pim-init.tcl
-tcl/pim/pim-messagers.tcl
-tcl/pim/pim-mfc.tcl
-tcl/pim/pim-mrt.tcl
-tcl/pim/pim-recvr.tcl
-tcl/pim/pim-sender.tcl
-tcl/pim/pim-vifs.tcl
 tcl/rlm/misc.tcl
 tcl/rlm/rlm-cmn.tcl
 tcl/rlm/rlm-ns.tcl
@@ -628,7 +612,6 @@ tcl/rtglib/dynamics.tcl
 tcl/rtglib/route-proto.tcl
 tcl/rtmechanisms/ArrivalRate.com
 tcl/rtmechanisms/Collapse.v2.tcl
-tcl/rtmechanisms/Collapseall.v2.tcl
 tcl/rtmechanisms/Diagonal1.com
 tcl/rtmechanisms/Diagonal2.com
 tcl/rtmechanisms/Diagonal3.com
@@ -724,7 +707,6 @@ tcl/test/test-all-srm
 tcl/test/test-all-tcp
 tcl/test/test-all-tcp-init-win
 tcl/test/test-all-tcpVariants
-tcl/test/test-all-tcpVariants2
 tcl/test/test-all-template1
 tcl/test/test-all-v1
 tcl/test/test-all-vc

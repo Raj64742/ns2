@@ -2506,7 +2506,7 @@ else
 fi
 
 
-TclCL_VERS=1.0b7
+TclCL_VERS=1.0b8
 TclCL_ALT_VERS=1.0
 
 TclCL_H_PLACES="\
