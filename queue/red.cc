@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.13 1997/06/12 22:58:00 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.14 1997/07/03 03:18:30 kfall Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -68,7 +68,7 @@ public:
 	}
 } class_red;
 
-REDQueue::REDQueue() : link_(NULL), bcount_(0), idle_(1), de_drop_(NULL)
+REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL), idle_(1)
 {
 	memset(&edp_, '\0', sizeof(edp_));
 	memset(&edv_, '\0', sizeof(edv_));
