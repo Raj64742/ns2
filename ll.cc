@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.21 1998/06/26 20:54:38 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.22 1998/08/03 19:55:33 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -126,7 +126,7 @@ Packet* LL::sendto(Packet* p, Handler* h)
 	sendtarget_->recv(p);
 	if (h) {
 		Scheduler& s = Scheduler::instance();
-		s.schedule(h, &intr_, txtime(p) - delay_);
+		s.schedule(h, &intr_, txtime(p));
 	}
 	return p;
 }
