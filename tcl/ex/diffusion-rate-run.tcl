@@ -11,8 +11,8 @@ set opt(ant)            Antenna/OmniAntenna
 
 set opt(ifqlen)		50	;# max packet in ifq
 set opt(seed)		0.0
-set opt(tr)		"out/wireless.tr"	;# trace file
-set opt(nam)            "out/wireless.nam"  ;# nam file
+set opt(tr)		"wireless.tr"	;# trace file
+set opt(nam)            "wireless.nam"  ;# nam file
 set opt(engmodel)       EnergyModel     ;
 set opt(txPower)        0.660;
 set opt(rxPower)        0.395;
@@ -28,8 +28,8 @@ set opt(prestop)        19       ;# time to prepare to stop
 
 
 set opt(god)            off
-set opt(traf)		"traffic/sk-30-3-3-1-1-6-64.tcl"      ;# traffic file
-set opt(topo)		"topo/wireless/scen-800x800-30-500-1.0-1"      ;# topology file
+set opt(traf)		"../test/sk-30-3-3-1-1-6-64.tcl"      ;# traffic file
+set opt(topo)		"../test/scen-800x800-30-500-1.0-1"   ;# topology file
 set opt(onoff)          ""      ;#node on-off
 set opt(adhocRouting)   DIFFUSION/RATE       
 set opt(enablePos)      "true";
@@ -41,11 +41,10 @@ set opt(posNodeType)    INTM;
 set opt(negWinType)     TIMER;
 set opt(negThrType)     ABSOLUTE;
 set opt(negMaxType)     FIXED;
-
+set opt(duplicate)      "enable-duplicate"
+set opt(suppression)    "true"
 
 # ======================================================================
-
-set ns_path             /usr/user/chalek/ns-allinone-2.1b5/ns-2.1b6-current
 
 LL set mindelay_		50us
 LL set delay_			25us
@@ -102,24 +101,6 @@ proc getopt {argc argv} {
 	}
 }
 
-proc log-energy {} {
-    global logenergytimer ns_ ns ns_path
-
-    set ns $ns_
-    source $ns_path/tcl/mobility/timer.tcl
-    Class LogEnergyTimer -superclass Timer
-    LogEnergyTimer instproc timeout {} {
-        global opt node_;
-        for {set i 0} {$i < $opt(nn)} {incr i} {
-            $node_($i) log-energy
-        }
-        $self sched 1
-    }
-
-    set logenergytimer [new LogEnergyTimer]
-    $logenergytimer sched 1
-}
-
 proc finish {} {
     global ns_ nf opt god_ node_
 
@@ -162,33 +143,10 @@ proc cmu-trace { ttype atype node } {
 	return $T
 }
 
-proc log-movement {} {
-    global logtimer ns_ ns ns_path
-
-    set ns $ns_
-    source $ns_path/tcl/mobility/timer.tcl
-    Class LogTimer -superclass Timer
-    LogTimer instproc timeout {} {
-	global opt node_;
-	for {set i 0} {$i < $opt(nn)} {incr i} {
-	    $node_($i) log-movement
-	}
-	$self sched 0.1
-    }
-
-    set logtimer [new LogTimer]
-    $logtimer sched 0.1
-}
-
-
 # ======================================================================
 # Main Program
 # ======================================================================
 getopt $argc $argv
-
-source $ns_path/tcl/lib/ns-bsnode.tcl
-source $ns_path/tcl/mobility/com.tcl
-source $ns_path/tcl/lib/ns-cmutrace.tcl
 
 # do the get opt again incase the routing protocol file added some more
 # options to look for
@@ -217,10 +175,6 @@ $ns_ color 5 tan
 $ns_ color 6 gold
 $ns_ color 7 black
 
-
-#set chan	[new $opt(chan)]
-#set prop	[new $opt(prop)]
-
 set topo	[new Topography]
 
 
@@ -237,13 +191,11 @@ if { $opt(tr) != ""} {
 
 $topo load_flatgrid $opt(x) $opt(y)
 
-#$prop topography $topo
-
 
 # Create God
 
 set god_ [create-god $opt(nn)]
-#$god_ on
+
 $god_ $opt(god)
 $god_ allow_to_stop
 $god_ num_data_types 1
@@ -253,15 +205,6 @@ $god_ num_data_types 1
 if { $opt(lm) == "on" } {
     log-movement
 }
-
-
-#
-# Create Diffusion Mobile Nodes
-#
-#
-#for {set i 0} {$i < $opt(nn) } {incr i} {
-#    diffusion-create-mobile-node $i
-#}
 
 
 #global node setting
