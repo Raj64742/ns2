@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.7 1997/03/28 20:31:04 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.8 1997/03/28 21:25:41 kfall Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -338,7 +338,7 @@ int REDQueue::drop_early(Packet* pkt)
 void REDQueue::enque(Packet* pkt)
 {
 	double now = Scheduler::instance().clock();
-	IPHeader *iph = IPHeader::access(pkt->bits());
+	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
 	int m;
         if (idle_) {
 		/* To account for the period when the queue was empty.  */

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.19 1997/03/28 20:25:00 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.20 1997/03/28 21:25:42 kfall Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -54,6 +54,15 @@ OldSim instproc init args {
 	# Catch queue-limit variable which is now "$q limit"
 	#
 	Queue/DropTail instproc set args {
+		if { [llength $args] == 2 &&
+			[lindex $args 0] == "queue-limit" } {
+			# this will recursively call ourself
+			$self set limit_ [lindex $args 1]
+			return
+		}
+		eval $self next $args
+	}
+	Queue/RED instproc set args {
 		if { [llength $args] == 2 &&
 			[lindex $args 0] == "queue-limit" } {
 			# this will recursively call ourself
@@ -170,7 +179,23 @@ OldSim instproc init args {
 		$self instvar file_
 		set file_ $f
 	}
+
+	#
+	# linkHelper
+	# backward compat for "[ns link $n1 $n2] set linkVar $value"
+	#
+	# unfortunately, 'linkVar' in ns-1 can be associated
+	# with a link (delay, bandwidth, generic queue requests) or
+	# can be specific to a particular queue (e.g. RED) which
+	# has a bunch of variables (see above).
+	#
 	Class linkHelper
+		# variables that are set on a queue object
+	linkHelper set queuevars_ "bytes concise thresh maxthresh \
+		mean_pktsize q_weight wait linterm setbit drop-tail \
+		doubleq dqthresh time_diff ave_diff queue-limit"
+		# variables that are set on a link object
+	linkHelper set linkvars_ "bandwidth delay"
 	linkHelper instproc init args {
 		$self next
 		$self instvar node1_ node2_ link_
@@ -183,22 +208,17 @@ OldSim instproc init args {
 		ns trace-queue $node1_ $node2_ [$traceObj set file_]
 	}
 
-	#
-	# backward compat for "[ns link $n1 $n2] set linkVar $value"
-	# where we only handle queue-limit, bandwidth and delay
-	# (in the new simulator queue-limit is limit)
-	#
 	linkHelper instproc set { var val } {
 		$self instvar link_
-		if { $var == "queue-limit" } {
+		linkHelper instvar queuevars_ linkvars_
+		set var [string trimright $var _]
+		if { [lsearch $queuevars_ $var] > 0 } {
 			set q [[ns set link_($link_)] queue]
-			$q set limit_ $val
-		} elseif { $var == "bandwidth"  || $var == "bandwidth_" } {
+			if { $var == "queue-limit" } { set var "limit" }
+			$q set ${var}_ $val
+		} elseif { [lsearch $linkvars_ $var] > 0 } {
 			set d [[ns set link_($link_)] link]
-			$d set bandwidth_ $val
-		} elseif { $var == "delay"  || $var == "delay_" } {
-			set d [[ns set link_($link_)] link]
-			$d set delay_ $val
+			$d set ${var}_ $val
 		}
 	}
 

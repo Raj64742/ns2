@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.18 1997/03/28 20:26:59 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.19 1997/03/28 21:25:43 kfall Exp $
 #
 
 #
@@ -101,14 +101,21 @@ Simulator instproc cancel args {
 Simulator instproc run args {
 	#$self compute-routes
 	eval RouteLogic configure $args
-	$self instvar scheduler_ Node_
+	$self instvar scheduler_ Node_ link_
 	#
 	# Reset every node, which resets every agent
 	#
 	foreach nn [array names Node_] {
 		$Node_($nn) reset
 	}
-	return [$scheduler_ run]
+        #
+        # also reset every queue
+        #
+        foreach qn [array names link_] {
+                set q [$link_($qn) queue]
+                $q reset
+        }
+        return [$scheduler_ run]
 }
 
 Simulator instproc simplex-link { n1 n2 bw delay type } {
