@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net.h,v 1.1 1997/05/14 00:42:12 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net.h,v 1.2 1997/05/14 02:47:29 mccanne Exp $ (LBL)
  */
 
 #ifndef vic_net_h
@@ -41,10 +41,6 @@
 #include "Tcl.h"
 #include "iohandler.h"
 #include "timer.h"
-
-struct pktbuf;
-
-class Crypt;
 
 /* win95 #define's this...*/
 #ifdef interface
@@ -57,7 +53,6 @@ class Network : public TclObject {
 	virtual ~Network();
 	virtual int command(int argc, const char*const* argv);
 	virtual void send(u_char* buf, int len);
-	virtual void send(const pktbuf*);
 	virtual int recv(u_char* buf, int len, u_int32_t& from);
 	inline int rchannel() const { return (rsock_); }
 	inline int schannel() const { return (ssock_); }
@@ -68,7 +63,6 @@ class Network : public TclObject {
 	inline int noloopback_broken() const { return (noloopback_broken_); }
 	virtual void reset();
 	static void nonblock(int fd);
-	inline Crypt* crypt() const { return (crypt_); }
     protected:
 	virtual void dosend(u_char* buf, int len, int fd);
 	virtual int dorecv(u_char* buf, int len, u_int32_t& from, int fd);
@@ -83,72 +77,8 @@ class Network : public TclObject {
 
 	int noloopback_broken_;
 	
-	Crypt* crypt_;
-
 	static u_char* wrkbuf_;
 	static int wrkbuflen_;
 	static void expand_wrkbuf(int len);
-	static int cpmsg(const pktbuf*);
 };
-
-class DataHandler;
-class CtrlHandler;
-
-class SessionHandler {
- public:
-	virtual void recv(DataHandler*) = 0;
-	virtual void recv(CtrlHandler*) = 0;
-	virtual void announce(CtrlHandler*) = 0;
-};
-
-class DataHandler : public IOHandler {
-    public:
-	DataHandler* next;
-	inline DataHandler() : next(0), sm_(0), net_(0) {}
-	virtual void dispatch(int mask);
-	inline Network* net() const { return (net_); }
-	virtual void net(Network* net) {
-		unlink();
-		net_ = net;
-		if (net != 0)
-			link(net->rchannel(), TCL_READABLE);
-	}
-	inline int recv(u_char* bp, int len, u_int32_t& addr) {
-		return (net_->recv(bp, len, addr));
-	}
-	inline void send(u_char* bp, int len) {
-		net_->send(bp, len);
-	}
-	inline void manager(SessionHandler* sm) { sm_ = sm; }
-    protected:
-	SessionHandler* sm_;
-	Network* net_;
-};
-
-/*
- * Parameters controling the RTCP report rate timer.
- */
-#define CTRL_SESSION_BW_FRACTION (0.05)
-#define CTRL_MIN_RPT_TIME (5.)
-#define CTRL_SENDER_BW_FRACTION (0.25)
-#define CTRL_RECEIVER_BW_FRACTION (1. - CTRL_SENDER_BW_FRACTION)
-#define CTRL_SIZE_GAIN (1./8.)
-
-class CtrlHandler : public DataHandler, public Timer {
-    public:
-	CtrlHandler();
-	virtual void dispatch(int mask);
-	virtual void net(Network* net);
-	virtual void timeout();
-	void adapt(int nsrc, int nrr, int we_sent);
-	void sample_size(int cc);
-	inline double rint() const { return (rint_); }
-	inline void bandwidth(double bw) { ctrl_inv_bw_ = 1 / bw; }
- protected:
-	void schedule_timer();
-	double ctrl_inv_bw_;
-	double ctrl_avg_size_;	/* (estimated) average size of ctrl packets */
-	double rint_;		/* current session report rate (in ms) */
-};
-
 #endif

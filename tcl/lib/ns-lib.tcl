@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.29 1997/05/13 22:27:57 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.30 1997/05/14 02:47:31 mccanne Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -87,6 +87,17 @@ Simulator instproc use-scheduler type {
 	$self instvar scheduler_
 	delete $scheduler_
 	set scheduler_ [new Scheduler/$type]
+	if { $type == "RealTime" } {
+		#
+		# allocate room for packet bodies but only
+		# if we use the real-time scheduler (otherwise,
+		# we would waste a tremendous amount of memory)
+		# XXX this implicitly creates a dependence between
+		# Scheduler/RealTime and Agent/Tap
+		#
+		$self instvar packetManager_
+		TclObject set off_tap_ [$packetManager_ allochdr Tap]
+	}
 }
 
 #

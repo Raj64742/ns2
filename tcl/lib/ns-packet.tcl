@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.3 1997/04/09 00:10:14 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.4 1997/05/14 02:47:31 mccanne Exp $
 #
 #
 # set up the packet format for the simulation
@@ -56,6 +56,7 @@ Simulator instproc create_packetformat { } {
 		set off [$pm allochdr $cl]
 		TclObject set $var $off
 	}
+	$self set packetManager_ $pm
 }
 
 PacketHeaderManager instproc allochdr cl {

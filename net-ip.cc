@@ -32,9 +32,11 @@
  * SUCH DAMAGE.
  */
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-ip.cc,v 1.1 1997/05/14 00:42:12 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-ip.cc,v 1.2 1997/05/14 02:47:27 mccanne Exp $ (LBL)";
 
 #include <stdio.h>
+#include <unistd.h>
+#include <time.h>
 #include <errno.h>
 #include <string.h>
 #ifdef WIN32

@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.66 1997/05/13 22:27:53 polly Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.67 1997/05/14 02:47:26 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>ns: Change History</h1>
@@ -16,18 +16,38 @@
 [PENDING RELEASE DATE]</h3>
 
 <ul>
+<li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
+<b>Tue May 13 17:44:34 PDT 1997</b><br>
+<ul>
+<li>Made changes to the scheduler (added <i>RealTimeScheduler</i>)
+to support real-time simulation for emulated network envinroments.
+This real-time extension works just like the normal scheduler but
+events are delayed until real-time catches up.  In particular,
+the scheduler "now" method returns the current simulated time
+rather than the current real time so any simulation CPU overhead
+is not reflected in event timing calculations.
+<li> Added objects to interface to external networks.
+	net.h, net.cc, and net-ip.cc modules came from mash/mbone tools.
+<li> Added hook in ns-lib.tcl to create tap header only if real-time
+	scheduler is specified.  This avoids unnecessary waste of
+	memory when not using tap agents.  We assume that taps
+	and real-time schedulers are used in tandem but haven't
+	added any code to verify this.
+</ul>
+
 <li><b><a href="http://www-scf.usc.edu/~bhuang">[PH]</a></b>
 <b>Tue May  13 15:30:00 PDT 1997</b><br>
-o. Seperated multicast protocol functionalities from MultiNode.
-Moved original multicast code tcl/lib/ns-mcast.tcl to tcl/mcast/*.tcl.<br>
-o. Added multi-access link module (tcl/lan/) and interface support 
-(tcl/interface/ and net-interface.cc). <br>
-o. Added detailed PIM code (tcl/pim in progress). <br>
+<ul>
+<li> Seperated multicast protocol functionalities from MultiNode.
+Moved original multicast code tcl/lib/ns-mcast.tcl to tcl/mcast/*.tcl.
+<li> Added multi-access link module (tcl/lan/) and interface support 
+(tcl/interface/ and net-interface.cc).
+<li> Added detailed PIM code (tcl/pim in progress).
 The above are codes ported from 
 <a href="http://www-scf.usc.edu/~ahelmy/">Ahmed A-G Helmy</a>'s development
 on top of ns-2.0a3.<br>
-o. Added centralized multicast tree computation modules (tcl/ctr-mcast).</li>
-<br>
+<li> Added centralized multicast tree computation modules (tcl/ctr-mcast).
+</ul>
 
 <li><b><a href="mailto:breslau@parc.xerox.com">[LB]</a></b>
 <b>Fri May  2 15:09:32 PDT 1997</b><br>
@@ -946,7 +966,7 @@ test-all-red, test-all-sack, and test-sack, in addition to test-all.
 </ul>
 
 <hr>
-<h3>v1.0a16 <i>Tue Dec 12 19:05:56 PST 1995</i> </h3>
+<h3>v1.0a16 Tue Dec 12 19:05:56 PST 1995</h3>
 <ul>
 
 <li>Added source code for sack-tcp.cc. 
@@ -954,7 +974,7 @@ test-all-red, test-all-sack, and test-sack, in addition to test-all.
 </ul>
 
 <hr>
-<h3>v1.0a15 <i>Tue Dec 12 17:52:32 PST 1995</i> </h3>
+<h3>v1.0a15 Tue Dec 12 17:52:32 PST 1995</h3>
 <ul>
 
 <li>First cut at adding code for "tcp-sack1" and "sack1-tcp-sink",
@@ -969,7 +989,7 @@ trace file.
 </ul>
 
 <hr>
-<h3>v1.0a14  <i>Fri Dec  1 10:35:30 PST 1995</i></h3>
+<h3>v1.0a14 Fri Dec  1 10:35:30 PST 1995</h3>
 <ul>
 
 <li>Finished port of TCP with selective acks, along with SACK
@@ -983,7 +1003,7 @@ purposes.
 </ul>
 
 <hr>
-<h3>v1.0a13  <i>Wed Nov 22 15:14:50 PST 1995</i></h3>
+<h3>v1.0a13 Wed Nov 22 15:14:50 PST 1995</h3>
 <ul>
 
 <li>Finished port of cbq code from tcpsim (with contributions from Michael 
@@ -1002,13 +1022,13 @@ modify routing desstructors during the callback.
 </ul>
 
 <hr>
-<h3>v1.0a12  <i>Sun Nov 5 21:19</i></h3>
+<h3>v1.0a12 Sun Nov 5 21:19</h3>
 <ul>
 <li>Added config.h and loss-monitor.cc to FILES so they get included in tar.
 </ul>
 
 <hr>
-<h3>v1.0a11  <i>Sun Nov 5 21:19</i></h3>
+<h3>v1.0a11 Sun Nov 5 21:19</h3>
 <ul>
 
 <li>Added loss-monitor agent, which is the same as a null-sink but calls
@@ -1027,7 +1047,7 @@ the old commands and the new "new/delete" interface.
 </ul>
 
 <hr>
-<h3>v1.0a10  <i>Fri Oct 27 17:44:39 PDT 1995</i></h3>
+<h3>v1.0a10 Fri Oct 27 17:44:39 PDT 1995</h3>
 <ul>
 
 <li>Added "flush" method to trace objects so that output can be
@@ -1042,7 +1062,7 @@ machinery.
 </ul>
 
 <hr>
-<h3>v1.0a10  <i>Fri Oct 27 17:44:39 PDT 1995</i></h3>
+<h3>v1.0a10 Fri Oct 27 17:44:39 PDT 1995</h3>
 <ul>
 
 <li>Fixed test-suite.tcl so that old awk works.  Problem reported
@@ -1054,7 +1074,7 @@ by <a href="mailto:kannan@catarina.usc.edu">Kannan Varadhan</a>.
 </ul>
 
 <hr>
-<h3>v1.0a9   <i>Wed Oct 11 16:58:00 PDT 1995</i></h3>
+<h3>v1.0a9 Wed Oct 11 16:58:00 PDT 1995</h3>
 <ul>
 
 <li>Fixed solaris compilation problems.
@@ -1064,7 +1084,7 @@ by <a href="mailto:kannan@catarina.usc.edu">Kannan Varadhan</a>.
 </ul>
 
 <hr>
-<h3>v1.0a8 <i>Fri Sep 29 15:11:04 PDT 1995</i></h3>
+<h3>v1.0a8 Fri Sep 29 15:11:04 PDT 1995</h3>
 <ul>
 
 <li>Fixed more for-stmt scope bugs.
@@ -1076,7 +1096,7 @@ Thierry Turletti</a>.
 </ul>
 	
 <hr>
-<h3>v1.0a7  <i>Wed Sep 27 19:55:23 PDT 1995</i></h3>
+<h3>v1.0a7 Wed Sep 27 19:55:23 PDT 1995</h3>
 <ul>
 
 <li>First public (alpha) release.
@@ -1088,7 +1108,7 @@ Thierry Turletti</a>.
 </ul>
 
 <hr>
-<h3>v1.0a6  <i>Sep 21 09:24 PDT 1995</i></h3>
+<h3>v1.0a6 Sep 21 09:24 PDT 1995</h3>
 <ul>
 
 <li>Added "bug-fix" hook to tcp reno.
@@ -1134,7 +1154,7 @@ Thierry Turletti</a>.
 </ul>
 
 <hr>
-<h3>v1.0a1 <i>Mon Jul 31 16:05:08 PDT 1995</i></h3>
+<h3>v1.0a1 Mon Jul 31 16:05:08 PDT 1995</h3>
 <ul>
 
 <li>Changed all references to random() to use Random class so we
