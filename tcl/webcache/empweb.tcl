@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.4 2001/06/14 21:37:16 kclan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.5 2001/06/28 06:22:54 kclan Exp $
 
 PagePool/EmpWebTraf set debug_ false
 PagePool/EmpWebTraf set TCPTYPE_ Reno
@@ -67,7 +67,7 @@ PagePool/EmpWebTraf instproc done-req { id clnt svr ctcp csnk stcp size } {
 	set ns [Simulator instance]
 
 	# modified to trace web traffic flows (recv request: client==>server).
-        puts "req - obj:$id clnt:[$clnt id] srv:[$svr id] [$ns now]"
+        #puts "req - obj:$id clnt:[$clnt id] srv:[$svr id] [$ns now]"
 	
 	# Recycle client-side TCP agents
 	$ns detach-agent $clnt $ctcp
@@ -78,7 +78,7 @@ PagePool/EmpWebTraf instproc done-req { id clnt svr ctcp csnk stcp size } {
 	#puts "recycled $ctcp $csnk"
 
 	# modified to trace web traffic flows (send responese: server->client).
-	puts "resp + obj:$id srv:[$svr id] clnt:[$clnt id] $size [$ns now]"
+	#puts "resp + obj:$id srv:[$svr id] clnt:[$clnt id] $size [$ns now]"
 	
 	# Advance $size packets
 	$stcp advanceby $size
@@ -158,7 +158,7 @@ PagePool/EmpWebTraf instproc launch-reqP { id clnt svr ctcp csnk stcp ssnk size 
 	$stcp proc done {} "$self done-respP $id $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
 	
 	# modified to trace web traffic flows (send request: client==>server).
-        puts "req + sess:$sid obj:$id clnt:[$clnt id] srv:[$svr id] $size [$ns now]"
+        #puts "req + sess:$sid obj:$id clnt:[$clnt id] srv:[$svr id] $size [$ns now]"
 
 	# Send request packets based on empirical distribution
 	$ctcp advanceby $reqSize
@@ -173,10 +173,10 @@ PagePool/EmpWebTraf instproc done-reqP { id clnt svr ctcp csnk stcp size sid} {
 	set ns [Simulator instance]
 
 	# modified to trace web traffic flows (recv request: client==>server).
-        puts "req - sess:$sid obj:$id clnt:[$clnt id] srv:[$svr id] [$ns now]"
+        #puts "req - sess:$sid obj:$id clnt:[$clnt id] srv:[$svr id] [$ns now]"
 	
 	# modified to trace web traffic flows (send responese: server->client).
-	puts "resp + obj:$id srv:[$svr id] clnt:[$clnt id] $size [$ns now]"
+	#puts "resp + obj:$id srv:[$svr id] clnt:[$clnt id] $size [$ns now]"
 	
 	# Advance $size packets
 	$stcp advanceby $size
@@ -212,7 +212,7 @@ PagePool/EmpWebTraf instproc first-launch-reqP { id clnt svr ctcp csnk stcp ssnk
 	$stcp proc done {} "$self done-respP $id $clnt $svr $stcp $ssnk $size [$ns now] [$stcp set fid_]"
 	
 	# modified to trace web traffic flows (send request: client==>server).
-        puts "req + sess:$sid obj:$id clnt:[$clnt id] srv:[$svr id] $size [$ns now]"
+        #puts "req + sess:$sid obj:$id clnt:[$clnt id] srv:[$svr id] $size [$ns now]"
 
 	# Send request packets based on empirical distribution
 	$ctcp advanceby $reqSize
