@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.11 1998/07/06 21:57:26 sfloyd Exp $
+# $Id: many_tcp.tcl,v 1.12 1998/07/06 23:09:10 sfloyd Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -149,6 +149,8 @@ set raw_opt_info {
 	# OUTPUT OPTIONS:
 	#
 	graph-results 0
+	# Set graph-scale to 2 for "rows" for each flow.
+	graph-scale 1
 	graph-join-queueing 1
 	gen-map 0
 	mem-trace 0
@@ -290,7 +292,7 @@ Main instproc init_network {} {
 # create a new pair of end nodes
 Main instproc create_client_nodes {node} {
 	global opts 
-	$self instvar bottle_l_ bottle_r_ cs_l_ cs_r_ sources_1_ cs_count_ ns_ rng_
+	$self instvar bottle_l_ bottle_r_ cs_l_ cs_r_ sources_ cs_count_ ns_ rng_
 
 	set now [$ns_ now]
 	set cs_l_($node) [$ns_ node]
@@ -320,10 +322,21 @@ Main instproc create_client_nodes {node} {
 	}
 }
 
+# Get the number of the node pair
+Main instproc get_node_number { client_number } {
+        global opts
+        if {$opts(node-number) > 0} {
+                set node [expr $client_number % $opts(node-number)]
+        } else {
+                set node $client_number
+        }
+        return $node
+}
+
 # return the client index
 Main instproc create_a_client {} {
 	global opts
-	$self instvar cs_l_ cs_r_ sources_1_ cs_count_ ns_ rng_
+	$self instvar cs_l_ cs_r_ sources_ cs_count_ ns_ rng_
 
 	# Get the client number for the new client.
 	set now [$ns_ now]
@@ -339,7 +352,7 @@ Main instproc create_a_client {} {
 		if {$node < $opts(node-number) } {
 			$self create_client_nodes $node
 		} else {
-			set node [expr $i % $opts(node-number)]
+			set node [$self get_node_number $i]
 		}
 	} else {
 		$self create_client_nodes $node
@@ -351,15 +364,15 @@ Main instproc create_a_client {} {
 	# create sources and sinks in both directions
 	# (actually, only one source per connection, for now)
 	if {[$rng_ integer 100] < $opts(client-reverse-chance)} {
-		set sources_1_($i) [$ns_ create-connection $opts(source-tcp-method) $cs_r_($node) $opts(sink-ack-method) $cs_l_($node) $i]
+		set sources_($i) [$ns_ create-connection-list $opts(source-tcp-method) $cs_r_($node) $opts(sink-ack-method) $cs_l_($node) $i]
 	} else {
-		set sources_1_($i) [$ns_ create-connection $opts(source-tcp-method) $cs_l_($node) $opts(sink-ack-method) $cs_r_($node) $i]
+		set sources_($i) [$ns_ create-connection-list $opts(source-tcp-method) $cs_l_($node) $opts(sink-ack-method) $cs_r_($node) $i]
 	}
-	$sources_1_($i) set maxpkts_ 0
-	$sources_1_($i) set packetSize_ $opts(client-pkt-size)
+	[lindex $sources_($i) 0] set maxpkts_ 0
+	[lindex $sources_($i) 0] set packetSize_ $opts(client-pkt-size)
 
 	# Set up a callback when this client ends.
-	$sources_1_($i) proc done {} "$self finish_a_client $i"
+	[lindex $sources_($i) 0] proc done {} "$self finish_a_client $i"
 
 	if {$opts(debug)} {
 		# puts "t=[$ns_ now]: client $i created"
@@ -398,7 +411,7 @@ Main instproc create_some_clients {} {
 
 Main instproc start_a_client {} {
 	global opts
-	$self instvar idle_clients_ ns_ sources_1_ rng_ source_start_ source_size_ clients_started_
+	$self instvar idle_clients_ ns_ sources_ rng_ source_start_ source_size_ clients_started_
 
 	set i ""
 	set now [$ns_ now]
@@ -412,6 +425,9 @@ Main instproc start_a_client {} {
 	set i [lindex $idle_clients_ 0]
 	set idle_clients_ [lrange $idle_clients_ 1 end]
 
+	# Reset the connection.
+	[lindex $sources_($i) 0] reset
+	[lindex $sources_($i) 1] reset 
 
 	# Start traffic for that client.
 	if {[$rng_ integer 100] < $opts(client-mouse-chance)} {
@@ -420,12 +436,12 @@ Main instproc start_a_client {} {
 		set len $opts(client-elephant-packets)
 	}
 
-	$sources_1_($i) advanceby $len
-
+	[lindex $sources_($i) 0] advanceby $len
 	set source_start_($i) $now
 	set source_size_($i) $len
+
 	if {$opts(debug)} {
-#		puts "t=[$ns_ now]: client $i started, ldelay=[format %.6f $ldelay], rdelay=[format %.6f $rdelay]"
+		 # puts "t=[$ns_ now]: client $i started, ldelay=[format %.6f $ldelay], rdelay=[format %.6f $rdelay]"
 		puts "t=[format %.3f $now]: client $i started"
 	}
 	incr clients_started_
@@ -507,6 +523,10 @@ Main instproc finish {} {
 	}
         if {$opts(trace-filename) != "none"} {
 		set title $opts(title)
+                set flow_factor 1
+                if {$opts(graph-scale) == "2"} {
+                        set flow_factor 100
+                }
 		# Make sure that we run in place even without raw2xg in our path
 		# (for the test suites).
 		set raw2xg raw2xg
@@ -515,10 +535,10 @@ Main instproc finish {} {
 		}
 		if {$opts(graph-results)} {
 			if {$opts(graph-join-queueing)} {
-				exec $raw2xg -a -q < $trace_filename_.tr >$trace_filename_.xg
+				exec $raw2xg -a -q -n $flow_factor < $trace_filename_.tr >$trace_filename_.xg
 				exec xgraph -t $title  < $trace_filename_.xg &
 			} else {
-				exec $raw2xg -a < $trace_filename_.tr >$trace_filename_.xg
+				exec $raw2xg -a -n $flow_factor < $trace_filename_.tr >$trace_filename_.xg
 				exec xgraph -tk -nl -m -bb -t $title < $trace_filename_.xg &
 			}
 		}
