@@ -3,7 +3,7 @@
 #	unfriendly, unresponsive and high-bw flows
 #
 
-RTMechanisms instproc init { ns cbqlink rtt mtu } { 
+RTMechanisms instproc init { ns cbqlink rtt mtu enable } { 
         $self instvar Safety_factor_
         $self instvar Max_cbw_  
         $self instvar Maxallot_
@@ -50,7 +50,11 @@ RTMechanisms instproc init { ns cbqlink rtt mtu } {
 #       set High_const_ 1200000
 
 	# don't schedule reward initially;  nobody in pbox yet
-	$self sched-detect
+	if { $enable == "true" || $enable == 1 } {
+		$self sched-detect
+	} else {
+		puts stderr "(router mechanisms disabled)"
+	}
 }      
 
 RTMechanisms instproc test_friendly { flow_bw ref_bw } {
