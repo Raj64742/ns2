@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.h,v 1.3 1999/10/23 23:33:55 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.h,v 1.4 1999/10/26 17:35:09 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -44,7 +44,6 @@
 #include <stdlib.h>
 #include "object.h"
 #include "assert.h"
-#include "sat.h"
 
 class LinkHandoffMgr;
 class SatChannel;

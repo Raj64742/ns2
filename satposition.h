@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.h,v 1.6 1999/09/18 00:26:19 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.h,v 1.7 1999/10/26 17:35:10 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -45,20 +45,20 @@
 #include <node.h>
 #include <stdlib.h>
 #include "object.h"
-#include "sat.h"
+#include "satgeometry.h"
+
+// Position types
+#define POSITION_SAT 1
+#define POSITION_SAT_POLAR 2
+#define POSITION_SAT_GEO 3
+#define POSITION_SAT_TERM 4
 
 class SatPosition : public TclObject {
  public:
 	SatPosition();
 	int type() { return type_; }
 	Node* node() { return node_; }
-	virtual coordinate getCoordinate() = 0; 
-	virtual double get_latitude() = 0;
-	virtual double get_longitude() = 0;
-	static double distance(SatPosition*, SatPosition*);
-	double propdelay(SatPosition*);
-	static void spherical_to_cartesian(double, double, double,
-	    double &, double &, double &);
+	virtual coordinate coord() = 0; 
 
 	// configuration parameters
 	static double time_advance_;
@@ -73,11 +73,8 @@ class PolarSatPosition : public SatPosition {
  public:
 	PolarSatPosition(double = 1000, double = 90, double = 0, double = 0, 
             double = 0);
-	virtual coordinate getCoordinate();
+	virtual coordinate coord();
 	void set(double Altitude, double Lon, double Alpha, double inclination=90); 
-	virtual double get_latitude(); 
-	virtual double get_longitude(); 
-	double get_altitude() { return initial_.r; }
 	PolarSatPosition* next() { return next_; }
 	int plane() { return plane_; }
 
@@ -93,20 +90,16 @@ class PolarSatPosition : public SatPosition {
 class GeoSatPosition : public SatPosition {
  public:
 	GeoSatPosition(double longitude = 0);
-	virtual coordinate getCoordinate();
+	virtual coordinate coord();
 	void set(double longitude); 
-	virtual double get_latitude() { return 0; } 
-	virtual double get_longitude(); 
  protected:
 };
 
 class TermSatPosition : public SatPosition {
  public:
 	TermSatPosition(double = 0, double = 0);
-	virtual coordinate getCoordinate();
+	virtual coordinate coord();
 	void set(double latitude, double longitude);
-	virtual double get_latitude(); 
-	virtual double get_longitude(); 
  protected:
 };
 

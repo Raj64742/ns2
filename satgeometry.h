@@ -31,15 +31,17 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sat.h,v 1.4 1999/09/18 00:26:17 haoboy Exp $
+ * @(#) $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
 
-#ifndef __ns_sat_h__
-#define __ns_sat_h__
+#ifndef __ns_sat_geometry_h__
+#define __ns_sat_geometry_h__
 
 #include <math.h>
+#include <trace.h>
+#include "object.h"
 
 // Various constants
 #define PI 3.1415926535897
@@ -48,32 +50,12 @@
 #define EARTH_PERIOD 86164 // seconds
 #define EARTH_RADIUS 6378  // km
 #define GEO_ALTITUDE 35786 // km
+#define ATMOS_MARGIN 150 // km
 
 #define DEG_TO_RAD(x) ((x) * PI/180)
 #define RAD_TO_DEG(x) ((x) * 180/PI)
 #define DISTANCE(s_x, s_y, s_z, e_x, e_y, e_z) (sqrt((s_x - e_x) * (s_x - e_x) \
                 + (s_y - e_y) * (s_y - e_y) + (s_z - e_z) * (s_z - e_z)))
-
-// Link types
-#define LINK_GENERIC 1
-#define LINK_GSL_GEO 2 
-#define LINK_GSL_POLAR 3 
-#define LINK_GSL_REPEATER 4 
-#define LINK_GSL 5 
-#define LINK_ISL_INTRAPLANE 6 
-#define LINK_ISL_INTERPLANE 7 
-#define LINK_ISL_CROSSSEAM 8 
-
-// Position types
-#define POSITION_SAT 1
-#define POSITION_SAT_POLAR 2
-#define POSITION_SAT_GEO 3 
-#define POSITION_SAT_TERM 4 
-
-// Handoff manager types
-#define LINKHANDOFFMGR_SAT 1
-#define LINKHANDOFFMGR_TERM 2
-
 
 struct coordinate {
         double r;        // km
@@ -85,4 +67,23 @@ struct coordinate {
         // z = rcos(theta)
 };
 
-#endif // __ns_sat_h__
+// Library of routines involving satellite geometry
+class SatGeometry : public TclObject {
+public:
+	SatGeometry() { printf("Started\n");}
+	static double distance(coordinate, coordinate);              
+	static void spherical_to_cartesian(double, double, double,
+	    double &, double &, double &);
+	static double propdelay(coordinate, coordinate);
+	static double get_latitude(coordinate);
+	static double get_longitude(coordinate);
+	static double get_altitude(coordinate a) { return a.r; }
+	static double check_elevation(coordinate, coordinate, double);
+	static int check_atmos_margin(coordinate, coordinate);
+
+protected: 
+	// Define "command" appropriately if you want OTcl access to this class
+        int command(int argc, const char*const* argv) {}
+};
+
+#endif // __ns_sat_geometry_h__

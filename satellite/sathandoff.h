@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.h,v 1.4 1999/10/23 23:33:53 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.h,v 1.5 1999/10/26 17:35:06 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -42,8 +42,11 @@
 #include "timer-handler.h"
 #include "rng.h"
 #include "node.h"
-#include "math.h"
-#include "sat.h"
+#include <math.h>
+
+// Handoff manager types
+#define LINKHANDOFFMGR_SAT 1
+#define LINKHANDOFFMGR_TERM 2
 
 
 class TermLinkHandoffMgr;
@@ -83,7 +86,6 @@ protected:
 	//
 	// The remaining functions are helper functions for handoff
 	//
-	double distance(coordinate, coordinate);
 	SatLinkHead* get_peer_next_linkhead(SatNode*);
 	SatLinkHead* get_peer_linkhead(SatLinkHead*);
 };
@@ -104,7 +106,6 @@ public:
 	TermLinkHandoffMgr();
 	int handoff();
 protected:
-	double check_elevation(coordinate, coordinate);
 	TermHandoffTimer timer_;
 	static double elevation_mask_;
 	static int term_handoff_int_;

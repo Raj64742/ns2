@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.5 1999/10/19 05:07:56 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.6 1999/10/26 17:35:07 tomh Exp $";
 #endif
 
 #include "random.h"
@@ -45,6 +45,8 @@ static const char rcsid[] =
 #include "satroute.h"
 #include "satposition.h"
 #include "satnode.h"
+#include "satgeometry.h"
+#include <math.h>
 
 
 static class LinkHandoffMgrClass : public TclClass {
@@ -105,20 +107,6 @@ int LinkHandoffMgr::command(int argc, const char*const* argv)
 		}
 	}
 	return (TclObject::command(argc, argv));
-}
-
-// Helper function-- returns the distance between points a and b
-double LinkHandoffMgr::distance(coordinate a, coordinate b)
-{
-        double a_x, a_y, a_z, b_x, b_y, b_z;     // cartesian
-        a_x = a.r * sin(a.theta) * cos (a.phi);
-        a_y = a.r * sin(a.theta) * sin (a.phi);
-        a_z = a.r * cos(a.theta);
-        b_x = b.r * sin(b.theta) * cos (b.phi);
-        b_y = b.r * sin(b.theta) * sin (b.phi);
-        b_z = b.r * cos(b.theta);
-        return (DISTANCE(a_x, a_y, a_z, b_x, b_y, b_z));
-
 }
 
 // Each crossseam satellite will have two net stacks-- at most one will
@@ -205,29 +193,6 @@ TermLinkHandoffMgr::TermLinkHandoffMgr() : timer_(this)
 	bind("term_handoff_int_", &term_handoff_int_);
 }
 
-// Returns with the elevation (in radians) if above the elevation mask
-// Zero otherwise
-double TermLinkHandoffMgr::check_elevation(coordinate satellite,
-    coordinate terminal)
-{
-
-	double elev_mask_ = DEG_TO_RAD(TermLinkHandoffMgr::elevation_mask_);
-	double S = satellite.r;  // satellite radius
-	double S_2 = satellite.r * satellite.r;  // satellite radius^2
-	double E = EARTH_RADIUS;
-	double E_2 = E * E;
-	double d, theta, alpha;
-
-	d = distance(satellite, terminal);
-	if (d < sqrt(S_2 - E_2)) {
-		// elevation angle > 0
-		theta = acos((E_2+S_2-(d*d))/(2*E*S));
-		alpha = acos(sin(theta) * S/d);
-		return ( (alpha > elev_mask_) ? alpha : 0);
-	} else
-		return 0;
-}
-
 // 
 // This is called each time the node checks to see if its link to a
 // polar satellite needs to be handed off.  
@@ -246,10 +211,11 @@ int TermLinkHandoffMgr::handoff()
 	PolarSatPosition *nextpos_;
 	int link_changes_flag_ = FALSE; // Flag indicating change took place 
 	int restart_timer_flag_ = FALSE; // Restart timer only if polar links
-	double found_flag_ = 0;  //``Flag'' indicates whether handoff can occur 
-	double best_found_flag_ = 0; 
+	double found_elev_ = 0;  //``Flag'' indicates whether handoff can occur 
+	double best_found_elev_ = 0; 
+	double mask_ = DEG_TO_RAD(TermLinkHandoffMgr::elevation_mask_);
 
-	earth_coord = ((SatNode *)node_)->position()->getCoordinate();
+	earth_coord = ((SatNode *)node_)->position()->coord();
 	// Traverse the linked list of link interfaces
 	for (slhp = (SatLinkHead*) node_->linklisthead_.lh_first; slhp; 
 	    slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
@@ -266,9 +232,9 @@ int TermLinkHandoffMgr::handoff()
 		restart_timer_flag_ = TRUE;
 		peer_ = get_peer(slhp);
 		if (peer_) {
-			sat_coord = peer_->position()->getCoordinate();
-			if (!check_elevation(sat_coord, earth_coord) &&
-			    slhp->linkup_) {
+			sat_coord = peer_->position()->coord();
+			if (!SatGeometry::check_elevation(sat_coord, 
+			    earth_coord, mask_) && slhp->linkup_) {
 				slhp->linkup_ = FALSE;
 				link_changes_flag_ = TRUE;
 				// Detach receive link interface from channel
@@ -290,14 +256,13 @@ int TermLinkHandoffMgr::handoff()
 				nextpos_ = ((PolarSatPosition*) 
 				    peer_->position())->next();
 				if (nextpos_) {
-					sat_coord = nextpos_->getCoordinate();
-					found_flag_ = 
-					check_elevation(sat_coord, earth_coord);
+					sat_coord = nextpos_->coord();
+					found_elev_ = SatGeometry::check_elevation(sat_coord, earth_coord, mask_);
 					peer_ = (SatNode*) nextpos_->node();
 				}
 			}
 			// Next, check all remaining satellites if not found
-			if (!found_flag_) {
+			if (!found_elev_) {
 				for (nodep=Node::nodehead_.lh_first; nodep;
 				    nodep = nodep->nextnode()) {
 					peer_ = (SatNode*) nodep;
@@ -306,21 +271,19 @@ int TermLinkHandoffMgr::handoff()
 					    POSITION_SAT_POLAR))
 						    continue;
 					sat_coord = 
-					    peer_->position()->getCoordinate();
-					found_flag_ = 
-					    check_elevation(sat_coord, 
-					    earth_coord);
-					if (found_flag_ > best_found_flag_) {
+					    peer_->position()->coord();
+					found_elev_ = SatGeometry::check_elevation(sat_coord, earth_coord, mask_);
+					if (found_elev_ > best_found_elev_) {
 					    best_peer_ = peer_;
-					    best_found_flag_ = found_flag_;
+					    best_found_elev_ = found_elev_;
 					}
 				}
-				if (best_found_flag_) {
+				if (best_found_elev_) {
 					peer_ = best_peer_;
-					found_flag_ = best_found_flag_;
+					found_elev_ = best_found_elev_;
 				}
 			}
-			if (found_flag_) {
+			if (found_elev_) {
 				slhp->linkup_ = TRUE;
 				link_changes_flag_ = TRUE;
 				// Point slhp->phy_tx to peer_'s inlink
@@ -382,36 +345,38 @@ int SatLinkHandoffMgr::handoff()
 	double dist_to_peer, dist_to_next;
 	Channel *tx_channel_, *rx_channel_;
 	double sat_latitude_, sat_longitude_, peer_latitude_, peer_longitude_;	
-	int low_lat_flag_, peer_low_lat_flag_;
+	int link_down_flag_;
 	double lat_threshold_ = DEG_TO_RAD(latitude_threshold_);
 	double cross_long_threshold_ = DEG_TO_RAD(longitude_threshold_);	
 	int link_changes_flag_ = FALSE; // Flag indicating change took place 
-	int longitude_shutdown_;
+	coordinate local_coord_, peer_coord_;
 
 	local_ = (SatNode*) node_;
-	sat_latitude_ = local_->position()->get_latitude();
-	sat_longitude_ = local_->position()->get_longitude();
-	if (fabs(sat_latitude_) < lat_threshold_)
-		low_lat_flag_ = TRUE; 
-	else
-		low_lat_flag_ = FALSE;
+	local_coord_ = local_->position()->coord();
+	sat_latitude_ = SatGeometry::get_latitude(local_->position()->coord());
+	sat_longitude_= SatGeometry::get_longitude(local_->position()->coord());
 
 	// First go through crossseam ISLs to search for handoffs
 	for (slhp = (SatLinkHead*) local_->linklisthead_.lh_first; slhp; 
 	    slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
 		if (slhp->type() != LINK_ISL_CROSSSEAM)  
 			continue;
-		pos_ = (PolarSatPosition*)slhp->node()->position(); 
+		peer_ = get_peer(slhp);
+		if (peer_ == 0)
+			continue; // this link interface is not attached
 		// If this is a crossseam link, first see if the link must 
 		// be physically handed off to the next satellite.
 		// Handoff is needed if the satellite at the other end of
 		// the link is further away than the ``next'' satellite
 		// in the peer's orbital plane.
-		peer_ = get_peer(slhp);
-		if (peer_ == 0)
-			continue; // this link interface is not attached
+		pos_ = (PolarSatPosition*)slhp->node()->position(); 
 		peer_slhp = get_peer_linkhead(slhp);
 		peer_pos_ = (PolarSatPosition*) peer_->position();
+		peer_coord_ = peer_pos_->coord();
+		if (fabs(sat_latitude_) > lat_threshold_)
+			link_down_flag_ = TRUE;
+		else
+			link_down_flag_ = FALSE;
 		if (peer_pos_->plane() < pos_->plane()) {
 			// Crossseam handoff is controlled by satellites
 			// in the plane with a lower index
@@ -424,11 +389,9 @@ int SatLinkHandoffMgr::handoff()
 			exit(1);
 		}
 		peer_next_ = (SatNode*) peer_next_pos_->node();
-		dist_to_peer = SatPosition::distance((SatPosition*) peer_pos_,
-		    local_->position()); 
-		dist_to_next = 
-		    SatPosition::distance((SatPosition*) peer_next_pos_,
-		    local_->position()); 
+		dist_to_peer = SatGeometry::distance(peer_coord_, local_coord_);
+		dist_to_next = SatGeometry::distance(peer_next_pos_->coord(), 
+		    local_coord_); 
 		if (dist_to_next < dist_to_peer) {
 			// Handoff -- the "next" satellite should have a 
 			// currently unused network stack.  Find this 
@@ -449,34 +412,32 @@ int SatLinkHandoffMgr::handoff()
 			// Now reset the peer_ variables to point to next
 			peer_ = peer_next_;
 			peer_slhp = peer_next_slhp;
+			peer_coord_ = peer_->position()->coord();
 		}
 		// Next, see if the link needs to be taken down.
-		peer_latitude_ = peer_->position()->get_latitude();
-		peer_longitude_ = peer_->position()->get_longitude();
-		if (fabs(peer_latitude_) < lat_threshold_)
-			peer_low_lat_flag_ = TRUE; 
-		else
-			peer_low_lat_flag_ = FALSE;
+		peer_latitude_ = 
+		    SatGeometry::get_latitude(peer_coord_);
+		peer_longitude_ = SatGeometry::get_longitude(peer_coord_);
+		if (fabs(peer_latitude_) > lat_threshold_)
+			link_down_flag_ = TRUE;
 		// If the two satellites are too close to each other in
 		// longitude, the link should be down
 		if ((fabs(peer_longitude_ - sat_longitude_) <
 		    cross_long_threshold_) ||
 		    fabs(peer_longitude_ - sat_longitude_) >
 		    (2 * PI - cross_long_threshold_))
-			longitude_shutdown_ = 1;
-		else
-			longitude_shutdown_ = 0;
-
+			link_down_flag_ = TRUE;
+		// Check to see if link grazes atmosphere at an altitude
+		// below the atmospheric margin
+		link_down_flag_ |= SatGeometry::check_atmos_margin(peer_coord_,
+		    local_coord_);
 		// Evaluate whether a change in link status is needed
-		if ((slhp->linkup_ || peer_slhp->linkup_) && 
-		    (!low_lat_flag_ || !peer_low_lat_flag_ || 
-		    longitude_shutdown_)) {
+		if ((slhp->linkup_ || peer_slhp->linkup_) && link_down_flag_) {
 			slhp->linkup_ = FALSE;
 			peer_slhp->linkup_ = FALSE;
 			link_changes_flag_ = TRUE;
 		} else if ((!slhp->linkup_  || !peer_slhp->linkup_) && 
-		    (low_lat_flag_ && peer_low_lat_flag_ &&
-		    !longitude_shutdown_)) {
+		    !link_down_flag_) {
 			slhp->linkup_ = TRUE;
 			peer_slhp->linkup_ = TRUE;
 			link_changes_flag_ = TRUE;
@@ -490,20 +451,24 @@ int SatLinkHandoffMgr::handoff()
 	    slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
 		if (slhp->type() != LINK_ISL_INTERPLANE)  
 			continue;
+		if (fabs(sat_latitude_) > lat_threshold_)
+			link_down_flag_ = TRUE;
+		else
+			link_down_flag_ = FALSE;
 		peer_ = get_peer(slhp);
 		peer_slhp = get_peer_linkhead(slhp);
-		peer_latitude_ = peer_->position()->get_latitude();
-		if (fabs(peer_latitude_) < lat_threshold_)
-			peer_low_lat_flag_ = TRUE; 
-		else
-			peer_low_lat_flag_ = FALSE;
-		if (slhp->linkup_ && (!low_lat_flag_ || !peer_low_lat_flag_)) {
+		peer_coord_ = peer_->position()->coord();
+		peer_latitude_ = SatGeometry::get_latitude(peer_coord_);
+		if (fabs(peer_latitude_) > lat_threshold_)
+			link_down_flag_ = TRUE;
+		link_down_flag_ |= SatGeometry::check_atmos_margin(peer_coord_,
+		    local_coord_);
+		if (slhp->linkup_ && link_down_flag_) {
 			// Take links down if either satellite at high latitude
 			slhp->linkup_ = FALSE;
 			peer_slhp->linkup_ = FALSE;
 			link_changes_flag_ = TRUE;
-		} else if (!slhp->linkup_ && 
-		    (low_lat_flag_ && peer_low_lat_flag_)) {
+		} else if (!slhp->linkup_ && !link_down_flag_) {
 			slhp->linkup_ = TRUE;
 			peer_slhp->linkup_ = TRUE;
 			link_changes_flag_ = TRUE;
@@ -520,3 +485,4 @@ int SatLinkHandoffMgr::handoff()
 		timer_.resched(sat_handoff_int_);
 	return link_changes_flag_;
 }
+

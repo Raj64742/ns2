@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.h,v 1.1 1999/06/21 18:28:49 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.h,v 1.2 1999/10/26 17:35:11 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -42,7 +42,6 @@
 #include <agent.h>
 #include "route.h"
 #include "node.h"
-#include "sat.h"
 
 #define ROUTER_PORT      0xff
 

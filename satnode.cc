@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satnode.cc,v 1.3 1999/10/23 23:33:55 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satnode.cc,v 1.4 1999/10/26 17:35:09 tomh Exp $";
 #endif
 
 #include "satnode.h"
@@ -158,8 +158,8 @@ void SatNode::dumpSats()
 		// XXX Need check to see if node is a SatNode
 		sposp = snodep->position();
                 printf("%d\t%.2f\t%.2f\n", snodep->address(), 
-		    180*sposp->get_latitude()/PI, 
-		    180*sposp->get_longitude()/PI);
+		    (180/PI) * SatGeometry::get_latitude(sposp->coord()), 
+		    (180*PI) * SatGeometry::get_longitude(sposp->coord()));
 	}
         printf("\n");
         // Dump satellite links
@@ -184,10 +184,10 @@ void SatNode::dumpSats()
 				continue; // this link interface is not attached
 			peer_sposp = peer_snodep->position();
                         printf("%.2f\t%.2f\t%.2f\t%.2f\n", 
-			    180*sposp->get_latitude()/PI,
-			    180*sposp->get_longitude()/PI,
-			    180*peer_sposp->get_latitude()/PI,
-			    180*peer_sposp->get_longitude()/PI);
+			    (180/PI)*SatGeometry::get_latitude(sposp->coord()),
+			    (180*PI)*SatGeometry::get_longitude(sposp->coord()),
+			    (180/PI)*SatGeometry::get_latitude(peer_sposp->coord()), 
+			    (180/PI)*SatGeometry::get_longitude(peer_sposp->coord()));
 		}
 	}
 }

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.7 1999/10/14 22:19:28 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.8 1999/10/26 17:35:08 tomh Exp $";
 #endif
 
 /*
@@ -51,6 +51,7 @@ static const char rcsid[] =
 #include "satlink.h"
 #include "sattrace.h"
 #include "satposition.h"
+#include "satgeometry.h"
 #include "satnode.h"
 #include "errmodel.h"
 
@@ -588,10 +589,9 @@ SatChannel::SatChannel(void) : Channel() {
 double
 SatChannel::get_pdelay(Node* tnode, Node* rnode)
 {
-	SatNode* tmnode = (SatNode*)tnode;
-	SatNode* rmnode = (SatNode*)rnode;
-	double propdelay = tmnode->position()->propdelay(rmnode->position());
-	return propdelay;
+	coordinate a = ((SatNode*)tnode)->position()->coord();
+	coordinate b = ((SatNode*)rnode)->position()->coord();
+	return (SatGeometry::propdelay(a, b));
 }
 
 // This is a helper function that attaches a SatChannel to a Phy

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.h,v 1.3 1999/06/25 20:48:16 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.h,v 1.4 1999/10/26 17:35:08 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -45,9 +45,18 @@
 #include "queue.h"
 #include "net-interface.h"
 #include "timer-handler.h"
-#include "sat.h"
 
 #define LINK_HDRSIZE 16 
+
+// Link types
+#define LINK_GENERIC 1
+#define LINK_GSL_GEO 2
+#define LINK_GSL_POLAR 3
+#define LINK_GSL_REPEATER 4
+#define LINK_GSL 5  
+#define LINK_ISL_INTRAPLANE 6
+#define LINK_ISL_INTERPLANE 7
+#define LINK_ISL_CROSSSEAM 8 
 
 class SatLinkHead;
 

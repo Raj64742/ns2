@@ -31,84 +31,59 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sathandoff.h,v 1.5 1999/10/26 17:35:06 tomh Exp $
+ * @(#) $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
 
-#ifndef ns_sathandoff_h
-#define ns_sathandoff_h 
+#ifndef __ns_sat_geometry_h__
+#define __ns_sat_geometry_h__
 
-#include "timer-handler.h"
-#include "rng.h"
-#include "node.h"
 #include <math.h>
+#include <trace.h>
+#include "object.h"
 
-// Handoff manager types
-#define LINKHANDOFFMGR_SAT 1
-#define LINKHANDOFFMGR_TERM 2
+// Various constants
+#define PI 3.1415926535897
+#define MU 398601.2 // Greek Mu (km^3/s^2)
+#define LIGHT 299793 // km/s
+#define EARTH_PERIOD 86164 // seconds
+#define EARTH_RADIUS 6378  // km
+#define GEO_ALTITUDE 35786 // km
+#define ATMOS_MARGIN 150 // km
 
+#define DEG_TO_RAD(x) ((x) * PI/180)
+#define RAD_TO_DEG(x) ((x) * 180/PI)
+#define DISTANCE(s_x, s_y, s_z, e_x, e_y, e_z) (sqrt((s_x - e_x) * (s_x - e_x) \
+                + (s_y - e_y) * (s_y - e_y) + (s_z - e_z) * (s_z - e_z)))
 
-class TermLinkHandoffMgr;
-class SatLinkHandoffMgr;
-
-class TermHandoffTimer : public TimerHandler {
-public:
-        TermHandoffTimer(TermLinkHandoffMgr *a) : TimerHandler() {a_ = a; }
-protected:
-        virtual void expire(Event *e);
-        TermLinkHandoffMgr *a_;
+struct coordinate {
+        double r;        // km
+        double theta;    // radians
+        double phi;      // radians
+        // Convert to cartesian as follows:
+        // x = rsin(theta)cos(phi)
+        // y = rsin(theta)sin(phi)
+        // z = rcos(theta)
 };
 
-class SatHandoffTimer : public TimerHandler {
+// Library of routines involving satellite geometry
+class SatGeometry : public TclObject {
 public:
-        SatHandoffTimer(SatLinkHandoffMgr *a) : TimerHandler() {a_ = a; }
-protected:
-        virtual void expire(Event *e);
-        SatLinkHandoffMgr *a_;
+	SatGeometry() { printf("Started\n");}
+	static double distance(coordinate, coordinate);              
+	static void spherical_to_cartesian(double, double, double,
+	    double &, double &, double &);
+	static double propdelay(coordinate, coordinate);
+	static double get_latitude(coordinate);
+	static double get_longitude(coordinate);
+	static double get_altitude(coordinate a) { return a.r; }
+	static double check_elevation(coordinate, coordinate, double);
+	static int check_atmos_margin(coordinate, coordinate);
+
+protected: 
+	// Define "command" appropriately if you want OTcl access to this class
+        int command(int argc, const char*const* argv) {}
 };
 
-class SatLinkHead;
-class SatNode;
-
-class LinkHandoffMgr : public TclObject {
-public:
-	LinkHandoffMgr();
-	void start() { handoff(); }
-	Node* node() { return node_; } // backpointer to node
-	virtual int handoff() { return 0; }
-        int command(int argc, const char*const* argv);
-	SatNode* get_peer(SatLinkHead*); // helper function for handoff
-protected:
-	Node* node_;
-	static RNG handoff_rng_;
-	static int handoff_randomization_;
-	//
-	// The remaining functions are helper functions for handoff
-	//
-	SatLinkHead* get_peer_next_linkhead(SatNode*);
-	SatLinkHead* get_peer_linkhead(SatLinkHead*);
-};
-
-class SatLinkHandoffMgr : public LinkHandoffMgr {
-public:
-	SatLinkHandoffMgr();
-	int handoff();
-protected:
-	SatHandoffTimer timer_;
-	static double latitude_threshold_;
-	static double longitude_threshold_;
-	static int sat_handoff_int_;
-};
-
-class TermLinkHandoffMgr : public LinkHandoffMgr {
-public:
-	TermLinkHandoffMgr();
-	int handoff();
-protected:
-	TermHandoffTimer timer_;
-	static double elevation_mask_;
-	static int term_handoff_int_;
-};
-
-#endif
+#endif // __ns_sat_geometry_h__

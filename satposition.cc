@@ -36,10 +36,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.cc,v 1.6 1999/08/29 01:28:46 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.cc,v 1.7 1999/10/26 17:35:10 tomh Exp $";
 #endif
 
 #include "satposition.h"
+#include "satgeometry.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <math.h>
@@ -99,33 +100,6 @@ SatPosition::SatPosition() : node_(0)
         bind("time_advance_", &time_advance_);
 }
 
-// Returns distance in km between two SatNodes
-double SatPosition::distance(SatPosition* first, SatPosition* second) 
-{
-	coordinate a = first->getCoordinate();
-	coordinate b = second->getCoordinate();
-	double s_x, s_y, s_z, e_x, e_y, e_z;     // cartesian
-	spherical_to_cartesian(a.r, a.theta, a.phi, s_x, s_y, s_z);
-	spherical_to_cartesian(b.r, b.theta, b.phi, e_x, e_y, e_z);
-	return (Trace::round(DISTANCE(s_x, s_y, s_z, e_x, e_y, e_z), 1.0E+8));
-
-}
-
-// Returns propagation delay in s between two SatNodes
-double SatPosition::propdelay(SatPosition* remote)
-{
-	double delay = distance(this,remote)/LIGHT;
-	return (Trace::round(delay, 1.0E+8));
-}
-
-void SatPosition::spherical_to_cartesian(double R, double Theta,
-    double Phi, double &X, double &Y, double &Z)
-{       
-        X = R * sin(Theta) * cos (Phi);
-        Y = R * sin(Theta) * sin (Phi);
-        Z = R * cos(Theta);
-}
- 
 int SatPosition::command(int argc, const char*const* argv) {     
 	//Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
@@ -175,28 +149,7 @@ void TermSatPosition::set(double latitude, double longitude)
 		initial_.phi = DEG_TO_RAD(longitude);
 }
 
-// Returns longitude in radians,  ranging from -PI to PI
-// This returns earth-centric longitude, for trace purposes (coordinates
-// stored in constellation-centric coordinate system)
-double TermSatPosition::get_longitude()
-{
-	double earth_longitude = initial_.phi;
-	if (earth_longitude > PI)
-		return (-(2*PI - earth_longitude));
-	else
-		return (earth_longitude);
-}
-
-// Returns latitude in radians, in the range from -PI/2 to PI/2
-// This returns earth-centric longitude, for trace purposes (coordinates
-// stored in constellation-centric coordinate system)
-double TermSatPosition::get_latitude()
-{
-	coordinate temp = getCoordinate();
-	return (PI/2 - temp.theta);
-}
-
-coordinate TermSatPosition::getCoordinate()
+coordinate TermSatPosition::coord()
 {
 	coordinate current;
 	double period = EARTH_PERIOD; // seconds
@@ -229,7 +182,7 @@ PolarSatPosition::PolarSatPosition(double altitude, double Inc, double Lon,
 // Since it is easier to compute instantaneous orbit position based on a
 // coordinate system centered on the orbit itself, we keep initial coordinates
 // specified in terms of the satellite orbit, and convert to true spherical 
-// coordinates in getCoordinate().
+// coordinates in coord().
 // Initial satellite position is specified as follows:
 // initial_.theta specifies initial angle with respect to "ascending node"
 // i.e., zero is at equator (ascending)-- this is the $alpha parameter in Otcl
@@ -278,7 +231,7 @@ void PolarSatPosition::set(double Altitude, double Lon, double Alpha, double Inc
 // theta:  0 < theta < PI
 // phi:  0 < phi < 2 * PI
 //
-coordinate PolarSatPosition::getCoordinate()
+coordinate PolarSatPosition::coord()
 {
 	coordinate current;
 	double partial;  // fraction of orbit period completed
@@ -321,32 +274,6 @@ coordinate PolarSatPosition::getCoordinate()
 	return current;
 }
 
-// Returns (earth-centric) longitude of satellite nadir point in radians,  
-// ranging from -PI to PI
-double PolarSatPosition::get_longitude()
-{
-	double period = EARTH_PERIOD; // period of earth in seconds
-	// use getCoordinate() to get constellation-centric latitude and
-	// longitude
-	coordinate temp = getCoordinate();
-	// adjust longitude so that it is earth-centric (i.e., account
-	// for earth rotating beneath)
-	double earth_longitude = fmod((temp.phi - 
-	    (fmod(NOW + time_advance_,period)/period) * 2*PI), 2*PI);
-	if (earth_longitude > PI)
-		return (-(2*PI - earth_longitude));
-	else
-		return (earth_longitude);
-}
-
-// Returns (earth-centric) latitude of satellite nadir point in radians,  
-// in the range from -PI/2 to PI/2
-double PolarSatPosition::get_latitude()
-{
-	coordinate temp = getCoordinate();
-	return (PI/2 - temp.theta);
-}
-
 int PolarSatPosition::command(int argc, const char*const* argv) {     
 	Tcl& tcl = Tcl::instance();
         if (argc == 2) {
@@ -376,7 +303,7 @@ GeoSatPosition::GeoSatPosition(double longitude)
 	type_ = POSITION_SAT_GEO;
 }
 
-coordinate GeoSatPosition::getCoordinate()
+coordinate GeoSatPosition::coord()
 {
 	coordinate current;
 	current.r = initial_.r;
@@ -385,16 +312,6 @@ coordinate GeoSatPosition::getCoordinate()
 	    (fmod(NOW + time_advance_, EARTH_PERIOD)/EARTH_PERIOD) *2*PI; // rad
 	current.phi = fmod(initial_.phi + fractional, 2*PI);
 	return current;
-}
-
-// Returns (earth-centric) longitude in radians,  ranging from -PI to PI
-double GeoSatPosition::get_longitude()
-{
-	double earth_longitude = initial_.phi;
-	if (earth_longitude > PI)
-		return (-(2*PI - earth_longitude));
-	else
-		return (earth_longitude);
 }
 
 //

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sattrace.h,v 1.1 1999/06/21 18:28:50 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sattrace.h,v 1.2 1999/10/26 17:35:11 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -40,7 +40,6 @@
 #define ns_sattrace_h
 
 #include "trace.h"
-#include "sat.h"
 
 
 class SatTrace : public Trace {
