@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.20 1999/02/16 20:08:58 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.21 1999/02/16 22:48:38 haoboy Exp $
 #
 
 #
@@ -148,7 +148,7 @@ SimpleLink instproc dump-namconfig {} {
 	set delay [$link_ set delay_]
 
 	$ns puts-nam-config \
-		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -o $attr_(ORIENTATION) -c $attr_(COLOR)"
+		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -c $attr_(COLOR) -o $attr_(ORIENTATION)"
 }
 
 Link instproc dump-nam-queueconfig {} {
@@ -160,7 +160,7 @@ Link instproc dump-nam-queueconfig {} {
 
 	set ns [Simulator instance]
 	if [info exists attr_(QUEUE_POS)] {
-		$ns puts-nam-config "q -t * -s [$fromNode_ id] -d [$toNode_ id] -a $attr_(QUEUE_POS) -c $attr_(COLOR)"
+		$ns puts-nam-config "q -t * -s [$fromNode_ id] -d [$toNode_ id] -a $attr_(QUEUE_POS)"
 	} else {
 		set attr_(QUEUE_POS) ""
 	}
