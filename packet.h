@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.79 2000/09/01 03:04:06 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.80 2000/09/28 20:19:06 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -132,6 +132,9 @@ enum packet_t {
 	// MPLS LDP header
 	PT_LDP,
 
+	// ReadAudio traffic
+	PT_REALAUDIO,
+
 	// insert new packet types here
 	PT_NTYPE // This MUST be the LAST one
 };
@@ -197,6 +200,9 @@ public:
 
 		// MPLS LDP packets
 		name_[PT_LDP] = "LDP";
+
+		// RealAudio packets
+		name_[PT_REALAUDIO] = "ra";
 
 		name_[PT_NTYPE]= "undefined";
 	}

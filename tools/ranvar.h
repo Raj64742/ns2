@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.12 1999/10/11 22:32:16 haoboy Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.13 2000/09/28 20:19:06 haoboy Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
@@ -176,10 +176,10 @@ public:
 	EmpiricalRandomVariable();
 	double& minCDF() { return minCDF_; }
 	double& maxCDF() { return maxCDF_; }
+	int loadCDF(const char* filename);
 
 protected:
 	int command(int argc, const char*const* argv);
-	int loadCDF(const char* filename);
 	int lookup(double u);
 
 	double minCDF_;		// min value of the CDF (default to 0)
