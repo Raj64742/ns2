@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.36 2000/08/30 00:10:45 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.37 2002/06/14 00:36:41 yuri Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -226,6 +226,80 @@ Channel::dump(void)
 		n->dump();
 	fprintf(stdout, "--------------------------------------------------\n");
 }
+
+/* NoDupChannel------------------------------------------------------------
+ * NoDupChannel is currently acting the same as Channel but with one
+ * important difference: it uses reference-copying of the packet,
+ * thus, a lot of time is saved (e.g. for 49 senders and 1 receiver
+ * overflowing mac802.3 and running for 10 seconds sim time, factors
+ * of 60 and more of savings in actual running time have been
+ * observed).
+ *
+ * DRAWBACKS: 
+ *
+ * 	- No multicast/broadcast supported.
+ *	- No propagation model supported (uses constant prop delay for 
+ *        all nodes), although it should be easy to change that.
+ *	- Macs should be EXTREMELY careful handling these reference 
+ *        copies: essentially they all are expected not to modify them 
+ *	  in any way (including scheduling!) while reference counter is
+ *        positive.  802.3 seems to work with it, other macs may need
+ *	  some changes.
+ */
+
+struct ChannelDelayEvent : public Event {
+public:
+	ChannelDelayEvent(Packet *p, Phy *txphy) : , p_(p), txphy_(txphy) {};
+	Packet *p_;
+	Phy *txphy_;
+};
+
+class NoDupChannel : public Channel, public Handler {
+public:
+	void recv(Packet* p, Handler*);	
+	void handle(Event*);
+protected:
+	int phy_counter_;
+private:
+	void sendUp(Packet *p, Phy *txif);
+
+};
+
+void NoDupChannel::recv(Packet* p, Handler* h) {
+	assert(hdr_cmn::access(p)->direction() == hdr_cmn::DOWN);
+	// Delay this packet
+	Scheduler &s = Scheduler::instance();
+	ChannelDelayEvent *de = new ChannelDelayEvent(p, (Phy *)h);
+	s.schedule(this, de, delay_);
+}
+void NoDupChannel::handle(Event *e) {
+	ChannelDelayEvent *cde = (ChannelDelayEvent *)e;
+	sendUp(cde->p_, cde->txphy_);
+	delete cde;
+}
+
+void NoDupChannel::sendUp(Packet *p, Phy *txif) {
+	struct hdr_cmn *hdr = HDR_CMN(p);
+	hdr->direction() = hdr_cmn::UP;
+
+	for(Phy *rifp = ifhead_.lh_first; rifp; rifp = rifp->nextchnl()) {
+		if(rifp == txif)
+			continue;
+		hdr->ref_count()++;
+		rifp->recv(p, 0);
+	}
+	Packet::free(p);
+}
+
+static class NoDupChannelClass : public TclClass {
+public:
+	NoDupChannelClass() : TclClass("Channel/NoDup") {}
+	TclObject* create(int, const char*const*) {
+		return (new NoDupChannel);
+	}
+} class_nodupchannel;
+/* NoDupChannel------------------------------------------------------------
+ */
 
 // Wireless extensions
 class MobileNode;

@@ -34,7 +34,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.24 2000/07/22 23:52:33 xuanc Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.25 2002/06/14 00:36:41 yuri Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
@@ -60,7 +60,7 @@ class Channel : public TclObject {
 public:
 	Channel(void);
 	virtual int command(int argc, const char*const* argv);
-	void recv(Packet* p, Handler*);	
+	virtual void recv(Packet* p, Handler*);	
 	struct if_head	ifhead_;
 	TclObject* gridkeeper_;
 	double maxdelay() { return delay_; };

@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.14 2002/03/21 16:26:49 alefiyah Exp $
+   $Id: mac-802_3.cc,v 1.15 2002/06/14 00:36:42 yuri Exp $
    */
 #include <packet.h>
 #include <random.h>
@@ -18,9 +18,12 @@
          do { fprintf(s, f, t, index, func); xtime= t; } while (0)
 #endif //MAC_DEBUG
 
+#define PRNT_MAC_FUNCS(mac) \
+	FPRINTF(stderr, "%.15f : %d : %s\n", \
+		Scheduler::instance().clock(), (mac)->index_, __PRETTY_FUNCTION__)
 
 inline void MacHandler::cancel() {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), mac->index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(mac);
 	Scheduler& s = Scheduler::instance();
 	assert(busy_);
 	s.cancel(&intr);
@@ -29,6 +32,7 @@ inline void MacHandler::cancel() {
 }
 
 inline void Mac8023HandlerSend::cancel() {
+	PRNT_MAC_FUNCS(mac);
 	assert(busy_);
 	Scheduler &s= Scheduler::instance();
 	s.cancel(&intr);
@@ -37,6 +41,7 @@ inline void Mac8023HandlerSend::cancel() {
 }
 
 inline void MacHandlerRecv::cancel() {
+	PRNT_MAC_FUNCS(mac);
 	Scheduler& s = Scheduler::instance();
 	assert(busy_ && p_);
 	s.cancel(&intr);
@@ -46,12 +51,14 @@ inline void MacHandlerRecv::cancel() {
 }
 
 inline void MacHandlerRetx::cancel() {
+	PRNT_MAC_FUNCS(mac);
 	Scheduler& s = Scheduler::instance();
 	assert(busy_ && p_);
 	s.cancel(&intr);
 }
 
 inline void MacHandlerIFS::cancel() {
+	PRNT_MAC_FUNCS(mac);
 	//fprintf (stderr, "cancelled dtime= %.15f\n", intr.time_- Scheduler::instance().clock());
 	MacHandler::cancel();
 }
@@ -64,7 +71,7 @@ public:
 } class_mac802_3;
 
 void Mac8023HandlerSend::handle(Event*) {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), mac->index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(mac);
 	assert(p_);
 	/* Transmission completed successfully */
 	busy_ = 0;
@@ -75,7 +82,7 @@ void Mac8023HandlerSend::handle(Event*) {
 }
 
 void Mac8023HandlerSend::schedule(const Packet *p, double t) {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), mac->index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(mac);
 	Scheduler& s = Scheduler::instance();
 	assert(!busy_);
 	s.schedule(this, &intr, t);
@@ -85,14 +92,14 @@ void Mac8023HandlerSend::schedule(const Packet *p, double t) {
 
 void MacHandlerRecv::handle(Event* ) {
 	/* Reception Successful */
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), mac->index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(mac);
 	busy_ = 0;
 	mac->recv_complete(p_);
 	p_= 0;
 }
 
 void MacHandlerRecv::schedule(Packet *p, double t) {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), mac->index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(mac);
 	Scheduler& s = Scheduler::instance();
 	assert(p && !busy_);
 	s.schedule(this, &intr, t);
@@ -101,7 +108,7 @@ void MacHandlerRecv::schedule(Packet *p, double t) {
 }
 
 bool MacHandlerRetx::schedule(double delta) {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), mac->index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(mac);
 	Scheduler& s = Scheduler::instance();
 	assert(p_ && !busy_);
 	int k, r;
@@ -116,7 +123,7 @@ bool MacHandlerRetx::schedule(double delta) {
 }
 
 void MacHandlerRetx::handle(Event *) {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), mac->index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(mac);
 	assert(p_);
 	busy_= 0;
 	++try_;
@@ -124,27 +131,27 @@ void MacHandlerRetx::handle(Event *) {
 }
 
 inline void MacHandlerIFS::schedule(double t) {
-		FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), mac->index_, __PRETTY_FUNCTION__);
-		assert(!busy_);
-		Scheduler &s= Scheduler::instance();
-		s.schedule(this, &intr, t);
-		busy_= 1;
+	PRNT_MAC_FUNCS(mac);
+	assert(!busy_);
+	Scheduler &s= Scheduler::instance();
+	s.schedule(this, &intr, t);
+	busy_= 1;
 }
 inline void MacHandlerIFS::handle(Event*) { 
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), mac->index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(mac);
 	busy_= 0; 
 	mac->resume(); 
 }
 
 
-Mac802_3::Mac802_3() : Mac(), 
-	mhRecv_(this), mhRetx_(this), mhIFS_(this), mhSend_(this),trace_(0) {
+Mac802_3::Mac802_3() : trace_(0), 
+	mhRecv_(this), mhRetx_(this), mhIFS_(this), mhSend_(this) {
         // Bind mac trace variable 
         bind_bool("trace_",&trace_);
 }
 
 void Mac802_3::sendUp(Packet *p, Handler *) {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(this);
 	/* just received the 1st bit of a packet */
 	if (state_ != MAC_IDLE && mhIFS_.busy()) {
 #define EPS 1.0e-15 /* can be considered controller clock resolution */
@@ -154,6 +161,7 @@ void Mac802_3::sendUp(Packet *p, Handler *) {
 			// 2,3 were in RX (from 1), then IFS, then TX, then collision with 1 and IFS
 			// while 3 in IFS it RX from 2 and vice versa.
 			// We ignore it and let the ifs timer take care of things.
+		        Packet::free(p);
 			return;
 		} else {
 			// This means that mhIFS_ is about to expire now. We assume that IFS is over 
@@ -176,7 +184,7 @@ void Mac802_3::sendUp(Packet *p, Handler *) {
 }
 
 void Mac802_3::sendDown(Packet *p, Handler *h) {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(this);
 	assert(initialized());
 	assert(h);
 	assert(netif_->txtime(IEEE_8023_MINFRAME) > 
@@ -207,7 +215,7 @@ void Mac802_3::sendDown(Packet *p, Handler *h) {
 
 
 void Mac802_3::transmit(Packet *p) {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(this);
 	assert(callback_);
 	if(mhSend_.packet()) {
 		fprintf(stderr, "index: %d\n", index_);
@@ -225,7 +233,6 @@ void Mac802_3::transmit(Packet *p) {
                    we call resume() */
 		return;
 	}
-	HDR_CMN(p)->direction()= hdr_cmn::DOWN; //down
 
 	double txtime = netif_->txtime(p);
 	/* Schedule transmission of the packet's last bit */
@@ -233,14 +240,17 @@ void Mac802_3::transmit(Packet *p) {
 
 	// pass the packet to the PHY: need to send a copy, 
 	// because there may be collision and it may be freed
-	downtarget_->recv(p->copy()); 
+	Packet *newp = p->copy();
+	HDR_CMN(newp)->direction()= hdr_cmn::DOWN; //down
+	
+	downtarget_->recv(newp);
 
 	state_= MAC_SEND;
 }
 
 void Mac802_3::collision(Packet *p) {
 
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(this);
 
 	if (mhIFS_.busy()) mhIFS_.cancel();
 
@@ -279,7 +289,7 @@ void Mac802_3::collision(Packet *p) {
 }
 
 void Mac802_3::recv_complete(Packet *p) {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(this);
 	assert(!mhRecv_.busy());
 	assert(!mhSend_.busy());
 	hdr_cmn *ch= HDR_CMN(p);
@@ -317,7 +327,7 @@ void Mac802_3::recv_complete(Packet *p) {
    - collision and backoffLimit's exceeded
    - collision while receiving */
 void Mac802_3::resume() {
-	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), index_, __PRETTY_FUNCTION__);
+	PRNT_MAC_FUNCS(this);
 	assert(!mhRecv_.busy());
 	assert(!mhSend_.busy());
 	assert(!mhIFS_.busy());
