@@ -36,7 +36,7 @@
 #ifndef ns_mac_h
 #define ns_mac_h
 
-#include "biconnector.h"
+#include "connector-drop.h"
 
 #ifndef ns_pkt_h
 #define bind_offset(fieldName, offset)
@@ -77,12 +77,12 @@ struct hdr_mac {
 	MacFrameType ftype_;	// frame type
 	int macSA_;		// source MAC address
 	int macDA_;		// destination MAC address
-	double duration_;	// duration for holding the channel
+	double txtime_;		// transmission time
 
 	inline MacFrameType& ftype() { return ftype_; }
 	inline int& macSA() { return macSA_; }
 	inline int& macDA() { return macDA_; }
-	inline double& duration() { return duration_; }
+	inline double& txtime() { return txtime_; }
 };
 
 
@@ -135,7 +135,7 @@ protected:
 	Handler* callback_;	// callback for end-of-transmission
 	MacHandler mh_;		// resume handler
 	MacHandlerSend mhSend_;	// handle delay send due to busy channel
-	int off_mac_;		// link-layer header offset
+	int off_mac_;		// MAC header offset
         Mac* macList_;		// circular list of MACs
 	Event intr_;
 };

@@ -37,7 +37,7 @@
 #ifndef ns_channel_h
 #define ns_channel_h
 
-#include "biconnector.h"
+#include "connector-drop.h"
 
 
 class Trace;
