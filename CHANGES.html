@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.274 1998/08/14 20:39:31 tomh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.275 1998/08/22 20:04:36 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,15 @@
     Release of ns-2.1b4<a> on [PENDING]</h3>
     <p>
     <UL>    
+	<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B> <B>Sat Aug 22 11:59:47 PDT 1998</B><BR>
+	<ul>
+	<li> <i>tcp-asym-sink.cc</i>: call to acker_->update() in recv() had 
+	incorrectly been ifdef'd out by someone. Restored the call.
+	<li> <i>mac.cc, ll.cc</i>: replaced call to offset() with one to
+	bind_offset()
+	<li> <i>chost.{cc,h}, tcp-session.cc</i>: added disableIntLossRecov_ to
+	selectively disable integrated loss recovery.
+	</ul>
   <LI><B><A HREF="mailto:tomh@cs.berkeley.edu">[TH]</A></B>
         <b>Fri Aug 14 13:30:00 PDT 1998</b><br>
 	Removed CBR_Agent; use Application/Traffic/CBR over Agent/UDP now. 
