@@ -153,6 +153,9 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 		$mcl_ install [$mac set addr_] $mac
 		
 		set lanIface_([$src id]) $nif
+		$nif instvar iface_ ;#interface object
+		$ns_ set interfaces_($src:$self) $iface_
+		$ns_ set interfaces_($self:$src) $iface_
 
 		set sid [$src id]
 		set link_($sid:$id_) [new Vlink $ns_ $self $sid $id_ $bw 0]
@@ -163,7 +166,6 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 
 		$link_($sid:$id_) cost $vlinkcost
 		$link_($id_:$sid) cost $vlinkcost
-		
 	}
 	set nodelist_ [concat $nodelist_ $nodes]
 }
@@ -186,21 +188,23 @@ LanIface instproc init {node bw lan args} {
 	eval $self next $args
 
 	$self instvar llType_ ifqType_ macType_
-	$self instvar node_ ifq_ mac_ ll_
+	$self instvar node_ ifq_ mac_ ll_ iface_
 
 	set node_ $node
 	set ll_ [new $llType_]
 	set ifq_ [new $ifqType_]
 	set mac_ [new $macType_]
+	set iface_ [new NetInterface]
 
 	$ll_ lanrouter [$lan set defRouter_]
 
-	$ll_ sendtarget $mac_
-	$ll_ recvtarget [$node entry]
+	$self target $ifq_
 	$ifq_ target $ll_
+	$ll_ sendtarget $mac_
+	$ll_ recvtarget [$iface_ entry]
 	$mac_ target $ll_
 
-	$self target $ifq_
+	$node addInterface $iface_
 }
 
 # Vlink------------------------------------------------------
