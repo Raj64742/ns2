@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.25 1998/06/22 23:33:26 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.26 1998/06/24 23:40:02 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -110,6 +110,7 @@ public:
 	int nextblk(int *sacks);
 	void sync();
 	void clear();
+	void dumplist();	// for debugging
 protected:
 	int off_tcp_;		// TCP header offset
 	int off_cmn_;		// common header offset
@@ -137,6 +138,7 @@ class FullTcpAgent : public TcpAgent {
 	int sack_block_size_;	// # bytes in a sack block (def: 8)
 	int sack_option_;	// sack option enabled?
 	int sack_min_;		// first seq# in sack queue
+	int sack_max_;		// highest seq# seen in any sack block
 	int max_sack_blocks_;	// max # sack blocks to send
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
