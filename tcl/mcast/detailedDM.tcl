@@ -347,9 +347,10 @@ detailedDM instproc send-assert { src grp iface } {
 }
 
 detailedDM instproc recv-prune { src grp from msg } {
-	$self instvar Node iif_ ns
+	$self instvar Node ns
 	set to [lindex $msg 0]
 	# see if the message is destined to me
+	set iif [$self get_iif $src $grp]
 	set id [$Node id]
 	set ifaceLabel [$Node get-oifIndex $from]
 	if { $to != $id } {
@@ -359,7 +360,7 @@ detailedDM instproc recv-prune { src grp from msg } {
 		return 0
 	  }
 	  # check if the interface is my iif
-	  if { $iif_($src) != $ifaceLabel } {
+	  if { $iif != $ifaceLabel } {
 		return 0
 	  }
 	  if { [$r is-active] } {
@@ -368,7 +369,7 @@ detailedDM instproc recv-prune { src grp from msg } {
 	  return 1		
 	}
 	# drop prunes to you on iif
-	if { $iif_($src) == $ifaceLabel } {
+	if { $iif == $ifaceLabel } {
 		return 0
 	}
 	$ns instvar link_
