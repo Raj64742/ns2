@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.34 1997/06/11 04:53:42 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.35 1997/06/11 19:08:20 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -135,7 +135,6 @@ CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
 ns: $(OBJ) tclAppInit.o
 	$(C++) $(STATIC) -o $@ $(CFLAGS) $(OBJ) tclAppInit.o $(LIB)
 
-
 nsx: $(OBJ) tkAppInit.o $(OBJ_NAM)
 	$(C++) $(STATIC) -o $@ $(CFLAGS) $(OBJ) $(OBJ_NAM) tkAppInit.o $(LIB)
 
@@ -145,6 +144,11 @@ ns.dyn: $(OBJ) tclAppInit.o
 gen/version.c: VERSION
 	@rm -f $@
 	cat VERSION | sed 's/.*/char version_string[] = "&";/' > $@
+
+PURIFY	= purify -cache-dir=/tmp
+
+ns.pure: $(OBJ) tclAppInit.o
+	$(PURIFY) g++ $(STATIC) -o $@ $(CFLAGS) $(OBJ) tclAppInit.o $(LIB)
 
 NS_TCL_LIB = \
 	tcl/lib/ns-compat.tcl \
