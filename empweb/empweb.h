@@ -29,7 +29,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.h
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.17 2002/06/28 22:01:48 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.18 2003/06/03 14:50:56 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -149,6 +149,8 @@ public:
 	int nClientL_;
 
 	int concurrentSess_;
+
+ 	int color_;
 
 	static int LASTFLOW_;
 	int nSrc_;

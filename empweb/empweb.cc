@@ -28,7 +28,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.16 2002/06/28 22:01:48 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.17 2003/06/03 14:50:56 kclan Exp $
 
 #include <tclcl.h>
 
@@ -114,6 +114,7 @@ int EmpWebTrafSession::LASTPAGE_ = 1;
 
 int EmpWebTrafPool::LASTFLOW_ = 1;
 
+
 // XXX Must delete this after all pages are done!!
 EmpWebTrafSession::~EmpWebTrafSession() 
 {
@@ -192,9 +193,11 @@ void EmpWebTrafSession::expire(Event *)
 	// Pick destination for this page
 	//temporary hack for isi traffic
 	int n;
+
         if (clientIdx_ < mgr()->nClientL_) n = 0 ; //ISI server
 	else
            n = int(ceil(serverSel()->value()));
+
 
         assert((n >= 0) && (n < mgr()->nSrc_));
         Node* dst = mgr()->server_[n];
@@ -239,7 +242,8 @@ void EmpWebTrafSession::expire(Event *)
 	  		ssnk_ = mgr_->picksink();
 		}
 
-		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->LASTFLOW_-1, ctcp_->name(), stcp_->name());
+//		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->LASTFLOW_-1, ctcp_->name(), stcp_->name());
+		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->color_, ctcp_->name(), stcp_->name());
 
 	}
 
@@ -316,7 +320,8 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 	  		ssnk = mgr_->picksink();
 		}
 
-		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->LASTFLOW_-1, ctcp->name(), stcp->name());
+//		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->LASTFLOW_-1, ctcp->name(), stcp->name());
+		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->color_, ctcp->name(), stcp->name());
 
 	}
 
@@ -555,7 +560,7 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			}
 			return (TCL_OK);
 		}
-	} else if (argc == 16) {
+	} else if (argc == 17) {
 		if (strcmp(argv[1], "create-session") == 0) {
 			// <obj> create-session <session_index>
 			//   <pages_per_sess> <launch_time>
@@ -563,7 +568,7 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			//   <inter_obj_rv> <obj_size_rv>
 			//   <req_size_rv> <persist_sel_rv> <server_sel_rv>
 			//   <client_win_rv> <server_win_rv> <mtu_rv>
-			//   <inbound/outbound flag>
+			//   <inbound/outbound flag> <color>
 			int n = atoi(argv[2]);
 			if ((n < 0)||(n >= nSession_)||(session_[n] != NULL)) {
 				fprintf(stderr,"Invalid session index %d\n",n);
@@ -577,6 +582,9 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 				fprintf(stderr,"Invalid I/O flag %d\n",flip);
 				return (TCL_ERROR);
 			}
+
+                        //for SPAWAR demo
+			color_ = atoi(argv[16]);
 
                         int cl;
 			if (flip == 1) 

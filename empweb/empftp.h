@@ -115,6 +115,7 @@ public:
 	int nSrcL_;
 	int nClientL_;
 
+        int color_;
 
 	int nSrc_;
 	Node** server_;		/* FTP servers */

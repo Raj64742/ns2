@@ -36,6 +36,7 @@
 
 int EmpFtpTrafSession::LASTFILE_ = 1;
 
+
 // XXX Must delete this after all pages are done!!
 EmpFtpTrafSession::~EmpFtpTrafSession() 
 {
@@ -111,9 +112,9 @@ void EmpFtpTrafSession::sendFile(int file, int size)
 	TcpSink* ssnk = mgr_->picksink();
 
 	// Setup new TCP connection and launch request
-	Tcl::instance().evalf("%s send-file %d %s %s %s %s %d", 
+	Tcl::instance().evalf("%s send-file %d %s %s %s %s %d %d", 
 	     	mgr_->name(), file, src_->name(), 
-	      	dst_->name(), stcp->name(), ssnk->name(), size);
+	      	dst_->name(), stcp->name(), ssnk->name(), size, mgr_->color_);
 
 
 	// Debug only
@@ -282,7 +283,7 @@ int EmpFtpTrafPool::command(int argc, const char*const* argv)
 			insertAgent(&sinkPool_, snk);
 			return (TCL_OK);
 		}
-	} else if (argc == 11) {
+	} else if (argc == 12) {
 		if (strcmp(argv[1], "create-session") == 0) {
 			// <obj> create-session <session_index>
 			//   <files_per_sess> <launch_time>
@@ -303,6 +304,7 @@ int EmpFtpTrafPool::command(int argc, const char*const* argv)
 				return (TCL_ERROR);
 			}
 
+			color_ = atoi(argv[11]);
 
 			EmpFtpTrafSession* p = 
 				new EmpFtpTrafSession(this, nfile, n);
@@ -331,6 +333,7 @@ int EmpFtpTrafPool::command(int argc, const char*const* argv)
            			svr= int(ceil(p->serverSel()->value()));
 			}
                         assert((cl >= 0) && (cl < nClient_));
+			printf("%d %d\n",svr , nSrc_);
         		assert((svr >= 0) && (svr < nSrc_));
                         Node* c=client_[cl];
         		Node* s=server_[svr];
