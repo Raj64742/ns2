@@ -1,9 +1,26 @@
 /*
- * $Id: heap.h,v 1.2 1997/05/16 07:58:25 kannan Exp $
+ * heap.h
+ * Copyright (C) 1997 by USC/ISI
+ * All rights reserved.                                            
+ *                                                                
+ * Redistribution and use in source and binary forms are permitted
+ * provided that the above copyright notice and this paragraph are
+ * duplicated in all such forms and that any documentation, advertising
+ * materials, and other materials related to such distribution and use
+ * acknowledge that the software was developed by the University of
+ * Southern California, Information Sciences Institute.  The name of the
+ * University may not be used to endorse or promote products derived from
+ * this software without specific prior written permission.
+ * 
+ * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+ * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+ * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ * 
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/heap.h,v 1.3 1997/07/23 02:16:35 kfall Exp $ (USC/ISI)
  */
 
-#ifndef _heap_h
-#define	_heap_h
+#ifndef ns_heap_h
+#define	ns_heap_h
 
 #define	HEAP_DEFAULT_SIZE	32
 
@@ -258,4 +275,4 @@ public:
 	};
 };
 
-#endif /* _heap_h */
+#endif /* ns_heap_h */
