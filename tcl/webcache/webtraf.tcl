@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.20 2003/08/01 21:56:45 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.21 2004/10/28 01:24:06 sfloyd Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -40,6 +40,9 @@ PagePool/WebTraf set VERBOSE_ 0
 # Support the reuse of page level attributes to save
 #  memory for large simulations
 PagePool/WebTraf set recycle_page_ 1
+
+# If set, do not recycle TCP agents
+PagePool/WebTraf set dont_recycle_ 0
 
 # To use fullTCP (xuanc), we need to:
 # 1. set the flag fulltcp_ to 1

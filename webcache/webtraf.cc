@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.26 2003/02/06 16:59:54 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.27 2004/10/28 01:24:06 sfloyd Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -260,6 +260,7 @@ WebTrafPool::WebTrafPool() :
 {
 	bind("fulltcp_", &fulltcp_);
 	bind("recycle_page_", &recycle_page_);
+	bind("dont_recycle_", &dont_recycle_);
 	// Debo
 	asimflag_=0;
 	LIST_INIT(&tcpPool_);
@@ -499,7 +500,10 @@ int WebTrafPool::command(int argc, const char*const* argv) {
 			if (fulltcp_) {
 				delete tcp;
 				delete snk;
-			} else {
+			} else if (!dont_recycle_) {
+				// PS: hmm.. who deletes the agents?
+				// PS: plain delete doesn't seem to work
+
 				// Recyle both tcp and sink objects
 				nTcp_++;
 				// XXX TBA: recycle tcp agents

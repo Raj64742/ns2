@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.16 2003/01/05 18:54:43 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.17 2004/10/28 01:24:06 sfloyd Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -180,6 +180,8 @@ protected:
 	int fulltcp_;
 	// Reuse of page level attributes support
 	int recycle_page_;
+
+	int dont_recycle_; // Do not recycle tcp agents
 };
 
 #endif // ns_webtraf_h
