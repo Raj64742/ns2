@@ -34,14 +34,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.16 1999/02/18 02:19:19 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.17 1999/03/12 22:21:30 yuriy Exp $ (LBL)";
 #endif
 
 #include "packet.h"
 #include "flags.h"
 
 p_info packet_info;
-char* p_info::name_[PT_NTYPE];
+char* p_info::name_[PT_NTYPE+1];
 
 int Packet::hdrlen_ = 0;		// size of a packet's header
 Packet* Packet::free_;			// free list
