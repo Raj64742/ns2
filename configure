@@ -5193,8 +5193,10 @@ TCLCL_LIB_PLACES="\
                 /usr/lib \
                 /usr/src/local/Tcl \
                 /usr/src/local/Tcl-1.0"
-TCLCL_LIB_PLACES_D="$d \
-        $d/lib"
+TCLCL_LIB_PLACES_D="\
+        $d \
+        $d/lib \
+        $d/bin"
 TCLCL_PROG_PLACES="\
 		../tclcl-$TCLCL_VERS \
 		../tclcl-$TCLCL_ALT_VERS \
