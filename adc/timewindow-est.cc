@@ -24,7 +24,7 @@
 
 class TimeWindow_Est : public Estimator {
 public:
-	TimeWindow_Est() :scnt(0),maxp(0){bind("T_",&T_);};
+	TimeWindow_Est() :scnt(1),maxp(0){bind("T_",&T_);};
 	inline void change_avload(double incr) { avload_ += incr; if (incr >0) scnt=0;}
 protected:
 	void estimate();
