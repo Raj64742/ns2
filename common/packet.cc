@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.17 1999/03/12 22:21:30 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.18 2000/09/15 20:32:57 haoboy Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -103,7 +103,7 @@ int PacketHeaderClass::method(int ac, const char*const* av)
 			}
 		}
 	}
-	return TclClass::method(argc, argv);
+	return TclClass::method(ac, av);
 }
 
 
