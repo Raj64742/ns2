@@ -57,10 +57,10 @@ class Node : public TclObject {
 	Node(void);
 	virtual int command(int argc, const char*const* argv);
 	inline int address() { return address_;}
+	int address_;
 
 protected:
 	struct if_head ifhead_;
-	int address_;
 	
 };
 

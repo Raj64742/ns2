@@ -13,8 +13,9 @@
 #include "topography.h"
 #include "arp.h"
 #include "node.h"
+#include "gridkeeper.h"
 
-
+class GridKeeper;
 
 #if COMMENT_ONLY
 		 -----------------------
@@ -70,6 +71,7 @@ private:
 };
 
 
+
 class MobileNode : public Node 
 {
 	friend class PositionHandler;
@@ -93,21 +95,9 @@ public:
 	inline MobileNode* nextnode() { return link.le_next; }
 
 	void dump(void);
-	
+
 	inline MobileNode* base_stn() { return base_stn_; }
 
-protected:
-	// Used to generate position updates
-	PositionHandler pos_handle;
-	Event pos_intr;
-
-	void	log_movement();
-	void	update_position();
-	void	random_direction();
-	void	random_speed();
-        void    random_destination();
-        int	set_destination(double x, double y, double speed);
-	  
 	/*
 	 * Last time the position of this node was updated.
 	 */
@@ -123,6 +113,40 @@ protected:
 	double Z;
 
 	double speed;	// meters per second
+	/*
+         *  The following is a unit vector that specifies the
+         *  direction of the mobile node.  It is used to update
+         *  position
+         */
+	double dX;
+	double dY;
+	double dZ;
+
+	void	update_position();
+
+	/*
+	 * for gridkeeper use only
+ 	 */
+
+	MobileNode *	next_;
+ 	int		grid_x_, grid_y_;
+	int		dim_x_, dim_y_;	
+	GridKeeper*     gk_;
+	double          radius_;
+
+protected:
+	// Used to generate position updates
+	PositionHandler pos_handle;
+	Event pos_intr;
+
+	void	log_movement();
+	
+	void	random_direction();
+	void	random_speed();
+        void    random_destination();
+        int	set_destination(double x, double y, double speed);
+	  
+
 
 private:
 	inline int initialized() {
@@ -148,14 +172,7 @@ private:
 	 */
 	//struct if_head	ifhead_;
 
-	/*
-         *  The following is a unit vector that specifies the
-         *  direction of the mobile node.  It is used to update
-         *  position
-         */
-	double dX;
-	double dY;
-	double dZ;
+
 
         /* where are we going? */
 	double destX;
@@ -171,10 +188,10 @@ private:
 	 */
 	Trace* log_target;
 
-	/* a base_stn for mobilenodes communicating with 
-	 *  wired nodes
-	 */
-	MobileNode* base_stn_;
+        /* a base_stn for mobilenodes communicating with
+         *  wired nodes
+         */
+        MobileNode* base_stn_;
 };
 
 
