@@ -97,6 +97,11 @@ $objSize set avg_ 10
 $objSize set shape_ 1.2
 $pool create-session 1 $numPage 0.2 $interPage $pageSize $interObj $objSize
 
+# $pool set-interPageOption 0; # 0 for time between the start of 2 pages
+                               # 1 for time between the end of a page and 
+                               #   the start of the next
+                               # default: 1
+
 $ns at 1000.0 "finish"
 
 proc finish {} {

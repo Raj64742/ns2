@@ -94,6 +94,11 @@ for {set i 0} {$i < $numSession} {incr i} {
 	set launchTime [expr $launchTime + [$interSession value]]
 }
 
+# $pool set-interPageOption 0; # 0 for time between the start of 2 pages
+                               # 1 for time between the end of a page and 
+                               #   the start of the next
+                               # default: 1
+
 ## Start the simulation
 $ns at 4200.1 "finish"
 
