@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.39 2002/03/14 01:12:53 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.40 2002/06/06 22:54:42 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  */
@@ -302,6 +302,7 @@ Mac802_11::is_idle()
 		return 0;
 	if(nav_ > Scheduler::instance().clock())
 		return 0;
+	
 	return 1;
 }
 
@@ -427,6 +428,7 @@ Mac802_11::collision(Packet *p)
 void
 Mac802_11::tx_resume()
 {
+	double rTime;
 	assert(mhSend_.busy() == 0);
 	assert(mhDefer_.busy() == 0);
 
@@ -436,21 +438,23 @@ Mac802_11::tx_resume()
 		 */
 		mhDefer_.start(sifs_);
 	} else if(pktRTS_) {
-		if(mhBackoff_.busy() == 0)
-			mhDefer_.start(difs_);
+		if(mhBackoff_.busy() == 0) {
+			rTime = (Random::random() % cw_) * phymib_->SlotTime;
+			mhDefer_.start(difs_ + rTime);
+		}
 	} else if(pktTx_) {
-		if(mhBackoff_.busy() == 0)
-			{
-				hdr_cmn *ch = HDR_CMN(pktTx_);
-				struct hdr_mac802_11 *mh = HDR_MAC802_11(pktTx_);
-				
-				if ((u_int32_t) ch->size() < macmib_->RTSThreshold ||
-				    (u_int32_t) ETHER_ADDR(mh->dh_da) == MAC_BROADCAST) {
-					mhDefer_.start(difs_);
-				} else {
-					mhDefer_.start(sifs_);
-				}
+		if(mhBackoff_.busy() == 0) {
+			hdr_cmn *ch = HDR_CMN(pktTx_);
+			struct hdr_mac802_11 *mh = HDR_MAC802_11(pktTx_);
+			
+			if ((u_int32_t) ch->size() < macmib_->RTSThreshold ||
+			    (u_int32_t) ETHER_ADDR(mh->dh_da) == MAC_BROADCAST) {
+				rTime = (Random::random() % cw_) * phymib_->SlotTime;
+				mhDefer_.start(difs_ + rTime);
+			} else {
+				mhDefer_.start(sifs_);
 			}
+		}
 	} else if(callback_) {
 		Handler *h = callback_;
 		callback_ = 0;
@@ -684,7 +688,7 @@ Mac802_11::check_pktTx()
 		return -1;
 
 	mh = HDR_MAC802_11(pktTx_);
-       	int len = HDR_CMN(pktTx_)->size();
+       	//int len = HDR_CMN(pktTx_)->size();
 
 	switch(mh->dh_fc.fc_subtype) {
 	case MAC_Subtype_Data:
@@ -1034,6 +1038,7 @@ Mac802_11::RetransmitDATA()
 void
 Mac802_11::send(Packet *p, Handler *h)
 {
+	double rTime;
 	struct hdr_mac802_11* dh = HDR_MAC802_11(p);
 
 	/* 
@@ -1065,15 +1070,18 @@ Mac802_11::send(Packet *p, Handler *h)
 			 * If we are already deferring, there is no
 			 * need to reset the Defer timer.
 			 */
-			if(mhDefer_.busy() == 0)
-				mhDefer_.start(difs_);
+			if(mhDefer_.busy() == 0) {
+				rTime = (Random::random() % cw_) * (phymib_->SlotTime);
+				mhDefer_.start(difs_ + rTime);
+			}
+			
 		}
-		/*
-		 * If the medium is NOT IDLE, then we start
-		 * the backoff timer.
-		 */
+	/*
+	 * If the medium is NOT IDLE, then we start
+	 * the backoff timer.
+	 */
 		else {
-		mhBackoff_.start(cw_, is_idle());
+			mhBackoff_.start(cw_, is_idle());
 		}
 	}
 }

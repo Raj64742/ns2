@@ -95,7 +95,7 @@ $ns_ node-config -adhocRouting $opt(adhocRouting) \
 		 -topoInstance $topo \
 		 -agentTrace ON \
                  -routerTrace OFF \
-                 -macTrace OFF
+                 -macTrace ON
                   
 
 #  Create the specified number of nodes [$opt(nn)] and "attach" them
@@ -120,14 +120,14 @@ $node_(1) set Y_ 450.384818286195
 $node_(1) set Z_ 0.000000000000
 
 # 3rd node in hearing range of other two
-$node_(2) set X_ 477.438972165239
-$node_(2) set Y_ 545.843469852367
-$node_(2) set Z_ 0.000000000000
+#$node_(2) set X_ 477.438972165239
+#$node_(2) set Y_ 545.843469852367
+#$node_(2) set Z_ 0.000000000000
 
 #3rd node NOT in hearing range of other two
-#$node_(2) set X_ 177.438972165239
-#$node_(2) set Y_ 245.843469852367
-#$node_(2) set Z_ 0.000000000000
+$node_(2) set X_ 177.438972165239
+$node_(2) set Y_ 245.843469852367
+$node_(2) set Z_ 0.000000000000
 
 
 
@@ -136,7 +136,7 @@ $node_(2) set Z_ 0.000000000000
 set src_(0) [new Application/DiffApp/PingSender]
 $ns_ attach-diffapp $node_(0) $src_(0)
 $ns_ at 0.123 "$src_(0) publish"
-$ns_ add-gear $node_(0)
+
 
 # another diff application
 
@@ -144,13 +144,12 @@ $ns_ add-gear $node_(0)
 #set src_(1) [new Application/DiffApp/PingSender]
 #$ns_ attach-diffapp $node_(1) $src_(1)
 #$ns_ at 1.3 "$src_(1) publish"
-$ns_ add-gear $node_(1)
+
 
 #Diffusion sink application
 set snk_(0) [new Application/DiffApp/PingReceiver]
 $ns_ attach-diffapp $node_(2) $snk_(0)
 $ns_ at 1.456 "$snk_(0) subscribe"
-$ns_ add-gear $node_(2)
 
 # Define node initial position in nam
 

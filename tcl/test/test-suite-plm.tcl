@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-plm.tcl,v 1.2 2000/07/25 05:40:47 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-plm.tcl,v 1.3 2002/06/06 22:54:42 haldar Exp $
 #
 # Contributed by Arnaud Legout at EURECOM
 
@@ -142,14 +142,14 @@ Test/PLM instproc init args {
 }
 
 Test/PLM instproc finish {} {
-	global run_nam PLMrcvr
+    global run_nam PLMrcvr
 
-	#    puts finish
-	if {$run_nam} {
-		puts "running nam..."
-		exec nam -g 600x700 -f dynamic-nam.conf out.nam &
-	}
-	exit 0
+    #    puts finish
+    if {$run_nam} {
+	puts "running nam..."
+	exec nam -g 600x700 -f dynamic-nam.conf out.nam &
+    }
+    exit 0
 }
 
 proc isProc? {cls prc} {
