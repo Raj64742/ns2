@@ -65,7 +65,7 @@ LanNode instproc init {ns args} {
 		set address_ $id_
 	}
 	set defRouter_ [new LanRouter $ns $self]
-	if [Simulator set EnableMcast_] {
+	if [$ns multicast?] {
 		set switch_ [new Classifier/Addr]
 		$switch_ set mask_ [AddrParams set McastMask_]
 		$switch_ set shift_ [AddrParams set McastShift_]
@@ -108,7 +108,8 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} }
 		$ll set delay_ $delay
 
 		set mac [$nif set mac_]
-		set ipAddr [AddrParams set-hieraddr [$src node-addr]]
+		#set ipAddr [AddrParams set-hieraddr [$src node-addr]]
+		set ipAddr [$src node-addr]
 		set macAddr [$self assign-mac $ipAddr] ;# cf LL's arp(int ip)
 		$mac set addr_ $macAddr
 		$mac set bandwidth_ $bw
@@ -128,7 +129,7 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} }
 		set link_($sid:$id_) [new Vlink $ns_ $self $sid $id_ $bw 0]
 		set link_($id_:$sid) [new Vlink $ns_ $self $id_ $sid $bw 0]
 		$link_($sid:$id_) set ifacein_ [$nif entry]
-		[$nif entry] set intf_label_ [[$nif exitpoint] set intf_label_]
+		#[$nif entry] set intf_label_ [[$nif exitpoint] set intf_label_]
 
 		$link_($sid:$id_) queue [$nif set ifq_]
 		$link_($id_:$sid) queue [$nif set ifq_]
@@ -245,8 +246,8 @@ LanIface instproc init {node lan args} {
 	$ll_ recvtarget [$self set iface]
 	$mac_ target $ll_
 
-	$node addInterface $self
-	
+	#$node addInterface $self
+	$self setNode $node
 	$self set entry_ $ifq_
 }
 

@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112.2.3 1998/10/02 18:19:29 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112.2.4 1998/10/08 04:23:01 yuriy Exp $
 
 #
 
@@ -910,6 +910,7 @@ Simulator instproc create-tcp-connection {s_type source d_type dest pktClass} {
 Classifier instproc no-slot slot {
 	#XXX should say something better for routing problem
 	puts stderr "$self: no target for slot $slot"
+	puts stderr "[$self info class]"
 	exit 1
 }
 

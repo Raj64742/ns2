@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.32.2.8 1998/10/02 18:19:13 kannan Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.32.2.9 1998/10/08 04:22:47 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -170,7 +170,8 @@ protected:
 	PacketHeaderClass(const char* classname, int hdrsize);
 	virtual int method(int argc, const char*const* argv);
 	void field_offset(const char* fieldname, int offset);
-	inline void offset(int* off) { offset_ = off; }
+	inline void bind_offset(int* off) { offset_ = off; }
+	inline void offset(int* off) {offset_= off;}
 	int hdrlen_;		// # of bytes for this header
 	int* offset_;		// offset for this header
 public:

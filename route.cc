@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.16.2.1 1998/08/20 22:25:02 yuriy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.16.2.2 1998/10/08 04:22:50 yuriy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -47,6 +47,7 @@ static const char rcsid[] =
 #include <tclcl.h>
 #include "config.h"
 #include "route.h"
+#include "address.h"
 
 class RouteLogicClass : public TclClass {
 public:
@@ -90,7 +91,6 @@ int RouteLogic::command(int argc, const char*const* argv)
 		}
 	} 
 	else if (argc > 2) {
-	
 		if (strcmp(argv[1], "insert") == 0) {
 			int src = atoi(argv[2]) + 1;
 			int dst = atoi(argv[3]) + 1;
@@ -169,7 +169,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 				tcl.result("Required Hier_data not sent");
 				return (TCL_ERROR);
 			}
-			int i, n;
+			int i;
 			int src_addr[SMALL_LEN], dst_addr[SMALL_LEN];
 			/* initializing src and dst addr */
 			// for (i=0; i < SMALL_LEN; i++){
@@ -177,7 +177,8 @@ int RouteLogic::command(int argc, const char*const* argv)
 // 				dst_addr[i] = 0;
 // 			}
 			str2address(argv, src_addr, dst_addr);
-			for (i=0; i < HIER_LEVEL; i++)
+			// for (i=0; i < HIER_LEVEL; i++)
+			for (i=0; i < level_; i++)
 				if (src_addr[i]<=0 || dst_addr[i]<=0){
 					tcl.result ("negative node number");
 					return (TCL_ERROR);
@@ -188,7 +189,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 		}
 
 		if (strcmp(argv[1], "hier-reset") == 0) {
-			int i, n;
+			int i;
 			int  src_addr[SMALL_LEN], dst_addr[SMALL_LEN];
 			/* initializing src and dst addr */
 			// for (i=0; i < SMALL_LEN; i++){
@@ -198,7 +199,8 @@ int RouteLogic::command(int argc, const char*const* argv)
 			str2address(argv, src_addr, dst_addr);
 			// assuming node-node addresses (instead of node-cluster or node-domain pair) 
 			// are sent for hier_reset  
-			for (i=0; i < HIER_LEVEL; i++)
+			// for (i=0; i < HIER_LEVEL; i++)
+			for (i=0; i < level_; i++)
 				if (src_addr[i]<=0 || dst_addr[i]<=0){
 					tcl.result ("negative node number");
 					return (TCL_ERROR);
@@ -207,11 +209,10 @@ int RouteLogic::command(int argc, const char*const* argv)
 		}
 
 		if (strcmp(argv[1], "hier-lookup") == 0) {
-			int nh= lookup_hier((char*)argv[2], (char*)argv[3]);
-			if (nh < 0) {
-				return (TCL_ERROR);
-			}
-			return (TCL_OK);
+			int nh;
+			int res = lookup_hier((char*)argv[2], (char*)argv[3],
+					      nh);
+			return res;
 		}
 
 		if (strcmp(argv[1], "reset") == 0) {
@@ -225,34 +226,34 @@ int RouteLogic::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "lookup") == 0) {
-			int nh= lookup_flat((char*)argv[2], (char*)argv[3]);
-			if (nh<0) {
-				return (TCL_ERROR);
-			}
+			int nh;
+			int res = lookup_flat((char*)argv[2], (char*)argv[3], 
+					      nh);
 			tcl.resultf("%d", nh);
-			return (TCL_OK);
+			return res;
 		}
 	}
 	return (TclObject::command(argc, argv));
 }
 
-int RouteLogic::lookup_flat(char* asrc, char* adst) {
+int RouteLogic::lookup_flat(char* asrc, char* adst, int& result) {
 	Tcl& tcl = Tcl::instance();
 	int src = atoi(asrc) + 1;
 	int dst = atoi(adst) + 1;
 
 	if (route_ == 0) {
 		tcl.result("routes not computed");
-		return -1;
+		return (TCL_ERROR);
 	}
 	if (src >= size_ || dst >= size_) {
 		tcl.result("node out of range");
-		return -1;
+		return (TCL_ERROR);
 	}
-	return route_[INDEX(src, dst, size_)] - 1;
+	result = route_[INDEX(src, dst, size_)] - 1;
+	return TCL_OK;
 }
 
-int RouteLogic::lookup_hier(char* asrc, char* adst) {
+int RouteLogic::lookup_hier(char* asrc, char* adst, int& result) {
 	int i;
 	int src[SMALL_LEN], dst[SMALL_LEN];
 	Tcl& tcl = Tcl::instance();
@@ -264,20 +265,21 @@ int RouteLogic::lookup_hier(char* asrc, char* adst) {
 	// 			}
 	if ( hroute_ == 0) {
 		tcl.result("Required Hier_data not sent");
-		return -1;
+		return TCL_ERROR;
 	}
       
 	ns_strtok(asrc, src);
 	ns_strtok(adst, dst);
 
-	for (i=0; i < HIER_LEVEL; i++)
+	// for (i=0; i < HIER_LEVEL; i++)
+	for (i=0; i < level_; i++)
 		if (src[i] <= 0) {
 			tcl.result("negative src node number");
-			return -1;
+			return TCL_ERROR;
 		}
 	if (dst[0] <= 0) {
 		tcl.result("negative dst domain number");
-		return -1;
+		return TCL_ERROR;
 	}
 
 	int d = src[0];
@@ -286,7 +288,7 @@ int RouteLogic::lookup_hier(char* asrc, char* adst) {
 
 	if (hsize_[index] == 0) {
 		tcl.result("Routes not computed");
-		return -1;
+		return TCL_ERROR;
 	}
 	if ((src[0] < D_) || (dst[0] < D_)) {
 		if((src[1] < C_[d]) || (dst[1] < C_[dst[0]]))
@@ -296,7 +298,7 @@ int RouteLogic::lookup_hier(char* asrc, char* adst) {
 	}
 	else { 
 		tcl.result("node out of range");
-		return -1;
+		return TCL_ERROR;
 	}
 	int next_hop = 0;
 	/* if node-domain lookup */
@@ -319,11 +321,12 @@ int RouteLogic::lookup_hier(char* asrc, char* adst) {
 	if (next_hop > 0) {
 		get_address(target, next_hop, index, d, size, src);
 		tcl.result(target);
-		return next_hop;
+		result= Address::instance().str2addr(target);
 	} else {
 		tcl.result("-1");
-		return -1;
+		result = -1;
 	}
+	return TCL_OK;
 }
 
 RouteLogic::RouteLogic()
@@ -497,7 +500,7 @@ void RouteLogic::hier_alloc(int i)
 	hsize_[i] *= hsize_[i];
 	hadj_[i] = new int[hsize_[i]];
 	hroute_[i] = new int[hsize_[i]];
-	hconnect_[i] = new (char*)[(Cmax_ + D_) * (cluster_size_[i]+1)];
+	hconnect_[i] = new char*[(Cmax_ + D_) * (cluster_size_[i]+1)];
 	for (int n = 0; n < hsize_[i]; n++){
 		hadj_[i][n] = INFINITY;
 		hroute_[i][n] = INFINITY;
@@ -525,9 +528,9 @@ void RouteLogic::hier_init(void)
 	hsize_ = new int[arr_size];
 	for (i = 0; i < arr_size; i++)
 		hsize_[i] = 0;
-	hadj_ = new (int *)[arr_size];
-	hroute_ = new (int *)[arr_size];
-	hconnect_ = new (char **)[arr_size];
+	hadj_ = new int*[arr_size];
+	hroute_ = new int*[arr_size];
+	hconnect_ = new char**[arr_size];
 }
 
 
@@ -792,20 +795,20 @@ void RouteLogic::hier_print_hadj() {
 
 void RouteLogic::hier_compute()
 {
-	int i, j, k;
+	int i, j, k, m, n;
 	for (j=1; j < D_; j++) 
 		for (k=1; k < C_[j]; k++) {
 			i = INDEX(j, k, Cmax_);
 			int s = (cluster_size_[i] + C_[j] + D_);
 			adj_ = new int[(s * s)];
 			memset((char *)adj_, 0, s * s * sizeof(adj_[0]));
-			for (int n=0; n < s; n++)
-				for(int m=0; m < s; m++)
+			for (n=0; n < s; n++)
+				for(m=0; m < s; m++)
 					adj_[INDEX(n, m, s)] = hadj_[i][INDEX(n, m, s)];
 			hier_compute_routes(i, j);
 	
-			for (int n=0; n < s; n++)
-				for(int m=0; m < s; m++)
+			for (n=0; n < s; n++)
+				for(m=0; m < s; m++)
 					hroute_[i][INDEX(n, m, s)] = route_[INDEX(n, m, s)];
 			delete [] adj_;
 		}

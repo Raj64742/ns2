@@ -34,7 +34,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.16 1998/06/27 01:23:27 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.h,v 1.16.2.1 1998/10/08 04:22:45 yuriy Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
@@ -51,10 +51,10 @@ class Trace;
 class Channel : public Connector {
 public:
 	Channel();
-	void recv(Packet* p, Handler*);
-	virtual int send(Packet* p, double txtime);
+	void recv(Packet* p, Handler*);	// call internally or from trace_
+	virtual int send(Packet* p, double txtime); // actual send from MAC
 	virtual void contention(Packet*, Handler*); // content for the channel
-	int hold(double txtime);
+	int jam(double txtime);
 	virtual int collision() { return numtx_ > 1; }
 	virtual double txstop() { return txstop_; }
 	Packet* pkt() { return pkt_; }
@@ -64,7 +64,6 @@ protected:
 	double delay_;		// channel delay, for collision interval
 	double txstop_;		// end of the last transmission
 	double cwstop_;		// end of the contention window
-	int nodrop_;		// no dropping of packet, just mark error
 	int numtx_;		// number of transmissions during contention
 	Packet* pkt_;		// packet current transmitted on the channel
 	Trace* trace_;		// to trace the packet transmitting packets
