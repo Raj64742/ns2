@@ -1,0 +1,15 @@
+http-single.tcl and http-mult.tcl were contributed to VINT
+by Curtis Villamizar.
+
+Sample commands to run them:
+
+ns http-single.tcl -window 8 -maxflow 4 -maxinline 4
+
+ns http-mult.tcl -seed 1 -persist -tail -window 8 -netqueue 40 -maxflow 4 -maxinline 4 -bkgproxy -bkg-flows 10 -clickers 2
+
+Http-mult currently goes into an infinite loop if -clickers is
+greater than 2.  This is clearly a bug.
+
+These programs require patches to ns-2.0a17 commited 23-May-97.
+
+   -johnh
