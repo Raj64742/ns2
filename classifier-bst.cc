@@ -21,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-bst.cc,v 1.9 1999/09/24 17:04:27 heideman Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-bst.cc,v 1.10 1999/09/28 00:42:11 salehi Exp $";
 #endif
 
 #include <iostream.h>
@@ -266,6 +266,7 @@ upstream_info* MCastBSTClassifier::upstream_find(int dst)
 	while (index) {
 		if (index->dst == dst)
 			return index;
+		index = index->next;
 	} // while
 	return NULL;
 } // MCastBSTClassifier::upstream_find
