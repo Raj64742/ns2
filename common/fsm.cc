@@ -1,4 +1,4 @@
-* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /* fsm.cc
  * Copyright (C) 1999 by USC/ISI
  * All rights reserved.
@@ -18,7 +18,7 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/fsm.cc,v 1.7 2000/05/24 00:22:25 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/fsm.cc,v 1.8 2000/05/24 16:34:02 heideman Exp $ (LBL)
  */
 
 #include "fsm.h"
