@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.23 2001/05/21 19:27:34 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.24 2001/08/17 19:00:42 kfall Exp $
 #
 
 #
@@ -117,7 +117,6 @@ Agent instproc attach-tbf { tbf } {
 
 }
 
-
 #
 # OTcl support for classes derived from Agent
 #
@@ -137,7 +136,6 @@ Agent/CBR/UDP/SA instproc attach-tbf { tbf } {
 	$self target $tbf
 	$self ctrl-target [$tbf target]
 }
-
 
 #
 # A lot of agents want to store the maxttl locally.  However,
@@ -169,32 +167,6 @@ Agent/TCP instproc init {} {
     $ns create-eventtrace Event $self
 }
 
-
-#
-# Full Tcp constructors for other than the baseline Reno
-# implementation
-#
-
-Agent/TCP/FullTcp/Tahoe instproc init {} {
-	$self next
-	$self instvar reno_fastrecov_
-	set reno_fastrecov_ false
-}
-
-Agent/TCP/FullTcp/Sack instproc init {} {
-	$self next
-	$self instvar reno_fastrecov_ maxburst_ open_cwnd_on_pack_
-	set reno_fastrecov_ false
-	set maxburst_ 5
-	set open_cwnd_on_pack_ false
-}
-
-Agent/TCP/FullTcp/Newreno instproc init {} {
-	$self next
-	$self instvar open_cwnd_on_pack_
-	set open_cwnd_on_pack_ false
-}
-
 #Agent instproc init args {
 #        $self next $args
 #}       
@@ -219,12 +191,4 @@ Agent/AODV instproc init args {
 
 Agent/AODV set sport_   0
 Agent/AODV set dport_   0
-
-
-
-
-
-
-
-
 
