@@ -70,8 +70,10 @@ while (<>) {
 	    $statement = "$x $y\n";
 	};
 	if (defined($statement)) {
-	    if ($plot_drops && $is_ecn) {
-		push(@pc, $statement);
+	    if ($plot_drops) { 
+		if ($is_ecn) {
+		    push(@pc, $statement);
+		};
 	    } else {
                 if ($is_ack) { 
                     if ($is_ecn) {
