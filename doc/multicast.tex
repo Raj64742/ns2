@@ -119,7 +119,7 @@ repeatedly will result in an AND effect on the filtering condition.
 A simple configuration to filter cbr packets on a particular group is:
 
 \begin{program}
-        set mcastmonitor [$ns McastMonitor]
+        set mcastmonitor [new McastMonitor]
         set chan [open cbr.tr w] \; open trace file;
         $mmonitor attach $chan1  \; attach trace file to McastMoniotor object;
         $mcastmonitor set period_ 0.02         \; default 0.03 (sec);
