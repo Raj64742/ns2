@@ -434,7 +434,7 @@ double TfrcSinkAgent::est_loss_WALI ()
 		// slow start just ended; ds should be 2
 		// the false sample is added to the array.
 		sample[ds-1] += false_sample;
-		false_sample = 0 ; 
+		false_sample = -1 ; 
 	}
 	/* do we need to discount weights? */
 	if (sample_count > 1 && discount && sample[0] > 0) {
