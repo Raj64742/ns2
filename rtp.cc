@@ -29,9 +29,12 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $
  */
+
+#ifndef lint
+static char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.2 1996/12/31 22:51:09 elan Exp $";
+#endif
 
 
 #include <stdlib.h>
@@ -52,6 +55,7 @@ public:
 	virtual void recv(Packet* p, Handler*);
 	virtual int command(int argc, const char*const* argv);
 protected:
+	virtual void sendpkt();
 	RTPSession* session_;
 };
 
@@ -97,4 +101,14 @@ int RTPAgent::command(int argc, const char*const* argv)
 		}
 	}
 	return (CBR_Agent::command(argc, argv));
+}
+
+void RTPAgent::sendpkt()
+{
+	Packet* p = allocpkt();
+
+	/* Fill in srcid_ */
+	p->bd_.rtp_.srcid_ = session_->srcid();
+
+	target_->recv(p);
 }
