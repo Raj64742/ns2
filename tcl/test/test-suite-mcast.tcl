@@ -642,7 +642,7 @@ Test/CtrMcast1 instproc run {} {
 	$ns_ attach-agent $node_(n3) $rcvr3
 	
 	$ns_ at 0.2 "$cbr1 start"
-	$ns_ at 0.2 "$cbr2 start"
+	$ns_ at 0.25 "$cbr2 start"
 	$ns_ at 0.3 "$node_(n1) join-group  $rcvr1 0x8003"
 	$ns_ at 0.4 "$node_(n0) join-group  $rcvr0 0x8003"
 
