@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.13 2002/06/27 21:26:23 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.14 2002/07/12 18:29:07 xuanc Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -84,14 +84,34 @@ private:
 	int recycle_page_;
 };
 
+struct job_s {
+	Agent *tcp;
+	int size;
+	job_s *next;
+};
+
 // Data structure for web server
-class WebServer {
+class WebServer : public TimerHandler{
 public:
+	WebServer(WebTrafPool *);
+	
+	// Server properties
 	Node *node;
 	double rate_;
-	double finish_t_;
+	int busy_;
+	double mode_;
+	WebTrafPool * web_pool_;
 
-	double job_arrival(int);
+	// Job queue
+	job_s *head, *tail;
+
+	virtual void expire(Event *e);
+
+	// Job arrival and departure
+	double job_arrival(Agent*, int);
+	double job_departure();
+
+	void schedule_next_job();
 };
 
 class WebTrafPool : public PagePool {
