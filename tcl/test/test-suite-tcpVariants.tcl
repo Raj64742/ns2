@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.4 1998/09/14 03:29:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.5 1998/12/23 05:26:06 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -151,6 +151,9 @@ TestSuite instproc setup {tcptype list} {
           	TCPSink $node_(k1) $fid]
     	} elseif {$tcptype == "Sack1"} {
       		set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) \
+          	TCPSink/Sack1  $node_(k1) $fid]
+    	} elseif {$tcptype == "Fack"} {
+      		set tcp1 [$ns_ create-connection TCP/Fack $node_(s1) \
           	TCPSink/Sack1  $node_(k1) $fid]
     	} elseif {$tcptype == "FullTcp"} {
 		set wrap $wrap1
@@ -306,6 +309,17 @@ Test/onedrop_sack_full instproc run {} {
         $self setup FullTcpSack1 {16}
 }
 
+Class Test/onedrop_fack -superclass TestSuite
+Test/onedrop_fack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	onedrop_fack
+	$self next
+}
+Test/onedrop_fack instproc run {} {
+        $self setup Fack {14}
+}
+
 ###################################################
 ## Two drops
 ###################################################
@@ -396,6 +410,17 @@ Test/twodrops_sack_full instproc init {} {
 }
 Test/twodrops_sack_full instproc run {} {
         $self setup FullTcpSack1 {16 30}
+}
+
+Class Test/twodrops_fack -superclass TestSuite
+Test/twodrops_fack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	twodrops_fack
+	$self next
+}
+Test/twodrops_fack instproc run {} {
+        $self setup Fack {14 28}
 }
 
 ###################################################
@@ -490,6 +515,17 @@ Test/threedrops_sack_full instproc run {} {
         $self setup FullTcpSack1 {16 28 30}
 }
 
+Class Test/threedrops_fack -superclass TestSuite
+Test/threedrops_fack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	threedrops_fack
+	$self next
+}
+Test/threedrops_fack instproc run {} {
+        $self setup Fack {14 26 28}
+}
+
 ###################################################
 ## Four drops
 ###################################################
@@ -580,6 +616,17 @@ Test/fourdrops_sack_full instproc init {} {
 }
 Test/fourdrops_sack_full instproc run {} {
         $self setup FullTcpSack1 {16 26 28 30}
+}
+
+Class Test/fourdrops_fack -superclass TestSuite
+Test/fourdrops_fack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	fourdrops_fack
+	$self next
+}
+Test/fourdrops_fack instproc run {} {
+        $self setup Fack {14 24 26 28}
 }
 
 
