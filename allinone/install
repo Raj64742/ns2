@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.14 2000/11/01 02:18:58 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.15 2000/11/08 05:21:34 haoboy Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -183,10 +183,13 @@ fi
 
 blame='Tcl is not part of the ns project.  Please see www.Scriptics.com
 to see if they have a fix for your platform.'
-./configure --enable-gcc || die "tcl8.3.2 configuration failed! Exiting ..."
+./configure --enable-gcc --disable-shared --prefix=$CUR_PATH || die "tcl8.3.2 configuration failed! Exiting ..."
 if make 
 then 
 	echo "tcl$TCLVER make succeeded."
+	make install || die "tcl$TCLVER installation failed."
+	echo "tcl$TCLVER installation succeeded."
+	cp ../generic/*.h ../../include
 else
 	echo "tcl$TCLVER make failed! Exiting ..."
 	echo "For problems with Tcl/Tk see http://www.scriptics.com"
@@ -208,10 +211,12 @@ fi
 
 blame='Tk is not part of the ns project.  Please see www.Scriptics.com
 to see if they have a fix for your platform.'
-./configure --enable-gcc || die "tk8.3.2 configuration failed! Exiting ..."
+./configure --enable-gcc --disable-shared --prefix=$CUR_PATH || die "tk8.3.2 configuration failed! Exiting ..."
 if make 
 then
 	echo "tk$TKVER build succeeded."
+	make install || die "tk$TKVER installation failed."
+	echo "tk$TKVER installation succeeded."
 else
 	echo "tk$TKVER make failed! Exiting ..."
 	echo "For problems with Tcl/Tk see http://www.scriptics.com"
