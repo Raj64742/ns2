@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.128 1998/10/28 19:26:48 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.129 1998/11/06 22:06:28 yuriy Exp $
 
 #
 
@@ -109,9 +109,7 @@ source ../mcast/timer.tcl
 source ../mcast/ns-mcast.tcl
 source ../mcast/McastProto.tcl
 source ../mcast/DM.tcl
-source ../mcast/dynamicDM.tcl
-source ../mcast/pimDM.tcl
-source ../mcast/detailedDM.tcl
+source ../mcast/lanDM.tcl
 source ../ctr-mcast/CtrMcast.tcl
 source ../ctr-mcast/CtrMcastComp.tcl
 source ../ctr-mcast/CtrRPComp.tcl
