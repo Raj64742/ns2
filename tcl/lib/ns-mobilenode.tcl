@@ -68,8 +68,12 @@ Node/MobileNode instproc init args {
 
     if {[llength $args] != 0} {
 	set address_ $args
+	
 	set args [lreplace $args 0 1]
     }
+
+    
+
     eval $self next $args		;# parent class constructor
     
     set X_ 0.0
@@ -83,7 +87,8 @@ Node/MobileNode instproc init args {
         set arptable_ ""                ;# no ARP table yet
 
 	set nifs_	0		;# number of network interfaces
-    
+       
+        
 }
 
 Node/MobileNode instproc reset {} {
@@ -268,9 +273,9 @@ Node/MobileNode instproc add-target {agent port } {
     }
 }
 
-Node/MobileNode instproc install-defaulttarget {rcvT} {
-    [$self set classifier_] defaulttarget $rcvT
-}
+#Node/MobileNode instproc install-defaulttarget {rcvT} {
+#    [$self set classifier_] defaulttarget $rcvT
+#}
 
 # set receiving power
 Node/MobileNode instproc setPt { val } {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.23 1999/09/18 00:10:28 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.24 1999/09/24 03:50:22 yaxu Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -392,9 +392,11 @@ Simulator instproc compute-hier-routes {} {
 		set L [split $ln :]
 
 	        set srcID [[$self get-node-by-id [lindex $L 0]] node-addr]
+	    
+	        
 		set dstID [[$self get-node-by-id [lindex $L 1]] node-addr]
 
-	        
+
 		if { [$link_($ln) up?] == "up" } {
 			$r hier-insert $srcID $dstID [$link_($ln) cost?]
 		} else {

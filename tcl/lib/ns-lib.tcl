@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.169 1999/09/18 00:10:25 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.170 1999/09/24 03:50:20 yaxu Exp $
 
 #
 
@@ -240,6 +240,30 @@ Simulator instproc macTrace  {val} { $self set macTrace_  $val }
 Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
 Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
 
+Simulator instproc get-nodetype {} {
+
+      $self instvar addressType_ routingAgent_ wiredRouting_
+      set val ""
+
+    if { [info exists addressType_] && $addressType_ == "hierarchical" } {
+	set val Hier
+    }
+    
+    if { [info exists routingAgent_] && $routingAgent_ != "" } {
+	set val Mobile
+    }
+
+    if { [info exists wiredRouting_] && $wiredRouting_ == "ON" } {
+	set val Base
+    }
+
+    if { [info exists wiredRouting_] && $wiredRouting_ == "OFF"} {
+	set val Base
+    }
+
+    return $val
+
+}
 
 Simulator instproc node-config args {
         set args [eval $self init-vars $args]
@@ -316,6 +340,7 @@ Simulator instproc node args {
 
 		# for base node
 		if {[info exists wiredRouting_] && $wiredRouting_ == "ON"} {
+		    
 		   set Node_([$node id]) $node
 		}
 	        return $node
@@ -323,7 +348,9 @@ Simulator instproc node args {
 	}
 
 	set node [new [Simulator set node_factory_] $args]
+
 	set Node_([$node id]) $node
+	
 	$node set ns_ $self
 	if [$self multicast?] {
 		$node enable-mcast $self
@@ -437,29 +464,52 @@ Simulator instproc create-wireless-node { args } {
 
 Simulator instproc create-node-instance { args } {
               $self instvar routingAgent_
-    
-	      if {[Simulator set EnableHierRt_]} {
-		  if [Simulator set mobile_ip_] {
-		      set nodetype MobileNode/MIPMH
-		  } else {
-		      #set nodetype Node/MobileNode/BaseStationNode
-		      set nodetype BaseNode
+
+              set nodetype [$self get-nodetype]
+
+              switch -exact $nodetype {
+	      
+	          Mobile {
+	 	      set nodeclass Node/MobileNode
+	          }
+
+	          Base {
+		      set nodeclass Node/MobileNode
+
+	          }
+
+		  MobileHier {
+		      set nodeclass Node/MobileNode
 		  }
-	      } else {
-		  set nodetype Node/MobileNode
-	      }
+
+	          default {
+		       puts "No way at this point!"
+		       exit
+	          }
+
+	      }             
+ 
+	      #if {[Simulator set EnableHierRt_]} {
+	#	  if [Simulator set mobile_ip_] {
+	#	      set nodetype MobileNode/MIPMH
+	#	  } else {
+	#	      #set nodetype Node/MobileNode/BaseStationNode
+	#	      set nodetype BaseNode
+	#	  }
+	#      } else {
+	#	  set nodetype Node/MobileNode
+	#      }
 		
 	      # DSR is a special case
 	      if {$routingAgent_ == "DSR"} {
-		  set nodetype [$self set-dsr-nodetype]
+		  set nodeclass [$self set-dsr-nodetype]
 	      }
-
 	      
 	      if {$args != "{}" && $args != "{{}}"} {
-		  set node [new $nodetype $args]
+		  set node [new $nodeclass $args]
 	      } else {
 		  
-		  set node [new $nodetype]
+		  set node [new $nodeclass]
 	      }
 
 	      return $node

@@ -79,6 +79,7 @@ MacTimer::start(double time)
 	rtime = time;
 	assert(rtime >= 0.0);
 
+
 	s.schedule(this, &intr, rtime);
 }
 
