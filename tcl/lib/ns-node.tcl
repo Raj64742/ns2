@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.13 1997/09/12 01:31:27 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.14 1997/10/21 00:50:32 ahelmy Exp $
 #
 
 Class Node
@@ -84,6 +84,7 @@ Node instproc enable-mcast sim {
 	#
 
         $self set mcastproto_ [new McastProtoArbiter ""]
+	$mcastproto_ set Node $self
 }
 
 Node instproc add-neighbor p {
