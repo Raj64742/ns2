@@ -172,9 +172,10 @@ void Simulator::populate_hier_classifiers() {
 		char *addr_str = Address::instance().
 			print_nodeaddr(n_addr);
 		levels = Address::instance().levels_;
-		for (int k=1; k <= levels; k++) 
+		int k;
+		for (k=1; k <= levels; k++) 
 			addr[k-1] = Address::instance().hier_addr(n_addr, k);
-		for (int k=1; k <= levels; k++) {
+		for (k=1; k <= levels; k++) {
 			int csize = rtobject_->elements_in_level(addr, k);
 			nodelist_[i]->set_table_size(k, csize);
 			
