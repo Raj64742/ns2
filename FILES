@@ -768,6 +768,7 @@ tcl/test/test-output-cbq/TL.Z
 tcl/test/test-output-cbq/TwoAO.Z
 tcl/test/test-output-cbq/TwoAO2.Z
 tcl/test/test-output-cbq/TwoAO3.Z
+tcl/test/test-output-cbq/TwoDynamic.Z
 tcl/test/test-output-cbq/TwoF.Z
 tcl/test/test-output-cbq/TwoTL.Z
 tcl/test/test-output-cbq/WRR.Z
