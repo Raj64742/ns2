@@ -84,6 +84,8 @@ protected:
 	int command(int argc, const char*const* argv);
 	void print_loss(int sample, double ave_interval);
 	void print_loss_all(int *sample);
+	void print_losses_all(int *losses);
+	void print_count_losses_all(int *count_losses);
 	int new_loss(int i, double tstamp);
 	double estimate_tstamp(int before, int after, int i);
 
@@ -94,6 +96,8 @@ protected:
 	void multiply_array(double *a, int sz, double multiplier);
 	void init_WALI();
 	double weighted_average(int start, int end, double factor, double *m, double *w, int *sample);
+	int get_sample(int oldSample, int numLosses);
+	double weighted_average1(int start, int end, double factor, double *m, double *w, int *sample, int ShortIntervals, int *losses, int *count_losses);
 
 	double est_loss_EWMA () ;
 	
@@ -123,6 +127,11 @@ protected:
 				//  inferring loss
 	int numPktsSoFar_;	// Num non-sequential packets so far
 	int PreciseLoss_;       // to estimate loss events more precisely
+	// an option for single-RTT loss intervals
+	int ShortIntervals_ ;	// For calculating loss event rates for short 
+				//  loss intervals:  "0" for counting a
+				// single loss; "1" for counting the actual
+				// number of losses.
 
 	// these assist in keep track of incming packets and calculate flost_
 	double last_timestamp_; // timestamp of last new, in-order pkt arrival.
@@ -140,6 +149,9 @@ protected:
 	int *sample;		// array with size of loss interval
 	double *weights ;	// weight for loss interval
 	double *mult ;		// discount factor for loss interval
+	int *losses ;		// array with number of losses per loss
+				//   interval
+	int *count_losses ;	// "1" to count losses in the loss interval
 	double mult_factor_;	// most recent multiple of mult array
 	int sample_count ;	// number of loss intervals
 	int last_sample ;  	// loss event rate estimated to here
@@ -164,5 +176,4 @@ protected:
 	int minlc ; 
 
 	int bytes_ ;		// For reporting on received bytes.
-
 }; 
