@@ -85,6 +85,7 @@ protected:
 	void print_loss(int sample, double ave_interval);
 	void print_loss_all(int *sample);
 	int new_loss(int i, double tstamp);
+	double estimate_tstamp(int before, int after, int i);
 
 	// algo specific
 	double est_loss_WALI();
@@ -109,7 +110,6 @@ protected:
 	double tzero_;		// timeout value reported by sender
 	int smooth_;		// for the smoother method for incorporating
 					//  incorporating new loss intervals
-	int UrgentFlag ;	// send loss report immediately
 	int total_received_;	// total # of pkts rcvd by rcvr
 	int bval_;		// value of B used in the formula
 	double last_report_sent; 	// when was last feedback sent
@@ -118,6 +118,10 @@ protected:
 	int losses_since_last_report;	// # of losses since last report
 	int printLoss_;		// to print estimated loss rates
 	int maxseq; 		// max seq number seen
+	int maxseqList;         // max seq number checked for dropped packets
+	int numPkts_;		// Num non-sequential packets before
+				//  inferring loss
+	int numPktsSoFar_;	// Num non-sequential packets so far
 	int PreciseLoss_;       // to estimate loss events more precisely
 
 	// these assist in keep track of incming packets and calculate flost_

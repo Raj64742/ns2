@@ -59,6 +59,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	bind ("printLoss_", &printLoss_);
 	bind ("algo_", &algo); // algo for loss estimation
 	bind ("PreciseLoss_", &PreciseLoss_);
+	bind ("numPkts_", &numPkts_);
 
 	// for WALI ONLY
 	bind ("NumSamples_", &numsamples);
@@ -78,12 +79,13 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	last_report_sent=0;
 
 	maxseq = -1;
+	maxseqList = -1;
 	rcvd_since_last_report  = 0;
 	losses_since_last_report = 0;
 	loss_seen_yet = 0;
 	lastloss = 0;
 	lastloss_round_id = -1 ;
-	UrgentFlag = 0 ;
+	numPktsSoFar_ = 0;
 
 	rtvec_ = NULL;
 	tsvec_ = NULL;
@@ -107,7 +109,6 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 
 	// used only bu RBPH
 	sendrate = 0 ; // current send rate
-
 }
 
 /*
@@ -124,11 +125,17 @@ int TfrcSinkAgent::new_loss(int i, double tstamp)
 {
 	if ((tsvec_[i%hsz]-lastloss > rtt_) 
 	     && (PreciseLoss_ == 0 || (round_id > lastloss_round_id))) {
-		UrgentFlag = 1 ;
 		lastloss = tstamp;
 		lastloss_round_id = round_id ;
 		return TRUE;
 	} else return FALSE;
+}
+
+double TfrcSinkAgent::estimate_tstamp(int before, int after, int i)
+{
+	double delta = (tsvec_[after%hsz]-tsvec_[before%hsz])/(after-before) ; 
+	double tstamp = tsvec_[before%hsz]+(i-before)*delta ;
+	return tstamp;
 }
 
 /*
@@ -140,13 +147,18 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	hdr_flags* hf = hdr_flags::access(pkt);
 	double now = Scheduler::instance().clock();
 	double p = -1;
-	int ecn = 0;
+	int ecnEvent = 0;
+	int congestionEvent = 0;
+	int UrgentFlag = 0;	// send loss report immediately
+	int newdata = 0;	// a new data packet received
 
 	rcvd_since_last_report ++;
 
 	if (maxseq < 0) {
 		// This is the first data packet.
+		newdata = 1;
 		maxseq = tfrch->seqno - 1 ;
+		maxseqList = tfrch->seqno;
 		rtvec_=(double *)malloc(sizeof(double)*hsz);
 		tsvec_=(double *)malloc(sizeof(double)*hsz);
 		lossvec_=(char *)malloc(sizeof(double)*hsz);
@@ -166,7 +178,13 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	/* for the time being, we will ignore out of order and duplicate 
 	   packets etc. */
 	int seqno = tfrch->seqno ;
-	if (seqno > maxseq) {
+	int oldmaxseq = maxseq;
+	// if this is the highest packet yet, or an unknown packet
+	//   between maxseqList and maxseq  
+	if ((seqno > maxseq) || 
+	  (seqno > maxseqList && lossvec_[seqno%hsz] == UNKNOWN )) {
+		if (seqno > maxseqList + 1)
+			++ numPktsSoFar_;
 		UrgentFlag = tfrch->UrgentFlag;
 		round_id = tfrch->round_id ;
 		rtt_=tfrch->rtt;
@@ -177,44 +195,49 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 		last_timestamp_=tfrch->timestamp;
 		rtvec_[seqno%hsz]=now;	
 		tsvec_[seqno%hsz]=last_timestamp_;	
-		if (hf->ect() == 1 && hf->ce() == 1) 
+		if (hf->ect() == 1 && hf->ce() == 1) {
 			lossvec_[seqno%hsz] = ECN_RCVD;
-		else lossvec_[seqno%hsz] = RCVD;
-		double delta = (tsvec_[seqno%hsz]-tsvec_[maxseq%hsz])/(seqno-maxseq) ; 
-		double tstamp = tsvec_[maxseq%hsz]+delta ;
-		// Now decide with losses begin new loss events.
-		int i = maxseq+1 ;
-		if (i < seqno) {
-			while(i < seqno) {
+			if (new_loss(seqno, tsvec_[seqno%hsz])) {
+				// ECN action
+				ecnEvent = 1;
+				lossvec_[seqno%hsz] = ECNLOST;
+				losses_since_last_report++;
+			} 
+		} else lossvec_[seqno%hsz] = RCVD;
+	}
+	if (seqno > maxseqList && 
+	  (ecnEvent || numPktsSoFar_ >= numPkts_ ||
+	     tsvec_[seqno%hsz] - tsvec_[maxseqList%hsz] > rtt_)) {
+		// Decide which losses begin new loss events.
+		int i = maxseqList ;
+		while(i < seqno) {
+			if (lossvec_[i%hsz] == UNKNOWN) {
 				rtvec_[i%hsz]=now;	
-				tsvec_[i%hsz]=tstamp;	
-				if (new_loss(i, tstamp)) {
+				tsvec_[i%hsz]=estimate_tstamp(oldmaxseq, seqno, i);	
+				if (new_loss(i, tsvec_[i%hsz])) {
+					congestionEvent = 1;
 					lossvec_[i%hsz] = LOST;
 				} else {
 					// This lost packet is marked "NOT_RCVD"
 					// as it does not begin a loss event.
 					lossvec_[i%hsz] = NOT_RCVD; 
 				}
-				i++;
 				losses_since_last_report++;
-				tstamp = tstamp+delta;
 			}
+			i++;
 		}
-		if (lossvec_[seqno%hsz] == ECN_RCVD) {
-			if (new_loss(i, tstamp)) {
-				// ECN action
-				ecn = 1;
-				lossvec_[seqno%hsz] = ECNLOST;
-				losses_since_last_report++;
-				tstamp = tstamp+delta;
-			} 
-		}
-		int x = maxseq ; 
+		maxseqList = seqno;
+		numPktsSoFar_ = 0;
+	} else if (seqno == maxseqList + 1) {
+		maxseqList = seqno;
+		numPktsSoFar_ = 0;
+	} 
+	if (seqno > maxseq) {
 		maxseq = tfrch->seqno ;
 		// if we are in slow start (i.e. (loss_seen_yet ==0)), 
 		// and if we saw a loss, report it immediately
 		if ((algo == WALI) && (loss_seen_yet ==0) && 
-		  (tfrch->seqno-x > 1 || ecn )) {
+		  (tfrch->seqno - oldmaxseq > 1 || ecnEvent )) {
 			UrgentFlag = 1 ; 
 			loss_seen_yet = 1;
 			if (adjust_history_after_ss) {
@@ -226,10 +249,9 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 			(now - last_report_sent >= rtt_/NumFeedback_)) {
 			UrgentFlag = 1 ;
 		}
-		if (UrgentFlag) {
-			UrgentFlag = 0 ;
-			nextpkt(p);
-		}
+	}
+	if (UrgentFlag || ecnEvent || congestionEvent) {
+		nextpkt(p);
 	}
 	Packet::free(pkt);
 }
