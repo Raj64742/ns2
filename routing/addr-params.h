@@ -28,7 +28,7 @@
 //
 // Address parameters. Singleton class
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/addr-params.h,v 1.2 2000/09/15 20:31:56 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/addr-params.h,v 1.3 2001/02/01 22:59:58 haldar Exp $
 
 #ifndef ns_addr_params_h
 #define ns_addr_params_h
@@ -38,8 +38,9 @@
 class AddrParamsClass : public TclClass{
 public:
 	// XXX Default hlevel_ to 1.
-	AddrParamsClass() : hlevel_(1), NodeMask_(NULL), NodeShift_(NULL),
-			    TclClass("AddrParams") {
+	AddrParamsClass() : TclClass("AddrParams"),
+			    hlevel_(1), NodeMask_(NULL), 
+			    NodeShift_(NULL) {
 		instance_ = this;
 	}
 	virtual TclObject* create(int, const char*const*) {
