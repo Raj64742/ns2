@@ -38,6 +38,8 @@ source misc_simple.tcl
 catch "cd $dir"
 Queue/RED set gentle_ true
 Agent/Pushback set verbose_ false
+#Agent/Pushback set verbose_ true
+
 Queue/RED/Pushback set rate_limiting_ 0
 Agent/Pushback set enable_pushback_ 0
 
@@ -313,12 +315,12 @@ TestSuite instproc setup {} {
 
     set udp1 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 1]
     set cbr1 [$udp1 attach-app Traffic/CBR]
-    $cbr1 set rate_ 0.1Mb
+    $cbr1 set rate_ 0.12Mb
     $cbr1 set random_ 0.005
 
     set udp2 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 2]
     set cbr2_ [$udp2 attach-app Traffic/CBR]
-    $cbr2_ set rate_ 0.1Mb
+    $cbr2_ set rate_ 0.08Mb
     $cbr2_ set random_ 0.005
 
     # bad traffic
@@ -330,15 +332,21 @@ TestSuite instproc setup {} {
 
     set udp4 [$ns_ create-connection UDP $node_(s1) Null $node_(d0) 4]
     set cbr4 [$udp4 attach-app Traffic/CBR]
-    $cbr4 set rate_ 0.1Mb
+    $cbr4 set rate_ 0.07Mb
     $cbr4 set random_ 0.005
 
     set udp5 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 5]
     set cbr5 [$udp5 attach-app Traffic/CBR]
-    $cbr5 set rate_ 0.1Mb
+    $cbr5 set rate_ 0.06Mb
     $cbr5 set random_ 0.005
 
-    set maxAggregates_ 5
+    set udp6 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 6]
+    set cbr6 [$udp6 attach-app Traffic/CBR]
+    $cbr6 set rate_ 0.05Mb
+    $cbr6 set random_ 0.005
+
+
+    set maxAggregates_ 6
 
     $ns_ at 0.2 "$cbr1 start"
     $ns_ at 0.1 "$cbr2_ start"
