@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.12 2001/06/12 23:54:14 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.13 2001/08/02 04:03:36 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -364,6 +364,20 @@ Topology/net0 instproc init ns {
     $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail
     $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
+    $ns queue-limit $node_(r1) $node_(k1) 6
+    $ns queue-limit $node_(k1) $node_(r1) 6
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net0a -superclass NodeTopology/4nodes
+Topology/net0a instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms RED
     $ns queue-limit $node_(r1) $node_(k1) 6
     $ns queue-limit $node_(k1) $node_(r1) 6
     if {[$class info instprocs config] != ""} {
@@ -1187,6 +1201,7 @@ Test/stats1 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
 	set defNet_	net0
+	Queue/DropTail set summarystats_ true
 	set test_	stats1
 	$self next
 }
@@ -1222,6 +1237,10 @@ Test/stats1 instproc run {} {
 	$ns_ at 1.0 "$ftp1 send $bytes_ftp"
 	puts "ftp 1 bytes_produced $bytes_ftp (using `FTP send nbytes')"
 
+	set link1 [$ns_ link $node_(r1) $node_(k1)]
+	set queue1 [$link1 queue]
+	$ns_ at 10.0 "$queue1 printstats"
+
 	set almosttime [expr $stoptime - 0.001]
 	$ns_ at $almosttime "$self printpkts 0 $tcp0"
 	$ns_ at $almosttime "$self printpkts 1 $tcp1"
@@ -1233,6 +1252,17 @@ Test/stats1 instproc run {} {
 	$ns_ run
 }
 
+Class Test/stats1a -superclass TestSuite
+Test/stats1a instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0a
+	Queue/RED set summarystats_ true
+	set test_	stats1a
+	Test/stats1a instproc run {} [Test/stats1 info instbody run]
+	$self next
+}
+
 Class Test/stats2 -superclass TestSuite
 Test/stats2 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -1242,6 +1272,7 @@ Test/stats2 instproc init topo {
 	set test_	stats2
 	$self next
 }
+
 Test/stats2 instproc run {} {
 	$self instvar ns_ node_ testName_ 
 	set stoptime 10.1 
