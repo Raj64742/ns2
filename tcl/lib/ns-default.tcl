@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.46 1997/07/25 06:52:57 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.47 1997/07/25 09:20:12 padmanab Exp $
 
 
 #
@@ -158,6 +158,12 @@ CBQClass set level_ 1
 CBQClass set extradelay_ 0.0
 CBQClass set def_qtype_ DropTail
 CBQClass set okborrow_ true
+
+PacketQueue/Semantic set acksfirst_ false
+PacketQueue/Semantic set filteracks_ false
+PacketQueue/Semantic set replace_head_ false
+PacketQueue/Semantic set priority_drop_ false
+PacketQueue/Semantic set random_drop_ false
 
 #XXX other kinds of sinks -> should reparent
 Agent/TCPSink set packetSize_ 40
