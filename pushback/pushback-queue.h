@@ -63,6 +63,7 @@ class PushbackQueue: public REDQueue {
   double getBW();
   double getRate();
   double getDropRate();
+  int verbose_;
 
   RateLimitSessionList * rlsList_;
   RateEstimator * rateEstimator_;

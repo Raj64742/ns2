@@ -92,6 +92,7 @@ class PushbackAgent : public Agent {
   void recv(Packet *p, Handler *);
 
   int last_index_;
+  int verbose_;
   int intResult_;
   int debugLevel;
   char prnMsg[500];  //hopefully long enough

@@ -66,6 +66,7 @@ PushbackQueue::PushbackQueue(const char* const pba): pushbackID_(-1), src_(-1), 
   }
   bind("pushbackID_", &pushbackID_);
   bind_bool("rate_limiting_", &rate_limiting_);
+  verbose_ = pushback_->verbose_;
   
   timer_ = new PushbackQueueTimer(this);
   timer_->resched(SUSTAINED_CONGESTION_PERIOD);
@@ -121,10 +122,12 @@ PushbackQueue::timeout(int from) {
   int bdrops = qmon_->bdrops() - qmon_->mon_ebdrops();
   int bdeps = qmon_->bdepartures();
   Tcl& tcl = Tcl::instance();
-  printf("PBQ:(%d:%d) (%g) arrs = %d  drops = %d deps = %d mon_drops = %d\n", 
+  if (verbose_) {
+    printf("PBQ:(%d:%d) (%g) arrs = %d  drops = %d deps = %d mon_drops = %d\n", 
 	 src_, dst_, Scheduler::instance().clock(), 
 	 barrivals*8, bdrops*8, bdeps*8, qmon_->mon_ebdrops()*8 );
-  fflush(stdout);
+    fflush(stdout);
+  }
   tcl.evalf("%s reset",qmon_->name());
   
   // an alternate way of calculating this is using the arrivals and drops from above, 
@@ -133,10 +136,12 @@ PushbackQueue::timeout(int from) {
   double dropRate= getDropRate();
   
   if (rate_limiting_ && dropRate >= SUSTAINED_CONGESTION_DROPRATE) {
-    printf("PBQ:(%d:%d) (%g) Arr: %d (%g) Drops: %d (%g) BW: %g\n", src_, dst_, 
+    if (verbose_) {
+      printf("PBQ:(%d:%d) (%g) Arr: %d (%g) Drops: %d (%g) BW: %g\n", src_, dst_, 
 	   Scheduler::instance().clock(), barrivals, rateEstimator_->estRate_, 
 	   bdrops, dropRate, link_->bandwidth());
-    fflush(stdout);
+      fflush(stdout);
+    }
     
     //this function call would 
     //  1) start a rate limiting session, 
@@ -160,7 +165,7 @@ PushbackQueue::enque(Packet *p) {
     printf("In queue enque with ptype %d %d\n", hdr->ptype(), PT_PUSHBACK);
 
   if (hdr->ptype_ == PT_PUSHBACK) {
-    printf("PBQ:(%d:%d). Got a pushback packet.\n",src_, dst_);
+    if (verbose_) printf("PBQ:(%d:%d). Got a pushback packet.\n",src_, dst_);
     q_->enqueHead(p);
     return;
   }

@@ -65,7 +65,9 @@ PushbackAgent::PushbackAgent() : Agent(PT_PUSHBACK), last_index_(0), intResult_(
   bind("last_index_", &last_index_);
   bind("intResult_", &intResult_);
   bind_bool("enable_pushback_", &enable_pushback_);
+  bind_bool("verbose_", &verbose_);
   timer_ = new PushbackTimer(this);
+//  debugLevel = 3;
   debugLevel = 3;
 }
 
@@ -80,7 +82,7 @@ PushbackAgent::command(int argc, const char*const* argv) {
       rtLogic_ = (RouteLogic *)TclObject::lookup(argv[3]);
 
       if (node_ == NULL || rtLogic_ == NULL) {
-	printf("Improper Initialization for Pushback Agent\n");
+	if (verbose_) printf("Improper Initialization for Pushback Agent\n");
 	return(TCL_ERROR);
       }
       
@@ -155,7 +157,7 @@ PushbackAgent::identifyAggregate(int qid, double arrRate, double linkBW) {
     printMsg(prnMsg,0);
     exit(-1);
   }
-  queue_list_[qid].idTree_->traverse();
+  if (verbose_) queue_list_[qid].idTree_->traverse();
 
   AggReturn * aggReturn = queue_list_[qid].idTree_->identifyAggregate(arrRate, linkBW);
   if (aggReturn == NULL) return;
@@ -801,7 +803,7 @@ void
 PushbackAgent::printMsg(char * msg, int msgLevel) {
   
   if (msgLevel < debugLevel) {
-    printf("PBA:%d (%g) %s", node_->nodeid(), Scheduler::instance().clock(), msg);
+    if (verbose_) printf("PBA:%d (%g) %s", node_->nodeid(), Scheduler::instance().clock(), msg);
     fflush(stdout);
   }
 }
