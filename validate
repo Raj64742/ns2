@@ -1,4 +1,4 @@
-'#!/bin/sh
+#!/bin/sh
 
 #
 # validate -- run all the test scripts
