@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.110 2002/03/21 01:45:19 johnh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.111 2002/05/22 20:56:20 haldar Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -506,7 +506,7 @@ FullTcpAgent::prpkt(Packet *pkt)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);	// TCP header
 	hdr_cmn *th = hdr_cmn::access(pkt);	// common header (size, etc)
-	hdr_flags *fh = hdr_flags::access(pkt);	// flags (CWR, CE, bits)
+	//hdr_flags *fh = hdr_flags::access(pkt);	// flags (CWR, CE, bits)
 	hdr_ip* iph = hdr_ip::access(pkt);
 	int datalen = th->size() - tcph->hlen(); // # payload bytes
 
@@ -685,7 +685,7 @@ FullTcpAgent::reass(Packet* pkt)
 
 	flags = rq_.add(start, end, tiflags, 0);
 
-present:
+	//present:
 	//
 	// If we've never received a SYN (unlikely)
 	// or this is an out of order addition, no reason to coalesce
@@ -920,7 +920,7 @@ FullTcpAgent::foutput(int seqno, int reason)
 	int win = window() * maxseg_;	// window (in bytes)
 	int off = seqno - highest_ack_;	// offset of seg in window
 	int datalen;
-	int amtsent = 0;
+	//int amtsent = 0;
 
 	// be careful if we have not received any ACK yet
 	if (highest_ack_ < 0) {
@@ -1898,7 +1898,7 @@ trimthenstep6:
 			// not in useful range
 		    	fprintf(stderr,
 		    		"%f: FullTcpAgent(%s): ack(%d) not in range while in SYN_RECEIVED: ",
-			 	now(), name());
+			 	now(), name(), ackno);
 			prpkt(pkt);
 			goto dropwithreset;
 		}
