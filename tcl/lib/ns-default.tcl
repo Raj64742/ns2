@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.85 1998/01/06 17:18:04 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.86 1998/01/15 19:02:34 bajaj Exp $
 
 
 #
@@ -338,3 +338,6 @@ rtModel/Deterministic set downInterval_ 1.0
 #
 # SRM Agent defaults are in ../tcl/mcast/srm.tcl and ../mcast/srm-adaptive.tcl
 #
+
+#Increased Floating Point Precision
+set tcl_precision 17
