@@ -75,7 +75,7 @@ Mac/802_11 set rtxRtsLimit_ 3
 }
 
 # Multihop wireless MAC modeled after Metricom's Ricochet
-if [TclObject is-class Mac/802_11] {
+if [TclObject is-class Mac/Multihop] {
 Mac/Multihop set bandwidth_ 100Kb
 Mac/Multihop set delay_ 10ms
 Mac/Multihop set tx_rx_ 11.125ms
