@@ -298,7 +298,6 @@ SessionSim instproc compute-flat-routes {} {
 SessionSim instproc compute-hier-routes {} {
         $self instvar link_
         set r [$self get-routelogic]
-        debug 1
         #
         # send hierarchical data :
         # array of cluster size, #clusters, #domains
