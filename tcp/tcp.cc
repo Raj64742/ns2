@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.137 2002/10/19 22:41:37 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.138 2002/12/06 00:25:00 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -71,9 +71,9 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
 	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
 	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
-	ect_(0), restart_bugfix_(1), closed_(0), nrexmit_(0),
-	first_decrease_(1), lastreset_(0.0)
-	
+        ect_(0), lastreset_(0.0),
+        restart_bugfix_(1), closed_(0), nrexmit_(0),
+	first_decrease_(1)
 {
 #ifdef TCP_DELAY_BIND_ALL
 #else /* ! TCP_DELAY_BIND_ALL */
@@ -161,6 +161,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("high_p_");
 	delay_bind_init_one("high_decrease_");
 	delay_bind_init_one("max_ssthresh_");
+	delay_bind_init_one("cwnd_frac_");
 	delay_bind_init_one("timerfix_");
 	delay_bind_init_one("rfc2988_");
 
@@ -248,6 +249,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
 	if (delay_bind(varName, localName, "high_p_", &high_p_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "high_decrease_", &high_decrease_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "max_ssthresh_", &max_ssthresh_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "cwnd_frac_", &cwnd_frac_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "timerfix_", &timerfix_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "rfc2988_", &rfc2988_, tracer)) return TCL_OK;
 
@@ -435,6 +437,8 @@ TcpAgent::reset()
 	nrexmitpack_ = 0;
 	necnresponses_ = 0;
 	ncwndcuts_ = 0;
+
+        cwnd_last_ = 0.0;
 
 	if (control_increase_) {
 		prev_highest_ack_ = highest_ack_ ; 
@@ -859,6 +863,67 @@ int TcpAgent::numdupacks(double cwnd)
 }
 
 /*
+ * Calculating the packet drop rate p for highspeed TCP.
+ */
+double TcpAgent::compute_p()
+{
+	double p;
+	double low_p = 1.5/(low_window_*low_window_);
+	p = exp(linear(log(cwnd_), log(low_window_), log(low_p), log(high_window_), log(high_p_)));
+	return p;
+}
+
+/*
+ * Calculating the decrease parameter for highspeed TCP.
+ */
+double TcpAgent::decrease_param()
+{
+	double decrease;
+	decrease = linear(log(cwnd_), log(low_window_), 0.5, log(high_window_), high_decrease_);
+	return decrease;
+}
+
+/*
+ * Calculating the increase parameter for highspeed TCP.
+ */
+double TcpAgent::increase_param()
+{
+	double increase, decrease, p, answer;
+	/* extending the slow-start for high-speed TCP */
+
+	/* for highspeed TCP -- from Sylvia Ratnasamy, */
+	/* modifications by Sally Floyd and Evandro de Souza */
+ 	// p ranges from 1.5/W^2 at congestion window low_window_, to
+	//    high_p_ at congestion window high_window_, on a log-log scale.
+        // The decrease factor ranges from 0.5 to high_decrease
+	//  as the window ranges from low_window to high_window, 
+	//  as the log of the window. 
+	// For an efficient implementation, this would just be looked up
+	//   in a table, with the increase and decrease being a function of the
+	//   congestion window.
+
+       if (cwnd_ <= low_window_) { 
+		answer = 1 / cwnd_;
+       		return answer; 
+       } else if (cwnd_ >= cwnd_last_ && cwnd_ < cwnd_frac_ * cwnd_last_ ) {
+		answer = increase_last_ / cwnd_;
+                return answer;
+       } else { 
+		p = compute_p();
+		decrease = decrease_param();
+		increase = (cwnd_ * cwnd_ *2.0* decrease * p)/(2.0 - decrease); 
+		//      double max_increase = 157.8;
+		//	if (increase > max_increase) { 
+		//		increase = max_increase;
+		//	} 
+		answer = increase / cwnd_;
+		cwnd_last_ = cwnd_;
+		increase_last_ = increase;
+       		return answer;
+	}       
+}
+
+/*
  * open up the congestion window
  */
 void TcpAgent::opencwnd()
@@ -941,36 +1006,8 @@ void TcpAgent::opencwnd()
                         cwnd_ += increase_num_ / (cwnd_*pow(cwnd_,k_parameter_));                
                         break; 
  		case 8: 
-			double increase, decrease, p, max_increase; 
-
-			/* extending the slow-start for high-speed TCP */
-			//if (last_cwnd_action_ == 0 ) {
-			//} else
-
-                        /* for highspeed TCP -- from Sylvia Ratnasamy, */
-			/* modifications by Sally Floyd and Evandro de Souza */
- 	// p ranges from 1.5/W^2 at congestion window low_window_, to
-	//    high_p_ at congestion window high_window_, on a log-log scale.
-        // The decrease factor ranges from 0.5 to high_decrease
-	//  as the window ranges from low_window to high_window, 
-	//  as the log of the window. 
-	// For an efficient implementation, this would just be looked up
-	//   in a table, with the increase and decrease being a function of the
-	//   congestion window.
-
-                        if (cwnd_ <= low_window_) { 
-                                increment = 1 / cwnd_ ; 
-                        } else { 
-				double low_p = 1.5/(low_window_*low_window_);
-				p = exp(linear(log(cwnd_), log(low_window_), log(low_p), log(high_window_), log(high_p_)));
-				decrease = linear(log(cwnd_), log(low_window_), 0.5, log(high_window_), high_decrease_);
-				increase = (cwnd_ * cwnd_ * 2.0 * decrease * p)/(2.0 - decrease); 
-			//      max_increase = 157.8;
-			//	if (increase > max_increase) { 
-			//		increase = max_increase;
-			//	} 
-                                increment = (increase / cwnd_) ;
-                        }       
+			/* high-speed TCP */
+			increment = increase_param();
 			if ((last_cwnd_action_ == 0 ||
 			  last_cwnd_action_ == CWND_ACTION_TIMEOUT) 
 			  && max_ssthresh_ > 0) {
@@ -1011,7 +1048,7 @@ TcpAgent::slowdown(int how)
                         decreasewin = windowd() - (1.0-decrease_num_)*pow(windowd(),l_parameter_);
                 } else if (wnd_option_ == 8 && (cwnd_ > low_window_)) { 
                         /* experimental highspeed TCP */
-			decrease = linear(log(cwnd_), log(low_window_), 0.5, log(high_window_), high_decrease_);
+			decrease = decrease_param();
 			//if (decrease < 0.1) 
 			//	decrease = 0.1;
 			decrease_num_ = decrease;
@@ -1029,7 +1066,7 @@ TcpAgent::slowdown(int how)
                         temp = (int)(window() - (1.0-decrease_num_)*pow(window(),l_parameter_));
                 } else if ((wnd_option_ == 8) && (cwnd_ > low_window_)) { 
                         /* experimental highspeed TCP */
-			decrease = linear(log(cwnd_), log(low_window_), 0.5, log(high_window_), high_decrease_);
+			decrease = decrease_param();
 			//if (decrease < 0.1)
                         //       decrease = 0.1;		
 			decrease_num_ = decrease;

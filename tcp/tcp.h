@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.100 2002/10/19 22:41:37 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.101 2002/12/06 00:25:00 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -343,13 +343,24 @@ protected:
 	int useHeaders_;	/* boolean: Add TCP/IP header sizes */
 
 	/* for experimental high-speed TCP */
+	/* These four parameters define the HighSpeed response function. */
 	int low_window_;	/* window for turning on high-speed TCP */
 	int high_window_;	/* target window for new response function */
 	double high_p_;		/* target drop rate for new response function */
 	double high_decrease_;	/* decrease rate at target window */
+	/* The next parameter is for Limited Slow-Start. */
 	int max_ssthresh_;	/* max value for ssthresh_ */
+	/* These three functions are just an easy structuring of the code. */ 
+	double increase_param();  /* get increase parameter for current cwnd */
+	double decrease_param();  /* get decrease parameter for current cwnd */
+	double compute_p();	/* compute p for calculating parameters */
+	/* The next three parameters are for CPU overhead, for computing */
+	/*   the HighSpeed parameters less frequently.  A better solution */
+ 	/*   might be just to have a look-up array.  */
+	double cwnd_last_;	/* last cwnd for computed parameters */
+        double increase_last_;	/* increase param for cwnd_last_ */
+	double cwnd_frac_;	/* for determining when to recompute params. */
         /* end of section for experimental high-speed TCP */
-
 
         /* support for event-tracing */
         //EventTrace *et_;
