@@ -80,6 +80,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	sample = NULL ; 
 	weights = NULL ;
 	mult = NULL ;
+	mult_factor_ = 1.0;
 }
 
 /*
@@ -220,9 +221,13 @@ double TfrcSinkAgent::est_loss ()
 	for (i = last_sample; i <= maxseq ; i ++) {
 		sample[0]++; 
 		if (lossvec_[i%hsz] == LOST) {
+		        //   new loss event
+			//  do we want to do this after the loss event is over?
 			sample_count ++;
 			shift_array (sample, numsamples+1); 
+			multiply_array(mult, numsamples+1, mult_factor_);
 			shift_array_new (mult, numsamples+1, 1.0); 
+			mult_factor_ = 1.0;
 		}
 	}
 	last_sample = maxseq+1 ; 
@@ -239,24 +244,21 @@ double TfrcSinkAgent::est_loss ()
 
 	/* do we need to discount weights? */
 	if (sample_count > 1 && discount) {
-		double ave = weighted_average(1, ds, mult, weights, sample);
+		double ave = weighted_average(1, ds, 1.0, mult, weights, sample);
 		int factor = 2;
 		double ratio = (factor*ave)/sample[0];
 		double min_ratio = 0.5;
 		if ( ratio < 1.0) {
 			// the most recent loss interval is very large
-			double new_mult = ratio;
-			if (new_mult < min_ratio) 
-				new_mult = min_ratio;
-			for (i = 1; i < ds; i++) {
-				mult[i] = new_mult;
-			}
+			mult_factor_ = ratio;
+			if (mult_factor_ < min_ratio) 
+				mult_factor_ = min_ratio;
 		}
 	}
 	// Calculations including the most recent loss interval.
-	ave_interval1 = weighted_average(0, ds, mult, weights, sample);
+	ave_interval1 = weighted_average(0, ds, mult_factor_, mult, weights, sample);
 	// Calculations not including the most recent loss interval.
-	ave_interval2 = weighted_average(1, ds, mult, weights, sample);
+	ave_interval2 = weighted_average(1, ds, mult_factor_, mult, weights, sample);
 	if (domax) {
 		// The most recent loss interval does not end in a loss
 		// event.  Include the most recent interval in the 
@@ -265,21 +267,30 @@ double TfrcSinkAgent::est_loss ()
 		if (ave_interval2 > ave_interval1)
 			ave_interval1 = ave_interval2;
 	}
-	if (ave_interval1 > 0) 
+	if (ave_interval1 > 0) { 
+//double now = Scheduler::instance().clock();
+//double drops = 1/ave_interval1;
+//printf ("%7.5f %7.5f\n", now, drops);
 		return 1/ave_interval1; 
-	else return 999;     
+	} else return 999;     
 }
 
 // Calculate the weighted average.
-double TfrcSinkAgent::weighted_average(int start, int end, double *m, double *w, int *sample)
+double TfrcSinkAgent::weighted_average(int start, int end, double factor, double *m, double *w, int *sample)
 {
 	int i; 
 	double wsum = 0;
 	double answer = 0;
 	for (i = start ; i < end; i++) 
-		wsum += m[i]*w[i];
+		if (i==0)
+			wsum += m[i]*w[i];
+		else 
+			wsum += factor*m[i]*w[i];
 	for (i = start ; i < end; i++)  
-		answer += m[i]*w[i]*sample[i]/wsum;
+		if (i==0)
+		 	answer += m[i]*w[i]*sample[i]/wsum;
+		else 
+			answer += factor*m[i]*w[i]*sample[i]/wsum;
         return answer;
 }
 
@@ -300,6 +311,15 @@ void TfrcSinkAgent::shift_array_new(double *a, int sz, double defval) {
 		a[i+1] = a[i] ;
 	}
 	a[0] = defval;
+}
+
+// Multiply array by value.
+void TfrcSinkAgent::multiply_array(double *a, int sz, double multiplier) {
+	int i ;
+	for (i = sz-1; i >= 0 ; i--) {
+		double old = a[i];
+		a[i] = old * multiplier ;
+	}
 }
 
 /*
