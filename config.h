@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.32 1999/09/09 03:25:22 salehi Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.33 1999/09/10 18:52:44 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -229,7 +229,7 @@ int sendmsg(int, struct msghdr*, int);
 time_t time(time_t *);
 #endif
 
- #define strncasecmp _strnicmp
+#define strncasecmp _strnicmp
 #if defined(__cplusplus)
 }
 #endif
@@ -249,9 +249,13 @@ time_t time(time_t *);
 
 // Declare our implementation of snprintf() so that ns etc. can use it. 
 #ifndef HAVE_SNPRINTF
+#if defined(__cplusplus)
 extern "C" {
+#endif
 	extern int snprintf(char *buf, int size, const char *fmt, ...);
+#if defined(__cplusplus)
 }
+#endif
 #endif
 
 /***** These values are no longer required to be hardcoded -- mask and shift values are 
