@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.9 1997/07/25 09:13:44 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.10 1997/07/25 21:19:47 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -93,7 +93,7 @@ void
 CsmaMac::resume(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	s.schedule(callback_, &intr_, ifs_ + slotTime_ * cw_);
+	s.schedule(callback_, &intr_, ifs_ + slotTime_ * cwmin_);
 	if (p != 0)
 		drop(p);
 	callback_ = 0;
