@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.17 1999/09/24 23:50:11 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.18 2000/03/24 19:52:46 haoboy Exp $
 # updated by Lloyd Wood
 
 if [string match {*.tcl} $argv0] {
@@ -75,6 +75,7 @@ $ns duplex-link $n(3) $n(5) 1.5Mb 10ms DropTail
 $ns duplex-link-op $n(3) $n(5) orient 300deg
 
 $ns duplex-link-op $n(3) $n(4) color "green"
+$ns duplex-link-op $n(3) $n(4) label "abced"
 
 $ns queue-limit $n(0) $n(1) 2	;# q-limit is 1 more than max #packets in q.
 $ns queue-limit $n(1) $n(0) 2
