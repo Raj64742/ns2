@@ -110,9 +110,10 @@ proc create-routing-agent { node id } {
 
 
 proc dsdv-create-mobile-node { id } {
-	global ns_ chan prop topo tracefd opt node_
+	global ns ns_ chan prop topo tracefd opt node_
 	global chan prop tracefd topo opt
 	
+	set ns_ $ns
 	set node_($id) [new Node/MobileNode]
 
 	set node $node_($id)

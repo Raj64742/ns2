@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.3 1999/01/04 19:59:16 haldar Exp $
+# $Id: dsr.tcl,v 1.4 1999/02/24 23:32:08 haldar Exp $
 
 # ======================================================================
 # Default Script Options
@@ -57,9 +57,8 @@ CacheTimer instproc timeout {} {
 }
 
 proc checkcache {a} {
-    global cachetimer ns_ ns
+    global cachetimer ns
 
-    set ns $ns_
     set cachetimer [new CacheTimer]
     $cachetimer set agent $a
     $cachetimer sched 1.0
@@ -69,11 +68,10 @@ proc checkcache {a} {
 Class SRNode -superclass Node/MobileNode
 
 SRNode instproc init {args} {
-    global opt ns_ tracefd RouterTrace
-    $self instvar dsr_agent_ dmux_ entry_point_ address_
+	global ns ns_ opt tracefd RouterTrace
+	$self instvar dsr_agent_ dmux_ entry_point_ address_
 
 	eval $self next $args	;# parent class constructor
-	
 	if {$dmux_ == "" } {
 		set dmux_ [new Classifier/Addr]
 		$dmux_ set mask_ [AddrParams set PortMask_]
@@ -111,6 +109,7 @@ SRNode instproc init {args} {
     #
     # Log Target
     #
+
     set T [new Trace/Generic]
     $T target [$ns_ set nullAgent_]
     $T attach $tracefd
@@ -149,7 +148,7 @@ SRNode instproc entry {} {
 SRNode instproc add-interface {args} {
 # args are expected to be of the form
 # $chan $prop $tracefd $opt(ll) $opt(mac)
-    global ns_ opt RouterTrace
+    global ns ns_ opt RouterTrace
 
     eval $self next $args
 
@@ -182,9 +181,8 @@ SRNode instproc reset args {
 # ======================================================================
 
 proc dsr-create-mobile-node { id } {
-	global ns_ chan prop topo tracefd opt node_
-	global chan prop tracefd topo opt
-
+	global ns ns_ chan prop topo tracefd opt node_
+	set ns_ $ns 
 	set node_($id) [new SRNode]
 
 	set node $node_($id)
