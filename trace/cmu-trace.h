@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.19 2003/03/18 23:56:40 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.20 2003/08/21 18:22:02 haldar Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -115,6 +115,7 @@ private:
 	void	format_dsr(Packet *p, int offset);
 	void	format_msg(Packet *p, int offset);
 	void	format_tcp(Packet *p, int offset);
+	void    format_sctp(Packet *p, int offset);
 	void	format_rtp(Packet *p, int offset);
 	void	format_tora(Packet *p, int offset);
         void    format_imep(Packet *p, int offset);

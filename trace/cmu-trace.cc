@@ -34,12 +34,13 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.76 2003/08/05 18:45:53 difa Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.77 2003/08/21 18:22:02 haldar Exp $
  */
 
 #include <packet.h>
 #include <ip.h>
 #include <tcp.h>
+#include <sctp.h>
 #include <rtp.h>
 #include <arp.h>
 #include <dsr/hdr_sr.h>	// DSR
@@ -487,6 +488,74 @@ CMUTrace::format_tcp(Packet *p, int offset)
 		th->ackno_,
 		ch->num_forwards(),
 		ch->opt_num_forwards());
+	}
+}
+
+/* Armando L. Caro Jr. <acaro@@cis,udel,edu> 6/5/2002
+ * (with help from Florina Almenárez <florina@@it,uc3m,es>)
+ */
+void
+CMUTrace::format_sctp(Packet* p,int offset)
+{
+	struct hdr_cmn *ch = HDR_CMN(p);
+	struct hdr_ip *ih = HDR_IP(p);
+	struct hdr_sctp *sh = HDR_SCTP(p);
+	char cChunkType;
+  
+	for(int i = 0; i < sh->NumChunks(); i++) {
+		switch(sh->SctpTrace()[i].eType) {
+		case SCTP_CHUNK_INIT:
+		case SCTP_CHUNK_INIT_ACK:
+		case SCTP_CHUNK_COOKIE_ECHO:
+		case SCTP_CHUNK_COOKIE_ACK:
+			cChunkType = 'I';       // connection initialization
+			break;
+      
+		case SCTP_CHUNK_DATA:
+			cChunkType = 'D';
+			break;
+      
+		case SCTP_CHUNK_SACK:
+			cChunkType = 'S';
+			break;
+      
+		case SCTP_CHUNK_FORWARD_TSN:
+			cChunkType = 'R';
+			break;
+
+		case SCTP_CHUNK_HB:
+			cChunkType = 'H';
+			break;
+			
+		case SCTP_CHUNK_HB_ACK:
+			cChunkType = 'B';
+			break;
+		}
+    
+		if( newtrace_ ) {
+			sprintf(pt_->buffer() + offset,
+				"-Pn sctp -Pnc %d -Pct %c "
+				"-Ptsn %d -Psid %d -Pssn %d "
+				"-Pf %d -Po %d ",
+				sh->NumChunks(),
+				cChunkType,
+				sh->SctpTrace()[i].uiTsn,
+				sh->SctpTrace()[i].usStreamId,
+				sh->SctpTrace()[i].usStreamSeqNum,
+				ch->num_forwards(),
+				ch->opt_num_forwards());
+		}
+		else {
+			sprintf(pt_->buffer() + offset,
+				"[%d %c %d %d %d] %d %d",
+				sh->NumChunks(),
+				cChunkType,
+				sh->SctpTrace()[i].uiTsn,
+				sh->SctpTrace()[i].usStreamId,
+				sh->SctpTrace()[i].usStreamSeqNum,
+				ch->num_forwards(),
+				ch->opt_num_forwards());
+		}
 	}
 }
 
@@ -948,6 +1017,11 @@ void CMUTrace::format(Packet* p, const char *why)
 		case PT_TCP:
 		case PT_ACK:
 			format_tcp(p, offset);
+			break;
+		case PT_SCTP:
+			/* Armando L. Caro Jr. <acaro@@cis,udel,edu> 6/5/2002
+			 */
+			format_sctp(p, offset);
 			break;
 		case PT_CBR:
 			format_rtp(p, offset);

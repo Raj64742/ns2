@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.94 2003/03/18 23:56:40 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.95 2003/08/21 18:22:00 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -60,6 +60,7 @@
 #define HDR_IP(p)       (hdr_ip::access(p))
 #define HDR_RTP(p)      (hdr_rtp::access(p))
 #define HDR_TCP(p)      (hdr_tcp::access(p))
+#define HDR_SCTP(p)     (hdr_sctp::access(p))
 #define HDR_SR(p)       (hdr_sr::access(p))
 #define HDR_TFRC(p)     (hdr_tfrc::access(p))
 #define HDR_TORA(p)     (hdr_tora::access(p))
@@ -153,6 +154,9 @@ enum packet_t {
 	PT_LMS,
 	PT_LMS_SETUP,
 
+	PT_SCTP,
+	PT_SCTP_APP1,
+
 	// SMAC packet
 	PT_SMAC,
 
@@ -240,6 +244,9 @@ public:
 		name_[PT_LMS]="LMS";
 		name_[PT_LMS_SETUP]="LMS_SETUP";
 
+		name_[PT_SCTP]= "sctp";
+ 		name_[PT_SCTP_APP1] = "sctp_app1";
+		
 		// smac
 		name_[PT_SMAC]="smac";
 
@@ -255,7 +262,9 @@ public:
 			 (type) == PT_CBR || \
 			 (type) == PT_AUDIO || \
 			 (type) == PT_VIDEO || \
-			 (type) == PT_ACK \
+			 (type) == PT_ACK || \
+			 (type) == PT_SCTP || \
+			 (type) == PT_SCTP_APP1 \
 			 );
 	}
 private:
@@ -270,7 +279,9 @@ extern p_info packet_info; /* map PT_* to string name */
                             (type) == PT_CBR || \
                             (type) == PT_AUDIO || \
                             (type) == PT_VIDEO || \
-                            (type) == PT_ACK \
+                            (type) == PT_ACK || \
+                            (type) == PT_SCTP || \
+                            (type) == PT_SCTP_APP1 \
                             )
 
 

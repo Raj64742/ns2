@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.32 2003/03/03 23:53:50 buchheim Exp $
+# $Id: Makefile,v 1.33 2003/08/21 18:22:00 haldar Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -54,7 +54,8 @@ FILES= \
 	diffserv.tex \
 	educational.tex \
 	codestyle.tex \
-	diffusion.tex
+	diffusion.tex \
+	sctp.tex
 
 all: everything.dvi everything.ps.gz everything.html everything.pdf
 

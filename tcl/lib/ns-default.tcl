@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.320 2003/08/14 04:26:41 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.321 2003/08/21 18:22:01 haldar Exp $
 
 
 #
@@ -64,6 +64,7 @@ Trace set show_tcphdr_ 0
 Trace set debug_ false
 
 CMUTrace set debug_ false
+CMUTrace set show_sctphdr_ 0
 CMUTrace set radius_scaling_factor_ 1.0
 CMUTrace set duration_scaling_factor_ 3.0e4
 
@@ -468,6 +469,11 @@ Application/Traffic/CBR set maxpkts_ 268435456; # 0x10000000
 
 Application/Telnet set interval_ 1.0
 
+Application/SctpApp1 set interval_ 1.0
+Application/SctpApp1 set numStreams_ 1
+Application/SctpApp1 set numUnreliable_ 0
+Application/SctpApp1 set reliability_ 0
+
 RandomVariable/Uniform set min_ 0.0
 RandomVariable/Uniform set max_ 1.0
 RandomVariable/Exponential set avg_ 1.0
@@ -700,6 +706,35 @@ Agent/Ping set packetSize_ 64
 Agent/UDP set packetSize_ 1000
 Agent/UDP instproc done {} { }
 Agent/UDP instproc process_data {from data} { }
+
+Agent/SCTP set debugMask_ 0             ;# all debugging off by default
+Agent/SCTP set debugFileIndex_ -1       ;# default outputs to stderr
+Agent/SCTP set associationMaxRetrans_ 10;# 10 attempts
+Agent/SCTP set pathMaxRetrans_ 5        ;# 5 attempts (per destination)
+Agent/SCTP set maxInitRetransmits_ 8    ;# 8 attempts
+Agent/SCTP set oneHeartbeatTimer_ 1     ;# single heartbeat timer for all dests
+Agent/SCTP set heartbeatInterval_ 30    ;# 30 secs
+Agent/SCTP set mtu_ 1500                ;# MTU of ethernet (most common)
+Agent/SCTP set initialRwnd_ 65536       ;# default inital receiver window
+Agent/SCTP set initialSsthresh_ 65536   ;# default inital ssthresh value
+Agent/SCTP set initialCwnd_ 2           ;# default cwnd = 2 * MTU
+Agent/SCTP set numOutStreams_ 1         ;# single stream default
+Agent/SCTP set numUnrelStreams_ 0       ;# by default all streams are reliable
+Agent/SCTP set reliability_ 0           ;# by default unrel streams have 0 rtx's
+Agent/SCTP set unordered_ 0             ;# by default all chunks are ordered
+Agent/SCTP set ipHeaderSize_ 20         ;# default is IPv4
+Agent/SCTP set dataChunkSize_ 1468      ;# restricted to 4 byte boundaries
+Agent/SCTP set useDelayedSacks_ 1       ;# rfc2960 says SHOULD use delayed sacks
+Agent/SCTP set useMaxBurst_ 1           ;# sctp implementors guide adds this var
+Agent/SCTP set rtxToAlt_ 1              ;# by default rtxs go to alternate dest
+Agent/SCTP set trace_all_ 0             ;# trace all vars ?
+
+## These variables are set because they have to be bound to be traceable.
+## This default does not matter to us at all.
+Agent/SCTP set cwnd_ 0                 ; 
+Agent/SCTP set rto_ 0                  ;
+Agent/SCTP set errorCount_ 0           ;
+
 
 Agent/TCP set seqno_ 0
 Agent/TCP set t_seqno_ 0

@@ -62,7 +62,7 @@ DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@ -DNS_DIFFUSI
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
 	@V_INCLUDES@ \
-	-I./tcp -I./common -I./link -I./queue \
+	-I./tcp -I./sctp -I./common -I./link -I./queue \
 	-I./adc -I./apps -I./mac -I./mobile -I./trace \
 	-I./routing -I./tools -I./classifier -I./mcast \
 	-I./diffusion3/lib/main -I./diffusion3/lib \
@@ -183,6 +183,10 @@ OBJ_CC = \
 	tcp/tcp-asym-fs.o tcp/tcp-qs.o \
 	tcp/tcp-int.o tcp/chost.o tcp/tcp-session.o \
 	tcp/nilist.o \
+	sctp/sctp.o apps/sctp_app1.o\
+	sctp/sctp-timestamp.o sctp/sctp-hbAfterRto.o \
+	sctp/sctp-multipleFastRtx.o \
+	sctp/sctp-newreno.o \
 	tools/integrator.o tools/queue-monitor.o \
 	tools/flowmon.o tools/loss-monitor.o \
 	queue/queue.o queue/drop-tail.o \

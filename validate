@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.128 2003/08/13 18:05:17 difa Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.129 2003/08/21 18:22:00 haldar Exp $
 
 try () {
         for excluding in $cygwin_exclude; do
@@ -58,6 +58,7 @@ echo "(Validation can take 1-30 hours to run.)"
 cd tcl/test
 
 for i in \
+sctp \
 simple tcp testReno newreno sack tcpOptions tcpReset \
 simple-full full testReno-full testReno-bayfull sack-full \
 tcp-init-win tcpVariants LimTransmit aimd greis rfc793edu rfc2581 rbp \

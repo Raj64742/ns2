@@ -31,13 +31,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.33 2001/05/21 19:27:32 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.34 2003/08/21 18:22:02 haldar Exp $
  */
 
 #ifndef ns_trace_h
 #define ns_trace_h
 
-#define NUMFLAGS 7
+#define NUMFLAGS 8
 
 #include <math.h> // floor
 #include "packet.h"
@@ -61,6 +61,7 @@ protected:
         virtual void format(int tt, int s, int d, Packet* p);
         void annotate(const char* s);
 	int show_tcphdr_;  // bool flags; backward compat
+	int show_sctphdr_; // bool flags; backward compat
 	void callback();
 public:
 	Trace(int type);

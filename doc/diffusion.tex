@@ -47,7 +47,10 @@ The above Figure~\ref{fig:filter} is from SCADDS' network routing API document a
 %	\label{fig:diffusion-node}
 %\end{figure}
 
-The above Figure~\ref{fig:diffusion-node} shows the internals of directed diffusion implementation in \ns. The core diffusion agent and diffusion application agent are attached to two well-known ports defined in \nsf{/tcl/lib/ns-default.tcl}. Diffusion applications attached to the node call the underlying diffusion application agent for publishing/subscribing/sending data.
+%% The above Figure~\ref{fig:diffusion-node} shows the internals of directed
+%% diffusion implementation in \ns. 
+
+The core diffusion agent and diffusion application agent are attached to two well-known ports defined in \nsf{/tcl/lib/ns-default.tcl}. Diffusion applications attached to the node call the underlying diffusion application agent for publishing/subscribing/sending data.
 
 \section{Some mac issues for diffusion in ns}
 First of all, all diffusion packets in ns are broadcasted. In the shim layer that sits between diffusion and ns, (see diffusion3/ns dir for code implementing this layer) all diffusion packets are encapsulated within ns packets and are marked to be broadcasted.

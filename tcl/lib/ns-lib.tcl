@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.256 2003/08/07 17:43:07 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.257 2003/08/21 18:22:01 haldar Exp $
 
 
 #
@@ -1079,6 +1079,47 @@ Simulator instproc remove-nam-linkconfig {i1 i2} {
 	}
 }
 
+# Armando L. Caro Jr. <acaro@@cis,udel,edu> 10/22/2001
+#
+# we create a simplex link (NOT duplex) from the core to the interface. we can
+# use arbitrary params (bw, delay, etc) since we'll never actually transmit
+# data on these links. they are only used for routing (ie, to determine which 
+# interface a packet should go out from)
+#
+Simulator instproc multihome-add-interface { core if } {
+  	$self instvar link_
+  	set coreId [$core id]
+  	set ifId [$if id]
+
+	# arbitrary values (doesn't matter since link will NEVER be used!)
+	set bw 1Mb
+	set delay 100ms
+	set type DropTail
+
+	if [info exists link_($coreId:$ifId)] {
+		$self remove-nam-linkconfig $coreId $ifId
+	}
+	eval $self simplex-link $core $if $bw $delay $type 
+	# Modified by GFR for nix-vector routing
+	if { [Simulator set nix-routing] } {
+		# Inform nodes of neighbors
+		$n1 set-neighbor [$core id]
+		$n2 set-neighbor [$if id]
+	}
+
+
+    	$core instvar multihome_interfaces_ num_interfaces_
+    	set interface_ {}
+
+    	# interface node
+    	lappend interface_ $if
+
+    	# link from interface node to core node
+    	lappend interface_ [$link_($coreId:$ifId) set head_]
+
+    	lappend multihome_interfaces_ $interface_
+}
+
 Simulator instproc duplex-link { n1 n2 bw delay type args } {
 	$self instvar link_
 	set i1 [$n1 id]
@@ -1374,9 +1415,50 @@ Simulator instproc cost {n1 n2 c} {
 	$link_([$n1 id]:[$n2 id]) cost $c
 }
 
+# Armando L. Caro Jr. <acaro@@cis,udel,edu> 10/22/2001
+Simulator instproc multihome-attach-agent { core agent } {
+      	$agent set-multihome-core [$core entry]
+
+      	foreach interface [$core set multihome_interfaces_] {
+  		set ifNode [lindex $interface 0]
+		set coreLink [lindex $interface 1]
+
+      		# attach agent to the node for each interface
+      		$ifNode attach $agent
+      		set addr [$agent set agent_addr_]
+      		set port [$agent set agent_port_]
+      		set entry [$ifNode entry]
+
+      		# give the interface info to the agent
+		$agent add-multihome-interface $addr $port $entry $coreLink
+			
+      		$agent instvar multihome_bindings_
+      		set binding_ {}
+      		lappend binding_ $addr
+      		lappend binding_ $port
+      		lappend multihome_bindings_ $binding_
+      	}
+}
+
 Simulator instproc attach-agent { node agent } {
 	$node attach $agent
 	# $agent set nodeid_ [$node id]
+
+        # Armando L. Caro Jr. <acaro@@cis,udel,edu> 10/22/2001 
+	#
+	# list of tuples (addr, port)
+	# This is NEEDED so that single homed agents can play with multihomed
+	# ones!
+	# multihoming only for SCTP agents -Padma H.
+	if {[lindex [split [$agent info class] "/"] 1] == "SCTP"} {
+		$agent instvar multihome_bindings_
+		set binding_ {}
+		set addr [$agent set agent_addr_]
+		set port [$agent set agent_port_]
+		lappend binding_ $addr
+		lappend binding_ $port
+		lappend multihome_bindings_ $binding_
+	}
 }
 
 Simulator instproc attach-tbf-agent { node agent tbf } {
@@ -1453,6 +1535,13 @@ Simulator instproc connect {src dst} {
 
 	$self instvar conn_ nconn_ sflows_ nsflows_ useasim_
 
+        # Armando L. Caro Jr. <acaro@@cis,udel,edu>
+	# does the agent type support multihoming??
+	# @@@ do we need to worry about $useasim_ below?? (wasn't in 2.1b8)
+    	if {[lindex [split [$src info class] "/"] 1] == "SCTP"} {
+    		$self multihome-connect $src $dst
+    	}
+
 	$self simplex-connect $src $dst
 	$self simplex-connect $dst $src
 
@@ -1474,6 +1563,38 @@ Simulator instproc connect {src dst} {
 	}
 
 	return $src
+}
+
+# Armando L. Caro Jr. <acaro@@cis,udel,edu> 10/12/2001
+Simulator instproc multihome-connect {src dst} {
+	
+        set destNum 0
+	foreach binding [$src set multihome_bindings_] {
+		incr destNum
+  		set addr [lindex $binding 0]
+  		set port [lindex $binding 1]
+      		$dst add-multihome-destination $addr $port
+    	}
+	if {$destNum == 0} {
+	        # src isn't multihomed, so make sure we do an
+		# add-multihome-destination
+		$dst add-multihome-destination \
+				[$src set agent_addr_] [$src set agent_port_]
+	}
+	
+        set destNum 0
+	foreach binding [$dst set multihome_bindings_] {
+		incr destNum
+  		set addr [lindex $binding 0]
+  		set port [lindex $binding 1]
+      		$src add-multihome-destination $addr $port
+    	}
+	if {$destNum == 0} {
+	        # dst isn't multihomed, so make sure we do an
+		# add-multihome-destination
+		$src add-multihome-destination \
+				[$dst set agent_addr_] [$dst set agent_port_]
+	}
 }
 
 Simulator instproc simplex-connect { src dst } {

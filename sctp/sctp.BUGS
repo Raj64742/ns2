@@ -1,0 +1,18 @@
+sctp.BUGS - List of known bugs in the NS-2 SCTP module.
+   Armando L. Caro Jr. <acaro@@cis,udel,edu>
+
+@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.BUGS,v 1.1 2003/08/21 18:29:14 haldar Exp $
+
+------------------------------------------------------------------------------
+
+- In ProcessSackChunk(), the T3Rtx timer is sometimes restarted for
+  destinations that have not acknowledged their first outstanding. The
+  code below assumes that if the timer isn't running, then the first
+  outstanding for that destination has been acked, but that isn't always
+  the case. Reported by Martin Duke <martin.duke@@boeing,com>
+
+      if(spCurrDestNodeData->iOutstandingBytes > 0 &&
+	 spCurrDestNodeData->eRtxTimerIsRunning == FALSE)
+        {
+	  StartT3RtxTimer(spCurrDestNodeData);
+        }

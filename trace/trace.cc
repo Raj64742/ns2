@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.77 2003/03/26 23:16:14 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.78 2003/08/21 18:22:02 haldar Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -39,6 +39,7 @@
 #include "packet.h"
 #include "ip.h"
 #include "tcp.h"
+#include "sctp.h"
 #include "rtp.h"
 #include "srm.h"
 #include "tfrc.h"
@@ -68,6 +69,7 @@ Trace::Trace(int type)
 	bind("dst_", (int*)&dst_);
 	bind("callback_", &callback_);
 	bind("show_tcphdr_", &show_tcphdr_);
+	bind("show_sctphdr_", &show_sctphdr_);
 	pt_ = new BaseTrace;
 }
 
@@ -219,6 +221,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	hdr_cmn *th = hdr_cmn::access(p);
 	hdr_ip *iph = hdr_ip::access(p);
 	hdr_tcp *tcph = hdr_tcp::access(p);
+	hdr_sctp *sctph = hdr_sctp::access(p);
 	hdr_srm *sh = hdr_srm::access(p); 
 
 	const char* sname = "null";
@@ -254,7 +257,8 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';   // Congestion Experienced
 	flags[5] = hf->fs_ ? 'F' : '-';		   // Fast start: see tcp-fs and tcp-int
 	flags[6] = hf->ecn_capable_ ? 'N' : '-';
-	
+	flags[7] = 0; // only for SCTP	
+
 #ifdef notdef
 	flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
 	flags[2] = (iph->flags() & PF_USR1) ? '1' : '-';
@@ -283,6 +287,66 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			dst_nodeaddr,
 			dst_portaddr,
 			seqno,flags,sname);
+	} if (show_sctphdr_ && t == PT_SCTP) {
+		double timestamp;
+		timestamp = Scheduler::instance().clock();
+		
+		for(int i = 0; i < sctph->NumChunks(); i++) {
+			switch(sctph->SctpTrace()[i].eType) {
+			case SCTP_CHUNK_INIT:
+			case SCTP_CHUNK_INIT_ACK:
+			case SCTP_CHUNK_COOKIE_ECHO:
+			case SCTP_CHUNK_COOKIE_ACK:
+				flags[7] = 'I';     // connection initialization
+				break;
+				
+			case SCTP_CHUNK_DATA:
+				flags[7] = 'D';
+				break;
+
+			case SCTP_CHUNK_SACK:
+				flags[7] = 'S';
+				break;
+				
+			case SCTP_CHUNK_FORWARD_TSN:
+				flags[7] = 'R';
+				break;
+				
+			case SCTP_CHUNK_HB:
+				flags[7] = 'H';
+				break;
+
+			case SCTP_CHUNK_HB_ACK:
+				flags[7] = 'B';
+				break;
+			}
+			sprintf(pt_->buffer(),
+				"%c "TIME_FORMAT" %d %d %s %d %s %d %s.%s %s.%s %d %d %d %d %d",
+				tt,
+				pt_->round(timestamp),
+				s,
+				d,
+				name,
+				th->size(),
+				flags,
+				iph->flowid(), /* was p->class_ */
+				src_nodeaddr,
+				src_portaddr,
+				dst_nodeaddr,
+				dst_portaddr,
+				sctph->NumChunks(),
+				sctph->SctpTrace()[i].uiTsn,
+				th->uid(), /* was p->uid_ */
+				sctph->SctpTrace()[i].usStreamId,
+				sctph->SctpTrace()[i].usStreamSeqNum);	     
+
+			/* The caller already calls pt_->dump() for us,
+			 * but since SCTP needs to dump once per chunk, we
+			 * call dump ourselves for all but the last chunk.
+			 */
+			if(i < sctph->NumChunks() - 1)
+				pt_->dump();
+		}
 	} else if (!show_tcphdr_) {
 		sprintf(pt_->buffer(), "%c "TIME_FORMAT" %d %d %s %d %s %d %s.%s %s.%s %d %d",
 			tt,
@@ -472,6 +536,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 		flags[4] = hf->ecn_to_echo_ ? 'E' : '-';   // Congestion Experienced
 		flags[5] = hf->fs_ ? 'F' : '-';
 		flags[6] = hf->ecn_capable_ ? 'N' : '-';
+		flags[7] = 0; // only for SCTP
 	
 #ifdef notdef
 		flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';

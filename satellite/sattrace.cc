@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.12 2002/03/22 23:49:03 buchheim Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.13 2003/08/21 18:22:01 haldar Exp $";
 #endif
 
 #include <stdio.h>
@@ -44,6 +44,7 @@ static const char rcsid[] =
 #include "packet.h"
 #include "ip.h"
 #include "tcp.h"
+#include "sctp.h"
 #include "rtp.h"
 #include "srm.h"
 #include "flags.h"
@@ -74,6 +75,7 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 	hdr_cmn *th = hdr_cmn::access(p);
 	hdr_ip *iph = hdr_ip::access(p);
 	hdr_tcp *tcph = hdr_tcp::access(p);
+	hdr_sctp *sctph = hdr_sctp::access(p);
 	hdr_rtp *rh = hdr_rtp::access(p);
 	hdr_srm *sh = hdr_srm::access(p); 
 
@@ -121,6 +123,7 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';   // Congestion Experienced
 	flags[5] = hf->fs_ ? 'F' : '-';
 	flags[6] = hf->ecn_capable_ ? 'N' : '-';
+	flags[7] = 0; // only for SCTP
 	
 #ifdef notdef
 	flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
@@ -160,7 +163,75 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
                 }
 	}
 
-	if (pt_->tagged()) {
+	if (show_sctphdr_ && t == PT_SCTP) {
+	   double timestamp;
+	   timestamp = Scheduler::instance().clock();
+	   
+	   for(int i = 0; i < sctph->NumChunks(); i++) {
+		   switch(sctph->SctpTrace()[i].eType) {
+			case SCTP_CHUNK_INIT:
+			case SCTP_CHUNK_INIT_ACK:
+			case SCTP_CHUNK_COOKIE_ECHO:
+			case SCTP_CHUNK_COOKIE_ACK:
+				flags[7] = 'I';              // connection initialization
+				break;
+
+			case SCTP_CHUNK_DATA:
+				flags[7] = 'D';
+				break;
+
+			case SCTP_CHUNK_SACK:
+				flags[7] = 'S';
+				break;
+
+			case SCTP_CHUNK_FORWARD_TSN:
+				flags[7] = 'R';
+				break;
+
+			case SCTP_CHUNK_HB:
+				flags[7] = 'H';
+				break;
+
+			case SCTP_CHUNK_HB_ACK:
+				flags[7] = 'B';
+				break;
+			}
+		   sprintf(pt_->buffer(), "%c %.4f %d %d %s %d %s %d %s.%s %s.%s %d %d %d %d %d %.2f %.2f %.2f %.2f",
+			tt,
+			pt_->round(Scheduler::instance().clock()),
+			lasth,
+			nexth,
+			name,
+			th->size(),
+			flags,
+			iph->flowid() /* was p->class_ */,
+			// iph->src() >> (Address::instance().NodeShift_[1]), 
+                        // iph->src() & (Address::instance().PortMask_), 
+                        // iph->dst() >> (Address::instance().NodeShift_[1]), 
+                        // iph->dst() & (Address::instance().PortMask_),
+			src_nodeaddr,
+			src_portaddr,
+			dst_nodeaddr,
+			dst_portaddr,
+			sctph->NumChunks(),
+			sctph->SctpTrace()[i].uiTsn,
+			th->uid(), /* was p->uid_ */
+			sctph->SctpTrace()[i].usStreamId,
+			sctph->SctpTrace()[i].usStreamSeqNum,
+			s_lat,
+			s_lon,
+			d_lat,
+			d_lon);
+
+		   /* The caller already calls pt_->dump() for us, but
+		    * since SCTP needs to dump once per chunk, we call
+		    * dump ourselves for all but the last * chunk.  
+		    */
+		   if(i < sctph->NumChunks() - 1)
+			   pt_->dump();
+		}
+	}
+	else if (pt_->tagged()) {
 		sprintf(pt_->nbuffer(), 
 			"%c %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
 			tt,
