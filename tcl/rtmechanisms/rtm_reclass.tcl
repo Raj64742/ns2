@@ -89,12 +89,13 @@ NodeTopology/6nodes instproc init ns {
 Class Topology/net2 -superclass NodeTopology/6nodes
 Topology/net2 instproc init ns {
 	$self next $ns
-	$self instvar node_ cbqlink_ bandwidth_
+	$self instvar node_ cbqlink_ bandwidth_ rtt_
 
 	$ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
 	$ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
 	set cl [new Classifier/Hash/SrcDestFid 33]
 	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 30ms "CBQ $cl"
+        set rtt_ 0.06
 	set cbqlink_ [$ns link $node_(r1) $node_(r2)]
 	[$cbqlink_ queue] algorithm "formal"
 	$ns simplex-link $node_(r2) $node_(r1) 1.5Mb 30ms DropTail
@@ -111,12 +112,13 @@ Topology/net2 instproc init ns {
 Class Topology/net3 -superclass NodeTopology/6nodes
 Topology/net3 instproc init ns {
 	$self next $ns
-	$self instvar node_ cbqlink_ bandwidth_
+	$self instvar node_ cbqlink_ bandwidth_ rtt_
 
 	$ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
 	$ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
 	set cl [new Classifier/Hash/SrcDestFid 33]
 	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 3ms "CBQ $cl"
+        set rtt_ 0.006
 	set cbqlink_ [$ns link $node_(r1) $node_(r2)]
 	[$cbqlink_ queue] algorithm "formal"
 	$ns simplex-link $node_(r2) $node_(r1) 1.5Mb 3ms DropTail
@@ -215,6 +217,47 @@ TestSuite instproc traffic1 {} {
 }
 
 #
+# Create traffic for UNFRIENDLY test.
+#
+TestSuite instproc traffic2 {} {
+    $self instvar node_
+    $self new_tcp 1.0  $node_(s1) $node_(s3) 50 1 0 1500 sack 0
+    $self new_tcp 2.2 $node_(s2) $node_(s4) 50 2 0 1500 sack 0
+    $self new_cbr 58.4 $node_(s1) $node_(s4) 200 0.003 3 0
+    $self new_tcp 3.4 $node_(s1) $node_(s4) 50 4 0 1500 sack 0
+    $self new_tcp 34.2 $node_(s3) $node_(s1) 50 5 0 1500 sack 0
+    $self new_tcp 35.6 $node_(s5) $node_(s4) 50 6 0 1500 sack 0
+    $self new_tcp 36.0 $node_(s4) $node_(s2) 50 7 0 1500 sack 0
+    $self new_tcp 37.3 $node_(s2) $node_(s6) 50 8 0 1500 sack 0
+    $self new_tcp 38.0 $node_(s1) $node_(s3) 50 9 0 1500 sack 0
+    $self new_tcp 39.5 $node_(s3) $node_(s2) 50 10 0 1500 sack 0
+    $self new_tcp 35.6 $node_(s2) $node_(s6) 50 11 0 1500 sack 0
+    $self new_tcp 30.2 $node_(s1) $node_(s4) 50 12 0 1500 sack 0
+    $self new_tcp 31.3 $node_(s5) $node_(s6) 50 13 0 1500 sack 0
+    $self new_tcp 32.9 $node_(s3) $node_(s2) 50 14 0 1500 sack 0
+    $self new_tcp 33.8 $node_(s2) $node_(s3) 50 15 0 1500 sack 0
+    $self new_tcp 34.0 $node_(s5) $node_(s6) 50 16 0 1500 sack 0
+    $self new_tcp 35.5 $node_(s2) $node_(s4) 50 17 0 1500  sack 0
+    $self new_tcp 36.1 $node_(s1) $node_(s4) 50 18 0 1500 sack 0
+    $self new_tcp 45.6 $node_(s5) $node_(s4) 50 19 0 1500 sack 0
+    $self new_tcp 47.3 $node_(s2) $node_(s6) 50 20 0 1500 sack 0
+    $self new_tcp 48.0 $node_(s1) $node_(s4) 50 21 0 1500 sack 0
+    $self new_tcp 42.6 $node_(s5) $node_(s4) 50 22 0 1500 sack 0
+    $self new_tcp 43.3 $node_(s2) $node_(s6) 50 23 0 1500 sack 0
+    $self new_tcp 46.0 $node_(s1) $node_(s4) 50 24 0 1500 sack 0
+    $self new_tcp 42.6 $node_(s5) $node_(s4) 50 25 0 1500 sack 0
+    $self new_tcp 43.3 $node_(s2) $node_(s6) 50 26 0 1500 sack 0
+    $self new_tcp 41.0 $node_(s1) $node_(s4) 50 27 0 1500 sack 0
+    $self new_tcp 46.6 $node_(s5) $node_(s4) 50 28 0 1500 sack 0
+    $self new_tcp 48.3 $node_(s2) $node_(s6) 50 29 0 1500 sack 0
+    $self new_tcp 45.0 $node_(s1) $node_(s4) 50 30 0 1500 sack 0
+    $self new_cbr 38.4 $node_(s2) $node_(s3) 200 0.006 31 0
+    $self new_cbr 48.4 $node_(s5) $node_(s6) 200 0.004 32 0
+    $self new_cbr 28.4 $node_(s2) $node_(s3) 200 0.005 33 0
+}
+
+
+#
 # Create traffic.
 #
 TestSuite instproc more_cbrs {} {
@@ -238,15 +281,18 @@ Test/one instproc init { topo name } {
 	$self config $name
 }
 
+#
+# For test in Figure 11 of the paper.
+#
 Test/one instproc run {} {
     $self instvar ns_ net_ topo_
-    $topo_ instvar cbqlink_ node_
+    $topo_ instvar cbqlink_ node_ rtt_
     set cbqlink $cbqlink_
 
     set stoptime 600.0
 #    set stoptime 100.0
 
-	set rtt 0.06
+	set rtt $rtt_
 	set mtu 1500
 
 	set rtm [new RTMechanisms $ns_ $cbqlink $rtt $mtu true]
@@ -268,8 +314,7 @@ Test/one instproc run {} {
 	set L1 [$rtm monitor-link]
 	$self linkDumpFlows $L1 20.0 $stoptime
 
-	$self traffic1
-        $self more_cbrs
+	$self traffic2
 	$ns_ at $stoptime "$self finish"
 
 	ns-random 0
@@ -288,15 +333,18 @@ Test/two instproc init { topo name } {
 	$self config $name
 }
 
+#
+# UNFRIENDLY test.
+#
 Test/two instproc run {} {
     $self instvar ns_ net_ topo_
-    $topo_ instvar cbqlink_ node_
+    $topo_ instvar cbqlink_ node_ rtt_
     set cbqlink $cbqlink_
 
 #    set stoptime 600.0
     set stoptime 100.0
 
-	set rtt 0.06
+	set rtt $rtt_
 	set mtu 1500
 
 	set rtm [new RTMechanisms $ns_ $cbqlink $rtt $mtu]
