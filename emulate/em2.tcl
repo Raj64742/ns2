@@ -5,9 +5,8 @@
 set dotrace 1
 set stoptime 20.0
 
-set me [exec hostname]
+set me "10.0.1.1"
 set ns [new Simulator]
-set bpfilter "src bit or dst bit"
 
 if { $dotrace } {
 	set allchan [open em-all.tr w]
@@ -34,8 +33,8 @@ $ipnet open
 
 puts "bpf0 on dev $nd0, bpf1 on dev $nd1"
 
-set f0len [$bpf0 filter $bpfilter]
-set f1len [$bpf1 filter $bpfilter]
+set f0len [$bpf0 filter "(ip dst host bit) and not ip host $me"]
+set f1len [$bpf1 filter "(ip src host bit) and not ip host $me"]
 
 puts "filter lengths: $f0len (bpf0), $f1len (bpf1)"
 puts "dev $nd0 has address [$bpf0 linkaddr]"
@@ -53,8 +52,8 @@ set node0 [$ns node]
 set node1 [$ns node]
 set node2 [$ns node]
 
-$ns simplex-link $node0 $node2 8Mb 5ms DropTail
-$ns simplex-link $node1 $node2 8Mb 5ms DropTail
+$ns simplex-link $node0 $node2 8Mb 100ms DropTail
+$ns simplex-link $node1 $node2 8Mb 100ms DropTail
 
 #
 # attach-agent sets "target" of the agents to the node entrypoint
