@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.58 1998/07/08 23:00:23 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.59 1998/07/08 23:39:00 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -153,6 +153,7 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	bind("ts_option_size_", &ts_option_size_);
 	bind_bool("reno_fastrecov_", &reno_fastrecov_);
 	bind_bool("pipectrl_", &pipectrl_);
+	bind_bool("open_cwnd_on_pack_", &open_cwnd_on_pack_);
 
 	reset();
 }
@@ -1479,7 +1480,9 @@ process_ACK:
 		 * if this is a partial ACK, invoke whatever we should
 		 */
 
-		if (pack(pkt))
+		int partial = pack(pkt);
+
+		if (partial)
 			pack_action(pkt);
 		else
 			ack_action(pkt);
@@ -1496,7 +1499,6 @@ process_ACK:
 		if (ackno == (highest_ack_ + 1))
 			goto step6;
 
-
 		// if we are delaying initial cwnd growth (probably due to
 		// large initial windows), then only open cwnd if data has
 		// been received
@@ -1508,8 +1510,9 @@ process_ACK:
                  * (maxseg^2 / cwnd per packet).
                  */
 		if ((!delay_growth_ || (rcv_nxt_ > 0)) &&
-			last_state_ == TCPS_ESTABLISHED) {
-			opencwnd();
+		    last_state_ == TCPS_ESTABLISHED) {
+			if (!partial || open_cwnd_on_pack_)
+				opencwnd();
 		}
 
 		// K: added state check in equal but diff way
