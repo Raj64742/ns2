@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satgeometry.cc,v 1.1 1999/10/26 17:35:06 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satgeometry.cc,v 1.2 1999/11/02 05:58:15 tomh Exp $";
 #endif
 
 #include "satgeometry.h"
@@ -97,9 +97,11 @@ double SatGeometry::get_longitude(coordinate coord_)
            (fmod(NOW + SatPosition::time_advance_,period)/period) * 2*PI), 
 	    2*PI);
         if (earth_longitude > PI)
-                return (-(2*PI - earth_longitude));
-        else
-                return (earth_longitude);
+		earth_longitude = (-(2*PI - earth_longitude));
+	if (fabs(earth_longitude) < 0.0001)
+		return 0;   // To avoid trace output of "-0.00"
+	else
+		return (earth_longitude);
 }       
 
 // If the satellite is above the elevation mask of the terminal, returns 
