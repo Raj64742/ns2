@@ -91,8 +91,22 @@ void redQueue::updateVREDLen(int prec) {
   qParam_[prec].qlen--;		
 }
 
+// void updateIdleFlag(int)
+//    Called by enque() to set idle_ to 0 
+//      if a packet was enqueued successfully
+void redQueue::updateIdleFlag(int prec) {
+  if (mredMode == rio_c) { 
+    for (int i = prec; i < numPrec; i++) 
+      qParam_[i].idle_ = 0;
+  } else if (mredMode == rio_d) { 
+    qParam_[prec].idle_ = 0; 
+  } else {
+    qParam_[0].idle_ = 0;
+  } 
+}
+
 // void updateREDStateVar(int prec)
-//    Updates a virtual queue's state variables after enqueueing / dequing.
+//    Updates a virtual queue's state variables after dequing.
 void redQueue::updateREDStateVar(int prec) {
   int idle = 1;
   int i;
@@ -124,8 +138,11 @@ void redQueue::updateREDStateVar(int prec) {
 }
 
 // void enque(Packet *pkt, int prec, int ecn)
-//    Enques a packet associated with one of the precedence levels of the
-//    physical queue.
+//    Enques a packet associated with one of the precedence levels of
+//      the physical queue.
+//    Fix the bug that idle_ flag may be set to 0 when 
+//      the incoming packet is actually dropped (xuanc, 12/08/01)
+//      Reported and fixed by T. Wagner <wagner@panasonic.de>
 int redQueue::enque(Packet *pkt, int prec, int ecn) {
   int m = 0;
   double now, u;
@@ -145,23 +162,25 @@ int redQueue::enque(Packet *pkt, int prec, int ecn) {
       return PKT_ENQUEUED;		
     }
   } else if (mredMode == rio_c) {
+    // Can't set idle_ flag to 0 now, because the incoming packet
+    //   may be actually dropped.
     for (int i = prec; i < numPrec; i++) {	
       m = 0;
       if (qParam_[i].idle_) {
-	qParam_[i].idle_ = 0;
+	//qParam_[i].idle_ = 0;
 	m = int(qParam_[i].edp_.ptc * (now - qParam_[i].idletime_));
       }
       calcAvg(i, m+1); 
     }
   } else if (mredMode == rio_d) {
     if (qParam_[prec].idle_) {
-      qParam_[prec].idle_ = 0;
+      //qParam_[prec].idle_ = 0;
       m = int(qParam_[prec].edp_.ptc * (now - qParam_[prec].idletime_));
     }	
     calcAvg(prec, m+1);
   } else { //wred
     if (qParam_[0].idle_) {
-      qParam_[0].idle_ = 0;
+      //qParam_[0].idle_ = 0;
       m = int(qParam_[0].edp_.ptc * (now - qParam_[0].idletime_));
     }	
     calcAvg(0, m+1);
@@ -195,19 +214,31 @@ int redQueue::enque(Packet *pkt, int prec, int ecn) {
       
       //drop it
       if (u <= pa) {	
-	if (ecn) return PKT_MARKED;
+	if (ecn) {
+	  // set idle_ to 0
+	  updateIdleFlag(prec); 
+	  return PKT_MARKED;
+	}
 	return PKT_EDROPPED;
       }
     } else { //if avg queue is greater than max. threshold
       qParam_[prec].edv_.count = 0;
-      if (ecn) return PKT_MARKED;
+      if (ecn) {
+	// set idle_ to 0
+	updateIdleFlag(prec); 
+	return PKT_MARKED;
+      }
       return PKT_DROPPED;
     }
   }
   qParam_[prec].edv_.count = -1;
   
   // if ecn is on, then the packet has already been enqueued
-  if(ecn) return PKT_ENQUEUED;
+  if(ecn) { 
+    // set idle_ to 0
+    updateIdleFlag(prec); 
+    return PKT_ENQUEUED;
+  }
   
   //if the packet survives the above conditions it
   //is finally queued in the underlying queue
@@ -216,6 +247,9 @@ int redQueue::enque(Packet *pkt, int prec, int ecn) {
   //virtually, this new packet is queued in one of the multiple queues,
   //thus increasing the length of that virtual queue
   qParam_[prec].qlen++;
+
+  // set idle_ to 0
+  updateIdleFlag(prec); 
   
   return PKT_ENQUEUED;
 }

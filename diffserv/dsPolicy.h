@@ -52,11 +52,11 @@
 #define EWP 7
 
 #define EW_MAX_WIN 8
-#define EW_WIN_SIZE 4
+#define EW_SWIN_SIZE 4
 #define EW_A_TH 1
 #define EW_SLEEP_INTERVAL 300
 #define EW_DETECT_INTERVAL 60
-#define EW_MIN_DETECT_INTERVAL 30
+#define EW_MIN_DETECT_INTERVAL 15
 
 enum policerType {dumbPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, SFDPolicer, EWPolicer};
 
@@ -230,7 +230,14 @@ void printFlowTable();
 struct AListEntry {
   int src_id;
   int dst_id;
+  int fid;
+  double ts;
+  double te;
   int bytes;
+  int bw;
+  double avg_rate;
+  double t_front;
+  double win_length;
   struct AListEntry *next;
 };
 
@@ -288,7 +295,7 @@ class EW {
   void runEW(Packet *);
 
   // Conduct the measurement and change detection
-  void applyDetector(Packet *);
+  void applyDetector(Packet *, double);
   // Test if the alarm has been triggered.
   int testAlarm(Packet *);
   // Test if the corrsponding alarm on reversed link has been triggered.
@@ -297,9 +304,10 @@ class EW {
   // Setup the coupled EW
   void coupleEW(EW *);
 
-  // output contents in HTable
-  void printHTabEntry(int);
-  void printHTab();
+  // output contents in SWin
+  void printSWin();
+  // Print one entry in SWin
+  void printSWinEntry(struct SWinEntry *, int);
 
   // output contents in AList
   void printAList();
@@ -316,7 +324,10 @@ class EW {
   int detector_on;
 
   // Current time for detection
-  int now;
+  double now;
+  // Current aggregated response rate
+  int cur_rate;
+
   // Random sampling timer
   int timer;
   // Bit indicating if EW agent is sleeping or not.
@@ -337,46 +348,33 @@ class EW {
   // Sample interval
   int s_inv;
 
+  int alarm, alarm_count;
+
   // List to keep the detection results
   struct AList alist;
-
-  // The table to keep the hottest K aggregates' states.
-  struct HTableEntry *htab[EW_MAX_WIN];
-  // Pointer to the last entry in HTable
-  int htab_point;
+  // The sliding window for running average on the aggregated response rate
+  struct SWin swin;
 
   // Measurement:
   // Find the max value in AList
   struct AListEntry *maxAList();
   // Choose the high-bandwidth aggregates
   void choseHBA();
-  // Reset the bytes field in AList
+  // Reset AList
   void resetAList();
 
-  // update HTab after detection timeout.
-  void updateHTab();
   // update swin with the latest measurement for one HTab entry.
   void updateSWin(int);
   // compute the running average on the sliding window
-  void ravgSWin(int);
+  void ravgSWin();
+  // Reset SWin
+  void resetSWin();
 
   // Change detection:
   // detect the traffic change by 
   // comparing the running average calculated on the sliding window with 
   // a threshold and trigger alarm if necessary.
-  void detectChange(int);
-
-  // Common methods
-  // get the Atable id given the node id
-  int getHTabIndex(int);
-  // add an entry to HTable
-  int addHTabEntry(struct AListEntry *);
-  // generate a new entry for HTable
-  struct HTableEntry *newHTabEntry(int);
-  // destroy an existing entry in HTable
-  void freeHTabEntry(struct HTableEntry *);
-  // sort HTab based on ravg to find the hostest resources
-  void sortHTab();
+  void detectChange();
 
   // Increase/decrease SWin to adjust the detection latency.
   void decSWin(int);

@@ -66,6 +66,10 @@ class redQueue {
   void initREDStateVar(void);		// initializes RED state variables
   // Updates a virtual queue's length after dequeueing
   void updateVREDLen(int);
+  //sets idle_ flag to 0
+  // Patch contributed by Thilo Wagner <wagner@panasonic.de>
+  void updateIdleFlag(int);
+
   // updates RED variables after enqueueing/dequing a packet
   void updateREDStateVar(int prec);	
   // enques packets into a physical queue

@@ -210,13 +210,6 @@ void dsREDQueue::enque(Packet* pkt) {
   default:
     break;
   }
-
-  // update state variables for the "virtual" queue
-  // the incoming packet may be actually dropped 
-  // (and the queue should be set to idle again).
-  // bug reported by T. Wagner
-  //   fixed by xuanc, 12/03/01
-  redq_[eq_id].updateREDStateVar(prec);
 }
 
 // Dequing mechanism for both edge and core router.

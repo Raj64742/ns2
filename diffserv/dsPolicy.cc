@@ -1009,7 +1009,6 @@ int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer,
 // Beginning of EW
 //Constructor.  
 EW::EW() {
-  htab_point = 0;
   ew_src = ew_dst = -1;
   // default value: if no coupled EW, do detection by myself
   cew = NULL;
@@ -1026,21 +1025,19 @@ EW::EW() {
   alist.head = alist.tail = NULL;
   alist.count = 0;
 
-  // Initialize Hot Table
-  for (int i = 0; i < EW_MAX_WIN; i++) 
-    htab[i] = NULL;
+  swin.head = swin.tail = NULL;
+  swin.count = swin.ravg = 0;
+
+  cur_rate = 0;
+  alarm = alarm_count = 0;
 }
 
 //Deconstructor.
 EW::~EW(){
-  for (int i = 0; i < htab_point; i++) {
-    freeHTabEntry(htab[i]);
-  }
-
-  htab_point = 0;
   cew = NULL;
 
   resetAList();
+  resetSWin();
 }
 
 // Initialize the EW parameters
@@ -1051,7 +1048,7 @@ void EW::init(int ew_th, int ew_inv, int qsrc, int qdst) {
 
   // Detection and sample interval
   s_inv = ew_inv;
-  d_inv = (int) (ew_inv / 6);
+  d_inv = (int) (ew_inv / 8);
   if (d_inv < EW_MIN_DETECT_INTERVAL)
     d_inv = EW_MIN_DETECT_INTERVAL;
 
@@ -1068,23 +1065,23 @@ void EW::runEW(Packet *pkt) {
   if (!detector_on)
     return;
 
-  now = (int)(Scheduler::instance().clock());
+  now = Scheduler::instance().clock();
 
   // There is a timeout!
   if (now >= timer) {
-    //printf("Timeout(%d):", now);
+    //printf("Timeout(%d):", (int)now);
     // Sleeps previously, now start working
     if (sleep) {
       //printf("sleep->detect\n");
       sleep = 0;
       // setup the detection timer
-      timer = now + d_inv;
+      timer = (int)now + d_inv;
     } else {
       // works previously, now sleep!
       //printf("detect->sleep\n");
       sleep = 1;
       // setup the sleeping timer
-      timer = now + s_inv;
+      timer = (int)now + s_inv;
       //printAList();
       //updateHTab();
       choseHBA();
@@ -1094,7 +1091,7 @@ void EW::runEW(Packet *pkt) {
 
   // Conduct detection when not sleeping.
   if (!sleep) {
-    applyDetector(pkt);
+    applyDetector(pkt, now);
   }
 }
 
@@ -1119,30 +1116,29 @@ int EW::testAlarm(Packet *pkt) {
 // Test if the corrsponding alarm on reversed link has been triggered.
 int EW::testAlarmCouple(int dst_id){
   //printf("EW[%d:%d] in testAlarm\n", ew_src, ew_dst);
-  int id = getHTabIndex(dst_id);
-  
-  if (id < EW_MAX_WIN && id >= 0) {
-    if (htab[id]->alarm) {
-      htab[id]->alarm_count = 0;
-      //printf(" ALARM!\n");	
-      return(1);
-    } else {
-      //printf(" OK!\n");	
-      return(0);
-    }
+  if (alarm) {
+    alarm_count = 0;
+    //printf(" ALARM!\n");	
+    return(1);
   } else {
-    //printf("EW[%d:%d]: no such record, point: %d\n", 
-    //   ew_src, ew_dst, htab_point);
+    //printf(" OK!\n");	
     return(0);
   }
 }
 
 // Conduct the measurement
-void EW::applyDetector(Packet *pkt) {
+void EW::applyDetector(Packet *pkt, double now) {
   hdr_cmn* hdr = hdr_cmn::access(pkt);
   hdr_ip* iph = hdr_ip::access(pkt);
   int dst_id = iph->daddr();
   int src_id = iph->saddr();
+  int fid = iph->flowid(); 
+
+  hdr_cmn *th = hdr_cmn::access(pkt);
+  if (th->ptype() == PT_ACK) {
+    // printf("an ack\n");
+    //return 0;
+  }
 
   // Get the corresponding id.
   //printf("EW[%d:%d] in detector\n", ew_src, ew_dst);
@@ -1151,7 +1147,7 @@ void EW::applyDetector(Packet *pkt) {
   AListEntry *p;
 
   p = alist.head;
-  while (p && (p->src_id != src_id || p->dst_id != dst_id))
+  while (p && p->fid != fid)
     p = p->next;
 
   // Add new entry to AList
@@ -1160,9 +1156,17 @@ void EW::applyDetector(Packet *pkt) {
     p = new AListEntry;
     p->src_id = src_id;
     p->dst_id = dst_id;
+    p->fid = fid;
+    p->ts = now;
     p->bytes = 0;
+    p->bw = 0;
+    p->avg_rate = 0;
+    // Since we are doing random sampling, 
+    // the t_front should set to the beginning of this period instead of 0.
+    p->t_front = now;
+    p->win_length = 1;
     p->next = NULL;
-
+    
     // Add new entry to AList
     if (alist.tail)
       alist.tail->next = p;
@@ -1175,191 +1179,85 @@ void EW::applyDetector(Packet *pkt) {
   }
 
   // update the existing (or just created) entry in AList
-  assert(p && p->src_id == src_id);
+  assert(p && p->fid == fid);
   p->bytes += hdr->size();
+  p->te = now;
+
+  if (p->te != p->ts) 
+    p->bw = (int)(p->bytes * 8 / (p->te - p->ts));
+  else 
+    p->bw = (int)(p->bytes * 8 / d_inv);
+
+  // update the flow's arrival rate using TSW
+  double bytesInTSW, newBytes;
+  bytesInTSW = p->avg_rate * p->win_length;
+  newBytes = bytesInTSW + (double) hdr->size();
+  p->avg_rate = newBytes / (now - p->t_front + p->win_length);
+  p->t_front = now;
+
+  //printf("%f: %d %d[%d %f %f] %f\n", 
+  // now, p->fid, p->bw, p->bytes, p->ts, p->te, p->avg_rate);
 }
 
 // Choose the high-bandwidth aggregates
+//void EW::newAListEntry() {
+//}
+
+// Choose the high-bandwidth aggregates
 void EW::choseHBA() {
-  int i;
+  int i, agg_bw, agg_rate;
   struct AListEntry *max;
+  int k = 8;
 
   // Pick the highest K bandwidth aggregates
   i = 0;
-  while (i < 4) {
+  agg_bw = agg_rate = 0;
+
+  while (i < k) {
     max = maxAList();
-    //printAListEntry(max, -1);
-    max->bytes = 0;
+    //printAListEntry(max, i);
+    
+    agg_bw += max->bw;
+    agg_rate += (int)max->avg_rate;
+
+    max->bw = 0;
+    max->avg_rate = 0;
     i++;
   }
-  printf("\n");
-}
+  agg_bw = (int) (agg_bw / i);
+  agg_rate = (int) (agg_rate / i);
 
+  //printf("%f %d\n", now, agg_rate);
 
-// Find the right index for HTab
-int EW::getHTabIndex(int node_id) {
-  //printf("EW[%d:%d] look for %d, point: %d\n", 
-  // ew_src, ew_dst, node_id, htab_point);
-  assert(htab_point < EW_MAX_WIN);
-  for (int i = 0; i < htab_point; i++) {
-    if(htab[i]->node_id == node_id) {
-      //printf("find %d, point: %d\n", node_id, i);
-      return i;
-    }
-  }
-  return EW_MAX_WIN;
-}
+  // Record current aggregated response rate and update SWin
+  cur_rate = agg_rate;
+  updateSWin(agg_rate);
+  ravgSWin();
+  //printSWin();
 
-// generate a new entry to HTable
-struct HTableEntry * EW::newHTabEntry(int node_id) {
-  struct HTableEntry *new_entry;
-
-  // Initialize a potential new entry for HTable
-  new_entry = new HTableEntry;
-  new_entry->node_id = node_id;
-  
-  // Initial SWin
-  new_entry->swin.head = NULL;
-  new_entry->swin.tail = NULL;
-  new_entry->swin.count = 0;
-  new_entry->swin.ravg = 0;
-  
-  new_entry->cur_rate = 0;
-  new_entry->last_t = 0;
-  new_entry->alarm_count = 0;
-  new_entry->alarm = 0;
-  
-  return(new_entry);
-}
-
-// destroy an existing entry in HTable
-void EW::freeHTabEntry(struct HTableEntry *h) {
-  struct SWinEntry *p, *q;
-
-  // release the memory occupied by swin
-  p = q = h->swin.head;
-  while (p) {
-    q = p;
-    p = p->next;
-    free(q);
-  }
-  
-  p = q = NULL;
-  h->swin.head = h->swin.tail = NULL;
-  
-  // free the HTab entry itself
-  free(h);
-}
-
-// Add new entry to AList
-int EW::addHTabEntry(struct AListEntry * max) {
-  struct HTableEntry *new_entry;
-  new_entry = newHTabEntry(max->src_id);
-
-  // record how many bits having been sent.
-  new_entry->cur_rate = max->bytes;
-  // reset the bytes in AList
-  max->bytes = 0;
-
-  // Insert the new entry into HTAB:
-  // 1. there is extra space left in HTAB
-  // 2. when there is no space left, 
-  //    swap the existing entry which has smaller cur_rate or ravg out
-  //    (the last one should be the first candidate)
-
-  // If there is an extra space left for new entry
-  if (htab_point < EW_MAX_WIN) {
-    htab[htab_point] = new_entry;
-    htab_point++;
-    return (htab_point - 1);
-  };
-
-  assert(htab_point == EW_MAX_WIN);
-  // When no extra space left, 
-  // need to find a place to insert the new_entry (hopefully)
-  // The last entry in HTab is the candidate for sawpping.
-
-  // Compare cur_rate first, then ravg
-  // if cur_rate is nozero, compare it first, otherwise ravg from swin
-  if ((htab[htab_point - 1]->cur_rate == 0 || 
-       htab[htab_point - 1]->cur_rate < new_entry->cur_rate) &&
-      htab[htab_point - 1]->swin.ravg < new_entry->cur_rate) {
-    freeHTabEntry(htab[htab_point - 1]);
-    htab[htab_point - 1] = new_entry;
-    return(htab_point - 1);
-  }
-
-  freeHTabEntry(new_entry);
-  return(htab_point);
-}
-
-// update HTab after detection timeout.
-void EW::updateHTab() {
-  struct AListEntry *max;
-  int id = 0;
-
-  // Pick the highest K values in AList and keep it in HTab
-  // The first one
-  max = maxAList();
-
-  while (max && max->bytes > 0 && id < EW_MAX_WIN) {
-    id = getHTabIndex(max->src_id);
-    //    printf("node_id: %d, index %d\n", max->node_id, id);
- 
-    if (id >= 0 && id < EW_MAX_WIN) {
-      // update the existing entry in HTAB
-      htab[id]->cur_rate = max->bytes;
-      max->bytes = 0;
-    } else if (id == EW_MAX_WIN) {
-      // Add the entry into HTable
-      id = addHTabEntry(max);
-    } else {
-      printf("ERROR!!! Invalid return value from getHTabIndex\n");
-    }
-    //printf("node_id: %d, index %d\n", max->node_id, id);
-
-    // Get the first one in AList
-    max = maxAList();
-  }
-
-  // Change detection by running average with a sliding window
-  for (int i = 0; i < htab_point; i++) {
-    // update the SWin for HTabe entry i and compute the running average
-    updateSWin(i);
-    ravgSWin(i);
-
-    // do change detection
-    detectChange(i);
-  }
-
-  // keep HTab sorted
-  sortHTab();
-  //printHTab();
+  // Trigger alarm if necessary
+  detectChange();
 }
 
 // Find the max value in AList
 struct AListEntry * EW::maxAList() {
   struct AListEntry *p, *max;
+  double interval;
 
   //printAList();
   p = max = alist.head;
 
   while(p) {
-    if (p->bytes > max->bytes)
+    if (p->avg_rate > max->avg_rate)
       max = p;
     p = p->next;
   }
   assert(max);
-  if (max) {
-    // B/s
-    max->bytes = (int)(max->bytes * 8 / d_inv);
-    printAListEntry(max, -1);
-  }
 
   return(max);
 }
 
-// Reset the bytes field in AList
+// Reset AList
 void EW::resetAList() {
   struct AListEntry *ap, *aq;
 
@@ -1374,62 +1272,59 @@ void EW::resetAList() {
   alist.head = alist.tail = NULL;  
 }
 
-// sort HTab based on ravg to find the hostest resources
-void EW::sortHTab() {
-  struct HTableEntry *tmp;
+// Reset SWin
+void EW::resetSWin() {
+  struct SWinEntry *p, *q;
 
-  for (int i = 0; i < htab_point - 1; i++) 
-    for (int j = i + 1; j < htab_point; j++) 
-      if (htab[i]->swin.ravg < htab[j]->swin.ravg) {
-	tmp = htab[i];
-	htab[i] = htab[j];
-	htab[j] = tmp;
-      }
-
-  tmp = NULL;
-  //printHTab();
+  p = q = swin.head;
+  while (p) {
+    q = p;
+    p = p->next;
+    free(q);
+  }
+  
+  p = q = NULL;
+  swin.head = swin.tail = NULL;  
 }
 
-// update swin with the latest measurement for one HTab entry.
-void EW::updateSWin(int id) {
+// update swin with the latest measurement of aggregated response rate
+void EW::updateSWin(int rate) {
   struct SWinEntry *p, *new_entry;
 
   new_entry = new SWinEntry;
-  new_entry->rate = htab[id]->cur_rate;
+  new_entry->rate = rate;
   new_entry->weight = 1;
   new_entry->next = NULL;
   
-  if (htab[id]->swin.tail)
-    htab[id]->swin.tail->next = new_entry;
-  htab[id]->swin.tail = new_entry;
+  if (swin.tail)
+    swin.tail->next = new_entry;
+  swin.tail = new_entry;
   
-  if (!htab[id]->swin.head)
-    htab[id]->swin.head = new_entry;
+  if (!swin.head)
+    swin.head = new_entry;
 
   // Reset current rate.
-  htab[id]->cur_rate = 0;
-  if (htab[id]->swin.count < EW_WIN_SIZE) {
-    htab[id]->swin.count++;
+  if (swin.count < EW_SWIN_SIZE) {
+    swin.count++;
   } else {
-    p = htab[id]->swin.head;
-    htab[id]->swin.head = p->next;
+    p = swin.head;
+    swin.head = p->next;
     free(p);
   }
-  htab[id]->last_t = now;
 }
 
 // Calculate the running average over the sliding window
-void EW::ravgSWin(int id) {
+void EW::ravgSWin() {
   struct SWinEntry *p;
   float sum = 0;
   float t_weight = 0;
 
   //printf("Calculate running average over the sliding window:\n");
-  p = htab[id]->swin.head;
+  p = swin.head;
   //printf("after p\n");
 
   while (p) {
-    //printf("win[%d]: (%d, %.2f) ", i++, p->rate, p->weight);
+    //printSWinEntry(p, i++);
     sum += p->rate * p->weight;
     t_weight += p->weight;
     p = p->next;
@@ -1437,35 +1332,39 @@ void EW::ravgSWin(int id) {
   p = NULL;
   //printf("\n");  
 
-  htab[id]->swin.ravg = (int)(sum / t_weight);
+  swin.ravg = (int)(sum / t_weight);
 
-  //  printf("Ravg[%d]: %d\n", htab[id]->node_id, htab[id]->swin.ravg);
+  //  printf("Ravg: %d\n", swin.ravg);
 }
 
 // detect the traffic change by 
 // comparing the running average calculated on the sliding window with 
 // a threshold and trigger alarm if necessary.
-void EW::detectChange(int id) {
-  if (htab[id]->swin.ravg >= th) {
-    if (htab[id]->alarm) {
-      printf("w+ %d %d %d\n", htab[id]->node_id, htab[id]->swin.ravg, now);
+void EW::detectChange() {
+  if (cur_rate < swin.ravg) {
+    if (alarm) {
     } else {
-      htab[id]->alarm_count++;
-      if (htab[id]->alarm_count >= EW_A_TH) {
-	htab[id]->alarm = 1;
-	printf("w+ %d %d %d\n", htab[id]->node_id, htab[id]->swin.ravg, now);
+      alarm_count++;
+      if (alarm_count >= EW_A_TH) {
+	alarm = 1;
       } else {
 	//decSWin(id);
       }
     }
   } else {
-    if (htab[id]->alarm)
-      htab[id]->alarm = 0;
-    if (htab[id]->alarm_count)
-      htab[id]->alarm_count = 0;
-    
+    if (alarm)
+      alarm = 0;
+    if (alarm_count)
+      alarm_count = 0;
+
     //incSWin(id);
   }
+
+  printf("%d %d %d ", (int)now, cur_rate, swin.ravg);  
+  if (alarm)
+    printf("A\n");
+  else
+    printf("\n");
 }
 
 // Decreas SWin.
@@ -1474,11 +1373,11 @@ void EW::decSWin(int id) {
 
   // Need some investigation for the min allowed inv and th
   /*  
-      if (htab[id]->s_inv > 10 && htab[id]->th > 4) {
-    htab[id]->s_inv = htab[id]->s_inv / 2;
-    htab[id]->th = htab[id]->th / 2;
+      if (s_inv > 10 && th > 4) {
+    s_inv = s_inv / 2;
+    th = th / 2;
     
-    p = htab[id]->swin.head;
+    p = swin.head;
     while (p) {
       p->weight = p->weight / 2;
       p = p->next;
@@ -1495,11 +1394,11 @@ void EW::decSWin(int id) {
 void EW::incSWin(int id) {
   //struct SWinEntry *p;
   /*
-  if(htab[id]->s_inv * 2 <= htab[id]->init_inv) {
-    htab[id]->s_inv = htab[id]->s_inv * 2;
-    htab[id]->th = htab[id]->th * 2;
+  if(s_inv * 2 <= init_inv) {
+    s_inv = s_inv * 2;
+    th = th * 2;
     
-    p = htab[id]->swin.head;
+    p = swin.head;
     while (p) {
       p->weight = p->weight * 2;
       p = p->next;
@@ -1512,35 +1411,34 @@ void EW::incSWin(int id) {
   */
 }
 
-// Prints one entry in HTable with given id
-void EW::printHTabEntry(int id) {
+// Prints one entry in SWin
+void EW::printSWin() {
   struct SWinEntry *p;
-  printf("HTable[%d](node_id: %d, ravg: %d, cur: %d):", 
-	 id, htab[id]->node_id, htab[id]->swin.ravg, htab[id]->cur_rate);
-  
-  printf("SWIN");
-  p = htab[id]->swin.head;
+  printf("%f SWIN[%d, %d]", now, swin.ravg, swin.count);
+  p = swin.head;
   int i = 0;
   while (p) {
-    printf("[%d: %d, %.2f] ", i++, p->rate, p->weight);
+    printSWinEntry(p, i++);
     p = p->next;
   }
   p = NULL;
   printf("\n");
 }
 
-// Print the entries in HTab.
-void EW::printHTab() {
-  for (int i = 0; i < htab_point; i++) {
-    printHTabEntry(i);
-  }
+// Print the contents in SWin
+void EW::printSWinEntry(struct SWinEntry *p, int i) {
+  if (p)
+    printf("[%d: %d, %.2f] ", i, p->rate, p->weight);
 }
 
 // Print one entry in AList
 void EW::printAListEntry(struct AListEntry *p, int i) {
   assert(p);
-  printf("[%d: %d->%d (%d)] ", i, p->src_id, p->dst_id, p->bytes);
+  printf("[%d] %d (%d>%d) %d (%d %.2f-%.2f) %f ", 
+	 i, p->fid, p->src_id, p->dst_id, 
+	 p->bw, p->bytes, p->ts, p->te, p->avg_rate);
 }
+
 
 // Print the entries in AList
 void EW::printAList() {
