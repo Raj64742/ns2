@@ -270,32 +270,33 @@ void TfrmAgent::slowstart ()
 		/*else multiply the rate by ssmult_, and compute delta, so that the*/
 		/*rate increases slowly to new value */
 
-		if (now - last_change_ > rtt_) {
-
-			if (maxrate_ > 0) {
-				if (ssmult_*rate_ < maxrate_ ) {
-					rate_ = ssmult_*rate_ ; 
-					delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
-					last_change_=now;
+		if (maxrate_ > 0) {
+			if (ssmult_*rate_ < maxrate_ && now - last_change_ > rtt_) {
+				rate_ = ssmult_*rate_ ; 
+				delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
+				last_change_=now;
+			}
+			else {
+				if ( (oldrate_ > maxrate_) || (rate_ > maxrate_)) {
+					delta_ = 0 ;
+					rate_ = oldrate_ = maxrate_ ; 
+	//				rate_ = oldrate_ = 0.5 * maxrate_ ;
+	//  THINK ABOUT THIS!
+					last_change_ = now ; 
 				}
 				else {
-					if ( (oldrate_ > maxrate_) || (rate_ > maxrate_))
-						delta_ = 0 ;
-					else {
+					if (now - last_change_ > rtt_) {
 						rate_ = maxrate_ ;
 						delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 						last_change_=now;
 					}
 				}
 			}
-			else {
-				rate_ = ssmult_*rate_ ; 
-				delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
-				last_change_=now;
-			}
-		} else {
-			oldrate_ = rate_ ;
-			delta_ = 0 ; 
+		}
+		else {
+			rate_ = ssmult_*rate_ ; 
+			delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
+			last_change_=now;
 		}
 	}
 	nextpkt() ;

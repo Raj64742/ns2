@@ -85,6 +85,7 @@ protected:
   int *pvec_;
   double *tsvec_;
   double *rtvec_;
+  double *RTTvec_;
   int pveclen_;
   int pvecfirst_, pveclast_;
   int prevpkt_;

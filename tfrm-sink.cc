@@ -36,6 +36,7 @@ TfrmSinkAgent::TfrmSinkAgent() : Agent(PT_TFRMC), nack_timer_(this)
 	pvec_ = NULL ; 
 	tsvec_ = NULL ; 
 	rtvec_ = NULL ;
+	RTTvec_ = NULL ;
 	pveclen_ = 0 ; 
 	pvecfirst_ = 0 ; 
 	pveclast_ = 0 ; 
@@ -44,8 +45,6 @@ TfrmSinkAgent::TfrmSinkAgent() : Agent(PT_TFRMC), nack_timer_(this)
 	loss_seen_yet = 0 ;
 	last_report_sent=0 ;
 	prevpkt_=-1;
-
-
 }
 
 void TfrmSinkAgent::recv(Packet *pkt, Handler *)
@@ -70,6 +69,7 @@ void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 		pvec_=(int *)malloc(sizeof(int)*InitHistorySize_);
 		tsvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
 		rtvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
+		RTTvec_=(double *)malloc(sizeof(double)*InitHistorySize_);
 
 		if ((pvec_ == NULL) || (tsvec_ == NULL) || (rtvec_ == NULL)) {
 			printf ("error allocating memory\n");
@@ -99,6 +99,7 @@ void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 		pvec_[pveclast_] = tfrmh->seqno;
 		tsvec_[pveclast_] = tfrmh->timestamp;
 		rtvec_[pveclast_] = now;
+		RTTvec_[pveclast_] = tfrmh->rtt;
 	}
 
 	prevrtt=rtt_;
@@ -157,9 +158,6 @@ void TfrmSinkAgent::sendpkt()
 	int sent=0;
 	int lost=0, slost=0;
 	int rcvd=0;
-	int ix=pveclast_;
-	int prev=pvec_[pveclast_]+1;
-	double last_loss=LARGE_DOUBLE;
 	double now = Scheduler::instance().clock();
 
 	/*don't send an ACK unless we've received new data*/
@@ -172,9 +170,11 @@ void TfrmSinkAgent::sendpkt()
 	Packet* pkt = allocpkt();
 	if (pkt == NULL) {
 		printf ("error allocating packet\n");
-		exit(1); 
+		abort(); 
 	}
+
 	hdr_tfrmc *tfrmch = hdr_tfrmc::access(pkt);
+
 	last_nack_=now;
 	tfrmch->seqno=pvec_[pveclast_];
 	tfrmch->timestamp_echo=last_timestamp_;
@@ -196,13 +196,15 @@ void TfrmSinkAgent::sendpkt()
 	if (sample>total_received_)
 		sample=total_received_;
 
+	/*see if we don't have a long enough pvec for this low loss rate*/
+	/*we'd like this never to happen!*/
+	/*
 	if (pveclen_<sample) {
-		/*we don't have a long enough pvec for this low loss rate*/
-		/*we'd like this never to happen!*/
-		/*printf ("very low loss rate: %f %f\n", now, p);*/
-		/*fflush(stdout);*/
-		/*exit(1);*/
+		printf ("very low loss rate: %f %f\n", now, p);
+		fflush(stdout);
+		exit(1);
 	}
+	*/
 
 
 	/* now, see what loss we actually observed */
@@ -210,15 +212,20 @@ void TfrmSinkAgent::sendpkt()
 	/*one over ssm/p packets and other that incudes*/
 	/*a minimum of mnl losses. then we use the higher.*/
 
+	/* assume no redordering! */
+
 	tfrmch->signal = NORMAL ;
+	
+	int prev=pvec_[pveclast_]+1;
+	int ix=pveclast_;
+	double last_loss=LARGE_DOUBLE;
+
 	while((sent<sample)||(lost<MinNumLoss_)) {      
 		sent+=prev-pvec_[ix];
 		rcvd++;
 		if ((prev-pvec_[ix])!=1) {
-
 			/*all losses within one RTT count as one*/
-
-			if ((last_loss - tsvec_[ix]) > rtt_) {
+			if ((last_loss - tsvec_[ix]) > RTTvec_[ix]) {
 					if (sent<sample) {
 						/*Keep track of packtes lost within sample*/
 						slost ++ ; 
@@ -228,9 +235,7 @@ void TfrmSinkAgent::sendpkt()
 			}
 		}
 		prev=pvec_[ix];
-
 		/*have we any more history?*/
-
 		if (ix==pvecfirst_) { 
 			break;
 		}
