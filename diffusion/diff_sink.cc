@@ -266,9 +266,12 @@ void SinkAgent::data_ready()
 }
 
 
-void SinkAgent::Terminate() {
+void SinkAgent::Terminate() 
+{
+#ifdef DEBUG_OUTPUT
   printf("SINK %d : TYPE %d : terminates (send %d, recv %d, cum_delay %f)\n", 
 	 here_.addr_, data_type_, num_send, num_recv, cum_delay);
+#endif
 }
 
 

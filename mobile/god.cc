@@ -32,7 +32,7 @@ er in the
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.16 2001/03/13 19:23:11 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.17 2001/04/20 23:59:02 intanago Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -213,9 +213,11 @@ void God::DumpNodeStatus()
 
 void God::DumpNumSend()
 {
+#ifdef DEBUG_OUTPUT
   for (int i=0; i < num_data_types; i++) {
-    fprintf(stdout, "God: data type %d nondupplicate %d\n", i, num_send[i]);
+    fprintf(stdout, "God: data type %d distinct events %d\n", i, num_send[i]);
   }
+#endif
 }
 
 

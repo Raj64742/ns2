@@ -412,7 +412,7 @@ RouteMap_it i;
   os << " " << m_Default;
   for (i = m_RouteMap.begin(); i != m_RouteMap.end(); i++)
     {
-      os << " " << i->first << " " << i->second;
+      os << " " << (*i).first << " " << (*i).second;
     }
 }
 

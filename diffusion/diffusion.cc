@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.7 2000/10/18 01:17:50 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.8 2001/04/20 23:59:03 intanago Exp $
 
 /****************************************************************/
 /* diffusion.cc : Chalermek Intanagonwiwat (USC/ISI)  05/18/99  */
@@ -207,12 +207,14 @@ void DiffusionAgent::consider_new(Packet *pkt)
 
 void DiffusionAgent::Terminate() 
 {
+#ifdef DEBUG_OUTPUT
 	printf("Diffusion node %d : terminates (overhead %d)\n", 
 	       THIS_NODE, overhead);  
 	printf("node %d: remaining energy %f, initial energy %f\n", THIS_NODE, 
 	       node->energy_model()->energy(), 
 	       node->energy_model()->initialenergy() );
 	Print_IOlist();
+#endif
 }
 
 

@@ -241,11 +241,12 @@ PrefixTree::goDownCluster(cluster * clusterList, int index) {
   clusterList[index].count_=countArray[maxIndex];
 }
 
-void
-PrefixTree::sortCluster(cluster * clusterList, int lastIndex) {
-  
-  for (int i=0; i<=lastIndex; i++) {
-    for (int j=i+1; j<=lastIndex; j++) {
+void PrefixTree::sortCluster(cluster * clusterList, int lastIndex) 
+{
+  int i, j;
+
+  for (i=0; i<=lastIndex; i++) {
+    for (j=i+1; j<=lastIndex; j++) {
       if (clusterList[i].count_ < clusterList[j].count_) {
 	swapCluster(clusterList, i, j);
       }
