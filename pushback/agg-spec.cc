@@ -34,7 +34,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/pushback/agg-spec.cc,v 1.3 2000/11/19 01:39:51 ratul Exp $ (ACIRI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/pushback/agg-spec.cc,v 1.4 2000/12/29 05:21:51 sfloyd Exp $ (ACIRI)
  */
 
 #include "ip.h"
@@ -160,6 +160,6 @@ AggSpec::prefixBitsForMerger(AggSpec * agg1, AggSpec * agg2) {
 
 void 
 AggSpec::print() {
-  printf("Prefix = %d Bits = %d\n", dstPrefix_, dstBits_);
+  //printf("Prefix = %d Bits = %d\n", dstPrefix_, dstBits_);
 }
   
