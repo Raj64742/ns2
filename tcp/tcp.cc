@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.72 1998/05/22 18:37:31 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.73 1998/05/23 00:34:20 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -93,6 +93,9 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("srtt_init_", &srtt_init_);
 	bind("rttvar_init_", &rttvar_init_);
 	bind("rtxcur_init_", &rtxcur_init_);
+	bind("T_SRTT_BITS", &T_SRTT_BITS);
+	bind("T_RTTVAR_BITS", &T_RTTVAR_BITS);
+	bind("rttvar_exp_", &rttvar_exp_); 
 
 	bind("dupacks_", &dupacks_);
 	bind("seqno_", &curseq_);
@@ -284,9 +287,9 @@ void TcpAgent::rtt_update(double tao)
 	//
 	// Current retransmit value is 
 	//    (unscaled) smoothed round trip estimate
-	//    plus 4 times (unscaled) rttvar. 
+	//    plus 2^rttvar_exp_ times (unscaled) rttvar. 
 	//
-	t_rtxcur_ = (((t_rttvar_ << (2 + (T_SRTT_BITS - T_RTTVAR_BITS))) +
+	t_rtxcur_ = (((t_rttvar_ << (rttvar_exp_ + (T_SRTT_BITS - T_RTTVAR_BITS))) +
 		t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
 
 	return;

@@ -1930,6 +1930,16 @@ Default is 3 seconds.
 .IP \fIrtxcur_init_\fP
 Initial value for the retransmit value.  
 Default is 6 seconds.
+.IP \fIT_SRTT_BITS\fP
+Exponent of weight for updating the smoothed round-trip time t_srtt_.
+Default is 3, for an exponent of 1/2^T_SRTT_BITS or 1/8.
+.IP \fIT_RTTVAR_BITS\fP
+Exponent of weight for updating variance in round-trip time, t_rttvar_.
+Default is 2, for an exponent of 1/2^T_RTTVAR_BITS or 1/4.
+.IP \fIrttvar_exp_\fP
+Exponent of multiple of the mean deviation in calculating the
+current retransmit value t_rtxcur_.
+Default is 2, for a multiple of 2^rttvar_exp_ or 4.
 .RE 
 .LP 
 .HD 

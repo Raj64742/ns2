@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.50 1998/05/20 22:06:32 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.51 1998/05/23 00:34:19 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -208,10 +208,11 @@ protected:
 	TracedInt t_seqno_;	/* sequence number */
 #define T_RTT_BITS 0
 	TracedInt t_rtt_;      	/* round trip time */
-#define T_SRTT_BITS 3
+	int T_SRTT_BITS;        /* exponent of weight for updating t_srtt_ */
 	TracedInt t_srtt_;     	/* smoothed round-trip time */
 	int srtt_init_;		/* initial value for computing t_srtt_ */
-#define T_RTTVAR_BITS 2
+	int T_RTTVAR_BITS;      /* exponent of weight for updating t_rttvar_ */ 
+	int rttvar_exp_;        /* exponent of multiple for t_rtxcur_ */
 	TracedInt t_rttvar_;   	/* variance in round-trip time */
 	int rttvar_init_;       /* initial value for computing t_rttvar_ */
 	double t_rtxcur_;	/* current retransmit value */
