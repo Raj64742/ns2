@@ -71,6 +71,14 @@ typedef int	RqFlag;		// meta data (owned by ReassemblyQueue)
 #define	FALSE	0
 #endif
 
+#ifndef	MAX
+#define	MAX(a,b)	((a)>(b)?(a):(b))
+#endif
+
+#ifndef	MIN
+#define	MIN(a,b)	((a)<(b)?(a):(b))
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -108,6 +116,7 @@ public:
 	int gensack(int *sacks, int maxsblock);
 
 	void clear();		// clear FIFO, LIFO
+	void init(TcpSeq rcvnxt) { rcv_nxt_ = rcvnxt; clear(); }
 	TcpFlag clearto(TcpSeq);	// clear FIFO, LIFO up to seq #
 	TcpFlag cleartonxt() { 		// clear FIFO, LIFO to rcv_nxt_
 	    return (clearto(rcv_nxt_));
