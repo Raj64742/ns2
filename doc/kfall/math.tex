@@ -7,67 +7,68 @@
 
 The simulator includes a small collection of mathematical
 functions used to implement random variate generation and integration.
-It is anticipated the support for random variates will
-change in the near future.
+This area of the simulator is currently undergoing some
+changes.
 
-\subsection{\shdr{Random Numbers}{random.h}{sec:random}}
+\subsection{\shdr{Random Number Generation}{rng.h}{sec:random}}
 
-There is limited support for generating
-random\footnote{Any mention of {\em random} in this context is
-understood to mean {\em pseudo-random}.}
-variates according to a probability distribution.
-The \code{Random} class supports uniformly and exponentially
-distributed random variates.
-It is defined in \code{random.h}:
+The \code{RNG} class contains an implementation of the minimal standard
+multiplicative linear congruential generator of Park, S.K. and
+Miller, K.W., "Random Number Generators: Good Ones are Hard to Find,"
+CACM 31:10, Oct. 88, pp. 1192-1201.
+
+Multiple instances of the RNG class can be created to allow a
+simulation to draw random numbers from independent random number
+streams.  For instance, a user who wants to generate the same traffic
+(based on some random process) in 2 different simulation experiments
+that compare different dropping algorithms that are themselves based
+on random processes may choose to base the traffic generation on one
+random number stream and the dropping algorithms on another stream.
+However, when using multiple RNG objects in a simulation care should
+be taken to insure that they are seeded in such a way as to guarantee
+that they produce independent streams of random numbers.  Features
+will be added in the future to help seed multiple random number
+generators properly.
+
+Most users will be satisfied with a single instance of the RNG.
+Hence, a default RNG, created at simulator initialization time, is
+provided.
+
+\paragraph{C++ Support}
+This random number generator is
+implemented by the RNG class, defined in rng.h:
 \begin{small}
 \begin{verbatim}
-        class Random {
-        public:
-                static void seed(int);
-                static int seed_heuristically();
-                static inline int random() {
-        #if defined(__svr4__) || defined(__SVR4)
-                        return (::lrand48() & 0x7fffffff);
-        #else
-                        return (::random());
-        #endif
-                }
-                static inline double uniform() {
-                        /* random returns numbers in the range [0,2^31-1] */
-        #if defined(__svr4__) || defined(__SVR4)
-                        return (drand48());
-        #else
-                        return ((double)random() / 0x7fffffff);
-        #endif
-                }
-                static inline double uniform(double r) {
-                        return (r * uniform());
-                }
-                static inline double uniform(double a, double b) {
-                        return (a + uniform(b - a));
-                }
-                static inline double exponential() {
-                        return (-log(uniform()));
-                }
-                static inline int integer(int k) {
-                        return (random() % (unsigned)k);
-                }
-        };
-\end{verbatim}
-\end{small}
-The \code{random} method generates random integers in the
+class RNG : public TclObject {
+enum RNGSources { RAW_SEED_SOURCE, PREDEF_SEED_SOURCE, HEURISTIC_SEED_SOURCE };
+	...
+        // These are primitive but maybe useful.
+        inline int uniform_positive_int() {  // range [0, MAXINT]
+                return (int)(stream_.next());
+        }
+        inline double uniform_double() { // range [0.0, 1.0)
+                return stream_.next_double();
+        }
+
+        inline int uniform(int k)
+                { return (uniform_positive_int() % (unsigned)k); }
+        inline double uniform(double r) 
+                { return (r * uniform_double());}
+        inline double uniform(double a, double b)
+                { return (a + uniform(b - a)); }
+        inline double exponential()
+                { return (-log(uniform_double())); }
+        inline double exponential(double r)
+                { return (r * exponential());}
+        inline double pareto(double scale, double shape)
+                { return (scale * (1.0/pow(uniform_double(), 1.0/shape)));}
+	...
+};
+
+
+The \code{uniform\_positive\_int} method generates random integers in the
 range $[0,2^{31}-1]$.
-It currently uses the built-in UNIX random number generating
-functions to achieve this.
 In particular,
-the \code{random} or \code{lrand48} functions are used, which generate
-integers uniformly
-on the interval $[0,2^{31}-1]$ directly.
-The generation of random floating-point numbers depends on
-the \code{random} method just defined or the built-in \code{drand48}
-function.
-The SysV library function \code{drand48} returns a random floating
-point number, uniformly distributed on the interval $[0.0, 1.0)$
 Additional member functions provide the following random variate
 generation:
 \begin{itemize}
@@ -82,7 +83,7 @@ as in this code fragment from RED:
 \begin{verbatim}
         ...
         // drop probability is computed, pick random number and act
-        double u = Random::uniform();
+        double u = rng_->uniform_double();
         if (u <= edv_.v_prob) {
                 edv_.count = 0;
                 if (edp_.setbit) 
@@ -94,35 +95,52 @@ as in this code fragment from RED:
 \end{verbatim}
 \end{small}
 
-The \code{seed} member allows for specification of an initialization
-seed to the underlying random number generator (an integer
-for the \code{srandom} function and a long integer for the
-\code{srand48} function).
-This can be useful to ensure the generation of the same random numbers
-from run to run.
-It is assumed that specification of the same seed will result in the
-same sequence of random numbers.
-To use the \code{Random} class without specifying a seed,
-the \code{seed\_heuristically} member may be used, which
+The set of random numbers produced by an RNG object depends on its
+initial seed.  The initial seed can be set with the {\tt set\_seed} method
+which takes 2 parameters, where the second
+defaults to 1.  The first parameter, an enumerated type,
+determines how
+the seed is generated and the second is a seed value.  There are 3
+values of this enumerated type used determine the initial seed value:
+
+\begin{itemize}
+
+\item[RAW\_SEED\_SOURCE]:  the value contained in the second parameter is used
+as the seed.
+
+\item [PREDEF\_SEED\_SOURCE]:  the value contained in the second parameter is
+used as the index into an array of predefined seed values.  These
+values have been precomputed and provide independent streams of random
+numbers.  There are currently 64 such seeds.
+
+\item [HEURISTIC\_SEED\_SOURCE]: use a heuristic to generate the seed.
+The second argument is ignored if provided.
+\end{itemize}
+
+The heuristic seeding method
 attempts to pick some sort of non-recurring seed values (resulting
-in different random numbers from run to run).  It is defined
-in \code{random.cc}:
-\begin{small}
-\begin{verbatim}
-        int Random::seed_heuristically()
-        {
-                timeval tv;
-                gettimeofday(&tv, 0);
-                int s = (tv.tv_sec ^ tv.tv_usec) & 0x7fffffff;
-                seed(s);
-                return (s);
-        }
-\end{verbatim}
-\end{small}
-This function just obtains the number of elapsed seconds and microseconds
-since the UNIX {\em epoch} (00:00 GMT, January 1, 1970) and
-takes the low-order 31 bits of the {\sf XOR} of these values as a seed.
-Clearly, this value is likely to be different from run to run.
+in different random numbers from run to run).  The heuristic implementation
+is contained in the file \code{rng.cc}.
+
+\paragraph{OTcl support}
+The RNG class can be accessed from OTcl.  For example, a new RNG is
+created and seeded with:
+
+\begin{program}
+set rng [new RNG]
+$rng seed 0 \; seeds the RNG heuristically;
+$rng seed n \; seeds the RNG with value n;
+$rng next-random \;  return the next random number;
+$rng uniform a b \; return a number uniformly distributed on [a, b];
+$rng integer k \; return an integer uniformly distributed on [0, (k-1)];
+$rng exponential \; return a number from an exponential distribution with average 1.;
+\end{program}
+
+\subsection{\shdr{Random Variables}{ranvar.h}{sec:ranvar}}
+
+The RandomVariable class provides a thin layer of functionality on top
+of the base random number generator that implements random variates.
+It is defined in {\tt ranvar.h}:
 
 \subsection{\shdr{Integrals}{integrator.h}{sec:integral}}
 

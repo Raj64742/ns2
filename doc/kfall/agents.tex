@@ -190,7 +190,7 @@ of an Agent in OTcl:
 Default values for member variables, those visible in OTcl only and those
 linked between OTcl and C++ with \code{bind} are initialized
 in the \code{tcl/lib/ns-default.tcl} file.  For example,
-\code{Agent} and \code{CBR\_Agent}
+\code{Agent} and \code{CBR_Agent}
 are initialized as follows:
 \begin{small}
 \begin{verbatim}
@@ -300,8 +300,8 @@ The values for the various packet types are used by the packet tracing
 facility (see \ref{sec:trace}) and are defined in \code{trace.h}.
 The variables which are bound in the \code{TcpAgent} constructor
 are ordinary instance/member variables for the class
-with the exception of the special integer values \code{off\_tcp\_}
-and \code{off\_ip\_}.
+with the exception of the special integer values \code{off_tcp_}
+and \code{off_ip_}.
 These are needed in order to access a TCP header and IP header,
 respectively.
 For details on how to access packet headers, see \ref{sec:ppackethdr}.
@@ -351,7 +351,7 @@ This output routine first allocates a new packet
 (with its common and IP headers already filled in), but then must fill
 in the appropriate TCP-layer header fields.
 To find the TCP header in a packet (assuming it has been enabled, see
-\ref{sec:packethdrmgr}) the \code{off\_tcp\_} must be properly initialized,
+\ref{sec:packethdrmgr}) the \code{off_tcp_} must be properly initialized,
 as illustrated in the constructor.
 The packet \code{access()} function returns a pointer to the TCP
 header, its sequence number and time stamp fields are filled in,
@@ -359,7 +359,7 @@ and the \code{send} function of the \code{Connector} class is called
 to send the packet downstream one hop.
 Note that the C++ \code{::} scoping operator is used here to avoid
 calling \code{TcpSimpleAgent::send()} (which is also defined).
-The check for a pending timer uses the array \code{pending\_} which
+The check for a pending timer uses the array \code{pending_} which
 is defined in the \code{Agent} base class.
 It is used here to set a retransmission timer if one is not already set
 (a TCP sender only sets one timer per window of packets on each connection).
@@ -404,7 +404,7 @@ This class defines the \code{recv} and \code{ack} functions as follows:
 The \code{recv} function overrides the \code{Agent::recv} function
 (which merely discards the received packet).
 It updates some internal state with the sequence number of the
-received packet (and therefore requires the \code{off\_tcp\_} variable
+received packet (and therefore requires the \code{off_tcp_} variable
 to be properly initialized.
 It then generates an acknowledgment for the received packet.
 The \code{ack} function makes liberal use of access to packet header
@@ -520,7 +520,7 @@ likely to be related to the layer at which the agent will operate
 and its assumptions on lower layer functionality.
 For protocol endpoints wishing to use a connectionless
 datagram-oriented transport layer (like UDP) with sequencing,
-the \code{CBR\_Agent} base class is likely to be appropriate.
+the \code{CBR_Agent} base class is likely to be appropriate.
 For protocols wishing to use a connection-oriented stream transport
 (like TCP), the various TCP Agents could be used.
 Finally, if a new transport or ``sub-transport'' protocol
@@ -546,7 +546,7 @@ We may use the following class definition:
 \end{small}
 
 The implementation of the member functions will look similar to
-the \code{CBR\_Agent} described above.
+the \code{CBR_Agent} described above.
 
 \subsubsection{The \code{recv} and \code{timeout} functions}
 
@@ -579,7 +579,7 @@ function \code{sendit}:
 \end{small}
 
 The \code{timeout} function simply arranges for \code{sendit} to be
-executed every \code{interval\_} seconds.
+executed every \code{interval_} seconds.
 The \code{sendit} function create a new packet with most of its
 header fields already set up by the \code{allocpkt} function.
 The packet is only lacking the current time stamp. 
@@ -643,17 +643,17 @@ This is accomplished in the class's constructor:
 \end{verbatim}
 \end{small}
 
-Here, the C++ variables \code{interval\_} and \code{size\_} are
-linked to the OTcl instance variables \code{interval\_} and
-\code{packetSize\_}, respectively.
+Here, the C++ variables \code{interval_} and \code{size_} are
+linked to the OTcl instance variables \code{interval_} and
+\code{packetSize_}, respectively.
 Any read or modify operation to the Otcl variables will result
 in a corresponding access to the underlying C++ variables.
 See \ref{c++linkage} for more detail on how the various \code{bind}
 functions work.
-The defined constant \code{PT\_ECHO} is passed to the \code{Agent}
+The defined constant \code{PT_ECHO} is passed to the \code{Agent}
 constuctor so that the \code{Agent::allocpkt} function may set
 the packet type field used by the trace support
-(see section \ref{traceptype}).  In this case, \code{PT\_ECHO} represents
+(see section \ref{traceptype}).  In this case, \code{PT_ECHO} represents
 a new packet type and must be defined in \code{trace.h}.
 (see section \ref{sec:traceformat}).
 
@@ -717,4 +717,4 @@ the following OTcl code is executed:
 \end{small}
 
 This will cause our agent to generate one 1024-byte packet destined for
-node \code{\$dest} every 1.5 seconds.
+node \code{$dest} every 1.5 seconds.

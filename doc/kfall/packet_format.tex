@@ -103,14 +103,14 @@ The structure also provides member functions
 which in turn
 provide a layer of data hiding for objects wishing to read
 or modify header fields of packets.
-Note that the variable \code{off\_rtp\_} is used
+Note that the variable \code{off_rtp_} is used
 to find the byte offset at which the rtp header is located
 in an arbitrary packet.
 To access any packet header other than the ``common'' header
 (see below, section\ref{sec:commonhdr}), the accessing code
 must obtain the appropriate header offset.
 This is accomplished by declaring and binding
-the integer variable \code{off\_<hdrname>\_}
+the integer variable \code{off_<hdrname>_}
 where \code{<hdrname>} refers to a shorthand name
 of the header of interest which must match the
 name assigned in \code{tcl/lib/ns-packet.tcl}.
@@ -120,12 +120,12 @@ in the simulation is instantiated at simulator run-time.
 A particular header is enabled via OTcl in the simulation during
 simulator configuration time (see \ref{sec:configpacket}).
 
-The static object \code{class\_rtphdr} of class \code{RTPHeaderClass}
+The static object \code{class_rtphdr} of class \code{RTPHeaderClass}
 is used to provide linkage to OTcl when the RTP header is
 enabled at configuration time.
 When the simulator executes, this static object calls
 the \code{PacketHeaderClass} constructor with arguments
-\code{"PacketHeader/RTP"} and \code{sizeof(hdr\_rtp}.
+\code{"PacketHeader/RTP"} and \code{sizeof(hdr_rtp}.
 This causes the size of the RTP header to be stored
 and made available to the packet header manager
 at configuration time (see below, section\ref{sec:packethdrmgr}).
@@ -147,7 +147,7 @@ object are used to access individual fields.
 Assuming we wish to create a new header called \code{newhdr}
 the following steps are performed:
 \begin{enumerate}
-        \item create a new structure defining the raw fields (called \code{hdr\_newhdr})
+        \item create a new structure defining the raw fields (called \code{hdr_newhdr})
         \item define member functions for needed fields
 	\item create a static class to perform OTcl linkage (defines \code{PacketHeader/Newhdr})
         \item edit \code{tcl/lib/ns-packet.tcl} to enable new packet format (see \ref{sec:configpacket})
@@ -215,14 +215,14 @@ characters (commonly called the ``bag of bits'' or BOB for short)
 where packet header fields are stored.
 It also holds a pointer to packet ``data'' (which is often not used in
 simulations).
-The \code{bits\_} variable contains the address of
+The \code{bits_} variable contains the address of
 the first byte of the BOB.
 Effectively BOB is (currently implemented as) a concatenation
 of all the structures defined for each packet header (by convention,
-the structures with names beginning {\tt hdr\_<something>}) that have
+the structures with names beginning \code{hdr_<something>}) that have
 been configured in.
 BOB generally remains a fixed size throughout a simulation, and
-the size is recorded in the \code{Packet::hdrlen\_} member
+the size is recorded in the \code{Packet::hdrlen_} member
 variable.
 This size is updated during simulator configuration by
 OTcl.\footnote{It is not intended to be updated after configuration
@@ -335,17 +335,17 @@ This structure primarily defines fields used for tracing
 the flow of packets or measuring other quantities.
 The time stamp field is used to measure queueing delay
 at switch nodes.
-The \code{ptype\_} field is used to identify the
+The \code{ptype_} field is used to identify the
 type of packets, which makes reading traces simpler.
-The \code{uid\_} field is used by the scheduler in scheduling
+The \code{uid_} field is used by the scheduler in scheduling
 packet arrivals.
-The \code{size\_} field is of general use and gives the
+The \code{size_} field is of general use and gives the
 simulated packet's size.
 Note that the actual number of bytes consumed in the simulation
 may not relate to the value of this field.
 Rather, it is used most often in computing the time required for a packet
 to be delivered along a network link.
-The \code{iface\_} field is used by the simulator when performing
+The \code{iface_} field is used by the simulator when performing
 multicast distribution tree computations.
 It is a label indicating (typically) on which link a packet was received.
 
@@ -426,21 +426,21 @@ The code in \code{ns-packet.tcl} is executed when the
 simulator initializes.
 Thus, the {\tt foreach} statement is executed before the
 simulation begins, and initializes the OTcl class array
-{\tt vartab\_} to contain the mapping between class
+\code{vartab_} to contain the mapping between class
 the name and the name of the variable used to contain
 that class's header in a packet (which is initialized later).
-For example, the value of {\tt vartab\_(IP)} is set to
-{\tt off\_ip\_}.
+For example, the value of \code{vartab_(IP)} is set to
+\code{off_ip_}.
 
-The \code{create\_packetformat} instance procedure is part of the
+The \code{create_packetformat} instance procedure is part of the
 basic Simulator class and is called one time during simulator
 configuration.
 It first creates a single \code{PacketHeaderManager} object.
 The C++ constructor links the OTcl instance
-variable \code{hdrlen\_} (of class \code{PacketHeaderManager})
-to the C++ variable \code{Packet::hdrlen\_} (a static
+variable \code{hdrlen_} (of class \code{PacketHeaderManager})
+to the C++ variable \code{Packet::hdrlen_} (a static
 member of the \code{Packet} class).
-This has the effect of setting \code{Packet::hdrlen\_} to
+This has the effect of setting \code{Packet::hdrlen_} to
 zero.
 Note that binding across class types in this fashion is
 unusual.
@@ -455,7 +455,7 @@ and $o_i$ is the name of the variable containing the
 location of the $h_i$ header in BOB.
 The placement of headers is performed by the \code{allochdr}
 instproc of the \code{PacketHeaderManager} OTcl class.
-The procedure keeps a running variable \code{hdrlen\_} with
+The procedure keeps a running variable \code{hdrlen_} with
 the current length of BOB as new packet headers are enabled.
 It also arranges for 8-byte alignment for any newly-enabled packet
 header.

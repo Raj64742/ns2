@@ -155,7 +155,7 @@ Note that any future packets received from upstream neighbors
 will arrive to a blocked queue.
 When a downstream neighbor wishes to cause the queue to become unblocked
 it schedules the QueueHandler's \code{handle} function by
-passing \code{\&qh\_} to the simulator scheduler.
+passing \code{&qh_} to the simulator scheduler.
 The \code{handle} function invokes \code{resume}, which
 will send the next-scheduled packet downstream (and leave the queue blocked),
 or unblock the queue when no packet is ready to be sent.

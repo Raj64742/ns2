@@ -178,8 +178,8 @@ SimpleLink instproc trace { ns f } {
 \end{small}
 
 This function establishes \code{Enque}, \code{Deque}, and \code{Drop}
-traces in the simulator \code{\$ns} and directs their
-output to I/O handle \code{\$f}.
+traces in the simulator \code{$ns} and directs their
+output to I/O handle \code{$f}.
 The function assumes a queue has been associated with the link.
 It operates by first creating three new trace objects
 and inserting the \code{Enque} object before the queue, the
@@ -514,9 +514,9 @@ associated symblic names are as follows
 
 \end{verbatim}
 \end{small}
-The definition of \code{PT\_NAMES} is used to initialize the
-\code{pt\_names} array as indicated above;
-\code{PT\_NTYPE} is not presently used.
+The definition of \code{PT_NAMES} is used to initialize the
+\code{pt_names} array as indicated above;
+\code{PT_NTYPE} is not presently used.
 
 \subsection{\shdr{Queue Monitoring}{queue-monitor.cc}{sec:qmonitor}}
 
