@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.61 1999/01/26 18:30:45 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.62 1999/02/19 22:41:45 haoboy Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -291,6 +291,8 @@ protected:
         TracedInt nrexmitpack_; /* number of retransmited packets */
         TracedInt nrexmitbytes_; /* number of retransmited bytes */
 	int trace_all_oneline_;	/* TCP tracing vars all in one line or not? */
+	int nam_tracevar_;      /* Output nam's variable trace or just plain 
+				   text variable trace? */
 
 	/* these function are now obsolete, see other above */
 	void closecwnd(int how);

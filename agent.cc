@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.50 1999/02/18 02:19:13 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.51 1999/02/19 22:41:43 haoboy Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -160,8 +160,11 @@ int Agent::command(int argc, const char*const* argv)
 		} else if (strcmp(argv[1], "listen") == 0) {
                         listen();
                         return (TCL_OK);
-                }
-
+                } else if (strcmp(argv[1], "dump-namtracedvars") == 0) {
+			enum_tracedVars();
+			return (TCL_OK);
+		}
+		
 	}
 	else if (argc == 3) {
 		if (strcmp(argv[1], "attach") == 0) {
@@ -301,12 +304,15 @@ void Agent::trace(TracedVar* v)
 
 	// XXX hack: how do I know ns has not started yet?
 	// if there's nothing in value, return
-	if (value[0] == 0) 
+	Tcl::instance().eval("[Simulator instance] is-started");
+	if (Tcl::instance().result()[0] == '0')
+		// Simulator not started, do nothing
 		return;
 
 	OldValue *ov = lookupOldValue(v);
 	if (ov != NULL) {
-		sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -v %s -o %s -T v",
+		sprintf(wrk, 
+			"f -t %.17f -s %d -d %d -n %s -a %s -v %s -o %s -T v",
 			Scheduler::instance().clock(),
 			addr_ >> (Address::instance().NodeShift_[1]),
 			dst_ >> (Address::instance().NodeShift_[1]),

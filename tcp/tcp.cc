@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.86 1998/11/30 18:12:23 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.87 1999/02/19 22:41:44 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -129,6 +129,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
         bind("nrexmitpack_", &nrexmitpack_);
         bind("nrexmitbytes_", &nrexmitbytes_);
 	bind_bool("trace_all_oneline_", &trace_all_oneline_);
+	bind_bool("nam_tracevar_", &nam_tracevar_);
 
 	// reset used for dynamically created agent
 	reset();
@@ -185,7 +186,9 @@ TcpAgent::traceVar(TracedVar* v)
 void
 TcpAgent::trace(TracedVar* v) 
 {
-	if (trace_all_oneline_)
+	if (nam_tracevar_) {
+		Agent::trace(v);
+	} else if (trace_all_oneline_)
 		traceAll();
 	else 
 		traceVar(v);
