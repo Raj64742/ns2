@@ -383,10 +383,16 @@ void TfrcSinkAgent::print_loss(int sample, double ave_interval)
 {
 	double now = Scheduler::instance().clock();
 	double drops = 1/ave_interval;
-	printf ("time: %7.5f current_loss_interval %5d\n", now, sample);
-	printf ("time: %7.5f loss_rate: %7.5f\n", now, drops);
-	printf ("time: %7.5f send_rate: %7.5f\n", now, sendrate);
-	printf ("time: %7.5f maxseq: %d\n", now, maxseq);
+	printf ("time: %7.5f sample 0: %5d loss_rate: %7.5f \n", 
+		now, sample, drops);
+	//printf ("time: %7.5f send_rate: %7.5f\n", now, sendrate);
+	//printf ("time: %7.5f maxseq: %d\n", now, maxseq);
+}
+
+void TfrcSinkAgent::print_loss_all(int *sample) 
+{
+	printf ("sample 0: %5d 1: %5d 2: %5d 3: %5d 4: %5d\n", 
+		sample[0], sample[1], sample[2], sample[3], sample[4]); 
 }
 
 ////////////////////////////////////////
@@ -433,7 +439,15 @@ double TfrcSinkAgent::est_loss_WALI ()
 	if (sample_count <= numsamples+1 && false_sample > 0) {
 		// slow start just ended; ds should be 2
 		// the false sample is added to the array.
+		if (printLoss_) {
+			double now = Scheduler::instance().clock(); 
+			printf ("time: %5.3f false_sample: %5d sample %d : %5d\n", 
+			now, false_sample, ds-1, sample[ds-1]);
+		}
 		sample[ds-1] += false_sample;
+		// Should we do this instead?
+		//sample[1] = false_sample;
+		//sample[0] = 0;
 		false_sample = -1 ; 
 	}
 	/* do we need to discount weights? */
@@ -459,8 +473,10 @@ double TfrcSinkAgent::est_loss_WALI ()
 	if (ave_interval2 > ave_interval1)
 		ave_interval1 = ave_interval2;
 	if (ave_interval1 > 0) { 
-		if (printLoss_ > 0) 
+		if (printLoss_ > 0) {
 			print_loss(sample[0], ave_interval1);
+			print_loss_all(sample);
+		}
 		return 1/ave_interval1; 
 	} else return 999;     
 }
@@ -620,6 +636,7 @@ double TfrcSinkAgent::est_loss_EWMA () {
 			print_loss(loss_int, 1.0/p1);
 		else
 			print_loss(loss_int, 0.00001);
+		print_loss_all(sample);
 	}
 	return p1 ;
 }
@@ -685,6 +702,7 @@ double TfrcSinkAgent::est_loss_RBPH () {
 			print_loss(0, 1.0/p);
 		else
 			print_loss(0, 0.00001);
+		print_loss_all(sample);
 	}
 	return p ;
 }
@@ -721,6 +739,7 @@ double TfrcSinkAgent::est_loss_EBPH () {
 			print_loss(0, 1.0/p);
 		else
 			print_loss(0, 0.00001);
+		print_loss_all(sample);
 	}
 	return p ;
 }

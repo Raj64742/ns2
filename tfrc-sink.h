@@ -81,6 +81,7 @@ protected:
 	double est_thput(); 
 	int command(int argc, const char*const* argv);
 	void print_loss(int sample, double ave_interval);
+	void print_loss_all(int *sample);
 
 	// algo specific
 	double est_loss_WALI();
