@@ -22,7 +22,7 @@
 #include "config.h"
 #include <stdio.h>
 #include <sys/time.h>
-#ifdef WIN32
+#ifndef WIN32
 #include <sys/resource.h>
 #endif /* WIN32 */
 #include <unistd.h>
