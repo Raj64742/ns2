@@ -1,15 +1,25 @@
-#test-alloc-address.tcl #
+# test-alloc-address.tcl 
+# a simple test to check if ns-address formatting API's are working. 
 
 set ns [new Simulator]
-
 Simulator set EnableMcast_ 1
-Simulator set EnableHierRt_ 1
-# 3 possible address settings
+# 5 possible address formatting APIs and their combo thereof:
 
-$ns set-address 
-#$ns set-hieraddress 3 4 3 15
-#$ns set-portaddress 20
+#$ns set-address-format def
+$ns set-address-format expanded
+#$ns set-address-format hierarchical
+#$ns set-address-format hierarchical 3 3 3 5
 
-set pm [AddrParams instance]
-set nodeshift [$pm set NodeShift_(1)]
-puts "nodeshift(1) = $nodeshift"
+#$ns expand-port-field-bits 24
+
+set Mcastshift [AddrParams set McastShift_]
+set Portmask [AddrParams set PortMask_]
+set Portshift [AddrParams set PortShift_]
+set Nodemask [AddrParams set NodeMask_(1)]
+set Nodeshift [AddrParams set NodeShift_(1)]
+
+puts "mcastshift = $Mcastshift"
+puts "portmask= $Portmask"
+puts "portshift = $Portshift"
+puts "nodemask(1) = $Nodemask"
+puts "nodeshift(1) = $Nodeshift"
