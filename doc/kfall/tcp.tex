@@ -318,14 +318,116 @@ Agent/TCPSink set maxSackBlocks_ 3
 \end{program}
 
 \subsection{Architecture and Internals}
-\label{sec:architecture}
+\label{sec:tcparchitecture}
 
-\paragraph{Packet Handling: Processing received messages}
-The \fcnref{\fcn[]{recv}}{tcp.cc}{TCPAgent::recv}
-method
+The base TCP agent (class {\tt Agent/TCP}) is constructed
+as a collection of routines for sending data, processing ACKs,
+managing the send window, and handling timeouts.
+Generally, each of these routines may be over-ridden by a
+function with the same name in a derived class (this is how
+many of the TCP sender variants are implemented).
+The major functions are described below
 
-\subsection{Timer Based Functions}
-\label{sec:timers}
+\paragraph{functions for sending data}
+Note that generally the sending TCP never actually sends
+data (it only sets the packet size).
+
+{\bf send\_much(force, reason, maxburst)} - this function
+attempts to send as many packets as the current sent window allows.
+It also keeps track of how many packets it has sent, and limits to the
+total to {\em maxburst}. \\
+The function {\tt output(seqno, reason)} sends one packet
+with the given sequence number and updates the maximum sent sequence
+number variable ({\tt maxseq\_}) to hold the given sequence number if
+it is the greatest sent so far.
+This function also assigns the various fields in the TCP
+header (sequence number, timestamp, reason for transmission).
+This function also sets a retransmission timer if one is not already
+pending.
+
+\paragraph{functions for window management}
+
+The usable send window at any time is given by the function {\bf window()}.
+It returns the minimum of the congestion window and the variable {\tt wnd\_},
+which represents the receiver's advertised window.
+
+{\bf opencwnd()} - this function opens the congestion window.  It is invoked
+when a new ACK arrives.
+When in slow-start, the function merely increments {\tt cwnd\_} by each
+ACK received.
+When in congestion avoidance, the standard configuration increments {\tt cwnd\_}
+by its reciprocal.
+Other window growth options are supported during congestion avoidance,
+but they are experimental (and not documented; contact Sally Floyd for
+details).
+
+{\bf closecwnd(int how)} - this function reduces the congestion window. It
+may be invoked in several ways: when entering fast retransmit, due to
+a timer expiration, or due to a congestion notification (ECN bit set).
+Its argument {\tt how} indicates how the congestion window should
+be reduced.  The value {\bf 0} is used for retransmission timeouts and
+fast retransmit in Tahoe TCP.  It typically causes the TCP to enter
+slow-start and reduce {\tt ssthresh\_} to half the current window.
+The value {\bf 1} is used by Reno TCP for implementing fast recovery
+(which avoids returning to slow-start).
+The value {\bf 2} is used for reducing the window due to an ECN indication.
+It resets the congestion window to its initial value (usually causing
+slow-start), but does not alter {\tt ssthresh\_}.
+
+\paragraph{functions for processing ACKs}
+
+{\bf recv()} - this function is the main reception path for ACKs.
+Note that because only one direction of data flow is in use, this function
+should only ever be invoked with a pure ACK packet (i.e. no data).
+The function stores the timestamp from the ACK in {\tt ts\_peer\_}, and
+checks for the presence of the ECN bit (reducing the send window if
+appropriate).
+If the ACK is a new ACK, it calls {\bf newack()}, and otherwise
+checks to see if it is a duplicate of the last ACK seen.
+If so, it enters fast retransmit by closing the window, resetting the
+retransmission timer, and sending a packet by calling {\tt send\_much}.
+
+{\bf newack()} - this function processes a ``new'' ACK (one that contains
+an ACK number higher than any seen so far).
+The function sets a new retransmission timer by calling {\bf newtimer()},
+updates the RTT estimation by calling {\bf rtt\_update}, and updates
+the highest and last ACK variables.
+
+\paragraph{functions for managing the retransmission timer}
+
+These functions serve two purposes: estimating the round-trip time
+and setting the actual retransmission timer.
+{\bf rtt\_init} - this function initializes {\tt srtt\_} and {\tt rtt\_}
+to zero, sets {\tt rttvar\_} to $3/tcp\_tick\_$, and sets the backoff
+multiplier to one.
+
+{\bf rtt\_timeout} - this function gives the timeout value in seconds that
+should be used to schedule the next retransmission timer.
+It computes this based on the current estimates of the mean and deviation
+of the round-trip time.  In addition, it implements Karn's
+exponential timer backoff for multiple consecutive retransmission timeouts.
+
+{\bf rtt\_update} - this function takes as argument the measured RTT
+and averages it in to the running mean and deviation estimators
+according to the description above.
+Note that {\tt t\_srtt\_} and {\tt t\_rttvar} are both
+stored in fixed-point (integers).
+They have 3 and 2 bits, respectively, to the right of the binary
+point.
+
+{\bf reset\_rtx\_timer} -  This function is invoked during fast retransmit
+or during a timeout.
+It sets a retransmission timer
+by calling {\tt set\_rtx\_timer} and if invoked by a timeout also calls
+{\tt rtt\_backoff}.
+
+{\bf rtt\_backoff} - this function backs off the retransmission timer
+(by doubling it).
+
+{\bf newtimer} - this function called only when a new ACK arrives.
+If the sender's left window edge is beyond the ACK, then
+{\tt set\_rtx\_timer} is called, otherwise if a retransmission timer
+is pending it is cancelled.
 
 \subsection{Extending the Base Class Agent}
 \label{sec:extensions}
