@@ -29,6 +29,11 @@ CBQLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 
 }
 
+CBQLink instproc classifier {} {
+	$self instvar classifier_
+	return $classifier_
+}
+
 #
 #
 # for flow-id based classification, bind c
@@ -99,7 +104,8 @@ CBQLink instproc insert cbqcl {
 		if [info exists snoopDrop_] {
 			$drop target $snoopDrop_
 		} else {
-			$drop target [ns set nullAgent_]
+			set sim [Simulator instance]
+			$drop target [$sim set nullAgent_]
 		}
 
 		# output of queue -> snoopy outq
