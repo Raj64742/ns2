@@ -43,7 +43,7 @@ public:
 	int command(int argc, const char*const* argv);	// interface to ns scripts
 
 protected:
-	Policy policy;
+	Policy *policy;
 	void enque(Packet *pkt);	// edge mechanism to enque a packet
 };
 

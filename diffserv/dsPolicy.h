@@ -16,39 +16,37 @@
  *
  */
 
-/*
- * dsPolicy.h
- *
- */
+// dsPolicy.h 
 
-#ifndef dsPolicy_h
-#define dsPolicy_h
+#ifndef DS_POLICY_H
+#define DS_POLICY_H
 #include "dsred.h"
 
+#define ANY_HOST -1		// Add to enable point to multipoint policy
+#define MAX_FLOW 8            // MAX num of flows to keep state in hash table.
+#define FLOW_TIME_OUT 5.0      // The flow does not exist already.
 
 #define MAX_POLICIES 20		// Max. size of Policy Table.
-enum policerType {TSW2CM, TSW3CM, dumbPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer};
-enum meterType {dumbMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter};
 
+enum policerType {dumbPolicer, TSW2CM, TSW3CM, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, FW};
+enum meterType {dumbMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter, fwTagger};
 
-/*------------------------------------------------------------------------------
-struct policyTableEntry
-------------------------------------------------------------------------------*/
+//struct policyTableEntry
 struct policyTableEntry {
-	nsaddr_t sourceNode, destNode;	// Source-destination pair
-	policerType policer;
-	meterType meter;
-	int codePt;			// In-profile code point
-	double cir;			// Committed information rate (bytes per s)			
-	double cbs;			// Committed burst size (bytes)			
-	double cBucket;			// Current size of committed bucket (bytes)			
-	double ebs;			// Excess burst size (bytes)			
-	double eBucket;			// Current size of excess bucket (bytes)			
-	double pir;			// Peak information rate (bytes per s)			
-	double pbs;			// Peak burst size (bytes)			
-	double pBucket;			// Current size of peak bucket (bytes)			
-	double arrivalTime;		// Arrival time of last packet in TSW metering
-	double avgRate, winLen;		// Used for TSW metering
+  nsaddr_t sourceNode, destNode;	// Source-destination pair
+  policerType policer;
+  meterType meter;
+  int codePt;		     // In-profile code point
+  double cir;		     // Committed information rate (bytes per s) 
+  double cbs;		     // Committed burst size (bytes)			
+  double cBucket;	     // Current size of committed bucket (bytes)     
+  double ebs;		     // Excess burst size (bytes)			
+  double eBucket;	     // Current size of excess bucket (bytes)	
+  double pir;		     // Peak information rate (bytes per s)
+  double pbs;		     // Peak burst size (bytes)			
+  double pBucket;	     // Current size of peak bucket (bytes)	       
+  double arrivalTime;	     // Arrival time of last packet in TSW metering
+  double avgRate, winLen;    // Used for TSW metering
 };
 	
 
@@ -63,48 +61,155 @@ struct policerTableEntry {
 	int downgrade2;
 };
 
+struct flow_entry {
+  int fid;
+  double last_update;
+  int bytes_sent;
+  struct flow_entry *next;
+};
 
-/*------------------------------------------------------------------------------
-------------------------------------------------------------------------------*/
+struct flow_list {
+  struct flow_entry *head;
+  struct flow_entry *tail;
+};
+
 class Policy : public TclObject {
-public:
-	Policy();
-	void addPolicyEntry(int argc, const char*const* argv);
-	void addPolicerEntry(int argc, const char*const* argv);
-	void updatePolicyRTT(int argc, const char*const* argv);
-	double getCBucket(const char*const* argv);
-	int mark(Packet *pkt);
-	void printPolicyTable();		// prints the policy table
-	void printPolicerTable();		// prints the policer table
+ public:
+  Policy();
+  virtual void addPolicyEntry(int argc, const char*const* argv);
+  virtual void addPolicerEntry(int argc, const char*const* argv);
+  void updatePolicyRTT(int argc, const char*const* argv);
+  double getCBucket(const char*const* argv);
+  int mark(Packet *pkt);
+  
+  // prints the policy tables
+  virtual void printPolicyTable() = 0;		
+  virtual void printPolicerTable() = 0;
 
-protected:
-	policyTableEntry policyTable[MAX_POLICIES];
-	int policyTableSize;
-	policerTableEntry policerTable[MAX_CP]; 	// policer table
-	int policerTableSize;	// current number of entries in the policer table
+ protected:
+  // policy table and its pointer
+  policyTableEntry policyTable[MAX_POLICIES];
+  int policyTableSize;
+  // policer table and its pointer
+  policerTableEntry policerTable[MAX_CP];  
+  int policerTableSize;	
 
-	policyTableEntry* getPolicyTableEntry(nsaddr_t source, nsaddr_t dest);
+  policyTableEntry* getPolicyTableEntry(nsaddr_t source, nsaddr_t dest);
+  
+  // Metering and policing methods:
+  virtual void applyMeter(policyTableEntry *policy, Packet *pkt) = 0;
+  virtual int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt) = 0;
 
-	// Metering methods:
-	void applyTSWTaggerMeter(policyTableEntry *policy, Packet *pkt);
-	void applyTokenBucketMeter(policyTableEntry *policy);
-	void applySrTCMMeter(policyTableEntry *policy);
-	void applyTrTCMMeter(policyTableEntry *policy);
+  // Map a code point to a new code point:
+  int downgradeOne(policerType policer, int oldCodePt);
+  int downgradeTwo(policerType policer, int oldCodePt);
+};
 
-	// Map a code point to a new code point:
-	int downgradeOne(policerType policer, int oldCodePt);
-	int downgradeTwo(policerType policer, int oldCodePt);
+// DumbPolicy will do nothing, but is a good example to show how to add 
+// new policy.
+class DumbPolicy : public Policy {
+ public:
+  DumbPolicy() : Policy(){};
+  void addPolicyEntry(int argc, const char*const* argv);
+  void addPolicerEntry(int argc, const char*const* argv);
 
-	// Policing methods:
-	int applyTSW2CMPolicer(policyTableEntry *policy, int initialCodePt);
-	int applyTSW3CMPolicer(policyTableEntry *policy, int initialCodePt);
-	int applyTokenBucketPolicer(policyTableEntry *policy, int initialCodePt,
-      Packet *pkt);
-	int applySrTCMPolicer(policyTableEntry *policy, int initialCodePt,
-      Packet* pkt);
-	int applyTrTCMPolicer(policyTableEntry *policy, int initialCodePt,
-      Packet* pkt);
+  void printPolicyTable();		
+  void printPolicerTable();
 
+ protected:
+  // Metering and policing methods:
+  void applyMeter(policyTableEntry *policy, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+};
+
+class TSW2CMPolicy : public Policy {
+ public:
+  TSW2CMPolicy() : Policy(){};
+  void addPolicyEntry(int argc, const char*const* argv);
+  void addPolicerEntry(int argc, const char*const* argv);
+
+  void printPolicyTable();		
+  void printPolicerTable();
+
+ protected:
+  // Metering and policing methods:
+  void applyMeter(policyTableEntry *policy, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+};
+
+class TSW3CMPolicy : public Policy {
+ public:
+  TSW3CMPolicy() : Policy(){};
+  void addPolicyEntry(int argc, const char*const* argv);
+  void addPolicerEntry(int argc, const char*const* argv);
+
+  void printPolicyTable();		
+  void printPolicerTable();
+
+ protected:
+  // Metering and policing methods:
+  void applyMeter(policyTableEntry *policy, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+};
+
+class TBPolicy : public Policy {
+ public:
+  TBPolicy() : Policy(){};
+  void addPolicyEntry(int argc, const char*const* argv);
+  void addPolicerEntry(int argc, const char*const* argv);
+
+  void printPolicyTable();		
+  void printPolicerTable();
+
+ protected:
+  // Metering and policing methods:
+  void applyMeter(policyTableEntry *policy, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+};
+
+class SRTCMPolicy : public Policy {
+ public:
+  SRTCMPolicy() : Policy(){};
+  void addPolicyEntry(int argc, const char*const* argv);
+  void addPolicerEntry(int argc, const char*const* argv);
+
+  void printPolicyTable();		
+  void printPolicerTable();
+
+ protected:
+  // Metering and policing methods:
+  void applyMeter(policyTableEntry *policy, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+};
+
+class TRTCMPolicy : public Policy {
+ public:
+  TRTCMPolicy() : Policy(){};
+  void addPolicyEntry(int argc, const char*const* argv);
+  void addPolicerEntry(int argc, const char*const* argv);
+
+  void printPolicyTable();		
+  void printPolicerTable();
+
+ protected:
+  // Metering and policing methods:
+  void applyMeter(policyTableEntry *policy, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
+};
+
+class FWPolicy : public Policy {
+ public:
+  FWPolicy();
+  void addPolicyEntry(int argc, const char*const* argv);
+  void addPolicerEntry(int argc, const char*const* argv);
+
+  void printPolicyTable();		
+  void printPolicerTable();
+
+ protected:
+  // Metering and policing methods:
+  void applyMeter(policyTableEntry *policy, Packet *pkt);
+  int applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt);
 };
 
 #endif
