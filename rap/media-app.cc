@@ -26,7 +26,7 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.7 1999/08/24 04:16:16 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.8 1999/08/30 21:59:26 yuriy Exp $
 
 #include <stdarg.h>
 
@@ -547,7 +547,7 @@ void MediaApp::log(const char* fmt, ...)
 {
 	char buf[1024], *p;
 	char *src = Address::instance().print_nodeaddr(rap()->addr());
-	src[strlen(src)-1] = 0; // Get rid of the last '.'
+	//src[strlen(src)-1] = 0; // Get rid of the last '.'
 	sprintf(buf, "%.17g i %s ", Scheduler::instance().clock(), src);
 	delete []src;
 	p = &(buf[strlen(buf)]);
@@ -627,7 +627,7 @@ void QA::debug(const char* fmt, ...)
 	char buf[1024], *p;
 	char *src = Address::instance().print_nodeaddr(rap()->addr());
 	char *port = Address::instance().print_portaddr(rap()->addr());
-	sprintf(buf, "# t %.17g i %s%s QA ", 
+	sprintf(buf, "# t %.17g i %s.%s QA ", 
 		Scheduler::instance().clock(), src, port);
 	delete []port;
 	delete []src;
@@ -643,7 +643,7 @@ void QA::panic(const char* fmt, ...)
 	char buf[1024], *p;
 	char *src = Address::instance().print_nodeaddr(rap()->addr());
 	char *port = Address::instance().print_portaddr(rap()->addr());
-	sprintf(buf, "# t %.17g i %s%s QA PANIC ", 
+	sprintf(buf, "# t %.17g i %s.%s QA PANIC ", 
 		Scheduler::instance().clock(), src, port);
 	delete []port;
 	delete []src;

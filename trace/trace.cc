@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.63 1999/08/17 04:26:53 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.64 1999/08/30 21:59:22 yuriy Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -263,7 +263,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
 
 	if (!show_tcphdr_) {
-		sprintf(wrk_, "%c "TIME_FORMAT" %d %d %s %d %s %d %s%s %s%s %d %d",
+		sprintf(wrk_, "%c "TIME_FORMAT" %d %d %s %d %s %d %s.%s %s.%s %d %d",
 			tt,
 			round(Scheduler::instance().clock()),
 			s,
@@ -284,7 +284,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			th->uid() /* was p->uid_ */);
 	} else {
 		sprintf(wrk_, 
-			"%c "TIME_FORMAT" %d %d %s %d %s %d %s%s %s%s %d %d %d 0x%x %d %d",
+			"%c "TIME_FORMAT" %d %d %s %d %s %d %s.%s %s.%s %d %d %d 0x%x %d %d",
 			tt,
 			round(Scheduler::instance().clock()),
 			s,
@@ -311,7 +311,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s %s}",
+			"%c -t "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -485,7 +485,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 #endif
 		
 		sprintf(nwrk_, 
-			"%c -t "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s %s}",
+			"%c -t "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
 			'h',
 			Scheduler::instance().clock(),
 			src_,

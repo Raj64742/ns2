@@ -36,7 +36,7 @@
  * Bertsekas' book.  Written originally by S. Keshav, 7/18/88
  * (his work covered by identical UC Copyright)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.h,v 1.4 1999/06/21 18:14:03 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.h,v 1.5 1999/08/30 21:59:20 yuriy Exp $
  *
  */
 
@@ -74,7 +74,7 @@ public:
 	RouteLogic();
 	~RouteLogic();
 	int command(int argc, const char*const* argv);
-	int lookup_flat(char* asrc, char* adst, int&result);
+	virtual int lookup_flat(char* asrc, char* adst, int&result);
 	int lookup_hier(char* asrc, char* adst, int&result);
 	static void ns_strtok(char *addr, int *addrstr);
 protected:
@@ -119,4 +119,13 @@ protected:
 	
 };
 
+class RouteLogicAlgo : public RouteLogic {
+public:
+	int lookup_flat(char* asrc, char* adst, int&result) {
+		Tcl& tcl= Tcl::instance();
+		tcl.evalf("%s lookup %s %s", name(), asrc, adst);
+		result= atoi(tcl.result());
+		return TCL_OK;
+	}
+};
 #endif

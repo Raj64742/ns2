@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.30 1999/08/20 01:12:30 salehi Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.31 1999/08/30 21:59:20 yuriy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -48,7 +48,6 @@ static const char rcsid[] =
 #include "config.h"
 #include "route.h"
 #include "address.h"
-
 class RouteLogicClass : public TclClass {
 public:
 	RouteLogicClass() : TclClass("RouteLogic") {}
@@ -847,3 +846,12 @@ void RouteLogic::hier_print_route()
 			printf("\n\n");
 		}
 }
+
+static class RouteLogicAlgoClass : public TclClass {
+public:
+	RouteLogicAlgoClass() : TclClass("RouteLogic/Algorithmic") {}
+	TclObject* create(int, const char*const*) {
+		return (new RouteLogicAlgo);
+	}
+} class_routelogic_algo;
+

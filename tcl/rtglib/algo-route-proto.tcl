@@ -11,8 +11,6 @@ Agent/rtProto/Algorithmic proc compute-all {} {
     [Simulator instance] compute-algo-routes
 }
 
-Class RouteLogic/Algorithmic -superclass RouteLogic
-
 RouteLogic/Algorithmic instproc BFS {} {
     $self instvar ns_ children_ root_ rank_
 

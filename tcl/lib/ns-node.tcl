@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.54 1999/06/21 18:31:39 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.55 1999/08/30 21:59:28 yuriy Exp $
 #
 
 # for MobileIP
@@ -590,6 +590,8 @@ VirtualClassifierNode instproc mk-default-classifier {} {
     $classifier_ set mask_ [AddrParams set NodeMask_(1)]
     $classifier_ set shift_ [AddrParams set NodeShift_(1)]
     set address_ $id_
+
+    $classifier_ nodeaddr $address_
 }
 
 VirtualClassifierNode instproc add-route { dst target } {
@@ -601,15 +603,10 @@ Classifier/Virtual instproc find dst {
     if ![info exist ns_] {
 	set ns_ [Simulator instance]
     }
-    if ![info exist routingTable_] {
-	set routingTable_ [$ns_ get-routelogic]
-    }
-
     if {[$node_ id] == $dst} {
-	$self set-target [$node_ set dmux_]
+	    return [$node_ set dmux_]
     } else {
-	set nh [$routingTable_ lookup [$node_ id] $dst]
-	$self set-target [[$ns_ link $node_ [$ns_ set Node_($nh)]] head]
+	    return [[$ns_ link $node_ [$ns_ set Node_($dst)]] head]
     }
 }
 

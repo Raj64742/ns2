@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/heap.h,v 1.6 1999/08/21 01:27:36 yuriy Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/heap.h,v 1.7 1999/08/30 21:59:18 yuriy Exp $ (USC/ISI)
  */
 
 #ifndef ns_heap_h
@@ -73,11 +73,12 @@ public:
 	Heap(int size =HEAP_DEFAULT_SIZE)
 		: h_s_key(0), h_size(0), h_maxsize(size), h_iter(0) {
 		h_elems = new Heap_elem[h_maxsize];
-		for (unsigned int i = 0; i < h_maxsize; i++)
-			h_elems[i].he_elem = 0;
+		memset(h_elems, 0, h_maxsize*sizeof(Heap_elem));
+		//for (unsigned int i = 0; i < h_maxsize; i++)
+		//	h_elems[i].he_elem = 0;
 	};
 	~Heap() {
-		delete h_elems;
+		delete [] h_elems;
 	};
 
 	/*
@@ -186,9 +187,10 @@ public:
 			Heap_elem *he_old = h_elems;
 			h_maxsize *= 2;
 			h_elems = new Heap_elem[h_maxsize];
-			for (i = 0; i < osize; i++)
-				h_elems[i] = he_old[i];
-			delete he_old;
+			memcpy(h_elems, he_old, osize*sizeof(Heap_elem));
+			//for (i = 0; i < osize; i++)
+			//	h_elems[i] = he_old[i];
+			//delete he_old;
 		}
 	
 		i = h_size++;

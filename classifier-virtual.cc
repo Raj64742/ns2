@@ -34,26 +34,69 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.1 1998/10/14 20:31:10 polly Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.2 1999/08/30 21:59:18 yuriy Exp $";
 #endif
-
+extern "C" {
+#include <tcl.h>
+}
 #include "config.h"
 #include "packet.h"
 #include "ip.h"
 #include "classifier.h"
+#include "route.h"
+#include "object.h"
+#include "address.h"
+#include <string.h>
 
+#include <iostream.h>
 class VirtualClassifier : public Classifier {
-protected:
-	NsObject* next_;
-	int classify(Packet *const p) {
-		hdr_ip* iph = hdr_ip::access(p);
-		return mshift(iph->dst());
+public:
+	VirtualClassifier() : routelogic_(0) {
+		Tcl_InitHashTable(&ht_, TCL_ONE_WORD_KEYS);
 	}
+	~VirtualClassifier() {
+		Tcl_DeleteHashTable(&ht_);
+	}
+protected:
+	Tcl_HashTable ht_;
+	RouteLogic *routelogic_;
+	NsObject* target_;
+	bool enableHrouting_;
+	char nodeaddr_[SMALL_LEN];
+
 	void recv(Packet* p, Handler* h) {
-		int dst = classify(p);
-		next_ = NULL;
-		Tcl::instance().evalf("%s find %d", name(), dst);
-		if (next_ == NULL) {
+		if (!routelogic_) {
+			Tcl &tcl = Tcl::instance();
+			tcl.eval("[Simulator instance] get-routelogic");
+			routelogic_= (RouteLogic*) TclObject::lookup(tcl.result());
+			//tcl.evalf("%s info class", tcl.result());
+			//cout << "created..." << tcl.result() << endl;
+		}
+		/* first we find the next hop by asking routelogic
+		 * then we use a hash next_hop -> target_object
+		 * thus, the size of the table is at most N-1
+		 */
+		Tcl &tcl = Tcl::instance();
+		hdr_ip* iph = hdr_ip::access(p);
+		char* adst= Address::instance().print_nodeaddr(iph->dst());
+		//adst[strlen(adst)-1]= 0;
+		target_= 0;
+
+		int next_hopIP;
+		routelogic_->lookup_flat(nodeaddr_, adst, next_hopIP);
+		delete [] adst;
+
+		int newEntry;
+		Tcl_HashEntry *ep= Tcl_CreateHashEntry(&ht_, (const char*)next_hopIP, 
+						       &newEntry); 
+		if (newEntry) {
+			tcl.evalf("%s find %d", name(), next_hopIP);
+			Tcl_SetHashValue(ep, target_= (NsObject*)tcl.lookup(tcl.result()));
+		} else {
+			target_= (NsObject*)Tcl_GetHashValue(ep);
+		}
+		
+		if (!target_) {
 			/*
 			 * XXX this should be "dropped" somehow.  Right now,
 			 * these events aren't traced.
@@ -61,12 +104,12 @@ protected:
 			Packet::free(p);
 			return;
 		}
-		next_->recv(p,h);
+		target_->recv(p,h);
 	}
 	int command(int argc, const char*const* argv) {
 		if (argc == 3) {
-			if (strcmp(argv[1], "set-target") == 0) {
-				next_ = (NsObject*)TclObject::lookup(argv[2]);
+			if (strcmp(argv[1], "nodeaddr") == 0) {
+				strcpy(nodeaddr_, argv[2]);
 				return(TCL_OK);
 			}
 		}

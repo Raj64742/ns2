@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.2 1999/07/18 20:02:12 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.3 1999/08/30 21:59:21 yuriy Exp $";
 #endif
 
 #include <stdio.h>
@@ -164,7 +164,7 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 	}
 
 	if (!show_tcphdr_) {
-		sprintf(wrk_, "%c %.4f %d %d %s %d %s %d %s%s %s%s %d %d %.2f %.2f %.2f %.2f",
+		sprintf(wrk_, "%c %.4f %d %d %s %d %s %d %s.%s %s.%s %d %d %.2f %.2f %.2f %.2f",
 			tt,
 			round(Scheduler::instance().clock()),
 			th->last_hop_,
@@ -189,7 +189,7 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 			d_lon);
 	} else {
 		sprintf(wrk_, 
-			"%c %.4f %d %d %s %d %s %d %s%s %s%s %d %d %d 0x%x %d %d %.2f %.2f %.2f %.2f",
+			"%c %.4f %d %d %s %d %s %d %s.%s %s.%s %d %d %d 0x%x %d %d %.2f %.2f %.2f %.2f",
 			tt,
 			round(Scheduler::instance().clock()),
 			th->last_hop_,
@@ -220,7 +220,7 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s %s}",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -325,7 +325,7 @@ SatDequeTrace::recv(Packet* p, Handler* h)
 #endif
 		
 		sprintf(nwrk_, 
-			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s %s}",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
 			'h',
 			Scheduler::instance().clock(),
 			src_,
