@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.6 1997/03/17 23:23:37 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.7 1997/03/27 07:01:52 elan Exp $";
 #endif
 
 
@@ -66,7 +66,9 @@ public:
 	virtual int command(int argc, const char*const* argv);
 protected:
 	virtual void sendpkt();
+	void rate_change();
 	RTPSession* session_;
+	double lastpkttime_;
 	int seqno_;
 };
 
@@ -80,11 +82,12 @@ public:
 
 
 RTPAgent::RTPAgent() 
-	: session_(0)
+	: session_(0), lastpkttime_(-1e6)
 {
 	type_ = PT_RTP;
 	bind("seqno_", &seqno_);
 }
+
 
 void RTPAgent::timeout(int) 
 {
@@ -106,7 +109,12 @@ void RTPAgent::recv(Packet* p, Handler*)
 
 int RTPAgent::command(int argc, const char*const* argv)
 {
-	if (argc == 3) {
+	if (argc == 2) {
+		if (strcmp(argv[1], "rate-change") == 0) {
+			rate_change();
+			return (TCL_OK);
+		}
+	} else if (argc == 3) {
 		if (strcmp(argv[1], "session") == 0) {
 			session_ = (RTPSession*)TclObject::lookup(argv[2]);
 			return (TCL_OK);
@@ -115,10 +123,32 @@ int RTPAgent::command(int argc, const char*const* argv)
 	return (CBR_Agent::command(argc, argv));
 }
 
+/* 
+ * We modify the rate in this way to get a faster reaction to the a rate
+ * change since a rate change from a very low rate to a very fast rate may 
+ * take an undesireably long time if we have to wait for timeout at the old
+ * rate before we can send at the new (faster) rate.
+ */
+void RTPAgent::rate_change()
+{
+	cancel(0);
+	
+	double t = lastpkttime_ + interval_;
+	
+	double now = Scheduler::instance().clock();
+	if ( t > now)
+		sched(t - now, 0);
+	else {
+		sendpkt();
+		sched(interval_, 0);
+	}
+}
+
 void RTPAgent::sendpkt()
 {
 	Packet* p = allocpkt();
 	RTPHeader *rh = RTPHeader::access(p->bits());
+	lastpkttime_ = Scheduler::instance().clock();
 
 	/* Fill in srcid_ and seqno */
 	rh->seqno() = seqno_++;
