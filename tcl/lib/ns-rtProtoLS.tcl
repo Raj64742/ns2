@@ -145,7 +145,7 @@ Agent/rtProto/LS instproc send-periodic-update {} {
 # like DV's, except cmd computeRoutes
 Agent/rtProto/LS instproc compute-routes {} {
 	$self instvar node_
-	puts "Node [$node_ id]: Agent/rtProto/LS compute-routes"
+	#puts "Node [$node_ id]: Agent/rtProto/LS compute-routes"
 	$self cmd computeRoutes
 	$self install-routes
 }
@@ -170,8 +170,7 @@ Agent/rtProto/LS instproc intf-changed {} {
 ;# called by C++ whenever a LSA or Topo causes a change in the routing table
 Agent/rtProto/LS instproc route-changed {} {
 	$self instvar node_ 
-	puts "At [[Simulator instance] now] node [$node_ id]: \
-Agent/rtProto/LS route-changed"
+	#puts "At [[Simulator instance] now] node [$node_ id]: Agent/rtProto/LS route-changed"
 
 	$self instvar rtObject_  rtsChanged_
 	$self install-routes
