@@ -321,6 +321,7 @@ which may be
 .B DropTail,
 .B FQ,
 .B SFQ,
+.B DRR,
 .B RED,
 .B CBQ,
 or 
@@ -329,6 +330,7 @@ A DropTail link is a simple FIFO queue which drops the last packet
 in the queue when the queue overflows.
 A FQ link is for Fair Queuing (for details see [?]).
 A SFQ link is for Stochastic Fair Queuing (for details see [?]).
+A DRR link is for deficit round robin scheduling (for details see [9]).
 A RED link is a random-early drop queue (for details see [2]).
 A CBQ link is for class-based queuing (for details see [3]).
 A CBQ/WRR link is for class-based queuing with weighted round robin ???
@@ -371,6 +373,7 @@ which may be
 .B DropTail,
 .B FQ
 .B SFQ,
+.B DRR,
 .B RED,
 .B CBQ,
 or 
@@ -379,6 +382,7 @@ A DropTail link is a simple FIFO queue which drops the last packet
 in the queue when the queue overflows.
 A FQ link is for Fair Queuing (for details see [?]).
 A SFQ link is for Stochastic Fair Queuing (for details see [?]).
+A DRR link is for deficit round robin scheduling (for details see [9]).
 A RED link is a random-early drop queue (for details see [2]).
 A CBQ link is for class-based queuing (for details see [3]).
 A CBQ/WRR link is for class-based queuing with weighted round robin ???
@@ -609,6 +613,7 @@ The following diagram depicts the object hierarchy:
           DropTail
           FQ
           SFQ
+          DRR
           RED
           CBQ
           CBQ/WRR
@@ -928,6 +933,32 @@ Configuration Parameters \fP
 .LP
 There are no state variables associated with this object.
 
+.SH "DRR OBJECTS"
+DRR objects are a subclass of Queue objects that implement deficit
+round robin scheduling. These objects implement deficit round robin
+scheduling amongst different flows ( A particular flow is one which
+has packets with the same node and port id OR packets which have the
+same node id alone. A command-line argument "setmask" can be used to
+decide what defines a particular flow). Also unlike other multi-queue
+objects, this queue object implements a single shared buffer space for
+its different flows.
+.LP
+.HD
+Configuration Parameters \fP
+.RS
+.IP \fIbuckets_\fP
+Indicates the total number of buckets to be used for hashing each of
+the flows.
+.IP \fIblimit_\fP
+Indicates the shared buffer size in bytes.
+.IP \fIquantum_\fP
+Indicates (in bytes) how much each flow can send during its turn.
+.IP \fImask_\fP
+mask_, when set to 1, means that a particular flow consists of packets
+having the same node id (and possibly different port ids), otherwise a
+flow consists of packets having the same node and port ids.
+
+
 .SH "RED OBJECTS"
 RED objects are a subclass of Queue objects that implement
 random early-drop queuing.  There are no methods
@@ -1029,15 +1060,6 @@ Used in delaying an overlimit class.
 .IP \fIokborrow_\fP
 For a further explanation of the CBQ variables, see [5] and [6].
 
-.SH "DRR OBJECTS"
-.LP
-.HD
-Configuration Parameters \fP
-.RS
-.IP \fIbuckets_\fP
-.IP \fIblimit_\fP
-.IP \fIquantum_\fP
-.IP \fImask_\fP
 
 .SH "QUEUEMONITOR Objects"
 QueueMonitor Objects are used to monitor
@@ -1990,6 +2012,9 @@ Extending Tcl for Dynamic Object-Oriented Programming.
 In Proceedings of the USENIX Tcl/Tk Workshop, Toronto, Ontario, USENIX.
 July, 1995.
 At <http://www.tns.lcs.mit.edu/publications/tcltk95.djw.html>.
+.IP \fB[9]\fP
+M. Shreedhar and G. Varghese. Efficient Fair Queueing Using Deficit
+Round Robin. In Proc. of SIGCOMM, pp. 231-242, 1995.
 .LP
 Work on ns is on-going.
 Information about the most recent version is available
