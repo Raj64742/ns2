@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.29 1998/04/10 21:16:49 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.30 1998/04/17 22:44:01 haldar Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -220,10 +220,13 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
 	flags[5] = 0;
 #endif
-
+	char *src_nodeaddr = Address::instance().print_nodeaddr(iph->src());
+	char *src_portaddr = Address::instance().print_portaddr(iph->src());
+	char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
+	char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
 
 	if (!show_tcphdr_) {
-	    sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
+	  sprintf(wrk_, "%c %g %d %d %s %d %s %d %s%s %s%s %d %d",
 		    tt,
 		    Scheduler::instance().clock(),
 		    s,
@@ -232,14 +235,18 @@ void Trace::format(int tt, int s, int d, Packet* p)
 		    th->size(),
 		    flags,
 		    iph->flowid() /* was p->class_ */,
-		    iph->src() >> (Address::instance().NodeShift_[1]), 
-		    iph->src() & (Address::instance().PortMask_), 
-		    iph->dst() >> (Address::instance().NodeShift_[1]), 
-		    iph->dst() & (Address::instance().PortMask_),
+		    // iph->src() >> (Address::instance().NodeShift_[1]), 
+//   		    iph->src() & (Address::instance().PortMask_), 
+//   		    iph->dst() >> (Address::instance().NodeShift_[1]), 
+//   		    iph->dst() & (Address::instance().PortMask_),
+		    src_nodeaddr,
+		    src_portaddr,
+		    dst_nodeaddr,
+		    dst_portaddr,
 		    seqno,
 		    th->uid() /* was p->uid_ */);
 	} else {
-	    sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x %d",
+	  sprintf(wrk_, "%c %g %d %d %s %d %s %d %s%s %s%s %d %d %d 0x%x %d",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -247,12 +254,16 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			name,
 			th->size(),
 			flags,
-			iph->flowid() /* was p->class_ */,
-		        iph->src() >> (Address::instance().NodeShift_[1]), 
-		        iph->src() & (Address::instance().PortMask_), 
-		        iph->dst() >> (Address::instance().NodeShift_[1]), 
-		        iph->dst() & (Address::instance().PortMask_),
-			seqno,
+			iph->flowid(), /* was p->class_ */
+		        // iph->src() >> (Address::instance().NodeShift_[1]), 
+//  		        iph->src() & (Address::instance().PortMask_), 
+//  		        iph->dst() >> (Address::instance().NodeShift_[1]), 
+//  		        iph->dst() & (Address::instance().PortMask_),
+		    src_nodeaddr,
+		    src_portaddr,
+		    dst_nodeaddr,
+		    dst_portaddr,
+		    seqno,
 			th->uid(), /* was p->uid_ */
 			tcph->ackno(),
 			tcph->flags(),
@@ -261,17 +272,23 @@ void Trace::format(int tt, int s, int d, Packet* p)
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
+			"%c -t %.17g -s %s -d %s -p %s -e %d -c %d -i %d -a %d",
 			tt,
 			Scheduler::instance().clock(),
-			s,
-			d,
+			// s,
+// 			d,
+			src_nodeaddr,
+			dst_nodeaddr,
 			name,
 			th->size(),
 			iph->flowid(),
 			th->uid(),
 			iph->flowid());
 #endif      
+	delete [] src_nodeaddr;
+	delete [] src_portaddr;
+	delete [] dst_nodeaddr;
+	delete [] dst_portaddr;
 }
 
 void Trace::dump()
@@ -381,12 +398,17 @@ DequeTrace::recv(Packet* p, Handler* h)
 		int t = th->ptype();
 		const char* name = pt_names[t];
 
+		char *src_nodeaddr = Address::instance().print_nodeaddr(iph->src());
+		char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
+		
 		sprintf(nwrk_, 
 			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
 			'h',
 			Scheduler::instance().clock(),
-			src_,
-			dst_,
+			// src_,
+//  			dst_,
+			src_nodeaddr,
+			dst_nodeaddr,
 			name,
 			th->size(),
 			iph->flowid(),
