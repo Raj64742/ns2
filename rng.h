@@ -35,7 +35,7 @@
 
 // #ifndef lint
 // static const char rcsid[] =
-//     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.4 1997/10/19 03:31:06 heideman Exp $ (LBL)";
+//     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.5 1997/10/20 23:05:23 heideman Exp $ (LBL)";
 // #endif
 
 /* new random number generator */
@@ -49,6 +49,8 @@
 
 #include <math.h>
 #include <stdlib.h>   // for atoi
+
+#include "Tcl.h"
 
 /*
  * RNGImplementation is internal---do not use it, use RNG.
