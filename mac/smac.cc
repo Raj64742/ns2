@@ -39,6 +39,10 @@
 //  6) Node goes to sleep when its neighbor is communicating with another
 //     node.
 //  7) Each node follows a periodic listen/sleep schedule
+//  8) At bootup time each node listens for a fixed SYNCPERIOD and then
+//     tries to send out a sync packet. It suppresses sending out of sync pkt 
+//     if it happens to receive a sync pkt from a neighbor and follows the 
+//     neighbor's schedule. 
 // 
 
 
@@ -245,7 +249,7 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
   
 	// time to wait for CTS or ACK
 	//timeWaitCtrl_ = durCtrlPkt_ + CLKTICK2SEC(4) ;    // timeout time
-	int delay = 2 * PROC_DELAY + sifs_;
+	double delay = 2 * PROC_DELAY + sifs_;
 	timeWaitCtrl_ = CLKTICK2SEC(delay) + durCtrlPkt_;    // timeout time
 
   
@@ -288,8 +292,8 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
 		//double cw = (Random::random() % SYNC_CW) * slotTime_sec_ ;
   
 		// The foll (higher) CW value allows neigh nodes to follow a single schedule
-		double w = (Random::random() % (SYNC_CW)) ;
-		double cw = w/10.0;
+		// double w = (Random::random() % (SYNC_CW)) ;
+		// double cw = w/10.0;
 		double c = CLKTICK2SEC(listenTime_) + CLKTICK2SEC(sleepTime_);
 		double s = SYNCPERIOD + 1;
 		double t = c * s ;
@@ -1487,7 +1491,7 @@ bool SMAC::sendSYNC()
   // send SYNC
   if (chkRadio()) {
     transmit(p);
-    double t = Scheduler::instance().clock();
+    //double t = Scheduler::instance().clock();
     //printf("Sent SYNC from %d.....at %.6f\n", cf->srcAddr, t);
     return 1;
     

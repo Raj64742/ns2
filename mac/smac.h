@@ -26,7 +26,7 @@
 // and is ported into ns by Padma Haldar, June'02.
 
 // This module implements Sensor-MAC
-//  See http://www.isi.edu/scadds/papers/smac_report.pdf for details
+//  See http://www.isi.edu/scadds/papers/smac_infocom.pdf for details
 //
 // It has the following functions.
 //  1) Both virtual and physical carrier sense
@@ -39,6 +39,10 @@
 //  6) Node goes to sleep when its neighbor is communicating with another
 //     node.
 //  7) Each node follows a periodic listen/sleep schedule
+//  8) At bootup time each node listens for a fixed SYNCPERIOD and then
+//     tries to send out a sync packet. It suppresses sending out of sync pkt 
+//     if it happens to receive a sync pkt from a neighbor and follows the 
+//     neighbor's schedule. 
 // 
 
 #ifndef NS_SMAC
