@@ -116,6 +116,6 @@ protected:
 	double last_report_sent ; 
 
 	/* send feedback these many times per rtt */
-	int NumFeedback_;
+	double NumFeedback_;
 
 }; 

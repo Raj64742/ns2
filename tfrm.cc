@@ -50,13 +50,12 @@ TfrmAgent::TfrmAgent() : Agent(PT_TFRM), send_timer_(this),
 	bind("T_SRTT_BITS", &T_SRTT_BITS);
 	bind("T_RTTVAR_BITS", &T_RTTVAR_BITS);
 	bind("InitRate_", &InitRate_);
+	/*
 	bind("SampleSizeMult_", &SampleSizeMult_);
 	bind("bval_", &bval_);
+	*/
 	bind("overhead_", &overhead_);
 	bind("ssmult_", &ssmult_);
-	bind("oldrate_", &oldrate_);
-	bind("rate_", &rate_);
-	bind("maxrate_", &maxrate_);
 
 }
 
@@ -89,7 +88,7 @@ void TfrmAgent::start()
 	last_change_=0;
 	maxrate_ = 0; 
 	ndatapack_=0 ;
-
+	SampleSizeMult_ = bval_ = -1 ;
 	active_ = 1 ; 
 
 	sendpkt();
@@ -109,7 +108,7 @@ void TfrmAgent::stop()
 void TfrmAgent::nextpkt()
 {
 	double next = -1 ;
-	double xrate = -1 ;
+	double xrate = -1 ; 
 
 	/* cancel any pending send timer */
 
@@ -129,12 +128,15 @@ void TfrmAgent::nextpkt()
 	else {
 		xrate = rate_ ;
 	}
+
 	if (xrate > SMALLFLOAT) {
 		next = size_/xrate ; 
-	}
-	next = next + Random::uniform(overhead_);
-	if (next > SMALLFLOAT ) {
-		send_timer_.resched(next); 
+		if (overhead_ > SMALLFLOAT) {
+			next = next + Random::uniform(overhead_);
+		}
+		if (next > SMALLFLOAT ) {
+			send_timer_.resched(next); 
+		}
 	}
 }
 
@@ -180,6 +182,7 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	double flost = nck->flost ; 
 	int signal = nck->signal ; 
 	double rate_since_last_report = nck->rate_since_last_report ;
+	double NumFeedback_ = nck->NumFeedback_ ;
 
 	UrgentFlag = 0 ;
 
@@ -190,14 +193,21 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	else {
 		maxrate_ = 0 ; 
 	}
-
+		
+	SampleSizeMult_ = nck->SampleSizeMult_ ; 
+	bval_ = nck->bval_ ;
 
 	/* update the round trip time */
 
 	update_rtt (ts, now) ;
 
-	/* if we get no more feedback for 2 more rtts, cur rate in half */
-	NoFeedbacktimer_.resched(2*rtt_);
+	/* if we get no more feedback for some time, cut rate in half */
+	if (NumFeedback_ < 1) {
+		NoFeedbacktimer_.resched(2*rtt_/NumFeedback_);
+	}
+	else {
+		NoFeedbacktimer_.resched(2*rtt_); 
+	}
 	
 	/* if we are in slow start and we just saw a loss */
 	/* then come out of slow start */
@@ -209,7 +219,6 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	}
 	else if ((rate_change_ == SLOW_START) && (flost > 0)) {
 		rate_change_ = OUT_OF_SLOW_START ; 
-		/*
 		if (oldrate_ < 0.5*maxrate_) {
 			rate_ = 0.5*maxrate_ ; delta_ = 0 ; 
 		}
@@ -219,7 +228,6 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 		Packet::free(pkt);
 		nextpkt();
 		return ;
-		*/
 	}
 			
 	double rcvrate = p_to_b(flost, rtt_, tzero_, size_, bval_);
@@ -281,9 +289,16 @@ void TfrmAgent::slowstart ()
 			}
 			else {
 				if ( (oldrate_ > maxrate_) || (rate_ > maxrate_)) {
-					delta_ = 0 ;
-					rate_ = oldrate_ = maxrate_ ; 
-					last_change_ = now ; 
+					if (oldrate_ > maxrate_) {
+						delta_ = 0 ; 
+						rate_ = oldrate_ = 0.5*maxrate_ ;
+						last_change_ = now ;
+					}
+					else {
+						rate_ = maxrate_ ; 
+						delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
+						last_change_ = now ; 
+					}
 				}
 				else {
 					if (now - last_change_ > rtt_) {
@@ -305,6 +320,7 @@ void TfrmAgent::slowstart ()
 void TfrmAgent::increase_rate (double p, double now) 
 {
 	double rcvrate = p_to_b(p, rtt_, tzero_, size_, bval_);
+	double newrate ;
 	rate_change_ = CONG_AVOID ;
 	switch (slowincr_) {
 		case 0:
@@ -328,14 +344,18 @@ void TfrmAgent::increase_rate (double p, double now)
 			last_change_=now;
 			break ;
 		case 3:
-
 			/* the idea is to increase the rate to rate_*(1+incrrate_) 
 			 * in SampleSizeMult_*srate_*rtt round trip times.
 			 * srate_ = rate_/size_ ;
 			 */
+			/*newrate = rcvrate ;*/
+			newrate = rate_*(1+incrrate_) ;
+			if (newrate > rcvrate) {
+				newrate = rcvrate ;
+			}
 			if (maxrate_ > 0) {
-				if (rate_*(1+incrrate_) < maxrate_ ) {
-					rate_ = rate_*(1+incrrate_); 
+				if (newrate < maxrate_ && now - last_change_ > rtt_) {
+					rate_ = newrate ; 
 					delta_ = (rate_ - oldrate_)/(SampleSizeMult_*rate_*rtt_/size_);
 					last_change_=now;
 				}
@@ -353,7 +373,7 @@ void TfrmAgent::increase_rate (double p, double now)
 				}
 			}
 			else {
-				rate_ = rate_*(1+incrrate_); 
+				rate_ = newrate ; 
 				delta_ = (rate_ - oldrate_)/(SampleSizeMult_*rate_*rtt_/size_);
 				last_change_=now;
 			}
@@ -398,18 +418,19 @@ void TfrmAgent::sendpkt()
 		tfrmh->timestamp=Scheduler::instance().clock();
 		tfrmh->rtt=rtt_;
 		tfrmh->tzero=tzero_;
-		tfrmh->rate=rate_;
+
+		tfrmh->rate=oldrate_;
 		tfrmh->psize=size_;
 		tfrmh->version=version_;
 		tfrmh->UrgentFlag=UrgentFlag;
 	
 		ndatapack_++;
-
-/*
-		printf ("%f %f %f %f %f\n",  tfrmh->timestamp, oldrate_, rate_, maxrate_,
-		maxrate_/2.0);
+	
+		/*
+		printf ("s %f %d\n",  tfrmh->timestamp, tfrmh->seqno);
 		fflush(stdout); 
-*/
+		*/
+	
 		send(p, 0);
 	}
 }

@@ -77,12 +77,16 @@ struct hdr_tfrmc {
 
   int seqno; 											// not sure yet
   double timestamp; 							//time this nack was sent
-  double timestamp_echo; 					//timestamp from the last data packet
   double timestamp_offset; 				//offset since we received that data packet
-  double flost;						 				//frequnecy of loss indications
-	double rate_since_last_report;  //what it says ...
   int signal;											//increase, decrease, hold ...
 
+  double timestamp_echo; 					//timestamp from the last data packet
+  double flost;						 				//frequnecy of loss indications
+	double rate_since_last_report;  //what it says ...
+	double SampleSizeMult_ ; 
+	int bval_ ; 
+	double NumFeedback_ ;
+	
   static int offset_; 						// offset for this header
   inline static int& offset() 
 		{ return offset_; }
@@ -134,10 +138,10 @@ protected:
 		int psize_;
 
 		/*send rate*/
-    TracedDouble rate_;										
+    double rate_;										
 
 		/* these two allow rate to be changed gradually */
-		TracedDouble oldrate_ ;									
+		double oldrate_ ;									
 		double delta_ ; 
 
 		/* slow start, cong avoid, decrease ... */
@@ -185,7 +189,7 @@ protected:
 		double overhead_ ;
 
 		/* prevents sending at more than 2 times the rcvr receive rate */
-		TracedDouble maxrate_ ;
+		double maxrate_ ;
 
 		/* number of packets sent */
     TracedInt ndatapack_;   

@@ -136,6 +136,8 @@ void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 
 void TfrmSinkAgent::nextpkt() {
 
+	/*double now = Scheduler::instance().clock();*/
+
 	/* send the report */
 	sendpkt();
 
@@ -177,6 +179,9 @@ void TfrmSinkAgent::sendpkt()
 	tfrmch->timestamp_echo=last_timestamp_;
 	tfrmch->timestamp_offset=now-last_arrival_;
 	tfrmch->timestamp=now;
+	tfrmch->SampleSizeMult_ = SampleSizeMult_;
+	tfrmch->bval_ = bval_ ;
+	tfrmch->NumFeedback_ = NumFeedback_ ;
 
 	/* estimate loss rate from formula */
 
@@ -251,12 +256,15 @@ void TfrmSinkAgent::sendpkt()
 	if (sample > 0  && slost > 0 ) {
 		ylost = (float)slost/(float)sample ; 
 	}
+	/*
 	if (xlost > ylost) {
 		flost_ = xlost ; 
 	}
 	else {
 		flost_ = ylost ; 
 	}
+	*/
+	flost_ = xlost ;
 	if (lost > 0 || slost > 0) {
 		tfrmch->flost=flost_;
 	}
@@ -281,8 +289,9 @@ void TfrmSinkAgent::sendpkt()
 	else if (rtt_ > 0){
 		time_for_rcv_rate = rtt_; 
 	}
+
 	ix = pveclast_;
-	double last = rtvec_[ix] ; 
+	double last = now ; 
 	while((ix>=0) && ((last - rtvec_[ix]) < time_for_rcv_rate)) {
 		rcvd_since_last_report ++ ;
 		if (ix==pvecfirst_) 
