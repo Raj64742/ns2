@@ -140,6 +140,10 @@ CtrMcast instproc leave-group  { group } {
     }
 }
 
+CtrMcast instproc notify { dummy } {
+	#Nothing
+}
+
 CtrMcast instproc handle-cache-miss { srcID group iface } {
     $self instvar ns Agent Node
     $self instvar RPT default
