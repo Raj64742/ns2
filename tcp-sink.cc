@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.30 1998/11/29 19:13:16 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.31 1999/02/23 00:51:07 heideman Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -96,8 +96,8 @@ int Acker::update(int seq, int numBytes)
 		 */
 		seen_[seq & MWM] = numBytes;
 		while (seen_[next & MWM]) {
-			++next;
 			numToDeliver += seen_[next & MWM];
+			++next;
 		}
 		next_ = next;
 	}
