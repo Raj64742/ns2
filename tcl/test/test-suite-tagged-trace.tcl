@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tagged-trace.tcl,v 1.1 2002/10/11 02:33:18 buchheim Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tagged-trace.tcl,v 1.2 2002/10/14 22:32:18 buchheim Exp $
 
 
 # This test suite is for validating the tagged trace format
@@ -75,9 +75,7 @@ TestSuite instproc finish {} {
   global quiet
 
   $ns_ flush-trace
-
-  puts "finishing.."
-  exit 0
+  $ns_ halt
  }
 
 
@@ -267,7 +265,43 @@ Test/wireless instproc run {} {
 
 
 
+# The following tests are for testing the file conversion utilities
 
+Class Test/Format-simple -superclass Test/simple
+
+Test/Format-simple instproc init {} {
+
+  # check to make sure prereqs for file conversion are met
+
+  set foo [catch {exec perl -I../../bin -MNS::TraceFileEvent -MNS::TraceFileReader -MNS::TraceFileWriter -e {print "1\n"} 2>/dev/null}]
+
+  if [expr $foo != 0] then {
+    puts "Required Perl module not found, Format-simple test skipped."
+    exit 2
+  }
+
+  $self next
+}
+
+Test/Format-simple instproc run {} {
+  global opt
+
+  # let parent class run ns
+  $self next
+
+  # now that ns is done, convert the output file
+  exec perl -I../../bin ../../bin/ns2oldns.pl < $opt(tr) > $opt(tr).tmp
+  exec mv $opt(tr).tmp $opt(tr)
+}
+
+
+
+
+
+
+
+
+# main program .. runs the test specified by the command line arguments
 
 global argv arg0
 runtest $argv
