@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.74 1997/05/27 23:49:21 tomh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.75 1997/05/28 02:19:18 tomh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,6 +21,23 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+<LI><B><A HREF="http://www.cs.berkeley.edu/~tomh">[TH]</A> Tues May 27
+19:00:00 PDT 1997</B><BR>
+</LI>
+
+<UL>
+<LI>Renamed test-suite-v2.tcl and test-all-v2 to test-suite.tcl and test-all,
+respectively. These files were also aligned with Kannan's tests in the
+tcl/test directory.</LI>
+
+<LI>Moved existing test-suite.tcl to tcl/test, renaming it as test-suite-v1.tcl.
+Moved existing test-all to tcl/test/test-all-v1.</LI>
+
+<LI>Moved test-suite-cbq.tcl, test-suite-red.tcl, and test-suite-sack.tcl
+to tcl/test and appended them with &quot;-v1&quot; suffix. Made similar
+moves for test-all-cbq, test-all-red, test-sack, and test-all-sack.</LI>
+</UL>
+
 <LI><B><A HREF="mailto:tomh@cs.berkeley.edu">[TH]</A></B> <B>Tues May 27
 16:45:00 PDT 1997<BR>
 </B>Fixed bug in tcp-newreno.cc which was causing TcpAgent::recv to be
