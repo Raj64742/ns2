@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.11.2.4 1997/04/27 06:01:38 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.11.2.5 1997/04/27 06:15:12 padmanab Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -72,15 +72,101 @@ void PacketQueue::remove(Packet* target)
 	abort();
 }
 
+void PacketQueue::remove(Packet* target, int off_cmn)
+{
+	int type = ((hdr_cmn*)target->access(off_cmn))->ptype_;
+	if (type == PT_ACK) 
+		ack_count_--;
+	else
+		data_count_--;
+	remove(target);
+}
+
+void PacketQueue::remove(Packet* p, Packet* pp) 
+{
+	if (p) {
+		if (pp) 
+			pp->next_ = p->next_;
+		else 
+			head_ = p->next_;
+		if (tail_ == &p->next_) {
+			if (pp)
+				tail_ = &pp->next_;
+			else
+				tail_ = &head_;
+		}
+		--len_;
+		if (qm_)
+			qm_->out(p);
+	}
+	return;
+}
+
+/* interleave between TCP acks and others while dequeuing */
+Packet* PacketQueue::deque(int off_cmn) {
+	Packet *ack_p, *ack_pp, *data_p, *data_pp;
+	Packet* p = head_;
+	Packet* pp = NULL;
+	int type;
+	
+	/* 
+	 * first find the the leading data & ack pkts and the packets
+	 * just ahead of them in the queue
+	 */
+	ack_p = NULL;
+	data_p = NULL;
+	while (p) {
+		type = ((hdr_cmn*)p->access(off_cmn))->ptype_;
+		if (!ack_p && type == PT_ACK) {
+			ack_p = p;
+			ack_pp = pp;
+		}
+		else if (!data_p && type != PT_ACK) {
+			data_p = p;
+			data_pp = pp;
+		}
+		if (ack_p && data_p)
+			break;
+		pp = p;
+		p = p->next_;
+	}
+	if ((acks_to_send_ || !data_p) && ack_p) {
+		p = ack_p;
+		pp = ack_pp;
+		if (ack_p) 
+			ack_count_--;
+		if (ack_p && acks_to_send_)
+			acks_to_send_--;
+	}
+	else {
+		p = data_p;
+		pp = data_pp;
+		if (data_p)
+			data_count_--;
+		if (data_count_) {
+			acks_to_send_ = ack_count_/data_count_;
+			if (ack_count_%data_count_)
+				acks_to_send_++;
+		}
+		else if (ack_count_)
+			acks_to_send_ = 1;
+/*		fprintf(stderr, "ack_count_: %d  data_count_: %d  acks_to_send_: %d\n", ack_count_, data_count_, acks_to_send_);*/
+	}
+	remove(p, pp); 
+	return (p);
+}
+
+
 void QueueHandler::handle(Event*)
 {
 	queue_.resume();
 }
 
-Queue::Queue() : drop_(0), blocked_(0), qh_(*this)
+Queue::Queue() : drop_(0), blocked_(0), qh_(*this), interleave_(0)
 {
 	Tcl& tcl = Tcl::instance();
 	bind("limit_", &qlim_);
+	bind_bool("interleave_", &interleave_);
 }
 
 int Queue::command(int argc, const char*const* argv)

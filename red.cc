@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.9.2.2 1997/04/26 01:00:33 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.9.2.3 1997/04/27 06:15:13 padmanab Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -153,7 +153,7 @@ public:
 	}
 } class_red;
 
-REDQueue::REDQueue()
+REDQueue::REDQueue() : Queue()
 {
 	bind("bytes_", &edp_.bytes);			// boolean: use bytes?
 	bind("thresh_", &edp_.th_min);			// minthresh
@@ -285,7 +285,12 @@ void REDQueue::plot1(int length)
  */
 Packet* REDQueue::deque()
 {
-	Packet* p = q_.deque();
+	Packet* p;
+
+	if (interleave_) 
+		p = q_.deque(off_cmn_);
+	else
+		p = q_.deque();
 	if (p != 0) {
 		idle_ = 0;
 		bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size_;
@@ -337,11 +342,14 @@ int REDQueue::drop_early(Packet* pkt)
 			p = 1.0;
 		edv_.v_prob = p;
 	}
+
+/*
 	{
 		double now = Scheduler::instance().clock();
 		if (now >= 3.0 && now <= 5.0) 
 			printf("time: %g  v_ave: %f  v_prob: %f  count: %d\n", now, edv_.v_ave, edv_.v_prob, edv_.count);
 	}
+*/
 
 	// drop probability is computed, pick random number and act
 	double u = Random::uniform();
@@ -408,7 +416,10 @@ void REDQueue::enque(Packet* pkt)
 	 * checking for absolute queue overflow.
 	 */
 	if (pkt != 0) {
-		q_.enque(pkt);
+		if (interleave_)
+			q_.enque(pkt, off_cmn_);
+		else
+			q_.enque(pkt);
 		bcount_ += ch->size();
 		int metric = edp_.bytes ? bcount_ : q_.length();
 		int limit = edp_.bytes ?
@@ -421,7 +432,10 @@ void REDQueue::enque(Packet* pkt)
 				victim = Random::integer(q_.length());
 				
 			pkt = q_.lookup(victim);
-			q_.remove(pkt);
+			if (interleave_)
+				q_.remove(pkt, off_cmn_);
+			else
+				q_.remove(pkt);
 			bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
 			drop(pkt);
 		}
