@@ -31,6 +31,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef ns_delay_h
+#define ns_delay_h
+
 #include "packet.h"
 #include "queue.h"
 #include "ip.h"
@@ -42,6 +45,7 @@ class LinkDelay : public Connector {
 	LinkDelay();
 	void recv(Packet* p, Handler*);
 	void send(Packet* p, Handler*);
+	inline void drop(Packet* p) { Packet::free(p); }
 	double delay() { return delay_; }
 	inline double txtime(Packet* p) {
 		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
@@ -102,3 +106,5 @@ private:
 	Packet* nextPacket_;
 	Event itq_;
 };
+
+#endif
