@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.11 1998/07/09 19:37:54 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.12 1998/07/28 01:30:40 kfall Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -49,18 +49,24 @@ fi
 
 quiet=false
 new=false
+alltests=true
 # echo "num=$#, args $@"
 while test $# -ge 1
 do
 	case $1 in
 	quiet|QUIET) quiet=true;;
 	new|NEW) new=true;;
-	*) break;;
+	*) alltests=false; tlist="$tlist $1";;
 	esac
 	shift
 done
 test="$@"
 datafile="temp.rands"
+
+if ! $alltests
+then
+	tests=$tlist
+fi
 
 if [ ! -d $directory ]; then
 	if $new
