@@ -67,6 +67,13 @@ R.~Jain.
 \newblock {\em The Art of Computer Systems Performance Analysis}.
 \newblock John Wiley and Sons, Inc., 1996.
 
+\bibitem{legout_sigmetrics2000}
+A.~Legout and E.W. Biersack.
+\newblock {PLM}: Fast convergence for cumulative layered multicast transmission
+  schemes.
+\newblock In {\em Proceedings of the~ACM SIGMETRICS}, Santa Clara, CA, U.S.A.,
+  June 2000.
+
 \bibitem{Math96:Forward}
 M.~Mathis and J.~Mahdavi.
 \newblock Forward acknowledgement: Refining {TCP} congestion control.

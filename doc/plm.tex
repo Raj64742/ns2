@@ -13,14 +13,14 @@ procedures per functionality (instantiation of a PLM source, instantiation of a
 PLM receiver, reception of a packet, detection of a loss, etc.).
 
 The procedures, functions, and variables described in this chapter can be found in:
-\nsf{cbr\_PP\_traffic.cc}, \nsf{loss-monitor.cc}, \nsf{tcl/plm/plm.tcl},
-\nsf{tcl/plm/plm-ns.tcl}, \nsf{tcl/plm/plm-topo.tcl},
-\nsf{tcl/lib/ns-default.tcl}, \nsf{tcl/lib/ns-source.tcl}, and \nsf{tcl/lib/ns-agent.tcl}.
+\nsf{plm/cbr-traffic-PP.cc}, \nsf{plm/loss-monitor-plm.cc}, \nsf{tcl/plm/plm.tcl},
+\nsf{tcl/plm/plm-ns.tcl}, \nsf{tcl/plm/plm-topo.tcl}, \nsf{tcl/lib/ns-default.tcl}.
 
 \section{Configuration}
 \label{sec:Configuration}
 \paragraph{Creating a simple scenario with one PLM flow (only one receiver)\\}
-This simple example can be run as is.
+This simple example can be run as is (several complex scenarios can be found in
+the file \nsf{tcl/ex/simple-plm.tcl}).
 
 \begin{program}
   set packetSize 500                          \;Packet size (in bytes);
@@ -114,10 +114,10 @@ user interface is (all the instproc can be found in \nsf{tcl/plm/plm-topo.tcl}):
 
 \section{The Packet Pair Source Generator}
 This section describes the Packet Pair source generator; the relevant files are:
-\nsf{cbr\_PP\_traffic.cc}, \nsf{tcl/lib/ns-default.tcl}. The OTcl class name of
+\nsf{plm/cbr-traffic-PP.cc}, \nsf{tcl/lib/ns-default.tcl}. The OTcl class name of
 the PP source is: Application/Traffic/CBR\_PP. 
 The Packet Pair (PP) source generator is in the file
-\nsf{cbr\_PP\_traffic.cc}. This source 
+\nsf{plm/cbr-traffic-PP.cc}. This source 
 generator is a variation of the CBR source generator in \nsf{cbr\_traffic.cc}.
 We just describe the salient differences between the code of
 the CBR source and the code of the PP source. 
@@ -250,7 +250,7 @@ PLMLayer/ns (the ns interface to the PLMLayer class) as there are layers. Each
 instance of PLMLayer/ns creates an instance of the class PLMLossTrace which is
 reponsible for 
 monitoring the received and lost packets thanks to the fact that the class
-PLMLossTrace inherits from the class LossMonitor. 
+PLMLossTrace inherits from the class Agent/LossMonitor/PLM. 
 Fig.~\ref{fig:instanPLMrecv} schematically describes the process  of a PLM
 receiver instantiation. In the following we describe the behavior of a PLM
 receiver when it receives a packet and when it detects a loss.
@@ -259,8 +259,33 @@ receiver when it receives a packet and when it detects a loss.
 
 \subsection{Reception of a Packet}
 \label{sec:PLMReception-Packet}
-We add in {\tt void LossMonitor::recv(Packet* pkt, Handler*)} a Tcl call to the
-  LossMonitor instproc {\tt log-PP} each time a packet is received :
+We create a new c++ class PLMLossMonitor (\nsf{plm/loss-monitor-plm.cc}) that
+inherits from LossMonitor. The OTcl class name of the c++ PLMLossMonitor class is
+Agent/LossMonitor/PLM.
+\begin{program}
+class PLMLossMonitor : public LossMonitor {
+public:
+        PLMLossMonitor();
+        virtual void recv(Packet* pkt, Handler*);
+protected:
+        // PLM only
+        int flag_PP_;
+        double packet_time_PP_;
+        int fid_PP_;
+};
+
+static class PLMLossMonitorClass : public TclClass {
+public:
+        PLMLossMonitorClass() : TclClass("Agent/LossMonitor/PLM") {}
+        TclObject* create(int, const char*const*) {
+                return (new PLMLossMonitor());
+        }
+} class_loss_mon_plm;
+
+\end{program}
+
+We add in {\tt void PLMLossMonitor::recv(Packet* pkt, Handler*)} a Tcl call to the
+  Agent/LossMonitor/PLM instproc {\tt log-PP} each time a packet is received :
 \begin{program}
   void LossMonitor::recv(Packet* pkt, Handler*)
   {
@@ -272,7 +297,7 @@ We add in {\tt void LossMonitor::recv(Packet* pkt, Handler*)} a Tcl call to the
     }
 \end{program}
 
-The LossMonitor instproc {\tt log-PP} is empty. In fact, we define the {\tt
+The Agent/LossMonitor/PLM instproc {\tt log-PP} is empty. In fact, we define the {\tt
   log-PP} instproc for the class PLMLossTrace. {\tt log-PP}
 computes an estimate of the available bandwidth based on a single PP burst (of
 length {\tt PP\_burst\_length} in packets). Once {\tt log-PP} has received the 
@@ -298,8 +323,9 @@ level and to the {\tt PP\_estimate\_value}. For details about the PLM instproc
 
 
 \subsection{Detection of a Loss}
-Each time a loss is detected by an instance of the class LossMonitor, a call to
-the LossMonitor instproc {\tt log-loss} is triggered. The LossMonitor instproc {\tt log-loss}
+Each time a loss is detected by an instance of the class PLMLossMonitor, a call to
+the Agent/LossMonitor/PLM instproc {\tt log-loss} is triggered. The
+Agent/LossMonitor/PLM instproc {\tt log-loss} 
 is empty. In fact, we define the {\tt log-loss} instproc for the class
 PLMLossTrace. The PLMLossTrace instproc {\tt log-loss} simply
 calls the PLM instproc {\tt log-loss} which contains the PLM machinery in case
@@ -341,7 +367,4 @@ user interface is (all the instproc can be found in \nsf{tcl/plm/plm-topo.tcl}):
 \end{description}
 }
 
-% Local Variables: 
-% mode: latex
-% TeX-master: t
-% End: 
+
