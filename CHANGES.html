@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.460 2001/05/27 20:58:06 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.461 2001/05/28 06:00:22 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -20,18 +20,24 @@ ns-2.1b8 release PENDING</h3>
 <ul>
 
 <li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
-Sun May 27 13:38:04 PDT 2001<br>
-Made two small changes to two-way TCP, in tcp-full.cc.<br>
+Sun May 27 22:56:14 PDT 2001<br>
+Made several small changes to two-way TCP, in tcp-full.cc.<br>
 Made a small change so that a timeout after an ECN, for the same window of
 data, does not result in another reduction in the congestion window.<br>
 Made a small fix so that "overhead_" works correctly with FullTcp, to
-add a random overhead to the packet sending time.
+add a random overhead to the packet sending time.<br>
+Added the ability to specify packetSize and have segsize derived from
+that, and vice versa.
 <br>
 Created the Tcl procedure create-connection-listen for creating
 two-way TCP connections.
 <br>
-Added two new validation tests for two-way TCP,
-test-all-ecn-full, and test-all-simple-full.
+Added three new validation tests for two-way TCP,
+test-all-ecn-full, test-all-simple-full, and test-all-tcp-init-win-full.
+There are several validation tests commented out because they don't yet
+work correctly.  One example is sack4 in test-all-tcp-init-win-full.
+There are also many validation tests for one-way TCP that have not
+yet been ported to two-way TCP.
 
 <li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
 Sun May 27 13:38:04 PDT 2001<br>
