@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.15 1998/02/09 21:03:07 bajaj Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.16 1998/04/29 19:24:15 bajaj Exp $";
 #endif
 
 #include <stdlib.h>
@@ -104,11 +104,11 @@ void Classifier::clear(int slot)
 	}
 }
 
-int Classifier::getnxt()
+int Classifier::getnxt(NsObject *nullagent)
 {
   	int i;
   	for (i=0; i < nslot_; i++)
-    	if (slot_[i]==0)
+    	if (slot_[i]==0 || slot_[i]==nullagent)
      	 return i;
   	i=nslot_;
   	alloc(nslot_);
@@ -157,17 +157,18 @@ NsObject* Classifier::find(Packet* p)
 int Classifier::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
-	if (argc == 2) {
-	  /*
-	   * $classifier alloc-port
-	   */
-	  if (strcmp(argv[1],"alloc-port") == 0) {
-	    int slot;
-	    slot=getnxt();
-	    tcl.resultf("%u",slot);
-	    return(TCL_OK);
-	  }
-	} else 	if (argc == 3) {
+	if (argc == 3) {
+		/*
+		 * $classifier alloc-port nullagent
+		 */
+		if (strcmp(argv[1],"alloc-port") == 0) {
+			int slot;
+			NsObject* nullagent =(NsObject*)TclObject::lookup(argv[2]);
+			slot=getnxt(nullagent);
+			tcl.resultf("%u",slot);
+			return(TCL_OK);
+		}
+
 		/*
 		 * $classifier clear $slot
 		 */
