@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.192 2000/07/10 07:38:22 intanago Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.193 2000/07/19 04:45:02 sfloyd Exp $
 
 #
 
@@ -1240,13 +1240,19 @@ Simulator instproc namtrace-queue { n1 n2 {file ""} } {
 }
 
 Simulator instproc trace-queue { n1 n2 {file ""} } {
-	$self instvar link_ traceAllFile_
-	if {$file == ""} {
-		if ![info exists traceAllFile_] return
-		set file $traceAllFile_
-	}
-	$link_([$n1 id]:[$n2 id]) trace $self $file
+    $self instvar link_ traceAllFile_
+    if {$file == ""} {
+	if ![info exists traceAllFile_] return
+	set file $traceAllFile_
+    }
+    $link_([$n1 id]:[$n2 id]) trace $self $file
+    
+#added later for queue specific tracing events other than enque, 
+# deque and drop - ratul
+    set queue [$link_([$n1 id]:[$n2 id]) queue]
+    $queue attach-traces $n1 $n2 $file
 }
+
 
 #
 # arrange for queue length of link between nodes n1 and n2
