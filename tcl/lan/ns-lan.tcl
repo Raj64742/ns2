@@ -120,8 +120,10 @@ Simulator instproc newLan {nodelist bw delay args} {
 # XXX Depricated:  use newLan instead of make-lan
 Simulator instproc make-lan {nodelist bw delay {llType LL} \
 		{ifqType Queue/DropTail} {macType Mac} {chanType Channel}} {
-	return [$self newLan $nodelist $bw $delay -llType $llType \
-		-ifqType $ifqType -macType $macType -chanType $chanType]
+	set lan [new LanLink $self -llType $llType -ifqType $ifqType \
+			-macType $macType -chanType $chanType]
+	$lan addNode $nodelist $bw $delay $llType $ifqType $macType
+	return $lan
 }
 
 
@@ -236,8 +238,8 @@ LanLink instproc netIface {node} {
 }
 
 # addNode:  add a new node to the LAN by creating LL, IFQ, MAC...
-LanLink instproc addNode {nodes bw delay \
-		{ifqType ""} {macType ""} {sllType ""} {dllType ""}} {
+LanLink instproc addNode {nodes bw delay {sllType ""} \
+		{ifqType ""} {macType ""} {dllType ""}} {
 	$self instvar llType_ ifqType_ macType_ chanType_
 	$self instvar id_ channel_ mcl_ netIface_
 	$self instvar ns_ nodelist_
