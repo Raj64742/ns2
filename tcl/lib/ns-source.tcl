@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.21 1998/09/01 17:21:56 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.22 1999/07/01 00:08:43 tomh Exp $
 #
 
 #  NOTE:  Could consider renaming this file to ns-app.tcl and moving the
@@ -71,18 +71,30 @@ Application/FTP instproc producemore { pktcnt } {
 	[$self agent] advanceby $pktcnt
 }
 
-
+# Backward compatibility
+Application/Traffic instproc set args {
+	$self instvar packetSize_ rate_
+	if { [lindex $args 0] == "packet_size_" } {
+		if { [llength $args] == 2 } {
+			set packetSize_ [lindex $args 1]
+			return
+		} elseif { [llength $args] == 1 } {
+			return $packetSize_
+		}
+	}
+	eval $self next $args
+}
 # Helper function to convert rate_ into an interval_
 Application/Traffic/CBR instproc set args {
-	$self instvar packet_size_ rate_
+	$self instvar packetSize_ rate_
 	if { [lindex $args 0] == "interval_" } {
 		if { [llength $args] == 2 } {
 			set ns_ [Simulator instance]
 			set interval_ [$ns_ delay_parse [lindex $args 1]]
-			$self set rate_ [expr $packet_size_ * 8.0/$interval_]
+			$self set rate_ [expr $packetSize_ * 8.0/$interval_]
 			return
 		} elseif { [llength $args] == 1 } {
-			return [expr $packet_size_ * 8.0/$rate_]
+			return [expr $packetSize_ * 8.0/$rate_]
 		}
 	}
 	eval $self next $args
@@ -144,7 +156,7 @@ Agent/CBR instproc init {} {
 	$trafgen_ set rate_ [expr $packetSize_ * 8.0/ $interval_]
 	$trafgen_ set random_ [$self set random_]
 	$trafgen_ set maxpkts_ [$self set maxpkts_]
-	$trafgen_ set packet_size_ [$self set packetSize_]
+	$trafgen_ set packetSize_ [$self set packetSize_]
 	# The line below is needed for backward compat with v1 test scripts 
 	puts "using backward compatible Agent/CBR; use Application/Traffic/CBR instead"
 }
@@ -177,7 +189,7 @@ Agent/CBR instproc set args {
 	if { [info exists trafgen_] } {
 		if { [lindex $args 0] == "packetSize_" } {
 			if { [llength $args] == 2 } {
-				$trafgen_ set packet_size_ [lindex $args 1]
+				$trafgen_ set packetSize_ [lindex $args 1]
 				set packetSize_ [lindex $args 1]
 				# Recompute rate 
 				$trafgen_ set rate_ [expr $packetSize_ * 8.0/ $interval_]
@@ -222,13 +234,13 @@ Class Traffic/Trace -superclass Application/Traffic/Trace
 
 # These instprocs are needed to map old Traffic/* type variables
 Traffic/Expoo instproc set args {
-	$self instvar packet_size_ burst_time_ idle_time_ rate_ 
+	$self instvar packetSize_ burst_time_ idle_time_ rate_ 
 	if { [lindex $args 0] == "packet-size" } {
 		if { [llength $args] == 2 } {
-			$self set packet_size_ [lindex $args 1]
+			$self set packetSize_ [lindex $args 1]
                        	return 
                	} elseif { [llength $args] == 1 } {
-			return $packet_size_
+			return $packetSize_
                	}
 	} elseif { [lindex $args 0] == "burst-time" } {
 		if { [llength $args] == 2 } {
@@ -256,13 +268,13 @@ Traffic/Expoo instproc set args {
 }
 
 Traffic/Pareto instproc set args {
-	$self instvar packet_size_ burst_time_ idle_time_ rate_ shape_
+	$self instvar packetSize_ burst_time_ idle_time_ rate_ shape_
 	if { [lindex $args 0] == "packet-size" } {
 		if { [llength $args] == 2 } {
-			$self set packet_size_ [lindex $args 1]
+			$self set packetSize_ [lindex $args 1]
                        	return 
                	} elseif { [llength $args] == 1 } {
-			return $packet_size_
+			return $packetSize_
                	}
 	} elseif { [lindex $args 0] == "burst-time" } {
 		if { [llength $args] == 2 } {

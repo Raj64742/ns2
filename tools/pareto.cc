@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/pareto.cc,v 1.5 1998/08/14 20:09:31 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/pareto.cc,v 1.6 1999/07/01 00:08:18 tomh Exp $ (Xerox)";
 #endif
  
 #include "random.h"
@@ -69,7 +69,7 @@ POO_Traffic::POO_Traffic()
 	bind_time("idle_time_", &offtime_);
 	bind_bw("rate_", &rate_);
 	bind("shape_", &shape_);
-	bind("packet_size_", &size_);
+	bind("packetSize_", &size_);
 }
 
 void POO_Traffic::init()

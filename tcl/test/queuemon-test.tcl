@@ -25,7 +25,7 @@ $ns duplex-link-op $n2 $n3 queuePos 0.5
 set udp1 [new Agent/UDP]
 $ns attach-agent $n1 $udp1
 set cbr1 [new Application/Traffic/CBR]
-$cbr1 set packet_size_ 1024
+$cbr1 set packetSize_ 1024
 $cbr1 attach-agent $udp1
 
 set null1 [new Agent/Null]

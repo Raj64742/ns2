@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.28 1999/06/11 23:56:17 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.29 1999/07/01 00:11:05 tomh Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -593,7 +593,7 @@ TestSuite instproc new_cbr { startTime source dest pktSize interval fid } {
     $ns_ connect $s_agent $d_agent
 
     if {$pktSize > 0} {
-	$cbr set packet_size_ $pktSize
+	$cbr set packetSize_ $pktSize
     }
     $cbr set rate_ [expr 8 * $pktSize / $interval]
     $ns_ at $startTime "$cbr start"

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.156 1999/06/11 23:37:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.157 1999/07/01 00:08:43 tomh Exp $
 
 
 #
@@ -358,16 +358,16 @@ Agent set class_ 0
 Application/Traffic/Exponential set burst_time_ .5
 Application/Traffic/Exponential set idle_time_ .5
 Application/Traffic/Exponential set rate_ 64Kb
-Application/Traffic/Exponential set packet_size_ 210
+Application/Traffic/Exponential set packetSize_ 210
 
 Application/Traffic/Pareto set burst_time_ 500ms
 Application/Traffic/Pareto set idle_time_ 500ms
 Application/Traffic/Pareto set rate_ 64Kb
-Application/Traffic/Pareto set packet_size_ 210
+Application/Traffic/Pareto set packetSize_ 210
 Application/Traffic/Pareto set shape_ 1.5
 
 Application/Traffic/CBR set rate_ 448Kb	;# corresponds to interval of 3.75ms
-Application/Traffic/CBR set packet_size_ 210
+Application/Traffic/CBR set packetSize_ 210
 Application/Traffic/CBR set random_ 0
 Application/Traffic/CBR set maxpkts_ 268435456; # 0x10000000
 

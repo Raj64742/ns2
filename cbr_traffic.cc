@@ -57,7 +57,7 @@ CBR_Traffic::CBR_Traffic() : seqno_(0)
 {
 	bind_bw("rate_", &rate_);
 	bind("random_", &random_);
-	bind("packet_size_", &size_);
+	bind("packetSize_", &size_);
 	bind("maxpkts_", &maxpkts_);
 }
 

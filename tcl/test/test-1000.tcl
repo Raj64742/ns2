@@ -49,7 +49,7 @@ $ftp set agent_ $tcp
 $ns at 1.2 "$ftp start"
 $ns at 3.0 "finish"
 
-puts [$cbr0 set packet_size_]
+puts [$cbr0 set packetSize_]
 puts [$cbr0 set interval_]
 
 $ns at 3.0 "finish"

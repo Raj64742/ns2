@@ -403,7 +403,7 @@ proc attach-expoo-traffic { node sink size burst idle rate } {
 	$ns attach-agent $node $source
 	#Create an Expoo traffic agent and set its configuration parameters
 	set traffic [new Application/Traffic/Exponential]
-	$traffic set packet_size_ $size
+	$traffic set packetSize_ $size
 	$traffic set burst_time_ $burst
 	$traffic set idle_time_ $idle
 	$traffic set rate_ $rate

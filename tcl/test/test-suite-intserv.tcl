@@ -18,7 +18,7 @@
 #
 
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.5 1998/12/02 20:04:58 breslau Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.6 1999/07/01 00:11:03 tomh Exp $
 #
 
 # 
@@ -173,7 +173,7 @@ TestSuite instproc create-source {node starttime i} {
  
  
         set exp1 [new Application/Traffic/Exponential]
-        $exp1 set packet_size_ 125
+        $exp1 set packetSize_ 125
         $exp1 set burst_time_ [expr 20.0/64]
         $exp1 set idle_time_ 325ms
         $exp1 set rate_ 64k

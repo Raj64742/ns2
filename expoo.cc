@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.9 1999/03/04 02:21:37 haoboy Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.10 1999/07/01 00:08:18 tomh Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -66,7 +66,7 @@ EXPOO_Traffic::EXPOO_Traffic() : burstlen_(0.0), Offtime_(0.0)
 	bind_time("burst_time_", &ontime_);
 	bind_time("idle_time_", Offtime_.avgp());
 	bind_bw("rate_", &rate_);
-	bind("packet_size_", &size_);
+	bind("packetSize_", &size_);
 }
 
 void EXPOO_Traffic::init()
