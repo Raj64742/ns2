@@ -17,9 +17,15 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 
+/*
+ * This is TCP SACK with Rate-Halving, contributed code from Matt
+ * Mathis, Jeff Semke, Jamshid Mahdavi, and Kevin Lahey, and
+ * described at "http://www.psc.edu/networking/rate-halving/". 
+ */
+
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack-rh.cc,v 1.3 2000/09/01 03:04:07 haoboy Exp $ (PSC-SACKRH)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack-rh.cc,v 1.4 2000/11/10 01:45:20 sfloyd Exp $ (PSC-SACKRH)";
 #endif
 
 #include <stdio.h>
