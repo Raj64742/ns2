@@ -326,8 +326,8 @@ PushbackAgent::initialUpdate(RateLimitSession * rls) {
 
   //cancel right now, if arrRate is significantly less than lower bound.
   if (arrRate < 0.75*rls->lowerBound_) {
-      double now = Scheduler::instance().clock();
       #ifdef DEBUG
+        double now = Scheduler::instance().clock();
         printf("Cancel pushback A time: %5.3f\n", now);
       #endif
       pushbackCancel(rls);
@@ -660,8 +660,8 @@ PushbackAgent::pushbackCancel(RateLimitSession * rls) {
   rls->aggSpec_->print();
   fflush(stdout);
 
-  double now = Scheduler::instance().clock();
   #ifdef DEBUG
+    double now = Scheduler::instance().clock();
     printf("time: %5.3f ID: %d Cancel pushback C\n", now, rls->localID_);
   #endif
 
