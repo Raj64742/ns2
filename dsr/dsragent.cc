@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.13 1999/09/09 04:02:41 salehi Exp $
+   $Id: dsragent.cc,v 1.14 1999/09/09 17:50:06 yaxu Exp $
 */
 
 #include <assert.h>
@@ -542,7 +542,7 @@ DSRAgent::recv(Packet* packet, Handler*)
   assert(logtarget != 0);
   
   if (srh->valid() != 1) {
-	  int dst = cmh->next_hop();
+	  unsigned int dst = cmh->next_hop();
 	  if (dst == IP_BROADCAST) {
 		  // extensions for mobileIP --Padma, 04/99.
 		  // Brdcast pkt - treat differently
@@ -705,7 +705,7 @@ DSRAgent::handlePacketReceipt(SRPacket& p)
 void 
 DSRAgent::handPktToDmux(SRPacket &p)
 {
-	hdr_ip *iph = HDR_IP(p.pkt);
+	//	hdr_ip *iph = HDR_IP(p.pkt);
 	assert(p.dest == net_id || p.dest == MAC_id);
 #if 0
 	if (iph->dport() == 255) {
