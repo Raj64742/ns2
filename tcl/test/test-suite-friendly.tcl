@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.47 2002/12/12 04:26:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.48 2002/12/17 00:40:15 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -68,7 +68,10 @@ Agent/TCP set delay_growth_ false
 Agent/TCP set window_ 100
 
 Agent/TFRCSink set PreciseLoss_ 1
-# The default for PreciseLoss_ has been changed to 0.
+# The default for PreciseLoss_ will be changed to 0, at some point.
+Agent/TFRCSink set numPkts_ 1
+# The default for numPkts_ will be changed to 3, at some point.
+
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.
@@ -1308,7 +1311,36 @@ Test/delayedTFRC instproc init {} {
     ErrorModel set delay_pkt_ true
     ErrorModel set drop_ false
     ErrorModel set delay_ 0.03
+    Agent/TFRCSink set numPkts_ 1
     Test/delayedTFRC instproc run {} [Test/goodTFRC info instbody run ]
+    $self next
+}
+
+Class Test/delayedTFRC1 superclass TestSuite
+Test/delayedTFRC1 instproc init {} {
+    $self instvar net_ test_ list_ period_
+    set net_    net2
+    set test_   delayedTFRC1
+    set period_ 40.0
+    ErrorModel set delay_pkt_ true
+    ErrorModel set drop_ false
+    ErrorModel set delay_ 0.03
+    Agent/TFRCSink set numPkts_ 5
+    Test/delayedTFRC1 instproc run {} [Test/goodTFRC info instbody run ]
+    $self next
+}
+
+Class Test/delayedTFRC2 superclass TestSuite
+Test/delayedTFRC2 instproc init {} {
+    $self instvar net_ test_ list_ period_
+    set net_    net2
+    set test_   delayedTFRC2
+    set period_ 40.0
+    ErrorModel set delay_pkt_ true
+    ErrorModel set drop_ false
+    ErrorModel set delay_ 0.01
+    Agent/TFRCSink set numPkts_ 3
+    Test/delayedTFRC2 instproc run {} [Test/goodTFRC info instbody run ]
     $self next
 }
 
@@ -1376,6 +1408,19 @@ Test/delayedTCP instproc init {} {
     ErrorModel set drop_ false
     ErrorModel set delay_ 0.03
     Test/delayedTCP instproc run {} [Test/goodTCP info instbody run ]
+    $self next
+}
+
+Class Test/delayedTCP2 superclass TestSuite
+Test/delayedTCP2 instproc init {} {
+    $self instvar net_ test_ list_ period_
+    set net_    net2
+    set test_   delayedTCP2
+    set period_ 40.0
+    ErrorModel set delay_pkt_ true
+    ErrorModel set drop_ false
+    ErrorModel set delay_ 0.01
+    Test/delayedTCP2 instproc run {} [Test/goodTCP info instbody run ]
     $self next
 }
 
