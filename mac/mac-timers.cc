@@ -4,7 +4,7 @@
 #include <random.h>
  
 // #define DEBUG
-#include <debug.h>
+//#include <debug.h>
 #include <arp.h>
 #include <new-ll.h>
 #include <new-mac.h>

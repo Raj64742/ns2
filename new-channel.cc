@@ -10,7 +10,7 @@
 #include <packet.h>
 #include <trace.h>
 
-#include <debug.h>
+//#include <debug.h>
 #include <list.h>
 #include <phy.h>
 #include <wireless-phy.h>

@@ -32,19 +32,19 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * $Id: new-ll.cc,v 1.1 1998/12/08 19:08:56 haldar Exp $
+ * $Id: new-ll.cc,v 1.2 1998/12/10 18:34:41 haldar Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/new-ll.cc,v 1.1 1998/12/08 19:08:56 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/new-ll.cc,v 1.2 1998/12/10 18:34:41 haldar Exp $ (UCB)";
 #endif
 
 #include <delay.h>
 // #include <object.h>
 #include <packet.h>
 
-#include <debug.h>
+//#include <debug.h>
 #include <list.h>
 #include <arp.h>
 #include <topography.h>

@@ -9,7 +9,7 @@
 #include <packet.h>
 #include <random.h>
 
-#include <debug.h>
+//#include <debug.h>
 #include <arp.h>
 #include <topography.h>
 #include <trace.h>

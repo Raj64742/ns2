@@ -1,6 +1,6 @@
 /* arp.cc
    basic arp cache and MAC addr resolution
-   $Id: arp.cc,v 1.1 1998/12/08 19:14:14 haldar Exp $
+   $Id: arp.cc,v 1.2 1998/12/10 18:34:42 haldar Exp $
 
    Note: code in this file violates the convention that addresses of
    type Af_INET stored in nsaddr_t variables are stored in 24/8 format.
@@ -10,8 +10,7 @@
 #include <errno.h>
 
 #include <delay.h>
-
-#include <debug.h>
+//#include <debug.h>
 #include <new-mac.h>
 #include <arp.h>
 #include <topography.h>
