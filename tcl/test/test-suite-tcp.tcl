@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.23 2001/05/10 20:49:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.24 2001/05/11 05:19:34 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -196,6 +196,7 @@ Test/timersA instproc init topo {
 	set net_	$topo
 	set defNet_	net4
 	set test_	timersA_(early_packet_dropped)
+	Agent/TCP set timerfix_ false
 	$self next
 }
 #  This one is funny.  
@@ -233,6 +234,17 @@ Test/timersA instproc run {} {
 
 	$self traceQueues $node_(r1) [$self openTrace 3.5 $testName_]
 	$ns_ run
+}
+
+Class Test/timersAfix -superclass TestSuite
+Test/timersAfix instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	timersAfix_(early_packet_dropped)
+	Agent/TCP set timerfix_ true
+        Test/timersAfix instproc run {} [Test/timersA info instbody run]
+	$self next
 }
 
 # Multiply the mean deviation by 8 instead of by 4.
