@@ -199,7 +199,7 @@ MIPBSAgent::sendOutBCastPkt(Packet *p)
   hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
   hdrc->next_hop_ = IP_BROADCAST;
   hdrc->addr_type_ = AF_INET;
-  iph->dst_ = Address::instance().create_ipaddr(IP_BROADCAST,0);
+  iph->dst() = Address::instance().create_ipaddr(IP_BROADCAST,0);
 }
 
 void AgtListTimer::expire(Event *) {
@@ -409,5 +409,5 @@ void MIPMHAgent::sendOutBCastPkt(Packet *p)
   hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
   hdrc->next_hop_ = IP_BROADCAST;
   hdrc->addr_type_ = AF_INET;
-  iph->dst_ = Address::instance().create_ipaddr(IP_BROADCAST,0);
+  iph->dst() = Address::instance().create_ipaddr(IP_BROADCAST,0);
 }

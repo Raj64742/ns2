@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.cc,v 1.11 1998/06/27 01:24:06 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.cc,v 1.12 1999/07/07 22:11:20 salehi Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -46,8 +46,8 @@ static const char rcsid[] =
  */
 void dump_iphdr(hdr_ip *iph) 
 {
-        printf("\tsrc = %d, ", iph->src_);
-        printf("\tdst = %d\n", iph->dst_);
+        printf("\tsrc = %d, ", iph->src());
+        printf("\tdst = %d\n", iph->dst());
 }       
 
 static class MultihopMacClass : public TclClass {
