@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.23 1999/07/19 18:51:36 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.24 2001/12/31 04:06:28 sfloyd Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -83,7 +83,8 @@ void QueueHandler::handle(Event*)
 }
 
 Queue::Queue() : Connector(), blocked_(0), unblock_on_resume_(1), qh_(*this), 
-	pq_(0)			/* temporarily NULL */
+	pq_(0)
+	/* temporarily NULL */
 {
 	bind("limit_", &qlim_);
 	bind_bool("blocked_", &blocked_);
@@ -108,6 +109,19 @@ void Queue::recv(Packet* p, Handler*)
 	}
 }
 
+void Queue::updateStats(int queuesize)
+{
+        double now = Scheduler::instance().clock();
+        double newtime = now - total_time_;
+        if (newtime > 0.0) {
+                double oldave = true_ave_;
+                double oldtime = total_time_;
+                double newtime = now - total_time_;
+                true_ave_ = (oldtime * oldave + newtime * queuesize) /now;
+                total_time_ = now;
+        }
+}
+
 void Queue::resume()
 {
 	Packet* p = deque();
@@ -124,6 +138,8 @@ void Queue::resume()
 void Queue::reset()
 {
 	Packet* p;
+	total_time_ = 0.0;
+	true_ave_ = 0.0;
 	while ((p = deque()) != 0)
 		drop(p);
 }

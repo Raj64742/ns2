@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.27 2001/08/15 18:35:00 kclan Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.28 2001/12/31 04:06:28 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -95,6 +95,7 @@ protected:
 	Packet* tail_;
 	int len_;		// packet count
 
+
 // MONARCH EXTNS
 private:
 	Packet *iter;
@@ -117,6 +118,7 @@ public:
 	virtual void enque(Packet*) = 0;
 	virtual Packet* deque() = 0;
 	virtual void recv(Packet*, Handler*);
+	virtual void updateStats(int queuesize); 
 	void resume();
 	int blocked() const { return (blocked_ == 1); }
 	void unblock() { blocked_ = 0; }
@@ -134,6 +136,8 @@ protected:
 	PacketQueue *pq_;	/* pointer to actual packet queue 
 				 * (maintained by the individual disciplines
 				 * like DropTail and RED). */
+	double true_ave_;	/* true long-term average queue size */
+	double total_time_;	/* total time average queue size compute for */
 };
 
 #endif

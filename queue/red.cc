@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.68 2001/12/29 20:44:51 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.69 2001/12/31 04:06:28 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -126,7 +126,7 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 						    // when ave queue
 						    // exceeds maxthresh
 
-	bind_bool("summarystats_", &edp_.summarystats);
+	bind_bool("summarystats_", &summarystats_);
 	bind_bool("drop_tail_", &drop_tail_);	    // drop last pkt
 	//	_RENAMED("drop-tail_", "drop_tail_");
 
@@ -232,8 +232,6 @@ void REDQueue::reset()
 	}
 	 
 	edv_.v_ave = 0.0;
-	edv_.v_true_ave = 0.0;
-	edv_.v_total_time = 0.0;
 	edv_.v_slope = 0.0;
 	edv_.count = 0;
 	edv_.count_bytes = 0;
@@ -305,18 +303,10 @@ double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 Packet* REDQueue::deque()
 {
 	Packet *p;
-	if (edp_.summarystats && &Scheduler::instance() != NULL) {
-		double now = Scheduler::instance().clock();
-		double newtime = now - edv_.v_total_time;
-		if (newtime > 0.0) {
-			double oldave = edv_.v_true_ave;
-			double oldtime = edv_.v_total_time;
-			double newtime = now - edv_.v_total_time;
-			int newsize;
-			if (qib_) newsize = bcount_; else newsize = q_->length();
-			edv_.v_true_ave = (oldtime * oldave + newtime * newsize)/now;
-			edv_.v_total_time = now;
-		}
+	if (summarystats_ && &Scheduler::instance() != NULL) {
+		int queuesize = q_->length();
+		if (qib_) queuesize = bcount_; 
+		Queue::updateStats(queuesize);
 	}
 	p = q_->deque();
 	if (p != 0) {
@@ -558,17 +548,12 @@ void REDQueue::enque(Packet* pkt)
 	//printf("v_ave: %6.4f (%13.12f) q: %d)\n", 
 	//	double(edv_.v_ave), double(edv_.v_ave), q_->length());
 	//run_estimator(qib_ ? bcount_ : q_->length(), m + 1);
-	if (edp_.summarystats) {
-		double oldave = edv_.v_true_ave;
-		double oldtime = edv_.v_total_time;
-		double newtime = now - edv_.v_total_time;
-		int newsize;
-		if (qib_) newsize = bcount_; else newsize = q_->length();
-		edv_.v_true_ave = (oldtime * oldave + newtime * newsize)/now;
-		edv_.v_total_time = now;
+	if (summarystats_) {
+		/* compute true average queue size for summary stats */
+		int queuesize = q_->length();
+		if (qib_) queuesize = bcount_; 
+		Queue::updateStats(queuesize);
 	}
-	/* compute true average queue size for summary stats */
-
 
 	/*
 	 * count and count_bytes keeps a tally of arriving traffic
@@ -839,10 +824,10 @@ void REDQueue::print_edv()
 void REDQueue::print_summarystats()
 {
 	//double now = Scheduler::instance().clock();
-	printf("True average queue: %5.3f", edv_.v_true_ave);
+	printf("True average queue: %5.3f", true_ave_);
 	if (qib_) 
 		printf(" (in bytes)");
-        printf(" time: %5.3f\n", edv_.v_total_time);
+        printf(" time: %5.3f\n", total_time_);
 }
 
 /************************************************************/

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.h,v 1.14 2001/08/02 03:59:53 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.h,v 1.15 2001/12/31 04:06:29 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_drop_tail_h
@@ -64,8 +64,6 @@ class DropTail : public Queue {
 	PacketQueue *q_;	/* underlying FIFO queue */
 	int drop_front_;	/* drop-from-front (rather than from tail) */
 	int summarystats;
-	double v_true_ave;	/* true long-term average queue size */
-	double v_total_time;	/* total time average queue size compute for */
 	void print_summarystats();
 };
 
