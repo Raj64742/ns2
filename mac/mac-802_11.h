@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.21 2003/09/23 00:44:06 aditi Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.22 2003/09/27 01:01:31 aditi Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -418,7 +418,7 @@ private:
 	//		Mac::initialized());
 
 	return (cache_ && logtarget_
-                       && EOTtarget_ && Mac::initialized());
+                        && Mac::initialized());
 
 	}
 

@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.258 2003/09/23 00:44:07 aditi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.259 2003/09/27 01:01:31 aditi Exp $
 
 
 #
@@ -446,7 +446,7 @@ Simulator instproc node-config args {
 
 	# change wrt Mike's code
 	if [info exists eotTrace_] {
-                Simulator EotTrace_ $eotTrace_
+                Simulator set EotTrace_ $eotTrace_
         }
 
         # hacking for matching old cmu add-interface

@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-cmutrace.tcl,v 1.2 2000/08/18 18:34:04 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-cmutrace.tcl,v 1.3 2003/09/27 01:01:31 aditi Exp $
 
 CMUTrace instproc init { tname type } {
 	$self next $tname $type
@@ -65,6 +65,11 @@ CMUTrace/Drop instproc init { tname } {
 	$self next $tname "D"
 }
 
+Class CMUTrace/EOT -superclass CMUTrace
+ CMUTrace/EOT instproc init { tname } {
+       $self next $tname "x"
+ }
+
 # XXX MUST NOT initialize off_*_ here!! 
 # They should be automatically initialized in ns-packet.tcl!!
 
@@ -82,3 +87,9 @@ CMUTrace/Drop set src_ 0
 CMUTrace/Drop set dst_ 0
 CMUTrace/Drop set callback_ 0
 CMUTrace/Drop set show_tcphdr_ 0
+
+CMUTrace/EOT set src_ 0
+ CMUTrace/EOT set dst_ 0
+ CMUTrace/EOT set callback_ 0
+ CMUTrace/EOT set show_tcphdr_ 0
+
