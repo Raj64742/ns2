@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.26 1997/11/26 23:32:36 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.27 1997/12/17 01:16:10 gnguyen Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -56,44 +56,63 @@ public:
 static char* eu_names[] = { EU_NAMES };
 
 
-ErrorModel::ErrorModel() : Connector(), eu_(EU_PKT), rate_(0), ranvar_(0), 
-	onlink_(0), firstTime_(1), enable_(1)
+ErrorModel::ErrorModel() : Connector(), unit_(EU_PKT), ranvar_(0), 
+	onlink_(0), enable_(1), firstTime_(1)
 {
 	bind("rate_", &rate_);
-	bind("errTime_", &errTime_);
+	bind("errPkt_", &errByte_);
 	bind("errByte_", &errByte_);
+	bind("errTime_", &errTime_);
+	bind("onlink_", &onlink_);
+	bind("enable_", &onlink_);
 	bind("off_mac_", &off_mac_);
 }
+
+
+void ErrorModel::copy(ErrorModel* orig)
+{
+	// Only need to copy variables that are not Tcl-bound, OR
+	// 	*this = *orig;
+	unit_ = orig->unit_;
+	ranvar_ = orig->ranvar_;
+}
+
 
 int ErrorModel::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
+	ErrorModel *em;
 	if (argc == 3) {
+		if (strcmp(argv[1], "unit") == 0) {
+			unit_ = STR2EU(argv[2]);
+			return (TCL_OK);
+		} 
 		if (strcmp(argv[1], "ranvar") == 0) {
 			ranvar_ = (RandomVariable*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		} 
-		if (strcmp(argv[1], "unit") == 0) {
-			eu_ = STR2EU(argv[2]);
-			return (TCL_OK);
-		} 
 		if (strcmp(argv[1], "corrupt") == 0) {
-			ErrorModel *em=(ErrorModel*)TclObject::lookup(argv[2]);
+			em = (ErrorModel*)TclObject::lookup(argv[2]);
 			tcl.resultf("%d", corrupt(em->pkt_));
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "copy") == 0) {
+			em = (ErrorModel*)TclObject::lookup(argv[2]);
+			copy(em);
+			return (TCL_OK);
+		}
 	} else if (argc == 2) {
-		if (strcmp(argv[1], "onlink") == 0) {
-			/* this model is between a queue and a link */
-			onlink_ = 1;
+		if (strcmp(argv[1], "unit") == 0) {
+			tcl.resultf("%s", eu_names[unit_]);
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "ranvar") == 0) {
 			tcl.resultf("%s", ranvar_->name());
 			return (TCL_OK);
 		} 
-		if (strcmp(argv[1], "unit") == 0) {
-			tcl.resultf("%s", eu_names[eu_]);
+		if (strcmp(argv[1], "onlink") == 0) {
+			/* this model is between a queue and a link */
+			onlink_ = 1;
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "enable") == 0) {
@@ -155,7 +174,7 @@ int ErrorModel::corrupt(Packet* p)
 	/* If no random var is specified, assume uniform random variable */
 	if (!enable_) return 0;
 
-	switch (eu_) {
+	switch (unit_) {
 	case EU_PKT: 
 		return CorruptPkt(p);
 	case EU_TIME:
@@ -280,6 +299,9 @@ public:
 
 SelectErrorModel::SelectErrorModel() : ErrorModel()
 {
+	bind("pkt_type_", &pkt_type_);
+	bind("drop_cycle_", &drop_cycle_);
+	bind("drop_offset_", &drop_offset_);
 }
 
 int SelectErrorModel::command(int argc, const char*const* argv)
@@ -296,7 +318,7 @@ int SelectErrorModel::command(int argc, const char*const* argv)
 
 int SelectErrorModel::corrupt(Packet* p)
 {
-	if (eu_ == EU_PKT) {
+	if (unit_ == EU_PKT) {
 		hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
 		if (ch->ptype() == pkt_type_ && ch->uid() % drop_cycle_ 
 		    == drop_offset_) {
@@ -352,7 +374,7 @@ int PeriodicErrorModel::corrupt(Packet* p)
 	hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
 	double now = Scheduler::instance().clock();
 
-	if (eu_ == EU_TIME) {
+	if (unit_ == EU_TIME) {
 		if (first_time_ < 0.0) {
 			if (now >= offset_) {
 				first_time_ = last_time_ = now;
@@ -364,7 +386,7 @@ int PeriodicErrorModel::corrupt(Packet* p)
 			return 1;
 		}
 	}
-	cnt_ += (eu_ == EU_PKT) ? 1 : ch->size();
+	cnt_ += (unit_ == EU_PKT) ? 1 : ch->size();
 	if (int(first_time_) < 0) {
 		if (cnt_ >= int(offset_)) {
 			first_time_ = 1.0;
@@ -407,7 +429,7 @@ int SRMErrorModel::command(int argc, const char*const* argv)
 
 int SRMErrorModel::corrupt(Packet* p)
 {
-	if (eu_ == EU_PKT) {
+	if (unit_ == EU_PKT) {
                 hdr_srm *sh = (hdr_srm*) p->access(off_srm_);
 		hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
                 if ((ch->ptype() == pkt_type_) && (sh->type() == SRM_DATA) && 

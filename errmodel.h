@@ -33,7 +33,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.19 1997/11/18 22:32:17 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.20 1997/12/17 01:16:10 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -57,7 +57,8 @@ enum ErrorUnit { EU_PKT=0, EU_BYTE, EU_TIME };
 class ErrorModel : public Connector {
   public:
 	ErrorModel();
-	void recv(Packet*, Handler*);
+	virtual void recv(Packet*, Handler*);
+	virtual void copy(ErrorModel*);
 	virtual int corrupt(Packet*);
 	virtual int CorruptPkt(Packet *);
 	virtual int CorruptTime(Packet *);
@@ -66,8 +67,7 @@ class ErrorModel : public Connector {
 	inline double rate() { return rate_; }
   protected:
 	int command(int argc, const char*const* argv);
-	ErrorUnit eu_;		/* error unit in pkts, bytes, or time */
-	Packet *pkt_;		/* pointer to incoming packet */
+	ErrorUnit unit_;	/* error unit in pkts, bytes, or time */
 	RandomVariable* ranvar_;/* the underlying random variate generator */
 	double rate_;		/* mean pkts between errors (for EU_PKT), or
 				 * mean bytes between errors (for EU_BYTE), or 
@@ -76,10 +76,12 @@ class ErrorModel : public Connector {
 	int errByte_;		/* for the byte-based error model */
 	double errTime_;	/* for the time-based error model */
 	int onlink_;		/* true if this is between an ifq and a link */
-	Event intr_;		/* set callback to queue */
-	int firstTime_;		/* to not corrupt first packet in byte model */
-	int off_mac_;
 	int enable_;		/* true if this error module is turned on */
+
+	int off_mac_;
+	int firstTime_;		/* to not corrupt first packet in byte model */
+	Event intr_;		/* set callback to queue */
+	Packet *pkt_;		/* pointer to incoming packet */
 };
 
 

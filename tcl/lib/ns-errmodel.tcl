@@ -52,6 +52,29 @@
 # Finally, an error *module* contains a classifier, a set of dynamically-added
 # ErrorModels, and enough plumbing to construct flow-based Errors.
 
+# copy: copy instance variable from one object to another
+# 	create a new object if no object is given
+#	use "next" to copy non-Tcl instvar (C++ copy method required)
+
+ErrorModel instproc copy {{orig ""}} {
+	set copy $self
+	if {orig == ""} {
+		set orig $self
+		set copy [new [$orig info class]]
+	}
+	foreach var [orig info vars] {
+		set array_names [$orig array names $v]
+		if {$array_names == ""} {
+			$copy set $var [$orig set $var]
+			continue
+		}
+		foreach i $array_names {
+			eval "$copy set $var\($i) \[$orig set $var\($i)]"
+		}
+	}
+	$copy next $orig
+	return $copy
+}
 
 ErrorModel instproc initvars { rate unit } {
 	$self instvar rate_ rv_
