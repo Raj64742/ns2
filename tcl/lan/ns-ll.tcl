@@ -39,8 +39,11 @@ LL set delay_ 0.5ms
 LL set macDA_ 0
 
 if [TclObject is-class LL/Arq] {
-LL/Arq set segsize_ 0
-LL/Arq set timeout_ 10ms
+LL/Arq set mode_ 1
+LL/Arq set hlen_ 16
+LL/Arq set limit_ 8
+LL/Arq set segsize_ 1400
+LL/Arq set srtt_ 0.1
 }
 
 # Snoop variables

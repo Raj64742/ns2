@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.13 1998/06/03 03:23:54 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.14 1998/06/19 22:06:43 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -41,23 +41,24 @@
 
 #include "delay.h"
 
-class Mac;
 
 enum LLFrameType {
-	LL_DATA   = 0x0001,
-	LL_ACK    = 0x0010,
+	LL_DATA		= 0x0001,
+	LL_ACK		= 0x0010,
 };
 
 struct hdr_ll {
-	hdr_ll() : lltype_(LL_DATA), seqno_(0), ackno_(0), endno_(0) {}
 	LLFrameType lltype_;		// link-layer frame type
 	int seqno_;			// sequence number
 	int ackno_;			// acknowledgement number
-	int endno_;			// end-of-packet sequence number
+	int bopno_;			// begin of packet seqno
+	int eopno_;			// end of packet seqno
+	int psize_;			// size of packet
+	double sendtime_;		// time the packet is sent
 
 	static int offset_;
-	inline static int& offset() { return offset_; }
-	inline static hdr_ll* get(Packet* p, int offset=-1) {
+	inline int& offset() { return offset_; }
+	static hdr_ll* get(Packet* p, int offset=-1) {
 		if (offset == -1)  offset = offset_;
 		return (hdr_ll*) p->access(offset);
 	}
@@ -65,7 +66,10 @@ struct hdr_ll {
 	inline LLFrameType& lltype() { return lltype_; }
 	inline int& seqno() { return seqno_; }
 	inline int& ackno() { return ackno_; }
-	inline int& endno() { return endno_; }
+	inline int& bopno() { return bopno_; }
+	inline int& eopno() { return eopno_; }
+	inline int& psize() { return psize_; }
+	inline double& sendtime() { return sendtime_; }
 };
 
 
@@ -73,21 +77,24 @@ class LL : public LinkDelay {
 public:
 	LL();
 	virtual void recv(Packet* p, Handler* h);
-	virtual void sendto(Packet* p, Handler* h = 0);
-	virtual void recvfrom(Packet* p);
+	virtual Packet* sendto(Packet* p, Handler* h = 0);
+	virtual Packet* recvfrom(Packet* p);
 
-        inline Mac* mac() { return mac_; }
+	inline int seqno() { return seqno_; }
+	inline int ackno() { return ackno_; }
+	inline int macDA() { return macDA_; }
         inline Queue *ifq() { return ifq_; }
+        inline NsObject* sendtarget() { return sendtarget_; }
         inline NsObject* recvtarget() { return recvtarget_; }
 
 protected:
 	int command(int argc, const char*const* argv);
-	int seqno_;		// link-layer sequence number
-	int macDA_;		// destination MAC address
-        Mac *mac_;					   
-        Queue* ifq_;		// interface queue
-        NsObject* sendtarget_;	// where packet is passed down the stack
-	NsObject* recvtarget_;	// where packet is passed up the stack
+	int seqno_;			// link-layer sequence number
+	int ackno_;			// ACK received so far
+	int macDA_;			// destination MAC address
+        Queue* ifq_;			// interface queue
+        NsObject* sendtarget_;		// for outgoing packet 
+	NsObject* recvtarget_;		// for incoming packet
 };
 
 #endif

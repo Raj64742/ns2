@@ -96,8 +96,7 @@ proc create-trace {} {
 	global ns opt
 
 	if [file exists $opt(tr)] {
-		exec touch $opt(tr).
-		eval exec rm -f $opt(tr) $opt(tr)-bw [glob $opt(tr).*]
+		catch "exec rm -f $opt(tr) $opt(tr)-bw [glob $opt(tr).*]"
 	}
 
 	set trfd [open $opt(tr) w]

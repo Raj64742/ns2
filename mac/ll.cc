@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.18 1998/06/03 03:23:54 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.19 1998/06/19 22:06:42 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -63,7 +63,7 @@ public:
 } class_ll;
 
 
-LL::LL() : seqno_(0), macDA_(0), ifq_(0), sendtarget_(0), recvtarget_(0)
+LL::LL() : seqno_(0), ackno_(0), macDA_(0), ifq_(0), sendtarget_(0), recvtarget_(0)
 {
 	bind("macDA_", &macDA_);
 }
@@ -108,28 +108,32 @@ void LL::recv(Packet* p, Handler* h)
 {
 	if (h == 0)		// from MAC classifier
 		recvtarget_ ? recvfrom(p) : drop(p);
-	else
+	else {
+		hdr_ll::get(p)->lltype() = LL_DATA;
 		sendto(p, h);
+	}
 }
 
 
-void LL::sendto(Packet* p, Handler* h)
+Packet* LL::sendto(Packet* p, Handler* h)
 {	
 	hdr_ll::get(p)->seqno_ = ++seqno_;
 	hdr_mac::get(p)->macDA_ = macDA_;
 	sendtarget_->recv(p);
 	if (h) {
 		Scheduler& s = Scheduler::instance();
-		s.schedule(h, &intr_, 0.000001); // XXX -- resume higher layer
+		s.schedule(h, &intr_, txtime(p) - delay_);
 	}
+	return p;
 }
 
 
-void LL::recvfrom(Packet* p)
+Packet* LL::recvfrom(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	if (((hdr_cmn*)p->access(off_cmn_))->error() > 0)
 		drop(p);
 	else
 		s.schedule(recvtarget_, p, delay_);
+	return p;
 }
