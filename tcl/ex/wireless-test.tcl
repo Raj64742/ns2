@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless-test.tcl,v 1.3 1999/08/02 17:33:06 yaxu Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless-test.tcl,v 1.4 1999/08/02 18:44:30 yaxu Exp $
 #
 # A simple wireless example file that simulates a 3-mobilenode 
 # topology. Traffic used are CBR and TCP flows.
@@ -220,6 +220,7 @@ set tracefd	[open $opt(tr) w]
 
 set nf [open nam-out-test.nam w]
 set f [open trace-out-test.tr w]
+$ns_ namtrace-all-wireless $nf $opt(x) $opt(y)
 $ns_ trace-all $f
 
 $topo load_flatgrid $opt(x) $opt(y)
@@ -257,9 +258,13 @@ if { [string compare $opt(rp) "dsr"] == 0} {
 	}
 }
 
-#set nam trace
+#enable node trace in nam
 
-$ns_ namtrace-all-wireless $nf $opt(x) $opt(y)
+for {set i 0} {$i < $opt(nn)} {incr i} {
+    $node_($i) namattach $nf
+# 20 defines the node size in nam, must adjust it according to your scenario
+   $ns_ initial_node_pos $node_($i) 20
+}
 
 #
 # Source the Connection and Movement scripts
@@ -271,6 +276,9 @@ if { $opt(cp) == "" } {
 	puts "Loading connection pattern..."
 	source $opt(cp)
 }
+
+
+
 
 
 #
