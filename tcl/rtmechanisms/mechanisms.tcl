@@ -480,12 +480,14 @@ RTMechanisms instproc do_reward {} {
 	}
 
 	set parrivals [$pboxfm_ set parrivals_]
+	set pdepartures [$pboxfm_ set pdepartures_]
 	set pdrops [$pboxfm_ set pdrops_]
 	set barrivals [$pboxfm_ set barrivals_]
 	set badBps [expr $barrivals / $elapsed]
 	set pflows [$pboxfm_ flows] ; # all penalized flows
 
-	$self vprint 0 "DO_REWARD: droprateB: [$self frac $pdrops $parrivals] (pdrops: $pdrops, parr: $parrivals)"
+
+	$self vprint 0 "DO_REWARD: droprateB: [$self frac $pdrops $parrivals] (pdrops: $pdrops, parr: $parrivals pdep: $pdepartures)"
 	$self vprint 0 "DO_REWARD: badbox pool of flows: $pflows"
 
 	if { $parrivals == 0 && $elapsed > $Mintime_ } {
