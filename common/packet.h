@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.32.2.7 1998/08/30 03:50:45 kannan Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.32.2.8 1998/10/02 18:19:13 kannan Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -56,29 +56,29 @@
 //multicast messages
 #define PT_PRUNE        12
 #define PT_GRAFT        13
-#define PT_JOIN		14
-#define PT_ASSERT	15
-#define PT_CtrMcast_Encap 16
-#define PT_CtrMcast_Decap 17
-#define PT_SRM		18
+#define PT_GRAFTACK	14
+#define PT_JOIN		15
+#define PT_ASSERT	16
+// #define PT_CtrMcast_Encap 16
+// #define PT_CtrMcast_Decap 17
+#define PT_SRM		17
 //simple signalling  messages
-#define PT_REQUEST      19
-#define PT_ACCEPT       20
-#define PT_CONFIRM      21
-#define PT_TEARDOWN    	22
-#define	PT_LIVE		23	/* packet from live network */
-#define PT_REJECT       24
+#define PT_REQUEST      18
+#define PT_ACCEPT       19
+#define PT_CONFIRM      20
+#define PT_TEARDOWN    	21
+#define	PT_LIVE		22	/* packet from live network */
+#define PT_REJECT       23
 //new encapsulator
-#define PT_ENCAPSULATED 25
+#define PT_ENCAPSULATED 24
 
-#define PT_UDP          26 // why wasn't it defined???
+#define PT_UDP          25 // why wasn't it defined???
 
-#define PT_NTYPE        27
+#define PT_NTYPE        26
 
 #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack",	\
 	"start", "stop", "message", "rtcp", "rtp",  "rtProtoDV",	\
-	"prune", "graft", "join", "assert",				\
-	"CtrMcast_Encap", "CtrMcast_Decap", "SRM",			\
+	"prune", "graft", "graftAck", "join", "assert", "SRM"		\
         "sa_req", "sa_accept", "sa_conf", "sa_teardown", "live",        \
 	"sa_reject", "encap", "udp"
 

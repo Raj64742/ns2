@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.13.2.4 1998/07/28 20:16:08 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.13.2.5 1998/10/02 18:18:49 kannan Exp $";
 #endif
 
 #include <stdlib.h>
@@ -42,7 +42,6 @@ static const char rcsid[] =
 #include "packet.h"
 #include "ip.h"
 #include "classifier.h"
-#include <iostream.h>
 
 class MCastClassifier : public Classifier {
 public:
@@ -123,8 +122,11 @@ MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst, int iface = ANY_IFACE.value(
 	int h = hash(src, dst);
 	hashnode* p;
 	for (p = ht_[h]; p != 0; p = p->next) {
-		if (p->src == src && p->dst == dst && p->iif == iface)
-			break;
+		if (p->src == src && p->dst == dst)
+			if (p->iif == iface ||
+			    p->iif == UNKN_IFACE.value() ||
+			    iface == ANY_IFACE.value())
+				break;
 	}
 	return (p);
 }
@@ -275,16 +277,12 @@ int MCastClassifier::command(int argc, const char*const* argv)
 
 void MCastClassifier::change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface)
 {
-        hashnode* p = lookup(src, dst, oldiface);
-	if (!p) p->iif = newiface;
+	hashnode* p = lookup(src, dst, oldiface);
+	if (p) p->iif = newiface;
 }
+
 void MCastClassifier::change_iface(nsaddr_t dst, int oldiface, int newiface)
 {
-        hashnode* p = lookup_star(dst, oldiface);
-	if (!p) p->iif = newiface;
+	hashnode* p = lookup_star(dst, oldiface);
+	if (p) p->iif = newiface;
 }
-
-
-
-
-

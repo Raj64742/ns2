@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.35.2.1 1998/07/15 18:34:26 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.35.2.2 1998/10/02 18:19:32 kannan Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -201,21 +201,23 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 	# Finally, if running a multicast simulation,
 	# put the iif for the neighbor node...
 	if { [$ns multicast?] } {
-		$self enable-mcast $src
+		$self enable-mcast $src $dst
 	}
 }
 
-SimpleLink instproc enable-mcast src {
-	$self instvar iif_ ttl_
+SimpleLink instproc enable-mcast {src dst} {
+	$self instvar head_ iif_ ttl_
 	set iif_ [new networkInterface]
 	$iif_ target [$ttl_ target]
 	$ttl_ target $iif_
 
 	set ifnum [networkInterface set ifnum_]
 	$iif_ label $ifnum
-	networkInterface set ifnum_ [incr ifnum]
 
-	$src add-out-link $self
+	$src add-oif $self $head_
+	$dst add-iif $ifnum $self
+
+	networkInterface set ifnum_ [incr ifnum]
 }
 
 #

@@ -37,7 +37,7 @@ CtrMcast instproc init { sim node agent args } {
 	set defaultTree_ RPT
 
 	# should switch to Yuri's agents
-	set decapagent_ [new Agent/CtrMcast/Decap]
+	set decapagent_ [new Agent/Decapsulator]
 	$ns_ attach-agent $node_ $decapagent_
 
 	### config PIM nodes
@@ -137,7 +137,7 @@ CtrMcast instproc handle-cache-miss { srcID group iface } {
 		set RP [$self get_rp $group]
 		if { [$agent_ set treetype($group)] == RPT && $srcID != $RP} {
 			### create encapsulation agent
-			set encapagent [new Agent/CtrMcast/Encap]
+			set encapagent [new Agent/Encapsulator]
 			$ns_ attach-agent $node_ $encapagent
 
 			### find decapsulation agent and connect encap and decap agents
@@ -187,20 +187,19 @@ CtrMcast instproc handle-wrong-iif { srcID group iface } {
 CtrMcast instproc get_rp group {
 	$self instvar rpset_ agent_
 
-	if [info exists rpset_] {
-		set returnrp -1
-		set hashval -1
-		foreach rp $rpset_ {
-			if {[$self hash $rp $group] > $hashval} {
-				set hashval [$self hash $rp $group]
-				set returnrp $rp
-			}
-		}
-		set returnrp		;# return
-	} else {
+	if ![info exists rpset_] {
 		[$agent_ set ctrrpcomp] compute-rpset
-		$self get_rp $group	;# return
+		assert [info exists rpset_]
 	}
+	set returnrp -1
+	set hashval -1
+	foreach rp $rpset_ {
+	        if {[$self hash $rp $group] > $hashval} {
+		        set hashval [$self hash $rp $group]
+		        set returnrp $rp
+		}
+	}
+	set returnrp		;# return
 }
 
 CtrMcast instproc hash {rp group} {
@@ -226,15 +225,6 @@ CtrMcast instproc unset_c_rp {} {
 	$self instvar c_rp_
 	set c_rp_ 0
 }
-
-################# Agent/CtrMcast/Encap ###############
-
-Agent/CtrMcast/Encap instproc init {} {
-        $self next
-        $self instvar fid_
-        set fid_ 1
-}
-
 
 #################### MultiNode: add-mfc-reg ################
 

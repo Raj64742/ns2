@@ -22,13 +22,35 @@
 
 Class DM -superclass McastProtocol
 
-DM set PruneTimeout 0.5
+DM set PruneTimeout_	0.5
+DM set rpfNbrCompat_	0
 
 DM instproc init { sim node } {
 	$self instvar prune_
 	set prune_ [new Agent/Mcast/Control $self]
 	$node attach $prune_
 	$self next $sim $node
+
+	$self proto-init
+}
+
+DM instproc proto-init {} {
+	$self rpf-nbr-compat
+}
+
+DM proc rpf-nbr-compat args {
+	if { [llength $args] > 0 } {
+		DM set rpfNbrCompat_ [lindex $args 0]
+	}
+}
+
+DM instproc rpf-nbr-compat args {
+	$self instvar rpfNbrCompat_
+	if { [llength $args] > 0 } {
+		$self set rpfNbrCompat_ [lindex $args 0]
+	} else {
+		$self set rpfNbrCompat_ [DM set rpfNbrCompat_]
+	}
 }
 
 DM instproc join-group  { group } {
@@ -48,24 +70,24 @@ DM instproc leave-group { group } {
 
 DM instproc handle-cache-miss { srcID group iface } {
         $self instvar node_
-	set iif [$self find-oifs $srcID $group $iface]
+	set iif [$self find-iif $srcID]
 	$node_ add-mfc $srcID $group $iif [$self find-oifs $srcID $group $iif]
 	return 1
 }
 
-DM instproc find-oifs {s g ifc} {
-	return -1
-}
-
+DM instproc find-iif src { return -1 }
 DM instproc find-oifs {src grp iif} {
-	$self instvar node_
+	$self instvar ns_ node_ rpfNbrCompat_
 
 	set id [$node_ id]
 	set oiflist ""
         # in the future this should be foreach iface $interfaces
-	# yea, right...sure....whatever
 	foreach nbr [$node_ neighbors] {
-        	set oifInfo [$node_ RPF-interface $src $id [$nbr id]]
+		if { $rpfNbrCompat_ } {
+        		set oifInfo [$node_ RPF-interface $src $id [$nbr id]]
+		} else {
+        		set oifInfo [$self link2oif [$ns_ link $node_ [$self rpf-nbr $src]]]
+		}
         	if { $oifInfo != "" && ![info exists oifSeen($oifInfo)] } {
 			lappend oiflist $oifInfo
 			set oifSeen($oifInfo) 1
@@ -74,7 +96,7 @@ DM instproc find-oifs {src grp iif} {
 	set oiflist
 }
 
-DM instproc drop { replicator src dst } {
+DM instproc drop { replicator src dst iface } {
 	$self instvar node_
 
 	#
@@ -104,30 +126,23 @@ DM instproc recv-prune { from src group iface} {
 	}
 
 	set id [$node_ id]
-	set oifInfo [$node_ RPF-interface $src $id $from]
-	set tmpoif  [[$ns_ link $id $from] head]
-	if ![$r exists $tmpoif] {
-		warn {trying to prune a non-existing interface?}
-	} else {
-		$r instvar active_
-		if $active_($tmpoif) {
-			$r disable $tmpoif
-			set PruneTimer_($src:$group:$tmpoif) [$ns_	\
-					after [DM set PruneTimeout]	\
-					"$r enable $tmpoif"]
-		}
-		# ELSE
+	set tmpoif [$self link2oif [$ns_ link $id $from]]
+	if [$r is-active-target $tmpoif] {
+		$r disable $tmpoif
+		set PruneTimer_($src:$group:$tmpoif)		        \
+				[$ns_ after [DM set PruneTimeout_]	\
+				"$r enable $tmpoif"]
+	}	;# ELSE
 		#puts "recv prune when iface is already pruned"
 		#$ns_ cancel $PruneTimer_($src:$group:$tmpoif)
-		#set PruneTimer_($src:$group:$tmpoif) [$ns_ after [DM set PruneTimeout] "$r enable $tmpoif"]
-	}
+		#set PruneTimer_($src:$group:$tmpoif)			\
+		#		[$ns_ after [DM set PruneTimeout_] "$r enable $tmpoif"]
 
         #
         # If there are no remaining active output links
         # then send a prune upstream.
         #
-        $r instvar nactive_
-        if {$nactive_ == 0 && $src != $id} {
+        if {![$r is-active] && $src != $id} {
 		$self send-ctrl prune $src $group
 	}
 }
@@ -147,9 +162,8 @@ DM instproc recv-graft { from src group iface } {
         #
         # restore the flow
         #
-	set tmpoif [[$ns_ link $id $from] head]
-	$r instvar active_
-	if {[$r exists $tmpoif] && !($active_($tmpoif))} {
+	set tmpoif [$self link2oif [$ns_ link $id $from]]
+	if [$r is-active-target $tmpoif] {
 		$ns_ cancel $PruneTimer_($src:$group:$tmpoif)
 	}
         $r enable $tmpoif
@@ -161,7 +175,7 @@ DM instproc recv-graft { from src group iface } {
 DM instproc send-ctrl { which src group } {
         $self instvar prune_ ns_ node_
 	set id [$node_ id]
-        set na   [[$ns_ upstream-node $id $src] getArbiter]  ;# nbr Arbiter
+	set na   [[$node_ rpf-nbr $src] getArbiter]
 	set ndma [$na getType [$self info class]]            ;# nbr DM agent
 	$ns_ simplex-connect $prune_ [$ndma set prune_]
         $prune_ send $which $id $src $group

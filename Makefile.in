@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.117.2.3 1998/08/20 22:23:19 yuriy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.117.2.4 1998/10/02 18:18:46 kannan Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -122,7 +122,7 @@ OBJ_CC = \
 	delay.o ll.o snoop.o \
 	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o \
 	dynalink.o rtProtoDV.o net-interface.o \
-	ctrMcast.o mcast_ctrl.o srm.o \
+	mcast_ctrl.o srm.o \
 	sessionhelper.o delaymodel.o srm-ssm.o \
 	srm-topo.o \
 	alloc-address.o address.o \

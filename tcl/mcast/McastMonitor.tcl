@@ -1,9 +1,9 @@
 Class McastMonitor
+McastMonitor set period_ 0.03
 
 McastMonitor instproc init sim {
-    $self instvar period_ ns_
-    set ns_ $sim
-    set period_ 0.03
+    $self set ns_	$sim
+    $self set period_	[$class set period_]
 }
 
 McastMonitor instproc trace-topo {source group} {
@@ -14,7 +14,7 @@ McastMonitor instproc trace-topo {source group} {
     }
     $self trace-links $source $group
     $self print-trace $source $group
-    $ns_ at [expr [$ns_ now] + $period_] "$self trace-topo $source $group"
+    $ns_ after $period "$self $proc $source $group"
 }
 
 McastMonitor instproc trace-tree {source group args} {
@@ -22,10 +22,11 @@ McastMonitor instproc trace-tree {source group args} {
 
     if ![info exists links_($source:$group)] {
 	set links_($source:$group) ""
-	foreach member [lindex $args 0] {
+	foreach member $args {
 	    set tmpupstream -1
 	    set tmp $member
 	    while {$tmpupstream != $source} {
+		set tmpupstream [$tmp rpf-nbr $source]
 		set tmpupstream [[$ns_ upstream-node $tmp $source] id]
 		set tmplink [$ns_ RPF-link $source $tmpupstream $tmp]
 		# XXX need to add the other direction
@@ -42,19 +43,25 @@ McastMonitor instproc trace-tree {source group args} {
     }
     $self trace-links $source $group
     $self print-trace $source $group
-    $ns_ at [expr [$ns_ now] + $period_] "$self trace-tree $source $group [lindex $args 0]"
-
+    eval $ns after $period "$self $proc $source $group $args"
 }
 
 McastMonitor instproc trace-links {source group} {
     $self instvar ns_ links_
 
     foreach l $links_($source:$group) {
-	set delayobj [$l set link_]
-	set from [[$l set fromNode_] id]
-	set to [[$l set toNode_] id]
-	$delayobj pktintran $source $group $from $to
+	$self pktintran $l
     }
+}
+
+McastMonitor instproc pktintran link {
+	$self instvar pre_ post_
+	array set preCounters [$pre_($link) dump-counters]
+	array set postCounters [$post_($link) dump-counters]
+	foreach type [array names preCounters] {
+		set inTransit($type) [expr $preCounters($type) - $postCounters($type)]
+	}
+	array get inTransit($type)
 }
 
 McastMonitor instproc print-trace {source group} {

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.47.2.2 1998/07/25 01:33:41 yuriy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.47.2.3 1998/10/02 18:19:17 kannan Exp $ (LBL)";
 
 #endif
 
@@ -183,7 +183,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
 	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
 
-	const char* sname = 0;
+	//	const char* sname = 0;
 
 	const int ptype= th->ptype();
 	const char* name = pt_names[ptype];
@@ -280,7 +280,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s %s}",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d %s}",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -294,7 +294,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			src_portaddr,
 			dst_nodeaddr,
 			dst_portaddr,
-			seqno,flags,sname);
+			seqno,flags);
 #endif      
 	delete [] src_nodeaddr;
   	delete [] src_portaddr;
@@ -406,7 +406,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 		hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
 		hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
 		hdr_srm *sh = (hdr_srm*)p->access(off_srm_);
-		const char* sname = 0;   
+		const char* sname = "";   
 
 		int t = th->ptype();
 		const char* name = pt_names[t];

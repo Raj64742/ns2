@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.38.2.3 1998/08/28 18:44:05 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.38.2.4 1998/10/02 18:19:35 kannan Exp $
 #
 
 Class Node
@@ -81,7 +81,7 @@ Node instproc enable-mcast sim {
 	# prune/graft messages and dispatches them to the
 	# appropriate replicator object.
 	#
-	set mrtObject_ [new mrtObject ""]
+	set mrtObject_ [new mrtObject $self ""] ;# no/default protos
 	# XXX $mrtObject_ set Node $self
 
 	#

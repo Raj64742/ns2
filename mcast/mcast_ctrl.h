@@ -19,7 +19,7 @@
  *
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/mcast_ctrl.h,v 1.1.2.2 1998/08/10 19:49:27 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/mcast_ctrl.h,v 1.1.2.3 1998/10/02 18:19:11 kannan Exp $ (LBL)
  */
     
 
@@ -28,15 +28,11 @@
 
 struct hdr_mcast_ctrl {
 	char           ptype_[15];
-        nsaddr_t       from_;
-        nsaddr_t       src_;
-        nsaddr_t       group_;
+	int	       args_;
 
         /* per-field member functions */
         char*     type()  { return ptype_; }
-        nsaddr_t& from()  { return from_;  }
-        nsaddr_t& src()   { return src_;   }
-        nsaddr_t& group() { return group_; }
+	int&	  args()  { return args_;  }
 	int maxtype()     { return sizeof(ptype_); }
 };
 

@@ -34,12 +34,10 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.21.2.2 1998/08/10 19:49:24 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.21.2.3 1998/10/02 18:18:55 kannan Exp $ (LBL)";
 #endif
 
 #include "delay.h"
-#include "mcast_ctrl.h"		
-#include "ctrMcast.h"
 
 static class LinkDelayClass : public TclClass {
 public:
@@ -54,8 +52,6 @@ LinkDelay::LinkDelay() : Connector(), dynamic_(0), itq_(0), nextPacket_(0)
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);
 	bind("off_ip_", &off_ip_);
-	bind("off_mcast_ctrl_", &off_mcast_ctrl_);
-	bind("off_CtrMcast_", &off_CtrMcast_);
 }
 
 int LinkDelay::command(int argc, const char*const* argv)
@@ -64,16 +60,6 @@ int LinkDelay::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "isDynamic") == 0) {
 			dynamic_ = 1;
 			itq_ = new PacketQueue();
-			return TCL_OK;
-		}
-	} else if (argc == 6) {
-		if (strcmp(argv[1], "pktintran") == 0) {
-			int src = atoi(argv[2]);
-			int grp = atoi(argv[3]);
-			int from = atoi(argv[4]);
-			int to = atoi(argv[5]);
-			pktintran (src, grp);
-			Tcl::instance().evalf("%s puttrace %d %d %d %d %d %d %d %d", name(), total_[0], total_[1], total_[2], total_[3], src, grp, from, to);
 			return TCL_OK;
 		}
 	}
@@ -129,46 +115,4 @@ void LinkDelay::handle(Event* e)
 	send(nextPacket_, (Handler*) NULL);
 	nextPacket_ = (Packet*) NULL;
 	schedule_next();
-}
-
-void LinkDelay::pktintran(int src, int group)
-{
-	int reg = 1;
-	int prune = 30;
-	int graft = 31;
-	int data = 0;
-	for (int i=0; i<4; i++) {
-		total_[i] = 0;
-	}
-
-	if (! dynamic_)
-		return;
-
-	int len = itq_->length();
-	while (len) {
-		len--;
-		Packet* p = itq_->lookup(len);
-		hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
-		if (iph->flowid() == prune) {
-			hdr_mcast_ctrl* ph = (hdr_mcast_ctrl*)p->access(off_mcast_ctrl_);
-			if (ph->src() == src && ph->group() == group) {
-				total_[0]++;
-			}
-		} else if (iph->flowid() == graft) {
-			hdr_mcast_ctrl* ph = (hdr_mcast_ctrl*)p->access(off_mcast_ctrl_);
-			if (ph->src() == src && ph->group() == group) {
-				total_[1]++;
-			}
-		} else if (iph->flowid() == reg) {
-			hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
-			if (ch->src() == src+1 && ch->group() == group) {
-				total_[2]++;
-			}
-		} else if (iph->flowid() == data) {
-			if (iph->src() == src+1 && iph->dst() == group) {
-				total_[3]++;
-			}
-		}
-	}
-        //printf ("%f %d %d %d %d\n", Scheduler::instance().clock(), total_[0], total_[1], total_[2],total_[3]);
 }

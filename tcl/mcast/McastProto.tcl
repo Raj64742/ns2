@@ -92,15 +92,35 @@ McastProtocol instproc dump-routes args {
 McastProtocol instproc from-node-iface { node } {
 	$self instvar ns_ node_
 	catch {
-		set node [$ns_ set Node_($node)]
+		set node [$ns_ get-node-by-id $node]
 	}
-	set rpfnbr [$ns_ upstream-node [$node_ id] [$node id]]
+	set rpfnbr [$node_ rpf-nbr $node]
 	if {![catch { set rpflink [$ns_ link $rpfnbr $node_]}]} {
 		return [$rpflink if-label?]
 	}
 	return "?" ;#unknown iface
 }
 
+McastProtocol instproc iface2link ifid {
+	$self instvar node_
+	$node_ if2link $ifid
+}
+
+McastProtocol instproc link2iif link {
+	$self instvar node_
+	if { [$link dst] != $node_ } {
+		# oops...naughty, naughty
+	}
+	$link if-label?
+}
+
+McastProtocol instproc link2oif link {
+	$self instvar node_
+	if { [$link src] != $node_ } {
+		# ooops, naughty, naughty
+	}
+	$node_ link2oif $link
+}
 
 
 ###################################################
@@ -134,8 +154,9 @@ mrtObject proc expandaddr {} {
 }
 
 # initialize with a list of the mcast protocols
-mrtObject instproc init { protos } {
+mrtObject instproc init { node protos } {
         $self next
+	$self set node_	     $node
 	$self set protocols_ $protos
 }
 

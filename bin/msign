@@ -1,0 +1,65 @@
+eval 'exec perl -S $0 ${1+"$@"}'		# -*-perl-*-
+	if 0;
+
+	require 5.004;
+	($progname) = ($0 =~ m!([^/]+)$!);
+sub usage {
+	die <<EOF
+usage: $progname 
+
+	Parses a trace file and condenses multicast data.
+EOF
+}
+	use strict;
+
+sub ftime {
+    my $time = shift;
+    int($time * 10000) / 10000;
+}
+
+	my %events;
+	my %pkey;
+	my %timeslot;
+	while (<>) {
+		/^v ([\d.]+) .* sim_annotation .* (\d) join-group (\d+)/ && do {
+			my $ev = " join-group $3";
+			push(@{$events{$1}->{$ev}}, $2);
+			$pkey{$1}->{$ev} = '';
+			next;
+		};
+		/^\+ ([\d.]+) (\d+) \d+ (\S+) .* (\d+).(\d+) [-\d]+ (\d+)$/ && do {
+		#  + 0.2 2 1 cbr 210 ------- 0 2.1 128.3 0 0
+		#   ^$1 ^$2 ^$3                   ^$4 ^$5 ^$6
+			my $grp = $4 * 256 + $5;
+			my $ev = "$grp> $3.$6";
+			next if defined($timeslot{$ev});
+
+			$timeslot{$ev} = ftime($1);
+			$pkey{$timeslot{$ev}}->{$ev} = "<$2,";
+			next;
+			};
+		/^-/ && do {
+		# ignore dequeue events
+			next;
+			};
+		/^r ([\d.]+) \d+ (\d+) (\S+) .* (\d+).(\d+) [-\d]+ (\d+)$/ && do {
+		#  r 0.2 2 1 cbr 210 ------- 0 2.1 128.3 0 0
+		#   ^$1    ^$2^$3                  ^$4 ^$5 ^$6
+			my $grp = $4 * 256 + $5;
+			my $ev = "$grp> $3.$6";
+			my $time = $timeslot{$ev};
+			warn if ! defined($timeslot{$ev});
+
+			my $rtime = ftime($1);
+			push(@{$events{$time}->{$ev}}, "$2($rtime)");
+			next;
+			};
+	}
+
+	foreach my $time (sort keys %events) {
+		foreach my $type (sort keys %{$events{$time}}) {
+			print join(' ', ftime($time), $pkey{$time}->{$type},
+				   $type, sort(@{$events{$time}->{$type}})), "\n";
+		}
+	}
+	exit 0;

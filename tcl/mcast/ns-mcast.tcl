@@ -56,29 +56,6 @@ Simulator instproc clear-mcast {} {
         }
 }
 
-Simulator instproc upstream-node { id src } {
-	$self instvar Node_
-	set nbr [[$self get-routelogic] lookup $id $src]
-	if [info exists Node_($nbr)] {
-		return $Node_($nbr)
-	} else {
-		return ""
-	}
-}
-
-Simulator instproc RPF-link { src from to } {
-	set rev [[$self get-routelogic] lookup $to $src]
-	if { $rev == $from } {
-		$self link $from $to
-	} else {
-		return ""
-	}
-}
-
-Simulator instproc reverse link {
-	$self link [$link dst] [$link src]
-}
-
 Simulator instproc mrtproto {mproto nodeList} {
 	$self instvar Node_ MrtHandle_
 	# assert [Class info instances $mproto] $mproto
@@ -99,25 +76,6 @@ Simulator instproc mrtproto {mproto nodeList} {
 	}
 	$self at 0.0 "$self run-mcast"
 	set MrtHandle_
-}
-
-#
-# These are PIM specific?
-# 
-Simulator instproc getNodeIDs {} {
-        $self instvar Node_
-        return [array names Node_]
-}
-Simulator instproc setPIMProto { index proto } {
-        $self instvar pimProtos
-        set pimProtos($index) $proto
-}
-Simulator instproc getPIMProto { index } {
-        $self instvar pimProtos
-        if [info exists pimProtos($index)] {
-                return $pimProtos($index)
-        }
-        return -1
 }
 
 Node proc allocaddr {} {
@@ -143,6 +101,19 @@ Node proc expandaddr {} {
 	set mcastshift [AddrParams set McastShift_]
 	Simulator set McastAddr_ [expr 1 << $mcastshift]
 	mrtObject expandaddr
+}
+
+Node instproc start-mcast {} {
+        $self instvar mrtObject_
+        $mrtObject_ start
+}
+
+Node instproc getArbiter {} {
+        $self instvar mrtObject_
+	if [info exists mrtObject_] {
+	        return $mrtObject_
+	}
+	return ""
 }
 
 Node instproc notify-mcast changes {
@@ -173,11 +144,6 @@ Node instproc clear-caches {} {
         # XXX watch out for memory leaks
 }
 
-Node instproc start-mcast {} {
-        $self instvar mrtObject_
-        $mrtObject_ start
-}
-
 Node instproc dump-routes args {
 	$self instvar mrtObject_
 	if { [info exists mrtObject_] } {
@@ -185,82 +151,57 @@ Node instproc dump-routes args {
 	}
 }
 
-Node instproc getArbiter {} {
-        $self instvar mrtObject_
-	if [info exists mrtObject_] {
-	        return $mrtObject_
+Node instproc add-oif {link if} {
+	if { ![$link isLan?] } {
+		# append to list of outgoing interfaces, returned
+		# by get-all-oifs.  Each object receives packets from
+		# that node and transmits on the corresponding link.
+		$self instvar outLink_
+		lappend outLink_ $if
 	}
-	return ""
 }
 
-Node instproc check-local { group } {
-        $self instvar Agents_
-        if [info exists Agents_($group)] {
-                return [llength $Agents_($group)]
-        }
-        return 0
-}
-
-Node instproc add-out-link l {
-	$self instvar outLink_
-	lappend outLink_ $l
-}
-
-Node instproc get-oifs {} {
+Node instproc get-all-oifs {} {
 	$self set outLink_
 }
 
 Node instproc get-oif { link } {
 	if { $link != "" } {
-		return [$link head]
+		return [$self link2oif $link]
 	} else {
 		return ""
 	}
 }
 
-Node instproc get-oifIndex { node_id } {
-	error $proc
-	$self instvar ns_
-	[$ns_ link [$self id] $node_id] if-label?
-}
-
-Node instproc label2iface { label } {
-	error $proc
-	$self instvar outLink_
-	foreach oif $outLink_ {
-		if { [[$oif link?] if-label?] == $label } {
-			return $oif
-		}
+Node instproc add-iif {ifid link} {
+	if { ![$link isLan?] } {
+		# array mapping ifnum -> link
+		$self set inLink_($ifid) $link
 	}
-	return ""
 }
 
-Node instproc RPF-interface { src from to } {
-        $self instvar ns_
-	$self get-oif [$ns_ RPF-link $src $from $to]
+Node instproc if2link ifid {
+	$self set inLink_($ifid)
 }
 
-Node instproc ifaceGetNode { iface } {
-	error $proc
-	$self instvar ns_
-	set id [$self id]
-	foreach nbr [$self neighbors] {
-		if { [[$ns_ link [$nbr id] $id] if-label?] == $iface } {
-			return $node
-		}
+Node instproc link2oif link {
+	if { [$link isLan?] } {
+		# NOTHING YET
+		error duh?
+	} else {
+		$link head
 	}
-	return ""
 }
 
-Node instproc getRepByGroup { group } {
-	error $proc
-	getRep * $group
+Node instproc rpf-nbr src {
+	$self instvar ns_ id_
+	$ns_ get-node-by-id [[$ns_ get-routelogic] lookup $id_ $src]
 }
 
 Node instproc getReps { src group } {
 	$self instvar replicator_
 	set reps ""
-	foreach key [array names replicator_ "\\$src:$group"] { 
+	foreach key [array names replicator_ "$src:$group"] { 
 		lappend reps $replicator_($key)
 	}
 	set reps
@@ -270,43 +211,27 @@ Node instproc getReps-raw { src group } {
 	$self array get replicator_ "$src:$group"
 }
 
-Node instproc getRepBySource { src } {
-	error $proc
-        $self instvar replicator_
-	set replist ""
-	foreach n [array names replicator_ "$src:*"] {
-		set pair [split $n :]
-		lappend replist [lindex $pair 1]:$replicator_($n)
-	}
-	return $replist
-}
-
-Node instproc exists-Rep { src group } {
-	error $proc
-	$self instvar replicator_
-	info exists replicator_($src:$group)
+Node instproc new-group { src group iface code } {
+	$self instvar mrtObject_
+	$mrtObject_ upcall $code $src $group $iface
 }
 
 Node instproc join-group { agent group } {
-	# use expr to get rid of possible leading 0x
-	set group [expr $group]
 	$self instvar replicator_ Agents_ mrtObject_
-
+	set group [expr $group]
+	$mrtObject_ join-group $group
 	lappend Agents_($group) $agent
-
 	foreach key [array names replicator_ "*:$group"] {
 		#
 		# make sure agent is enabled in each replicator for this group
 		#
 		$replicator_($key) insert $agent
 	}
-	$mrtObject_ join-group $group
 }
 
 Node instproc leave-group { agent group } {
-	# use expr to get rid of possible leading 0x
-	set group [expr $group]
 	$self instvar replicator_ Agents_ mrtObject_
+	set group [expr $group] ;# use expr to get rid of possible leading 0x
 
 	foreach key [array names replicator_ "*:$group"] {
 		$replicator_($key) disable $agent
@@ -316,7 +241,6 @@ Node instproc leave-group { agent group } {
 		if { $k >= 0 } {
 			set Agents_($group) [lreplace $Agents_($group) $k $k]
 		}
-		## inform the mcastproto agent
 		$mrtObject_ leave-group $group
 	} else {
 		warn "cannot leave a group without joining it"
@@ -324,12 +248,8 @@ Node instproc leave-group { agent group } {
 }
 
 Node instproc join-group-source { agent group source } {
-        set group [expr $group]
-#        set source [expr $source]
-
-       $self instvar id_
-
         $self instvar Agents_ mrtObject_ replicator_
+        set group [expr $group]
         ## send a message for the mcastproto agent to inform the mcast protocols
         $mrtObject_ join-group $group $source
         lappend Agents_($source:$group) $agent
@@ -339,18 +259,20 @@ Node instproc join-group-source { agent group source } {
 }
 
 Node instproc leave-group-source { agent group source } {
-        set group [expr $group]
-#        set source [expr $source]
         $self instvar replicator_ Agents_ mrtObject_
+        set group [expr $group]
         if [info exists replicator_($source:$group)] {
                 $replicator_($source:$group) disable $agent
         }
         $mrtObject_ leave-group $group $source
 }
 
-Node instproc new-group { src group iface code } {
-	$self instvar mrtObject_
-	$mrtObject_ upcall $code $src $group $iface
+Node instproc check-local { group } {
+        $self instvar Agents_
+        if [info exists Agents_($group)] {
+                return [llength $Agents_($group)]
+        }
+        return 0
 }
 
 Node instproc add-mfc { src group iif oiflist } {
@@ -442,15 +364,10 @@ Classifier/Multicast/Replicator instproc add-rep { rep src group iif } {
 
 ###################### Class Classifier/Replicator/Demuxer ##############
 Class Classifier/Replicator/Demuxer -superclass Classifier/Replicator
-
-
-Classifier/Replicator set ignore_ 0
-
+Classifier/Replicator/Demuxer set ignore_ 0
 Classifier/Replicator/Demuxer instproc init args {
 	eval $self next $args
-	$self instvar nslot_ nactive_
-	set nslot_ 0
-	set nactive_ 0
+	$self set nactive_ 0
 }
 
 Classifier/Replicator/Demuxer instproc is-active {} {
@@ -459,36 +376,30 @@ Classifier/Replicator/Demuxer instproc is-active {} {
 }
 
 Classifier/Replicator/Demuxer instproc insert target {
-	$self instvar nslot_ nactive_ active_ index_ ignore_
+	$self instvar nactive_ active_
 
 	if ![info exists active_($target)] {
-		set index_($target) $nslot_
-		incr nslot_
-		set active_($target) 0
+		set active_($target) -1
 	}
-	if !$active_($target) {
+	if {$active_($target) < 0} {
 		$self enable $target
 	}
 }
 
 Classifier/Replicator/Demuxer instproc disable target {
-	$self instvar nactive_ active_ index_
-	if ![info exists active_($target)] {
-		return 0
-	}
-	if $active_($target) {
-		$self clear $index_($target)
+	$self instvar nactive_ active_
+	if {[info exists active_($target)] && $active_($target) >= 0} {
+		$self clear $active_($target)
+		set active_($target) -1
 		incr nactive_ -1
-		set active_($target) 0
 	}
 }
 
 Classifier/Replicator/Demuxer instproc enable target {
-	$self instvar nactive_ active_ ignore_ index_
-	if !$active_($target) {
-		$self install $index_($target) $target
+	$self instvar nactive_ active_ ignore_
+	if {$active_($target) < 0} {
+		set active_($target) [$self installNext $target]
 		incr nactive_
-		set active_($target) 1
 		set ignore_ 0
 	}
 }
@@ -498,26 +409,122 @@ Classifier/Replicator/Demuxer instproc exists target {
 	info exists active_($target)
 }
 
-Classifier/Replicator/Demuxer instproc drop { src dst {iface -1} } {
-	set src [expr $src >> 8]
-	$self instvar node_
-        if [info exists node_] {
-	    [$node_ getArbiter] drop $self $src $dst $iface
+Classifier/Replicator/Demuxer instproc is-active-target target {
+	$self instvar active_
+	if { [info exists active_($target)] && $active_($target) >= 0 } {
+		return 1
+	} else {
+		return 0
 	}
-        return 1
+}
+
+Classifier/Replicator/Demuxer instproc drop { src dst {iface -1} } {
+	$self instvar node_
+	[$node_ getArbiter] drop $self [expr $src >> 8] $dst $iface
 }
 
 Classifier/Replicator/Demuxer instproc change-iface { src dst oldiface newiface} {
 	$self instvar node_
-        [$node_ set multiclassifier_] change-iface $src $dst $oldiface $newiface
+        [$node_ set multiclassifier_] change-iface $src $dst \
+			[$oldiface if-label?] [$newiface if-label?]
         return 1
 }
 
+#
+# XXX
+#
+#
+# XXX These are PIM specific?  Why are they here?
+# 
+Simulator instproc getNodeIDs {} {
+        $self instvar Node_
+        return [array names Node_]
+}
+Simulator instproc setPIMProto { index proto } {
+        $self instvar pimProtos
+        set pimProtos($index) $proto
+}
+Simulator instproc getPIMProto { index } {
+        $self instvar pimProtos
+        if [info exists pimProtos($index)] {
+                return $pimProtos($index)
+        }
+        return -1
+}
+
+#
+# These routines are being phased out in favour of newer ones defined earlier.
+#
+Simulator instproc RPF-link { src from to } {
+	set rev [[$self get-routelogic] lookup $to $src]
+	if { $rev == $from } {
+		$self link $from $to
+	} else {
+		return ""
+	}
+}
+
+Node instproc RPF-interface { src from to } {
+        $self instvar ns_
+	$self get-oif [$ns_ RPF-link $src $from $to]
+}
+
+Node instproc get-oifIndex { node_id } {
+	error $proc
+	$self instvar ns_
+	[$ns_ link [$self id] $node_id] if-label?
+}
+
+Node instproc label2iface { label } {
+	error $proc
+	$self instvar outLink_
+	foreach oif $outLink_ {
+		if { [[$oif link?] if-label?] == $label } {
+			return $oif
+		}
+	}
+	return ""
+}
+
+Node instproc ifaceGetNode { iface } {
+	error $proc
+	$self instvar ns_
+	set id [$self id]
+	foreach nbr [$self neighbors] {
+		if { [[$ns_ link [$nbr id] $id] if-label?] == $iface } {
+			return $node
+		}
+	}
+	return ""
+}
+
+Node instproc getRepByGroup { group } {
+	error $proc
+	getRep * $group
+}
+
+Node instproc getRepBySource { src } {
+	error $proc
+        $self instvar replicator_
+	set replist ""
+	foreach n [array names replicator_ "$src:*"] {
+		set pair [split $n :]
+		lappend replist [lindex $pair 1]:$replicator_($n)
+	}
+	return $replist
+}
+
+Node instproc exists-Rep { src group } {
+	error $proc
+	$self instvar replicator_
+	info exists replicator_($src:$group)
+}
 
 #----------------------------------------------------------------------
 # Generating multicast distribution trees 
 #----------------------------------------------------------------------
 
+# THIS CODE IS CURRENTLY BROKEN AND NEEDS TO BE LOOKED AT AND FIXED.
 # 
 # get the adjacent node thru a outgoing interface
 # NOTE: Node::ifaceGetNode() in ns-mcast.tcl get a node through an 
@@ -645,8 +652,22 @@ Agent/Mcast/Control instproc init { protocol } {
 	set proto_ $protocol
 }
  
-Agent/Mcast/Control instproc handle {type from src group iface} {
-	$self instvar proto_ 
-        eval $proto_ recv-$type $from $src $group $iface
+Agent/Mcast/Control array set messages {}
+Agent/Mcast/Control set mcounter 0
+
+Agent/Mcast/Control instproc send {type from src group args} {
+	set m [Agent/Mcast/Control set mcounter]
+	Agent/Mcast/Control set messages($m) [eval list $from $src $group $args]
+	$self cmd send $type $m
+	Agent/Mcast/Control set mcounter [incr m]
 }
 
+Agent/Mcast/Control instproc recv {type iface m} {
+        eval $self recv2 $type $iface [Agent/Mcast/Control set messages($m)]
+	Agent/Mcast/Control unset messages($m)
+}
+
+Agent/Mcast/Control instproc recv2 {type iface from src group args} {
+	$self instvar proto_
+	eval $proto_ recv-$type $from $src $group $iface $args
+}

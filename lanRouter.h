@@ -1,7 +1,7 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+/* -*-  Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
- * ctrMcast.h
- * Copyright (C) 1997 by USC/ISI
+ * lanRouter.h
+ * Copyright (C) 1998 by USC/ISI
  * All rights reserved.                                            
  *                                                                
  * Redistribution and use in source and binary forms are permitted
@@ -16,26 +16,31 @@
  * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- *
- * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ctrMcast.h,v 1.5 1998/06/27 01:23:40 gnguyen Exp $ (USC/ISI)
+ * @(#) $Header: /usr/src/mash/repository/vint/ns-2/lanRouter.h
  */
 
-#ifndef ns_ctrmcast_h
-#define ns_ctrmcast_h
+#ifndef ns_lanRouter_h
+#define ns_lanRouter_h
 
-#include "packet.h"
+#include "config.h"
+#include "object.h"
+#include "route.h"
+#include "classifier.h"
 
-struct hdr_CtrMcast {
-	nsaddr_t	src_;		/* mcast data source */
-	nsaddr_t	group_;          /* mcast data destination group */
-	int		fid_;
+class lanRouter : public NsObject {
+public:
+	lanRouter() : routelogic_(0), switch_(0), enableHrouting_(false) {};
+	int next_hop(Packet *p);
+protected:
+	int command(int argc, const char*const* argv);
+	void recv(Packet *, Handler * = 0) {} //not used
 
-	/* per field member functions */
-	nsaddr_t& src() { return src_; }
-	nsaddr_t& group() { return group_; }
-	int& flowid() { return fid_; }
+	RouteLogic *routelogic_;  // for lookups of the next hop
+	Classifier *switch_;      // to tell mcast from ucast
+	char lanaddr_[SMALL_LEN]; // address of the lan
+	bool enableHrouting_;     // type of routing used: flat or hierarchical
+	
 };
 
 #endif

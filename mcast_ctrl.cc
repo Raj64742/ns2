@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mcast_ctrl.cc,v 1.1.2.1 1998/08/10 19:06:10 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mcast_ctrl.cc,v 1.1.2.2 1998/10/02 18:19:08 kannan Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -40,30 +40,31 @@ public:
 	void recv(Packet* pkt, Handler*) {
 		hdr_mcast_ctrl* ph = (hdr_mcast_ctrl*)pkt->access(off_mcast_ctrl_);
 		hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
-		// Agent/Mcast/Control instproc handle {type from src group iface}
-		Tcl::instance().evalf("%s handle %s %d %d %d %d", name(),
-				      ph->type(), ph->from(),
-				      ph->src(), ph->group(), ch->iface());
+		// Agent/Mcast/Control instproc recv type from src group iface
+		Tcl::instance().evalf("%s recv %s %d %d", name(),
+				      ph->type(), ch->iface(), ph->args());
 		Packet::free(pkt);
 	}
 
 	/*
  	 * $proc send $type $src $group
  	 */
-	int mcastControlAgent::command(int argc, const char*const* argv) {
-		if (argc == 6) {
-			if (strcmp(argv[1], "send") == 0) {
 
 #define	CASE(c,str,type)						\
 		case (c):	if (strcmp(argv[2], (str)) == 0) {	\
 			type_ = (type);					\
 			break;						\
-		}							\
-		/*FALLTHROUGH*/
+		} else {						\
+			/*FALLTHROUGH*/					\
+		}
 
+	int mcastControlAgent::command(int argc, const char*const* argv) {
+		if (argc == 4) {
+			if (strcmp(argv[1], "send") == 0) {
 				switch (*argv[2]) {
 					CASE('p', "prune", PT_PRUNE);
 					CASE('g', "graft", PT_GRAFT);
+					CASE('X', "graftAck", PT_GRAFTACK);
 					CASE('j', "join",  PT_JOIN);
 					CASE('a', "assert", PT_ASSERT);
 				default:
@@ -75,9 +76,7 @@ public:
 				Packet* pkt = allocpkt();
 				hdr_mcast_ctrl* ph = (hdr_mcast_ctrl*)pkt->access(off_mcast_ctrl_);
 				strcpy(ph->type(), argv[2]);
-				ph->from()  = atoi(argv[3]);
-				ph->src()   = atoi(argv[4]);
-				ph->group() = atoi(argv[5]);
+				ph->args()  = atoi(argv[3]);
 				send(pkt, 0);
 				return (TCL_OK);
 			}

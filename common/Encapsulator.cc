@@ -13,7 +13,6 @@ public:
 
 Encapsulator::Encapsulator() : 
 	Agent(PT_ENCAPSULATED), 
-	status_(1),
 	d_target_(0)
 {
 	bind("status_", &status_);

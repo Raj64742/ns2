@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112.2.2 1998/07/16 23:14:18 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112.2.3 1998/10/02 18:19:29 kannan Exp $
 
 #
 
@@ -198,6 +198,12 @@ Simulator instproc node args {
 Simulator instproc hier-node haddr {
  	warn {now create hier-nodes with just [$ns_ node $haddr]}
 	$self node $haddr
+}
+
+Simulator instproc get-node-by-id id {
+	$self instvar Node_
+	assert [info exists Node_($id)]
+	set Node_($id)
 }
 
 Simulator instproc now {} {
@@ -606,6 +612,10 @@ Simulator instproc duplex-link-op { n1 n2 op args } {
 	$self instvar link_
 	eval $link_([$n1 id]:[$n2 id]) $op $args
 	eval $link_([$n2 id]:[$n1 id]) $op $args
+}
+
+Simulator instproc reverse link {
+	$self link [$link dst] [$link src]
 }
 
 Simulator instproc flush-trace {} {
