@@ -195,7 +195,18 @@ DM instproc recv-graft { from src group iface} {
         $self instvar node_ PruneTimer_ ns_
 
 	set id [$node_ id]
-        set r [$node_ set replicator_($src:$group)]
+        set r [$node_ getReps $src $group]
+	if { $r == "" } {
+		if { $id == $src } {
+			set iif "?"
+		} else {
+			set rpfnbr [$node_ rpf_nbr $src]
+			set rpflnk [$ns_ link $src $id]
+			set iif [$node_ link2iif $rpflnk]
+		}
+		$node_ add-mfc $src $group $iif ""
+	        set r [$node_ getReps $src $group]
+	} 
         if { ![$r is-active] && $src != $id } {
                 # propagate the graft
                 $self send-ctrl graft $src $group
@@ -229,7 +240,8 @@ DM instproc send-ctrl { which src group { to "" } } {
 		# need to send: find the next hope node
 		set nbr [$nbr rpf-nbr $toid]
 	}
-	$ns_ connect $mctrl_ [[[$nbr getArbiter] getType [$self info class]] set mctrl_]
+	$ns_ simplex-connect $mctrl_ \
+			[[[$nbr getArbiter] getType [$self info class]] set mctrl_]
         if { $which == "prune" } {
                 $mctrl_ set class_ 30
         } else {

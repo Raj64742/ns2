@@ -211,7 +211,7 @@ Node instproc join-group-source { agent group source } {
         $self instvar Agents_ mrtObject_ replicator_
         set group [expr $group]
         ## send a message for the mcastproto agent to inform the mcast protocols
-        $mrtObject_ join-group-source $group $source
+        $mrtObject_ join-group $group $source
         lappend Agents_($source:$group) $agent
         if [info exists replicator_($source:$group)] {
                 $replicator_($source:$group) insert $agent
@@ -224,7 +224,7 @@ Node instproc leave-group-source { agent group source } {
         if [info exists replicator_($source:$group)] {
                 $replicator_($source:$group) disable $agent
         }
-        $mrtObject_ leave-group-source $group $source
+        $mrtObject_ leave-group $group $source
 }
 
 Node instproc add-mfc { src group iif oiflist } {
