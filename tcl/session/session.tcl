@@ -266,7 +266,18 @@ in SessionSim"
 }
 
 SessionSim instproc compute-routes {} {
-	$self instvar link_
+    #
+    # call hierarchical routing, if applicable
+    #
+    if [Simulator set EnableHierRt_] {
+	$self compute-hier-routes 
+    } else {
+	$self compute-flat-routes
+    }
+}
+
+SessionSim instproc compute-flat-routes {} {
+    $self instvar link_
 	#
 	# Compute all the routes using the route-logic helper object.
 	#
@@ -287,6 +298,7 @@ SessionSim instproc compute-routes {} {
 SessionSim instproc compute-hier-routes {} {
         $self instvar link_
         set r [$self get-routelogic]
+        debug 1
         #
         # send hierarchical data :
         # array of cluster size, #clusters, #domains
