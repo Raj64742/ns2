@@ -889,6 +889,7 @@ tcl/test/test-all-mcache
 tcl/test/test-all-mcast
 tcl/test/test-all-mip
 tcl/test/test-all-mixmode
+tcl/test/test-all-monitor
 tcl/test/test-all-newreno
 tcl/test/test-all-rbp
 tcl/test/test-all-red
@@ -1100,6 +1101,8 @@ tcl/test/test-output-mixmode/Mixmode6.Z
 tcl/test/test-output-mixmode/Mixmode7.Z
 tcl/test/test-output-mixmode/Mixmode8.Z
 tcl/test/test-output-mixmode/Mixmode9.Z
+tcl/test/test-output-monitor/tcp-monitor.Z
+tcl/test/test-output-monitor/tcp.Z
 tcl/test/test-output-newreno
 tcl/test/test-output-newreno/newreno.Z
 tcl/test/test-output-newreno/newreno1.Z
@@ -1380,6 +1383,7 @@ tcl/test/test-suite-mcache.tcl
 tcl/test/test-suite-mcast.tcl
 tcl/test/test-suite-mip.tcl
 tcl/test/test-suite-mixmode.tcl
+tcl/test/test-suite-monitor.tcl
 tcl/test/test-suite-newreno.tcl
 tcl/test/test-suite-rbp.tcl
 tcl/test/test-suite-red-v1.tcl
