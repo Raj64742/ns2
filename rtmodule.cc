@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.cc,v 1.1 2000/09/14 18:19:25 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.cc,v 1.2 2000/09/15 02:03:33 haoboy Exp $
  */
 
 #include <assert.h>
@@ -98,11 +98,3 @@ public:
 		return (new VcRoutingModule);
 	}
 } class_vc_routing_module;
-
-static class MobileRoutingModuleClass : public TclClass {
-public:
-	MobileRoutingModuleClass() : TclClass("RtModule/Mobile") {}
-	TclObject* create(int, const char*const*) {
-		return (new MobileRoutingModule);
-	}
-} class_mobile_routing_module;
