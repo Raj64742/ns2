@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.31 1999/08/30 21:59:20 yuriy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.32 1999/09/24 22:18:10 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -224,20 +224,24 @@ int RouteLogic::command(int argc, const char*const* argv)
 			int nh;
 			int res = lookup_flat((char*)argv[2], (char*)argv[3], 
 					      nh);
-			tcl.resultf("%d", nh);
+			if (res == TCL_OK)
+				tcl.resultf("%d", nh);
 			return res;
 		}
 	}
 	return (TclObject::command(argc, argv));
 }
 
+// xxx: using references as in this result is bogus---use pointers!
 int RouteLogic::lookup_flat(char* asrc, char* adst, int& result) {
 	Tcl& tcl = Tcl::instance();
 	int src = atoi(asrc) + 1;
 	int dst = atoi(adst) + 1;
 
 	if (route_ == 0) {
-		tcl.result("routes not computed");
+		// routes are computed only after the simulator is running
+		// ($ns run).
+		tcl.result("routes not yet computed");
 		return (TCL_ERROR);
 	}
 	if (src >= size_ || dst >= size_) {
@@ -248,6 +252,7 @@ int RouteLogic::lookup_flat(char* asrc, char* adst, int& result) {
 	return TCL_OK;
 }
 
+// xxx: using references as in this result is bogus---use pointers!
 int RouteLogic::lookup_hier(char* asrc, char* adst, int& result) {
 	int i;
 	int src[SMALL_LEN], dst[SMALL_LEN];
