@@ -30,14 +30,19 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.13 1997/05/01 04:20:04 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.14 1997/05/13 22:27:57 polly Exp $
 #
 Class Link
 Link instproc init { src dst } {
 	$self next
-	$self instvar trace_ fromNode_ toNode_
-	set fromNode_ $src
-	set toNode_ $dst
+
+        #modified for interface code
+	$self instvar trace_ fromNode_ toNode_ source_ dest_
+	set fromNode_ [$src getNode]
+	set toNode_ [$dst getNode]
+        set source_ $src
+        set dest_ $dst
+
 	set trace_ ""
 }
 
@@ -61,15 +66,28 @@ Class SimpleLink -superclass Link
 SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 	$self next $src $dst
 	$self instvar link_ queue_ head_ toNode_ ttl_
+
+        #added for interface code
+        $self instvar ifacein_ ifaceout_
+        set ifacein_ 0
+        set ifaceout_ 0
+
 	set queue_ $q
 	set link_ [new $lltype]
 	$link_ set bandwidth_ $bw
 	$link_ set delay_ $delay
 
 	$queue_ target $link_
-	$link_ target [$toNode_ entry]
+	$link_ target [$dst entry]
 
-	set head_ $queue_
+	#set head_ $queue_ -> replace by the following
+        if { [$src info class] == "DuplexNetInterface" } {
+                set head_ [$src exitpoint]
+                set ifacein_ $head_
+                $head_ target $queue_
+        } else {
+                set head_ $queue_
+        }
 
 	# XXX
 	# put the ttl checker after the delay
@@ -98,8 +116,17 @@ SimpleLink instproc trace { ns f } {
 	$deqT_ target [$queue_ target]
 	$queue_ target $deqT_
 
-	$enqT_ target $head_
-	set head_ $enqT_
+	#$enqT_ target $head_
+	#set head_ $enqT_       -> replaced by the following
+        if { [$head_ info class] == "networkinterface" } {
+	    $enqT_ target [$head_ target]
+	    $head_ target $enqT_
+	    # puts "head is i/f"
+        } else {
+	    $enqT_ target $head_
+	    set head_ $enqT_
+	    # puts "head is not i/f"
+	}
 
 	$self instvar dynamics_
 	if [info exists dynamics_] {

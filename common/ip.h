@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.3 1997/03/29 01:42:52 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ip.h,v 1.4 1997/05/13 22:27:56 polly Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -40,6 +40,8 @@
 #include "config.h"
 #include "packet.h"
 
+/* for interface code */
+#define interfaceLabel int
 
 #define	IP_ECN	0x01	/* ECN bit in flags below (experimental) */
 struct hdr_ip {
@@ -54,7 +56,7 @@ struct hdr_ip {
 	/* ns: experimental */
 	int		flags_;
 #endif
-
+        interfaceLabel  iface_;
 
 	nsaddr_t& src() {
 		return (src_);
@@ -78,6 +80,10 @@ struct hdr_ip {
 		return (flags_);
 	}
 #endif
+        interfaceLabel& iface() {
+	        return (iface_);
+	}
 };
 
+  
 #endif

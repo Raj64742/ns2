@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.28 1997/05/06 00:35:44 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.29 1997/05/13 22:27:57 polly Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -47,7 +47,6 @@ Class Simulator
 
 source ns-node.tcl
 source ns-link.tcl
-source ns-mcast.tcl
 source ns-source.tcl
 source ns-default.tcl
 source ns-compat.tcl
@@ -60,6 +59,21 @@ source ns-random.tcl
 source ../rtp/session-rtp.tcl
 source ../rtglib/dynamics.tcl
 source ../rtglib/route-proto.tcl
+source ../interface/ns-iface.tcl
+source ../lan/ns-mlink.tcl
+source ../mcast/ns-mcast.tcl
+source ../mcast/McastProto.tcl
+source ../mcast/DM.tcl
+source ../ctr-mcast/CtrMcast.tcl
+source ../ctr-mcast/CtrMcastComp.tcl
+source ../ctr-mcast/CtrRPComp.tcl
+source ../pim/pim-init.tcl
+source ../pim/pim-messagers.tcl
+source ../pim/pim-mfc.tcl
+source ../pim/pim-mrt.tcl
+source ../pim/pim-recvr.tcl
+source ../pim/pim-sender.tcl
+source ../pim/pim-vifs.tcl
 
 Simulator instproc init args {
 	eval $self next $args
@@ -363,5 +377,92 @@ RouteLogic instproc dump nn {
 Classifier instproc no-slot slot {
 	#XXX should say something better for routing problem
 	puts stderr "$self: no target for slot $slot"
-	exit 1
+	#exit 1
+}
+
+
+#
+# To create: multi-access lan, and 
+#            links with interface labels
+#
+Simulator instproc simplex-link-of-interfaces { f1 f2 bw delay type } {
+        $self instvar link_ nullAgent_
+        set n1 [$f1 getNode]
+        set n2 [$f2 getNode]
+        set sid [$n1 id]
+        set did [$n2 id]
+        set q [new Queue/$type]
+        $q drop-target $nullAgent_
+        set link_($sid:$did) [new SimpleLink $f1 $f2 $bw $delay $q]
+        $n1 add-neighbor $n2
+}
+
+Simulator instproc duplex-link-of-interfaces { n1 n2 bw delay type } {
+        $self instvar traceAllFile_
+        set f1 [new DuplexNetInterface]
+        $n1 addInterface $f1
+        set f2 [new DuplexNetInterface]
+        $n2 addInterface $f2
+        $self simplex-link-of-interfaces $f1 $f2 $bw $delay $type
+        $self simplex-link-of-interfaces $f2 $f1 $bw $delay $type
+
+        $self instvar traceAllFile_
+        if [info exists traceAllFile_] {
+                $self trace-queue $n1 $n2 $traceAllFile_
+                $self trace-queue $n2 $n1 $traceAllFile_
+        }
+}
+
+Simulator instproc multi-link { nodes bw delay type } {
+	$self instvar link_ traceAllFile_
+	# set multiLink [new PhysicalMultiLink $nodes $bw $delay $type]
+	set multiLink [new NonReflectingMultiLink $nodes $bw $delay $type]
+	# set up dummy links for unicast routing
+	foreach n $nodes {
+		set q [$multiLink getQueue $n]
+		set l [$multiLink getDelay $n]
+		set did [$n id]
+		foreach n2 $nodes {
+			if { [$n2 id] != $did } {
+				set sid [$n2 id]
+				set dumlink [new DummyLink $n2 $n $q $l]
+				set link_($sid:$did) $dumlink
+				$dumlink setContainingObject $multiLink
+				if [info exists traceAllFile_] {
+					$self trace-queue $n2 $n $traceAllFile_
+				}
+			}
+		}
+	}
+}
+
+Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
+        $self instvar link_ traceAllFile_
+        
+        # create the interfaces
+        set ifs ""
+        foreach n $nodes {
+                set f [new DuplexNetInterface]
+                $n addInterface $f
+                lappend ifs $f
+        }
+        # set multiLink [new PhysicalMultiLink $ifs $bw $delay $type]
+        set multiLink [new NonReflectingMultiLink $ifs $bw $delay $type]
+        # set up dummy links for unicast routing
+        foreach n $nodes {
+                set q [$multiLink getQueue $n]
+                set l [$multiLink getDelay $n]  
+                set did [$n id]
+                foreach n2 $nodes {
+                        if { [$n2 id] != $did } {
+                                set sid [$n2 id]
+                                set dumlink [new DummyLink $n2 $n $q $l]
+                                set link_($sid:$did) $dumlink
+                                $dumlink setContainingObject $multiLink
+                                if [info exists traceAllFile_] {
+                                        $self trace-queue $n2 $n $traceAllFile_
+                                }
+                        }
+                } 
+        }
 }

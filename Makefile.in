@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.19 1997/04/28 19:31:19 kannan Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.20 1997/05/13 22:27:54 polly Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -86,7 +86,8 @@ OBJ_CC = \
 	scoreboard.o tcp-sack1.o \
 	session-rtp.o rtp.o rtcp.o ip.o sfq.o fq.o drr.o \
 	dynalink.o rtProtoDV.o cbq.o \
-	udp.o traffictrace.o pareto.o expoo.o
+	udp.o traffictrace.o pareto.o expoo.o \
+	net-interface.o
 
 OBJ_NAM = \
 	nam/animation.o \
@@ -136,7 +137,6 @@ NS_TCL_LIB = \
 	tcl/lib/ns-default.tcl \
 	tcl/lib/ns-lib.tcl \
 	tcl/lib/ns-link.tcl \
-	tcl/lib/ns-mcast.tcl \
 	tcl/lib/ns-node.tcl \
 	tcl/lib/ns-packet.tcl \
 	tcl/lib/ns-queue.tcl \
@@ -147,7 +147,22 @@ NS_TCL_LIB = \
 	tcl/lib/ns-random.tcl \
 	tcl/rtp/session-rtp.tcl \
 	tcl/rtglib/dynamics.tcl \
-	tcl/rtglib/route-proto.tcl
+	tcl/rtglib/route-proto.tcl \
+        tcl/interface/ns-iface.tcl \
+        tcl/lan/ns-mlink.tcl \
+        tcl/mcast/ns-mcast.tcl \
+        tcl/mcast/McastProto.tcl \
+        tcl/mcast/DM.tcl \
+        tcl/ctr-mcast/CtrMcast.tcl \
+        tcl/ctr-mcast/CtrMcastComp.tcl \
+        tcl/ctr-mcast/CtrRPComp.tcl \
+        tcl/pim/pim-init.tcl \
+        tcl/pim/pim-messagers.tcl \
+        tcl/pim/pim-mfc.tcl \
+        tcl/pim/pim-mrt.tcl \
+        tcl/pim/pim-recvr.tcl \
+        tcl/pim/pim-sender.tcl \
+        tcl/pim/pim-vifs.tcl 
 
 gen/ns_tcl.cc: $(NS_TCL_LIB)
 	@rm -f $@

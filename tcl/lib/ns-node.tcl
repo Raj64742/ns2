@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.8 1997/03/25 22:22:18 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.9 1997/05/13 22:27:58 polly Exp $
 #
 
 Class Node
@@ -174,4 +174,51 @@ Node instproc reset {} {
 Node instproc neighbors {} {
     $self instvar neighbor_
     return $neighbor_
+}
+
+#
+# Helpers for interface stuff
+#
+Node instproc attachInterfaces ifs {
+        $self instvar ifaces_
+        set ifaces_ $ifs
+        foreach ifc $ifaces_ {
+                $ifc setNode $self
+        }
+}
+
+Node instproc addInterface { iface } {
+        $self instvar ifaces_
+        lappend ifaces_ $iface
+        $iface setNode $self 
+}
+
+Node instproc createInterface { num } {
+        $self instvar ifaces_
+        set newInterface [new NetInterface]
+        if { $num < 0 } { return 0 }
+        $newInterface set-label $num
+        return 1
+}
+ 
+Node instproc getInterfaces {} {
+        $self instvar ifaces_
+        return $ifaces_
+}
+
+Node instproc getNode {} {  
+        return $self
+}
+
+
+#
+# helpers for PIM stuff
+#
+
+Node instproc get-vif {} {
+        $self instvar vif_ 
+        if [info exists vif_] { return $vif_ }
+        set vif_ [new NetInterface]
+        $self addInterface $vif_
+        return $vif_
 }

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.6 1997/03/29 01:42:48 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.7 1997/05/13 22:27:55 polly Exp $";
 #endif
 
 #include <stdlib.h>
@@ -50,7 +50,7 @@ protected:
 	int command(int argc, const char*const* argv);
 	int classify(Packet *const p);
 	int findslot();
-	void set_hash(nsaddr_t src, nsaddr_t dst, int slot);
+	void set_hash(nsaddr_t src, nsaddr_t dst, int slot, int iface);
 	int hash(nsaddr_t src, nsaddr_t dst) const {
 		u_int32_t s = src ^ dst;
 		s ^= s >> 16;
@@ -62,9 +62,11 @@ protected:
 		nsaddr_t src;
 		nsaddr_t dst;
 		hashnode* next;
+                int iif; // for RPF checking
 	};
 	hashnode* ht_[256];
 	const hashnode* lookup(nsaddr_t src, nsaddr_t dst) const;
+	const hashnode* lookupiface(nsaddr_t src, nsaddr_t dst, int iface) const;
 };
 
 static class MCastClassifierClass : public TclClass {
@@ -109,19 +111,26 @@ int MCastClassifier::classify(Packet *const pkt)
 	hdr_ip* h = (hdr_ip*)pkt->access(off_ip_);
 	nsaddr_t src = h->src() >> 8; /*XXX*/
 	nsaddr_t dst = h->dst();
-	const hashnode* p = lookup(src, dst);
+        interfaceLabel iface = h->iface();
+	const hashnode* p = lookupiface(src, dst, iface);
 	if (p == 0) {
+		p = lookup(src, dst);
 		/*
 		 * Didn't find an entry.
 		 * Call tcl exactly once to install one.
 		 * If tcl doesn't come through then fail.
 		 */
-		Tcl::instance().evalf("%s new-group %u %u", name(), src, dst);
-		p = lookup(src, dst);
-		if (p == 0)
-			return (-1);
+		if (p == 0) {
+		  Tcl::instance().evalf("%s new-group %u %u %d %s", 
+					name(), src, dst, iface, "CACHE_MISS");
+		  return (-1);
+		}
+		if ( (p->iif != -1) && (p->iif != iface) ) {
+		  Tcl::instance().evalf("%s new-group %u %u %d %s", 
+					name(), src, dst, iface, "WRONG_IIF");
+		  return (-1);
+		}
 	}
-
 	return (p->slot);
 }
 
@@ -134,13 +143,14 @@ int MCastClassifier::findslot()
 	return (i);
 }
 
-void MCastClassifier::set_hash(nsaddr_t src, nsaddr_t dst, int slot)
+void MCastClassifier::set_hash(nsaddr_t src, nsaddr_t dst, int slot, int iface)
 {
 	int h = hash(src, dst);
 	hashnode* p = new hashnode;
 	p->src = src;
 	p->dst = dst;
 	p->slot = slot;
+        p->iif = iface;
 	p->next = ht_[h];
 	ht_[h] = p;
 }
@@ -150,15 +160,28 @@ int MCastClassifier::command(int argc, const char*const* argv)
 	/*
 	 * $classifier set-hash $src $group $slot
 	 */
-	if (argc == 5) {
+	if (argc == 6) {
 		if (strcmp(argv[1], "set-hash") == 0) {
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int slot = atoi(argv[4]);
-			set_hash(src, dst, slot);
+                        int iface = atoi(argv[5]);
+                        set_hash(src, dst, slot, iface);
 			return (TCL_OK);
 		}
 	}
 	return (Classifier::command(argc, argv));
 }
 
+/* interface look up for the interface code*/
+const MCastClassifier::hashnode*
+MCastClassifier::lookupiface(nsaddr_t src, nsaddr_t dst, int iface) const
+{
+	int h = hash(src, dst);
+	const hashnode* p;
+	for (p = ht_[h]; p != 0; p = p->next) {
+		if (p->src == src && p->dst == dst && p->iif == iface)
+			break;
+	}
+	return (p);
+}
