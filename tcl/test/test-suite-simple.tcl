@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.33 2003/09/09 19:10:04 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.34 2004/06/17 19:48:07 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -51,6 +51,9 @@
 # This script is a simplified version of tcl/test/test-suite-routed.tcl
 
 # ns-random 0
+
+#source misc_simple.tcl
+#source support.tcl
 
 # FOR UPDATING GLOBAL DEFAULTS:
 Queue/RED set q_weight_ 0.002
@@ -119,10 +122,10 @@ TestSuite instproc finish file {
 	set perlCode {
 		sub BEGIN { $c = 0; @p = @a = @d = @lu = @ld = (); }
 		/^[\+-] / && do {
-			if ($F[4] eq 'tcp') {
+			if ($F[4] eq 'tcp' || $F[4] eq 'tcpFriend') {
  				push(@p, $F[1], ' ',		\
 					$F[7] + ($F[10] % 90) * 0.01, "\n");
-			} elsif ($F[4] eq 'ack') {
+			} elsif ($F[4] eq 'ack' || $F[4] eq 'tcpFriendCtl') {
  				push(@a, $F[1], ' ',		\
 					$F[7] + ($F[10] % 90) * 0.01, "\n");
 			}
@@ -1322,6 +1325,10 @@ TestSuite instproc printpkts { label tcp } {
         set rtt [expr $numRtts * $tcpTick_]
 	puts "tcp $label most_recent_rtt [format "%5.3f" $rtt]"  
 }
+TestSuite instproc printpktsTFRC { label tfrc } {
+        global tcpTick_ 
+	puts "tfrc $label data_pkts_sent [$tfrc set ndatapack_]"
+}
 TestSuite instproc printdrops { fid fmon } {
 	set fcl [$fmon classifier]; # flow classifier
 	#
@@ -1734,6 +1741,59 @@ Test/stats4 instproc run {} {
 	set queue1 [$link1 queue]
 
 	$ns_ at 0.5 "$self printPeakRate $fmon 0.5 $PeakRateInterval"
+
+	# trace only the bottleneck link
+	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+	$ns_ run
+}
+
+
+
+Class Test/statsTFRC -superclass TestSuite
+Test/statsTFRC instproc init topo {
+	$self instvar net_ defNet_ test_ guide_
+	set net_	$topo
+	set defNet_	net0
+	set test_	statsTFRC
+	set guide_	\
+	"TFRC statistics, and per-flow and aggregate link statistics."
+	$self next
+}
+Test/statsTFRC instproc run {} {
+	global quiet
+	$self instvar ns_ node_ testName_ guide_ test_
+	if {$quiet == "false"} {puts $guide_}
+
+	$ns_ delay $node_(s2) $node_(r1) 200ms
+	$ns_ delay $node_(r1) $node_(s2) 200ms
+	$ns_ queue-limit $node_(r1) $node_(k1) 10
+	$ns_ queue-limit $node_(k1) $node_(r1) 10
+
+	set slink [$ns_ link $node_(r1) $node_(k1)]; # link to collect stats on
+	set fmon [$ns_ makeflowmon Fid]
+	$ns_ attach-fmon $slink $fmon
+
+	set stoptime 5.1 
+
+	set tf0 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(k1) 0]
+	#$tf0 set window_ 30
+	set tf1 [$ns_ create-connection TFRC $node_(s2) TFRCSink $node_(k1) 1]
+	#$tf1 set window_ 30
+
+	set ftp0 [new Application/FTP]; $ftp0 attach-agent $tf0
+	set ftp1 [new Application/FTP]; $ftp1 attach-agent $tf1
+
+	$ns_ at 1.0 "$ftp0 start"
+	$ns_ at 1.0 "$ftp1 start"
+
+	#$self tcpDumpAll $tf0 5.0 tf0
+	#$self tcpDumpAll $tf1 5.00001 tf1
+
+	set almosttime [expr $stoptime - 0.001]
+	$ns_ at $almosttime "$self printpktsTFRC 0 $tf0"
+	$ns_ at $almosttime "$self printpktsTFRC 1 $tf1"
+	$ns_ at $stoptime "$self printdrops 0 $fmon; $self printdrops 1 $fmon"
+	$ns_ at $stoptime "$self printall $fmon"
 
 	# trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
