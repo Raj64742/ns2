@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.14 1999/09/10 18:53:13 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.15 2000/11/06 21:41:01 haoboy Exp $
 //
 // Tcp application: transmitting real application data
 // 
@@ -202,21 +202,13 @@ void TcpApp::recv(int size)
 			if ((curdata_ == 0) && (curbytes_ > 0)) {
 				fprintf(stderr, "[%g] %s gets extra data!\n",
 					Scheduler::instance().clock(), name_);
-				// XXX Remove this before commit!!!
-				Tcl::instance().eval("[Test instance] flush-trace");
+				Tcl::instance().eval("[Simulator instance] flush-trace");
 				abort();
 			} else
 				// Get out of the look without doing a check
 				break;
 		}
 	}
-// 	else if (curbytes_ < curdata_->bytes()) {
-// 		fprintf(stderr, "[%g] %s gets less data than expected!!\n",
-// 			Scheduler::instance().clock(), name_);
-// 		// XXX Remove this before commit!!!
-// 		Tcl::instance().eval("[Test instance] flush-trace");
-// 		abort();
-// 	}
 }
 
 void TcpApp::resume()

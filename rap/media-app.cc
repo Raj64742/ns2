@@ -26,7 +26,7 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.12 1999/11/18 23:14:31 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.13 2000/11/06 21:41:01 haoboy Exp $
 
 #include <stdarg.h>
 
@@ -88,8 +88,8 @@ void MediaSegmentList::add(const MediaSegment& s)
 			s.start(), s.end());
 		fprintf(stderr, "List contents: ");
 		print();
-#if 1
-		//Tcl::instance().eval("[Test instance] flush-trace");
+#if 0 
+		//Tcl::instance().eval("[Simulator instance] flush-trace");
 		//abort();
 #endif
 		// XXX Don't abort, simply continue
@@ -686,10 +686,11 @@ void QA::panic(const char* fmt, ...)
 	vsprintf(p, fmt, ap);
 	fprintf(stderr, "%s", buf);
 
+#if 0
 	// XXX This is specific to OUR test. Remove it in release!!
-	Tcl::instance().eval("[Test instance] flush-trace");
-
+	Tcl::instance().eval("[Simulator instance] flush-trace");
 	abort();
+#endif
 }
 
 // Stop all timers
@@ -1236,10 +1237,6 @@ scen: %d, totbufs1: %.2f, totbufs2: %.2f, totbufavail: %.2f\n",
 					debug("# FinalDrainArray[%d]: %.2f, "
 					      "tosend[%d]: %.2f\n", l, 
 					      FinalDrainArray[l],l, tosend[l]);
-				/*
-				Tcl::instance().eval("[Test instance] flush-trace");
-				abort();
-				*/
 			}
 			/*******/
 		}
