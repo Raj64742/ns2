@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.5 1998/02/28 02:44:45 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.6 1998/05/23 02:44:57 kfall Exp $ (LBL)
  */
 
 #ifndef ns_net_h
@@ -54,7 +54,7 @@ public:
 	Network() : mode_(-1) { }
 	virtual int command(int argc, const char*const* argv);
 	virtual int send(u_char* buf, int len) = 0;
-	virtual int recv(u_char* buf, int len, sockaddr& from) = 0;
+	virtual int recv(u_char* buf, int len, sockaddr& from, double& ts) = 0;
 	virtual int rchannel() = 0;
 	virtual int schannel() = 0;
 	int mode() { return mode_; }
