@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.19 2000/07/19 04:47:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.20 2000/07/24 19:48:10 haoboy Exp $
 #
 
 Trace instproc init type {
@@ -158,8 +158,8 @@ Simulator instproc gen-map {} {
 
 	set nn [Node set nn_]
 	for {set i 0} {$i < $nn} {incr i} {
-		if ![info exists Node($i)] {
-			incr i
+		if ![info exists Node_($i)] {
+			#incr i
 			continue
 		}
 		puts "Node [$n tn]"
@@ -185,7 +185,7 @@ Simulator instproc gen-map {} {
 		if {[llength [$n set agents_]] > 0} {
 			puts "\n\tAgents at node (possibly in order of creation):"
 			foreach a [$n set agents_] {
-				puts "\t\t$a\t[gc $a]\t\tportID: [$a set portID_]([$a set addr_])"
+				puts "\t\t$a\t[gc $a]\t\tdst-addr/port: [$a set dst_addr_]/[$a set dst_port_]"
 			}
 		}
 		puts ""
