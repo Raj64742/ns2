@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.14 1999/07/06 22:57:04 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.15 1999/07/23 01:35:01 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -372,6 +372,10 @@ int HttpApp::command(int argc, const char*const* argv)
 
 void HttpApp::log(const char* fmt, ...)
 {
+	// Don't do anything if we don't have a log file.
+	if (log_ == 0) 
+		return;
+
 	char buf[10240], *p;
 	sprintf(buf, TIME_FORMAT" i %d ", 
 		Trace::round(Scheduler::instance().clock()), id_);
@@ -379,8 +383,7 @@ void HttpApp::log(const char* fmt, ...)
 	va_list ap;
 	va_start(ap, fmt);
 	vsprintf(p, fmt, ap);
-	if (log_ != 0)
-		Tcl_Write(log_, buf, strlen(buf));
+	Tcl_Write(log_, buf, strlen(buf));
 }
 
 void HttpApp::process_data(int, char* data)
