@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.201 2000/10/02 18:55:49 kclan Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.202 2000/10/18 01:12:22 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -89,9 +89,11 @@ NS	= ns
 NSX	= nsx
 NSE	= nse
 
+# To allow conf/makefile.win overwrite this macro
+OBJ_STL = @V_STLOBJ@
+
 # WIN32: uncomment the following line to include specific make for VC++
 # !include <conf/makefile.win>
-
 
 OBJ_CC = \
 	random.o rng.o ranvar.o misc.o timer-handler.o \
@@ -164,7 +166,8 @@ OBJ_CC = \
 	linkstate/hdr-ls.o \
 	mpls/classifier-addr-mpls.o mpls/ldp.o mpls/mpls-module.o \
 	rtmodule.o classifier-hier.o addr-params.o \
-	@V_STLOBJ@ 
+	webtcp/ftpc.o webtcp/ftps.o webtcp/tcp-full.o webtcp/wwwc.o webtcp/wwws.o \
+	$(OBJ_STL)
 
 # don't allow comments to follow continuation lines
 
