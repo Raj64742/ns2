@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.277 2002/01/24 01:43:34 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.278 2002/03/08 17:29:19 sfloyd Exp $
 
 
 #
@@ -687,6 +687,8 @@ Agent/TCP set timestamps_ false
 Agent/TCP set slow_start_restart_ true
 Agent/TCP set restart_bugfix_ true
 Agent/TCP set tcpTick_ 0.1
+# Agent/TCP set tcpTick_ 0.01		# default changed on 2002/03/07
+					# to reflect a changing reality.
 Agent/TCP set maxrto_ 100000
 #Agent/TCP set minrto_ 0 ;		# Variable added on 2001/05/10
 Agent/TCP set minrto_ 1 ;		# Default set to 1 on 2001/05/14.
@@ -700,6 +702,10 @@ Agent/TCP set rttvar_exp_ 2
 Agent/TCP set timerfix_ true ; 		# Variable added on 2001/05/11
  					# Set to "false" to give the old 
 					#  behavior. 
+Agent/TCP set rfc2988_ false ;		# Variable added on 2002/03/07.
+# Agent/TCP set rfc2988_ true ;
+					# Set rfc2988_ "true" to give RFC2988-
+					#  compliant behavior for timers.
 Agent/TCP instproc done {} { }
 Agent/TCP set noFastRetrans_ false
 

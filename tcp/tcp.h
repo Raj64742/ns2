@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.94 2001/12/30 04:52:31 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.95 2002/03/08 17:29:19 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -234,6 +234,7 @@ protected:
 	void reset_rtx_timer(int mild, int backoff = 1);
 	int timerfix_;		/* set to true to update timer *after* */
 				/* update the RTT, instead of before   */
+	int rfc2988_;		/* Use updated RFC 2988 timers */
 	double boot_time_;	/* where between 'ticks' this sytem came up */
 	double overhead_;
 	double wnd_;

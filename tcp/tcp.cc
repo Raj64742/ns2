@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.130 2001/12/30 04:52:31 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.131 2002/03/08 17:29:19 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -156,6 +156,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("oldCode_");
 	delay_bind_init_one("useHeaders_");
 	delay_bind_init_one("timerfix_");
+	delay_bind_init_one("rfc2988_");
 
 #ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
@@ -236,6 +237,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
 	if (delay_bind_bool(varName, localName, "oldCode_", &oldCode_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "useHeaders_", &useHeaders_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "timerfix_", &timerfix_, tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "rfc2988_", &rfc2988_, tracer)) return TCL_OK;
 
 
 #ifdef TCP_DELAY_BIND_ALL
@@ -447,27 +449,36 @@ void TcpAgent::rtt_init()
 	t_backoff_ = 1;
 }
 
-/* This has been modified to use the tahoe code. */
 double TcpAgent::rtt_timeout()
 {
 	double timeout;
-        timeout = t_rtxcur_ * t_backoff_;
+	if (rfc2988_) {
+	// Correction from Tom Kelly to be RFC2988-compliant, by
+	// clamping minrto_ before applying t_backoff_.
+		if (t_rtxcur_ < minrto_)
+			timeout = minrto_ * t_backoff_;
+		else
+			timeout = t_rtxcur_ * t_backoff_;
+	} else {
+		timeout = t_rtxcur_ * t_backoff_;
+		if (timeout < minrto_)
+			timeout = minrto_;
+	}
 
 	if (timeout > maxrto_)
 		timeout = maxrto_;
-	if (timeout < minrto_)
-		timeout = minrto_;
 
-        if (timeout < 2 * tcp_tick_) {
+        if (timeout < 2.0 * tcp_tick_) {
 		if (timeout < 0) {
-			fprintf(stderr, "TcpAgent: negative RTO! (%f)\n",
+			fprintf(stderr, "TcpAgent: negative RTO!  (%f)\n",
 				timeout);
 			exit(1);
 		}
-		timeout = 2 * tcp_tick_;
+		timeout = 2.0 * tcp_tick_;
 	}
 	return (timeout);
 }
+
 
 /* This has been modified to use the tahoe code. */
 void TcpAgent::rtt_update(double tao)
