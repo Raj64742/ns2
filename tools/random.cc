@@ -30,12 +30,9 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.14 1998/06/25 23:41:37 gnguyen Exp $ (LBL)";
  */
-
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.13 1998/06/25 23:29:32 gnguyen Exp $ (LBL)";
-#endif
 
 #ifndef WIN32
 
