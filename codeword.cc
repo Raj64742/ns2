@@ -1,5 +1,5 @@
 /*
- * (c) 1997 StarBurst Communications Inc.
+ * (c) 1997-98 StarBurst Communications Inc.
  *
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -15,60 +15,130 @@
  *
  * Author: Christoph Haenle, chris@cs.vu.nl
  * File: codeword.cc
- * Last change: Nov. 14, 1997
+ * Last change: Dec 07, 1998
  *
  * This software may freely be used only for non-commercial purposes
  */
 
 #include "codeword.h"
-
 #include <assert.h>
 #include <stdlib.h>  // due to definition of NULL
-#include <unistd.h>
+#include <string.h>  // due to memset,...
+#include <stdio.h>   // due to printf
 
-sb_uchar Codeword::minbit_array[256];
-sb_uchar Codeword::bitcount_array[256];
+static unsigned char minbit_array[256];
+static unsigned char bitcount_array[256];
 
 // because of the lack of static initialization on class-basis in C++,
 // this is a workaround.
-static int dummy = Codeword::initialize_codeword();
+static int dummy = initialize_codeword();
 
-CW_PATTERN_t Codeword::irreducible_polynom[Codeword::MAX_DEGREE+1] = {
-    1,          // 1
-    1+2,        // 1+x
-    1+2+4,      // 1+x+x^2 
-    1+2+8,           // 1+x+x^3
-    1+2+16,          // 1+x+x^4
-    1+4+32,          // 1+x^2+x^5
-    1+2+4+32+64,     // 1+x+x^2+x^5+x^6
-    1+4+32+64+128,   // 1+x^2+x^5+x^6+x^7
-    1+8+32+64+256,          // 1+x^3+x^5+x^6+x^8
-    1+2+16+256+512,         // 1+x^1+x^4+x^8+x^9
-    1+4+8+64+256+512+1024,  // 1+x^2+x^3+x^6+x^8+x^9+x^10
-    1+2+8+16+128+1024+2048, // 1+x+x^3+x^4+x^7+x^10+x^11
-    1+8+16+32+128+512+4096, // 1+x^3+x^4+x^5+x^7+x^9+x^12
-    1+8+16+32+64+4096+8192, // 1+x^3+x^4+x^5+x^6+x^12+x^13
-    1+2+4+8+32+256+2048+8192+16384, // 1+x+x^2+x^3+x^5+x^8+x^11+x^13+x^14
-    1+4+64+128+1024+16384+32768,    // 1+x^2+x^6+x^7+x^10+x^14+x^15
-    1+4+16+64+1024+4096+16384+32768+65536 // 1+x^2+x^4+x^6+x^10+x^12+x^14+x^15+x^16
+// list of primitive polynomials over GF(2).
+CW_PATTERN_t Codeword::primitive_polynomial[Codeword::MAX_DEGREE+1] = {
+    "1",         // 1 (group size 1)
+    "11",        // 1+x
+    "111",       // 1+x+x^2 
+    "1011",      // 1+x+x^3  (group size 4)
+    "10011",     // 1+x+x^4
+    "100101",    // 1+x^2+x^5
+    "1100111",   // 1+x+x^2+x^5+x^6
+    "11100101",           // 1+x^2+x^5+x^6+x^7  (group size 8)
+    "101101001",          // 1+x^3+x^5+x^6+x^8
+    "1100010011",         // 1+x^1+x^4+x^8+x^9
+    "11101001101",        // 1+x^2+x^3+x^6+x^8+x^9+x^10
+    "110010011011",       // 1+x+x^3+x^4+x^7+x^10+x^11
+    "1001010111001",      // 1+x^3+x^4+x^5+x^7+x^9+x^12
+    "11000001111001",     // 1+x^3+x^4+x^5+x^6+x^12+x^13
+    "110100100101111",    // 1+x+x^2+x^3+x^5+x^8+x^11+x^13+x^14
+    "1100010011000101",   // 1+x^2+x^6+x^7+x^10+x^14+x^15 (group size 16)
+    "11101010001010101",  // 1+x^2+x^4+x^6+x^10+x^12+x^14+x^15+x^16
+    "101101011001011011", // 1+x+x^3+x^4+x^6+x^9+x^10+x^12+x^14+x^15+x^17
+    "1101101001010011011",        // 1+x+x^3+x^4+x^7+x^9+x^12+x^14+x^15+x^17+x^18
+    "11100101101010010011",
+    "101010101101010010011",      // 1+x+x^4+x^7+x^9+x^11+x^12+x^14+x^16+x^18+x^20
+    "1100010101110010011001",
+    "10100100110001101011001",
+    "101001011000010110110111",
+    "1010101010100101110110001",
+    "11001000110011010101011001",
+    "100011000010001110100111011",      // group size: 27
+    "1100110100111010101010100011",     // 1+x+x^5+x^7+x^9+x^11+x^13+x^15+x^16+x^17+x^20+x^22+x^23+x^26+x^27
+    "10100110100111010101010100011",    // 1+x+x^5+x^7+x^9+x^11+x^13+x^15+x^16+x^17+x^20+x^22+x^23+x^26+x^28
+    "100110011000111010101010100011",   // 1+x+x^5+x^7+x^9+x^11+x^13+x^15+x^16+x^17+x^21+x^22+x^25+x^26+x^29
+    "1010100101000111010110100100011",  // 1+x+x^5+x^8+x^10+x^11+x^13+x^15+x^16+x^17+x^21+x^23+x^26+x^28+x^30
+    "10110010100101100011010011011011", // 1+x+x^3+x^4+x^6+x^7+x^10+x^12+x^13+x^17+x^18+x^20+x^23+x^25+x^28+x^29+x^31 (group size 32)
+    "0", // invalid, group size currently not supported
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "0",
+    "1101100011100110100100111001001010110010100101010100100111011011" // 1+x+x^3+x^4+x^6+x^7+x^8+x^11+x^14+x^16+x^18+x^20+x^23+x^25+x^28+x^29+x^31+x^33+x^36+x^39+x^40+x^41+x^44+x^47+x^49+x^50+x^53+x^54+x^55+x^59+x^60+x^62+x^63 (group size 64)
 };
 
+// to generate primitive polynomials, see for example
+//  http://www-kommsys.fernuni-hagen.de/~rieke/primitiv/test.phtml.en
+
+
 Codeword::Codeword() :
-    k(1), n(1), cw_saved(0), cw_index(0), cw_pat(0)
+    k(1),
+    n(1),
+    cw_index(0),
+    cw_pat(0),
+    cw_saved(0)
 {
 }
 
-sb_void Codeword::setSourceWordLen(sb_ulong k_)
+void Codeword::setSourceWordLen(unsigned long k_)
 {
     k = k_;
     n = ((CW_PATTERN_t) 1) << (k-1);
-    //n = ((unsigned long long) 1) << (k-1);
-    cw_index = 0;
+    cw_index = (unsigned long) 0;
     cw_pat = 1;
     cw_saved = 0;
+    assert(k <= 8 * sizeof(CW_PATTERN_t));
+    if(k > MAX_DEGREE + 1 || primitive_polynomial[k-1] == 0) {
+        fprintf(stderr, "codeword.cc: sorry, the group size %lu is not supported.\n",
+                (unsigned long) k);
+        exit(0);
+    }
+    if(k > 8 * sizeof(CW_PATTERN_t)) {
+        fprintf(stderr, "codeword.cc: sorry, the group size %lu that you selected\n",
+                (unsigned long) k);
+        fprintf(stderr, "requires a datatype of at least %lu bits. To achieve this,\n",
+                (unsigned long) k);
+        fprintf(stderr, "adjust Codeword::size in file \"codeword.h\" accordingly.\n");
+        exit(0);
+    }
 }
 
-// systematic code, with optimization hack
+// systematic code, with optimization hack, originally derived from Reed-Muller codes of
+// order 1.
 CW_PATTERN_t Codeword::getNextCwPat()
 {
     assert(cw_pat != 0); // or else prior call to setSourceWordLen(...) has not been made
@@ -79,7 +149,7 @@ CW_PATTERN_t Codeword::getNextCwPat()
     if(cw_index != 0) {
         cw_pat <<= 1;
         if(cw_pat >= n) {
-            cw_pat ^= irreducible_polynom[k-1];
+            cw_pat ^= primitive_polynomial[k-1];
             assert(cw_pat < n);
         }
     }
@@ -94,152 +164,395 @@ CW_PATTERN_t Codeword::getNextCwPat()
     else ret = (cw_tmp << 1) | 1;
 
     // step 4
-    cw_index = (cw_index + 1) % n;
+    cw_index = (cw_index + 1) & (n-1);    // "& (n-1)" is equivalent to "% n" here
 
-    assert(0 < ret && ret < ((CW_PATTERN_t) n << 1) | 1);
-    //assert(0 < ret && ret < ((unsigned long long) n << 1) | 1);
     return ret;
 }
 
-CW_PATTERN_t Codeword::getNextCwPatOLD(sb_ulong dtus_per_group, CW_PATTERN_t cw_pat)
+void init_bitcount_array(unsigned char* arr, unsigned int nb_bits)
 {
-    CW_PATTERN_t n_half = (CW_PATTERN_t) 1 << (dtus_per_group-1);
+    unsigned long bitcount_array_size = ((unsigned long) 1) << nb_bits;
+    unsigned long i;
+    unsigned int bit;
+    int count;
 
-    assert(1 <= dtus_per_group && dtus_per_group <= MAX_DEGREE);
-    assert(n_half != 0); /* if violated, data type CW_PATTERN_t is to small to incorporate */
-    /* so many DTUs per block. Choose smaller group-size or make define CW_PATTERN_t to be */
-    /* of a "larger" data type (i.e. unsigned long long) */
-
-    if(cw_pat & n_half) {
-        /* the polynom that is associated with cw_pat has "grown" to the same degree */
-        /* as our irreducible polynom, i.e. degree "dtus_per_group" */
-
-        /* do the shift left and lose possibly the MSB (if data type CW_PATTERN_t is */
-        /* not large enough to still hold all bits */
-        cw_pat <<= 1;
-
-        /* perform reduction (polynomial division) over GF(2), i.e. XOR */
-        /* (as divident and divident have the same degree) */
-        /* In case the MSB got lost during the left-shift, the MSB of the */
-        /* irreducible polynom also gets lost (as it is stored in the same data type), */
-        /* thus either way, they sum to 0 (as must be the case) without further care. */
-        cw_pat ^= irreducible_polynom[dtus_per_group];
-    }
-    else {
-        cw_pat <<= 1;
-    }
-    return cw_pat;
-}
-
-
-
-bool Codeword::is_valid(CW_PATTERN_t cw, sb_ulong k)
-{
-    return true; // @@@@@
-    /* note: if 1 gets shifted out of range, then we need the fact that */
-    /* -1 == 0xFFFFFFF... Verfiy this behavious to avoid strange results: */
-    //    assert(((CW_PATTERN_t) 1 << 8 * sizeof(CW_PATTERN_t)) - 1 == ~((CW_PATTERN_t) 0));
-
-    assert(k <= 8 * sizeof(CW_PATTERN_t));
-    return(cw <= ((CW_PATTERN_t) 1 << k) - 1); 
-    // Ex: for k=8, highest
-    // codeword is 255, although according to Reed-Muller order 1, only the odd
-    // codewords are valid (but we don't check this for "manual" enhancements made
-    // with the set of codewords.
-}
-
-sb_void Codeword::init_bitcount_array(sb_uchar* arr, sb_uint nb_bits)
-{
-    sb_uint32 bitcount_array_size = ((sb_uint32) 1) << nb_bits;
-    sb_uint32 i;
-    sb_uint bit;
-    sb_int count;
-
-    assert(0 < nb_bits && nb_bits <= 32); /* or else a revision is required */
+    assert(sizeof(unsigned long) == 4);   // we need this for the following
+    assert(0 < nb_bits && nb_bits <= 32); // or else this function must be revised
     assert(arr != NULL);
 
     for(i = 0; i < bitcount_array_size; ++i) {
         count = 0;
-        for(bit = 0;bit < nb_bits; bit++) {
-            if(i & ((sb_uint32) 1 << bit)) {
+	// to avoid warning: unsigned value >= 0 is always 1
+	// for(bit = 0; 0 <= bit && bit < nb_bits; bit++) {
+        for(bit = 0; bit < nb_bits; bit++) {
+            if(i & ((unsigned long) 1 << bit)) {
                 count++;
-            } /* if */
-        } /* for bit */
+            }
+        }
         arr[i] = count;
-    } /* for i */
+    }
 }
 
-sb_void Codeword::init_minbit_array(sb_uchar* arr, sb_uint minbits)
+void init_minbit_array(unsigned char* arr, unsigned int minbits)
 {
-    sb_uint minbit_array_size = (sb_uint) 1 << minbits;
-    sb_uint i;
-    sb_uint bit;
+    unsigned int minbit_array_size = (unsigned int) 1 << minbits;
+    unsigned int i;
+    unsigned int bit;
 
-    assert(minbits == 8); /* or else minbit() needs a revision! */
+    assert(minbits == 8); // or else minbit(...) needs a revision!
     assert(arr != NULL);
 
     for(i = 0; i < minbit_array_size; ++i) {
-        for(bit = 0;bit < minbits; bit++) {
-            if(i & ((sb_uint) 1 << bit)) {
+      // to avoid warning: unsigned value >= 0 is always 1
+      //for(bit = 0; 0 <= bit && bit < minbits; bit++) {
+        for(bit = 0; bit < minbits; bit++) {
+            if(i & ((unsigned int) 1 << bit)) {
                 arr[i] = (unsigned char) bit;
                 break;
-            } /* if */
-        } /* for bit */
-    } /* for i */
-}
-
-/* returns position of least significant bit in cw_pat */
-sb_uint Codeword::minbit(CW_PATTERN_t cw_pat)
-{
-    sb_uint i;
-
-    assert(cw_pat);
-    assert(sizeof(sb_uchar) == 1);  /* or else this function needs a revision */
-    for(i = 0; cw_pat; ++i) {
-        assert(i < sizeof(CW_PATTERN_t));
-        if(cw_pat & 255) {
-            return minbit_array[(sb_uint) (cw_pat & 255)] + 8*i;
+            }
         }
-        cw_pat >>= 8;
     }
-    assert(0);
-    return 0;
 }
 
-sb_uint Codeword::bit_count(CW_PATTERN_t cw_pat)
+// returns bit position of least significant bit in cw_pat
+unsigned int minbit(unsigned long val)
 {
-    sb_uint res = 0;
+    unsigned int i;
 
-    while(cw_pat) {
-        res += bitcount_array[cw_pat & 255];
-        cw_pat >>= 8;
+    assert(val);
+    for(i = 0; val; ++i) {
+        assert(i < sizeof(CW_PATTERN_t));
+        if(val & 255) {
+            return minbit_array[(unsigned int) (val & 255)] + 8*i;
+        }
+        val >>= 8;
+    }
+    assert(false); // value is 0
+    return 0;      // compiler, be quiet.
+}
+
+// counts number of bits in cw_pat
+unsigned int bitcount(unsigned long val)
+{
+    unsigned int res = 0;
+
+    while(val) {
+        res += bitcount_array[(unsigned int) (val & 255)];
+        val >>= 8;
     }
     return res;
 }
 
 /* function to be called once at the beginning */
-int Codeword::initialize_codeword()
+int initialize_codeword()
 {
-    assert(sizeof(minbit_array) / sizeof(sb_uchar) == 256);
+    assert(sizeof(minbit_array) / sizeof(unsigned char) == 256);
     init_minbit_array(minbit_array, 8);
     init_bitcount_array(bitcount_array, 8);
     return 0;
 }
 
 
-/* only needed for testing: */
-#include <stdio.h>
-
-int test()
+// constructor:
+ExtraLongUInt::ExtraLongUInt()
 {
-    Codeword cw = Codeword();
+    memset(value, 0, sizeof(value));
+}
 
-    for(int k = 1; k < 9; ++k) {
-        cw.setSourceWordLen(k);
-        for(int i = 0; i <25; ++i) {
-            printf("%lu ", (unsigned long) cw.getNextCwPat());
+// constructor: create from "binary-string" (string of 0's and 1's):
+ExtraLongUInt::ExtraLongUInt(const char* val)
+{
+    const unsigned int len = strlen(val);
+    char digit;
+
+    assert(len <= 8 * sizeof(value));  // or else overflow
+    memset(value, 0, sizeof(value));
+    for(unsigned int i = 0; i < len; ++i) {
+        digit = val[len - 1 - i];
+        assert(digit == '0' || digit == '1'); // or else val is not a binary number
+        if(digit == '1') {
+            value[i / (8 * sizeof(unsigned long))] |=
+                (unsigned long) 1 << (i % (8 * sizeof(unsigned long)));
         }
-        printf("\n");
     }
-    exit(0);
+}
+
+// constructor:
+ExtraLongUInt::ExtraLongUInt(int val)
+{
+    assert(val >= 0);
+    memset(value, 0, sizeof(value));
+    value[0] = val;
+}
+
+// constructor:
+ExtraLongUInt::ExtraLongUInt(unsigned int val)
+{
+    memset(value, 0, sizeof(value));
+    value[0] = val;
+}
+
+// constructor:
+ExtraLongUInt::ExtraLongUInt(unsigned long val)
+{
+    memset(value, 0, sizeof(value));
+    value[0] = val;
+}
+
+bool ExtraLongUInt::operator == (const ExtraLongUInt& other) const
+{
+    for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
+        if(value[i] != other.value[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool ExtraLongUInt::operator != (const ExtraLongUInt& other) const
+{
+    return (*this == other) ? false : true;
+}
+
+bool ExtraLongUInt::operator < (const ExtraLongUInt& other) const
+{
+    unsigned int i;
+
+    for(i = sizeof(value) / sizeof(unsigned long) - 1;
+        value[i] == other.value[i] && i > 0; --i) {
+    }
+    return value[i] < other.value[i] ? true : false;
+}
+
+bool ExtraLongUInt::operator > (const ExtraLongUInt& other) const
+{
+    unsigned int i;
+
+    for(i = sizeof(value) / sizeof(unsigned long) - 1;
+        value[i] == other.value[i] && i > 0; --i) {
+    }
+    return value[i] > other.value[i] ? true : false;
+}
+
+bool ExtraLongUInt::operator <= (const ExtraLongUInt& other) const
+{
+    return (*this > other) ? false : true;
+}
+
+bool ExtraLongUInt::operator >= (const ExtraLongUInt& other) const
+{
+    return (*this < other) ? false : true;
+}
+
+ExtraLongUInt ExtraLongUInt::operator + (const ExtraLongUInt& other) const
+{
+    ExtraLongUInt res = 0;
+    unsigned long c = 0;
+    const shift = 8 * sizeof(unsigned long) - 1;
+    const unsigned long msb_mask = (unsigned long) 1 << shift;
+    const unsigned long lsbs_mask = ~msb_mask;
+    unsigned long x, y;
+
+    for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
+        x = value[i];
+        y = other.value[i];
+        res.value[i] = (x & lsbs_mask) + (y & lsbs_mask) + c;
+        c = ((x >> shift) + (y >> shift) + (res.value[i] >> shift)) >> 1;
+        res.value[i] ^= (x & msb_mask) ^ (y & msb_mask);
+    }
+    return res;
+}
+
+ExtraLongUInt ExtraLongUInt::operator - (const ExtraLongUInt& other) const
+{
+    return *this + ~other + 1;
+}
+
+ExtraLongUInt ExtraLongUInt::operator & (const ExtraLongUInt& other) const
+{
+    ExtraLongUInt res;
+
+    for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
+        res.value[i] = value[i] & other.value[i];
+    }
+    return res;
+}
+
+ExtraLongUInt ExtraLongUInt::operator | (const ExtraLongUInt& other) const
+{
+    ExtraLongUInt res;
+
+    for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
+        res.value[i] = value[i] | other.value[i];
+    }
+    return res;
+}
+
+ExtraLongUInt ExtraLongUInt::operator ^ (const ExtraLongUInt& other) const
+{
+    ExtraLongUInt res;
+
+    for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
+        res.value[i] = value[i] ^ other.value[i];
+    }
+    return res;
+}
+
+ExtraLongUInt ExtraLongUInt::operator ~() const
+{
+    ExtraLongUInt res;
+
+    for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
+        res.value[i] = ~value[i];
+    }
+    return res;
+}
+
+bool ExtraLongUInt::operator ! () const
+{
+    for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
+        if(value[i]) {
+            return false;
+        }
+    }
+    return true;
+}
+
+ExtraLongUInt ExtraLongUInt::operator << (unsigned int bits) const
+{
+    ExtraLongUInt res = 0;
+    const int index =  bits / (8 * sizeof(unsigned long));
+    const int shifts = bits % (8 * sizeof(unsigned long));
+    unsigned int i;
+
+    if(sizeof(value) > index * sizeof(unsigned long)) {
+        if(shifts == 0) { // this is because (1 >> 32) is not 0 (gcc)
+            memcpy(&res.value[index],
+                   value,
+                   sizeof(value) - index * sizeof(unsigned long));
+        } else {
+            const unsigned long mask = (~(unsigned long) 0) >> shifts;
+            assert(sizeof(value) >= sizeof(unsigned long));
+            res.value[index] = (value[0] & mask) << shifts;
+            for(i = index + 1; i < sizeof(value) / sizeof(unsigned long); ++i) {
+                res.value[i] = ((value[i - index  ] & mask) << shifts) |
+                    (value[i - index-1]          >> ((8 * sizeof(unsigned long)) - shifts));
+            }
+        }
+    }
+    return res;
+}
+
+ExtraLongUInt ExtraLongUInt::operator >> (unsigned int bits) const
+{
+    ExtraLongUInt res = 0;
+    const int index =  bits / (8 * sizeof(unsigned long));
+    const int shifts = bits % (8 * sizeof(unsigned long));
+    unsigned int i;
+
+    if(sizeof(value) > index * sizeof(unsigned long)) {
+        if(shifts == 0) { // this is because (1 >> 32) is not 0 (gcc)
+            memcpy(res.value,
+                   &value[index],
+                   sizeof(value) - index * sizeof(unsigned long));
+        } else {
+            const unsigned long mask = (~(unsigned long) 0) >> (8 * sizeof(unsigned long) - shifts);
+            assert(sizeof(value) >= sizeof(unsigned long));
+            for(i = 0; i < sizeof(value) / sizeof(unsigned long) - index - 1; ++i) {
+                res.value[i] = (value[i+index  ] >> shifts) |
+                    ((value[i+index+1] & mask) << ((8 * sizeof(unsigned long)) - shifts));
+            }
+            res.value[i] = value[i+index] >> shifts;
+        }
+    }
+    return res;
+}
+
+ExtraLongUInt ExtraLongUInt::operator << (const ExtraLongUInt& bits) const
+{
+    return *this << bits.value[0];
+}
+
+ExtraLongUInt ExtraLongUInt::operator >> (const ExtraLongUInt& bits) const
+{
+    return *this >> bits.value[0];
+}
+
+const ExtraLongUInt& ExtraLongUInt::operator <<= (unsigned int bits)
+{
+    *this = *this << bits;
+    return *this;
+}
+
+const ExtraLongUInt& ExtraLongUInt::operator >>= (unsigned int bits)
+{
+    *this = *this >> bits;
+    return *this;
+}
+
+const ExtraLongUInt& ExtraLongUInt::operator &= (const ExtraLongUInt& other)
+{
+    *this = *this & other;
+    return *this;
+}
+
+const ExtraLongUInt& ExtraLongUInt::operator |= (const ExtraLongUInt& other)
+{
+    *this = *this | other;
+    return *this;
+}
+
+const ExtraLongUInt& ExtraLongUInt::operator ^= (const ExtraLongUInt& other)
+{
+    *this = *this ^ other;
+    return *this;
+}
+
+void ExtraLongUInt::print(char* buf) const
+{
+    int i, fin;
+
+    for(i = 8 * sizeof(value) - 1; !(value[i / (8 * sizeof(unsigned long))] &
+                          ((unsigned long) 1 << (i % (8 * sizeof(unsigned long))))) && i > 0; --i)
+        ;
+    for(fin = i; i >= 0; --i) {
+        buf[fin-i] = (value[i / (8 * sizeof(unsigned long))] &
+                     (unsigned long) 1 << (i % (8 * sizeof(unsigned long)))) ?
+                     '1' : '0';
+    }
+    buf[fin+1] = '\0';
+}
+
+unsigned int ExtraLongUInt::bitcount() const
+{
+    unsigned int res = 0;
+    for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
+        res += ::bitcount(value[i]);
+    }
+    return res;
+}
+
+unsigned int ExtraLongUInt::minbit() const
+{
+    for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
+        if(value[i]) {
+            return i * 8 * sizeof(unsigned long) + ::minbit(value[i]);
+        }
+    }
+    assert(false); // value is 0
+    return 0;      // compiler, be quiet.
+}
+
+
+
+// returns bit position of least significant bit in cw_pat
+unsigned int minbit(const ExtraLongUInt& val)
+{
+    return val.minbit();
+}
+
+// returns bit position of least significant bit in cw_pat
+unsigned int bitcount(const ExtraLongUInt& val)
+{
+    return val.bitcount();
 }

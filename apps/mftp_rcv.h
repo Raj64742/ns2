@@ -1,5 +1,5 @@
 /*
- * (c) 1997 StarBurst Communications Inc.
+ * (c) 1997-98 StarBurst Communications Inc.
  *
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -15,28 +15,19 @@
  *
  * Author: Christoph Haenle, chris@cs.vu.nl
  * File: mftp_rcv.h
- * Last change: Jan. 13, 1998
+ * Last change: Dec 07, 1998
  *
  * This software may freely be used only for non-commercial purposes
  */
 
 
+// This file contains functionality specific to an MFTP receiver.
+
 #ifndef mftp_rcv_h
 #define mftp_rcv_h
 
 #include "codeword.h"
-#include "mftp.h"                       // due to MFTPAgent
-
-typedef struct NM_STATS_RCV_t
-{
-    sb_ulong     CurrentGroup;          // current group number within pass
-    CW_PATTERN_t CwPat;                 // used for erasure correction
-    sb_ulong     CurrentPass;           // current pass number
-    sb_ulong     FileDGramsReceived;    // number of datagrams fully received
-    sb_ulong     FseekOffset;           // offset of next file read/write
-    NM_STATS_RCV_t() : CurrentGroup(0), CwPat(0),
-        CurrentPass(0), FileDGramsReceived(0), FseekOffset(0) { };
-} NM_STATS_RCV_t;
+#include "mftp.h"                        // due to class MFTPAgent
 
 
 class MFTPRcvAgent : public MFTPAgent {
@@ -45,26 +36,23 @@ public:
     ~MFTPRcvAgent();
     int command(int argc, const char*const* argv);
     void recv(Packet* p, Handler* h);
-
+    
 protected:
-    typedef sb_uint32 CW_PATTERN_t;
-    //typedef unsigned long long CW_PATTERN_t;
-
     typedef struct {
         CW_PATTERN_t left;
         CW_PATTERN_t right;
     } CW_MATRIXLINE_t;
 
-    sb_void init();
-    sb_void addLine(sb_ulong dtu_nb_from, sb_ulong dtu_nb_to);
-    sb_int  process_frame_no(CW_PATTERN_t cw_pat,
-                             sb_ulong group_nb, sb_ulong dtu_nb);
-    sb_int  findStoreLocation(sb_ulong group_nb, sb_ulong seek_offset, sb_ulong* dtu_nb);
-    sb_void cw_matrixlines_reset();
-    sb_int  group_full(sb_ulong group_nb);
-    sb_int  recv_data(hdr_mftp::Spec::Data& data);
-    sb_void recv_status_req(hdr_mftp::Spec::StatReq& statreq);
-    sb_void send_nak(sb_ulong pass_nb, sb_ulong block_nb);
+    void init();
+    void addLine(unsigned long dtu_nb_from, unsigned long dtu_nb_to);
+    int  process_packet(CW_PATTERN_t cw_pat,
+                        unsigned long group_nb, unsigned long dtu_nb);
+    int  findStoreLocation(unsigned long group_nb, unsigned long seek_offset, unsigned long* dtu_nb);
+    void cw_matrixlines_reset();
+    bool is_group_full(unsigned long group_nb);
+    int  recv_data(hdr_mftp::Spec::Data& data);
+    void recv_status_req(hdr_mftp::Spec::StatReq& statreq);
+    void send_nak(unsigned long pass_nb, unsigned long block_nb);
 
     // The following variables are accessible from tcl-scripts:
 
@@ -73,12 +61,15 @@ protected:
     nsaddr_t reply_;		        // unicast reply-address for status response messages
 
     // The following variables are not accessible from tcl-scripts:
-    NM_STATS_RCV_t nmstats;
-    CW_MATRIXLINE_t* cw_matrixline_buf; // Enables receiver to keep track which coded frames
-                                        // were received and how to interpret the coding
-                                        // Buffer has so many entries as there are frames
+    unsigned long CurrentPass;           // current pass number
+    unsigned long CurrentGroup;          // current group number within pass
+    CW_PATTERN_t  CwPat;                 // current codeword pattern within pass
+    unsigned long FileDGramsReceived;    // number of datagrams fully received so far
+    unsigned long FseekOffset;           // current fseek pointer
+    CW_MATRIXLINE_t* cw_matrixline_buf; // Enables receiver to keep track which coded packets
+                                        // were received and how to interpret the coding.
+                                        // Buffer has as many entries as there are packets
                                         // in the file (i.e. FileDGrams)
-    sb_uchar*   last_dtu_buf;           // stores last dtu
 };
 
 #endif

@@ -1,5 +1,5 @@
 #
-# (c) 1997 StarBurst Communications Inc.
+# (c) 1997-98 StarBurst Communications Inc.
 #
 # THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -15,11 +15,11 @@
 #
 # Author: Christoph Haenle, chris@cs.vu.nl
 # File: mftp_rcv.tcl
-# Last change: Jan. 13, 1998
+# Last change: Dec. 14, 1998
 # This software may freely be used only for non-commercial purposes
 #
 
-
+# standard settings:
 Agent/MFTP/Rcv set dtuSize_ 1424
 Agent/MFTP/Rcv set dtusPerBlock_ 1472
 Agent/MFTP/Rcv set dtusPerGroup_ 8
@@ -62,10 +62,10 @@ Agent/MFTP/Rcv instproc recv { type args } {
     eval $self recv-$type $args
 }
 
-Agent/MFTP/Rcv instproc send { type args } {
-    eval $self evTrace $proc $type $args
-    eval $self send-$type $args
-}
+#Agent/MFTP/Rcv instproc send { type args } {
+#    eval $self evTrace $proc $type $args
+#    eval $self send-$type $args
+#}
 
 Agent/MFTP/Rcv instproc recv-dependent { CurrentPass CurrentGroup CwPat } {
     # discard packet due to a linear dependency (no action)
@@ -79,14 +79,18 @@ Agent/MFTP/Rcv instproc recv-useful { CurrentPass CurrentGroup CwPat } {
     # receive useful packet
 }
 
-Agent/MFTP/Rcv instproc recv-status-req { passNb blockLo blockHi groupLo groupHi txStatusDelay } {
+Agent/MFTP/Rcv instproc recv-status-req { passNb blockLo blockHi txStatusDelay } {
     $self instvar ns_
     set backoff [uniform 0 $txStatusDelay]
-    $ns_ at [expr [$ns_ now] + $backoff] "$self send nak [list $passNb $blockLo $blockHi $groupLo $groupHi]"
+    $ns_ at [expr [$ns_ now] + $backoff] "$self send-nak [list $passNb $blockLo $blockHi]"
 }
 
-Agent/MFTP/Rcv instproc send-nak { passNb blockLo blockHi groupLo groupHi } {
-    $self cmd send nak $passNb $blockLo $blockHi $groupLo $groupHi
+Agent/MFTP/Rcv instproc send-nak { passNb blockLo blockHi } {
+    while { $blockLo <= $blockHi } {
+        set bit_count [$self cmd send nak $passNb $blockLo]
+        $self evTrace send nak $passNb $blockLo $bit_count
+        incr blockLo
+    }
 }
 
 Agent/MFTP/Rcv instproc trace fd {

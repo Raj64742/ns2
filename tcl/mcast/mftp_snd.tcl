@@ -1,5 +1,5 @@
 #
-# (c) 1997 StarBurst Communications Inc.
+# (c) 1997-98 StarBurst Communications Inc.
 #
 # THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -15,11 +15,10 @@
 #
 # Author: Christoph Haenle, chris@cs.vu.nl
 # File: mftp_snd.tcl
-# Last change: Jan. 13, 1998
+# Last change: Nov. 17, 1998
 #
 # This software may freely be used only for non-commercial purposes
 #
-
 
 Agent/MFTP/Snd set dtuSize_ 1424            ;# default size of DTUs (in bytes)
 Agent/MFTP/Snd set dtusPerBlock_ 1472       ;# default number of DTUs per block
@@ -28,7 +27,8 @@ Agent/MFTP/Snd set fileSize_ 1000000        ;# default file size in bytes
 Agent/MFTP/Snd set readAheadBufsize_ 2097152;# default size of read-ahead buffer in bytes
 Agent/MFTP/Snd set interval_ 512000         ;# default transmission rate is 512kbps
 Agent/MFTP/Snd set txStatusLimit_ 100       ;# default max. number of consecutive status requests without NAK
-Agent/MFTP/Snd set txStatusDelay_ 2s        ;# default time to wait for status responses after a request
+Agent/MFTP/Snd set txStatusDelay_ 2         ;# default time to wait for status responses after a request before polling again
+Agent/MFTP/Snd set rspBackoffWindow_ 1      ;# default max. time for receivers to wait before replying with nak(s) after a request
 Agent/MFTP/Snd set reply_ undefined         ;# application _must_ specify the sender address (i.e. the one
                                             ;# to which NAKs are unicast to). Default is "undefined"
 Agent/MFTP/Snd set nakCount_ 0
@@ -37,12 +37,13 @@ Agent/MFTP/Snd set seekCount_ 0             ;# number of disk seeks performed
 Agent/MFTP/Snd instproc init {} {
     $self next
     $self instvar ns_ dtuSize_ dtusPerBlock_ dtusPerGroup_ fileSize_ reply_
-    $self instvar readAheadBufsize_ interval_ txStatusLimit_ txStatusDelay_ nakCount_ seekCount_
+    $self instvar readAheadBufsize_ interval_ txStatusLimit_ txStatusDelay_
+    $self instvar rspBackoffWindow_ nakCount_ seekCount_
 
     set ns_ [Simulator instance]
     foreach var { dtuSize_ dtusPerBlock_ dtusPerGroup_ fileSize_ \
-                      readAheadBufsize_ interval_ txStatusLimit_ txStatusDelay_ \
-                      nakCount_ seekCount_ } {
+                      readAheadBufsize_ interval_ txStatusLimit_ \
+                      txStatusDelay_ rspBackoffWindow_ nakCount_ seekCount_ } {
         $self init-instvar $var
     }
 }
@@ -67,45 +68,46 @@ Agent/MFTP/Snd instproc start {} {
     $self send-data
 }
 
-Agent/MFTP/Snd instproc round-finished { CurrentPass NbBlocks } {
-    $self instvar ns_ dtusPerGroup_ interval_ tx_status_requests_
+Agent/MFTP/Snd instproc pass-finished { CurrentPass NbBlocks } {
+    $self instvar ns_ dtusPerGroup_ interval_ tx_status_requests_ rspBackoffWindow_
 
-    set tx_status_requests_ 0               ;# number of consecutively sent status requests
+    set tx_status_requests_ 0       ;# number of consecutively sent status requests
     if { $CurrentPass >= $dtusPerGroup_ - 1 } {
-        $self send status-req $CurrentPass $NbBlocks
+        $self send status-req $CurrentPass 0 [expr $NbBlocks-1] $rspBackoffWindow_
     } else {
-        # the first dtusPerGroup_ rounds are sent without waiting for NAKs:
+        # the first dtusPerGroup_ passes are sent without waiting for NAKs:
         # re-schedule new "send-data" event
         $ns_ at [expr [$ns_ now] + $interval_] "$self send-data"
     }
 }
 
 
-# send-status-req is called at end-of-round, but only after the dtusPerGroup-th round.
-Agent/MFTP/Snd instproc send-status-req { CurrentPass NbBlocks } {
-    $self instvar ns_ tx_status_requests_
+# send-status-req is called at end-of-pass, but only after the dtusPerGroup-th pass.
+Agent/MFTP/Snd instproc send-status-req { CurrentPass blockLo blockHi rspBackoffWindow } {
+    $self instvar ns_ tx_status_requests_ txStatusDelay_
 
-    $self cmd send statreq $CurrentPass 0 [expr $NbBlocks-1]
+    $self cmd send statreq $CurrentPass $blockLo $blockHi $rspBackoffWindow
     incr tx_status_requests_
-    $ns_ at [expr [$ns_ now] + 2] "$self status-rsp-pending $CurrentPass $NbBlocks"
+    $ns_ at [expr [$ns_ now] + $txStatusDelay_] \
+        "$self status-rsp-pending $CurrentPass $blockLo $blockHi"
 }
 
 
 # status-rsp-pending is called after the status-request packet is sent and
 # if the status-rsp-pending-timer expires.
-Agent/MFTP/Snd instproc status-rsp-pending { CurrentPass NbBlocks } {
-    $self instvar nakCount_ tx_status_requests_ txStatusLimit_
+Agent/MFTP/Snd instproc status-rsp-pending { CurrentPass blockLo blockHi } {
+    $self instvar nakCount_ tx_status_requests_ txStatusLimit_ rspBackoffWindow_
 
     # see if we have at least received 1 NAK
-    # if yes, then start over with new round, i.e. $self send-data
+    # if yes, then start over with new pass, i.e. $self send-data
     # if no, send another status request, i.e. $self send status-req
     if { $nakCount_ > 0 } {
-        # start over with next round:
+        # start over with next pass:
         set nakCount_ 0
         $self send-data
     } elseif { $tx_status_requests_ < $txStatusLimit_ } {
-        # make sure we have not reached the maximum number of status-requests:
-        $self send status-req $CurrentPass $NbBlocks
+        # if we have not reached the maximum number of status-requests:
+        $self send status-req $CurrentPass $blockLo $blockHi $rspBackoffWindow_
     } else {
         # Reached the maximum number of status requests
         $self done
@@ -125,7 +127,6 @@ Agent/MFTP/Snd instproc send { type args } {
 
 # we get here whenever the sender sends a new data packet (callback from send_data)
 Agent/MFTP/Snd instproc send-notify { args } {
-    eval $self evTrace send notify $args
 }
 
 Agent/MFTP/Snd instproc recv-nak { passNb block_nb nak_count} {

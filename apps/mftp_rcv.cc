@@ -1,5 +1,5 @@
 /*
- * (c) 1997 StarBurst Communications Inc.
+ * (c) 1997-98 StarBurst Communications Inc.
  *
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -15,28 +15,12 @@
  *
  * Author: Christoph Haenle, chris@cs.vu.nl
  * File: mftp_rcv.cc
- * Last change: Jan. 13, 1998
+ * Last change: Dec 14, 1998
  *
  * This software may freely be used only for non-commercial purposes
  */
 
-/*
- *
- *   This file is only relevant for the MFTP-client.
- *
- *   PUBLIC FUNCTIONS:
- *
- *   recv                             - process received packet (overloaded function)
- *
- *
- *   PROTECTED FUNCTIONS:
- *
- *   static sb_int findStoreLocation  - finds "nearest" free slot to store a received
- *                                      frame on disk with resp. to current seek-position
- *
- *
- *
- *******************************************************************************/
+// This file contains functionality specific to an MFTP receiver.
 
 
 #include <assert.h>
@@ -44,7 +28,6 @@
 #include "Tcl.h"
 #include "mftp_rcv.h"
 
-#include "codeword.h"            // due to declaration of sb_ulong, etc.
 #include "ip.h"            // due to declaration of hdr_ip
 
 #define min(a, b)       ((a) < (b) ? (a) : (b))
@@ -59,9 +42,13 @@ public:
 
 
 MFTPRcvAgent::MFTPRcvAgent() 
-        : MFTPAgent(),
-          cw_matrixline_buf(NULL),
-          last_dtu_buf(NULL)
+    : MFTPAgent(),
+      CurrentPass(0),
+      CurrentGroup(0),
+      CwPat(0),
+      FileDGramsReceived(0),
+      FseekOffset(0),
+      cw_matrixline_buf(NULL)
 {
     bind("reply_", (int*)&reply_);
 }
@@ -72,19 +59,13 @@ int MFTPRcvAgent::command(int argc, const char*const* argv)
     Tcl& tcl = Tcl::instance();
     if(strcmp(argv[1], "send") == 0) {
         if(strcmp(argv[2], "nak") == 0) {
-            sb_ulong pass_nb, block_lo, block_hi, group_lo, group_hi;
+            unsigned long pass_nb, block_nb;
             int nb_scanned = 0;
 
-            nb_scanned += sscanf(argv[3], "%ul", &pass_nb);
-            nb_scanned += sscanf(argv[4], "%ul", &block_lo);
-            nb_scanned += sscanf(argv[5], "%ul", &block_hi);
-            nb_scanned += sscanf(argv[6], "%ul", &group_lo);
-            nb_scanned += sscanf(argv[7], "%ul", &group_hi);
-            assert(nb_scanned == 5);
-            while(block_lo <= block_hi) {
-                send_nak(pass_nb, block_lo); 
-                block_lo++;
-            }
+            nb_scanned += sscanf(argv[3], "%lu", &pass_nb);
+            nb_scanned += sscanf(argv[4], "%lu", &block_nb);
+            assert(nb_scanned == 2);
+            send_nak(pass_nb, block_nb); 
             return TCL_OK;
         }
     } else if (strcmp(argv[1], "start") == 0) {
@@ -105,9 +86,9 @@ void MFTPRcvAgent::recv(Packet* p, Handler* h)
     hdr_mftp* mh = (hdr_mftp*) p->access(off_mftp_);
 
     if(ih->dst() == 0) {
-        // Packet from local agent
+        // packet from local agent
         fprintf(stderr, "%s: send not allowed with Agent/MFTP/Rcv\n", name_);
-        exit(0);
+        assert(false);
     } else {
         switch(mh->type) {
         case hdr_mftp::PDU_DATA_TRANSFER:
@@ -117,8 +98,7 @@ void MFTPRcvAgent::recv(Packet* p, Handler* h)
             recv_status_req(mh->spec.statReq);
             break;
         case hdr_mftp::PDU_NAK:
-            /* as we are a member of the group as well, we receive all data */
-            /* we have sent. */
+            // as we are a member of the group as well, we receive all data we have sent.
             break;
         default:
             assert(false); // received unknown packet type
@@ -132,11 +112,10 @@ MFTPRcvAgent::~MFTPRcvAgent()
 {
     // Note: delete on a NULL-pointer has no effect
     delete [] cw_matrixline_buf;
-    delete [] last_dtu_buf;
 }
 
 
-sb_void MFTPRcvAgent::init()
+void MFTPRcvAgent::init()
 {
     MFTPAgent::init();
 
@@ -146,73 +125,64 @@ sb_void MFTPRcvAgent::init()
     assert(cw_matrixline_buf != NULL);  // or else no memory is left!
     // should return an error instead of terminating the program
 
-    /* reset array: */
+    // reset array:
     cw_matrixlines_reset();
-
-    // allocate last_dtu_buf
-    assert(last_dtu_buf == NULL);
-    last_dtu_buf = new sb_uchar[dtu_size];
-    assert(last_dtu_buf != NULL);  // or else no memory is left!
-    // should return an error instead of terminating the program
-    memset(last_dtu_buf, 0, dtu_size);
 }
 
 
 /* process a received status request packet */
-sb_void MFTPRcvAgent::recv_status_req(hdr_mftp::Spec::StatReq& statreq)
+void MFTPRcvAgent::recv_status_req(hdr_mftp::Spec::StatReq& statreq)
 {
     Tcl& tcl = Tcl::instance();
 
-    /* read the PDU_STATUS_REQUEST-specific fields: */
-    tcl.evalf("%s recv status-req %lu %lu %lu %lu %lu %lf", name_,
+    // read the PDU_STATUS_REQUEST-specific fields:
+    tcl.evalf("%s recv status-req %lu %lu %lu %lf", name_,
               (unsigned long) statreq.pass_nb,
               (unsigned long) statreq.block_lo,
               (unsigned long) statreq.block_hi,
-              (unsigned long) statreq.group_lo,
-              (unsigned long) statreq.group_hi,
               (double) statreq.RspBackoffWindow);
 }
 
-// function analog to ce_send_stat (ce_tx.c)
-sb_void MFTPRcvAgent::send_nak(sb_ulong pass_nb, sb_ulong block_nb)
+// send a nak packet:
+void MFTPRcvAgent::send_nak(unsigned long pass_nb, unsigned long block_nb)
 {
     assert(FileDGrams > 0);
     assert(0 <= block_nb && block_nb < nb_blocks());
 
-    /* start_group_nb corresponds to first bit of NAK-bitmap: */
-    sb_ulong start_group_nb = dtus_per_block * block_nb;
+    Tcl& tcl = Tcl::instance();
 
-    /* end_group_nb corresponds to last group number of NAK-bitmap plus one */
-    sb_ulong end_group_nb = min(nb_groups, dtus_per_block * (block_nb + 1));
+    // start_group_nb corresponds to first bit of NAK-bitmap:
+    unsigned long start_group_nb = dtus_per_block * block_nb;
 
-    assert(start_group_nb < end_group_nb);
-    /* number of valid bits in the outgoing nak-bitmap */
-    sb_ulong n = end_group_nb - start_group_nb;
+    // end_group_nb corresponds to last group number of NAK-bitmap plus one
+    unsigned long end_group_nb = min(nb_groups, dtus_per_block * (block_nb + 1));
 
-    /* CALCULATE NUMBER OF STATUS BYTES IN PDU (8 DTUS STATUS PER BYTE). */
-    const sb_ulong nak_bytes = (n+7) / 8;
+    // number of valid bits in the outgoing nak-bitmap
+    unsigned long n = end_group_nb - start_group_nb;
 
-    sb_ulong bit_count = 0;
+    // number of status bytes in pdu
+    const unsigned long nak_bytes = (n+7) / 8;
+
+    unsigned long bit_count = 0;
 
     // allocate (get) new packet and dynamically allocate extra space for nak-bitmap:
     Packet* p = Agent::allocpkt((n+7) / 8);
 
-    sb_uint8* byte_p = (sb_uint8*) p->accessdata();
+    unsigned char* nak_bitmap = (unsigned char*) p->accessdata();
 
-    /* clear NAK-bitmap first: */
-    memset(byte_p, 0, nak_bytes);
+    // clear NAK-bitmap first:
+    memset(nak_bitmap, 0, nak_bytes);
     
-    /* LOOP OVER ALL GROUPS IN RANGE OF NAK AND SET NAK-BIT FOR THOSE THAT ARE NOT STILL FULL */
-    /* (CH: complete revision) */
-    for(sb_ulong group_nb = start_group_nb, bit = 1 << (start_group_nb % 8);
+    // loop over all groups in rangs of nak and set nak-bit for those that are not still full
+    for(unsigned long group_nb = start_group_nb, bit = 1 << (start_group_nb % 8);
         group_nb < end_group_nb; ++group_nb) {
-        if(!group_full(group_nb)) {
-            *byte_p |= bit;
+        if(is_group_full(group_nb) == false) {
+            *nak_bitmap |= bit;
             bit_count++;
         }
         if(bit == 128) {
             bit = 1;
-            byte_p++;
+            nak_bitmap++;
         } else {
             bit <<= 1;
         }
@@ -223,7 +193,7 @@ sb_void MFTPRcvAgent::send_nak(sb_ulong pass_nb, sb_ulong block_nb)
         hdr_mftp* hdr = (hdr_mftp*) p->access(off_mftp_);
         hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
 
-        /* now generate the header */
+        // now generate the header
 	iph->dst() = reply_;    // overwrite settings from Agent::allocpkt()
         ch->size() = sizeof(hdr_mftp);
 
@@ -232,91 +202,86 @@ sb_void MFTPRcvAgent::send_nak(sb_ulong pass_nb, sb_ulong block_nb)
         hdr->spec.nak.block_nb  = block_nb;
         hdr->spec.nak.nak_count = bit_count;
 
-        /* transmit frame */
+        // transmit packet
         target_->recv(p);
     }
     else {
-        Packet::free(p);    // do not transmit NAK-packet if it consists of 0 NAK-bits !!
-                            // HACK: @ requires optimation still!
+        Packet::free(p);  // do not transmit NAK-packet if it consists of 0 NAK-bits !!
+                          // HACK: @ requires optimation still!
     }
+    tcl.resultf("%lu", bit_count);
 }
 
-// process_frame_no: decides if a received frame is "useful" and
+// process_packet: decides if a received packet is "useful" and
 // stores meta-information for proper decoding
-sb_int MFTPRcvAgent::process_frame_no(CW_PATTERN_t cw_pat,
-                                      sb_ulong group_nb, sb_ulong dtu_nb)
+int MFTPRcvAgent::process_packet(CW_PATTERN_t cw_pat,
+                                 unsigned long group_nb, unsigned long dtu_nb)
 {
     CW_PATTERN_t bit;
     CW_MATRIXLINE_t new_row;
 
-    sb_ulong j;         /* j iterates over the dtus of group "group_nb" */
-    sb_ulong finish = get_dtus_per_group(group_nb);
-                        /* finish counts the number of dtus in group "group_nb" */
+    unsigned long j;    // j iterates over the dtus of group "group_nb"
+    unsigned long finish = get_dtus_per_group(group_nb);
+                        // finish counts the number of dtus in group "group_nb"
 
     new_row.left = cw_pat;
 
     for(j = 0; j < finish; j++) {
-        /* j iterates over the dtus of group "group_nb" */
-        CW_PATTERN_t line_pat =
-            cw_matrixline_buf[j * nb_groups + group_nb].left;
-        if(line_pat) {
-            bit = new_row.left & ((CW_PATTERN_t) 1 << Codeword::minbit(line_pat));
-            if(bit) {
+        CW_PATTERN_t line_pat = cw_matrixline_buf[j * nb_groups + group_nb].left;
+        if(line_pat != 0) {
+            bit = new_row.left & ((CW_PATTERN_t) 1 << minbit(line_pat));
+            if(bit != 0) {
                 new_row.left ^= line_pat;
             }
         }
-    } /* for j */
-    if(new_row.left) { /* linearly independent? */
-        bit = (CW_PATTERN_t) 1 << Codeword::minbit(new_row.left);
+    }
+    if(new_row.left != 0) { // linear independent?
+        bit = (CW_PATTERN_t) 1 << minbit(new_row.left);
         for(j = 0; j < finish; j++) {
-            /* j iterates over the dtus of group "group_nb" */
-            if(bit & cw_matrixline_buf[j * nb_groups + group_nb].left) {
+            if((bit & cw_matrixline_buf[j * nb_groups + group_nb].left) != 0) {
                 cw_matrixline_buf[j * nb_groups + group_nb].left ^= new_row.left;
             }
         }
-        /* register pattern of codeword the received frame is composed of (possibly altered) */
-        /* must be done at last for that this line gets not erased by XORing with itself */
-        /* in previous loop */
+        // register pattern of codeword the received packet is composed of (possibly altered).
+        // must be done at last for that this line gets not erased by XORing with itself
+        // in the previous loop.
         cw_matrixline_buf[dtu_nb * nb_groups + group_nb].left = new_row.left;
-        return 1; /* frame was a "new" frame (i.e. is linearly independent from the other ones */
-        /* received so far) */
+        return 1; // packet was a "useful" packet (i.e. is linear independent
+                  // from the other ones received so far)
     }
     else {
-        /* linearly dependent codeword-pattern received, i.e. useless */
-        return 0;
+        return 0; //linear dependent codeword-pattern received, i.e. useless
     }
 }
 
 
-sb_int MFTPRcvAgent::findStoreLocation(sb_ulong group_nb, sb_ulong seek_offset, sb_ulong* dtu_nb)
+int MFTPRcvAgent::findStoreLocation(unsigned long group_nb, unsigned long seek_offset, unsigned long* dtu_nb)
 {
-    sb_ulong start_dtu_nb;
+    unsigned long start_dtu_nb;
 
     assert(0 <= group_nb && group_nb < nb_groups);
-    assert(0 <= seek_offset && seek_offset <=
-           dtu_size * (FileDGrams - 1) + end_dtu_size);
     assert(seek_offset % dtu_size == 0 ||
            seek_offset == FileSize);
 
     if(seek_offset == FileSize) {
-        *dtu_nb = group_nb;  /* start over */
+        *dtu_nb = group_nb;    // start over from the beginning
     } else {
-        sb_ulong curr_dtu_nb = nmstats.FseekOffset / dtu_size;
+        unsigned long curr_dtu_nb = FseekOffset / dtu_size;
 
-        /* pay attention to "unsigned" when substracting */
+        // pay attention to "unsigned" when substracting
         *dtu_nb = curr_dtu_nb - curr_dtu_nb % nb_groups;
         *dtu_nb += group_nb;
 
-        /* check if seeking backwards. If yes, increment dtu_nb by nb_groups to */
-        /* always seeks forwards (unless end of file is reached):               */
+        // check if seeking backwards. If yes, increment dtu_nb by nb_groups to
+        // always seeks forwards (unless end of file is reached):
         if(*dtu_nb < curr_dtu_nb) {
             *dtu_nb += nb_groups;
         }
     }
     if(*dtu_nb >= FileDGrams) {
-        /* this might happen if some groups have less packets than */
-        /* dtus_per_group: */
-        *dtu_nb = group_nb;    /* start over from beginning */
+        // this might happen if some groups have less packets than
+        // dtus_per_group:
+        *dtu_nb = group_nb;    // start over from the beginning
     }
     start_dtu_nb = *dtu_nb;
     assert(start_dtu_nb < FileDGrams);
@@ -327,134 +292,137 @@ sb_int MFTPRcvAgent::findStoreLocation(sb_ulong group_nb, sb_ulong seek_offset, 
         }
         *dtu_nb += nb_groups;
         if(*dtu_nb >= FileDGrams) {
-            *dtu_nb = group_nb;    /* start over from beginning */
+            *dtu_nb = group_nb;    // start over from the beginning
         }
     } while(*dtu_nb != start_dtu_nb);
-    return 0;    /* return: group "group_nb" is already full */
+    return 0;    // group "group_nb" is already full
 }
 
 
-/* initializes all matrix-lines to zero, i.e. no (coded) packets at all are received so far: */
-sb_void MFTPRcvAgent::cw_matrixlines_reset()
+// initializes all matrix-lines to zero, i.e. no (encoded) packets
+// at all are received so far:
+void MFTPRcvAgent::cw_matrixlines_reset()
 {
-    assert(FileDGrams > 0);
+    assert(0 <= FileDGrams);
     memset(cw_matrixline_buf, 0, sizeof(CW_MATRIXLINE_t) * FileDGrams);
 }
 
 
-/* returns 1 if group "group_nb" is full, 0 if there is at least one frame missing */
-sb_int MFTPRcvAgent::group_full(sb_ulong group_nb)
+// returns true if group "group_nb" is full, false if there is at least one packet missing
+bool MFTPRcvAgent::is_group_full(unsigned long group_nb)
 {
-    sb_ulong nb_dtus = get_dtus_per_group(group_nb);
-    sb_ulong i;
+    unsigned long nb_dtus = get_dtus_per_group(group_nb);
+    unsigned long i;
 
     assert(0 <= group_nb && group_nb < nb_groups);
 
     for(i = 0; i < nb_dtus &&
-            cw_matrixline_buf[i * nb_groups + group_nb].left; ++i)
+            cw_matrixline_buf[i * nb_groups + group_nb].left != 0; ++i)
         ;
-    return (i == nb_dtus); /* if left loop before nb_dtus was reached, then */
-    /* there is some line in the matrix that is all "0", i.e. a frame is still */
-    /* missing. */
+    return (i == nb_dtus) ? true : false; // if loop was left before nb_dtus was reached,
+                                          // then there is some line in the matrix that is
+                                          // all "0", i.e. a packet is still missing.
 }
 
 // recv_data: process received data packet;
 // takes (received) coded packets and processes them.
-sb_int MFTPRcvAgent::recv_data(hdr_mftp::Spec::Data& data)
+int MFTPRcvAgent::recv_data(hdr_mftp::Spec::Data& data)
 {
     Tcl& tcl = Tcl::instance();
-    sb_ulong seek_offset;
-    sb_ulong dtu_nb; /* position (in terms of datagram number) where incoming */
-    /* frame is stored in file */
+    unsigned long seek_offset;
+    unsigned long dtu_nb; // position (in terms of datagram number) where incoming
+                          // packet is stored in file
     
-    //sb_uchar last_pdu[dtu_size];
-    
-    /* read the PDU_DATA_TRANSFER-specific fields: */
-    nmstats.CurrentPass  = data.pass_nb;
-    nmstats.CurrentGroup = data.group_nb;
-    nmstats.CwPat = data.cw_pat;
+    // read the PDU_DATA_TRANSFER-specific fields:
+    CurrentPass  = data.pass_nb;
+    CurrentGroup = data.group_nb;
+    CwPat = data.cw_pat;
 
-    /* validate fields: */
-    /* (actually, assert should be replaced by just ignoring the packet in case */
-    /* the parameters are invalid, as some corrupt packet might reach the receiver */
-    /* in real world, i.e. this would not be a bug in the software!) */
-    assert(0 <= nmstats.CurrentPass);
-    assert(0 <= nmstats.CurrentGroup && nmstats.CurrentGroup < nb_groups);
-    assert(Codeword::is_valid(nmstats.CwPat, dtus_per_group));
+    // validate fields:
+    // (actually, assert should be replaced by just ignoring the packet in case
+    // the parameters are invalid, as some corrupt packet might reach the receiver
+    // in real world, i.e. this would not be a bug in the software!)
+    assert(0 <= CurrentPass);
+    assert(0 <= CurrentGroup && CurrentGroup < nb_groups);
 
 
-    if(findStoreLocation(nmstats.CurrentGroup, nmstats.FseekOffset, &dtu_nb)) {
-        /* arriving frame belongs to a not already full group: */
-        assert(dtu_nb % nb_groups == nmstats.CurrentGroup);
+    if(findStoreLocation(CurrentGroup, FseekOffset, &dtu_nb)) {
+        // arriving packet belongs to a not already full group:
+        assert(dtu_nb % nb_groups == CurrentGroup);
         assert(0 <= dtu_nb && dtu_nb < FileDGrams);
 
-        if(process_frame_no(nmstats.CwPat,
-                            nmstats.CurrentGroup,
-                            dtu_nb / nb_groups)) {
-            cw_matrixline_buf[dtu_nb].right = nmstats.CwPat;
+        if(process_packet(CwPat,
+                          CurrentGroup,
+                          dtu_nb / nb_groups)) {
+            cw_matrixline_buf[dtu_nb].right = CwPat;
+            // arriving packet is useful (i.e. linearly independent from the others
+            // of the group, thus store packet on disk:
 
-            /* arriving frame is useful (i.e. linearly independent from the others */
-            /* of the group, thus store frame on disk: */
+            char buf[8 * sizeof(CW_PATTERN_t) + 1];
+            CwPat.print(buf);
+            tcl.evalf("%s recv useful %lu %lu %s",
+                      name_,
+                      (unsigned long) CurrentPass,
+                      (unsigned long) CurrentGroup,
+                      (char*) buf);
 
-            tcl.evalf("%s recv useful %lu %lu %lu", name_,
-                      (unsigned long) nmstats.CurrentPass,
-                      (unsigned long) nmstats.CurrentGroup,
-                      (unsigned long) nmstats.CwPat);
                 
             seek_offset = dtu_nb * dtu_size;
             if(dtu_nb == FileDGrams - 1) {
-                /* the last dtu of the file might not fit into the file, as with */
-                /* erasure correction, the dtu size must always be the same,     */
-                /* i.e. dtu_size. So we don't write the packet on disk.    */
-                /* Rather, we store it in a special place in main memory.        */
-                // memcpy(last_dtu_buf, data_p, (sb_int) parm->length);
+                // the last dtu of the file might not fit into the file, as with
+                // erasure correction, the dtu size must always be the same,
+                // i.e. dtu_size. So we don't write the packet on disk.
+                // Rather, we store it in a special place in main memory.
+                // (ommitted)
             } else {
-                /* prepare to write the new packet to the file system: */
-                if(nmstats.FseekOffset != seek_offset) {
+                // prepare to write the new packet to the file system:
+                if(FseekOffset != seek_offset) {
                     // seek to file-position seek_offset (omitted)
-                    nmstats.FseekOffset = seek_offset;
+                    FseekOffset = seek_offset;
                     seekCount_++;
                 }
                 // write data to file here (omitted)
-                nmstats.FseekOffset += dtu_size;
-            } /* else */
-            /* INCREMENT NUMBER OF GOOD DTUS RECEIVED */
-            nmstats.FileDGramsReceived++;
-                
-            /* RESET BIT IN NAK ARRAY TO INDICATE WE'VE RECEIVED THE DTU */
-            /* CH: NEEDS REVISION */
-            /* ((sb_uchar*)(naks))[offset] &= ~(1 << bit); */
-
-            /*
-             * IF ALL PACKETS HAVE NOW BEEN RECEIVED, THEN CLOSE THE DATA FILE,
-             * FREE RESOURCES. SEND A DONE MESSAGE AND CHANGE STATE TO DONE PENDING.
-             */
-
-            if (nmstats.FileDGramsReceived == FileDGrams) {
-                // decode file here (omitted)
-                tcl.evalf("%s done-notify %lu %lu %lu", name_,
-                      (unsigned long) nmstats.CurrentPass,
-                      (unsigned long) nmstats.CurrentGroup,
-                      (unsigned long) nmstats.CwPat);
-
+                FseekOffset += dtu_size;
+            } // else
+            // increment number of good dtus received
+            FileDGramsReceived++;
+            
+            // if all packets have been received, decode the file and send a done-message
+            if (FileDGramsReceived == FileDGrams) {
+                // decode file here. Involves the file, the cw_matrixline_buf-array and
+                // the last packet (cached in memory). Additional disk activity for the
+                // receivers will be required.
+                // (omitted)
+                char buf[8 * sizeof(CW_PATTERN_t) + 1];
+                CwPat.print(buf);
+                tcl.evalf("%s done-notify %lu %lu %s",
+                          name_,
+                          (unsigned long) CurrentPass,
+                          (unsigned long) CurrentGroup,
+                          (char*) buf);
                 return(0);   // we are ready!
             }
-        } /* if(process_frame_no...) */
+        } // if(process_packet...)
         else {
-            tcl.evalf("%s recv dependent %lu %lu %lu", name_,
-                      (unsigned long) nmstats.CurrentPass,
-                      (unsigned long) nmstats.CurrentGroup,
-                      (unsigned long) nmstats.CwPat);
+            char buf[8 * sizeof(CW_PATTERN_t) + 1];
+            CwPat.print(buf);
+            tcl.evalf("%s recv dependent %lu %lu %s",
+                      name_,
+                      (unsigned long) CurrentPass,
+                      (unsigned long) CurrentGroup,
+                      (char*) buf);
+            return(0);   // we are ready!
         }                
-    } /* if(findStoreLocation...) */
+    } // if(findStoreLocation...)
     else {
-        /* we received a frame that belongs to an already full group */
-        tcl.evalf("%s recv group-full %lu %lu %lu", name_,
-                  (unsigned long) nmstats.CurrentPass,
-                  (unsigned long) nmstats.CurrentGroup,
-                  (unsigned long) nmstats.CwPat);
+        // we received a packet that belongs to an already full group
+        char buf[8 * sizeof(CW_PATTERN_t) + 1];
+        CwPat.print(buf);
+        tcl.evalf("%s recv group-full %lu %lu %s",
+                  name_,
+                  (unsigned long) CurrentPass,
+                  (unsigned long) CurrentGroup,
+                  (char*) buf);
     }
     return(0);
 }
-
-  

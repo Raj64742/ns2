@@ -1,5 +1,5 @@
 /*
- * (c) 1997 StarBurst Communications Inc.
+ * (c) 1997-98 StarBurst Communications Inc.
  *
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -15,7 +15,7 @@
  *
  * Author: Christoph Haenle, chris@cs.vu.nl
  * File: codeword.h
- * Last change: Nov. 14, 1997
+ * Last change: Dec 14, 1998
  *
  * This software may freely be used only for non-commercial purposes
  */
@@ -23,67 +23,81 @@
 #ifndef codeword_h
 #define codeword_h
 
-/*
- * The following sb_ definitions were pulled in from sb.h
- * to merge the mftp-specific .h's.
- * begin sb.h:
- */
+#include <unistd.h>   // due to definition of NULL
 
-typedef void            sb_void;
-typedef unsigned        sb_unsigned;
-typedef char            sb_char;
-typedef char            sb_int8;
-typedef unsigned char   sb_uchar;
-typedef unsigned char   sb_uint8;
-typedef int             sb_int;
-typedef int             sb_long;
-typedef unsigned int    sb_ulong;
-typedef unsigned int    sb_uint;
-typedef short           sb_short;
-typedef short           sb_int16;
-typedef unsigned short  sb_ushort;
-typedef unsigned short  sb_uint16;
-typedef long            sb_int32;
-typedef unsigned long   sb_uint32;
-typedef double          sb_double;
+class ExtraLongUInt {
+public:
+    ExtraLongUInt();
+    ExtraLongUInt(const char* val);
+    ExtraLongUInt(int val);
+    ExtraLongUInt(unsigned int val);
+    ExtraLongUInt(unsigned long val);
+    bool          operator ==(const ExtraLongUInt& other) const;
+    bool          operator !=(const ExtraLongUInt& other) const;
+    bool          operator < (const ExtraLongUInt& other) const;
+    bool          operator > (const ExtraLongUInt& other) const;
+    bool          operator <=(const ExtraLongUInt& other) const;
+    bool          operator >=(const ExtraLongUInt& other) const;
+    ExtraLongUInt operator + (const ExtraLongUInt& other) const;
+    ExtraLongUInt operator - (const ExtraLongUInt& other) const;
+    ExtraLongUInt operator & (const ExtraLongUInt& other) const;
+    ExtraLongUInt operator | (const ExtraLongUInt& other) const;
+    ExtraLongUInt operator ^ (const ExtraLongUInt& other) const;
+    ExtraLongUInt operator ~ () const;
+    bool          operator !() const;
+    ExtraLongUInt operator <<(unsigned int bits) const;
+    ExtraLongUInt operator <<(const ExtraLongUInt& bits) const;
+    ExtraLongUInt operator >>(unsigned int bits) const;
+    ExtraLongUInt operator >>(const ExtraLongUInt& bits) const;
+    const ExtraLongUInt& operator <<= (unsigned int bits);
+    const ExtraLongUInt& operator >>= (unsigned int bits);
+    const ExtraLongUInt& operator &=  (const ExtraLongUInt& other);
+    const ExtraLongUInt& operator |=  (const ExtraLongUInt& other);
+    const ExtraLongUInt& operator ^=  (const ExtraLongUInt& other);
+    void print(char* buf) const;
+    unsigned int bitcount() const;
+    unsigned int minbit() const;
+    enum { size = 2 };            // determines size of value (in units of unsigned long).
+                                  // Adjust according to max. group size supported
+protected:
+    unsigned long value[size];
+};
 
-/* end sb.h: */
 
+typedef ExtraLongUInt CW_PATTERN_t; // Codeword-typedef for erasure correction
 
-typedef sb_uint32 CW_PATTERN_t; /* Codeword-typedef for erasure correction  */
-
-typedef struct {                /* Structure for the interna of erasure correction */
+typedef struct {                // Structure for the interna of erasure correction
   CW_PATTERN_t left;
   CW_PATTERN_t right;
 } CW_MATRIXLINE_t;
 
+unsigned int minbit(unsigned long val);
+unsigned int bitcount(unsigned long val);
+int initialize_codeword();
+
+void init_bitcount_array(unsigned char* arr, unsigned int nb_bits);
+void init_minbit_array(unsigned char* arr, unsigned int minbits);
 
 class Codeword
 {
 public:
     Codeword();
-    sb_void setSourceWordLen(sb_ulong k);
+    void setSourceWordLen(unsigned long k);
     CW_PATTERN_t getNextCwPat();
-    CW_PATTERN_t getNextCwPatOLD(sb_ulong dtus_per_group, CW_PATTERN_t cw_pat);
-    static sb_uint minbit(CW_PATTERN_t cw_pat);
-    static sb_uint bit_count(CW_PATTERN_t cw_pat);
-    static int initialize_codeword();
-    static bool is_valid(CW_PATTERN_t cw, sb_ulong k);
+    CW_PATTERN_t getNextCwPatOLD(unsigned long dtus_per_group, CW_PATTERN_t cw_pat);
 
 protected:
-    enum { MAX_DEGREE = 16 };
-    static sb_uchar minbit_array[256];
-    static sb_uchar bitcount_array[256];
-    static CW_PATTERN_t irreducible_polynom[MAX_DEGREE+1];
-    static sb_void init_bitcount_array(sb_uchar* arr, sb_uint nb_bits);
-    static sb_void init_minbit_array(sb_uchar* arr, sb_uint minbits);
+    enum { MAX_DEGREE = 63 };
+    static CW_PATTERN_t primitive_polynomial[MAX_DEGREE+1];
 
-    CW_PATTERN_t k;
+    unsigned int k;
     CW_PATTERN_t n;
-    CW_PATTERN_t cw_saved;
     CW_PATTERN_t cw_index;
-    //unsigned long long cw_index;
     CW_PATTERN_t cw_pat;
+    CW_PATTERN_t cw_saved;
 };
+
+unsigned int minbit(const ExtraLongUInt& val);
+unsigned int bitcount(const ExtraLongUInt& val);
 
 #endif

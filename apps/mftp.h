@@ -1,5 +1,5 @@
 /*
- * (c) 1997 StarBurst Communications Inc.
+ * (c) 1997-98 StarBurst Communications Inc.
  *
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -15,47 +15,52 @@
  *
  * Author: Christoph Haenle, chris@cs.vu.nl
  * File: mftp.h
- * Last change: Dec. 15, 1997
+ * Last change: Dec 07, 1998
  *
  * This software may freely be used only for non-commercial purposes
  */
 
+// This file contains functionality common to both MFTP sender and receivers.
 
 #ifndef mftp_h
 #define mftp_h
 
-#include "codeword.h"  // due to definition of CW_PATTERN_t, and sb_*
+#include "codeword.h"  // due to definition of CW_PATTERN_t
 #include "agent.h"     // due to class Agent
 #include "assert.h"    // due to assert()
 
 
-struct hdr_mftp {
-    enum { PDU_DATA_TRANSFER = 5, PDU_STATUS_REQUEST = 6, PDU_NAK = 7 }; // allowed types of PDU's
-    // (we start numbering with 5 to be conform to the MFTP-spec)
+class hdr_mftp {
+public:
+    enum { PDU_DATA_TRANSFER, PDU_STATUS_REQUEST, PDU_NAK }; // allowed types of PDU's
 
-    sb_int16 type;     // field for PDU-type
-    union Spec {       // specific part of the PDU (different for different types)
-        struct Data {            // PDU_DATA_TRANSFER:
-            sb_ulong pass_nb;
-            sb_ulong group_nb;
+    int type;          // field for PDU-type
+    // instead of "class Spec", should use "union Spec", but doesn't work
+    // since CW_PATTERN_t is a class.
+    class Spec {       // specific part of the PDU (different for different types)
+    public:
+        class Data {            // PDU_DATA_TRANSFER:
+        public:
+            unsigned long pass_nb;
+            unsigned long group_nb;
             CW_PATTERN_t cw_pat;
         } data;
-        struct StatReq {         // PDU_STATUS_REQUEST:
-            sb_ulong pass_nb;    // pass number he status request belongs to
-            sb_ulong block_lo;   // lowest block number requested for NAK-feedback
-            sb_ulong block_hi;   // highest block number requested
-            sb_ulong group_lo;   // lowest group number requested
-            sb_ulong group_hi;   // highest group number requested
-            sb_double RspBackoffWindow; // length of backoff-interval that clients
+        class StatReq {         // PDU_STATUS_REQUEST:
+        public:
+            unsigned long pass_nb;     // pass number the status request belongs to
+            unsigned long block_lo;    // lowest block number requested for NAK-feedback
+            unsigned long block_hi;    // highest block number requested
+            double   RspBackoffWindow; // length of backoff-interval that receivers
             // are supposed to use when generating a random time (from a uniform
             // distribution) before (potentially) sending NACKs.
         } statReq;
-        struct Nak {             // PDU_NAK:
-            sb_ulong pass_nb;
-            sb_ulong block_nb;
-            sb_ulong nak_count;
-            // nak-bitmap can be found in a variable len field that gets dynamically
-            // allocated.
+        class Nak {             // PDU_NAK:
+        public:
+            unsigned long pass_nb;
+            unsigned long block_nb;
+            unsigned long nak_count;
+            // the actual nak-bitmap will be found in a variable length field that
+            // is dynamically allocated.
         } nak;
     } spec;
 };
@@ -65,7 +70,7 @@ protected:
     MFTPAgent();
     int init();
     
-    // Note: the following variables are r/w from within a tcl-script:
+    // the following variables are read/write from within a tcl-script:
     int dtuSize_;
     int fileSize_;
     int dtusPerBlock_;
@@ -75,31 +80,29 @@ protected:
     int off_mftp_;
     int off_cmn_;
 
-    // The following variables are not accessible from tcl-scripts:
-    sb_ulong FileSize;           // size of this file
-    sb_ulong FileDGrams;         // number of datagrams in this transfer
-    sb_ulong dtu_size;           // number of data bytes in a DTU
-    sb_ulong dtus_per_block;     // number of DTUs per block
-    sb_ulong dtus_per_group;     // number of DTUs per group
-    sb_ulong end_dtu_size;	 // size of last dtu in transfer
-    sb_ulong nb_groups;          // number of groups the file consists of
+    // the following variables are not accessible from tcl-scripts:
+    unsigned long FileSize;           // size of file of this transfer
+    unsigned long FileDGrams;         // number of datagrams in this transfer
+    unsigned long dtu_size;           // number of data bytes in a DTU
+    unsigned long dtus_per_block;     // number of DTUs per block
+    unsigned long dtus_per_group;     // number of DTUs per group
+    unsigned long nb_groups;          // number of groups the file consists of
 
-    sb_ulong nb_blocks() const;
-    sb_ulong get_dtus_per_group(sb_ulong group_nb) const;
-
+    unsigned long nb_blocks() const;
+    unsigned long get_dtus_per_group(unsigned long group_nb) const;
 };
-    
-inline sb_ulong MFTPAgent::nb_blocks() const
+
+inline unsigned long MFTPAgent::nb_blocks() const
 {
     return (nb_groups+dtus_per_block-1)/dtus_per_block;
 }
 
-inline sb_ulong MFTPAgent::get_dtus_per_group(sb_ulong group_nb) const
+inline unsigned long MFTPAgent::get_dtus_per_group(unsigned long group_nb) const
 {
     assert(0 <= group_nb && group_nb < nb_groups);
     assert(nb_groups > 0);
 
-    sb_ulong res = FileDGrams / nb_groups;
+    unsigned long res = FileDGrams / nb_groups;
 
     if(group_nb < FileDGrams % nb_groups) {
         res++;

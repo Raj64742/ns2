@@ -1,5 +1,5 @@
 /*
- * (c) 1997 StarBurst Communications Inc.
+ * (c) 1997-98 StarBurst Communications Inc.
  *
  * THIS SOFTWARE IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -15,16 +15,18 @@
  *
  * Author: Christoph Haenle, chris@cs.vu.nl
  * File: mftp.cc
- * Last change: Jan. 13, 1998
+ * Last change: Dec 07, 1998
  *
  * This software may freely be used only for non-commercial purposes
  */
+
+// This file contains functionality common to both MFTP sender and receivers.
 
 #include "mftp.h"
 
 MFTPAgent::MFTPAgent() :
     Agent(PT_MFTP), FileSize(0), FileDGrams(0),
-    dtu_size(0), dtus_per_block(0), dtus_per_group(0), end_dtu_size(0),
+    dtu_size(0), dtus_per_block(0), dtus_per_group(0),
     nb_groups(0)
 {
     bind("dtuSize_", &dtuSize_);
@@ -51,20 +53,8 @@ int MFTPAgent::init()
     dtus_per_group = dtusPerGroup_;
     seekCount_ = 0;
 
-    FileDGrams = FileSize / dtu_size;
-    /* ACCOUNT FOR PARTIAL LAST DTU */
-    if (FileSize % dtu_size) {
-        FileDGrams++;
-        /* STORE PARTIAL LAST DTU SIZE */
-        end_dtu_size = FileSize % dtu_size;
-    } else {
-        end_dtu_size = dtu_size;
-    }
-
-    /* NUMBER OF GROUPS (ZERO-BASED) */
+    FileDGrams = (FileSize + dtu_size - 1) / dtu_size;
     nb_groups = (FileDGrams + dtus_per_group - 1) / dtus_per_group;
 
     return TCL_OK;
 }
-
-
