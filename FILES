@@ -1504,9 +1504,11 @@ tcl/test/test-output-adaptive-red/longlinkAdapt1.Z
 tcl/test/test-output-adaptive-red/notcautious.Z
 tcl/test/test-output-adaptive-red/red1.Z
 tcl/test/test-output-adaptive-red/red1Adapt.Z
+tcl/test/test-output-adaptive-red/red1AdaptFeng.Z
 tcl/test/test-output-adaptive-red/red2.Z
 tcl/test/test-output-adaptive-red/red2A-Adapt.Z
 tcl/test/test-output-adaptive-red/red2Adapt.Z
+tcl/test/test-output-adaptive-red/red2-AdaptFeng.Z 
 tcl/test/test-output-adaptive-red/red3.Z
 tcl/test/test-output-adaptive-red/red3Adapt.Z
 tcl/test/test-output-adaptive-red/red4Adapt.Z
