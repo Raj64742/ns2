@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.3 2001/08/22 01:26:23 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.4 2001/08/22 23:44:12 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -47,30 +47,46 @@ Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
 
+# set style raw2xg
+set style tcpf2xgr
+
 Trace set show_tcphdr_ 1 ;	# needed for plotting ACK numbers
 
+TestSuite instproc finish_new { file wrap wrap1 } {
+}
+
+TestSuite instproc finish_old { file wrap wrap1 } {
+}
+
 TestSuite instproc finish file {
-        global quiet PERL
+        global quiet PERL style
 	set wrap 90
 	set wrap1 [expr $wrap * 512 + 40]
-	set outtype "xgraph"
-	set tfile "xxx.tr"
-	if { $quiet != "true" } {
-		global TCLSH PERL
-		exec rm -f $tfile
-		exec $PERL ../../bin/getrc -b -s 2 -d 3 all.tr > $tfile
-		exec ../../bin/tcpf2xgr -m $wrap1 $TCLSH $tfile $outtype $file
-		exec cp $tfile temp.rands
-		exec rm -f $tfile
-                exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
-	}
-
-#
-#       exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
-#         $PERL ../../bin/raw2xg -s 0.01 -m $wrap1 -t $file > temp.rands
-#       if {$quiet == "false"} {
-#               exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
-#       }
+	if { $style == "tcpf2xgr" } {
+		set outtype "xgraph"
+		set tfile "xxx.tr"
+		if { $quiet != "true" } {
+			global TCLSH PERL
+			exec rm -f $tfile
+			exec $PERL ../../bin/getrc -b -s 2 -d 3 all.tr > $tfile
+			exec ../../bin/tcpf2xgr -m $wrap1 $TCLSH $tfile $outtype $file
+			exec cp $tfile temp.rands
+			exec rm -f $tfile
+	                exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+		}
+ 	} elseif { $style == "raw2xg" } {
+		set space 512
+		exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+		   $PERL ../../bin/raw2xg -n $space -s 0.01 -m $wrap1 -t $file \
+		   > temp.rands
+	#       exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+	#          $PERL ../../bin/raw2xg -a -n $space -s 0.01 -m $wrap1 -t $file > temp1.rands
+	
+		if {$quiet == "false"} {
+			exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+	# 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands temp1.rands &
+		}
+        }
         ## now use default graphing tool to make a data file
         ## if so desired
         exit 0
