@@ -57,7 +57,8 @@ void TrafficGenerator::start()
 
 void TrafficGenerator::stop()
 {
-	timer_.cancel();
+	if (running_)
+		timer_.cancel();
 	running_ = 0;
 }
 
@@ -74,6 +75,8 @@ void TrafficGenerator::timeout()
 	/* schedule it */
 	if (nextPkttime_ > 0)
 		timer_.resched(nextPkttime_);
+	else
+		running_ = 0;
 }
 
 
