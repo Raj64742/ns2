@@ -111,19 +111,17 @@ CtrMcastComp instproc compute-branch { src group member } {
     $self instvar ns treetype 
     $self instvar SPT RPT
 
-    #puts "create $src $member mcast entry until merging with an existing one"
+    # puts "create $src $member mcast entry until merging with an existing one"
 
     ### set (S,G) join target
     if { $treetype($group) == $SPT } {
-	#puts "compute SPT branch: install ($src, $group) cache from $member to $src"
-	
 	set target $src
+	# puts "compute SPT branch: install ($src, $group) cache from $member to $src"
     } elseif { $treetype($group) == $RPT } {
-	#puts "compute RPT branch"
-
         set n [$ns set Node_($member)]
 	set RP [$self get_rp $n $group]
 	set target $RP
+	# puts "compute RPT branch, to $RP"
     }
 
 
@@ -137,7 +135,7 @@ CtrMcastComp instproc compute-branch { src group member } {
 	if {$tmp == $target} {
 	    if {$treetype($group) == $SPT || $tmp == $src} {
 		#when the member is also the source
-		set iif -2
+		set iif -1
 	    } else {
 		#when member is at RP, find iif from RP to source
 		set upstreamtmp [[$ns get-node-by-id $tmp] rpf-nbr $src]	
@@ -163,19 +161,19 @@ CtrMcastComp instproc compute-branch { src group member } {
 	set r [$node getReps $src $group]
 	if { $r != "" } {
 	    if [$r is-active] {
-		### reach merging point
+		# puts "reach merging point, r exist & active"
 		if { $oiflist != "" } {
 		    $r insert [lindex $oiflist 0]
 		}
 		return 1
 	    } else {
-		### hasn't reached merging point, so continue to insert the oif
+		# puts "hasn't reached merging point, so continue to insert the oif"
 		if { $oiflist != "" } {
 		    $r insert [lindex $oiflist 0]
 		}
 	    }
 	} else {
-	    ### hasn't reached merging point, so keep creating (S,G) like a graft
+	    # puts "hasn't reached merging point, so keep creating (S,G) like a graft, $src, $group, $iif, $oiflist"
 	    $node add-mfc $src $group $iif $oiflist
 	}
 

@@ -48,16 +48,18 @@ set cbr0 [new Agent/CBR]
 $ns attach-agent $n0 $cbr0
 $cbr0 set dst_ 0x8002
  
-set rcvr [new Agent/LossMonitor]
-$ns attach-agent $n3 $rcvr
-$ns attach-agent $n4 $rcvr
-$ns attach-agent $n5 $rcvr
+set rcvr3 [new Agent/LossMonitor]
+set rcvr4 [new Agent/LossMonitor]
+set rcvr5 [new Agent/LossMonitor]
+$ns attach-agent $n3 $rcvr3
+$ns attach-agent $n4 $rcvr4
+$ns attach-agent $n5 $rcvr5
 
-$ns at 0.2 "$n3 join-group $rcvr 0x8002"
-$ns at 0.4 "$n4 join-group $rcvr 0x8002"
-$ns at 0.6 "$n3 leave-group $rcvr 0x8002"
-$ns at 0.7 "$n5 join-group $rcvr 0x8002"
-$ns at 0.8 "$n3 join-group $rcvr 0x8002"
+$ns at 0.2 "$n3 join-group $rcvr3 0x8002"
+$ns at 0.4 "$n4 join-group $rcvr4 0x8002"
+$ns at 0.6 "$n3 leave-group $rcvr3 0x8002"
+$ns at 0.7 "$n5 join-group $rcvr5 0x8002"
+$ns at 0.8 "$n3 join-group $rcvr3 0x8002"
 
 #### Link between n0 & n1 down at 1.0, up at 1.2
 $ns rtmodel-at 1.0 down $n0 $n1

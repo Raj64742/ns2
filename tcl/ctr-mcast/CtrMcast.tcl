@@ -168,8 +168,8 @@ CtrMcast instproc handle-cache-miss { srcID group iface } {
 
 	    ### create (S,G,iif=-2) entry
 	    set oiflist "$encapagent"
-	    $Node add-mfc-reg $srcID $group -2 $oiflist
-	    #puts "creat (S,G) oif to register $srcID $group -2 $oiflist"
+	    $Node add-mfc-reg $srcID $group -1 $oiflist
+	    #puts "creat (S,G) oif to register $srcID $group -1 $oiflist"
 	}
     
 	### add into global source list
@@ -293,6 +293,7 @@ Node instproc add-mfc-reg { src group iif oiflist } {
     # leave the replicator in place even when it's empty since
     # the replicator::drop callback triggers the prune.
     #
+    # puts "add-rep in add-mcf-reg: $src $group $iif"
     $multiclassifier_ add-rep $r $src $group $iif
 }
 
