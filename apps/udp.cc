@@ -15,6 +15,11 @@
  * These notices must be retained in any copies of any part of this software.
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.2 1997/07/22 21:43:21 kfall Exp $ (Xerox)";
+#endif
+
 #include "udp.h"
 #include "rtp.h"
 #include "Tcl.h"
@@ -24,7 +29,7 @@
 static class UDP_AgentClass : public TclClass {
  public:
 	UDP_AgentClass() : TclClass("Agent/CBR/UDP") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new UDP_Agent());
 	}
 } class_source_agent;
