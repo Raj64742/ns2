@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.428 2000/10/17 21:47:04 yaxu Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.429 2000/10/20 12:29:01 polly Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -21,10 +21,20 @@ ns-2.1b7</a> [PENDING]</h3>
 <ul>
 
 <li>
+<b><a href="http://www.tik.ee.ethz.ch/~huang">[PH]</a></b> <b>
+Fri Oct 20 14:18:48 CEST 2000</b></li>
+<br>Two bug fixes related to massive web traffic simulations:
+<ul>
+<li> memory leak fix in tcl/http/htto-mod.tcl for those still 
+using the old web traffic generator code
+<li> bug fix in ReassemblyQueue::add(), full-tcp.cc, according to
+Li Fan's <a href="http://www.isi.edu/nsnam/archive/ns-users/webarch/2000/msg00551.html">report</a> on 10 Feb 2000
+</ul>
+
+<li>
 <b><a href="http://netweb.usc.edu/yaxu/">[yaxu]</a></b> <b>
 Mon Oct 16 21:01:42 PDT 2000 </b></li>
 ns 2.1b7 released
-
 
 <li>
 <b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> <b>Fri Oct 13

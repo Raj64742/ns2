@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.82 2000/09/01 03:04:07 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.83 2000/10/20 12:29:02 polly Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -2300,6 +2300,11 @@ endfast:
 			} else {
 				// insert in the middle or end
 				n->next_ = p->next_;
+				// Bug fix: provided by Li Fan(Feb 2000)
+				// point p->next_->prev_ to n
+				if(p->next_)
+                                        p->next_->prev_= n;
+				// end of Bug fix
 				p->next_ = n;
 				n->prev_ = p;
 				if (p == tail_)

@@ -3,8 +3,8 @@
 # phuang@research.att.com, huang@isi.edu
 # Ported from UCB Empirical HTTP code, http.tcl
 
-puts "WARNING: Obsoleted by PagePool/WebTraf."
-puts "See ~ns/tcl/webcache/webtraf.{h,cc} and web-traffic.tcl in tcl/ex"
+#puts "WARNING: Obsoleted by PagePool/WebTraf."
+#puts "See ~ns/tcl/webcache/webtraf.{h,cc} and web-traffic.tcl in tcl/ex"
 
 ##################### Class: HttpSession #######################
 Agent/CBR set maxpkts_ 0
@@ -12,12 +12,13 @@ Class HttpSession
 HttpSession set sessionId_ 1
 
 HttpSession instproc init { ns numPage sessionSrc } {
-    $self instvar httpPages_ numPage_ interPage_ pageSize_ 
+    $self instvar httpPages_ numPage_ interPage_ pageSize_  donePage_
     $self instvar ns_ sessionId_ sessionSrc_
     $self instvar tcpType_ tcpSinkType_
 
     set ns_ $ns
     set numPage_ $numPage
+    set donePage_ 0
     set sessionId_ [HttpSession set sessionId_]
     HttpSession set sessionId_ [expr $sessionId_ + 1]
     set sessionSrc_ $sessionSrc
@@ -117,13 +118,30 @@ HttpSession instproc setDistribution { var distribution args } {
 	interObject_ {
 	    foreach index [array name httpPages_] {
 		$httpPages_($index) set $var $model
+		$self set interObject_ $model
 	    }
 	}
 	objectSize_  {
 	    foreach index [array name httpPages_] {
 		$httpPages_($index) set $var $model
+		$self set objectSize_ $model
 	    }
 	}
+    }
+}
+
+HttpSession instproc doneOnePage {} {
+    $self instvar interPage_ pageSize_ numPage_ donePage_ 
+    $self instvar interObject_ objectSize_
+
+    incr donePage_
+    # puts "doneOnePage: $numPage_ $donePage_"
+    if {$donePage_ == $numPage_} {    
+	delete $interPage_ 
+	delete $pageSize_
+	delete $interObject_
+	delete $objectSize_
+	delete $self
     }
 }
 
@@ -133,7 +151,7 @@ HttpPage set pageId_ 1
 
 HttpPage instproc init { ns sessionId } {
     $self instvar httpObjects_ numObject_ interObject_ objectSize_ 
-    $self instvar ns_ sessionId_ pageId_ curObject_
+    $self instvar ns_ sessionId_ pageId_ curObject_ doneObject_
     $self instvar tcpType_ tcpSinkType_
 
     set ns_ $ns
@@ -146,6 +164,7 @@ HttpPage instproc init { ns sessionId } {
     # default numObject_ to 1 object/session
     set numObject_ 1
     set curObject_ 0
+    set doneObject_ 0
     # default interObject_ interval to 1 second/object
     if ![info exist interObject_] {
 	set interObject_ [new RandomVariable/Constant]
@@ -184,6 +203,19 @@ HttpPage instproc start {} {
     }
 }
 
+HttpPage instproc doneOneObject {} {
+    $self instvar interObject_ objectSize_ doneObject_ numObject_
+    $self instvar sessionManager_
+
+    incr doneObject_
+    # puts "doneOneObject: $numObject_ $doneObject_"
+    if {$doneObject_ == $numObject_} {
+	#delete $interObject_
+	#delete $objectSize_
+	$sessionManager_ doneOnePage
+	delete $self
+    }
+}
 
 ##################### Class: HttpObject ##############################
 Class HttpObject -superclass InitObject
@@ -257,7 +289,7 @@ HttpObject instproc start {} {
     $self instvar clientSink_ serverSink_
     $self instvar disable_reliability_ disable_flow_control_ windowInit_
 
-    puts "$numPacket_ \t $objectId_ \t $pageId_ \t $sessionId_ \t [$ns_ now]"
+    # puts "$numPacket_ \t $objectId_ \t $pageId_ \t $sessionId_ \t [$ns_ now]"
 
     if {[info exist disable_reliability_] && $disable_reliability_} {
 	$clientTCP_ disable-reliability
@@ -317,6 +349,7 @@ HttpObject instproc doneReply {} {
     $self instvar numPacket_ ns_
     $self instvar clientSrc_ serverSrc_  clientSink_ serverSink_
     $self instvar clientNode_ serverNode_ clientTCP_ serverTCP_ objectId_
+    $self instvar pageManager_
 
     # puts "$objectId_ doneReply: server([$serverNode_ id]) client([$clientNode_ id]) replied obj size($numPacket_) [$ns_ now]"
     $serverNode_ instvar idleTCP_
@@ -337,6 +370,8 @@ HttpObject instproc doneReply {} {
 	puts "[$clientNode_ id] doneReply: using idle TCP Sink $serverSink_, $idleTCPSink_"
 	exit
     }
+    $pageManager_ doneOneObject
+    delete $self
 }
 
 #####################################################################
