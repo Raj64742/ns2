@@ -41,7 +41,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/pi.cc,v 1.1 2001/06/15 23:41:10 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/pi.cc,v 1.2 2001/06/27 18:31:53 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -310,12 +310,8 @@ int PIQueue::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "edrop-trace") == 0) {
 			if (EDTrace != NULL) {
 				tcl.resultf("%s", EDTrace->name());
-				if (debug_) 
-					printf("edrop trace exists according to PI\n");
 			}
 			else {
-				if (debug_)
-					printf("edrop trace doesn't exist according to PI\n");
 				tcl.resultf("0");
 			}
 			return (TCL_OK);
@@ -357,18 +353,12 @@ int PIQueue::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "edrop-trace") == 0) {
-			if (debug_) 
-				printf("Ok, Here\n");
 			NsObject * t  = (NsObject *)TclObject::lookup(argv[2]);
-			if (debug_)  
-				printf("Ok, Here too\n");
 			if (t == 0) {
 				tcl.resultf("no object %s", argv[2]);
 				return (TCL_ERROR);
 			}
 			EDTrace = t;
-			if (debug_)  
-				printf("Ok, Here too too too %d\n", ((Trace *)EDTrace)->type_);
 			return (TCL_OK);
 		}
 		if (!strcmp(argv[1], "packetqueue-attach")) {
