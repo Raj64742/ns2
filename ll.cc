@@ -33,10 +33,14 @@
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.5 1997/07/22 22:03:39 kfall Exp $ (UCB)";
+#endif
+
 #include "errmodel.h"
 #include "mac.h"
 #include "ll.h"
-
 
 static class LLHeaderClass : public PacketHeaderClass {
 public:
@@ -47,7 +51,7 @@ public:
 static class LLClass : public TclClass {
 public:
 	LLClass() : TclClass("LL") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new LL);
 	}
 } class_ll;
