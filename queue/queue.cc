@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.6 1997/02/27 04:38:55 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.7 1997/03/25 22:22:13 kannan Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -114,4 +114,10 @@ void Queue::resume()
 		target_->recv(p, &qh_);
 	else
 		blocked_ = 0;
+}
+
+void Queue::reset()
+{
+	while (Packet* p = deque())
+		drop(p);
 }

@@ -38,10 +38,11 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.3 1997/02/22 05:30:10 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.4 1997/03/25 22:22:14 kannan Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
+#include <assert.h>
 #include "Tcl.h"
 
 #define INFINITY 0x3fff
@@ -56,6 +57,7 @@ protected:
 	void check(int);
 	void alloc(int n);
 	void insert(int src, int dst);
+	void reset(int src, int dst);
 	void compute_routes();
 	int* adj_;
 	int* route_;
@@ -96,6 +98,16 @@ int RouteLogic::command(int argc, const char*const* argv)
 			insert(src, dst);
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "reset") == 0) {
+			int src = atoi(argv[2]) + 1;
+			int dst = atoi(argv[3]) + 1;
+			if (src <= 0 || dst <= 0) {
+				tcl.result("negative node number");
+				return (TCL_ERROR);
+			}
+			reset(src, dst);
+			return (TCL_OK);
+		}
 		if (strcmp(argv[1], "lookup") == 0) {
 			if (route_ == 0) {
 				tcl.result("routes not computed");
@@ -110,7 +122,8 @@ int RouteLogic::command(int argc, const char*const* argv)
 			tcl.resultf("%d", route_[INDEX(src, dst, size_)] - 1);
 			return (TCL_OK);
 		}
-	} return (TclObject::command(argc, argv));
+	}
+	return (TclObject::command(argc, argv));
 }
 
 RouteLogic::RouteLogic()
@@ -166,6 +179,13 @@ void RouteLogic::insert(int src, int dst)
 	check(src);
 	check(dst);
 	adj_[INDEX(src, dst, size_)] = 1;
+}
+
+void RouteLogic::reset(int src, int dst)
+{
+	assert(src < size_);
+	assert(dst < size_);
+	adj_[INDEX(src, dst, size_)] = INFINITY;
 }
 
 void RouteLogic::compute_routes()

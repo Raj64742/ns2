@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.7 1997/03/17 23:23:38 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.8 1997/03/25 22:22:15 kannan Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -59,37 +59,17 @@ public:
 /*
  * tcl command interface
  */
-class HopTraceClass : public TclClass {
+class TraceClass : public TclClass {
 public:
-	HopTraceClass() : TclClass("Trace/Hop") { }
-	TclObject* create(int argc, const char*const* argv) {
-		return (new Trace('h'));
+	TraceClass() : TclClass("Trace") { }
+	TclObject* create(int args, const char*const* argv) {
+		if (args >= 5)
+			return (new Trace(*argv[4]));
+		else
+			return NULL;
 	}
-} hop_trace_class;
+} trace_class;
 
-class EnqueTraceClass : public TclClass {
-public:
-	EnqueTraceClass() : TclClass("Trace/Enque") { }
-	TclObject* create(int argc, const char*const* argv) {
-		return (new Trace('+'));
-	}
-} enque_trace_class;
-
-class DequeTraceClass : public TclClass {
-public:
-	DequeTraceClass() : TclClass("Trace/Deque") { }
-	TclObject* create(int argc, const char*const* argv) {
-		return (new Trace('-'));
-	}
-} deque_trace_class;
-
-class DropTraceClass : public TclClass {
-public:
-	DropTraceClass() : TclClass("Trace/Drop") { }
-	TclObject* create(int argc, const char*const* argv) {
-		return (new Trace('d'));
-	}
-} drop_trace_class;
 
 Trace::Trace(int type)
 	: type_(type), channel_(0), callback_(0), src_(0), dst_(0)

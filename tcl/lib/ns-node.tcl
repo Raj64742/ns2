@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.7 1997/03/16 02:15:59 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.8 1997/03/25 22:22:18 kannan Exp $
 #
 
 Class Node
@@ -166,4 +166,12 @@ Node instproc reset {} {
 	foreach a $agents_ {
 		$a reset
 	}
+}
+
+#
+# Some helpers
+#
+Node instproc neighbors {} {
+    $self instvar neighbor_
+    return $neighbor_
 }

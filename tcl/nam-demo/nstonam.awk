@@ -4,6 +4,9 @@
 #ns fmt:
 #	eventCode time src dst pktType size flags class src.sport dst.dport
 #		seqno uid
+$1 ~ /v/ {
+	print $0
+}
 $1 ~ /[dh+-]/ {
 	print $1, $2, $3, $4, $6, $8, $5, $8, $12
 	if ($1 == "h") {

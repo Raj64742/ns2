@@ -1513,7 +1513,7 @@ if test "$d" != "" ; then
 	V_LIB_OTCL=FAIL
 	for f in $places; do
 		if test -r $f/libotcl.a ; then
-			V_LIB_OTCL=$f
+			V_LIB_OTCL="-L$f -lotcl"
 			break
 		fi
 	done

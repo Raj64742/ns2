@@ -1,15 +1,69 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.35 1997/03/25 22:04:10 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.36 1997/03/25 22:22:08 kannan Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
 
 </ul>
 
+<! I think that this ChangeLog is updated in the reverse order, right? >
+<! with the most recent changes coming first? >
+
 <hr>
 <h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a14.tar.gz>ns-2.0a14</a>
 <i>Tue Mar 25 14:00:35 PST 1997</i></h3>
 <i>Snapshot for alpha testers.</i>
 <ul>
+
+<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<i>Tue Mar 25 09:16:33 PST 1997</i><br>
+Fix auto configuration so that libotcl.a is found when the directory is
+explicitly specified using --with-otcl.<br>
+Files affected: conf/configure.in.otcl, configure</p>
+
+<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<i>Tue Mar 25 09:16:33 PST 1997</i><br>
+Change Tracing so that trace elements can be created and used entirely
+via OTcl if the tracing is unrelated to packet activity.<br>
+See rtModel::init, rtModel::trace, and rtModel::log-dynamic in
+tcl/rtglib/dynamics.tcl for how to use.<br>
+Files affected:  Makefile.in, trace.cc, tcl/lib/ns-lib.tcl,
+tcl/lib/ns-trace.tcl (<b>new</b>)</p>
+
+<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<i>Tue Mar 25 09:16:33 PST 1997</i><br>
+
+Add dynamics to links and nodes so that portions of the topology can be
+made to fail and recover.  The failure and recovery can be controlled
+through distributions.<br>
+Usage:<pre>        set ns [new Simulator]
+        $ns rtmodel &lt;Distribution&gt; {&lt;up-time&gt; &lt;down-time&gt;} &lt;node1&gt; [&lt;node2&gt;]</pre>
+A distribution (Distribution) can be specified either to a single node
+(node1) or to a single link (between node1 and node2).
+The up-time (down-time) is a parameter for the distribution to specify
+how long the specified node/link will be up (down) before changing state
+to being down (up).<br>
+Files affected: Makefile.in, connector.cc, delay.cc,
+dynalink.cc (<b>new</b>), queue.cc, queue.h,
+tcl/lib/ns-lib.tcl, tcl/lib/ns-node.tcl, tcl/rtglib/dynamics.tcl (<b>new</b>),
+tcl/ex/simple-dyn.tcl (<b>new</b>),
+tcl/ex/dynamic-nam.tcl(<b>new</b>),
+tcl/nam-demo/nstonam.awk.</p>
+
+<li><b><a href=http://www.isi.edu/~kannan/>[KVa]</a></b>
+<i>Tue Mar 25 09:16:33 PST 1997</i><br>
+Add dynamic routing to deal with topology changes (<em>work in progress</em>).
+Currently, the basic all-pairs-spf routing has been modified to fit a
+more uniform API.  Also complete is a session-level routing,
+(<i>i.e.</i>, the all-pairs-spf static routing used to precompute routes
+prior to starting the simulation, and run everytime the topology
+changes).<br>
+Usage:<pre>        set ns [new Simulator]
+        $ns run [Static|Session]</pre>
+Note:  Additional more detailed configuration hooks will soon become
+available, as well as other routing protocols.<br>
+Files affected: Makefile.in, tcl/lib/ns-lib.tcl,
+tcl/rtglib/route-proto.tcl (<b>new</b>),
+tcl/ex/simple-rtg.tcl (<b>new</b>).</p>
 
 <li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
 Added heap.h to FILES.

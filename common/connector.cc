@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.cc,v 1.2 1997/03/07 20:36:17 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.cc,v 1.3 1997/03/25 22:22:11 kannan Exp $";
 #endif
 
 #include "connector.h"
@@ -60,6 +60,9 @@ int Connector::command(int argc, const char*const* argv)
 			if (target_ != 0)
 				tcl.result(target_->name());
 			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "dynamic") == 0) {
+			return TCL_OK;
 		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "target") == 0) {

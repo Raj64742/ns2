@@ -27,6 +27,7 @@ connector.cc
 connector.h
 delay.cc
 drop-tail.cc
+dynalink.cc
 example.tcl
 heap.h
 install-sh
@@ -64,10 +65,13 @@ scoreboard.h
 session-rtp.cc
 sfq.cc
 tcl-expand.tcl
+tcl/ex/dynamic-nam.tcl
 tcl/ex/mcast.tcl
 tcl/ex/mcast-nam.tcl
 tcl/ex/simple-nam.tcl
 tcl/ex/simple.tcl
+tcl/ex/simple-dyn.tcl
+tcl/ex/simple-rtg.tcl
 tcl/ex/simple-rtp.tcl
 tcl/ex/srm-demo.tcl
 tcl/ex/rtp-nam.tcl
@@ -80,10 +84,13 @@ tcl/lib/ns-mcast.tcl
 tcl/lib/ns-nam.tcl
 tcl/lib/ns-node.tcl
 tcl/lib/ns-source.tcl
+tcl/lib/ns-trace.tcl
 tcl/nam-demo/nstonam.awk
 tcl/old/ns_default.tcl
 tcl/old/test-suite.tcl
 tcl/test/route-test.tcl
+tcl/rtglib/dynamics.tcl
+tcl/rtglib/route-proto.tcl
 tcl/rtp/session-rtp.tcl
 tcp-newreno.cc
 tcp-reno.cc

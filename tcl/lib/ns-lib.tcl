@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.14 1997/03/16 02:15:59 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.15 1997/03/25 22:22:18 kannan Exp $
 #
 
 #
@@ -47,7 +47,10 @@ source ns-default.tcl
 source ns-compat.tcl
 source ns-nam.tcl
 source ns-packet.tcl
+source ns-trace.tcl
 source ../rtp/session-rtp.tcl
+source ../rtglib/dynamics.tcl
+source ../rtglib/route-proto.tcl
 
 Simulator instproc init args {
 	eval $self next $args
@@ -95,8 +98,9 @@ Simulator instproc cancel args {
 	return [eval $scheduler_ cancel $args]
 }
 
-Simulator instproc run { } {
-	$self compute-routes
+Simulator instproc run args {
+	#$self compute-routes
+	eval RouteLogic configure $args
 	$self instvar scheduler_ Node_
 	#
 	# Reset every node, which resets every agent
@@ -226,12 +230,20 @@ Simulator instproc compute-routes {} {
 	#
 	# Compute all the routes using the route-logic helper object.
 	#
-	set r [new RouteLogic]
+	if [info exists routingTable_] {
+		set r $routingTable_
+	} else {
+		set r [new RouteLogic]
+	}
 	foreach ln [array names link_] {
 		set L [split $ln :]
 		set srcID [lindex $L 0]
 		set dstID [lindex $L 1]
-		$r insert $srcID $dstID
+	        if { [$link_($ln) up?] == "up" } {
+			$r insert $srcID $dstID
+		} else {
+			$r reset $srcID $dstID
+		}
 	}
 	$r compute
 	#$r dump $nn
@@ -248,8 +260,12 @@ Simulator instproc compute-routes {} {
 		set j 0
 		while { $j < $n } {
 			if { $i != $j } {
-				set nexthop [$r lookup $i $j]
-				$n1 add-route $j [$link_($i:$nexthop) head]
+			        # shortened nexthop to nh, to fit add-route in
+			        # a single line
+				set nh [$r lookup $i $j]
+			        if { $nh >= 0 } {
+					$n1 add-route $j [$link_($i:$nh) head]
+				}
 			} 
 			incr j
 		}
@@ -263,6 +279,21 @@ Simulator instproc compute-routes {} {
 #
 # Here are a bunch of helper methods.
 #
+
+Simulator instproc get-node-by-id id {
+    $self instvar Node_
+    return $Node_($id)
+}
+
+Simulator instproc all-nodes-list {} {
+    $self instvar Node_
+    array names Node_
+}
+
+Simulator instproc link { n1 n2 } {
+    $self instvar link_
+    return $link_([$n1 id]:[$n2 id])
+}
 
 #
 # debugging method to dump table (see route.cc for C++ methods)
