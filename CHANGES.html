@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.375 1999/12/10 20:02:38 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.376 1999/12/15 01:04:28 kkumar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -24,6 +24,21 @@
 <ul>
 
     <p>
+  <LI><B><A HREF="http://www.isi.edu/~kkumar/">[kkumar]</A></B>
+       <b>Tue Dec 14 16:53:45 PST 1999 </b><br>
+       Updated code for the landmark hierarchy construction protocol, a
+       simple flood agent, tags database and the associated tag query
+       agent. Added code to enable tag mobility. agent-list.{h,cc}
+       provides a list of routing agents that is used for tag mobility.
+       Affected files:
+         Under ns-2/sensor-nets/ :
+             landmark.h landmark.cc flood-agent.h flood-agent.cc
+	     tags.h tags.cc sensor-query.h sensor-query.cc 
+	     agent-list.h agent-list.cc
+	 Under ns-2/tcl/mobility/ :
+	     landmark.tcl,flood.tcl
+	 Example script in ns-2/tcl/ex/wireless-landmark.tcl
+
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Fri Dec 10 11:58:57 PST 1999</b><br>
        Hyun-ah implemented code to move TCP to delayed binding.

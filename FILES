@@ -518,6 +518,16 @@ scoreboard.h
 semantic-packetqueue.cc
 semantic-packetqueue.h
 semantic-red.cc
+sensor-nets/agent-list.cc
+sensor-nets/agent-list.h
+sensor-nets/flood-agent.cc
+sensor-nets/flood-agent.h
+sensor-nets/landmark.cc
+sensor-nets/landmark.h
+sensor-nets/sensor-query.cc
+sensor-nets/sensor-query.h
+sensor-nets/tags.cc
+sensor-nets/tags.h
 session-rtp.cc
 sessionhelper.cc
 sfq.cc
@@ -756,6 +766,8 @@ tcl/mcast/timer.tcl
 tcl/mobility/com.tcl
 tcl/mobility/dsdv.tcl
 tcl/mobility/dsr.tcl
+tcl/mobility/flood.tcl
+tcl/mobility/landmark.tcl
 tcl/mobility/scene/cbr-3-test
 tcl/mobility/scene/cbr-50-20-4-512
 tcl/mobility/scene/loopize
