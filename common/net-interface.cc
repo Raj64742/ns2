@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/net-interface.cc,v 1.4 1997/07/25 02:21:02 polly Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/net-interface.cc,v 1.5 1997/08/10 08:47:08 ahelmy Exp $ (USC/ISI)";
 #endif
 
 #include "connector.h"
@@ -33,9 +33,11 @@ class NetworkInterface : public Connector {
 public:
 	NetworkInterface() : intf_label_(-1) {
 		bind("off_cmn_", &off_cmn_);
+		bind("intf_label_", &intf_label_);
 	}
 	NetworkInterface(int32_t lbl) : intf_label_(lbl) {
 		bind("off_cmn_", &off_cmn_);
+		bind("intf_label_", &intf_label_);
 	}
 	int command(int argc, const char*const* argv);
 	void recv(Packet* pkt, Handler* h) {
