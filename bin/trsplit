@@ -9,8 +9,8 @@ eval 'exec perl -S $0 ${1+"$@"}'
 
 sub Usage
 {
-    $0 =~ s/.*\/([^\/]+)$/$1/;
-    print <<EOF;
+	$0 =~ s/.*\/([^\/]+)$/$1/;
+	print <<EOF;
 Split ns trace file into files for individual connection
 Usage:  $0 [options] files
 options: -d   delim:  deliminator for spliting the data fields or columns
@@ -26,37 +26,37 @@ options: -d   delim:  deliminator for spliting the data fields or columns
 	 -csrc	source address column
 	 -cdst	destination address column
 EOF
-    exit;
+	exit;
 }
 
 sub getopt
 {
-    local($val);
-    &Usage if ($#ARGV < 0);
-    while ($_ = $ARGV[0], /^-/) {
-	shift @ARGV;
-	if (/^-d$/) {
-	    $delim = shift @ARGV;
+	local($val);
+	&Usage if ($#ARGV < 0);
+	while ($_ = $ARGV[0], /^-/) {
+		shift @ARGV;
+		if (/^-d$/) {
+			$delim = shift @ARGV;
+		}
+		elsif (/^-(pt|fid)$/) {
+			# concat to get list of values for a field in the trace
+			$val = shift @ARGV;
+			s/-(\w+)/\$$1/;
+			eval "$_ = $_ . '$val '";
+		}
+		elsif (/^-(tt|psize|c|ctt|cpt|ctime|csrc|cdst)$/) {
+			$val = shift @ARGV;
+			s/-(\w+)/\$$1/;
+			eval "$_ = '$val'";
+		}
+		elsif (/^-(f)$/) {
+			s/-(\w+)/$1/;
+			$opt{$_} = 1;
+		}
+		else {
+			last;
+		}
 	}
-	elsif (/^-(pt|fid)$/) {
-	    # concat new value to get list of values for a field in the trace
-	    $val = shift @ARGV;
-	    s/-(\w+)/\$$1/;
-	    eval "$_ = $_ . '$val '";
-	}
-	elsif (/^-(tt|psize|c|ctt|cpt|ctime|csrc|cdst)$/) {
-	    $val = shift @ARGV;
-	    s/-(\w+)/\$$1/;
-	    eval "$_ = '$val'";
-	}
-	elsif (/^-(f)$/) {
-	    s/-(\w+)/$1/;
-	    $opt{$_} = 1;
-	}
-	else {
-	    last;
-	}
-    }
 }
 
 
@@ -88,53 +88,53 @@ $cpt--; $cfid--; $csrc--; $cdst--; $cseq--;
 # process the trace file
 while (<>)
 {
-    chop;
-    @col = split($delim);
-    $count{$col[0]}++;
-    next if ($col[0] ne $tt);
-    next if !grep(/$col[$cpt]/, $pt);
-    next if !grep(/$col[$cfid]/, $fid);
+	chop;
+	@col = split($delim);
+	$count{$col[0]}++;
+	next if ($col[0] ne $tt);
+	next if !grep(/$col[$cpt]/, $pt);
+	next if !grep(/$col[$cfid]/, $fid);
 
-    $src = $col[$csrc];
-    $dst = $col[$cdst];
-    $key = "$col[$cpt].$src.$dst";
-    $time{$key} = $col[$ctime];
-    $pktcnt{$key}++;
-    $seqno{$key} = $col[$cseq];
+	$src = $col[$csrc];
+	$dst = $col[$cdst];
+	$key = "$col[$cpt].$src.$dst";
+	$time{$key} = $col[$ctime];
+	$pktcnt{$key}++;
+	$seqno{$key} = $col[$cseq];
 
-    if ($opt{f}) {
-	$fd = $opened{$key};
-	if (! $fd) {
-	    $opened{$key} = $fd = $fdcount++;
-	    open($fd, ">$ARGV.$key");
+	if ($opt{f}) {
+		$fd = $opened{$key};
+		if (! $fd) {
+			$opened{$key} = $fd = $fdcount++;
+			open($fd, ">$ARGV.$key");
+		}
+		printf $fd "%0.6f\t%d\n", $col[$ctime], $col[$cseq];
 	}
-	printf $fd "%0.6f\t%d\n", $col[$ctime], $col[$cseq];
-    }
 }
 
 
 # print the per-connection information to STDOUT
 @keys = sort (keys %time);
 foreach $key (@keys) {
-    $t = $time{$key};
-    $s = $seqno{$key};
-    if ($s > $pktcnt{$key}) {
-	$s = $pktcnt{$key};
-    }
-    $maxtime = $t  if ($t > $maxtime);
-    $maxpkt += $s;
-    printf("%s\t%0.6f\t%d\t%0.6f\t%0.6f\n",
-	   $key, $t, $s, $s/$t, 0.008 * $psize * $s/$t);
+	$t = $time{$key};
+	$s = $seqno{$key};
+	if ($s > $pktcnt{$key}) {
+		$s = $pktcnt{$key};
+	}
+	$maxtime = $t  if ($t > $maxtime);
+	$maxpkt += $s;
+	printf("%s\t%0.6f\t%d\t%0.6f\t%0.6f\n",
+	       $key, $t, $s, $s/$t, 0.008 * $psize * $s/$t);
 }
 
 # print summary information to STDERR
 if ($maxtime > 0) {
-    printf STDERR " %d\t%0.6f\t%s\t",
+	printf STDERR " %d\t%0.6f\t%s\t",
 	$#keys+1, 0.008 * $psize * $maxpkt / $maxtime, $c;
 
-    @keys = sort (keys %count);
-    foreach $key (@keys) {
-	print STDERR $key, $count{$key}, " ";
-    }
-    print STDERR "\n";
+	@keys = sort (keys %count);
+	foreach $key (@keys) {
+		print STDERR $key, $count{$key}, " ";
+	}
+	print STDERR "\n";
 }
