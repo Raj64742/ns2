@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.11 1997/11/01 02:17:20 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.12 1997/11/01 02:32:51 kfall Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -45,16 +45,8 @@ source misc.tcl
 source topologies.tcl
 catch "cd $dir"
 
-set flowfile fairflow.tr
-set flowgraphfile fairflow.xgr
-set pthresh 100
-
-# to generate flow graph with unforced drops:
-#       set category 1
-#       set awkprocedure unforcedmakeawk
-# to generate flow graph with forced drops:
-#       set category 0
-#       set awkprocedure forcedmakeawk
+set flowfile fairflow.tr; # file where flow data is written
+set flowgraphfile fairflow.xgr; # file given to graph tool 
 
 TestSuite instproc finish file {
 	global quiet
@@ -597,18 +589,23 @@ Test/flows-unforced instproc run {} {
 	set awkprocedure_ unforcedmakeawk
 	set dump_pthresh_ 100
 
-	[$ns_ link $node_(r1) $node_(r2)] set mean_pktsize 1000
-	[$ns_ link $node_(r2) $node_(r1)] set mean_pktsize 1000
-	[$ns_ link $node_(r1) $node_(r2)] set linterm 10
-	[$ns_ link $node_(r2) $node_(r1)] set linterm 10
-	[$ns_ link $node_(r1) $node_(r2)] set queue-limit 100
-	[$ns_ link $node_(r2) $node_(r1)] set queue-limit 100
+	set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
+	set revq [[$ns_ link $node_(r2) $node_(r1)] queue]
+
+	$forwq set mean_pktsize_ 1000
+	$revq set mean_pktsize_ 1000
+
+	$forwq set linterm_ 10
+	$revq set linterm_ 10
+
+	$forwq set limit_ 100
+	$revq set limit_ 100
 
 	$self create_flowstats 
 	$self dumpflows 10.0
 
-	[$ns_ link $node_(r1) $node_(r2)] set bytes true
-	[$ns_ link $node_(r1) $node_(r2)] set wait false
+	$forwq set bytes_ true
+	$revq set wait_ false
 
         $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
 	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
@@ -638,18 +635,23 @@ Test/flows-forced instproc run {} {
 	set awkprocedure_ forcedmakeawk
 	set dump_pthresh_ 100
 
-	[$ns_ link $node_(r1) $node_(r2)] set mean_pktsize 1000
-	[$ns_ link $node_(r2) $node_(r1)] set mean_pktsize 1000
-	[$ns_ link $node_(r1) $node_(r2)] set linterm 10
-	[$ns_ link $node_(r2) $node_(r1)] set linterm 10
-	[$ns_ link $node_(r1) $node_(r2)] set queue-limit 100
-	[$ns_ link $node_(r2) $node_(r1)] set queue-limit 100
-
-	$self create_flowstats 
-	$self dumpflows 10.0
-
-	[$ns_ link $node_(r1) $node_(r2)] set bytes true
-	[$ns_ link $node_(r1) $node_(r2)] set wait false
+        set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
+        set revq [[$ns_ link $node_(r2) $node_(r1)] queue]
+    
+        $forwq set mean_pktsize_ 1000
+        $revq set mean_pktsize_ 1000
+    
+        $forwq set linterm_ 10 
+        $revq set linterm_ 10 
+        
+        $forwq set limit_ 100 
+        $revq set limit_ 100
+        
+        $self create_flowstats
+        $self dumpflows 10.0
+    
+        $forwq set bytes_ true
+        $revq set wait_ false
 
         $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
 	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
@@ -679,18 +681,23 @@ Test/flows-combined instproc run {} {
 	set awkprocedure_ allmakeawk
 	set dump_pthresh_ 100
 
-	[$ns_ link $node_(r1) $node_(r2)] set mean_pktsize 1000
-	[$ns_ link $node_(r2) $node_(r1)] set mean_pktsize 1000
-	[$ns_ link $node_(r1) $node_(r2)] set linterm 10
-	[$ns_ link $node_(r2) $node_(r1)] set linterm 10
-	[$ns_ link $node_(r1) $node_(r2)] set queue-limit 100
-	[$ns_ link $node_(r2) $node_(r1)] set queue-limit 100
-
-	$self create_flowstats 
-	$self dumpflows 10.0
-
-	[$ns_ link $node_(r1) $node_(r2)] set bytes true
-	[$ns_ link $node_(r1) $node_(r2)] set wait false
+        set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
+        set revq [[$ns_ link $node_(r2) $node_(r1)] queue]
+    
+        $forwq set mean_pktsize_ 1000
+        $revq set mean_pktsize_ 1000
+    
+        $forwq set linterm_ 10 
+        $revq set linterm_ 10 
+        
+        $forwq set limit_ 100 
+        $revq set limit_ 100
+        
+        $self create_flowstats
+        $self dumpflows 10.0
+    
+        $forwq set bytes_ true
+        $revq set wait_ false
 
         $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
 	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
