@@ -71,7 +71,7 @@
 #include "tcp-session.h"
 #include "random.h"
 
-class Islist<TcpSessionAgent> TcpSessionAgent::sessionList_;
+Islist<TcpSessionAgent> TcpSessionAgent::sessionList_;
 
 static class IntTcpClass : public TclClass {
 public:

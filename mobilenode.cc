@@ -41,21 +41,21 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <connector.h>
-#include <delay.h>
-#include <packet.h>
-#include <random.h>
-
-//#include <debug.h>
-#include <arp.h>
-#include <topography.h>
-#include <trace.h>
-#include <ll.h>
-#include <mac.h>
-#include <propagation.h>
-#include <mobilenode.h>
-
-static LIST_HEAD(, MobileNode)      nodehead = { 0 };
+#include "connector.h"
+#include "delay.h"
+#include "packet.h"
+#include "random.h"
+  
+  //#include <debug.h>
+#include "arp.h"
+#include "topography.h"
+#include "trace.h"
+#include "ll.h"
+#include "mac.h"
+#include "propagation.h"
+#include "mobilenode.h"
+  
+static LIST_HEAD(nodehead, MobileNode)      nodehead = { 0 };
 
 static int	MobileNodeIndex = 1;
 

@@ -37,7 +37,7 @@ public:
 Filter::Filter() : filter_target_(0) 
 {
 }
-Filter::filter_e Filter::filter(Packet* p) 
+Filter::filter_e Filter::filter(Packet* /*p*/) 
 {
 	return PASS;  // As simple connector
 }

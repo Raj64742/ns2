@@ -50,15 +50,15 @@
 #define ns_phy_h
 
 #include <assert.h>
-#include <bi-connector.h>
-#include <list.h>
+#include "bi-connector.h"
+#include "list.h"
 
 class Phy;
 LIST_HEAD(if_head, Phy);
 
-#include <channel.h>
-#include <node.h>
-#include <mac.h>
+#include "channel.h"
+#include "node.h"
+#include "mac.h"
 
 class Node;
 /*--------------------------------------------------------------

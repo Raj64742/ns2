@@ -37,7 +37,7 @@
    hdr_sr.h
 
    source route header
-   $Id: hdr_sr.h,v 1.2 1999/01/04 19:59:10 haldar Exp $
+   $Id: hdr_sr.h,v 1.3 1999/03/13 03:53:17 haoboy Exp $
 */
 #ifndef sr_hdr_h
 #define sr_hdr_h
@@ -137,4 +137,4 @@ struct hdr_sr {
 };
 
 
-#endif sr_hdr_h
+#endif  // sr_hdr_h

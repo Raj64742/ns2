@@ -131,7 +131,7 @@ void TBF::timeout(int)
 	}
 }
 
-void TBF_Timer::expire(Event */*e*/)
+void TBF_Timer::expire(Event* /*e*/)
 {
 	tbf_->timeout(0);
 }

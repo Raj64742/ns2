@@ -36,7 +36,7 @@
 /* -*- c++ -*-
    dsragent.h
 
-   $Id: dsragent.h,v 1.2 1999/01/04 20:03:24 haldar Exp $
+   $Id: dsragent.h,v 1.3 1999/03/13 03:53:17 haoboy Exp $
    */
 
 #ifndef _DSRAgent_h
@@ -46,12 +46,12 @@ class DSRAgent;
 
 #include <stdarg.h>
 
-#include <object.h>
-#include <agent.h>
-#include <trace.h>
-#include <packet.h>
-#include <priqueue.h>
-#include <mac.h>
+#include "object.h"
+#include "agent.h"
+#include "trace.h"
+#include "packet.h"
+#include "priqueue.h"
+#include "mac.h"
 
 #include "path.h"
 #include "srpacket.h"
@@ -219,7 +219,7 @@ private:
   void snoopForRouteReplies(Time t, Packet *p);
   
 friend void RouteReplyHoldoffCallback(Node *node, Time time, EventData *data);
-#endif 0
+#endif // 0
 
   /* the following variables are used to send end-of-sim notices to all objects */
 public:

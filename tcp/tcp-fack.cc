@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.21 1998/12/11 22:49:05 heideman Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.22 1999/03/13 03:53:04 haoboy Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -43,9 +43,9 @@ public:
 } class_fack;
 
 
-FackTcpAgent::FackTcpAgent() : wintrim_(0), wintrimmult_(.5),
-	rampdown_(0), fack_(-1), retran_data_(0), ss_div4_(0),
-	timeout_(FALSE)
+FackTcpAgent::FackTcpAgent() : 	timeout_(FALSE), wintrim_(0),
+	wintrimmult_(.5), rampdown_(0), fack_(-1), retran_data_(0),
+	ss_div4_(0)		// What about fastrecov_ and scb_
 {
 	bind_bool("ss-div4_", &ss_div4_);
 	bind_bool("rampdown_", &rampdown_);

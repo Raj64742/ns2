@@ -34,16 +34,16 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.19 1999/01/04 19:45:05 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.20 1999/03/13 03:52:42 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
 #define ns_channel_h
 
-#include <object.h>
-#include <packet.h>
-#include <phy.h>
-#include <node.h>
+#include "object.h"
+#include "packet.h"
+#include "phy.h"
+#include "node.h"
 
 class Trace;
 class Node;

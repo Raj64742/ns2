@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.11 1999/03/09 05:20:43 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.12 1999/03/13 03:53:21 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -284,12 +284,13 @@ int HttpApp::command(int argc, const char*const* argv)
 				// Tolerate it
 				return TCL_OK;
 			}
-			char *buf = strdup(argv[4]);
+			char *buf = new char[strlen(argv[4])+1];
+			strcpy(buf, argv[4]);
 			HttpNormalData *d = 
 				new HttpNormalData(id_, bytes, buf);
 			cnc->send(bytes, d);
 			delete d;
-			free(buf);
+			delete []buf;
 			return TCL_OK;
 		
 		} else if (strcmp(argv[1], "enter-page") == 0) {

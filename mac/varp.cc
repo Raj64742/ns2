@@ -33,9 +33,9 @@
  * SUCH DAMAGE.
  */
 
-#include <varp.h>
-#include <mac.h>
-#include <packet.h>
+#include "varp.h"
+#include "mac.h"
+#include "packet.h"
 
 
 static class VARPTableClass : public TclClass {
@@ -60,6 +60,7 @@ void VARPTable::sizeinit(int n)
 {
 	int *temp = maddr_;
 	int osize = size_;
+	int i; 
 	
 	if (size_ == 0)
 		size_ = 10;
@@ -67,9 +68,9 @@ void VARPTable::sizeinit(int n)
 		while(!(n < size_))
 			size_ = 2*size_;
 	maddr_ = new int[size_];
-	for (int i=0;i<osize;i++)
+	for (i=0;i<osize;i++)
 		maddr_[i] = temp[i];
-	for (int i=osize;i<size_;i++)
+	for (i=osize;i<size_;i++)
 		maddr_[i] = -1;
 	delete [] temp;
 }

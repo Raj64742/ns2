@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.70 1998/11/24 19:12:47 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.71 1999/03/13 03:53:04 haoboy Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1992,7 +1992,7 @@ ReassemblyQueue::gensack(int *sacks, int maxsblock)
 	//
 
 	double max;
-	register i;
+	register int i;
 	seginfo *maxp, *maxq;
 
 	for (i = 0; i < maxsblock; ++i) {

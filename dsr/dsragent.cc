@@ -39,27 +39,25 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.5 1999/02/18 02:19:26 yuriy Exp $
+   $Id: dsragent.cc,v 1.6 1999/03/13 03:53:16 haoboy Exp $
 */
 
-extern "C" {
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
 #include <signal.h>
 #include <float.h>
-}
 
-#include <object.h>
-#include <agent.h>
-#include <trace.h>
-#include <packet.h>
-#include <scheduler.h>
-#include <random.h>
+#include "object.h"
+#include "agent.h"
+#include "trace.h"
+#include "packet.h"
+#include "scheduler.h"
+#include "random.h"
 
-#include <mac.h>
-#include <ll.h>
-#include <cmu-trace.h>
+#include "mac.h"
+#include "ll.h"
+#include "cmu-trace.h"
 
 #include "path.h"
 #include "srpacket.h"
@@ -85,7 +83,7 @@ Time rt_rq_max_period = 10.0;	// (sec) maximum time between rt reqs
 Time rt_rep_holdoff_period = 3.0e-3; // secs (about 2*process_time)
 // to determine how long to sit on our rt reply we pick a number
 // U(O.0,rt_rep_holdoff_period) + (our route length-1)*rt_rep_holdoff
-#endif 0
+#endif // 0
 
 Time grat_hold_down_time = 1.0;	// (sec) min time between grat replies for
 				// same route
@@ -860,7 +858,7 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
 
 
 void
-DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay = 0.0)
+DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
      // take packet and send it out, packet must a have a route in it
      // return value is not very meaningful
      // if fresh is true then reset the path before using it, if fresh
@@ -1904,5 +1902,5 @@ DSRAgent::snoopForRouteReplies(Time t, Packet *p)
     }
 }
 
-#endif 0
+#endif // 0
 

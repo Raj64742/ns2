@@ -49,8 +49,8 @@ protected:
 	void get_mask(nsmask_t *mask, int fieldsize);
 	void alloc(int n);
 	bool check_size(int n);
-	bool AllocAddr::find_free(int len, int *pos);
-	bool AllocAddr::test(int which);
+	bool find_free(int len, int *pos);
+	bool test(int which);
 	void set_field(int offset, int len, nsmask_t *mask, int *shift);
 	void free_field(int len);
 	void mark(int i);

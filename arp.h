@@ -37,9 +37,13 @@
 #ifndef __arp_h__
 #define __arp_h__
 
-#include <scheduler.h>
-#include <delay.h>
-#include <list.h>
+#include "scheduler.h"
+#include "delay.h"
+#include "list.h"
+
+#ifndef EADDRNOTAVAIL
+#define EADDRNOTAVAIL 125
+#endif /* !EADDRNOTAVAIL */
 
 class LinkDelay;
 class ARPEntry;

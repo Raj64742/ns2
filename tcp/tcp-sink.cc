@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.33 1999/03/05 18:45:33 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.34 1999/03/13 03:53:08 haoboy Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -263,7 +263,7 @@ void DelAckSink::timeout(int)
 	Packet::free(pkt);
 }
 
-void DelayTimer::expire(Event */*e*/) {
+void DelayTimer::expire(Event* /*e*/) {
 	a_->timeout(0);
 }
 
@@ -284,7 +284,7 @@ public:
 	int& head_left(int n = 0) { return SFE_[n].left_; }
 	int cnt() { return cnt_; }
 	void reset() {
-		register i;
+		register int i;
 		for (i = 0; i < cnt_; i++)
 			SFE_[i].left_ = SFE_[i].right_ = -1;
 
@@ -293,14 +293,14 @@ public:
 
 	inline void push(int n = 0) {
  		if (cnt_ >= size_) cnt_ = size_ - 1;  // overflow check
-		register i;
+		register int i;
 		for (i = cnt_-1; i >= n; i--)
 			SFE_[i+1] = SFE_[i];	// not efficient for big size
 		cnt_++;
 	}
 
 	inline void pop(int n = 0) {
-		register i;
+		register int i;
 		for (i = n; i < cnt_-1; i++)
 			SFE_[i] = SFE_[i+1];	// not efficient for big size
 		SFE_[i].left_ = SFE_[i].right_ = -1;
@@ -310,7 +310,7 @@ public:
 
 SackStack::SackStack(int sz)
 {
-	register i;
+	register int i;
 	size_ = sz;
 	SFE_ = new Sf_Entry[sz];
 	for (i = 0; i < sz; i++)

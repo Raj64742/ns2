@@ -31,20 +31,20 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.58 1999/03/12 20:39:01 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.59 1999/03/13 03:52:59 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
 #define ns_packet_h
 
-#include <config.h>
-#include <scheduler.h>
 #include <string.h>
 #include <assert.h>
 
-#include <object.h>
-#include <list.h>
-#include <packet-stamp.h>
+#include "config.h"
+#include "scheduler.h"
+#include "object.h"
+#include "list.h"
+#include "packet-stamp.h"
 
 
 #define RT_PORT		255	/* port that all route msgs are sent to */

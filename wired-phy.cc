@@ -91,7 +91,7 @@ void WiredPhy::sendDown(Packet *p)
 }
 
 
-int WiredPhy::sendUp(Packet *p)
+int WiredPhy::sendUp(Packet *)
 {
 	/*
 	 * Sanity Check

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.24 1999/01/04 19:59:07 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.25 1999/03/13 03:53:10 haoboy Exp $
  */
 
 #ifndef ns_trace_h
@@ -41,7 +41,7 @@
 #define NUMFLAGS 7
 
 #include <math.h> // floor
-#include <packet.h>
+#include "packet.h"
 #include "connector.h"
 
 
@@ -74,7 +74,7 @@ class Trace : public Connector {
 	// differences :
 	// use round(Scheduler::instance().clock()) instead of 
 	// Scheduler::instance().clock().
-	static const double PRECISION= 1.0e+6; //keep six digits after the decimal
+	static const double PRECISION; //keep six digits after the decimal
 	static double round (double x, double precision=PRECISION) {
 		return (double)floor(x*precision + 0.5)/precision;
 	}

@@ -45,12 +45,12 @@
 #define __god_h
 
 #include <stdarg.h>
-#include <bi-connector.h>
-#include <object.h>
-#include <packet.h>
-#include <trace.h>
+#include "bi-connector.h"
+#include "object.h"
+#include "packet.h"
+#include "trace.h"
 
-#include <node.h>
+#include "node.h"
 
 class God : public BiConnector {
 public:

@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* mobicache.cc
-   $Id: mobicache.cc,v 1.2 1999/01/04 19:59:11 haldar Exp $
+   $Id: mobicache.cc,v 1.3 1999/03/13 03:53:18 haoboy Exp $
 
    cache used in the mobicom 98 submission.  see the paper for a description
 */
@@ -552,7 +552,7 @@ done:
       ptr += sprintf(ptr,"%s [%d %.9f] ",p[c].dump(), p[c].link_type, p[c].t);
     routecache->trace(buf);
   }
-#endif DEBUG
+#endif // DEBUG
 
   // freshen all the timestamps on the links in the cache
   for (m = 0 ; m < size ; m++)
@@ -572,7 +572,7 @@ done:
       ptr += sprintf(ptr,"%s [%d %.9f] ",p[c].dump(), p[c].link_type, p[c].t);
     routecache->trace(buf);
   }
-#endif DEBUG
+#endif // DEBUG
       
       for (n = 0 ; n < cache[m].length() - 1 ; n ++)
 	{ // for all nodes in the path
@@ -586,7 +586,7 @@ routecache->trace("Sdebug %.9f _%s_ freshening %s->%s to %d %.9f",
 		  Scheduler::instance().clock(), routecache->net_id.dump(),
 		  path[n].dump(), path[n+1].dump(), path[n].link_type,
 		  path[n].t);
-#endif DEBUG
+#endif // DEBUG
 
 	      cache[m][n].t = path[n].t;
 	      cache[m][n].link_type = path[n].link_type;

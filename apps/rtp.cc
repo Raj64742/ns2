@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.23 1998/12/09 00:39:14 haldar Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.24 1999/03/13 03:53:02 haoboy Exp $";
 #endif
 
 
@@ -228,7 +228,7 @@ void RTPAgent::makepkt(Packet* p)
 	rh->srcid() = session_ ? session_->srcid() : 0;
 }
 
-void RTPTimer::expire(Event */*e*/) {
+void RTPTimer::expire(Event* /*e*/) {
         a_->timeout(0);
 }
 

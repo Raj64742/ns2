@@ -38,7 +38,7 @@
 #ifndef ns_app_h
 #define ns_app_h
 
-#include <tclcl.h>
+#include "tclcl.h"
 #include "packet.h"
 #include "agent.h"
 #include "process.h"

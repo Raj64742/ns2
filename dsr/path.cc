@@ -36,7 +36,7 @@
 /* path.cc
 
    handles source routes
-   $Id: path.cc,v 1.3 1999/02/14 00:56:19 haoboy Exp $
+   $Id: path.cc,v 1.4 1999/03/13 03:53:18 haoboy Exp $
 */
 
 extern "C" {
@@ -360,7 +360,7 @@ Path::unparse(FILE *out) const
 char *
 Path::dump() const
 {
-  static which = 0;
+  static int which = 0;
   static char buf[4][100];
   char *ptr = buf[which];
   char *rtn_buf = ptr;

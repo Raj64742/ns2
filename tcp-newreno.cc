@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.36 1998/11/05 23:27:25 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.37 1999/03/13 03:53:06 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -71,8 +71,8 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
 		if (tcph->seqno() > last_ack_) // assertion
 			deflate = tcph->seqno() - last_ack_;
 		else 
-		  	printf("False call to partialnewack:  deflate %u 
-			    last_ack_ %d\n", deflate, last_ack_);
+		  	printf("False call to partialnewack:  deflate %u \
+last_ack_ %d\n", deflate, last_ack_);
 		if (dupwnd_ > deflate)
 			dupwnd_ -= (deflate - 1);
 		else {
@@ -108,7 +108,7 @@ void NewRenoTcpAgent::partialnewack_helper(Packet* pkt)
 }
 
 int
-NewRenoTcpAgent::allow_fast_retransmit(int last_cwnd_action_)
+NewRenoTcpAgent::allow_fast_retransmit(int /* last_cwnd_action_*/)
 {
 	return 0;
 }

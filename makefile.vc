@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.15 1998/11/05 00:07:44 yaxu Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.16 1999/03/13 03:52:53 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -46,7 +46,7 @@ INSTALL	= @INSTALL@
 LN	= ln
 TEST	= test
 RM	= rm -f
-PERL	= perl
+PERL	= @PERL@
 
 
 CCOPT	= @V_CCOPT@
@@ -119,18 +119,35 @@ OBJ_CC = \
 	semantic-packetqueue.o semantic-red.o ack-recons.o \
 	sfq.o fq.o drr.o cbq.o \
 	hackloss.o errmodel.o \
-	delay.o ll.o snoop.o \
-	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o \
+	delay.o snoop.o \
 	dynalink.o rtProtoDV.o net-interface.o \
 	ctrMcast.o mcast_ctrl.o srm.o \
 	sessionhelper.o delaymodel.o srm-ssm.o \
 	srm-topo.o \
+	mftp.o mftp_snd.o mftp_rcv.o codeword.o \
 	alloc-address.o address.o \
 	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
 	$(LIB_DIR)dmalloc_support.o \
 	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
 	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o \
-	lanRouter.o tfcc.o filter.o
+	lanRouter.o tfcc.o filter.o pkt-counter.o \
+	Decapsulator.o Encapsulator.o \
+	channel.o mac.o ll.o \
+	mac-802_11.o \
+	mac-802_3.o \
+	mip.o mip-reg.o \
+	propagation.o tworayground.o antenna.o omni-antenna.o \
+	bi-connector.o node.o mobilenode.o \
+	arp.o god.o dem.o topography.o modulation.o priqueue.o \
+	phy.o wired-phy.o wireless-phy.o \
+	mac-timers.o cmu-trace.o varp.o \
+	dsdv/dsdv.o dsdv/rtable.o \
+	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
+	dsr/requesttable.o dsr/routecache.o \
+	process.o 
+#	rap/raplist.o rap/rap.o rap/rapsink.o rap/utilities.o 
+#mac-csma.o mac-multihop.o\
+
 
 # what was here before is now in emulate/
 OBJ_C =
@@ -167,7 +184,7 @@ OBJ_EMULATE_CC = \
 OBJ_EMULATE_C = \
 	emulate/inet.o
 
-OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o
+OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o $(GEN_DIR)ptypes.o
 
 SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
 	$(OBJ_EMULATE_C:.o=.c) $(OBJ_EMULATE_CC:.o=.cc) \
@@ -177,16 +194,12 @@ OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) tclAppInit.o \
-	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE)
+	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE) \
+	ptypes2tcl ptypes2tcl.o
 
 $(NS): $(OBJ) tclAppInit.o Makefile
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
 		tclAppInit.o $(OBJ) $(LIB)
-
-Makefile: Makefile.in
-	@echo "Makefile.in is newer than Makefile."
-	@echo "You need to re-run configure."
-	false
 
 $(NSE): $(OBJ) tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
@@ -212,6 +225,8 @@ NS_TCL_LIB = \
 	tcl/lib/ns-errmodel.tcl \
 	tcl/lib/ns-lib.tcl \
 	tcl/lib/ns-link.tcl \
+	tcl/lib/ns-mobilenode.tcl \
+	tcl/lib/ns-cmutrace.tcl \
 	tcl/lib/ns-node.tcl \
 	tcl/lib/ns-hiernode.tcl \
 	tcl/lib/ns-packet.tcl \
@@ -225,20 +240,22 @@ NS_TCL_LIB = \
 	tcl/lib/ns-address.tcl \
 	tcl/lib/ns-intserv.tcl \
 	tcl/rtp/session-rtp.tcl \
+	tcl/lib/ns-mip.tcl \
 	tcl/rtglib/dynamics.tcl \
 	tcl/rtglib/route-proto.tcl \
+	tcl/rtglib/algo-route-proto.tcl \
         tcl/interface/ns-iface.tcl \
         tcl/mcast/ns-mcast.tcl \
         tcl/mcast/McastProto.tcl \
         tcl/mcast/DM.tcl \
-	tcl/mcast/detailedDM.tcl \
-        tcl/mcast/dynamicDM.tcl \
-        tcl/mcast/pimDM.tcl \
 	tcl/mcast/srm.tcl \
 	tcl/mcast/srm-adaptive.tcl \
 	tcl/mcast/srm-ssm.tcl \
 	tcl/mcast/timer.tcl \
 	tcl/mcast/McastMonitor.tcl \
+	tcl/mcast/mftp_snd.tcl \
+	tcl/mcast/mftp_rcv.tcl \
+	tcl/mcast/mftp_rcv_stat.tcl \
         tcl/ctr-mcast/CtrMcast.tcl \
         tcl/ctr-mcast/CtrMcastComp.tcl \
         tcl/ctr-mcast/CtrRPComp.tcl \
@@ -254,7 +271,7 @@ NS_TCL_LIB = \
 	tcl/session/session.tcl \
 	tcl/lib/ns-route.tcl \
 	tcl/emulate/ns-emulate.tcl \
-	tcl/lan/ns-lan.tcl \
+	tcl/lan/vlan.tcl \
 	tcl/lan/ns-ll.tcl \
 	tcl/lan/ns-mac.tcl \
 	tcl/webcache/http-agent.tcl \
@@ -270,6 +287,13 @@ $(GEN_DIR)version.c: VERSION
 	$(RM) $@
 	$(TCLSH) bin/string2c.tcl version_string < VERSION > $@
 
+$(GEN_DIR)ptypes.cc: ptypes2tcl.exe packet.h
+	./ptypes2tcl > $@
+
+ptypes2tcl.exe: ptypes2tcl.o
+	$(LINK) $(LDFLAGS) $(LDOUT)$@ ptypes2tcl.o
+
+ptypes2tcl.o: ptypes2tcl.cc packet.h
 
 install: force
 	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)

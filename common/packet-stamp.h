@@ -1,6 +1,6 @@
 /* -*- c++ -*-
    packet-stamp.h
-   $Id: packet-stamp.h,v 1.2 1999/01/07 00:30:10 haldar Exp $
+   $Id: packet-stamp.h,v 1.3 1999/03/13 03:52:58 haoboy Exp $
 
    Information carried by a packet to allow a receive to decide if it
    will recieve the packet or not.
@@ -62,4 +62,4 @@ protected:
   double        lambda;         // wavelength of signal
 };
 
-#endif _cmu_packetstamp_h_
+#endif /* !_cmu_packetstamp_h_ */

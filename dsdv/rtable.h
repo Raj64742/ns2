@@ -35,7 +35,7 @@
 
 
 /* rtable.h -*- c++ -*-
-   $Id: rtable.h,v 1.2 1999/01/04 19:59:09 haldar Exp $
+   $Id: rtable.h,v 1.3 1999/03/13 03:53:15 haoboy Exp $
    */
 #ifndef cmu_rtable_h_
 #define cmu_rtable_h_
@@ -52,7 +52,9 @@
 #define NEW_ROUTE_ILLEGAL_CANCELLATION 3
 #define NEW_ROUTE_INTERNAL_ERROR       4
 
+#ifndef uint
 typedef unsigned int uint;
+#endif // !uint
 
 /* NOTE: we depend on bzero setting the booleans to ``false''
    but if false != 0, so many things are screwed up, I don't
@@ -60,7 +62,7 @@ typedef unsigned int uint;
 
 class rtable_ent {
 public:
-  rtable_ent() { bzero(this, sizeof(struct rtable_ent));}
+  rtable_ent() { bzero(this, sizeof(rtable_ent));}
   nsaddr_t     dst;     // destination
   nsaddr_t     hop;     // next hop
   uint         metric;  // distance

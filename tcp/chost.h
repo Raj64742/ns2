@@ -94,7 +94,7 @@ class CorresHost : public slink, public TcpFsAgent {
 	void quench(int how);
 
   protected:
-	class Islist<IntTcpAgent> conns_; /* active connections */
+	Islist<IntTcpAgent> conns_; /* active connections */
 	Islist_iter<IntTcpAgent> *connIter_;
 	u_int nActive_;	     /* number of active tcp conns to this host */
 	u_int nTimeout_;     /* number of tcp conns to this host in timeout */
@@ -107,7 +107,7 @@ class CorresHost : public slink, public TcpFsAgent {
 	int proxyopt_;	     /* indicates whether the connections are on behalf
 			        of distinct users (like those from a proxy) */
 	int fixedIw_;        /* fixed initial window (not a function of # conn) */
-	class Islist<Segment> seglist_;	/* list of unack'd segments to peer */
+	Islist<Segment> seglist_;	/* list of unack'd segments to peer */
 	double lastackTS_;
 	/*
 	 * State encompassing the round-trip-time estimate.

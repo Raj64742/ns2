@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.cc,v 1.15 1998/06/27 01:24:26 gnguyen Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.cc,v 1.16 1999/03/13 03:53:01 haoboy Exp $ (LBL)";
  */
 
 #ifndef WIN32
@@ -48,4 +48,4 @@ random()
 }
 #endif
 
-#endif WIN32
+#endif /* !WIN32 */

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.22 1999/02/03 22:31:35 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.23 1999/03/13 03:52:44 haoboy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -47,12 +47,12 @@ class MCastClassifier : public Classifier {
 public:
 	MCastClassifier();
 	~MCastClassifier();
-	static const char STARSYM[]= "x"; //"source" field for shared trees
+	static const char STARSYM[]; //"source" field for shared trees
 protected:
 	int command(int argc, const char*const* argv);
 	int classify(Packet *const p);
 	int findslot();
-	static const int HASHSIZE = 256;
+	enum {HASHSIZE = 256};
 	struct hashnode {
 		int slot;
 		nsaddr_t src;
@@ -74,14 +74,16 @@ protected:
 	void clearAll();
 	void clearHash(hashnode* h[], int size);
 	hashnode* lookup(nsaddr_t src, nsaddr_t dst,
-			 int iface = ANY_IFACE.value()) const;
+			 int iface = iface_literal::ANY_IFACE) const;
 	hashnode* lookup_star(nsaddr_t dst,
-			      int iface = ANY_IFACE.value()) const;
+			      int iface = iface_literal::ANY_IFACE) const;
 	void change_iface(nsaddr_t src, nsaddr_t dst,
 			  int oldiface, int newiface);
 	void change_iface(nsaddr_t dst,
 			  int oldiface, int newiface);
 };
+
+const char MCastClassifier::STARSYM[]= "x"; //"source" field for shared trees
 
 static class MCastClassifierClass : public TclClass {
 public:
@@ -104,7 +106,7 @@ MCastClassifier::~MCastClassifier()
 
 void MCastClassifier::clearHash(hashnode* h[], int size) 
 {
-	for (int i = 0; i < 256; ++i) {
+	for (int i = 0; i < HASHSIZE; ++i) {
 		hashnode* p = h[i];
 		while (p != 0) {
 			hashnode* n = p->next;
@@ -112,7 +114,7 @@ void MCastClassifier::clearHash(hashnode* h[], int size)
 			p = n;
 		}
 	}
-	memset(h, 0, sizeof(hashnode[size]));
+	memset(h, 0, size * sizeof(hashnode));
 }
 
 void MCastClassifier::clearAll()
@@ -122,8 +124,7 @@ void MCastClassifier::clearAll()
 }
 
 MCastClassifier::hashnode*
-MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst,
-			int iface = ANY_IFACE.value()) const
+MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst, int iface) const
 {
 	int h = hash(src, dst);
 	hashnode* p;
@@ -138,7 +139,7 @@ MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst,
 }
 
 MCastClassifier::hashnode*
-MCastClassifier::lookup_star(nsaddr_t dst, int iface = ANY_IFACE.value()) const
+MCastClassifier::lookup_star(nsaddr_t dst, int iface) const
 {
 	int h = hash(0, dst);
 	hashnode* p;

@@ -23,7 +23,9 @@
 #ifndef codeword_h
 #define codeword_h
 
+#ifndef WIN32
 #include <unistd.h>   // due to definition of NULL
+#endif /* !WIN32 */
 
 class ExtraLongUInt {
 public:

@@ -34,10 +34,10 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
-#include <ip.h>
-#include <trace.h>
-#include <mac.h>
-#include <packet.h>
+#include "ip.h"
+#include "trace.h"
+#include "mac.h"
+#include "packet.h"
 
 
 class TraceIp : public Trace {

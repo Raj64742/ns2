@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.25 1999/01/05 00:05:50 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.26 1999/03/13 03:52:50 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -48,7 +48,7 @@
 
 enum LLFrameType {
 	LL_DATA		= 0x0001,
-	LL_ACK		= 0x0010,
+	LL_ACK		= 0x0010
 };
 
 struct hdr_ll {
@@ -78,8 +78,8 @@ struct hdr_ll {
 
 class LL : public LinkDelay {
 public:
-	friend ARPTable::arpinput(Packet *p, LL* ll);
-	friend ARPTable::arprequest(nsaddr_t src, nsaddr_t dst, LL* ll);
+	friend void ARPTable::arpinput(Packet *p, LL* ll);
+	friend void ARPTable::arprequest(nsaddr_t src, nsaddr_t dst, LL* ll);
 	LL();
 	virtual void recv(Packet* p, Handler* h);
 	void handle(Event* e) { recv((Packet*)e, 0); }

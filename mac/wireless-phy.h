@@ -42,11 +42,12 @@
 #define ns_WirelessPhy_h
 
 
-#include <propagation.h>
-#include <modulation.h>
-#include <omni-antenna.h>
-#include <phy.h>
-#include <mobilenode.h>
+#include "propagation.h"
+#include "modulation.h"
+#include "omni-antenna.h"
+#include "phy.h"
+#include "mobilenode.h"
+
 class Phy;
 class Propagation;
 
@@ -91,4 +92,4 @@ class WirelessPhy : public Phy {
 
 };
 
-#endif ns_WirelessPhy_h
+#endif /* !ns_WirelessPhy_h */

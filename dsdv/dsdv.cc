@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.3 1999/01/04 19:45:15 haldar Exp $
+   $Id: dsdv.cc,v 1.4 1999/03/13 03:53:14 haoboy Exp $
 
    */
 
@@ -46,9 +46,8 @@ extern "C" {
 #include "dsdv.h"
 #include "priqueue.h"
 
-#include <random.h>
-
-#include <cmu-trace.h>
+#include "random.h"
+#include "cmu-trace.h"
 
 #define DSDV_STARTUP_JITTER 2.0	// secs to jitter start of periodic activity from
 				// when start-dsr msg sent to agent
@@ -201,7 +200,7 @@ DSDV_Agent::cancelTriggersBefore(Time t)
   // Cancel any triggered events scheduled to take place *before* time
   // t (exclusive)
 {
-  struct rtable_ent *prte;
+  rtable_ent *prte;
   Scheduler & s = Scheduler::instance ();
 
   for (table_->InitLoop (); (prte = table_->NextLoop ());)
@@ -535,8 +534,7 @@ DSDV_Agent::makeUpdate(int& periodic)
 }
 
 void
-DSDV_Agent::updateRoute(struct rtable_ent *old_rte, 
-			struct rtable_ent *new_rte)
+DSDV_Agent::updateRoute(rtable_ent *old_rte, rtable_ent *new_rte)
 {
   assert(new_rte);
 
@@ -547,8 +545,8 @@ DSDV_Agent::updateRoute(struct rtable_ent *old_rte,
 	    (new_rte->metric != BIG 
 	     && (!old_rte || old_rte->metric != BIG)) ? 'D' : 'U', 
 	    now, myaddr_, new_rte->dst, 
-	    old_rte ? old_rte->metric : -1, new_rte->metric, 
-	    old_rte ? old_rte->seqnum : -1,  new_rte->seqnum,
+	    old_rte ? old_rte->metric : -1, new_rte->metric, // -1 to UINT??
+	    old_rte ? old_rte->seqnum : -1,  new_rte->seqnum, // -1 to UINT??
 	    old_rte ? old_rte->hop : -1,  new_rte->hop, 
 	    new_rte->advertise_ok_at);
   

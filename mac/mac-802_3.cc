@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.1 1999/03/09 03:07:58 yaxu Exp $
+   $Id: mac-802_3.cc,v 1.2 1999/03/13 03:52:52 haoboy Exp $
    */
 #include <delay.h>
 #include <connector.h>
@@ -367,12 +367,12 @@ void
 Mac802_3::recv_complete(Packet *p)
 {
 	hdr_cmn *hdr = HDR_CMN(p);
-	hdr_mac802_3* mh = (hdr_mac802_3*)p->access(off_mac_);
 
 	/*
 	 * Address Filtering
 	 */
 
+//	hdr_mac802_3* mh = (hdr_mac802_3*)p->access(off_mac_);
 //	if((u_int32_t)ETHER_ADDR(mh->mh_da) != (u_int32_t) index_ &&
 //	   (u_int32_t)ETHER_ADDR(mh->mh_da) != MAC_BROADCAST) {
 	char* mha = (char*)p->access(hdr_mac::offset_);

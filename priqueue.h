@@ -83,4 +83,4 @@ public:
 	static struct PriQueue_List prhead;
 };
 
-#endif _priqueue_h
+#endif /* !_priqueue_h */

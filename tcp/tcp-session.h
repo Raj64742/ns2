@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-session.h,v 1.6 1998/06/27 01:25:06 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-session.h,v 1.7 1999/03/13 03:53:07 haoboy Exp $ (UCB)
  */
 
 #ifndef nc_tcp_session_h
@@ -108,7 +108,7 @@ public:
 
 	inline nsaddr_t& addr() {return addr_;}
 	inline nsaddr_t& dst() {return dst_;}
-	static class Islist<TcpSessionAgent> sessionList_;
+	static Islist<TcpSessionAgent> sessionList_;
 
 protected:
 	SessionRtxTimer rtx_timer_;

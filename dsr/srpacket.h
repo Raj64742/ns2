@@ -1,7 +1,7 @@
 /* -*- c++ -*-
    srpacket.h
 
-   $Id: srpacket.h,v 1.1 1998/12/08 19:17:26 haldar Exp $
+   $Id: srpacket.h,v 1.2 1999/03/13 03:53:19 haoboy Exp $
    */
 
 #ifndef _SRPACKET_H_
@@ -22,4 +22,4 @@ struct SRPacket {
   SRPacket() : pkt(NULL) {}
 };
 
-#endif  _SRPACKET_H_
+#endif  // _SRPACKET_H_

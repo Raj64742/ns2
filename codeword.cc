@@ -348,7 +348,7 @@ ExtraLongUInt ExtraLongUInt::operator + (const ExtraLongUInt& other) const
 {
     ExtraLongUInt res = 0;
     unsigned long c = 0;
-    const shift = 8 * sizeof(unsigned long) - 1;
+    const int shift = 8 * sizeof(unsigned long) - 1;
     const unsigned long msb_mask = (unsigned long) 1 << shift;
     const unsigned long lsbs_mask = ~msb_mask;
     unsigned long x, y;

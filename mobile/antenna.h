@@ -40,8 +40,8 @@
 #ifndef ns_antenna_h
 #define ns_antenna_h
 
-#include <object.h>
-#include <list.h>
+#include "object.h"
+#include "list.h"
 
 class Antenna;
 LIST_HEAD(an_head, Antenna);
@@ -89,4 +89,4 @@ protected:
 };
 
 
-#endif ns_antenna_h
+#endif // ns_antenna_h

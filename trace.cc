@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.57 1999/02/18 02:19:24 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.58 1999/03/13 03:53:10 haoboy Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -45,6 +45,8 @@
 #include "address.h"
 #include "trace.h"
 
+
+const double Trace::PRECISION = 1.0e+6; 
 
 class TraceClass : public TclClass {
 public:

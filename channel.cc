@@ -37,21 +37,22 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.26 1999/01/04 19:45:04 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.27 1999/03/13 03:52:41 haoboy Exp $ (UCB)";
 #endif
 
 //#include "template.h"
-#include <trace.h>
 #include <float.h>
-#include <delay.h>
-#include <object.h>
-#include <packet.h>
-#include <mac.h>
-#include <channel.h>
-#include <list.h>
-#include <phy.h>
-#include <wireless-phy.h>
-#include <mobilenode.h>
+
+#include "trace.h"
+#include "delay.h"
+#include "object.h"
+#include "packet.h"
+#include "mac.h"
+#include "channel.h"
+#include "list.h"
+#include "phy.h"
+#include "wireless-phy.h"
+#include "mobilenode.h"
 
 static class ChannelClass : public TclClass {
 public:
@@ -179,7 +180,7 @@ Channel::sendUp(Packet* p, Phy *tifp)
 
 
 double 
-Channel::get_pdelay(Node* tnode, Node* rnode)
+Channel::get_pdelay(Node* /*tnode*/, Node* /*rnode*/)
 {
 	// Dummy function
 	return delay_;

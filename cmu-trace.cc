@@ -284,6 +284,7 @@ CMUTrace::command(int argc, const char*const* argv)
 	return Trace::command(argc, argv);
 }
 
+/*ARGSUSED*/
 void
 CMUTrace::recv(Packet *p, Handler *h)
 {

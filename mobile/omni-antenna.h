@@ -84,6 +84,4 @@ protected:
 };
 
 
-#endif ns_omniantenna_h
-
-
+#endif // ns_omniantenna_h

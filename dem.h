@@ -36,6 +36,10 @@
 #ifndef __dem_h__
 #define __dem_h__
 
+#ifndef __PRETTY_FUNCTION__
+#define __PRETTY_FUNCTION__ ((const char *) 0)
+#endif /* !__PRETTY_FUNCTION__ */
+
 struct ARecord {
 	char	q_name[145];
 	int	dl_code;

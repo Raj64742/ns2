@@ -36,10 +36,10 @@
 #include <math.h>
 #include <stdlib.h>
 
-#include <object.h>
+#include "object.h"
 
-#include <dem.h>
-#include <topography.h>
+#include "dem.h"
+#include "topography.h"
 
 static class TopographyClass : public TclClass {
 public:
@@ -56,9 +56,15 @@ Topography::height(double x, double y) {
 	if(grid == 0)
 		return 0.0;
 
+#ifndef WIN32
 	int a = (int) rint(x/grid_resolution);
 	int b = (int) rint(y/grid_resolution);
 	int c = (int) rint(maxY);
+#else 
+	int a = (int) ceil(x/grid_resolution+0.5);
+	int b = (int) ceil(y/grid_resolution+0.5);
+	int c = (int) ceil(maxY+0.5);
+#endif /* !WIN32 */
 
 	return (double) grid[a * c + b];
 }
@@ -122,7 +128,7 @@ Topography::command(int argc, const char*const* argv)
 {
 	if(argc == 3) {
 
-		if(strncasecmp(argv[1], "load_demfile", 12) == 0) {
+		if(strcmp(argv[1], "load_demfile") == 0) {
 			if(load_demfile(argv[2]))
 				return TCL_ERROR;
 			return TCL_OK;

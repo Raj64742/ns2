@@ -33,20 +33,20 @@
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
-#include <delay.h>
-#include <connector.h>
-#include <packet.h>
-#include <random.h>
+#include "delay.h"
+#include "connector.h"
+#include "packet.h"
+#include "random.h"
 
 // #define DEBUG
 
 //#include <debug.h>
-#include <arp.h>
-#include <ll.h> 
-#include <mac.h>
-#include <mac-timers.h>
-#include <mac-802_11.h>
-#include <cmu-trace.h>
+#include "arp.h"
+#include "ll.h"
+#include "mac.h"
+#include "mac-timers.h"
+#include "mac-802_11.h"
+#include "cmu-trace.h"
 
 
 /* ======================================================================
@@ -70,10 +70,8 @@
          * and hence, must be discarded.                                \
          */                                                             \
         if(rx_state_ != MAC_IDLE) {                                      \
-                struct hdr_mac802_11 *dh = HDR_MAC802_11(p);                  \
-                                                                        \
-                assert(dh->dh_fc.fc_type == MAC_Type_Control);          \
-                assert(dh->dh_fc.fc_subtype == MAC_Subtype_ACK);        \
+                assert(HDR_MAC802_11(p)->dh_fc.fc_type == MAC_Type_Control); \
+                assert(HDR_MAC802_11(p)->dh_fc.fc_subtype == MAC_Subtype_ACK);\
                                                                         \
                 assert(pktRx_);                                          \
                 struct hdr_cmn *ch = HDR_CMN(pktRx_);                    \
@@ -322,7 +320,7 @@ Mac802_11::discard(Packet *p, const char* why)
 		//p = 0;
 		return;
 	}
-#endif 0
+#endif // 0
 
 	/* if the rcvd pkt contains errors, a real MAC layer couldn't
 	   necessarily read any data from it, so we just toss it now */

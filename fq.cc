@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fq.cc,v 1.8 1998/06/27 01:23:54 gnguyen Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/fq.cc,v 1.9 1999/03/13 03:52:48 haoboy Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -60,7 +60,7 @@ protected:
 		double delta_;
 		Handler* handler_;
 	} fs_[MAXFLOW];
-	inline double FQ::finish(const flowState& fs, int nactive)
+	inline double finish(const flowState& fs, int nactive)
 	{
 		return (fs.finishTime_ + fs.delta_ * nactive);
 	}

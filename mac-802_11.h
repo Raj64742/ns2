@@ -38,7 +38,7 @@
 #ifndef ns_mac_80211_h
 #define ns_mac_80211_h
 
-#include <mac-timers.h>
+#include "mac-timers.h"
 
 #define GET_ETHER_TYPE(x)		GET2BYTE((x))
 #define SET_ETHER_TYPE(x,y)            {u_int16_t t = (y); STORE2BYTE(x,&t);}
@@ -104,7 +104,7 @@ struct hdr_mac802_11 {
 	u_char			dh_sa[ETHER_ADDR_LEN];
 	u_char			dh_bssid[ETHER_ADDR_LEN];
 	u_int16_t		dh_scontrol;
-	u_char			dh_body[0];
+	u_char			dh_body[0]; // XXX Non-ANSI
 };
 
 

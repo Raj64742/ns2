@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.14 1998/08/22 02:41:09 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.15 1999/03/13 03:53:01 haoboy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -165,6 +165,6 @@ int RTCPAgent::command(int argc, const char*const* argv)
 	return (Agent::command(argc, argv));
 }
 
-void RTCP_Timer::expire(Event */*e*/) {
+void RTCP_Timer::expire(Event* /*e*/) {
 	a_->timeout(0);
 }

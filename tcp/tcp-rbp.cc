@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.17 1998/06/27 01:25:03 gnguyen Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.18 1999/03/13 03:53:06 haoboy Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -75,7 +75,7 @@ class RBPVegasTcpAgent : public virtual VegasTcpAgent {
 	RBPVegasTcpAgent();
 	virtual void recv(Packet *pkt, Handler *);
 	virtual void timeout(int tno);
-	virtual void RBPVegasTcpAgent::send_much(int force, int reason, int maxburst);
+	virtual void send_much(int force, int reason, int maxburst);
 
 	double rbp_scale_;   // conversion from actual -> rbp send rates
 	enum rbp_rate_algorithms { RBP_NO_ALGORITHM, RBP_VEGAS_RATE_ALGORITHM, RBP_CWND_ALGORITHM };
@@ -237,7 +237,7 @@ class RBPRenoTcpAgent : public virtual RenoTcpAgent {
 	RBPRenoTcpAgent();
 	virtual void recv(Packet *pkt, Handler *);
 	virtual void timeout(int tno);
-	virtual void RBPRenoTcpAgent::send_much(int force, int reason, int maxburst);
+	virtual void send_much(int force, int reason, int maxburst);
 
 	double rbp_scale_;   // conversion from actual -> rbp send rates
 	// enum rbp_rate_algorithms { RBP_NO_ALGORITHM, RBP_VEGAS_RATE_ALGORITHM, RBP_CWND_ALGORITHM };

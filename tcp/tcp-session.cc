@@ -424,7 +424,7 @@ TcpSessionAgent::who_to_snd(int how)
 }
 
 void
-TcpSessionAgent::send_much(IntTcpAgent */*agent*/, int force, int reason) 
+TcpSessionAgent::send_much(IntTcpAgent* /*agent*/, int force, int reason) 
 {
 	int npackets = 0;
 	Islist_iter<Segment> seg_iter(seglist_);

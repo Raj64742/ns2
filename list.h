@@ -31,11 +31,11 @@
  * SUCH DAMAGE.
  *
  *	@(#)queue.h	8.5 (Berkeley) 8/20/94
- * $Id: list.h,v 1.1 1998/12/10 18:02:19 haldar Exp $
+ * $Id: list.h,v 1.2 1999/03/13 03:52:49 haoboy Exp $
  */
 
-#ifndef _SYS_QUEUE_H_
-#define	_SYS_QUEUE_H_
+#ifndef _NS_LIST_H_
+#define	_NS_LIST_H_
 
 /*
  * This file defines five types of data structures: singly-linked lists,
@@ -137,4 +137,4 @@ struct {								\
 	*(elm)->field.le_prev = (elm)->field.le_next;			\
 }
 
-#endif /* !_SYS_QUEUE_H_ */
+#endif /* !_NS_LIST_H_ */

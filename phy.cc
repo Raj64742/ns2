@@ -94,7 +94,7 @@ Phy::command(int argc, const char*const* argv) {
 
 
 void
-Phy::recv(Packet* p, Handler* h)
+Phy::recv(Packet* p, Handler*)
 {
 	struct hdr_cmn *hdr = HDR_CMN(p);	
 	/*

@@ -23,7 +23,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/gen-vcmake.pl,v 1.3 1999/02/10 21:16:58 heideman Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/gen-vcmake.pl,v 1.4 1999/03/13 03:53:12 haoboy Exp $
 #
 # This is not to be used as an executable. Rather, it's intended to be invoked
 # from Makfefile to generate a makefile.vc
@@ -32,7 +32,7 @@ while (<>) {
     (/^\$\(GEN_DIR\)ns_tcl\.cc/ || /^\$\(GEN_DIR\)version.c/) && do {
 	# print current line followed by a '-mkdir gen...'
 	print $_;
-	print "\t-mkdir \$(GEN_DIR:\\\\=)\n";for (
+	print "\t-mkdir \$(GEN_DIR:\\\\=)\n";
 	next;
     };
 

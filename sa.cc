@@ -201,7 +201,7 @@ void SA_Agent::stoponidle(const char *s)
 
 }
 
-void SA_Timer::expire(Event */*e*/) {
+void SA_Timer::expire(Event* /*e*/) {
         a_->timeout(0);
 }
 

@@ -36,8 +36,12 @@
 #ifndef __cmu_trace__
 #define __cmu_trace__
 
-#include <trace.h>
-#include <god.h>
+#include "trace.h"
+#include "god.h"
+
+#ifndef __PRETTY_FUNCTION__
+#define __PRETTY_FUNCTION__ ((const char *) 0)
+#endif /* !__PRETTY_FUNCTION__ */
 
 /* ======================================================================
    Global Defines

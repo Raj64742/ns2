@@ -33,21 +33,21 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.27 1999/01/04 19:45:10 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.28 1999/03/13 03:52:53 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
 #define ns_mac_h
 
 #include <assert.h>
-#include <bi-connector.h>
-#include <packet.h>
-#include <ip.h>
-#include <route.h>
-#include <ll.h>
-#include <phy.h>
-#include <marshall.h>
-#include <channel.h>
+#include "bi-connector.h"
+#include "packet.h"
+#include "ip.h"
+#include "route.h"
+#include "ll.h"
+#include "phy.h"
+#include "marshall.h"
+#include "channel.h"
 
 class Channel;
 
@@ -86,7 +86,7 @@ enum MacState {
 	MAC_RTS		= 0x0200,
 	MAC_CTS		= 0x0400,
 	MAC_ACK		= 0x0800,
-	MAC_COLL	= 0x1000,
+	MAC_COLL	= 0x1000
 };
 
 enum MacFrameType {
@@ -99,7 +99,7 @@ enum MacFrameType {
 	MF_CF_END	= 0x001e, // contention free period end
 	MF_POLL		= 0x001f, // polling
 	MF_DATA		= 0x0020, // also used as mask for data frame
-	MF_DATA_ACK	= 0x0021, // ack for data frames
+	MF_DATA_ACK	= 0x0021  // ack for data frames
 };
 
 struct hdr_mac {

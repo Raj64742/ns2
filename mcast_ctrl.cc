@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mcast_ctrl.cc,v 1.3 1999/02/18 02:19:19 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mcast_ctrl.cc,v 1.4 1999/03/13 03:52:54 haoboy Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -58,7 +58,7 @@ public:
 			/*FALLTHROUGH*/					\
 		}
 
-	int mcastControlAgent::command(int argc, const char*const* argv) {
+	int command(int argc, const char*const* argv) {
 		if (argc == 4) {
 			if (strcmp(argv[1], "send") == 0) {
 				switch (*argv[2]) {

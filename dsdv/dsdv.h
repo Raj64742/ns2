@@ -34,25 +34,29 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.h -*- c++ -*-
-   $Id: dsdv.h,v 1.2 1999/01/04 19:45:15 haldar Exp $
+   $Id: dsdv.h,v 1.3 1999/03/13 03:53:14 haoboy Exp $
 
    */
 
 #ifndef cmu_dsdv_h_
 #define cmu_dsdv_h_
 
-#include <agent.h>
-#include <ip.h>
-#include <delay.h>
-#include <scheduler.h>
-#include <queue.h>
-#include <trace.h>
-#include <arp.h>
-#include <ll.h>
-#include <mac.h>
-#include <priqueue.h>
+#include "agent.h"
+#include "ip.h"
+#include "delay.h"
+#include "scheduler.h"
+#include "queue.h"
+#include "trace.h"
+#include "arp.h"
+#include "ll.h"
+#include "mac.h"
+#include "priqueue.h"
 
 #include "rtable.h"
+
+#if defined(WIN32) && !defined(snprintf)
+#define snprintf _snprintf
+#endif /* WIN32 && !snprintf */
 
 typedef double Time;
 
@@ -87,7 +91,7 @@ protected:
   // partial update if there are only a few changes and full update otherwise
   // returns with periodic = 1 if full update returned, or = 0 if partial
   // update returned
-  void updateRoute(struct rtable_ent *old_rte, struct rtable_ent *new_rte);
+  void updateRoute(rtable_ent *old_rte, rtable_ent *new_rte);
   void processUpdate (Packet * p);
   void forwardPacket (Packet * p);
   void startUp();
