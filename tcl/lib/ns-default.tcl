@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.19 1997/04/24 03:15:58 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.20 1997/04/24 03:23:33 kfall Exp $
 
 
 #
@@ -78,6 +78,10 @@ Agent/TCP set rtt_ 0
 Agent/TCP set srtt_ 0
 Agent/TCP set rttvar_ 0
 Agent/TCP set backoff_ 0
+
+Integrator set lastx_ 0.0
+Integrator set lasty_ 0.0
+Integrator set sum_ 0.0
 
 # 10->50 to be like ns-1
 Queue set limit_ 50
@@ -158,14 +162,6 @@ QueueMonitor set pdepartures_ 0
 QueueMonitor set bdepartures_ 0
 QueueMonitor set pdrops_ 0
 QueueMonitor set bdrops_ 0
-BytesIntegrator set sum_ 0
-BytesIntegrator set lastx_ 0
-BytesIntegrator set lasty_ 0
-BytesIntegrator set size_ 0
-PktsIntegrator set sum_ 0
-PktsIntegrator set lastx_ 0
-PktsIntegrator set lasty_ 0
-PktsIntegrator set size_ 0
 
 Agent set class_ 0
 
@@ -176,5 +172,3 @@ Agent/TCPSimple set seqno_ 0
 Agent/TCPSimple set ack_ 0
 Agent/TCPSimple set cwnd_ 1
 Agent/TCPSimple set window_ 20
-
-
