@@ -29,7 +29,7 @@
 #include "queue.h"
 #include "tbf.h"
 
-TBF::TBF() :tokens_(0),lastpkttime_(0),tbf_timer_(this)
+TBF::TBF() :tokens_(0),tbf_timer_(this)
 {
 	q_=new PacketQueue();
 	bind_bw("rate_",&rate_);
@@ -56,6 +56,7 @@ void TBF::recv(Packet *p, Handler *)
 	//start with a full bucket
 	if (init) {
 		tokens_=bucket_;
+		lastupdatetime_ = Scheduler::instance().clock();
 		init=0;
 	}
 
@@ -78,7 +79,6 @@ void TBF::recv(Packet *p, Handler *)
 	int pktsize = ch->size()<<3;
 	if (tokens_ >=pktsize) {
 		target_->recv(p);
-		lastpkttime_=Scheduler::instance().clock();
 		tokens_-=pktsize;
 	}
 	else {
@@ -97,9 +97,10 @@ double TBF::getupdatedtokens(void)
 {
 	double now=Scheduler::instance().clock();
 	
-	tokens_ += (now-lastpkttime_)*rate_;
+	tokens_ += (now-lastupdatetime_)*rate_;
 	if (tokens_ > bucket_)
 		tokens_=bucket_;
+	lastupdatetime_ = Scheduler::instance().clock();
 	return tokens_;
 }
 
@@ -118,7 +119,6 @@ void TBF::timeout(int)
 	//We simply send the packet here without checking if we have enough tokens
 	//because the timer is supposed to fire at the right time
 	target_->recv(p);
-	lastpkttime_=Scheduler::instance().clock();
 	tokens_-=pktsize;
 
 	if (q_->length() !=0 ) {

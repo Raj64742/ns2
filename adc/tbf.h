@@ -48,7 +48,7 @@ protected:
 	double rate_; //token bucket rate
 	int bucket_; //bucket depth
 	int qlen_;
-	double lastpkttime_;
+	double lastupdatetime_;
 	PacketQueue *q_;
 	TBF_Timer tbf_timer_;
 };
