@@ -79,6 +79,8 @@ NodeTopology/6nodes instproc init ns {
 	set node_(s2) [$ns node]
 	set node_(s3) [$ns node]
 	set node_(s4) [$ns node]
+	set node_(s5) [$ns node]
+	set node_(s6) [$ns node]
 
 	set node_(r1) [$ns node]
 	set node_(r2) [$ns node]
@@ -92,14 +94,16 @@ Topology/net2 instproc init ns {
 	$ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
 	$ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
 	set cl [new Classifier/Hash/SrcDestFid 33]
-	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 20ms "CBQ $cl"
+	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 30ms "CBQ $cl"
 	set cbqlink_ [$ns link $node_(r1) $node_(r2)]
 	[$cbqlink_ queue] algorithm "formal"
-	$ns simplex-link $node_(r2) $node_(r1) 1.5Mb 20ms DropTail
+	$ns simplex-link $node_(r2) $node_(r1) 1.5Mb 30ms DropTail
 	set bandwidth_ 1500
 	[[$ns link $node_(r2) $node_(r1)] queue] set limit_ 25
 	$ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
 	$ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
+	$ns duplex-link $node_(s5) $node_(r1) 10Mb 10ms DropTail
+	$ns duplex-link $node_(s6) $node_(r2) 10Mb 1ms DropTail
 
 	return $cbqlink_
 }
@@ -165,43 +169,40 @@ Test/one instproc config {} {
 # Create traffic.
 #
 Test/one instproc traffic1 {} {
-    $self instvar node_ maxfid_
-    $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
-    $self new_tcp 4.2 $node_(s2) $node_(s4) 100 2 0 50
-#    new_cbr 18.4 $s1 $s4) 190 0.00003 3
-    $self new_cbr 18.4 $node_(s1) $node_(s4) 190 0.003 3
-    $self new_tcp 65.4 $node_(s1) $node_(s4) 4 4 0 2000
-    $self new_tcp 100.2 $node_(s3) $node_(s1) 8 5 0 1000
-    $self new_tcp 122.6 $node_(s1) $node_(s4) 4 6 0 512
-    $self new_tcp 135.0 $node_(s4) $node_(s2) 100 7 0 1000
-    $self new_tcp 162.0 $node_(s2) $node_(s3) 100 8 0 1000
-    $self new_tcp 220.0 $node_(s1) $node_(s3) 100 9 0 512
-    $self new_tcp 260.0 $node_(s3) $node_(s2) 100 10 0 512
-    $self new_cbr 310.0 $node_(s2) $node_(s4) 190 0.1 11 
-    $self new_tcp 320.0 $node_(s1) $node_(s4) 100 12 0 512
-    $self new_tcp 350.0 $node_(s1) $node_(s3) 100 13 0 512
-    $self new_tcp 370.0 $node_(s3) $node_(s2) 100 14 0 512
-    $self new_tcp 390.0 $node_(s2) $node_(s3) 100 15 0 512
-    $self new_tcp 420.0 $node_(s2) $node_(s4) 100 16 0 512
-    $self new_tcp 440.0 $node_(s2) $node_(s4) 100 17 0 512
-    $self new_tcp 22.0 $node_(s2) $node_(s4) 100 18 0 1500
-    $self new_tcp 3.3 $node_(s4) $node_(s2) 100 19 0 500
-    $self new_tcp 28.0 $node_(s1) $node_(s3) 100 20 0 500
-    $self new_cbr 80.0 $node_(s4) $node_(s2) 200 0.5 21
-    $self new_tcp 1.0  $node_(s1) $node_(s3) 100 25 0 1500 
-    set maxfid_ 17
+    $self instvar node_ 
+    $self new_tcp 4.2 $node_(s2) $node_(s4) 100 2 0 50 reno 60000
+    $self new_cbr 18.4 $node_(s1) $node_(s4) 200 0.003 3 0
+    $self new_tcp 65.4 $node_(s1) $node_(s4) 2 4 0 1500 sack 2700
+    $self new_tcp 100.2 $node_(s3) $node_(s1) 8 5 0 1000 reno 0
+    $self new_tcp 122.6 $node_(s5) $node_(s4) 4 6 0 512 sack 4000
+    $self new_tcp 135.0 $node_(s4) $node_(s2) 100 7 0 1000 reno 0
+    $self new_tcp 162.0 $node_(s2) $node_(s6) 100 8 0 1000 sack 3300
+    $self new_tcp 220.0 $node_(s1) $node_(s3) 100 9 0 512 reno 3000
+    $self new_tcp 260.0 $node_(s3) $node_(s2) 100 10 0 512 sack 0
+    $self new_cbr 310.0 $node_(s2) $node_(s4) 190 0.1 11 0 
+    $self new_tcp 320.0 $node_(s1) $node_(s4) 100 12 0 1500 reno 500
+    $self new_tcp 350.0 $node_(s5) $node_(s6) 100 13 0 512 reno 1000
+    $self new_tcp 370.0 $node_(s3) $node_(s2) 100 14 0 1500 sack 0
+    $self new_tcp 390.0 $node_(s2) $node_(s3) 100 15 0 512 reno 0
+    $self new_tcp 420.0 $node_(s5) $node_(s6) 100 16 0 512 reno 0
+    $self new_tcp 440.0 $node_(s2) $node_(s4) 100 17 0 512  reno 0
+    $self new_tcp 22.0 $node_(s2) $node_(s6) 100 18 0 1500 sack 6000
+    $self new_tcp 3.3 $node_(s6) $node_(s2) 100 19 0 500 sack 0
+    $self new_tcp 28.0 $node_(s5) $node_(s4) 100 20 0 500 reno 8000
+    $self new_cbr 80.0 $node_(s4) $node_(s2) 200 0.5 21 0
+    $self new_tcp 1.0  $node_(s1) $node_(s3) 100 25 0 1500 reno 4000
 }
 
 #
 # Create traffic.
 #
 Test/one instproc more_cbrs {} {
-    $self instvar node_ maxfid_
-    $self new_cbr 105.0 $node_(s2) $node_(s4) 200 0.006 22
-    $self new_cbr 234.0 $node_(s1) $node_(s3) 220 0.01 23
-    $self new_cbr 277.0 $node_(s1) $node_(s3) 180 0.01 24
-    $self new_cbr 283.0 $node_(s1) $node_(s3) 220 0.02 26
-    $self new_cbr 289.0 $node_(s1) $node_(s3) 180 0.02 27
+    $self instvar node_ 
+    $self new_cbr 105.0 $node_(s2) $node_(s4) 200 0.006 22 50000
+    $self new_cbr 234.0 $node_(s1) $node_(s3) 220 0.01 23 10000
+    $self new_cbr 277.0 $node_(s1) $node_(s3) 180 0.01 24 10000
+    $self new_cbr 283.0 $node_(s1) $node_(s3) 220 0.02 26 5000
+    $self new_cbr 289.0 $node_(s1) $node_(s3) 180 0.02 27 5000
 }
 
 
@@ -210,7 +211,7 @@ Test/one instproc run {} {
     $topo_ instvar cbqlink_ node_
     set cbqlink $cbqlink_
 
-    set stoptime 300.0
+    set stoptime 600.0
 #    set stoptime 100.0
 
 	set rtt 0.06
@@ -233,7 +234,7 @@ Test/one instproc run {} {
 	$rtm makeboxes $gfm $bfm 100 1000
 	$rtm bindboxes
 	set L1 [$rtm monitor-link]
-	$self linkDumpFlows $L1 1.0 $stoptime
+	$self linkDumpFlows $L1 20.0 $stoptime
 
 	$self traffic1
         $self more_cbrs
