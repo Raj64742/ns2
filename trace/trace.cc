@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.54 1998/08/22 02:41:28 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.55 1998/09/01 01:19:40 tomh Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -208,7 +208,8 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	int seqno;
 	/* XXX */
 	/* UDP's now have seqno's too */
-	if (t == PT_RTP || t == PT_CBR || t == PT_UDP)
+	if (t == PT_RTP || t == PT_CBR || t == PT_UDP || t == PT_EXP ||
+	    t == PT_PARETO)
 		seqno = rh->seqno();
 	else if (t == PT_TCP || t == PT_ACK || t == PT_HTTP || t == PT_FTP ||
 	    t == PT_TELNET)
