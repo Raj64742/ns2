@@ -74,22 +74,36 @@ $ns tcl/ex/wireless.tcl (or /wireless-test.tcl)
 The four ad-hoc routing protocols that are currently supported are 
 Destination Sequence Distance Vector (DSDV), Dynamic Source Routing
 (DSR), Temporally ordered Routing Algorithm (TORA) and Adhoc On-demand
-Distance Vector (AODV). The APIs for creating a mobilenode depends on
-which routing protocol it would be using. Hence the primitive to    
-create a mobilenode is
+Distance Vector (AODV). The primitive to create a mobilenode is described below. Please note that the old APIs for creating a mobilenode depended on which routing protocol was used, like \begin{program} set mnode [$opt(rp)-create-mobile-node $id] \end{program} where \$opt(rp) defines "dsdv", "aodv", "tora" or "dsr" and id is the index for the mobilenode. But the old API's use is being deprecated and the new API is described as follows:.
 
 \begin{program}
-        set mnode [$opt(rp)-create-mobile-node $id] 
-\end{program}
-where \$opt(rp) defines "dsdv", "aodv", "tora" or "dsr" and id is the
-index for the mobilenode.
+$ns_ node-config -adhocRouting $opt(adhocRouting) 
+                 -llType $opt(ll) 
+                 -macType $opt(mac) 
+                 -ifqType $opt(ifq) 
+                 -ifqLen $opt(ifqlen) 
+                 -antType $opt(ant) 
+                 -propInstance [new $opt(prop)] 
+                 -phyType $opt(netif) 
+                 -channel [new $opt(chan)] 
+                 -topoInstance $topo 
+                 -wiredRouting OFF 
+                 -agentTrace ON 
+                 -routerTrace OFF 
+                 -macTrace OFF
+\end{program} %$
 
-The above procedure creates a mobilenode (split)object, creates a routing
-agent as specified, creates the network stack consisting of a link layer,
-interface queue, mac layer, and a network interface with an antenna,
-interconnects these components and con   
-nects the stack to the channel. The mobilenode now looks like the
-schematic in Figure~\ref{fig:mobilenode-dsdv}.  
+The above API configures for a mobilenode with all the given values of adhoc-routing protocol, network stack, channel,topography, propagation model, with wired routing turned on or off (required for wired-cum-wireless scenarios) and tracing turned on or off at different levels (router, mac, agent). Incase hierarchical addressing is being used, the hier address of the node needs to be passed as well. For more info about this command (part of new node APIs) see chapter titled "Restructuring ns node and new Node APIs" in ns Notes and Documentation.
+
+Next actually create the mobilenodes as follows:
+\begin{program}
+for \{ set j 0 \} \{ $j < $opt(nn)\} \{incr j\} \{
+    set node_($j) [ $ns_ node ]
+    $node_($i) random-motion 0		;# disable random motion
+\}
+\end{program} %$
+
+The above procedure creates a mobilenode (split)object, creates an adhoc-routing routing agent as specified, creates the network stack consisting of a link layer, interface queue, mac layer, and a network interface with an antenna, uses the defined propagation model, interconnects these components and connects the stack to the channel. The mobilenode now looks like the schematic in Figure~\ref{fig:mobilenode-dsdv}.  
 \begin{figure}
     \centerline{\includegraphics{dsdv}}
     \caption{Schematic of a mobilenode under the CMU monarch's
