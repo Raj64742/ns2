@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.30 1999/09/29 18:45:22 yaxu Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.31 1999/11/20 02:50:12 kkumar Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -107,7 +107,7 @@ struct hdr_mac {
 	int macSA_;		// source MAC address
 	int macDA_;		// destination MAC address
 	u_int16_t hdr_type_;     // mac_hdr type
-	
+
 	double txtime_;		// transmission time
 	double sstime_;		// slot start time
 
@@ -211,6 +211,12 @@ public:
 
 private:
 	//virtual void discard(Packet *p, const char* why = 0) {};
+	
+        void mac_log(Packet *p) {
+                logtarget_->recv(p, (Handler*) 0);
+        }
+        
+        NsObject*       logtarget_;
 
 protected:
 	int command(int argc, const char*const* argv);

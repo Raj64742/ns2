@@ -36,14 +36,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.35 1999/10/14 22:19:26 yuriy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.36 1999/11/20 02:50:12 kkumar Exp $ (UCB)";
 #endif
 
 //#include "classifier.h"
 
 #include <channel.h>
 #include <mac.h>
-
+#include <address.h>
 
 int hdr_mac::offset_;
 
@@ -132,6 +132,12 @@ int Mac::command(int argc, const char*const* argv)
 			netif_ = (Phy*) obj;
 			return TCL_OK;
 		}
+		else if (strcmp(argv[1], "log-target") == 0) {
+                        logtarget_ = (NsObject*) obj;
+                        if(logtarget_ == 0)
+                                return TCL_ERROR;
+                        return TCL_OK;
+                }
 		// else if (strcmp(argv[1], "up-target") == 0) {
 		// uptarget_ = (NsObject*) obj;
 		// return TCL_OK;
@@ -172,7 +178,7 @@ void Mac::sendUp(Packet* p)
 {
 	char* mh = (char*)p->access(hdr_mac::offset_);
 	int dst = this->hdr_dst(mh);
-	
+
 	state(MAC_IDLE);
 	if (((u_int32_t)dst != MAC_BROADCAST) && (dst != index_)) {
 		drop(p);
