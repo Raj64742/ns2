@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.cc,v 1.10 2001/07/05 21:17:46 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.cc,v 1.11 2002/01/25 20:22:17 haldar Exp $
  */
 
 #include "rtmodule.h"
@@ -366,53 +366,70 @@ void RoutingModule::unreg_route_notify(RoutingModule *rtm) {
 	}
 }
 
-void RoutingModule::add_route(char *dst, NsObject *target) {
-	classifier_->do_install(dst,target); 
+void RoutingModule::add_route(char *dst, NsObject *target) 
+{
+	if (classifier_) 
+		classifier_->do_install(dst,target); 
 	if (next_rtm_ != NULL)
 		next_rtm_->add_route(dst, target); 
 }
 
 void RoutingModule::delete_route(char *dst, NsObject *nullagent)
 {
-	classifier_->do_install(dst, nullagent); 
+	if (classifier_) 
+		classifier_->do_install(dst, nullagent); 
 	if (next_rtm_)
 		next_rtm_->add_route(dst, nullagent); 
 }
 
-
-void BaseRoutingModule::add_route(char *dst, NsObject *target) {
-	if (classifier_) 
-		((DestHashClassifier *)classifier_)->do_install(dst, target);
-	if (next_rtm_ != NULL)
-		next_rtm_->add_route(dst, target); 
+void RoutingModule::set_table_size(int nn)
+{
+	if (classifier_)
+		classifier_->set_table_size(nn);
+	if (next_rtm_)
+		next_rtm_->set_table_size(nn);
 }
 
-void McastRoutingModule::add_route(char *dst, NsObject *target) {
-	if (classifier_) 
-		((DestHashClassifier *)classifier_)->do_install(dst, target);
-	if (next_rtm_ != NULL)
-		next_rtm_->add_route(dst, target); 
+void RoutingModule::set_table_size(int level, int size)
+{
+	if (classifier_)
+		classifier_->set_table_size(level, size);
+	if (next_rtm_)
+		next_rtm_->set_table_size(level, size);
 }
 
-void HierRoutingModule::add_route(char *dst, NsObject *target) {
-	if (classifier_) 
-		((HierClassifier *)classifier_)->do_install(dst, target);
-	if (next_rtm_ != NULL)
-		next_rtm_->add_route(dst, target); 
-}
+//  void BaseRoutingModule::add_route(char *dst, NsObject *target) {
+//  	if (classifier_) 
+//  		((DestHashClassifier *)classifier_)->do_install(dst, target);
+//  	if (next_rtm_ != NULL)
+//  		next_rtm_->add_route(dst, target); 
+//  }
+
+//  void McastRoutingModule::add_route(char *dst, NsObject *target) {
+//  	if (classifier_) 
+//  		((DestHashClassifier *)classifier_)->do_install(dst, target);
+//  	if (next_rtm_ != NULL)
+//  		next_rtm_->add_route(dst, target); 
+//  }
+
+//  void HierRoutingModule::add_route(char *dst, NsObject *target) {
+//  	if (classifier_) 
+//  		((HierClassifier *)classifier_)->do_install(dst, target);
+//  	if (next_rtm_ != NULL)
+//  		next_rtm_->add_route(dst, target); 
+//  }
 
 void ManualRoutingModule::add_route(char *dst, NsObject *target) {
-	int slot = ((DestHashClassifier *)classifier_)->install_next(target);
+	int slot = classifier_->install_next(target);
 	if (strcmp(dst, "default") == 0) {
-		((DestHashClassifier *)classifier_)->set_default(slot);
+		classifier_->set_default(slot);
 	} else {
 		int encoded_dst_address = 
 			(atoi(dst)) << (AddrParamsClass::instance().node_shift(1));
-		if (0 > (((DestHashClassifier *)classifier_)->do_set_hash(0, encoded_dst_address, 0, slot))) {
+		if (0 > (classifier_->do_set_hash(0, encoded_dst_address, 0, slot))) {
 			fprintf(stderr, "HashClassifier::set_hash() return value less than 0\n"); }
 	}
 	if (next_rtm_ != NULL)
 		next_rtm_->add_route(dst, target); 
 }
-
 

@@ -40,12 +40,14 @@ class NsObject;
 
 class ParentNode : public TclObject {
 public:
-  ParentNode() : nodeid_(-1), address_(-1) {} 
-  /*virtual int command(int argc, const char*const* argv) {}*/
-  virtual inline int address() { return address_;}
-  virtual inline int nodeid() { return nodeid_;}
-  virtual void add_route (char *, NsObject *) {};
-  virtual void delete_route (char *, NsObject *) {};
+	ParentNode() : nodeid_(-1), address_(-1) {} 
+	/*virtual int command(int argc, const char*const* argv) {}*/
+	virtual inline int address() { return address_;}
+	virtual inline int nodeid() { return nodeid_;}
+	virtual void add_route (char *, NsObject *) {}
+	virtual void delete_route (char *, NsObject *) {}
+	virtual void set_table_size(int nn) {}
+	virtual void set_table_size(int lev, int nn) {}
 protected:
   int nodeid_;
   int address_;
@@ -83,10 +85,12 @@ public:
 
 class BroadcastNode : public ParentNode {
 public:
-  BroadcastNode() : ParentNode(), classifier_(NULL) {}
-  virtual int command(int argc, const char*const* argv);
-  virtual void add_route (char *dst, NsObject *target);
-  virtual void delete_route (char *dst, NsObject *nullagent);
+	BroadcastNode() : ParentNode(), classifier_(NULL) {}
+	virtual int command(int argc, const char*const* argv);
+	virtual void add_route (char *dst, NsObject *target);
+	virtual void delete_route (char *dst, NsObject *nullagent);
+	//virtual void set_table_size(int nn) {}
+	//virtual void set_table_size(int lev, int nn) {}
 private:
   BcastAddressClassifier *classifier_;
 };

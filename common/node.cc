@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.31 2001/06/06 21:49:26 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.32 2002/01/25 20:22:16 haldar Exp $
  *
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
@@ -161,8 +161,8 @@ Node::command(int argc, const char*const* argv)
 			tcl.resultf("%d", address_);
  			return TCL_OK;
 		}
-			
-
+		
+		
 	} else if (argc == 3) {
 #ifdef HAVE_STL
 #ifdef NIXVECTOR
@@ -262,6 +262,15 @@ void Node::delete_route(char *dst, NsObject *nullagent) {
 		rtnotif_->delete_route(dst, nullagent);
 }
 
+void Node::set_table_size(int nn) {
+	if (rtnotif_)
+		rtnotif_->set_table_size(nn);
+}
+
+void Node::set_table_size(int level, int csize) {
+	if (rtnotif_)
+		rtnotif_->set_table_size(level, csize);
+}
 
 void Node::addNeighbor(Node * neighbor) {
 

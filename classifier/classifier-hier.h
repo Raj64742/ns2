@@ -28,7 +28,7 @@
 //
 // Hierarchical classifier: a wrapper for hierarchical routing
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hier.h,v 1.4 2001/12/20 00:15:33 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hier.h,v 1.5 2002/01/25 20:22:16 haldar Exp $
 
 #include <assert.h>
 #include "classifier.h"
@@ -49,6 +49,7 @@ public:
 	}
 	virtual int command(int argc, const char*const* argv);
 	virtual void do_install(char *dst, NsObject *target);
+	void set_table_size(int level, int csize);
 private:
 	Classifier **clsfr_;
 };

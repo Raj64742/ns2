@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.39 2002/01/14 20:04:15 xuanc Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.40 2002/01/25 20:22:16 haldar Exp $";
 #endif
 
 #include <stdlib.h>
@@ -52,7 +52,7 @@ public:
 
 
 Classifier::Classifier() : 
-	slot_(0), nslot_(0), maxslot_(-1), shift_(0), mask_(0xffffffff)
+	slot_(0), nslot_(0), maxslot_(-1), shift_(0), mask_(0xffffffff), nsize_(0)
 {
 	default_target_ = 0;
 
@@ -71,13 +71,26 @@ Classifier::~Classifier()
 	delete [] slot_;
 }
 
+void Classifier::set_table_size(int nn)
+{
+	nsize_ = nn;
+}
+
 void Classifier::alloc(int slot)
 {
+	static int i, j;
 	NsObject** old = slot_;
 	int n = nslot_;
-	if (old == 0)
-		nslot_ = 32;
-	while (nslot_ <= slot)
+	if (old == 0) 
+		if (nsize_ != 0) {
+			//printf("classifier %x set to %d....%dth visit\n", this, nsize_, i++);
+			nslot_ = nsize_;
+		}
+		else {
+			//printf("classifier %x set to 32....%dth visit\n", this, j++);
+			nslot_ = 32;
+		}
+	while (nslot_ <= slot) 
 		nslot_ <<= 1;
 	slot_ = new NsObject*[nslot_];
 	memset(slot_, 0, nslot_ * sizeof(NsObject*));

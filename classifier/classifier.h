@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.31 2001/12/20 00:15:33 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.32 2002/01/25 20:22:16 haldar Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -68,6 +68,12 @@ public:
 		install(slot, target); }
 	int install_next(NsObject *node);
 	virtual void install(int slot, NsObject*);
+
+	// function to set the rtg table size
+	void set_table_size(int nn);
+	// hierarchical specific
+	virtual void set_table_size(int level, int nn) {}
+	
 protected:
 	virtual int getnxt(NsObject *);
 	virtual int command(int argc, const char*const* argv);
@@ -79,6 +85,7 @@ protected:
 	int shift_;
 	int mask_;
 	NsObject *default_target_;
+	int nsize_;       //what size of nslot_ should be
 };
 
 #endif

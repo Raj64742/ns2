@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.h,v 1.9 2001/07/05 21:17:46 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.h,v 1.10 2002/01/25 20:22:17 haldar Exp $
  *
  * Definition of RoutingModule, base class for all extensions to routing 
  * functionality in a Node. These modules are meant to be "plugin", and 
@@ -65,6 +65,8 @@ public:
 	void unreg_route_notify(RoutingModule *rtm);
 	virtual void add_route(char *dst, NsObject *target); 
 	virtual void delete_route(char *dst, NsObject *nullagent);
+	void set_table_size(int nn);
+	void set_table_size(int level, int csize);
 	RoutingModule *next_rtm_;
 	
 protected:
@@ -77,7 +79,8 @@ public:
 	BaseRoutingModule() : RoutingModule() {}
 	virtual const char* module_name() const { return "Base"; }
 	virtual int command(int argc, const char*const* argv);
-	virtual void add_route(char *dst, NsObject *target);
+protected:
+	DestHashClassifier *classifier_;
 };
 
 class McastRoutingModule : public RoutingModule {
@@ -85,7 +88,8 @@ public:
 	McastRoutingModule() : RoutingModule() {}
 	virtual const char* module_name() const { return "Mcast"; }
 	virtual int command(int argc, const char*const* argv);
-	virtual void add_route(char *dst, NsObject *target);
+protected:
+	DestHashClassifier *classifier_;	
 };
 
 class HierRoutingModule : public RoutingModule {
@@ -93,7 +97,8 @@ public:
 	HierRoutingModule() : RoutingModule() {}
 	virtual const char* module_name() const { return "Hier"; }
 	virtual int command(int argc, const char*const* argv);
-	virtual void add_route(char *dst, NsObject *target);
+protected:
+	HierClassifier *classifier_;
 };
 
 class ManualRoutingModule : public RoutingModule {
@@ -102,6 +107,8 @@ public:
 	virtual const char* module_name() const { return "Manual"; }
 	virtual int command(int argc, const char*const* argv);
 	void add_route(char *dst, NsObject *target);
+protected:
+	DestHashClassifier *classifier_;
 };
 
 class SourceRoutingModule : public RoutingModule {

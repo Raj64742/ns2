@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.31 2001/02/22 19:45:38 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.32 2002/01/25 20:22:16 haldar Exp $
  */
 
 /*
@@ -161,6 +161,8 @@ public:
 	void unreg_route_notify(RoutingModule *rtm);
 	void add_route (char *dst, NsObject *target);
 	void delete_route (char *dst, NsObject *nullagent);
+	void set_table_size(int nn);
+	void set_table_size(int level, int csize);
 
 protected:
 	LIST_ENTRY(Node) entry;  // declare list entry structure

@@ -28,7 +28,7 @@
 //
 // Hierarchical classifier: a wrapper for hierarchical routing
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hier.cc,v 1.6 2001/12/20 00:15:33 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hier.cc,v 1.7 2002/01/25 20:22:16 haldar Exp $
 
 #include <assert.h>
 #include "classifier-hier.h"
@@ -84,6 +84,13 @@ void HierClassifier::do_install(char* dst, NsObject *target) {
 	clsfr_[len-1]->install(istr[len-1], target);
 }
 
+void HierClassifier::set_table_size(int level, int size)
+{
+	if (clsfr_[level-1])
+		clsfr_[level-1]->set_table_size(size);
+}
+
+		
 
 static class HierClassifierClass : public TclClass {
 public:

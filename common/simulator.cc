@@ -26,75 +26,75 @@
 
 static class SimulatorClass : public TclClass {
 public:
-  SimulatorClass() : TclClass("Simulator") {}
-  TclObject* create(int argc, const char*const* argv) {
-          return (new Simulator);
-  }
+	SimulatorClass() : TclClass("Simulator") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new Simulator);
+	}
 } simulator_class;
 
 
 int Simulator::command(int argc, const char*const* argv) {
-  Tcl& tcl = Tcl::instance();
-  if (argc == 3) {
-      if (strcmp(argv[1], "populate-flat-classifiers") == 0) {
-	      nn_ = atoi(argv[2]);
-	      populate_flat_classifiers();
-	      return TCL_OK;
-	  }
-      if (strcmp(argv[1], "populate-hier-classifiers") == 0) {
-	      nn_ = atoi(argv[2]);
-	      populate_hier_classifiers();
-	      return TCL_OK;
-      }
-      if (strcmp(argv[1], "get-routelogic") == 0) {
-	      rtobject_ = (RouteLogic *)(TclObject::lookup(argv[2]));
-	      if (rtobject_ == NULL) {
-		      tcl.add_errorf("Wrong rtobject name %s", argv[2]);
-		      return TCL_ERROR;
-	      }
-	      return TCL_OK;
-      }
-  }
-  if (argc == 4) {
-	  if (strcmp(argv[1], "add-node") == 0) {
-	      Node *node = (Node *)(TclObject::lookup(argv[2]));
-	      if (node == NULL) {
-		 tcl.add_errorf("Wrong object name %s",argv[2]);
-		 return TCL_ERROR;
-	      }
-	      int id = atoi(argv[3]);
-	      add_node(node, id);
-	      return TCL_OK;
-	  } else if (strcmp(argv[1], "add-lannode") == 0) {
-	      LanNode *node = (LanNode *)(TclObject::lookup(argv[2]));
-	      if (node == NULL) {
-		 tcl.add_errorf("Wrong object name %s",argv[2]);
-		 return TCL_ERROR;
-	      }
-	      int id = atoi(argv[3]);
-	      add_node(node, id);
-	      return TCL_OK;
-	  } else if (strcmp(argv[1], "add-abslan-node") == 0) {
-		  AbsLanNode *node = (AbsLanNode *)(TclObject::lookup(argv[2]));
-	      if (node == NULL) {
-		 tcl.add_errorf("Wrong object name %s",argv[2]);
-		 return TCL_ERROR;
-	      }
-	      int id = atoi(argv[3]);
-	      add_node(node, id);
-	      return TCL_OK;
-	  } else if (strcmp(argv[1], "add-broadcast-node") == 0) {
-		  BroadcastNode *node = (BroadcastNode *)(TclObject::lookup(argv[2]));
-		  if (node == NULL) {
-			  tcl.add_errorf("Wrong object name %s",argv[2]);
-			  return TCL_ERROR;
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		if (strcmp(argv[1], "populate-flat-classifiers") == 0) {
+			nn_ = atoi(argv[2]);
+			populate_flat_classifiers();
+			return TCL_OK;
+		}
+		if (strcmp(argv[1], "populate-hier-classifiers") == 0) {
+			nn_ = atoi(argv[2]);
+			populate_hier_classifiers();
+			return TCL_OK;
+		}
+		if (strcmp(argv[1], "get-routelogic") == 0) {
+			rtobject_ = (RouteLogic *)(TclObject::lookup(argv[2]));
+			if (rtobject_ == NULL) {
+				tcl.add_errorf("Wrong rtobject name %s", argv[2]);
+				return TCL_ERROR;
+			}
+			return TCL_OK;
+		}
+	}
+	if (argc == 4) {
+		if (strcmp(argv[1], "add-node") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Wrong object name %s",argv[2]);
+				return TCL_ERROR;
+			}
+			int id = atoi(argv[3]);
+			add_node(node, id);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "add-lannode") == 0) {
+			LanNode *node = (LanNode *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Wrong object name %s",argv[2]);
+				return TCL_ERROR;
 		  }
-		  int id = atoi(argv[3]);
-		  add_node(node, id);
-		  return TCL_OK;
-	  } 
-  }
-  return (TclObject::command(argc, argv));
+			int id = atoi(argv[3]);
+			add_node(node, id);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "add-abslan-node") == 0) {
+			AbsLanNode *node = (AbsLanNode *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Wrong object name %s",argv[2]);
+				return TCL_ERROR;
+			}
+			int id = atoi(argv[3]);
+			add_node(node, id);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "add-broadcast-node") == 0) {
+			BroadcastNode *node = (BroadcastNode *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Wrong object name %s",argv[2]);
+				return TCL_ERROR;
+			}
+			int id = atoi(argv[3]);
+			add_node(node, id);
+			return TCL_OK;
+		} 
+	}
+	return (TclObject::command(argc, argv));
 }
 
 void Simulator::add_node(ParentNode *node, int id) {
@@ -108,23 +108,23 @@ void Simulator::alloc(int n) {
         size_ = n;
 	nodelist_ = new ParentNode*[n];
 	for (int i=0; i<n; i++)
-	  nodelist_[i] = NULL;
+		nodelist_[i] = NULL;
 }
 
 // check if enough room in nodelist_
 void Simulator::check(int n) {
         if (n < size_)
-	      return;
+		return;
 	ParentNode **old  = nodelist_;
 	int osize = size_;
 	int m = osize;
 	if (m == 0)
-	      m = SMALL_LEN;
+		m = SMALL_LEN;
 	while (m <= n)
-	      m <<= 1;
+		m <<= 1;
 	alloc(m);
 	for (int i=0; i < osize; i++) 
-	      nodelist_[i] = old[i];
+		nodelist_[i] = old[i];
 	delete [] old;
 }
 
@@ -140,6 +140,7 @@ void Simulator::populate_flat_classifiers() {
 			i++; 
 			continue;
 		}
+		nodelist_[i]->set_table_size(nn_);
 		for (int j=0; j<nn_; j++) {
 			if (i != j) {
 				int nh = -1;
@@ -175,6 +176,8 @@ void Simulator::populate_hier_classifiers() {
 			addr[k-1] = Address::instance().hier_addr(n_addr, k);
 		for (int k=1; k <= levels; k++) {
 			int csize = rtobject_->elements_in_level(addr, k);
+			nodelist_[i]->set_table_size(k, csize);
+			
 			char *prefix = NULL;
 			if (k > 1)
 				prefix = append_addr(k, addr);
@@ -220,6 +223,7 @@ char *Simulator::append_addr(int level, int *addr) {
 			sprintf(tmp, "%d.",addr[i-2]);
 			strcat(a, tmp);
 		}
+
 		// To fix the bug of writing beyond the end of 
 		// allocated memory for hierarchical addresses (xuanc, 1/14/02)
 		// contributed by Joerg Diederich <dieder@ibr.cs.tu-bs.de>
