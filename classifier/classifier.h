@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.12 1998/04/29 19:24:16 bajaj Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.13 1998/06/19 18:43:06 kfall Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -51,6 +51,7 @@ class Classifier : public NsObject {
 			return slot_[slot];
 		return 0;
 	}
+	int mshift(int val) { return ((val >> shift_) & mask_); }
 	NsObject* find(Packet*);
 	virtual int classify(Packet *const);
 
