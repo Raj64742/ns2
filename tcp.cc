@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.55 1998/04/21 17:02:26 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.56 1998/04/21 23:39:54 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -763,7 +763,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	/* grow cwnd and check if the connection is done */ 
 	if (tcph->seqno() > last_ack_) {
 		recv_newack_helper(pkt);
-		if (last_ack_ == 0 && syn_) {
+		if (last_ack_ == 0 && delay_growth_) {
 			cwnd_ = initial_window();
 		}
 	} else if (tcph->seqno() == last_ack_) {
