@@ -1,25 +1,27 @@
- #
- # tcl/mcast/DM.tcl
- #
- # Copyright (C) 1997 by USC/ISI
- # All rights reserved.                                            
- #                                                                
- # Redistribution and use in source and binary forms are permitted
- # provided that the above copyright notice and this paragraph are
- # duplicated in all such forms and that any documentation, advertising
- # materials, and other materials related to such distribution and use
- # acknowledge that the software was developed by the University of
- # Southern California, Information Sciences Institute.  The name of the
- # University may not be used to endorse or promote products derived from
- # this software without specific prior written permission.
- # 
- # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- # 
- # Ported/Modified by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
- # 
- #
+#
+# tcl/mcast/DM.tcl
+#
+# Copyright (C) 1997 by USC/ISI
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# Ported/Modified by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
+# 
+
+# DVMRP - like dense mode
+
 Class DM -superclass McastProtocol
 
 DM set PruneTimeout 0.5
@@ -92,6 +94,8 @@ DM instproc recv-prune { from src group iface} {
 		$r disable $tmpoif
 		if ![$r is-active] {
 			if { $src != $id } {
+				# propagate prune only if the disabled oif
+				# was the last one
 				$self send-ctrl prune $src $group
 			}
 		}

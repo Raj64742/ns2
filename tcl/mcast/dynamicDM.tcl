@@ -32,9 +32,6 @@ dynamicDM instproc notify { dummy } {
 		set sources($src_id) 1
 	}
 	set sourceIDs [array names sources]
-	#### sort for validation consistency
-	set sourceIDs [lsort $sourceIDs]
-	####
 	foreach src_id $sourceIDs {
 		set src [$ns_ get-node-by-id $src_id]
 		if {$src != $node_} {
@@ -57,19 +54,15 @@ dynamicDM instproc notify { dummy } {
 			set nbr_id [$nbr id]
 			set nh [$nbr rpf-nbr $src] 
 			if { $nh != $node_ } {
-				# are we (id) the next hop from (nbr) to 
-				# any potential source (src)?
+				# are we ($node_) the next hop from ($nbr) to 
+				# the source ($src)
 				continue
 			}
 			set oif [$node_ link2oif [$ns_ link $node_ $nbr]]
 			# oif to such neighbor
-			set k [lsearch $oiflist $oif]
-			if { $k < 0 } {
-				lappend oiflist $oif
-			}
+			set oifs($oif) 1
 		}
-		#keep the list sorted to keep consistency on diff plaforms
-		set oiflist [lsort $oiflist]
+		set oiflist [array names oifs]
 
 		set reps [$node_ getReps $src_id "*"]
 		foreach r $reps {

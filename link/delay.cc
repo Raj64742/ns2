@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.23 1998/10/14 01:21:32 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.24 1998/11/02 01:03:33 yuriy Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -49,7 +49,7 @@ public:
 	}
 } class_delay_link;
 
-LinkDelay::LinkDelay() : Connector(), dynamic_(0), itq_(0), nextPacket_(0)
+LinkDelay::LinkDelay() : Connector(), dynamic_(0), itq_(0)
 {
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);
@@ -84,20 +84,12 @@ void LinkDelay::recv(Packet* p, Handler* h)
 	Scheduler& s = Scheduler::instance();
 	if (dynamic_) {
 		Event* e = (Event*)p;
-		e->time_ = s.clock() + txt + delay_;
-		itq_->enque(p);
-		schedule_next();
+		e->time_= txt + delay_;
+		itq_->enque(p); // for convinience, use a queue to store packets in transit
+		s.schedule(this, p, txt + delay_);
 	} else {
 		s.schedule(target_, p, txt + delay_);
 	}
-	/*XXX only need one intr_ since upstream object should
-	 * block until it's handler is called
-	 *
-	 * This only holds if the link is not dynamic.  If it is, then
-	 * the link itself will hold the packet, and call the upstream
-	 * object at the appropriate time.  This second interrupt is
-	 * called inTransit_, and is invoked through schedule_next()
-	 */
 	s.schedule(h, &intr_, txt);
 }
 
@@ -108,24 +100,23 @@ void LinkDelay::send(Packet* p, Handler*)
 
 void LinkDelay::reset()
 {
-	if (nextPacket_) {
-		Scheduler::instance().cancel(&inTransit_);
-		drop(nextPacket_);
-		nextPacket_ = (Packet*) NULL;
-		Packet* np;
-		while ((np = itq_->deque()) != 0)
+	Scheduler& s= Scheduler::instance();
+
+	if (itq_ && itq_->length()) {
+		Packet *np;
+		// walk through packets currently in transit and kill 'em
+		while ((np = itq_->deque()) != 0) {
+			s.cancel(np);
 			drop(np);
+		}
 	}
 }
 
 void LinkDelay::handle(Event* e)
 {
-	assert(nextPacket_);
-	Event* pe = (Event*) nextPacket_;
-	assert(pe->time_ == e->time_);
-	send(nextPacket_, (Handler*) NULL);
-	nextPacket_ = (Packet*) NULL;
-	schedule_next();
+	Packet *p = itq_->deque();
+	assert(p->time_ == e->time_);
+	send(p, (Handler*) NULL);
 }
 
 void LinkDelay::pktintran(int src, int group)

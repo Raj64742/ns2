@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.h,v 1.13 1998/08/12 23:41:02 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.h,v 1.14 1998/11/02 01:03:33 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_delay_h
@@ -63,25 +63,9 @@ class LinkDelay : public Connector {
 	double delay_;		/* line latency */
 	Event intr_;
 	int dynamic_;		/* indicates whether or not link is ~ */
-	Event inTransit_;
+
 	PacketQueue* itq_;
-	Packet* nextPacket_;
 	int total_[4];
-
-private:
-	void schedule_next() {
-		if (! nextPacket_) {
-			Scheduler& s = Scheduler::instance();
-
-			if ((nextPacket_ = itq_->deque())) { /* ASSIGN */
-				Event* pe = (Packet*) nextPacket_;
-				double delay = pe->time_ - s.clock();
-				assert(delay > 0);
-
-				s.schedule(this, &inTransit_, delay);
-			}
-		}
-	}
 };
 
 #endif
