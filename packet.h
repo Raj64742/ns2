@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.60 1999/04/10 00:10:40 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.61 1999/04/14 19:38:55 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -201,13 +201,14 @@ protected:
 public:
 	Packet* next_;		// for queues and the free list
 	static int hdrlen_;
-	Packet() : bits_(0), datalen_(0), next_(0) { }
-	unsigned char* const bits() { return (bits_); }
-	Packet* copy() const;
-	static Packet* alloc();
-	static Packet* alloc(int);
+
+	Packet() : bits_(0), data_(0), datalen_(0), next_(0) { }
+	inline unsigned char* const bits() { return (bits_); }
+	inline Packet* copy() const;
+	static inline Packet* alloc();
+	static inline Packet* alloc(int);
 	inline void allocdata(int);
-	static void free(Packet*);
+	static inline void free(Packet*);
 	inline unsigned char* access(int off) const {
 		if (off < 0)
 			abort();
@@ -331,6 +332,11 @@ public:
 };
 
 
+inline void Packet::init(Packet* p)
+{
+	bzero(p->bits_, hdrlen_);
+}
+
 inline Packet* Packet::alloc()
 {
 	Packet* p = free_;
@@ -339,22 +345,18 @@ inline Packet* Packet::alloc()
 		free_ = p->next_;
 		if (p->datalen_) {
 			delete[] p->data_;
-			// p->data_ = 0;
+			p->data_ = 0;
 			p->datalen_ = 0;
 		}
 		p->uid_ = 0;
 		p->time_ = 0;
-	}
-	else {
+	} else {
 		p = new Packet;
 		p->bits_ = new unsigned char[hdrlen_];
 		if (p == 0 || p->bits_ == 0)
 			abort();
-//		p->data_ = 0;
-//		p->datalen_ = 0;
-		//bzero(p->bits_, hdrlen_);
 	}
-	init(p);
+	init(p); // Initialize bits_[]
 	p->fflag_ = TRUE;
 	(HDR_CMN(p))->direction() = -1;
 	/* setting all direction of pkts to be downward as default; 
@@ -363,18 +365,7 @@ inline Packet* Packet::alloc()
 	return (p);
 }
 
-/* allocate a packet with an n byte data buffer */
-
-inline Packet* Packet::alloc(int n)
-{
-	Packet* p = alloc();
-	if (n > 0) 
-		p->allocdata(n);
-	return (p);
-}
-
 /* allocate an n byte data buffer to an existing packet */
-
 inline void Packet::allocdata(int n)
 {
 	assert(datalen_ == 0);
@@ -385,11 +376,14 @@ inline void Packet::allocdata(int n)
 
 }
 
-inline void Packet::init(Packet* p)
+/* allocate a packet with an n byte data buffer */
+inline Packet* Packet::alloc(int n)
 {
-	bzero(p->bits_, hdrlen_);
+	Packet* p = alloc();
+	if (n > 0) 
+		p->allocdata(n);
+	return (p);
 }
-
 
 inline void Packet::free(Packet* p)
 {
@@ -398,7 +392,7 @@ inline void Packet::free(Packet* p)
 	if (p->fflag_) {
 		if (ch->ref_count() == 0) {
 			/*
-			 * A packet's uid may be < 0 (out of a event queue), or 
+			 * A packet's uid may be < 0 (out of a event queue), or
 			 * == 0 (newed but never gets into the event queue.
 			 */
 			assert(p->uid_ <= 0);
