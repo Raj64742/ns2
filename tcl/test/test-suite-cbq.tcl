@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.6 1997/11/04 03:50:08 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.7 1997/11/04 20:34:02 kannan Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -399,6 +399,7 @@ Test/WRR instproc run {} {
 }
 
 ##### I AM HERE
+##### Ah, good.  I was beginning to wonder where you'd gone wandering off to...
 
 Class Test/PRR -superclass TestSuite
 Test/PRR instproc init topo {
