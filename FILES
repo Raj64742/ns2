@@ -1462,6 +1462,7 @@ tcl/test/test-all-oddBehaviors
 tcl/test/test-all-pi
 tcl/test/test-all-plm
 tcl/test/test-all-pushback
+tcl/test/test-all-quickstart
 tcl/test/test-all-quiescent
 tcl/test/test-all-rap
 tcl/test/test-all-rbp
@@ -1930,6 +1931,12 @@ tcl/test/test-output-pushback/tcp1-acc.Z
 tcl/test/test-output-pushback/tcp1.Z
 tcl/test/test-output-pushback/tcp2-acc.Z
 tcl/test/test-output-pushback/tcp2.Z
+tcl/test/test-output-quickstart/no_quickstart.Z
+tcl/test/test-output-quickstart/quickstart.Z
+tcl/test/test-output-quickstart/quickstart1.Z
+tcl/test/test-output-quickstart/quickstart2.Z
+tcl/test/test-output-quickstart/quickstart3.Z
+tcl/test/test-output-quickstart/quickstart4.Z
 tcl/test/test-output-quiescent/tcp_cbr_CWV.Z 
 tcl/test/test-output-quiescent/tcp_telnet_CWV.Z
 tcl/test/test-output-quiescent/tfrc_cbr_conservative.Z
@@ -2452,6 +2459,7 @@ tcl/test/test-suite-pi.tcl
 tcl/test/test-suite-plm.tcl
 tcl/test/test-suite-pushback.tcl
 tcl/test/test-suite-rap.tcl
+tcl/test/test-suite-quickstart.tcl
 tcl/test/test-suite-quiescent.tcl
 tcl/test/test-suite-rbp.tcl
 tcl/test/test-suite-realaudio.tcl
