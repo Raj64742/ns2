@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.26 1999/05/13 20:36:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.27 1999/05/27 21:50:25 yuriy Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -350,7 +350,7 @@ Test/red_twowaybytes instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	red_twowaybytes
-    Queue/RED set ns1-compat_ true
+    Queue/RED set ns1_compat_ true
     $self next
 }
 Test/red_twowaybytes instproc run {} {
@@ -360,7 +360,7 @@ Test/red_twowaybytes instproc run {} {
     set stoptime 10.0
     set redq [[$ns_ link $node_(r1) $node_(r2)] queue]
     $redq set bytes_ true
-    $redq set queue-in-bytes_ true
+    $redq set queue_in_bytes_ true
 		
     set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(s3) 0]
     $tcp1 set window_ 15
@@ -621,7 +621,7 @@ TestSuite instproc droptest { stoptime } {
 	$self dumpflows 10.0
 
 	$forwq set bytes_ true
-	$forwq set queue-in-bytes_ true
+	$forwq set queue_in_bytes_ true
 	$forwq set wait_ false
 
         $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000

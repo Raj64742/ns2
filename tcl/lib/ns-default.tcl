@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.154 1999/05/26 01:35:47 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.155 1999/05/27 21:50:22 yuriy Exp $
 
 
 #
@@ -202,10 +202,10 @@ Queue set interleave_ false
 Queue set acksfirst_ false
 Queue set ackfromfront_ false
 
-Queue/DropTail set drop-front_ false
+Queue/DropTail set drop_front_ false
 
 Queue/RED set bytes_ false
-Queue/RED set queue-in-bytes_ false
+Queue/RED set queue_in_bytes_ false
 Queue/RED set thresh_ 5
 Queue/RED set maxthresh_ 15
 Queue/RED set mean_pktsize_ 500
@@ -213,11 +213,11 @@ Queue/RED set q_weight_ 0.002
 Queue/RED set wait_ true
 Queue/RED set linterm_ 10
 Queue/RED set setbit_ false
-Queue/RED set drop-tail_ true
-Queue/RED set drop-front_ false
-Queue/RED set drop-rand_ false
+Queue/RED set drop_tail_ true
+Queue/RED set drop_front_ false
+Queue/RED set drop_rand_ false
 Queue/RED set doubleq_ false
-Queue/RED set ns1-compat_ false
+Queue/RED set ns1_compat_ false
 Queue/RED set dqthresh_ 50
 Queue/RED set ave_ 0.0
 Queue/RED set prob1_ 0.0

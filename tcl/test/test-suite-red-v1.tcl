@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-red-v1.tcl,v 1.2 1998/10/21 23:49:13 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-red-v1.tcl,v 1.3 1999/05/27 21:50:23 yuriy Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -379,13 +379,13 @@ proc test_red1_bytes {} {
 	create_testnet2
         set stoptime 10.0
 	set testname test_red1_bytes
-        [ns link $r1 $r2] set queue-in-bytes true
+        [ns link $r1 $r2] set queue_in_bytes true
         [ns link $r1 $r2] set bytes true
 	[ns link $r1 $r2] set mean_pktsize 1000
 	# the following 3 lines really don't matter
 	# here because only 1-way traffic is being monitored,
 	# but rather is for consistency
-        [ns link $r2 $r1] set queue-in-bytes true
+        [ns link $r2 $r1] set queue_in_bytes true
         [ns link $r2 $r1] set bytes true
 	[ns link $r2 $r1] set mean_pktsize 1000
 	
@@ -521,8 +521,8 @@ proc test_red_twowaybytes {} {
 	set testname test_red_twowaybytes
 	[ns link $r1 $r2] set bytes true
 	[ns link $r2 $r1] set bytes true
-	[ns link $r1 $r2] set queue-in-bytes true
-	[ns link $r2 $r1] set queue-in-bytes true
+	[ns link $r1 $r2] set queue_in_bytes true
+	[ns link $r2 $r1] set queue_in_bytes true
 		
 	set tcp1 [ns_create_connection tcp-reno $s1 tcp-sink $s3 0]
 	$tcp1 set window 15

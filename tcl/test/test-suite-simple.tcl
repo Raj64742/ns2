@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.2 1998/08/14 20:14:25 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.3 1999/05/27 21:50:26 yuriy Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -415,7 +415,7 @@ Topology/net2 instproc init ns {
     $self next $ns
 
     $self instvar node_
-    Queue/RED set drop-rand_ true
+    Queue/RED set drop_rand_ true
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
     $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED

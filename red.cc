@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.35 1999/05/13 20:34:19 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.36 1999/05/27 21:50:20 yuriy Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -81,7 +81,7 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
 	tchan_(0), idle_(1)
 {
 	bind_bool("bytes_", &edp_.bytes);	    // boolean: use bytes?
-	bind_bool("queue-in-bytes_", &qib_);	    // boolean: q in bytes?
+	bind_bool("queue_in_bytes_", &qib_);	    // boolean: q in bytes?
 	bind("thresh_", &edp_.th_min);		    // minthresh
 	bind("maxthresh_", &edp_.th_max);	    // maxthresh
 	bind("mean_pktsize_", &edp_.mean_pktsize);  // avg pkt size
@@ -89,10 +89,10 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
-	bind_bool("drop-tail_", &drop_tail_);	    // drop last pkt
-	bind_bool("drop-front_", &drop_front_);	    // drop first pkt
-	bind_bool("drop-rand_", &drop_rand_);	    // drop pkt at random
-	bind_bool("ns1-compat_", &ns1_compat_);	    // ns-1 compatibility
+	bind_bool("drop_tail_", &drop_tail_);	    // drop last pkt
+	bind_bool("drop_front_", &drop_front_);	    // drop first pkt
+	bind_bool("drop_rand_", &drop_rand_);	    // drop pkt at random
+	bind_bool("ns1_compat_", &ns1_compat_);	    // ns-1 compatibility
 
 	bind("ave_", &edv_.v_ave);		    // average queue sie
 	bind("prob1_", &edv_.v_prob1);		    // dropping probability
