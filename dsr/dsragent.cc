@@ -1896,8 +1896,8 @@ DSRAgent::processBrokenRouteError(SRPacket& p)
 }
 
 #ifdef DSR_FILTER_TAP
-long long dsr_tap = 0;
-long long dsr_tap_skip = 0;
+int64_t dsr_tap = 0;
+int64_t dsr_tap_skip = 0;
 #endif
 
 // Process flow state Automatic Route Shortening
