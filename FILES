@@ -407,8 +407,12 @@ tcl/test/test-output-mcast/DM3.Z
 tcl/test/test-output-mcast/DM4.Z
 tcl/test/test-output-red/ecn.Z
 tcl/test/test-output-red/red1.Z
-tcl/test/test-output-red/red1_bytes.Z
 tcl/test/test-output-red/red2.Z
+tcl/test/test-output-red/red_twoway.Z
+tcl/test/test-output-red/red_twowaybytes.Z
+tcl/test/test-output-red/flows_unforced.Z
+tcl/test/test-output-red/flows_forced.Z
+tcl/test/test-output-red/flows_combined.Z
 tcl/test/test-output-sack/sack1.Z
 tcl/test/test-output-sack/sack1a.Z   
 tcl/test/test-output-sack/sack1aa.Z   
