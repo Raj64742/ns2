@@ -48,8 +48,6 @@
 
 class Modulation {
 
-	friend class NetIf;
-
 public:
 	virtual int BitError(double) = 0;	// success reception?
 
