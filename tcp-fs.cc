@@ -15,59 +15,11 @@
  * Daedalus Research Group, U.C.Berkeley
  */
 
-
-#include "tcp.h"
-#include "ip.h"
-#include "flags.h"
-#include "random.h"
-#include "template.h"
-#include "tcp-fack.h"
-
-class ResetTimer : public TimerHandler {
-public: 
-	ResetTimer(TcpAgent *a) : TimerHandler() { a_ = a; }
-protected:
-	virtual void expire(Event *e);
-	TcpAgent *a_;
-};
+#include "tcp-fs.h"
 
 void ResetTimer::expire(Event *e) {
 	a_->timeout(TCP_TIMER_RESET);
 }
-
-/* TCP-FS with Tahoe */
-class TcpFsAgent : public virtual TcpAgent {
-public:
-	TcpFsAgent() : t_exact_srtt_(0), t_exact_rttvar_(0), last_recv_time_(0), 
-		fs_startseq_(0), fs_endseq_(0), fs_mode_(0), reset_timer_(this) 
-	{
-		bind_bool("fast_loss_recov_", &fast_loss_recov_);
-		bind_bool("fast_reset_timer_", &fast_reset_timer_);
-	}
-
-	/* helper functions */
-	virtual void output_helper(Packet* pkt);
-	virtual void recv_helper(Packet* pkt);
-	virtual void send_helper(int maxburst);
-	virtual void send_idle_helper();
-	virtual void recv_newack_helper(Packet* pkt);
-	virtual void partialnewack_helper(Packet* pkt) {};
-
-	virtual void set_rtx_timer();
-	virtual void timeout_nonrtx(int tno);
-	virtual void timeout_nonrtx_helper(int tno);
-	double rtt_exact_timeout() { return (t_exact_srtt_ + 4*t_exact_rttvar_);}
-protected:
-	double t_exact_srtt_;
-	double t_exact_rttvar_;
-	double last_recv_time_;
-	int fs_startseq_;
-	int fs_endseq_;
-	int fs_mode_;
-	int fast_loss_recov_;
-	int fast_reset_timer_;
-	ResetTimer reset_timer_;
-};
 
 static class TcpFsClass : public TclClass {
 public:
@@ -77,23 +29,6 @@ public:
 	}
 } class_tcpfs;
 
-/* TCP-FS with Reno */
-class RenoTcpFsAgent : public RenoTcpAgent, public TcpFsAgent {
-public:
-	RenoTcpFsAgent() : RenoTcpAgent(), TcpFsAgent() {}
-
-	/* helper functions */
-	virtual void output_helper(Packet* pkt) {TcpFsAgent::output_helper(pkt);}
-	virtual void recv_helper(Packet* pkt) {TcpFsAgent::recv_helper(pkt);}
-	virtual void send_helper(int maxburst) {TcpFsAgent::send_helper(maxburst);}
-	virtual void send_idle_helper() {TcpFsAgent::send_idle_helper();}
-	virtual void recv_newack_helper(Packet* pkt) {TcpFsAgent::recv_newack_helper(pkt);}
-
-	virtual void set_rtx_timer() {TcpFsAgent::set_rtx_timer();}
-	virtual void timeout_nonrtx(int tno) {TcpFsAgent::timeout_nonrtx(tno);}
-	virtual void timeout_nonrtx_helper(int tno);
-};
-
 static class RenoTcpFsClass : public TclClass {
 public:
 	RenoTcpFsClass() : TclClass("Agent/TCP/Reno/FS") {}
@@ -102,24 +37,6 @@ public:
 	}
 } class_renotcpfs;	
 
-/* TCP-FS with NewReno */
-class NewRenoTcpFsAgent : public NewRenoTcpAgent, public TcpFsAgent {
-public:
-	NewRenoTcpFsAgent() : NewRenoTcpAgent(), TcpFsAgent() {}
-
-	/* helper functions */
-	virtual void output_helper(Packet* pkt) {TcpFsAgent::output_helper(pkt);}
-	virtual void recv_helper(Packet* pkt) {TcpFsAgent::recv_helper(pkt);}
-	virtual void send_helper(int maxburst) {TcpFsAgent::send_helper(maxburst);}
-	virtual void send_idle_helper() {TcpFsAgent::send_idle_helper();}
-	virtual void recv_newack_helper(Packet* pkt) {TcpFsAgent::recv_newack_helper(pkt);}
-	virtual void partialnewack_helper(Packet* pkt);
-
-	virtual void set_rtx_timer() {TcpFsAgent::set_rtx_timer();}
-	virtual void timeout_nonrtx(int tno) {TcpFsAgent::timeout_nonrtx(tno);}
-	virtual void timeout_nonrtx_helper(int tno);
-};
-
 static class NewRenoTcpFsClass : public TclClass {
 public:
 	NewRenoTcpFsClass() : TclClass("Agent/TCP/Newreno/FS") {}
@@ -127,22 +44,6 @@ public:
 		return (new NewRenoTcpFsAgent());
 	}
 } class_newrenotcpfs;	
-
-/* TCP-FS with Fack */
-class FackTcpFsAgent : public FackTcpAgent, public TcpFsAgent {
-public:
-	FackTcpFsAgent() : FackTcpAgent(), TcpFsAgent() {}
-
-	/* helper functions */
-	virtual void output_helper(Packet* pkt) {TcpFsAgent::output_helper(pkt);}
-	virtual void recv_helper(Packet* pkt) {TcpFsAgent::recv_helper(pkt);}
-	virtual void send_helper(int maxburst);
-	virtual void send_idle_helper() {TcpFsAgent::send_idle_helper();}
-	virtual void recv_newack_helper(Packet* pkt) {TcpFsAgent::recv_newack_helper(pkt);}
-	virtual void set_rtx_timer() {TcpFsAgent::set_rtx_timer();}
-	virtual void timeout_nonrtx(int tno) {TcpFsAgent::timeout_nonrtx(tno);}
-	virtual void timeout_nonrtx_helper(int tno);
-};
 
 static class FackTcpFsClass : public TclClass {
 public:
@@ -192,7 +93,6 @@ TcpFsAgent::output_helper(Packet *pkt)
 		/* if not a retransmission, mark the packet */
 		if (tcph->seqno() > maxseq_) {
 			((hdr_flags*)pkt->access(off_flags_))->fs_ = 1;
-			/* ((hdr_cmn*)pkt->access(off_cmn_))->size() = 0; */ /* XXXX temporary -- only for testing */
 		}
 	}
 }
@@ -252,6 +152,7 @@ TcpFsAgent::recv_newack_helper(Packet *pkt)
 	double g = 1/8; /* gain used for smoothing rtt */
 	double h = 1/4; /* gain used for smoothing rttvar */
 	double delta;
+	int ackcount, i;
 
 	newack(pkt);
 	maxseq_ = max(maxseq_, highest_ack_);
@@ -272,8 +173,17 @@ TcpFsAgent::recv_newack_helper(Packet *pkt)
 		t_exact_srtt_ = tao;
 		t_exact_rttvar_ = tao/2;
 	}
-	/* grow cwnd */
-	opencwnd();
+	/*
+	 * If we are counting the actual amount of data acked, ackcount >= 1.
+	 * Otherwise, ackcount=1 just as in standard TCP.
+	 */
+	if (count_acks_)
+		ackcount = tcph->seqno() - last_ack_;
+	else
+		ackcount = 1;
+	/* grow cwnd. ackcount > 1 indicates that actual ack counting is enabled */
+	for (i=0; i<ackcount; i++)
+		opencwnd();
 	/* check if we are out of fast start mode */
 	if (fs_mode_ && (highest_ack_ >= fs_endseq_-1)) 
 		fs_mode_ = 0;
