@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.31 1998/07/06 17:40:33 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.32 1998/07/08 18:28:31 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -69,6 +69,8 @@
 #define REASON_NORMAL   0  
 #define REASON_TIMEOUT  1
 #define REASON_DUPACK   2
+#define	REASON_RBP	3	/* if ever implemented */
+#define	REASON_SACK	4	/* hole fills in SACK */
 
 /* bits for the tcp_flags field below */
 /* from tcp.h in the "real" implementation */
@@ -134,17 +136,13 @@ class FullTcpAgent : public TcpAgent {
 	void advance_bytes(int);	// unique to full-tcp
         virtual void sendmsg(int nbytes, const char *flags = 0);
         virtual int& size() { return maxseg_; } //FullTcp uses maxseg_ for size_
-	int command(int argc, const char*const* argv);
+	virtual int command(int argc, const char*const* argv);
 
  protected:
 	int closed_;
 	int ts_option_size_;	// header bytes in a ts option
-	int sack_option_size_;	// base # bytes for sack opt (no blks)
-	int sack_block_size_;	// # bytes in a sack block (def: 8)
-	int sack_option_;	// sack option enabled?
-	int sack_min_;		// first seq# in sack queue
-	int sack_max_;		// highest seq# seen in any sack block
-	int max_sack_blocks_;	// max # sack blocks to send
+	int pipe_;		// estimate of pipe occupancy (for Sack)
+	int pipectrl_;		// use pipe-style control
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
 	int fastrecov_;	    // are we in fast recovery?
@@ -161,7 +159,7 @@ class FullTcpAgent : public TcpAgent {
 	int dupack_reset_;  // zero dupacks on dataful dup acks?
 	double delack_interval_;
 
-	int headersize(int nsackblks = 0);   // a tcp header w/opts
+	int headersize();   // a tcp header w/opts
 	int outflags();     // state-specific tcp header flags
 	int rcvseqinit(int, int); // how to set rcv_nxt_
 	int predict_ok(Packet*); // predicate for recv-side header prediction
@@ -171,23 +169,25 @@ class FullTcpAgent : public TcpAgent {
 	void newstate(int ns); // future hook for traces
 
 	void finish();
-	void reset_rtx_timer(int);  // adjust the rtx timer
+	void reset_rtx_timer(int);  	// adjust the rtx timer
+
+	virtual void timeout_action();	// what to do on rtx timeout
 	virtual void dupack_action();	// what to do on dup acks
 	virtual void pack_action(Packet*);	// action on partial acks
 	virtual void ack_action(Packet*);	// action on acks
-	virtual void sack_action(hdr_tcp*);	// process a sack
-	void reset();       		// reset to a known point
+	virtual void reset();       		// reset to a known point
+	virtual void send_much(int force, int reason, int maxburst = 0);
+	virtual int build_options(hdr_tcp*);	// insert opts, return len
+
+	void sendpacket(int seq, int ack, int flags, int dlen, int why);
 	void connect();     		// do active open
 	void listen();      		// do passive open
 	void usrclosed();   		// user requested a close
 	int need_send();    		// send ACK/win-update now?
 	void output(int seqno, int reason = 0); // output 1 packet
-	void send_much(int force, int reason, int maxburst = 0);
-	void sendpacket(int seq, int ack, int flags, int dlen, int why);
 	void newack(Packet* pkt);	// process an ACK
 	int pack(Packet* pkt);		// is this a partial ack?
 	void dooptions(Packet*);	// process option(s)
-	ReassemblyQueue sq_;		// SACK queue (only for sack_option_)
 	DelAckTimer delack_timer_;	// other timers in tcp.h
 	void cancel_timers();		// cancel all timers
 
@@ -229,6 +229,33 @@ protected:
 class TahoeFullTcpAgent : public FullTcpAgent {
 protected:
 	void dupack_action();
+};
+
+class SackFullTcpAgent : public FullTcpAgent {
+public:
+	SackFullTcpAgent();
+	~SackFullTcpAgent();
+	void	recv(Packet*, Handler*);
+protected:
+	int build_options(hdr_tcp*);	// insert opts, return len
+	int sack_option_size_;	// base # bytes for sack opt (no blks)
+	int sack_block_size_;	// # bytes in a sack block (def: 8)
+	int sack_min_;		// first seq# in sack queue
+	int sack_max_;		// highest seq# seen in any sack block
+	int sack_nxt_;		// next seq# to hole-fill
+	int max_sack_blocks_;	// max # sack blocks to send
+
+	ReassemblyQueue sq_;	// SACK queue, used by sender
+
+	void	reset();
+	void	sendpacket(int seqno, int ackno, int pflags, int datalen, int reason);
+	void	send_much(int force, int reason, int maxburst = 0);
+	void	send_holes(int force, int maxburst);
+	void	pack_action(Packet*);
+	void	ack_action(Packet*);
+	void	dupack_action();
+	int	hdrsize(int nblks);
+	void	timeout_action();
 };
 
 #endif
