@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.4 1997/10/18 13:35:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.5 1997/10/18 22:22:20 sfloyd Exp $
 #
 
 source misc.tcl
@@ -72,6 +72,30 @@ Test/sack1 instproc run {} {
     $ns_ run
 }
 
+Class Test/sack1z -superclass TestSuite
+Test/sack1z instproc init topo {
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	sack1z
+    $self next
+}
+Test/sack1z instproc run {} {
+    $self instvar ns_ node_ testName_
+
+    Agent/TCP set maxburst_ 4
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 14
+    set ftp1 [$tcp1 attach-source FTP]
+    $ns_ at 0.0 "$ftp1 start"
+
+    $self tcpDump $tcp1 1.0
+    
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ run
+}
+
 # three packet drops
 Class Test/sack1a -superclass TestSuite
 Test/sack1a instproc init topo {
@@ -84,6 +108,31 @@ Test/sack1a instproc init topo {
 Test/sack1a instproc run {} {
     $self instvar ns_ node_ testName_
 
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 20
+    set ftp1 [$tcp1 attach-source FTP]
+    $ns_ at 0.0 "$ftp1 start"
+
+    $self tcpDump $tcp1 1.0
+    
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ run
+}
+
+# three packet drops
+Class Test/sack1aa -superclass TestSuite
+Test/sack1aa instproc init topo {
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	sack1aa
+    $self next
+}
+Test/sack1aa instproc run {} {
+    $self instvar ns_ node_ testName_
+
+    Agent/TCP set maxburst_ 4
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
     $tcp1 set window_ 20
     set ftp1 [$tcp1 attach-source FTP]
@@ -141,8 +190,6 @@ Test/sack1c instproc run {} {
     $ns_ run
 }
 
-# this does not seem right
-#  Did I write this? -- Kannan
 Class Test/sack3 -superclass TestSuite
 Test/sack3 instproc init topo {
     $self instvar net_ defNet_ test_
@@ -173,43 +220,7 @@ Test/sack3 instproc run {} {
     $self tcpDump $tcp1 1.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 8.0 $testName_]
-    $ns_ run
-}
-
-Class Test/sack4 -superclass TestSuite
-Test/sack4 instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net0
-    set test_	sack4
-    $self next
-}
-Test/sack4 instproc run {} {
-    $self instvar ns_ node_ testName_
-    $ns_ delay $node_(s2) $node_(r1) 200ms
-    $ns_ delay $node_(r1) $node_(s2) 200ms
-    $ns_ queue-limit $node_(r1) $node_(k1) 11
-    $ns_ queue-limit $node_(k1) $node_(r1) 11
-	
-    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-    $tcp1 set window_ 30
-    
-    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-    $tcp2 set window_ 30
-
-    set ftp1 [$tcp1 attach-source FTP]
-    ## $ftp1 set maxpkts_ 10
-    set ftp2 [$tcp2 attach-source FTP]
-    ## $ftp2 set maxpkts_ 30
-
-    $ns_ at 0.0 "$ftp1 start"
-    $ns_ at 0.0 "$ftp2 start"
-
-    $self tcpDump $tcp1 5.0
-
-    # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
+    $self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
     $ns_ run
 }
 
@@ -224,6 +235,42 @@ Test/sack5 instproc init topo {
 Test/sack5 instproc run {} {
     $self instvar ns_ node_ testName_
 
+    $ns_ delay $node_(s1) $node_(r1) 3ms
+    $ns_ delay $node_(r1) $node_(s1) 3ms
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 50
+    $tcp1 set bugFix_ false
+
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
+    $tcp2 set window_ 50
+    $tcp2 set bugFix_ false
+
+    set ftp1 [$tcp1 attach-source FTP]
+    set ftp2 [$tcp2 attach-source FTP]
+
+    $ns_ at 1.0 "$ftp1 start"
+    $ns_ at 1.75 "$ftp2 produce 100"
+
+    $self tcpDump $tcp1 1.0
+
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+    $ns_ run
+}
+
+Class Test/sack5a -superclass TestSuite
+Test/sack5a instproc init topo {
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net1
+    set test_	sack5a
+    $self next
+}
+Test/sack5a instproc run {} {
+    $self instvar ns_ node_ testName_
+
+    Agent/TCP set maxburst_ 4
     $ns_ delay $node_(s1) $node_(r1) 3ms
     $ns_ delay $node_(r1) $node_(s1) 3ms
 
@@ -276,7 +323,7 @@ Test/sackB2 instproc run {} {
     $self tcpDump $tcp1 1.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+    $self traceQueues $node_(r1) [$self openTrace 8.0 $testName_]
     $ns_ run
 }
 
@@ -292,6 +339,32 @@ Test/sackB4 instproc init topo {
 Test/sackB4 instproc run {} {
     $self instvar ns_ node_ testName_
     $ns_ queue-limit $node_(r1) $node_(r2) 29
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(r2) 0]
+    $tcp1 set window_ 40
+
+    set ftp1 [$tcp1 attach-source FTP]
+    $ns_ at 0.0 "$ftp1 start"
+
+    $self tcpDump $tcp1 1.0
+
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
+    $ns_ run
+}
+
+# two packets dropped
+Class Test/sackB4a -superclass TestSuite
+Test/sackB4a instproc init topo {
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net2
+    set test_	sackB4a
+    $self next
+}
+Test/sackB4a instproc run {} {
+    $self instvar ns_ node_ testName_
+    $ns_ queue-limit $node_(r1) $node_(r2) 29
+    Agent/TCP set maxburst_ 4
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(r2) 0]
     $tcp1 set window_ 40
 
