@@ -1,7 +1,9 @@
 \documentclass{article}
 
-%\usepackage{times}
-%\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[T1]{fontenc}
+
+\PassOptionsToPackage{draft}{nsDoc}
 \usepackage{nsDoc}
 \begin{document}
 
@@ -180,7 +182,7 @@ describes methods to access the result returned by the interpreter.
 
 \item \fcnref{\fcn{tcl.eval}}{../Tcl/Tcl.cc}{Tcl::eval}
   assumes that the command is already stored in the class' internal
-  \code{bp\_}, and directly invokes \code{tcl.eval(char* bp\_)}.
+  \code{bp_}, and directly invokes \code{tcl.eval(char* bp_)}.
   A handle to the buffer itself is available through the method
   \fcnref{\fcn{tcl.buffer}}{../Tcl/Tcl.h}{Tcl::buffer}.
 
@@ -208,7 +210,7 @@ As an example, here are some of the ways of using the above methods:
 
 When the interpreter invokes a C++ method,
 it expects the result back in the private member variable,
-\code{tcl\_->result}.
+\code{tcl_->result}.
 Two methods are available to set this variable.
 \begin{list}{\textbullet}{}
 \item \fcnref{\fcn[const char* $s$]{tcl.result}}{../Tcl/Tcl.h}{Tcl::result}
@@ -231,7 +233,7 @@ Two methods are available to set this variable.
 \end{program}
 
 Likewise, when a C++ method invokes an OTcl command,
-the interpreter returns the result in \code{tcl\_->result}.
+the interpreter returns the result in \code{tcl_->result}.
 \begin{list}{\textbullet}{}
 \item \fcnref{\fcn{tcl.result}}{../Tcl/Tcl.h}{Tcl::result}
       must be used to retrieve the result.
@@ -252,7 +254,7 @@ This method provides a uniform way to report errors in the compiled code.
 \begin{list}{\textbullet}{}
 \item \fcnref{\fcn[const char* $s$]{tcl.error}}{../Tcl/Tcl.cc}{Tcl::error}
 performs the following functions:
-write $s$ to stdout; write \code{tcl\_->result} to stdout;
+write $s$ to stdout; write \code{tcl_->result} to stdout;
 exit with error code 1.
 \end{list}
 \begin{program}
@@ -423,7 +425,7 @@ The steps are:
 \item
   Obtain an unique handle for the new object   from the TclObject name space.
   The handle is returned to the user.
-  Most handles in \ns\ have the form \code{\_o\tup{NNN}}, where \tup{NNN}
+  Most handles in \ns\ have the form \code{_o\tup{NNN}}, where \tup{NNN}
   is an integer.  This handle is created by
   \fcnref{\proc{getid}}{../Tcl/tcl-object.tcl}{TclObject::getid}.
 \item Execute the constructor for the new object.
@@ -616,13 +618,13 @@ For example, if the following class variables are defined for the ASRMAgent:
         Agent/SRM/Adaptive set running_ f
 \end{program}
 Therefore, every new Agent/SRM/Adaptive object will have
-\code{pdistance\_} set to 15.0;
-\code{lastSent\_} is set to 8.345m
+\code{pdistance_} set to 15.0;
+\code{lastSent_} is set to 8.345m
 from the setting of the class variable of the parent class;
-\code{ctrlLimit\_} is set to 1.44M
+\code{ctrlLimit_} is set to 1.44M
 using the class variable of the parent class twice removed;
 \code{running} is set to false;
-the instance variable \code{pdistance\_} is not initialised,
+the instance variable \code{pdistance_} is not initialised,
 because no class variable
 exists in any of the class hierarchy of the interpreted object.
 In such instance, \proc[]{init-instvar} will invoke 
@@ -637,7 +639,7 @@ one compiled member variable to one interpreted member variable.
 A TclObject stores a list of InstVar objects corresponding
 to each of its member variable that is bound in this fashion.
 The head of this list is stored in its member variable
-\code{instvar\_} of the TclObject.
+\code{instvar_} of the TclObject.
 
 One last point to consider is that
 \ns\ will guarantee that the actual values
@@ -737,7 +739,7 @@ We can make the following observations from this piece of code:
 \item If the operation is successfully matched,
   the match should return the result of the operation
   using methods \href{described earlier}{Section}{sec:Result}.
-\item \fcn[]{command} itself must return either \code{TCL\_OK} or \code{TCL\_ERROR}
+\item \fcn[]{command} itself must return either \code{TCL_OK} or \code{TCL_ERROR}
   to indicate success or failure as its return code.
 \item If the operation is not matched in this method, it must
   invoke its parent's command method, and return the corresponding result.
@@ -799,7 +801,7 @@ We can make the following observations from this definition:
 \item The class defines only the constructor, and one additional method,
   to \code{create} instances of the associated TclObject.
 \item \ns\ will execute the \code{RenoTcpClass} constructor
-  for the static variable \code{class\_reno}, when it is first started.
+  for the static variable \code{class_reno}, when it is first started.
   This sets up the appropriate methods and the interpreted class hierarchy.
 \item The constructor specifies the interpreted class explicitly as
   \code{Agent/TCP/Reno}.  This also specifies the interpreted class
@@ -827,7 +829,7 @@ We can make the following observations from this definition:
   --- \code{argv[0]} contains the name of the object.
 
   --- \code{argv[2\ldots4]} contain
-  \code{\$self}, \code{\$class}, and \code{\$proc}.
+  \code{$self}, \code{$class}, and \code{$proc}.
   Since \code{create} is called
   through the instance procedure \code{create-shadow},
   \code{argv[4]} contains \code{create-shadow}.
@@ -887,7 +889,7 @@ There are two functions defined in \nsf{misc.cc}:
 These two functions are initialised by the function
 \fcnref{\fcn{init\_misc}}{../ns-2/misc.cc}{::init\_misc},
 defined in \nsf{misc.cc};
-\code{init\_misc} is invoked by
+\code{init_misc} is invoked by
 \fcnref{\fcn{Tcl\_AppInit}}{../ns-2/ns_tclsh.cc}{::Tcl\_AppInit}
 during startup.
 \begin{itemize}
@@ -921,7 +923,7 @@ during startup.
 \emph{Note that, it is generally not advisable to construct
   top-level commands that are available to the user.}
 We now describe how to define a new command
-using the example \code{class say\_hello}.
+using the example \code{class say_hello}.
 The example defines the command \code{hi},
 to print the string ``hello world'',
 followed by any command line arguments specified by the user.
@@ -1020,10 +1022,10 @@ An example of such OTcl code is \code{tcl-object.tcl},
 its equivalent EmbeddedTcl object is \code{embedded-tclobj.cc}.
 
 \xref{\Tclf{tcl-object.tcl}}{../Tcl/tcl-object.tcl} is evaluated by the method
-\fcnref{\fcn{Tcl::init}}{../Tcl/Tcl.cc}{Tcl::init}, invoked by \code{Tcl\_AppInit}.
+\fcnref{\fcn{Tcl::init}}{../Tcl/Tcl.cc}{Tcl::init}, invoked by \code{Tcl_AppInit}.
 Similarly,
 \xref{\nsf{tcl/lib/ns-lib.tcl}}{../ns-2/tcl/lib/ns-lib.tcl}
-is evaluated directly by \code{Tcl\_AppInit} in \nsf{ns\_tclsh.cc}.
+is evaluated directly by \code{Tcl_AppInit} in \nsf{ns\_tclsh.cc}.
 
 Two points to note with EmbeddedTcl code are that
 firstly, if the code has an error that is caught during the eval,

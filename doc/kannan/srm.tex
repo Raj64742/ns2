@@ -1,18 +1,18 @@
 \documentclass{article}
 
-%\usepackage{times}
-%\usepackage[T1]{fontenc}
+\usepackage{times}
+\usepackage[T1]{fontenc}
 
-\PassOptionsToPackage{draft}{MyPreamble}
-\usepackage[widen-page,skrunch-figures]{MyPreamble}
+\PassOptionsToPackage{draft}{nsDoc}
 \usepackage{nsDoc}
 
 \begin{document}
 
 \title{\nsTcl\ internals documentation}
 \author{%
-  Kevin Fall \tup{kfall@ee.lbl.gov}\\
-  Kannan Varadhan \tup{kannan@catarina.usc.edu}}
+  Various members of the VINT project \tup{vint@catarina.usc.edu}\\
+  Kevin Fall \tup{kfall@ee.lbl.gov}, Editor,\\
+  Kannan Varadhan \tup{kannan@catarina.usc.edu}, Editor.}
 \date{\today}
 
 \def\c#1{\ensuremath{C_{#1}}}
@@ -47,16 +47,16 @@ starting the agent and the traffic generator.
 \begin{program}
         set ns [new Simulator]          \; preamble initialization;
         $ns enableMcast
-        set node [$ns node]             \; agent to reside on this node;
-        set group [$ns allocaddr]       \; multicast group for this agent;
+        set node [$ns node]                \; agent to reside on this node;
+        set group [$ns allocaddr]           \; multicast group for this agent;
 
         {\bfseries{}set srm [new Agent/SRM]}
-        $srm  set dst_ $group           \; configure the SRM agent;
+        $srm  set dst_ $group            \; configure the SRM agent;
         {\bfseries{}$ns attach-agent $node $srm}
 
         $srm set fid_ 1                \; optional configuration;
-        $srm log [open srmStats.tr w]  \; log statistics in this file;
-        $srm trace [open srmEvents.tr w] \; trace events for this agent;
+        $srm log [open srmStats.tr w]   \; log statistics in this file;
+        $srm trace [open srmEvents.tr w]  \; trace events for this agent;
 \end{program}
 The key steps in configuring a virgin SRM agent are to assign
 its multicast group, and attach it to a node.
@@ -92,13 +92,13 @@ The following code demonstrates
 how a traffic generation agent can be attached to an SRM agent:
 \begin{program}
         set packetSize 210
-        set exp0 [new Traffic/Expoo]          \; configure traffic generator;
+        set exp0 [new Traffic/Expoo]    \; configure traffic generator;
         $exp0 set packet-size $packetSize
         $exp0 set burst-time 500ms 
         $exp0 set idle-time 500ms
         $exp0 set rate 100k 
 
-        set s0 [new Agent/CBR/UDP]  \; attach traffic generator to application;
+        set s0 [new Agent/CBR/UDP]   \; attach traffic generator to application;
         $s0 set fid_ 0
         $s0 attach-traffic $exp0
 
@@ -152,16 +152,16 @@ Changing the instance variable of a particular agent
 only affects the values used by that agent.
 For example,
 \begin{program}
-                Agent/SRM set D1_ 2.0   \; Changes the class variable;
-                $srm set D1_ 2.0        \; Changes D1_ for the $srm object only;
+                Agent/SRM set D1_ 2.0 \; Changes the class variable;
+                $srm set D1_ 2.0        \; Changes D1_ for the particular $srm object only;
 \end{program}
 
 The default request and repair timer parameters \cite{Floy95:Reliable}
 for each SRM agent are:
 \begin{program}
-        Agent/SRM set C1_       2.0             \; request parameters;
+        Agent/SRM set C1_       2.0 \; request parameters;
         Agent/SRM set C2_       2.0
-        Agent/SRM set D1_       1.0             \; repair parameters;
+        Agent/SRM set D1_       1.0 \; repair parameters;
         Agent/SRM set D2_       1.0
 \end{program}
 It is thus possible to trivially obtain two flavours of SRM agents
@@ -230,8 +230,8 @@ repair), or due to the agent sending one.
 The following code illustrates how the user can simple retrieve the
 current values in an agent:
 \begin{program}
-        set statsList [$srm array get statistics_]
-        array set statsArray [$srm array get statistics_]
+                set statsList [$srm array get statistics_]
+                array set statsArray [$srm array get statistics_]
 \end{program}
 The first form returns a list of key-value pairs.
 The second form loads the list into the \|statsArray| for further manipulation.
@@ -280,26 +280,28 @@ The format of this trace file is:
 \tup{id} is             type \tup{of object}
 \tup{times} is          list of key-value pairs of startTime, serviceTime, distance
 \tup{stats} is          list of key-value pairs of per object statistics
-                \|dupRQST|, \|dupREPR|, \|#sent|, \|backoff|    {\itshape for request objects}
-                \|dupRQST|, \|dupREPR|, \|#sent|                {\itshape for repair objects}
+                \|dupRQST|, \|dupREPR|, \|#sent|, \|backoff|             {\itshape for request objects}
+                \|dupRQST|, \|dupREPR|, \|#sent|                      {\itshape for repair objects}
                 \|#sent|                                        {\itshape for session objects}
 \end{program}
 The following sample output illustrates the output file format (the lines
 have been folded to fit on the page):
+{\small
 \begin{verbatim}
- 3.6274 n 0 m <1:1> r 1 type repair serviceTime 0.500222 startTime 3.5853553333333332 \
-        distance 0.0105 #sent 1 dupREPR 0 dupRQST 0
- 3.6417 n 1 m <1:1> r 2 type request serviceTime 2.66406 startTime 3.5542666666666665 \
-        distance 0.0105 backoff 1 #sent 1 dupREPR 0 dupRQST 0
- 3.6876 n 2 m <1:1> r 2 type request serviceTime 1.33406 startTime 3.5685333333333333 \
-        distance 0.021 backoff 1 #sent 0 dupREPR 0 dupRQST 0
- 3.7349 n 3 m <1:1> r 2 type request serviceTime 0.876812 startTime 3.5828000000000002 \
-        distance 0.032 backoff 1 #sent 0 dupREPR 0 dupRQST 0
- 3.7793 n 5 m <1:1> r 2 type request serviceTime 0.669063 startTime 3.5970666666666671 \
-        distance 0.042 backoff 1 #sent 0 dupREPR 0 dupRQST 0
- 3.7808 n 4 m <1:1> r 2 type request serviceTime 0.661192 startTime 3.5970666666666671 \
-        distance 0.0425 backoff 1 #sent 0 dupREPR 0 dupRQST 0
+ 3.6274 n 0 m <1:1> r 1 type repair serviceTime 0.500222 \
+        startTime 3.5853553333333332 distance 0.0105 #sent 1 dupREPR 0 dupRQST 0
+ 3.6417 n 1 m <1:1> r 2 type request serviceTime 2.66406 \
+        startTime 3.5542666666666665 distance 0.0105 backoff 1 #sent 1 dupREPR 0 dupRQST 0
+ 3.6876 n 2 m <1:1> r 2 type request serviceTime 1.33406 \
+        startTime 3.5685333333333333 distance 0.021 backoff 1 #sent 0 dupREPR 0 dupRQST 0
+ 3.7349 n 3 m <1:1> r 2 type request serviceTime 0.876812 \
+        startTime 3.5828000000000002 distance 0.032 backoff 1 #sent 0 dupREPR 0 dupRQST 0
+ 3.7793 n 5 m <1:1> r 2 type request serviceTime 0.669063 \
+        startTime 3.5970666666666671 distance 0.042 backoff 1 #sent 0 dupREPR 0 dupRQST 0
+ 3.7808 n 4 m <1:1> r 2 type request serviceTime 0.661192 \
+        startTime 3.5970666666666671 distance 0.0425 backoff 1 #sent 0 dupREPR 0 dupRQST 0
 \end{verbatim}
+}
 
 \paragraph{Miscellaneous Information}
 Finally, the user can use the following methods to gather
@@ -317,6 +319,8 @@ additional information about the agent:
 \item
   \fcnref{\proc[]{distance?}}{../ns-2/srm.cc.html}{SRMAgent::command}
   returns the distance to the particular agent specified as argument.
+
+  The default distance at the start of any simulation is 1.
 \end{list}
 \begin{program}
         $srm(i) groupSize?    \; returns $srm(i)'s estimate of the group size;
@@ -342,7 +346,7 @@ object:
       & Type of &              & \\
   Tag & Object  & Other values & Comments\\ \hline
   Q & DETECT & & \\
-  Q & INTERVALS & C1 \tup{C1\_} C2 \tup{C2\_} dist \tup{distance} i \<backoff\_> & \\
+  Q & INTERVALS & C1 \tup{C1\_} C2 \tup{C2\_} dist \tup{distance} i \tup{backoff\_} & \\
   Q & NTIMER & at \tup{time} & Time the request timer will fire \\
   Q & SENDNACK & & \\
   Q & NACK & IGNORE-BACKOFF \tup{time} & Receive NACK, ignore other NACKs until
@@ -358,6 +362,7 @@ object:
   S & SESSION & & logs session message sent \\ \hline
 \end{tabular}}
 The following illustrates a typical trace for a single loss and recovery.
+{\small
 \begin{verbatim}
  3.5543 n 1 m <1:1> r 0 Q DETECT
  3.5543 n 1 m <1:1> r 1 Q INTERVALS C1 2.0 C2 0.0 d 0.0105 i 1
@@ -482,7 +487,9 @@ In that case, the compiled object invokes the OTcl instance procedure,
 \footnote{Technically,
   \fcn[]{recv\_data} invokes the instance procedure
   \|recv data \tup{sender} \tup{msgid}|,
-  that then invokes \proc[]{recv-data}.}.
+  that then invokes \proc[]{recv-data}.
+  The indirection allows individual simulation scripts to override the
+  \proc[]{recv} as needed.}.
 
 Currently, there is no provision for the receivers
 to actually receive any application data.
@@ -924,7 +931,24 @@ The adaptive SRM agent overloads the method
         ASRMAgent::addExtendedHeaders}
 to specify its distances in the additional headers.
 When sending a request, that agent unequivocally knows the
-identity of the sender 
+identity of the sender.
+As an example, the definition of
+\fcn[]{addExtendedHeaders} for the adaptive SRM agent is:
+\begin{program}
+        void addExtendedHeaders(Packet* p) \{
+                SRMinfo* sp;
+                hdr_srm*  sh = (hdr_srm*) p->access(off_srm_);
+                hdr_asrm* seh = (hdr_asrm*) p->access(off_asrm_);
+                switch (sh->type()) \{
+                case SRM_RQST:
+                        sp = get_state(sh->sender());
+                        seh->distance() = sp->distance_;
+                        break;
+                \ldots
+                \}
+        \}
+\end{program}
+
 
 Sinilarly, the method
 \fcnref{\fcn[]{parseExtendedHeaders}}{../ns-2/srm.h}{%
@@ -935,9 +959,20 @@ to the distance advertised by the peer that sent the message.
 The member variable is bound to an instance variable of the same name,
 so that the peer distance can be accessed
 by the appropriate instance procedures.
+The corresponding \fcn[]{parseExtendedHeaders} method for the
+Adaptive SRM agent is simply:
+\begin{program}
+        void parseExtendedHeaders(Packet* p) \{
+                hdr_asrm* seh = (hdr_asrm*) p->access(off_asrm_);
+                pdistance_ = seh->distance();
+        \}
+\end{program}
+
 
 Finally, the adaptive SRM agent's extended headers are defined as
 \structref{hdr\_asrm}{../ns-2/srm.h}.
+The header declaration is identical to declaring other packet headers in \ns.
+% xref external documentation here.
 Unlike most other packet headers, 
 these are not automatically available in the packet.
 The
@@ -945,6 +980,22 @@ The
         Agent/SRM/Adaptive::init}
 for the first adaptive agent
 will add the header to the packet format.
+For example, the start of the constructor for the
+\code{Agent/SRM/Adaptive} agent is:
+\begin{program}
+        Agent/SRM/Adaptive set done_ 0
+        Agent/SRM/Adaptive instproc init args \{
+            if ![$class set done_] \{
+                set pm [[Simulator instance] set packetManager_]
+                TclObject set off_asrm_ [$pm allochdr aSRM]
+                $class set done_ 1
+            \}
+
+            eval $self next $args
+            \ldots
+        \}
+\end{program}
+
 
 \end{document}
 

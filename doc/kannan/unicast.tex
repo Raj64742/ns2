@@ -1,0 +1,370 @@
+% SEPARATE STRATEGY FROM PROTOCOL FROM PROTOCOL INSTANCE
+
+\documentclass{article}
+
+\usepackage{times}
+\usepackage[T1]{fontenc}
+
+\PassOptionsToPackage{draft}{nsDoc}
+\usepackage{nsDoc}
+
+\begin{document}
+
+\title{\ns\ internals documentation}
+\author{%
+  Various members of the VINT project \tup{vint@catarina.usc.edu}\\
+  Kevin Fall \tup{kfall@ee.lbl.gov}, Editor,\\
+  Kannan Varadhan \tup{kannan@catarina.usc.edu}, Editor.}
+\date{\today}
+
+\section{Unicast Routing}
+\label{sec:unicast}
+
+This section describes the structure of unicast routing in \ns.
+We begin by describing
+\href{the interface to the user}{Section}{sec:API},
+through methods in the \clsref{Simulator}{../ns-2/ns-lib.tcl}
+and the \clsref{RouteLogic}{../ns-2/ns-lib.tcl}.
+We then describe the
+\href{static routing}{Section}{sec:static}, which is the default in \ns.
+In our next section, we discuss the interface between 
+\href{unicast routing and network dynamics}{Section}{sec:rtglibAPI},
+and that between
+\href{unicast routing and multicast routing}{Secion}{sec:mcastAPI}.
+We then continue with our descriptions of
+\href{session routing}{Section}{sec:session}, and
+\href{dynamic DV routing}{Section}{sec:dynamicDV}.
+We conclude with a sketch of how the current mechanism would be
+\href{adapted for dynamic LS routing}{Section}{sec:dynamicLS}.
+
+\subsection{The Interface to the Simulation Operator (The API)}
+\label{sec:API}
+
+The user level simulation script requires one command:
+to specify the unicast routing strategy or protocols for the simulation.
+A routing strategy is a general mechanism by which \ns\
+will compute routes for the simulation.
+There are three routing strategies in \ns:
+Static, Session, and Dynamic.
+Conversely, a routing protocol is a realisation of a specific algorithm.
+Currently, Static and Session routing use
+the
+\fcnref{Dijkstra's all-pairs SPF algorithm \cite{}}{../ns-2/route.cc}{%
+	RouteLogic::compute\_routes};
+There is one type of dynamic 
+\fcnref{\proc[]{rtproto}}{../ns-2/route-proto.tcl}{Simulator::rtproto}.
+This command is an instance procedure in the
+\clsref{Simulator}{../ns-2/ns-lib.tcl}.
+It takes multiple arguments:
+the first argument is mandatory, and
+specifies the routing protocol to be used in the simulation;
+currently defined routing protocols in \ns\ are: Static, Session, and DV.
+Subsequent arguments specify the nodes that will run 
+an instance of this particular routing protocol.
+The default is to run the same routing protocol
+on all the nodes in the topology.
+As an example, the following commands illustrate the use of the
+\proc[]{rtproto} command.
+\begin{program}
+        $ns rtproto Static            \; Enable static route strategy for the simulation;
+        $ns rtproto Session           \; Enable session routing for this simulation;
+        $ns rtproto DV $n1 $n2 $n3    \; Run DV agents on nodes $n1, $n2, and $n3;
+\end{program}
+If a simulation script does not specify any \proc[]{rtproto} command,
+then \ns\ will run Static routing on all the nodes in the topology.
+
+Multiple \proc[]{rtproto} lines for the same or different routing 
+procotols can occur in a simulation script.
+However, a simulation cannot use both centralised routing 
+mechanisms such as static or session routing and
+detailed routing protocols such as DV.
+
+In a simulation that uses more than one routing protocol,
+there can be nodes that run more than one of these protocols simultaneously.
+These ``border'' routers may learn of routes to a particular destination
+through many of the routing protocols it runs.
+In such an event, each protocol affixes a preference value to the route
+to that destination.
+
+Each node has a controlling \clsref{rtObject}{../ns-2/route-proto.tcl}.
+For each destination and protocol,
+the rtObject determines the preference and metric of the route to that
+destination using that protocol.
+It selects the route through the protocol that is most preferred.
+If two routes through different protocols have the same preference,
+the route with the lower metric is chosen.
+
+As we said earlier, each route in each routing protocol is assigned
+a preference value that is used in route selection by the \code{rtObject}.
+These values are non-negative integers in the range 0\ldots256.
+The lower the value, the more preferred the route.
+Each routing protocol instance at a node
+has a default preference value that is derived from the class variable
+for that protocol.
+The current preference values are:
+\begin{program}
+        Agent/rtProto set preference_ 200		\; global default preference;
+        Agent/rtProto/Direct set preference_ 100
+        Agent/rtProto/DV set preference_ 120
+\end{program}
+A simulation script can alter the class variables,
+or the preferences for individual route protocol objects
+at a specific node.
+Finally, each protocol object stores an array of route preferences,
+\code{rtpref_}.
+There is one element per destination, indexed by the node handle.
+This provides the ability for a simulation to alter
+the preference of a route at a particular node.
+
+In the currently implemented route protocols,
+the metric of a route to a destination, at a node,
+is the cost to reach the destiantion from that node.
+It is possible to change the link costs at each of the links.
+The instance procedure
+\fcnref{\proc[]{cost}}{../ns-2/route-proto.tcl}{Simulator::cost}
+%XXX MOVE TO NS-LIB.TCL
+is invoked as \code{$ns cost \tup{node1} \tup{node2} \tup{cost}},
+and sets the cost of the link from \tup{node1} to \tup{node2}
+to \tup{cost}.
+\begin{program}
+        $ns cost $n1 $n2 10        \; set cost of link \textbf{from} $n1 \textbf{to} $n2 to 10;
+        $ns cost $n2 $n1  5        \; set cost of link in reverse direction to 5;
+        [$ns link $n1 $n2] cost?   \; query cost of link from $n1 to $n2;
+        [$ns link $n2 $n1] cost?   \; query cost of link in reverse direction;
+\end{program}
+Notice that the procedure sets the cost along one direction only.
+Similarly, the procedure
+\fcnref{\proc[]{cost?}}{../ns-2/route-proto.tcl}{Link::cost?}
+returns the cost of traversing the specified unidirectional link.
+The default cost of a link is 1.
+
+Finally, each node can be individually configured
+to use multiple separate paths to a particular destination.
+The instance variable \code{multiPath_} determines whether or not
+that node will use multiple paths to any destination.
+Each node initialises its instance variable from a class variable
+of the same name.
+If multiple routes with different paths are available at a node, and
+the routes to that destination are all learned via the same protocol,
+and,
+either are the most preferred routes (\ie, have the lowest preference value),
+or have the lowest metrics,
+then the \code{rtObject} at that node can install all of the routes
+into that node's classifiers.
+\begin{program}
+        Node set multiPath_ 1 \; All new nodes in the simulation will use multiPaths where applicable;
+ {\rm or alternately}
+        set n1 [$ns Node]
+        $n1 set multiPath_ 1         \; only enable $n1 to use multiPaths where applicable;
+\end{program}
+
+In the following subsections, we discuss the implementation details
+of each of the routing strategies currently implemented in \ns.
+
+\subsection{Static Routing Strategy}
+\label{sec:static}
+
+The static route computation strategy is
+the default route computation mechanism  in \ns.
+This strategy uses the 
+\fcnref{Dijkstra's all-pairs SPF algorithm \cite{}}{../ns-2/route.cc}{%
+	RouteLogic::compute\_routes}.
+The function takes as input an adjacency matrix.
+The procedure
+\fcnref{\proc[]{compute-routes}}{../ns-2/ns-lib.tcl}{RouteLogic::compute-routes}
+in the \clsref{RouteLogic}{../ns-2/ns-lib.tcl}
+first creates the adjancency matrix, and then
+invokes \fcn[]{compute\_routes}.
+Finally, the procedure retrieves the result of the route computation,
+and inserts the appropriate routes at each of the nodes in the topology.
+
+The class defines the procedure
+\fcnref{\proc[]{init-all}}{../ns-2/route-proto.tcl}{Agent/rtProto/Static::init-all}
+that invokes \proc[]{compute-routes}.
+We discuss additional details of the internal route architecture in \ns\ later.
+
+\subsection{Session Routing Strategy}
+\label{sec:session}
+
+The static routing strategy described in the previous section
+only computes routes for the topology once at the start of the simulation.
+If the topology changes during the course of the simulation, 
+the topology will be partitioned.
+Session routing strategy will use the procedure
+\fcnref{\proc[]{compute-routes}}{../ns-2/ns-lib.tcl}{RouteLogic::compute-routes}
+in the \clsref{RouteLogic}{../ns-2/ns-lib.tcl}
+to recompute new routes when the topology changes.
+
+Session routing leads to complete and instantaneous change
+in the routes of the topology, whenever that topology changes.
+If the topology is always connected, then there is
+end-to-end connectivity at all times during the course of the simulation.
+
+The class defines the procedure
+\fcnref{\proc[]{init-all}}{../ns-2/route-proto.tcl}{Agent/rtProto/Session::init-all}
+to compute the routes at the start of the simulation.
+It also defines the procedure
+\fcnref{\proc[]{compute-all}}{../ns-2/route-proto.tcl}{Agent/rtProto/Session::compute-all}
+to compute the routes when the topology changes.
+Each of these procedures directly invokes \proc[]{compute-routes}.
+
+\subsection{Dynamic Routing Strategy: DV}
+\label{sec:DV}
+
+In a dynamic routing strategy, nodes send and receive messages,
+and compute the rouets in the topology based on the messages exchanged.
+DV routing is the implementation of Distributed Bellman-Ford (or
+Distance Vector) routing in \ns.
+
+The implementation sends periodic route updates every \code{advertInterval}.
+This variable is a class variable in the \clsref{Agent/rtProto/DV}.
+Its default value is 2 seconds.
+In addition to periodic updates, each agent also sends triggered updates;
+it does this whenever the forwarding tables in the node change.
+This occurs either due to changes in the topology, 
+or because an agent at the node received a route update,
+and recomputed and installed new routes.
+One final point about route advertisements by DV agents:
+each agent employs split horizon with poisoned reverse mechanisms
+to advertise its routes to adjacent peers.
+``Split horizon'' is the mechanism by which an agent will not advertise
+the route to a destination out of the interface that it is using to
+reach that destination.
+In a ``Split horizon with poisoned reverse'' mechanism,
+the agent will advertise that route out of that interface with 
+a metric of infinity.
+
+Each DV agent uses a default \code{preference_} of 120.
+The value is determined by the class variable of the same name.
+
+Each agent uses the class variable \code{INFINITY} (set at 32)
+to determine the validity of a route.
+
+The procedure
+\fcnref{\proc[]{init-all}}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::init-all}
+takes a list of nodes as the argument;
+the default is the list of nodes in the topology.
+At each of the nodes in the argument, the procedure starts the
+\clsref{rtObject}{../ns-2/route-proto.tcl} and a 
+\clsref{Agent/rtProto/DV}{../ns-2/route-proto.tcl} agents.
+It then determines the DV peers for each of the newly created DV agents.
+
+The
+\fcnref{constructor for the DV
+agent}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::init}
+initialises a number of instance variables;
+each agent stores an array, indexed by the destiantion node handle,
+of the preference and metric, the interface (or link) to the next hop,
+and the remote peer incident on the interface,
+for the best route to each destination computed by the agent.
+The agent creates these instance variables, and then
+schedules sending its first update within the first
+0.5 seconds of simulation start.
+
+Each agent stores the list of its peers indexed by the handle
+of the peer node.
+Each peer is a separate peer structure that holds
+the address of the peer agent, the metric and preference
+of the route to each destination advertised by that peer.
+We discuss the rtPeer structure later
+when discuss the route architecture.
+The peer strucutres are initialised by the procedure
+\fcnref{\proc[]{add-peer}}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::add-peer}
+invoked by \proc[]{init-all}.
+
+The routine 
+\fcnref{\proc[]{send-periodic-update}}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::send-periodic-update}
+invokes \proc[]{send-updates} to send the actual updates.
+It then reschedules sending the next periodic update
+after \code{adverInterval} jitterred slightly to avoid
+possible synchronisation effects.
+
+\fcnref{\proc[]{send-updates}}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::send-updates}
+will send updates to a select set of peers.
+If any of the routes at that node have changed, or for periodic updates,
+the procedure will send updates to all peers.
+Otherwise, if some incident links have jsut recovered,
+the procedure will send updates to the adjacent peers on those incident
+links only.
+
+\proc[]{send-updates} uses the procedure
+\fcnref{\proc[]{send-to-peer}}{../ns-2/route-proto.tcl}{Agent/rtProto/DV::send-to-peer}
+to send the actual updates.
+his procedure packages the update, taking the
+split-horizon and poison reverse mechanisms into account.
+It invokes the instproc-like,
+\fcnref{\proc[]{send-update} (Note the singular case)}{%
+	../ns-2/rtProto.cc}{rtProtoDV::command}
+to send the actual update.
+The actual route update is stored in the class variable
+\code{msg_} indexed by a non-decreasing integer as index.
+The instproc-like only sends the index to \code{msg_} to the remote peer.
+This eliminates the need to convert from OTcl strings to alternate formats
+and back.
+
+When 
+\fcnref{a peer receives a route update}{../ns-2/route-proto.tcl}{%
+	Agent/rtProto/DV::recv-update}
+it first checks to determine if the update from differs from the previous
+ones.
+The agent will compute new routes if the update contains new information.
+
+
+\subsection{Internals and Architecture of Routing}
+\label{sec:rtg-internals}
+
+In the earlier sections,
+we have already discussed the implementation architecture
+of the different routing strategies in sufficient detail.
+We now discuss the meta classes associated with routing
+that co-ordinate the different routing protocols.
+There are three classes,
+the class RouteLogic, the class rtObject, and the class rtPeer.
+The routing architecture also requires interfaces to
+the classes Simulator, Link, Node and Classifier.
+We conclude this section with a description of the
+interface of the \ns\  routing architecture with
+the network dynamics architecture, and the multicast architecture.
+
+
+Node init-routing
+Node rtObject?
+Node add-routes
+Node add-route
+Node delete-routes
+Classifier install
+Classifier installNext
+Classifier adjacents
+
+\paragraph{Class RouteLogic}
+
+register
+
+configure
+
+lookup
+
+
+\paragraph{Class rtObject}
+\paragraph{Class rtPeer}
+
+\subsubsection{Interface to \rtglib}
+\label{sec:rtglibAPI}
+The hooks to recompute routes whenever the topology changes.
+falls into two categories of actions:
+those to be taken at each node, and tose to be taken globally.
+
+\subsubsection{Interface to multicast}
+\label{sec:mcastAPI}
+
+call whenever routes change.
+The densemode dynamic DM specification ,
+
+\end{document}
+
+### Local Variables:
+### mode: latex
+### comment-column: 60
+### backup-by-copying-when-linked: t
+### file-precious-flag: nil
+### End:
