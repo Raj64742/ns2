@@ -26,6 +26,7 @@ public:
 		bind_bool("fast_loss_recov_", &fast_loss_recov_);
 		bind_bool("fast_reset_timer_", &fast_reset_timer_);
 		bind_bool("count_bytes_acked_", &count_bytes_acked_);
+		bind_bool("fs_enable_", &fs_enable_);
 	}
 
 	/* helper functions */
@@ -37,6 +38,8 @@ public:
 	virtual void partialnewack_helper(Packet* pkt) {};
 
 	virtual void set_rtx_timer();
+	virtual void cancel_rtx_timer();
+	virtual void cancel_timers();
 	virtual void timeout_nonrtx(int tno);
 	virtual void timeout_nonrtx_helper(int tno);
 	double rtt_exact_timeout() { return (t_exact_srtt_ + 4*t_exact_rttvar_);}
@@ -47,6 +50,7 @@ protected:
 	int fs_startseq_;
 	int fs_endseq_;
 	int fs_mode_;
+	int fs_enable_;
 	int fast_loss_recov_;
 	int fast_reset_timer_;
 	int count_bytes_acked_;
@@ -66,6 +70,8 @@ public:
 	virtual void recv_newack_helper(Packet* pkt) {TcpFsAgent::recv_newack_helper(pkt);}
 
 	virtual void set_rtx_timer() {TcpFsAgent::set_rtx_timer();}
+	virtual void cancel_rtx_timer() {TcpFsAgent::cancel_rtx_timer();}
+	virtual void cancel_timers(){TcpFsAgent::cancel_timers();}
 	virtual void timeout_nonrtx(int tno) {TcpFsAgent::timeout_nonrtx(tno);}
 	virtual void timeout_nonrtx_helper(int tno);
 };
@@ -84,6 +90,8 @@ public:
 	virtual void partialnewack_helper(Packet* pkt);
 
 	virtual void set_rtx_timer() {TcpFsAgent::set_rtx_timer();}
+	virtual void cancel_rtx_timer() {TcpFsAgent::cancel_rtx_timer();}
+	virtual void cancel_timers(){TcpFsAgent::cancel_timers();}
 	virtual void timeout_nonrtx(int tno) {TcpFsAgent::timeout_nonrtx(tno);}
 	virtual void timeout_nonrtx_helper(int tno);
 };
@@ -100,6 +108,8 @@ public:
 	virtual void send_idle_helper() {TcpFsAgent::send_idle_helper();}
 	virtual void recv_newack_helper(Packet* pkt) {TcpFsAgent::recv_newack_helper(pkt);}
 	virtual void set_rtx_timer() {TcpFsAgent::set_rtx_timer();}
+	virtual void cancel_rtx_timer() {TcpFsAgent::cancel_rtx_timer();}
+	virtual void cancel_timers(){TcpFsAgent::cancel_timers();}
 	virtual void timeout_nonrtx(int tno) {TcpFsAgent::timeout_nonrtx(tno);}
 	virtual void timeout_nonrtx_helper(int tno);
 };

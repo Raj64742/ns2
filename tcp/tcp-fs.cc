@@ -230,6 +230,22 @@ TcpFsAgent::set_rtx_timer()
 }
 
 void 
+TcpFsAgent::cancel_rtx_timer() 
+{
+	rtx_timer_.force_cancel();
+	reset_timer_.force_cancel();
+}
+
+void 
+TcpFsAgent::cancel_timers() 
+{
+	rtx_timer_.force_cancel();
+	reset_timer_.force_cancel();
+	burstsnd_timer_.force_cancel();
+	delsnd_timer_.force_cancel();
+}
+
+void 
 TcpFsAgent::timeout_nonrtx(int tno) 
 {
 	if (tno == TCP_TIMER_RESET) {
