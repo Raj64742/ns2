@@ -1641,6 +1641,12 @@ for packets dropped in a single window of data.
 .IP \fImaxburst_\fP
 Set to zero to ignore.  Otherwise, the maximum number of packets that
 the source can send in response to a single incoming ACK.
+.RE 
+.LP 
+.HD 
+Defined Constants
+.RS 
+.LP 
 .IP \fIMWS\fP
 The Maximum Window Size in packets for a TCP connection.  MWS determines
 the size of an array in tcp-sink.cc.
@@ -1659,7 +1665,9 @@ State Variables
 .IP \fIdupacks_\fP
 Number of duplicate acks seen since any new data was acknowledged.
 .IP \fIseqno_\fP
-Current position in the sequence space (can move backwards).
+Highest sequence number for data from data source to TCP.
+.IP \fIt_seqno_\fP
+Current transmit sequence number.
 .IP \fIack_\fP
 Highest acknowledgment seen from receiver.
 .IP \fIcwnd_\fP
@@ -1689,8 +1697,12 @@ specific to this object.
 .SH "TCP/NEWRENO OBJECTS"
 TCP/Newreno objects are a subclass of TCP objects that implement 
 a modified version of the BSD Reno TCP transport protocol.
+The TCP/Newreno implementation has not yet been debugged for ns-2.
+.LP
 There are no methods or state variables
 specific to this object.
+.LP
+.HD
 Configuration Parameters \fP
 .LP
 .RS
