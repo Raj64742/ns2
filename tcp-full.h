@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.10 1997/11/27 00:57:46 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.11 1997/11/27 05:32:12 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -115,7 +115,8 @@ class FullTcpAgent : public TcpAgent {
 	~FullTcpAgent();
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno); 	// tcp_timers() in real code
-	void advanceby(int);	// over-rides tcp base version
+	void advance(int np);
+//	void advanceby(int);	// over-rides tcp base version
 	void advance_bytes(int);	// unique to full-tcp
 	int command(int argc, const char*const* argv);
 
