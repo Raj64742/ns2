@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.7 2000/09/07 19:56:07 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.8 2000/09/25 16:00:51 haoboy Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -77,7 +77,7 @@ private:
 
 	RandomVariable *rvInterPage_, *rvPageSize_, *rvInterObj_, *rvObjSize_;
 	WebTrafPool* mgr_;
-	Node* src_;		// One source/server per session
+	Node* src_;		// One Web client (source of request) per session
 	int nPage_, curPage_, donePage_;
 	int id_;
 };
