@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.79 2000/04/10 16:27:57 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.80 2000/06/20 23:01:26 kclan Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -2283,7 +2283,7 @@ int ReassemblyQueue::add(int start, int end, int tiflags)
 
 		// Put this one after p, regardless whether any segments 
 		// should be deleted
-		if (p == NULL || (start >= p->endseq_)) {
+		if (p == NULL || (start > p->endseq_)) {
 			// no overlap
 endfast:
 			n = new seginfo;
