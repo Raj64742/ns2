@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.10 1998/05/23 02:45:43 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.11 1998/05/27 23:15:52 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -42,7 +42,7 @@ static const char rcsid[] =
 #include "agent.h"
 
 
-#define TAPDEBUG 1
+//#define TAPDEBUG 1
 #ifdef TAPDEBUG
 #define	TDEBUG(x) { if (TAPDEBUG) fprintf(stderr, (x)); }
 #define	TDEBUG2(x,y) { if (TAPDEBUG) fprintf(stderr, (x), (y)); }
@@ -186,8 +186,7 @@ TapAgent::recvpkt()
 	}
 
 	// allocate packet and a data payload
-	Packet* p = allocpkt();
-	p->allocdata(maxpkt_);
+	Packet* p = allocpkt(maxpkt_);
 
 	// fill up payload
 	sockaddr addr;	// not really used (yet)
@@ -249,6 +248,8 @@ Scheduler::instance().sync();	// sim clock gets set to now
 }
 
 /*
+ * SIM -> Live
+ *
  * Receive a packet from the simulation and inject into the network.
  * if there is no network attached, call Connector::drop() to send
  * to drop target
@@ -257,10 +258,8 @@ Scheduler::instance().sync();	// sim clock gets set to now
 void
 TapAgent::recv(Packet* p, Handler*)
 {
-	// recv from sim, inject into live
-	if (sendpkt(p) == 0)
-		Packet::free(p);
-
+	(void) sendpkt(p);
+	Packet::free(p);
 	return;
 }
 
@@ -285,8 +284,8 @@ TapAgent::sendpkt(Packet* p)
 	}
 	if (net_->send(p->accessdata(), hc->size()) < 0) {
 		fprintf(stderr,
-		    "TapAgent(%s): sendpkt: %s\n",
-		    name(), strerror(errno));
+		    "TapAgent(%s): sendpkt (%p, %d): %s\n",
+		    name(), p->accessdata(), hc->size(), strerror(errno));
 		return (-1);
 			
 	}
