@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.4 1998/12/01 07:38:55 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.5 1998/12/01 08:19:15 kfall Exp $";
 #endif
 
 #include <stdio.h>
@@ -64,19 +64,22 @@ protected:
 	virtual void	rewrite_addr(ip*) = 0;
 	u_short		addrsum(in_addr*);
 	u_short		addrsum(in_addr*, in_addr*);
-	void		fixtcpudpcksums(ip*, int);
 	void	nat(Packet*);
 	virtual u_short	newval() = 0;
 	virtual u_short oldval(ip*) = 0;
-	virtual void	fixcksums(ip*, int);
+
+	void	fixipcksum(ip*, int);		// ip only
+	void	fixtcpudpcksum(ip*, int);	// tcp,udp/ip
+	virtual void	fixtsum(ip*, int) { };	// any transport
+
 	int	command(int argc, const char*const* argv);
 };
 
 class TCPDestNat : public virtual NatAgent {
 protected:
 	void	rewrite_addr(ip*);
-	void fixcksums(ip* iph, int iphlen) {
-		fixtcpudpcksums(iph, iphlen);
+	void	fixtsum(ip* iph, int hlen) {
+		fixtcpudpcksum(iph, hlen);
 	}
 	u_short newval();
 	u_short oldval(ip*);
@@ -87,8 +90,8 @@ protected:
 class TCPSrcNat : public virtual NatAgent {
 protected:
 	void	rewrite_addr(ip*);
-	void fixcksums(ip* iph, int iphlen) {
-		fixtcpudpcksums(iph, iphlen);
+	void	fixtsum(ip* iph, int hlen) {
+		fixtcpudpcksum(iph, hlen);
 	}
 	u_short newval();
 	u_short oldval(ip*);
@@ -101,8 +104,8 @@ protected:
 	void	rewrite_addr(ip*);
 	u_short newval();
 	u_short oldval(ip*);
-	void fixcksums(ip* iph, int iphlen) {
-		fixtcpudpcksums(iph, iphlen);
+	void	fixtsum(ip* iph, int hlen) {
+		fixtcpudpcksum(iph, hlen);
 	}
 	int	command(int argc, const char*const* argv);
 };
@@ -151,7 +154,7 @@ NatAgent::recv(Packet *pkt, Handler *)
  */
 
 void
-NatAgent::fixcksums(ip* iph, int iphlen)
+NatAgent::fixipcksum(ip* iph, int iphlen)
 {
 	// fix IP cksum
 	iph->ip_sum = 0;
@@ -175,8 +178,9 @@ NatAgent::nat(Packet* pkt)
 		return;
 	}
 	int iphlen = (((u_char*)iph)[0] & 0x0f) << 2;
+	fixtcpudpcksum(iph, iphlen);	// requires orig header!
 	rewrite_addr(iph);
-	fixcksums(iph, iphlen);
+	fixipcksum(iph, iphlen);
 }
 
 /*
@@ -222,22 +226,23 @@ NatAgent::addrsum(in_addr* ia1, in_addr* ia2)
  * Please do not modify without careful testing.
  */
 void
-NatAgent::fixtcpudpcksums(ip* iph, int iphlen)
+NatAgent::fixtcpudpcksum(ip* iph, int iphlen)
 {
-	NatAgent::fixcksums(iph, iphlen);
-
 	tcphdr* tcph = (tcphdr*)(((u_char*) iph) + iphlen);
 	u_short sum = tcph->th_sum;
+//printf("isum: 0x%x\n", sum & 0xffff);
+//printf("oval: 0x%x, nval: 0x%x\n",
+//~oldval(iph) & 0xffff, newval());
 	u_long nsum;
 	nsum = ~sum & 0xffff;
 	nsum += ~oldval(iph) & 0xffff;
 	nsum += newval();
-printf("nsum2: 0x%x\n", nsum);
+//printf("nsum2: 0x%x\n", nsum);
 	nsum = (nsum >> 16) + (nsum & 0xffff);
 	nsum += (nsum >> 16);
 	sum = ~nsum;
 	tcph->th_sum = sum & 0xffff;
-printf("fsum: 0x%hx\n", tcph->th_sum);
+//printf("fsum: 0x%hx\n", tcph->th_sum);
 	return;
 }
 
@@ -294,7 +299,7 @@ TCPSrcDestNat::newval()
 u_short
 TCPSrcDestNat::oldval(ip* iph)
 {
-printf("oldval:%hx\n", addrsum(&iph->ip_src, &iph->ip_dst));
+//printf("oldval:%hx\n", addrsum(&iph->ip_src, &iph->ip_dst));
 	return(addrsum(&iph->ip_src, &iph->ip_dst));
 }
 
