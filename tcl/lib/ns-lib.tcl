@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.116 1998/07/17 05:25:05 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.117 1998/07/20 19:37:11 haoboy Exp $
 
 #
 
@@ -118,6 +118,9 @@ source ../mcast/McastMonitor.tcl
 source ../rlm/rlm.tcl
 source ../rlm/rlm-ns.tcl
 source ../session/session.tcl
+source ../http/http-agent.tcl
+source ../http/http-server.tcl
+source ../http/http-cache.tcl
 source ns-namsupp.tcl
 
 source ns-default.tcl
@@ -358,7 +361,7 @@ Simulator instproc run {} {
 	}
 
 	# Setting nam trace file version first
-	$self dump-namversion 1.0b6
+	$self dump-namversion 1.0a5
 	
 	# Addressing scheme
 	$self dump-namaddress
@@ -605,7 +608,11 @@ Simulator instproc flush-trace {} {
 
 Simulator instproc namtrace-all file {
 	$self instvar namtraceAllFile_
-	set namtraceAllFile_ $file
+	if {$file != ""} {
+		set namtraceAllFile_ $file
+	} else {
+		unset namtraceAllFile_
+	}
 }
 
 Simulator instproc namtrace-some file {
