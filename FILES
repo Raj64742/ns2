@@ -7,6 +7,7 @@ Encapsulator.cc
 Encapsulator.h
 FILES
 HOWTO-CONTRIBUTE
+INSTALL.WIN32
 Makefile.in
 README
 TODO.html
