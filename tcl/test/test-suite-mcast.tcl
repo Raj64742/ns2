@@ -695,25 +695,24 @@ Test/DM4 instproc run {} {
 	
 	$ns_ run
 }
-
-Class Test/lanDM1 -superclass TestSuite
-Test/lanDM1 instproc init topo {
+# testing lan topologies
+Class Test/DM5 -superclass TestSuite
+Test/DM5 instproc init topo {
 	source ../mcast/DM.tcl
-	source ../mcast/lanDM.tcl
 
 	$self instvar net_ defNet_ test_
 	set net_	$topo
 	set defNet_	net5e
-	set test_	lanDM1
+	set test_	DM5
 	$self next
 }
-Test/lanDM1 instproc run {} {
+Test/DM5 instproc run {} {
 	$self instvar ns_ node_ testName_
 	$ns_ rtproto Session
 	### Start multicast configuration
-	lanDM set PruneTimeout 0.3
+	DM set PruneTimeout 0.3
 	#DM set CacheMissMode dvmrp
-	set mproto lanDM
+	set mproto DM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 	

@@ -34,13 +34,48 @@ DM instproc init { sim node } {
 }
 
 DM instproc join-group  { group } {
-        $self next $group
 	$self instvar node_
-
+	$self next $group
 	set listOfReps [$node_ getReps * $group]
 	foreach r $listOfReps {
 		if ![$r is-active] {
-			$self send-ctrl graft [$r set srcID_] $group
+			$self send-ctrl "graft" [$r set srcID_] $group
+			set nbr [$node_ rpf-nbr [$r set srcID_]]
+			set nbrs($nbr) 1
+		}
+	}
+	foreach nbr [array names nbrs] {
+		if [$nbr is-lan?] {
+			# for each LAN we maintain an array of  counters 
+			# of how many local receivers we have on the lan 
+			# for a given group
+			$nbr instvar receivers_
+			if [info exists receivers_($group)] {
+				incr receivers_($group)
+			} else {
+				set receivers_($group) 1
+			}
+		}
+	}
+}
+
+DM instproc leave-group { group } {
+        $self next $group
+
+	$self instvar node_
+	# lan: decrement counters
+	set listOfReps [$node_ getReps * $group]
+	foreach r $listOfReps {
+		set nbr [$node_ rpf-nbr [$r set srcID_]]
+		set nbrs($nbr) 1
+	}
+	foreach nbr [array names nbrs] {
+		if [$nbr is-lan?] {
+			$nbr instvar receivers_
+			if { [info exists receivers_($group)] && \
+					$receivers_($group) > 0 } {
+				incr receivers_($group) -1
+			}
 		}
 	}
 }
@@ -120,7 +155,11 @@ DM instproc drop { replicator src dst iface} {
 		$replicator set ignore_ 1
         } else {
 		set from [[$node_ iif2link $iface] src]
-		$self send-ctrl "prune" $src $dst [$from id]
+		if [$from is-lan?] {
+			$self send-ctrl "prune" $src $dst
+		} else {
+			$self send-ctrl "prune" $src $dst [$from id]
+		}
 	}
 }
 
@@ -173,9 +212,22 @@ DM instproc recv-graft { from src group iface} {
 DM instproc send-ctrl { which src group { to "" } } {
         $self instvar mctrl_ ns_ node_
 	if { $to != "" } {
-		set nbr [$ns_ get-node-by-id $to]
+		set n [$ns_ get-node-by-id $to]
+		# we don't want to send anything to a lanNode
+		if [$n is-lan?] return
+		set toid $to
 	} else {
-		set nbr [$node_ rpf-nbr $src]
+		set toid $src
+	}
+	set nbr [$node_ rpf-nbr $toid]
+	if [$nbr is-lan?] {
+		# we're requested to send via a lan: $nbr
+		$nbr instvar receivers_
+		# send a graft/prune only if there're no other receivers on the lan
+		if { [info exists receivers_($group)] && \
+				$receivers_($group) > 0 } return 
+		# need to send: find the next hope node
+		set nbr [$nbr rpf-nbr $toid]
 	}
 	$ns_ connect $mctrl_ [[[$nbr getArbiter] getType [$self info class]] set mctrl_]
         if { $which == "prune" } {
