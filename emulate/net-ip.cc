@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.5 1998/02/21 03:02:15 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.6 1998/02/23 23:53:09 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -51,6 +51,9 @@ static const char rcsid[] =
 #include <sys/param.h>
 #include <sys/socket.h>
 #include <sys/ioctl.h>
+#include <netinet/in.h>
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
 typedef int Socket;
 #endif
 #if defined(sun) && defined(__svr4__)
@@ -75,11 +78,7 @@ class IPNetwork : public Network {
 	inline Socket rchannel() { return(rsock_); }	// virtual in Network
 	inline Socket schannel() { return(ssock_); }	// virtual in Network
 
-        int send(u_char* buf, int len) {		// virtual in Network
-printf(">>> IPNetwork send(%d, %p, %d, 0)\n", ssock_, buf, len);
-print_ip(buf);
-		return (::send(ssock_, (char*)buf, len, 0));
-	}
+        int send(u_char* buf, int len);			// virtual in Network
         int recv(u_char* buf, int len, sockaddr& from);	// virtual in Network
 
         inline in_addr& laddr() { return (localaddr_); }
@@ -243,6 +242,24 @@ IPNetwork::recv(u_char* buf, int len, sockaddr& sa)
 		return (-1);
 	}
 	return (cc);
+}
+
+//
+// we are given a "raw" IP datagram.
+// the raw interface appears to want the len and off fields
+// in *host* order, so make it this way here
+// note also, that it will compute the cksum "for" us... :(
+//
+int
+IPNetwork::send(u_char* buf, int len) {
+	struct ip *ip = (struct ip*) buf;
+	ip->ip_len = ntohs(ip->ip_len);
+	ip->ip_off = ntohs(ip->ip_off);
+
+printf(">>> IPNetwork send(%d, %p, %d, 0)\n", ssock_, buf, len);
+print_ip(buf);
+
+	return (::send(ssock_, (char*)buf, len, 0));
 }
 
 int
