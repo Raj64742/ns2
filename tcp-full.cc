@@ -69,7 +69,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.6 1997/07/25 21:19:25 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.7 1997/08/07 19:47:14 tomh Exp $ (LBL)";
 #endif
 
 #include "Tcl.h"
@@ -96,7 +96,7 @@ public:
  *	segsize: segment size to use when sending
  */
 FullTcpAgent::FullTcpAgent() : flags_(0),
-	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1)
+	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1), delack_timer_(this),	delsnd_timer_(this), rtx_timer_(this)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -326,7 +326,7 @@ send:
 	 * round-trip time + 2 * round-trip time variance.
 	 * Future values are rtt + 4 * rttvar.
 	 */
-	if (!pending_[TCP_TIMER_RTX] && ((seqno + datalen) != highest_ack_)) {
+	if (!(rtx_timer_.status() == TIMER_PENDING) && ((seqno + datalen) != highest_ack_)) {
 		set_rtx_timer();  // no timer pending, schedule one
 	}
 	return;
@@ -350,12 +350,12 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 	int topwin = min(highest_ack_ + win, curseq_ + iss_);
 
 
-	if (!force && pending_[TCP_TIMER_DELSND])
+	if (!force && (delsnd_timer_.status() == TIMER_PENDING))
         return;
 
 	while (force || (t_seqno_ < topwin)) {
-		if (overhead_ != 0 && !pending_[TCP_TIMER_DELSND]) {
-			sched(Random::uniform(overhead_), TCP_TIMER_DELSND);
+		if (overhead_ != 0 && !(delsnd_timer_.status() == TIMER_PENDING)) {
+			delsnd_timer_.resched(Random::uniform(overhead_));
 			return;
 		}
 		output(t_seqno_, reason);	// updates seqno for us
@@ -370,8 +370,8 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 
 void FullTcpAgent::cancel_rtx_timeout()
 {
-	if (pending_[TCP_TIMER_RTX]) {
-		cancel(TCP_TIMER_RTX);
+	if (rtx_timer_.status() == TIMER_PENDING) {
+		rtx_timer_.cancel();
 	}
 }
 
@@ -508,7 +508,7 @@ void FullTcpAgent::timeout(int tno)
 			flags_ |= TF_ACKNOW;
 			send_much(1, REASON_NORMAL, 0);
 		}
-		sched(delack_interval_, TCP_TIMER_DELACK);
+		delack_timer_.resched(delack_interval_);
 	} else {
 		double now = Scheduler::instance().clock();
 		fprintf(stderr, "%f: (%s) UNKNOWN TIMEOUT %d\n",
@@ -543,12 +543,10 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	// at time t0 = (0.0 + k * interval_) for some k such
 	// that t0 > now
 	//
-	if (!pending_[TCP_TIMER_DELACK]) {
+	if (!(delack_timer_.status() == TIMER_PENDING)) {
 		double now = Scheduler::instance().clock();
 		int last = int(now / delack_interval_);
-		sched(delack_interval_ * (last + 1.0)  - now,
-			TCP_TIMER_DELACK);
-
+		delack_timer_.resched(delack_interval_ * (last + 1.0) - now);
 	}
 
 	int datalen = th->size() - tcph->hlen();
@@ -759,7 +757,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
                                  * network.
                                  */
 
-				if (!pending_[TCP_TIMER_RTX] ||
+				if (!(rtx_timer_.status() == TIMER_PENDING) ||
 				    ackno != highest_ack_) {
 					// not timed, or re-ordered ACK
 					dupacks_ = 0;
@@ -976,10 +974,18 @@ drop:
 	return;
 }
 
+/*
+ * Set retransmit timer.  By calling resched(), we handle the 
+ * case in which the timer is already running.
+ */
+void FullTcpAgent::set_rtx_timer()
+{
+    rtx_timer_.resched(rtt_timeout());
+}
+
 void FullTcpAgent::reset_rtx_timer(int /* mild */)
 {
-	// cancel old timer,
-	// set a new one
+	// cancel old timer, set a new one
         set_rtx_timer();	// set new timer
         rtt_backoff();		// double current timeout
         rtt_active_ = FALSE;
@@ -1173,3 +1179,27 @@ endfast:
 
 	return;
 }
+
+void DelAckTimer::expire(Event *e) {
+                if (a_->flags_ & TF_DELACK) {  
+                        a_->flags_ &= ~TF_DELACK;
+                        a_->flags_ |= TF_ACKNOW;
+                        a_->send_much(1, REASON_NORMAL, 0);
+                } 
+                a_->delack_timer_.resched(a_->delack_interval_);
+}
+
+void DelSndTimer::expire(Event *e) {
+                a_->send_much(1, PF_TIMEOUT);
+}
+void RtxTimer::expire(Event *e) {
+                a_->recover_ = a_->maxseq_;
+                a_->recover_cause_ = REASON_TIMEOUT;
+                a_->closecwnd(0);
+                a_->reset_rtx_timer(1);
+                a_->t_seqno_ = a_->highest_ack_;
+                a_->dupacks_ = 0;
+                a_->send_much(0, PF_TIMEOUT);
+
+}
+

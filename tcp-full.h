@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.2 1997/07/23 02:55:33 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.3 1997/08/07 19:47:32 tomh Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -76,6 +76,34 @@
 
 #define PF_TIMEOUT 0x04		/* protocol defined */
 
+#define TIMER_IDLE 0
+#define TIMER_PENDING 1
+
+class FullTcpAgent;
+
+class DelAckTimer : public TimerHandler {
+public: 
+        DelAckTimer(FullTcpAgent *a) : TimerHandler() { a_ = a; } 
+protected:
+        virtual void expire(Event *e);  
+        FullTcpAgent *a_;
+};
+
+class DelSndTimer : public TimerHandler {
+public: 
+        DelSndTimer(FullTcpAgent *a) : TimerHandler() { a_ = a; }
+protected:
+        virtual void expire(Event *e);  
+        FullTcpAgent *a_;
+}; 
+
+class RtxTimer : public TimerHandler {
+public: 
+        RtxTimer(FullTcpAgent *a) : TimerHandler() { a_ = a; }
+protected:
+        virtual void expire(Event *e);
+        FullTcpAgent *a_;   
+};
  
 class ReassemblyQueue : public TcpAgent {
     struct seginfo {
@@ -97,6 +125,9 @@ protected:
 };
 
 class FullTcpAgent : public TcpAgent {
+	friend DelAckTimer;
+	friend DelSndTimer;
+	friend RtxTimer;
  public:
     FullTcpAgent();
     ~FullTcpAgent();
@@ -121,6 +152,7 @@ class FullTcpAgent : public TcpAgent {
     void fast_retransmit(int);  // do a fast-retransmit on specified seg
 
     void reset_rtx_timer(int);  // adjust the rtx timer
+	void set_rtx_timer(); 	// set rtx timer
     void reset();       // reset to a known point
     void connect();     // do active open
     void listen();      // do passive open
@@ -130,6 +162,10 @@ class FullTcpAgent : public TcpAgent {
     void send_much(int force, int reason, int maxburst = 0);
     void newack(Packet* pkt);   // process an ACK
     void cancel_rtx_timeout();  // cancel the rtx timeout
+
+	DelAckTimer delack_timer_;
+	DelSndTimer delsnd_timer_;
+	RtxTimer rtx_timer_;
 
     /*
      * the following are part of a tcpcb in "real" RFC793 TCP
