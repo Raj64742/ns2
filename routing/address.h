@@ -55,9 +55,8 @@ class Address : public TclObject {
 	}
 	int PortShift_;
 	int PortMask_;
-	/* for now maximum number of hierarchical levels considered as 10 */
-	int NodeShift_[10];
-	int NodeMask_[10];
+	int *NodeShift_;
+	int *NodeMask_;
 	int McastShift_;
 	int McastMask_;
 	int levels_;
