@@ -92,7 +92,7 @@ RTMechanisms instproc mmetric { op flows } {
 RTMechanisms instproc setstate { flow reason bandwidth droprate } { 
 	$self instvar state_ ns_
 
-	$self vprint 1 "SETSTATE: flow: $flow NEWSTATE (reason:$reason, bw: $bandwidth, droprate: $droprate)"
+	$self vprint 0 "SETSTATE: flow: $flow NEWSTATE (reason:$reason, bw: $bandwidth, droprate: $droprate)"
 
 	set state_($flow,reason) $reason
 	set state_($flow,bandwidth) $bandwidth
@@ -295,14 +295,17 @@ RTMechanisms instproc checkbw_fair guideline_bw {
 RTMechanisms instproc checkbw_droprate { droprateB droprateG } {
 	$self instvar badclass_
 	$self instvar npenalty_ cbqlink_
+
+	set link_bw [expr [[$cbqlink_ link] set bandwidth_] / 8.0]
+	set old_allot [$badclass_ allot]
 	if { $droprateB < 2 * $droprateG } {
-		set link_bw [expr [[$cbqlink_ link] set bandwidth_] / 8.0]
-		set old_allot [$badclass_ allot]
 		set class_bw [expr $old_allot * $link_bw]
 		set new_cbw [expr 0.5 * $class_bw]
 		set new_allot [expr $new_cbw / $link_bw]
+		$self vprint 0 "Penalty box: was $old_allot now $new_allot"
 		return $new_allot
 	}
+	$self vprint 0 "Penalty box: $old_allot"
 	return "ok"
 }
 
@@ -378,7 +381,7 @@ RTMechanisms instproc do_detect {} {
 	$self vprint 9 "maxmetric $maxmetric barrivals $barrivals elapsed $elapsed"
 	set guideline_bw  [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateG]
 
-	set friendly [$self test_friendly $flow_bw_est $guideline_bw]
+	set friendly [$self test_friendly $badflow $flow_bw_est $guideline_bw]
 	if { $friendly == "fail" } {
 		# didn't pass friendly test
 		$self setstate $badflow "UNFRIENDLY" $flow_bw_est $droprateG
@@ -395,8 +398,8 @@ RTMechanisms instproc do_detect {} {
 			$self setstate $badflow "UNRESPONSIVE2" \
 			    $flow_bw_est $droprateG
 			$self penalize $badflow $flow_bw_est
+			$self sched-reward
 		}
-		$self sched-reward
 	} else {
 		set nxt [$self fhist-add $badflow $droprateG $flow_bw_est]
 		set u [$self test_unresponsive_initial \
@@ -405,7 +408,7 @@ RTMechanisms instproc do_detect {} {
 			$self vprint 1 "FIRST TIME unresponsive"
 			$self setstate $badflow "UNRESPONSIVE" \
 			    $flow_bw_est $droprateG
-		} elseif { [$self test_high $flow_bw_est $droprateG $elapsed] == "fail" } {
+		} elseif { [$self test_high $badflow $flow_bw_est $droprateG $elapsed] == "fail" } {
 			$self setstate $badflow "HIGH" \
 			    $flow_bw_est $droprateG
 			$self penalize $badflow $flow_bw_est
@@ -453,7 +456,7 @@ RTMechanisms instproc sched-reward {} {
 	set then [expr $now + $Reward_interval_]
 	set reward_pending_ true
 	$ns_ at $then "$self do_reward"
-	$self vprint 2 "SCHEDULING REWARD for $then"
+	$self vprint 0 "SCHEDULING REWARD for $then"
 }
 RTMechanisms instproc do_reward {} {
 	$self instvar ns_
@@ -482,8 +485,8 @@ RTMechanisms instproc do_reward {} {
 	set badBps [expr $barrivals / $elapsed]
 	set pflows [$pboxfm_ flows] ; # all penalized flows
 
-	$self vprint 1 "DO_REWARD: droprateB: [$self frac $pdrops $parrivals] (pdrops: $pdrops, parr: $parrivals)"
-	$self vprint 2 "DO_REWARD: badbox pool of flows: $pflows"
+	$self vprint 0 "DO_REWARD: droprateB: [$self frac $pdrops $parrivals] (pdrops: $pdrops, parr: $parrivals)"
+	$self vprint 0 "DO_REWARD: badbox pool of flows: $pflows"
 
 	if { $parrivals == 0 && $elapsed > $Mintime_ } {
 		# nothing!, everybody becomes good
@@ -528,7 +531,7 @@ RTMechanisms instproc do_reward {} {
 	#
 	switch $state_($goodflow,reason) {
 		"UNFRIENDLY" {
-			set fr [$self test_friendly $flow_bw_est \
+			set fr [$self test_friendly $goodflow $flow_bw_est \
 			    [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
 			if { $fr == "ok" } {
 				$self setstate $goodflow "OK" $flow_bw_est $droprateB
@@ -541,7 +544,7 @@ RTMechanisms instproc do_reward {} {
 			$self instvar RUDFrac_
 			set unr [$self test_unresponsive_again $goodflow $RUBFrac_ $RUDFrac_]
 			if { $unr == "ok" } {
-			    set fr [$self test_friendly $flow_bw_est \
+			    set fr [$self test_friendly $goodflow $flow_bw_est \
 			      [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
 			    if { $fr == "ok" } {
 				$self setstate $goodflow "OK" $flow_bw_est $droprateB
@@ -551,9 +554,9 @@ RTMechanisms instproc do_reward {} {
 		}
 
 		"HIGH" {
-			set h [$self test_high $flow_bw_est $droprateG $elapsed]
+			set h [$self test_high $goodflow $flow_bw_est $droprateB $elapsed]
 			if { $h == "ok" } {
-			    set fr [$self test_friendly $flow_bw_est \
+			    set fr [$self test_friendly $goodflow $flow_bw_est \
 			      [$self tcp_ref_bw $Mtu_ $Rtt_ $droprateB]]
 			    if { $fr == "ok" } {
 				$self setstate $goodflow "OK" $flow_bw_est $droprateB
