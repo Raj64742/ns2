@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.312 2003/03/28 02:45:13 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.313 2003/04/01 01:15:01 sfloyd Exp $
 
 
 #
@@ -606,6 +606,7 @@ GAFPartner set debug_ false
 
 Mac set debug_ false
 ARPTable set debug_ false
+ARPTable set avoidReordering_ false ; #not used
 God set debug_ false
 
 Mac/Tdma set slot_packet_len_	1500
@@ -615,6 +616,7 @@ LL set mindelay_                50us
 LL set delay_                   25us
 LL set bandwidth_               0       ;# not used
 LL set debug_ false
+LL set avoidReordering_ false ;	#not used 
 
 Snoop set debug_ false
 
@@ -767,6 +769,8 @@ Agent/TCP set backoff_ 0
 Agent/TCP set maxseq_ 0
 # Agent/TCP set singledup_ 0
 Agent/TCP set singledup_ 1 ;		# default changed on 2001/11/28.
+Agent/TCP set LimTransmitFix_ false ;	# added on 2003/03/31.
+#Agent/TCP set LimTransmitFix_ true 
 Agent/TCP set precisionReduce_ false
 Agent/TCP set oldCode_ false
 Agent/TCP set useHeaders_ true ;	# default changed on 2001/11/28. 

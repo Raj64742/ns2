@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.h,v 1.15 2003/03/28 02:45:12 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.h,v 1.16 2003/04/01 01:15:01 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_delay_h
@@ -63,13 +63,13 @@ class LinkDelay : public Connector {
 	double delay_;		/* line latency */
 	Event intr_;
 	int dynamic_;		/* indicates whether or not link is ~ */
-	int avoidReordering_;	/* indicates whether or not to avoid
-				 *  reordering when link bandwidth or delay 
-				 *  changes */
 	double latest_time_;	/* latest scheduled packet time, for use
 				 *  with avoidReordering_ */
 	PacketQueue* itq_;
 	int total_[4];
+	int avoidReordering_;	/* indicates whether or not to avoid
+				 *  reordering when link bandwidth or delay 
+				 *  changes */
 };
 
 #endif
