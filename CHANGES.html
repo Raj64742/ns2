@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.485 2001/11/27 22:40:20 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.486 2001/11/28 23:07:26 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -20,6 +20,11 @@ ns-2.1b9 release PENDING</h3>
 <ul>
 
 <p>
+<p><li><b><a href="http://www.aciri.org/floyd/">[Sally Floyd]</a></b>
+Wed Nov 28 2001
+<br>Changed the default for "useHeaders_" in Agent/TCP to true. 
+
+<p>
 <p><li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
 Tue Nov 27 13:34:43 PST 2001
 <br>Added an option "useHeaders_" to one-way TCP that takes into
@@ -27,7 +32,7 @@ account the TCP/IP header size in bytes when computing the size of
 the packet to be transmitted on the wire.  The current default 
 is for this to be false, but at some point the default will be
 changed.
-The validation test is "./test-all-simple statsHeaders" in tcl/lib.
+The validation test is "./test-all-simple statsHeaders" in tcl/test.
 
 <p>
 <p><li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
