@@ -315,6 +315,7 @@ tcl/lib/ns-agent.tcl
 tcl/lib/ns-ber.tcl
 tcl/lib/ns-compat.tcl
 tcl/lib/ns-default.tcl
+tcl/lib/ns-errmodel.tcl
 tcl/lib/ns-lib.tcl
 tcl/lib/ns-link.tcl
 tcl/lib/ns-nam.tcl
