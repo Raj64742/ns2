@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.2 1999/11/24 22:07:18 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.3 2000/07/07 21:28:51 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -172,6 +172,147 @@ Test/tcpB instproc init {} {
     Test/tcpB instproc run {} [Test/tcp info instbody run ]
     $self next
 }
+
+TestSuite instproc emod {} {
+        $self instvar lossylink_
+        set errmodule [$lossylink_ errormodule]
+        return $errmodule
+} 
+
+TestSuite instproc set_lossylink {} {
+        $self instvar lossylink_ ns_ node_
+        set lossylink_ [$ns_ link $node_(r1) $node_(r2)]
+        set em [new ErrorModule Fid]
+        set errmodel [new ErrorModel/Periodic]
+        $errmodel unit pkt
+        $lossylink_ errormodule $em
+}
+
+
+# Drop the specified packet.
+TestSuite instproc drop_pkt { number } {
+    $self instvar ns_ lossmodel
+    set lossmodel [$self setloss]
+    $lossmodel set offset_ $number
+    $lossmodel set period_ 10000
+}
+
+TestSuite instproc drop_pkts pkts {
+    $self instvar ns_
+    set emod [$self emod]
+    set errmodel1 [new ErrorModel/List]
+    $errmodel1 droplist $pkts
+    $emod insert $errmodel1
+    $emod bind $errmodel1 0
+}
+
+# First retransmit timeout, ssthresh decreased by half.
+Class Test/ssthresh -superclass TestSuite
+Test/ssthresh instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	ssthresh
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    $self next
+}
+Test/ssthresh instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_
+    $self setTopo
+    $self set_lossylink
+    Agent/TCP set window_ 8
+    set stopTime  2.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+    set tcp1 [$ns_ create-connection $sender_ $node_(s1) $receiver_ $node_(s3) 0]
+    set ftp1 [$tcp1 attach-app FTP]
+    $self enable_tracecwnd $ns_ $tcp1
+    $self drop_pkts {30 31 32 33 34 35 36}
+    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at $stopTime0 "$ftp1 stop"
+    
+    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    ## $ns_ at $stopTime3 "exec cp temp.cwnd temp.rands; exit 0"
+    $ns_ at $stopTime2 "exit 0"
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/ssthreshA -superclass TestSuite
+Test/ssthreshA instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	ssthreshA
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    Agent/TCP set increase_num_ 0.41
+    Agent/TCP set decrease_num_ 0.75
+    Test/ssthreshA instproc run {} [Test/ssthresh info instbody run ]
+    $self next
+}
+
+# Second retransmit timeout, ssthresh_second decrease depends on decrease_num_.
+Class Test/ssthresh_second -superclass TestSuite
+Test/ssthresh_second instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	ssthresh_second
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    $self next
+}
+Test/ssthresh_second instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_
+    $self setTopo
+    $self set_lossylink
+    Agent/TCP set window_ 8
+    set stopTime  2.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+    set tcp1 [$ns_ create-connection $sender_ $node_(s1) $receiver_ $node_(s3) 0]
+    set ftp1 [$tcp1 attach-app FTP]
+    $self enable_tracecwnd $ns_ $tcp1
+    $self drop_pkts {30 31 32 33 34 35 36   120 121 122 123 124 125 126}
+    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at $stopTime0 "$ftp1 stop"
+    
+    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    ## $ns_ at $stopTime3 "exec cp temp.cwnd temp.rands; exit 0"
+    $ns_ at $stopTime2 "exit 0"
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/ssthresh_secondA -superclass TestSuite
+Test/ssthresh_secondA instproc init {} {
+    $self instvar net_ test_ sender_ receiver_
+    set net_	net2
+    set test_	ssthresh_secondA
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    Agent/TCP set increase_num_ 0.41
+    Agent/TCP set decrease_num_ 0.75
+    Test/ssthresh_secondA instproc run {} [Test/ssthresh_second info instbody run ]
+    $self next
+}
+
+###################################################3
 
 Class Test/tcp_tahoe -superclass TestSuite
 Test/tcp_tahoe instproc init {} {
