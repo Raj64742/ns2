@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.20 2000/11/06 18:53:20 mehringe Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.21 2001/06/20 02:23:54 xuanc Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -98,6 +98,7 @@ protected:
 	void dispatch(Event*);	// execute an event
 	void dispatch(Event*, double);	// exec event, set clock_
 	Scheduler();
+	virtual ~Scheduler();
 	int command(int argc, const char*const* argv);
 	double clock_;
 	int halted_;

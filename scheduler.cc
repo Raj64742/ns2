@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.62 2000/11/17 22:24:01 ratul Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.63 2001/06/20 02:23:54 xuanc Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.62 2000/11/17 22:24:01 ratul Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.63 2001/06/20 02:23:54 xuanc Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -59,6 +59,10 @@ scheduler_uid_t Scheduler::uid_ = 1;
 
 Scheduler::Scheduler() : clock_(SCHED_START), halted_(0)
 {
+}
+
+Scheduler::~Scheduler(){
+	instance_ = NULL ;
 }
 
 /*
