@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.11 1997/10/16 00:54:00 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.12 1997/10/31 18:17:38 kfall Exp $
 #
 
 #source plotting.tcl
@@ -47,13 +47,15 @@ Object instproc exit args {
 
 Class TestSuite
 
-TestSuite instproc init {} {
+TestSuite instproc init { {dotrace 1} } {
 	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
 	if [catch "$self get-simulator" ns_] {
 	    set ns_ [new Simulator]
 	}
-	$ns_ trace-all [open all.tr w]
-	$ns_ namtrace-all [open all.nam w]
+	if { $dotrace } {
+		$ns_ trace-all [open all.tr w]
+		$ns_ namtrace-all [open all.nam w]
+	}
 	if {$net_ == ""} {
 		set net_ $defNet_
 	}
@@ -80,13 +82,15 @@ TestSuite instproc init {} {
 		set testName_ "$test_:$net_"
 	}
 
-	# XXX
-	if [info exists node_(k1)] {
-		set blink [$ns_ link $node_(r1) $node_(k1)]
-	} else {
-		set blink [$ns_ link $node_(r1) $node_(r2)] 
+	if { $dotrace } {
+		# XXX
+		if [info exists node_(k1)] {
+			set blink [$ns_ link $node_(r1) $node_(k1)]
+		} else {
+			set blink [$ns_ link $node_(r1) $node_(r2)] 
+		}
+		$blink trace-dynamics $ns_ stdout
 	}
-	$blink trace-dynamics $ns_ stdout
 }
 
 TestSuite instproc finish file {
@@ -142,7 +146,7 @@ TestSuite instproc openTrace { stopTime testName } {
 	set traceFile [open out.tr w]
 	puts $traceFile "v testName $testName"
 	$ns_ at $stopTime \
-		"close $traceFile ; $self finish $testName"
+		"$ns_ halt; close $traceFile ; $self finish $testName"
 	return $traceFile
 }
 
