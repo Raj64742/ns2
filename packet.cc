@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.2 1997/02/27 04:38:51 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.3 1997/03/10 21:53:31 kfall Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -64,8 +64,10 @@ public:
 void
 PacketHeaderManager::allochdr(PacketHeader *p)
 {
-	cur_offset_ += p->hdrsize();
-	Packet::addhsize(p->hdrsize());
+	/* round up to nearest NS_ALIGN bytes */
+	int incr = (p->hdrsize() + (NS_ALIGN-1)) & ~(NS_ALIGN-1);
+	cur_offset_ += incr;
+	Packet::addhsize(incr);
 	p->setbase(cur_offset_);
 }
 
