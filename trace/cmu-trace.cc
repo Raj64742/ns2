@@ -646,14 +646,15 @@ CMUTrace::nam_format(Packet *p, int offset)
 	if(tracetype == TR_ROUTER && type_ == RECV && dst != -1 ) return ;
 	if(type_ == RECV && dst == -1 )dst = src_ ; //broadcasting event
 
-
-	sprintf(nwrk_ ,
+        if (energy != -1) { //energy model being turned on
+	   sprintf(nwrk_ ,
 	        "n -t %.9f -s %d -S COLOR %s",
 	         Scheduler::instance().clock(),
 	         src,                           // this node
 	         colors);
-        offset = strlen(nwrk_);
-        namdump();
+           offset = strlen(nwrk_);
+           namdump();
+        }
 
 	sprintf(nwrk_ ,
 		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
