@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.56 2004/10/13 02:29:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.57 2004/10/18 19:39:56 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -1129,6 +1129,24 @@ Test/HighLossImprecise instproc run {} {
 
     # trace only the bottleneck link
     $ns_ run
+}
+  
+Class Test/HighLossMinRTO -superclass TestSuite
+Test/HighLossMinRTO instproc init {} {
+    $self instvar net_ test_ guide_ stopTime1_
+    set net_	net2
+    set test_ HighLossMinRTO	
+    set guide_  \
+    "TFRC competing against a CBR flow, with high loss, high MinRTO."
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Agent/TFRC set minrto_ 1.0
+    # Minimum RTO of one second.  This slows down the TFRC flow.
+    set stopTime1_ 60
+    Test/HighLossMinRTO instproc run {} [Test/HighLoss info instbody run ]
+    $self next pktTraceFile
 }
   
 Class Test/HighLossConservative -superclass TestSuite
