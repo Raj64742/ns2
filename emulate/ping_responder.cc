@@ -12,8 +12,8 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *      This product includes software developed by the Computer Systems
- *      Engineering Group at Lawrence Berkeley Laboratory.
+ *      This product includes software developed by the Network Research
+ *      Group at Lawrence Berkeley National Laboratory.
  * 4. Neither the name of the University nor of the Laboratory may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
@@ -33,8 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /usr/src/mash/repository/vint/ns-2/tcp.cc,v 1.71 1998/05/21 0
-0:35:00 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ping_responder.cc,v 1.5 1998/05/27 23:14:45 kfall Exp $";
 #endif
 
 #include <stdio.h>
