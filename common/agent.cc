@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.32 1997/12/19 22:20:10 bajaj Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.33 1998/02/05 03:45:27 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -64,6 +64,13 @@ Agent::Agent(int pkttype) :
 	prio_(-1), flags_(0), defttl_(32), channel_(0), traceName_(NULL),
 	oldValueList_(NULL)
 {
+	/*
+	 * the following is a workaround to allow
+	 * older scripts that use "class_" instead of
+	 * flowid to work -K
+	 */
+	bind("class_", (int*)&fid_);
+
 //	memset(pending_, 0, sizeof(pending_));
 	// this is really an IP agent, so set up
 	// for generating the appropriate IP fields...
@@ -73,12 +80,6 @@ Agent::Agent(int pkttype) :
 	bind("prio_", (int*)&prio_);
 	bind("flags_", (int*)&flags_);
 	bind("ttl_", &defttl_);
-	/*
-	 * the following is a workaround to allow
-	 * older scripts that use "class_" instead of
-	 * flowid to work -K
-	 */
-	bind("class_", (int*)&fid_);
 
 	bind("off_ip_", &off_ip_);
 }
