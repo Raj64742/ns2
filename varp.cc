@@ -92,7 +92,7 @@ int VARPTable::arpresolve(int IPaddr, Packet* p) {
 	if (IPaddr > size_)
 		return 1;
 	int ma = maddr_[IPaddr];
-	if (ma > 0) {
+	if (ma >= 0) {
 		HDR_MAC(p)->macDA_ = ma;
 		return 0;
 	}
