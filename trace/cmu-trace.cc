@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.75 2003/07/23 23:16:56 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.76 2003/08/05 18:45:53 difa Exp $
  */
 
 #include <packet.h>
@@ -110,7 +110,7 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 	struct hdr_ip *ih = HDR_IP(p);
 	struct hdr_mac802_11 *mh;
 	struct hdr_smac *sh;
-	char mactype[TINY_LEN];
+	char mactype[SMALL_LEN];
 
 	strcpy(mactype, Simulator::instance().macType());
 	if (strcmp (mactype, "Mac/SMAC") == 0)
@@ -872,6 +872,11 @@ CMUTrace::nam_format(Packet *p, int offset)
 	if(type_ == RECV && dst == -1 )dst = src_ ; //broadcasting event
 
         if (energy != -1) { //energy model being turned on
+	   if (src_ >= MAX_NODE) {
+	       fprintf (stderr, "%: node id must be < %d\n",
+		       __PRETTY_FUNCTION__, MAX_NODE);
+	       exit(0);
+	   }
 	   if (nodeColor[src_] != energyLevel ) { //only dump it when node  
 	       sprintf(pt_->nbuffer() ,                    //color change
 	          "n -t %.9f -s %d -S COLOR %s",

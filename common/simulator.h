@@ -53,7 +53,7 @@ private:
 	RouteLogic *rtobject_;
 	int nn_;
 	int size_;
-	char macType_[TINY_LEN];
+	char macType_[SMALL_LEN];
 	static Simulator* instance_;
 };
 

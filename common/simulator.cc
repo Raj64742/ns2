@@ -58,6 +58,10 @@ int Simulator::command(int argc, const char*const* argv) {
 			return TCL_OK;
 		}
 		if (strcmp(argv[1], "mac-type") == 0) {
+			if (strlen(argv[2]) >= SMALL_LEN) {
+				tcl.add_errorf("Length of mac-type name must be < %d", SMALL_LEN);
+				return TCL_ERROR;
+			}
 			strcpy(macType_, argv[2]);
 			return TCL_OK;
 		}
@@ -139,7 +143,7 @@ void Simulator::populate_flat_classifiers() {
 	// Set up each classifer (aka node) to act as a router.
 	// Point each classifer table to the link object that
 	// in turns points to the right node.
-	char tmp[TINY_LEN];
+	char tmp[SMALL_LEN];
 	if (nodelist_ == NULL)
 		return;
 
