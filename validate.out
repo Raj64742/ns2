@@ -316,44 +316,92 @@ All test output agrees with reference output.
 *** ./test-all-cbq-v1
 Tests: cbqWRR cbqPRR cbqAO cbqTL cbqFor cbqForOld cbqMax1 cbqMax2 cbqExtra1 cbqExtra2 cbqMin1 cbqMin3 cbqMin4 cbqMin6 cbqTwoAO cbqTwoAO2 cbqTwoAO3 cbqTwoTL cbqTwoF
 ../../ns test-suite-cbq-v1a.tcl cbqWRR QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqPRR QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqAO QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTL QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqFor QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqForOld QUIET
 WARNING:  This test was not run.
 This functionality is not implemented in ns-2.
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMax1 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMax2 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqExtra1 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqExtra2 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin1 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin3 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin4 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqMin6 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO2 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoAO3 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoTL QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 ../../ns test-suite-cbq-v1a.tcl cbqTwoF QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-sack-v1
@@ -688,16 +736,130 @@ total clients started: 1
 total clients finished: 1
 Test output agrees with reference output
 All test output agrees with reference output.
-*** ./test-all-session
-Tests: Session1 Session2 Session3
-Running test Session1
-tracing
+*** ./test-all-hier-routing
+Tests: hier-simple hier-cmcast hier-deDM hier-session
+../../ns test-suite-hier-routing.tcl hier-simple QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Computing Hierarchical routes
+
+Sim.: utime/stime: 1892 46 	stack/heap: -20168 2625536
 Test output agrees with reference output
-Running test Session2
-tracing
+../../ns test-suite-hier-routing.tcl hier-cmcast QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Computing Hierarchical routes
+
+Sim.: utime/stime: 2426 46 	stack/heap: -20168 2625536
 Test output agrees with reference output
-Running test Session3
-tracing
+../../ns test-suite-hier-routing.tcl hier-deDM QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Computing Hierarchical routes
+
+Sim.: utime/stime: 2423 61 	stack/heap: -20168 2625536
 Test output agrees with reference output
-All test outputs agree with reference outputs
+../../ns test-suite-hier-routing.tcl hier-session QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Computing Hierarchical routes
+
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-intserv
+Tests: MS HB ACTP ACTO Param
+../../ns test-suite-intserv.tcl MS QUIET
+Test output agrees with reference output
+../../ns test-suite-intserv.tcl HB QUIET
+Test output agrees with reference output
+../../ns test-suite-intserv.tcl ACTP QUIET
+Test output agrees with reference output
+../../ns test-suite-intserv.tcl ACTO QUIET
+Test output agrees with reference output
+../../ns test-suite-intserv.tcl Param QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-webcache
+Tests: SimpleTcp TcpApp-2node http1 http1f http2 http2f http3 http3f http4 http4f PagePool cache0-inv cache0f-inv cache0-push cache0f-push cache0-ttl cache0f-ttl cache0-ottl cache0f-ottl TLC1 TLC1f TLC1-dreq Liveness Mcast-PB Mcast-PBP Mcast-PBU Mcast-PBU-MP ttl-PB ottl-PB mmcast-PB mmcast-PBU mttl-PB mottl-PB mcast-dreq
+../../ns test-suite-webcache.tcl SimpleTcp QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl TcpApp-2node QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl http1 QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl http1f QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl http2 QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl http2f QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl http3 QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl http3f QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl http4 QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl http4f QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl PagePool QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl cache0-inv QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl cache0f-inv QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl cache0-push QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl cache0f-push QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl cache0-ttl QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl cache0f-ttl QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl cache0-ottl QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl cache0f-ottl QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl TLC1 QUIET
+20.0020664: 5 send TLC
+20.302960301075263: Cache 5 knows server 11 -> tlc 4
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl TLC1f QUIET
+20.006162400000001: 5 send TLC
+20.607698210752684: Cache 5 knows server 11 -> tlc 4
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl TLC1-dreq QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl Liveness QUIET
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl Mcast-PB QUIET
+6 Bandwidth*Hop -1 Stale 21.787709497206702 AverageRepTime 0.087379685363129275 BottleneckBW 67099 ServerBW 18577 StaleTime 2.5720725257183994
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl Mcast-PBP QUIET
+6 Bandwidth*Hop -1 Stale 21.787709497206702 AverageRepTime 0.087379685363129275 BottleneckBW 67099 ServerBW 18577 StaleTime 2.5720725257183994
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl Mcast-PBU QUIET
+6 Bandwidth*Hop -1 Stale 7.2625698324022352 AverageRepTime 0.020562173556795998 BottleneckBW 49933 ServerBW 22591 StaleTime 2.296295230978652
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl Mcast-PBU-MP QUIET
+6 Bandwidth*Hop -1 Stale 7.8212290502793298 AverageRepTime 0.020562173556796157 BottleneckBW 51933 ServerBW 23541 StaleTime 2.0231028351006222
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl ttl-PB QUIET
+0.1 Bandwidth*Hop -1 Stale 5.8139534883720927 AverageRepTime 0.39467676910853028 BottleneckBW 152298 ServerBW 32953 StaleTime 0.5174959570748463
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl ottl-PB QUIET
+Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.12868432434457094 BottleneckBW 91162 ServerBW 19207 StaleTime 0
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl mmcast-PB QUIET
+6 Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.0 BottleneckBW 323714 ServerBW 69900 StaleTime 0
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl mmcast-PBU QUIET
+6 Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.0 BottleneckBW 306548 ServerBW 73914 StaleTime 0
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl mttl-PB QUIET
+0.1 Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.0 BottleneckBW 2522796 ServerBW 87726 StaleTime 0
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl mottl-PB QUIET
+Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.0 BottleneckBW 399100 ServerBW 70530 StaleTime 0
+Test output agrees with reference output
+../../ns test-suite-webcache.tcl mcast-dreq QUIET
+30 Bandwidth*Hop -1 Stale 25.0 AverageRepTime 0.02189052307691788 BottleneckBW 3688 ServerBW 30127 StaleTime 16.167594851360057
+Test output agrees with reference output
+All test output agrees with reference output.
 validate overall report: all tests passed
