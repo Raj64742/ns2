@@ -10,8 +10,6 @@
 # To view a list of available tests to run with this script:
 # ns test-suite-mcast.tcl
 #
-#puts "sourcing CtrMcastComp.tcl"
-#source ../ctr-mcast/CtrMcastComp.tcl
 
 Class TestSuite
 

@@ -18,36 +18,25 @@
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
 # Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
-# 
 #
 Class dynamicDM -superclass DM
 
 dynamicDM set ReportRouteTimeout 1
 
-dynamicDM instproc start { } {
-        $self routing-update
-}
-
-dynamicDM instproc periodic-check {} {
-        $self instvar ns_
-        $self routing-update
-        $ns_ after [dynamicDM set ReportRouteTimeout] "$self periodic-check"
-}
-
-dynamicDM instproc notify changes {
-	$self routing-update
-}
-
-dynamicDM instproc routing-update { } {
+dynamicDM instproc notify { dummy } {
         $self instvar ns_ node_ PruneTimer_
 
-	set neighbors [$node_ neighbors]
-	set id [$node_ set id_]
-
-        foreach src [$ns_ all-nodes-list] {
-		set src_id [$src set id_]
-		#update iif
-		set time [$ns_ now]
+	#build list of current sources
+        foreach r [$node_ getReps "*" "*"] {
+		set src_id [$r set srcID_]
+		set sources($src_id) 1
+	}
+	set sourceIDs [array names sources]
+	#### sort for validation consistency
+	set sourceIDs [lsort $sourceIDs]
+	####
+	foreach src_id $sourceIDs {
+		set src [$ns_ get-node-by-id $src_id]
 		if {$src != $node_} {
 			set upstream [$node_ rpf-nbr $src]
 			if { $upstream != ""} {
@@ -64,7 +53,7 @@ dynamicDM instproc routing-update { } {
 		}
 		#next update outgoing interfaces
 		set oiflist ""
-		foreach nbr $neighbors {
+		foreach nbr [$node_ neighbors] {
 			set nbr_id [$nbr id]
 			set nh [$nbr rpf-nbr $src] 
 			if { $nh != $node_ } {
