@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.5 1997/10/16 00:59:04 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.6 1997/10/30 04:02:12 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -58,6 +58,7 @@ set pthresh 100
 
 TestSuite instproc finish file {
 	global quiet
+	$self instvar ns_ tchan_ testName_
         exec ../../bin/getrc -s 2 -d 3 all.tr | \
           ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
 	if {$quiet == "false"} {
@@ -65,7 +66,20 @@ TestSuite instproc finish file {
 	}
         ## now use default graphing tool to make a data file
         ## if so desired
-        exit 0
+
+	if { [info exists tchan_] && $quiet == "false" } {
+		$self plotQueue $testName_
+	}
+	$ns_ halt
+}
+
+TestSuite instproc enable_tracequeue ns {
+	$self instvar tchan_ node_
+	set redq [[$ns link $node_(r1) $node_(r2)] queue]
+	set tchan_ [open all.q w]
+	$redq trace curq_
+	$redq trace ave_
+	$redq attach $tchan_
 }
 
 #
@@ -81,7 +95,7 @@ Topology/net2 instproc config ns {
 }
 
 TestSuite instproc plotQueue file {
-    return
+	$self instvar tchan_
 	#
 	# Plot the queue size and average queue size, for RED gateways.
 	#
@@ -99,16 +113,17 @@ TestSuite instproc plotQueue file {
 	puts $f "TitleText: $file"
 	puts $f "Device: Postscript"
 
+	if { [info exists tchan_] } {
+		close $tchan_
+	}
 	exec rm -f temp.q temp.a 
 	exec touch temp.a temp.q
-	exec awk $awkCode out.tr
+
+	exec awk $awkCode all.q
 
 	puts $f \"queue
-	flush $f
-	exec cat temp.q >@ $f
-	flush $f
+	exec cat temp.q >@ $f  
 	puts $f \n\"ave_queue
-	flush $f
 	exec cat temp.a >@ $f
 	###puts $f \n"thresh
 	###puts $f 0 [[ns link $r1 $r2] get thresh]
@@ -152,9 +167,9 @@ Test/red1 instproc run {} {
     set ftp1 [$tcp1 attach-source FTP]
     set ftp2 [$tcp2 attach-source FTP]
 
+    $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
     $ns_ at 3.0 "$ftp2 start"
-    $ns_ at $stoptime "plotQueue $testName_"
 
     $self tcpDump $tcp1 5.0
 
@@ -192,9 +207,9 @@ Test/red1_bytes instproc run {} {
     set ftp1 [$tcp1 attach-source FTP]
     set ftp2 [$tcp2 attach-source FTP]
 
+    $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
     $ns_ at 3.0 "$ftp2 start"
-    $ns_ at $stoptime "plotQueue $testName_"
 
     $self tcpDump $tcp1 5.0
 
@@ -231,9 +246,9 @@ Test/ecn instproc run {} {
     set ftp1 [$tcp1 attach-source FTP]
     set ftp2 [$tcp2 attach-source FTP]
         
+    $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
     $ns_ at 3.0 "$ftp2 start"
-    $ns_ at $stoptime "plotQueue $testName_"
         
     $self tcpDump $tcp1 5.0
         
@@ -271,9 +286,9 @@ Test/red2 instproc run {} {
     set ftp1 [$tcp1 attach-source FTP]
     set ftp2 [$tcp2 attach-source FTP]
 
+    $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
     $ns_ at 3.0 "$ftp2 start"
-    $ns_ at $stoptime "plotQueue $testName_"
 
     $self tcpDump $tcp1 5.0
     
@@ -312,11 +327,11 @@ XTest/red_twoway instproc run {} {
     set ftp3 [$tcp3 attach-source FTP]
     set telnet1 [$tcp4 attach-source TELNET] ; $telnet1 set interval 0
 
+    $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
     $ns_ at 2.0 "$ftp2 start"
     $ns_ at 3.5 "$ftp3 start"
     $ns_ at 1.0 "$telnet1 start"
-    $ns_ at $stoptime "plotQueue $testName_"
 
     $self tcpDump $tcp1 5.0
 
@@ -357,11 +372,11 @@ XTest/red_twowaybytes instproc run {} {
     set ftp3 [$tcp3 attach-source FTP]
     set telnet1 [$tcp4 attach-source TELNET] ; $telnet1 set interval 0
 
+    $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
     $ns_ at 2.0 "$ftp2 start"
     $ns_ at 3.5 "$ftp3 start"
     $ns_ at 1.0 "$telnet1 start"
-    $ns_ at $stoptime "plotQueue $testName_"
 
     $self tcpDump $tcp1 5.0
 
@@ -381,42 +396,22 @@ XTest/red_twowaybytes instproc run {} {
 #			-- Kannan	Wed May  7 15:15:37 PDT 1997
 #
 
-proc create_flowstats {} {
+TestSuite instproc create_flowstats {} {
 
-	global r1 r2 r1fm flowfile pthresh category
+	global flowfile
+	$self instvar ns_ node_ r1fm_
 
-	set r1fm [new flowmgr srcdstcls]
+	set r1fm_ [$ns_ makeflowmon]
 	set flowdesc [open $flowfile w]
-	$r1fm attach $flowdesc
-## 2 "categories" of drops
-        $r1fm ndropcats 2
-## after 100 total packets have been dropped, invoke flowDump
-        $r1fm cat-drops-pthresh $category $pthresh
-	$r1fm cat-drops-pcallback $category flowDump 
-	[ns link $r1 $r2] flow-mgr $r1fm
-}
-
-proc create_flowstats1 {} {
-
-	global r1 r2 r1fm flowfile pthresh 
-
-#	set r1fm [new flowmgr srcdstcls]
- 	set r1fm [new flowmgr redsrcdstcls]
-	set flowdesc [open $flowfile w]
-	$r1fm attach $flowdesc
-## 2 "categories" of drops
-        $r1fm ndropcats 2
-## after 100 total packets have been dropped, invoke flowDump1
-        $r1fm total-drops-pthresh $pthresh
-	$r1fm total-drops-pcallback flowDump1 
-	[ns link $r1 $r2] flow-mgr $r1fm
+	$r1fm_ attach $flowdesc
+	$ns_ attach-fmon [$ns_ link $node_(r1) $node_(r2)] $r1fm_
 }
 
 #
 # awk code used to produce:
 #       x axis: # arrivals for this flow+category / # total arrivals [bytes]
 #       y axis: # drops for this flow+category / # drops this category [pkts]
-proc unforcedmakeawk { } {
+TestSuite instproc unforcedmakeawk { } {
         set awkCode {
             BEGIN { print "\"flow 0" }
             {
@@ -433,7 +428,7 @@ proc unforcedmakeawk { } {
 # awk code used to produce:
 #       x axis: # arrivals for this flow+category / # total arrivals [bytes]
 #       y axis: # drops for this flow+category / # drops this category [bytes]
-proc forcedmakeawk { } {
+TestSuite instproc forcedmakeawk { } {
         set awkCode {
             BEGIN { print "\"flow 0" }
             {
@@ -450,7 +445,7 @@ proc forcedmakeawk { } {
 # awk code used to produce:
 #      x axis: # arrivals for this flow+category / # total arrivals [bytes]
 #      y axis: # drops for this flow / # drops [pkts and bytes combined]
-proc allmakeawk { } {
+TestSuite instproc allmakeawk { } {
         set awkCode {
             BEGIN { print "\"flow 0"; cat0=0; cat1=0}
             {
@@ -488,8 +483,9 @@ proc allmakeawk { } {
         return $awkCode
 }
 
-proc create_flow_graph { graphtitle graphfile } {
-        global flowfile awkprocedure
+TestSuite instproc create_flow_graph { graphtitle graphfile } {
+        global flowfile
+	$self instvar awkprocedure_
         set tmpfile1 /tmp/fg1[pid]
         set tmpfile2 /tmp/fg2[pid]
 
@@ -505,29 +501,25 @@ proc create_flow_graph { graphtitle graphfile } {
         puts "writing flow xgraph data to $graphfile..."
 
         exec sort -n +1 -o $flowfile $flowfile
-        exec awk [$awkprocedure] $flowfile >@ $outdesc
+        exec awk [$self $awkprocedure_] $flowfile >@ $outdesc
         close $outdesc
 }
 
-proc finish_flow { file } {
+TestSuite instproc finish_flows file {
 	global flowgraphfile
-	create_flow_graph $file $flowgraphfile
+	$self create_flow_graph $file $flowgraphfile
 	puts "running xgraph..."
 	exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards" $flowgraphfile &
 	exit 0
 }
 
-proc flowDump { link fm flow category } {
-	$fm dump $category
+TestSuite instproc flowDump { link fm flow } {
+	$fm dump
 	$fm resetcounters
 }
 
-proc flowDump1 { link fm flow } {
-	$fm dump 
-	$fm resetcounters
-}
-
-proc new_tcp { startTime source dest window class dump size } {
+TestSuite instproc new_tcp { startTime source dest window class dump size } {
+	$self instvar ns_
 	set tcp [$ns_ create-connection TCP/Reno $source TCPSink $dest $class ]
 	$tcp set window_ $window
 	if {$size > 0}  {$tcp set packet-size $size }
@@ -536,17 +528,36 @@ proc new_tcp { startTime source dest window class dump size } {
         if {$dump == 1 } {$self tcpDumpAll $tcp 20.0 $class }
 }
 
-proc new_cbr { startTime source dest pktSize interval class } {
- 	set cbr [ns_create_cbr $source $dest $pktSize $interval $class ]
-	$ns_ at $startTime "$cbr start"
+TestSuite instproc new_cbr { startTime source dest pktSize interval class } {
+	$self instvar ns_
+    set cbr [$ns_ create-connection CBR $source LossMonitor $dest $class]
+    if {$pktSize > 0} {
+	$cbr set packetSize_ $pktSize
+    }
+    $cbr set interval_ $interval
+    $ns_ at $startTime "$cbr start"
 }
 
-proc flows {} {
-	global s1 s2 r1 r2 s3 s4 r1fm qgraphfile flowfile 
-        set stoptime 500.0
-	set testname test_two
+##Class Test/flows -superclass TestSuite
+##Test/flows instproc init topo {
+Class XTest/flows -superclass TestSuite
+XTest/flows instproc init topo {
+    $self instvar net_ defNet_ test_
+    set net_    $topo   
+    set defNet_ net2
+    set test_   flows
+    $self next
+}   
+
+#Test/flows instproc run {} {
+XTest/flows instproc run {} {
+    $self instvar ns_ node_ testName_ r1fm_ awkprocedure_
+ 
+	#global s1 s2 r1 r2 s3 s4 r1fm qgraphfile flowfile 
+        set stoptime 10.0
+	set testName_ test_two
+	set awkprocedure_ unforcedmakeawk
 	
-	create_testnet2
 	[$ns_ link $node_(r1) $node_(r2)] set mean_pktsize 1000
 	[$ns_ link $node_(r2) $node_(r1)] set mean_pktsize 1000
 	[$ns_ link $node_(r1) $node_(r2)] set linterm 10
@@ -554,16 +565,16 @@ proc flows {} {
 	[$ns_ link $node_(r1) $node_(r2)] set queue-limit 100
 	[$ns_ link $node_(r2) $node_(r1)] set queue-limit 100
 
-	create_flowstats 
+	$self create_flowstats 
 	[$ns_ link $node_(r1) $node_(r2)] set bytes true
 	[$ns_ link $node_(r1) $node_(r2)] set wait false
 
-        new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
-	new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
-	new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
+        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
+	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
+	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
 
-	$ns_ at $stoptime "$r1fm flush"
-	$ns_ at $stoptime "finish_flow $testName_"
+#	$ns_ at $stoptime "$r1fm_ flush"
+	$ns_ at $stoptime "$self finish_flows $testName_"
 
 	$ns_ run
 }
