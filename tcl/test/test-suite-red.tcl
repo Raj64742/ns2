@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.18 1997/11/04 08:39:44 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.19 1998/01/27 00:32:19 kfall Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -488,21 +488,21 @@ TestSuite instproc finish_flows testname {
 	exit 0
 }
 
-TestSuite instproc new_tcp { startTime source dest window class verbose size } {
+TestSuite instproc new_tcp { startTime source dest window fid verbose size } {
 	$self instvar ns_
-	set tcp [$ns_ create-connection TCP/Reno $source TCPSink $dest $class ]
+	set tcp [$ns_ create-connection TCP/Reno $source TCPSink $dest $fid]
 	$tcp set window_ $window
 	if {$size > 0}  {$tcp set packetSize_ $size }
 	set ftp [$tcp attach-source FTP]
 	$ns_ at $startTime "$ftp start"
 	if {$verbose == "1"} {
-	  $self tcpDumpAll $tcp 20.0 $class 
+	  $self tcpDumpAll $tcp 20.0 $fid 
 	}
 }
 
-TestSuite instproc new_cbr { startTime source dest pktSize interval class } {
+TestSuite instproc new_cbr { startTime source dest pktSize interval fid } {
 	$self instvar ns_
-    set cbr [$ns_ create-connection CBR $source LossMonitor $dest $class]
+    set cbr [$ns_ create-connection CBR $source LossMonitor $dest $fid]
     if {$pktSize > 0} {
 	$cbr set packetSize_ $pktSize
     }
