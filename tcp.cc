@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.42 1997/10/26 05:54:02 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.43 1997/11/06 00:28:12 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -669,8 +669,11 @@ void TcpAgent::quench(int how)
 }
 
 void TcpAgent::recv_newack_helper(Packet *pkt) {
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	newack(pkt);
-	opencwnd();
+	if ( !((hdr_flags*)pkt->access(off_flags_))->ecn_ || !ecn_ ) {
+	        opencwnd();
+	}
 	/* if the connection is done, call finish() */
 	if ((highest_ack_ >= curseq_-1) && !closed_) {
 		closed_ = 1;
