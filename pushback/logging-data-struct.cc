@@ -14,27 +14,16 @@ LoggingDataStruct::LoggingDataStruct(Node * node, RouteLogic * rtLogic,
   statusArrivalRateAll_=-1;
   rtLogic_ = rtLogic;
   
-//   neighbor_list_item *np = node->neighbor_list.head;
-//   for (; np; np = np->next) {
-//     int nid = np->id;
-//     int nextHopID = rtLogic_->lookup_flat(nid, sampleAddress);
-//     if (nextHopID == node->nodeid()) {
-//       LoggingDataStructNode * lgdsNode = new LoggingDataStructNode(nid, first_);
-//       first_ = lgdsNode;
-//       count_++;
-//     }
-//   }
-
-  Node * nextNode = node->neighbor_list_.lh_first;
+  neighbor_list_node * nextNode = node->neighbor_list_;
   while (nextNode != NULL) {
-    int nid = nextNode->nodeid();
+    int nid = nextNode->nodeid;
     int nextHopID = rtLogic_->lookup_flat(nid, sampleAddress);
      if (nextHopID == node->nodeid()) {
        LoggingDataStructNode * lgdsNode = new LoggingDataStructNode(nid, first_);
        first_ = lgdsNode;
        count_++;
      }
-     nextNode = nextNode->neighbor_list_entry_.le_next;
+     nextNode = nextNode->next;
   }
     
 }
