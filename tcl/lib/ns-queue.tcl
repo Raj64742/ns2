@@ -61,7 +61,10 @@ CBQLink instproc bind args {
 	}
 	# bind the class to the flow id's [a..b]
 	while { $a <= $b } {
-		$classifier_ set-hash fid $cbqcl $a
+		# first install the class to get its slot number
+		# use the flow id as the hash bucket
+		set slot [$classifier_ installNext $cbqcl]
+		$classifier_ set-hash $a 0 0 $a $slot
 		incr a
 	}
 }
@@ -148,4 +151,46 @@ CBQClass instproc install-queue q {
 	$q set blocked_ true
 	$q set unblock_on_resume_ false
 	$self qdisc $q
+}
+
+#
+# QueueMonitor
+#
+
+QueueMonitor instproc reset {} {
+	$self instvar size_ pkts_
+	$self instvar parrivals_ barrivals_
+	$self instvar pdepartures_ bdepartures_
+	$self instvar pdrops_ bdrops_
+
+	set size_ 0
+	set pkts_ 0
+	set parrivals_ 0
+	set barrivals_ 0
+	set pdepartures_ 0
+	set bdepartures_ 0
+	set pdrops_ 0
+	set bdrops_ 0
+
+	set bint [$self get-bytes-integrator]
+	if { $bint != "" } {
+		$bint reset
+	}
+
+	set pint [$self get-pkts-integrator]
+	if { $pint != "" } {
+		$pint reset
+	}
+
+	set samp [$self get-delay-samples]
+	if { $samp != "" } {
+		$samp reset
+	}
+}
+
+QueueMonitor/ED instproc reset {} {
+	$self next
+	$self instvar epdrops_ ebdrops_
+	set epdrops_ 0
+	set ebdrops_ 0
 }
