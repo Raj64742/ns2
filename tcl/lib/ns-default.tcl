@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.191 2000/03/24 19:40:53 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.192 2000/04/10 23:54:08 sfloyd Exp $
 
 
 #
@@ -215,7 +215,7 @@ Agent/TFRC set rtxcur_init_ 6.0
 Agent/TFRC set rttvar_exp_ 2	
 Agent/TFRC set T_SRTT_BITS 3	
 Agent/TFRC set T_RTTVAR_BITS 2	
-Agent/TFRC set InitRate_ 1000 ;	# Initial send rate	
+Agent/TFRC set InitRate_ 1 ;	# Initial send rate	
 Agent/TFRC set overhead_ 0 ;	# If > 0, dither outgoing packets
 Agent/TFRC set ssmult_ 2 ; 	# Rate of increase during slow-start:
 Agent/TFRC set bval_ 1 ;	# Value of B for TCP formula
