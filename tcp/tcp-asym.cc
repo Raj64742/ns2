@@ -47,12 +47,17 @@
  * (tcp-asym-sink.cc). 
  */ 
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.4 1997/07/21 22:10:14 kfall Exp $ (UCB)";
+#endif
+
+
 #include "tcp.h"
 #include "ip.h"
 #include "flags.h"
 #include "random.h"
 #include "template.h"
-
 
 /* TCP Asym with Tahoe */
 class TcpAsymAgent : public virtual TcpAgent {
@@ -79,7 +84,7 @@ public:
 static class TcpAsymClass : public TclClass {
 public:
 	TcpAsymClass() : TclClass("Agent/TCP/Asym") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new TcpAsymAgent());
 	} 
 } class_tcpasym;
@@ -107,7 +112,7 @@ public:
 static class TcpRenoAsymClass : public TclClass {
 public:
 	TcpRenoAsymClass() : TclClass("Agent/TCP/Reno/Asym") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new TcpRenoAsymAgent());
 	} 
 } class_tcprenoasym;
@@ -130,7 +135,7 @@ public:
 static class TcpNewRenoAsymClass : public TclClass {
 public:
 	TcpNewRenoAsymClass() : TclClass("Agent/TCP/Newreno/Asym") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new TcpNewRenoAsymAgent());
 	} 
 } class_tcpnewrenoasym;
@@ -141,7 +146,6 @@ public:
 /* fill in the TCP asym header before packet is sent out */
 void TcpAsymAgent::output_helper(Packet* p) 
 {
-	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
 	hdr_tcpasym *tcpha = (hdr_tcpasym*)p->access(off_tcpasym_);
 	hdr_flags *flagsh = (hdr_flags*)p->access(off_flags_);
 
