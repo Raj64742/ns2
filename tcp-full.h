@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.47 2001/08/21 22:17:27 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.48 2001/08/22 00:05:18 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -135,6 +135,7 @@ protected:
 	int pipectrl_;		// use pipe-style control
 	int open_cwnd_on_pack_;	// open cwnd on a partial ack?
 	int segs_per_ack_;  // for window updates
+	int spa_thresh_;    // rcv_nxt < spa_thresh? -> 1 seg per ack
 	int nodelay_;       // disable sender-side Nagle?
 	int fastrecov_;	    // are we in fast recovery?
 	int deflate_on_pack_;	// deflate on partial acks (reno:yes)
