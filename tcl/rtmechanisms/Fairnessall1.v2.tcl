@@ -1,30 +1,4 @@
 # OUTPUT:
-# Fairness.data: CBR arrival rate, CBR goodput, TCP goodput (in KBps) 
-#
-# INPUT:
-# Fairness.tr:
-# 
-proc append_old { infile datafile } {
-    set awkCode {
-	{
-	    if ($1=="stop-time") {time = $2;}
-	    if ($3=="packet-size") {size[$2] = $4;}
-	    if ($3=="total_packets_acked"||$3=="total_packets_received") {
-		packets[$2] += $4;
-		goodput[$2] = (packets[$2]*size[$2]*8)/1000
-	    }
-	    if ($3=="arriving_pkts") { 
-		if ($2==0) {
-		    cbrrate = (($4*size[0]*8)/time)/1000
-		    print cbrrate, goodput[0]/time, goodput[1]/time
-		}
-	    }
-	}
-    } 
-    exec awk $awkCode $infile >> $datafile
-}
-
-# OUTPUT:
 # Fairness.data: CBR arrival rate, CBR goodput, TCP goodput (in KBps)
 #
 # INPUT:
@@ -65,8 +39,6 @@ proc append { infile datafile cbrs tcps } {
         }
         exec awk $awkCode cbrs=$cbrs $infile >> $datafile
 }
-
-
 
 #-------------------------------------------------------------------
 
