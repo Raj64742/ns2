@@ -87,7 +87,7 @@ void EnergyTimer::expire(Event *e)
   }
 
   if (threshold_ >= init_eng_/8) 
-    resched(ENERGY_CHECK + ENERGY_CHECK * (double) ((int) e>>5 & 0xff)/256.0); 
+    resched(ENERGY_CHECK); 
 }
 
 

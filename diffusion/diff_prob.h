@@ -97,12 +97,12 @@ public:
       pkt_ = pkt;
   }
 
-  virtual ~InterestTimer() {
+  ~InterestTimer() {
     if (pkt_ != NULL) 
       Packet::free(pkt_);
   }
 
-  void expire(Event *e);
+  virtual void expire(Event *e);
 protected:
   DiffusionProb *a_;
   Pkt_Hash_Entry *hashPtr_;
