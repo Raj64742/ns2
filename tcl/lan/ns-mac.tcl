@@ -39,6 +39,7 @@ Channel set delay_ 4us
 Classifier/Mac set bcast_ 0
 
 #default bandwidth setting done during mac initialisation (c++)
+Mac set bandwidth_ 2Mb
 Mac set delay_ 0us
 Mac set off_mac_ 0
 
