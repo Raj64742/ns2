@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.18 1997/12/19 22:20:16 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.19 1997/12/25 00:31:33 padmanab Exp $
 #
 
 Class Node
@@ -290,6 +290,39 @@ Node instproc addCorresHost {addr cw mtu maxcw wndopt } {
 		set chaddrs_($addr) $chost
 	}
 	return $chaddrs_($addr)
+}
+
+Node instproc createTcpSession {dst} {
+	$self instvar tcpSession_
+
+	if { ![info exists tcpSession_($dst)] } {
+		set tcpsession [new Agent/TCP/Session]
+		$self attach $tcpsession
+		$tcpsession set dst_ $dst
+		set tcpSession_($dst) $tcpsession
+	}
+	return $tcpSession_($dst)
+}
+
+Node instproc getTcpSession {dst} {
+	$self instvar tcpSession_
+
+	if { [info exists tcpSession_($dst)] } {
+		return $tcpSession_($dst)
+	} else {
+		puts "In getTcpSession(): no session exists for destination [$dst set addr_]"
+		return ""
+	}
+}
+
+Node instproc existsTcpSession {dst} {
+	$self instvar tcpSession_
+
+	if { [info exists tcpSession_($dst)] } {
+		return 1
+	} else {
+		return 0
+	}
 }
 
 #
