@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.68 1997/10/25 02:12:38 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.69 1997/10/26 06:02:20 hari Exp $
 
 
 #
@@ -96,6 +96,7 @@ Agent/TCP set nackpack_ 0
 Agent/TCP set nrexmit_ 0
 Agent/TCP set nrexmitpack_ 0
 Agent/TCP set nrexmitbytes_ 0
+Agent/TCP set trace_all_oneline_ false
 
 Agent/TCP/Fack set ss-div4_ false
 Agent/TCP/Fack set rampdown_ false
@@ -117,6 +118,9 @@ Agent/TCP/Vegas/RBP set rbp_rate_algorithm_ 1
 Agent/TCP/Reno/RBP set rbp_scale_ 0.75
 # Reno/RBP supports only RBP_CWND_ALGORITHM 
 # Agent/TCP/Reno/RBP set rbp_rate_algorithm_ 2
+
+Agent/TCP/Asym set g_ 0.125
+Agent/TCP/Asym set damp_ 0
 
 if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1
@@ -150,6 +154,7 @@ Queue set interleave_ false
 Queue set acksfirst_ false
 Queue set ackfromfront_ false
 
+Queue/DropTail set drop-front_ false
 
 Queue/RED set bytes_ false
 Queue/RED set queue-in-bytes_ false
@@ -161,6 +166,8 @@ Queue/RED set wait_ true
 Queue/RED set linterm_ 10
 Queue/RED set setbit_ false
 Queue/RED set drop-tail_ true
+Queue/RED set drop-front_ false
+Queue/RED set drop-rand_ false
 Queue/RED set doubleq_ false
 Queue/RED set dqthresh_ 50
 Queue/RED set ave_ 0.0
@@ -186,6 +193,7 @@ PacketQueue/Semantic set filteracks_ false
 PacketQueue/Semantic set replace_head_ false
 PacketQueue/Semantic set priority_drop_ false
 PacketQueue/Semantic set random_drop_ false
+PacketQueue/Semantic set reconsAcks_ false
 
 #XXX other kinds of sinks -> should reparent
 Agent/TCPSink set packetSize_ 40
