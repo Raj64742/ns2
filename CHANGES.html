@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.426 2000/10/14 00:27:57 intanago Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.427 2000/10/14 00:53:52 yewei Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -20,31 +20,42 @@ ns-2.1b7</a> [PENDING]</h3>
 
 <ul>
 <li>
-<b><a href="http://www.isi.edu/~kclan/">[kclan]</a>Mon Oct 2 20:00:00
-PDT 2000</b></li>
+<b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> <b>Fri Oct 13
+11:51:06 PDT 2000</b></li>
+
+<br>(1) Added a new chapter in ns Manual: radio propagation models.&nbsp;
+(2) Changed a separate program ~ns/indep-utils/propagation/threshold.cc
+for compute receiving threshold for a specified communication range for
+all available propagation models in ns.
+<li>
+<b><a href="http://www.isi.edu/~kclan/">[kclan]</a>Mon Oct 2 20:00:00 PDT
+2000</b></li>
+
 <br>Creation of Real Audio traffic model:
 <ul>
 <li>
-create source file realaudio.cc
-</li>
+create source file realaudio.cc</li>
+
 <li>
-create example script ramodel.tcl in ~ns/tcl/ex/realaudio
-</li>
+create example script ramodel.tcl in ~ns/tcl/ex/realaudio</li>
+
 <li>
-create testsuite for realaudio model in ~ns/tcl/test/test-output-realaudio
-</li>
+create testsuite for realaudio model in ~ns/tcl/test/test-output-realaudio</li>
 </ul>
 
-
 <li>
-<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Fri Oct  6 11:43:29 PDT 2000
-</b></li>
+<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Fri Oct 6 11:43:29
+PDT 2000</b></li>
 
 <br>Changes from eval to evalc wherever eval'ing constant strings with
-embedded subcommands (with []).  This construct crashes tcl-8.3 (that
-modifies strings) when used with compilers that don't properly match
-against eval(const char*) (like apparently egcs-2.91.66).
+embedded subcommands (with []). This construct crashes tcl-8.3 (that modifies
+strings) when used with compilers that don't properly match against eval(const
+char*) (like apparently egcs-2.91.66).
+<li>
+<b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> <b>Mon Oct&nbsp;
+9 16:39:46 PDT 2000</b></li>
 
+<br>Test suite for the shadowing propagation model is added.
 <li>
 <b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> <b>Mon Oct&nbsp;
 2 13:39:46 PDT 2000</b></li>
@@ -359,11 +370,14 @@ statistical model is applicable to both outdoor and indoor. (2) A bug fixed
 in wireless-phy.cc. The bug disabled setting values of bound variables
 from Tcl.
 <li>
-<b><a href="http://www-scf.usc.edu/~intanago">[intanago]</a></b> <b>Mon Jul 10 7:31:37 PDT 2000</b></li>
+<b><a href="http://www-scf.usc.edu/~intanago">[intanago]</a></b> <b>Mon
+Jul 10 7:31:37 PDT 2000</b></li>
 
-<br> (1) Checked in directed diffusion, flooding, and omnicient multicast modules including codes, test suits, scenarios, and examples. (2) Added more supports on idle energy consumption. (3) Fixed some bugs of energy consumption in transmission and reception.
+<br>(1) Checked in directed diffusion, flooding, and omnicient multicast
+modules including codes, test suits, scenarios, and examples. (2) Added
+more supports on idle energy consumption. (3) Fixed some bugs of energy
+consumption in transmission and reception.
 <li>
-
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> <b>Sun Jul 9 09:38:26
 PDT 2000</b></li>
 
@@ -3008,6 +3022,8 @@ PDT 1997</b></li>
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>Major Updates: SRM
 <ul>
 <li>
@@ -3234,6 +3250,8 @@ PDT 1997</b></li>
 <p>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>Small change to conf/config.head.in to look for socket() rather than
 poll() when searching for the -lsocket library. Also a new version of the
 configure script based on this.
@@ -3243,6 +3261,8 @@ configure script based on this.
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
 <p>Bug fixes to emulation rig. Previous version didn't properly account
@@ -3709,6 +3729,8 @@ traffictrace.cc, traffictrace.h, udp.cc, udp.h.</li>
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <li>
 To support the pareto on/off source, added the function Random::pareto()
 to random.h.</li>
@@ -3728,6 +3750,8 @@ CBQ is now part of the simulator</li>
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>Generally works.
 <li>
 ALL default queue sizes are now 50 [per ns-1 defaults]</li>
@@ -3737,6 +3761,8 @@ QueueMonitors now know the difference between</li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
@@ -3751,6 +3777,8 @@ new class called 'Samples' which collects samples</li>
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>points of something and can provide a mean and variance of the points
 (see integrator.cc)
 <li>
@@ -3758,6 +3786,8 @@ Queues can be flow controlled</li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
@@ -3774,6 +3804,8 @@ common packet header</li>
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <p>contains a timestamp field; this is used to compute queueing delay for
 individual packets at queues
 <li>
@@ -3781,6 +3813,8 @@ classifier-hash</li>
 
 <br>&nbsp;
 <p>&nbsp;
+<br>&nbsp;
+<br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
 <br>&nbsp;
