@@ -22,7 +22,7 @@
 #              provided in the tutorial. Thanks.
 #
 # This test suite is for validating all the examples in Marc Greis tutorial
-# http://www.cs.uni-bonn.de/~greis (now maintained and expanded by VINT group)
+# that's now on the ns web pages at http://www.isi.edu/nsnam/ns/tutorial/index.html
 #
 # To run all tests: test-all-greis
 # to run individual test:

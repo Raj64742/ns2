@@ -74,5 +74,5 @@ dnl Look for emulation specific stuff
 builtin(include, ./conf/configure.in.nse)
 
 NS_FNS_TAIL
-define(AcOutputFiles,Makefile tcl/lib/ns-autoconf.tcl tcl/lib/ns-stl.tcl indep-utils/webtrace-conv/ucb/Makefile indep-utils/webtrace-conv/dec/Makefile indep-utils/webtrace-conv/nlanr/Makefile indep-utils/webtrace-conv/epa/Makefile indep-utils/cmu-scen-gen/setdest/Makefile)
+define(AcOutputFiles,Makefile tcl/lib/ns-autoconf.tcl indep-utils/webtrace-conv/ucb/Makefile indep-utils/webtrace-conv/dec/Makefile indep-utils/webtrace-conv/nlanr/Makefile indep-utils/webtrace-conv/epa/Makefile indep-utils/cmu-scen-gen/setdest/Makefile)
 builtin(include, ./conf/configure.in.tail)
