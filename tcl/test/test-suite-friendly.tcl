@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.1 1998/09/21 06:32:49 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.2 1998/09/22 02:20:06 sfloyd Exp $
 #
 
 # UNDER CONSTRUCTION!!
@@ -70,8 +70,8 @@ Topology/net2 instproc init ns {
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
     $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
-    $ns queue-limit $node_(r1) $node_(r2) 25
-    $ns queue-limit $node_(r2) $node_(r1) 25
+    $ns queue-limit $node_(r1) $node_(r2) 50
+    $ns queue-limit $node_(r2) $node_(r1) 50
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
 }
@@ -91,6 +91,40 @@ TestSuite instproc setTopo {} {
     }
 }
 
+# 
+# Arrange for TFCC stats to be dumped for $Src every
+# $interval seconds of simulation time
+# 
+TestSuite instproc tfccDump { label Src interval } {
+        global quiet
+        $self instvar dump_inst_ ns_
+        if ![info exists dump_inst_($Src)] {
+                set dump_inst_($Src) 1
+                $ns_ at 0.0 "$self tfccDump $label $Src $interval"
+                return
+        }
+        $ns_ at [expr [$ns_ now] + $interval] "$self tfccDump $label $Src $interval"
+        set report "time [$ns_ now] tfcc $label total_packets_sent ?"
+        if {$quiet == "false"} {
+                puts $report
+        }
+}
+
+TestSuite instproc pktsDump { label tcp interval } {
+    global quiet
+    $self instvar dump_inst_ ns_
+    if ![info exists dump_inst_($tcp)] {
+        set dump_inst_($tcp) 1
+        $ns_ at 0.0 "$self pktsDump $label $tcp $interval"
+        return
+    }
+    $ns_ at [expr [$ns_ now] + $interval] "$self pktsDump $label $tcp $interval"
+    set report "time [$ns_ now] tcp $label total_packets_acked [$tcp set ack_]"
+    if {$quiet == "false"} {
+        puts $report
+    }
+}
+
 proc stop {tracefile} {
     close $tracefile
     exit
@@ -107,6 +141,7 @@ Test/test1 instproc init {} {
 Test/test1 instproc run {} {
     $self instvar ns_ node_ testName_
     $self setTopo
+    set interval 5.0
 
     set tracefile [open all.tr w]
     $ns_ trace-all $tracefile
@@ -144,10 +179,14 @@ Test/test1 instproc run {} {
     $ns_ at 40 "$ftp3 stop"
     $ns_ at 60 "stop $tracefile"
 
-    $self tcpDump $tcp1 1.0
+    $self tfccDump 1 $tf1 $interval
+    $self tfccDump 2 $tf2 $interval
+    $self pktsDump 1 $tcp1 $interval
+    $self pktsDump 2 $tcp2 $interval
+    $self pktsDump 3 $tcp3 $interval
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 20.0 $testName_]
+#    $self traceQueues $node_(r1) [$self openTrace 20.0 $testName_]
     $ns_ run
 }
 
