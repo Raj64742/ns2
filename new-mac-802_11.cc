@@ -746,6 +746,7 @@ newMac802_11::sendRTS(int dst)
 	ch->size() = ETHER_RTS_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
+	ch->direction() = -1;
 
 	bzero(rf, MAC_HDR_LEN);
 
@@ -788,7 +789,7 @@ newMac802_11::sendCTS(int dst, double rts_duration)
 	ch->size() = ETHER_CTS_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-
+	ch->direction() = -1;
 	bzero(cf, MAC_HDR_LEN);
 
 	cf->cf_fc.fc_protocol_version = MAC_ProtocolVersion;
@@ -827,7 +828,8 @@ newMac802_11::sendACK(int dst)
 	ch->size() = ETHER_ACK_LEN;
 	ch->iface() = -2;
 	ch->error() = 0;
-
+	ch->direction() = -1;
+	
 	bzero(af, MAC_HDR_LEN);
 
 	af->af_fc.fc_protocol_version = MAC_ProtocolVersion;
