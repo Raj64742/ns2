@@ -19,7 +19,7 @@ RTMechanisms instproc init { ns cbqlink rtt mtu enable } {
 	$self instvar Hist_max_ hist_next_
 	$self instvar High_const_
 
-	set verbose_ 0	; #-1 means no messages
+	set verbose_ 6	; #-1 means no messages
 	set cbqlink_ $cbqlink
 	set Rtt_ $rtt
 	set Mtu_ $mtu
@@ -46,8 +46,8 @@ RTMechanisms instproc init { ns cbqlink rtt mtu enable } {
 	#
 	# Set High_const_ to INFINITY to turn off HIGH-BANDWIDTH test.
 	#
-        set High_const_ 12000   
-#       set High_const_ 1200000
+#        set High_const_ 12000   
+       set High_const_ 1200000
 
 	# don't schedule reward initially;  nobody in pbox yet
 	if { $enable == "true" || $enable == 1 } {
@@ -85,6 +85,7 @@ RTMechanisms instproc test_unresponsive_initial { flow flow_bw droprate lastidx 
 		$self vprint 0 "UNRESPONSIVE-TEST: FAILED (flow: $flow fbw: $flow_bw, droprate: $droprate"
 		return "fail"
 	}
+	$self vprint 1 "idx $idx lastidx $lastidx" 
 	$self vprint 0 "UNRESPONSIVE-TEST: OK (flow: $flow fbw: $flow_bw, droprate: $droprate"
 	return "ok"
 }
