@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-pushback.tcl,v 1.2 2000/11/28 02:50:29 ratul Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-pushback.tcl,v 1.3 2000/12/29 05:22:40 sfloyd Exp $
 
 
 
@@ -108,3 +108,4 @@ Queue/RED/Pushback set rate_limiting_ 1
 Agent/Pushback set last_index_ 0
 Agent/Pushback set intResult_ -1
 Agent/Pushback set enable_pushback_ 1
+Agent/Pushback set verbose_ false
