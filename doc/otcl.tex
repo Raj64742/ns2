@@ -1089,12 +1089,24 @@ In \nsf{tcl/lib/ns-lib.tcl}, we have the lines:
 \end{program}
 to automatically get srm.tcl sourced by \ns\ at startup.
 
-Two points to note with EmbeddedTcl code are that
+Three points to note with EmbeddedTcl code are that
 firstly, if the code has an error that is caught during the eval,
 then \ns\ will not run.
 Secondly, the user can explicitly override any of the code in the scripts.
 In particular, they can re-source the entire script after making their own
 changes. 
+Finally, after adding the scripts to \nsf{tcl/lib/ns-lib.tcl}, and
+everytime thereafter that they change their script, the user
+must recompile \ns\ for their changes to take effect.
+Ofcourse, in most cases\footnote{%
+The few places where this might not work
+are when certain variables might have to be defined or undefined,
+or otherwise the script contains code
+other than procedure and variable definitions and 
+executes actions directly that might not be reversible.},
+the user can source their script
+to override the embedded code.
+
 
 The rest of this subsection illustrate
 how to integrate individual scripts directly into \ns.
