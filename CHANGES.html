@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.186 1997/11/19 01:23:05 hari Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.187 1997/11/27 06:08:29 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -18,6 +18,19 @@
 <hr>
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b2.tar.gz">ns-2.1b2</A> [not released yet]</H3>
 <UL>
+<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B> <B>Wed Nov 26 21:57:26 PST 1997</B><BR>
+</LI>
+<UL>
+<LI> Added a new member function REDQueue::pickPacketForECN() which is called when
+the RED algorithm decides to send an ECN notification. By default, this function
+picks the incoming packet.
+<LI> SemanticREDQueue calls the pickPacketForECN() function defined in 
+SemanticPacketQueue, which picks a packet uniformly at random.
+<LI> Replaced the check $type == "RED" in ns-lib.tcl with one that just looks for
+the string "RED" in $type. This is to accomodate derived classes of REDQueue
+such as SemanticREDQueue.
+</UL>
+
   <LI><B><A HREF=http://www.cs.berkeley.edu/~hari>[hari]</A></B>
        Tue Nov 18 17:22:12 PST 1997 <br>
 	<ul>
@@ -35,6 +48,8 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b1.tar.gz">ns-2.1b1</A> November 11, 1997</H3>
 
 <P> Release to incorporate tracing features for nam-1.0a2. This release is CVS tagged with NS_2_1B1 </P>
+
+<UL>
 
 <UL>
   <LI><B><A HREF="http://www.isi.edu/~kkumar/">[SK]</A></B>
