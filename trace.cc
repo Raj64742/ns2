@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.14 1997/06/16 21:26:51 elan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.15 1997/07/14 21:44:17 tomh Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -66,6 +66,7 @@ Trace::Trace(int type)
 	bind("src_", (int*)&src_);
 	bind("dst_", (int*)&dst_);
 	bind("callback_", &callback_);
+	bind("show_tcphdr_", &show_tcphdr_);
 
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
@@ -152,31 +153,46 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	/*XXX*/
 	char flags[5];
 	flags[0] = flags[1] = flags[2] = flags[3] = flags[4] = '-';
-	flags[5] = 0;
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 	flags[0] = hf->ecn_ ? 'C' : '-';
+	flags[1] = hf->pri_ ? 'P' : '-'; 
+	flags[2] = hf->usr1_ ? '1' : '-';
+	flags[3] = hf->usr2_ ? '2' : '-';
 	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';
+	flags[5] = 0;
 
-#ifdef notdef
-flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
-flags[2] = (iph->flags() & PF_USR1) ? '1' : '-';
-flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
-flags[5] = 0;
-#endif
-
-	sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
-		tt,
-		Scheduler::instance().clock(),
-		s,
-		d,
-		name,
-		th->size(),
-		flags,
-		iph->flowid() /* was p->class_ */,
-		iph->src() >> 8, iph->src() & 0xff,	// XXX
-		iph->dst() >> 8, iph->dst() & 0xff,	// XXX
-		seqno,
-		th->uid() /* was p->uid_ */);
+	if (!show_tcphdr_) {
+		sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
+			tt,
+			Scheduler::instance().clock(),
+			s,
+			d,
+			name,
+			th->size(),
+			flags,
+			iph->flowid() /* was p->class_ */,
+			iph->src() >> 8, iph->src() & 0xff,	// XXX
+			iph->dst() >> 8, iph->dst() & 0xff,	// XXX
+			seqno,
+			th->uid() /* was p->uid_ */);
+	} else {
+		sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x %d",
+			tt,
+			Scheduler::instance().clock(),
+			s,
+			d,
+			name,
+			th->size(),
+			flags,
+			iph->flowid() /* was p->class_ */,
+			iph->src() >> 8, iph->src() & 0xff,	// XXX
+			iph->dst() >> 8, iph->dst() & 0xff,	// XXX
+			seqno,
+			th->uid(), /* was p->uid_ */
+			tcph->ackno(),
+			tcph->flags(),
+			tcph->hlen());
+	}
 }
 
 void Trace::dump()
