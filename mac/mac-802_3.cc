@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.13 2002/01/18 00:48:24 haldar Exp $
+   $Id: mac-802_3.cc,v 1.14 2002/03/21 16:26:49 alefiyah Exp $
    */
 #include <packet.h>
 #include <random.h>
@@ -108,7 +108,7 @@ bool MacHandlerRetx::schedule(double delta) {
 	if(try_ < IEEE_8023_ALIMIT) {
 		k = min(try_, IEEE_8023_BLIMIT);
 		r = Random::integer(1 << k);
-		s.schedule(this, &intr, r * mac->netif_->txtime(IEEE_8023_SLOT_BITS/8.0) + delta);
+		s.schedule(this, &intr, r * mac->netif_->txtime((int)(IEEE_8023_SLOT_BITS/8.0)) + delta);
 		busy_ = 1;
 		return true;
 	}
@@ -261,7 +261,7 @@ void Mac802_3::collision(Packet *p) {
 				p= mhRetx_.packet();
 				hdr_cmn *th = hdr_cmn::access(p);
 				HDR_CMN(p)->size() -= (ETHER_HDR_LEN + HDR_MAC(p)->padding_);
-				fprintf(stderr,"\nBEB limit exceeded:Dropping packet %d",th->uid());
+				fprintf(stderr,"BEB limit exceeded:Dropping packet %d\n",th->uid());
                                 fflush(stderr);
 				drop(p); // drop if backed off far enough
 				mhRetx_.reset();
