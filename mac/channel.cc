@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.23 1998/08/05 18:24:10 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.24 1998/08/12 20:33:07 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -64,7 +64,6 @@ public:
 
 Channel::Channel() : Connector(), txstop_(0), cwstop_(0), numtx_(0), pkt_(0), trace_(0)
 {
-	bind("nodrop_", &nodrop_);
 	bind_time("delay_", &delay_);
 }
 
@@ -96,7 +95,7 @@ void Channel::recv(Packet* p, Handler*)
 // send():
 //  The packet occupies the channel for the transmission time, txtime
 //  If collision occur (>1 pkts overlap), corrupt all pkts involved
-//	by setting the error bit or discard them if nodrop_ is not set
+//	by setting the error bit or discard them
 
 int Channel::send(Packet* p, double txtime)
 {

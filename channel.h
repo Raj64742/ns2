@@ -34,7 +34,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.17 1998/08/05 18:24:09 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.18 1998/08/12 20:33:06 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
@@ -64,7 +64,6 @@ protected:
 	double delay_;		// channel delay, for collision interval
 	double txstop_;		// end of the last transmission
 	double cwstop_;		// end of the contention window
-	int nodrop_;		// no dropping of packet, just mark error
 	int numtx_;		// number of transmissions during contention
 	Packet* pkt_;		// packet current transmitted on the channel
 	Trace* trace_;		// to trace the packet transmitting packets

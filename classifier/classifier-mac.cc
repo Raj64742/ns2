@@ -36,18 +36,20 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mac.cc,v 1.10 1998/06/27 01:23:31 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mac.cc,v 1.11 1998/08/12 20:33:09 gnguyen Exp $ (UCB)";
 #endif
 
-#include "config.h"
 #include "packet.h"
 #include "mac.h"
 #include "classifier.h"
 
 class MacClassifier : public Classifier {
 public:
-	MacClassifier() {}
+	MacClassifier() : bcast_(0) {
+		bind("bcast_", &bcast_);
+	}
 	void recv(Packet*, Handler*);
+	int bcast_;
 };
 
 static class MacClassifierClass : public TclClass {
@@ -64,7 +66,7 @@ void MacClassifier::recv(Packet* p, Handler*)
 	NsObject* node;
 	hdr_mac* mh = hdr_mac::access(p);
 
-	if (mh->macDA() == BCAST_ADDR || (node = find(p)) == 0) {
+	if (bcast_ || mh->macDA() == BCAST_ADDR || (node = find(p)) == 0) {
 		// Replicate packets to all slots (broadcast)
 		int macSA = mh->macSA();
 		for (int i = 1; i < maxslot_; ++i) {

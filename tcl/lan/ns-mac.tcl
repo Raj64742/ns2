@@ -35,7 +35,8 @@
 
 #default channel propagation delay (for a LAN)
 Channel set delay_ 4us
-Channel set nodrop_ 0
+
+Classifier/Mac set bcast_ 0
 
 #default bandwidth setting
 Mac set delay_ 0us
