@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.48 1998/07/17 22:37:25 yaxu Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.49 1998/07/20 18:09:58 haoboy Exp $ (LBL)";
 
 #endif
 
@@ -185,7 +185,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
 
 	hdr_srm *sh = (hdr_srm*)p->access(off_srm_); 
-	const char* sname = 0;
+	const char* sname = "null";
 
 	int t = th->ptype();
 	const char* name = pt_names[t];
@@ -413,13 +413,13 @@ DequeTrace::recv(Packet* p, Handler* h)
 		hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
 		hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
 		hdr_srm *sh = (hdr_srm*)p->access(off_srm_);
-		const char* sname = 0;   
+		const char* sname = "null";   
 
 		int t = th->ptype();
 		const char* name = pt_names[t];
 		
 		if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0) {
-		    if ( sh->type() < 5 && sh->type() >=0  ) {
+		    if ( sh->type() < 5 && sh->type() > 0  ) {
 		        sname = srm_names[sh->type()];
 		    }
 		}   
