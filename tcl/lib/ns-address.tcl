@@ -350,7 +350,9 @@ AllocAddrBits instproc set-idbits {nlevel args} {
 	set a [$self get-AllocAddr] 
 	set old 0
 	set idsize_ 0
-
+	set nodebits 0
+	AddrParams set hlevel_ $nlevel
+	set hlevel_ $nlevel
 	for {set i 0} {$i < $nlevel} {incr i} {
 		set bpl($i) [lindex $args $i]
 		set idsize_ [expr $idsize_ + $bpl($i)]
@@ -359,19 +361,17 @@ AllocAddrBits instproc set-idbits {nlevel args} {
 		set chk [$self chksize $bpl($i) "setid"]
 		# assert {$chk ==0}
 		if {$chk > 0} {
-			error "set-mcastbits: size_ has been changed."
+			error "set-idbits: size_ has been changed."
 		}
 		set v [$a setbit $bpl($i) $size_]
 		AddrParams set NodeMask_([expr $i+1]) [lindex $v 0]
 		set m([expr $i+1]) [lindex $v 0]
 		AddrParams set NodeShift_([expr $i+1]) [lindex $v 1]
 		set s([expr $i+1]) [lindex $v 1]
-		AddrParams set hlevel_ $nlevel
-		set hlevel_ $nlevel
 		lappend hbits_ $bpl($i)
-		set old [expr $old + $bpl($i)]
+		
 	}
-	
+	AddrParams set nodebits_ $idsize_
 	set ad [$self get-Address]
 	eval $ad idsbits-are [array get s]
 	eval $ad idmbits-are [array get m]
@@ -408,13 +408,17 @@ AddrParams proc set-hieraddr addrstr {
 
 
 #
-# Routine to churn up the number of elements at a given level, that is visible to 
+# Returns number of elements at a given hierarchical level, that is visible to 
 # a node.
 #
 AddrParams proc elements-in-level? {nodeaddr level} {
-	AddrParams instvar hlevel_ domain_num_ cluster_num_ nodes_num_
+	AddrParams instvar hlevel_ domain_num_ cluster_num_ nodes_num_ def_
 	set L [split $nodeaddr .] 
 	set level [expr $level + 1]
+	#
+	# if no topology info found for last level, set default values
+	#
+	
 	### for now, assuming only 3 levels of hierarchy 
 	if { $level == 1} {
 		return $domain_num_
@@ -449,7 +453,7 @@ Simulator instproc get-node-by-addr address {
 			return $nq
 		}
 	}
-	error "get-node:Cannot find node with given address"
+	error "get-node-by-addr:Cannot find node with given address"
 }
 
 #
@@ -464,5 +468,5 @@ Simulator instproc get-node-id-by-addr address {
 			return $q
 		}
 	}
-	error "get-node-id:Cannot find node with given address"
+	error "get-node-id-by-addr:Cannot find node with given address"
 }
