@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.10 1999/09/28 03:46:31 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/misc.cc,v 1.11 2001/09/14 04:06:46 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -68,6 +68,27 @@ int Add64Command::command(int argc, const char*const* argv)
 		return (TCL_OK);
 	}
 	tcl.add_error("ns-add64 requires two arguments.");
+	return (TCL_ERROR);
+}
+
+class Mult64Command : public TclCommand {
+public: 
+	Mult64Command() : TclCommand("ns-mult64") {}
+	virtual int command(int argc, const char*const* argv);
+};
+
+int Mult64Command::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		char res[22]; /* A 64 bit int at most 20 digits */
+		int64_t d1 = STRTOI64(argv[1], NULL, 0);
+		int64_t d2 = STRTOI64(argv[2], NULL, 0);
+		sprintf(res, STRTOI64_FMTSTR, d1*d2);
+		tcl.resultf("%s", res);
+		return (TCL_OK);
+	}
+	tcl.add_error("ns-mult64 requires two arguments.");
 	return (TCL_ERROR);
 }
 #endif
@@ -150,5 +171,6 @@ void init_misc(void)
 	(void)new TimeAtofCommand;
 #if defined(HAVE_INT64)
 	(void)new Add64Command;
+	(void)new Mult64Command;
 #endif
 }
