@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.29 2002/01/17 04:12:05 alefiyah Exp $
+# $Id: Makefile,v 1.30 2002/03/23 00:54:06 ddutta Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -14,6 +14,7 @@ CP=		/bin/cp
 RM=		/bin/rm
 
 FILES= \
+	asim.tex \
 	agents.tex \
 	applications.tex \
 	basic.tex \

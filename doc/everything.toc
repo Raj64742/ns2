@@ -474,52 +474,53 @@
 \contentsline {paragraph}{Delay and Loss Modules}{319}
 \contentsline {subsection}{\numberline {35.3.2}Packet Forwarding}{319}
 \contentsline {section}{\numberline {35.4}Commands at a glance}{320}
-\contentsline {part}{VIII\hspace {1em}Emulation}{321}
-\contentsline {chapter}{\numberline {36}Emulation}{322}
-\contentsline {section}{\numberline {36.1}Introduction}{322}
-\contentsline {section}{\numberline {36.2}Real-Time Scheduler}{323}
-\contentsline {section}{\numberline {36.3}Tap Agents}{323}
-\contentsline {paragraph}{Configuration}{323}
-\contentsline {section}{\numberline {36.4}Network Objects}{324}
-\contentsline {subsection}{\numberline {36.4.1}Pcap/BPF Network Objects}{324}
-\contentsline {paragraph}{Configuration}{324}
-\contentsline {subsection}{\numberline {36.4.2}IP Network Objects}{325}
-\contentsline {paragraph}{Configuration}{325}
-\contentsline {subsection}{\numberline {36.4.3}IP/UDP Network Objects}{325}
-\contentsline {section}{\numberline {36.5}An Example}{326}
-\contentsline {section}{\numberline {36.6}Commands at a glance}{327}
-\contentsline {part}{IX\hspace {1em}Visualization with Nam - The Network Animator}{328}
-\contentsline {chapter}{\numberline {37}Nam}{329}
-\contentsline {section}{\numberline {37.1}Introduction}{329}
-\contentsline {section}{\numberline {37.2}Nam Command Line Options}{329}
-\contentsline {section}{\numberline {37.3}User Interface}{330}
-\contentsline {section}{\numberline {37.4}Keyboard Commands}{331}
-\contentsline {section}{\numberline {37.5}Generating External Animations from Nam}{332}
-\contentsline {section}{\numberline {37.6}Network Layout}{332}
-\contentsline {section}{\numberline {37.7}Animation Objects}{333}
-\contentsline {chapter}{\numberline {38}Nam Trace}{334}
-\contentsline {section}{\numberline {38.1}Nam Trace Format}{334}
-\contentsline {subsection}{\numberline {38.1.1}Initialization Events}{335}
-\contentsline {subsection}{\numberline {38.1.2}Nodes}{336}
-\contentsline {subsection}{\numberline {38.1.3}Links}{336}
-\contentsline {subsection}{\numberline {38.1.4}Queues}{337}
-\contentsline {subsection}{\numberline {38.1.5}Packets}{337}
-\contentsline {subsection}{\numberline {38.1.6}Node Marking}{338}
-\contentsline {subsection}{\numberline {38.1.7}Agent Tracing}{339}
-\contentsline {subsection}{\numberline {38.1.8}Variable Tracing}{339}
-\contentsline {subsection}{\numberline {38.1.9}Executing Tcl Procedures and External Code from within Nam}{339}
-\contentsline {subsubsection}{Annotation}{340}
-\contentsline {subsubsection}{Node Exec Button}{340}
-\contentsline {subsection}{\numberline {38.1.10}Using Streams for Realtime Applications}{340}
-\contentsline {subsection}{\numberline {38.1.11}Nam Trace File Format Lookup Table}{343}
-\contentsline {section}{\numberline {38.2}Ns commands for creating and controlling nam animations}{350}
-\contentsline {subsection}{\numberline {38.2.1}Node}{350}
-\contentsline {subsection}{\numberline {38.2.2}Link/Queue}{350}
-\contentsline {subsection}{\numberline {38.2.3}Agent and Features}{351}
-\contentsline {subsection}{\numberline {38.2.4}Some Generic Commands}{351}
-\contentsline {part}{X\hspace {1em}Other}{352}
-\contentsline {chapter}{\numberline {39}Educational use of NS and NAM}{353}
-\contentsline {section}{\numberline {39.1}Using NS for educational purposes}{353}
-\contentsline {subsection}{\numberline {39.1.1}Installing/building/running \emph {ns}}{353}
-\contentsline {subsection}{\numberline {39.1.2}The educational scripts' inventory page:}{353}
-\contentsline {section}{\numberline {39.2}Using NAM for educational purposes}{354}
+\contentsline {chapter}{\numberline {36}Asim: approximate analytical simulation}{321}
+\contentsline {part}{VIII\hspace {1em}Emulation}{325}
+\contentsline {chapter}{\numberline {37}Emulation}{326}
+\contentsline {section}{\numberline {37.1}Introduction}{326}
+\contentsline {section}{\numberline {37.2}Real-Time Scheduler}{327}
+\contentsline {section}{\numberline {37.3}Tap Agents}{327}
+\contentsline {paragraph}{Configuration}{327}
+\contentsline {section}{\numberline {37.4}Network Objects}{328}
+\contentsline {subsection}{\numberline {37.4.1}Pcap/BPF Network Objects}{328}
+\contentsline {paragraph}{Configuration}{328}
+\contentsline {subsection}{\numberline {37.4.2}IP Network Objects}{329}
+\contentsline {paragraph}{Configuration}{329}
+\contentsline {subsection}{\numberline {37.4.3}IP/UDP Network Objects}{329}
+\contentsline {section}{\numberline {37.5}An Example}{330}
+\contentsline {section}{\numberline {37.6}Commands at a glance}{331}
+\contentsline {part}{IX\hspace {1em}Visualization with Nam - The Network Animator}{332}
+\contentsline {chapter}{\numberline {38}Nam}{333}
+\contentsline {section}{\numberline {38.1}Introduction}{333}
+\contentsline {section}{\numberline {38.2}Nam Command Line Options}{333}
+\contentsline {section}{\numberline {38.3}User Interface}{334}
+\contentsline {section}{\numberline {38.4}Keyboard Commands}{335}
+\contentsline {section}{\numberline {38.5}Generating External Animations from Nam}{336}
+\contentsline {section}{\numberline {38.6}Network Layout}{336}
+\contentsline {section}{\numberline {38.7}Animation Objects}{337}
+\contentsline {chapter}{\numberline {39}Nam Trace}{338}
+\contentsline {section}{\numberline {39.1}Nam Trace Format}{338}
+\contentsline {subsection}{\numberline {39.1.1}Initialization Events}{339}
+\contentsline {subsection}{\numberline {39.1.2}Nodes}{340}
+\contentsline {subsection}{\numberline {39.1.3}Links}{340}
+\contentsline {subsection}{\numberline {39.1.4}Queues}{341}
+\contentsline {subsection}{\numberline {39.1.5}Packets}{341}
+\contentsline {subsection}{\numberline {39.1.6}Node Marking}{342}
+\contentsline {subsection}{\numberline {39.1.7}Agent Tracing}{343}
+\contentsline {subsection}{\numberline {39.1.8}Variable Tracing}{343}
+\contentsline {subsection}{\numberline {39.1.9}Executing Tcl Procedures and External Code from within Nam}{343}
+\contentsline {subsubsection}{Annotation}{344}
+\contentsline {subsubsection}{Node Exec Button}{344}
+\contentsline {subsection}{\numberline {39.1.10}Using Streams for Realtime Applications}{344}
+\contentsline {subsection}{\numberline {39.1.11}Nam Trace File Format Lookup Table}{347}
+\contentsline {section}{\numberline {39.2}Ns commands for creating and controlling nam animations}{354}
+\contentsline {subsection}{\numberline {39.2.1}Node}{354}
+\contentsline {subsection}{\numberline {39.2.2}Link/Queue}{354}
+\contentsline {subsection}{\numberline {39.2.3}Agent and Features}{355}
+\contentsline {subsection}{\numberline {39.2.4}Some Generic Commands}{355}
+\contentsline {part}{X\hspace {1em}Other}{356}
+\contentsline {chapter}{\numberline {40}Educational use of NS and NAM}{357}
+\contentsline {section}{\numberline {40.1}Using NS for educational purposes}{357}
+\contentsline {subsection}{\numberline {40.1.1}Installing/building/running \emph {ns}}{357}
+\contentsline {subsection}{\numberline {40.1.2}The educational scripts' inventory page:}{357}
+\contentsline {section}{\numberline {40.2}Using NAM for educational purposes}{358}
