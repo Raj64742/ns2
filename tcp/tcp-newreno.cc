@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.33 1998/08/24 16:51:17 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.34 1998/08/25 01:53:28 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -44,8 +44,8 @@ public:
 	}
 } class_newreno;
 
-NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0), acked_(0),
-  newreno_changes1_(0), firstpartial_(0)
+NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0), 
+  newreno_changes1_(0), acked_(0), firstpartial_(0)
 {
 	bind("newreno_changes_", &newreno_changes_);
 	bind("newreno_changes1_", &newreno_changes1_);

@@ -44,9 +44,11 @@ int lanRouter::next_hop(Packet *p) {
 
 	hdr_ip* iph= hdr_ip::access(p);
 	char* adst= Address::instance().print_nodeaddr(iph->dst());
-	int next_hopIP= (enableHrouting_)? 
-		routelogic_->lookup_hier(lanaddr_, adst) :
-		routelogic_->lookup_flat(lanaddr_, adst);
+	int next_hopIP;
+	if (enableHrouting_)
+		routelogic_->lookup_hier(lanaddr_, adst, next_hopIP);
+	else
+		routelogic_->lookup_flat(lanaddr_, adst, next_hopIP);
 	delete [] adst;
 
 	return next_hopIP;

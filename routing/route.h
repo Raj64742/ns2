@@ -61,8 +61,8 @@ public:
 	RouteLogic();
 	~RouteLogic();
 	int command(int argc, const char*const* argv);
-	int lookup_flat(char* asrc, char* adst);
-	int lookup_hier(char* asrc, char* adst);
+	int lookup_flat(char* asrc, char* adst, int&result);
+	int lookup_hier(char* asrc, char* adst, int&result);
 protected:
 
 	void check(int);

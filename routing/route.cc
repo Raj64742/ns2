@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.19 1998/08/22 02:41:08 haoboy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.20 1998/08/25 01:53:26 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -207,11 +207,10 @@ int RouteLogic::command(int argc, const char*const* argv)
 		}
 
 		if (strcmp(argv[1], "hier-lookup") == 0) {
-			int nh= lookup_hier((char*)argv[2], (char*)argv[3]);
-			if (nh < 0) {
-				return (TCL_ERROR);
-			}
-			return (TCL_OK);
+			int nh;
+			int res = lookup_hier((char*)argv[2], (char*)argv[3],
+					      nh);
+			return res;
 		}
 
 		if (strcmp(argv[1], "reset") == 0) {
@@ -225,34 +224,34 @@ int RouteLogic::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "lookup") == 0) {
-			int nh= lookup_flat((char*)argv[2], (char*)argv[3]);
-			if (nh<0) {
-				return (TCL_ERROR);
-			}
+			int nh;
+			int res = lookup_flat((char*)argv[2], (char*)argv[3], 
+					      nh);
 			tcl.resultf("%d", nh);
-			return (TCL_OK);
+			return res;
 		}
 	}
 	return (TclObject::command(argc, argv));
 }
 
-int RouteLogic::lookup_flat(char* asrc, char* adst) {
+int RouteLogic::lookup_flat(char* asrc, char* adst, int& result) {
 	Tcl& tcl = Tcl::instance();
 	int src = atoi(asrc) + 1;
 	int dst = atoi(adst) + 1;
 
 	if (route_ == 0) {
 		tcl.result("routes not computed");
-		return -1;
+		return (TCL_ERROR);
 	}
 	if (src >= size_ || dst >= size_) {
 		tcl.result("node out of range");
-		return -1;
+		return (TCL_ERROR);
 	}
-	return route_[INDEX(src, dst, size_)] - 1;
+	result = route_[INDEX(src, dst, size_)] - 1;
+	return TCL_OK;
 }
 
-int RouteLogic::lookup_hier(char* asrc, char* adst) {
+int RouteLogic::lookup_hier(char* asrc, char* adst, int& result) {
 	int i;
 	int src[SMALL_LEN], dst[SMALL_LEN];
 	Tcl& tcl = Tcl::instance();
@@ -264,7 +263,7 @@ int RouteLogic::lookup_hier(char* asrc, char* adst) {
 	// 			}
 	if ( hroute_ == 0) {
 		tcl.result("Required Hier_data not sent");
-		return -1;
+		return TCL_ERROR;
 	}
       
 	ns_strtok(asrc, src);
@@ -273,11 +272,11 @@ int RouteLogic::lookup_hier(char* asrc, char* adst) {
 	for (i=0; i < HIER_LEVEL; i++)
 		if (src[i] <= 0) {
 			tcl.result("negative src node number");
-			return -1;
+			return TCL_ERROR;
 		}
 	if (dst[0] <= 0) {
 		tcl.result("negative dst domain number");
-		return -1;
+		return TCL_ERROR;
 	}
 
 	int d = src[0];
@@ -286,7 +285,7 @@ int RouteLogic::lookup_hier(char* asrc, char* adst) {
 
 	if (hsize_[index] == 0) {
 		tcl.result("Routes not computed");
-		return -1;
+		return TCL_ERROR;
 	}
 	if ((src[0] < D_) || (dst[0] < D_)) {
 		if((src[1] < C_[d]) || (dst[1] < C_[dst[0]]))
@@ -296,7 +295,7 @@ int RouteLogic::lookup_hier(char* asrc, char* adst) {
 	}
 	else { 
 		tcl.result("node out of range");
-		return -1;
+		return TCL_ERROR;
 	}
 	int next_hop = 0;
 	/* if node-domain lookup */
@@ -319,11 +318,12 @@ int RouteLogic::lookup_hier(char* asrc, char* adst) {
 	if (next_hop > 0) {
 		get_address(target, next_hop, index, d, size, src);
 		tcl.result(target);
-		return next_hop;
+		result = next_hop;
 	} else {
 		tcl.result("-1");
-		return -1;
+		result = -1;
 	}
+	return TCL_OK;
 }
 
 RouteLogic::RouteLogic()
