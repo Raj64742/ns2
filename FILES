@@ -328,6 +328,7 @@ tcl/lib/ns-random.tcl
 tcl/lib/ns-route.tcl
 tcl/lib/ns-source.tcl
 tcl/lib/ns-trace.tcl
+tcl/lib/ns-namsupp.tcl
 tcl/mcast/DM.tcl
 tcl/mcast/McastMonitor.tcl
 tcl/mcast/McastProto.tcl
