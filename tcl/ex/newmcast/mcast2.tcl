@@ -49,6 +49,8 @@ $ns duplex-link $n1 $n4 1.5Mb 10ms DropTail
 $ns duplex-link $n2 $n4 1.5Mb 10ms DropTail
 $ns duplex-link $n2 $n5 1.5Mb 10ms DropTail
 
+
+$ns rtproto Session
 ### Start multicast configuration
 DM set PruneTimeout 0.3
 dynamicDM set ReportRouteTimeout 0.15
@@ -94,5 +96,5 @@ proc finish {} {
         exit 0
 }
 
-$ns run Session
+$ns run
 
