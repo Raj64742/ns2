@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.10 1998/08/12 23:41:14 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.11 1998/09/11 20:37:14 kfall Exp $
  */
 
 #ifndef ns_rtp_h
@@ -39,6 +39,8 @@
 
 #include "config.h"
 #include "object.h"
+#include "agent.h"
+#include "timer-handler.h"
 
 #define RTP_M 0x0080 // marker for significant events
 
@@ -101,5 +103,42 @@ protected:
 	int last_np_;
 	int off_rtp_;
 };
+
+class RTPAgent;
+
+class RTPTimer : public TimerHandler {
+public: 
+        RTPTimer(RTPAgent *a) : TimerHandler() { a_ = a; }
+protected:
+        virtual void expire(Event *e);
+        RTPAgent *a_;
+};
+
+class RTPAgent : public Agent {
+ public:
+        RTPAgent();
+        virtual void timeout(int);
+        virtual void recv(Packet* p, Handler*);
+        virtual int command(int argc, const char*const* argv);
+        void advanceby(int delta);
+        virtual void sendmsg(int nbytes, const char *flags = 0);
+ protected:
+        virtual void sendpkt();
+        void rate_change();
+        void start();
+        void stop();
+        void finish();
+        RTPSession* session_;
+        double lastpkttime_;
+        int seqno_;
+        int running_;
+        int random_;
+        int maxpkts_;
+        double interval_;
+
+        RTPTimer rtp_timer_;
+        int off_rtp_;
+};
+
 
 #endif
