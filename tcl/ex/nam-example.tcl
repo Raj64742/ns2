@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.9 1998/09/05 00:15:21 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.10 1998/10/06 01:27:31 haoboy Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -111,6 +111,10 @@ $ns at 3.5 "$srm(0) start-source"
 $ns at 3.5 "$n(0) color red"
 $ns at 3.5 "$ns trace-annotate \"node 0 changed color\""
 
+$ns at 3.6 "$n(0) label abc"
+
+$ns at 4.0 "$n(0) label def"
+
 # add/remove node marks (concentric circles around nodes)
 $ns at 4.0 "$n(0) add-mark m1 blue circle"
 $ns at 4.0 "$ns trace-annotate \"node 0 added one mark\""
@@ -152,7 +156,7 @@ proc finish {} {
     }
 
     puts "running nam..."
-    exec nam -f dynamic-nam.conf out.nam &
+#    exec nam -f dynamic-nam.conf out.nam &
     exit 0
 }
 
