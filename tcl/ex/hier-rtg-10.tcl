@@ -52,7 +52,7 @@ $ns connect $udp1 $null1
 $ns at 1.0 "$cbr0 start"
 $ns at 1.1 "$cbr1 start"
 
-puts [$cbr0 set packet_size_]
+puts [$cbr0 set packetSize_]
 puts [$cbr0 set interval_]
 
 

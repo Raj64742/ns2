@@ -60,7 +60,7 @@ $ns at 1.2 "$ftp start"
 
 $ns at 1.35 "$ns detach-agent $n0 $tcp ; $ns detach-agent $n3 $sink"
 
-puts [$cbr0 set packet_size_]
+puts [$cbr0 set packetSize_]
 puts [$cbr0 set interval_]
 
 $ns at 3.0 "finish"

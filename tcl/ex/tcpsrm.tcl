@@ -81,7 +81,7 @@ foreach i [array names n] {
 # Attach a data source to srm(0)
 set packetSize 210
 set exp0 [new Application/Traffic/Exponential]
-$exp0 set packet_size_ $packetSize
+$exp0 set packetSize_ $packetSize
 $exp0 set burst_time_ 500ms
 $exp0 set idle_time_ 500ms
 $exp0 set rate_ 100k

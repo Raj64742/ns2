@@ -1,7 +1,7 @@
 #
 # example of adding nam traces separately without using namtrace-all
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-separate-trace.tcl,v 1.3 1999/01/12 20:54:27 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-separate-trace.tcl,v 1.4 1999/07/02 01:49:35 tomh Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -109,7 +109,7 @@ for {set i 0} {$i <= 5} {incr i} {
 # set traffic source
 set packetSize 800
 set s [new Application/Traffic/CBR]
-$s set packet_size_ $packetSize
+$s set packetSize_ $packetSize
 $s set interval_ 0.02
 $s attach-agent $srm(0)
 $srm(0) set tg_ $s

@@ -75,7 +75,7 @@ Simulator instproc cbr_flow { node fid addr bw } {
 	#XXX abstraction violation
 	$agent set dst_ $addr
 	
-	$cbr set packet_size_ $packetSize
+	$cbr set packetSize_ $packetSize
 	$cbr set interval_ [expr $packetSize * 8. / $bw]
 	$cbr set random_ 1
 	return $cbr

@@ -204,7 +204,7 @@ proc create-source {node rcvr starttime  i} {
 	
 	
 	set exp1 [new Application/Traffic/Exponential]
-	$exp1 set packet_size_ 125
+	$exp1 set packetSize_ 125
 	$exp1 set burst_time_ [expr 20.0/64]
 	$exp1 set idle_time_ 325ms
 	$exp1 set rate_ 64k

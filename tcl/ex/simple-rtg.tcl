@@ -76,6 +76,6 @@ proc finish {} {
 
 $ns at 1.0 "$cbr0 start"
 $ns at 8.0 "finish"
-puts [$cbr0 set packet_size_]
+puts [$cbr0 set packetSize_]
 puts [$cbr0 set interval_]
 $ns run

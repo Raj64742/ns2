@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1998/09/10 20:36:20 $
+# Version Date: $Date: 1999/07/02 01:49:40 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star-session.tcl,v 1.4 1998/09/10 20:36:20 polly Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star-session.tcl,v 1.5 1999/07/02 01:49:40 tomh Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -85,7 +85,7 @@ for {set i 1} {$i <= $nmax} {incr i} {
 # Attach a data source to srm(1)
 set packetSize 800
 set s [new Application/Traffic/CBR]
-$s set packet_size_ $packetSize
+$s set packetSize_ $packetSize
 $s set interval_ 0.02
 $s attach-agent $srm(1)
 $srm(1) set tg_ $s

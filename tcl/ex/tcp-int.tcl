@@ -100,7 +100,7 @@ for {set i 2} {$i < 4} {incr i} {
 }
 
 
-#puts [$cbr0 set packet_size_]
+#puts [$cbr0 set packetSize_]
 #puts [$cbr0 set interval_]
 
 $ns at 5.0 "finish"

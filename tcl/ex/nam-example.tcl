@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.13 1999/03/11 00:50:08 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.14 1999/07/02 01:49:34 tomh Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -102,7 +102,7 @@ for {set i 0} {$i <= 5} {incr i} {
 # set traffic source
 set packetSize 800
 set s [new Application/Traffic/CBR]
-$s set packet_size_ $packetSize
+$s set packetSize_ $packetSize
 $s set interval_ 0.02
 $s attach-agent $srm(0)
 $srm(0) set tg_ $s

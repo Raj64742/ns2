@@ -47,7 +47,7 @@ $ns duplex-link-op $n2 $n1 orient right-down
 $ns duplex-link-op $n0 $n1 orient right-up
 
 set exp1 [new Application/Traffic/Exponential]
-$exp1 set packet_size_ 128
+$exp1 set packetSize_ 128
 $exp1 set burst_time_ [expr 20.0/64]
 $exp1 set idle_time_ 325ms
 $exp1 set rate_ 65.536k
@@ -71,7 +71,7 @@ $ns attach-agent $n1 $rcvr
 $ns connect $a $rcvr
 
 set exp2 [new Application/Traffic/Exponential]
-$exp2 set packet_size_ 128
+$exp2 set packetSize_ 128
 $exp2 set burst_time_ [expr 20.0/64]
 $exp2 set idle_time_ 325ms
 $exp2 set rate_ 65.536k

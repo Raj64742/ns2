@@ -58,7 +58,7 @@ $ns attach-agent $n1 $null1
 $ns connect $s1 $null1
 
 set exp1 [new Application/Traffic/Exponential]
-$exp1 set packet_size_ 210
+$exp1 set packetSize_ 210
 $exp1 set burst_time_ 500ms
 $exp1 set idle_time_ 500ms
 $exp1 set rate_ 100k
@@ -77,7 +77,7 @@ $ns attach-agent $n1 $null2
 $ns connect $s2 $null2
 
 set pareto2 [new Application/Traffic/Pareto]
-$pareto2 set packet_size_ 210
+$pareto2 set packetSize_ 210
 $pareto2 set burst_time_ 500ms
 $pareto2 set idle_time_ 500ms
 $pareto2 set rate_ 200k

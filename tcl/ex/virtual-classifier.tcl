@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Polly Huang <huang@isi.edu>
-# Version Date: $Date: 1999/04/20 22:34:31 $
+# Version Date: $Date: 1999/07/02 01:49:46 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/virtual-classifier.tcl,v 1.6 1999/04/20 22:34:31 polly Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/virtual-classifier.tcl,v 1.7 1999/07/02 01:49:46 tomh Exp $ (USC/ISI)
 #
 # An example script using virtual classifier
 #
@@ -86,7 +86,7 @@ $ns at 1.2 "$ftp start"
 
 $ns at 1.35 "$ns detach-agent $n0 $tcp ; $ns detach-agent $n3 $sink"
 
-puts [$cbr0 set packet_size_]
+puts [$cbr0 set packetSize_]
 puts [$cbr0 set interval_]
 
 $ns at 3.0 "finish"

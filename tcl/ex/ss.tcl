@@ -67,7 +67,7 @@ set ftp [new Application/FTP]
 $ftp attach-agent $tcp
 $ns at 1.2 "$ftp start"
 
-puts [$cbr0 set packet_size_]
+puts [$cbr0 set packetSize_]
 puts [$cbr0 set interval_]
 
 $ns at 2.0 "finish"

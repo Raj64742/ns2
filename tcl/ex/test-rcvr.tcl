@@ -16,7 +16,7 @@
 # These notices must be retained in any copies of any part of this
 # software. 
 #
-#@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/test-rcvr.tcl,v 1.2 1998/10/21 21:44:36 tomh Exp $
+#@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/test-rcvr.tcl,v 1.3 1999/07/02 01:49:44 tomh Exp $
 
 #This script demonstrates support for two different delay-adaptive receiver types,
 #namely the vat-receiver adaptation algorithm and a conservative adapatation 
@@ -81,7 +81,7 @@ Simulator instproc create-sender {node rate rcvr fid sndType } {
 	#Create exp on/off source
 	if { $sndType == "expo" } {
 		set tr [new Application/Traffic/Exponential]
-		$tr set packet_size_ 200
+		$tr set packetSize_ 200
 		$tr set burst_time_ $btime
 		$tr set idle_time_ $itime
 		$tr set rate_ $rate

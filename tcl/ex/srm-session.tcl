@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1998/09/01 01:47:05 $
+# Version Date: $Date: 1999/07/02 01:49:40 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-session.tcl,v 1.3 1998/09/01 01:47:05 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-session.tcl,v 1.4 1999/07/02 01:49:40 tomh Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -65,7 +65,7 @@ foreach i [array names n] {
 # Attach a data source to srm(0)
 set packetSize 210
 set exp0 [new Application/Traffic/Exponential]
-$exp0 set packet_size_ $packetSize
+$exp0 set packetSize_ $packetSize
 $exp0 set burst_time_ 500ms
 $exp0 set idle_time_ 500ms
 $exp0 set rate_ 100k

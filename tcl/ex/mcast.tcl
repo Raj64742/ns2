@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.8 1998/10/21 02:05:19 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.9 1999/07/02 01:49:33 tomh Exp $
 #
 
 #
@@ -105,7 +105,7 @@ $ns at 1.1 "$cbr1 start"
 #$ftp attach-agent $tcp
 #$ns at 1.2 "$ftp start"
 
-#puts [$cbr0 set packet_size_]
+#puts [$cbr0 set packetSize_]
 #puts [$cbr0 set interval_]
 
 $ns at 2.0 "finish"
