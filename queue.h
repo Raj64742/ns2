@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.9 1997/04/04 01:06:29 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.10 1997/04/10 03:32:43 kfall Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -91,6 +91,9 @@ class Queue : public Connector {
 	virtual Packet* deque() = 0;
 	void recv(Packet*, Handler*);
 	void resume();
+	int blocked() const { return (blocked_ == 1); }
+	void unblock() { blocked_ = 0; }
+	void block() { blocked_ = 1; }
  protected:
 	Queue();
 	int command(int argc, const char*const* argv);
