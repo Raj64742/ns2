@@ -76,6 +76,50 @@ PrefixTree::registerDrop(int address, int size) {
   }
 }
 
+AggReturn *
+PrefixTree::calculateLowerBound() {
+  
+  //bulk of this code is taken from identifyAggregate.
+	// bad idea - but quick.
+	// better way - to make the common code into a separate function.
+  int sum = 0; int count=0;
+  for (int i=getFirstIndexOfBit(NO_BITS); i<=getLastIndexOfBit(NO_BITS); i++) {
+    if (countArray[i]!=0) {
+      sum+=countArray[i];
+      count++;
+    }
+  }
+
+  if (count == 0) return NULL;
+
+  cluster *clusterList = (cluster *)malloc(sizeof(cluster)*MAX_CLUSTER);
+  
+  for (int i=0; i < MAX_CLUSTER; i++) {
+    clusterList[i].prefix_=-1;
+    clusterList[i].count_=0;
+  }
+  
+  double mean = sum/count;
+  for (int i=getFirstIndexOfBit(NO_BITS); i<=getLastIndexOfBit(NO_BITS); i++) {
+    if (countArray[i] >= mean/2) { //using mean/2 helps in trivial simulations.
+      insertCluster(clusterList, i, countArray[i], CLUSTER_LEVEL);
+    }
+  }
+  
+  int i=0;
+  for (; i<MAX_CLUSTER; i++) {
+    if (clusterList[i].prefix_==-1) {
+      break;
+    }
+    goDownCluster(clusterList, i);
+  }
+  int lastIndex = i-1;
+  
+  sortCluster(clusterList, lastIndex);
+  
+  return new AggReturn(clusterList, 0, lastIndex, countArray[0]);
+}
+
 AggReturn *  
 PrefixTree::identifyAggregate(double arrRate, double linkBW) {
   
@@ -298,6 +342,7 @@ IdentStruct::IdentStruct() {
   dstTree_ = new PrefixTree();
   srcTree_ = new PrefixTree();
   dropHash_ = new DropHashTable();
+  lowerBound_ = 0;
 }
 
 void
@@ -339,4 +384,28 @@ IdentStruct::identifyAggregate(double arrRate, double linkBW) {
   return dstTree_->identifyAggregate(arrRate, linkBW);
 }
 
+AggReturn * 
+IdentStruct::calculateLowerBound() {
+   return dstTree_->calculateLowerBound();
+}
+
+void
+IdentStruct::setLowerBound(double bound, int averageIt) {
+       
+	double alpha = 0.5;
+	if (lowerBound_ == 0) 
+		lowerBound_ = bound;
+	else if (averageIt == 0) {
+		if (bound < lowerBound_) 
+			lowerBound_ = bound;
+		else
+			lowerBound_ = alpha * lowerBound_ + (1 - alpha) * bound;
+	}
+	else {
+	   lowerBound_ = alpha * lowerBound_ + (1 - alpha) * bound;
+	}
+
+	printf("lower bound: new = %g avg = %g\n", bound, lowerBound_);
+	fflush(stdout);
+}
 

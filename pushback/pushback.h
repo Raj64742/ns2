@@ -90,6 +90,7 @@ class PushbackAgent : public Agent {
   void identifyAggregate(int qid, double arrRate, double linkBW);
   void resetDropLog(int qid);
   void recv(Packet *p, Handler *);
+  void calculateLowerBound(int qid, double arrRate);
 
   int last_index_;
   int verbose_;
@@ -100,11 +101,13 @@ class PushbackAgent : public Agent {
   static int mergerAccept(int count, int bits, int bitsDiff);
   void printMsg(char *msg, int msgLevel);
 
- protected:
+  Node * node_;
+
+protected:
   int enable_pushback_;
   queue_rec queue_list_[MAX_QUEUES];
   
-  Node * node_;
+
   RouteLogic * rtLogic_;
   PushbackTimer * timer_;
   

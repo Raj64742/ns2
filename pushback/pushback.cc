@@ -138,6 +138,45 @@ PushbackAgent::reportDrop(int qid, Packet * p) {
   queue_list_[qid].idTree_->registerDrop(p);
 }
 
+void 
+PushbackAgent::calculateLowerBound(int qid, double arrRate) {
+	
+  if (!checkQID(qid)) {
+    sprintf(prnMsg, "Got invalid id from queue in identifyAggregate\n");
+    printMsg(prnMsg,0);
+    exit(-1);
+  }
+
+  AggReturn * aggReturn = queue_list_[qid].idTree_->calculateLowerBound();
+  if (aggReturn == NULL) {
+	  //not sure what to do here.
+	  //maybe lower bound should be left as it is
+	  
+	  return;
+  }
+
+  double lowerBound = 0;
+  int i = 0;
+  for (; i <= aggReturn->finalIndex_; i++) {
+      cluster currCluster = aggReturn->clusterList_[i];
+      AggSpec * aggSpec = new AggSpec(1, currCluster.prefix_, currCluster.bits_);
+      RateLimitSession * rls1 = 
+      queue_list_[qid].pbq_->rlsList_->containsLocalAggSpec(aggSpec, node_->nodeid());
+      if (rls1 !=NULL) continue;
+      lowerBound = (currCluster.count_)*(arrRate/aggReturn->totalCount_);
+      break;
+  }
+  
+  if (i == aggReturn->finalIndex_+1) {
+    sprintf(prnMsg, "Warning: All clusters being rate limited");
+    printMsg(prnMsg,0);
+    //exit(-1);
+  }
+
+  queue_list_[qid].idTree_->setLowerBound(lowerBound, 1);
+  
+  delete(aggReturn);
+}
 
 void
 PushbackAgent::identifyAggregate(int qid, double arrRate, double linkBW) {
@@ -191,7 +230,7 @@ PushbackAgent::identifyAggregate(int qid, double arrRate, double linkBW) {
     sprintf(prnMsg, "starting rate-limiting lower=%g estimate=%g adr=%g rdr=%g agg ",  
 	   aggReturn->limit_, estimate, ambientDropRate, requiredDropRate);
     printMsg(prnMsg,0);
-    aggSpec->print();
+    aggSpec->print();  fflush(stdout);
     
 //     if (requiredDropRate < ambientDropRate) {
 //       RateLimitSession * rls = new RateLimitSession(aggSpec, estimate, 0, aggReturn->limit_, 
@@ -220,8 +259,9 @@ PushbackAgent::identifyAggregate(int qid, double arrRate, double linkBW) {
       timer_->insert(event);
       //    }
   }
-  delete(aggReturn);
 
+  queue_list_[qid].idTree_->setLowerBound(aggReturn->limit_, 0);
+  delete(aggReturn);
 }
 
 void
@@ -435,6 +475,9 @@ PushbackAgent::pushbackRefresh(int qid) {
     listItem = listItem->next_;
   }
 
+  //Sally - comment this out to revert to earlier mode.
+  lowerBound = queue_list_[qid].idTree_->lowerBound_;
+
   double requiredLimit;
   double excessRate = (arrRate - totalLimit + totalRateLimitedArrivalRate) - targetRate;
   
@@ -579,9 +622,9 @@ PushbackAgent::processPushbackRequest(PushbackRequestMessage * msg) {
  
   AggSpec * aggSpec = msg->aggSpec_;
   if (queue_list_[qid].pbq_->rlsList_->containsAggSpec(aggSpec)) {
-    fprintf(stdout,"PBA: %s got a pushback req for agg I already rate-limit. \
+	  fprintf(stdout,"PBA: %s got a pushback req for agg I already rate-limit. \
 Feature not yet Implemented\n",name()); 
-    exit(-1);
+	  exit(-1);
   }
   
   RateLimitSession * rls = new RateLimitSession(aggSpec, msg->limit_, msg->senderID_, qid, 

@@ -104,12 +104,12 @@ class PrefixTree {
 
  public:
   int countArray[(1 << (NO_BITS+1)) - 1];
-  
+    
   PrefixTree();
   void reset();
   void traverse();
   void registerDrop(int address, int size);
-
+  
   static int getLastIndex() {return (1 << (NO_BITS+1)) - 2;}
   static int getMaxAddress();
   static int getBitI(int address, int i);
@@ -127,6 +127,7 @@ class PrefixTree {
   void sortCluster(cluster * clusterList, int lastIndex);
   void swapCluster(cluster * clusterList, int id1, int id2);
 
+  AggReturn * calculateLowerBound(); 
 };
 
 class IdentStruct {
@@ -135,6 +136,10 @@ class IdentStruct {
   PrefixTree * dstTree_;
   PrefixTree * srcTree_;
   DropHashTable* dropHash_;
+  
+  double lowerBound_;
+  void setLowerBound(double newBound, int averageIt);
+  AggReturn * calculateLowerBound();
   
   IdentStruct();
   

@@ -143,18 +143,21 @@ PushbackQueue::timeout(int from) {
       dropRate1 >= SUSTAINED_CONGESTION_DROPRATE && 
       dropRate2 >= SUSTAINED_CONGESTION_DROPRATE/2) {
 	  if (verbose_) {
-		  printf("PBQ:(%d:%d) (%g) Arr: %d (%g) Drops: %d (%g %g) BW: %g\n", 
-			 src_, dst_, Scheduler::instance().clock(), 
-			 barrivals, rateEstimator_->estRate_, 
-			 bdrops, dropRate1, dropRate2, link_->bandwidth());
-		  fflush(stdout);
+	      printf("PBQ:(%d:%d) (%g) Arr: %d (%g) Drops: %d (%g %g) BW: %g\n", 
+		     src_, dst_, Scheduler::instance().clock(), 
+		     barrivals, rateEstimator_->estRate_, 
+		     bdrops, dropRate1, dropRate2, link_->bandwidth());
+	      fflush(stdout);
 	  }
 	  
-    //this function call would 
+    // this function call would 
     //  1) start a rate limiting session, 
     //  2) insert it in the queues rate limiting session list.
     //  3) will also set up appropriate timers.
     pushback_->identifyAggregate(pushbackID_, rateEstimator_->estRate_, link_->bandwidth());
+  }
+  else if (rlsList_->noMySessions(pushback_->node_->nodeid())) {
+      pushback_->calculateLowerBound(pushbackID_, rateEstimator_->estRate_);
   }
 
   //reset the drop history at the agent

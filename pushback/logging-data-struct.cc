@@ -54,11 +54,11 @@ LoggingDataStruct::LoggingDataStruct(Node * node, RouteLogic * rtLogic,
   while (nextNode != NULL) {
     int nid = nextNode->nodeid;
     int nextHopID = rtLogic_->lookup_flat(nid, sampleAddress);
-     if (nextHopID == node->nodeid()) {
+    if (nextHopID == node->nodeid() || AGGREGATE_CLASSIFICATION_MODE_FID == 1) {
        LoggingDataStructNode * lgdsNode = new LoggingDataStructNode(nid, first_);
        first_ = lgdsNode;
        count_++;
-     }
+    }
      nextNode = nextNode->next;
   }
     
