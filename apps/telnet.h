@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/telnet.h,v 1.6 1998/08/14 20:09:33 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/telnet.h,v 1.7 2002/12/22 17:22:39 sfloyd Exp $
  */
 
 #ifndef ns_telnet_h
@@ -41,6 +41,7 @@
 #include "app.h"
 
 class TcpAgent;
+class TfrcAgent;
 class TelnetApp;
 
 class TelnetAppTimer : public TimerHandler {
