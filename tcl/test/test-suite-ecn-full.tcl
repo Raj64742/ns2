@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.12 2002/03/09 17:28:24 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.13 2002/03/09 19:37:47 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -595,25 +595,23 @@ Test/ecn_secondpkt_reno_full instproc run {} {
 }
 
 # ECN for the second packet.
-# THIS TEST FAILS.
-# THERE IS NO RETRANSMIT TIMEOUT AFTER THE SECOND ECN.
-
-# Class Test/ecn_secondpktEcn_reno_full -superclass TestSuite
-# Test/ecn_secondpktEcn_reno_full instproc init {} {
-#         $self instvar net_ test_ 
-#         Queue/RED set setbit_ true
-#         set net_	net2-lossy
-# 	Agent/TCP set bugFix_ true
-#         set test_	ecn_secondpktEcn_reno_full
-#         $self next
-# }
-# Test/ecn_secondpktEcn_reno_full instproc run {} {
-# 	$self instvar ns_ errmodel1
-# 	Agent/TCP set old_ecn_ 0
-# 	$self ecnsetup Reno 2.0 1
-# 	$self drop_pkts {3 5} 
-# 	$errmodel1 set markecn_ true
-# 	$ns_ run
-# }
+Class Test/ecn_secondpktEcn_reno_full -superclass TestSuite
+Test/ecn_secondpktEcn_reno_full instproc init {} {
+        $self instvar net_ test_ 
+        Queue/RED set setbit_ true
+        set net_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_secondpktEcn_reno_full
+        $self next
+}
+Test/ecn_secondpktEcn_reno_full instproc run {} {
+	$self instvar ns_ errmodel1
+	Agent/TCP set old_ecn_ 0
+	$self ecnsetup Reno 2.0 1
+	#$self drop_pkts {2 4} 
+	$self drop_pkts {3 5}
+	$errmodel1 set markecn_ true
+	$ns_ run
+}
 
 TestSuite runTest
