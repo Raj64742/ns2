@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.7 2001/10/26 00:00:08 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.8 2001/10/27 00:10:43 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -135,6 +135,28 @@ Topology/net3 instproc init ns {
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 1ms DropTail
     $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 10ms RED
     $ns duplex-link $node_(r2) $node_(r1) 1.5Mb 10ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 100
+    $ns queue-limit $node_(r2) $node_(r1) 100
+    $ns duplex-link $node_(s3) $node_(r2) 10Mb 2ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 10Mb 3ms DropTail
+}   
+
+Class Topology/netlong -superclass Topology
+Topology/netlong instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]    
+    set node_(r1) [$ns node]    
+    set node_(r2) [$ns node]    
+    set node_(s3) [$ns node]    
+    set node_(s4) [$ns node]    
+
+    $self next 
+
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 0ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 1ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 100ms RED
+    $ns duplex-link $node_(r2) $node_(r1) 1.5Mb 100ms RED
     $ns queue-limit $node_(r1) $node_(r2) 100
     $ns queue-limit $node_(r2) $node_(r1) 100
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 2ms DropTail
@@ -365,6 +387,49 @@ Test/fastlinkAllAdapt1 instproc init {} {
     Queue/RED set top_ 0.2
     Queue/RED set bottom_ 0.1
     Test/fastlinkAllAdapt1 instproc run {} [Test/fastlink info instbody run ]
+    $self next
+}
+
+#####################################################################
+
+Class Test/longlink -superclass TestSuite
+Test/longlink instproc init {} {
+    $self instvar net_ test_
+    set net_ netlong 
+    set test_ longlink
+    $self next
+}
+Test/longlink instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    $self setTopo
+    $self maketraffic 50.0 100 1.5
+    $self maketraffic1 100 0.5
+    $ns_ run
+}
+
+Class Test/longlinkAdapt -superclass TestSuite
+Test/longlinkAdapt instproc init {} {
+    $self instvar net_ test_
+    set net_ netlong 
+    Queue/RED set adaptive_ 1
+    Queue/RED set thresh_ 0
+    Queue/RED set maxthresh_ 0
+    Queue/RED set q_weight_ 0
+    set test_ longlinkAdapt
+    Test/longlinkAdapt instproc run {} [Test/longlink info instbody run ]
+    $self next
+}
+
+Class Test/longlinkAdapt1 -superclass TestSuite
+Test/longlinkAdapt1 instproc init {} {
+    $self instvar net_ test_
+    set net_ netlong 
+    Queue/RED set adaptive_ 1
+    Queue/RED set thresh_ 0
+    Queue/RED set maxthresh_ 0
+    Queue/RED set q_weight_ -1.0
+    set test_ longlinkAdapt1
+    Test/longlinkAdapt1 instproc run {} [Test/longlink info instbody run ]
     $self next
 }
 
