@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.252 2002/11/26 18:43:43 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.253 2002/12/18 03:36:38 sundarra Exp $
 
 
 #
@@ -219,6 +219,8 @@ source ns-nix.tcl
 source ../pgm/ns-pgm.tcl
 source ../rtglib/ns-rtProtoLS.tcl
 }
+
+source ns-qsnode.tcl
 
 # Obsolete modules
 #source ns-wireless-mip.tcl

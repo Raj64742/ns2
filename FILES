@@ -2618,3 +2618,11 @@ mcast/classifier-lms.cc
 mcast/lms-receiver.cc
 mcast/lms-sender.cc
 tcl/mcast/ns-lms.tcl
+qs/hdr_qs.cc
+qs/hdr_qs.h
+qs/qsagent.cc
+qs/qsagent.h
+classifier/classifier-qs.cc
+classifier/classifier-qs.h
+tcl/lib/ns-qsnode.tcl
+tcp/tcp-qs.cc

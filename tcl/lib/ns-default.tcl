@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.300 2002/12/17 06:11:06 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.301 2002/12/18 03:36:37 sundarra Exp $
 
 
 #
@@ -1128,3 +1128,31 @@ Agent/LMS/Receiver set expected_ 0
 Agent/LMS/Receiver set lastPktTime_ 0.0
 Agent/LMS/Receiver instproc done {} { }
 Agent/LMS/Receiver set packetSize_ $lsize
+
+# Following defaults defined for TCP Quick Start
+# http://www.icir.org/floyd/papers/draft-amit-quick-start-02.ps
+
+Agent/TCP/Newreno/QS set rbp_scale_ 0.75
+Agent/TCP/Newreno/QS set rbp_segs_actually_paced_ 0
+Agent/TCP/Newreno/QS set rbp_inter_pace_delay_ 0
+Agent/TCP/Newreno/QS set rate_request_ 128
+
+Agent/QSAgent set qs_enabled_ 1
+Agent/QSAgent set old_classifier_ 0
+Agent/QSAgent set state_delay_ 0.25
+Agent/QSAgent set alloc_rate_ 0.01
+Agent/QSAgent set max_rate_ 256
+Agent/QSAgent set mss_ [Agent/TCP set packetSize_]
+
+Agent/TCPSink/QS set sport_        0
+Agent/TCPSink/QS set dport_        0         
+
+Agent/TCPSink/QS set packetSize_ 40
+Agent/TCPSink/QS set maxSackBlocks_ 3
+Agent/TCPSink/QS set ts_echo_bugfix_ false
+Agent/TCPSink/QS set generateDSacks_ false
+Agent/TCPSink/QS set RFC2581_immediate_ack_ true
+
+Queue set util_weight_ 0.8
+
+# Quick Start definitions end here

@@ -34,10 +34,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.25 2002/01/01 00:04:53 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.26 2002/12/18 03:36:37 sundarra Exp $ (LBL)";
 #endif
 
 #include "queue.h"
+#include <math.h>
 #include <stdio.h>
 
 void PacketQueue::remove(Packet* target)
@@ -84,17 +85,21 @@ void QueueHandler::handle(Event*)
 	queue_.resume();
 }
 
-Queue::Queue() : Connector(), blocked_(0), unblock_on_resume_(1), qh_(*this), 
-	pq_(0)
-	/* temporarily NULL */
+Queue::~Queue() {
+}
+
+Queue::Queue() : Connector(), blocked_(0), unblock_on_resume_(1), qh_(*this),
+	pq_(0), old_util_(0), last_change_(0) /* temporarily NULL */
 {
 	bind("limit_", &qlim_);
+	bind("util_weight_", &util_weight_);
 	bind_bool("blocked_", &blocked_);
 	bind_bool("unblock_on_resume_", &unblock_on_resume_);
 }
 
 void Queue::recv(Packet* p, Handler*)
 {
+	double now = Scheduler::instance().clock();
 	enque(p);
 	if (!blocked_) {
 		/*
@@ -105,10 +110,31 @@ void Queue::recv(Packet* p, Handler*)
 		 */
 		p = deque();
 		if (p != 0) {
+			utilUpdate(last_change_, now, blocked_);
+			last_change_ = now;
 			blocked_ = 1;
 			target_->recv(p, &qh_);
 		}
 	}
+}
+
+void Queue::utilUpdate(double int_begin, double int_end, int link_state) {
+double decay;
+
+	decay = exp(-util_weight_ * (int_end - int_begin));
+	old_util_ = link_state + (old_util_ - link_state) * decay;
+
+}
+
+double Queue::utilization(void) 
+{
+	double now = Scheduler::instance().clock();
+	
+	utilUpdate(last_change_, now, blocked_);
+	last_change_ = now;
+
+	return old_util_;
+			
 }
 
 void Queue::updateStats(int queuesize)
@@ -126,14 +152,21 @@ void Queue::updateStats(int queuesize)
 
 void Queue::resume()
 {
+	double now = Scheduler::instance().clock();
 	Packet* p = deque();
 	if (p != 0) {
 		target_->recv(p, &qh_);
 	} else {
-		if (unblock_on_resume_)
+		if (unblock_on_resume_) {
+			utilUpdate(last_change_, now, blocked_);
+			last_change_ = now;
 			blocked_ = 0;
-		else
+		}
+		else {
+			utilUpdate(last_change_, now, blocked_);
+			last_change_ = now;
 			blocked_ = 1;
+		}
 	}
 }
 

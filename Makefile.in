@@ -67,7 +67,7 @@ INCLUDES = \
 	-I./routing -I./tools -I./classifier -I./mcast \
 	-I./diffusion3/lib/main -I./diffusion3/lib \
 	-I./diffusion3/lib/nr -I./diffusion3/ns \
-	-I./diffusion3/diffusion -I./asim/
+	-I./diffusion3/diffusion -I./asim/ -I./qs
 
 
 LIB	= \
@@ -147,8 +147,10 @@ OBJ_CC = \
 	classifier/classifier-bst.o \
 	classifier/classifier-mpath.o mcast/replicator.o \
 	classifier/classifier-mac.o \
+	classifier/classifier-qs.o \
 	classifier/classifier-port.o src_rtg/classifier-sr.o \
         src_rtg/sragent.o src_rtg/hdr_src.o adc/ump.o \
+	qs/qsagent.o qs/hdr_qs.o \
 	apps/app.o apps/telnet.o tcp/tcplib-telnet.o \
 	tools/trafgen.o trace/traffictrace.o tools/pareto.o \
 	tools/expoo.o tools/cbr_traffic.o \
@@ -168,7 +170,7 @@ OBJ_CC = \
 	baytcp/tcp-full-bay.o baytcp/ftpc.o baytcp/ftps.o \
 	tcp/scoreboard.o tcp/tcp-sack1.o tcp/tcp-fack.o \
 	tcp/tcp-asym.o tcp/tcp-asym-sink.o tcp/tcp-fs.o \
-	tcp/tcp-asym-fs.o \
+	tcp/tcp-asym-fs.o tcp/tcp-qs.o \
 	tcp/tcp-int.o tcp/chost.o tcp/tcp-session.o \
 	tcp/nilist.o \
 	tools/integrator.o tools/queue-monitor.o \
@@ -429,6 +431,7 @@ NS_TCL_LIB = \
 	tcl/lib/ns-pushback.tcl \
 	tcl/lib/ns-srcrt.tcl \
 	tcl/mcast/ns-lms.tcl \
+	tcl/lib/ns-qsnode.tcl \
 	@V_NS_TCL_LIB_STL@
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)

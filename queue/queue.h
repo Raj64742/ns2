@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.30 2002/05/07 18:28:28 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.31 2002/12/18 03:36:37 sundarra Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -108,7 +108,6 @@ private:
 	Packet *iter;
 };
 
-
 class Queue;
 
 class QueueHandler : public Handler {
@@ -135,8 +134,10 @@ public:
 						 * underlying packet queue */
 	int byteLength() { return pq_->byteLength(); }	/* number of bytes *
 						 * currently in packet queue */
+	virtual double utilization (void);
 protected:
 	Queue();
+	~Queue();
 	void reset();
 	int qlim_;		/* maximum allowed pkts in queue */
 	int blocked_;		/* blocked now? */
@@ -147,6 +148,12 @@ protected:
 				 * like DropTail and RED). */
 	double true_ave_;	/* true long-term average queue size */
 	double total_time_;	/* total time average queue size compute for */
+
+
+	void utilUpdate(double int_begin, double int_end, int link_state);
+	double last_change_;  /* time at which state changed/utilization measured */
+	double old_util_;     /* current utilization */ 
+	double util_weight_;  /* decay factor for measuring the link utilization */
 };
 
 #endif
