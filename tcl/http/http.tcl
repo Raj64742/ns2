@@ -86,7 +86,7 @@ Http instproc init {ns client server args} {
 		set $maxConn_ 1
 	}
 
-	for {set i 0} {$i <= $maxConn_} {incr i} {
+	for {set i 0} {$i < $maxConn_} {incr i} {
 		set csrc [new Agent/$srcType_]
 		set ssrc [new Agent/$srcType_]
 		lappend agents_(source) $csrc $ssrc
@@ -122,6 +122,19 @@ Http instproc agents {{type source}} {
 }
 
 
+Http instproc transmit {source nbyte} {
+	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
+	$source instvar agent_
+
+	set psize [$agent_ set packetSize_]
+	if {$numPut_ == 0} {
+		set npkt 1
+	} else {
+		set npkt [expr ceil(1.0 * $nbyte / $psize)]
+	}
+	$source producemore $npkt
+}
+
 Http instproc start {} {
 	$self instvar phttp_ maxConn_ rvClientTime_ rvServerTime_
 	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
@@ -131,7 +144,7 @@ Http instproc start {} {
 	set numGet_ 0
 	set numPut_ 0
 	set len [rvValue $rvReqLen_ round]
-	$client_(0) produceByte $len
+	$self transmit $client_(0) $len
 #	puts "Http $self starts at $tStart_"
 #	puts "$self reqH$numGet_ [$client_(0) set agent_] $len"
 }
@@ -141,20 +154,22 @@ Http instproc doneRequest {id} {
 	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
 	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
 
-	if {$id == 0} {
+	if {$numPut_ == 0} {
 		set len [rvValue $rvRepLen_ round]
-#		puts "$self sendH [$server_($id) set agent_] $len"
 	} else {
-		set len [rvValue $rvImgLen_ round]
-#		puts "$self sendI [$server_($id) set agent_] $len"
+		set num [expr ($phttp_ > 0) ? $numImg_ : 1]
+		for {set i [set len 0]} {$i < $num} {incr i} {
+			incr len [rvValue $rvImgLen_ round]
+		}
 	}
 
+#	puts "$self reply [$server_($id) set agent_] $len [$ns_ now]"
+	set cmd "$self transmit $server_($id) $len"
 	set tServer [rvValue $rvServerTime_]
 	if {$tServer > 0} {
-		puts $tServer
-		$ns_ at [expr $tServer+[$ns_ now]] "$server_($id) produceByte $len"
+		$ns_ at [expr $tServer+[$ns_ now]] $cmd
 	} else {
-		$server_($id) produceByte $len
+		eval $cmd
 	}
 }
 
@@ -163,25 +178,28 @@ Http instproc doneReply {id} {
 	$self instvar rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
 	$self instvar ns_ numImg_ numGet_ numPut_ client_ server_ tStart_
 
-	if {$id == 0} {
+	set idlist $id
+	if {$numPut_ == 0} {
 		set numImg_ [rvValue $rvNumImg_ round]
-		for {set i 1} {$i <= $maxConn_} {incr i} {
+		for {set i 1} {$i < $maxConn_} {incr i} {
 			lappend idlist $i
 		}
-	} else {
-		set idlist $id
 	}
-
 	if {[incr numPut_] > $numImg_} {
 		$self donePage
 		return
 	}
 
+	if {$phttp_ > 0} {
+		# set numGet_ and numPut_ as if only 1 more request is needed
+		set numPut_ $numImg_
+		set numGet_ [expr $numImg_ - 1]
+	}
 	foreach id $idlist {
 		if {[incr numGet_] > $numImg_} break
 		set len [rvValue $rvReqLen_ round]
-		$client_($id) produceByte $len
-#		puts "$self reqI$numGet_ [$client_($id) set agent_] $len"
+		$self transmit $client_($id) $len
+#		puts "$self reqI$numGet_ $id [$client_($id) set agent_] $len [$ns_ now]"
 	}
 }
 

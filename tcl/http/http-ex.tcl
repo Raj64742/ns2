@@ -40,7 +40,7 @@ set opt(http)	-1
 
 # set opt(webModel) ""
 set opt(webModel) $nshome/tcl/http/data
-
+set opt(phttp) 0
 
 if {$argc == 0} {
 	puts "Usage: $argv0 \[-stop sec\] \[-seed value\] \[-node numNodes\]"
@@ -187,7 +187,7 @@ proc newWebModel dir {
 
 proc new_http {i server client} {
 	global ns opt http webm
-	set webopt "-srcType $opt(tcp) -snkType $opt(sink)"
+	set webopt "-srcType $opt(tcp) -snkType $opt(sink) -phttp $opt(phttp)"
 	if {$opt(webModel) != ""} {
 		if ![info exists webm] {
 			set webm [newWebModel $opt(webModel)]
