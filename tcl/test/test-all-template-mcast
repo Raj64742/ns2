@@ -10,7 +10,7 @@ else
 	tests=`awk '/^proc test_/{ print substr($2,index($2, "_")+1) }' $file`
 fi
 
-quiet="false"
+quiet="true"
 if [ $# -ge 4 ] 
 then
     flag=$4
@@ -70,6 +70,6 @@ for t in $tests; do
     fi
 done
 if (test "$success" = "true") then
-	echo All test outputs agree with reference outputs
+	echo All test output agrees with reference output
 fi
 
