@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.6 1999/11/19 00:44:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.7 2000/07/18 03:10:09 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 
@@ -209,7 +209,8 @@ TestSuite instproc ecnsetup { tcptype { tcp1fid 0 } } {
     $self tcpDump $tcp1 5.0
         
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    ##$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
 }
 
 # Drop the specified packet.

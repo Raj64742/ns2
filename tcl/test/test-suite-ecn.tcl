@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.21 2000/05/16 18:16:23 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.22 2000/07/18 03:10:09 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -334,7 +334,8 @@ Test/ecn instproc run {} {
     $self tcpDump $tcp1 5.0
         
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_" 
         
     $ns_ run
 }
@@ -384,7 +385,8 @@ TestSuite instproc ecnsetup { tcptype {stoptime 3.0} { tcp1fid 0 } { delack 0 }}
     $self tcpDump $tcp1 5.0
         
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_" 
 }
 
 TestSuite instproc second_tcp { tcptype starttime } {
@@ -2064,7 +2066,9 @@ Test/ecn1 instproc run {} {
         $self tcpDump $tcp1 5.0
         $self tcpDump $tcp2 5.0 
 
-        $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+        #$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+	$ns_ at 10.0 "$self cleanupAll $testName_" 
+
         $ns_ run
 }
 

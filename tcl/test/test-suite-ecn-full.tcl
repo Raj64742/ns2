@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.4 1999/11/19 00:44:47 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.5 2000/07/18 03:10:09 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -264,7 +264,8 @@ TestSuite instproc ecnsetup { tcptype {stoptime 3.0} { tcp1fid 0 } { delack 0 }}
     #$self enable_tracequeue $ns_
         
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    ##$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
 }
 
 TestSuite instproc tcpconnection { tcptype tcpfid delack dump } {
