@@ -26,7 +26,7 @@
 //
 // ADU and ADU processor
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ns-process.h,v 1.3 1999/09/28 03:46:31 heideman Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ns-process.h,v 1.4 1999/11/24 01:37:25 haoboy Exp $
 
 #ifndef ns_process_h
 #define ns_process_h
@@ -72,8 +72,6 @@ enum AppDataType {
 class AppData {
 private:
 	AppDataType type_;  	// ADU type
-//  	int refcount_; 
-
 public:
 	AppData(AppDataType type) { type_ = type; }
 	AppData(AppData& d) { type_ = d.type_; }
@@ -84,29 +82,6 @@ public:
 	// The following two methods MUST be rewrited for EVERY derived classes
 	virtual int size() const { return sizeof(AppData); }
 	virtual AppData* copy() = 0;
-//  		{
-//  		return new AppData(*this);
-//  	}
-
-//  	int refcount() const { return refcount_; }
-//  	int incr_ref() { return ++refcount_; }
-//  	int decr_ref() { return --refcount_; }
-//  	static void free(AppData *d) {
-//  		if (d->decr_ref() == 0) 
-//  			delete d;
-//  	}
-
-	// Static type checking on a persistent ADU
-	// XXX hacky and dangerous!! Better ideas??
-//  	static AppDataType type(char* buf) {
-//  		if (buf == NULL)
-//  			return ADU_ILLEGAL;
-//  		AppDataType t = ((hdr *)buf)->type_;
-//  		if ((t >= ADU_LAST) || (t <= ADU_ILLEGAL))
-//  			return ADU_ILLEGAL;
-//  		else
-//  			return t;
-//  	}
 };
 
 // Models any entity that is capable of process an ADU. 
