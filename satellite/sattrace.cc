@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.11 2001/05/21 19:27:31 haldar Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.12 2002/03/22 23:49:03 buchheim Exp $";
 #endif
 
 #include <stdio.h>
@@ -160,7 +160,24 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
                 }
 	}
 
-	if (!show_tcphdr_) {
+	if (pt_->tagged()) {
+		sprintf(pt_->nbuffer(), 
+			"%c %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
+			tt,
+			Scheduler::instance().clock(),
+			s,
+ 			d,
+			name,
+			th->size(),
+			iph->flowid(),
+			th->uid(),
+			iph->flowid(),
+			src_nodeaddr,
+			src_portaddr,
+			dst_nodeaddr,
+			dst_portaddr,
+			seqno,flags,sname);
+	} else if (!show_tcphdr_) {
 		sprintf(pt_->buffer(), "%c %.4f %d %d %s %d %s %d %s.%s %s.%s %d %d %.2f %.2f %.2f %.2f",
 			tt,
 			pt_->round(Scheduler::instance().clock()),
