@@ -804,4 +804,145 @@ Test/droppedfin instproc run {} {
 	$ns_ run
 }
 
+Class Test/smallpkts -superclass TestSuite
+Test/smallpkts instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0
+	set test_ smallpkts
+	$self next
+}
+Test/smallpkts instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 10.0	
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$sink set interval_ 0.2
+	$ns_ connect $src $sink
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$sink listen
+	set ftp1 [$src attach-source FTP]
+	$ns_ at 0.5 "$src advance-bytes 30"
+	$ns_ at 0.75 "$src advance-bytes 300"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
+#
+# this test sets the receiver's notion of the mss larger than
+# the sender and sets segsperack to 3.  So, only if there is
+# > 3*4192 bytes accumulated would an ACK occur [i.e. never].
+# So, because the
+# delack timer is set for 200ms, the upshot here is that
+# we see ACKs as pushed out by this timer only
+#
+Class Test/telnet -superclass TestSuite
+Test/telnet instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0
+	set test_ telnet(200ms-delack)
+	$self next
+}
+Test/telnet instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 10.0	
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$sink set interval_ 0.2; # generate acks/adverts each 200ms
+	$sink set segsize_ 4192; # or wait up to 3*4192 bytes to ACK
+	$sink set segsperack_ 3
+	$ns_ connect $src $sink
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$sink listen
+	set telnet1 [$src attach-source Telnet]
+	$telnet1 set interval_ 0
+	$ns_ at 0.5 "$telnet1 start"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
+#
+# this test is the same as the last one, but changes the
+# receiver's notion of the mss, delack interval, and segs-per-ack.
+# The output indicates some places where ACKs are generated due
+# to the timer and other are due to meeting the segs-per-ack limit
+# before the timer
+#
+Class Test/telnet2 -superclass TestSuite
+Test/telnet2 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0
+	set test_ telnet2(3segperack;600ms-delack)
+	$self next
+}
+Test/telnet2 instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 10.0	
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$sink set interval_ 0.6; # generate acks/adverts each 600ms
+	$sink set segsize_ 536; # or wait up to 3*536 bytes to ACK
+	$sink set segsperack_ 3
+	$ns_ connect $src $sink
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$sink listen
+	set telnet1 [$src attach-source Telnet]
+	$telnet1 set interval_ 0
+	$ns_ at 0.5 "$telnet1 start"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+	$src set segsize_ 536
+	$src set packetSize_ 576
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
 TestSuite runTest
