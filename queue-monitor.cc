@@ -179,6 +179,22 @@ public:
         }
 } snoopq_drop_class;
 
+static class SnoopQueueEDropClass : public TclClass {
+public:
+        SnoopQueueEDropClass() : TclClass("SnoopQueue/EDrop") {}
+        TclObject* create(int argc, const char*const* argv) {
+                return (new SnoopQueueEDrop);
+        }
+} snoopq_edrop_class;
+
+static class QueueMonitorEDClass : public TclClass {
+ public: 
+        QueueMonitorEDClass() : TclClass("QueueMonitor/ED") {}
+        TclObject* create(int argc, const char*const* argv) { 
+                return (new EDQueueMonitor);
+        }       
+} queue_monitor_ed_class;
+
 /*
  * a 'QueueMonitorCompat', which is used by the compat
  * code to produce the link statistics used available in ns-1
