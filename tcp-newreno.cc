@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.22 1998/04/17 06:15:45 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.23 1998/04/21 02:37:21 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -130,7 +130,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		dupwnd_ = 0;
 		recv_newack_helper(pkt);
 		if (last_ack_ == 0 && syn_) {
-			set_init_window();
+			cwnd_ = initial_window();
 		}
 	    } else {
 		/* received new ack for a packet sent during Fast
