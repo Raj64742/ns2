@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.29 2001/02/22 19:45:42 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.30 2001/03/28 07:17:02 debo Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -137,6 +137,52 @@ Simulator instproc get-routelogic {} {
 		set routingTable_ [new RouteLogic]
 	}
 	return $routingTable_
+}
+
+# Debo
+Simulator instproc dump-approx-sim-data {} {
+
+	$self instvar routingTable_ Node_ link_
+	if ![info exists routingTable_] {
+	    puts "error: routing table is not computed yet!"
+	    return 0
+	}
+
+	puts "# Dumping Approx-Sim Data"  
+
+	set n [Node set nn_]
+	puts "m [Link set nl_] "
+        foreach qn [array names link_] {
+                set l $link_($qn)
+                puts "link [expr [$l set id_] + 1] [expr [$l bw] / 8000] [expr [$l bw] / 8000] [$l delay] [$l qsize]"
+        }
+
+	puts ""
+	global nconn_ conn_
+	puts "n $nconn_"
+	
+	for { set i 0 } { $i < $nconn_ } { incr i } {
+
+		set len 0
+		set str ""
+
+		set list [split $conn_($i) ":"] 
+		set srcid [lindex $list 0]
+		set dstid [lindex $list 1]
+
+		while { $srcid != $dstid } {
+			incr len
+			# shortened nexthop to nh, to fit add-route in
+			# a single line
+			set nh [$routingTable_ lookup $srcid $dstid]
+			# print the route 
+			append str " " [$link_($srcid:$nh) id] 
+			set srcid  $nh
+		}
+		
+		puts "route [expr $i + 1] $len $str"
+		
+	}
 }
 
 Simulator instproc dump-routelogic-nh {} {
