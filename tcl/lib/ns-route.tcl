@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.8 1998/05/27 19:46:50 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.9 1998/06/24 05:12:36 kannan Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -113,7 +113,9 @@ RouteLogic instproc register {proto args} {
 	} else {
 		set rtprotos_($proto) $args
 	}
-	Agent/rtProto/$proto pre-init-all $args
+	if { [Agent/rtProto/$proto info procs pre-init-all] != "" } {
+		Agent/rtProto/$proto pre-init-all $args
+	}
 # 	# keep node to rtproto mapping
 # 	foreach $n $args <
 # 		set node_rtprotos_($n) $proto
@@ -168,7 +170,6 @@ RouteLogic instproc lookup { nodeid destid } {
 	} else {
 		$self cmd lookup $nodeid $destid
 	} 
-	
 }
 
 RouteLogic instproc notify {} {
