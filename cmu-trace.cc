@@ -565,7 +565,8 @@ CMUTrace::nam_format(Packet *p, int offset)
 	MobileNode* rmnode = (MobileNode*)dstnode;
 	double distance = 0;
 
-	distance = tmnode->propdelay(rmnode) * 300000000 ;
+        if ((tmnode) && (rmnode))
+	   distance = tmnode->propdelay(rmnode) * 300000000 ;
 
 
 	// convert to nam format 
@@ -604,14 +605,15 @@ CMUTrace::nam_format(Packet *p, int offset)
 	if ((op == 'h')  && (distance > 242 )) return ;
 
 	sprintf(nwrk_ ,
-		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d ",
+		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
 		op,
 		Scheduler::instance().clock(),
 		src,                           // this node
 		dst,
 		packet_info.name(ch->ptype()),
 		ch->size(),
-		ch->uid());
+		ch->uid(),
+		tracename);
 
 	offset = strlen(nwrk_);
 	namdump();
