@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.25 1999/01/27 00:07:29 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.26 1999/02/04 06:13:27 yaxu Exp $
 #
 #
 # set up the packet format for the simulation
@@ -75,6 +75,8 @@ foreach pair {
 	{ Resv off_resv_}
 	{ HttpInval off_inv_}
 	{ RTP/TFCC off_tfcc }
+        { IPinIP off_ipinip_} 
+        { MIP off_mip_}
 	{ MFTP off_mftp_ }
 	{ Encap off_encap_ }
 } {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.144 1999/01/27 00:07:29 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.145 1999/02/04 06:13:24 yaxu Exp $
 
 
 #
@@ -452,3 +452,25 @@ set tcl_precision 17
 #Agent/Encapsulator set off_encap_ 0
 Agent/Encapsulator set status_ 1
 Agent/Encapsulator set overhead_ 20
+
+#mobile Ip
+ 
+MIPEncapsulator set addr_ 0
+MIPEncapsulator set shift_ 0
+MIPEncapsulator set mask_ 0xffffffff
+MIPEncapsulator set ttl_ 32
+ 
+Agent/MIPBS set adSize_ 48
+Agent/MIPBS set shift_ 0
+Agent/MIPBS set mask_ 0xffffffff
+Agent/MIPBS set ad_lifetime_ 2
+ 
+Agent/MIPMH set home_agent_ 0
+Agent/MIPMH set rreqSize_ 52
+Agent/MIPMH set reg_rtx_ 0.5
+Agent/MIPMH set shift_ 0
+Agent/MIPMH set mask_ 0xffffffff
+Agent/MIPMH set reg_lifetime_ 2
+ 
+Classifier/Replicator set ignore_ 0
+

@@ -34,20 +34,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-addr.cc,v 1.11 1998/08/12 23:40:58 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-addr.cc,v 1.12 1999/02/04 06:13:20 yaxu Exp $";
 #endif
 
-#include "config.h"
-#include "packet.h"
-#include "ip.h"
-#include "classifier.h"
+#include "classifier-addr.h"
 
-class AddressClassifier : public Classifier {
-protected:
-	int classify(Packet *const p) {
+int AddressClassifier::classify(Packet *const p) {
 		hdr_ip* iph = hdr_ip::access(p);
 		return mshift(iph->dst());
-	}
 };
 
 static class AddressClassifierClass : public TclClass {
@@ -57,3 +51,90 @@ public:
 		return (new AddressClassifier());
 	}
 } class_address_classifier;
+
+/* added for mobileip code  Ya, 2/99*/
+ 
+static class ReserveAddressClassifierClass : public TclClass {
+public:
+        ReserveAddressClassifierClass() : TclClass("Classifier/Addr/Reserve") {}
+        TclObject* create(int, const char*const*) {
+                return (new ReserveAddressClassifier());
+        }
+} class_reserve_address_classifier;
+ 
+int ReserveAddressClassifier::command(int argc, const char*const* argv)
+{
+        Tcl& tcl = Tcl::instance();
+        if (argc == 3 && strcmp(argv[1],"reserve-port") == 0) {
+                reserved_ = atoi(argv[2]);
+                alloc((maxslot_ = reserved_ - 1));
+                return(TCL_OK);
+        }
+        return (AddressClassifier::command(argc, argv));
+}
+ 
+void ReserveAddressClassifier::clear(int slot)
+{
+        slot_[slot] = 0;
+        if (slot == maxslot_) {
+                while (--maxslot_ >= reserved_ && slot_[maxslot_] == 0)
+                        ;
+        }
+}
+ 
+int ReserveAddressClassifier::getnxt(NsObject *nullagent)
+{
+        int i;
+        for (i=reserved_; i < nslot_; i++)
+                if (slot_[i]==0 || slot_[i]==nullagent)
+                        return i;
+        i=nslot_;
+        alloc(nslot_); 
+        return i;
+}
+
+static class BcastAddressClassifierClass : public TclClass {
+public:
+        BcastAddressClassifierClass() : TclClass("Classifier/Addr/Bcast") {}
+        TclObject* create(int, const char*const*) { 
+                return (new BcastAddressClassifier());
+        }
+} class_bcast_address_classifier;
+ 
+NsObject* BcastAddressClassifier::find(Packet* p)
+{
+        NsObject* node = NULL;
+        int cl = classify(p);
+        if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) {
+                if (cl == BCAST_ADDR) {
+                        // limited broadcast; assuming no such packet
+                        // would be delivered back to sender
+                        return bcast_recver_;
+                }
+ 
+                /*
+                 * Sigh.  Can't pass the pkt out to tcl because it's
+                 * not an object.
+                 */
+                Tcl::instance().evalf("%s no-slot %d", name(), cl);
+                /*
+                 * Try again.  Maybe callback patched up the table.
+                 */
+                cl = classify(p);
+                if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0)
+                        return (NULL);
+        }
+ 
+        return (node);
+}
+ 
+int BcastAddressClassifier::command(int argc, const char*const* argv)
+{
+        Tcl& tcl = Tcl::instance();
+        if (argc == 3 && strcmp(argv[1],"bcast-receiver") == 0) {
+                bcast_recver_ = (NsObject*)TclObject::lookup(argv[2]);
+                return(TCL_OK);
+        }
+        return (AddressClassifier::command(argc, argv));
+}
+

@@ -30,8 +30,16 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.49 1998/12/08 23:43:13 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.50 1999/02/04 06:13:26 yaxu Exp $
 #
+
+# for MobileIP
+ 
+Classifier/Addr/Reserve instproc init args {
+        eval $self next
+        $self reserve-port 2
+}
+
 
 #Class Node
 Node set nn_ 0
@@ -596,6 +604,34 @@ Classifier/Virtual instproc find dst {
 }
 
 Classifier/Virtual instproc install {dst target} {
+}
+
+#     
+# Broadcast Nodes:
+# accept limited broadcast packets
+#     
+ 
+Class Node/Broadcast -superclass Node
+ 
+Node/Broadcast instproc mk-default-classifier {} {
+        $self instvar address_ classifier_ id_ dmux_
+        set classifier_ [new Classifier/Addr/Bcast]
+ 
+        $classifier_ set mask_ [AddrParams set NodeMask_(1)]
+        $classifier_ set shift_ [AddrParams set NodeShift_(1)]
+        set address_ $id_
+        if { $dmux_ == "" } {
+                set dmux_ [new Classifier/Addr/Reserve]
+                $dmux_ set mask_ [AddrParams set PortMask_]
+                $dmux_ set shift_ [AddrParams set PortShift_]
+ 
+                if [Simulator set EnableHierRt_] {  
+                        $self add-hroute $address_ $dmux_
+                } else {
+                        $self add-route $address_ $dmux_
+                }
+        }
+        $classifier_ bcast-receiver $dmux_
 }
 
 

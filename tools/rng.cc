@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.14 1998/12/14 22:40:54 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.15 1999/02/04 06:13:23 yaxu Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -175,6 +175,33 @@ public:
 /* default RNG */
 
 RNG* RNG::default_ = NULL;
+
+double
+RNG::normal(double avg, double std)
+{
+  static int parity = 0;
+  static double nextresult;
+  double sam1, sam2, rad;
+   
+  if (std == 0) return avg;
+  if (parity == 0) {
+    sam1 = 2*uniform() - 1;
+    sam2 = 2*uniform() - 1;
+    while ((rad = sam1*sam1 + sam2*sam2) >= 1) {
+      sam1 = 2*uniform() - 1;
+      sam2 = 2*uniform() - 1;
+    }
+    rad = sqrt((-2*log(rad))/rad);
+    nextresult = sam2 * rad;
+    parity = 1;
+    return (sam1 * rad * std + avg);
+  }
+  else {
+    parity = 0;
+    return (nextresult * std + avg);
+  }
+}
+
 
 int
 RNG::command(int argc, const char*const* argv)

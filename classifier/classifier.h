@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.18 1998/12/08 23:43:05 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.19 1999/02/04 06:13:21 yaxu Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -45,7 +45,7 @@ class Classifier : public NsObject {
  public:
 	Classifier();
 	~Classifier();
-	void recv(Packet* p, Handler* h);
+	virtual void recv(Packet* p, Handler* h);
 	int maxslot() const { return maxslot_; }
 	inline NsObject* slot(int slot) {
 		if ((slot >= 0) || (slot < nslot_))
@@ -53,13 +53,13 @@ class Classifier : public NsObject {
 		return 0;
 	}
 	int mshift(int val) { return ((val >> shift_) & mask_); }
-	NsObject* find(Packet*);
+	virtual NsObject* find(Packet*);
 	virtual int classify(Packet *const);
 	enum classify_ret {ONCE= -2, TWICE= -1};
  protected:
 	void install(int slot, NsObject*);
-	void clear(int slot);
-	int getnxt(NsObject *);
+	virtual void clear(int slot);
+	virtual int getnxt(NsObject *);
 	virtual int command(int argc, const char*const* argv);
 	void alloc(int);
 	NsObject** slot_;	/* table that maps slot number to a NsObject */
@@ -71,6 +71,7 @@ class Classifier : public NsObject {
 
 private:
 	NsObject	*default_target_;
+	int off_ip_;            // XXX to be removed
 
 };
 

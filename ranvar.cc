@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.cc,v 1.13 1998/10/15 23:14:09 gnguyen Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ranvar.cc,v 1.14 1999/02/04 06:13:22 yaxu Exp $ (Xerox)";
 #endif
 
 #include <stdio.h>
@@ -160,6 +160,26 @@ double ParetoIIRandomVariable::value()
 {
         return(rng_->paretoII(avg_ * (shape_ - 1), shape_));
 }
+
+static class NormalRandomVariableClass : public TclClass {
+ public:
+        NormalRandomVariableClass() : TclClass("RandomVariable/Normal") {}
+        TclObject* create(int, const char*const*) {
+                return(new NormalRandomVariable());
+        }
+} class_normalranvar;
+ 
+NormalRandomVariable::NormalRandomVariable()
+{ 
+        bind("avg_", &avg_);
+        bind("std_", &std_);
+}
+ 
+double NormalRandomVariable::value()
+{
+        return(rng_->normal(avg_, std_));
+}
+
 
 static class ConstantRandomVariableClass : public TclClass {
  public:

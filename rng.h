@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.12 1998/09/21 22:56:56 polly Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.13 1999/02/04 06:13:24 yaxu Exp $ (LBL)";
  */
 
 /* new random number generator */
@@ -110,6 +110,7 @@ public:
 		{ return (scale * (1.0/pow(uniform(), 1.0/shape)));}
         inline double paretoII(double scale, double shape)
                 { return (scale * ((1.0/pow(uniform(), 1.0/shape)) - 1));}
+	double normal(double avg, double std); 
 
 protected:   // need to be public?
 	RNGImplementation stream_;

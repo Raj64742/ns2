@@ -228,6 +228,10 @@ mftp_rcv.cc
 mftp_rcv.h
 mftp_snd.cc
 mftp_snd.h
+mip.cc
+mip.h
+mip-reg.cc
+classifier-addr.h
 misc.cc
 ms-adc.cc
 modulation.cc
@@ -534,6 +538,7 @@ tcl/lib/ns-intserv.tcl
 tcl/lib/ns-hiernode.tcl
 tcl/lib/ns-lib.tcl
 tcl/lib/ns-link.tcl
+tcl/lib/ns-mip.tcl
 tcl/lib/ns-nam.tcl
 tcl/lib/ns-namsupp.tcl
 tcl/lib/ns-node.tcl
