@@ -21,9 +21,11 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.10 2001/11/21 17:36:24 polly Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.11 2002/03/12 00:41:02 xuanc Exp $
 
 PagePool/WebTraf set debug_ false
+# TCPTYPE_ could be set to FullTCP also (xuanc)
+PagePool/WebTraf set fulltcp_ 0
 PagePool/WebTraf set TCPTYPE_ Reno
 PagePool/WebTraf set TCPSINKTYPE_ TCPSink   ;#required for SACK1 Sinks.
 
@@ -69,9 +71,20 @@ PagePool/WebTraf instproc launch-req { id pid clnt svr ctcp csnk stcp ssnk size 
 	$ns attach-agent $svr $csnk
 	$ns connect $ctcp $csnk
 	
+	# sink needs to listen for fulltcp
+	if {[PagePool/WebTraf set fulltcp_] == 1} {
+	    $csnk listen
+	    $ssnk listen
+	}
+
 	if {[PagePool/WebTraf set FID_ASSIGNING_MODE_] == 0} {
 	    $stcp set fid_ $id
 	    $ctcp set fid_ $id
+
+	    if {[PagePool/WebTraf set fulltcp_] == 1} {
+		$csnk set fid_ $id
+		$ssnk set fid_ $id
+	    }
 	}
 
 	# Advance $size packets
@@ -144,8 +157,16 @@ PagePool/WebTraf instproc done-resp { id pid clnt svr stcp ssnk size sent sent_t
 	$ns attach-agent $clnt $ssnk
 	$ns connect $stcp $ssnk
 
+	if {[PagePool/WebTraf set fulltcp_] == 1} {
+	    $ssnk listen
+	}
+
 	if {[PagePool/WebTraf set FID_ASSIGNING_MODE_] == 0} {
 	    $stcp set fid_ $id
+
+	    if {[PagePool/WebTraf set fulltcp_] == 1} {
+		$ssn set fid_ $id
+	    }
 	}
 
 	set left [expr $size - $sent]
