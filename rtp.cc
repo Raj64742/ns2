@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.18 1998/08/22 02:41:09 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.19 1998/09/11 20:37:55 kfall Exp $";
 #endif
 
 
@@ -54,42 +54,6 @@ public:
 		bind_offset(&hdr_rtp::offset_);
 	}
 } class_rtphdr;
-
-class RTPAgent;
- 
-class RTPTimer : public TimerHandler {
-public:
-        RTPTimer(RTPAgent *a) : TimerHandler() { a_ = a; }
-protected:
-        virtual void expire(Event *e);
-        RTPAgent *a_; 
-};      
-
-class RTPAgent : public Agent {
- public:
-	RTPAgent();
-	virtual void timeout(int);
-	virtual void recv(Packet* p, Handler*);
-	virtual int command(int argc, const char*const* argv);
-	void advanceby(int delta);
-	virtual void sendmsg(int nbytes, const char *flags = 0);
- protected:
-	virtual void sendpkt();
-	void rate_change();
-	void start();
-	void stop();
-	void finish();
-	RTPSession* session_;
-	double lastpkttime_;
-	int seqno_;
-	int running_;
-	int random_;
-	int maxpkts_;
-	double interval_;
-
-	RTPTimer rtp_timer_;
-	int off_rtp_;
-};
 
 static class RTPAgentClass : public TclClass {
 public:
