@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.h,v 1.9 1997/10/20 23:22:20 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.h,v 1.10 1998/01/27 18:49:01 heideman Exp $ (LBL)
  */
 
 #ifndef ns_random_h
@@ -44,21 +44,20 @@
 
 class Random {
 private:
-	static RNG rng_;
-	static RNG &rng() { return rng_; }
+	static RNG *rng() { return RNG::defaultrng(); }
 
 public:
-	static void seed(int s) { rng().set_seed(RNG::RAW_SEED_SOURCE, s); }
-	static int seed_heuristically() { rng().set_seed(RNG::HEURISTIC_SEED_SOURCE); return rng().seed(); };
+	static void seed(int s) { rng()->set_seed(RNG::RAW_SEED_SOURCE, s); }
+	static int seed_heuristically() { rng()->set_seed(RNG::HEURISTIC_SEED_SOURCE); return rng()->seed(); };
 
-	static int random() { return rng().uniform_positive_int(); }
-	static double uniform() { return rng().uniform_double();}
-	static double uniform(double r) { return rng().uniform(r); }
-	static double uniform(double a, double b) { return rng().uniform(a,b); }
-	static double exponential() { return rng().exponential(); }
-	static int integer(int k) { return rng().uniform(k); }
-        static double exponential(double r) { return rng().exponential(r); }
-	static double pareto(double scale, double shape) { return rng().pareto(scale, shape); }
+	static int random() { return rng()->uniform_positive_int(); }
+	static double uniform() { return rng()->uniform_double();}
+	static double uniform(double r) { return rng()->uniform(r); }
+	static double uniform(double a, double b) { return rng()->uniform(a,b); }
+	static double exponential() { return rng()->exponential(); }
+	static int integer(int k) { return rng()->uniform(k); }
+        static double exponential(double r) { return rng()->exponential(r); }
+	static double pareto(double scale, double shape) { return rng()->pareto(scale, shape); }
 };
 
 #endif
