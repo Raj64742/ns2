@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.9 2001/10/11 14:12:14 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.10 2001/11/06 06:21:47 tomh Exp $";
 #endif
 
 /*
@@ -53,6 +53,7 @@ static const char rcsid[] =
 #include "satposition.h"
 #include "satgeometry.h"
 #include "satnode.h"
+#include "satroute.h"
 #include "errmodel.h"
 
 /*==========================================================================*/
@@ -171,6 +172,17 @@ void SatLL::recv(Packet* p, Handler* /*h*/)
 	ch->direction() = hdr_cmn::DOWN;
 	sendDown(p);
 }
+int SatLL::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		if (strcmp(argv[1], "setnode") == 0) {
+			satnode_ = (SatNode*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+	}
+	return LL::command(argc, argv);
+}
 
 // Encode link layer sequence number, type, and mac address fields
 void SatLL::sendDown(Packet* p)
@@ -184,6 +196,36 @@ void SatLL::sendDown(Packet* p)
 	llh->seqno_ = ++seqno_;
 	llh->lltype() = LL_DATA;
 
+	// wired-satellite integration
+	if (SatRouteObject::instance().wiredRouting()) {
+		double now_ = NOW;
+		// Wired/satellite integration
+		// We need to make sure packet headers are set correctly
+		// This code adapted from virtual-classifier.cc
+		RouteLogic *routelogic_;
+		hdr_ip* h = hdr_ip::access(p);
+		int next_hopIP = -1; // Initialize in case route not found
+		int myaddr_;
+		Tcl &tcl = Tcl::instance();
+		tcl.evalc("[Simulator instance] get-routelogic");
+		routelogic_ = (RouteLogic*) TclObject::lookup(tcl.result());
+		char* adst = Address::instance().print_nodeaddr(h->daddr());
+		myaddr_ = satnode()->ragent()->myaddr();
+		//char* asrc = Address::instance().print_nodeaddr(h->saddr());
+		char* asrc = Address::instance().print_nodeaddr(myaddr_);
+		routelogic_->lookup_flat(asrc, adst, next_hopIP);
+		delete [] adst;
+		delete [] asrc;
+		// The following fields are usually set by routeagent
+		// forwardPacket() in satroute.cc (when wiredRouting_ == 0)
+		ch->next_hop_ = next_hopIP;
+		if (satnode()) {
+			ch->last_hop_ = satnode()->ragent()->myaddr();
+		} else {
+			printf("Error:  LL has no satnode_ pointer set\n");
+			exit(1);
+		}
+        } 
 	// Set mac src, type, and dst
 	mac_->hdr_src(mh, mac_->addr());
 	mac_->hdr_type(mh, ETHERTYPE_IP); // We'll just use ETHERTYPE_IP
@@ -221,7 +263,8 @@ void SatLL::sendDown(Packet* p)
 		peer_mac_ = satchannel_->find_peer_mac_addr(dst);
 		if (peer_mac_ < 0 ) {
 			printf("Error:  couldn't find dest mac on channel ");
-			printf("NOW %f\n", NOW);
+			printf("for src/dst %d %d at NOW %f\n", 
+			    ch->last_hop_, dst, NOW); 
 			exit(1);
 		} else {
 			mac_->hdr_dst((char*) HDR_MAC(p), peer_mac_);

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.cc,v 1.7 2000/06/21 17:44:10 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.cc,v 1.8 2001/11/06 06:21:47 tomh Exp $";
 #endif
 
 #include "satnode.h"
@@ -53,6 +53,9 @@ public:
 	}
 } class_satnode;
 
+#define MAXSATNODELIST 64 // Assume 64 nodes to start-- dynamically increases
+int* SatNode::satnodelist_ = NULL;
+int SatNode::maxsatnodelist_ = 0;
 int SatNode::dist_routing_ = 0;
 
 SatNode::SatNode() : ragent_(0), trace_(0), hm_(0)  
@@ -137,10 +140,45 @@ int SatNode::command(int argc, const char*const* argv) {
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
+		} else if (strcmp(argv[1], "set_address") == 0) {
+			addNode(atoi(argv[2]));
+			return (TCL_OK);
 		}
-
 	}
 	return (Node::command(argc, argv));
+}
+
+int SatNode::addNode(int nodenum)
+{
+	if (maxsatnodelist_ == 0) {
+		satnodelist_ = new int[MAXSATNODELIST];
+		memset(satnodelist_, 0, MAXSATNODELIST * sizeof(satnodelist_));
+		maxsatnodelist_ = MAXSATNODELIST;
+	}
+	assert(nodenum < 2*maxsatnodelist_);
+	if (nodenum >= maxsatnodelist_) {
+		// Double size of array
+		int i;
+		int* temp = new int[2 * maxsatnodelist_];
+		memset(temp, 0, 2 * maxsatnodelist_ * sizeof(temp));
+		for (i = 0; i < maxsatnodelist_; i++) {
+			temp[i] = satnodelist_[i];
+		}
+		delete [] satnodelist_;
+		satnodelist_ = temp;
+		maxsatnodelist_ *= 2;
+	}
+	satnodelist_[nodenum] = 1;
+	return 0;
+}
+
+int SatNode::IsASatNode(int nodenum)
+{
+	if (nodenum > maxsatnodelist_) {
+		printf("Error: IsASatNode() nodenum %d greater than maxsatnodelist_ %d\n", nodenum, maxsatnodelist_);
+		exit(1);
+	}
+	return satnodelist_[nodenum];
 }
 
 // debugging method for dumping out all of the satellite and ISL locations
@@ -156,7 +194,8 @@ void SatNode::dumpSats()
         printf("\nDumping satellites at time %.2f\n\n", NOW);
         for (snodep= (SatNode*) Node::nodehead_.lh_first; snodep; 
 		snodep = (SatNode*) snodep->nextnode()) {
-		// XXX Need check to see if node is a SatNode
+		if (!SatNode::IsASatNode(snodep->address()))
+			continue;
 		sposp = snodep->position();
                 printf("%d\t%.2f\t%.2f", snodep->address(), 
 		    RAD_TO_DEG(SatGeometry::get_latitude(sposp->coord())), 
@@ -178,6 +217,8 @@ void SatNode::dumpSats()
         printf("Links:\n");
         for (snodep = (SatNode*) Node::nodehead_.lh_first; snodep; 
 		snodep = (SatNode*) snodep->nextnode()) {
+		if (!SatNode::IsASatNode(snodep->address()))
+			continue;
 		// XXX Not all links necessarily satlinks
 		for (slhp = (SatLinkHead*) snodep->linklisthead_.lh_first; 
 		    slhp; slhp = (SatLinkHead*) slhp->nextlinkhead() ) {

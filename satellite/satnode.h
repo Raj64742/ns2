@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.h,v 1.4 1999/10/26 17:35:09 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satnode.h,v 1.5 2001/11/06 06:21:47 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -66,6 +66,8 @@ class SatNode : public Node {
 
 	// configuration parameters
 	static int dist_routing_;
+	static int addNode(int);
+	static int IsASatNode(int);
  protected:
         int command(int argc, const char*const* argv);
 	SatRouteAgent* ragent_;
@@ -75,6 +77,8 @@ class SatNode : public Node {
 	SatTrace* trace_; // a drop trace for packets that can't be routed
 	LinkHandoffMgr* hm_; 
 	void dumpSats();
+	static int* satnodelist_;
+	static int maxsatnodelist_;
 };
 
 #endif // __satnode_h__

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.h,v 1.2 1999/10/26 17:35:11 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.h,v 1.3 2001/11/06 06:21:48 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -67,6 +67,7 @@ public:
   void clear_slots();
   void install(int dst, int next_hop, NsObject* p);
   SatNode* node() { return node_; }
+  int myaddr() {return myaddr_; }
   
 protected:
   virtual void recv(Packet *, Handler *);
@@ -98,6 +99,10 @@ public:
   void recompute_node(int node);
   int command(int argc, const char * const * argv);        
   int data_driven_computation() { return data_driven_computation_; } 
+  void insert_link(int src, int dst, double cost);
+  void insert_link(int src, int dst, double cost, void* entry);
+  int wiredRouting() { return wiredRouting_;}
+//void hier_insert_link(int *src, int *dst, int cost);  // support hier-rtg?
 
 protected:
   void compute_topology();
@@ -111,6 +116,7 @@ protected:
   int metric_delay_;
   int suppress_initial_computation_;
   int data_driven_computation_;
+  int wiredRouting_;
 };
 
 #endif

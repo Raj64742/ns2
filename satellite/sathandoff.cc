@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.9 2000/08/30 00:10:45 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.10 2001/11/06 06:21:47 tomh Exp $";
 #endif
 
 #include "random.h"
@@ -242,10 +242,18 @@ int TermLinkHandoffMgr::handoff()
 				slhp->linkup_ = FALSE;
 				link_changes_flag_ = TRUE;
 				// Detach receive link interface from channel
+				// Next line removes phy from linked list
+				//   of interfaces attached to channel
 				slhp->phy_rx()->removechnl();
-				// Set channel pointers to NULL
+				// Set our channel pointers to NULL
 				slhp->phy_tx()->setchnl(0);
 				slhp->phy_rx()->setchnl(0);
+				// wired-satellite integration
+				if (SatRouteObject::instance().wiredRouting()) {
+					Tcl::instance().evalf("[Simulator instance] sat_link_destroy %d %d", slhp->phy_tx()->node()->address(), peer_->address());
+					// Must do this bidirectionally
+					Tcl::instance().evalf("[Simulator instance] sat_link_destroy %d %d", peer_->address(), slhp->phy_tx()->node()->address());
+				}
 			}
 		}
 		if (!slhp->linkup_) {
@@ -270,6 +278,8 @@ int TermLinkHandoffMgr::handoff()
 			if (!found_elev_) {
 				for (nodep=Node::nodehead_.lh_first; nodep;
 				    nodep = nodep->nextnode()) {
+					if (!SatNode::IsASatNode(nodep->address()))
+						continue;
 					peer_ = (SatNode*) nodep;
 					if (peer_->position() && 
 					    (peer_->position()->type() != 
@@ -296,6 +306,7 @@ int TermLinkHandoffMgr::handoff()
 				// Point slhp->phy_rx to peer_'s outlink and
 				// add phy_rx to the channels list of phy's
 				slhp->phy_rx()->setchnl(peer_->downlink());
+				// Add phy to channel's linked list of i/fces
 				slhp->phy_rx()->insertchnl(&(peer_->downlink()->ifhead_));
 			}
 		}
@@ -414,6 +425,16 @@ int SatLinkHandoffMgr::handoff()
 			peer_next_slhp->phy_rx()->setchnl(tx_channel_);
 			peer_next_slhp->phy_rx()->insertchnl(&(tx_channel_->ifhead_));
 			link_changes_flag_ = TRUE; 
+			// wired-satellite integration
+			if (SatRouteObject::instance().wiredRouting()) {
+				// Check if link is up first before deleting
+				if (slhp->linkup_) { 
+					Tcl::instance().evalf("[Simulator instance] sat_link_destroy %d %d", slhp->phy_tx()->node()->address(), peer_->address());
+				}
+				if (peer_slhp->linkup_) { 
+					Tcl::instance().evalf("[Simulator instance] sat_link_destroy %d %d", peer_->address(), slhp->phy_tx()->node()->address());
+				}
+			}
 			// Now reset the peer_ variables to point to next
 			peer_ = peer_next_;
 			peer_slhp = peer_next_slhp;
@@ -440,6 +461,11 @@ int SatLinkHandoffMgr::handoff()
 			slhp->linkup_ = FALSE;
 			peer_slhp->linkup_ = FALSE;
 			link_changes_flag_ = TRUE;
+			// wired-satellite integration
+			if (SatRouteObject::instance().wiredRouting()) {
+			    Tcl::instance().evalf("[Simulator instance] sat_link_destroy %d %d", slhp->phy_tx()->node()->address(), peer_->address());
+			    Tcl::instance().evalf("[Simulator instance] sat_link_destroy %d %d", peer_->address(), slhp->phy_tx()->node()->address());
+			}
 		} else if ((!slhp->linkup_  || !peer_slhp->linkup_) && 
 		    !link_down_flag_) {
 			slhp->linkup_ = TRUE;
@@ -471,6 +497,11 @@ int SatLinkHandoffMgr::handoff()
 			slhp->linkup_ = FALSE;
 			peer_slhp->linkup_ = FALSE;
 			link_changes_flag_ = TRUE;
+			// wired-satellite integration
+			if (SatRouteObject::instance().wiredRouting()) {
+			    Tcl::instance().evalf("[Simulator instance] sat_link_destroy %d %d", slhp->phy_tx()->node()->address(), peer_->address());
+			    Tcl::instance().evalf("[Simulator instance] sat_link_destroy %d %d", peer_->address(), slhp->phy_tx()->node()->address());
+			}                                                       
 		} else if (!slhp->linkup_ && !link_down_flag_) {
 			slhp->linkup_ = TRUE;
 			peer_slhp->linkup_ = TRUE;
@@ -488,4 +519,3 @@ int SatLinkHandoffMgr::handoff()
 		timer_.resched(sat_handoff_int_);
 	return link_changes_flag_;
 }
-

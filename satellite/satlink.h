@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.h,v 1.5 2001/10/11 14:12:14 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.h,v 1.6 2001/11/06 06:21:47 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -69,7 +69,10 @@ public:
         virtual void sendUp(Packet* p);
         virtual void recv(Packet* p, Handler* h);
 	Channel* channel(); // Helper function used for ``ARP''
+	SatNode* satnode() {return satnode_; }
 protected:
+	int command(int argc, const char*const* argv);
+	SatNode* satnode_;
 	// Optimization-- cache the last value of Mac address 
         int arpcache_;  
         int arpcachedst_;

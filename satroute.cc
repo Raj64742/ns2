@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.11 2000/09/01 03:04:07 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.12 2001/11/06 06:21:47 tomh Exp $";
 #endif
 
 #include "satroute.h"
@@ -209,6 +209,7 @@ SatRouteObject* SatRouteObject::instance_;
 
 SatRouteObject::SatRouteObject() : suppress_initial_computation_(0) 
 {
+	bind_bool("wiredRouting_", &wiredRouting_);
 	bind_bool("metric_delay_", &metric_delay_);
 	bind_bool("data_driven_computation_", &data_driven_computation_);
 }
@@ -231,10 +232,35 @@ int SatRouteObject::command (int argc, const char *const *argv)
 			recompute();
 			return (TCL_OK);
 		}
-
+		if (strcmp(argv[1], "dump") == 0) {
+			printf("Dumping\n");
+			dump();
+			return (TCL_OK);
+		}
 	}
 	return (RouteLogic::command(argc, argv));
 }                       
+
+// Wrapper to catch whether OTcl-based (wired-satellite) routing is enabled
+void SatRouteObject::insert_link(int src, int dst, double cost)
+{
+	if (wiredRouting_) {
+		Tcl::instance().evalf("[Simulator instance] sat_link_up %d %d %f", (src - 1), (dst - 1), cost);
+	} else
+		insert(src, dst, cost);
+}
+
+// Wrapper to catch whether OTcl-based (wired) routing is enabled
+void SatRouteObject::insert_link(int src, int dst, double cost, void* entry)
+{
+	SatLinkHead* slhp = (SatLinkHead*) entry;
+	if (wiredRouting_) {
+		// Here we do an upcall to an instproc in ns-sat.tcl
+		// that populates the link_(:) array
+		Tcl::instance().evalf("[Simulator instance] sat_link_up %d %d %f %s %s", (src - 1), (dst - 1), cost, slhp->name(), slhp->queue()->name());
+	} else
+		insert(src, dst, cost, entry); // base class insert()
+}
 
 void SatRouteObject::recompute_node(int node)
 {
@@ -252,7 +278,11 @@ void SatRouteObject::recompute()
 		return;
 	else {
 		compute_topology();
-		compute_routes(); // calls base class function
+		if (wiredRouting_) {
+			Tcl::instance().evalf("[Simulator instance] compute-flat-routes");
+		} else {
+			compute_routes(); // base class function
+		}
 		populate_routing_tables();
 	}
 }
@@ -268,10 +298,19 @@ void SatRouteObject::compute_topology()
 	int src, dst; 
 	double delay;
 
+	// wired-satellite integration
+	if (wiredRouting_) {
+		// There are two route objects being used
+		// a SatRouteObject and a RouteLogic (for wired)
+		// We need to also reset the RouteLogic one
+		Tcl::instance().evalf("[[Simulator instance] get-routelogic] reset");
+	}
 	reset_all();
 	// Compute adjacencies.  Traverse linked list of nodes 
         for (nodep=Node::nodehead_.lh_first; nodep; nodep = nodep->nextnode()) {
 	    // Cycle through the linked list of linkheads
+	    if (!SatNode::IsASatNode(nodep->address()))
+	        continue;
 	    for (slhp = (SatLinkHead*) nodep->linklisthead().lh_first; slhp; 
 	      slhp = (SatLinkHead*) slhp->nextlinkhead()) {
 		if (slhp->type() == LINK_GSL_REPEATER)
@@ -322,7 +361,7 @@ void SatRouteObject::compute_topology()
 				delay = 1;
 				delay_firsthop = 0;
 			    }
-			    insert(src, dst, delay+delay_firsthop, (void*)slhp);
+			    insert_link(src, dst, delay+delay_firsthop, (void*)slhp);
 			}
 		    } else {
 		        // Found an adjacency relationship.
@@ -335,7 +374,7 @@ void SatRouteObject::compute_topology()
 			      phyrxp->node());
 			else
 			    delay = 1;
-			insert(src, dst, delay, (void*)slhp);
+			insert_link(src, dst, delay, (void*)slhp);
 		    }
 		}
 	    }
@@ -350,7 +389,13 @@ void SatRouteObject::populate_routing_tables(int node)
 	int next_hop, src, dst;
 	NsObject *target;
 
+	if (wiredRouting_) {
+		Tcl::instance().evalf("[Simulator instance] populate-flat-classifiers [Node set nn_]");
+		return;
+	}
         for (; snodep; snodep = (SatNode*) snodep->nextnode()) {
+		if (!SatNode::IsASatNode(snodep->address()))
+			continue;   
 		// First, clear slots of the current routing table
 		if (snodep->ragent())
 			snodep->ragent()->clear_slots();
@@ -359,6 +404,8 @@ void SatRouteObject::populate_routing_tables(int node)
 			continue;
 		snodep2 = (SatNode*) Node::nodehead_.lh_first;
 		for (; snodep2; snodep2 = (SatNode*) snodep2->nextnode()) {
+                        if (!SatNode::IsASatNode(snodep->address()))
+                                continue;
 			dst = snodep2->address();
 			next_hop = lookup(src, dst);
 			if (next_hop != -1 && src != dst) {
@@ -407,13 +454,6 @@ void SatRouteObject::dump()
 			dst = i % size_ - 1;
 			printf("Found a link from %d to %d with cost %f\n", src, dst, adj_[i].cost);
 		}
-/*
-		if (route_[i].next_hop) {
-			src = i / size_ - 1;
-			dst = i % size_ - 1;
-			printf("Found a route from %d to %d through %d\n", src, dst, route_[i].next_hop - 1);
-		}
-*/
         }
 }
 
