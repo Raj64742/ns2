@@ -193,6 +193,8 @@ OBJ_CC = \
 	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
 	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o \
 	webcache/mcache.o webcache/webtraf.o \
+	webcache/webserver.o \
+	webcache/logweb.o \
 	empweb/empweb.o \
 	empweb/empftp.o \
 	realaudio/realaudio.o \
