@@ -25,7 +25,7 @@
 #
 # Traffic source generator from CMU's mobile code.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/cbrgen.tcl,v 1.1 1999/02/24 01:42:41 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/cbrgen.tcl,v 1.2 1999/03/10 01:03:49 haldar Exp $
 
 # ======================================================================
 # Default Script Options
@@ -67,13 +67,19 @@ proc create-cbr-connection { src dst } {
 
 	puts "#\n# $src connecting to $dst at time $stime\n#"
 
-	puts "set cbr_($cbr_cnt) \[\$ns_ create-connection \
-		CBR \$node_($src) CBR \$node_($dst) 0\]";
-
+	##puts "set cbr_($cbr_cnt) \[\$ns_ create-connection \
+		##CBR \$node_($src) CBR \$node_($dst) 0\]";
+	puts "set udp_($cbr_cnt) \[new Agent/UDP\]"
+	puts "\$ns_ attach-agent \$node_($src) \$udp_($cbr_cnt)"
+	puts "set null_($cbr_cnt) \[new Agent/Null\]"
+	puts "\$ns_ attach-agent \$node_($dst) \$null_($cbr_cnt)"
+	puts "set cbr_($cbr_cnt) \[new Application/Traffic/CBR\]"
 	puts "\$cbr_($cbr_cnt) set packetSize_ $opt(pktsize)"
 	puts "\$cbr_($cbr_cnt) set interval_ $opt(interval)"
 	puts "\$cbr_($cbr_cnt) set random_ 1"
 	puts "\$cbr_($cbr_cnt) set maxpkts_ 10000"
+	puts "\$cbr_($cbr_cnt) attach-agent \$udp_($cbr_cnt)"
+	puts "\$ns_ connect \$udp_($cbr_cnt) \$null_($cbr_cnt)"
 	
 	puts "\$ns_ at $stime \"\$cbr_($cbr_cnt) start\""
 
