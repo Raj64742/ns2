@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.5 1997/09/11 00:46:50 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.6 1997/10/19 03:31:46 heideman Exp $
 #
 
 #Code to generate random numbers here
@@ -67,6 +67,6 @@ RandomVariable instproc test count {
 
 
 set defaultRNG [new RNG]
-$defaultRNG seed 1973272912
+$defaultRNG seed 1
 $defaultRNG default
 
