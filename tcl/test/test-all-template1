@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.8 1998/07/01 16:50:16 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.9 1998/07/01 16:56:00 heideman Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -49,13 +49,15 @@ fi
 
 quiet=false
 new=false
-while test $# -gt 1
+# echo "num=$#, args $@"
+while test $# -ge 1
 do
 	case $1 in
-	quiet|QUIET) quiet=true; shift;;
-	new|NEW) new=true; shift;;
+	quiet|QUIET) quiet=true;;
+	new|NEW) new=true;;
 	*) break;;
 	esac
+	shift
 done
 test="$@"
 datafile="temp.rands"
@@ -77,12 +79,13 @@ for t in $tests; do
     if test "$quiet" = "false"; then
     	echo
     fi
-    echo -n Running test $t
+    echo -n Running test $t:
 
     # Beware that xgraph is run asynchronously, and if it
     # is slow to launch, you may get an incorrect graph
-    if test "$quiet" = "true"; then
-        echo .
+    if $quiet
+    then
+        echo ' ' ../../ns $file $t QUIET
     	../../ns $file $t QUIET
     else 
 	echo ' ' ../../ns $file $t.
