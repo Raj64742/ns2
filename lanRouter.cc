@@ -55,7 +55,7 @@ int lanRouter::next_hop(Packet *p) {
 }
 int lanRouter::command(int argc, const char*const* argv)
 {
-	Tcl& tcl = Tcl::instance();
+	// Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
 		// cmd lanaddr <addr>
 		if (strcmp(argv[1], "lanaddr") == 0) {
