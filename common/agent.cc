@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.18 1997/07/22 08:03:03 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.19 1997/07/23 03:41:36 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -58,7 +58,7 @@ int Agent::uidcnt_;		/* running unique id */
 
 Agent::Agent(int pkttype) : 
 	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
-	prio_(-1), flags_(0)
+	prio_(-1), flags_(0), defttl_(32)
 {
 	memset(pending_, 0, sizeof(pending_));
 	// this is really an IP agent, so set up
@@ -68,6 +68,7 @@ Agent::Agent(int pkttype) :
 	bind("fid_", (int*)&fid_);
 	bind("prio_", (int*)&prio_);
 	bind("flags_", (int*)&flags_);
+	bind("ttl_", &defttl_);
 	/*
 	 * the following is a workaround to allow
 	 * older scripts that use "class_" instead of
@@ -132,7 +133,7 @@ Packet* Agent::allocpkt() const
 	iph->dst() = dst_;
 	iph->flowid() = fid_;
 	iph->prio() = prio_;
-	iph->ttl() = 32; /*XXX*/
+	iph->ttl() = defttl_;
 	iph->iface() = -2;
 
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
@@ -158,6 +159,3 @@ Packet* Agent::allocpkt(int n) const
 
 	return(p);
 }
-
-
-
