@@ -4,7 +4,7 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output,
-### on pig.ee.lbl.gov, Wed May  6 21:21:26 PDT 1998,
+### on pig.ee.lbl.gov, Wed May 13 18:35:31 PDT 1998
 ### with tcl8.0p1, tk8.0p1.
 ###
 ### "Validate" ran correctly for Sally Floyd with the rev 1.10
@@ -496,6 +496,41 @@ Test output agrees with reference output
 Running test sack3.
 Test output agrees with reference output
 Running test sack4.
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-tcpVariants
+Tests: onedrop_tahoe onedrop_reno onedrop_newreno onedrop_sack twodrops_tahoe twodrops_reno twodrops_newreno twodrops_sack threedrops_tahoe threedrops_reno threedrops_newreno threedrops_sack fourdrops_tahoe fourdrops_reno fourdrops_newreno fourdrops_sack
+Running test onedrop_tahoe.
+Test output agrees with reference output
+Running test onedrop_reno.
+Test output agrees with reference output
+Running test onedrop_newreno.
+Test output agrees with reference output
+Running test onedrop_sack.
+Test output agrees with reference output
+Running test twodrops_tahoe.
+Test output agrees with reference output
+Running test twodrops_reno.
+Test output agrees with reference output
+Running test twodrops_newreno.
+Test output agrees with reference output
+Running test twodrops_sack.
+Test output agrees with reference output
+Running test threedrops_tahoe.
+Test output agrees with reference output
+Running test threedrops_reno.
+Test output agrees with reference output
+Running test threedrops_newreno.
+Test output agrees with reference output
+Running test threedrops_sack.
+Test output agrees with reference output
+Running test fourdrops_tahoe.
+Test output agrees with reference output
+Running test fourdrops_reno.
+Test output agrees with reference output
+Running test fourdrops_newreno.
+Test output agrees with reference output
+Running test fourdrops_sack.
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
