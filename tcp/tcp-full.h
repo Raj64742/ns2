@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.40 2001/07/17 18:00:45 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.41 2001/08/03 17:33:56 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -171,19 +171,23 @@ class FullTcpAgent : public TcpAgent {
        	virtual void reset();       		// reset to a known point
 	virtual void send_much(int force, int reason, int maxburst = 0);
 	virtual int build_options(hdr_tcp*);	// insert opts, return len
+	virtual int reass(Packet*);		// reassemble: pass to ReassemblyQueue
+	virtual void process_sack(hdr_tcp*);	// process a SACK
+	virtual int nxt_tseq() {
+		return t_seqno_;		// next seq# to send
+	}
 
 	void sendpacket(int seq, int ack, int flags, int dlen, int why);
 	void connect();     		// do active open
 	void listen();      		// do passive open
 	void usrclosed();   		// user requested a close
 	int need_send();    		// send ACK/win-update now?
-	void output(int seqno, int reason = 0); // output 1 packet
+	int foutput(int seqno, int reason = 0); // output 1 packet
 	void newack(Packet* pkt);	// process an ACK
 	int pack(Packet* pkt);		// is this a partial ack?
 	void dooptions(Packet*);	// process option(s)
 	DelAckTimer delack_timer_;	// other timers in tcp.h
 	void cancel_timers();		// cancel all timers
-	int reass(Packet*);		// reassemble: pass to ReassemblyQueue
 
 	/*
 	* the following are part of a tcpcb in "real" RFC793 TCP
@@ -230,13 +234,23 @@ class SackFullTcpAgent : public FullTcpAgent {
 public:
 	SackFullTcpAgent();
 	~SackFullTcpAgent();
-	void	recv(Packet*, Handler*);
 protected:
+
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
+
+	virtual void pack_action(Packet*);
+	virtual void ack_action(Packet*);
+	virtual void dupack_action();
+	virtual void process_sack(hdr_tcp*);
+	virtual void timeout_action();
+	virtual int nxt_tseq();
+	virtual int hdrsize(int nblks);
+
 	int build_options(hdr_tcp*);	// insert opts, return len
 	int sack_option_size_;	// base # bytes for sack opt (no blks)
 	int sack_block_size_;	// # bytes in a sack block (def: 8)
-	int sack_min_;		// first seq# in sack queue
-	int sack_max_;		// highest seq# seen in any sack block
+
 	int sack_nxt_;		// next seq# to hole-fill
 	int max_sack_blocks_;	// max # sack blocks to send
 
@@ -244,13 +258,14 @@ protected:
 
 	void	reset();
 	void	sendpacket(int seqno, int ackno, int pflags, int datalen, int reason);
-	void	send_much(int force, int reason, int maxburst = 0);
-	void	send_holes(int force, int maxburst);
-	void	pack_action(Packet*);
-	void	ack_action(Packet*);
-	void	dupack_action();
-	int	hdrsize(int nblks);
-	void	timeout_action();
+
+	int sack_min_;		// first seq# in sack queue, initializes sq_
+	int clear_on_timeout_;	// clear sender's SACK queue on RTX timeout?
+
+//int sack_max_;		// highest seq# seen in any sack block
+//void	send_much(int force, int reason, int maxburst = 0);
+//void	send_holes(int force, int maxburst);
+
 };
 
 #endif
