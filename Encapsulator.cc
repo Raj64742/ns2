@@ -17,6 +17,7 @@ Encapsulator::Encapsulator() :
 {
 	bind("status_", &status_);
 	bind("off_encap_", &off_encap_);
+	bind("overhead_", &overhead_);
 };
 
 int Encapsulator::command(int argc, const char*const* argv)
@@ -56,7 +57,7 @@ void Encapsulator::recv(Packet* p, Handler* h)
 		hdr_cmn* ch_p= (hdr_cmn*)p->access(off_cmn_);
 	  
 		ch_e->ptype()= PT_ENCAPSULATED;
- 		ch_e->size()= ch_p->size() + ENCAPSULATION_OVERHEAD;
+ 		ch_e->size()= ch_p->size() + overhead_;
 		ch_e->timestamp()= ch_p->timestamp();
 		send(ep, h);
 	}

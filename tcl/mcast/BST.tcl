@@ -38,27 +38,6 @@ BST instproc init { sim node } {
 	$self next $sim $node
 }
 
-BST instproc rpf-iif { group } {
-	$self instvar ns_ node_
-	BST instvar RP_
-	if { $node_ != $RP_($group) } {
-		set rpf_nbr [$node_ rpf-nbr $RP_($group)]
-		set rpf_lnk [$ns_ link $rpf_nbr $node_]
-		return [$node_ link2iif $rpf_lnk]
-	}
-	return "?"
-}
-
-BST instproc rpf-oif {group} {
-	$self instvar ns_ node_
-	set iif [$self rpf-iif $group]
-	if { $iif != "?" } {
-		return [$node_ iif2oif $iif]
-	} else {
-		return ""
-	}
-}
-
 BST instproc join-group  { group {src "x"} } {
 	$self instvar node_ ns_
 	BST instvar RP_
@@ -66,7 +45,7 @@ BST instproc join-group  { group {src "x"} } {
 	set r [$node_ getReps "x" $group]
 	
 	if {$r == ""} {
-		set iif [$self rpf-iif $group]
+		set iif [$self from-node-iface $RP_($group)]
 		$self dbg "********* join: adding <x, $group, $iif>"
 		$node_ add-mfc "x" $group $iif ""
 		set r [$node_ getReps "x" $group]
@@ -100,7 +79,7 @@ BST instproc handle-wrong-iif { srcID group iface } {
 	set iif [$node_ lookup-iface "x" $group]
 	if { $iface >= 0 } {
 		set oif [$node_ iif2oif $iface]
-		set rpfiif [$self rpf-iif $group]
+		set rpfiif [$self from-node-iface $RP_($group)]
 		if { $iface == $rpfiif } {
 			# forward direction: disable oif to RP
 			$rep disable [$node_ iif2oif $rpfiif]
@@ -124,10 +103,15 @@ BST instproc handle-cache-miss { srcID group iface } {
 		debug 1
 	}
 	$self dbg "handle-cache-miss, src: $srcID, group: $group, iface: $iface"
-	set tmpoif [$self rpf-oif $group]
-	puts "tmpoif= $tmpoif"
-	$node_ add-mfc "x" $group $iface $tmpoif
-	$self dbg "********* miss: adding <x, $group, $iface, $tmpoif>"
+	set rpfiif [$self from-node-iface $RP_($group)]
+	if { $rpfiif != "?" } {
+		set rpfoif [$self iif2oif $group]
+	} else {
+		set rpfoif ""
+	}
+	puts "rpfoif= $rpfoif"
+	$node_ add-mfc "x" $group $iface $rpfoif
+	$self dbg "********* miss: adding <x, $group, $iface, $rpfoif>"
 	return 1 ;# classify the packet again.
 }
 

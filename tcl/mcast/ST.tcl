@@ -49,7 +49,7 @@ ST instproc init { sim node } {
 			if {$grp == [$agent set dst_]}  {
 				#found an agent that's sending to a group.
 				#need to insert an Encapsulator
-				puts "attaching a Encapsulator for group $grp, node $id_"
+				$self dbg "attaching a Encapsulator for group $grp"
 				set e [new Agent/Encapsulator]
 				$e set class_ 32
 				$e set status_ 1
@@ -67,7 +67,7 @@ ST instproc init { sim node } {
 		}
 		#if the node is an RP, need to attach a Decapsulator
 		if {$RP_($grp) == $node} {
-			puts "attaching a Decapsulator for group $grp, node $id_"
+			$self dbg "attaching a Decapsulator for group $grp"
 			set d [new Agent/Decapsulator]
 			$node attach $d
 			set decaps_($grp) $d
@@ -92,9 +92,11 @@ ST instproc start {} {
 }
 
 ST instproc join-group  { group {src "x"} } {
+	if { $src != "x" } return
+
 	$self instvar node_ ns_
 	ST instvar RP_
-	
+
 	set r [$node_ getReps "x" $group]
 	if {$r == ""} {
 		set iif [$self from-node-iface $RP_($group)]
@@ -109,8 +111,11 @@ ST instproc join-group  { group {src "x"} } {
 }
 
 ST instproc leave-group { group {src "x"} } {
-	ST instvar RP_
+	if { $src != "x" } return
+
 	$self instvar node_
+	ST instvar RP_
+
 	$self next $group
 	# check if the rep is active, then send a prune
 	set r [$node_ getReps "x" $group]
@@ -122,6 +127,7 @@ ST instproc leave-group { group {src "x"} } {
 ST instproc handle-wrong-iif { srcID group iface } {
 	$self instvar node_
 	$self dbg "!!!!!ST: wrong iif $iface, src $srcID, grp $group"
+	return 0
 }
 
 
@@ -134,6 +140,7 @@ ST instproc handle-cache-miss { srcID group iface } {
 	$self dbg "cache miss, src: $srcID, group: $group, iface: $iface"
 	$self dbg "********* miss: adding <x, $group, ?, >"
 	$node_ add-mfc "x" $group "?" "" ;# RP gets packets from the local decapsulator
+	return 1
 }
 
 ST instproc drop { replicator src dst iface} {

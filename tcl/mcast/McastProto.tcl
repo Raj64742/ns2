@@ -45,9 +45,18 @@ McastProtocol instproc upcall {code args} {
 	eval $self handle-$code $args
 }
  
-McastProtocol instproc handle-wrong-iif args {
-	# NOTHING
-	return 1
+McastProtocol instproc handle-wrong-iif { srcID group iface } {
+	# return values: 
+	#   0 : do not call classify on this packet again
+	#   1 : changed iif for the corresponding mfc-entry, classify again
+	return 0
+}
+
+McastProtocol instproc handle-cache-miss { srcID group iface } {
+	# return values: 
+	#   0 : do not call classify on this packet again
+	#   1 : changed iif for the corresponding mfc-entry, classify again
+	return 0
 }
 
 McastProtocol instproc annotate args {

@@ -875,6 +875,58 @@ Test/CtrMcast2 instproc run {} {
 	  $ns_ run
 }
 
+# Testing dynamics of joining and leaving for shared tree
+Class Test/ST1 -superclass TestSuite
+Test/ST1 instproc init topo {
+	source ../mcast/ST.tcl
+	global quiet
+	if { $quiet } {
+		ST instproc dbg arg {}
+	}
+
+	$self instvar net_ defNet_ test_ 
+	set net_	$topo
+	set defNet_	net6a
+	set test_	ST1
+	$self next
+}
+Test/ST1 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	set udp3 [new Agent/UDP]
+	$ns_ attach-agent $node_(n3) $udp3
+	$udp3 set dst_ 0x8002
+	set cbr3 [new Application/Traffic/CBR]
+	$cbr3 attach-agent $udp3
+
+	$cbr3 set interval_ 30ms
+
+	set rcvr2 [new Agent/LossMonitor]
+	set rcvr4 [new Agent/LossMonitor]
+	set rcvr5 [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n2) $rcvr2
+	$ns_ attach-agent $node_(n4) $rcvr4
+	$ns_ attach-agent $node_(n5) $rcvr5
+	
+	### Start multicast configuration
+	ST set RP_(0x8002) $node_(n0)
+	$ns_ mrtproto ST  ""
+
+	### End of multicast  config
+
+	$ns_ at 0.1 "$cbr3 start"
+	$ns_ at 0.2 "$node_(n2) join-group $rcvr2 0x8002"
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr4 0x8002"
+	$ns_ at 0.6 "$node_(n2) leave-group $rcvr2 0x8002"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr5 0x8002"
+	$ns_ at 0.8 "$node_(n2) join-group $rcvr2 0x8002"
+	####
+	
+	$ns_ at 1.6 "$self finish 6a-nam"
+	
+	$ns_ run
+}
+
 TestSuite runTest
 
 ### Local Variables:
