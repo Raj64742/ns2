@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/session-rtp.cc,v 1.5 1997/03/29 01:43:05 mccanne Exp $";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/session-rtp.cc,v 1.6 1997/07/22 21:22:56 kfall Exp $";
 #endif
 
 #include <Tcl.h>
@@ -46,20 +46,23 @@ static class RTPSourceClass : public TclClass {
 public:
 	RTPSourceClass() : TclClass("RTPSource") {}
 	TclObject* create(int argc, const char*const* argv) {
-		return (new RTPSource(atoi(argv[4])));
+		if (argc >= 5)
+			return (new RTPSource(atoi(argv[4])));
+
+		return 0;
 	}
 } class_rtp_source;
 
 static class RTPSessionClass : public TclClass {
 public:
 	RTPSessionClass() : TclClass("Session/RTP") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new RTPSession());
 	}
 } class_rtp_session;
 
 RTPSession::RTPSession() 
-	: allsrcs_(0), last_np_(0), localsrc_(0)
+	: allsrcs_(0), localsrc_(0), last_np_(0)
 {
 	bind("off_rtp_", &off_rtp_);
 }
@@ -74,7 +77,7 @@ RTPSession::~RTPSession()
 	delete localsrc_;
 }
 
-void RTPSession::localsrc_update(int cc)
+void RTPSession::localsrc_update(int)
 {
 	localsrc_->np(1);
 }
