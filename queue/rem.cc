@@ -233,7 +233,6 @@ void REMQueue::enque(Packet* pkt)
 {
 	hdr_cmn* ch = hdr_cmn::access(pkt);
 	double qlen; 
-	double now = Scheduler::instance().clock();
 
 	if (qib_) {
 		remv_.v_count += ch->size();

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.24 2001/10/12 00:45:46 buchheim Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.25 2003/01/28 23:31:03 sfloyd Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -216,9 +216,6 @@ Snoop::recv(Packet* p, Handler* h )
 		snoop_wired_ack(p);
 	
 	ch->direction() = hdr_cmn::DOWN;  // Ben added
-
-	int seq = hdr_tcp::access(p)->seqno();
-
 	parent_->sendDown(p);	/* vector to LLSnoop's sendto() */
 }
 
@@ -252,8 +249,6 @@ Snoop::handle(Event *e)
 		s.schedule(recvtarget_, e, parent_->delay());
 	else {			// suppress ack
 		/*		printf("---- %f suppressing ack %d\n", s.clock(), seq);*/
-		
-		int seq = hdr_tcp::access(p)->seqno();
 		Packet::free(p);
 	}
 }

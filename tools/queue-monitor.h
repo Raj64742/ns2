@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.23 2003/01/28 19:50:52 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.24 2003/01/28 23:31:04 sfloyd Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -53,10 +53,9 @@ public:
 		keepRTTstats_(0), maxRTT_(1), numRTTs_(0), binsPerSec_(10),
 		keepSeqnoStats_(0), maxSeqno_(1000), 
 		numSeqnos_(0), SeqnoBinSize_(1),
-		//variables for flow rate estimation
-		estimate_rate_(0), k_(0.1), 
+		k_(0.1), 
 		srcId_(0), dstId_(0), channel_(0), channel1_(0),
-		estRate_(0.0),
+		estimate_rate_(0), estRate_(0.0),
 		temp_size_(0) {
 		
 		bind("size_", &size_);
