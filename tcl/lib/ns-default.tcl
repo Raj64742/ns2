@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.323 2003/09/09 18:26:20 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.324 2003/09/23 00:44:06 aditi Exp $
 
 
 #
@@ -556,6 +556,11 @@ Simulator set mobile_ip_ 0			 ;# flag for mobileIP
 Simulator set routingAgent_ ""
 Simulator set addressType_   ""
 Simulator set MovementTrace_ OFF
+
+# change wrt Mike's code
+Simulator set EotTrace_ OFF
+
+
 # This flag should be initially empty. It will be set to either ON or OFF
 # by Simulator::create-wireless-node{}. 
 Simulator set IMEPFlag_ ""
@@ -630,6 +635,22 @@ LL set debug_ false
 LL set avoidReordering_ false ;	#not used 
 
 Snoop set debug_ false
+
+#change wrt Mike's code
+ # 802.11 MIB parameters
+ #
+
+ Mac/802_11 set CWMin_         31
+ Mac/802_11 set CWMax_         1023
+ Mac/802_11 set SlotTime_      0.000020        ;# 20us
+ Mac/802_11 set SIFS_          0.000010        ;# 10us
+ Mac/802_11 set PreambleLength_        144             ;# 144 bit
+ Mac/802_11 set PLCPHeaderLength_      48              ;# 48 bits
+ Mac/802_11 set PLCPDataRate_  1.0e6           ;# 1Mbps
+ Mac/802_11 set RTSThreshold_  0               ;# bytes
+ Mac/802_11 set ShortRetryLimit_       7               ;# retransmittions
+ Mac/802_11 set LongRetryLimit_        4               ;# retransmissions
+
 
 
 # 

@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.257 2003/08/21 18:22:01 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.258 2003/09/23 00:44:07 aditi Exp $
 
 
 #
@@ -322,7 +322,10 @@ Simulator instproc dumper obj {
 #                  -macTrace OFF 
 #                  -toraDebug OFF                
 #                  -movementTrace OFF
+# change wrt Mike's code
+#                  -eotTrace OFF
 #                  -diffusionFilter "GradientFilter/OnePhasePullFilter/GeoRoutingFilter/RmstFilter/SourceRouteFilter/LogFilter/TagFilter"
+
 
 Simulator instproc addressType  {val} { $self set addressType_  $val }
 Simulator instproc adhocRouting  {val} { $self set routingAgent_  $val }
@@ -355,7 +358,11 @@ Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
 Simulator instproc satNodeType {val} {$self set satNodeType_ $val}
 Simulator instproc downlinkBW {val} {$self set downlinkBW_ $val}
 Simulator instproc stopTime {val} {$self set stopTime_ $val}
+
+# change wrt Mike's code
+Simulator instproc eotTrace  {val} { $self set eotTrace_  $val }
 Simulator instproc diffusionFilter {val} {$self set diffFilter_ $val}
+
 Simulator instproc MPLS { val } { 
 	if { $val == "ON" } {
 		Node enable-module "MPLS"
@@ -363,6 +370,7 @@ Simulator instproc MPLS { val } {
 		Node disable-module "MPLS"
 	}
 }
+
 
 Simulator instproc PGM { val } { 
         if { $val == "ON" } {
@@ -420,7 +428,8 @@ Simulator instproc node-config args {
         $self instvar addressType_  routingAgent_ propType_  macTrace_ \
 		routerTrace_ agentTrace_ movementTrace_ channelType_ channel_ \
 		chan topoInstance_ propInstance_ mobileIP_ rxPower_ \
-		txPower_ idlePower_ satNodeType_
+		# change wrt Mike's code
+		txPower_ idlePower_ satNodeType_ eotTrace_
 
         if [info exists macTrace_] {
 		Simulator set MacTrace_ $macTrace_
@@ -434,6 +443,12 @@ Simulator instproc node-config args {
         if [info exists movementTrace_] {
 		Simulator set MovementTrace_ $movementTrace_
 	}
+
+	# change wrt Mike's code
+	if [info exists eotTrace_] {
+                Simulator EotTrace_ $eotTrace_
+        }
+
         # hacking for matching old cmu add-interface
         # not good style, for back-compability ONLY
 	#

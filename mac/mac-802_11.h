@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.20 2002/03/14 01:12:53 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.21 2003/09/23 00:44:06 aditi Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -62,6 +62,11 @@
 #define MAC_Subtype_ACK		0x0D
 #define MAC_Subtype_Data	0x00
 
+//-ak----
+// BSS type
+//#define BSS_Infrastructure	0x00
+//#define BSS_Adhoc		0x01
+
 struct frame_control {
 	u_char		fc_subtype		: 4;
 	u_char		fc_type			: 2;
@@ -76,6 +81,29 @@ struct frame_control {
 	u_char		fc_from_ds		: 1;
 	u_char		fc_to_ds		: 1;
 };
+
+//--ak------------
+/*struct probereq_frame {
+	struct frame_control 	preq_fc;
+	u_int16_t		preq_duration;
+	u_char			preq_da[ETHER_ADDR_LEN];
+	u_char			preq_sa[ETHER_ADDR_LEN];
+	u_char			preq_bss_type;
+	int			preq_bssid;
+};
+
+struct scanresp_frame{
+
+	struct frame_control    pres_fc;
+        u_int16_t               pres_duration;
+        u_char                  pres_da[ETHER_ADDR_LEN];
+        u_char                  pres_sa[ETHER_ADDR_LEN];
+        u_char                  pres_bss_type;
+        int                     pres_bssid;
+	//current channel
+	//supported datarate
+};
+*/
 
 struct rts_frame {
 	struct frame_control	rf_fc;
@@ -104,9 +132,16 @@ struct ack_frame {
 struct hdr_mac802_11 {
 	struct frame_control	dh_fc;
 	u_int16_t		dh_duration;
-	u_char			dh_da[ETHER_ADDR_LEN];
+
+// change wrt Mike's code
+/*	u_char			dh_da[ETHER_ADDR_LEN];
 	u_char			dh_sa[ETHER_ADDR_LEN];
 	u_char			dh_bssid[ETHER_ADDR_LEN];
+*/
+	u_char                  dh_ra[ETHER_ADDR_LEN];
+        u_char                  dh_ta[ETHER_ADDR_LEN];
+        u_char                  dh_3a[ETHER_ADDR_LEN];
+
 	u_int16_t		dh_scontrol;
 	u_char			dh_body[0]; // XXX Non-ANSI
 };
@@ -116,6 +151,8 @@ struct hdr_mac802_11 {
    Definitions
    ====================================================================== */
 
+// change wrt Mike's code
+/*
 #define PLCP_HDR_LEN                            \
   	((phymib_->PreambleLength >> 3) +        \
  	 (phymib_->PLCPHeaderLength >> 3))
@@ -136,11 +173,15 @@ struct hdr_mac802_11 {
 #define ETHER_ACK_LEN				\
          (PLCP_HDR_LEN +			\
 	 sizeof(struct ack_frame))
+*/
 
 /*
  * IEEE 802.11 Spec, section 15.3.2
  *	- default values for the DSSS PHY MIB
  */
+
+// change wrt Mike's code
+/*
 #define DSSS_CWMin			31
 #define DSSS_CWMax			1023
 #define DSSS_SlotTime			0.000020	// 20us
@@ -150,6 +191,8 @@ struct hdr_mac802_11 {
 #define DSSS_PreambleLength		144		// 144 bits
 #define DSSS_PLCPHeaderLength		48		// 48 bits
 #define DSSS_PLCPDataRate		1.0e6		// 1Mbps
+*/
+
 
 /* Must account for propagation delays added by the channel model when
  * calculating tx timeouts (as set in tcl/lan/ns-mac.tcl).
@@ -159,11 +202,55 @@ struct hdr_mac802_11 {
 
 class PHY_MIB {
 public:
+      PHY_MIB(Mac802_11 *parent);
+
+       inline u_int32_t getCWMin() { return(CWMin); }
+        inline u_int32_t getCWMax() { return(CWMax); }
+       inline double getSlotTime() { return(SlotTime); }
+       inline double getSIFS() { return(SIFSTime); }
+       inline double getPIFS() { return(SIFSTime + SlotTime); }
+       inline double getDIFS() { return(SIFSTime + 2 * SlotTime); }
+       inline double getEIFS() {
+               // see (802.11-1999, 9.2.10)
+               return(SIFSTime + getDIFS()
+                       + (8 *  getACKlen())/PLCPDataRate);
+       }
+       inline u_int32_t getPreambleLength() { return(PreambleLength); }
+       inline double getPLCPDataRate() { return(PLCPDataRate); }
+
+       inline u_int32_t getPLCPhdrLen() {
+               return((PreambleLength + PLCPHeaderLength) >> 3);
+       }
+
+       inline u_int32_t getHdrLen11() {
+               return(getPLCPhdrLen() + sizeof(struct hdr_mac802_11)
+                       + ETHER_FCS_LEN);
+       }
+
+       inline u_int32_t getRTSlen() {
+               return(getPLCPhdrLen() + sizeof(struct rts_frame));
+       }
+
+       inline u_int32_t getCTSlen() {
+               return(getPLCPhdrLen() + sizeof(struct cts_frame));
+       }
+
+       inline u_int32_t getACKlen() {
+               return(getPLCPhdrLen() + sizeof(struct ack_frame));
+       }
+
+ private:
+
+
+
+
 	u_int32_t	CWMin;
 	u_int32_t	CWMax;
 	double		SlotTime;
-	double		CCATime;
-	double		RxTxTurnaroundTime;
+// change wrt Mike's code
+
+//	double		CCATime;
+//	double		RxTxTurnaroundTime;
 	double		SIFSTime;
 	u_int32_t	PreambleLength;
 	u_int32_t	PLCPHeaderLength;
@@ -175,39 +262,57 @@ public:
  * IEEE 802.11 Spec, section 11.4.4.2
  *      - default values for the MAC Attributes
  */
+// change wrt Mike's code
+
 //#define MAC_RTSThreshold		3000		// bytes
-#define MAC_RTSThreshold		0		// bytes
-#define MAC_ShortRetryLimit		7		// retransmittions
-#define MAC_LongRetryLimit		4		// retransmissions
+//#define MAC_RTSThreshold		0		// bytes
+//#define MAC_ShortRetryLimit		7		// retransmittions
+//#define MAC_LongRetryLimit		4		// retransmissions
 #define MAC_FragmentationThreshold	2346		// bytes
 #define MAC_MaxTransmitMSDULifetime	512		// time units
 #define MAC_MaxReceiveLifetime		512		// time units
 
 class MAC_MIB {
 public:
+
+	MAC_MIB(Mac802_11 *parent);
+
+private:
 	//		MACAddress;
 	//		GroupAddresses;
 	u_int32_t	RTSThreshold;
 	u_int32_t	ShortRetryLimit;
 	u_int32_t	LongRetryLimit;
-	u_int32_t	FragmentationThreshold;
-	u_int32_t	MaxTransmitMSDULifetime;
-	u_int32_t	MaxReceiveLifetime;
+// change wrt Mike's code
+
+//	u_int32_t	FragmentationThreshold;
+//	u_int32_t	MaxTransmitMSDULifetime;
+//	u_int32_t	MaxReceiveLifetime;
 	//		ManufacturerID;
 	//		ProductID;
 
-	u_int32_t	TransmittedFragmentCount;
-	u_int32_t	MulticastTransmittedFrameCount;
+// change wrt Mike's code
+public:
+
+//	u_int32_t	TransmittedFragmentCount;
+//	u_int32_t	MulticastTransmittedFrameCount;
 	u_int32_t	FailedCount;	
-	u_int32_t	RetryCount;
-	u_int32_t	MultipleRetryCount;
-	u_int32_t	FrameDuplicateCount;
-	u_int32_t	RTSSuccessCount;
+//	u_int32_t	RetryCount;
+//	u_int32_t	MultipleRetryCount;
+//	u_int32_t	FrameDuplicateCount;
+//	u_int32_t	RTSSuccessCount;
 	u_int32_t	RTSFailureCount;
 	u_int32_t	ACKFailureCount;
-	u_int32_t	ReceivedFragmentCount;
-	u_int32_t	MulticastReceivedFrameCount;
-	u_int32_t	FCSErrorCount;
+//	u_int32_t	ReceivedFragmentCount;
+//	u_int32_t	MulticastReceivedFrameCount;
+//	u_int32_t	FCSErrorCount;
+
+ public:
+       inline u_int32_t getRTSThreshold() { return(RTSThreshold);}
+       inline u_int32_t getShortRetryLimit() { return(ShortRetryLimit);}
+       inline u_int32_t getLongRetryLimit() { return(LongRetryLimit);}
+
+
 };
 
 
@@ -227,21 +332,35 @@ public:
    ====================================================================== */
 class Mac802_11 : public Mac {
 	friend class DeferTimer;
+// change wrt Mike's code
+	friend class BeaconTimer;
+
+
 	friend class BackoffTimer;
 	friend class IFTimer;
 	friend class NavTimer;
 	friend class RxTimer;
 	friend class TxTimer;
 public:
-	Mac802_11(PHY_MIB* p, MAC_MIB *m);
+// change wrt Mike's code
+	Mac802_11();
+//	Mac802_11(PHY_MIB* p, MAC_MIB *m);
 	void		recv(Packet *p, Handler *h);
 	inline int	hdr_dst(char* hdr, int dst = -2);
 	inline int	hdr_src(char* hdr, int src = -2);
 	inline int	hdr_type(char* hdr, u_int16_t type = 0);
 
+// change wrt Mike's code
+	inline int bss_id() { return bss_id_; }
+
+
+
 protected:
 	void	backoffHandler(void);
 	void	deferHandler(void);
+// change wrt Mike's code	
+	void    beaconHandler(void);
+
 	void	navHandler(void);
 	void	recvHandler(void);
 	void	sendHandler(void);
@@ -293,22 +412,51 @@ private:
 	void		dump(char* fname);
 
 	inline int initialized() {
-		return (phymib_ && macmib_ && cache_ && logtarget_ && 
-			Mac::initialized());
+	
+	// change wrt Mike's code
+	//	return (phymib_ && macmib_ && cache_ && logtarget_ && 
+	//		Mac::initialized());
+
+	return (cache_ && logtarget_
+                       && EOTtarget_ && Mac::initialized());
+
 	}
+
+	// change wrt Mike's code
+	/*
 	void mac_log(Packet *p) {
 		logtarget_->recv(p, (Handler*) 0);
-	}
+	}*/
+
+	inline void mac_log(Packet *p) {
+                logtarget_->recv(p, (Handler*) 0);
+        }
+
 	double txtime(Packet *p);
 	double txtime(double psz, double drt);
 	double txtime(int bytes) { /* clobber inherited txtime() */ abort(); }
 
+// change wrt Mike's code
+	inline void transmit(Packet *p, double timeout);
+       inline void checkBackoffTimer(void);
+       inline void postBackoff(int pri);
+       inline void setRxState(MacState newState);
+       inline void setTxState(MacState newState);
+
+
 	inline void inc_cw() {
 		cw_ = (cw_ << 1) + 1;
-		if(cw_ > phymib_->CWMax)
-			cw_ = phymib_->CWMax;
+	// change wrt Mike's code
+	//	if(cw_ > phymib_->CWMax)
+	//		cw_ = phymib_->CWMax;
+	if(cw_ > phymib_.getCWMax())
+                       cw_ = phymib_.getCWMax();
 	}
-	inline void rst_cw() { cw_ = phymib_->CWMin; }
+
+// change wrt Mike's code
+//	inline void rst_cw() { cw_ = phymib_->CWMin; }
+	inline void rst_cw() { cw_ = phymib_.getCWMin(); }
+
 	inline double sec(double t) { return(t *= 1.0e-6); }
 	inline u_int16_t usec(double t) {
 		u_int16_t us = (u_int16_t)floor((t *= 1e6) + 0.5);
@@ -328,8 +476,24 @@ private:
 	}
 
 protected:
+
+// change wrt Mike's code
+/*
 	PHY_MIB		*phymib_;
 	MAC_MIB		*macmib_;
+*/
+
+	PHY_MIB         phymib_;
+        MAC_MIB         macmib_;
+
+       /* the macaddr of my AP in BSS mode; for IBSS mode
+        * this is set to a reserved value IBSS_ID - the
+        * MAC_BROADCAST reserved value can be used for this
+        * purpose
+        */
+       int     bss_id_;
+       enum    {IBSS_ID=MAC_BROADCAST};
+
 
 private:
 	double		basicRate_;
@@ -346,6 +510,11 @@ private:
 	DeferTimer	mhDefer_;	// defer timer
 	BackoffTimer	mhBackoff_;	// backoff timer
 
+// change wrt Mike's code
+	 BeaconTimer     mhBeacon_;      // to generate beacons
+
+
+
 	/* ============================================================
 	   Internal MAC State
 	   ============================================================ */
@@ -355,23 +524,33 @@ private:
 	MacState	tx_state_;	// outgoint state
 	int		tx_active_;	// transmitter is ACTIVE
 
+// change wrt Mike's code
+	Packet          *eotPacket_;    // copy for eot callback
+
 	Packet		*pktRTS_;	// outgoing RTS packet
 	Packet		*pktCTRL_;	// outgoing non-RTS packet
 
 	u_int32_t	cw_;		// Contention Window
 	u_int32_t	ssrc_;		// STA Short Retry Count
 	u_int32_t	slrc_;		// STA Long Retry Count
-	double		sifs_;		// Short Interface Space
-	double		pifs_;		// PCF Interframe Space
+// change wrt Mike's code
+
+ //	double		sifs_;		// Short Interface Space
+//	double		pifs_;		// PCF Interframe Space
 	double		difs_;		// DCF Interframe Space
 	double		eifs_;		// Extended Interframe Space
-	double		tx_sifs_;
-	double		tx_pifs_;
-	double		tx_difs_;
+//	double		tx_sifs_;
+//	double		tx_pifs_;
+//	double		tx_difs_;
 
 	int		min_frame_len_;
 
 	NsObject*	logtarget_;
+// change wrt Mike's code
+	NsObject*       EOTtarget_;     // given a copy of packet at TX end
+
+
+
 
 	/* ============================================================
 	   Duplicate Detection state

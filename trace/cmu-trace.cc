@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.77 2003/08/21 18:22:02 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.78 2003/09/23 00:44:07 aditi Exp $
  */
 
 #include <packet.h>
@@ -95,8 +95,12 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
                 fprintf(stderr, "CMU Trace Initialized with invalid type\n");
                 exit(1);
         }
+// change wrt Mike's code
+//	assert(type_ == DROP || type_ == SEND || type_ == RECV);
+	assert(type_ == DROP || type_ == SEND || type_ == RECV
+               || ((type_ == EOT) && (tracetype == TR_MAC)));
 
-	assert(type_ == DROP || type_ == SEND || type_ == RECV);
+
 
 	newtrace_ = 0;
 	for (int i=0 ; i < MAX_NODE ; i++) 
@@ -276,23 +280,41 @@ CMUTrace::format_mac(Packet *p, int offset)
 		sprintf(pt_->buffer() + offset,
 			"-M:dur %x -M:s %x -M:d %x -M:t %x ",
 			mh->dh_duration,		// MAC: duration
-			ETHER_ADDR(mh->dh_da),		// MAC: source
-			ETHER_ADDR(mh->dh_sa),		// MAC: destination
+			
+			// change wrt Mike's code
+			//ETHER_ADDR(mh->dh_da),		// MAC: source
+			//ETHER_ADDR(mh->dh_sa),		// MAC: destination
+			ETHER_ADDR(mh->dh_ra),          // MAC: source
+                       ETHER_ADDR(mh->dh_ta),          // MAC: destination
+
+
 			GET_ETHER_TYPE(mh->dh_body));	// MAC: type
 	} else if (newtrace_) {
 		sprintf(pt_->buffer() + offset, 
 			"-Ma %x -Md %x -Ms %x -Mt %x ",
 			mh->dh_duration,
-			ETHER_ADDR(mh->dh_da),
-			ETHER_ADDR(mh->dh_sa),
+			
+			// change wrt Mike's code
+			//ETHER_ADDR(mh->dh_da),
+			//ETHER_ADDR(mh->dh_sa),
+
+	   		ETHER_ADDR(mh->dh_ra),
+	                   ETHER_ADDR(mh->dh_ta),
+
 			GET_ETHER_TYPE(mh->dh_body));
 	} else {
 		sprintf(pt_->buffer() + offset,
 			" [%x %x %x %x] ",
 			//*((u_int16_t*) &mh->dh_fc),
 			mh->dh_duration,
-			ETHER_ADDR(mh->dh_da),
-			ETHER_ADDR(mh->dh_sa),
+			
+			// change wrt Mike's code
+			//ETHER_ADDR(mh->dh_da),
+			//ETHER_ADDR(mh->dh_sa),
+			ETHER_ADDR(mh->dh_ra),
+                        ETHER_ADDR(mh->dh_ta),
+
+
 			GET_ETHER_TYPE(mh->dh_body));
 	}
 }
@@ -839,6 +861,11 @@ CMUTrace::nam_format(Packet *p, int offset)
 	char op = (char) type_;
 	char colors[32];
 	int next_hop = -1 ;
+
+// change wrt Mike's code
+	assert(type_ != EOT);
+
+
 
         int dst = Address::instance().get_nodeaddr(ih->daddr());
 

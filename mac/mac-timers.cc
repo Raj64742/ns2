@@ -52,6 +52,12 @@
  */
 // #define USE_SLOT_TIME
 
+// change wrt Mike's code
+
+ #ifdef USE_SLOT_TIME
+ #error "Incorrect slot time implementation - don't use USE_SLOT_TIME..."
+ #endif
+
 #define ROUND_TIME()	\
 	{								\
 		assert(slottime);					\
@@ -134,6 +140,23 @@ DeferTimer::handle(Event *)
 
 	mac->deferHandler();
 }
+
+// change wrt Mike's code
+ /* ======================================================================
+    Beacon Timer
+    ====================================================================== */
+
+ void
+ BeaconTimer::handle(Event *)
+ {
+       busy_ = 0;
+       paused_ = 0;
+       stime = 0.0;
+       rtime = 0.0;
+
+       mac->beaconHandler();
+ }
+
 
 /* ======================================================================
    NAV Timer
@@ -223,8 +246,10 @@ BackoffTimer::start(int cw, int idle)
 	paused_ = 0;
 	stime = s.clock();
 	
+	// change wrt Mike's code
+	//rtime = (Random::random() % cw) * mac->phymib_->SlotTime;
+	rtime = (Random::random() % cw) * mac->phymib_.getSlotTime();
 
-	rtime = (Random::random() % cw) * mac->phymib_->SlotTime;
 
 
 #ifdef USE_SLOT_TIME
@@ -252,7 +277,11 @@ BackoffTimer::pause()
 	double st = s.clock();
 	double rt = stime + difs_wait;
 	double sr = st - rt;
-        double mst = (mac->phymib_->SlotTime);
+        // change wrt Mike's code
+	//double mst = (mac->phymib_->SlotTime);
+	 double mst = (mac->phymib_.getSlotTime());
+
+
 
         int slots = int (sr/mst);
 
@@ -262,7 +291,11 @@ BackoffTimer::pause()
 	assert(busy_ && ! paused_);
 
 	paused_ = 1;
-	rtime -= (slots * mac->phymib_->SlotTime);
+// change wrt Mike's code
+//	rtime -= (slots * mac->phymib_->SlotTime);
+	rtime -= (slots * mac->phymib_.getSlotTime());
+
+
 	assert(rtime >= 0.0);
 
 	difs_wait = 0.0;

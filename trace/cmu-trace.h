@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.20 2003/08/21 18:22:02 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.21 2003/09/23 00:44:07 aditi Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -53,6 +53,11 @@
 #define	RECV            'r'
 #define	SEND    	's'
 #define	FWRD    	'f'
+
+// change wrt Mike's code
+#define EOT             'x'
+
+
 
 #define TR_ROUTER	0x01
 #define TR_MAC		0x02

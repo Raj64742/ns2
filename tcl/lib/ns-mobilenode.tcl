@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.46 2003/07/22 22:54:14 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.47 2003/09/23 00:44:07 aditi Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -562,6 +562,22 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 		$mac drop-target [$ns set nullAgent_]
 	}
 
+# change wrt Mike's code
+       if { [Simulator set EotTrace_] == "ON" } {
+               #
+               # Also trace end of transmission time for packets
+               #
+
+               if {$imepflag != ""} {
+                       set eotT [$self mobility-trace EOT "MAC"]
+               } else {
+                       set eoT [cmu-trace EOT "MAC" $self]
+               }
+               $mac eot-target $eotT
+       }
+
+
+
 	# ============================================================
 
 	$self addif $netif
@@ -584,6 +600,24 @@ Node/MobileNode instproc setPidle { val } {
 	$self instvar netif_
 	$netif_(0) setIdlePower $val
 }
+
+# change wrt Mike's code
+ Node/MobileNode instproc getMac {param0} {
+       $self instvar mac_
+       return $mac_($param0)
+ }
+
+ Node/MobileNode instproc CFP { beacon_period cfp_duration } {
+       if {$mactype == "Mac/802_11"} {
+               $self instvar mac_
+               set ns_ [Simulator instance]
+               set beacon_period [$ns_ delay_parse $beacon_period]
+               set cfp_duration [$ns_ delay_parse $cfp_duration]
+               $mac_(0) cfp $beacon_period $cfp_duration
+       }
+ }
+
+
 
 Node/MobileNode instproc mobility-trace { ttype atype } {
 	set ns [Simulator instance]
