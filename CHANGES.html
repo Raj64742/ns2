@@ -5,7 +5,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.109 1997/07/24 23:07:31 breslau Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.110 1997/07/25 09:43:15 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,12 @@
 [PENDING RELEASE DATE]</H3>
 <ul>
 
+<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B>
+<B>Fri Jul 25 02:32:43 PDT 1997</B><BR>
+	<UL>
+	<LI> Added semantic-packetqueue.{cc,h}: a derived class of PacketQueue that understands higher-layer (e.g., TCP) semantics. To enable the creation and configuration of a PacketQueue/Semantic object in Tcl, PacketQueue is now derived from TcpObject.
+	<LI> tcp*.{cc,h}: Got rid of the return-by-reference functions for the traced member variables of TcpAgent.
+	</UL>
     <LI><B><A HREF="mailto:breslau@parc.xerox.com">[LB]</A></B> <B>Thu Jul 24 16:02:27 PDT 1997<BR>
 </B>Ported telnet source from ns-1 to ns-2.
 	 new files: telnet.{cc,h}.  Changed files: tcp.{cc,h}, ns-agent.tcl,
