@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.291 2002/08/12 22:47:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.292 2002/09/16 05:30:15 sfloyd Exp $
 
 
 #
@@ -276,6 +276,11 @@ QueueMonitor set bdepartures_ 0
 QueueMonitor set pdrops_ 0
 QueueMonitor set pmarks_ 0
 QueueMonitor set bdrops_ 0
+
+#added for keeping RTT stats
+QueueMonitor set keepRTTstats_ 0
+QueueMonitor set maxRTT_ 5
+QueueMonitor set binsPerSec_ 100
 
 #added for online rate monitoring - ratul
 QueueMonitor set k_ 0.1
