@@ -955,7 +955,6 @@ newMac802_11::RetransmitDATA()
 	 *  Broadcast packets don't get ACKed and therefore
 	 *  are never retransmitted.
 	 */
-	u_int32_t i = ETHER_ADDR(mh->dh_da);
 	if((u_int32_t)ETHER_ADDR(mh->dh_da) == MAC_BROADCAST) {
 		Packet::free(pktTx_); pktTx_ = 0;
 
@@ -1134,8 +1133,8 @@ newMac802_11::recv_timer()
 	u_int8_t  subtype = mh->dh_fc.fc_subtype;
 
 	assert(pktRx_);
-	assert(rx_state_ == MAC_RECV || rx_state_ == MAC_COLL);
-
+	assert(rx_state_ == newMAC_RECV || rx_state_ == newMAC_COLL);
+	
         /*
          *  If the interface is in TRANSMIT mode when this packet
          *  "arrives", then I would never have seen it and should

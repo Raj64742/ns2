@@ -44,7 +44,7 @@ newChannel::command(int argc, const char*const* argv)
 	if(argc == 2) {
 		Tcl& tcl = Tcl::instance();
 
-		if(strncasecmp(argv[1], "id", 2) == 0) {
+		if(strcmp(argv[1], "id") == 0) {
 			tcl.resultf("%d", index_);
 			return TCL_OK;
 		}
@@ -57,7 +57,7 @@ newChannel::command(int argc, const char*const* argv)
 			return TCL_ERROR;
 		}
 
-		if(strncasecmp(argv[1], "addif", 5) == 0) {
+		if(strcmp(argv[1], "addif") == 0) {
 			((Phy*) obj)->insertchnl(&ifhead_);
 			((Phy*) obj)->setchnl(this);
 			return TCL_OK;

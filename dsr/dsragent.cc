@@ -4,7 +4,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.1 1998/12/08 19:17:21 haldar Exp $
+   $Id: dsragent.cc,v 1.2 1998/12/15 00:32:54 haldar Exp $
 */
 
 extern "C" {
@@ -249,8 +249,8 @@ public:
 /*===========================================================================
   DSRAgent methods
 ---------------------------------------------------------------------------*/
-DSRAgent::DSRAgent(): request_table(128), route_cache(NULL), Agent(PT_DSR),
-  send_buf_timer(this)
+DSRAgent::DSRAgent(): Agent(PT_DSR),request_table(128), \
+route_cache(NULL), send_buf_timer(this) 
 {
   int c;
   route_request_num = 1;
@@ -328,25 +328,25 @@ DSRAgent::testinit()
 int
 DSRAgent::command(int argc, const char*const* argv)
 {
-  TclObject *obj;  
-
-  if (argc == 2) 
-    {
-      if (strcasecmp(argv[1], "testinit") == 0)
+	TclObject *obj;  
+	
+	if (argc == 2) 
 	{
-	  testinit();
-	  return TCL_OK;
-	}
-      if (strcasecmp(argv[1], "reset") == 0)
-	{
-	  Terminate();
-	  return Agent::command(argc, argv);
-	}
-      if (strcasecmp(argv[1], "check-cache") == 0)
-	{
-	  return route_cache->command(argc, argv);
-	}
-      if (strcasecmp(argv[1], "startdsr") == 0)
+	  if (strcasecmp(argv[1], "testinit") == 0)
+	  {
+		  testinit();
+		  return TCL_OK;
+	  }
+	  if (strcasecmp(argv[1], "reset") == 0)
+	  {
+		  Terminate();
+		  return Agent::command(argc, argv);
+	  }
+	  if (strcasecmp(argv[1], "check-cache") == 0)
+	  {
+		  return route_cache->command(argc, argv);
+	  }
+	  if (strcasecmp(argv[1], "startdsr") == 0)
 	{
 	  if (ID(1,::IP) == net_id) 
 	    { // log the configuration parameters of the dsragent
@@ -877,7 +877,8 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay = 0.0)
   /* put route errors at the head of the ifq somehow? -dam 4/13/98 */
 
   // make sure we aren't cycling packets
-  assert(p.pkt->incoming == 0); // this is an outgoing packet
+  //assert(p.pkt->incoming == 0); // this is an outgoing packet
+  assert(cmnh->direction() == -1);
 
   if (ifq->length() > 25)
     trace("SIFQ %.5f _%s_ len %d",
