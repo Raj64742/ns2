@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.h,v 1.14 2000/03/24 19:40:51 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.h,v 1.15 2000/07/19 04:41:03 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_object_h
@@ -51,6 +51,10 @@ class NsObject : public TclObject, public Handler {
 	// Monarch extn - used for logging reasons why the 
 	// pkt is handed off (eg droptargets)
 	virtual void recv(Packet* p, const char* s);
+	
+	//added for queue tracing -  ratul
+	virtual void recvOnly(Packet *p) {};
+
 	virtual int command(int argc, const char*const* argv);
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);

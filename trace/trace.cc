@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.67 1999/10/27 23:12:33 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.68 2000/07/19 04:41:03 sfloyd Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -389,6 +389,13 @@ void Trace::recv(Packet* p, Handler* h)
 		send(p, h);
 }
 
+void Trace::recvOnly(Packet *p)
+{
+	format(type_, src_, dst_, p);
+	dump();
+	namdump();	
+	target_->recvOnly(p);
+}
 
 void Trace::trace(TracedVar* var)
 {
