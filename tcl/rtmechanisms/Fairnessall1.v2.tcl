@@ -24,9 +24,12 @@ proc append { infile datafile cbrs tcps } {
                   goodput[0] += (packets[$2]*size[$2]*8)/1000
                 }
                 if ($1=="cbrs:"&&$3=="tcps:") {
-                        cbr_fraction = $2/($2+$4)
+			if (($2+$4) == 0)
+				cbr_fraction = 0;
+			else
+				cbr_fraction = $2/($2+$4);
                 }
-                if ($3=="arriving_pkts") {
+                if ($3=="arriving_pkts" && time > 0) {
                         if ($2 < cbrs) {
                           cbrrate += (($4*size[0]*8)/time)/1000
                         }
