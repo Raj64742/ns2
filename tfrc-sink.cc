@@ -291,13 +291,13 @@ double TfrcSinkAgent::weighted_average(int start, int end, double factor, double
 	double wsum = 0;
 	double answer = 0;
 	if (smooth_ > 0 && start == 0) {
-		// effectively shift the arrays 
+		// effectively shift the weight arrays 
 		for (i = start ; i < end - 1; i++) 
 			if (i==0)
 				wsum += m[i+1]*w[i+1];
 			else 
 				wsum += factor*m[i+1]*w[i+1];
-		for (i = start ; i < end; i++)  
+		for (i = start ; i < end - 1; i++)  
 			if (i==0)
 			 	answer += m[i+1]*w[i+1]*sample[i]/wsum;
 			else 
