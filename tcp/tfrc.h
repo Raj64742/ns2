@@ -173,7 +173,7 @@ protected:
 	int UrgentFlag;		// urget flag
 	int active_;		// have we shut down? 
 	int round_id ;		// round id
-	
+	int first_pkt_rcvd ; 	
 	double prevflost, prevrtt, prevto ; // previous values of flost, 
 					    // rtt and tzero
 

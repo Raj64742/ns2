@@ -128,6 +128,7 @@ void TfrcAgent::start()
 	prevflost = 1 ; prevrtt = 999 ; prevto = 999 ;
 	rcvrate = 0 ;
 
+	first_pkt_rcvd = 0 ;
 	// send the first packet
 	sendpkt();
 	// ... at initial rate
@@ -247,6 +248,12 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	/* if we are in slow start and we just saw a loss */
 	/* then come out of slow start */
 
+	if (first_pkt_rcvd == 0) {
+		first_pkt_rcvd = 1 ; 
+		slowstart ();
+		Packet::free(pkt);
+		return;
+	}
 	if ((rate_change_ == SLOW_START) && !(flost > 0)) {
 		slowstart ();
 		Packet::free(pkt);

@@ -98,6 +98,7 @@ protected:
 	int hsz;
 	char *lossvec_;
 	double *rtvec_;
+	double *tsvec_;
 	int round_id ;
 	int lastloss_round_id ;
 	int numsamples ;
@@ -107,7 +108,7 @@ protected:
 	double mult_factor_;	// most recent multiple of mult array
 	int sample_count ;
 	int last_sample ;  
-
+	int UrgentFlag ;	// send loss report immediately
 	int maxseq; 		// max seq number seen
 	int total_received_;	// total # of pkts rcvd by rcvr
 	int bval_;		// value of B used in the formula

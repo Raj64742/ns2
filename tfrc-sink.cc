@@ -67,6 +67,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	last_timestamp_ = 0;
 	last_arrival_ = 0;
 	rtvec_ = NULL;
+	tsvec_ = NULL;
 	lossvec_ = NULL;
 	total_received_ = 0;
 	loss_seen_yet = 0;
@@ -82,6 +83,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	weights = NULL ;
 	mult = NULL ;
 	mult_factor_ = 1.0;
+	UrgentFlag = 0 ;
 }
 
 /*
@@ -92,7 +94,6 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	double prevrtt;
 	hdr_tfrc *tfrch = hdr_tfrc::access(pkt); 
 	double now = Scheduler::instance().clock();
-	int UrgentFlag; 
 	int prevmaxseq = maxseq;
 	total_received_++;
 	rcvd_since_last_report ++;
@@ -101,6 +102,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	if (numsamples < 0) {
 		// This is the first packet received.
 		numsamples = DEFAULT_NUMSAMPLES ;	
+		prevmaxseq = maxseq = tfrch->seqno-1 ; 
 		if (smooth_ == 1) {
 			numsamples = numsamples + 1;
 		}
@@ -174,6 +176,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 				p = adjust_history(tfrch->timestamp); 
 			}
 		}
+		UrgentFlag = 0 ;
 		nextpkt(p);
 	}
 	Packet::free(pkt);
@@ -189,11 +192,18 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 	if (lossvec_ == NULL) {
 		// Initializing history.
 		rtvec_=(double *)malloc(sizeof(double)*hsz);
+		tsvec_=(double *)malloc(sizeof(double)*hsz);
 		lossvec_=(char *)malloc(sizeof(double)*hsz);
 		if (rtvec_ && lossvec_) {
 			for (i = 0; i < hsz ; i ++) {
 				lossvec_[i] = UNKNOWN;
 				rtvec_[i] = -1; 
+				tsvec_[i] = -1; 
+			}
+			for (i = 0; i <= maxseq ; i++) {
+				lossvec_[i] = NOLOSS ; 
+				rtvec_[i] = now ;
+				tsvec_[i] = last_timestamp_ ;
 			}
 		}
 		else {
@@ -206,24 +216,34 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 	   packets etc. */
 	if (seqno > maxseq) {
 		rtvec_[seqno%hsz]=now;	
+		tsvec_[seqno%hsz]=last_timestamp_;	
 		lossvec_[seqno%hsz] = RCVD;
 		i = maxseq+1 ;
-		while(i < seqno) {
-			rtvec_[i%hsz]=now;	
-			if ((last_timestamp_-lastloss > rtt_) && 
-			    (round_id > lastloss_round_id)) {
-				// Lost packets are marked as "LOST"
-				// at most once per RTT.
-				lossvec_[i%hsz] = LOST;
-				lastloss = tfrch->timestamp;
-				lastloss_round_id = round_id ;
+		if (i < seqno) {
+			double delta = (tsvec_[seqno]-tsvec_[maxseq%hsz])/(seqno-maxseq) ; 
+			double tstamp = tsvec_[maxseq%hsz]+delta ;
+			//double delta = 0 ;
+			//double tstamp = last_timestamp_ ;
+			while(i < seqno) {
+				rtvec_[i%hsz]=now;	
+				tsvec_[i%hsz]=tstamp;	
+				if ((tsvec_[i%hsz]-lastloss > rtt_) && 
+				    (round_id > lastloss_round_id)) {
+					// Lost packets are marked as "LOST"
+					// at most once per RTT.
+					lossvec_[i%hsz] = LOST;
+					UrgentFlag = 1 ;
+					lastloss = tstamp;
+					lastloss_round_id = round_id ;
+				}
+				else {
+					// This lost packet is marked "NOLOSS"
+					// because it does not begin a loss event.
+					lossvec_[i%hsz] = NOLOSS; 
+				}
+				i++;
+				tstamp = tstamp+delta;
 			}
-			else {
-				// This lost packet is marked "NOLOSS"
-				// because it does not begin a loss event.
-				lossvec_[i%hsz] = NOLOSS; 
-			}
-			i++;
 		}
 		maxseq = seqno;
 	}
