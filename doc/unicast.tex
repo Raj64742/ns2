@@ -214,23 +214,29 @@ using an adjacency matrix and link costs of all the links in the topology.
 \paragraph{Session Routing}
 The static routing strategy described earlier
 only computes routes for the topology once in the course of a simulation.
-If the topology changes while the simulation is in progress,
-Then some sources and destinations may become unreachable from each other.
+If the above static routing is used and the topology changes while the
+simulation is in progress, some sources and destinations may become
+temporarily unreachable from each other for a short time.
 
 Session routing strategy is almost identical to static routing,
 in that it runs the Dijkstra all-pairs SPF algorithm
 prior to the start of the simulation, using the
 adjacency matrix and link costs of the links in the topology.
 However, it will also run the same algorithm to recompute routes
-in the event that the topology changes during the course of a simulation.
+in the event that the topology changes during the course of a
+simulation. 
+In other words, route recomputation and recovery is done
+instantaneously and there will not be transient routing outage as in
+static routing. 
 
-Note that session routing leads to complete and instantaneous change
-in the routes of the topology, whenever that topology changes.
-If the topology is always connected, then there is
+Session routing provides complete and instantaneous routing changes 
+in the presence of topology dynamics.
+If the topology is always connected, there is
 end-to-end connectivity at all times during the course of the simulation.
-However, the user should note that the instantaneous recompute of the
-routes in the topology can lead to temporary violations of causality
-around the instant that the topology changes.
+However, the user should note that the instantaneous route recomputation 
+of session routing does not prevent temporary violations of causality,
+such as packet reordering, around the instant that the topology
+changes. 
 
 \paragraph{DV Routing}
 DV routing is the implementation of
