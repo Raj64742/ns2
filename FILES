@@ -102,6 +102,7 @@ tcl/ctr-mcast/CtrMcast.tcl
 tcl/ctr-mcast/CtrMcastComp.tcl
 tcl/ctr-mcast/CtrRPComp.tcl
 tcl/ex/dynamic-nam.tcl
+tcl/ex/test-drr.tcl
 tcl/ex/fq.tcl
 tcl/ex/fq-nam.tcl
 tcl/ex/fq-cbr.tcl
