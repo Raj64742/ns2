@@ -41,47 +41,80 @@ Class HierNode -superclass Node
 
 
 HierNode instproc init {addr args} {
-    eval $self next $args
-    $self instvar np_ id_ classifiers_ agents_ dmux_ neighbor_ address_ 
-    # puts "id=$id_"
-    set levels [AddrParams set hlevel_]
-    for {set n 1} {$n <= $levels} {incr n} {
-	set classifiers_($n) [new Classifier/Addr]
-	$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
-	$classifiers_($n) set shift_ [AddrParams set NodeShift_($n)]
-    }
-    set address_ $addr
-    # puts "node address= $address_"
+	eval $self next $args
+	$self instvar np_ id_ classifiers_ agents_ dmux_ neighbor_ address_ 
+	# puts "id=$id_"
+	set levels [AddrParams set hlevel_]
+	for {set n 1} {$n <= $levels} {incr n} {
+		set classifiers_($n) [new Classifier/Addr]
+		$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
+		$classifiers_($n) set shift_ [AddrParams set NodeShift_($n)]
+	}
+	set address_ $addr
+	# puts "node address= $address_"
 }
 
 HierNode instproc entry {} {
-    if [Simulator set EnableMcast_] {
-	$self instvar switch_
-	return $switch_
-    }
-    $self instvar classifiers_
-    return $classifiers_(1)
+	if [Simulator set EnableMcast_] {
+		$self instvar switch_
+		return $switch_
+	}
+	$self instvar classifiers_
+	return $classifiers_(1)
 }
 
 
+HierNode instproc hier-enable-mcast sim {
+	$self instvar classifiers_ multiclassifier_ ns_ switch_ mcastproto_
+	$self set ns_ $sim
+
+	$self set switch_ [new Classifier/Addr]
+	#
+	# set up switch to route unicast packet to slot 0 and
+	# multicast packets to slot 1
+	#
+	
+	[$self set switch_] set mask_ [AddrParams set McastMask_]
+	[$self set switch_] set shift_ [AddrParams set McastShift_]
+
+	#
+	# create a classifier for multicast routing
+	#
+	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
+	[$self set multiclassifier_] set node_ $self
+	
+	[$self set switch_] install 0 $classifiers_(1)
+	[$self set switch_] install 1 $multiclassifier_
+
+	#
+	# Create a prune agent.  Each multicast routing node
+	# has a private prune agent that sends and receives
+	# prune/graft messages and dispatches them to the
+	# appropriate replicator object.
+	#
+
+	$self set mcastproto_ [new McastProtoArbiter ""]
+	$mcastproto_ set Node $self
+}
+
 HierNode instproc add-hroute { dst target } {
-    $self instvar classifiers_
-    set al [$self split-addrstr $dst]
-    set l [llength $al]
-    for {set i 1} {$i <= $l} {incr i} {
-	set d [lindex $al [expr $i-1]]
-	if {$i == $l} {
-	    $classifiers_($i) install $d $target
-	} else {
-	    $classifiers_($i) install $d $classifiers_([expr $i + 1]) 
+	$self instvar classifiers_
+	set al [$self split-addrstr $dst]
+	set l [llength $al]
+	for {set i 1} {$i <= $l} {incr i} {
+		set d [lindex $al [expr $i-1]]
+		if {$i == $l} {
+			$classifiers_($i) install $d $target
+		} else {
+			$classifiers_($i) install $d $classifiers_([expr $i + 1]) 
+		}
 	}
-    }
 }
 
 
 HierNode instproc node-addr {} {
-    $self instvar address_
-    return $address_
+	$self instvar address_
+	return $address_
 }
 
 
@@ -89,8 +122,8 @@ HierNode instproc node-addr {} {
 # split up hier address string 
 #
 HierNode instproc split-addrstr addrstr {
-    set L [split $addrstr .]
-    return $L
+	set L [split $addrstr .]
+	return $L
 }
 
 
