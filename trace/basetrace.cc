@@ -78,7 +78,7 @@ void BaseTrace::dump()
 		wrk_[n] = '\n';
 		wrk_[n + 1] = 0;
 		(void)Tcl_Write(channel_, wrk_, n + 1);
-		Tcl_Flush(channel_);
+		//Tcl_Flush(channel_);
 		wrk_[n] = 0;
 	}
 
@@ -103,7 +103,7 @@ void BaseTrace::namdump()
 		nwrk_[n] = '\n';
 		nwrk_[n + 1] = 0;
 		(void)Tcl_Write(namChan_, nwrk_, n + 1);
-		Tcl_Flush(channel_);
+		//Tcl_Flush(channel_);
 		nwrk_[n] = 0;
 	}
 }

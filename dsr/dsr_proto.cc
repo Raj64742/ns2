@@ -74,10 +74,10 @@ DSRProto::testinit()
     {
       printf("adding route to 1\n");
       hsr.init();
-      hsr.append_addr( 1<<8, AF_INET );
-      hsr.append_addr( 2<<8, AF_INET );
-      hsr.append_addr( 3<<8, AF_INET );
-      hsr.append_addr( 4<<8, AF_INET );
+      hsr.append_addr( 1<<8, NS_AF_INET );
+      hsr.append_addr( 2<<8, NS_AF_INET );
+      hsr.append_addr( 3<<8, NS_AF_INET );
+      hsr.append_addr( 4<<8, NS_AF_INET );
       
       routecache->addRoute(Path(hsr.addrs(), hsr.num_addrs()), 0.0, ID(1,::IP));
     }
@@ -86,9 +86,9 @@ DSRProto::testinit()
     {
       printf("adding route to 3\n");
       hsr.init();
-      hsr.append_addr( 3<<8, AF_INET );
-      hsr.append_addr( 2<<8, AF_INET );
-      hsr.append_addr( 1<<8, AF_INET );
+      hsr.append_addr( 3<<8, NS_AF_INET );
+      hsr.append_addr( 2<<8, NS_AF_INET );
+      hsr.append_addr( 1<<8, NS_AF_INET );
       
       routecache->addRoute(Path(hsr.addrs(), hsr.num_addrs()), 0.0, ID(3,::IP));
     }

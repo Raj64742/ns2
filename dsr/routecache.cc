@@ -99,7 +99,7 @@ RouteCache::command(int argc, const char*const* argv)
       if(obj == 0)
 	return TCL_ERROR;
       
-      if(strcasecmp(argv[1], "log-target") == 0 || \ 
+      if(strcasecmp(argv[1], "log-target") == 0 || 
 	 strcasecmp(argv[1], "tracetarget") == 0) {
 	logtarget = (Trace*) obj;
 	return TCL_OK;
