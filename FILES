@@ -98,7 +98,8 @@ tcl/ex/rc.tcl
 tcl/ex/rc-nam.tcl
 tcl/ex/rtp-nam.tcl
 tcl/ex/test-suite.tcl
-tcl/ex/traffic-generator.tcl
+tcl/ex/tg.tcl
+tcl/ex/tg-nam.tcl
 tcl/lib/ns-compat.tcl
 tcl/lib/ns-default.tcl
 tcl/lib/ns-lib.tcl
