@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.30 1998/01/05 18:56:58 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.31 1998/02/17 20:35:30 gnguyen Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -153,6 +153,12 @@ Link instproc all-connectors op {
 			}
 		}
 	}
+}
+
+Link instproc install-error {em} {
+	$self instvar link_
+	$em target [$link_ target]
+	$link_ target $em
 }
 
 Class SimpleLink -superclass Link
