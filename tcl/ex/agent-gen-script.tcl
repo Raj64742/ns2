@@ -13,6 +13,8 @@ set topofile topo1.tcl
 set agentfile agent1.tcl
 set routefile route1.tcl
 
+set hier_flag 1
+
 # we remove the agentfile, to start afresh... the agentfile is
 # opened in append mode and previous runs may cause problems
 if { [file exists $agentfile] } {
@@ -20,32 +22,38 @@ if { [file exists $agentfile] } {
 }
 
 # generate the topology creation script
-puts {topology -outfile $topofile -nodes 50 -connection_prob 0.1}
-topology -outfile $topofile -nodes 15 -connection_prob 0.1
+#puts {topology -outfile $topofile -num 50 -connection_prob 0.1}
+#topology -outfile $topofile -nodes 15 -connection_prob 0.1
+
+puts {topology -outfile $topofile -type transit_stub -nodes 50 -connection_prob 0.1}
+topology -outfile $topofile -type transit_stub -nodes 50 -connection_prob 0.1
 
 # set the route settings for unicast/mcast
 puts {routing -outfile $routefile -unicast Session -multicast CtrMcast}
 routing -outfile $routefile -unicast Session -multicast CtrMcast
 
 # generate the agent creation script
+# note that src and dest stub location info (for distribution of src and dest nodes)
+# should be given only when topology generated is of type transit-stub
+
 puts {agents -outfile $agentfile -transport TCP/Reno -src FTP \
-	-sink TCPSink/DelAck -num 60% -start 1-3 -stop 9-11}
+	-sink TCPSink/DelAck -num 60% -srcstub 1-4,8,10 -deststub 5-7,9,11,12 -start 1-3 -stop 9-11}
 agents -outfile $agentfile -transport TCP/Reno -src FTP \
-	-sink TCPSink/DelAck -num 60% -start 1-3 -stop 9-11
+    -sink TCPSink/DelAck -num 60% -srcstub 1-4,8,10 -deststub 5-7,9,11,12 -start 1-3 -stop 9-11
 
-puts {agents -outfile $agentfile -transport TCP -sink TCPSink -num 8}
-agents -outfile $agentfile -transport TCP -sink TCPSink -num 8
+#puts {agents -outfile $agentfile -transport TCP -sink TCPSink -num 8}
+#agents -outfile $agentfile -transport TCP -sink TCPSink -num 8
 
-puts {agents -outfile $agentfile -transport SRM/Deterministic -num 75% \
+#puts {agents -outfile $agentfile -transport SRM/Deterministic -num 75% \
 	-join 0-2 -src CBR/UDP -traffic Pareto -srcnum 20% \
 	-start 3-10}
-agents -outfile $agentfile -transport SRM/Deterministic -num 75% \
+#agents -outfile $agentfile -transport SRM/Deterministic -num 75% \
 	-join 0-2 -src CBR/UDP -traffic Pareto -srcnum 20% \
 	-start 3-10 
 
-puts {agents -outfile $agentfile -transport SRM -src CBR/UDP \
+#puts {agents -outfile $agentfile -transport SRM -src CBR/UDP \
 	-traffic Expoo }
-agents -outfile $agentfile -transport SRM -src CBR/UDP \
+#agents -outfile $agentfile -transport SRM -src CBR/UDP \
 	-traffic Expoo
 
 mark-end $agentfile
@@ -61,6 +69,10 @@ source $topofile
 source $agentfile
 
 set ns [new Simulator]
+
+# set up hierarchical routing (if needed) or any other address format
+#$ns set-address-format hierarchical
+
 # comment out the ns trace for now... it consumes a lot of mem
 # set f [open out.tr w]
 # $ns trace-all $f
@@ -72,7 +84,11 @@ $ns namtrace-all $nf
 setup-mcastNaddr ns
 
 # call the topology script
-create-topology ns node 1.5Mb
+if {$hier_flag} {
+	create-hier-topology ns node 1.5Mb
+} else {
+	create-topology ns node 1.5Mb
+}
 
 # set routing
 create-routing ns
