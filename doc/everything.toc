@@ -7,7 +7,7 @@
 \contentsline {section}{\numberline {3.3}Class Tcl}{18}
 \contentsline {subsection}{\numberline {3.3.1}Obtain a Reference to the class Tcl instance}{19}
 \contentsline {subsection}{\numberline {3.3.2}Invoking OTcl Procedures}{19}
-\contentsline {subsection}{\numberline {3.3.3}Passing Results to/fro the Interpreter}{19}
+\contentsline {subsection}{\numberline {3.3.3}Passing Results to/from the Interpreter}{19}
 \contentsline {subsection}{\numberline {3.3.4}Error Reporting and Exit}{20}
 \contentsline {subsection}{\numberline {3.3.5}Hash Functions within the Interpreter}{20}
 \contentsline {subsection}{\numberline {3.3.6}Other Operations on the Interpreter}{21}
