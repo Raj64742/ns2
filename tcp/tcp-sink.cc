@@ -84,7 +84,7 @@ void Acker::resize_buffers(int sz) {
 	return; 
 }
 
-void Acker::update_ts(int seqno, double ts, int rfc1323 = 0)
+void Acker::update_ts(int seqno, double ts, int rfc1323)
 {
 	// update timestamp if segment advances with ACK.
         // Code changed by Andrei Gurtov.
