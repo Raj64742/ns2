@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.6 2001/10/04 23:06:25 kclan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/empweb.tcl,v 1.7 2001/12/03 07:41:53 kclan Exp $
 
 PagePool/EmpWebTraf set debug_ false
 PagePool/EmpWebTraf set TCPTYPE_ Reno
@@ -58,7 +58,7 @@ PagePool/EmpWebTraf instproc launch-req { id clnt svr ctcp csnk stcp ssnk size r
 	
 	# modified to trace web traffic flows (send request: client==>server).
         #puts "req + obj:$id clnt:[$clnt id] svr:[$svr id] $size [$ns now]"
-        puts "req clnt [$clnt id] svr [$svr id] [$ns now] obj $id $reqSize $size"
+        puts "req web clnt [$clnt id] svr [$svr id] [$ns now] obj $id $reqSize $size"
 
 	# Send request packets based on empirical distribution
 	$ctcp advanceby $reqSize
@@ -124,11 +124,13 @@ PagePool/EmpWebTraf instproc teardown-conn { clnt svr ctcp csnk stcp ssnk } {
 
 # XXX Should allow customizable TCP types. Can be easily done via a 
 # class variable
-PagePool/EmpWebTraf instproc alloc-tcp {} {
+PagePool/EmpWebTraf instproc alloc-tcp { size } {
 
 
 	set tcp [new Agent/TCP/[PagePool/EmpWebTraf set TCPTYPE_]]
-	
+
+        $tcp set window_ $size
+
 	set fidMode [PagePool/EmpWebTraf set FID_ASSIGNING_MODE_]
 	if {$fidMode == 1} {
 		$self instvar maxFid_
