@@ -87,3 +87,6 @@ rtm_plot.tcl
 rtm_tests.tcl, 
 rtm_link.tcl
 
+--------------------------------
+2/98, to make backups:
+cp {C,D,F,R,S,R}*.* backups
