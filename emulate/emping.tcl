@@ -1,3 +1,4 @@
+#
 # emping.tcl
 #
 # test emulation facility by incorporating icmp echo reply responder
