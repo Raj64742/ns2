@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.20 2000/05/16 05:53:17 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.21 2000/05/16 18:16:23 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -689,13 +689,8 @@ Test/ecn_smallwinEcn_tahoe instproc run {} {
 # ECN, cwnd 4, packet 4 is dropped, and then packet 6 is marked. 
 # The retransmit timer expires, packet 4 is retransmitted, and then the
 #   ECN bit is set on the retransmitted packet.
-# The ACK for packet 4 comes in, cancelling the retransmit timer, but
-#   there was a bug so that the retransmit timer was never reset. 
-# The retransmit timer was set after we send a packet,
-# after we get an ACK *ONLY IF* there is outstanding data,
-# and after three dup ACKs.
-# The retransmit timer also has to be set after an ACK when there is
-#  no outstanding data but we are unable to send because of cwnd < 1.
+# When the ACK for packet 4 comes in, the retransmit timer must not get 
+#   cancelled.
 
 Class Test/ecn_smallwin1Ecn_tahoe -superclass TestSuite
 Test/ecn_smallwin1Ecn_tahoe instproc init {} {
@@ -1106,6 +1101,26 @@ Test/ecn_smallwinEcn_reno instproc run {} {
 	$ns_ run
 }
 
+Class Test/ecn_smallwin1Ecn_reno -superclass TestSuite
+Test/ecn_smallwin1Ecn_reno instproc init {} {
+        $self instvar net_ test_ 
+        Queue/RED set setbit_ true
+        set net_	net3-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_smallwin1Ecn_reno
+        $self next
+}
+Test/ecn_smallwin1Ecn_reno instproc run {} {
+	$self instvar ns_ errmodel1 errmodel2
+	Agent/TCP set old_ecn_ 0
+	$self ecnsetup Reno 10.0 1
+	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 153} 
+	$errmodel1 set markecn_ true
+	$self drop_pkts2 {6}
+	$errmodel2 set markecn_ false
+	$ns_ run
+}
+
 # Packet drops for the second packet.
 Class Test/ecn_secondpkt_reno -superclass TestSuite
 Test/ecn_secondpkt_reno instproc init {} {
@@ -1495,6 +1510,26 @@ Test/ecn_smallwinEcn_sack instproc run {} {
 	$self ecnsetup Sack1 10.0 1
 	$self drop_pkts {4 7 9 10 11 12 13 14 120 135 143 148 150 151 152} 
 	$errmodel1 set markecn_ true
+	$ns_ run
+}
+
+Class Test/ecn_smallwin1Ecn_sack -superclass TestSuite
+Test/ecn_smallwin1Ecn_sack instproc init {} {
+        $self instvar net_ test_ 
+        Queue/RED set setbit_ true
+        set net_	net3-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_smallwin1Ecn_sack
+        $self next
+}
+Test/ecn_smallwin1Ecn_sack instproc run {} {
+	$self instvar ns_ errmodel1 errmodel2
+	Agent/TCP set old_ecn_ 0
+	$self ecnsetup Sack1 10.0 1
+	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 153} 
+	$errmodel1 set markecn_ true
+	$self drop_pkts2 {6}
+	$errmodel2 set markecn_ false
 	$ns_ run
 }
 
