@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.26 1997/06/11 03:07:01 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.27 1997/06/12 23:36:32 kfall Exp $
 
 
 #
@@ -160,6 +160,7 @@ Classifier/Flow set mask_ 0xffffffff
 
 Classifier/Hash set shift_ 0
 Classifier/Hash set mask_ 0xffffffff
+Classifier/Hash set default_ -1
 
 Agent/LossMonitor set nlost_ 0
 Agent/LossMonitor set npkts_ 0
@@ -175,6 +176,8 @@ QueueMonitor set pdepartures_ 0
 QueueMonitor set bdepartures_ 0
 QueueMonitor set pdrops_ 0
 QueueMonitor set bdrops_ 0
+QueueMonitor/ED set epdrops_ 0
+QueueMonitor/ED set ebdrops_ 0
 
 Agent set class_ 0
 
