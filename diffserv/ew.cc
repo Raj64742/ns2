@@ -26,6 +26,8 @@
 //   by Xuan Chen (xuanc@isi.edu), USC/ISI
 
 #include "ip.h"
+#include "tcp.h"
+#include "tcp-full.h"
 #include "random.h"
 
 #include "ew.h"
@@ -1092,8 +1094,11 @@ int EWPolicy::dropPacket(Packet *pkt) {
   // pass EW if there is any
   if (cewB && ewP) {
     // protecting existing connections
-    //  drop requests for new connection (sync packet)
-    if (cewB->exFlow(pkt))
+    //  drop requests for new connection (SYN packet)
+    //    if (cewB->exFlow(pkt))
+    hdr_tcp *tcph = hdr_tcp::access(pkt);
+    // Protecting non-SYN packets: existing connections
+    if ((tcph->flags() & TH_SYN) == 0) 
       return(0);
 
     // Check alarm
