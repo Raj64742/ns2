@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffusion.cc,v 1.4 2001/12/11 23:21:44 haldar Exp $
+// $Id: diffusion.cc,v 1.5 2002/01/08 19:08:20 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -825,6 +825,10 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
   long stop_time;
   struct timeval tv;
 
+  opterr = 0;
+  config_file = NULL;
+  stop_time = 0;
+
 #ifdef NS_DIFFUSION
   application_id = strdup("DIFFUSION_NS");
 #else
@@ -855,9 +859,7 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 
 #ifndef NS_DIFFUSION
   // Parse command line options
-  opterr = 0;
-  config_file = NULL;
-  stop_time = 0;
+  
 
   while (1){
     opt = getopt(argc, argv, "f:hd:vt:p:");
