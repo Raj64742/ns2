@@ -39,10 +39,10 @@ Steps in doing an ns release:
 6. update the web pages
 7. send out the release announcement (ns-users, ns-announce)
    (also send to end2end if it's a non-{alpha,beta} release)
-8. update the VERSION file to the next version
+8. update the VERSION and the BASE-VERSION files to the next version
 8.1. update CHANGES.html with a placeholder for comments for the new
     version
-8.2 commit your changes to the VERSION and CHANGES.html for the next release
+8.2 commit your changes to the VERSION, BASE-VERSION and CHANGES.html for the next release
 9. Create a seperate "NS-Problems" section for the new version.
 
 B. If making a ns-allinone release
