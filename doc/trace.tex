@@ -33,7 +33,7 @@ of various interesting quantities such as packet and byte arrivals,
 departures, etc.
 Monitors can monitor counts associated with all packets,
 or on a per-flow basis using a 
-\href{{\em flow monitor} below}{Section}{sec:flowmon}.
+{\em flow monitor} below (Section~\ref{sec:flowmon}).
 
 To support traces, there is a special {\em common} header
 included in each packet (this format is defined in \nsf{packet.h}
@@ -131,12 +131,12 @@ is being traced.
 Note that they are not used for {\em matching}.  Specifically, these
 values in no way relate to the packet header \code{src} and \code{dst}
 fields, which are also displayed when tracing.
-\href{See the description of the \code{Trace} class below}{Section}{sec:tracemoncplus}.
+See the description of the \code{Trace} class below (Section~\ref{sec:tracemoncplus}).
 
 The \code{trace-queue} function enables
 \code{Enque}, \code{Deque}, and \code{Drop} tracing on the link
 between nodes \code{n1} and \code{n2}.
-\href{The Link \code{trace} procedure is described below}{Section}{sec:libexam}.
+The Link \code{trace} procedure is described below (Section~\ref{sec:libexam}).
 
 The \code{monitor-queue} function is constructed similarly to
 \code{trace-queue}.
@@ -422,7 +422,7 @@ The \code{show_tcphdr_} variable indicates whether the trace
 output should append tcp header information (ack number, flags, header length)
 at the end of each output line.
 This is especially useful for simulations using
-\href{FullTCP agents}{Section}{sec:fulltcp}.
+FullTCP agents (Section~\ref{sec:fulltcp}).
 An example of a trace file (without the tcp header fields) migh
 appear as follows: 
 \begin{small}
@@ -452,11 +452,18 @@ The simulated time (in seconds) at which each event occurred is listed
 in the second column.
 The next two fields indicate between which two nodes tracing is happening.
 The next field is 
-\href{a descriptive name for the the type of packet seen}{Section}{sec:traceptype}.
+a descriptive name for the the type of packet seen 
+(Section~\ref{sec:traceptype}).
 The next field is the packet's size, as encoded in its IP header.
-The next four characters represent special flag bits which may be
-enabled.  Presently only one such bit exists (explicit congestion
-notification, or {\sf ECN}).  In this example, {\sf ECN} is not used.
+
+The next field contains the flags, which not used in this example.
+The flags are defined in the flags[] array in trace.cc. 
+Four of the flags are used for ECN:
+``C'' for Ecn and ``N'' for Ecn-Capable in the IP header, and 
+``A'' for Congestion Action, and ``E'' for Congestion Experienced in the TCP
+header.
+For the other flags, ``P'' is for priority, and ``F'' is for TCP Fast Start.
+
 The next field gives the IP {\em flow identifier} field as defined
 for IP version 6.\footnote{In \ns~v1, each packet included a \code{class}
 field, which was used by CBQ to classify packets.
@@ -488,7 +495,7 @@ Initialization of the type field in packets is performed by the
 \fcn{Agent::allocpkt} method.
 The type field is set to integer values associated with the
 definition passed to
-\href{the \code{Agent} constructor}{Section}{sec:agents:exlinkage}.
+the \code{Agent} constructor (Section~\ref{sec:agents:exlinkage}).
 The currently-supported definitions, their values, and their
 associated symblic names are as follows
 (defined in \nsf{packet.h}):
@@ -637,7 +644,7 @@ A \code{QueueMonitor} is defined as follows (\nsf{queue-monitor.cc}):
 It addition to the packet and byte counters, a queue monitor
 may optionally refer to objects that keep an integral
 of the queue size over time using
-\code{Integrator} objects, which are defined in Section\ref{sec:integral}.
+\code{Integrator} objects, which are defined in Section~\ref{sec:integral}.
 The \code{Integrator} class provides a simple implementation of
 integral approximation by discrete sums.
 
@@ -676,7 +683,7 @@ These classes include: \\
 Typically, an arriving packet is inspected to determine
 to which flow it belongs.
 This inspection and flow mapping is performed by a {\em classifier}
-object (described in section \ref{sec:flowmonitor}).
+object (described in section~\ref{sec:flowmonitor}).
 Once the correct flow is determined, the packet is passed to
 a {\em flow monitor}, which is responsible for collecting per-flow
 state.
