@@ -26,7 +26,7 @@
 //
 // ADU and ADU processor
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ns-process.h,v 1.4 1999/11/24 01:37:25 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ns-process.h,v 1.5 2001/11/08 18:12:18 haldar Exp $
 
 #ifndef ns_process_h
 #define ns_process_h
@@ -62,9 +62,13 @@ enum AppDataType {
 
 	// pub/sub ADU
 	PUBSUB,
+	
+	//Diffusion ADU
+	DIFFUSION_DATA,
 
 	// Last ADU
 	ADU_LAST
+
 };
 
 // Interface for generic application-level data unit. It should know its 

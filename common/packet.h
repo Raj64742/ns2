@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.86 2001/07/05 21:17:46 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.87 2001/11/08 18:12:18 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -63,8 +63,9 @@
 #define HDR_TFRC(p)     (hdr_tfrc::access(p))
 #define HDR_TORA(p)     (hdr_tora::access(p))
 #define HDR_IMEP(p)     (hdr_imep::access(p))
-#define HDR_DIFF(p)     (hdr_diff::access(p))
- 
+#define HDR_CDIFF(p)    (hdr_cdiff::access(p))  /* chalermak's diffusion*/
+//#define HDR_DIFF(p)     (hdr_diff::access(p))  /* SCADD's diffusion ported into ns */
+
 /* --------------------------------------------------------------------*/
 
 enum packet_t {
@@ -312,6 +313,8 @@ public:
 	static inline Packet* alloc();
 	static inline Packet* alloc(int);
 	inline void allocdata(int);
+	// dirty hack for diffusion data
+	inline void initdata() { data_  = 0;}
 	static inline void free(Packet*);
 	inline unsigned char* access(int off) const {
 		if (off < 0)
@@ -531,6 +534,7 @@ inline Packet* Packet::alloc(int n)
 		p->allocdata(n);
 	return (p);
 }
+
 
 inline void Packet::free(Packet* p)
 {

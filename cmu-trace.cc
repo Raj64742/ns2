@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.61 2001/05/21 19:27:31 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.62 2001/11/08 18:12:17 haldar Exp $
  */
 
 #include <packet.h>
@@ -615,7 +615,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 	// A simple hack for scadds demo (fernandez's visit) -- Chalermek
 	int pkt_color = 0;
 	if (ch->ptype()==PT_DIFF) {
-		hdr_diff *dfh= HDR_DIFF(p);
+		hdr_cdiff *dfh= HDR_CDIFF(p);
 		if (dfh->mess_type != DATA) {
 			pkt_color = 1;
 		}

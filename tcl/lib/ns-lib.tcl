@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.234 2001/11/06 06:16:21 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.235 2001/11/08 18:12:18 haldar Exp $
 
 
 #
@@ -159,6 +159,7 @@ source ns-cmutrace.tcl
 source ns-mip.tcl
 source ns-sat.tcl
 source ns-nix.tcl
+source ns-diffusion.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mac.tcl
@@ -224,6 +225,7 @@ Simulator instproc init args {
 
 	$self create_packetformat
 	$self use-scheduler Calendar
+	#$self use-scheduler List
 	$self set nullAgent_ [new Agent/Null]
 	$self set-address-format def
 	if {[lindex $args 0] == "-multicast"} {
@@ -558,6 +560,10 @@ Simulator instproc create-wireless-node args {
 		    eval $node addr $args
 		    set ragent [$self create-diffusion-probability-agent $node]
 	    }
+	    Directed_Diffusion {
+		    eval $node addr $args
+		    set ragent [$self create-core-diffusion-rtg-agent $node]
+	    }
 	    FLOODING {
 		    eval $node addr $args
 		    set ragent [$self create-flooding-agent $node]
@@ -588,10 +594,12 @@ Simulator instproc create-wireless-node args {
 	if {$routingAgent_ != "DSR"} {
 		$node attach $ragent [Node set rtagent_port_]
 	}
+
 	if {$routingAgent_ == "DIFFUSION/RATE" ||
             $routingAgent_ == "DIFFUSION/PROB" ||
             $routingAgent_ == "FLOODING" ||
-            $routingAgent_ == "OMNIMCAST" } {
+            $routingAgent_ == "OMNIMCAST" ||
+	    $routingAgent_ == "Directed_Diffusion" } {
 		$ragent port-dmux [$node demux]
 		$node instvar ll_
 		$ragent add-ll $ll_(0)
@@ -1870,6 +1878,17 @@ Simulator instproc create-diffusion-probability-agent {node} {
 	return $diff
 }
 
+
+# Diffusioncore agent (in diffusion) maps to the wireless routing agent
+# in ns
+Simulator instproc create-core-diffusion-rtg-agent {node} {
+	Node instvar ragent_ dmux_
+	set ragent [new Agent/DiffusionRouting]
+	$node set ragent_ $ragent
+	#$ragent start
+	return $ragent
+}
+
 Simulator instproc create-flooding-agent {node} {
 	set flood [new Agent/Flooding]
 
@@ -1895,6 +1914,7 @@ Simulator instproc create-omnimcast-agent {node} {
 
 	return $omni
 }
+
 
 # XXX These are very simulation-specific methods, why should they belong here?
 Simulator instproc put-in-list {agent} {

@@ -1725,6 +1725,8 @@ if test "$enable_stl" = "yes" ; then
 	#V_STLOBJ="linkstate/ls.o linkstate/rtProtoLS.o"
 	#V_LSSCRIPT="source ../rtglib/ns-rtProtoLS.tcl"
 	V_DEFINE="$V_DEFINE -DHAVE_STL"
+# enable diffusion only if templates are supported
+	V_DEFINE="$V_DEFINE -DNS_DIFFUSION"
 	V_STLOBJ='$(OBJ_STL)'
 	V_NS_TCL_LIB_STL='$(NS_TCL_LIB_STL)'
 else

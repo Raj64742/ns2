@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.481 2001/11/06 06:21:48 tomh Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.482 2001/11/08 18:12:15 haldar Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -17,6 +17,17 @@ with the most recent changes coming first.
 <h3>
 ns-2.1b9 release PENDING</h3>
 
+<<<<<<< CHANGES.html
+<li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>Wed Nov  7 09:52:45 PST 2001</li>
+<br>Ported first-cut of Directed Diffusion (developed by SCADDS, USC/ISI) into ns.
+All files related to diffusion can be found under ~ns/directed_diffusion.
+All ns specific files can be found at ~ns /directed_diffusion/ns.
+
+An example script can be found at ~ns/tcl/ex/simple-diffusion.tcl and it tests a simple 3 node topology where (1) all 3 nodes can hear each other and a source and sink apps pair is setup on two of the nodes. (2) where node0 and node2 donot hear eachother and communicated thru the third node1. src and skn apps reside on node 0 and node2.
+
+**Note templates are used extensively and hence this code maynot be run in systems having compilers that donot support STL.
+
+=======
 <ul>
 
 <p>
@@ -51,6 +62,7 @@ Thur Sept 20 11:50:56 PDT 2001
 
 exit
   <p>
+
 <li><b><a href="mailto:tomh@tomh.org">[Tom Henderson]</a></b>
 Mon Jul 30 19:22:31 PDT 2001
 <br>Updated satellite code to conform to "$ns node-config" node

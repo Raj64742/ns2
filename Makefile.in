@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.229 2001/09/20 19:02:52 alefiyah Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.230 2001/11/08 18:12:16 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -49,6 +49,8 @@ RM	= rm -f
 MV      = mv
 PERL	= @PERL@
 
+# for diffusion
+DIFF_INCLUDES = "./directed_diffusion/main ./directed_diffusion/lib ./directed_diffusion/nr ./directed_diffusion/ns"
 
 CCOPT	= @V_CCOPT@
 STATIC	= @V_STATIC@
@@ -59,7 +61,10 @@ DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK -DNIXVECTOR @V_DEFINE@ @V_DEFINES@ @DEFS@ 
 
 INCLUDES = \
 	-I. @V_INCLUDE_X11@ \
-	@V_INCLUDES@
+	@V_INCLUDES@ \
+	-I./directed_diffusion/main -I./directed_diffusion/lib \
+	-I./directed_diffusion/nr -I./directed_diffusion/ns
+
 
 LIB	= \
 	@V_LIBS@ \
@@ -194,6 +199,23 @@ OBJ_CC = \
 	simulator.o \
 	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
 	pgm/pgm-receiver.o pgm/rcvbuf.o \
+	directed_diffusion/nr/nr.o \
+	directed_diffusion/lib/dr.o \
+	directed_diffusion/ns/diffagent.o \
+	directed_diffusion/ns/diffrtg.o \
+	directed_diffusion/ns/difftimer.o \
+	directed_diffusion/main/diffusion.o \
+	directed_diffusion/main/attrs.o \
+	directed_diffusion/main/iodev.o \
+	directed_diffusion/main/events.o \
+	directed_diffusion/main/message.o \
+	directed_diffusion/main/hashutils.o \
+	directed_diffusion/main/stats.o \
+	directed_diffusion/main/tools.o \
+	directed_diffusion/main/drivers/rpc_stats.o \
+	directed_diffusion/apps/sysapps/gradient.o \
+	directed_diffusion/apps/agents/diff-snk.o \
+	directed_diffusion/apps/agents/diff-src.o \
 	@V_STLOBJ@
 
 
@@ -251,6 +273,7 @@ BUILD_NSE = @build_nse@
 
 all: $(NS) $(BUILD_NSE) all-recursive
 
+
 all-recursive:
 	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) all; ) done
 
@@ -300,6 +323,7 @@ NS_TCL_LIB = \
 	tcl/lib/ns-address.tcl \
 	tcl/lib/ns-intserv.tcl \
 	tcl/lib/ns-autoconf.tcl \
+	tcl/lib/ns-diffusion.tcl \
 	tcl/rtp/session-rtp.tcl \
 	tcl/lib/ns-mip.tcl \
 	tcl/rtglib/dynamics.tcl \
