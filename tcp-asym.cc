@@ -54,36 +54,10 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym.cc,v 1.9 1997/11/27 05:28:27 padmanab Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym.cc,v 1.10 1997/12/03 23:34:31 padmanab Exp $ (UCB)";
 #endif
 
-
-#include "tcp.h"
-#include "ip.h"
-#include "flags.h"
-#include "random.h"
-#include "template.h"
-
-/* TCP Asym with Tahoe */
-class TcpAsymAgent : public virtual TcpAgent {
-public:
-	TcpAsymAgent();
-
-	/* helper functions */
-	virtual void output_helper(Packet* p);
-	virtual void send_helper(int maxburst);
-	virtual void recv_helper(Packet* p);
-	virtual void recv_newack_helper(Packet* pkt);
-	virtual void traceAll();
-	virtual void traceVar(TracedVar* v);
-protected:
-	int off_tcpasym_;
-	int ecn_to_echo_;
-	TracedDouble t_exact_srtt_;
-/*	TracedDouble avg_win_; */
-	double g_;		/* gain used for exact_srtt_ smoothing */
-	int damp_;
-};
+#include "tcp-asym.h"
 
 static class TCPAHeaderClass : public PacketHeaderClass {
 public:
@@ -109,20 +83,6 @@ TcpAsymAgent::TcpAsymAgent() : TcpAgent(), ecn_to_echo_(0), t_exact_srtt_(0)
 }
 
 
-/* TCP Asym with Reno */
-class TcpRenoAsymAgent : public RenoTcpAgent,
-			 public TcpAsymAgent {
-public:
-	 TcpRenoAsymAgent() : RenoTcpAgent(), TcpAsymAgent() { }
-
-	/* helper functions */
-	virtual void output_helper(Packet* p) { TcpAsymAgent::output_helper(p); }
-	virtual void send_helper(int maxburst) { TcpAsymAgent::send_helper(maxburst); }
-	virtual void recv_helper(Packet* p) { TcpAsymAgent::recv_helper(p); }
-	virtual void recv_newack_helper(Packet* pkt) { TcpAsymAgent::recv_newack_helper(pkt); }
-
-};
-
 static class TcpRenoAsymClass : public TclClass {
 public:
 	TcpRenoAsymClass() : TclClass("Agent/TCP/Reno/Asym") {}
@@ -132,27 +92,13 @@ public:
 } class_tcprenoasym;
 
 
-/* TCP Asym with New Reno */
-class TcpNewRenoAsymAgent : public NewRenoTcpAgent,
-			    public TcpAsymAgent {
+static class NewRenoTcpAsymClass : public TclClass {
 public:
-	 TcpNewRenoAsymAgent() : NewRenoTcpAgent(), TcpAsymAgent() { }
-
-	/* helper functions */
-	virtual void output_helper(Packet* p) { TcpAsymAgent::output_helper(p); }
-	virtual void send_helper(int maxburst) { TcpAsymAgent::send_helper(maxburst); }
-	virtual void recv_helper(Packet* p) { TcpAsymAgent::recv_helper(p); }
-	virtual void recv_newack_helper(Packet* pkt) { TcpAsymAgent::recv_newack_helper(pkt); }
-
-};
-
-static class TcpNewRenoAsymClass : public TclClass {
-public:
-	TcpNewRenoAsymClass() : TclClass("Agent/TCP/Newreno/Asym") {}
+	NewRenoTcpAsymClass() : TclClass("Agent/TCP/Newreno/Asym") {}
 	TclObject* create(int, const char*const*) {
-		return (new TcpNewRenoAsymAgent());
+		return (new NewRenoTcpAsymAgent());
 	} 
-} class_tcpnewrenoasym;
+} class_newrenotcpasym;
 
 
 /* The helper functions */
@@ -181,12 +127,7 @@ void TcpAsymAgent::send_helper(int maxburst)
 	 * so we do not need an explicit check here.
 	 */
 	if (t_seqno_ <= highest_ack_ + window() && t_seqno_ < curseq_) {
-		double xmit_freq = t_exact_srtt_*maxburst/window();
-/*		double xmit_freq = t_exact_srtt_*maxburst/avg_win_;*/
-
-		if (damp_)
-			xmit_freq /= 2;
-		burstsnd_timer_.resched(xmit_freq);
+		burstsnd_timer_.resched(t_exact_srtt_*maxburst/window());
 	}
 }
 
