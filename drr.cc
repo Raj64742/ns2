@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drr.cc,v 1.3 1997/07/22 21:32:52 kfall Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drr.cc,v 1.4 1997/07/22 22:22:31 bajaj Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -226,6 +226,7 @@ Packet *DRR::deque(void)
       pkt=0;
     }
   }
+  return 0;    // not reached
 }
 
 void DRR::clear()
