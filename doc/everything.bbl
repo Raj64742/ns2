@@ -6,6 +6,12 @@ C.~Alaettino\u{g}lu, A.U. Shankar, K.~Dussa-Zeiger, and I.~Matta.
 \newblock Design and implementation of {MaRS}: A routing testbed.
 \newblock {\em Internetworking: Research and Experience}, 5:17--41, 1994.
 
+\bibitem{Barf98:WebWorkload}
+Paul Barford and Mark Crovella.
+\newblock Generating representative web workloads for network and server
+  peformance evaluation.
+\newblock pages 151--160, June 1998.
+
 \bibitem{Brak94:TCP}
 L.S. Brakmo, S.~O'Malley, and L.L. Peterson.
 \newblock {TCP} vegas: New techniques for congestion detection and avoidance.
@@ -22,6 +28,11 @@ R.~Brown.
 \newblock Calendar queues: A fast {O(1)} priority queue implementation for the
   simulation event set problem.
 \newblock {\em Communications of the ACM}, 31(10):1220--1227, October 1988.
+
+\bibitem{Cao97:CacheConsistency}
+Pei Cao and Chengjie Liu.
+\newblock Maintaining strong cache consistency in the {World-Wide Web}.
+\newblock pages 12--21, May 1997.
 
 \bibitem{Deer94a:Architecture}
 S.~Deering, D.~Estrin, D.~Farinacci, V.~Jacobson, Ching-{G}ung Liu, and L.~Wei.

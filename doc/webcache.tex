@@ -5,22 +5,181 @@ All applications described above are ``virtual'' applications, in the sense
 that they do not actually transfer their own data in the simulator; all 
 that matter is the \emph{size} and the \emph{time} when data are transferred.
 Sometimes we may want applications to transfer their own data in simulations.
-One such example is web caching. Here we want HTTP servers to send HTTP 
-headers of every page to caches and clients. These headers contain 
+One such example is web caching, where we want HTTP servers to send HTTP 
+headers to caches and clients. These headers contain 
 page modification time information and other caching directives, which are 
 important for some cache consistency algorithms.
 
-The following describes the APIs to transport application data over TCP, 
-as well as the internals of the web caching applications.
+In the following, we first describe general issues regarding
+transmitting application-level data in \ns, then we discuss special
+issues, as well as APIs, related to transmitting application data
+using TCP as transport. We will then proceed to discuss the internal
+design of HTTP client, server, and proxy cache. 
 
-\section{Transmitting application data over TCP}
+\section{Using application-level data in \ns}
+
+\begin{figure}[tb]
+  \begin{center}
+    \centerline{\includegraphics{app-dataflow}}
+    \caption{Examples of application-level data flow}
+    \label{fig:app-dataflow}
+  \end{center}
+\end{figure}
+
+In order to transmit application-level data in \ns, we provide a 
+uniform structure to pass data among applications, and to
+pass data from applications to transport agents (Figure
+\ref{fig:app-dataflow}). It has three major components: 
+a representation of a uniform application-level data unit (ADU), a 
+common interface to pass data between applications, and two mechanisms
+to pass data between applications and transport agents.
+
+\subsection{ADU} 
+
+The functionality of an ADU is similar to that of a Packet. It needs to
+pack user data into an array, which is then included in the user data
+area of an \ns packet by an Agent (this is not supported by current
+Agents. User must derive new agents to accept user data from
+applications, or use an wrapper like TcpApp. We'll discuss this
+later). 
+
+Compared with Packet, ADU provides this functionality in a different
+way. In Packet, a common area is allocated for all packet headers; an
+offset is used to access different headers in this area. In ADU this
+is not applicable, because some ADU allocates their space dynamically
+according the the availability of user data. For example, if we want
+to deliver an OTcl script between applications, the size of the script
+is undetermined beforehand. Therefore, we choose a less efficient but
+more flexible method. Each ADU defines its own data members, and
+provides methods to serialize them (i.e., pack data into an array and
+extract them from an array). For example, in the abstract base class
+of all ADU, AppData, we have:
+
+\begin{program}
+        class AppData \{
+        private:
+                AppDataType type_;  // ADU type
+        public:
+                struct hdr \{
+                        AppDataType type_;
+                \};
+        public:
+                AppData(char* b) \{
+                        assert(b != NULL);
+                        type_ = ((hdr *)b)->type_;
+                \}
+                virtual void pack(char* buf) const;
+        \}
+\end{program}
+
+Here \code{pack(char* buf)} is used to write an AppData object
+into an array, and \code{AppData(char* b)} is used to build a new
+AppData from a ``serialized'' copy of the object in an array.
+
+When deriving new ADU from the base class, users may add more data,
+but at the same time a new \code{pack(char *b)} and a new constructor 
+should be provided to write and read those new data members from an
+array. For an example as how to derive from an ADU, look at 
+\ns/webcache/http-aux.h.
+
+\subsection{Passing data between applications}
+
+The class Application does not define how to handle application-level
+data, nor does it define how to pass those data between
+applications. We provide an abstract interface, class AppConnector,
+for this purpose. It's defined as follows:
+
+\begin{program}
+        class AppConnector \{
+        public: 
+                AppConnector() : target_(0) \{\}
+                inline AppConnector*& target() \{ return target_; \}
+
+                virtual void process_data(int size, char* data) = 0;
+                virtual void send_data(int size, char* data = 0);
+
+        protected:
+                AppConnector* target_;
+        \};
+\end{program}
+
+AppConnector enables Applications to link together, just as Connector
+enables Agents to link together. An application can either inherit
+directly from AppConnector, or it can inherit from both TclObject (or
+another Application) and AppConnector. The latter allows an
+application to both handle user data and to enjoy the benefits
+provided by TclCL (e.g., split object). For example, in the web cache
+code, class HttpApp is derived from both TclObject and AppConnector 
+(\ns/webcache/http.h), and class TcpApp is derived from both
+AppConnector and Application. 
+
+\subsection{Transmitting user data over UDP}
+
+Currently there are no supports in class Agent to transmit user
+data. There are two ways to  transmit serialized ADU through transport
+agents. First, for UDP agent (and all agents derived from there), we
+can derive from class UDP and add a new method
+\code{send(int nbytes, char *userdata)} to pass user data from
+Application to Agent. To pass data from an Agent to an Application is
+somewhat trickier: each agent has a pointer to its attached
+application, we dynamically cast this pointer to an AppConnector and
+then call \code{AppConnector::process_data()}.
+
+As an example, we illustrate how class HttpInvalAgent is
+implemented. It is based on UDP, and is inteded to deliver web cache
+invalidation messages (\ns/webcache/inval-agent.h). It is defined as:
+
+\begin{program}
+        class HttpInvalAgent : public Agent \{
+        public: 
+                HttpInvalAgent();
+
+                virtual void recv(Packet *, Handler *);
+                virtual void send(int realsize, AppData* data);
+
+        protected:
+                int off_inv_;
+        \};
+\end{program}
+
+Here \code{recv(Packet*, Handler*)} overridden to extract user data,
+and a new \code{send(int, AppData*)} is provided to include user data
+in packetes. An application (HttpApp) is attached to an HttpInvalAgent
+using \code{Agent::attachApp()} (a dynamic cast is needed). In
+\code{send()}, the following code is used to write user data from
+AppData to the user data area in a packet:
+
+\begin{program}
+        Packet *pkt = allocpkt(data->size());
+        hdr_inval *ih = (hdr_inval *)pkt->access(off_inv_);
+        ih->size() = data->size();
+        char *p = (char *)pkt->accessdata();
+        data->pack(p);
+\end{program}
+
+In \code{recv()}, the following code is used to read user data from
+packet and to deliver to the attached application:
+
+\begin{program}
+        hdr_inval *ih = (hdr_inval *)pkt->access(off_inv_);
+        ((HttpApp*)app_)->process_data(ih->size(), (char *)pkt->accessdata());
+        Packet::free(pkt);
+\end{program}
+
+
+\subsection{Transmitting user data over TCP}
 \label{sec:webcache-tcpapp}
+
+Transmitting user data using TCP is trickier than doing that over UDP,
+mainly because of TCP's reassembly queue is only available for
+FullTcp. We deal with this problem by abstracting a TCP connection as
+a FIFO pipe. 
 
 As indicated in section \ref{sec:upcalls}, transmission of application data
 can be implemented via agent upcalls. Assuming we are using TCP agents, 
 all data are delivered in sequence, which means we can view the TCP 
-connection as a FIFO pipe. Because ns doesn't support actual data passing, 
-we have to emulate that behavior. First, we need to provide buffer 
+connection as a FIFO pipe. We emulate user data transmission over TCP
+as follows. We first provide buffer 
 for application data at the sender. Then we count the bytes received at the 
 receiver. When the receiver has got all bytes of the current data transmission,
 it then gets the data directly from the sender. Class Application/TcpApp is 
@@ -98,6 +257,19 @@ Where \code{app-recv} is defined as:
                 puts "[$ns now] app2 receives data $size from app1"
         }
 \end{program}
+
+\subsection{Class hierarchy related to user data handling}
+
+We conclude this section by providing a hierarchy of classes involved
+in this section:
+
+\begin{figure}[tb]
+  \begin{center}
+    \includegraphics{appdata-hier}
+    \caption{Hierarchy of classes related to application-level data handling}
+    \label{fig:appdata-hier}
+  \end{center}
+\end{figure}
 
 
 \section{Overview of web cache classes}
@@ -215,12 +387,291 @@ into the cache. \\
 \subsection{Debugging}
 \label{sec:webcache-debug}
 
-HttpApp also provides two debugging methods. \code{log} registers a file 
+HttpApp provides two debugging methods. \code{log} registers a file 
 handle as the trace file for all HttpApp-specific traces. Its trace format 
 is described in section \ref{sec:webcache-trace}. \code{evTrace} logs a 
 particular event into trace file. It concatenates
 time and the id of the HttpApp to the given string, and writes it out. 
 Details can be found in \ns/webcache/http.cc.
+
+
+\section{Representing web pages}
+
+We represent web pages as the abstract class Page. It is defined as follows:
+
+\begin{program}
+class Page {
+public:
+        Page(int size) : size_(size) {}
+        int size() const { return size_; }
+        int& id() { return id_; }
+        virtual WebPageType type() const = 0;
+
+protected:
+        int size_;
+        int id_;
+};
+\end{program}
+
+It represents the basic properties of a web page: size and URL. Upon
+it we derive two classes of web pages: ServerPage and ClientPage. The
+former contains a list of page modification times, and is supposed to
+by used by servers. It was originally designed to work with a special
+web server trace; currently it is not widely used in \ns. The latter,
+ClientPage, is the default web page for all page pools below. 
+
+A ClientPage has the following major properties (we omit some
+variables used by web cache with invalidation, which has too many
+details to be covered here):
+
+\begin{itemize}
+\item \code{HttpApp* server_} - Pointer to the original server of this
+  page. 
+\item \code{double age_} - Lifetime of the page.
+\item \code{int status_} - Status of the page. Its contents are
+  explained below.
+\end{itemize}
+
+The status (32-bit) of a ClientPage is separated into two 16-bit
+parts. The first part (with mask 0x00FF) is used to store page
+status, the second part (with mask 0xFF00) is used to store expected
+page actions to be performed by cache. Available page status are (again,
+we omit those closely related to web cache invalidation):
+
+\begin{alist}
+HTTP\_VALID\_PAGE & Page is valid. \\
+HTTP\_UNCACHEABLE & Page is uncacheable. This option can be used to
+simulate CGI pages or dynamic server pages. \\
+\end{alist}
+
+CilentPage has the following major C++ methods: 
+
+\begin{itemize}
+\item \code{type()} - Returns the type of the page. Assuming pages of
+  the same type should have identical operations, we let all
+  ClientPage to be of type ``HTML''. If later on other types of web
+  pages are needed, a class may be derived from ClientPage (or Page)
+  with the desired type. 
+\item \code{name(char *buf)} - Print the page's name into the given
+  buffer. A page's name is in the format of:
+  \tup{ServerName}:\tup{PageID}. 
+\item \code{split_name(const char *name, PageID& id)} - Split a given
+  page name into its two components. This is a static method. 
+\item \code{mtime()} - Returns the last modification time of the page.
+\item \code{age()} - Returns the lifetime of the page. 
+\end{itemize}
+
+
+\section{Page pools}
+\label{sec:webcache-pagepool}
+
+PagePool and its derived classes are used by servers to generate page
+information (name, size, modification time, lifetime, etc.), by caches
+to describe which pages are in storage, and by clients to generate a
+request stream. Figure~\ref{fig:pagepool-hier} provides an overview of
+the class hierarchy here. 
+
+\begin{figure}[tb]
+  \begin{center}
+    \includegraphics{pagepool-hier}
+    \caption{Class hierarchy of page pools}
+    \label{fig:pagepool-hier}
+  \end{center}
+\end{figure}
+
+Among these, class PagePool/Client is mostly used by caches to store
+pages and other cache-related information; other three classes are
+used by servers and clients. In the following we describe these
+classes one by one.
+
+\subsection{PagePool/Math}
+
+This is the simplest type of page pool. It has only one page, whose
+size can be generated by a given random variable. Page modification
+sequence and request sequence are 
+generated using two given random variables. It has the following OTcl
+methods:
+
+\begin{alist}
+gen-pageid & Returns the page ID which will be requested next. Because
+ it has only one page, it always returns 0.\\
+
+gen-size & Returns the size of the page. It can be generated by a
+  given random variable. \\
+
+gen-modtime \tup{pageID} \tup{mt} & Returns the next modification time of the
+  page. \tup{mt} gives the last modification time. It uses the
+  lifetime random variable. \\
+
+ranvar-age \tup{rv} & Set the file lifetime random variable as
+  \tup{rv}. \\
+
+ranvar-size \tup{rv} & Set the file size random variable to be
+  \tup{rv}. \\
+\end{alist}
+
+{\em NOTE}: There are two ways to generate a request sequence. With
+all page pools except PagePool/ProxyTrace, request sequence is
+generated with a random variable which describes the request
+interval, and the \code{gen-pageid} method of other page pools gives
+the page ID of the next request. PagePool/ProxyTrace loads the request
+stream during initialization phase, so it does not need a random
+variable for request interval; see its description below. 
+
+An example of using PagePool/Math is at Section
+\ref{sec:webcache-example}. That script is also available at 
+\ns/tcl/ex/simple-webcache.tcl. 
+
+\subsection{PagePool/CompMath}
+
+It improves over PagePool/Math by introducing a compound page
+model. By a compound page we mean a page which consists of a main text
+page and a number of embedded objects, e.g., GIFs. We model a compound
+page as a main page and several component objects. The main page is
+always assigned with ID 0. All component pages
+have the same size; both the main page size and component object size is
+fixed, but adjustable through OTcl-bound variables \code{main_size_}
+and \code{comp_size_}, respectively. The number of component objects
+can be set using the OTcl-bound variable \code{num_pages_}.
+
+PagePool/CompMath has the following major OTcl methods:
+
+\begin{alist}
+gen-size \tup{pageID} & If \tup{pageID} is 0, return
+  \code{main\_size\_}, otherwise return \code{comp\_size\_}.\\
+
+ranvar-main-age \tup{rv} & Set random variable for main page
+  lifetime. Another one, \code{ranvar-obj-age}, set that for component
+  objects. \\
+
+gen-pageid & Always returns 0, which is the main page ID. \\ 
+
+gen-modtime \tup{pageID} \tup{mt} & Returns the next modification time
+  of the given page \tup{pageID}. If the given ID is 0, it uses the
+  main page lifetime random variable; otherwise it uses the component
+  object lifetime random variable. \\
+\end{alist}
+
+An example of using PagePool/CompMath is available at 
+\ns/tcl/ex/simple-webcache-comp.tcl.
+
+\subsection{PagePool/ProxyTrace}
+
+The above two page pool synthesize request stream to a single web page
+by two random variables: one for request interval, another for
+requested page ID. Sometimes users may want more complicated request
+stream, which consists of multiple pages and exhibits spatial locality
+and temporal locality. There exists one proposal (SURGE
+\cite{Barf98:WebWorkload}) 
+which generates such request streams, we choose to provide an
+alternative solution: use real web proxy cache trace (or server
+trace). 
+
+The class PagePool/ProxyTrace uses real traces to drive
+simulation. Because there exist many web traces with different
+formats, they should be converted into a intermediate format before
+fed into this page pool. The converter is available at 
+http://mash.cs.berkeley.edu/dist/vint/webcache-trace-conv.tar.gz.
+It accepts four trace formats: DEC proxy trace (1996), UCB
+Home-IP trace, NLANR proxy trace, and EPA web server trace. It
+converts a given trace into two files: pglog and reqlog. Each line in
+pglog has the following format:
+\begin{center}
+\begin{verbatim}
+[<serverID> <URL_ID> <PageSize> <AccessCount>]
+\end{verbatim}
+\end{center}
+
+Each line, except the last line, in reqlog has the following format:
+\begin{center}
+\begin{verbatim}
+[<time> <clientID> <serverID> <URL_ID>]
+\end{verbatim}
+\end{center}
+
+The last line in reqlog records the duration of the entire trace and
+the total number of unique URLs:
+\begin{center}
+\begin{verbatim}
+i <Duration> <Number_of_URL>
+\end{verbatim}
+\end{center}
+
+PagePool/ProxyTrace takes these two file as input, and use them to
+drive simulation. Because most existing web proxy traces do not
+contain complete page modification information, we choose to use a
+bimodal page modification model \cite{Cao97:CacheConsistency}. We
+allow user to select $x\%$ of the pages to have one random page
+modification interval generator, and the rest of the pages to have
+another generator. In this way, it's possible to let $x\%$ pages to be
+dynamic, i.e., modified frequently, and the rest static. Hot pages are
+evenly distributed among all pages. For example, assume 10\% pages are
+dynamic, then if we sort pages into a list according to their popularity,
+then pages 0, 10, 20, $\ldots$ are dynamic, rest are static. Because
+of this selection mechanism, we only allow bimodal ratio to change in
+the unit of 10\%. 
+
+In order to distribute requests to different requestors in the
+simulator, PagePool/ProxyTrace maps the client ID in the traces to
+requestors in the simulator using a modulo operation. 
+
+PagePool/ProxyTrace has the following major OTcl methods:
+
+\begin{alist}
+get-poolsize & Returns the total number of pages. \\
+
+get-duration & Returns the duration of the trace. \\
+
+bimodal-ratio & Returns the bimodal ratio. \\
+
+set-client-num \tup{num} & Set the number of requestors in the
+simulation. \\
+
+gen-request \tup{ClientID} & Generate the next request for the given
+requestor. \\
+
+gen-size \tup{PageID} & Returns the size of the given page. \\
+
+bimodal-ratio \tup{ratio} & Set the dynamic pages to be \tup{ratio}*10
+percent. Note that this ratio changes in unit of 10\%. \\
+
+ranvar-dp \tup{ranvar} & Set page modification interval generator for 
+dynamic pages. Similarly, ranvar-sp \tup{ranvar} sets the generator
+for static pages. \\
+
+set-reqfile \tup{file} & Set request stream file, as discussed
+above. \\
+
+set-pgfile \tup{file} & Set page information file, as discussed
+above. \\
+
+gen-modtime \tup{PageID} \tup{LastModTime} & Generate next
+modification time for the given page. \\
+\end{alist}
+
+An example of using PagePool/ProxyTrace is available at 
+\ns/tcl/ex/simple-webcache-trace.tcl. 
+
+
+\subsection{PagePool/Client}
+
+The class PagePool/Client helps caches to keep track of pages resident
+in cache, and to store various cache-related information about
+pages. It is mostly implemented in C++, because it is mainly used
+internally and little functionality is needed by users. It has the
+following major C++ methods:
+
+\begin{itemize}
+\item \code{get_page(const char* name)} - Returns a pointer to the
+  page with the given name. 
+\item \code{add_page(const char *name, int size, double mt,
+    double et, double age)} - Add a page with given size, last modification
+    time (mt), cache entry time (et), and page lifetime (age). 
+\item \code{remove_page(const char* name)} - Remove a page from cache.
+\end{itemize}
+
+This page pool should support various cache replacement algorithms,
+however, it has not been implemented yet. 
 
 
 \section{Web client}
@@ -545,7 +996,8 @@ events and value types associated with these three types of objects.
     S & INV & p \tup{PageID} m \tup{LastModifiedTime} z \tup{Size} \\
     S & UPD & p \tup{PageID} m \tup{LastModifiedTime} z \tup{Size} \\
     S & SND & p \tup{PageID} m \tup{LastModifiedTime} z \tup{PageSize} \\
-    &     & t \tup{Requesttype} \\
+      &     & t \tup{Requesttype} \\
+    S & MOD & p \tup{PageID} n \tup{NextModifyTime} \\
   \end{tabular}
 \end{center}
 
@@ -587,6 +1039,8 @@ events and value types associated with these three types of objects.
     invalidation protocol only. \\
     S & INV & Server sends an invalidation message. Used by invalidation 
     protocol only. \\
+    S & MOD & Server modified a page. The page will be modified next
+    at \tup{NextModifyTime}. \\
   \end{tabular}
 \end{center}
 
@@ -597,3 +1051,8 @@ events and value types associated with these three types of objects.
 % TeX-master: "everything"
 % LocalWords:
 % End:
+% LocalWords:  HTTP tb app dataflow ADU OTcl AppData AppDataType struct hdr buf
+% LocalWords:  const AppConnector inline int TclCL HttpApp webcache http nbytes
+% LocalWords:  userdata HttpInvalAgent inteded inval recv realsize inv FullTcp
+% LocalWords:  SimpleTcp bi str dsize Tcl tcl tcp iss ns TcpApps Mb ms DropTail
+% LocalWords:  tmp val RandomVariable pgp ranvar avg startTime finishTime proc
