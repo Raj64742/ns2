@@ -30,12 +30,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.4 1997/02/27 04:38:53 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.5 1997/03/07 02:20:32 kfall Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
 #define ns_packet_h
 
+#include <sys/types.h>
 #include "config.h"
 #include "scheduler.h"
 
