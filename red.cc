@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.39 1999/06/11 23:37:18 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.40 1999/07/26 22:21:20 yuriy Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -83,7 +83,7 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
 {
 	bind_bool("bytes_", &edp_.bytes);	    // boolean: use bytes?
 	bind_bool("queue_in_bytes_", &qib_);	    // boolean: q in bytes?
-	_RENAMED("queue-in-bytes_", "queue_in_bytes_");
+	//	_RENAMED("queue-in-bytes_", "queue_in_bytes_");
 
 	bind("thresh_", &edp_.th_min);		    // minthresh
 	bind("maxthresh_", &edp_.th_max);	    // maxthresh
@@ -98,16 +98,16 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
 						    // exceeds maxthresh
 
 	bind_bool("drop_tail_", &drop_tail_);	    // drop last pkt
-	_RENAMED("drop-tail_", "drop_tail_");
+	//	_RENAMED("drop-tail_", "drop_tail_");
 
 	bind_bool("drop_front_", &drop_front_);	    // drop first pkt
-	_RENAMED("drop-front_", "drop_front_");
+	//	_RENAMED("drop-front_", "drop_front_");
 	
 	bind_bool("drop_rand_", &drop_rand_);	    // drop pkt at random
-	_RENAMED("drop-rand_", "drop_rand_");
+	//	_RENAMED("drop-rand_", "drop_rand_");
 
 	bind_bool("ns1_compat_", &ns1_compat_);	    // ns-1 compatibility
-	_RENAMED("ns1-compat_", "ns1_compat_");
+	//	_RENAMED("ns1-compat_", "ns1_compat_");
 
 	bind("ave_", &edv_.v_ave);		    // average queue sie
 	bind("prob1_", &edv_.v_prob1);		    // dropping probability

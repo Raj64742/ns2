@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.41 1999/07/16 17:45:37 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.42 1999/07/26 22:22:49 yuriy Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -906,4 +906,33 @@ Agent instproc connect d {
 # XXX changed call from "handle" to "recv"
 Agent/Message instproc recv msg {
 	$self handle $msg
+}
+
+#Renamed variables in Queue/RED and Queue/DropTail
+Queue/RED proc set { var {arg ""} } {
+	if { $var == "queue-in-bytes_" } {
+		warn "Warning: use `queue_in_bytes_' rather than `queue-in-bytes_'"
+		set var "queue_in_bytes_"
+	} elseif { $var == "drop-tail_" } {
+		warn "Warning: use `drop_tail_' rather than `drop-tail_'"
+		set var "drop_tail_"
+	} elseif { $var == "drop-front_" } {
+		warn "Warning: use `drop_front_' rather than `drop-front_'"
+		set var "drop_front_"
+	} elseif { $var == "drop-rand_" } {
+		warn "Warning: use `drop_rand_' rather than `drop-rand_'"
+		set var "drop_rand_"
+	} elseif { $var == "ns1-compat_" } {
+		warn "Warning: use `ns1_compat_' rather than `ns1-compat_'"
+		set var "ns1_compat_"
+	}
+	eval $self next $var $arg
+}
+
+Queue/DropTail proc set { var {arg ""} } {
+	if { $var == "drop-front_" } {
+		warn "Warning: use `drop_front_' rather than `drop-front_'"
+		set var "drop_front_"
+	}
+	eval $self next $var $arg
 }

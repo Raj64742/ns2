@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.43 1999/06/09 21:23:34 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.44 1999/07/26 22:21:21 yuriy Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.43 1999/06/09 21:23:34 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.44 1999/07/26 22:21:21 yuriy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -110,6 +110,11 @@ Scheduler::dispatch(Event* p)
 
 class AtEvent : public Event {
 public:
+	AtEvent() : proc_(0) {
+	}
+	~AtEvent() {
+		if (proc_) delete [] proc_;
+	}
 	char* proc_;
 };
 
@@ -122,7 +127,6 @@ void AtHandler::handle(Event* e)
 {
 	AtEvent* at = (AtEvent*)e;
 	Tcl::instance().eval(at->proc_);
-	delete[] at->proc_;
 	delete at;
 }
 
@@ -176,7 +180,6 @@ int Scheduler::command(int argc, const char*const* argv)
 				/*XXX make sure it really is an atevent*/
 				cancel(p);
 				AtEvent* ae = (AtEvent*)p;
-				delete[] ae->proc_;
 				delete ae;
 			}
 		} else if (strcmp(argv[1], "at-now") == 0) {

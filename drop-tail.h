@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.h,v 1.11 1999/06/09 22:32:58 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.h,v 1.12 1999/07/26 22:21:20 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_drop_tail_h
@@ -50,7 +50,10 @@ class DropTail : public Queue {
 		q_ = new PacketQueue; 
 		pq_ = q_;
 		bind_bool("drop_front_", &drop_front_);
-		_RENAMED("drop-front_", "drop_front_");
+		//		_RENAMED("drop-front_", "drop_front_");
+	}
+	~DropTail() {
+		delete q_;
 	}
   protected:
 	int command(int argc, const char*const* argv); 
