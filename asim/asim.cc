@@ -23,6 +23,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 
+#include "config.h"
 
 #include <math.h>
 #include <stdio.h>

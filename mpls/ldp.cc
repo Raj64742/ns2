@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.7 2002/10/09 03:47:01 difa Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.8 2003/07/26 00:53:23 johnh Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *
@@ -43,6 +43,8 @@
 *    Author: Gaeil Ahn (fog1@ce.cnu.ac.kr), Jan. 2000      *
 *                                                          *
 ***********************************************************/
+
+#include "config.h"
 
 #include <iostream>
 

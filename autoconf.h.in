@@ -79,11 +79,9 @@
 #ifdef __cplusplus
 #undef HAVE_STL
 
-#ifdef HAVE_STL
-#undef STL_REQUIRES_NAMESPACE 
-#ifdef STL_REQUIRES_NAMESPACE
-using namespace STL_NAMESPACE;
-#endif /* STL_NAMESPACE */
-#endif /* HAVE_STL */
+#undef CPP_REQUIRES_NAMESPACE 
+#ifdef CPP_REQUIRES_NAMESPACE
+using namespace CPP_NAMESPACE;
+#endif /* CPP_NAMESPACE */
 #endif /* __cplusplus */
 

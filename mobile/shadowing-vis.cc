@@ -23,6 +23,8 @@
  * Wei Ye, weiye@isi.edu, 2000
  */
 
+#include "config.h"
+
 #include <math.h>
 #include <fstream>
 
