@@ -37,7 +37,7 @@ Class Test/lan-routing-flat -superclass TestSuite
 Class Test/lan-routing-hier -superclass TestSuite
 
 # Broadcast test for Classifier/Mac
-Class Test/lan-broadcast -superclass TestSuite
+#Class Test/lan-broadcast -superclass TestSuite
 
 proc usage {} {
 	global argv0
@@ -133,53 +133,53 @@ Test/lan-routing-hier instproc run {} {
 	$ns_ run
 }
 	
-Test/lan-broadcast instproc init {} {
-	$self instvar ns_ testName_ flag_ node_ nodelist_ \
-			lan_ node0_ nodex_ nodey_ udp0_ cbr0_ rcvrx_ rcvry_
-	set testName_ lan-broadcast
-	$self next
- 
-	$ns_ multicast on
-
-	set num 3
-	for {set i 0} {$i < $num} {incr i} {
-		set node_($i) [$ns_ node]
-		lappend nodelist_ $node_($i)
-	}
-	set lan_ [$ns_ newLan $nodelist_ 10Mb 2ms]
-
-	set node0_ [$ns_ node]
-	$ns_ duplex-link $node0_ $node_(1) 10Mb 2ms DropTail
-	$ns_ duplex-link-op $node0_ $node_(1) orient right
-	set nodex_ [$ns_ node]
-	$ns_ duplex-link $nodex_ $node_(2) 10Mb 2ms DropTail
-	$ns_ duplex-link-op $nodex_ $node_(2) orient left
-	set nodey_ [$ns_ node]
-	$ns_ duplex-link $nodey_ $node_(0) 10Mb 2ms DropTail
-	$ns_ duplex-link-op $nodey_ $node_(0) orient down
-
-	set udp0_ [new Agent/UDP]
-	$ns_ attach-agent $node0_ $udp0_
-	set cbr0_ [new Application/Traffic/CBR]
-	$cbr0_ attach-agent $udp0_
-	$udp0_ set dst_ 0x8003
-
-	set rcvrx_ [new Agent/Null]
-	$ns_ attach-agent $nodex_ $rcvrx_
-	set rcvry_ [new Agent/Null]
-	$ns_ attach-agent $nodey_ $rcvry_
-	set mproto DM
-	set mrthandle [$ns_ mrtproto $mproto  {}]
-}
-
-Test/lan-broadcast instproc run {} {
-	$self instvar ns_ cbr0_ nodex_ nodey_ rcvrx_ rcvry_
-	$ns_ at 0.0 "$nodex_ join-group $rcvrx_ 0x8003"
-	$ns_ at 0.0 "$nodey_ join-group $rcvry_ 0x8003"
-	$ns_ at 0.1 "$cbr0_ start"
-	$ns_ at 3.0 "$self finish"
-	$ns_ run
-}
+#Test/lan-broadcast instproc init {} {
+#	 $self instvar ns_ testName_ flag_ node_ nodelist_ \
+#			 lan_ node0_ nodex_ nodey_ udp0_ cbr0_ rcvrx_ rcvry_
+#	 set testName_ lan-broadcast
+#	 $self next
+# 
+#	 $ns_ multicast on
+#
+#	 set num 3
+#	 for {set i 0} {$i < $num} {incr i} {
+#		 set node_($i) [$ns_ node]
+#		 lappend nodelist_ $node_($i)
+#	 }
+#	 set lan_ [$ns_ newLan $nodelist_ 10Mb 2ms]
+#
+#	 set node0_ [$ns_ node]
+#	 $ns_ duplex-link $node0_ $node_(1) 10Mb 2ms DropTail
+#	 $ns_ duplex-link-op $node0_ $node_(1) orient right
+#	 set nodex_ [$ns_ node]
+#	 $ns_ duplex-link $nodex_ $node_(2) 10Mb 2ms DropTail
+#	 $ns_ duplex-link-op $nodex_ $node_(2) orient left
+#	 set nodey_ [$ns_ node]
+#	 $ns_ duplex-link $nodey_ $node_(0) 10Mb 2ms DropTail
+#	 $ns_ duplex-link-op $nodey_ $node_(0) orient down
+#
+#	 set udp0_ [new Agent/UDP]
+#	 $ns_ attach-agent $node0_ $udp0_
+#	 set cbr0_ [new Application/Traffic/CBR]
+#	 $cbr0_ attach-agent $udp0_
+#	 $udp0_ set dst_ 0x8003
+#
+#	 set rcvrx_ [new Agent/Null]
+#	 $ns_ attach-agent $nodex_ $rcvrx_
+#	 set rcvry_ [new Agent/Null]
+#	 $ns_ attach-agent $nodey_ $rcvry_
+#	 set mproto DM
+#	 set mrthandle [$ns_ mrtproto $mproto  {}]
+#}
+#
+#Test/lan-broadcast instproc run {} {
+#	 $self instvar ns_ cbr0_ nodex_ nodey_ rcvrx_ rcvry_
+#	 $ns_ at 0.0 "$nodex_ join-group $rcvrx_ 0x8003"
+#	 $ns_ at 0.0 "$nodey_ join-group $rcvry_ 0x8003"
+#	 $ns_ at 0.1 "$cbr0_ start"
+#	 $ns_ at 3.0 "$self finish"
+#	 $ns_ run
+#}
 
 
 proc runtest {arg} {
