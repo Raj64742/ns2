@@ -11,9 +11,9 @@ extern "C" {
 #include <address.h>
 
 
-#define OLD_ENTRY 0
+#define OLD_QRY_ENTRY 0
 #define OLD_SHORTER_ENTRY 1
-#define NEW_ENTRY 2
+#define NEW_QRY_ENTRY 2
 
 #define MAX_CACHE_ITEMS 200
 
@@ -223,7 +223,7 @@ FloodAgent::recv(Packet *p, Handler *)
   num_src_hops = (num_src_hops << 8) | *walk++;
 
   // Query from an agent at our node
-  if(iph->src_ == myaddr_ && iph->sport_ == 0 && action == QUERY_PKT) {
+  if(iph->saddr() == myaddr_ && iph->sport() == 0 && action == QUERY_PKT) {
     // Increase the number of source hops to 1
     // Add IP header length
     cmh->size_ += 20;
@@ -251,7 +251,7 @@ FloodAgent::recv(Packet *p, Handler *)
   }
 
   // Packet will be send down the stack
-  cmh->direction() = -1;
+  cmh->direction() = hdr_cmn::DOWN;
 
 
   // Query pkt if X and Y are 65000
@@ -259,8 +259,8 @@ FloodAgent::recv(Packet *p, Handler *)
 
     // Method returns 1 if query seen before. Otherwise returns 0
     // and adds query info to the list
-    int query_type = search_queries_list(iph->src_,obj_name,origin_time,num_src_hops,last_hop_id);
-    if(query_type == OLD_ENTRY) {
+    int query_type = search_queries_list(iph->saddr(),obj_name,origin_time,num_src_hops,last_hop_id);
+    if(query_type == OLD_QRY_ENTRY) {
       Packet::free(p);
       return;
     }
@@ -314,9 +314,9 @@ FloodAgent::recv(Packet *p, Handler *)
       }
 
       iph->ttl_ = 1000;
-      iph->dst_ = (iph->src_ << 8) | QUERY_PORT;
-      iph->dport_ = QUERY_PORT;
-      cmh->next_hop_ = last_hop_id;
+      iph->daddr() = iph->saddr();
+      iph->dport() = QUERY_PORT;
+      cmh->next_hop() = last_hop_id;
       cmh->addr_type_ = NS_AF_INET;
       // Add 50 bytes to response 
       cmh->size() += 50;
@@ -325,7 +325,7 @@ FloodAgent::recv(Packet *p, Handler *)
 	// TEMPORARY HACK! Cant forward from routing agent to some other
 	// agent on our node!
 	Packet::free(p);
-	trace("Found object %d.%d.%d at (%d,%d) at time %f", (obj_name >> 24) & 0xFF, (obj_name >> 16) & 0xFF, obj_name & 0xFFFF,X,Y,now);
+	trace("FloodAgent Found object %d.%d.%d at (%d,%d) at time %f", (obj_name >> 24) & 0xFF, (obj_name >> 16) & 0xFF, obj_name & 0xFFFF,X,Y,now);
 	return;
       }
 
@@ -341,8 +341,8 @@ FloodAgent::recv(Packet *p, Handler *)
 
       cmh->next_hop_ = IP_BROADCAST; // need to broadcast packet
       cmh->addr_type_ = NS_AF_INET;
-      iph->dst_ = IP_BROADCAST;  // packet needs to be broadcast
-      iph->dport_ = ROUTER_PORT;
+      iph->daddr() = IP_BROADCAST;  // packet needs to be broadcast
+      iph->dport() = ROUTER_PORT;
 
       s.schedule(target_,p,0);
     }
@@ -350,47 +350,47 @@ FloodAgent::recv(Packet *p, Handler *)
   else {
     // Forward response
     //    trace("Node %d: Forwarding response",myaddr_);
-      if(--iph->ttl_ == 0) {
-	drop(p, DROP_RTR_TTL);
-	return;
-      }
-
-      if(cache_) {
-	if(num_cached_items_ < MAX_CACHE_ITEMS) {
-	  
-	  int replace_index = num_cached_items_;
-	  // If object already exists in cache, update info if necessary
-	  for(int i = 0; i < num_cached_items_; ++i) {
-	    if(tag_cache_[i].obj_name_ == obj_name && tag_cache_[i].origin_time_ < origin_time) {
-	      replace_index = i;
-	      break;
-	    }
+    if(--iph->ttl_ == 0) {
+      drop(p, DROP_RTR_TTL);
+      return;
+    }
+    
+    if(cache_) {
+      if(num_cached_items_ < MAX_CACHE_ITEMS) {
+	
+	int replace_index = num_cached_items_;
+	// If object already exists in cache, update info if necessary
+	for(int i = 0; i < num_cached_items_; ++i) {
+	  if(tag_cache_[i].obj_name_ == obj_name && tag_cache_[i].origin_time_ < origin_time) {
+	    replace_index = i;
+	    break;
 	  }
-	  
-	  tag_cache_[replace_index].obj_name_ = obj_name;
-	  tag_cache_[replace_index].origin_time_ = origin_time;
-	  tag_cache_[replace_index].X_ = X;
-	  tag_cache_[replace_index].Y_ = Y;
-	  ++num_cached_items_;
 	}
-	else {
-	  // Use LRU cache replacement
-	  int replace_index = 0;
-	  int least_time = tag_cache_[replace_index].origin_time_;
-	  for(int i = 0; i < MAX_CACHE_ITEMS; ++i) {
-	    if(tag_cache_[i].origin_time_ < least_time)
-	      replace_index = i;
-	  }
-	  tag_cache_[replace_index].obj_name_ = obj_name;
-	  tag_cache_[replace_index].origin_time_ = origin_time;
-	  tag_cache_[replace_index].X_ = X;
-	  tag_cache_[replace_index].Y_ = Y;
-	}
+	
+	tag_cache_[replace_index].obj_name_ = obj_name;
+	tag_cache_[replace_index].origin_time_ = origin_time;
+	tag_cache_[replace_index].X_ = X;
+	tag_cache_[replace_index].Y_ = Y;
+	++num_cached_items_;
       }
-
-      cmh->next_hop_ = get_next_hop(iph->src_,obj_name,origin_time);
-      assert(cmh->next_hop_ != NO_NEXT_HOP);
-      s.schedule(target_,p,0);
+      else {
+	// Use LRU cache replacement
+	int replace_index = 0;
+	int least_time = tag_cache_[replace_index].origin_time_;
+	for(int i = 0; i < MAX_CACHE_ITEMS; ++i) {
+	  if(tag_cache_[i].origin_time_ < least_time)
+	    replace_index = i;
+	}
+	tag_cache_[replace_index].obj_name_ = obj_name;
+	tag_cache_[replace_index].origin_time_ = origin_time;
+	tag_cache_[replace_index].X_ = X;
+	tag_cache_[replace_index].Y_ = Y;
+      }
+    }
+    
+    cmh->next_hop_ = get_next_hop(iph->saddr(),obj_name,origin_time);
+    assert(cmh->next_hop_ != NO_NEXT_HOP);
+    s.schedule(target_,p,0);
   }
 }
 
@@ -411,7 +411,7 @@ FloodAgent::search_queries_list(nsaddr_t src, int obj_name, int origin_time, int
 	ql->last_hop_id_ = last_hop_id;
       return(OLD_SHORTER_ENTRY);
       }
-      return(OLD_ENTRY);
+      return(OLD_QRY_ENTRY);
     }
     // Replace very old entries
     if(ql->origin_time_ + 100 < origin_time && !replql)
@@ -428,7 +428,7 @@ FloodAgent::search_queries_list(nsaddr_t src, int obj_name, int origin_time, int
     query_list_->origin_time_ = origin_time;
     query_list_->num_hops_ = num_hops;
     query_list_->last_hop_id_ = last_hop_id;
-    return(NEW_ENTRY);
+    return(NEW_QRY_ENTRY);
   }
 
   if(replql) {
@@ -447,7 +447,7 @@ FloodAgent::search_queries_list(nsaddr_t src, int obj_name, int origin_time, int
     newql->num_hops_ = num_hops;
     newql->last_hop_id_ = last_hop_id;
   }
-  return(NEW_ENTRY);
+  return(NEW_QRY_ENTRY);
 }
   
 

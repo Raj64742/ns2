@@ -8,7 +8,6 @@ extern "C" {
 #include "landmark.h"
 #include <random.h>
 
-#define QUERY_PKT 4
 
 #define CONST_INTERVAL 30
 
@@ -47,16 +46,37 @@ trace (char *fmt,...)
 
 
 
+void
+SensorQueryAgent::stop()
+{
+  trace("Node %d: SensorQueryAgent going down at time %f",myaddr_,NOW);
+
+  // Event id > 0 implies presence on the event queue
+  if(gen_query_event_->uid_) {
+    Scheduler &s = Scheduler::instance();
+    s.cancel(gen_query_event_);
+  }
+  node_dead_ = 1;
+}
+
+
+
+
 int 
 SensorQueryAgent::command (int argc, const char *const *argv)
 {
   if (argc == 2)
     {
-      if (strcmp (argv[1], "start-queries") == 0)
+      if (strcmp (argv[1], "start") == 0)
         {
           startUp();
           return (TCL_OK);
         }
+      if (strcmp (argv[1], "stop") == 0)
+	{
+	  stop();
+	  return (TCL_OK);
+	}
       if (strcmp (argv[1], "generate-query") == 0)
         {
           generate_query(-1,-1,-1);
@@ -117,10 +137,12 @@ SensorQueryAgent::command (int argc, const char *const *argv)
 void
 SensorQueryAgent::startUp()
 {
-  Scheduler &s = Scheduler::instance();
-  double sched_time = CONST_INTERVAL + Random::uniform(query_interval_);
-  trace("Node %d: Scheduling query gen at %f from now %f",myaddr_,sched_time,s.clock());
-  s.schedule(query_handler_, gen_query_event_, Random::uniform(query_interval_));
+  //  Scheduler &s = Scheduler::instance();
+  //  double sched_time = CONST_INTERVAL + Random::uniform(query_interval_);
+  //  trace("Node %d: Scheduling query gen at %f from now %f",myaddr_,sched_time,s.clock());
+  //  s.schedule(query_handler_, gen_query_event_, Random::uniform(query_interval_));
+  trace("Node %d: SensorQueryAgent starting up at time %f",myaddr_,NOW);
+  node_dead_ = 0;
 }
 
 
@@ -150,15 +172,20 @@ SensorQueryAgent::generate_query(int p1, int p2, int p3)
   int X = 65000, Y = 65000;
   int action = QUERY_PKT;
 
+  if(node_dead_) {
+    trace("Node %d: node failed, cannot generate query");
+    return;
+  }
+
   // Need to ask our routing module to direct the packet
   hdrc->next_hop_ = myaddr_;
   hdrc->addr_type_ = NS_AF_INET;
-  iph->dst_ = (myaddr_ << 8) | (ROUTER_PORT);
-  iph->dport_ = ROUTER_PORT;
+  iph->daddr() = myaddr_;
+  iph->dport() = ROUTER_PORT;
   iph->ttl_ = 300;   // since only 300 ids in source route in packet
 
-  iph->src_ = myaddr_;
-  iph->sport_ = 0;
+  iph->saddr() = myaddr_;
+  iph->sport() = 0;
 
   // LM agent checks if the source port is 0 to identify a query packet  
   // 2 bytes each for X and Y co-ords
@@ -198,8 +225,7 @@ SensorQueryAgent::generate_query(int p1, int p2, int p3)
   (*walk++) = (obj_name) & 0xFF;
 
   double now = Scheduler::instance().clock();
-  if(now < 2000)
-    trace("Node %d: Generating query for object %d.%d.%d at time %f",myaddr_,(obj_name >> 24) & 0xFF,(obj_name >> 16) & 0xFF, obj_name & 0xFFFF,now);
+  trace("Node %d: Generating query for object %d.%d.%d at time %f",myaddr_,(obj_name >> 24) & 0xFF,(obj_name >> 16) & 0xFF, obj_name & 0xFFFF,now);
   
 
   int origin_time = (int) now;
@@ -215,7 +241,7 @@ SensorQueryAgent::generate_query(int p1, int p2, int p3)
   // Above fields will be 4 bytes each. 20 bytes for the IP header will be
   // added in LM agent. No source route hops on query creation.
   hdrc->size_ = 24; 
-  hdrc->direction() = -1;
+  hdrc->direction() = hdr_cmn::DOWN;
 
   s.schedule(target_,p,0);
   //  double sched_time = CONST_INTERVAL + Random::uniform(query_interval_);
@@ -232,6 +258,11 @@ SensorQueryAgent::recv(Packet *p, Handler *)
   unsigned char *walk = p->accessdata();
   int X = 0, Y = 0, obj_name = -1;
 
+  if(node_dead_) {
+    Packet::free(p);
+    return;
+  }
+
   ++walk;
   X = *walk++;
   X = (X << 8) | *walk++;
@@ -246,8 +277,7 @@ SensorQueryAgent::recv(Packet *p, Handler *)
   obj_name = (obj_name << 8) | *walk++;
 
   double now = Scheduler::instance().clock();
-  if(now < 2000) 
-    trace("Found object %d.%d.%d at (%d,%d) at time %f", (obj_name >> 24) & 0xFF, (obj_name >> 16) & 0xFF, obj_name & 0xFFFF,X,Y,now);
+  trace("Node %d: SensorQueryAgent Found object %d.%d.%d at (%d,%d) at time %f", myaddr_, (obj_name >> 24) & 0xFF, (obj_name >> 16) & 0xFF, obj_name & 0xFFFF,X,Y,now);
 
   Packet::free(p);
 }
@@ -258,6 +288,7 @@ SensorQueryAgent::SensorQueryAgent() : Agent(PT_MESSAGE) {
     query_interval_ = 120;
     gen_query_event_ = new Event;
     query_handler_ = new SensorQueryHandler(this);
+    node_dead_ = 0;
 }
 
 

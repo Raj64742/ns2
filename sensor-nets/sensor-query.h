@@ -33,6 +33,8 @@ public:
   nsaddr_t myaddr_;
 
   void startUp();
+  void stop();
+
   double query_interval_;
   void generate_query(int p1, int p2, int p3);
 
@@ -46,6 +48,8 @@ public:
   // Pointer to global tag database
   tags_database *tag_dbase_;
 
+  // set to 1 if node is dead, defaults to 0 
+  int node_dead_;
 };
 
 

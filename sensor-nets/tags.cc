@@ -120,21 +120,21 @@ tags_database::create_tags_database(double x_min, double x_max, double y_min, do
   // Creating the tags and adding them to the database
   tag *newtag = new tag();
   i = 0;
-  int p1 = 0, p2 = 0, p3 = 0;
-  int max_p1 = MAX_P1 - 1, max_p2 = MAX_P2 - 1;
-  int max_p3 = num_tags/(MAX_P1 * MAX_P2) - 1;
+  int p1 = 1, p2 = 1, p3 = 1;
+  int max_p1 = MAX_P1, max_p2 = MAX_P2;
+  int max_p3 = num_tags/(MAX_P1 * MAX_P2);
 
   while(i < num_tags) {
     newtag->x_ = x_min + rn_->uniform(x_max-x_min);
     newtag->y_ = y_min + rn_->uniform(y_max-y_min);
-    newtag->obj_name_ = (p1 * pow(2,24)) + (p2 * pow(2,16)) + p3 ;
+    newtag->obj_name_ = (int)((p1 * pow(2,24)) + (p2 * pow(2,16)) + p3) ;
     ++p3;
 
     if(p3 == max_p3) {
-      p3 = 0;
+      p3 = 1;
       ++p2;
       if(p2 == max_p2) {
-	p2 = 0;
+	p2 = 1;
 	++p1;
 	if(p1 == max_p1) {
 	  break;
@@ -319,10 +319,11 @@ tags_database::get_random_tag()
 
 
 void
-tags_database::search_tags_dbase(double x, double y, double r, const dbase_node *dbnode)
+tags_database::search_tags_dbase(double x, double y, double r, dbase_node *dbnode)
 {
-  int i, found = FALSE;
+  int i, found = FALSE, removed_tag = 0;
   compr_taglist **apt_tags;
+  tag *prev_tag, *next_tag;
   tag *dbase_tags;
   dbase_node *child_dbnode;
 
@@ -332,17 +333,39 @@ tags_database::search_tags_dbase(double x, double y, double r, const dbase_node 
     apt_tags = &vtags_;
     while((*apt_tags) != NULL)
       apt_tags = &((*apt_tags)->next_);
-
+    
     dbase_tags = dbnode->tags_list_;
+    prev_tag = dbase_tags;
     while(dbase_tags) {
+      removed_tag = 0;
       double xpos = (dbase_tags->x_ - x) * (dbase_tags->x_ - x);
       double ypos = (dbase_tags->y_ - y) * (dbase_tags->y_ - y);
+
       if((xpos + ypos) < (r*r)) {
 	*apt_tags = new compr_taglist;
 	(*apt_tags)->obj_name_ = dbase_tags->obj_name_;
 	apt_tags = &((*apt_tags)->next_);
+
+	// Delete tag from the list so that only one sensor observes 
+	// a particular tag
+	removed_tag = 1;
+	if(prev_tag == dbase_tags) {
+	  dbnode->tags_list_ = dbase_tags->next_;
+	  prev_tag = dbase_tags->next_;
+	}
+	else
+	  prev_tag->next_ = dbase_tags->next_;
+
+	next_tag = dbase_tags->next_;
+	delete dbase_tags;
       }
-      dbase_tags = dbase_tags->next_;
+      if(!removed_tag) {
+	prev_tag = dbase_tags;
+	dbase_tags = dbase_tags->next_;
+      }
+      else {
+	dbase_tags = next_tag;
+      }
     }
     return;
   }

@@ -127,7 +127,7 @@ protected:
   RNG *rn_;
   compr_taglist *vtags_; //used to store returned tag list after search    
   void add_level(double x_min, double x_max, double y_min, double y_max, dbase_node *dbnode);				       
-  void search_tags_dbase(double x, double y, double r, const dbase_node *dbnode);
+  void search_tags_dbase(double x, double y, double r, dbase_node *dbnode);
 };
 
 

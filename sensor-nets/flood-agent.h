@@ -15,19 +15,9 @@
 #include <priqueue.h>
 #include <mobilenode.h>
 #include "tags.h"
-
+#include "landmark.h"
 
 typedef double Time;
-
-#define QUERY_PORT 0
-#define ROUTER_PORT 255
-
-#define TRUE 1
-#define FALSE 0
-
-#define NO_NEXT_HOP 50000
-
-#define QUERY_PKT  4        // query/response pkt
 
 
 class QueryList {
