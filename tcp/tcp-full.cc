@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.55 1998/07/08 18:31:26 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.56 1998/07/08 18:50:27 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -2403,10 +2403,16 @@ void
 SackFullTcpAgent::reset()
 {
 	sq_.clear();
-	sack_max_ = sack_min_ = -1;
+	sack_max_ = sack_min_ = sack_nxt_ = -1;
 	reno_fastrecov_ = FALSE;	// always F for sack
+	pipectrl_ = FALSE;		// start in window mode
 	FullTcpAgent::reset();
 }
+
+/*
+ * override FullTcpAgent::recv() method to parse sack info
+ * when it arrives.  Then call standard recv() method.
+ */
 
 void
 SackFullTcpAgent::recv(Packet* pkt, Handler* h)
@@ -2419,9 +2425,6 @@ SackFullTcpAgent::recv(Packet* pkt, Handler* h)
 
 		int slen = tcph->sa_length();
 		int i;  
-	   
-		if (tcph->ackno() > sack_min_)
-			sack_min_ = tcph->ackno();
 	   
 		for (i = 0; i < slen; ++i) {
 			if (sack_max_ < tcph->sa_right(i))
@@ -2448,15 +2451,13 @@ void
 SackFullTcpAgent::ack_action(Packet* p)
 {
 	FullTcpAgent::ack_action(p);
-	// fill in the sack send q with everything
-	// ack'd so far
+
 	if (!sq_.empty() && sack_max_ <= highest_ack_) {
 		sq_.clear();
 	}
 
 	if (sack_nxt_ < highest_ack_)
 		sack_nxt_ = highest_ack_;
-	//sq_.add(iss_, highest_ack_, 0);
 	pipectrl_ = FALSE;
 }
 
@@ -2548,8 +2549,9 @@ SackFullTcpAgent::send_holes(int force, int maxburst)
 	}
 
         int nxtblk[2]; // left, right of 1 sack block
-	sq_.sync(); // reset to beginning of sack list
+	sq_.sync();    // reset to beginning of sack list
 
+	// skip over old blocks
 	while (sq_.nextblk(nxtblk)) {
 		if (t_seqno_ <= nxtblk[1])
 			break;
@@ -2557,22 +2559,20 @@ SackFullTcpAgent::send_holes(int force, int maxburst)
 
 	while (force || (pipe_ < window())) {
 		force = 0;
-                if (overhead_ != 0 &&
-                    (delsnd_timer_.status() != TIMER_PENDING)) {
-                        delsnd_timer_.resched(Random::uniform(overhead_));
+		// don't sent off the top
+		if (t_seqno_ > recover_ || t_seqno_ >= sack_max_)
 			break;
-                }
-		if (t_seqno_ >= sack_max_ || t_seqno_ > recover_)
-			break;
+
+		// skip this one if the receiver has it already
 		if (t_seqno_ >= nxtblk[0] && t_seqno_ <= nxtblk[1]) {
 			t_seqno_ = nxtblk[1];
 			if (sq_.nextblk(nxtblk))
 				continue;
-
-			break;
+			break;	// no more blocks, finish up
 		}
-		int save = t_seqno_;
 
+		// try to send something, check to see if we did
+		int save = t_seqno_;
 		output(t_seqno_, REASON_SACK);
 		if (t_seqno_ == save) {
 			break;
@@ -2583,8 +2583,9 @@ SackFullTcpAgent::send_holes(int force, int maxburst)
 		    (outflags() & (TH_SYN|TH_FIN)))
 			break;
 	}
-	sack_nxt_ += (t_seqno_ - sack_nxt_);
-	t_seqno_ = save_tseq;
+
+	sack_nxt_ = t_seqno_;	// update next hole fill
+	t_seqno_ = save_tseq;	// restore t_seqno_
 	return;
 }
 
@@ -2593,5 +2594,6 @@ SackFullTcpAgent::timeout_action()
 {
 	FullTcpAgent::timeout_action();
 	sq_.clear();
-	sack_min_ = sack_max_ = highest_ack_;
+	sack_min_ = highest_ack_;
+	sack_nxt_ = sack_max_ = -1;
 }
