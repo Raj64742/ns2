@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.33 1997/11/27 00:57:27 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.34 1997/11/27 05:32:53 padmanab Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -264,7 +264,7 @@ protected:
 	 * Dynamic state.
 	 */
 	TracedInt dupacks_;	/* number of duplicate acks */
-	int curseq_;		/* highest seqno "produced by app" */
+	TracedInt curseq_;	/* highest seqno "produced by app" */
 	int last_ack_;		/* largest consecutive ACK, frozen during
 				 *		Fast Recovery */
 	TracedInt highest_ack_;	/* not frozen during Fast Recovery */
