@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.109 2000/07/17 02:09:19 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.110 2000/08/08 02:39:41 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -146,6 +146,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("EnblRTTCtr_");
         delay_bind_init_one("control_increase_");
 	delay_bind_init_one("noFastRetrans_");
+	delay_bind_init_one("precisionReduce_");
 
 #ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
@@ -238,6 +239,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "nrexmitbytes_", &nrexmitbytes_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "singledup_", &singledup_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "noFastRetrans_", &noFastRetrans_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "precisionReduce_", &precision_reduce_, tracer)) return TCL_OK;
 #endif
 
         return Agent::delay_bind_dispatch(varName, localName, tracer);
@@ -627,6 +629,11 @@ int TcpAgent::window()
 	return (cwnd_ < wnd_ ? (int)cwnd_ : (int)wnd_);
 }
 
+double TcpAgent::windowd()
+{
+	return (cwnd_ < wnd_ ? cwnd_ : wnd_);
+}
+
 /*
  * Try to send as much data as the window will allow.  The link layer will 
  * do the buffering; we ask the application layer for the size of the packets.
@@ -806,20 +813,30 @@ void TcpAgent::opencwnd()
 void
 TcpAgent::slowdown(int how)
 {
-	int win = window();
+	double win, halfwin, decreasewin;
 	int slowstart = 0;
 	// we are in slowstart for sure if cwnd < ssthresh
 	if (cwnd_ < ssthresh_)
 		slowstart = 1;
-	int halfwin = int (window() / 2);
-	int decreasewin = int (decrease_num_ * window());
+        if (precision_reduce_) {
+		halfwin = windowd() / 2;
+	 	decreasewin = decrease_num_ * windowd();
+		win = windowd();
+	} else  {
+		int temp;
+		temp = (int)(window() / 2);
+		halfwin = (double) temp;
+	 	temp = (int)(decrease_num_ * window());
+		decreasewin = (double) temp;
+		win = (double) window();
+	}
 	if (how & CLOSE_SSTHRESH_HALF)
 		// For the first decrease, decrease by half
 		// even for non-standard values of decrease_num_.
 		if (first_decrease_ == 1 || slowstart) {
-			ssthresh_ = halfwin;
+			ssthresh_ = (int) halfwin;
 		} else {
-			ssthresh_ = decreasewin;
+			ssthresh_ = (int) decreasewin;
 		}
         else if (how & THREE_QUARTER_SSTHRESH)
 		if (ssthresh_ < 3*cwnd_/4)

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.76 2000/07/17 02:09:19 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.77 2000/08/08 02:39:41 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -155,6 +155,7 @@ public:
 	virtual void advanceby(int delta);
 protected:
 	virtual int window();
+	virtual double windowd();
 	void print_if_needed(double memb_time);
 	void traceAll();
 	virtual void traceVar(TracedVar* v);
@@ -243,6 +244,7 @@ protected:
 				/* 2 for using large initial windows */
 	double decrease_num_;   /* factor for multiplicative decrease */
 	double increase_num_;   /* factor for additive increase */
+	int precision_reduce_;  /* non-integer reduction of cwnd */
 	int syn_;		/* 1 for modeling SYN/ACK exchange */
 	int delay_growth_;  	/* delay opening cwnd until 1st data recv'd */
 	int tcpip_base_hdr_size_;  /* size of base TCP/IP header */
@@ -344,6 +346,7 @@ class RenoTcpAgent : public virtual TcpAgent {
  public:
 	RenoTcpAgent();
 	virtual int window();
+	virtual double windowd();
 	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
 	virtual void dupack_action();
