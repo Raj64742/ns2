@@ -126,11 +126,12 @@ In addition to the above node and link layout events are also included in the in
 
 \subsection{Nodes}
 
-The nam trace format defining node state is:
-\code{n -t <time> -a <src-addr> -s <src-id> -S <state> -v <shape> -c <color> -i <l-color> -o <color>}
-"n" denotes the node state. Flags "-t" indicates time and "-a" and "-s"
-denotes the node address and id. "-S" gives the node state transition.
-The possible values: 
+The nam trace format defining node state is:\\
+\code{n -t <time> -a <src-addr> -s <src-id> -S <state> -v <shape> -c <color> -i <l-color> -o <color>}\\
+"n" denotes the node state.\\
+Flags "-t" indicates time and "-a" and "-s" denotes the node address and id.\\
+"-S" gives the node state transition.\\
+The possible state transition values are: 
 \begin{itemize}
 \item UP, DOWN indicates node recovery and failure.
 \item COLOR indicates node color change. If COLOR is given, a
@@ -335,7 +336,8 @@ Flag {\tt <type>} is
 \item[u] for an up-counting timer
 \item[d] for a down-counting timer.
 \end{description}
-However, only \tt{v} is implemented in \ns. 
+
+However, only {\tt v} is implemented in \ns. 
 Flag {\tt -v <value>} gives the new value of the variable. 
 Variable values are simple ASCII strings obeying the TCL string
 quoting conventions. 
@@ -345,7 +347,7 @@ Flag {\tt -o <prev value>} gives the previous value of the variable.
 This is used in backward animation. 
 Here is an example of a simple feature event:
 \begin{program}
-\code{f -t 0.00000000000000000 -s 1 -n C1\_ -a srm(1) -v 2.25000 -T v}\\
+f -t 0.00000000000000000 -s 1 -n C1\_ -a srm(1) -v 2.25000 -T v
 \end{program}
 
 Features may be deleted using:
@@ -357,7 +359,7 @@ f -t <time> -a <agent name> -n <var name> -o <prev value> -X
 
 There are other trace events in addition to the formats described above:
 \begin{description}
-\item[Annotation] This event is represented by event type \tt{v}. 
+\item[Annotation] This event is represented by event type {\tt v}. 
   It is used for generic annotation:
 \begin{program}
 v -t <time> -e <TCL script string>  
