@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.19 2000/11/08 06:47:46 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.20 2000/11/22 01:35:56 xuanc Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -293,7 +293,7 @@ then
 	echo " Ns has been installed successfully." 
 else
 	echo "Ns make failed!"
-	echo "See http://www-mash.CS.Berkeley.EDU/ns/ns-problems.html for problems"
+	echo "See http://www.isi.edu/nsnam/ns/ns-problems.html for problems"
 	exit
 fi
 
