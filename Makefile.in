@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.104 1998/04/08 20:06:17 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.105 1998/04/09 20:34:06 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -36,7 +36,7 @@ BLANK	= # make a blank space.  DO NOT add anything to this line
 CC	= @CC@
 CPP	= @CXX@
 LINK	= $(CPP)
-MKDEP	= ./mkdep
+MKDEP	= ./conf/mkdep
 TCLSH	= @V_TCLSH@
 TCL2C	= @V_TCL2CPP@
 AR	= ar rc $(BLANK)
