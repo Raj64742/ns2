@@ -1,5 +1,5 @@
 /*
-  $Id: tora_logs.cc,v 1.1 1999/08/03 04:07:11 yaxu Exp $
+  $Id: tora_logs.cc,v 1.2 1999/09/22 21:05:11 yaxu Exp $
   */
 
 #include <agent.h>
@@ -64,7 +64,8 @@ toraAgent::log_link_layer_recycle(Packet *p)
                 CURRENT_TIME,
                 ipaddr(),
                 ch->uid_,
-                ih->src_, ih->dst_,
+		//                ih->src_, ih->dst_,
+		ih->saddr(),ih->daddr(),
                 ch->prev_hop_, ch->next_hop_);
         logtarget->dump();
 }
@@ -135,7 +136,7 @@ toraAgent::log_recv_qry(Packet *p)
 
 	sprintf(logtarget->buffer(),
 		"T %.9f %d received `QRY` from %d --- %d",
-		CURRENT_TIME, ipaddr(), ih->src_, qh->tq_dst);
+		CURRENT_TIME, ipaddr(), ih->saddr(), qh->tq_dst);
 	logtarget->dump();
 }
 
@@ -151,7 +152,8 @@ toraAgent::log_recv_upd(Packet *p)
 		"T %.9f _%d_ received `UPD` from %d --- %d (%f %d %d %d %d)",
 		CURRENT_TIME,
                 ipaddr(),
-                ih->src_, uh->tu_dst,
+		// ih->src_, uh->tu_dst,
+		ih->saddr(), uh->tu_dst,
 		uh->tu_tau, uh->tu_oid, uh->tu_r, uh->tu_delta, uh->tu_id);
 	logtarget->dump();
 }
@@ -168,7 +170,8 @@ toraAgent::log_recv_clr(Packet *p)
 		"T %.9f _%d_ received `CLR` from %d --- %d (%f %d)",
 		CURRENT_TIME,
                 ipaddr(),
-                ih->src_,
+                // ih->src_,
+		ih->saddr(),
 		ch->tc_dst, ch->tc_tau, ch->tc_oid);
 	logtarget->dump();
 }
