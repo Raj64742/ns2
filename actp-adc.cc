@@ -16,6 +16,11 @@
  * These notices must be retained in any copies of any part of this
  * software. 
  */
+#ifndef lint
+static const char rcsid[] =
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/actp-adc.cc,v 1.2 1998/05/08 00:30:30 bajaj Exp $";
+#endif
+
 
 //Acceptance region Tangent at Peak Admission Control
 
@@ -40,8 +45,11 @@ int ACTP_ADC::admit_flow(int cl,double r,int b)
 {
 	//get peak rate this class of flow
 	double p=peak_rate(cl,r,b);
-	if (rejected_)
-		return 0;
+
+	if (backoff_) {
+		if (rejected_)
+			return 0;
+	}
 	
 	//fprintf (stderr,"%f %f %f\n",sump_*(1-exp(-p*s_)),exp(-p*s_)*est_[cl]->avload(),est_[cl]->avload());
 	if (sump_*(1-exp(-p*s_))+exp(-p*s_)*est_[cl]->avload() <= bandwidth_) {

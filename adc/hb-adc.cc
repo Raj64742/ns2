@@ -16,6 +16,10 @@
  * These notices must be retained in any copies of any part of this
  * software. 
  */
+#ifndef lint
+static const char rcsid[] =
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/hb-adc.cc,v 1.2 1998/05/08 00:30:33 bajaj Exp $";
+#endif
 
 //Hoeffding Bounds Admission Control
 
@@ -38,11 +42,12 @@ protected:
 
 int HB_ADC::admit_flow(int cl,double r,int b)
 {
-  //get peak rate this class of flow
+	//get peak rate this class of flow
 	double p=peak_rate(cl,r,b);
-	if (rejected_)
-		return 0;
-	
+	if (backoff_) {
+		if (rejected_)
+			return 0;
+	}	
 	//printf("Peak rate: %f Avload: %f Rem %f %f %f\n",p,est_[cl]->avload(),sqrt(log(1/epsilon_)*sump2_/2),log(1/epsilon_),sump2_);
 	
 	if ((p+est_[cl]->avload()+sqrt(log(1/epsilon_)*sump2_/2)) <= bandwidth_) {

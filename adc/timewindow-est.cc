@@ -16,6 +16,11 @@
  * These notices must be retained in any copies of any part of this
  * software. 
  */
+#ifndef lint
+static const char rcsid[] =
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/timewindow-est.cc,v 1.5 1998/05/08 00:30:35 bajaj Exp $";
+#endif
+
 
 //Time Window estimation
 

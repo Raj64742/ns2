@@ -14,7 +14,8 @@
  * express or implied warranty of any kind.
  *
  * These notices must be retained in any copies of any part of this
- * software. 
+ * software.
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/estimator.h,v 1.3 1998/05/08 00:30:32 bajaj Exp $
  */
 
 //Estimator unit estimates average load every period interval of time

@@ -18,7 +18,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/adc.cc,v 1.3 1998/05/07 20:49:08 bajaj Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/adc.cc,v 1.4 1998/05/08 00:30:30 bajaj Exp $";
 #endif
 
 #include "adc.h"
@@ -27,6 +27,7 @@ static const char rcsid[] =
 ADC::ADC() :bandwidth_(0), tchan_(0)
 {
 	bind_bw("bandwidth_",&bandwidth_);
+	bind_bool("backoff_",&backoff_);
 	bind("src_", &src_);
 	bind("dst_", &dst_);
 }

@@ -16,6 +16,11 @@
  * These notices must be retained in any copies of any part of this
  * software. 
  */
+#ifndef lint
+static const char rcsid[] =
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/acto-adc.cc,v 1.2 1998/05/08 00:30:29 bajaj Exp $";
+#endif
+
 
 //Acceptance region Tangent at Origin Admission Control
 
@@ -37,8 +42,10 @@ protected:
 int ACTO_ADC::admit_flow(int cl,double r,int b)
 {
 	double p=peak_rate(cl,r,b);
-	if (rejected_)
-		return 0;
+	if (backoff_) {
+		if (rejected_)
+			return 0;
+	}
 	
 	if (exp(p*s_)*est_[cl]->avload() <= bandwidth_) {
 		return 1;
