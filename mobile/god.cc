@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.11 2000/08/31 20:11:49 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/god.cc,v 1.12 2000/10/13 23:32:17 intanago Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -448,8 +448,7 @@ int *God::NextOIFs(int dt, int srcid, int curid, int *ret_num_oif)
 
 bool God::IsReachable(int i, int j)
 {
-
-  if (MIN_HOPS(i,j) < UNREACHABLE && MIN_HOPS(i,j) >= 0) 
+  if (NextHop(i,j) != UNREACHABLE)   
      return true;
   else
      return false;
