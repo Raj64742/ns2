@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.16 1997/11/11 01:19:06 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.17 1997/11/11 01:36:38 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -719,7 +719,7 @@ Test/EXTRA1 instproc init topo {
         $self instvar net_ defNet_ test_
         Queue set limit_ 1000
         set net_ $topo
-        set defNet_ cbq1-wrr
+        set defNet_ cbq1-prr
         set test_ CBQ_EXTRA1
         $self next 0
 }
@@ -750,7 +750,7 @@ Test/EXTRA2 instproc init topo {
         $self instvar net_ defNet_ test_
         Queue set limit_ 1000
         set net_ $topo
-        set defNet_ cbq1-wrr
+        set defNet_ cbq1-prr
         set test_ CBQ_EXTRA2
         $self next 0
 }
@@ -761,7 +761,7 @@ Test/EXTRA2 instproc run {} {
         set cbqalgorithm_ formal
         
         $topo_ instvar cbqlink_ 
-        $self create_flat2 auto 0.012
+        $self create_flat2 auto 0.12
         $self insert_flat2 $cbqlink_
         $self two_cbrs 1000 1000 0.015 0.01 0
         [$cbqlink_ queue] algorithm $cbqalgorithm_
