@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.22 1998/06/03 03:26:50 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.23 1998/06/25 23:50:56 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -139,7 +139,7 @@ void MacCsma::endofContention(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p) - (s.clock() - txstart_);
-	hdr_mac::get(p)->txtime() = txt;
+	hdr_mac::access(p)->txtime() = txt;
 	channel_->send(p, txt);
 	s.schedule(&hRes_, &eEoc_, txt);
 	rtx_ = 0;

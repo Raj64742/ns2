@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.15 1998/06/03 03:23:55 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/snoop.cc,v 1.16 1998/06/25 23:50:57 gnguyen Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -205,7 +205,7 @@ Snoop::handle(Event *e)
 	int prop = SNOOP_PROPAGATE; // by default;  propagate ack or packet
 	Scheduler& s = Scheduler::instance();
 
-	hdr_ll *llh = hdr_ll::get(p);
+	hdr_ll *llh = hdr_ll::access(p);
 	if (((hdr_cmn*) p->access(off_cmn_))->error()) {
 		parent_->drop(p);        // drop packet if it's been corrupted
 		return;

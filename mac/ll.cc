@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.19 1998/06/19 22:06:42 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.20 1998/06/25 23:50:57 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -109,7 +109,7 @@ void LL::recv(Packet* p, Handler* h)
 	if (h == 0)		// from MAC classifier
 		recvtarget_ ? recvfrom(p) : drop(p);
 	else {
-		hdr_ll::get(p)->lltype() = LL_DATA;
+		hdr_ll::access(p)->lltype() = LL_DATA;
 		sendto(p, h);
 	}
 }
@@ -117,8 +117,8 @@ void LL::recv(Packet* p, Handler* h)
 
 Packet* LL::sendto(Packet* p, Handler* h)
 {	
-	hdr_ll::get(p)->seqno_ = ++seqno_;
-	hdr_mac::get(p)->macDA_ = macDA_;
+	hdr_ll::access(p)->seqno_ = ++seqno_;
+	hdr_mac::access(p)->macDA_ = macDA_;
 	sendtarget_->recv(p);
 	if (h) {
 		Scheduler& s = Scheduler::instance();
