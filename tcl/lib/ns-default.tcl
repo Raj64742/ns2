@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.337 2004/10/22 04:33:32 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.338 2004/10/23 01:27:19 sfloyd Exp $
 
 
 #
@@ -1040,10 +1040,12 @@ Agent/TFRC set rate_init_option_ 2 ;	# Added on 10/20/2004
 				# Default changed on 10/21/2004.
 Agent/TFRC set slow_increase_ 1 ;	# Added on 10/20//2004
 				# Set to 1 for gradual rate changes.  
-				# This gives backward compatibility.
-Agent/TFRC set ss_changes_ 0 ;	# Added on 10/21//2004. 
+				# This also gives backward compatibility.
+Agent/TFRC set ss_changes_ 1 ;	# Added on 10/21//2004. 
 				# Set to 0 for backward compatibility. 
-				# Set to 1 for changes to slow-start. 
+				# Set to 1 for slow-start changes to 
+				#  accomodate higher initial rates.
+				# Default changed on 10/22/2004.
 Agent/TFRCSink set packetSize_ 40
 Agent/TFRCSink set InitHistorySize_ 100000
 Agent/TFRCSink set NumFeedback_ 1 
