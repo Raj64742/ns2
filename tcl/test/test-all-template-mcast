@@ -71,5 +71,9 @@ for t in $tests; do
 done
 if test "$success" = "true"; then
 	echo All test output agrees with reference output
+	exit 0
+else
+        echo Some test failed
+        exit 1
 fi
 
