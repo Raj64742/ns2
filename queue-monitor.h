@@ -30,8 +30,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.7 1997/06/03 21:33:41 kannan Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.8 1997/06/12 22:55:16 kfall Exp $ (UCB)
  */
+
+#ifndef ns_queue_monitor_h
+#define ns_queue_monitor_h
 
 #include "integrator.h"
 #include "connector.h"
@@ -40,23 +43,34 @@
 class QueueMonitor : public TclObject {
  public: 
         QueueMonitor() : bytesInt_(NULL), pktsInt_(NULL), delaySamp_(NULL),
-	    size_(0), pkts_(0), barrivals_(0), parrivals_(0),
-	    bdepartures_(0), pdepartures_(0), bdrops_(0), pdrops_(0) {
+          size_(0), pkts_(0),
+          parrivals_(0), barrivals_(0),
+          pdepartures_(0), bdepartures_(0),
+          pdrops_(0), bdrops_(0) {
+
                 bind("size_", &size_);
                 bind("pkts_", &pkts_);
                 bind("parrivals_", &parrivals_);
                 bind("barrivals_", &barrivals_);
                 bind("pdepartures_", &pdepartures_);
                 bind("bdepartures_", &bdepartures_);
-                bind("bdrops_", &bdrops_);
                 bind("pdrops_", &pdrops_);
+                bind("bdrops_", &bdrops_);
                 bind("off_cmn_", &off_cmn_);
         };      
+
 	int size() const { return (size_); }
 	int pkts() const { return (pkts_); }
+	int parrivals() const { return (parrivals_); }
+	int barrivals() const { return (barrivals_); }
+	int pdepartures() const { return (pdepartures_); }
+	int bdepartures() const { return (bdepartures_); }
+	int pdrops() const { return (pdrops_); }
+	int bdrops() const { return (bdrops_); }
         virtual void in(Packet*);
         virtual void out(Packet*);
 	virtual void drop(Packet*);
+	virtual void edrop(Packet*) { abort(); }; // not here
         virtual int command(int argc, const char*const* argv);
 protected:
         Integrator  *bytesInt_;	// q-size integrator (bytes)
@@ -65,12 +79,12 @@ protected:
         int size_;	// current queue size (bytes)
         int pkts_;	// current queue size (packets)
 	// aggregate counters bytes/packets
-	int barrivals_;
 	int parrivals_;
-	int bdepartures_;
+	int barrivals_;
 	int pdepartures_;
-	int bdrops_;
+	int bdepartures_;
 	int pdrops_;
+	int bdrops_;
         int off_cmn_;
 };   
 
@@ -118,6 +132,40 @@ class SnoopQueueDrop : public SnoopQueue {
 };
 
 /*
+ * "early drop" QueueMonitor.  Like a normal QueueMonitor,
+ * but also supports the notion of "early" drops
+ */
+
+
+class EDQueueMonitor : public QueueMonitor {
+public:
+	EDQueueMonitor() : ebdrops_(0), epdrops_(0) {
+                bind("ebdrops_", &ebdrops_);
+                bind("epdrops_", &epdrops_);
+	}
+	void edrop(Packet* p) {
+		hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+		ebdrops_ += hdr->size();
+		epdrops_++;
+		QueueMonitor::drop(p);
+	}
+	int epdrops() const { return (epdrops_); }
+	int ebdrops() const { return (ebdrops_); }
+protected:
+	int	ebdrops_;
+	int	epdrops_;
+};
+
+class SnoopQueueEDrop : public SnoopQueue {
+ public:
+        void recv(Packet* p, Handler* h) {
+                qm_->edrop(p);
+                send(p, h);
+        }       
+};
+
+
+/*
  * a 'QueueMonitorCompat', which is used by the compat
  * code to produce the link statistics available in ns-1
  */
@@ -136,3 +184,5 @@ protected:
 	intRVec	bytes_;
 	intRVec	drops_;
 };
+
+#endif
