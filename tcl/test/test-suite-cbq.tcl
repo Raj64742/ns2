@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.15 1997/11/11 00:51:22 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.16 1997/11/11 01:19:06 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -131,6 +131,26 @@ TestSuite instproc create_flat2 { audmaxidle audxdelay } {
 	set dataclass_ [new CBQClass]
 	$self make_queue $dataclass_ $qlim
 	$dataclass_ setparams $topclass_ true 0.30 auto 2 1 0
+}
+
+TestSuite instproc create_flat3 { rootbw rootmaxidle } {
+	$self instvar topclass_ audioclass_ dataclass_
+	$self instvar cbq_qtype_
+
+	set qlim 20
+	set cbq_qtype_ DropTail
+
+	set topclass_ [new CBQClass]
+	# (topclass_ doesn't have a queue)
+	$topclass_ setparams none false $rootbw $rootmaxidle 8 2 0
+
+	set audioclass_ [new CBQClass]
+	$self make_queue $audioclass_ $qlim
+	$audioclass_ setparams $topclass_ true 0.01 auto 1 1 0
+
+	set dataclass_ [new CBQClass]
+	$self make_queue $dataclass_ $qlim
+	$dataclass_ setparams $topclass_ true 0.99 auto 2 1 0
 }
 
 TestSuite instproc insert_flat2 cbqlink {
@@ -397,14 +417,14 @@ TestSuite instproc three_cbrs {} {
 #
 # Create two CBR connections.
 #
-TestSuite instproc two_cbrs { int1 int2 dostop } {
+TestSuite instproc two_cbrs { ps1 ps2 int1 int2 dostop } {
 	$self instvar ns_ node_
 	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r2) 1]
-	$cbr1 set packetSize_ 1000
+	$cbr1 set packetSize_ $ps1
 	$cbr1 set interval_ $int1
 
 	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r2) 2]
-	$cbr2 set packetSize_ 1000
+	$cbr2 set packetSize_ $ps2
 	$cbr2 set interval_ $int2
 
 	$ns_ at 0.0 "$cbr1 start; $cbr2 start"
@@ -657,7 +677,7 @@ Test/MAX1 instproc run {} {
         $topo_ instvar cbqlink_
         $self create_flat2 0.25 0
         $self insert_flat2 $cbqlink_
-        $self two_cbrs 0.001 0.01 1
+        $self two_cbrs 1000 1000 0.001 0.01 1
         [$cbqlink_ queue] algorithm $cbqalgorithm_
 
 	TestSuite instproc finish tname { $self finish_max $tname }
@@ -683,7 +703,7 @@ Test/MAX2 instproc run {} {
         $topo_ instvar cbqlink_
         $self create_flat2 0.004 0
         $self insert_flat2 $cbqlink_
-        $self two_cbrs 0.001 0.01 1
+        $self two_cbrs 1000 1000 0.001 0.01 1
         [$cbqlink_ queue] algorithm $cbqalgorithm_
 
 	TestSuite instproc finish tname { $self finish_max $tname }
@@ -712,7 +732,7 @@ Test/EXTRA1 instproc run {} {
         $topo_ instvar cbqlink_ 
         $self create_flat2 auto 0.024
         $self insert_flat2 $cbqlink_
-        $self two_cbrs 0.015 0.01 0
+        $self two_cbrs 1000 1000 0.015 0.01 0
         [$cbqlink_ queue] algorithm $cbqalgorithm_
 
         TestSuite instproc finish tname { $self finish_max $tname }
@@ -743,7 +763,7 @@ Test/EXTRA2 instproc run {} {
         $topo_ instvar cbqlink_ 
         $self create_flat2 auto 0.012
         $self insert_flat2 $cbqlink_
-        $self two_cbrs 0.015 0.01 0
+        $self two_cbrs 1000 1000 0.015 0.01 0
         [$cbqlink_ queue] algorithm $cbqalgorithm_
 
         TestSuite instproc finish tname { $self finish_max $tname }
@@ -889,131 +909,81 @@ Test/MIN6 instproc run {} {
 # With Ancestor-Only link-sharing, the top class cannot be
 #   allocated 100% of the link bandwidth.
 #
-proc test_cbqTwoAO {} {
-	global s1 s2 s3 s4 r1 k1 
-	set queue 20
-	set Mbps 1.5
-	set stopTime 8.1
-	set CBQalgorithm 0
-	create_graph $stopTime cbq $queue
-	set link [ns link $r1 $k1]
+Class Test/TwoAO -superclass TestSuite
+Test/TwoAO instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-prr
+        set test_ CBQ_TwoAO
+        $self next 0
+}   
+Test/TwoAO instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        set stopTime 8.1
+        set maxbytes 187500
+        set cbqalgorithm_ ancestor-only
+    
+        $topo_ instvar cbqlink_
+        $self create_flat3 0.98 1.0
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 190 500 0.001 0.002 0
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
 
-	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
-        set audioClass [ns_create_class1 $topClass $topClass \
-               0.01 auto auto 1 0 0 $Mbps]
-	set dataClass [ns_create_class1 $topClass $topClass \
-		0.99 auto auto 2 0 0 $Mbps]
-
- 	$link insert $topClass
- 	$link insert $audioClass
-        $link insert $dataClass
-
-	set qdisc [$audioClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
- 	$link bind $audioClass 1
-	$link bind $dataClass 2
-
-        set cbr0 [ns_create_cbr $s1 $k1 190 0.001 1]
-        set cbr1 [ns_create_cbr $s2 $k1 500 0.002 2]
-
-        ns at 0.0 "$cbr0 start"
-        ns at 0.0 "$cbr1 start"
-
-
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	openTrace4 $stopTime test_cbqTwoAO
-
-	ns run
-}
+        $self openTrace $stopTime CBQ_TwoAO
+    
+        $ns_ run
+}   
 
 # This has a smaller value for maxidle for the root class. 
-proc test_cbqTwoAO2 {} {
-	global s1 s2 s3 s4 r1 k1 
-	set Mbps 1.5
-	set stopTime 8.1
-	set queue 20
-	set CBQalgorithm 0
-	create_graph $stopTime cbq $queue
-	set link [ns link $r1 $k1]
+Class Test/TwoAO2 -superclass TestSuite
+Test/TwoAO2 instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-prr
+        set test_ CBQ_TwoAO2
+        $self next 0
+}   
+Test/TwoAO2 instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        set stopTime 8.1
+        set maxbytes 187500
+        set cbqalgorithm_ ancestor-only
+    
+        $topo_ instvar cbqlink_
+        $self create_flat3 0.98 0.005
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 190 500 0.001 0.002 0 
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+    
+        $self openTrace $stopTime CBQ_TwoAO2
+    
+        $ns_ run
+}   
 
-	set topClass [ns_create_class none none 0.98 0.005 -1.0 8 1 0]
-        set audioClass [ns_create_class1 $topClass $topClass \
-               0.01 auto auto 1 0 0 $Mbps]
-	set dataClass [ns_create_class1 $topClass $topClass \
-		0.99 auto auto 2 0 0 $Mbps]
-
-
- 	$link insert $topClass
- 	$link insert $audioClass
-        $link insert $dataClass
-
-	set qdisc [$audioClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
- 	$link bind $audioClass 1
-	$link bind $dataClass 2
-
-        set cbr0 [ns_create_cbr $s1 $k1 190 0.001 1]
-        set cbr1 [ns_create_cbr $s2 $k1 500 0.002 2]
-
-        ns at 0.0 "$cbr0 start"
-        ns at 0.0 "$cbr1 start"
-
-
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	openTrace4 $stopTime test_cbqTwoAO2
-
-	ns run
-}
-
-# A higher allocated bandwidth for the root class. 
-proc test_cbqTwoAO3 {} {
-	global s1 s2 s3 s4 r1 k1 
-	set Mbps 1.5
-	set stopTime 8.1
-	set queue 20
-	set CBQalgorithm 0
-	create_graph $stopTime cbq $queue
-	set link [ns link $r1 $k1]
-
-	set topClass [ns_create_class1 none none 0.99 auto -1.0 8 1 0 $Mbps]
-        set audioClass [ns_create_class1 $topClass $topClass \
-               0.01 auto auto 1 0 0 $Mbps]
-	set dataClass [ns_create_class1 $topClass $topClass \
-		0.99 auto auto 2 0 0 $Mbps]
-
- 	$link insert $topClass
- 	$link insert $audioClass
-        $link insert $dataClass
-
-	set qdisc [$audioClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
- 	$link bind $audioClass 1
-	$link bind $dataClass 2
-
-        set cbr0 [ns_create_cbr $s1 $k1 190 0.001 1]
-        set cbr1 [ns_create_cbr $s2 $k1 500 0.002 2]
-
-        ns at 0.0 "$cbr0 start"
-        ns at 0.0 "$cbr1 start"
-
-
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	openTrace4 $stopTime test_cbqTwoAO3
-
-	ns run
-}
+Class Test/TwoAO3 -superclass TestSuite
+Test/TwoAO3 instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-prr
+        set test_ CBQ_TwoAO3
+        $self next 0
+}   
+Test/TwoAO3 instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        set stopTime 8.1
+        set maxbytes 187500
+        set cbqalgorithm_ ancestor-only
+    
+        $topo_ instvar cbqlink_
+        $self create_flat3 0.99 auto
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 190 500 0.001 0.002 0 
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+    
+        $self openTrace $stopTime CBQ_TwoAO3
+    
+        $ns_ run
+}   
 
 #
 # With Formal link-sharing, the dataClass gets most of the bandwidth.
@@ -1022,46 +992,31 @@ proc test_cbqTwoAO3 {} {
 # With Top-Level link-sharing, the audioClass is often blocked
 #   from borrowing by an underlimit dataClass
 #
-proc test_cbqTwoTL {} {
-	global s1 s2 s3 s4 r1 k1 
-	set Mbps 1.5
-	set queue 20
-	set stopTime 8.1
-	set CBQalgorithm 1
-	create_graph $stopTime cbq $queue
-	set link [ns link $r1 $k1]
 
-	set topClass [ns_create_class1 none none 1.0 auto -1.0 8 1 0 $Mbps]
-        set audioClass [ns_create_class1 $topClass $topClass \
-               0.01 auto auto 1 0 0 $Mbps]
-	set dataClass [ns_create_class1 $topClass $topClass \
-		0.99 auto auto 2 0 0 $Mbps]
-
- 	$link insert $topClass
- 	$link insert $audioClass
-        $link insert $dataClass
-
-	set qdisc [$audioClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
- 	$link bind $audioClass 1
-	$link bind $dataClass 2
-
-        set cbr0 [ns_create_cbr $s1 $k1 190 0.001 1]
-        set cbr1 [ns_create_cbr $s2 $k1 500 0.002 2]
-
-        ns at 0.0 "$cbr0 start"
-        ns at 0.0 "$cbr1 start"
-
-
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	openTrace4 $stopTime test_cbqTwoTL
-
-	ns run
-}
+Class Test/TwoTL -superclass TestSuite
+Test/TwoTL instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-prr
+        set test_ CBQ_TwoTL
+        $self next 0
+}   
+Test/TwoTL instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        set stopTime 8.1
+        set maxbytes 187500
+        set cbqalgorithm_ top-level
+    
+        $topo_ instvar cbqlink_
+        $self create_flat3 1.0 auto
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 190 500 0.001 0.002 0 
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+    
+        $self openTrace $stopTime CBQ_TwoTL
+    
+        $ns_ run
+}   
 
 #
 # With Formal link-sharing, the dataClass gets most of the bandwidth.
@@ -1070,45 +1025,29 @@ proc test_cbqTwoTL {} {
 # With Top-Level link-sharing, the audioClass is often blocked
 #   from borrowing by an underlimit dataClass
 #
-proc test_cbqTwoF {} {
-	global s1 s2 s3 s4 r1 k1 
-	set Mbps 1.5
-	set queue 20
-	set stopTime 8.1
-	set CBQalgorithm 2
-	create_graph $stopTime cbq $queue
-	set link [ns link $r1 $k1]
-
-	set topClass [ns_create_class1 none none 1.0 auto -1.0 8 1 0 $Mbps]
-        set audioClass [ns_create_class1 $topClass $topClass \
-               0.01 auto auto 1 0 0 $Mbps]
-	set dataClass [ns_create_class1 $topClass $topClass \
-		0.99 auto auto 2 0 0 $Mbps]
-
- 	$link insert $topClass
- 	$link insert $audioClass
-        $link insert $dataClass
-
-	set qdisc [$audioClass qdisc]
-	$qdisc set queue-limit $queue
-	set qdisc [$dataClass qdisc]
-	$qdisc set queue-limit $queue
-
- 	$link bind $audioClass 1
-	$link bind $dataClass 2
-
-        set cbr0 [ns_create_cbr $s1 $k1 190 0.001 1]
-        set cbr1 [ns_create_cbr $s2 $k1 500 0.002 2]
-
-        ns at 0.0 "$cbr0 start"
-        ns at 0.0 "$cbr1 start"
-
-
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	openTrace4 $stopTime test_cbqTwoF
-
-	ns run
-}
+Class Test/TwoF -superclass TestSuite
+Test/TwoF instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-prr
+        set test_ CBQ_TwoF
+        $self next 0
+}   
+Test/TwoF instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_ node_
+        set stopTime 8.1
+        set maxbytes 187500
+        set cbqalgorithm_ formal
+    
+        $topo_ instvar cbqlink_
+        $self create_flat3 1.0 auto
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs 190 500 0.001 0.002 0 
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
+    
+        $self openTrace $stopTime CBQ_TwoF
+    
+        $ns_ run
+}   
 
 TestSuite runTest
