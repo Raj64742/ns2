@@ -720,6 +720,20 @@ in ascending order
 on each invocation
 starting from 0x8000
 and ending at 0xFFFF.
+
+.IP "\fB$node shape \fIshape\fP"
+Set the shape of the node to \fIshape\f. When called before the 
+simulator starts to run, it changes the default shape of 
+the node in the nam trace file. The default shape of a node is """circle"""
+
+.IP "\fB$node color \fIcolor\fP"
+Set the color of the node to \fIcolor\f. It can be called anytime to change 
+the current color of the node in nam trace file, if there is one.
+
+.IP "\fB$node get-attribute \fIname\fP"
+Get the specified attribute \fIname\f of the node. Currently a Node object
+has two attributes: \fICOLOR\f and \fISHAPE\f. 
+
 .LP
 There are no state variables or configuration parameters
 specific to the node class.
@@ -736,7 +750,6 @@ is an instance of the Simulator or MultiSim object
 that was created to invoke the simulation
 (see TRACE AND MONITORING METHODS section 
 for the output trace format).
-.LP
 .IP "\fB$link trace-callback \fIns cmd\fP"
 Trace all packets on the link with the callback \fIcmd\fP.
 Cmd is invoked for each trace event (enqueue, dequeue, drop)
@@ -745,6 +758,31 @@ with the text that would be logged as parameters.
 A demo of trace callbacks is in 
 the program tcl/ex/callback_demo.tcl
 in the distribution.
+
+.IP "\fB$link color \fIcolor\fP"
+Set the color of the Link object. It can be called anytime to change 
+the current color of the link in nam trace file, if there is one.
+
+.IP "\fB$link get-attribute \fIname\fP"
+Get the specified attribute \fIname\f of the Link. Currently a Link object
+has three attributes: \fICOLOR\f, \fIORIENTATION\f, and \fIQUEUE_POS\f. 
+
+Currently the following two functions should not be directly called. Use
+\fB$ns duplex-link-op\f instead. Refer to the corresponding section in this 
+man page.
+
+.IP "\fB$link orient \fIori\fP"
+Set the orientation of the link to \fIori\f. When called before the simulator 
+starts to run, it changes the default orientation of the link in nam trace 
+file, if there is one. If orientation is unspecified for any link(s), nam will
+use automatic layout. The default orientation of a Link object is unspecified.
+.IP "\fB$link queuePos \fpos\fP"
+Set the queue position of the link to \fIpos\f. When called before the 
+simulator starts to run, it changes the default queue placement of the simplex
+link in nam trace file, if there is one. \fIpos\f specifies the angle between
+the horizontal line and the line along which queued packets will be displayed.
+
+.LP
 
 .SH "SIMPLELINK OBJECTS"
 [NOTE: This section has not been verified to be up-to-date with the release.]
@@ -2130,9 +2168,10 @@ of the next packet in bytes.
 Trace objects are used to generate event level capture logs typically
 to an output file. 
 Throughout this section $ns 
-refers to a Simulator object.
+refers to a Simulator object, $agent
+refers to an Agent object.
 
-.IP "\fB$ns create-trace \fItype fileID node1 node2\fP"
+.IP "\fB$ns create-trace \fItype fileID node1 node2 [option]\fP"
 Create a Trace object of type
 .I type
 and attach the filehandle
@@ -2152,6 +2191,9 @@ Drop monitors packet drops at a queue.
 must be a file handle returned by the Tcl
 .I open
 command and it must have been opened for writing.
+If \fIoption\f is not specified, the command will instruct the created 
+trace object to generate ns traces. If \fIoption\f is """nam"""
+the new object will produce nam traces.
 Returns a handle to the trace object.
 
 .IP "\fB$ns drop-trace \fInode1 node2 trace\fP"
@@ -2171,6 +2213,9 @@ tracing on the link between
 and
 .I node2.
 
+.IP "\fB$ns namtrace-queue \fInode1 node2 fileID\fP"
+Same function as \fB$ns trace-queue\fP, except it produces nam traces.
+
 .IP "\fB$ns trace-all \fIfileID\fP"
 Enable Enque, Deque, Drop Tracing 
 on all the links in the topology
@@ -2180,6 +2225,13 @@ Also enables the tracing of network dynamics.
 must be a file handle returned by the Tcl
 .I open
 command and it must have been opened for writing.
+
+.IP "\fB$ns namtrace-all \fIfileID\fP"
+Same function as \fB$ns trace-all\fP, except it will produce all equivalent 
+traces in nam format. In addition, calling this command \fIbefore\f the 
+simulator 
+starts to run will generate color configurations (if any) and topology 
+information needed by nam (nodes, links, queues).
 
 .IP "\fB$ns monitor-queue \fInode1 node2\fP"
 Arrange for queue length of link
@@ -2195,7 +2247,7 @@ to learn average queue size etc.
 .IP "\fB$ns flush-trace\fP"
 Flush the output channels attached to all the trace objects.
 
-.IP "\fB$link trace-dynamics \fIns fileID\fP"
+.IP "\fB$link trace-dynamics \fIns fileID [option]\fP"
 Trace the dynamics of this link
 and write the output to
 .I fileID
@@ -2203,6 +2255,62 @@ filehandle.
 .I ns
 is an instance of the Simulator or MultiSim object
 that was created to invoke the simulation.
+
+.IP "\fBcolor \fIid name\fP"
+Create a color index, which links the number \fIid\f to the color name 
+\fIname\f. All colors created \fIbefore\f the simulator starts to run will 
+be written to nam trace file, if there is any.
+
+.IP "\fB$ns duplex-link-op $node1 $node2 $op $args\fP"
+Perform a given operation \fI$op\fP on the given duplex link 
+(\fI$node1\fP, \fI$node2\fP).
+The following two operations may be used:
+.nf
+orient		- Specify the nam orientation of the duplex link. Values can be
+		  left, right, up, down, their mixture combined by '-' (e.g., 
+		  left-down), and a number specifying the angle between the
+		  link and the horizontal line.
+queuePos	- Construct a queue of the simplex link (\fI$node1\fP, 
+		  \fI$node2\fP) in nam, and specify the angle between the 
+		  horizontal line and the line along which the queued packets
+		  will be displayed.
+.fi
+
+.IP "\fB$ns add-agent-trace \fIagent name\fP"
+Write a nam trace line, which will create a trace agent for \fIagent\f when
+interpreted by nam. The trace agent's name will be 
+\fIname\f. This nam trace agent is used to show the position of \fIagent\f 
+and can be used to write nam traces of variables associated with the agent.
+
+.IP "\fB$agent tracevar \fIname\fP"
+Label OTcl variable \fIname\f of \fB$agent\f to be traced. Then whenever 
+the variable \fIname\f changes value, a nam trace line will be written to 
+nam trace file, if there is one. Note that \fIname\f must be the same as the 
+variable's real OTcl name.
+
+.IP "\fB$ns delete-agent-trace \fIagent\fP"
+Write a nam trace line, which will delete the nam trace associated with 
+\fIagent\f when interpreted by nam.
+
+.IP "\fB$agent add-var-trace \fIname value [type]\fP"
+Write a nam trace line, which creates a variable trace with name \fIname\f and
+value \fIvalue\f, when interpreted by nam. \fItype\f indicates the type of 
+the variable, e.g., is it a list, array, or a plain variable. Currently only 
+plain variable is supported, for which \fItype\f = 'v'.
+
+The following 2 functions should be called \fIafter\f the simulator starts 
+running. This can be done using \fB$ns at\f.
+
+.IP "\fB$agent delete-var-trace \fIname\fP"
+Write a nam trace line, which deletes the variable trace \fIname\f when 
+interpreted by nam.
+
+.IP "\fB$agent update-var-trace \fIname value [type]\fP"
+Write a nam trace line, which changes the value of traced variable \fIname\f
+when interpreted by nam. Unlike \fB$agent tracevar\f, the above 3 
+functions provide 'manual' variable tracing, in which variable tracing are done
+by placing \fB$agent update-var-trace\fP in OTcl code, while \fItracevar\f 
+automatically generates nam traces when the traced variable changes value.
 
 .LP
 The tracefile format is backward compatible
@@ -2340,7 +2448,7 @@ are embedded into the ns interpreter
 as methods of the Simulator class.
 Throughout this section
 $ns represents a Simulator object.
-.IP "\fB$ns create-connection \fIsrcType srcNode dstType dstNode class\fP
+.IP "\fB$ns create-connection \fIsrcType srcNode dstType dstNode class\fP"
 Create a source agent of type
 .I srcType
 at node
