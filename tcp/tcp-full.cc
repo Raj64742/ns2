@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997, 1998 The Regents of the University of California.
  * All rights reserved.
@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.49 1998/06/27 01:03:35 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.50 1998/06/27 01:25:15 tomh Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1631,7 +1631,10 @@ step6:
 			// segments or hole-fills.  Also,
 			// send an ACK to the other side right now.
 			// K: some changes here, figure out
+			int rcv_nxt_old_ = rcv_nxt_; // notify app. if changes
 			tiflags = rq_.add(pkt);
+			if (rcv_nxt_ > rcv_nxt_old_)
+				recvBytes(rcv_nxt_ - rcv_nxt_old_);
 //printf("%f RECV(%s): RQ:", now(), name());
 //rq_.dumplist();
 			if (tiflags & TH_PUSH) {
@@ -1945,7 +1948,7 @@ int FullTcpAgent::command(int argc, const char*const* argv)
  */
 
 ReassemblyQueue::ReassemblyQueue(int& nxt, FullTcpAgent* agent_) :
-	head_(NULL), tail_(NULL), rcv_nxt_(nxt), sink_(agent_) 
+	head_(NULL), tail_(NULL), rcv_nxt_(nxt) 
 {
 	bind("off_tcp_", &off_tcp_);
 	bind("off_cmn_", &off_cmn_);
@@ -2110,7 +2113,6 @@ int ReassemblyQueue::add(Packet* pkt)
 int ReassemblyQueue::add(int start, int end, int tiflags)
 {
 	seginfo *q, *p, *n;
-	int numToDeliver = 0;
 
 	if (head_ == NULL) {
 		// nobody there, just insert
@@ -2181,7 +2183,6 @@ endfast:
 		// and delete the entry from the reass queue
 		// note that endseq is last contained seq# + 1
 		rcv_nxt_ = p->endseq_;
-		numToDeliver = p->endseq_ - p->startseq_;
 		tiflags |= p->flags_;
 		q = p;
 		if (q->prev_)
@@ -2205,8 +2206,6 @@ endfast:
 		p = p->next_;
 		delete q;
 	}
-	if (numToDeliver) 
-		sink_->recvBytes(numToDeliver); // notify app. of "delivery"
 	return (tiflags);
 }
 
