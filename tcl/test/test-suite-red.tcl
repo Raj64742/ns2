@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.37 2001/04/12 20:43:26 ratul Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.38 2001/04/18 23:15:12 ratul Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -550,7 +550,7 @@ TestSuite instproc create_flow_graph { graphtitle graphfile } {
         	puts "writing flow xgraph data to $graphfile..."
 	}
 
-        exec sort -n -s +1 -o $flowfile $flowfile
+        exec sort -n +1 -o $flowfile $flowfile
         exec awk [$self $awkprocedure_] $flowfile >@ $outdesc
         close $outdesc
 }
