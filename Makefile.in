@@ -67,7 +67,7 @@ INCLUDES = \
 	-I./routing -I./tools -I./classifier -I./mcast \
 	-I./diffusion3/lib/main -I./diffusion3/lib \
 	-I./diffusion3/lib/nr -I./diffusion3/ns \
-	-I./diffusion3/diffusion -I./asim/ -I./qs
+	-I./diffusion3/filter_core -I./asim/ -I./qs
 
 
 LIB	= \
@@ -103,30 +103,39 @@ NSE	= nse
 # We will set these two macros to empty in conf/makefile.win since VC6.0
 # does not seem to support the STL in gcc 2.8 and up. 
 OBJ_STL = diffusion3/lib/nr/nr.o diffusion3/lib/dr.o \
+	diffusion3/filters/diffusion/one_phase_pull.o \
+	diffusion3/filters/diffusion/two_phase_pull.o \
+	diffusion3/lib/diffapp.o \
 	diffusion3/ns/diffagent.o diffusion3/ns/diffrtg.o \
 	diffusion3/ns/difftimer.o \
-	diffusion3/diffusion/diffusion.o \
+	diffusion3/filter_core/filter_core.o \
+	diffusion3/filter_core/iolog.o \
+	diffusion3/filter_core/iostats.o \
 	diffusion3/lib/main/attrs.o \
-	diffusion3/lib/main/iodev.o \
-	diffusion3/lib/main/timers.o \
 	diffusion3/lib/main/events.o \
+	diffusion3/lib/main/iodev.o \
+	diffusion3/lib/main/iohook.o \
+	diffusion3/lib/main/timers.o \
 	diffusion3/lib/main/message.o \
-	diffusion3/lib/main/stats.o \
 	diffusion3/lib/main/tools.o \
-	diffusion3/lib/drivers/rpc_stats.o \
-	diffusion3/apps/sysfilters/gradient.o \
-	diffusion3/apps/sysfilters/log.o \
-	diffusion3/apps/sysfilters/tag.o \
-	diffusion3/apps/sysfilters/srcrt.o \
-	diffusion3/lib/diffapp.o \
-	diffusion3/apps/pingapp/ping_sender.o \
-	diffusion3/apps/pingapp/ping_receiver.o \
-	diffusion3/apps/pingapp/ping_common.o \
-	diffusion3/apps/pingapp/push_receiver.o \
-	diffusion3/apps/pingapp/push_sender.o \
-	diffusion3/apps/gear/geo-attr.o \
-	diffusion3/apps/gear/geo-routing.o \
-	diffusion3/apps/gear/geo-tools.o 
+	diffusion3/apps/gear_examples/gear_common.o \
+	diffusion3/apps/gear_examples/gear_receiver.o \
+	diffusion3/apps/gear_examples/gear_sender.o \
+	diffusion3/apps/rmst_examples/rmst_sink.o \
+	diffusion3/apps/rmst_examples/rmst_source.o \
+	diffusion3/apps/ping/ping_sender.o \
+	diffusion3/apps/ping/ping_receiver.o \
+	diffusion3/apps/ping/ping_common.o \
+	diffusion3/apps/ping/push_receiver.o \
+	diffusion3/apps/ping/push_sender.o \
+	diffusion3/filters/gear/gear_attr.o \
+	diffusion3/filters/gear/gear.o \
+	diffusion3/filters/gear/gear_tools.o \
+	diffusion3/filters/misc/log.o \
+	diffusion3/filters/misc/srcrt.o \
+	diffusion3/filters/misc/tag.o \
+	diffusion3/filters/rmst/rmst.o \
+	diffusion3/filters/rmst/rmst_filter.o
 
 NS_TCL_LIB_STL = tcl/lib/ns-diffusion.tcl 
 
