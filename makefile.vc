@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.19 1999/05/26 01:21:10 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.20 1999/07/02 21:36:57 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -99,7 +99,7 @@ OBJ_CC = \
 	packet.o ip.o route.o connector.o ttl.o \
 	trace.o trace-ip.o \
 	classifier.o classifier-addr.o classifier-hash.o classifier-virtual.o \
-	classifier-mcast.o classifier-mpath.o replicator.o \
+	classifier-mcast.o classifier-bst.o classifier-mpath.o replicator.o \
 	classifier-mac.o \
 	app.o telnet.o tcplib-telnet.o \
 	trafgen.o traffictrace.o pareto.o expoo.o cbr_traffic.o \
@@ -145,6 +145,7 @@ OBJ_CC = \
 	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
 	dsr/requesttable.o dsr/routecache.o \
 	ns-process.o \
+	sathandoff.o satlink.o satnode.o satposition.o satroute.o sattrace.o\
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
 	webcache/mcache.o 
@@ -228,6 +229,7 @@ NS_TCL_LIB = \
 	tcl/lib/ns-lib.tcl \
 	tcl/lib/ns-link.tcl \
 	tcl/lib/ns-mobilenode.tcl \
+	tcl/lib/ns-sat.tcl \
 	tcl/lib/ns-cmutrace.tcl \
 	tcl/lib/ns-node.tcl \
 	tcl/lib/ns-hiernode.tcl \
@@ -247,6 +249,7 @@ NS_TCL_LIB = \
 	tcl/rtglib/route-proto.tcl \
 	tcl/rtglib/algo-route-proto.tcl \
         tcl/interface/ns-iface.tcl \
+	tcl/mcast/BST.tcl \
         tcl/mcast/ns-mcast.tcl \
         tcl/mcast/McastProto.tcl \
         tcl/mcast/DM.tcl \
