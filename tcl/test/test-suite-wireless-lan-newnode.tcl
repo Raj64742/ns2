@@ -20,7 +20,7 @@ Agent/TCP set rfc2988_ false
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.23 2002/07/19 02:35:25 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.24 2003/02/01 00:26:17 xuanc Exp $
 
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false
@@ -525,9 +525,10 @@ Test/dsdv-wireless-mip instproc run {} {
 
 TestSuite instproc finish-basenode {} {
 	$self instvar ns_
-	global quiet opt
+	global quiet opt tracefd
 
-	$ns_ flush-trace
+	flush $tracefd
+	close $tracefd
         
         set tracefd	[open $opt(tr) r]
         set tracefd2    [open $opt(tr).w w]

@@ -34,7 +34,7 @@ Agent/TCP set rfc2988_ false
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.5 2002/10/15 01:48:48 buchheim Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.6 2003/02/01 00:26:17 xuanc Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -121,20 +121,21 @@ TestSuite instproc finish file {
 	#
 	set perlCode {
 		sub BEGIN { $c = 0; @p = @a = @d = @lu = @ld = (); }
-		/^[\+-] / && do {
-			if ($F[4] eq 'tcp') {
- 				push(@p, $F[1], ' ',		\
-					$F[7] + ($F[10] % 90040) * 0.00001, "\n");
+
+                $plotted = $F[7] + ($F[10] % 90040) * 0.00001;
+                $plotted =~ s/\.e/e/g; 	# needed for Cygwin compatibility
+		
+                /^[\+-] / && do {
+ 			if ($F[4] eq 'tcp') {
+ 				push(@p, $F[1], ' ', $plotted, "\n");
 			} elsif ($F[4] eq 'ack') {
- 				push(@a, $F[1], ' ',		\
-					$F[7] + ($F[10] % 90040) * 0.00001, "\n");
+ 				push(@a, $F[1], ' ', $plotted, "\n");
 			}
 			$c = $F[7] if ($c < $F[7]);
 			next;
 		};
 		/^d / && do {
-			push(@d, $F[1], ' ',		\
-					$F[7] + ($F[10] % 90040) * 0.00001, "\n");
+			push(@d, $F[1], ' ', $plotted, "\n");
 			next;
 		};
 		/link-down/ && push(@ld, $F[1]);
@@ -161,18 +162,18 @@ TestSuite instproc finish file {
 			}
 		}
 	}
-
+	
 	set f [open temp.rands w]
 	puts $f "TitleText: $file"
 	puts $f "Device: Postscript"	
-    exec $PERL -ane $perlCode out.tr >@ $f
+	exec $PERL -ane $perlCode out.tr >@ $f
 	close $f
 	if {$quiet == "false"} {
-	  if {[info exists env(DISPLAY)] && ![info exists env(NOXGRAPH)]} {
-	    exec xgraph -display $env(DISPLAY) -bb -tk -nl -m -x time -y packet temp.rands &
-	  } else {
-	    puts stderr "output trace is in temp.rands"
-	  }
+		if {[info exists env(DISPLAY)] && ![info exists env(NOXGRAPH)]} {
+			exec xgraph -display $env(DISPLAY) -bb -tk -nl -m -x time -y packet temp.rands &
+		} else {
+			puts stderr "output trace is in temp.rands"
+		}
 	}
 	
 	exit 0
