@@ -17,7 +17,7 @@
 #
 # HTTP agents: server, client, cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.7 1999/02/09 00:43:49 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.8 1999/03/04 02:21:43 haoboy Exp $
 
 Http set id_ 0	;# required by TclCL
 # Type of Tcp agent. Can be SimpleTcp or FullTcp
@@ -54,11 +54,14 @@ PagePool/CompMath set comp_size_ 10240
 
 Http instproc init { ns node } {
 	$self next
-	$self init-instvar id_
-	$self instvar ns_ node_
+	$self instvar ns_ node_ id_
 	set ns_ $ns
 	set node_ $node
 	$self set id_ [$node_ id]
+	$self create-pagepool
+}
+
+Http instproc create-pagepool {} {
 	$self set-pagepool [new PagePool/Client]
 }
 
@@ -153,8 +156,6 @@ Http instproc stat { name } {
 }
 
 
-Class Http/Client -superclass Http
-
 # Used for mandatory push refreshments
 Http/Client set hb_interval_ 60
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.41 1999/03/02 20:22:00 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.42 1999/03/04 02:21:39 haoboy Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -141,6 +141,12 @@ Link instproc all-connectors op {
 			}
 		}
 	}
+}
+
+Link instproc install-error {em} {
+	$self instvar link_
+	$em target [$link_ target]
+	$link_ target $em
 }
 
 Class SimpleLink -superclass Link
@@ -455,15 +461,11 @@ SimpleLink instproc dynamic {} {
 }
 
 #
-# insert an "error module" after the queue
+# insert an "error module" BEFORE the queue
 # point the em's drop-target to the drophead
 #
-# Must be inserted *RIGHT AFTER* the deqT_ (if present) or queue_, because
-# nam can only visualize a packet drop if and only if it is on the link or 
-# in the queue
-#
 SimpleLink instproc errormodule args {
-	$self instvar errmodule_ queue_ drophead_ deqT_ 
+	$self instvar errmodule_ queue_ drophead_
 	if { $args == "" } {
 		return $errmodule_
 	}
@@ -471,7 +473,30 @@ SimpleLink instproc errormodule args {
 	set em [lindex $args 0]
 	set errmodule_ $em
 
-	#$self add-to-head $em
+	$self add-to-head $em
+
+	$em drop-target $drophead_
+}
+
+#
+# Insert a loss module AFTER the queue. 
+#
+# Must be inserted *RIGHT AFTER* the deqT_ (if present) or queue_, because
+# nam can only visualize a packet drop if and only if it is on the link or 
+# in the queue
+#
+SimpleLink instproc insert-linkloss args { 
+	$self instvar link_errmodule_ queue_ drophead_ deqT_ 
+	if { $args == "" } {
+		return $link_errmodule_
+	}
+
+	set em [lindex $args 0]
+	if [info exists link_errmodule_] {
+		delete link_errmodule_
+	}
+	set link_errmodule_ $em
+
         if [info exists deqT_] {
                 $em target [$deqT_ target]
                 $deqT_ target $em
@@ -483,8 +508,4 @@ SimpleLink instproc errormodule args {
 	$em drop-target $drophead_
 }
 
-# Simply to provide backward compatibility
-SimpleLink instproc install-error {em} {
-	puts "Obsolete interface. Please use errormodule{}"
-	$self errormodule $em
-}
+

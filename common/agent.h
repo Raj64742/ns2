@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.23 1999/02/19 22:41:43 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.24 1999/03/04 02:21:34 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -40,6 +40,8 @@
 #include "connector.h"
 #include "packet.h"
 #include "timer-handler.h"
+#include "process.h"
+#include "app.h"
 
 #define TIMER_IDLE 0
 #define TIMER_PENDING 1
@@ -68,6 +70,10 @@ class Agent : public Connector {
 	void recv(Packet*, Handler*);
 	void send(Packet* p, Handler* h) { target_->recv(p, h); }
 	virtual void timeout(int tno);
+
+	virtual void sendmsg(int sz, const AppData*, const char* flags = 0);
+	virtual void send(int sz, const AppData *data) { sendmsg(sz, data); }
+	virtual void sendto(int sz, const AppData*, const char* flags = 0);
 
 	virtual void sendmsg(int nbytes, const char *flags = 0);
 	virtual void send(int nbytes) { sendmsg(nbytes); }

@@ -92,7 +92,7 @@ int Application::command(int argc, const char*const* argv)
 			return(TCL_OK);
 		}
 	}
-	return (TclObject::command(argc, argv));
+	return (Process::command(argc, argv));
 }
 
 

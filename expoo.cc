@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.8 1998/10/22 00:10:43 tomh Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.9 1999/03/04 02:21:37 haoboy Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -112,7 +112,7 @@ void EXPOO_Traffic::timeout()
 	if (nextPkttime_ != interval_ || nextPkttime_ == -1) 
 		agent_->sendmsg(size_, "NEW_BURST");
 	else 
-		agent_->sendmsg(size_, 0);
+		agent_->sendmsg(size_);
 	/* figure out when to send the next one */
 	nextPkttime_ = next_interval(size_);
 	/* schedule it */

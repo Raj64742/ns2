@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.9 1999/02/18 23:15:46 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.10 1999/03/04 02:21:48 haoboy Exp $
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -84,6 +84,14 @@ void ClientPage::split_name(const char* name, PageID& id)
 	delete []buf;
 }
 
+void ClientPage::print_info(char *buf)
+{
+	sprintf(buf, "size %d modtime %.17g time %.17g age %.17g",
+		size(), mtime(), etime(), age());
+	if (is_uncacheable())
+		strcat(buf, " noc 1");
+}
+
 void ClientPage::name(char* buf) 
 {
 	sprintf(buf, "%s:%d", server_->name(), id());
@@ -101,6 +109,7 @@ public:
 int PagePool::command(int argc, const char*const* argv)
 {
 	if (argc == 2) {
+		// XXX Should be static class variables... 
 		if (strcmp(argv[1], "set-allpush") == 0) {
 			ClientPage::PUSHALL_ = 1;
 			return (TCL_OK);
@@ -645,15 +654,88 @@ ClientPage* ClientPagePool::get_page(const char *name)
 	return (ClientPage *)Tcl_GetHashValue(he);
 }
 
-ClientPage* 
-ClientPagePool::add_page(const char *name, int size, double mt, 
-			 double et, double age)
+int ClientPagePool::get_pageinfo(const char *name, char *buf)
 {
-	ClientPage *pg = new ClientPage(name, size, mt, et, age);
+	ClientPage *pg = get_page(name);
+	if (pg == NULL) 
+		return -1;
+	pg->print_info(buf);
+	return 0;
+}
+
+ClientPage* ClientPagePool::enter_page(int argc, const char*const* argv)
+{
+	double mt = -1, et, age = -1, noc = 0;
+	int size = -1;
+	for (int i = 3; i < argc; i+=2) {
+		if (strcmp(argv[i], "modtime") == 0)
+			mt = strtod(argv[i+1], NULL);
+		else if (strcmp(argv[i], "size") == 0) 
+			size = atoi(argv[i+1]);
+		else if (strcmp(argv[i], "age") == 0)
+			age = strtod(argv[i+1], NULL);
+		else if (strcmp(argv[i], "noc") == 0)
+				// non-cacheable flag
+			noc = 1;
+	}
+	// XXX allow mod time < 0
+	if ((size < 0) || (age < 0)) {
+		fprintf(stderr, "PagePool %s: wrong information for page %s\n",
+			name_, argv[2]);
+		return NULL;
+	}
+	et = Scheduler::instance().clock();
+	ClientPage* pg = new ClientPage(argv[2], size, mt, et, age);
+	if (add_page(pg) < 0) {
+		delete pg; 
+		return NULL;
+	}
+	if (noc) 
+		pg->set_uncacheable();
+	return pg;
+}
+
+ClientPage* ClientPagePool::enter_page(const char *name, int size, double mt, 
+				       double et, double age)
+{
+	ClientPage* pg = new ClientPage(name, size, mt, et, age);
+	if (add_page(pg) < 0) {
+		delete pg; 
+		return NULL;
+	}
+	return pg;
+}
+
+// XXX We don't need parsing "noc" here because a non-cacheable
+// page won't be processed by a cache.
+ClientPage* ClientPagePool::enter_metadata(int argc, const char*const* argv)
+{
+	ClientPage *pg = enter_page(argc, argv);
+	if (pg != NULL)
+		pg->set_valid_hdr();
+	return pg;
+}
+
+ClientPage* ClientPagePool::enter_metadata(const char *name, int size, 
+					   double mt, double et, double age)
+{
+	ClientPage *pg = enter_page(name, size, mt, et, age);
+	if (pg != NULL) 
+		pg->set_valid_hdr();
+	return pg;
+}
+
+int ClientPagePool::add_page(ClientPage* pg)
+{
+	if (pg == NULL)
+		return -1;
+
+	char buf[HTTP_MAXURLLEN];
+	pg->name(buf);
 
 	PageID t1;
 	void* t2[2];
-	ClientPage::split_name(name, t1);
+	ClientPage::split_name(buf, t1);
 	t2[0] = (void *)t1.s_;
 	t2[1] = (void *)t1.id_;
 
@@ -662,7 +744,7 @@ ClientPagePool::add_page(const char *name, int size, double mt,
 						(const char *)t2,
 						&newEntry);
 	if (he == NULL)
-		return NULL;
+		return -1;
 	if (newEntry)
 		Tcl_SetHashValue(he, (ClientData)pg);
  	else {
@@ -672,13 +754,31 @@ ClientPagePool::add_page(const char *name, int size, double mt,
 		pg->counter() = q->counter();
 		// XXX must copy the mpush values
 		if (q->is_mpush())
-			pg->set_mpush(q->mpushTime_);
+			pg->set_mpush(q->mpush_time());
 		Tcl_SetHashValue(he, (ClientData)pg);
 		delete q;
  		//fprintf(stderr, "ClientPagePool: Replaced entry %s\n", 
  		//	pg->name());
 	}
-	return pg;
+	return 0;
+}
+
+int ClientPagePool::remove_page(const char *name)
+{
+	PageID t1;
+	void* t2[2];
+	ClientPage::split_name(name, t1);
+	t2[0] = (void *)t1.s_;
+	t2[1] = (void *)t1.id_;
+
+	// Find out which client we are seeking
+	Tcl_HashEntry *he = Tcl_FindHashEntry(namemap_, (const char *)t2);
+	if (he == NULL)
+		return -1;
+	ClientPage *pg = (ClientPage *)Tcl_GetHashValue(he);
+	Tcl_DeleteHashEntry(he);
+	delete pg;
+	return 0;
 }
 
 int ClientPagePool::set_mtime(const char *name, double mt)
@@ -732,18 +832,6 @@ int ClientPagePool::get_age(const char *name, double& age)
 	if (pg == NULL) 
 		return -1;
 	age = pg->age();
-	return 0;
-}
-
-int ClientPagePool::get_page(const char *name, char *buf)
-{
-	ClientPage *pg = (ClientPage *)get_page(name);
-	if (pg == NULL) 
-		return -1;
-	sprintf(buf, "size %d modtime %.17g time %.17g age %.17g",
-		pg->size(), pg->mtime(), pg->etime(), pg->age());
-	if (pg->is_uncacheable())
-		strcat(buf, " noc 1");
 	return 0;
 }
 

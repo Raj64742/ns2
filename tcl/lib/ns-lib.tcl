@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.140 1999/03/02 20:22:00 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.141 1999/03/04 02:21:38 haoboy Exp $
 
 #
 
@@ -1050,6 +1050,12 @@ Simulator instproc attach-fmon {lnk fm { edrop 0 } } {
 Simulator instproc lossmodel {lossobj from to} {
 	set link [$self link $from $to]
 	$link errormodule $lossobj
+}
+
+# This function generates losses that can be visualized by nam.
+Simulator instproc link-lossmodel {lossobj from to} {
+	set link [$self link $from $to]
+	$link insert-linkloss $lossobj
 }
 
 Simulator instproc bw_parse { bspec } {

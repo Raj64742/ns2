@@ -17,7 +17,7 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.10 1999/02/18 23:15:43 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.11 1999/03/04 02:21:45 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
@@ -25,7 +25,7 @@
 #include <tclcl.h>
 
 #include "random.h"
-#include "app-connector.h"
+#include "process.h"
 #include "pagepool.h"
 #include "timer-handler.h"
 
@@ -219,7 +219,7 @@ public:
 
 
 
-const int HTTPDATA_MAXURLLEN = 20;
+const int HTTP_MAXURLLEN = 20;
 // XXX assign cost to a constant so as to be more portable
 const int HTTPHBDATA_COST = 32;
 
@@ -230,7 +230,7 @@ protected:
 		int num_inv_;
 	};
 	struct InvalRec {
-		char pg_[HTTPDATA_MAXURLLEN];	// Maximum page id length
+		char pg_[HTTP_MAXURLLEN];	// Maximum page id length
 		double mtime_;
 		// Used only to mark that this page will be send in the 
 		// next multicast update. The updating field in this agent 
@@ -297,7 +297,7 @@ protected:
 	};
 	// Pack page updates to be pushed to caches
 	struct PageRec {
-		char pg_[HTTPDATA_MAXURLLEN];
+		char pg_[HTTP_MAXURLLEN];
 		double mtime_;
 		double age_;
 		int size_;

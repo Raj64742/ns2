@@ -41,10 +41,11 @@
 #include <tclcl.h>
 #include "packet.h"
 #include "agent.h"
+#include "process.h"
 
 class Agent;
 
-class Application : public TclObject {
+class Application : public Process {
 public:
 	Application();
 	virtual void send(int nbytes);

@@ -24,9 +24,9 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 #
-# Makefile for CMU mobile code scenario generation
+# Makefile for CMU mobile code scenario generation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Attic/Makefile,v 1.1 1999/02/24 01:44:24 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Attic/Makefile,v 1.2 1999/03/04 02:21:37 haoboy Exp $
 
 CCX = c++
 MKDEP	= ../../../conf/mkdep

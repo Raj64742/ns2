@@ -17,7 +17,7 @@
 //
 // Definitions for class PagePool
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.7 1999/02/18 23:15:46 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.8 1999/03/04 02:21:48 haoboy Exp $
 
 #ifndef ns_pagepool_h
 #define ns_pagepool_h
@@ -29,11 +29,15 @@
 #include <tclcl.h>
 #include "config.h"
 
+enum WebPageType { HTML, MEDIA };
+
 class Page {
 public:
 	Page(int size) : size_(size) {}
 	int size() const { return size_; }
 	int& id() { return id_; }
+	virtual WebPageType type() const = 0; 	// Page type: HTML or MEDIA
+
 protected:
 	int size_;
 	int id_;
@@ -48,6 +52,9 @@ public:
 		if (mtime_ != NULL) 
 			delete []mtime_;
 	}
+
+	virtual WebPageType type() const { return HTML; }
+
 	int& size() { return size_; }
 	int& mtime(int n) { return mtime_[n]; }
 	int& num_mtime() { return num_mtime_; }
@@ -85,6 +92,9 @@ struct PageID {
 class ClientPage : public Page {
 public:
 	ClientPage(const char *n, int s, double mt, double et, double a);
+
+	virtual WebPageType type() const { return HTML; }
+	virtual void print_info(char* buf);
 
 	void name(char* buf);
 	double& mtime() { return mtime_; }
@@ -181,8 +191,6 @@ public:
 	inline void clear_mpush() { clear_page_action(HTTP_MANDATORY_PUSH); }
 	inline int is_mpush() { return status_ & HTTP_MANDATORY_PUSH; }
 	inline double mpush_time() { return mpushTime_; }
-
-	friend class ClientPagePool;
 
 	// Used to split page names into page identifiers
 	static void split_name(const char* name, PageID& id);
@@ -282,17 +290,17 @@ public:
 	ClientPagePool();
 	virtual ~ClientPagePool();
 
-	ClientPage* get_page(const char *name);
-	ClientPage* add_page(const char *name, int size, double mt, 
-			     double et, double age);
-	ClientPage* add_metadata(const char *name, int size, double mt, 
-				 double et, double age) {
-		ClientPage *pg = add_page(name, size, mt, et, age);
-		pg->set_valid_hdr();
-		return pg;
-	}
+	virtual ClientPage* enter_page(int argc, const char*const* argv);
+	virtual ClientPage* enter_metadata(int argc, const char*const* argv);
+	virtual ClientPage* enter_page(const char *name, int size, double mt, 
+				       double et, double age);
+	virtual ClientPage* enter_metadata(const char *name, int size, 
+					   double mt, double et, double age);
+	virtual int remove_page(const char *name);
+
 	void invalidate_server(int server_id);
 
+	ClientPage* get_page(const char *name);
 	int get_mtime(const char *name, double &mt);
 	int set_mtime(const char *name, double mt);
 	int exist_page(const char *name) { return (get_page(name) != NULL); }
@@ -300,9 +308,11 @@ public:
 	int get_age(const char *name, double &age);
 	int get_etime(const char *name, double &et);
 	int set_etime(const char *name, double et);
-	int get_page(const char *name, char *buf);
+	int get_pageinfo(const char *name, char *buf);
 
 protected:
+
+	int add_page(ClientPage *pg);
 	Tcl_HashTable *namemap_;
 };
 
@@ -333,9 +343,9 @@ protected:
 	int find_info();
 
 	RandomVariable *rvDyn_, *rvStatic_;
-	int br_; 	// bimodal ratio
-	int *size_; 	// page sizes
-	FILE *reqfile_;	// request stream of proxy trace
+	int br_; 		// bimodal ratio
+	int *size_; 		// page sizes
+	FILE *reqfile_;		// request stream of proxy trace
 
 	struct ClientRequest {
 		ClientRequest() : seq_(0), nrt_(0), nurl_(0), fpos_(0)

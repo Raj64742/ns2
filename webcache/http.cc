@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.9 1999/02/18 23:15:43 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.10 1999/03/04 02:21:45 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -162,7 +162,7 @@ int HttpApp::command(int argc, const char*const* argv)
 				return TCL_ERROR;
 		} else if (strcmp(argv[1], "get-page") == 0) {
 			char buf[4096];
-			if (pool_->get_page(argv[2], buf) != -1) {
+			if (pool_->get_pageinfo(argv[2], buf) != -1) {
 				tcl.resultf("%s", buf);
 				return TCL_OK;
 			} else 
@@ -249,7 +249,7 @@ int HttpApp::command(int argc, const char*const* argv)
 				return TCL_ERROR;
 			}
 			// Set data delivery target
-			cnc->target() = (AppConnector*)this;
+			cnc->target() = (Process*)this;
 			return TCL_OK;
 		} else if (strcmp(argv[1], "set-modtime") == 0) {
 			double mt = strtod(argv[3], NULL);
@@ -293,31 +293,12 @@ int HttpApp::command(int argc, const char*const* argv)
 			return TCL_OK;
 		
 		} else if (strcmp(argv[1], "enter-page") == 0) {
-			double mt = -1, et, age = -1, noc = 0;
-			int size = -1;
-			for (int i = 3; i < argc; i+=2) {
-				if (strcmp(argv[i], "modtime") == 0)
-					mt = strtod(argv[i+1], NULL);
-				else if (strcmp(argv[i], "size") == 0) 
-					size = atoi(argv[i+1]);
-				else if (strcmp(argv[i], "age") == 0)
-					age = strtod(argv[i+1], NULL);
-				else if (strcmp(argv[i], "noc") == 0)
-					// non-cacheable flag
-					noc = 1;
-			}
-			// XXX allow mod time < 0
-			if ((size < 0) || (age < 0)) {
-				tcl.resultf("%s: wrong page information %s",
-					    name_, argv[2]);
+			ClientPage* pg = pool_->enter_page(argc, argv);
+			if (pg == NULL)
 				return TCL_ERROR;
-			}
-			et = Scheduler::instance().clock();
-			ClientPage* pg = 
-				pool_->add_page(argv[2], size, mt, et, age);
-			if (noc) 
-				pg->set_uncacheable();
-			return TCL_OK;
+			else 
+				return TCL_OK;
+
 		} else if (strcmp(argv[1], "evTrace") == 0) { 
 			char buf[1024], *p;
 			if (log_ != 0) {
@@ -371,6 +352,20 @@ void HttpApp::process_data(int, char* data)
 		break;
 	}
 }
+
+
+
+//----------------------------------------------------------------------
+// Clients
+//----------------------------------------------------------------------
+static class HttpClientClass : public TclClass {
+public:
+	HttpClientClass() : TclClass("Http/Client") {}
+        TclObject* create(int, const char*const*) {
+		return (new HttpClient());
+	}
+} class_httpclient_app;
+
 
 
 //----------------------------------------------------------------------
@@ -751,7 +746,7 @@ int HttpMInvalCache::command(int argc, const char*const* argv)
 		    (strcmp(argv[1], "add-upd-listener") == 0)) {
 			HttpInvalAgent *tmp = 
 				(HttpInvalAgent *)TclObject::lookup(argv[2]);
-			tmp->set_app(this);
+			tmp->attachApp((Application *)this);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "add-inval-sender") == 0) {
 			HttpInvalAgent *tmp = 
@@ -1468,10 +1463,10 @@ int HttpMInvalCache::recv_upd(HttpUpdateData *d)
 		}
 
 	// Add the new page into our pool
-	ClientPage *q = pool_->add_page(d->rec_page(0), d->rec_size(0), 
-					d->rec_mtime(0),
-					Scheduler::instance().clock(),
-					d->rec_age(0));
+	ClientPage *q = pool_->enter_page(d->rec_page(0), d->rec_size(0), 
+					  d->rec_mtime(0),
+					  Scheduler::instance().clock(),
+					  d->rec_age(0));
 	// By default the page is valid and read. Set it as unread
 	q->set_unread();
 
@@ -1576,28 +1571,12 @@ int HttpPercInvalCache::command(int argc, const char*const* argv)
 		 * The same arguments as enter-page, but set the page status
 		 * as HTTP_VALID_HEADER, i.e., if we get a request, we need 
 		 * to fetch the actual valid page content
-		 *
-		 * XXX We don't need parsing "noc" here because a non-cacheable
-		 * page won't be processed by a cache.
 		 */
-		double mt = -1, et, age = -1;
-		int size = -1;
-		for (int i = 3; i < argc; i+=2) {
-			if (strcmp(argv[i], "modtime") == 0)
-				mt = strtod(argv[i+1], NULL);
-			else if (strcmp(argv[i], "size") == 0) 
-				size = atoi(argv[i+1]);
-			else if (strcmp(argv[i], "age") == 0)
-				age = strtod(argv[i+1], NULL);
-		}
-		if ((mt < 0) || (size < 0) || (age < 0)) {
-			tcl.resultf("%s: wrong page information %s",
-				    name_, argv[2]);
+		ClientPage *pg = pool_->enter_metadata(argc, argv);
+		if (pg == NULL)
 			return TCL_ERROR;
-		}
-		et = Scheduler::instance().clock();
-		pool_->add_metadata(argv[2], size, mt, et, age);
-		return TCL_OK;
+		else
+			return TCL_OK;
 	}
 
 	return HttpMInvalCache::command(argc, argv);

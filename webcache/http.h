@@ -17,7 +17,7 @@
 //
 // Definition of the HTTP agent
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.6 1999/02/18 23:15:44 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.7 1999/03/04 02:21:46 haoboy Exp $
 
 #ifndef ns_http_h
 #define ns_http_h
@@ -26,7 +26,7 @@
 #include <tcl.h>
 #include "config.h"
 #include "agent.h"
-#include "app-connector.h"
+#include "process.h"
 #include "app.h"
 
 #include "pagepool.h"
@@ -34,7 +34,7 @@
 #include "tcpapp.h"
 #include "http-aux.h"
 
-class HttpApp : public TclObject, public AppConnector {
+class HttpApp : public Process {
 public:
 	HttpApp();
 	virtual ~HttpApp();
@@ -49,6 +49,11 @@ public:
 	int id() const { return id_; }
 
 	virtual void process_data(int size, char* d);
+	virtual AppData* get_data(int&, const AppData*) {
+		// Do not support it
+		abort();
+		return NULL;
+	}
 
 protected:
 	int add_cnc(HttpApp *client, TcpApp *agt);
@@ -103,6 +108,18 @@ protected:
 	int push_high_bound_, push_low_bound_;
 	double hb_interval_;		// Heartbeat interval (second)
 };
+
+
+
+//----------------------------------------------------------------------
+// Clients
+//----------------------------------------------------------------------
+
+// Place holder: everything is in OTcl. We declare it as a split object
+// in case that its derived classes need some C++ handling.
+class HttpClient : public HttpApp {
+};
+
 
 
 //----------------------------------------------------------------------

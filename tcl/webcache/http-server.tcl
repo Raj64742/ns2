@@ -17,7 +17,7 @@
 #
 # Implementation of an HTTP server
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.7 1999/02/09 00:43:51 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.8 1999/03/04 02:21:44 haoboy Exp $
 
 
 #
@@ -127,8 +127,14 @@ Http/Server instproc schedule-nextmod { time pageid } {
 	$ns_ at $time "$self modify-page $pageid"
 }
 
-# XXX Assumes page doesn't exists before. 
 Http/Server instproc gen-page { pageid } {
+	set pginfo [$self gen-pageinfo $pageid]
+	eval $self enter-page $pageid $pginfo
+	return $pginfo
+}
+
+# XXX Assumes page doesn't exists before. 
+Http/Server instproc gen-pageinfo { pageid } {
 	$self instvar ns_ pgtr_ 
 
 	if [$self exist-page $pageid] {
@@ -152,8 +158,6 @@ Http/Server instproc gen-page { pageid } {
 	set modseq_($pageid) 0
 	set modtimes_($pageid:0) $modtime
 
-	#puts "Generated page $pageid age $age"
-	eval $self enter-page $pageid $pginfo
 	return [join $pginfo]
 }
 
@@ -273,7 +277,7 @@ Http/Server/epa instproc modify-page args {
 }
 
 # Do not schedule modification during page generation.
-Http/Server/epa instproc gen-page { pageid } {
+Http/Server/epa instproc gen-pageinfo { pageid } {
 	$self instvar ns_ pgtr_ 
 
 	if [$self exist-page $pageid] {
@@ -295,8 +299,6 @@ Http/Server/epa instproc gen-page { pageid } {
 	set modseq_($pageid) 0
 	set modtimes_($pageid:0) $modtime
 
-	#puts "Generated page $pageid age $age"
-	eval $self enter-page $pageid $pginfo
 	return [join $pginfo]
 }
 

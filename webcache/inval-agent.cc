@@ -17,7 +17,7 @@
 //
 // Agents used to send and receive invalidation records
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.7 1999/02/18 23:15:45 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.8 1999/03/04 02:21:47 haoboy Exp $
 
 #include "inval-agent.h"
 #include "ip.h"
@@ -59,7 +59,7 @@ void HttpInvalAgent::recv(Packet *pkt, Handler*)
 // Send a list of invalidation records in user data area
 // realsize: the claimed size
 // datasize: the actual size of user data, used to allocate packet
-void HttpInvalAgent::send(int realsize, AppData* data)
+void HttpInvalAgent::send(int realsize, const AppData* data)
 {
 	Packet *pkt = allocpkt(data->size());
 	hdr_inval *ih = (hdr_inval *)pkt->access(off_inv_);
@@ -99,7 +99,7 @@ int HttpUInvalAgent::command(int argc, const char*const* argv)
 		// Compatibility interface
 		HttpApp* c = 
 			(HttpApp*)TclObject::lookup(argv[2]);
-		target_ = (AppConnector *)c;
+		target_ = (Process *)c;
 		return TCL_OK;
 	}
 	return TcpApp::command(argc, argv);

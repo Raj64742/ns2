@@ -25,7 +25,6 @@ allinone/install
 alloc-address.cc
 app.cc
 app.h
-app-connector.h
 antenna.cc
 antenna.h
 arp.cc
@@ -333,6 +332,8 @@ pareto.cc
 pkt-counter.cc
 pointsample-est.cc
 ptypes2tcl.cc
+process.cc
+process.h
 propagation.h
 propagation.cc
 priqueue.cc

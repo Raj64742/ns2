@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.310 1999/03/02 20:38:47 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.311 1999/03/04 02:21:29 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,16 @@
     <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b5.tar.gz">
     Release of ns-2.1b5<a> [PENDING]</a></h3>
     <UL>  
+
+    <li> <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
+         <b>Wed Mar  3 18:16:53 PST 1999</b><br>
+	 Added a separate set of error model insertion
+         procedures. Updated SRM's test suite output (the previous one
+         does not contain packet drop events). Changed the name of
+         AppConnector to Process, and make it a subclass of
+         TclObject. Make Application a subclass of Process. Added
+         three new send() methods to Agent so that it supports sending
+         user-level data. 
 
     <li> <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
          <b>Tue Mar  2 12:37:37 PST 1999</b><br>
