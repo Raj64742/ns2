@@ -4,7 +4,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftps.cc,v 1.1 2001/04/05 22:49:46 haldar Exp $ ()";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftps.cc,v 1.2 2001/06/12 17:02:04 haldar Exp $ ()";
 #endif
 
 #include "tcp-full-bay.h"
@@ -26,7 +26,11 @@ protected:
 	static FILE* fp_;
 };
 
+#ifdef BAYTCP_DEBUG
 FILE* FtpSrvrAgent::fp_ = fopen("ftpfilesize.tr", "w");
+#else
+FILE* FtpSrvrAgent::fp_ = NULL;
+#endif
 
 static class FtpSrvrClass : public TclClass {
 public:
@@ -52,7 +56,9 @@ void FtpSrvrAgent::recv(Packet*, BayFullTcpAgent* tcp)
 	int length = filesize_;
 	//tells tcp-full with my mods to send FIN when empty
 	tcp->advance(length, 1);
-	//fprintf(fp_, "server %g %d %d\n", now(), addr_, length);
+#ifdef BAYTCP_DEBUG
+	fprintf(fp_, "server %g %d %d\n", now(), addr_, length);
+#endif
 }
 
 /*
