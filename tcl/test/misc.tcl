@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.14 1997/11/01 00:51:12 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.15 1997/11/04 00:40:37 kfall Exp $
 #
 
 #source plotting.tcl
@@ -146,22 +146,26 @@ TestSuite instproc tcpDumpAll { tcpSrc interval label } {
 	puts $label/time=[$ns_ now]/cwnd=[format "%.4f" [$tcpSrc set cwnd_]]/ssthresh=[$tcpSrc set ssthresh_]/ack=[$tcpSrc set ack_]/rtt=[$tcpSrc set rtt_]	
 }
 
+TestSuite instproc cleanup { tfile testname } {
+	$self instvar ns_ allchan_ namchan_
+	$ns_ halt
+	close $tfile
+	if { [info exists allchan_] } {
+		close $allchan_
+	}       
+	if { [info exists namchan_] } {
+		close $namchan_
+	}       
+	$self finish $testname; # calls finish procedure in test suite file
+}
+
+
 TestSuite instproc openTrace { stopTime testName } {
 	$self instvar ns_ allchan_ namchan_
 	exec rm -f out.tr temp.rands
 	set traceFile [open out.tr w]
 	puts $traceFile "v testName $testName"
-	set sbody " \
-		$ns_ halt; \
-		close $traceFile; \
-		if { [info exists allchan_] } { \
-			close $allchan_ \
-		} ; \
-		if { [info exists namchan_] } { \
-			close $namchan_ \
-		} ; \
-		$self finish $testName "
-	$ns_ at $stopTime "$sbody"
+	$ns_ at $stopTime "$self cleanup $traceFile $testName"
 	return $traceFile
 }
 
