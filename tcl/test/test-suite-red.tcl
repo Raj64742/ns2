@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.3 1997/06/03 21:33:59 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.4 1997/10/14 23:30:09 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -147,9 +147,9 @@ Test/red1 instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 
-    puts seed=[ns-random 0]
+    #puts seed=[ns-random 0]
     $ns_ run
 }
 
@@ -187,15 +187,16 @@ Test/red1_bytes instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 
-    puts seed=[ns-random 0]
+    #puts seed=[ns-random 0]
     $ns_ run
 }
 
 Class Test/ecn -superclass TestSuite
 Test/ecn instproc init topo {
     $self instvar net_ defNet_ test_
+    Queue/RED set setbit_ true
     set net_	$topo
     set defNet_	net2
     set test_	ecn
@@ -225,9 +226,9 @@ Test/ecn instproc run {} {
     $self tcpDump $tcp1 5.0
         
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
         
-    puts seed=[ns-random 0]
+    #puts seed=[ns-random 0]
     $ns_ run
 }
 
@@ -265,9 +266,9 @@ Test/red2 instproc run {} {
     $self tcpDump $tcp1 5.0
     
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 
-    puts seed=[ns-random 0]
+    #puts seed=[ns-random 0]
     $ns_ run
 }
 
@@ -308,9 +309,9 @@ XTest/red_twoway instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 
-    puts seed=[ns-random 0]
+    #puts seed=[ns-random 0]
     $ns_ run
 }
 
@@ -353,9 +354,9 @@ XTest/red_twowaybytes instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 
-    puts seed=[ns-random 0]
+    #puts seed=[ns-random 0]
     $ns_ run
 }
 
@@ -559,8 +560,8 @@ proc Xtest_flows {} {
 	global category awkprocedure
    	set category 1
 	set awkprocedure unforcedmakeawk
-	set seed [ns-random 0]
-	puts seed=$seed
+#	set seed [ns-random 0]
+#	puts seed=$seed
 	flows 
 }
 
@@ -568,9 +569,9 @@ proc Xtest_flows1 {} {
 	global category awkprocedure 
    	set category 0
 	set awkprocedure forcedmakeawk
-	set seed [ns-random 0]
+#	set seed [ns-random 0]
 #	ns-random $seed
-	puts seed=$seed 
+#	puts seed=$seed 
 	flows 
 }
 
@@ -599,7 +600,7 @@ proc Xtest_flowsAll {} {
 	$ns_ at $stoptime "$r1fm flush"
 	$ns_ at $stoptime "finish_flow $testName_"
 
-	puts seed=[ns-random 0]
+#	puts seed=[ns-random 0]
 	$ns_ run
 }
 
