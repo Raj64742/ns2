@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.13 1998/08/05 22:43:30 kfall Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.14 1998/08/05 22:48:10 kfall Exp $
 #
 
 set ns [new Simulator]
@@ -114,7 +114,6 @@ FQLink instproc new-flow { src dst fid } {
 
 	set slot [$classifier_ installNext $q]
 	$classifier_ set-hash auto $src $dst $fid $slot
-#$classifier_ install $flowID $q
 	$q target $queue_
 	$queue_ install $fid $q
 }
