@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.20 1997/11/11 20:11:12 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.21 1997/11/14 22:04:04 kfall Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -46,7 +46,7 @@ static const char rcsid[] =
 static class ErrorModelClass : public TclClass {
 public:
 	ErrorModelClass() : TclClass("ErrorModel") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new ErrorModel);
 	}
 } class_errormodel;
@@ -280,6 +280,60 @@ int SelectErrorModel::corrupt(Packet* p)
 	return 0;
 }
 
+/*
+ * periodic packet drops (drop every nth packet we see)
+ * this can be conveniently combined with a flow-based classifier
+ * to achieve drops in particular flows
+ */
+class PeriodicErrorModel : public ErrorModel {
+  public:
+        PeriodicErrorModel();
+        int corrupt(Packet*);
+  protected:
+        int command(int argc, const char*const* argv);
+	int cnt_;
+        double period_;
+	double last_time_;
+};
+
+
+static class PeriodicErrorModelClass : public TclClass {
+public:
+        PeriodicErrorModelClass() : TclClass("PeriodicErrorModel") {}
+        TclObject* create(int argc, const char*const* argv) {
+                return (new PeriodicErrorModel);
+        }
+} class_periodic_error_model;
+
+       
+PeriodicErrorModel::PeriodicErrorModel() : ErrorModel(), cnt_(0),
+	last_time_(0.0)
+{      
+	bind("period_", &period_);
+}      
+
+int PeriodicErrorModel::command(int argc, const char*const* argv)
+{   
+        return ErrorModel::command(argc, argv);
+}
+
+int PeriodicErrorModel::corrupt(Packet* p)
+{
+	hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
+	if (eu_ == EU_TIME) {
+		double now = Scheduler::instance().clock();
+		if ((now - last_time_) > period_) {
+			last_time_ = now;
+			return 1;
+		}
+	}
+	cnt_ += (eu_ == EU_PKT) ? 1 : ch->size();
+	if (cnt_ >= int(period_)) {
+		cnt_ = 0;
+		return 1;
+	}
+        return 0;
+}
 
 static class SRMErrorModelClass : public TclClass {
 public:
