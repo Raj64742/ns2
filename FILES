@@ -1266,6 +1266,7 @@ tcl/test/test-all-WLtutorial
 tcl/test/test-all-adaptive-red
 tcl/test/test-all-aimd
 tcl/test/test-all-algo-routing
+tcl/test/test-all-broken
 tcl/test/test-all-cbq
 tcl/test/test-all-cbq-v1
 tcl/test/test-all-diffserv
@@ -1389,6 +1390,8 @@ tcl/test/test-output-aimd/tcp_tahoe.Z
 tcl/test/test-output-aimd/timeouts.Z
 tcl/test/test-output-algo-routing/Algo1.Z
 tcl/test/test-output-algo-routing/Algo2.Z
+tcl/test/test-output-broken/ecn_secondpktEcn_reno_full.Z
+tcl/test/test-output-broken/ecn_smallwinEcn_reno_full.Z
 tcl/test/test-output-cbq/AO.Z
 tcl/test/test-output-cbq/EXTRA1.Z
 tcl/test/test-output-cbq/EXTRA2.Z
@@ -2131,6 +2134,7 @@ tcl/test/test-suite-WLtutorial.tcl
 tcl/test/test-suite-adaptive-red.tcl
 tcl/test/test-suite-aimd.tcl
 tcl/test/test-suite-algo-routing.tcl
+tcl/test/test-suite-broken.tcl
 tcl/test/test-suite-cbq-v1.tcl
 tcl/test/test-suite-cbq-v1a.tcl
 tcl/test/test-suite-cbq.tcl
