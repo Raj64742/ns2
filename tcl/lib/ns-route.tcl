@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.9 1998/06/24 05:12:36 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.10 1998/07/29 21:42:38 yaxu Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -86,6 +86,10 @@ Simulator instproc compute-flat-routes {} {
 	set i 0
 	set n [Node set nn_]
 	while { $i < $n } {
+		if ![info exists Node_($i)] {
+		    incr i
+		    continue
+		}
 		set n1 $Node_($i)
 		set j 0
 		while { $j < $n } {
