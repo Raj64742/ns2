@@ -23,9 +23,14 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
+//	Author:		Kannan Varadhan	<kannan@isi.edu>
+//	Version Date:	Mon Jun 30 15:51:33 PDT 1997
+//
 
 #ifndef ns_srm_h
 #define ns_srm_h
+
+#include <math.h>
 
 #include "config.h"
 #include "heap.h"
@@ -41,11 +46,13 @@ struct hdr_srm {
 	int	type_;
 	int	sender_;
 	int	seqnum_;
+	int	round_;
 	
 	// per field member functions
 	int& type()	{ return type_; }
 	int& sender()	{ return sender_; }
 	int& seqnum()	{ return seqnum_; }
+	int& round()	{ return round_; }
 };
 
 class SRMAgent : public Agent {
@@ -60,7 +67,6 @@ protected:
 
 	SRMinfo* get_state(int sender) {
 		assert(sip_);
-
 		SRMinfo* ret;
 		for (ret = sip_; ret; ret = ret->next_)
 			if (ret->sender_ == sender)
@@ -73,14 +79,37 @@ protected:
 		}
 		return ret;
 	}
-	void addExtendedHeaders(Packet*) {}
+	virtual void addExtendedHeaders(Packet*) {}
+	virtual void parseExtendedHeaders(Packet*) {}
+	virtual int request(SRMinfo* sp, int hi) {
+		int miss = 0;
+		if (!hi || sp->ldata_ >= hi)
+			return miss;
+		
+		int maxsize = ((int)log10(hi) + 2) * (hi - sp->ldata_);
+				// 1 + log10(msgid) bytes for the msgid
+				// 1 byte per msg separator
+				// hi - sp->ldata_ msgs max missing
+		char* msgids = new char[maxsize + 1];
+		*msgids = '\0';
+		for (int i = sp->ldata_ + 1; i <= hi; i++)
+			if (! sp->ifReceived(i)) {
+				(void) sprintf(msgids, "%s %d", msgids, i);
+				miss++;
+			}
+		assert(miss);
+		Tcl::instance().evalf("%s request %d %s", name_,
+				      sp->sender_, msgids);
+		delete[] msgids;
+		return miss;
+	}
 
-	void recv_data(int sender, int id, u_char* data);
-        void recv_repr(int sender, int msgid, u_char* data);
-        void recv_rqst(int requestor, int sender, int msgid);
+        void recv_data(int sender, int msgid, u_char* data);
+        void recv_repr(int round, int sender, int msgid, u_char* data);
+        void recv_rqst(int requestor, int round, int sender, int msgid);
 	void recv_sess(int sessCtr, int* data);
 
-	void send_ctrl(int type, int sender, int msgid, int size);
+	void send_ctrl(int type, int round, int sender, int msgid, int size);
 	void send_sess();
 public:
 	SRMAgent();
@@ -89,5 +118,50 @@ public:
 };
 
 
-#endif
+struct hdr_asrm {
+	double	distance_;
 
+	// per field member functions
+	double& distance()	{ return distance_; }
+};
+
+class ASRMAgent : public SRMAgent {
+	double pdistance_;
+	int    requestor_;
+	int    off_asrm_;
+public:
+	ASRMAgent() {
+		bind("pdistance_", &pdistance_);
+		bind("requestor_", &requestor_);
+		bind("off_asrm_", &off_asrm_);
+	}
+protected:
+	void addExtendedHeaders(Packet* p) {
+		SRMinfo* sp;
+		hdr_srm*  sh = (hdr_srm*) p->access(off_srm_);
+		hdr_asrm* seh = (hdr_asrm*) p->access(off_asrm_);
+		switch (sh->type()) {
+		case SRM_RQST:
+			sp = get_state(sh->sender());
+			seh->distance() = sp->distance_;
+			break;
+		case SRM_REPR:
+			sp = get_state(requestor_);
+			seh->distance() = sp->distance_;
+			break;
+		case SRM_DATA:
+		case SRM_SESS:
+			seh->distance() = 0.;
+			break;
+		default:
+			assert(0);
+			/*NOTREACHED*/
+		}
+	}
+	void parseExtendedHeaders(Packet* p) {
+		hdr_asrm* seh = (hdr_asrm*) p->access(off_asrm_);
+		pdistance_ = seh->distance();
+	}
+};
+
+#endif

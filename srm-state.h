@@ -23,6 +23,9 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
+//	Author:		Kannan Varadhan	<kannan@isi.edu>
+//	Version Date:	Mon Jun 30 15:51:33 PDT 1997
+//
 
 #ifndef ns_srm_state_h
 #define	ns_srm_state_h

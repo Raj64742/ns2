@@ -22,31 +22,29 @@
 # 
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
-#
+# 
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
 
-SRM/request instproc compute-delay {} {
-	$self instvar C1_ C2_ agent_ sender_ backoff_
-	set unif [uniform 0 1]
-	set rancomp [expr $C1_ + $C2_ * $unif]
-	set dist [$agent_ distance? $sender_]
-	set delay [expr $rancomp * $dist]
-	set absdelay [expr $delay * $backoff_]
-	
-	$self evTrace Q INTERVALS C1 $C1_ C2 $C2_ d $dist i $backoff_	\
-			U $unif |D| $absdelay
-	set delay
+if ![info exists ctrlFid] {
+    set ctrlFid 39
 }
 
-SRM/repair instproc compute-delay {} {
-	$self instvar D1_ D2_ agent_ requestor_
-	set unif [uniform 0 1]
-	set rancomp [expr $D1_ + $D2_ * $unif]
-	set dist [$agent_ distance? $requestor_]
-	set delay [expr $rancomp * $dist]
+set sessFid [incr ctrlFid]
+set rqstFid [incr ctrlFid]
+set reprFid [incr ctrlFid]
 
-	$self evTrace P INTERVALS D1 $D1_ D2 $D2_ d $dist U $unif |D| $delay
-	set delay
+Agent/SRM instproc send {type args} {
+#    eval $self evTrace $proc $type $args
+    global sessFid rqstFid reprFid
+
+    set fid [$self set fid_]
+    switch $type {
+    session	{ $self set fid_ $sessFid }
+    request	{ $self set fid_ $rqstFid }
+    repair	{ $self set fid_ $reprFid }
+    }
+    eval $self cmd send $type $args
+    $self set fid_ $fid
 }

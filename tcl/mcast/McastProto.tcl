@@ -62,6 +62,10 @@ McastProtocol instproc trace { ns f src } {
 	$self trace-dynamics $ns $f $src
 }
 
+McastProtocol instproc notify changes {
+	# no-op
+}
+
 #############################################
 Class McastProtoArbiter
 
@@ -92,6 +96,13 @@ McastProtoArbiter instproc start {} {
         foreach proto $protocols {
                 $proto start
         }
+}
+
+McastProtoArbiter instproc notify changes {
+	$self instvar protocols
+	foreach proto $protocols {
+		$proto notify $changes
+	}
 }
 
 # similar to membership indication by igmp.. 

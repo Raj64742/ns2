@@ -18,8 +18,12 @@ MultiSim instproc run-mcast {} {
 MultiSim instproc upstream-node { id src } {
 	$self instvar routingTable_ Node_
         if [info exists routingTable_] {
-	    set nbr [$routingTable_ lookup $id $src]
-	    return $Node_($nbr)
+		set nbr [$routingTable_ lookup $id $src]
+		if [info exists Node_($nbr)] {
+			return $Node_($nbr)
+		} else {
+			return ""
+		}
 	} else {
 	    return ""
 	}

@@ -120,6 +120,7 @@ Link instproc up? {} {
 
 Link instproc all-connectors op {
     foreach c [$self info vars] {
+	$self instvar $c
 	if ![info exists $c] continue
 	foreach var [$self set $c] {
 	    if [catch "$var info class"] {

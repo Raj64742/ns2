@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.11 1997/04/28 19:31:19 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.12 1997/07/14 08:52:02 kannan Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -41,14 +41,14 @@ static char rcsid[] =
 static class LinkDelayClass : public TclClass {
 public:
 	LinkDelayClass() : TclClass("DelayLink") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int /* argc */, const char*const* /* argv */) {
 		return (new LinkDelay);
 	}
 } class_delay_link;
 
-LinkDelay::LinkDelay() : dynamic_(0), itq_(0), nextPacket_(0)
+LinkDelay::LinkDelay() : dynamic_(0), itq_(0), nextPacket_(0), dropTarget_(0)
 {
-	Tcl& tcl = Tcl::instance();
+	// Tcl& tcl = Tcl::instance();
 	/*XXX*/
 	bind_bw("bandwidth_", &bandwidth_);
 	bind_time("delay_", &delay_);
@@ -60,6 +60,12 @@ int LinkDelay::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "dynamic") == 0) {
 			dynamic_ = 1;
 			itq_ = new PacketQueue();
+			return TCL_OK;
+		}
+	}
+	if (argc == 3) {
+		if (strcmp(argv[1], "drop-target") == 0) {
+			dropTarget_ = (NsObject*) TclObject::lookup(argv[2]);
 			return TCL_OK;
 		}
 	}

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.37 1997/07/03 03:21:08 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.38 1997/07/14 08:52:19 kannan Exp $
 #
 
 #
@@ -338,7 +338,7 @@ Simulator instproc compute-routes {} {
 		set srcID [lindex $L 0]
 		set dstID [lindex $L 1]
 	        if { [$link_($ln) up?] == "up" } {
-			$r insert $srcID $dstID
+			$r insert $srcID $dstID [$link_($ln) cost?]
 		} else {
 			$r reset $srcID $dstID
 		}

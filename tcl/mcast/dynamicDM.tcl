@@ -24,6 +24,10 @@ dynamicDM instproc periodic-check {} {
         $ns at [expr [$ns now] + [dynamicDM set ReportRouteTimeout]] "$self periodic-check"
 }
 
+dynamicDM instproc notify changes {
+	$self check-downstream-list
+}
+
 dynamicDM instproc check-downstream-list { } {
         $self instvar ns DownstreamList_ Node PruneTimer_ iif_
 

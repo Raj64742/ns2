@@ -38,7 +38,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.5 1997/06/03 21:33:42 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.6 1997/07/14 08:52:04 kannan Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -56,7 +56,7 @@ public:
 protected:
 	void check(int);
 	void alloc(int n);
-	void insert(int src, int dst);
+	void insert(int src, int dst, int cost);
 	void reset(int src, int dst);
 	void compute_routes();
 	int* adj_;
@@ -82,12 +82,12 @@ int RouteLogic::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "reset") == 0) {
-			delete adj_;
+			delete[] adj_;
 			adj_ = 0;
 			size_ = 0;
 			return (TCL_OK);
 		}
-	} else if (argc == 4) {
+	} else if (argc >= 4) {
 		if (strcmp(argv[1], "insert") == 0) {
 			int src = atoi(argv[2]) + 1;
 			int dst = atoi(argv[3]) + 1;
@@ -95,7 +95,8 @@ int RouteLogic::command(int argc, const char*const* argv)
 				tcl.result("negative node number");
 				return (TCL_ERROR);
 			}
-			insert(src, dst);
+			int cost = (argc == 5 ? atoi(argv[4]) : 1);
+			insert(src, dst, cost);
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "reset") == 0) {
@@ -135,8 +136,8 @@ RouteLogic::RouteLogic()
 	
 RouteLogic::~RouteLogic()
 {
-	delete adj_;
-	delete route_;
+	delete[] adj_;
+	delete[] route_;
 }
 
 void RouteLogic::alloc(int n)
@@ -171,14 +172,14 @@ void RouteLogic::check(int n)
 			adj_[INDEX(i, j, m)] = old[INDEX(i, j, osize)];
 	}
 	size_ = m;
-	delete old;
+	delete[] old;
 }
 
-void RouteLogic::insert(int src, int dst)
+void RouteLogic::insert(int src, int dst, int cost)
 {
 	check(src);
 	check(dst);
-	adj_[INDEX(src, dst, size_)] = 1;
+	adj_[INDEX(src, dst, size_)] = cost;
 }
 
 void RouteLogic::reset(int src, int dst)
@@ -195,7 +196,7 @@ void RouteLogic::compute_routes()
 	int* parent = new int[n];
 #define ADJ(i, j) adj_[INDEX(i, j, size_)]
 #define ROUTE(i, j) route_[INDEX(i, j, size_)]
-	delete route_;
+	delete[] route_;
 	route_ = new int[n * n];
 	memset((char *)route_, 0, n * n * sizeof(route_[0]));
 
@@ -237,7 +238,7 @@ void RouteLogic::compute_routes()
 				if (parent[w] != k &&
 				    hopcnt[o] + ADJ(o, w) < hopcnt[w]) {
 					ROUTE(k, w) = ROUTE(k, o);
-					hopcnt[w] = hopcnt[o] + 1;
+					hopcnt[w] = hopcnt[o] + ADJ(o, w);
 				}
 			}
 		}

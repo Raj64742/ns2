@@ -23,6 +23,9 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
+//	Author:		Kannan Varadhan	<kannan@isi.edu>
+//	Version Date:	Mon Jun 30 15:51:33 PDT 1997
+//
 
 #include <stdlib.h>
 #include <assert.h>
@@ -73,15 +76,17 @@ int SRMAgent::command(int argc, const char*const* argv)
                         return TCL_OK;
                 }
                 if (strcmp(argv[2], "request") == 0) {
-                        int sender = atoi(argv[3]);
-                        int msgid  = atoi(argv[4]);
-                        send_ctrl(SRM_RQST, sender, msgid, 0);
+			int round = atoi(argv[3]);
+                        int sender = atoi(argv[4]);
+                        int msgid  = atoi(argv[5]);
+                        send_ctrl(SRM_RQST, round, sender, msgid, 0);
                         return TCL_OK;
                 }
                 if (strcmp(argv[2], "repair") == 0) {
-                        int sender = atoi(argv[3]);
-                        int msgid  = atoi(argv[4]);
-                        send_ctrl(SRM_REPR, sender, msgid, packetSize_);
+			int round = atoi(argv[3]);
+                        int sender = atoi(argv[4]);
+                        int msgid  = atoi(argv[5]);
+                        send_ctrl(SRM_REPR, round, sender, msgid, packetSize_);
                         return TCL_OK;
                 }
                 tcl.resultf("%s: invalid send request %s", name_, argv[2]);
@@ -137,15 +142,18 @@ void SRMAgent::recv(Packet* p, Handler* h)
 			sh->sender(), sh->seqnum(), ih->src());
 #endif
 		
+		parseExtendedHeaders(p);
                 switch (sh->type()) {
                 case SRM_DATA:
-                        recv_data(sh->sender(), sh->seqnum(), p->accessdata());
-                        break;
+			recv_data(sh->sender(), sh->seqnum(), p->accessdata());
+			break;
                 case SRM_RQST:
-                        recv_rqst(ih->src(), sh->sender(), sh->seqnum());
+                        recv_rqst(ih->src(),
+				  sh->round(), sh->sender(), sh->seqnum());
                         break;
                 case SRM_REPR:
-                        recv_repr(sh->sender(), sh->seqnum(), p->accessdata());
+                        recv_repr(sh->round(), sh->sender(), sh->seqnum(),
+				  p->accessdata());
                         break;
                 case SRM_SESS:
                         // This seqnum() is the session sequence number,
@@ -156,67 +164,61 @@ void SRMAgent::recv(Packet* p, Handler* h)
         }
 }
 
-void SRMAgent::recv_data(int sender, int id, u_char*)
-{
-        Tcl& tcl = Tcl::instance();
-        SRMinfo* sp = get_state(sender);
-        if (id <= sp->ldata_) {
-                tcl.evalf("%s recv data %d %d", name_, sender, id);
-        } else {
-                for (int i = sp->ldata_ + 1; i < id; i++) {
-                        assert(!sp->ifReceived(i));
-                        tcl.evalf("%s request %d %d", name_, sender, i);
-                }
-                sp->ldata_ = id;
-        }
-        sp->setReceived(id);
-        // Notice that we currently make no provisions for a listener
-        // agent to receive the data.
-}
-
-void SRMAgent::send_ctrl(int type, int sender, int msgid, int size)
+void SRMAgent::send_ctrl(int type, int round, int sender, int msgid, int size)
 {
         Packet* p = Agent::allocpkt();
         hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
         sh->type() = type;
         sh->sender() = sender;
         sh->seqnum() = msgid;
+	sh->round() = round;
+	addExtendedHeaders(p);
 
 	hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
         ch->size() = sizeof(hdr_srm) + size;
         target_->recv(p);
 }
 
-void SRMAgent::recv_rqst(int requestor, int sender, int msgid)
+void SRMAgent::recv_data(int sender, int msgid, u_char*)
+{
+	Tcl& tcl = Tcl::instance();
+	SRMinfo* sp = get_state(sender);
+	if (msgid > sp->ldata_) {
+		(void) request(sp, msgid - 1);
+		sp->setReceived(msgid);
+		sp->ldata_ = msgid;
+	} else {
+		tcl.evalf("%s recv data %d %d", name_, sender, msgid);
+	}
+}
+
+void SRMAgent::recv_rqst(int requestor, int round, int sender, int msgid)
 {
 	Tcl& tcl = Tcl::instance();
         SRMinfo* sp = get_state(sender);
         if (msgid > sp->ldata_) {
-                for (int i = sp->ldata_ + 1; i <= msgid; i++) {
-                        assert(! sp->ifReceived(i));
-                        tcl.evalf("%s request %d %d", name_, sender, i);
-                }
+		(void) request(sp, msgid);	// request upto msgid
                 sp->ldata_ = msgid;
         } else {
-                tcl.evalf("%s recv request %d %d %d", name_,
-                          requestor, sender, msgid);
+                tcl.evalf("%s recv request %d %d %d %d", name_,
+                          requestor, round, sender, msgid);
         }
 }
 
-void SRMAgent::recv_repr(int sender, int msgid, u_char*)
+void SRMAgent::recv_repr(int round, int sender, int msgid, u_char*)
 {
 	Tcl& tcl = Tcl::instance();
         SRMinfo* sp = get_state(sender);
         if (msgid > sp->ldata_) {
-                for (int i = sp->ldata_ + 1; i < msgid; i++) {
-                        assert(! sp->ifReceived(i));
-                        tcl.evalf("%s request %d %d", name_, sender, i);
-                }
+		(void) request(sp, msgid - 1);	// request upto msgid - 1
                 sp->setReceived(msgid);
                 sp->ldata_ = msgid;
         } else {
-                tcl.evalf("%s recv repair %d %d", name_, sender, msgid);
+                tcl.evalf("%s recv repair %d %d %d", name_,
+			  round, sender, msgid);
         }
+        // Notice that we currently make no provisions for a listener
+        // agent to receive the data.
 }
 
 void SRMAgent::send_sess()
@@ -227,6 +229,7 @@ void SRMAgent::send_sess()
         sh->type() = SRM_SESS;
         sh->sender() = addr_;
         sh->seqnum() = ++sessCtr_;
+	addExtendedHeaders(p);
 
         int* data = (int*) p->accessdata();
 	*data++ = groupSize_;
@@ -253,7 +256,6 @@ void SRMAgent::send_sess()
 
 void SRMAgent::recv_sess(int sessCtr, int* data)
 {
-	Tcl& tcl = Tcl::instance();
 	SRMinfo* sp;
 	
         int sender, dataCnt, rtime, stime;
@@ -277,10 +279,7 @@ void SRMAgent::recv_sess(int sessCtr, int* data)
 	sp->lsess_ = sessCtr;
 	sp->recvTime_ = now;
 	sp->sendTime_ = stime;
-
-	for (i = sp->ldata_ + 1; i <= dataCnt; i++)
-		if (! sp->ifReceived(i))
-			tcl.evalf("%s request %d %d", name_, sender, i);
+	(void) request(sp, dataCnt);
 	if (sp->ldata_ < dataCnt)
 		sp->ldata_ = dataCnt;
 	
@@ -308,10 +307,22 @@ void SRMAgent::recv_sess(int sessCtr, int* data)
 			continue;
 		}
 		sp = get_state(sender);
-		for (int j = sp->ldata_ + 1; j <= dataCnt; j++)
-			if (! sp->ifReceived(j))
-				tcl.evalf("%s request %d %d", name_, sender, j);
+		(void) request(sp, dataCnt);
 		if (sp->ldata_ < dataCnt)
 			sp->ldata_ = dataCnt;
 	}		
 }
+
+static class ASRMAgentClass : public TclClass {
+public:
+        ASRMAgentClass() : TclClass("Agent/SRM/Adaptive") {}
+        TclObject* create(int, const char*const*) {
+		return (new ASRMAgent());
+	}
+} class_adaptive_srm_agent;
+
+static class ASRMHeaderClass : public PacketHeaderClass {
+public:
+	ASRMHeaderClass() : PacketHeaderClass("PacketHeader/aSRM",
+					      sizeof(hdr_asrm)) {}
+} class_adaptive_srmhdr;

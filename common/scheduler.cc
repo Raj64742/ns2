@@ -33,10 +33,11 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.14 1997/07/03 07:00:00 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.15 1997/07/14 08:52:05 kannan Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
+#include "config.h"
 #include "scheduler.h"
 
 Scheduler* Scheduler::instance_;
@@ -149,7 +150,7 @@ protected:
 static class ListSchedulerClass : public TclClass {
 public:
 	ListSchedulerClass() : TclClass("Scheduler/List") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int /* argc */, const char*const* /* argv */) {
 		return (new ListScheduler);
 	}
 } class_list_sched;
@@ -224,7 +225,7 @@ protected:
 static class HeapSchedulerClass : public TclClass {
 public:
 	HeapSchedulerClass() : TclClass("Scheduler/Heap") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int /* argc */, const char*const* /* argv */) {
 		return (new HeapScheduler);
 	}
 } class_heap_sched;
@@ -291,7 +292,7 @@ protected:
 static class CalendarSchedulerClass : public TclClass {
 public:
 	CalendarSchedulerClass() : TclClass("Scheduler/Calendar") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int /* argc */, const char*const* /* argv */) {
 		return (new CalendarScheduler);
 	}
 } class_calendar_sched;
@@ -467,6 +468,7 @@ Event* CalendarScheduler::lookup(int uid)
 	for (int i = 0; i < nbuckets_; i++)
 		for (Event* p = buckets_[i]; p != NULL; p = p->next_)
 			if (p->uid_== uid) return p;
+	return NULL;
 }
 
 void CalendarScheduler::run()
@@ -500,14 +502,14 @@ protected:
 static class RealTimeSchedulerClass : public TclClass {
 public:
 	RealTimeSchedulerClass() : TclClass("Scheduler/RealTime") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int /* argc */, const char*const* /* argv */) {
 		return (new RealTimeScheduler);
 	}
 } class_realtime_sched;
 
 RealTimeScheduler::RealTimeScheduler()
 {
-	gettimeofday(&start_, 0);
+	(void) gettimeofday(&start_, 0);
 }
 
 double RealTimeScheduler::tod()

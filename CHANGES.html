@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.100 1997/07/09 22:20:34 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.101 1997/07/14 08:52:01 kannan Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,54 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</A>
 [PENDING RELEASE DATE]</H3>
 <ul>
+<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
+<B>Fri Jul 11 09:53:33 PDT 1997</B></LI><BR>
+Major Updates: SRM
+	<UL>
+	<LI>Adaptive Timers as described in
+		<A HREF="http://ftp.ee.lbl.gov/pub/papers/srm.ps.Z">[Floyd
+			etal. sigcomm '97]</A>
+	<BR>Files Affected: tcl/mcast/srm-adaptive.tcl (<B>new</B>),
+		srm.cc, srm.h, tcl/ex/srm-adapt-req.tcl (<B>new</B>),
+		tcl/ex/srm-adapt-rep.tcl (<B>new</B>)
+	<LI>Cleanup of the tracing in srm.tcl
+	<LI>Added tcl/mcast/srm-nam.tcl, so that, if sourced, will
+		separate SRM packets based on the type of packet.
+		Data messages will have flowId_ 0, session, request
+		and repair messages have flow ids 40, 41, and 42
+		respectively.  The start number is specified by the
+		global variable, <CODE>ctrlFid_</CODE>.
+	<LI>Cleanup of the example scripts in tcl/ex.
+		See tcl/mcast/srm.txt for details.
+	</UL>
+
+<LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
+<B>Fri Jul 11 09:53:33 PDT 1997</B><BR>
+Minor mods
+	<UL>
+	<LI>Hooks for DelayLink object to have a drop-target.
+		Currently no OTcl support yet.  Should be there
+		when I get around to it... someday... maybe...
+	<BR>Files Affected: delay.cc, delay.h
+	<LI>Cleanup compile time errors in scheduler.cc, scheduler.h.
+	<LI>The default static routing now takes a cost parameter;
+		it is now possible to do asymetric paths by configuring
+		link costs appropriately.
+	<BR>Files Affected: route.cc, tcl/lib/ns-lib.tcl
+	<LI>Bug fixes to proc gen-map() in tcl/lib/ns-trace.tcl.
+	<LI> Fix multicast-rtglib interaction API.
+	<BR>Files Affected: tcl/mcast/McastProto.tcl, tcl/mcast/ns-mcast.tcl,
+		tcl/mcast/dynamicDM.tcl, tcl/rtglib/route-proto.tcl.
+	<LI>Bug fix to proc all-connectors() in rtglib.  Routine did
+		not instance the appropriate variable.  Hence, links
+		did not drop packets in flight when a link fails (hey,
+		this may be a feature... :-)
+	<BR>Files Affected: tcl/rtglib/dynamics.tcl.
+	<LI><FONT SIZE=-2>Created a *hacky* loss module to fake periodic
+		loss of packets.  (maybe I can sneak it in if I use real
+		small print, and hope no one notices...).</FONT>
+	</UL>
+
   <li><b><a href="http://www.isi.edu/~johnh/">[johnh]</a>
        Wed Jul  9 15:16:42 PDT 1997</b><br>
        RBP updates, including Agent/TCP/Reno/RBP.

@@ -57,7 +57,7 @@ SimpleLink instproc cost? {} {
 RouteLogic instproc register {proto args} {
     $self instvar rtprotos_
     if [info exists rtprotos_($proto)] {
-        eval lappend rtprotos_($proto) $args
+	eval lappend rtprotos_($proto) $args
     } else {
 	set rtprotos_($proto) $args
     }
@@ -72,8 +72,8 @@ RouteLogic instproc config-protos args {
     $self instvar rtprotos_
     if [info exists rtprotos_] {
 	if { [llength $args] != 0 } {
-	    puts -nonewline stderr {Routing protocol overspecification.  }
-	    puts stderr {Arguments to `$Simulator run' ignored.}
+	    puts stderr [concat {Routing protocol overspecification.  } \
+		    {Arguments to `$Simulator run' ignored.}]
 	}
 	foreach proto [array names rtprotos_] {
 	    eval Agent/rtProto/$proto init-all $rtprotos_($proto)
@@ -153,7 +153,7 @@ Node instproc init-routing rtObject {
     }
     $self set rtObject_
 }
-	
+
 Node instproc rtObject? {} {
     $self instvar rtObject_
     if ![info exists rtObject_] {
@@ -171,7 +171,7 @@ Node instproc add-routes {id ifs} {
 	set routes_($id) 0
     }
     if { $routes_($id) <= 0 && [llength $ifs] == 1 &&	\
-	![info exists mpathClsfr_($id)] } {
+	    ![info exists mpathClsfr_($id)] } {
 	# either we really have no route, or
 	# only one route that must be replaced.
 	$self add-route $id [$ifs head]
@@ -242,15 +242,18 @@ rtObject set unreach_	 -1
 rtObject proc init-all args {
     foreach node $args {
 	if { [$node rtObject?] == "" } {
-	    new rtObject $node
+	    set rtobj($node) [new rtObject $node]
 	}
+    }
+    foreach node $args {	;# XXX
+        $rtobj($node) compute-routes
     }
 }
 
 rtObject instproc init node {
     $self next
     $self instvar ns_ nullAgent_
-    $self instvar nextHop_ rtpref_ metric_ node_ rtVia_ rtProtos_ nullAgent_
+    $self instvar nextHop_ rtpref_ metric_ node_ rtVia_ rtProtos_
 
     set ns_ [Simulator instance]
     set nullAgent_ [$ns_ set nullAgent_]
@@ -262,7 +265,7 @@ rtObject instproc init node {
 	if {$node == $dest} {
 	    set rtpref_($dest) 0
 	    set metric_($dest) 0
-	    set rtVia_($dest) "Agent/rtProto/Local"	;# to make dump happy
+	    set rtVia_($dest) "Agent/rtProto/Local" ;# make dump happy
 	} else {
 	    set rtpref_($dest) [$class set maxpref_]
 	    set metric_($dest) [$class set unreach_]
@@ -272,7 +275,7 @@ rtObject instproc init node {
     }
     $self add-proto Direct $node
     $self compute-proto-routes
-    $self compute-routes
+#    $self compute-routes
 }
 
 rtObject instproc add-proto {proto node} {
@@ -284,10 +287,10 @@ rtObject instproc add-proto {proto node} {
 
 rtObject instproc lookup dest {
     $self instvar nextHop_ node_
-    if ![info exists nextHop_($dest)] {
+    if {![info exists nextHop_($dest)] || $nextHop_($dest) == ""} {
 	return -1
     } else {
-        return [[$nextHop_($dest) set toNode_] id]
+	return [[$nextHop_($dest) set toNode_] id]
     }
 }
 
@@ -299,8 +302,8 @@ rtObject instproc compute-proto-routes {} {
     }
 }
 
-rtObject instproc compute-routes { } {
-    # rtObject chooses the best route to each destination from all protocols
+rtObject instproc compute-routes {} {
+    # choose the best route to each destination from all protocols
     $self instvar ns_ node_ rtProtos_ nullAgent_
     $self instvar nextHop_ rtpref_ metric_ rtVia_
     set protos ""
@@ -346,7 +349,8 @@ rtObject instproc compute-routes { } {
 	    }
 	} else {
 	    if { $rv == $rtVia_($dst) } {
-		# Current protocol still has best route.  See if changed
+		# Current protocol still has best route.
+		# See if changed
 		if { $nh != $nextHop_($dst) } {
 		    $node_ delete-routes [$dst id] $nextHop_($dst) $nullAgent_
 		    set nextHop_($dst) $nh
@@ -395,12 +399,12 @@ rtObject instproc compute-routes { } {
     #			Agent/rtProto/DV handles ifsUp_
     # $changes > 0	if new unicast routes were installed.
     #
-    if {[$ns_ info class] == "MultiSim"} {
-       set magent [[$node_ getArbiter] getType dynamicDM]
-       if {$magent != -1} {
-           $magent check-downstream-list
-       }
-    }
+    $self flag-multicast $changes
+}
+
+rtObject instproc flag-multicast changes {
+    $self instvar node_
+    catch "[$node_ getArbiter] notify $changes"
 }
 
 rtObject instproc intf-changed {} {
@@ -903,6 +907,16 @@ Agent/rtProto/DV instproc recv-update {peerAddr id} {
 		$self compute-routes
 		incr rtsChanged_ $metricsChanged
 		$rtObject_ compute-routes
+	    } else {
+		# dynamicDM multicast hack.
+		# If we get a message from a neighbour, then something
+		# at that neighbour has changed.  While this may not
+		# cause any unicast changes on our end, dynamicDM
+		# looks at neighbour's routing tables to compute
+		# parent-child relationships, and has to do them
+		# again.
+		#
+		$rtObject_ flag-multicast -1
 	    }
 	    return
 	}
@@ -913,3 +927,9 @@ Agent/rtProto/DV instproc recv-update {peerAddr id} {
 Agent/rtProto/DV proc compute-all {} {
     # Because proc methods are not inherited from the parent class.
 }
+
+### Local Variables:
+### mode: tcl
+### tcl-indent-level: 4
+### tcl-default-application: ns
+### End:
