@@ -94,7 +94,7 @@ Topology/net2 instproc init ns {
 	$ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
 	$ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
 	set cl [new Classifier/Hash/SrcDestFid 33]
-	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 30ms "CBQ $cl"
+	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 30ms CBQ $cl
         set rtt_ 0.06
 	set cbqlink_ [$ns link $node_(r1) $node_(r2)]
 	[$cbqlink_ queue] algorithm "formal"
@@ -117,7 +117,7 @@ Topology/net3 instproc init ns {
 	$ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
 	$ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
 	set cl [new Classifier/Hash/SrcDestFid 33]
-	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 3ms "CBQ $cl"
+	$ns simplex-link $node_(r1) $node_(r2) 1.5Mb 3ms CBQ $cl
         set rtt_ 0.006
 	set cbqlink_ [$ns link $node_(r1) $node_(r2)]
 	[$cbqlink_ queue] algorithm "formal"
