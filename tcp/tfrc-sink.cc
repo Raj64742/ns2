@@ -312,6 +312,10 @@ void TfrcSinkAgent::sendpkt(double p)
 	/*don't send an ACK unless we've received new data*/
 	/*if we're sending slower than one packet per RTT, don't need*/
 	/*multiple responses per data packet.*/
+        /*
+	 * Do we want to send a report even if we have not received
+	 * any new data?
+         */ 
 
 	if (last_arrival_ >= last_report_sent) {
 
