@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.18 1999/04/22 18:54:01 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.19 2000/07/19 04:47:33 sfloyd Exp $
 #
 
 Trace instproc init type {
@@ -72,6 +72,19 @@ Trace/Enque instproc init {} {
 Trace/Deque instproc init {} {
 	$self next "-"
 }
+
+#Early Drop Trace - added by ratul to be able to trace edrops in RED queues
+Class Trace/EDrop -superclass Trace
+Trace/EDrop instproc init {} {
+    $self next "e"
+}
+
+#Monitored Early Drop Trace - added by ratul to be able to trace mon_edrops in RedPD queues
+Class Trace/MEDrop -superclass Trace
+Trace/MEDrop instproc init {} {
+    $self next "m"
+}
+
 
 # Next two are for SessionSim's packet traces
 Class Trace/SessEnque -superclass Trace
