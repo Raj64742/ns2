@@ -30,19 +30,27 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.5 1999/06/18 04:14:47 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.6 1999/06/19 04:25:55 sfloyd Exp $
 #
 
 # UNDER CONSTRUCTION!!
 
 source misc_simple.tcl
+Agent/TFRM set packetSize_ 1000
+Agent/TFRM set df_ 0.0
+Agent/TFRM set version_ 1
+Agent/TFRM set tcp_tick_ 0.1
+Agent/TFRM set incrrate_ 0.1
+Agent/TFRM set slowincr_ 0
+Agent/TFRM set ndatapack_ 0
 
 TestSuite instproc finish file {
         global quiet PERL
         exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
           $PERL ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
         if {$quiet == "false"} {
-                exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+		exec cp -f temp.rands temp1.rands
+                exec xgraph -bb -tk -nl -m -x time -y packets temp1.rands &
         }
         ## now use default graphing tool to make a data file
         ## if so desired
@@ -97,7 +105,6 @@ TestSuite instproc setTopo {} {
 # $interval seconds of simulation time
 # 
 TestSuite instproc tfccDump { label src interval file } {
-        global quiet
 	set dumpfile temp.s
         $self instvar dump_inst_ ns_ f
         if ![info exists dump_inst_($src)] {
@@ -107,9 +114,7 @@ TestSuite instproc tfccDump { label src interval file } {
         }
         $ns_ at [expr [$ns_ now] + $interval] "$self tfccDump $label $src $interval $file"
         set report "[$ns_ now] $label [$src set ndatapack_] " 
-        if {$quiet == "false"} {
-                puts $file $report
-        }
+        puts $file $report
 }
 
 #
@@ -117,7 +122,6 @@ TestSuite instproc tfccDump { label src interval file } {
 # $interval seconds of simulation time
 #
 TestSuite instproc pktsDump { label tcp interval file } {
-    global quiet
     $self instvar dump_inst_ ns_
     if ![info exists dump_inst_($tcp)] {
         set dump_inst_($tcp) 1
@@ -126,9 +130,7 @@ TestSuite instproc pktsDump { label tcp interval file } {
     }
     $ns_ at [expr [$ns_ now] + $interval] "$self pktsDump $label $tcp $interval $file"
     set report "[$ns_ now] $label [$tcp set ack_]"
-    if {$quiet == "false"} {
-        puts $file $report
-    }
+    puts $file $report
 }
 
 # display graph of results
@@ -160,7 +162,8 @@ TestSuite instproc finish_1 testname {
         exec cat temp.p >@ $f
         close $f
         if {$quiet == "false"} {
-                exec xgraph -bb -tk -x time -y packets $graphfile &
+		exec cp -f $graphfile temp1.rands
+                exec xgraph -bb -tk -x time -y packets temp1.rands &
         }
 #       exec csh figure2.com $file
 
