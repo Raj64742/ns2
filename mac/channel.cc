@@ -36,12 +36,13 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.14 1997/07/25 09:13:43 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.15 1997/07/28 03:54:03 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
 #include "trace.h"
 #include "ll.h"
+#include "mac.h"
 #include "channel.h"
 
 
@@ -66,6 +67,7 @@ Channel::Channel() : Connector(), txstop_(0), cwstop_(0), numtx_(0), pkt_(0), tr
 {
 	bind_time("delay_", &delay_);
 	bind("off_ll_", &off_ll_);
+	bind("off_mac_", &off_mac_);
 }
 
 
@@ -111,13 +113,11 @@ Channel::send(Packet* p, double txtime)
 			pkt_ = 0;
 		}
 		drop(p);
+		return 1;
 	}
-	else {
-		pkt_ = p;
-		trace_ ? trace_->recv(p) : recv(p);
-		return 0;
-	}
-	return 1;
+	pkt_ = p;
+	trace_ ? trace_->recv(p) : recv(p);
+	return 0;
 }
 
 

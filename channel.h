@@ -33,14 +33,13 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.12 1997/07/24 04:45:04 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.h,v 1.13 1997/07/28 03:54:03 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_channel_h
 #define ns_channel_h
 
 #include "connector.h"
-
 
 class Trace;
 
@@ -62,12 +61,13 @@ public:
 protected:
 	int command(int argc, const char*const* argv);
 	double delay_;		// channel delay, for collision interval
-	int off_ll_;		// link-layer header offset
 	double txstop_;		// end of the last transmission
 	double cwstop_;		// end of the contention window
 	int numtx_;		// number of transmissions during contention
 	Packet* pkt_;		// packet current transmitted on the channel
-	Trace* trace_;
+	Trace* trace_;		// to trace the packet transmitting packets
+	int off_ll_;		// link-layer header offset
+	int off_mac_;		// MAC header offset
 };
 
 
