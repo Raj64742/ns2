@@ -7,11 +7,13 @@
 RTMechanisms instproc bindboxes {} {
 	$self instvar cbqlink_
 	$self instvar goodclass_ badclass_
+	$self instvar goodslot_ badslot_
 
         set classifier [$cbqlink_ classifier]
-        set goodslot [$classifier installNext $goodclass_]
-	$classifier installNext $badclass_
-        $classifier set default_ $goodslot
+        set goodslot_ [$classifier installNext $goodclass_]
+	set badslot_ [$classifier installNext $badclass_]
+        $classifier set default_ $goodslot_
+	$self vprint "bindboxes: cbq classifier: $classifier, gslot: $goodslot_, bslot: $badslot_, defslot: $goodslot_"
 }
 
 RTMechanisms instproc set_red_params { redq psize qlim bytes wait } {
@@ -26,11 +28,15 @@ RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
 	$self instvar goodclass_ badclass_
 	$self instvar okboxfm_ pboxfm_
 
+	$self vprint "makeboxes: okfm: $okboxfm okfmcl: [$okboxfm classifier], pboxfm: $pboxfm, pboxfmcl: [$pboxfm classifier]"
+
         set cbq [$cbqlink_ queue]
         set rootcl [new CBQClass]
 
         set badclass_ [new CBQClass]
         set goodclass_ [new CBQClass]
+
+	$self vprint "makeboxes: bclass:$badclass_, gclass:$goodclass_"
 
         set badq [new Queue/RED]
         $badq link [$cbqlink_ link]
@@ -57,17 +63,41 @@ RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
 }
 
 RTMechanisms instproc makeflowmon {} {
+	$self instvar ns_ okboxfm_ pboxfm_
+
 	set flowmon [new QueueMonitor/ED/Flowmon]
         set cl [new Classifier/Hash/SrcDestFid 33]
-        $cl proc unknown-flow { src dst fid hashbucket } {
-                global ns
+
+        set pbody {
+		set ns [$rtm_ set ns_]
+		set okcl [[$rtm_ set okboxfm_] classifier]
+		if { $okcl == $self } {
+			# see if this flow moved to the pbox
+			set pboxcl [[$rtm_ set pboxfm_] classifier]
+			set moved [$pboxcl lookup $hashbucket $src $dst $fid]
+		} else {
+			# see if this flow moved to the okbox
+			set okboxcl [[$rtm_ set okboxfm_] classifier]
+			set moved [$okboxcl lookup $hashbucket $src $dst $fid]
+		}
+		if { $moved != "" } {
+			# residual packet belonging to a moved flow
+			return
+		}
                 set fdesc [new QueueMonitor/ED/Flow]
                 set slot [$self installNext $fdesc]
-puts "[$ns now]: (self:$self) installing flow $fdesc (s:$src,d:$dst,f:$fid) in b
-uck: $hashbucket, slot >$slot<"
+puts "[$ns now] (self:$self) installing flow $fdesc (s:$src,d:$dst,f:$fid) in buck: $hashbucket, slot >$slot<"
                 $self set-hash $hashbucket $src $dst $fid $slot
+puts "[$ns now] (self: $self) unknown-flow done"
+flush stdout
         }
+#	set pbody \
+#	    "set ns_ $ns_ ; set pboxfm_ $pboxfm_ ; set okboxfm_ $okboxfm_ $pbody"
+	set pbody "set rtm_ $self ; $pbody"
 
+        $cl proc unknown-flow { src dst fid hashbucket } $pbody
+	$cl proc no-slot slotnum {
+	}
         $flowmon classifier $cl
         return $flowmon
 }
