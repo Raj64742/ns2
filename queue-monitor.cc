@@ -34,10 +34,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.20 2000/06/21 05:24:24 sfloyd Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.21 2000/08/16 15:58:49 yaxu Exp $";
 #endif
 
 #include "queue-monitor.h"
+#include "trace.h"
 
 int QueueMonitor::command(int argc, const char*const* argv)
 {
@@ -124,7 +125,7 @@ QueueMonitor::printStats() {
 	char wrk[500];
 	int n;
 	double now = Scheduler::instance().clock();
-	sprintf(wrk, "%-6.3f %d %d %d %d", now, srcId_, dstId_, size_, pkts_);
+	sprintf(wrk, "q -t "TIME_FORMAT" -s %d -d %d -l %d -p %d", now, srcId_, dstId_, size_, pkts_);
 	n = strlen(wrk);
 	wrk[n] = '\n';
 	wrk[n+1] = 0;
