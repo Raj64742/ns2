@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.34 1999/09/10 22:27:10 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.35 1999/09/18 01:30:10 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -40,36 +40,12 @@
 
 #define MEMDEBUG_SIMULATIONS
 
-
-#if defined(sgi) || defined(__bsdi__) || defined(__FreeBSD__) || defined(linux)
+/* pick up standard types */
 #include <sys/types.h>
-#else
-/*XXX*/
-/* Checking defined(sun) is probably not sufficient.  I know that  */
-/* typedef signed char int8_t breaks under Solaris 2.6.  Shouldn't */
-/* autoconf handle stuff like this?  Shouldn't autoconf generate   */
-/* config.h?  Who knows autoconf well enough to fix this?  --AMC   */
-#if defined(sun) || defined(__hpux)
-#include <sys/types.h>
-typedef unsigned char u_char;
-typedef unsigned short u_short;
-typedef unsigned int u_int;
-typedef unsigned long u_long;
-#if !(defined(sparc) && defined(__SVR4))
-/* solaris already has it */
-typedef signed char int8_t;
+#if STDC_HEADERS
+#include <stdlib.h>
+#include <stddef.h>
 #endif
-typedef short int16_t;
-typedef int int32_t;
-#else
-typedef signed char int8_t;
-typedef short int16_t;
-typedef int int32_t;
-#endif
-typedef unsigned char u_int8_t;
-typedef unsigned short u_int16_t;
-typedef unsigned int u_int32_t;
-#endif 
 
 typedef int32_t nsaddr_t; 
 typedef int32_t nsmask_t; 
