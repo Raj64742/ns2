@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.202 2000/08/24 01:51:34 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.203 2000/08/24 18:33:07 haoboy Exp $
 
 #
 
@@ -1539,11 +1539,15 @@ Simulator instproc create-tcp-connection {s_type source d_type dest pktClass} {
 }
 
 Classifier instproc no-slot slot {
-	#XXX should say something better for routing problem
-	puts stderr \
-		"tcl/lib/ns-lib.tcl -- Classfier::no-slot{} default handler --"
-	puts stderr "    $self: no target for slot $slot"
-	exit 1
+        puts stderr "--- Classfier::no-slot{} default handler (tcl/lib/ns-lib.tcl) ---"
+        puts stderr "\t$self: no target for slot $slot"
+        puts stderr "\t$self type: [$self info class]"
+        puts stderr "content dump:"
+        $self dump
+        puts stderr "---------- Finished standard no-slot{} default handler ----------"
+        # Clear output before we bail out
+        [Simulator instance] flush-trace
+        exit 1
 }
 
 #
