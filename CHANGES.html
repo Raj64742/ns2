@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.79 1997/06/09 21:49:49 tomh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.80 1997/06/09 22:03:20 tomh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,6 +21,13 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+<LI><B><A HREF="mailto:tomh@cs.berkeley.edu">[TH]</A></B> <B>Mon Jun
+9 15:00:34 PDT 1997<BR>
+</B>Bug fix:  Changed Newreno::recv() static variables acked, 
+new_ssthresh, ack2, ack3, and basertt to be class member variables.  
+File changed:  tcp-newreno.cc. <BR>       
+</LI>
+
 <LI><B><A HREF="mailto:breslau@parc.xerox.com">[LB]</A></B> <B>Sun Jun
 8 14:09:16 PDT 1997<BR>
 </B>Provided a fix so that more than 127 nodes can exist in a
