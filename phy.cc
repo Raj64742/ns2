@@ -78,6 +78,7 @@ Phy::command(int argc, const char*const* argv) {
 		if (strcmp(argv[1], "channel") == 0) {
                         assert(channel_ == 0);
 			channel_ = (Channel*) obj;
+			downtarget_ = (NsObject*) obj;
 			// LIST_INSERT_HEAD() is done by Channel
 			return TCL_OK;
 		}

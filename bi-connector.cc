@@ -45,8 +45,7 @@ public:
 } class_biconnector;
 
 BiConnector::BiConnector() : uptarget_(0), downtarget_(0), drop_(0)
-{
-}
+{}
 
 
 int BiConnector::command(int argc, const char*const* argv)
