@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.24 1998/06/18 01:18:03 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.25 1998/06/22 23:33:26 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -94,10 +94,10 @@ protected:
 
 class ReassemblyQueue : public TclObject {
 	struct seginfo {
-		seginfo* next_;
-		seginfo* prev_;
-		int startseq_;
-		int endseq_;
+		seginfo* next_;	// forw link
+		seginfo* prev_;	// back link
+		int startseq_;	// starting seq
+		int endseq_;	// ending seq + 1
 		int flags_;
 	};
 
@@ -105,15 +105,19 @@ public:
 	ReassemblyQueue(int& rcvnxt);
 	int empty() { return (head_ == NULL); }
 	int add(Packet*);
+	int add(int sseq, int eseq, int flags);
 	int gensack(int *sacks, int maxsblock);
+	int nextblk(int *sacks);
+	void sync();
 	void clear();
 protected:
-	int last_startseq_;	// last added
 	int off_tcp_;		// TCP header offset
 	int off_cmn_;		// common header offset
 	seginfo* head_;		// head of segs linked list
 	seginfo* tail_;		// end of segs linked list
-	int& rcv_nxt_;		// reference to tcp's rcv_nxt_
+	seginfo* ptr_;		// used for nextblk() iterator
+	seginfo* last_added_;	// last seginfo inserted
+	int& rcv_nxt_;		// start seq of next expected thing
 };
 
 class FullTcpAgent : public TcpAgent {
@@ -132,6 +136,7 @@ class FullTcpAgent : public TcpAgent {
 	int sack_option_size_;	// base # bytes for sack opt (no blks)
 	int sack_block_size_;	// # bytes in a sack block (def: 8)
 	int sack_option_;	// sack option enabled?
+	int sack_min_;		// first seq# in sack queue
 	int max_sack_blocks_;	// max # sack blocks to send
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
@@ -160,6 +165,7 @@ class FullTcpAgent : public TcpAgent {
 	void reset_rtx_timer(int);  // adjust the rtx timer
 	virtual void dupack_action();	// what to do on dup acks
 	virtual void pack_action() { }  // action on partial acks
+	virtual void sack_action(hdr_tcp*);	// process a sack
 	void reset();       		// reset to a known point
 	void connect();     		// do active open
 	void listen();      		// do passive open
@@ -171,6 +177,7 @@ class FullTcpAgent : public TcpAgent {
 	void newack(Packet* pkt);	// process an ACK
 	int pack(Packet* pkt);		// is this a partial ack?
 	void dooptions(Packet*);	// process option(s)
+	ReassemblyQueue sq_;		// SACK queue (only for sack_option_)
 	DelAckTimer delack_timer_;	// other timers in tcp.h
 	void cancel_timers();		// cancel all timers
 	virtual int in_recovery() {	// in fast recovery?
