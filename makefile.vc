@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.10 1998/03/20 02:55:51 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.11 1998/08/21 18:05:57 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -90,7 +90,7 @@ NSX	= nsx
 NSE	= nse
 
 # WIN32: uncomment the following line to include specific make for VC++
-!include <makefile.win>
+!include <conf/makefile.win>
 
 
 OBJ_CC = \
