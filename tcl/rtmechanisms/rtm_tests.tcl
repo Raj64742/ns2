@@ -38,7 +38,7 @@ RTMechanisms instproc init { ns cbqlink rtt mtu } {
         set Safety_factor_ 1.2
         set Max_cbw_ 46750
         set Maxallot_ 0.98          
-        set Mintime_ 0          
+        set Mintime_ 0.5
         set High_const_ 12000   
 
 	# don't schedule reward initially;  nobody in pbox yet
