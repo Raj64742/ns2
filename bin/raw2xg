@@ -19,6 +19,7 @@ options:
     -e		plot ecn flags
     -d		plot only drops and ECN marks
     -v          plot events
+    -c          leave out empty lists
 
 Traditional ``wrapping'' ns plots (as called from the test scripts)
 can be generated with -s 0.01 -m 90.
@@ -28,7 +29,7 @@ END
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 require 'getopts.pl';
-&Getopts('aeds:m:n:qlvt:') || usage;
+&Getopts('aceds:m:n:qlvt:') || usage;
 
 $c = 0;
 @p = @pc = @pg = @a = @ac = @ae = @d = @lu = @ld = ();
@@ -41,6 +42,7 @@ $plot_acks = defined($opt_a);
 $plot_ecn = defined($opt_e);
 $plot_drops = defined($opt_d);
 $plot_event = defined($opt_v);
+$no_padding = defined($opt_c);
 
 $file = $acks = '';
 
@@ -173,7 +175,9 @@ if (defined($pc[0])) {
     @sorted_pc = sort (@pc);
     print "\n\"ecn_packets\n", @pc[0..3], @sorted_pc;
 } else {
-    printf "\n\"skip-1\n0 1\n";
+    if (!$no_padding) {
+        printf "\n\"skip-1\n0 1\n";
+    }
 }
 
 # insert dummy data sets so we get X's for marks in data-set 4
@@ -192,7 +196,9 @@ if ($plot_acks) {
 	print "\n\"echo-acks\n", @sorted_ae;
     }
 } else {
-    printf "\n\"skip-2\n0 1\n";
+    if (!$no_padding) {
+        printf "\n\"skip-2\n0 1\n";
+    }
 }
 
 #
