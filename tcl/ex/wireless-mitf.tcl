@@ -29,6 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless-mitf.tcl,v 1.2 2000/08/30 00:10:45 haoboy Exp $
 #
 # Simple demo script for the new APIs to support multi-interface for 
 # wireless node.
@@ -91,20 +92,20 @@ set chan_2_ [new $val(chan)]
 # Create node(0) "attached" to channel #1
 
 # configure node, please note the change below.
-        $ns_ node-config -adhocRouting $val(rp) \
-			 -llType $val(ll) \
-			 -macType $val(mac) \
-			 -ifqType $val(ifq) \
-			 -ifqLen $val(ifqlen) \
-			 -antType $val(ant) \
-			 -propType $val(prop) \
-			 -phyType $val(netif) \
-			 -topoInstance $topo \
-			 -agentTrace ON \
-			 -routerTrace ON \
-			 -macTrace ON \
-			 -movementTrace OFF \
-			 -channel $chan_1_ 
+$ns_ node-config -adhocRouting $val(rp) \
+		-llType $val(ll) \
+		-macType $val(mac) \
+		-ifqType $val(ifq) \
+		-ifqLen $val(ifqlen) \
+		-antType $val(ant) \
+		-propType $val(prop) \
+		-phyType $val(netif) \
+		-topoInstance $topo \
+		-agentTrace ON \
+		-routerTrace ON \
+		-macTrace ON \
+		-movementTrace OFF \
+		-channel $chan_1_ 
 
 set node_(0) [$ns_ node]
 
@@ -118,9 +119,9 @@ set node_(1) [$ns_ node]
 $node_(0) random-motion 0
 $node_(1) random-motion 0
 
-	for {set i 0} {$i < $val(nn)} {incr i} {
-		$ns_ initial_node_pos $node_($i) 20
-	}
+for {set i 0} {$i < $val(nn)} {incr i} {
+	$ns_ initial_node_pos $node_($i) 20
+}
 
 #
 # Provide initial (X,Y, for now Z=0) co-ordinates for mobilenodes

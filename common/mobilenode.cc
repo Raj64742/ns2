@@ -30,9 +30,15 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.25 2000/08/30 00:10:45 haoboy Exp $
+ *
+ * Code in this file will be changed in the near future. From now on it 
+ * should be treated as for backward compatibility only, although it is in
+ * active use by many other code in ns. - Aug 29, 2000
  */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.
 
+/* 
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 11/98.
  */
@@ -46,7 +52,6 @@
 #include <packet.h>
 #include <random.h>
 
-//#include <debug.h>
 #include <arp.h>
 #include <topography.h>
 #include <trace.h>
@@ -58,9 +63,7 @@
 
 // XXX Must supply the first parameter in the macro otherwise msvc
 // is unhappy. 
-static LIST_HEAD(_dummy_MobileNodeList, MobileNode)      nodehead = { 0 };
-
-//static int	MobileNodeIndex = 0;
+static LIST_HEAD(_dummy_MobileNodeList, MobileNode) nodehead = { 0 };
 
 static class MobileNodeClass : public TclClass {
 public:
@@ -78,7 +81,6 @@ public:
  *  based upon the speed of the mobile and the resolution of the topography.
  *
  */
-
 void
 PositionHandler::handle(Event*)
 {
@@ -112,7 +114,7 @@ PositionHandler::handle(Event*)
    ====================================================================== */
 
 MobileNode::MobileNode(void) : 
-	Node(), pos_handle(this), namChan_(0)
+	Node(), pos_handle(this)
 {
 	X = 0.0; Y = 0.0; Z = 0.0; speed = 0.0;
 	dX=0.0; dY=0.0; dZ=0.0;
@@ -132,20 +134,12 @@ MobileNode::MobileNode(void) :
 	bind("Y_", &Y);
 	bind("Z_", &Z);
 	bind("speed_", &speed);
-	// bind("position_update_interval_", &position_update_interval);
 }
-
 
 int
 MobileNode::command(int argc, const char*const* argv)
 {
 	if(argc == 2) {
-		//Tcl& tcl = Tcl::instance();
-
-		// if(strcmp(argv[1], "id") == 0) {
-// 			tcl.resultf("%d", address_);
-// 			return TCL_OK;
-// 		}
 		if(strcmp(argv[1], "start") == 0) {
 		        start();
 			return TCL_OK;
@@ -170,18 +164,6 @@ MobileNode::command(int argc, const char*const* argv)
                 if(strcmp(argv[1], "radius") == 0) {
                         radius_ = strtod(argv[2],NULL);
                         return TCL_OK;
-                }
-                if(strcmp(argv[1], "namattach") == 0) {
-                        Tcl& tcl = Tcl::instance();
-                        int mode;
-                        const char* id = argv[2];
-                        namChan_ = Tcl_GetChannel(tcl.interp(), (char*)id,
-                                                  &mode);
-                        if (namChan_ == 0) {
-                                tcl.resultf("trace: can't attach %s for writing", id);
-                                return (TCL_ERROR);
-                        }
-                        return (TCL_OK);
                 }
 		if(strcmp(argv[1], "random-motion") == 0) {
 			random_motion_ = atoi(argv[2]);
@@ -215,19 +197,19 @@ MobileNode::command(int argc, const char*const* argv)
 			return TCL_OK;
 		} 
 	} else if (argc == 5) {
-	  if (strcmp(argv[1], "setdest") == 0)
-	    { /* <mobilenode> setdest <X> <Y> <speed> */
+		if (strcmp(argv[1], "setdest") == 0) { 
+			/* <mobilenode> setdest <X> <Y> <speed> */
 #ifdef DEBUG
-                    fprintf(stderr, "%d - %s: calling set_destination()\n",
-                            address_, __FUNCTION__);
+			fprintf(stderr, "%d - %s: calling set_destination()\n",
+				address_, __FUNCTION__);
 #endif
   
-	      if(set_destination(atof(argv[2]), atof(argv[3]), atof(argv[4])) < 0)
-		return TCL_ERROR;
-	      return TCL_OK;
-	    }
+			if (set_destination(atof(argv[2]), atof(argv[3]), 
+					    atof(argv[4])) < 0)
+				return TCL_ERROR;
+			return TCL_OK;
+		}
 	}
-
 	return Node::command(argc, argv);
 }
 
@@ -239,14 +221,12 @@ void
 MobileNode::dump(void)
 {
 	Phy *n;
-
 	fprintf(stdout, "Index: %d\n", address_);
 	fprintf(stdout, "Network Interface List\n");
  	for(n = ifhead_.lh_first; n; n = n->nextnode() )
 		n->dump();	
 	fprintf(stdout, "--------------------------------------------------\n");
 }
-
 
 /* ======================================================================
    Position Functions
@@ -269,10 +249,8 @@ MobileNode::start()
                 address_, __PRETTY_FUNCTION__);
 #endif
 	random_destination();
-
 	s.schedule(&pos_handle, &pos_intr, position_update_interval);
 }
-
 
 void 
 MobileNode::log_movement()
@@ -280,7 +258,6 @@ MobileNode::log_movement()
         if (!log_target) return;
 
 	Scheduler& s = Scheduler::instance();
-
 	sprintf(log_target->buffer(),
 		"M %.5f %d (%.2f, %.2f, %.2f), (%.2f, %.2f), %.2f",
 		s.clock(), address_, X, Y, Z, destX, destY, speed);
@@ -291,7 +268,8 @@ MobileNode::log_movement()
 void
 MobileNode::log_energy(int flag)
 {
-	if(!log_target) return;
+	if (!log_target) 
+		return;
 	Scheduler &s = Scheduler::instance();
 	if (flag) {
 	   sprintf(log_target->buffer(),"N -t %f -n %d -e %f", s.clock(), address_,energy()); } else {
@@ -304,25 +282,7 @@ void
 MobileNode::idle_energy_patch(float total, float P_idle)
 {
 	fprintf(stderr,"MobileNode::idle_energy_patch is obsolete!\n");
-
-	/*
-       float real_idle = total-(total_sndtime_+total_rcvtime_+total_sleeptime_);
-       //printf("total=%f send=%f rcv=%f, slp=%f\n",total, total_sndtime_,total_rcvtime_,total_sleeptime_);
-       
-       //printf("real_idle=%f\n",real_idle);
-       energy_model_-> DecrIdleEnergy(real_idle, P_idle);
-       
-       //set node energy into zero
-
-       if ((this->energy_model())->energy() < 0) {  
-	  // saying node died
-	      this->energy_model()->setenergy(0);
-	      this->log_energy(0);
-       }
-
-	*/
 }
-
 
 void
 MobileNode::bound_position()
@@ -369,79 +329,59 @@ MobileNode::bound_position()
 int
 MobileNode::set_destination(double x, double y, double s)
 {
-  assert(initialized());
+	assert(initialized());
 
-  if(x >= T->upperX() || x <= T->lowerX())
-	return -1;
-  if(y >= T->upperY() || y <= T->lowerY())
-	return -1;
+	if(x >= T->upperX() || x <= T->lowerX())
+		return -1;
+	if(y >= T->upperY() || y <= T->lowerY())
+		return -1;
+	
+	update_position();	// figure out where we are now
+	
+	destX = x;
+	destY = y;
+	speed = s;
+	
+	dX = destX - X;
+	dY = destY - Y;
+	dZ = 0.0;		// this isn't used, since flying isn't allowed
 
-  update_position();		// figure out where we are now
-
-  destX = x;
-  destY = y;
-  speed = s;
-
-  dX = destX - X;
-  dY = destY - Y;
-  dZ = 0.0;			// this isn't used, since flying isn't allowed
-
-  if(destX != X || destY != Y) {
-	// normalize dx, dy to unit len
-  	double len = sqrt( (dX * dX) + (dY * dY) );
-	dX /= len;
-	dY /= len;
-  }
+	if (destX != X || destY != Y) {
+		// normalize dx, dy to unit len
+		double len = sqrt( (dX * dX) + (dY * dY) );
+		dX /= len;
+		dY /= len;
+	}
   
-  position_update_time = Scheduler::instance().clock();
+	position_update_time = Scheduler::instance().clock();
 
 #ifdef DEBUG
-  fprintf(stderr, "%d - %s: calling log_movement()\n", address_, __FUNCTION__);
+	fprintf(stderr, "%d - %s: calling log_movement()\n", 
+		address_, __FUNCTION__);
 #endif
-  log_movement();
+	log_movement();
 
-  /* update gridkeeper */
-  if (GridKeeper::instance()){
-         GridKeeper* gp =  GridKeeper::instance();
-         gp-> new_moves(this);
-  }                     
-               
-  if (namChan_ != 0) {
-                                
-     sprintf(nwrk_,     
-             "n -t %f -s %d -x %f -y %f -u %f -v %f -T %f",
-              Scheduler::instance().clock(),
-              nodeid_,
-              X,Y,
-              speed*dX, speed*dY,
-              ((speed*dX) != 0 ) ? (destX-X)/(speed*dX) : speed*dX
-             );   
-     namdump();         
-  }
+	/* update gridkeeper */
+	if (GridKeeper::instance()){
+		GridKeeper* gp =  GridKeeper::instance();
+		gp-> new_moves(this);
+	}                     
 
-  return 0;
+	if (namChan_ != 0) {
+		sprintf(nwrk_,     
+			"n -t %f -s %d -x %f -y %f -u %f -v %f -T %f",
+			Scheduler::instance().clock(),
+			nodeid_,
+			X,Y,
+			speed*dX, speed*dY,
+			((speed*dX) != 0 ) ? (destX-X)/(speed*dX) : speed*dX
+			);   
+		namdump();         
+	}
+	return 0;
 }
 
-void MobileNode::namdump()
-{
-        int n = 0;
-    
-        /* Otherwise nwrk_ isn't initialized */
-        if (namChan_ != 0)
-                n = strlen(nwrk_);
-        if ((n > 0) && (namChan_ != 0)) {
-                /*
-                 * tack on a newline (temporarily) instead
-                 * of doing two writes
-                 */
-                nwrk_[n] = '\n';
-                nwrk_[n + 1] = 0;
-                (void)Tcl_Write(namChan_, nwrk_, n + 1);
-                nwrk_[n] = 0;
-        }
-}
-
-void
+void 
 MobileNode::update_position()
 {
 	double now = Scheduler::instance().clock();
@@ -488,7 +428,7 @@ MobileNode::random_position()
 void
 MobileNode::random_destination()
 {
-	if(T == 0) {
+	if (T == 0) {
 		fprintf(stderr, "No TOPOLOGY assigned\n");
 		exit(1);
 	}
@@ -506,7 +446,7 @@ MobileNode::random_destination()
 void
 MobileNode::random_direction()
 {
-  /* this code isn't used anymore -dam 1/22/98 */
+	/* this code isn't used anymore -dam 1/22/98 */
 	double len;
 
 	dX = (double) Random::random();
@@ -553,7 +493,6 @@ MobileNode::random_speed()
 	speed = Random::uniform() * MAX_SPEED;
 }
 
-
 double
 MobileNode::distance(MobileNode *m)
 {
@@ -567,10 +506,8 @@ MobileNode::distance(MobileNode *m)
         return sqrt(Xpos + Ypos + Zpos);
 }
 
-
 double
 MobileNode::propdelay(MobileNode *m)
 {
 	return distance(m) / SPEED_OF_LIGHT;
 }
-

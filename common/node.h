@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.21 2000/08/17 00:03:38 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.22 2000/08/30 00:10:45 haoboy Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -104,15 +104,41 @@ LIST_HEAD(node_head, Node); // declare list head structure
 //
 // For now, this is a dummy split object for class Node. In future, we
 // may move somethings over from OTcl.
-//
+
+const int NODE_NAMLOG_BUFSZ = 256;
 
 class Node : public TclObject {
- public:
+public:
 	Node(void);
 	~Node();
 	virtual int command(int argc, const char*const* argv);
 	inline int address() { return address_;}
 	inline int nodeid() { return nodeid_;}
+
+	NsObject* intf_to_target(int32_t); 
+
+	void namlog(const char *fmt, ...);
+
+	inline const struct if_head& ifhead() const { return ifhead_; }
+	inline const struct linklist_head& linklisthead() const { 
+		return linklisthead_; 
+	}
+	
+	// I'm not sure who really use this, but it seems a useful function
+	// by itself - haoboy
+	void add_neighbor(u_int32_t);      // for adaptive fidelity
+	void scan_neighbor();
+	inline int getneighbors() {return neighbor_list.neighbor_cnt_;}
+
+	// The remaining objects handle a (static) linked list of nodes
+	// Used by Tom's satallite code
+	static struct node_head nodehead_;  // static head of list of nodes
+	inline void insert(struct node_head* head) {
+		LIST_INSERT_HEAD(head, this, entry);
+	}
+	inline Node* nextnode() { return entry.le_next; }
+
+	// These are wireless stuff  to be moved out.
 	inline double energy() { return energy_model_->energy();}
 	inline double initialenergy() { return energy_model_->initialenergy();}
 	inline double energy_level1() { return energy_model_->level1();}
@@ -126,8 +152,7 @@ class Node : public TclObject {
 
 	inline int adaptivefidelity() {return adaptivefidelity_;}
 	inline int powersaving() { return powersavingflag_;}
-	inline int getneighbors() {return neighbor_list.neighbor_cnt_;}
-	
+	inline bool node_on() const { return node_on_; }
 
 	virtual void set_node_sleep(int);
 	virtual void set_node_state(int);
@@ -135,54 +160,16 @@ class Node : public TclObject {
 	virtual void add_rcvtime(float t) {total_rcvtime_ += t;}
 	virtual void add_sndtime(float t) {total_sndtime_ += t;}
 	virtual void idle_energy_patch(float, float);
-
-	int address_;
-
-	int nodeid_; //for nam use
-
-	// XXX can we deprecate the next line (used in MobileNode)
-	// in favor of accessing phys via a standard link API?
-	struct if_head ifhead_; // list of phys for this node
-	struct linklist_head linklisthead_; // list of link heads on node
-
-	NsObject* intf_to_target(int32_t); 
-
-	// The remaining objects handle a (static) linked list of nodes
-	static struct node_head nodehead_;  // static head of list of nodes
-	inline void insert(struct node_head* head) {
-		LIST_INSERT_HEAD(head, this, entry);
-	}
-	inline Node* nextnode() { return entry.le_next; }
-
 	static Node* get_node_by_address(nsaddr_t);
 
-	void add_neighbor(u_int32_t);      // for adaptive fidelity
-	void scan_neighbor();
 	void start_powersaving();
-
-	bool node_on_;   // on-off status of this node -- Chalermek
 
 protected:
 	LIST_ENTRY(Node) entry;  // declare list entry structure
-	EnergyModel *energy_model_;
-	Location * location_;
-      	int sleep_mode_;	// = 1: radio is turned off
-	int state_;		// used for AFECA state 
-	float state_start_time_; // starting time of one AFECA state
-	float total_sleeptime_;  // total time of radio in off mode
-       	float total_rcvtime_;	 // total time in receiving data
-	float total_sndtime_;	 // total time in sending data
-	int adaptivefidelity_;   // Is AFECA activated ?
-	int powersavingflag_;    // Is BECA activated ?
-	int namDefinedFlag_;    // Is nam defined ?
-	float last_time_gosleep; // time when radio is turned off
-	float max_inroute_time_; // maximum time that a node can remaining
-				 // active 
-	int maxttl_;		 // how long a node can keep its neighbor
-				 // list. For AFECA only.
+	int address_;
+	int nodeid_; 		 // for nam use
 
 	// XXX this structure below can be implemented by ns's LIST
-
 	struct neighbor_list_item {
 		u_int32_t id;        // node id
 		int       ttl;    // time-to-live
@@ -193,15 +180,41 @@ protected:
 		int neighbor_cnt_;   // how many neighbors in this list
 		neighbor_list_item *head; 
 	} neighbor_list;
-
 	SoftNeighborHandler *snh_;
+
+	// Nam tracing facility
+        Tcl_Channel namChan_;
+	// Single thread ns, so we can use one global storage for all 
+	// node objects
+	static char nwrk_[NODE_NAMLOG_BUFSZ];	
+	void namdump();
+
+	// These are wireless stuff to be moved out.
+	EnergyModel *energy_model_;
+	Location * location_;
+      	int sleep_mode_;	 // = 1: radio is turned off
+	int state_;		 // used for AFECA state 
+	float state_start_time_; // starting time of one AFECA state
+	float total_sleeptime_;  // total time of radio in off mode
+       	float total_rcvtime_;	 // total time in receiving data
+	float total_sndtime_;	 // total time in sending data
+	int adaptivefidelity_;   // Is AFECA activated ?
+	int powersavingflag_;    // Is BECA activated ?
+	float last_time_gosleep; // time when radio is turned off
+	float max_inroute_time_; // maximum time that a node can remaining
+				 // active 
+	int maxttl_;		 // how long a node can keep its neighbor
+				 // list. For AFECA only.
+	bool node_on_;   	 // on-off status of this node -- Chalermek
        	AdaptiveFidelityEntity *afe_;
 
-      	
+	// XXX can we deprecate the next line (used in MobileNode)
+	// in favor of accessing phys via a standard link API?
+	struct if_head ifhead_; // list of phys for this node
+	struct linklist_head linklisthead_; // list of link heads on node
 };
 
 class AdaptiveFidelityEntity : public Handler {
-
 public:  
         Node *nid_;
 	virtual void start();
@@ -214,9 +227,7 @@ public:
 		nid_ = nid;
 	}
 
-
 protected:
-
 	Event intr;
 	float  sleep_time_;
 	float sleep_seed_;
@@ -236,23 +247,6 @@ protected:
 	Event  intr;
 	
 };
-
-#ifdef zero
-class HierNode : public Node {
-public:
-	HierNode() {}    
-};
-
-class ManualRtNode : public Node {
-public:
-	ManualRtNode() {}    
-};
-
-class VirtualClassifierNode : public Node {
-public:
-	VirtualClassifierNode() {}    
-};
-#endif
 
 #endif /* __node_h__ */
 

@@ -14,16 +14,6 @@ static double d2(double x1, double x2, double y1, double y2)
   return ((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));
 }
 
-/*
-static class GridHandlerClass : public TclClass {
-public:
-  GridHandlerClass() : TclClass("GridHandler") {}
-  TclObject* create(int, const char*const*){ 
-      return (new GridHandler());
-  }
-} class_grid_handler;
-*/
-
 GridHandler::GridHandler()
 {
 }
@@ -36,7 +26,7 @@ void GridHandler::handle(Event *e)
 
   if ((pptr = me->leave_)) {
     while (*pptr) {
-      if ((*pptr)->address_ == token_->address_) break;
+      if ((*pptr)->address() == token_->address()) break;
       pptr = &((*pptr)->next_);
     }
     if (!(*pptr)) abort();
@@ -68,11 +58,9 @@ public:
   }
 } class_grid_keeper;
 
-
 GridKeeper::GridKeeper() : size_(0),grid_(NULL), dim_x_(0), dim_y_(0)
 {
   gh_ = new GridHandler();
-
 }
 
 GridKeeper::~GridKeeper()
@@ -97,7 +85,6 @@ int GridKeeper::command(int argc, const char*const* argv)
     }
   }
 
-
   if (argc == 3) {
     if (strcmp(argv[1], "addnode") == 0) {
 	mn = (MobileNode *)TclObject::lookup(argv[2]);
@@ -110,7 +97,6 @@ int GridKeeper::command(int argc, const char*const* argv)
     }
   }
   if (argc == 4 && strcmp(argv[1], "dimension") == 0) {
-
     if (instance_ == 0) instance_ = this;
 
     dim_x_ = strtol(argv[2], (char**)0, 0);
@@ -136,12 +122,10 @@ void GridKeeper::new_moves(MobileNode *mn)
   double x = mn->X, y = mn->Y; 
   double ss = mn->speed;
   double vx = (mn->dX)*ss, vy = (mn->dY)*ss;
-  // double interval = mn->position_update_interval;
 
   double endx, endy, pother, tm;
   int i, j, endi, gother, grid_x, grid_y;
   MoveEvent *me;
-
 
   Scheduler& s = Scheduler::instance();
 
@@ -260,7 +244,8 @@ int GridKeeper::get_neighbors(MobileNode* mn, MobileNode **output)
   for (i = max(0, grid_x - adj); i <= ulx; i++) {
     for (j = lly; j <= uly; j++) {
       for (pgd = grid_[i][j]; pgd != 0; pgd = pgd->next_) {
-	if (mn->address_ == pgd->address_) continue;
+	if (mn->address() == pgd->address()) 
+		continue;
 	pgd->update_position();
 	if (d2(pgd->X, mnx, pgd->Y, mny) < sqmnr)
 	 output[index++] = pgd;
@@ -281,7 +266,7 @@ void GridKeeper::dump()
 	if (grid_[i][j] == 0) continue;
 	printf("grid[%d][%d]: ",i,j);
 	for (pgd = grid_[i][j]; pgd != 0; pgd = pgd->next_) {
-	  printf("%d ",pgd->address_);
+	  printf("%d ",pgd->address());
 	}
 	printf("\n");
       }

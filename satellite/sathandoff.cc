@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.8 2000/06/21 17:44:10 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.9 2000/08/30 00:10:45 haoboy Exp $";
 #endif
 
 #include "random.h"
@@ -115,7 +115,7 @@ SatLinkHead* LinkHandoffMgr::get_peer_next_linkhead(SatNode* np)
 {
 	LinkHead* lhp;
 	SatLinkHead* slhp;
-	for (lhp = np->linklisthead_.lh_first; lhp; 
+	for (lhp = np->linklisthead().lh_first; lhp; 
 	    lhp = lhp->nextlinkhead() ) {
 		slhp = (SatLinkHead*) lhp;
 		if (slhp->type() == LINK_ISL_CROSSSEAM) {
@@ -221,7 +221,7 @@ int TermLinkHandoffMgr::handoff()
 
 	earth_coord = ((SatNode *)node_)->position()->coord();
 	// Traverse the linked list of link interfaces
-	for (slhp = (SatLinkHead*) node_->linklisthead_.lh_first; slhp; 
+	for (slhp = (SatLinkHead*) node_->linklisthead().lh_first; slhp; 
 	    slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
 		if (slhp->type() == LINK_GSL_GEO || 
 		    slhp->type() == LINK_GENERIC)
@@ -362,7 +362,7 @@ int SatLinkHandoffMgr::handoff()
 	sat_longitude_= SatGeometry::get_longitude(local_->position()->coord());
 
 	// First go through crossseam ISLs to search for handoffs
-	for (slhp = (SatLinkHead*) local_->linklisthead_.lh_first; slhp; 
+	for (slhp = (SatLinkHead*) local_->linklisthead().lh_first; slhp; 
 	    slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
 		if (slhp->type() != LINK_ISL_CROSSSEAM)  
 			continue;
@@ -451,7 +451,7 @@ int SatLinkHandoffMgr::handoff()
 	// Now, work on interplane ISLs (intraplane ISLs are not handed off)
 	
 	// Now search for interplane ISLs
-	for (slhp = (SatLinkHead*) local_->linklisthead_.lh_first; slhp; 
+	for (slhp = (SatLinkHead*) local_->linklisthead().lh_first; slhp; 
 	    slhp = (SatLinkHead*) slhp->nextlinkhead() ) {
 		if (slhp->type() != LINK_ISL_INTERPLANE)  
 			continue;

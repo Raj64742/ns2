@@ -70,8 +70,6 @@ private:
 	MobileNode *node;
 };
 
-
-
 class MobileNode : public Node 
 {
 	friend class PositionHandler;
@@ -134,29 +132,21 @@ public:
 	/*
 	 * for gridkeeper use only
  	 */
-
-	MobileNode *	next_;
-	// 	int		grid_x_, grid_y_;
-	//int		dim_x_, dim_y_;	
+	MobileNode*	next_;
 	double          radius_;
 	void log_energy(int);
+
 protected:
 	// Used to generate position updates
 	PositionHandler pos_handle;
 	Event pos_intr;
 
 	void	log_movement();
-	
-	
 	void	random_direction();
 	void	random_speed();
         void    random_destination();
         int	set_destination(double x, double y, double speed);
 	  
-        Tcl_Channel namChan_;
-        char nwrk_ [256];
-	void namdump();
-
 private:
 	inline int initialized() {
 		return (T && log_target &&

@@ -43,7 +43,7 @@
    NOTE: Tcl node indexs are 0 based, NS C++ node IP addresses (and the
    node->index() are 1 based.
 
-   $Id: god.cc,v 1.9 2000/08/16 19:02:53 intanago Exp $
+   $Id: god.cc,v 1.10 2000/08/30 00:10:45 haoboy Exp $
    */
 
 #include <object.h>
@@ -461,8 +461,8 @@ bool God::IsNeighbor(int i, int j)
 
   //printf("i=%d, j=%d\n", i,j);
 
-  if (mb_node[i]->node_on_ == false ||
-      mb_node[j]->node_on_ == false ||
+  if (mb_node[i]->node_on() == false ||
+      mb_node[j]->node_on() == false ||
       mb_node[i]->energy() <= 0.0 ||
       mb_node[j]->energy() <= 0.0 ) {
     return false;

@@ -35,7 +35,7 @@
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.20 2000/08/16 23:06:01 intanago Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.21 2000/08/30 00:10:45 haoboy Exp $
  */
 
 #include <phy.h>
@@ -56,21 +56,19 @@ public:
 
 LinkHead::LinkHead() : net_if_(0), node_(0), type_(0) { }
 
-int32_t LinkHead::label() {
-		if (net_if_)
-				return net_if_->intf_label();
-		printf("Configuration error:  Network Interface missing\n");
-		exit(1);
-		// Make msvc happy
-		return 0;
+int32_t LinkHead::label() 
+{
+	if (net_if_)
+		return net_if_->intf_label();
+	printf("Configuration error:  Network Interface missing\n");
+	exit(1);
+	// Make msvc happy
+	return 0;
 }
 
 int LinkHead::command(int argc, const char*const* argv)
 {
-        //Tcl& tcl = Tcl::instance();
-        if (argc == 2) {
-
-        } else if (argc == 3) {
+        if (argc == 3) {
 		if(strcmp(argv[1], "setnetinf") == 0) {
 			net_if_ =
 			   (NetworkInterface*) TclObject::lookup(argv[2]);
@@ -97,10 +95,15 @@ public:
 
 struct node_head Node::nodehead_ = { 0 }; // replaces LIST_INIT macro
 
-Node::Node(void) : address_(-1), energy_model_(NULL), sleep_mode_(0), total_sleeptime_(0),
-	           total_rcvtime_(0), total_sndtime_(0), adaptivefidelity_(0),
-	           powersavingflag_(0), namDefinedFlag_(0), last_time_gosleep(0),max_inroute_time_(300),
-	           node_on_(true), maxttl_(5)
+char Node::nwrk_[NODE_NAMLOG_BUFSZ];
+
+Node::Node() : 
+	address_(-1), namChan_(0), nodeid_ (-1),
+	// Following are the wireless BS!
+	energy_model_(NULL), sleep_mode_(0), 
+	total_sleeptime_(0), total_rcvtime_(0), total_sndtime_(0), 
+	adaptivefidelity_(0), powersavingflag_(0), 
+	last_time_gosleep(0),max_inroute_time_(300), node_on_(true), maxttl_(5)
 {
 	LIST_INIT(&ifhead_);
 	LIST_INIT(&linklisthead_);
@@ -110,18 +113,16 @@ Node::Node(void) : address_(-1), energy_model_(NULL), sleep_mode_(0), total_slee
 	neighbor_list.head = NULL;
 }
 
-
 Node::~Node()
 {
-  LIST_REMOVE(this, entry);
+	LIST_REMOVE(this, entry);
 }
-
 
 int
 Node::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
-		Tcl& tcl = Tcl::instance();
 		if(strcmp(argv[1], "address?") == 0) {
 			tcl.resultf("%d", address_);
  			return TCL_OK;
@@ -134,12 +135,9 @@ Node::command(int argc, const char*const* argv)
 			powersavingflag_ = 1;
 			start_powersaving();
 			return TCL_OK;
-		} else if(strcmp(argv[1], "namDefined") == 0) {
-			namDefinedFlag_ = 1;
-			return TCL_OK;
 		} else if (strcmp(argv[1], "energy") == 0) {
 			Tcl& tcl = Tcl::instance();
-			tcl.resultf("%f",this->energy());
+			tcl.resultf("%f", energy());
 			return TCL_OK;
 		} else if (strcmp(argv[1], "adjustenergy") == 0) {
 			// assume every 10 sec schedule and 1.15 W 
@@ -151,15 +149,7 @@ Node::command(int argc, const char*const* argv)
 			total_rcvtime_ = 0;
 			total_sleeptime_ = 0;
 			return TCL_OK;
-		}
-
-		/*
-		else if (strcmp(argv[1], "energy") == 0) {
-			printf("NODE %d: energy %lf\n", address_, energy());
-		}
-		*/
-
-		else if (strcmp(argv[1], "on") == 0) {
+		} else if (strcmp(argv[1], "on") == 0) {
 			node_on_ = true;
 			tcl.evalf("%s set netif_(0)", name_);
 			char *str = tcl.result();
@@ -167,9 +157,7 @@ Node::command(int argc, const char*const* argv)
 
 			God::instance()->ComputeRoute();
 			return TCL_OK;
-		}
-
-		else if (strcmp(argv[1], "off") == 0) {
+		} else if (strcmp(argv[1], "off") == 0) {
 			node_on_ = false;
 			tcl.evalf("%s set netif_(0)", name_);
 			char *str = tcl.result();
@@ -182,8 +170,7 @@ Node::command(int argc, const char*const* argv)
 			God::instance()->ComputeRoute();
 		     	return TCL_OK;
 		}
-	}
-	if (argc == 3) {
+	} else if (argc == 3) {
 		if(strcmp(argv[1], "addif") == 0) {
 			WiredPhy* phyp = (WiredPhy*) TclObject::lookup(argv[2]);
 			if(phyp == 0)
@@ -222,20 +209,60 @@ Node::command(int argc, const char*const* argv)
 			max_inroute_time_ = atof(argv[2]);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "maxttl") == 0) {
-		
 			maxttl_ = atoi(argv[2]);
 			return TCL_OK;
-		}
-	}
-	if (argc == 4) {
-		if(strcmp(argv[1], "idleenergy") == 0) {
-			this->idle_energy_patch(atof(argv[2]),atof(argv[3]));
+		} else if (strcmp(argv[1], "namattach") == 0) {
+                        int mode;
+                        const char* id = argv[2];
+                        namChan_ = Tcl_GetChannel(tcl.interp(), (char*)id,
+                                                  &mode);
+                        if (namChan_ == 0) {
+                                tcl.resultf("node: can't attach %s", id);
+                                return (TCL_ERROR);
+                        }
+                        return (TCL_OK);
+                }
+	} else if (argc == 4) {
+		if (strcmp(argv[1], "idleenergy") == 0) {
+			idle_energy_patch(atof(argv[2]),atof(argv[3]));
 			return TCL_OK;
 		}
 	}
 	return TclObject::command(argc,argv);
 }
 
+void Node::namlog(const char* fmt, ...)
+{
+	// Don't do anything if we don't have a log file.
+	if (namChan_ == 0) 
+		return;
+	va_list ap;
+	va_start(ap, fmt);
+	vsprintf(nwrk_, fmt, ap);
+	namdump();
+}
+
+void Node::namdump()
+{
+        int n = 0;
+        /* Otherwise nwrk_ isn't initialized */
+	n = strlen(nwrk_);
+	if (n >= NODE_NAMLOG_BUFSZ-1) {
+		fprintf(stderr, 
+			"Node::namdump() exceeds buffer size. Bail out.\n");
+		abort();
+	}
+	if (n > 0) {
+		/*
+		 * tack on a newline (temporarily) instead
+		 * of doing two writes
+		 */
+		nwrk_[n] = '\n';
+		nwrk_[n + 1] = 0;
+		(void)Tcl_Write(namChan_, nwrk_, n + 1);
+		nwrk_[n] = 0;
+	}
+}
 
 // Given an interface label for a NetworkInterface on this node, we return 
 // the head of that link
@@ -267,30 +294,37 @@ Node::set_node_sleep(int status)
 	Tcl& tcl=Tcl::instance();
 	//static float last_time_gosleep;
 	// status = 1 to set node into sleep mode
-	// status = 0 to put node back to idel mode.
-	// time in the sleep mode should be used as credit to idle time energy consumption
+	// status = 0 to put node back to idle mode.
+	// time in the sleep mode should be used as credit to idle 
+	// time energy consumption
 	if (status) {
-	    last_time_gosleep = Scheduler::instance().clock();
-	    //printf("id=%d : put node into sleep at %f\n",address_,last_time_gosleep);
-	    sleep_mode_ = status;
-	    if (namDefinedFlag_) tcl.evalf("%s add-mark m1 blue hexagon",name());
+		last_time_gosleep = Scheduler::instance().clock();
+		//printf("id=%d : put node into sleep at %f\n",
+		// address_,last_time_gosleep);
+		sleep_mode_ = status;
+		// Although add-mark{} won't have any problem if nam trace is 
+		// not turned on (tcl/lib/ns-namsupp.tcl), this conditional 
+		// may save running time.
+		if (namChan_)
+			tcl.evalf("%s add-mark m1 blue hexagon", name());
 	} else {
-	    sleep_mode_ = status;
-	    if (namDefinedFlag_) tcl.evalf("%s delete-mark m1",name()); 
-	    //printf("id= %d last_time_sleep = %f\n",address_,last_time_gosleep);
-	    if (last_time_gosleep) {
-	       total_sleeptime_ += Scheduler::instance().clock()-last_time_gosleep;
-	       last_time_gosleep = 0;
-	    }
+		sleep_mode_ = status;
+		if (namChan_)
+			tcl.evalf("%s delete-mark m1",name()); 
+		//printf("id= %d last_time_sleep = %f\n",
+		// address_, last_time_gosleep);
+		if (last_time_gosleep) {
+			total_sleeptime_ += Scheduler::instance().clock() -
+				last_time_gosleep;
+			last_time_gosleep = 0;
+		}
 	}	
-
 }
 
 void
 Node::set_node_state(int state)
 {
 	switch (state_) { 
-
 	case POWERSAVING_STATE:
 	case WAITING:
 		state_ = state;
@@ -302,7 +336,8 @@ Node::set_node_state(int state)
 		    state_ = state;
 		}
 		if (state == INROUTE) {
-			// a data packet is forwarded, needs to reset state_start_time_
+			// a data packet is forwarded, needs to reset 
+			// state_start_time_
 			state_start_time_= Scheduler::instance().clock();
 
 		}
@@ -311,7 +346,6 @@ Node::set_node_state(int state)
 		printf("Wrong state, quit...\n");
 		exit(1);
 	}
-		
 }
 
 void
@@ -341,7 +375,6 @@ Node::add_neighbor(u_int32_t nodeid)
 	    neighbor_list.head = np;
 	    
 	    neighbor_list.neighbor_cnt_++;
-
 	}
 }
 
@@ -349,56 +382,43 @@ void
 Node::scan_neighbor()
 {
 	neighbor_list_item *np, *lp;
-
-
 	if (neighbor_list.neighbor_cnt_ > 0) {
-	  lp = neighbor_list.head;
-	  np = lp->next;
-
-	  for (; np; np = np->next) {
+		lp = neighbor_list.head;
+		np = lp->next;
+		for (; np; np = np->next) {
+			np->ttl--;
+			if (np->ttl <= 0){
+				lp->next = np->next;
+				delete np;
+				np = lp;
+				neighbor_list.neighbor_cnt_--;
+			} 
+			lp = np;
+		}
+		// process the first element
+		np = neighbor_list.head;
 		np->ttl--;
-		if (np->ttl <= 0){
-			lp->next = np->next;
+		if (np->ttl <= 0) {
+			neighbor_list.head = np->next;
 			delete np;
-			np = lp;
 			neighbor_list.neighbor_cnt_--;
-		} 
-		
-		lp = np;
-	  }
-
-	  // process the first element
-
-	  np = neighbor_list.head;
-	  np->ttl--;
-	  if (np->ttl <= 0) {
-		  neighbor_list.head = np->next;
-		  delete np;
-		  neighbor_list.neighbor_cnt_--;
-	  }
-
+		}
 	}
-
 }
-
 
 void
 SoftNeighborHandler::start()
 {
-   Scheduler &s = Scheduler::instance();
-   s.schedule(this, &intr, CHECKFREQ);
+	Scheduler &s = Scheduler::instance();
+	s.schedule(this, &intr, CHECKFREQ);
 }
 
 void
 SoftNeighborHandler::handle(Event *)
 {
-   
- Scheduler &s = Scheduler::instance();
-
- nid_->scan_neighbor();
-
- s.schedule(this, &intr, CHECKFREQ);
-
+	Scheduler &s = Scheduler::instance();
+	nid_->scan_neighbor();
+	s.schedule(this, &intr, CHECKFREQ);
 }
 
 void 
@@ -409,11 +429,9 @@ AdaptiveFidelityEntity::start()
 
 	sleep_time_ = 2;
 	sleep_seed_ = 2;
-
 	idle_time_ = 10;
 
 	start_idletime = Random::uniform(0, idle_time_);
-
 	//printf("node id_ = %d starttime=%f\n", nid_, start_idletime);
 
 	nid_->set_node_sleep(0);
@@ -423,61 +441,52 @@ AdaptiveFidelityEntity::start()
 void 
 AdaptiveFidelityEntity::handle(Event *)
 {
-    
-    Scheduler &s = Scheduler::instance();
-    
-    int node_state = nid_->state();
-
-    //printf("Node %d at State %d at time %f is in sleep %d \n", nid_->address(), node_state, s.clock(), nid_->sleep());
-
-    //printf("node id = %d: sleep_time=%f\n",nid_->address(),sleep_time_);
-
-    switch (node_state) {
-
-    case POWERSAVING_STATE:
-	    
-	if (nid_->sleep()) {
-		// node is in sleep mode, wake it up
-		nid_->set_node_sleep(0);
-		adapt_it();
-		s.schedule(this, &intr, idle_time_);
-	} else {
-		// node is in idle mode, put it into sleep
-		
-		nid_->set_node_sleep(1);
-		adapt_it();
-		s.schedule(this, &intr, sleep_time_);
+	Scheduler &s = Scheduler::instance();
+	int node_state = nid_->state();
+	//printf("Node %d at State %d at time %f is in sleep %d \n", 
+	// nid_->address(), node_state, s.clock(), nid_->sleep());
+	//printf("node id = %d: sleep_time=%f\n",nid_->address(),sleep_time_);
+	switch (node_state) {
+	case POWERSAVING_STATE:
+		if (nid_->sleep()) {
+			// node is in sleep mode, wake it up
+			nid_->set_node_sleep(0);
+			adapt_it();
+			s.schedule(this, &intr, idle_time_);
+		} else {
+			// node is in idle mode, put it into sleep
+			nid_->set_node_sleep(1);
+			adapt_it();
+			s.schedule(this, &intr, sleep_time_);
+		}
+		break;
+	case INROUTE:
+		// 100s is the maximum INROUTE time.
+		if (s.clock()-(nid_->state_start_time()) < 
+		    nid_->max_inroute_time()) {
+			s.schedule(this, &intr, idle_time_);
+		} else {
+			nid_->set_node_state(POWERSAVING_STATE);
+			adapt_it();
+			nid_->set_node_sleep(1);
+			s.schedule(this, &intr, sleep_time_); 
+		}
+		break;
+	case WAITING:
+		// 10s is the maximum WAITING time
+		if (s.clock()-(nid_->state_start_time()) < MAX_WAITING_TIME) {
+			s.schedule(this, &intr, idle_time_);
+		} else {
+			nid_->set_node_state(POWERSAVING_STATE);
+			adapt_it();
+			nid_->set_node_sleep(1);
+			s.schedule(this, &intr, sleep_time_); 
+		}
+		break;
+	default:
+		fprintf(stderr, "Illegal Node State!");
+		abort();
 	}
-	break;
-
-    case INROUTE:
-	    // 100s is the maximum INROUTE time.
-	    if (s.clock()-(nid_->state_start_time()) < nid_->max_inroute_time()) {
-		    s.schedule(this, &intr, idle_time_);
-	    } else {
-		    nid_->set_node_state(POWERSAVING_STATE);
-		    adapt_it();
-		    nid_->set_node_sleep(1);
-		    s.schedule(this, &intr, sleep_time_); 
-	    }
-	    break;
-    case WAITING:
-
-	    // 10s is the maximum WAITING time
-	    if (s.clock()-(nid_->state_start_time()) < MAX_WAITING_TIME) {
-		    s.schedule(this, &intr, idle_time_);
-	    } else {
-		    nid_->set_node_state(POWERSAVING_STATE);
-		    adapt_it();
-		    nid_->set_node_sleep(1);
-		    s.schedule(this, &intr, sleep_time_); 
-	    }
-	    break;
-    default:
-	    fprintf(stderr, "Illegal Node State!");
-	    abort();
-    }
-
 }
 
 void 
@@ -487,18 +496,15 @@ AdaptiveFidelityEntity::adapt_it()
 	// use adaptive fidelity
 	if (nid_->adaptivefidelity()) {
 		int neighbors = nid_->getneighbors();
-		
-		if (!neighbors) neighbors=1;
+		if (!neighbors) 
+			neighbors = 1;
 		delay = sleep_seed_*Random::uniform(1,neighbors); 
-
-	      	this->set_sleeptime(delay);
+	      	set_sleeptime(delay);
 	}
-
 }
 
-
 // return the node instance from the static node list
-Node * Node::get_node_by_address (nsaddr_t id)
+Node* Node::get_node_by_address (nsaddr_t id)
 {
 	Node * tnode = nodehead_.lh_first;
 	for (; tnode; tnode = tnode->nextnode()) {
@@ -507,32 +513,4 @@ Node * Node::get_node_by_address (nsaddr_t id)
 		}
 	}
 	return NULL;
-
 }
-
-
-#ifdef zero	
-static class HierNodeClass : public TclClass {
-public:
-	HierNodeClass() : TclClass("HierNode") {}
-	TclObject* create(int, const char*const*) {
-                return (new HierNode);
-        }
-} class_hier_node;
-
-static class ManualRtNodeClass : public TclClass {
-public:
-	ManualRtNodeClass() : TclClass("ManualRtNode") {}
-	TclObject* create(int, const char*const*) {
-                return (new ManualRtNode);
-        }
-} class_ManualRt_node;
-
-static class VirtualClassifierNodeClass : public TclClass {
-public:
-	VirtualClassifierNodeClass() : TclClass("VirtualClassifierNode") {}
-	TclObject* create(int, const char*const*) {
-                return (new VirtualClassifierNode);
-        }
-} class_VirtualClassifier_node;
-#endif

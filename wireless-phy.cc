@@ -198,26 +198,17 @@ WirelessPhy::sendDown(Packet *p)
 	 */
 	assert(initialized());
 	
-	if ( (node_->node_on_ != true) || (node_->sleep()) ) {
+	if ( (node_->node_on() != true) || (node_->sleep()) ) {
 		Packet::free(p);
 		return;
 	}
 
-
 	/*
 	 * Decrease node's energy
 	 */
-
 	if(node_->energy_model()) {
-
 		if ((node_->energy_model())->energy() > 0) {
-
 		    double txtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
-		    /*
-		    node_->add_sndtime(txtime);
-		    (node_->energy_model())->DecrTxEnergy(txtime,Pt_consume_);
-		    */
-
 		    double start_time = max(channel_idle_time_, NOW);
 		    double end_time = max(channel_idle_time_, NOW+txtime);
 		    double actual_txtime = end_time-start_time;
@@ -229,7 +220,6 @@ WirelessPhy::sendDown(Packet *p)
 			    update_energy_time_ = start_time;
 		    }
 
-		   
 		    /* It turns out that MAC sends packet even though, it's
 		       receiving some packets.
 		    
@@ -237,12 +227,9 @@ WirelessPhy::sendDown(Packet *p)
 			    fprintf(stderr,"Something may be wrong at MAC\n");
 			    fprintf(stderr,"act_tx = %lf, tx = %lf\n", actual_txtime, txtime);
 		    }
-
 		    */
 
-
 		   // Sanity check
-
 		   double temp = max(NOW,last_send_time_);
 
 		   /*
@@ -250,49 +237,44 @@ WirelessPhy::sendDown(Packet *p)
 			   fprintf(stderr,"Argggg !! Overlapping transmission. NOW %lf last %lf temp %lf\n", NOW, last_send_time_, temp);
 		   }
 		   */
-	    
-		    double begin_adjust_time = min(channel_idle_time_, temp);
-		    double finish_adjust_time = min(channel_idle_time_, NOW+txtime);
-		    double gap_adjust_time = finish_adjust_time - begin_adjust_time;
-		    if (gap_adjust_time < 0.0) {
-			    fprintf(stderr,"What the heck ! negative gap time.\n");
-		    }
+		   
+		   double begin_adjust_time = min(channel_idle_time_, temp);
+		   double finish_adjust_time = min(channel_idle_time_, NOW+txtime);
+		   double gap_adjust_time = finish_adjust_time - begin_adjust_time;
+		   if (gap_adjust_time < 0.0) {
+			   fprintf(stderr,"What the heck ! negative gap time.\n");
+		   }
 
-		    if (gap_adjust_time > 0.0) {
-		       if (status_ == RECV) {
-			  (node_->energy_model())->DecrTxEnergy(
-						   gap_adjust_time, Pt_consume_-Pr_consume_);
-		       }
-		    }
+		   if ((gap_adjust_time > 0.0) && (status_ == RECV)) {
+			   node_->energy_model()->DecrTxEnergy(gap_adjust_time,
+					       Pt_consume_-Pr_consume_);
+		   }
 
-
-		    (node_->energy_model())->DecrTxEnergy(actual_txtime,Pt_consume_);
-
-		    if (end_time > channel_idle_time_) {
-			    status_ = SEND;
-		    }
+		   (node_->energy_model())->DecrTxEnergy(actual_txtime,Pt_consume_);
+		   if (end_time > channel_idle_time_) {
+			   status_ = SEND;
+		   }
 							
-		    last_send_time_ = NOW+txtime;
-		    channel_idle_time_ = end_time;
-		    update_energy_time_ = end_time;
+		   last_send_time_ = NOW+txtime;
+		   channel_idle_time_ = end_time;
+		   update_energy_time_ = end_time;
 
-		    /*
-		    hdr_diff *dfh = HDR_DIFF(p);
-		    printf("Node %d sends (%d, %d, %d) energy %lf.\n",
-			   node_->address(), dfh->sender_id.addr_, 
-			   dfh->sender_id.port_, dfh->pk_num, node_->energy());
-		    */
+		   /*
+		     hdr_diff *dfh = HDR_DIFF(p);
+		     printf("Node %d sends (%d, %d, %d) energy %lf.\n",
+		     node_->address(), dfh->sender_id.addr_, 
+		     dfh->sender_id.port_, dfh->pk_num, node_->energy());
+		   */
 
-		    if ((node_->energy_model())->energy() <= 0) {
-			    node_->energy_model()->setenergy(0);
-			    node_->log_energy(0);
-		    }
+		   if ((node_->energy_model())->energy() <= 0) {
+			   node_->energy_model()->setenergy(0);
+			   node_->log_energy(0);
+		   }
 
 		} else {
-		     Packet::free(p);
-		     return;
+			Packet::free(p);
+			return;
 		}
-		
 	}
 
 	/*
@@ -319,8 +301,7 @@ WirelessPhy::sendUp(Packet *p)
 
   // if the node is in sleeping mode, drop the packet simply
 
-  if ( (node_->sleep()) || (node_->node_on_ != true)) {
-     
+  if ( (node_->sleep()) || (node_->node_on() != true)) {
       pkt_recvd = 0;
       goto DONE;
   }
@@ -456,7 +437,7 @@ void WirelessPhy::UpdateIdleEnergy()
 		return;
 	}
 
-	if (NOW > update_energy_time_ && node_->node_on_ == true) {
+	if (NOW > update_energy_time_ && node_->node_on() == true) {
 		  (node_->energy_model())->
 			  DecrIdleEnergy(NOW-update_energy_time_,
 					 P_idle_);
@@ -465,11 +446,3 @@ void WirelessPhy::UpdateIdleEnergy()
 
 	idle_timer_.resched(1.0);
 }
-
-
-
-
-
-
-
-

@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.35 2000/08/17 00:03:38 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.36 2000/08/30 00:10:45 haoboy Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -162,32 +162,25 @@ Channel::sendUp(Packet* p, Phy *tifp)
 	    int size = gk->size_; 
 	    
 	    MobileNode **outlist = new MobileNode *[size];
-	    //    memset(outlist, 0, size * sizeof(MobileNode *));
 	 
        	    int out_index = gk->get_neighbors((MobileNode*)tnode,
 						         outlist);
-
 	    for (i=0; i < out_index; i ++) {
 		
 		  newp = p->copy();
 		  rnode = outlist[i];
 		  propdelay = get_pdelay(tnode, rnode);
 
-		  rifp = (rnode->ifhead_).lh_first; 
+		  rifp = (rnode->ifhead()).lh_first; 
 		  for(; rifp; rifp = rifp->nextnode()){
 			  if (rifp->channel() == this){
 				 s.schedule(rifp, newp, propdelay); 
 				 break;
 			  }
 		  }
- 
-	    }
-	    
+ 	    }
 	    delete [] outlist; 
-
 	} else {
-
-
 	    for( ; rifp; rifp = rifp->nextchnl()) {
 		rnode = rifp->node();
 		if(rnode == tnode)
@@ -200,7 +193,6 @@ Channel::sendUp(Packet* p, Phy *tifp)
 		 *
 		 */
 		newp = p->copy();
-		
 		propdelay = get_pdelay(tnode, rnode);
 		
 		/*
@@ -209,7 +201,6 @@ Channel::sendUp(Packet* p, Phy *tifp)
 		 * when the receiver's interface detects the first
 		 * bit of this packet.
 		 */
-		
 		s.schedule(rifp, newp, propdelay);
 	    }
 	}

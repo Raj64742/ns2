@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.204 2000/08/29 19:28:03 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.205 2000/08/30 00:10:45 haoboy Exp $
 #
 
 #
@@ -471,18 +471,11 @@ Simulator instproc create-wireless-node { args } {
 	$self instvar namtraceAllFile_
 	$self instvar level1_ level2_
 
-
         set imepflag_ OFF
 
         # create node instance
-
         set node [$self create-node-instance $args]
         
-        if { [info exist namtraceAllFile_] } {
-       	    $node get-nam-traceall $namtraceAllFile_
-       	    $node namDefined
-	}
-    
         # basestation address setting
         if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
 	    $node base-station [AddrParams set-hieraddr [$node node-addr]]

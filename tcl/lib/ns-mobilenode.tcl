@@ -201,18 +201,16 @@ Node/MobileNode instproc reset {} {
 # bind the agent to the port number.
 # if portnumber is 255, default target is set to the routing agent
 #
-
 Node/MobileNode instproc add-target {agent port } {
     $self instvar dmux_ classifier_
     $self instvar imep_ toraDebug_
-    $self instvar namtraceFile_ 
  
     set ns_ [Simulator instance]
 
     set newapi [$ns_ imep-support]
     $agent set sport_ $port
 
-    #special processing for TORA/IMEP node
+    # Special processing for TORA/IMEP node
     set toraonly [string first "TORA" [$agent info class]] 
 
     if {$toraonly != -1 } {
@@ -223,7 +221,6 @@ Node/MobileNode instproc add-target {agent port } {
         #
         $agent imep-agent [$self set imep_(0)]
         [$self set imep_(0)] rtagent $agent
-
     }
 
     # speciall processing for AODV
@@ -232,20 +229,19 @@ Node/MobileNode instproc add-target {agent port } {
 	$agent if-queue [$self set ifq_(0)]    ;# ifq between LL and MAC
     }
     
+    set namfp [$ns_ get-nam-traceall]
     if { $port == 255 } {			# routing agents
-
 	if { [Simulator set RouterTrace_] == "ON" } {
 	    #
 	    # Send Target
 	    #
-	    
 	    if {$newapi != ""} {
 	        set sndT [$ns_ mobility-trace Send "RTR" $self]
 	    } else {
 		set sndT [cmu-trace Send "RTR" $self]
 	    }
-            if [info exists namtraceFile_] {
-                $sndT namattach $namtraceFile_
+	    if { $namfp != "" } {
+                $sndT namattach $namfp
             }
             if { $newapi == "ON" } {
                  $agent target $imep_(0)
@@ -253,7 +249,6 @@ Node/MobileNode instproc add-target {agent port } {
 
 		 # second tracer to see the actual
                  # types of tora packets before imep packs them
-                 #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
 		  if { [info exists toraDebug_] && $toraDebug_ == "ON"} {
                        set sndT2 [$ns_ mobility-trace Send "TRP" $self]
                        $sndT2 target $imep_(0)
@@ -262,67 +257,43 @@ Node/MobileNode instproc add-target {agent port } {
              } else {  ;#  no IMEP
                   $agent target $sndT
              }
-	    
 	    $sndT target [$self set ll_(0)]
-#	    $agent target $sndT
-	    
 	    #
 	    # Recv Target
 	    #
-	     
 	    if {$newapi != ""} {
 	         set rcvT [$ns_ mobility-trace Recv "RTR" $self]
 	    } else {
 		 set rcvT [cmu-trace Recv "RTR" $self]
 	    }
-            if [info exists namtraceFile_] {
-                $rcvT namattach $namtraceFile_
+            if { $namfp != "" } {
+                $rcvT namattach $namfp
             }
             if {$newapi == "ON" } {
-            #    puts "Hacked for tora20 runs!! No RTR revc trace"
                 [$self set ll_(0)] up-target $imep_(0)
                 $classifier_ defaulttarget $agent
-
                 # need a second tracer to see the actual
                 # types of tora packets after imep unpacks them
-                #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
 		# no need to support any hier node
-
 		if {[info exists toraDebug_] && $toraDebug_ == "ON" } {
 		    set rcvT2 [$ns_ mobility-trace Recv "TRP" $self]
 		    $rcvT2 target $agent
 		    [$self set classifier_] defaulttarget $rcvT2
 		}
-		
              } else {
                  $rcvT target $agent
-
 		 $self install-defaulttarget $rcvT
-
-#                 [$self set classifier_] defaulttarget $rcvT
-#		 $classifier_ defaulttarget $rcvT
-
                  $dmux_ install $port $rcvT
 	     }
-
-#	    $rcvT target $agent
-#	    $classifier_ defaulttarget $rcvT
-#	    $dmux_ install $port $rcvT
-	    
 	} else {
-
 	    #
 	    # Send Target
 	    #
 	    # if tora is used
             if { $newapi == "ON" } {
                  $agent target $imep_(0)
-
-                 # $imep_(0) sendtarget $sndT
-
 		 # second tracer to see the actual
                  # types of tora packets before imep packs them
-                 #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
 		  if { [info exists toraDebug_] && $toraDebug_ == "ON"} {
                        set sndT2 [$ns_ mobility-trace Send "TRP" $self]
                        $sndT2 target $imep_(0)
@@ -332,40 +303,26 @@ Node/MobileNode instproc add-target {agent port } {
 		 $imep_(0) sendtarget [$self set ll_(0)]
 
              } else {  ;#  no IMEP
-		 
 		 $agent target [$self set ll_(0)]
-                 # $agent target $sndT
              }    
-
-	    #$agent target [$self set ll_(0)]
-		
-	    #
-	    # Recv Target
-	    #
-
-            if {$newapi == "ON" } {
-            #    puts "Hacked for tora20 runs!! No RTR revc trace"
-
+	     #
+	     # Recv Target
+	     #
+             if {$newapi == "ON" } {
                 [$self set ll_(0)] up-target $imep_(0)
                 $classifier_ defaulttarget $agent
-
                 # need a second tracer to see the actual
                 # types of tora packets after imep unpacks them
-                #if { [info exists opt(debug)] && $opt(debug) == "ON" } 
 		# no need to support any hier node
-
 		if {[info exists toraDebug_] && $toraDebug_ == "ON" } {
 		    set rcvT2 [$ns_ mobility-trace Recv "TRP" $self]
 		    $rcvT2 target $agent
 		    [$self set classifier_] defaulttarget $rcvT2
 		}
-	    } else {
+	     } else {
 	        $self install-defaulttarget $agent
-	    
-	        #$classifier_ defaulttarget $agent
-
 	        $dmux_ install $port $agent
-	    }
+	     }
 	}
 	
     } else {
@@ -374,21 +331,16 @@ Node/MobileNode instproc add-target {agent port } {
 	    #
 	    # Send Target
 	    #
-	   
 	    if {$newapi != ""} {
 	        set sndT [$ns_ mobility-trace Send AGT $self]
-		
 	    } else {
 		set sndT [cmu-trace Send AGT $self]
             }
-
-            if [info exists namtraceFile_]  {
-                $sndT namattach $namtraceFile_
+	    if { $namfp != "" } {
+                $sndT namattach $namfp
             }
-
 	    $sndT target [$self entry]
 	    $agent target $sndT
-		
 	    #
 	    # Recv Target
 	    #
@@ -397,11 +349,9 @@ Node/MobileNode instproc add-target {agent port } {
 	    } else {
 		set rcvT [cmu-trace Recv AGT $self]
 	    }
-
-            if [info exists namtraceFile_]  {
-	       $rcvT namattach $namtraceFile_
+	    if { $namfp != "" } {
+	       $rcvT namattach $namfp
 	    }
-
 	    $rcvT target $agent
 	    $dmux_ install $port $rcvT
 		
@@ -410,7 +360,6 @@ Node/MobileNode instproc add-target {agent port } {
 	    # Send Target
 	    #
 	    $agent target [$self entry]
-	    
 	    #
 	    # Recv Target
 	    #
@@ -446,7 +395,6 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	$self instvar arptable_ nifs_
 	$self instvar netif_ mac_ ifq_ ll_
 	$self instvar imep_
-	$self instvar namtraceFile_
 	
 	set ns_ [Simulator instance]
 
@@ -461,13 +409,14 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	set ll_($t)	[new $lltype]		;# link layer
         set ant_($t)    [new $anttype]
 
+	set namfp [$ns_ get-nam-traceall]
         if {$imepflag == "ON" } {              ;# IMEP layer
             set imep_($t) [new Agent/IMEP [$self id]]
             set imep $imep_($t)
 
             set drpT [$ns_ mobility-trace Drop "RTR" $self]
-            if [info exists namtraceFile_] {
-                $drpT namattach $namtraceFile_
+	    if { $namfp != "" } {
+                $drpT namattach $namfp
             }
             $imep drop-target $drpT
             $ns_ at 0.[$self id] "$imep_($t) start"     ;# start beacon timer
@@ -498,8 +447,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    
 	    $arptable_ drop-target $drpT
 
-            if [info exists namtraceFile_] {
-	       $drpT namattach $namtraceFile_
+	    if { $namfp != "" } {
+	       $drpT namattach $namfp
 	    }
 
         }
@@ -533,8 +482,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
         }
 	$ifq drop-target $drpT
 
-        if  [info exists namtraceFile_]  {
-           $drpT namattach $namtraceFile_
+	if { $namfp != "" } {
+           $drpT namattach $namfp
 	}
  
 	#
@@ -576,8 +525,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
 		set rcvT [cmu-trace Recv "MAC" $self]
 	    }
 	    $mac log-target $rcvT
-            if [info exists namtraceFile_] {
-                $rcvT namattach $namtraceFile_
+	    if { $namfp != "" } {
+                $rcvT namattach $namfp
             }
 
 
@@ -591,8 +540,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    }
 	    $sndT target [$mac down-target]
 	    $mac down-target $sndT
-            if [info exists namtraceFile_] {
-                $sndT namattach $namtraceFile_
+	    if { $namfp != "" } {
+                $sndT namattach $namfp
             }
 
 	    #
@@ -607,8 +556,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	    }
 	    $rcvT target [$mac up-target]
 	    $mac up-target $rcvT
-            if [info exists namtraceFile_] {
-                $rcvT namattach $namtraceFile_
+	    if { $namfp != "" } {
+                $rcvT namattach $namfp
             }
 
 	    #
@@ -620,8 +569,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
 		set drpT [cmu-trace Drop "MAC" $self]`
 	    }
 	    $mac drop-target $drpT
-            if [info exists namtraceFile_] {
-                $drpT namattach $namtraceFile_
+	    if { $namfp != "" } {
+                $drpT namattach $namfp
             }
 	} else {
 	    $mac log-target [$ns_ set nullAgent_]
@@ -646,8 +595,6 @@ Node/MobileNode instproc nodetrace { tracefd } {
 }
 
 Node/MobileNode instproc agenttrace {tracefd} {
-    $self instvar namtraceFile_
- 
     set ns_ [Simulator instance]
     
     set ragent [$self set ragent_]
@@ -658,8 +605,9 @@ Node/MobileNode instproc agenttrace {tracefd} {
     #
     set drpT [$ns_ mobility-trace Drop "RTR" $self]
 
-    if [info exists namtraceFile_] {
-       $drpT namattach $namtraceFile_
+    set namfp [$ns_ get-nam-traceall]
+    if { $namfp != ""} {
+       $drpT namattach $namfp
     }
 
     $ragent drop-target $drpT
@@ -745,9 +693,9 @@ SRNodeNew instproc init {args} {
     if { [Simulator set RouterTrace_] == "ON" } {
 	# Recv Target
 	set rcvT [$ns_ mobility-trace Recv "RTR" $self]
-        set namtraceFile_ [$ns_ set namtraceAllFile_]
-        if {  $namtraceFile_ != "" } {
-            $rcvT namattach $namtraceFile_
+        set namfp [$ns_ get-nam-traceall]
+        if {  $namfp != "" } {
+            $rcvT namattach $namfp
         }
 	$rcvT target $dsr_agent_
 	set entry_point_ $rcvT	
@@ -823,9 +771,9 @@ SRNodeNew instproc add-interface {args} {
     if { [Simulator set RouterTrace_] == "ON" } {
 	# Send Target
 	set sndT [$ns_ mobility-trace Send "RTR" $self]
-        set namtraceFile_ [$ns_ set namtraceAllFile_]
-        if {$namtraceFile_ != "" } {
-            $sndT namattach $namtraceFile_
+        set namfp [$ns_ get-nam-traceall]
+        if {$namfp != "" } {
+            $sndT namattach $namfp
         }
 	$sndT target $ll_(0)
 	$dsr_agent_ add-ll $sndT $ifq_(0)

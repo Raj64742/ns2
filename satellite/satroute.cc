@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.cc,v 1.9 2000/05/03 01:23:59 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.cc,v 1.10 2000/08/30 00:10:45 haoboy Exp $";
 #endif
 
 #include "satroute.h"
@@ -272,7 +272,7 @@ void SatRouteObject::compute_topology()
 	// Compute adjacencies.  Traverse linked list of nodes 
         for (nodep=Node::nodehead_.lh_first; nodep; nodep = nodep->nextnode()) {
 	    // Cycle through the linked list of linkheads
-	    for (slhp = (SatLinkHead*) nodep->linklisthead_.lh_first; slhp; 
+	    for (slhp = (SatLinkHead*) nodep->linklisthead().lh_first; slhp; 
 	      slhp = (SatLinkHead*) slhp->nextlinkhead()) {
 		if (slhp->type() == LINK_GSL_REPEATER)
 		    continue;
