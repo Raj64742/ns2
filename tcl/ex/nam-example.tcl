@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.2 1997/11/04 21:54:33 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.3 1998/01/27 22:11:12 haoboy Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -16,7 +16,7 @@ if {[llength $argv] > 0} {
 	set srmSimType Adaptive
 }
 
-source ../mcast/srm-nam.tcl		;# to separate control messages.
+#source ../mcast/srm-nam.tcl		;# to separate control messages.
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 ns-random 1
 Simulator set NumberInterfaces_ 1
@@ -106,6 +106,17 @@ $ns at 3.5 "$srm(0) start-source"
 
 $ns at 3.5 "$n(0) color red"
 $ns at 3.5 "$ns trace-annotate \"node 0 changed color\""
+
+# add/remove node marks (concentric circles around nodes)
+$ns at 4.0 "$n(0) add-mark m1 blue"
+$ns at 4.0 "$ns trace-annotate \"node 0 added one mark\""
+$ns at 4.5 "$n(0) add-mark m2 purple"
+$ns at 4.5 "$ns trace-annotate \"node 0 added second mark\""
+
+$ns at 5.0 "$n(0) delete-mark m1"
+$ns at 5.0 "$ns trace-annotate \"node 0 deleted one mark\""
+$ns at 5.5 "$n(0) delete-mark m2"
+$ns at 5.5 "$ns trace-annotate \"node 0 deleted second mark\""
 
 # Fake a dropped packet by incrementing seqno.
 #$ns rtmodel-at 3.519 down $n(0) $n(1)	;# this ought to drop exactly one
