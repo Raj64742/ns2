@@ -1,6 +1,6 @@
 /* -*- c++ -*-
    marshall.h
-   $Id: marshall.h,v 1.3 1999/04/30 00:24:13 haldar Exp $
+   $Id: marshall.h,v 1.4 1999/04/30 00:59:43 haldar Exp $
 
    safely marshall and unmarshall 2 and 4 byte quantities into 
    possibly unaligned feilds
@@ -51,8 +51,16 @@
     
     #endif */
 
-/* changing the above STORE BYTE functions as they break in freeBSD;
-   tested to work in sunos/solaris/freeBSD  --Padma, 04/99 */
+/* changing STORE4BYTE and STORE2BYTE functions as they break in 
+   freeBSD; the old cmu version of STORE4BYTE used arrays to set the 
+   value: 
+   #define STORE4BYTE(x,y) (((unsigned char *)y)[0] = ((unsigned char *)x)[0] ,\
+   ((unsigned char *)y)[1] = ((unsigned char *)x)[1] ,\
+   ((unsigned char *)y)[2] = ((unsigned char *)x)[2] ,\
+   ((unsigned char *)y)[3] = ((unsigned char *)x)[3] )
+   which doesn;t work on freeBSD (with gcc version 2.7.2.1).
+   the newer versions are tested to work in sunos/solaris/freeBSD  
+   --Padma, 04/99 */
 
 #define STORE4BYTE(x,y)  ((*((unsigned char *)y)) = ((*x) >> 24) & 255 ,\
 			  (*((unsigned char *)y+1)) = ((*x) >> 16) & 255 ,\
