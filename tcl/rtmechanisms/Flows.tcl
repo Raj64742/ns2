@@ -331,36 +331,42 @@ proc forcedmakeawk { } {
 #      y axis: # drops for this flow / # drops [pkts and bytes combined]
 proc allmakeawk { } {
     set awkCode {
-	BEGIN { prev=-1; tot_bytes=0; tot_packets=0; cat0=0; cat1=0}
+	BEGIN { prev=-1; frac_bytes=0; frac_packets=0; frac_arrivals=0; cat0=0; cat1=0}
 	{
 	    if ($5 != prev) {
 		print " "; print "\"flow "$5;
 		prev = $5
 	    }
 	    if ($1 != prevtime && cat1 + cat0 > 0) {
-		if ($16 > 0) {
-		    frac_packets = tot_packets/$16;
-		}
-		if ($17 > 0) {
-		    frac_bytes = tot_bytes/$17;
-		}
-		if ($13 > 0) {
-		    frac_arrivals = tot_arrivals/$13;
-		}
 		if (frac_packets + frac_bytes > 0) {
 		    cat1_part = frac_packets * cat1 / ( cat1 + cat0 ) 
 		    cat0_part = frac_bytes * cat0 / ( cat1 + cat0 ) 
 		    print 100.0 * frac_arrivals, 100.0 * ( cat1_part + cat0_part )
 		}
-		tot_bytes = 0; tot_packets = 0; tot_arrivals = 0;
+		frac_bytes = 0; frac_packets = 0; frac_arrivals = 0;
 		cat1 = 0; cat0 = 0;
 		prevtime = $1
 	    }
-	    tot_bytes += $19;
-	    cat0 += $18-$10;
-	    tot_packets += $18;
-	    tot_arrivals += $9;
-	    cat1 += $10;
+	    if ($14 > 0) {
+		frac_packets = $10/$14;
+	    }
+	    else {
+		frac_packets = 0;
+	    }
+	    if (($17-$15) > 0) {
+		frac_bytes = ($19-$11)/($17-$15);
+	    }
+	    else {
+		frac_bytes = 0;
+	    }
+	    if ($13 > 0) {
+		frac_arrivals = $9/$13;
+	    }
+	    else {
+		frac_arrivals = 0;
+	    }
+	    cat0 = $16-$14;
+	    cat1 = $14;
 	    prevtime = $1
 	}
 	END {
