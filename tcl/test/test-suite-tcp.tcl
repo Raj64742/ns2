@@ -30,10 +30,10 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.4 1997/10/16 00:58:31 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.5 1997/10/18 13:43:36 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
-# ns test-suite-tcl.tcl
+# ns test-suite-tcp.tcl
 #
 
 source misc.tcl
