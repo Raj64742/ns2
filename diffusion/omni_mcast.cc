@@ -270,41 +270,15 @@ void OmniMcastAgent::ConsiderNew(Packet *pkt)
   }
 }
 
-
-
 void OmniMcastAgent::Terminate() 
 {
-  printf("node %d: remaining energy %f, initial energy %f\n", THIS_NODE, 
-	 node->energy(), node->initialenergy() );
+	printf("node %d: remaining energy %f, initial energy %f\n", THIS_NODE, 
+	       node->energy_model()->energy(), 
+	       node->energy_model()->initialenergy() );
 }
-
-
-/*
-void dummy()
-{
-}
-*/
 
 void OmniMcastAgent::Start()
 {
-
-  /*
-  double temp;
-
-  temp = Random::uniform(1.0);
-  printf("Random::uniform(1.0) = %f at time %f at node %d\n", temp, NOW, 
-	 THIS_NODE);
-  arp_buf_timer.sched(ARP_BUFFER_CHECK + ARP_BUFFER_CHECK * temp);	  
-
-  temp = Random::uniform(1.0);
-  printf("Random::uniform(1.0) = %f at time %f at node %d\n", temp, NOW,
-	 THIS_NODE);
-  send_buf_timer.sched(SEND_BUFFER_CHECK + SEND_BUFFER_CHECK * temp);
-
-  */
-
-  //  dummy();
-
   arp_buf_timer.sched(ARP_BUFFER_CHECK + ARP_BUFFER_CHECK * 
 		      Random::uniform(1.0));	  
   send_buf_timer.sched(SEND_BUFFER_CHECK + SEND_BUFFER_CHECK *

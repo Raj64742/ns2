@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-  *
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- 
  *
  * Copyright (c) 1996 Regents of the University of California.
  * All rights reserved.
@@ -32,9 +32,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.13 2000/08/31 20:11:49 haoboy Exp $
+ *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
-   wireless-phy.cc
-*/
+ * wireless-phy.cc
+ */
 
 #include <math.h>
 
@@ -55,7 +57,6 @@
 
 #define max(a,b) (((a)<(b))?(b):(a))
 
-
 void Idle_Timer::expire(Event *) {
 	a_->UpdateIdleEnergy();
 }
@@ -75,23 +76,21 @@ public:
 
 WirelessPhy::WirelessPhy() : Phy(), idle_timer_(this), status_(IDLE)
 {
-
-  /*
-   *  It sounds like 10db should be the capture threshold.
-   *
-   *  If a node is presently receiving a packet a a power level
-   *  Pa, and a packet at power level Pb arrives, the following
-   *  comparion must be made to determine whether or not capture
-   *  occurs:
-   *
-   *    10 * log(Pa) - 10 * log(Pb) > 10db
-   *
-   *  OR equivalently
-   *
-   *    Pa/Pb > 10.
-   *
-   */
-	
+	/*
+	 *  It sounds like 10db should be the capture threshold.
+	 *
+	 *  If a node is presently receiving a packet a a power level
+	 *  Pa, and a packet at power level Pb arrives, the following
+	 *  comparion must be made to determine whether or not capture
+	 *  occurs:
+	 *
+	 *    10 * log(Pa) - 10 * log(Pb) > 10db
+	 *
+	 *  OR equivalently
+	 *
+	 *    Pa/Pb > 10.
+	 *
+	 */
 	bind("CPThresh_", &CPThresh_);
 	bind("CSThresh_", &CSThresh_);
 	bind("RXThresh_", &RXThresh_);
@@ -124,70 +123,59 @@ WirelessPhy::WirelessPhy() : Phy(), idle_timer_(this), status_(IDLE)
 	last_send_time_ = NOW;
 	
 	idle_timer_.resched(1.0);
-
 }
 
 int
 WirelessPhy::command(int argc, const char*const* argv)
 {
-  TclObject *obj;    
+	TclObject *obj; 
 
-  if (argc==2) {
-	  if (strcasecmp(argv[1], "NodeOn") == 0) {
-		  if (node_->energy_model() == NULL) 
-			  return TCL_OK;
-		  if (NOW > update_energy_time_) {
-			  update_energy_time_ = NOW;
-		  }
-		  return TCL_OK;
-	  }
-	  if (strcasecmp(argv[1], "NodeOff") == 0) {
-		  if (node_->energy_model() == NULL) 
-			  return TCL_OK;
-		  if (NOW > update_energy_time_) {
-			  (node_->energy_model())->
-				  DecrIdleEnergy(NOW-update_energy_time_,
-					 P_idle_);
-			  update_energy_time_ = NOW;
-		  }
-		  return TCL_OK;
-	  }
-  } 
-
-  else if(argc == 3) {
-	  if (strcasecmp(argv[1], "setTxPower") == 0) {
-		  Pt_consume_ = atof(argv[2]);
-		  return TCL_OK;
-	  }
-	  else if (strcasecmp(argv[1], "setRxPower") == 0) {
-		  Pr_consume_ = atof(argv[2]);
-		  return TCL_OK;
-	  }
-	  else if (strcasecmp(argv[1], "setIdlePower") == 0) {
-		  P_idle_ = atof(argv[2]);
-		  return TCL_OK;
-	  }
-          else if( (obj = TclObject::lookup(argv[2])) == 0) {
-		  fprintf(stderr, "WirelessPhy: %s lookup of %s failed\n", 
-			  argv[1], argv[2]);
-		  return TCL_ERROR;
-	  }
-	  if (strcmp(argv[1], "propagation") == 0) {
-		  assert(propagation_ == 0);
-		  propagation_ = (Propagation*) obj;
-		  return TCL_OK;
-	  }
-	  else if (strcasecmp(argv[1], "antenna") == 0) {
-		  ant_ = (Antenna*) obj;
-		  return TCL_OK;
-	  }
-	  else if (strcasecmp(argv[1], "node") == 0) {
-		  assert(node_ == 0);
-		  node_ = (MobileNode*) obj;
-		  return TCL_OK;
-	  }
-  }
-  return Phy::command(argc,argv);
+	if (argc==2) {
+		if (strcasecmp(argv[1], "NodeOn") == 0) {
+			if (em() == NULL) 
+				return TCL_OK;
+			if (NOW > update_energy_time_) {
+				update_energy_time_ = NOW;
+			}
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "NodeOff") == 0) {
+			if (em() == NULL) 
+				return TCL_OK;
+			if (NOW > update_energy_time_) {
+				em()->DecrIdleEnergy(NOW-update_energy_time_,
+						     P_idle_);
+				update_energy_time_ = NOW;
+			}
+			return TCL_OK;
+		}
+	} else if(argc == 3) {
+		if (strcasecmp(argv[1], "setTxPower") == 0) {
+			Pt_consume_ = atof(argv[2]);
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "setRxPower") == 0) {
+			Pr_consume_ = atof(argv[2]);
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "setIdlePower") == 0) {
+			P_idle_ = atof(argv[2]);
+			return TCL_OK;
+		} else if( (obj = TclObject::lookup(argv[2])) == 0) {
+			fprintf(stderr,"WirelessPhy: %s lookup of %s failed\n", 
+				argv[1], argv[2]);
+			return TCL_ERROR;
+		} else if (strcmp(argv[1], "propagation") == 0) {
+			assert(propagation_ == 0);
+			propagation_ = (Propagation*) obj;
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "antenna") == 0) {
+			ant_ = (Antenna*) obj;
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "node") == 0) {
+			assert(node_ == 0);
+			node_ = (Node *)obj;
+			return TCL_OK;
+		}
+	}
+	return Phy::command(argc,argv);
 }
  
 void 
@@ -198,25 +186,25 @@ WirelessPhy::sendDown(Packet *p)
 	 */
 	assert(initialized());
 	
-	if ( (node_->node_on() != true) || (node_->sleep()) ) {
-		Packet::free(p);
-		return;
-	}
+	if (em()) 
+		if ((em()->node_on() != true) || (em()->sleep())) {
+			Packet::free(p);
+			return;
+		}
 
 	/*
 	 * Decrease node's energy
 	 */
-	if(node_->energy_model()) {
-		if ((node_->energy_model())->energy() > 0) {
-		    double txtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
+	if(em()) {
+		if (em()->energy() > 0) {
+		    double txtime = (8.*hdr_cmn::access(p)->size())/bandwidth_;
 		    double start_time = max(channel_idle_time_, NOW);
 		    double end_time = max(channel_idle_time_, NOW+txtime);
 		    double actual_txtime = end_time-start_time;
 
 		    if (start_time > update_energy_time_) {
-			    (node_->energy_model())->
-				 DecrIdleEnergy(start_time-update_energy_time_,
-						P_idle_);
+			    em()->DecrIdleEnergy(start_time - 
+						 update_energy_time_, P_idle_);
 			    update_energy_time_ = start_time;
 		    }
 
@@ -246,11 +234,11 @@ WirelessPhy::sendDown(Packet *p)
 		   }
 
 		   if ((gap_adjust_time > 0.0) && (status_ == RECV)) {
-			   node_->energy_model()->DecrTxEnergy(gap_adjust_time,
-					       Pt_consume_-Pr_consume_);
+			   em()->DecrTxEnergy(gap_adjust_time,
+					      Pt_consume_-Pr_consume_);
 		   }
 
-		   (node_->energy_model())->DecrTxEnergy(actual_txtime,Pt_consume_);
+		   em()->DecrTxEnergy(actual_txtime,Pt_consume_);
 		   if (end_time > channel_idle_time_) {
 			   status_ = SEND;
 		   }
@@ -259,16 +247,9 @@ WirelessPhy::sendDown(Packet *p)
 		   channel_idle_time_ = end_time;
 		   update_energy_time_ = end_time;
 
-		   /*
-		     hdr_diff *dfh = HDR_DIFF(p);
-		     printf("Node %d sends (%d, %d, %d) energy %lf.\n",
-		     node_->address(), dfh->sender_id.addr_, 
-		     dfh->sender_id.port_, dfh->pk_num, node_->energy());
-		   */
-
-		   if ((node_->energy_model())->energy() <= 0) {
-			   node_->energy_model()->setenergy(0);
-			   node_->log_energy(0);
+		   if (em()->energy() <= 0) {
+			   em()->setenergy(0);
+			   node()->log_energy(0);
 		   }
 
 		} else {
@@ -280,7 +261,7 @@ WirelessPhy::sendDown(Packet *p)
 	/*
 	 *  Stamp the packet with the interface arguments
 	 */
-	p->txinfo_.stamp(node_, ant_->copy(), Pt_, lambda_);
+	p->txinfo_.stamp(node(), ant_->copy(), Pt_, lambda_);
 
 	// Send the packet
 	channel_->recv(p, this);
@@ -289,135 +270,121 @@ WirelessPhy::sendDown(Packet *p)
 int 
 WirelessPhy::sendUp(Packet *p)
 {
-
-  /*
-   * Sanity Check
-   */
+	/*
+	 * Sanity Check
+	 */
 	assert(initialized());
 
-  PacketStamp s;
-  double Pr;
-  int pkt_recvd = 0;
+	PacketStamp s;
+	double Pr;
+	int pkt_recvd = 0;
+	
+	// if the node is in sleeping mode, drop the packet simply
+	if (em()) 
+		if (em()->sleep() || (em()->node_on() != true)) {
+			pkt_recvd = 0;
+			goto DONE;
+		}
+	
+	// if the energy goes to ZERO, drop the packet simply
+	if (em()) {
+		if (em()->energy() <= 0) {
+			pkt_recvd = 0;
+			goto DONE;
+		}
+	}
 
-  // if the node is in sleeping mode, drop the packet simply
-
-  if ( (node_->sleep()) || (node_->node_on() != true)) {
-      pkt_recvd = 0;
-      goto DONE;
-  }
-
-  // if the energy goes to ZERO, drop the packet simply
-  if (node_->energy_model()) {
-       if ((node_->energy_model())->energy() <= 0) {
-	    pkt_recvd = 0;
-	    goto DONE;
-       }
-   }
-
-
-  if(propagation_) {
-
-    s.stamp(node_, ant_, 0, lambda_);
-    
-    Pr = propagation_->Pr(&p->txinfo_, &s, this);
-    
-    if (Pr < CSThresh_) {
-      pkt_recvd = 0;
-      goto DONE;
-    }
-
-
-
-    if (Pr < RXThresh_) {
-      /*
-       * We can detect, but not successfully receive
-       * this packet.
-       */
-      hdr_cmn *hdr = HDR_CMN(p);
-      hdr->error() = 1;
+	if(propagation_) {
+		s.stamp(node(), ant_, 0, lambda_);
+		Pr = propagation_->Pr(&p->txinfo_, &s, this);
+		if (Pr < CSThresh_) {
+			pkt_recvd = 0;
+			goto DONE;
+		}
+		if (Pr < RXThresh_) {
+			/*
+			 * We can detect, but not successfully receive
+			 * this packet.
+			 */
+			hdr_cmn *hdr = HDR_CMN(p);
+			hdr->error() = 1;
 #if DEBUG > 3
-      printf("SM %f.9 _%d_ drop pkt from %d low POWER %e/%e\n",
-	     Scheduler::instance().clock(), node_->index(),
-	     p->txinfo_.getNode()->index(),
-	     Pr,RXThresh);
+			printf("SM %f.9 _%d_ drop pkt from %d low POWER %e/%e\n",
+			       Scheduler::instance().clock(), node()->index(),
+			       p->txinfo_.getNode()->index(),
+			       Pr,RXThresh);
 #endif
-    }
-  }
-
-  if(modulation_) {
-	  hdr_cmn *hdr = HDR_CMN(p);
-	  hdr->error() = modulation_->BitError(Pr);
-  }
-  
-  /*
-   * The MAC layer must be notified of the packet reception
-   * now - ie; when the first bit has been detected - so that
-   * it can properly do Collision Avoidance / Detection.
-   */
-  pkt_recvd = 1;
-
+		}
+	}
+	if(modulation_) {
+		hdr_cmn *hdr = HDR_CMN(p);
+		hdr->error() = modulation_->BitError(Pr);
+	}
+	
+	/*
+	 * The MAC layer must be notified of the packet reception
+	 * now - ie; when the first bit has been detected - so that
+	 * it can properly do Collision Avoidance / Detection.
+	 */
+	pkt_recvd = 1;
 
 DONE:
-  p->txinfo_.getAntenna()->release();
-  //*RxPr = Pr;
+	p->txinfo_.getAntenna()->release();
 
-  /* WILD HACK: The following two variables are a wild hack.
-     They will go away in the next release...
-     They're used by the mac-802_11 object to determine
-     capture.  This will be moved into the net-if family of 
-     objects in the future. */
-  p->txinfo_.RxPr = Pr;
-  p->txinfo_.CPThresh = CPThresh_;
+	/* WILD HACK: The following two variables are a wild hack.
+	   They will go away in the next release...
+	   They're used by the mac-802_11 object to determine
+	   capture.  This will be moved into the net-if family of 
+	   objects in the future. */
+	p->txinfo_.RxPr = Pr;
+	p->txinfo_.CPThresh = CPThresh_;
 
-  /*
-   * Decrease energy if packet successfully received
-   */
-  if(pkt_recvd 	&& node_->energy_model()) {
-	  double rcvtime = (8. * hdr_cmn::access(p)->size()) / bandwidth_;
-	  // no way to reach here if the energy level < 0
+	/*
+	 * Decrease energy if packet successfully received
+	 */
+	if(pkt_recvd && em()) {
+		double rcvtime = (8. * hdr_cmn::access(p)->size())/bandwidth_;
+		// no way to reach here if the energy level < 0
+		
+		/*
+		  node()->add_rcvtime(rcvtime);	  
+		  em()->DecrRcvEnergy(rcvtime,Pr_consume_);
+		*/
 
-	  /*
- 	  node_->add_rcvtime(rcvtime);	  
-	  (node_->energy_model())->DecrRcvEnergy(rcvtime,Pr_consume_);
-	  */
+		double start_time = max(channel_idle_time_, NOW);
+		double end_time = max(channel_idle_time_, NOW+rcvtime);
+		double actual_rcvtime = end_time-start_time;
 
-	  double start_time = max(channel_idle_time_, NOW);
-	  double end_time = max(channel_idle_time_, NOW+rcvtime);
-	  double actual_rcvtime = end_time-start_time;
+		if (start_time > update_energy_time_) {
+			em()->DecrIdleEnergy(start_time-update_energy_time_,
+					     P_idle_);
+			update_energy_time_ = start_time;
+		}
+		
+		em()->DecrRcvEnergy(actual_rcvtime,Pr_consume_);
+		if (end_time > channel_idle_time_) {
+			status_ = RECV;
+		}
 
-	  if (start_time > update_energy_time_) {
-		  (node_->energy_model())->
-			  DecrIdleEnergy(start_time-update_energy_time_,
-					 P_idle_);
-		  update_energy_time_ = start_time;
-	  }
-	  
-	  (node_->energy_model())->DecrRcvEnergy(actual_rcvtime,Pr_consume_);
+		channel_idle_time_ = end_time;
+		update_energy_time_ = end_time;
 
-	  if (end_time > channel_idle_time_) {
-		  status_ = RECV;
-	  }
-
-	  channel_idle_time_ = end_time;
-	  update_energy_time_ = end_time;
-
-	  /*
-	  hdr_diff *dfh = HDR_DIFF(p);
-	  printf("Node %d receives (%d, %d, %d) energy %lf.\n",
-		  node_->address(), dfh->sender_id.addr_, 
-		  dfh->sender_id.port_, dfh->pk_num, node_->energy());
-	  */
-
-	  if ((node_->energy_model())->energy() <= 0) {  
-	  // saying node died
-	      node_->energy_model()->setenergy(0);
-	      node_->log_energy(0);
-	  }
-  }
-
-  return pkt_recvd;
+		/*
+		  hdr_diff *dfh = HDR_DIFF(p);
+		  printf("Node %d receives (%d, %d, %d) energy %lf.\n",
+		  node()->address(), dfh->sender_id.addr_, 
+		  dfh->sender_id.port_, dfh->pk_num, node()->energy());
+		*/
+		
+		if (em()->energy() <= 0) {  
+			// saying node died
+			em()->setenergy(0);
+			node()->log_energy(0);
+		}
+	}
+	
+	return pkt_recvd;
 }
-
 
 void
 WirelessPhy::dump(void) const
@@ -433,16 +400,13 @@ WirelessPhy::dump(void) const
 
 void WirelessPhy::UpdateIdleEnergy()
 {
-	if ( node_->energy_model() == NULL) {
+	if (em() == NULL) {
 		return;
 	}
-
-	if (NOW > update_energy_time_ && node_->node_on() == true) {
-		  (node_->energy_model())->
-			  DecrIdleEnergy(NOW-update_energy_time_,
-					 P_idle_);
+	if (NOW > update_energy_time_ && em()->node_on()) {
+		  em()-> DecrIdleEnergy(NOW-update_energy_time_,
+					P_idle_);
 		  update_energy_time_ = NOW;
 	}
-
 	idle_timer_.resched(1.0);
 }

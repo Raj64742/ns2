@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.57 2000/08/18 18:34:01 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.58 2000/08/31 20:11:48 haoboy Exp $
  */
 
 #include <packet.h>
@@ -119,18 +119,13 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	double x = 0.0, y = 0.0, z = 0.0;
        
 	char op = (char) type_;
-
-
 	Node* thisnode = Node::get_node_by_address(src_);
-	
-
 	double energy = -1;
 	if (thisnode) {
 	    if (thisnode->energy_model()) {
-	       energy = thisnode->energy();
+		    energy = thisnode->energy_model()->energy();
 	    }
 	}
-
 
 	// hack the IP address to convert pkt format to hostid format
 	// for now until port ids are removed from IP address. -Padma.
@@ -217,7 +212,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 		if (thisnode->energy_model()) {
 			sprintf(wrk_ + offset,
 				"[energy %f] ",
-				thisnode->energy());
+				thisnode->energy_model()->energy());
 		}
         }
 }
@@ -330,9 +325,7 @@ CMUTrace::format_dsr(Packet *p, int offset)
 void
 CMUTrace::format_msg(Packet *, int)
 {
-
 }
-
 
 void
 CMUTrace::format_tcp(Packet *p, int offset)
@@ -371,28 +364,24 @@ CMUTrace::format_rtp(Packet *p, int offset)
 	
 	if (dst == src_){
 		// I just received a cbr data packet
-		if (thisnode->powersaving()) {
-		 //thisnode->set_node_sleep(0);
-	           thisnode->set_node_state(INROUTE);
-	       }
-	       
+		if (thisnode->energy_model() && 
+		    thisnode->energy_model()->powersavingflag()) {
+			thisnode->energy_model()->set_node_state(EnergyModel::INROUTE);
+		}
         }
 
 	if (newtrace_) {
-	    sprintf(wrk_ + offset,
-		"-Pn cbr -Pi %d -Pf %d -Po %d ",
-		rh->seqno_,
-		ch->num_forwards(),
-		ch->opt_num_forwards());
-	      
-
+		sprintf(wrk_ + offset,
+			"-Pn cbr -Pi %d -Pf %d -Po %d ",
+			rh->seqno_,
+			ch->num_forwards(),
+			ch->opt_num_forwards());
 	} else {
-
-	    sprintf(wrk_ + offset,
-		"[%d] %d %d",
-		rh->seqno_,
-		ch->num_forwards(),
-		ch->opt_num_forwards());
+		sprintf(wrk_ + offset,
+			"[%d] %d %d",
+			rh->seqno_,
+			ch->num_forwards(),
+			ch->opt_num_forwards());
 	}
 }
 
@@ -458,10 +447,7 @@ CMUTrace::format_tora(Packet *p, int offset)
                         uh->tu_r,
                         uh->tu_delta,
                         uh->tu_id);
-		   
-
 		} else {
-
                     sprintf(wrk_ + offset,
                         "-Pt 0x%x -Pd %d -Pa %f -Po %d -Pr %d -Pe %d -Pi %d -Pc UPDATE ",
                         uh->tu_type,
@@ -482,10 +468,7 @@ CMUTrace::format_tora(Packet *p, int offset)
                         ch->tc_dst,
                         ch->tc_tau,
                         ch->tc_oid);
-
-
 		} else {
-
                     sprintf(wrk_ + offset, "[0x%x %d %f %d] (CLEAR)",
                         ch->tc_type,
                         ch->tc_dst,
@@ -615,10 +598,10 @@ CMUTrace::nam_format(Packet *p, int offset)
 	
 	if (srcnode) {
 	    if (srcnode->energy_model()) {
-	       energy = srcnode->energy();
-	       initenergy = srcnode->initialenergy();
-	       l1 = srcnode->energy_level1();
-	       l2 = srcnode->energy_level2();
+		    energy = srcnode->energy_model()->energy();
+		    initenergy = srcnode->energy_model()->initialenergy();
+		    l1 = srcnode->energy_model()->level1();
+		    l2 = srcnode->energy_model()->level2();
 	    }
 	}
 
@@ -629,29 +612,26 @@ CMUTrace::nam_format(Packet *p, int offset)
         if ((energyLeft >= l2 ) && (energyLeft < l1 )) energyLevel = 2;	
         if ((energyLeft > 0 ) && (energyLeft < l2 )) energyLevel = 1;	
 
-	if (energyLevel == 0) strcpy(colors,"-c black -o red");
-        else if (energyLevel == 1) strcpy(colors,"-c red -o yellow");
-        else if (energyLevel == 2) strcpy(colors,"-c yellow -o green");
-        else if (energyLevel == 3) strcpy(colors,"-c green -o black");
-
+	if (energyLevel == 0) 
+		strcpy(colors,"-c black -o red");
+        else if (energyLevel == 1) 
+		strcpy(colors,"-c red -o yellow");
+        else if (energyLevel == 2) 
+		strcpy(colors,"-c yellow -o green");
+        else if (energyLevel == 3) 
+		strcpy(colors,"-c green -o black");
 
 	// A simple hack for scadds demo (fernandez's visit) -- Chalermek
-
 	int pkt_color = 0;
-
 	if (ch->ptype()==PT_DIFF) {
 		hdr_diff *dfh= HDR_DIFF(p);
-
 		if (dfh->mess_type != DATA) {
 			pkt_color = 1;
 		}
 	}
-
-
 	// convert to nam format 
 	if (op == 's') op = 'h' ;
 	if (op == 'D') op = 'd' ;
-
 	if (op == 'h') {
 	   sprintf(nwrk_ ,
 		"+ -t %.9f -s %d -d %d -p %s -e %d -c 2 -a %d -i %d -k %3s ",
@@ -731,58 +711,44 @@ void CMUTrace::format(Packet* p, const char *why)
 	 */
 	format_mac(p, why, offset);
 
-	if (namChan_) nam_format(p, offset);
-
+	if (namChan_) 
+		nam_format(p, offset);
 	offset = strlen(wrk_);
-
 	switch(ch->ptype()) {
-
 	case PT_MAC:
 		break;
-
 	case PT_ARP:
 		format_arp(p, offset);
 		break;
-
 	default:
 		format_ip(p, offset);
 		offset = strlen(wrk_);
-
 		switch(ch->ptype()) {
-		
-		 case PT_AODV:
-			 format_aodv(p, offset);
-			 break;
-
-		 case PT_TORA:
+		case PT_AODV:
+			format_aodv(p, offset);
+			break;
+		case PT_TORA:
                         format_tora(p, offset);
                         break;
-
                 case PT_IMEP:
                         format_imep(p, offset);
                         break;
-
 		case PT_DSR:
 			format_dsr(p, offset);
 			break;
-
 		case PT_MESSAGE:
 		case PT_UDP:
 			format_msg(p, offset);
 			break;
-			
 		case PT_TCP:
 		case PT_ACK:
 			format_tcp(p, offset);
 			break;
-			
 		case PT_CBR:
 			format_rtp(p, offset);
 			break;
-		       
 	        case PT_DIFF:
 			break;
-
 		default:
 			fprintf(stderr, "%s - invalid packet type (%s).\n",
 				__PRETTY_FUNCTION__, packet_info.name(ch->ptype()));
@@ -815,24 +781,15 @@ void
 CMUTrace::recv(Packet *p, Handler *h)
 {
 	if (!node_energy()) {
-	    Packet::free(p);
-	    return;
+		Packet::free(p);
+		return;
 	}
-	//struct hdr_ip *ih = HDR_IP(p);
-	
-	// hack the IP address to convert pkt format to hostid format
-	// for now until port ids are removed from IP address. -Padma.
-
-// 	int src = Address::instance().get_nodeaddr(ih->saddr());
-        
         assert(initialized());
-
         /*
          * Agent Trace "stamp" the packet with the optimal route on
          * sending.
          */
-        if(tracetype == TR_AGENT && type_ == SEND) {
-                //assert(src_ == src);
+        if (tracetype == TR_AGENT && type_ == SEND) {
                 God::instance()->stampPacket(p);
         }
 #if 0
@@ -857,15 +814,11 @@ CMUTrace::recv(Packet *p, Handler *h)
 void
 CMUTrace::recv(Packet *p, const char* why)
 {
-
         assert(initialized() && type_ == DROP);
-
 	if (!node_energy()) {
-	    Packet::free(p);
-	    return;
+		Packet::free(p);
+		return;
 	}
-
-
 #if 0
         /*
          * When the originator of a packet drops the packet, it may or may
@@ -882,23 +835,15 @@ CMUTrace::recv(Packet *p, const char* why)
 	Packet::free(p);
 }
 
-int
-CMUTrace::node_energy()
+int CMUTrace::node_energy()
 {
-
 	Node* thisnode = Node::get_node_by_address(src_);
-
 	double energy = 1;
-
 	if (thisnode) {
-	    if (thisnode->energy_model()) {
-	       energy = thisnode->energy();
-	    }
+		if (thisnode->energy_model()) {
+			energy = thisnode->energy_model()->energy();
+		}
 	} 
-
 	if (energy > 0) return 1;
-	//	 printf("DEBUG: node %d dropping pkts due to energy = 0 at time %lf\n",
-	//		src_, NOW);
 	return 0;
-
 }

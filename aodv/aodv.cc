@@ -1,58 +1,50 @@
-/* 
-   aodv.cc
-   $Id: aodv.cc,v 1.7 2000/03/10 00:57:29 yaxu Exp $
- */
-
-/* The AODV code developed by the CMU/MONARCH group was optimized
+/*
+ * Copyright (c) 1997, 1998 Carnegie Mellon University.  All Rights
+ * Reserved. 
+ *
+ * Permission to use, copy, modify, and distribute this
+ * software and its documentation is hereby granted (including for
+ * commercial or for-profit use), provided that both the copyright notice
+ * and this permission notice appear in all copies of the software,
+ * derivative works, or modified versions, and any portions thereof, and
+ * that both notices appear in supporting documentation, and that credit
+ * is given to Carnegie Mellon University in all publications reporting
+ * on direct or indirect use of this code or its derivatives.
+ *
+ * ALL CODE, SOFTWARE, PROTOCOLS, AND ARCHITECTURES DEVELOPED BY THE CMU
+ * MONARCH PROJECT ARE EXPERIMENTAL AND ARE KNOWN TO HAVE BUGS, SOME OF
+ * WHICH MAY HAVE SERIOUS CONSEQUENCES. CARNEGIE MELLON PROVIDES THIS
+ * SOFTWARE OR OTHER INTELLECTUAL PROPERTY IN ITS ``AS IS'' CONDITION,
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+ * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
+ * PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
+ * BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
+ * BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+ * WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+ * OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE OR
+ * INTELLECTUAL PROPERTY, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+ * DAMAGE.
+ *
+ * Carnegie Mellon encourages (but does not require) users of this
+ * software or intellectual property to return any improvements or
+ * extensions that they make, and to grant Carnegie Mellon the rights to
+ * redistribute these changes without encumbrance.
+ *
+ * The AODV code developed by the CMU/MONARCH group was optimized
  * and tuned by Samir Das (UTSA) and Mahesh Marina (UTSA). The 
  * work was partially done in Sun Microsystems.
  * 
- * The original CMU copyright is below. 
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/aodv/aodv.cc,v 1.8 2000/08/31 20:11:49 haoboy Exp $
  */
 
-/*
-Copyright (c) 1997, 1998 Carnegie Mellon University.  All Rights
-Reserved. 
-
-Permission to use, copy, modify, and distribute this
-software and its documentation is hereby granted (including for
-commercial or for-profit use), provided that both the copyright notice
-and this permission notice appear in all copies of the software,
-derivative works, or modified versions, and any portions thereof, and
-that both notices appear in supporting documentation, and that credit
-is given to Carnegie Mellon University in all publications reporting
-on direct or indirect use of this code or its derivatives.
-
-ALL CODE, SOFTWARE, PROTOCOLS, AND ARCHITECTURES DEVELOPED BY THE CMU
-MONARCH PROJECT ARE EXPERIMENTAL AND ARE KNOWN TO HAVE BUGS, SOME OF
-WHICH MAY HAVE SERIOUS CONSEQUENCES. CARNEGIE MELLON PROVIDES THIS
-SOFTWARE OR OTHER INTELLECTUAL PROPERTY IN ITS ``AS IS'' CONDITION,
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
-BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE OR
-INTELLECTUAL PROPERTY, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGE.
-
-Carnegie Mellon encourages (but does not require) users of this
-software or intellectual property to return any improvements or
-extensions that they make, and to grant Carnegie Mellon the rights to
-redistribute these changes without encumbrance.
-
-*/
-
-
-#include <aodv/aodv.h>
-#include <aodv/aodv_packet.h>
-#include <ip.h>
-#include <random.h>
-#include <cmu-trace.h>
-
+#include "aodv/aodv.h"
+#include "aodv/aodv_packet.h"
+#include "ip.h"
+#include "random.h"
+#include "cmu-trace.h"
+#include "energy-model.h"
 
 #define max(a,b)        a > b ? a : b
 #define CURRENT_TIME    Scheduler::instance().clock()
@@ -873,31 +865,28 @@ AODV::recvRequest(Packet *p)
 
         if(rq->rq_dst == index) {
 #ifdef DEBUG
-             fprintf(stderr, "%d - %s: destination sending reply\n",
-                     index, __FUNCTION__);
+		fprintf(stderr, "%d - %s: destination sending reply\n",
+			index, __FUNCTION__);
 #endif
-               
-             // Just to be safe, I use the max. Somebody may have
-	     // incremented the dst seqno.
-	     //
-             seqno = max((unsigned)seqno, (unsigned)rq->rq_dst_seqno) + 1;
-             sendReply(rq->rq_src,           // IP Destination
-                       0,                    // Hop Count
-                       index,                // Dest IP Address
-                       seqno,                // Dest Sequence Num
-                       MY_ROUTE_TIMEOUT,     // Lifetime
-                       rq->rq_timestamp);    // timestamp
-             Packet::free(p);
-	     
-	     // Sending replying, I am in the route
-	     
-	       thisnode = Node::get_node_by_address(index);
+		// Just to be safe, I use the max. Somebody may have
+		// incremented the dst seqno.
+		//
+		seqno = max((unsigned)seqno, (unsigned)rq->rq_dst_seqno) + 1;
+		sendReply(rq->rq_src,           // IP Destination
+			  0,                    // Hop Count
+			  index,                // Dest IP Address
+			  seqno,                // Dest Sequence Num
+			  MY_ROUTE_TIMEOUT,     // Lifetime
+			  rq->rq_timestamp);    // timestamp
+		Packet::free(p);
 
-	       if (thisnode->powersaving()) {
-	           thisnode->set_node_sleep(0);
-	           thisnode->set_node_state(INROUTE);
-	       }
-
+		// Sending replying, I am in the route
+		thisnode = Node::get_node_by_address(index);
+		if (thisnode->energy_model() && 
+		    thisnode->energy_model()->powersavingflag()) {
+			thisnode->energy_model()->set_node_sleep(0);
+			thisnode->energy_model()->set_node_state(EnergyModel::INROUTE);
+		}
         }
 
 	// I am not the destination, but I may have a fresh enough route.
@@ -912,36 +901,28 @@ AODV::recvRequest(Packet *p)
                           (u_int32_t) (rt->rt_expire - CURRENT_TIME),
                           rq->rq_timestamp);
                 Packet::free(p);
-	     	   
-	       thisnode = Node::get_node_by_address(index);
-
-	       if (thisnode->powersaving()) {
-		  thisnode->set_node_sleep(0);
-	          thisnode->set_node_state(INROUTE);
-	       }
 		
-
-
+		thisnode = Node::get_node_by_address(index);
+		if (thisnode->energy_model() &&
+		    thisnode->energy_model()->powersavingflag()) {
+			thisnode->energy_model()->set_node_sleep(0);
+			thisnode->energy_model()->set_node_state(EnergyModel::INROUTE);
+		}
         }
         /*
          * Can't reply. So forward the  Route Request
          */
         else {
-	  //ih->dst_ = IP_BROADCAST;
-	  //ih->src_ = index;
-	    ih->daddr() = IP_BROADCAST;
-	    ih->saddr() = index;
-            rq->rq_hop_count += 1;
-
-             forward((rt_entry*) 0, p, DELAY);
-
-	       thisnode = Node::get_node_by_address(index);
-
-	     if (thisnode->powersaving()) {
-	         thisnode->set_node_sleep(0);
-	         thisnode->set_node_state(WAITING);
-	     }
-
+		ih->daddr() = IP_BROADCAST;
+		ih->saddr() = index;
+		rq->rq_hop_count += 1;
+		forward((rt_entry*) 0, p, DELAY);
+		thisnode = Node::get_node_by_address(index);
+		if (thisnode->energy_model() && 
+		    thisnode->energy_model()->powersavingflag()) {
+			thisnode->energy_model()->set_node_sleep(0);
+			thisnode->energy_model()->set_node_state(EnergyModel::WAITING);
+		}
         }
 }
 
@@ -1053,26 +1034,21 @@ AODV::recvReply(Packet *p)
 	  //rt_entry *rt0 = rtable.rt_lookup(ih->dst_);
             rt_entry *rt0 = rtable.rt_lookup(ih->daddr());
 		// If the rt is up, forward
-            if(rt0 && (rt0->rt_flags == RTF_UP)) {
+            if (rt0 && (rt0->rt_flags == RTF_UP)) {
 #ifdef ERROR_BROADCAST
         rt_entry *rt_dst = rtable.rt_lookup(rp->rp_dst);
 			 	(rt_dst->error_propagate_counter)++; // Mahesh 09/11/99
 #endif
        		     rp->rp_hop_count += 1;
-                 forward(rt0, p, NO_DELAY);
-		 
-		
-	          thisnode = Node::get_node_by_address(index);
-
-		  if (thisnode->powersaving()) {
-	               thisnode->set_node_sleep(0);
-	               thisnode->set_node_state(INROUTE);
-	  	  }
-
-
-            }
-            else {
-			// I don't know how to forward .. drop the reply. 
+		     forward(rt0, p, NO_DELAY);
+		     thisnode = Node::get_node_by_address(index);
+		     if (thisnode->energy_model() &&
+			 thisnode->energy_model()->powersavingflag()) {
+			     thisnode->energy_model()->set_node_sleep(0);
+			     thisnode->energy_model()->set_node_state(EnergyModel::INROUTE);
+		     }
+            } else {
+		    // I don't know how to forward .. drop the reply. 
 #ifdef DEBUG
     fprintf(stderr, "%s: droping Route Reply\n", __FUNCTION__);
 #endif
@@ -1261,48 +1237,34 @@ rt_entry *rt = rtable.rt_lookup(dst);
 #endif
 
 	// set node into active state and remain it for MAX_RREQ_TIMEOUT
-
-	 if (thisnode->powersaving()) {
-	    thisnode->set_node_sleep(0);
-	    thisnode->set_node_state(WAITING);
-	 }
-
+	if (thisnode->energy_model() && 
+	    thisnode->energy_model()->powersavingflag()) {
+		thisnode->energy_model()->set_node_sleep(0);
+		thisnode->energy_model()->set_node_state(EnergyModel::WAITING);
+	}
 	// Fill out the RREQ packet 
+	ch->ptype() = PT_AODV;
+	ch->size() = IP_HDR_LEN + sizeof(*rq);
+	ch->iface() = -2;
+	ch->error() = 0;
+	ch->addr_type() = NS_AF_NONE;
+	ch->prev_hop_ = index;          // AODV hack
 
-    // ch->uid() = 0;
-    ch->ptype() = PT_AODV;
-    ch->size() = IP_HDR_LEN + sizeof(*rq);
-    ch->iface() = -2;
-    ch->error() = 0;
-    ch->addr_type() = NS_AF_NONE;
-    ch->prev_hop_ = index;          // AODV hack
-
-    /*
-    ih->src_ = index;
-    ih->dst_ = IP_BROADCAST;
-    ih->sport_ = RT_PORT;
-    ih->dport_ = RT_PORT;
-    */
-
-    ih->saddr() = index;
-    ih->daddr() = IP_BROADCAST;
-    ih->sport() = RT_PORT;
-    ih->dport() = RT_PORT;
-
+	ih->saddr() = index;
+	ih->daddr() = IP_BROADCAST;
+	ih->sport() = RT_PORT;
+	ih->dport() = RT_PORT;
 
 	// Determine the TTL to be used this time. 
-
-    if (0 == rt->rt_req_last_ttl) {
-	// first time query broadcast
+	if (0 == rt->rt_req_last_ttl) {
+		// first time query broadcast
 		 ih->ttl_ = TTL_START;
-	}
-	else {
-	// Expanding ring search.
-
+	} else {
+		// Expanding ring search.
 		if (rt->rt_req_last_ttl < TTL_THRESHOLD)
 			ih->ttl_ = rt->rt_req_last_ttl + TTL_INCREMENT;
 		else {
-		  // network-wide broadcast
+			// network-wide broadcast
 			ih->ttl_ = NETWORK_DIAMETER;
         		rt->rt_req_cnt += 1;
 		}

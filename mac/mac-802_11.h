@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  *
@@ -30,11 +30,13 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.18 2000/08/31 20:11:49 haoboy Exp $
+ *
+ * Ported from CMU/Monarch's code, nov'98 -Padma.
+ * wireless-mac-802_11.h
  */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.
-   wireless-mac-802_11.h
 
- */
 #ifndef ns_mac_80211_h
 #define ns_mac_80211_h
 
@@ -43,7 +45,6 @@
 
 #define GET_ETHER_TYPE(x)		GET2BYTE((x))
 #define SET_ETHER_TYPE(x,y)            {u_int16_t t = (y); STORE2BYTE(x,&t);}
-
 
 /* ======================================================================
    Frame Formats
@@ -317,47 +318,30 @@ private:
 	void		dump(char* fname);
 
 	inline int initialized() {
-		return (phymib_ && macmib_ && cache_ && logtarget_ && Mac::initialized());
+		return (phymib_ && macmib_ && cache_ && logtarget_ && 
+			Mac::initialized());
 	}
-
 	void mac_log(Packet *p) {
 		logtarget_->recv(p, (Handler*) 0);
 	}
-
 	inline double TX_Time(Packet *p) {
 		double t = DATA_Time((HDR_CMN(p))->size());
-		
 		if(t < 0.0) {
 			drop(p, "XXX");
 			exit(1);
 		}
 		return t;
 	}
-
 	inline void inc_cw() {
 		cw_ = (cw_ << 1) + 1;
 		if(cw_ > phymib_->CWMax)
 			cw_ = phymib_->CWMax;
 	}
-
 	inline void rst_cw() { cw_ = phymib_->CWMin; }
-
 	inline u_int16_t usec(double t) {
 		u_int16_t us = (u_int16_t)ceil(t *= 1e6);
 		return us;
-		/*
-		u_int16_t us = (u_int16_t)(t *= 1e6);
-		
-		if(us < t) {
-		   us++;
-		}
-		
-		return us;
-		*/
-		
 	}
-
-
 	inline void set_nav(u_int16_t us) {
 		double now = Scheduler::instance().clock();
 		double t = us * 1e-6;
@@ -369,8 +353,6 @@ private:
 			mhNav_.start(t);
 		}
 	}
-
-
 
 protected:
 	PHY_MIB		*phymib_;
@@ -395,9 +377,7 @@ private:
 
 	MacState	rx_state_;	// incoming state (MAC_RECV or MAC_IDLE)
 	MacState	tx_state_;	// outgoint state
-#if 1
 	int		tx_active_;	// transmitter is ACTIVE
-#endif
 
 	Packet		*pktRTS_;	// outgoing RTS packet
 	Packet		*pktCTRL_;	// outgoing non-RTS packet
@@ -423,7 +403,6 @@ private:
 	u_int16_t	sta_seqno_;	// next seqno that I'll use
 	int		cache_node_count_;
 	Host		*cache_;
-	
 };
 
 #endif /* __mac_80211_h__ */

@@ -55,12 +55,10 @@ void InterestTimer::expire(Event *e)
 
 void EnergyTimer::expire(Event *e)
 {
-  if (node_->energy() < threshold_) {    
-    
+  if (node_->energy_model()->energy() < threshold_) {    
     if (a_->NEG_REINF_ == true) {
       a_->SendNegReinf();
     }
-
     threshold_ = threshold_/2;
     a_->is_low_power = true;
   }

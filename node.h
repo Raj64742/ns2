@@ -1,5 +1,5 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- 
+ *
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  *
@@ -31,16 +31,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.23 2000/08/30 18:54:03 haoboy Exp $
- *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.24 2000/08/31 20:11:49 haoboy Exp $
  */
 
 /*
  * XXX GUIDELINE TO ADDING FUNCTIONALITY TO THE BASE NODE
  *
- * One should never add something specific to one particular module into the
- * base node, which is shared by all modules in ns. Otherwise you bloat other
- * people's simulations with your junk.
+ * One should not add something specific to one particular routing module 
+ * into the base node, which is shared by all modules in ns. Otherwise you 
+ * bloat other people's simulations.
  */
 
 /*
@@ -51,16 +50,11 @@
 #ifndef __ns_node_h__
 #define __ns_node_h__
 
-#define CHECKFREQ  1
-#define WAITING 0
-#define POWERSAVING_STATE 1
-#define INROUTE 2
-#define MAX_WAITING_TIME 11
-
 #include "connector.h"
 #include "object.h"
-#include "phy.h"
 #include "lib/bsd-list.h"
+
+#include "phy.h"
 #include "net-interface.h"
 #include "energy-model.h"
 #include "location.h"
@@ -123,51 +117,25 @@ public:
 	virtual int command(int argc, const char*const* argv);
 	inline int address() { return address_;}
 	inline int nodeid() { return nodeid_;}
+	inline bool exist_namchan() const { return (namChan_ != 0); }
 	void namlog(const char *fmt, ...);
 
 	NsObject* intf_to_target(int32_t); 
-	inline const struct if_head& ifhead() const { return ifhead_; }
-	inline const struct linklist_head& linklisthead() const { 
-		return linklisthead_; 
-	}
-	
-	// The remaining objects handle a (static) linked list of nodes
-	// Used by Tom's satallite code
+
 	static struct node_head nodehead_;  // static head of list of nodes
 	inline void insert(struct node_head* head) {
 		LIST_INSERT_HEAD(head, this, entry);
 	}
 	inline Node* nextnode() { return entry.le_next; }
 
-	// These are wireless stuff to be moved out.
-	void add_neighbor(u_int32_t);      // for adaptive fidelity
-	void scan_neighbor();
-	inline int getneighbors() {return neighbor_list.neighbor_cnt_;}
-
-	inline double energy() { return energy_model_->energy();}
-	inline double initialenergy() { return energy_model_->initialenergy();}
-	inline double energy_level1() { return energy_model_->level1();}
-	inline double energy_level2() { return energy_model_->level2();}
-	inline EnergyModel *energy_model() { return energy_model_; }
-	inline Location *location() { return location_;}
-	inline int sleep() { return sleep_mode_;}
-	inline int state() { return state_;}
-	inline float state_start_time() {return state_start_time_;}
-	inline float max_inroute_time() {return max_inroute_time_;}
-
-	inline int adaptivefidelity() {return adaptivefidelity_;}
-	inline int powersaving() { return powersavingflag_;}
-	inline bool node_on() const { return node_on_; }
-
-	virtual void set_node_sleep(int);
-	virtual void set_node_state(int);
-       	//virtual void get_node_idletime();
-	virtual void add_rcvtime(float t) {total_rcvtime_ += t;}
-	virtual void add_sndtime(float t) {total_sndtime_ += t;}
-	virtual void idle_energy_patch(float, float);
+	// The remaining objects handle a (static) linked list of nodes
+	// Used by Tom's satallite code
+	inline const struct if_head& ifhead() const { return ifhead_; }
+	inline const struct linklist_head& linklisthead() const { 
+		return linklisthead_; 
+	}
+	
 	static Node* get_node_by_address(nsaddr_t);
-
-	void start_powersaving();
 
 protected:
 	LIST_ENTRY(Node) entry;  // declare list entry structure
@@ -181,78 +149,20 @@ protected:
 	static char nwrk_[NODE_NAMLOG_BUFSZ];	
 	void namdump();
 
-	// These are wireless stuff to be moved out.
-	EnergyModel* energy_model_;
-	Location* location_;
-
-	// XXX this structure below can be implemented by ns's LIST
-	struct neighbor_list_item {
-		u_int32_t id;        		// node id
-		int       ttl;    		// time-to-live
-		neighbor_list_item *next; 	// pointer to next item
-	};
-
-	struct {
-		int neighbor_cnt_;   // how many neighbors in this list
-		neighbor_list_item *head; 
-	} neighbor_list;
-	SoftNeighborHandler *snh_;
-
-      	int sleep_mode_;	 // = 1: radio is turned off
-	int state_;		 // used for AFECA state 
-	float state_start_time_; // starting time of one AFECA state
-	float total_sleeptime_;  // total time of radio in off mode
-       	float total_rcvtime_;	 // total time in receiving data
-	float total_sndtime_;	 // total time in sending data
-	int adaptivefidelity_;   // Is AFECA activated ?
-	int powersavingflag_;    // Is BECA activated ?
-	float last_time_gosleep; // time when radio is turned off
-	float max_inroute_time_; // maximum time that a node can remaining
-				 // active 
-	int maxttl_;		 // how long a node can keep its neighbor
-				 // list. For AFECA only.
-       	AdaptiveFidelityEntity *afe_;
-
-	bool node_on_;   	 // on-off status of this node -- Chalermek
-
-	// XXX can we deprecate the next line (used in MobileNode)
-	// in favor of accessing phys via a standard link API?
 	struct if_head ifhead_; // list of phys for this node
 	struct linklist_head linklisthead_; // list of link heads on node
-};
 
-class AdaptiveFidelityEntity : public Handler {
-public:  
-	AdaptiveFidelityEntity(Node *nid) : nid_(nid) {} 
-
-	virtual void start();
-	virtual void handle(Event *e);
-
-	virtual void adapt_it();
-	inline void set_sleeptime(float t) {sleep_time_ = t;}
-	inline void set_sleepseed(float t) {sleep_seed_ = t;}
-
-	// Why this variable should be public??
-        Node *nid_;
-
-protected:
-	Event intr;
-	float  sleep_time_;
-	float sleep_seed_;
-	float  idle_time_;
-};
-
-class SoftNeighborHandler : public Handler {
 public:
-	virtual void start();
-	virtual void handle(Event *e); 
-	Node *nid_;
-
-	SoftNeighborHandler(Node *nid) {
-		nid_ = nid;
-	}
+	// XXX Energy related stuff. Should be moved later to a wireless 
+	// routing plugin module instead of sitting here.
+	inline EnergyModel* energy_model() { return energy_model_; }
+	inline Location* location() { return location_;}
 protected:
-	Event  intr;
+	EnergyModel* energy_model_;
+	// XXX Currently this is a placeholder only. This is supposed to 
+	// hold the position-related stuff in MobileNode. Yet another 
+	// 'Under Construction' sign :(
+	Location* location_;
 };
 
 #endif /* __ns_node_h__ */

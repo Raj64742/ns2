@@ -1722,7 +1722,7 @@ V_STLOBJ=""
 V_LSSCRIPT=""
 if test "$enable_stl" = "yes" ; then 
 	V_STLOBJ="linkstate/ls.o linkstate/rtProtoLS.o"
-	V_LSSCRIPT="source ns-rtProtoLS.tcl"
+	V_LSSCRIPT="source ../rtglib/ns-rtProtoLS.tcl"
 fi
 
 # This is required by configure.in.tcl to provide absolute pathnames for 

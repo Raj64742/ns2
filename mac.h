@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.32 2000/02/16 23:38:09 yuriy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.h,v 1.33 2000/08/31 20:11:49 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -54,9 +54,8 @@ class Channel;
 #define ZERO	0.00000
 
 /*
-// Medium Access Control (MAC)
-*/
-
+ * Medium Access Control (MAC)
+ */
 
 #define EF_COLLISION 2		// collision error flag
 
@@ -137,9 +136,9 @@ struct hdr_mac {
 
 class Tap {
 public:
-  virtual void tap(const Packet *p) = 0;
-  // tap is given all packets received by the host.
-  // it must not alter or free the pkt.  If you want to frob it, copy it.
+	virtual void tap(const Packet *p) = 0;
+	// tap is given all packets received by the host.
+	// it must not alter or free the pkt.  If you want to frob it, copy it.
 };
 
 
@@ -181,12 +180,11 @@ public:
 		return 8. * (MAC_HDR_LEN + \
 			     (HDR_CMN(p))->size()) / bandwidth_;
 	}
-	
 	inline double bandwidth() const { return bandwidth_; }
 	
 	inline int addr() { return index_; }
 	inline MacState state() { return state_; }
-	inline MacState state(int m) { return state_ = (MacState) m; }        // inline Mac*& macList() { return macList_; }
+	inline MacState state(int m) { return state_ = (MacState) m; }
 	
         //mac methods to set dst, src and hdt_type in pkt hdrs.
 	// note: -1 is the broadcast mac addr.
@@ -209,33 +207,26 @@ public:
 		return dh->hdr_type();
 	}
 
-	
-
 private:
-	//virtual void discard(Packet *p, const char* why = 0) {};
-	
         void mac_log(Packet *p) {
                 logtarget_->recv(p, (Handler*) 0);
         }
-        
         NsObject*       logtarget_;
 
 protected:
 	int command(int argc, const char*const* argv);
-	virtual int initialized() 
-		{ return (netif_ && uptarget_ && downtarget_); }
+	virtual int initialized() { 
+		return (netif_ && uptarget_ && downtarget_); 
+	}
 	int index_;		// MAC address
 	double bandwidth_;      // channel bitrate
 
 	double delay_;		// MAC overhead
 	int off_mac_;
         
-        //Mac* getPeerMac(Packet* p);
-	//int hlen_;		// MAC header length
-	
 	Phy *netif_;            // network interface
         Tap *tap_;              // tap agent
-	LL *ll_;             // LL this MAC is connected to
+	LL *ll_;             	// LL this MAC is connected to
 	Channel *channel_;	// channel this MAC is connected to
 
 	Handler* callback_;	// callback for end-of-transmission
@@ -243,16 +234,12 @@ protected:
 	MacHandlerSend hSend_;	// handle delay send due to busy channel
 	Event intr_;
 
-	// Classifier* mcl_;	// MAC classifier to obtain the peer MAC
-	// Mac* macList_;		// circular list of MACs
-
-/* ============================================================
-	   Internal MAC State
-   ============================================================ */
+	/*
+	 * Internal MAC State
+	 */
 	MacState state_;	// MAC's current state
 	Packet *pktRx_;
 	Packet *pktTx_;
-
 };
 
 #endif

@@ -27,18 +27,18 @@ void GridHandler::handle(Event *e)
   if ((pptr = me->leave_)) {
     while (*pptr) {
       if ((*pptr)->address() == token_->address()) break;
-      pptr = &((*pptr)->next_);
+      pptr = &((*pptr)->next());
     }
     if (!(*pptr)) abort();
     else {
-      *pptr = token_->next_;
-      token_->next_ = 0;
+      *pptr = token_->next();
+      token_->next() = 0;
     }
     
   }
   if ((pptr = me->enter_)) {
-    if (token_->next_) abort();  // can't be in more than one grid
-    token_->next_ = *pptr;
+    if (token_->next()) abort();  // can't be in more than one grid
+    token_->next() = *pptr;
     *pptr = token_;
   }
   delete me;
@@ -88,9 +88,9 @@ int GridKeeper::command(int argc, const char*const* argv)
   if (argc == 3) {
     if (strcmp(argv[1], "addnode") == 0) {
 	mn = (MobileNode *)TclObject::lookup(argv[2]);
-	grid_x = aligngrid((int)mn->X, dim_x_);
-        grid_y = aligngrid((int)mn->Y, dim_y_);
-	mn->next_ = grid_[grid_x][grid_y];
+	grid_x = aligngrid((int)mn->X(), dim_x_);
+        grid_y = aligngrid((int)mn->Y(), dim_y_);
+	mn->next() = grid_[grid_x][grid_y];
 	grid_[grid_x][grid_y] = mn;
 	size_++;
         return (TCL_OK);
@@ -119,9 +119,9 @@ int GridKeeper::command(int argc, const char*const* argv)
 
 void GridKeeper::new_moves(MobileNode *mn)
 {
-  double x = mn->X, y = mn->Y; 
-  double ss = mn->speed;
-  double vx = (mn->dX)*ss, vy = (mn->dY)*ss;
+  double x = mn->X(), y = mn->Y(); 
+  double ss = mn->speed();
+  double vx = (mn->dX())*ss, vy = (mn->dY())*ss;
 
   double endx, endy, pother, tm;
   int i, j, endi, gother, grid_x, grid_y;
@@ -129,8 +129,8 @@ void GridKeeper::new_moves(MobileNode *mn)
 
   Scheduler& s = Scheduler::instance();
 
-  endx = mn->destX;
-  endy = mn->destY;
+  endx = mn->destX();
+  endy = mn->destY();
 
   if (vx > 0) {
     endi = min(dim_x_-1, (int)endx);
@@ -227,13 +227,13 @@ int GridKeeper::get_neighbors(MobileNode* mn, MobileNode **output)
   double mnx, mny, mnr, sqmnr;
   
   mn->update_position();
-  mnx = mn->X;
-  mny = mn->Y;
+  mnx = mn->X();
+  mny = mn->Y();
 
-  grid_x = aligngrid((int)mn->X, dim_x_);
-  grid_y = aligngrid((int)mn->Y, dim_y_);
+  grid_x = aligngrid((int)mn->X(), dim_x_);
+  grid_y = aligngrid((int)mn->Y(), dim_y_);
 
-  sqmnr = (mnr = mn->radius_)*mnr;
+  sqmnr = (mnr = mn->radius())*mnr;
 
   adj = (int)ceil(mnr);
 
@@ -243,11 +243,11 @@ int GridKeeper::get_neighbors(MobileNode* mn, MobileNode **output)
 
   for (i = max(0, grid_x - adj); i <= ulx; i++) {
     for (j = lly; j <= uly; j++) {
-      for (pgd = grid_[i][j]; pgd != 0; pgd = pgd->next_) {
+      for (pgd = grid_[i][j]; pgd != 0; pgd = pgd->next()) {
 	if (mn->address() == pgd->address()) 
 		continue;
 	pgd->update_position();
-	if (d2(pgd->X, mnx, pgd->Y, mny) < sqmnr)
+	if (d2(pgd->X(), mnx, pgd->Y(), mny) < sqmnr)
 	 output[index++] = pgd;
       }
     }
@@ -265,7 +265,7 @@ void GridKeeper::dump()
       for (j = 0; j < dim_y_; j++) {
 	if (grid_[i][j] == 0) continue;
 	printf("grid[%d][%d]: ",i,j);
-	for (pgd = grid_[i][j]; pgd != 0; pgd = pgd->next_) {
+	for (pgd = grid_[i][j]; pgd != 0; pgd = pgd->next()) {
 	  printf("%d ",pgd->address());
 	}
 	printf("\n");

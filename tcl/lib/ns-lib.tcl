@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.207 2000/08/30 23:27:51 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.208 2000/08/31 20:11:50 haoboy Exp $
 
 #
 # Word of warning to developers:
@@ -559,7 +559,8 @@ Simulator instproc create-wireless-node args {
 		} else {
 			set l2 0.2
 		}
-		$node addenergymodel [new $energyModel_ $initialEnergy_ $l1 $l2]
+		$node addenergymodel [new $energyModel_ $node \
+				$initialEnergy_ $l1 $l2]
         }
         if [info exists txPower_] {
 		$node setPt $txPower_

@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.416 2000/08/30 00:10:44 haoboy Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.417 2000/08/31 20:11:47 haoboy Exp $-->
 
 <h1>ns: Change History</h1>
 
@@ -23,6 +23,22 @@ with the most recent changes coming first.
 of ns-2.1b7</a> [PENDING]</h3>
 
 <ul>
+
+<p><li>
+	<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>
+	<b>Thu Aug 31 12:55:49 PDT 2000</b>
+	<br>
+	<ol>
+	<li> Node cleanup: move all energy-related variables and
+	methods in the base Node into EnergyModel. Note that node_on_
+	may be moved back later, but for now its handler is closely
+	tied to wireless routing.
+	<li> Added dependency of tcl/mobility/dsdv.tcl into Makefile.in
+	<li> Moved tcl/lib/rtProtoLS.tcl into tcl/rtglib, where all routing
+	protocols stay.
+	<li> Added a line about link state into unicast.tex, and
+	labeled link state and MPLS as undocumented.
+	</ol>
 
 <p><li>
 	<b><a href="http://catarina.usc.edu/~haoboy/">[haoboy]</a></b>

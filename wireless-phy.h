@@ -31,16 +31,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/wireless-phy.h,v 1.8 2000/08/31 20:11:49 haoboy Exp $
+ *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
-
-   wireless-phy.h
-   -- a SharedMedia network interface
-
-*/
+ *
+ * wireless-phy.h
+ * -- a SharedMedia network interface
+ */
 
 #ifndef ns_WirelessPhy_h
 #define ns_WirelessPhy_h
-
 
 #include "propagation.h"
 #include "modulation.h"
@@ -49,11 +49,9 @@
 #include "mobilenode.h"
 #include "timer-handler.h"
 
-
 class Phy;
 class Propagation;
 class WirelessPhy;
-
 
 // For idle energy consumption -- Chalermek
 
@@ -65,63 +63,59 @@ class Idle_Timer : public TimerHandler {
 	WirelessPhy *a_;
 };
 
-
 class WirelessPhy : public Phy {
- public:
+public:
 	WirelessPhy();
 	
 	void sendDown(Packet *p);
 	int sendUp(Packet *p);
 	
-	inline double getL() {return L_;}
-	
-	inline double getLambda() {return lambda_;}
+	inline double getL() const {return L_;}
+	inline double getLambda() const {return lambda_;}
+	inline MobileNode* node(void) const { return (MobileNode*)node_; }
   
 	virtual int command(int argc, const char*const* argv);
 	virtual void dump(void) const;
-	//MobileNode* node(void) const { return node_; }
 	
 	//void setnode (MobileNode *node) { node_ = node; }
 	
- protected:
-  double Pt_;			// transmitted signal power (W)
-  double Pt_consume_;		// power consumption for transmission (W)
-  double Pr_consume_;		// power consumption for reception (W)
+protected:
+	double Pt_;		// transmitted signal power (W)
+	double Pt_consume_;	// power consumption for transmission (W)
+	double Pr_consume_;	// power consumption for reception (W)
+	double P_idle_;         // idle power consumption (W)
+	double last_send_time_;	// the last time the node sends somthing.
+	double channel_idle_time_;	// channel idle time.
+	double update_energy_time_;	// the last time we update energy.
 
-  double P_idle_;               // idle power consumption (W)
+	double freq_;           // frequency
+	double lambda_;		// wavelength (m)
+	double L_;		// system loss factor
+  
+	double RXThresh_;	// receive power threshold (W)
+	double CSThresh_;	// carrier sense threshold (W)
+	double CPThresh_;	// capture threshold (db)
+  
+	Antenna *ant_;
+	Propagation *propagation_;	// Propagation Model
+	Modulation *modulation_;	// Modulation Schem
 
-  double channel_idle_time_;    // channel idle time.
-  double update_energy_time_;   // the last time we update energy.
-  double last_send_time_;       // the last time the node sends somthing.
+	// Why phy has a node_ and this guy has it all over again??
+//  	MobileNode* node_;         	// Mobile Node to which interface is attached .
 
-  double freq_;                  // frequency
-  double lambda_;		// wavelength (m)
-  double L_;			// system loss factor
-  
-  double RXThresh_;		// receive power threshold (W)
-  double CSThresh_;		// carrier sense threshold (W)
-  double CPThresh_;		// capture threshold (db)
-  
-  Antenna *ant_;
-  Propagation *propagation_;	// Propagation Model
-  Modulation *modulation_;	// Modulation Schem
-  MobileNode* node_;         // Mobile Node to which interface is attached .
+	Idle_Timer idle_timer_;
+	
+	enum ChannelStatus { IDLE, RECV, SEND };
+	int status_;
+private:
+	inline int initialized() {
+		return (node_ && uptarget_ && downtarget_ && propagation_);
+	}
+	void UpdateIdleEnergy();
+	// Convenience method
+	EnergyModel* em() { return node()->energy_model(); }
 
-  Idle_Timer idle_timer_;
-
-  enum ChannelStatus { IDLE, RECV, SEND };
-  int status_;
-
-  
- private:
-  
-  inline int	initialized() {
-	  return (node_ && uptarget_ && downtarget_ && propagation_);
-  }
-  
-  void UpdateIdleEnergy();
-  
-  friend class Idle_Timer;
+	friend class Idle_Timer;
 };
 
 #endif /* !ns_WirelessPhy_h */

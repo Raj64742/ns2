@@ -31,13 +31,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/energy-model.h,v 1.10 2000/08/30 18:54:03 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/energy-model.h,v 1.11 2000/08/31 20:11:49 haoboy Exp $
  */
 
 // Contributed by Satish Kumar (kkumar@isi.edu)
 
-#ifndef energy_model_h_
-#define energy_model_h_
+#ifndef ns_energy_model_h_
+#define ns_energy_model_h_
 
 #include <cstdlib>
 #include <stdlib.h>
@@ -48,19 +48,63 @@
 #include "trace.h"
 #include "rng.h"
 
+const int CHECKFREQ = 1;
+const int MAX_WAITING_TIME = 11;
+
+class EnergyModel;
+
+class AdaptiveFidelityEntity : public Handler {
+public:  
+	AdaptiveFidelityEntity(EnergyModel *nid) : nid_(nid) {} 
+
+	virtual void start();
+	virtual void handle(Event *e);
+
+	virtual void adapt_it();
+	inline void set_sleeptime(float t) {sleep_time_ = t;}
+	inline void set_sleepseed(float t) {sleep_seed_ = t;}
+
+protected:
+        EnergyModel *nid_;
+	Event intr;
+	float  sleep_time_;
+	float sleep_seed_;
+	float  idle_time_;
+};
+
+class SoftNeighborHandler : public Handler {
+public:
+	SoftNeighborHandler(EnergyModel *nid) {
+		nid_ = nid;
+	}
+	virtual void start();
+	virtual void handle(Event *e); 
+protected:
+	EnergyModel *nid_;
+	Event  intr;
+};
+
+class MobileNode;
 class EnergyModel : public TclObject {
 public:
-	EnergyModel(double energy, double l1, double l2) :
+	EnergyModel(MobileNode* n, double energy, double l1, double l2) :
 		energy_(energy), initialenergy_(energy), 
-		level1_(l1), level2_(l2) {}
+		level1_(l1), level2_(l2), node_(n), 
+		sleep_mode_(0), total_sleeptime_(0), total_rcvtime_(0), 
+		total_sndtime_(0), powersavingflag_(0), 
+		last_time_gosleep(0), max_inroute_time_(300), maxttl_(5), 
+		adaptivefidelity_(0), node_on_(true) 
+	{
+		neighbor_list.neighbor_cnt_ = 0;
+		neighbor_list.head = NULL;
+	}
+
 	inline double energy() const { return energy_; }
 	inline double initialenergy() const { return initialenergy_; }
 	inline double level1() const { return level1_; }
 	inline double level2() const { return level2_; }
 	inline void setenergy(double e) { energy_ = e; }
    
-	// ------------------------------------
-	// Modified by Chalermek 
 	virtual void DecrTxEnergy(double txtime, double P_tx);
 	virtual void DecrRcvEnergy(double rcvtime, double P_rcv);
 	virtual void DecrIdleEnergy(double idletime, double P_idle);
@@ -73,17 +117,74 @@ public:
 	inline virtual double MaxIdletime(double P_idle) {
 		return(energy_/P_idle);
 	}
-	// ------------------------------------
+
+	void add_neighbor(u_int32_t);      // for adaptive fidelity
+	void scan_neighbor();
+	inline int getneighbors() { return neighbor_list.neighbor_cnt_; }
+
+	double level1() { return level1_; }
+	double level2() { return level2_; }
+	inline int sleep() { return sleep_mode_; }
+	inline int state() { return state_; }
+	inline float state_start_time() { return state_start_time_; }
+	inline float& max_inroute_time() { return max_inroute_time_; }
+	inline int& adaptivefidelity() { return adaptivefidelity_; }
+	inline int& powersavingflag() { return powersavingflag_; }
+	inline bool& node_on() { return node_on_; }
+	inline float& total_sndtime() { return total_sndtime_; }
+	inline float& total_rcvtime() { return total_rcvtime_; }
+	inline float& total_sleeptime() { return total_sleeptime_; }
+	inline AdaptiveFidelityEntity* afe() { return afe_; }
+	inline int& maxttl() { return maxttl_; }
+
+	virtual void set_node_sleep(int);
+	virtual void set_node_state(int);
+	virtual void add_rcvtime(float t) {total_rcvtime_ += t;}
+	virtual void add_sndtime(float t) {total_sndtime_ += t;}
+
+	void start_powersaving();
+
+	// Sleeping state
+	enum SleepState { WAITING = 0, POWERSAVING = 1, INROUTE = 2 };
 
 protected:
 	double energy_;
 	double initialenergy_;
 	double level1_;
 	double level2_;
+
+	MobileNode *node_;
+
+	// XXX this structure below can be implemented by ns's LIST
+	struct neighbor_list_item {
+		u_int32_t id;        		// node id
+		int       ttl;    		// time-to-live
+		neighbor_list_item *next; 	// pointer to next item
+	};
+
+	struct {
+		int neighbor_cnt_;   // how many neighbors in this list
+		neighbor_list_item *head; 
+	} neighbor_list;
+	SoftNeighborHandler *snh_;
+
+      	int sleep_mode_;	 // = 1: radio is turned off
+	float total_sleeptime_;  // total time of radio in off mode
+       	float total_rcvtime_;	 // total time in receiving data
+	float total_sndtime_;	 // total time in sending data
+	int powersavingflag_;    // Is BECA activated ?
+	float last_time_gosleep; // time when radio is turned off
+	float max_inroute_time_; // maximum time that a node can remaining
+				 // active 
+	int maxttl_;		 // how long a node can keep its neighbor
+				 // list. For AFECA only.
+	int state_;		 // used for AFECA state 
+	float state_start_time_; // starting time of one AFECA state
+	int adaptivefidelity_;   // Is AFECA activated ?
+       	AdaptiveFidelityEntity *afe_;
+
+	bool node_on_;   	 // on-off status of this node -- Chalermek
 };
 
 
-#endif
-
-
-
+#endif // ns_energy_model_h

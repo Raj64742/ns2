@@ -1,6 +1,5 @@
-
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*-
+ *
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
  *
@@ -31,20 +30,23 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/god.cc,v 1.11 2000/08/31 20:11:49 haoboy Exp $
  */
+
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
-/* god.cc
-
-   General Operations Director
-
-   perform operations requiring omnipotence in the simulation
-
-   NOTE: Tcl node indexs are 0 based, NS C++ node IP addresses (and the
-   node->index() are 1 based.
-
-   $Id: god.cc,v 1.10 2000/08/30 00:10:45 haoboy Exp $
-   */
+/*
+ * god.cc
+ *
+ * General Operations Director
+ *
+ * perform operations requiring omnipotence in the simulation
+ *
+ * NOTE: Tcl node indexs are 0 based, NS C++ node IP addresses (and the
+ * node->index() are 1 based.
+ *
+ */
 
 #include <object.h>
 #include <packet.h>
@@ -53,7 +55,6 @@
 
 #include "diffusion/hash_table.h"
 #include "mobilenode.h"
-
 
 God* God::instance_;
 
@@ -460,16 +461,15 @@ bool God::IsNeighbor(int i, int j)
   assert(i<num_nodes && j<num_nodes);
 
   //printf("i=%d, j=%d\n", i,j);
-
-  if (mb_node[i]->node_on() == false ||
-      mb_node[j]->node_on() == false ||
-      mb_node[i]->energy() <= 0.0 ||
-      mb_node[j]->energy() <= 0.0 ) {
+  if (mb_node[i]->energy_model()->node_on() == false ||
+      mb_node[j]->energy_model()->node_on() == false ||
+      mb_node[i]->energy_model()->energy() <= 0.0 ||
+      mb_node[j]->energy_model()->energy() <= 0.0 ) {
     return false;
   }
 
-  vector a(mb_node[i]->X, mb_node[i]->Y, mb_node[i]->Z);
-  vector b(mb_node[j]->X, mb_node[j]->Y, mb_node[j]->Z);
+  vector a(mb_node[i]->X(), mb_node[i]->Y(), mb_node[i]->Z());
+  vector b(mb_node[j]->X(), mb_node[j]->Y(), mb_node[j]->Z());
   vector d = a - b;
 
   if (d.length() < RANGE)
@@ -502,7 +502,7 @@ void God::CountAliveNode()
   num_alive_node = 0;
 
   for (i=0; i<num_nodes; i++) {
-    if (mb_node[i]->energy() > 0.0) {
+    if (mb_node[i]->energy_model()->energy() > 0.0) {
       num_alive_node++;
     }
   }

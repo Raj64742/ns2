@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.11 2000/08/30 23:27:51 haoboy Exp $
+# $Id: dsr.tcl,v 1.12 2000/08/31 20:11:51 haoboy Exp $
 
 # ======================================================================
 # Default Script Options
@@ -202,6 +202,12 @@ proc dsr-create-mobile-node { id args } {
 	$node random-motion 0		;# disable random motion
 	$node topography $topo
 
+	# XXX Activate energy model so that we can use sleep, etc. But put on 
+	# a very large initial energy so it'll never run out of it.
+	if [info exists opt(energy)] {
+		$node addenergymodel [new $opt(energy) $node 1000 0.5 0.2]
+	}
+
         # connect up the channel
         $node add-interface $chan $prop $opt(ll) $opt(mac)	\
 	     $opt(ifq) $opt(ifqlen) $opt(netif) $opt(ant)
@@ -219,6 +225,3 @@ proc dsr-create-mobile-node { id args } {
         $ns_ at 0.0 "$node start-dsr"
 	return $node
 }
-
-
-

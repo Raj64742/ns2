@@ -176,8 +176,9 @@ void FloodingAgent::reset()
 
 void FloodingAgent::Terminate() 
 {
-  printf("node %d: remaining energy %f, initial energy %f\n", THIS_NODE, 
-	 node->energy(), node->initialenergy() );
+	printf("node %d: remaining energy %f, initial energy %f\n", THIS_NODE, 
+	       node->energy_model()->energy(), 
+	       node->energy_model()->initialenergy() );
 }
 
 

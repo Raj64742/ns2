@@ -61,6 +61,7 @@ As an example, the following commands illustrate the use of the
         $ns rtproto Static            \; Enable static route strategy for the simulation;
         $ns rtproto Session           \; Enable session routing for this simulation;
         $ns rtproto DV $n1 $n2 $n3    \; Run DV agents on nodes $n1, $n2, and $n3;
+        $ns rtproto LS $n1 $n2        \; Run link state routing on specified nodes
 \end{program}
 If a simulation script does not specify any \proc[]{rtproto} command,
 then \ns\ will run Static routing on all the nodes in the topology.
@@ -86,7 +87,7 @@ We call the least cost route from the most preferred protocol the
 ``candidate'' route.
 If there are multiple candidate routes from the same or different protocols,
 then, currently,
-one of the agent's routes is randomly chosen\footnote{%
+one of the agent's routes is randomly chosen\footnote{
 This really is undesirable, and may be fixed at some point.
 The fix will probably be to favor the agents in class preference order.
 A user level simulation relying on this behavior,
@@ -119,7 +120,7 @@ It is possible to change the link costs at each of the links.
 The instance procedure
 \fcnref{\proc[]{cost}}{../ns-2/route-proto.tcl}{Simulator::cost}
 %XXX MOVE TO NS-LIB.TCL
-is invoked as \code{$ns cost \tup{node1} \tup{node2} \tup{cost}},
+is invoked as \code{$ns cost \tup{node1} \tup{node2} \tup{cost}},%$
 and sets the cost of the link from \tup{node1} to \tup{node2}
 to \tup{cost}.
 \begin{program}
@@ -162,7 +163,7 @@ All other pairs of nodes use symmetric paths to reach each other.
     $ns cost $n1 $r1 2
     $ns cost $n2 $r2 2
     $ns cost $r1 $n2 3
-  \end{program}
+  \end{program}%$
 \end{minipage}
 \hfil
 

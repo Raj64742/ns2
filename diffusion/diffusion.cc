@@ -185,12 +185,12 @@ void DiffusionAgent::consider_new(Packet *pkt)
 
 void DiffusionAgent::Terminate() 
 {
-  printf("Diffusion node %d : terminates (overhead %d)\n", 
-	 THIS_NODE, overhead);  
-  printf("node %d: remaining energy %f, initial energy %f\n", THIS_NODE, 
-	 node->energy(), node->initialenergy() );
-
-  Print_IOlist();
+	printf("Diffusion node %d : terminates (overhead %d)\n", 
+	       THIS_NODE, overhead);  
+	printf("node %d: remaining energy %f, initial energy %f\n", THIS_NODE, 
+	       node->energy_model()->energy(), 
+	       node->energy_model()->initialenergy() );
+	Print_IOlist();
 }
 
 

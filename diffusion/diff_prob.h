@@ -49,19 +49,18 @@ class DiffusionProb;
 
 class EnergyTimer : public TimerHandler {
 public:
-  EnergyTimer(DiffusionProb *a, Node *b) : TimerHandler() 
-  { 
-      a_ = a; 
-      node_ = b;
-      init_eng_ = node_->energy();
-      threshold_ = init_eng_ / 2;
-  }
-  virtual void expire(Event *e);
+	EnergyTimer(DiffusionProb *a, Node *b) : TimerHandler() { 
+		a_ = a; 
+		node_ = b;
+		init_eng_ = node_->energy_model()->energy();
+		threshold_ = init_eng_ / 2;
+	}
+	virtual void expire(Event *e);
 protected:
-  DiffusionProb *a_;
-  Node *node_;
-  double init_eng_;
-  double threshold_;
+	DiffusionProb *a_;
+	Node *node_;
+	double init_eng_;
+	double threshold_;
 };
 
 

@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mobility/dsdv.tcl,v 1.9 2000/08/30 23:27:51 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mobility/dsdv.tcl,v 1.10 2000/08/31 20:11:51 haoboy Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 
@@ -118,44 +118,46 @@ proc create-dsdv-routing-agent { node id } {
 
 
 proc dsdv-create-mobile-node { id args } {
-    global ns ns_ chan prop topo tracefd opt node_
-    global chan prop tracefd topo opt
-    
-    set ns_ [Simulator instance]
-    if {[Simulator set EnableHierRt_]} {
-	if [Simulator set mobile_ip_] {
-	    set node_($id) [new MobileNode/MIPMH $args]
+	global ns ns_ chan prop topo tracefd opt node_
+	global chan prop tracefd topo opt
+	
+	set ns_ [Simulator instance]
+	if {[Simulator set EnableHierRt_]} {
+		if [Simulator set mobile_ip_] {
+			set node_($id) [new MobileNode/MIPMH $args]
+		} else {
+			set node_($id) [new Node/MobileNode/BaseStationNode $args]
+		}
 	} else {
-	    set node_($id) [new Node/MobileNode/BaseStationNode $args]
+		set node_($id) [new Node/MobileNode]
 	}
-    } else {
-	set node_($id) [new Node/MobileNode]
-    }
-    set node $node_($id)
-    $node random-motion 0		;# disable random motion
-    $node topography $topo
+	set node $node_($id)
+	$node random-motion 0		;# disable random motion
+	$node topography $topo
     
-    #
-    # This Trace Target is used to log changes in direction
-    # and velocity for the mobile node.
-    #
-    set T [new Trace/Generic]
-    $T target [$ns_ set nullAgent_]
-    $T attach $tracefd
-    $T set src_ $id
-    $node log-target $T
+	# XXX Activate energy model so that we can use sleep, etc. But put on 
+	# a very large initial energy so it'll never run out of it.
+	if [info exists opt(energy)] {
+		$node addenergymodel [new $opt(energy) $node 1000 0.5 0.2]
+	}
+
+	#
+	# This Trace Target is used to log changes in direction
+	# and velocity for the mobile node.
+	#
+	set T [new Trace/Generic]
+	$T target [$ns_ set nullAgent_]
+	$T attach $tracefd
+	$T set src_ $id
+	$node log-target $T
     
-    $node add-interface $chan $prop $opt(ll) $opt(mac)	\
-	    $opt(ifq) $opt(ifqlen) $opt(netif) $opt(ant)
+	$node add-interface $chan $prop $opt(ll) $opt(mac)	\
+			$opt(ifq) $opt(ifqlen) $opt(netif) $opt(ant)
     
-    #
-    # Create a Routing Agent for the Node
-    #
-    create-$opt(rp)-routing-agent $node $id
-    
-    
-    
-    # ============================================================
+	#
+	# Create a Routing Agent for the Node
+	#
+	create-$opt(rp)-routing-agent $node $id
     
 	if { $opt(pos) == "Box" } {
 		#
