@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.h,v 1.12 1998/09/11 21:19:59 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.h,v 1.13 1998/09/17 01:38:29 kfall Exp $
  */
 
 #ifndef ns_rtp_h
@@ -126,9 +126,9 @@ class RTPAgent : public Agent {
         virtual void sendpkt();
 	virtual void makepkt(Packet*);
         void rate_change();
-        void start();
-        void stop();
-        void finish();
+        virtual void start();
+        virtual void stop();
+        virtual void finish();
         RTPSession* session_;
         double lastpkttime_;
         int seqno_;
