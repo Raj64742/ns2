@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.95 1998/05/08 21:44:11 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.96 1998/05/08 21:48:16 haoboy Exp $
 
 #
 
@@ -466,7 +466,6 @@ Simulator instproc register-nam-lanconfig mlink {
 # A poor hack. :( Any better ideas?
 #
 Simulator instproc register-nam-linkconfig link {
-<<<<<<< ns-lib.tcl
     $self instvar linkConfigList_ link_
     if [info exists linkConfigList_] {
 	# Check whether the reverse simplex link is registered,
