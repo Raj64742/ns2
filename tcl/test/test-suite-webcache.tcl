@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.10 1999/03/25 20:21:49 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.11 1999/05/26 01:23:47 haoboy Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -1283,7 +1283,7 @@ Test/PagePool instproc test-getpageid {} {
 	$self instvar pgp_ log_
 	set max [$pgp_ get-poolsize]
 	for {set i 0} {$i < $max} {incr i} {
-		set id [$pgp_ gen-pageid]
+		set id [$pgp_ gen-pageid 0]
 		puts -nonewline $log_ "Page $id: "
 		puts -nonewline $log_ "size [$pgp_ gen-size $id] "
 		set mtime [$pgp_ gen-modtime $id -1]
