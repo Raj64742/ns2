@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: header.hh,v 1.4 2001/12/11 23:21:45 haldar Exp $
+// $Id: header.hh,v 1.5 2001/12/12 00:48:57 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -22,6 +22,10 @@
 
 #ifndef header_hh
 #define header_hh
+
+#ifdef NS_DIFFUSION
+#include "nr.hh"
+#endif
 
 typedef int *DiffPacket;
 
