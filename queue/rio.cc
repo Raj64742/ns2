@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.9 2001/12/29 20:12:10 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.10 2002/01/01 00:10:29 sfloyd Exp $ (LBL)";
 #endif
 
 #include "rio.h"
@@ -309,13 +309,10 @@ void RIOQueue::enque(Packet* pkt)
 	/*
 	 * Run the estimator with either 1 new packet arrival, or with
 	 * the scaled version above [scaled by m due to idle time]
-	 * (bcount_ maintains the byte count in the underlying queue).
-	 * If the underlying queue is able to delete packets without
-	 * us knowing, then bcount_ will not be maintained properly!
 	 */
 
         // printf( "qlen %d\n", q_->length());
-	edv_.v_ave = REDQueue::estimator(qib_ ? bcount_ : q_->length(), m + 1,
+	edv_.v_ave = REDQueue::estimator(qib_ ? q_->byteLength() : q_->length(), m + 1,
 		edv_.v_ave, edp_.q_w);
 	edv_in_.v_ave = REDQueue::estimator(qib_ ? in_bcount_ : in_len_,
 		m_in + 1, edv_in_.v_ave, edp_.q_w);
@@ -345,7 +342,7 @@ void RIOQueue::enque(Packet* pkt)
 	// register double qavg = edv_.v_ave;
 	register double in_qavg = edv_in_.v_ave;
 	int droptype = DTYPE_NONE;
-	int qlen = qib_ ? bcount_ : q_->length();
+	int qlen = qib_ ? q_->byteLength() : q_->length();
 	int in_qlen = qib_ ? in_bcount_ : in_len_;
 	int qlim = qib_ ? (qlim_ * edp_.mean_pktsize) : qlim_;
 
@@ -389,11 +386,9 @@ void RIOQueue::enque(Packet* pkt)
 			q_->enque(pkt);
                         // printf( "in: qlen %d %d\n", q_->length(), length());
                         ++in_len_;
-			bcount_ += ch->size();
 			in_bcount_ += ch->size();
 			q_->remove(pkt_to_drop);
                         // printf("remove qlen %d %d\n",q_->length(),length());
-			bcount_ -= hdr_cmn::access(pkt_to_drop)->size();
                         if (hdr_flags::access(pkt_to_drop)->pri_)
                            {
                              in_bcount_ -= 
@@ -412,7 +407,6 @@ void RIOQueue::enque(Packet* pkt)
 		q_->enque(pkt);
                 // printf( "in: qlen %d %d\n", q_->length(), length());
                 ++in_len_;
-		bcount_ += ch->size();
 		in_bcount_ += ch->size();
 
 		/* drop a packet if we were told to */
@@ -421,7 +415,6 @@ void RIOQueue::enque(Packet* pkt)
 			pkt = pickPacketToDrop();
 			q_->remove(pkt);
                         // printf("remove qlen %d %d\n",q_->length(),length());
-			bcount_ -= hdr_cmn::access(pkt)->size();
                         if (hdr_flags::access(pkt)->pri_) {
                           in_bcount_ -= hdr_cmn::access(pkt)->size(); 
                           --in_len_;
@@ -468,7 +461,7 @@ void RIOQueue::enque(Packet* pkt)
           register double qavg = edv_.v_ave;
           // register double in_qavg = edv_in_.v_ave;
           int droptype = DTYPE_NONE;
-          int qlen = qib_ ? bcount_ : q_->length();
+          int qlen = qib_ ? q_->byteLength() : q_->length();
           /* added by Yun, seems not useful */
           // int out_qlen = qib_ ? out_bcount_ : q_->out_length();
 
@@ -512,10 +505,8 @@ void RIOQueue::enque(Packet* pkt)
                   if (pkt_to_drop != pkt) {
                           q_->enque(pkt);
 			  //printf("out: qlen %d %d\n", q_->length(), length());
-                          bcount_ += ch->size();
                           q_->remove(pkt_to_drop);
 			  //printf("remove qlen %d %d\n",q_->length(),length());
-                          bcount_ -= hdr_cmn::access(pkt_to_drop)->size();
                           if (hdr_flags::access(pkt_to_drop)->pri_)
 			  {
                              in_bcount_ -=hdr_cmn::access(pkt_to_drop)->size();
@@ -532,7 +523,6 @@ void RIOQueue::enque(Packet* pkt)
                   /* forced drop, or not a drop: first enqueue pkt */
                   q_->enque(pkt);
 		  //printf("out: qlen %d %d\n", q_->length(), length());
-                  bcount_ += ch->size();
 
                   /* drop a packet if we were told to */
                   if (droptype == DTYPE_FORCED) {
@@ -540,7 +530,6 @@ void RIOQueue::enque(Packet* pkt)
                           pkt = pickPacketToDrop();
                           q_->remove(pkt);
 			  //printf("remove qlen %d %d\n",q_->length(),length());
-                          bcount_ -= hdr_cmn::access(pkt)->size();
                           if (hdr_flags::access(pkt)->pri_)
 			  {
                             in_bcount_ -= hdr_cmn::access(pkt)->size();
