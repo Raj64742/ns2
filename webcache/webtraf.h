@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.6 2000/08/17 00:03:39 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.7 2000/09/07 19:56:07 haoboy Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -67,6 +67,7 @@ public:
 	void donePage(void* ClntData);
 	void launchReq(void* ClntData, int obj, int size);
 	inline int id() const { return id_; }
+	inline WebTrafPool* mgr() { return mgr_; }
 
 	static int LASTPAGE_;
 
@@ -98,9 +99,8 @@ public:
 	}
 	inline void doneSession(int idx) { 
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
-#if 0
-		fprintf(stderr, "deleted session %d", idx);
-#endif
+		if (isdebug())
+			printf("deleted session %d\n", idx);
 		delete session_[idx];
 		session_[idx] = NULL; 
 	}
@@ -108,6 +108,10 @@ public:
 	TcpSink* picksink();
 	inline int nTcp() { return nTcp_; }
 	inline int nSink() { return nSink_; }
+	inline int isdebug() { return debug_; }
+
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char*, const char*, TclObject*);
 
 protected:
 	virtual int command(int argc, const char*const* argv);
@@ -156,6 +160,7 @@ protected:
 		rv = (RandomVariable*)lookup_obj(name);
 		return rv ? (TCL_OK) : (TCL_ERROR);
 	}
+	int debug_;
 };
 
 

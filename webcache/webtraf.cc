@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.8 2000/04/12 17:09:19 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.9 2000/09/07 19:56:07 haoboy Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -58,8 +58,13 @@ public:
 private:
 	virtual void expire(Event* = 0) {
 		// Launch a request. Make sure size is not 0!
+		if (curObj_ >= nObj_) 
+			return;
 		sess_->launchReq(this, LASTOBJ_++, 
 				 (int)ceil(sess_->objSize()->value()));
+		if (sess_->mgr()->isdebug())
+			printf("Session %d launched page %d obj %d\n",
+			       sess_->id(), id_, curObj_);
 	}
 	virtual void handle(Event *e) {
 		// XXX Note when curObj_ == nObj_, we still schedule the timer
@@ -67,10 +72,6 @@ private:
 		// schedule is only meant to be a hint to wait for the last
 		// request to finish, then we will ask our parent to delete
 		// this page.
-#if 0
-		fprintf(stderr, "Session %d handling page %d obj %d\n",
-			sess_->id(), id_, curObj_);
-#endif
 		if (curObj_ <= nObj_) {
 			// If this is not the last object, schedule the next 
 			// one. Otherwise stop and tell session to delete me.
@@ -116,10 +117,9 @@ WebTrafSession::~WebTrafSession()
 
 void WebTrafSession::donePage(void* ClntData) 
 {
-#if 0
-	fprintf(stderr, "Session %d done page %d\n", id_, 
-		((WebPage*)ClntData)->id());
-#endif
+	if (mgr_->isdebug()) 
+		printf("Session %d done page %d\n", id_, 
+		       ((WebPage*)ClntData)->id());
 	delete (WebPage*)ClntData;
 	// If all pages are done, tell my parent to delete myself
 	if (++donePage_ >= nPage_)
@@ -134,10 +134,9 @@ void WebTrafSession::expire(Event *)
 	// Make sure page size is not 0!
 	WebPage* pg = new WebPage(LASTPAGE_++, this, 
 				  (int)ceil(rvPageSize_->value()), dst);
-#if 0
-	printf("Session %d starting page %d, curpage %d \n", 
-	       id_, LASTPAGE_-1, curPage_);
-#endif
+	if (mgr_->isdebug())
+		printf("Session %d starting page %d, curpage %d \n", 
+		       id_, LASTPAGE_-1, curPage_);
 	pg->start();
 }
 
@@ -189,13 +188,9 @@ public:
 	}
 } class_webtrafpool;
 
-// By default we use constant request interval and page size
-WebTrafPool::WebTrafPool() : 
-	session_(NULL), nSrc_(0), server_(NULL), nClient_(0), client_(NULL),
-	nTcp_(0), nSink_(0)
+void WebTrafPool::delay_bind_init_all()
 {
-	LIST_INIT(&tcpPool_);
-	LIST_INIT(&sinkPool_);
+	delay_bind_init_one("debug_");
 }
 
 WebTrafPool::~WebTrafPool()
@@ -209,7 +204,24 @@ WebTrafPool::~WebTrafPool()
 		delete []server_;
 	if (client_ != NULL)
 		delete []client_;
-	// XXX Destroy tcpPool_ and sinkPool_!!
+	// XXX Destroy tcpPool_ and sinkPool_ ?
+}
+
+int WebTrafPool::delay_bind_dispatch(const char *varName,const char *localName,
+				     TclObject *tracer)
+{
+	if (delay_bind_bool(varName, localName, "debug_", &debug_, tracer)) 
+		return TCL_OK;
+	return TclObject::delay_bind_dispatch(varName, localName, tracer);
+}
+
+// By default we use constant request interval and page size
+WebTrafPool::WebTrafPool() : 
+	session_(NULL), nSrc_(0), server_(NULL), nClient_(0), client_(NULL),
+	nTcp_(0), nSink_(0)
+{
+	LIST_INIT(&tcpPool_);
+	LIST_INIT(&sinkPool_);
 }
 
 TcpAgent* WebTrafPool::picktcp()

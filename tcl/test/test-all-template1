@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.28 2000/08/29 22:03:43 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.29 2000/09/07 19:56:06 haoboy Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -100,7 +100,7 @@ for t in $tests; do
     case $file in
     *-session.tcl | *-mixmode.tcl)
 	$NS $file $t > temp.rands ;;
-    *-mpls.tcl)
+    *-mpls.tcl | *-webtraf.tcl)
 	$NS $file $t $qflag > temp.rands ;;
     *)
 	$NS $file $t $qflag ;;

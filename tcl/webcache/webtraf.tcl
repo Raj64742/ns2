@@ -21,7 +21,10 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.2 2000/07/22 23:52:34 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.3 2000/09/07 19:56:07 haoboy Exp $
+
+PagePool/WebTraf set debug_ false
+PagePool/WebTraf set TCPTYPE_ Reno
 
 PagePool/WebTraf instproc launch-req { id clnt svr ctcp csnk stcp ssnk size } {
 	set ns [Simulator instance]
@@ -83,7 +86,7 @@ PagePool/WebTraf instproc done-resp { id clnt svr stcp ssnk } {
 # XXX Should allow customizable TCP types. Can be easily done via a 
 # class variable
 PagePool/WebTraf instproc alloc-tcp {} {
-	return [new Agent/TCP/Reno]
+	return [new Agent/TCP/[PagePool/WebTraf set TCPTYPE_]]
 }
 
 PagePool/WebTraf instproc alloc-tcp-sink {} {

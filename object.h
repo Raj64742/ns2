@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.h,v 1.17 2000/09/01 03:04:06 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.h,v 1.18 2000/09/07 19:56:06 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_object_h
@@ -58,7 +58,7 @@ public:
 	virtual int command(int argc, const char*const* argv);
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
-	int isdebug() const { return debug_; }
+	inline int isdebug() const { return debug_; }
 	virtual void debug(const char *fmt, ...);
 protected:
 	virtual void reset();
