@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.212 2000/10/04 22:46:42 yewei Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.213 2000/11/02 04:02:10 haoboy Exp $
 
 #
 # Word of warning to developers:
@@ -1380,7 +1380,7 @@ Classifier instproc dump {} {
 	puts "\t[array size slots_] slots"
 	foreach i [lsort -integer [array names slots_]] {
 		set iv $slots_($i)
-		puts "\t\tslot $i: $iv"
+		puts "\t\tslot $i: $iv ([$iv info class])"
 	}
 }
 
