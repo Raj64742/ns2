@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.87 2001/02/22 19:45:42 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.88 2001/03/08 18:52:19 haldar Exp $
 #
 
 Node set nn_ 0
@@ -240,36 +240,53 @@ Node instproc install-entry { module clsfr {hook ""} } {
 	set classifier_ $clsfr
 }
 
+# CHANGE:
+# Node no longer keeps list of all rtmodules to be notified.
+# Instead we now have a chain (linked list) of modules, 
+# with rtnotif_ being the head of this linked list. 
+# Routing info flows from thru all rtmodules linked by this 
+# chain.
+
 # Whenever a route is added or deleted, $module should be notified
 Node instproc route-notify { module } {
 	$self instvar rtnotif_
-	lappend rtnotif_ $module
-	$module route-notify $self
+	if {$rtnotif_ == ""} {
+		set rtnotif_ $module
+	} else {
+		$rtnotif_ route-notify $module
+	}
 
+	$module cmd route-notify $self
 }
 
 Node instproc unreg-route-notify { module } {
 	$self instvar rtnotif_
-	set pos [lsearch $rtnotif_ $module]
-	if { $pos >= 0 } {
-		set rtnotif_ [lreplace $rtnotif_ $pos $pos]
+	if {$rtnotif_ != ""} {
+		if {$rtnotif_ == $module} {
+			set rtnotif_ [$rtnotif_ set next_rtm_]
+		} else {
+			$rtnotif_ unreg-route-notify $module
+		}
 	}
-	$module unreg-route-notify $self
+
+	$module cmd unreg-route-notify $self
 }
 
 Node instproc add-route { dst target } {
 	$self instvar rtnotif_
-	# Notify every module that is interested about this route installation
-	foreach m $rtnotif_ {
-		$m add-route $dst $target
+	# Notify every module that is interested about this 
+	# route installation
+	
+	if {$rtnotif_ != ""} {
+		$rtnotif_ add-route $dst $target
 	}
 	$self incr-rtgtable-size
 }
 
 Node instproc delete-route args {
 	$self instvar rtnotif_
-	foreach m $rtnotif_ {
-		eval $m delete-route $args
+	if {$rtnotif_ != ""} {
+		eval $rtnotif_ delete-route $args
 	}
 	$self decr-rtgtable-size
 }

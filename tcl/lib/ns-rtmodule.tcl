@@ -26,7 +26,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.6 2001/03/06 20:49:05 haldar Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.7 2001/03/08 18:52:19 haldar Exp $
 #
 # OTcl interface definition for the base routing module. They provide 
 # linkage to Node, hence all derived classes should inherit these interfaces
@@ -39,14 +39,12 @@ RtModule instproc register { node } {
 	$node port-notify $self
 }
 
-#RtModule instproc init { node } {
-#	$self instvar classifier_
-#	$self next 
-#	# Attach to node and register routing notifications
-#	$self attach-node $node
-#	$node route-notify $self
-#	$node port-notify $self
-#}
+RtModule instproc init {} {
+	$self next
+	$self instvar classifier_ next_rtm_
+	set next_rtm_ ""
+	set classifier_ ""
+}
 
 # Only called when the default classifier of this module is REPLACED.
 RtModule instproc unregister {} {
@@ -56,12 +54,40 @@ RtModule instproc unregister {} {
 	[$self node] unreg-port-notify $self
 }
 
+RtModule instproc route-notify { module } {
+	$self instvar next_rtm_
+	if {$next_rtm_ == ""} {
+		set next_rtm_ $module
+	} else {
+		$next_rtm_ route-notify $module
+	}
+}
+
+RtModule instproc unreg-route-notify { module } {
+	$self instvar next_rtm_
+	if {$next_rtm_ != ""} {
+		if {$next_rtm_ == $module} {
+			set next_rtm_ [$next_rtm_ set next_rtm_]
+		} else {
+			$next_rtm_ unreg-route-notify $module
+		}
+	}
+}
+
 RtModule instproc add-route { dst target } {
+	$self instvar next_rtm_
 	[$self set classifier_] install $dst $target
+	if {$next_rtm_ != ""} {
+		$next_rtm_ add-route $dst $target
+	}
 }
 
 RtModule instproc delete-route { dst nullagent} {
+	$self instvar next_rtm_
 	[$self set classifier_] install $dst $nullagent
+	if {$next_rtm_ != ""} {
+		$next_rtm_ delete-route $dst $nullagent
+	}
 }
 
 RtModule instproc attach { agent port } {
@@ -101,13 +127,9 @@ RtModule/Base instproc register { node } {
 	# XXX Base should ALWAYS be the first module to be installed.
 
 	$node install-entry $self $classifier_
-
-	#XXX this should go away when classifier_ becomes a 
-	#XXX a bound object across C++/OTcl line
-	#$self attach-classifier $classifier_
 }
 
-
+
 #
 # Illustrates usage of insert-entry{}. However:
 # 
@@ -123,10 +145,10 @@ RtModule/Mcast instproc register { node } {
 	# Keep old classifier so we can use RtModule::add-route{}.
 	$self set classifier_ [$node entry]
 	
-	if {[$classifier_ info class] != "Classifier/Virtual"} {
-		# donot want to add-route if virtual classifier
-		$self attach-classifier $classifier_
-	}
+	#if {[$classifier_ info class] != "Classifier/Virtual"} {
+	# donot want to add-route if virtual classifier
+	#$self attach-classifier $classifier_
+	#}
 	
 	$node set switch_ [new Classifier/Addr]
 
@@ -154,7 +176,6 @@ RtModule/Hier instproc register { node } {
 	$self instvar classifier_
 	set classifier_ [new Classifier/Hier]
 	$node install-entry $self $classifier_
-	#$self attach-classifier $classifier_
 }
 
 RtModule/Hier instproc delete-route args {
@@ -208,7 +229,6 @@ RtModule/Manual instproc register { node } {
 	$classifier_ set mask_ [AddrParams NodeMask 1]
 	$classifier_ set shift_ [AddrParams NodeShift 1]
 	$node install-entry $self $classifier_
-	#$self attach-classifier $classifier_
 }
 
 RtModule/Manual instproc add-route {dst_address target} {
@@ -262,8 +282,6 @@ RtModule/VC instproc register { node } {
 	$classifier_ set shift_ [AddrParams NodeShift 1]
 	$classifier_ nodeaddr [$node node-addr]
 	$node install-entry $self $classifier_ 
-	#$self attach-classifier $classifier_
-	#$self attach-self $node
 }
 
 RtModule/VC instproc add-route { dst target } {
@@ -293,7 +311,6 @@ RtModule/Nix instproc register { node } {
 	$classifier_ set-node-id [$node set id_]
 	#puts "RtModule/Nix set node id to [$node set id_]"
 	$node install-entry $self $classifier_
-        #$self attach-classifier $classifier_
 }
 
 RtModule/Nix instproc route-notify { module } { }

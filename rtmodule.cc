@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.cc,v 1.6 2001/03/06 20:49:05 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.cc,v 1.7 2001/03/08 18:52:18 haldar Exp $
  */
 
 #include "rtmodule.h"
@@ -104,14 +104,14 @@ int RoutingModule::command(int argc, const char*const* argv)
 			}
 			return TCL_OK;
 		}
-		if (strcmp(argv[1], "attach-classifier") == 0) {
-			classifier_ = (Classifier*)(TclObject::lookup(argv[2]));
-			if (classifier_ == NULL) {
-				tcl.add_errorf("Wrong object name %s",argv[2]);
-				return TCL_ERROR;
-			}
-			return TCL_OK;
-		}
+		//if (strcmp(argv[1], "attach-classifier") == 0) {
+		//classifier_ = (Classifier*)(TclObject::lookup(argv[2]));
+		//if (classifier_ == NULL) {
+		//tcl.add_errorf("Wrong object name %s",argv[2]);
+		//return TCL_ERROR;
+		//}
+		//return TCL_OK;
+		//}
 	}
 	return TclObject::command(argc, argv);
 }
@@ -185,14 +185,14 @@ int McastRoutingModule::command(int argc, const char*const* argv) {
 int HierRoutingModule::command(int argc, const char*const* argv) {
 	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
-		if (strcmp(argv[1], "attach-classifier") == 0) {
-			classifier_ = (HierClassifier*)(TclObject::lookup(argv[2]));
-			if (classifier_ == NULL) {
-				tcl.add_errorf("Wrong object name %s",argv[2]);
-				return TCL_ERROR;
-			}
-			return TCL_OK;
-		}
+		//if (strcmp(argv[1], "attach-classifier") == 0) {
+		//classifier_ = (HierClassifier*)(TclObject::lookup(argv[2]));
+		//if (classifier_ == NULL) {
+		//tcl.add_errorf("Wrong object name %s",argv[2]);
+		//return TCL_ERROR;
+		//}
+		//return TCL_OK;
+		//}
 		if (strcmp(argv[1] , "route-notify") == 0) {
 			Node *node = (Node *)(TclObject::lookup(argv[2]));
 			if (node == NULL) {
