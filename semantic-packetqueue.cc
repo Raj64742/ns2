@@ -63,7 +63,8 @@ SemanticPacketQueue::SemanticPacketQueue() : ack_count(0), data_count(0),
 	bind_bool("replace_head_", &replace_head_);
 	bind_bool("priority_drop_", &priority_drop_);
 	bind_bool("random_drop_", &random_drop_);
-}
+	bind_bool("random_ecn_", &random_ecn_);
+}	
 
 int
 SemanticPacketQueue::command(int argc, const char*const* argv)
@@ -208,10 +209,34 @@ SemanticPacketQueue::lookup(int index, int markedFlag)
 	return (NULL);
 }
 
+/*
+ * If random_ecn_ is set, pick out the packet for ECN at random from among the
+ * packets in the queue and the packet that just arrived ('pkt'). Otherwise, just
+ * pick the packet that just arrived.
+ */
+Packet*
+SemanticPacketQueue::pickPacketForECN(Packet* pkt) 
+{
+	Packet *victim;
+	int victimIndex;
+
+	if (random_ecn_) {
+		victimIndex = Random::integer(length()+1);
+		if (victimIndex == length())
+			victim = pkt;
+		else
+			victim = PacketQueue::lookup(victimIndex);
+	}
+	else 
+		victim = pkt;
+	return (victim);
+}
+		
+
 /* 
  * If priority_drop_ is set, drop marked packets before unmarked ones.
  * If in addition or separately random_drop_ is set, use randomization in
- * picking out the victim. XXXX not used at present 
+ * picking out the victim. XXX not used at present 
  */
 Packet*
 SemanticPacketQueue::pickPacketToDrop()
