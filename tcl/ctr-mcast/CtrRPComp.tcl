@@ -58,20 +58,26 @@ CtrRPComp instproc compute-rpset {} {
 
 		### find rpset for the region
 		foreach vertix $lvertix {
-			set ctrdm [[$vertix getArbiter] getType "CtrMcast"]
-			if [$ctrdm set c_bsr_] {set hasbsr 1}
-			if [$ctrdm set c_rp_] {
-				lappend rpset $vertix
+			set class_info [$vertix info class]
+			if {$class_info != "LanNode"} {
+				set ctrdm [[$vertix getArbiter] getType "CtrMcast"]
+				if [$ctrdm set c_bsr_] {set hasbsr 1}
+				if [$ctrdm set c_rp_] {
+					lappend rpset $vertix
+				}
 			}
 		}
 
 		foreach vertix $lvertix {
-			set ctrdm [[$vertix getArbiter] getType "CtrMcast"]
-			if $hasbsr {
-				$ctrdm set-rpset $rpset
-			} else {
-				$ctrdm set-rpset ""
-				puts "no c_bsr"
+			set class_info [$vertix info class]
+			if {$class_info != "LanNode"} {
+				set ctrdm [[$vertix getArbiter] getType "CtrMcast"]
+				if $hasbsr {
+					$ctrdm set-rpset $rpset
+				} else {
+					$ctrdm set-rpset ""
+					puts "no c_bsr"
+				}
 			}
 		}
 	}

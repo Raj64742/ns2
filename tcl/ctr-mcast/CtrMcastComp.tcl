@@ -56,7 +56,10 @@ CtrMcastComp instproc reset-mroutes {} {
 
 	foreach node [$ns_ all-nodes-list] {
 		foreach group [$self groups?] {
+		    set class_info [$node info class]
+		    if {$class_info != "LanNode"} {
 			$node clearReps * $group
+		    }
 #			*,G match catches all sources.
 # 			foreach src [$self sources? $group] {
 # 				$node clearReps [$src id] $group
@@ -342,11 +345,18 @@ CtrMcastComp instproc switch-treetype group {
 CtrMcastComp instproc set_c_rp args {
 	$self instvar ns_
     
+    
 	foreach n [$ns_ all-nodes-list] {
-		set arbiter [$n getArbiter]	   
-		set ctrmcast [$arbiter getType "CtrMcast"]
-		$ctrmcast unset_c_rp
+		set arbiter [$n getArbiter]
+		#NS creates a virtual node per LAN.  This node does
+		#not have any the multicast features set.
+		if {$arbiter != ""} {
+			set ctrmcast [$arbiter getType "CtrMcast"]
+			$ctrmcast instvar c_rp_
+			$ctrmcast unset_c_rp
+		}
 	}
+
 	foreach node $args {
 		set arbiter [$node getArbiter]	   
 		set ctrmcast [$arbiter getType "CtrMcast"]
