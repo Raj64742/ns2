@@ -25,7 +25,7 @@
 #
 # Makefile for NLANR web cache trace processing (http://ircache.nlanr.org).
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/nlanr/Makefile.in,v 1.1 1999/02/24 01:29:29 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/nlanr/Makefile.in,v 1.2 1999/02/24 01:52:01 haoboy Exp $
 
 CC = @CXX@
 INCLUDE = -I. @V_INCLUDES@
@@ -49,3 +49,6 @@ tr-stat: $(OBJ)
 
 clean: 
 	rm -f *.o *~ tr-stat core
+
+depend: $(SRC)
+	$(MKDEP) $(CFLAGS) $(INCLUDE) $(SRC)

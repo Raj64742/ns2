@@ -23,7 +23,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/epa/Makefile.in,v 1.1 1999/02/24 01:30:03 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/epa/Makefile.in,v 1.2 1999/02/24 01:52:00 haoboy Exp $
 
 CC = @CXX@
 MKDEP	= ../../../conf/mkdep
@@ -49,3 +49,6 @@ tr-stat: $(OBJ)
 
 clean: 
 	@rm -f *~ *.o tr-stat core
+
+depend: $(SRC)
+	$(MKDEP) $(CFLAGS) $(INCLUDE) $(SRC)
