@@ -424,6 +424,8 @@ fsm.cc
 fsm.h
 gaf/gaf.cc
 gaf/gaf.h
+gk.cc
+gk.h
 god.cc
 god.h
 gridkeeper.cc
@@ -694,6 +696,8 @@ red-pd.cc
 red-pd.h
 red.cc
 red.h
+rem.cc
+rem.h
 replicator.cc
 resv.cc
 resv.h
@@ -1228,6 +1232,7 @@ tcl/test/test-all-ecn-full
 tcl/test/test-all-energy
 tcl/test/test-all-friendly
 tcl/test/test-all-full
+tcl/test/test-all-gk
 tcl/test/test-all-greis
 tcl/test/test-all-hier-routing
 tcl/test/test-all-intserv
@@ -1253,6 +1258,7 @@ tcl/test/test-all-realaudio
 tcl/test/test-all-red
 tcl/test/test-all-red-pd
 tcl/test/test-all-red-v1
+tcl/test/test-all-rem
 tcl/test/test-all-rfc2581
 tcl/test/test-all-rfc793edu
 tcl/test/test-all-rio
@@ -1549,6 +1555,9 @@ tcl/test/test-output-full/twoway1.Z
 tcl/test/test-output-full/twoway_bsdcompat.Z
 tcl/test/test-output-full/twowayrandom.Z
 tcl/test/test-output-full/winlimited.Z
+tcl/test/test-output-gk/gk1.Z
+tcl/test/test-output-gk/gk2.Z
+tcl/test/test-output-gk/gk_twoway.Z
 tcl/test/test-output-greis/example1.Z
 tcl/test/test-output-greis/example1a.Z
 tcl/test/test-output-greis/example1b.Z
@@ -1704,6 +1713,11 @@ tcl/test/test-output-red-v1/red1_bytes.Z
 tcl/test/test-output-red-v1/red2.Z
 tcl/test/test-output-red-v1/red_twoway.Z
 tcl/test/test-output-red-v1/red_twowaybytes.Z
+tcl/test/test-output-rem/ecn.Z
+tcl/test/test-output-rem/rem1.Z
+tcl/test/test-output-rem/rem2.Z
+tcl/test/test-output-rem/rem_twoway.Z
+tcl/test/test-output-rem/rem_twowayecn.Z
 tcl/test/test-output-rfc2581/immediateAck.Z
 tcl/test/test-output-rfc2581/immediateAckNewReno.Z
 tcl/test/test-output-rfc2581/immediateAckReno.Z
@@ -2069,6 +2083,7 @@ tcl/test/test-suite-ecn.txt
 tcl/test/test-suite-energy.tcl
 tcl/test/test-suite-friendly.tcl
 tcl/test/test-suite-full.tcl
+tcl/test/test-suite-gk.tcl
 tcl/test/test-suite-greis.tcl
 tcl/test/test-suite-hier-routing.tcl
 tcl/test/test-suite-intserv.tcl
@@ -2097,6 +2112,7 @@ tcl/test/test-suite-red-v1.tcl
 tcl/test/test-suite-red-v1a.tcl
 tcl/test/test-suite-red.tcl
 tcl/test/test-suite-red.txt
+tcl/test/test-suite-rem.tcl
 tcl/test/test-suite-rfc2001.tcl
 tcl/test/test-suite-rfc2581.tcl
 tcl/test/test-suite-rfc793edu.tcl
