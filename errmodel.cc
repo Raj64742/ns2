@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.14 1997/09/08 22:03:21 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.15 1997/09/08 22:15:37 gnguyen Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -87,6 +87,8 @@ int ErrorModel::command(int argc, const char*const* argv)
 void ErrorModel::recv(Packet* p, Handler*)
 {
 	if (corrupt(p)) {
+		// if drop_ target exists, drop the corrupted packet
+		// else mark the error() flag of the packet and pass it on
 		if (drop_) {
 			drop_->recv(p);
 			return;
@@ -100,11 +102,13 @@ void ErrorModel::recv(Packet* p, Handler*)
 
 int ErrorModel::corrupt(Packet* p)
 {
-	hdr_cmn *hdr;
+	// if no random var is specified, assume uniform random variable
 	double rv = ranvar_ ? ranvar_->value() : Random::uniform();
+	hdr_cmn *hdr;
 
 	switch (eu_) {
 	case EU_PKT:
+	case EU_TIME:
 		return (rv < rate_);
 	case EU_BIT:
 		hdr = (hdr_cmn*) p->access(off_cmn_);
