@@ -129,6 +129,22 @@ TestSuite instproc traffic1 {} {
 }
 
 #------------------------------------------------------------------
+# Skeleton topology base class
+Class SkelTopology
+
+SkelTopology instproc init {} {
+    $self next
+}
+
+SkelTopology instproc node? n {
+    $self instvar node_
+    if [info exists node_($n)] {
+        set ret $node_($n)
+    } else {
+        set ret ""
+    }
+    set ret
+}
 
 #
 # create:
@@ -144,7 +160,7 @@ TestSuite instproc traffic1 {} {
 # - 10Mb/s, 3ms, drop-tail
 # = 1.5Mb/s, 20ms, CBQ
 #
-Class NodeTopology/6nodes
+Class NodeTopology/6nodes -superclass SkelTopology
 NodeTopology/6nodes instproc init ns {
 	$self next
 	$self instvar node_
@@ -200,7 +216,8 @@ TestSuite instproc linkDumpFlows { link interval stoptime } {
         $ns at $stoptime "close $f"
 }
 
-TestSuite instproc test {testname seed label} {
+Class Test/one -superclass TestSuite
+Test/one instproc run {testname seed label} {
     $self instvar ns_
 
 global ns s1 s2 r1 r2 s3 s4 r1fm flowgraphfile bandwidth
@@ -244,12 +261,11 @@ TestSuite proc usage {} {
         global argv0
         puts stderr "usage: ns $argv0 <tests> \[<topologies>\]"
         puts stderr "Valid tests are:\t[$self get-subclasses TestSuite Test/]"
-        puts stderr "Valid Topologies are:\t[$self get-subclasses SkelTopology Topolog
-y/]"
+        puts stderr "Valid Topologies are:\t[$self get-subclasses SkelTopology Topology/]"
         exit 1
 }
 
-TestSuite isProc? {cls prc} {
+TestSuite proc isProc? {cls prc} {
         if [catch "Object info subclass $cls/$prc" r] {
                 global argv0
                 puts stderr "$argv0: no such $cls: $prc"
