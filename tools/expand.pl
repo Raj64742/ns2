@@ -1,6 +1,6 @@
 
 sub usage {
-    die("usage: $0 <toolname-main-file>");
+    die("usage: $0 <mainfile> <toolname>");
 }
 
 if ($#ARGV != 1) {
