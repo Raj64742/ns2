@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.12 1997/10/23 20:53:25 kannan Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.13 1997/12/18 23:06:18 haoboy Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -61,14 +61,38 @@ public:
 } class_srmhdr;
 
 SRMAgent::SRMAgent() 
-        : Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1)
+        : Agent(PT_SRM), dataCtr_(-1), sessCtr_(-1), buckets_(SRM_BUCKETS)
 {
 	sip_ = new SRMinfo(-1);
+
+	// need to initialize hash table
+	htab_ = new hnode[buckets_];
+	if (htab_ != NULL) 
+		memset(htab_, 0, sizeof(hnode) * buckets_);
+	else
+		fprintf(stderr, "SRMAgent: out of memory\n");
 	
 	bind("off_srm_", &off_srm_);
 	bind("off_cmn_", &off_cmn_);
 	bind("packetSize_", &packetSize_);
 	bind("groupSize_", &groupSize_);
+}
+
+SRMAgent::~SRMAgent()
+{
+	register i;
+	hnode *p;
+	hnode *n;
+	for (i = 0; i < buckets_; i++) {
+		p = htab_[i].next;
+		while (p != NULL) {
+			n = p;
+			p = p->next;
+			delete n->data;
+			delete n;
+		}
+	}
+	delete htab_;
 }
 
 int SRMAgent::command(int argc, const char*const* argv)
@@ -111,6 +135,8 @@ int SRMAgent::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "start") == 0) {
 			sip_->sender_ = addr_;
 			sip_->distance_ = 0.0;
+			// insert the first node into hash table
+			insert(find_hash(addr_), sip_);
 			return TCL_OK;
 		}
 	}
@@ -320,6 +346,34 @@ void SRMAgent::recv_sess(int sessCtr, int* data)
 		if (sp->ldata_ < dataCnt)
 			sp->ldata_ = dataCnt;
 	}
+}
+
+SRMAgent::hnode* 
+SRMAgent::lookup(nsaddr_t sender)
+{
+	hnode *hn = &htab_[find_hash(sender)];
+	while (hn != NULL) {
+		if (compare(hn, sender))
+			break;
+		hn = hn->next;
+	}
+	return hn;
+}
+
+void SRMAgent::insert(int buck, SRMinfo *si)
+{
+	hnode *p;
+	if (htab_[buck].active) {
+		p = new hnode;
+		p->next = htab_[buck].next;
+		htab_[buck].next = p;
+	} else {
+		p = &htab_[buck];
+	}
+
+	p->active = 1;
+	p->id = si->sender_;
+	p->data = si;
 }
 
 static class ASRMAgentClass : public TclClass {

@@ -26,7 +26,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.7 1997/10/23 20:53:26 kannan Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.h,v 1.8 1997/12/18 23:06:19 haoboy Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -40,6 +40,8 @@
 
 #include "srm-headers.h"
 
+#define SRM_BUCKETS 300
+
 class SRMAgent : public Agent {
 protected:
 	int	dataCtr_;	          /* # of data packets sent */
@@ -50,19 +52,44 @@ protected:
 	int off_srm_;
 	int off_cmn_;
 
+	// hash functions
+	struct hnode {
+		int active;
+		nsaddr_t id;		  /* sender */
+		SRMinfo *data;
+		hnode *next;
+	};
+	hnode* htab_;
+	int buckets_;
+	virtual int compare(hnode* hn, nsaddr_t id) {
+		return (hn->active && hn->id == id);
+	}
+	virtual int find_hash(nsaddr_t sender) {
+		/* 
+		 * all agents from the same node are put into the same
+		 * bucket 
+		 */
+		return ((sender >> 8) % buckets_);
+	}
+	hnode* lookup(nsaddr_t);
+	void insert(int buck, SRMinfo *si);
+
 	SRMinfo* get_state(int sender) {
 		assert(sip_);
-		SRMinfo* ret;
-		for (ret = sip_; ret; ret = ret->next_)
-			if (ret->sender_ == sender)
-				break;
-		if (! ret) {
+		hnode *hn = lookup(sender);
+
+		if (! hn) {
+			// maintain both the sip_ list and a hash table
+			SRMinfo *ret = new SRMinfo(sender);
 			ret = new SRMinfo(sender);
 			ret->next_ = sip_->next_;
 			sip_->next_ = ret;
 			groupSize_++;
+
+			insert(find_hash(sender), ret);
+			return ret;
 		}
-		return ret;
+		return hn->data;
 	}
 	virtual void addExtendedHeaders(Packet*) {}
 	virtual void parseExtendedHeaders(Packet*) {}
@@ -99,6 +126,7 @@ protected:
 	void send_sess();
 public:
 	SRMAgent();
+	virtual ~SRMAgent();
 	int command(int argc, const char*const* argv);
 	void recv(Packet* p, Handler* h);
 };
