@@ -4,7 +4,7 @@
 # j.h.r.schrader@kpn.com
 # version 0.3
 # contributed by Schrader, J.H.R. <J.H.R.Schrader@kpn.com>
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/MPLS-sim-template.txt,v 1.3 2000/09/29 19:37:43 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/MPLS-sim-template.txt,v 1.4 2000/10/30 17:27:34 haoboy Exp $
 
 #
 # Create simulator object
@@ -41,12 +41,12 @@ $ns rtproto DV
 # and succeeded by node-config -MPLS OFF
 #
 set node0   [$ns node]
-node-config -MPLS ON
+$ns node-config -MPLS ON
 set LSR1   [$ns node]
 		:
 		:
 set LSR11  [$ns node]
-node-config -MPLS OFF
+$ns node-config -MPLS OFF
 set node12  [$ns node]
 
 #
