@@ -662,6 +662,7 @@ tcl/test/test-all-ecn
 tcl/test/test-all-ecn-ack
 tcl/test/test-all-friendly
 tcl/test/test-all-full
+tcl/test/test-all-greis
 tcl/test/test-all-intserv
 tcl/test/test-all-manual-routing
 tcl/test/test-all-mcast
@@ -694,6 +695,7 @@ tcl/test/test-output-cbq-v1
 tcl/test/test-output-ecn
 tcl/test/test-output-ecn-ack
 tcl/test/test-output-full
+tcl/test/test-output-greis
 tcl/test/test-output-hier-routing
 tcl/test/test-output-intserv
 tcl/test/test-output-lan
@@ -728,6 +730,7 @@ tcl/test/test-suite-ecn.tcl
 tcl/test/test-suite-ecn.txt
 tcl/test/test-suite-friendly.tcl
 tcl/test/test-suite-full.tcl
+tcl/test/test-suite-greis.tcl
 tcl/test/test-suite-hier-routing.tcl
 tcl/test/test-suite-intserv.tcl
 tcl/test/test-suite-lan.tcl
@@ -880,6 +883,12 @@ tcl/test/test-output-full/twoway1.Z
 tcl/test/test-output-full/twoway_bsdcompat.Z
 tcl/test/test-output-full/twowayrandom.Z
 tcl/test/test-output-full/winlimited.Z
+tcl/test/test-output-greis/example1.Z
+tcl/test/test-output-greis/example1a.Z
+tcl/test/test-output-greis/example1b.Z
+tcl/test/test-output-greis/example2.Z
+tcl/test/test-output-greis/example3.Z
+tcl/test/test-output-greis/example4.Z
 tcl/test/test-output-hier-routing/hier-cmcast.Z
 tcl/test/test-output-hier-routing/hier-deDM.Z
 tcl/test/test-output-hier-routing/hier-session.Z
