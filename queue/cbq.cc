@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.21 1997/08/12 00:32:19 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.22 1998/06/11 01:04:48 heideman Exp $ (LBL)";
 #endif
 
 //
@@ -145,7 +145,7 @@ public:
 	Packet*	pending_pkt() const { return (pending_pkt_); }
 	void		sched();
 	int		toplevel() {	// are we using toplevel?
-		return (eligible_ == eligible_toplevel);
+		return (eligible_ == &eligible_toplevel);
 	}
 	void		toplevel_arrival(CBQClass*, double);
 protected:
@@ -242,13 +242,13 @@ CBQueue::algorithm(const char *arg)
 {
 
 	if (*arg == '0' || (strcmp(arg, "ancestor-only") == 0)) {
-		eligible_ = eligible_ancestors;
+		eligible_ = &eligible_ancestors;
 		return (1);
 	} else if (*arg == '1' || (strcmp(arg, "top-level") == 0)) {
-		eligible_ = eligible_toplevel;
+		eligible_ = &eligible_toplevel;
 		return (1);
 	} else if (*arg == '2' || (strcmp(arg, "formal") == 0)) {
-		eligible_ = eligible_formal;
+		eligible_ = &eligible_formal;
 		return (1);
 	} else if (*arg == '3' || (strcmp(arg, "old-formal") == 0)) {
 		fprintf(stderr, "CBQ: old-formal LS not supported\n");

@@ -30,11 +30,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.16 1998/04/07 22:11:31 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.17 1998/06/11 01:04:49 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
 #define ns_config_h
+
+
+#define MEMDEBUG_SIMULATIONS
 
 
 #if defined(sgi) || defined(__bsdi__) || defined(__FreeBSD__) || defined(linux)

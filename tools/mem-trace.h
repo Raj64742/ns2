@@ -1,9 +1,11 @@
 #include <stdio.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#include <unistd.h>
 
 extern "C" {
-        int getrusage(int who, struct rusage* rusage);
+// should pick this up in a system file
+//        int getrusage(int who, struct rusage* rusage);
 } 
 	
 #define fDIFF(FIELD) (now_.FIELD - start_.FIELD)
@@ -24,7 +26,7 @@ void *cur_stack(struct MemInfo *meminfo)
 
 void *cur_heap(struct MemInfo *meminfo)
 {
-	meminfo->heap = sbrk(0);
+	meminfo->heap = (long)sbrk(0);
 }
 
 class MemTrace {

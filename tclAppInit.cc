@@ -14,6 +14,7 @@
  */
 
 #include "tclcl.h"
+#include "config.h"
 
 extern void init_misc(void);
 extern EmbeddedTcl et_ns_lib;
@@ -90,6 +91,7 @@ Tcl_AppInit(Tcl_Interp *interp)
 		return TCL_ERROR;
 
 #ifdef HAVE_LIBTCLDBG
+	extern int Dbg_Init(Tcl_Interp *);   // hackorama
 	if (Dbg_Init(interp) == TCL_ERROR) {
 		return TCL_ERROR;
 	}

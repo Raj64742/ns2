@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.cc,v 1.5 1997/08/10 07:49:45 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/object.cc,v 1.6 1998/06/11 01:04:53 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -45,13 +45,33 @@ static const char rcsid[] =
 /*XXX*/
 NsObject::NsObject()
 {
+#ifdef JOHNH_CLASSINSTVAR
+#else /* ! JOHNH_CLASSINSTVAR */
 	bind("off_cmn_", &off_cmn_);
 	bind("off_flags_", &off_flags_);
+#endif /* JOHNH_CLASSINSTVAR */
 }
 
 NsObject::~NsObject()
 {
 }
+
+#ifdef JOHNH_CLASSINSTVAR
+void
+NsObject::delay_bind_init_all()
+{
+	delay_bind_init_one("off_cmn_");
+	delay_bind_init_one("off_flags_");
+}
+
+int
+NsObject::delay_bind_dispatch(const char *varName, const char *localName)
+{
+	DELAY_BIND_DISPATCH(varName, localName, "off_cmn_", delay_bind, &off_cmn_);
+	DELAY_BIND_DISPATCH(varName, localName, "off_flags_", delay_bind, &off_flags_);
+	return TclObject::delay_bind_dispatch(varName, localName);
+}
+#endif /* JOHNH_CLASSINSTVAR */
 
 void NsObject::reset()
 {

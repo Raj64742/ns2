@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.16 1998/05/27 23:09:41 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.17 1998/06/11 01:04:47 heideman Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -67,6 +67,10 @@ class Agent : public Connector {
 	virtual void timeout(int tno);
  protected:
 	int command(int argc, const char*const* argv);
+#ifdef JOHNH_CLASSINSTVAR
+	virtual void delay_bind_init_all();
+	virtual int delay_bind_dispatch(const char *varName, const char *localName);
+#endif /* JOHNH_CLASSINSTVAR */
 	void recv(Packet*, Handler*);
 	Packet* allocpkt() const;	/* alloc + set up new pkt */
 	Packet* allocpkt(int) const;	/* same, but w/data buffer */

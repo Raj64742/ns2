@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.40 1998/05/27 23:09:13 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.41 1998/06/11 01:04:46 heideman Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -66,6 +66,8 @@ Agent::Agent(int pkttype) :
 	prio_(-1), flags_(0), defttl_(32), channel_(0), traceName_(NULL),
 	oldValueList_(NULL)
 {
+#ifdef JOHNH_CLASSINSTVAR
+#else /* ! JOHNH_CLASSINSTVAR */
 	/*
 	 * the following is a workaround to allow
 	 * older scripts that use "class_" instead of
@@ -84,7 +86,38 @@ Agent::Agent(int pkttype) :
 	bind("ttl_", &defttl_);
 
 	bind("off_ip_", &off_ip_);
+#endif /* JOHNH_CLASSINSTVAR */
 }
+
+#ifdef JOHNH_CLASSINSTVAR
+void
+Agent::delay_bind_init_all()
+{
+	delay_bind_init_one("addr_");
+	delay_bind_init_one("dst_");
+	delay_bind_init_one("fid_");
+	delay_bind_init_one("prio_");
+	delay_bind_init_one("flags_");
+	delay_bind_init_one("ttl_");
+	delay_bind_init_one("class_");
+	delay_bind_init_one("off_ip_");
+	Connector::delay_bind_init_all();
+}
+
+int
+Agent::delay_bind_dispatch(const char *varName, const char *localName)
+{
+	DELAY_BIND_DISPATCH(varName, localName, "addr_", delay_bind, (int*)&addr_);
+	DELAY_BIND_DISPATCH(varName, localName, "dst_", delay_bind, (int*)&dst_);
+	DELAY_BIND_DISPATCH(varName, localName, "fid_", delay_bind, (int*)&fid_);
+	DELAY_BIND_DISPATCH(varName, localName, "prio_", delay_bind, (int*)&prio_);
+	DELAY_BIND_DISPATCH(varName, localName, "flags_", delay_bind, (int*)&flags_);
+	DELAY_BIND_DISPATCH(varName, localName, "ttl_", delay_bind, &defttl_);
+	DELAY_BIND_DISPATCH(varName, localName, "off_ip_", delay_bind, &off_ip_);
+	DELAY_BIND_DISPATCH(varName, localName, "class_", delay_bind, (int*)&fid_);
+	return Connector::delay_bind_dispatch(varName, localName);
+}
+#endif /* JOHNH_CLASSINSTVAR */
 
 Agent::~Agent()
 {

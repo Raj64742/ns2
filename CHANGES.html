@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.250 1998/06/01 17:39:18 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.251 1998/06/11 01:04:45 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,18 @@
 	HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">Release of ns-2.1b3</A> [PENDING]
 </H3>
 <UL>
+  
+    <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+       <b>Wed Jun 10 17:58:06 PDT 1998</b><br>
+	 <ul>
+	   <li> enabled MEMDEBUG_SIMULATIONS by default (in config.h)
+	   <li> added support for delayed binding (see tclcl's CHANGES for details)
+		This is only enabled if you configure --enable-tclcl-classinstvar.
+		(Only added support in Agent and NsObject.)
+	   <li> Fixed compiler warnings in cbq.cc, errmodel.cc, queue.h (meet gcc 2.7.2.3).  Queue.h was an actual bug!
+	   <li> re-autoconf'ed
+	   <li> added memory tracing to many_tcp.tcl
+	 </ul>
 
     <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Wed May 27 11:46:01 PDT 1998</b><br>

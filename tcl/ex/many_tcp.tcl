@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.2 1998/06/01 21:16:16 heideman Exp $
+# $Id: many_tcp.tcl,v 1.3 1998/06/11 01:04:56 heideman Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -137,6 +137,7 @@ set raw_opt_info {
 	graph-results 0
 	graph-join-queueing 1
 	gen-map 0
+	mem-trace 0
 	debug 1
 		   
 	# Random number seed; default is 0, so ns will give a 
@@ -432,20 +433,21 @@ Main instproc open_trace { stop_time } {
 
 Main instproc finish {} {
         global opts
-	$self instvar trace_filename_
-
-	if {!$opts(graph-results)} {
-		exit 0
-	}
+	$self instvar trace_filename_ ns_
 
 	if {$opts(graph-join-queueing)} {
 		set q "-q"
 	} else {
 		set q ""
 	}
-	exec raw2xg -a -m $opts(web-page-size) -q < "$trace_filename_.tr" | xgraph -t "$opts(server-tcp-method)" &
+	if {$opts(graph-results)} {
+		exec raw2xg -a -m $opts(web-page-size) -q < "$trace_filename_.tr" | xgraph -t "$opts(server-tcp-method)" &
+	}
 #	exec raw2xg -a < out.tr | xgraph -t "$opts(server-tcp-method)" &
-	
+
+	if {$opts(mem-trace)} {
+		$ns_ clearMemTrace
+	}
 	exit 0
 }
 
