@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.22 1997/12/17 22:09:24 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.23 1997/12/18 03:09:21 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -106,7 +106,7 @@ public:
 FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
 	rq_(rcv_nxt_), last_ack_sent_(-1),
-	idle_(0), irs_(-1), delay_growth_(0)
+	last_send_time_(0.0), irs_(-1), delay_growth_(0)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -134,14 +134,15 @@ FullTcpAgent::reset()
 	cancel_timers();	// cancel timers first
 	TcpAgent::reset();	// resets most variables
 	rq_.clear();
+	rtt_init();
 
 	last_ack_sent_ = -1;
 	rcv_nxt_ = -1;
 	flags_ = 0;
 	t_seqno_ = iss_;
-	maxseq_ = iss_ - 1;
+	maxseq_ = -1;
 	irs_ = -1;
-	idle_ = 0.0;
+	last_send_time_ = 0.0;
 }
 
 /*
@@ -214,8 +215,10 @@ FullTcpAgent::advance_bytes(int nb)
 		reset();
 		curseq_ = iss_ + nb;
 		connect();		// initiate new connection
-	} else if (state_ == TCPS_ESTABLISHED)
+	} else if (state_ == TCPS_ESTABLISHED) {
 		curseq_ += nb;
+		send_much(0, REASON_NORMAL, 0);
+	}
 	return;
 }
 
@@ -281,6 +284,10 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
                 ++nrexmitpack_;
                 nrexmitbytes_ += datalen;
         }
+
+//printf("SENDPKT: %f, (%s): ssthresh: %d, seq:%d, len:%d, t_seq:%d\n",
+//now(), name(), int(ssthresh_), seqno, datalen, int(t_seqno_));
+	last_send_time_ = now();
         send(p, 0);
 }
 
@@ -291,18 +298,18 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
  *
  * simulator var, desc (name in real TCP)
  * --------------------------------------
- * maxseq_, largest seq# we've sent (snd_max)
+ * maxseq_, largest seq# we've sent plus one (snd_max)
  * flags_, flags regarding our internal state (t_state)
  * pflags, a local used to build up the tcp header flags (flags)
  * curseq_, is the highest sequence number given to us by "application"
- * highest_ack_, the highest ACK we've seen for our data (snd_una)
+ * highest_ack_, the highest ACK we've seen for our data (snd_una-1)
  * seqno, the next seq# we're going to send (snd_nxt), this will
  *	update t_seqno_ (the last thing we sent)
  */
 void FullTcpAgent::output(int seqno, int reason)
 {
-	int is_retransmit = (seqno <= maxseq_);
-	int idle = (highest_ack_ == (maxseq_+1));
+	int is_retransmit = (seqno < maxseq_);
+	int idle = (highest_ack_ == maxseq_);
 	int buffered_bytes = (curseq_ + iss_) - highest_ack_;
 	int win = window() * maxseg_;
 	int off = seqno - highest_ack_;
@@ -310,14 +317,17 @@ void FullTcpAgent::output(int seqno, int reason)
 	int pflags = outflags();
 	int emptying_buffer = FALSE;
 
-#ifdef notyet
 	//
 	// this is an option that causes us to slow-start if we've
 	// been idle for a "long" time, where long means a rto or longer
+	// the slow-start is a sort that does not set ssthresh
 	//
 
-	if (slow_start_restart_ && idle && idle_ >= t_rtxcur_) {
-		closecwnd(3);	// only reduce cwnd, no change to ssthresh
+#ifdef notyet
+
+	if (slow_start_restart_ && idle) {
+		if (idle_restart())
+			closecwnd(3);
 	}
 #endif
 
@@ -400,14 +410,15 @@ send:
 	 * sequence number so we don't go above maxseq_
 	 */
 
-	if (pflags & TH_FIN && flags_ & TF_SENTFIN && seqno >= maxseq_)
+	if (pflags & TH_FIN && flags_ & TF_SENTFIN && seqno == maxseq_)
 		--t_seqno_;
 
 	/*
 	 * SYNs and FINs each use up one sequence number
 	 */
 
-	if (pflags & (TH_SYN|TH_FIN)) {
+	int ctrl;
+	if (ctrl = pflags & (TH_SYN|TH_FIN)) {
 		if (pflags & TH_SYN) {
                         ++t_seqno_;
 		}
@@ -424,8 +435,11 @@ send:
 	if (seqno == t_seqno_)
 		t_seqno_ += datalen;	// update snd_nxt (t_seqno_)
 
-	if ((seqno + datalen) > maxseq_) {
-		maxseq_ = seqno + datalen;  // largest seq# we've sent
+	// highest: greatest sequence number sent + 1
+	//	and adjusted for SYNs and FINs which use up one number
+	int highest = seqno + datalen + (ctrl ? 1 : 0);
+	if (highest > maxseq_) {
+		maxseq_ = highest;
 		/*
 		 * Time this transmission if not a retransmission and
 		 * not currently timing anything.
@@ -443,6 +457,9 @@ send:
 	 * Future values are rtt + 4 * rttvar.
 	 */
 	if ((rtx_timer_.status() != TIMER_PENDING) && (t_seqno_ > highest_ack_)) {
+//printf("%f TCP(%s) set timer for, highest_ack_:%d, t_seqno:%d, seqno:%d\n",
+//now(), name(), int(highest_ack_), int(t_seqno_), seqno);
+
 
 		set_rtx_timer();  // no timer pending, schedule one
 	}
@@ -470,12 +487,27 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 	if (!force && (delsnd_timer_.status() == TIMER_PENDING))
 		return;
 
+	/*
+	 * note that if output() doesn't actually send anything, we can
+	 * loop forever here
+	 */
 	while (force || (t_seqno_ < topwin)) {
 		if (overhead_ != 0 && (delsnd_timer_.status() != TIMER_PENDING)) {
 			delsnd_timer_.resched(Random::uniform(overhead_));
 			return;
 		}
+		/*
+		 * note that if output decides to not actually send
+		 * (e.g. because of Nagle), then if we don't break out
+		 * of this loop, we can loop forever at the same
+		 * simulated time instant
+		 */
+		int save = t_seqno_;		// scrawl away current t_seqno
 		output(t_seqno_, reason);	// updates t_seqno for us
+		if (t_seqno_ == save) {		// progress?
+			break;
+		}
+
 		force = 0;
 
 		if ((outflags() & (TH_SYN|TH_FIN)) ||
@@ -503,31 +535,20 @@ void FullTcpAgent::newack(Packet* pkt)
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 
 	register int ackno = tcph->ackno();
+	int progress = (ackno > highest_ack_);
 
-	// we were timing the segment and we
-	// got an ACK for it
-	if (rtt_active_ && ackno >= rtt_seq_) {
-		/* got a rtt sample */
-		rtt_active_ = FALSE;	// no longer timing
-		t_backoff_ = 1;		// stop exp backoff
-	}
-
-	/* always with timestamp option */
-	double tao = now() - tcph->ts();
-
-	rtt_update(tao);
+//printf("%f TCP(%s) NEWACK ack: %d highest_ack_:%d, maxseq_:%d, srtt:%d\n", 
+//now(), name(), ackno, int(highest_ack_), int(maxseq_) , int(t_srtt_));
 
 
-	if (ackno > maxseq_) {
-		cancel_rtx_timer();
-	} else {
-		if (ackno > highest_ack_) {
-			set_rtx_timer();
-		}
+	if (ackno == maxseq_) {
+		cancel_rtx_timer();	// all data ACKd
+	} else if (progress) {
+		set_rtx_timer();	// updates timeout
 	}
 
 	// advance the ack number if this is for new data
-	if (ackno > highest_ack_)
+	if (progress)
 		highest_ack_ = ackno;
 
 	// if we have suffered a retransmit timeout, t_seqno_
@@ -539,6 +560,25 @@ void FullTcpAgent::newack(Packet* pkt)
 
 	if (t_seqno_ < highest_ack_)
 		t_seqno_ = highest_ack_; // seq# to send next
+
+        /*
+         * Update RTT only if it's OK to do so from info in the flags header.
+         * This is needed for protocols in which intermediate agents
+         * in the network intersperse acks (e.g., ack-reconstructors) for
+         * various reasons (without violating e2e semantics).
+         */
+        hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
+        if (!fh->no_ts_) {
+                if (ts_option_)
+                        rtt_update(now() - tcph->ts_echo());
+
+                if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
+                        t_backoff_ = 1;
+                        rtt_active_ = 0;
+                        if (!ts_option_)
+                                rtt_update(now() - tcph->ts_echo());
+                }
+        }
 
 	return;
 }
@@ -556,7 +596,7 @@ int FullTcpAgent::predict_ok(Packet* pkt)
 	int p1 = (state_ == TCPS_ESTABLISHED);		// ready
 	int p2 = (tcph->flags() == TH_ACK);		// is an ACK
 	int p3 = (tcph->seqno() == rcv_nxt_);		// in-order data
-	int p4 = (t_seqno_ == (maxseq_+1));		// not re-xmit
+	int p4 = (t_seqno_ == maxseq_);			// not re-xmit
 	int p5 = (((hdr_flags*)pkt->access(off_flags_))->ecn_ == 0);	// no ECN
 
 	return (p1 && p2 && p3 && p4 && p5);
@@ -594,6 +634,26 @@ int FullTcpAgent::need_send()
 	return ((rcv_nxt_ - last_ack_sent_) >= (segs_per_ack_ * maxseg_));
 }
 
+/*
+ * determine whether enough time has elapsed in order to
+ * conclude a "restart" is necessary (e.g. a slow-start)
+ *
+ * for now, keep track of this similarly to how rtt_update() does
+ */
+
+int
+FullTcpAgent::idle_restart()
+{
+	double tao = now() - last_send_time_;
+	if (!ts_option_) {
+                double tickoff = fmod(last_send_time_ + boot_time_,
+			tcp_tick_);
+                tao = int((tao + tickoff) / tcp_tick_);
+	}
+
+	return (tao > t_rtxcur_);  // verify this
+}
+
 
 /*
  * main reception path - 
@@ -616,6 +676,9 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int datalen = th->size() - tcph->hlen(); // # payload bytes
 	int ackno = tcph->ackno();	// ack # from packet
 	int tiflags = tcph->flags() ; // tcp flags from packet
+//printf("%f: FULLTCP(%s): state: %d, recv-pkt(seq: %d, ack: %d, flags: 0x%x, dlen : %d)\n",       
+//now(), name(), state_, tcph->seqno(), ackno, tcph->flags(), datalen);
+
 
 	if (state_ == TCPS_CLOSED)
 		goto drop;
@@ -727,7 +790,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 
 		/* drop if it's a SYN+ACK and the ack field is bad */
 		if ((tiflags & TH_ACK) && ((ackno < (iss_+1)) ||
-		    (ackno > (maxseq_+1)))) {
+		    (ackno > maxseq_))) {
 			// not an ACK for our SYN, discard
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): bad ACK (%d) for our SYN(%d)\n",
@@ -870,7 +933,7 @@ trimthenstep6:
 
 	switch (state_) {
 	case TCPS_SYN_RECEIVED:	/* want ACK for our SYN+ACK */
-		if (ackno < highest_ack_ || ackno > (maxseq_+1)) {
+		if (ackno < highest_ack_ || ackno > maxseq_) {
 			// not in useful range
 			goto dropwithreset;
 		}
@@ -972,7 +1035,7 @@ trimthenstep6:
 			cwnd_ = ssthresh_;
 		}
 		dupacks_ = 0;
-		if (ackno > (maxseq_ + 1)) {
+		if (ackno > maxseq_) {
 			// ack more than we sent(!?)
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s) too-big ACK (ack: %d, maxseq:%d)\n",
@@ -1013,7 +1076,7 @@ process_ACK:
 			opencwnd();
 		}
 		// K: added state check in equal but diff way
-		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno > maxseq_)) {
+		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno == maxseq_)) {
 			ourfinisacked = TRUE;
 		} else {
 			ourfinisacked = FALSE;
@@ -1427,6 +1490,9 @@ endfast:
 
 void FullTcpAgent::timeout(int tno)
 {
+
+//printf("TIMEOUT(%d): %f, (%s): ssthresh: %d\n",
+//tno, now(), name(), int(ssthresh_));
 
 	/*
 	 * shouldn't be getting timeouts here
