@@ -30,19 +30,10 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.5 2002/03/29 19:25:22 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.6 2002/04/04 01:06:04 sfloyd Exp $
 #
 
 source misc_simple.tcl
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-
-Agent/TCP set low_window_ 13
-Agent/TCP set high_window_ 12500
-Agent/TCP set high_p_ 0.000001
-Agent/TCP set high_decrease_ 0.1
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.
@@ -250,6 +241,22 @@ Test/tcpHighspeed4 instproc init {} {
     Agent/TCP set high_p_ 0.0000001
     Agent/TCP set high_decrease_ 0.25
     Test/tcpHighspeed4 instproc run {} [Test/tcp info instbody run ]
+    $self next 0
+}
+Class Test/tcpHighspeed5 -superclass TestSuite
+Test/tcpHighspeed5 instproc init {} {
+    $self instvar net_ test_ sender_ receiver_ guide_
+    set net_	net2b
+    set test_	tcpHighspeed5
+    set guide_	"Highspeed TCP, parameters set aggressively."
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    Agent/TCP set windowOption_ 8
+    Agent/TCP set low_window_ 13
+    Agent/TCP set high_window_ 12500
+    Agent/TCP set high_p_ 0.000001
+    Agent/TCP set high_decrease_ 0.1
+    Test/tcpHighspeed5 instproc run {} [Test/tcp info instbody run ]
     $self next 0
 }
 
