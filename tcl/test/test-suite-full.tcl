@@ -75,6 +75,7 @@ TestSuite instproc finish testname {
 			  $fname.p "segments" \
 			  $fname.acks "acks w/data" \
 			  $fname.packs "pure acks" $fname.d "drops" \
+			  $fname.es "zero-len segments" \
 			  $fname.ctrl "SYN or FIN" > .gnuplot
 			exec xterm -T "Gnuplot: $testname" -e gnuplot &
 			exec sleep 1
@@ -85,13 +86,14 @@ TestSuite instproc finish testname {
 			  $fname.p "segments" \
 			  $fname.acks "acks w/data" \
 			  $fname.packs "pure acks" $fname.d "drops" \
+			  $fname.es "zero-len segments" \
 			  $fname.ctrl "SYN or FIN" | $outtype &
 		}
 		exec sleep 1
 		exec rm -f \
-			$fname.p $fname.acks $fname.packs $fname.d $fname.ctrl
+			$fname.p $fname.acks $fname.packs $fname.d $fname.ctrl $fname.es
 	} else {
-		puts "output files are $fname.{p,packs,acks,d,ctrl}"
+		puts "output files are $fname.{p,packs,acks,d,ctrl,es}"
 	}
 }
 
@@ -496,9 +498,19 @@ Test/droppedsyn instproc init topo {
 	$self next
 }
 Test/droppedsyn instproc run {} {
-	$self instvar ns_ node_ testName_
+	$self instvar ns_ node_ testName_ topo_
 
 	set stopt 20.0	
+
+	$topo_ instvar lossylink_
+	set errmodule [$lossylink_ errormodule]
+	set errmodel [$errmodule errormodels]
+	if { [llength $errmodel] > 1 } {
+		puts "droppedfirstseg: confused by >1 err models..abort"
+		exit 1
+	}
+
+	$errmodel set offset_ 1.0
 
 	# set up connection (do not use "create-connection" method because
 	# we need a handle on the sink object)
@@ -519,9 +531,160 @@ Test/droppedsyn instproc run {} {
 	# set up special params for this test
 	$src set window_ 100
 	$src set delay_growth_ true
-	$src set windowInit_ 4
 	$src set tcpTick_ 0.500
 	$src set packetSize_ 576
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
+Class Test/droppedfirstseg -superclass TestSuite
+Test/droppedfirstseg instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0-lossy
+	set test_ droppedfirstseg
+	$self next
+}
+Test/droppedfirstseg instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 20.0	
+
+	$topo_ instvar lossylink_
+	set errmodule [$lossylink_ errormodule]
+	set errmodel [$errmodule errormodels]
+	if { [llength $errmodel] > 1 } {
+		puts "droppedfirstseg: confused by >1 err models..abort"
+		exit 1
+	}
+
+	$errmodel set offset_ 3.0
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$ns_ connect $src $sink
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$sink listen
+	set ftp1 [$src attach-source FTP]
+	$ns_ at 0.7 "$ftp1 start"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+	$src set packetSize_ 576
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
+Class Test/droppedsecondseg -superclass TestSuite
+Test/droppedsecondseg instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0-lossy
+	set test_ droppedsecondseg
+	$self next
+}
+Test/droppedsecondseg instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 20.0	
+
+	$topo_ instvar lossylink_
+	set errmodule [$lossylink_ errormodule]
+	set errmodel [$errmodule errormodels]
+	if { [llength $errmodel] > 1 } {
+		puts "droppedsecondseg: confused by >1 err models..abort"
+		exit 1
+	}
+
+	$errmodel set offset_ 4.0
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$ns_ connect $src $sink
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	$sink listen
+	set ftp1 [$src attach-source FTP]
+	$ns_ at 0.7 "$ftp1 start"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+	$src set packetSize_ 576
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
+Class Test/simul -superclass TestSuite
+Test/simul instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0-lossy
+	set test_ simul
+	$self next
+}
+Test/simul instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 9.0	
+
+	$topo_ instvar lossylink_
+	set errmodule [$lossylink_ errormodule]
+	set errmodel [$errmodule errormodels]
+	if { [llength $errmodel] > 1 } {
+		puts "simul: confused by >1 err models..abort"
+		exit 1
+	}
+
+	$errmodel set offset_ 20.0
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$ns_ connect $src $sink; # this is bi-directional
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	set ftp1 [$src attach-source FTP]
+	set ftp2 [$sink attach-source FTP]
+	$ns_ at 0.7 "$ftp1 start; $ftp2 start"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+	$src set packetSize_ 576
+
+	$sink set window_ 100
+	$sink set delay_growth_ true
+	$sink set tcpTick_ 0.500
+	$sink set packetSize_ 1460
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
 	$ns_ run
