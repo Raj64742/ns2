@@ -57,8 +57,11 @@ RTMechanisms instproc makeboxes { okboxfm pboxfm qsz psz } {
         $badclass_ install-queue $badq
         $goodclass_ install-queue $goodq
 
-        $badclass_ setparams $rootcl false 0.0 0.004 1 1 0
-        $goodclass_ setparams $rootcl true 0.98 0.004 1 1 0
+	$goodclass_ setparams $rootcl true 0.98 0.004 1 1 0
+	$badclass_ setparams $rootcl true 0.0 0.004 1 1 0
+# WHY DO NO PACKETS GET SENT WHEN BADCLASS has borrowing set to FALSE??? 
+# ../../ns rtm_reclass.tcl three net3
+
         $rootcl setparams none true 0.98 0.004 1 1 0
 
 	set okboxfm_ $okboxfm
