@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.157 1999/07/29 23:59:47 kkumar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.158 1999/08/13 22:29:42 yaxu Exp $
 
 #
 
@@ -195,7 +195,8 @@ Simulator instproc dumper obj {
 #                  antType
 #                  -energyModel    "EnergyModel"
 #                  -initialEnergy  (in Joules)
-
+#                  -RxPower        (in W)
+#                  -TxPower        (in W)
 
 Simulator set routingAgent_ ""
 Simulator set addressType_   ""
@@ -220,6 +221,8 @@ Simulator instproc phyType  {val} { $self set phyType_  $val }
 Simulator instproc antType  {val} { $self set antType_  $val }
 Simulator instproc energyModel  {val} { $self set energyModel_  $val }
 Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
+Simulator instproc TxPower  {val} { $self set txPower__  $val }
+Simulator instproc RxPower  {val} { $self set rxPower_  $val }
 
 
 Simulator instproc node-config args {
@@ -307,7 +310,7 @@ Simulator instproc create-wireless-node { args } {
 Simulator instproc create-dsdv-node { args } {
 
     $self instvar propType_ llType_ macType_ ifqType_ ifqlen_ phyType_
-    $self instvar antType_ energyModel_ initialEnergy_
+    $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_
 
     if {[Simulator set EnableHierRt_]} {
         if [Simulator set mobile_ip_] {
@@ -342,7 +345,15 @@ Simulator instproc create-dsdv-node { args } {
     if [info exists energyModel_] {
 	    $node addenergymodel [new $energyModel_ $initialEnergy_]
     }
-    
+
+    if [info exists txPower_] {
+	    $node setPr $txPower_
+    }
+
+    if [info exists rxPower_] {
+	    $node setPr $rxPower_
+    }
+
     $node attach $ragent 255
 
     $self at 0.0 "$ragent start-dsdv"    ;# start updates

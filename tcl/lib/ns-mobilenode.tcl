@@ -219,6 +219,17 @@ Node/MobileNode instproc add-target {agent port } {
     }
 }
 
+# set receiving power
+Node/MobileNode instproc setPt { val } {
+    $self instvar netif_
+    $netif(0) setTxPower $val
+}
+
+# set transmission power
+Node/MobileNode instproc setPr { val } {
+    $self instvar netif_
+    $netif(0) setRxPower $val
+}
 
 #
 #  The following setups up link layer, mac layer, network interface
@@ -406,3 +417,5 @@ Node/MobileNode set bandwidth_			0	;# not used
 Node/MobileNode set delay_				0	;# not used
 Node/MobileNode set off_prune_			0	;# not used
 Node/MobileNode set off_CtrMcast_			0	;# not used
+
+
