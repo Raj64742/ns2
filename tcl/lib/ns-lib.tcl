@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.23 1997/04/09 00:10:12 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.24 1997/04/10 19:31:23 padmanab Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -128,6 +128,7 @@ Simulator instproc run args {
 
 Simulator instproc simplex-link { n1 n2 bw delay type } {
 	$self instvar link_ queueMap_ nullAgent_
+	$self instvar traceAllFile_
 	set sid [$n1 id]
 	set did [$n2 id]
 	if [info exists queueMap_($type)] {
@@ -144,16 +145,14 @@ Simulator instproc simplex-link { n1 n2 bw delay type } {
 	 	set bw [[$link_($sid:$did) set link_] set bandwidth_]
 		$q set ptc_ [expr $bw / (8. * [$q set mean_pktsize_])]
 	}
+	if [info exists traceAllFile_] {
+		$self trace-queue $n1 $n2 $traceAllFile_
+	}
 }
 
 Simulator instproc duplex-link { n1 n2 bw delay type } {
 	$self simplex-link $n1 $n2 $bw $delay $type
 	$self simplex-link $n2 $n1 $bw $delay $type
-	$self instvar traceAllFile_
-	if [info exists traceAllFile_] {
-		$self trace-queue $n1 $n2 $traceAllFile_
-		$self trace-queue $n2 $n1 $traceAllFile_
-	}
 }
 
 Simulator instproc flush-trace {} {
