@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.79 1997/12/18 23:08:43 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.80 1997/12/18 23:23:49 heideman Exp $
 
 
 #
@@ -115,7 +115,11 @@ Agent/TCP/Vegas/RBP set rbp_scale_ 0.75
 # 1=RBP_VEGAS_RATE_ALGORITHM (default),
 # 2=RBP_CWND_ALGORITHM
 Agent/TCP/Vegas/RBP set rbp_rate_algorithm_ 1
+Agent/TCP/Vegas/RBP set rbp_segs_actually_paced_ 0
+Agent/TCP/Vegas/RBP set rbp_inter_pace_delay_ 0
 Agent/TCP/Reno/RBP set rbp_scale_ 0.75
+# Agent/TCP/Reno/RBP set rbp_segs_actually_paced_ 0
+Agent/TCP/Reno/RBP set rbp_inter_pace_delay_ 0
 # Reno/RBP supports only RBP_CWND_ALGORITHM 
 # Agent/TCP/Reno/RBP set rbp_rate_algorithm_ 2
 
