@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.145 2003/04/01 01:18:20 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.146 2003/06/03 03:35:55 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -132,6 +132,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("restart_bugfix_");
         delay_bind_init_one("timestamps_");
         delay_bind_init_one("maxburst_");
+	delay_bind_init_one("aggressive_maxburst_");
         delay_bind_init_one("maxcwnd_");
 	delay_bind_init_one("numdupacks_");
 	delay_bind_init_one("numdupacksFrac_");
@@ -225,6 +226,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind_bool(varName, localName, "slow_start_restart_", &slow_start_restart_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "restart_bugfix_", &restart_bugfix_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxburst_", &maxburst_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "aggressive_maxburst_", &aggressive_maxburst_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxcwnd_", &maxcwnd_ , tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "numdupacks_", &numdupacks_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "numdupacksFrac_", &numdupacksFrac_, tracer)) return TCL_OK;
@@ -1447,6 +1449,7 @@ void TcpAgent::processQuickStart(Packet *pkt)
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	int valid_ack = 0;
 	if (qs_approved_ == 1 && tcph->seqno() > last_ack_) 
 		endQuickStart();
 	if (qs_requested_ == 1)
@@ -1492,11 +1495,15 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	if (QOption_ && EnblRTTCtr_)
 		process_qoption_after_ack (tcph->seqno());
 
+	if (tcph->seqno() >= last_ack_)  
+		// Check if ACK is valid.  Suggestion by Mark Allman. 
+		valid_ack = 1;
 	Packet::free(pkt);
 	/*
 	 * Try to send more data.
 	 */
-	send_much(0, 0, maxburst_);
+	if (valid_ack || aggressive_maxburst_)
+		send_much(0, 0, maxburst_);
 }
 
 /*

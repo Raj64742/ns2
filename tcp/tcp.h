@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.108 2003/04/01 01:18:20 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.109 2003/06/03 03:35:55 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -272,6 +272,7 @@ protected:
 				/*  for illustration only  */
 	int ts_option_;		/* use RFC1323-like timestamps? */
 	int maxburst_;		/* max # packets can send back-2-back */
+	int aggressive_maxburst_;	/* Send on a non-valid ack? */
 	int maxcwnd_;		/* max # cwnd can ever be */
         int numdupacks_;	/* dup ACKs before fast retransmit */
 	int numdupacksFrac_;	/* for a larger numdupacks_ with large */

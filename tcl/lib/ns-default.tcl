@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.315 2003/05/06 04:21:00 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.316 2003/06/03 03:35:54 sfloyd Exp $
 
 
 #
@@ -704,6 +704,8 @@ Agent/UDP instproc process_data {from data} { }
 Agent/TCP set seqno_ 0
 Agent/TCP set t_seqno_ 0
 Agent/TCP set maxburst_ 0
+Agent/TCP set aggressive_maxburst_ 1 ;  # Added 2003/6/2.
+					# No change to default behavior.
 Agent/TCP set maxcwnd_ 0
 Agent/TCP set numdupacks_ 3
 Agent/TCP set numdupacksFrac_ 100 ;	# Added 2002/10/18.
