@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.21 1998/09/12 00:54:22 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.22 1998/09/17 01:38:42 kfall Exp $";
 #endif
 
 
@@ -83,7 +83,7 @@ void RTPAgent::start()
 
 void RTPAgent::stop()
 {
-        rtp_timer_.cancel();
+        rtp_timer_.force_cancel();
         finish();
 }
 
@@ -199,7 +199,7 @@ int RTPAgent::command(int argc, const char*const* argv)
  */
 void RTPAgent::rate_change()
 {
-	rtp_timer_.cancel();
+	rtp_timer_.force_cancel();
 	
 	double t = lastpkttime_ + interval_;
 	
