@@ -76,6 +76,7 @@ public:
 	void recv(Packet* p, Handler* h);
 protected:
 	int off_ipinip_;		/* XXX to be removed */
+	int off_ip_;
 };
 
 class SimpleTimer : public TimerHandler {
