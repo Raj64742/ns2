@@ -284,7 +284,7 @@ MobileNode::log_movement()
 	Scheduler& s = Scheduler::instance();
 
 	sprintf(log_target->buffer(),
-		"M %.5f %d (%.2f, %.2f, %.2f), (%.2f, %.2f), %.2f",
+		"WL M %.5f %d (%.2f, %.2f, %.2f), (%.2f, %.2f), %.2f",
 		s.clock(), address_, X, Y, Z, destX, destY, speed);
 	log_target->dump();
 }

@@ -125,9 +125,10 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 
 	sprintf(wrk_ + offset,
 #ifdef LOG_POSITION
-		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d [%x %x %x %x] ",
+		"WL %c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d [%x %x %x
+%x] ",
 #else
-		"%c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x] ",
+		"WL %c %.9f _%d_ %3s %4s %d %s %d [%x %x %x %x] ",
 #endif
 		op,
 		Scheduler::instance().clock(),
