@@ -1,588 +1,590 @@
-\contentsline {chapter}{\numberline {1}Introduction}{11}
-\contentsline {chapter}{\numberline {2}Undocumented Facilities}{15}
-\contentsline {part}{I\hspace {1em}Interface to the Interpreter}{17}
-\contentsline {chapter}{\numberline {3}OTcl Linkage}{18}
-\contentsline {section}{\numberline {3.1}Concept Overview}{18}
-\contentsline {section}{\numberline {3.2}Code Overview}{19}
-\contentsline {section}{\numberline {3.3}Class Tcl}{19}
-\contentsline {subsection}{\numberline {3.3.1}Obtain a Reference to the class Tcl instance}{20}
-\contentsline {subsection}{\numberline {3.3.2}Invoking OTcl Procedures}{20}
-\contentsline {subsection}{\numberline {3.3.3}Passing Results to/from the Interpreter}{20}
-\contentsline {subsection}{\numberline {3.3.4}Error Reporting and Exit}{21}
-\contentsline {subsection}{\numberline {3.3.5}Hash Functions within the Interpreter}{21}
-\contentsline {subsection}{\numberline {3.3.6}Other Operations on the Interpreter}{22}
-\contentsline {section}{\numberline {3.4}Class TclObject}{22}
-\contentsline {paragraph}{Differences from \emph {ns}\nobreakspace {}v1}{22}
-\contentsline {paragraph}{Example configuration of a TclObject}{22}
-\contentsline {subsection}{\numberline {3.4.1}Creating and Destroying TclObjects}{23}
-\contentsline {paragraph}{Creating TclObjects}{23}
-\contentsline {paragraph}{Deletion of TclObjects}{24}
-\contentsline {subsection}{\numberline {3.4.2}Variable Bindings}{24}
-\contentsline {subsection}{\numberline {3.4.3}Variable Tracing}{26}
-\contentsline {subsection}{\numberline {3.4.4}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily command\egroup Methods: Definition and Invocation}{27}
-\contentsline {section}{\numberline {3.5}Class TclClass}{29}
-\contentsline {subsection}{\numberline {3.5.1}How to Bind Static C++ Class Member Variables}{30}
-\contentsline {section}{\numberline {3.6}Class TclCommand}{32}
-\contentsline {section}{\numberline {3.7}Class EmbeddedTcl}{33}
-\contentsline {section}{\numberline {3.8}Class InstVar}{34}
-\contentsline {part}{II\hspace {1em}Simulator Basics}{36}
-\contentsline {chapter}{\numberline {4}The Class Simulator}{37}
-\contentsline {section}{\numberline {4.1}Simulator Initialization}{37}
-\contentsline {section}{\numberline {4.2}Schedulers and Events}{37}
-\contentsline {subsection}{\numberline {4.2.1}The List Scheduler}{38}
-\contentsline {subsection}{\numberline {4.2.2}the heap scheduler}{39}
-\contentsline {subsection}{\numberline {4.2.3}The Calendar Queue Scheduler}{39}
-\contentsline {subsection}{\numberline {4.2.4}The Real-Time Scheduler}{39}
-\contentsline {subsection}{\numberline {4.2.5}Precision of the scheduler clock used in ns}{39}
-\contentsline {section}{\numberline {4.3}Other Methods}{39}
-\contentsline {section}{\numberline {4.4}Commands\unhbox \voidb@x \penalty \@M \ at\unhbox \voidb@x \penalty \@M \ a\unhbox \voidb@x \penalty \@M \ glance}{41}
-\contentsline {chapter}{\numberline {5}Nodes and Packet Forwarding}{44}
-\contentsline {section}{\numberline {5.1}Node Basics}{44}
-\contentsline {section}{\numberline {5.2}Node Methods: Configuring the Node}{46}
-\contentsline {paragraph}{Control functions}{46}
-\contentsline {paragraph}{Address and Port number management}{47}
-\contentsline {paragraph}{Agent management}{47}
-\contentsline {paragraph}{Tracking Neighbors}{48}
-\contentsline {section}{\numberline {5.3}Node Configuration Interface}{48}
-\contentsline {section}{\numberline {5.4}The Classifier}{49}
-\contentsline {subsection}{\numberline {5.4.1}Address Classifiers}{52}
-\contentsline {subsection}{\numberline {5.4.2}Multicast Classifiers}{53}
-\contentsline {subsection}{\numberline {5.4.3}MultiPath Classifier}{54}
-\contentsline {subsection}{\numberline {5.4.4}Hash Classifier}{54}
-\contentsline {subsection}{\numberline {5.4.5}Replicator}{56}
-\contentsline {section}{\numberline {5.5}Routing Module and Classifier Organization}{57}
-\contentsline {subsection}{\numberline {5.5.1}Routing Module}{57}
-\contentsline {subsection}{\numberline {5.5.2}Node Interface}{59}
-\contentsline {section}{\numberline {5.6}Commands at a glance}{60}
-\contentsline {chapter}{\numberline {6}Links: Simple Links}{62}
-\contentsline {section}{\numberline {6.1}Instance Procedures for Links and SimpleLinks}{63}
-\contentsline {paragraph}{Link procedures}{63}
-\contentsline {paragraph}{SimpleLink Procedures}{64}
-\contentsline {section}{\numberline {6.2}Connectors}{65}
-\contentsline {section}{\numberline {6.3}Object hierarchy}{65}
-\contentsline {section}{\numberline {6.4}Commands at a glance}{66}
-\contentsline {chapter}{\numberline {7}Queue Management and Packet Scheduling}{69}
-\contentsline {section}{\numberline {7.1}The C++ Queue Class}{69}
-\contentsline {subsection}{\numberline {7.1.1}Queue blocking}{70}
-\contentsline {subsection}{\numberline {7.1.2}PacketQueue Class}{71}
-\contentsline {section}{\numberline {7.2}Example: Drop Tail}{72}
-\contentsline {section}{\numberline {7.3}Different types of Queue objects}{73}
-\contentsline {section}{\numberline {7.4}Commands at a glance}{77}
-\contentsline {section}{\numberline {7.5}Queue/JoBS}{77}
-\contentsline {subsection}{\numberline {7.5.1}The JoBS algorithm}{77}
-\contentsline {subsubsection}{Objective}{78}
-\contentsline {subsubsection}{Mechanisms}{78}
-\contentsline {subsection}{\numberline {7.5.2}Configuration}{79}
-\contentsline {subsubsection}{Initial Setup}{79}
-\contentsline {subsubsection}{Creating the JoBS links}{79}
-\contentsline {subsubsection}{Marking the traffic}{80}
-\contentsline {subsection}{\numberline {7.5.3}Tracing}{80}
-\contentsline {subsection}{\numberline {7.5.4}Variables}{80}
-\contentsline {subsubsection}{JoBS objects}{80}
-\contentsline {subsubsection}{Marker objects}{81}
-\contentsline {subsubsection}{Demarker objects}{81}
-\contentsline {subsection}{\numberline {7.5.5}Commands at a glance}{81}
-\contentsline {subsubsection}{JoBS objects}{81}
-\contentsline {subsubsection}{Marker objects}{82}
-\contentsline {subsubsection}{Demarker objects}{83}
-\contentsline {chapter}{\numberline {8}Delays and Links}{84}
-\contentsline {section}{\numberline {8.1}The LinkDelay Class}{84}
-\contentsline {section}{\numberline {8.2}Commands at a glance}{85}
-\contentsline {chapter}{\numberline {9}Differentiated Services Module in \emph {ns}}{86}
-\contentsline {section}{\numberline {9.1}Overview}{86}
-\contentsline {section}{\numberline {9.2}Implementation}{87}
-\contentsline {subsection}{\numberline {9.2.1}RED queue in DiffServ module}{87}
-\contentsline {subsection}{\numberline {9.2.2}Edge and core routers}{87}
-\contentsline {subsection}{\numberline {9.2.3}Policy}{88}
-\contentsline {section}{\numberline {9.3}Configuration}{89}
-\contentsline {section}{\numberline {9.4}Commands at a glance}{91}
-\contentsline {chapter}{\numberline {10}Agents}{94}
-\contentsline {section}{\numberline {10.1}Agent state}{94}
-\contentsline {section}{\numberline {10.2}Agent methods}{94}
-\contentsline {section}{\numberline {10.3}Protocol Agents}{95}
-\contentsline {section}{\numberline {10.4}OTcl Linkage}{96}
-\contentsline {subsection}{\numberline {10.4.1}Creating and Manipulating Agents}{96}
-\contentsline {subsection}{\numberline {10.4.2}Default Values}{96}
-\contentsline {subsection}{\numberline {10.4.3}OTcl Methods}{97}
-\contentsline {section}{\numberline {10.5}Examples: Tcp, TCP Sink Agents}{97}
-\contentsline {subsection}{\numberline {10.5.1}Creating the Agent}{97}
-\contentsline {subsection}{\numberline {10.5.2}Starting the Agent}{98}
-\contentsline {subsection}{\numberline {10.5.3}Processing Input at Receiver}{99}
-\contentsline {subsection}{\numberline {10.5.4}Processing Responses at the Sender}{100}
-\contentsline {subsection}{\numberline {10.5.5}Implementing Timers}{101}
-\contentsline {section}{\numberline {10.6}Creating a New Agent}{101}
-\contentsline {subsection}{\numberline {10.6.1}Example: A ``ping'' requestor (Inheritance Structure)}{101}
-\contentsline {subsection}{\numberline {10.6.2}The \texttt {recv}() and \texttt {timeout}() Methods}{102}
-\contentsline {subsection}{\numberline {10.6.3}Linking the ``ping'' Agent with OTcl}{102}
-\contentsline {subsection}{\numberline {10.6.4}Using the agent through OTcl}{104}
-\contentsline {section}{\numberline {10.7}The Agent API}{104}
-\contentsline {section}{\numberline {10.8}Different agent objects}{104}
-\contentsline {section}{\numberline {10.9}Commands at a glance}{107}
-\contentsline {chapter}{\numberline {11}Timers}{109}
-\contentsline {section}{\numberline {11.1}C++ abstract base class TimerHandler}{109}
-\contentsline {subsection}{\numberline {11.1.1}Definition of a new timer}{110}
-\contentsline {subsection}{\numberline {11.1.2}Example: Tcp retransmission timer}{110}
-\contentsline {section}{\numberline {11.2}OTcl Timer class}{113}
-\contentsline {section}{\numberline {11.3}Commands at a glance}{113}
-\contentsline {chapter}{\numberline {12}Packet Headers and Formats}{114}
-\contentsline {section}{\numberline {12.1}A Protocol-Specific Packet Header}{114}
-\contentsline {subsection}{\numberline {12.1.1}Adding a New Packet Header Type}{116}
-\contentsline {subsection}{\numberline {12.1.2}Selectively Including Packet Headers in Your Simulation}{116}
-\contentsline {section}{\numberline {12.2}Packet Classes}{117}
-\contentsline {subsection}{\numberline {12.2.1}The Packet Class}{117}
-\contentsline {subsection}{\numberline {12.2.2}p\_info Class}{120}
-\contentsline {subsection}{\numberline {12.2.3}The hdr\_cmn Class}{120}
-\contentsline {subsection}{\numberline {12.2.4}The PacketHeaderManager Class}{121}
-\contentsline {section}{\numberline {12.3}Commands at a glance}{122}
-\contentsline {chapter}{\numberline {13}Error Model}{124}
-\contentsline {section}{\numberline {13.1}Implementation}{124}
-\contentsline {section}{\numberline {13.2}Configuration}{125}
-\contentsline {section}{\numberline {13.3}Multi-state error model}{126}
-\contentsline {section}{\numberline {13.4}Commands at a glance}{127}
-\contentsline {chapter}{\numberline {14}Local Area Networks}{129}
-\contentsline {section}{\numberline {14.1}Tcl configuration}{129}
-\contentsline {section}{\numberline {14.2}Components of a LAN}{130}
-\contentsline {section}{\numberline {14.3}Channel Class}{131}
-\contentsline {subsection}{\numberline {14.3.1}Channel State}{131}
-\contentsline {subsection}{\numberline {14.3.2}Example: Channel and classifier of the physical layer}{131}
-\contentsline {subsection}{\numberline {14.3.3}Channel Class in C++}{131}
-\contentsline {section}{\numberline {14.4}MacClassifier Class}{132}
-\contentsline {section}{\numberline {14.5}MAC Class}{133}
-\contentsline {subsection}{\numberline {14.5.1}Mac State}{133}
-\contentsline {subsection}{\numberline {14.5.2}Mac Methods}{133}
-\contentsline {subsection}{\numberline {14.5.3}Mac Class in C++}{133}
-\contentsline {subsection}{\numberline {14.5.4}CSMA-based MAC}{134}
-\contentsline {section}{\numberline {14.6}LL (link-layer) Class}{135}
-\contentsline {subsection}{\numberline {14.6.1}LL Class in C++}{135}
-\contentsline {subsection}{\numberline {14.6.2}Example: Link Layer configuration}{135}
-\contentsline {section}{\numberline {14.7}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily LanRouter\egroup class}{136}
-\contentsline {section}{\numberline {14.8}Other Components}{136}
-\contentsline {section}{\numberline {14.9}LANs and \emph {ns}\ routing}{136}
-\contentsline {section}{\numberline {14.10}Commands at a glance}{138}
-\contentsline {chapter}{\numberline {15}The (Revised) Addressing Structure in NS}{139}
-\contentsline {section}{\numberline {15.1}The Default Address Format}{139}
-\contentsline {section}{\numberline {15.2}The Hierarchical Address Format}{139}
-\contentsline {subsection}{\numberline {15.2.1}Default Hierarchical Setting}{140}
-\contentsline {subsection}{\numberline {15.2.2}Specific Hierarchical Setting}{140}
-\contentsline {section}{\numberline {15.3}The Expanded Node-Address Format}{140}
-\contentsline {section}{\numberline {15.4}Expanding port-id field}{140}
-\contentsline {section}{\numberline {15.5}Errors in setting address format}{141}
-\contentsline {section}{\numberline {15.6}Commands at a glance}{141}
-\contentsline {chapter}{\numberline {16}Mobile Networking in ns}{142}
-\contentsline {section}{\numberline {16.1}The basic wireless model in ns}{142}
-\contentsline {subsection}{\numberline {16.1.1}Mobilenode: creating wireless topology}{142}
-\contentsline {subsection}{\numberline {16.1.2}Creating Node movements}{146}
-\contentsline {subsection}{\numberline {16.1.3}Network Components in a mobilenode}{147}
-\contentsline {subsection}{\numberline {16.1.4}Different MAC layer protocols for mobile networking}{150}
-\contentsline {subsubsection}{802.11 MAC protocol}{150}
-\contentsline {subsubsection}{Preamble based TDMA protocol}{150}
-\contentsline {subsection}{\numberline {16.1.5}Different types of Routing Agents in mobile networking}{151}
-\contentsline {subsubsection}{DSDV}{151}
-\contentsline {subsubsection}{DSR}{151}
-\contentsline {subsubsection}{TORA}{152}
-\contentsline {subsubsection}{AODV}{152}
-\contentsline {subsection}{\numberline {16.1.6}Trace Support}{152}
-\contentsline {subsection}{\numberline {16.1.7}Revised format for wireless traces}{156}
-\contentsline {subsubsection}{Explanation of new trace format}{156}
-\contentsline {subsection}{\numberline {16.1.8}Generation of node-movement and traffic-connection for wireless scenarios}{158}
-\contentsline {subsubsection}{MobileNode Movement}{158}
-\contentsline {subsubsection}{Generating traffic pattern files}{159}
-\contentsline {section}{\numberline {16.2}Extensions made to CMU's wireless model}{159}
-\contentsline {subsection}{\numberline {16.2.1}wired-cum-wireless scenarios}{159}
-\contentsline {subsection}{\numberline {16.2.2}MobileIP}{160}
-\contentsline {section}{\numberline {16.3}Lists of changes for merging code developed in older version of ns (2.1b5 or later) into the current version (2.1b8) }{163}
-\contentsline {section}{\numberline {16.4}Commands at a glance}{165}
-\contentsline {chapter}{\numberline {17}Satellite Networking in \emph {ns}}{168}
-\contentsline {section}{\numberline {17.1}Overview of satellite models}{168}
-\contentsline {subsection}{\numberline {17.1.1}Geostationary satellites}{168}
-\contentsline {subsection}{\numberline {17.1.2}Low-earth-orbiting satellites}{169}
-\contentsline {section}{\numberline {17.2}Using the satellite extensions}{171}
-\contentsline {subsection}{\numberline {17.2.1}Nodes and node positions}{171}
-\contentsline {subsection}{\numberline {17.2.2}Satellite links}{172}
-\contentsline {subsection}{\numberline {17.2.3}Handoffs }{174}
-\contentsline {subsection}{\numberline {17.2.4}Routing }{175}
-\contentsline {subsection}{\numberline {17.2.5}Trace support}{176}
-\contentsline {subsection}{\numberline {17.2.6}Error models}{177}
-\contentsline {subsection}{\numberline {17.2.7}Other configuration options}{178}
-\contentsline {subsection}{\numberline {17.2.8}\emph {nam}\nobreakspace {}\nobreakspace {}support}{178}
-\contentsline {subsection}{\numberline {17.2.9}Integration with wired and wireless code}{178}
-\contentsline {subsection}{\numberline {17.2.10}Example scripts}{179}
-\contentsline {section}{\numberline {17.3}Implementation}{179}
-\contentsline {subsection}{\numberline {17.3.1}Use of linked lists}{180}
-\contentsline {subsection}{\numberline {17.3.2}Node structure}{180}
-\contentsline {subsection}{\numberline {17.3.3}Detailed look at satellite links}{181}
-\contentsline {section}{\numberline {17.4}Commands at a glance}{183}
-\contentsline {chapter}{\numberline {18}Radio Propagation Models}{185}
-\contentsline {section}{\numberline {18.1}Free space model}{185}
-\contentsline {section}{\numberline {18.2}Two-ray ground reflection model}{186}
-\contentsline {section}{\numberline {18.3}Shadowing model}{186}
-\contentsline {subsection}{\numberline {18.3.1}Backgroud}{186}
-\contentsline {subsection}{\numberline {18.3.2}Using shadowing model}{188}
-\contentsline {section}{\numberline {18.4}Communication range}{188}
-\contentsline {section}{\numberline {18.5}Commands at a glance}{189}
-\contentsline {chapter}{\numberline {19}Energy Model in ns}{190}
-\contentsline {section}{\numberline {19.1}The C++ EnergyModel Class}{190}
-\contentsline {section}{\numberline {19.2}The OTcl interface}{191}
-\contentsline {chapter}{\numberline {20}Directed Diffusion}{192}
-\contentsline {section}{\numberline {20.1}What is Directed Diffusion?}{192}
-\contentsline {section}{\numberline {20.2}The diffusion model in ns}{192}
-\contentsline {section}{\numberline {20.3}Some mac issues for diffusion in ns}{193}
-\contentsline {section}{\numberline {20.4}Ping: an example diffusion application implementation}{194}
-\contentsline {subsection}{\numberline {20.4.1}Ping Application as implemented in C++}{194}
-\contentsline {subsection}{\numberline {20.4.2}Tcl APIs for the ping application}{194}
-\contentsline {section}{\numberline {20.5}Test-suites for diffusion}{195}
-\contentsline {section}{\numberline {20.6}Commands at a glance}{195}
-\contentsline {part}{III\hspace {1em}Support}{197}
-\contentsline {chapter}{\numberline {21}Debugging ns}{198}
-\contentsline {section}{\numberline {21.1}Tcl-level Debugging}{198}
-\contentsline {section}{\numberline {21.2}C++-Level Debugging}{198}
-\contentsline {section}{\numberline {21.3}Mixing Tcl and C debugging}{199}
-\contentsline {section}{\numberline {21.4}Memory Debugging}{200}
-\contentsline {subsection}{\numberline {21.4.1}Using dmalloc}{200}
-\contentsline {subsection}{\numberline {21.4.2}Memory Conservation Tips}{201}
-\contentsline {subsection}{\numberline {21.4.3}Some statistics collected by dmalloc}{201}
-\contentsline {section}{\numberline {21.5}Memory Leaks}{201}
-\contentsline {subsection}{\numberline {21.5.1}OTcl}{202}
-\contentsline {subsection}{\numberline {21.5.2}C/C++}{202}
-\contentsline {chapter}{\numberline {22}Mathematical Support}{203}
-\contentsline {section}{\numberline {22.1}Random Number Generation}{203}
-\contentsline {subsection}{\numberline {22.1.1}Seeding The RNG}{204}
-\contentsline {subsubsection}{Example}{204}
-\contentsline {subsubsection}{Output}{205}
-\contentsline {subsection}{\numberline {22.1.2}OTcl Support}{206}
-\contentsline {subsubsection}{Commands}{206}
-\contentsline {subsubsection}{Example}{206}
-\contentsline {subsubsection}{Output}{207}
-\contentsline {subsection}{\numberline {22.1.3}C++ Support}{207}
-\contentsline {subsubsection}{Member Functions}{207}
-\contentsline {subsubsection}{Example}{208}
-\contentsline {subsubsection}{Output}{208}
-\contentsline {section}{\numberline {22.2}Random Variables}{208}
-\contentsline {section}{\numberline {22.3}Integrals}{209}
-\contentsline {section}{\numberline {22.4}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily ns-random\egroup }{210}
-\contentsline {section}{\numberline {22.5}Some mathematical-support related objects}{211}
-\contentsline {section}{\numberline {22.6}Commands at a glance}{211}
-\contentsline {chapter}{\numberline {23}Trace and Monitoring Support}{213}
-\contentsline {section}{\numberline {23.1}Trace Support}{213}
-\contentsline {subsection}{\numberline {23.1.1}OTcl Helper Functions}{214}
-\contentsline {section}{\numberline {23.2}Library support and examples}{215}
-\contentsline {section}{\numberline {23.3}The C++ Trace Class}{217}
-\contentsline {section}{\numberline {23.4}Trace File Format}{218}
-\contentsline {section}{\numberline {23.5}Packet Types}{220}
-\contentsline {section}{\numberline {23.6}Queue Monitoring}{221}
-\contentsline {section}{\numberline {23.7}Per-Flow Monitoring}{223}
-\contentsline {subsection}{\numberline {23.7.1}The Flow Monitor}{223}
-\contentsline {subsection}{\numberline {23.7.2}Flow Monitor Trace Format}{223}
-\contentsline {subsection}{\numberline {23.7.3}The Flow Class}{224}
-\contentsline {section}{\numberline {23.8}Commands at a glance}{224}
-\contentsline {chapter}{\numberline {24}Test Suite Support}{227}
-\contentsline {section}{\numberline {24.1}Test Suite Components}{227}
-\contentsline {section}{\numberline {24.2}Write a Test Suite}{227}
-\contentsline {chapter}{\numberline {25}ns Code Styles}{230}
-\contentsline {section}{\numberline {25.1}Indentation style}{230}
-\contentsline {section}{\numberline {25.2}Variable Naming Conventions}{230}
-\contentsline {section}{\numberline {25.3}Miscellaneous}{230}
-\contentsline {part}{IV\hspace {1em}Routing}{232}
-\contentsline {chapter}{\numberline {26}Unicast Routing}{233}
-\contentsline {section}{\numberline {26.1}The Interface to the Simulation Operator (The API)}{233}
-\contentsline {paragraph}{Preference Assignment and Control}{234}
-\contentsline {paragraph}{Link Cost Assignment and Control}{234}
-\contentsline {section}{\numberline {26.2}Other Configuration Mechanisms for Specialised Routing}{234}
-\contentsline {paragraph}{Asymmetric Routing}{235}
-\contentsline {paragraph}{MultiPath Routing}{235}
-\contentsline {section}{\numberline {26.3}Protocol Specific Configuration Parameters}{235}
-\contentsline {paragraph}{Static Routing}{235}
-\contentsline {paragraph}{Session Routing}{235}
-\contentsline {paragraph}{DV Routing}{236}
-\contentsline {paragraph}{Manual Routing}{236}
-\contentsline {section}{\numberline {26.4}Internals and Architecture of Routing}{236}
-\contentsline {subsection}{\numberline {26.4.1}The classes}{236}
-\contentsline {paragraph}{\clsref {RouteLogic}{../ns-2/route-proto.tcl}}{237}
-\contentsline {paragraph}{\clsref {rtObject}{../ns-2/route-proto.tcl}}{237}
-\contentsline {paragraph}{The \clsref {rtPeer}{../ns-2/route-proto.tcl}}{238}
-\contentsline {paragraph}{\clsref {Agent/rtProto}{../ns-2/route-proto.tcl}}{238}
-\contentsline {paragraph}{Other Extensions to the Simulator, Node, Link, and Classifier}{239}
-\contentsline {subsection}{\numberline {26.4.2}Interface to Network Dynamics and Multicast}{240}
-\contentsline {paragraph}{Actions at the individual nodes}{240}
-\contentsline {paragraph}{Global Actions}{241}
-\contentsline {section}{\numberline {26.5}Protocol Internals}{241}
-\contentsline {paragraph}{Direct Routing}{241}
-\contentsline {paragraph}{Static Routing}{241}
-\contentsline {paragraph}{Session Routing}{241}
-\contentsline {paragraph}{DV Routing}{241}
-\contentsline {section}{\numberline {26.6}Unicast routing objects}{242}
-\contentsline {section}{\numberline {26.7}Commands at a glance}{242}
-\contentsline {chapter}{\numberline {27}Multicast Routing}{244}
-\contentsline {section}{\numberline {27.1}Multicast API}{244}
-\contentsline {subsection}{\numberline {27.1.1}Multicast Behavior Monitor Configuration}{245}
-\contentsline {subsection}{\numberline {27.1.2}Protocol Specific configuration}{246}
-\contentsline {paragraph}{Centralized Multicast}{246}
-\contentsline {paragraph}{Dense Mode}{247}
-\contentsline {paragraph}{Shared Tree Mode}{247}
-\contentsline {paragraph}{Bi-directional Shared Tree Mode}{247}
-\contentsline {section}{\numberline {27.2}Internals of Multicast Routing}{247}
-\contentsline {subsection}{\numberline {27.2.1}The classes}{247}
-\contentsline {paragraph}{mrtObject class}{248}
-\contentsline {paragraph}{McastProtocol class}{248}
-\contentsline {subsection}{\numberline {27.2.2}Extensions to other classes in \emph {ns}}{249}
-\contentsline {paragraph}{Class Node}{249}
-\contentsline {paragraph}{Class Link and SimpleLink}{251}
-\contentsline {paragraph}{Class NetworkInterface}{251}
-\contentsline {paragraph}{Class Multicast Classifier}{251}
-\contentsline {paragraph}{Class Replicator}{252}
-\contentsline {subsection}{\numberline {27.2.3}Protocol Internals}{252}
-\contentsline {subsubsection}{Centralized Multicast}{252}
-\contentsline {subsubsection}{Dense Mode}{253}
-\contentsline {subsection}{\numberline {27.2.4}The internal variables}{254}
-\contentsline {section}{\numberline {27.3}Commands at a glance}{254}
-\contentsline {chapter}{\numberline {28}Network Dynamics}{257}
-\contentsline {section}{\numberline {28.1}The user level API}{257}
-\contentsline {section}{\numberline {28.2}The Internal Architecture}{259}
-\contentsline {subsection}{\numberline {28.2.1}The class rtModel}{259}
-\contentsline {paragraph}{Exponential}{260}
-\contentsline {paragraph}{Deterministic}{260}
-\contentsline {paragraph}{Trace}{260}
-\contentsline {paragraph}{Manual}{260}
-\contentsline {subsection}{\numberline {28.2.2}\clsref {rtQueue}{../ns-2/dynamics.tcl}}{260}
-\contentsline {section}{\numberline {28.3}Interaction with Unicast Routing}{261}
-\contentsline {subsection}{\numberline {28.3.1}Extensions to Other Classes}{261}
-\contentsline {paragraph}{\clsref {DynamicLink}{../ns-2/dynalink.cc.tcl}}{261}
-\contentsline {paragraph}{\clsref {Link}{../ns-2/ns-link.tcl}}{262}
-\contentsline {paragraph}{\clsref {SimpleLink}{../ns-2/ns-link.tcl}}{262}
-\contentsline {section}{\numberline {28.4}Deficencies in the Current Network Dynamics API}{262}
-\contentsline {section}{\numberline {28.5}Commands at a glance}{262}
-\contentsline {chapter}{\numberline {29}Hierarchical Routing}{264}
-\contentsline {section}{\numberline {29.1}Overview of Hierarchical Routing}{264}
-\contentsline {section}{\numberline {29.2}Usage of Hierarchical routing}{264}
-\contentsline {section}{\numberline {29.3}Creating large Hierarchical topologies}{266}
-\contentsline {section}{\numberline {29.4}Hierarchical Routing with SessionSim}{267}
-\contentsline {section}{\numberline {29.5}Commands at a glance}{267}
-\contentsline {part}{V\hspace {1em}Transport}{268}
-\contentsline {chapter}{\numberline {30}UDP Agents}{269}
-\contentsline {section}{\numberline {30.1}UDP Agents}{269}
-\contentsline {section}{\numberline {30.2}Commands at a glance}{270}
-\contentsline {chapter}{\numberline {31}TCP Agents}{271}
-\contentsline {section}{\numberline {31.1}One-Way TCP Senders}{272}
-\contentsline {subsection}{\numberline {31.1.1}The Base TCP Sender (Tahoe TCP)}{272}
-\contentsline {paragraph}{Responses to Congestion}{272}
-\contentsline {paragraph}{Round-Trip Time Estimation and RTO Timeout Selection}{272}
-\contentsline {subsection}{\numberline {31.1.2}Configuration}{272}
-\contentsline {subsection}{\numberline {31.1.3}Simple Configuration}{272}
-\contentsline {paragraph}{Creating the Agent}{272}
-\contentsline {paragraph}{TCP Data Source}{273}
-\contentsline {subsection}{\numberline {31.1.4}Other Configuration Parameters}{273}
-\contentsline {subsection}{\numberline {31.1.5}Other One-Way TCP Senders}{274}
-\contentsline {paragraph}{Reno TCP}{274}
-\contentsline {paragraph}{Newreno TCP}{274}
-\contentsline {paragraph}{Vegas TCP}{274}
-\contentsline {paragraph}{Sack TCP}{274}
-\contentsline {paragraph}{Fack TCP}{274}
-\contentsline {section}{\numberline {31.2}TCP Receivers (sinks)}{274}
-\contentsline {subsection}{\numberline {31.2.1}The Base TCP Sink}{275}
-\contentsline {paragraph}{configuration parameters}{275}
-\contentsline {subsection}{\numberline {31.2.2}Delayed-ACK TCP Sink}{275}
-\contentsline {paragraph}{configuration parameters}{275}
-\contentsline {subsection}{\numberline {31.2.3}Sack TCP Sink}{275}
-\contentsline {paragraph}{configuration parameters}{275}
-\contentsline {section}{\numberline {31.3}Two-Way TCP Agents (FullTcp)}{275}
-\contentsline {subsection}{\numberline {31.3.1}Simple Configuration}{276}
-\contentsline {paragraph}{Creating the Agent}{276}
-\contentsline {paragraph}{Configuration Parameters}{276}
-\contentsline {subsection}{\numberline {31.3.2}BayFullTcp}{277}
-\contentsline {section}{\numberline {31.4}Architecture and Internals}{277}
-\contentsline {paragraph}{The TCP header}{277}
-\contentsline {paragraph}{Functions for Sending Data}{277}
-\contentsline {paragraph}{Functions for Window Management}{278}
-\contentsline {paragraph}{Functions for Processing ACKs}{278}
-\contentsline {paragraph}{Functions for Managing the Retransmission Timer}{278}
-\contentsline {section}{\numberline {31.5}Tracing TCP Dynamics}{279}
-\contentsline {section}{\numberline {31.6}One-Way Trace TCP Trace Dynamics}{279}
-\contentsline {section}{\numberline {31.7}One-Way Trace TCP Trace Dynamics}{279}
-\contentsline {section}{\numberline {31.8}Commands at a glance}{279}
-\contentsline {chapter}{\numberline {32}SCTP Agents}{281}
-\contentsline {section}{\numberline {32.1}The Base SCTP Agent}{281}
-\contentsline {paragraph}{Association Establishment}{282}
-\contentsline {paragraph}{Association Shutdown}{282}
-\contentsline {paragraph}{Multihoming}{282}
-\contentsline {paragraph}{Packet Number vs TSN Numbering}{283}
-\contentsline {subsection}{\numberline {32.1.1}Configuration Parameters}{283}
-\contentsline {subsection}{\numberline {32.1.2}Commands}{284}
-\contentsline {paragraph}{trace}{284}
-\contentsline {paragraph}{print}{284}
-\contentsline {paragraph}{set-multihome-core}{284}
-\contentsline {paragraph}{multihome-add-interface}{284}
-\contentsline {paragraph}{multihome-attach-agent}{284}
-\contentsline {paragraph}{set-primary-destination}{284}
-\contentsline {paragraph}{force-source}{284}
-\contentsline {section}{\numberline {32.2}Extensions}{285}
-\contentsline {subsection}{\numberline {32.2.1}Newreno SCTP}{285}
-\contentsline {subsection}{\numberline {32.2.2}HbAfterRto SCTP}{285}
-\contentsline {subsection}{\numberline {32.2.3}MultipleFastRtx SCTP}{285}
-\contentsline {subsection}{\numberline {32.2.4}Timestamp SCTP}{285}
-\contentsline {section}{\numberline {32.3}Tracing SCTP Dynamics}{286}
-\contentsline {section}{\numberline {32.4}SCTP Applications}{287}
-\contentsline {section}{\numberline {32.5}Example Scripts}{287}
-\contentsline {subsection}{\numberline {32.5.1}Singled Homed Example}{287}
-\contentsline {subsection}{\numberline {32.5.2}Multihomed Example}{288}
-\contentsline {chapter}{\numberline {33}Agent/SRM}{290}
-\contentsline {section}{\numberline {33.1}Configuration}{290}
-\contentsline {subsection}{\numberline {33.1.1}Trivial Configuration}{290}
-\contentsline {paragraph}{Creating the Agent}{290}
-\contentsline {paragraph}{Application Data Handling}{291}
-\contentsline {paragraph}{Starting the Agent and Traffic Generator}{291}
-\contentsline {subsection}{\numberline {33.1.2}Other Configuration Parameters}{292}
-\contentsline {subsection}{\numberline {33.1.3}Statistics}{293}
-\contentsline {paragraph}{Data Loss}{293}
-\contentsline {paragraph}{Overall Statistics}{293}
-\contentsline {paragraph}{Miscellaneous Information}{294}
-\contentsline {subsection}{\numberline {33.1.4}Tracing}{294}
-\contentsline {section}{\numberline {33.2}Architecture and Internals}{296}
-\contentsline {section}{\numberline {33.3}Packet Handling: Processing received messages}{296}
-\contentsline {paragraph}{Data Packets}{296}
-\contentsline {paragraph}{Request Packets}{297}
-\contentsline {paragraph}{Repair Packets}{297}
-\contentsline {paragraph}{Session Packets}{297}
-\contentsline {section}{\numberline {33.4}Loss Detection---The Class SRMinfo}{298}
-\contentsline {section}{\numberline {33.5}Loss Recovery Objects}{298}
-\contentsline {paragraph}{Request Mechanisms}{298}
-\contentsline {paragraph}{Repair Mechanisms}{299}
-\contentsline {paragraph}{Mechanisms for Statistics}{300}
-\contentsline {section}{\numberline {33.6}Session Objects}{300}
-\contentsline {section}{\numberline {33.7}Extending the Base Class Agent}{301}
-\contentsline {subsection}{\numberline {33.7.1}Fixed Timers}{301}
-\contentsline {subsection}{\numberline {33.7.2}Adaptive Timers}{301}
-\contentsline {paragraph}{Recompute for Each New Loss Object}{301}
-\contentsline {paragraph}{Sending a Message}{301}
-\contentsline {paragraph}{Advertising the Distance}{301}
-\contentsline {section}{\numberline {33.8}SRM objects}{302}
-\contentsline {section}{\numberline {33.9}Commands at a glance}{303}
-\contentsline {chapter}{\numberline {34}PLM}{305}
-\contentsline {section}{\numberline {34.1}Configuration}{305}
-\contentsline {paragraph}{Creating a simple scenario with one PLM flow (only one receiver)\\}{305}
-\contentsline {section}{\numberline {34.2}The Packet Pair Source Generator}{307}
-\contentsline {section}{\numberline {34.3}Architecture of the PLM Protocol}{308}
-\contentsline {subsection}{\numberline {34.3.1}Instantiation of a PLM Source}{308}
-\contentsline {subsection}{\numberline {34.3.2}Instantiation of a PLM Receiver}{308}
-\contentsline {subsection}{\numberline {34.3.3}Reception of a Packet}{309}
-\contentsline {subsection}{\numberline {34.3.4}Detection of a Loss}{310}
-\contentsline {subsection}{\numberline {34.3.5}Joining or Leaving a Layer}{310}
-\contentsline {section}{\numberline {34.4}Commands at a Glance}{310}
-\contentsline {part}{VI\hspace {1em}Application}{312}
-\contentsline {chapter}{\numberline {35}Applications and transport agent API}{313}
-\contentsline {section}{\numberline {35.1}The class Application}{313}
-\contentsline {section}{\numberline {35.2}The transport agent API}{314}
-\contentsline {subsection}{\numberline {35.2.1}Attaching transport agents to nodes}{314}
-\contentsline {subsection}{\numberline {35.2.2}Attaching applications to agents}{315}
-\contentsline {subsection}{\numberline {35.2.3}Using transport agents via system calls}{315}
-\contentsline {subsection}{\numberline {35.2.4}Agent upcalls to applications}{315}
-\contentsline {subsection}{\numberline {35.2.5}An example}{316}
-\contentsline {section}{\numberline {35.3}The class TrafficGenerator}{317}
-\contentsline {paragraph}{Exponential On/Off}{318}
-\contentsline {paragraph}{Pareto On/Off}{318}
-\contentsline {paragraph}{CBR}{319}
-\contentsline {paragraph}{Traffic Trace}{319}
-\contentsline {subsection}{\numberline {35.3.1}An example}{319}
-\contentsline {section}{\numberline {35.4}Simulated applications: Telnet and FTP}{320}
-\contentsline {paragraph}{Application/FTP}{320}
-\contentsline {paragraph}{Application/Telnet}{320}
-\contentsline {section}{\numberline {35.5}Applications objects}{320}
-\contentsline {section}{\numberline {35.6}Commands at a glance}{322}
-\contentsline {chapter}{\numberline {36}Web cache as an application}{323}
-\contentsline {section}{\numberline {36.1}Using application-level data in \emph {ns}}{323}
-\contentsline {subsection}{\numberline {36.1.1}ADU}{323}
-\contentsline {subsection}{\numberline {36.1.2}Passing data between applications}{324}
-\contentsline {subsection}{\numberline {36.1.3}Transmitting user data over UDP}{325}
-\contentsline {subsection}{\numberline {36.1.4}Transmitting user data over TCP}{326}
-\contentsline {subsection}{\numberline {36.1.5}Class hierarchy related to user data handling}{327}
-\contentsline {section}{\numberline {36.2}Overview of web cache classes}{327}
-\contentsline {subsection}{\numberline {36.2.1}Managing HTTP connections}{327}
-\contentsline {paragraph}{OTcl methods}{328}
-\contentsline {paragraph}{Configuration parameter}{328}
-\contentsline {subsection}{\numberline {36.2.2}Managing web pages}{328}
-\contentsline {subsection}{\numberline {36.2.3}Debugging}{329}
-\contentsline {section}{\numberline {36.3}Representing web pages}{329}
-\contentsline {section}{\numberline {36.4}Page pools}{330}
-\contentsline {subsection}{\numberline {36.4.1}PagePool/Math}{330}
-\contentsline {subsection}{\numberline {36.4.2}PagePool/CompMath}{331}
-\contentsline {subsection}{\numberline {36.4.3}PagePool/ProxyTrace}{331}
-\contentsline {subsection}{\numberline {36.4.4}PagePool/Client}{332}
-\contentsline {subsection}{\numberline {36.4.5}PagePool/WebTraf}{332}
-\contentsline {section}{\numberline {36.5}Web client}{334}
-\contentsline {paragraph}{Creating a client}{334}
-\contentsline {paragraph}{Configuring request generation}{335}
-\contentsline {paragraph}{Starting}{335}
-\contentsline {paragraph}{OTcl interfaces}{335}
-\contentsline {section}{\numberline {36.6}Web server}{335}
-\contentsline {section}{\numberline {36.7}Web cache}{336}
-\contentsline {subsection}{\numberline {36.7.1}Http/Cache}{336}
-\contentsline {paragraph}{Creation and startup}{336}
-\contentsline {paragraph}{OTcl methods}{336}
-\contentsline {section}{\numberline {36.8}Putting together: a simple example}{337}
-\contentsline {section}{\numberline {36.9}Http trace format}{339}
-\contentsline {section}{\numberline {36.10}Commands at a glance}{340}
-\contentsline {part}{VII\hspace {1em}Scale}{342}
-\contentsline {chapter}{\numberline {37}Session-level Packet Distribution}{343}
-\contentsline {section}{\numberline {37.1}Configuration}{343}
-\contentsline {subsection}{\numberline {37.1.1}Basic Configuration}{343}
-\contentsline {subsection}{\numberline {37.1.2}Inserting a Loss Module}{345}
-\contentsline {paragraph}{Creating a Loss Module}{345}
-\contentsline {paragraph}{Inserting a Loss Module}{345}
-\contentsline {section}{\numberline {37.2}Architecture}{345}
-\contentsline {section}{\numberline {37.3}Internals}{346}
-\contentsline {subsection}{\numberline {37.3.1}Object Linkage}{346}
-\contentsline {paragraph}{Nodes and Links}{346}
-\contentsline {paragraph}{Session Helper}{346}
-\contentsline {paragraph}{Delay and Loss Modules}{347}
-\contentsline {subsection}{\numberline {37.3.2}Packet Forwarding}{347}
-\contentsline {section}{\numberline {37.4}Commands at a glance}{348}
-\contentsline {chapter}{\numberline {38}Asim: approximate analytical simulation}{349}
-\contentsline {part}{VIII\hspace {1em}Emulation}{353}
-\contentsline {chapter}{\numberline {39}Emulation}{354}
-\contentsline {section}{\numberline {39.1}Introduction}{354}
-\contentsline {section}{\numberline {39.2}Real-Time Scheduler}{355}
-\contentsline {section}{\numberline {39.3}Tap Agents}{355}
-\contentsline {paragraph}{Configuration}{355}
-\contentsline {section}{\numberline {39.4}Network Objects}{356}
-\contentsline {subsection}{\numberline {39.4.1}Pcap/BPF Network Objects}{356}
-\contentsline {paragraph}{Configuration}{356}
-\contentsline {subsection}{\numberline {39.4.2}IP Network Objects}{357}
-\contentsline {paragraph}{Configuration}{357}
-\contentsline {subsection}{\numberline {39.4.3}IP/UDP Network Objects}{357}
-\contentsline {section}{\numberline {39.5}An Example}{358}
-\contentsline {section}{\numberline {39.6}Commands at a glance}{359}
-\contentsline {part}{IX\hspace {1em}Visualization with Nam - The Network Animator}{360}
-\contentsline {chapter}{\numberline {40}Nam}{361}
-\contentsline {section}{\numberline {40.1}Introduction}{361}
-\contentsline {section}{\numberline {40.2}Nam Command Line Options}{361}
-\contentsline {section}{\numberline {40.3}User Interface}{362}
-\contentsline {section}{\numberline {40.4}Keyboard Commands}{363}
-\contentsline {section}{\numberline {40.5}Generating External Animations from Nam}{364}
-\contentsline {section}{\numberline {40.6}Network Layout}{364}
-\contentsline {section}{\numberline {40.7}Animation Objects}{365}
-\contentsline {chapter}{\numberline {41}Nam Trace}{366}
-\contentsline {section}{\numberline {41.1}Nam Trace Format}{366}
-\contentsline {subsection}{\numberline {41.1.1}Initialization Events}{367}
-\contentsline {subsection}{\numberline {41.1.2}Nodes}{368}
-\contentsline {subsection}{\numberline {41.1.3}Links}{368}
-\contentsline {subsection}{\numberline {41.1.4}Queues}{369}
-\contentsline {subsection}{\numberline {41.1.5}Packets}{369}
-\contentsline {subsection}{\numberline {41.1.6}Node Marking}{370}
-\contentsline {subsection}{\numberline {41.1.7}Agent Tracing}{371}
-\contentsline {subsection}{\numberline {41.1.8}Variable Tracing}{371}
-\contentsline {subsection}{\numberline {41.1.9}Executing Tcl Procedures and External Code from within Nam}{371}
-\contentsline {subsubsection}{Setting playback speed}{372}
-\contentsline {subsubsection}{Annotation}{372}
-\contentsline {subsubsection}{Node Exec Button}{372}
-\contentsline {subsection}{\numberline {41.1.10}Using Streams for Realtime Applications}{373}
-\contentsline {subsection}{\numberline {41.1.11}Nam Trace File Format Lookup Table}{376}
-\contentsline {section}{\numberline {41.2}Ns commands for creating and controlling nam animations}{382}
-\contentsline {subsection}{\numberline {41.2.1}Node}{382}
-\contentsline {subsection}{\numberline {41.2.2}Link/Queue}{382}
-\contentsline {subsection}{\numberline {41.2.3}Agent and Features}{383}
-\contentsline {subsection}{\numberline {41.2.4}Some Generic Commands}{383}
-\contentsline {part}{X\hspace {1em}Other}{384}
-\contentsline {chapter}{\numberline {42}Educational use of NS and NAM}{385}
-\contentsline {section}{\numberline {42.1}Using NS for educational purposes}{385}
-\contentsline {subsection}{\numberline {42.1.1}Installing/building/running \emph {ns}}{385}
-\contentsline {subsection}{\numberline {42.1.2}The educational scripts' inventory page:}{385}
-\contentsline {section}{\numberline {42.2}Using NAM for educational purposes}{386}
+\contentsline {chapter}{\numberline {1}Introduction}{2}
+\contentsline {chapter}{\numberline {2}Undocumented Facilities}{6}
+\contentsline {part}{I\hspace {1em}Interface to the Interpreter}{8}
+\contentsline {chapter}{\numberline {3}OTcl Linkage}{9}
+\contentsline {section}{\numberline {3.1}Concept Overview}{9}
+\contentsline {section}{\numberline {3.2}Code Overview}{10}
+\contentsline {section}{\numberline {3.3}Class Tcl}{10}
+\contentsline {subsection}{\numberline {3.3.1}Obtain a Reference to the class Tcl instance}{11}
+\contentsline {subsection}{\numberline {3.3.2}Invoking OTcl Procedures}{11}
+\contentsline {subsection}{\numberline {3.3.3}Passing Results to/from the Interpreter}{11}
+\contentsline {subsection}{\numberline {3.3.4}Error Reporting and Exit}{12}
+\contentsline {subsection}{\numberline {3.3.5}Hash Functions within the Interpreter}{12}
+\contentsline {subsection}{\numberline {3.3.6}Other Operations on the Interpreter}{13}
+\contentsline {section}{\numberline {3.4}Class TclObject}{13}
+\contentsline {paragraph}{Differences from \emph {ns}\nobreakspace {}v1}{13}
+\contentsline {paragraph}{Example configuration of a TclObject}{13}
+\contentsline {subsection}{\numberline {3.4.1}Creating and Destroying TclObjects}{14}
+\contentsline {paragraph}{Creating TclObjects}{14}
+\contentsline {paragraph}{Deletion of TclObjects}{15}
+\contentsline {subsection}{\numberline {3.4.2}Variable Bindings}{15}
+\contentsline {subsection}{\numberline {3.4.3}Variable Tracing}{17}
+\contentsline {subsection}{\numberline {3.4.4}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily command\egroup Methods: Definition and Invocation}{18}
+\contentsline {section}{\numberline {3.5}Class TclClass}{20}
+\contentsline {subsection}{\numberline {3.5.1}How to Bind Static C++ Class Member Variables}{21}
+\contentsline {section}{\numberline {3.6}Class TclCommand}{23}
+\contentsline {section}{\numberline {3.7}Class EmbeddedTcl}{24}
+\contentsline {section}{\numberline {3.8}Class InstVar}{25}
+\contentsline {part}{II\hspace {1em}Simulator Basics}{27}
+\contentsline {chapter}{\numberline {4}The Class Simulator}{28}
+\contentsline {section}{\numberline {4.1}Simulator Initialization}{28}
+\contentsline {section}{\numberline {4.2}Schedulers and Events}{28}
+\contentsline {subsection}{\numberline {4.2.1}The List Scheduler}{29}
+\contentsline {subsection}{\numberline {4.2.2}the heap scheduler}{30}
+\contentsline {subsection}{\numberline {4.2.3}The Calendar Queue Scheduler}{30}
+\contentsline {subsection}{\numberline {4.2.4}The Real-Time Scheduler}{30}
+\contentsline {subsection}{\numberline {4.2.5}Precision of the scheduler clock used in ns}{30}
+\contentsline {section}{\numberline {4.3}Other Methods}{30}
+\contentsline {section}{\numberline {4.4}Commands\unhbox \voidb@x \penalty \@M \ at\unhbox \voidb@x \penalty \@M \ a\unhbox \voidb@x \penalty \@M \ glance}{32}
+\contentsline {chapter}{\numberline {5}Nodes and Packet Forwarding}{35}
+\contentsline {section}{\numberline {5.1}Node Basics}{35}
+\contentsline {section}{\numberline {5.2}Node Methods: Configuring the Node}{37}
+\contentsline {paragraph}{Control functions}{37}
+\contentsline {paragraph}{Address and Port number management}{38}
+\contentsline {paragraph}{Agent management}{38}
+\contentsline {paragraph}{Tracking Neighbors}{39}
+\contentsline {section}{\numberline {5.3}Node Configuration Interface}{39}
+\contentsline {section}{\numberline {5.4}The Classifier}{40}
+\contentsline {subsection}{\numberline {5.4.1}Address Classifiers}{43}
+\contentsline {subsection}{\numberline {5.4.2}Multicast Classifiers}{44}
+\contentsline {subsection}{\numberline {5.4.3}MultiPath Classifier}{45}
+\contentsline {subsection}{\numberline {5.4.4}Hash Classifier}{45}
+\contentsline {subsection}{\numberline {5.4.5}Replicator}{47}
+\contentsline {section}{\numberline {5.5}Routing Module and Classifier Organization}{48}
+\contentsline {subsection}{\numberline {5.5.1}Routing Module}{48}
+\contentsline {subsection}{\numberline {5.5.2}Node Interface}{50}
+\contentsline {section}{\numberline {5.6}Commands at a glance}{51}
+\contentsline {chapter}{\numberline {6}Links: Simple Links}{53}
+\contentsline {section}{\numberline {6.1}Instance Procedures for Links and SimpleLinks}{54}
+\contentsline {paragraph}{Link procedures}{54}
+\contentsline {paragraph}{SimpleLink Procedures}{55}
+\contentsline {section}{\numberline {6.2}Connectors}{56}
+\contentsline {section}{\numberline {6.3}Object hierarchy}{56}
+\contentsline {section}{\numberline {6.4}Commands at a glance}{57}
+\contentsline {chapter}{\numberline {7}Queue Management and Packet Scheduling}{60}
+\contentsline {section}{\numberline {7.1}The C++ Queue Class}{60}
+\contentsline {subsection}{\numberline {7.1.1}Queue blocking}{61}
+\contentsline {subsection}{\numberline {7.1.2}PacketQueue Class}{62}
+\contentsline {section}{\numberline {7.2}Example: Drop Tail}{63}
+\contentsline {section}{\numberline {7.3}Different types of Queue objects}{64}
+\contentsline {section}{\numberline {7.4}Commands at a glance}{68}
+\contentsline {section}{\numberline {7.5}Queue/JoBS}{68}
+\contentsline {subsection}{\numberline {7.5.1}The JoBS algorithm}{68}
+\contentsline {subsubsection}{Objective}{69}
+\contentsline {subsubsection}{Mechanisms}{69}
+\contentsline {subsection}{\numberline {7.5.2}Configuration}{70}
+\contentsline {subsubsection}{Initial Setup}{70}
+\contentsline {subsubsection}{Creating the JoBS links}{70}
+\contentsline {subsubsection}{Marking the traffic}{71}
+\contentsline {subsection}{\numberline {7.5.3}Tracing}{71}
+\contentsline {subsection}{\numberline {7.5.4}Variables}{71}
+\contentsline {subsubsection}{JoBS objects}{71}
+\contentsline {subsubsection}{Marker objects}{72}
+\contentsline {subsubsection}{Demarker objects}{72}
+\contentsline {subsection}{\numberline {7.5.5}Commands at a glance}{72}
+\contentsline {subsubsection}{JoBS objects}{72}
+\contentsline {subsubsection}{Marker objects}{73}
+\contentsline {subsubsection}{Demarker objects}{74}
+\contentsline {chapter}{\numberline {8}Delays and Links}{75}
+\contentsline {section}{\numberline {8.1}The LinkDelay Class}{75}
+\contentsline {section}{\numberline {8.2}Commands at a glance}{76}
+\contentsline {chapter}{\numberline {9}Differentiated Services Module in \emph {ns}}{77}
+\contentsline {section}{\numberline {9.1}Overview}{77}
+\contentsline {section}{\numberline {9.2}Implementation}{78}
+\contentsline {subsection}{\numberline {9.2.1}RED queue in DiffServ module}{78}
+\contentsline {subsection}{\numberline {9.2.2}Edge and core routers}{78}
+\contentsline {subsection}{\numberline {9.2.3}Policy}{79}
+\contentsline {section}{\numberline {9.3}Configuration}{80}
+\contentsline {section}{\numberline {9.4}Commands at a glance}{82}
+\contentsline {chapter}{\numberline {10}Agents}{85}
+\contentsline {section}{\numberline {10.1}Agent state}{85}
+\contentsline {section}{\numberline {10.2}Agent methods}{85}
+\contentsline {section}{\numberline {10.3}Protocol Agents}{86}
+\contentsline {section}{\numberline {10.4}OTcl Linkage}{87}
+\contentsline {subsection}{\numberline {10.4.1}Creating and Manipulating Agents}{87}
+\contentsline {subsection}{\numberline {10.4.2}Default Values}{87}
+\contentsline {subsection}{\numberline {10.4.3}OTcl Methods}{88}
+\contentsline {section}{\numberline {10.5}Examples: Tcp, TCP Sink Agents}{88}
+\contentsline {subsection}{\numberline {10.5.1}Creating the Agent}{88}
+\contentsline {subsection}{\numberline {10.5.2}Starting the Agent}{89}
+\contentsline {subsection}{\numberline {10.5.3}Processing Input at Receiver}{90}
+\contentsline {subsection}{\numberline {10.5.4}Processing Responses at the Sender}{91}
+\contentsline {subsection}{\numberline {10.5.5}Implementing Timers}{92}
+\contentsline {section}{\numberline {10.6}Creating a New Agent}{92}
+\contentsline {subsection}{\numberline {10.6.1}Example: A ``ping'' requestor (Inheritance Structure)}{92}
+\contentsline {subsection}{\numberline {10.6.2}The \texttt {recv}() and \texttt {timeout}() Methods}{93}
+\contentsline {subsection}{\numberline {10.6.3}Linking the ``ping'' Agent with OTcl}{93}
+\contentsline {subsection}{\numberline {10.6.4}Using the agent through OTcl}{95}
+\contentsline {section}{\numberline {10.7}The Agent API}{95}
+\contentsline {section}{\numberline {10.8}Different agent objects}{95}
+\contentsline {section}{\numberline {10.9}Commands at a glance}{98}
+\contentsline {chapter}{\numberline {11}Timers}{100}
+\contentsline {section}{\numberline {11.1}C++ abstract base class TimerHandler}{100}
+\contentsline {subsection}{\numberline {11.1.1}Definition of a new timer}{101}
+\contentsline {subsection}{\numberline {11.1.2}Example: Tcp retransmission timer}{101}
+\contentsline {section}{\numberline {11.2}OTcl Timer class}{104}
+\contentsline {section}{\numberline {11.3}Commands at a glance}{104}
+\contentsline {chapter}{\numberline {12}Packet Headers and Formats}{105}
+\contentsline {section}{\numberline {12.1}A Protocol-Specific Packet Header}{105}
+\contentsline {subsection}{\numberline {12.1.1}Adding a New Packet Header Type}{107}
+\contentsline {subsection}{\numberline {12.1.2}Selectively Including Packet Headers in Your Simulation}{107}
+\contentsline {section}{\numberline {12.2}Packet Classes}{108}
+\contentsline {subsection}{\numberline {12.2.1}The Packet Class}{108}
+\contentsline {subsection}{\numberline {12.2.2}p\_info Class}{111}
+\contentsline {subsection}{\numberline {12.2.3}The hdr\_cmn Class}{111}
+\contentsline {subsection}{\numberline {12.2.4}The PacketHeaderManager Class}{112}
+\contentsline {section}{\numberline {12.3}Commands at a glance}{113}
+\contentsline {chapter}{\numberline {13}Error Model}{115}
+\contentsline {section}{\numberline {13.1}Implementation}{115}
+\contentsline {section}{\numberline {13.2}Configuration}{116}
+\contentsline {section}{\numberline {13.3}Multi-state error model}{117}
+\contentsline {section}{\numberline {13.4}Commands at a glance}{118}
+\contentsline {chapter}{\numberline {14}Local Area Networks}{120}
+\contentsline {section}{\numberline {14.1}Tcl configuration}{120}
+\contentsline {section}{\numberline {14.2}Components of a LAN}{121}
+\contentsline {section}{\numberline {14.3}Channel Class}{122}
+\contentsline {subsection}{\numberline {14.3.1}Channel State}{122}
+\contentsline {subsection}{\numberline {14.3.2}Example: Channel and classifier of the physical layer}{122}
+\contentsline {subsection}{\numberline {14.3.3}Channel Class in C++}{122}
+\contentsline {section}{\numberline {14.4}MacClassifier Class}{123}
+\contentsline {section}{\numberline {14.5}MAC Class}{124}
+\contentsline {subsection}{\numberline {14.5.1}Mac State}{124}
+\contentsline {subsection}{\numberline {14.5.2}Mac Methods}{124}
+\contentsline {subsection}{\numberline {14.5.3}Mac Class in C++}{124}
+\contentsline {subsection}{\numberline {14.5.4}CSMA-based MAC}{125}
+\contentsline {section}{\numberline {14.6}LL (link-layer) Class}{126}
+\contentsline {subsection}{\numberline {14.6.1}LL Class in C++}{126}
+\contentsline {subsection}{\numberline {14.6.2}Example: Link Layer configuration}{126}
+\contentsline {section}{\numberline {14.7}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily LanRouter\egroup class}{127}
+\contentsline {section}{\numberline {14.8}Other Components}{127}
+\contentsline {section}{\numberline {14.9}LANs and \emph {ns}\ routing}{127}
+\contentsline {section}{\numberline {14.10}Commands at a glance}{129}
+\contentsline {chapter}{\numberline {15}The (Revised) Addressing Structure in NS}{130}
+\contentsline {section}{\numberline {15.1}The Default Address Format}{130}
+\contentsline {section}{\numberline {15.2}The Hierarchical Address Format}{130}
+\contentsline {subsection}{\numberline {15.2.1}Default Hierarchical Setting}{131}
+\contentsline {subsection}{\numberline {15.2.2}Specific Hierarchical Setting}{131}
+\contentsline {section}{\numberline {15.3}The Expanded Node-Address Format}{131}
+\contentsline {section}{\numberline {15.4}Expanding port-id field}{131}
+\contentsline {section}{\numberline {15.5}Errors in setting address format}{132}
+\contentsline {section}{\numberline {15.6}Commands at a glance}{132}
+\contentsline {chapter}{\numberline {16}Mobile Networking in ns}{133}
+\contentsline {section}{\numberline {16.1}The basic wireless model in ns}{133}
+\contentsline {subsection}{\numberline {16.1.1}Mobilenode: creating wireless topology}{133}
+\contentsline {subsection}{\numberline {16.1.2}Creating Node movements}{137}
+\contentsline {subsection}{\numberline {16.1.3}Network Components in a mobilenode}{138}
+\contentsline {subsection}{\numberline {16.1.4}Different MAC layer protocols for mobile networking}{141}
+\contentsline {subsubsection}{802.11 MAC protocol}{141}
+\contentsline {subsubsection}{Preamble based TDMA protocol}{141}
+\contentsline {subsection}{\numberline {16.1.5}Different types of Routing Agents in mobile networking}{142}
+\contentsline {subsubsection}{DSDV}{142}
+\contentsline {subsubsection}{DSR}{142}
+\contentsline {subsubsection}{TORA}{143}
+\contentsline {subsubsection}{AODV}{143}
+\contentsline {subsection}{\numberline {16.1.6}Trace Support}{143}
+\contentsline {subsection}{\numberline {16.1.7}Revised format for wireless traces}{147}
+\contentsline {subsubsection}{Explanation of new trace format}{147}
+\contentsline {subsection}{\numberline {16.1.8}Generation of node-movement and traffic-connection for wireless scenarios}{149}
+\contentsline {subsubsection}{MobileNode Movement}{149}
+\contentsline {subsubsection}{Generating traffic pattern files}{150}
+\contentsline {section}{\numberline {16.2}Extensions made to CMU's wireless model}{150}
+\contentsline {subsection}{\numberline {16.2.1}wired-cum-wireless scenarios}{150}
+\contentsline {subsection}{\numberline {16.2.2}MobileIP}{151}
+\contentsline {section}{\numberline {16.3}Lists of changes for merging code developed in older version of ns (2.1b5 or later) into the current version (2.1b8) }{154}
+\contentsline {section}{\numberline {16.4}Commands at a glance}{156}
+\contentsline {chapter}{\numberline {17}Satellite Networking in \emph {ns}}{159}
+\contentsline {section}{\numberline {17.1}Overview of satellite models}{159}
+\contentsline {subsection}{\numberline {17.1.1}Geostationary satellites}{159}
+\contentsline {subsection}{\numberline {17.1.2}Low-earth-orbiting satellites}{160}
+\contentsline {section}{\numberline {17.2}Using the satellite extensions}{162}
+\contentsline {subsection}{\numberline {17.2.1}Nodes and node positions}{162}
+\contentsline {subsection}{\numberline {17.2.2}Satellite links}{163}
+\contentsline {subsection}{\numberline {17.2.3}Handoffs }{165}
+\contentsline {subsection}{\numberline {17.2.4}Routing }{166}
+\contentsline {subsection}{\numberline {17.2.5}Trace support}{167}
+\contentsline {subsection}{\numberline {17.2.6}Error models}{168}
+\contentsline {subsection}{\numberline {17.2.7}Other configuration options}{169}
+\contentsline {subsection}{\numberline {17.2.8}\emph {nam}\nobreakspace {}\nobreakspace {}support}{169}
+\contentsline {subsection}{\numberline {17.2.9}Integration with wired and wireless code}{169}
+\contentsline {subsection}{\numberline {17.2.10}Example scripts}{170}
+\contentsline {section}{\numberline {17.3}Implementation}{170}
+\contentsline {subsection}{\numberline {17.3.1}Use of linked lists}{171}
+\contentsline {subsection}{\numberline {17.3.2}Node structure}{171}
+\contentsline {subsection}{\numberline {17.3.3}Detailed look at satellite links}{172}
+\contentsline {section}{\numberline {17.4}Commands at a glance}{174}
+\contentsline {chapter}{\numberline {18}Radio Propagation Models}{176}
+\contentsline {section}{\numberline {18.1}Free space model}{176}
+\contentsline {section}{\numberline {18.2}Two-ray ground reflection model}{177}
+\contentsline {section}{\numberline {18.3}Shadowing model}{177}
+\contentsline {subsection}{\numberline {18.3.1}Backgroud}{177}
+\contentsline {subsection}{\numberline {18.3.2}Using shadowing model}{179}
+\contentsline {section}{\numberline {18.4}Communication range}{179}
+\contentsline {section}{\numberline {18.5}Commands at a glance}{180}
+\contentsline {chapter}{\numberline {19}Energy Model in ns}{181}
+\contentsline {section}{\numberline {19.1}The C++ EnergyModel Class}{181}
+\contentsline {section}{\numberline {19.2}The OTcl interface}{182}
+\contentsline {chapter}{\numberline {20}Directed Diffusion}{183}
+\contentsline {section}{\numberline {20.1}What is Directed Diffusion?}{183}
+\contentsline {section}{\numberline {20.2}The diffusion model in ns}{183}
+\contentsline {section}{\numberline {20.3}Some mac issues for diffusion in ns}{184}
+\contentsline {section}{\numberline {20.4}APIs for using filters in diffusion}{185}
+\contentsline {section}{\numberline {20.5}Ping: an example diffusion application implementation}{185}
+\contentsline {subsection}{\numberline {20.5.1}Ping Application as implemented in C++}{185}
+\contentsline {subsection}{\numberline {20.5.2}Tcl APIs for the ping application}{186}
+\contentsline {section}{\numberline {20.6}Changes required to add yr diffusion application to ns}{186}
+\contentsline {section}{\numberline {20.7}Test-suites for diffusion}{188}
+\contentsline {section}{\numberline {20.8}Commands at a glance}{188}
+\contentsline {part}{III\hspace {1em}Support}{190}
+\contentsline {chapter}{\numberline {21}Debugging ns}{191}
+\contentsline {section}{\numberline {21.1}Tcl-level Debugging}{191}
+\contentsline {section}{\numberline {21.2}C++-Level Debugging}{191}
+\contentsline {section}{\numberline {21.3}Mixing Tcl and C debugging}{192}
+\contentsline {section}{\numberline {21.4}Memory Debugging}{193}
+\contentsline {subsection}{\numberline {21.4.1}Using dmalloc}{193}
+\contentsline {subsection}{\numberline {21.4.2}Memory Conservation Tips}{194}
+\contentsline {subsection}{\numberline {21.4.3}Some statistics collected by dmalloc}{194}
+\contentsline {section}{\numberline {21.5}Memory Leaks}{194}
+\contentsline {subsection}{\numberline {21.5.1}OTcl}{195}
+\contentsline {subsection}{\numberline {21.5.2}C/C++}{195}
+\contentsline {chapter}{\numberline {22}Mathematical Support}{196}
+\contentsline {section}{\numberline {22.1}Random Number Generation}{196}
+\contentsline {subsection}{\numberline {22.1.1}Seeding The RNG}{197}
+\contentsline {subsubsection}{Example}{197}
+\contentsline {subsubsection}{Output}{198}
+\contentsline {subsection}{\numberline {22.1.2}OTcl Support}{199}
+\contentsline {subsubsection}{Commands}{199}
+\contentsline {subsubsection}{Example}{199}
+\contentsline {subsubsection}{Output}{200}
+\contentsline {subsection}{\numberline {22.1.3}C++ Support}{200}
+\contentsline {subsubsection}{Member Functions}{200}
+\contentsline {subsubsection}{Example}{201}
+\contentsline {subsubsection}{Output}{201}
+\contentsline {section}{\numberline {22.2}Random Variables}{201}
+\contentsline {section}{\numberline {22.3}Integrals}{202}
+\contentsline {section}{\numberline {22.4}\bgroup \catcode `\#=11\catcode `\_=11\catcode `\$=11\catcode `\&=11\relax \ttfamily ns-random\egroup }{203}
+\contentsline {section}{\numberline {22.5}Some mathematical-support related objects}{204}
+\contentsline {section}{\numberline {22.6}Commands at a glance}{204}
+\contentsline {chapter}{\numberline {23}Trace and Monitoring Support}{206}
+\contentsline {section}{\numberline {23.1}Trace Support}{206}
+\contentsline {subsection}{\numberline {23.1.1}OTcl Helper Functions}{207}
+\contentsline {section}{\numberline {23.2}Library support and examples}{208}
+\contentsline {section}{\numberline {23.3}The C++ Trace Class}{210}
+\contentsline {section}{\numberline {23.4}Trace File Format}{211}
+\contentsline {section}{\numberline {23.5}Packet Types}{213}
+\contentsline {section}{\numberline {23.6}Queue Monitoring}{214}
+\contentsline {section}{\numberline {23.7}Per-Flow Monitoring}{216}
+\contentsline {subsection}{\numberline {23.7.1}The Flow Monitor}{216}
+\contentsline {subsection}{\numberline {23.7.2}Flow Monitor Trace Format}{216}
+\contentsline {subsection}{\numberline {23.7.3}The Flow Class}{217}
+\contentsline {section}{\numberline {23.8}Commands at a glance}{217}
+\contentsline {chapter}{\numberline {24}Test Suite Support}{220}
+\contentsline {section}{\numberline {24.1}Test Suite Components}{220}
+\contentsline {section}{\numberline {24.2}Write a Test Suite}{220}
+\contentsline {chapter}{\numberline {25}ns Code Styles}{223}
+\contentsline {section}{\numberline {25.1}Indentation style}{223}
+\contentsline {section}{\numberline {25.2}Variable Naming Conventions}{223}
+\contentsline {section}{\numberline {25.3}Miscellaneous}{223}
+\contentsline {part}{IV\hspace {1em}Routing}{225}
+\contentsline {chapter}{\numberline {26}Unicast Routing}{226}
+\contentsline {section}{\numberline {26.1}The Interface to the Simulation Operator (The API)}{226}
+\contentsline {paragraph}{Preference Assignment and Control}{227}
+\contentsline {paragraph}{Link Cost Assignment and Control}{227}
+\contentsline {section}{\numberline {26.2}Other Configuration Mechanisms for Specialised Routing}{227}
+\contentsline {paragraph}{Asymmetric Routing}{228}
+\contentsline {paragraph}{MultiPath Routing}{228}
+\contentsline {section}{\numberline {26.3}Protocol Specific Configuration Parameters}{228}
+\contentsline {paragraph}{Static Routing}{228}
+\contentsline {paragraph}{Session Routing}{228}
+\contentsline {paragraph}{DV Routing}{229}
+\contentsline {paragraph}{Manual Routing}{229}
+\contentsline {section}{\numberline {26.4}Internals and Architecture of Routing}{229}
+\contentsline {subsection}{\numberline {26.4.1}The classes}{229}
+\contentsline {paragraph}{\clsref {RouteLogic}{../ns-2/route-proto.tcl}}{230}
+\contentsline {paragraph}{\clsref {rtObject}{../ns-2/route-proto.tcl}}{230}
+\contentsline {paragraph}{The \clsref {rtPeer}{../ns-2/route-proto.tcl}}{231}
+\contentsline {paragraph}{\clsref {Agent/rtProto}{../ns-2/route-proto.tcl}}{231}
+\contentsline {paragraph}{Other Extensions to the Simulator, Node, Link, and Classifier}{232}
+\contentsline {subsection}{\numberline {26.4.2}Interface to Network Dynamics and Multicast}{233}
+\contentsline {paragraph}{Actions at the individual nodes}{233}
+\contentsline {paragraph}{Global Actions}{234}
+\contentsline {section}{\numberline {26.5}Protocol Internals}{234}
+\contentsline {paragraph}{Direct Routing}{234}
+\contentsline {paragraph}{Static Routing}{234}
+\contentsline {paragraph}{Session Routing}{234}
+\contentsline {paragraph}{DV Routing}{234}
+\contentsline {section}{\numberline {26.6}Unicast routing objects}{235}
+\contentsline {section}{\numberline {26.7}Commands at a glance}{235}
+\contentsline {chapter}{\numberline {27}Multicast Routing}{237}
+\contentsline {section}{\numberline {27.1}Multicast API}{237}
+\contentsline {subsection}{\numberline {27.1.1}Multicast Behavior Monitor Configuration}{238}
+\contentsline {subsection}{\numberline {27.1.2}Protocol Specific configuration}{239}
+\contentsline {paragraph}{Centralized Multicast}{239}
+\contentsline {paragraph}{Dense Mode}{240}
+\contentsline {paragraph}{Shared Tree Mode}{240}
+\contentsline {paragraph}{Bi-directional Shared Tree Mode}{240}
+\contentsline {section}{\numberline {27.2}Internals of Multicast Routing}{240}
+\contentsline {subsection}{\numberline {27.2.1}The classes}{240}
+\contentsline {paragraph}{mrtObject class}{241}
+\contentsline {paragraph}{McastProtocol class}{241}
+\contentsline {subsection}{\numberline {27.2.2}Extensions to other classes in \emph {ns}}{242}
+\contentsline {paragraph}{Class Node}{242}
+\contentsline {paragraph}{Class Link and SimpleLink}{244}
+\contentsline {paragraph}{Class NetworkInterface}{244}
+\contentsline {paragraph}{Class Multicast Classifier}{244}
+\contentsline {paragraph}{Class Replicator}{245}
+\contentsline {subsection}{\numberline {27.2.3}Protocol Internals}{245}
+\contentsline {subsubsection}{Centralized Multicast}{245}
+\contentsline {subsubsection}{Dense Mode}{246}
+\contentsline {subsection}{\numberline {27.2.4}The internal variables}{247}
+\contentsline {section}{\numberline {27.3}Commands at a glance}{247}
+\contentsline {chapter}{\numberline {28}Network Dynamics}{250}
+\contentsline {section}{\numberline {28.1}The user level API}{250}
+\contentsline {section}{\numberline {28.2}The Internal Architecture}{252}
+\contentsline {subsection}{\numberline {28.2.1}The class rtModel}{252}
+\contentsline {paragraph}{Exponential}{253}
+\contentsline {paragraph}{Deterministic}{253}
+\contentsline {paragraph}{Trace}{253}
+\contentsline {paragraph}{Manual}{253}
+\contentsline {subsection}{\numberline {28.2.2}\clsref {rtQueue}{../ns-2/dynamics.tcl}}{253}
+\contentsline {section}{\numberline {28.3}Interaction with Unicast Routing}{254}
+\contentsline {subsection}{\numberline {28.3.1}Extensions to Other Classes}{254}
+\contentsline {paragraph}{\clsref {DynamicLink}{../ns-2/dynalink.cc.tcl}}{254}
+\contentsline {paragraph}{\clsref {Link}{../ns-2/ns-link.tcl}}{255}
+\contentsline {paragraph}{\clsref {SimpleLink}{../ns-2/ns-link.tcl}}{255}
+\contentsline {section}{\numberline {28.4}Deficencies in the Current Network Dynamics API}{255}
+\contentsline {section}{\numberline {28.5}Commands at a glance}{255}
+\contentsline {chapter}{\numberline {29}Hierarchical Routing}{257}
+\contentsline {section}{\numberline {29.1}Overview of Hierarchical Routing}{257}
+\contentsline {section}{\numberline {29.2}Usage of Hierarchical routing}{257}
+\contentsline {section}{\numberline {29.3}Creating large Hierarchical topologies}{259}
+\contentsline {section}{\numberline {29.4}Hierarchical Routing with SessionSim}{260}
+\contentsline {section}{\numberline {29.5}Commands at a glance}{260}
+\contentsline {part}{V\hspace {1em}Transport}{261}
+\contentsline {chapter}{\numberline {30}UDP Agents}{262}
+\contentsline {section}{\numberline {30.1}UDP Agents}{262}
+\contentsline {section}{\numberline {30.2}Commands at a glance}{263}
+\contentsline {chapter}{\numberline {31}TCP Agents}{264}
+\contentsline {section}{\numberline {31.1}One-Way TCP Senders}{265}
+\contentsline {subsection}{\numberline {31.1.1}The Base TCP Sender (Tahoe TCP)}{265}
+\contentsline {paragraph}{Responses to Congestion}{265}
+\contentsline {paragraph}{Round-Trip Time Estimation and RTO Timeout Selection}{265}
+\contentsline {subsection}{\numberline {31.1.2}Configuration}{265}
+\contentsline {subsection}{\numberline {31.1.3}Simple Configuration}{265}
+\contentsline {paragraph}{Creating the Agent}{265}
+\contentsline {paragraph}{TCP Data Source}{266}
+\contentsline {subsection}{\numberline {31.1.4}Other Configuration Parameters}{266}
+\contentsline {subsection}{\numberline {31.1.5}Other One-Way TCP Senders}{267}
+\contentsline {paragraph}{Reno TCP}{267}
+\contentsline {paragraph}{Newreno TCP}{267}
+\contentsline {paragraph}{Vegas TCP}{267}
+\contentsline {paragraph}{Sack TCP}{267}
+\contentsline {paragraph}{Fack TCP}{267}
+\contentsline {section}{\numberline {31.2}TCP Receivers (sinks)}{267}
+\contentsline {subsection}{\numberline {31.2.1}The Base TCP Sink}{268}
+\contentsline {paragraph}{configuration parameters}{268}
+\contentsline {subsection}{\numberline {31.2.2}Delayed-ACK TCP Sink}{268}
+\contentsline {paragraph}{configuration parameters}{268}
+\contentsline {subsection}{\numberline {31.2.3}Sack TCP Sink}{268}
+\contentsline {paragraph}{configuration parameters}{268}
+\contentsline {section}{\numberline {31.3}Two-Way TCP Agents (FullTcp)}{268}
+\contentsline {subsection}{\numberline {31.3.1}Simple Configuration}{269}
+\contentsline {paragraph}{Creating the Agent}{269}
+\contentsline {paragraph}{Configuration Parameters}{269}
+\contentsline {subsection}{\numberline {31.3.2}BayFullTcp}{270}
+\contentsline {section}{\numberline {31.4}Architecture and Internals}{270}
+\contentsline {paragraph}{The TCP header}{270}
+\contentsline {paragraph}{Functions for Sending Data}{270}
+\contentsline {paragraph}{Functions for Window Management}{271}
+\contentsline {paragraph}{Functions for Processing ACKs}{271}
+\contentsline {paragraph}{Functions for Managing the Retransmission Timer}{271}
+\contentsline {section}{\numberline {31.5}Tracing TCP Dynamics}{272}
+\contentsline {section}{\numberline {31.6}One-Way Trace TCP Trace Dynamics}{272}
+\contentsline {section}{\numberline {31.7}One-Way Trace TCP Trace Dynamics}{272}
+\contentsline {section}{\numberline {31.8}Commands at a glance}{272}
+\contentsline {chapter}{\numberline {32}SCTP Agents}{274}
+\contentsline {section}{\numberline {32.1}The Base SCTP Agent}{274}
+\contentsline {paragraph}{Association Establishment}{275}
+\contentsline {paragraph}{Association Shutdown}{275}
+\contentsline {paragraph}{Multihoming}{275}
+\contentsline {paragraph}{Packet Number vs TSN Numbering}{276}
+\contentsline {subsection}{\numberline {32.1.1}Configuration Parameters}{276}
+\contentsline {subsection}{\numberline {32.1.2}Commands}{277}
+\contentsline {paragraph}{trace}{277}
+\contentsline {paragraph}{print}{277}
+\contentsline {paragraph}{set-multihome-core}{277}
+\contentsline {paragraph}{multihome-add-interface}{277}
+\contentsline {paragraph}{multihome-attach-agent}{277}
+\contentsline {paragraph}{set-primary-destination}{277}
+\contentsline {paragraph}{force-source}{277}
+\contentsline {section}{\numberline {32.2}Extensions}{278}
+\contentsline {subsection}{\numberline {32.2.1}Newreno SCTP}{278}
+\contentsline {subsection}{\numberline {32.2.2}HbAfterRto SCTP}{278}
+\contentsline {subsection}{\numberline {32.2.3}MultipleFastRtx SCTP}{278}
+\contentsline {subsection}{\numberline {32.2.4}Timestamp SCTP}{278}
+\contentsline {section}{\numberline {32.3}Tracing SCTP Dynamics}{279}
+\contentsline {section}{\numberline {32.4}SCTP Applications}{280}
+\contentsline {section}{\numberline {32.5}Example Scripts}{280}
+\contentsline {subsection}{\numberline {32.5.1}Singled Homed Example}{280}
+\contentsline {subsection}{\numberline {32.5.2}Multihomed Example}{281}
+\contentsline {chapter}{\numberline {33}Agent/SRM}{283}
+\contentsline {section}{\numberline {33.1}Configuration}{283}
+\contentsline {subsection}{\numberline {33.1.1}Trivial Configuration}{283}
+\contentsline {paragraph}{Creating the Agent}{283}
+\contentsline {paragraph}{Application Data Handling}{284}
+\contentsline {paragraph}{Starting the Agent and Traffic Generator}{284}
+\contentsline {subsection}{\numberline {33.1.2}Other Configuration Parameters}{285}
+\contentsline {subsection}{\numberline {33.1.3}Statistics}{286}
+\contentsline {paragraph}{Data Loss}{286}
+\contentsline {paragraph}{Overall Statistics}{286}
+\contentsline {paragraph}{Miscellaneous Information}{287}
+\contentsline {subsection}{\numberline {33.1.4}Tracing}{287}
+\contentsline {section}{\numberline {33.2}Architecture and Internals}{289}
+\contentsline {section}{\numberline {33.3}Packet Handling: Processing received messages}{289}
+\contentsline {paragraph}{Data Packets}{289}
+\contentsline {paragraph}{Request Packets}{290}
+\contentsline {paragraph}{Repair Packets}{290}
+\contentsline {paragraph}{Session Packets}{290}
+\contentsline {section}{\numberline {33.4}Loss Detection---The Class SRMinfo}{291}
+\contentsline {section}{\numberline {33.5}Loss Recovery Objects}{291}
+\contentsline {paragraph}{Request Mechanisms}{291}
+\contentsline {paragraph}{Repair Mechanisms}{292}
+\contentsline {paragraph}{Mechanisms for Statistics}{293}
+\contentsline {section}{\numberline {33.6}Session Objects}{293}
+\contentsline {section}{\numberline {33.7}Extending the Base Class Agent}{294}
+\contentsline {subsection}{\numberline {33.7.1}Fixed Timers}{294}
+\contentsline {subsection}{\numberline {33.7.2}Adaptive Timers}{294}
+\contentsline {paragraph}{Recompute for Each New Loss Object}{294}
+\contentsline {paragraph}{Sending a Message}{294}
+\contentsline {paragraph}{Advertising the Distance}{294}
+\contentsline {section}{\numberline {33.8}SRM objects}{295}
+\contentsline {section}{\numberline {33.9}Commands at a glance}{296}
+\contentsline {chapter}{\numberline {34}PLM}{298}
+\contentsline {section}{\numberline {34.1}Configuration}{298}
+\contentsline {paragraph}{Creating a simple scenario with one PLM flow (only one receiver)\\}{298}
+\contentsline {section}{\numberline {34.2}The Packet Pair Source Generator}{300}
+\contentsline {section}{\numberline {34.3}Architecture of the PLM Protocol}{301}
+\contentsline {subsection}{\numberline {34.3.1}Instantiation of a PLM Source}{301}
+\contentsline {subsection}{\numberline {34.3.2}Instantiation of a PLM Receiver}{301}
+\contentsline {subsection}{\numberline {34.3.3}Reception of a Packet}{302}
+\contentsline {subsection}{\numberline {34.3.4}Detection of a Loss}{303}
+\contentsline {subsection}{\numberline {34.3.5}Joining or Leaving a Layer}{303}
+\contentsline {section}{\numberline {34.4}Commands at a Glance}{303}
+\contentsline {part}{VI\hspace {1em}Application}{305}
+\contentsline {chapter}{\numberline {35}Applications and transport agent API}{306}
+\contentsline {section}{\numberline {35.1}The class Application}{306}
+\contentsline {section}{\numberline {35.2}The transport agent API}{307}
+\contentsline {subsection}{\numberline {35.2.1}Attaching transport agents to nodes}{307}
+\contentsline {subsection}{\numberline {35.2.2}Attaching applications to agents}{308}
+\contentsline {subsection}{\numberline {35.2.3}Using transport agents via system calls}{308}
+\contentsline {subsection}{\numberline {35.2.4}Agent upcalls to applications}{308}
+\contentsline {subsection}{\numberline {35.2.5}An example}{309}
+\contentsline {section}{\numberline {35.3}The class TrafficGenerator}{310}
+\contentsline {paragraph}{Exponential On/Off}{311}
+\contentsline {paragraph}{Pareto On/Off}{311}
+\contentsline {paragraph}{CBR}{312}
+\contentsline {paragraph}{Traffic Trace}{312}
+\contentsline {subsection}{\numberline {35.3.1}An example}{312}
+\contentsline {section}{\numberline {35.4}Simulated applications: Telnet and FTP}{313}
+\contentsline {paragraph}{Application/FTP}{313}
+\contentsline {paragraph}{Application/Telnet}{313}
+\contentsline {section}{\numberline {35.5}Applications objects}{313}
+\contentsline {section}{\numberline {35.6}Commands at a glance}{315}
+\contentsline {chapter}{\numberline {36}Web cache as an application}{316}
+\contentsline {section}{\numberline {36.1}Using application-level data in \emph {ns}}{316}
+\contentsline {subsection}{\numberline {36.1.1}ADU}{316}
+\contentsline {subsection}{\numberline {36.1.2}Passing data between applications}{317}
+\contentsline {subsection}{\numberline {36.1.3}Transmitting user data over UDP}{318}
+\contentsline {subsection}{\numberline {36.1.4}Transmitting user data over TCP}{319}
+\contentsline {subsection}{\numberline {36.1.5}Class hierarchy related to user data handling}{320}
+\contentsline {section}{\numberline {36.2}Overview of web cache classes}{320}
+\contentsline {subsection}{\numberline {36.2.1}Managing HTTP connections}{320}
+\contentsline {paragraph}{OTcl methods}{321}
+\contentsline {paragraph}{Configuration parameter}{321}
+\contentsline {subsection}{\numberline {36.2.2}Managing web pages}{321}
+\contentsline {subsection}{\numberline {36.2.3}Debugging}{322}
+\contentsline {section}{\numberline {36.3}Representing web pages}{322}
+\contentsline {section}{\numberline {36.4}Page pools}{323}
+\contentsline {subsection}{\numberline {36.4.1}PagePool/Math}{323}
+\contentsline {subsection}{\numberline {36.4.2}PagePool/CompMath}{324}
+\contentsline {subsection}{\numberline {36.4.3}PagePool/ProxyTrace}{324}
+\contentsline {subsection}{\numberline {36.4.4}PagePool/Client}{325}
+\contentsline {subsection}{\numberline {36.4.5}PagePool/WebTraf}{325}
+\contentsline {section}{\numberline {36.5}Web client}{327}
+\contentsline {paragraph}{Creating a client}{327}
+\contentsline {paragraph}{Configuring request generation}{328}
+\contentsline {paragraph}{Starting}{328}
+\contentsline {paragraph}{OTcl interfaces}{328}
+\contentsline {section}{\numberline {36.6}Web server}{328}
+\contentsline {section}{\numberline {36.7}Web cache}{329}
+\contentsline {subsection}{\numberline {36.7.1}Http/Cache}{329}
+\contentsline {paragraph}{Creation and startup}{329}
+\contentsline {paragraph}{OTcl methods}{329}
+\contentsline {section}{\numberline {36.8}Putting together: a simple example}{330}
+\contentsline {section}{\numberline {36.9}Http trace format}{332}
+\contentsline {section}{\numberline {36.10}Commands at a glance}{333}
+\contentsline {part}{VII\hspace {1em}Scale}{335}
+\contentsline {chapter}{\numberline {37}Session-level Packet Distribution}{336}
+\contentsline {section}{\numberline {37.1}Configuration}{336}
+\contentsline {subsection}{\numberline {37.1.1}Basic Configuration}{336}
+\contentsline {subsection}{\numberline {37.1.2}Inserting a Loss Module}{338}
+\contentsline {paragraph}{Creating a Loss Module}{338}
+\contentsline {paragraph}{Inserting a Loss Module}{338}
+\contentsline {section}{\numberline {37.2}Architecture}{338}
+\contentsline {section}{\numberline {37.3}Internals}{339}
+\contentsline {subsection}{\numberline {37.3.1}Object Linkage}{339}
+\contentsline {paragraph}{Nodes and Links}{339}
+\contentsline {paragraph}{Session Helper}{339}
+\contentsline {paragraph}{Delay and Loss Modules}{340}
+\contentsline {subsection}{\numberline {37.3.2}Packet Forwarding}{340}
+\contentsline {section}{\numberline {37.4}Commands at a glance}{341}
+\contentsline {chapter}{\numberline {38}Asim: approximate analytical simulation}{342}
+\contentsline {part}{VIII\hspace {1em}Emulation}{346}
+\contentsline {chapter}{\numberline {39}Emulation}{347}
+\contentsline {section}{\numberline {39.1}Introduction}{347}
+\contentsline {section}{\numberline {39.2}Real-Time Scheduler}{348}
+\contentsline {section}{\numberline {39.3}Tap Agents}{348}
+\contentsline {paragraph}{Configuration}{348}
+\contentsline {section}{\numberline {39.4}Network Objects}{349}
+\contentsline {subsection}{\numberline {39.4.1}Pcap/BPF Network Objects}{349}
+\contentsline {paragraph}{Configuration}{349}
+\contentsline {subsection}{\numberline {39.4.2}IP Network Objects}{350}
+\contentsline {paragraph}{Configuration}{350}
+\contentsline {subsection}{\numberline {39.4.3}IP/UDP Network Objects}{350}
+\contentsline {section}{\numberline {39.5}An Example}{351}
+\contentsline {section}{\numberline {39.6}Commands at a glance}{352}
+\contentsline {part}{IX\hspace {1em}Visualization with Nam - The Network Animator}{353}
+\contentsline {chapter}{\numberline {40}Nam}{354}
+\contentsline {section}{\numberline {40.1}Introduction}{354}
+\contentsline {section}{\numberline {40.2}Nam Command Line Options}{354}
+\contentsline {section}{\numberline {40.3}User Interface}{355}
+\contentsline {section}{\numberline {40.4}Keyboard Commands}{356}
+\contentsline {section}{\numberline {40.5}Generating External Animations from Nam}{357}
+\contentsline {section}{\numberline {40.6}Network Layout}{357}
+\contentsline {section}{\numberline {40.7}Animation Objects}{358}
+\contentsline {chapter}{\numberline {41}Nam Trace}{359}
+\contentsline {section}{\numberline {41.1}Nam Trace Format}{359}
+\contentsline {subsection}{\numberline {41.1.1}Initialization Events}{360}
+\contentsline {subsection}{\numberline {41.1.2}Nodes}{361}
+\contentsline {subsection}{\numberline {41.1.3}Links}{361}
+\contentsline {subsection}{\numberline {41.1.4}Queues}{362}
+\contentsline {subsection}{\numberline {41.1.5}Packets}{362}
+\contentsline {subsection}{\numberline {41.1.6}Node Marking}{363}
+\contentsline {subsection}{\numberline {41.1.7}Agent Tracing}{364}
+\contentsline {subsection}{\numberline {41.1.8}Variable Tracing}{364}
+\contentsline {subsection}{\numberline {41.1.9}Executing Tcl Procedures and External Code from within Nam}{364}
+\contentsline {subsubsection}{Setting playback speed}{365}
+\contentsline {subsubsection}{Annotation}{365}
+\contentsline {subsubsection}{Node Exec Button}{365}
+\contentsline {subsection}{\numberline {41.1.10}Using Streams for Realtime Applications}{366}
+\contentsline {subsection}{\numberline {41.1.11}Nam Trace File Format Lookup Table}{369}
+\contentsline {section}{\numberline {41.2}Ns commands for creating and controlling nam animations}{375}
+\contentsline {subsection}{\numberline {41.2.1}Node}{375}
+\contentsline {subsection}{\numberline {41.2.2}Link/Queue}{375}
+\contentsline {subsection}{\numberline {41.2.3}Agent and Features}{376}
+\contentsline {subsection}{\numberline {41.2.4}Some Generic Commands}{376}
+\contentsline {part}{X\hspace {1em}Other}{377}
+\contentsline {chapter}{\numberline {42}Educational use of NS and NAM}{378}
+\contentsline {section}{\numberline {42.1}Using NS for educational purposes}{378}
+\contentsline {subsection}{\numberline {42.1.1}Installing/building/running \emph {ns}}{378}
+\contentsline {subsection}{\numberline {42.1.2}The educational scripts' inventory page:}{378}
+\contentsline {section}{\numberline {42.2}Using NAM for educational purposes}{379}

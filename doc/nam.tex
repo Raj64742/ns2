@@ -152,10 +152,10 @@ Nam does animation using the following building blocks which are defined below:
 
 \begin{description}
 \item[Node]
-Nodes are created from 'n' trace event in trace file. It represents a source, host, or router. Nam will skip over any duplicate definitions for the same node. A node may have three shapes, (circle, square, and hexagon), but once created it cannot change its shape. Nodes can change its color during animation.
+Nodes are created from 'n' trace event in trace file. It represents a source, host, or router. Nam will skip over any duplicate definitions for the same node. A node may have three shapes, (circle, square, and hexagon), but once created it cannot change its shape. Nodes can change its color during animation. Nodes can be labeled.
 
 \item[Link]
-Links are created between nodes to form a network topology. Internally nam links are consist of 2 simplex links. The trace event 'l' creates two simplex links and does other necessary setup. Therefore, for a users perspective all links are duplex links.  Links can change color during the animation.
+Links are created between nodes to form a network topology. Internally nam links are consist of 2 simplex links. The trace event 'l' creates two simplex links and does other necessary setup. Therefore, for a users perspective all links are duplex links.  Links can be labeled and also can change color during the animation. Links cab be labeled as well.
 
 \item[Queue]
 Queues need to be constructed in nam between two nodes. A nam queue is associated to only one edge of a duplex link. Queues are visualized as stacked packets.  Packets are stacked along a line, the angle between the line and the horizontal line can be specified in the queue trace event.
