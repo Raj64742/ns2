@@ -27,16 +27,21 @@
 // utilities.h 
 //      Miscellaneous useful definitions, including debugging routines.
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.h,v 1.1 1999/05/14 18:12:23 polly Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.h,v 1.2 1999/05/24 04:37:38 haoboy Exp $
 
 #ifndef UTILITIES_H
 #define UTILITIES_H
 
 #include <stdio.h>
-#include <strings.h>
 #include <stdlib.h>
 #include <assert.h>
 #include <limits.h>
+
+#ifndef WIN32
+#include <strings.h>
+#else
+#include <memory.h>
+#endif
 
 // Constants...
 
