@@ -15,6 +15,8 @@
 #         /                            
 #       ni                         
 #
+
+Queue/XCP set tcp_xcp_on_ 1
 proc create-topology2 { BW delay qtype qsize numSideLinks deltaDelay } {
     global ns 
     
@@ -316,7 +318,7 @@ proc flush-files {} {
     }
     foreach i $tracedXCPs {
 	global src$i
-	set file [set src$i tcpTrace_]
+	    set file [set src$i tcpTrace_]
 	if {[info exists $file]} {
             flush [set $file]
             close [set $file]

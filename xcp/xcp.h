@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp.h,v 1.4 2004/09/29 21:48:22 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp.h,v 1.5 2004/10/07 17:58:51 haldar Exp $ (LBL)
  */
 
 #ifndef NS_XCP
@@ -67,6 +67,7 @@ protected:
 	double queueWeight_[MAX_QNUM]; // queue weight for each queue (dynamic)
 	int maxVirQ_;             // num of queues used in xcp router
 	int spread_bytes_;
+	int tcp_xcp_on_;
 	
 	// Modified functions
 	virtual void enque(Packet* pkt); // high level enque function

@@ -50,6 +50,17 @@ XCPWrapQ::XCPWrapQ():xcpq_(NULL)
 	bind("maxVirQ_", &maxVirQ_);
 	bind("spread_bytes_", &spread_bytes_);
 	routerId_ = next_router++;
+
+	// XXX Temporary fix XXX
+	// set flag to 1 when supporting both tcp and xcp flows; 
+	// temporary fix for allocating link BW between xcp and 
+	// tcp queues until dynamic queue weights come into effect. 
+	// This fix should then go away.
+	
+	Tcl& tcl = Tcl::instance();
+	tcl.evalf("Queue/XCP set tcp_xcp_on_");
+	if (strcmp(tcl.result(), "0") != 0)  
+		tcp_xcp_on_ = 1;              //tcp_xcp_on flag is set
 }
  
 void XCPWrapQ::setVirtualQueues() {
@@ -103,10 +114,11 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 				printf("Error: BW < 0"); 
 				exit(1);
 			}
-	    
+			if (tcp_xcp_on_) // divide between xcp and tcp queues
+				link_capacity_bitps = link_capacity_bitps/2.0;
+			
 			for (int n=0; n < maxVirQ_; n++) {
-				xcpq_[n]->setBW(link_capacity_bitps/8.0); // XXX divide by 2 for
-				// tcp/xcp flow types?????
+				xcpq_[n]->setBW(link_capacity_bitps/8.0); 
 				xcpq_[n]->limit(limit());
 				xcpq_[n]->config();
 			}

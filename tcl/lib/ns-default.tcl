@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.333 2004/09/29 21:48:22 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.334 2004/10/07 17:58:50 haldar Exp $
 
 
 #
@@ -114,6 +114,10 @@ Queue/dsRED set ecn_ 0
 
 Queue/XCP set maxVirQ_ 3
 Queue/XCP set spread_bytes_ 0
+
+# XXX Temporary fix XXX
+# support only xcp flows; set to 1 when supporting both tcp and xcp flows; temporary fix for allocating link BW between xcp and tcp queues until dynamic queue weights come into effect. This fix should then go away
+Queue/XCP set tcp_xcp_on_ 0  ;
 
 Queue/RED set bytes_ false
 Queue/RED set queue_in_bytes_ false
