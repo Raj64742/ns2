@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.18 2003/01/05 18:55:47 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.19 2003/02/06 17:00:18 xuanc Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -124,11 +124,6 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk size pobj timer} 
     }
 
     set ns [Simulator instance]
- 
-    # Trace web traffic flows (recv request: client==>server).
-    if {$req_trace_} {	
-	puts "req - $id $pid $size [$clnt id] [$svr id] [$ns now]"
-    }
     
     # Recycle client-side TCP agents
     $ns detach-agent $clnt $ctcp
@@ -139,8 +134,28 @@ PagePool/WebTraf instproc done-req { id pid clnt svr ctcp csnk size pobj timer} 
 
     # request has completed successfully, now pass the request to web server
     # notify web server about the request
-    $self job_arrival $id $clnt $svr $ctcp $csnk $size $pobj
+    set delay [$self job_arrival $id $clnt $svr $ctcp $csnk $size $pobj]
     #$self launch-resp $id $pid $svr $clnt $ctcp $csnk $size $pobj
+
+    # this job is actually dropped due to server's queue limit
+    if {$delay == 0} {
+	# Trace web traffic flows (recv request: client==>server).
+	# Request has been rejected by server due to its capacity
+	if {$req_trace_} {	
+	    puts "req d $id $pid $size [$clnt id] [$svr id] [$ns now]"
+	}
+	# Recycle TCP agents
+	$self recycle $ctcp $csnk	
+	# is there any difference for rejected requests?
+	$self doneObj $pobj
+    } else {
+	# Trace web traffic flows (recv request: client==>server).
+	# Request has been received by server successfully
+	if {$req_trace_} {	
+	    puts "req - $id $pid $size [$clnt id] [$svr id] [$ns now]"
+	}
+    }
+    
 }
 
 PagePool/WebTraf instproc launch-resp { id pid svr clnt stcp ssnk size pobj} {
