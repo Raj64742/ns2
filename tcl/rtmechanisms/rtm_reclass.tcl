@@ -184,7 +184,24 @@ Test/one instproc traffic1 {} {
     $self new_tcp 390.0 $node_(s2) $node_(s3) 100 15 0 512
     $self new_tcp 420.0 $node_(s2) $node_(s4) 100 16 0 512
     $self new_tcp 440.0 $node_(s2) $node_(s4) 100 17 0 512
+    $self new_tcp 22.0 $node_(s2) $node_(s4) 100 18 0 1500
+    $self new_tcp 3.3 $node_(s4) $node_(s2) 100 19 0 500
+    $self new_tcp 28.0 $node_(s1) $node_(s3) 100 20 0 500
+    $self new_cbr 80.0 $node_(s4) $node_(s2) 200 0.5 21
+    $self new_tcp 1.0  $node_(s1) $node_(s3) 100 25 0 1500 
     set maxfid_ 17
+}
+
+#
+# Create traffic.
+#
+Test/one instproc more_cbrs {} {
+    $self instvar node_ maxfid_
+    $self new_cbr 105.0 $node_(s2) $node_(s4) 200 0.006 22
+    $self new_cbr 234.0 $node_(s1) $node_(s3) 220 0.01 23
+    $self new_cbr 277.0 $node_(s1) $node_(s3) 180 0.01 24
+    $self new_cbr 283.0 $node_(s1) $node_(s3) 220 0.02 26
+    $self new_cbr 289.0 $node_(s1) $node_(s3) 180 0.02 27
 }
 
 
@@ -193,8 +210,8 @@ Test/one instproc run {} {
     $topo_ instvar cbqlink_ node_
     set cbqlink $cbqlink_
 
-    # set stoptime 300.0
-    set stoptime 100.0
+    set stoptime 300.0
+#    set stoptime 100.0
 
 	set rtt 0.06
 	set mtu 512
@@ -219,6 +236,7 @@ Test/one instproc run {} {
 	$self linkDumpFlows $L1 1.0 $stoptime
 
 	$self traffic1
+        $self more_cbrs
 	$ns_ at $stoptime "$self finish"
 
 	ns-random 0
