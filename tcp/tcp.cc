@@ -34,16 +34,18 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.138 2002/12/06 00:25:00 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.139 2003/01/24 21:59:10 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <math.h>
+#include <sys/types.h>
 #include "ip.h"
 #include "tcp.h"
 #include "flags.h"
 #include "random.h"
 #include "basetrace.h"
+#include "hdr_qs.h"
 
 int hdr_tcp::offset_;
 
@@ -73,7 +75,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
         ect_(0), lastreset_(0.0),
         restart_bugfix_(1), closed_(0), nrexmit_(0),
-	first_decrease_(1)
+	first_decrease_(1), qs_requested_(0), qs_approved_(0)
 {
 #ifdef TCP_DELAY_BIND_ALL
 #else /* ! TCP_DELAY_BIND_ALL */
@@ -97,7 +99,6 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
         bind("nrexmitbytes_", &nrexmitbytes_);
         bind("necnresponses_", &necnresponses_);
         bind("ncwndcuts_", &ncwndcuts_);
-	bind("singledup_", &singledup_);
 #endif /* TCP_DELAY_BIND_ALL */
 
 }
@@ -164,6 +165,9 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("cwnd_frac_");
 	delay_bind_init_one("timerfix_");
 	delay_bind_init_one("rfc2988_");
+	delay_bind_init_one("singledup_");
+	delay_bind_init_one("rate_request_");
+	delay_bind_init_one("enable_QuickStart_");
 
 #ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
@@ -186,7 +190,6 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("nrexmitbytes_");
         delay_bind_init_one("necnresponses_");
         delay_bind_init_one("ncwndcuts_");
-	delay_bind_init_one("singledup_");
 #endif /* TCP_DELAY_BIND_ALL */
 
 	Agent::delay_bind_init_all();
@@ -242,6 +245,8 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "QOption_", &QOption_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "EnblRTTCtr_", &EnblRTTCtr_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "control_increase_", &control_increase_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "noFastRetrans_", &noFastRetrans_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "precisionReduce_", &precision_reduce_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "oldCode_", &oldCode_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "useHeaders_", &useHeaders_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "low_window_", &low_window_, tracer)) return TCL_OK;
@@ -252,6 +257,9 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
 	if (delay_bind(varName, localName, "cwnd_frac_", &cwnd_frac_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "timerfix_", &timerfix_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "rfc2988_", &rfc2988_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "singledup_", &singledup_ , tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "rate_request_", &rate_request_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "enable_QuickStart_", &enable_QuickStart_, tracer)) return TCL_OK;
 
 
 #ifdef TCP_DELAY_BIND_ALL
@@ -276,9 +284,6 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "nrexmitbytes_", &nrexmitbytes_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "necnresponses_", &necnresponses_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "ncwndcuts_", &ncwndcuts_ , tracer)) return TCL_OK;
-        if (delay_bind(varName, localName, "singledup_", &singledup_ , tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "noFastRetrans_", &noFastRetrans_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "precisionReduce_", &precision_reduce_, tracer)) return TCL_OK;
 #endif
 
         return Agent::delay_bind_dispatch(varName, localName, tracer);
@@ -582,12 +587,14 @@ void TcpAgent::output(int seqno, int reason)
 	Packet* p = allocpkt();
 	hdr_tcp *tcph = hdr_tcp::access(p);
 	hdr_flags* hf = hdr_flags::access(p);
+	hdr_ip *iph = hdr_ip::access(p);
 	int databytes = hdr_cmn::access(p)->size();
 	tcph->seqno() = seqno;
 	tcph->ts() = Scheduler::instance().clock();
 	tcph->ts_echo() = ts_peer_;
 	tcph->reason() = reason;
 	tcph->last_rtt() = int(int(t_rtt_)*tcp_tick_*1000);
+
 	if (ecn_) {
 		hf->ect() = 1;	// ECN-capable transport
 	}
@@ -606,6 +613,20 @@ void TcpAgent::output(int seqno, int reason)
 			hf->ecnecho() = 1;
 //			hf->cong_action() = 1;
 			hf->ect() = 0;
+		}
+		if (enable_QuickStart_) {
+			hdr_qs *qsh = hdr_qs::access(p);
+		    	if (rate_request_ > 0) {
+				// QuickStart code from Srikanth Sundarrajan.
+				qsh->flag() = QS_REQUEST;
+				Random::seed_heuristically();
+				qsh->ttl() = Random::integer(256);
+				ttl_diff_ = (iph->ttl() - qsh->ttl()) % 256;
+				qsh->rate() = rate_request_;
+				qs_requested_ = 1;
+		    	} else {
+				qsh->flag() = QS_DISABLE;
+			}
 		}
 	}
 	else if (useHeaders_ == true) {
@@ -760,6 +781,11 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
 			if (QOption_)
 				process_qoption_after_send () ; 
 			t_seqno_ ++ ;
+			if (qs_approved_ == 1) {
+				double delay = (double) t_rtt_ * tcp_tick_ / cwnd_;
+				delsnd_timer_.resched(delay);
+				return;
+			}
 		} else if (!(delsnd_timer_.status() == TIMER_PENDING)) {
 			/*
 			 * Set a delayed send timeout.
@@ -1366,6 +1392,34 @@ tahoe_action:
 	return;
 }
 
+void TcpAgent::processQuickStart(Packet *pkt)
+{
+	// QuickStart code from Srikanth Sundarrajan.
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	hdr_qs *qsh = hdr_qs::access(pkt);
+	double now = Scheduler::instance().clock();
+	int app_rate;
+
+        // printf("flag: %d ttl: %d ttl_diff: %d rate: %d\n", qsh->flag(),
+	//     qsh->ttl(), ttl_diff_, qsh->rate());
+	qs_requested_ = 0;
+	qs_approved_ = 0;
+	if (qsh->flag() == QS_RESPONSE && qsh->ttl() == ttl_diff_ && 
+            qsh->rate() > 0) {
+                app_rate = (int) (qsh->rate() * (now - tcph->ts_echo())) ;
+		printf("Quick Start approved, rate %d, window %d\t", 
+				     qsh->rate(), app_rate);
+                if (app_rate > initial_window()) {
+                        wnd_init_option_ = 1;
+                        wnd_init_ = app_rate;
+                        qs_approved_ = 1;
+                }
+        } else { // Quick Start rejected
+                printf("Quick Start rejected\n");
+        }
+
+}
+
 /*
  * main reception path - should only see acks, otherwise the
  * network connections are misconfigured
@@ -1373,6 +1427,10 @@ tahoe_action:
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	if (qs_approved_ == 1 && tcph->seqno() > last_ack_) 
+		qs_approved_ = 0;
+	if (qs_requested_ == 1)
+		processQuickStart(pkt);
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",

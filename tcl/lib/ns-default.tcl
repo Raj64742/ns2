@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.303 2002/12/28 23:39:20 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.304 2003/01/24 21:59:10 sfloyd Exp $
 
 
 #
@@ -776,6 +776,10 @@ Agent/TCP set high_decrease_ 0.1
 Agent/TCP set max_ssthresh_ 0
 Agent/TCP set cwnd_frac_ 0.0
 
+# For Quick-Start:
+Agent/TCP set rate_request_ 0
+Agent/TCP set enable_QuickStart_ false
+
 # These are all variables for tracing information.
 Agent/TCP set ndatapack_ 0
 Agent/TCP set ndatabytes_ 0
@@ -814,6 +818,7 @@ Agent/TCPSink set packetSize_ 40
 Agent/TCPSink set maxSackBlocks_ 3
 Agent/TCPSink set ts_echo_bugfix_ false
 Agent/TCPSink set generateDSacks_ false
+Agent/TCPSink set enable_QuickStart_ false
 Agent/TCPSink set RFC2581_immediate_ack_ true
 
 Agent/TCPSink/DelAck set interval_ 100ms

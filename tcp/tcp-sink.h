@@ -116,6 +116,7 @@ protected:
 	Packet* save_;		/* place to stash saved packet while delaying */
 				/* used by DelAckSink */
 	int generate_dsacks_;	// used only by sack sinks
+	int enable_QuickStart_; // to enable QuickStart 
 	int RFC2581_immediate_ack_;	// Used to generate ACKs immediately 
 					// for RFC2581-compliant gap-filling.
 	double lastreset_; 	/* W.N. used for detecting packets  */

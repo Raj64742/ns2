@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.103 2002/12/28 23:39:20 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.104 2003/01/24 21:59:10 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -219,6 +219,7 @@ protected:
 	double limited_slow_start(double cwnd, double max_ssthresh, double increment);
 				/* Limited slow-start for high windows */
 	virtual int numdupacks(double cwnd); 	/* for getting numdupacks_ */
+	virtual void processQuickStart(Packet *pkt);
 
 	/* Helper functions. Currently used by tcp-asym */
 	virtual void output_helper(Packet*) { return; }
@@ -351,6 +352,7 @@ protected:
 	double high_decrease_;	/* decrease rate at target window */
 	/* The next parameter is for Limited Slow-Start. */
 	int max_ssthresh_;	/* max value for ssthresh_ */
+
 	/* These three functions are just an easy structuring of the code. */ 
 	double increase_param();  /* get increase parameter for current cwnd */
 	double decrease_param();  /* get decrease parameter for current cwnd */
@@ -362,6 +364,14 @@ protected:
         double increase_last_;	/* increase param for cwnd_last_ */
 	double cwnd_frac_;	/* for determining when to recompute params. */
         /* end of section for experimental high-speed TCP */
+
+	/* for Quick-Start, experimental. */
+	int rate_request_;	/* Rate request in pps, for QuickStart. */
+	int enable_QuickStart_; /* to enable QuickStart. */
+	int qs_requested_;
+	int qs_approved_;
+	int ttl_diff_;
+        /* end of section for Quick-Start. */
 
         /* support for event-tracing */
         //EventTrace *et_;
