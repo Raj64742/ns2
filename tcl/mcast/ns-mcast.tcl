@@ -57,36 +57,35 @@ Simulator instproc clear-mcast {} {
                 $Node_($n) stop-mcast
         }
 }
-
-Simulator instproc mrtproto {mproto nodeList} {
+Simulator instproc mrtproto { mproto { nodelist "" } } {
 	$self instvar Node_ MrtHandle_
-	
+
 	set MrtHandle_ ""
-	if {$mproto == "CtrMcast"} {
+	if { $mproto == "CtrMcast" } {
 		set MrtHandle_ [new CtrMcastComp $self]
 		$MrtHandle_ set ctrrpcomp [new CtrRPComp $self]
-		if {[llength $nodeList] == 0} {
-			foreach n [array names Node_] {
-				new $mproto $self $Node_($n) 0 [list]
-			}
-		} else {
-			foreach node $nodeList {
-				new $mproto $self $node 0 [list]
-			}
+	}
+
+	if { $nodelist == "" } {
+		foreach n [array names Node_] {
+			$self mrtproto-iifs $mproto $Node_($n) ""
 		}
 	} else {
-		if {[llength $nodeList] == 0} {
-			foreach n [array names Node_] {
-				new $mproto $self $Node_($n)
-			}
-		} else {
-			foreach node $nodeList {
-				new $mproto $self $node
-			}
+		foreach node $nodelist {
+			$self mrtproto-iifs $mproto $node ""
 		}
 	}
 	$self at 0.0 "$self run-mcast"
+
 	return $MrtHandle_
+}
+#finer control than mrtproto: specify which iifs protocols owns
+Simulator instproc mrtproto-iifs {mproto node iiflist } {
+	set mh [new $mproto $self $node]
+	set arbiter [$node getArbiter]
+	if { $arbiter != "" } {
+		$arbiter addproto $mh $iiflist
+	}
 }
 
 Node proc allocaddr {} {
@@ -551,8 +550,14 @@ Node instproc add-iif {iflbl link} {
 
 Node instproc get-all-oifs {} {
         $self instvar outLink_
-	# return a sorted lists of all "heads"
+	# return a sorted list of all "heads"
 	return [lsort [array names outLink_]]
+}
+
+Node instproc get-all-iifs {} {
+	$self instvar inLink_
+	# return a list of "labels"
+	return [array names inLink_]
 }
 
 Node instproc iif2oif ifid {

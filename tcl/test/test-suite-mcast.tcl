@@ -765,10 +765,11 @@ Test/CtrMcast1 instproc init topo {
 # source and RP on same node
 Test/CtrMcast1 instproc run {} {
 	$self instvar ns_ node_ testName_
-	
+
 	set mproto CtrMcast
 	set mrthandle [$ns_ mrtproto $mproto  {}]
-	$mrthandle set_c_rp [list $node_(n2)]
+	set rp [list $node_(n2)]
+	$mrthandle set_c_rp $rp
 	
 	set udp1 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp1

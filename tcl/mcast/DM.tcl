@@ -85,7 +85,7 @@ DM instproc handle-wrong-iif { srcID group iface } {
 	set inlink  [$node_ iif2link $iface]
 	set from [$inlink src]
 	$self send-ctrl "prune" $srcID $group [$from id]
-	return "" ;# don't call this method two times
+	return 0 ;# don't call this method two times
 }
 
 DM instproc handle-cache-miss  { srcID group iface } {
@@ -105,7 +105,6 @@ DM instproc handle-cache-miss-pimdm { srcID group iface } {
 		if { $inlink != $rpflink } {
 			set from [$inlink src]
 			$self send-ctrl "prune" $srcID $group [$from id]
-			return
 		}
 		set rpfoif [$node_ iif2oif $iface]
 	} else {

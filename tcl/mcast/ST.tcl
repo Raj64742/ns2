@@ -91,16 +91,16 @@ ST instproc start {} {
 	$self next
 }
 
-ST instproc join-group  { group {src "*"} } {
+ST instproc join-group  { group {src "x"} } {
 	$self instvar node_ ns_
 	ST instvar RP_
 	
-	set r [$node_ getReps "\\*" $group]
+	set r [$node_ getReps "x" $group]
 	if {$r == ""} {
 		set iif [$self from-node-iface $RP_($group)]
-		$self dbg "********* join: adding <*, $group, $iif>"
-		$node_ add-mfc "*" $group $iif ""
-		set r [$node_ getReps "\\*" $group]
+		$self dbg "********* join: adding <x, $group, $iif>"
+		$node_ add-mfc "x" $group $iif ""
+		set r [$node_ getReps "x" $group]
 	}
 	if { ![$r is-active] } {
 		$self send-ctrl "graft" $RP_($group) $group
@@ -108,12 +108,12 @@ ST instproc join-group  { group {src "*"} } {
 	$self next $group ; #annotate
 }
 
-ST instproc leave-group { group {src "*"} } {
+ST instproc leave-group { group {src "x"} } {
 	ST instvar RP_
 	$self instvar node_
 	$self next $group
 	# check if the rep is active, then send a prune
-	set r [$node_ getReps "\\*" $group]
+	set r [$node_ getReps "x" $group]
 	if ![$r is-active] {
 		$self send-ctrl "prune" $RP_($group) $group
 	}
@@ -126,14 +126,14 @@ ST instproc handle-wrong-iif { srcID group iface } {
 
 
 # There should be only one mfc cache miss: the first time it receives a 
-# packet to the group (RP). Just install a (*,G) entry.
+# packet to the group (RP). Just install a (x,G) entry.
 ST instproc handle-cache-miss { srcID group iface } {
 	$self instvar node_
 	ST instvar RP_
 
 	$self dbg "cache miss, src: $srcID, group: $group, iface: $iface"
-	$self dbg "********* miss: adding <*, $group, *>"
-	$node_ add-mfc "*" $group "?" "" ;# RP gets packets from the local decapsulator
+	$self dbg "********* miss: adding <x, $group, ?, >"
+	$node_ add-mfc "x" $group "?" "" ;# RP gets packets from the local decapsulator
 }
 
 ST instproc drop { replicator src dst iface} {
@@ -154,7 +154,7 @@ ST instproc recv-prune { from src group iface } {
 	$self instvar node_ ns_ id_
 	ST instvar RP_ 
 	
-	set r [$node_ getReps "\\*" $group]
+	set r [$node_ getReps "x" $group]
 	if {$r == ""} {
 		# it's a cache miss!
 		$self dbg "recvd a prune, do nothing........"
@@ -180,7 +180,7 @@ ST instproc recv-graft { from to group iface} {
 	ST instvar RP_
 	
 	$self dbg "received a shared graft from: $from, to: $to"
-	set r [$node_ getReps "\\*" $group]
+	set r [$node_ getReps "x" $group]
 	if { $r == "" } {
 		set iif -1
 		if { $node_ != $RP_($group) } {
@@ -188,16 +188,9 @@ ST instproc recv-graft { from to group iface} {
 			set iiflnk [$ns_ link $nbr $node_] 
 			set iif [$node_ link2iif $iiflnk]
 		}
-		$self dbg "********* graft: adding <*, $group, $iif>"
-		$node_ add-mfc "*" $group $iif ""
-		set r [$node_ getReps "\\*" $group]
-	}
-	if {[llength $r] > 1} {
-		$self dbg "****** several replicators <*, $group> found: $r"
-		foreach rep $r {
-			$self dbg "      src: [$rep set srcID_]"
-		}
-		debug 1
+		$self dbg "********* graft: adding <x, $group, $iif>"
+		$node_ add-mfc "x" $group $iif ""
+		set r [$node_ getReps "x" $group]
 	}
 	if {![$r is-active]} {
 		# if this node isn't on the tree, propagate the graft

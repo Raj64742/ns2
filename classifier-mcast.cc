@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.20 1998/11/22 02:37:21 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.21 1998/11/30 23:36:35 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -47,6 +47,7 @@ class MCastClassifier : public Classifier {
 public:
 	MCastClassifier();
 	~MCastClassifier();
+	static const char STARSYM[]= "x"; //"source" field for shared trees
 protected:
 	int command(int argc, const char*const* argv);
 	int classify(Packet *const p);
@@ -173,6 +174,7 @@ int MCastClassifier::classify(Packet *const pkt)
 			tcl.evalf("%s new-group %u %u %d cache-miss", 
 				  name(), src, dst, iface);
 			// XXX see McastProto.tcl for the return values 0 - once, 1 - twice
+			//printf("cache-miss result= %s\n", tcl.result());
 			int res= atoi(tcl.result());
 			return (res)? Classifier::TWICE : Classifier::ONCE;
 		}
@@ -181,6 +183,7 @@ int MCastClassifier::classify(Packet *const pkt)
 
 		tcl.evalf("%s new-group %u %u %d wrong-iif", 
 			  name(), src, dst, iface);
+		//printf("wrong-iif result= %s\n", tcl.result());
 		int res= atoi(tcl.result());
 		return (res)? Classifier::TWICE : Classifier::ONCE;
 	}
@@ -224,8 +227,8 @@ int MCastClassifier::command(int argc, const char*const* argv)
                         int iface = (strcmp(argv[5], ANY_IFACE.name())==0) ? ANY_IFACE.value() 
 				: (strcmp(argv[5], UNKN_IFACE.name())==0) ? UNKN_IFACE.value() 
 				: atoi(argv[5]); 
-			if (strcmp("*", argv[2]) == 0) {
-			    // install a <*,G> entry: give 0 as src, but can be anything
+			if (strcmp(STARSYM, argv[2]) == 0) {
+			    // install a <x,G> entry: give 0 as src, but can be anything
 			    set_hash(ht_star_, 0, dst, slot, iface);
 			} else {
 			    //install a <S,G> entry
@@ -239,7 +242,7 @@ int MCastClassifier::command(int argc, const char*const* argv)
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int oldiface = atoi(argv[4]);
 			int newiface = atoi(argv[5]);
-			if (strcmp("*", argv[2]) == 0) {
+			if (strcmp(STARSYM, argv[2]) == 0) {
 				change_iface(dst, oldiface, newiface);
 			} else {
 				change_iface(src, dst, oldiface, newiface);
@@ -255,7 +258,7 @@ int MCastClassifier::command(int argc, const char*const* argv)
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int iface = atoi(argv[4]);
 			
-			hashnode* p= (strcmp("*", argv[2]) == 0) ? lookup_star(dst, iface)
+			hashnode* p= (strcmp(STARSYM, argv[2]) == 0) ? lookup_star(dst, iface)
 				: lookup(src, dst, iface);
 			if ((p == 0) || (slot_[p->slot] == 0))
 				tcl.resultf("");
@@ -270,7 +273,7 @@ int MCastClassifier::command(int argc, const char*const* argv)
 			Tcl &tcl = Tcl::instance();
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
-			hashnode* p= (strcmp(argv[2], "*") == 0) ? lookup_star(dst)
+			hashnode* p= (strcmp(argv[2], STARSYM) == 0) ? lookup_star(dst)
 				: lookup(src, dst);
 			if (p == 0)
 				tcl.resultf("");

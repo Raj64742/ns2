@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.47 1998/10/28 19:26:49 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.48 1998/11/30 23:36:38 yuriy Exp $
 #
 
 Class Node
@@ -82,7 +82,7 @@ Node instproc enable-mcast sim {
 	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
 	[$self set multiclassifier_] set node_ $self
 	
-	$self set mrtObject_ [new mrtObject $self ""]
+	$self set mrtObject_ [new mrtObject $self]
 
 	$switch_ install 0 $classifier_
 	$switch_ install 1 $multiclassifier_

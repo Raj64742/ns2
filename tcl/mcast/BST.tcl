@@ -59,17 +59,17 @@ BST instproc rpf-oif {group} {
 	}
 }
 
-BST instproc join-group  { group {src "*"} } {
+BST instproc join-group  { group {src "x"} } {
 	$self instvar node_ ns_
 	BST instvar RP_
 	
-	set r [$node_ getReps "\\*" $group]
+	set r [$node_ getReps "x" $group]
 	
 	if {$r == ""} {
 		set iif [$self rpf-iif $group]
-		$self dbg "********* join: adding <*, $group, $iif>"
-		$node_ add-mfc "*" $group $iif ""
-		set r [$node_ getReps "\\*" $group]
+		$self dbg "********* join: adding <x, $group, $iif>"
+		$node_ add-mfc "x" $group $iif ""
+		set r [$node_ getReps "x" $group]
 	}
 	if { ![$r is-active] } {
 		$self send-ctrl "graft" $RP_($group) $group
@@ -77,12 +77,12 @@ BST instproc join-group  { group {src "*"} } {
 	$self next $group ; #annotate
 }
 
-BST instproc leave-group { group {src "*"} } {
+BST instproc leave-group { group {src "x"} } {
 	BST instvar RP_
 	$self next $group
 
 	$self instvar node_
-	set r [$node_ getReps "\\*" $group]
+	set r [$node_ getReps "x" $group]
 	if ![$r is-active] {
 		$self send-ctrl "prune" $RP_($group) $group
 	}
@@ -94,10 +94,10 @@ BST instproc handle-wrong-iif { srcID group iface } {
 	
 	$self dbg "BST: wrong iif $iface, src $srcID, grp $group"
 	#debug 1
-	set rep [$node_ getReps "\\*" $group]
+	set rep [$node_ getReps "x" $group]
 	
-	$node_ add-mfc "*" $group $iface $oiflist_
-	set iif [$node_ lookup-iface "*" $group]
+	$node_ add-mfc "x" $group $iface $oiflist_
+	set iif [$node_ lookup-iface "x" $group]
 	if { $iface >= 0 } {
 		set oif [$node_ iif2oif $iface]
 		set rpfiif [$self rpf-iif $group]
@@ -112,7 +112,7 @@ BST instproc handle-wrong-iif { srcID group iface } {
 			}
 		}
 	}
-	$node_ change-iface "*" $group $iif $iface
+	$node_ change-iface "x" $group $iif $iface
 	return 1 ;#classify packet again
 }
 
@@ -120,14 +120,14 @@ BST instproc handle-cache-miss { srcID group iface } {
 	$self instvar node_  ns_ oiflist_
 	BST instvar RP_
 
-	if { [$node_ getReps "\\*" $group] != "" } {
+	if { [$node_ getReps "x" $group] != "" } {
 		debug 1
 	}
 	$self dbg "handle-cache-miss, src: $srcID, group: $group, iface: $iface"
 	set tmpoif [$self rpf-oif $group]
 	puts "tmpoif= $tmpoif"
-	$node_ add-mfc "*" $group $iface $tmpoif
-	$self dbg "********* miss: adding <*, $group, $iface, $tmpoif>"
+	$node_ add-mfc "x" $group $iface $tmpoif
+	$self dbg "********* miss: adding <x, $group, $iface, $tmpoif>"
 	return 1 ;# classify the packet again.
 }
 
@@ -150,7 +150,7 @@ BST instproc recv-prune { from src group iface} {
 	BST instvar RP_ 
 	$self dbg "received a prune from: $from, src: $src, grp: $group, if: $iface"
 
-	set rep [$node_ getReps "\\*" $group]
+	set rep [$node_ getReps "x" $group]
 	if {$rep != ""} {
 		set oif [$node_ iif2oif $iface]
 		set idx [lsearch $oiflist_ $oif]
@@ -179,8 +179,8 @@ BST instproc recv-graft { from to group iface } {
 	}
 	if { [lsearch $oiflist_ $oif] < 0 } {
 		lappend oiflist_ $oif
-		if { [$node_ lookup-iface "*" $group] != $iface } {
-			set rep [$node_ getReps "\\*" $group]
+		if { [$node_ lookup-iface "x" $group] != $iface } {
+			set rep [$node_ getReps "x" $group]
 			$rep insert $oif
 		}
 	}

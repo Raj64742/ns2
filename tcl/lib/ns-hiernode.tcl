@@ -99,7 +99,7 @@ HierNode instproc enable-mcast sim {
 	# appropriate replicator object.
 	#
 
-	$self set mrtObject_ [new mrtObject $self ""]
+	$self set mrtObject_ [new mrtObject $self]
 }
 
 HierNode instproc add-hroute { dst target } {

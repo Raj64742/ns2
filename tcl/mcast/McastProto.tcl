@@ -31,10 +31,6 @@ McastProtocol instproc init {sim node} {
 	set type_   [$self info class]
 	set id_ [$node id]
 
-        set arbiter [$node_ getArbiter]
-	if { $arbiter != "" } {
-		$arbiter addproto $self
-	}
 	$ns_ maybeEnableTraceAll $self $node_
 }
 
@@ -279,23 +275,28 @@ mrtObject proc expandaddr {} {
 	}
 }
 
-# initialize with a list of the mcast protocols
-mrtObject instproc init { node protos } {
+mrtObject instproc init { node } {
         $self next
 	$self set node_	     $node
-	$self set protocols_ $protos
 }
 
-mrtObject instproc addproto { proto } {
-        $self instvar protocols_
-        lappend protocols_ $proto
+mrtObject instproc addproto { proto { iiflist "" } } {
+        $self instvar node_ protocols_
+	# if iiflist is empty, protocol runs on all iifs
+	if { $iiflist == "" } {
+		set iiflist [$node_ get-all-iifs]
+		lappend iiflist -1 ;#for local packets
+	}
+	foreach iif $iiflist {
+		set protocols_($iif) $proto
+	}
 }
 
 mrtObject instproc getType { protocolType } {
         $self instvar protocols_
-        foreach proto $protocols_ {
-                if { [$proto getType] == $protocolType } {
-                        return $proto
+        foreach iif [array names protocols_] {
+                if { [$protocols_($iif) getType] == $protocolType } {
+                        return $protocols_($iif)
                 }
         }
         return ""
@@ -303,20 +304,13 @@ mrtObject instproc getType { protocolType } {
 
 mrtObject instproc all-mprotos {op args} {
 	$self instvar protocols_
-	set res 0
-	# XXX
-	# do we want certain upcalls to be done once or twice?
-	# see classifier-mcast.cc: evalf("new-group...")
-	# unless some protocol returns a non-empty list, we'll call
-	# new-group just once, so 0 - once ; 1 - twice
-	# XXX
-	foreach proto $protocols_ {
-		set foo [eval $proto $op $args]
-		if {$foo != ""} {
-			set res 1
+	foreach iif [array names protocols_] {
+		set p $protocols_($iif)
+		if ![info exists protos($p)] {
+			set protos($p) 1
+			eval $p $op $args
 		}
 	}
-	return $res
 }
 
 mrtObject instproc start {}	{ $self all-mprotos start	}
@@ -343,10 +337,12 @@ mrtObject instproc upcall { code source group iface } {
 		$node_ add-mfc $source $group -1 {}
 		return 1
         } else {
-		$self all-mprotos upcall $code $source $group $iface
+		$self instvar protocols_
+		$protocols_($iface) upcall $code $source $group $iface
 	}
 }
 
 mrtObject instproc drop { replicator src dst {iface -1} } {
-        $self all-mprotos drop $replicator $src $dst $iface
+	$self instvar protocols_
+	$protocols_($iface) drop $replicator $src $dst $iface
 }

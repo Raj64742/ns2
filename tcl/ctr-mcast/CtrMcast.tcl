@@ -23,17 +23,14 @@
 ########## CtrMcast Class: Individual Node join-group, leave-group, etc #####
 Class CtrMcast -superclass McastProtocol
 
-CtrMcast instproc init { sim node agent args } {
+CtrMcast instproc init { sim node } {
 	$self next $sim $node
 	$self instvar ns_ node_
 	$self instvar agent_ defaultTree_ decapagent_
 	$self instvar c_rp_ c_bsr_ priority_
 
-	if {$agent != 0} {	;# CtrMcastCompute agent
-		set agent_ $agent
-	} else {	
-		set agent_ [$ns_ set MrtHandle_]
-	}
+	set agent_ [$ns_ set MrtHandle_]
+
 	set defaultTree_ "RPT"
 
 	set decapagent_ [new Agent/Decapsulator]
@@ -43,19 +40,6 @@ CtrMcast instproc init { sim node agent args } {
 	set c_rp_      1
 	set c_bsr_     1
 	set priority_  0
-	set len [llength $args]
-	if { $len >= 1 } {
-		set c_rp_ [lindex $args 0]
-		if { $c_rp_ == "" } {
-			set c_rp_ 1
-		}
-	}
-	if { $len >= 2 } {
-		set c_bsr_ [lindex $args 1]
-	}
-	if { $len >= 3 } {
-		set priority_ [lindex $args 2]
-	}
 }
 
 CtrMcast instproc join-group  { group } {
@@ -124,7 +108,7 @@ CtrMcast instproc drop  { replicator src group iface } {
 
 CtrMcast instproc handle-wrong-iif { srcID group iface } {
 	warn "$self: $proc for <S: $srcID, G: $group, if: $iface>?"
-	return "" ;#call once
+	return 0 ;#call once
 }
 
 CtrMcast instproc notify { dummy } {
