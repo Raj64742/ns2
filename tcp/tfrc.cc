@@ -290,7 +290,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 {
 	double now = Scheduler::instance().clock();
 	hdr_tfrc_ack *nck = hdr_tfrc_ack::access(pkt);
-	double ts = nck->timestamp_echo;
+	double ts = nck->timestamp_echo + nck->timestamp_offset;
 	double rate_since_last_report = nck->rate_since_last_report;
 	// double NumFeedback_ = nck->NumFeedback_;
 	double flost = nck->flost; 
