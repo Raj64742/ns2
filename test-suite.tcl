@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.14 1998/01/23 19:30:50 tecklee Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.15 1998/05/06 18:15:10 kfall Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1070,10 +1070,23 @@ Test/stats instproc printpkts { label tcp } {
 	puts "tcp $label total_packets_acked [$tcp set ack_]"
 }
 #XXX Still unfinished in ns-2
-Test/stats instproc printdrops { label link } {
-	puts "class: $label per-link total_drops [$link stat $label drops]"
-	puts "class: $label per-link total_packets [$link stat $label packets]"
-	puts "class: $label per-link total_bytes [$link stat $label bytes]"
+Test/stats instproc printdrops { fid fmon } {
+	set fcl [$fmon classifier]; # flow classifier
+	#
+	# look up the flow using the classifier.  Because we are
+	# using a Fid classifier, the src/dst fields are not compared,
+	# and can thus be just zero, as illustrated here.  The "auto"
+	# indicates we don't already know which bucket in the classifier's
+	# hash table to find the flow we're looking for.
+	#
+	set flow [$fcl lookup auto 0 0 $fid]
+	puts "fid: $fid per-link total_drops [$flow set pdrops_]"
+	puts "fid: $fid per-link total_packets [$flow set pdepartures_]"
+	puts "fid: $fid per-link total_bytes [$flow set bdepartures_]"
+	#
+	# note there is much more date available in $flow and $fmon
+	# that isn't being printed here.
+	#
 }
 Test/stats instproc printstop { stoptime } {
 	puts "stop-time $stoptime"
@@ -1085,6 +1098,10 @@ Test/stats instproc run {} {
 	$ns_ delay $node_(r1) $node_(s2) 200ms
 	$ns_ queue-limit $node_(r1) $node_(k1) 10
 	$ns_ queue-limit $node_(k1) $node_(r1) 10
+
+	set slink [$ns_ link $node_(r1) $node_(k1)]; # link to collect stats on
+	set fmon [$ns_ makeflowmon Fid]
+	$ns_ attach-fmon $slink $fmon
 
 	set stoptime 10.1 
 
@@ -1100,12 +1117,13 @@ Test/stats instproc run {} {
 	$ns_ at 1.0 "$ftp1 start"
 
 	$self tcpDumpAll $tcp0 5.0 tcp0
+	$self tcpDumpAll $tcp1 5.00001 tcp1
 
 	set almosttime [expr $stoptime - 0.001]
 	$ns_ at $almosttime "$self printpkts 0 $tcp0"
-	#XXX Awaiting completion of link stats
-	#$ns_ at $stoptime "$self printdrops 0 [$ns_ link $node_(r1) $node_(k1)]"
-	#$ns_ at $stoptime "$self printdrops 1 [$ns_ link $node_(r1) $node_(k1)]"
+	$ns_ at $almosttime "$self printpkts 1 $tcp1"
+	$ns_ at $stoptime "$self printdrops 0 $fmon"
+	$ns_ at $stoptime "$self printdrops 1 $fmon"
 
 	# trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
