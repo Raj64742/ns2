@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.13 1999/11/24 21:21:25 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.14 1999/11/30 00:33:05 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: TODO list</H1>
 
@@ -32,11 +32,25 @@ validation,
 documentation,
 research results,
 release,
-logging
+logging,
+test suite for error models
 <hr>
 
 <ul>
 
+  <p>
+  <li>
+  	<b> Test suite for error models</b>: Currently we have 8+ different
+	error models in ns. They seem to be used frequently but there is no 
+	test suite to guarantee that they function correctly in every release. 
+	What's more, there is little documentation about their expected behavior,
+	especially for the newer error models, e.g. two state. What we need is
+	first a test suite for all error models, then a fairly detailed doc on 
+	their expected behavior. This will save users' time and help them 
+	customize
+	these models for their own purpose.
+	<em>(<a href="http://www.isi.edu/~haoboy">[haoboy]</a>
+	Mon Nov 29 16:31:59 PST 1999)</em>
   <p>
   <li>
 	<b>Using hash classifier in hierarchical node</b>
