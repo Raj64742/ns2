@@ -137,6 +137,12 @@ TestSuite instproc init {} {
 	set ns_         [new Simulator]
     if {[string compare $testName_ "dsdv"] && \
 	    [string compare $testName_ "dsr"]} {
+	     # XXX We explicitly test HierNode. Since set-address-format
+	     # is used by both the new and the old code, we can't add a 
+	     # warning there to say that it's obsolete; nor can we keep 
+	     # this set node_factory_ stuff there. So the following is 
+	     # the only solution. Ugly but it works.
+	     Simulator set node_factory_ HierNode
 	     $ns_ set-address-format hierarchical
 	     AddrParams set domain_num_ 3
 	     lappend cluster_num 2 1 1

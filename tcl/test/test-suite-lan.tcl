@@ -105,7 +105,12 @@ Test/lan-routing-hier instproc init {} {
 			lan_ node0_ nodex_ tcp0_ ftp0_
 	set testName_ routing-hier
 	$self next 
-	$ns_ set-address-format hierarchical
+	# We are switching to the new format, i.e., node-config.
+	# Do not test the old method based on node_factory_ here
+	# since this is not a backward compatibility test. See 
+	# test-suite-hier-routing.tcl for such tests.
+	$ns_ node-config -addressType hierarchical
+	#$ns_ set-address-format hierarchical
 	set num 3
 	AddrParams set domain_num_ 1
 	lappend cluster_num 3
