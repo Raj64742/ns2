@@ -16,13 +16,14 @@ public:
 XCPWrapQ::XCPWrapQ():xcpq_(NULL)
 {
 	bind("maxVirQ_", &maxVirQ_);
+	bind("spread_bytes_", &spread_bytes_);
 	routerId_ = next_router++;
 }
  
 void XCPWrapQ::setVirtualQueues() {
 	
 	for (int n=0; n < maxVirQ_; n++) {
-		xcpq_[n]->routerId(this,routerId_); 
+		xcpq_[n]->routerId(this, routerId_); 
 		wrrTemp_[n] = 0;
 	}
 	
@@ -33,6 +34,8 @@ void XCPWrapQ::setVirtualQueues() {
   
 	// setup timers for xcp queue only
 	xcpq_[XCPQ]->setupTimers();
+
+	xcpq_[XCPQ]->spread_bytes(spread_bytes_);
 }
 
 

@@ -53,7 +53,8 @@ struct hdr_xcp {
  * This code is to be written later!
  */
 
-#define TP_TO_S		(srtt_estimate_*2 + tcp_tick_)	// used for xcp_metered_output_ == true
+#define TP_TO_S		(0.5)	// used for xcp_metered_output_ == true
+//#define TP_TO_S		(srtt_estimate_*2 + tcp_tick_)
 #define TP_AVG_EXP	4	// used for xcp_metered_output_ == true
 
 class XcpAgent;

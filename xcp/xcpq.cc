@@ -115,8 +115,15 @@ void XCPQueue::do_on_packet_arrival(Packet* pkt)
 	input_traffic_bytes_ += pkt_size;
 
 	hdr_xcp *xh = hdr_xcp::access(pkt); 
-  
-
+	if (spread_bytes_) {
+		int i = int(xh->rtt_/BWIDTH + .5);
+		if (i > maxb_)
+			maxb_ = i;
+		b_[i] += pkt_size;
+		
+		if (xh->rtt_ != 0.0 && xh->throughput_ != 0.0)
+			t_[i] += pkt_size/xh->throughput_;
+	}
 	if (xh->xcp_enabled_ != hdr_xcp::XCP_ENABLED)
 		return;	// Estimates depend only on Forward XCP Traffic
 
@@ -158,12 +165,20 @@ void XCPQueue::do_before_packet_departure(Packet* p)
 
 	double inv = 1.0/xh->throughput_;
 	double pkt_size = double(hdr_cmn::access(p)->size());
+	double frac = 1.0;
+	if (spread_bytes_) {
+		// rtt-scaling
+		frac = (xh->rtt_ > Te_) ? Te_ / xh->rtt_ : xh->rtt_ / Te_;
+	}
 /* L 19 */
 	double pos_fbk = min(residue_pos_fbk_, Cp_ * inv * pkt_size);
+	pos_fbk *= frac;
 /* L 20 */
 	double neg_fbk = min(residue_neg_fbk_, Cn_ * pkt_size);
+	neg_fbk *= frac;
 /* L 21 */
 	double feedback = pos_fbk - neg_fbk;
+
 /* L 22 */	
 	if (xh->delta_throughput_ >= feedback) {
 /* L 23 */
@@ -222,16 +237,38 @@ void XCPQueue::Te_timeout()
 		trace_var("residue_pos_fbk_not_allocated", residue_pos_fbk_);
 		trace_var("residue_neg_fbk_not_allocated", residue_neg_fbk_);
 	}
+	if (spread_bytes_) {
+		double spreaded_bytes = b_[0];
+		double tp = t_[0];
+		for (int i = 1; i <= maxb_; ++i) {
+			double spill = b_[i]/(i+1) + .5;
+			spreaded_bytes += spill;
+			b_[i-1] = b_[i] - spill;
 
+			spill = t_[i]/(i+1);
+		        tp += spill;
+			t_[i-1] = t_[i] - spill;
+		}
+		b_[maxb_] = t_[maxb_] = 0;
+		if (maxb_ > 0)
+			--maxb_;
+		input_traffic_bytes_ = spreaded_bytes;
+		sum_inv_throughput_ = tp;
+	}
+		
 	double input_bw = input_traffic_bytes_ / Te_;
 	double phi_bps = 0.0;
 	double shuffled_traffic_bps = 0.0;
 
-	if (sum_inv_throughput_ != 0.0) {
+	if (spread_bytes_) {
+		avg_rtt_ = (maxb_ + 1)*BWIDTH/2; // XXX fix me
+	} else {
+		if (sum_inv_throughput_ != 0.0) {
 /* L 7 */
-		avg_rtt_ = sum_rtt_by_throughput_ / sum_inv_throughput_;
-	} else
-		avg_rtt_ = INITIAL_Te_VALUE;
+			avg_rtt_ = sum_rtt_by_throughput_ / sum_inv_throughput_;
+		} else
+			avg_rtt_ = INITIAL_Te_VALUE;
+	}
 
 	if (input_traffic_bytes_ > 0) {
 /* L 8 */
@@ -278,7 +315,11 @@ void XCPQueue::Te_timeout()
 /* L 16 */
 	sum_rtt_by_throughput_ = 0.0;
 /* L 17 */
-	Te_ = max(avg_rtt_, XCP_MIN_INTERVAL);
+	if (spread_bytes_)
+		Te_ = BWIDTH;
+	else
+		Te_ = max(avg_rtt_, XCP_MIN_INTERVAL);
+
 /* L 18 */
 	estimation_control_timer_->resched(Te_);
 }
@@ -288,7 +329,11 @@ void XCPQueue::init_vars()
 {
 	link_capacity_bps_	= 0.0;
 	avg_rtt_		= INITIAL_Te_VALUE;
-	Te_			= INITIAL_Te_VALUE;
+	if (spread_bytes_)
+		Te_		= BWIDTH;
+	else
+		Te_		= INITIAL_Te_VALUE;
+
 	Tq_			= INITIAL_Te_VALUE; 
 	Cp_			= 0.0;
 	Cn_			= 0.0;     
@@ -304,6 +349,11 @@ void XCPQueue::init_vars()
   
 	queue_trace_file_ = 0;
 	myQueue_ = 0;
+
+	spread_bytes_ 		= 0;
+	for (int i = 0; i<BSIZE; ++i)
+		b_[i] = t_[i] = 0;
+	maxb_ = 0;
 }
 
 

@@ -31,7 +31,7 @@ class XCPWrapQ : public Queue {
   double wrrTemp_[MAX_QNUM];     // state of queue being serviced
   double queueWeight_[MAX_QNUM]; // queue weight for each queue (dynamic)
   int maxVirQ_;             // num of queues used in xcp router
-
+  int spread_bytes_;
   // --- Tracing
   Tcl_Channel queue_trace_file_;
   double effective_rtt_;

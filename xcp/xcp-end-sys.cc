@@ -4,7 +4,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.4 2004/08/04 22:25:18 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.5 2004/08/09 21:30:58 yuri Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -237,10 +237,19 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 	if (xcp_metered_output_) {
 		xcp_feedback_ += xh->reverse_feedback_;
 	}
+	
 	double delta_cwnd = (xh->reverse_feedback_ 
 			     * srtt_estimate_ 
 			     / size_);
-	//double delta_cwnd =  xh->reverse_feedback_ * xh->rtt_ / size_;
+
+// 	double estimated_throughput = s_sent_bytes_ / TP_TO_S;
+	
+// 	if (estimated_throughput == 0)
+// 		estimated_throughput = 1;
+// 	double delta_cwnd = (xh->reverse_feedback_ 
+// 			     / (estimated_throughput + xcp_feedback_) 
+// 			     * cwnd_);
+//	double delta_cwnd =  xh->reverse_feedback_ * xh->rtt_ / size_;
 	double newcwnd = (cwnd_ + delta_cwnd);
 
 	if (newcwnd < 1.0)

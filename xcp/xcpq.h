@@ -43,7 +43,11 @@ class XCPQueue : public REDQueue {
 	void setBW(double bw);
 	void setChannel(Tcl_Channel queue_trace_file);
 	void config();
-	
+	void spread_bytes(int b) { 
+		spread_bytes_ = b; 
+		if (b) 
+			Te_ = BWIDTH;
+	}
 	// Overloaded functions
 	void enque(Packet* pkt);
 	Packet* deque();
@@ -97,6 +101,13 @@ protected:
 	unsigned int		num_cc_packets_in_Te_;
 	int			drops_;
 
+	int			spread_bytes_; // 1/0
+	static const int	BSIZE = 4096;
+	double			b_[BSIZE];
+	double			t_[BSIZE];
+	int			maxb_;
+	static const double	BWIDTH = 0.01;
+ 
 	Tcl_Channel queue_trace_file_;
 };
 
