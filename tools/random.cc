@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.19 2000/08/09 05:51:14 johnh Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.20 2003/12/10 17:19:56 johnh Exp $ (LBL)";
  */
 
 #ifndef WIN32
@@ -50,7 +50,7 @@
 RANDOM_RETURN_TYPE
 random() GCC_THROW
 {
-	printf("random() called in ns.\nRandom is not portable, please use Random::uniform() instead.\n");
+	printf("The C library random() has been called in ns.\nThis library function is not portable (it produces different streams\non different computers), please use ns's Random::uniform() instead.\n");
 	abort();
 }
 
