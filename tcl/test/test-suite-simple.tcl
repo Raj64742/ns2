@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.13 2001/08/02 04:03:36 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.14 2001/11/08 23:29:49 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -371,6 +371,13 @@ Topology/net0 instproc init ns {
     }
 }
 
+# 
+# The net0a topology with RED at the bottleneck should be functionally
+# equivalent to the net0 topology above.
+# The queue-limit on bottleneck is 5 instead of 6 packets, to account
+#   for a difference in measuring the queue between RED and DT.
+# However, there are stilll performance differences between net0 and net0a.
+# 
 Class Topology/net0a -superclass NodeTopology/4nodes
 Topology/net0a instproc init ns {
     $self next $ns
@@ -378,8 +385,10 @@ Topology/net0a instproc init ns {
     $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail
     $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms RED
-    $ns queue-limit $node_(r1) $node_(k1) 6
-    $ns queue-limit $node_(k1) $node_(r1) 6
+    $ns queue-limit $node_(r1) $node_(k1) 5
+    $ns queue-limit $node_(k1) $node_(r1) 5
+    Queue/RED set thresh_ 1000
+    Queue/RED set maxthresh_ 1000
     if {[$class info instprocs config] != ""} {
 	$self config $ns
     }
@@ -482,6 +491,17 @@ Test/tahoe1 instproc run {} {
 	$ns_ run
 }
 
+# Tahoe1 with RED
+Class Test/tahoe1RED -superclass TestSuite
+Test/tahoe1RED instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0a
+	set test_	tahoe1RED
+	Test/tahoe1RED instproc run {} [Test/tahoe1 info instbody run ]
+	$self next
+}
+
 Class Test/tahoe2 -superclass TestSuite
 Test/tahoe2 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -536,6 +556,17 @@ Test/tahoe3 instproc run {} {
 	# Trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace 8.0 $testName_]
 	$ns_ run
+}
+
+# Tahoe3 with RED.
+Class Test/tahoe3RED -superclass TestSuite
+Test/tahoe3RED instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net0a
+	set test_	tahoe3RED
+	Test/tahoe3RED instproc run {} [Test/tahoe3 info instbody run ]
+	$self next
 }
 
 Class Test/tahoe4 -superclass TestSuite
