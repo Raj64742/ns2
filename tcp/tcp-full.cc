@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.38 1998/05/14 01:32:31 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.39 1998/05/15 20:04:24 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -1168,10 +1168,10 @@ trimthenstep6:
                  *      SYN-RECEIVED* -> FIN-WAIT-1
                  */
                 if (flags_ & TF_NEEDFIN) {
-                        state_ = TCPS_FIN_WAIT_1;
+			newstate(TCPS_FIN_WAIT_1);
                         flags_ &= ~TF_NEEDFIN;
                 } else {
-                        state_ = TCPS_ESTABLISHED;
+                        newstate(TCPS_ESTABLISHED);
                 }
 		cwnd_ = initial_window();
 		if (ecn_) {
