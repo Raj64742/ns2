@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.21 2001/06/20 02:23:54 xuanc Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.22 2002/04/10 20:37:46 haldar Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -73,6 +73,7 @@ class Handler {
 };
 
 #define	SCHED_START	0.0	/* start time (secs) */
+#define CALENDAR_ALPHA  2.0    /* used for resizing bucket width incase of overflow */
 
 class Scheduler : public TclObject {
 public:

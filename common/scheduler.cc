@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.64 2001/08/03 22:56:47 johnh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.65 2002/04/10 20:37:46 haldar Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.64 2001/08/03 22:56:47 johnh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.65 2002/04/10 20:37:46 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -734,7 +734,7 @@ CalendarScheduler::newwidth()
 	// try to work out average cluster separation
 	double asep = (hold[nsamples-1]->time_ - hold[0]->time_) / (nsamples-1);
 	double asep2 = 0.0;
-	double min = (clock_ + 1.0) * MIN_WIDTH; 
+	//double min = (clock_ + 1.0) * MIN_WIDTH; 
 	int count = 0;
 
 	for (int k = 1; k < nsamples; k++) {
@@ -743,14 +743,29 @@ CalendarScheduler::newwidth()
 	}
 
 	// but don't let things get too small for numerical stability
-	double nw = count ? 3.0*(asep2/count) : asep;
-	if (nw < min) nw = min;
+	//double nw = count ? 3.0*(asep2/count) : asep;
+	//if (nw < min) nw = min;
+
+	// if count==0, i.e if all samples are scheduled at the same time, we don't know better than to keep the old estimate
+	double nw;
+	if (count == 0) {
+		nw = width_;
+	} else {
+		nw = 3.0*asep2/count;
+	}
 
 	/* need to make sure that time_/width_ can be represented as
 	 * an int.  see the comment at the start of insert().
 	 */
+	/* optimisation suggested by Yuri is to increase value of
+	 * new-width by a factor and leave some space for future events,
+	 * so that we won't be resizing the queue everytime e->time_ 
+	 * > max_. 
+	 */
+	   
 	if (max_/nw > ULONG_MAX) {
-		nw = max_/ULONG_MAX;
+		//nw = max_/ULONG_MAX;
+		nw = max_ * CALENDAR_ALPHA / ULONG_MAX;
 	}
 	return nw;
 }
