@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/timer-handler.h,v 1.3 1997/08/10 07:50:02 mccanne Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/timer-handler.h,v 1.4 1997/08/15 23:32:59 heideman Exp $ (USC/ISI)
  */
 
 #ifndef timer_handler_h
@@ -40,15 +40,7 @@
  *	MyAgentClass *a_;
  * };
  *
- * Then define expire:
- *
- * double
- * MyTimer::expire(Event *e)
- * {
- * 	// do the work
- *	// return TIMER_HANDLED;  // => do not reschedule timer
- *	// return delay;          // => reschedule timer after delay
- * }
+ * Then define expire.
  *
  * Often MyTimer will be a friend of MyAgentClass,
  * or expire() will only call a function of MyAgentClass.
