@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.24 1998/03/30 21:45:41 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.25 1998/04/07 23:39:07 haldar Exp $
 #
 
 Class Node
@@ -43,16 +43,17 @@ Node proc getid {} {
 
 Node instproc init args {
 	eval $self next $args
-	$self instvar np_ id_ classifier_ agents_ dmux_ neighbor_
+	$self instvar np_ id_ classifier_ agents_ dmux_ neighbor_ address_
 	set neighbor_ ""
 	set agents_ ""
 	set dmux_ ""
 	set np_ 0
 	set id_ [Node getid]
-	set classifier_ [new Classifier/Addr]
-	# set up classifer as a router (i.e., 24 bit of addr and 8 bit port)
-    $classifier_ set mask_ [Simulator set NodeMask_]
-    $classifier_ set shift_ [Simulator set NodeShift_]
+        set classifier_ [new Classifier/Addr]
+	# set up classifer as a router (default value is , 8 bit of addr and 8 bit port)
+        $classifier_ set mask_ [AddrParams set NodeMask_(1)]
+        $classifier_ set shift_ [AddrParams set NodeShift_(1)]
+	
 }
 
 Node instproc enable-mcast sim {
@@ -64,8 +65,9 @@ Node instproc enable-mcast sim {
 	# set up switch to route unicast packet to slot 0 and
 	# multicast packets to slot 1
 	#
-	[$self set switch_] set mask_ 1
-	[$self set switch_] set shift_ [Simulator set McastShift_]
+    
+    [$self set switch_] set mask_ [AddrParams set McastMask_]
+    [$self set switch_] set shift_ [AddrParams set McastShift_]
 
 	#
 	# create a classifier for multicast routing
@@ -154,8 +156,9 @@ Node instproc attach agent {
 	#
 	if { $dmux_ == "" } {
 		set dmux_ [new Classifier/Addr]
-	    $dmux_ set mask_ [Simulator set PortMask_]
-		$dmux_ set shift_ 0
+	    $dmux_ set mask_ [AddrParams set PortMask_]
+	    # $dmux_ set shift_ 0
+	    $dmux_ set shift_ [AddrParams set PortShift_]
 		#
 		# point the node's routing entry to itself
 		# at the port demuxer (if there is one)
@@ -164,9 +167,9 @@ Node instproc attach agent {
 	}
     set port [$self alloc-port]
     $agent set portID_ $port
-    $agent set addr_ [expr $id_ << [Simulator set NodeShift_] | $port]
-
-	$dmux_ install $port $agent
+    
+    $agent set addr_ [expr [expr $id_ << [AddrParams set NodeShift_(1)]] | [expr $port << [AddrParams set PortShift_]]]
+    $dmux_ install $port $agent
 }
 
 #
