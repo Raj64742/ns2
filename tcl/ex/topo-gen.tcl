@@ -1,3 +1,4 @@
+# Created May 98 by Ahmed Helmy; updated June 98
 # topology generator class
 Class TG
 
@@ -192,6 +193,7 @@ proc topology { args } {
 	} else {
 		$tg create $args
 	}
+	ScenGen setTG $tg
 }
 
 Class TG/itm -superclass TG
@@ -343,6 +345,20 @@ puts {you must provide the outfile name !!.. use "topology -h" for help}
 	$self create-topology
 }
 
+# XXX to be extended to include stubs... and other topo info
+TG instproc setNodes { type num } {
+	$self instvar nodes
+	set nodes($type) $num
+	# now we stor nodes(all) x
+	# should be able to store nodes(stub1) x1-x2
+	# keep track of the num of stubs... etc
+}
+
+TG instproc getNodes { type } {
+	$self instvar nodes
+	return $nodes($type)
+}
+
 TG/itm instproc create-topology { } {
 
 	$self instvar opts
@@ -374,6 +390,8 @@ TG/itm instproc create-topology { } {
 		if { $opts(scale) == -1 } {
 			set opts(scale) $opts(nodes)
 		}
+
+		$self setNodes all $opts(nodes)
 
 		puts "nodes $opts(nodes), scale $opts(scale), \
 		     method $opts(method)"
@@ -423,6 +441,8 @@ TG/itm instproc create-topology { } {
 		  $opts(transit_nodes) * [expr 1 + $opts(stubs_per_transit) \
 		  * $opts(stub_nodes)]]
 		puts "Total nodes = $total_nodes"
+
+		$self setNodes all $total_nodes
 
 		puts $topo_file "ts $opts(number) $opts(seed)"
 		puts $topo_file "$opts(stubs_per_transit) \
@@ -548,4 +568,21 @@ puts {
  * The i'th graph created with the parameters from file "arg" is placed
  * in file "arg-i.gb", where the first value of i is zero.
  }
+}
+
+###############################################################
+### the scenario generator keeps track of topology generator ##
+### and can be queried to get this info			     ##
+###############################################################
+
+Class ScenGen
+
+ScenGen set TG ""
+
+ScenGen proc setTG { tg } {
+	ScenGen set TG $tg
+}
+
+ScenGen proc getTG { } {
+	return [ScenGen set TG]
 }
