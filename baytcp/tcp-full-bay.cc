@@ -76,7 +76,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.cc,v 1.1 2001/04/05 22:49:45 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/tcp-full-bay.cc,v 1.2 2001/05/16 00:10:34 alefiyah Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -694,6 +694,8 @@ void BayFullTcpAgent::recv(Packet *pkt, Handler*)
 	int ourfinisacked = 0;
 	int todrop = 0;
 	int dupseg = FALSE;
+	
+
 
 #ifdef notdef
 	if (trace_)
@@ -715,6 +717,7 @@ void BayFullTcpAgent::recv(Packet *pkt, Handler*)
 		delack_timer_.resched(delack_interval_ * (last + 1.0) - now);
 
 	}
+
 
 	int datalen = th->size() - tcph->hlen();
 	int ackno = tcph->ackno();	// ack # from packet
@@ -1156,7 +1159,8 @@ step6:
 			curseq_ = iss_;
 			state_ = TCPS_LISTEN;
 		} else {	/*"something else" - kmn 6/00 */
-			app_->recv(pkt,this,CONNECTION_END);
+		  if (app_ != NULL )
+		    app_->recv(pkt,this,CONNECTION_END);
 		}
 	}
 	Packet::free(pkt);
