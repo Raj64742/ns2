@@ -207,7 +207,7 @@ rtObject instproc intf-changed {} {
 rtObject instproc dump-routes chan {
     $self instvar ns_ node_ nextHop_ rtpref_ metric_ rtVia_
 
-    if ![info proc SplitObjectCompare] {
+    if {[info proc SplitObjectCompare] == ""} {
 	puts stderr "$class::$proc failed.  Update your TclCL library"
 	return
     }
