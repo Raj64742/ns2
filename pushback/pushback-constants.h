@@ -37,8 +37,8 @@
 #ifndef ns_pushback_constants_h
 #define ns_pushback_constants_h
 
-/* #define DEBUG_LGDS  */
-/* #define DEBUG_LGDSN  */
+/* #define DEBUG_LGDS */
+/* #define DEBUG_LGDSN */
 /* #define DEBUG_AS  */
 /* #define DEBUG_RLSL */
 
@@ -48,6 +48,7 @@
 #define MIN_BITS_FOR_MERGER 2
 
 //make it 0 to classify on the basis of dst addresses
+//make it 1 to classify on the basis of flowid
 #define AGGREGATE_CLASSIFICATION_MODE_FID 1
 
 // maximum no of queues on the node
