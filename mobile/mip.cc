@@ -96,7 +96,6 @@ void MIPEncapsulator::recv(Packet* p, Handler *h)
 	//hdr->dst() = addr_ & ~(~(nsaddr_t)0 << shift_) | (te & mask_) << shift_;;
 	hdr->dst() = Address::instance().create_ipaddr(te,1);
 	hdr->ttl() = defttl_;
-
 	((hdr_cmn*)p->access(off_cmn_))->size() += IP_HEADER_SIZE;
 
 	target_->recv(p,h);
@@ -135,7 +134,7 @@ void MIPDecapsulator::recv(Packet* p, Handler *h)
 	hdr_ipinip **ppinhdr = (hdr_ipinip **)p->access(off_ipinip_);
 	// restore inner header
 	hdr_ip *pouthdr = (hdr_ip *)p->access(off_ip_);
-	assert(!ppinhdr);
+	assert(ppinhdr);
 	hdr_ip *pinhdr = &(*ppinhdr)->hdr_;
 	*ppinhdr = (*ppinhdr)->next_;
 	*pouthdr = *pinhdr;
