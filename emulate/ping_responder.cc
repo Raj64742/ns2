@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ping_responder.cc,v 1.6 1998/05/27 23:18:17 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/ping_responder.cc,v 1.7 1998/05/27 23:21:38 kfall Exp $";
 #endif
 
 #include <stdio.h>
@@ -52,7 +52,7 @@ static const char rcsid[] =
 //
 // ping_responder.cc -- this agent may be inserted into nse as
 // a real-world responder to ICMP ECHOREQUEST operations.  It's
-// used to test emultation mode, mostly
+// used to test emulation mode, mostly (and in particular the rt scheduler)
 // 
 
 class PingResponder : public Agent {
@@ -72,6 +72,11 @@ public:
         } 
 } class_pingresponder;
 
+/*
+ * receive an ICMP echo request packet from the simulator.
+ * Actual IP packet is in the "data" portion of the packet, and
+ * is assumed to start with the IP header
+ */
 
 void
 PingResponder::recv(Packet* pkt, Handler*)
@@ -221,6 +226,7 @@ PingResponder::validate(int sz, ip* iph)
  *
  * this routine will just assume no IP options on the pkt
  */
+
 void
 PingResponder::reflect(ip* iph)
 {
@@ -235,7 +241,7 @@ PingResponder::reflect(ip* iph)
 	iph->ip_sum = Internet::in_cksum((u_short*) iph, iphlen);
 
 	/* recompute the icmp cksum */
-	icmp* icp = (icmp*)(iph + 1);	// just pass standard IP header
+	icmp* icp = (icmp*)(iph + 1);	// just past standard IP header
 	icp->icmp_cksum = 0;
 	icp->icmp_cksum = Internet::in_cksum((u_short*)icp, iplen - iphlen);
 }
