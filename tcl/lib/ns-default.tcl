@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.339 2004/10/25 05:02:08 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.340 2004/10/26 22:59:42 sfloyd Exp $
 
 
 #
@@ -924,6 +924,10 @@ Agent/TCP set eln_rxmit_thresh_ 1
 Agent/TCP set delay_growth_ true ;	# default changed on 2001/5/17.
 
 Agent/TCP set CoarseTimer_      0
+
+Agent/TCP set frto_enabled_	0 ;	# Added on 2004/10/26 for F-RTO
+Agent/TCP set sfrto_enabled_	0 ;	# Added on 2004/10/26 for F-RTO
+Agent/TCP set spurious_response_ 1 ;	# Added on 2004/10/26 for F-RTO
 
 Agent/TCPSink set sport_        0
 Agent/TCPSink set dport_        0         

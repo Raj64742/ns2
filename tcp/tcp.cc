@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.153 2004/09/22 22:53:44 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.154 2004/10/26 22:59:42 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -77,7 +77,7 @@ TcpAgent::TcpAgent()
 	  ect_(0), lastreset_(0.0),
 	  restart_bugfix_(1), closed_(0), nrexmit_(0),
 	  first_decrease_(1), qs_requested_(0), qs_approved_(0),
-	  qs_window_(0), qs_cwnd_(0)
+	  qs_window_(0), qs_cwnd_(0), frto_(0)
 	
 {
 #ifdef TCP_DELAY_BIND_ALL
@@ -180,6 +180,10 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("qs_enabled_");
 	delay_bind_init_one("tcp_qs_recovery_");
 
+	delay_bind_init_one("frto_enabled_");
+	delay_bind_init_one("sfrto_enabled_");
+	delay_bind_init_one("spurious_response_");
+
 #ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
         delay_bind_init_one("t_seqno_");
@@ -279,6 +283,10 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "rate_request_", &rate_request_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "qs_enabled_", &qs_enabled_ , tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "tcp_qs_recovery_", &tcp_qs_recovery_, tracer)) return TCL_OK;
+
+	if (delay_bind_bool(varName, localName, "frto_enabled_", &frto_enabled_, tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "sfrto_enabled_", &sfrto_enabled_, tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "spurious_response_", &spurious_response_, tracer)) return TCL_OK;
 
 
 #ifdef TCP_DELAY_BIND_ALL
@@ -799,9 +807,29 @@ int TcpAgent::command(int argc, const char*const* argv)
 	return (Agent::command(argc, argv));
 }
 
+/*
+ * Returns the window size adjusted to allow <num> segments past recovery
+ * point to be transmitted on next ack.
+ */
+int TcpAgent::force_wnd(int num)
+{
+	return recover_ + num - (int)highest_ack_;
+}
+
 int TcpAgent::window()
 {
-	return (cwnd_ < wnd_ ? (int)cwnd_ : (int)wnd_);
+        /*
+         * If F-RTO is enabled and first ack has come in, temporarily open
+         * window for sending two segments.
+	 * The F-RTO code is from Pasi Sarolahti.  F-RTO is an algorithm
+	 * for detecting spurious retransmission timeouts.
+         */
+        if (frto_ == 2) {
+                return (force_wnd(2) < wnd_ ?
+                        force_wnd(2) : (int)wnd_);
+        } else {
+		return (cwnd_ < wnd_ ? (int)cwnd_ : (int)wnd_);
+        }
 }
 
 double TcpAgent::windowd()
@@ -1357,6 +1385,33 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 	if (QOption_ && curseq_ == highest_ack_ +1) {
 		cancel_rtx_timer();
 	}
+	if (frto_ == 1) {
+		/*
+		 * New ack after RTO. If F-RTO is enabled, try to transmit new
+		 * previously unsent segments.
+		 * If there are no new data or receiver window limits the
+		 * transmission, revert to traditional recovery.
+		 */
+		if (recover_ + 1 >= highest_ack_ + wnd_ ||
+		    recover_ + 1 >= curseq_) {
+			frto_ = 0;
+ 		} else if (highest_ack_ == recover_) {
+ 			/*
+ 			 * F-RTO step 2a) RTO retransmission fixes whole
+			 * window => cancel F-RTO
+ 			 */
+ 			frto_ = 0;
+		} else {
+			t_seqno_ = recover_ + 1;
+			frto_ = 2;
+		}
+	} else if (frto_ == 2) {
+		/*
+		 * Second new ack after RTO. If F-RTO is enabled, RTO can be
+		 * declared spurious
+		 */
+		spurious_timeout();
+	}
 }
 
 /*
@@ -1517,6 +1572,68 @@ void TcpAgent::processQuickStart(Packet *pkt)
 }
 
 
+
+/*
+ * ACK has been received, hook from recv()
+ */
+void TcpAgent::recv_frto_helper(Packet *pkt)
+{
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	if (tcph->seqno() == last_ack_ && frto_ != 0) {
+		/*
+		 * Duplicate ACK while in F-RTO indicates that the
+		 * timeout was valid. Go to slow start retransmissions.
+		 */
+		t_seqno_ = highest_ack_ + 1;
+		cwnd_ = frto_;
+		frto_ = 0;
+
+		// Must zero dupacks (in order to trigger send_much at recv)
+		// dupacks is increased in recv after exiting this function
+		dupacks_ = -1;
+	}
+}
+
+
+/*
+ * A spurious timeout has been detected. Do appropriate actions.
+ */
+void TcpAgent::spurious_timeout()
+{
+	frto_ = 0;
+
+	switch (spurious_response_) {
+	case 1:
+	default:
+		/*
+		 * Full revert of congestion window
+		 * (FlightSize before last acknowledgment)
+		 */
+		cwnd_ = t_seqno_ - prev_highest_ack_;
+		break;
+ 
+	case 2:
+		/*
+		 * cwnd = reduced ssthresh (approx. half of the earlier pipe)
+		 */
+		cwnd_ = ssthresh_; break;
+	case 3:
+		/*
+		 * slow start, but without retransmissions
+		 */
+		cwnd_ = 1; break;
+	}
+
+	/*
+	 * Revert ssthresh to size before retransmission timeout
+	 */
+	ssthresh_ = pipe_prev_;
+
+	/* If timeout was spurious, bugfix is not needed */
+	recover_ = highest_ack_ - 1;
+}
+
+
 /*
  * Loss occurred in Quick-Start window.
  * If Quick-Start is enabled, packet loss in the QS phase should
@@ -1577,6 +1694,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	if (ecnecho && ecn_)
 		ecn(tcph->seqno());
 	recv_helper(pkt);
+	recv_frto_helper(pkt);
 	/* grow cwnd and check if the connection is done */ 
 	if (tcph->seqno() > last_ack_) {
 		recv_newack_helper(pkt);
@@ -1633,6 +1751,11 @@ void TcpAgent::timeout(int tno)
 		// There has been a timeout - will trace this event
 		trace_event("TIMEOUT");
 
+		frto_ = 0;
+		// Set pipe_prev as per Eifel Response
+		pipe_prev_ = (window() > ssthresh_) ?
+			window() : (int)ssthresh_;
+
 	        if (cwnd_ < 1) cwnd_ = 1;
 		if (qs_approved_ == 1) qs_approved_ = 0;
 		if (highest_ack_ == maxseq_ && !slow_start_restart_) {
@@ -1664,11 +1787,17 @@ void TcpAgent::timeout(int tno)
 				* don't cut down ssthresh_.
 				*/
 				slowdown(CLOSE_CWND_ONE);
+				if (frto_enabled_ || sfrto_enabled_) {
+					frto_ = 1;
+				}
 			}
 			else {
 				++nrexmit_;
 				last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 				slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
+				if (frto_enabled_ || sfrto_enabled_) {
+					frto_ = 1;
+				}
 			}
 		}
 		/* if there is no outstanding data, don't back off rtx timer */

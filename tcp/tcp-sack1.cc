@@ -43,6 +43,7 @@ class Sack1TcpAgent : public TcpAgent {
 	Sack1TcpAgent();
 	virtual ~Sack1TcpAgent();
 	virtual void recv(Packet *pkt, Handler*);
+	int is_sacked(hdr_tcp *tcph, int seqlo, int seqhi);
 	void reset();
 	virtual void timeout(int tno);
 	virtual void dupack_action();
@@ -164,6 +165,23 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 					send_one();
  				}
 			}
+			if (sfrto_enabled_ && frto_ == 2) {
+				/*
+				 * SACK-based F-RTO: If SACK only acknowledges
+				 * data that was transmitted before RTO and
+				 * not acknowledged earlier,
+				 * the timeout was spurious.
+				 */
+				if (scb_->IsChanged() &&
+				    !is_sacked(tcph, recover_, maxseq_)) {
+					spurious_timeout();
+				} else {
+					t_seqno_ = highest_ack_ + 1;
+					cwnd_ = frto_;
+					frto_ = 0;
+					dupacks_ = 0;
+				}
+			}
 		}
         	if (valid_ack || aggressive_maxburst_)
 			if (dupacks_ == 0)
@@ -229,6 +247,28 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 		plot();
 #endif
 }
+
+
+/*
+ * Returns TRUE if any of the SACK blocks in the current packet (tcph)
+ * cover sequence numbers between seqlo and seqhi
+ */
+int Sack1TcpAgent::is_sacked(hdr_tcp *tcph, int seqlo, int seqhi)
+{
+	int i, sleft, sright;
+	for (i=0; i < tcph->sa_length(); i++) {
+		sleft = tcph->sa_left(i);
+		sright = tcph->sa_right(i);
+
+		if ((sright > seqlo && sright <= seqhi) ||
+		    (sleft >= seqlo && sleft < seqhi) ||
+		    (sleft < seqlo && sright > seqhi)) {
+			return TRUE;
+		}
+	}
+	return FALSE;
+}
+
 
 void
 Sack1TcpAgent::dupack_action()
@@ -345,6 +385,9 @@ Sack1TcpAgent::partial_ack_action()
 
 void Sack1TcpAgent::timeout(int tno)
 {
+	// F-RTO is not allowed if earlier SACK fast recovery is underway.
+	int no_frto = fastrecov_;
+
 	if (tno == TCP_TIMER_RTX) {
 		/*
 		 * IF DSACK and dynamic adjustment of numdupacks_,
@@ -366,6 +409,10 @@ void Sack1TcpAgent::timeout(int tno)
 		scb_->ClearScoreBoard();
 	}
 	TcpAgent::timeout(tno);
+
+	// Overrule frto_ setting that may have been done in TcpAgent
+	if (no_frto)
+		frto_ = 0;
 }
 
 void Sack1TcpAgent::send_much(int force, int reason, int maxburst)

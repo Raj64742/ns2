@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.115 2004/09/22 22:53:44 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.116 2004/10/26 22:59:42 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -252,8 +252,12 @@ protected:
 	virtual void send_helper(int) { return; }
 	virtual void send_idle_helper() { return; }
 	virtual void recv_helper(Packet*) { return; }
+	virtual void recv_frto_helper(Packet*);
 	virtual void recv_newack_helper(Packet*);
 	virtual void partialnewack_helper(Packet*) {};
+
+	int force_wnd(int num);
+	void spurious_timeout();
 
 	/* Timers */
 	RtxTimer rtx_timer_;
@@ -324,6 +328,10 @@ protected:
 				 * old ECN implementation, which never
 				 * reduced the congestion window below
 				 * one packet. */ 
+	int frto_enabled_;	/* != 0 to enable F-RTO */
+	int sfrto_enabled_;	/* != 0 to enabled SACK-based F-RTO */
+	int spurious_response_;	/* Response variant to spurious RTO */
+
 	FILE *plotfile_;
 	/*
 	 * Dynamic state.
@@ -418,6 +426,11 @@ protected:
                                  losses during QS window */
 	int ttl_diff_;
         /* end of section for Quick-Start. */
+
+	/* F-RTO: !=0 when F-RTO recovery is underway, N:th round-trip
+	 * since RTO. Can have values between 0-2 */
+	int frto_;
+	int pipe_prev_; /* window size when timeout last occurred */
 
         /* support for event-tracing */
         //EventTrace *et_;

@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.40 2003/07/29 20:24:28 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.41 2004/10/26 22:59:42 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -47,6 +47,11 @@ int RenoTcpAgent::window()
 	//	at which time it contains the number of dup acks
 	//
 	int win = int(cwnd_) + dupwnd_;
+	if (frto_ == 2) {
+		// First ack after RTO has arrived.
+		// Open window to allow two new segments out with F-RTO.
+		win = force_wnd(2);
+	}
 	if (win > int(wnd_))
 		win = int(wnd_);
 	return (win);
@@ -96,6 +101,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 	if (hdr_flags::access(pkt)->ecnecho() && ecn_)
 		ecn(tcph->seqno());
 	recv_helper(pkt);
+	recv_frto_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
 		if (last_cwnd_action_ == CWND_ACTION_DUPACK)
 			last_cwnd_action_ == CWND_ACTION_EXITED;

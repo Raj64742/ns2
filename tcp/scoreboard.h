@@ -69,12 +69,11 @@ class ScoreBoard {
 	virtual int CheckUpdate() {return (changed_);}
 	virtual int CheckSndNxt (hdr_tcp*);
 	virtual int GetNextUnacked (int seqno);
+        inline int IsChanged() { return changed_; }
 	
   protected:
 	int first_, length_, sbsize_, changed_;
-
 	ScoreBoardNode * SBN; 
-
 	void resizeSB(int sz);
 };
 
