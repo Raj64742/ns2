@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.57 1998/04/22 21:35:05 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.58 1998/04/25 01:33:24 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -826,6 +826,12 @@ void TcpAgent::timeout(int tno)
 		};
 		recover_ = maxseq_;
 		recover_cause_ = 2;
+		if (highest_ack_ == -1 && wnd_init_option_ == 2)
+			/* 
+			 * First packet dropped, so don't use larger
+			 * initial windows. 
+			 */
+			wnd_init_option_ = 1;
 		/* if there is no outstanding data, don't cut down ssthresh_ */
 		if (highest_ack_ == maxseq_ && restart_bugfix_)
 			closecwnd(3);
