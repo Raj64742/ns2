@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.8 2002/01/03 04:34:06 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.9 2002/03/08 17:28:19 sfloyd Exp $
 #
 
 Object instproc exit args {
@@ -106,9 +106,9 @@ TestSuite instproc timeDump { interval } {
 #
 # Trace the TCP congestion window cwnd_.
 #
-TestSuite instproc enable_tracecwnd { ns tcp } { 
+TestSuite instproc enable_tracecwnd { ns tcp {filename all.cwnd} } { 
         $self instvar cwnd_chan_
-        set cwnd_chan_ [open all.cwnd w]
+        set cwnd_chan_ [open $filename w]
         $tcp trace cwnd_
         $tcp attach $cwnd_chan_ 
 }       
@@ -116,7 +116,7 @@ TestSuite instproc enable_tracecwnd { ns tcp } {
 #
 # Plot the TCP congestion window cwnd_.
 #
-TestSuite instproc plot_cwnd { {terse 0} {title cwnd} } {
+TestSuite instproc plot_cwnd { {terse 0} {title cwnd} {newfiles 0} } {
         global quiet
         $self instvar cwnd_chan_
         set awkCode {
@@ -126,14 +126,20 @@ TestSuite instproc plot_cwnd { {terse 0} {title cwnd} } {
               } }
         }
         set awkCodeTerse {
-	      BEGIN { oldcwnd = -2 }
+	      BEGIN { oldcwnd = -2; print "  " >> "temp.cwnd";}
               {
               if ($6 == "cwnd_") {
 		 newcwnd = $7;
+		 newtime = $1;
+		 if (newtime < oldtime) {
+                    print "  " >> "temp.cwnd";
+		    oldcwnd = -1;
+		 }
                  if ((newcwnd >= oldcwnd + 1) || (newcwnd <= oldcwnd - 1)){
-                    print $1, newcwnd >> "temp.cwnd";
+                    print newtime, newcwnd >> "temp.cwnd";
 		    oldcwnd = $7;
 		 }
+		 oldtime = $1;
               } }
         }
         set f [open cwnd.xgr w]
@@ -148,6 +154,9 @@ TestSuite instproc plot_cwnd { {terse 0} {title cwnd} } {
         
 	if {$terse == 1} {
 		exec awk $awkCodeTerse all.cwnd
+		if {$newfiles != 0} {
+ 		        exec awk $awkCodeTerse all.cwnd1
+		}
 	} else {
        		exec awk $awkCode all.cwnd
 	}
