@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.17 2000/11/08 05:46:36 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/allinone/install,v 1.18 2000/11/08 06:38:12 haoboy Exp $
 
 die() {
 	echo "$@"  1>&2
@@ -357,11 +357,11 @@ fi
 
 echo "Ns-allinone package has been installed successfully."
 echo "Here are the installation places:"
-echo "ns:		$CUR_PATH/ns-$NSVER/ns"
+echo "tcl$TCLVER:	$CUR_PATH/{bin,include,lib}"
+echo "tk$TKVER:		$CUR_PATH/{bin,include,lib}"
 echo "otcl:		$CUR_PATH/otcl-$OTCLVER"
 echo "tclcl:		$CUR_PATH/tclcl-$TCLCLVER"
-echo "tcl$TCLVER:	$CUR_PATH/tcl$TCLVER"
-echo "tk$TKVER:		$CUR_PATH/tk$TKVER"
+echo "ns:		$CUR_PATH/ns-$NSVER/ns"
 
 if [ -x $CUR_PATH/nam-$NAMVER/nam ]
 then
