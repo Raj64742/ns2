@@ -61,7 +61,7 @@ class MultihopMac;
 class PollEvent : public Event {
   public:
 	PollEvent(MultihopMac* m, MultihopMac* pm) : 
-		mac_(m), peerMac_(pm), backoffTime_(0) {}
+		backoffTime_(0), mac_(m), peerMac_(pm) { }
 	int backoffTime_;	/* valid only for NackPoll */
 	inline MultihopMac *peerMac() { return peerMac_; }
   protected:
