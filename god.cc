@@ -43,7 +43,7 @@
    NOTE: Tcl node indexs are 0 based, NS C++ node IP addresses (and the
    node->index() are 1 based.
 
-   $Id: god.cc,v 1.4 1999/04/10 00:10:35 haldar Exp $
+   $Id: god.cc,v 1.5 1999/08/26 18:39:09 haldar Exp $
    */
 
 #include <object.h>
@@ -105,6 +105,9 @@ God::recv(Packet *, Handler *)
 int 
 God::command(int argc, const char* const* argv)
 {
+	Tcl& tcl = Tcl::instance(); 
+	if ((instance_ == 0) || (instance_ != this))
+          	instance_ = this; 
         if (argc == 2) {
                 if(strcmp(argv[1], "dump") == 0) {
                         int i, j;
@@ -118,6 +121,10 @@ God::command(int argc, const char* const* argv)
                         }
                         return TCL_OK;
                 }
+		if(strcmp(argv[1], "num_nodes") == 0) {
+			tcl.resultf("%d", nodes());
+			return TCL_OK;
+		}
         }
         else if(argc == 3) {
                 if (strcasecmp(argv[1], "num_nodes") == 0) {

@@ -67,6 +67,7 @@ public:
 
         int             hops(int i, int j);
         static God*     instance() { assert(instance_); return instance_; }
+	int nodes() { return num_nodes; }
 
 private:
         int num_nodes;

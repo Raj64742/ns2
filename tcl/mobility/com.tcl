@@ -233,15 +233,27 @@ Node/MobileNode/BaseStationNode instproc reset args {
     $ragent_ reset
 }
 
+#Class God
+#God instproc init {args} { 
+#	eval $self next $args
+#}
 
 proc create-god { nodes } {
-	global ns_ god_ tracefd
-
-	set god_ [new God]
-	$god_ num_nodes $nodes
+	#global ns_ god_ tracefd
+	set god [God info instances]
+	if { $god == "" } {
+		set god [new God]
+	}
+	$god num_nodes $nodes
 }
 
-
+God proc instance {} {
+	set god [God info instances]
+        if { $god != "" } {
+                return $god
+        }  
+	error "Cannot find instance of god"
+}      
 
 proc cmu-trace { ttype atype node } {
 	global ns_ tracefd

@@ -321,8 +321,10 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	$mac netif $netif
 	$mac up-target $ll
 	$mac down-target $netif
-	$mac nodes $opt(nn)
-	
+	#$mac nodes $opt(nn)
+	set god_ [God instance]
+	$mac nodes [$god_ num_nodes]
+
 	#
 	# Network Interface
 	#
