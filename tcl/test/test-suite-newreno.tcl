@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.16 2003/01/31 00:32:23 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.17 2003/01/31 00:47:33 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -834,6 +834,10 @@ TestSuite instproc drop_pkts1 pkts {
         $emod bind $errmodel1 1
 }
 
+#
+# With bugfix, there an a single unnecessary Fast Retransmit, and
+# a single unnecessary retransmission of a window of data.
+#
 Class Test/newreno5 -superclass TestSuite
 Test/newreno5 instproc init {} {
 	$self instvar net_ test_ guide_
@@ -859,6 +863,10 @@ Test/newreno5 instproc run {} {
 
 }
 
+#
+# With bugfix, this looks essentially the same with and without
+# Limited Transmit (i.e., singledup_ set to 1).
+#
 Class Test/newreno5_noLT -superclass TestSuite
 Test/newreno5_noLT instproc init {} {
 	$self instvar net_ test_ guide_
@@ -872,6 +880,11 @@ Test/newreno5_noLT instproc init {} {
 	$self next pktTraceFile
 }
 
+#
+# With Limited Transmit but without bugfix, each unnecessary Fast
+# Retransmit results in three dup acks, and a subsequent unnecessary
+# Fast Retransmit.
+#
 Class Test/newreno5_noBF -superclass TestSuite
 Test/newreno5_noBF instproc init {} {
 	$self instvar net_ test_ guide_
@@ -885,6 +898,15 @@ Test/newreno5_noBF instproc init {} {
 	$self next pktTraceFile
 }
 
+#
+# Without Limited Transmit and without bugfix, each unnecessary Fast
+# Retransmit results in three dup acks, and a subsequent unnecessary
+# Fast Retransmit, but the Limited Transmits are there to keep the
+# number of packets in flight from shrinking below a certain number.
+# So without Limited Transmit, eventually the congestion window is
+# reduced to one or two, and the pattern of unnecessary Fast Retransmits
+# is halted.
+#
 Class Test/newreno5_noLT_noBF -superclass TestSuite
 Test/newreno5_noLT_noBF instproc init {} {
 	$self instvar net_ test_ guide_
@@ -898,70 +920,5 @@ Test/newreno5_noLT_noBF instproc init {} {
 	$self next pktTraceFile
 }
 
-# Class Test/newreno6 -superclass TestSuite
-# Test/newreno6 instproc init {} {
-# 	$self instvar net_ test_ guide_
-# 	set net_	net4a
-# 	set test_	newreno6
-# 	Agent/TCP set bugFix_ true
-# 	Agent/TCP set singledup_ 1
-# 	set guide_ \
-# 	"NewReno #6, reordering, with Limited Transmit, with bugfix."
-# 	$self next pktTraceFile
-# }
-# Test/newreno6 instproc run {} {
-# 	global quiet
-# 	$self instvar guide_ ns_ node_
-# 	if {$quiet == "false"} {puts $guide_}
-#         ErrorModel set delay_pkt_ true
-#         ErrorModel set drop_ false
-#         ErrorModel set delay_ 0.05
-# 	$self setTopo
-# 	$self set_lossylink1
-# 	$self drop_pkts1 { 25 40 50 60 70 80 90 100 110 120 130 140 150
-# 160 170 180 190 200}
-#         $self setup Newreno {100000} 0
-# 
-# }
-# 
-# Class Test/newreno6_noLT -superclass TestSuite
-# Test/newreno6_noLT instproc init {} {
-# 	$self instvar net_ test_ guide_
-# 	set net_	net4a
-# 	set test_	newreno6_noLT
-# 	Agent/TCP set bugFix_ true
-# 	Agent/TCP set singledup_ 0
-# 	set guide_ \
-# 	"NewReno #6, reordering, without Limited Transmit, with bugfix."
-# 	Test/newreno6_noLT instproc run {} [Test/newreno6 info instbody run ]
-# 	$self next pktTraceFile
-# }
-# 
-# Class Test/newreno6_noBF -superclass TestSuite
-# Test/newreno6_noBF instproc init {} {
-# 	$self instvar net_ test_ guide_
-# 	set net_	net4a
-# 	set test_	newreno6_noBF
-# 	Agent/TCP set bugFix_ false
-# 	Agent/TCP set singledup_ 1
-# 	set guide_ \
-# 	"NewReno #6, reordering, with Limited Transmit, without bugfix.  Bad."
-# 	Test/newreno6_noBF instproc run {} [Test/newreno6 info instbody run ]
-# 	$self next pktTraceFile
-# }
-# 
-# Class Test/newreno6_noLT_noBF -superclass TestSuite
-# Test/newreno6_noLT_noBF instproc init {} {
-# 	$self instvar net_ test_ guide_
-# 	set net_	net4a
-# 	set test_	newreno6_noLT_noBF
-# 	Agent/TCP set bugFix_ false
-# 	Agent/TCP set singledup_ 0
-# 	set guide_ \
-# 	"NewReno #6, reordering, without Limited Transmit, without bugfix."
-# 	Test/newreno6_noLT_noBF instproc run {} [Test/newreno6 info instbody run ]
-# 	$self next pktTraceFile
-# }
-# 
 TestSuite runTest
 
