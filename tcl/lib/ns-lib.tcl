@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.172 1999/09/26 19:41:57 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.173 1999/09/27 00:15:25 yaxu Exp $
 
 #
 
@@ -366,6 +366,7 @@ Simulator instproc node args {
 	        set node [$self create-wireless-node $args]
 
 		# for base node
+
 		if {[info exists wiredRouting_] && $wiredRouting_ == "ON"} {
 		    
 		   set Node_([$node id]) $node
@@ -448,6 +449,13 @@ Simulator instproc create-wireless-node { args } {
 	     $node attach $ragent 255
 	}
 
+	# bind routing agent and mip agent if existing
+	# basestation address setting
+
+        if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
+	     $node mip-call $ragent
+	}
+
 	#
         # This Trace Target is used to log changes in direction
         # and velocity for the mobile node.
@@ -492,47 +500,8 @@ Simulator instproc create-wireless-node { args } {
 Simulator instproc create-node-instance { args } {
               $self instvar routingAgent_
 
-              set nodetype [$self get-nodetype]
+              set nodeclass Node/MobileNode
 
-              # XXX the switch will be gone
-
-              switch -exact $nodetype {
-	      
-	          Mobile {
-	 	      set nodeclass Node/MobileNode
-	          }
-
-	          Base {
-		      set nodeclass Node/MobileNode
-
-	          }
-
-		  MIPBS {
-		      set nodeclass Node/MobileNode
-		  }
-		  
-		  MIPMH {
-		      set nodeclass Node/MobileNode
-		  }
-
-	          default {
-		       puts "No way at this point!"
-		       exit
-	          }
-
-	      }             
- 
-	      #if {[Simulator set EnableHierRt_]} {
-	#	  if [Simulator set mobile_ip_] {
-	#	      set nodetype MobileNode/MIPMH
-	#	  } else {
-	#	      #set nodetype Node/MobileNode/BaseStationNode
-	#	      set nodetype BaseNode
-	#	  }
-	#      } else {
-	#	  set nodetype Node/MobileNode
-	#      }
-		
 	      # DSR is a special case
 	      if {$routingAgent_ == "DSR"} {
 		  set nodeclass [$self set-dsr-nodetype]
@@ -541,7 +510,6 @@ Simulator instproc create-node-instance { args } {
 	      if {$args != "{}" && $args != "{{}}"} {
 		  set node [new $nodeclass $args]
 	      } else {
-		  
 		  set node [new $nodeclass]
 	      }
 

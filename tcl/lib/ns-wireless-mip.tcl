@@ -58,6 +58,7 @@ MobileNode/MIPBS instproc init {args} {
    #$regagent_ set dst_ [expr (~0) << [AddrParams set NodeShift_(1)]]
    
 
+    
    $self attach-encap 
    $self attach-decap
    

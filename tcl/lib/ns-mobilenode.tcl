@@ -122,6 +122,7 @@ Node/MobileNode instproc makemip-NewMIPBS {} {
    } 
    
    set regagent_ [new Agent/MIPBS $self]
+   
 
    $self attach $regagent_ [Node/MobileNode  set REGAGENT_PORT]
 
@@ -615,6 +616,28 @@ Node/MobileNode instproc agenttrace {tracefd} {
     }
 }
 
+## method to remove an entry from the hier classifiers
+Node/MobileNode instproc clear-hroute args {
+    $self instvar classifiers_
+    set a [split $args]
+    set l [llength $a]
+    $classifiers_($l) clear [lindex $a [expr $l-1]] 
+}
+
+Node/MobileNode instproc mip-call {ragent} {
+    $self instvar regagent_
+
+    if [info exists regagent_] {
+        $regagent_ ragent $ragent
+    }
+
+}
+
+Node instproc mip-call {ragent} {
+
+}
+
+#-----------------------------------------------------------------
 Agent/DSRAgent set sport_ 255
 Agent/DSRAgent set dport_ 255
 Agent/DSRAgent set rt_port 255
@@ -704,6 +727,9 @@ SRNodeNew instproc init {args} {
     #$ns_ at 0.0 "$node start-dsr"
     return $self
 }
+
+
+
 
 SRNodeNew instproc start-dsr {} {
     $self instvar dsr_agent_
