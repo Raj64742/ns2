@@ -63,12 +63,9 @@ and receiver with accumulative bandwidth and delay).
 
 Please note that packets dropped at a particular link in a
 multicast tree will not be received by
-the receivers in the particular downstream subtree.  To
-avoid abnormal behaviors, you will have to find
-all the affected receivers and place your loss modules for them as well.
-We are currently working on solving this error dependency problem.
-In the future, the loss modules for the downstream receivers will be 
-installed automatically when a lossy link is created.
+the receivers in the particular downstream subtree. We have worked 
+on this dependency problem and now the loss modules for the downstream 
+receivers will be installed automatically when a lossy link is created.
 
 
 \paragraph{Creating a Loss Module}
@@ -106,8 +103,7 @@ Please refer to tcl/ex/ranvar.tcl.
 
 \paragraph{Inserting a Loss Module}
 
-One loss module is required for each pair source-receiver pair. If it is
-intended to insert a loss module for a receiver, keep a handle to the 
+If it is intended to insert a loss module for a receiver, keep a handle to the 
 loss module when created.  Loss modules can only be inserted after the
 corresponding receivers finish joining the group.
 
@@ -115,7 +111,7 @@ corresponding receivers finish joining the group.
         # keep a handle to the loss module;
         set sessionhelper [$ns create-session $node $src] 
         # insert the loss module;
-        $ns at 0.1 "$sessionhelper insert-loss $loss_module $rcvr" 
+        $ns at 0.1 "$sessionhelper insert-depended-loss $loss_module $rcvr" 
 \end{program}
 
 \section{Architecture}
