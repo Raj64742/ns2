@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/iptap.h,v 1.1 2001/05/15 21:23:38 alefiyah Exp $ (ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/iptap.h,v 1.2 2001/12/20 18:18:44 haldar Exp $ (ISI)
  */
 
 #ifndef iptap_h
@@ -41,8 +41,8 @@
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
-#include "../tcp.h"
-#include "../ip.h"
+#include "tcp.h"
+#include "ip.h"
 
 #define MAX_PACKETS 640
 
