@@ -23,7 +23,7 @@
 proc checkout_executable {exe_var best alternate text} {
 	global $exe_var
 	set $exe_var $best
-	if {"$best" = "" || ![file executable $best]} {
+	if {"$best" == "" || ![file executable $best]} {
 		puts stderr $text
 		set $exe_var $alternate
 	}
