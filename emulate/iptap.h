@@ -30,14 +30,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/iptap.h,v 1.4 2002/09/23 23:27:10 alefiyah Exp $ (ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/iptap.h,v 1.5 2003/02/15 00:46:49 buchheim Exp $ (ISI)
  */
 
 #ifndef iptap_h
 #define iptap_h
 
 #include "tap.h"
+
 #include <netinet/in.h>
+#include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
