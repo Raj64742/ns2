@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.320 1999/03/17 00:49:58 salehi Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.321 1999/03/31 21:52:28 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -16,13 +16,26 @@
   with the most recent changes coming first.
   --></P>
 
-    <hr>
-    <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b6.tar.gz">
-    Release of ns-2.1b6<a> [PENDING]</a></h3>
+<hr>
+<H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b6.tar.gz">
+Release of ns-2.1b6<a> [PENDING]</a></h3>
 
-    <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b5.tar.gz">
-    Release of ns-2.1b5<a> on Tue Mar 16 16:50:50 PST 1999</a></h3>
-    <UL>  
+<ul>
+    <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+           <b>Wed Mar 31 13:51:35 PST 1999</b><br>
+	 Ns now knows where the tclsh is that autoconf finds,
+	 just like it knows about perl.
+	 <p>
+	 The proper way to invoke a tclsh program from within ns
+	 is { global TCLSH; exec $TCLSH path/to/script.tcl args; }.
+	 <p>
+	 A completely unrelated bugfix: tcp-sink now zeros save_.
+</ul>
+
+
+<H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b5.tar.gz">
+Release of ns-2.1b5<a> on Tue Mar 16 16:50:50 PST 1999</a></h3>
+<UL>  
 
     <li> <b><a href="http://www.isi.edu/~salehi">[salehi]</a></b>
 

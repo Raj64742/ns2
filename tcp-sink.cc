@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.34 1999/03/13 03:53:08 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.35 1999/03/31 21:52:30 heideman Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -104,7 +104,7 @@ int Acker::update(int seq, int numBytes)
 	return numToDeliver;
 }
 
-TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker)
+TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker), save_(NULL)
 {
 	bind("packetSize_", &size_);
 	bind("maxSackBlocks_", &max_sack_blocks_); // used only by sack

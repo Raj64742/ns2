@@ -26,14 +26,14 @@
 #
 # Makefile for CMU mobile code scenario generation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Attic/Makefile,v 1.9 1999/03/16 03:05:44 salehi Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Attic/Makefile,v 1.10 1999/03/31 21:52:33 heideman Exp $
 
 CCX = c++
 MKDEP	= ../../../conf/mkdep
 
 CFLAGS = -g -Wall
 LDFLAGS = 
-LIBS =  -lsocket -lnsl -lintl -ldl -ldl -ldl 
+LIBS =  -lnsl -ldl 
 
 all: setdest calcdest
 
