@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.21 1997/11/14 22:04:04 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.22 1997/11/15 02:07:35 kfall Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -293,23 +293,25 @@ class PeriodicErrorModel : public ErrorModel {
         int command(int argc, const char*const* argv);
 	int cnt_;
         double period_;
+	double offset_;
 	double last_time_;
+	double first_time_;
 };
 
 
 static class PeriodicErrorModelClass : public TclClass {
 public:
-        PeriodicErrorModelClass() : TclClass("PeriodicErrorModel") {}
-        TclObject* create(int argc, const char*const* argv) {
+        PeriodicErrorModelClass() : TclClass("ErrorModel/Periodic") {}
+        TclObject* create(int, const char*const*) {
                 return (new PeriodicErrorModel);
         }
 } class_periodic_error_model;
 
-       
 PeriodicErrorModel::PeriodicErrorModel() : ErrorModel(), cnt_(0),
-	last_time_(0.0)
+	last_time_(0.0), first_time_(-1.0)
 {      
 	bind("period_", &period_);
+	bind("offset_", &offset_);
 }      
 
 int PeriodicErrorModel::command(int argc, const char*const* argv)
@@ -320,14 +322,25 @@ int PeriodicErrorModel::command(int argc, const char*const* argv)
 int PeriodicErrorModel::corrupt(Packet* p)
 {
 	hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
+
 	if (eu_ == EU_TIME) {
 		double now = Scheduler::instance().clock();
+		if (first_time_ < 0.0 && now >= offset_) {
+			first_time_ = last_time_ = now;
+			return 1;
+		}
+
 		if ((now - last_time_) > period_) {
 			last_time_ = now;
 			return 1;
 		}
 	}
 	cnt_ += (eu_ == EU_PKT) ? 1 : ch->size();
+	if (int(first_time_) < 0 && cnt_ >= int(offset_)) {
+		first_time_ = 1.0;
+		cnt_ = 0;
+		return 1;
+	}
 	if (cnt_ >= int(period_)) {
 		cnt_ = 0;
 		return 1;
