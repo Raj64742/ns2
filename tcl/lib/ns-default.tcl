@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.25 1997/05/21 21:41:40 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.26 1997/06/11 03:07:01 gnguyen Exp $
 
 
 #
@@ -41,8 +41,8 @@
 # (this happens in the Tcl/tcl-object.tcl helper library)
 #
 
-Trace set src_ 0
-Trace set dst_ 0
+Trace set src_ -1
+Trace set dst_ -1
 Trace set callback_ 0
 
 Agent set fid_ 0
@@ -98,6 +98,11 @@ Queue/SFQ set buckets_ 16
 
 Queue/FQ set secsPerByte_ 0
 
+Queue set interleave_ false
+Queue set acksfirst_ false
+Queue set ackfromfront_ false
+
+
 Queue/RED set bytes_ false
 Queue/RED set queue-in-bytes_ false
 Queue/RED set thresh_ 5
@@ -110,6 +115,7 @@ Queue/RED set setbit_ false
 Queue/RED set drop-tail_ false
 Queue/RED set doubleq_ false
 Queue/RED set dqthresh_ 50
+Queue/RED set fracthresh_ false
 
 Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000
@@ -130,6 +136,8 @@ Agent/TCPSink set packetSize_ 40
 Agent/TCPSink set maxSackBlocks_ 3
 
 Agent/TCPSink/DelAck set interval_ 100ms
+Agent/TCPSink/Asym set interval_ 100ms
+Agent/TCPSink/Asym set maxdelack_ 5
 Agent/TCPSink/Sack1/DelAck set interval_ 100ms
 
 Agent/CBR set interval_ 3.75ms
