@@ -1,5 +1,3 @@
-#  ../../ns Collapse.v2.tcl simple $interval $bandwidth $scheduling $cbrs $tcps
-
 source Setred.v2.tcl
 #set packetsize 512
 set packetsize 1500
@@ -119,6 +117,7 @@ proc new_tcp { startTime source dest window fid dump size file stoptime } {
     $ns at $stoptime "printTcpPkts $tcp $fid $file"
     if {$dump == 1 } {puts $file "fid $fid packet-size [$tcp set packetSize_]"}
 }
+
 proc make_queue { cl qt qlim } {
         set q [new Queue/$qt]
         $q set limit_ $qlim
@@ -132,12 +131,10 @@ proc create_flat { link qtype qlim number} {
         $topclass_ setparams none 0 0.98 auto 8 2 0
 	$link insert $topclass_
 	set share [expr 100. / $number ]
-       for {set i 0} {$i < $number} {incr i 1} {
-puts "create_flat: insert $i"
+        for {set i 0} {$i < $number} {incr i 1} {
 		set cls [new CBQClass]
                 $cls setparams $topclass_ true .$share auto 1 1 0
 		make_queue $cls $qtype $qlim
-puts "qdisc is [$cls qdisc] in link $link"
                 $link insert $cls
                 $link bind $cls $i
         }
@@ -189,7 +186,6 @@ proc test_simple { interval bandwidth datafile scheduling cbrs tcps } {
     
     if { $scheduling == "wrr" } {
 	    set xlink [create_testnet5 CBQ/WRR $bandwidth]
-puts "cbqlink should be $xlink"
 	    create_flat $xlink $qtype $qlim [expr $cbrs + $tcps]
     } elseif { $scheduling == "fifo" } {
 	    set xlink [create_testnet5 RED $bandwidth]
@@ -235,9 +231,9 @@ if { $argc < 2 || $argc > 6} {
     set testname [lindex $argv 0]
     set interval [lindex $argv 1]
     set bandwidth [lindex $argv 2]
-        set scheduling [lindex $argv 3]
-        set cbrs [lindex $argv 4]
-        set tcps [lindex $argv 5]
+    set scheduling [lindex $argv 3]
+    set cbrs [lindex $argv 4]
+    set tcps [lindex $argv 5]
     set datafile temp.tr
     puts "interval: $interval" 
 }
