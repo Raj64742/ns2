@@ -1,6 +1,6 @@
 /* 
    aodv.cc
-   $Id: aodv.cc,v 1.5 1999/10/22 05:47:28 yaxu Exp $
+   $Id: aodv.cc,v 1.6 1999/11/04 16:54:28 yaxu Exp $
  */
 
 /* The AODV code developed by the CMU/MONARCH group was optimized
@@ -878,7 +878,8 @@ AODV::recvRequest(Packet *p)
                
              // Just to be safe, I use the max. Somebody may have
 	     // incremented the dst seqno.
-             seqno = max(seqno, rq->rq_dst_seqno) + 1;
+	     //
+             seqno = max((unsigned)seqno, (unsigned)rq->rq_dst_seqno) + 1;
              sendReply(rq->rq_src,           // IP Destination
                        0,                    // Hop Count
                        index,                // Dest IP Address
