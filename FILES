@@ -149,6 +149,8 @@ common/ivs.cc
 common/location.h
 common/message.cc
 common/message.h
+common/messpass.cc
+common/messpass.h
 common/misc.cc
 common/mobilenode.cc
 common/mobilenode.h
@@ -711,6 +713,8 @@ mac/mac-csma.cc
 mac/mac-csma.h
 mac/mac-multihop.cc
 mac/mac-multihop.h
+mac/mac-simple.cc
+mac/mac-simple.h
 mac/mac-tdma.cc
 mac/mac-tdma.h
 mac/mac-timers.cc
