@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.15 1998/05/23 02:44:22 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.16 1998/09/09 23:35:44 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -174,9 +174,9 @@ static class UDPIPNetworkClass : public TclClass {
 } nm_ip_udp;
 
 IPNetwork::IPNetwork() :
+	mttl_(0),
         rsock_(-1), 
         ssock_(-1),
-	mttl_(0),
         noloopback_broken_(0),
 	loop_(1)
 {
@@ -492,7 +492,6 @@ UDPIPNetwork::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
-		char* cp = tcl.result();
 		// $udpip port
 		if (strcmp(argv[1], "port") == 0) {
 			tcl.resultf("%d", ntohs(port_));
