@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.14 1997/11/03 19:49:13 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.15 1997/11/04 03:06:30 kfall Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -394,7 +394,7 @@ TestSuite instproc create_flowstats {} {
 	set r1fm_ [$ns_ makeflowmon Fid]
 	set flowchan [open $flowfile w]
 	$r1fm_ attach $flowchan
-	$ns_ attach-fmon [$ns_ link $node_(r1) $node_(r2)] $r1fm_
+	$ns_ attach-fmon [$ns_ link $node_(r1) $node_(r2)] $r1fm_ 1
 }
 
 #
