@@ -174,11 +174,14 @@ RouteGen instproc create { args } {
 }
 
 RouteGen instproc create-routing { } {
-	if { [$self input-check] == -1 } {
-		puts "There's an input error !! aborting"
-		route-usage
-		return
-	}
+	# XXX leave out the checks to ns later.. !
+	# this would allow extensibility to include other kinds of 
+	# routing without having to modify the generator
+	# if { [$self input-check] == -1 } {
+	#	puts "There's an input error !! aborting"
+	#	route-usage
+	# 	return
+	# }
 	
 	$self instvar opts
 
