@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.58 1999/09/24 03:50:21 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.59 1999/09/26 19:41:59 yaxu Exp $
 #
 
 # for MobileIP
@@ -75,6 +75,12 @@ Node instproc init args {
 Node instproc set-node-address { args } {
 }
 
+Node instproc set-node-addressMIPBS { args } {
+}
+
+Node instproc set-node-addressMIPMH { args } {
+}
+
 Node instproc set-node-addressMobile { args } {
     
     $self instvar nifs_ arptable_
@@ -98,7 +104,14 @@ Node instproc set-node-addressHier {args} {
 }
 
 Node instproc set-node-addressBase {args} {
+}
 
+Node instproc mk-default-classifierMIPMH {} {
+    $self mk-default-classifierBase
+}
+
+Node instproc mk-default-classifierMIPBS {} {
+    $self mk-default-classifierBase
 }
 
 Node instproc mk-default-classifierBase {} {
@@ -185,7 +198,15 @@ Node instproc entry {} {
         #set nodetype [[Simulator instance] get-nodetype]
     
         $self instvar nodetype_
-        $self entry-New$nodetype_
+        return [$self entry-New$nodetype_]
+}
+
+Node instproc entry-NewMIPBS {} {
+    return [$self entry-NewBase]
+}
+
+Node instproc entry-NewMIPMH {} {
+    return [$self entry-NewBase]
 }
 
 Node instproc entry-NewBase {} {
@@ -220,7 +241,7 @@ Node instproc entry-New {} {
 }
 
 Node instproc entry-NewMobile {} {
-      $self entry-New
+      return [$self entry-New]
 }
 
 Node instproc add-route { dst target } {
@@ -309,7 +330,8 @@ Node instproc attach { agent { port "" } } {
 		set dmux_ [new Classifier/Port]
 		$dmux_ set mask_ $mask
 		$dmux_ set shift_ $shift
-		
+	
+	        
 		#
 		# point the node's routing entry to itself
 		# at the port demuxer (if there is one)
@@ -1194,6 +1216,15 @@ Node instproc install-defaulttarget-NewBase {rcvT} {
 #		$classifiers_($i) bcast-receiver $rcvT
     }
 }
+
+Node instproc install-defaulttarget-NewMIPMH {rcvT} {
+    $self install-defaulttarget-NewBase $rcvT
+}
+
+Node instproc install-defaulttarget-NewMIPBS {rcvT} {
+    $self install-defaulttarget-NewBase $rcvT
+}
+
 
 
 # set receiving power

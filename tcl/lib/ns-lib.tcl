@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.171 1999/09/25 00:50:36 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.172 1999/09/26 19:41:57 yaxu Exp $
 
 #
 
@@ -196,6 +196,7 @@ Simulator instproc dumper obj {
 #                  -channelType
 #                  -topologyInstance
 #                  -wiredRouting   ON/OFF
+#                  -mobileIP       ON/OFF
 #                  -energyModel    "EnergyModel"
 #                  -initialEnergy  (in Joules)
 #                  -rxPower        (in W)
@@ -231,6 +232,7 @@ Simulator instproc antType  {val} { $self set antType_  $val }
 Simulator instproc channelType {val} {$self set channelType_ $val}
 Simulator instproc topoInstance {val} {$self set topoInstance_ $val}
 Simulator instproc wiredRouting {val} {$self set wiredRouting_ $val}
+Simulator instproc mobileIP {val} {$self set mobileIP_ $val}
 Simulator instproc energyModel  {val} { $self set energyModel_  $val }
 Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
 Simulator instproc txPower  {val} { $self set txPower__  $val }
@@ -240,6 +242,7 @@ Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
 Simulator instproc macTrace  {val} { $self set macTrace_  $val }
 Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
 Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
+
 
 Simulator instproc get-nodetype {} {
 
@@ -262,6 +265,19 @@ Simulator instproc get-nodetype {} {
 	set val Base
     }
 
+
+    if { [Simulator set mobile_ip_] } {
+	if { $val == "Base" && $wiredRouting_ == "ON" } {
+	    set val MIPBS
+	}
+	
+	if { $val == "Base" && $wiredRouting_ == "OFF" } {
+            set val MIPMH
+        }
+
+
+    }
+
     return $val
 
 }
@@ -270,7 +286,7 @@ Simulator instproc node-config args {
         set args [eval $self init-vars $args]
         $self instvar  addressType_  routingAgent_ nodefactory_ propType_  
         $self instvar macTrace_ routerTrace_ agentTrace_ movementTrace_
-        $self instvar channelType_ topoInstance_ propInstance_ chan
+        $self instvar channelType_ topoInstance_ propInstance_ chan mobileIP_
 
         if [info exists macTrace_] {
             Simulator set MacTrace_ $macTrace_
@@ -311,6 +327,16 @@ Simulator instproc node-config args {
 
 	    $self set-address-format $addressType_ 
 	}
+
+# set mobileIP flag
+    if { [info exists mobileIP_] && $mobileIP_ == "ON"} {
+
+	   Simulator set mobile_ip_  1
+    } else {
+	   if { [info exists mobileIP_] } {
+	       Simulator set mobile_ip_ 0
+	   }
+    }
 
 }
 
@@ -383,7 +409,7 @@ Simulator instproc create-wireless-node { args } {
         # create node instance
 
         set node [$self create-node-instance $args]
-
+        
     
         # basestation address setting
         if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
@@ -468,6 +494,8 @@ Simulator instproc create-node-instance { args } {
 
               set nodetype [$self get-nodetype]
 
+              # XXX the switch will be gone
+
               switch -exact $nodetype {
 	      
 	          Mobile {
@@ -479,7 +507,11 @@ Simulator instproc create-node-instance { args } {
 
 	          }
 
-		  MobileHier {
+		  MIPBS {
+		      set nodeclass Node/MobileNode
+		  }
+		  
+		  MIPMH {
 		      set nodeclass Node/MobileNode
 		  }
 
@@ -623,6 +655,7 @@ Simulator instproc mobility-trace {ttype atype node} {
 	}
 
 	set T [new CMUTrace/$ttype $atype]
+
 	$T target [$self set nullAgent_]
 	$T attach $tracefd
         $T set src_ [$node id]

@@ -65,6 +65,7 @@ Node/MobileNode instproc init args {
     $self instvar netif_ mac_ ifq_ ll_
     $self instvar X_ Y_ Z_
     $self instvar address_
+    $self instvar nodetype_
 
     if {[llength $args] != 0} {
 	set address_ $args
@@ -88,8 +89,107 @@ Node/MobileNode instproc init args {
 
 	set nifs_	0		;# number of network interfaces
        
+# MIP node processing
+        $self makemip-New$nodetype_
         
 }
+
+Node/MobileNode instproc makemip-New {} {
+
+}
+
+
+Node/MobileNode instproc makemip-NewBase {} {
+}
+
+Node/MobileNode instproc makemip-NewMobile {} {
+}
+
+Node/MobileNode instproc makemip-NewMIPBS {} {
+
+    $self instvar regagent_ encap_ decap_ agents_ address_ dmux_ id_
+
+   if { $dmux_ == "" } {
+       set dmux_ [new Classifier/Port/Reserve]
+       $dmux_ set mask_ 0x7fffffff
+       $dmux_ set shift_ 0
+       
+       if [Simulator set EnableHierRt_] {  
+	   $self add-hroute $address_ $dmux_
+       } else {
+	   $self add-route $address_ $dmux_
+       }
+   } 
+   
+   set regagent_ [new Agent/MIPBS $self]
+
+   $self attach $regagent_ [Node/MobileNode  set REGAGENT_PORT]
+
+   $self attach-encap 
+   $self attach-decap
+
+}
+
+Node/MobileNode instproc makemip-NewMIPMH {} {
+
+    $self instvar regagent_ dmux_ address_
+ 
+    if { $dmux_ == "" } {
+	set dmux_ [new Classifier/Port/Reserve]
+	$dmux_ set mask_ 0x7fffffff
+	$dmux_ set shift_ 0
+	
+	if [Simulator set EnableHierRt_] {  
+	    $self add-hroute $address_ $dmux_
+	} else {
+	    $self add-route $address_ $dmux_
+	}
+    } 
+    
+    set regagent_ [new Agent/MIPMH $self]
+    $self attach $regagent_ [Node/MobileNode set REGAGENT_PORT]
+    $regagent_ node $self
+
+}
+
+Node/MobileNode instproc attach-encap {} {
+    $self instvar encap_ address_ 
+    
+    set encap_ [new MIPEncapsulator]
+
+    set mask 0x7fffffff
+    set shift 0
+    if [Simulator set EnableHierRt_] {
+	set nodeaddr [AddrParams set-hieraddr $address_]
+    } else {
+	set nodeaddr [expr ( $address_ &			\
+		[AddrParams set NodeMask_(1)] ) <<	\
+		[AddrParams set NodeShift_(1) ]]
+    }
+    $encap_ set addr_ [expr ( ~($mask << $shift) & $nodeaddr)]
+    $encap_ set port_ 1
+    $encap_ target [$self entry]
+    $encap_ set node_ $self
+    #$encap_ set mask_ [AddrParams set NodeMask_(1)]
+    #$encap_ set shift_ [AddrParams set NodeShift_(1)]
+}
+
+Node/MobileNode instproc attach-decap {} {
+    $self instvar decap_ dmux_ agents_
+    
+    set decap_ [new Classifier/Addr/MIPDecapsulator]
+    lappend agents_ $decap_
+    set mask 0x7fffffff
+    set shift 0
+    if {[expr [llength $agents_] - 1] > $mask} {
+	error "\# of agents attached to node $self exceeds port-field length of $mask bits\n"
+    }
+    $dmux_ install [Node/MobileNode set DECAP_PORT] $decap_
+    #$decap_ set mask_ [AddrParams set NodeMask_(1)]
+    #$decap_ set shift_ [AddrParams set NodeShift_(1)]
+    #$decap_ def-target [$self entry]
+}
+
 
 Node/MobileNode instproc reset {} {
 	$self instvar arptable_ nifs_
@@ -141,8 +241,9 @@ Node/MobileNode instproc add-target {agent port } {
 
     }
 
+
     
-    if { $port == 255 } {			# non-routing agents
+    if { $port == 255 } {			# routing agents
 
 	
 	if { [Simulator set RouterTrace_] == "ON" } {
@@ -240,6 +341,7 @@ Node/MobileNode instproc add-target {agent port } {
 	   
 	    if {$newapi != ""} {
 	        set sndT [$ns_ mobility-trace Send AGT $self]
+		
 	    } else {
 		set sndT [cmu-trace Send AGT $self]
 	    }
@@ -493,7 +595,7 @@ Node/MobileNode instproc agenttrace {tracefd} {
     #
     set drpT [$ns_ mobility-trace Drop "RTR" $self]
     $ragent drop-target $drpT
-    
+
     #
     # Log Target
     #
