@@ -87,6 +87,10 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 	set vlinkcost [expr $cost_ / 2.0]
 	foreach src $nodes {
 		set nif [new LanIface $src $self -ifqType $ifqType -macType $macType]
+		
+		set ll [$nif set ll_]
+		$ll set bandwidth_ $bw
+		$ll set delay_ $delay
 
 		set mac [$nif set mac_]
 		set ipAddr [AddrParams set-hieraddr [$src node-addr]]
