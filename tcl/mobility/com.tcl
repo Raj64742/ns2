@@ -15,7 +15,8 @@
 # 	This product includes software developed by the MASH Research
 # 	Group at the University of California Berkeley.
 # 4. Neither the name of the University nor of the Research Group may be
-#    used to endorse or promote products derived from this software without
+#    used to endorse or promote products derived from this software
+# without
 #    specific prior written permission.
 # 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
@@ -119,7 +120,7 @@ proc create-dsr-bs-node {node id} {
 
 
 proc create-dsr-routing-agent { node id } {
-    global ns_ ragent_ tracefd RouterTrace AgentTrace opt
+    global ns_ ragent_ tracefd opt
 
     # 
     # Create routing agent and attach it to port 255
@@ -156,7 +157,7 @@ proc create-dsr-routing-agent { node id } {
     }
     set level [AddrParams set hlevel_]
     
-    if { $RouterTrace == "ON" } {
+    if { [Simulator set RouterTrace_] == "ON" } {
 	#
 	# Recv Target
 	#
@@ -197,12 +198,12 @@ proc create-dsr-routing-agent { node id } {
 
 
 Node/MobileNode/BaseStationNode instproc create-xtra-interface { } {
-    global ns_ opt RouterTrace
+    global ns_ opt 
     $self instvar ragent_ ll_ mac_ ifq_
     
     $ragent_ mac-addr [$mac_(0) id]
 
-    if { $RouterTrace == "ON" } {
+    if { [Simulator set RouterTrace_] == "ON" } {
 	# Send Target
 	set sndT [cmu-trace Send "RTR" $self]
 	$sndT target $ll_(0)
@@ -257,4 +258,42 @@ proc cmu-trace { ttype atype node } {
 
 	return $T
 }
+
+proc log-movement {} {
+    global logtimer ns_ ns
+
+    set ns $ns_
+    source ../mobility/timer.tcl
+    Class LogTimer -superclass Timer
+    LogTimer instproc timeout {} {
+        global opt node_;
+        for {set i 0} {$i < $opt(nn)} {incr i} {
+            $node_($i) log-movement
+        }
+        $self sched 0.1
+    }
+
+    set logtimer [new LogTimer]
+    $logtimer sched 0.1
+}    
+
+proc set-wireless-traces { args } {
+  set len [llength $args]
+  if { $len <= 0 || [expr $len%2] } {
+        error "Incorrect number of parameters"
+  }
+  for {set n 0} {$n < $len} {incr n 2} {
+     if {[string compare [lindex $args $n] "-AgentTrace"] == 0 } {
+         Simulator set AgentTrace_ [lindex $args [expr $n+1]]
+     } elseif {[string compare [lindex $args $n] "-RouterTrace"] == 0 } {
+         Simulator set RouterTrace_ [lindex $args [expr $n+1]]
+     } elseif {[string compare [lindex $args $n] "-MacTrace"] == 0 } {
+         Simulator set MacTrace_ [lindex $args [expr $n+1]]
+     } else {
+          error "Unknown wireless trace type: [lindex $args $n]"
+     }
+  }
+}  
+
+
 
