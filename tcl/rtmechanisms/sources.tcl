@@ -18,13 +18,14 @@ TestSuite instproc create-connection-list {s_type source d_type dest pktClass} {
 #
 # create and schedule a cbr source/dst 
 #
-TestSuite instproc new_cbr { startTime source dest pktSize interval fid } {
+TestSuite instproc new_cbr { startTime source dest pktSize interval fid maxPkts} {
 	$self instvar ns_
 	set cbrboth \
 	    [$self create-connection-list CBR $source LossMonitor $dest $fid ]
 	set cbr [lindex $cbrboth 0]
 	$cbr set packetSize_ $pktSize
 	$cbr set interval_ $interval
+	if {$maxPkts > 0} {$cbr set maxpkts_ $maxPkts}
 	set cbrsnk [lindex $cbrboth 1]
 	$ns_ at $startTime "$cbr start"
 }
@@ -32,9 +33,16 @@ TestSuite instproc new_cbr { startTime source dest pktSize interval fid } {
 #
 # create and schedule a tcp source/dst
 #
-TestSuite instproc new_tcp { startTime source dest window fid dump size } {
+TestSuite instproc new_tcp { startTime source dest window fid dump size type maxPkts } {
 	$self instvar ns_
-	set tcp [$ns_ create-connection TCP/Sack1 $source TCPSink/Sack1 $dest $fid]
+
+        if { $type == "reno" } {
+		set tcp [$ns_ create-connection TCP/Reno $source TCPSink $dest $fid]
+        }
+        if { $type == "sack" } {
+		set tcp [$ns_ create-connection TCP/Sack1 $source TCPSink/Sack1 $dest $fid]
+        }
+
 	$tcp set window_ $window
 	#   $tcp set tcpTick_ 0.1
 	$tcp set tcpTick_ 0.01
@@ -43,5 +51,7 @@ TestSuite instproc new_tcp { startTime source dest window fid dump size } {
 		$tcp set packetSize_ $size
 	}
 	set ftp [$tcp attach-source FTP]
+	if {$maxPkts > 0} {$ftp set maxpkts_ $maxPkts}
 	$ns_ at $startTime "$ftp start"
 }
+
