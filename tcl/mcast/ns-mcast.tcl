@@ -145,7 +145,11 @@ Node proc expandaddr {} {
 
 Node instproc notify-mcast changes {
 	$self instvar mcastproto_
-	$mcastproto_ notify $changes
+
+	# XXX quick hack
+	if [info exists mcastproto_] {
+		$mcastproto_ notify $changes
+	}
 }
 
 Node instproc stop-mcast {} {
