@@ -71,6 +71,11 @@ TraceIp/Drop instproc init {} {
 	$self next "d"
 }
 
+Class TraceIp/BackoffDrop -superclass TraceIp
+TraceIp/BackoffDrop instproc init {} {
+	$self next "b"
+}
+
 Class TraceIp/Corrupt -superclass TraceIp
 TraceIp/Corrupt instproc init {} {
 	$self next "c"
@@ -222,12 +227,15 @@ Link/LanLink instproc trace {ns f} {
 	$channel_ drop-target $drpT_($channel_)
 	$drpT_($channel_) attach $f
 	foreach src $nodelist_ {
-		# drpT shared by both IFQ and MAC
 		set drpT [set drpT_($src) [new TraceIp/Drop]]
 		$drpT set src_ [$src id]
 		$drpT attach $f
-		$mac_($src) drop-target $drpT
 		$ifq_($src) drop-target $drpT
+
+		set bodT [new TraceIp/BackoffDrop]
+		$bodT set src_ [$src id]
+		$bodT attach $f
+		$mac_($src) drop-target $bodT
 
 		set deqT_ [new TraceIp/Deque]
 		$deqT_ attach $f
