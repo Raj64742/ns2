@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.3 1997/03/10 21:53:31 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.4 1997/03/19 23:11:50 kfall Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -44,12 +44,10 @@ Packet* Packet::free_;		/* free list */
 
 /* manages active packet header types */
 class PacketHeaderManager : public TclObject {
-	int		nheaders_;
 	int		cur_offset_;
 	void allochdr(PacketHeader *p);
 public:
-	PacketHeaderManager() : nheaders_(0), cur_offset_(0) { }
-	int nheaders() { return (nheaders_); }
+	PacketHeaderManager() : cur_offset_(0) { }
 	int PacketHeaderManager::command(int, const char*const*);
 };
 
