@@ -80,7 +80,7 @@ struct hdr_lms {
     nsaddr_t&	from ()  { return from_;  }
     nsaddr_t&	src ()   { return src_;   }
     nsaddr_t&   tp_addr ()  { return tp_addr_;  }
-    nsaddr_t&   tp_port ()  { return tp_port_;  }
+    nsaddr_t&  tp_port ()  { return (nsaddr_t&) tp_port_;  }
     nsaddr_t&	group () { return group_; }
 };
 

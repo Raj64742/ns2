@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.21 2003/07/29 20:37:25 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.22 2004/01/18 19:51:20 haldar Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -1511,27 +1511,27 @@ Test/TLC1f instproc init {} {
 #
 # Two hierarchies with direct request
 #
-Class Test/TLC1-dreq -superclass Test/TLC1
+#Class Test/TLC1-dreq -superclass Test/TLC1
 
-Test/TLC1-dreq instproc init {} {
-	$self next
-	$self set-cache-type /Inval/Mcast/Perc
-}
+# Test/TLC1-dreq instproc init {} {
+# 	$self next
+# 	$self set-cache-type /Inval/Mcast/Perc
+# }
 
 # Set up direct connections from leaf caches (i.e., all caches who 
 # may connect to a browser) to the server
-Test/TLC1-dreq instproc set-connections {} {
-	$self next
-	$self instvar cache_ server_
-	$cache_(1) connect $server_(0)
-	$cache_(2) connect $server_(0)
-	$cache_(4) connect $server_(0)
-	$cache_(6) connect $server_(0)
-	$cache_(1) set direct_request_ 1
-	$cache_(2) set direct_request_ 1
-	$cache_(4) set direct_request_ 1
-	$cache_(6) set direct_request_ 1
-}
+# Test/TLC1-dreq instproc set-connections {} {
+# 	$self next
+# 	$self instvar cache_ server_
+# 	$cache_(1) connect $server_(0)
+# 	$cache_(2) connect $server_(0)
+# 	$cache_(4) connect $server_(0)
+# 	$cache_(6) connect $server_(0)
+# 	$cache_(1) set direct_request_ 1
+# 	$cache_(2) set direct_request_ 1
+# 	$cache_(4) set direct_request_ 1
+# 	$cache_(6) set direct_request_ 1
+# }
 
 
 
@@ -2068,12 +2068,12 @@ Test/mottl-PB instproc init {} {
 Class Test-dreq -superclass Test-Cache
 
 Test-dreq instproc init {} {
-	$self set-defnet cache5
-	$self next
-
-	$self instvar secondCaches_
-	global opts
-	set secondCaches_ $opts(num-2nd-cache)
+    $self set-defnet cache5
+    $self next
+    
+    $self instvar secondCaches_
+    global opts
+    set secondCaches_ $opts(num-2nd-cache)
 }
 
 Test-dreq instproc start-requests {} {
@@ -2124,58 +2124,58 @@ Test-dreq instproc finish {} {
 	$self next
 }
 
-Class Test/mcast-dreq -superclass Test-dreq
+#Class Test/mcast-dreq -superclass Test-dreq
 
-Test/mcast-dreq instproc init {} {
-	$self next
-	$self set-cache-type /Inval/Mcast/Perc
-	$self set-server-type /Inval/Yuc
-	$self set-client-type ""
-}
+#Test/mcast-dreq instproc init {} {
+	# $self next
+# 	$self set-cache-type /Inval/Mcast/Perc
+# 	$self set-server-type /Inval/Yuc
+# 	$self set-client-type ""
+# }
 
-Test/mcast-dreq instproc output-stat { args } {
-	eval array set d $args
-	global opts 
-	# XXX Don't have statistics for total bandwidth. :(
-	#puts "$opts(hb-interval) Bandwidth*Hop -1 Stale $d(sr) AverageRepTime $d(rt) BottleneckBW $d(btnk_bw) ServerBW $d(svr_bw) StaleTime $d(st)"
-}
+# Test/mcast-dreq instproc output-stat { args } {
+# 	eval array set d $args
+# 	global opts 
+# 	# XXX Don't have statistics for total bandwidth. :(
+# 	#puts "$opts(hb-interval) Bandwidth*Hop -1 Stale $d(sr) AverageRepTime $d(rt) BottleneckBW $d(btnk_bw) ServerBW $d(svr_bw) StaleTime $d(st)"
+# }
 
-Test/mcast-dreq instproc set-connections {} {
-	$self next ;# connecting clients
+# Test/mcast-dreq instproc set-connections {} {
+# 	$self next ;# connecting clients
 
-	$self instvar server_ cache_ secondCaches_ 
-	set n $secondCaches_
-	for {set i 0} {$i < $secondCaches_} {incr i} {
-		$cache_($i) connect $cache_($n)
-		$cache_($i) set-parent $cache_($n)
-		if $i {
-			# Let all leaf caches connect to server
-			$cache_($i) connect $server_(0)
-		}
-	}
-	$cache_($n) connect $server_(0)
-	$server_(0) connect $cache_(0)
-}
+# 	$self instvar server_ cache_ secondCaches_ 
+# 	set n $secondCaches_
+# 	for {set i 0} {$i < $secondCaches_} {incr i} {
+# 		$cache_($i) connect $cache_($n)
+# 		$cache_($i) set-parent $cache_($n)
+# 		if $i {
+# 			# Let all leaf caches connect to server
+# 			$cache_($i) connect $server_(0)
+# 		}
+# 	}
+# 	$cache_($n) connect $server_(0)
+# 	$server_(0) connect $cache_(0)
+# }
 
-Test/mcast-dreq instproc set-groups {} {
-	$self instvar cache_ server_ secondCaches_ mh_
+# Test/mcast-dreq instproc set-groups {} {
+# 	$self instvar cache_ server_ secondCaches_ mh_
 
-	set n $secondCaches_
-	set grp1 [Node allocaddr]
-	set grp2 [Node allocaddr]
-	$cache_($n) init-inval-group $grp1
-	$cache_($n) init-update-group $grp2
-	for {set i 0} {$i < $n} {incr i} {
-		$cache_($i) join-inval-group $grp1
-		$cache_($i) join-update-group $grp2
-		# Every leaf cache uses direct request
-		$cache_($i) set direct_request_ 1
-	}
-	$mh_ switch-treetype $grp1
-	$mh_ switch-treetype $grp2
+# 	set n $secondCaches_
+# 	set grp1 [Node allocaddr]
+# 	set grp2 [Node allocaddr]
+# 	$cache_($n) init-inval-group $grp1
+# 	$cache_($n) init-update-group $grp2
+# 	for {set i 0} {$i < $n} {incr i} {
+# 		$cache_($i) join-inval-group $grp1
+# 		$cache_($i) join-update-group $grp2
+# 		# Every leaf cache uses direct request
+# 		$cache_($i) set direct_request_ 1
+# 	}
+# 	$mh_ switch-treetype $grp1
+# 	$mh_ switch-treetype $grp2
 
-	$server_(0) set-parent-cache $cache_(0)
-}
+# 	$server_(0) set-parent-cache $cache_(0)
+# }
 
 
 #----------------------------------------------------------------------

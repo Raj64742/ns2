@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.h,v 1.1 2000/11/17 22:10:33 ratul Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.h,v 1.2 2004/01/18 19:51:20 haldar Exp $ (LBL)
  */
 
 /* File pulled out of flowmon.cc 
@@ -54,9 +54,9 @@ class Flow : public EDQueueMonitor {
 public:
 	Flow() : src_(-1), dst_(-1), fid_(-1), type_(PT_NTYPE) {  
 
-		bind("src_", &src_);
-		bind("dst_", &dst_);
-		bind("flowid_", &fid_);
+		bind("src_", (int *) &src_);
+		bind("dst_", (int *) &dst_);
+		bind("flowid_", (int *) &fid_);
 	}
 	nsaddr_t src() const { return (src_); }
 	nsaddr_t dst() const { return (dst_); }
