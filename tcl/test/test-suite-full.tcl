@@ -1,5 +1,5 @@
 #
-# Copyright (c) 1997 The Regents of the University of California.
+# Copyright (c) 1997, 1998 The Regents of the University of California.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 # this is still somewhat experimental,
-# and should be considered of 'alpha-test'+ quality  (kfall@ee.lbl.gov)
+# and should be considered of 'beta-test' quality  (kfall@ee.lbl.gov)
 #
 # This file tests "fulltcp", a version of tcp reno implemented in the 
 # simulator based on the BSD Net/3 code. 
@@ -72,64 +72,24 @@ TestSuite instproc finish testname {
 
 	$ns_ halt
 
-	set fname [pid]
-	## set tmpnam /tmp/$fname
-	set tmpnam $fname
-	exec ../../bin/getrc -s 2 -f 0 out.tr > $tmpnam
-
 	set outtype text
+	set tfile "out.tr"
+
 	if { $quiet != "true" } {
-		exec tclsh ../../bin/tcpfull-summarize.tcl $tmpnam $fname
-		exec tclsh ../../bin/tcpfull-summarize.tcl $tmpnam $fname.r reverse
-#		exec rm -f $tmpnam
-		if { [info exists env(NSOUT)] } {
-			set outtype $env(NSOUT)
-		} elseif { [info exists env(DISPLAY)] } {
-			set outtype xgraph
-		}
-	}
+                if { [info exists env(NSOUT)] } {
+                        set outtype $env(NSOUT)
+                } elseif { [info exists env(DISPLAY)] } {
+                        set outtype xgraph
+                }
 
-	if { $outtype != "text" } {
-		if { $outtype == "gnuplot" } {
-			# writing .gnuplot is really gross, but if we
-			# don't do that it's tough to get gnuplot to
-			# display our graph and hang around for more user input
-			exec tclsh ../../bin/cplot.tcl $outtype $testname.forw \
-			  $fname.p "segments sent" \
-			  $fname.acks "acks w/data rcvd" \
-			  $fname.packs "pure acks rcvd" $fname.d "drops" \
-			  $fname.es "zero-len segments sent" \
-			  $fname.ctrl "SYN or FIN" $fname.ecn "ECN" > .gnuplot
-			exec xterm -T "Gnuplot: $testname" -e gnuplot &
-			exec sleep 1
-			exec rm -f .gnuplot
+		if { $outtype == "text" } {
+			puts "output files are $fname.{p,packs,acks,d,ctrl,es,ecn,cact}"
+			puts "  and $fname.r.{p,packs,acks,d,ctrl,es,ecn,cact}"
 		} else {
-			exec tclsh ../../bin/cplot.tcl $outtype $testname.forw \
-			  $fname.p "segments sent" \
-			  $fname.acks "acks w/data rcvd" \
-			  $fname.packs "pure acks rcvd" $fname.d "drops" \
-			  $fname.es "zero-len segments sent" \
-			  $fname.ctrl "SYN or FIN" $fname.ecn "ECN" | $outtype &
-
-			exec tclsh ../../bin/cplot.tcl $outtype $testname.rev \
-			  $fname.r.p "segments sent" \
-			  $fname.r.acks "acks w/data rcvd" \
-			  $fname.r.packs "pure acks rcvd" $fname.r.d "drops" \
-			  $fname.r.es "zero-len segments sent" \
-			  $fname.r.ctrl "SYN or FIN" $fname.r.ecn "ECN" | $outtype &
-		}
-		exec sleep 1
-		exec rm -f \
-		$fname.p $fname.acks $fname.packs $fname.d $fname.ctrl $fname.es $fname.ecn
-		exec rm -f \
-		$fname.r.p $fname.r.acks $fname.r.packs $fname.r.d $fname.r.ctrl $fname.r.es $fname.r.ecn
-	} else {
-		if { $quiet != "true" } {
-			puts "output files are $fname.{p,packs,acks,d,ctrl,es,ecn}"
-			puts "  and $fname.r.{p,packs,acks,d,ctrl,es,ecn}"
+			exec ../../bin/tcpf2xgr $tfile $outtype
 		}
 	}
-	exec mv $tmpnam temp.rands
+	exec mv $tfile temp.rands; # verification scripts wants stuff in 'temp.rands'
 }
 
 TestSuite instproc bsdcompat tcp {
