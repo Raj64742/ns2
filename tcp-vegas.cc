@@ -28,7 +28,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.18 1998/05/11 18:50:33 kfall Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.19 1998/05/11 19:13:52 kfall Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -126,7 +126,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 	}
 
 	if (flagh->ecnecho())
-		quench(1);
+		ecn();
 	if (tcph->seqno() > last_ack_) {
 		if (last_ack_ == 0 && delay_growth_) {
 			cwnd_ = initial_window();

@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.16 1998/05/11 18:48:25 kfall Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.cc,v 1.17 1998/05/11 19:11:45 kfall Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -132,7 +132,7 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 
 	ts_peer_ = tcph->ts();
 	if (((hdr_flags*)pkt->access(off_flags_))->ecnecho() && ecn_)
-		quench(1);
+		ecn();
 	recv_helper(pkt);
 
 	if (!fastrecov_) {  // Not in fast recovery 
