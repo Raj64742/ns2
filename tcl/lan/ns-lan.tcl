@@ -304,7 +304,7 @@ LanLink instproc addNode {nodes bw delay {sllType ""} \
 		set mac [$nif set mac_]
 		$mac set addr_ [incr id_]
 		$mac channel $channel_
-		$mac classifier $mcl_
+		$mac mcl $mcl_
 		$mcl_ install $id_ $mac
 		$src addmac $mac
 		set netIface_($src) $nif
