@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.11 1997/07/24 02:51:33 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.h,v 1.12 1997/08/12 09:07:13 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -38,7 +38,6 @@
 
 #include "config.h"
 #include "packet.h"
-#include "trace.h"
 #include "connector.h"
 #include "timer-handler.h"
 
