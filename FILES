@@ -25,6 +25,7 @@ allinone/install
 alloc-address.cc
 app.cc
 app.h
+app-connector.h
 antenna.cc
 antenna.h
 arp.cc
