@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.13 1997/10/26 06:03:30 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.14 1997/11/06 02:50:09 kfall Exp $
 #
 
 #
@@ -209,7 +209,9 @@ CBQLink instproc insert args {
 		$cbqcl qmon $qmon
 	}
 
+
 	$cbqcl instvar maxidle_
+
 	if { $maxidle_ == "auto" } {
 		$cbqcl automaxidle [$link_ set bandwidth_] \
 			[$queue_ set maxpkt_]
@@ -235,9 +237,13 @@ CBQClass instproc automaxidle { linkbw maxpkt } {
 	$self instvar automaxidle_gain_ maxidle_
 	$self instvar priority_
 
+
 	set allot [$self allot]
+
+
 	set g $automaxidle_gain_
 	set n [expr 8 * $priority_]
+
 	if { $g == 0 || $allot == 0 || $linkbw == 0 } {
 		set maxidle_ 0.0
 		return
@@ -245,12 +251,13 @@ CBQClass instproc automaxidle { linkbw maxpkt } {
 	set gTOn [expr pow($g, $n)]
 	set first [expr ((1/$allot) - 1) * (1-$gTOn) / $gTOn ]
 	set second [expr (1 - $g)]
-	set t [expr ($maxpkt * 8)/$linkbw]
+	set t [expr ($maxpkt * 8.0)/$linkbw]
 	if { $first > $second } {
 		set maxidle_ [expr $t * $first]
 	} else {
 		set maxidle_ [expr $t * $second]
 	}
+	return $maxidle_
 }
 
 
