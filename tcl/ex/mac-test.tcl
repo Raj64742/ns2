@@ -80,7 +80,7 @@ proc finish {} {
 	if {[info exists opt(f)] || [info exists opt(g)]} {
 		set force "-f"
 	}
-	exec perl $nshome/bin/trsplit -tt r -pt tcp -c "$comment" \
+	exec perl $nshome/bin/trsplit -tt r -pt tcp -c '$comment' \
 			$force $opt(tr) >& $opt(tr)-bw
 	exec head -1 $opt(tr)-bw >@ stdout
 
