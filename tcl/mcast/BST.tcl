@@ -399,7 +399,7 @@ BST instproc match-oif {group link} {
 		foreach oif $oiflist {
 			set oiflink [$oif set link_]
 			if {$oiflink == $link} {
-				return $oiflist
+				return $oiflink
 			}
 		}
   	}
