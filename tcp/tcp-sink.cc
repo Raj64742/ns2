@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.42 2000/09/01 03:04:07 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.43 2000/12/19 22:48:27 sfloyd Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -313,6 +313,11 @@ DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker), delay_timer_(this)
 	bind_time("interval_", &interval_);
 }
 
+void DelAckSink::reset() {
+    if (delay_timer_.status() == TIMER_PENDING)
+        delay_timer_.cancel();
+    TcpSink::reset();
+}
 
 void DelAckSink::recv(Packet* pkt, Handler*)
 {
@@ -361,10 +366,12 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 void DelAckSink::timeout(int)
 {
 	// The timer expired so we ACK the last packet seen.
-	Packet* pkt = save_;
-	ack(pkt);
-	save_ = NULL;
-	Packet::free(pkt);
+	if ( save_ != NULL ) {
+		Packet* pkt = save_;
+		ack(pkt);
+		save_ = NULL;
+		Packet::free(pkt);
+	}
 }
 
 void DelayTimer::expire(Event* /*e*/) {

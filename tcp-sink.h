@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.17 2000/04/15 03:09:06 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.18 2000/12/19 22:48:27 sfloyd Exp $ (LBL)
  */
  
 #ifndef ns_tcpsink_h
@@ -132,6 +132,7 @@ public:
 	DelAckSink(Acker* acker);
 	void recv(Packet* pkt, Handler*);
 	virtual void timeout(int tno);
+	void reset();
 protected:
 	double interval_;
 	DelayTimer delay_timer_;
