@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.19 1997/07/22 08:30:26 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.20 1997/07/22 22:21:20 padmanab Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -84,9 +84,6 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL), idle_(1)
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
 	bind_bool("drop-tail_", &drop_tail_);	    // drop last pkt or random
-	bind_bool("fracthresh_", &edp_.fracthresh); // min/maxth fracts of qlim
-	bind("fracminthresh_", &edp_.frac_th_min);     // frac minthresh of qlim
-	bind("fracmaxthresh_", &edp_.frac_th_max);     // frac maxthresh of qlim
 
 	q_ = new PacketQueue();			    // underlying queue
 	reset();
@@ -118,15 +115,6 @@ void REDQueue::reset()
 	if (link_)
 		edp_.ptc = link_->bandwidth() /
 			(8. * edp_.mean_pktsize);
-	/*
-	 * a way to choose max/minth as a fraction of the
-	 * queue limit (optionally enabled)
-	 */
-	if (edp_.fracthresh) {
-		edp_.th_min = edp_.frac_th_min*qlim_;
-		edp_.th_max = edp_.frac_th_max*qlim_;
-	}
-
 	edv_.v_ave = 0.0;
 	edv_.v_slope = 0.0;
 	edv_.count = 0;

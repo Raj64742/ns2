@@ -52,7 +52,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.5 1997/07/22 08:30:27 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.6 1997/07/22 22:21:21 padmanab Exp $ (LBL)
  */
 
 #include <math.h>
@@ -80,11 +80,8 @@ struct edp {
 
 	double th_min;		/* minimum threshold of average queue size */
 	double th_max;		/* maximum threshold of average queue size */
-	double frac_th_min;	/* fractional minimum threshold of average queue size */
-	double frac_th_max;	/* fractional threshold of average queue size */
 	double max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
 	double q_w;		/* queue weight */
-	int fracthresh;		/* thresholds fractions of max queue length */
 				   
 	/*
 	 * Computed as a function of user supplied paramters.

@@ -117,16 +117,24 @@ proc configQueue { ns n0 n1 type trace { size -1 } { acksfirst false } { filtera
 		$q01 set acksfromfront_ $acksfromfront
 		$q01 set interleave_ $interleave
 	}
+	if {[string first "RED" $type] != -1} {
+		configREDQueue $ns $n0 $n1 [$q01 set q_weight_] 1
+	}
 	$q01 trace $trace
 	$q01 reset
 }
 
-proc configREDQueue { ns n0 n1 { q_weight -1 } } {
+proc configREDQueue { ns n0 n1 { q_weight -1 } { fracthresh 0 } { fracminthresh 0.4 } { fracmaxthresh 0.8} } {
 	set id0 [$n0 id]
 	set id1 [$n1 id]
 	set l01 [$ns set link_($id0:$id1)]
 	set q01 [$l01 set queue_]
 	if {$q_weight >= 0} {
 		$q01 set q_weight_ $q_weight
+	}
+	if { $fracthresh } {
+		set lim [$q01 set limit_]
+		$q01 set thresh_ [expr $fracminthresh*$lim]
+		$q01 set maxthresh_ [expr $fracmaxthresh*$lim]
 	}
 }
