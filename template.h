@@ -32,7 +32,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/template.h,v 1.6 1997/08/12 22:20:48 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/template.h,v 1.7 1997/08/21 01:41:09 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_template_h
@@ -46,6 +46,28 @@
 #undef abs
 #endif
 
+
+inline int min(int a, int b)
+{
+	return a < b ? a : b;
+}
+
+inline double min(double a, double b)
+{
+	return a < b ? a : b;
+}
+
+inline int max(int a, int b)
+{
+	return a < b ? b : a;
+}
+
+inline double max(double a, double b)
+{
+	return a < b ? b : a;
+}
+
+
 template <class Type>
 inline Type abs(Type a)
 {
@@ -58,18 +80,6 @@ inline void swap(Type& a, Type& b)
 	Type t = a;
 	a = b;
 	b = t;
-}
-
-template <class Type1, class Type2>
-inline Type1 min(Type1 a, Type2 b)
-{
-	return a < b ? a : b;
-}
-
-template <class Type1, class Type2>
-inline Type1 max(Type1 a, Type2 b)
-{
-	return a < b ? b : a;
 }
 
 #endif
