@@ -2392,7 +2392,7 @@ static int linkerr_is_wrong = 0;
 #endif
 
 void
-DSRAgent::sendUnknownFlow(SRPacket &p, bool asDefault, u_int16_t flowid = 0) {
+DSRAgent::sendUnknownFlow(SRPacket &p, bool asDefault, u_int16_t flowid) {
   hdr_sr *srh = hdr_sr::access(p.pkt);
   hdr_ip *iph = hdr_ip::access(p.pkt);
   hdr_cmn *cmh = hdr_cmn::access(p.pkt);
@@ -2496,7 +2496,7 @@ DSRAgent::sendUnknownFlow(SRPacket &p, bool asDefault, u_int16_t flowid = 0) {
 }
 
 void 
-DSRAgent::xmitFlowFailed(Packet *pkt, const char* reason = "DROP_RTR_MAC_CALLBACK")
+DSRAgent::xmitFlowFailed(Packet *pkt, const char* reason)
 {
   hdr_sr *srh = hdr_sr::access(pkt);
   hdr_ip *iph = hdr_ip::access(pkt);
@@ -2548,7 +2548,7 @@ DSRAgent::xmitFlowFailed(Packet *pkt, const char* reason = "DROP_RTR_MAC_CALLBAC
 }
 
 void 
-DSRAgent::xmitFailed(Packet *pkt, const char* reason = "DROP_RTR_MAC_CALLBACK")
+DSRAgent::xmitFailed(Packet *pkt, const char* reason)
   /* mark our route cache reflect the failure of the link between
      srh[cur_addr] and srh[next_addr], and then create a route err
      message to send to the orginator of the pkt (srh[0])
