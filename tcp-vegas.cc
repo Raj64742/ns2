@@ -28,7 +28,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.15 1998/04/21 18:52:01 sfloyd Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.16 1998/05/02 01:41:11 kfall Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -89,7 +89,7 @@ VegasTcpAgent::recv_newack_helper(Packet *pkt)
 	newack(pkt);
 #if 0
 	// like TcpAgent::recv_newack_helper, but without this
-	if ( !((hdr_flags*)pkt->access(off_flags_))->ecn_ || !ecn_ ) {
+	if ( !((hdr_flags*)pkt->access(off_flags_))->ecnecho() || !ecn_ ) {
 	        opencwnd();
 	}
 #endif
@@ -125,7 +125,7 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 		v_timeout_ = ((v_sa_/4.)+v_sd_)/2.;
 	}
 
-	if (flagh->ecn_)
+	if (flagh->ecnecho())
 		quench(1);
 	if (tcph->seqno() > last_ack_) {
 		if (last_ack_ == 0 && delay_growth_) {
