@@ -33,7 +33,7 @@
  * This module contributed by John Brezak <brezak@apollo.hp.com>.
  * January 31, 1996
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/win32.c,v 1.3 1998/08/22 02:41:30 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/win32.c,v 1.4 1998/09/17 16:33:10 heideman Exp $ (LBL)
  */
 
 #ifdef WIN32
@@ -161,9 +161,11 @@ ShowMessage(int level, char *msg)
 
 int SetupConsole()
 {
-    // stuff from knowledge base Q105305 (see that for details)
-    // open a console and do the work around to get the console to work in all
-    // cases
+    /*
+     * stuff from knowledge base Q105305 (see that for details)
+     * open a console and do the work around to get the console to work in all
+     * cases
+     */
     int hCrt;
     FILE *hf=0;
     const COORD screenSz = {80, 5000}; /* size of console buffer */
@@ -264,7 +266,7 @@ WinMain(
 
     retcode=main(__argc, (const char**)__argv);
     if (retcode!=0) {
-            assert(FALSE);      // don't die without letting user know why
+            assert(FALSE);      /* don't die without letting user know why */
     }
     return retcode;
 }
