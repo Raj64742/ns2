@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno-full.tcl,v 1.1 2001/07/03 16:51:00 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno-full.tcl,v 1.2 2001/07/24 20:15:23 haldar Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-testReno-full.tcl
@@ -251,17 +251,17 @@ Test/NewReno_FullTCP instproc run {} {
         $self setup FullTcpNewreno {5} {15 18}
 }
 
-Class Test/Sack_FullTCP -superclass TestSuite
-Test/Sack_FullTCP instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	Sack_FullTCP
-	Agent/TCP set noFastRetrans_ false
-	$self next
-}
-Test/Sack_FullTCP instproc run {} {
-        $self setup FullTcpSack1 {5} {15 18}
-}
+#Class Test/Sack_FullTCP -superclass TestSuite
+#Test/Sack_FullTCP instproc init {} {
+#	$self instvar net_ test_
+#	set net_	net4
+#	set test_	Sack_FullTCP
+#	Agent/TCP set noFastRetrans_ false
+#	$self next
+#}
+#Test/Sack_FullTCP instproc run {} {
+#        $self setup FullTcpSack1 {5} {15 18}
+#}
 
 ###################################################
 ## One drop
@@ -313,17 +313,17 @@ Test/NewReno_FullTCP2 instproc run {} {
         $self setup FullTcpNewreno {8} {17}
 }
 
-Class Test/Sack_FullTCP2 -superclass TestSuite
-Test/Sack_FullTCP2 instproc init {} {
-	$self instvar net_ test_
-	set net_	net4
-	set test_	Sack_FullTCP2
-	Agent/TCP set noFastRetrans_ false
-	$self next
-}
-Test/Sack_FullTCP2 instproc run {} {
-        $self setup FullTcpSack1 {8} {17}
-}
+#Class Test/Sack_FullTCP2 -superclass TestSuite
+#Test/Sack_FullTCP2 instproc init {} {
+#	$self instvar net_ test_
+#	set net_	net4
+#	set test_	Sack_FullTCP2
+#	Agent/TCP set noFastRetrans_ false
+#	$self next
+#}
+#Test/Sack_FullTCP2 instproc run {} {
+#        $self setup FullTcpSack1 {8} {17}
+#}
 
 TestSuite runTest
 
