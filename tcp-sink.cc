@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.16 1997/07/25 01:39:34 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.17 1997/07/29 22:53:21 kfall Exp $ (LBL)";
 #endif
 
 #include "tcp-sink.h"
@@ -93,6 +93,7 @@ TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker)
 {
 	bind("packetSize_", &size_);
 	bind("off_tcp_", &off_tcp_);
+	bind("maxSackBlocks_", &max_sack_blocks_); // used only by sack
 }
 
 void Acker::append_ack(hdr_cmn*, hdr_tcp*, int) const
@@ -252,20 +253,21 @@ SackStack::~SackStack()
 	delete SFE_;
 }
 
-class Sacker : public Acker {
+#ifdef NOTDEF
+// derive Sacker from TclObject to allow for traced variable
+class Sacker : public Acker, public TclObject {
 public: 
-	Sacker();
+	Sacker() : base_nblocks_(-1), sf_(0) { };
 	~Sacker();
 	void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
-	void bind(TclObject* o) {
-		o->bind("maxSackBlocks_", &max_sack_blocks_);
-	}
 	void reset();
+	void configure(TcpSink*);
 protected:
-        int max_sack_blocks_;
 	int base_nblocks_;
 	SackStack *sf_;
+	void trace(TracedVar*);
 };
+#endif
 
 static class Sack1TcpSinkClass : public TclClass {
 public:
@@ -273,7 +275,7 @@ public:
 	TclObject* create(int, const char*const*) {
 		Sacker* sacker = new Sacker;
 		TcpSink* sink = new TcpSink(sacker);
-		sacker->bind(sink);
+		sacker->configure(sink);
 		return (sink);
         }
 } class_sack1tcpsink;
@@ -284,15 +286,42 @@ public:
 	TclObject* create(int, const char*const*) {
 		Sacker* sacker = new Sacker;
 		TcpSink* sink = new DelAckSink(sacker);
-		sacker->bind(sink);
+		sacker->configure(sink);
 		return (sink);
 	}
 } class_sack1delacktcpsink;
 
-Sacker::Sacker()
+void Sacker::configure(TcpSink *sink)
 {
-	sf_ = new SackStack(max_sack_blocks_);
-	base_nblocks_ = max_sack_blocks_;
+	if (sink == NULL) {
+		fprintf(stderr, "warning: Sacker::configure(): no TCP sink!\n");
+		return;
+	}
+
+	TracedInt& nblocks = sink->max_sack_blocks_;
+	if (int(nblocks) > NSA) {
+		fprintf(stderr, "warning: TCP header limits number of SACK blocks to %d\n", NSA);
+		nblocks = NSA;
+	}
+	sf_ = new SackStack(int(nblocks));
+	nblocks.tracer(this);
+}
+
+void
+Sacker::trace(TracedVar *v)
+{
+	// we come here if "nblocks" changed
+	TracedInt* ti = (TracedInt*) v;
+
+	if (int(*ti) > NSA) {
+		fprintf(stderr, "warning: TCP header limits number of SACK blocks to %d\n", NSA);
+		*ti = NSA;
+	}
+
+	int newval = int(*ti);
+	delete sf_;
+	sf_ = new SackStack(newval);
+	base_nblocks_ = newval;
 }
 
 void Sacker::reset() 
@@ -320,7 +349,7 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
                 printf("Error: invalid packet number %d\n", old_seqno);
         } else if (seqno >= maxseen_ && (sf_->cnt() != 0))
 		sf_->reset();
-	else if ((seqno < maxseen_) && (max_sack_blocks_ > 0)) {
+	else if ((seqno < maxseen_) && (base_nblocks_ > 0)) {
                 /*  Build FIRST SACK block  */
                 sack_right=-1;
 
@@ -362,9 +391,7 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 		 */
 
 		int k = 0;
-		int bound = (max_sack_blocks_ < base_nblocks_) ?
-			max_sack_blocks_ : base_nblocks_;
-                while (sack_index < bound) {
+                while (sack_index < base_nblocks_) {
 
 			sack_left = sf_->head_left(k);
 			sack_right = sf_->head_right(k);
