@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.12 1997/09/10 17:00:00 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.13 1997/10/26 06:03:30 hari Exp $
 #
 
 #
@@ -321,4 +321,53 @@ QueueMonitor/ED instproc reset {} {
 	$self instvar epdrops_ ebdrops_
 	set epdrops_ 0
 	set ebdrops_ 0
+}
+
+Class AckReconsClass -superclass Agent
+
+AckReconsControllerClass instproc demux { src dst } {
+	$self instvar reconslist_ queue_
+	set addr $src:$dst
+	if { ![info exists reconslist_($addr)] } {
+		set recons [new Agent/AckReconsClass $src $dst]
+		$recons target $queue_
+		set reconslist_($addr) $recons
+	}
+	# return an ack reconstructor object
+	return $reconslist_($addr)
+}
+
+# Calculate number and spacing of acks to be sent
+
+# deltaAckThresh_ = threshold after which reconstructor kicks in
+# ackInterArr_ = estimate of arrival rate of acks ("counting process")
+# ackSpacing_ = duration in time between acks sent by reconstructor
+# delack_ = generate an ack at least every delack_ acks at reconstructor
+
+Agent/AckReconsClass instproc spacing { ack } {
+	$self instvar ackInterArr_ ackSpacing_ delack_ \
+			lastAck_ lastRealAck_ lastRealTime_ adaptive_ size_
+	global ns
+	
+	set deltaTime [expr [$ns now] - $lastRealTime_]
+	set deltaAck [expr $ack - $lastAck_]
+	if {$adaptive_} {
+		set bw [expr $deltaAck*$size_/$deltaTime]
+		set ackSpacing_ $ackInterArr_
+		if { $deltaAck > 0 } {
+#			set ackSpacing_ [expr $ackInterArr_*$delack_/$deltaAck]
+		}
+	} else {
+		set deltaT [expr $deltaTime / ($deltaAck/$delack_ +1)]
+		set ackSpacing_ $deltaT
+	}
+}
+
+# Estimate rate at which acks are arriving
+Agent/AckReconsClass instproc ackbw {ack time} {
+	$self instvar ackInterArr_ lastRealTime_ lastRealAck_ alpha_
+
+	set sample [expr $time - $lastRealTime_]
+	# EWMA
+	set ackInterArr_ [expr $alpha_*$sample + (1-$alpha_)*$ackInterArr_]
 }
