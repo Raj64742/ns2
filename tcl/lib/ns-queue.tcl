@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.18 1999/09/15 19:34:24 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.19 2000/07/19 04:46:22 sfloyd Exp $
 #
 
 #
@@ -435,3 +435,34 @@ FQLink instproc new-flow { src dst fid } {
 FQLink instproc up? { } {
 	return up
 }
+
+#
+# Dummy function for all the queues that don't implement attach-traces
+#
+Queue instproc attach-traces {src dst file} {
+    #Do nothing here
+}
+
+#
+# Added to be able to trace the edrop events - ratul
+#
+Queue/RED instproc attach-traces {src dst file {type Drop}} {
+
+    set ns [Simulator instance]
+
+    set newtrace [$ns create-trace $type $file $src $dst]
+    
+    ##puts "In attach-trace"
+    set oldTrace [$self edrop-trace]
+    ##puts "oldTrace - $oldTrace"
+    if {$oldTrace!=0} {
+	##puts "exists"
+	$newtrace target $oldTrace
+    } else {
+	##puts "Does not exist"
+	$newtrace target [$ns set nullAgent_]
+    }
+
+    $self attach-edrop-trace $newtrace
+}
+
