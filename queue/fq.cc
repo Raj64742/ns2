@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.6 1997/04/01 07:19:19 mccanne Exp $ (ANS)";
+static const char rcsid[] =
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.7 1997/07/22 21:29:33 kfall Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -71,7 +71,7 @@ protected:
 static class FQClass : public TclClass {
 public:
 	FQClass() : TclClass("Queue/FQ") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new FQ);
 	}
 } class_fq;
@@ -199,7 +199,7 @@ void FQ::recv(Packet* p, Handler* handler)
 	}
 }
 
-void FQ::enque(Packet* p)
+void FQ::enque(Packet*)
 {
 	/* should never be called because we override recv */
 	abort();

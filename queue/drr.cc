@@ -17,17 +17,20 @@
  * This file contributed by Sandeep Bajaj <bajaj@parc.xerox.com>, Mar 1997.
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drr.cc,v 1.3 1997/07/22 21:32:52 kfall Exp $ (Xerox)";
+#endif
+
 #include <stdlib.h>
 #include <string.h>
 #include "queue.h"
 
-
 class PacketDRR;
 class DRR;
 
-
 class PacketDRR : public PacketQueue {
-  PacketDRR(): pkts(0),bcount(0),prev(0),next(0),deficitCounter(0),turn(0),src(-1) {}
+  PacketDRR(): pkts(0),src(-1),bcount(0),prev(0),next(0),deficitCounter(0),turn(0) {}
   friend DRR;
   protected :
   int pkts;
@@ -108,7 +111,7 @@ public:
 static class DRRClass : public TclClass {
 public:
   DRRClass() : TclClass("Queue/DRR") {}
-  TclObject* create(int argc, const char*const* argv) {
+  TclObject* create(int, const char*const*) {
     return (new DRR);
   }
 } class_drr;
@@ -133,7 +136,6 @@ DRR::DRR()
 void DRR::enque(Packet* pkt)
 {
   PacketDRR *q,*remq;
-  Packet *p;
   int which;
 
   hdr_cmn *ch=(hdr_cmn*)pkt->access(off_cmn_);

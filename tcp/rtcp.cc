@@ -32,11 +32,9 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/rtcp.cc,v 1.8 1997/03/29 01:43:02 mccanne Exp $";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/rtcp.cc,v 1.9 1997/07/22 21:24:28 kfall Exp $";
 #endif
-
-
 
 #include <stdlib.h>
 #include <string.h>
@@ -69,7 +67,7 @@ protected:
 static class RTCPAgentClass : public TclClass {
 public:
 	RTCPAgentClass() : TclClass("Agent/RTCP") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new RTCPAgent());
 	}
 } class_rtcp_agent;

@@ -34,8 +34,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.4 1997/03/29 01:43:05 mccanne Exp $ (ANS)";
+static const char rcsid[] =
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.5 1997/07/22 21:26:14 kfall Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -99,7 +99,7 @@ protected:
 static class SFQClass : public TclClass {
 public:
   SFQClass() : TclClass("Queue/SFQ") {}
-  TclObject* create(int argc, const char*const* argv) {
+  TclObject* create(int, const char*const*) {
     return (new SFQ);
   }
 } class_sfq;
@@ -169,7 +169,7 @@ void PacketSFQ::sfqdebug()
   PacketSFQ *q = this;
   fprintf(stderr, "sfq: ");
   while (q) {
-    fprintf(stderr, " 0x%x(%d)", q, q->pkts);
+    fprintf(stderr, " 0x%p(%d)", q, q->pkts);
     q = q->next;
     if (q == this)
       break;
@@ -179,7 +179,6 @@ void PacketSFQ::sfqdebug()
 
 Packet* SFQ::deque(void)
 {
-  int offset;
   Packet* pkt;
 
   if (!bucket)
