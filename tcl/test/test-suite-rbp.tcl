@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.5 1998/08/14 20:14:22 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.6 1998/08/14 21:44:52 tomh Exp $
 #
 
 #
@@ -217,15 +217,11 @@ TestScale instproc init_network {} {
 	}
 }
 
-Source/FTP instproc fire {} {
+Application/FTP instproc fire {} {
 	global opts
 	$self instvar maxpkts_
 	set maxpkts_ [expr $maxpkts_ + $opts(web-page-size)]
-	$self start
-# advance crashes the simulator,
-# see <file:///~/NOTES/199706/970611#* VINT/ns/bugs>
-#	$self advance $opts(web-page-size)
-	# puts "$self fire to $maxpkts_"
+	$self produce $maxpkts_
 }
 
 TestScale instproc init_connections {} {
