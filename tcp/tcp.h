@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.107 2003/02/12 04:16:10 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.108 2003/04/01 01:18:20 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -343,6 +343,7 @@ protected:
 	int first_decrease_;	/* First decrease of congestion window.  */
 				/* Used for decrease_num_ != 0.5. */
         TracedInt singledup_;   /* Send on a single dup ack.  */
+	int LimTransmitFix_;	/* To fix a bug in Limited Transmit. */
 	int noFastRetrans_;	/* No Fast Retransmit option.  */
 	int oldCode_;		/* Use old code. */
 	int useHeaders_;	/* boolean: Add TCP/IP header sizes */

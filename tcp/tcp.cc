@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.144 2003/02/12 04:16:09 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.145 2003/04/01 01:18:20 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -167,6 +167,7 @@ TcpAgent::delay_bind_init_all()
 	delay_bind_init_one("timerfix_");
 	delay_bind_init_one("rfc2988_");
 	delay_bind_init_one("singledup_");
+	delay_bind_init_one("LimTransmitFix_");
 	delay_bind_init_one("rate_request_");
 	delay_bind_init_one("qs_enabled_");
 
@@ -260,6 +261,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
 	if (delay_bind_bool(varName, localName, "timerfix_", &timerfix_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "rfc2988_", &rfc2988_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "singledup_", &singledup_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "LimTransmitFix_", &LimTransmitFix_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "rate_request_", &rate_request_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "qs_enabled_", &qs_enabled_, tracer)) return TCL_OK;
 
