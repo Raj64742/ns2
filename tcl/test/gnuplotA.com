@@ -17,7 +17,6 @@ set title "$filename3"
 set output "$filename3.ps"
 set key left box
 # set size 0.6,0.8
-# set size 2,3
+set size 1.0,0.8 
 plot "packets" with points pt 5 ps 0.3, "drops" with points pt 1 ps 2
-# plot "packets" with dots, "drops" with points pt 1
 !
