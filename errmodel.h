@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.29 1998/05/06 21:47:30 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.30 1998/05/07 00:49:31 kfall Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -119,6 +119,7 @@ class PeriodicErrorModel : public ErrorModel {
 	int cnt_;
         double period_;
 	double offset_;
+	double burstlen_;
 	double last_time_;
 	double first_time_;
 };
