@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.69 2001/12/31 04:06:28 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.70 2002/01/01 00:08:54 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -93,7 +93,7 @@ REDQueue::REDQueue() {
 /*
  * modified to enable instantiation with special Trace objects - ratul
  */
-REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL), EDTrace(NULL), tchan_(0), idle_(1)
+REDQueue::REDQueue(const char * trace) : link_(NULL), de_drop_(NULL), EDTrace(NULL), tchan_(0), idle_(1)
 {
 	//	printf("Making trace type %s\n", trace);
 	if (strlen(trace) >=20) {
@@ -256,8 +256,6 @@ void REDQueue::reset()
 	Queue::reset();
 	if (debug_) 
 		printf("Done queue reset\n");
-
-	bcount_ = 0;
 }
 
 /*
@@ -305,13 +303,12 @@ Packet* REDQueue::deque()
 	Packet *p;
 	if (summarystats_ && &Scheduler::instance() != NULL) {
 		int queuesize = q_->length();
-		if (qib_) queuesize = bcount_; 
+		if (qib_) queuesize = q_->byteLength(); 
 		Queue::updateStats(queuesize);
 	}
 	p = q_->deque();
 	if (p != 0) {
 		idle_ = 0;
-		bcount_ -= hdr_cmn::access(p)->size();
 	} else {
 		idle_ = 1;
 		// deque() may invoked by Queue::reset at init
@@ -414,7 +411,7 @@ REDQueue::drop_early(Packet* pkt)
 		 // Don't drop/mark if the instantaneous queue is much
 		 //  below the average.
 		 // For experimental purposes only.
-		int qsize = qib_?bcount_:q_->length();
+		int qsize = qib_?q_->byteLength():q_->length();
 		// pkts: the number of packets arriving in 50 ms
 		double pkts = edp_.ptc * 0.05;
 		double fraction = pow( (1-edp_.q_w), pkts);
@@ -430,7 +427,7 @@ REDQueue::drop_early(Packet* pkt)
                 // Decrease the drop probability if the instantaneous
 		//   queue is much below the average.
 		// For experimental purposes only.
-		int qsize = qib_?bcount_:q_->length();
+		int qsize = qib_?q_->byteLength():q_->length();
 		// pkts: the number of packets arriving in 50 ms
 		double pkts = edp_.ptc * 0.05;
 		double fraction = pow( (1-edp_.q_w), pkts);
@@ -540,18 +537,14 @@ void REDQueue::enque(Packet* pkt)
 	/*
 	 * Run the estimator with either 1 new packet arrival, or with
 	 * the scaled version above [scaled by m due to idle time]
-	 * (bcount_ maintains the byte count in the underlying queue).
-	 * If the underlying queue is able to delete packets without
-	 * us knowing, then bcount_ will not be maintained properly!
 	 */
-	edv_.v_ave = estimator(qib_ ? bcount_ : q_->length(), m + 1, edv_.v_ave, edp_.q_w);
+	edv_.v_ave = estimator(qib_ ? q_->byteLength() : q_->length(), m + 1, edv_.v_ave, edp_.q_w);
 	//printf("v_ave: %6.4f (%13.12f) q: %d)\n", 
 	//	double(edv_.v_ave), double(edv_.v_ave), q_->length());
-	//run_estimator(qib_ ? bcount_ : q_->length(), m + 1);
 	if (summarystats_) {
 		/* compute true average queue size for summary stats */
 		int queuesize = q_->length();
-		if (qib_) queuesize = bcount_; 
+		if (qib_) queuesize = q_->byteLength(); 
 		Queue::updateStats(queuesize);
 	}
 
@@ -575,7 +568,7 @@ void REDQueue::enque(Packet* pkt)
 
 	register double qavg = edv_.v_ave;
 	int droptype = DTYPE_NONE;
-	int qlen = qib_ ? bcount_ : q_->length();
+	int qlen = qib_ ? q_->byteLength() : q_->length();
 	int qlim = qib_ ? (qlim_ * edp_.mean_pktsize) : qlim_;
 
 	curq_ = qlen;	// helps to trace queue during arrival, if enabled
@@ -616,9 +609,7 @@ void REDQueue::enque(Packet* pkt)
 		 */
 		if (pkt_to_drop != pkt) {
 			q_->enque(pkt);
-			bcount_ += ch->size();
 			q_->remove(pkt_to_drop);
-			bcount_ -= hdr_cmn::access(pkt_to_drop)->size();
 			pkt = pkt_to_drop; /* XXX okay because pkt is not needed anymore */
 		}
 
@@ -641,14 +632,12 @@ void REDQueue::enque(Packet* pkt)
 	} else {
 		/* forced drop, or not a drop: first enqueue pkt */
 		q_->enque(pkt);
-		bcount_ += ch->size();
 
 		/* drop a packet if we were told to */
 		if (droptype == DTYPE_FORCED) {
 			/* drop random victim or last one */
 			pkt = pickPacketToDrop();
 			q_->remove(pkt);
-			bcount_ -= hdr_cmn::access(pkt)->size();
 			reportDrop(pkt);
 			drop(pkt);
 			if (!ns1_compat_) {

@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.37 2001/12/31 04:06:29 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.38 2002/01/01 00:08:54 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -157,8 +157,7 @@ class REDQueue : public Queue {
 	int fifo_;		/* fifo queue? */
         PacketQueue *q_; 	/* underlying (usually) FIFO queue */
 		
-	int bcount_;	/* byte count */
-	int qib_;	/* bool: queue measured in bytes? */
+	int qib_;		/* bool: queue measured in bytes? */
 	NsObject* de_drop_;	/* drop_early target */
 
 	//added to be able to trace EDrop Objects - ratul
