@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.252 1998/06/16 01:33:48 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.253 1998/06/19 02:08:21 ahelmy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,21 @@
 	HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">Release of ns-2.1b3</A> [PENDING]
 </H3>
 <UL>
+    <LI><B><A HREF="http://catarina.usc.edu/ahelmy">[AH]</A></B>
+	<b>Wed Jun 17 19:00:00 PKT 1998</b><br>
+	<ul>
+	<li> Checked in the routing generator and the agent 
+generator components of the scneario generator, at 
+tcl/ex/{route,agent}-gen.tcl. For use, source these files and type 
+'routing -h' or 'agents -h' for more help.
+The agent generator currently supports TCP and SRM types (and their 
+variants, attached sources, sinks and traffic models), in addition 
+to a random distribution of the start/end times of tcp sessions and 
+join/start times of SRM members/sources.
+	<li>Modified the topology generator to add API that returns 
+the number of nodes in a topology.
+	<li>An example script that uses the scenario generator is 
+under tcl/ex/agent-gen-script.tcl.
     <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[kfall]</A></B>
        <b>Mon Jun 15 17:58:06 PDT 1998</b><br>
        <ul>
@@ -650,6 +665,7 @@ control from Tcl, and derived TCP classes can define their own trace function. <
 Files: tcp.{cc,h}
 	
 	 <li> Added ack-recons.{cc,h} as a TCP ack reconstructor object (first cut).  Sits on other end of constrained reverse link and intersperses (reconstructs) acks to the TCP source.  Typically used in conjunction with schemes like ack filtering for asymmet
+
 
 
 
