@@ -25,6 +25,9 @@
 #define __NIXVEC_H__
 
 #include <utility>  // for pair
+#ifdef WIN32
+#include <pair.h>   // for MSVC 6.0 that doens't have a proper <utility>
+#endif /* WIN32 */
 
 // Define a type for the neighbor index
 typedef unsigned long Nix_t;
