@@ -15,7 +15,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.8 1998/06/27 01:03:28 gnguyen Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.h,v 1.9 1998/07/07 22:47:20 tomh Exp $ (Xerox)
  */
 
 #ifndef ns_udp_h
@@ -28,10 +28,7 @@
 class UdpAgent : public Agent {
 public:
 	UdpAgent();
-	void sendmsg(int nbytes, const char *flags = 0);
-protected:
-	int seqno_;
-	int off_rtp_;
+	virtual void sendmsg(int nbytes, const char *flags = 0);
 };
 
 
@@ -43,6 +40,11 @@ class TrafficGenerator;
  * object to determine the size of the next packet and the inter-packet
  * time.  The intention is to give the flexibility to associate
  * agents with different traffic generation processes.
+ */
+/*
+ * Note:  This code remains for backward compatibility; future traffic
+ * generators should use Agent/UDP and a traffic generator from base
+ * class Application.
  */
 
 class UDP_Agent : public CBR_Agent {
