@@ -41,7 +41,7 @@ public:
 	TclObject* create(int argc, const char*const* argv) {
 		return (new BaseLL);
 	}
-} class_baseLL;
+} class_ll;
 
 
 BaseLL::BaseLL() : LinkDelay(), em_(0), sendtarget_(0), recvtarget_(0), seqno_(0)
@@ -72,7 +72,7 @@ BaseLL::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
-	if (argc == 2) {
+	else if (argc == 2) {
 		if (strcmp(argv[1], "error") == 0) {
 			tcl.resultf("%s", em_->name());
 			return (TCL_OK);
@@ -107,6 +107,7 @@ BaseLL::recv(Packet* p, Handler* h)
 	ifq_->recv(p, h);	// send it down to the interface queue
 	s.schedule(h, &intr_, 0);
 }
+
 
 void
 BaseLL::handle(Event* e)    

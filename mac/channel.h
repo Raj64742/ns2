@@ -42,7 +42,7 @@ class Channel : public Connector {
 public:
 	Channel();
 	void senseCarrier(Packet* p, Handler*);
-	int send(Packet* p, NsObject* target, double txtime, double txstart=0.);
+	int send(Packet* p, Handler* target, double txtime, double txstart=0.);
 	int hold(double txtime);
 	void drop(Packet* p);
 

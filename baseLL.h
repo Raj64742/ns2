@@ -51,6 +51,10 @@ public:
 	BaseLL();
 	virtual void recv(Packet* p, Handler* h);
 	virtual void handle(Event*);
+	inline ErrorModel* em() { return em_; }
+	inline Queue* ifq() { return ifq_; }
+	inline NsObject* sendtarget() { return sendtarget_; }
+	inline NsObject* recvtarget() { return recvtarget_; }
 
 protected:
 	int command(int argc, const char*const* argv);

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.h,v 1.1 1997/01/26 22:32:27 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.h,v 1.2 1997/04/09 21:21:08 gnguyen Exp $
  */
 
 #ifndef ns_connector_h
@@ -44,6 +44,7 @@
 class Connector : public NsObject {
 public:
 	Connector();
+	inline NsObject* target() { return target_; }
 protected:
 	int command(int argc, const char*const* argv);
 	void recv(Packet*, Handler* callback = 0);
