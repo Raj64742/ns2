@@ -310,6 +310,7 @@ tcl/ex/simple-eqp1.tcl
 tcl/ex/simple-heap.tcl
 tcl/ex/simple-rtg.tcl
 tcl/ex/simple-rtp.tcl
+tcl/ex/simple-webcache.tcl
 tcl/ex/simple.tcl
 tcl/ex/snoop/snoop.tcl
 tcl/ex/snoop/util.tcl

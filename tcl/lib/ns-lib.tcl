@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.121 1998/08/22 01:06:07 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.122 1998/09/13 23:35:27 haoboy Exp $
 
 #
 
@@ -379,6 +379,10 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	if {$trace != ""} {
 		$self namtrace-queue $n1 $n2 $trace
 	}
+	
+	# Register this simplex link in nam link list. Treat it as 
+	# a duplex link in nam
+	$self register-nam-linkconfig $link_($sid:$did)
 }
 
 # 
@@ -468,9 +472,6 @@ Simulator instproc duplex-link { n1 n2 bw delay type args } {
 
 	eval $self simplex-link $n1 $n2 $bw $delay $type $args
 	eval $self simplex-link $n2 $n1 $bw $delay $type $args
-	
-	# nam only has duplex link, so we do a registration here.
-	$self register-nam-linkconfig $link_($i1:$i2)
 }
 
 Simulator instproc duplex-intserv-link { n1 n2 bw pd sched signal adc args } {
