@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.36 1998/03/17 08:28:25 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.37 1998/03/18 00:06:39 polly Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -434,7 +434,7 @@ int SRMErrorModel::corrupt(Packet* p)
                 if ((ch->ptype() == pkt_type_) && (sh->type() == SRM_DATA) && 
 		    (sh->seqnum() % drop_cycle_ == drop_offset_)) {
 		  //printf ("dropping packet type SRM-DATA, seqno %d\n", 
-		  //  sh->seqnum());
+		  //sh->seqnum());
 		  return 1;
 		}
 	}
