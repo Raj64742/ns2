@@ -117,7 +117,7 @@ Node/MobileNode instproc add-target {agent port } {
     
     #global opt
     $self instvar dmux_ classifier_
-    $self instvar imep_
+    $self instvar imep_ toraDebug_
  
     set ns_ [Simulator instance]
 
@@ -159,7 +159,7 @@ Node/MobileNode instproc add-target {agent port } {
 		 # second tracer to see the actual
                  # types of tora packets before imep packs them
                  #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
-		  if {$newapi != ""} {
+		  if { [info exists toraDebug_] && $toraDebug_ == "ON"} {
                        set sndT2 [$ns_ mobility-trace Send "TRP" $self]
                        $sndT2 target $imep_(0)
                        $agent target $sndT2
@@ -190,7 +190,7 @@ Node/MobileNode instproc add-target {agent port } {
                 # types of tora packets after imep unpacks them
                 #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
 		    
-		if {$newapi != ""} {
+		if {[info exists toraDebug_] && $toraDebug_ == "ON"} {
 		         
                                 set rcvT2 [$ns_ mobility-trace Recv "TRP" $self]
                                 $rcvT2 target $agent

@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.166 1999/09/15 19:34:24 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.167 1999/09/15 22:23:36 yaxu Exp $
 
 #
 
@@ -201,6 +201,7 @@ Simulator instproc dumper obj {
 #                  -agentTrace  ON
 #                  -routerTrace ON 
 #                  -macTrace OFF 
+#                  -toraDebug OFF
 #                  -movementTrace OFF
 
 Simulator set routingAgent_ ""
@@ -235,6 +236,7 @@ Simulator instproc agentTrace  {val} { $self set agentTrace_  $val }
 Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
 Simulator instproc macTrace  {val} { $self set macTrace_  $val }
 Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
+Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
 
 Simulator instproc node-config args {
         set args [eval $self init-vars $args]
@@ -338,46 +340,24 @@ Simulator instproc create-wireless-node { args } {
         $self instvar antType_ energyModel_ initialEnergy_ txPower_ rxPower_  
         $self instvar imepflag_ topoInstance_
 
-
         set imepflag_ OFF
+
+        # create node instance
+
+        set node [$self create-node-instance $args]
 
         switch -exact $routingAgent_ {
 	    DSDV {
-
-               if {[Simulator set EnableHierRt_]} {
-                    if [Simulator set mobile_ip_] {
-                        set node [new MobileNode/MIPMH $args]
-                    } else {
-                        set node [new Node/MobileNode/BaseStationNode $args]
-                    }
-               } else {
-                    set node [new Node/MobileNode]
-               }
-
 		set ragent [$self create-dsdv-agent $node]
-
 	    }
 
 	    DSR {
-		      
-		if {[Simulator set EnableHierRt_]} {
-		    if [Simulator set mobile_ip_] {
-			
-			set node [new SRNodeNew/MIPMH $args]
-		    } else {
-			set node [new SRNodeNew $args]
-		    }
-		} else {
-		    set node [new SRNodeNew]
-		    
-		}
-
 		$self at 0.0 "$node start-dsr"
 	    }
 
 	    TORA {
 		set imepflag_ ON
-		set node [new Node/MobileNode]
+#		set node [new Node/MobileNode]
 		set ragent [$self create-tora-agent $node]
 
 	    }
@@ -437,6 +417,35 @@ Simulator instproc create-wireless-node { args } {
 	return $node
 
 }
+
+Simulator instproc create-node-instance { args } {
+               $self instvar routingAgent_
+               if {[Simulator set EnableHierRt_]} {
+                    if [Simulator set mobile_ip_] {
+			if {$routingAgent_ == "DSR"} {
+			    set node [SRNodeNew/MIPMH $args]
+			    return $node
+			}
+                        set node [new MobileNode/MIPMH $args]			
+                    } else {
+			if {$routingAgent_ == "DSR"} {
+			    set node [new SRNodeNew $args]
+			    return $node
+			}
+                        set node [new Node/MobileNode/BaseStationNode $args]
+                    }
+               } else {
+		    if {$routingAgent_ == "DSR"} {
+			set node [new SRNodeNew]
+			return $node
+		    }
+                    set node [new Node/MobileNode]
+		    
+               }        
+
+	       return $node
+}
+
 
 Simulator instproc create-tora-agent { node } {
 
