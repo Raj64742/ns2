@@ -34,6 +34,11 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/channel.cc,v 1.12 1997/07/22 22:15:29 kfall Exp $ (UCB)";
+#endif
+
 #include "template.h"
 #include "trace.h"
 #include "ll.h"
@@ -43,7 +48,7 @@
 static class ChannelClass : public TclClass {
 public:
 	ChannelClass() : TclClass("Channel") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new Channel);
 	}
 } class_channel;
@@ -51,7 +56,7 @@ public:
 static class DuplexChannelClass : public TclClass {
 public:
 	DuplexChannelClass() : TclClass("Channel/Duplex") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new DuplexChannel);
 	}
 } class_channel_duplex;

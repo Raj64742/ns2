@@ -33,6 +33,11 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.11 1997/07/22 22:17:07 kfall Exp $ (UCB)";
+#endif
+
 #include "classifier.h"
 #include "channel.h"
 #include "mac.h"
@@ -49,14 +54,14 @@ public:
 static class MacClass : public TclClass {
 public:
 	MacClass() : TclClass("Mac") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new Mac);
 	}
 } class_mac;
 
 
 void
-MacHandler::handle(Event* e)
+MacHandler::handle(Event*)
 {
 	mac_->resume();
 }

@@ -33,6 +33,11 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-csma.cc,v 1.8 1997/07/22 22:19:09 kfall Exp $ (UCB)";
+#endif
+
 #include "template.h"
 #include "random.h"
 #include "channel.h"
@@ -42,7 +47,7 @@
 static class CsmaMacClass : public TclClass {
 public:
 	CsmaMacClass() : TclClass("Mac/Csma") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new CsmaMac);
 	}
 } class_mac_csma;
@@ -50,7 +55,7 @@ public:
 static class CsmaCdMacClass : public TclClass {
 public:
 	CsmaCdMacClass() : TclClass("Mac/Csma/Cd") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new CsmaCdMac);
 	}
 } class_mac_csma_cd;
@@ -58,13 +63,13 @@ public:
 static class CsmaCaMacClass : public TclClass {
 public:
 	CsmaCaMacClass() : TclClass("Mac/Csma/Ca") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new CsmaCaMac);
 	}
 } class_mac_csma_ca;
 
 
-CsmaMac::CsmaMac() : Mac(), rtx_(0), txstart_(0), mhEoc_(this)
+CsmaMac::CsmaMac() : Mac(), txstart_(0), rtx_(0), mhEoc_(this)
 {
 	bind_time("delay_", &delay_);
 	bind_time("ifs_", &ifs_);
