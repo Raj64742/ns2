@@ -140,11 +140,10 @@ physical queue.
 int redQueue::enque(Packet *pkt, int prec, int ecn) {
    int m = 0;
    double now, u;
-	double pa,pb;
+   double pa,pb;
 
-
-	if (q_->length() > (qlim-1))
-		return PKT_DROPPED;
+   if (q_->length() > (qlim-1))
+     return PKT_DROPPED;
 
    now = Scheduler::instance().clock();
 

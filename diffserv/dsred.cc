@@ -138,36 +138,30 @@ void dsREDQueue::edrop(Packet* p)
 }
 
 /*-----------------------------------------------------------------------------
-void applyTSWMeter(Packet *pkt, int q_id)
-Pre: policy's variables avgRate, arrivalTime, and winLen hold valid values; and
-  pkt points to a newly-arrived packet.
-Post: Adjusts policy's TSW state variables avgRate and arrivalTime (also called
-  tFront) according to the specified packet.
+void applyTSWMeter(int q_id, int pkt_size)
+Update the average rate for a physical Q (indicated by q_id).
+Pre: policy's variables avgRate, arrivalTime, and winLen hold valid values;
+  pkt_size specifies the bytes just dequeued (0 means no packet dequeued).
+Post: Adjusts policy's TSW state variables avgRate and arrivalTime 
+  (also called tFront) according to the bytes sent.
 Note: See the paper "Explicit Allocation of Best effor Delivery Service" (David
   Clark and Wenjia Fang), Section 3.3, for a description of the TSW Tagger.
 -----------------------------------------------------------------------------*/
-void dsREDQueue::applyTSWMeter(Packet *pkt, int q_id) {
+void dsREDQueue::applyTSWMeter(int q_id, int pkt_size) {
   double now, bytesInTSW, newBytes;
-  hdr_cmn* hdr;
   double winLen = 1.0;
 
   bytesInTSW = queueAvgRate[q_id] * winLen;
 
-  // Modified by xuanc
-  // Even if there is no packet to dequeue 
-  // under the strict priority scheduling,
-  // the queueAvgRate still need to be updated.
-  newBytes = bytesInTSW;
-  if (pkt) {
-    hdr = hdr_cmn::access(pkt);
-    newBytes += (double) hdr->size();
-  }
+  // Modified by xuanc(xuanc@isi.edu) Oct 18, 2001, 
+  // referring to the patch contributed by 
+  // Sergio Andreozzi <sergio.andreozzi@lut.fi>
+  newBytes = bytesInTSW + pkt_size;
 
   // Calculate the average rate (SW)
   now = Scheduler::instance().clock();
   queueAvgRate[q_id] = newBytes / (now - queueArrTime[q_id] + winLen);
   queueArrTime[q_id] = now;
-	
 }
 
 
@@ -239,8 +233,15 @@ Packet* dsREDQueue::deque() {
     pktcount[dq_id]+=1;
 
     // update the average rate for pri-queue
-    if (schedMode==schedModePRI && queueMaxRate[dq_id]) 
-      applyTSWMeter(p, dq_id);
+    // Modified by xuanc(xuanc@isi.edu) Oct 18, 2001, 
+    // referring to the patch contributed by 
+    // Sergio Andreozzi <sergio.andreozzi@lut.fi>
+    // When there is a packet dequeued, 
+    // update the average rate of each queue ()
+    if (schedMode==schedModePRI) 
+      for (int i=0;i<numQueues_;i++) 
+	if (queueMaxRate[i]) 
+	  applyTSWMeter(i, (i == dq_id) ? hdr_cmn::access(p)->size() : 0); 
 
     // Get the precedence level (or virtual queue id)
     // for the packet dequeued.
@@ -264,10 +265,9 @@ int dsREDQueue::getCodePt(Packet *p) {
 int dsREDQueue::selectQueueToDeque() {
   // If the queue to be dequed has no elements, 
   // look for the next queue in line
-  // except the strict priority queue.
-
   int i = 0;
-
+  
+  // Round-Robin
   if(schedMode==schedModeRR){
     //printf("RR\n");
     qToDq = ((qToDq + 1) % numQueues_);
@@ -275,7 +275,7 @@ int dsREDQueue::selectQueueToDeque() {
       qToDq = ((qToDq + 1) % numQueues_);			
       i++;
     }
-  } else if (schedMode==schedModeWRR) {
+  } else if (schedMode==schedModeWRR) { // Weighted Round Robin
     if(wirrTemp[qToDq]<=0){
       qToDq = ((qToDq + 1) % numQueues_);
       wirrTemp[qToDq] = queueWeight[qToDq] - 1;
@@ -312,33 +312,33 @@ int dsREDQueue::selectQueueToDeque() {
       }   	
     }
   } else if (schedMode==schedModePRI) {
+    // Find the queue with highest priority, which satisfies:
+    // 1. nozero queue length; and either
+    // 2.1. has no MaxRate specified; or
+    // 2.2. has MaxRate specified and 
+    //          its average rate is not beyond that limit.
     i = 0;
-    while ((i < numQueues_) && 
-	   ((redq_[i].getRealLength() == 0) ||
-	    (queueMaxRate[i] &&
-	     (queueAvgRate[i] > queueMaxRate[i])
-	     ))) {
-      // update the average rate for this physical queues
-      // EVEN IF its packet can't be dequeued 
-      // due to strict priority scheduling
-      // (ie, average rate > max rate).
-      if (queueMaxRate[i])
-	applyTSWMeter(NULL, i);
+    while (i < numQueues_ && 
+	   (redq_[i].getRealLength() == 0 ||
+	    (queueMaxRate[i] && queueAvgRate[i]>queueMaxRate[i]))){
       i++;
     }
     qToDq = i;
-    
-    if ((priMode != schedModePRIStr) && (i == numQueues_)) {
-	i = qToDq = 0;			
-	while ((i < numQueues_) && (redq_[qToDq].getRealLength() == 0)) {
-	  qToDq = ((qToDq + 1) % numQueues_);
-	  i++;
-	}
-	qToDq = i;
-    }
 
+    // If no queue satisfies the condition above,
+    // find the Queue with highest priority, 
+    // which has packet to dequeue.
+    // NOTE: the high priority queue can still have its packet dequeued
+    //       even if its average rate has beyond the MAX rate specified!
+    //       Ideally, a NO_PACKET_TO_DEQUEUE should be returned.
+    if (i == numQueues_) {
+      i = qToDq = 0;
+      while ((i < numQueues_) && (redq_[qToDq].getRealLength() == 0)) {
+	qToDq = ((qToDq + 1) % numQueues_);
+	i++;
+      }
+    }
   }
-  
   return(qToDq);
 }	
 
@@ -426,28 +426,27 @@ void setMREDMode(const char* mode)
    sets up the average queue accounting mode.
 ----------------------------------------------------------------------------*/
 void dsREDQueue::setMREDMode(const char* mode, const char* queue) {
-	int i;
-	mredModeType tempMode;
-
-	if (strcmp(mode, "RIO-C") == 0)
-   	tempMode = rio_c;
-	else if (strcmp(mode, "RIO-D") == 0)
-		tempMode = rio_d;
-	else if (strcmp(mode, "WRED") == 0)
-		tempMode = wred;
-	else if (strcmp(mode, "DROP") == 0)
-		tempMode = dropTail;
-	else {
-		printf("Error: MRED mode %s does not exist\n",mode);
-      return;
-   }
-
-	if (!queue)
-		for (i = 0; i < MAX_QUEUES; i++)
-   	   redq_[i].mredMode = tempMode;
-	else
-		redq_[atoi(queue)].mredMode = tempMode;
-
+  int i;
+  mredModeType tempMode;
+  
+  if (strcmp(mode, "RIO-C") == 0)
+    tempMode = rio_c;
+  else if (strcmp(mode, "RIO-D") == 0)
+    tempMode = rio_d;
+  else if (strcmp(mode, "WRED") == 0)
+    tempMode = wred;
+  else if (strcmp(mode, "DROP") == 0)
+    tempMode = dropTail;
+  else {
+    printf("Error: MRED mode %s does not exist\n",mode);
+    return;
+  }
+  
+  if (!queue)
+    for (i = 0; i < MAX_QUEUES; i++)
+      redq_[i].mredMode = tempMode;
+  else
+    redq_[atoi(queue)].mredMode = tempMode;
 }
 
 
@@ -519,12 +518,9 @@ void dsREDQueue::addQueueWeights(int queueNum, int weight) {
 }
 
 //Set the individual Queue Max Rates for Priority Queueing.
-void dsREDQueue::addQueueRate(int queueNum, int rate, int strict) {
-  //printf("setQueueRate, %d\n", strict);
-  if (strict)
-    priMode = schedModePRIStr;
-  
+void dsREDQueue::addQueueRate(int queueNum, int rate) {
   if(queueNum < MAX_QUEUES){
+    // Convert to BYTE/SECOND
     queueMaxRate[queueNum]=(double)rate/8.0;
   } else {
     printf("The queue number is out of range.\n");
@@ -617,10 +613,7 @@ int dsREDQueue::command(int argc, const char*const* argv) {
     return(TCL_OK);
   }
   if (strcmp(argv[1], "addQueueRate") == 0) {
-    if (argc == 4)
-      addQueueRate(atoi(argv[2]), atoi(argv[3]), 0);
-    else if (argc == 5)
-      addQueueRate(atoi(argv[2]), atoi(argv[3]), atoi(argv[4]));
+    addQueueRate(atoi(argv[2]), atoi(argv[3]));
     return(TCL_OK);
   }
   

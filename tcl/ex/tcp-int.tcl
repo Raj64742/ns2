@@ -41,7 +41,7 @@ $cbr0 attach-agent $udp0
 
 set udp1 [new Agent/UDP]
 $ns attach-agent $n3 $udp1
-$udp1 set class 1
+$udp1 set class_ 1
 set cbr1 [new Application/Traffic/CBR]
 $cbr1 attach-agent $udp1
 

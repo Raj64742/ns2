@@ -102,6 +102,21 @@ int edgeQueue::command(int argc, const char*const* argv) {
     return(TCL_OK);
   };
 
+  // couple the EW on request and response links
+  if (strcmp(argv[1], "coupleEW") == 0) {
+    //    printf("%d, %s, %s, %s\n", argc, argv[0], argv[1], argv[2]);
+
+    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
+
+    // Get the pointer to the queue to be coupled (in c++)
+    Tcl& tcl = Tcl::instance();
+    edgeQueue *cq = (edgeQueue*) TclObject::lookup(argv[2]);
+    EWPolicy *ewpc = (EWPolicy *)((cq->policy).policy_pool[EWP]);
+    
+    ewp->ew->coupleEW(ewpc->ew);
+    return(TCL_OK);
+  };
+
   if (strcmp(argv[1], "getCBucket") == 0) {
     Tcl& tcl = Tcl::instance();
     tcl.resultf("%f", policy.getCBucket(argv));

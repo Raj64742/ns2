@@ -53,7 +53,9 @@
 
 #define EW_MAX_WIN 8
 #define EW_WIN_SIZE 4
-#define EW_A_TH 3
+#define EW_A_TH 1
+#define EW_SLEEP_INTERVAL 60
+#define EW_DETECT_INTERVAL 10
 
 enum policerType {dumbPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, SFDPolicer, EWPolicer};
 
@@ -105,11 +107,11 @@ class PolicyClassifier : public TclObject {
   void printPolicyTable();		
   void printPolicerTable();
   
-protected:
   // The table keeps pointers to the real policy
   // Added to support multiple policy per interface.
   Policy *policy_pool[MAX_POLICIES];
 
+protected:
   // policy table and its pointer
   policyTableEntry policyTable[MAX_POLICIES];
   int policyTableSize;
@@ -221,32 +223,55 @@ void printFlowTable();
   struct flow_list flow_table;
 };
 
+// EW
+
+// Record the detection result
+struct AListEntry {
+  int node_id;
+  int bytes;
+  struct AListEntry *next;
+};
+
+// List of detection result for aggregates
+struct AList {
+  struct AListEntry *head, *tail;
+  int count;
+};
+
 // Record the request ratio
 struct SWinEntry {
   float weight;
-  int requests;
+  int rate;
   struct SWinEntry *next;
 };
 
+// Data structure for sliding window
 struct SWin {
-  int node_id;   //The node to be monitored
+  // counter of entries in the sliding window
+  int count;
+  // current running average
+  int ravg;
 
-  // for the sliding window
-  int win_count;
+  // List of SWin Entries
   struct SWinEntry *head;
   struct SWinEntry *tail;
+};
 
-  int init_th;        // initial threshold
-  int th;        // threshold
-  int win[EW_WIN_SIZE];     // sliding window
-  int count;    // how many samples in the window now...
-  int point;    // where to put the new sample
-  int requests;     // count for how many requests
-  int init_inv;  // Initial interval
-  int s_inv;  // Sample interval
-  int last_t; // last sample time
+// Data structure to keep the HOTTEST aggragates states
+struct HTableEntry {
+  //The node to be monitored
+  int node_id;   
+  // current measurement
+  int cur_rate;
+
+  // Sliding window:
+  struct SWin swin;
+
+  // last sample time
+  int last_t; 
+  // The alarm to trigger
   int alarm_count; 
-  int alarm;    // The alarm to trigger
+  int alarm;    
 };
 
 class EW {
@@ -254,20 +279,93 @@ class EW {
   EW();
   ~EW();
 
-  void init(int, int, int);
-  int get_swin_index(int);
-  // The table to keep the flow states.
-  struct SWin swin[EW_MAX_WIN];
+  // Initialize EW
+  void init(int, int, int, int);
 
-  int ravgSWin(int);
-  void printSWin(int);
+  // Process EW stuffs
+  void runEW(Packet *);
 
-  // Increase/decrease SWin.
-  void decSWin(int);
-  void incSWin(int);
+  // Conduct the measurement and change detection
+  void applyDetector(Packet *);
+  // Test if the alarm has been triggered.
+  int testAlarm(Packet *);
+  // Test if the corrsponding alarm on reversed link has been triggered.
+  int testAlarmCouple(int);
+
+  // Setup the coupled EW
+  void coupleEW(EW *);
+
+  // output contents in HTable
+  void printHTabEntry(int);
+  void printHTab();
+
+  // output contents in AList
+  void printAList();
 
  private:
-  int swin_point;
+  // The nodes connected by EW
+  int ew_src, ew_dst;
+
+  // The coupled EW
+  EW *cew;
+  // EW can choose not to detect traffic change on one direction of the link
+  int detector_on;
+
+  // Current time for detection
+  int now;
+  // Random sampling timer
+  int timer;
+  // Bit indicating if EW agent is sleeping or not.
+  int sleep;
+
+  // Detection Threshold
+  int th;
+  // initial threshold
+  int init_th;        
+
+  // Sample interval
+  int inv;
+  // Initial interval
+  int init_inv;  
+
+  // List to keep the detection results
+  struct AList alist;
+
+  // The table to keep the hottest K aggregates' states.
+  struct HTableEntry *htab[EW_MAX_WIN];
+  // Pointer to the last entry in HTable
+  int htab_point;
+
+  // Measurement:
+  // Find the max value in AList
+  struct AListEntry *maxAList();
+  // Reset the bytes field in AList
+  void resetAList();
+
+  // update HTab after detection timeout.
+  void updateHTab();
+  // update swin with the latest measurement for one HTab entry.
+  void updateSWin(int);
+  // compute the running average on the sliding window
+  void ravgSWin(int);
+
+  // Change detection:
+  // detect the traffic change by 
+  // comparing the running average calculated on the sliding window with 
+  // a threshold and trigger alarm if necessary.
+  void detectChange(int);
+
+  // Common methods
+  // get the Atable id given the node id
+  int getHTabIndex(int);
+  // add an entry to HTable
+  int addHTabEntry(int);
+  // sort HTab based on ravg to find the hostest resources
+  void sortHTab();
+
+  // Increase/decrease SWin to adjust the detection latency.
+  void decSWin(int);
+  void incSWin(int);
 };
 
 class EWPolicy : public Policy {
@@ -275,13 +373,13 @@ class EWPolicy : public Policy {
   EWPolicy();
   ~EWPolicy();
 
-  void init(int, int, int);
+  void init(int, int, int, int);
   
   // Metering and policing methods:
   void applyMeter(policyTableEntry *policy, Packet *pkt);
   int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt);
 
- protected:
+  //protected:
   EW *ew;
 };
 #endif

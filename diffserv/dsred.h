@@ -81,8 +81,7 @@ each network device, with up to MAX_PREC virtual queues in each queue. */
 #define MAX_CP 40	// maximum number of code points in a simulation
 #define MEAN_PKT_SIZE 1000 	// default mean packet size, in bytes, needed for RED calculations
 
-enum schedModeType {schedModeRR, schedModeWRR, schedModeWIRR, schedModePRI, 
-		    schedModePRIStr};
+enum schedModeType {schedModeRR, schedModeWRR, schedModeWIRR, schedModePRI};
 
 #define PKT_MARKED 3
 #define PKT_EDROPPED 2
@@ -133,11 +132,6 @@ class dsREDQueue : public Queue {
   int ecn_;			// used for ECN (Explicit Congestion Notification)
   LinkDelay* link_;		// outgoing link
   int schedMode;                  // the Queue Scheduling mode
-  // Added by Xuanc, 
-  // strict mode: when this queue's average rate beyond the max rate,
-  // no packet will be dequeued
-  // even if there is no packets in other queues.
-  int priMode;                  // Weather the priority is strict
 
   int queueWeight[MAX_QUEUES];    // A queue weight per queue
   double queueMaxRate[MAX_QUEUES];   // Maximum Rate for Priority Queueing
@@ -167,10 +161,15 @@ class dsREDQueue : public Queue {
   // Add a weigth to a WRR or WIRR queue
   void addQueueWeights(int queueNum, int weight); 
   // Add a maxRate to a PRI queue
-  void addQueueRate(int queueNum, int rate, int strict); 
+  void addQueueRate(int queueNum, int rate); 
 
   void printWRRcount();		// print various stats
-  void applyTSWMeter(Packet *pkt, int q_id); // apply meter to calculate average rate of a PRI queue
+
+  // apply meter to calculate average rate of a PRI queue
+  // Modified by xuanc(xuanc@isi.edu) Oct 18, 2001, 
+  // referring to the patch contributed by 
+  // Sergio Andreozzi <sergio.andreozzi@lut.fi>
+  void applyTSWMeter(int q_id, int pkt_size); 
 };
 
 #endif

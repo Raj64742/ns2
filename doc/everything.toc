@@ -70,14 +70,14 @@
 \contentsline {chapter}{\numberline {8}Delays and Links}{76}
 \contentsline {section}{\numberline {8.1}The LinkDelay Class}{76}
 \contentsline {section}{\numberline {8.2}Commands at a glance}{77}
-\contentsline {chapter}{\numberline {9}Differentiated Services Module in ns}{78}
+\contentsline {chapter}{\numberline {9}Differentiated Services Module in \emph {ns}}{78}
 \contentsline {section}{\numberline {9.1}Overview}{78}
 \contentsline {section}{\numberline {9.2}Implementation}{79}
-\contentsline {subsection}{\numberline {9.2.1}RED queue for Diffserv}{79}
-\contentsline {subsection}{\numberline {9.2.2}Core and edge routers}{79}
+\contentsline {subsection}{\numberline {9.2.1}RED queue in DiffServ module}{79}
+\contentsline {subsection}{\numberline {9.2.2}Edge and core routers}{79}
 \contentsline {subsection}{\numberline {9.2.3}Policy}{80}
-\contentsline {section}{\numberline {9.3}Configuration}{80}
-\contentsline {section}{\numberline {9.4}Commands at a glance}{82}
+\contentsline {section}{\numberline {9.3}Configuration}{81}
+\contentsline {section}{\numberline {9.4}Commands at a glance}{83}
 \contentsline {chapter}{\numberline {10}Agents}{86}
 \contentsline {section}{\numberline {10.1}Agent state}{86}
 \contentsline {section}{\numberline {10.2}Agent methods}{86}
@@ -143,7 +143,7 @@
 \contentsline {section}{\numberline {14.10}Commands at a glance}{129}
 \contentsline {chapter}{\numberline {15}The (Revised) Addressing Structure in NS}{130}
 \contentsline {section}{\numberline {15.1}The Default Address Format}{130}
-\contentsline {section}{\numberline {15.2}The Hierarchical Address Format}{131}
+\contentsline {section}{\numberline {15.2}The Hierarchical Address Format}{130}
 \contentsline {subsection}{\numberline {15.2.1}Default Hierarchical Setting}{131}
 \contentsline {subsection}{\numberline {15.2.2}Specific Hierarchical Setting}{131}
 \contentsline {section}{\numberline {15.3}The Expanded Node-Address Format}{131}

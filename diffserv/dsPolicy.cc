@@ -177,9 +177,9 @@ void PolicyClassifier::addPolicyEntry(int argc, const char*const* argv) {
     } else if (strcmp(argv[4], "EW") == 0) {
       if(!policy_pool[EWP])
 	policy_pool[EWP] = new EWPolicy();
-      int dst = atoi(argv[3]);
-      if (dst != ANY_HOST)
-	((EWPolicy *)policy_pool[EWP])->init(dst, atoi(argv[6]), atoi(argv[7]));
+      
+      ((EWPolicy *)policy_pool[EWP])->
+	init(atoi(argv[6]), atoi(argv[7]), atoi(argv[8]), atoi(argv[9]));
 
       policyTable[policyTableSize].policy_index = EWP;
       policyTable[policyTableSize].policer = EWPolicer;
@@ -973,8 +973,8 @@ EWPolicy::~EWPolicy(){
 }
 
 // Initialize the EW parameters
-void EWPolicy::init(int id, int ew_th, int ew_inv) {
-  ew->init(id, ew_th, ew_inv);
+void EWPolicy::init(int ew_th, int ew_inv, int qsrc, int qdst) {
+  ew->init(ew_th, ew_inv, qsrc, qdst);
 }
 
 /*-----------------------------------------------------------------------------
@@ -984,74 +984,8 @@ void EWPolicy::init(int id, int ew_th, int ew_inv) {
  timeout.
 -----------------------------------------------------------------------------*/
 void EWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
-  struct SWinEntry *p, *new_entry;
-
-  double now = Scheduler::instance().clock();
-  hdr_cmn* hdr = hdr_cmn::access(pkt);
-  hdr_ip* iph = hdr_ip::access(pkt);
-  int dst = iph->daddr();
-  int id;
-
-  //printf("enter applyMeter\n");
-
-  // original output for comparasion purpose
-  if (dst == policy->destNode) {
-    id = ew->get_swin_index(dst);
-    ew->swin[id].requests++;
-    //printf("dst: %d, %d, %d\n", dst, ew->swin[id].requests, (int)now); 
-
-    int t_diff = (int) now - ew->swin[id].last_t;
-    if (t_diff >= ew->swin[id].s_inv) {
-      new_entry = new SWinEntry;
-      new_entry->requests = ew->swin[id].requests;
-      new_entry->weight = 1;
-      new_entry->next = NULL;
-      
-      if (ew->swin[id].tail)
-	ew->swin[id].tail->next = new_entry;
-      ew->swin[id].tail = new_entry;
-
-      if (!ew->swin[id].head)
-	ew->swin[id].head = new_entry;
-
-      ew->swin[id].requests = 0;
-      if (ew->swin[id].win_count < EW_WIN_SIZE) {
-	ew->swin[id].win_count++;
-      } else {
-	p = ew->swin[id].head;
-	ew->swin[id].head = p->next;
-	free(p);
-      }
-
-      ew->swin[id].last_t = (int)now;
-     
-      int r_avg = ew->ravgSWin(id);
-      printf("Ravg: %d, th: %d\n", r_avg, ew->swin[id].th);
-    
-      if (r_avg >= ew->swin[id].th) {
-	if (ew->swin[id].alarm) {
-	  printf("w+ %d %d\n", dst, (int)now);
-	} else {
-	  ew->swin[id].alarm_count++;
-	  if (ew->swin[id].alarm_count > EW_A_TH) {
-	    ew->swin[id].alarm = 1;
-	    printf("w+ %d %d\n", dst, (int)now);
-	  } else {
-	    ew->decSWin(id);
-	  }
-	}
-      } else {
-	if (ew->swin[id].alarm)
-	  ew->swin[id].alarm = 0;
-	if (ew->swin[id].alarm_count)
-	  ew->swin[id].alarm_count = 0;
-
-	  ew->incSWin(id);
-      }
-    }
-  }
-  
-  //printf("leave applyMeter\n");
+  // Invoke the change detector in EW directly. 
+  ew->runEW(pkt);
   return;
 }
 
@@ -1060,58 +994,47 @@ void EWPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet 
     Prints the policyTable, one entry per line.
 -----------------------------------------------------------------------------*/
 int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
-  struct SWinEntry *p;
-  hdr_ip* iph = hdr_ip::access(pkt);
-  int dst = iph->daddr();
-  int id;
   //  printf("enter applyPolicer\n");
-
- // original output for comparasion purpose
-  if (dst == policy->destNode) {
-    id = ew->get_swin_index(dst);
-    //printf("dst: %d", dst);	
-    
-    if (ew->swin[id].alarm) {
-      ew->swin[id].alarm_count = 0;
-      //printf(" ALARM!\n");	
-      return(policer->downgrade1);
-    } else {
-      //printf(" OK!\n");	
-      return(policer->initialCodePt);
-    }
+  if (ew->testAlarm(pkt)) {
+    //printf(" DOWNGRADE!\n");	
+    return(policer->downgrade1);
+  } else { 
+    //printf(" OK!\n");	
+    return(policer->initialCodePt);
   }
-
-  return(policer->initialCodePt);
 }
+
 // End of EWP
 
 // Beginning of EW
 //Constructor.  
 EW::EW() {
-  swin_point = 0;
+  htab_point = 0;
+  ew_src = ew_dst = -1;
+  // default value: if no coupled EW, do detection by myself
+  cew = NULL;
+  detector_on = 1;
+  // random sampling timer setup:
+  // EW sleeps initially for EW_SLEEP_INTERVAL 
+  timer = EW_SLEEP_INTERVAL;
+  sleep = 1;
 
-  for (int i = 0; i < EW_MAX_WIN; i++) {
-    swin[i].head = NULL;
-    swin[i].tail = NULL;
-    
-    swin[i].th = swin[i].init_th = 0;
-    swin[i].point = 0;
-    swin[i].win_count = 0;
-    swin[i].requests = 0;
-    swin[i].last_t = 0;
-    swin[i].s_inv = 0;
-    swin[i].alarm_count = 0;
-    swin[i].alarm = 0;
-  }
+  // Initialize ALIST
+  alist.head = alist.tail = NULL;
+  alist.count = 0;
+
+  // Initialize Hot Table
+  for (int i = 0; i < EW_MAX_WIN; i++) 
+    htab[i] = NULL;
 }
 
 //Deconstructor.
 EW::~EW(){
   struct SWinEntry *p, *q;
-  
-  swin_point = 0;
-  for (int i = 0; i < EW_MAX_WIN; i++) {
-    p = q = swin[i].head;
+  struct AListEntry *ap, *aq;
+
+  for (int i = 0; i < htab_point; i++) {
+    p = q = htab[i]->swin.head;
     while (p) {
       q = p;
       p = p->next;
@@ -1119,55 +1042,354 @@ EW::~EW(){
     }
     
     p = q = NULL;
-    swin[i].head = swin[i].tail = NULL;
+    htab[i]->swin.head = htab[i]->swin.tail = NULL;
   }
+
+  htab_point = 0;
+  cew = NULL;
+
+  ap = aq = alist.head;
+    while (ap) {
+      aq = ap;
+      ap = ap->next;
+      free(aq);
+    }
+    
+    ap = aq = NULL;
+    alist.head = alist.tail = NULL;
 }
 
 // Initialize the EW parameters
-void EW::init(int id, int ew_th, int ew_inv) {
-  if (swin_point < EW_MAX_WIN) {
-    //printf("init: th: %d, inv: %d\n", ew_th, ew_inv);
-    swin[swin_point].node_id = id;
-    swin[swin_point].th = swin[swin_point].init_th = ew_th;
-    swin[swin_point].s_inv = swin[swin_point].init_inv = ew_inv;
-    swin_point++;
-  } else {
-    printf("No space left for new EW monitor...EXITING...!\n");
-    exit(-1);
+void EW::init(int ew_th, int ew_inv, int qsrc, int qdst) {
+  // detection threshold and sample interval
+  init_th = th = ew_th;
+  init_inv = inv = ew_inv;
+  // EW id
+  ew_src = qsrc;
+  ew_dst = qdst;
+  //printf("EW[%d:%d] \n", ew_src, ew_dst);
+}
+
+// Enter EW processing
+void EW::runEW(Packet *pkt) {
+  // test if the detector is on (when there is an EW coupled.)
+  if (!detector_on)
+    return;
+
+  now = (int)(Scheduler::instance().clock());
+
+  // There is a timeout!
+  if (now >= timer) {
+    //printf("Timeout(%d):", now);
+    // Sleeps previously, now start working
+    if (sleep) {
+      //printf("sleep->detect\n");
+      sleep = 0;
+      // setup the detection timer
+      timer = now + EW_DETECT_INTERVAL;
+    } else {
+      // works previously, now sleep!
+      //printf("detect->sleep\n");
+      sleep = 1;
+      // setup the sleeping timer
+      timer = now + EW_SLEEP_INTERVAL;
+      //printAList();
+      updateHTab();
+      resetAList();
+    }
+  } 
+
+  // Conduct detection when not sleeping.
+  if (!sleep) {
+    applyDetector(pkt);
   }
+}
+
+// Test if the alarm has been triggered.
+int EW::testAlarm(Packet *pkt) {
+  hdr_ip* iph = hdr_ip::access(pkt);
+  int dst_id = iph->daddr();
+  
+  if(cew)
+    return(cew->testAlarmCouple(dst_id));
+  else
+    return 0;
+}
+
+// Test if the corrsponding alarm on reversed link has been triggered.
+int EW::testAlarmCouple(int dst_id){
+  //printf("EW[%d:%d] in testAlarm\n", ew_src, ew_dst);
+  int id = getHTabIndex(dst_id);
+  
+  if (id < EW_MAX_WIN && id >= 0) {
+    if (htab[id]->alarm) {
+      htab[id]->alarm_count = 0;
+      //printf(" ALARM!\n");	
+      return(1);
+    } else {
+      //printf(" OK!\n");	
+      return(0);
+    }
+  } else {
+    //printf("EW[%d:%d]: no such record, point: %d\n", 
+    //   ew_src, ew_dst, htab_point);
+    return(0);
+  }
+}
+
+// Conduct the measurement
+void EW::applyDetector(Packet *pkt) {
+  hdr_cmn* hdr = hdr_cmn::access(pkt);
+  hdr_ip* iph = hdr_ip::access(pkt);
+  int dst_id = iph->daddr();
+  int src_id = iph->saddr();
+
+  // Get the corresponding id.
+  //printf("EW[%d:%d] in detector\n", ew_src, ew_dst);
+
+  // keep the bytes sent by each aggregate in AList
+  AListEntry *p;
+
+  p = alist.head;
+  while (p && p->node_id != src_id)
+    p = p->next;
+
+  // Add new entry to AList
+  if (!p) {
+    // New AList entry
+    p = new AListEntry;
+    p->node_id = src_id;
+    p->bytes = 0;
+    p->next = NULL;
+
+    // Add new entry to AList
+    if (alist.tail)
+      alist.tail->next = p;
+    alist.tail = p;
+    
+    if (!alist.head)
+      alist.head = p;
+    
+    alist.count++;
+  }
+
+  // update the existing (or just created) entry in AList
+  assert(p && p->node_id == src_id);
+  p->bytes += hdr->size() * 8;
 }
 
 // Find the right index for slinding window
-int EW::get_swin_index(int node_id) {
-  for (int i = 0; i < swin_point; i++) {
-    if(swin[i].node_id == node_id)
+int EW::getHTabIndex(int node_id) {
+  //printf("EW[%d:%d] look for %d, point: %d\n", 
+  // ew_src, ew_dst, node_id, htab_point);
+  assert(htab_point < EW_MAX_WIN);
+  for (int i = 0; i < htab_point; i++) {
+    if(htab[i]->node_id == node_id) {
+      //printf("find %d, point: %d\n", node_id, i);
       return i;
+    }
+  }
+  return EW_MAX_WIN;
+}
+
+// Find the right index for slinding window
+int EW::addHTabEntry(int node_id) {
+  // Create new entry for new aggregate
+  if (htab_point < EW_MAX_WIN) {
+    htab[htab_point] = new HTableEntry;
+
+    // Initial SWin
+    htab[htab_point]->swin.head = NULL;
+    htab[htab_point]->swin.tail = NULL;
+    htab[htab_point]->swin.count = 0;
+    htab[htab_point]->swin.ravg = 0;
+    
+    htab[htab_point]->cur_rate = 0;
+    htab[htab_point]->last_t = 0;
+    htab[htab_point]->alarm_count = 0;
+    htab[htab_point]->alarm = 0;
+
+    htab[htab_point]->node_id = node_id;
+    // Initialize threshold and detection interval
+    htab_point++;
+
+    //printf("add %d, point: %d\n", node_id, htab_point);
+    // Output the current HTable info
+    //printHTab();
+
+    return(htab_point - 1);
+  } else {
+    printf("Error!!! NO SPACE LEFT IN HTABLE for %d\n", node_id);
+    return(-1); 
+  }
+}
+
+// update HTab after detection timeout.
+void EW::updateHTab() {
+  struct AListEntry *max;
+  int i = 0;
+
+  // Pick the highest K values in AList and keep it in HTab
+  // The first one
+  max = maxAList();
+
+  while (max && max->bytes > 0 && i < EW_MAX_WIN) {
+    int id = getHTabIndex(max->node_id);
+    // Add the entry into HTable and get the index 
+    if (id == EW_MAX_WIN) {
+      id = addHTabEntry(max->node_id);
+    }
+    
+    if (id < EW_MAX_WIN && id >= 0) {
+      // record how may bits having been sent.
+      htab[id]->cur_rate = (int)(max->bytes * 8 / EW_DETECT_INTERVAL);
+      // reset the bytes in AList
+      max->bytes = 0;
+    }
+
+    // The first one
+    max = maxAList();
+    
+    i++;
   }
 
-  printf("Error!!! No Early Warning Monitor has been created for node %d, exiting...\n", node_id);
-  exit(-1);
+  // Change detection by running average with a sliding window
+  for (int i = 0; i < htab_point; i++) {
+    // update the SWin for HTabe entry i and compute the running average
+    updateSWin(i);
+    ravgSWin(i);
+
+    // do change detection
+    detectChange(i);
+  }
+  //printHTab();
+  // sort HTab based on ravg just calculated to get the hot resources.
+  sortHTab();
+}
+
+// Find the max value in AList
+struct AListEntry * EW::maxAList() {
+  struct AListEntry *p, *max;
+
+  p = max = alist.head;
+
+  while(p) {
+    if (p->bytes > max->bytes)
+      max = p;
+    p = p->next;
+  }
+  assert(max);
+  if (max) {
+    //printf("MAX: %d(%d)\n", max->node_id, max->bytes);
+  }
+  return(max);
+}
+
+// Reset the bytes field in AList
+void EW::resetAList() {
+  struct AListEntry *p;
+
+  p = alist.head;
+
+  while(p) {
+    p->bytes = 0;
+    p = p->next;
+  }
+}
+
+// sort HTab based on ravg to find the hostest resources
+void EW::sortHTab() {
+  struct HTableEntry *tmp;
+
+  for (int i = 0; i < htab_point - 1; i++) 
+    for (int j = i + 1; j < htab_point; j++) 
+      if (htab[i]->swin.ravg < htab[j]->swin.ravg) {
+	tmp = htab[i];
+	htab[i] = htab[j];
+	htab[j] = tmp;
+      }
+
+  tmp = NULL;
+  //printHTab();
+}
+
+// update swin with the latest measurement for one HTab entry.
+void EW::updateSWin(int id) {
+  struct SWinEntry *p, *new_entry;
+
+  new_entry = new SWinEntry;
+  new_entry->rate = htab[id]->cur_rate;
+  new_entry->weight = 1;
+  new_entry->next = NULL;
+  
+  if (htab[id]->swin.tail)
+    htab[id]->swin.tail->next = new_entry;
+  htab[id]->swin.tail = new_entry;
+  
+  if (!htab[id]->swin.head)
+    htab[id]->swin.head = new_entry;
+
+  // Reset current rate.
+  htab[id]->cur_rate = 0;
+  if (htab[id]->swin.count < EW_WIN_SIZE) {
+    htab[id]->swin.count++;
+  } else {
+    p = htab[id]->swin.head;
+    htab[id]->swin.head = p->next;
+    free(p);
+  }
+  htab[id]->last_t = now;
 }
 
 // Calculate the running average over the sliding window
-int EW::ravgSWin(int id) {
+void EW::ravgSWin(int id) {
   struct SWinEntry *p;
   float sum = 0;
   float t_weight = 0;
   int i = 0;
 
   //printf("Calculate running average over the sliding window:\n");
-  p = swin[id].head;
+  p = htab[id]->swin.head;
   //printf("after p\n");
 
   while (p) {
-    //printf("win[%d]: (%d, %.2f) ", i++, p->requests, p->weight);
-    sum += p->requests * p->weight;
+    //printf("win[%d]: (%d, %.2f) ", i++, p->rate, p->weight);
+    sum += p->rate * p->weight;
     t_weight += p->weight;
     p = p->next;
   }
   p = NULL;
   //printf("\n");  
-  return((int)(sum / t_weight));
+
+  htab[id]->swin.ravg = (int)(sum / t_weight);
+
+  //  printf("Ravg[%d]: %d\n", htab[id]->node_id, htab[id]->swin.ravg);
+}
+
+// detect the traffic change by 
+// comparing the running average calculated on the sliding window with 
+// a threshold and trigger alarm if necessary.
+void EW::detectChange(int id) {
+  if (htab[id]->swin.ravg >= th) {
+    if (htab[id]->alarm) {
+      printf("w+ %d %d\n", htab[id]->node_id, now);
+    } else {
+      htab[id]->alarm_count++;
+      if (htab[id]->alarm_count >= EW_A_TH) {
+	htab[id]->alarm = 1;
+	printf("w+ %d %d\n", htab[id]->node_id, now);
+      } else {
+	//decSWin(id);
+      }
+    }
+  } else {
+    if (htab[id]->alarm)
+      htab[id]->alarm = 0;
+    if (htab[id]->alarm_count)
+      htab[id]->alarm_count = 0;
+    
+    //incSWin(id);
+  }
 }
 
 // Decreas SWin.
@@ -1175,11 +1397,12 @@ void EW::decSWin(int id) {
   struct SWinEntry *p;
 
   // Need some investigation for the min allowed inv and th
-  if (swin[id].s_inv > 10 && swin[id].th > 4) {
-    swin[id].s_inv = swin[id].s_inv / 2;
-    swin[id].th = swin[id].th / 2;
+  /*  
+      if (htab[id]->s_inv > 10 && htab[id]->th > 4) {
+    htab[id]->s_inv = htab[id]->s_inv / 2;
+    htab[id]->th = htab[id]->th / 2;
     
-    p = swin[id].head;
+    p = htab[id]->swin.head;
     while (p) {
       p->weight = p->weight / 2;
       p = p->next;
@@ -1187,42 +1410,79 @@ void EW::decSWin(int id) {
     p = NULL;
     
     printf("Swin Decrease by 2.\n");
-    printSWin(id);	      
+    printHTabEntry(id);	      
   }
+  */
 }
 
 // Increase SWin.
 void EW::incSWin(int id) {
   struct SWinEntry *p;
-
-  if(swin[id].s_inv * 2 <= swin[id].init_inv) {
-    swin[id].s_inv = swin[id].s_inv * 2;
-    swin[id].th = swin[id].th * 2;
+  /*
+  if(htab[id]->s_inv * 2 <= htab[id]->init_inv) {
+    htab[id]->s_inv = htab[id]->s_inv * 2;
+    htab[id]->th = htab[id]->th * 2;
     
-    p = swin[id].head;
+    p = htab[id]->swin.head;
     while (p) {
       p->weight = p->weight * 2;
       p = p->next;
     }
     p = NULL;
     
-    printf("Swin Increase by 2.\n");
-    printSWin(id);
+    printf("Htab Increase by 2.\n");
+    printHTabEntry(id);
   }
+  */
 }
 
-//    Prints the sliding window, one entry per line.
-void EW::printSWin(int id) {
+// Prints one entry in HTable with given id
+void EW::printHTabEntry(int id) {
   struct SWinEntry *p;
-  printf("Sliding Window(s_inv: %d, th: %d):\n", 
-	 swin[id].s_inv, swin[id].th);
+  printf("HTable[%d](node_id: %d, ravg: %d, cur: %d):", 
+	 id, htab[id]->node_id, htab[id]->swin.ravg, htab[id]->cur_rate);
   
-  p = swin[id].head;
+  printf("SWIN");
+  p = htab[id]->swin.head;
   int i = 0;
   while (p) {
-    printf("[%d: %d, %.2f] ", i++, p->requests, p->weight);
+    printf("[%d: %d, %.2f] ", i++, p->rate, p->weight);
     p = p->next;
   }
   p = NULL;
   printf("\n");
+}
+
+// Prints the entries in HTab.
+void EW::printHTab() {
+  for (int i = 0; i < htab_point; i++) {
+    printHTabEntry(i);
+  }
+}
+
+// Prints the entries in AList
+void EW::printAList() {
+  struct AListEntry *p;
+  printf("AList(%d): ", alist.count);
+
+  p = alist.head;
+  int i = 0;
+  while (p) {
+    printf("[%d: %d(%d)] ", i++, p->node_id, p->bytes);
+    p = p->next;
+  }
+  p = NULL;
+  printf("\n");
+}
+
+// Setup the coupled EW
+void EW::coupleEW(EW *ew) {
+  if (!ew) {
+    printf("ERROR!!! NOT A VALID EW POINTER!!!\n");
+    exit (-1);
+  } else {
+    cew = ew;
+    detector_on = 0;
+    //printf("Coupled!\n");
+  }
 }
