@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.179 1999/10/24 07:50:47 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.180 1999/10/24 09:11:50 klan Exp $
 
 #
 
@@ -991,15 +991,12 @@ Simulator instproc flush-trace {} {
 	}
 }
 
-Simulator instproc namtrace-all {file optx opty}  {
+Simulator instproc namtrace-all file   {
 	$self instvar namtraceAllFile_
 	if {$file != ""} {
 		set namtraceAllFile_ $file
 	} else {
 		unset namtraceAllFile_
-	}
-	if { $optx != "" && $opty != "" } {
-	    $self puts-nam-config "W -t * -x $optx -y $opty"
 	}
 
 }
