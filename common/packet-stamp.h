@@ -1,6 +1,6 @@
 /* -*- c++ -*-
    packet-stamp.h
-   $Id: packet-stamp.h,v 1.1 1998/12/08 19:09:00 haldar Exp $
+   $Id: packet-stamp.h,v 1.2 1999/01/07 00:30:10 haldar Exp $
 
    Information carried by a packet to allow a receive to decide if it
    will recieve the packet or not.
@@ -25,7 +25,14 @@ public:
   PacketStamp() : ant(0), node(0), Pr(-1), lambda(-1) { }
 
   void init(const PacketStamp *s) {
-      stamp(s->node, s->ant->copy(), s->Pr, s->lambda);
+	  Antenna* ant;
+	  if (s->ant != NULL)
+		  ant = s->ant->copy();
+	  else
+		  ant = 0;
+	  
+	  //Antenna *ant = (s->ant) ? s->ant->copy(): 0;
+	  stamp(s->node, ant, s->Pr, s->lambda);
   }
 
   void stamp(MobileNode *n, Antenna *a, double xmitPr, double lam) {

@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  *
 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.48 1999/01/04 19:59:03 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.49 1999/01/07 00:30:10 haldar Exp $ (LBL)
 
  */
 
@@ -166,7 +166,7 @@ public:
         // was sent needed for a receiver to determine if it correctly
         // receives the pkt
 
-        PacketStamp	txinfo;  
+        PacketStamp	txinfo_;  
 
 	//monarch extns end;
 
@@ -283,9 +283,9 @@ inline Packet* Packet::alloc()
 		free_ = p->next_;
 		//p->init();
 		if (p->datalen_) {
-		delete[] p->data_;
-		// p->data_ = 0;
-		p->datalen_ = 0;
+			delete[] p->data_;
+			// p->data_ = 0;
+			p->datalen_ = 0;
 		}
 		p->uid_ = 0;
 		p->time_ = 0;
@@ -366,9 +366,9 @@ inline Packet* Packet::copy() const
 		p->data_ = new unsigned char[datalen_];
 		memcpy(p->data_, data_, datalen_);
 	}
-#ifdef NS_MOBILE
-	p->txinfo.init(&txinfo);
-#endif
+//#ifdef NS_MOBILE
+	p->txinfo_.init(&txinfo_);
+//#endif
 	return (p);
 }
 

@@ -142,7 +142,7 @@ WirelessPhy::sendDown(Packet *p)
 	/*
 	 *  Stamp the packet with the interface arguments
 	 */
-	p->txinfo.stamp(node_, ant_->copy(), Pt_, lambda_);
+	p->txinfo_.stamp(node_, ant_->copy(), Pt_, lambda_);
 	
 	// Send the packet
 	channel_->recv(p, this);
@@ -165,7 +165,7 @@ WirelessPhy::sendUp(Packet *p)
 
     s.stamp(node_, ant_, 0, lambda_);
     
-    Pr = propagation_->Pr(&p->txinfo, &s, this);
+    Pr = propagation_->Pr(&p->txinfo_, &s, this);
     
     if (Pr < CSThresh_) {
       pkt_recvd = 0;
@@ -182,7 +182,7 @@ WirelessPhy::sendUp(Packet *p)
 #if DEBUG > 3
       printf("SM %f.9 _%d_ drop pkt from %d low POWER %e/%e\n",
 	     Scheduler::instance().clock(), node_->index(),
-	     p->txinfo.getNode()->index(),
+	     p->txinfo_.getNode()->index(),
 	     Pr,RXThresh);
 #endif
     }
@@ -202,7 +202,7 @@ WirelessPhy::sendUp(Packet *p)
   pkt_recvd = 1;
 
 DONE:
-  p->txinfo.getAntenna()->release();
+  p->txinfo_.getAntenna()->release();
   //*RxPr = Pr;
 
   /* WILD HACK: The following two variables are a wild hack.
@@ -210,8 +210,8 @@ DONE:
      They're used by the mac-802_11 object to determine
      capture.  This will be moved into the net-if family of 
      objects in the future. */
-  p->txinfo.RxPr = Pr;
-  p->txinfo.CPThresh = CPThresh_;
+  p->txinfo_.RxPr = Pr;
+  p->txinfo_.CPThresh = CPThresh_;
 
   return pkt_recvd;
 }

@@ -320,7 +320,7 @@ Mac802_11::discard(Packet *p, const char* why)
 	/*
 	 * If received below the RXThreshold, then just free.
 	 */
-	if(p->txinfo.Pr < p->txinfo.ant.RXThresh) {
+	if(p->txinfo_.Pr < p->txinfo_.ant.RXThresh) {
 		Packet::free(p);
 		p = 0;
 		return;
@@ -1150,7 +1150,7 @@ Mac802_11::recv(Packet *p, Handler *h)
 		 *  power of the packet currently being received by at least
                  *  the capture threshold, then we ignore the new packet.
 		 */
-		if(pktRx_->txinfo.RxPr / p->txinfo.RxPr >= p->txinfo.CPThresh) {
+		if(pktRx_->txinfo_.RxPr / p->txinfo_.RxPr >= p->txinfo_.CPThresh) {
 			capture(p);
 		}
 		else {
