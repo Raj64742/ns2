@@ -346,6 +346,7 @@ summarized below:
 
 \begin{quote}
 \begin{tabular}{llllll}
+Null&{Initial code point}\\
 TSW2CM&{Initial code point}&CIR\\
 TSW3CM&{Initial code point}&CIR&PIR\\
 TokenBucket&{Initial code point}&CIR&CBS\\
@@ -354,6 +355,8 @@ trTCM&{Initial code point}&CIR&CBS&PIR&PBS
 \end{tabular}
 \end{quote}
  
+Note that the Null policer requires only the initial code point. Since
+this policer does not downgrade packets, other information is not necessary.  
 Consider a Tcl script for which 
   \code{$q} is a variable for an edge queue, 
   and \code{$s} and \code{$d} are source and destination nodes.   
@@ -367,6 +370,7 @@ Other parameters could be used for different policers
 
 \begin{quote}
 \begin{tabular}{llllll}
+Null&10\\
 TSW3CM&10&2000000&3000000\\
 TokenBucket&10&2000000&10000\\
 srTCM&10&2000000&10000&20000\\
@@ -386,6 +390,10 @@ The following command adds an entry to the Policer Table,
 
 There must be a Policer Table entry in place for every 
 policer type and initial code point pair.
+It should be noticed that the Null policer is added in the following way:
+\code{$dsredq addPolicerEntry Null 10}
+Downgrade code points are not specified because the Null policy does not
+meter traffic characteristics.
 
 
 Queries supported:
