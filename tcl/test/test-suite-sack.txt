@@ -49,4 +49,10 @@ Test "sackB4a" shows the same test when "maxburst_" is set to
 four packets.
 
 DELAYEDSACK:
-The "delayedSack" test from the v1 test suite is not included.
+The "delayedSack" test from the v1 test suite should be included.
+
+TIMERSSACK:
+The test "timersSack" needs to be checked.
+
+PHASE:
+The phase tests were deleted as unnecessary to the validation test.
