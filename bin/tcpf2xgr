@@ -1,25 +1,33 @@
 #!/bin/sh
 #
 # tcpf2xgr -- convert full-tcp trace file to xgraph or gnuplot
-# Usage: tcpf2xgr [-r] [-m wrap] TclShPath tracefile <xgraph | gnuplot> [name]
+# Usage: tcpf2xgr [-r] [-m wrap] [-s scale] TclShPath tracefile <xgraph | gnuplot> [testname]
 #
 PATH=$PATH:../../bin:.
 PROGNAME=$0
 
 while [ $# -ne 0 ] # loop over arguments
 do
+echo "1 is $1"
 	case $1 in
 	-[mM])	opts="$opts $1 $2"
 		shift;;
+	-[sS])	opts="$opts $1 $2"
+		shift;;
+	-[nN])	opts="$opts $1 $2"
+		shift;;
 	-[rR])	opts="$opts $1"
 		shift;;
+
 	*)	break;;
 	esac
 	shift
 done
 
+echo "argv now is $0"
+
 if [ $# -lt 3 ]; then
-	echo "Usage: $PROGNAME TclshPath [-m wrap] [-r] tracefile <xgraph | gnuplot> testname"
+	echo "Usage: $PROGNAME [-m wrap] [-r] [-s scale] TclShPath tracefile <xgraph | gnuplot> testname"
 	exit 1;
 fi
 TCLSH=$1; shift
