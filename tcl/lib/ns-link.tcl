@@ -30,14 +30,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.42 1999/03/04 02:21:39 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.43 1999/08/11 22:16:23 haoboy Exp $
 #
 Class Link
 Link instproc init { src dst } {
 	$self next
 
         #modified for interface code
-	$self instvar trace_ fromNode_ toNode_ source_ dest_ color_ oldColor_
+	$self instvar trace_ fromNode_ toNode_ color_ oldColor_
 	set fromNode_ $src
 	set toNode_   $dst
 	set color_ "black"
@@ -397,21 +397,21 @@ SimpleLink instproc init-monitor { ns qtrace sampleInterval} {
 
 SimpleLink instproc start-tracing { } {
 	$self instvar qMonitor_ ns_ qtrace_ sampleInterval_
-	$self instvar source_ dest_
+	$self instvar fromNode_ toNode_
 
 	if {$qtrace_ != 0} {
 		$qMonitor_ trace $qtrace_
 	}
-	$qMonitor_ set-src-dst [$source_ id] [$dest_ id]
+	$qMonitor_ set-src-dst [$fromNode_ id] [$toNode_ id]
 } 
 
 SimpleLink instproc queue-sample-timeout { } {
 	$self instvar qMonitor_ ns_ qtrace_ sampleInterval_
-	$self instvar source_ dest_
+	$self instvar fromNode_ toNode_
 	
 	set qavg [$self sample-queue-size]
 	if {$qtrace_ != 0} {
-		puts $qtrace_ "[$ns_ now] [$source_ id] [$dest_ id] $qavg"
+		puts $qtrace_ "[$ns_ now] [$fromNode_ id] [$toNode_ id] $qavg"
 	}
 	$ns_ at [expr [$ns_ now] + $sampleInterval_] "$self queue-sample-timeout"
 }
