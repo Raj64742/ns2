@@ -1,7 +1,7 @@
 #! /bin/sh
 #holes=2		* from NSA in packet.h
-sed -e 's/maxBurst/0/' sack-v1.tcl > t		# for tahoe, reno
-sed -e 's/maxBurst/4/' sack-v1.tcl > t1		# for newreno, sack, fack
+sed -e 's/maxBurst/0/' sack.tcl > t		# for tahoe, reno
+sed -e 's/maxBurst/4/' sack.tcl > t1		# for newreno, sack, fack
 sed -e 's/type/taho/' t > t0.tcl
 sed -e 's/connection tcp /connection tcp-reno /' -e s/type/reno/ t > t1.tcl
 sed -e 's/connection tcp /connection tcp-newreno /' -e s/type/newr/ t1 > t3.tcl
@@ -25,7 +25,7 @@ sed -e 's/tcpnewreno(changes) 0/tcpnewreno(changes) 1/' t3.tcl > t7.tcl
 sed -e 's/connection tcp /connection tcp-vegas /' -e s/type/vegas/ t > t8.tcl
 
 
-tests=`awk '/^proc test_/{ print substr($2,index($2, "_")+1) }' sack-v1.tcl`
+tests=`awk '/^proc test_/{ print substr($2,index($2, "_")+1) }' sack.tcl`
 
 for t in $tests; do
     echo
