@@ -450,7 +450,8 @@ which may be:
   Null                  - Traffic Sink
   LossMonitor           - Traffic Sink that monitors loss parameters
   TCP                   - BSD Tahoe TCP
-  TCP/Reno              - BSD Reno TCP
+  TCP/FullTcp           - Full Reno TCP with two-way connections [10]
+  tcP/Reno              - BSD Reno TCP
   TCP/Newreno           - a modified version of BSD Reno TCP
   TCP/Vegas             - Vegas TCP (from U. Arizonia via USC)
   TCP/Sack1             - BSD Reno TCP with selective ACKs
@@ -630,6 +631,7 @@ The following diagram depicts the object hierarchy:
           Null
           LossMonitor
           TCP
+               FullTcp
                Reno
                Newreno
                Sack1
@@ -1599,8 +1601,8 @@ The expected sequence number of the next packet.
 
 .SH "TCP OBJECTS"
 TCP objects are a subclass of agent objects that implement the
-BSD Tahoe TCP transport protocol.  They inherit all of the 
-generic agent functionality.
+BSD Tahoe TCP transport protocol as described in [7].  They inherit all 
+of the generic agent functionality.
 .LP
 .HD
 Configuration Parameters \fP
@@ -1626,6 +1628,8 @@ realistic model of CPU processing overhead.
 .IP \fIecn_\fP
 Set to true to use explicit congestion notification in addition
 to packet drops to signal congestion.
+This allows a Fast Retransmit after a quench() due to
+an ECN (explicit congestion notification) bit.
 .IP \fIpacketSize_\fP
 The size in bytes to use for all packets from this source.
 .IP \fItcpTick_\fP 
@@ -1677,23 +1681,28 @@ Round-trip time exponential backoff constant.
 
 .SH "TCP/RENO OBJECTS"
 TCP/Reno objects are a subclass of TCP objects that implement the
-Reno TCP transport protocol.
+Reno TCP transport protocol as described in [7].
 There are no methods, configuration parameters or state variables
-specific to this object (?).
+specific to this object.
 .RE
 
 .SH "TCP/NEWRENO OBJECTS"
 TCP/Newreno objects are a subclass of TCP objects that implement 
 a modified version of the BSD Reno TCP transport protocol.
-There are no methods state variables
-specific to this object (?).
+There are no methods or state variables
+specific to this object.
 Configuration Parameters \fP
 .LP
 .RS
 .IP \fInewreno_changes_\fP
+Set to zero for the default NewReno described in [7].  Set to 1 for
+additional
+NewReno algorithms as suggested in [9]; this includes the estimation
+of the ssthresh parameter during slow-start.
 .RE
 
-.\" .SH "TCP/VEGAS OBJECTS"
+.SH "TCP/VEGAS OBJECTS"
+This section of the man page has not yet been written.
 .\" TCP/Vegas objects are a subclass of TCP objects that implement 
 .\" a modified version of the Reno TCP transport protocol (?).
 .\" There are no methods state variables
@@ -1707,15 +1716,18 @@ Configuration Parameters \fP
 .SH "TCP/SACK1 OBJECTS"
 TCP/Sack1 objects are a subclass of TCP objects that implement 
 the BSD Reno TCP transport protocol with Selective
-Acknowledgement Extensions.
-They inherit all of the TCP object functionality (?).
+Acknowledgement Extensions as described in [7].
+
+They inherit all of the TCP object functionality.
 There are no methods, configuration parameters or state variables
-specific to this object (?).
+specific to this object.
 
 .SH "TCP/FACK OBJECTS"
 TCP/Fack objects are a subclass of TCP objects that implement 
 the BSD Reno TCP transport protocol with Forward
 Acknowledgement congestion control.
+The TCP/Fack implementation has not yet been debugged for ns-2.
+
 They inherit all of the TCP object functionality.
 There are no methods or state variables specific to this object.
 .HD
