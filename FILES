@@ -17,6 +17,8 @@ config.h
 config.sub
 configure
 configure.in
+connector.cc
+connector.h
 delay.cc
 drop-tail.cc
 example.tcl
