@@ -64,7 +64,7 @@ proc default_options {} {
 	set opt(tr)		temp.rands    ;# trace file
 	set opt(lm)             "off"          ;# log movement
 
-        set opt(radius)         90            ;# node comm. range
+        set opt(radius)         150            ;# node comm. range
         set opt(nam)            gkeeper.nam    ;# nam trace for node position
 
 }
