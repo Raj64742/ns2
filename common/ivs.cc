@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ivs.cc,v 1.5 1997/03/29 01:42:53 mccanne Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ivs.cc,v 1.6 1997/07/22 20:49:15 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -134,7 +134,7 @@ protected:
 	void upcall_rtt_solicit(double ts, int rshift);
 
 	int state_;
-	int nextSeq_;
+	u_int32_t nextSeq_;
 
 	double timeMean_;
 	double timeVar_;
@@ -153,7 +153,7 @@ protected:
 static class IvsSourceClass : public TclClass {
 public:
 	IvsSourceClass() : TclClass("Agent/IVS/Source") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new IvsSource());
 	}
 } class_ivs_source;
@@ -161,7 +161,7 @@ public:
 static class IvsReceiverClass : public TclClass {
 public:
 	IvsReceiverClass() : TclClass("Agent/IVS/Receiver") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new IvsReceiver());
 	}
 } class_ivs_receiver;
@@ -192,10 +192,9 @@ void IvsSource::recv(Packet* pkt, Handler*)
 {
 	char wrk[128];/*XXX*/
 	Tcl& tcl = Tcl::instance();
-	hdr_ivs *p = (hdr_ivs*)pkt->access(off_ivs_);
 	hdr_msg *q = (hdr_msg*)pkt->access(off_msg_);
 	sprintf(wrk, "%s handle {%s}", name(), q->msg());
-	Tcl::instance().eval(wrk);
+	tcl.eval(wrk);
 	Packet::free(pkt);
 }
 
@@ -256,9 +255,9 @@ void IvsSource::sendpkt()
 IvsReceiver::IvsReceiver() : Agent(PT_MESSAGE), state_(ST_U),
 	  nextSeq_(0),
 	  timeMean_(0.), timeVar_(0.),/*XXX*/
+	  ipg_(0.),
 	  head_(0),
 	  tail_(0),
-	  ipg_(0.),
 	  lastPktTime_(0.),
 	  ignoreR_(0),
 	  lastTime_(0.),
