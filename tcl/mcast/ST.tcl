@@ -29,24 +29,18 @@ ST instproc init { sim node } {
 		error "ST: 'ST instvar RP_' and 'ST instvar Groups_' must be set"
 		exit 1
 	}
-	$self instvar encaps_ ;# lists of encapsulators by group for a given node
-	$self instvar misses_ ;#mostly for debugging
-	$self instvar graft_  ;# graft agent
-	$self instvar prune_  ;# prune agent (in fact, one can handle both)
+	$self instvar encaps_     ;# lists of encapsulators by group for a given node
+	$self instvar misses_     ;#mostly for debugging
+	$self instvar mcast_ctr_  ;# graft/prune agent
 	
 	set ns_ $sim
 	set id [$node id]
 
-	set graft_ [new Agent/Mcast/Control $self]
-	set prune_ [new Agent/Mcast/Control $self]
-	$node attach $graft_
-	$node attach $prune_
+	set mcast_ctr_ [new Agent/Mcast/Control $self]
+	$node attach $mcast_ctr_
 	
 	set misses_ 0         ;# initially there's been no misses
 	
-	$graft_ set class_ 30
-	$prune_ set class_ 31
-
 	foreach grp $Groups_ {
 		foreach agent [$node set agents_] {
 			if {[expr $grp] == [expr [$agent set dst_]]}  {
@@ -56,20 +50,10 @@ ST instproc init { sim node } {
 				set e [new Agent/Encapsulator]
 				$e set class_ 32
 				$e set status_ 1
-				$e decap-target ""
 				$node attach $e
+				$e decap-target [$node entry]
 				lappend encaps_($grp) $e
-
-#				set r [new Classifier/Replicator/Demuxer]
-#				$r set srcID_ $id
-#				$r set grp_ $grp
-#				$r set node_ $node
-#				$r insert [$node entry]
-#				$r insert $e
-#				$agent target $r
 				$agent target $e
-
-#				$node add-mfc $id $grp -1 ""
 			}
 		}
 		#if the node is an RP, need to attach a Decapsulator
@@ -80,7 +64,6 @@ ST instproc init { sim node } {
 			puts "    with address [$d set addr_]" 
 			set decaps_($grp) $d
 			$node set decaps_($grp) $d ;# a node should know its decapsulator!
-			#	    $d set star_value_ [ST set star_value_]
 		}
 	}
 	$self next $sim $node
@@ -104,206 +87,175 @@ ST instproc start {} {
 	$self next
 }
 
-ST instproc join-group  { group } {
-    $self next $group
-    $self instvar node_
-    ST instvar RP_
-
-    
-    set r [$node_ getReps "*" $group]
-
-    if {$r == "" || ![$r is-active]} {
-	$self send-ctrl "graft" $RP_($group) $group
-    }
+ST instproc join-group  { group {src "*"} } {
+	$self instvar node_ ns_
+	ST instvar RP_
+	
+	set r [$node_ getReps "*" $group]
+	
+	if {$r == ""} {
+		set iif -1
+		if {$RP_($group) != $node_} {
+			set rpfnbr [$ns_ upstream-node [$node_ id] [$RP_($group) id]]
+			if {$rpfnbr != ""} {
+				set rpflink [$ns_ link $rpfnbr $node_]
+				set iif [$rpflink if-label?]
+			}
+		}
+		$node_ add-mfc "*" $group $iif ""
+		set r [$node_ getReps "*" $group]
+	}
+	puts "replicators: $r"
+	if { ![$r is-active] } {
+		$self send-ctrl "graft" $RP_($group) $group
+	}
+	$self next $group ; #annotate
 }
 
-ST instproc leave-group { group } {
-    ST instvar RP_
-    $self next $group
-    if {$group != $RP_($group)} {
+ST instproc leave-group { group {src "*"} } {
+	ST instvar RP_
+	$self next $group
 	$self send-ctrl "prune" $RP_($group) $group
-    }
 }
 
 ST instproc handle-wrong-iif { srcID group iface } {
     $self instvar node_
     puts "ST: wrong iif at node [$node_ id], src $srcID, grp $group"
 }
-# It's bad that in handle-cache-miss it's srcID and not a full address!
-ST instproc handle-cache-miss { srcID group iface } {
-    $self instvar node_
-    ST instvar RP_
-    $self instvar misses_
 
-    #there should be only one cache-miss
-    #puts $misses_
-    if {$misses_ > 0} {
-	puts "ST: warning: repeated cache miss node: [$node_ id], src: $srcID, grp $group, if $iface"
-    }
-    # there should be only one mfc cache miss: the first time it receives a 
-    # packet to the group (RP) or a graft message from a receiver.  
-    # Just install a (*,G) entry.
-    $node_ add-mfc "*" $group -1 ""
-#    puts "Handled a cache miss..."
-    incr misses_
+# It's bad that in handle-cache-miss it's srcID and not a whole node!
+ST instproc handle-cache-miss { srcID group iface } {
+	$self instvar node_
+	ST instvar RP_
+	$self instvar misses_
+	
+	#there should be only one cache-miss
+	puts "cache miss at [$node_ id], src: $srcID, group: $group, iface: $iface"
+	#puts $misses_
+	if {$misses_ > 0} {
+		puts "ST: warning: repeated cache miss node: [$node_ id], src: $srcID, grp $group, if $iface"
+	}
+	# there should be only one mfc cache miss: the first time it receives a 
+	# packet to the group (RP) or a graft message from a receiver.  
+	# Just install a (*,G) entry.
+	$node_ add-mfc "*" $group -1 ""
+	#    puts "Handled a cache miss..."
+	incr misses_
 }
 
-ST instproc drop { replicator src dst } {
-    $self instvar node_ ns_
-    ST instvar RP_
-
-    # No downstream listeners
-    # Send a prune back toward the source
-    puts "drop src: $src, dst: $dst"
-
-    if { $src == [$node_ id] } { 
-	#
-	# if we are trying to prune ourself (i.e., no
-	# receivers anywhere in the network), set the
-	# ignore bit in the object (we turn it back on
-	# when we get a graft).  This prevents this
-	# drop methood from being called on every packet.
-	#
-#	$replicator set ignore_ 1
-    } else {
-	if {$node_ != $RP_($dst)} {
-	    set ph [$ns_ upstream-node [$node_ id] [$RP_($dst) id]]
-	    $self send-ctrl "prune" $ph $dst
-	} else {
-#	    $replicator set ignore_ 1
+ST instproc drop { replicator src dst iface} {
+	$self instvar node_ ns_
+	ST instvar RP_
+	
+	set id [$node_ id]
+	# No downstream listeners
+	# Send a prune back toward the source
+	puts "node: $id drops src: $src, dst: $dst, replicator: [$replicator set srcID_]"
+	
+	if {$iface != -1} {
+		$self send-ctrl "prune" $RP_($dst) $dst
 	}
-    }
-    $self instvar dynT_
-    if [info exists dynT_] {
-	foreach tr $dynT_ {
-	    $tr annotate "[$ns_ now] [$node_ id] dropping a packet from $src to $dst"
-	}
-    }
+#	$self annotate "$id dropping a packet from $src to $dst"
 }
 
 ST instproc recv-prune { from src group } {
-    $self instvar node_ ns_  
-    ST instvar RP_ 
-    
-    set r [$node_ getReps "*" $group]
-    if {$r == ""} {
-	# it's a cache miss!
-	return
-    }
-
-    set id [$node_ id]
-    set oifInfo [$node_ RPF-interface $src $id $from]
-    set tmpoif  [[$ns_ link $id $from] head]
-    if ![$r exists $tmpoif] {
-	warn {trying to prune a non-existing interface?}
-    } else {
-	$r instvar active_
-	if $active_($tmpoif) {
-	    $r disable $tmpoif
+	$self instvar node_ ns_  
+	ST instvar RP_ 
+	
+	set r [$node_ getReps "*" $group]
+	if {$r == ""} {
+		# it's a cache miss!
+		return
 	}
-	# If there are no remaining active output links
-	# then send a prune upstream.
-	$r instvar nactive_
-	if {$nactive_ == 0 && $node_ != $RP_($group)} {
-	    $self send-ctrl "prune" $RP_($group) $group
- 	}
-    }
-}
 
-Link instproc if-label? {} {
-	$self instvar iif_
-	$iif_ label
+	set id [$node_ id]
+	set oifInfo [$node_ RPF-interface $src $id $from]
+	set tmpoif  [[$ns_ link $id $from] head]
+	if ![$r exists $tmpoif] {
+		warn "node $id, got a prune from $from, trying to prune a non-existing interface?"
+	} else {
+		$r instvar active_
+		if $active_($tmpoif) {
+			$r disable $tmpoif
+		}
+		# If there are no remaining active output links
+		# then send a prune upstream.
+		if {![$r is-active]} {
+			$self send-ctrl "prune" $RP_($group) $group
+		}
+	}
 }
 
 ST instproc recv-graft { from to group } {
-    $self instvar node_ ns_
-    ST instvar RP_
-    set id [$node_ id]
-
-    puts "node [$node_ id] received graft from: $from, to: $to"
-    set r [$node_ getReps "*" $group]
-    if {$r == ""} {
-	# it's a cache miss!
-	set iif -1
-	if {$RP_($group) != $node_} {
-	    set rpfnbr [$ns_ upstream-node [$node_ id] [$RP_($group) id]]
-	    if {$rpfnbr != ""} {
-		set rpflink [$ns_ link $rpfnbr $node_]
-		set iif [$rpflink if-label?]
-	    }
-	}
-	$node_ add-mfc "*" $group $iif ""
+	$self instvar node_ ns_
+	ST instvar RP_
+	set id [$node_ id]
+	
+	puts "node [$node_ id] received graft from: $from, to: $to"
 	set r [$node_ getReps "*" $group]
-    }
-    if { ![$r is-active] && $node_ != $RP_($group)} {
-	# if this node isn't on the tree and isn't RP, propagate the graft
-	$self send-ctrl "graft" $RP_($group) $group
-    }
-    # graft on the interface
-    set tmpoif [[$ns_ link $id $from] head]
-    $r insert $tmpoif
-#    $r set ignore_ 0
+	if {$r == ""} {
+		# it's a cache miss!
+		set iif -1
+		if {$RP_($group) != $node_} {
+			set rpfnbr [$ns_ upstream-node [$node_ id] [$RP_($group) id]]
+			if {$rpfnbr != ""} {
+				set rpflink [$ns_ link $rpfnbr $node_]
+				set iif [$rpflink if-label?]
+			}
+		}
+		$node_ add-mfc "*" $group $iif ""
+		set r [$node_ getReps "*" $group]
+	}
+	if {![$r is-active]} {
+		# if this node isn't on the tree and isn't RP, propagate the graft
+		$self send-ctrl "graft" $RP_($group) $group
+	}
+	# graft on the interface
+	set tmpoif [[$ns_ link $id $from] head]
+	$r insert $tmpoif
+	#    $r set ignore_ 0
 }
 
 #
-# send a graft/prune for src/group up the RPF tree
+# send a graft/prune for src/group up the RPF tree towards dst
 #
 ST instproc send-ctrl { which dst group } {
-    ST instvar RP_
-    $self instvar graft_ prune_ ns_ node_
-
-    set id [$node_ id]
-    set next_hop [$ns_ upstream-node $id [$dst id]]
-    set dest $next_hop
-
-#    if { $node_ == $RP_($group) } {
-#	# RP sends multihop prunes towards the source
-#	set dest $dst
-#    }
-#    puts "[$node_ id] is sending a $which to [$dest id]"
-    switch $which {
-	graft {
-	    $ns_ simplex-connect $graft_ \
-		    [[[$dest getArbiter] getType [$self info class]] set graft_]
-	    $graft_ send $which $id [$dst id] $group
-	} 
-	prune {
-	    $ns_ simplex-connect $prune_ \
-		    [[[$dest getArbiter] getType [$self info class]] set prune_]
-	    $prune_ send $which $id [$dst id] $group
+	ST instvar RP_
+	$self instvar mcast_ctr_ ns_ node_
+	
+	if {$node_ != $dst} {
+		# send only if current $node_ is different from $dst
+		set id [$node_ id]
+		set next_hop [$ns_ upstream-node $id [$dst id]]
+		#    puts "$id is sending a $which to [$dest id]"
+		$ns_ simplex-connect $mcast_ctr_ \
+				[[[$next_hop getArbiter] getType [$self info class]] set mcast_ctr_]
+		switch $which {
+			"prune" { 
+				$mcast_ctr_ set class_ 31
+			}
+			"graft" {
+				$mcast_ctr_ set class_ 30
+			}
+			default {
+				warn {ST: send-ctrl: unknown control message}
+				return
+			}
+		}
+		$mcast_ctr_ send $which $id [$dst id] $group
 	}
-	default {
-	    puts "ST instproc send-ctrl: unsupported ctrl message type"
-	}
-    }
 }
 
 ST instproc dump-routes args {
-	
 }
 
-# Agent/Mcast/Prune instproc init { protocol } {
-#     $self next
-#     $self instvar proto_
-#     set proto_ $protocol
-# }
-# Agent/Mcast/Graft instproc init { protocol } {
-#     $self next
-#     $self instvar proto_
-#     set proto_ $protocol
-# }
-
-# Agent/Mcast/Prune instproc handle {type from src group } {
-#  	$self instvar proto_ 
-# #        puts "Agent/Mcast/Prune instproc handle $type $from $src $group"
-#          eval $proto_ recv-$type $from $src $group 
-# }
-# Agent/Mcast/Graft instproc handle {type from src group } {
-#  	$self instvar proto_ 
-# #        puts "Agent/Mcast/Graft instproc handle $type $from $src $group"
-#          eval $proto_ recv-$type $from $src $group
-# }
-
-#####
+ST instproc annotate args {
+	$self instvar dynT_
+	if [info exists dynT_] {
+		foreach tr $dynT_ {
+			$tr annotate $args
+		}
+	}
+}
 
 

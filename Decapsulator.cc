@@ -11,7 +11,7 @@ public:
 	}
 } class_decapsulator;
 
-int Decapsulator::off_encap_= 0;
+int Decapsulator::off_encap_= 0; //static variable, will be set in TCL
  
 Decapsulator::Decapsulator()  : Agent(PT_ENCAPSULATED)
 { 

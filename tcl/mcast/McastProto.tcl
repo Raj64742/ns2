@@ -167,6 +167,6 @@ mrtObject instproc upcall { code source group iface } {
 	}
 }
 
-mrtObject instproc drop { replicator src dst } {
-        $self all-mprotos drop $replicator $src $dst
+mrtObject instproc drop { replicator src dst {iface -1} } {
+        $self all-mprotos drop $replicator $src $dst $iface
 }

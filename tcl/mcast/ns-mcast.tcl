@@ -260,7 +260,7 @@ Node instproc getRepByGroup { group } {
 Node instproc getReps { src group } {
 	$self instvar replicator_
 	set reps ""
-	foreach key [array names replicator_ "$src:$group"] {
+	foreach key [array names replicator_ "$src:group"] { 
 		lappend reps $replicator_($key)
 	}
 	set reps
@@ -292,7 +292,6 @@ Node instproc join-group { agent group } {
 	set group [expr $group]
 	$self instvar replicator_ Agents_ mrtObject_
 
-	$mrtObject_ join-group $group
 	lappend Agents_($group) $agent
 
 	foreach key [array names replicator_ "*:$group"] {
@@ -301,6 +300,7 @@ Node instproc join-group { agent group } {
 		#
 		$replicator_($key) insert $agent
 	}
+	$mrtObject_ join-group $group
 }
 
 Node instproc leave-group { agent group } {
@@ -325,13 +325,13 @@ Node instproc leave-group { agent group } {
 
 Node instproc join-group-source { agent group source } {
         set group [expr $group]
-        set source [expr $source]
+#        set source [expr $source]
 
        $self instvar id_
 
         $self instvar Agents_ mrtObject_ replicator_
         ## send a message for the mcastproto agent to inform the mcast protocols
-        $mrtObject_ join-group-source $group $source
+        $mrtObject_ join-group $group $source
         lappend Agents_($source:$group) $agent
         if [info exists replicator_($source:$group)] {
                 $replicator_($source:$group) insert $agent
@@ -340,12 +340,12 @@ Node instproc join-group-source { agent group source } {
 
 Node instproc leave-group-source { agent group source } {
         set group [expr $group]
-        set source [expr $source]
+#        set source [expr $source]
         $self instvar replicator_ Agents_ mrtObject_
         if [info exists replicator_($source:$group)] {
                 $replicator_($source:$group) disable $agent
         }
-        $mrtObject_ leave-group-source $group $source
+        $mrtObject_ leave-group $group $source
 }
 
 Node instproc new-group { src group iface code } {
@@ -497,11 +497,11 @@ Classifier/Replicator/Demuxer instproc exists target {
 	info exists active_($target)
 }
 
-Classifier/Replicator/Demuxer instproc drop { src dst } {
+Classifier/Replicator/Demuxer instproc drop { src dst {iface -1} } {
 	set src [expr $src >> 8]
 	$self instvar node_
         if [info exists node_] {
-	    [$node_ getArbiter] drop $self $src $dst
+	    [$node_ getArbiter] drop $self $src $dst $iface
 	}
         return 1
 }
