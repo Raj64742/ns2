@@ -1,6 +1,6 @@
 #ifndef lint
-static char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hackloss.cc,v 1.1 1997/07/14 08:52:04 kannan Exp $";
+static const char rcsid[] =
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hackloss.cc,v 1.2 1997/07/25 21:20:22 gnguyen Exp $";
 #endif
 
 #include "connector.h"

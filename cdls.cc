@@ -43,7 +43,7 @@
 static class CdlsClass : public TclClass {
 public:
 	CdlsClass() : TclClass("Queue/Cdls") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new Cdls);
 	}
 } class_cdls;
