@@ -18,6 +18,8 @@ RTMechanisms instproc init { ns cbqlink rtt mtu enable } {
 	$self instvar verbose_
 	$self instvar Hist_max_ hist_next_
 	$self instvar High_const_
+	$self instvar Unresp_droprate_factor_
+	$self instvar Unresp_flowbw_factor_
 
 	set verbose_ 6	; #-1 means no messages
 	set cbqlink_ $cbqlink
@@ -43,6 +45,8 @@ RTMechanisms instproc init { ns cbqlink rtt mtu enable } {
         set Max_cbw_ 46750
         set Maxallot_ 0.98          
         set Mintime_ 0.5
+	set Unresp_droprate_factor_ 3
+	set Unresp_flowbw_factor_ 0.9
 	#
 	# Set High_const_ to INFINITY to turn off HIGH-BANDWIDTH test.
 	#
@@ -74,9 +78,9 @@ RTMechanisms instproc test_unresponsive_initial { flow flow_bw droprate lastidx 
 
 	set idx [$self fhist-mindroprate $flow]
 	if { $idx >= 0 && $idx != $lastidx &&
-		$droprate > [expr $Unresp_droprate_factor_ *
+		$droprate > [expr $Unresp_droprate_factor_ * \
 		    $flowhist_($idx,droprate)] &&
-		$flow_bw > [expr $Unresp_flowbw_factor_ *
+		$flow_bw > [expr $Unresp_flowbw_factor_ * \
 		    $flowhist_($idx,bandwidth)] } {
 
 		if { $flowhist_($idx,name) != $flow } {
