@@ -31,12 +31,17 @@
  * SUCH DAMAGE.
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.14 1997/07/21 21:54:31 kfall Exp $ (LBL)";
+#endif
+
 #include "tcp-sink.h"
 
 static class TcpSinkClass : public TclClass {
 public:
 	TcpSinkClass() : TclClass("Agent/TCPSink") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new TcpSink(new Acker));
 	}
 } class_tcpsink;
@@ -122,7 +127,7 @@ void TcpSink::ack(Packet* opkt)
 	send(npkt, 0);
 }
 
-void TcpSink::add_to_ack(Packet* pkt) 
+void TcpSink::add_to_ack(Packet*)
 {
 	return;
 }
@@ -138,7 +143,7 @@ void TcpSink::recv(Packet* pkt, Handler*)
 static class DelSinkClass : public TclClass {
 public:
 	DelSinkClass() : TclClass("Agent/TCPSink/DelAck") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new DelAckSink(new Acker));
 	}
 } class_delsink;
@@ -177,10 +182,11 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 	Packet::free(pkt);
 }
 
-void DelAckSink::timeout(int tno)
+void DelAckSink::timeout(int)
 {
 	/*
 	 * The timer expired so we ACK the last packet seen.
+	 * (shouldn't this check for a particular time out#?  -kf)
 	 */
 	Packet* pkt = save_;
 	ack(pkt);
@@ -261,7 +267,7 @@ protected:
 static class Sack1TcpSinkClass : public TclClass {
 public:
         Sack1TcpSinkClass() : TclClass("Agent/TCPSink/Sack1") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		Sacker* sacker = new Sacker;
 		TcpSink* sink = new TcpSink(sacker);
 		sacker->bind(sink);
@@ -272,7 +278,7 @@ public:
 static class Sack1DelAckTcpSinkClass : public TclClass {
 public:
 	Sack1DelAckTcpSinkClass() : TclClass("Agent/TCPSink/Sack1/DelAck") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		Sacker* sacker = new Sacker;
 		TcpSink* sink = new DelAckSink(sacker);
 		sacker->bind(sink);
