@@ -66,7 +66,7 @@ public:
  * Demux a packet to the right ack reconstructor.
  */
 void
-AckReconsController::recv(Packet *p, Handler *h=0)
+AckReconsController::recv(Packet *p, Handler *h)
 {
 	Tcl& tcl = Tcl::instance();
 	hdr_ip *ip = (hdr_ip *)p->access(off_ip_);
