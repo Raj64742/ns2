@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.29 1998/11/29 05:26:15 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.30 1998/11/29 19:13:16 sfloyd Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -166,7 +166,11 @@ void TcpSink::ack(Packet* opkt)
 			acker_->update_ecn_unacked(1);
 		nf->ecnecho() = acker_->ecn_unacked();
 	}
-	if (!of->ect() && of->ecnecho() && of->cong_action())
+	if (!of->ect() && of->ecnecho())
+		/* We are not checking for of->cong_action() also. 
+		 * In this respect, this does not conform to the 
+		 * specifications in the internet draft 
+		 */
 		nf->ecnecho() = 1;
 	acker_->append_ack((hdr_cmn*)npkt->access(off_cmn_),
 			   ntcp, otcp->seqno());
