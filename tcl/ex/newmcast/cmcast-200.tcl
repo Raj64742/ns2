@@ -26,8 +26,8 @@
 
 set verbose 1
 set ns [new MultiSim]
-MultiNode expandaddr
-set g [MultiNode allocaddr]
+Node expandaddr
+set g [Node allocaddr]
 set ctrmcastcomp [new CtrMcastComp $ns]
 set ctrrpcomp [new CtrRPComp $ns]
 
