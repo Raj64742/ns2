@@ -17,7 +17,7 @@
 #
 # Implementation of web cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.1 1998/08/18 23:42:03 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.2 1998/08/20 01:30:26 haoboy Exp $
 
 Http/Cache instproc init args {
 	eval $self next $args
@@ -617,7 +617,7 @@ Http/Cache/Inval/Mcast instproc cache-miss { cl type pageid } {
 			#
 			# Send a direct request to server to ask about TLC
 			$self instvar ns_ id_
-			puts "[$ns_ now]: $id_ send TLC"
+			#puts "[$ns_ now]: $id_ send TLC"
 			$self send-request $server TLC $pageid $size
 			# We'll send another request to the TLC after we get 
 			# its addr
@@ -869,7 +869,7 @@ Http/Cache/Inval/Mcast instproc get-response-TLC { server pageid tlc } {
 	# Continue query...
 	$self register-server [$tlc id] [$server id]
 	$self instvar ns_ id_
-	puts "[$ns_ now]: Cache $id_ knows server [$server id] -> tlc [$tlc id]"
+#	puts "[$ns_ now]: Cache $id_ knows server [$server id] -> tlc [$tlc id]"
 	$self send-request $tlc GET $pageid [$self get-reqsize]
 }
 

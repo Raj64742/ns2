@@ -17,7 +17,7 @@
 #
 # Implementation of an HTTP server
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.1 1998/08/18 23:42:03 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.2 1998/08/20 01:30:27 haoboy Exp $
 
 Http/Server instproc init args {
 	eval $self next $args
@@ -91,7 +91,7 @@ Http/Server instproc modify-page { pageid } {
 	$ns_ at [expr [$ns_ now] + $age] "$self modify-page $pageid"
 	$self enter-page $pageid size $size modtime $modtime age $age
 
-	$ns_ trace-annotate "S $id_ INV $pageid"
+#	$ns_ trace-annotate "S $id_ INV $pageid"
 	$self evTrace S MOD p $pageid m [$ns_ now] 
 
 	$self instvar modtimes_ modseq_
