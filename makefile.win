@@ -1,0 +1,96 @@
+#  Copyright (c) 1994, 1995, 1996
+# 	The Regents of the University of California.  All rights reserved.
+#
+#  Redistribution and use in source and binary forms, with or without
+#  modification, are permitted provided that: (1) source code distributions
+#  retain the above copyright notice and this paragraph in its entirety, (2)
+#  distributions including binary code include the above copyright notice and
+#  this paragraph in its entirety in the documentation or other materials
+#  provided with the distribution, and (3) all advertising materials mentioning
+#  features or use of this software display the following acknowledgement:
+#  ``This product includes software developed by the University of California,
+#  Lawrence Berkeley Laboratory and its contributors.'' Neither the name of
+#  the University nor the names of its contributors may be used to endorse
+#  or promote products derived from this software without specific prior
+#  written permission.
+#  THIS SOFTWARE IS PROVIDED ``AS IS'' AND WITHOUT ANY EXPRESS OR IMPLIED
+#  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+#  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/makefile.win,v 1.1 1997/08/14 06:59:04 gnguyen Exp $
+
+
+TOOLS32	= c:\msdev
+TOOLS32	= $(MSVCDIR)
+PATH	= $(MSVCDIR);$(PATH);c:\bin
+INCLUDE	= $(MSVCDIR)\include
+!include <win32.mak>
+
+LOCAL_LIB = \usr\local\lib
+LOCAL_SRC = \src
+TK_DIR	= $(LOCAL_SRC)\tk4.2
+TCL_DIR	= $(LOCAL_SRC)\tcl7.6
+OTCL_DIR = ..\otcl
+TCLCL_DIR = ..\tclcl
+GSM_DIR = ..\gsm
+
+LIB_TK	= $(TK_DIR)\win\tk42.lib
+LIB_TCL = $(TCL_DIR)\win\tcl76.lib
+LIB_OTCL = $(OTCL_DIR)\otcl.lib
+LIB_TCLCL = $(TCLCL_DIR)\tclcl.lib
+LIB_GSM  = $(GSM_DIR)\lib\gsm.lib
+
+cc32	= cl
+rc32	= rc
+link32	= link
+MKDEP	= makedep2
+PERL	= perl
+TCLSH	= tclsh76
+TCL2C	= $(TCLCL_DIR)\tcl2c++
+
+CPP	= $(cc32)
+CC	= $(cc32)
+LINK	= $(link32)
+LDFLAGS = -libpath:$(TOOLS32)\lib
+LDOUT	= -out:
+CCOPT	= /Zi /Gm /Gi /YX /Zm400
+
+
+INCLUDE_TK = -I$(TK_DIR)\win -I$(TK_DIR)\generic
+INCLUDE_TCL = -I$(TCL_DIR)\win -I$(TCL_DIR)\generic
+INCLUDE_OTCL = -I$(OTCL_DIR)
+INCLUDE_TCLCL = -I$(TCLCL_DIR)
+INCLUDE_X11 = -I$(TK_DIR)\xlib
+INCLUDE_MISC = -I$(TOOLS32)\include
+
+# don't want system files to be added when making dependencies
+DEPEND_INCS = \
+	$(INCLUDE_TK) $(INCLUDE_TCL) \
+	$(INCLUDE_OTCL) $(INCLUDE_TCLCL) \
+	$(INCLUDE_X11) $(MD_INC) -I./jpeg -I./p64 -I.
+INCLUDES = $(INCLUDE_MISC) $(DEPEND_INCS)
+
+LIBS =	$(LIB_TCLCL) $(LIB_OTCL) $(LIB_TK) $(LIB_TCL) \
+	$(guilibs) wsock32.lib $(conlibs) \
+	$(LIB_GRABBER) $(LIB_GSM)
+#winmm.lib
+
+BFLAGS = -DWIN32 $(DEFINE) $(INCLUDES)
+CFLAGS = $(BFLAGS) $(cdebug) $(cflags) $(cvars) $(CCOPT)
+
+
+.SUFFIXES : .cc
+
+# add -FR$*.sbr if you want browse info
+.cc.o:
+	$(cc32) -c $(CFLAGS) -Fo$@ -Tp $<
+
+.c.o:
+	$(cc32) -c $(CFLAGS) -Fo$@ $<
+
+
+NS_GENDIR	=gen\
+NS_LIBDIR	=lib\
+NS_TCL_LIBDIR	=tcl\lib\
+NS	= ns.exe
+NSX	= nsx.exe

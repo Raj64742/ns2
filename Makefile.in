@@ -17,42 +17,41 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.59 1997/08/14 05:38:10 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.60 1997/08/14 06:59:02 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
 #
 
 # Top level hierarchy
-prefix = @prefix@
+prefix	= @prefix@
 # Pathname of directory to install the binary
-BINDEST = @prefix@/bin
+BINDEST	= @prefix@/bin
 # Pathname of directory to install the man page
-MANDEST = @prefix@/man
+MANDEST	= @prefix@/man
 
-CC = @CC@
-CPP = @CXX@
-CCOPT = @V_CCOPT@
-TCL2C = @V_TCL2CPP@
+CC	= @CC@
+CPP	= @CXX@
+CCOPT	= @V_CCOPT@
 
-MKDEP = ./mkdep
-LIB =  \
-	@V_LIB@ \
-	@V_LIBS@ \
-	@V_LIB_X11@ \
-	-lm @LIBS@
+STATIC	= @V_STATIC@
+DEFINE	= -DNO_TK -Dabort=_ABORT @V_DEFINE@ @V_DEFINES@
+
+TCL2C	= @V_TCL2CPP@
 
 INCLUDES = \
 	-I. @V_INCLUDE_BTCL@ @V_INCLUDE_X11@ \
 	@V_INCLUDES@
 
-DEFINE = -DNO_TK -Dabort=_ABORT @V_DEFINE@ @V_DEFINES@
-STATIC = @V_STATIC@
+LIB	= \
+	@V_LIB@ \
+	@V_LIBS@ \
+	@V_LIB_X11@ \
+	-lm @LIBS@
 
-CFLAGS = $(INCLUDES) $(DEFINE) $(CCOPT)
-
-INSTALL = @INSTALL@
-RANLIB = @V_RANLIB@
+INSTALL	= @INSTALL@
+MKDEP	= ./mkdep
+RANLIB	= @V_RANLIB@
 @V_SHELL@
 
 BLANK	= # make a blank space
@@ -62,6 +61,9 @@ LDOUT	= -o $(BLANK)
 PERL	= perl
 RM	= rm -f
 TCLSH	= tclsh
+
+BFLAGS	= $(INCLUDES) $(DEFINE)
+CFLAGS	= $(INCLUDES) $(DEFINE) $(CCOPT)
 
 # Explicitly define compilation rules since SunOS 4's make doesn't like gcc.
 # Also, gcc does not remove the .o before forking 'as', which can be a
@@ -207,7 +209,7 @@ NS_TCL_LIB = \
 	tcl/session/session.tcl
 
 $(NS_GENDIR)ns_tcl.cc: $(NS_TCL_LIB)
-	( cd $(NS_TCL_LIBDIR); $(TCLSH) ../../tcl-expand.tcl ns-lib.tcl ) \
+	$(TCLSH) tcl-expand.tcl $(NS_TCL_LIBDIR)ns-lib.tcl \
 		| $(TCL2C) et_ns_lib >> $@
 
 $(NS_GENDIR)version.c: VERSION
