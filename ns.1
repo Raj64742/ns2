@@ -1591,6 +1591,12 @@ TCP objects are a subclass of agent objects that implement the
 BSD Tahoe TCP transport protocol as described in [7].  They inherit all 
 of the generic agent functionality.
 .LP
+To trace TCP parameters,
+mark each parameter with
+``$tcp trace window_''
+and then send the output to a trace file
+with ``$tcp attach [open trace.tr w]''.
+.LP
 .HD
 Configuration Parameters \fP
 .RS
