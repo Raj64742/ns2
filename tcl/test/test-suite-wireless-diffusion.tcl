@@ -134,23 +134,6 @@ $ns_ namtrace-all-wireless $namtrace $opt(x) $opt(y)
 set god_ [create-god $opt(nn)]
 }
 
-TestSuite instproc finish {} {
-    $self instvar ns_ god_
-    global quiet
-
-    $ns_ terminate-all-agents 
-    $god_ dump_num_send
-
-    $ns_ flush-trace
-    if { !$quiet } {
-            puts "running nam..."
-            exec nam temp.rands &
-    }
-
-    exit 0
-}
-
-
 
 Test/diff-rate-default instproc init {} {
    global opt
@@ -667,6 +650,28 @@ for {set i 0} {$i < $opt(nn)} {incr i} {
 
 $ns_ run
 }
+
+
+proc finish {} {
+
+    set ns_ [Simulator instance]
+    set god_ [God instance]
+
+    global quiet
+
+    $ns_ terminate-all-agents 
+    $god_ dump_num_send
+
+    $ns_ flush-trace
+    if { !$quiet } {
+            puts "running nam..."
+            exec nam temp.rands &
+    }
+
+    exit 0
+}
+
+
 
 
 proc runtest {arg} {
