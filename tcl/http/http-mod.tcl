@@ -3,6 +3,8 @@
 # phuang@research.att.com, huang@isi.edu
 # Ported from UCB Empirical HTTP code, http.tcl
 
+puts "WARNING: Obsoleted by PagePool/WebTraf."
+puts "See ~ns/tcl/webcache/webtraf.{h,cc} and web-traffic.tcl in tcl/ex"
 
 ##################### Class: HttpSession #######################
 Agent/CBR set maxpkts_ 0
