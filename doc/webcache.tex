@@ -21,17 +21,18 @@ can be implemented via agent upcalls. Assuming we are using TCP agents,
 all data are delivered in sequence, which means we can view the TCP 
 connection as a FIFO pipe. Because ns doesn't support actual data passing, 
 we have to emulate that behavior. First, we need to provide buffer 
-for application data at the sender. Then we count the bytes receives at the 
-receiver. When the receiver has got all bytes of current data transmission,
-it then get the data directly from the sender. Class Application/TcpApp is 
+for application data at the sender. Then we count the bytes received at the 
+receiver. When the receiver has got all bytes of the current data transmission,
+it then gets the data directly from the sender. Class Application/TcpApp is 
 used to implement this functionality.
 
-An TcpApp object contains a pointer to a transport agent, presumably either
-a FullTcp or a SimpleTcp. 
+A TcpApp object contains a pointer to a transport agent, presumably either
+a FullTcp or a SimpleTcp.
 \footnote{A SimpleTcp agent is used solely for web caching simulations. It 
 is actually an UDP agent. It has neither error recovery nor flow/congestion
-control. It doesn't do packet segmentation. Assuming loss-free and all
-packets are delivered in order, SimpleTcp agent simplifies the trace files 
+control. It doesn't do packet segmentation. Assuming a loss-free network 
+and in-order packet delivery,
+SimpleTcp agent simplifies the trace files 
 and hence aids the debugging of application protocols, which, in our case, 
 is the web cache consistency protocol.}
 (Currently TcpApp doesn't support asymmetric TCP agents, i.e., sender is
@@ -43,7 +44,7 @@ separated from receiver). It provides the following OTcl interfaces:
   needed, and data can be sent in either direction. 
 \item \code{send}: It takes two arguments: \code{(nbytes, str)}.
   \code{nbytes} is the ``nominal'' size of application data. \code{str} 
-p  is application data in string form.
+  is application data in string form.
 \end{itemize}
 
 In order to send application data in binary form, TcpApp provides a 
@@ -89,7 +90,7 @@ be receiver:
         $ns at 1.0 "$app1 send 100 \bs"$app2 app-recv 100\bs""
 \end{program} %$
 
-Where \code{recv} is defined as:
+Where \code{app-recv} is defined as:
 
 \begin{program}
         Application/TcpApp instproc app-recv { size } {
