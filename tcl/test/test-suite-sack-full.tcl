@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.9 2001/08/24 15:07:01 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack-full.tcl,v 1.10 2001/08/24 16:54:04 kfall Exp $
 #
 
 source misc_simple.tcl
@@ -56,8 +56,10 @@ TestSuite instproc finish file {
 	set wrap 90
 	set wrap1 [expr $wrap * 512 + 40]
 	set space 512
-	set scale 0.005
+	set scale 0.01
 	if { $style == "tcpf2xgr" } {
+		set scale [expr $scale * (1.0 / 576.0)]
+		set space 1
 		set outtype "xgraph"
 		set tfile "xxx.tr"
 		if { $quiet != "true" } {
@@ -71,7 +73,6 @@ TestSuite instproc finish file {
 			# tcpf2xgr runs xgraph for us
 		}
  	} elseif { $style == "raw2xg" } {
-		set space 512
 		exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
 		   $PERL ../../bin/raw2xg -c -n $space -s 0.01 -m $wrap1 -t $file \
 		   > temp.rands
