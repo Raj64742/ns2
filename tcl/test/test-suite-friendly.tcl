@@ -30,14 +30,15 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.13 1999/09/18 00:06:54 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.14 1999/10/04 18:44:11 sfloyd Exp $
 #
 
-# UNDER CONSTRUCTION!!
-
 source misc_simple.tcl
-Agent/TFRC set df_ 0.5 
+Agent/TFRC set df_ 0.5
 Agent/TCP set window_ 100
+# Uncomment the line below to use a random seed for the
+#  random number generator.
+# ns-random 0
 
 TestSuite instproc finish file {
         global quiet PERL
@@ -224,6 +225,7 @@ Test/slowStart instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	slowStart
+    ##
     $self next
 }
 Test/slowStart instproc run {} {
@@ -231,7 +233,7 @@ Test/slowStart instproc run {} {
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
     set interval_ 0.1
-    set stopTime 25.0
+    set stopTime 40.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
 
@@ -243,10 +245,10 @@ Test/slowStart instproc run {} {
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $ns_ at 0.0 "$tf1 start"
-    $ns_ at 20 "$tf1 stop"
+    $ns_ at 30 "$tf1 stop"
     set tf2 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 1]
     $ns_ at 16 "$tf2 start"
-    $ns_ at 25 "$tf2 stop"
+    $ns_ at $stopTime "$tf2 stop"
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
     $self tfccDump 2 $tf2 $interval_ $dumpfile_
@@ -274,7 +276,7 @@ Test/slowStartTcp instproc run {} {
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
     set interval_ 0.1
-    set stopTime 25.0
+    set stopTime 40.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
 
@@ -287,11 +289,11 @@ Test/slowStartTcp instproc run {} {
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
     set ftp1 [$tcp1 attach-app FTP]
     $ns_ at 0.0 "$ftp1 start"
-    $ns_ at 20 "$ftp1 stop"
+    $ns_ at 30 "$ftp1 stop"
     set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 1]
     set ftp2 [$tcp2 attach-app FTP]
     $ns_ at 16 "$ftp2 start"
-    $ns_ at 25 "$ftp2 stop"
+    $ns_ at $stopTime "$ftp2 stop"
 
     $self tfccDump 1 $tcp1 $interval_ $dumpfile_
     $self tfccDump 2 $tcp2 $interval_ $dumpfile_
@@ -319,7 +321,7 @@ Test/impulse instproc run {} {
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
     set interval_ 0.1
-    set stopTime 20.0
+    set stopTime 40.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
 
@@ -331,10 +333,10 @@ Test/impulse instproc run {} {
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $ns_ at 0.0 "$tf1 start"
-    $ns_ at 20 "$tf1 stop"
+    $ns_ at $stopTime "$tf1 stop"
     set tf2 [$ns_ create-connection TFRC $node_(s2) TFRCSink $node_(s4) 1]
     $ns_ at 10.0 "$tf2 start"
-    $ns_ at 12.0 "$tf2 stop"
+    $ns_ at 20.0 "$tf2 stop"
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
     $self tfccDump 2 $tf2 $interval_ $dumpfile_
@@ -364,7 +366,7 @@ Test/impulseMultReport instproc run {} {
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
     set interval_ 0.1
-    set stopTime 20.0
+    set stopTime 40.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
 
@@ -376,10 +378,9 @@ Test/impulseMultReport instproc run {} {
 
     set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
     $ns_ at 0.0 "$tf1 start"
-    $ns_ at 20 "$tf1 stop"
     set tf2 [$ns_ create-connection TFRC $node_(s2) TFRCSink $node_(s4) 1]
     $ns_ at 10.0 "$tf2 start"
-    $ns_ at 12.0 "$tf2 stop"
+    $ns_ at 20.0 "$tf2 stop"
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
     $self tfccDump 2 $tf2 $interval_ $dumpfile_
@@ -407,7 +408,7 @@ Test/impulseTcp instproc run {} {
     $self instvar ns_ node_ testName_ interval_ dumpfile_
     $self setTopo
     set interval_ 0.1
-    set stopTime 20.0
+    set stopTime 40.0
     set stopTime0 [expr $stopTime - 0.001]
     set stopTime2 [expr $stopTime + 0.001]
 
@@ -420,10 +421,9 @@ Test/impulseTcp instproc run {} {
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
     set ftp1 [$tcp1 attach-app FTP]
     $ns_ at 0.0 "$ftp1 start"
-    $ns_ at 20 "$ftp1 stop"
     set tf2 [$ns_ create-connection TFRC $node_(s2) TFRCSink $node_(s4) 1]
     $ns_ at 10.0 "$tf2 start"
-    $ns_ at 12.0 "$tf2 stop"
+    $ns_ at 20.0 "$tf2 stop"
 
     $self tfccDump 1 $tcp1 $interval_ $dumpfile_
     $self tfccDump 2 $tf2 $interval_ $dumpfile_
