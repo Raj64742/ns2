@@ -1,4 +1,5 @@
-// -*-c++-*-
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
+/*
 // Copyright (c) 1997 Regents of the University of California.
 // All rights reserved.
 //
@@ -30,13 +31,12 @@
 // LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
 // OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 // SUCH DAMAGE.
-//
+*/
 
-
-// #ifndef lint
-// static const char rcsid[] =
-//     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.7 1997/12/08 00:47:18 heideman Exp $ (LBL)";
-// #endif
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.8 1998/06/25 23:29:33 gnguyen Exp $ (LBL)";
+#endif
 
 /* new random number generator */
 
@@ -49,7 +49,7 @@
 #define rng_test
 
 #include <math.h>
-#include <stdlib.h>   // for atoi
+#include <stdlib.h>			// for atoi
 
 #include "tclcl.h"
 
@@ -63,7 +63,7 @@ public:
 	};
 	void set_seed(long seed) { seed_ = seed; }
 	long seed() { return seed_; }
-	long next();  		// return the next one
+	long next();			// return the next one
 	double next_double();	 
 private:
 	long seed_;
@@ -100,18 +100,18 @@ public:
 	inline double uniform() {return uniform_double();}
 
 	// these are probably what you want to use
-	inline int uniform(int k)
-	        { return (uniform_positive_int() % (unsigned)k); }
+	inline int uniform(int k) 
+		{ return (uniform_positive_int() % (unsigned)k); }
 	inline double uniform(double r) 
-	        { return (r * uniform());}
+		{ return (r * uniform());}
 	inline double uniform(double a, double b)
-	        { return (a + uniform(b - a)); }
+		{ return (a + uniform(b - a)); }
 	inline double exponential()
-	        { return (-log(uniform())); }
+		{ return (-log(uniform())); }
 	inline double exponential(double r)
-	        { return (r * exponential());}
+		{ return (r * exponential());}
 	inline double pareto(double scale, double shape)
-	        { return (scale * (1.0/pow(uniform(), 1.0/shape)));}
+		{ return (scale * (1.0/pow(uniform(), 1.0/shape)));}
 
 protected:   // need to be public?
 	RNGImplementation stream_;

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.10 1998/05/20 22:06:37 sfloyd Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.11 1998/06/25 23:29:36 gnguyen Exp $
  */
 
 /*
@@ -44,7 +45,7 @@
 #include "packet.h"
 
 struct hdr_flags {
-	unsigned char ecn_;          /* transport receiver notifying
+	unsigned char ecn_;	     /* transport receiver notifying
 				      *  transport sender of ECN 
 				      *  (the ECN Echo bit) */
 	unsigned char ecn_to_echo_;  /* ecn to be echoed back in the

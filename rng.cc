@@ -1,4 +1,4 @@
-
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.10 1998/02/05 21:00:43 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.11 1998/06/25 23:29:34 gnguyen Exp $ (LBL)";
 #endif
 
 /* new random number generator */

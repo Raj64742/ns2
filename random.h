@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1995 Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.10 1998/01/27 18:49:01 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.11 1998/06/25 23:29:30 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_random_h
@@ -56,7 +57,7 @@ public:
 	static double uniform(double a, double b) { return rng()->uniform(a,b); }
 	static double exponential() { return rng()->exponential(); }
 	static int integer(int k) { return rng()->uniform(k); }
-        static double exponential(double r) { return rng()->exponential(r); }
+	static double exponential(double r) { return rng()->exponential(r); }
 	static double pareto(double scale, double shape) { return rng()->pareto(scale, shape); }
 };
 
