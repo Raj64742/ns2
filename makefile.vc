@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.23 1999/09/10 22:32:29 haoboy Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.24 1999/09/24 23:59:57 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -130,6 +130,7 @@ OBJ_CC = \
 	$(LIB_DIR)dmalloc_support.o \
 	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
 	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o \
+	webcache/mcache.o webcache/webtraf.o \
 	lanRouter.o filter.o pkt-counter.o \
 	Decapsulator.o Encapsulator.o \
 	channel.o mac.o ll.o \
@@ -154,7 +155,7 @@ OBJ_CC = \
 	sathandoff.o satlink.o satnode.o satposition.o satroute.o sattrace.o\
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
-	webcache/mcache.o tfrc.o tfrc-sink.o energy-model.o
+	tfrc.o tfrc-sink.o energy-model.o
 
 # don't allow comments to follow continuation lines
 
@@ -168,20 +169,6 @@ OBJ_C =
 
 OBJ_COMPAT = $(OBJ_GETOPT) win32.o
 #XXX compat/win32x.o compat/tkConsole.o
-
-OBJ_NAM = \
-	nam/animation.o \
-	nam/nam-drop.o \
-	nam/nam-edge.o \
-	nam/nam-node.o \
-	nam/nam-packet.o \
-	nam/nam-queue.o \
-	nam/nam-trace.o \
-	nam/paint.o \
-	nam/state.o \
-	nam/transform.o \
-	nam/netview.o \
-	nam/netmodel.o
 
 OBJ_EMULATE_CC = \
 	emulate/net-ip.o \
@@ -200,13 +187,13 @@ OBJ_EMULATE_C = \
 
 OBJ_GEN = $(GEN_DIR)version.o $(GEN_DIR)ns_tcl.o $(GEN_DIR)ptypes.o
 
-SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
+SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) \
 	$(OBJ_EMULATE_C:.o=.c) $(OBJ_EMULATE_CC:.o=.cc) \
 	tclAppInit.cc tkAppInit.cc
 
 OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 
-CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) $(OBJ_EMULATE_CC) \
+CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) tclAppInit.o \
 	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE) \
 	ptypes2tcl.exe ptypes2tcl.o
@@ -219,10 +206,6 @@ $(NSE): $(OBJ) tclAppInit.o $(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
 		tclAppInit.o $(OBJ) \
 		$(OBJ_EMULATE_CC) $(OBJ_EMULATE_C)  $(LIB) -lpcap
-
-$(NSX): $(OBJ) tkAppInit.o $(OBJ_NAM)
-	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
-		tkAppInit.o $(OBJ) $(OBJ_NAM) $(LIB)
 
 ns.dyn: $(OBJ) tclAppInit.o
 	$(LINK) $(LDFLAGS) -o $@ \
@@ -286,7 +269,8 @@ NS_TCL_LIB = \
 	tcl/webcache/http-agent.tcl \
 	tcl/webcache/http-server.tcl \
 	tcl/webcache/http-cache.tcl \
-	tcl/webcache/http-mcache.tcl
+	tcl/webcache/http-mcache.tcl \
+	tcl/webcache/webtraf.tcl
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 	-mkdir $(GEN_DIR:\\=)
