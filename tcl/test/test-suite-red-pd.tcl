@@ -38,7 +38,12 @@ source misc_simple.tcl
 catch "cd $dir"
 Queue/RED set gentle_ true
 
-source ../red-pd/monitoring.tcl
+source ../ex/red-pd/monitoring.tcl
+set target_rtt_ 0.040
+set testIdent_ 0
+set verbosity_ -1
+set listMode_ multi
+set unresponsive_test_ 1
 source ../red-pd/helper.tcl
 
 set flowfile fairflow.tr; # file where flow data is written
