@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.11 1997/05/20 23:32:15 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.12 1997/05/22 01:57:38 tomh Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -58,6 +58,7 @@ public:
 	void update(int seqno);
 	inline int Seqno() const { return (next_ - 1); }
 	virtual void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
+	void reset();
 protected:
 	int next_;		/* next packet expected  */
 	int maxseen_;		/* max packet number seen */
@@ -68,6 +69,7 @@ class TcpSink : public Agent {
 public:
 	TcpSink(Acker*);
 	void recv(Packet* pkt, Handler*);
+	void reset();
 protected:
 	void ack(Packet*);
 	Acker* acker_;
@@ -86,6 +88,13 @@ Acker::Acker() : next_(0), maxseen_(0)
 {
 	memset(seen_, 0, sizeof(seen_));
 }
+
+void Acker::reset() 
+{
+	next_ = 0;
+	maxseen_ = 0;
+	memset(seen_, 0, sizeof(seen_));
+}	
 
 void Acker::update(int seq)
 {
@@ -124,6 +133,11 @@ TcpSink::TcpSink(Acker* acker) : Agent(PT_ACK), acker_(acker)
 
 void Acker::append_ack(hdr_cmn*, hdr_tcp*, int) const
 {
+}
+
+void TcpSink::reset() 
+{
+	acker_->reset();	
 }
 
 void TcpSink::ack(Packet* opkt)
@@ -284,6 +298,7 @@ public:
 	void bind(TclObject* o) {
 		o->bind("maxSackBlocks_", &max_sack_blocks_);
 	}
+	void reset();
 protected:
         int max_sack_blocks_;
 	SackStack *sf_;
@@ -317,6 +332,12 @@ Sacker::Sacker()
 
 	/*XXX what's the point of binding if this can change?*/
 	sf_ = new SackStack(max_sack_blocks_);
+}
+
+void Sacker::reset() 
+{
+	sf_->reset();
+	Acker::reset();
 }
 
 Sacker::~Sacker()
