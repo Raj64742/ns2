@@ -5,7 +5,6 @@ set packetsize 1500
 
 # stats: total good packets received by sources.
 # knob: arrival rate of CBR flow 
-
 proc create_flowstats { redlink stoptime } {
     global ns r1 r2 r1fm flowfile
     
@@ -14,7 +13,7 @@ proc create_flowstats { redlink stoptime } {
     set flowdesc [open $flowfile w]
     $r1fm attach $flowdesc
     attach-fmon $redlink $r1fm
-    $ns at $stoptime "$r1fm dump"
+    $ns at $stoptime "$r1fm dump; close $flowdesc"
 }
 
 
@@ -29,22 +28,32 @@ proc create_flowstats { redlink stoptime } {
 proc finish_flowstats { infile outfile } {
     set awkCode {
 	BEGIN {
-	    arrivals=0; drops=0;
+	    arrivals=0;
+	    drops=0;
+	    prev=-1;
 	}
 	{
-	    if ($2 != prev) {
-		printf "class %d arriving_pkts %d dropped_pkts %d\n", $2, arivals, drops;
+	    if (prev == -1) {
+		arrivals += $8;
+                drops += $18;
 		prev = $2;
-		arrivals = 0;
-		drops = 0;
+	    }
+	    else if ($2 == prev) {
+                arrivals += $8;
+                drops += $18;
 	    }
 	    else {
-		arrivals += $8;
-		drops += $18-$10;
-	    }
+                printf "class %d arriving_pkts %d dropped_pkts %d\n", prev, arrivals, drops;
+                prev = $2;
+                arrivals = $8;
+                drops = $18;
+            }
+ 	}
+	END {
+	    printf "class %d arriving_pkts %d dropped_pkts %d\n", prev, arrivals, drops;
 	}
-	exec awk $awkCode $infile >@ $outfile
     }
+    exec awk $awkCode $infile >@ $outfile
 }
 
 proc printTcpPkts { tcp class file } {
@@ -127,16 +136,25 @@ proc create_testnet5 { queuetype bandwidth } {
     $ns simplex-link $r2 $r1 1.5Mb 3ms DropTail
     set redlink [$ns link $r1 $r2]
     [[$ns link $r2 $r1] queue] set limit_ 100
+    [[$ns link $r1 $r2] queue] set limit_ 100
     $ns duplex-link $s3 $r2 10Mb 10ms DropTail
     $ns duplex-link $s4 $r2 $bandwidth 5ms DropTail
     return $redlink
 }
 
+proc finish_ns {f} {
+    global ns
+    $ns instvar scheduler_
+    $scheduler_ halt
+    close $f
+    puts "simulation complete"
+}
+
 proc test_simple { interval bandwidth datafile } {
     global ns s1 s2 r1 r2 s3 s4 flowfile packetsize
     set testname simple
-    set stoptime 100.1
-    set printtime 100.0
+    set stoptime 10.1
+    set printtime 10.0
     set queuetype RED
     
     set ns [new Simulator]
@@ -147,21 +165,16 @@ proc test_simple { interval bandwidth datafile } {
     }
     create_flowstats $redlink $printtime
     set f [open $datafile w]
-   
-    $ns at $stoptime "finish_flowstats $flowfile $f"
+    
     $ns at $stoptime "printstop $printtime $f"
     new_tcp 0.0 $s1 $s3 100 1 1 $packetsize $f $printtime
     new_tcp 0.0 $s1 $s3 100 1 1 $packetsize $f $printtime
     new_tcp 0.0 $s1 $s3 100 1 1 $packetsize $f $printtime
     new_cbr 1.4 $s2 $s4 100 0 1 $interval $f $printtime
-    $ns at $stoptime "close $f"
-    $ns at $stoptime "exit 0"
-    
-#    puts seed=[$ns ns-random 0]
+    $ns at $stoptime "finish_flowstats $flowfile $f"
+    $ns at $stoptime "finish_ns $f"
+    puts seed=[ns-random 0]
     $ns run
-    $ns instvar scheduler_
-    $scheduler_ halt
-    puts "simulation complete"
 }
 
 #
