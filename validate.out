@@ -8,6 +8,11 @@
 ### including the updated version of TclCl.
 ### gcc version 2.7.2.1, tcl7.6, tk4.2, otcl-0.96.
 ###
+### "Validate" ran correctly for Kevin Fall with this output,
+### on pig.ee.lbl.gov, after an update Tue evening, Jan 28, PST 1998,
+### including the updated version of TclCl.
+### gcc version 2.7.2.1, tcl8.0p1, tk8.0p1, otcl-0.96.
+###
 ##################################################################
 *** ./test-all
 tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
