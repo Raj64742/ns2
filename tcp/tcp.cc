@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.54 1998/04/21 02:35:24 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.55 1998/04/21 17:02:26 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -180,8 +180,8 @@ TcpAgent::trace(TracedVar* v)
 //
 // in 1-way TCP, syn_ indicates we are modeling
 // a SYN exchange at the beginning.  If this is true
-// and we are delaying growth, then use the wnd_init
-// value.  If not, we do whatever initial_window()
+// and we are delaying growth, then use an initial
+// window of one.  If not, we do whatever initial_window()
 // says to do.
 //
 
@@ -189,7 +189,7 @@ void
 TcpAgent::set_initial_window()
 {
 	if (syn_ && delay_growth_)
-		cwnd_ = wnd_init_;
+		cwnd_ = 1.0; 
 	else
 		cwnd_ = initial_window();
 }
