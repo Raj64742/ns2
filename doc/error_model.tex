@@ -132,23 +132,30 @@ error module into three different places.
   placeholder for possible future extensions. 
 \end{itemize}
 
-To use an error model over wireless networks, each node need to add
-the error model in its protocol stack depicted in
-Figure \ref{fig:mobilenode-dsr}. Precisely, the instanciated error
-model would be stuck between mac and the netif modules. Since it is
-pointed by the downtarget\_ of the mac module, it only implants
-wireless errors into outgoing packets, not incoming packets.
+To add an error model over wireless networks, each node can insert 
+a given statistical error model either over outgoing or incoming wireless channels.
+Precisely, the instanciated error model would be stuck between mac and netif modules 
+depicted in Figure \ref{fig:mobilenode-dsr}. For the outgoing link, the error module
+would be pointed by downtarget\_ of the above mac module while for the incoming link 
+it would be linked by uptaget\_ pointer of the below netif module. And in each case 
+the target\_ of the error module points to either the netif or the mac respectively.  
+The difference of placing over the two different locations is that the outgoing causes
+all the receivers to receive the packet suffering the same degree of errors since the error is
+determined before wireless channel module copies the packet. On the other
+hand, the incoming error module lets each receiver get the packet corrupted with different
+degree of error since the error is independently computed in each error module.
 
 The insertion into the wireless protocol stack can be done by calling
-node-config command explained in section \ref{sec:newnode-API} with
-the option errProc. The argument of the errProc option would be the
+node-config command explained in Section~\ref{sec:nodeconfig} with
+the two options IncomingErrrProc and OutgoingErrProc. We can use these two options 
+at the same time or each one separately.  The argument of the two option is the
 name of the global procedure which creates an error model object,
 feeds it with necessary initial values appropriate for the new error
 module, and finally returns the object pointer. The following shows a
 simple TCL example script to add an error module into the wireless
 protocol stack.
 \begin{program}
-	$ns node-config -errProc UnifomErr
+	$ns node-config -IncomingErrProc UniformErr -OutgoingErrProc UniformErr
 
 	proc UniformErr {} {
 		set err [new ErrorModel]
