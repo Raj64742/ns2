@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.142 1999/01/22 02:37:17 heideman Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.143 1999/01/26 23:13:24 polly Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -190,7 +190,8 @@ OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) tclAppInit.o \
-	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE)
+	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE) \
+	ptypes2tcl ptypes2tcl.o
 
 $(NS): $(OBJ) tclAppInit.o Makefile
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
