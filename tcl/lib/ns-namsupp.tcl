@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.16 1998/08/22 02:41:32 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.17 1998/10/02 19:25:26 yuriy Exp $
 #
 
 #
@@ -381,25 +381,15 @@ Simulator instproc dump-namcolors {} {
 }
 
 Simulator instproc dump-namlans {} {
-	#$self instvar lanConfigList_
 	if ![$self is-started] {
 		return
 	}
-#
-#	if [info exists lanConfigList_] {
-#		foreach lan $lanConfigList_ {
-#			$lan dump-namconfig
-#		}
-#		unset lanConfigList_
-#	}
-
-	#dump based on the Berkeley LAN model
-
-	$self instvar LanLinks_
-	foreach nn [array names LanLinks_] {
-	    $LanLinks_($nn) dump-namconfig
+	$self instvar Node_
+	foreach nn [array names Node_] {
+		if [$Node_($nn) is-lan?] {
+			$Node_($nn) dump-namconfig
+		}
 	}
-
 }
 
 Simulator instproc dump-namlinks {} {
@@ -421,7 +411,9 @@ Simulator instproc dump-namnodes {} {
 		return
 	}
 	foreach nn [array names Node_] {
-		$Node_($nn) dump-namconfig
+		if ![$Node_($nn) is-lan?] {
+			$Node_($nn) dump-namconfig
+		}
 	}
 }
 
