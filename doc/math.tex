@@ -2,6 +2,7 @@
 % personal commentary:
 %        DRAFT DRAFT DRAFT
 %        - KFALL
+% RNG section reviewed and revised 11-Sep-98, johnh.
 %
 \chapter{Mathematical Support}
 \label{chap:math}
@@ -12,6 +13,7 @@ This area of the simulator is currently undergoing some
 changes.
 
 The procedures and functions described in this chapter can be found in
+\nsf{rng.\{cc, h\}},
 \nsf{random.\{cc, h\}},
 \nsf{ranvar.\{cc, h\}},
 \nsf{pareto.\{cc, h\}},
@@ -24,7 +26,7 @@ The procedures and functions described in this chapter can be found in
 
 The \code{RNG} class contains an implementation of the minimal standard
 multiplicative linear congruential generator of
-Park \etal~\cite{Park88:Random}.
+Park and Miller~\cite{Park88:Random}.
 
 Multiple instances of the RNG class can be created to allow a
 simulation to draw random numbers from independent random number
@@ -35,9 +37,8 @@ on random processes may choose to base the traffic generation on one
 random number stream and the dropping algorithms on another stream.
 However, when using multiple RNG objects in a simulation care should
 be taken to insure that they are seeded in such a way as to guarantee
-that they produce independent streams of random numbers.  Features
-will be added in the future to help seed multiple random number
-generators properly.
+that they produce independent, high-quality streams of random numbers.
+We describe approaches to seed the RNG below.
 
 Most users will be satisfied with a single instance of the RNG.
 Hence, a default RNG, created at simulator initialization time, is
@@ -92,8 +93,10 @@ generation:
                        uniformly distributed on $[0, (k-1)]$ \\
 \end{tabularx}
 
-The \code{Random} class can be used to construct randomized algorithms,
-as in this code fragment from RED:
+The \code{Random} class (in random.h) is an older interface to the standard
+random number stream.
+
+Here's a sample use of RNG modeled on RED.  rng\_ is an instance of class RNG:
 \begin{program}
         \ldots
         // {\cf drop probability is computed, pick random number and act}
@@ -107,29 +110,32 @@ as in this code fragment from RED:
         \}
         \ldots
 \end{program}
-The set of random numbers produced by an RNG object depends on its
-initial seed.  The initial seed can be set with the \fcn[]{set\_seed} method
-which takes 2 parameters, where the second
-defaults to 1.  The first parameter, an enumerated type,
-determines how
-the seed is generated and the second is a seed value.  There are 3
-values of this enumerated type used determine the initial seed value:
 
-\begin{tabularx}{\linewidth}{rX}
-RAW\_SEED\_SOURCE &  the value contained in the second parameter is used
-                        as the seed.\\
-PREDEF\_SEED\_SOURCE &  the value contained in the second parameter is
-        used as the index into an array of predefined seed values.  These
-        values have been precomputed and provide independent streams of random
-        numbers.  There are currently 64 such seeds.\\
-HEURISTIC\_SEED\_SOURCE  & use a heuristic to generate the seed.
-        The second argument is ignored if provided.\\
-\end{tabularx}
+\paragraph{Seeding the random number generator}
+When doing simulations often you will either want to get absolutely
+repeatable (deterministic) results or different results each time.
+Each approach requires a different seeding method.
 
-The heuristic seeding method
-attempts to pick some sort of non-recurring seed values (resulting
-in different random numbers from run to run).  The heuristic implementation
-is contained in the file \code{rng.cc}.
+To get deterministic behavior, invoke the \fcn[]{set\_seed} method
+with the first parameter either RAW\_SEED\_SOURCE or
+PREDEF\_SEED\_SOURCE.  With a raw seed, the second parameter specifies
+the numeric seed that will be used (any integer).  The alternative is
+predefined seeds, where the second selects seeds from a table of 64
+known good seeds (which happen to be about 33 million steps apart in
+the default random number generation stream).
+Predefined seeds are know to provide a good random number stream,
+but there are limited numbers of them.
+Raw seeds may
+not provide a statistically good random number stream but are easy to generate.
+
+To get non-deterministic behavior, pick a seed with either 
+RAW\_SEED\_SOURCE or HEURISTIC\_SEED\_SOURCE.
+For raw streams the second argument specifies the stream.
+For heuristic streams the second argument is ignored and a seed is generated
+based on the current time of day and a counter.
+Both have the caveat that they may not provide a
+statistically good random number stream.
+It is very unlikely that any two heuristic seeds will be identical.
 
 \paragraph{OTcl support}
 The RNG class can be accessed from OTcl.  For example, a new RNG is
@@ -145,12 +151,14 @@ $rng integer k \; return an integer uniformly distributed on [0, (k-1)];
 $rng exponential \; return a number from an exponential distribution with average 1.;
 \end{program}
 
+Currently there is no way to select predefined seeds from OTcl.
+
 \section{Random Variables}
 \label{sec:ranvar}
 
 The \clsref{RandomVariable}{../ns-2/ranvar.h}
 provides a thin layer of functionality on top
-of the base random number generator that implements random variates.
+of the base random number generator and the default random number stream.
 It is defined in \nsf{ranvar.h}:
 
 \begin{program}
@@ -267,3 +275,9 @@ C++ member \code{newPoint} or the OTcl member \code{newpoint}.
 The use of integrals to compute certain types of averages
 (e.g. mean queue lengths) is given in (pp. 429--430, \cite{Jain91:Art}).
 
+% LocalWords:  ranvar pareto expoo tcl lib ns cc integrator RNG rng TclObject
+% LocalWords:  enum RNGSources PREDEF int MAXINT rX edv prob edp setbit iph ECN
+% LocalWords:  ip ecn eed OURCE OTcl RandomVariable argc const argv min avg val
+% LocalWords:  UniformRandomVariable ExponentialRandomVariable cov newPoint pp
+% LocalWords:  ParetoRandomVariable ConstantRandomVariable lastx lasty strcmp
+% LocalWords:  HyperExponentialRandomVariable newpoint atof QueueMonitor
