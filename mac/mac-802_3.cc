@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.12 2001/05/30 19:07:52 alefiyah Exp $
+   $Id: mac-802_3.cc,v 1.13 2002/01/18 00:48:24 haldar Exp $
    */
 #include <packet.h>
 #include <random.h>
@@ -16,7 +16,7 @@
    static double xtime= 0.0;
 #  define FPRINTF(s, f, t, index, func) \
          do { fprintf(s, f, t, index, func); xtime= t; } while (0)
-#endif MAC_DEBUG
+#endif //MAC_DEBUG
 
 
 inline void MacHandler::cancel() {
