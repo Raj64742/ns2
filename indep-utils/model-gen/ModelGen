@@ -1,0 +1,73 @@
+#! /bin/sh
+
+#!/usr/bin/tclsh
+
+#
+# Copyright (C) 2001 by USC/ISI
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+#
+# ModelGen is a set of scripts that take tcpdump trace as input and
+# output a set of CDF files that model Web traffic. It also outputs
+# a time series of traffic size (in 1ms block) for further wavelet 
+# scaling analysis
+#
+# This work is supported by DARPA through SAMAN Project
+# (http://www.isi.edu/saman/), administered by the Space and Naval
+# Warfare System Center San Diego under Contract No. N66001-00-C-8066
+#
+
+echo "parsing tcpdump file"
+date
+./tcpdump -n -tt -r $1 tcp port 80 > $1.www
+./tcpdump -n -tt -r $1 tcp src port 80 > $1.http-srv
+
+echo "run http_connect"
+date
+sort -s -o $1.http-srv-sort +1 -2 +3 -4 +0 -1 -T /tmp $1.http-srv
+http_connect -r $1.http-srv -w $1.http-srv.connect
+
+grep "ACT" $1.http-srv.connect > $1.http-srv.connect.time
+sort $1.http-srv.connect.time > $1.http-srv.connect.time.sort
+
+echo "run http_active"
+date
+sort -s -o $1.http-srv.connect.sort +1 -2 +0 -1 -T /tmp $1.http-srv.connect
+http_active -r $1.http-srv.connect.sort -w $1.http-srv.active -I $2
+
+echo "Compute delay for each SYN triplet"
+echo "sorting by connection"
+date
+./delay.tcl $1.www > $1.sync
+sort -s -o $1.sync.sorted -T /tmp $1.sync
+
+echo "compute delay for each SYN connection pair"
+date
+pair.tcl $1.sync.sorted >  $1.sync.delay
+sort -s -o $1.sync.delay.sorted -T /tmp $1.sync.delay
+awk -f delay.awk < $1.sync.delay.sorted > delay.dat
+
+echo "Finish computing delay"
+echo "compute CDF statistics"
+date
+outputCDF $1.http-srv.active.activity
+
+echo "compute time series (1ms block)"
+date
+bw.tcl $1.http-srv
+cat $1.http-srv.bw | time-series.pl > $1.time-series
+
+echo "execution complete"
+date
