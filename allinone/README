@@ -29,7 +29,7 @@ Currently the package contains:
 
 Features in this version include:
  
-- Self-containing: All installation will be kept in a directory to help
+- Self-contained:  All installation will be kept in a directory to help
 		   the user manange and use the package. The execution of ns
 		   ns or nam does not need any ther support outside
 		   this directory
@@ -39,7 +39,7 @@ Features in this version include:
                    TclDebug does not work with the recent versions of
                    Tcl/Tk.
 
-- Easy to use :    Only one-line command is needed to build all ns
+- Easy to Install: Only one-line command is needed to build all ns
 		   components
 
 
@@ -50,11 +50,32 @@ All you need to do is type "./install" under this directory. The install
 script will compile and install the whole package for you. The script also
 will tell you the final installation result.
 
+2.1. Known problems
+---------------------
 - Apply geog.patch to gt-itm/src/geog.c if you experience compilation
   problems.  
 
 - Apply tclPosixStr.patch to tcl8.0.4/generic/tclPosixStr.c under
   RedHat Linux. 
+
+The allinone package should install without error on most versions of
+Unix.  If you have problems, see:
+
+INSTALLATION PROBLEMS AND BUG FIXES:
+	<http://www-mash.cs.berkeley.edu/ns/ns-problems.html>
+
+to build it from parts (if allinone fails):
+DOWNLOADING AND BUILDING NS:
+	<http://www-mash.cs.berkeley.edu/ns/ns-build.html>
+
+DOCUMENTATION:
+	<http://www-mash.cs.berkeley.edu/ns/>
+	(includes notes about the limitations of model, debugging tips,
+	and a >50 page design overview/tutorial)
+
+LATEST INFORMATION:
+	<http://www-mash.cs.berkeley.edu/ns/>
+
 
 3. More information
 --------------------
