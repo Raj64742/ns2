@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.71 1999/03/13 03:53:04 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.72 1999/05/26 01:26:12 haoboy Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1262,6 +1262,7 @@ trimthenstep6:
 		if (tiflags & TH_SYN) {
 			tiflags &= ~TH_SYN;
 			tcph->seqno()++;
+			th->size()--;	// XXX Must decrease packet size too!!
 			todrop--;
 		}
 		//
@@ -1290,6 +1291,7 @@ trimthenstep6:
 			dupseg = TRUE;
 		}
 		tcph->seqno() += todrop;
+		th->size() -= todrop;	// XXX Must decrease size too!!
 		datalen -= todrop;
 	}
 
@@ -2120,7 +2122,7 @@ int ReassemblyQueue::add(Packet* pkt)
  */
 int ReassemblyQueue::add(int start, int end, int tiflags)
 {
-	seginfo *q, *p, *n;
+	seginfo *q, *p, *n, *r;
 
 	double now = Scheduler::instance().clock();
 
@@ -2139,7 +2141,7 @@ int ReassemblyQueue::add(int start, int end, int tiflags)
 			goto endfast;
 		}
 
-		// look for the segment after this one
+		// Look for the first segment AFTER this one
 		for (q = head_; q && (end > q->startseq_); q = q->next_)
 			;
 		// set p to the segment before this one
@@ -2148,6 +2150,8 @@ int ReassemblyQueue::add(int start, int end, int tiflags)
 		else
 			p = q->prev_;
 
+		// Put this one after p, regardless whether any segments 
+		// should be deleted
 		if (p == NULL || (start >= p->endseq_)) {
 			// no overlap
 endfast:
@@ -2177,13 +2181,38 @@ endfast:
 			p->startseq_ = MIN(p->startseq_, start);
 			p->endseq_ = MAX(p->endseq_, end);
 			p->flags_ |= tiflags;
+			n = p;
+		}
+
+		// Look for the first segment BEFORE p
+		for (q = head_; q && (n->startseq_ > q->endseq_); q = q->next_)
+			;
+		while (q != n) {
+			if (n->startseq_ > q->startseq_)
+				// q is partially included in n, merge it
+				n->startseq_ = q->startseq_;
+			// Delete q, which is already covered by n.
+			r = q;
+			q = q->next_;
+			if (r->prev_)
+				r->prev_->next_ = r->next_;
+			else
+				head_ = r->next_;
+			if (r->next_)
+				r->next_->prev_ = r->prev_;
+			else 
+				// This should not happen!!
+				abort();
+			if (r == ptr_)
+				ptr_ = NULL;
+			delete r;
 		}
 	}
+
 	//
 	// look for a sequence of in-order segments and
 	// set rcv_nxt if we can
 	//
-
 	if (head_->startseq_ > rcv_nxt_) {
 		return 0;	// still awaiting a hole-fill
 	}
