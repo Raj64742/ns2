@@ -21,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtProtoDV.cc,v 1.2 1997/07/23 04:57:25 kfall Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtProtoDV.cc,v 1.3 1997/08/27 19:28:06 kannan Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
@@ -72,4 +72,5 @@ void rtProtoDV::recv(Packet* p, Handler*)
 	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
         Tcl::instance().evalf("%s recv-update %d %d", name(),
 			      ih->src(), rh->metricsVar());
+	Packet::free(p);
 }

@@ -23,13 +23,13 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-//	Author:		Kannan Varadhan	<kannan@isi.edu>
-//	Version Date:	Mon Jun 30 15:51:33 PDT 1997
+//	Maintainer:	Kannan Varadhan	<kannan@isi.edu>
+//	Version Date:	Tue Jul 22 15:41:16 PDT 1997
 //
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.9 1997/08/10 07:49:57 mccanne Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.10 1997/08/27 19:28:04 kannan Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>

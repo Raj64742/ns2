@@ -1,6 +1,6 @@
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hackloss.cc,v 1.2 1997/07/25 21:20:22 gnguyen Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hackloss.cc,v 1.3 1997/08/27 19:28:04 kannan Exp $";
 #endif
 
 #include "connector.h"
@@ -40,6 +40,11 @@ int HackLossyLink::command(int argc, const char*const* argv)
 			return TCL_ERROR;
 		}
 		down_ = p;
+		return TCL_OK;
+	}
+	if (strcmp(argv[1], "show-params") == 0) {
+		Tcl::instance().resultf("src_ = %d, dst_ = %d, fid_ = %d, nth_ = %d",
+					src_, dst_, fid_, nth_);
 		return TCL_OK;
 	}
 	if (strcmp(argv[1], "set-params") == 0) {

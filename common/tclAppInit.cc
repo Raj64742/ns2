@@ -102,6 +102,7 @@ Tcl_AppInit(Tcl_Interp *interp)
 }
 
 #ifndef WIN32
+void
 abort()
 {
 	Tcl& tcl = Tcl::instance();

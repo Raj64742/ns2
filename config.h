@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.10 1997/08/19 18:51:32 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.11 1997/08/27 19:28:05 kannan Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -99,6 +99,7 @@ int recvfrom(int, void*, int len, int flags, sockaddr*, int);
 int gethostid();
 int getpid();
 int gethostname(char*, int);
+void abort();
 }
 #endif
 
