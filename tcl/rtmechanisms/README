@@ -8,20 +8,65 @@ following in-progress paper:
 	Router Mechanisms to Support End-to-End Congestion Control.
 	ftp://ftp.ee.lbl.gov/papers/collapse.ps
 
-rtm.tcl			contains the simulation tests
+
+----------------------------------------------------------------
+
+rtm_reclass.tcl		Main test file for the router mechanisms simulations
 mechanisms.tcl		main support routines for implementing the mechanisms
-rtm_link.tcl		code to build links with router mechanisms
-rtm_tests.tcl		constants and tests used by the mechanisms
+sources.tcl		Creates TCP and CBR connections.
+rtm_plot.tcl		Routines to perform post processing.
+
+rtm.tcl ?		contains the simulation tests
+rtm_link.tcl		Code to build links with router mechanisms
+rtm_tests.tcl		Tests for detecting unfriendly, unresponsive 
+				and high-bw flows
+
+USING RED DROP HISTORY:
+bdflow.tcl		To run tests.
+bdflow_h.tcl		Routines to perform post processing for bdflow.tcl
+bound.tcl		Chernoff bounds for bdflow_h.tcl
+
+FAIRNESS AND CONGESTION COLLAPSE TESTS:
+Collapseall.tcl		To run the "congestion collapse" simulations
+Fairnessall.tcl		To run the "fairness" simulations
+Collapse.tcl		Contains simulation tests for congestion collapse 
+				and fairness simulations
+Fairnessall1.tcl	Processes output for congestion collapse 
+				and fairness simulations
+
+GENERAL UTILITIES:
+Setred.tcl		Changes default RED parameters.
+flowmon.tcl		Makes a flow monitor, attaches it to link.
+
+
+NOT USED:
+flow4.tcl?		Not used.
+Flows.tcl?		Not used.  (Called by flow4.tcl.)
+traffic.tcl?		Not called.
+
+
+
+
 
 At present, this code is experimental and "in-progress".
 
 ------------------------------------------------------------
 
 ../../ns rtm_reclass.tcl two net3
-  To illustrate the "unfriendly" test.
+#  To illustrate the "unfriendly" test.
 
 ../../ns rtm_reclass.tcl three net3
-  To test the "unresponsive" test.
+#  To test the "unresponsive" test.
+
+../../ns Collapseall.tcl
+#  To run the "congestion collapse" simulations.
+
+../../ns Fairnessall.tcl
+#  To run the "fairness" simulations.
+
+../../ns bdflow.tcl combined 12345
+../../ns flow4.tcl combined 12345 ?
+#  To run tests of RED drop history
 
 Turn off HIGH test:
 rtm_tests.tcl: set High_const_ 120000
