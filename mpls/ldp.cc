@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.4 2000/10/18 01:19:41 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.5 2000/10/18 20:42:21 haoboy Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *
@@ -122,9 +122,10 @@ void LDPAgent::PKTinit(hdr_ldp *hdrldp, int msgtype,
 	hdrldp->reqmsgid= -1;
 	hdrldp->status  = -1;
 
+	int i;
 	int len = strlen(pathvec);
 	hdrldp->pathvec = (char *) malloc(len+1);
-	for (int i=0; i<len; i++) { 
+	for (i=0; i<len; i++) { 
 		if ( *(pathvec+i) == ' ' )
 			*(hdrldp->pathvec+i) = '_';
 		else
