@@ -1,6 +1,6 @@
 /* -*- c++ -*-
    tora.h
-   $Id: tora.h,v 1.1 1999/08/03 04:07:03 yaxu Exp $
+   $Id: tora.h,v 1.2 1999/08/06 18:54:53 yaxu Exp $
   
   */
 
@@ -58,6 +58,9 @@ public:
 	// ============================================================
 
 private:
+
+        nsaddr_t        index;  // added for line 78 of tora.cc, needed for
+                                // further verification
 
 	TORADest*	dst_find(nsaddr_t id);
 	TORADest*	dst_add(nsaddr_t id);
