@@ -1,0 +1,32 @@
+The tests of options for TCP's initial window can be tested
+with the command "./test-all-tcp-init-win" in the directory
+tcl/test.
+
+These tests verify the following two options added to the
+implementations of one-way TCP:
+
+Agent/TCP, syn_:
+
+For the default, with "syn_" set to false, TCP does not model the
+initial SYN/ACK exchange.  With "syn_" set to true, TCP
+does model the initial SYN/ACK exchange, in the following sense:
+a single packet is sent, and ack is received, and then the initial
+window is sent to its specified value.
+
+Agent/TCP, windowInitOption_:
+
+For the default, with "windowInitOption_" set to 1, the TCP initial
+window is set to the number of packets specified in "windowInit_",
+which itself is set by default to one packet.  For "windowInitOption_"
+set to 2, the TCP initial window is set to the number of packets
+specified in internet draft draft-floyd-incr-init-win-01.txt on
+"Increasing TCP's Initial Window".  That is, for a packet size of
+at most 1095 bytes, the initial window is set to four packets.
+For a packet size between 1095 and 2190 bytes, the initial window
+is set to three packets, and for a packet size of 2190 bytes or
+more, the initial window is set to two packets.
+
+--------------------------------------
+
+The first tests, init1 to init4, test the initial window options
+with Tahoe TCP.  
