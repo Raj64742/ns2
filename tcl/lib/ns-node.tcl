@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.62 1999/10/01 19:01:10 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.63 1999/10/06 02:48:51 salehi Exp $
 #
 
 # for MobileIP
@@ -270,7 +270,7 @@ Node instproc alloc-port { nullagent } {
 	if { $np_ < $p } {
 		set np_ $p
 	}
-	if {$np_ > [$dmux_ set mask_] } {
+	if {$np_ > [$dmux_ set mask_] && [$dmux_ set mask_] > 0 } {
 		puts stderr "No of ports($np_) attached to $self node is greater than allowed"
 	}
 	
