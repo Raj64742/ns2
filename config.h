@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.17 1998/06/11 01:04:49 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.18 1998/06/26 18:08:45 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -122,6 +122,13 @@ int gethostid();
 int getpid();
 int gethostname(char*, int);
 void abort();
+}
+#endif
+
+#if defined(sunos) || defined(solaris)
+extern "C" {
+	// yuck yuck yuck
+	int getrusage(int who, struct rusage* rusage);
 }
 #endif
 
