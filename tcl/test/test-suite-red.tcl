@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.10 1997/11/01 02:10:33 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.11 1997/11/01 02:17:20 kfall Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -389,12 +389,6 @@ XTest/red_twowaybytes instproc run {} {
 
 #
 #######################################################################
-#
-# The rest of the file defines the test suite for flows and flowgraphs.
-# As such they are not ported over to ns-2 yet.  The tests themselves
-# are nulled out.
-#			-- Kannan	Wed May  7 15:15:37 PDT 1997
-#
 
 TestSuite instproc create_flowstats {} {
 
@@ -457,41 +451,40 @@ TestSuite instproc forcedmakeawk { } {
 #      x axis: # arrivals for this flow+category / # total arrivals [bytes]
 #      y axis: # drops for this flow / # drops [pkts and bytes combined]
 TestSuite instproc allmakeawk { } {
-        set awkCode {
-            BEGIN { print "\"flow 0"; cat0=0; cat1=0}
-            {
-                if ($1 != prevtime && cat1 + cat0 > 0){
-			cat1_part = frac_packets * cat1 / ( cat1 + cat0 ) 
-			cat0_part = frac_bytes * cat0 / ( cat1 + cat0 ) 
-                        print 100.0 * frac_arrivals, 100.0 * ( cat1_part + cat0_part )
-			frac_bytes = 0; frac_packets = 0; frac_arrivals = 0;
-			cat1 = 0; cat0 = 0;
-			prevtime = $1
-		}
-		if ($2 != prev) {
-			print " "; print "\"flow "prev;
-			prev = $2
-		}
-		if ($3==0) {  
-			if ($15>0) {frac_bytes = $11 / $15} 
-			else {frac_bytes = 0}
-			cat0 = $14
-		} else if ($3==1) { 
-			if ($14>0) {frac_packets = $10 / $14}
-			else {frac_packets = 0}
-			if ($13>0) {frac_arrivals = ( $9 / $13 )} 
-			else {frac_arrivals = 0}
-			cat1 = $14
-		}
-		prevtime = $1
+    set awkCode {
+        BEGIN {prev=-1; tot_bytes=0; tot_packets=0; forced_total=0; unforced_total=0}
+        {
+            if ($5 != prev) {
+                print " "; print "\"flow ",$5;
+                prev = $5
             }
-	    END {
-		cat1_part = frac_packets * cat1 / ( cat1 + cat0 ) 
-		cat0_part = frac_bytes * cat0 / ( cat1 + cat0 ) 
-                print 100.0 * frac_arrivals, 100.0 * ( cat1_part + cat0_part )
-	    }
+            tot_bytes = $19-$11;
+            forced_total= $16-$14;
+            tot_packets = $10;
+            tot_arrivals = $9;
+            unforced_total = $14;
+            if (unforced_total + forced_total > 0) {
+                if ($14 > 0) {
+                    frac_packets = tot_packets/$14;
+                }
+                else { frac_packets = 0;}
+                if ($17-$15 > 0) {
+                    frac_bytes = tot_bytes/($17-$15);
+                }
+                else {frac_bytes = 0;} 
+                if ($13 > 0) {
+                    frac_arrivals = tot_arrivals/$13;
+                }
+                else {frac_arrivals = 0;}
+                if (frac_packets + frac_bytes > 0) {
+                    unforced_total_part = frac_packets * unforced_total / ( unforced_total + forced_total)
+                    forced_total_part = frac_bytes * forced_total / ( unforced_total + forced_total)
+                    print 100.0 * frac_arrivals, 100.0 * ( unforced_total_part +forced_total_part)
+                }
+            }
         }
-        return $awkCode
+    }
+    return $awkCode
 }
 
 TestSuite instproc create_flow_graph { graphtitle graphfile } {
@@ -564,7 +557,7 @@ TestSuite instproc dumpflows interval {
 	set pcnt [$r1fm_ set epdrops_]
     } elseif { $awkprocedure_ == "forcedmakeawk" } {
 	set pcnt [expr [$r1fm_ set pdrops_] - [$r1fm_ set epdrops_]]
-    } elseif { $awkprocedure_ == "combined" } {
+    } elseif { $awkprocedure_ == "allmakeawk" } {
 	set pcnt [$r1fm_ set pdrops_]
     } else {
 	puts stderr "unknown handling of flow dumps!"
@@ -667,32 +660,25 @@ Test/flows-forced instproc run {} {
 	$ns_ run
 }
 
-proc Xtest_flows {} {
-	global category awkprocedure
-   	set category 1
-	set awkprocedure unforcedmakeawk
-#	set seed [ns-random 0]
-#	puts seed=$seed
-	flows 
-}
+Class Test/flows-combined -superclass TestSuite
+Test/flows-combined instproc init topo {
+    $self instvar net_ defNet_ test_
+    set net_    $topo   
+    set defNet_ net2
+    set test_   flows_combined
+    $self next 0; # zero here means don't product all.tr
+}   
 
-proc Xtest_flows1 {} {
-	global category awkprocedure 
-   	set category 0
-	set awkprocedure forcedmakeawk
-#	set seed [ns-random 0]
-#	ns-random $seed
-#	puts seed=$seed 
-	flows 
-}
+Test/flows-combined instproc run {} {
 
-proc Xtest_flowsAll {} {
-	global s1 s2 r1 r2 s3 s4 r1fm qgraphfile flowfile awkprocedure
+	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
+	$self instvar dump_pthresh_
+ 
         set stoptime 500.0
-	set testname test_two
-	set awkprocedure allmakeawk
-	
-	create_testnet2
+	set testName_ test_flows_combined
+	set awkprocedure_ allmakeawk
+	set dump_pthresh_ 100
+
 	[$ns_ link $node_(r1) $node_(r2)] set mean_pktsize 1000
 	[$ns_ link $node_(r2) $node_(r1)] set mean_pktsize 1000
 	[$ns_ link $node_(r1) $node_(r2)] set linterm 10
@@ -700,18 +686,18 @@ proc Xtest_flowsAll {} {
 	[$ns_ link $node_(r1) $node_(r2)] set queue-limit 100
 	[$ns_ link $node_(r2) $node_(r1)] set queue-limit 100
 
-	create_flowstats1  
+	$self create_flowstats 
+	$self dumpflows 10.0
+
 	[$ns_ link $node_(r1) $node_(r2)] set bytes true
 	[$ns_ link $node_(r1) $node_(r2)] set wait false
 
-        new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
-	new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
-	new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
+        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
+	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
+	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
 
-	$ns_ at $stoptime "$r1fm flush"
-	$ns_ at $stoptime "finish_flow $testName_"
+	$ns_ at $stoptime "$self finish_flows $testName_"
 
-#	puts seed=[ns-random 0]
 	$ns_ run
 }
 
