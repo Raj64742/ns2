@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.18 1999/09/09 03:22:28 salehi Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.19 1999/12/11 01:54:21 heideman Exp $
  */
 
 #include <stdio.h>
@@ -236,12 +236,12 @@ int Address::get_lastaddr(int address)
 
 char *Address::print_portaddr(int address)
 {
-	int a;
 	char str[SMALL_LEN];
 	char *addrstr;
 
 	str[0] = '\0';
 #if 0
+	int a;
 	a = address >> PortShift_;
 	a = a & PortMask_;
 #endif

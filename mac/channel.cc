@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.33 1999/10/26 22:57:53 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.34 1999/12/11 01:54:22 heideman Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -244,7 +244,7 @@ WirelessChannel::WirelessChannel(void) : Channel() {}
 double
 WirelessChannel::get_pdelay(Node* tnode, Node* rnode)
 {
-	Scheduler	&s = Scheduler::instance();
+	// Scheduler	&s = Scheduler::instance();
 	MobileNode* tmnode = (MobileNode*)tnode;
 	MobileNode* rmnode = (MobileNode*)rnode;
 	double propdelay = 0;
