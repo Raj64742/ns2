@@ -260,7 +260,7 @@ TcpSessionAgent::timeout(int tno)
 			timeout(TCP_TIMER_RTX);
 		}
 		else {
-			closecwnd(3);
+			slowdown(CLOSE_CWND_INIT);
 			reset_rtx_timer(0,0);
 		}
 	}
@@ -276,11 +276,11 @@ TcpSessionAgent::timeout(int tno)
 		recover_ = sessionSeqno_ - 1;
 		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		if (seg_iter.count() == 0 && restart_bugfix_) {
-			closecwnd(3);
+			slowdown(CLOSE_CWND_INIT);
 			reset_rtx_timer(0,0);
 		}
 		else {
-			closecwnd(0);
+			slowdown(CLOSE_CWND_RESTART|CLOSE_SSTHRESH_HALF);
 			reset_rtx_timer(0,1);
 		}
 		ownd_ = 0;
@@ -433,9 +433,9 @@ TcpSessionAgent::send_much(IntTcpAgent *agent, int force, int reason)
 	if ((seg_iter.count() == 0) && (last_send_time_ != -1) &&
 	    (Scheduler::instance().clock() - last_send_time_ >= t_rtxcur_)) {
 		if (slow_start_restart_ && restart_bugfix_)
-			closecwnd(3);
+			slowdown(CLOSE_CWND_INIT);
 		else if (slow_start_restart_)
-			closecwnd(0);
+			slowdown(CLOSE_CWND_RESTART|CLOSE_SSTHRESH_HALF);
 		else if (fs_enable_) {
 			if (cwnd_ < ssthresh_)
 				cwnd_ = int(cwnd_/2);

@@ -274,7 +274,7 @@ TcpFsAgent::timeout_nonrtx(int tno)
 			maxseq_ = last_ack_;
 			recover_ = maxseq_;
 			last_cwnd_action_ = CWND_ACTION_TIMEOUT;
-			closecwnd(3);
+			slowdown(CLOSE_CWND_INIT);
 			timeout_nonrtx_helper(tno);
 		}
 	}

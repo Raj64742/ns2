@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.35 1998/05/04 22:55:51 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.36 1998/05/11 18:49:35 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -340,7 +340,7 @@ void FullTcpAgent::output(int seqno, int reason)
 
 	if (slow_start_restart_ && idle) {
 		if (idle_restart())
-			closecwnd(3);
+			slowdown(CLOSE_CWND_INIT);
 	}
 
 	//
@@ -1075,7 +1075,7 @@ trimthenstep6:
 					if (!bug_fix_ ||
 					   (highest_ack_ > recover_) ||
 					   (last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
-						closecwnd(1);
+						slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 						cancel_rtx_timer();
 						rtt_active_ = FALSE;
 						fast_retransmit(ackno);
@@ -1627,7 +1627,7 @@ void FullTcpAgent::timeout(int tno)
 		++nrexmit_;
 		recover_ = maxseq_;
 		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
-		closecwnd(0);
+		slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
 		reset_rtx_timer(1);
 		t_seqno_ = highest_ack_;
 		dupacks_ = 0;

@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.15 1998/05/04 22:21:01 kfall Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.cc,v 1.16 1998/05/11 18:48:25 kfall Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -169,7 +169,14 @@ void FackTcpAgent::recv(Packet *pkt, Handler*)
 				 */
 				recover_ = t_seqno_;
 				last_cwnd_action_ = CWND_ACTION_DUPACK;
-				closecwnd(1);
+				if ((ss_div4_ == 1) && (cwnd_ <= ssthresh_ + .5)) {
+				    cwnd_ /= 2;
+				    wintrimmult_ = .75;
+				} else {    
+				    wintrimmult_ = .5;
+				}       
+				slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
+
 				if (rampdown_) {
 					wintrim_ = (t_seqno_ - fack_ - 1) * wintrimmult_;
 				}
@@ -251,9 +258,11 @@ void FackTcpAgent::timeout(int tno)
 		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		/* if there is no outstanding data, don't cut down ssthresh_ */
 		if (highest_ack_ == maxseq_ && restart_bugfix_) 
-			closecwnd(3);
-		else 
-			closecwnd(0);  // close down to 1 segment
+			slowdown(CLOSE_CWND_INIT);
+		else  {
+			// close down to 1 segment
+			slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
+		}
 		scb_.ClearScoreBoard();
 		/* if there is no outstanding data, don't back off rtx timer */
 		if (highest_ack_ == maxseq_)
@@ -337,19 +346,6 @@ void FackTcpAgent::send_much(int force, int reason, int maxburst)
 	} /* while */
 	/* call helper function */
 	send_helper(maxburst);
-}
-
-void FackTcpAgent::closecwnd(int how)
-{  
-    if (how == 1) {
-        if ((ss_div4_ == 1) && (cwnd_ <= ssthresh_ + .5)) {
-            cwnd_ /= 2;
-            wintrimmult_ = .75;
-        } else {
-            wintrimmult_ = .5;
-        }
-    }
-    TcpAgent::closecwnd(how);
 }
 
 /*

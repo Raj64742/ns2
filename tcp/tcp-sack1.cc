@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.25 1998/05/04 22:21:40 kfall Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.26 1998/05/11 18:50:01 kfall Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -120,7 +120,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 					last_cwnd_action_ = CWND_ACTION_DUPACK;
 					recover_ = maxseq_;
 					pipe_ = int(cwnd_) - NUMDUPACKS;
-					closecwnd(1);
+					slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 					reset_rtx_timer(1);
 					fastrecov_ = TRUE;
 					scb_.MarkRetran (last_ack_+1);

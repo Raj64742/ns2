@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.26 1998/05/04 22:18:54 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.27 1998/05/11 18:49:50 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -158,7 +158,7 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 			    ( last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
 				last_cwnd_action_ = CWND_ACTION_DUPACK;
 				recover_ = maxseq_;
-				closecwnd(1);
+				slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 				reset_rtx_timer(1,0);
 				output(last_ack_ + 1, TCP_REASON_DUPACK);
                         }

@@ -28,7 +28,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.17 1998/05/04 22:19:12 kfall Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-vegas.cc,v 1.18 1998/05/11 18:50:33 kfall Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -373,7 +373,7 @@ VegasTcpAgent::timeout(int tno)
 		recover_ = maxseq_;
 		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		reset_rtx_timer(0);
-		closecwnd(0); 
+		slowdown(CLOSE_CWND_RESTART|CLOSE_SSTHRESH_HALF);
 		cwnd_ = double(v_slowstart_);
 		v_newcwnd_ = 0;
 		t_cwnd_changed_ = vegastime();
