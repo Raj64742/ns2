@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.6 2001/06/09 03:25:20 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.7 2001/06/09 21:03:22 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -251,15 +251,6 @@ Test/changeBandwidth instproc run {} {
 ## Two dropped packets.  
 ###################################################
 
-TestSuite instproc drop_pkts { link fid pkts } {
-    set emod [new ErrorModule Fid]
-    set errmodel1 [new ErrorModel/List]
-    $errmodel1 droplist $pkts
-    $link errormodule $emod
-    $emod insert $errmodel1
-    $emod bind $errmodel1 $fid
-}
-
 Class Test/dropPacket -superclass TestSuite
 Test/dropPacket instproc init {} {
 	$self instvar net_ test_
@@ -278,7 +269,8 @@ Test/dropPacket instproc run {} {
         $tcp1 set window_ 8
         set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 0.0 "$ftp1 start"
-        $self drop_pkts [$ns_ link $node_(r1) $node_(k1)] 1 {20 22}
+        $self dropPkts [$ns_ link $node_(r1) $node_(k1)] 1 {20 22}
+	# dropPkts is in support.tcl
 
         $self tcpDump $tcp1 5.0
 
