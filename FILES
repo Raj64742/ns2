@@ -995,6 +995,13 @@ tcl/old/test-suite.tcl
 tcl/plm/plm-ns.tcl
 tcl/plm/plm-topo.tcl
 tcl/plm/plm.tcl
+tcl/red-pd/helper.tcl
+tcl/red-pd/monitoring.tcl
+tcl/red-pd/plot.tcl
+tcl/red-pd/red-pd.tcl
+tcl/red-pd/sources.tcl
+tcl/red-pd/topology.tcl
+tcl/red-pd/traffic.tcl
 tcl/rlm/misc.tcl
 tcl/rlm/rlm-cmn.tcl
 tcl/rlm/rlm-ns.tcl
