@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.10 1997/04/30 18:28:43 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.11 1997/04/30 23:42:36 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -186,7 +186,6 @@ public:
 CBQueue::CBQueue() : pending_pkt_(NULL), link_(NULL),
 	maxprio_(-1), maxlevel_(-1), toplevel_(-1), eligible_(NULL)
 {
-	bind("toplevel_", &toplevel_);
 	memset(active_, '\0', sizeof(active_));
 	memset(levels_, '\0', sizeof(levels_));
 }
