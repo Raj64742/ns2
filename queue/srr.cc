@@ -258,7 +258,8 @@ SRR::SRR()
 
 void SRR::enque(Packet* pkt)
 {
-	PacketSRR *q,*remq;
+	PacketSRR *q;
+	//PacketSRR *remq;
 	int flowid, queueid;
 	int weight;
 
@@ -429,9 +430,10 @@ void SRR::clear()
 int SRR::add_to_WM(int queueid, int weight)
 {
 	struct wm_node *pNode;
-	int i , j=maxColumn;
-	int temp=weight;
-	int flag=0;
+	int i;
+	//int j=maxColumn;
+	//int temp=weight;
+	//int flag=0;
 
 	if(weight==0){
 		fprintf(stderr, "add_to_WM: weight should not be zero");
@@ -527,40 +529,40 @@ int SRR::del_from_WM(int queueid, int weight){
 
 struct wm_node *SRR::getNextNode()
 {
-	struct wm_node *pNode;
-	int queueid;
-	int weight;
-	int wss_term;
-	int temp;
-
-	if(bytecnt==0){
-	//	printf("getNextNode, pwmCurr = NULL, wmEmptyFlag=%d\n", wmEmptyFlag);
-		return NULL;
-	}
-
-	queueid=pwmCurr->queueid;
-	weight= pwmCurr->weight;
-
-	if(pwmCurr->next != &wmTail[weight]){ // not the tail 
-		pwmCurr=pwmCurr ->next;
-	} else{
-		if (currMaxColumn==-1){
-			fprintf(stderr, "getNextNode, empty WM");
-			exit(0);
-		}
-
-again:		wss_term=wss.get(currMaxColumn+1);
-		temp = currMaxColumn+1-wss_term;
-		 // wss_term according to currMaxColumn+1-wss_term queue
-	 	if( wmHead[temp].next != &wmTail[temp])	{
-			pwmCurr=wmHead[temp].next;	
-
-		}else
-			goto again;
-
-
-	}
-	return pwmCurr;
+  //struct wm_node *pNode;
+  int queueid;
+  int weight;
+  int wss_term;
+  int temp;
+  
+  if(bytecnt==0){
+    //	printf("getNextNode, pwmCurr = NULL, wmEmptyFlag=%d\n", wmEmptyFlag);
+    return NULL;
+  }
+  
+  queueid=pwmCurr->queueid;
+  weight= pwmCurr->weight;
+  
+  if(pwmCurr->next != &wmTail[weight]){ // not the tail 
+    pwmCurr=pwmCurr ->next;
+  } else{
+    if (currMaxColumn==-1){
+      fprintf(stderr, "getNextNode, empty WM");
+      exit(0);
+    }
+    
+  again:		wss_term=wss.get(currMaxColumn+1);
+    temp = currMaxColumn+1-wss_term;
+    // wss_term according to currMaxColumn+1-wss_term queue
+    if( wmHead[temp].next != &wmTail[temp])	{
+      pwmCurr=wmHead[temp].next;	
+      
+    }else
+      goto again;
+    
+    
+  }
+  return pwmCurr;
 }
 
 struct wm_node *SRR::getDiffNode(int queueid){

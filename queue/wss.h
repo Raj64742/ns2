@@ -98,18 +98,18 @@ void WSS::init(int i){
 }
 
 int WSS::get(int order){  // it should also tells the WSS the order
-	int value;
-
-	currOrder=order;
-
-	if(ptr> ((1<<order)-2))
-		ptr=0; // I think it is much better than the following line.
-	//	ptr= ((1<<order) -2);
-	value= *(pwss+ptr);
-	ptr+=1;
-	if(ptr== ((1<<order)-1))
-		ptr=0;
-	return value;
+  int value;
+  
+  currOrder=order;
+  
+  if(ptr > (unsigned int)((1<<order)-2))
+    ptr=0; // I think it is much better than the following line.
+  //	ptr= ((1<<order) -2);
+  value= *(pwss+ptr);
+  ptr+=1;
+  if(ptr == (unsigned int)((1<<order)-1))
+    ptr=0;
+  return value;
 }
 
 void WSS::print(){
