@@ -24,7 +24,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.11 2001/08/25 23:51:20 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.12 2004/02/06 16:33:52 xuanc Exp $
 //
 // mac-tdma.cc
 // by Xuan Chen (xuanc@isi.edu), ISI/USC
@@ -477,10 +477,10 @@ void MacTdma::makePreamble()
 		dh = HDR_MAC_TDMA(pktTx_);  
 		dst = ETHER_ADDR(dh->dh_da);
 		//printf("<%d>, %f, write %d to slot %d in preamble\n", index_, NOW, dst, slot_num_);
-		tdma_preamble_[slot_num_] = (char) dst;
+		tdma_preamble_[slot_num_] = dst;
 	} else {
 		//printf("<%d>, %f, write NO_PKT to slot %d in preamble\n", index_, NOW, slot_num_);
-		tdma_preamble_[slot_num_] = (char) NOTHING_TO_SEND;
+		tdma_preamble_[slot_num_] = NOTHING_TO_SEND;
 	}
 }
 
