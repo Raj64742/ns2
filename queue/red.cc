@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.21 1997/07/23 03:31:26 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.22 1997/07/24 03:02:37 padmanab Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -254,19 +254,6 @@ int REDQueue::drop_early(Packet* pkt)
 	if (p > 1.0)
 		p = 1.0;
 	edv_.v_prob = p;
-
-	/* Trace RED queue parameters. */
-	if (channel_) {
-		char wrk[500];
-		int n;
-		double now = Scheduler::instance().clock();
-		sprintf(wrk, "time: %-6.3f  v_ave: %-6.3f  v_prob: %-6.3f  count: %2d\n", now, edv_.v_ave, edv_.v_prob, edv_.count);
-		n = strlen(wrk);
-		wrk[n] = '\n';
-		wrk[n+1] = 0;
-		(void)Tcl_Write(channel_, wrk, n+1);
-		wrk[n] = 0;
-	}
 
 	// drop probability is computed, pick random number and act
 	double u = Random::uniform();
