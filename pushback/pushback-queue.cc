@@ -206,7 +206,7 @@ PushbackQueue::enque(Packet *p) {
   int dropped = 0;
   //set lowDemand to 0 to switch off the low-demand feature.
   int qlen = qib_ ? bcount_ : q_->length();
-  int lowDemand = (edv_.v_ave < edp_.th_min || qlen < 1);
+  int lowDemand = (edv_.v_ave < edp_.th_min || qlen < 1 || getDropRate() < 0.1*TARGET_DROPRATE );
   //  lowDemand = 0;
   
   //this would 
