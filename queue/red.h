@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.42 2004/06/24 16:31:32 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.43 2004/10/28 23:35:38 haldar Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -129,9 +129,9 @@ struct edv {
 	double lastset;		/* adaptive RED: last time adapted */
 	enum Status {Above, Below, Between}; // for use in Feng's Adaptive RED
 	Status status;
-	edv() : v_ave(0.0), v_prob1(0.0), v_slope(0.0), v_prob(0.0),
-		v_a(0.0), v_b(0.0), count(0), count_bytes(0), old(0), 
-		cur_max_p(1.0) { }
+	//edv() : v_ave(0.0), v_prob1(0.0), v_slope(0.0), v_prob(0.0),
+	//v_a(0.0), v_b(0.0), v_c(0.0), v_d(0.0), count(0), 
+	//	count_bytes(0), old(0), cur_max_p(1.0) { }
 };
 
 class REDQueue : public Queue {
@@ -139,6 +139,7 @@ class REDQueue : public Queue {
 	/*	REDQueue();*/
 	REDQueue(const char * = "Drop");
  protected:
+	void initParams();
 	int command(int argc, const char*const* argv);
 	void enque(Packet* pkt);
 	virtual Packet *pickPacketForECN(Packet* pkt);
@@ -159,6 +160,8 @@ class REDQueue : public Queue {
 	  double v_a, double v_b, double v_c, double v_d, double max_p_inv);
         virtual void reportDrop(Packet *pkt) {}  //pushback
 	void print_summarystats();
+
+	
 	int summarystats_;	/* true to print true average queue size */
 
 	LinkDelay* link_;	/* outgoing link */

@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.cc,v 1.4 2004/09/29 21:48:22 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.cc,v 1.5 2004/10/28 23:35:40 haldar Exp $ (LBL)
  */
 
 /* Author : Dina Katabi, dina@ai.mit.edu 1/15/2002 */
@@ -43,11 +43,11 @@
 
 static class XCPQClass : public TclClass {
 public:
-	XCPQClass() : TclClass("Queue/RED/XCPQ") {}
+	XCPQClass() : TclClass("Queue/DropTail/XCPQ") {}
 	TclObject* create(int, const char*const*) {
 		return (new XCPQueue);
 	}
-} class_red_xcpq;
+} class_droptail_xcpq;
 
 
 XCPQueue::XCPQueue(): queue_timer_(NULL), 
@@ -76,16 +76,6 @@ void XCPQueue::setupTimers()
 	rtt_timer_->sched(T);
 }
 
-// change this to pass the variables for red parameter setting
-void XCPQueue::config() {
-  
-	edp_.th_min = limit();                  // minthresh
-	edp_.th_max = limit();                  // maxthresh
-	edp_.q_w = 0.002;                    // for EWMA
-	edp_.max_p_inv = 3;
-	edp_.th_min_pkts = limit();
-	edp_.th_max_pkts = limit();
-}
 
 void XCPQueue::routerId(XCPWrapQ* q, int id)
 {
@@ -127,7 +117,7 @@ Packet* XCPQueue::deque()
 	if (inst_queue < running_min_queue_bytes_) 
 		running_min_queue_bytes_= inst_queue;
   
-	Packet* p = REDQueue::deque();
+	Packet* p = DropTail::deque();
 	do_before_packet_departure(p);
   
 	max_queue_ci_ = max(length(), max_queue_ci_);
@@ -142,7 +132,7 @@ void XCPQueue::enque(Packet* pkt)
 	min_queue_ci_ = min(length(), min_queue_ci_);
 
 	do_on_packet_arrival(pkt);
-	REDQueue::enque(pkt);
+	DropTail::enque(pkt);
 }
 
 void XCPQueue::do_on_packet_arrival(Packet* pkt){
@@ -355,7 +345,7 @@ void XCPQueue::Te_timeout()
 		trace_var("avg_rtt_", avg_rtt_);
 		trace_var("residue_pos_fbk_", residue_pos_fbk_);
 		trace_var("residue_neg_fbk_", residue_neg_fbk_);
-		trace_var("Qavg", edv_.v_ave);
+		//trace_var("Qavg", edv_.v_ave);
 		trace_var("Qsize", length());
 		trace_var("min_queue_ci_", double(min_queue_ci_));
 		trace_var("max_queue_ci_", double(max_queue_ci_));

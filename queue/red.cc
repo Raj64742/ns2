@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.79 2004/06/25 21:45:57 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.80 2004/10/28 23:35:37 haldar Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -95,6 +95,8 @@ REDQueue::REDQueue() {
  */
 REDQueue::REDQueue(const char * trace) : link_(NULL), de_drop_(NULL), EDTrace(NULL), tchan_(0), idle_(1)
 {
+	initParams();
+	
 	//	printf("Making trace type %s\n", trace);
 	if (strlen(trace) >=20) {
 		printf("trace type too long - allocate more space to traceType in red.h and recompile\n");
@@ -106,7 +108,9 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), de_drop_(NULL), EDTrace(NU
 	//	_RENAMED("queue-in-bytes_", "queue_in_bytes_");
 
 	bind("thresh_", &edp_.th_min_pkts);		    // minthresh
+	bind("thresh_queue_", &edp_.th_min);
 	bind("maxthresh_", &edp_.th_max_pkts);	    // maxthresh
+	bind("minthresh_queue_", &edp_.th_max);
 	bind("mean_pktsize_", &edp_.mean_pktsize);  // avg pkt size
 	bind("idle_pktsize_", &edp_.idle_pktsize);  // avg pkt size for idles
 	bind("q_weight_", &edp_.q_w);		    // for EWMA
@@ -217,6 +221,49 @@ void REDQueue::initialize_params()
 		//printf("bottom: %9.7f\n", edp_.bottom);
 	}
 }
+
+void REDQueue::initParams() 
+{
+	edp_.mean_pktsize = 0;
+	edp_.idle_pktsize = 0;
+	edp_.bytes = 0;
+	edp_.wait = 0;
+	edp_.setbit = 0;
+	edp_.gentle = 0;
+	edp_.th_min = 0.0;
+	edp_.th_min_pkts = 0.0;
+	edp_.th_max = 0.0;
+	edp_.th_max_pkts = 0.0;
+	edp_.max_p_inv = 0.0;
+	edp_.mark_p = 0.0;
+	edp_.q_w = 0.0;
+	edp_.adaptive = 0;
+	edp_.cautious = 0;
+	edp_.alpha = 0.0;
+	edp_.beta = 0.0;
+	edp_.interval = 0.0;
+	edp_.targetdelay = 0.0;
+	edp_.top = 0.0;
+	edp_.bottom = 0.0;
+	edp_.feng_adaptive = 0;
+	edp_.ptc = 0.0;
+	edp_.delay = 0.0;
+	
+	edv_.v_ave = 0.0;
+	edv_.v_prob1 = 0.0;
+	edv_.v_slope = 0.0;
+	edv_.v_prob = 0.0;
+	edv_.v_a = 0.0;
+	edv_.v_b = 0.0;
+	edv_.v_c = 0.0;
+	edv_.v_d = 0.0;
+	edv_.count = 0;
+	edv_.count_bytes = 0;
+	edv_.old = 0;
+	edv_.cur_max_p = 1.0;
+	edv_.lastset = 0;
+}
+
 
 void REDQueue::reset()
 {

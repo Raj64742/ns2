@@ -21,6 +21,9 @@
 #    used to endorse or promote products derived from this software without
 #    specific prior written permission.
 # 
+
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.342 2004/10/28 23:35:38 haldar Exp $
+
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
 # IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -33,9 +36,6 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.341 2004/10/28 01:19:38 sfloyd Exp $
-
-
 #
 #
 # Set up all the default paramters.  Each default parameter
@@ -112,7 +112,6 @@ CMUPriQueue set debug_ false
 Queue/dsRED set numQueues_ 4
 Queue/dsRED set ecn_ 0
 
-Queue/XCP set maxVirQ_ 3
 Queue/XCP set spread_bytes_ 0
 
 # XXX Temporary fix XXX
@@ -127,6 +126,8 @@ Queue/RED set thresh_ 0
 # Queue/RED set maxthresh_ 15
 Queue/RED set maxthresh_ 0
 # Queue/RED/maxthresh_ was changed on 12/29/01, for automatic configuration.
+Queue/RED set thresh_queue_ [Queue set limit_]
+Queue/RED set minthresh_queue_ [Queue set limit_]
 Queue/RED set mean_pktsize_ 500
 Queue/RED set idle_pktsize_ 100
 # Queue/RED set q_weight_ 0.002

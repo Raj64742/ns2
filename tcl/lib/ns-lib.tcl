@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.263 2004/04/20 16:10:51 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.264 2004/10/28 23:35:38 haldar Exp $
 
 
 #

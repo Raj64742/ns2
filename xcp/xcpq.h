@@ -31,14 +31,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.4 2004/09/29 21:48:22 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.5 2004/10/28 23:35:40 haldar Exp $ (LBL)
  */
 
 
 #ifndef NS_XCPQ_H
 #define NS_XCPQ_H
 
-#include "red.h"
+#include "drop-tail.h"
 #include "packet.h"
 #include "xcp-end-sys.h"
 
@@ -62,7 +62,7 @@ protected:
 }; 
 
 
-class XCPQueue : public REDQueue {
+class XCPQueue : public DropTail {
 	friend class XCPTimer;
 public:
 	XCPQueue();
@@ -80,7 +80,6 @@ public:
 	void setChannel(Tcl_Channel queue_trace_file);
 	double totalDrops() { return total_drops_; }
   
-	void config();
 	void spread_bytes(int b) { 
 		spread_bytes_ = b; 
 		if (b) 
@@ -91,6 +90,9 @@ public:
 	void enque(Packet* pkt);
 	Packet* deque();
 	virtual void drop(Packet* p);
+	
+	void dropTarget(NsObject *dt) {drop_ = dt; }
+
   
 	// tracing var
 	void setNumMice(int mice) {num_mice_ = mice;}

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.47 2001/05/23 16:46:44 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.48 2004/10/28 23:35:39 haldar Exp $
 #
 
 Class Link
@@ -192,7 +192,6 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 	set link_ [new $lltype]
 	$link_ set bandwidth_ $bw
 	$link_ set delay_ $delay
-
 	$queue_ target $link_
 	$link_ target [$dst entry]
 	$queue_ drop-target $drophead_

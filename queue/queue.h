@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.33 2004/10/28 01:22:48 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.34 2004/10/28 23:35:37 haldar Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -141,10 +141,9 @@ public:
 	/* max utilization over recent time period.
 	   Returns the maximum of recent measurements stored in util_buf_*/
 	double peak_utilization(void);
-
+	~Queue();
 protected:
 	Queue();
-	~Queue();
 	void reset();
 	int qlim_;		/* maximum allowed pkts in queue */
 	int blocked_;		/* blocked now? */

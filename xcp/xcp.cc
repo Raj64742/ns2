@@ -34,6 +34,7 @@
 
 
 #include "xcp.h"
+#include "red.h"
 
 static unsigned int next_router = 0;
 
@@ -45,9 +46,11 @@ public:
 	}
 } class_xcp_queue;
 
-XCPWrapQ::XCPWrapQ():xcpq_(NULL)
+XCPWrapQ::XCPWrapQ():xcpq_(0)
 {
-	bind("maxVirQ_", &maxVirQ_);
+	for (int i = 0; i<MAX_QNUM; ++i)
+		q_[i] = 0;
+	
 	bind("spread_bytes_", &spread_bytes_);
 	routerId_ = next_router++;
 
@@ -64,21 +67,17 @@ XCPWrapQ::XCPWrapQ():xcpq_(NULL)
 }
  
 void XCPWrapQ::setVirtualQueues() {
-
-	for (int n=0; n < maxVirQ_; n++) {
-		xcpq_[n]->routerId(this,routerId_); 
-		wrrTemp_[n] = 0;
-	}
-  
 	qToDq_ = 0;
 	queueWeight_[XCPQ] = 0.5;
 	queueWeight_[TCPQ] = 0.5;
 	queueWeight_[OTHERQ] = 0;
   
 	// setup timers for xcp queue only
-	xcpq_[XCPQ]->setupTimers();
-	xcpq_[XCPQ]->spread_bytes(spread_bytes_);
-
+	if (xcpq_) {
+		xcpq_->routerId(this, routerId_);
+		xcpq_->setupTimers();
+		xcpq_->spread_bytes(spread_bytes_);
+	}
 }
 
 
@@ -89,25 +88,64 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 	if (argc == 2) {
 		// for Dina's parking-lot experiment data
 		if (strcmp(argv[1], "queue-read-drops") == 0) {
-			tcl.resultf("%g",xcpq_[XCPQ]->totalDrops());
-			return (TCL_OK);
+			if (xcpq_) {
+				tcl.resultf("%g", xcpq_->totalDrops());
+				return (TCL_OK);
+			} else {
+				tcl.add_errorf("XCP queue is not set\n");
+				return TCL_ERROR;
+			}
 		} 
+
 	}
 
-	if (argc >= 3) {	
-		if (strcmp(argv[1], "set-virQ") == 0) {
-			xcpq_ = new XCPQueue*[maxVirQ_]; 
-			for (int n=0,c=2; n < maxVirQ_; n++) {
-				xcpq_[n] = (XCPQueue *)(TclObject::lookup(argv[c++]));
-				if (xcpq_[n] == NULL) {
-					tcl.add_errorf("Wrong xcp virtual queues %s\n",argv[c-1]);
-					return TCL_ERROR;
-				}
+	if (argc == 3) {
+		if (strcmp(argv[1], "set-xcpQ") == 0) {
+			if (xcpq_) {
+				assert(xcpq_ == q_[XCPQ]);
+				
+				delete xcpq_;
+				
+				q_[XCPQ] = xcpq_ =  NULL;
+			}
+			
+			q_[XCPQ] = xcpq_ = (XCPQueue *)(TclObject::lookup(argv[2]));
+			
+			if (xcpq_ == NULL) {
+				tcl.add_errorf("Wrong xcp virtual queue %s\n", argv[2]);
+				return TCL_ERROR;
 			}
 			setVirtualQueues();
 			return TCL_OK;
 		}
-
+		else if (strcmp(argv[1], "set-tcpQ") == 0) {
+			if (q_[TCPQ]) {
+				delete q_[TCPQ];
+				q_[TCPQ] = NULL;
+			}
+			
+			q_[TCPQ] = (XCPQueue *)(TclObject::lookup(argv[2]));
+			
+			if (q_[TCPQ] == NULL) {
+				tcl.add_errorf("Wrong tcp virtual queue %s\n", argv[2]);
+				return TCL_ERROR;
+			}
+			return TCL_OK;
+		}
+		else if (strcmp(argv[1], "set-otherQ") == 0) {
+			if (q_[OTHERQ]) {
+				delete q_[OTHERQ];
+				q_[OTHERQ] = NULL;
+			}
+			
+			q_[OTHERQ] = (XCPQueue *)(TclObject::lookup(argv[2]));
+			
+			if (q_[OTHERQ] == NULL) {
+				tcl.add_errorf("Wrong 'other' virtual queue %s\n", argv[2]);
+				return TCL_ERROR;
+			}
+			return TCL_OK;
+		}
 		else if (strcmp(argv[1], "set-link-capacity") == 0) {
 			double link_capacity_bitps = strtod(argv[2], 0);
 			if (link_capacity_bitps < 0.0) {
@@ -117,14 +155,24 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 			if (tcp_xcp_on_) // divide between xcp and tcp queues
 				link_capacity_bitps = link_capacity_bitps/2.0;
 			
-			for (int n=0; n < maxVirQ_; n++) {
-				xcpq_[n]->setBW(link_capacity_bitps/8.0); 
-				xcpq_[n]->limit(limit());
-				xcpq_[n]->config();
-			}
+			xcpq_->setBW(link_capacity_bitps/8.0); 
+			xcpq_->limit(limit());
+			
 			return TCL_OK;
 		}
     
+		else if (strcmp(argv[1], "drop-target") == 0) {
+			drop_ = (NsObject*)TclObject::lookup(argv[2]);
+			if (drop_ == 0) {
+				tcl.resultf("no object %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			for (int n=0; n < MAX_QNUM; n++) 
+				((XCPQueue *)q_[n])->dropTarget(drop_);
+			
+			return (TCL_OK);
+		}
+
 		else if (strcmp(argv[1], "attach") == 0) {
 			int mode;
 			const char* id = argv[2];
@@ -133,22 +181,21 @@ int XCPWrapQ::command(int argc, const char*const* argv)
 				tcl.resultf("queue.cc: trace-drops: can't attach %s for writing", id);
 				return (TCL_ERROR);
 			}
-			for (int n=0; n < maxVirQ_; n++)
-				xcpq_[n]->setChannel(queue_trace_file);
+			xcpq_->setChannel(queue_trace_file);
 			return (TCL_OK);
 		}
     
 		else if (strcmp(argv[1], "queue-sample-everyrtt") == 0) {
 			double e_rtt = strtod(argv[2],0);
 			//printf(" timer at %f \n",e_rtt);
-			xcpq_[XCPQ]->setEffectiveRtt(e_rtt);
+			xcpq_->setEffectiveRtt(e_rtt);
 			return (TCL_OK);
 		}
     
 		else if (strcmp(argv[1], "num-mice") == 0) {
 			int nm = atoi(argv[2]);
-			for (int n=0; n < maxVirQ_; n++)
-				xcpq_[n]->setNumMice(nm);
+
+			xcpq_->setNumMice(nm);
 			return (TCL_OK);
 		}
 	}
@@ -163,7 +210,7 @@ void XCPWrapQ::recv(Packet* p, Handler* h)
 }
 
 void XCPWrapQ::addQueueWeights(int queueNum, int weight) {
-	if (queueNum < maxVirQ_)
+	if (queueNum < MAX_QNUM)
 		queueWeight_[queueNum] = weight;
 	else {
 		fprintf(stderr, "Queue number is out of range.\n");
@@ -175,14 +222,14 @@ int XCPWrapQ::queueToDeque()
 	int i = 0;
   
 	if (wrrTemp_[qToDq_] <= 0) {
-		qToDq_ = ((qToDq_ + 1) % maxVirQ_);
+		qToDq_ = ((qToDq_ + 1) % MAX_QNUM);
 		wrrTemp_[qToDq_] = queueWeight_[qToDq_] - 1;
 	} else {
 		wrrTemp_[qToDq_] = wrrTemp_[qToDq_] -1;
 	}
-	while ((i < maxVirQ_) && (xcpq_[qToDq_]->length() == 0)) {
+	while ((i < MAX_QNUM) && (q_[qToDq_]->length() == 0)) {
 		wrrTemp_[qToDq_] = 0;
-		qToDq_ = ((qToDq_ + 1) % maxVirQ_);
+		qToDq_ = ((qToDq_ + 1) % MAX_QNUM);
 		wrrTemp_[qToDq_] = queueWeight_[qToDq_] - 1;
 		i++;
 	}
@@ -222,7 +269,7 @@ Packet* XCPWrapQ::deque()
 	int n = queueToDeque();
 	
 // Deque a packet from the underlying queue:
-	p = xcpq_[n]->deque();
+	p = q_[n]->deque();
 	return(p);
 }
 
@@ -234,7 +281,7 @@ void XCPWrapQ::enque(Packet* pkt)
 	codePt = getCodePt(pkt);
 	int n = queueToEnque(codePt);
   
-	xcpq_[n]->enque(pkt);
+	q_[n]->enque(pkt);
 }
 
 

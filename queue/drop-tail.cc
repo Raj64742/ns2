@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.16 2003/11/03 20:18:52 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.cc,v 1.17 2004/10/28 23:35:37 haldar Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -53,8 +53,8 @@ void DropTail::reset()
 }
 
 int 
-DropTail::command(int argc, const char*const* argv) {
-
+DropTail::command(int argc, const char*const* argv) 
+{
 	if (argc==2) {
 		if (strcmp(argv[1], "printstats") == 0) {
 			print_summarystats();

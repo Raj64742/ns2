@@ -16,9 +16,16 @@
 #       ni                         
 #
 
+Queue/XCP set tcp_xcp_on_ 1
+Agent/TCP set minrto_ 1
 Queue/RED set bytes_ false ;
 Queue/RED set queue_in_bytes_ false ;
-Queue/XCP set tcp_xcp_on_ 1
+Queue/RED set thresh_queue_ [expr 0.8 * [Queue set limit_]]
+Queue/RED set minthresh_queue_ [expr 0.6 * [Queue set limit_]]
+Queue/RED set q_weight_ 0.001
+Queue/RED set max_p_inv 10
+
+
 
 proc create-topology2 { BW delay qtype qsize numSideLinks deltaDelay } {
     global ns 
@@ -161,6 +168,40 @@ proc plot-xcp { TraceName nXCPs  PlotTime what } {
 }
 
 # Takes as input the the label on the Y axis, the time it starts plotting, and the trace file tcl var
+proc plot-xcp-queue { TraceName PlotTime traceFile } {
+    
+    exec rm -f xgraph.xcp_queue
+    exec rm -f temp.q temp.a temp.p temp.avg_enqueued temp.avg_dequeued temp.x temp.y 
+    exec touch temp.q temp.a temp.p temp.avg_enqueued temp.avg_dequeued temp.x temp.y 
+    
+    exec awk -v PT=$PlotTime {
+	{
+	    if (($1 == "q" && NF>2) && ($2 > PT)) {
+		print $2, $3 >> "temp.q"
+	    }
+	    else if (($1 == "a" && NF>2) && ($2 > PT)) {
+		print $2, $3 >> "temp.a"
+	    }
+	    else if (($1 == "p" && NF>2) && ($2 > PT)) {
+		print $2, $3 >> "temp.p"
+	    }
+	}
+    }  $traceFile
+
+    set ff [open xgraph.xcp_queue w]
+    puts $ff "TitleText: DROPTAIL XCP queue$TraceName"
+    puts $ff "Device: Postscript \n"
+    puts $ff \"queue
+    exec cat temp.q >@ $ff  
+    puts $ff \n\"ave_queue
+    exec cat temp.a >@ $ff
+    puts $ff \n\"prob_drop
+    exec cat temp.p >@ $ff
+
+    close $ff
+    exec xgraph  -P -x time -y queue xgraph.xcp_queue &
+}
+
 proc plot-red-queue { TraceName PlotTime traceFile } {
     
     exec rm -f xgraph.red_queue
@@ -182,7 +223,7 @@ proc plot-red-queue { TraceName PlotTime traceFile } {
     }  $traceFile
 
     set ff [open xgraph.red_queue w]
-    puts $ff "TitleText: $TraceName"
+    puts $ff "TitleText: RED TCP queue$TraceName"
     puts $ff "Device: Postscript \n"
     puts $ff \"queue
     exec cat temp.q >@ $ff  
@@ -194,6 +235,7 @@ proc plot-red-queue { TraceName PlotTime traceFile } {
     close $ff
     exec xgraph  -P -x time -y queue xgraph.red_queue &
 }
+
 
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Initializing Simulator -*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-#
 # BW is in Mbs and delay is in ms
@@ -219,6 +261,7 @@ $ns trace-all $f_all
 
 set  qSize  [expr round([expr ($BW / 8.0) * 4 * $delay * 1.0])];#set buffer to the pipe size
 
+set qSize [expr $qSize/4]
 
 set tracedXCPs       "0 1 2 3"
 set SimStopTime      30
@@ -282,29 +325,24 @@ foreach i $tracedXCPs {
 
 # Trace Queues
 foreach queue_name "Bottleneck rBottleneck" {
-    set queue [set "$queue_name"]
-    switch $qType {
-	"XCP" {
-	    global "ft_red_$queue_name"
-	    global "tcp_$queue_name"
-	    set "ft_red_$queue_name" [open ft_red_[set queue_name].tr w]
-
-	    set xcpq [$queue set vq_(0)]
-	    $xcpq attach [set ft_red_$queue_name]
-	    $xcpq trace curq_
-	    $xcpq trace ave_
-	    $xcpq trace prob1_
-	    
-	    set "tcp_$queue_name" [open tcp.tr w]
-	    set tcpq [$queue set vq_(1)]
-	    $tcpq attach [set tcp_$queue_name]
-	    $tcpq trace curq_
-	    $tcpq trace ave_
-	    $tcpq trace prob1_
-	    
+	set queue [set "$queue_name"]
+	switch $qType {
+		"XCP" {
+			global "ft_red_$queue_name"
+			global "tcp_$queue_name"
+			set "ft_red_$queue_name" [open ft_red_[set queue_name].tr w]
+			$queue attach [set ft_red_$queue_name]
+			
+			set "tcp_$queue_name" [open tcp.tr w]
+			set tcpq [$queue set vq_(1)]
+			$tcpq attach [set tcp_$queue_name]
+			$tcpq trace curq_
+			$tcpq trace ave_
+			$tcpq trace prob1_
+			
+		}
+		"DropTail/XCP" {}
 	}
-	"DropTail/XCP" {}
-    }
 }
 
 
@@ -352,7 +390,7 @@ if { $PostProcess } {
     plot-xcp      $TraceName  $tracedXCPs  0.0  "cwnd_"
     plot-xcp      $TraceName  $tracedXCPs  0.0  "t_seqno_"
 
-    plot-red-queue  $TraceName  $PlotTime   ft_red_Bottleneck.tr
+    plot-xcp-queue  $TraceName  $PlotTime   ft_red_Bottleneck.tr
     plot-red-queue  $TraceName  $PlotTime   tcp.tr
     
 }

@@ -5,9 +5,13 @@
 #
 # Descrp: parking lot topo
 #         
-
-Queue/RED set bytes_ false ;
-Queue/RED set queue_in_bytes_ false ;
+Agent/TCP set minrto_ 1
+Queue/RED set bytes_ true ;
+Queue/RED set queue_in_bytes_ true ;
+Queue/RED set thresh_queue_ [expr 0.8 * [Queue set limit_]]
+Queue/RED set minthresh_queue_ [expr 0.6 * [Queue set limit_]]
+Queue/RED set q_weight_ 0.001
+Queue/RED set max_p_inv 10
 
  #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Utility Functions -*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-#
 
@@ -69,6 +73,7 @@ proc create-string-topology {numHops BW_list d_list qtype_list qsize_list } {
 	    incr i
     }
 }
+
 
 proc set-red-params { queue qMinTh qMaxTh qWeight qLinterm } {
     global ECN_FLAG
@@ -328,6 +333,7 @@ while { $i < $numHops } {
 		    set queue                   [$link queue]
 		    #set-red-params $queue $qMinTh $qMaxTh $qWeight $qLinterm
 		    $queue set-link-capacity [[$link set link_] set bandwidth_];
+			puts "$link BW [[$link set link_] set bandwidth_]"
 	    }
 	}
 	"CSFQ" {
@@ -347,9 +353,9 @@ while { $i < $numHops } {
 		set kLink [expr 1000 * $delay * 2 * 4]
 		set queueSize   [expr  $qSize * 1000 * 8]
 		set qsizeThresh [expr  $queueSize * 0.4]
-		$queue init-link 1 $kLink $queueSize $qsizeThresh [[$link set link_] set bandwidth_] 
+		    $queue init-link 1 $kLink $queueSize $qsizeThresh [[$link set link_] set bandwidth_] 
 	    }
-	    foreach link "[set rl$i]" {
+		foreach link "[set rl$i]" {
 		set queue   [$link queue]
 		set ff      $nAllHopsTCPs
 		while {$ff < [expr $rTCPs + $nAllHopsTCPs ] } {
@@ -361,12 +367,12 @@ while { $i < $numHops } {
 		set queueSize   [expr  $qSize * 1000 * 8]
 		set qsizeThresh [expr  $queueSize * 0.7]
 		$queue init-link 1 $kLink $queueSize $qsizeThresh [[$link set link_] set bandwidth_] 
-	    }
+		}
 
 	}
-	default {}
-	}
-    incr i
+	    default {}
+    }
+	incr i
 }
 
 # Create sources: 1) Long TCPs

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.24 2004/09/28 18:12:43 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.25 2004/10/28 23:35:39 haldar Exp $
 #
 
 #
@@ -595,20 +595,19 @@ SimpleLink instproc insert-delayer args  {
 
 Simulator instproc create-XCPQ {} {
     
-    # create xcp wrapper queue
-    set xcp [new Queue/XCP]
-    $xcp create-vqueues
-    return $xcp
+	# create xcp wrapper queue
+	set xcp [new Queue/XCP]
+	$xcp create-vqueues
+	return $xcp
 }
 
 Queue/XCP instproc create-vqueues {} {
-    $self instvar vq_ 
+	$self instvar vq_ 
     
-    # create virtual queues for xcp/tcp flows
-    for {set n 0} {$n < [Queue/XCP set maxVirQ_]} {incr n} {
-   	set vq_($n) [new Queue/RED/XCPQ]
-   	lappend qlist [set vq_($n)]
-    }
-    
-    eval $self set-virQ $qlist
+	# create virtual queues for xcp/tcp flows
+	$self set-xcpQ [set vq_(0) [new Queue/DropTail/XCPQ]]
+	$self set-tcpQ [set vq_(1) [new Queue/RED]]
+	$self set-otherQ [set vq_(2) [new Queue/RED]]
+	
+	#XXX this vq_ variable needs to go away XXX
 }

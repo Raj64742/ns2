@@ -17,9 +17,13 @@
 #
 
 Agent/TCP/Reno/XCP      set tcpTick_                    0.001
+Agent/TCP set minrto_ 1
 Queue/RED set bytes_ false ;
 Queue/RED set queue_in_bytes_ false ;
-
+Queue/RED set thresh_queue_ [expr 0.8 * [Queue set limit_]]
+Queue/RED set minthresh_queue_ [expr 0.6 * [Queue set limit_]]
+Queue/RED set q_weight_ 0.001
+Queue/RED set max_p_inv 10
 
 proc create-topology2 { BW delay qtype qsize numSideLinks deltaDelay } {
     global ns 
@@ -172,7 +176,7 @@ proc plot-red-queue { TraceName PlotTime traceFile } {
     
     exec awk -v PT=$PlotTime {
 	{
-	    if (($1 == "Q" && NF>2) && ($2 > PT)) {
+	    if (($1 == "q" && NF>2) && ($2 > PT)) {
 		print $2, $3 >> "temp.q"
 	    }
 	    else if (($1 == "a" && NF>2) && ($2 > PT)){
@@ -222,6 +226,8 @@ $ns trace-all $f_all
 
 set  qSize  [expr round([expr ($BW / 8.0) * 4 * $delay * 1.0])];#set buffer to the pipe size
 
+set qSize [expr $qSize/2]
+puts "qsize:$qSize\n"
 
 set tracedXCPs       "0 1 2"
 set SimStopTime      30
@@ -275,17 +281,14 @@ foreach i $tracedXCPs {
 foreach queue_name "Bottleneck rBottleneck" {
     set queue [set "$queue_name"]
     switch $qType {
-	"XCP" {
-	    global "ft_red_$queue_name"
-	    set "ft_red_$queue_name" [open ft_red_[set queue_name].tr w]
-
-	    set xcpq [$queue set vq_(0)]
-	    $xcpq attach       [set ft_red_$queue_name]
-	    $xcpq trace curq_
-	    $xcpq trace ave_
-	    $xcpq trace prob1_
-	}
-	"DropTail/XCP" {}
+	    "XCP" {
+		    global "ft_red_$queue_name"
+		    set "ft_red_$queue_name" [open ft_red_[set queue_name].tr w]
+		    
+		    set xcpq $queue ;#[$queue set vq_(0)]
+		    $xcpq attach       [set ft_red_$queue_name]
+	    }
+	    "DropTail/XCP" {}
     }
 }
 
