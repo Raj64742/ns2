@@ -30,35 +30,20 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.12 2003/01/19 03:54:04 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.13 2003/04/17 23:06:07 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
 source misc_simple.tcl
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set useHeaders_ false
-# The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
-
-Agent/TCP set minrto_ 0
-# The default is being changed to minrto_ 1
-Agent/TCP set syn_ false
-Agent/TCP set delay_growth_ false
-# In preparation for changing the default values for syn_ and delay_growth_.
 
 Trace set show_tcphdr_ 1
 
 set wrap 90
-set wrap1 [expr 90 * 512 + 40]
+set wrap1 [expr $wrap * 512 + 40]
 
 Class Topology
 
@@ -96,13 +81,23 @@ Topology/net4 instproc init ns {
 
 
 TestSuite instproc finish file {
-	global quiet wrap PERL
-        exec $PERL ../../bin/set_flow_id -s all.tr | \
-          $PERL ../../bin/getrc -s 2 -d 3 | \
-          $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
-        ## exec $PERL ../../bin/set_flow_id -d all.tr | \
-        ## $PERL ../../bin/getrc -s 3 -d 2 | \
-        ##  $PERL ../../bin/raw2xg -a -s 0.01 -m $wrap -t $file > temp1.rands
+	global quiet wrap wrap1 PERL
+	set space 512
+        #exec $PERL ../../bin/set_flow_id -s all.tr | \
+        #  $PERL ../../bin/getrc -s 2 -d 3 | \
+        #  $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
+	if [string match {*full*} $file] {
+                exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+                   $PERL ../../bin/raw2xg -c -n $space -s 0.01 -m $wrap1 -t $file > temp.rands
+                exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+                   $PERL ../../bin/raw2xg -a -c -f -p -y -n $space -s 0.01 -m $wrap1 -t $file >> temp.rands
+	} else {
+	        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
+	          $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
+	        exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+	          $PERL ../../bin/raw2xg -a -c -p -y -s 0.01 -m $wrap -t $file \
+		  >> temp.rands
+	}
 	if {$quiet == "false"} {
 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}
@@ -266,7 +261,7 @@ Test/onedrop_tahoe_full instproc init {} {
 	$self next pktTraceFile
 }
 Test/onedrop_tahoe_full instproc run {} {
-        $self setup FullTcpTahoe {5}
+        $self setup FullTcpTahoe {4}
 }
 
 Class Test/onedrop_numdup4_tahoe_full -superclass TestSuite
@@ -279,7 +274,7 @@ Test/onedrop_numdup4_tahoe_full instproc init {} {
 	$self next pktTraceFile
 }
 Test/onedrop_numdup4_tahoe_full instproc run {} {
-        $self setup FullTcpTahoe {5}
+        $self setup FullTcpTahoe {4}
 }
 
 Class Test/onedrop_reno -superclass TestSuite
@@ -315,7 +310,7 @@ Test/onedrop_reno_full instproc init {} {
 	$self next pktTraceFile
 }
 Test/onedrop_reno_full instproc run {} {
-        $self setup FullTcp {5}
+        $self setup FullTcp {4}
 }
 
 Class Test/onedrop_numdup4_reno_full -superclass TestSuite
@@ -329,7 +324,7 @@ Test/onedrop_numdup4_reno_full instproc init {} {
 	$self next pktTraceFile
 }
 Test/onedrop_numdup4_reno_full instproc run {} {
-        $self setup FullTcp {5}
+        $self setup FullTcp {4}
 }
 
 Class Test/onedrop_newreno -superclass TestSuite
@@ -364,7 +359,7 @@ Test/onedrop_newreno_full instproc init {} {
 	$self next pktTraceFile
 }
 Test/onedrop_newreno_full instproc run {} {
-        $self setup FullTcpNewreno {5}
+        $self setup FullTcpNewreno {4}
 }
 
 Class Test/onedrop_numdup4_newreno_full -superclass TestSuite
@@ -377,7 +372,7 @@ Test/onedrop_numdup4_newreno_full instproc init {} {
 	$self next pktTraceFile
 }
 Test/onedrop_numdup4_newreno_full instproc run {} {
-        $self setup FullTcpNewreno {5}
+        $self setup FullTcpNewreno {4}
 }
 
 Class Test/onedrop_sack -superclass TestSuite
