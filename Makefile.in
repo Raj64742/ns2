@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.58 1997/08/13 05:25:40 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.59 1997/08/14 05:38:10 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -25,51 +25,66 @@
 
 # Top level hierarchy
 prefix = @prefix@
-exec_prefix = @exec_prefix@
 # Pathname of directory to install the binary
-BINDEST = @bindir@
+BINDEST = @prefix@/bin
 # Pathname of directory to install the man page
-MANDEST = @mandir@
+MANDEST = @prefix@/man
 
 CC = @CC@
-C++ = @CXX@
+CPP = @CXX@
 CCOPT = @V_CCOPT@
-TCL2C++ = @V_TCL2CPP@
+TCL2C = @V_TCL2CPP@
 
 MKDEP = ./mkdep
 LIB =  \
-	@V_LIB_X11@ \
 	@V_LIB@ \
 	@V_LIBS@ \
+	@V_LIB_X11@ \
 	-lm @LIBS@
 
-INCLUDE = \
-	@V_INCLUDE_BTCL@ \
-	@V_INCLUDE_X11@ \
-	@V_INCLUDES@ \
-	-I.
+INCLUDES = \
+	-I. @V_INCLUDE_BTCL@ @V_INCLUDE_X11@ \
+	@V_INCLUDES@
 
-DEFINE = @V_DEFINE@ @V_DEFINES@ -DNO_TK -Dabort=_ABORT
+DEFINE = -DNO_TK -Dabort=_ABORT @V_DEFINE@ @V_DEFINES@
 STATIC = @V_STATIC@
 
-CFLAGS =  $(INCLUDE) $(DEFINE) $(CCOPT)
+CFLAGS = $(INCLUDES) $(DEFINE) $(CCOPT)
 
 INSTALL = @INSTALL@
 RANLIB = @V_RANLIB@
 @V_SHELL@
 
+BLANK	= # make a blank space
+LINK	= $(CPP)
+LDFLAGS	=
+LDOUT	= -o $(BLANK)
+PERL	= perl
+RM	= rm -f
+TCLSH	= tclsh
+
 # Explicitly define compilation rules since SunOS 4's make doesn't like gcc.
 # Also, gcc does not remove the .o before forking 'as', which can be a
 # problem if you don't own the file but can write to the directory.
-.SUFFIXES: .cc $(.SUFFIXES)
+.SUFFIXES: .cc	# $(.SUFFIXES)
 
 .cc.o:
 	@rm -f $@
-	$(C++) -o $@ -c $(CFLAGS) $*.cc
+	$(CPP) -c $(CFLAGS) -o $@ $*.cc
 
 .c.o:
 	@rm -f $@
-	$(CC) -o $@ -c $(CFLAGS) $*.c
+	$(CC) -c $(CFLAGS) -o $@ $*.c
+
+
+# WIN32: use backslash in directories and include makefile.win
+NS_GENDIR	= gen/
+NS_LIBDIR	= lib/
+NS_TCL_LIBDIR	= tcl/lib/
+NS	= ns
+NSX	= nsx
+# !include <makefile.win>
+
 
 OBJ_CC = \
 	random.o ranvar.o misc.o timer-handler.o \
@@ -95,11 +110,15 @@ OBJ_CC = \
 	dynalink.o rtProtoDV.o net-interface.o \
 	ctrMcast.o prune.o srm.o \
 	net.o net-ip.o tap.o \
-	lib/int.Vec.o lib/int.RVec.o lib/dmalloc_support.o \
+	$(NS_LIBDIR)int.Vec.o $(NS_LIBDIR)int.RVec.o \
+	$(NS_LIBDIR)dmalloc_support.o \
 	sessionhelper.o delaymodel.o
 
 OBJ_C = \
 	inet.o
+
+OBJ_COMPAT = $(OBJ_GETOPT) win32.o
+#XXX compat/win32x.o compat/tkConsole.o
 
 OBJ_NAM = \
 	nam/animation.o \
@@ -115,12 +134,12 @@ OBJ_NAM = \
 	nam/netview.o \
 	nam/netmodel.o
 
-OBJ_GEN = gen/version.o gen/ns_tcl.o
+OBJ_GEN = $(NS_GENDIR)version.o $(NS_GENDIR)ns_tcl.o
 
 SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
 	tclAppInit.cc tkAppInit.cc
 
-OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN)
+OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	object.h packet.h random.h scheduler.h scoreboard.h tcp.h trace.h \
 	tcp-sink.h tcp-fack.h drop-tail.h red.h \
@@ -131,25 +150,24 @@ HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	rtProtoDV.h ctrMcast.h prune.h ranvar.h delaymodel.h
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
-	gen/* core core.ns core.nsx
+	$(NS_GENDIR)* core core.ns core.nsx
 
-ns: $(OBJ) tclAppInit.o
-	$(C++) $(STATIC) -o $@ $(CFLAGS) $(OBJ) tclAppInit.o $(LIB)
+$(NS): $(OBJ) tclAppInit.o
+	$(LINK) $(STATIC) $(LDFLAGS) $(LDOUT)$@ \
+		tclAppInit.o $(OBJ) $(LIB)
 
-nsx: $(OBJ) tkAppInit.o $(OBJ_NAM)
-	$(C++) $(STATIC) -o $@ $(CFLAGS) $(OBJ) $(OBJ_NAM) tkAppInit.o $(LIB)
+$(NSX): $(OBJ) tkAppInit.o $(OBJ_NAM)
+	$(LINK) $(STATIC) $(LDFLAGS) $(LDOUT)$@ \
+		tkAppInit.o $(OBJ) $(OBJ_NAM) $(LIB)
 
 ns.dyn: $(OBJ) tclAppInit.o
-	$(C++) -o $@ $(CFLAGS) $(OBJ) tclAppInit.o $(LIB)
-
-gen/version.c: VERSION
-	@rm -f $@
-	cat VERSION | sed 's/.*/char version_string[] = "&";/' > $@
+	$(LINK) $(LDFLAGS) -o $@ \
+		tclAppInit.o $(OBJ) $(LIB)
 
 PURIFY	= purify -cache-dir=/tmp
-
-ns.pure: $(OBJ) tclAppInit.o
-	$(PURIFY) g++ $(STATIC) -o $@ $(CFLAGS) $(OBJ) tclAppInit.o $(LIB)
+ns-pure: $(OBJ) tclAppInit.o
+	$(PURIFY) $(LINK) $(STATIC) $(LDFLAGS) -o $@ \
+		tclAppInit.o $(OBJ) $(LIB)
 
 NS_TCL_LIB = \
 	tcl/lib/ns-compat.tcl \
@@ -188,10 +206,15 @@ NS_TCL_LIB = \
         tcl/pim/pim-vifs.tcl \
 	tcl/session/session.tcl
 
-gen/ns_tcl.cc: $(NS_TCL_LIB)
-	@rm -f $@
-	( cd tcl/lib; tclsh ../../tcl-expand.tcl ns-lib.tcl ) \
-		| $(TCL2C++) et_ns_lib >> $@
+$(NS_GENDIR)ns_tcl.cc: $(NS_TCL_LIB)
+	( cd $(NS_TCL_LIBDIR); $(TCLSH) ../../tcl-expand.tcl ns-lib.tcl ) \
+		| $(TCL2C) et_ns_lib >> $@
+
+$(NS_GENDIR)version.c: VERSION
+	$(RM) $@
+	$(PERL) bin/printver.pl "char version_string[] = " < VERSION > $@
+#	cat VERSION | sed 's/.*/char version_string[] = "&";/' > $@
+
 
 install: force
 	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)
@@ -200,10 +223,10 @@ install-man: force
 	$(INSTALL) -m 444 -o bin -g bin ns.1 $(DESTDIR)$(MANDEST)/man1
 
 clean:
-	rm -f $(CLEANFILES)
+	$(RM) $(CLEANFILES)
 
 distclean:
-	rm -f $(CLEANFILES) Makefile config.cache config.log config.status \
+	$(RM) $(CLEANFILES) Makefile config.cache config.log config.status \
 	    gnuc.h os-proto.h
 
 tags:	force
