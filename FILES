@@ -126,6 +126,7 @@ test-sack
 test-suite-cbq.tcl
 test-suite-red.tcl
 test-suite-sack.tcl
+test-suite-v2.tcl
 test-suite.tcl
 trace.cc
 trace.h
