@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.8 1997/10/30 22:03:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.9 1998/05/23 01:13:37 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -228,6 +228,49 @@ Test/timersA instproc run {} {
 
 	$self traceQueues $node_(r1) [$self openTrace 3.5 $testName_]
 	$ns_ run
+}
+
+# Multiply the mean deviation by 8 instead of by 4.
+#
+Class Test/timersA1 -superclass TestSuite
+Test/timersA1 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	timersA1_(multiple_of_8_instead_of_4)
+	Agent/TCP set rttvar_exp_ 3
+        Test/timersA1 instproc run {} [Test/timersA info instbody run ]
+	$self next
+}
+
+# timestamps, and tcpTick more fine-grained.
+#
+Class Test/timersA2 -superclass TestSuite
+Test/timersA2 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	timersA2_(timestamps,_fine-grained_clock)
+        Agent/TCP set timestamps_ true
+	Agent/TCP set tcpTick_ 0.001
+        Test/timersA2 instproc run {} [Test/timersA info instbody run ]
+	$self next
+}
+
+# Update the smoothed round-trip with weight 1/16 instead of 1/8.
+#
+Class Test/timersA3 -superclass TestSuite
+Test/timersA3 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net4
+	set test_	timersA3_(weight_1/32_instead_of_1/8)
+	Agent/TCP set timestamps_ true
+	Agent/TCP set tcpTick_ 0.001
+	Agent/TCP set T_SRTT_BITS 5
+	Agent/TCP set T_RTTVAR_BITS 4
+        Test/timersA3 instproc run {} [Test/timersA info instbody run ]
+	$self next
 }
 
 Class Test/timers1 -superclass TestSuite
