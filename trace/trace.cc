@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.75 2002/04/13 20:14:00 buchheim Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.76 2002/10/08 22:15:09 buchheim Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -379,7 +379,7 @@ void Trace::trace(TracedVar* var)
 		return;
 
 	if (pt_->tagged()) {
-		sprintf(pt_->buffer(), "%c "TIME_FORMAT" -a%s -n%s -v%s",
+		sprintf(pt_->buffer(), "%c "TIME_FORMAT" -a %s -n %s -v %s",
 			type_,
 			pt_->round(s.clock()),
 			var->owner()->name(),
