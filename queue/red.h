@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.26 2001/06/12 23:54:14 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.27 2001/06/15 00:18:13 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -80,9 +80,15 @@ struct edp {
 	int summarystats;	/* true to print true average queue size */
 	double th_min;		/* minimum threshold of average queue size */
 	double th_max;		/* maximum threshold of average queue size */
-	double max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
+	double max_p_inv;       /* 1/max_p, for max_p = maximum prob.  */
+	                        /* adaptive RED: the initial max_p_inv     */	
 	double q_w;		/* queue weight given to cur q size sample */
-
+	int adaptive;		/* 0 for default RED */
+				/* 1 for adaptvive RED, adapting max_p */
+	double alpha;           /* adaptive RED: additive param for max_p */
+	double beta;            /* adaptive RED: multip param for max_p */
+	double interval;	/* adaptive RED: interval for adaptations */
+			
 	/*
 	 * Computed as a function of user supplied paramters.
 	 */
@@ -105,12 +111,13 @@ struct edv {
 	int count;		/* # of packets since last drop */
 	int count_bytes;	/* # of bytes since last drop */
 	int old;		/* 0 when average queue first exceeds thresh */
+	double cur_max_p;	//current max_p
+	double lastset;		/* adaptive RED: last time adapted */
 	double v_true_ave;	/* true long-term average queue size */
 	double v_total_time;	/* total time average queue size compute for */
-
 	edv() : v_ave(0.0), v_prob1(0.0), v_slope(0.0), v_prob(0.0),
-		v_a(0.0), v_b(0.0), count(0), count_bytes(0), old(0),
-		v_true_ave(0.0), v_total_time(0.0) { }
+		v_a(0.0), v_b(0.0), count(0), count_bytes(0), old(0), 
+		cur_max_p(1.0), v_true_ave(0.0), v_total_time(0.0){ }
 };
 
 class REDQueue : public Queue {
@@ -128,10 +135,12 @@ class REDQueue : public Queue {
 	double estimator(int nqueued, int m, double ave, double q_w);
 	int drop_early(Packet* pkt);
 	double modify_p(double p, int count, int count_bytes, int bytes,
-			int mean_pktsize, int wait, int size);
+	   int mean_pktsize, int wait, int size);
+ 	double calculate_p_new(double v_ave, double th_max, int gentle, 
+	  double v_a, double v_b, double v_c, double v_d, double max_p);
  	double calculate_p(double v_ave, double th_max, int gentle, 
-			   double v_a, double v_b, double v_c, double v_d, double max_p_inv);
-	virtual void reportDrop(Packet *) {}  //pushback
+	  double v_a, double v_b, double v_c, double v_d, double max_p_inv);
+        virtual void reportDrop(Packet *pkt) {}  //pushback
 	void print_summarystats();
 
 	LinkDelay* link_;	/* outgoing link */

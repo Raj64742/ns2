@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.56 2001/06/12 23:54:14 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.57 2001/06/15 00:18:13 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -110,6 +110,10 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 	bind("maxthresh_", &edp_.th_max);	    // maxthresh
 	bind("mean_pktsize_", &edp_.mean_pktsize);  // avg pkt size
 	bind("q_weight_", &edp_.q_w);		    // for EWMA
+	bind("adaptive_", &edp_.adaptive);          // 1 for adaptive red
+	bind("alpha_", &edp_.alpha); 	  	    // adaptive red param
+	bind("beta_", &edp_.beta);                  // adaptive red param
+	bind("interval_", &edp_.interval);	    // adaptive red param
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
@@ -152,6 +156,8 @@ void REDQueue::reset()
 	 * by the size of an average packet (which is specified by user).
 	 */
 	
+	if (edp_.th_max == 0) 
+		edp_.th_max = 3 * edp_.th_min;
         if (qib_ && first_reset_ == 1) {
                 //printf ("edp_.th_min: %5.3f \n", edp_.th_min);
                 edp_.th_min *= edp_.mean_pktsize;  
@@ -174,16 +180,18 @@ void REDQueue::reset()
 
 	edv_.v_ave = 0.0;
 	edv_.v_true_ave = 0.0;
-        edv_.v_total_time = 0.0;
+	edv_.v_total_time = 0.0;
 	edv_.v_slope = 0.0;
 	edv_.count = 0;
 	edv_.count_bytes = 0;
 	edv_.old = 0;
 	edv_.v_a = 1 / (edp_.th_max - edp_.th_min);
+	edv_.cur_max_p = 1.0 / edp_.max_p_inv;
 	edv_.v_b = - edp_.th_min / (edp_.th_max - edp_.th_min);
+	edv_.lastset = 0.0;
 	if (edp_.gentle) {
-		edv_.v_c = ( 1.0 - 1 / edp_.max_p_inv ) / edp_.th_max;
-		edv_.v_d = 2 / edp_.max_p_inv - 1.0;
+		edv_.v_c = ( 1.0 - edv_.cur_max_p ) / edp_.th_max;
+		edv_.v_d = 2 * edv_.cur_max_p - 1.0;
 	}
 
 	idle_ = 1;
@@ -217,6 +225,22 @@ double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 	old_ave = new_ave;
 	new_ave *= 1.0 - q_w;
 	new_ave += q_w * nqueued;
+	
+	double now = Scheduler::instance().clock();
+	if (edp_.adaptive == 1 && now > edv_.lastset + edp_.interval ) {
+		double part = 0.4*(edp_.th_max - edp_.th_min);
+		// AIMD rule to keep target Q~1/2(th_min+th_max)
+		int change = 0;
+		if ( new_ave < edp_.th_min + part && edv_.cur_max_p > 0.01 ) {
+			// we increase the average queue size, so decrease max_p
+			edv_.cur_max_p = edv_.cur_max_p * edp_.beta;
+			edv_.lastset = now;
+		} else if (new_ave > edp_.th_max - part && 0.5 > edv_.cur_max_p ) {
+			// we decrease the average queue size, so increase max_p
+			edv_.cur_max_p = edv_.cur_max_p + edp_.alpha;
+			edv_.lastset = now;
+		} 
+	}
 	return new_ave;
 }
 
@@ -247,8 +271,8 @@ Packet* REDQueue::deque()
  * Calculate the drop probability.
  */
 double
-REDQueue::calculate_p(double v_ave, double th_max, int gentle, double v_a, 
-	double v_b, double v_c, double v_d, double max_p_inv)
+REDQueue::calculate_p_new(double v_ave, double th_max, int gentle, double v_a, 
+	double v_b, double v_c, double v_d, double max_p)
 {
 	double p;
 	if (gentle && v_ave >= th_max) {
@@ -259,10 +283,23 @@ REDQueue::calculate_p(double v_ave, double th_max, int gentle, double v_a,
 		// p ranges from 0 to max_p as the average queue
 		// size ranges from th_min to th_max 
 		p = v_a * v_ave + v_b;
-		p /= max_p_inv;
+		p *= max_p;
 	}
 	if (p > 1.0)
 		p = 1.0;
+	return p;
+}
+
+/*
+ * Calculate the drop probability.
+ * This is being kept for backwards compatibility.
+ */
+double
+REDQueue::calculate_p(double v_ave, double th_max, int gentle, double v_a, 
+	double v_b, double v_c, double v_d, double max_p_inv)
+{
+	double p = calculate_p_new(v_ave, th_max, gentle, v_a,
+		v_b, v_c, v_d, 1.0 / max_p_inv);
 	return p;
 }
 
@@ -309,8 +346,8 @@ REDQueue::drop_early(Packet* pkt)
 {
 	hdr_cmn* ch = hdr_cmn::access(pkt);
 
-	edv_.v_prob1 = calculate_p(edv_.v_ave, edp_.th_max, edp_.gentle, 
-  	  edv_.v_a, edv_.v_b, edv_.v_c, edv_.v_d, edp_.max_p_inv);
+	edv_.v_prob1 = calculate_p_new(edv_.v_ave, edp_.th_max, edp_.gentle, 
+  	  edv_.v_a, edv_.v_b, edv_.v_c, edv_.v_d, edv_.cur_max_p);
 	edv_.v_prob = modify_p(edv_.v_prob1, edv_.count, edv_.count_bytes,
 	  edp_.bytes, edp_.mean_pktsize, edp_.wait, ch->size());
 
@@ -398,6 +435,7 @@ void REDQueue::enque(Packet* pkt)
 	if (idle_) {
 		// A packet that arrives to an idle queue will never
 		//  be dropped.
+		double now = Scheduler::instance().clock();
 		/* To account for the period when the queue was empty. */
 		idle_ = 0;
 		m = int(edp_.ptc * (now - idletime_));
@@ -519,10 +557,8 @@ void REDQueue::enque(Packet* pkt)
 			/* drop random victim or last one */
 			pkt = pickPacketToDrop();
 			q_->remove(pkt);
-
 			bcount_ -= hdr_cmn::access(pkt)->size();
 			reportDrop(pkt);
-
 			drop(pkt);
 			if (!ns1_compat_) {
 				// bug-fix from Philip Liu, <phill@ece.ubc.ca>
@@ -676,10 +712,10 @@ void REDQueue::print_edp()
 {
 	printf("mean_pktsz: %d\n", edp_.mean_pktsize); 
 	printf("bytes: %d, wait: %d, setbit: %d\n",
-	       edp_.bytes, edp_.wait, edp_.setbit);
+		edp_.bytes, edp_.wait, edp_.setbit);
 	printf("minth: %f, maxth: %f\n", edp_.th_min, edp_.th_max);
-	printf("max_p_inv: %f, qw: %f, ptc: %f\n",
-	       edp_.max_p_inv, edp_.q_w, edp_.ptc);
+	printf("max_p: %f, qw: %f, ptc: %f\n",
+		edv_.cur_max_p, edp_.q_w, edp_.ptc);
 	printf("qlim: %d, idletime: %f\n", qlim_, idletime_);
 	printf("=========\n");
 }
