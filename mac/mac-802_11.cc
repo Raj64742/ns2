@@ -33,6 +33,11 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.7 1997/07/22 22:33:19 kfall Exp $ (UCB)";
+#endif
+
 #include "template.h"
 #include "channel.h"
 #include "random.h"
@@ -61,13 +66,13 @@
 static class Mac802_11Class : public TclClass {
 public:
 	Mac802_11Class() : TclClass("Mac/802_11") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new Mac802_11);
 	}
 } class_mac_802_11;
 
 
-Mac802_11::Mac802_11() : CsmaCaMac(), mode_(MM_RTS_CTS), sender_(-1), rtxAck_(0), rtxRts_(0), pkt_(0), pktTx_(0), mhRts_(this), mhData_(this), mhIdle_(this)
+Mac802_11::Mac802_11() : CsmaCaMac(), mode_(MM_RTS_CTS), rtxAck_(0), rtxRts_(0), sender_(-1), pkt_(0), pktTx_(0), mhRts_(this), mhData_(this), mhIdle_(this)
 {
 	bind("bssid_", &bssid_);
 	bind_time("sifs_", &sifs_);
@@ -81,7 +86,6 @@ Mac802_11::Mac802_11() : CsmaCaMac(), mode_(MM_RTS_CTS), sender_(-1), rtxAck_(0)
 int
 Mac802_11::command(int argc, const char*const* argv)
 {
-	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
 		if (strcmp(argv[1], "mode") == 0) {
 			if (strcmp(argv[2], "DCF") == 0)
@@ -298,7 +302,6 @@ Mac802_11::sendCts(Packet* p)
 void
 Mac802_11::sendData()
 {
-	Scheduler& s = Scheduler::instance();
 	if (++rtxAck_ > rtxAckLimit_) {
 		resume(pkt_);
 		return;
@@ -316,7 +319,6 @@ Mac802_11::sendData()
 void
 Mac802_11::sendAck(Packet* p)
 {
-	Scheduler& s = Scheduler::instance();
 	p = p->copy();
 	CHECK_PKT(p);
 	((hdr_cmn*)p->access(off_cmn_))->size() = 0;
@@ -328,17 +330,17 @@ Mac802_11::sendAck(Packet* p)
 }
 
 
-void MacHandlerRts::handle(Event* e)
+void MacHandlerRts::handle(Event*)
 {
 	mac_->sendRts();
 }
 
-void MacHandlerData::handle(Event* e)
+void MacHandlerData::handle(Event*)
 {
 	mac_->sendData();
 }
 
-void MacHandlerIdle::handle(Event* e)
+void MacHandlerIdle::handle(Event*)
 {
 	mac_->state(mac_->state() & ~MAC_RECV);
 }
