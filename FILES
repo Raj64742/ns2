@@ -724,6 +724,8 @@ routealgo/routealgo.h
 routealgo/tnode.cc
 routealgo/tnode.h
 routecache.cc
+rq.h
+rq.cc
 rtProtoDV.cc
 rtProtoDV.h
 rtcp.cc
