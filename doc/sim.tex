@@ -4,9 +4,11 @@
 %        DRAFT DRAFT DRAFT
 %        - KFALL
 %
-\chapter{\shdr{The Simulator Class}{tcl/lib/ns-lib.h}{sec:sim}}
+\chapter{The Class Simulator}
+\label{chap:sim}
 
-The overall simulator is described by a \code{Simulator} tcl class.
+The overall simulator is described by a Tcl
+\clsref{Simulator}{../ns-2/ns-lib.h}.
 It provides a set of interfaces for configuring a simulation
 and for choosing the type of event scheduler used to drive
 the simulation.
@@ -14,12 +16,14 @@ A simulation script generally begins by creating an instance
 of this class and calling various methods to create nodes, topologies,
 and configure other aspects of the simulation.
 A subclass of Simulator called \code{OldSim} is used to support
-ns-1 backward compatibility.
+\ns~v1 backward compatibility.
 
-\subsection{\shdr{Simulator Initialization}{tcl/lib/ns-lib.h}{sec:siminit}}
+\section{Simulator Initialization}
+\label{sec:siminit}
 
-When a new simulation object is created in tcl, the initialization
-procedure performs the following operations:
+When a new simulation object is created in tcl,
+\fcnref{the initialization procedure}{../ns-2/ns-lib.h}{Simulator::init}
+performs the following operations:
 \begin{itemize}
         \item initialize the packet format (calls {\tt create\_packetformat})
         \item create a scheduler (defaults to a simple linked-list scheduler)
@@ -27,20 +31,19 @@ procedure performs the following operations:
 \end{itemize}
 The packet format initialization sets up field offsets within packets
 used by the entire simulation.  It is described in more detail
-in section~\ref{sec:packethdrmgr}.
+in \href{the following chapter on packets}{Chapter}{chap:packets}.
 The scheduler runs the simulation in an event-driven manner and may
 be replaced by alternative schedulers which provide somewhat
 different semantics (see the following section for more detail).
 The null agent is created with the following call:
-\begin{small}
-\begin{verbatim}
+\begin{program}
         set nullAgent_ [new Agent/Null]
-\end{verbatim}
-\end{small}
+\end{program}
 This agent is generally useful as a sink for dropped packets or
 as a destination for packets that are not counted or recorded.
 
-\subsection{\shdr{Schedulers and Events}{scheduler.cc}{sec:sched}}
+\section{Schedulers and Events}
+\label{sec:sched}
 
 The simulator is an event-driven simulator.
 There are presently four schedulers available in the simulator, each
@@ -58,55 +61,55 @@ No partial execution of events or pre-emption is supported.
 
 An {\em event} generally comprises a ``firing time'' and a handler function.
 The actual definition of an event is found in \code{scheduler.h}:
-\begin{small}
-\begin{verbatim}
-        class Event { 
+\begin{program}
+        class Event \{ 
         public: 
-                Event* next_;           /* event list */ 
-                Handler* handler_;      /* handler to call when event ready */
-                double time_;           /* time at which event is ready */
-                int uid_;               /* unique ID */
-                Event() : time_(0), uid_(0) {}
-        };   
+                Event* next_;           \* event list */ 
+                Handler* handler_;      \* handler to call when event ready */
+                double time_;           \* time at which event is ready */
+                int uid_;               \* unique ID */
+                Event() : time_(0), uid_(0) \{\}
+        \};   
         /*   
-         * The base class for all event handlers.  When an event's scheduled
-         * time arrives, it is passed to handle which must consume it.
-         * i.e., if it needs to be freed it, it must be freed by the handler.
+         * {\cf The base class for all event handlers.  When an event's scheduled}
+         * {\cf time arrives, it is passed to handle which must consume it.}
+         * {\ie, if it needs to be freed it, it must be freed by the handler.}
          */  
-        class Handler {
+        class Handler \{
          public: 
                 virtual void handle(Event* event) = 0;
-        };   
-\end{verbatim}
-\end{small}
-
-Two types of objects are derived from the base \code{Event} class:
-packets and ``at-events''.
-Packets are described in section\ref{sec:packetclass}.
+        \};   
+\end{program}
+Two types of objects are derived from the base
+\clsref{Event}{../ns-2/scheduler.cc}: packets and ``at-events''.
+Packets are described in detail 
+\href{in the next chapter}{Chapter}{sec:packetclass}.
 An at-event is a tcl procedure execution scheduled to occur at
 a particular time. 
 This is frequently used in simulation scripts.
 A simple example of how it is used is as follows:
-\begin{small}
-\begin{verbatim}
-        ...
+\begin{program}
+        \ldots
         set ns_ [new Simulator]
         $ns_ use-scheduler Heap
         $ns_ at 300.5 "$self complete_sim"
-        ...
-\end{verbatim}
-\end{small}
+        \ldots
+\end{program}
 This tcl code fragment first creates a simulation object,
 then changes the default scheduler implementation to be heap-based
 (see below), and finally schedules the function {\tt \$self complete\_sim}
-to be executed at time 300.5 (seconds).
+to be executed at time 300.5 (seconds)%
+\footnote{Note that this particular code fragment expects to be encapsulated 
+in an object instance procedure, where the appropriate
+reference to \code{\$self} is correctly defined.}.
 At-events are implemented as events where the handler is
 effectively an execution of the tcl interpreter.
 
-\subsubsection{\shdr{the list scheduler}{scheduler.cc}{sec:listsched}}
+\subsection{The List Scheduler}
+\label{sec:listsched}
 
-The list scheduler (class \code{Scheduler/List}) implements the scheduler
-using a simple linked-list structure.
+The list scheduler (\clsref{Scheduler/List}{../ns-2/scheduler.cc})
+implements the scheduler using a simple linked-list structure.
 The list is kept in time-order (earliest to latest), so event
 insertion and deletion require scanning the list to find the
 appropriate entry.
@@ -115,52 +118,59 @@ entry off the head of the list.
 This implementation preserves event execution in a FIFO manner
 for simultaneous events.
 
-\subsubsection{\shdr{the heap scheduler}{scheduler.cc}{sec:heapsched}}
+\subsection{the heap scheduler}
+\label{sec:heapsched}
 
-The heap scheduler (class \code{Scheduler/Heap}) implements the scheduler
-using a heap structure.
+The heap scheduler (\clsref{Scheduler/Heap}{../ns-2/scheduler.cc})
+implements the scheduler using a heap structure.
 This structure is superior to the list structure for a large number
 of events, as insertion and deletion times are in $O(\log n)$
 for $n$ events.
-This implementation in ns-2 dates to the MaRS-2.0 simulator, which evidently
-lifted the implementation from NetSim, although this lineage has not
-been verified.
+This implementation in \ns~v2 is borrowed from the
+MaRS-2.0 simulator \cite{Alae94:Design};
+it is believed that MaRS itself borrowed the code
+from NetSim \cite{Heyb89:Netsim},
+although this lineage has not been completely verified.
 
-\subsubsection{\shdr{the calendar queue scheduler}{scheduler.cc}{sec:cqsched}}
+\subsection{The Calendar Queue Scheduler}
+\label{sec:cqsched}
 
-The calendar queue scheduler (class \code{Scheduler/Calendar})
+The calendar queue scheduler
+(\clsref{Scheduler/Calendar}{../ns-2/scheduler.cc})
 uses a data structure analagous to a one-year desk calendar,
 in which events on the same month/day of multiple years can be recorded in
 one day.
 It is formally described in \cite{calendarqueue}, and informally described
 in Jain (p. 410) \cite{Jain}.
-The implementation in ns-2 was contributed by David Wetherall (presently
-at MIT/LCS).
+The implementation of Calendar queues in \ns~v2
+was contributed by David Wetherall (presently at MIT/LCS).
 
-\subsubsection{\shdr{the real-time scheduler}{scheduler.cc}{sec:rtsched}}
+\subsection{The Real-Time Scheduler}
+\label{sec:rtsched}
 
-The real-time scheduler (class \code{Scheduler/RealTime})
+The real-time scheduler (\clsref{Scheduler/RealTime}{../ns-2/scheduler.cc})
 attempts to synchronize the execution of events with real-time.
 It is currently implemented as a subclass of the list scheduler.
 The real-time capability in ns is still under development, but is used
-to introduce an ns simulated network into a real-world topology
+to introduce an \ns\ simulated network into a real-world topology
 to experiment with easily-configured network topologies, cross-traffic, etc. 
 This only works for relatively slow network traffic data rates, as the
 simulator must be able to keep pace with the real-world packet arrival
 rate, and this synchronization is not presently enforced.
 
-\subsection{\shdr{Other Methods}{scheduler.cc}{sec:sched}}
+\section{Other Methods}
+\label{sec:sched}
 
 The {\tt Simulator} class provides a number of methods used
-to set up the simulation. 
-They generally fall into two categories: helper functions to deal
-with the scheduler and methods to help create and manage the
-simulation topology (nodes, links, and traces).
-The topology-related functions and tracing-related functions
-are described elsewhere
-(see sections~\ref{sec:topo} and~\ref{sec:trace}, respectively).
-The following is a list of the non-topology related simulator
-methods:
+to set up the simulation.
+They generally fall into three catagories:
+methods to create and manage the topology 
+(which in turn consists of
+\href{managing the nodes}{Chapter}{chap:nodes} and
+\href{managing the links}{Chapter}{chap:links}),
+\href{methods to perform tracing}{Chapter}{chap:trace},
+and helper functions to deal with the scheduler.
+The following is a list of the non-topology related simulator methods:
 \begin{program}
 Simulator instproc now {} \; return scheduler's notion of current time;
 Simulator instproc at args \; schedule execution of code at specified time;
@@ -171,3 +181,5 @@ Simulator instproc flush-trace {} \; flush all trace object write buffers;
 Simulator instproc create-trace { type files src dst } \; create trace object;
 Simulator instproc create_packetformat \; set up the simulator's packet format;
 \end{program}
+
+\endinput

@@ -64,7 +64,7 @@ to access and communicate with that interpreter.
 The methods described in this section are relevant to the
 \ns\ programmer who is writing C++ code.
 The class provides methods for the following operations:
-\begin{list}{\textbullet}{\itemsep0pt}
+\begin{list}{\textbullet}{}\itemsep0pt
 \item obtain a reference to the Tcl instance;
 %  {\tt
 %    \begin{list}{}{}
@@ -148,9 +148,9 @@ describes methods to access the result returned by the interpreter.
   It copies the string $s$ into its internal buffer;
   it then invokes the previous \fcn[char* $s$]{eval} on the internal buffer.
 
-\item \fcnref{\fcn{tcl.eval}}{../Tcl/Tcl.cc}{Tcl::eval}
+\item \fcnref{\fcn[]{tcl.eval}}{../Tcl/Tcl.cc}{Tcl::eval}
   assumes that the command is already stored in the class' internal
-  \code{bp_}, and directly invokes \code{tcl.eval(char* bp_)}.
+  \code{bp_}; it directly invokes \fcn[char* bp\_]{tcl.eval}.
   A handle to the buffer itself is available through the method
   \fcnref{\fcn{tcl.buffer}}{../Tcl/Tcl.h}{Tcl::buffer}.
 
@@ -161,16 +161,16 @@ describes methods to access the result returned by the interpreter.
 \end{itemize}
 As an example, here are some of the ways of using the above methods:
 \begin{program}
-        Tcl& tcl = Tcl::instance();
+        Tcl& tcl = {\bfseries{}Tcl::instance}();
         char wrk[128];
         strcpy(wrk, "Simulator set NumberInterfaces_ 1");
-        tcl.eval(wrk);
+        {\bfseries{}tcl.eval}(wrk);
 
-        sprintf(tcl.buffer(), "Agent/SRM set requestFunction_ %s", "Fixed");
-        tcl.eval();
+        sprintf({\bfseries{}tcl.buffer}(), "Agent/SRM set requestFunction_ %s", "Fixed");
+        {\bfseries{}tcl.eval}();
 
-        tcl.evalc("puts stdout {hello world}");
-        tcl.evalf("%s request %d %d", name_, sender, msgid);
+        {\bfseries{}tcl.evalc}("puts stdout {hello world}");
+        {\bfseries{}tcl.evalf}("%s request %d %d", name_, sender, msgid);
 \end{program}
 
 \subsection{Passing Results to/fro the Interpreter}
@@ -193,10 +193,10 @@ Two methods are available to set this variable.
 \end{list}
 \begin{program}
         if (strcmp(argv[1], "now") == 0) \{
-                tcl.resultf("%.17g", clock());
+                {\bfseries{}tcl.resultf}("%.17g", clock());
                 return TCL_OK;
         \}
-        tcl.result("Invalid operation specified");
+        {\bfseries{}tcl.result}("Invalid operation specified");
         return TCL_ERROR;
 \end{program}
 
@@ -210,7 +210,7 @@ the interpreter returns the result in \code{tcl_->result}.
 \end{list}
 \begin{program}
         tcl.evalc("Simulator set NumberInterfaces_");
-        char* ni = tcl.result();
+        char* ni = {\bfseries{}tcl.result}();
         if (atoi(ni) != 1)
                 tcl.evalc("Simulator set NumberInterfaces_ 1");
 \end{program}
@@ -226,9 +226,9 @@ write $s$ to stdout; write \code{tcl_->result} to stdout;
 exit with error code 1.
 \end{list}
 \begin{program}
-        tcl.resultf("cmd = %s", cmd);
-        tcl.error("invalid command specified");
-        /*NOTREACHED*/
+        {\bfseries{}tcl.resultf}("cmd = %s", cmd);
+        {\bfseries{}tcl.error}("invalid command specified");
+        /*{\cf{}NOTREACHED}*/
 \end{program}
 
 Note that
@@ -301,7 +301,13 @@ The two objects are closely associated with each other.
 The class TclClass, described in the next section,
 contains the mechanisms that perform this shadowing.
 
-In the rest of this document, we often refer to an object as a TclObject.
+In the rest of this document, we often refer to an object as a TclObject%
+\footnote{In the latest release of \ns\ and \nsTcl,
+  this object has been renamed to \code{SplitObjefct},
+  which more accurately reflects its nature of existence.
+  However, for the moment,
+  we will continue to use the term TclObject
+  to refer to these objects and this class.}.
 By this, we refer to a particular object that is either in the class
 TclObject, or in a class that is derived from the class TclObject.
 If it is necessary, we will explicitly qualify whether that object is
@@ -527,6 +533,9 @@ for each variable type.
         $object set timevar 1.5e9n
         $object set timevar 1500e9p
         \end{program}
+  Note that we can also safely add a $s$ to reflect the time unit of seconds.
+  \ns\ will ignore anything other than a valid real number specification,
+  or a trailing `m', `n', or `p'.
 
 \item Booleans can be expressed either as an integer, or as `T' or `t'
   for true.  Subsequent characters after the first letter are ignored.
@@ -573,7 +582,7 @@ with default values when the object is created.
 The default values are specified as interpreted class variables.
 This initialisation is done by the routing \proc[]{init-instvar},
 invoked by methods in the class Instvar,
-\href{described later}{Section}{sec:instVar}.
+\href{described later}{Section}{sec:Instvar}.
 \proc[]{init-instvar} checks the class of the interpreted object,
 and all of the parent class of that object, to find the first
 class in which the variable is defined.

@@ -14,10 +14,11 @@
   {./figures/}
   }
 \RequirePackage{pstricks,pst-node}
+\RequirePackage{longtable}
 
 \ifx\@noresizetrue\undefined
-%\evensidemargin       -15pt
-%\oddsidemargin        -15pt
+\evensidemargin       -15pt
+\oddsidemargin        -15pt
 \topmargin            -20pt
 \leftmargin           30pt
 \rightmargin          30pt
@@ -26,6 +27,7 @@
 \parindent            0pt
 \parskip              12pt
 \marginparwidth       1cm
+\message{resize completed}
 \fi
 
 \renewcommand{\topfraction}{0.9}

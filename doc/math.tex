@@ -3,19 +3,20 @@
 %        DRAFT DRAFT DRAFT
 %        - KFALL
 %
-\section{\shdr{Mathematical Support}{random.h}{sec:math}}
+\chapter{Mathematical Support}
+\label{sec:math}
 
 The simulator includes a small collection of mathematical
 functions used to implement random variate generation and integration.
 This area of the simulator is currently undergoing some
 changes.
 
-\subsection{\shdr{Random Number Generation}{rng.h}{sec:random}}
+\section{Random Number Generation}
+\label{sec:random}
 
 The \code{RNG} class contains an implementation of the minimal standard
-multiplicative linear congruential generator of Park, S.K. and
-Miller, K.W., "Random Number Generators: Good Ones are Hard to Find,"
-CACM 31:10, Oct. 88, pp. 1192-1201.
+multiplicative linear congruential generator of
+Park \etal~\cite{Park88:Random}.
 
 Multiple instances of the RNG class can be created to allow a
 simulation to draw random numbers from independent random number
@@ -70,31 +71,36 @@ range $[0,2^{31}-1]$.
 In particular,
 Additional member functions provide the following random variate
 generation:
-\begin{itemize}
-        \item {\tt uniform(double r)} - generate floating-point number uniformly distributed on $[0,r]$
-        \item {\tt uniform(double a, double b)} - generate floating-point number uniformly distributed on $[a,b]$
-        \item {\tt exponential()} - generate floating-point number exponentially distributed (with parameter 1) on $[0, \infty)$
-        \item {\tt integer(int k)} - generate integer uniformly distributed on $[0, (k-1)]$
-\end{itemize}
+
+\begin{tabularx}{\linewidth}{rX}
+\fcn[double r]{uniform} & generate a floating-point number
+			  uniformly distributed on $[0,r]$ \\
+\fcn[double a, double b]{uniform} & generate a floating-point number
+				    uniformly distributed on $[a,b]$ \\
+\fcn[]{exponential} & generate a floating-point number
+		      exponentially distributed (with parameter 1)
+		      on $[0, \infty)$ \\
+\fcn[int k]{integer} & generate an integer
+		       uniformly distributed on $[0, (k-1)]$ \\
+\end{tabularx}
+
 The \code{Random} class can be used to construct randomized algorithms,
 as in this code fragment from RED:
 \begin{program}
-        ...
-        // drop probability is computed, pick random number and act
+        \ldots
+        // {\cf drop probability is computed, pick random number and act}
         double u = rng_->uniform_double();
-        if (u <= edv_.v_prob) {
+        if (u <= edv_.v_prob) \{
                 edv_.count = 0;
                 if (edp_.setbit) 
-                        iph->flags() |= IP_ECN; // ip ecn bit
+                        iph->flags() |= IP_ECN; \* ip ecn bit */
                 else
                         return (1);
-        }
+        \}
         \ldots
 \end{program}
-      
-
 The set of random numbers produced by an RNG object depends on its
-initial seed.  The initial seed can be set with the {\tt set\_seed} method
+initial seed.  The initial seed can be set with the \fcn[]{set\_seed} method
 which takes 2 parameters, where the second
 defaults to 1.  The first parameter, an enumerated type,
 determines how
@@ -134,20 +140,23 @@ $rng integer k \; return an integer uniformly distributed on [0, (k-1)];
 $rng exponential \; return a number from an exponential distribution with average 1.;
 \end{program}
 
-\subsection{\shdr{Random Variables}{ranvar.h}{sec:ranvar}}
+\section{Random Variables}
+\label{sec:ranvar}
 
-The RandomVariable class provides a thin layer of functionality on top
+The \clsref{RandomVariable}{../ns-2/ranvar.h}
+provides a thin layer of functionality on top
 of the base random number generator that implements random variates.
-It is defined in {\tt ranvar.h}:
+It is defined in \nsf{ranvar.h}:
 
-\subsection{\shdr{Integrals}{integrator.h}{sec:integral}}
+\section{Integrals}
+\label{sec:integral}
 
 To support the approximation of (continuous) integration by (discrete)
-sums, the \code{Integrator} class is defined in \code{integrator.h}:
-\begin{small}
-\begin{verbatim}
-From integrator.h:
-        class Integrator : public TclObject {
+sums, the \clsref{Integrator}{../ns-2/integrator.h}
+is defined in \nsf{integrator.h}:
+\begin{program}
+{\rm From integrator.h:}
+        class Integrator : public TclObject \{
         public:
                 Integrator();
                 void set(double x, double y);
@@ -157,47 +166,47 @@ From integrator.h:
                 double lastx_;
                 double lasty_;
                 double sum_;
-        };
-From integrator.cc:
+        \};
+
+{\rm From integrator.cc:}
         Integrator::Integrator() : lastx_(0.), lasty_(0.), sum_(0.)
-        {
+        \{
                 bind("lastx_", &lastx_);
                 bind("lasty_", &lasty_);
                 bind("sum_", &sum_);
-        }
+        \}
 
         void Integrator::set(double x, double y)
-        {
+        \{
                 lastx_ = x;
                 lasty_ = y;
                 sum_ = 0.;
-        }
+        \}
 
         void Integrator::newPoint(double x, double y)
-        {
+        \{
                 sum_ += (x - lastx_) * lasty_;
                 lastx_ = x;
                 lasty_ = y;
-        }
+        \}
 
         int Integrator::command(int argc, const char*const* argv)
-        {
-                if (argc == 4) {
-                        if (strcmp(argv[1], "newpoint") == 0) {
+        \{
+                if (argc == 4) \{
+                        if (strcmp(argv[1], "newpoint") == 0) \{
                                 double x = atof(argv[2]);
                                 double y = atof(argv[3]);
                                 newPoint(x, y);
                                 return (TCL_OK);
-                        }
-                }
+                        \}
+                \}
                 return (TclObject::command(argc, argv));
-        }
-\end{verbatim}
-\end{small}
+        \}
+\end{program}
 This class provides a base class used by other classes such
 as \code{QueueMonitor} that keep running sums.
 Each new element of the running sum is added by
-the \code{newPoint(x,y)} function.
+the \fcn[x, y]{newPoint} function.
 After the $k$th execution of \code{newPoint}, the running sum
 is equal to $\sum_{i=1}^{k}y_{i-1}(x_i - x_{i-1})$ where
 $x_0 = y_0 = 0$ unless \code{lastx\_}, \code{lasty\_}, or \code{sum\_}
@@ -206,3 +215,4 @@ Note that a new point in the sum can be added either by the
 C++ member \code{newPoint} or the OTcl member \code{newpoint}.
 The use of integrals to compute certain types of averages
 (e.g. mean queue lengths) is given in Jain(1991, pp. 429-430).
+

@@ -82,7 +82,7 @@ defined by upstream nodes).
 There are several agents supported in the simulator.
 These are their names in OTcl:
 
-\begin{tabularx}{\linewidth}{rX}
+\begin{longtable}{rl}
   TCP & a ``Tahoe'' TCP sender (cwnd = 1 on any loss)	\\
   TCP/Reno & a ``Reno'' TCP sender  (with fast recovery)	\\
   TCP/NewReno & a modified Reno TCP sender (changes fast recovery)	\\
@@ -124,7 +124,7 @@ These are their names in OTcl:
   Null & a degenerate agent which discards packets	\\
 	\\
   rtProto/DV & distance-vector routing protocol agent	\\
-\end{tabularx}
+\end{longtable}
 
 Agents are used in the implementation of protocols at various layers.
 Thus, for some transport protocols (e.g.~UDP) the distribution

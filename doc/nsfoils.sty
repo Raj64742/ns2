@@ -1,7 +1,14 @@
+\RequirePackage[dvips]{graphics}
+\DeclareGraphicsExtensions{.eps, .ps, .epsf}
+\graphicspath{
+  {./}
+  {./sl-figures/}
+  {../sl-figures/}
+  {./figures/}
+  }
 \newcommand{\placefig}[1]{\leavevmode\vspace*{1ex}\centerline{\includegraphics{#1}}}
 
 \newif\if@noresize\@noresizefalse
-
 \RequirePackage{nsdoc}
 \let\@program=\program
 \let\@eprogram=\endprogram
@@ -16,7 +23,7 @@
 \def\indigo{\color{indigo}}
 \def\violet{\color{violet}}
 \MyLogo{}
-\def\keyword#1{\rightfooter{\renewcommand{\arraystretch}{1.1}\begin{tabular}{r}\textcolor{blue}{#1}\\ \textsf{\thepage}\end{tabular}}}
+\def\keyword#1{\rightfooter{\renewcommand{\arraystretch}{1.3}\begin{tabular}{r}\textcolor{blue}{#1}\\ \textsf{\thepage}\end{tabular}}}
 %\renewenvironment{comment}{
 %  \clearpage
 %  \thispagestyle{empty}
