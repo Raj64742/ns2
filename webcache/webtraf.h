@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.3 1999/11/18 22:31:29 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.4 2000/02/24 02:17:02 haoboy Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -59,10 +59,10 @@ public:
 	virtual ~WebTrafSession();
 
 	// Queried by individual pages/objects
-	RandomVariable*& interPage() { return rvInterPage_; }
-	RandomVariable*& pageSize() { return rvPageSize_; }
-	RandomVariable*& interObj() { return rvInterObj_; }
-	RandomVariable*& objSize() { return rvObjSize_; }
+	inline RandomVariable*& interPage() { return rvInterPage_; }
+	inline RandomVariable*& pageSize() { return rvPageSize_; }
+	inline RandomVariable*& interObj() { return rvInterObj_; }
+	inline RandomVariable*& objSize() { return rvObjSize_; }
 
 	void donePage(void* ClntData);
 	void launchReq(void* ClntData, int obj, int size);
@@ -85,25 +85,25 @@ public:
 	WebTrafPool(); 
 	virtual ~WebTrafPool(); 
 
-	Node* picksrc() {
+	inline Node* picksrc() {
 		int n = int(floor(Random::uniform(0, nClient_)));
 		assert((n >= 0) && (n < nClient_));
 		return client_[n];
 	}
-	Node* pickdst() {
+	inline Node* pickdst() {
 		int n = int(floor(Random::uniform(0, nSrc_)));
 		assert((n >= 0) && (n < nSrc_));
 		return server_[n];
 	}
-	void doneSession(int idx) { 
+	inline void doneSession(int idx) { 
 		assert((idx>=0) && (idx<nSession_) && (session_[idx]!=NULL));
 		delete session_[idx];
 		session_[idx] = NULL; 
 	}
 	TcpAgent* picktcp();
 	TcpSink* picksink();
-	int nTcp() { return nTcp_; }
-	int nSink() { return nSink_; }
+	inline int nTcp() { return nTcp_; }
+	inline int nSink() { return nSink_; }
 
 protected:
 	virtual int command(int argc, const char*const* argv);
@@ -146,7 +146,7 @@ protected:
 	AgentList sinkPool_;	/* TCP sink pool */
 
 	// Helper methods
-	int lookup_rv(RandomVariable*& rv, const char* name) {
+	inline int lookup_rv(RandomVariable*& rv, const char* name) {
 		if (rv != NULL)
 			Tcl::instance().evalf("delete %s", rv->name());
 		rv = (RandomVariable*)lookup_obj(name);

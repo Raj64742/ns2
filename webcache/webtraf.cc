@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.5 1999/12/03 21:11:46 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.6 2000/02/24 02:17:02 haoboy Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -47,10 +47,10 @@ public:
 		id_(id), sess_(sess), nObj_(nObj), curObj_(0), dst_(dst) {}
 	virtual ~WebPage() {}
 
-	void start() {
+	inline void start() {
 		expire();
-		schedNext();
 	}
+	inline int id() const { return id_; }
 	Node* dst() { return dst_; }
 
 private:
@@ -60,17 +60,21 @@ private:
 				 (int)ceil(sess_->objSize()->value()));
 	}
 	virtual void handle(Event *e) {
-		TimerHandler::handle(e);
-		schedNext();
-	}
-	void schedNext() {
-		// Schedule next timer
-		if (++curObj_ >= nObj_) {
-			// We are done with this page, tell parent to delete me
+		// XXX Note when curObj_ == nObj_, we still schedule the timer
+		// once, but we do not actually send out requests. This extra
+		// schedule is only meant to be a hint to wait for the last
+		// request to finish, then we will ask our parent to delete
+		// this page. 
+		if (curObj_ < nObj_) 
+			TimerHandler::handle(e);
+		// If this is not the last object, schedule the next one.
+		// Otherwise stop and tell session to delete me.
+		if (curObj_ > nObj_) 
 			sess_->donePage((void*)this);
-			return;
+		else {
+			curObj_++;
+			sched(sess_->interObj()->value());
 		}
-		sched(sess_->interObj()->value());
 	}
 	int id_;
 	WebTrafSession* sess_;
@@ -119,19 +123,23 @@ void WebTrafSession::expire(Event *)
 	// Make sure page size is not 0!
 	WebPage* pg = new WebPage(LASTPAGE_++, this, 
 				  (int)ceil(rvPageSize_->value()), dst);
+#if 1
+	printf("Session %d starting page %d, curpage %d \n", 
+	       id_, LASTPAGE_-1, curPage_);
+#endif
 	pg->start();
 }
 
 void WebTrafSession::handle(Event *e)
 {
+	// If I haven't scheduled all my pages, do the next one
 	TimerHandler::handle(e);
-	// If I've scheduled all my pages, don't schedule it any more.
-	if (++curPage_ >= nPage_)
-		return;
-#if 0
-	printf("Session %d schedule next page %d\n", id_, LASTPAGE_);
-#endif
-	sched(rvInterPage_->value());
+	// XXX Notice before each page is done, it will schedule itself 
+	// one more time, this makes sure that this session will not be
+	// deleted after the above call. Thus the following code will not
+	// be executed in the context of a deleted object. 
+	if (++curPage_ < nPage_)
+		sched(rvInterPage_->value());
 }
 
 // Launch a request for a particular object
