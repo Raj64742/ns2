@@ -76,6 +76,7 @@
 #define DROP_OUTSIDE_SUBNET             "OUT"   // dropped by base stations if received rtg updates from nodes outside its domain.
 
 #define MAX_ID_LEN	3
+#define MAX_NODE	4096
 
 class CMUTrace : public Trace {
 public:
@@ -92,6 +93,7 @@ private:
 	int off_AODV_;
 
 	char	tracename[MAX_ID_LEN + 1];
+	int	nodeColor[MAX_NODE];
         int     tracetype;
         MobileNode *node_;
 	int     newtrace_;

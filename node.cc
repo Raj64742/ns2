@@ -35,7 +35,7 @@
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.16 2000/05/04 16:33:31 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.cc,v 1.17 2000/05/11 23:43:17 klan Exp $
  */
 
 #include <phy.h>
@@ -97,7 +97,7 @@ struct node_head Node::nodehead_ = { 0 }; // replaces LIST_INIT macro
 
 Node::Node(void) : address_(-1), energy_model_(NULL), sleep_mode_(0), total_sleeptime_(0),
 	           total_rcvtime_(0), total_sndtime_(0), adaptivefidelity_(0),
-	           powersavingflag_(0), last_time_gosleep(0),max_inroute_time_(300),
+	           powersavingflag_(0), namDefinedFlag_(0), last_time_gosleep(0),max_inroute_time_(300),
 	           maxttl_(5)
 {
 	LIST_INIT(&ifhead_);
@@ -108,10 +108,12 @@ Node::Node(void) : address_(-1), energy_model_(NULL), sleep_mode_(0), total_slee
 	neighbor_list.head = NULL;
 }
 
+
 Node::~Node()
 {
-	LIST_REMOVE(this, entry);
+  LIST_REMOVE(this, entry);
 }
+
 
 int
 Node::command(int argc, const char*const* argv)
@@ -129,6 +131,9 @@ Node::command(int argc, const char*const* argv)
 			adaptivefidelity_ = 1;
 			powersavingflag_ = 1;
 			start_powersaving();
+			return TCL_OK;
+		} else if(strcmp(argv[1], "namDefined") == 0) {
+			namDefinedFlag_ = 1;
 			return TCL_OK;
 		} else if (strcmp(argv[1], "energy") == 0) {
 			Tcl& tcl = Tcl::instance();
@@ -227,6 +232,7 @@ Node::start_powersaving()
 void
 Node::set_node_sleep(int status)
 {
+	Tcl& tcl=Tcl::instance();
 	//static float last_time_gosleep;
 	// status = 1 to set node into sleep mode
 	// status = 0 to put node back to idel mode.
@@ -235,8 +241,10 @@ Node::set_node_sleep(int status)
 	    last_time_gosleep = Scheduler::instance().clock();
 	    //printf("id=%d : put node into sleep at %f\n",address_,last_time_gosleep);
 	    sleep_mode_ = status;
+	    if (namDefinedFlag_) tcl.evalf("%s add-mark m1 blue hexagon",name());
 	} else {
 	    sleep_mode_ = status;
+	    if (namDefinedFlag_) tcl.evalf("%s delete-mark m1",name()); 
 	    //printf("id= %d last_time_sleep = %f\n",address_,last_time_gosleep);
 	    if (last_time_gosleep) {
 	       total_sleeptime_ += Scheduler::instance().clock()-last_time_gosleep;

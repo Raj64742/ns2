@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.52 2000/03/25 01:24:19 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.53 2000/05/11 23:43:17 klan Exp $
  */
 
 #include <packet.h>
@@ -93,6 +93,8 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 	assert(type_ == DROP || type_ == SEND || type_ == RECV);
 
 	newtrace_ = 0;
+
+	for (int i=0 ; i < MAX_NODE ; i++) nodeColor[i] = 3  ;
 
         node_ = 0;
 	off_mac_ = hdr_mac::offset_;
@@ -672,13 +674,16 @@ CMUTrace::nam_format(Packet *p, int offset)
 	if(type_ == RECV && dst == -1 )dst = src_ ; //broadcasting event
 
         if (energy != -1) { //energy model being turned on
-	   sprintf(nwrk_ ,
-	        "n -t %.9f -s %d -S COLOR %s",
-	         Scheduler::instance().clock(),
-	         src_,                           // this node
-	         colors);
-           offset = strlen(nwrk_);
-           namdump();
+	   if (nodeColor[src_] != energyLevel ) { //only dump it when node  
+	       sprintf(nwrk_ ,                    //color change
+	          "n -t %.9f -s %d -S COLOR %s",
+	           Scheduler::instance().clock(),
+	           src_,                           // this node
+	           colors);
+               offset = strlen(nwrk_);
+               namdump();
+	       nodeColor[src_] = energyLevel ;
+	    }   
         }
 
 	sprintf(nwrk_ ,

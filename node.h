@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.17 2000/05/04 16:33:31 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.18 2000/05/11 23:43:18 klan Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -171,6 +171,7 @@ protected:
 	float total_sndtime_;	 // total time in sending data
 	int adaptivefidelity_;   // Is AFECA activated ?
 	int powersavingflag_;    // Is BECA activated ?
+	int namDefinedFlag_;    // Is nam defined ?
 	float last_time_gosleep; // time when radio is turned off
 	float max_inroute_time_; // maximum time that a node can remaining
 				 // active 

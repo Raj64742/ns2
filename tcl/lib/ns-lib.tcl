@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.187 2000/05/05 01:26:59 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.188 2000/05/11 23:43:19 klan Exp $
 
 #
 
@@ -417,6 +417,7 @@ Simulator instproc create-wireless-node { args } {
         
         if { [info exist namtraceAllFile_] } {
        	    $node get-nam-traceall $namtraceAllFile_
+       	    $node namDefined
 	}
     
         # basestation address setting
