@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.3 1997/07/24 21:18:59 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.4 1997/08/25 04:04:41 breslau Exp $
 #
 
 #Code to generate random numbers here
@@ -46,9 +46,27 @@ proc integer k {
     expr [ns-random] % abk($k)
 }
 
+RNG instproc uniform {a b} {
+	expr $a + (($b - $a) * ([$self next-random] * 1.0 / 0x7fffffff))
+}
+
+RNG instproc integer k {
+	expr [$self next-random] % abs($k)
+}
+
+RNG instproc exponential {} {
+	expr - log ([$self uniform 0 1])
+}
+
+
 RandomVariable instproc test count {
 	for {set i 0} {$i < $count} {incr i} {
 		puts stdout [$self value]
 	}
 }
+
+
+set defaultRNG [new RNG]
+$defaultRNG seed 1973272912
+$defaultRNG default
 

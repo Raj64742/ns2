@@ -36,7 +36,7 @@
 
 // #ifndef lint
 // static const char rcsid[] =
-//     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.1 1997/08/15 23:17:03 heideman Exp $ (LBL)";
+//     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.h,v 1.2 1997/08/25 04:04:37 breslau Exp $ (LBL)";
 // #endif
 
 /* new random number generator */
@@ -87,6 +87,7 @@ public:
 
 	void set_seed(RNGSources source, int seed = 1);
 	int seed() { return stream_.seed(); }
+	static RNG* defaultrng() { return (default_); }
 
 #ifdef rng_tcl
 	int command(int argc, const char*const* argv);
@@ -121,6 +122,7 @@ public:
 
 protected:   // need to be public?
 	RNGImplementation stream_;
+	static RNG* default_;
 };
 
 /*

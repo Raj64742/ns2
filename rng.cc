@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.1 1997/08/15 23:17:02 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rng.cc,v 1.2 1997/08/25 04:04:37 breslau Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -165,6 +165,9 @@ public:
 } class_rng;
 #endif /* rng_tcl */
 
+/* default RNG */
+
+RNG* RNG::default_ = NULL;
 
 #ifdef rng_tcl
 int
@@ -183,9 +186,29 @@ RNG::command(int argc, const char*const* argv)
 			tcl.resultf("%6e", uniform(d));
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "seed") == 0) {
+		        int s = atoi(argv[2]);
+			if (s)
+			        set_seed(RAW_SEED_SOURCE, s);
+			else 
+			        set_seed(HEURISTIC_SEED_SOURCE, 0);
+			return(TCL_OK);
+		}
 	}
-#if 0
 	if (argc == 2) {
+	        if (strcmp(argv[1], "next-random") == 0) {
+		        tcl.resultf("%u", uniform_positive_int());
+			return(TCL_OK);
+		}
+		if (strcmp(argv[1], "seed") == 0) {
+		        tcl.resultf("%u", stream_.seed());
+			return(TCL_OK);
+		}
+		if (strcmp(argv[1], "default") == 0) {
+		        default_ = this;
+			return(TCL_OK);
+		}
+#if 0
 	        if (strcmp(argv[1], "test") == 0) {
 		        if (test())
 			        tcl.resultf("RNG test failed");
@@ -193,8 +216,8 @@ RNG::command(int argc, const char*const* argv)
 			        tcl.resultf("RNG test passed");
 			return(TCL_OK);
 		}
-	}
 #endif
+	}
 	return(TclObject::command(argc, argv));
 }
 #endif /* rng_tcl */
@@ -202,13 +225,9 @@ RNG::command(int argc, const char*const* argv)
 void
 RNG::set_seed(RNGSources source, int seed = 1)
 {
-	/*
-	 * Following is a new set of random seeds I [Lee Breslau]
-	 * computed in early '96.
-	 * the original set (from Sugih or Lixia) were every 100,000th
-	 * element in a 2^31 sequence of random numbers.  the new ones 
-	 * are much farther apart, about 33,000,000 so they are evenly spaced
-	 * around the 2billion sequence.
+        /* The following predefined seeds are evenly spaced around
+	 * the 2^31 cycle.  Each is approximately 33,000,000 elements
+	 * apart.
 	 */
 #define N_SEEDS_ 64
         static long predef_seeds[N_SEEDS_] = {  

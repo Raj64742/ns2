@@ -17,11 +17,15 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.2 1997/07/22 21:53:52 kfall Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/expoo.cc,v 1.3 1997/08/25 04:04:39 breslau Exp $ (Xerox)";
 #endif
+
+#include <stdlib.h>
  
 #include "random.h"
 #include "trafgen.h"
+#include "ranvar.h"
+
 
 /* implement an of/off source with exponentially distributed on and
  * off times.  parameterized by average burst time, average idle time,
@@ -38,8 +42,12 @@ class EXPOO_Source : public TrafficGenerator {
 	double offtime_;  /* average length of idle time (sec) */
 	double rate_;     /* send rate during on time (bps) */
 	double interval_; /* packet inter-arrival time during burst (sec) */
-	double burstlen_; /* length of average burst (packets) */
 	unsigned int rem_; /* number of packets left in current burst */
+
+	/* new stuff using RandomVariable */
+	ExponentialRandomVariable burstlen_;
+	ExponentialRandomVariable Offtime_;
+
 };
 
 
@@ -54,7 +62,7 @@ static class EXPClass : public TclClass {
 EXPOO_Source::EXPOO_Source() 
 {
 	bind_time("burst-time", &ontime_);
-	bind_time("idle-time", &offtime_);
+	bind_time("idle-time", Offtime_.avgp());
 	bind_bw("rate", &rate_);
 	bind("packet-size", &size_);
 }
@@ -66,7 +74,7 @@ void EXPOO_Source::init()
 	 * of packets in a burst.
 	 */
 	interval_ = (double)(size_ << 3)/(double)rate_;
-	burstlen_ = ontime_/interval_;
+	burstlen_.setavg(ontime_/interval_);
 	rem_ = 0;
 }
 
@@ -76,12 +84,12 @@ double EXPOO_Source::next_interval(int& size)
 
 	if (rem_ == 0) {
 		/* compute number of packets in next burst */
-		rem_ = int((Random::exponential(burstlen_)) + .5);
+		rem_ = int(burstlen_.value() + .5);
 		/* make sure we got at least 1 */
 		if (rem_ == 0)
 			rem_ = 1;
 		/* start of an idle period, compute idle time */
-		t += offtime_ * Random::exponential();
+		t += Offtime_.value();
 	}	
 	rem_--;
 
