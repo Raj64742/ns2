@@ -104,19 +104,19 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 		for (int i = 0 ; i < numsamples+1 ; i ++) {
 			sample[i] = 0 ; 
 		}
-		weights[0] = 1;
-		weights[1] = 1;
-		weights[2] = 1 ; 
-		weights[3] = 1 ; 
-		weights[4] = 0.8 ; 
-		weights[5] = 0.6 ;
-		weights[6] = 0.4 ;
-		weights[7] = 0.2 ;
-		weights[8] = 0 ;
-		for (int i = 0 ; i < numsamples+1; i ++) {
-			mult[i] = 1 ; 
+		weights[0] = 1.0;
+		weights[1] = 1.0;
+		weights[2] = 1.0; 
+		weights[3] = 1.0; 
+		weights[4] = 0.8; 
+		weights[5] = 0.6;
+		weights[6] = 0.4;
+		weights[7] = 0.2;
+		weights[8] = 0;
+		for (int i = 0; i < numsamples+1; i ++) {
+			mult[i] = 1.0 ; 
 		}
-	}
+	} 
 
 	UrgentFlag = tfrch->UrgentFlag;
 	round_id = tfrch->round_id ;
@@ -212,7 +212,7 @@ void TfrcSinkAgent::add_packet_to_history (Packet *pkt)
 double TfrcSinkAgent::est_loss () 
 {
 	int i;
-	double p1, p2; 
+	double ave_interval1, ave_interval2; 
 	int ds ; 
 
 	// sample[i] counts the number of packets since the i-th loss event
@@ -222,7 +222,7 @@ double TfrcSinkAgent::est_loss ()
 		if (lossvec_[i%hsz] == LOST) {
 			sample_count ++;
 			shift_array (sample, numsamples+1); 
-			shift_array (mult, numsamples+1, 1.0); 
+			shift_array_new (mult, numsamples+1, 1.0); 
 		}
 	}
 	last_sample = maxseq+1 ; 
@@ -238,49 +238,54 @@ double TfrcSinkAgent::est_loss ()
 	}
 
 	/* do we need to discount weights? */
-	if (sample_count > 1 && discount) {
-		double wsum = 0 ; 
-		double sum = 0 ;
-
-		for (i = 1 ; i < ds ; i++) {
-			wsum += weights[i-1];
-		}
-		for (i = 1; i < ds; i ++) {
-			sum += weights[i-1]*sample[i]/wsum ;
-		}
-		if (sample[0] > 2*sum) {
-			for (i = 1 ; i < ds ; i++) {
-				mult[i] = 2*sum/sample[0] ;
+	if (sample_count > 8 && discount) {
+		// We don't discount unless we have a full history of
+		//  loss intervals.
+		double ave = weighted_average(1, ds, mult, weights, sample);
+		int factor = 2;
+		double ratio = (factor*ave)/sample[0];
+		double min_ratio = 0.5;
+		if ( ratio < 1.0) {
+			// the most recent loss interval is very large
+			double new_mult = ratio;
+			if (new_mult < min_ratio) 
+				new_mult = min_ratio;
+			for (i = 1; i < ds; i++) {
+				mult[i] = new_mult;
 			}
 		}
 	}
-	p1 = 0; p2 = 0;
-	double wsum1 = 0; 
-	double wsum2 = 0;
 	// Calculations including the most recent loss interval.
-	for (i = 0; i < ds; i ++) 
-		wsum1 += mult[i]*weights[i]; 
-	for (i = 0; i < ds; i ++) {
-		p1 += mult[i]*weights[i]*sample[i]/wsum1;
-	}
+	ave_interval1 = weighted_average(0, ds, mult, weights, sample);
 	// Calculations not including the most recent loss interval.
-	for (i = 1 ; i < ds; i ++) 
-		wsum2 += mult[i]*weights[i-1] ;
-	for (i = 1 ; i < ds; i++) { 
-		p2 += mult[i]*weights[i-1]*sample[i]/wsum2;
-	}
+	ave_interval2 = weighted_average(1, ds, mult, weights, sample);
 	if (domax) {
 		// The most recent loss interval does not end in a loss
 		// event.  Include the most recent interval in the 
 		// calculations only if this increases the estimated loss
 		// interval.
-		if (p2 > p1)
-			p1 = p2;
+		if (ave_interval2 > ave_interval1)
+			ave_interval1 = ave_interval2;
 	}
-	if (p1 > 0) 
-		return 1/p1; 
+	if (ave_interval1 > 0) 
+		return 1/ave_interval1; 
 	else return 999;     
 }
+
+// Calculate the weighted average.
+double TfrcSinkAgent::weighted_average(int start, int end, double *m, double *w, int *sample)
+{
+	int i; 
+	double wsum = 0;
+	double answer = 0;
+	for (i = start ; i < end; i++) 
+		wsum += m[i]*w[i];
+	for (i = start ; i < end; i++)  
+		answer += m[i]*w[i]*sample[i]/wsum;
+        return answer;
+}
+
+// Shift array.
 void TfrcSinkAgent::shift_array(int *a, int sz) 
 {
 	int i ;
@@ -289,7 +294,9 @@ void TfrcSinkAgent::shift_array(int *a, int sz)
 	}
 	a[0] = 0;
 }
-void TfrcSinkAgent::shift_array(double *a, int sz, double defval) {
+
+// Shift array, inserting default value at the bottom.
+void TfrcSinkAgent::shift_array_new(double *a, int sz, double defval) {
 	int i ;
 	for (i = sz-2 ; i >= 0 ; i--) {
 		a[i+1] = a[i] ;

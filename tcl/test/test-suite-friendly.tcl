@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.17 1999/10/28 05:19:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.18 1999/12/21 00:34:42 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -223,12 +223,22 @@ TestSuite instproc runTcps {} {
     $self pktsDump 5 $tcp3 $interval_ $dumpfile_
 }
 
+Class Test/slowStartDiscount -superclass TestSuite
+Test/slowStartDiscount instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	slowStartDiscount
+    Agent/TFRCSink set discount_ 1
+    Test/slowStartDiscount instproc run {} [Test/slowStart info instbody run ]
+    $self next
+}
+
 Class Test/slowStart -superclass TestSuite
 Test/slowStart instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	slowStart
-    ##
+    Agent/TFRCSink set discount_ 0
     $self next
 }
 Test/slowStart instproc run {} {
@@ -312,11 +322,22 @@ Test/slowStartTcp instproc run {} {
     $ns_ run
 }
 
+Class Test/impulseDiscount -superclass TestSuite
+Test/impulseDiscount instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	impulseDiscount
+    Agent/TFRCSink set discount_ 1
+    Test/impulseDiscount instproc run {} [Test/impulse info instbody run ]
+    $self next
+}
+
 Class Test/impulse -superclass TestSuite
 Test/impulse instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	impulse
+    Agent/TFRCSink set discount_ 0
     $self next
 }
 Test/impulse instproc run {} {
@@ -356,12 +377,23 @@ Test/impulse instproc run {} {
 }
 
 # Feedback 4 times per roundtrip time.
+Class Test/impulseMultReportDiscount -superclass TestSuite
+Test/impulseMultReportDiscount instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
+    set test_	impulseMultReportDiscount
+    Agent/TFRCSink set NumFeedback_ 4
+    Agent/TFRCSink set discount_ 1
+    Test/impulseMultReportDiscount instproc run {} [Test/impulseMultReport info instbody run ]
+    $self next
+}
 Class Test/impulseMultReport -superclass TestSuite
 Test/impulseMultReport instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	impulseMultReport
     Agent/TFRCSink set NumFeedback_ 4
+    Agent/TFRCSink set discount_ 0
     $self next
 }
 Test/impulseMultReport instproc run {} {
@@ -449,6 +481,7 @@ Test/two-friendly instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	two-friendly
+    Agent/TFRCSink set discount_ 0
     $self next
 }
 Test/two-friendly instproc run {} {
@@ -528,6 +561,7 @@ Test/BadParams instproc init {} {
     set net_	net2
     set test_	BadParams
     Agent/TFRC set ssmult_ 5
+    Agent/TFRCSink set discount_ 0
     Test/BadParams instproc run {} [Test/two-friendly info instbody run ]
     $self next
 }
@@ -539,6 +573,7 @@ Test/BadParams2 instproc init {} {
     set net_	net2
     set test_	BadParams2
     Agent/TFRC set ssmult_ 1.1
+    Agent/TFRCSink set discount_ 0
     Test/BadParams2 instproc run {} [Test/two-friendly info instbody run ]
     $self next
 }

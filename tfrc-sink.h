@@ -76,7 +76,9 @@ protected:
 	double est_loss();
 	double est_thput(); 
 	void shift_array(int *a, int sz) ;
-	void shift_array(double *a, int sz, double defval) ;
+	void shift_array_new(double *a, int sz, double defval) ;
+	double weighted_average(int start, int end, double *m, double *w, int *sample);
+
 	int command(int argc, const char*const* argv);
 
 	TfrcNackTimer nack_timer_;
