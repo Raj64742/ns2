@@ -1,5 +1,5 @@
 #
-# Copyright (c) 1995 The Regents of the University of California.
+# Copyright (c) 1995-1997 The Regents of the University of California.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-cbq.tcl,v 1.2 1997/04/09 02:42:06 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-cbq.tcl,v 1.3 1997/04/30 18:41:12 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -38,23 +38,36 @@
 # URL ftp://ftp.ee.lbl.gov/papers/cbqsims.ps.Z.
 #
 # To run individual tests:
-# ns test-suite-cbq.tcl cbqPRR 
-# ns test-suite-cbq.tcl cbqWRR
+# 	./ns test-suite-cbq.tcl cbqPRR 
+# 	./ns test-suite-cbq.tcl cbqWRR
+# 	...
 #
 
 # ~/newr/rm/testB
 # Create a flat link-sharing structure.
 #
-proc create_flat { link } {
+#	3 leaf classes:
+#		vidClass	(32%), pri 1
+#		audioClass	(03%), pri 1
+#		dataClass	(65%), pri 2
+#
+proc create_flat { link qlim } {
 
 	set Mbps 1.5
-	set topClass [ns_create_class1 none none 0.98 auto auto 8 1 0 $Mbps]
+	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
  	set vidClass [ns_create_class1 $topClass $topClass \
 		0.32 auto auto 1 0 0 $Mbps]
  	set audioClass [ns_create_class1 $topClass $topClass \
 		0.03 auto auto 1 0 0 $Mbps]
  	set dataClass [ns_create_class1 $topClass $topClass \
 		0.65 auto auto 2 0 0 $Mbps]
+
+	set qdisc [$vidClass qdisc]
+	$qdisc set queue-limit $qlim
+	set qdisc [$audioClass qdisc]
+	$qdisc set queue-limit $qlim
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $qlim
 
  	$link insert $topClass
 	$link insert $vidClass
@@ -69,22 +82,28 @@ proc create_flat { link } {
 # ~/newr/rm/testH,A
 # Create a two-agency link-sharing structure.
 #
-proc create_twoAgency { link CBQalgorithm } {
+#	4 leaf classes for 2 "agencies":
+#		vidAClass	(30%), pri 1
+#		dataAClass	(40%), pri 2
+#		vidBClass	(10%), pri 1
+#		dataBClass	(20%), pri 2
+#
+proc create_twoAgency { link CBQalgorithm qlim } {
 
 	set Mbps 1.5
-	set topClass [new class]
-	set topAClass [new class]
-	set topBClass [new class]
+	set topClass [new CBQClass]
+	set topAClass [new CBQClass]
+	set topBClass [new CBQClass]
 
 	if {$CBQalgorithm < 1} { 
 	  # For Ancestor-Only link-sharing. 
 	  # Maxidle should be smaller for AO link-sharing.
 	  ns_class_params $topClass none none \
-		0.97 auto auto 8 2 0 1.5
+		0.97 auto -1.0 8 2 0 1.5
 	  ns_class_params $topAClass $topClass $topClass \
-		0.69 auto auto 8 1 0 1.5
+		0.69 auto -1.0 8 1 0 1.5
 	  ns_class_params $topBClass $topClass $topClass \
-		0.29 auto auto 8 1 0 1.5
+		0.29 auto -1.0 8 1 0 1.5
 	}
 	if { $CBQalgorithm == 1} { 
 	  # For Top-Level link-sharing?
@@ -93,18 +112,18 @@ proc create_twoAgency { link CBQalgorithm } {
 	  # Goes green borrow from $topClass or from $topAClass?
 	  # When $topBClass is unsatisfied, there is no borrowing from
 	  #  $topClass until a packet is sent from the yellow class.
-	  ns_class_params $topClass none none 0.97 0.001 auto 8 2 0 0
-	  ns_class_params $topAClass $topClass $topClass 0.69 auto auto \
+	  ns_class_params $topClass none none 0.97 0.001 -1.0 8 2 0 0
+	  ns_class_params $topAClass $topClass $topClass 0.69 auto -1.0 \
 		8 1 0 1.5
-	  ns_class_params $topBClass $topClass $topClass 0.29 auto auto \
+	  ns_class_params $topBClass $topClass $topClass 0.29 auto -1.0 \
 		8 1 0 1.5
 	}
 	if {$CBQalgorithm > 1} { 
 	  # For Formal link-sharing
 	  # The allocated bandwidth can be exact for parent classes.
-	  ns_class_params $topClass none none 1.0 1.0 auto 8 2 0 0
-	  ns_class_params $topAClass $topClass $topClass 0.7 1.0 auto 8 1 0 0
-	  ns_class_params $topBClass $topClass $topClass 0.3 1.0 auto 8 1 0 0
+	  ns_class_params $topClass none none 1.0 1.0 -1.0 8 2 0 0
+	  ns_class_params $topAClass $topClass $topClass 0.7 1.0 -1.0 8 1 0 0
+	  ns_class_params $topBClass $topClass $topClass 0.3 1.0 -1.0 8 1 0 0
 	}
 
 	set vidAClass [ns_create_class1 $topAClass $topAClass \
@@ -115,6 +134,15 @@ proc create_twoAgency { link CBQalgorithm } {
 		0.1 auto auto 1 0 0 $Mbps]
  	set dataBClass [ns_create_class1 $topBClass $topBClass \
 		0.2 auto auto 2 0 0 $Mbps]
+
+	set qdisc [$vidAClass qdisc]
+	$qdisc set queue-limit $qlim
+	set qdisc [$dataAClass qdisc]
+	$qdisc set queue-limit $qlim
+	set qdisc [$vidBClass qdisc]
+	$qdisc set queue-limit $qlim
+	set qdisc [$dataBClass qdisc]
+	$qdisc set queue-limit $qlim
 
 	$link insert $topClass
  	$link insert $topAClass
@@ -157,10 +185,14 @@ proc create_graph { stopTime cbqType queue } {
         set link1 [ns link $k1 $r1 drop-tail]
         $link1 set bandwidth 1.5Mb
         $link1 set delay 5ms
+	$link1 set queue-limit $queue
 
-        set L "$cbqLink $link1"
-	[lindex $L 0] set queue-limit $queue 
-	[lindex $L 1] set queue-limit $queue
+	#
+	# this line is now obsolete, given that
+	# cbq classes each have their own queues:
+	#
+	#    $cbqLink set queue-limit $queue
+	#
 }
 
 proc finish file {
@@ -375,18 +407,12 @@ proc cbrDump4 { linkno interval stopTime maxBytes } {
 # 	ns at $stopTime "close $f1"
 # }
 
-#
-# Do not make out.tr.
-#
 proc openTrace2 { stopTime testName } {
 	global r1 k1    
 	ns at $stopTime \
 		"finish1 $testName; exit"
 }
 
-#
-# Do not make out.tr.
-#
 proc openTrace4 { stopTime testName } {
 	global r1 k1    
 	ns at $stopTime \
@@ -454,15 +480,16 @@ proc four_cbrs {} {
 }
 
 #
-# Figure 10 from the link-sharing paper.
+# Figure 10 from the link-sharing paper. 
 # ~/newr/rm/testB.com
 # 
 proc test_cbqWRR {} {
 	global s1 s2 s3 s4 r1 k1 
+	set qlen 20
 	set stopTime 28.1
-	set CBQalgorithm 0
-	create_graph $stopTime wrr-cbq 20
- 	create_flat [ns link $r1 $k1]
+	set CBQalgorithm 1
+	create_graph $stopTime wrr-cbq $qlen
+ 	create_flat [ns link $r1 $k1] $qlen
 	three_cbrs
 	[ns link $r1 $k1] set algorithm $CBQalgorithm
 
@@ -472,14 +499,15 @@ proc test_cbqWRR {} {
 }
 
 #
-# Figure 10, but packet-by-packet RR.
+# Figure 10, but packet-by-packet RR, and Formal.
 # 
 proc test_cbqPRR {} {
 	global s1 s2 s3 s4 r1 k1 
+	set qlen 20
 	set stopTime 28.1
 	set CBQalgorithm 2
-	create_graph $stopTime cbq 20 
- 	create_flat [ns link $r1 $k1]
+	create_graph $stopTime cbq $qlen
+ 	create_flat [ns link $r1 $k1] $qlen
 	three_cbrs
 	[ns link $r1 $k1] set algorithm $CBQalgorithm
 
@@ -488,17 +516,17 @@ proc test_cbqPRR {} {
 	ns run
 }
 
-#
-# Figure 11 from the link-sharing paper.
+# Figure 12 from the link-sharing paper.
 # WRR, Ancestor-Only link-sharing.
 # ~/newr/rm/testA.com
 # 
 proc test_cbqAO {} {
 	global s1 s2 s3 s4 r1 k1 
+	set qlen 20
 	set stopTime 40.1
 	set CBQalgorithm 0
-	create_graph $stopTime wrr-cbq 20
-	create_twoAgency [ns link $r1 $k1] $CBQalgorithm
+	create_graph $stopTime wrr-cbq $qlen
+	create_twoAgency [ns link $r1 $k1] $CBQalgorithm $qlen
 	four_cbrs
 	[ns link $r1 $k1] set algorithm $CBQalgorithm
 
@@ -508,20 +536,21 @@ proc test_cbqAO {} {
 }
 
 #
-# Figure 11 from the link-sharing paper.
+# Figure 13 from the link-sharing paper.
 # WRR, Top link-sharing.
 # ~/newr/rm/testA.com
-# Needs some debugging still?
+#
 proc test_cbqTL {} {
 	global s1 s2 s3 s4 r1 k1 
+	set qlen 20
 	set stopTime 40.1
 	set CBQalgorithm 1
-	create_graph $stopTime wrr-cbq 20
-	create_twoAgency [ns link $r1 $k1] $CBQalgorithm
+	create_graph $stopTime wrr-cbq $qlen
+	create_twoAgency [ns link $r1 $k1] $CBQalgorithm $qlen
 	four_cbrs
 	[ns link $r1 $k1] set algorithm $CBQalgorithm
 
-	openTrace2 $stopTime test_cbq6TL
+	openTrace2 $stopTime test_cbqTL
 
 	ns run
 }
@@ -530,12 +559,14 @@ proc test_cbqTL {} {
 # Figure 11 from the link-sharing paper.
 # WRR, Formal (new) link-sharing.
 # ~/newr/rm/testA.com
+#
 proc test_cbqFor {} {
 	global s1 s2 s3 s4 r1 k1 
+	set qlen 20
 	set stopTime 40.1
-	set CBQalgorithm 3
-	create_graph $stopTime wrr-cbq 20
-	create_twoAgency [ns link $r1 $k1] $CBQalgorithm
+	set CBQalgorithm 2
+	create_graph $stopTime wrr-cbq $qlen
+	create_twoAgency [ns link $r1 $k1] $CBQalgorithm $qlen
 	four_cbrs
 	[ns link $r1 $k1] set algorithm $CBQalgorithm
 
@@ -545,15 +576,17 @@ proc test_cbqFor {} {
 }
 
 #
-# Figure 11 from the link-sharing paper.
-# WRR, Formal (old) link-sharing.
+# Figure 11 from the link-sharing paper, but Formal (old) link-sharing.
+# WRR. 
 # ~/newr/rm/testA.com
+#
 proc test_cbqForOld {} {
 	global s1 s2 s3 s4 r1 k1 
+	set qlen 20
 	set stopTime 40.1
-	set CBQalgorithm 2
-	create_graph $stopTime wrr-cbq 20
-	create_twoAgency [ns link $r1 $k1] $CBQalgorithm
+	set CBQalgorithm 3
+	create_graph $stopTime wrr-cbq $qlen
+	create_twoAgency [ns link $r1 $k1] $CBQalgorithm $qlen
 	four_cbrs
 	[ns link $r1 $k1] set algorithm $CBQalgorithm
 
@@ -576,14 +609,19 @@ proc test_cbqMax1 {} {
 	create_graph $stopTime cbq $queue
 
 	set link [ns link $r1 $k1]
-	set topClass [ns_create_class none none 0.97 1.0 auto 8 1 0]
-        set audClass [ns_create_class1 $topClass none 0.3 0.25 auto auto 0 0 $Mbps]
+	set topClass [ns_create_class none none 0.97 1.0 -1.0 8 1 0]
+        set audClass [ns_create_class1 $topClass none 0.3 0.25 auto 1 0 0 $Mbps]
 	set dataClass [ns_create_class1 $topClass $topClass 0.3 auto auto 2 \
 		0 0 $Mbps]
 
 	$link insert $topClass
         $link insert $audClass
 	$link insert $dataClass
+
+	set qdisc [$audClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
 
         $link bind $audClass 1
 	$link bind $dataClass 2
@@ -617,14 +655,19 @@ proc test_cbqMax2 {} {
 	create_graph $stopTime cbq $queue
 
 	set link [ns link $r1 $k1]
-	set topClass [ns_create_class none none 0.97 1.0 auto 8 1 0]
-	set audClass [ns_create_class1 $topClass none 0.3 0.004 auto auto 0 0 $Mbps]
+	set topClass [ns_create_class none none 0.97 1.0 -1.0 8 1 0]
+	set audClass [ns_create_class1 $topClass none 0.3 0.004 auto 1 0 0 $Mbps]
 	set dataClass [ns_create_class1 $topClass $topClass 0.3 auto auto \
 		2 0 0 $Mbps]
 
 	$link insert $topClass
         $link insert $audClass
 	$link insert $dataClass
+
+	set qdisc [$audClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
 
         $link bind $audClass 1
 	$link bind $dataClass 2
@@ -657,7 +700,7 @@ proc test_cbqExtra1 {} {
 	create_graph $stopTime cbq $queue
 
 	set link [ns link $r1 $k1]
-	set topClass [ns_create_class none none 0.97 1.0 auto 8 1 0]
+	set topClass [ns_create_class none none 0.97 1.0 -1.0 8 1 0]
         set audClass [ns_create_class1 $topClass none 0.3 auto auto \
 		1 0 0.024 $Mbps]
 	set dataClass [ns_create_class1 $topClass $topClass 0.3 auto auto \
@@ -666,6 +709,11 @@ proc test_cbqExtra1 {} {
 	$link insert $topClass
         $link insert $audClass
 	$link insert $dataClass
+
+	set qdisc [$audClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
 
         $link bind $audClass 1
 	$link bind $dataClass 2
@@ -695,7 +743,7 @@ proc test_cbqExtra2 {} {
 	create_graph $stopTime cbq $queue
 
 	set link [ns link $r1 $k1]
-	set topClass [ns_create_class none none 0.97 1.0 auto 8 1 0]
+	set topClass [ns_create_class none none 0.97 1.0 -1.0 8 1 0]
         set audClass [ns_create_class1 $topClass none 0.3 auto auto \
 		1 0 0.12 $Mbps]
 	set dataClass [ns_create_class1 $topClass $topClass 0.3 auto auto \
@@ -704,6 +752,11 @@ proc test_cbqExtra2 {} {
 	$link insert $topClass
         $link insert $audClass
 	$link insert $dataClass
+
+	set qdisc [$audClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
 
         $link bind $audClass 1
 	$link bind $dataClass 2
@@ -721,18 +774,18 @@ proc test_cbqExtra2 {} {
 }
 
 # With Packet-by-Packet Round-robin, it is necessary either to
-# set a positive value for extradelay, or to allow avgidle to
-# become negative. 
+# set a positive value for extradelay, or a negative value for minidle
 #
-proc test_cbqMin {} {
+proc test_cbqMin1 {} {
 	global s1 s2 s3 s4 r1 k1 
+	set queue 20
 	set Mbps 1.5
 	set stopTime 4.1
 	set CBQalgorithm 2
-	create_graph $stopTime cbq 20 
+	create_graph $stopTime cbq $queue
  	set link [ns link $r1 $k1]
 
-	set topClass [ns_create_class1 none none 0.98 auto auto 8 1 0 $Mbps]
+	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
         set audioClass [ns_create_class1 $topClass none 0.03 auto auto \
 		1 0 0 $Mbps]
 	set vidClass [ns_create_class1 $topClass $topClass \
@@ -745,6 +798,13 @@ proc test_cbqMin {} {
  	$link insert $audioClass
         $link insert $dataClass
 
+	set qdisc [$audioClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$vidClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
+
 	$link bind $vidClass 2
  	$link bind $audioClass 1
 	$link bind $dataClass 3
@@ -753,7 +813,151 @@ proc test_cbqMin {} {
 	[ns link $r1 $k1] set algorithm $CBQalgorithm
 
 	#[ns link $r1 $k1] trace [openTrace3 $stopTime test_Min1]
-	openTrace2 $stopTime test_cbqMin
+	openTrace2 $stopTime test_cbqMin1_MinIdle_set
+
+	ns run
+}
+
+#
+# deleted Min2, which was identical to Min1 except for
+# a different value of minidle (which is no longer used)
+#
+
+
+#
+# Min3 is like Min1, except extradelay is set to 0.2
+#
+proc test_cbqMin3 {} {
+	global s1 s2 s3 s4 r1 k1 
+	set Mbps 1.5
+	set queue 20
+	set stopTime 4.1
+	set CBQalgorithm 2
+	create_graph $stopTime cbq $queue
+ 	set link [ns link $r1 $k1]
+
+	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
+        set audioClass [ns_create_class1 $topClass none 0.03 auto auto \
+		1 0 0.2 $Mbps]
+	set vidClass [ns_create_class1 $topClass $topClass \
+		0.32 auto auto 1 0 0 $Mbps] 
+	set dataClass [ns_create_class1 $topClass $topClass \
+		0.65 auto auto 2 0 0 $Mbps]
+
+ 	$link insert $topClass
+	$link insert $vidClass
+ 	$link insert $audioClass
+        $link insert $dataClass
+
+	set qdisc [$audioClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$vidClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
+
+	$link bind $vidClass 2
+ 	$link bind $audioClass 1
+	$link bind $dataClass 3
+
+	three_cbrs
+	[ns link $r1 $k1] set algorithm $CBQalgorithm
+
+	openTrace2 $stopTime test_cbqMin3_ExtraDelay_set
+
+	ns run
+}
+
+# Min1, but with Ancestor-Only link-sharing.
+# 
+proc test_cbqMin4 {} {
+	global s1 s2 s3 s4 r1 k1 
+	set Mbps 1.5
+	set queue 20
+	set stopTime 4.1
+	set CBQalgorithm 0
+	create_graph $stopTime cbq $queue
+ 	set link [ns link $r1 $k1]
+
+	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
+        set audioClass [ns_create_class1 $topClass none 0.03 auto auto \
+		1 0 0 $Mbps]
+	set vidClass [ns_create_class1 $topClass $topClass \
+		0.32 auto auto 1 0 0 $Mbps] 
+	set dataClass [ns_create_class1 $topClass $topClass \
+		0.65 auto auto 2 0 0 $Mbps]
+
+ 	$link insert $topClass
+	$link insert $vidClass
+ 	$link insert $audioClass
+        $link insert $dataClass
+
+	set qdisc [$audioClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$vidClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
+
+	$link bind $vidClass 2
+ 	$link bind $audioClass 1
+	$link bind $dataClass 3
+
+	three_cbrs
+	[ns link $r1 $k1] set algorithm $CBQalgorithm
+
+	openTrace2 $stopTime test_cbqMin4_MinIdle_set
+
+	ns run
+}
+
+# 
+# deleted Min5, which was identical to Min4 except for
+# a different value of minidle (which is no longer used)
+# 
+
+# 
+# 
+#
+# Min6 is like Min4, except extradelay is set to 0.2
+#
+proc test_cbqMin6 {} {
+	global s1 s2 s3 s4 r1 k1 
+	set Mbps 1.5
+	set queue 20
+	set stopTime 4.1
+	set CBQalgorithm 0
+	create_graph $stopTime cbq $queue
+ 	set link [ns link $r1 $k1]
+
+	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
+        set audioClass [ns_create_class1 $topClass none 0.03 auto auto \
+		1 0 0.2 $Mbps]
+	set vidClass [ns_create_class1 $topClass $topClass \
+		0.32 auto auto 1 0 0 $Mbps] 
+	set dataClass [ns_create_class1 $topClass $topClass \
+		0.65 auto auto 2 0 0 $Mbps]
+
+ 	$link insert $topClass
+	$link insert $vidClass
+ 	$link insert $audioClass
+        $link insert $dataClass
+
+	set qdisc [$audioClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$vidClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
+
+	$link bind $vidClass 2
+ 	$link bind $audioClass 1
+	$link bind $dataClass 3
+
+	three_cbrs
+	[ns link $r1 $k1] set algorithm $CBQalgorithm
+
+	openTrace2 $stopTime test_cbqMin6_ExtraDelay_set
 
 	ns run
 }
@@ -769,13 +973,14 @@ proc test_cbqMin {} {
 #
 proc test_cbqTwoAO {} {
 	global s1 s2 s3 s4 r1 k1 
+	set queue 20
 	set Mbps 1.5
 	set stopTime 8.1
 	set CBQalgorithm 0
-	create_graph $stopTime cbq 20
+	create_graph $stopTime cbq $queue
 	set link [ns link $r1 $k1]
 
-	set topClass [ns_create_class1 none none 0.98 auto auto 8 1 0 $Mbps]
+	set topClass [ns_create_class1 none none 0.98 auto -1.0 8 1 0 $Mbps]
         set audioClass [ns_create_class1 $topClass $topClass \
                0.01 auto auto 1 0 0 $Mbps]
 	set dataClass [ns_create_class1 $topClass $topClass \
@@ -784,6 +989,11 @@ proc test_cbqTwoAO {} {
  	$link insert $topClass
  	$link insert $audioClass
         $link insert $dataClass
+
+	set qdisc [$audioClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
 
  	$link bind $audioClass 1
 	$link bind $dataClass 2
@@ -807,11 +1017,12 @@ proc test_cbqTwoAO2 {} {
 	global s1 s2 s3 s4 r1 k1 
 	set Mbps 1.5
 	set stopTime 8.1
+	set queue 20
 	set CBQalgorithm 0
-	create_graph $stopTime cbq 20
+	create_graph $stopTime cbq $queue
 	set link [ns link $r1 $k1]
 
-	set topClass [ns_create_class none none 0.98 0.000003 auto 8 1 0]
+	set topClass [ns_create_class none none 0.98 0.005 -1.0 8 1 0]
         set audioClass [ns_create_class1 $topClass $topClass \
                0.01 auto auto 1 0 0 $Mbps]
 	set dataClass [ns_create_class1 $topClass $topClass \
@@ -821,6 +1032,11 @@ proc test_cbqTwoAO2 {} {
  	$link insert $topClass
  	$link insert $audioClass
         $link insert $dataClass
+
+	set qdisc [$audioClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
 
  	$link bind $audioClass 1
 	$link bind $dataClass 2
@@ -844,11 +1060,12 @@ proc test_cbqTwoAO3 {} {
 	global s1 s2 s3 s4 r1 k1 
 	set Mbps 1.5
 	set stopTime 8.1
+	set queue 20
 	set CBQalgorithm 0
-	create_graph $stopTime cbq 20
+	create_graph $stopTime cbq $queue
 	set link [ns link $r1 $k1]
 
-	set topClass [ns_create_class1 none none 0.99 auto auto 8 1 0 $Mbps]
+	set topClass [ns_create_class1 none none 0.99 auto -1.0 8 1 0 $Mbps]
         set audioClass [ns_create_class1 $topClass $topClass \
                0.01 auto auto 1 0 0 $Mbps]
 	set dataClass [ns_create_class1 $topClass $topClass \
@@ -857,6 +1074,11 @@ proc test_cbqTwoAO3 {} {
  	$link insert $topClass
  	$link insert $audioClass
         $link insert $dataClass
+
+	set qdisc [$audioClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
 
  	$link bind $audioClass 1
 	$link bind $dataClass 2
@@ -885,12 +1107,13 @@ proc test_cbqTwoAO3 {} {
 proc test_cbqTwoTL {} {
 	global s1 s2 s3 s4 r1 k1 
 	set Mbps 1.5
+	set queue 20
 	set stopTime 8.1
 	set CBQalgorithm 1
-	create_graph $stopTime cbq 20
+	create_graph $stopTime cbq $queue
 	set link [ns link $r1 $k1]
 
-	set topClass [ns_create_class1 none none 1.0 auto auto 8 1 0 $Mbps]
+	set topClass [ns_create_class1 none none 1.0 auto -1.0 8 1 0 $Mbps]
         set audioClass [ns_create_class1 $topClass $topClass \
                0.01 auto auto 1 0 0 $Mbps]
 	set dataClass [ns_create_class1 $topClass $topClass \
@@ -899,6 +1122,11 @@ proc test_cbqTwoTL {} {
  	$link insert $topClass
  	$link insert $audioClass
         $link insert $dataClass
+
+	set qdisc [$audioClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
 
  	$link bind $audioClass 1
 	$link bind $dataClass 2
@@ -927,12 +1155,13 @@ proc test_cbqTwoTL {} {
 proc test_cbqTwoF {} {
 	global s1 s2 s3 s4 r1 k1 
 	set Mbps 1.5
+	set queue 20
 	set stopTime 8.1
 	set CBQalgorithm 2
-	create_graph $stopTime cbq 20
+	create_graph $stopTime cbq $queue
 	set link [ns link $r1 $k1]
 
-	set topClass [ns_create_class1 none none 1.0 auto auto 8 1 0 $Mbps]
+	set topClass [ns_create_class1 none none 1.0 auto -1.0 8 1 0 $Mbps]
         set audioClass [ns_create_class1 $topClass $topClass \
                0.01 auto auto 1 0 0 $Mbps]
 	set dataClass [ns_create_class1 $topClass $topClass \
@@ -941,6 +1170,11 @@ proc test_cbqTwoF {} {
  	$link insert $topClass
  	$link insert $audioClass
         $link insert $dataClass
+
+	set qdisc [$audioClass qdisc]
+	$qdisc set queue-limit $queue
+	set qdisc [$dataClass qdisc]
+	$qdisc set queue-limit $queue
 
  	$link bind $audioClass 1
 	$link bind $dataClass 2
@@ -960,11 +1194,10 @@ proc test_cbqTwoF {} {
 }
 
 if { $argc != 1 } {
-	puts stderr {usage: ns test-suite.tcl [ tahoe1 tahoe2 ... reno reno2 ... ]}
+	puts stderr {usage: ns test-suite-cbq.tcl [ cbqWRR cbqPRR cbqAO cbqTL ... ]}
 	exit 1
 }
 if { "[info procs test_$argv]" != "test_$argv" } {
-	puts stderr "test-suite.tcl: no such test: $argv"
+	puts stderr "test-suite-cbq.tcl: no such test: $argv"
 }
 test_$argv
-
