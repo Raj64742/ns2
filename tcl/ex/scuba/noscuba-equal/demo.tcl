@@ -30,10 +30,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/Attic/demo.tcl,v 1.1 1997/06/13 23:49:50 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/scuba/noscuba-equal/demo.tcl,v 1.1 1997/06/14 00:16:02 elan Exp $
 #
-source ../../rtp/session-scuba.tcl
-source ../../rtp/session-rtp.tcl
+
+set tcldir ../../../
+
+source $tcldir/rtp/session-scuba.tcl
+source $tcldir/rtp/session-rtp.tcl
 
 proc trace_annotate { s } {
 	global ns
@@ -84,7 +87,7 @@ $ns at 0.0 "$ns run-mcast"
 set sessbw 400kb/s
 
 foreach n { 0 1 2 4 5 6 } {
-	set sess($n) [new Session/RTP/Scuba]
+	set sess($n) [new Session/RTP]
 	$sess($n) session_bw $sessbw
 	$sess($n) attach-node $node($n)
 }
@@ -105,47 +108,32 @@ $ns at 1.0 "trace_annotate {Starting receivers...}"
 # start receivers
 $ns at 1.0 {
 	global sess
-	$sess(4) start 0
-	$sess(5) start 0
-	$sess(6) start 0
+	$sess(4) start
+	$sess(5) start
+	$sess(6) start
 }
 
 # start senders
-$ns at 1.1 "trace_annotate {Starting sender 1...}"
-$ns at 1.1 "$sess(0) start 1"
+$ns at 1.0 "trace_annotate {Starting sender 1 at 130kb/s...}"
+$ns at 1.0 "$sess(0) start"
+$ns at 1.0 "$sess(0) transmit 130kb/s"
 
-$ns at 1.2 "trace_annotate {Starting sender 2...}"
-$ns at 1.2 "$sess(1) start 1"
+$ns at 2.0 "trace_annotate {Starting sender 2 at 130kb/s...}"
+$ns at 2.0 "$sess(1) start"
+$ns at 2.0 "$sess(1) transmit 130kb/s
+"
+$ns at 3.0 "trace_annotate {Starting sender 3 at 130kb/s...}"
+$ns at 3.0 "$sess(2) start"
+$ns at 3.0 "$sess(2) transmit 130kb/s"
 
-$ns at 1.3 "trace_annotate {Starting sender 3...}"
-$ns at 1.3 "$sess(2) start 1"
-
-# 4 focus on 0
-$ns at 2.0 "trace_annotate {4 focussing on 0...}"
-$ns at 2.0 "[$sess(4) set repAgent_] set class_ 3"
-$ns at 2.0 "$sess(4) scuba_focus $sess(0)"
-
-# 5 focus on 1
-$ns at 3.0 "trace_annotate {5 focussing on 1...}"
-$ns at 3.0 "[$sess(4) set repAgent_] set class_ 3"
-$ns at 3.0 "$sess(5) scuba_focus $sess(1)"
-
-# 5 focus on 0
-$ns at 4.0 "trace_annotate {5 focussing on 0...}"
-$ns at 4.0 "$sess(5) scuba_focus $sess(0)"
-
-# 5 unfocus on 0
-$ns at 5.0 "trace_annotate {5 unfocussing on 0...}"
-$ns at 5.0 "[$sess(5) set repAgent_] set class_ 4"
-$ns at 5.0 "$sess(5) scuba_unfocus $sess(0)"
-
-$ns at 6.0 "finish"
+$ns at 5.0 "finish"
 
 proc finish {} {
+	global tcldir
 	puts "converting output to nam format..."
         global ns
         $ns flush-trace
-	exec awk -f ../../nam-demo/nstonam.awk out.tr > demo-nam.tr
+	exec awk -f $tcldir/nam-demo/nstonam.awk out.tr > demo-nam.tr
 	exec rm -f out
         #XXX
 	puts "running nam..."
