@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.3 1998/04/20 23:52:41 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.4 1998/04/24 17:04:29 haldar Exp $
  */
 
 
@@ -55,16 +55,18 @@ public:
 Address* Address::instance_;
 
 
-Address::Address() : PortShift_(0), PortMask_(0), McastShift_(0), McastMask_(0), levels_(0)
-{
-  for (int i = 0; i < 10; i++) {
-    NodeShift_[i] = 0;
-    NodeMask_[i] = 0;
-  }
+Address::Address() : PortShift_(0), PortMask_(0), McastShift_(0), 
+    McastMask_(0), NodeShift_(NULL), NodeMask_(NULL), levels_(0)
+{ }
+
+
+Address::~Address() 
+{ 
+    delete [] NodeShift_;
+    delete [] NodeMask_;
+    
 }
 
-
-Address::~Address() { }
 
 int Address::command(int argc, const char*const* argv)
 {
@@ -111,7 +113,7 @@ int Address::command(int argc, const char*const* argv)
 	    }
 	    else 
 		levels_ = temp;
-	    // NodeShift_ = new int[levels_];
+	    NodeShift_ = new int[levels_];
 	    for (i = 3, c = 1; c <= levels_; c++, i+=2) 
 		NodeShift_[c] = atoi(argv[i]);
 	    return (TCL_OK); 
@@ -127,7 +129,7 @@ int Address::command(int argc, const char*const* argv)
 	    }
 	    else 
 		levels_ = temp;
-	    // NodeMask_ = new int[levels_];
+	    NodeMask_ = new int[levels_];
 	    for (i = 3, c = 1; c <= levels_; c++, i+=2) 
 		NodeMask_[c] = atoi(argv[i]);
 	    return (TCL_OK);
@@ -151,9 +153,9 @@ char *Address::print_nodeaddr(int address)
       sprintf(temp, "%d.", a);
       strcat(str, temp);
   }
-  addrstr = new char[strlen(str)];
+  addrstr = new char[strlen(str)+1];
   strcpy(addrstr, str);
-//   printf("Nodeaddr - %s\n",addrstr);
+  // printf("Nodeaddr - %s\n",addrstr);
   return(addrstr);
 }
 
@@ -168,9 +170,10 @@ char *Address::print_portaddr(int address)
   a = address >> PortShift_;
   a = a & PortMask_;
   sprintf(str, "%d", a);
-  addrstr = new char[strlen(str)];
+  addrstr = new char[strlen(str)+1];
   strcpy(addrstr, str);
-//   printf("Portaddr - %s\n",addrstr);
+  // printf("Portaddr - %s\n",addrstr);
+
   return(addrstr);
 }
 
@@ -194,3 +197,4 @@ int Address::str2addr(char *str)
 	}
 	return addr;
 }
+
