@@ -108,6 +108,8 @@ integrator.h
 ip.cc
 ip.h
 ivs.cc
+lanRouter.h
+lanRouter.cc
 lib/README
 lib/builtin.h
 lib/dmalloc_support.cc
@@ -196,6 +198,7 @@ rlm.cc
 rng.cc
 rng.h
 route.cc
+route.h
 rtProtoDV.cc
 rtProtoDV.h
 rtcp.cc
@@ -351,6 +354,7 @@ tcl/lan/ns-lan.tcl
 tcl/lan/ns-ll.tcl
 tcl/lan/ns-mac.tcl
 tcl/lan/ns-mlink.tcl
+tcl/lan/vlan.tcl
 tcl/lib/ns-address.tcl
 tcl/lib/ns-agent.tcl
 tcl/lib/ns-compat.tcl
