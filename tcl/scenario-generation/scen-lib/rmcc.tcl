@@ -48,8 +48,8 @@ proc default_options {prog} {
 			set opts(tcpType) TCP/Reno
 			set opts(sinkType) TCPSink/DelAck
 			set opts(bottleneckBW) 1Mbps
-			set opts(bottleneckDelay) 20ms
-			set opts(bottleneckQSize) 30
+		    set opts(bottleneckDelay) 20ms
+			set opts(bottleneckQSize) 60
 		}
 		rmcc-3 {
 			set opts(tcpType) TCP
@@ -89,8 +89,8 @@ ScenLib/RM instproc set_traces {} {
 	$ns trace-all [open out-$t.tr w]
 	$ns namtrace-all [open out-$t.nam w]
 	
-	set srmStats [open srmStats-$t.tr w]
-	set srmEvents [open srmEvents-$t.tr w]
+	#set srmStats [open srmStats-$t.tr w]
+	#set srmEvents [open srmEvents-$t.tr w]
 }
 
 ScenLib/RM instproc init {} {
@@ -132,27 +132,38 @@ proc set_flowMonitor {flowmon output_chan} {
 }
 
 ScenLib/RM instproc make_flowmon { time args } {
-	global ns flowmon
+	global ns 
+    $self instvar flowmon_
 	#puts "time = $time"
 	#puts "args = $args"
 	if {[expr [llength $args] % 3] != 0} {
 		puts stderr {Error: Incomplete arguments for make_flowmon..}
 	}
-	set c 0
+	#set c 0
 	for {set i 0} {$i < [llength $args]} {incr i} {
 		set node1 [lindex $args $i]
 		incr i
 		set node2 [lindex $args $i]
 		incr i
 		set fout [lindex $args $i]
-		set flow_stat($c) [open $fout w]    
-		set flowmon($c) [$ns makeflowmon Fid]
-		$ns attach-fmon [$ns link $node1 $node2] $flowmon($c) 0
-		set_flowMonitor $flowmon($c) $flow_stat($c)
-		$ns at $time  "$flowmon($c) dump"
-		incr c
+	    set a [$node1 id]
+	    set b [$node2 id]
+		set flow_stat($a:$b) [open $fout w]    
+		set flowmon_($a:$b) [$ns makeflowmon Fid]
+		$ns attach-fmon [$ns link $node1 $node2] $flowmon_($a:$b) 0
+		set_flowMonitor $flowmon_($a:$b) $flow_stat($a:$b)
+	    #$ns at $time  "$flowmon_($a:$b) dump"
+	    #incr c
 	}
 }
+
+ScenLib/RM instproc dump_flowmon {n1 n2 time} {
+    $self instvar flowmon_
+    global ns n
+    $ns at $time "$flowmon_([$n1 id]:[$n2 id]) dump"
+}
+
+
 
 ScenLib/RM instproc make_nodes num {
 	global ns n
@@ -180,8 +191,8 @@ ScenLib/RM instproc create_mcast {srcnode switch addgrp time args} {
 	$src set dst_ $dest
 	$src set fid_ [incr fid_]
 	#puts "srcnode $srcnode fid -> [$src set fid_]"
-	$src trace $srmEvents
-	$src log $srmStats
+	#$src trace $srmEvents
+	#$src log $srmStats
 	#$ns at 1.0 "$src start"
 	$ns at $addgrp "$src start"
 	# puts "ns at $addgrp src start"
@@ -193,8 +204,8 @@ ScenLib/RM instproc create_mcast {srcnode switch addgrp time args} {
 		$rcvr($j) set dst_ $dest
 		$rcvr($j) set fid_ [incr fid_]
 		#puts "Srm-recr $j fid -> [$rcvr($j) set fid_]"
-		$rcvr($j) trace $srmEvents
-		$rcvr($j) log $srmStats
+		#$rcvr($j) trace $srmEvents
+		#$rcvr($j) log $srmStats
 		$ns attach-agent $n($j) $rcvr($j)
 		#$ns at 1.0 "$rcvr($j) start"
 		$ns at $addgrp "$rcvr($j) start"
@@ -297,7 +308,8 @@ ScenLib/RM instproc create_tcp {args} {
 		$tcp($k) set fid_ [incr fid_]
 		$tcp($k) set packetSize_ $opts(pktSize)
 		$ns attach-agent $n($k) $tcp($k)
-		puts "ns attach-agent n($k) tcp"
+		puts "ns attach-agent n($k) tcp (fid \
+			[$tcp($k) set fid_]"
 		
 		incr i
 		set tcp_sink($k) [new Agent/$opts(sinkType)]
@@ -316,13 +328,13 @@ proc finish {} {
 	#$src stop
 	puts "Running finish.."
 	$ns flush-trace
-	close $srmStats
-	close $srmEvents
+	#close $srmStats
+	#close $srmEvents
 	#XXX
 	puts "Filtering ..."
 	#exec tclsh8.0 ../../../../nam-1/bin/namfilter.tcl out-$t.nam
 	puts "running nam..."
 	exec nam out-$t.nam &
-	#exit 0
+	exit 0
 }
 
