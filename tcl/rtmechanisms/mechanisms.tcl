@@ -123,6 +123,8 @@ RTMechanisms instproc fhist-add { flow droprate bandwidth } {
 	set flowhist_($hist_next_,name) $flow
 	set flowhist_($hist_next_,droprate) $droprate
 	set flowhist_($hist_next_,bandwidth) $bandwidth
+
+	$self vprint 1 "HISTORY ADDITION: flow: $flow, droprate: $droprate, bw: $bandwidth"
 	return $hist_next_
 }
 
@@ -133,14 +135,16 @@ RTMechanisms instproc fhist-mindroprate flow {
 	$self instvar flowhist_
 	set dr 100000000
 	set idx -1
+
 	for { set i 0 } { $i < $Hist_max_ } { incr i } {
-		if { [info exists flowhist_($,name)] &&
+		if { [info exists flowhist_($i,name)] &&
 		     $flowhist_($i,name) == $flow &&
 		     $flowhist_($i,droprate) < $dr } {
 			set dr $flowhist_($i,droprate)
 			set idx $i
 		}
 	}
+	$self vprint 1 "HISTORY MINDR SEARCH (flow: $flow): hmax: $Hist_max_, index: $idx"
 	return $idx
 }
 
