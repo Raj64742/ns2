@@ -19,6 +19,7 @@
 # See large-scale-web-traffic.tcl for a large-scale web traffic simulation.
 
 # Initial setup
+#source ../webcache/webtraf.tcl
 source dumbbell.tcl
 global num_node n
 
@@ -88,8 +89,8 @@ $ns at 1000.0 "finish"
 proc finish {} {
 	global ns
 	$ns flush-trace
-	#puts "running nam..."
-	#exec nam validate.nam &
+	puts "running nam..."
+	exec nam validate.nam &
 	exit 0
 }
 
