@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.115 1998/07/16 18:07:01 breslau Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.116 1998/07/17 05:25:05 kannan Exp $
 
 #
 
@@ -450,7 +450,7 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 		RTM {
                         set c [lindex $args 1]
                         set link_($sid:$did) [new CBQLink       \
-                                        $n1 $n2 $bw $delay $q $c]
+                                        $nd1 $nd2 $bw $delay $q $c]
                 }
                 CBQ -
                 CBQ/WRR {
@@ -462,17 +462,17 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
                                 set c [lindex $args 1]
                         }
                         set link_($sid:$did) [new CBQLink       \
-                                        $n1 $n2 $bw $delay $q $c]
+                                        $nd1 $nd2 $bw $delay $q $c]
                 }
                 intserv {
                         #XX need to clean this up
                         set link_($sid:$did) [new IntServLink   \
-                                        $n1 $n2 $bw $delay $q	\
+                                        $nd1 $nd2 $bw $delay $q	\
 						[concat $qtypeOrig $args]]
                 }
                 default {
                         set link_($sid:$did) [new SimpleLink    \
-                                        $n1 $n2 $bw $delay $q]
+                                        $nd1 $nd2 $bw $delay $q]
                 }
         }
 	$n1 add-neighbor $n2
