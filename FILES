@@ -254,6 +254,7 @@ tcl/ex/many_tcp.tcl
 tcl/ex/mcast.tcl
 tcl/ex/mcast.txt
 tcl/ex/nam-example.tcl
+tcl/ex/nam-simplexlink.tcl
 tcl/ex/newmcast/cmcast-100.tcl
 tcl/ex/newmcast/cmcast-150.tcl
 tcl/ex/newmcast/cmcast-200.tcl
