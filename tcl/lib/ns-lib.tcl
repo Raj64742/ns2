@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.110 1998/07/06 21:43:24 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.111 1998/07/06 23:55:49 kannan Exp $
 
 #
 
@@ -408,7 +408,7 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	set did [$n2 id]
 	
 	if [info exists queueMap_($qtype)] {
-		set type $queueMap_($qtype)
+		set qtype $queueMap_($qtype)
 	}
 	if [$class set NumberInterfaces_] {
 		$self instvar interfaces_
