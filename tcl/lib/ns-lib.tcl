@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.260 2003/10/03 16:47:28 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.261 2003/12/10 21:07:43 xuanc Exp $
 
 
 #
@@ -160,7 +160,7 @@ source ../lan/ns-mac.tcl
 
 # Added by Sushmita to support event tracing for mac-simple and 802.11
 source ../lan/ns-mac-simple.tcl
-#source ../lan/ns-mac-802_11.tcl
+source ../lan/ns-mac-802_11.tcl
 
 source ../lan/ns-ll.tcl
 source ../lan/vlan.tcl
