@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.500 2002/01/25 20:22:17 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.501 2002/01/25 21:39:56 xuanc Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -25,6 +25,21 @@ Fri Jan 25 12:02:13 PST 2002</li>
 <br>
 Made changes to how flat and hier classifier allocates memory to increase the rtg tables. instead of doubling, the tables are set to n where n is the total no of nodes in topology. However, since % memory used by classifiers seem to be only 0.5-1% of the total memory, the impact on memory savings were not significant.
 <br>
+
+<p><li><b><a href="mailto:xuanc@isi.edu">[Xuan Chen]</a></b>
+Thu Jan 24 22:30:33 PST 2002
+<br>
+Fixed bugs with the wired-cum-wireless sample script and test suite. The original scripts did not input the right number of wireless nodes (interfaces) to the god, as a result warning messages are printed during the simulations.
+The fix is contributed by Joerg Diederich. 
+<p>
+
+<p><li><b><a href="mailto:xuanc@isi.edu">[Xuan Chen]</a></b>
+Wed Jan 23 23:30:33 PST 2002
+<br>
+Integrated Smoothed Round Robin scheduler into ns. For details on SRR,
+refer to "SRR: An O(1) Time Complexity Scheduler for Flows in Multi-Service 
+Packet Networks", Chuanxiong Guo, sigcomm'01.
+<p>
 
 <p><li><b><a href="mailto:hussain@isi.edu">[Alefiya Hussain]</a></b>
 Sat Jan  5 07:57:29 PST 2002
