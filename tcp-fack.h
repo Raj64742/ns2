@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.h,v 1.5 1998/06/27 01:25:00 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-fack.h,v 1.6 2000/01/09 04:54:59 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_tcp_fack_h
@@ -57,6 +57,7 @@ class FackTcpAgent : public virtual TcpAgent {
 	void oldack (Packet* pkt);
 	int maxsack (Packet* pkt); 
 	void plot();
+	void reset();
 	virtual void send_much(int force, int reason, int maxburst = 0);
 	virtual void recv_newack_helper(Packet* pkt);
  protected:
