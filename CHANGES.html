@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.164 1997/10/20 07:00:19 kkumar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.165 1997/10/21 02:57:21 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,33 @@
 [release pending]</H3>
 
 <UL>
+  <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[KF]</A></B>
+       Mon Oct 20 19:56:51 PDT 1997<br>
+    <UL>
+
+    <LI> The tcp-full.cc is updated to incorporate some of (but not yet all of)
+       the changes from Kathie Nichols/Van. 
+    <LI> the test-suite-full.tcl uses misc.tcl and topologies.tcl 
+    <LI> test-suite-full.tcl also uses 2 new tcl programs:<br>
+                bin/tcpfull-summarize.tcl<br>
+                bin/cplot.tcl<br>
+  
+       The first file grinds on {for now} full tcp traces and produces generic
+       output files containing traces of segments, acks w data, pure acks, and
+       drops.  <br>
+
+       The cplot.tcl file is more generic, and takes a set of pairs of
+       plot_file_names/labels, plus a type of graphics program, and a title.
+       It produces graphics using either gnuplot or xgraph, where this
+       decision is based on the assignment of the "NSOUT" envariable.<br>
+
+       So, if you say "setenv NSOUT xgraph" and run test-all-full
+       (or do some other invocation of ./ns test-suite-full.tcl xxx), you
+       will get xgraph windows.  If you set NSOUT to gnuplot, you will get
+       x11 gnuplots in front of you.  Eventually I will extend this to 
+       produce postscript for inclusion in documents; as it was sort of 
+       put together with extensibility in mind.<br>
+     </UL>
   <LI><B><A HREF="http://www.isi.edu/~kkumar/">[SK]</A></B>
        Sun Oct 19 23:56:51 PDT 1997<br>
        Checked in multicast validation tests.
