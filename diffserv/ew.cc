@@ -70,12 +70,19 @@ double HLF::getLow() {
 // high(t) = alpha * high(t-1) + (1 - alpha) * o(t)
 // low(t) = (1 - alpha) * low(t-1) + alpha * o(t)
 void HLF::update(double input) {
-  high = alpha * high + (1 - alpha) * input;
-  low = (1 - alpha) * low + alpha * input;
+  // Set values to the current observation for the first time.
+  if (high)
+  	high = alpha * high + (1 - alpha) * input;
+  else
+  	high = input;
+  if (low)
+	low = (1 - alpha) * low + alpha * input;
+  else
+  	low = input;
   //  printf("HLF %d %.2f, %.2f\n", (int)now, high, low);
 }
 
-// Definition for a tocken-bucket rate limitor
+// Definition for a token-bucket rate limitor
 TBrateLimitor::TBrateLimitor() {
   TBrateLimitor(DEFAULT_TB_RATE_P);
 };
@@ -84,26 +91,38 @@ TBrateLimitor::TBrateLimitor(double rate) {
   double now = Scheduler::instance().clock();
   pkt_mode = 1;
   bucket_size = DEFAULT_TB_SIZE;
-  tocken_rate = 0;
-  tocken_num = bucket_size;
+  token_rate = 0;
+  token_num = bucket_size;
   last_time = now;
-  ini_tocken_rate = rate;
-
-  setRate(rate);
-  //printf("TB pkt_mode:%d, bucket_size:%g, tocken_num:%g, last_time:%g\n",
-  //	 pkt_mode, bucket_size, tocken_num, last_time);
+  ini_token_rate = rate;
 
   resetScore();
+  setRate(rate);
+  //printf("TB pkt_mode:%d, bucket_size:%g, token_num:%g, last_time:%g\n",
+  //	 pkt_mode, bucket_size, token_num, last_time);
+
+  // High-low filter
+  hlf.setAlpha(ALPHA);
+  hlf.reset(rate);
 };
 
 // adjust the rate limit to the default value
 void TBrateLimitor::setRate(double rate) {
-  if (rate != tocken_rate) {
-    last_tocken_rate = tocken_rate;
-    tocken_rate = rate;
-    printf("TR %d %.2f %d %d\n", (int)(Scheduler::instance().clock()), 
-	   tocken_rate, p_score, n_score);
+  last_token_rate = token_rate;
+  
+  if (! token_rate) {
+    token_rate = rate;
+  } else if (rate != token_rate) {
+    // use HLF to change token rate
+    hlf.update(rate);
+    // Use low-gain filter for fast response
+    //token_rate = hlf.getLow();
+    token_rate = hlf.getHigh();
+    token_rate = rate;
   }
+  
+  printf("TR %d %.2f %.2f %d %d\n", (int)(Scheduler::instance().clock()), 
+	 token_rate, rate, p_score, n_score);
 }
 
 // adjust the rate limit to approaching an optimal rate limit
@@ -111,11 +130,11 @@ void TBrateLimitor::adjustRate() {
   // pay the penalty
   adjustScore(-1);
 
-  double rate = tocken_rate;
+  double rate = token_rate;
   if (p_score >= n_score)
-    rate = tocken_rate * (1 + 0.2);
+    rate = token_rate * (1 + 0.2);
   else 
-    rate = tocken_rate * (1 - 0.2);
+    rate = token_rate * (1 - 0.2);
 
   setRate(rate);
 }
@@ -128,7 +147,7 @@ void TBrateLimitor::resetScore() {
 // adjust the score for increasing or decreasing scores
 void TBrateLimitor::adjustScore(int score) {
   // pay the penalty
-  if (last_tocken_rate > tocken_rate)
+  if (last_token_rate > token_rate)
     n_score += score;
   else
     p_score += score;
@@ -139,18 +158,18 @@ int TBrateLimitor::run(double incoming, double t_rate) {
   double interval = now - last_time;
   
   //printf("TB: now:%g last_time:%g interval:%g; ", now, last_time, interval);
-  tocken_num += interval * t_rate;
+  token_num += interval * t_rate;
   last_time = now;
 
-  // more tockens are overflowed
-  if (tocken_num > bucket_size)
-    tocken_num = bucket_size;
+  // more tokens are overflowed
+  if (token_num > bucket_size)
+    token_num = bucket_size;
 
-  //printf("tocken #:%g; ", tocken_num);
+  //printf("token #:%g; ", token_num);
 
   // through (0 dropping probability)
-  if (tocken_num >= incoming) {
-    tocken_num -= incoming;
+  if (token_num >= incoming) {
+    token_num -= incoming;
     //printf("...through\n");
     return 0;
   }
@@ -161,7 +180,7 @@ int TBrateLimitor::run(double incoming, double t_rate) {
 }
 
 int TBrateLimitor::run(double incoming) {
-  return (run(incoming, tocken_rate));
+  return (run(incoming, token_rate));
 }
 
 // EW detector
@@ -180,7 +199,7 @@ EWdetector::EWdetector() {
   resetChange();
 
   // High-low filter
-  hlf.setAlpha(EW_FADING_FACTOR);
+  hlf.setAlpha(ALPHA);
 }
 
 //EWdetector::~EWdetector() {
@@ -250,7 +269,8 @@ void EWdetector::updateAvg() {
   // Update the long term average value with the output from different filters
   if (!alarm) {
     // Use low-gain filter for fast response
-    avg_rate = hlf.getLow();
+    //avg_rate = hlf.getLow();
+    avg_rate = hlf.getHigh();
   } else {
     // Use high-gain filter to keep the long term average stable
     avg_rate = hlf.getHigh();
@@ -707,14 +727,14 @@ void EWdetectorB::detect() {
   //  detect if it is the time to trigger the alarm
   if (alarm) {
     // Determine if an alarm should be released
-    if (cur_rate > avg_rate * (1 + EW_DETECT_RANGE)) {
+    if (cur_rate > avg_rate * (1 + EW_RELEASE_RANGE)) {
       // reset alarm
       resetAlarm();
     } 
   } else {
     // Determine if an alarm should be triggered
     //   need to be conservative!
-    if (cur_rate < avg_rate) {
+    if (cur_rate < avg_rate * (1 - EW_DETECT_RANGE)) {
       setAlarm();
       
       // Initial drop_p to the MAX value whenever alarm triggered
@@ -747,7 +767,7 @@ void EWdetectorB::computeDropP() {
       p = 0;
     
     // Compute the actual drop probability
-    drop_p = EW_FADING_FACTOR * drop_p + (1 - EW_FADING_FACTOR) * p;    
+    drop_p = ALPHA * drop_p + (1 - ALPHA) * p;    
     // adjust drop_p
     if (drop_p < EW_MIN_DROP_P)
       drop_p = EW_MIN_DROP_P;
@@ -759,7 +779,7 @@ void EWdetectorB::computeDropP() {
       if (drop_p <= EW_MIN_DROP_P)
         drop_p = 0;
       else {
-        drop_p = EW_FADING_FACTOR * drop_p;
+        drop_p = ALPHA * drop_p;
       }
     }
   }
@@ -893,7 +913,7 @@ void EWdetectorP::detect() {
     if (!alarm) {
       setAlarm();
     }
-  } else if (cur_rate < avg_rate * (1 - EW_DETECT_RANGE)) {
+  } else if (cur_rate < avg_rate * (1 - EW_RELEASE_RANGE)) {
     if (alarm)
       resetAlarm();
   }
@@ -991,6 +1011,10 @@ int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer,
   //   with req:  may cause resp retransmission.
   // just pass them through
   hdr_cmn *th = hdr_cmn::access(pkt);
+  hdr_ip* iph = hdr_ip::access(pkt);
+  int dst_id = iph->daddr();
+  int src_id = iph->saddr();
+
   if (th->ptype() == PT_ACK)
     return(policer->initialCodePt);
 
@@ -1000,8 +1024,10 @@ int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer,
   now = Scheduler::instance().clock();
 
   // keep arrival packet stats
-  if (ewP)
+  if (ewP) {
+    printf("TRR %d %d %d %d\n", (int)now, src_id, dst_id, th->size());
     ewP->updateStats(PKT_ARRIVAL);
+  }
 
   // For other packets:
   if (dropPacket(pkt)) {

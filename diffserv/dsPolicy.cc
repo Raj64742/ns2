@@ -58,6 +58,7 @@
 
 #include "dsPolicy.h"
 #include "ew.h"
+#include "dewp.h"
 #include "packet.h"
 #include "tcp.h"
 #include "random.h"
@@ -81,6 +82,7 @@ and destination node ID must be specified in argv, followed by a policy type
 and policy-specific parameters.  Supported policies and their parameters
 are:
 
+Null          InitialCodePoint
 TSW2CM        InitialCodePoint  CIR
 TSW3CM        InitialCodePoint  CIR  PIR
 TokenBucket   InitialCodePoint  CIR  CBS
@@ -102,12 +104,12 @@ void PolicyClassifier::addPolicyEntry(int argc, const char*const* argv) {
     policyTable[policyTableSize].arrivalTime = 0;
     policyTable[policyTableSize].winLen = 1.0;
     
-    if (strcmp(argv[4], "Dumb") == 0) {
-      if(!policy_pool[DUMB])
-	policy_pool[DUMB] = new DumbPolicy;
-      policyTable[policyTableSize].policy_index = DUMB;   
-      policyTable[policyTableSize].policer = dumbPolicer;
-      policyTable[policyTableSize].meter = dumbMeter;
+    if ((strcmp(argv[4], "Dumb") == 0) || (strcmp(argv[4],"Null") == 0)) {
+      if(!policy_pool[Null])
+	policy_pool[Null] = new NullPolicy;
+      policyTable[policyTableSize].policy_index = Null;   
+      policyTable[policyTableSize].policer = nullPolicer;
+      policyTable[policyTableSize].meter = nullMeter;
     } else if (strcmp(argv[4], "TSW2CM") == 0) {
       if(!policy_pool[TSW2CM])
 	policy_pool[TSW2CM] = new TSW2CMPolicy;
@@ -176,15 +178,25 @@ void PolicyClassifier::addPolicyEntry(int argc, const char*const* argv) {
       // Use cir as the transmission size threshold for the moment.
       policyTable[policyTableSize].cir = atoi(argv[6]);
     } else if (strcmp(argv[4], "EW") == 0) {
-      if(!policy_pool[EWP])
-	policy_pool[EWP] = new EWPolicy();
+      if(!policy_pool[EW])
+	policy_pool[EW] = new EWPolicy();
       
-      ((EWPolicy *)policy_pool[EWP])->
+      ((EWPolicy *)policy_pool[EW])->
 	init(atoi(argv[6]), atoi(argv[7]), atoi(argv[8]));
 
-      policyTable[policyTableSize].policy_index = EWP;
+      policyTable[policyTableSize].policy_index = EW;
       policyTable[policyTableSize].policer = EWPolicer;
       policyTable[policyTableSize].meter = ewTagger;
+  } else if (strcmp(argv[4], "DEWP") == 0) {
+    if(!policy_pool[DEWP])
+      policy_pool[DEWP] = new DEWPPolicy;
+
+    ((DEWPPolicy *)policy_pool[DEWP])->
+      init(atof(argv[6]));
+    
+    policyTable[policyTableSize].policy_index = DEWP;
+    policyTable[policyTableSize].policer = DEWPPolicer;
+    policyTable[policyTableSize].meter = dewpTagger;
   } else {
       printf("No applicable policy specified, exit!!!\n");
       exit(-1);
@@ -220,7 +232,7 @@ void addPolicerEntry(int argc, const char*const* argv)
 Pre: argv contains a valid command line for adding a policer entry.
 Post: Adds an entry to policerTable according to the arguments in argv.  No
   error-checking is done on the arguments.  A policer type should be specified,
-  consisting of one of the names {TSW2CM, TSW3CM, TokenBucket,
+  consisting of one of the names {Null, TSW2CM, TSW3CM, TokenBucket,
   srTCM, trTCM}, followed by an initial code point.  Next should be an
   out-of-profile code point for policers with two-rate markers; or a yellow and
   a red code point for policers with three drop precedences.
@@ -233,11 +245,11 @@ void PolicyClassifier::addPolicerEntry(int argc, const char*const* argv) {
   if (policerTableSize == MAX_CP)
     printf("ERROR: Policer Table size limit exceeded.\n");
   else {
-    if (strcmp(argv[2], "Dumb") == 0) {
-      if(!policy_pool[DUMB])
-	policy_pool[DUMB] = new DumbPolicy;
-      policerTable[policerTableSize].policer = dumbPolicer;      
-      policerTable[policerTableSize].policy_index = DUMB;      
+    if ((strcmp(argv[2], "Dumb") == 0) || (strcmp(argv[2],"Null") == 0)) {
+      if(!policy_pool[Null])
+	policy_pool[Null] = new NullPolicy;
+      policerTable[policerTableSize].policer = nullPolicer;      
+      policerTable[policerTableSize].policy_index = Null;      
     } else if (strcmp(argv[2], "TSW2CM") == 0) {
       if(!policy_pool[TSW2CM])
 	policy_pool[TSW2CM] = new TSW2CMPolicy;
@@ -269,10 +281,15 @@ void PolicyClassifier::addPolicerEntry(int argc, const char*const* argv) {
       policerTable[policerTableSize].policer = SFDPolicer;
       policerTable[policerTableSize].policy_index = SFD;      
     } else if (strcmp(argv[2], "EW") == 0) {
-      if(!policy_pool[EWP])
-	policy_pool[EWP] = new EWPolicy;
+      if(!policy_pool[EW])
+	policy_pool[EW] = new EWPolicy;
       policerTable[policerTableSize].policer = EWPolicer;
-      policerTable[policerTableSize].policy_index = EWP;      
+      policerTable[policerTableSize].policy_index = EW;      
+    } else if (strcmp(argv[2], "DEWP") == 0) {
+      if(!policy_pool[DEWP])
+	policy_pool[DEWP] = new DEWPPolicy;
+      policerTable[policerTableSize].policer = DEWPPolicer;
+      policerTable[policerTableSize].policy_index = DEWP;      
     } else {
       printf("No applicable policer specified, exit!!!\n");
       exit(-1);
@@ -280,7 +297,10 @@ void PolicyClassifier::addPolicerEntry(int argc, const char*const* argv) {
   };
   
   policerTable[policerTableSize].initialCodePt = atoi(argv[3]);
-  policerTable[policerTableSize].downgrade1 = atoi(argv[4]);
+  if (policerTable[policerTableSize].policer == nullPolicer)
+      policerTable[policerTableSize].downgrade1 = atoi(argv[3]);
+    else
+      policerTable[policerTableSize].downgrade1 = atoi(argv[4]);
   if (argc == 6)
     policerTable[policerTableSize].downgrade2 = atoi(argv[5]);
   policerTableSize++;
@@ -385,8 +405,8 @@ void PolicyClassifier::printPolicyTable() {
   for (int i = 0; i < policyTableSize; i++)
     {
       switch (policyTable[i].policer) {
-      case dumbPolicer:
-	printf("Flow (%d to %d): DUMB policer, ",
+      case nullPolicer:
+	printf("Flow (%d to %d): Null policer, ",
                policyTable[i].sourceNode,policyTable[i].destNode);
 	printf("initial code point %d\n", policyTable[i].codePt);
 	break;
@@ -436,6 +456,11 @@ void PolicyClassifier::printPolicyTable() {
 	       policyTable[i].sourceNode,policyTable[i].destNode);
 	printf("initial code point %d.\n", policyTable[i].codePt);
 	break;
+      case DEWPPolicer:
+	printf("Flow (%d to %d): DEWP policer, ",
+	       policyTable[i].sourceNode,policyTable[i].destNode);
+	printf("initial code point %d.\n", policyTable[i].codePt);
+	break;
       default:
 	printf("ERROR: Unknown policer type in Policy Table.\n");
       }
@@ -451,8 +476,8 @@ void PolicyClassifier::printPolicerTable() {
   for (int i = 0; i < policerTableSize; i++) {
     threeColor = false;
     switch (policerTable[i].policer) {
-    case dumbPolicer:
-      printf("Dumb ");
+    case nullPolicer:
+      printf("Null ");
       break;
     case TSW2CMPolicer:
       printf("TSW2CM ");
@@ -479,6 +504,9 @@ void PolicyClassifier::printPolicerTable() {
     case EWPolicer:
       printf("EW ");
       break;
+    case DEWPPolicer:
+      printf("DEWP ");
+      break;
     default:
       printf("ERROR: Unknown policer type in Policer Table.");
     }
@@ -497,15 +525,15 @@ void PolicyClassifier::printPolicerTable() {
   printf("\n");
 }
 
-// The beginning of the definition of DumbPolicy
-// DumbPolicy will do nothing, but is a good example to show how to add 
+// The beginning of the definition of the NullPolicy
+// NullPolicy will do nothing, but is also a good example to show how to add 
 // new policy.
 
 /*-----------------------------------------------------------------------------
-void DumbPolicy::applyMeter(policyTableEntry *policy, Packet *pkt)
+void NullPolicy::applyMeter(policyTableEntry *policy, Packet *pkt)
 Do nothing
 -----------------------------------------------------------------------------*/
-void DumbPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
+void NullPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
   policy->arrivalTime = Scheduler::instance().clock();  
 }
 
@@ -513,11 +541,11 @@ void DumbPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
 int DumbPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt)
 Always return the initial codepoint.
 -----------------------------------------------------------------------------*/
-int DumbPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
+int NullPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
   return(policer->initialCodePt);
 }
 
-// The end of DumbPolicy
+// The end of NullPolicy
 
 // The beginning of the definition of TSW2CM
 /*-----------------------------------------------------------------------------

@@ -42,18 +42,19 @@
 #define FLOW_TIME_OUT 5.0      // The flow does not exist already.
 #define MAX_POLICIES 20		// Max. size of Policy Table.
 
-#define DUMB 0
+#define Null 0
 #define TSW2CM 1
 #define TSW3CM 2
 #define TB 3
 #define SRTCM 4
 #define TRTCM 5
 #define SFD 6
-#define EWP 7
+#define EW 7
+#define DEWP 8
 
-enum policerType {dumbPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, SFDPolicer, EWPolicer};
+enum policerType {nullPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, SFDPolicer, EWPolicer, DEWPPolicer,};
 
-enum meterType {dumbMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter, sfdTagger, ewTagger};
+enum meterType {nullMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter, sfdTagger, ewTagger, dewpTagger};
 
 class Policy;
 class TBPolicy;
@@ -130,11 +131,11 @@ class Policy : public TclObject {
   virtual int applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) = 0;
 };
 
-// DumbPolicy will do nothing, but is a good example to show how to add 
-// new policy.
-class DumbPolicy : public Policy {
+// NullPolicy will do nothing. But it is also a good example to show 
+// how to add a new policy.
+class NullPolicy : public Policy {
  public:
-  DumbPolicy() : Policy(){};
+  NullPolicy() : Policy(){};
 
   // Metering and policing methods:
   void applyMeter(policyTableEntry *policy, Packet *pkt);

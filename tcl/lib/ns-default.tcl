@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.326 2003/10/28 22:47:10 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.327 2003/11/27 23:28:11 xuanc Exp $
 
 
 #
@@ -471,11 +471,11 @@ Application/Traffic/CBR set maxpkts_ 268435456; # 0x10000000
 
 Application/Telnet set interval_ 1.0
 
-Application/Worm/Dnh set ScanRate 4000
-Application/Worm/Dnh set ScanPort 3434
-Application/Worm/Dnh set ScanPacketSize 1000
-Application/Worm/An set ScanPort 3434
-Application/Worm/An set ScanPacketSize 1000
+# Default config based on data for slammer worm
+Application/Worm set ScanRate 4000
+Application/Worm set ScanPort 1434
+Application/Worm set ScanPacketSize 404
+Application/Worm/An set TimeStep 1
 
 Application/SctpApp1 set interval_ 1.0
 Application/SctpApp1 set numStreams_ 1

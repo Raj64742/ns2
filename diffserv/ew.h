@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// ew.h (Early warning system)
+// ew.h (Network early warning system)
 //   by Xuan Chen (xuanc@isi.edu), USC/ISI
 
 #ifndef EW_H
@@ -33,8 +33,10 @@
 
 #define EW_MAX_WIN 8
 #define EW_SWIN_SIZE 4
-// the max and min dropping probability
+// tolerance of changes for detection and release
 #define EW_DETECT_RANGE 0.1
+#define EW_RELEASE_RANGE 0.1
+// the max and min dropping probability
 #define EW_MIN_DROP_P 0.1
 #define EW_MAX_DROP_P 0.9
 #define EW_FLOW_TIME_OUT 10.0
@@ -43,7 +45,9 @@
 #define EW_DETECT_INTERVAL 60
 #define EW_MIN_SAMPLE_INTERVAL 60
 #define EW_MIN_DETECT_INTERVAL 15
-#define EW_FADING_FACTOR 0.875
+
+// HLF's alpha
+#define ALPHA 0.875
 
 #define PKT_ARRIVAL 1001
 #define PKT_DEPT 1002
@@ -129,7 +133,7 @@ class HLF {
   double high, low;
 };
 
-// Definition for a tocken-bucket rate limitor
+// Definition for a token-bucket rate limitor
 class TBrateLimitor {
  public:
   TBrateLimitor();
@@ -140,13 +144,13 @@ class TBrateLimitor {
   // adjust the rate
   void adjustRate();
 
-  // parameters for a tocken bucket
+  // parameters for a token bucket
   // the size of the token bucket (in bytes or packets)
   double bucket_size;             
   // number of tokens in the bucket (in bytes or packets)
-  double tocken_num;
-  // the rate to generate tockens
-  double tocken_rate, ini_tocken_rate, last_tocken_rate;
+  double token_num;
+  // the rate to generate tokens
+  double token_rate, ini_token_rate, last_token_rate;
   // last time when updating states
   double last_time;
 
@@ -158,6 +162,9 @@ class TBrateLimitor {
 
   // states to determine the direction of increasing/decreasing rate
   int n_score, p_score;
+
+  // High-low filter
+  HLF hlf;
 
   // adjust the score for increasing or decreasing scores
   void resetScore();

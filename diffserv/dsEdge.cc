@@ -41,6 +41,7 @@
 
 #include "dsEdge.h"
 #include "ew.h"
+#include "dewp.h"
 #include "packet.h"
 #include "tcp.h"
 #include "random.h"
@@ -102,6 +103,26 @@ int edgeQueue::command(int argc, const char*const* argv) {
     return(TCL_OK);
   };
 
+  if (strcmp(argv[1], "couple") == 0) {
+  /*
+    printf("%d ", argc);
+    for (int i = 1; i < argc; i++) 
+      printf("%d(%s) ", i, argv[i]);
+    printf("\n");   
+  */
+
+    DEWPPolicy *ewp = (DEWPPolicy *)(policy.policy_pool[DEWP]);
+
+    // Get the pointer to the queue to be coupled (in c++)
+    //Tcl& tcl = Tcl::instance();
+    edgeQueue *cq = (edgeQueue*) TclObject::lookup(argv[2]);
+    DEWPPolicy *ewpc = (DEWPPolicy *)((cq->policy).policy_pool[DEWP]);
+
+    ewp->couple(ewpc); 
+
+    return(TCL_OK);
+  };
+
   // couple the EW on request and response links
   if (strcmp(argv[1], "coupleEW") == 0) {
     //printf("%d ", argc);
@@ -109,12 +130,12 @@ int edgeQueue::command(int argc, const char*const* argv) {
     //printf("%d(%s) ", i, argv[i]);
     //printf("\n");   
 
-    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
+    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EW]);
 
     // Get the pointer to the queue to be coupled (in c++)
     //Tcl& tcl = Tcl::instance();
     edgeQueue *cq = (edgeQueue*) TclObject::lookup(argv[2]);
-    EWPolicy *ewpc = (EWPolicy *)((cq->policy).policy_pool[EWP]);
+    EWPolicy *ewpc = (EWPolicy *)((cq->policy).policy_pool[EW]);
 
     // couple the EW detector 
     if (argc > 3)
@@ -132,7 +153,7 @@ int edgeQueue::command(int argc, const char*const* argv) {
     //  printf("%d(%s) ", i, argv[i]);
     //printf("\n");
 
-    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
+    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EW]);
     
     // Packet rate limitor
     if (strcmp(argv[2], "P") == 0) {
@@ -154,7 +175,7 @@ int edgeQueue::command(int argc, const char*const* argv) {
     //  printf("%d(%s) ", i, argv[i]);
     //printf("\n");
 
-    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EWP]);
+    EWPolicy *ewp = (EWPolicy *)(policy.policy_pool[EW]);
     
     if (strcmp(argv[2], "P") == 0) {
       if (argc > 4)
