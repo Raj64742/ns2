@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.37 1998/10/27 00:50:16 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.38 1998/10/27 21:51:58 yuriy Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -49,6 +49,12 @@ Link instproc init { src dst } {
 Link instproc head {} {
 	$self instvar head_
 	return $head_
+}
+
+Link instproc add-to-head { connector } {
+	$self instvar head_
+	$connector target [$head_ target]
+	$head_ target $connector
 }
 
 Link instproc queue {} {
@@ -203,7 +209,7 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 }
 
 SimpleLink instproc enable-mcast {src dst} {
-	$self instvar head_ iif_ ttl_
+	$self instvar iif_ ttl_
 	set iif_ [new NetworkInterface]
 	$iif_ target [$ttl_ target]
 	$ttl_ target $iif_
@@ -250,7 +256,7 @@ SimpleLink instproc nam-trace { ns f } {
 #
 SimpleLink instproc trace { ns f {op ""} } {
 
-	$self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
+	$self instvar enqT_ deqT_ drpT_ queue_ link_ fromNode_ toNode_
 	$self instvar rcvT_ ttl_ trace_
 	$self instvar drophead_		;# idea stolen from CBQ and Kevin
 
@@ -275,8 +281,7 @@ SimpleLink instproc trace { ns f {op ""} } {
 
 	# head is, like the drop-head_ a special connector.
 	# mess not with it.
-	$enqT_ target [$head_ target]
-	$head_ target $enqT_
+	$self add-to-head $enqT_
 
 	# put recv trace after ttl checking, so that only actually 
 	# received packets are recorded
@@ -346,15 +351,14 @@ SimpleLink instproc trace-callback {ns cmd} {
 # attach-monitors $insnoop $inqm $outsnoop $outqm $dropsnoop $dropqm
 #
 SimpleLink instproc attach-monitors { insnoop outsnoop dropsnoop qmon } {
-	$self instvar drpT_ queue_ head_ snoopIn_ snoopOut_ snoopDrop_
+	$self instvar drpT_ queue_ snoopIn_ snoopOut_ snoopDrop_
 	$self instvar qMonitor_ drophead_
 
 	set snoopIn_ $insnoop
 	set snoopOut_ $outsnoop
 	set snoopDrop_ $dropsnoop
 
-	$snoopIn_ target [$head_ target]
-	$head_ target $snoopIn_
+	$self add-to-head $snoopIn_
 
 	$snoopOut_ target [$queue_ target]
 	$queue_ target $snoopOut_
@@ -455,14 +459,12 @@ SimpleLink instproc sample-queue-size { } {
 
 
 SimpleLink instproc dynamic {} {
-	$self instvar dynamics_ head_
+	$self instvar dynamics_
 
 	if [info exists dynamics_] return
 	
 	set dynamics_ [new DynamicLink]
-	$dynamics_ target [$head_ target]
-	$head_ target $dynamics_
-
+	$self add-to-head $dynamics_
 	
 	$self transit-drop-trace
 	$self all-connectors isDynamic
@@ -473,7 +475,7 @@ SimpleLink instproc dynamic {} {
 # point the em's drop-target to the drophead
 #
 SimpleLink instproc errormodule args {
-	$self instvar errmodule_ queue_ drophead_ head_
+	$self instvar errmodule_ queue_ drophead_
 	if { $args == "" } {
 		return $errmodule_
 	}
@@ -481,8 +483,7 @@ SimpleLink instproc errormodule args {
 	set em [lindex $args 0]
 	set errmodule_ $em
 
-	$em target [$head_ target]
-	$head_ target $em
+	$self add-to-target $em
 
 	$em drop-target $drophead_
 }

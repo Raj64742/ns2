@@ -55,7 +55,7 @@ Class IntServLink -superclass  SimpleLink
 IntServLink instproc init { src dst bw delay q arg {lltype "DelayLink"} } {
 	
 	$self next $src $dst $bw $delay $q $lltype ; # SimpleLink ctor
-	$self instvar head_ queue_ link_
+	$self instvar queue_ link_
 
 	$self instvar measclassifier_ signalmod_ adc_ est_ measmod_
 	
@@ -87,10 +87,8 @@ IntServLink instproc init { src dst bw delay q arg {lltype "DelayLink"} } {
 	set signalmod_ [new $signaltype]
 	$signalmod_ set src_ [$src id]
 	$signalmod_ set dst_ [$dst id]
-	$signalmod_ target $queue_
 	$signalmod_ attach-adc $adc_
-	set head_ $signalmod_
-	
+	$self add-to-head $signalmod_
 	#Create a measurement classifier to decide which packets to measure
 	$self create-meas-classifier
 	$queue_ target $measclassifier_

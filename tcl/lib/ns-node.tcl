@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.45 1998/10/27 00:50:17 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.46 1998/10/27 21:51:59 yuriy Exp $
 #
 
 Class Node
@@ -82,12 +82,6 @@ Node instproc enable-mcast sim {
 	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
 	[$self set multiclassifier_] set node_ $self
 	
-	#
-	# Create a prune agent.  Each multicast routing node
-	# has a private prune agent that sends and receives
-	# prune/graft messages and dispatches them to the
-	# appropriate replicator object.
-	#
 	$self set mrtObject_ [new mrtObject $self ""]
 
 	$switch_ install 0 $classifier_

@@ -188,12 +188,7 @@ LanNode instproc start-mcast {} {
 	# NOTHING
 }
 LanNode instproc getArbiter {} {
-	# just give an arbiter to those protocols who want it.
-	$self instvar arbiter_
-	if ![info exists arbiter_] {
-		set arbiter_ [new McastProtoArbiter ""]
-	}
-	return $arbiter_
+	# NOTHING
 }
 LanNode instproc attach {agent} {
 	# NOTHING

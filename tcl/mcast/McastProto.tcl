@@ -31,7 +31,10 @@ McastProtocol instproc init {sim node} {
 	set type_   [$self info class]
 	set id_ [$node id]
 
-        [$node_ getArbiter] addproto $self
+        set arbiter [$node_ getArbiter]
+	if { $arbiter != "" } {
+		$arbiter addproto $self
+	}
 	$ns_ maybeEnableTraceAll $self $node_
 }
 
