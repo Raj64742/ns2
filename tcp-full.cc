@@ -72,7 +72,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.13 1997/11/18 01:28:35 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.14 1997/11/21 18:42:24 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -663,7 +663,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		flags_ |= TF_ACKNOW;
 		state_ = TCPS_SYN_RECEIVED;
 		irs_ = tcph->seqno();
-		rcv_nxt_ = tcph->seqno() + 1;
+		rcv_nxt_ = irs_+1;
 		t_seqno_ = iss_;
 		goto step6;
 
@@ -694,30 +694,41 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			        now(), name(), int(maxseq_));
 			goto drop;
 		}
+
+		cancel_rtx_timer();	// cancel timer on our 1st SYN
+		irs_ = tcph->seqno();	// get initial recv'd seq #
+		rcv_nxt_ = irs_ + 1;	// next expected seq#
+		flags_ |= TF_ACKNOW;	// ACK peer's SYN
+
+		// if we are here, must be at least an ok SYN
 		if (tiflags & TH_ACK) {
-			highest_ack_ = ackno;
+			// SYN+ACK
+			if ((highest_ack_ = ackno) > iss_) {
+				state_ = TCPS_ESTABLISHED;
+				/*
+				 * if we didn't have to retransmit the SYN,
+				 * use its rtt as our initial srtt & rtt var.
+				 */
+				if (t_rtt_) {
+					double tao = now() - tcph->ts();
+					rtt_update(tao);
+				}
+				// new:
+				// 	generate pure ACK here.
+				//	this simulates the ordinary connection establishment
+				//	where the ACK of the peer's SYN+ACK contains no data... data
+				//	comes later on a subsequent send [which happens below]
+				sendpacket(iss_, rcv_nxt_, TH_ACK, 0, 0);
+			}
 			if (t_seqno_ < highest_ack_)
 				t_seqno_ = highest_ack_;
-		}
-		cancel_rtx_timer();	// cancel timer on our 1st SYN
-		irs_ = tcph->seqno();
-		rcv_nxt_ = irs_ + 1;	// initial expected seq#
-		flags_ |= TF_ACKNOW;	// ACK peer's SYN
-		if (tiflags & TH_ACK && (highest_ack_ > iss_)) {
-			state_ = TCPS_ESTABLISHED;
-                        /*
-                         * if we didn't have to retransmit the SYN,
-                         * use its rtt as our initial srtt & rtt var.
-                         */
-			if (t_rtt_) {
-				double tao = now() - tcph->ts();
-				rtt_update(tao);
-			}
 		} else {
 			// simultaneous active opens
 			state_ = TCPS_SYN_RECEIVED;
 		}
+
 		goto step6;
+
 	}
 
 	// check for redundant data at head/tail of segment
@@ -790,6 +801,13 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// not in useful range
 			goto dropwithreset;
 		}
+		/*
+		 * turn off ACKNOW, as it will generally be set above
+		 * because we were fooled into believing our peer's ack for
+		 * our SYN+ACK is actually a duplicate (and needed an ACK)
+		 */
+		flags_ &= ~TF_ACKNOW;
+		dupseg = FALSE;
 		state_ = TCPS_ESTABLISHED;
 		/* fall into ... */
 
