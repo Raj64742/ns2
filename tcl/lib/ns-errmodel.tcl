@@ -45,6 +45,8 @@
 #	each state has a ranvar determining the length each state
 #	a matrix specifying transition probabilities
 #
+#    Patched by Jianping Pan (jpan@bbcr.uwaterloo.ca)
+#
 # Each state is an error model (which could be 1-state or multi-state),
 # In addtion, the error model has a matrix of transition probabilities,
 # and a start state for the model.  These usually corresond to
@@ -127,36 +129,61 @@ ErrorModel/Empirical instproc init {fileList {unit "pkt"}} {
 	$self next $rv0 $rv1 $unit
 }
 
-
-ErrorModel/MultiState instproc init {states trans transunit nstates start} {
+ErrorModel/MultiState instproc init {states periods trans transunit sttype nstates start} {
 	# states_ is an array of states (errmodels),
+	# periods_ is an array of state duration (sec)
 	# transmatrix_ is the transition state model matrix,
+	# sttype is the type of state transitions to use 'time' or 'pkt'
 	# nstates_ is the number of states
 	# transunit_ is pkt/byte/time, and curstate_ is the current state
 	# start is the start state, which curstate_ is initialized to
+	# error-model is the current error model to use
+	# curperiod_ is the duration of the current timed-state
 
-	$self instvar states_ transmatrix_ transunit_ nstates_ curstate_ eu_
+	$self instvar states_ transmatrix_ transunit_ nstates_ curstate_ eu_ periods_
+
+        $self next
 	set states_ $states
+	set periods_ $periods
 	set transmatrix_ $trans
 	set transunit_ $transunit
+	$self sttype $sttype
 	set nstates_ $nstates
 	set curstate_ $start
 	set eu_ $transunit
-	$self next
+        $self error-model $start
+
+        # Find current state's duration
+        if { [$self sttype] == "time" } {
+	    for { set i 0 } { $i < $nstates_ } {incr i} {
+		if { [lindex $states_ $i] == $curstate_ } {
+		    break
+		}
+	    }
+	    $self set curperiod_ [lindex $periods_ $i]
+	}
 }
 
 ErrorModel/MultiState instproc corrupt { } {
 	$self instvar states_ transmatrix_ transunit_ curstate_
 
 	set cur $curstate_
-# XXX
-	set retval [$curstate_ next]
-	set curstate_ [$self transition]
+	# XXX
+        # check the type of state transitions to use: 'time' or 'pkt'
+        # defaults to pkt transitions using transmatrix_
+        if { [$self sttype] == "time" } {
+	    set curstate_ [$self time-transition]
+        } else {
+	    set curstate_ [$self transition]
+        }
+
 	if { $cur != $curstate_ } {
-		# If transitioning out, reset erstwhile current state
+		# If transitioning out, reset current state
 		$cur reset
+		$self reset
+	        $self error-model $curstate_
 	}
-	return $retval
+	return [$curstate_ next]
 }
 
 # XXX eventually want to put in expected times of staying in each state 
@@ -164,6 +191,35 @@ ErrorModel/MultiState instproc corrupt { } {
 #ErrorModel instproc insert-error { parent } {
 #	return [$self corrupt $parent]
 #}
+
+# Transition based on time spent in the current state
+ErrorModel/MultiState instproc time-transition { } {
+	$self instvar states_ transmatrix_ transunit_ curstate_ nstates_ periods_
+
+    if {[$self set texpired_] != 1} {
+	return $curstate_
+    }
+
+	for { set i 0 } { $i < $nstates_ } {incr i} {
+		if { [lindex $states_ $i] == $curstate_ } {
+			break
+		}
+	}
+
+	# get the right transition list
+	set trans [lindex $transmatrix_ $i]
+	set p [uniform 0 1]
+	set total 0
+	for { set i 0 } { $i < $nstates_ } {incr i } {
+		set total [expr $total + [lindex $trans $i]]
+		if { $p <= $total } {
+		    $self set curperiod_ [lindex $periods_ $i]
+		    return [lindex $states_ $i]
+		}
+	}
+	puts "Misconfigured state transition: prob $p total $total $nstates_"
+	return $curstate_
+}
 
 # Decide whom to transition to
 ErrorModel/MultiState instproc transition { } {
@@ -187,6 +243,7 @@ ErrorModel/MultiState instproc transition { } {
 	puts "Misconfigured state transition: prob $p total $total $nstates_"
 	return $curstate_
 }
+
 
 Class ErrorModel/TwoStateMarkov -superclass ErrorModel/TwoState
 

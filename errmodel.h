@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.39 1999/02/18 02:19:15 yuriy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.40 1999/11/29 17:55:21 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -47,6 +47,10 @@
 enum ErrorUnit { EU_TIME=0, EU_BYTE, EU_PKT };
 #define EU_NAMES "time", "byte", "pkt"
 #define STR2EU(s) (!strcmp(s,"time") ? EU_TIME : (!strcmp(s,"byte") ? EU_BYTE : EU_PKT))
+
+enum StTypeUnit {ST_TIME=0, ST_PKT };
+#define ST_NAMES "time", "pkt"
+#define STR2ST(s) (!strcmp(s,"time") ? ST_TIME : ST_PKT)
 
 #define EM_GOOD	1
 #define EM_BAD	2
@@ -102,6 +106,9 @@ public:
 	virtual int corrupt(Packet*);
 protected:
 	int command(int argc, const char*const* argv);
+	int sttype_;            // type of state trans: 1: 'pkt' prob, 0: 'time'
+	int texpired_;          // timed-state expired?
+	double curperiod_;      // the duration of the current state
 	ErrorModel* em_;	// current error model to use
 };
 

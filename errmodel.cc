@@ -34,12 +34,15 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.66 1999/09/24 17:04:32 heideman Exp $ (UCB)
+ * Multi-state error model patches contributed by Jianping Pan 
+ * (jpan@bbcr.uwaterloo.ca).
+ *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.67 1999/11/29 17:55:22 haoboy Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.66 1999/09/24 17:04:32 heideman Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.67 1999/11/29 17:55:22 haoboy Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -297,6 +300,7 @@ int TwoStateErrorModel::corrupt(Packet* p)
 	return error;
 }
 
+static char * st_names[]={ST_NAMES};
 
 /*
 // MultiState ErrorModel:
@@ -309,13 +313,32 @@ int TwoStateErrorModel::corrupt(Packet* p)
 
 MultiStateErrorModel::MultiStateErrorModel() : em_(0)
 {
+	bind("sttype_", &sttype_);
+	bind("texpired_", &texpired_);
+	bind("curperiod_", &curperiod_);
 }
 
 int MultiStateErrorModel::command(int argc, const char*const* argv)
 {
+
+	Tcl& tcl = Tcl::instance();
+
 	if (argc == 3) {
 		if (strcmp(argv[1], "error-model") == 0) {
 			em_ = (ErrorModel*) TclObject::lookup(argv[2]);
+			return TCL_OK;
+		}
+		if (strcmp(argv[1], "sttype") == 0) {
+			sttype_ = STR2ST(argv[2]);
+			return TCL_OK;
+		}
+	} else if (argc == 2) {
+		if (strcmp(argv[1], "sttype") == 0) {
+			tcl.resultf("%s", st_names[sttype_]);
+			return TCL_OK;
+		}
+		if (strcmp(argv[1], "error-model") == 0) {
+			tcl.resultf("%s", (ErrorModel*) em_->name());
 			return TCL_OK;
 		}
 	}
@@ -324,9 +347,30 @@ int MultiStateErrorModel::command(int argc, const char*const* argv)
 
 int MultiStateErrorModel::corrupt(Packet* p)
 {
+	int retval;
+	double now;
+	static double prevTime_ = 0.0;
+	Scheduler & s = Scheduler::instance();
+
+	now = s.clock();
+
+	if (sttype_ == ST_TIME)
+		if ((now - prevTime_) >= curperiod_)
+			texpired_ = 1;
+
 	Tcl& tcl = Tcl::instance();
 	tcl.evalf("%s corrupt", name());
-	return (em_ ? em_->corrupt(p) : atoi(tcl.result()));
+
+	retval = em_ ? em_->corrupt(p) : atoi(tcl.result());
+
+	if (firstTime_) {
+		firstTime_ = 0;
+		prevTime_ = s.clock();
+		texpired_ = 0;
+	}
+
+	return (retval);
+
 }
 
 

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.178 1999/11/23 23:46:01 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.179 1999/11/29 17:55:24 haoboy Exp $
 
 
 #
@@ -346,9 +346,9 @@ ErrorModel/Trace set loss_ 0
 ErrorModel/Periodic set period_ 1.0
 ErrorModel/Periodic set offset_ 0.0
 ErrorModel/Periodic set burstlen_ 0.0
-#ErrorModel/MultiState set curperiod_ 0.0
-#ErrorModel/MultiState set sttype_ pkt
-#ErrorModel/MultiState set texpired_ 0
+ErrorModel/MultiState set curperiod_ 0.0
+ErrorModel/MultiState set sttype_ pkt
+ErrorModel/MultiState set texpired_ 0
 
 SelectErrorModel set enable_ 1
 SelectErrorModel set markecn_ false
