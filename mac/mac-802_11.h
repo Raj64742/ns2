@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.19 2000/09/01 03:04:06 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.h,v 1.20 2002/03/14 01:12:53 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * wireless-mac-802_11.h
@@ -115,63 +115,27 @@ struct hdr_mac802_11 {
 /* ======================================================================
    Definitions
    ====================================================================== */
-#define ETHER_HDR_LEN				\
-	((phymib_->PreambleLength >> 3) +	\
-	 (phymib_->PLCPHeaderLength >> 3) +	\
+
+#define PLCP_HDR_LEN                            \
+  	((phymib_->PreambleLength >> 3) +        \
+ 	 (phymib_->PLCPHeaderLength >> 3))
+
+#define ETHER_HDR_LEN11				\
+	(PLCP_HDR_LEN +				\
 	 sizeof(struct hdr_mac802_11) +		\
 	 ETHER_FCS_LEN)
 
 #define ETHER_RTS_LEN				\
-	((phymib_->PreambleLength >> 3) +        \
-         (phymib_->PLCPHeaderLength >> 3) +      \
+        (PLCP_HDR_LEN +				\
 	 sizeof(struct rts_frame))
 
 #define ETHER_CTS_LEN				\
-        ((phymib_->PreambleLength >> 3) +        \
-         (phymib_->PLCPHeaderLength >> 3) +      \
+         (PLCP_HDR_LEN +			\
          sizeof(struct cts_frame))
 
 #define ETHER_ACK_LEN				\
-        ((phymib_->PreambleLength >> 3) +        \
-         (phymib_->PLCPHeaderLength >> 3) +      \
+         (PLCP_HDR_LEN +			\
 	 sizeof(struct ack_frame))
-
-#define	RTS_Time	(8 * ETHER_RTS_LEN / bandwidth_)
-#define CTS_Time	(8 * ETHER_CTS_LEN / bandwidth_)
-#define ACK_Time	(8 * ETHER_ACK_LEN / bandwidth_)
-#define DATA_Time(len)	(8 * (len) / bandwidth_)
-
-/*
- *  IEEE 802.11 Spec, section 9.2.5.7
- *	- After transmitting an RTS, a node waits CTSTimeout
- *	  seconds for a CTS.
- *
- *  IEEE 802.11 Spec, section 9.2.8
- *	- After transmitting DATA, a node waits ACKTimeout
- *	  seconds for an ACK.
- *
- *  IEEE 802.11 Spec, section 9.2.5.4
- *	- After hearing an RTS, a node waits NAVTimeout seconds
- *	  before resetting its NAV.  I've coined the variable
- *	  NAVTimeout.
- *
- */
-#define CTSTimeout	((RTS_Time + CTS_Time) + 2 * sifs_)
-#define ACKTimeout(len)	(DATA_Time(len) + ACK_Time + sifs_ + difs_)
-#define NAVTimeout	(2 * phymib_->SIFSTime + CTS_Time + 2 * phymib->SlotTime)
-
-
-
-#define RTS_DURATION(pkt)	\
-	usec(sifs_ + CTS_Time + sifs_ + TX_Time(pkt) + sifs_ + ACK_Time)
-
-#define CTS_DURATION(d)		\
-	usec((d * 1e-6) - (CTS_Time + sifs_))
-
-#define DATA_DURATION()		\
-	usec(ACK_Time + sifs_)
-
-#define ACK_DURATION()	0x00		// we're not doing fragments now
 
 /*
  * IEEE 802.11 Spec, section 15.3.2
@@ -185,6 +149,13 @@ struct hdr_mac802_11 {
 #define DSSS_SIFSTime			0.000010	// 10us
 #define DSSS_PreambleLength		144		// 144 bits
 #define DSSS_PLCPHeaderLength		48		// 48 bits
+#define DSSS_PLCPDataRate		1.0e6		// 1Mbps
+
+/* Must account for propagation delays added by the channel model when
+ * calculating tx timeouts (as set in tcl/lan/ns-mac.tcl).
+ *   -- Gavin Holland, March 2002
+ */
+#define DSSS_MaxPropagationDelay        0.000002        // 2us   XXXX
 
 class PHY_MIB {
 public:
@@ -196,6 +167,7 @@ public:
 	double		SIFSTime;
 	u_int32_t	PreambleLength;
 	u_int32_t	PLCPHeaderLength;
+	double		PLCPDataRate;
 };
 
 
@@ -203,7 +175,8 @@ public:
  * IEEE 802.11 Spec, section 11.4.4.2
  *      - default values for the MAC Attributes
  */
-#define MAC_RTSThreshold		3000		// bytes
+//#define MAC_RTSThreshold		3000		// bytes
+#define MAC_RTSThreshold		0		// bytes
 #define MAC_ShortRetryLimit		7		// retransmittions
 #define MAC_LongRetryLimit		4		// retransmissions
 #define MAC_FragmentationThreshold	2346		// bytes
@@ -326,22 +299,20 @@ private:
 	void mac_log(Packet *p) {
 		logtarget_->recv(p, (Handler*) 0);
 	}
-	inline double TX_Time(Packet *p) {
-		double t = DATA_Time((HDR_CMN(p))->size());
-		if(t < 0.0) {
-			drop(p, "XXX");
-			exit(1);
-		}
-		return t;
-	}
+	double txtime(Packet *p);
+	double txtime(double psz, double drt);
+	double txtime(int bytes) { /* clobber inherited txtime() */ abort(); }
+
 	inline void inc_cw() {
 		cw_ = (cw_ << 1) + 1;
 		if(cw_ > phymib_->CWMax)
 			cw_ = phymib_->CWMax;
 	}
 	inline void rst_cw() { cw_ = phymib_->CWMin; }
+	inline double sec(double t) { return(t *= 1.0e-6); }
 	inline u_int16_t usec(double t) {
-		u_int16_t us = (u_int16_t)ceil(t *= 1e6);
+		u_int16_t us = (u_int16_t)floor((t *= 1e6) + 0.5);
+		/* u_int16_t us = (u_int16_t)rint(t *= 1e6); */
 		return us;
 	}
 	inline void set_nav(u_int16_t us) {
@@ -361,6 +332,9 @@ protected:
 	MAC_MIB		*macmib_;
 
 private:
+	double		basicRate_;
+ 	double		dataRate_;
+	
 	/*
 	 * Mac Timers
 	 */

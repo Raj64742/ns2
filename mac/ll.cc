@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.45 2001/03/01 18:39:32 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.46 2002/03/14 01:12:52 haldar Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
@@ -143,9 +143,10 @@ void LL::recv(Packet* p, Handler* /*h*/)
 	 */
 	assert(initialized());
 
-	if(p->incoming) {
-                p->incoming = 0;
-	}
+	//if(p->incoming) {
+	//p->incoming = 0;
+	//}
+	// XXXXX NOTE: use of incoming flag has been depracated; In order to track direction of pkt flow, direction_ in hdr_cmn is used instead. see packet.h for details.
 
 	// If direction = UP, then pass it up the stack
 	// Otherwise, set direction to DOWN and pass it down the stack

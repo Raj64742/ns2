@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.16 2001/03/13 19:23:11 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.17 2002/03/14 01:12:53 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -94,7 +94,7 @@ WirelessPhy::WirelessPhy() : Phy(), idle_timer_(this), status_(IDLE)
 	bind("CPThresh_", &CPThresh_);
 	bind("CSThresh_", &CSThresh_);
 	bind("RXThresh_", &RXThresh_);
-	bind("bandwidth_", &bandwidth_);
+	//bind("bandwidth_", &bandwidth_);
 	bind("Pt_", &Pt_);
 	bind("freq_", &freq_);
 	bind("L_", &L_);
@@ -198,7 +198,8 @@ WirelessPhy::sendDown(Packet *p)
 	 */
 	if(em()) {
 		if (em()->energy() > 0) {
-		    double txtime = (8.*hdr_cmn::access(p)->size())/bandwidth_;
+			//double txtime = (8.*hdr_cmn::access(p)->size())/bandwidth_;
+		    double txtime = hdr_cmn::access(p)->txtime();
 		    double start_time = max(channel_idle_time_, NOW);
 		    double end_time = max(channel_idle_time_, NOW+txtime);
 		    double actual_txtime = end_time-start_time;
@@ -344,7 +345,8 @@ DONE:
 	 * Decrease energy if packet successfully received
 	 */
 	if(pkt_recvd && em()) {
-		double rcvtime = (8. * hdr_cmn::access(p)->size())/bandwidth_;
+		//double rcvtime = (8. * hdr_cmn::access(p)->size())/bandwidth_;
+		double rcvtime = hdr_cmn::access(p)->txtime();
 		// no way to reach here if the energy level < 0
 		
 		/*
@@ -416,7 +418,7 @@ WirelessPhy::dump(void) const
 	fprintf(stdout,
 		"\tPt: %f, Gt: %f, Gr: %f, lambda: %f, L: %f\n",
 		Pt_, ant_->getTxGain(0,0,0,lambda_), ant_->getRxGain(0,0,0,lambda_), lambda_, L_);
-	fprintf(stdout, "\tbandwidth: %f\n", bandwidth_);
+	//fprintf(stdout, "\tbandwidth: %f\n", bandwidth_);
 	fprintf(stdout, "--------------------------------------------------\n");
 }
 
