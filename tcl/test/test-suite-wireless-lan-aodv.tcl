@@ -206,7 +206,7 @@ TestSuite instproc finish-aodv {} {
 	    set times [split $time "."]
 	    set time1 [lindex $times 0]
 	    set time2 [lindex $times 1]
-	    set newtime2 [string range $time2 0 3]
+	    set newtime2 [string range $time2 0 2]
 	    set time $time1.$newtime2
 	    
 	    set newline [lreplace $line 1 1 $time] 
