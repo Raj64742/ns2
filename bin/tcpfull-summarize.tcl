@@ -22,6 +22,11 @@ proc drop_pkt { time ackno } {
 	puts $dropchan "$time $ackno"
 }
 
+proc forward_ctrl { time tflags seq } {
+	global ctrlchan
+	puts $ctrlchan "$time $seq"
+}
+
 set synfound 0
 proc parse_line line {
 	global synfound active_opener passive_opener
@@ -67,30 +72,48 @@ proc parse_line line {
 		set interesting 1
 	}
 
+	if { $interesting && [expr $field(tcpflags) & 0x03] } {
+		# either SYN or FIN is on
+		if { $field(src) == $active_opener && \
+		    $field(dst)  == $passive_opener } {
+			forward_ctrl $field(time) $field(tcpflags) \
+				$field(seqno)
+		} elseif { $field(src) == $passive_opener && \
+		    $field(dst) == $active_opener } {
+			forward_ctrl $field(time) $field(tcpflags) \
+				$field(tcpackno)
+		}
+	}
+
 	if { $interesting && $field(len) > $field(tcphlen) &&
 	    $field(src) == $active_opener && $field(dst) == $passive_opener } {
 		# record a forward segment (seq #s) that contains some data
 		forward_segment $field(time) \
 			[expr $field(seqno) + $field(len) - $field(tcphlen)]
+		return
 	}
 
 	if { $interesting && $field(len) > $field(tcphlen) &&
 	    $field(src) == $passive_opener && $field(dst) == $active_opener } {
 		# record acks for the forward direction that have data
 		forward_dataful_ack $field(time) $field(tcpackno)
+		return
 	}
 
 	if { $interesting && $field(len) == $field(tcphlen) &&
 	    $field(src) == $passive_opener && $field(dst) == $active_opener } {
 		# record pure acks for the forward direction
 		forward_pure_ack $field(time) $field(tcpackno)
+		return
 	}
 
 	if { $field(op) == "d" && $field(src) == $active_opener &&
 	    $field(dst) == $passive_opener } {
 		drop_pkt $field(time) \
 			[expr $field(seqno) + $field(len) - $field(tcphlen)]
+		return
 	}
+
 
 }
 
@@ -101,18 +124,20 @@ proc parse_file chan {
 }
 
 proc dofile { infile outfile } {
-	global ackchan packchan segchan dropchan
+	global ackchan packchan segchan dropchan ctrlchan
 
         set ackstmp $outfile.acks ; # data-full acks
         set segstmp $outfile.p; # segments
         set dropstmp $outfile.d; # drops
         set packstmp $outfile.packs; # pure acks
-        exec rm -f $ackstmp $segstmp $dropstmp $packstmp
+	set ctltmp $outfile.ctrl ; # SYNs + FINs
+        exec rm -f $ackstmp $segstmp $dropstmp $packstmp $ctltmp
 
 	set ackchan [open $ackstmp w]
 	set segchan [open $segstmp w]
 	set dropchan [open $dropstmp w]
 	set packchan [open $packstmp w]
+	set ctrlchan [open $ctltmp w]
 
 	set inf [open $infile r]
 
@@ -122,6 +147,7 @@ proc dofile { infile outfile } {
 	close $segchan
 	close $dropchan
 	close $packchan
+	close $ctrlchan
 }	
 
 if { $argc != 2 } {
