@@ -3,6 +3,7 @@
 # phuang@research.att.com, huang@isi.edu
 # Ported from UCB Empirical HTTP code, http.tcl
 
+
 ##################### Class: HttpSession #######################
 Agent/CBR set maxpkts_ 0
 Class HttpSession
@@ -205,13 +206,36 @@ HttpObject instproc init { ns src dst pageId sessionId tcpType tcpSinkType} {
     set tcpSinkType_ $tcpSinkType
     set clientNode_ $src
     set serverNode_ $dst
+#    $clientNode_ set idleTCP_ ""
+#    $clientNode_ set idleTCPSink_ ""
+#    $serverNode_ set idleTCP_ ""
+#    $serverNode_ set idleTCPSink_ ""
+
     set clientSinkRcvPktCount_ 0
 
     # setup TCP connection
     set clientTCP_ [$clientNode_ pickTCP TCP/Reno]
     # puts "clientTCP $clientTCP_"
+
+    # trace client TCP info
+    $ns instvar clientchan_
+    if [info exist clientchan_] {
+	$clientTCP_ set trace_all_oneline_ true
+	$clientTCP_ trace cwnd_
+	$clientTCP_ attach [$ns set clientchan_]
+    }
+
     set serverTCP_ [$serverNode_ pickTCP $tcpType_]
     # puts "serverTCP $serverTCP_"
+
+    # trace server TCP info
+    $ns instvar serverchan_
+    if [info exist serverchan_] {
+	$serverTCP_ set trace_all_oneline_ true
+	$serverTCP_ trace cwnd_
+	$serverTCP_ attach [$ns set serverchan_]
+    }
+
     $clientTCP_ set fid_ $objectId_
     $serverTCP_ set fid_ $objectId_
 
@@ -264,25 +288,23 @@ HttpObject instproc doneRequest {} {
     $self instvar clientSrc_ serverSrc_  clientSink_ serverSink_
     $self instvar clientNode_ serverNode_ clientTCP_ serverTCP_
 
-    # puts "server([$serverNode_ id]) replyin obj size($numPacket_) [$ns_ now]"
+    # puts "doneRequest: server([$serverNode_ id]) replyin obj size($numPacket_) [$ns_ now]"
     $clientNode_ instvar idleTCP_
     $serverNode_ instvar idleTCPSink_
 
     if {![info exists idleTCP_] || [lsearch $idleTCP_ $clientTCP_] < 0} {
-	$clientTCP_ reset
 	lappend idleTCP_ $clientTCP_
-	# puts "append TCP: $idleTCP_"
+	# puts "[$clientNode_ id] TCP doneRequest: append $clientTCP_ => $idleTCP_"
     } else {
-	puts "using TCP agent in idle"
+	puts "[$clientNode_ id] doneRequest: using idle TCP $clientTCP_, $idleTCP_"
 	exit
     }
 
     if {![info exists idleTCPSink_] || [lsearch $idleTCPSink_ $clientSink_] < 0} {
-	$clientSink_ reset
 	lappend idleTCPSink_ $clientSink_
-	# puts "append Sink: $idleTCPSink_"
+	# puts "[$serverNode_ id] TCPSInk doneRequest: append $clientSink_ => $idleTCPSink_"
     } else {
-	puts "using TCP Sink agent in idle"
+	puts "[$serverNode_ id] doneRequest: using idle TCP Sink $clientSink_, $idleTCPSink_"
 	exit
     }
     # puts "$serverSrc_ [expr int(ceil($numPacket_))]"
@@ -292,27 +314,25 @@ HttpObject instproc doneRequest {} {
 HttpObject instproc doneReply {} {
     $self instvar numPacket_ ns_
     $self instvar clientSrc_ serverSrc_  clientSink_ serverSink_
-    $self instvar clientNode_ serverNode_ clientTCP_ serverTCP_
+    $self instvar clientNode_ serverNode_ clientTCP_ serverTCP_ objectId_
 
-    # puts "server([$serverNode_ id]) replied obj size($numPacket_) [$ns_ now]"
+    # puts "$objectId_ doneReply: server([$serverNode_ id]) client([$clientNode_ id]) replied obj size($numPacket_) [$ns_ now]"
     $serverNode_ instvar idleTCP_
     $clientNode_ instvar idleTCPSink_
 
     if {![info exists idleTCP_] || [lsearch $idleTCP_ $serverTCP_] < 0} {
-	$serverTCP_ reset
 	lappend idleTCP_ $serverTCP_
-	# puts "append TCP: $idleTCP_"
+	# puts "[$serverNode_ id] TCP doneReply: append $serverTCP_ => $idleTCP_"
     } else {
-	puts "using TCP agent in idle"
+	puts "[$serverNode_ id] doneReply: using idle TCP $serverTCP_, $idleTCP_"
 	exit
     }
 
     if {![info exists idleTCPSink_] || [lsearch $idleTCPSink_ $serverSink_] < 0} {
-	$serverSink_ reset
 	lappend idleTCPSink_ $serverSink_
-	# puts "append sink: $idleTCPSink_"
+	# puts "[$clientNode_ id] TCPSink doneReply: append $serverSink_ => $idleTCPSink_"
     } else {
-	puts "using TCP Sink agent in idle"
+	puts "[$clientNode_ id] doneReply: using idle TCP Sink $serverSink_, $idleTCPSink_"
 	exit
     }
 }
@@ -325,14 +345,20 @@ Node instproc pickTCP { type } {
 	foreach TCP $idleTCP_ {
 	    if {[$TCP info class] == "Agent/$type"} {
 		set idleTCP_ [lreplace $idleTCP_ $i $i]
-		# puts "found in idleTCP $TCP: $idleTCP_ \t [$self id] [expr [$TCP set addr_] >> 8]"
+		# puts "[$self id] TCP pick(found): $TCP, $idleTCP_"
 		$TCP reset
 		return $TCP
 	    }
 	    incr i
 	}
     }
-    return [new Agent/$type]
+    set TCP [new Agent/$type] 
+    if [info exist idleTCP_] {
+	# puts "[$self id] TCP pick(new): $TCP , $idleTCP_"
+    } else {
+	# puts "[$self id] TCP pick(new): $TCP"
+    }
+    return $TCP
 }
 
 Node instproc pickTCPSink { type } {
@@ -342,14 +368,20 @@ Node instproc pickTCPSink { type } {
 	foreach Sink $idleTCPSink_ {
 	    if {[$Sink info class] == "Agent/$type"} {
 		set idleTCPSink_ [lreplace $idleTCPSink_ $i $i]
-		# puts "found in idleTCPSink $Sink: $idleTCPSink_ \t expr [$self id] [expr [$Sink set addr_] >> 8]"
+		# puts "[$self id] TCPSink pick(found): $Sink, $idleTCPSink_"
 		$Sink reset
 		return $Sink
 	    }
 	    incr i
 	}
     }
-    return [new Agent/$type]
+    set Sink [new Agent/$type]
+    if [info exist idleTCPSink_] {
+	# puts "[$self id] TCPSink pick(new): $Sink, $idleTCPSink_"
+    } else {
+	# puts "[$self id] TCPSink pick(new): $Sink"
+    }
+    return $Sink
 }
 
 #####################################################################

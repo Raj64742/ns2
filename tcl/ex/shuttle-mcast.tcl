@@ -1,4 +1,27 @@
+#
+# Copyright (C) 1999 by USC/ISI
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+
+#
 # Maintained by: Polly Huang Tue Feb  2 14:34:54 PST 1999
+# Version Date: $Date: 1999/04/20 22:34:29 $
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/shuttle-mcast.tcl,v 1.2 1999/04/20 22:34:29 polly Exp $ (USC/ISI)
+#
 # Creating 3 multicast sessions over a partial mbone topology (1996)
 
 source shuttle.tcl

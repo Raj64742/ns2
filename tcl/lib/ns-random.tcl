@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.12 1998/06/09 23:52:19 breslau Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-random.tcl,v 1.13 1999/04/20 22:34:36 polly Exp $
 #
 
 #Code to generate random numbers here
@@ -110,3 +110,34 @@ $defaultRNG default
 #
 trace variable defaultRNG w { abort "cannot update defaultRNG once assigned"; }
 
+
+# Trace driven random variable.
+# Polly Huang, March 4 1999
+Class RandomVariable/TraceDriven -superclass RandomVariable
+
+RandomVariable/TraceDriven instproc init {} {
+    $self instvar filename_ file_
+}
+
+RandomVariable/TraceDriven instproc value {} {
+    $self instvar file_ filename_
+
+    if ![info exist file_] {
+        if [info exist filename_] {
+            set file_ [open $filename_ r]
+        } else {
+            puts "RandomVariable/TraceDriven: Filename is not given"
+            exit 0
+        }
+    }
+
+    if ![eof $file_] {
+        gets $file_ tmp
+        return $tmp
+    } else {
+        close $file_
+        puts "Error: RandomVariable/TraceDriven: Reached the end of the trace fi
+le "
+        exit 0
+    }
+}
