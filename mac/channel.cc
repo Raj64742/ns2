@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.32 1999/10/22 05:47:24 yaxu Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.33 1999/10/26 22:57:53 haldar Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -256,8 +256,8 @@ WirelessChannel::get_pdelay(Node* tnode, Node* rnode)
 		/* if the propdelay is 0 b/c two nodes are on top of 
 		   each other, move them slightly apart -dam 7/28/98 */
 		propdelay = 2 * DBL_EPSILON;
-		printf ("propdelay 0: %d->%d at %f\n",
-			tmnode->address(), rmnode->address(), s.clock());
+		//printf ("propdelay 0: %d->%d at %f\n",
+		//	tmnode->address(), rmnode->address(), s.clock());
 	}
 	return propdelay;
 }
