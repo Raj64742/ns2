@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.32 1998/05/07 00:19:00 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.33 1998/05/27 17:18:43 haldar Exp $
 #
 
 Class Node
@@ -146,7 +146,16 @@ Node instproc attach { agent } {
 	#
 	lappend agents_ $agent
 	
+	#
+	# Check if number of agents exceeds length of port-address-field size
+	#
+	set mask [AddrParams set PortMask_]
+	set shift [AddrParams set PortShift_]
 	
+	if {[expr [llength $agents_] - 1] > $mask} {
+		error "\# of agents attached to node $self exceeds port-field length of $mask bits\n"
+	}
+
 	#
 	# Attach agents to this node (i.e., the classifier inside).
 	# We call the entry method on ourself to find the front door
@@ -162,8 +171,7 @@ Node instproc attach { agent } {
 	#
 	# If a port demuxer doesn't exist, create it.
 	#
-	set mask [AddrParams set PortMask_]
-	set shift [AddrParams set PortShift_]
+	
 	if { $dmux_ == "" } {
 		set dmux_ [new Classifier/Addr]
 		$dmux_ set mask_ $mask
