@@ -31,6 +31,11 @@ proc ctrl { time tflags seq } {
 	puts $ctrlchan "$time $seq"
 }
 
+proc ecnecho_pkt { time ackno } {
+	global ecnchan
+	puts $ecnchan "$time $ackno"
+}
+
 set synfound 0
 proc parse_line line {
 	global synfound active_opener passive_opener
@@ -74,7 +79,6 @@ proc parse_line line {
 			set active_opener $field(src)
 			set passive_opener $field(dst)
 		}
-
 	}
 
 	set interesting 0
@@ -111,6 +115,10 @@ proc parse_line line {
 	    $field(src) == $passive_opener && $field(dst) == $active_opener } {
 		# record acks for the forward direction that have data
 		backward_dataful_ack $field(time) $field(tcpackno)
+		if { [string index $field(pflags) 0] == "C"  &&
+			[string last N $field(pflags)] >= 0 } {
+			ecnecho_pkt $field(time) $field(tcpackno)
+		}
 		return
 	}
 
@@ -118,6 +126,10 @@ proc parse_line line {
 	    $field(src) == $passive_opener && $field(dst) == $active_opener } {
 		# record pure acks for the forward direction
 		backward_pure_ack $field(time) $field(tcpackno)
+		if { [string index $field(pflags) 0] == "C" &&
+			[string last N $field(pflags)] >= 0 } {
+			ecnecho_pkt $field(time) $field(tcpackno)
+		}
 		return
 	}
 
@@ -137,7 +149,7 @@ proc parse_file chan {
 }
 
 proc dofile { infile outfile } {
-	global ackchan packchan segchan dropchan ctrlchan emptysegchan
+	global ackchan packchan segchan dropchan ctrlchan emptysegchan ecnchan
 
         set ackstmp $outfile.acks ; # data-full acks
         set segstmp $outfile.p; # segments
@@ -145,7 +157,8 @@ proc dofile { infile outfile } {
         set dropstmp $outfile.d; # drops
         set packstmp $outfile.packs; # pure acks
 	set ctltmp $outfile.ctrl ; # SYNs + FINs
-        exec rm -f $ackstmp $segstmp $esegstmp $dropstmp $packstmp $ctltmp
+	set ecntmp $outfile.ecn ; # ECN acks
+        exec rm -f $ackstmp $segstmp $esegstmp $dropstmp $packstmp $ctltmp $ecntmp
 
 	set ackchan [open $ackstmp w]
 	set segchan [open $segstmp w]
@@ -153,6 +166,7 @@ proc dofile { infile outfile } {
 	set dropchan [open $dropstmp w]
 	set packchan [open $packstmp w]
 	set ctrlchan [open $ctltmp w]
+	set ecnchan [open $ecntmp w]
 
 	set inf [open $infile r]
 
@@ -164,6 +178,7 @@ proc dofile { infile outfile } {
 	close $dropchan
 	close $packchan
 	close $ctrlchan
+	close $ecnchan
 }
 
 if { $argc < 2 || $argc > 3 } {
