@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.1 1996/12/19 03:22:45 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.2 1996/12/31 22:46:55 elan Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -88,9 +88,15 @@ struct bd_ivs {
 	double maxrtt_;
 };
 
+/* rtp packet.  For now, just have srcid. */
+struct bd_rtp {
+	u_int32_t srcid_;
+};
+
 union body {
 	bd_tcp tcp_;
 	bd_ivs ivs_;
+	bd_rtp rtp_;
 	char msg_[64];		/* too hard to make this variable length */
 };
 	
