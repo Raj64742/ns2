@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.28 2004/09/28 18:12:43 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.cc,v 1.29 2004/10/28 01:22:48 sfloyd Exp $ (LBL)";
 #endif
 
 #include "queue.h"
@@ -91,12 +91,26 @@ Queue::~Queue() {
 Queue::Queue() : Connector(), blocked_(0), unblock_on_resume_(1), qh_(*this),
 		 pq_(0), 
 		 last_change_(0), /* temporarily NULL */
-		 old_util_(0)
+		 old_util_(0), period_begin_(0), cur_util_(0), buf_slot_(0),
+		 util_buf_(NULL)
 {
 	bind("limit_", &qlim_);
 	bind("util_weight_", &util_weight_);
 	bind_bool("blocked_", &blocked_);
 	bind_bool("unblock_on_resume_", &unblock_on_resume_);
+	bind("util_check_intv_", &util_check_intv_);
+	bind("util_records_", &util_records_);
+
+	if (util_records_ > 0) {
+		util_buf_ = new double[util_records_];
+		if (util_buf_ == NULL) {
+			printf("Error allocating util_bufs!");
+			util_records_ = 0;
+		}
+		for (int i = 0; i < util_records_; i++) {
+			util_buf_[i] = 0;
+		}
+	}
 }
 
 void Queue::recv(Packet* p, Handler*)
@@ -126,6 +140,26 @@ double decay;
 	decay = exp(-util_weight_ * (int_end - int_begin));
 	old_util_ = link_state + (old_util_ - link_state) * decay;
 
+	// PS: measuring peak utilization
+	if (util_records_ == 0)
+		return; // We don't track peak utilization
+
+	double intv = int_end - int_begin;
+	double tot_intv = int_begin - period_begin_;
+	if (intv || tot_intv) {
+		int guard = 0; // for protecting against long while loops 
+		cur_util_ = (link_state * intv + cur_util_ * tot_intv) /
+			(intv + tot_intv);
+		while (tot_intv + intv > util_check_intv_ &&
+		       guard++ < util_records_) {
+
+			period_begin_ = int_end;
+			util_buf_[buf_slot_] = cur_util_;
+			buf_slot_ = (buf_slot_ + 1) % util_records_;
+			cur_util_ = link_state;
+			intv -= util_check_intv_;
+		}
+	}
 }
 
 double Queue::utilization(void) 
@@ -137,6 +171,27 @@ double Queue::utilization(void)
 
 	return old_util_;
 			
+}
+
+double Queue::peak_utilization(void)
+{
+	double now = Scheduler::instance().clock();
+	double peak = 0;
+	int i;
+	
+	// PS: if peak_utilization tracking is disabled,
+	// return the weighed avg instead
+	if (util_records_ == 0)
+		return utilization();
+
+	utilUpdate(last_change_, now, blocked_);
+	last_change_ = now;
+
+	for (i = 0; i < util_records_; i++) {
+		if (util_buf_[i] > peak)
+			peak = util_buf_[i];
+	}
+	return peak;
 }
 
 void Queue::updateStats(int queuesize)

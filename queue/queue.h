@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.32 2004/09/28 18:12:43 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.33 2004/10/28 01:22:48 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -135,7 +135,13 @@ public:
 						 * underlying packet queue */
 	int byteLength() { return pq_->byteLength(); }	/* number of bytes *
 						 * currently in packet queue */
+	/* mean utilization, decaying based on util_weight */
 	virtual double utilization (void);
+
+	/* max utilization over recent time period.
+	   Returns the maximum of recent measurements stored in util_buf_*/
+	double peak_utilization(void);
+
 protected:
 	Queue();
 	~Queue();
@@ -155,6 +161,16 @@ protected:
 	double last_change_;  /* time at which state changed/utilization measured */
 	double old_util_;     /* current utilization */ 
 	double util_weight_;  /* decay factor for measuring the link utilization */
+	double util_check_intv_; /* interval for reseting the current
+				    utilization measurements (seconds) */
+	double period_begin_;	/* time of starting the current utilization
+				   measurement */
+	double cur_util_;	/* utilization during current time period */
+	double *util_buf_;    /* Buffer for recent utilization measurements */
+	int buf_slot_;		/* Currently active utilization buffer */
+	int util_records_;	/* Number of recent utilization measurements
+				   stored in memory. One slot in buffer holds
+				   period of util_check_intv_ seconds. */
 	// measuring #drops
 	
 };
