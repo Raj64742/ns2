@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.4 1997/06/17 23:18:11 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.5 1997/07/03 06:59:41 kfall Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -74,6 +74,7 @@ protected:
 	Scheduler();
 	int command(int argc, const char*const* argv);
 	double clock_;
+	int halted_;
 	static Scheduler* instance_;
 	static int uid_;
 };
