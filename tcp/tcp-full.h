@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.41 2001/08/03 17:33:56 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.42 2001/08/15 00:37:12 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -157,7 +157,7 @@ class FullTcpAgent : public TcpAgent {
 	int rcvseqinit(int, int); // how to set rcv_nxt_
 	int predict_ok(Packet*); // predicate for recv-side header prediction
 	int idle_restart();	// should I restart after idle?
-	void fast_retransmit(int);  // do a fast-retransmit on specified seg
+	int fast_retransmit(int);  // do a fast-retransmit on specified seg
 	inline double now() { return Scheduler::instance().clock(); }
 	void newstate(int ns); // future hook for traces
 
@@ -175,6 +175,24 @@ class FullTcpAgent : public TcpAgent {
 	virtual void process_sack(hdr_tcp*);	// process a SACK
 	virtual int nxt_tseq() {
 		return t_seqno_;		// next seq# to send
+	}
+	virtual void sent(int seq, int amt) {
+		if (seq == t_seqno_)
+			t_seqno_ += amt;
+		pipe_ += amt;
+//printf("%f: sent(): pipe bumped by %d, now %d\n", now(), amt, pipe_);
+	}
+	virtual void oldack() {			// what to do on old ack
+		dupacks_ = 0;
+		pipe_ -= maxseg_;	// Q: what if not maxseg?
+//printf("%f: oldack(): pipe decr by %d, now %d\n", now(), maxseg_, pipe_);
+	}
+
+	virtual void extra_ack() {		// dup ACKs after threshold
+		if (reno_fastrecov_)
+			cwnd_++;
+		pipe_ -= maxseg_;	// Q: what if not maxseg?
+//printf("%f: extra_ack(): pipe decr by %d, now %d\n", now(), maxseg_, pipe_);
 	}
 
 	void sendpacket(int seq, int ack, int flags, int dlen, int why);
@@ -246,13 +264,17 @@ protected:
 	virtual void timeout_action();
 	virtual int nxt_tseq();
 	virtual int hdrsize(int nblks);
+	virtual void sent(int seq, int amt) {
+		if (seq == h_seqno_)
+			h_seqno_ += amt;
+		FullTcpAgent::sent(seq, amt);
+	}
 
 	int build_options(hdr_tcp*);	// insert opts, return len
 	int sack_option_size_;	// base # bytes for sack opt (no blks)
 	int sack_block_size_;	// # bytes in a sack block (def: 8)
-
-	int sack_nxt_;		// next seq# to hole-fill
 	int max_sack_blocks_;	// max # sack blocks to send
+
 
 	ReassemblyQueue sq_;	// SACK queue, used by sender
 
@@ -260,6 +282,7 @@ protected:
 	void	sendpacket(int seqno, int ackno, int pflags, int datalen, int reason);
 
 	int sack_min_;		// first seq# in sack queue, initializes sq_
+	int h_seqno_;		// next seq# to hole-fill
 	int clear_on_timeout_;	// clear sender's SACK queue on RTX timeout?
 
 //int sack_max_;		// highest seq# seen in any sack block
