@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.9 1997/06/28 03:26:04 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.10 1997/08/10 22:17:56 mccanne Exp $
 #
 #
 # set up the packet format for the simulation
@@ -39,9 +39,9 @@
 
 PacketHeaderManager set hdrlen_ 0
 
-Simulator instproc create_packetformat { } {
-	set pm [new PacketHeaderManager]
-	foreach pair {
+#XXX could potentially get rid of this by searching having a more
+# uniform offset concept...
+foreach pair {
 		{ Common off_cmn_ }
 		{ Mac off_mac_ }
 		{ LL off_ll_ }
@@ -56,10 +56,20 @@ Simulator instproc create_packetformat { } {
                 { rtProtoDV off_DV_ }
 	        { CtrMcast off_CtrMcast_ }
 	        { Prune off_prune_ }
+	        { Tap off_tap_ }
+	        { aSRM off_asrm_ }
 		{ SRM off_srm_ }} {
+	set cl [lindex $pair 0]
+	set var [lindex $pair 1]
+	PacketHeaderManager set vartab_($cl) $var
+}
 
-		set cl [lindex $pair 0]
-		set var [lindex $pair 1]
+Simulator instproc create_packetformat { } {
+	set pm [new PacketHeaderManager]
+	foreach oclass [PacketHeader info subclass] {
+		set L [split $oclass /]
+		set cl [lindex $L 1]
+		set var [PacketHeaderManager set vartab_($cl)]
 		set off [$pm allochdr $cl]
 		TclObject set $var $off
 	}

@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.124 1997/08/10 18:34:00 mccanne Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.125 1997/08/10 22:17:55 mccanne Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,22 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~mccanne">[SM]</A></B>
+<B>Sun Aug 10 15:11:27 PDT 1997</B><BR>
+</LI>
+<UL>
+<LI>Fixed up PacketManager initialization code (in ns/lib/ns-packet.tcl)
+so that modules that define packet header classes
+can be safely ommitted from
+the build.  Previously, an error would occur if the corresponding
+class didn't exist.  This new structure catches
+the case where the tcl code is out of date with respect to 
+a packet header defined in C++.  As a result, two new bugs were
+found and fixed: the ``aSRM'' and ``Tap'' packet header classes
+previously did not have the appropriate initialization code in
+ns-packet.tcl.
+</UL>
 
 <LI><A HREF="mailto:ahelmy@usc.edu">[AH]</A> <B>Sun Aug 10 02:05:12 PDT 1997<BR></B>
 <UL>
