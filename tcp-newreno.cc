@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.44 2001/05/29 23:11:03 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.45 2001/06/16 19:31:28 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -76,6 +76,7 @@ last_ack_ %d\n", deflate, last_ack_);
 			// Leave dupwnd_ > 0 to flag "fast recovery" phase
 			dupwnd_ = 1; 
 		}
+		if (cwnd_ < 1) {cwnd_ = 1;}
 	}
 	last_ack_ = tcph->seqno();
 	highest_ack_ = last_ack_;
