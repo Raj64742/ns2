@@ -26,7 +26,11 @@ extern EmbeddedTcl et_ns_ptypes;
 MemTrace *globalMemTrace;
 #endif
 
-extern "C" {
+#define NS_BEGIN_EXTERN_C	extern "C" {
+#define NS_END_EXTERN_C		}
+
+NS_BEGIN_EXTERN_C
+
 #ifdef HAVE_FENV_H
 #include <fenv.h>
 #endif /* HAVE_FENV_H */
@@ -64,9 +68,46 @@ main(int argc, char **argv)
     return 0;			/* Needed only to prevent compiler warning. */
 }
 
+#if defined(__i386__) && defined(__GNUC__)
 
-#if defined(HAVE_FESETPRECISION) || defined(__GNUC__)
-#if !defined(HAVE_FESETPRECISION) && defined(__i386__)
+#define HAVE_NS_SETUP_FPU	/* convenience flag to check on later */
+	
+/* This function is supposed to set up a uniform FPU state on all i386
+ * platforms.  It may (should) be called instead of functions in the
+ * fe- family.
+ */
+static void ns_setup_fpu() {
+
+static const int NS_FPU_CW_IC  = 0x1000; /* Infty control(12): support +/- infinity */
+static const int NS_FPU_CW_RC  = 0x0000; /* Round control(11,10): to nearest */
+static const int NS_FPU_CW_PC  = 0x0200; /* Precision control(9,8): 53 bits */
+static const int NS_FPU_CW_IEM = 0x0000; /* Interrupt enable mask(7): enabled */
+static const int NS_FPU_CW_B6  = 0x0040; /* undefined, set to one in my FPU */
+static const int NS_FPU_CW_PM  = 0x0020; /* Precision mask(5), inexact exception: disabled */
+static const int NS_FPU_CW_UM  = 0x0010; /* Underflow mask(4): disabled */
+static const int NS_FPU_CW_OM  = 0x0000; /* Overflow mask(3): enabled */
+static const int NS_FPU_CW_ZM  = 0x0000; /* Zero divide mask(2): enabled */
+static const int NS_FPU_CW_DM  = 0x0002; /* Denormalized operand(1): disabled */
+static const int NS_FPU_CW_IM  = 0x0000; /* Invalid operation mask(0): enabled */
+
+static const int NS_FPU_CW    = NS_FPU_CW_IC
+				| NS_FPU_CW_RC
+				| NS_FPU_CW_PC  
+				| NS_FPU_CW_IEM 
+				| NS_FPU_CW_B6  
+				| NS_FPU_CW_PM  
+				| NS_FPU_CW_UM  
+				| NS_FPU_CW_OM  
+				| NS_FPU_CW_ZM	
+				| NS_FPU_CW_DM  
+				| NS_FPU_CW_IM;
+
+	unsigned short _cw = NS_FPU_CW;
+	asm ("fldcw %0" : : "m" (*&_cw));
+}
+#endif /* !HAVE_NS_SETUP_FPU && __i386__ && __GNUC__ */
+
+#if !defined(HAVE_FESETPRECISION) && defined(__i386__) && defined(__GNUC__)
 // use our own!
 #define HAVE_FESETPRECISION
 /*
@@ -100,16 +141,19 @@ static inline int fesetprecision(int prec)
   if ( !(prec & ~FE_LDBLPREC) && (prec != FE_INVALIDPREC) )
     {
       unsigned short cw;
-      asm ("fnstcw %0":"=m" (cw));
+      asm ("fnstcw %0":"=m" (*&cw));
+      asm ("fwait");
+
       cw = (cw & ~FE_LDBLPREC) | (prec & FE_LDBLPREC);
-      asm volatile ("fldcw %0" : /* Don't push these colons together */ : "m" (cw));
+
+      asm volatile ("fldcw %0" : /* Don't push these colons together */ : "m" (*&cw));
       return 1;
     }
   else
     return 0;
 }
-#endif /* !HAVE_FESETPRECISION */
-#endif
+#endif /* !HAVE_FESETPRECISION && __i386__ && __GNUC__ */
+
 
 /*
  * setup_floating_point_environment
@@ -130,6 +174,12 @@ static inline int fesetprecision(int prec)
 static inline void
 setup_floating_point_environment()
 {
+#ifdef HAVE_NS_SETUP_FPU
+
+	ns_setup_fpu();
+
+#else /* !HAVE_NS_SETUP_FPU */
+
 	// In general, try to use the C99 standards to set things up.
 	// If we can't do that, do nothing and hope the default is right.
 #ifdef HAVE_FESETPRECISION
@@ -160,6 +210,7 @@ setup_floating_point_environment()
 	
 	feenableexcept(trap_exceptions);
 #endif /* HAVE_FEENABLEEXCEPT */
+#endif /* !HAVE_NS_SETUP_FPU */
 }
 
 
@@ -237,6 +288,6 @@ abort()
 }
 #endif
 
-}
+NS_END_EXTERN_C
 
 
