@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.13 1997/12/17 22:09:23 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.14 1997/12/18 03:10:03 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -123,7 +123,7 @@ class FullTcpAgent : public TcpAgent {
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
 	int data_on_syn_;   // send data on initial SYN?
-	double idle_;	    // idle time
+	double last_send_time_;	// time of last send
 	int close_on_empty_;	// close conn when buffer empty
 	int tcprexmtthresh_;    // fast retransmit threshold
 	int iss_;       // initial send seq number
@@ -137,6 +137,7 @@ class FullTcpAgent : public TcpAgent {
 	int outflags();     // state-specific tcp header flags
 	int rcvseqinit(int, int); // how to set rcv_nxt_
 	int predict_ok(Packet*); // predicate for recv-side header prediction
+	int idle_restart();	// should I restart after idle?
 	void fast_retransmit(int);  // do a fast-retransmit on specified seg
 	inline double now() { return Scheduler::instance().clock(); }
 	void newstate(int ns) { state_ = ns; } // future hook for traces
