@@ -29,13 +29,13 @@ TfrmSinkAgent::TfrmSinkAgent() : Agent(PT_TFRMC), rate_(0.0),
 	bind("bval_", &bval_);
 	prevpkt_=-1;
 	loss_seen_yet = 0 ;
+	last_report_sent=0 ;
 }
 
 void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 {
 	double prevrtt ;
   hdr_tfrm *tfrmh = hdr_tfrm::access(pkt); 
-	double now = Scheduler::instance().clock();
 
 	total_received_++;
 
@@ -82,8 +82,11 @@ void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 }
 
 void TfrmSinkAgent::nextpkt() {
+	double now = Scheduler::instance().clock();
+
 	sendpkt();
-	if (rtt_!=0.0) 
+	last_report_sent = now ; 
+	if (rtt_ > 0.0) 
 		nack_timer_.resched(rtt_);
 }
 
@@ -91,11 +94,20 @@ void TfrmSinkAgent::sendpkt()
 {
 	int sample ;	
   double p;
+	int rcvd_since_last_report  = 0 ;
+	double time_for_rcv_rate = -1; 
 	Packet* pkt = allocpkt();
 	hdr_tfrmc *tfrmch = hdr_tfrmc::access(pkt);
 
 	double now = Scheduler::instance().clock();
 
+	if ((rtt_ > 0) && ((now - last_report_sent) > rtt_)) {
+		time_for_rcv_rate = now - last_report_sent ; 
+	}
+	else if (rtt_ > 0){
+		time_for_rcv_rate = rtt_; 
+	}
+		
 	//don't send an ACK unless we've received new data
 	//if we're sending slower than one packet per RTT, don't need
 	//multiple responses per data packet.
@@ -128,19 +140,25 @@ void TfrmSinkAgent::sendpkt()
 	} 
 	else {
 		int sent=0;
-		int lost=0;
+		int lost=0, slost=0;
 		int rcvd=0;
 		int ix=pveclast_;
 		int prev=pvec_[pveclast_]+1;
 		double last_loss=LARGE_DOUBLE;
+
 		while((sent<sample)||(lost<MinNumLoss_)) {      
 			sent+=prev-pvec_[ix];
 			rcvd++;
+			if (now - tsvec_[ix] < time_for_rcv_rate) {
+				rcvd_since_last_report ++ ; 
+			}
 			if ((prev-pvec_[ix])!=1) {
-				//there was loss
+				// all losses within one RTT count as one
 				if ((last_loss - tsvec_[ix]) > rtt_) {
-	  			//only count losses if they're 
-				//separate congestion events
+						if (sent<sample) {
+							// Keep track of packtes lost within sample
+							slost ++ ; 
+						}
 	  				lost++;
 	  				last_loss = tsvec_[ix];
 				}
@@ -148,12 +166,17 @@ void TfrmSinkAgent::sendpkt()
 			prev=pvec_[ix];
 
 			//have we any more history?
-			if (ix==pvecfirst_) break;
+			if (ix==pvecfirst_) 
+				break;
 
 			ix--;
 			if (ix < 0) ix=pveclen_-1;
 		}
+
 		flost_=((float)lost)/((float)sent);
+		if ((sample > 0) && (flost_ < ((float)slost)/(float)sample)) {
+			flost_ = ((float)slost)/(float)sample ; 
+		}
 		if (version_==0) {
 			if (flost_> (p*(1+HysterisisUpper_)) ) {
 				//we're nonconformant
@@ -169,6 +192,13 @@ void TfrmSinkAgent::sendpkt()
 		}
 	}
 	tfrmch->flost=flost_;
+	if (rcvd_since_last_report > 0 && time_for_rcv_rate > 0) {
+		tfrmch->rate_since_last_report = 
+			rcvd_since_last_report/time_for_rcv_rate; 
+	}
+	else {
+		tfrmch->rate_since_last_report = 0 ; 
+	}
 	send(pkt, 0);
 }
 
@@ -194,6 +224,6 @@ void TfrmSinkAgent::increase_pvec(int size)
 	pvecfirst_=0;
 	pveclast_=i;
 }
-void TfrmNackTimer::expire(Event *e) {
+void TfrmNackTimer::expire(Event *) {
 	a_->nextpkt();
 }

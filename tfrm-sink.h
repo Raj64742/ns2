@@ -73,7 +73,7 @@ protected:
   int pvecfirst_, pveclast_;
   int prevpkt_;
   int psize_;
-  int k_;
+  double k_;
 	int MinNumLoss_ ;
   int version_;
   int total_received_;
@@ -82,5 +82,6 @@ protected:
 	double HysterisisUpper_ ;
 	int bval_ ;
 	int loss_seen_yet ;
+	double last_report_sent ; 
   TfrmNackTimer nack_timer_;
 }; 

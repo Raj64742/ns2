@@ -64,6 +64,7 @@ struct hdr_tfrmc {
   double timestamp_echo; //timestamp from a data packet
   double timestamp_offset; //offset since we received that data packet
   double flost;
+	double rate_since_last_report ;
   int signal;
 
   static int offset_; // offset for this header
@@ -134,10 +135,11 @@ protected:
     double df_;       // decay factor for RTT EWMA
     int version_;
     int slowincr_;
-    int k_;
+    double k_;
     double last_change_;
     int bval_;
 		double overhead_ ;
 		double ssmult_ ;
+		double maxrate_ ; 
     TracedInt ndatapack_;   // number of packets sent
 };

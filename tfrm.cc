@@ -34,7 +34,7 @@ public:
 
 
 TfrmAgent::TfrmAgent() : Agent(PT_TFRM), tcp_tick_(0.1), 
-	incrrate_(0.1), send_timer_(this), df_(0.5), version_(0), slowincr_(0),
+	incrrate_(0.1), send_timer_(this), df_(0.9), version_(0), slowincr_(0),
 	ndatapack_(0)
 {
 	bind("packetSize_", &size_);
@@ -83,6 +83,7 @@ void TfrmAgent::start()
 	run_=1;
 	last_change_=0.0;
 	rate_change_ = SLOW_START ;
+	maxrate_ = 0; 
 
 	sendpkt();
 	send_timer_.resched(size_/rate_);
@@ -90,7 +91,6 @@ void TfrmAgent::start()
 	t_srtt_ = int(srtt_init_/tcp_tick_) << T_SRTT_BITS;
 	t_rttvar_ = int(rttvar_init_/tcp_tick_) << T_RTTVAR_BITS;
 	t_rtxcur_ = rtxcur_init_;
-
 }
 
 void TfrmAgent::stop()
@@ -155,6 +155,14 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	double ts = nck->timestamp_echo ;
 	double flost = nck->flost ; 
 	int signal = nck->signal ; 
+	double rate_since_last_report = nck->rate_since_last_report ;
+
+	if (rate_since_last_report > 0) {
+		maxrate_ = 2*rate_since_last_report*size_ ;
+	}
+	else {
+		maxrate_ = 0 ; 
+	}
 
 	update_rtt (ts, now) ;
 
@@ -202,17 +210,27 @@ void TfrmAgent::slowstart ()
 	if (rate_ < size_/rtt_ ) {
 		oldrate_ = rate_ ;
 		rate_ = size_/rtt_ ;
+		if (rate_ > maxrate_ && maxrate_ > 0) {
+			rate_ = maxrate_ ; 
+		}
 		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 		last_change_ = now ;
-	}
-	else {
+	} else {
 		if (now - last_change_ > rtt_) {
 			oldrate_ = rate_ ;
 			rate_ = ssmult_*rate_ ; 
-			delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
-			last_change_ = now ; 
-		}
-		else {
+			if (rate_ > maxrate_ && maxrate_ > 0) {
+				rate_ = maxrate_ ; 
+			}
+			if (rate_ >= oldrate_) {
+				delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
+				last_change_=now;
+			}
+			else {
+				delta_ = 0 ;
+				/*rate_change_ = OUT_OF_SLOW_START ; */
+			}
+		} else {
 			oldrate_ = rate_ ;
 			delta_ = 0 ; 
 		}
@@ -249,12 +267,23 @@ void TfrmAgent::increase_rate (double p, double now)
 			 * in k_*srate_*rtt round trip times.
 			 * srate_ = rate_/size_ ;
 			 */
-			 oldrate_ = rate_ ;
-			 rate_ = rate_ + incrrate_*size_/(k_*rtt_) ; 
-			 if (rate_ > rcvrate)
+			oldrate_ = rate_ ;
+			rate_ = rate_*(1+incrrate_); 
+			/*
+			if (rate_ > rcvrate)
 				rate_ =  rcvrate ;
-			delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
-			last_change_=now;
+			*/
+			if (rate_ > maxrate_ && maxrate_ > 0) {
+				rate_ = maxrate_ ;
+			}
+			if (rate_ >= oldrate_) {
+				delta_ = (rate_ - oldrate_)/(k_*rate_*rtt_/size_);
+				last_change_=now;
+			}
+			else {
+				delta_ = 0 ;
+				rate_ = oldrate_ ; 
+			}
 			break ; 
 		default: 
 			printf ("error: invalid slowincr_ value %d\n", slowincr_);
@@ -302,6 +331,6 @@ void TfrmAgent::sendpkt()
 	send(p, 0);
 }
 
-void TfrmSendTimer::expire(Event *e) {
+void TfrmSendTimer::expire(Event *) {
   	a_->nextpkt();
 }
