@@ -576,7 +576,7 @@ void TfrcSinkAgent::init_WALI () {
 	sample = (int *)malloc((numsamples+1)*sizeof(int));
 	weights = (double *)malloc((numsamples+1)*sizeof(double));
 	mult = (double *)malloc((numsamples+1)*sizeof(double));
-	for (int i = 0 ; i < numsamples+1 ; i ++) {
+	for (i = 0 ; i < numsamples+1 ; i ++) {
 		sample[i] = 0 ; 
 	}
 	if (smooth_ == 1) {
