@@ -56,6 +56,7 @@ while ($dbopts->getopt) {
 $idle=join(".",$fext,"idle.dat");
 $req=join(".",$fext,"request.dat");
 $numpage=join(".",$fext,"numpage.dat");
+$numobj=join(".",$fext,"objcnt.dat");
 $pagesize=join(".",$fext,"pagesize.dat");
 $objsize=join(".",$fext,"objsize.dat");
 $objinter=join(".",$fext,"objinter.dat");
@@ -67,6 +68,7 @@ $persist=join(".",$fext,"persist.dat");
 open(IDLE,"> $idle") || die("cannot open $idle.\n");
 open(REQ,"> $req") || die("cannot open $req.\n");
 open(NUMPAGE,"> $numpage") || die("cannot open $numpage.\n");
+open(OBJCNT,"> $numobj") || die("cannot open $numpobj.\n");
 open(PAGESIZE,"> $pagesize") || die("cannot open $pagesize.\n");
 open(OBJSIZE,"> $objsize") || die("cannot open $objsize.\n");
 open(OBJINTER,"> $objinter") || die("cannot open $objinter.\n");
@@ -78,6 +80,7 @@ open(PERSIST,"> $persist") || die("cannot open $persist.\n");
 $oldClient = "";
 $pagePerSess = 0;
 $pageSize = 0;
+$objCnt=0;
 $numServer = 0;
 $numConn = 0;
 $numSess = 0;
@@ -97,9 +100,13 @@ while (<>) {
                 	if ($pageSize gt 0) {
           	       		print PAGESIZE "$pageSize\n";
                 	}
+                	if ($objCnt gt 0) {
+          	       		print OBJCNT "$objCnt\n";
+			}
            	}
                 $pagePerSess = 1;
                 $pageSize = 0;
+                $objCnt = 0;
 
                 $sess[$numSess] = ($time1 < $time2) ? $time1 : $time2;
                 $numSess++;
@@ -112,13 +119,18 @@ while (<>) {
         	if ($pageSize gt 0) {
                 	print PAGESIZE "$pageSize\n";
         	}
+        	if ($objCnt gt 0) {
+                	print OBJCNT "$objCnt\n";
+		}
         	$pagePerSess++;
+		$objCnt=0;
         	$pageSize = 0;
         	$old = "";
            	$oldtime = 0;
         }
         if ($type eq "RSP") {
         	$pageSize = $pageSize + $size;
+		$objCnt++;
         	print OBJSIZE "$size\n";
 
            	$conn = join('-',$clientIP,$clientPort,$serverIP);
@@ -216,11 +228,15 @@ print NUMPAGE "$pagePerSess\n";
 if ($pageSize gt 0) {
 	print PAGESIZE "$pageSize\n";
 }
+if ($objCnt gt 0) {
+	print OBJCNT "$objCnt\n";
+}
 
 close(SERVER);
 close(SERVERCDF);
 close(OBJSIZE);
 close(PAGESIZE);	
+close(OBJCNT);	
 close(NUMPAGE);	
 close(IDLE);	
 close(REQ);
@@ -232,6 +248,7 @@ close(PERSIST);
 print "compute and output CDF files\n";
 &outputCDF(1000,100,1000,$idle);
 &outputCDF(1,1,1,$numpage);
+&outputCDF(1,1,1,$numobj);
 &outputCDF(0,0.0001,1,$objinter);
 &outputCDF(0,1460,1460,$objsize);
 &outputCDF(0,1460,1460,$pagesize);
