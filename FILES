@@ -308,6 +308,8 @@ flowmon.cc
 fq.cc
 god.cc
 god.h
+gridkeeper.cc
+gridkeeper.h
 hackloss.cc
 hb-adc.cc
 heap.h
@@ -393,8 +395,7 @@ mftp_rcv.cc
 mftp_rcv.h
 mftp_snd.cc
 mftp_snd.h
-mip-re
-g.cc
+mip-reg.cc
 mip.cc
 mip.h
 misc.cc
@@ -673,7 +674,6 @@ tcl/ex/web-traffic.tcl
 tcl/ex/wireless.tcl
 tcl/ex/wireless-test.tcl
 tcl/ex/wired-cum-wireless-sim.tcl
-tcl/ex/wireless-mip-test.tcl
 tcl/http/README
 tcl/http/data/HttpConnections.cdf
 tcl/http/data/HttpReplyLength.cdf
@@ -701,7 +701,6 @@ tcl/lib/ns-intserv.tcl
 tcl/lib/ns-lib.tcl
 tcl/lib/ns-link.tcl
 tcl/lib/ns-mip.tcl
-tcl/lib/ns-wireless-mip.tcl
 tcl/lib/ns-mobilenode.tcl
 tcl/lib/ns-bsnode.tcl
 tcl/lib/ns-nam.tcl
@@ -736,6 +735,7 @@ tcl/mobility/scene/cbr-50-20-4-512
 tcl/mobility/scene/cbr-3-test
 tcl/mobility/scene/loopize
 tcl/mobility/scene/scen-670x670-50-600-20-2
+tcl/mobility/scene/scen-670x670-50-600-20-1
 tcl/mobility/scene/scen-670x670-50-600-20-0
 tcl/mobility/scene/scen-3-test
 tcl/mobility/timer.tcl
