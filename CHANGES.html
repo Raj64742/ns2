@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.391 2000/05/12 23:30:03 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.392 2000/05/16 06:01:49 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,18 @@
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/vint/ns-src-2.1b7.tar.gz">
 	Release of ns-2.1b7</a> [PENDING]</h3>
 <ul>
+	<p>
+	<LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
+	<b>Mon May 15 22:58:15 PDT 2000</b><br>
+	Added bug-fixes to tcp.cc for the case with ECN when cwnd < 1.
+	The first fix is not to reset the retransmit timer when a new
+	ack arrives and cwnd < 1.  The second fix is, when the
+	retransmit timer expires and cwnd < 1, to reset cwnd to 1.
+	The first bug was reported by Li Li.  I also added four
+	new ECN validation tests to test these bugfixes,
+	./test-all-ecn ecn_secondpkt1Ecn_tahoe, ecn_smallwin1Ecn_tahoe,
+	ecn_smallwin2Ecn_tahoe, and ecn_smallwin3Ecn_tahoe.
+
 	<p>
 	<LI><B><A HREF="http://www.aciri.org/floyd/">[floyd]</A></B>
 	<b>Fri May 12 16:26:02 PDT 2000</b><br>
