@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-all-cbq-v1,v 1.5 1997/10/14 23:10:11 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-all-cbq-v1,v 1.6 1997/10/15 05:05:12 sfloyd Exp $
 
 ## The file "test-suite-cbq-v1a.tcl" is needed for running in "quiet" mode.
 file="test-suite-cbq-v1a.tcl"
@@ -42,7 +42,7 @@ version="v1"
 if [ $# -ge 1 ]
 then
 	flag=$1
-	./test-all-template $file $directory $version $flag
+	./test-all-template1 $file $directory $version $flag
 else
-	./test-all-template $file $directory $version
+	./test-all-template1 $file $directory $version
 fi
