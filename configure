@@ -4069,9 +4069,8 @@ if test -f .devel -o "$enable_devel" = "yes" ; then
 fi
 
 
-# Create makefile.vc for Win32 development by replacing:
-# "# !include <makefile.win>" with
-# "!include <makefile.win>"
+# Create makefile.vc for Win32 development by changing:
+# "# !include ..." 	-> 	"!include ..."
 echo creating makefile.vc
 perl -pe 's/# (\!include)/$1/o' < Makefile > makefile.vc
 
