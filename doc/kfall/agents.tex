@@ -30,16 +30,16 @@ The C++ class \code{Agent} includes enough internal state
 to assign various fields to a simulated packet before
 it is sent.
 This state includes the following:
-\begin{itemize}
 \begin{quote}
+\begin{itemize}
         \item[addr\_] - node address of myself
         \item[dst\_] - where I am sending packets to
         \item[size\_] - size placed into the common packet header
         \item[type\_] - type of packet (in the common header, used by the trace facility)
         \item[fid\_] - the IP flow identifier (formerly class in ns-1)
         \item[prio\_] - the IP priority field
-\end{quote}
 \end{itemize}
+\end{quote}
 The class also keeps an array of timers which may be used
 by classes derived from \code{Agent} as needed.
 These variables may be modified by any class derived from \code{Agent},
@@ -52,24 +52,24 @@ and timer management.
 The following member functions are implemented by the C++ Agent class, and are
 generally {\em not} over-ridden by derived classes:
 \begin{tt}
-\begin{itemize}
 \begin{quote}
+\begin{itemize}
         \item[void sched(delay, timeout number)] - schedule a time out
         \item[void cancel(timeout number)] - cancel a time out
         \item[void handle(Event*)] - dispatcher for time outs
         \item[Packet* allocpkt()] - allocate new packet and assign its fields
-\end{quote}
 \end{itemize}
+\end{quote}
 \end{tt}
 The following member functions are also defined by the \code{Agent} class,
 but {\em are} intended to be over-ridden by classes deriving from Agent:
 \begin{tt}
-\begin{itemize}
 \begin{quote}
+\begin{itemize}
         \item[void timeout(timeout number)] - subclass-specific time out handler
         \item[void recv(Packet*, Handler*)] - receiving agent main receive path
-\end{quote}
 \end{itemize}
+\end{quote}
 \end{tt}
 The \code{sched} function causes the \code{handle} function
 of the same agent to be invoked after \code{delay} simulated
@@ -107,8 +107,8 @@ defined by upstream nodes).
 
 There are several agents supported in the simulator.
 These are their names in OTcl:
-\begin{itemize}
 \begin{quote}
+\begin{itemize}
         \item[TCP] - a ``Tahoe'' TCP sender (cwnd = 1 on any loss)
         \item[TCP/Reno] - a ``Reno'' TCP sender  (with fast recovery)
         \item[TCP/NewReno] - a modified Reno TCP sender (changes fast recovery)
@@ -132,8 +132,8 @@ These are their names in OTcl:
 	\item[Null] - a degenerate agent
 
 	\item[rtProto/DV] - distance-vector routing protocol agent
-\end{quote}
 \end{itemize}
+\end{quote}
 Agents are used in the implementation of protocols at various layers.
 Thus, for some transport protocols (e.g.~UDP) the distribution
 of packet sizes and/or inter-departure times
