@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.34 1998/04/24 01:29:45 yaxu Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.35 1998/04/24 17:06:45 haldar Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -268,7 +268,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%d.%d %d.%d %d}",
+			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d}",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -277,15 +277,19 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			th->size(),
 			iph->flowid(),
 			th->uid(),
-			iph->flowid()
-			iph->src() >> NODESHIFT, iph->src() & PORTMASK, // XXX
-			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK, //XXx
+			iph->flowid(),
+			// iph->src() >> NODESHIFT, iph->src() & PORTMASK, // XXX
+// 			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK, //XXx
+			src_nodeaddr,
+			src_portaddr,
+			dst_nodeaddr,
+			dst_portaddr,
 			seqno);
 #endif      
 	delete [] src_nodeaddr;
-	delete [] src_portaddr;
-	delete [] dst_nodeaddr;
-	delete [] dst_portaddr;
+  	delete [] src_portaddr;
+  	delete [] dst_nodeaddr;
+   	delete [] dst_portaddr;
 }
 
 void Trace::dump()
@@ -394,11 +398,13 @@ DequeTrace::recv(Packet* p, Handler* h)
 		int t = th->ptype();
 		const char* name = pt_names[t];
 
-		//char *src_nodeaddr = Address::instance().print_nodeaddr(iph->src());
-		//char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
+		char *src_nodeaddr = Address::instance().print_nodeaddr(iph->src());
+		char *src_portaddr = Address::instance().print_portaddr(iph->src());
+		char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
+		char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
 		
 		sprintf(nwrk_, 
-			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%d.%d %d.%d %d}",
+			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s%s %s%s %d}",
 			'h',
 			Scheduler::instance().clock(),
 			src_,
@@ -408,10 +414,18 @@ DequeTrace::recv(Packet* p, Handler* h)
 			iph->flowid(),
 			th->uid(),
 			iph->flowid(),
-			iph->src() >> NODESHIFT, iph->src() & PORTMASK, // XXX
-			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK, //XXx
-			-1);
+			// iph->src() >> NODESHIFT, iph->src() & PORTMASK, // XXX
+// 			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK, //XXx
+			src_nodeaddr,
+			src_portaddr,
+			dst_nodeaddr,
+			dst_portaddr,
+			-1);  // ????
 		namdump();
+		delete [] src_nodeaddr;
+		delete [] src_portaddr;
+		delete [] dst_nodeaddr;
+		delete [] dst_portaddr;
 	}
 #endif
 
