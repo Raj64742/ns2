@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.45 1997/07/14 21:44:53 tomh Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.46 1997/07/21 19:31:52 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -89,8 +89,8 @@ OBJ_CC = \
 	session-rtp.o rtp.o rtcp.o ip.o sfq.o fq.o drr.o \
 	dynalink.o rtProtoDV.o cbq.o \
 	udp.o traffictrace.o pareto.o expoo.o \
-	errmodel.o biconnector.o trace-ip.o \
-	ll.o snoop.o csdp.o csdp-ls.o \
+	connector-drop.o errmodel.o trace-ip.o \
+	ll.o snoop.o \
 	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o \
 	net-interface.o	ctrMcast.o prune.o \
 	net.o net-ip.o tap.o \
