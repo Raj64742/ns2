@@ -111,7 +111,6 @@ delaymodel.cc
 delaymodel.h
 dem.cc
 dem.h
-dmalloc_summarize
 doc-hdr.html
 drop-tail.cc
 drop-tail.h
@@ -133,6 +132,7 @@ dsr/requesttable.cc
 dsr/requesttable.h
 dsr/routecache.cc
 dsr/routecache.h
+dsr/srpacket.h
 dynalink.cc
 emulate/README.notes
 emulate/arp.cc
@@ -245,6 +245,8 @@ ll.h
 loss-monitor.cc
 mac-802_11.cc
 mac-802_11.h
+mac-802_3.cc
+mac-802_3.h
 mac-csma.cc
 mac-csma.h
 mac-multihop.cc
@@ -307,14 +309,6 @@ nam/state.h
 nam/transform.cc
 nam/transform.h
 net-interface.cc
-new-channel.cc
-new-channel.h
-new-ll.cc
-new-ll.h
-new-mac-802_11.cc
-new-mac-802_11.h
-new-mac.cc
-new-mac.h
 nilist.cc
 nilist.h
 node.cc
@@ -370,7 +364,6 @@ sa.h
 saack.cc
 salink.cc
 salink.h
-sb.h
 scheduler.cc
 scheduler.h
 scoreboard.cc
@@ -573,6 +566,7 @@ tcl/lan/vlan.tcl
 tcl/lib/ns-address.tcl
 tcl/lib/ns-agent.tcl
 tcl/lib/ns-autoconf.tcl.in
+tcl/lib/ns-cmutrace.tcl
 tcl/lib/ns-compat.tcl
 tcl/lib/ns-default.tcl
 tcl/lib/ns-errmodel.tcl
@@ -581,6 +575,7 @@ tcl/lib/ns-intserv.tcl
 tcl/lib/ns-lib.tcl
 tcl/lib/ns-link.tcl
 tcl/lib/ns-mip.tcl
+tcl/lib/ns-mobilenode.tcl
 tcl/lib/ns-nam.tcl
 tcl/lib/ns-namsupp.tcl
 tcl/lib/ns-node.tcl
@@ -596,6 +591,9 @@ tcl/mcast/McastMonitor.tcl
 tcl/mcast/McastProto.tcl
 tcl/mcast/detailedDM.tcl
 tcl/mcast/dynamicDM.tcl
+tcl/mcast/mftp_rcv.tcl
+tcl/mcast/mftp_rcv_stat.tcl
+tcl/mcast/mftp_snd.tcl
 tcl/mcast/ns-mcast.tcl
 tcl/mcast/pimDM.tcl
 tcl/mcast/srm-adaptive.tcl
