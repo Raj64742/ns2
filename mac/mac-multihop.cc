@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.cc,v 1.3 1997/07/23 00:51:57 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-multihop.cc,v 1.4 1997/10/26 05:44:23 hari Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -85,7 +85,7 @@ MultihopMac::checkInterfaces(int state)
 {
 	MultihopMac *p;
 	
-	if (mode_ != state)
+	if (!(mode_ & state))
 		return 0;
 	else if (macList_ == 0)
 		return 1;
@@ -144,7 +144,7 @@ PollHandler::handle(Event *e)
 	 * Send POLLACK if either IDLE or currently receiving 
 	 * from same mac as the poller.
 	 */
-	if (mac_->checkInterfaces(MAC_IDLE)) {
+	if (mac_->checkInterfaces(MAC_IDLE)) { // all interfaces must be IDLE
 		mac_->mode(MAC_RCV);
 		pm = pe->peerMac();
 		mac_->peer(pm);
@@ -152,8 +152,10 @@ PollHandler::handle(Event *e)
 		double t = mac_->pollTxtime(MAC_POLLACKSIZE) + 
 			max(mac_->tx_rx(), pm->rx_tx());
 		s.schedule(pm->pah(), pae, t);
-	}
+	} else {
+//		printf("ignoring poll %d\n", mac_->label());
 	// could send NACKPOLL but don't (at least for now)
+	}
 }
 
 /*
@@ -166,8 +168,8 @@ PollAckHandler::handle(Event *e)
 	Scheduler& s = Scheduler::instance();
 	
 #ifdef notdef
-double now = s.clock();
-int mode = mac_->mode();
+	double now = s.clock();
+	int mode = mac_->mode();
 //cout << "In pollack for " << ((hdr_cmn *)(mac_->pkt()->access(0)))->uid() << " mode " << mode << "\n";
 #endif
 
@@ -212,7 +214,7 @@ Packet *p = mac_->pkt();
 cout << now << " backing off " << ((hdr_cmn *)(mac_->pkt()->access(0)))->uid() << " for " << bTime << " s " << ((hdr_cmn*)p->access(0))->size() << "\n";
 dump_iphdr((hdr_ip *)p->access(24));
 #endif
-	
+//	printf("backing off %d\n", mac_->label());
 	s.schedule(mac_->pth(), mac_->pendingPE(), bTime);
 }
 
@@ -274,6 +276,11 @@ MultihopMac::recv(Packet* p, Handler *h)
 	callback_ = h;
 	hdr_mac *mach = (hdr_mac *)p->access(off_mac_);
 	mach->macSA() = label_;
-	mach->ftype() = MF_DATA;
-	poll(p);		/* poll first */
+	if (mach->ftype() == MF_ACK) {
+		mode_ = MAC_SND;
+		send(p);
+	} else {
+		mach->ftype() = MF_DATA;
+		poll(p);		/* poll first */
+	}
 }

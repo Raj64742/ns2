@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-multihop.h,v 1.4 1997/07/23 02:21:40 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-multihop.h,v 1.5 1997/10/26 05:44:24 hari Exp $ (UCB)
  */
 
 #ifndef ns_mac_multihop_h
@@ -45,10 +45,10 @@
 #define MAC_POLLACKSIZE 40	/* completely arbitrary */
 
 /* States of MultihopMac protocol */
-#define MAC_IDLE 0x0000
-#define MAC_POLLING 0x0001
-#define MAC_RCV 0x0010
-#define MAC_SND 0x0100
+#define MAC_IDLE 0x01
+#define MAC_POLLING 0x02
+#define MAC_RCV 0x04
+#define MAC_SND 0x08
 
 #define MAC_TICK 16000		/* 1 tick = 1ms; 16 sub-ticks in a tick */
 
