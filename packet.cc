@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.5 1997/03/29 01:42:57 mccanne Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.cc,v 1.6 1997/07/21 21:21:52 kfall Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -54,7 +54,7 @@ void PacketHeaderClass::bind()
 	tcl.evalf("%s set hdrlen_ %d", classname_, hdrlen_);
 }
 
-TclObject* PacketHeaderClass::create(int argc, const char*const* argv)
+TclObject* PacketHeaderClass::create(int, const char*const*)
 {
 	return (0);
 }
@@ -82,8 +82,7 @@ public:
 static class PacketHeaderManagerClass : public TclClass {
 public:
         PacketHeaderManagerClass() : TclClass("PacketHeaderManager") {}
-        TclObject* create(int argc, const char*const* argv) {
+        TclObject* create(int, const char*const*) {
                 return (new PacketHeaderManager);
         }
 } class_packethdr_mgr;
-

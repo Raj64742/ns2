@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.16 1997/06/20 02:50:02 heideman Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.17 1997/07/21 21:25:17 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -48,7 +48,7 @@ static char rcsid[] =
 static class AgentClass : public TclClass {
 public:
 	AgentClass() : TclClass("Agent") {} 
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new Agent(-1));
 	}
 } class_agent;
@@ -69,10 +69,9 @@ Agent::Agent(int pkttype) :
 	bind("prio_", (int*)&prio_);
 	bind("flags_", (int*)&flags_);
 	/*
-	 * XXX Kevin replaced class_ with fid_.
-	 * I don't understand this.  It's just a name
-	 * change that has broke my scripts.  I added this
-	 * extra bind as a workaround...  -Steve
+	 * the following is a workaround to allow
+	 * older scripts that use "class_" instead of
+	 * flowid to work -K
 	 */
 	bind("class_", (int*)&fid_);
 

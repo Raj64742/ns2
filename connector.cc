@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.cc,v 1.5 1997/06/11 03:23:59 gnguyen Exp $";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.cc,v 1.6 1997/07/21 21:23:10 kfall Exp $ ";
 #endif
 
 #include "packet.h"
@@ -42,7 +42,7 @@ static char rcsid[] =
 static class ConnectorClass : public TclClass {
 public:
 	ConnectorClass() : TclClass("Connector") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new Connector);
 	}
 } class_connector;
