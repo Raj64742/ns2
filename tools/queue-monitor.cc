@@ -89,7 +89,24 @@ int QueueMonitor::command(int argc, const char*const* argv)
 				return (TCL_ERROR);
                         return (TCL_OK);
                 }
+		if (strcmp(argv[1], "trace") == 0) {
+			int mode;
+			const char* id = argv[2];
+			channel_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+						if (channel_ == 0) {
+				tcl.resultf("trace: can't attach %s for writing", id);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
         }
+	if (argc == 4) {
+		if (strcmp(argv[1], "set-src-dst") == 0) {
+			srcId_ = atoi(argv[2]);
+			dstId_ = atoi(argv[3]);
+			return (TCL_OK);
+		}
+	}
 	return TclObject::command(argc, argv);	// else control reaches end of
 						// non-void function, see? :-)
 }
@@ -101,6 +118,19 @@ static class QueueMonitorClass : public TclClass {
                 return (new QueueMonitor());
         }
 } queue_monitor_class;
+
+void
+QueueMonitor::printStats() {
+	char wrk[500];
+	int n;
+	double now = Scheduler::instance().clock();
+	sprintf(wrk, "%-6.3f %d %d %d %d", now, srcId_, dstId_, size_, pkts_);
+	n = strlen(wrk);
+	wrk[n] = '\n';
+	wrk[n+1] = 0;
+	(void)Tcl_Write(channel_, wrk, n+1);
+	wrk[n] = 0;
+}	
 
 // packet arrival to a queue
 void QueueMonitor::in(Packet* p)
@@ -119,6 +149,8 @@ void QueueMonitor::in(Packet* p)
 		pktsInt_->newPoint(now, double(pkts_));
 	if (delaySamp_)
 		hdr->timestamp() = now;
+	if (channel_)
+		printStats();
 }
 
 void QueueMonitor::out(Packet* p)
@@ -137,6 +169,8 @@ void QueueMonitor::out(Packet* p)
 		pktsInt_->newPoint(now, double(pkts_));
 	if (delaySamp_)
 		delaySamp_->newPoint(now - hdr->timestamp());
+	if (channel_)
+		printStats();
 }
 
 void QueueMonitor::drop(Packet* p)
@@ -153,6 +187,8 @@ void QueueMonitor::drop(Packet* p)
 		bytesInt_->newPoint(now, double(size_));
 	if (pktsInt_)
 		pktsInt_->newPoint(now, double(pkts_));
+	if (channel_)
+		printStats();
 }
 
 static class SnoopQueueInClass : public TclClass {
