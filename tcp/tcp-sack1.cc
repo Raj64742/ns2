@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.7 1997/03/29 01:43:07 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack1.cc,v 1.8 1997/04/09 23:24:25 tomh Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -188,6 +188,8 @@ void Sack1TcpAgent::send(int force, int reason, int maxburst)
 	int xmit_seqno;
 
         found = 1;
+		if (!force && pending_[TCP_TIMER_DELSND])
+			return;
         /*
          * as long as the pipe is open and there is app data to send...
          */
