@@ -459,7 +459,6 @@ SessionNode instproc attach agent {
 	$agent set addr_ [expr [expr [expr $port & $mask] << $shift] | \
 			      [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
 	# $agent set addr_ [expr $id_ << 8 | $port]
-	$self namtrace-agent $agent
 }
 
 SessionNode instproc join-group { agent group } {
