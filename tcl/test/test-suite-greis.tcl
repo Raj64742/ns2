@@ -57,12 +57,13 @@ Class Test/example2 -superclass TestSuite
 Class Test/example3 -superclass TestSuite
 Class Test/example4 -superclass TestSuite
 Class Test/ping -superclass TestSuite 
+Class Test/pingOneWay -superclass TestSuite
 
 proc usage {} {
     global argv0
     puts stderr "usage: ns $argv0 <tests> "
     puts "Valid Tests: example1 example1a example1b example2 \
-                       example3 example4"
+                       example3 example4 ping pingOneWay"
     exit 1
 }
 
@@ -389,18 +390,21 @@ Test/example4 instproc finish {} {
     global f0 f1 f2 quiet
 
     #Close the output files
+    puts $f0 " "
+    puts $f1 " "
+    puts $f2 " "
     close $f0
     close $f1
     close $f2
 
     exec cat out0.tr out1.tr out2.tr > temp.rands
+    exec rm -f out0.tr out1.tr out2.tr
 
     #Call xgraph to display the results
      if {$quiet == "false"} {
-        exec xgraph out0.tr out1.tr out2.tr -geometry 800x400 &
+        exec xgraph -bb -tk temp.rands &
     }
 
-    exec rm -f out0.tr out1.tr out2.tr
     exit 0
 }
 
@@ -577,6 +581,53 @@ Test/ping instproc run {} {
     $ns run  
 }
 
+Test/pingOneWay instproc init {} [Test/ping info instbody init]
+Test/pingOneWay instproc finish {} [Test/ping info instbody finish]
+
+Test/pingOneWay instproc run {} {
+    $self instvar ns
+    #Create three nodes
+    set n0 [$ns node] 
+    set n1 [$ns node]
+    set n2 [$ns node]
+
+    #Connect the nodes with two links
+    $ns simplex-link $n1 $n0 1Mb 10ms DropTail
+    $ns simplex-link $n0 $n1 1Mb 100ms DropTail
+    $ns duplex-link $n1 $n2 0.01Mb 10ms DropTail
+
+    #Define a 'recv' function for the class 'Agent/Ping'
+    Agent/Ping instproc recv {from seq ff bf} {
+        $self instvar node_
+        global rttf
+        puts "ping reply from node $from to [$node_ id] with seqno\
+              $seq: forward $ff ms, reverse $bf ms."
+    }
+
+    #Create two ping agents and attach them to the nodes n0 and n2
+    set p0 [new Agent/Ping]
+    $ns attach-agent $n0 $p0
+    $p0 oneway
+   
+    set p1 [new Agent/Ping]
+    $ns attach-agent $n2 $p1
+    $p1 oneway
+
+    #Connect the two agents
+    $ns connect $p0 $p1
+
+    #Schedule events
+    $ns at 0.2 "$p0 send"
+    $ns at 0.4 "$p1 send"
+    $ns at 0.6 "$p0 send"
+    $ns at 0.6 "$p1 send"
+    $ns at 0.61 "$p0 send"
+    $ns at 0.61 "$p1 send"
+    $ns at 1.0 "$self finish"
+
+    #Run the simulation
+    $ns run  
+}
 
 proc runtest {arg} {
     global quiet
