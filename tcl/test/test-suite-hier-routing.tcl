@@ -16,6 +16,19 @@
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
 
+# XXX Strange strange:
+#  There is a order dependence of hierarchical routing and multicast: 
+#
+#  if you turn on hier routing BEFORE multicast, the trace result is
+#  different from you turn on hier routing AFTER multicast. The reason is
+#  that set-address-format{} checks multicast from ns-address.tcl; if it's 
+#  on, it sets a different address format.
+#
+#  What I don't understand is, since hier addressing format depends on
+#  whether mcast is on, why in the test suite test-suite-hier-routing.tcl,
+#  multicast is turned on AFTER hierarchical routing? Is this a bug? Should
+#  there be this dependence? 
+ 
 
 # This test suite is for validating hierarchical routing
 # To run all tests: test-all-hier-routing
@@ -27,25 +40,18 @@
 # To view a list of available test to run with this script:
 # ns test-suite-hier-routing.tcl
 #
-
-# Each of the tests uses a 10 node hierarchical topology
-#
+# Every test uses a 10 node hierarchical topology
 
 Class TestSuite
 
-Class Test/hier-simple -superclass TestSuite
 # Simple hierarchical routing
+Class Test/hier-simple -superclass TestSuite
 
-Class Test/hier-cmcast -superclass TestSuite
 # hierarchical routing with CentralisedMcast
+Class Test/hier-cmcast -superclass TestSuite
 
-#Class Test/hier-deDM -superclass TestSuite
-# hier rtg with DetailedDM
-
-Class Test/hier-session -superclass TestSuite
 # session simulations using hierarchical routing
-
-
+Class Test/hier-session -superclass TestSuite
 
 proc usage {} {
 	global argv0
@@ -55,23 +61,25 @@ proc usage {} {
 	exit 1
 }
 
+# A place holder that can be overridden
+TestSuite instproc init-hier-routing {} {
+	$self instvar ns_
+	# By default we use node-config, then we switch to HierNode to 
+	# test backward compability
+	$ns_ node-config -addressType hierarchical
+}
+
+TestSuite instproc init-simulator {} {
+}
+
+TestSuite instproc alloc-mcast-addr {} {
+}
+
 TestSuite instproc init {} {
-    $self instvar ns_ n_ g_ flag_ testName_
-    if {$testName_ == "hier-session"} {
-	set ns_ [new SessionSim]
-	set g_ [Node allocaddr]
-	$ns_ namtrace-all [open temp.rands w]
-    } else {
-	set ns_ [new Simulator]
-	$ns_ trace-all [open temp.rands w]
-	$ns_ namtrace-all [open temp.rands.nam w]
-    }
-   # $ns_ trace-all [open temp.rands w]
-    $ns_ set-address-format hierarchical
-    if {$flag_} {
-	$ns_ multicast on
-	set g_ [Node allocaddr]
-	}
+	$self instvar ns_ n_ g_ testName_
+	$self init-simulator
+	$self init-hier-routing
+	$self alloc-mcast-addr
 	#setup hierarchical topology
 	AddrParams set domain_num_ 2
 	lappend cluster_num 2 2
@@ -108,11 +116,17 @@ TestSuite instproc finish {} {
 	exit 0
 }
 
-Test/hier-simple instproc init {flag} {
-	$self instvar ns_ testName_ flag_
+Test/hier-simple instproc init {} {
+	$self instvar testName_ 
 	set testName_ hier-simple
-	set flag_ $flag
 	$self next
+}
+
+Test/hier-simple instproc init-simulator {} {
+	$self instvar ns_
+	set ns_ [new Simulator]
+	$ns_ trace-all [open temp.rands w]
+	$ns_ namtrace-all [open temp.rands.nam w]
 }
 
 Test/hier-simple instproc run {} {
@@ -141,11 +155,28 @@ Test/hier-simple instproc run {} {
 
 }
 
-Test/hier-cmcast instproc init {flag} {
-	$self instvar ns_ testName_ flag_
+Test/hier-cmcast instproc init {} {
+	$self instvar ns_ testName_
 	set testName_ hier-cmcast
-	set flag_ $flag
 	$self next 
+}
+
+Test/hier-cmcast instproc init-simulator {} {
+	$self instvar ns_
+	set ns_ [new Simulator]
+	$ns_ trace-all [open temp.rands w]
+	$ns_ namtrace-all [open temp.rands.nam w]
+}
+
+Test/hier-cmcast instproc alloc-mcast-addr {} {
+	$self instvar g_ ns_
+	# XXX If we first allocate a simulator with -multicast on, then 
+	# turn on hierarchical routing, the result trace file is different
+	# from we turn multicast on AFTER we turn on hierarchical routing!
+	# The reason is that set-address-format{} in ns-address.tcl sets a 
+	# different address format if it finds multicast is turned on. 
+	$ns_ multicast on
+	set g_ [Node allocaddr]
 }
 
 Test/hier-cmcast instproc run {} {
@@ -205,11 +236,17 @@ Test/hier-cmcast instproc run {} {
 #}
 
 
-Test/hier-session instproc init {flag} {
-	$self instvar ns_ testName_ flag_
+Test/hier-session instproc init {} {
+	$self instvar ns_ testName_ 
 	set testName_ hier-session
-	set flag_ $flag
 	$self next 
+}
+
+Test/hier-session instproc init-simulator {} {
+	$self instvar ns_ g_
+	set ns_ [new SessionSim]
+	set g_ [Node allocaddr]
+	$ns_ namtrace-all [open temp.rands w]
 }
 
 Test/hier-session instproc run {} {
@@ -234,7 +271,21 @@ Test/hier-session instproc run {} {
 	$ns_ run
 }
 
+#
+# Backward compatibility tests 
+#
+Class Test-BackCompat -superclass TestSuite
 
+Test-BackCompat instproc init-hier-routing {} {
+	$self instvar ns_
+	puts "testing backward compatibility of hierarchical routing"
+	Simulator set node_factory_ HierNode
+	$ns_ set-address-format hierarchical
+}
+
+Class Test/hier-simple-bc -superclass {Test-BackCompat Test/hier-simple}
+Class Test/hier-cmcast-bc -superclass {Test-BackCompat Test/hier-cmcast}
+Class Test/hier-session-bc -superclass {Test-BackCompat Test/hier-session}
 
 proc runtest {arg} {
 	global quiet
@@ -251,31 +302,9 @@ proc runtest {arg} {
 	} else {
 		usage
 	}
-	switch $test {
-		hier-simple -
-		hier-session {
-			set t [new Test/$test 0]
-		}
-		hier-deDM -
-		hier-cmcast {
-			set t [new Test/$test 1]
-		}
-		default {
-			stderr "Unknown test $test"
-			exit 1
-		}
-	}
+	set t [new Test/$test]
 	$t run
 }
 
 global argv arg0
 runtest $argv
-
-
-
-
-
-
-
-
-

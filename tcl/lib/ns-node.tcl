@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.71 2000/07/22 23:52:34 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.72 2000/08/25 21:44:11 haoboy Exp $
 #
 
 # for MobileIP
@@ -41,8 +41,6 @@ Classifier/Port/Reserve instproc init args {
         $self reserve-port 2
 }
 
-
-#Class Node
 Node set nn_ 0
 Node proc getid {} {
 	set id [Node set nn_]
@@ -64,14 +62,14 @@ Node instproc init args {
 	set np_ 0
 	set id_ [Node getid]
         set rtsize_ 0
-#        set address_ $args
         $self set-node-address$nodetype_ $args
-        
 	$self mk-default-classifier$nodetype_
-#        $self mk-default-classifier
 	$self cmd addr $address_; # new by tomh
-      set multiPath_ [$class set multiPath_]
+	set multiPath_ [$class set multiPath_]
+}
 
+Node instproc node-type {} {
+	return [$self set nodetype_]
 }
 
 Node instproc set-node-address { args } {
@@ -93,16 +91,12 @@ Node instproc set-node-addressMobile { args } {
     set Y_ 0.0
     set Z_ 0.0
     set arptable_ ""                ;# no ARP table yet
-
     set nifs_	0		;# number of network interfaces
-
 }
 
 Node instproc set-node-addressHier {args} {
-    $self instvar address_
-
-    set address_ $args
-
+	$self instvar address_
+	set address_ $args
 }
 
 Node instproc set-node-addressBase {args} {
@@ -122,14 +116,13 @@ Node instproc mk-default-classifierBase {} {
 
 Node instproc mk-default-classifierHier {} {
 	$self instvar np_ id_ classifiers_ agents_ dmux_ neighbor_ address_ 
-	# puts "id=$id_"
 	set levels [AddrParams set hlevel_]
-
 	for {set n 1} {$n <= $levels} {incr n} {
 		set classifiers_($n) [new Classifier/Addr]
 		$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
 		$classifiers_($n) set shift_ [AddrParams set NodeShift_($n)]
 	}
+	$self set classifier_ $classifiers_(1)
 }
 
 # mobileNode
@@ -186,6 +179,11 @@ Node instproc add-neighbor p {
 	lappend neighbor_ $p
 }
 
+Node instproc is-neighbor { node } {
+	$self instvar neighbor_
+	return [expr [lsearch $neighbor_ $node] != -1]
+}
+
 #
 # increase the routing table size counter - keeps track of rtg table 
 # size for each node
@@ -221,7 +219,6 @@ Node instproc entry-NewBase {} {
     }
     $self instvar classifiers_
     return $classifiers_(1)
-
 }
 
 Node instproc entry-New {} {
@@ -238,6 +235,10 @@ Node instproc entry-New {} {
 	}
 	$self instvar classifier_
 	return $classifier_
+}
+
+Node instproc entry-NewHier {} {
+	return [$self entry-New]
 }
 
 Node instproc entry-NewMobile {} {
@@ -265,7 +266,6 @@ Node instproc id {} {
 }
 
 Node instproc node-addr {} {
-
 	$self instvar address_
 
 	return $address_
@@ -290,9 +290,7 @@ Node instproc alloc-port { nullagent } {
 # bind the agent to the port number.
 #
 Node instproc attach { agent { port "" } } {
-
-	$self instvar agents_ address_ dmux_ classifier_
-	$self instvar classifiers_
+	$self instvar agents_ address_ dmux_ 
 	#
 	# assign port number (i.e., this agent receives
 	# traffic addressed to this host and port)
@@ -303,13 +301,6 @@ Node instproc attach { agent { port "" } } {
 	#
 	set mask [AddrParams set ALL_BITS_SET]
 	set shift 0
-	
-	# The following code is no longer needed.  It is unlikely that
-	# a node holds billions of agents
-# 	if {[expr [llength $agents_] - 1] > $mask} {
-# 		error "\# of agents attached to node $self exceeds port-field length of $mask bits\n"
-# 	}
-
 	#
 	# Attach agents to this node (i.e., the classifier inside).
 	# We call the entry method on ourself to find the front door
@@ -318,37 +309,30 @@ Node instproc attach { agent { port "" } } {
 	# Also, stash the node in the agent and set the
 	# local addr of this agent.
 	#
-
 	$agent set node_ $self
-	
 	if [Simulator set EnableHierRt_] {
-	    $agent set agent_addr_ [AddrParams set-hieraddr $address_]
-	    
+		$agent set agent_addr_ [AddrParams set-hieraddr $address_]
 	} else {
-	    $agent set agent_addr_ [expr ($address_ & \
-					      [AddrParams set NodeMask_(1)]) \
-					<< [AddrParams set NodeShift_(1) ]]
+		$agent set agent_addr_ [expr ($address_ & \
+				[AddrParams set NodeMask_(1)]) \
+				<< [AddrParams set NodeShift_(1) ]]
 	}
-	
 	#
 	# If a port demuxer doesn't exist, create it.
 	#
-	
 	if { $dmux_ == "" } {
 		set dmux_ [new Classifier/Port]
 		$dmux_ set mask_ $mask
 		$dmux_ set shift_ $shift
-	
-	        
 		#
 		# point the node's routing entry to itself
 		# at the port demuxer (if there is one)
 		#
-	    if {[Simulator set EnableHierRt_]} {
-		$self add-hroute $address_ $dmux_
-	    } else {
-		$self add-route $address_ $dmux_
-	    }
+		if {[Simulator set EnableHierRt_]} {
+			$self add-hroute $address_ $dmux_
+		} else {
+			$self add-route $address_ $dmux_
+		}
 	}
 	if {$port == ""} {
 		set ns_ [Simulator instance]
@@ -356,9 +340,7 @@ Node instproc attach { agent { port "" } } {
 		set port [$self alloc-port $nullAgent_]
 	}
 	$agent set agent_port_ $port
-	
 	$self add-target $agent $port
-
 }
 
 #
@@ -845,16 +827,12 @@ Node instproc add-target-NewMobile {agent port} {
         [$self set imep_(0)] rtagent $agent
 
     }
-
     
     if { $port == 255 } {			# non-routing agents
-
-	
 	if { [Simulator set RouterTrace_] == "ON" } {
 	    #
 	    # Send Target
 	    #
-	    
 	    if {$newapi != ""} {
 	        set sndT [$ns_ mobility-trace Send "RTR" $self]
 	    } else {
@@ -870,7 +848,6 @@ Node instproc add-target-NewMobile {agent port} {
 
 		 # second tracer to see the actual
                  # types of tora packets before imep packs them
-                 #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
 		  if { [info exists toraDebug_] && $toraDebug_ == "ON"} {
                        set sndT2 [$ns_ mobility-trace Send "TRP" $self]
                        $sndT2 target $imep_(0)
@@ -903,7 +880,6 @@ Node instproc add-target-NewMobile {agent port} {
 
                 # need a second tracer to see the actual
                 # types of tora packets after imep unpacks them
-                #if { [info exists opt(debug)] && $opt(debug) == "ON" } {
 		# no need to support any hier node
 
 		if {[info exists toraDebug_] && $toraDebug_ == "ON" } {
@@ -914,33 +890,19 @@ Node instproc add-target-NewMobile {agent port} {
 		
              } else {
                  $rcvT target $agent
-
 		 $self install-defaulttarget $rcvT
-
-#                 [$self set classifier_] defaulttarget $rcvT
-#		 $classifier_ defaulttarget $rcvT
-
                  $dmux_ install $port $rcvT
 	     }
-
-#	    $rcvT target $agent
-#	    $classifier_ defaulttarget $rcvT
-#	    $dmux_ install $port $rcvT
 	    
 	} else {
 	    #
 	    # Send Target
 	    #
 	    $agent target [$self set ll_(0)]
-		
 	    #
 	    # Recv Target
 	    #
-
 	    $self install-defaulttarget $agent
-	    
-	    #$classifier_ defaulttarget $agent
-
 	    $dmux_ install $port $agent
 	}
 	
@@ -1223,7 +1185,6 @@ Node instproc nodetrace { tracefd } {
 
 }
 
-
 Node instproc install-defaulttarget {rcvT} {
     #set nodetype [[Simulator instance] get-nodetype]
     $self instvar nodetype_
@@ -1257,8 +1218,6 @@ Node instproc install-defaulttarget-NewMIPBS {rcvT} {
     $self install-defaulttarget-NewBase $rcvT
 }
 
-
-
 # set transmission power
 Node instproc setPt { val } {
     $self instvar netif_
@@ -1281,16 +1240,12 @@ Node instproc add-hroute { dst target } {
 	$self instvar classifiers_ rtsize_
 	set al [$self split-addrstr $dst]
 	set l [llength $al]
-	for {set i 1} {$i <= $l} {incr i} {
+	for {set i 1} {$i < $l} {incr i} {
 		set d [lindex $al [expr $i-1]]
-		if {$i == $l} {
-			$classifiers_($i) install $d $target
-		} else {
-			$classifiers_($i) install $d $classifiers_([expr $i + 1]) 
-		}
+		$classifiers_($i) install $d $classifiers_([expr $i + 1]) 
 	}
-    #
-    # increase the routing table size counter - keeps track of rtg table size for 
-    # each node
-    set rtsize_ [expr $rtsize_ + 1]
+	$classifiers_($l) install [lindex $al [expr $l-1]] $target
+	# increase the routing table size counter - keeps track of rtg 
+	# table size for each node
+	$self incr-rtgtable-size
 }

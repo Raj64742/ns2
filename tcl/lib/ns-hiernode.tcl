@@ -33,110 +33,110 @@
 #
 
 # THE CODE INCLUDED IN THIS FILE IS USED FOR BACKWARD COMPATIBILITY ONLY
+#
+# In case that node-config -addressType hierarchical is not called, and 
+# the old way of Simulator set node_factory_ HierNode is used.
 
 # for now creating a new class for hier-node for the sake of minimum overlap. 
-# However this may be combined with ns-node at a later date when hierarchical routing
-# gets to become stable & operational.
+# However this may be combined with ns-node at a later date when hierarchical
+# routing gets to become stable & operational.
 
 Class HierNode -superclass Node
-
 
 HierNode instproc init {args} {
 	$self instvar address_
 	set haddress $args
         set address_ $args
 	set args [lreplace $args 0 1]
-
 	$self next $args
         set address_ $haddress
-
 }
 
 HierNode instproc mk-default-classifier {} {
-
 	$self instvar np_ id_ classifiers_ agents_ dmux_ neighbor_ address_ 
-	# puts "id=$id_"
 	set levels [AddrParams set hlevel_]
-
 	for {set n 1} {$n <= $levels} {incr n} {
 		set classifiers_($n) [new Classifier/Addr]
 		$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
 		$classifiers_($n) set shift_ [AddrParams set NodeShift_($n)]
 	}
+	# Then we do not need to worry about a customized entry{} and 
+	# enable-mcast{}
+	$self set classifier_ $classifiers_(1)
 }
 
-HierNode instproc entry {} {
-    $self instvar ns_
-    if ![info exist ns_] {
-	set ns_ [Simulator instance]
-    }
-    if [$ns_ multicast?] {
-	$self instvar switch_
-	return $switch_
-    }
-    $self instvar classifiers_
-    return $classifiers_(1)
-}
+#  HierNode instproc entry {} {
+#      $self instvar ns_
+#      if ![info exist ns_] {
+#  	set ns_ [Simulator instance]
+#      }
+#      if [$ns_ multicast?] {
+#  	$self instvar switch_
+#  	return $switch_
+#      }
+#      $self instvar classifiers_
+#      return $classifiers_(1)
+#  }
 
+#  HierNode instproc enable-mcast sim {
+#  	$self instvar classifiers_ multiclassifier_ ns_ switch_ mcastproto_
+#  	$self set ns_ $sim
 
-HierNode instproc enable-mcast sim {
-	$self instvar classifiers_ multiclassifier_ ns_ switch_ mcastproto_
-	$self set ns_ $sim
-
-	$self set switch_ [new Classifier/Addr]
-	#
-	# set up switch to route unicast packet to slot 0 and
-	# multicast packets to slot 1
-	#
+#  	$self set switch_ [new Classifier/Addr]
+#  	#
+#  	# set up switch to route unicast packet to slot 0 and
+#  	# multicast packets to slot 1
+#  	#
 	
-	[$self set switch_] set mask_ [AddrParams set McastMask_]
-	[$self set switch_] set shift_ [AddrParams set McastShift_]
+#  	[$self set switch_] set mask_ [AddrParams set McastMask_]
+#  	[$self set switch_] set shift_ [AddrParams set McastShift_]
 
-	#
-	# create a classifier for multicast routing
-	#
-	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
-	[$self set multiclassifier_] set node_ $self
+#  	#
+#  	# create a classifier for multicast routing
+#  	#
+#  	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
+#  	[$self set multiclassifier_] set node_ $self
 	
-	[$self set switch_] install 0 $classifiers_(1)
-	[$self set switch_] install 1 $multiclassifier_
+#  	[$self set switch_] install 0 $classifiers_(1)
+#  	[$self set switch_] install 1 $multiclassifier_
 
-	#
-	# Create a prune agent.  Each multicast routing node
-	# has a private prune agent that sends and receives
-	# prune/graft messages and dispatches them to the
-	# appropriate replicator object.
-	#
+#  	#
+#  	# Create a prune agent.  Each multicast routing node
+#  	# has a private prune agent that sends and receives
+#  	# prune/graft messages and dispatches them to the
+#  	# appropriate replicator object.
+#  	#
 
-	$self set mrtObject_ [new mrtObject $self]
-}
+#  	$self set mrtObject_ [new mrtObject $self]
+#  }
 
-HierNode instproc add-hroute { dst target } {
-	$self instvar classifiers_ rtsize_
-	set al [$self split-addrstr $dst]
-	set l [llength $al]
-	for {set i 1} {$i <= $l} {incr i} {
-		set d [lindex $al [expr $i-1]]
-		if {$i == $l} {
-			$classifiers_($i) install $d $target
-		} else {
-			$classifiers_($i) install $d $classifiers_([expr $i + 1]) 
-		}
-	}
-    #
-    # increase the routing table size counter - keeps track of rtg table size for 
-    # each node
-    set rtsize_ [expr $rtsize_ + 1]
-}
+# All of the following are already in ns-node.tcl
 
+#  HierNode instproc add-hroute { dst target } {
+#  	$self instvar classifiers_ rtsize_
+#  	set al [$self split-addrstr $dst]
+#  	set l [llength $al]
+#  	for {set i 1} {$i <= $l} {incr i} {
+#  		set d [lindex $al [expr $i-1]]
+#  		if {$i == $l} {
+#  			$classifiers_($i) install $d $target
+#  		} else {
+#  			$classifiers_($i) install $d $classifiers_([expr $i + 1]) 
+#  		}
+#  	}
+#      #
+#      # increase the routing table size counter - keeps track of rtg table size for 
+#      # each node
+#      set rtsize_ [expr $rtsize_ + 1]
+#  }
 
 #
 # split up hier address string 
 #
-HierNode instproc split-addrstr addrstr {
-	set L [split $addrstr .]
-	return $L
-}
+#  HierNode instproc split-addrstr addrstr {
+#  	set L [split $addrstr .]
+#  	return $L
+#  }
 
 #HierNode instproc node-addr {} {
 #	$self instvar address_
@@ -146,10 +146,3 @@ HierNode instproc split-addrstr addrstr {
 
 # as of now, hierarchical routing support not extended for equal cost multi path routing
 ### feature may be added in future
-
-
-
-
-
-
-
