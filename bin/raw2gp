@@ -21,18 +21,17 @@ can be generated with -s 0.01 -m 90.
 END
 };
 
-# Default options args
-$opt_a = 0;			# plot ACKS
-$opt_m = 2 ** 31;		# modulus factor
-$opt_s = 1;			# scale factor
-
 require 'getopts.pl';
 &Getopts('ags:m:ql') || usage;
-($modulus, $scale, $plot_acks) = ($opt_m, $opt_s, $opt_a); # use meaningful
-				# mnemonics for options.
+
 # calculate offsets.  Do we need this?
 # $offset = int($modulus / 10 + 1) * 10;
 # $offset = 1;
+
+# Default options args
+$modulus = defined($opt_m) ? $opt_m : 2 ** 31;
+$scale = defined($opt_s) ? $opt_s : 1;
+$plot_acks = defined($opt_a);
 
 # XXXXXX
 # XXX This is going to break because we have to set @INC correctly
@@ -127,4 +126,5 @@ if ($opt_g) {
 plot(STDOUT, 0, 'drops',   'w points 1 4', @d);
 plotDynamics(STDOUT, $minY, $maxY);
 plotPostamble(STDOUT);
+
 exit;
