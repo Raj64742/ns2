@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.118 1998/07/20 23:30:50 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.119 1998/07/21 18:08:45 haoboy Exp $
 
 #
 
@@ -196,101 +196,6 @@ Simulator instproc cancel args {
 	return [eval $scheduler_ cancel $args]
 }
 
-Simulator instproc dump-namagents {} {
-	$self instvar tracedAgents_ monitoredAgents_
-	
-	if ![$self is-started] {
-		return
-	}
-	if [info exists tracedAgents_] {
-		foreach id [array names tracedAgents_] {
-			$tracedAgents_($id) add-agent-trace $id
-		}
-		unset tracedAgents_
-	}
-	if [info exists monitoredAgents_] {
-		foreach a $monitoredAgents_ {
-			$a show-monitor
-		}
-		unset monitoredAgents_
-	}
-}
-
-Simulator instproc dump-namversion { v } {
-	$self puts-nam-config "V -t * -v $v -a 0"
-}
-
-Simulator instproc dump-namcolors {} {
-	$self instvar color_
-	if ![$self is-started] {
-		return 
-	}
-	foreach id [array names color_] {
-		$self puts-nam-config "c -t * -i $id -n $color_($id)"
-	}
-}
-
-Simulator instproc dump-namlans {} {
-	$self instvar lanConfigList_
-	if ![$self is-started] {
-		return
-	}
-	if [info exists lanConfigList_] {
-		foreach lan $lanConfigList_ {
-			$lan dump-namconfig
-		}
-		unset lanConfigList_
-	}
-}
-
-Simulator instproc dump-namlinks {} {
-	$self instvar linkConfigList_
-	if ![$self is-started] {
-		return
-	}
-	if [info exists linkConfigList_] {
-		foreach lnk $linkConfigList_ {
-			$lnk dump-namconfig
-		}
-		unset linkConfigList_
-	}
-}
-
-Simulator instproc dump-namnodes {} {
-	$self instvar Node_
-	if ![$self is-started] {
-		return
-	}
-	foreach nn [array names Node_] {
-		$Node_($nn) dump-namconfig
-	}
-}
-
-Simulator instproc dump-namqueues {} {
-	$self instvar link_
-	if ![$self is-started] {
-		return
-	}
-	foreach qn [array names link_] {
-		$link_($qn) dump-nam-queueconfig
-	}
-}
-
-# Write hierarchical masks/shifts into trace file
-Simulator instproc dump-namaddress {} {
-	AddrParams instvar hlevel_ NodeShift_ NodeMask_ PortShift_ PortMask_ \
-	    McastShift_ McastMask_
-	
-	# First write number of hierarchies
-	$self puts-nam-config \
-	    "A -t * -n $hlevel_ -p $PortShift_ -o $PortMask_ -c $McastShift_ -a $McastMask_"
-	
-	for {set i 1} {$i <= $hlevel_} {incr i} {
-		$self puts-nam-config \
-		    "A -t * -h $i -m $NodeMask_($i) -s $NodeShift_($i)"
-	}
-}
-
 #
 # check if total num of nodes exceed 2 to the power n 
 # where <n=node field size in address>
@@ -332,7 +237,6 @@ Simulator instproc chk-hier-field-lengths {} {
 	}
 }
 
-
 Simulator instproc run {} {
 	#$self compute-routes
 
@@ -357,29 +261,10 @@ Simulator instproc run {} {
 		$q reset
 	}
 
-	# Setting nam trace file version first
-	$self dump-namversion 1.0a5
-	
-	# Addressing scheme
-	$self dump-namaddress
-	
-	# Color configuration for nam
-	$self dump-namcolors
-	
-	# Node configuration for nam
-	$self dump-namnodes
-	
-	# Lan and Link configurations for nam
-	$self dump-namlinks 
-	$self dump-namlans
-	
-	# nam queue configurations
-	$self dump-namqueues
-	
-	# Traced agents for nam
-	$self dump-namagents
+	# Do all nam-related initialization here
+	$self init-nam
 
-    return [$scheduler_ run]
+	return [$scheduler_ run]
 }
 
 Simulator instproc halt {} {
