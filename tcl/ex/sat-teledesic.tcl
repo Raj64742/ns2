@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/sat-teledesic.tcl,v 1.4 2001/11/06 06:20:11 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/sat-teledesic.tcl,v 1.5 2002/06/12 04:43:13 tomh Exp $
 #
 # Example of a broadband LEO constellation with orbital configuration
 # similar to that of Teledesic's 288 satellite configuration.  The script 
@@ -104,7 +104,7 @@ $ns node-config -satNodeType polar \
 		-macType $opt(mac) \
 		-phyType $opt(phy) \
 		-channelType $opt(chan) \
-		-downlinkBW $opt(bw_down) \  
+		-downlinkBW $opt(bw_down) \
 		-wiredRouting $opt(wiredRouting)
 
 set alt $opt(alt)
