@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.16 1998/04/29 19:24:15 bajaj Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.17 1998/05/07 00:09:48 kfall Exp $";
 #endif
 
 #include <stdlib.h>
@@ -187,6 +187,10 @@ int Classifier::command(int argc, const char*const* argv)
 			tcl.resultf("%u", slot);
 			return TCL_OK;
 		}
+		/*
+		 * $classifier slot snum
+		 * returns the name of the object in slot # snum
+		 */
 		if (strcmp(argv[1], "slot") == 0) {
 			int slot = atoi(argv[2]);
 			if ((slot >= 0) || (slot < nslot_)) {
@@ -195,6 +199,26 @@ int Classifier::command(int argc, const char*const* argv)
 			}
 			tcl.resultf("Classifier: no object at slot %d", slot);
 			return (TCL_ERROR);
+		}
+		/*
+		 * $classifier findslot $node
+		 * finds the slot containing $node
+		 */
+		if (strcmp(argv[1], "findslot") == 0) {
+			int slot = 0;
+			NsObject* node = (NsObject*)TclObject::lookup(argv[2]);
+			if (node == NULL) {
+				return (TCL_ERROR);
+			}
+			while (slot < nslot_) {
+				if (strcmp(slot_[slot]->name(), argv[2]) == 0) {
+					tcl.resultf("%u", slot);
+					return (TCL_OK);
+				}
+				slot++;
+			}
+			tcl.result("-1");
+			return (TCL_OK);
 		}
 	} else if (argc == 4) {
 		/*
