@@ -321,12 +321,22 @@ Agent/TCPSink set maxSackBlocks_ 3
 \label{sec:tcparchitecture}
 
 The base TCP agent (class {\tt Agent/TCP}) is constructed
-as a collection of routines for sending data, processing ACKs,
+as a collection of routines for sending packets, processing ACKs,
 managing the send window, and handling timeouts.
 Generally, each of these routines may be over-ridden by a
 function with the same name in a derived class (this is how
 many of the TCP sender variants are implemented).
-The major functions are described below
+
+\paragraph{the TCP header}
+The TCP header is defined by the {\tt hdr\_tcp} structure
+in the file {\tt tcp.h}.
+The base agent only makes use of the following subset of the fields:
+\begin{program}
+ts_	\*current time packet was sent from source ;
+ts_echo_ \*for ACKs: timestamp field from packet associated with this ACK;
+seqno_ \* sequence number for this data segment or ACK (Note: overloading!);
+reason_ \* set by sender when (re)transmitting to trace reason for send;
+\end{program}
 
 \paragraph{functions for sending data}
 Note that generally the sending TCP never actually sends
