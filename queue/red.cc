@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.16 1997/07/16 23:19:26 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.17 1997/07/18 22:06:04 ktieu Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -224,9 +224,10 @@ int REDQueue::drop_early(Packet* pkt)
 {
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 	if (edv_.v_ave >= edp_.th_max) {
-		// policy: if above max thresh, force drop
-		// THIS IS A FORCED PACKET DROP.
-		edv_.v_prob = 1.0;
+	  // policy: if above max thresh, force drop
+	  // THIS IS A FORCED PACKET DROP.
+	  //	  edv_.v_prob = 1.0; (orig)
+	  return 2;  // (KT)
 	} else {
 	        // THIS IS AN UNFORCED PACKET DROP.
 		double p = edv_.v_a * edv_.v_ave + edv_.v_b;
@@ -298,6 +299,7 @@ void REDQueue::enque(Packet* pkt)
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 
 	int m;
+	int rtn; // (KT)
         if (idle_) {
 		/* To account for the period when the queue was empty.  */
                 idle_ = 0;
@@ -322,12 +324,14 @@ void REDQueue::enque(Packet* pkt)
 			/*
 			 * Drop each packet with probability edv.v_prob.
 			 */
-			if (drop_early(pkt)) {
-				// this could be either a forced or an
+		            // if (drop_early(pkt)) { (orig)
+		            // if ave queue size before maxthresh (KT)
+		            if ((rtn=drop_early(pkt)) == 1) {  // (KT)
+		                // this could be either a forced or an
 				// unforced packet drop, depending on
 				// whether the ave queue size exceeds
 				// maxthresh
-				if (de_drop_ != NULL)
+		                if (de_drop_ != NULL)
 					de_drop_->recv(pkt);
 				else
 					drop(pkt);
@@ -342,7 +346,23 @@ void REDQueue::enque(Packet* pkt)
 	 * If we didn't drop the packet above, send it to the interface,
 	 * checking for absolute queue overflow.
 	 */
-	if (pkt != 0) {
+	// begin (KT)
+	// forced packet drop because ave queue size > maxthresh
+	if (rtn == 2) {
+	  int victim;
+	  if (drop_tail_)
+	    victim = q()->length() - 1;
+	  else
+	    victim = Random::integer(q()->length());
+	  
+	  pkt = q()->lookup(victim);
+	  remove(q(), pkt);
+	  bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
+	  drop(pkt);
+	}
+	// if (pkt != 0) {  // (orig)
+	else if (pkt != 0) {
+	  // end (KT)
 		enque(q(), pkt);
 		bcount_ += ch->size();
 		int metric = qib_ ? bcount_ : q()->length();
