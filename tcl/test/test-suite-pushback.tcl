@@ -130,23 +130,12 @@ TestSuite instproc finishflows testname {
 
         exec cat temp.p >@ $f
         close $f
-	##if {$quiet == "false"} {
+	if {$quiet == "false"} {
                	exec xgraph -bb -tk -ly 0,1 -x time -y bandwidth $graphfile &
-	##}
+	}
 #       exec csh figure2.com $file
 
         exit 0
-}
-
-
-
-TestSuite instproc enable_tracequeue ns {
-	$self instvar tchan_ node_
-	set redq [[$ns link $node_(r0) $node_(r1)] queue]
-	set tchan_ [open all.q w]
-	$redq trace curq_
-	$redq trace ave_
-	$redq attach $tchan_
 }
 
 Class Topology
@@ -191,65 +180,40 @@ Topology/net2 instproc init ns {
     $ns queue-limit $node_(r1) $node_(r0) 100
 }   
 
-TestSuite instproc plotQueue file {
-	global quiet
-	$self instvar tchan_
-	#
-	# Plot the queue size and average queue size, for RED gateways.
-	#
-	set awkCode {
-		{
-			if ($1 == "Q" && NF>2) {
-				print $2, $3 >> "temp.q";
-				set end $2
-			}
-			else if ($1 == "a" && NF>2)
-				print $2, $3 >> "temp.a";
-		}
-	}
-	set f [open temp.queue w]
-	puts $f "TitleText: $file"
-	puts $f "Device: Postscript"
-
-	if { [info exists tchan_] } {
-		close $tchan_
-	}
-	exec rm -f temp.q temp.a 
-	exec touch temp.a temp.q
-
-	exec awk $awkCode all.q
-
-	puts $f \"queue
-	exec cat temp.q >@ $f  
-	puts $f \n\"ave_queue
-	exec cat temp.a >@ $f
-	###puts $f \n"thresh
-	###puts $f 0 [[ns link $r1 $r2] get thresh]
-	###puts $f $end [[ns link $r1 $r2] get thresh]
-	close $f
-	if {$quiet == "false"} {
-		exec xgraph -bb -tk -x time -y queue temp.queue &
-	}
-}
-
-TestSuite instproc tcpDumpAll { tcpSrc interval label } {
-    global quiet
-    $self instvar dump_inst_ ns_
-    if ![info exists dump_inst_($tcpSrc)] {
-	set dump_inst_($tcpSrc) 1
-	set report $label/window=[$tcpSrc set window_]/packetSize=[$tcpSrc set packetSize_]
-	if {$quiet == "false"} {
-		puts $report
-	}
-	$ns_ at 0.0 "$self tcpDumpAll $tcpSrc $interval $label"
-	return
+Class Topology/net3 -superclass Topology
+Topology/net3 instproc init ns {
+    $self instvar node_ bandwidth_ bandwidth1_
+    set bandwidth_ 0.5Mb
+    set bandwidth1_ 500000
+    #the destinations; declared first 
+    for {set i 0} {$i < 2} {incr i} {
+        set node_(d$i) [$ns node]
     }
-    $ns_ at [expr [$ns_ now] + $interval] "$self tcpDumpAll $tcpSrc $interval $label"
-    set report time=[$ns_ now]/class=$label/ack=[$tcpSrc set ack_]/packets_resent=[$tcpSrc set nrexmitpack_]
-    if {$quiet == "false"} {
-    	puts $report
+
+    #the routers
+    for {set i 0} {$i < 4} {incr i} {
+        set node_(r$i) [$ns node]
+        $node_(r$i) add-pushback-agent
     }
-}       
+
+    #the sources
+    for {set i 0} {$i < 4} {incr i} {
+        set node_(s$i) [$ns node]
+    }
+
+    $self next 
+
+    $ns duplex-link $node_(s0) $node_(r2) 10Mb 2ms DropTail
+    $ns duplex-link $node_(s1) $node_(r3) 10Mb 3ms DropTail
+    $ns pushback-duplex-link $node_(r0) $node_(r1) $bandwidth_ 10ms 
+    $ns pushback-duplex-link $node_(r2) $node_(r0) $bandwidth_ 10ms 
+    $ns pushback-duplex-link $node_(r3) $node_(r0) $bandwidth_ 10ms 
+    $ns duplex-link $node_(d0) $node_(r1) 10Mb 2ms DropTail
+    $ns duplex-link $node_(d1) $node_(r1) 10Mb 2ms DropTail
+
+    $ns queue-limit $node_(r0) $node_(r1) 100
+    $ns queue-limit $node_(r1) $node_(r0) 100
+}   
 
 TestSuite instproc setTopo {} {
     $self instvar node_ net_ ns_ topo_
@@ -313,7 +277,7 @@ TestSuite instproc setup {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
     $self setTopo
 
-    set stoptime 30.0
+    set stoptime 100.0
     #set stoptime 5.0
     #set dumptime 5.0
     set dumptime 1.0
@@ -326,21 +290,15 @@ TestSuite instproc setup {} {
     set fmon [$ns_ makeflowmon Fid]
     $ns_ attach-fmon $slink $fmon
 
-    # good traffic
     set udp1 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 1]
     set cbr1 [$udp1 attach-app Traffic/CBR]
     $cbr1 set rate_ 0.1Mb
     $cbr1 set random_ 0.005
 
-    # poor traffic
     set udp2 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 2]
     set cbr2_ [$udp2 attach-app Traffic/CBR]
     $cbr2_ set rate_ 0.1Mb
     $cbr2_ set random_ 0.005
-
-    $self enable_tracequeue $ns_
-    $ns_ at 0.2 "$cbr1 start"
-    $ns_ at 0.1 "$cbr2_ start"
 
     # bad traffic
     set udp [$ns_ create-connection UDP $node_(s0) Null $node_(d1) 3]
@@ -349,12 +307,26 @@ TestSuite instproc setup {} {
     $cbr_ set random_ 0.001
     $ns_ at 0.0 "$cbr_ start"
 
+    set udp4 [$ns_ create-connection UDP $node_(s1) Null $node_(d0) 4]
+    set cbr4 [$udp4 attach-app Traffic/CBR]
+    $cbr4 set rate_ 0.1Mb
+    $cbr4 set random_ 0.005
+
+    set udp5 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 5]
+    set cbr5 [$udp5 attach-app Traffic/CBR]
+    $cbr5 set rate_ 0.1Mb
+    $cbr5 set random_ 0.005
+
+    $ns_ at 0.2 "$cbr1 start"
+    $ns_ at 0.1 "$cbr2_ start"
+    $ns_ at 0.3 "$cbr4 start"
+    $ns_ at 0.4 "$cbr5 start"
+
     $self statsDump $dumptime $fmon $packetsize_ 0
     # trace only the bottleneck link
     #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
     $ns_ at $stoptime1 "$self cleanupAll $testName_"
 }
-
 
 #
 # one complete test with CBR flows only, no pushback and no red-pd.
@@ -364,7 +336,7 @@ Test/cbrs instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ cbrs
-    $self next
+    $self next 0
 }
 Test/cbrs instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -383,26 +355,21 @@ Test/cbrs-acc instproc init {} {
     set test_ cbrs-acc
     Queue/RED/Pushback set rate_limiting_ 1
     Test/cbrs-acc instproc run {} [Test/cbrs info instbody run]
-    $self next
+    $self next 0
 }
 
 #
 # one complete test with CBR flows only, with ACC
-#
-Class Test/cbrs-acc1 -superclass TestSuite
-Test/cbrs-acc1 instproc init {} {
-    $self instvar net_ test_
-    set net_ net2 
-    set test_ cbrs-acc1
-    Queue/RED/Pushback set rate_limiting_ 1
-    $self next
-}
-
-#
-# ns test-suite-pushback.tcl cbrs-acc1 QUIET
 # CBR flows, ACC, flows starting and stopping 
 #
-Test/cbrs-acc1 instproc run {} {
+Class Test/cbrs1 -superclass TestSuite
+Test/cbrs1 instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ cbrs1
+    $self next 0
+}
+Test/cbrs1 instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_
     $self setTopo
     $self setup
@@ -411,11 +378,25 @@ Test/cbrs-acc1 instproc run {} {
     $ns_ run
 }
 
+#
+# one complete test with CBR flows only, with ACC
+# CBR flows, ACC, flows starting and stopping 
+#
+Class Test/cbrs-acc1 -superclass TestSuite
+Test/cbrs-acc1 instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ cbrs-acc1
+    Queue/RED/Pushback set rate_limiting_ 1
+    Test/cbrs-acc1 instproc run {} [Test/cbrs1 info instbody run]
+    $self next 0
+}
+
 TestSuite instproc setup1 {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
     $self setTopo
 
-    set stoptime 30.0
+    set stoptime 100.0
     #set dumptime 5.0
     set dumptime 1.0
     #set stoptime 5.0
@@ -448,7 +429,6 @@ TestSuite instproc setup1 {} {
     $cbr4_ set rate_ 0.1Mb
     $cbr4_ set random_ 0.005
 
-    $self enable_tracequeue $ns_
     $ns_ at 0.2 "$cbr1_ start"
     $ns_ at 0.1 "$cbr2_ start"
     $ns_ at 0.3 "$cbr3_ start"
@@ -506,7 +486,7 @@ Test/slowgrow instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ slowgrow
-    $self next
+    $self next 0
 }
 Test/slowgrow instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -526,7 +506,104 @@ Test/slowgrow-acc instproc init {} {
     set test_ slowgrow-acc
     Queue/RED/Pushback set rate_limiting_ 1
     Test/slowgrow-acc instproc run {} [Test/slowgrow info instbody run]
-    $self next
+    $self next 0
+}
+
+######################################################33
+
+TestSuite instproc setup2 {} {
+    $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
+    $self setTopo
+
+    set stoptime 100.0
+    set dumptime 1.0
+    set stoptime1 [expr $stoptime + 1.0]
+    set packetsize_ 200
+    Application/Traffic/CBR set random_ 0
+    Application/Traffic/CBR set packetSize_ $packetsize_
+
+    set slink [$ns_ link $node_(r0) $node_(r1)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
+
+    set udp1 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 1]
+    set cbr1 [$udp1 attach-app Traffic/CBR]
+    $cbr1 set rate_ 0.1Mb
+    $cbr1 set random_ 0.005
+
+    set udp2 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 2]
+    set cbr2_ [$udp2 attach-app Traffic/CBR]
+    $cbr2_ set rate_ 0.1Mb
+    $cbr2_ set random_ 0.005
+
+    # bad traffic
+    set udp [$ns_ create-connection UDP $node_(s0) Null $node_(d1) 3]
+    set cbr_ [$udp attach-app Traffic/CBR]
+    $cbr_ set rate_ 0.5Mb
+    $cbr_ set random_ 0.001
+    $ns_ at 0.0 "$cbr_ start"
+
+    set udp4 [$ns_ create-connection UDP $node_(s1) Null $node_(d0) 4]
+    set cbr4 [$udp4 attach-app Traffic/CBR]
+    $cbr4 set rate_ 0.1Mb
+    $cbr4 set random_ 0.005
+
+    set udp5 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 5]
+    set cbr5 [$udp5 attach-app Traffic/CBR]
+    $cbr5 set rate_ 0.1Mb
+    $cbr5 set random_ 0.005
+
+    $ns_ at 0.2 "$cbr1 start"
+    $ns_ at 0.1 "$cbr2_ start"
+    $ns_ at 0.3 "$cbr4 start"
+    $ns_ at 0.4 "$cbr5 start"
+
+    $self statsDump $dumptime $fmon $packetsize_ 0
+    # trace only the bottleneck link
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime1 "$self cleanupAll $testName_"
+}
+
+
+#
+# one complete test with CBR flows only, no pushback and no local ACC
+#
+Class Test/A_noACC -superclass TestSuite
+Test/A_noACC instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ A_noACC
+    $self next 0
+}
+Test/A_noACC instproc run {} {
+    $self instvar ns_ node_ testName_ net_ topo_
+    $self setTopo
+    $self setup2
+    $ns_ run
+}
+
+# With ACC only.
+Class Test/A_ACC -superclass TestSuite
+Test/A_ACC instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ A_ACC
+    Queue/RED/Pushback set rate_limiting_ 1
+    Agent/Pushback set enable_pushback_ 0
+    Test/A_ACC instproc run {} [Test/A_noACC info instbody run]
+    $self next 0
+}
+
+# With Pushback.
+Class Test/A_Push -superclass TestSuite
+Test/A_Push instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ A_Push
+    Queue/RED/Pushback set rate_limiting_ 1
+    Agent/Pushback set enable_pushback_ 1
+    Test/A_Push instproc run {} [Test/A_noACC info instbody run]
+    $self next 0
 }
 
 TestSuite runTest
