@@ -22,8 +22,8 @@
 # to run individual test:
 # ns test-suite-wireless-lan-newnode.tcl dsdv
 # ns test-suite-wireless-lan-newnode.tcl dsr
-# ns test-suite-wireless-lan.tcl wired-cum-wireless
-# ns test-suite-wireless-lan.tcl wireless-mip
+# ns test-suite-wireless-lan-newnode.tcl wired-cum-wireless
+# ns test-suite-wireless-lan-newnode.tcl wireless-mip
 # ....
 #
 # To view a list of available test to run with this script:
@@ -48,17 +48,10 @@ Class Test/dsdv-wired-cum-wireless -superclass TestSuite
 # simulation between a wired and a wireless domain through
 # gateways called base-stations.
 
-#Class Test/dsr-wired-cum-wireless -superclass TestSuite
-# same as above , only with DSR routing. see test-suite-wireless-lan.
-# txt for details
-
-#Class Test/dsdv-wireless-mip -superclass TestSuite
+Class Test/dsdv-wireless-mip -superclass TestSuite
 # Wireless Mobile IP model in which a mobilehost roams between 
 # a Home Agent and Foreign Agent. see test-suite-wireless-lan.txt for
 # details
-
-#Class Test/dsr-wireless-mip -superclass TestSuite
-# same as above, only with DSR routing
 
 # XXX The dsr version of the tests are not added to test-suite as their outputs are not consistent (events vary, even with the same random seed value) and thus couldnot be validated. -Padma, may 1999.
 
@@ -439,6 +432,124 @@ Test/dsdv-wired-cum-wireless instproc init {} {
 
 Test/dsdv-wired-cum-wireless instproc run {} {
     $self instvar ns_
+    puts "Starting Simulation..."
+    $ns_ run
+}
+
+Test/dsdv-wireless-mip instproc init {} {
+    global opt god_ node_ topo
+    $self instvar ns_ testName_
+    
+    set testName_ dsdv-wireless-mip
+    set opt(rp)            dsdv
+    set opt(sc)            "../mobility/scene/scen-3-test"
+    set opt(cp)            ""
+    set opt(nn)            3       ;#total no of wireless nodes
+    set opt(stop)          250.0
+    set num_wired_nodes    2
+    set num_wireless_nodes 1
+    #source ../lib/ns-wireless-mip.tcl
+    
+    $self next
+    
+    # set mobileIP flag
+    #Simulator set mobile_ip_ 1
+
+
+
+    ## setup the wired nodes
+    set temp {0.0.0 0.1.0}
+    for {set i 0} {$i < $num_wired_nodes} {incr i} {
+	set W($i) [$ns_ node [lindex $temp $i]] 
+    }
+
+    $ns_ node-config -mobileIP   ON
+ 
+    $ns_ node-config -adhocRouting DSDV \
+                         -llType $opt(ll) \
+                         -macType $opt(mac) \
+                         -ifqType $opt(ifq) \
+                         -ifqLen $opt(ifqlen) \
+                         -antType $opt(ant) \
+                         -propType $opt(prop) \
+                         -phyType $opt(netif) \
+                         -channelType $opt(chan) \
+                         -topoInstance $topo \
+		 	 -wiredRouting ON \
+                        -agentTrace ON \
+                         -routerTrace OFF \
+                         -macTrace OFF \
+                         -movementTrace OFF
+
+   
+    ## setup ForeignAgent and HomeAgent nodes
+    #set HA [create-base-station-node 1.0.0]
+    #set FA [create-base-station-node 2.0.0]
+    
+    set HA [$ns_ node 1.0.0]
+    set FA [$ns_ node 2.0.0]
+    $HA random-motion 0
+    $FA random-motion 0
+
+    #provide some co-ord (fixed) to these base-station nodes.
+    $HA set X_ 1.000000000000
+    $HA set Y_ 2.000000000000
+    $HA set Z_ 0.000000000000
+   
+    $FA set X_ 650.000000000000
+    $FA set Y_ 600.000000000000
+    $FA set Z_ 0.000000000000
+
+    
+    # create a mobilenode that would be moving between HA and FA.
+    # note address of MH indicates its in the same domain as HA.
+
+    $ns_ node-config -wiredRouting OFF 
+    set MH [$ns_ node 1.0.2]
+    set node_(0) $MH
+    #set MH [$opt(rp)-create-mobile-node 0 1.0.2]
+
+    set HAaddress [AddrParams set-hieraddr [$HA node-addr]]
+
+    [$MH set regagent_] set home_agent_ $HAaddress
+    
+    # movement of MH
+    $MH set Z_ 0.000000000000
+    $MH set Y_ 2.000000000000
+    $MH set X_ 2.000000000000
+    # starts to move towards FA
+    $ns_ at 100.000000000000 "$MH setdest 640.000000000000 610.000000000000 20.000000000000"
+    # goes back to HA
+    $ns_ at 200.000000000000 "$MH setdest 2.000000000000 2.000000000000 20.000000000000"
+    
+    # create links between wired and BaseStation nodes
+    $ns_ duplex-link $W(0) $W(1) 5Mb 2ms DropTail
+    $ns_ duplex-link $W(1) $HA 5Mb 2ms DropTail
+    $ns_ duplex-link $W(1) $FA 5Mb 2ms DropTail
+    
+    $ns_ duplex-link-op $W(0) $W(1) orient down
+    $ns_ duplex-link-op $W(1) $HA orient left-down
+    $ns_ duplex-link-op $W(1) $FA orient right-down
+    
+    # setup TCP connections between a wired node and the MH
+    puts "Loading connection pattern..."
+    $self create-tcp-traffic 0 $W(0) $MH 100.0
+
+    #
+    # Tell all the nodes when the simulation ends
+    #
+    for {set i 0} {$i < $num_wireless_nodes } {incr i} {
+	$ns_ at $opt(stop).0000010 "$node_($i) reset";
+    }
+    $ns_ at $opt(stop).0000010 "$HA reset";
+    $ns_ at $opt(stop).0000010 "$FA reset";
+    
+    $ns_ at $opt(stop).21 "$self finish"
+    $ns_ at $opt(stop).20 "puts \"NS EXITING...\" ; "
+}
+
+Test/dsdv-wireless-mip instproc run {} {
+    $self instvar ns_ 
     puts "Starting Simulation..."
     $ns_ run
 }
