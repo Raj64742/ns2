@@ -69,7 +69,7 @@ public:
 
 
 TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this), 
-			 NoFeedbacktimer_(this) 
+	 NoFeedbacktimer_(this), rate_(0), oldrate_(0), maxrate_(0)
 {
 	bind("packetSize_", &size_);
 	bind("df_", &df_);
@@ -85,8 +85,6 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("overhead_", &overhead_);
 	bind("ssmult_", &ssmult_);
 	bind("bval_", &bval_);
-	bind("aggr_incr_", &aggr_incr_);
-	bind("aggr_dec_", &aggr_dec_);
 	bind("ca_", &ca_);
 	bind("printStatus_", &printStatus_);
 }
@@ -260,22 +258,18 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	}
 
 	int x = 0 ;
-	if (flost <= prevflost && rtt_ <= prevrtt && tzero_ <= prevto && aggr_incr_) {
-		// By default, aggr_incr_ is 0 and this is not executed. 
+	if (rcvrate>rate_) {
 		increase_rate(flost);
 		x = 1 ;
+	} else {
+		decrease_rate ();		
+		x = 2 ;
 	}
-	else {
-		if (rcvrate>rate_) {
-			increase_rate(flost);
-			x = 1 ;
-		} else {
-			decrease_rate (flost);		
-			x = 2 ;
-		}
-	}
-	if (printStatus_)
+	if (printStatus_) {
 		printf("time: %5.2f rate: %5.2f\n", now, rate_);
+		double packetrate = rate_ * rtt_ / size_;
+		printf("time: %5.2f packetrate: %5.2f\n", now, packetrate);
+	}
 	prevflost = flost ; 
 	prevrtt = rtt_ ; 
 	prevto = tzero_ ;
@@ -370,16 +364,10 @@ void TfrcAgent::increase_rate (double p)
         last_change_ = now;
 }       
 
-void TfrcAgent::decrease_rate (double p) 
+void TfrcAgent::decrease_rate () 
 {
 	double now = Scheduler::instance().clock(); 
-	if (p > prevflost || aggr_dec_) {
-		rate_ = rcvrate;
-	}
-	else {
-		// By default, aggr_dec_ is 1, and this is not executed.
-		rate_ = rate_*prevrtt/rtt_ ; 
-	}
+	rate_ = rcvrate;
 	oldrate_ = rate_;
 	rate_change_ = RATE_DECREASE;
 	last_change_ = now;

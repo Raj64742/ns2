@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.188 2000/02/05 04:08:27 podolsky Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.189 2000/02/06 23:01:16 sfloyd Exp $
 
 
 #
@@ -188,25 +188,20 @@ Agent/TCP/RFC793edu set syn_               true
 Agent/TCP/RFC793edu set add793exponinc_    false
 
 Agent/TFRC set packetSize_ 1000
-Agent/TFRC set df_ 0.5
-Agent/TFRC set tcp_tick_ 0.1
-Agent/TFRC set ndatapack_ 0
-Agent/TFRC set srtt_init_ 0
-Agent/TFRC set rttvar_init_ 12
-Agent/TFRC set rtxcur_init_ 6.0
-Agent/TFRC set rttvar_exp_ 2
-Agent/TFRC set T_SRTT_BITS 3
-Agent/TFRC set T_RTTVAR_BITS 2
-Agent/TFRC set InitRate_ 1000
-Agent/TFRC set overhead_ 0 
-Agent/TFRC set ssmult_ 2 
-Agent/TFRC set rate_ 0.0 
-Agent/TFRC set oldrate_ 0.0 
-Agent/TFRC set maxrate_ 0.0 
-Agent/TFRC set bval_ 1
-Agent/TFRC set aggr_incr_ 0
-Agent/TFRC set aggr_dec_  1
-Agent/TFRC set ca_ 0;  #congestion avoidance
+Agent/TFRC set df_ 0.95 ;	# decay factor for accurate RTT estimate
+Agent/TFRC set tcp_tick_ 0.1 ;	
+Agent/TFRC set ndatapack_ 0 ;	# Number of packets sent
+Agent/TFRC set srtt_init_ 0 ;	# Variables for tracking RTT	
+Agent/TFRC set rttvar_init_ 12  
+Agent/TFRC set rtxcur_init_ 6.0	
+Agent/TFRC set rttvar_exp_ 2	
+Agent/TFRC set T_SRTT_BITS 3	
+Agent/TFRC set T_RTTVAR_BITS 2	
+Agent/TFRC set InitRate_ 1000 ;	# Initial send rate	
+Agent/TFRC set overhead_ 0 ;	# If > 0, dither outgoing packets
+Agent/TFRC set ssmult_ 2 ; 	# Rate of increase during slow-start:
+Agent/TFRC set bval_ 1 ;	# Value of B for TCP formula
+Agent/TFRC set ca_ 1 ; 	 	# Enable Sqrt(RTT) congestion avoidance
 Agent/TFRC set printStatus_ 0
 
 Agent/TFRCSink set packetSize_ 40
@@ -214,9 +209,9 @@ Agent/TFRCSink set InitHistorySize_ 100000
 Agent/TFRCSink set NumFeedback_ 1 
 Agent/TFRCSink set AdjustHistoryAfterSS_ 1
 Agent/TFRCSink set NumSamples_ -1
-Agent/TFRCSink set discount_ 0
+Agent/TFRCSink set discount_ 1;	# History Discounting
 Agent/TFRCSink set printLoss_ 0
-Agent/TFRCSink set smooth_ 0
+Agent/TFRCSink set smooth_ 1 ;	# smoother Average Loss Interval
 
 if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1; # ACK frequency

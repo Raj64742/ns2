@@ -30,15 +30,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.21 2000/02/01 20:08:18 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.22 2000/02/06 23:01:17 sfloyd Exp $
 #
 
 source misc_simple.tcl
 Agent/TFRC set df_ 0.25
 Agent/TFRC set ca_ 0
-Agent/TFRC set aggr_incr_ 0
-Agent/TFRC set aggr_dec_  1
-Agent/TFRC set smooth_ 0
+Agent/TFRCSink set smooth_ 0
+Agent/TFRCSink set discount_ 0
 
 Agent/TCP set window_ 100
 # Uncomment the line below to use a random seed for the

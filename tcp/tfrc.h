@@ -121,7 +121,7 @@ public:
 	void stop();
 	void update_rtt(double tao, double now); 
 	void increase_rate(double p);
-	void decrease_rate(double p);
+	void decrease_rate();
 	void slowstart();
 	void reduce_rate_on_no_feedback();
 
@@ -168,14 +168,12 @@ protected:
 	double ssmult_;		// during slow start, increase rate by this 
 				//  factor every rtt
 	int bval_;		// value of B for the formula
-	double overhead_;	// if > 0, dither outgoing packets by 50% 
+	double overhead_;	// if > 0, dither outgoing packets 
 	TracedInt ndatapack_;	// number of packets sent
 	int UrgentFlag;		// urget flag
 	int active_;		// have we shut down? 
 	int round_id ;		// round id
 	
-	int aggr_dec_ ; 
-	int aggr_incr_ ; 
 	double prevflost, prevrtt, prevto ; // previous values of flost, 
 					    // rtt and tzero
 
