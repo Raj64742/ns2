@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.42 2001/08/15 00:37:12 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.43 2001/08/16 00:07:03 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -173,6 +173,7 @@ class FullTcpAgent : public TcpAgent {
 	virtual int build_options(hdr_tcp*);	// insert opts, return len
 	virtual int reass(Packet*);		// reassemble: pass to ReassemblyQueue
 	virtual void process_sack(hdr_tcp*);	// process a SACK
+	virtual int send_allowed(int);		// ok to send this seq#?
 	virtual int nxt_tseq() {
 		return t_seqno_;		// next seq# to send
 	}
@@ -180,7 +181,7 @@ class FullTcpAgent : public TcpAgent {
 		if (seq == t_seqno_)
 			t_seqno_ += amt;
 		pipe_ += amt;
-//printf("%f: sent(): pipe bumped by %d, now %d\n", now(), amt, pipe_);
+//printf("%f: sent(seq:%d): pipe bumped by %d, now %d\n", now(), seq, amt, pipe_);
 	}
 	virtual void oldack() {			// what to do on old ack
 		dupacks_ = 0;
@@ -264,6 +265,7 @@ protected:
 	virtual void timeout_action();
 	virtual int nxt_tseq();
 	virtual int hdrsize(int nblks);
+	virtual int send_allowed(int);
 	virtual void sent(int seq, int amt) {
 		if (seq == h_seqno_)
 			h_seqno_ += amt;

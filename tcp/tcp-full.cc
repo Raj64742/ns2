@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.92 2001/08/15 00:38:21 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.93 2001/08/16 00:08:51 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -437,15 +437,7 @@ FullTcpAgent::reass(Packet* pkt)
 		abort();
 	}
 
-//printf("%f about to add(%d,%d)\n",
-//now(), start, end);
-//rq_.dumplist();
-
 	rval = rq_.add(start, end, tiflags, 0);
-
-//printf("%f after add(%d,%d)\n",
-//now(), start, end);
-//rq_.dumplist();
 
 present:
 	 //
@@ -764,10 +756,6 @@ send:
 		}
 	}
 
-//if (fin)
-//printf("%f %s: sent FIN, seq: %d, maxseq now: %d\n",
-//now(), name(), seqno, int(maxseq_));
-
 	/*
 	 * Set retransmit timer if not currently set,
 	 * and not doing an ack or a keep-alive probe.
@@ -789,43 +777,43 @@ send:
 }
 
 /*
- * Try to send as much data as the window will allow.  The link layer will 
- * do the buffering; we ask the application layer for the size of the packets.
+ *
+ * send_much: send as much data as we are allowed to.  This is
+ * controlled by the "pipectrl_" variable.  If pipectrl_ is set
+ * to FALSE, then we are working as a normal window-based TCP and
+ * we are allowed to send whatever the window allows.
+ * If pipectrl_ is set to TRUE, then we are allowed to send whatever
+ * pipe_ allows us to send.  One tricky part is to make sure we
+ * do not overshoot the receiver's advertised window if we are
+ * in (pipectrl_ == TRUE) mode.
  */
+  
 void
 FullTcpAgent::send_much(int force, int reason, int maxburst)
 {
-	/*
-	 * highest_ack is essentially "snd_una" in real TCP
-	 *
-	 * loop while we are in-window (seqno <= (highest_ack + win))
-	 * and there is something to send (t_seqno_ < curseq_+iss_)
-	 */
-	int win = window() * maxseg_;	// window() in pkts
-	int npackets = 0;
-	int topwin = curseq_; // 1 seq number past the last byte we can send
-	if ((topwin > highest_ack_ + win) || infinite_send_)
-		topwin = highest_ack_ + win;
+	// highest_ack is essentially "snd_una" in real TCP
+	// window() is MIN(cwnd,rwnd) in pkts
+	// win will be window() scaled to byte units
 
+	int win = window() * maxseg_;
+	int npackets = 0;	// sent so far
+	int topwin = curseq_; // 1 seq number past the last byte we can send
+
+//	if ((topwin > highest_ack_ + win) || infinite_send_)
+//		topwin = highest_ack_ + win;
+
+//if ((int(t_seqno_)) > 1)
 //printf("%f: send_much(f:%d, win:%d, pipectrl:%d, pipe:%d, t_seqno:%d, topwin:%d\n",
 //now(), force, win, pipectrl_, pipe_, int(t_seqno_), topwin);
 
 	if (!force && (delsnd_timer_.status() == TIMER_PENDING))
 		return;
 
-	/*
-	 * note that if output() doesn't actually send anything, we can
-	 * loop forever here
-	 */
+	while (1) {
 
-	while (force ||
-	      (pipectrl_ ? (pipe_ < win) : (t_seqno_ < topwin))) {
+//while (force ||
+//      (pipectrl_ ? (pipe_ < win) : (t_seqno_ < topwin))) {
 
-		if (!force && overhead_ != 0 &&
-		    (delsnd_timer_.status() != TIMER_PENDING)) {
-			delsnd_timer_.resched(Random::uniform(overhead_));
-			return;
-		}
 
 		/*
 		 * note that if output decides to not actually send
@@ -835,6 +823,14 @@ FullTcpAgent::send_much(int force, int reason, int maxburst)
 		 */
 		int amt;
 		int seq = nxt_tseq();
+		if (!force && !send_allowed(seq))
+			break;
+		// Q: does this need to be here too?
+		if (!force && overhead_ != 0 &&
+		    (delsnd_timer_.status() != TIMER_PENDING)) {
+			delsnd_timer_.resched(Random::uniform(overhead_));
+			return;
+		}
 		if ((amt = foutput(seq, reason)) <= 0)
 			break;
 		if ((outflags() & TH_FIN))
@@ -847,6 +843,37 @@ FullTcpAgent::send_much(int force, int reason, int maxburst)
 			break;
 	}
 	return;
+}
+
+/*
+ * base TCP: we are allowed to send a sequence number if it
+ * is in the window
+ */
+int
+FullTcpAgent::send_allowed(int seq)
+{
+        int win = window() * maxseg_;
+        int topwin = curseq_; // 1 seq number past the last byte we can send
+
+        if ((topwin > highest_ack_ + win) || infinite_send_)
+                topwin = highest_ack_ + win; 
+
+	return (seq < topwin);
+}
+
+/*
+ * SACK TCP: either we are in window mode or pipe control mode
+*/
+int
+SackFullTcpAgent::send_allowed(int seq)
+{
+	// not in pipe control, so use regular control
+	if (!pipectrl_)
+		return (FullTcpAgent::send_allowed(seq));
+	// in pipe control, but seq # overshoots receiver's advertised win
+	if (seq > (highest_ack_ + int(wnd_)))
+		return FALSE;
+	return (pipe_ < int(cwnd_));
 }
 
 /*
@@ -884,10 +911,6 @@ FullTcpAgent::newack(Packet* pkt)
 
 	register int ackno = tcph->ackno();
 	int progress = (ackno > highest_ack_);
-
-//if (state_ > TCPS_ESTABLISHED)
-//printf("%f %s: newack: %d, state %d, maxseq:%d\n", now(), name(),
-//ackno, int(state_), int(maxseq_));
 
 	if (progress) {
 		pipe_ -= (ackno - highest_ack_);
@@ -2223,8 +2246,6 @@ FullTcpAgent::dooptions(Packet* pkt)
 
 void FullTcpAgent::newstate(int ns)
 {
-//printf("%f %s: newstate (%d)->(%d)\n",
-//now(), name(), state_, ns);
 	state_ = ns;
 }
 
@@ -2442,10 +2463,12 @@ SackFullTcpAgent::dupack_action()
         int recovered = (highest_ack_ > recover_);
 
 	fastrecov_ = TRUE;
-	pipe_ = maxseq_ - highest_ack_ - (dupacks_ + 1)*maxseg_;
+//pipe_ = maxseq_ - highest_ack_ - (dupacks_ + 1)*maxseg_;
 
-//printf("%f: DUPACK-ACTION:pipe_:%d\n",
-//now(), pipe_);
+	pipe_ = maxseq_ - highest_ack_ - sq_.total();
+
+//printf("%f: DUPACK-ACTION:pipe_:%d, sq-total:%d\n",
+//now(), pipe_, sq_.total());
 
         if (recovered || (!bug_fix_ && !ecn_) ||
             last_cwnd_action_ == CWND_ACTION_DUPACK) {
@@ -2484,6 +2507,9 @@ full_sack_action:
 	int amt = fast_retransmit(highest_ack_);
 	h_seqno_ = highest_ack_ + amt;
 
+//printf("%f: FAST-RTX seq:%d, h_seqno_ is now:%d, pipe:%d, cwnd:%d, recover:%d\n",
+//now(), int(highest_ack_), h_seqno_, pipe_, int(cwnd_), recover_);
+
 //send_much(0, REASON_DUPACK, maxburst_);
 
         return;
@@ -2493,8 +2519,6 @@ void
 SackFullTcpAgent::pack_action(Packet* p)
 {
 	if (!sq_.empty() && sack_min_ < highest_ack_) {
-//printf("%f SFTCP<pack>: sack_min_ (%d) being reset to highest_ack_(%d)\n",
-//now(), sack_min_, int(highest_ack_));
 		sack_min_ = highest_ack_;
 		sq_.cleartonxt();
 	}
@@ -2504,9 +2528,9 @@ SackFullTcpAgent::pack_action(Packet* p)
 void
 SackFullTcpAgent::ack_action(Packet* p)
 {
+//printf("%f: exiting fast recovery, recover:%d\n",
+//now(), recover_);
 	pipectrl_ = FALSE;
-//printf("%f SFTCP: sack_min_ (%d) being reset to highest_ack_(%d)\n",
-//now(), sack_min_, int(highest_ack_));
 	if (!sq_.empty() && sack_min_ < highest_ack_) {
 		sack_min_ = highest_ack_;
 		sq_.cleartonxt();
@@ -2674,6 +2698,7 @@ SackFullTcpAgent::nxt_tseq()
 	int seq = h_seqno_;
 
 	if (!in_recovery) {
+//if (int(t_seqno_) > 1)
 //printf("%f: non-recovery nxt_tseq called w/t_seqno:%d\n",
 //now(), int(t_seqno_));
 //sq_.dumplist();
@@ -2685,6 +2710,7 @@ SackFullTcpAgent::nxt_tseq()
 			// after the seq# we are about
 			// to send
 
+//if (int(t_seqno_) > 1)
 //printf("%f: recovery nxt_tseq called w/t_seqno:%d, seq:%d\n",
 //now(), int(t_seqno_), seq);
 //sq_.dumplist();
@@ -2696,6 +2722,7 @@ SackFullTcpAgent::nxt_tseq()
 		// from nexthole()
 		if (fcnt >= SACKTHRESH) {
 
+//if (int(t_seqno_) > 1)
 //printf("%f: nxt_tseq<hole> returning %d\n",
 //now(), int(seq));
 			// adjust h_seqno, as we may have
@@ -2707,6 +2734,7 @@ SackFullTcpAgent::nxt_tseq()
 		} else if (fcnt <= 0)
 			break;
 	}
+//if (int(t_seqno_) > 1)
 //printf("%f: nxt_tseq<top> returning %d\n",
 //now(), int(t_seqno_));
 	return (t_seqno_);
