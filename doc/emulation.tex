@@ -96,10 +96,10 @@ In such cases, traffic passing through the simulated network will
 not be delayed by the proper amount of time.
 Enabling the real-time scheduler requires the
 following specification at the beginning of a simulation script:
-\begin{verbatim}
+\begin{program}
     set ns [new Simulator]
     $ns use-scheduler RealTime
-\end{verbatim}
+\end{program}
 
 \section{Tap Agents}
 
@@ -279,8 +279,8 @@ It was run on a multi-homed machine, and the simulator essentially
 provides routing capability by reading frames from one interface,
 passing them through the simulated network, and writing them
 out via the raw IP network object:
-\begin{verbatim}
 
+\begin{program}
         set me "10.0.1.1"
         set ns [new Simulator]
 
@@ -349,7 +349,7 @@ out via the raw IP network object:
 
         puts "okey"
         $ns run
-\end{verbatim}
+\end{program}
 
 
 \section{Commands at a glance}

@@ -130,6 +130,7 @@ sub pre_process_file
 	    s/{\s*\\cf\s*(\#?.*)}/$1/g;
 	    s/\\([{|}])/$1/g;
 	    s/\\\*(.*)\*\//\/\*$1\//g;
+	    s/([<>_\$])/\\$1/g;
 	    if (/\\end\s*{(program)}/) {
 		$program_env = 0;
 		s/$1/verbatim/g;

@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.14 2000/07/08 00:01:41 johnh Exp $
+# $Id: Makefile,v 1.15 2000/07/08 00:38:18 johnh Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -56,7 +56,7 @@ everything.html: $(FILES)
 	mkdir $(L2H_WORKING_DIR)
 	$(CP) -r *.sty *.tex *.aux *.bib *.bbl *.log figures $(L2H_WORKING_DIR)
 	cd $(L2H_WORKING_DIR); 	../$(PRE_PROCESS) .; \
-		$(LATEX2HTML) everything.tex ; cd everything ; ../../$(POST_PROCESS) ;
+		$(LATEX2HTML) -show_section_numbers everything.tex ; cd everything ; ../../$(POST_PROCESS) ;
 	$(RM) -rf $(L2H_WORKING_DIR)/everything/*.org
 	$(CP) -rf $(L2H_WORKING_DIR)/everything/* .
 
