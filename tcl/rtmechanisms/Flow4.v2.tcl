@@ -1,6 +1,5 @@
 source Flows.v2.tcl
 source Setred.v2.tcl
-source flowmon.tcl
 #
 set flowfile fairflow.tr
 set flowgraphfile fairflow.xgr
@@ -13,7 +12,6 @@ proc traffic1 {} {
     global s1 s2 r1 r2 s3 s4
     new_tcp 1.0 $s1 $s3 100 1 1 1000
     new_tcp 4.2 $s2 $s4 100 2 0 50
-    new_cbr 18.4 $s1 $s4 190 0.00003 3
     new_cbr 18.4 $s1 $s4 190 0.003 3
     new_tcp 65.4 $s1 $s4 4 4 0 2000
     new_tcp 100.2 $s3 $s1 8 5 0 1000
