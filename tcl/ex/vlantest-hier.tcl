@@ -1,7 +1,5 @@
-#source /home/yuri/vint/ns-2/tcl/lan/vlan.tcl
-
 set opt(tr)	out
-set opt(namtr)	"vlantest.nam"
+set opt(namtr)	"vlantest-hier.nam"
 set opt(seed)	0
 set opt(stop)	.5
 set opt(node)	3
@@ -50,21 +48,30 @@ proc create-topology {} {
 	global ns opt
 	global lan node source node0 nodex
 
+	$ns set-address-format hierarchical
 	set num $opt(node)
+
+	AddrParams set domain_num_ 1
+	lappend cluster_num 3
+	AddrParams set cluster_num_ $cluster_num
+	lappend eilastlevel [expr $num + 1] 1 1
+	AddrParams set nodes_num_ $eilastlevel
+
 	for {set i 0} {$i < $num} {incr i} {
-		set node($i) [$ns node]
+		set node($i) [$ns node 0.0.[expr $i + 1]]
 		lappend nodelist $node($i)
 	}
 
 	set lan [new LanNode $ns -bw $opt(bw) -delay $opt(delay) \
 			-llType $opt(ll) -ifqType $opt(ifq) \
-			-macType $opt(mac) -chanType $opt(chan)]
+			-macType $opt(mac) -chanType $opt(chan) -address "0.0.0"]
 	$lan addNode $nodelist 20Mb 2ms
 
-	set node0 [$ns node]
+	$lan cost 2
+	set node0 [$ns node "0.1.0"]
 	$ns duplex-link $node0 $node(1) 20Mb 2ms DropTail
 	$ns duplex-link-op $node0 $node(1) orient right
-	set nodex [$ns node]
+	set nodex [$ns node "0.2.0"]
 	$ns duplex-link $nodex $node(2) 20Mb 2ms DropTail
 	$ns duplex-link-op $nodex $node(2) orient left
 }
