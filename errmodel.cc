@@ -33,12 +33,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.28 1997/12/17 19:48:48 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.29 1998/01/23 21:08:33 gnguyen Exp $ (UCB)";
 #endif
 
 #include "delay.h"
 #include "packet.h"
-#include "ll.h"
 #include "mac.h"
 #include "errmodel.h"
 #include "srm-headers.h"		// to get the hdr_srm structure

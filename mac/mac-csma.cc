@@ -35,14 +35,13 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.16 1998/01/13 03:29:24 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.17 1998/01/23 21:08:34 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
 #include "random.h"
 #include "channel.h"
 #include "mac-csma.h"
-
 
 static class MacCsmaClass : public TclClass {
 public:

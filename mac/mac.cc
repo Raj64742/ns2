@@ -35,13 +35,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.18 1998/01/23 08:13:48 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.19 1998/01/23 21:08:35 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
 #include "channel.h"
 #include "mac.h"
-
 
 int hdr_mac::offset_;
 

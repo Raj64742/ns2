@@ -36,15 +36,13 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.17 1998/01/13 03:32:27 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.18 1998/01/23 21:08:32 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
 #include "trace.h"
-#include "ll.h"
 #include "mac.h"
 #include "channel.h"
-
 
 static class ChannelClass : public TclClass {
 public:
