@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.14 2003/03/28 02:50:16 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.15 2003/06/03 22:57:59 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -332,6 +332,39 @@ Test/delayPacket instproc init {} {
 	Test/delayPacket instproc run {} [Test/dropPacket info instbody run ]
 	$self next pktTraceFile
 }
+
+###################################################
+## Two delayed packets with different delays
+###################################################
+Class Test/delayPacket1 -superclass TestSuite
+Test/delayPacket1 instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	delayPacket1
+	Agent/TCP set minrto_ 1
+	$self next pktTraceFile
+}
+Test/delayPacket1 instproc run {} {
+	global wrap wrap1
+        $self instvar ns_ node_ testName_
+	$self setTopo
+	$self June01defaults
+
+	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 1]
+        $tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.0 "$ftp1 start"
+
+        $self dropPkts [$ns_ link $node_(r1) $node_(k1)] 1 {20} true 0.3
+	$self dropPkts [$ns_ link $node_(r1) $node_(k1)] 1 {22} true 0.4
+	# dropPkts is in support.tcl
+
+        $self tcpDump $tcp1 5.0
+
+	$ns_ at 5.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
 
 TestSuite runTest
 
