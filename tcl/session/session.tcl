@@ -1,9 +1,13 @@
 Class SessionSim -superclass Simulator
 
-SessionSim instproc node {} {
-    $self instvar Node_
+SessionSim instproc node { {shape "circle"} {color "black"} } {
+    $self instvar Node_ namtraceAllFile_
     set node [new SessionNode]
     set Node_([$node id]) $node
+
+	if [info exists namtraceAllFile_] {
+		$node trace $namtraceAllFile_ $shape $color
+	}
     return $node
 }
 

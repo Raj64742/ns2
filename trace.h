@@ -30,15 +30,16 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.12 1997/09/08 22:01:27 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.13 1997/09/12 01:31:23 haoboy Exp $
  */
 
 #ifndef ns_trace_h
 #define ns_trace_h
 
+#define NAM_TRACE
+
 #include "packet.h"
 #include "connector.h"
-
 
 class Trace : public Connector {
  protected:
@@ -46,6 +47,10 @@ class Trace : public Connector {
         nsaddr_t src_;
         nsaddr_t dst_;
         Tcl_Channel channel_;
+#ifdef NAM_TRACE
+	Tcl_Channel namChan_;
+	char nwrk_ [256];
+#endif
         int callback_;
         char wrk_[256];
         void format(int tt, int s, int d, Packet* p);
@@ -56,13 +61,26 @@ class Trace : public Connector {
         ~Trace();
         int command(int argc, const char*const* argv);
         void recv(Packet* p, Handler*);
-	virtual void trace(TracedVar*);
+	void trace(TracedVar*);
         void dump();
         inline char* buffer() { return (wrk_); }
+
+#ifdef NAM_TRACE
+	virtual void write_nam_trace(const char *s);
+	void namdump();
+#endif
 
 	int off_ip_;
 	int off_tcp_;
 	int off_rtp_;
+};
+
+class DequeTrace : public Trace {
+public:
+	DequeTrace(int type) : Trace(type) {}
+	~DequeTrace();
+
+	void recv(Packet* p, Handler*);
 };
 
 #endif

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.13 1997/08/13 23:58:13 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.h,v 1.14 1997/09/12 01:31:22 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_agent_h
@@ -40,6 +40,8 @@
 #include "packet.h"
 #include "connector.h"
 #include "timer-handler.h"
+#include <tracedvar.h>
+#include <assert.h>
 
 #define TIMER_IDLE 0
 #define TIMER_PENDING 1
@@ -47,6 +49,16 @@
 /* 
  * Note that timers are now implemented using timer-handler.{cc,h}
  */
+
+#define TRACEVAR_MAXVALUELENGTH 128
+
+// store old value of traced vars
+// work only for TracedVarTcl
+struct OldValue {
+	TracedVar *var_;
+	char val_[TRACEVAR_MAXVALUELENGTH];
+	struct OldValue *next_;
+};
 
 class Agent : public Connector {
  public:
@@ -76,6 +88,16 @@ int class_;		/* class to place in packet header */
 
 	static int uidcnt_;
 	int off_ip_;
+
+	char *traceName_;        // name used in agent traces
+	OldValue *oldValueList_; 
+	virtual void trace(TracedVar *v);
+	void deleteAgentTrace();
+	void addAgentTrace(const char *name);
+	OldValue* lookupOldValue(TracedVar *v);
+	void insertOldValue(TracedVar *v, const char *value);
+ private:
+	void flushAVar(TracedVar *v);
 };
 
 // Local Variables:

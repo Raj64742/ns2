@@ -36,12 +36,15 @@ Class rtQueue
 Simulator instproc rtmodel { dist parms args } {
     set ret ""
     if { [rtModel info subclass rtModel/$dist] != "" } {
-	$self instvar traceAllFile_ rtModel_
+	$self instvar traceAllFile_ rtModel_ namtraceAllFile_
 	set ret [eval new rtModel/$dist $self]
 	eval $ret set-elements $args
 	eval $ret set-parms $parms
 	if [info exists traceAllFile_] {
 	    $ret trace $self $traceAllFile_
+	}
+	if [info exists namtraceAllFile_] {
+		$ret trace $self $namtraceAllFile_ "nam"
 	}
 	if [info exists rtModel_] {
 	    lappend rtModel_ $ret
@@ -281,10 +284,10 @@ rtModel instproc notify {} {
     [$ns_ get-routelogic] notify
 }
 
-rtModel instproc trace { ns f } {
+rtModel instproc trace { ns f {op ""} } {
     $self instvar links_
     foreach l [array names links_] {
-	$links_($l) trace-dynamics $ns $f
+	$links_($l) trace-dynamics $ns $f $op
     }
 }
 

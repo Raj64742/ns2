@@ -30,9 +30,8 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.9 1997/08/14 18:20:48 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.10 1997/09/12 01:31:27 haoboy Exp $
 #
-
 
 Trace instproc init type {
 	$self next $type
@@ -47,8 +46,10 @@ Trace instproc format args {
 
 	$self instvar type_ fp_ src_ dst_
 
-	set ns [Simulator instance]
-	puts $fp_ [eval list $type_ [$ns now] [eval concat $args]]
+	if [info exists fp_] {
+		set ns [Simulator instance]
+		puts $fp_ [eval list $type_ [$ns now] [eval concat $args]]
+	}
 }
 
 Trace instproc attach fp {
@@ -68,9 +69,13 @@ Trace/Enque instproc init {} {
 	$self next "+"
 }
 
-Class Trace/Deque -superclass Trace
 Trace/Deque instproc init {} {
 	$self next "-"
+}
+
+Class Trace/Recv -superclass Trace 
+Trace/Recv instproc init {} {
+	$self next "r"
 }
 
 Class Trace/Drop -superclass Trace
@@ -83,6 +88,8 @@ Trace/Generic instproc init {} {
 	$self next "v"
 }
 
+# var trace shouldn't be derived here because it shouldn't be a connector
+# it's here only for backward compatibility
 Class Trace/Var -superclass Trace
 Trace/Var instproc init {} {
 	$self next "f"

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.50 1997/09/11 00:36:37 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.51 1997/09/12 01:31:25 haoboy Exp $
 #
 
 #
@@ -69,6 +69,7 @@ source ns-trace.tcl
 source ns-agent.tcl
 source ns-random.tcl
 source ns-route.tcl
+source ns-namsupp.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mlink.tcl
@@ -134,14 +135,18 @@ Simulator set EnableMcast_ 0
 Simulator set McastShift_ 15
 Simulator set McastAddr_ 0x8000
 
-Simulator instproc node {} {
-	$self instvar Node_
+Simulator instproc node { {shape "circle"} {color "black"} } {
+	$self instvar Node_ namtraceAllFile_
 	set node [new Node]
-        set Node_([$node id]) $node
+	set Node_([$node id]) $node
         if [Simulator set EnableMcast_] {
 	    $node enable-mcast $self
 	}
-        return $node
+
+	if [info exists namtraceAllFile_] {
+		$node trace $namtraceAllFile_ $shape $color
+	}
+	return $node
 }
 
 Simulator instproc now {} {
@@ -184,7 +189,6 @@ Simulator instproc halt {} {
 	$self instvar scheduler_
 	$scheduler_ halt
 }
-
 
 Simulator instproc clearMemTrace {} {
         $self instvar scheduler_
@@ -252,14 +256,28 @@ Simulator instproc simplex-link { n1 n2 bw delay arg } {
 	if { $type == "RED" } {
 		$q link [$link_($sid:$did) set link_]
 	}
+
+	$self instvar namtraceAllFile_
 	if [info exists traceAllFile_] {
 		$self trace-queue $n1 $n2 $traceAllFile_
 	}
+	if [info exists namtraceAllFile_] {
+		$self namtrace-queue $n1 $n2 $namtraceAllFile_
+	}
 }
 
-Simulator instproc duplex-link { n1 n2 bw delay type } {
+Simulator instproc duplex-link { n1 n2 bw delay type {ori "left"} {q_clrid 0} } {
 	$self simplex-link $n1 $n2 $bw $delay $type
 	$self simplex-link $n2 $n1 $bw $delay $type
+
+	#
+	# make a duplex link in nam
+	#
+	$self instvar namtraceAllFile_
+	if [info exists namtraceAllFile_] {
+		puts $namtraceAllFile_ "l -t* -s[$n1 id] -d[$n2 id] -SUP -r$bw -D$delay -o$ori"
+		puts $namtraceAllFile_ "q -t* -s[$n1 id] -d[$n2 id] -a$q_clrid"
+	}
 }
 
 Simulator instproc flush-trace {} {
@@ -271,20 +289,30 @@ Simulator instproc flush-trace {} {
 	}
 }
 
+Simulator instproc namtrace-all file {
+	$self instvar namtraceAllFile_
+	set namtraceAllFile_ $file
+}
+
+Simulator instproc namtrace-queue { n1 n2 file } {
+	$self instvar link_
+	$link_([$n1 id]:[$n2 id]) nam-trace $self $file
+}
+
 Simulator instproc trace-all file {
 	$self instvar traceAllFile_
 	set traceAllFile_ $file
 }
 
 # you can pass in {} as a null file
-Simulator instproc create-trace { type file src dst } {
+Simulator instproc create-trace { type file src dst {op ""} } {
 	$self instvar alltrace_
 	set p [new Trace/$type]
 	$p set src_ [$src id]
 	$p set dst_ [$dst id]
 	lappend alltrace_ $p
 	if {$file != ""} {
-		$p attach $file
+		$p ${op}attach $file		
 	}
 	return $p
 }
@@ -413,6 +441,7 @@ Classifier instproc no-slot slot {
 	exit 1
 }
 
+
 #
 # Other classifier methods overload the instproc-likes to track 
 # and return the installed objects.
@@ -434,7 +463,6 @@ Classifier instproc adjacents {} {
     return [array get elements_]
 }
 
-
 #
 # To create: multi-access lan, and 
 #            links with interface labels
@@ -451,7 +479,7 @@ Simulator instproc simplex-link-of-interfaces { f1 f2 bw delay type } {
         $n1 add-neighbor $n2
 }
 
-Simulator instproc duplex-link-of-interfaces { n1 n2 bw delay type } {
+Simulator instproc duplex-link-of-interfaces { n1 n2 bw delay type {ori "left"} {q_clrid 0} } {
         $self instvar traceAllFile_
         set f1 [new DuplexNetInterface]
         $n1 addInterface $f1
@@ -460,15 +488,29 @@ Simulator instproc duplex-link-of-interfaces { n1 n2 bw delay type } {
         $self simplex-link-of-interfaces $f1 $f2 $bw $delay $type
         $self simplex-link-of-interfaces $f2 $f1 $bw $delay $type
 
-        $self instvar traceAllFile_
-        if [info exists traceAllFile_] {
-                $self trace-queue $n1 $n2 $traceAllFile_
+	#
+	# XXX we should have simplex/duplex representation for queue in nam?
+	#
+	$self instvar namtraceAllFile_
+	if [info exists namtraceAllFile_] {
+		puts $namtraceAllFile_ "l -t* -s[$n1 id] -d[$n2 id] -SUP -r$bw -D$delay -o$ori"
+		puts $namtraceAllFile_ "q -t* -s[$n1 id] -d[$n2 id] -a$q_clrid"
+	}
+
+
+	$self instvar traceAllFile_ namtraceAllFile_
+	if [info exists traceAllFile_] {
+		$self trace-queue $n1 $n2 $traceAllFile_
                 $self trace-queue $n2 $n1 $traceAllFile_
-        }
+	}
+	if [info exists namtraceAllFile_] {
+		$self namtrace-queue $n1 $n2 $namtraceAllFile_
+                $self namtrace-queue $n2 $n1 $namtraceAllFile_
+	}
 }
 
 Simulator instproc multi-link { nodes bw delay type } {
-	$self instvar link_ traceAllFile_
+	$self instvar link_ traceAllFile_ 
 	# set multiLink [new PhysicalMultiLink $nodes $bw $delay $type]
 	set multiLink [new NonReflectingMultiLink $nodes $bw $delay $type]
 	# set up dummy links for unicast routing
@@ -485,28 +527,32 @@ Simulator instproc multi-link { nodes bw delay type } {
 				if [info exists traceAllFile_] {
 					$self trace-queue $n2 $n $traceAllFile_
 				}
+				$self instvar namtraceAllFile_
+				if [info exists namtraceAllFile_] {
+					$self namtrace-queue $n2 $n $namtraceAllFile_
+				}
 			}
 		}
 	}
 }
 
 Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
-        $self instvar link_ traceAllFile_
-                                
+        $self instvar link_ traceAllFile_ namtraceAllFile_
+        
         # create the interfaces
         set ifs ""
         foreach n $nodes {
                 set f [new DuplexNetInterface]
                 $n addInterface $f
-              lappend ifs $f   
+                lappend ifs $f
         }
         set multiLink [new NonReflectingMultiLink $ifs $bw $delay $type]
         # set up dummy links for unicast routing
         foreach f $ifs {
                 set n [$f getNode]
                 set q [$multiLink getQueue $n]
-                set l [$multiLink getDelay $n]
-                set did [$n id] 
+                set l [$multiLink getDelay $n]  
+                set did [$n id]
                 foreach f2 $ifs {
                         set n2 [$f2 getNode]
                         if { [$n2 id] != $did } {
@@ -516,6 +562,9 @@ Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
                            if [info exists traceAllFile_] {
                                      $self trace-queue $n2 $n $traceAllFile_
                            }
+			   if [info exists namtraceAllFile_] {
+				   $self namtrace-queue $n2 $n $namtraceAllFile_
+			   }
                         }
                 }
         }

@@ -32,8 +32,8 @@
  */
 
 #ifndef lint
-static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.18 1997/08/12 22:22:47 gnguyen Exp $ (LBL)";
+static char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.19 1997/09/12 01:31:22 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -62,6 +62,9 @@ public:
 
 Trace::Trace(int type)
 	: Connector(), type_(type), src_(0), dst_(0), channel_(0), callback_(0)
+#ifdef NAM_TRACE
+	, namChan_(0)
+#endif
 {
 	bind("src_", (int*)&src_);
 	bind("dst_", (int*)&dst_);
@@ -88,10 +91,20 @@ int Trace::command(int argc, const char*const* argv)
 	if (argc == 2) {
 		if (strcmp(argv[1], "detach") == 0) {
 			channel_ = 0;
+#ifdef NAM_TRACE
+			namChan_ = 0;
+#endif
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "flush") == 0) {
+#ifdef NAM_TRACE
+			if (channel_ != 0) 
+				Tcl_Flush(channel_);
+			if (namChan_ != 0)
+				Tcl_Flush(namChan_);
+#else
 			Tcl_Flush(channel_);
+#endif
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
@@ -111,9 +124,35 @@ int Trace::command(int argc, const char*const* argv)
 			}
 			return (TCL_OK);
 		}
+#ifdef NAM_TRACE
+		if (strcmp(argv[1], "namattach") == 0) {
+			int mode;
+			const char* id = argv[2];
+			namChan_ = Tcl_GetChannel(tcl.interp(), (char*)id,
+						  &mode);
+			if (namChan_ == 0) {
+				tcl.resultf("trace: can't attach %s for writing", id);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "ntrace") == 0) {
+			if (namChan_ != 0) 
+				write_nam_trace(argv[2]);
+			return (TCL_OK);
+		}
+#endif
 	}
 	return (Connector::command(argc, argv));
 }
+
+#ifdef NAM_TRACE
+void Trace::write_nam_trace(const char *s)
+{
+	sprintf(nwrk_, "%s", s);
+	namdump();
+}
+#endif
 
 void Trace::annotate(const char* s)
 {
@@ -163,6 +202,13 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';
 	flags[5] = hf->fs_ ? 'F' : '-';
 
+#ifdef notdef
+flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
+flags[2] = (iph->flags() & PF_USR1) ? '1' : '-';
+flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
+flags[5] = 0;
+#endif
+
 	if (!show_tcphdr_) {
 		sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
 			tt,
@@ -195,31 +241,64 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			tcph->flags(),
 			tcph->hlen());
 	}
+#ifdef NAM_TRACE
+	if (namChan_ != 0)
+		sprintf(nwrk_, 
+			"%c -t%g -s%d -d%d -p%s -e%d -c%d -i%d -a%d",
+			tt,
+			Scheduler::instance().clock(),
+			s,
+			d,
+			name,
+			th->size(),
+			iph->flowid(),
+			th->uid(),
+			iph->flowid());
+#endif      
 }
 
 void Trace::dump()
 {
-	if (channel_ != 0) {
+	int n = strlen(wrk_);
+	if ((n > 0) && (channel_ != 0)) {
 		/*
 		 * tack on a newline (temporarily) instead
 		 * of doing two writes
 		 */
-		int n = strlen(wrk_);
 		wrk_[n] = '\n';
 		wrk_[n + 1] = 0;
 		(void)Tcl_Write(channel_, wrk_, n + 1);
 		wrk_[n] = 0;
 	}
+
 	if (callback_) {
 		Tcl& tcl = Tcl::instance();
 		tcl.evalf("%s handle { %s }", name(), wrk_);
 	}
 }
 
+#ifdef NAM_TRACE
+void Trace::namdump()
+{
+	int n = strlen(nwrk_);
+	if ((n > 0) && (namChan_ != 0)) {
+		/*
+		 * tack on a newline (temporarily) instead
+		 * of doing two writes
+		 */
+		nwrk_[n] = '\n';
+		nwrk_[n + 1] = 0;
+		(void)Tcl_Write(namChan_, nwrk_, n + 1);
+		nwrk_[n] = 0;
+	}
+}
+#endif
+
 void Trace::recv(Packet* p, Handler* h)
 {
 	format(type_, src_, dst_, p);
 	dump();
+	namdump();
 	/* hack: if trace object not attached to anything free packet */
 	if (target_ == 0)
 		Packet::free(p);
@@ -243,4 +322,62 @@ void Trace::trace(TracedVar* var)
 		var->name(),
 		var->value(tmp));
 	dump();
+}
+
+//
+// we need a DequeTraceClass here because a 'h' event need to go together
+// with the '-' event. It's possible to use a postprocessing script, but 
+// seems that's inconvient.
+//
+static class DequeTraceClass : public TclClass {
+public:
+	DequeTraceClass() : TclClass("Trace/Deque") { }
+	TclObject* create(int args, const char*const* argv) {
+		if (args >= 5)
+			return (new DequeTrace(*argv[4]));
+		else
+			return NULL;
+	}
+} dequetrace_class;
+
+
+DequeTrace::~DequeTrace()
+{
+}
+
+void 
+DequeTrace::recv(Packet* p, Handler* h)
+{
+	// write the '-' event first
+	format(type_, src_, dst_, p);
+	dump();
+	namdump();
+
+#ifdef NAM_TRACE
+	if (namChan_ != 0) {
+		hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
+		hdr_ip *iph = (hdr_ip*)p->access(off_ip_);
+		int t = th->ptype();
+		const char* name = pt_names[t];
+
+		sprintf(nwrk_, 
+			"%c -t%g -s%d -d%d -p%s -e%d -c%d -i%d -a%d",
+			'h',
+			Scheduler::instance().clock(),
+			src_,
+			dst_,
+			name,
+			th->size(),
+			iph->flowid(),
+			th->uid(),
+			iph->flowid());
+		namdump();
+	}
+#endif
+
+	/* hack: if trace object not attached to anything free packet */
+	if (target_ == 0)
+		Packet::free(p);
+	else
+		send(p, h);
 }

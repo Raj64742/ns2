@@ -33,17 +33,21 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.26 1997/09/08 22:03:19 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.27 1997/09/12 01:31:21 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
 #include <string.h>
 
-#include "Tcl.h"
+#include "tclcl.h"
 #include "agent.h"
 #include "packet.h"
 #include "ip.h"
 #include "flags.h"
+
+#ifndef min
+#define min(a, b) (((a) < (b)) ? (a) : (b))
+#endif
 
 static class AgentClass : public TclClass {
 public:
@@ -55,10 +59,10 @@ public:
 
 int Agent::uidcnt_;		/* running unique id */
 
-
 Agent::Agent(int pkttype) : 
 	addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
-	prio_(-1), flags_(0), defttl_(32), channel_(0)
+	prio_(-1), flags_(0), defttl_(32), channel_(0), traceName_(NULL),
+	oldValueList_(NULL)
 {
 //	memset(pending_, 0, sizeof(pending_));
 	// this is really an IP agent, so set up
@@ -81,6 +85,14 @@ Agent::Agent(int pkttype) :
 
 Agent::~Agent()
 {
+	if (oldValueList_ != NULL) {
+		OldValue *p;
+		while (oldValueList_ != NULL) {
+			oldValueList_ = oldValueList_->next_;
+			delete p;
+			p = oldValueList_; 
+		}
+	}
 }
 
 int Agent::command(int argc, const char*const* argv)
@@ -95,8 +107,170 @@ int Agent::command(int argc, const char*const* argv)
 			return (TCL_ERROR);
 		}
 		return (TCL_OK);
+	} else if (strcmp(argv[1], "add-agent-trace") == 0) {
+		// we need to write nam traces and set agent trace name
+		if (channel_ == 0) {
+			tcl.resultf("agent %s: no trace file attached", name_);
+			return (TCL_OK);
+		}
+		addAgentTrace(argv[2]);
+		return (TCL_OK);
+	} else if (strcmp(argv[1], "delete-agent-trace") == 0) {
+		if ((traceName_ == 0) || (channel_ == 0))
+			return (TCL_OK);
+		deleteAgentTrace();
+		return (TCL_OK);
+	} else if (strcmp(argv[1], "tracevar") == 0) {
+		// wrapper of TclObject's trace command, because some tcl
+		// agents (e.g. srm) uses it.
+		const char *args[4];
+		args[0] = argv[0];
+		args[1] = "trace";
+		args[2] = argv[2];
+		if (argc > 3)
+			args[3] = argv[3];
+		return (Connector::command(argc, args));
 	}
 	return (Connector::command(argc, argv));
+}
+
+void Agent::flushAVar(TracedVar *v)
+{
+	char wrk[256], value[128];
+	int n;
+
+	// XXX we need to keep track of old values. What's the best way?
+	v->value(value);
+	if (strcmp(value, "") == 0) 
+		// no value, because no writes has occurred to this var
+		return;
+	sprintf(wrk, "f -t%-8.5f -s%d -d%d -n%s -a%s -o%s -Tv -x",
+		Scheduler::instance().clock(),
+		addr_ >> 8,
+		dst_ >> 8,
+		v->name(),
+		traceName_,
+		value);
+	n = strlen(wrk);
+	wrk[n] = '\n';
+	wrk[n+1] = 0;
+	(void)Tcl_Write(channel_, wrk, n+1);
+}
+
+void Agent::deleteAgentTrace()
+{
+	char wrk[256];
+	int n;
+
+	// XXX we don't know InstVar outside of Tcl! Is there any
+	// tracedvars hidden in InstVar? If so, shall we have a tclclInt.h?
+	TracedVar* var = tracedvar_;
+	for ( ;  var != 0;  var = var->next_) 
+		flushAVar(var);
+
+	// we need to flush all var values to trace file, 
+	// so nam can do backtracing
+	sprintf(wrk, "a -t-%8.5f -s%d -d%d -n%s -x",
+		Scheduler::instance().clock(),
+		addr_ >> 8,
+		dst_ >> 8,
+		traceName_);
+	if (traceName_ != NULL)
+		delete[] traceName_;
+	traceName_ = NULL;
+}
+
+OldValue* Agent::lookupOldValue(TracedVar *v)
+{
+	OldValue *p = oldValueList_;
+	while ((p != NULL) && (p->var_ != v))
+		p = p->next_;
+	return p;
+}
+
+void Agent::insertOldValue(TracedVar *v, const char *value)
+{
+	OldValue *p = new OldValue;
+	assert(p != NULL);
+	strncpy(p->val_, value, min(strlen(value)+1, TRACEVAR_MAXVALUELENGTH));
+	p->var_ = v;
+	p->next_ = NULL;
+	if (oldValueList_ == NULL) 
+		oldValueList_ = p;
+	else {
+		p->next_ = oldValueList_;
+		oldValueList_ = p;
+	}
+}
+
+// callback from traced variable updates
+void Agent::trace(TracedVar* v) 
+{
+	if (channel_ == 0)
+		return;
+	char wrk[256], value[128];
+	int n;
+
+	// XXX we need to keep track of old values. What's the best way?
+	v->value(value);
+
+	// XXX hack: how do I know ns has not started yet?
+	// if there's nothing in value, return
+	if (value[0] == 0) 
+		return;
+
+	OldValue *ov = lookupOldValue(v);
+	if (ov != NULL) {
+		sprintf(wrk, "f -t%-8.5f -s%d -d%d -n%s -a%s -v%s -o%s -Tv",
+			Scheduler::instance().clock(),
+			addr_ >> 8,
+			dst_ >> 8,
+			v->name(),
+			traceName_,
+			value,
+			ov->val_);
+		strncpy(ov->val_, 
+			value,
+			min(strlen(value)+1, TRACEVAR_MAXVALUELENGTH));
+	} else {
+		// if there is value, insert it into old value list
+		sprintf(wrk, "f -t%-8.5f -s%d -d%d -n%s -a%s -v%s -Tv",
+			Scheduler::instance().clock(),
+			addr_ >> 8,
+			dst_ >> 8,
+			v->name(),
+			traceName_,
+			value);
+		insertOldValue(v, value);
+	}
+	n = strlen(wrk);
+	wrk[n] = '\n';
+	wrk[n+1] = 0;
+	(void)Tcl_Write(channel_, wrk, n+1);
+}
+
+void Agent::addAgentTrace(const char *name)
+{
+	char wrk[256];
+	int n;
+	double curTime = (&Scheduler::instance() == NULL ? 0 : 
+			  Scheduler::instance().clock());
+	
+	sprintf(wrk, "a -t%-8.5f -s%d -d%d -n%s",
+		curTime,
+		addr_ >> 8,
+		dst_ >> 8,
+		name);
+	n = strlen(wrk);
+	wrk[n] = '\n';
+	wrk[n+1] = 0;
+	if (channel_)
+		(void)Tcl_Write(channel_, wrk, n+1);
+	// keep agent trace name
+	if (traceName_ != NULL)
+		delete[] traceName_;
+	traceName_ = new char[strlen(name)+1];
+	strcpy(traceName_, name);
 }
 
 void Agent::timeout(int)
@@ -122,7 +296,6 @@ Packet* Agent::allocpkt() const
 	th->uid() = uidcnt_++;
 	th->ptype() = type_;
 	th->size() = size_;
-	th->error() = 0;
 	th->iface() = -2;	/* XXX arbitrary */
 
 	hdr_ip* iph = (hdr_ip*)p->access(off_ip_);

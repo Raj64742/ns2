@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.12 1997/09/10 06:50:38 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.13 1997/09/12 01:31:27 haoboy Exp $
 #
 
 Class Node
@@ -157,6 +157,14 @@ Node instproc attach agent {
 		$self add-route $id_ $dmux_
 	}
 	$dmux_ install $port $agent
+
+	#
+	# add trace into attached agent
+	#
+	$self instvar trace_
+	if [info exists trace_] {
+		$agent attach-trace $trace_
+	}
 }
 
 #
@@ -257,7 +265,6 @@ Node instproc get-vif {} {
         $self addInterface $vif_
         return $vif_
 }
-
 
 # List of corresponding peer TCP hosts from this node, used in IntTcp
 

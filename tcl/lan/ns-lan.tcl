@@ -108,7 +108,7 @@ Trace/Loss instproc init {} {
 Simulator instproc make-lan {nodelist bw delay \
 		{lltype LL} {ifqtype Queue/DropTail} \
 		{mactype Mac} {chantype Channel}} {
-	$self instvar link_ nullAgent_ traceAllFile_
+	$self instvar link_ nullAgent_ traceAllFile_ namtraceAllFile_
 
 	set lan [new Link/LanLink $nodelist $bw $delay \
 			$lltype $ifqtype $mactype $chantype]
@@ -123,7 +123,10 @@ Simulator instproc make-lan {nodelist bw delay \
 			$q($src:$dst) drop-target $nullAgent_
 			set link_($sid:$did) [new Link/LanDuplex \
 				$src $dst $bw $delay $q($src:$dst) $lltype]
-			set drpT_ [$self create-trace Loss $traceAllFile_ $dst $src]
+			set drpT_ [$self create-trace Loss $traceAllFile_ $src $dst]
+			if [info exists namtraceAllFile_] {
+				$drpT_ attach-nam $namtraceAllFile_
+			}
 			[$link_($sid:$did) link] drop-target $drpT_
 		}
 	}
@@ -139,6 +142,9 @@ Simulator instproc make-lan {nodelist bw delay \
 			$mclass install $peerlabel [$link_($sid:$did) link]
 #			puts "SRC $src DST $dst peerlabel $peerlabel"
 			$self trace-queue $src $dst $traceAllFile_
+			if [info exists namtraceAllFile_] {
+				$self namtrace-queue $src $dst $namtraceAllFile_
+			}
 		}
 	}
 

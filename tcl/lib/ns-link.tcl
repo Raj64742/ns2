@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.22 1997/09/11 00:46:48 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.23 1997/09/12 01:31:26 haoboy Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -81,6 +81,9 @@ Link instproc up { } {
 	if [info exists dynT_] {
 		foreach tr $dynT_ {
 			$tr format link-up {$src_} {$dst_}
+			set ns [Simulator instance]
+			$self instvar source_ dest_
+			$tr ntrace "l -t[$ns now] -s[$source_ id] -d[$dest_ id] -SUP"
 		}
 	}
 }
@@ -96,6 +99,9 @@ Link instproc down { } {
 	if [info exists dynT_] {
 		foreach tr $dynT_ {
 			$tr format link-down {$src_} {$dst_}
+			set ns [Simulator instance]
+			$self instvar source_ dest_
+			$tr ntrace "l -t[$ns now] -s[$source_ id] -d[$dest_ id] -SDOWN"
 		}
 	}
 }
@@ -169,16 +175,50 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 }
 
 #
+# should be called after SimpleLink::trace
+#
+SimpleLink instproc nam-trace { ns f } {
+	$self instvar enqT_ deqT_ drpT_ rcvT_ dynT_
+
+	if [info exists enqT_] {
+		$enqT_ namattach $f
+		if [info exists deqT_] {
+			$deqT_ namattach $f
+		}
+		if [info exists drpT_] {
+			$drpT_ namattach $f
+		}
+		if [info exists rcvT_] {
+			$rcvT_ namattach $f
+		}
+		if [info exists dynT_] {
+			foreach tr $dynT_ {
+				$tr namattach $f
+			}
+		}
+	} else {
+		#XXX 
+		# we use enqT_ as a flag of whether tracing has been
+		# initialized
+		$self trace $ns $f "nam"
+	}
+}
+
+#
 # Build trace objects for this link and
 # update the object linkage
 #
-SimpleLink instproc trace { ns f } {
+# create nam trace files if op == "nam"
+#
+SimpleLink instproc trace { ns f {op ""} } {
 	$self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
+	$self instvar rcvT_ ttl_
 	$self instvar drophead_		;# idea stolen from CBQ and Kevin
 
-	set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_]
-	set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_]
-	set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_]
+	set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_ $op]
+	set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_ $op]
+	set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_ $op]
+	set rcvT_ [$ns create-trace Recv $f $fromNode_ $toNode_ $op]
 
 	$self instvar drpT_ drophead_
 	set nxt [$drophead_ target]
@@ -205,15 +245,20 @@ SimpleLink instproc trace { ns f } {
 	    # puts "head is not i/f"
 	}
 
+	# put recv trace after ttl checking, so that only actually 
+	# received packets are recorded
+	$rcvT_ target [$ttl_ target]
+	$ttl_ target $rcvT_
+
 	$self instvar dynamics_
 	if [info exists dynamics_] {
-		$self trace-dynamics $ns $f
+		$self trace-dynamics $ns $f $op
 	}
 }
 
-SimpleLink instproc trace-dynamics { ns f } {
+SimpleLink instproc trace-dynamics { ns f {op ""}} {
 	$self instvar dynT_ fromNode_ toNode_
-	lappend dynT_ [$ns create-trace Generic $f $fromNode_ $toNode_]
+	lappend dynT_ [$ns create-trace Generic $f $fromNode_ $toNode_ $op]
 	$self transit-drop-trace
 	$self linkfail-drop-trace
 }
@@ -369,7 +414,8 @@ SimpleLink instproc sample-queue-size { } {
 	set lastSample_ $now
 
 	return "$meanBytesQ $meanPktsQ"
-}
+}	
+
 
 SimpleLink instproc dynamic {} {
 	$self instvar dynamics_ head_
