@@ -403,7 +403,7 @@ RTMechanisms instproc do_detect {} {
 		    $badflow $flow_bw_est $droprateG $nxt]
 		if { $u == "fail" } {
 			$self vprint 1 "FIRST TIME unresponsive"
-			$self setstate $badflow "UNRESPONSIVE"
+			$self setstate $badflow "UNRESPONSIVE" \
 			    $flow_bw_est $droprateG
 		} elseif { [$self test_high $flow_bw_est $droprateG $elapsed] == "fail" } {
 			$self setstate $badflow "HIGH" \
