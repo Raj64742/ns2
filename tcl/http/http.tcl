@@ -233,6 +233,6 @@ Http instproc donePage {} {
 	set now [$ns_ now]
 	set ct [rvValue $rvClientTime_]
 	set out [format "%.3f %.0f %.3f" [expr $now - $tStart_] $numImg_ $ct]
-	puts "Http $self donePage $out"
+	puts "$now Http $self donePage $out"
 	$ns_ at [expr $now + $ct] "$self start"
 }
