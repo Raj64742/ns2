@@ -29,12 +29,16 @@ $ns duplex-link $n(6) $n(7) 5Mb 2ms DropTail
 $ns duplex-link $n(7) $n(8) 5Mb 2ms DropTail
 $ns duplex-link $n(8) $n(9) 5Mb 2ms DropTail
 
-set cbr0 [new Agent/CBR]
-$ns attach-agent $n(0) $cbr0
+set udp0 [new Agent/UDP]
+$ns attach-agent $n(0) $udp0
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
 
-set cbr1 [new Agent/CBR]
-$ns attach-agent $n(2) $cbr1
-$cbr1 set class_ 1
+set udp1 [new Agent/UDP]
+$udp1 set class_ 1
+$ns attach-agent $n(2) $udp1
+set cbr1 [new Application/Traffic/CBR]
+$cbr1 attach-agent $udp1
 
 set null0 [new Agent/Null]
 $ns attach-agent $n(8) $null0
@@ -42,13 +46,13 @@ $ns attach-agent $n(8) $null0
 set null1 [new Agent/Null]
 $ns attach-agent $n(6) $null1
 
-$ns connect $cbr0 $null0
-$ns connect $cbr1 $null1
+$ns connect $udp0 $null0
+$ns connect $udp1 $null1
 
 $ns at 1.0 "$cbr0 start"
 $ns at 1.1 "$cbr1 start"
 
-puts [$cbr0 set packetSize_]
+puts [$cbr0 set packet_size_]
 puts [$cbr0 set interval_]
 
 $ns at 3.0 "finish"

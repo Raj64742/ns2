@@ -2,7 +2,7 @@
 # A simple (but not too realistic) rate-based congestion control
 # scheme for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/rc.tcl,v 1.3 1997/11/04 21:54:33 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/rc.tcl,v 1.4 1998/09/01 17:01:19 tomh Exp $
 #
 
 source timer.tcl
@@ -39,8 +39,10 @@ Class Agent/Message/Receiver -superclass Agent/Message
 
 Agent/Message/Sender instproc init {} {
 	$self next
-	$self instvar cbr_ seq_
-	set cbr_ [new Agent/CBR]
+	$self instvar cbr_ seq_ udp_
+	set udp_ [new Agent/UDP]
+	set cbr_ [new Application/Traffic/CBR]
+	$cbr_ attach-agent $udp_
 	set seq_ 1
 	$self sched [$self randomize 0.05]
 }
@@ -111,11 +113,11 @@ proc build_conn { from to startTime } {
 	$ns attach-agent $from $src
 	$ns attach-agent $to $sink
 	$ns connect $src $sink
-	$ns attach-agent $from [$src set cbr_]
+	$ns attach-agent $from [$src set udp_]
 	$ns attach-agent $to [$sink set mon_]
-	$ns connect [$src set cbr_] [$sink set mon_]
+	$ns connect [$src set udp_] [$sink set mon_]
 	$ns at $startTime "[$src set cbr_] start"
-	return [$src set cbr_]
+	return [$src set udp_]
 }
 
 set f [open out.tr w]

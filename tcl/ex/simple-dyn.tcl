@@ -40,14 +40,16 @@ $ns queue-limit $n0 $n1 2
 $ns duplex-link-op $n0 $n1 orient right
 $ns duplex-link-op $n0 $n1 queuePos 0.5
 
-set cbr0 [new Agent/CBR]
+set udp0 [new Agent/UDP]
+$ns attach-agent $n0 $udp0
+set cbr0 [new Application/Traffic/CBR]
 $cbr0 set interval_ 1ms
-$ns attach-agent $n0 $cbr0
+$cbr0 attach-agent $udp0
 
 set null1 [new Agent/Null]
 $ns attach-agent $n1 $null1
 
-$ns connect $cbr0 $null1
+$ns connect $udp0 $null1
 
 $ns rtproto DV		;# or use Session
 
@@ -68,6 +70,6 @@ proc finish {} {
 
 $ns at 1.0 "$cbr0 start"
 $ns at 8.0 "finish"
-puts [$cbr0 set packetSize_]
+puts [$cbr0 set packet_size_]
 puts [$cbr0 set interval_]
 $ns run

@@ -85,45 +85,56 @@ $q buckets 7
 
 # create 6 cbr sources :
 #source 0 :
-set cbr0 [new Agent/CBR]
-$ns attach-agent $n2 $cbr0
-$cbr0 set packetSize_ 250
+set udp0 [new Agent/UDP]
+$ns attach-agent $n2 $udp0
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
+$cbr0 set packet_size_ 250
 $cbr0 set interval_ 20ms
 $cbr0 set random_ 1
 
 #source 1 :
-set cbr1 [new Agent/CBR]
-$ns attach-agent $n2 $cbr1
-$cbr1 set packetSize_ 250
+set udp1 [new Agent/UDP]
+$ns attach-agent $n2 $udp1
+set cbr1 [new Application/Traffic/CBR]
+$cbr1 attach-agent $udp1
+$cbr1 set packet_size_ 250
 $cbr1 set interval_ 4ms
 $cbr1 set random_ 1
 
 #source 2:
-set cbr2 [new Agent/CBR]
-$ns attach-agent $n2 $cbr2
-$cbr2 set packetSize_ 250
+set udp2 [new Agent/UDP]
+$ns attach-agent $n2 $udp2
+set cbr2 [new Application/Traffic/CBR]
+$cbr2 attach-agent $udp2
+$cbr2 set packet_size_ 250
 $cbr2 set interval_ 2.5ms
 $cbr2 set random_ 1
 
-
 #source 3 :
-set cbr3 [new Agent/CBR]
-$ns attach-agent $n3 $cbr3
-$cbr3 set packetSize_ 250
+set udp3 [new Agent/UDP]
+$ns attach-agent $n3 $udp3
+set cbr3 [new Application/Traffic/CBR]
+$cbr3 attach-agent $udp3
+$cbr3 set packet_size_ 250
 $cbr3 set interval_ 2.5ms
 $cbr3 set random_ 1
 
 #source 4
-set cbr4 [new Agent/CBR]
-$ns attach-agent $n3 $cbr4
-$cbr4 set packetSize_ 250
+set udp4 [new Agent/UDP]
+$ns attach-agent $n3 $udp4
+set cbr4 [new Application/Traffic/CBR]
+$cbr4 attach-agent $udp4
+$cbr4 set packet_size_ 250
 $cbr4 set interval_ 4ms
 $cbr4 set random_ 1
 
 #source 5
-set cbr5 [new Agent/CBR]
-$ns attach-agent $n3 $cbr5
-$cbr5 set packetSize_ 250
+set udp5 [new Agent/UDP]
+$ns attach-agent $n3 $udp5
+set cbr5 [new Application/Traffic/CBR]
+$cbr5 attach-agent $udp5
+$cbr5 set packet_size_ 250
 $cbr5 set interval_ 20ms
 $cbr5 set random_ 1
 
@@ -131,12 +142,12 @@ $cbr5 set random_ 1
 set lm0 [new Agent/Null]
 $ns attach-agent $n1 $lm0
 
-$ns connect $cbr0 $lm0
-$ns connect $cbr1 $lm0
-$ns connect $cbr2 $lm0
-$ns connect $cbr3 $lm0
-$ns connect $cbr4 $lm0
-$ns connect $cbr5 $lm0
+$ns connect $udp0 $lm0
+$ns connect $udp1 $lm0
+$ns connect $udp2 $lm0
+$ns connect $udp3 $lm0
+$ns connect $udp4 $lm0
+$ns connect $udp5 $lm0
 
 $ns at 0.0 "$cbr0 start"
 $ns at 0.0  "$cbr1 start"

@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq-cbr.tcl,v 1.7 1998/08/05 22:47:31 kfall Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq-cbr.tcl,v 1.8 1998/09/01 17:02:48 tomh Exp $
 #
 # updated 8/5/98 by kfall to use hash classifier
 #
@@ -270,15 +270,17 @@ proc build_topology { ns which } {
 
 proc build_cbr { from to startTime interval } {
 	global ns
-	set src [new Agent/CBR]
-	$src set interval_ $interval
-	$src set packetSize_ 800
+	set udp0 [new Agent/UDP]
+	set src [new Application/Traffic/CBR]
+	$src set packet-size 800
+	$src set rate [expr 800 * 8/ [$ns delay_parse $interval]] 
 	set sink [new Agent/Null]
-	$ns attach-agent $from $src
+	$ns attach-agent $from $udp0
+	$src attach-agent $udp0
 	$ns attach-agent $to $sink
-	$ns connect $src $sink
+	$ns connect $udp0 $sink
 	$ns at $startTime "$src start"
-	return $src
+	return $udp0
 }
 
 set f [open out.tr w]

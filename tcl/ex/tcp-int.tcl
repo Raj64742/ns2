@@ -34,12 +34,16 @@ $ns duplex-link-op $n2 $n3 orient right
 
 $ns duplex-link-op $n2 $n3 queuePos 0.5
 
-set cbr0 [new Agent/CBR]
-$ns attach-agent $n0 $cbr0
+set udp0 [new Agent/UDP]
+$ns attach-agent $n0 $udp0
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
 
-set cbr1 [new Agent/CBR]
-$ns attach-agent $n3 $cbr1
-$cbr1 set cls 1
+set udp1 [new Agent/UDP]
+$ns attach-agent $n3 $udp1
+$udp1 set class 1
+set cbr1 [new Application/Traffic/CBR]
+$cbr1 attach-agent $udp1
 
 set null0 [new Agent/Null]
 $ns attach-agent $n3 $null0
@@ -47,8 +51,8 @@ $ns attach-agent $n3 $null0
 set null1 [new Agent/Null]
 $ns attach-agent $n1 $null1
 
-$ns connect $cbr0 $null0
-$ns connect $cbr1 $null1
+$ns connect $udp0 $null0
+$ns connect $udp1 $null1
 
 $ns at 0.0 "$cbr0 start"
 $ns at 0.1 "$cbr1 start"
@@ -96,7 +100,7 @@ for {set i 2} {$i < 4} {incr i} {
 }
 
 
-#puts [$cbr0 set packetSize_]
+#puts [$cbr0 set packet_size_]
 #puts [$cbr0 set interval_]
 
 $ns at 5.0 "finish"

@@ -30,13 +30,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.6 1997/11/04 21:54:32 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.7 1998/09/01 17:01:19 tomh Exp $
 #
 
 #
 # Simple multicast test.  It's easiest to verify the
 # output with the animator.
-# We create a four node start; start a CBR source in the center
+# We create a four node start; start a CBR traffic generator in the center
 # and then at node 3 and exercise the join/leave code.
 #
 # See tcl/ex/newmcast/mcast*.tcl for more mcast example scripts
@@ -72,14 +72,18 @@ $ns duplex-link-op $n0 $n1 queuePos 0.5
 set mproto DM
 set mrthandle [$ns mrtproto $mproto {}]
 
-set cbr0 [new Agent/CBR]
-$ns attach-agent $n1 $cbr0
-$cbr0 set dst_ 0x8001
+set udp0 [new Agent/UDP]
+$ns attach-agent $n1 $udp0
+$udp0 set dst_ 0x8001
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
 
-set cbr1 [new Agent/CBR]
-$cbr1 set dst_ 0x8002
-$cbr1 set class_ 1
-$ns attach-agent $n3 $cbr1
+set udp1 [new Agent/UDP]
+$udp1 set dst_ 0x8002
+$udp1 set class_ 1
+$ns attach-agent $n3 $udp1
+set cbr1 [new Application/Traffic/CBR]
+$cbr1 attach-agent $udp1
 
 set rcvr [new Agent/LossMonitor]
 $ns attach-agent $n3 $rcvr
@@ -101,8 +105,8 @@ $ns at 1.1 "$cbr1 start"
 #$ftp set agent $tcp
 #$ns at 1.2 "$ftp start"
 
-#puts [$cbr0 set packet-size]
-#puts [$cbr0 set interval]
+#puts [$cbr0 set packet_size_]
+#puts [$cbr0 set interval_]
 
 $ns at 2.0 "finish"
 
