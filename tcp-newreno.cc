@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.17 1997/07/25 06:40:58 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.18 1997/08/26 03:33:41 padmanab Exp $ (LBL)";
 #endif
 
 //
@@ -187,6 +187,6 @@ void NewRenoTcpAgent::timeout(int tno)
 		if (bug_fix_) recover_ = maxseq_;
 		TcpAgent::timeout(tno);
 	} else {
-		send_much(1, TCP_REASON_TIMEOUT, maxburst_);
+		timeout_nonrtx(tno);
 	}
 }
