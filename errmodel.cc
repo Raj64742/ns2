@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1996 Regents of the University of California.
+ * Copyright (c) 1996-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,7 +40,7 @@
 
 static class ErrorModelClass : public TclClass {
 public:
-	ErrorModelClass() : TclClass("Error") {}
+	ErrorModelClass() : TclClass("ErrorModel") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new ErrorModel);
 	}
