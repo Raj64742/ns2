@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: srcrt.cc,v 1.1 2003/07/08 18:08:10 haldar Exp $
+// $Id: srcrt.cc,v 1.2 2003/07/10 21:18:57 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -156,7 +156,6 @@ void SrcRtFilter::run()
 #ifdef NS_DIFFUSION
 SrcRtFilter::SrcRtFilter()
 {
-  DiffAppAgent *agent;
 #else
 SrcRtFilter::SrcRtFilter(int argc, char **argv)
 {
@@ -179,6 +178,7 @@ SrcRtFilter::SrcRtFilter(int argc, char **argv)
 #endif // !NS_DIFFUSION
 }
 
+#ifndef NS_DIFFUSION
 #ifndef USE_SINGLE_ADDRESS_SPACE
 int main(int argc, char **argv)
 {
@@ -191,3 +191,4 @@ int main(int argc, char **argv)
   return 0;
 }
 #endif // !USE_SINGLE_ADDRESS_SPACE
+#endif // !NS_DIFFUSION

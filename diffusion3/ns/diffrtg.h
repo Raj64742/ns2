@@ -34,7 +34,7 @@
 #ifndef DIFFUSION_RTG
 #define DIFFUSION_RTG
 
-#include "diffusion.hh"
+#include "filter_core.hh"
 #include "iodev.hh"
 #include "events.hh"
 #include "classifier-port.h"

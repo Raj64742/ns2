@@ -3,7 +3,7 @@
 // author             : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: two_phase_pull.cc,v 1.1 2003/07/08 18:05:43 haldar Exp $
+// $Id: two_phase_pull.cc,v 1.2 2003/07/10 21:18:57 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -62,7 +62,7 @@ void GradientFilterReceive::recv(Message *msg, handle h)
   app_->recv(msg, h);
 }
 
-int MessageSendTimer::expire()
+int TppMessageSendTimer::expire()
 {
   // Call timeout function
   agent_->messageTimeout(msg_);
@@ -72,7 +72,7 @@ int MessageSendTimer::expire()
   return -1;
 }
 
-int InterestForwardTimer::expire()
+int TppInterestForwardTimer::expire()
 {
   // Call timeout function
   agent_->interestTimeout(msg_);
@@ -82,7 +82,7 @@ int InterestForwardTimer::expire()
   return -1;
 }
 
-int SubscriptionExpirationTimer::expire()
+int TppSubscriptionExpirationTimer::expire()
 {
   int retval;
 
@@ -95,7 +95,7 @@ int SubscriptionExpirationTimer::expire()
   return retval;
 }
 
-int GradientExpirationCheckTimer::expire()
+int TppGradientExpirationCheckTimer::expire()
 {
   // Call the callback function
   agent_->gradientTimeout();
@@ -104,7 +104,7 @@ int GradientExpirationCheckTimer::expire()
   return 0;
 }
 
-int ReinforcementCheckTimer::expire()
+int TppReinforcementCheckTimer::expire()
 {
   // Call the callback function
   agent_->reinforcementTimeout();
@@ -485,7 +485,7 @@ void GradientFilter::forwardPushExploratoryData(Message *msg,
     data_msg = CopyMessage(msg);
     data_msg->next_hop_ = BROADCAST_ADDR;
 
-    data_timer = new MessageSendTimer(this, data_msg);
+    data_timer = new TppMessageSendTimer(this, data_msg);
 
     // Add data timer to the queue
     ((DiffusionRouting *)dr_)->addTimer(PUSH_DATA_FORWARD_DELAY +
@@ -575,7 +575,7 @@ void GradientFilter::forwardExploratoryData(Message *msg,
       // Add to the forwarding history
       forwarding_history->forwardingToNetwork(BROADCAST_ADDR);
 
-      data_timer = new MessageSendTimer(this, data_msg);
+      data_timer = new TppMessageSendTimer(this, data_msg);
 
       // Add timer for forwarding the data packet
       ((DiffusionRouting *)dr_)->addTimer(DATA_FORWARD_DELAY +
@@ -729,7 +729,7 @@ void GradientFilter::sendPositiveReinforcement(NRAttrVec *reinf_attrs,
 	    destination);
 
   // Create timer for sending this message
-  reinforcement_timer = new MessageSendTimer(this, pos_reinf_message);
+  reinforcement_timer = new TppMessageSendTimer(this, pos_reinf_message);
 
   // Add timer to the event queue
   ((DiffusionRouting *)dr_)->addTimer(POS_REINFORCEMENT_SEND_DELAY +
@@ -1037,7 +1037,7 @@ void GradientFilter::processNewMessage(Message *msg)
       // Global interest messages should always be forwarded
       if (nrscope->getVal() == NRAttribute::GLOBAL_SCOPE){
 
-	interest_timer = new InterestForwardTimer(this, CopyMessage(msg));
+	interest_timer = new TppInterestForwardTimer(this, CopyMessage(msg));
 
 	((DiffusionRouting *)dr_)->addTimer(INTEREST_FORWARD_DELAY +
 					    (int) ((INTEREST_FORWARD_JITTER * (GetRand() * 1.0 / RAND_MAX) - (INTEREST_FORWARD_JITTER / 2))),
@@ -1049,7 +1049,7 @@ void GradientFilter::processNewMessage(Message *msg)
 	  (nrscope->getVal() == NRAttribute::NODE_LOCAL_SCOPE) &&
 	  (new_data_type)){
 
-	subscription_timer = new SubscriptionExpirationTimer(this,
+	subscription_timer = new TppSubscriptionExpirationTimer(this,
 							     CopyAttrs(msg->msg_attr_vec_));
 	
 	((DiffusionRouting *)dr_)->addTimer(SUBSCRIPTION_DELAY +
@@ -1390,10 +1390,10 @@ GradientFilter::GradientFilter(int argc, char **argv)
 	    filter_handle_);
 
   // Add timers for keeping state up-to-date
-  gradient_timer = new GradientExpirationCheckTimer(this);
+  gradient_timer = new TppGradientExpirationCheckTimer(this);
   ((DiffusionRouting *)dr_)->addTimer(GRADIENT_DELAY, gradient_timer);
 
-  reinforcement_timer = new ReinforcementCheckTimer(this);
+  reinforcement_timer = new TppReinforcementCheckTimer(this);
   ((DiffusionRouting *)dr_)->addTimer(REINFORCEMENT_DELAY, reinforcement_timer);
 
   GetTime(&tv);

@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_receiver.cc,v 1.1 2003/07/09 17:43:30 haldar Exp $
+// $Id: gear_receiver.cc,v 1.2 2003/07/10 21:18:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -21,6 +21,52 @@
 //
 
 #include "gear_receiver.hh"
+
+#ifdef NS_DIFFUSION
+static class GearReceiverAppClass : public TclClass {
+public:
+  GearReceiverAppClass() : TclClass("Application/DiffApp/GearReceiverApp") {}
+  TclObject * create(int argc, const char*const* argv) {
+    return (new GearReceiverApp());
+  }
+} class_gear_receiver_app_class;
+
+int GearReceiverApp::command(int argc, const char*const* argv) {
+  if (argc == 2) {
+    if (strcmp(argv[1], "subscribe") == 0) {
+      run();
+      return TCL_OK;
+    }
+  }
+  else if (argc == 8) {
+    // TCL API $app push-pull-option <push/pull> <point/region> <co-od1> <co-od2> <co-od3> <co-od4>
+    if (strcmp(argv[1], "push-pull-options") == 0) {
+      if (strcmp(argv[2], "push") == 0) 
+	using_push_ = true;
+      else
+	using_push_ = false;
+
+      if (strcmp(argv[3], "point") == 0) 
+	{
+	  using_points_ = true;
+	  lat_pt_ = atoi(argv[4]);
+	  long_pt_ = atoi(argv[5]);
+	}
+      else
+	{
+	  using_points_ = false;
+	  lat_min_ = atoi(argv[4]);
+	  lat_max_ = atoi(argv[5]);
+	  long_min_ = atoi(argv[6]);
+	  long_max_ = atoi(argv[7]);
+	}
+      return TCL_OK;
+    }
+  }
+  return DiffApp::command(argc, argv);
+}
+
+#endif //NS_DIFFUSION
 
 void GearReceiverReceive::recv(NRAttrVec *data, NR::handle my_handle)
 {
@@ -144,10 +190,12 @@ void GearReceiverApp::run()
 {
   subHandle_ = setupSubscription();
 
+#ifndef NS_DIFFUSION
   // Do nothing
   while (1){
     sleep(1000);
   }
+#endif // !NS_DIFFUSION
 }
 
 void GearReceiverApp::usage(char *s){
@@ -297,7 +345,11 @@ void GearReceiverApp::readGeographicCoordinates()
   }
 }
 
+#ifdef NS_DIFFUSION
+GearReceiverApp::GearReceiverApp()
+#else
 GearReceiverApp::GearReceiverApp(int argc, char **argv)
+#endif // NS_DIFFUSION
 {
   last_seq_recv_ = 0;
   num_msg_recv_ = 0;
@@ -305,12 +357,15 @@ GearReceiverApp::GearReceiverApp(int argc, char **argv)
 
   mr_ = new GearReceiverReceive(this);
 
+#ifndef NS_DIFFUSION
   parseCommandLine(argc, argv);
   readGeographicCoordinates();
   dr_ = NR::createNR(diffusion_port_);
+#endif // !NS_DIFFUSION
 }
 
-#ifndef USE_SINGLE_ADDRESS_SPACE
+#ifndef NS_ADDRESS
+#ifndef USE_SINGLE_ADDRESS_SPACE 
 int main(int argc, char **argv)
 {
   GearReceiverApp *app;
@@ -321,3 +376,4 @@ int main(int argc, char **argv)
   return 0;
 }
 #endif // !USE_SINGLE_ADDRESS_SPACE
+#endif // !NS_ADDRESS

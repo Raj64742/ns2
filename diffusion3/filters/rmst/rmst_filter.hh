@@ -5,7 +5,7 @@
 // Include file for RmstFilter - Reliable Multi-Segment Transport
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_filter.hh,v 1.1 2003/07/08 18:09:01 haldar Exp $
+// $Id: rmst_filter.hh,v 1.2 2003/07/10 21:18:57 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -75,7 +75,13 @@ public:
 
 class RmstFilter : public DiffApp {
 public:
+#ifdef NS_DIFFUSION
+  RmstFilter();
+  int command(int argc, const char*const* argv);
+#else
   RmstFilter(int argc, char **argv);
+#endif // NS_DIFFUSION
+  
   virtual ~RmstFilter(){};
   void run();
   void recv(Message *msg, handle h);

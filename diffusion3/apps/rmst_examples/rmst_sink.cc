@@ -3,7 +3,7 @@
 // authors         : Fred Stann
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_sink.cc,v 1.1 2003/07/09 17:45:48 haldar Exp $
+// $Id: rmst_sink.cc,v 1.2 2003/07/10 21:18:56 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -21,6 +21,28 @@
 //
 
 #include "rmst_sink.hh"
+
+#ifdef NS_DIFFUSION
+static class RmstSnkClass : public TclClass {
+public:
+  RmstSnkClass() : TclClass("Application/DiffApp/RmstSink") {}
+    TclObject* create(int , const char*const* ) {
+	    return(new RmstSink());
+    }
+} class_rmst_sink;
+
+int RmstSink::command(int argc, const char*const* argv) 
+{
+  if (argc == 2) {
+    if (strcmp(argv[1], "subscribe") == 0) {
+      run();
+      return TCL_OK;
+    }
+   }
+  return DiffApp::command(argc, argv);
+}
+
+#endif // NS_DIFFUSION
 
 void RmstSnkReceive::recv(NRAttrVec *data, NR::handle my_handle)
 {
@@ -48,9 +70,11 @@ void RmstSnkReceive::recv(NRAttrVec *data, NR::handle my_handle)
 
 void RmstSink::run() {
   rmst_handle_ = setupInterest();
+#ifndef NS_DIFFUSION
   while (1){
       sleep (1000);
   }
+#endif // !NS_DIFFUSION
 }  
 
 void RmstSink::recv(void *blob, int size) {
@@ -83,13 +107,22 @@ handle RmstSink::setupInterest()
   return h;
 }
 
+#ifdef NS_DIFFUSION
+RmstSink::RmstSink() : blobs_to_rec_(4) {
+#else
 RmstSink::RmstSink(int argc, char **argv) : blobs_to_rec_(4) {
+#endif // NS_DIFFUSION
+  
   mr = new RmstSnkReceive(this);  
+  
+#ifndef NS_DIFFUSION
   parseCommandLine(argc, argv);
   dr_ = NR::createNR(diffusion_port_);
+#endif // !NS_DIFFUSION
   no_rec_ = 0;
 }
 
+#ifndef NS_DIFFUSION
 int main(int argc, char **argv){
   RmstSink *app;
 
@@ -97,3 +130,4 @@ int main(int argc, char **argv){
   app->run();
   return 0;
 }
+#endif // !NS_DIFFUSION

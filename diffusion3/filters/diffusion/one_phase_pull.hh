@@ -3,7 +3,7 @@
 // author               : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: one_phase_pull.hh,v 1.1 2003/07/08 18:05:43 haldar Exp $
+// $Id: one_phase_pull.hh,v 1.2 2003/07/10 21:18:56 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -329,29 +329,29 @@ protected:
   bool removeFlowFromList(FlowIdList *flow_list, int32_t flow);
 };
 
-class GradientExpirationCheckTimer : public TimerCallback {
+class OppGradientExpirationCheckTimer : public TimerCallback {
 public:
-  GradientExpirationCheckTimer(OnePhasePullFilter *agent) : agent_(agent) {};
-  ~GradientExpirationCheckTimer() {};
+  OppGradientExpirationCheckTimer(OnePhasePullFilter *agent) : agent_(agent) {};
+  ~OppGradientExpirationCheckTimer() {};
   int expire();
 
   OnePhasePullFilter *agent_;
 };
 
-class ReinforcementCheckTimer : public TimerCallback {
+class OppReinforcementCheckTimer : public TimerCallback {
 public:
-  ReinforcementCheckTimer(OnePhasePullFilter *agent) : agent_(agent) {};
-  ~ReinforcementCheckTimer() {};
+  OppReinforcementCheckTimer(OnePhasePullFilter *agent) : agent_(agent) {};
+  ~OppReinforcementCheckTimer() {};
   int expire();
 
   OnePhasePullFilter *agent_;
 };
 
-class MessageSendTimer : public TimerCallback {
+class OppMessageSendTimer : public TimerCallback {
 public:
-  MessageSendTimer(OnePhasePullFilter *agent, Message *msg) :
+  OppMessageSendTimer(OnePhasePullFilter *agent, Message *msg) :
     agent_(agent), msg_(msg) {};
-  ~MessageSendTimer()
+  ~OppMessageSendTimer()
   {
     delete msg_;
   };
@@ -361,11 +361,11 @@ public:
   Message *msg_;
 };
 
-class InterestForwardTimer : public TimerCallback {
+class OppInterestForwardTimer : public TimerCallback {
 public:
-  InterestForwardTimer(OnePhasePullFilter *agent, Message *msg) :
+  OppInterestForwardTimer(OnePhasePullFilter *agent, Message *msg) :
     agent_(agent), msg_(msg) {};
-  ~InterestForwardTimer()
+  ~OppInterestForwardTimer()
   {
     delete msg_;
   };
@@ -375,11 +375,11 @@ public:
   Message *msg_;
 };
 
-class SubscriptionExpirationTimer : public TimerCallback {
+class OppSubscriptionExpirationTimer : public TimerCallback {
 public:
-  SubscriptionExpirationTimer(OnePhasePullFilter *agent, NRAttrVec *attrs) :
+  OppSubscriptionExpirationTimer(OnePhasePullFilter *agent, NRAttrVec *attrs) :
     agent_(agent), attrs_(attrs) {};
-  ~SubscriptionExpirationTimer()
+  ~OppSubscriptionExpirationTimer()
   {
     ClearAttrs(attrs_);
     delete attrs_;

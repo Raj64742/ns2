@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_sender.cc,v 1.1 2003/07/09 17:43:30 haldar Exp $
+// $Id: gear_sender.cc,v 1.2 2003/07/10 21:18:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -22,6 +22,82 @@
 
 #include "gear_sender.hh"
 #include <unistd.h>
+
+#ifdef NS_DIFFUSION
+static class GearSenderAppClass : public TclClass {
+public:
+  GearSenderAppClass() : TclClass("Application/DiffApp/GearSenderApp") {}
+  TclObject * create(int argc, const char*const* argv) {
+    return (new GearSenderApp());
+  }
+} class_gear_sender_app_class;
+
+void GearSendDataTimer::expire(Event *e) {
+  a_->send();
+}
+
+void GearSenderApp::send()
+{
+  struct timeval tmv;
+  int retval;
+  
+  // Send data if we have active subscriptions
+  if ((num_subscriptions_ > 0) || using_push_)
+    {
+      // Update time in the packet
+      GetTime(&tmv);
+      lastEventTime_->seconds_ = tmv.tv_sec;
+      lastEventTime_->useconds_ = tmv.tv_usec;
+      
+      // Send data probe
+      DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
+      retval = dr_->send(pubHandle_, &data_attr_);
+      
+      // Update counter
+      last_seq_sent_++;
+      counterAttr_->setVal(last_seq_sent_);
+    }
+
+  // re-schedule the timer 
+  sdt_.resched(SEND_DATA_INTERVAL);
+}
+
+int GearSenderApp::command(int argc, const char*const* argv) {
+  if (argc == 2) {
+    if (strcmp(argv[1], "subscribe") == 0) {
+      run();
+      return TCL_OK;
+    }
+  }
+  else if (argc == 8) {
+    // TCL API $app push-pull-option <push/pull> <point/region> <co-od1> <co-od2> <co-od3> <co-od4>
+    if (strcmp(argv[1], "push-pull-options") == 0) {
+      if (strcmp(argv[2], "push") == 0) 
+	using_push_ = true;
+      else
+	using_push_ = false;
+
+      if (strcmp(argv[3], "point") == 0) 
+	{
+	  using_points_ = true;
+	  lat_pt_ = atoi(argv[4]);
+	  long_pt_ = atoi(argv[5]);
+	}
+      else
+	{
+	  using_points_ = false;
+	  lat_min_ = atoi(argv[4]);
+	  lat_max_ = atoi(argv[5]);
+	  long_min_ = atoi(argv[6]);
+	  long_max_ = atoi(argv[7]);
+	}
+      return TCL_OK;
+    }
+  }
+  return DiffApp::command(argc, argv);
+}
+
+#endif //NS_DIFFUSION
 
 void GearSenderReceive::recv(NRAttrVec *data, NR::handle my_handle)
 {
@@ -69,7 +145,7 @@ handle GearSenderApp::setupSubscription()
 				   NRAttribute::DATA_CLASS));
   attrs.push_back(NRScopeAttr.make(NRAttribute::IS,
 				   NRAttribute::NODE_LOCAL_SCOPE));
-  attrs.push_back(TargetAttr.make(NRAttribute::EQ, "F117A"));
+  attrs.push_back(GearTargetAttr.make(NRAttribute::EQ, "F117A"));
   attrs.push_back(LatitudeAttr.make(NRAttribute::IS, lat_pt_));
   attrs.push_back(LongitudeAttr.make(NRAttribute::IS, long_pt_));
 
@@ -112,7 +188,7 @@ handle GearSenderApp::setupPublication()
     attrs.push_back(LongitudeAttr.make(NRAttribute::IS, long_pt_));
   }
 
-  attrs.push_back(TargetAttr.make(NRAttribute::IS, "F117A"));
+  attrs.push_back(GearTargetAttr.make(NRAttribute::IS, "F117A"));
 
   handle h = dr_->publish(&attrs);
 
@@ -124,8 +200,10 @@ handle GearSenderApp::setupPublication()
 void GearSenderApp::run()
 {
   struct timeval tmv;
+#ifndef NS_DIFFUSION
   int retval;
-
+#endif // !NS_DIFFUSION
+  
 #ifdef INTERACTIVE
   char input;
   fd_set FDS;
@@ -141,7 +219,7 @@ void GearSenderApp::run()
   lastEventTime_ = new EventTime;
   lastEventTime_->seconds_ = tmv.tv_sec;
   lastEventTime_->useconds_ = tmv.tv_usec;
-  timeAttr_ = TimeAttr.make(NRAttribute::IS, (void *) &lastEventTime_,
+  timeAttr_ = GearTimeAttr.make(NRAttribute::IS, (void *) &lastEventTime_,
 			    sizeof(EventTime));
   data_attr_.push_back(timeAttr_);
 
@@ -150,9 +228,10 @@ void GearSenderApp::run()
   lastEventTime_ = (EventTime *) timeAttr_->getVal();
 
   // Create counter attribute
-  counterAttr_ = AppCounterAttr.make(NRAttribute::IS, last_seq_sent_);
+  counterAttr_ = GearCounterAttr.make(NRAttribute::IS, last_seq_sent_);
   data_attr_.push_back(counterAttr_);
 
+#ifndef NS_DIFFUSION
   // Main thread will send ping probes
   while(1){
 #ifdef INTERACTIVE
@@ -181,6 +260,9 @@ void GearSenderApp::run()
       counterAttr_->setVal(last_seq_sent_);
     }
   }
+#else
+  send();
+#endif // !NS_DIFFUSION
 }
 
 void GearSenderApp::usage(char *s){
@@ -330,16 +412,22 @@ void GearSenderApp::readGeographicCoordinates()
   }
 }
 
+#ifdef NS_DIFFUSION
+GearSenderApp::GearSenderApp() : sdt_(this)
+#else
 GearSenderApp::GearSenderApp(int argc, char **argv)
+#endif //NS_DIFFUSION
 {
   last_seq_sent_ = 0;
   num_subscriptions_ = 0;
 
   mr_ = new GearSenderReceive(this);
 
+#ifndef NS_DIFFUSION
   parseCommandLine(argc, argv);
   readGeographicCoordinates();
   dr_ = NR::createNR(diffusion_port_);
+#endif //!NS_DIFFUSION
 }
 
 #ifndef USE_SINGLE_ADDRESS_SPACE

@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_receiver.hh,v 1.1 2003/07/09 17:43:30 haldar Exp $
+// $Id: gear_receiver.hh,v 1.2 2003/07/10 21:18:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -33,8 +33,12 @@ class GearReceiverReceive;
 
 class GearReceiverApp : public DiffApp {
 public:
+  #ifdef NS_DIFFUSION
+  GearReceiverApp();
+  int command(int argc, const char*const* argv);
+#else
   GearReceiverApp(int argc, char **argv);
-
+#endif //NS_DIFFUSION
   void recv(NRAttrVec *data, NR::handle my_handle);
   void run();
 

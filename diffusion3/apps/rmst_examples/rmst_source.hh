@@ -3,7 +3,7 @@
 // authors         : Fred Stann
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_source.hh,v 1.1 2003/07/09 17:45:48 haldar Exp $
+// $Id: rmst_source.hh,v 1.2 2003/07/10 21:18:56 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -32,6 +32,16 @@
 #define PAYLOAD_SIZE 50
 class RmstSource;
 
+#ifdef NS_DIFFUSION
+class RmstSendDataTimer : public TimerHandler {
+  public:
+  RmstSendDataTimer(RmstSource *a) : TimerHandler() { a_ = a; }
+  void expire(Event *e);
+protected:
+  RmstSource *a_;
+};
+#endif //NS_DIFFUSION
+
 class RmstSrcReceive : public NR::Callback {
 public:
   RmstSrcReceive(RmstSource *rmstSrc) {src_ = rmstSrc; }
@@ -42,7 +52,13 @@ protected:
 
 class RmstSource : public DiffApp {
 public:
+#ifdef NS_DIFFUSION
+  RmstSource();
+  int command(int argc, const char*const* argv);
+  void send();
+#else
   RmstSource(int argc, char **argv);
+#endif // NS_DIFFUSION
   virtual ~RmstSource(){};
 
   handle setupRmstInterest();
@@ -60,6 +76,9 @@ public:
   RmstSrcReceive *mr;
   handle subscribe_handle_;
   int ck_val_;
+#ifdef NS_DIFFUSION
+  RmstSendDataTimer sdt_;
+#endif // NS_DIFFUSION
 };
 
 #endif //RMST_SRC

@@ -3,7 +3,7 @@
 // authors         : Fred Stann
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_filter.cc,v 1.1 2003/07/08 18:09:01 haldar Exp $
+// $Id: rmst_filter.cc,v 1.2 2003/07/10 21:18:57 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -26,6 +26,31 @@ char *rmstmsg_types[] = {"INTEREST", "POSITIVE REINFORCEMENT",
                      "NEGATIVE REINFORCEMENT", "DATA",
                      "EXPLORATORY DATA", "PUSH EXPLORATORY DATA",
                      "CONTROL", "REDIRECT"};
+
+#ifdef NS_DIFFUSION
+class DiffAppAgent;
+#endif // NS_DIFFUSION
+
+#ifdef NS_DIFFUSION
+static class RmstFilterClass : public TclClass {
+public:
+  RmstFilterClass() : TclClass("Application/DiffApp/RmstFilter") {}
+  TclObject* create(int argc, const char*const* argv) {
+    return(new RmstFilter());
+  }
+} class_rmst_filter;
+
+int RmstFilter::command(int argc, const char*const* argv) {
+  //Tcl& tcl =  Tcl::instance();
+  if (argc == 2) {
+    if (strcmp(argv[1], "start") == 0) {
+      run();
+      return (TCL_OK);
+    }
+  }
+  return (DiffApp::command(argc, argv));
+}
+#endif // NS_DIFFUSION
 
 class ReinfMessage {
 public:
@@ -1064,10 +1089,21 @@ handle RmstFilter::setupFilter()
 
 void RmstFilter::run()
 {
+#ifdef NS_DIFFUSION
+  TimerCallback *stat_timer;
+  filter_handle_ = setupFilter();
+  DiffPrint(DEBUG_LOTS_DETAILS, "RmstFilter:: subscribed to all, received handle %d\n",
+	    (int)filter_handle_);
+  
+  DiffPrint(DEBUG_LOTS_DETAILS, "RmstFilter constructor: start cleanup timer\n");
+  stat_timer = new RmstTimeout(this, -1, CLEANUP_TIMER);
+  stat_timer_handle_ = ((DiffusionRouting *)dr_)->addTimer(CLEANUP_INTERVAL, stat_timer);
+#else
   // Doesn't do anything
   while(1){
       sleep(1000);
   }
+#endif // NS_DIFFUSION
 }
 
 RmstTimeout::RmstTimeout(RmstFilter *rmst_flt, int no, int type)
@@ -1704,12 +1740,18 @@ void RmstFilter::cleanUpRmst(Rmst *rmst_ptr)
   }
 }
 
+#ifdef NS_DIFFUSION
+RmstFilter::RmstFilter()
+{
+#else
 RmstFilter::RmstFilter(int argc, char **argv)
+
 {
   TimerCallback *stat_timer;
 
   parseCommandLine(argc, argv);
   dr_ = NR::createNR(diffusion_port_);
+#endif // NS_DIFFUSION
 
   fcb_ = new RmstFilterCallback;
   fcb_->app_ = this;
@@ -1718,17 +1760,22 @@ RmstFilter::RmstFilter(int argc, char **argv)
   local_sink_ = false;
   caching_mode_ = false;
   send_timer_active_ = false;
+
   DiffPrint(DEBUG_ALWAYS, "RmstFilter constructor: rdm_id_ = %x, pkt_count_ = %x\n",
-    rdm_id_, pkt_count_);
+	    rdm_id_, pkt_count_);
+
+#ifndef NS_DIFFUSION
   filter_handle_ = setupFilter();
   DiffPrint(DEBUG_LOTS_DETAILS, "RmstFilter:: subscribed to all, received handle %d\n",
-    (int)filter_handle_);
-
+	    (int)filter_handle_);
+  
   DiffPrint(DEBUG_LOTS_DETAILS, "RmstFilter constructor: start cleanup timer\n");
   stat_timer = new RmstTimeout(this, -1, CLEANUP_TIMER);
   stat_timer_handle_ = ((DiffusionRouting *)dr_)->addTimer(CLEANUP_INTERVAL, stat_timer);
+#endif // !NS_DIFFUSION
 }
 
+#ifndef NS_DIFFUSION
 int main(int argc, char **argv)
 {
   RmstFilter *app;
@@ -1737,3 +1784,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
+#endif // !NS_DIFFUSION

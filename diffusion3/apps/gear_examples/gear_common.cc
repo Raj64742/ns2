@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_common.cc,v 1.1 2003/07/09 17:43:30 haldar Exp $
+// $Id: gear_common.cc,v 1.2 2003/07/10 21:18:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -22,6 +22,6 @@
 
 #include "gear_common.hh"
 
-NRSimpleAttributeFactory<char *> TargetAttr(NRAttribute::TARGET_KEY, NRAttribute::STRING_TYPE);
-NRSimpleAttributeFactory<int> AppCounterAttr(COUNTER_KEY, NRAttribute::INT32_TYPE);
-NRSimpleAttributeFactory<void *> TimeAttr(TIME_KEY, NRAttribute::BLOB_TYPE);
+NRSimpleAttributeFactory<char *> GearTargetAttr(NRAttribute::TARGET_KEY, NRAttribute::STRING_TYPE);
+NRSimpleAttributeFactory<int> GearCounterAttr(COUNTER_KEY, NRAttribute::INT32_TYPE);
+NRSimpleAttributeFactory<void *> GearTimeAttr(TIME_KEY, NRAttribute::BLOB_TYPE);

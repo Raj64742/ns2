@@ -3,7 +3,7 @@
 // authors         : Fred Stann
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_sink.hh,v 1.1 2003/07/09 17:45:48 haldar Exp $
+// $Id: rmst_sink.hh,v 1.2 2003/07/10 21:18:56 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -41,7 +41,13 @@ protected:
 
 class RmstSink : public DiffApp {
 public:
+#ifdef NS_DIFFUSION
+  RmstSink();
+  int command(int argc, const char*const* argv);
+#else
   RmstSink(int argc, char **argv);
+#endif // NS_DIFFUSION
+
   virtual ~RmstSink(){};
   handle setupInterest();
   void run();

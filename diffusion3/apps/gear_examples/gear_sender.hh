@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_sender.hh,v 1.1 2003/07/09 17:43:30 haldar Exp $
+// $Id: gear_sender.hh,v 1.2 2003/07/10 21:18:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -34,10 +34,26 @@ class GearSenderApp;
 
 #define SEND_DATA_INTERVAL 5
 
+#ifdef NS_DIFFUSION
+class GearSendDataTimer : public TimerHandler {
+  public:
+  GearSendDataTimer(GearSenderApp *a) : TimerHandler() { a_ = a; }
+  void expire(Event *e);
+protected:
+  GearSenderApp *a_;
+};
+#endif //NS_DIFFUSION
+
 class GearSenderApp : public DiffApp {
 public:
+#ifdef NS_DIFFUSION
+  GearSenderApp();
+  int command(int argc, const char*const* argv);
+  void send();
+#else
   GearSenderApp(int argc, char **argv);
-
+#endif // NS_DIFFUSION
+  
   virtual ~GearSenderApp()
   {
     // Nothing to do
@@ -73,6 +89,9 @@ private:
   void parseCommandLine(int argc, char **argv);
   void readGeographicCoordinates();
   void usage(char *s);
+#ifdef NS_DIFFUSION
+  GearSendDataTimer sdt_;
+#endif // NS_DIFFUSION
 };
 
 class GearSenderReceive : public NR::Callback {

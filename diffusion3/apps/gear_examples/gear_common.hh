@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: gear_common.hh,v 1.1 2003/07/09 17:43:30 haldar Exp $
+// $Id: gear_common.hh,v 1.2 2003/07/10 21:18:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -32,9 +32,9 @@
 #define COUNTER_KEY 3601
 #define TIME_KEY    3602
 
-extern NRSimpleAttributeFactory<char *> TargetAttr;
-extern NRSimpleAttributeFactory<int> AppCounterAttr;
-extern NRSimpleAttributeFactory<void *> TimeAttr;
+extern NRSimpleAttributeFactory<char *> GearTargetAttr;
+extern NRSimpleAttributeFactory<int> GearCounterAttr;
+extern NRSimpleAttributeFactory<void *> GearTimeAttr;
 
 class EventTime {
 public:

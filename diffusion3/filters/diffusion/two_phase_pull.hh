@@ -3,7 +3,7 @@
 // author             : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: two_phase_pull.hh,v 1.1 2003/07/08 18:05:43 haldar Exp $
+// $Id: two_phase_pull.hh,v 1.2 2003/07/10 21:18:57 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -315,29 +315,29 @@ protected:
   void putHash(HashEntry *new_hash_entry, unsigned int pkt_num, unsigned int rdm_id);
 };
 
-class GradientExpirationCheckTimer : public TimerCallback {
+class TppGradientExpirationCheckTimer : public TimerCallback {
 public:
-  GradientExpirationCheckTimer(GradientFilter *agent) : agent_(agent) {};
-  ~GradientExpirationCheckTimer() {};
+  TppGradientExpirationCheckTimer(GradientFilter *agent) : agent_(agent) {};
+  ~TppGradientExpirationCheckTimer() {};
   int expire();
 
   GradientFilter *agent_;
 };
 
-class ReinforcementCheckTimer : public TimerCallback {
+class TppReinforcementCheckTimer : public TimerCallback {
 public:
-  ReinforcementCheckTimer(GradientFilter *agent) : agent_(agent) {};
-  ~ReinforcementCheckTimer() {};
+  TppReinforcementCheckTimer(GradientFilter *agent) : agent_(agent) {};
+  ~TppReinforcementCheckTimer() {};
   int expire();
 
   GradientFilter *agent_;
 };
 
-class MessageSendTimer : public TimerCallback {
+class TppMessageSendTimer : public TimerCallback {
 public:
-  MessageSendTimer(GradientFilter *agent, Message *msg) :
+  TppMessageSendTimer(GradientFilter *agent, Message *msg) :
     agent_(agent), msg_(msg) {};
-  ~MessageSendTimer()
+  ~TppMessageSendTimer()
   {
     delete msg_;
   };
@@ -347,11 +347,11 @@ public:
   Message *msg_;
 };
 
-class InterestForwardTimer : public TimerCallback {
+class TppInterestForwardTimer : public TimerCallback {
 public:
-  InterestForwardTimer(GradientFilter *agent, Message *msg) :
+  TppInterestForwardTimer(GradientFilter *agent, Message *msg) :
     agent_(agent), msg_(msg) {};
-  ~InterestForwardTimer()
+  ~TppInterestForwardTimer()
   {
     delete msg_;
   };
@@ -361,11 +361,11 @@ public:
   Message *msg_;
 };
 
-class SubscriptionExpirationTimer : public TimerCallback {
+class TppSubscriptionExpirationTimer : public TimerCallback {
 public:
-  SubscriptionExpirationTimer(GradientFilter *agent, NRAttrVec *attrs) :
+  TppSubscriptionExpirationTimer(GradientFilter *agent, NRAttrVec *attrs) :
     agent_(agent), attrs_(attrs) {};
-  ~SubscriptionExpirationTimer()
+  ~TppSubscriptionExpirationTimer()
   {
     ClearAttrs(attrs_);
     delete attrs_;

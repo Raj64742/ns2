@@ -3,7 +3,7 @@
 // authors         : Fred Stann
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_source.cc,v 1.1 2003/07/09 17:45:48 haldar Exp $
+// $Id: rmst_source.cc,v 1.2 2003/07/10 21:18:56 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -22,6 +22,54 @@
 
 #include "rmst_source.hh"
 #include <unistd.h>
+
+#ifdef NS_DIFFUSION
+static class RmstSrcClass : public TclClass {
+public:
+  RmstSrcClass() : TclClass("Application/DiffApp/RmstSource") {}
+    TclObject* create(int , const char*const* ) {
+	    return(new RmstSource());
+    }
+} class_rmst_source;
+
+void RmstSendDataTimer::expire(Event *e) {
+  a_->send();
+}
+
+void RmstSource::send()
+{
+  int sleep_interval;
+  bool sent_first_blob = false;
+
+  if (num_subscriptions_ > 0){
+      if (!sent_first_blob){
+        sendBlob();
+        sent_first_blob = true;
+        sleep_interval = 100;
+      }
+      else
+        printf("RMST-SRC::sees subscriptions\n");
+    }
+    else{
+      printf("RMST-SRC::sees no subscriptions\n");
+      sleep_interval = 10;
+    }
+  // re-schedule the timer 
+  sdt_.resched(sleep_interval);
+}
+
+int RmstSource::command(int argc, const char*const* argv) 
+{
+  if (argc == 2) {
+    if (strcmp(argv[1], "subscribe") == 0) {
+      run();
+      return TCL_OK;
+    }
+   }
+  return DiffApp::command(argc, argv);
+}
+#endif // NS_DIFFUSION
+
 
 void RmstSrcReceive::recv(NRAttrVec *data, NR::handle my_handle)
 {
@@ -94,14 +142,23 @@ void RmstSrcReceive::recv(NRAttrVec *data, NR::handle my_handle)
   }
 }
 
+#ifdef NS_DIFFUSION
+RmstSource::RmstSource() : blobs_to_send_(4), sdt_(this)
+#else
 RmstSource::RmstSource(int argc, char **argv) : blobs_to_send_(4)
+#endif // NS_DIFFUSION
 {
   mr = new RmstSrcReceive(this);
+
+#ifndef NS_DIFFUSION
   parseCommandLine(argc, argv);
   dr_ = NR::createNR(diffusion_port_);
+#endif // NS_DIFFUSION
+  
   ck_val_ = 100;
 }
 
+#ifndef NS_DIFFUSION
 int main(int argc, char **argv)
 {
   RmstSource *app;
@@ -111,17 +168,21 @@ int main(int argc, char **argv)
 
   return 0;
 }
+#endif // NS_DIFFUSION
 
 void RmstSource::run()
 {
+#ifndef NS_DIFFUSION
   int sleep_interval;
   bool sent_first_blob = false;
-
+#endif // !NS_DIFFUSION
+  
   // Let diffusion know what kinds of interests we "latch." 
   subscribe_handle_ = setupRmstInterest();
   // Let diffusion know what we intend to publish.
   send_handle_ = setupRmstPublication();
 
+#ifndef NS_DIFFUSION
   while(1){
     if (num_subscriptions_ > 0){
       if (!sent_first_blob){
@@ -138,6 +199,9 @@ void RmstSource::run()
     }
     sleep(sleep_interval);
   } //while loop
+#else
+  send();
+#endif // !NS_DIFFUSION
 }
 
 

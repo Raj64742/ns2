@@ -3,7 +3,7 @@
 // author               : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: one_phase_pull.cc,v 1.1 2003/07/08 18:05:43 haldar Exp $
+// $Id: one_phase_pull.cc,v 1.2 2003/07/10 21:18:56 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -63,7 +63,7 @@ void OnePhasePullFilterReceive::recv(Message *msg, handle h)
   filter_->recv(msg, h);
 }
 
-int MessageSendTimer::expire()
+int OppMessageSendTimer::expire()
 {
   // Call timeout function
   agent_->messageTimeout(msg_);
@@ -73,7 +73,7 @@ int MessageSendTimer::expire()
   return -1;
 }
 
-int InterestForwardTimer::expire()
+int OppInterestForwardTimer::expire()
 {
   // Call timeout function
   agent_->interestTimeout(msg_);
@@ -83,7 +83,7 @@ int InterestForwardTimer::expire()
   return -1;
 }
 
-int SubscriptionExpirationTimer::expire()
+int OppSubscriptionExpirationTimer::expire()
 {
   int retval;
 
@@ -96,7 +96,7 @@ int SubscriptionExpirationTimer::expire()
   return retval;
 }
 
-int GradientExpirationCheckTimer::expire()
+int OppGradientExpirationCheckTimer::expire()
 {
   // Call the callback function
   agent_->gradientTimeout();
@@ -105,7 +105,7 @@ int GradientExpirationCheckTimer::expire()
   return 0;
 }
 
-int ReinforcementCheckTimer::expire()
+int OppReinforcementCheckTimer::expire()
 {
   // Call the callback function
   agent_->reinforcementTimeout();
@@ -1188,7 +1188,7 @@ void OnePhasePullFilter::processNewMessage(Message *msg)
       // Global interest messages should always be forwarded
       if (nrscope->getVal() == NRAttribute::GLOBAL_SCOPE){
 
-	interest_timer = new InterestForwardTimer(this, CopyMessage(msg));
+	interest_timer = new OppInterestForwardTimer(this, CopyMessage(msg));
 
 	((DiffusionRouting *)dr_)->addTimer(INTEREST_FORWARD_DELAY +
 					    (int) ((INTEREST_FORWARD_JITTER * (GetRand() * 1.0 / RAND_MAX) - (INTEREST_FORWARD_JITTER / 2))),
@@ -1200,7 +1200,7 @@ void OnePhasePullFilter::processNewMessage(Message *msg)
 	  (nrscope->getVal() == NRAttribute::NODE_LOCAL_SCOPE) &&
 	  (new_data_type)){
 
-	subscription_timer = new SubscriptionExpirationTimer(this,
+	subscription_timer = new OppSubscriptionExpirationTimer(this,
 							     CopyAttrs(msg->msg_attr_vec_));
 	
 	((DiffusionRouting *)dr_)->addTimer(SUBSCRIPTION_DELAY +
@@ -1395,10 +1395,10 @@ OnePhasePullFilter::OnePhasePullFilter(int argc, char **argv)
 	    filter_handle_);
 
   // Add timers for keeping state up-to-date
-  gradient_timer = new GradientExpirationCheckTimer(this);
+  gradient_timer = new OppGradientExpirationCheckTimer(this);
   ((DiffusionRouting *)dr_)->addTimer(GRADIENT_DELAY, gradient_timer);
 
-  reinforcement_timer = new ReinforcementCheckTimer(this);
+  reinforcement_timer = new OppReinforcementCheckTimer(this);
   ((DiffusionRouting *)dr_)->addTimer(REINFORCEMENT_DELAY, reinforcement_timer);
 
   GetTime(&tv);
