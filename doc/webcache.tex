@@ -242,10 +242,10 @@ be receiver:
 Where \code{app-recv} is defined as:
 
 \begin{program}
-        Application/TcpApp instproc app-recv { size } {
+        Application/TcpApp instproc app-recv \{ size \} \{
                 global ns
                 puts "[$ns now] app2 receives data $size from app1"
-        }
+        \}
 \end{program}
 
 \subsection{Class hierarchy related to user data handling}
@@ -390,17 +390,17 @@ Details can be found in \ns/webcache/http.cc.
 We represent web pages as the abstract class Page. It is defined as follows:
 
 \begin{program}
-class Page {
+class Page \{
 public:
-        Page(int size) : size_(size) {}
-        int size() const { return size_; }
-        int& id() { return id_; }
+        Page(int size) : size_(size) \{\}
+        int size() const \{ return size_; \}
+        int& id() \{ return id_; \}
         virtual WebPageType type() const = 0;
 
 protected:
         int size_;
         int id_;
-};
+\};
 \end{program}
 
 It represents the basic properties of a web page: size and URL. Upon
@@ -920,23 +920,23 @@ Next we create the Http objects:
 Then we define a procedure which will be called after simulation
 starts.  The procedure will setup connections among all Http objects.
 \begin{program}
-        proc start-connection {} {
+        proc start-connection \{\} \{
                 global ns server cache client
                 $client connect $cache
                 $cache connect $server
                 $client start-session $cache $server
-        }
+        \}
 \end{program} %$
 
 At the end, the usual closing:
 \begin{program}
-        proc finish {} {
+        proc finish \{\} \{
                 global ns log
                 $ns flush-trace
                 flush $log
                 close $log
                 exit 0
-        }
+        \}
         $ns run
 \end{program}
 
