@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.105 2000/05/16 18:45:48 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.106 2000/07/07 21:26:35 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -805,26 +805,38 @@ void
 TcpAgent::slowdown(int how)
 {
 	int win = window();
+	int slowstart = 0;
+	// we are in slowstart for sure if cwnd < ssthresh
+	if (cwnd_ < ssthresh_)
+		slowstart = 1;
 	int halfwin = int (window() / 2);
 	int decreasewin = int (decrease_num_ * window());
 	if (how & CLOSE_SSTHRESH_HALF)
-		ssthresh_ = decreasewin;
+		// For the first decrease, decrease by half
+		// even for non-standard values of decrease_num_.
+		if (first_decrease_ == 1 || slowstart) {
+			ssthresh_ = halfwin;
+		} else {
+			ssthresh_ = decreasewin;
+		}
         else if (how & THREE_QUARTER_SSTHRESH)
 		if (ssthresh_ < 3*cwnd_/4)
 			ssthresh_  = (int)(3*cwnd_/4);
 	if (how & CLOSE_CWND_HALF)
 		// For the first decrease, decrease by half
 		// even for non-standard values of decrease_num_.
-		if (first_decrease_ == 1 || decrease_num_ == 0.5) {
+		if (first_decrease_ == 1 || slowstart || decrease_num_ == 0.5) {
 			cwnd_ = halfwin;
-			first_decrease_ = 0;
 		} else cwnd_ = decreasewin;
         else if (how & CWND_HALF_WITH_MIN) {
+		// We have not thought about how non-standard TCPs, with
+		// non-standard values of decrease_num_, should respond
+		// after quiescent periods.
                 cwnd_ = decreasewin;
                 if (cwnd_ < 1)
                         cwnd_ = 1;
 	}
-	else if (how & CLOSE_CWND_RESTART)
+	else if (how & CLOSE_CWND_RESTART) 
 		cwnd_ = int(wnd_restart_);
 	else if (how & CLOSE_CWND_INIT)
 		cwnd_ = int(wnd_init_);
@@ -842,6 +854,8 @@ TcpAgent::slowdown(int how)
 		cong_action_ = TRUE;
 
 	fcnt_ = count_ = 0;
+	if (first_decrease_ == 1)
+		first_decrease_ = 0;
 }
 
 
