@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.6 1997/10/30 04:02:12 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.7 1997/10/31 02:41:09 kfall Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -398,12 +398,12 @@ XTest/red_twowaybytes instproc run {} {
 
 TestSuite instproc create_flowstats {} {
 
-	global flowfile
+	global flowfile flowchan
 	$self instvar ns_ node_ r1fm_
 
-	set r1fm_ [$ns_ makeflowmon]
-	set flowdesc [open $flowfile w]
-	$r1fm_ attach $flowdesc
+	set r1fm_ [$ns_ makeflowmon Fid]
+	set flowchan [open $flowfile w]
+	$r1fm_ attach $flowchan
 	$ns_ attach-fmon [$ns_ link $node_(r1) $node_(r2)] $r1fm_
 }
 
@@ -411,9 +411,9 @@ TestSuite instproc create_flowstats {} {
 # awk code used to produce:
 #       x axis: # arrivals for this flow+category / # total arrivals [bytes]
 #       y axis: # drops for this flow+category / # drops this category [pkts]
+#	(verified compatible for ns2 - kfall, 10/30/97)
 TestSuite instproc unforcedmakeawk { } {
         set awkCode {
-            BEGIN { print "\"flow 0" }
             {
                 if ($2 != prev) {
                         print " "; print "\"flow " $2; print 100.0 * $9/$13, 100.0 * $10 / $14; prev = $2
@@ -428,14 +428,15 @@ TestSuite instproc unforcedmakeawk { } {
 # awk code used to produce:
 #       x axis: # arrivals for this flow+category / # total arrivals [bytes]
 #       y axis: # drops for this flow+category / # drops this category [bytes]
+#	(modified for compatibility with ns2 flowmon - kfall, 10/30/97)
 TestSuite instproc forcedmakeawk { } {
         set awkCode {
             BEGIN { print "\"flow 0" }
             {
                 if ($2 != prev) {
-                        print " "; print "\"flow " $2; print 100.0 * $9/$13, 100.0 * $11 / $15; prev = $2
+                        print " "; print "\"flow " $2; print 100.0 * $9/$13, 100.0 * ($19 - $11) / ($17 - $15); prev = $2
                 } else
-                        print 100.0 * $9 / $13, 100.0 * $11 / $15
+                        print 100.0 * $9 / $13, 100.0 * ($19 - $11) / ($17 - $15)
             }
         }
         return $awkCode
@@ -486,6 +487,9 @@ TestSuite instproc allmakeawk { } {
 TestSuite instproc create_flow_graph { graphtitle graphfile } {
         global flowfile
 	$self instvar awkprocedure_
+
+puts "awkprocedure: $awkprocedure_"
+
         set tmpfile1 /tmp/fg1[pid]
         set tmpfile2 /tmp/fg2[pid]
 
@@ -505,17 +509,15 @@ TestSuite instproc create_flow_graph { graphtitle graphfile } {
         close $outdesc
 }
 
-TestSuite instproc finish_flows file {
-	global flowgraphfile
-	$self create_flow_graph $file $flowgraphfile
+TestSuite instproc finish_flows testname {
+	global flowgraphfile flowfile flowchan
+	$self instvar r1fm_
+	$r1fm_ dump
+	close $flowchan
+	$self create_flow_graph $testname $flowgraphfile
 	puts "running xgraph..."
 	exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards" $flowgraphfile &
 	exit 0
-}
-
-TestSuite instproc flowDump { link fm flow } {
-	$fm dump
-	$fm resetcounters
 }
 
 TestSuite instproc new_tcp { startTime source dest window class dump size } {
@@ -538,10 +540,27 @@ TestSuite instproc new_cbr { startTime source dest pktSize interval class } {
     $ns_ at $startTime "$cbr start"
 }
 
-##Class Test/flows -superclass TestSuite
-##Test/flows instproc init topo {
-Class XTest/flows -superclass TestSuite
-XTest/flows instproc init topo {
+TestSuite instproc dumpflows interval {
+    $self instvar dumpflows_inst_ ns_ r1fm_
+    global flowchan
+
+    if ![info exists dumpflows_inst_] {
+        set dumpflows_inst_ 1
+        $ns_ at 0.0 "$self dumpflows $interval"
+        return  
+    }
+    $r1fm_ dump
+    flush $flowchan
+    foreach f [$r1fm_ flows] {
+	$f reset
+    }
+    $r1fm_ reset
+    $ns_ at [expr [$ns_ now] + $interval] "$self dumpflows $interval"
+}   
+
+
+Class Test/flows-unforced -superclass TestSuite
+Test/flows-unforced instproc init topo {
     $self instvar net_ defNet_ test_
     set net_    $topo   
     set defNet_ net2
@@ -549,13 +568,12 @@ XTest/flows instproc init topo {
     $self next
 }   
 
-#Test/flows instproc run {} {
-XTest/flows instproc run {} {
-    $self instvar ns_ node_ testName_ r1fm_ awkprocedure_
+Test/flows-unforced instproc run {} {
+
+	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
  
-	#global s1 s2 r1 r2 s3 s4 r1fm qgraphfile flowfile 
-        set stoptime 10.0
-	set testName_ test_two
+        set stoptime 5.0
+	set testName_ test_flows_unforced
 	set awkprocedure_ unforcedmakeawk
 	
 	[$ns_ link $node_(r1) $node_(r2)] set mean_pktsize 1000
@@ -566,6 +584,8 @@ XTest/flows instproc run {} {
 	[$ns_ link $node_(r2) $node_(r1)] set queue-limit 100
 
 	$self create_flowstats 
+	$self dumpflows 1.0
+
 	[$ns_ link $node_(r1) $node_(r2)] set bytes true
 	[$ns_ link $node_(r1) $node_(r2)] set wait false
 
@@ -573,7 +593,6 @@ XTest/flows instproc run {} {
 	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
 	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
 
-#	$ns_ at $stoptime "$r1fm_ flush"
 	$ns_ at $stoptime "$self finish_flows $testName_"
 
 	$ns_ run
@@ -628,4 +647,3 @@ proc Xtest_flowsAll {} {
 }
 
 TestSuite runTest
-
