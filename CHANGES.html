@@ -17,6 +17,29 @@ with the most recent changes coming first.
 <h3>ns-2.27 [PENDING RELEASE]</h3>
 <ul>
 
+<p><li><b>[Sally Floyd]</b>
+<br>
+Tue Jul 29 2003
+<br>
+Adding ts_resetRTO_ to TCP to control whether or not a timestamp-enabled
+sender unbacks a backed-off RTO after making a valid RTT measurement
+from an acknowledged, retransmitted packet.  Validation tests
+are in "./test-all-tcpOptions" in "tcl/test": 
+"./test-all-tcpOptions timeouts_sack2" (with ts_resetRTO_ true)
+"./test-all-tcpOptions timeouts_sack3" (with ts_resetRTO_ false).
+The suggestion and initial code for this change are from Andrei Gurtov.
+<br>
+Also adding exitFastRetrans_ to TCP, to fix a problem with clean exits
+from Fast Recovery.  Set to false for the old buggy behavior, or set
+to true for the new good behavior.  The default is true.
+  "./test-all-tcpOptions timeouts_reno_noexitFR" 
+shows the old behavior, and:
+    "./test-all-tcpOptions timeouts_reno" 
+shows the fixed new behavior.  The problem was that data was sent
+in response to dup acks even after Fast Recovery was over.  From a
+bug report by Andrei Gurtov.
+<p>
+
 <p><li><b>[johnh]</b>
 Fri Jul 25 17:50:55 PDT 2003 <br>
      Improved portability for C++ namespaces
