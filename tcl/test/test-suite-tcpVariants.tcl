@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.20 2003/01/19 03:54:04 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.21 2003/04/01 01:19:45 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -39,6 +39,7 @@
 source misc_simple.tcl
 Agent/TCP set singledup_ 0
 # The default has been changed to 1
+#Agent/TCP set LimTransmitFix_ true
 
 Trace set show_tcphdr_ 1
 
@@ -928,6 +929,110 @@ Test/multiple_partial_ack_sack instproc init {} {
 	set test_	multiple_partial_ack_sack
 	Agent/TCP set partial_ack_ 1
 	Test/multiple_partial_ack_sack instproc run {} [Test/multiple_sack info instbody run ]
+	$self next pktTraceFile
+}
+
+###################################################
+## Multiple drops, scenario #2
+###################################################
+
+Class Test/multiple2_tahoe -superclass TestSuite
+Test/multiple2_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple2_tahoe
+	$self next pktTraceFile
+}
+Test/multiple2_tahoe instproc run {} {
+        $self setup Tahoe {11 12 13 14 16 }
+	# $self setup Tahoe {11 12 13 14 16 17 18 19 }
+}
+
+## This can result in an unnecessary packet transmission, unless the
+## Limited Transmit option checks not to send packets less than maxseq_,
+## the highest sequence number sent to far.
+Class Test/multiple2_SA_tahoe -superclass TestSuite
+Test/multiple2_SA_tahoe instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple2_SA_tahoe
+	Agent/TCP set singledup_ 1
+	Test/multiple2_SA_tahoe instproc run {} [Test/multiple2_tahoe info instbody run ]
+	$self next pktTraceFile
+}
+
+Class Test/multiple2_reno -superclass TestSuite
+Test/multiple2_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple2_reno
+	$self next pktTraceFile
+}
+Test/multiple2_reno instproc run {} {
+	$self setup Reno {11 12 13 14 16 }
+}
+
+Class Test/multiple2_SA_reno -superclass TestSuite
+Test/multiple2_SA_reno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple2_SA_reno
+	Agent/TCP set singledup_ 1
+	Test/multiple2_SA_reno instproc run {} [Test/multiple2_reno info instbody run ]
+	$self next pktTraceFile
+}
+
+Class Test/multiple2_newreno -superclass TestSuite
+Test/multiple2_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple2_newreno
+	$self next pktTraceFile
+}
+Test/multiple2_newreno instproc run {} {
+	$self setup Newreno {11 12 13 14 16 }
+}
+
+Class Test/multiple2_SA_newreno -superclass TestSuite
+Test/multiple2_SA_newreno instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple2_SA_newreno
+	Agent/TCP set singledup_ 1
+	Test/multiple2_SA_newreno instproc run {} [Test/multiple2_newreno info instbody run ]
+	$self next pktTraceFile
+}
+
+Class Test/multiple2_sack -superclass TestSuite
+Test/multiple2_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple2_sack
+	$self next pktTraceFile
+}
+Test/multiple2_sack instproc run {} {
+	$self setup Sack1 {11 12 13 14 16 } 
+}
+
+# Limited Transmit
+Class Test/multiple2_SA_sack -superclass TestSuite
+Test/multiple2_SA_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple2_SA_sack
+	Agent/TCP set singledup_ 1
+	Test/multiple2_SA_sack instproc run {} [Test/multiple2_sack info instbody run ]
+	$self next pktTraceFile
+}
+
+# Partial_ack 
+Class Test/multiple2_partial_ack_sack -superclass TestSuite
+Test/multiple2_partial_ack_sack instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	multiple2_partial_ack_sack
+	Agent/TCP set partial_ack_ 1
+	Test/multiple2_partial_ack_sack instproc run {} [Test/multiple2_sack info instbody run ]
 	$self next pktTraceFile
 }
 
