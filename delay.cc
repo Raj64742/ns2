@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.17 1997/08/10 07:49:37 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.18 1997/09/10 16:59:53 kannan Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -112,11 +112,11 @@ void LinkDelay::reset()
 {
 	if (nextPacket_) {
 		Scheduler::instance().cancel(&inTransit_);
-		Packet::free(nextPacket_);
+		drop(nextPacket_);
 		nextPacket_ = (Packet*) NULL;
 		Packet* np;
 		while ((np = itq_->deque()) != 0)
-			Packet::free(np);
+			drop(np);
 	}
 }
 

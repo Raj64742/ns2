@@ -25,7 +25,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/dynalink.cc,v 1.5 1997/07/22 21:50:34 kfall Exp $ (USC/ISI)";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/dynalink.cc,v 1.6 1997/09/10 16:59:55 kannan Exp $ (USC/ISI)";
 #endif
 
 #include "connector.h"
@@ -59,21 +59,6 @@ int DynamicLink::command(int argc, const char*const* argv)
 			Tcl::instance().result(status_ ? "up" : "down");
 			return TCL_OK;
 		}
-		if (strcmp(argv[1], "down-target") == 0) {
-			if (down_ != 0)
-				Tcl::instance().resultf("%s", down_->name());
-			return TCL_OK;
-		}
-	} else if (argc == 3) {
-		if (strcmp(argv[1], "down-target") == 0) {
-			NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
-			if (p == 0) {
-				Tcl::instance().resultf("no object %s", argv[2]);
-				return TCL_ERROR;
-			}
-			down_ = p;
-			return TCL_OK;
-		}
 	}
 	return Connector::command(argc, argv);
 }
@@ -83,5 +68,5 @@ void DynamicLink::recv(Packet* p, Handler* h)
 	if (status_)
 		target_->recv(p, h);
 	else
-		down_->recv(p);	// XXX  Why no handler?
+		drop(p);
 }

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.6 1997/07/22 00:53:14 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.7 1997/09/10 16:59:56 kannan Exp $";
 #endif
 
 #include "packet.h"
@@ -51,8 +51,10 @@ public:
 		int ttl = iph->ttl() - 1;
 		if (ttl <= 0) {
 			/* XXX should send to a drop object.*/
-			Packet::free(p);
+			// Yes, and now it does...
+			// Packet::free(p);
 			printf("ttl exceeded\n");
+			drop(p);
 			return;
 		}
 		iph->ttl() = ttl;

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.11 1997/08/12 00:34:30 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.12 1997/09/10 17:00:00 kannan Exp $
 #
 
 #
@@ -62,13 +62,13 @@ CBQLink instproc init { src dst bw delay q cl {lltype "DelayLink"} } {
         $self next $src $dst $bw $delay $q $lltype ; # SimpleLink ctor
         $self instvar head_ queue_ link_
 	$self instvar  classifier_	; # not found in a SimpleLink
-	$self instvar  drophead_ ; # not found in a SimpleLink
+#	$self instvar  drophead_ ; # not found in a SimpleLink
 
 	$queue_ link $link_ ; # queue_ set by SimpleLink ctor, CBQ needs $link_
         set classifier_ $cl
 	set head_ $classifier_
-	set drophead_ [new Connector]
-	$drophead_ target [[Simulator instance] set nullAgent_]
+#	set drophead_ [new Connector]
+#	$drophead_ target [[Simulator instance] set nullAgent_]
 	#
 	# the following is merely to inject 'algorithm_' in the
 	# $queue_ class' name space.  It is not used in ns-2, but
@@ -86,25 +86,25 @@ CBQLink instproc init { src dst bw delay q cl {lltype "DelayLink"} } {
 # do exactly what we need
 #
 
-CBQLink instproc trace { ns f } {
-	$self next $ns $f
-	$self instvar drpT_ drophead_
-	set nxt [$drophead_ target]
-	$drophead_ target $drpT_
-	$drpT_ target $nxt
-}
+#CBQLink instproc trace { ns f } {
+#	$self next $ns $f
+#	$self instvar drpT_ drophead_
+#	set nxt [$drophead_ target]
+#	$drophead_ target $drpT_
+#	$drpT_ target $nxt
+#}
 
 #
 # set up monitors.  Once again, the base version is close, but not
 # exactly what's needed
 #
-CBQLink instproc attach-monitors { isnoop osnoop dsnoop qmon } {
-	$self next $isnoop $osnoop $dsnoop $qmon
-	$self instvar drophead_
-	set nxt [$drophead_ target]
-	$drophead_ target $dsnoop
-	$dsnoop target $nxt
-}
+#CBQLink instproc attach-monitors { isnoop osnoop dsnoop qmon } {
+#	$self next $isnoop $osnoop $dsnoop $qmon
+#	$self instvar drophead_
+#	set nxt [$drophead_ target]
+#	$drophead_ target $dsnoop
+#	$dsnoop target $nxt
+#}
 
 CBQLink instproc classifier {} {
 	$self instvar classifier_

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.19 1997/09/10 06:50:37 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.20 1997/09/10 16:59:58 kannan Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -129,6 +129,7 @@ Class SimpleLink -superclass Link
 SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 	$self next $src $dst
 	$self instvar link_ queue_ head_ toNode_ ttl_
+	$self instvar drophead_
 
         #added for interface code
         $self instvar ifacein_ ifaceout_
@@ -152,6 +153,9 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
                 set head_ $queue_
         }
 
+	set drophead_ [new Connector]
+	$drophead_ target [[Simulator instance] set nullAgent_]
+
 	# XXX
 	# put the ttl checker after the delay
 	# so we don't have to worry about accounting
@@ -160,6 +164,7 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 	#
 	set ttl_ [new TTLChecker]
 	$ttl_ target [$link_ target]
+	$ttl_ ttl-drop-target
 	$link_ target $ttl_
 }
 
@@ -169,12 +174,21 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 #
 SimpleLink instproc trace { ns f } {
 	$self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
+	$self instvar drophead_		;# idea stolen from CBQ and Kevin
+
 	set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_]
 	set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_]
 	set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_]
 
-	$drpT_ target [$queue_ drop-target]
-	$queue_ drop-target $drpT_
+	$self instvar drpT_ drophead_
+	set nxt [$drophead_ target]
+	$drophead_ target $drpT_
+	$drpT_ target $nxt
+
+	$queue_ drop-target $drophead_
+
+#	$drpT_ target [$queue_ drop-target]
+#	$queue_ drop-target $drpT_
 
 	$deqT_ target [$queue_ target]
 	$queue_ target $deqT_
@@ -198,8 +212,39 @@ SimpleLink instproc trace { ns f } {
 }
 
 SimpleLink instproc trace-dynamics { ns f } {
-    $self instvar dynT_ fromNode_ toNode_
-    lappend dynT_ [$ns create-trace Generic $f $fromNode_ $toNode_]
+	$self instvar dynT_ fromNode_ toNode_
+	lappend dynT_ [$ns create-trace Generic $f $fromNode_ $toNode_]
+	$self transit-drop-trace
+	$self linkfail-drop-trace
+}
+
+SimpleLink instproc ttl-drop-trace args {
+	$self instvar ttl_
+	if ![info exists ttl_] return
+	if {[llength $args] != 0} {
+		$ttl_ drop-target [lindex $args 0]
+	} else {
+		$ttl_ drop-target $drophead_
+	}
+}
+
+SimpleLink instproc transit-drop-trace args {
+	$self instvar link_
+	if {[llength $args] != 0} {
+		$link_ drop-target [lindex $args 0]
+	} else {
+		$link_ drop-target $drophead_
+	}
+}
+
+SimpleLink instproc linkfail-drop-trace args {
+	$self instvar dynamics_
+	if ![info exists dynamics_] return
+	if {[llength $args] != 0} {
+		$dynamics_ drop-target [lindex $args 0]
+	} else {
+		$dynamics_ drop-target $drophead_
+	}
 }
 
 #
@@ -221,7 +266,7 @@ SimpleLink instproc trace-callback {ns cmd} {
 #
 SimpleLink instproc attach-monitors { insnoop outsnoop dropsnoop qmon } {
 	$self instvar drpT_ queue_ head_ snoopIn_ snoopOut_ snoopDrop_
-	$self instvar qMonitor_
+	$self instvar qMonitor_ drophead_
 
 	set snoopIn_ $insnoop
 	set snoopOut_ $outsnoop
@@ -233,14 +278,18 @@ SimpleLink instproc attach-monitors { insnoop outsnoop dropsnoop qmon } {
 	$snoopOut_ target [$queue_ target]
 	$queue_ target $snoopOut_
 
-	if [info exists drpT_] {
-		$snoopDrop_ target [$drpT_ target]
-		$drpT_ target $snoopDrop_
-		$queue_ drop-target $drpT_
-	} else {
-		$snoopDrop_ target [[Simulator instance] set nullAgent_]
-		$queue_ drop-target $snoopDrop_
-	}
+	set nxt [$drophead_ target]
+	$drophead_ target $dsnoop
+	$dsnoop target $nxt
+
+#	if [info exists drpT_] {
+#		$snoopDrop_ target [$drpT_ target]
+#		$drpT_ target $snoopDrop_
+#		$queue_ drop-target $drpT_
+#	} else {
+#		$snoopDrop_ target [[Simulator instance] set nullAgent_]
+#		$queue_ drop-target $snoopDrop_
+#	}
 
 	$snoopIn_ set-monitor $qmon
 	$snoopOut_ set-monitor $qmon
