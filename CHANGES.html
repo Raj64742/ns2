@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.541 2002/09/17 03:59:12 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.542 2002/09/18 05:41:50 sundarra Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -18,6 +18,20 @@ with the most recent changes coming first.
 <h3>ns-2.1b10
 [PENDING RELEASE DATE]</h3>
 <ul>
+
+<p><li><b>[Srikanth Sundarrajan]</b>
+Mon Sep 17 19:25:15 PDT 2002
+<ul>
+<li> Enabled standard event tracing for SRM. File: tcl/mcast/srm.tcl, mcast/srm.cc
+<li> Integerated LMS to NS. Author - <a href="http://pollux.usc.edu/~chrisp/">[Dr. Christos Papadopoulos]</a>
+<ul>
+	<li> mcast/classifier-lms.cc, mcast/lms-agent.cc, mcast/lms-receiver.cc, mcast/lms.h
+	<li> mcast/lms-sender.cc, mcast/lms-agent.cc, mcast/rcvbuf.{cc, h} 
+	<li> queue/errmodel.{cc, h}, routing/rtmodule.{cc, h}, common/packet.h 
+	<li> tcl/lib/ns-default.tcl, tcl/lib/ns-lib.tcl, tcl/mcast/ns-lms.tcl
+</ul>
+<li> Fixed event tracing in PGM, nam trace write disabled. Files: pgm/pgm-agent.cc, pgm/pgm-receiver.cc, pgm/pgm-sender.cc
+</ul>
 
 <p><li><b>[Sally Floyd]</b>
 Mon Sep 16 20:52:25 PDT 2002

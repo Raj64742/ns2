@@ -326,7 +326,7 @@ void PgmSender::trace_event(char *evType, nsaddr_t daddr, double evTime) {
 			daddr,                      // dst node id
 			0                       // dst port id
 			);
-	et_->trace();
+	et_->dump();
   }
 
 }

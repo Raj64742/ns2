@@ -30,7 +30,7 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.15 2002/08/07 04:04:56 sundarra Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.16 2002/09/18 05:41:54 sundarra Exp $ (USC/ISI)
 #
 
 # THis routine is a temporary hack.  It is likely to dissappear
@@ -84,6 +84,9 @@ Agent/SRM instproc init {} {
 	$self next
 	$self instvar ns_ requestFunction_ repairFunction_
 	set ns_ [Simulator instance]
+
+	$ns_ create-eventtrace Event $self	
+
 	$self init-instvar sessionDelay_
 	foreach var {C1_ C2_ D1_ D2_} {
 		$self init-instvar $var
@@ -395,6 +398,20 @@ SRM instproc logpfx fp {
 	puts -nonewline $fp " n $nid_ m <$sender_:$msgid_> r $round_ "
 }
 
+SRM instproc nam-event-pfx fp {
+	$self instvar ns_ nid_ sender_ msgid_ round_
+	puts -nonewline $fp "E "
+	puts -nonewline $fp [format "%8.6f" [$ns_ now]]
+	puts -nonewline $fp " n $nid_ m <$sender_:$msgid_> r $round_ "
+}
+
+SRM instproc ns-event-pfx fp {
+	$self instvar ns_ nid_ sender_ msgid_ round_
+	puts -nonewline $fp "E "
+	puts -nonewline $fp [format "%8.6f" [$ns_ now]]
+	puts -nonewline $fp " n $nid_ m <$sender_:$msgid_> r $round_ "
+}
+
 SRM instproc dump-stats fp {
 	$self instvar times_ statistics_
 	$self logpfx $fp
@@ -403,7 +420,31 @@ SRM instproc dump-stats fp {
 }
 
 SRM instproc evTrace {tag type args} {
-	$self instvar trace_
+	$self instvar trace_ ns_
+	$ns_ instvar eventTraceAll_ traceAllFile_ namtraceAllFile_
+
+	if [info exists eventTraceAll_] {
+		if {$eventTraceAll_ == 1} {
+			if [info exists traceAllFile_] {
+				$self ns-event-pfx $traceAllFile_
+				puts -nonewline $traceAllFile_ "$tag $type"
+				foreach elem $args {
+					puts -nonewline $traceAllFile_ " $elem"
+				}
+				puts $traceAllFile_ {}
+			}
+	
+#			if [info exists namtraceAllFile_] {
+#				$self nam-event-pfx $namtraceAllFile_
+#				puts -nonewline $namtraceAllFile_ "$tag $type"
+#				foreach elem $args {
+#					puts -nonewline $namtraceAllFile_ " $elem"
+#				}
+#				puts $namtraceAllFile_ {}
+#			}
+		}
+	}
+
 	if [info exists trace_] {
 		$self logpfx $trace_
 		puts -nonewline $trace_ "$tag $type"

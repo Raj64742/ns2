@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.46 2002/05/30 17:44:05 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.47 2002/09/18 05:41:52 sundarra Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -233,4 +233,22 @@ protected:
 };
 
 #endif//HAVE_STL
+
+// LMS error model
+class LMSErrorModel : public ErrorModel {
+public:
+        LMSErrorModel();
+        virtual int corrupt(Packet*);
+ 
+protected:
+	int ndrops_;
+	int command(int argc, const char*const* argv);
+	packet_t pkt_type_;
+	int	drop_cycle_;
+	int	drop_offset_;
+	int	off_rtp_;
+	int	off_lms_;
+};
+
+
 #endif 

@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.cc,v 1.13 2002/05/31 23:11:30 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.cc,v 1.14 2002/09/18 05:41:52 sundarra Exp $
  */
 
 #include "rtmodule.h"
@@ -92,11 +92,19 @@ public:
 } class_pgm_routing_module;
 #endif //STL
 
+// LMS
+static class LmsRoutingModuleClass : public TclClass {
+public:
+        LmsRoutingModuleClass() : TclClass("RtModule/LMS") {}
+        TclObject* create(int, const char*const*) {
+                return (new LmsRoutingModule);
+        }
+} class_lms_routing_module;
+
 RoutingModule::RoutingModule() : 
 	next_rtm_(NULL), n_(NULL), classifier_(NULL) {
 	bind("classifier_", (TclObject**)&classifier_);
 }
-
 
 int RoutingModule::command(int argc, const char*const* argv)
 {

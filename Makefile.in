@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.256 2002/09/17 18:29:36 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.257 2002/09/18 05:41:50 sundarra Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -267,7 +267,9 @@ OBJ_CC = \
 	common/scheduler-map.o common/splay-scheduler.o \
 	linkstate/ls.o linkstate/rtProtoLS.o \
 	pgm/classifier-pgm.o pgm/pgm-agent.o pgm/pgm-sender.o \
-	pgm/pgm-receiver.o pgm/rcvbuf.o \
+	pgm/pgm-receiver.o mcast/rcvbuf.o \
+	mcast/classifier-lms.o mcast/lms-agent.o mcast/lms-receiver.o \
+	mcast/lms-sender.o \
 	@V_STLOBJ@
 
 
@@ -424,6 +426,7 @@ NS_TCL_LIB = \
 	tcl/mpls/ns-mpls-simulator.tcl \
 	tcl/lib/ns-pushback.tcl \
 	tcl/lib/ns-srcrt.tcl \
+	tcl/mcast/ns-lms.tcl \
 	@V_NS_TCL_LIB_STL@
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)

@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.73 2002/05/30 17:44:05 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.74 2002/09/18 05:41:52 sundarra Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.73 2002/05/30 17:44:05 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.74 2002/09/18 05:41:52 sundarra Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -994,3 +994,56 @@ int PGMErrorModel::corrupt(Packet* p)
 
 #endif //HAVE_STL
 
+//
+// LMS Error Model
+//
+#include "rtp.h"                
+#include "mcast/lms.h"
+
+static class LMSErrorModelClass : public TclClass {
+public:
+        LMSErrorModelClass() : TclClass("LMSErrorModel") {}
+        TclObject* create(int, const char*const*) {
+                return (new LMSErrorModel);
+        }
+} class_lms_errormodel;
+ 
+ 
+LMSErrorModel::LMSErrorModel() : ErrorModel()
+	{
+        ndrops_ = 0;
+        bind("ndrops_", &ndrops_);
+	}
+ 
+int LMSErrorModel::command(int argc, const char*const* argv)
+	{
+        if (strcmp(argv[1], "drop-packet") == 0)
+		{
+                pkt_type_ = packet_t(atoi(argv[2]));
+                drop_cycle_ = atoi(argv[3]);
+                drop_offset_ = atoi(argv[4]);
+                return TCL_OK;
+		}
+        return ErrorModel::command(argc, argv);
+	}
+
+int LMSErrorModel::corrupt(Packet* p)
+{
+        if (unit_ == EU_PKT)
+		{
+                hdr_cmn *ch = HDR_CMN(p);
+                hdr_lms *lh = HDR_LMS(p);
+                hdr_rtp *rh = HDR_RTP(p);
+ 
+                if ((ch->ptype() == pkt_type_) && (lh->type_ != LMS_DMCAST) &&
+                    (rh->seqno() % drop_cycle_ == drop_offset_))
+			{
+#ifdef LMS_DEBUG
+printf ("Error Model: DROPPING pkt type %d, seqno %d\n", pkt_type_, rh->seqno());
+#endif
+                        ++ndrops_;
+			return 1;
+			}
+        	}
+	return 0;
+}

@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.293 2002/09/17 03:42:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.294 2002/09/18 05:41:53 sundarra Exp $
 
 
 #
@@ -1075,3 +1075,43 @@ RtModule/Base set classifier_ ""
 #RtModule/Manual set classifier_ [new Classifier/Hash/Dest 2]
 #RtModule/VC set classifier_ [new Classifier/Virtual]
 
+#
+# LMS initializations
+#
+LMSErrorModel set rate_		0.0	;# just to eliminate warnings
+LMSErrorModel set errPkt_	0
+LMSErrorModel set errByte_	0
+LMSErrorModel set errTime_	0.0
+LMSErrorModel set onlink_	0
+LMSErrorModel set enable_	0
+LMSErrorModel set ndrops_	0
+LMSErrorModel set bandwidth_	2Mb
+LMSErrorModel set markecn_	false
+LMSErrorModel set debug_	false
+LMSErrorModel set delay_pkt_ false
+LMSErrorModel set delay_ 0
+
+set lmsPacketSize 1024
+set lsize [Application/Traffic/CBR set packetSize_]
+
+RtModule/LMS set node_	""
+
+Agent/LMS set lms_enabled_	1
+Agent/LMS set packetSize_	$lmsPacketSize
+
+Agent/LMS/Sender set interval_ 4.0ms
+Agent/LMS/Sender set packetSize_ $lsize
+Agent/LMS/Sender set lmsPacketSize_ $lmsPacketSize
+Agent/LMS/Sender set random_ 0
+Agent/LMS/Sender set maxpkts_ 0x10000000
+Agent/LMS/Sender set odat_ 0
+Agent/LMS/Sender instproc done {} { }
+
+Agent/LMS/Receiver set lmsPacketSize_ $lmsPacketSize
+Agent/LMS/Receiver set bytes_ 0
+Agent/LMS/Receiver set nlost_ 0
+Agent/LMS/Receiver set npkts_ 0
+Agent/LMS/Receiver set expected_ 0
+Agent/LMS/Receiver set lastPktTime_ 0.0
+Agent/LMS/Receiver instproc done {} { }
+Agent/LMS/Receiver set packetSize_ $lsize

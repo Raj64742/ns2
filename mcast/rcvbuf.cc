@@ -17,6 +17,7 @@
  *
  **
  * Pragmatic General Multicast (PGM), Reliable Multicast
+ * Light-Weight Multicast Services (LMS), Reliable Multicast
  *
  * rcvbuf.cc
  *
@@ -27,7 +28,6 @@
  */
 
 #include "config.h"
-#ifdef HAVE_STL
 
 #include <stdio.h>
 #include "rcvbuf.h"
@@ -192,4 +192,3 @@ void RcvBuffer::print ()
 	printf ("nextpkt: %d\n", nextpkt_);
 }
 
-#endif //HAVE_STL

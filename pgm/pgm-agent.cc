@@ -470,7 +470,7 @@ void PgmAgent::trace_event(char *evType, double evTime) {
 			0,                      // dst node id
 			0                       // dst port id
 			);
-	et_->trace();
+	et_->dump();
   }
 
 }

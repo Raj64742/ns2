@@ -30,7 +30,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.25 2000/09/01 03:04:07 haoboy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.26 2002/09/18 05:41:51 sundarra Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -147,6 +147,9 @@ int SRMAgent::command(int argc, const char*const* argv)
 			tcl.resultf("%lf", sp->distance_);
 			return TCL_OK;
 		}
+    	if (strcmp(argv[1], "eventtrace") == 0) {
+      		return (TCL_OK);
+    	}
 	}
 	return Agent::command(argc, argv);
 }

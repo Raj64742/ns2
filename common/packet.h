@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.91 2002/09/17 18:27:03 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.92 2002/09/18 05:41:50 sundarra Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -66,6 +66,7 @@
 #define HDR_IMEP(p)     (hdr_imep::access(p))
 #define HDR_CDIFF(p)    (hdr_cdiff::access(p))  /* chalermak's diffusion*/
 //#define HDR_DIFF(p)     (hdr_diff::access(p))  /* SCADD's diffusion ported into ns */
+#define HDR_LMS(p)		(hdr_lms::access(p))
 
 /* --------------------------------------------------------------------*/
 
@@ -148,6 +149,10 @@ enum packet_t {
 	PT_PGM,
 #endif //STL
 
+	// LMS packets
+	PT_LMS,
+	PT_LMS_SETUP,
+
 	// insert new packet types here
 	PT_NTYPE // This MUST be the LAST one
 };
@@ -227,6 +232,10 @@ public:
 		// for PGM
 		name_[PT_PGM] = "PGM";
 #endif //STL
+
+		// LMS entries
+		name_[PT_LMS]="LMS";
+		name_[PT_LMS_SETUP]="LMS_SETUP";
 
 		name_[PT_NTYPE]= "undefined";
 	}

@@ -2592,3 +2592,11 @@ webcache/tcpapp.cc
 webcache/tcpapp.h
 webcache/webtraf.cc
 webcache/webtraf.h
+mcast/rcvbuf.cc
+mcast/rcvbuf.h
+mcast/lms-agent.cc
+mcast/lms.h
+mcast/classifier-lms.cc
+mcast/lms-receiver.cc
+mcast/lms-sender.cc
+tcl/mcast/ns-lms.tcl

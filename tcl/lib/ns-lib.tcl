@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.249 2002/07/02 21:50:16 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.250 2002/09/18 05:41:53 sundarra Exp $
 
 
 #
@@ -208,6 +208,9 @@ source ns-pushback.tcl
 # PGM
 #source ../pgm/ns-pgm.tcl
 
+#LMS
+source ../mcast/ns-lms.tcl
+
 # STL dependent modules get included
 # ONLY when STL is found
 
@@ -363,6 +366,13 @@ Simulator instproc PGM { val } {
         } else {
                 Node disable-module "PGM"
         }
+}
+Simulator instproc LMS { val } {
+	if { $val == "ON" } {
+		Node enable-module "LMS"
+	} else {
+		Node disable-module "LMS"
+	}
 }
 
 Simulator instproc get-nodetype {} {
