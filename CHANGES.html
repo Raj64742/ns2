@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.179 1997/11/06 03:12:39 kkumar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.180 1997/11/06 04:46:22 hari Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,6 +20,19 @@
 [release pending]</H3>
 
 <UL>
+  <LI><B><A HREF=http://www.cs.berkeley.edu/~hari>[hari]</A></B>
+       Wed Nov  5 20:44:32 PST 1997 <br>
+	<ul>
+     <LI>  Massive changes to error model structures and error generation to make 
+	it work correctly.  Three kinds of error models -- packet-based, 
+	byte-based, and time-based.  Support code is in ns-ber.tcl (some common 
+	error models).  <br>
+	Files: errmodel.cc, errmodel.h
+     <LI> Mods to snoop protocol incl. very preliminary first cut at 	
+	congestion vs. corruption losses.  Updated example script in 
+	tcl/ex/snoop.tcl (also uses util.tcl in the same directory).
+       </ul>    
+
   <LI><B><A HREF="http://www.isi.edu/~kkumar/">[SK]</A></B>
        Wed Nov  5 19:07:12 PST 1997 <br>
        Major bug fixes made to detailedDM multicast routing protocol 

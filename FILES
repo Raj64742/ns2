@@ -3,6 +3,8 @@ FILES
 Makefile.in
 README
 VERSION
+ack-recons.cc
+ack-recons.h
 agent.cc
 agent.h
 bin/dynamics.pl
@@ -203,9 +205,11 @@ tcl/ctr-mcast/CtrMcastComp.tcl
 tcl/ctr-mcast/CtrRPComp.tcl
 tcl/ex/README
 tcl/ex/asym/asym-test-2.tcl
+tcl/ex/asym/asym.tcl
 tcl/ex/asym/seq.awk
 tcl/ex/asym/tcp.awk
 tcl/ex/asym/util.tcl
+tcl/ex/asym/webbench.tcl
 tcl/ex/callback_demo.tcl
 tcl/ex/dynamic-nam.tcl
 tcl/ex/example-trace
@@ -284,6 +288,7 @@ tcl/ex/simple-rtg.tcl
 tcl/ex/simple-rtp.tcl
 tcl/ex/simple.tcl
 tcl/ex/snoop/snoop.tcl
+tcl/ex/snoop/util.tcl
 tcl/ex/srm-adapt-rep-nam.tcl
 tcl/ex/srm-adapt-rep-session.tcl
 tcl/ex/srm-adapt-rep.tcl
@@ -320,6 +325,7 @@ tcl/lan/ns-lan.tcl
 tcl/lan/ns-mac.tcl
 tcl/lan/ns-mlink.tcl
 tcl/lib/ns-agent.tcl
+tcl/lib/ns-ber.tcl
 tcl/lib/ns-compat.tcl
 tcl/lib/ns-default.tcl
 tcl/lib/ns-lib.tcl
