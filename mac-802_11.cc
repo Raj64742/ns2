@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.cc,v 1.35 2000/08/31 20:11:49 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.cc,v 1.36 2000/10/20 02:07:52 debo Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  */
@@ -1310,14 +1310,22 @@ Mac802_11::recvDATA(Packet *p)
 	/* ============================================================
 	    Make/update an entry in our sequence number cache.
 	   ============================================================ */
-	if(dst != MAC_BROADCAST) {
-		Host *h = &cache_[src];
 
-		if(h->seqno && h->seqno == dh->dh_scontrol) {
-			discard(p, DROP_MAC_DUPLICATE);
-			return;
-		}
-		h->seqno = dh->dh_scontrol;
+	/* Changed by Debojyoti Dutta. This upper loop of if{}else was 
+	   suggested by Joerg Diederich <dieder@ibr.cs.tu-bs.de>. 
+	   Changed on 19th Oct'2000 */
+
+        if(dst != MAC_BROADCAST) {
+                if (src < (u_int32_t) cache_node_count_) {
+                        Host *h = &cache_[src];
+
+                        if(h->seqno && h->seqno == dh->dh_scontrol) {
+                                discard(p, DROP_MAC_DUPLICATE);
+                                return;
+                        }
+                        h->seqno = dh->dh_scontrol;
+                } 
+		else printf ("MAC_802_11: accessing MAC cache_ array out of range (src %u dst %u!\n", src, dst);
 	}
 
 	/*
