@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.35 2001/12/06 03:13:54 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.36 2001/12/29 20:44:51 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -72,6 +72,7 @@ struct edp {
 	 * User supplied.
 	 */
 	int mean_pktsize;	/* avg pkt size, linked into Tcl */
+	int idle_pktsize;	/* avg pkt size used during idle times */
 	int bytes;		/* true if queue in bytes, false if packets */
 	int wait;		/* true for waiting between dropped packets */
 	int setbit;		/* true to set congestion indication bit */

@@ -1,4 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+ /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.67 2001/12/06 03:13:54 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.68 2001/12/29 20:44:51 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -108,6 +108,7 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 	bind("thresh_", &edp_.th_min_pkts);		    // minthresh
 	bind("maxthresh_", &edp_.th_max_pkts);	    // maxthresh
 	bind("mean_pktsize_", &edp_.mean_pktsize);  // avg pkt size
+	bind("idle_pktsize_", &edp_.idle_pktsize);  // avg pkt size for idles
 	bind("q_weight_", &edp_.q_w);		    // for EWMA
 	bind("adaptive_", &edp_.adaptive);          // 1 for adaptive red
 	bind("cautious_", &edp_.cautious);          // 1 for cautious marking
@@ -422,6 +423,7 @@ REDQueue::drop_early(Packet* pkt)
 	if (edp_.cautious == 1) {
 		 // Don't drop/mark if the instantaneous queue is much
 		 //  below the average.
+		 // For experimental purposes only.
 		int qsize = qib_?bcount_:q_->length();
 		// pkts: the number of packets arriving in 50 ms
 		double pkts = edp_.ptc * 0.05;
@@ -429,10 +431,26 @@ REDQueue::drop_early(Packet* pkt)
 		// double fraction = 0.9;
 		if ((double) qsize < fraction * edv_.v_ave) {
 			// queue could have been empty for 0.05 seconds
+			// printf("fraction: %5.2f\n", fraction);
 			return (0);
 		}
 	}
 	double u = Random::uniform();
+	if (edp_.cautious == 2) {
+                // Decrease the drop probability if the instantaneous
+		//   queue is much below the average.
+		// For experimental purposes only.
+		int qsize = qib_?bcount_:q_->length();
+		// pkts: the number of packets arriving in 50 ms
+		double pkts = edp_.ptc * 0.05;
+		double fraction = pow( (1-edp_.q_w), pkts);
+		// double fraction = 0.9;
+		double ratio = qsize / (fraction * edv_.v_ave);
+		if (ratio < 1.0) {
+			// printf("ratio: %5.2f\n", ratio);
+			u *= 1.0 / ratio;
+		}
+	}
 	if (u <= edv_.v_prob) {
 		// DROP or MARK
 		edv_.count = 0;
@@ -519,7 +537,14 @@ void REDQueue::enque(Packet* pkt)
 		double now = Scheduler::instance().clock();
 		/* To account for the period when the queue was empty. */
 		idle_ = 0;
-		m = int(edp_.ptc * (now - idletime_));
+		// Use idle_pktsize instead of mean_pktsize, for
+		//  a faster response to idle times.
+		if (edp_.cautious == 3) {
+			double ptc = edp_.ptc * 
+			   edp_.mean_pktsize / edp_.idle_pktsize;
+			m = int(ptc * (now - idletime_));
+		} else
+                	m = int(edp_.ptc * (now - idletime_));
 	}
 
 	/*

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.12 2001/12/06 18:18:02 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.13 2001/12/29 20:44:51 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -703,6 +703,27 @@ Test/cautious instproc init {} {
     set test_ cautious
     Queue/RED set cautious_ 1
     Test/cautious instproc run {} [Test/notcautious info instbody run ]
+    $self next
+}
+
+Class Test/cautious2 -superclass TestSuite
+Test/cautious2 instproc init {} {
+    $self instvar net_ test_
+    set net_ net4
+    set test_ cautious2
+    Queue/RED set cautious_ 2
+    Test/cautious2 instproc run {} [Test/notcautious info instbody run ]
+    $self next
+}
+
+Class Test/cautious3 -superclass TestSuite
+Test/cautious3 instproc init {} {
+    $self instvar net_ test_
+    set net_ net4
+    set test_ cautious3
+    Queue/RED set cautious_ 3
+    Queue/RED set idle_pktsize_ 100
+    Test/cautious3 instproc run {} [Test/notcautious info instbody run ]
     $self next
 }
 
