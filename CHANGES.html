@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.472 2001/07/06 23:26:02 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.473 2001/07/17 18:06:31 kfall Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -16,6 +16,15 @@ with the most recent changes coming first.
 <hr>
 <h3>
 ns-2.1b9 release PENDING</h3>
+
+<li><b><a href="http://www.cs.berkeley.edu/~kfall/">[kfall]</a></b>
+Tue Jul 17 11:04:07 PDT 2001
+<br>Major restructuring of Full TCP, including moving
+the ReassemblyQueue data structure to its own files.  This
+affects Makefile.in, rq.{cc,h}, tcp-full.{cc,h}.
+Also, disable SACK in Full TCP for now.  Will be re-working this
+next.  More minor, but it is now also possible to disable
+the header prediction code.  Regression tests unaffected.
 
 <li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
 Fri Jul  6 16:23:09 PDT 2001</li>
