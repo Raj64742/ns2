@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.10 1997/10/15 03:41:47 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.11 1997/10/16 00:54:00 sfloyd Exp $
 #
 
 #source plotting.tcl
@@ -102,8 +102,6 @@ TestSuite instproc finish file {
 #	  xgraph -bb -tk -nl -m -x time -y packets
 #	
 #       catch "$self exit 0"
-	exec ../../bin/getrc -s 2 -d 3 all.tr | \
-	  ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
 	exit 0
 }
 
