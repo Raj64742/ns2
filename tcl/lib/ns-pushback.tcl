@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-pushback.tcl,v 1.3 2000/12/29 05:22:40 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-pushback.tcl,v 1.4 2000/12/29 05:59:00 sfloyd Exp $
 
 
 
@@ -40,7 +40,7 @@ Node instproc add-pushback-agent {} {
 	$self instvar pushback_
 	set pushback_ [new Agent/Pushback]
 	[Simulator instance] attach-agent $self $pushback_
-	puts "Pushback Agent = $pushback_"
+	# puts "Pushback Agent = $pushback_"
 	$pushback_ initialize $self [[Simulator instance] get-routelogic]
 	return $pushback_
 }
