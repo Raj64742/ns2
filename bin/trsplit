@@ -1,6 +1,10 @@
 eval 'exec perl -S $0 ${1+"$@"}'
     if 0;
 
+#
+# Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
+#
+
 
 sub Usage
 {
@@ -9,13 +13,15 @@ sub Usage
 Split ns trace file into files for individual connection
 Usage:  $0 [options] files
 options: -d   delim:  deliminator for spliting the data fields or columns
+	 -c comment:  comment to print at the end along with total throughput
+	 -psize size of packet in bytes
 	 -tt	trace type
 	 -pt	packet type
 	 -ctt	trace type column
+	 -cpt	packet type column
 	 -ctime	time column
 	 -csrc	source address column
 	 -cdst	destination address column
-	 -cpt	packet type column
 EOF
     exit;
 }
@@ -26,19 +32,26 @@ sub ParseArgv
     &Usage if ($#ARGV < 0);
     while ($_ = $ARGV[0], /^-/) {
 	shift @ARGV;
-	if (/^--$/)  { last; }
-	elsif (/^-(tt|pt|stop)$/) {
+	if (/^-d$/) {
+	    $delim = shift @ARGV;
+	}
+	elsif (/^-c$/) {
+	    $comment = shift @ARGV;
+	}
+	elsif (/^-(psize|tt|pt|ctt|ctime|csrc|cdst|cpt)$/) {
 	    $argv = shift @ARGV;
 	    s/-(\w+)/\$$1/;
 	    eval "$_ = $argv";
 	}
-	elsif (/^-d/)  { $delim = shift @ARGV; }
-	else { last; }
+	else {
+	    last;
+	}
     }
 }
 
 
 $delim = " ";
+$psize = 1000;
 $tt = 'r';
 $pt = 'ack';
 $ctt = 1;
@@ -63,25 +76,31 @@ while (<>)
 
     $src = $col[$csrc];
     $dst = $col[$cdst];
-    $fid = ($src << 16) + $dst;
-    if (! $opened{$fid}) {
-	open($fid, ">$ARGV.$pt.$src.$dst");
-	$opened{$fid} = 1;
-    }
-
     $time{"$src.$dst"} = $col[$ctime];
     $seqno{"$src.$dst"} = $col[$cseq];
-    printf $fid "%0.6f\t%d\n", $col[$ctime], $col[$cseq];
+
+    if ($comment) {
+	$fid = ($src << 16) + $dst;
+	if (! $opened{$fid}) {
+	    open($fid, ">$ARGV.$pt.$src.$dst");
+	    $opened{$fid} = 1;
+	}
+	printf $fid "%0.6f\t%d\n", $col[$ctime], $col[$cseq];
+    }
 }
 
 
-foreach $key (keys %seqno) {
+@keys_seqno = keys %seqno;
+foreach $key (@keys_seqno) {
     $t = $time{$key};
     $s = $seqno{$key};
-    $totaltime = $t  if ($t > $totaltime);
-    $totalpkt += $s;
+    $maxtime = $t  if ($t > $maxtime);
+    $maxpkt += $s;
     printf("%s.%s\t%0.6f\t%d\t%0.6f\t%0.6f\n",
-	   $pt, $key, $t, $s, $s/$t, 8.0*$s/$t);
+	   $pt, $key, $t, $s, $s/$t, 0.008 * $psize * $s/$t);
 }
 
-printf(" %0.6f\t", 8.0 * $totalpkt / $totaltime);
+if ($comment) {
+	printf(" %d\t%0.6f\t%s\n",
+	       $#keys_seqno+1, 0.008 * $psize * $maxpkt / $maxtime, $comment);
+}

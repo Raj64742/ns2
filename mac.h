@@ -29,6 +29,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
 #ifndef ns_mac_h
@@ -41,6 +43,10 @@
 #define OFFSET(struct, field)
 #endif
 
+
+/*
+// Medium Access Control (MAC)
+*/
 
 class Classifier;
 class Channel;

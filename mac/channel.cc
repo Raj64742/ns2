@@ -30,6 +30,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
 #include "template.h"
@@ -82,16 +84,10 @@ Channel::command(int argc, const char*const* argv)
 
 
 void
-Channel::contention(Packet* p, Handler* h)
+Channel::recv(Packet* p, Handler*)
 {
 	Scheduler& s = Scheduler::instance();
-	double now = s.clock();
-	if (now > cwstop_) {
-		cwstop_ = now + delay_ - 0.0000005;
-		numtx_ = 0;
-	}
-	numtx_++;
-	s.schedule(h, p, cwstop_ - now);
+	s.schedule(target_, p, txstop_ + delay_ - s.clock());
 }
 
 
@@ -121,10 +117,16 @@ Channel::send(Packet* p, double txtime)
 
 
 void
-Channel::recv(Packet* p, Handler*)
+Channel::contention(Packet* p, Handler* h)
 {
 	Scheduler& s = Scheduler::instance();
-	s.schedule(target_, p, txstop_ + delay_ - s.clock());
+	double now = s.clock();
+	if (now > cwstop_) {
+		cwstop_ = now + delay_ - 0.0000005;
+		numtx_ = 0;
+	}
+	numtx_++;
+	s.schedule(h, p, cwstop_ - now);
 }
 
 
@@ -142,14 +144,6 @@ Channel::hold(double txtime)
 }
 
 
-void
-DuplexChannel::contention(Packet* p, Handler* h)
-{
-	Scheduler::instance().schedule(h, p, delay_);
-	numtx_ = 1;
-}
-
-
 int
 DuplexChannel::send(Packet* p, double txtime)
 {
@@ -157,4 +151,12 @@ DuplexChannel::send(Packet* p, double txtime)
 	txstop_ = now + txtime;
 	trace_ ? trace_->recv(p) : recv(p);
 	return 0;
+}
+
+
+void
+DuplexChannel::contention(Packet* p, Handler* h)
+{
+	Scheduler::instance().schedule(h, p, delay_);
+	numtx_ = 1;
 }

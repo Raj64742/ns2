@@ -29,6 +29,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
 #ifndef ns_csdp_ls_h
@@ -37,10 +39,13 @@
 #include "csdp.h"
 
 
+/*
+// Channel Dependent Lottery Scheduler
+*/
+
 class CsdpLs : public Csdp {
 public:
 	CsdpLs() : Csdp() {}
-
 protected:
 	Packet* deque();
 	inline Packet* deque(IdPacketQueue* q) { Csdp::deque(q); }

@@ -29,6 +29,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
 #include "template.h"
@@ -147,13 +149,13 @@ CsmaMac::endofContention(Packet* p)
 void
 CsmaCdMac::endofContention(Packet* p)
 {
-	// check for collision
-	if (channel_->numtx() == 1)
-		CsmaMac::endofContention(p);
-	else {
+	// If there is a collision, backoff
+	if (channel_->collision()) {
 		channel_->hold(0);
 		backoff(&mhSend_, p);
 	}
+	else
+		CsmaMac::endofContention(p);
 }
 
 

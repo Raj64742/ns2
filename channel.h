@@ -30,6 +30,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
 #ifndef ns_channel_h
@@ -40,6 +42,10 @@
 
 class Trace;
 
+/*
+// Channel:  a shared medium that supports contention and collision
+*/
+
 class Channel : public DropConnector {
 public:
 	Channel();
@@ -47,12 +53,9 @@ public:
 	virtual int send(Packet* p, double txtime);
 	virtual void contention(Packet*, Handler*); // content for the channel
 	int hold(double txtime);
-
-	inline double delay() { return delay_; }
+	virtual int collision() { return numtx_ > 1; }
 	virtual double txstop() { return txstop_; }
-	inline double cwstop() { return cwstop_; }
-	inline int numtx() { return numtx_; }
-	inline Packet* pkt() { return pkt_; }
+	Packet* pkt() { return pkt_; }
 
 protected:
 	int command(int argc, const char*const* argv);

@@ -29,6 +29,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
 #include "random.h"
@@ -50,6 +52,8 @@ CsdpLs::deque()
 {
 	if (qlen_ == 0)
 		return 0;
+
+	// Lottery Scheduling: randomly pick a queue based on its weight
 	double r = Random::uniform(totalweight_);
 	for (int i = 0;  i < numq_;  i++) {
 		r -= weight(q_[i]);

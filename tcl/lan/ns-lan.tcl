@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /usr/src/mash/repository/vint/ns-2/tcl/lib/ns-shlink.tcl
+# Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
 #
 
 # Defaults for link-layer
@@ -76,6 +76,11 @@ TraceIp/Drop instproc init {} {
 Class TraceIp/Corrupt -superclass TraceIp
 TraceIp/Corrupt instproc init {} {
 	$self next "c"
+}
+
+Class TraceIp/Mac/Hop -superclass TraceIp/Mac
+TraceIp/Mac/Hop instproc init {} {
+	$self next "h"
 }
 
 # Trace/Recv trace the receive events of a packet

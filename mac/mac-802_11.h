@@ -29,6 +29,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
 #ifndef ns_mac_802_11_h
@@ -36,6 +38,10 @@
 
 #include "mac-csma.h"
 
+
+/*
+// IEEE 802.11 MAC
+*/
 
 enum MacMode {
 	MM_DCF,			// Distributed Coordination Mode

@@ -16,152 +16,54 @@ source $nshome/tcl/lan/ns-lan.tcl
 set env(PATH) "$nshome/bin:$env(PATH)"
 
 
-set flags(0) 0
-set stop 10
-set trfile out
-set bw 100Kb
-set delay 10ms
-set ll LL
-set ifq Queue/DropTail
-set mac Mac/Multihop
-set chan Channel
+set opt(tr)	out
+set opt(stop)	20
+set opt(num)	3
+
+set opt(bw)	2Mb
+set opt(delay)	1ms
+set opt(ll)	LL
+set opt(ifq)	Queue/DropTail
+set opt(mac)	Mac/Csma/Ca
+set opt(chan)	Channel
+set opt(tp)	TCP/Reno
+set opt(sink)	TCPSink
+set opt(source)	FTP
+set opt(cbr)	0
+
 
 if {$argc == 0} {
-	puts "Usage: $argv0 \[-stop $stop\] \[-seed #]"
-	puts "\t\[-tr $trfile\]"
-	puts "\t\[-ll lltype\] \[-ifq ifqtype\] \[-mac mactype\] \[-ch chan\]"
-	puts "\t\[-bw $bw] \[-delay $delay\]"
+	puts "Usage: $argv0 \[-stop sec\] \[-seed value\] \[-num nodes\]"
+	puts "\t\[-tr tracefile\] \[-g\]"
+	puts "\t\[-ll lltype\] \[-ifq ifqtype\] \[-mac mactype\] \[-chan chan\]"
+	puts "\t\[-bw $opt(bw)] \[-delay $opt(delay)\]"
 	exit 1
 }
 
-proc get-options {argc argv} {
-	global stop flags trfile
-	global bw delay ll ifq mac chan
+proc getopt {argc argv} {
+	global opt
+	lappend optlist tr stop num
+	lappend optlist bw delay ll ifq mac chan tp sink source cbr
+	lappend optlist seed
+
 	for {set i 0} {$i < $argc} {incr i} {
-		set opt [lindex $argv $i]
-		if {$opt == "-stop"} {
-			set stop [lindex $argv [incr i]]
-		} elseif {$opt == "-bw"} {
-			set bw [lindex $argv [incr i]]
-		} elseif {$opt == "-delay"} {
-			set delay [lindex $argv [incr i]]
-		} elseif {$opt == "-ll"} {
-			set ll LL/[lindex $argv [incr i]]
-		} elseif {$opt == "-ifq"} {
-			set ifq Queue/[lindex $argv [incr i]]
-		} elseif {$opt == "-mac"} {
-			set mac Mac/[lindex $argv [incr i]]
-		} elseif {$opt == "-ch"} {
-			set chan Channel/[lindex $argv [incr i]]
-		} elseif {$opt == "-tr"} {
-			set trfile [lindex $argv [incr i]]
-		} elseif {$opt == "-seed"} {
-			ns-random [lindex $argv [incr i]]
-		} elseif {[string range $opt 0 0] == "-"} {
-			set flags([string range $opt 1 end]) 1
-		}
-	}
-	if {$mac == "Mac/Multihop"}  {
-		set flags(mh) 1
-	}
-}
+		set arg [lindex $argv $i]
+		if {[string range $arg 0 0] != "-"} continue
 
-proc make-trace {} {
-	global ns trfile trfd
-	if [file exists ${trfile}] {
-		exec touch ${trfile}.${trfile}
-		eval exec rm $trfile [glob ${trfile}.*]
-	}
-	set trfd [open $trfile w]
-	$ns trace-all $trfd
-}
-
-proc make-error {lan} {
-	global ns n cbr ftp
-	set ifq [$lan getifq $n(0)]
-	foreach dst {1 2 3} {
-		set em(0:$dst) [new ErrorModel]
-		$ifq errormodel $em(0:$dst) [[$lan getmac $n($dst)] set label_]
-	}
-	$em(0:1) set rate_ 0.01
-	$em(0:2) set rate_ 0.02
-	$em(0:3) set rate_ 0.03
-}
-
-proc make-cbr-connections {} {
-	global ns n cbr ftp
-	set cbr(2:3) [$ns create-connection CBR $n(2) Null $n(3) 0]
-}
-
-proc make-tcp-connections {} {
-	global ns n cbr ftp
-	global trfile
-
-	set tcp(0) [$ns create-connection TCP/Reno $n(1) TCPSink $n(0) 0]
-	set ftp(0) [$tcp(0) attach-source FTP]
-	set tcp(1) [$ns create-connection TCP/Reno $n(0) TCPSink $n(1) 0]
-	set ftp(1) [$tcp(1) attach-source FTP]
-	set tcp(2) [$ns create-connection TCP/Reno $n(0) TCPSink $n(2) 0]
-	set ftp(2) [$tcp(2) attach-source FTP]
-	set tcp(3) [$ns create-connection TCP/Reno $n(0) TCPSink $n(3) 0]
-	set ftp(3) [$tcp(3) attach-source FTP]
-
-	set tcpfd(1) [open ${trfile}-tcpstat.1 w]
-	set tcpfd(2) [open ${trfile}-tcpstat.2 w]
-	$tcp(1) trace $tcpfd(1)
-	$tcp(2) trace $tcpfd(2)
-}
-
-proc start-connections {} {
-	global ns n cbr ftp
-	$ns at 0 "$ftp(0) start"
-	$ns at 0.01 "$ftp(1) start"
-	$ns at 0.02 "$ftp(2) start"
-#	$ns at 0.03 "$ftp(3) start"
-#	$ns at 5.1 "$cbr(2:3) start"
-}
-
-proc monitor-lan {lan} {
-	global ns n cbr ftp
-	set qfile [open "q.dat" w]
-	$lan init-monitor $ns $qfile 1 $n(0)
-	$lan init-monitor $ns $qfile 1 $n(1)
-	$ns at 0 "$shl queue-sample-timeout"
-}
-
-
-get-options $argc $argv
-set ns [new Simulator]
-make-trace
-
-for {set i 0} {$i < 4} {incr i} {
-	set n($i) [$ns node]
-}
-if [info exists flags(mh)] {
-	# build topology
-	set lan01 [$ns make-lan "$n(0) $n(1)" $bw $delay $ll $ifq $mac $chan]
-	puts "LAN: $lan01 $bw $delay $ll $ifq $mac $chan"
-#	set lan12 [$ns make-lan "$n(1) $n(2)" $bw $delay $ll $ifq $mac $chan]
-#	set lan23 [$ns make-lan "$n(2) $n(3)" $bw $delay $ll $ifq $mac $chan]
-	set lan $lan01
-} else {
-	set nodes [list $n(0) $n(1) $n(2) $n(3)]
-	set lan [$ns make-lan $nodes $bw $delay $ll $ifq $mac $chan]
-	puts "LAN: $lan $bw $delay $ll $ifq $mac $chan"
-	if {$mac == "Mac/802_11"} {
-		foreach src "$n(0) $n(1) $n(2) $n(3)" {
-			[$lan getmac $src] mode RTS_CTS
+		set name [string range $arg 1 end]
+		if {$name == "ll"} {
+			set opt(ll) LL/[lindex $argv [incr i]]
+		} elseif {$name == "ifq"} {
+			set opt(ifq) Queue/[lindex $argv [incr i]]
+		} elseif {$name == "mac"} {
+			set opt(mac) Mac/[lindex $argv [incr i]]
+		} elseif {[lsearch $optlist $name] >= 0} {
+			set opt($name) [lindex $argv [incr i]]
+		} else {
+			set opt($name) [lindex $argv [expr $i+1]]
 		}
 	}
 }
-$lan trace $ns $trfd
-
-if [info exists flags(monitor)] { monitor-lan $lan }
-if [info exists flags(e)] { make-error $lan }
-make-tcp-connections
-make-cbr-connections
-start-connections
-
 
 proc cat {filename} {
 	set fd [open $filename r]
@@ -172,22 +74,104 @@ proc cat {filename} {
 }
 
 proc finish {} {
-	global env nshome ns flags trfile trfd
-	global bw delay ll ifq mac chan
+	global env nshome
+	global ns opt trfd
 
 	$ns flush-trace
 	close $trfd
-	exec echo " $bw $delay $ll $ifq $mac $chan" >> ${trfile}-bw
-	exec perl $nshome/bin/trsplit -tt "r" -pt "ack" $trfile >> ${trfile}-bw
-	puts " Files \t\t Time\t   packets \t pkts/s \t Kbps (1000 byte pkts)"
-	cat ${trfile}-bw
 
-	if [info exists flags(g)] {
+	exec perl $nshome/bin/trsplit -tt "r" -pt "ack" -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan)" $opt(tr) >> $opt(tr)-bw
+	cat $opt(tr)-bw
+
+	if [info exists opt(g)] {
 		eval exec xgraph -nl -M -display $env(DISPLAY) \
-				[lsort [glob $trfile.*]]
+				[lsort [glob $opt(tr).*]]
 	}
-	exit 0
+	exit
 }
 
-$ns at $stop "finish"
+
+proc create-trace {trfile} {
+	global trfd
+	if [file exists $trfile] {
+		exec touch $trfile.
+		eval exec rm $trfile [glob $trfile.*]
+	}
+	set trfd [open $trfile w]
+}
+
+proc trace-mac {lan trfd} {
+	set channel [$lan set channel_]
+	set trHop [new TraceIp/Mac/Hop]
+	$trHop attach $trfd
+	$trHop target $channel
+	$channel trace-target $trHop
+}
+
+proc create-error {num} {
+	global ns opt
+	global lan node source
+
+	for {set i 1} {$i <= $num} {incr i} {
+		set em($i) [new ErrorModel]
+		$em($i) set rate_ [expr $i / 100.0]
+		set ll [[$ns link $node(0) $node($i)] link]
+		$em($i) target [$ll sendtarget]
+		$ll sendtarget $em($i)
+	}
+}
+
+proc create-topology {num} {
+	global ns opt
+	global lan node source
+
+	for {set i 0} {$i <= $num} {incr i} {
+		set node($i) [$ns node]
+		lappend nodelist $node($i)
+	}
+
+	Queue set limit_ 100
+	set lan [$ns make-lan $nodelist $opt(bw) $opt(delay) \
+			$opt(ll) $opt(ifq) $opt(mac) $opt(chan)]
+#	puts "LAN: $lan $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan)"
+}
+
+proc create-source {num} {
+	global ns opt
+	global lan node source
+
+	for {set i 1} {$i <= $num} {incr i} {
+		set tp($i) [$ns create-connection $opt(tp) \
+				$node(0) $opt(sink) $node($i) 0]
+		set source($i) [$tp($i) attach-source $opt(source)]
+		$ns at [expr $i/1000.0] "$source($i) start"
+	}
+
+	for {set i 0} {$i < $opt(cbr)} {incr i} {
+		set dst [expr $i % $num + 1]
+		set cbr($i) [$ns create-connection CBR \
+				$node(0) Null $node($dst) 0]
+		$ns at 0 "$cbr($i) start"
+	}
+}
+
+
+## MAIN ##
+getopt $argc $argv
+if [info exists opt(seed)] {
+	ns-random $opt(seed)
+}
+set ns [new Simulator]
+
+create-trace $opt(tr)
+$ns trace-all $trfd
+
+create-topology $opt(num)
+$lan trace $ns $trfd
+
+if [info exists opt(tracemac)] { trace-mac $lan $trfd }
+if [info exists opt(e)] { create-error $opt(num) }
+create-source $opt(num)
+
+$ns at $opt(stop) "finish"
 $ns run

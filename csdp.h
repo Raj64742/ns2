@@ -29,6 +29,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
 #ifndef ns_csdp_h
@@ -37,8 +39,9 @@
 #include "queue.h"
 
 
-class ErrorModel;
-
+/*
+// IdPacketQueue:  packet queue with an identifier id and statistic info
+*/
 class IdPacketQueue : public PacketQueue {
 public:
 	IdPacketQueue() : id_(0), loss_(0), total_(0) {}
@@ -51,6 +54,10 @@ protected:
 	int total_;
 };
 
+
+/*
+// Csdp:  Channel State Dependent Packet scheduler
+*/
 
 class Csdp : public Queue {
 public:

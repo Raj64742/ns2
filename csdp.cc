@@ -29,6 +29,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
 #include "random.h"
@@ -62,6 +64,9 @@ Csdp::command(int argc, const char*const* argv)
 }
 
 
+/*
+ * getQueue:  find a queue with identifier id, create new one if necessary
+ */
 IdPacketQueue*
 Csdp::getQueue(int id)
 {
@@ -115,6 +120,7 @@ Csdp::deque()
 void
 Csdp::enque(Packet* p, IdPacketQueue* q)
 {
+	// Save the oldweight, enqueue, then recompute the weight
 	double oldweight = weight(q);
 	q->enque(p);
 	if (((hdr_ll*)p->access(off_ll_))->error())
