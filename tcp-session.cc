@@ -305,7 +305,7 @@ TcpSessionAgent::who_to_snd(int how)
 		IntTcpAgent *next;
 		
 		do {
-			int foo = int(random() * nActive_ + 1);
+			int foo = int(Random::uniform() * nActive_ + 1);
 			
 			connIter_->set_cur(connIter_->get_last());
 			
