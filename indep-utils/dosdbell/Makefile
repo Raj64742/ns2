@@ -7,7 +7,7 @@ all : dosdbell dosdbellasim
 dosdbell: dosdbell.o dostraffic.o models.o flowlist.o
 	$(CC) $(DFLAGS) -o dosdbell dosdbell.o dostraffic.o models.o flowlist.o $(LIB)
 
-dosdbell: dosdbellasim.o dostraffic.o models.o flowlist.o
+dosdbellasim: dosdbellasim.o dostraffic.o models.o flowlist.o
 	$(CC) $(DFLAGS) -o dosdbellasim dosdbellasim.o dostraffic.o models.o flowlist.o $(LIB)
 
 dosdbelliasim.o: dosdbellasim.c dosdbell.h dostraffic.h flowlist.h
