@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.254 2003/01/13 23:45:50 buchheim Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.255 2003/01/16 21:06:02 buchheim Exp $
 
 
 #
@@ -1134,13 +1134,16 @@ Simulator instproc energy-color-change {level1 level2} {
 }
 
 Simulator instproc namtrace-all-wireless {file optx opty} {
-        $self instvar namtraceAllFile_ namNeedsWEvent_
+        $self instvar namtraceAllFile_
+
+	# indicate that we need a W event written to the trace
+	$self set namNeedsW_ 1
+	if { $optx != "" && $opty != "" } {
+		$self set namWx_ $optx
+		$self set namWy_ $opty
+	}
 
 	$self namtrace-all $file
-
-	if { $optx != "" && $opty != "" } {
-		$self puts-nam-config "W -t * -x $optx -y $opty"
-	}
 }
 
 Simulator instproc nam-end-wireless {stoptime} {

@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.40 2003/01/13 23:45:50 buchheim Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.41 2003/01/16 21:06:02 buchheim Exp $
 #
 
 #
@@ -402,6 +402,40 @@ Simulator instproc dump-namversion { v } {
 	$self puts-nam-config "V -t * -v $v -a 0"
 }
 
+Simulator instproc dump-namwireless {} {
+	$self instvar namNeedsW_ namWx_ namWy_
+
+	# see if we need to write a W event
+	if ![info exists namNeedsW_] { set namNeedsW_ 0 }
+	if {[info exists namWx_] && [info exists namWy_]}  {
+		set maxX $namWx_
+		set maxY $namWy_
+	} else {
+		set maxX 10
+		set maxY 10
+
+		# get max X and Y coords of nodes
+		# if any nodes have coordinates set, then flag the need for
+		# a W event and adjust maxX/maxY as needed
+		foreach node [Node info instances] {
+			if {[lsearch -exact [$node info vars] X_] != -1} {
+				set namNeedsW_ 1
+				set curX [$node set X_]
+				if {$curX > $maxX} {set maxX $curX}
+			}
+			if {[lsearch -exact [$node info vars] Y_] != -1} {
+				set namNeedsW_ 1
+				set curY [$node set Y_]
+				if {$curY > $maxY} {set maxY $curY}
+			}
+		}
+	}
+
+	if $namNeedsW_ {
+		$self puts-nam-config "W -t * -x $maxX -y $maxY"
+	}
+}
+
 Simulator instproc dump-namcolors {} {
 	$self instvar color_
 	if ![$self is-started] {
@@ -480,6 +514,9 @@ Simulator instproc init-nam {} {
 	# Setting nam trace file version first
 	$self dump-namversion 1.0a5
 	
+	# write W event if needed
+	$self dump-namwireless
+
 	# Addressing scheme
 	$self dump-namaddress
 	
