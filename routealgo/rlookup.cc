@@ -4,6 +4,7 @@
 // Defines several variations on routing table representations
 // and a method to determine the most memory efficient.
 
+#include "config.h"
 #ifdef HAVE_STL
 #ifdef NIXVECTOR
 

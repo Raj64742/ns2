@@ -33,6 +33,7 @@
  *
  */
 
+#include "config.h"
 #ifdef HAVE_STL
 // Event Scheduler using the Standard Template Library map and deque
 // Contributed by George F. Riley, Georgia Tech.  Spring 2002

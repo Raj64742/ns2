@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.32 2002/01/25 20:22:16 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.33 2002/05/29 17:25:44 johnh Exp $
  *
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
@@ -41,6 +41,7 @@
 #include <stdarg.h>
 
 #include "address.h"
+#include "config.h"
 #ifdef HAVE_STL
 #ifdef NIXVECTOR
 #include "nix/nixnode.h"
