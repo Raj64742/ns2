@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.2 1998/08/19 00:50:35 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.3 1998/08/31 17:14:49 haoboy Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -1658,7 +1658,7 @@ Test/Mcast-PB instproc output-stat { args } {
 	eval array set d $args
 	global opts 
 	# XXX Don't have statistics for total bandwidth. :(
-	puts "$opts(hb-interval) Bandwidth*Hop -1 Stale $d(sr) AverageRepTime $d(rt) BottleneckBW $d(btnk_bw) ServerBW $d(svr_bw) StaleTime $d(st)"
+	#puts "$opts(hb-interval) Bandwidth*Hop -1 Stale $d(sr) AverageRepTime $d(rt) BottleneckBW $d(btnk_bw) ServerBW $d(svr_bw) StaleTime $d(st)"
 }
 
 Test/Mcast-PB instproc finish {} {
@@ -1744,7 +1744,7 @@ Test/ttl-PB instproc output-stat { args } {
 	eval array set d $args
 	global opts 
 	# XXX Don't have statistics for total bandwidth. :(
-	puts "$opts(ttl) Bandwidth*Hop -1 Stale $d(sr) AverageRepTime $d(rt) BottleneckBW $d(btnk_bw) ServerBW $d(svr_bw) StaleTime $d(st)"
+	#puts "$opts(ttl) Bandwidth*Hop -1 Stale $d(sr) AverageRepTime $d(rt) BottleneckBW $d(btnk_bw) ServerBW $d(svr_bw) StaleTime $d(st)"
 }
 
 #
@@ -1762,7 +1762,7 @@ Test/ottl-PB instproc init {} {
 Test/ottl-PB instproc output-stat { args } {
 	eval array set d $args
 	# XXX Don't have statistics for total bandwidth. :(
-	puts "Bandwidth*Hop -1 Stale $d(sr) AverageRepTime $d(rt) BottleneckBW $d(btnk_bw) ServerBW $d(svr_bw) StaleTime $d(st)"
+	#puts "Bandwidth*Hop -1 Stale $d(sr) AverageRepTime $d(rt) BottleneckBW $d(btnk_bw) ServerBW $d(svr_bw) StaleTime $d(st)"
 }
 
 
@@ -1933,7 +1933,7 @@ Test/mcast-dreq instproc output-stat { args } {
 	eval array set d $args
 	global opts 
 	# XXX Don't have statistics for total bandwidth. :(
-	puts "$opts(hb-interval) Bandwidth*Hop -1 Stale $d(sr) AverageRepTime $d(rt) BottleneckBW $d(btnk_bw) ServerBW $d(svr_bw) StaleTime $d(st)"
+	#puts "$opts(hb-interval) Bandwidth*Hop -1 Stale $d(sr) AverageRepTime $d(rt) BottleneckBW $d(btnk_bw) ServerBW $d(svr_bw) StaleTime $d(st)"
 }
 
 Test/mcast-dreq instproc set-connections {} {
