@@ -58,13 +58,6 @@ Csdp::Csdp() : maxq_(4), numq_(0), qlen_(0), totalweight_(0), gqid_(0), bqid_(0)
 int
 Csdp::command(int argc, const char*const* argv)
 {
-	if (argc == 4) {
-		if (strcmp(argv[1], "errormodel") == 0) {
-			IdPacketQueue* q = getQueue(atoi(argv[3]));
-			q->em() = (ErrorModel*) TclObject::lookup(argv[2]);
-			return (TCL_OK);
-		}
-	}
 	return (Queue::command(argc, argv));
 }
 
@@ -124,10 +117,8 @@ Csdp::enque(Packet* p, IdPacketQueue* q)
 {
 	double oldweight = weight(q);
 	q->enque(p);
-	if (q->em() && q->em()->corrupt(p)) {
-		((hdr_ll*)p->access(off_ll_)) ->error() |= 1;
+	if (((hdr_ll*)p->access(off_ll_))->error())
 		q->loss()++;
-	}
 	q->total()++;
 	totalweight_ += weight(q) - oldweight;
 }

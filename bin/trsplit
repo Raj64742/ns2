@@ -78,6 +78,10 @@ while (<>)
 foreach $key (keys %seqno) {
     $t = $time{$key};
     $s = $seqno{$key};
+    $totaltime = $t  if ($t > $totaltime);
+    $totalpkt += $s;
     printf("%s.%s\t%0.6f\t%d\t%0.6f\t%0.6f\n",
 	   $pt, $key, $t, $s, $s/$t, 8.0*$s/$t);
 }
+
+printf(" %0.6f\t", 8.0 * $totalpkt / $totaltime);

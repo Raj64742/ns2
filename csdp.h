@@ -41,16 +41,14 @@ class ErrorModel;
 
 class IdPacketQueue : public PacketQueue {
 public:
-	IdPacketQueue() : id_(0), loss_(0), total_(0), em_(0) {}
+	IdPacketQueue() : id_(0), loss_(0), total_(0) {}
 	inline int& id() { return id_; }
 	inline int& loss() { return loss_; }
 	inline int& total() { return total_; }
-	inline ErrorModel*& em() { return em_; }
 protected:
 	int id_;		// unique identifier for this queue
 	int loss_;
 	int total_;
-	ErrorModel* em_;
 };
 
 

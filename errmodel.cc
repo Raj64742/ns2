@@ -63,7 +63,7 @@ ErrorModel::command(int argc, const char*const* argv)
 		rate_ = atof(argv[ac+2]);
 		return (TCL_OK);
 	}
-	return (TCL_ERROR);
+	return Connector::command(argc, argv);
 }
 
 
