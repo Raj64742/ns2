@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.19 1997/11/11 03:03:20 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.20 1997/11/11 03:15:55 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -254,7 +254,7 @@ TestSuite instproc insert_twoagency cbqlink {
 
 # display graph of results
 TestSuite instproc finish testname {
-
+	global quiet
 	$self instvar tmpschan_ tmpqchan_ topo_
 	$topo_ instvar cbqlink_
 
@@ -302,7 +302,9 @@ TestSuite instproc finish testname {
 
 	exec cat temp.p >@ $f
 	close $f
-	exec xgraph -bb -tk -x time -y bandwidth $graphfile &
+	if {$quiet == "false"} {
+		exec xgraph -bb -tk -x time -y bandwidth $graphfile &
+	}
 #	exec csh figure2.com $file
 	
 	exit 0
@@ -318,13 +320,16 @@ TestSuite instproc cbrDump4 { linkno interval stopTime maxBytes } {
 	$self instvar ns_
 
 	TestSuite instproc cdump { lnk interval file }  {
+	  global quiet
 	  $self instvar oldbytes_
 	  $self instvar ns_ fmon_
 	  set now [$ns_ now]
 	  set fcl [$fmon_ classifier]
 	  set fids { 1 2 3 4 }
 
-	  puts "$now"
+	  if {$quiet == "false"} {
+	  	puts "$now"
+	  }
 	  foreach i $fids {
 		  set flow($i) [$fcl lookup auto 0 0 $i]
 		  if { $flow($i) != "" } {
