@@ -57,6 +57,11 @@ S.~Floyd, V.~Jacobson, C.~Liu, S.~McCanne, and L.~Zhang.
   application level framing.
 \newblock In {\em Proceedings of the~ACM SIGCOMM}, pages 342--356, August 1995.
 
+\bibitem{Friis46}
+H.~T. Friis.
+\newblock A note on a simple transmission formula.
+\newblock {\em Proc. IRE}, 34, 1946.
+
 \bibitem{Heyb89:Netsim}
 A.~Heybey.
 \newblock {\em Netsim Manual}.
@@ -104,6 +109,11 @@ John Ousterhout.
 S.K. Park and R.W. Miller.
 \newblock Random number generation: Good ones are hard to find.
 \newblock {\em Communications of the ACM}, 31(10):1192--1201, October 1988.
+
+\bibitem{Rappaport96}
+T.~S. Rappaport.
+\newblock {\em Wireless communications, principles and practice}.
+\newblock Prentice Hall, 1996.
 
 \bibitem{rfc1075}
 D.~Waitzman, C.~Partridge, and S.E. Deering.
