@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.17 1999/03/16 03:05:44 salehi Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.18 1999/05/24 04:45:49 haoboy Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -135,7 +135,7 @@ OBJ_CC = \
 	channel.o mac.o ll.o \
 	mac-802_11.o \
 	mac-802_3.o \
-	mip.o mip-reg.o \
+	mip.o mip-reg.o gridkeeper.o \
 	propagation.o tworayground.o antenna.o omni-antenna.o \
 	bi-connector.o node.o mobilenode.o \
 	arp.o god.o dem.o topography.o modulation.o priqueue.o \
@@ -144,8 +144,10 @@ OBJ_CC = \
 	dsdv/dsdv.o dsdv/rtable.o \
 	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
 	dsr/requesttable.o dsr/routecache.o \
-	process.o 
-#	rap/raplist.o rap/rap.o rap/rapsink.o rap/utilities.o 
+	ns-process.o \
+	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
+	fsm.o tcp-abs.o
+#	webcache/mcache.o \
 #mac-csma.o mac-multihop.o\
 
 
@@ -195,7 +197,7 @@ OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN) $(OBJ_COMPAT)
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) $(OBJ_EMULATE_CC) \
 	$(OBJ_EMULATE_C) tclAppInit.o \
 	$(GEN_DIR)* core core.$(NS) core.$(NSX) core.$(NSE) \
-	ptypes2tcl ptypes2tcl.o
+	ptypes2tcl.exe ptypes2tcl.o
 
 $(NS): $(OBJ) tclAppInit.o Makefile
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ \
@@ -270,6 +272,7 @@ NS_TCL_LIB = \
 	tcl/webcache/http-agent.tcl \
 	tcl/webcache/http-server.tcl \
 	tcl/webcache/http-cache.tcl 
+#	tcl/webcache/http-mcache.tcl
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 	-mkdir $(GEN_DIR:\\=)
@@ -281,7 +284,7 @@ $(GEN_DIR)version.c: VERSION
 	$(TCLSH) bin/string2c.tcl version_string < VERSION > $@
 
 $(GEN_DIR)ptypes.cc: ptypes2tcl.exe packet.h
-	./ptypes2tcl > $@
+	.\ptypes2tcl.exe > $@
 
 ptypes2tcl.exe: ptypes2tcl.o
 	$(LINK) $(LDFLAGS) $(LDOUT)$@ ptypes2tcl.o
@@ -302,10 +305,14 @@ distclean:
 	    gnuc.h os-proto.h
 
 tags:	force
-	ctags -wtd *.cc *.h ../Tcl/*.cc ../Tcl/*.h
+	ctags -wtd *.cc *.h webcache/*.cc webcache/*.h dsdv/*.cc dsdv/*.h \
+	dsr/*.cc dsr/*.h webcache/*.cc webcache/*.h lib/*.cc lib/*.h \
+	../Tcl/*.cc ../Tcl/*.h 
 
 TAGS:	force
-	etags *.cc *.h ../Tcl/*.cc ../Tcl/*.h
+	etags *.cc *.h webcache/*.cc webcache/*.h dsdv/*.cc dsdv/*.h \
+	dsr/*.cc dsr/*.h webcache/*.cc webcache/*.h lib/*.cc lib/*.h \
+	../Tcl/*.cc ../Tcl/*.h
 
 tcl/lib/TAGS:	force
 	( \
