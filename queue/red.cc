@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.72 2002/01/03 04:33:03 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.73 2002/04/30 17:24:21 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -121,6 +121,7 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), de_drop_(NULL), EDTrace(NU
 	bind("bottom_", &edp_.bottom);		    // minimum for max_p	
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
+	bind("mark_p_", &edp_.mark_p);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
 	bind_bool("gentle_", &edp_.gentle);         // increase the packet
 						    // drop prob. slowly
@@ -478,7 +479,7 @@ REDQueue::drop_early(Packet* pkt)
 		edv_.count = 0;
 		edv_.count_bytes = 0;
 		hdr_flags* hf = hdr_flags::access(pickPacketForECN(pkt));
-		if (edp_.setbit && hf->ect() && edv_.v_ave < edp_.th_max) {
+		if (edp_.setbit && hf->ect() && edv_.v_prob1 < edp_.mark_p) { 
 			hf->ce() = 1; 	// mark Congestion Experienced bit
 			// Tell the queue monitor here - call emark(pkt)
 			return (0);	// no drop

@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.40 2002/03/01 17:00:10 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.41 2002/04/30 17:24:20 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -84,6 +84,8 @@ struct edp {
 	double th_max_pkts;     /* always maintained in packets */
 	double max_p_inv;       /* 1/max_p, for max_p = maximum prob.  */
 	                        /* adaptive RED: the initial max_p_inv     */	
+	double mark_p;		/* when p < mark_p, mark chosen packets */
+				/* when p > mark_p, drop chosen packets */
 	double q_w;		/* queue weight given to cur q size sample */
 	int adaptive;		/* 0 for default RED */
 				/* 1 for adaptive RED, adapting max_p */

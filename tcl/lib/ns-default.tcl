@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.286 2002/04/29 02:49:00 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.287 2002/04/30 17:24:21 sfloyd Exp $
 
 
 #
@@ -117,6 +117,7 @@ Queue/RED set q_weight_ -1
 # Queue/RED/q_weight_ was changed on 12/29/01, for automatic configuration.
 Queue/RED set wait_ true
 Queue/RED set linterm_ 10
+Queue/RED set mark_p_ 0.1
 Queue/RED set setbit_ false
 Queue/RED set gentle_ true
 ### Queue/RED/gentle_ was changed from false to true on Apr 23, 2001.
