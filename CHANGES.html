@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.346 1999/07/09 21:27:26 haoboy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.347 1999/07/30 00:19:18 kkumar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,42 @@
 
 
 <ul>
+	<li><b><a href="http://www.isi.edu/~kkumar">[kkumar]</a></b>
+	<b> Thu Jul 29 16:19:45 PDT 1999 </b>
+	Added a simple energy model to keep track of remaining energy
+	at nodes (methods to log energy currently exist only for
+	wireless nodes): 
+	<ul>
+	<li> energy-model.{h,cc}: Defines the new EnergyModel class
+	<li> node.{h,cc}: Added hooks to attach EnergyModel to nodes
+	<li> mobilenode.{h,cc}: Added methods to log energy consumption
+	<li> wireless-phy.{h,cc}: Modified sendUp and sendDown methods
+	     to decrease the node's energy on transmitting/receiving
+	     packets. Added reception power to WirelessPhy object.
+	<li> tcl/lib/ns-lib.tcl: Added energyModel_ and initialEnergy_ options
+	     to the new node API (new node API currently works only
+	     for dsdv). Creates and attaches the specified
+	     energyModel_ to nodes.
+	<li> tcl/ex/wireless-newnode-energy.tcl: Simple example to
+             show how energy usage can be logged.
+	</ul>
+
+	<li><b><a href="http://www.isi.edu/~kkumar">[kkumar]</a></b>
+	<b> Thu Jul 21 17:53 PDT 1999 </b>
+	Added a distributed self-organizing hierarchy construction
+	protocol based on the landmark hierarchy in the context of
+	an object-tracking sensor network application.
+	<ul>
+	<li> tags.{h,cc}: Create a database of tags; tags are randomly
+		distributed in a specified geographical region.
+	<li> landmark.{h,cc}: Self-organizing hierarchy implementation.
+	<li> sensor-query.{h,cc}: Simple agent that issues queries
+		about tags.
+	<li> flood-agent.{h,cc}: Simple flooding agent that floods
+		queries about tagged objects to all sensors and
+		generates responses (if any) back to the querying node.
+	</ul>
+
 	<li><b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
 	<b>Fri Jul  9 14:20:23 PDT 1999</b>
 	Changed all strsep() to strtok() and all heapsort() to qsort()
