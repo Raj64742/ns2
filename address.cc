@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.21 2001/02/22 19:45:38 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.22 2001/03/01 18:39:32 haldar Exp $
  */
 
 #include <stdio.h>
@@ -74,6 +74,18 @@ int Address::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "str2addr") == 0) {
 			tcl.resultf("%d", str2addr(argv[2]));
 			return (TCL_OK);
+		}
+	}
+	if (argc >= 3) {
+		if (strcmp(argv[1], "bpl-are") == 0) {
+			if (levels_ != (argc-2)) {
+				tcl.resultf("#bpl don't match with #hier levels\n");
+				return (TCL_ERROR);
+			}
+			bpl_ = new int[levels_ + 1];
+			for (c=1; c<=levels_; c++)
+				bpl_[c] = atoi(argv[c+1]);
+			return TCL_OK;
 		}
 	}
  	if (argc == 4) {
@@ -255,27 +267,39 @@ char *Address::print_portaddr(int address)
 // Convert address in string format to binary format (int). 
 int Address::str2addr(const char *str) const
 {
-	if (levels_ < 2) 
-		return atoi(str);
-
-/*
-	int istr[levels_], addr= 0;
-*/
+	
+	if (levels_ < 2) {
+		int tmp = atoi(str);		
+		if (tmp < 0)     
+			return (tmp);
+		if (tmp > ((unsigned long)(1 << bpl_[1])) ) {
+			fprintf(stderr, "Error!!\nstr2addr:Address outside range of address field length\n");
+			exit(1);
+		}
+		return tmp;
+	}
+	/*
+	  int istr[levels_], addr= 0;
+	*/
 	/*
 	 * for VC++
 	 */
 
 	int *istr= new int[levels_];
 	int addr= 0;
-
+	
 	RouteLogic::ns_strtok((char*)str, istr);
 	for (int i = 0; i < levels_; i++) {
-		addr = set_word_field(addr, --istr[i],
+		if (--istr[i] > ((unsigned long)(1 << bpl_[i+1])) ) {
+			fprintf(stderr,"Error!!\nstr2addr:Address outside range of address field length\n");
+			exit(1);
+		}
+		addr = set_word_field(addr, istr[i],
 				      NodeShift_[i+1], NodeMask_[i+1]);
 	}
-
+	
 	delete [] istr;
-
+	
 	return addr;
 }
 

@@ -324,7 +324,7 @@ AllocAddrBits instproc set-idbits {nlevel args} {
 	set ad [$self get-Address]
 	eval $ad idsbits-are [array get s]
 	eval $ad idmbits-are [array get m]
-	
+	eval $ad bpl-are $hbits_
 	### TESTING
 	# set mask [lindex $v 0]
 	# set shift [lindex $v 1]

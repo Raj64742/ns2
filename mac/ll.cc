@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.44 1999/10/14 22:19:23 yuriy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.45 2001/03/01 18:39:32 haldar Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
@@ -168,7 +168,6 @@ void LL::sendDown(Packet* p)
 	hdr_cmn *ch = HDR_CMN(p);
 	hdr_ip *ih = HDR_IP(p);
 
-	// XXX HACK for now - Padma, 03/99.
 	nsaddr_t dst = (nsaddr_t)Address::instance().get_nodeaddr(ih->daddr());
 	//nsaddr_t dst = ih->dst();
 	hdr_ll *llh = HDR_LL(p);

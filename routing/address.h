@@ -57,6 +57,10 @@ class Address : public TclObject {
 	inline int set_word_field(int word, int field, int shift, int mask) const {
 		return (((field & mask)<<shift) | ((~(mask << shift)) & word));
 	}
+	// bpl_ or bits per level, 	
+	// e.g 32 for level=1, 10/11/11 for level=3.
+	// used to check validity of address-str.
+	int *bpl_;
 	int *NodeShift_;
 	int *NodeMask_;
 	int McastShift_;
