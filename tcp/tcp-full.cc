@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.23 1997/12/18 03:09:21 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.24 1997/12/18 03:27:34 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -323,13 +323,10 @@ void FullTcpAgent::output(int seqno, int reason)
 	// the slow-start is a sort that does not set ssthresh
 	//
 
-#ifdef notyet
-
 	if (slow_start_restart_ && idle) {
 		if (idle_restart())
 			closecwnd(3);
 	}
-#endif
 
 	//
 	// in real TCP datalen (len) could be < 0 if there was window
@@ -644,11 +641,12 @@ int FullTcpAgent::need_send()
 int
 FullTcpAgent::idle_restart()
 {
+
 	double tao = now() - last_send_time_;
 	if (!ts_option_) {
                 double tickoff = fmod(last_send_time_ + boot_time_,
 			tcp_tick_);
-                tao = int((tao + tickoff) / tcp_tick_);
+                tao = int((tao + tickoff) / tcp_tick_) * tcp_tick_;
 	}
 
 	return (tao > t_rtxcur_);  // verify this
