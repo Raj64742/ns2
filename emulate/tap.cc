@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.2 1998/02/21 03:03:11 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.3 1998/02/28 00:06:01 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -134,7 +134,6 @@ void TapAgent::recvpkt()
 	}
 
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
-printf("TAP(%s): recvpkt of size %d\n", name(), cc);
 	ch->size() = cc;
 	target_->recv(p);
 }
@@ -147,7 +146,6 @@ void TapAgent::dispatch(int)
 	 * if there is a queue in the socket buffer; this allows
 	 * other events to get a chance to slip in...
 	 */
-printf("TAP(%s): dispatch invoked\n", name());
 	Scheduler::instance().sync();
 	recvpkt();
 }
@@ -176,7 +174,6 @@ TapAgent::sendpkt(Packet* p)
 		drop(p);
 		return -1;
 	}
-printf("TAP(%s): sending pkt (net:0x%p)\n", name(), net_);
 	if (net_->send(ht->buf, hc->size()) < 0) {
 		perror("send");
 	}
