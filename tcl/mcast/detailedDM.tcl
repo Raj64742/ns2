@@ -33,7 +33,7 @@ detailedDM instproc initialize { } {
 	set prune [new Agent/Mcast/Prune/detailedDM $self]
 	[$Node getArbiter] addproto $self
 	set nullagent [[Simulator instance] set nullAgent_]
-	$Node attach $prune $nullagent
+	$Node attach $prune
 }
 
 detailedDM instproc start {} {
