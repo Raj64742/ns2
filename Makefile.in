@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.223 2001/06/26 20:25:42 sfloyd Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.224 2001/06/29 21:58:44 sfloyd Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -183,7 +183,7 @@ OBJ_CC = \
          nix/nixvec.o \
 	nix/nixroute.o \
 	diffserv/dsred.o diffserv/dsEdge.o diffserv/dsCore.o diffserv/dsPolicy.o diffserv/dsredq.o \
-	red-pd.o pi.o vq.o \
+	red-pd.o pi.o vq.o rem.o gk.o \
 	pushback/rate-limit.o pushback/rate-limit-strategy.o \
 	pushback/ident-tree.o pushback/agg-spec.o \
 	pushback/logging-data-struct.o pushback/rate-estimator.o \
