@@ -306,6 +306,8 @@ filter.h
 flags.h
 flowmon.cc
 fq.cc
+fsm.cc
+fsm.h
 god.cc
 god.h
 gridkeeper.cc
@@ -612,6 +614,7 @@ tcl/ex/shuttle.tcl
 tcl/ex/simple-dyn.tcl
 tcl/ex/simple-eqp.tcl
 tcl/ex/simple-eqp1.tcl
+tcl/ex/simple-fsm-tcp.tcl
 tcl/ex/simple-heap.tcl
 tcl/ex/simple-rtg.tcl
 tcl/ex/simple-rtp.tcl
@@ -1335,6 +1338,8 @@ tcl/webcache/http-agent.tcl
 tcl/webcache/http-cache.tcl
 tcl/webcache/http-server.tcl
 tclAppInit.cc
+tcp-abs.cc
+tcp-abs.h
 tcp-asym-fs.cc
 tcp-asym-sink.cc
 tcp-asym.cc

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.151 1999/05/13 20:35:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.152 1999/05/14 00:00:03 polly Exp $
 
 
 #
@@ -486,3 +486,24 @@ Classifier/Replicator set ignore_ 0
 
 Node/MobileNode set REGAGENT_PORT 0
 Node/MobileNode set DECAP_PORT 1
+
+# RAP
+Agent/RAP set packetSize_ 512
+Agent/RAP set seqno_ 0
+Agent/RAP set sessionLossCount_ 0
+Agent/RAP set ipg_ 2.0
+Agent/RAP set beta_ 0.5
+Agent/RAP set srtt_ 2.0
+Agent/RAP set variance_ 0.0
+Agent/RAP set delta_ 0.5
+Agent/RAP set mu_ 1.2
+Agent/RAP set phi_ 4.0
+Agent/RAP set timeout_ 2.0
+Agent/RAP set overhead_ 0
+Agent/RAP set useFineGrain_ 0
+Agent/RAP set kfrtt_ 0.9
+Agent/RAP set kxrtt_ 0.01
+Agent/RAP set debugEnable_ 0
+Agent/RAP set rap_base_hdr_size_ 44
+Agent/RAP set dpthresh_ 50
+

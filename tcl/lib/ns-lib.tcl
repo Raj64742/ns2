@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.149 1999/05/07 01:04:38 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.150 1999/05/14 00:00:04 polly Exp $
 
 #
 
@@ -717,6 +717,13 @@ Simulator instproc connect {src dst} {
 
 Simulator instproc simplex-connect { src dst } {
 	$src set dst_ [$dst set addr_] 
+
+        # Polly Huang: to support abstract TCP simulations
+        if {[lindex [split [$src info class] "/"] 1] == "AbsTCP"} {
+	    $self at [$self now] "$self rtt $src $dst"
+	    $dst set class_ [$src set class_]
+        }
+
 	return $src
 }
 
@@ -968,4 +975,37 @@ Simulator instproc delay_parse { dspec } {
                 }
         }
 }
+
+#### Polly Huang: Simulator class instproc to support abstract tcp simulations
+
+Simulator instproc rtt { src dst } {
+    $self instvar routingTable_ delay_
+    set srcid [[$src set node_] id]
+    set dstid [[$dst set node_] id]
+    set delay 0
+    set tmpid $srcid
+    while {$tmpid != $dstid} {
+        set nextid [$routingTable_ lookup $tmpid $dstid]
+        set tmpnode [$self get-node-by-id $tmpid]
+        set nextnode [$self get-node-by-id $nextid]
+        set tmplink [[$self link $tmpnode $nextnode] link]
+        set delay [expr $delay + [expr 2 * [$tmplink set delay_]]]
+        set delay [expr $delay + [expr 8320 / [$tmplink set bandwidth_]]]
+        set tmpid $nextid
+    }
+    $src rtt $delay
+    return $delay
+}
+
+Simulator instproc abstract-tcp {} {
+    $self instvar TahoeAckfsm_ RenoAckfsm_ TahoeDelAckfsm_ RenoDelAckfsm_ dropper_ 
+    $self set TahoeAckfsm_ [new FSM/TahoeAck]
+    $self set RenoAckfsm_ [new FSM/RenoAck]
+    $self set TahoeDelAckfsm_ [new FSM/TahoeDelAck]
+    $self set RenoDelAckfsm_ [new FSM/RenoDelAck]
+    $self set nullAgent_ [new DropTargetAgent]
+}
+
+
+
 
