@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.35 1997/12/08 00:47:20 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.36 1998/01/21 21:28:48 kfall Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -279,8 +279,9 @@ protected:
 	TracedInt ssthresh_;	/* slow start threshold */
 	int count_;		/* used in window increment algorithms */
 	double fcnt_;		/* used in window increment algorithms */
-	int rtt_active_;	/* 1 for a first-time transmission of a pkt */
-	int rtt_seq_;		/* first-time seqno sent after retransmits */
+	int rtt_active_;	/* 1 if a rtt sample is pending */
+	int rtt_seq_;		/* seq # of timed seg if rtt_active_ is 1 */
+	double rtt_ts_;		/* time at which rtt_seq_ was sent */
 	TracedInt maxseq_;	/* used for Karn algorithm */
 				/* highest seqno sent so far */
 	int ecn_;		/* Explicit Congestion Notification */
