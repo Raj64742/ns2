@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: 2pp_ping_receiver.cc,v 1.1 2004/01/08 22:56:40 haldar Exp $
+// $Id: 2pp_ping_receiver.cc,v 1.2 2005/02/01 19:41:25 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -131,7 +131,7 @@ handle TPPPingReceiverApp::setupSubscription()
   attrs.push_back(NRAlgorithmAttr.make(NRAttribute::IS, NRAttribute::TWO_PHASE_PULL_ALGORITHM));
   attrs.push_back(LatitudeAttr.make(NRAttribute::GT, 54.78));
   attrs.push_back(LongitudeAttr.make(NRAttribute::LE, 87.32));
-  attrs.push_back(TargetAttr.make(NRAttribute::IS, "F117A"));
+  attrs.push_back(TargetAttr.make(NRAttribute::EQ, "F117A"));
 
   handle h = dr_->subscribe(&attrs, mr_);
 
