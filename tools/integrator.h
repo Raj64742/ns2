@@ -31,8 +31,8 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ns_classifier_h
-#define ns_classifier_h
+#ifndef ns_integrator_h
+#define ns_integrator_h
 
 #include "Tcl.h"
 
