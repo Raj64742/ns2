@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.13 1997/06/19 23:52:15 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.14 1997/07/03 07:00:00 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -42,7 +42,7 @@ static char rcsid[] =
 Scheduler* Scheduler::instance_;
 int Scheduler::uid_;
 
-Scheduler::Scheduler() : clock_(0.)
+Scheduler::Scheduler() : clock_(0.), halted_(0)
 {
 }
 
@@ -91,6 +91,10 @@ int Scheduler::command(int argc, const char*const* argv)
 		} else if (strcmp(argv[1], "now") == 0) {
 			sprintf(tcl.buffer(), "%.17g", clock());
 			tcl.result(tcl.buffer());
+			halted_ = 0;
+			return (TCL_OK);
+		} else if (strcmp(argv[1], "halt") == 0) {
+			halted_ = 1;
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
@@ -191,7 +195,7 @@ void ListScheduler::run()
 { 
 	/*XXX*/
 	instance_ = this;
-	while (queue_ != 0) {
+	while (queue_ != 0 && !halted_) {
 		Event* p = queue_;
 		queue_ = p->next_;
 		clock_ = p->time_;
@@ -240,7 +244,7 @@ void HeapScheduler::run()
 {
 	Event* p;
 	instance_ = this;
-	while ((p = (Event*) hp_->heap_extract_min()) != 0) {
+	while (((p = (Event*) hp_->heap_extract_min()) != 0) && !halted_) {
 		clock_ = p->time_;
 		p->uid_ = - p->uid_;
 		p->handler_->handle(p);
@@ -470,7 +474,7 @@ void CalendarScheduler::run()
 	Event* p;
 	/*XXX*/
 	instance_ = this;
-	while ((p = dequeue()) != NULL) {
+	while (((p = dequeue()) != NULL) && !halted_) {
 		p->uid_ = - p->uid_;
 		p->handler_->handle(p);
 	}
@@ -523,7 +527,7 @@ void RealTimeScheduler::run()
 { 
 	/*XXX*/
 	instance_ = this;
-	for (;;) {
+	while (!halted_) {
 		double now = tod();
 		Event* p = queue_;
 		if (p == 0) {
