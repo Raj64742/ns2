@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.20 1997/07/24 00:08:26 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.21 1997/07/24 02:51:32 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -81,6 +81,22 @@ Agent::Agent(int pkttype) :
 
 Agent::~Agent()
 {
+}
+
+int Agent::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (strcmp(argv[1], "attach") == 0) {
+		int mode;
+		const char* id = argv[2];
+		channel_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+		if (channel_ == 0) {
+			tcl.resultf("trace: can't attach %s for writing", id);
+			return (TCL_ERROR);
+		}
+		return (TCL_OK);
+	}
+	return (Connector::command(argc, argv));
 }
 
 void Agent::sched(double delay, int tno)

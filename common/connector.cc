@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.cc,v 1.6 1997/07/21 21:23:10 kfall Exp $ ";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.cc,v 1.7 1997/07/24 02:51:34 padmanab Exp $ ";
 #endif
 
 #include "packet.h"
@@ -47,7 +47,7 @@ public:
 	}
 } class_connector;
 
-Connector::Connector() : target_(0), channel_(0)
+Connector::Connector() : target_(0)
 {
 }
 
@@ -70,16 +70,6 @@ int Connector::command(int argc, const char*const* argv)
 			target_ = (NsObject*)TclObject::lookup(argv[2]);
 			if (target_ == 0) {
 				tcl.resultf("no such object %s", argv[2]);
-				return (TCL_ERROR);
-			}
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "trace") == 0) {
-			int mode;
-			const char* id = argv[2];
-			channel_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
-						if (channel_ == 0) {
-				tcl.resultf("trace: can't attach %s for writing", id);
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
