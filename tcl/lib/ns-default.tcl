@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.94 1998/03/11 04:38:02 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.95 1998/03/16 23:20:06 polly Exp $
 
 
 #
@@ -332,7 +332,8 @@ Simulator set NumberInterfaces_ 0		;# to get intfs for mcast
 Node set multiPath_ 0
 
 Simulator set EnableMcast_ 0                    ;# to enable mcast
-SessionSim set rc_ 0                           ;# to enable packet reference count
+SessionSim set rc_ 0                      ;# to enable packet reference count
+
 # Defaults for unicast addresses
 # While changing these, ensure that the values are consistent in config.h
 Simulator set NodeMask_ 0xffffff

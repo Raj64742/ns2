@@ -38,7 +38,7 @@ public:
 		(void) cur_stack(&now_);
 		(void) cur_heap(&now_);
                 (void) getrusage(RUSAGE_SELF, &(now_.time));  
-	fprintf (stdout, "%s:utime/stime:%d/%d stack/heap:%d/%d\n",\
+	fprintf (stdout, "%s: utime/stime: %d %d \tstack/heap: %d %d\n",\
 		prompt, \
 	normalize(now_.time.ru_utime) - normalize(start_.time.ru_utime), \
 	normalize(now_.time.ru_stime) - normalize(start_.time.ru_stime), \
