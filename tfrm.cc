@@ -33,15 +33,8 @@ public:
 } class_tfrm;
 
 
-TfrmAgent::TfrmAgent() : Agent(PT_TFRM), 
-	send_timer_(this), 
-	NoFeedbacktimer_(this), 
-  tcp_tick_(0.1), 
-	incrrate_(0.1), 
-	version_(0), 
-	slowincr_(0),
-	df_(0.9), 
-	ndatapack_(0)
+TfrmAgent::TfrmAgent() : Agent(PT_TFRM), send_timer_(this), 
+                         NoFeedbacktimer_(this) 
 {
 	bind("packetSize_", &size_);
 	bind("df_", &df_);
@@ -61,6 +54,7 @@ TfrmAgent::TfrmAgent() : Agent(PT_TFRM),
 	bind("bval_", &bval_);
 	bind("overhead_", &overhead_);
 	bind("ssmult_", &ssmult_);
+
 }
 
 
@@ -81,14 +75,19 @@ int TfrmAgent::command(int argc, const char*const* argv)
 
 void TfrmAgent::start()
 {
-	oldrate_ = rate_= InitRate_;  
+	seqno_=0;				
+	rate_ = InitRate_;
 	delta_ = 0;
-	rtt_=0;	 
-	seqno_=0;					
-	last_change_=0.0;
+	oldrate_ = rate_;  
 	rate_change_ = SLOW_START ;
+	UrgentFlag = 1 ;
+	rtt_=0;	 
+	tzero_ = 0 ;
+	last_change_=0;
 	maxrate_ = 0; 
-	active_ = 1;
+	ndatapack_=0 ;
+
+	active_ = 1 ; 
 
 	sendpkt();
 	send_timer_.resched(size_/rate_);
@@ -100,7 +99,7 @@ void TfrmAgent::start()
 
 void TfrmAgent::stop()
 {
-	active_ = 0;
+	active_ = 0 ;
 	send_timer_.force_cancel();
 }
 
@@ -119,7 +118,9 @@ void TfrmAgent::nextpkt()
 	if ((rate_change_ == SLOW_START) || 
 			((rate_change_ == CONG_AVOID) &&
 			 (version_ == 1 && slowincr_ == 3))) {
-		oldrate_ = oldrate_ + delta_ ;
+		if (oldrate_ < rate_) {
+			oldrate_ = oldrate_ + delta_ ;
+		}
 		xrate = oldrate_ ;
 	}
 	else {
@@ -177,6 +178,8 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	int signal = nck->signal ; 
 	double rate_since_last_report = nck->rate_since_last_report ;
 
+	UrgentFlag = 0 ;
+
 	/* compute the max rate as two times rcv rate */ 
 	if (rate_since_last_report > 0) {
 		maxrate_ = 2*rate_since_last_report*size_ ;
@@ -189,8 +192,6 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	/* update the round trip time */
 
 	update_rtt (ts, now) ;
-	if (!active_)
-		return ;
 
 	/* if we get no more feedback for 2 more rtts, cur rate in half */
 	NoFeedbacktimer_.resched(2*rtt_);
@@ -205,18 +206,17 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 	}
 	else if ((rate_change_ == SLOW_START) && (flost > 0)) {
 		rate_change_ = OUT_OF_SLOW_START ; 
-                /* when coming out of slow-start, cut the sending rate */
-                /* in half, or down to the rcv rate, whichever is higher */
-
-                if (oldrate_ > 0.5*maxrate_) {
-                        if (maxrate_ > oldrate_)
-                                rate_ = 0.5*maxrate_ ;
-                        else
-                                rate_ = 0.5*oldrate_;
-                        delta_ = 0 ;
-                }
+		/*
+		if (oldrate_ < 0.5*maxrate_) {
+			rate_ = 0.5*maxrate_ ; delta_ = 0 ; 
+		}
+		else { 
+			rate_ = 0.5*oldrate_ ; delta_ = 0 ;
+		}
 		Packet::free(pkt);
+		nextpkt();
 		return ;
+		*/
 	}
 			
 	double rcvrate = p_to_b(flost, rtt_, tzero_, size_, bval_);
@@ -244,8 +244,13 @@ void TfrmAgent::recv(Packet *pkt, Handler *)
 			else {
 				decrease_rate (flost, now) ;		
 			}
-	}			
+	}
 	Packet::free(pkt);
+	/*
+	if (now - last_change_ < SMALLFLOAT) {
+		nextpkt() ; 
+	}
+	*/
 }
 
 void TfrmAgent::slowstart () 
@@ -379,38 +384,42 @@ void TfrmAgent::decrease_rate (double p, double now)
 
 void TfrmAgent::sendpkt()
 {
-	Packet* p = allocpkt();
-	hdr_tfrm *tfrmh = hdr_tfrm::access(p);
 
-	tfrmh->seqno=seqno_++;
-	tfrmh->timestamp=Scheduler::instance().clock();
-	tfrmh->rtt=rtt_;
-	tfrmh->tzero=tzero_;
-	tfrmh->rate=rate_;
-	tfrmh->psize=size_;
-	tfrmh->version=version_;
-
-	ndatapack_++;
-
-	/*
-	printf ("s %f %d\n",  tfrmh->timestamp, tfrmh->seqno);
-	fflush(stdout); 
-	*/
-
-	send(p, 0);
+	if (active_) {
+		Packet* p = allocpkt();
+		hdr_tfrm *tfrmh = hdr_tfrm::access(p);
+	
+		tfrmh->seqno=seqno_++;
+		tfrmh->timestamp=Scheduler::instance().clock();
+		tfrmh->rtt=rtt_;
+		tfrmh->tzero=tzero_;
+		tfrmh->rate=rate_;
+		tfrmh->psize=size_;
+		tfrmh->version=version_;
+		tfrmh->UrgentFlag=UrgentFlag;
+	
+		ndatapack_++;
+	
+		/*
+		printf ("s %f %d\n",  tfrmh->timestamp, tfrmh->seqno);
+		fflush(stdout); 
+		*/
+	
+		send(p, 0);
+	}
 }
 
 void TfrmAgent::reduce_rate_on_no_feedback()
 {
-	/*
-	double now=Scheduler::instance().clock();
 	rate_change_ = RATE_DECREASE ; 
 	rate_*=0.5;
 	delta_ = 0 ;
+	UrgentFlag = 1 ;
 	NoFeedbacktimer_.resched(2*rtt_);
-	*/
+	nextpkt();
 	/*
-	printf ("%f %f %f\n", now, rate_, rtt_);
+	double now = Scheduler::instance().clock();
+	printf ("no feedback timer %f %f %f\n", now, rate_, rtt_);
 	fflush(stdout);
 	*/
 }

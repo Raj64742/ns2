@@ -62,6 +62,7 @@ struct hdr_tfrm {
 	double timestamp;   		//time this message was sent
 	int psize;						  //packet size	
 	int version;						//protocol version being used
+	int UrgentFlag;					//Urgent Flag
 
 	static int offset_;			// offset for this header
 	inline static int& offset() 
@@ -188,6 +189,10 @@ protected:
 
 		/* number of packets sent */
     TracedInt ndatapack_;   
-	/* active or inactive connection */
-	int active_;
+
+		/* urget flag */
+		int UrgentFlag ;
+
+		/* have we shiut down? */
+		int active_ ;
 };

@@ -15,12 +15,7 @@ public:
 } class_tfrmSink; 
 
 
-TfrmSinkAgent::TfrmSinkAgent() : Agent(PT_TFRMC), 
-	nack_timer_(this),
-	rate_(0.0), 
-	last_arrival_(0.0),
-	last_nack_(0.0), 
-	pvec_(NULL), tsvec_(NULL), total_received_(0) 
+TfrmSinkAgent::TfrmSinkAgent() : Agent(PT_TFRMC), nack_timer_(this)
 {
 	bind("packetSize_", &size_);	
 	bind("SampleSizeMult_", &SampleSizeMult_);
@@ -30,10 +25,26 @@ TfrmSinkAgent::TfrmSinkAgent() : Agent(PT_TFRMC),
 	bind("HysterisisUpper_", &HysterisisUpper_);
 	bind("bval_", &bval_);
 	bind("NumFeedback_", &NumFeedback_);
-	prevpkt_=-1;
+
+	rate_ = 0 ; 
+	rtt_ =  0 ; 
+	tzero_ = 0 ;
+	flost_ = 0 ;
+	last_timestamp_ = 0;
+	last_arrival_ = 0 ;
+	last_nack_ = 0 ; 
+	pvec_ = NULL ; 
+	tsvec_ = NULL ; 
+	rtvec_ = NULL ;
+	pveclen_ = 0 ; 
+	pvecfirst_ = 0 ; 
+	pveclast_ = 0 ; 
+	prevpkt_ = -1 ; 
+	total_received_ = 0 ;
 	loss_seen_yet = 0 ;
 	last_report_sent=0 ;
-	rtt_ = 0 ;
+	prevpkt_=-1;
+
 
 }
 
@@ -42,9 +53,11 @@ void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 	double prevrtt ;
   hdr_tfrm *tfrmh = hdr_tfrm::access(pkt); 
 	double now = Scheduler::instance().clock();
+	int UrgentFlag ; 
 
 	total_received_++;
 
+	UrgentFlag = tfrmh->UrgentFlag ;
 	/*
 	printf ("r %f %d\n", now, tfrmh->seqno); 
 	fflush(stdout); 
@@ -101,10 +114,15 @@ void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 	/*if we are in slow start (i.e. (loss_seen_yet ==0)), */
 	/*and if we saw a loss, report it immediately */
 
-	if ((rate_ < SMALLFLOAT) || (prevrtt < SMALLFLOAT)||
-			( (pveclast_>1) && 
-				(loss_seen_yet ==0) && 
+	if ((rate_ < SMALLFLOAT) || 
+			(prevrtt < SMALLFLOAT)||
+			(UrgentFlag) ||
+			((pveclast_>1) && (loss_seen_yet ==0) && 
 			  (tfrmh->seqno-pvec_[pveclast_-1] > 1))) {
+		/*
+		printf ("%f %d\n", now, UrgentFlag);
+		fflush(stdout);
+		*/
 		nextpkt();
 		if((pveclast_>1) && 
 			 (loss_seen_yet ==0) && 
@@ -181,10 +199,9 @@ void TfrmSinkAgent::sendpkt()
 	if (pveclen_<sample) {
 		/*we don't have a long enough pvec for this low loss rate*/
 		/*we'd like this never to happen!*/
-		/*
-		printf ("very low loss rate: %f %f\n", now, p);
-		fflush(stdout);
-		*/
+		/*printf ("very low loss rate: %f %f\n", now, p);*/
+		/*fflush(stdout);*/
+		/*exit(1);*/
 	}
 
 
