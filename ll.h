@@ -32,7 +32,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.5 1997/07/23 02:20:39 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.6 1997/07/23 19:34:34 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -47,14 +47,11 @@ struct hdr_ll {
 	int seqno_;		// sequence number
 	int ack_;		// acknowledgement number
 	int error_;		// error flag
-	double errlen_;		// length of error, negative if error at tail
-	double txtime_;		// transmission time of the packet
 
+	hdr_ll() : error_(0) {}
 	inline int& seqno() { return seqno_; }
 	inline int& ack() { return ack_; }
 	inline int& error() { return error_; }
-	inline double& errlen() { return errlen_; }
-	inline double& txtime() { return txtime_; }
 };
 
 

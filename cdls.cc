@@ -94,13 +94,6 @@ Cdls::deque()
 		qlen_--;
 		if (q->em() && q->em()->corrupt(p))
 			((hdr_ll*)p->access(off_ll_))->error() = 1;
-/*
-		Scheduler& s = Scheduler::instance();
-		hdr_ll* llh = (hdr_ll*)p->access(off_ll_);
-		if (llh->error() && llh->errlen() > 0 
-		    && (llh->txtime() + llh->errlen() < s.clock()))
-			llh->error() = 0;
-*/
 	}
 	return p;
 }

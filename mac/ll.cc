@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.6 1997/07/23 02:20:40 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.7 1997/07/23 19:34:33 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -123,7 +123,6 @@ LL::recv(Packet* p, Handler* h)
 	}
 	llh->seqno() = ++seqno_;
 	llh->error() = 0;
-	llh->txtime() = txtime(p);
 	((hdr_mac*)p->access(off_mac_))->macDA() = peerLL_->mac()->label();
 
 	s.schedule(sendtarget_, p, delay_);

@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.9 1997/07/23 02:19:37 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.10 1997/07/23 19:34:32 gnguyen Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -95,7 +95,6 @@ void
 ErrorModel::recv(Packet* p, Handler*)
 {
 	hdr_ll* llh = (hdr_ll*)p->access(off_ll_);
-	llh->errlen() = 0;
 	if (corrupt(p)) {
 		if (drop_) {
 			drop_->recv(p);
