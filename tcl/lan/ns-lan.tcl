@@ -299,37 +299,6 @@ LanLink instproc install-error {em {src ""} {dst ""}} {
 }
 
 
-LanLink instproc create-error { src dstlist emname rate unit {trans ""}} {
-	if { $trans == "" } {
-		set trans [list 0.5 0.5]
-	}
-
-	# default is exponential errmodel
-	if { $emname == "uniform" } {
-		set e1 [new ErrorModel/Uniform $rate $unit] 
-		set e2 [new ErrorModel/Uniform $rate $unit] 
-	} elseif { $emname == "2state" } {
-		set e1 [new ErrorModel/MultiState/TwoStateMarkov $rate $trans \
-				$unit]
-		set e2 [new ErrorModel/MultiState/TwoStateMarkov $rate $trans \
-				$unit]
-	} elseif { $emname == "emp" } {
-		# rate0-3 are actually filenames here!
-		set e1 [new ErrorModel/Empirical]
-		$e1 initrv [list [lindex $rate 0] [lindex $rate 1]]
-		set e2 [new ErrorModel/Empirical]
-		$e2 initrv [list [lindex $rate 2] [lindex $rate 3]]
-	} else {
-		set e1 [new ErrorModel/Expo $rate $unit]
-		set e2 [new ErrorModel/Expo $rate $unit]
-	}       
-	
-	foreach dst $dstlist {
-		$self install-error $e1 $src $dst
-		$self install-error $e2 $dst $src
-	}
-}
-
 LanLink instproc init-monitor {ns qfile sampleInt src {dst ""}} {
 	$self instvar ns_ ifq_
 	$self instvar qfile_ sampleInterval_ qm_ si_ so_ sd_

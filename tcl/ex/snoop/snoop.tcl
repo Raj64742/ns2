@@ -1,13 +1,20 @@
 #!/bin/sh
-# \
-test -x ../../../ns && nshome=../../../
-# \
-exec ${nshome}ns "$0" "$@"
+# the next line finds ns \
+nshome=../../..
+# the next line starts ns \
+export nshome; exec $nshome/ns "$0" "$@"
 
-set nshome ""
-if [file executable ../../../ns] {
-	set nshome ../../../
+if [info exists env(nshome)] {
+	set nshome $env(nshome)
+} elseif [file executable ../../ns] {
+	set nshome ../..
+} elseif {[file executable ./ns] || [file executable ./ns.exe]} {
+	set nshome "[pwd]"
+} else {
+	puts "$argv0 cannot find ns directory"
+	exit 1
 }
+set env(PATH) "$nshome/bin:$env(PATH)"
 
 # Test script for the snoop protocol (and other link protocols).
 
@@ -56,13 +63,12 @@ if [file executable ../../../ns] {
 # SUCH DAMAGE.
 #
 
-source ${nshome}tcl/lan/ns-mac.tcl
-source ${nshome}tcl/lan/ns-lan.tcl
-source ${nshome}tcl/lan/ns-ll.tcl
-source ${nshome}tcl/lib/ns-errmodel.tcl
-source ${nshome}tcl/ex/snoop/util.tcl
-source ~/src/ns-2/tcl/lib/ns-trace.tcl
-#source ${nshome}tcl/ex/www/http.tcl
+source $nshome/tcl/lan/ns-mac.tcl
+source $nshome/tcl/lan/ns-lan.tcl
+source $nshome/tcl/lan/ns-ll.tcl
+source $nshome/tcl/lib/ns-errmodel.tcl
+source $nshome/tcl/lib/ns-trace.tcl
+source $nshome/tcl/ex/snoop/util.tcl
 source $nshome/tcl/http/http.tcl
 
 
@@ -147,14 +153,6 @@ proc getopt {argc argv} {
 	}
 }
 
-proc cat {filename} {
-	set fd [open $filename r]
-	while {[gets $fd line] >= 0} {
-		puts $line
-	}
-	close $fd
-}
-
 proc finish {} {
 	global env nshome
 	global ns opt trfd tcptrace 
@@ -163,11 +161,6 @@ proc finish {} {
 	close $trfd
 	flush $tcptrace
 	close $tcptrace
-
-#	exec perl ${nshome}bin/trsplit -f -tt r -pt tcp -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan)" $opt(tr) 2>$opt(tr)-bwt >> $opt(tr)-bw
-#	exec cat $opt(tr)-bwt >> $opt(tr)-bw
-#	cat $opt(tr)-bwt
-#	exec rm $opt(tr)-bwt
 
 	if [info exists opt(g)] {
 		eval exec xgraph -nl -M -display $env(DISPLAY) \
@@ -194,6 +187,35 @@ proc trace-mac {lan trfd} {
 	$trHop attach $trfd
 	$trHop target $channel
 	$channel trace-target $trHop
+}
+
+proc create-error { lan src dstlist emname rate unit {trans ""}} {
+	if { $trans == "" } {
+		set trans [list 0.5 0.5]
+	}
+
+	# default is exponential errmodel
+	if { $emname == "uniform" } {
+		set e1 [new ErrorModel/Uniform $rate $unit]
+		set e2 [new ErrorModel/Uniform $rate $unit]
+	} elseif { $emname == "2state" } {
+		set e1 [new ErrorModel/TwoStateMarkov $rate $unit $trans]
+		set e2 [new ErrorModel/TwoStateMarkov $rate $unit $trans]
+	} elseif { $emname == "emp" } {
+		# rate0-3 are actually filenames here!
+		set e1 [new ErrorModel/Empirical]
+		$e1 initrv [list [lindex $rate 0] [lindex $rate 1]]
+		set e2 [new ErrorModel/Empirical]
+		$e2 initrv [list [lindex $rate 2] [lindex $rate 3]]
+	} else {
+		set e1 [new ErrorModel/Expo $rate $unit]
+		set e2 [new ErrorModel/Expo $rate $unit]
+	}
+
+	foreach dst $dstlist {
+		$lan install-error $e1 $src $dst
+		$lan install-error $e2 $dst $src
+	}
 }
 
 # Topology
@@ -369,13 +391,13 @@ if { [info exists opt(e)] } {
 		puts "error rate 0 ==> no errors"
 	} else {
 		if { [info exists opt(www)] } {
-			$lan create-error $gw([expr $opt(ngw) - 1]) $lanlist \
+			create-error $lan $gw([expr $opt(ngw) - 1]) $lanlist \
 					$opt(em) $opt(e) $opt(eu) $opt(trans)
 		} else {
 			for {set i 1} {$i <= $opt(num)} {incr i} {
 				lappend dstlist $node($i)
 			}
-			$lan create-error $node(0) $dstlist $opt(em) $opt(e) \
+			create-error $lan $node(0) $dstlist $opt(em) $opt(e) \
 					$opt(eu) $opt(trans)
 		}
 	}
