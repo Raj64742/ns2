@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.37 1998/01/23 19:30:51 tecklee Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.38 1998/06/19 20:53:18 kfall Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -395,6 +395,10 @@ OldSim instproc init args {
 		set qmon [new QueueMonitor/Compat]
 		$qmon set-delay-samples $dsamples
 		$linkref_ attach-monitors $sqi $sqo $sqd $qmon
+		$linkref_ set bytesInt_ [new Integrator]
+		$linkref_ set pktsInt_ [new Integrator]
+		$qmon set-bytes-integrator [$linkref_ set bytesInt_]
+		$qmon set-pkts-integrator [$linkref_ set pktsInt_]
 	}
 	linkHelper instproc trace traceObj {
 		$self instvar node1_ node2_
@@ -447,6 +451,39 @@ OldSim instproc init args {
 			puts stderr "linkHelper warning: couldn't set unknown variable $var"
 		}
 	}
+
+	linkHelper instproc get var {
+
+		$self instvar linkref_ queue_
+		set qvars [$queue_ info vars]
+		set linkvars [$linkref_ info vars]
+		set linkdelayvars [[$linkref_ link] info vars]
+		#
+		# adjust the string to have a trailing '_'
+		# because all instvars are constructed that way
+		#
+		if { [string last _ $var] != ( [string length $var] - 1) } {
+			set var ${var}_
+		}
+		if { $var == "queue-limit_" } {
+			set var "limit_"
+		}
+		if { [lsearch $qvars $var] >= 0 } {
+			# set a queue var
+			return [$queue_ set $var]
+		} elseif { [lsearch $linkvars $var] >= 0 } {
+			# set a link OTcl var
+			return [$linkref_ set $var]
+		} elseif { [lsearch $linkdelayvars $var] >= 0 } {
+			# set a linkdelay object var
+			return [[$linkref_ link] set $var]
+		} else {
+			puts stderr "linkHelper warning: couldn't set unknown variable $var"
+			return ""
+		}
+		return ""
+	}
+
 	#
 	# gross, but works:
 	#
@@ -566,6 +603,16 @@ OldSim instproc init args {
 			puts stderr "linkHelper: unknown stat op $item"
 			exit 1
 		}
+	}
+	linkHelper instproc integral { itype } {
+		$self instvar linkref_
+		if { $itype == "qsize" } {
+			set integ [$linkref_ set bytesInt_]
+		} elseif { $itype == "qlen" } {
+			set integ [$linkref_ set pktsInt_]
+		}
+
+		return [$integ set sum_]
 	}
 
 	#
@@ -687,6 +734,10 @@ OldSim instproc create-agent { node type pktClass } {
 	return $agent
 }
 
+OldSim instproc agent { type node } {
+	return [$self create-agent $node $type 0]
+}
+
 OldSim instproc create-connection \
 	{ srcType srcNode sinkType sinkNode pktClass } {
 
@@ -695,6 +746,10 @@ OldSim instproc create-connection \
 	$self connect $src $sink
 
 	return $src
+}
+
+proc ns_connect { src sink } {
+	return [ns connect $src $sink]
 }
 
 #
