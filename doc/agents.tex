@@ -89,7 +89,7 @@ These are their names in OTcl:
 \begin{longtable}{rl}
   TCP & a ``Tahoe'' TCP sender (cwnd = 1 on any loss)   \\
   TCP/Reno & a ``Reno'' TCP sender  (with fast recovery)        \\
-  TCP/NewReno & a modified Reno TCP sender (changes fast recovery)      \\
+  TCP/Newreno & a modified Reno TCP sender (changes fast recovery)      \\
   TCP/Sack1 & a SACK TCP sender \\
   TCP/Fack & a ``forward'' SACK sender TCP      \\
   TCP/FullTcp & a more full-functioned TCP with 2-way traffic   \\
@@ -98,7 +98,7 @@ These are their names in OTcl:
   TCP/Vegas/RBP & a Reno TCP with ``rate based pacing'' \\
   TCP/Asym & an experimental Tahoe TCP for asymmetric links     \\
   TCP/Reno/Asym & an experimental Reno TCP for asymmetric links \\
-  TCP/Newreno/Asym & an experimental NewReno TCP for asymmetric links   \\
+  TCP/Newreno/Asym & an experimental Newreno TCP for asymmetric links   \\
   TCPSink & a Reno or Tahoe TCP receiver (not used for FullTcp) \\
   TCPSink/DelAck & a TCP delayed-ACK receiver   \\
   TCPSink/Asym & an experimental  TCP sink for asymmetric links \\
@@ -846,9 +846,9 @@ Configuration Parameters are:
 \begin{description}
 
 \item[newreno\_changes\_]
-Set to zero for the default NewReno described in "Fall, K., and Floyd, S.
+Set to zero for the default New Reno described in "Fall, K., and Floyd, S.
 Comparisons of Tahoe, Reno, and Sack TCP. December 1995". Set to 1 for
-additional NewReno algorithms [see Hoe, J., Improving the Start-up
+additional New Reno algorithms [see Hoe, J., Improving the Start-up
 Behavior of a Congestion Control Scheme for TCP. in SIGCOMM 96, August
 1996, pp. 270-280. URL 
 http://www.acm.org/sigcomm/sigcomm96/papers/hoe.html.]; this includes the

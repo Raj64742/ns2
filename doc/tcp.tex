@@ -19,7 +19,7 @@ The one-way TCP sending agents currently supported are:
 \begin{itemize}\itemsep0pt
         \item Agent/TCP - a ``tahoe'' TCP sender
         \item Agent/TCP/Reno - a ``Reno'' TCP sender
-        \item Agent/TCP/NewReno - Reno with a modification
+        \item Agent/TCP/Newreno - Reno with a modification
         \item Agent/TCP/Sack1 - TCP with selective repeat (follows RFC2018)
         \item Agent/TCP/Vegas - TCP Vegas
         \item Agent/TCP/Fack - Reno TCP with ``forward acknowledgment''
@@ -218,7 +218,7 @@ a fast retransmit.
 Rather, it reduces sets the congestion window to half the current
 window and resets {\tt ssthresh\_} to match this value.
 
-\paragraph{NewReno TCP}
+\paragraph{Newreno TCP}
 This agent is based on the Reno TCP agent, but which modifies the
 action taken when receiving new ACKS.
 In order to exit fast recovery, the sender must receive an ACK for the
@@ -557,7 +557,7 @@ for simulations:
 This creates an instance of a TCP agent. There are several flavors of
 TCP-sender and TCP-receiver (or sink) agent currently implemented in ns.
 TCP-senders currently available are:
-Agent/TCP, Agent/TCP/Reno, Agent/TCP/NewReno, Agent/TCP/Sack1, Agent/TCP/Vegas,
+Agent/TCP, Agent/TCP/Reno, Agent/TCP/Newreno, Agent/TCP/Sack1, Agent/TCP/Vegas,
 Agent/TCP/Fack. \\
 TCP-receivers currently available are:
 Agent/TCPSink, Agent/TCPSink/DelAck, Agent/TCPSink/Sack1,
