@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.6 1997/05/22 20:55:55 polly Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.7 1997/06/03 19:14:49 puneetsh Exp $
  */
 
 #ifndef ns_trace_h
@@ -56,13 +56,14 @@
 #define PT_RTCP         11
 #define PT_RTP          12
 #define PT_RTPROTO_DV	13
-#define PT_NTYPE        14
-#define PT_CtrMcast_Encap 15
-#define PT_CtrMcast_Decap 16
+#define PT_CtrMcast_Encap 14
+#define PT_CtrMcast_Decap 15
+#define	PT_SRM		16
+#define PT_NTYPE        17
 
 #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
         "start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
-	"rtProtoDV", "CtrMcast"
+	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM"
 
 struct hdr_cmn {
 	double		ts_;	// timestamp: for q-delay measurement

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.29 1997/05/29 01:59:48 heideman Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.30 1997/06/03 19:15:33 puneetsh Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -87,7 +87,8 @@ OBJ_CC = \
 	net-interface.o	ctrMcast.o \
 	net.o net-ip.o tap.o \
 	lib/int.Vec.o lib/int.RVec.o \
-	lib/dmalloc_support.o
+	lib/dmalloc_support.o \
+	srm.o
 
 
 OBJ_C = \
@@ -157,6 +158,7 @@ NS_TCL_LIB = \
         tcl/mcast/ns-mcast.tcl \
         tcl/mcast/McastProto.tcl \
         tcl/mcast/DM.tcl \
+        tcl/mcast/srm.tcl \
         tcl/ctr-mcast/CtrMcast.tcl \
         tcl/ctr-mcast/CtrMcastComp.tcl \
         tcl/ctr-mcast/CtrRPComp.tcl \
