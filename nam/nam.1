@@ -1,0 +1,248 @@
+.\"
+.\" @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/nam/Attic/nam.1,v 1.1 1997/03/29 04:38:05 mccanne Exp $ (LBL)
+.\"
+.\" Copyright (c) 1991,1993 Regents of the University of California.
+.\" All rights reserved.
+.\"
+.\" Redistribution and use in source and binary forms, with or without
+.\" modification, are permitted provided that the following conditions
+.\" are met:
+.\" 1. Redistributions of source code must retain the above copyright
+.\"    notice, this list of conditions and the following disclaimer.
+.\" 2. Redistributions in binary form must reproduce the above copyright
+.\"    notice, this list of conditions and the following disclaimer in the
+.\"    documentation and/or other materials provided with the distribution.
+.\" 3. All advertising materials mentioning features or use of this software
+.\"    must display the following acknowledgement:
+.\"	This product includes software developed by the Computer Systems
+.\"	Engineering Group at Lawrence Berkeley Laboratory.
+.\" 4. Neither the name of the University nor of the Laboratory may be used
+.\"    to endorse or promote products derived from this software without
+.\"    specific prior written permission.
+.\"
+.\" THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+.\" ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+.\" IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+.\" ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+.\" FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+.\" DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+.\" OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+.\" HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+.\" LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+.\" OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+.\" SUCH DAMAGE.
+.\"
+.TH NAM 1  "10 Apr 1991"
+.SH NAME
+nam \- the LBL Network Animator
+.SH SYNOPSIS
+.na
+.B nam
+[
+.B \-p
+] [
+.B \-m
+] [
+.B \-g
+.I granularity
+] [
+.B \-j
+.I jump
+] [
+.B \-r
+.I rate
+]
+.I tracefile
+[
+.I layoutfile
+]
+.br
+.ad
+.SH DESCRIPTION
+.LP
+\fINam\fP is a tcl/tk based animation tool for viewing
+network simulations and packet trace data.
+A user define tcl procedure is invoked at start up to 
+define the topology and layout.  The animation is driven
+by trace data that, for example, is generated from
+.I ns(1)
+or
+.I tcpdump(1).
+.SH OPTIONS
+.TP
+.B \-g
+Specify \fIgranularity\fP (simulated) seconds as the initial setting for the 
+simulation granularity slider.  The default granularity is 0.002 (2ms).
+.TP
+.B \-j
+jump over gaps of more than
+.I jump
+(simulated) seconds in the trace.
+.TP
+.B \-r
+Specify \fIrate\fP (real) milliseconds as the screen update rate.  The default
+rate is 50ms (i.e., 20 frames per second).  Note that the X server may
+not be able to keep up with this rate, in which case the animation will
+run as fast as the X server allows it to (at 100% cpu utilization).
+.TP
+.B \-p
+Start up with the simulation running.  The default is to begin in a paused
+state so you can reposition and resize windows.
+.TP
+.B \-m
+Force monochrome on a color display (depending on your X server, this
+may significantly speed up the animation).
+.LP
+.I tracefile
+is the name of the file containing the trace data to be animated
+(format described below).  If
+.I tracefile
+cannot be read,
+.B nam
+will try to open
+.IR tracefile .tr.
+.LP
+.I layoutfile
+is the name of the file describing the graphical layout of the animation.
+(format described below).  If no
+.I layoutfile
+is given,
+.B nam
+will try to open
+.IR tracefile .lo
+(any trailing extension will be removed from
+.I tracefile
+before the .lo extension is appended).
+.SH THE ANIMATOR DISPLAY
+The top of the
+.B nam
+display is a
+.I title bar
+which contains, from left to right,
+.IP \-
+Loop/single button:  Controls whether
+.B nam
+plays the trace once then halts or rewinds at the end and replays.
+Clicking on this button will toggle between the two states.
+.IP \-
+Rewind button:  clicking will restart the animation at its
+beginning (or the current lower limit).
+.IP \-
+Play/pause button:  clicking will start a paused animation or pause
+a running animation.
+.IP \-
+The name of the trace file being animated and the time that file was
+last modified.
+.IP \-
+The current simulated clock, in seconds.  I.e., the picture on the
+screen represents the network state at this time.
+.LP 
+Below the title bar is a
+.I time scroller
+that shows the current (relative) position in the trace and allows
+you to change that position with the mouse.  The left edge of the
+scroller represents the earliest event time in the trace file and the
+right edge represents the last event time.  Click anywhere on the
+grey bar to set the simulated clock to the corresponding time.
+To set to a particular time, hold down the mouse button and slide
+the white scroller around until the simulated clock shows that time
+then release the mouse button.  (Make sure the cursor is in the
+scroller's bar when you release the mouse button or nam might
+end up in a strange state.)
+.LP
+Below the time scroller are lower and upper limit indicators.
+These are intended to let you animate just a portion of a trace
+(this is particularly useful in `loop' mode to continuously
+replay some ``interesting'' event).
+If you click the left button in this region, the lower limit will be
+set to corresponding time.  Clicking the right button sets the upper limit.
+.LP
+Below the limit indicators is a large window containing the animation
+(the contents of the window are largely determined by the layout file,
+described below).
+.LP
+At the right is the animation window is a
+.I granularity scroller
+that can be used to change the animation granularity (the amount the
+simulated clock changes between animator frames).  Moving the scroller
+up make the animation coarser (larger clock step size) and moving it down
+makes the animation finer (smaller step size).  
+.SH KEYBOARD COMMANDS
+Most of the buttons have keyboard equivalents.
+
+Typing a space or return will pause nam if it's not already paused.
+If nam is paused, space or return will step the animation one simulated
+clock tick.  (If your keyboard autorepeats, holding down space is a
+good way to slow-step through some part of the animation.)
+
+A `p' will pause but not step if paused.
+
+A `c' will continue after a pause.
+
+An `r' will rewind.
+
+`>' or `.' will increase the granularity (speed up) by 5%.
+
+`<' or `,' will decrease the granularity (slow down) by 5%.
+.SH LAYOUT FILE
+The layout file is a pic-style representation of the network topology, 
+drawing parameters, and ``strip chart'' graph options.
+The (modified) subset of pic recognized by \fInam\fP includes
+the objects, circle, box, hexagon, source, router, sink, and edge.
+.LP
+Node objects (all of the previous excepting \fIedge\fP) require a small 
+integral identification number that correponds to the events in the trace file.
+Nodes may be qualified with
+a position and a color.  Note that only one node in a set of connected nodes
+can have a position, the remaining positions are fixed by the edge lengths
+(or ``link delays'') and directions.  A position is specified by appending
+``at \fIx, y\fP'' to the node definition.  If none of the nodes in the
+network are anchored with such a definition, the first node entered 
+defaults to (0,0).  A node can be colored by appending 
+``color \fIname\fP'' to its definition, where \fIname\fP is a
+standard X color listed for instance in /usr/lib/X11/rgb.txt.
+The default color is black.
+.LP
+An edge definition requires the link delay of the corresponding network
+connection.  An edge statement implicitly connects the previous node
+with the following node along the current direction.  Alternatively,
+the edge can be hung off previous node definitions by appending either
+or both ``from \fIlabel\fP'' and ``to \fIlabel\fP'' where \fIlabel\fP
+is labels a previous node object.  For example,
+
+	edge 10ms from routerHost to sinkHost;
+
+describes an edge between to previously declared nodes.
+.LP
+The current path can be modified with the keywords \fIup, down, right, left\fP,
+and \fIangle\fP.  
+.LP
+Generally speaking, a topology is specified by alternating node obects
+(i.e., source, router, circle) with edge objects.
+.SH TRACE FILE
+Most entries in the trace file have the same format:
+
+ <type> <time> <extent> <src> <dst> <conv> <ptype> <id>
+
+<type> is one of `h' (hop),
+`+' (enter queue),
+`-' (leave queue), and
+`d' (drop from queue).  For all of these, <time> is when the event
+starts, <extent> is the size (in time) of the packet, <src> is
+the originating node, <dst> is the destination node (for queue
+types, the queue referenced is the one at <src> on the edge bound
+for <dst>), <conv> is the conversation number, <id> is the packet
+id in the conversation and <ptype> says if the packet should be
+drawn filled or hollow.
+
+`Value' entries in the trace file have the form:
+
+ v <time> <name> <value>
+
+where <time> is the time that variable <name> had value <value>.
+.SH EXAMPLES
+.SH FILES
+/usr/lib/X11/rgb.txt
+.SH "SEE ALSO"
+tcpdump(1)
+.SH BUGS
