@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.288 2002/05/31 23:11:30 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.289 2002/06/28 21:54:45 kclan Exp $
 
 
 #
@@ -837,6 +837,8 @@ Agent/TCP/RFC793edu set rto_               60
 Agent/TCP/RFC793edu set syn_               true
 Agent/TCP/RFC793edu set add793exponinc_    false
 
+Agent/TCP/FullTcp instproc done_data {} { }
+
 Agent/TFRC set packetSize_ 1000 
 Agent/TFRC set rate_ 0 
 Agent/TFRC set df_ 0.95 ;	# decay factor for accurate RTT estimate
@@ -889,6 +891,7 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set dupack_reset_ false; # exit recov on ack < highest
 	Agent/TCP/FullTcp set interval_ 0.1 ; # delayed ACK interval 100ms 
 	Agent/TCP/FullTcp set close_on_empty_ false; # close conn if sent all
+	Agent/TCP/FullTcp set signal_on_empty_ false; # signal if sent all
 	Agent/TCP/FullTcp set ts_option_size_ 10; # in bytes
 	Agent/TCP/FullTcp set reno_fastrecov_ true; # fast recov true by default
 	Agent/TCP/FullTcp set pipectrl_ false; # use "pipe" ctrl

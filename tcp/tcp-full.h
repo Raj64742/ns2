@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.52 2002/05/22 20:56:20 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.53 2002/06/28 21:55:56 kclan Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -148,6 +148,7 @@ protected:
 	int data_on_syn_;   // send data on initial SYN?
 	double last_send_time_;	// time of last send
 	int close_on_empty_;	// close conn when buffer empty
+	int signal_on_empty_;	// signal when buffer is empty
 	int reno_fastrecov_;	// do reno-style fast recovery?
 	int infinite_send_;	// Always something to send
 	int tcprexmtthresh_;    // fast retransmit threshold
@@ -168,6 +169,8 @@ protected:
 	int fast_retransmit(int);  // do a fast-retransmit on specified seg
 	inline double now() { return Scheduler::instance().clock(); }
 	virtual void newstate(int ns);
+
+	void bufferempty();   		// called when sender buffer is empty
 
 	void finish();
 	void reset_rtx_timer(int);  	// adjust the rtx timer

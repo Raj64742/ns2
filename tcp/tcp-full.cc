@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.111 2002/05/22 20:56:20 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.112 2002/06/28 21:55:56 kclan Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -190,6 +190,7 @@ FullTcpAgent::delay_bind_init_all()
         delay_bind_init_one("dupseg_fix_");
         delay_bind_init_one("dupack_reset_");
         delay_bind_init_one("close_on_empty_");
+        delay_bind_init_one("signal_on_empty_");
         delay_bind_init_one("interval_");
         delay_bind_init_one("ts_option_size_");
         delay_bind_init_one("reno_fastrecov_");
@@ -217,6 +218,7 @@ FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, Tc
         if (delay_bind_bool(varName, localName, "dupseg_fix_", &dupseg_fix_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "dupack_reset_", &dupack_reset_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "close_on_empty_", &close_on_empty_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "signal_on_empty_", &signal_on_empty_, tracer)) return TCL_OK;
         if (delay_bind_time(varName, localName, "interval_", &delack_interval_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "ts_option_size_", &ts_option_size_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "reno_fastrecov_", &reno_fastrecov_, tracer)) return TCL_OK;
@@ -386,6 +388,8 @@ FullTcpAgent::advance_bytes(int nb)
 /*
  * If MSG_EOF is set, by setting close_on_empty_ to TRUE, we ensure that
  * a FIN will be sent when the send buffer emptys.
+ * If DAT_EOF is set, the callback function done_data is called
+ * when the send buffer empty
  * 
  * When (in the future?) FullTcpAgent implements T/TCP, avoidance of 3-way 
  * handshake can be handled in this function.
@@ -395,6 +399,9 @@ FullTcpAgent::sendmsg(int nbytes, const char *flags)
 {
 	if (flags && strcmp(flags, "MSG_EOF") == 0) 
 		close_on_empty_ = TRUE;	
+	if (flags && strcmp(flags, "DAT_EOF") == 0) 
+		signal_on_empty_ = TRUE;	
+
 	if (nbytes == -1) {
 		infinite_send_ = TRUE;
 		advance_bytes(0);
@@ -425,6 +432,20 @@ FullTcpAgent::listen()
 	newstate(TCPS_LISTEN);
 	type_ = PT_ACK;	// instead of PT_TCP
 }
+
+
+/*
+* This function is invoked when the sender buffer is empty. It in turn
+* invokes the Tcl done_data procedure that was registered with TCP.
+*/
+ 
+void
+FullTcpAgent::bufferempty()
+{
+   	signal_on_empty_=FALSE;
+	Tcl::instance().evalf("%s done_data", this->name());
+}
+
 
 /*
  * called when user/application performs 'close'
@@ -935,6 +956,9 @@ FullTcpAgent::foutput(int seqno, int reason)
 		datalen = buffered_bytes - off;
 	else
 		datalen = min(buffered_bytes, win) - off;
+
+        if ((signal_on_empty_) && (!buffered_bytes) && (!syn))
+	                bufferempty();
 
 	//
 	// in real TCP datalen (len) could be < 0 if there was window
