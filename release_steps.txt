@@ -4,6 +4,8 @@ Steps in doing an ns release:
 OTCL/TCLCL/NAM RELEASE
 If necessary, do a otcl,tclcl release. Following are things you need to do for a otcl, tclcl or nam release:
 
+0. get latest config.sub and config.guess from
+     ftp://ftp.gnu.org/pub/gnu/config/
 1. update configure (or conf/*) to show current versions of pkgs 
 1.1. re-autoconf if you have changed conf/*
 1.2. update the windows makefile with "make makefile.vc"
@@ -18,7 +20,9 @@ NS RELEASE
 0.1. figure what the new version
 0.2. send out release announcement to ns-developers for approval
     - describe what's new
-0.3. Check to make sure conf/configure.in.{otcl,TclCL,tcl,tk}
+0.3. get latest config.sub and config.guess from
+        ftp://ftp.gnu.org/pub/gnu/config/
+0.4. Check to make sure conf/configure.in.{otcl,TclCL,tcl,tk}
      refer to the current versions
      (For example TclCL_VERS should match the most recent tclcl release,
      etc.)
