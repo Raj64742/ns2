@@ -6,7 +6,9 @@ set flowgraphfile fairflow.xgr
 set timegraphfile fairflow1.xgr
 set fracgraphfile fairflow2.xgr
 set friendlygraphfile fairflow3.xgr
-set drop_interval 50.0
+# drop_interval gets reset in proc flowDump
+set drop_interval 2.0
+set pthresh 100
 #-------------------------------------------------------------------
 
 proc finish file {
@@ -158,35 +160,35 @@ proc openTrace { stopTime testName } {
 
 #---------------------------------------------------------------
 
-proc flowmonDump { fm dump link interval stop } {
-    global ns
+proc flowmonDump { fm dump link stop } {
+    global ns drop_interval
     if {[$ns now] < $stop} {
    	$dump $link $fm
-	set next [expr [$ns now] + $interval]
-	$ns at $next "flowmonDump $fm $dump $link $interval $stop"
+	set next [expr [$ns now] + $drop_interval]
+	$ns at $next "flowmonDump $fm $dump $link $stop"
     }
 }
 
 proc create_flowstats { link dump stoptime } {
     
-    global ns r1 r2 r1fm flowfile drop_interval
+    global ns r1 r2 r1fm flowfile drop_interval flowdesc
 
     set r1fm [makeflowmon]
     set flowdesc [open $flowfile w]
     $r1fm attach $flowdesc
     attach-fmon $link $r1fm
-    $ns at $drop_interval "flowmonDump $r1fm $dump $link $drop_interval $stoptime"
+    $ns at $drop_interval "flowmonDump $r1fm $dump $link $stoptime"
 }
 
 proc create_flowstats1 { link dump stoptime } {
 
-    global ns r1 r2 r1fm flowfile drop_interval
+    global ns r1 r2 r1fm flowfile drop_interval flowdesc
     
     set r1fm [makeflowmon]
     set flowdesc [open $flowfile w]
     $r1fm attach $flowdesc
     attach-fmon $link $r1fm
-    $ns at $drop_interval "flowmonDump $r1fm $dump $link $drop_interval $stoptime"
+    $ns at $drop_interval "flowmonDump $r1fm $dump $link $stoptime"
 }
 
 #------------------------------------------------------------------
@@ -739,10 +741,42 @@ proc tcpDumpAll { tcpSrc interval label } {
     $ns at 0.0 "dump $tcpSrc $interval $label"
 }
 
+# dump stats for single flow f only
+proc printFlow { f outfile fm } {
+    global ns
+    puts $outfile [list [$ns now] [$f set flowid_] 0 0 [$f set flowid_] [$f set src_] [$f set dst_] [$f set parrivals_] [$f set barrivals_] [$f set epdrops_] [$f set ebdrops_] [$fm set parrivals_] [$fm set barrivals_] [$fm set epdrops_] [$fm set ebdrops_] [$fm set pdrops_] [$fm set bdrops_] [$f set pdrops_] [$f set bdrops_]]
+}
+
 proc flowDump { link fm } {
-    $fm dump
+    global category pthresh drop_interval ns flowdesc
     foreach f [$fm flows] {
-	$f reset
+	if {[string compare $category "unforced"] == 0} {
+	    if {[$f set epdrops_] >= $pthresh} {
+		printFlow $f $flowdesc $fm
+		$f reset
+		set drop_interval 2.0
+	    } else {
+		set drop_interval 1.0
+	    }
+	} elseif {[string compare $category "forced"] == 0} {
+	    if {[expr [$f set pdrops_] - [$f set epdrops_]] >= $pthresh} {
+		printFlow $f $flowdesc $fm
+		$f reset
+		set drop_interval 2.0
+	    } else {
+		set drop_interval 1.0
+	    }
+	} elseif {[string compare $category "combined"] == 0} {
+	    if {[$f set pdrops_] >= $pthresh} {
+		printFlow $f $flowdesc $fm
+		$f reset
+		set drop_interval 2.0
+	    } else {
+		set drop_interval 1.0
+	    } 
+	} else {
+	    puts stderr "Error: flowDump: drop category $category unknown."
+	}
     }
     # check data
     # if data good (if N > 2.3/p^2, N is field 14, flowid is 2, packet
@@ -754,10 +788,7 @@ proc flowDump { link fm } {
 }
 
 proc flowDump1 { link fm } {
-    $fm dump
-    foreach f [$fm flows] {
-	$f reset
-    }
+    flowDump $link $fm
 }
 
 proc new_tcp { startTime source dest window class dump size } {
