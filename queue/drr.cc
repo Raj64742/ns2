@@ -17,12 +17,12 @@
  *
  * This file contributed by Sandeep Bajaj <bajaj@parc.xerox.com>, Mar 1997.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drr.cc,v 1.9 2000/09/01 03:04:05 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drr.cc,v 1.10 2002/05/06 22:23:16 difa Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drr.cc,v 1.9 2000/09/01 03:04:05 haoboy Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drr.cc,v 1.10 2002/05/06 22:23:16 difa Exp $ (Xerox)";
 #endif
 
 #include "config.h"   // for string.h
@@ -34,7 +34,7 @@ class DRR;
 
 class PacketDRR : public PacketQueue {
 	PacketDRR(): pkts(0),src(-1),bcount(0),prev(0),next(0),deficitCounter(0),turn(0) {}
-	friend DRR;
+	friend class DRR;
 	protected :
 	int pkts;
 	int src;    //to detect collisions keep track of actual src address

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.19 2000/09/01 03:04:07 haoboy Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.20 2002/05/06 22:23:16 difa Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -69,7 +69,7 @@ protected:
 // Hmmm... ``a is a'' in the construction of the RBPVegasPaceTimer edifice :->
 
 class RBPVegasTcpAgent : public virtual VegasTcpAgent {
-	friend RBPVegasPaceTimer;
+	friend class RBPVegasPaceTimer;
  public:
 	RBPVegasTcpAgent();
 	virtual void recv(Packet *pkt, Handler *);
@@ -231,7 +231,7 @@ protected:
 // Hmmm... ``a is a'' in the construction of the RBPRenoPaceTimer edifice :->
 
 class RBPRenoTcpAgent : public virtual RenoTcpAgent {
-	friend RBPRenoPaceTimer;
+	friend class RBPRenoPaceTimer;
  public:
 	RBPRenoTcpAgent();
 	virtual void recv(Packet *pkt, Handler *);

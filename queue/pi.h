@@ -93,7 +93,7 @@ protected:
 
 class PIQueue : public Queue {
  
- friend PICalcTimer;
+ friend class PICalcTimer;
  public:	
 	PIQueue(const char * = "Drop");
  protected:

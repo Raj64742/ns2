@@ -73,7 +73,7 @@ void rawScan(int i, int j, int N, int *p)
 
 class WSS{
 	public:WSS(): currOrder(1), items(0), ptr(0), pwss(0){ }
-	friend SRR;
+	friend class SRR;
 public:	
 	int maxOrder; // the order of the WSS
 	int currOrder; // current order of WSS

@@ -77,7 +77,7 @@ struct wm_node{
 
 class PacketSRR {
 	PacketSRR(): pkts(0),bcount(0),deficitCounter(0),turn(0),head_(0), tail_(0), len_(0) {}
-	friend SRR;
+	friend class SRR;
 protected: 
 	int pkts;   //total packets in this Queue
 	int bcount; //count of bytes in each flow to find the max flow;

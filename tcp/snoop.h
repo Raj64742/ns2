@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.h,v 1.13 2000/09/01 03:04:07 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.h,v 1.14 2002/05/06 22:23:16 difa Exp $ (UCB)
  */
 
 #ifndef ns_snoop_h
@@ -111,8 +111,8 @@ class SnoopRxmitHandler;
 class SnoopPersistHandler;
 
 class Snoop : public NsObject {
-	friend SnoopRxmitHandler;
-	friend SnoopPersistHandler;
+	friend class SnoopRxmitHandler;
+	friend class SnoopPersistHandler;
   public:
 	Snoop();
 	void recv(Packet *, Handler *);

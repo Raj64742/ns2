@@ -113,8 +113,8 @@ protected:
 }; 
 
 class TfrcAgent : public Agent {
-		friend TfrcSendTimer;
-	friend TfrcNoFeedbackTimer;
+		friend class TfrcSendTimer;
+	friend class TfrcNoFeedbackTimer;
 public:
 	TfrcAgent();
 	void recv(Packet*, Handler*);

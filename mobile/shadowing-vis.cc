@@ -26,6 +26,7 @@
 #include <math.h>
 #include <fstream.h>
 
+
 #include <delay.h>
 #include <packet.h>
 #include <packet-stamp.h>
@@ -80,12 +81,12 @@ double ShadowingVis::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 	if (propCond == 1) {
 		Pr = goodProp->Pr(t, r, ifp);
 #ifdef DEBUG
-		cout << "Good propagation condition!" << endl;
+		printf("Good propagation condition!\n");
 #endif
 	} else {
 		Pr = badProp->Pr(t, r, ifp);
 #ifdef DEBUG
-		cout << "Bad propagation condition!" << endl;
+		printf("Bad propagation condition!\n");
 #endif
 	}
 		
@@ -134,7 +135,7 @@ int ShadowingVis::command(int argc, const char*const* argv)
 void ShadowingVis::loadImg(const char* fname)
 {
 #ifdef DEBUG
-	cout << "loading " << fname << flush;
+	printf("loading %s\n", fname);
 #endif
 
 	ifstream image( fname );
@@ -144,7 +145,7 @@ void ShadowingVis::loadImg(const char* fname)
 	int whiteNum;
 	char terminator;
 
-	if( image.fail() ) cout << "image bad!" << endl;
+	if( image.fail() ) printf("image bad!\n");
 
 	if( strstr( fname, ".pnm" ) ) {
 		image >> magicNumber;
@@ -159,13 +160,12 @@ void ShadowingVis::loadImg(const char* fname)
 	}
 
 #ifdef DEBUG
-  cout << "magic: " << magicNumber << "\ncomment: " << comment
-       << "\nwidth: " << width << " height: " << height
-       << " white: " << whiteNum << endl;
+    printf("magic: %s\ncomment: %s\nwidth: %d height: %d white: %d\n", magicNumber, comment, width, height, whiteNum);
 #endif
 
 	pixel = new unsigned char[width * height];
-	unsigned char a;
+	//unsigned char a;   #Sun OS compilation Fix - fcartegn@univ-valenciennes.fr - Apr 26 02
+	char a;
 	image.get(a);	// this byte is not the image
 
 	// the upper-left corner is the origin (0, 0)
@@ -198,7 +198,7 @@ void ShadowingVis::loadImg(const char* fname)
 int ShadowingVis::getPropCond(float xt, float yt, float xr, float yr)
 {
 #ifdef DEBUG
-	cout << "xt = " << xt << " yt = " << yt << " xr = " << xr << " yr = " << yr << endl;
+	printf("xt = %f yt = %f xr = %f yr = %f\n", xt, yt, xr, yr);
 #endif
 	float dx = xr - xt;
 	float dy = yr - yt;
@@ -259,7 +259,7 @@ int ShadowingVis::getPropCond(float xt, float yt, float xr, float yr)
 		if (pixel[xIdx + yIdx * width] != BLACK) {
 			goodProp = 0;
 #ifdef DEBUG
-			cout << "xx = " << xx << " yy = " << yy << endl;
+			printf("xx = %f  yy = %f\n", xx, yy);
 			printf("pixel = %x\n", pixel[xIdx + yIdx * width]);
 #endif
 			break;

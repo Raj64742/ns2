@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.10 2000/09/01 03:04:07 haoboy Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.11 2002/05/06 22:23:16 difa Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -49,7 +49,7 @@ class SFQ;			// a set of SFQ queues
 
 class PacketSFQ : public PacketQueue {
   PacketSFQ() : pkts(0), prev(0), next(0) {}
-  friend SFQ;
+  friend class SFQ;
 protected:
   void sfqdebug();
   int pkts;

@@ -35,7 +35,7 @@
 
 /* -*- c++ -*-
    rexmit_queue.h
-   $Id: rxmit_queue.h,v 1.3 2000/08/17 00:03:38 haoboy Exp $
+   $Id: rxmit_queue.h,v 1.4 2002/05/06 22:23:15 difa Exp $
    */
 
 #ifndef imep_rexmit_queue_h
@@ -58,7 +58,7 @@ LIST_HEAD(rexent_head, rexent);
 class ReXmitQ;
 
 class ReXmitQIter {
-  friend ReXmitQ;
+  friend class ReXmitQ;
   
 public:
   inline Packet * next() {

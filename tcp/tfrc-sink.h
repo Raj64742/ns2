@@ -71,7 +71,7 @@ protected:
 };
 
 class TfrcSinkAgent : public Agent {
-	friend TfrcNackTimer;
+	friend class TfrcNackTimer;
 public:
 	TfrcSinkAgent();
 	void recv(Packet*, Handler*);
