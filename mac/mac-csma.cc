@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.25 1998/08/05 18:24:11 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-csma.cc,v 1.26 1998/11/17 23:36:35 yuriy Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -108,7 +108,27 @@ void MacCsma::send(Packet* p)
 
 	// if channel is not ready, then wait
 	// else content for the channel
-	if (csense_ && delay > 0)
+
+	/* XXX floating point operations differences have been
+	   observed on the resulting delay value on Pentium II and
+	   SunSparc.  E.g.
+	                           PentiumII                   SunSparc
+	                           -------------------------------
+	   channel_->txstop_=      0.11665366666666668         0.11665366666666668
+	                   binary    0x3fbddd03c34ab4a2          0x3fbddd03c34ab4a2
+	   ifs_=                   5.1999999999999997e-05      5.1999999999999997e-05
+	                   binary    0x3f0b43526527a205          0x3f0b43526527a205
+	   s.clock_=               0.11670566666666668         0.11670566666666668
+	                   binary    0x3fbde06c2d975996          0x3fbde06c2d975996
+
+	   delay=                  3.5033282698437862e-18      0
+	                   binary    0x3c50280000000000          0x0000000000000000
+
+	   Because of that the value of (csense_ && delay > 0) was different.  Fixed by
+	   changing 0 to EPS
+	 */
+	static const double EPS= 1.0e-12; //seems appropriate (less than nanosec)
+  	if (csense_ && delay > EPS)
 		s.schedule(&hSend_, p, delay + 0.000001);
 	else {
 		txstart_ = s.clock();
