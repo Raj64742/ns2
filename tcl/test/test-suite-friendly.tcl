@@ -30,16 +30,16 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.57 2004/10/18 19:39:56 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.58 2004/10/22 04:40:25 sfloyd Exp $
 #
 
 source misc_simple.tcl
 source support.tcl
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TFRC set ss_changes_ 0 ; 	# Added on 10/21/2004
+Agent/TFRC set slow_increase_ 1 ; 	# Added on 10/20/2004
+Agent/TFRC set rate_init_ 1 ;          # Added on 10/20/2004
+Agent/TFRC set rate_init_option_ 1 ;    # Added on 10/20/2004
 Queue/RED set bytes_ false              
 # default changed on 10/11/2004.
 Queue/RED set queue_in_bytes_ false
@@ -48,6 +48,10 @@ Queue/RED set q_weight_ 0.002
 Queue/RED set thresh_ 5 
 Queue/RED set maxthresh_ 15
 # The RED parameter defaults are being changed for automatic configuration.
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1
@@ -67,6 +71,7 @@ Agent/TFRCSink set PreciseLoss_ 1
 Agent/TFRCSink set numPkts_ 1
 # The default for numPkts_ might be changed to 3, at some point.
 # But right now, the code for numPkts does not work, except for numPkts_ 1.
+# With numPkts set to 1, TFRCSink is not robust to reordering.
 ##########################
 
 Agent/TFRC set oldCode_ false
@@ -1552,6 +1557,99 @@ Test/delayedTCP2 instproc init {} {
     ErrorModel set drop_ false
     ErrorModel set delay_ 0.01
     Test/delayedTCP2 instproc run {} [Test/goodTCP info instbody run ]
+    $self next pktTraceFile
+}
+
+Class Test/initRate superclass TestSuite
+Test/initRate instproc init {} {
+    $self instvar net_ test_ guide_ period_
+    set net_	net2
+    set test_	initRate
+    set guide_  \
+    "One TFRC flow, initial rate of one packet per RTT."
+    set period_ 10000.0
+    Agent/TFRC set rate_init_ 1 
+    Agent/TFRC set rate_init_option_ 1
+    Agent/TFRC set ss_changes_ 1
+    $self next pktTraceFile
+}
+Test/initRate instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ period_
+    if {$quiet == "false"} {puts $guide_}
+    $self setTopo
+    set interval_ 0.1
+    set stopTime 2.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    $ns_ at 0.0 "$tf1 start"
+
+    $self dropPktsPeriodic [$ns_ link $node_(r2) $node_(s3)] 0 1000.0 $period_
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    #$self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+    # $ns_ at $stopTime0 "$self printTFRCpkts 0 $tf1"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/initRateLarge superclass TestSuite
+Test/initRateLarge instproc init {} {
+    $self instvar net_ test_ guide_ period_
+    set net_	net2
+    set test_	initRateLarge
+    set guide_  \
+    "One TFRC flow, initial rate of 4 packets per RTT."
+    set period_ 10000.0
+    Agent/TFRC set rate_init_ 4.0 
+    Agent/TFRC set rate_init_option_ 1
+    Agent/TFRC set ss_changes_ 1
+    Test/initRateLarge instproc run {} [Test/initRate info instbody run ]
+    $self next pktTraceFile
+}
+
+Class Test/initRateNo_ss_changes superclass TestSuite
+Test/initRateNo_ss_changes instproc init {} {
+    $self instvar net_ test_ guide_ period_
+    set net_	net2
+    set test_	initRateNo_ss_changes
+    set guide_  \
+    "One TFRC flow, initial rate of 4 packets per RTT, no ss_changes_."
+    set period_ 10000.0
+    Agent/TFRC set rate_init_ 4.0 
+    Agent/TFRC set rate_init_option_ 1
+    Agent/TFRC set ss_changes_ 0
+    Test/initRateNo_ss_changes instproc run {} [Test/initRate info instbody run ]
+    $self next pktTraceFile
+}
+
+Class Test/initRateRFC3390 superclass TestSuite
+Test/initRateRFC3390 instproc init {} {
+    $self instvar net_ test_ guide_ period_
+    set net_	net2
+    set test_	initRateRFC3390
+    set guide_  \
+    "One TFRC flow, initial rate from RFC 3390."
+    set period_ 10000.0
+    Agent/TFRC set rate_init_option_ 2
+    Agent/TFRC set ss_changes_ 1
+    Test/initRateRFC3390 instproc run {} [Test/initRate info instbody run ]
     $self next pktTraceFile
 }
 
