@@ -1,29 +1,12 @@
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/README,v 1.2 1999/05/12 21:35:05 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/README,v 1.3 1999/08/12 21:37:32 haldar Exp $
 
-********** README for using CMU's scenario and connction pattern  *****
-            ************** file generator ************
+********** README for using CMU's connection pattern **************
+            ************** file generators ************
 
-A.scenario file generator
----------------------------
-Files:
-Makefile
-setdest.h setdest.cc
-make-scen.csh
-
-
-Steps for creating scenario files for mobility simulations :
-
-* compile to create an executable setdest.
-
-* run setdest with arguments in the following way:
-./setdest -n <num_of_nodes> -p <pausetime> -s <maxspeed> -t <simtime> \
-      -x <maxx> -y <maxy> > <outdir>/<scenario-file>
-
-* OR run make-scen.csh to generate multiple scenario files.
-
-
-B. Connection pattern file generator
+A. Connection pattern file generator
 -------------------------------------
+Directory:
+~ns/indep-utils/cmu-scen-gen
 
 Files:
 cbrgen.tcl -- for generating CBR connections
@@ -36,5 +19,11 @@ to create CBR/TCP connecions, run
 ns cbrgen.tcl [-type cbr|tcp] [-nn nodes] [-seed seed] [-mc connections]
 [-rate rate]
 
+For example ,
+ns cbrgen.tcl -type cbr -nn 10 -seed 1 -mc 8 -rate 4
+
+OR
+ns cbrgen.tcl -type tcp -nn 25 -seed 0 -mc 20
+
 note: You will need to pipe the outputs from above to a cbr-* or a tcp-*
-file. 
+output file. 
