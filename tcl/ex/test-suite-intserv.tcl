@@ -79,13 +79,6 @@
 #The flow lifetime also has an exponential distribution with an
 #average of 300sec.
 
-
-
-#Increase the number of agents that can be attached to a node
-Simulator set NodeMask_ 0xff
-Simulator set NodeShift_ 24
-Simulator set PortMask_ 0xffffff
-
 #defaults
 Queue/SimpleIntServ set qlimit1_ 160
 Queue/SimpleIntServ set qlimit0_ 0
@@ -184,6 +177,7 @@ IntServLink instproc trace { interval } {
 	
 
 set ns [new Simulator]
+$ns expand-port-field-bits 16
 
 #Create a simple 2 node toplogy
 set n0 [$ns node]
