@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.271 2001/12/29 20:44:50 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.272 2001/12/30 05:39:28 sfloyd Exp $
 
 
 #
@@ -704,12 +704,16 @@ Agent/TCP set precisionReduce_ false
 Agent/TCP set oldCode_ false
 Agent/TCP set useHeaders_ true ;	# default changed on 2001/11/28. 
 
+# These are all variables for tracing information.
 Agent/TCP set ndatapack_ 0
 Agent/TCP set ndatabytes_ 0
 Agent/TCP set nackpack_ 0
 Agent/TCP set nrexmit_ 0
 Agent/TCP set nrexmitpack_ 0
 Agent/TCP set nrexmitbytes_ 0
+Agent/TCP set necnresponses_ 0
+Agent/TCP set ncwndcuts_ 0 
+
 Agent/TCP set trace_all_oneline_ false
 
 Agent/TCP set QOption_ 0 
