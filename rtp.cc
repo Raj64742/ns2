@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.15 1998/08/05 01:19:57 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.cc,v 1.16 1998/08/13 00:07:07 gnguyen Exp $";
 #endif
 
 
@@ -52,7 +52,7 @@ class RTPHeaderClass : public PacketHeaderClass {
 public: 
         RTPHeaderClass() : PacketHeaderClass("PacketHeader/RTP",
 					     sizeof(hdr_rtp)) {
-		offset(&hdr_rtp::offset_);
+		bind_offset(&hdr_rtp::offset_);
 	}
 } class_rtphdr;
 
