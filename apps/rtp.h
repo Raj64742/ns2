@@ -30,19 +30,21 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.h,v 1.1 1996/12/19 03:22:45 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.h,v 1.2 1996/12/31 22:52:01 elan Exp $
  */
 
 
 #ifndef ns_rtp_h
 #define ns_rtp_h
 
-class RTPSource {
+#include "config.h"
+
+class RTPSource : public TclObject {
 public:
 	RTPSource* next;
 
-	RTPSource(nsaddr_t addr);
-	inline int addr() { return (addr_); }
+	RTPSource(u_int32_t srcid);
+	inline u_int32_t srcid() { return (srcid_); }
 	inline int np() { return (np_); }
 	inline int snp() { return (snp_); }
 	inline int ehsr() { return (ehsr_); }
@@ -51,7 +53,7 @@ public:
 	inline void snp(int n) { snp_ = n; }
 	inline void ehsr(int n) { ehsr_ = n; }
 protected:
-	int addr_;
+	u_int32_t srcid_;
 	int np_;
 	int snp_;
 	int ehsr_;
@@ -64,6 +66,7 @@ public:
 	virtual void recv(Packet* p);
 	virtual void recv_ctrl(Packet* p);
 	int command(int argc, const char*const* argv);
+	inline u_int32_t srcid() { return (localsrc_->srcid()); }
 	int build_report(int bye);
 	void localsrc_update(int);
 protected:

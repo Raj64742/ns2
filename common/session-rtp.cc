@@ -29,13 +29,25 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
- *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/session-rtp.cc,v 1.1 1996/12/19 03:22:45 mccanne Exp $
  */
 
+#ifndef lint
+static char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/session-rtp.cc,v 1.2 1996/12/31 22:51:59 elan Exp $";
+#endif
+
 #include <Tcl.h>
+#include <stdlib.h>
 #include "packet.h"
 #include "rtp.h"
+
+static class RTPSourceClass : public TclClass {
+public:
+	RTPSourceClass() : TclClass("RTPSource") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new RTPSource(atoi(argv[4])));
+	}
+} class_rtp_source;
 
 static class RTPSessionClass : public TclClass {
 public:
@@ -46,10 +58,8 @@ public:
 } class_rtp_session;
 
 RTPSession::RTPSession() 
-	: allsrcs_(0), last_np_(0)
-{
-	localsrc_ = new RTPSource(0);
-}
+	: allsrcs_(0), last_np_(0), localsrc_(0)
+{}
 
 RTPSession::~RTPSession() 
 {
@@ -105,7 +115,6 @@ int RTPSession::build_report(int bye)
 	return (len);
 }
 
-
 int RTPSession::build_bye() 
 {
 	return (8);
@@ -117,13 +126,14 @@ int RTPSession::build_sdes()
 	return (20);
 }
 
-
 void RTPSession::recv(Packet* p)
 {
-	RTPSource* s = lookup(p->src_);
+	u_int32_t srcid = p->bd_.rtp_.srcid_;
+	RTPSource* s = lookup(srcid);
 	if (s == 0) {
-		s = new RTPSource(p->src_);
-		enter(s);
+		Tcl& tcl = Tcl::instance();
+		tcl.evalf("%s new-source %d", name(), srcid);
+		s = (RTPSource*)TclObject::lookup(tcl.result());
 	}
 	s->np(1);
 	s->ehsr(p->seqno_);
@@ -134,11 +144,11 @@ void RTPSession::recv_ctrl(Packet* p)
 	Tcl::instance().evalf("%s sample-size %d", name(), p->size_);
 }
 
-/* XXX Should use hash this... */
-RTPSource* RTPSession::lookup(nsaddr_t src)
+/* XXX Should hash this... */
+RTPSource* RTPSession::lookup(u_int32_t srcid)
 {
 	for (RTPSource *p = allsrcs_; p != 0; p = p->next)
-		if (p->addr() == src)
+		if (p->srcid() == srcid)
 			return (p);
 
 	return (0);
@@ -152,9 +162,24 @@ void RTPSession::enter(RTPSource* s)
 
 int RTPSession::command(int argc, const char*const* argv)
 {
+	if (argc == 3) {
+		if (strcmp(argv[1], "enter") == 0) {
+			RTPSource* s = (RTPSource*)TclObject::lookup(argv[2]);
+			enter(s);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "localsrc") == 0) {
+			localsrc_ = (RTPSource*)TclObject::lookup(argv[2]);
+			enter(localsrc_);
+			return (TCL_OK);
+		}
+	}
 	return (TclObject::command(argc, argv));
 }
 
-RTPSource::RTPSource(nsaddr_t addr)
-	: next(0), addr_(addr), np_(0), snp_(0), ehsr_(-1)
-{}
+RTPSource::RTPSource(u_int32_t srcid)
+	: next(0), np_(0), snp_(0), ehsr_(-1)
+{
+	bind("srcid_", (int*)&srcid_);
+	srcid_ = srcid;
+}
