@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.458 2001/05/23 16:37:10 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.459 2001/05/27 20:52:22 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -16,6 +16,26 @@ with the most recent changes coming first.
 <hr>
 <h3>
 ns-2.1b8 release PENDING</h3>
+
+<ul>
+
+<li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
+Sun May 27 13:38:04 PDT 2001<br>
+Changed some defaults for TCP and RED, over the last few weeks.
+<br>
+Added minrto_ to TCP, with a minimum RTO, with a default of 1 second.
+Added the variable timerfix_, with default set to true, to update the
+TCP RTO timer *after* the RTT is updated, instead of before. 
+<br>
+Changed the defaults for the Agent/TCP variables syn_ and delay_growth_ to
+true, and changed the default for Agent/TCP/windowInit_ to 2,
+so that the first packet is 40 bytes, like a SYN packet,
+and the initial window of two packets starts after the ACK 
+for the first packet has been received.
+<br>
+Changed the default for Queue/RED/gentle_ to true, so that
+the dropping probability increases gradually as the average
+queue size exceeds maxthresh.
 
 <LI><B><A HREF="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
 Tue May 22 09:58:13 PDT 2001
@@ -48,7 +68,6 @@ Example script provided in ~ns/emulate/tcpemu.tcl along with
 configuration instructions.
 
 
-<ul>
 <LI><B><A href="mailto:haldar@isi.edu">[Padma Haldar]</A></B>
 Thu Apr  5 15:50:46 PDT 2001
 <BR>Ported Kathy Nichole's version of full-tcp into ns (calling it BayTcp).
