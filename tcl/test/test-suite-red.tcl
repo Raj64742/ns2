@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.27 1999/05/27 21:50:25 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.28 1999/06/11 23:56:17 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -113,6 +113,36 @@ Topology/net2 instproc init ns {
     # and is placed in the default file (3/31/97)
     [[$ns link $node_(r1) $node_(r2)] queue] set linterm_ 50
     [[$ns link $node_(r2) $node_(r1)] queue] set linterm_ 50
+}   
+
+Class Topology/net3 -superclass Topology
+Topology/net3 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]    
+    set node_(r1) [$ns node]    
+    set node_(r2) [$ns node]    
+    set node_(s3) [$ns node]    
+    set node_(s4) [$ns node]    
+
+    $self next 
+
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 0ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 1ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 10ms RED
+    $ns duplex-link $node_(r2) $node_(r1) 1.5Mb 10ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 100
+    $ns queue-limit $node_(r2) $node_(r1) 100
+    $ns duplex-link $node_(s3) $node_(r2) 10Mb 2ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 10Mb 3ms DropTail
+ 
+    $ns duplex-link-op $node_(s1) $node_(r1) orient right-down
+    $ns duplex-link-op $node_(s2) $node_(r1) orient right-up
+    $ns duplex-link-op $node_(r1) $node_(r2) orient right
+    $ns duplex-link-op $node_(r1) $node_(r2) queuePos 0
+    $ns duplex-link-op $node_(r2) $node_(r1) queuePos 0
+    $ns duplex-link-op $node_(s3) $node_(r2) orient left-down
+    $ns duplex-link-op $node_(s4) $node_(r2) orient left-up
 }   
 
 TestSuite instproc plotQueue file {
@@ -402,7 +432,6 @@ TestSuite instproc create_flowstats {} {
 	set flowchan [open $flowfile w]
 	$r1fm_ attach $flowchan
 	$ns_ attach-fmon [$ns_ link $node_(r1) $node_(r2)] $r1fm_ 1
-#	$ns_ attach-fmon [$ns_ link $node_(r1) $node_(r2)] $r1fm_ 
 }
 
 #
@@ -698,6 +727,106 @@ Test/flows_combined instproc run {} {
 	set dump_pthresh_ 100
 
 	$self droptest $stoptime
+}
+
+#--------------------------------------------------------------
+
+TestSuite instproc printall { fmon } {
+        puts "total_drops [$fmon set pdrops_] total_packets [$fmon set pdepartures_]"
+}
+
+Class Test/ungentle -superclass TestSuite
+Test/ungentle instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ ungentle
+    $self next
+}
+Test/ungentle instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    $self setTopo
+    Agent/TCP set packetSize_ 1500
+    Agent/TCP set window_ 50
+    Queue/RED set bytes_ true
+
+    set stoptime 40.0
+    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
+    
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s3) 1]
+    $tcp2 set packetSize_ 1000
+    set tcp3 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 2]
+    set tcp4 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s3) 3]
+    $tcp4 set packetSize_ 512
+    set tcp5 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 4]
+    set tcp6 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s3) 5]
+    set tcp7 [$ns_ create-connection TCP/Sack1 $node_(s4) TCPSink/Sack1 $node_(s2) 6]
+    set tcp8 [$ns_ create-connection TCP/Sack1 $node_(s3) TCPSink/Sack1 $node_(s1) 7]
+    $tcp8 set packetSize_ 2000
+
+
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
+    set ftp3 [$tcp3 attach-app FTP]
+    set ftp4 [$tcp4 attach-app FTP]
+    set ftp5 [$tcp5 attach-app FTP]
+    set ftp6 [$tcp6 attach-app FTP]
+    set ftp7 [$tcp7 attach-app FTP]
+    set ftp8 [$tcp8 attach-app FTP]
+
+    $self enable_tracequeue $ns_
+    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at 1.0 "$ftp2 start"
+    $ns_ at 5.0 "$ftp3 start"
+    $ns_ at 6.0 "$ftp4 start"
+    $ns_ at 9.0 "$ftp5 start"
+    $ns_ at 10.0 "$ftp6 start"
+    $ns_ at 13.0 "$ftp7 start"
+    $ns_ at 14.0 "$ftp8 start"
+    $ns_ at $stoptime "$self printall $fmon"
+
+    $self tcpDump $tcp1 5.0
+
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+
+    $ns_ run
+}
+
+Class Test/gentle -superclass TestSuite
+Test/gentle instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ gentle
+    Queue/RED set gentle_ true
+    Test/gentle instproc run {} [Test/ungentle info instbody run ]
+    $self next
+}
+
+Class Test/ungentleBadParams -superclass TestSuite
+Test/ungentleBadParams instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ ungentleBadParams
+    Queue/RED set gentle_ false
+    Queue/RED set linterm_ 50
+    Queue/RED set maxthresh_ 10
+    Test/ungentleBadParams instproc run {} [Test/ungentle info instbody run ]
+    $self next
+}
+
+Class Test/gentleBadParams -superclass TestSuite
+Test/gentleBadParams instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ gentleBadParams
+    Queue/RED set gentle_ true
+    Queue/RED set linterm_ 50
+    Queue/RED set maxthresh_ 10
+    Test/gentleBadParams instproc run {} [Test/ungentle info instbody run ]
+    $self next
 }
 
 TestSuite runTest
