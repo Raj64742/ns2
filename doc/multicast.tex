@@ -156,7 +156,7 @@ or protocol is implemented.
 \subsection{The classes}
 The main classes in the implementation are
 the McastProtoArbiter class and the McastProtocol class that is the base class for the various multicast routing strategy and protocol objects.
-In addition some methods and configuration parameters have been defined in the Simulator, Node, Agent and Classifier objects for multicast routing.
+In addition some methods and configuration parameters have been defined in the Simulator, Node, Classifier, and Replicator objects for multicast routing.
 
 \paragraph{McastProtoArbiter class}
 There must be one McastProtoArbiter object per multicast capable node.  Each  McastProtoArbiter object maintain a list of multicast protocols.  Usually one multicast routing protocol is configured for the entire simulations.  Whenever there is a multicast related action in a node, the node will acess its multicast protcols through this McastProtoArbiter.
@@ -174,218 +174,28 @@ Node structure for multicast is slightly different.  The node entry is changed t
 
 \code{join-group} upcalls \code{mcastproto_}'s (the McastProtoArbiter) \code{join-group}, adds the receiver agents to local \code{Agents_} list, and adds outgoing interfaces to all replicators for the group.
 
-\begin{program}
-Node instproc join-group \{ agent group \} \{
-    # use expr to get rid of possible leading 0x
-    set group [expr $group]
-    $self instvar Agents_ repByGroup_ agentSlot_ mcastproto_
-
-    $mcastproto_ join-group $group
-    lappend Agents_($group) $agent
-    if [info exists repByGroup_($group)] \{
-	#
-	# make sure agent is enabled in each replicator
-	# for this group
-	#
-	foreach r $repByGroup_($group) \{
-	    $r insert $agent
-	\}
-    \}
-\}
-\end{program}
-
 \code{leave-group} reverses the process in \code{join-group}.  It disables outgoing interfaces to the receiver agents for all replicators of the group, deletes the receiver agents from the local Agents_ list, and upcall \code{leave-group} at McastProtoArbiter.
-
-\begin{program}
-Node instproc leave-group \{ agent group \} \{
-    # use expr to get rid of possible leading 0x
-    set group [expr $group]
-    $self instvar repByGroup_ Agents_ mcastproto_
-
-    if [info exists repByGroup_($group)] \{
-	    foreach r $repByGroup_($group) \{
-		$r disable $agent
-	    \}
-    \}
-    if [info exists Agents_($group)] \{
-	set k [lsearch -exact $Agents_($group) $agent]
-	if \{ $k >= 0 \} \{
-	    set Agents_($group) [lreplace $Agents_($group) $k $k]
-	\}
-	## inform the mcastproto agent
-	$mcastproto_ leave-group $group
-    \} else \{
-	put stderr "error: leaving a group without joining it"
-	exit 0
-    \}
-\}
-\end{program}
 
 \code{new-group} is called from multicast classifier when no proper slots are found.  This function simply makes an upcall to the McastProtoArbiter, \code{mcastproto_}.
 
-\begin{program}
-Node instproc new-group \{ src group iface code \} \{
-    $self instvar mcastproto_
-	
-    $mcastproto_ upcall [list $code $src $group $iface]
-\}
-\end{program}
-
 \code{add-mfc} does the following: creates a new replicator(if not existing), updates \code{replicator_} and \code{repByGroup_} array lists, adds all outgoing interfaces and local agents to the replicator, and calls multicast classifier's \code{add-rep} to create a slot for the replicator.
-
-\begin{program}
-Node instproc add-mfc \{ src group iif oiflist \} \{
-    $self instvar multiclassifier_ \
-	    replicator_ Agents_ repByGroup_ 
-
-    if [info exists replicator_($src:$group)] \{
-	foreach oif $oiflist \{
-	    $replicator_($src:$group) insert $oif
-	\}
-	return 1
-    \}
-
-    set r [new Classifier/Replicator/Demuxer]
-    $r set srcID_ $src
-    set replicator_($src:$group) $r
-
-    lappend repByGroup_($group) $r
-    $r set node_ $self
-
-    foreach oif $oiflist \{
-	$r insert $oif
-    \}
-
-    #
-    # install each agent that has previously joined this group
-    #
-    if [info exists Agents_($group)] \{
-	foreach a $Agents_($group) \{
-	    $r insert $a
-	\}
-    \}
-    # we also need to check Agents($srcID:$group)
-    if [info exists Agents_($src:$group)] \{
-            foreach a $Agents_($src:$group) \{
-                    $r insert $a
-            \}
-    \}
-    #
-    # Install the replicator.  
-    #
-    $multiclassifier_ add-rep $r $src $group $iif
-\}
-\end{program}
 
 \paragraph{Classifier class}
 \code{Classifier/Multicast/Replicator} is inherited from Classifier/Multicast (See classifier-mcast.cc).  When receiving of a packet, it parses the packet header and tries to find a matching forwarding slot. If no proper slot is found, it upcalls \code{new-group} defined in OTcl so protocol specific actions can be taken to handle the situation.
 
 \code{new-group} is called with C++ multicast classifier cannot find a slot with proper source, group address, and incoming interface.  If simply no slot is found, \code{code} is set to CACHE_MISS.  If improper incoming interface, \code{code} is set to WRONG_IIF.
-\begin{program}
-Classifier/Multicast instproc new-group \{ src group iface code \} \{
-	$self instvar node_
-	$node_ new-group $src $group $iface $code
-\}
-\end{program}
 
 \code{add-rep} creates a new slot for a new (S,G,iif) replicator.
 
-\begin{program}
-Classifier/Multicast/Replicator instproc add-rep \{ rep src group iif \} \{
-	$self instvar nrep_
-	$self set-hash $src $group $nrep_ $iif
-	$self install $nrep_ $rep
-	incr nrep_
-\}
-\end{program}
 
 \paragraph{Replicator class}
-
 \code{Classifier/Replicator/Demuxer} is inherited from \code{Classifier/Replicator} (See replicator.cc).  When receiving a packet, it copies the packet to all its slots (outgoing interfaces). If no active slot is found, the C++ replicator upcalls OTcl \code{drop} which will trigger protocol specific actions to handle the situation.
-
-\begin{program}
-Classifier/Replicator/Demuxer instproc drop { src dst } {
-	set src [expr $src >> 8]
-	$self instvar node_ ignore_
-        #set ignore_ 1
-        if [info exists node_] {
-	    [$node_ set mcastproto_] drop $self $src $dst
-	}
-        return 1
-}
-\end{program}
 
 \code{insert}, \code{disable}, and \code{enable} help inserting a new outgoing slot, disable an active slot, and enable a previously disabled slot.
 
-\begin{program}
-Classifier/Replicator/Demuxer instproc insert target {
-	$self instvar nslot_ nactive_ active_ index_ ignore_
-
-        if [info exists active_($target)] {
-                # treat like enable.. !   
-                if !$active_($target) {    
-                        $self install $index_($target) $target
-                        incr nactive_
-                        set active_($target) 1
-                        set ignore_ 0
-                        return 1
-                }
-                return 0
-        }
-
-	set n $nslot_
-	incr nslot_
-	incr nactive_
-	$self install $n $target
-	set active_($target) 1
-	set index_($target) $n
-}
-\end{program}
-\begin{program}
-Classifier/Replicator/Demuxer instproc disable target {
-	$self instvar nactive_ active_ index_
-	if $active_($target) {
-		$self clear $index_($target)
-		incr nactive_ -1
-		set active_($target) 0
-	}
-}
-\end{program}
-\begin{program}
-Classifier/Replicator/Demuxer instproc enable target {
-	$self instvar nactive_ active_ ignore_ index_
-	if !$active_($target) {
-		$self install $index_($target) $target
-		incr nactive_
-		set active_($target) 1
-		set ignore_ 0
-	}
-}
-\end{program}
-
 \code{change-iface} is to change incoming interface index in the multicast classifier for a replicator.
-\begin{program}
-Classifier/Replicator/Demuxer instproc change-iface { src dst oldiface newiface} {
-	$self instvar node_
-        [$node_ set multiclassifier_] change-iface $src $dst $oldiface $newiface
-        return 1
-}
-\end{program}
-
 
 \code{is-active} and \code{exists} are helper functions to check whether there is any active outgoing slot or a particular outgoing slot is active. 
-\begin{program}
-Classifier/Replicator/Demuxer instproc is-active {} {
-	$self instvar nactive_
-	return [expr $nactive_ > 0]
-}
-\end{program}
-
-\begin{program}
-Classifier/Replicator/Demuxer instproc exists target {
-	$self instvar active_
-	return [info exists active_($target)]
-}
 
 \subsection{Protocol Internals}
 \label{sec:mcastproto-internals}
@@ -400,116 +210,44 @@ We describe the implementation of the multicast routing protocol agents in this 
 
 \proc[]{join-group} basically adds the node to a global member list \code{Mlist} which is an instance variable of \code{CtrMcastComp}, and then calls the CtrMcastComp agent, \code{Agent}, to compute the branches towards all possible sources. \proc[]{leave-group} is the reverse of \proc[]{join-group}
 
-CtrMcast instproc join-group  { group } {
-    $self instvar group_
-    set group_ $group
-    $self next
-    $self instvar Node ns Agent
-    $self instvar SPT RPT default
-    #puts "_node [$Node id], joining group $group"
-
-    if {![$Agent exists-treetype $group] } {
-        $Agent set treetype($group) $default
-        set tmp [$Agent set Glist]
-        if { [lsearch $tmp $group] < 0 } {
-            lappend tmp $group
-            $Agent set Glist $tmp
-        }
-    }
-
-    ### add new member to a global group member list
-    if [$Agent exists-Mlist $group] { 
-        ### add into Mlist
-        set tmp [$Agent set Mlist($group)]
-        lappend tmp [$Node id] 
-        $Agent set Mlist($group) $tmp
-    } else { 
-        ### create Mlist if not existing
-        $Agent set Mlist($group) "[$Node id]" 
-    }
-
-    ### puts "JOIN-GROUP: compute branch acrding to tree type"
-    if [$Agent exists-Slist $group] {
-        foreach s [$Agent set Slist($group)] {
-            $Agent compute-branch $s $group [$Node id]
-        }
-    }
-}
-
 \proc[]{handle-cache-miss} is called when no proper forwarding entry is found for a particular packet source.  In case of centralized multicast, it means a new source just starts.  Thus, the new source is added to a global source list, \code{Slist}.  If there are members in \code{Mlist}, the new multicast tree will be computed. In the case that the particular group is in RPT(shared tree) mode, encapsulation agent is created in the source, decapsulation agent is created in the RP, the two agents are connected by unicast, and the (S,G) entry points its outgoing interface to teh encapsulation agent.
-
-CtrMcast instproc handle-cache-miss { argslist } {
-    $self instvar ns Agent Node
-    $self instvar RPT default
-
-    set srcID [lindex $argslist 0]
-    set group [lindex $argslist 1]
-    set iface [lindex $argslist 2]
-    set change 0
-            
-    # puts "CtrMcast $self handle-cache-miss $argslist"
-
-    if { ![$Agent exists-treetype $group] } {
-        $Agent set treetype($group) $default
-        set tmp [$Agent set Glist]
-        if { [lsearch $tmp $group] < 0 } {
-            lappend tmp $group
-            $Agent set Glist $tmp
-        }
-    }
-    if { [$Node id] == $srcID } {
-        if { [$Agent set treetype($group)] == $RPT && $srcID != [$self get_rp $group]} {
-            ### create encapsulation agent
-            set encapagent [new Agent/CtrMcast/Encap]
-            $ns attach-agent $Node $encapagent
-
-            ### find decapsulation agent and connect encap and decap agents    set RP [$self get_rp $group]
-            set n [$ns set Node_($RP)]
-            set arbiter [$n getArbiter]
-            set ctrmcast [$arbiter getType "CtrMcast"]
-            $ns connect $encapagent [$ctrmcast set decapagent]
-
-            ### create (S,G,iif=-2) entry
-            set oiflist "$encapagent"
-            $Node add-mfc-reg $srcID $group -2 $oiflist
-            #puts "creat (S,G) oif to register $srcID $group -2 $oiflist"
-        }
-    
-        ### add into global source list
-        if [$Agent exists-Slist $group] {
-            set k [lsearch [$Agent set Slist($group)] [$Node id]]
-            if { $k < 0 } {
-                set tmp [$Agent set Slist($group)]
-                lappend tmp [$Node id] 
-                $Agent set Slist($group) $tmp
-                set change 1
-            }
-        } else { 
-            $Agent set Slist($group) "[$Node id]" 
-            set change 1
-        }
-
-        ### decide what tree to build acrding to tree type
-        if { $change } {
-            ### new source, so compute tree
-            $Agent compute-tree [$Node id] $group
-            #puts "CACHE-MISS: compute-tree [$Node id] $group"
-        }
-    }
-}
 
 \paragraph{CtrMcastComp}
 \label{CtrMcastComp}
-\proc[]{reset-mroutes} is basically to reset all mutlicast forwarding entries.
-\proc[]{compute-mroutes}
+\proc[]{reset-mroutes} is to reset all mutlicast forwarding entries.
 
-compute-tree
-compute-branch
-prune-branch
+\proc[]{compute-mroutes} is to recompute all multicast forwarding entries.
+
+\proc[]{compute-tree} is to compute a mutlicast tree by breaking the task to compute branches for all group members.
+
+\proc[]{compute-branch} is to compute a multicast tree branch.  It is basically a for loop starting at the group member and finding the next hop towards the source or RP depending on the tree type until merging with any part of the tree. During the process, several new replicators and an outgoing interface will be installed 
+
+\proc[]{prune-branch} is similar to \proc[]{compute-branch} except the outgoing interface is to be disabled, and when outgoing interface list 
+
+
 \subsubsection{Static Dense Mode}
+\proc[]{join-group} sends graft messages upstream if (S,G) does not contain any active outging slots (i.e., no downstream receivers).
+
+\proc[]{leave-group} does not do anything.
+
+\proc[]{handle-cache-miss} creates (S,G) with only the outgoing interfaces to child nodes. Parent-child relationship is computed only once at the start-up.
+
+\proc[]{drop} sends prune messages upstream because when a packet is dropped, there must be no downstream receivers for the (S,G).
+
+\proc[]{recv-prune} resets prune timer if the interface has been pruned previously, else starts prune timer, disables the interface and forwards the prune message if the outgoing interface list becomes empty.
+
+\proc[]{recv-graft} cancels prune timer, enables the pruned interface, and if the outgoing interface list is previously empty, forwards the graft.
+
 
 \subsubsection{Dynamic Dense Mode}
 
+\proc[]{periodic-check} periodically updates parent-child relationship for the entire topology.
+
+\proc[]{handle-cache-miss} is excaly the same as in static dense mode except that incoming interface must be set properly so packets from wrong incoming interfaces will be dropped.
+
 \subsubsection{PIM Dense Mode}
+proc[]{handle-cache-miss} is exactly the same as in dynamic dense mode except that it outgoing interface list is set to all excluding the incoming interface.
+
+proc[]{handle-wrong-iif} double checks if the incoming interface in the forwarding entry is outdated.  If yes, \proc[]{handle-wrong-iif} updates the forwarding entry to the new incoming interface, else simply sends a prune message back toward the wrong incoming interface to stop packets coming down from the wrong path.
 
 \endinput
