@@ -236,7 +236,7 @@ around the instant that the topology changes.
 DV routing is the implementation of
 Distributed Bellman-Ford (or Distance Vector) routing in \ns.
 The implementation sends periodic route updates every \code{advertInterval}.
-This variable is a class variable in the \clsref{Agent/rtProto/DV}.
+This variable is a class variable in the \clsref{Agent/rtProto/DV}{../ns-2/tcl/rtglib/route-proto.tcl}.
 Its default value is 2 seconds.
 
 In addition to periodic updates, each agent also sends triggered updates;
@@ -277,7 +277,7 @@ base class Agent/rtProto for all protocols.
 In addition, the routing architecture extends 
 the classes Simulator, Link, Node and Classifier.
 
-\paragraph{\clsref{RouteLogic}{../ns-2/route-proto.tcl}}
+\paragraph{\protect\clsref{RouteLogic}{../ns-2/route-proto.tcl}}
 This class defines two methods to configure unicast routing,
 and one method to query it for route information.
 It also defines an instance procedure that is applicable when
@@ -327,7 +327,7 @@ otherwise, the procedure invokes the instproc-like to obtain the relevant
 information.
 \end{itemize}
 
-\paragraph{\clsref{rtObject}{../ns-2/route-proto.tcl}}
+\paragraph{\protect\clsref{rtObject}{../ns-2/route-proto.tcl}}
 is used in simulations that use dynamic routing.
 Each node has a rtObject associated with it, that
 acts as a co-ordinator for the different routing protocols that
@@ -451,7 +451,7 @@ take a destination node handle as argument, and return the prefernce
 and metric of the route to the destination installed at the node.
 \end{itemize}
 
-\paragraph{The \clsref{rtPeer}{../ns-2/route-proto.tcl}}
+\paragraph{The \protect\clsref{rtPeer}{../ns-2/route-proto.tcl}}
 is a container class used by the protocol agents.
 Each object stores the address of the peer agent, and the 
 metric and preference for each route advertised by that peer.
@@ -472,7 +472,7 @@ The instance procedure
 \fcnref{\proc[]{addr?}}{../ns-2/route-proto.tcl}{rtPeer::addr?}
 returns the address of the peer agent.
 
-\paragraph{\clsref{Agent/rtProto}{../ns-2/route-proto.tcl}}
+\paragraph{\protect\clsref{Agent/rtProto}{../ns-2/route-proto.tcl}}
 This class is the base class from
 which all routing protocol agents are derived.
 Each protocol agent must define the procedure\proc[]{init-all}

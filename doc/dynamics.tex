@@ -318,7 +318,7 @@ This notion of the object deleting itself is fragile code.
 Since the object only fires once and does nto have to be rescheduled,
 it does not overload the procedures \proc[]{up} or \proc[]{down}.
 
-\subsection{\clsref{rtQueue}{../ns-2/dynamics.tcl}}
+\subsection{\protect\clsref{rtQueue}{../ns-2/dynamics.tcl}}
 \label{sec:rtqueue}
 
 The simulator needs to co-ordinate multiple simultaneous network
@@ -416,7 +416,7 @@ Each model currently translates its specification into
 operations on the appropriate links.
 The following paragraphs describe the class Link and related classes.
 
-\paragraph{\clsref{DynamicLink}{../ns-2/dynalink.cc.tcl}}
+\paragraph{\protect\clsref{DynamicLink}{../ns-2/dynalink.cc.tcl}}
 This class is the only TclObject in the network dynamics code.
 The shadow class is called \clsref{DynaLink}{../ns-2/dynalink.h}.
 The class supports one bound variable, \code{status_}.
@@ -425,7 +425,7 @@ The shadow object's \fcnref{\fcn[]{recv}}{../ns-2/dynalink.cc}{DynaLink::recv}
 method checks the \code{status_} variable, to decide whether or not
 a packet should be forwarded.
 
-\paragraph{\clsref{Link}{../ns-2/ns-link.tcl}}
+\paragraph{\protect\clsref{Link}{../ns-2/ns-link.tcl}}
 This class supports the primitives:
 up and down, and up? to set and query \code{status_}.
 These primitives are instance procedures of the class.
@@ -454,7 +454,7 @@ This procedure takes an operation as argument, and applies
 the operation uniformly to all of the class instance variables
 that are handles for TclObjects.
 
-\paragraph{\clsref{SimpleLink}{../ns-2/ns-link.tcl}}
+\paragraph{\protect\clsref{SimpleLink}{../ns-2/ns-link.tcl}}
 The class supports two instance procedures
 \fcnref{\proc[]{dynamic}}{../ns-2/dynamics.tcl}{SimpleLink::dynamic} and
 \fcnref{\proc[]{trace-dynamics}}{../ns-2/dynamics.tcl}{SimpleLink::trace-dynamics}.
