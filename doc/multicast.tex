@@ -14,7 +14,7 @@ multicast routing implementation in \ns}{Section}{sec:mcast-internals}.
 
 The procedures and functions described in this chapter can be found in
 various files in the directories \nsf{tcl/mcast}, \nsf{tcl/ctr-mcast},
-in the files \nsf{ctrmcast.\{cc, h\}}, and \nsf{prune.\{cc, h\};
+in the files \nsf{ctrmcast.\{cc, h\}}, and \nsf{prune.\{cc, h\}};
 additional support routines
 are in \nsf{tcl/lib/ns-lib.tcl}, and \nsf{tcl/lib/ns-node.tcl}.
 
@@ -102,13 +102,13 @@ The module counts the number of packets in transit periodically
 and prints the results to stdout. \proc[]{trace-topo} counts
 all links.  \proc[]{trace-tree} counts only links on the tree.
 Currently, it only traces prune, join, register, and data packets.
+
 \begin{program}
 	set mcastmonitor [$ns McastMonitor]
 	$mcastmonitor set period_ 0.02         \; default 0.03 (sec);
-	$mcastmonitor trace-topo $src $group   \; trace the entire topology
+	$mcastmonitor trace-topo $src $group   \; trace the entire topology;
 \end{program}
 
-\end{program}
 % SAMPLE OUTPUT?
 The following sample output illustrates the output file format (time, prune, join, register, data, source, group):
 {\small
@@ -338,7 +338,7 @@ The node stores a reference to this classifier in its instance variable
 \code{multiclassifier_}.
 When this classifier receives a packet,
 it looks at the \tup{source, group} information in the packet headers,
-and the interface that the packet arrived from (the incoming interface or iif};
+and the interface that the packet arrived from (the incoming interface or iif);
 using that information, the classifier will identify the slot
 that should be used to forward that packet.  The slot will point
 to the appropriate replicator.
