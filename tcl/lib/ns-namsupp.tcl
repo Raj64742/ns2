@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.28 1999/07/08 00:06:48 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.29 1999/08/09 18:48:48 kfall Exp $
 #
 
 #
@@ -73,12 +73,12 @@ Node instproc label { str } {
 
 	if [info exists attr_(DLABEL)] {
 		$ns puts-nam-config \
-		  "n -t [$ns now] -s $id_ -S DLABEL -l $str -L $attr_(DLABEL)"
+		  "n -t [$ns now] -s $id_ -S DLABEL -l \"$str\" -L $attr_(DLABEL)"
 	} else {
 		$ns puts-nam-config \
-			"n -t [$ns now] -s $id_ -S DLABEL -l $str -L \"\""
+			"n -t [$ns now] -s $id_ -S DLABEL -l \"$str\" -L \"\""
 	}
-	set attr_(DLABEL) $str
+	set attr_(DLABEL) \"$str\"
 }
 
 Node instproc dump-namconfig {} {
