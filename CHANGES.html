@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.81 1997/06/09 23:10:26 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.82 1997/06/11 16:45:52 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,10 +21,19 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+<LI><B><A HREF="mailto:huang@isi.edu">[PH]</A></B> <B>Wed Jun 
+11 09:34:33 PDT 1997<BR>
+</B>Changed centralized mcast test files to use MultiNode expandaddr 
+option, provided by <A HREF="mailto:breslau@parc.xerox.com">Lee Breslau</A>.
+It solves the limitation that MultiSim only allow 128 unicast nodes. 
+Also, made minor changes to reduce memory used in simulations
+File changed:  tcl/ex/newmcast/cmcast-[50,100,150,200,250].tcl. <BR>       
+</LI>
+
 <LI><B><A HREF="mailto:huang@isi.edu">[PH]</A></B> <B>Mon Jun  
 9 15:59:01 PDT 1997<BR>
-</B>Bug fix:  Changed CtrMcastComp:compute-branch() to work for 
-source = receiver case for RPT.  
+</B>Bug fix:  Changed CtrMcastComp:compute-branch() to work in 
+source = RP case for RPT.  
 File changed:  tcl/ctr-mcast/CtrMcastComp.tcl. <BR>       
 </LI>
 
