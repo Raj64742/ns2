@@ -57,6 +57,7 @@
 
 #define	RQF_NORMAL	1	// out-of-order seq #s
 #define	RQF_DSACK	2	// for DSACK book-keeping
+#define	RQF_MARK	3	// for debugging
 
 typedef int	TcpSeq;		// a TCP sequence number
 typedef	int	TcpFlag;	// holds flags from TCP hdr
@@ -75,8 +76,8 @@ typedef int	RqFlag;		// meta data (owned by ReassemblyQueue)
 
 /*
  * ReassemblyQueue: keeps both a stack and linked list of segments
- *	LIFO is used in generation of SACK data
- *	FIFO is used in determination of cumulative ACK field
+ *	FIFO maintains list in sequence # order (very often a FIFO)
+ *	LIFO maintains list in insert order (used for generation of (D)SACKS
  *
  * Note that this code attempts to be largely independent of all
  * other code (no include files from the rest of the simulator)
@@ -87,9 +88,10 @@ typedef int	RqFlag;		// meta data (owned by ReassemblyQueue)
 
 class ReassemblyQueue {
 	struct seginfo {
-		seginfo* next_;	// forw FIFO link
-		seginfo* prev_;	// back FIFO link
-		seginfo* snext_;	// next on stack data structure
+		seginfo* next_;	// next on FIFO list
+		seginfo* prev_;	// prev on FIFO list
+		seginfo* snext_;	// next on LIFO list
+		seginfo* sprev_;	// prev on LIFO list
 
 		TcpSeq	startseq_;	// starting seq
 		TcpSeq	endseq_;	// ending seq + 1
@@ -99,7 +101,7 @@ class ReassemblyQueue {
 
 public:
 	ReassemblyQueue(TcpSeq& rcvnxt) :
-		head_(NULL), tail_(NULL), top_(NULL), rcv_nxt_(rcvnxt) { };
+		head_(NULL), tail_(NULL), top_(NULL), bottom_(NULL), rcv_nxt_(rcvnxt) { };
 	int empty() { return (head_ == NULL); }
 	int add(TcpSeq sseq, TcpSeq eseq, TcpFlag pflags, RqFlag rqflags);
 
@@ -111,9 +113,9 @@ public:
 protected:
 	seginfo* head_;		// head of segs linked list
 	seginfo* tail_;		// end of segs linked list
-	seginfo* ptr_;		// used for nextblk() iterator
 
 	seginfo* top_;		// top of stack
+	seginfo* bottom_;	// bottom of stack
 
 	// rcv_nxt_ is a reference to an externally allocated integer
 	// that will be updated with the highest in-sequence sequence
@@ -122,6 +124,9 @@ protected:
 
 	TcpSeq& rcv_nxt_;		// start seq of next expected thing
 	TcpFlag coalesce(seginfo*, seginfo*, seginfo*);
+	void fremove(seginfo*);	// remove from FIFO
+	void sremove(seginfo*); // remove from LIFO
+	void push(seginfo*); // add to LIFO
 };
 
 #endif
