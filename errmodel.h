@@ -30,9 +30,10 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
+ * Contributed by the Daedalus Research Group, UC Berkeley 
+ * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.18 1997/11/11 20:11:13 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.19 1997/11/18 22:32:17 hari Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -61,10 +62,12 @@ class ErrorModel : public Connector {
 	virtual int CorruptPkt(Packet *);
 	virtual int CorruptTime(Packet *);
 	virtual int CorruptByte(Packet *);
+	virtual void em_reset();
 	inline double rate() { return rate_; }
   protected:
 	int command(int argc, const char*const* argv);
 	ErrorUnit eu_;		/* error unit in pkts, bytes, or time */
+	Packet *pkt_;		/* pointer to incoming packet */
 	RandomVariable* ranvar_;/* the underlying random variate generator */
 	double rate_;		/* mean pkts between errors (for EU_PKT), or
 				 * mean bytes between errors (for EU_BYTE), or 

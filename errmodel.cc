@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.23 1997/11/18 00:48:52 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.24 1997/11/18 22:32:16 hari Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -60,6 +60,8 @@ ErrorModel::ErrorModel() : Connector(), eu_(EU_PKT), rate_(0), ranvar_(0),
 	onlink_(0), firstTime_(1), enable_(1)
 {
 	bind("rate_", &rate_);
+	bind("errTime_", &errTime_);
+	bind("errByte_", &errByte_);
 	bind("off_mac_", &off_mac_);
 }
 
@@ -70,13 +72,17 @@ int ErrorModel::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "ranvar") == 0) {
 			ranvar_ = (RandomVariable*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
-		}
+		} 
 		if (strcmp(argv[1], "unit") == 0) {
 			eu_ = STR2EU(argv[2]);
 			return (TCL_OK);
+		} 
+		if (strcmp(argv[1], "corrupt") == 0) {
+			ErrorModel *em=(ErrorModel*)TclObject::lookup(argv[2]);
+			tcl.resultf("%d", corrupt(em->pkt_));
+			return (TCL_OK);
 		}
-	}
-	else if (argc == 2) {
+	} else if (argc == 2) {
 		if (strcmp(argv[1], "onlink") == 0) {
 			/* this model is between a queue and a link */
 			onlink_ = 1;
@@ -85,7 +91,7 @@ int ErrorModel::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "ranvar") == 0) {
 			tcl.resultf("%s", ranvar_->name());
 			return (TCL_OK);
-		}
+		} 
 		if (strcmp(argv[1], "unit") == 0) {
 			tcl.resultf("%s", eu_names[eu_]);
 			return (TCL_OK);
@@ -102,14 +108,22 @@ int ErrorModel::command(int argc, const char*const* argv)
 			tcl.resultf("%d", enable_);
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "reset") == 0) {
+			em_reset();
+			return (TCL_OK);
+		}
 	}
 	return Connector::command(argc, argv);
 }
 
 void ErrorModel::recv(Packet* p, Handler* h)
 {
+	Tcl& tcl = Tcl::instance();
 
-	if (corrupt(p)) {
+	pkt_ = p;
+	tcl.evalf("%s corrupt", name());
+	if (strcmp(tcl.result(), "0")) { /* corrupt if return value != 0 */
+		((hdr_cmn*)p->access(off_cmn_))->error() |= 1;
 		if (onlink_) {
 			/* Callback to queue: assume next target is link(XXX)*/
 			LinkDelay *link = (LinkDelay *)target_;
@@ -126,11 +140,10 @@ void ErrorModel::recv(Packet* p, Handler* h)
 			drop_->recv(p);
 			return;
 		}
-		((hdr_cmn*)p->access(off_cmn_))->error() |= 1;
 	}
 	if (target_)
 		target_->recv(p, h);
-	// XXX if no target, assume packet is still used by other object
+	/* XXX if no target, assume packet is still used by other object */
 }
 
 int ErrorModel::corrupt(Packet* p)
@@ -241,6 +254,14 @@ int ErrorModel::CorruptByte(Packet *p)
 	if (errByte_ < 0)	/* XXX this should never happen, actually */
 		errByte_ = 0;
 	return numerrs;
+}
+
+void ErrorModel::em_reset()
+{
+	errByte_ = 0;
+	errTime_ = 0;
+	firstTime_ = 1;
+	return;
 }
 
 
