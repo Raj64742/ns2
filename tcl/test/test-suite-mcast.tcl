@@ -19,7 +19,7 @@ TestSuite instproc init {} {
 	Simulator set EnableMcast_ 1
 	$ns_ use-scheduler List
 
-	$ns_ trace-all [open all.tr w]
+	$ns_ trace-all [open temp.rands w]
 	if {$net_ == ""} {
 		set net_ $defNet_
 	}
@@ -59,8 +59,8 @@ TestSuite instproc finish { file } {
 
 TestSuite instproc openTrace { stopTime testName } {
 	$self instvar ns_
-	exec rm -f all.tr
-	set traceFile [open all.tr w]
+	exec rm -f temp.rands
+	set traceFile [open temp.rands w]
 	puts $traceFile "v testName $testName"
 	$ns_ at $stopTime \
 		"close $traceFile ; $self finish $testName"
