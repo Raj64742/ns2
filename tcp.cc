@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.117 2000/10/12 19:51:58 debo Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.118 2001/04/23 03:28:16 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -864,6 +864,8 @@ TcpAgent::slowdown(int how)
 		// even for non-standard values of decrease_num_.
 		if (first_decrease_ == 1 || slowstart ||
 			last_cwnd_action_ == CWND_ACTION_TIMEOUT) {
+			// Do we really want halfwin instead of decreasewin
+			// after a timeout?
 			ssthresh_ = (int) halfwin;
 		} else {
 			ssthresh_ = (int) decreasewin;
