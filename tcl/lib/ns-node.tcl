@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.76 2000/08/30 23:27:51 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.77 2000/09/09 02:40:38 haoboy Exp $
 #
 
 Node set nn_ 0
@@ -314,14 +314,6 @@ Node instproc add-neighbor p {
 Node instproc is-neighbor { node } {
 	$self instvar neighbor_
 	return [expr [lsearch $neighbor_ $node] != -1]
-}
-
-#
-# Helpers for interface stuff. XXX not used anymore??
-#
-Node instproc addInterface { iface } {
-	$self instvar ifaces_
-	lappend ifaces_ $iface
 }
 
 #

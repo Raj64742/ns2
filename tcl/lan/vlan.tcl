@@ -285,7 +285,6 @@ LanIface instproc init {node lan args} {
 	
 	$phy_ up-target $mac_
 
-	$node addInterface $iface_
 	$iface_ target [$node entry]
 	$entry_ target $ll_
 
