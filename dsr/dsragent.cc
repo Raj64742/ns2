@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.3 1999/01/04 19:45:16 haldar Exp $
+   $Id: dsragent.cc,v 1.4 1999/01/08 19:04:50 haldar Exp $
 */
 
 extern "C" {
@@ -897,7 +897,7 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay = 0.0)
     { // broadcast forward
       cmnh->xmit_failure_ = 0;
       cmnh->next_hop() = MAC_BROADCAST;
-      cmnh->addr_type() = AF_LINK;
+      cmnh->addr_type() = AF_ILINK;
     }
   else
     { // forward according to source route

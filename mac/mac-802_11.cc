@@ -255,10 +255,9 @@ inline int
 Mac802_11::hdr_dst(char* hdr, int dst)
 {
 	struct hdr_mac802_11 *dh = (struct hdr_mac802_11*) hdr;
-	dst = (u_int32_t)(dst);
-	
+	//dst = (u_int32_t)(dst);
+
 	if(dst)
-		//ETHER_ADDR(dh->dh_da) = dst;
 		STORE4BYTE(&dst, (dh->dh_da));
 
 	return ETHER_ADDR(dh->dh_da);
@@ -268,14 +267,12 @@ inline int
 Mac802_11::hdr_src(char* hdr, int src)
 {
 	struct hdr_mac802_11 *dh = (struct hdr_mac802_11*) hdr;
-	src = (u_int32_t)(src);
+	//src = (u_int32_t)(src);
 	
 	if(src)
-		//ETHER_ADDR(dh->dh_sa) = src; 
 		STORE4BYTE(&src, (dh->dh_sa));
 
 	return ETHER_ADDR(dh->dh_sa);
-	//return *(dh->dh_sa);
 }
 
 inline int 
@@ -322,7 +319,7 @@ Mac802_11::discard(Packet *p, const char* why)
 	 */
 	if(p->txinfo_.Pr < p->txinfo_.ant.RXThresh) {
 		Packet::free(p);
-		p = 0;
+		//p = 0;
 		return;
 	}
 #endif 0
@@ -331,7 +328,7 @@ Mac802_11::discard(Packet *p, const char* why)
 	   necessarily read any data from it, so we just toss it now */
 	if(ch->error() != 0) {
 		Packet::free(p);
-		p = 0;
+		//p = 0;
 		return;
 	}
 
@@ -402,7 +399,7 @@ Mac802_11::discard(Packet *p, const char* why)
 		exit(1);
 	}
 	Packet::free(p);
-	p = 0;
+	//p = 0;
 }
 
 
@@ -416,7 +413,7 @@ Mac802_11::capture(Packet *p)
 	set_nav(usec(eifs_ + TX_Time(p)));
 
 	Packet::free(p);
-	p = 0;
+	//p = 0;
 }
 
 
@@ -779,7 +776,7 @@ Mac802_11::sendRTS(int dst)
 	if( (u_int32_t) HDR_CMN(pktTx_)->size() < macmib_->RTSThreshold ||
 	    (u_int32_t) dst == MAC_BROADCAST) {
 		Packet::free(p);
-		p = 0;
+		//p = 0;
 		return;
 	}
 

@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  *
 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.49 1999/01/07 00:30:10 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.50 1999/01/08 19:04:49 haldar Exp $ (LBL)
 
  */
 
@@ -42,6 +42,7 @@
 #include <config.h>
 #include <scheduler.h>
 #include <string.h>
+#include <assert.h>
 
 #include <object.h>
 #include <list.h>
@@ -214,7 +215,7 @@ struct hdr_cmn {
 	nsaddr_t next_hop_;	// next hop for this packet
 	int      addr_type_;    // type of next_hop_ addr
 #define AF_NONE 0
-#define AF_LINK 1
+#define AF_ILINK 1
 #define AF_INET 2
 
         // called if pkt can't obtain media or isn't ack'd. not called if
@@ -280,6 +281,7 @@ inline Packet* Packet::alloc()
 {
 	Packet* p = free_;
 	if (p != 0) {
+		assert(p->fflag_ == FALSE);
 		free_ = p->next_;
 		//p->init();
 		if (p->datalen_) {
@@ -299,8 +301,8 @@ inline Packet* Packet::alloc()
 //		p->datalen_ = 0;
 		bzero(p->bits_, hdrlen_);
 	}
-	p->fflag_ = 0;
-	p->next_ = NULL;
+	p->fflag_ = TRUE;
+	p->next_ = 0;
 	return (p);
 }
 
@@ -341,12 +343,12 @@ inline void Packet::free(Packet* p)
 {
 	int off_cmn_ = hdr_cmn::offset_;
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
-	if (p->fflag_ == 0) {
+	if (p->fflag_) {
 		if (ch->ref_count() == 0) {
 			p->next_ = free_;
 			free_ = p;
 			//init();
-			p->fflag_ = 1;
+			p->fflag_ = FALSE;
 		} else {
 			ch->ref_count() = ch->ref_count() - 1;
 		}

@@ -37,7 +37,7 @@
    path.h
 
    handles source routes
-   $Id: path.h,v 1.2 1999/01/04 19:59:13 haldar Exp $
+   $Id: path.h,v 1.3 1999/01/08 19:04:51 haldar Exp $
 */
 #ifndef _path_h
 #define _path_h
@@ -58,7 +58,7 @@ enum Log_Status {LS_NONE = 0, LS_UNLOGGED = 1, LS_LOGGED = 2};
 
 // some type conversion between exisiting NS code and old DSR sim
 typedef double Time;
-enum ID_Type {NONE = AF_NONE, MAC = AF_LINK, IP = AF_INET };
+enum ID_Type {NONE = AF_NONE, MAC = AF_ILINK, IP = AF_INET };
 
 struct ID {
   friend class Path; 

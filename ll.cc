@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.33 1999/01/04 19:45:05 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.cc,v 1.34 1999/01/08 19:04:47 haldar Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
@@ -172,8 +172,8 @@ void LL::sendDown(Packet* p)
 	
 	switch(ch->addr_type()) {
 
-	case AF_LINK:
-		mac_->hdr_dst((char*) HDR_MAC(p), (int)ch->next_hop());
+	case AF_ILINK:
+		mac_->hdr_dst((char*) HDR_MAC(p), ch->next_hop());
 		break;
 
 	case AF_INET:
@@ -182,8 +182,8 @@ void LL::sendDown(Packet* p)
 		
 	case AF_NONE:
 		if (IP_BROADCAST == (u_int32_t) dst)
-		{
-			mac_->hdr_dst((char*) HDR_MAC(p), (int)MAC_BROADCAST);
+			{
+			mac_->hdr_dst((char*) HDR_MAC(p), MAC_BROADCAST);
 			break;
 		}
 		/* Assuming arptable is present, send query */
