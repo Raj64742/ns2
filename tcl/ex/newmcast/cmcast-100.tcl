@@ -2,8 +2,11 @@
 # GRAPH (#nodes #edges id uu vv ww xx yy zz):
 # 100 1900 geo(0,{100,100,3,0.200,0.250,75.000}) 100 
 
+set verbose 1
+
 set ns [new MultiSim]
 # VERTICES (index name u v w x y z):
+if {$verbose} { puts -nonewline "creating nodes 0..."; flush stdout }
 set n0 [$ns node]
 set n1 [$ns node]
 set n2 [$ns node]
@@ -14,6 +17,7 @@ set n6 [$ns node]
 set n7 [$ns node]
 set n8 [$ns node]
 set n9 [$ns node]
+if {$verbose} { puts -nonewline "10..."; flush stdout; }
 set n10 [$ns node]
 set n11 [$ns node]
 set n12 [$ns node]
@@ -24,6 +28,7 @@ set n16 [$ns node]
 set n17 [$ns node]
 set n18 [$ns node]
 set n19 [$ns node]
+if {$verbose} { puts -nonewline "20..."; flush stdout }
 set n20 [$ns node]
 set n21 [$ns node]
 set n22 [$ns node]
@@ -34,6 +39,7 @@ set n26 [$ns node]
 set n27 [$ns node]
 set n28 [$ns node]
 set n29 [$ns node]
+if {$verbose} { puts -nonewline "30..."; flush stdout }
 set n30 [$ns node]
 set n31 [$ns node]
 set n32 [$ns node]
@@ -44,6 +50,7 @@ set n36 [$ns node]
 set n37 [$ns node]
 set n38 [$ns node]
 set n39 [$ns node]
+if {$verbose} { puts -nonewline "40..."; flush stdout }
 set n40 [$ns node]
 set n41 [$ns node]
 set n42 [$ns node]
@@ -54,6 +61,7 @@ set n46 [$ns node]
 set n47 [$ns node]
 set n48 [$ns node]
 set n49 [$ns node]
+if {$verbose} { puts -nonewline "50..."; flush stdout }
 set n50 [$ns node]
 set n51 [$ns node]
 set n52 [$ns node]
@@ -64,6 +72,7 @@ set n56 [$ns node]
 set n57 [$ns node]
 set n58 [$ns node]
 set n59 [$ns node]
+if {$verbose} { puts -nonewline "60..."; flush stdout }
 set n60 [$ns node]
 set n61 [$ns node]
 set n62 [$ns node]
@@ -74,6 +83,7 @@ set n66 [$ns node]
 set n67 [$ns node]
 set n68 [$ns node]
 set n69 [$ns node]
+if {$verbose} { puts -nonewline "70..."; flush stdout }
 set n70 [$ns node]
 set n71 [$ns node]
 set n72 [$ns node]
@@ -84,6 +94,7 @@ set n76 [$ns node]
 set n77 [$ns node]
 set n78 [$ns node]
 set n79 [$ns node]
+if {$verbose} { puts -nonewline "80..."; flush stdout }
 set n80 [$ns node]
 set n81 [$ns node]
 set n82 [$ns node]
@@ -94,6 +105,7 @@ set n86 [$ns node]
 set n87 [$ns node]
 set n88 [$ns node]
 set n89 [$ns node]
+if {$verbose} { puts -nonewline "90..."; flush stdout }
 set n90 [$ns node]
 set n91 [$ns node]
 set n92 [$ns node]
@@ -104,11 +116,13 @@ set n96 [$ns node]
 set n97 [$ns node]
 set n98 [$ns node]
 set n99 [$ns node]
+if {$verbose} { puts "100"; flush stdout }
 
 set f [open out.tr w]
 $ns trace-all $f
 
 # EDGES (from-node to-node length a b):
+if {$verbose} { puts -nonewline "creating edges 0..."; flush stdout }
 $ns duplex-link-of-interfaces $n0 $n98 1.5Mb 500ms DropTail
 $ns duplex-link-of-interfaces $n0 $n96 1.5Mb 240ms DropTail
 $ns duplex-link-of-interfaces $n0 $n93 1.5Mb 520ms DropTail
@@ -119,6 +133,7 @@ $ns duplex-link-of-interfaces $n0 $n61 1.5Mb 430ms DropTail
 $ns duplex-link-of-interfaces $n0 $n59 1.5Mb 300ms DropTail
 $ns duplex-link-of-interfaces $n0 $n53 1.5Mb 470ms DropTail
 $ns duplex-link-of-interfaces $n0 $n50 1.5Mb 540ms DropTail
+if {$verbose} { puts -nonewline "10..."; flush stdout }
 $ns duplex-link-of-interfaces $n0 $n49 1.5Mb 430ms DropTail
 $ns duplex-link-of-interfaces $n0 $n37 1.5Mb 290ms DropTail
 $ns duplex-link-of-interfaces $n0 $n22 1.5Mb 360ms DropTail
@@ -129,6 +144,7 @@ $ns duplex-link-of-interfaces $n0 $n4 1.5Mb 410ms DropTail
 $ns duplex-link-of-interfaces $n0 $n2 1.5Mb 470ms DropTail
 $ns duplex-link-of-interfaces $n1 $n99 1.5Mb 1020ms DropTail
 $ns duplex-link-of-interfaces $n1 $n90 1.5Mb 610ms DropTail
+if {$verbose} { puts -nonewline "20..."; flush stdout }
 $ns duplex-link-of-interfaces $n1 $n84 1.5Mb 280ms DropTail
 $ns duplex-link-of-interfaces $n1 $n77 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n1 $n76 1.5Mb 760ms DropTail
@@ -139,6 +155,7 @@ $ns duplex-link-of-interfaces $n1 $n53 1.5Mb 1130ms DropTail
 $ns duplex-link-of-interfaces $n1 $n51 1.5Mb 80ms DropTail
 $ns duplex-link-of-interfaces $n1 $n49 1.5Mb 710ms DropTail
 $ns duplex-link-of-interfaces $n1 $n42 1.5Mb 220ms DropTail
+if {$verbose} { puts -nonewline "30..."; flush stdout }
 $ns duplex-link-of-interfaces $n1 $n36 1.5Mb 870ms DropTail
 $ns duplex-link-of-interfaces $n1 $n34 1.5Mb 800ms DropTail
 $ns duplex-link-of-interfaces $n1 $n29 1.5Mb 380ms DropTail
@@ -149,6 +166,7 @@ $ns duplex-link-of-interfaces $n2 $n96 1.5Mb 560ms DropTail
 $ns duplex-link-of-interfaces $n2 $n85 1.5Mb 670ms DropTail
 $ns duplex-link-of-interfaces $n2 $n83 1.5Mb 360ms DropTail
 $ns duplex-link-of-interfaces $n2 $n79 1.5Mb 410ms DropTail
+if {$verbose} { puts -nonewline "40..."; flush stdout }
 $ns duplex-link-of-interfaces $n2 $n73 1.5Mb 350ms DropTail
 $ns duplex-link-of-interfaces $n2 $n71 1.5Mb 510ms DropTail
 $ns duplex-link-of-interfaces $n2 $n66 1.5Mb 570ms DropTail
@@ -159,6 +177,7 @@ $ns duplex-link-of-interfaces $n2 $n14 1.5Mb 830ms DropTail
 $ns duplex-link-of-interfaces $n3 $n96 1.5Mb 370ms DropTail
 $ns duplex-link-of-interfaces $n3 $n94 1.5Mb 350ms DropTail
 $ns duplex-link-of-interfaces $n3 $n90 1.5Mb 170ms DropTail
+if {$verbose} { puts -nonewline "50..."; flush stdout }
 $ns duplex-link-of-interfaces $n3 $n89 1.5Mb 330ms DropTail
 $ns duplex-link-of-interfaces $n3 $n87 1.5Mb 630ms DropTail
 $ns duplex-link-of-interfaces $n3 $n86 1.5Mb 900ms DropTail
@@ -169,6 +188,7 @@ $ns duplex-link-of-interfaces $n3 $n66 1.5Mb 390ms DropTail
 $ns duplex-link-of-interfaces $n3 $n61 1.5Mb 680ms DropTail
 $ns duplex-link-of-interfaces $n3 $n59 1.5Mb 260ms DropTail
 $ns duplex-link-of-interfaces $n3 $n50 1.5Mb 180ms DropTail
+if {$verbose} { puts -nonewline "60..."; flush stdout }
 $ns duplex-link-of-interfaces $n3 $n45 1.5Mb 630ms DropTail
 $ns duplex-link-of-interfaces $n3 $n43 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n3 $n41 1.5Mb 890ms DropTail
@@ -179,6 +199,7 @@ $ns duplex-link-of-interfaces $n3 $n6 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n4 $n88 1.5Mb 320ms DropTail
 $ns duplex-link-of-interfaces $n4 $n87 1.5Mb 130ms DropTail
 $ns duplex-link-of-interfaces $n4 $n85 1.5Mb 130ms DropTail
+if {$verbose} { puts -nonewline "70..."; flush stdout }
 $ns duplex-link-of-interfaces $n4 $n77 1.5Mb 240ms DropTail
 $ns duplex-link-of-interfaces $n4 $n75 1.5Mb 560ms DropTail
 $ns duplex-link-of-interfaces $n4 $n65 1.5Mb 580ms DropTail
@@ -189,6 +210,7 @@ $ns duplex-link-of-interfaces $n4 $n49 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n4 $n26 1.5Mb 240ms DropTail
 $ns duplex-link-of-interfaces $n4 $n22 1.5Mb 290ms DropTail
 $ns duplex-link-of-interfaces $n4 $n7 1.5Mb 80ms DropTail
+if {$verbose} { puts -nonewline "80..."; flush stdout }
 $ns duplex-link-of-interfaces $n4 $n6 1.5Mb 90ms DropTail
 $ns duplex-link-of-interfaces $n5 $n97 1.5Mb 450ms DropTail
 $ns duplex-link-of-interfaces $n5 $n93 1.5Mb 750ms DropTail
@@ -199,6 +221,7 @@ $ns duplex-link-of-interfaces $n5 $n58 1.5Mb 680ms DropTail
 $ns duplex-link-of-interfaces $n5 $n39 1.5Mb 70ms DropTail
 $ns duplex-link-of-interfaces $n5 $n35 1.5Mb 600ms DropTail
 $ns duplex-link-of-interfaces $n5 $n31 1.5Mb 300ms DropTail
+if {$verbose} { puts -nonewline "90..."; flush stdout }
 $ns duplex-link-of-interfaces $n5 $n16 1.5Mb 350ms DropTail
 $ns duplex-link-of-interfaces $n5 $n12 1.5Mb 160ms DropTail
 $ns duplex-link-of-interfaces $n5 $n8 1.5Mb 110ms DropTail
@@ -209,6 +232,7 @@ $ns duplex-link-of-interfaces $n6 $n72 1.5Mb 270ms DropTail
 $ns duplex-link-of-interfaces $n6 $n69 1.5Mb 160ms DropTail
 $ns duplex-link-of-interfaces $n6 $n61 1.5Mb 200ms DropTail
 $ns duplex-link-of-interfaces $n6 $n58 1.5Mb 250ms DropTail
+if {$verbose} { puts -nonewline "100..."; flush stdout }
 $ns duplex-link-of-interfaces $n6 $n56 1.5Mb 320ms DropTail
 $ns duplex-link-of-interfaces $n6 $n54 1.5Mb 240ms DropTail
 $ns duplex-link-of-interfaces $n6 $n51 1.5Mb 330ms DropTail
@@ -219,6 +243,7 @@ $ns duplex-link-of-interfaces $n6 $n35 1.5Mb 580ms DropTail
 $ns duplex-link-of-interfaces $n6 $n30 1.5Mb 410ms DropTail
 $ns duplex-link-of-interfaces $n6 $n22 1.5Mb 230ms DropTail
 $ns duplex-link-of-interfaces $n6 $n10 1.5Mb 630ms DropTail
+if {$verbose} { puts -nonewline "110..."; flush stdout }
 $ns duplex-link-of-interfaces $n6 $n7 1.5Mb 160ms DropTail
 $ns duplex-link-of-interfaces $n7 $n95 1.5Mb 70ms DropTail
 $ns duplex-link-of-interfaces $n7 $n94 1.5Mb 310ms DropTail
@@ -229,6 +254,7 @@ $ns duplex-link-of-interfaces $n7 $n65 1.5Mb 650ms DropTail
 $ns duplex-link-of-interfaces $n7 $n59 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n7 $n54 1.5Mb 300ms DropTail
 $ns duplex-link-of-interfaces $n7 $n48 1.5Mb 490ms DropTail
+if {$verbose} { puts -nonewline "120..."; flush stdout }
 $ns duplex-link-of-interfaces $n7 $n44 1.5Mb 80ms DropTail
 $ns duplex-link-of-interfaces $n7 $n37 1.5Mb 730ms DropTail
 $ns duplex-link-of-interfaces $n7 $n34 1.5Mb 630ms DropTail
@@ -239,6 +265,7 @@ $ns duplex-link-of-interfaces $n7 $n24 1.5Mb 490ms DropTail
 $ns duplex-link-of-interfaces $n7 $n10 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n8 $n98 1.5Mb 400ms DropTail
 $ns duplex-link-of-interfaces $n8 $n93 1.5Mb 740ms DropTail
+if {$verbose} { puts -nonewline "130..."; flush stdout }
 $ns duplex-link-of-interfaces $n8 $n90 1.5Mb 90ms DropTail
 $ns duplex-link-of-interfaces $n8 $n88 1.5Mb 260ms DropTail
 $ns duplex-link-of-interfaces $n8 $n85 1.5Mb 370ms DropTail
@@ -249,6 +276,7 @@ $ns duplex-link-of-interfaces $n8 $n62 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n8 $n60 1.5Mb 320ms DropTail
 $ns duplex-link-of-interfaces $n8 $n58 1.5Mb 660ms DropTail
 $ns duplex-link-of-interfaces $n8 $n55 1.5Mb 440ms DropTail
+if {$verbose} { puts -nonewline "140..."; flush stdout }
 $ns duplex-link-of-interfaces $n8 $n38 1.5Mb 700ms DropTail
 $ns duplex-link-of-interfaces $n8 $n36 1.5Mb 270ms DropTail
 $ns duplex-link-of-interfaces $n8 $n23 1.5Mb 610ms DropTail
@@ -259,6 +287,7 @@ $ns duplex-link-of-interfaces $n9 $n96 1.5Mb 400ms DropTail
 $ns duplex-link-of-interfaces $n9 $n85 1.5Mb 390ms DropTail
 $ns duplex-link-of-interfaces $n9 $n79 1.5Mb 530ms DropTail
 $ns duplex-link-of-interfaces $n9 $n73 1.5Mb 710ms DropTail
+if {$verbose} { puts -nonewline "150..."; flush stdout }
 $ns duplex-link-of-interfaces $n9 $n70 1.5Mb 770ms DropTail
 $ns duplex-link-of-interfaces $n9 $n60 1.5Mb 630ms DropTail
 $ns duplex-link-of-interfaces $n9 $n55 1.5Mb 370ms DropTail
@@ -269,6 +298,7 @@ $ns duplex-link-of-interfaces $n9 $n25 1.5Mb 590ms DropTail
 $ns duplex-link-of-interfaces $n9 $n20 1.5Mb 920ms DropTail
 $ns duplex-link-of-interfaces $n9 $n12 1.5Mb 400ms DropTail
 $ns duplex-link-of-interfaces $n9 $n11 1.5Mb 150ms DropTail
+if {$verbose} { puts -nonewline "160..."; flush stdout }
 $ns duplex-link-of-interfaces $n9 $n10 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n10 $n95 1.5Mb 670ms DropTail
 $ns duplex-link-of-interfaces $n10 $n87 1.5Mb 780ms DropTail
@@ -279,6 +309,7 @@ $ns duplex-link-of-interfaces $n10 $n79 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n10 $n76 1.5Mb 900ms DropTail
 $ns duplex-link-of-interfaces $n10 $n74 1.5Mb 640ms DropTail
 $ns duplex-link-of-interfaces $n10 $n67 1.5Mb 780ms DropTail
+if {$verbose} { puts -nonewline "170..."; flush stdout }
 $ns duplex-link-of-interfaces $n10 $n65 1.5Mb 570ms DropTail
 $ns duplex-link-of-interfaces $n10 $n64 1.5Mb 110ms DropTail
 $ns duplex-link-of-interfaces $n10 $n59 1.5Mb 330ms DropTail
@@ -289,6 +320,7 @@ $ns duplex-link-of-interfaces $n10 $n49 1.5Mb 220ms DropTail
 $ns duplex-link-of-interfaces $n10 $n30 1.5Mb 940ms DropTail
 $ns duplex-link-of-interfaces $n10 $n28 1.5Mb 500ms DropTail
 $ns duplex-link-of-interfaces $n10 $n27 1.5Mb 930ms DropTail
+if {$verbose} { puts -nonewline "180..."; flush stdout }
 $ns duplex-link-of-interfaces $n10 $n22 1.5Mb 400ms DropTail
 $ns duplex-link-of-interfaces $n10 $n17 1.5Mb 670ms DropTail
 $ns duplex-link-of-interfaces $n10 $n16 1.5Mb 360ms DropTail
@@ -299,6 +331,7 @@ $ns duplex-link-of-interfaces $n11 $n86 1.5Mb 770ms DropTail
 $ns duplex-link-of-interfaces $n11 $n81 1.5Mb 330ms DropTail
 $ns duplex-link-of-interfaces $n11 $n72 1.5Mb 560ms DropTail
 $ns duplex-link-of-interfaces $n11 $n61 1.5Mb 410ms DropTail
+if {$verbose} { puts -nonewline "190..."; flush stdout }
 $ns duplex-link-of-interfaces $n11 $n53 1.5Mb 910ms DropTail
 $ns duplex-link-of-interfaces $n11 $n50 1.5Mb 210ms DropTail
 $ns duplex-link-of-interfaces $n11 $n49 1.5Mb 400ms DropTail
@@ -309,6 +342,7 @@ $ns duplex-link-of-interfaces $n11 $n26 1.5Mb 460ms DropTail
 $ns duplex-link-of-interfaces $n11 $n25 1.5Mb 560ms DropTail
 $ns duplex-link-of-interfaces $n11 $n24 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n11 $n20 1.5Mb 940ms DropTail
+if {$verbose} { puts -nonewline "200..."; flush stdout }
 $ns duplex-link-of-interfaces $n11 $n19 1.5Mb 410ms DropTail
 $ns duplex-link-of-interfaces $n11 $n17 1.5Mb 120ms DropTail
 $ns duplex-link-of-interfaces $n12 $n86 1.5Mb 630ms DropTail
@@ -319,6 +353,7 @@ $ns duplex-link-of-interfaces $n12 $n38 1.5Mb 530ms DropTail
 $ns duplex-link-of-interfaces $n12 $n35 1.5Mb 540ms DropTail
 $ns duplex-link-of-interfaces $n12 $n32 1.5Mb 490ms DropTail
 $ns duplex-link-of-interfaces $n12 $n29 1.5Mb 360ms DropTail
+if {$verbose} { puts -nonewline "210..."; flush stdout }
 $ns duplex-link-of-interfaces $n12 $n28 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n12 $n22 1.5Mb 120ms DropTail
 $ns duplex-link-of-interfaces $n12 $n21 1.5Mb 570ms DropTail
@@ -329,6 +364,7 @@ $ns duplex-link-of-interfaces $n13 $n87 1.5Mb 180ms DropTail
 $ns duplex-link-of-interfaces $n13 $n82 1.5Mb 750ms DropTail
 $ns duplex-link-of-interfaces $n13 $n74 1.5Mb 200ms DropTail
 $ns duplex-link-of-interfaces $n13 $n70 1.5Mb 430ms DropTail
+if {$verbose} { puts -nonewline "220..."; flush stdout }
 $ns duplex-link-of-interfaces $n13 $n62 1.5Mb 230ms DropTail
 $ns duplex-link-of-interfaces $n13 $n59 1.5Mb 490ms DropTail
 $ns duplex-link-of-interfaces $n13 $n55 1.5Mb 80ms DropTail
@@ -339,6 +375,7 @@ $ns duplex-link-of-interfaces $n13 $n26 1.5Mb 240ms DropTail
 $ns duplex-link-of-interfaces $n14 $n95 1.5Mb 510ms DropTail
 $ns duplex-link-of-interfaces $n14 $n82 1.5Mb 320ms DropTail
 $ns duplex-link-of-interfaces $n14 $n79 1.5Mb 530ms DropTail
+if {$verbose} { puts -nonewline "230..."; flush stdout }
 $ns duplex-link-of-interfaces $n14 $n73 1.5Mb 490ms DropTail
 $ns duplex-link-of-interfaces $n14 $n68 1.5Mb 200ms DropTail
 $ns duplex-link-of-interfaces $n14 $n65 1.5Mb 550ms DropTail
@@ -349,6 +386,7 @@ $ns duplex-link-of-interfaces $n14 $n50 1.5Mb 820ms DropTail
 $ns duplex-link-of-interfaces $n14 $n47 1.5Mb 830ms DropTail
 $ns duplex-link-of-interfaces $n14 $n44 1.5Mb 490ms DropTail
 $ns duplex-link-of-interfaces $n14 $n40 1.5Mb 590ms DropTail
+if {$verbose} { puts -nonewline "240..."; flush stdout }
 $ns duplex-link-of-interfaces $n14 $n25 1.5Mb 570ms DropTail
 $ns duplex-link-of-interfaces $n14 $n19 1.5Mb 470ms DropTail
 $ns duplex-link-of-interfaces $n14 $n18 1.5Mb 430ms DropTail
@@ -359,6 +397,7 @@ $ns duplex-link-of-interfaces $n15 $n78 1.5Mb 1060ms DropTail
 $ns duplex-link-of-interfaces $n15 $n70 1.5Mb 950ms DropTail
 $ns duplex-link-of-interfaces $n15 $n56 1.5Mb 770ms DropTail
 $ns duplex-link-of-interfaces $n15 $n52 1.5Mb 900ms DropTail
+if {$verbose} { puts -nonewline "250..."; flush stdout }
 $ns duplex-link-of-interfaces $n15 $n50 1.5Mb 300ms DropTail
 $ns duplex-link-of-interfaces $n15 $n49 1.5Mb 240ms DropTail
 $ns duplex-link-of-interfaces $n15 $n48 1.5Mb 410ms DropTail
@@ -369,6 +408,7 @@ $ns duplex-link-of-interfaces $n15 $n36 1.5Mb 430ms DropTail
 $ns duplex-link-of-interfaces $n15 $n27 1.5Mb 930ms DropTail
 $ns duplex-link-of-interfaces $n16 $n99 1.5Mb 820ms DropTail
 $ns duplex-link-of-interfaces $n16 $n98 1.5Mb 290ms DropTail
+if {$verbose} { puts -nonewline "260..."; flush stdout }
 $ns duplex-link-of-interfaces $n16 $n90 1.5Mb 220ms DropTail
 $ns duplex-link-of-interfaces $n16 $n86 1.5Mb 890ms DropTail
 $ns duplex-link-of-interfaces $n16 $n81 1.5Mb 380ms DropTail
@@ -379,6 +419,7 @@ $ns duplex-link-of-interfaces $n16 $n74 1.5Mb 290ms DropTail
 $ns duplex-link-of-interfaces $n16 $n68 1.5Mb 730ms DropTail
 $ns duplex-link-of-interfaces $n16 $n61 1.5Mb 590ms DropTail
 $ns duplex-link-of-interfaces $n16 $n60 1.5Mb 540ms DropTail
+if {$verbose} { puts -nonewline "270..."; flush stdout }
 $ns duplex-link-of-interfaces $n16 $n59 1.5Mb 370ms DropTail
 $ns duplex-link-of-interfaces $n16 $n58 1.5Mb 620ms DropTail
 $ns duplex-link-of-interfaces $n16 $n57 1.5Mb 770ms DropTail
@@ -389,6 +430,7 @@ $ns duplex-link-of-interfaces $n16 $n39 1.5Mb 280ms DropTail
 $ns duplex-link-of-interfaces $n16 $n38 1.5Mb 840ms DropTail
 $ns duplex-link-of-interfaces $n16 $n37 1.5Mb 880ms DropTail
 $ns duplex-link-of-interfaces $n16 $n29 1.5Mb 180ms DropTail
+if {$verbose} { puts -nonewline "280..."; flush stdout }
 $ns duplex-link-of-interfaces $n17 $n97 1.5Mb 550ms DropTail
 $ns duplex-link-of-interfaces $n17 $n96 1.5Mb 430ms DropTail
 $ns duplex-link-of-interfaces $n17 $n92 1.5Mb 340ms DropTail
@@ -399,6 +441,7 @@ $ns duplex-link-of-interfaces $n17 $n81 1.5Mb 430ms DropTail
 $ns duplex-link-of-interfaces $n17 $n80 1.5Mb 490ms DropTail
 $ns duplex-link-of-interfaces $n17 $n78 1.5Mb 940ms DropTail
 $ns duplex-link-of-interfaces $n17 $n69 1.5Mb 510ms DropTail
+if {$verbose} { puts -nonewline "290..."; flush stdout }
 $ns duplex-link-of-interfaces $n17 $n63 1.5Mb 890ms DropTail
 $ns duplex-link-of-interfaces $n17 $n56 1.5Mb 680ms DropTail
 $ns duplex-link-of-interfaces $n17 $n52 1.5Mb 740ms DropTail
@@ -409,6 +452,7 @@ $ns duplex-link-of-interfaces $n17 $n34 1.5Mb 850ms DropTail
 $ns duplex-link-of-interfaces $n17 $n30 1.5Mb 310ms DropTail
 $ns duplex-link-of-interfaces $n17 $n28 1.5Mb 970ms DropTail
 $ns duplex-link-of-interfaces $n17 $n23 1.5Mb 970ms DropTail
+if {$verbose} { puts -nonewline "300..."; flush stdout }
 $ns duplex-link-of-interfaces $n17 $n22 1.5Mb 370ms DropTail
 $ns duplex-link-of-interfaces $n18 $n97 1.5Mb 130ms DropTail
 $ns duplex-link-of-interfaces $n18 $n96 1.5Mb 120ms DropTail
@@ -419,6 +463,7 @@ $ns duplex-link-of-interfaces $n18 $n79 1.5Mb 250ms DropTail
 $ns duplex-link-of-interfaces $n18 $n77 1.5Mb 260ms DropTail
 $ns duplex-link-of-interfaces $n18 $n75 1.5Mb 430ms DropTail
 $ns duplex-link-of-interfaces $n18 $n59 1.5Mb 330ms DropTail
+if {$verbose} { puts -nonewline "310..."; flush stdout }
 $ns duplex-link-of-interfaces $n18 $n56 1.5Mb 260ms DropTail
 $ns duplex-link-of-interfaces $n18 $n55 1.5Mb 140ms DropTail
 $ns duplex-link-of-interfaces $n18 $n42 1.5Mb 440ms DropTail
@@ -429,6 +474,7 @@ $ns duplex-link-of-interfaces $n18 $n28 1.5Mb 670ms DropTail
 $ns duplex-link-of-interfaces $n18 $n20 1.5Mb 770ms DropTail
 $ns duplex-link-of-interfaces $n19 $n98 1.5Mb 350ms DropTail
 $ns duplex-link-of-interfaces $n19 $n95 1.5Mb 290ms DropTail
+if {$verbose} { puts -nonewline "320..."; flush stdout }
 $ns duplex-link-of-interfaces $n19 $n57 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n19 $n40 1.5Mb 230ms DropTail
 $ns duplex-link-of-interfaces $n19 $n37 1.5Mb 440ms DropTail
@@ -439,6 +485,7 @@ $ns duplex-link-of-interfaces $n19 $n27 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n19 $n24 1.5Mb 290ms DropTail
 $ns duplex-link-of-interfaces $n19 $n23 1.5Mb 460ms DropTail
 $ns duplex-link-of-interfaces $n19 $n22 1.5Mb 210ms DropTail
+if {$verbose} { puts -nonewline "330..."; flush stdout }
 $ns duplex-link-of-interfaces $n20 $n96 1.5Mb 670ms DropTail
 $ns duplex-link-of-interfaces $n20 $n94 1.5Mb 650ms DropTail
 $ns duplex-link-of-interfaces $n20 $n85 1.5Mb 790ms DropTail
@@ -449,6 +496,7 @@ $ns duplex-link-of-interfaces $n20 $n64 1.5Mb 470ms DropTail
 $ns duplex-link-of-interfaces $n20 $n63 1.5Mb 840ms DropTail
 $ns duplex-link-of-interfaces $n20 $n60 1.5Mb 370ms DropTail
 $ns duplex-link-of-interfaces $n20 $n58 1.5Mb 1040ms DropTail
+if {$verbose} { puts -nonewline "340..."; flush stdout }
 $ns duplex-link-of-interfaces $n20 $n56 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n20 $n54 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n20 $n53 1.5Mb 170ms DropTail
@@ -459,6 +507,7 @@ $ns duplex-link-of-interfaces $n20 $n39 1.5Mb 540ms DropTail
 $ns duplex-link-of-interfaces $n20 $n38 1.5Mb 760ms DropTail
 $ns duplex-link-of-interfaces $n20 $n32 1.5Mb 240ms DropTail
 $ns duplex-link-of-interfaces $n20 $n26 1.5Mb 1110ms DropTail
+if {$verbose} { puts -nonewline "350..."; flush stdout }
 $ns duplex-link-of-interfaces $n20 $n25 1.5Mb 440ms DropTail
 $ns duplex-link-of-interfaces $n20 $n22 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n20 $n21 1.5Mb 1140ms DropTail
@@ -469,6 +518,7 @@ $ns duplex-link-of-interfaces $n21 $n64 1.5Mb 810ms DropTail
 $ns duplex-link-of-interfaces $n21 $n61 1.5Mb 280ms DropTail
 $ns duplex-link-of-interfaces $n21 $n60 1.5Mb 780ms DropTail
 $ns duplex-link-of-interfaces $n21 $n58 1.5Mb 250ms DropTail
+if {$verbose} { puts -nonewline "360..."; flush stdout }
 $ns duplex-link-of-interfaces $n21 $n44 1.5Mb 210ms DropTail
 $ns duplex-link-of-interfaces $n21 $n42 1.5Mb 220ms DropTail
 $ns duplex-link-of-interfaces $n21 $n40 1.5Mb 750ms DropTail
@@ -479,6 +529,7 @@ $ns duplex-link-of-interfaces $n21 $n30 1.5Mb 90ms DropTail
 $ns duplex-link-of-interfaces $n21 $n29 1.5Mb 340ms DropTail
 $ns duplex-link-of-interfaces $n22 $n99 1.5Mb 610ms DropTail
 $ns duplex-link-of-interfaces $n22 $n91 1.5Mb 490ms DropTail
+if {$verbose} { puts -nonewline "370..."; flush stdout }
 $ns duplex-link-of-interfaces $n22 $n84 1.5Mb 530ms DropTail
 $ns duplex-link-of-interfaces $n22 $n80 1.5Mb 140ms DropTail
 $ns duplex-link-of-interfaces $n22 $n79 1.5Mb 240ms DropTail
@@ -489,6 +540,7 @@ $ns duplex-link-of-interfaces $n22 $n62 1.5Mb 500ms DropTail
 $ns duplex-link-of-interfaces $n22 $n58 1.5Mb 470ms DropTail
 $ns duplex-link-of-interfaces $n22 $n57 1.5Mb 570ms DropTail
 $ns duplex-link-of-interfaces $n22 $n34 1.5Mb 630ms DropTail
+if {$verbose} { puts -nonewline "380..."; flush stdout }
 $ns duplex-link-of-interfaces $n22 $n26 1.5Mb 530ms DropTail
 $ns duplex-link-of-interfaces $n23 $n98 1.5Mb 810ms DropTail
 $ns duplex-link-of-interfaces $n23 $n96 1.5Mb 530ms DropTail
@@ -499,6 +551,7 @@ $ns duplex-link-of-interfaces $n23 $n84 1.5Mb 860ms DropTail
 $ns duplex-link-of-interfaces $n23 $n81 1.5Mb 540ms DropTail
 $ns duplex-link-of-interfaces $n23 $n78 1.5Mb 470ms DropTail
 $ns duplex-link-of-interfaces $n23 $n75 1.5Mb 350ms DropTail
+if {$verbose} { puts -nonewline "390..."; flush stdout }
 $ns duplex-link-of-interfaces $n23 $n74 1.5Mb 910ms DropTail
 $ns duplex-link-of-interfaces $n23 $n71 1.5Mb 330ms DropTail
 $ns duplex-link-of-interfaces $n23 $n70 1.5Mb 620ms DropTail
@@ -509,6 +562,7 @@ $ns duplex-link-of-interfaces $n23 $n34 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n23 $n31 1.5Mb 280ms DropTail
 $ns duplex-link-of-interfaces $n23 $n29 1.5Mb 860ms DropTail
 $ns duplex-link-of-interfaces $n23 $n25 1.5Mb 310ms DropTail
+if {$verbose} { puts -nonewline "400..."; flush stdout }
 $ns duplex-link-of-interfaces $n24 $n82 1.5Mb 740ms DropTail
 $ns duplex-link-of-interfaces $n24 $n71 1.5Mb 450ms DropTail
 $ns duplex-link-of-interfaces $n24 $n65 1.5Mb 390ms DropTail
@@ -519,6 +573,7 @@ $ns duplex-link-of-interfaces $n24 $n41 1.5Mb 750ms DropTail
 $ns duplex-link-of-interfaces $n24 $n39 1.5Mb 10ms DropTail
 $ns duplex-link-of-interfaces $n24 $n36 1.5Mb 220ms DropTail
 $ns duplex-link-of-interfaces $n24 $n33 1.5Mb 190ms DropTail
+if {$verbose} { puts -nonewline "410..."; flush stdout }
 $ns duplex-link-of-interfaces $n24 $n31 1.5Mb 360ms DropTail
 $ns duplex-link-of-interfaces $n24 $n27 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n25 $n95 1.5Mb 470ms DropTail
@@ -529,6 +584,7 @@ $ns duplex-link-of-interfaces $n25 $n67 1.5Mb 600ms DropTail
 $ns duplex-link-of-interfaces $n25 $n66 1.5Mb 250ms DropTail
 $ns duplex-link-of-interfaces $n25 $n60 1.5Mb 70ms DropTail
 $ns duplex-link-of-interfaces $n25 $n52 1.5Mb 430ms DropTail
+if {$verbose} { puts -nonewline "420..."; flush stdout }
 $ns duplex-link-of-interfaces $n25 $n49 1.5Mb 290ms DropTail
 $ns duplex-link-of-interfaces $n25 $n41 1.5Mb 560ms DropTail
 $ns duplex-link-of-interfaces $n25 $n33 1.5Mb 310ms DropTail
@@ -539,6 +595,7 @@ $ns duplex-link-of-interfaces $n25 $n27 1.5Mb 600ms DropTail
 $ns duplex-link-of-interfaces $n26 $n96 1.5Mb 460ms DropTail
 $ns duplex-link-of-interfaces $n26 $n94 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n26 $n89 1.5Mb 920ms DropTail
+if {$verbose} { puts -nonewline "430..."; flush stdout }
 $ns duplex-link-of-interfaces $n26 $n88 1.5Mb 530ms DropTail
 $ns duplex-link-of-interfaces $n26 $n86 1.5Mb 460ms DropTail
 $ns duplex-link-of-interfaces $n26 $n85 1.5Mb 350ms DropTail
@@ -549,6 +606,7 @@ $ns duplex-link-of-interfaces $n26 $n56 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n26 $n53 1.5Mb 1010ms DropTail
 $ns duplex-link-of-interfaces $n26 $n52 1.5Mb 460ms DropTail
 $ns duplex-link-of-interfaces $n26 $n51 1.5Mb 280ms DropTail
+if {$verbose} { puts -nonewline "440..."; flush stdout }
 $ns duplex-link-of-interfaces $n26 $n38 1.5Mb 560ms DropTail
 $ns duplex-link-of-interfaces $n26 $n36 1.5Mb 800ms DropTail
 $ns duplex-link-of-interfaces $n26 $n35 1.5Mb 740ms DropTail
@@ -559,6 +617,7 @@ $ns duplex-link-of-interfaces $n26 $n27 1.5Mb 160ms DropTail
 $ns duplex-link-of-interfaces $n27 $n99 1.5Mb 750ms DropTail
 $ns duplex-link-of-interfaces $n27 $n93 1.5Mb 100ms DropTail
 $ns duplex-link-of-interfaces $n27 $n90 1.5Mb 620ms DropTail
+if {$verbose} { puts -nonewline "450..."; flush stdout }
 $ns duplex-link-of-interfaces $n27 $n84 1.5Mb 150ms DropTail
 $ns duplex-link-of-interfaces $n27 $n75 1.5Mb 450ms DropTail
 $ns duplex-link-of-interfaces $n27 $n72 1.5Mb 280ms DropTail
@@ -569,6 +628,7 @@ $ns duplex-link-of-interfaces $n27 $n49 1.5Mb 710ms DropTail
 $ns duplex-link-of-interfaces $n27 $n33 1.5Mb 860ms DropTail
 $ns duplex-link-of-interfaces $n27 $n32 1.5Mb 830ms DropTail
 $ns duplex-link-of-interfaces $n27 $n31 1.5Mb 820ms DropTail
+if {$verbose} { puts -nonewline "460..."; flush stdout }
 $ns duplex-link-of-interfaces $n28 $n99 1.5Mb 290ms DropTail
 $ns duplex-link-of-interfaces $n28 $n98 1.5Mb 830ms DropTail
 $ns duplex-link-of-interfaces $n28 $n97 1.5Mb 640ms DropTail
@@ -579,6 +639,7 @@ $ns duplex-link-of-interfaces $n28 $n81 1.5Mb 590ms DropTail
 $ns duplex-link-of-interfaces $n28 $n74 1.5Mb 910ms DropTail
 $ns duplex-link-of-interfaces $n28 $n66 1.5Mb 580ms DropTail
 $ns duplex-link-of-interfaces $n28 $n55 1.5Mb 790ms DropTail
+if {$verbose} { puts -nonewline "470..."; flush stdout }
 $ns duplex-link-of-interfaces $n28 $n53 1.5Mb 130ms DropTail
 $ns duplex-link-of-interfaces $n28 $n46 1.5Mb 220ms DropTail
 $ns duplex-link-of-interfaces $n28 $n41 1.5Mb 830ms DropTail
@@ -589,6 +650,7 @@ $ns duplex-link-of-interfaces $n29 $n99 1.5Mb 850ms DropTail
 $ns duplex-link-of-interfaces $n29 $n97 1.5Mb 500ms DropTail
 $ns duplex-link-of-interfaces $n29 $n96 1.5Mb 340ms DropTail
 $ns duplex-link-of-interfaces $n29 $n95 1.5Mb 280ms DropTail
+if {$verbose} { puts -nonewline "480..."; flush stdout }
 $ns duplex-link-of-interfaces $n29 $n94 1.5Mb 340ms DropTail
 $ns duplex-link-of-interfaces $n29 $n84 1.5Mb 510ms DropTail
 $ns duplex-link-of-interfaces $n29 $n77 1.5Mb 550ms DropTail
@@ -599,6 +661,7 @@ $ns duplex-link-of-interfaces $n29 $n64 1.5Mb 510ms DropTail
 $ns duplex-link-of-interfaces $n29 $n63 1.5Mb 850ms DropTail
 $ns duplex-link-of-interfaces $n29 $n60 1.5Mb 600ms DropTail
 $ns duplex-link-of-interfaces $n29 $n55 1.5Mb 270ms DropTail
+if {$verbose} { puts -nonewline "490..."; flush stdout }
 $ns duplex-link-of-interfaces $n29 $n46 1.5Mb 720ms DropTail
 $ns duplex-link-of-interfaces $n29 $n43 1.5Mb 770ms DropTail
 $ns duplex-link-of-interfaces $n29 $n42 1.5Mb 540ms DropTail
@@ -609,6 +672,7 @@ $ns duplex-link-of-interfaces $n30 $n98 1.5Mb 340ms DropTail
 $ns duplex-link-of-interfaces $n30 $n94 1.5Mb 570ms DropTail
 $ns duplex-link-of-interfaces $n30 $n93 1.5Mb 320ms DropTail
 $ns duplex-link-of-interfaces $n30 $n91 1.5Mb 880ms DropTail
+if {$verbose} { puts -nonewline "500..."; flush stdout }
 $ns duplex-link-of-interfaces $n30 $n88 1.5Mb 630ms DropTail
 $ns duplex-link-of-interfaces $n30 $n86 1.5Mb 710ms DropTail
 $ns duplex-link-of-interfaces $n30 $n82 1.5Mb 940ms DropTail
@@ -619,6 +683,7 @@ $ns duplex-link-of-interfaces $n30 $n71 1.5Mb 720ms DropTail
 $ns duplex-link-of-interfaces $n30 $n70 1.5Mb 560ms DropTail
 $ns duplex-link-of-interfaces $n30 $n64 1.5Mb 900ms DropTail
 $ns duplex-link-of-interfaces $n30 $n61 1.5Mb 320ms DropTail
+if {$verbose} { puts -nonewline "510..."; flush stdout }
 $ns duplex-link-of-interfaces $n30 $n60 1.5Mb 860ms DropTail
 $ns duplex-link-of-interfaces $n30 $n46 1.5Mb 960ms DropTail
 $ns duplex-link-of-interfaces $n30 $n39 1.5Mb 750ms DropTail
@@ -629,6 +694,7 @@ $ns duplex-link-of-interfaces $n31 $n85 1.5Mb 580ms DropTail
 $ns duplex-link-of-interfaces $n31 $n82 1.5Mb 590ms DropTail
 $ns duplex-link-of-interfaces $n31 $n77 1.5Mb 780ms DropTail
 $ns duplex-link-of-interfaces $n31 $n65 1.5Mb 210ms DropTail
+if {$verbose} { puts -nonewline "520..."; flush stdout }
 $ns duplex-link-of-interfaces $n31 $n58 1.5Mb 840ms DropTail
 $ns duplex-link-of-interfaces $n31 $n37 1.5Mb 490ms DropTail
 $ns duplex-link-of-interfaces $n31 $n36 1.5Mb 140ms DropTail
@@ -639,6 +705,7 @@ $ns duplex-link-of-interfaces $n32 $n74 1.5Mb 910ms DropTail
 $ns duplex-link-of-interfaces $n32 $n73 1.5Mb 250ms DropTail
 $ns duplex-link-of-interfaces $n32 $n67 1.5Mb 890ms DropTail
 $ns duplex-link-of-interfaces $n32 $n65 1.5Mb 190ms DropTail
+if {$verbose} { puts -nonewline "530..."; flush stdout }
 $ns duplex-link-of-interfaces $n32 $n61 1.5Mb 820ms DropTail
 $ns duplex-link-of-interfaces $n32 $n58 1.5Mb 870ms DropTail
 $ns duplex-link-of-interfaces $n32 $n57 1.5Mb 90ms DropTail
@@ -649,6 +716,7 @@ $ns duplex-link-of-interfaces $n33 $n87 1.5Mb 720ms DropTail
 $ns duplex-link-of-interfaces $n33 $n86 1.5Mb 880ms DropTail
 $ns duplex-link-of-interfaces $n33 $n83 1.5Mb 530ms DropTail
 $ns duplex-link-of-interfaces $n33 $n79 1.5Mb 350ms DropTail
+if {$verbose} { puts -nonewline "540..."; flush stdout }
 $ns duplex-link-of-interfaces $n33 $n76 1.5Mb 770ms DropTail
 $ns duplex-link-of-interfaces $n33 $n75 1.5Mb 720ms DropTail
 $ns duplex-link-of-interfaces $n33 $n67 1.5Mb 770ms DropTail
@@ -659,6 +727,7 @@ $ns duplex-link-of-interfaces $n33 $n46 1.5Mb 370ms DropTail
 $ns duplex-link-of-interfaces $n33 $n44 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n33 $n43 1.5Mb 570ms DropTail
 $ns duplex-link-of-interfaces $n34 $n92 1.5Mb 940ms DropTail
+if {$verbose} { puts -nonewline "550..."; flush stdout }
 $ns duplex-link-of-interfaces $n34 $n75 1.5Mb 70ms DropTail
 $ns duplex-link-of-interfaces $n34 $n72 1.5Mb 220ms DropTail
 $ns duplex-link-of-interfaces $n34 $n67 1.5Mb 640ms DropTail
@@ -669,6 +738,7 @@ $ns duplex-link-of-interfaces $n34 $n58 1.5Mb 520ms DropTail
 $ns duplex-link-of-interfaces $n34 $n49 1.5Mb 720ms DropTail
 $ns duplex-link-of-interfaces $n34 $n46 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n34 $n40 1.5Mb 480ms DropTail
+if {$verbose} { puts -nonewline "560..."; flush stdout }
 $ns duplex-link-of-interfaces $n34 $n39 1.5Mb 700ms DropTail
 $ns duplex-link-of-interfaces $n34 $n35 1.5Mb 220ms DropTail
 $ns duplex-link-of-interfaces $n35 $n98 1.5Mb 780ms DropTail
@@ -679,6 +749,7 @@ $ns duplex-link-of-interfaces $n35 $n83 1.5Mb 150ms DropTail
 $ns duplex-link-of-interfaces $n35 $n79 1.5Mb 410ms DropTail
 $ns duplex-link-of-interfaces $n35 $n77 1.5Mb 570ms DropTail
 $ns duplex-link-of-interfaces $n35 $n75 1.5Mb 160ms DropTail
+if {$verbose} { puts -nonewline "570..."; flush stdout }
 $ns duplex-link-of-interfaces $n35 $n73 1.5Mb 240ms DropTail
 $ns duplex-link-of-interfaces $n35 $n66 1.5Mb 510ms DropTail
 $ns duplex-link-of-interfaces $n35 $n60 1.5Mb 400ms DropTail
@@ -689,6 +760,7 @@ $ns duplex-link-of-interfaces $n35 $n51 1.5Mb 890ms DropTail
 $ns duplex-link-of-interfaces $n35 $n50 1.5Mb 810ms DropTail
 $ns duplex-link-of-interfaces $n35 $n49 1.5Mb 670ms DropTail
 $ns duplex-link-of-interfaces $n35 $n45 1.5Mb 760ms DropTail
+if {$verbose} { puts -nonewline "580..."; flush stdout }
 $ns duplex-link-of-interfaces $n36 $n90 1.5Mb 310ms DropTail
 $ns duplex-link-of-interfaces $n36 $n78 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n36 $n64 1.5Mb 250ms DropTail
@@ -699,6 +771,7 @@ $ns duplex-link-of-interfaces $n36 $n54 1.5Mb 360ms DropTail
 $ns duplex-link-of-interfaces $n36 $n52 1.5Mb 580ms DropTail
 $ns duplex-link-of-interfaces $n36 $n48 1.5Mb 140ms DropTail
 $ns duplex-link-of-interfaces $n36 $n39 1.5Mb 230ms DropTail
+if {$verbose} { puts -nonewline "590..."; flush stdout }
 $ns duplex-link-of-interfaces $n37 $n88 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n37 $n79 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n37 $n77 1.5Mb 540ms DropTail
@@ -709,6 +782,7 @@ $ns duplex-link-of-interfaces $n37 $n67 1.5Mb 750ms DropTail
 $ns duplex-link-of-interfaces $n37 $n66 1.5Mb 510ms DropTail
 $ns duplex-link-of-interfaces $n37 $n64 1.5Mb 760ms DropTail
 $ns duplex-link-of-interfaces $n37 $n63 1.5Mb 220ms DropTail
+if {$verbose} { puts -nonewline "600..."; flush stdout }
 $ns duplex-link-of-interfaces $n37 $n56 1.5Mb 260ms DropTail
 $ns duplex-link-of-interfaces $n37 $n54 1.5Mb 660ms DropTail
 $ns duplex-link-of-interfaces $n37 $n49 1.5Mb 690ms DropTail
@@ -719,6 +793,7 @@ $ns duplex-link-of-interfaces $n38 $n84 1.5Mb 550ms DropTail
 $ns duplex-link-of-interfaces $n38 $n83 1.5Mb 310ms DropTail
 $ns duplex-link-of-interfaces $n38 $n82 1.5Mb 150ms DropTail
 $ns duplex-link-of-interfaces $n38 $n80 1.5Mb 640ms DropTail
+if {$verbose} { puts -nonewline "610..."; flush stdout }
 $ns duplex-link-of-interfaces $n38 $n78 1.5Mb 130ms DropTail
 $ns duplex-link-of-interfaces $n38 $n75 1.5Mb 50ms DropTail
 $ns duplex-link-of-interfaces $n38 $n68 1.5Mb 340ms DropTail
@@ -729,6 +804,7 @@ $ns duplex-link-of-interfaces $n38 $n42 1.5Mb 670ms DropTail
 $ns duplex-link-of-interfaces $n39 $n97 1.5Mb 450ms DropTail
 $ns duplex-link-of-interfaces $n39 $n91 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n39 $n90 1.5Mb 100ms DropTail
+if {$verbose} { puts -nonewline "620..."; flush stdout }
 $ns duplex-link-of-interfaces $n39 $n89 1.5Mb 250ms DropTail
 $ns duplex-link-of-interfaces $n39 $n81 1.5Mb 280ms DropTail
 $ns duplex-link-of-interfaces $n39 $n71 1.5Mb 450ms DropTail
@@ -739,6 +815,7 @@ $ns duplex-link-of-interfaces $n40 $n85 1.5Mb 390ms DropTail
 $ns duplex-link-of-interfaces $n40 $n73 1.5Mb 140ms DropTail
 $ns duplex-link-of-interfaces $n40 $n65 1.5Mb 120ms DropTail
 $ns duplex-link-of-interfaces $n40 $n60 1.5Mb 40ms DropTail
+if {$verbose} { puts -nonewline "630..."; flush stdout }
 $ns duplex-link-of-interfaces $n40 $n58 1.5Mb 640ms DropTail
 $ns duplex-link-of-interfaces $n40 $n57 1.5Mb 230ms DropTail
 $ns duplex-link-of-interfaces $n40 $n42 1.5Mb 810ms DropTail
@@ -749,6 +826,7 @@ $ns duplex-link-of-interfaces $n41 $n86 1.5Mb 10ms DropTail
 $ns duplex-link-of-interfaces $n41 $n83 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n41 $n78 1.5Mb 190ms DropTail
 $ns duplex-link-of-interfaces $n41 $n61 1.5Mb 390ms DropTail
+if {$verbose} { puts -nonewline "640..."; flush stdout }
 $ns duplex-link-of-interfaces $n41 $n60 1.5Mb 620ms DropTail
 $ns duplex-link-of-interfaces $n41 $n55 1.5Mb 520ms DropTail
 $ns duplex-link-of-interfaces $n41 $n53 1.5Mb 780ms DropTail
@@ -759,6 +837,7 @@ $ns duplex-link-of-interfaces $n42 $n85 1.5Mb 440ms DropTail
 $ns duplex-link-of-interfaces $n42 $n84 1.5Mb 120ms DropTail
 $ns duplex-link-of-interfaces $n42 $n80 1.5Mb 740ms DropTail
 $ns duplex-link-of-interfaces $n42 $n64 1.5Mb 950ms DropTail
+if {$verbose} { puts -nonewline "650..."; flush stdout }
 $ns duplex-link-of-interfaces $n42 $n63 1.5Mb 680ms DropTail
 $ns duplex-link-of-interfaces $n42 $n59 1.5Mb 760ms DropTail
 $ns duplex-link-of-interfaces $n42 $n57 1.5Mb 970ms DropTail
@@ -769,6 +848,7 @@ $ns duplex-link-of-interfaces $n43 $n86 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n43 $n84 1.5Mb 700ms DropTail
 $ns duplex-link-of-interfaces $n43 $n82 1.5Mb 220ms DropTail
 $ns duplex-link-of-interfaces $n43 $n70 1.5Mb 460ms DropTail
+if {$verbose} { puts -nonewline "660..."; flush stdout }
 $ns duplex-link-of-interfaces $n43 $n66 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n43 $n65 1.5Mb 170ms DropTail
 $ns duplex-link-of-interfaces $n43 $n51 1.5Mb 840ms DropTail
@@ -779,6 +859,7 @@ $ns duplex-link-of-interfaces $n44 $n88 1.5Mb 350ms DropTail
 $ns duplex-link-of-interfaces $n44 $n80 1.5Mb 460ms DropTail
 $ns duplex-link-of-interfaces $n44 $n79 1.5Mb 430ms DropTail
 $ns duplex-link-of-interfaces $n44 $n77 1.5Mb 230ms DropTail
+if {$verbose} { puts -nonewline "670..."; flush stdout }
 $ns duplex-link-of-interfaces $n44 $n76 1.5Mb 520ms DropTail
 $ns duplex-link-of-interfaces $n44 $n68 1.5Mb 300ms DropTail
 $ns duplex-link-of-interfaces $n44 $n67 1.5Mb 90ms DropTail
@@ -789,6 +870,7 @@ $ns duplex-link-of-interfaces $n44 $n53 1.5Mb 870ms DropTail
 $ns duplex-link-of-interfaces $n44 $n49 1.5Mb 520ms DropTail
 $ns duplex-link-of-interfaces $n45 $n97 1.5Mb 360ms DropTail
 $ns duplex-link-of-interfaces $n45 $n92 1.5Mb 570ms DropTail
+if {$verbose} { puts -nonewline "680..."; flush stdout }
 $ns duplex-link-of-interfaces $n45 $n86 1.5Mb 550ms DropTail
 $ns duplex-link-of-interfaces $n45 $n84 1.5Mb 170ms DropTail
 $ns duplex-link-of-interfaces $n45 $n77 1.5Mb 250ms DropTail
@@ -799,6 +881,7 @@ $ns duplex-link-of-interfaces $n45 $n57 1.5Mb 830ms DropTail
 $ns duplex-link-of-interfaces $n45 $n52 1.5Mb 510ms DropTail
 $ns duplex-link-of-interfaces $n46 $n82 1.5Mb 450ms DropTail
 $ns duplex-link-of-interfaces $n46 $n79 1.5Mb 260ms DropTail
+if {$verbose} { puts -nonewline "690..."; flush stdout }
 $ns duplex-link-of-interfaces $n46 $n64 1.5Mb 440ms DropTail
 $ns duplex-link-of-interfaces $n46 $n61 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n46 $n59 1.5Mb 300ms DropTail
@@ -809,6 +892,7 @@ $ns duplex-link-of-interfaces $n47 $n67 1.5Mb 500ms DropTail
 $ns duplex-link-of-interfaces $n47 $n61 1.5Mb 590ms DropTail
 $ns duplex-link-of-interfaces $n47 $n56 1.5Mb 610ms DropTail
 $ns duplex-link-of-interfaces $n47 $n55 1.5Mb 390ms DropTail
+if {$verbose} { puts -nonewline "700..."; flush stdout }
 $ns duplex-link-of-interfaces $n47 $n54 1.5Mb 170ms DropTail
 $ns duplex-link-of-interfaces $n47 $n52 1.5Mb 730ms DropTail
 $ns duplex-link-of-interfaces $n47 $n50 1.5Mb 60ms DropTail
@@ -819,6 +903,7 @@ $ns duplex-link-of-interfaces $n48 $n72 1.5Mb 410ms DropTail
 $ns duplex-link-of-interfaces $n48 $n57 1.5Mb 360ms DropTail
 $ns duplex-link-of-interfaces $n48 $n55 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n49 $n92 1.5Mb 320ms DropTail
+if {$verbose} { puts -nonewline "710..."; flush stdout }
 $ns duplex-link-of-interfaces $n49 $n89 1.5Mb 260ms DropTail
 $ns duplex-link-of-interfaces $n49 $n84 1.5Mb 720ms DropTail
 $ns duplex-link-of-interfaces $n49 $n80 1.5Mb 60ms DropTail
@@ -829,6 +914,7 @@ $ns duplex-link-of-interfaces $n49 $n72 1.5Mb 550ms DropTail
 $ns duplex-link-of-interfaces $n49 $n71 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n49 $n70 1.5Mb 720ms DropTail
 $ns duplex-link-of-interfaces $n50 $n92 1.5Mb 140ms DropTail
+if {$verbose} { puts -nonewline "720..."; flush stdout }
 $ns duplex-link-of-interfaces $n50 $n89 1.5Mb 470ms DropTail
 $ns duplex-link-of-interfaces $n50 $n83 1.5Mb 720ms DropTail
 $ns duplex-link-of-interfaces $n50 $n78 1.5Mb 910ms DropTail
@@ -839,6 +925,7 @@ $ns duplex-link-of-interfaces $n51 $n99 1.5Mb 960ms DropTail
 $ns duplex-link-of-interfaces $n51 $n88 1.5Mb 530ms DropTail
 $ns duplex-link-of-interfaces $n51 $n75 1.5Mb 780ms DropTail
 $ns duplex-link-of-interfaces $n51 $n69 1.5Mb 490ms DropTail
+if {$verbose} { puts -nonewline "730..."; flush stdout }
 $ns duplex-link-of-interfaces $n51 $n64 1.5Mb 780ms DropTail
 $ns duplex-link-of-interfaces $n51 $n60 1.5Mb 760ms DropTail
 $ns duplex-link-of-interfaces $n51 $n59 1.5Mb 640ms DropTail
@@ -849,6 +936,7 @@ $ns duplex-link-of-interfaces $n52 $n85 1.5Mb 400ms DropTail
 $ns duplex-link-of-interfaces $n52 $n78 1.5Mb 200ms DropTail
 $ns duplex-link-of-interfaces $n52 $n76 1.5Mb 70ms DropTail
 $ns duplex-link-of-interfaces $n52 $n72 1.5Mb 120ms DropTail
+if {$verbose} { puts -nonewline "740..."; flush stdout }
 $ns duplex-link-of-interfaces $n52 $n66 1.5Mb 390ms DropTail
 $ns duplex-link-of-interfaces $n52 $n58 1.5Mb 410ms DropTail
 $ns duplex-link-of-interfaces $n52 $n57 1.5Mb 490ms DropTail
@@ -859,6 +947,7 @@ $ns duplex-link-of-interfaces $n53 $n78 1.5Mb 680ms DropTail
 $ns duplex-link-of-interfaces $n53 $n65 1.5Mb 270ms DropTail
 $ns duplex-link-of-interfaces $n53 $n61 1.5Mb 890ms DropTail
 $ns duplex-link-of-interfaces $n53 $n57 1.5Mb 170ms DropTail
+if {$verbose} { puts -nonewline "750..."; flush stdout }
 $ns duplex-link-of-interfaces $n54 $n96 1.5Mb 150ms DropTail
 $ns duplex-link-of-interfaces $n54 $n95 1.5Mb 280ms DropTail
 $ns duplex-link-of-interfaces $n54 $n77 1.5Mb 500ms DropTail
@@ -869,6 +958,7 @@ $ns duplex-link-of-interfaces $n54 $n67 1.5Mb 390ms DropTail
 $ns duplex-link-of-interfaces $n54 $n65 1.5Mb 460ms DropTail
 $ns duplex-link-of-interfaces $n54 $n62 1.5Mb 510ms DropTail
 $ns duplex-link-of-interfaces $n54 $n59 1.5Mb 210ms DropTail
+if {$verbose} { puts -nonewline "760..."; flush stdout }
 $ns duplex-link-of-interfaces $n54 $n58 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n54 $n57 1.5Mb 580ms DropTail
 $ns duplex-link-of-interfaces $n55 $n98 1.5Mb 140ms DropTail
@@ -879,6 +969,7 @@ $ns duplex-link-of-interfaces $n55 $n60 1.5Mb 520ms DropTail
 $ns duplex-link-of-interfaces $n56 $n89 1.5Mb 600ms DropTail
 $ns duplex-link-of-interfaces $n56 $n85 1.5Mb 320ms DropTail
 $ns duplex-link-of-interfaces $n56 $n84 1.5Mb 470ms DropTail
+if {$verbose} { puts -nonewline "770..."; flush stdout }
 $ns duplex-link-of-interfaces $n56 $n80 1.5Mb 480ms DropTail
 $ns duplex-link-of-interfaces $n56 $n75 1.5Mb 170ms DropTail
 $ns duplex-link-of-interfaces $n56 $n66 1.5Mb 280ms DropTail
@@ -889,6 +980,7 @@ $ns duplex-link-of-interfaces $n57 $n78 1.5Mb 520ms DropTail
 $ns duplex-link-of-interfaces $n57 $n76 1.5Mb 470ms DropTail
 $ns duplex-link-of-interfaces $n57 $n69 1.5Mb 460ms DropTail
 $ns duplex-link-of-interfaces $n57 $n65 1.5Mb 130ms DropTail
+if {$verbose} { puts -nonewline "780..."; flush stdout }
 $ns duplex-link-of-interfaces $n57 $n64 1.5Mb 530ms DropTail
 $ns duplex-link-of-interfaces $n58 $n97 1.5Mb 310ms DropTail
 $ns duplex-link-of-interfaces $n58 $n94 1.5Mb 420ms DropTail
@@ -899,6 +991,7 @@ $ns duplex-link-of-interfaces $n58 $n82 1.5Mb 670ms DropTail
 $ns duplex-link-of-interfaces $n58 $n80 1.5Mb 600ms DropTail
 $ns duplex-link-of-interfaces $n58 $n75 1.5Mb 550ms DropTail
 $ns duplex-link-of-interfaces $n58 $n60 1.5Mb 680ms DropTail
+if {$verbose} { puts -nonewline "790..."; flush stdout }
 $ns duplex-link-of-interfaces $n59 $n97 1.5Mb 370ms DropTail
 $ns duplex-link-of-interfaces $n59 $n95 1.5Mb 440ms DropTail
 $ns duplex-link-of-interfaces $n59 $n88 1.5Mb 150ms DropTail
@@ -909,6 +1002,7 @@ $ns duplex-link-of-interfaces $n59 $n67 1.5Mb 560ms DropTail
 $ns duplex-link-of-interfaces $n59 $n62 1.5Mb 640ms DropTail
 $ns duplex-link-of-interfaces $n60 $n98 1.5Mb 570ms DropTail
 $ns duplex-link-of-interfaces $n60 $n95 1.5Mb 540ms DropTail
+if {$verbose} { puts -nonewline "800..."; flush stdout }
 $ns duplex-link-of-interfaces $n60 $n91 1.5Mb 230ms DropTail
 $ns duplex-link-of-interfaces $n60 $n90 1.5Mb 330ms DropTail
 $ns duplex-link-of-interfaces $n60 $n89 1.5Mb 250ms DropTail
@@ -919,6 +1013,7 @@ $ns duplex-link-of-interfaces $n60 $n77 1.5Mb 620ms DropTail
 $ns duplex-link-of-interfaces $n60 $n76 1.5Mb 500ms DropTail
 $ns duplex-link-of-interfaces $n60 $n74 1.5Mb 660ms DropTail
 $ns duplex-link-of-interfaces $n61 $n87 1.5Mb 60ms DropTail
+if {$verbose} { puts -nonewline "810..."; flush stdout }
 $ns duplex-link-of-interfaces $n61 $n77 1.5Mb 100ms DropTail
 $ns duplex-link-of-interfaces $n61 $n73 1.5Mb 560ms DropTail
 $ns duplex-link-of-interfaces $n61 $n69 1.5Mb 290ms DropTail
@@ -929,6 +1024,7 @@ $ns duplex-link-of-interfaces $n63 $n98 1.5Mb 740ms DropTail
 $ns duplex-link-of-interfaces $n63 $n96 1.5Mb 550ms DropTail
 $ns duplex-link-of-interfaces $n63 $n89 1.5Mb 820ms DropTail
 $ns duplex-link-of-interfaces $n63 $n78 1.5Mb 50ms DropTail
+if {$verbose} { puts -nonewline "820..."; flush stdout }
 $ns duplex-link-of-interfaces $n63 $n71 1.5Mb 300ms DropTail
 $ns duplex-link-of-interfaces $n63 $n67 1.5Mb 660ms DropTail
 $ns duplex-link-of-interfaces $n64 $n95 1.5Mb 620ms DropTail
@@ -939,6 +1035,7 @@ $ns duplex-link-of-interfaces $n64 $n71 1.5Mb 580ms DropTail
 $ns duplex-link-of-interfaces $n64 $n68 1.5Mb 840ms DropTail
 $ns duplex-link-of-interfaces $n64 $n65 1.5Mb 470ms DropTail
 $ns duplex-link-of-interfaces $n65 $n98 1.5Mb 640ms DropTail
+if {$verbose} { puts -nonewline "830..."; flush stdout }
 $ns duplex-link-of-interfaces $n65 $n87 1.5Mb 570ms DropTail
 $ns duplex-link-of-interfaces $n65 $n85 1.5Mb 460ms DropTail
 $ns duplex-link-of-interfaces $n65 $n84 1.5Mb 740ms DropTail
@@ -949,6 +1046,7 @@ $ns duplex-link-of-interfaces $n66 $n90 1.5Mb 220ms DropTail
 $ns duplex-link-of-interfaces $n66 $n87 1.5Mb 280ms DropTail
 $ns duplex-link-of-interfaces $n66 $n85 1.5Mb 110ms DropTail
 $ns duplex-link-of-interfaces $n66 $n81 1.5Mb 10ms DropTail
+if {$verbose} { puts -nonewline "840..."; flush stdout }
 $ns duplex-link-of-interfaces $n66 $n67 1.5Mb 350ms DropTail
 $ns duplex-link-of-interfaces $n67 $n97 1.5Mb 370ms DropTail
 $ns duplex-link-of-interfaces $n67 $n95 1.5Mb 130ms DropTail
@@ -959,6 +1057,7 @@ $ns duplex-link-of-interfaces $n67 $n73 1.5Mb 650ms DropTail
 $ns duplex-link-of-interfaces $n67 $n72 1.5Mb 430ms DropTail
 $ns duplex-link-of-interfaces $n68 $n99 1.5Mb 690ms DropTail
 $ns duplex-link-of-interfaces $n68 $n91 1.5Mb 530ms DropTail
+if {$verbose} { puts -nonewline "850..."; flush stdout }
 $ns duplex-link-of-interfaces $n68 $n87 1.5Mb 180ms DropTail
 $ns duplex-link-of-interfaces $n68 $n86 1.5Mb 230ms DropTail
 $ns duplex-link-of-interfaces $n68 $n85 1.5Mb 350ms DropTail
@@ -969,6 +1068,7 @@ $ns duplex-link-of-interfaces $n69 $n95 1.5Mb 250ms DropTail
 $ns duplex-link-of-interfaces $n69 $n83 1.5Mb 390ms DropTail
 $ns duplex-link-of-interfaces $n69 $n76 1.5Mb 330ms DropTail
 $ns duplex-link-of-interfaces $n69 $n73 1.5Mb 280ms DropTail
+if {$verbose} { puts -nonewline "860..."; flush stdout }
 $ns duplex-link-of-interfaces $n69 $n72 1.5Mb 160ms DropTail
 $ns duplex-link-of-interfaces $n70 $n93 1.5Mb 260ms DropTail
 $ns duplex-link-of-interfaces $n70 $n92 1.5Mb 850ms DropTail
@@ -979,6 +1079,7 @@ $ns duplex-link-of-interfaces $n70 $n82 1.5Mb 400ms DropTail
 $ns duplex-link-of-interfaces $n70 $n77 1.5Mb 160ms DropTail
 $ns duplex-link-of-interfaces $n71 $n99 1.5Mb 340ms DropTail
 $ns duplex-link-of-interfaces $n71 $n97 1.5Mb 160ms DropTail
+if {$verbose} { puts -nonewline "870..."; flush stdout }
 $ns duplex-link-of-interfaces $n71 $n94 1.5Mb 280ms DropTail
 $ns duplex-link-of-interfaces $n71 $n87 1.5Mb 370ms DropTail
 $ns duplex-link-of-interfaces $n71 $n86 1.5Mb 340ms DropTail
@@ -989,6 +1090,7 @@ $ns duplex-link-of-interfaces $n73 $n93 1.5Mb 660ms DropTail
 $ns duplex-link-of-interfaces $n73 $n92 1.5Mb 720ms DropTail
 $ns duplex-link-of-interfaces $n73 $n89 1.5Mb 410ms DropTail
 $ns duplex-link-of-interfaces $n73 $n83 1.5Mb 130ms DropTail
+if {$verbose} { puts -nonewline "880..."; flush stdout }
 $ns duplex-link-of-interfaces $n73 $n81 1.5Mb 330ms DropTail
 $ns duplex-link-of-interfaces $n73 $n76 1.5Mb 350ms DropTail
 $ns duplex-link-of-interfaces $n74 $n98 1.5Mb 100ms DropTail
@@ -999,6 +1101,7 @@ $ns duplex-link-of-interfaces $n74 $n84 1.5Mb 420ms DropTail
 $ns duplex-link-of-interfaces $n74 $n83 1.5Mb 830ms DropTail
 $ns duplex-link-of-interfaces $n74 $n81 1.5Mb 370ms DropTail
 $ns duplex-link-of-interfaces $n75 $n92 1.5Mb 910ms DropTail
+if {$verbose} { puts -nonewline "890..."; flush stdout }
 $ns duplex-link-of-interfaces $n75 $n91 1.5Mb 240ms DropTail
 $ns duplex-link-of-interfaces $n75 $n90 1.5Mb 640ms DropTail
 $ns duplex-link-of-interfaces $n75 $n82 1.5Mb 120ms DropTail
@@ -1009,6 +1112,7 @@ $ns duplex-link-of-interfaces $n76 $n82 1.5Mb 190ms DropTail
 $ns duplex-link-of-interfaces $n76 $n77 1.5Mb 350ms DropTail
 $ns duplex-link-of-interfaces $n77 $n88 1.5Mb 430ms DropTail
 $ns duplex-link-of-interfaces $n77 $n81 1.5Mb 360ms DropTail
+if {$verbose} { puts -nonewline "900..."; flush stdout }
 $ns duplex-link-of-interfaces $n77 $n80 1.5Mb 600ms DropTail
 $ns duplex-link-of-interfaces $n78 $n94 1.5Mb 600ms DropTail
 $ns duplex-link-of-interfaces $n78 $n83 1.5Mb 390ms DropTail
@@ -1019,6 +1123,7 @@ $ns duplex-link-of-interfaces $n79 $n88 1.5Mb 80ms DropTail
 $ns duplex-link-of-interfaces $n79 $n85 1.5Mb 270ms DropTail
 $ns duplex-link-of-interfaces $n80 $n95 1.5Mb 410ms DropTail
 $ns duplex-link-of-interfaces $n80 $n87 1.5Mb 500ms DropTail
+if {$verbose} { puts -nonewline "910..."; flush stdout }
 $ns duplex-link-of-interfaces $n80 $n82 1.5Mb 730ms DropTail
 $ns duplex-link-of-interfaces $n81 $n97 1.5Mb 190ms DropTail
 $ns duplex-link-of-interfaces $n81 $n94 1.5Mb 40ms DropTail
@@ -1029,6 +1134,7 @@ $ns duplex-link-of-interfaces $n82 $n85 1.5Mb 610ms DropTail
 $ns duplex-link-of-interfaces $n83 $n98 1.5Mb 730ms DropTail
 $ns duplex-link-of-interfaces $n83 $n96 1.5Mb 460ms DropTail
 $ns duplex-link-of-interfaces $n83 $n95 1.5Mb 650ms DropTail
+if {$verbose} { puts -nonewline "920..."; flush stdout }
 $ns duplex-link-of-interfaces $n83 $n84 1.5Mb 760ms DropTail
 $ns duplex-link-of-interfaces $n84 $n95 1.5Mb 260ms DropTail
 $ns duplex-link-of-interfaces $n84 $n89 1.5Mb 910ms DropTail
@@ -1039,6 +1145,7 @@ $ns duplex-link-of-interfaces $n86 $n99 1.5Mb 600ms DropTail
 $ns duplex-link-of-interfaces $n86 $n97 1.5Mb 330ms DropTail
 $ns duplex-link-of-interfaces $n86 $n95 1.5Mb 530ms DropTail
 $ns duplex-link-of-interfaces $n86 $n94 1.5Mb 550ms DropTail
+if {$verbose} { puts -nonewline "930..."; flush stdout }
 $ns duplex-link-of-interfaces $n86 $n87 1.5Mb 390ms DropTail
 $ns duplex-link-of-interfaces $n88 $n99 1.5Mb 450ms DropTail
 $ns duplex-link-of-interfaces $n88 $n96 1.5Mb 80ms DropTail
@@ -1049,6 +1156,7 @@ $ns duplex-link-of-interfaces $n90 $n97 1.5Mb 410ms DropTail
 $ns duplex-link-of-interfaces $n90 $n96 1.5Mb 200ms DropTail
 $ns duplex-link-of-interfaces $n90 $n92 1.5Mb 290ms DropTail
 $ns duplex-link-of-interfaces $n90 $n91 1.5Mb 510ms DropTail
+if {$verbose} { puts -nonewline "940..."; flush stdout }
 $ns duplex-link-of-interfaces $n91 $n94 1.5Mb 380ms DropTail
 $ns duplex-link-of-interfaces $n92 $n98 1.5Mb 350ms DropTail
 $ns duplex-link-of-interfaces $n92 $n97 1.5Mb 640ms DropTail
@@ -1059,10 +1167,12 @@ $ns duplex-link-of-interfaces $n93 $n96 1.5Mb 470ms DropTail
 $ns duplex-link-of-interfaces $n94 $n96 1.5Mb 20ms DropTail
 $ns duplex-link-of-interfaces $n94 $n95 1.5Mb 250ms DropTail
 $ns duplex-link-of-interfaces $n97 $n99 1.5Mb 490ms DropTail
+if {$verbose} { puts -nonewline "950"; flush stdout }
 
 set ctrmcastcomp [new CtrMcastComp $ns]
 set ctrrpcomp [new CtrRPComp $ns]
 
+if {$verbose} { puts -nonewline "creating CtrMcasts 0..."; flush stdout }
 set ctrmcast0 [new CtrMcast $ns $n0 $ctrmcastcomp [list 1 1]]
 set ctrmcast1 [new CtrMcast $ns $n1 $ctrmcastcomp [list 1 1]]
 set ctrmcast2 [new CtrMcast $ns $n2 $ctrmcastcomp [list 1 1]]
@@ -1073,6 +1183,7 @@ set ctrmcast6 [new CtrMcast $ns $n6 $ctrmcastcomp [list 1 1]]
 set ctrmcast7 [new CtrMcast $ns $n7 $ctrmcastcomp [list 1 1]]
 set ctrmcast8 [new CtrMcast $ns $n8 $ctrmcastcomp [list 1 1]]
 set ctrmcast9 [new CtrMcast $ns $n9 $ctrmcastcomp [list 1 1]]
+if {$verbose} { puts -nonewline "10..."; flush stdout }
 set ctrmcast10 [new CtrMcast $ns $n10 $ctrmcastcomp [list 1 1]]
 set ctrmcast11 [new CtrMcast $ns $n11 $ctrmcastcomp [list 1 1]]
 set ctrmcast12 [new CtrMcast $ns $n12 $ctrmcastcomp [list 1 1]]
@@ -1083,6 +1194,7 @@ set ctrmcast16 [new CtrMcast $ns $n16 $ctrmcastcomp [list 1 1]]
 set ctrmcast17 [new CtrMcast $ns $n17 $ctrmcastcomp [list 1 1]]
 set ctrmcast18 [new CtrMcast $ns $n18 $ctrmcastcomp [list 1 1]]
 set ctrmcast19 [new CtrMcast $ns $n19 $ctrmcastcomp [list 1 1]]
+if {$verbose} { puts -nonewline "20..."; flush stdout }
 set ctrmcast20 [new CtrMcast $ns $n20 $ctrmcastcomp [list 1 1]]
 set ctrmcast21 [new CtrMcast $ns $n21 $ctrmcastcomp [list 1 1]]
 set ctrmcast22 [new CtrMcast $ns $n22 $ctrmcastcomp [list 1 1]]
@@ -1093,6 +1205,7 @@ set ctrmcast26 [new CtrMcast $ns $n26 $ctrmcastcomp [list 1 1]]
 set ctrmcast27 [new CtrMcast $ns $n27 $ctrmcastcomp [list 1 1]]
 set ctrmcast28 [new CtrMcast $ns $n28 $ctrmcastcomp [list 1 1]]
 set ctrmcast29 [new CtrMcast $ns $n29 $ctrmcastcomp [list 1 1]]
+if {$verbose} { puts -nonewline "30..."; flush stdout }
 set ctrmcast30 [new CtrMcast $ns $n30 $ctrmcastcomp [list 1 1]]
 set ctrmcast31 [new CtrMcast $ns $n31 $ctrmcastcomp [list 1 1]]
 set ctrmcast32 [new CtrMcast $ns $n32 $ctrmcastcomp [list 1 1]]
@@ -1103,6 +1216,7 @@ set ctrmcast36 [new CtrMcast $ns $n36 $ctrmcastcomp [list 1 1]]
 set ctrmcast37 [new CtrMcast $ns $n37 $ctrmcastcomp [list 1 1]]
 set ctrmcast38 [new CtrMcast $ns $n38 $ctrmcastcomp [list 1 1]]
 set ctrmcast39 [new CtrMcast $ns $n39 $ctrmcastcomp [list 1 1]]
+if {$verbose} { puts -nonewline "40..."; flush stdout }
 set ctrmcast40 [new CtrMcast $ns $n40 $ctrmcastcomp [list 1 1]]
 set ctrmcast41 [new CtrMcast $ns $n41 $ctrmcastcomp [list 1 1]]
 set ctrmcast42 [new CtrMcast $ns $n42 $ctrmcastcomp [list 1 1]]
@@ -1113,6 +1227,7 @@ set ctrmcast46 [new CtrMcast $ns $n46 $ctrmcastcomp [list 1 1]]
 set ctrmcast47 [new CtrMcast $ns $n47 $ctrmcastcomp [list 1 1]]
 set ctrmcast48 [new CtrMcast $ns $n48 $ctrmcastcomp [list 1 1]]
 set ctrmcast49 [new CtrMcast $ns $n49 $ctrmcastcomp [list 1 1]]
+if {$verbose} { puts -nonewline "50..."; flush stdout }
 set ctrmcast50 [new CtrMcast $ns $n50 $ctrmcastcomp [list 1 1]]
 set ctrmcast51 [new CtrMcast $ns $n51 $ctrmcastcomp [list 1 1]]
 set ctrmcast52 [new CtrMcast $ns $n52 $ctrmcastcomp [list 1 1]]
@@ -1123,6 +1238,7 @@ set ctrmcast56 [new CtrMcast $ns $n56 $ctrmcastcomp [list 1 1]]
 set ctrmcast57 [new CtrMcast $ns $n57 $ctrmcastcomp [list 1 1]]
 set ctrmcast58 [new CtrMcast $ns $n58 $ctrmcastcomp [list 1 1]]
 set ctrmcast59 [new CtrMcast $ns $n59 $ctrmcastcomp [list 1 1]]
+if {$verbose} { puts -nonewline "60..."; flush stdout }
 set ctrmcast60 [new CtrMcast $ns $n60 $ctrmcastcomp [list 1 1]]
 set ctrmcast61 [new CtrMcast $ns $n61 $ctrmcastcomp [list 1 1]]
 set ctrmcast62 [new CtrMcast $ns $n62 $ctrmcastcomp [list 1 1]]
@@ -1133,6 +1249,7 @@ set ctrmcast66 [new CtrMcast $ns $n66 $ctrmcastcomp [list 1 1]]
 set ctrmcast67 [new CtrMcast $ns $n67 $ctrmcastcomp [list 1 1]]
 set ctrmcast68 [new CtrMcast $ns $n68 $ctrmcastcomp [list 1 1]]
 set ctrmcast69 [new CtrMcast $ns $n69 $ctrmcastcomp [list 1 1]]
+if {$verbose} { puts -nonewline "70..."; flush stdout }
 set ctrmcast70 [new CtrMcast $ns $n70 $ctrmcastcomp [list 1 1]]
 set ctrmcast71 [new CtrMcast $ns $n71 $ctrmcastcomp [list 1 1]]
 set ctrmcast72 [new CtrMcast $ns $n72 $ctrmcastcomp [list 1 1]]
@@ -1143,6 +1260,7 @@ set ctrmcast76 [new CtrMcast $ns $n76 $ctrmcastcomp [list 1 1]]
 set ctrmcast77 [new CtrMcast $ns $n77 $ctrmcastcomp [list 1 1]]
 set ctrmcast78 [new CtrMcast $ns $n78 $ctrmcastcomp [list 1 1]]
 set ctrmcast79 [new CtrMcast $ns $n79 $ctrmcastcomp [list 1 1]]
+if {$verbose} { puts -nonewline "80..."; flush stdout }
 set ctrmcast80 [new CtrMcast $ns $n80 $ctrmcastcomp [list 1 1]]
 set ctrmcast81 [new CtrMcast $ns $n81 $ctrmcastcomp [list 1 1]]
 set ctrmcast82 [new CtrMcast $ns $n82 $ctrmcastcomp [list 1 1]]
@@ -1153,6 +1271,7 @@ set ctrmcast86 [new CtrMcast $ns $n86 $ctrmcastcomp [list 1 1]]
 set ctrmcast87 [new CtrMcast $ns $n87 $ctrmcastcomp [list 1 1]]
 set ctrmcast88 [new CtrMcast $ns $n88 $ctrmcastcomp [list 1 1]]
 set ctrmcast89 [new CtrMcast $ns $n89 $ctrmcastcomp [list 1 1]]
+if {$verbose} { puts -nonewline "90..."; flush stdout }
 set ctrmcast90 [new CtrMcast $ns $n90 $ctrmcastcomp [list 1 1]]
 set ctrmcast91 [new CtrMcast $ns $n91 $ctrmcastcomp [list 1 1]]
 set ctrmcast92 [new CtrMcast $ns $n92 $ctrmcastcomp [list 1 1]]
@@ -1163,6 +1282,7 @@ set ctrmcast96 [new CtrMcast $ns $n96 $ctrmcastcomp [list 1 1]]
 set ctrmcast97 [new CtrMcast $ns $n97 $ctrmcastcomp [list 1 1]]
 set ctrmcast98 [new CtrMcast $ns $n98 $ctrmcastcomp [list 1 1]]
 set ctrmcast99 [new CtrMcast $ns $n99 $ctrmcastcomp [list 1 1]]
+if {$verbose} { puts "100"; flush stdout }
 
 $ns compute-routes
 $ctrrpcomp compute-rpset
@@ -1207,5 +1327,6 @@ $ns at 11 "$sender start"
 
 # START ns
 $ns at 101 "exit 0"
+if {$verbose} { puts "starting"; flush stdout }
 $ns run
 
