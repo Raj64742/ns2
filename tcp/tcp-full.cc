@@ -69,9 +69,10 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.3 1997/07/25 05:26:01 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.4 1997/07/25 09:10:45 gnguyen Exp $ (LBL)";
 #endif
 
+#include <iostream.h>
 #include "Tcl.h"
 #include "ip.h"
 #include "tcp-full.h"
@@ -182,9 +183,9 @@ FullTcpAgent::advance(int np)
 	//
 	if (state_ > TCPS_ESTABLISHED) {
 		double now = Scheduler::instance().clock();
-		fprintf(stderr,
-		 "%f: FullTcpAgent::advance(%s): cannot advance while in state %d\n",
-		 now, name(), state_);
+		cerr << now << ": FullTcpAgent::advance(" << name()
+			<< "): cannot advance while in state "
+			<< state_ << "\n";
 		return;
 	} else if (state_ == TCPS_CLOSED)
 		connect();		// initiate new connection
@@ -511,8 +512,8 @@ void FullTcpAgent::timeout(int tno)
 		sched(delack_interval_, TCP_TIMER_DELACK);
 	} else {
 		double now = Scheduler::instance().clock();
-		fprintf(stderr, "%f: (%s) UNKNOWN TIMEOUT %d\n",
-			now, name(), tno);
+		cerr << now << ": (" << name()
+			<< ") UNKNOWN TIMEOUT " << tno << "\n";
 	}
 }
 
@@ -600,17 +601,16 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		if (tiflags & TH_ACK) {
 			double now = Scheduler::instance().clock();
 			// ACK shouldn't be on here
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): got ACK(%d) while in LISTEN\n",
-				now, name(), ackno);
+			cerr << now << ": FullTcpAgent::recv(" << name()
+				<< "): got ACK(" << ackno
+				<< ") while in LISTEN\n";
 			goto drop;
 		}
 		if ((tiflags & TH_SYN) == 0) {
 			double now = Scheduler::instance().clock();
 			// we're looking for a SYN in return
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): got a non-SYN while in LISTEN\n",
-				now, name());
+			cerr << now << ": FullTcpAgent::recv(" << name()
+				<< "): got a non-SYN while in LISTEN\n";
 			goto drop;
 		}
 		flags_ |= TF_ACKNOW;
@@ -622,17 +622,16 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		if ((tiflags & TH_ACK) && (ackno > maxseq_)) {
 			double now = Scheduler::instance().clock();
 			// not an ACK for our SYN, discard
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): bad ACK (%d) for our SYN(%d)\n",
-			        now, name(), ackno, maxseq_);
+			cerr << now << ": FullTcpAgent::recv(" << name()
+				<< "): bad ACK (" << ackno
+				<< ") for our SYN(" << maxseq_ << ")\n";
 			goto drop;
 		}
 		if ((tiflags & TH_SYN) == 0) {
 			double now = Scheduler::instance().clock();
 			// we're looking for a SYN in return
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): no SYN for our SYN(%d)\n",
-			        now, name(), maxseq_);
+			cerr << now << ": FullTcpAgent::recv(" << name()
+				<< "): no SYN for our SYN(" << maxseq_ <<")\n";
 			goto drop;
 		}
 		rcv_nxt_ = tcph->seqno();	// initial expected seq#
@@ -691,16 +690,16 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 
 	if (tiflags & TH_SYN) {
 		double now = Scheduler::instance().clock();
-		fprintf(stderr,
-		    "%f: FullTcpAgent::recv(%s) received unexpected SYN (state:%d)\n",
-		        now, name(), state_);
+		cerr << now << ": FullTcpAgent::recv(" << name()
+			<<") received unexpected SYN (state:" <<state_ <<")\n";
 		goto drop;
 	}
 
 	if ((tiflags & TH_ACK) == 0) {
 		double now = Scheduler::instance().clock();
-		fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (seq %d)\n",
-			now, name(), tcph->seqno());
+		cerr << now << ": FullTcpAgent::recv(" << name()
+			<< ") got packet lacking ACK (seq " << tcph->seqno()
+			<< ")\n";
 		goto drop;
 	}
 
@@ -815,9 +814,9 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		if (ackno > maxseq_) {
 			double now = Scheduler::instance().clock();
 			// ack more than we sent(!?)
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s) too-big ACK (ack: %d, maxseq:%d)\n",
-				now, name(), ackno, maxseq_);
+			cerr << now << ": FullTcpAgent::recv("
+				<< name() << ") too-big ACK (ack: "
+				<< ackno << ", maxseq:" << maxseq_ << ")\n";
 			goto dropafterack;
 		}
 

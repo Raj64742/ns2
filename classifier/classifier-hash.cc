@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.10 1997/07/21 21:16:46 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.11 1997/07/25 09:07:14 gnguyen Exp $ (LBL)";
 #endif
 
 //
@@ -154,8 +154,8 @@ public:
 	SrcDestHashClassifierClass() : TclClass("Classifier/Hash/SrcDest") {}
 	TclObject* create(int argc, const char*const* argv) {
 		if (argc < 5) {
-			fprintf(stderr, "SrcDestHashClassifier ctor requires buckets arg\n");
-			exit(1);
+			perror("SrcDestHashClassifier ctor requires buckets arg\n");
+			abort();
 		}
 		int buckets = atoi(argv[4]);
 		return (new SrcDestHashClassifier(buckets));
@@ -167,8 +167,8 @@ public:
 	FidHashClassifierClass() : TclClass("Classifier/Hash/Fid") {}
 	TclObject* create(int argc, const char*const* argv) {
 		if (argc < 5) {
-			fprintf(stderr, "FidHashClassifier ctor requires buckets arg\n");
-			exit(1);
+			perror("FidHashClassifier ctor requires buckets arg\n");
+			abort();
 		}
 		int buckets = atoi(argv[4]);
 		return (new FidHashClassifier(buckets));
@@ -182,8 +182,8 @@ public:
 
 	TclObject* create(int argc, const char*const* argv) {
 		if (argc < 5) {
-			fprintf(stderr, "SrcDstFidHashClassifier ctor requires buckets arg\n");
-			exit(1);
+			perror("SrcDstFidHashClassifier ctor requires buckets arg\n");
+			abort();
 		}
 		int buckets = atoi(argv[4]);
 		return (new SrcDestFidHashClassifier(buckets));
@@ -204,7 +204,7 @@ HashClassifier::HashClassifier(int b) : mask_(~0), shift_(0),
 	if (htab_ != NULL)
 		memset(htab_, '\0', sizeof(hnode) * buckets_);
 	else
-		fprintf(stderr, "HashClassifier: out of memory\n");
+		perror("HashClassifier: out of memory\n");
 }
 
 HashClassifier::~HashClassifier()

@@ -1,12 +1,9 @@
-/* $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcplib-telnet.cc,v 1.1 1996/12/19 03:22:46 mccanne Exp $ */
+/* $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcplib-telnet.cc,v 1.2 1997/07/25 09:10:47 gnguyen Exp $ */
 
 /* Generate telnet originator interarrivals from tcplib distribution. */
 
-#include "random.h"
-
 #include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
+#include "random.h"
 
 static double tcplib_telnet[] = {
 0.000606425,0.000617809,0.000629598,0.000643143,0.000643628,
@@ -2012,18 +2009,14 @@ static double tcplib_telnet[] = {
 };
 
 double tcplib_telnet_interarrival()
-	{
+{
 	int pos = int(Random::uniform() * 10000.0);
-	if ( pos < 0 || pos >= 10000 )
-		{
-		fprintf( stderr,
-	"oops, bug in tcplib_telnet_interarrival, pos = %d\n",
-			pos);
-		exit( 1 );
-		}
-
-	return tcplib_telnet[pos];
+	if ( pos < 0 || pos >= 10000 ) {
+		perror("oops, bug in tcplib_telnet_interarrival, pos = %d\n");
+		abort();
 	}
+	return tcplib_telnet[pos];
+}
 
 #if 0
 int main( int argc, char **argv )

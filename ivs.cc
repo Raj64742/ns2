@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.6 1997/07/22 20:49:15 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.7 1997/07/25 09:10:45 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -328,8 +328,8 @@ int IvsReceiver::lossMeter(double timeDiff, u_int32_t seq, double maxrtt)
 		nextSeq_ = seq + 1;
 	} else {
 		/* XXX can't happen in current ns simulations */
-		fprintf(stderr, "ns: ivs rcvr: seq number went backward\n");
-		exit(1);
+		perror("ns: ivs rcvr: seq number went backward\n");
+		abort();
 	}
 
 	/* update the calculation of the variance in the rtt */
