@@ -15,6 +15,12 @@
  * IMPLIED WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
+
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.13 1997/07/21 21:56:19 kfall Exp $ (LBL)";
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/types.h>
@@ -27,7 +33,7 @@
 static class RenoTcpClass : public TclClass {
 public:
 	RenoTcpClass() : TclClass("Agent/TCP/Reno") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new RenoTcpAgent());
 	}
 } class_reno;
@@ -59,7 +65,6 @@ RenoTcpAgent::RenoTcpAgent() : TcpAgent(), dupwnd_(0)
 void RenoTcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		fprintf(stderr,

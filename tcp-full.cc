@@ -67,6 +67,11 @@
  *	to take longer to start up than if we be sure to ack it quickly.
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.2 1997/07/21 22:07:13 kfall Exp $ (LBL)";
+#endif
+
 #include "Tcl.h"
 #include "ip.h"
 #include "tcp-full.h"
@@ -80,7 +85,7 @@
 static class FullTcpClass : public TclClass { 
 public:
     FullTcpClass() : TclClass("Agent/TCP/FullTcp") {}
-    TclObject* create(int argc, const char*const* argv) { 
+    TclObject* create(int, const char*const*) { 
         return (new FullTcpAgent());
     }
 } class_full;
@@ -971,7 +976,7 @@ drop:
 	return;
 }
 
-void FullTcpAgent::reset_rtx_timer(int mild)
+void FullTcpAgent::reset_rtx_timer(int /* mild */)
 {
 	// cancel old timer,
 	// set a new one

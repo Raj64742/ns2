@@ -32,8 +32,8 @@
 
 
 #ifndef lint
-static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.6 1997/07/09 17:51:46 heideman Exp $ (NCSU/IBM)";
+static const char rcsid[] =
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.7 1997/07/21 22:03:05 kfall Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -92,13 +92,13 @@ protected:
 static class RBPVegasTcpClass : public TclClass {
 public:
 	RBPVegasTcpClass() : TclClass("Agent/TCP/Vegas/RBP") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new RBPVegasTcpAgent());
 	}
 } class_vegas_rbp;
 
 
-void RBPVegasPaceTimer::expire(Event *e) { a_->paced_send_one(); }
+void RBPVegasPaceTimer::expire(Event *) { a_->paced_send_one(); }
 
 RBPVegasTcpAgent::RBPVegasTcpAgent() : TcpAgent(),
 	rbp_mode_(RBP_OFF),
@@ -245,13 +245,13 @@ protected:
 static class RBPRenoTcpClass : public TclClass {
 public:
 	RBPRenoTcpClass() : TclClass("Agent/TCP/Reno/RBP") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new RBPRenoTcpAgent());
 	}
 } class_reno_rbp;
 
 
-void RBPRenoPaceTimer::expire(Event *e) { a_->paced_send_one(); }
+void RBPRenoPaceTimer::expire(Event *) { a_->paced_send_one(); }
 
 RBPRenoTcpAgent::RBPRenoTcpAgent() : TcpAgent(),
 	rbp_mode_(RBP_OFF),
