@@ -30,7 +30,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.10 1999/09/24 23:44:37 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.11 2000/01/07 06:25:32 sfloyd Exp $
 
 #include "rap.h"
 
@@ -96,6 +96,7 @@ RapAgent::RapAgent() : Agent(PT_RAP_DATA), ipgTimer_(this), rttTimer_(this),
 
 	bind("ipg_", &ipg_);		// Default 2 seconds
 	bind("beta_", &beta_);	// Default 0.5
+	bind("alpha_", &alpha_);	// Default 1.0
 
 	bind("srtt_", &srtt_);	// Default 2 seconds
 	bind("variance_", &variance_);// Default 0

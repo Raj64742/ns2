@@ -30,7 +30,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.h,v 1.3 1999/06/09 21:54:09 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.h,v 1.4 2000/01/07 06:25:32 sfloyd Exp $
 
 #ifndef RAP_H
 #define RAP_H
@@ -178,7 +178,7 @@ protected:
 		if (fixIpg_ != 0) 
 			ipg_ = fixIpg_;
 		else 
-			ipg_ *= srtt_ / (ipg_ + srtt_);
+			ipg_ *= srtt_ / (alpha_ * ipg_ + srtt_);
 	}
   
 	// Adjust RTT estimate based on sample
@@ -205,6 +205,7 @@ protected:
 
 	TracedDouble ipg_;		// Inter packet gap
 	double beta_;			// Decrease factor
+	double alpha_;			// Increase factor 
 
 	TracedDouble srtt_;		// Smoothened round trip time
 	double variance_;		// Variance in rtt samples
