@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.540 2002/09/16 18:22:51 haldar Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.541 2002/09/17 03:59:12 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -19,6 +19,14 @@ with the most recent changes coming first.
 [PENDING RELEASE DATE]</h3>
 <ul>
 
+<p><li><b>[Sally Floyd]</b>
+Mon Sep 16 20:52:25 PDT 2002
+Added keepSeqnoStats_ to the QueueMonitor to keep records of the
+seqno in TCP data packets on that link.  This is illustrated
+in "./test-all-simple stats3" in the directory "tcl/test".  A comment
+in test-suite-simple.tcl also gives instructions for plotting this 
+and the RTTs on a graph.
+
 <p><li><b>[Padma Haldar]</b>
 Mon Sep 16 10:54:07 PDT 2002
 This round of changes for diffusion includes:
@@ -26,6 +34,7 @@ This round of changes for diffusion includes:
 <li> sync'ing with pre-release version 3.1.2. Sync'ing with the final release version is pending subject to the release itself.
 <li> event-queue re-sturctured. added timers-manager abstraction. ns diffusion now supports remove-timer() and findevent() functions.
 <li> suppression of duplicate data in the network that results due to rapidly subscribing/unsubscribing apps.
+</ul>
 
 <p><li><b>[Sally Floyd]</b>
 Sun Sep 15 22:43:01 PDT 2002
@@ -33,8 +42,7 @@ Added last_rtt_ to the TCP header to contain the most recent RTT
 measurement, in ms, from the TCP sender.  This is for statistics only. 
 Also added keepRTTstats_ to the QueueMonitor to keep records of the
 RTT measurements in TCP data packets on that link.  This is illustrated
-in "./test-all-simple stats3" in directory "tcl/lib".
-</ul>
+in "./test-all-simple stats3" in the directory "tcl/test".
 
 <p><li><b>[Alefiya Hussain]</b>
 Tue Aug  19 17:41:00 PDT 2002
