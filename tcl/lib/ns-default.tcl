@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.316 2003/06/03 03:35:54 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.317 2003/07/28 20:48:38 sfloyd Exp $
 
 
 #
@@ -734,6 +734,9 @@ Agent/TCP set bugFix_ true
 Agent/TCP set lessCareful_ false ;	# for the Less Careful variant of
 					# bugFix_, just for illustration.
 Agent/TCP set timestamps_ false
+Agent/TCP set ts_resetRTO_ false ;	# Added 2003/07/24.
+					# Set to true to un-back-off RTO
+					#   after any valid RTT measurement.
 Agent/TCP set slow_start_restart_ true
 Agent/TCP set restart_bugfix_ true
 # Agent/TCP set tcpTick_ 0.1
@@ -761,7 +764,6 @@ Agent/TCP set noFastRetrans_ false
 Agent/TCP set partial_ack_ false ;	# Variable added on 2002/12/28.
 					# Set to "true" to ensure sending
 					#  a packet on a partial ACK.
-
 Agent/TCP set dupacks_ 0
 Agent/TCP set ack_ 0
 Agent/TCP set cwnd_ 0

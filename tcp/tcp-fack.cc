@@ -95,6 +95,12 @@ void FackTcpAgent::oldack(Packet* pkt)
 	/* with timestamp option */
 	double tao = Scheduler::instance().clock() - tcph->ts_echo();
 	rtt_update(tao);
+	if (ts_resetRTO_) {
+		// From Andrei Gurtov
+		// FACK has not been updated to make sure the ECN works
+		//   correctly in this case - Sally.
+		t_backoff_ = 1;
+	}
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
 	awnd_ += wnd_th_ * cwnd_;

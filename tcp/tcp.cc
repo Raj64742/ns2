@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.146 2003/06/03 03:35:55 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.147 2003/07/28 20:48:38 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -131,6 +131,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("slow_start_restart_");
         delay_bind_init_one("restart_bugfix_");
         delay_bind_init_one("timestamps_");
+	delay_bind_init_one("ts_resetRTO_");
         delay_bind_init_one("maxburst_");
 	delay_bind_init_one("aggressive_maxburst_");
         delay_bind_init_one("maxcwnd_");
@@ -223,6 +224,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind_bool(varName, localName, "bugFix_", &bug_fix_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "lessCareful_", &less_careful_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "timestamps_", &ts_option_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "ts_resetRTO_", &ts_resetRTO_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "slow_start_restart_", &slow_start_restart_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "restart_bugfix_", &restart_bugfix_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxburst_", &maxburst_ , tracer)) return TCL_OK;
@@ -1170,8 +1172,6 @@ TcpAgent::slowdown(int how)
 	
 }
 
-
-
 /*
  * Process a packet that acks previously unacknowleged data.
  */
@@ -1199,9 +1199,19 @@ void TcpAgent::newack(Packet* pkt)
 	 */	
 	hdr_flags *fh = hdr_flags::access(pkt);
 	if (!fh->no_ts_) {
-		if (ts_option_)
+		if (ts_option_) {
 			rtt_update(now - tcph->ts_echo());
-
+			if (ts_resetRTO_ && (!ect_ || !ecn_backoff_ ||
+			    !hdr_flags::access(pkt)->ecnecho())) { 
+				// From Andrei Gurtov
+				/* 
+				 * Don't end backoff if still in ECN-Echo with
+			 	 * a congestion window of 1 packet. 
+				 */
+				t_backoff_ = 1;
+				ecn_backoff_ = 0;
+			}
+		}
 		if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
 			if (!ect_ || !ecn_backoff_ || 
 				!hdr_flags::access(pkt)->ecnecho()) {

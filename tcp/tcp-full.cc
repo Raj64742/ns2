@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.113 2002/07/24 04:34:18 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.114 2003/07/28 20:48:38 sfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1266,6 +1266,14 @@ FullTcpAgent::newack(Packet* pkt)
 			recent_age_ = now();
 			recent_ = tcph->ts();
 			rtt_update(now() - tcph->ts_echo());
+			if (ts_resetRTO_ && (!ect_ || !ecn_backoff_ ||
+		           !hdr_flags::access(pkt)->ecnecho())) { 
+				// From Andrei Gurtov
+				//
+                         	// Don't end backoff if still in ECN-Echo with
+                         	// a congestion window of 1 packet.
+				t_backoff_ = 1;
+			}
 		} else if (rtt_active_ && ackno > rtt_seq_) {
 			// got an RTT sample, record it
 			// "t_backoff_ = 1;" deleted by T. Kelly.

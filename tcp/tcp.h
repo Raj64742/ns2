@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.109 2003/06/03 03:35:55 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.110 2003/07/28 20:48:38 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -271,6 +271,11 @@ protected:
 	int less_careful_;	/* 1 for Less Careful variant of bug_fix_, */
 				/*  for illustration only  */
 	int ts_option_;		/* use RFC1323-like timestamps? */
+	int ts_resetRTO_;	/* Un-backoff RTO after any valid RTT, */
+				/*   including from a retransmitted pkt?  */
+				/* The old version was "false". */
+				/* But "true" gives better performance, and */
+                                /* seems conformant with RFC 2988. */
 	int maxburst_;		/* max # packets can send back-2-back */
 	int aggressive_maxburst_;	/* Send on a non-valid ack? */
 	int maxcwnd_;		/* max # cwnd can ever be */
