@@ -703,53 +703,53 @@ Test/DM4 instproc run {} {
 	$ns_ run
 }
 # testing lan topologies
-Class Test/DM5 -superclass TestSuite
-Test/DM5 instproc init topo {
-	source ../mcast/DM.tcl
+#Class Test/DM5 -superclass TestSuite
+#Test/DM5 instproc init topo {
+	#source ../mcast/DM.tcl
 
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net5e
-	set test_	DM5
-	$self next
-}
-Test/DM5 instproc run {} {
-	$self instvar ns_ node_ testName_
-	$ns_ rtproto Session
-	### Start multicast configuration
-	DM set PruneTimeout 0.3
+	#$self instvar net_ defNet_ test_
+	#set net_	$topo
+	#set defNet_	net5e
+	#set test_	DM5
+	#$self next
+#}
+#Test/DM5 instproc run {} {
+	#$self instvar ns_ node_ testName_
+	#$ns_ rtproto Session
+	#### Start multicast configuration
+	#DM set PruneTimeout 0.3
 	#DM set CacheMissMode dvmrp
-	set mproto DM
-	set mrthandle [$ns_ mrtproto $mproto  {}]
+	#set mproto DM
+	#set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 	
-	set udp0 [new Agent/UDP]
-	$ns_ attach-agent $node_(n4) $udp0
-	$udp0 set dst_ 0x8002
-	set cbr0 [new Application/Traffic/CBR]
-	$cbr0 attach-agent $udp0
+	#set udp0 [new Agent/UDP]
+	#$ns_ attach-agent $node_(n4) $udp0
+	#$udp0 set dst_ 0x8002
+	#set cbr0 [new Application/Traffic/CBR]
+	#$cbr0 attach-agent $udp0
 	
-	set rcvr [new Agent/LossMonitor]
-	$ns_ attach-agent $node_(n0) $rcvr
-	$ns_ attach-agent $node_(n1) $rcvr
-	$ns_ attach-agent $node_(n2) $rcvr
+	#set rcvr [new Agent/LossMonitor]
+	#$ns_ attach-agent $node_(n0) $rcvr
+	#$ns_ attach-agent $node_(n1) $rcvr
+	#$ns_ attach-agent $node_(n2) $rcvr
 	
-	$ns_ at 0.2 "$node_(n0) join-group  $rcvr 0x8002"
-	$ns_ at 0.3 "$node_(n1) join-group  $rcvr 0x8002"
-	$ns_ at 0.4 "$node_(n1) leave-group $rcvr 0x8002"
-	$ns_ at 0.5 "$node_(n2) join-group  $rcvr 0x8002"
-	$ns_ at 0.6 "$node_(n2) leave-group $rcvr 0x8002"
-	$ns_ at 0.7 "$node_(n0) leave-group $rcvr 0x8002"
+	#$ns_ at 0.2 "$node_(n0) join-group  $rcvr 0x8002"
+	#$ns_ at 0.3 "$node_(n1) join-group  $rcvr 0x8002"
+	#$ns_ at 0.4 "$node_(n1) leave-group $rcvr 0x8002"
+	#$ns_ at 0.5 "$node_(n2) join-group  $rcvr 0x8002"
+	#$ns_ at 0.6 "$node_(n2) leave-group $rcvr 0x8002"
+	#$ns_ at 0.7 "$node_(n0) leave-group $rcvr 0x8002"
 
 	####
 	
-	$ns_ at 0.1 "$cbr0 start"
-#	$ns_ at 0.11 "$node_(n4) dump-routes stdout"
-#	$ns_ at 0.25 "$node_(n0) dump-routes stdout"
-	$ns_ at 1.0 "$self finish 5e-nam"
+	#$ns_ at 0.1 "$cbr0 start"
+#	#$ns_ at 0.11 "$node_(n4) dump-routes stdout"
+#	#$ns_ at 0.25 "$node_(n0) dump-routes stdout"
+	#$ns_ at 1.0 "$self finish 5e-nam"
 	
-	$ns_ run
-}
+	#$ns_ run
+#}
 
 # Testing group join/leave in a simple topology, changing the RP set. 
 # The RP node also has a source.

@@ -1183,6 +1183,8 @@ validate
 validate.out
 vat.h
 vatrcvr.cc
+varp.cc 
+varp.h
 webcache/http.cc
 webcache/http.h
 webcache/http-aux.cc

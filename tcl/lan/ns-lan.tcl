@@ -1,3 +1,4 @@
+
 #
 # Copyright (c) 1997 Regents of the University of California.
 # All rights reserved.
@@ -112,10 +113,13 @@ Simulator instproc newLan {nodelist bw delay args} {
 # For convenience, use make-lan.  For more fine-grained control,
 # use newLan instead of make-lan.
 Simulator instproc make-lan {nodelist bw delay {llType LL} \
-		{ifqType Queue/DropTail} {macType Mac} {chanType Channel}} {
+		{ifqType Queue/DropTail} {macType Mac} \
+		{chanType Channel} {phyType Phy/WiredPhy}} {
 	set lan [new LanLink $self -llType $llType -ifqType $ifqType \
-			-macType $macType -chanType $chanType]
-	$lan addNode $nodelist $bw $delay $llType $ifqType $macType
+			-macType $macType -chanType $chanType \
+			-phyType $phyType]
+	$lan addNode $nodelist $bw $delay $llType $ifqType $macType \
+			$phyType
 
 	# added for nam trace purpose
 	$self instvar LanLinks_
@@ -155,25 +159,37 @@ Link/LanDuplex instproc trace {ns f} {
 
 Class NetIface -superclass Connector
 NetIface set ifqType_ Queue/DropTail
-NetIface set macType_ Mac/Csma/Cd
+
+#NetIface set macType_ Mac/Csma/Cd
+NetIface set macType_ Mac
+
+NetIface set phyType_ Phy/WiredPhy
+
 NetIface instproc ifqType {val} { $self set ifqType_ $val }
 NetIface instproc macType {val} { $self set macType_ $val }
+NetIface instproc phyType {val} { $self set phyType_ $val }
 
 NetIface instproc init {node bw args} {
 	set args [eval $self init-vars $args]
 	eval $self next $args
-	$self instvar ifqType_ macType_
-	$self instvar node_ lcl_ ifq_ mac_ drpT_ deqT_
+	$self instvar ifqType_ macType_ phyType_
+	$self instvar node_ lcl_ ifq_ mac_ phy_ drpT_ deqT_
 
 	set node_ $node
 	set lcl_ [new Classifier]
 	$lcl_ set offset_ [PktHdr_offset PacketHeader/Mac macSA_]
 	set ifq_ [new $ifqType_]
 	set mac_ [new $macType_]
+	set phy_ [new $phyType]
+	
 	$mac_ set bandwidth_ $bw
-
-	$mac_ target $lcl_
+	$mac_ up-target $lcl_
+	$mac down-target $phy_
+	
+	$phy_ up-target $mac_
+	
 	$ifq_ target $mac_
+	
 	$self target $ifq_
 }
 
@@ -227,17 +243,23 @@ NetIface instproc install-error {em macSA} {
 Class LanLink
 LanLink set llType_ LL
 LanLink set ifqType_ Queue/DropTail
-LanLink set macType_ Mac/Csma/Cd
+
+#LanLink set macType_ Mac/Csma/Cd
+LanLink set macType_ Mac
+
 LanLink set chanType_ Channel
+
+LanLink set phyType_ Phy/WiredPhy
 
 LanLink instproc llType {val} { $self set llType_ $val }
 LanLink instproc ifqType {val} { $self set ifqType_ $val }
 LanLink instproc macType {val} { $self set macType_ $val }
 LanLink instproc chanType {val} { $self set chanType_ $val }
+LanLink instproc phyType {val} { $self set phyType_ $val }
 
 LanLink instproc init {ns args} {
 	set args [eval $self init-vars $args]
-	$self instvar llType_ ifqType_ macType_ chanType_
+	$self instvar llType_ ifqType_ macType_ chanType_ phyType_
 	$self instvar ns_ nodelist_
 	$self instvar id_ channel_ mcl_ netIface_
 	$self instvar nid_
@@ -247,9 +269,10 @@ LanLink instproc init {ns args} {
 	set id_ 0
 	set nid_ [Node getid]
 	set channel_ [new $chanType_]
-	set mcl_ [new Classifier/Mac]
-	$mcl_ set offset_ [PktHdr_offset PacketHeader/Mac macDA_]
-	$channel_ target $mcl_
+	#set mcl_ [new Classifier/Mac]
+	#$mcl_ set offset_ [PktHdr_offset PacketHeader/Mac macDA_]
+	puts "TESTING>> "
+	#$channel_ target $mcl_
 }
 
 LanLink instproc nid {} {
@@ -281,8 +304,8 @@ LanLink instproc netIface {node} {
 
 # addNode:  add a new node to the LAN by creating LL, IFQ, MAC...
 LanLink instproc addNode {nodes bw delay {sllType ""} \
-		{ifqType ""} {macType ""} {dllType ""}} {
-	$self instvar llType_ ifqType_ macType_ chanType_
+		{ifqType ""} {macType ""} {phyType ""} {dllType ""}} {
+	$self instvar llType_ ifqType_ macType_ chanType_ phyType_
 	$self instvar id_ channel_ mcl_ netIface_ nid_
 	$self instvar ns_ nodelist_
 	$ns_ instvar link_
@@ -295,16 +318,19 @@ LanLink instproc addNode {nodes bw delay {sllType ""} \
 	if {$macType == ""} { set macType $macType_ }
 	if {$sllType == ""} { set sllType $llType_ }
 	if {$dllType == ""} { set dllType $llType_ }
-
+	if {$phyType == ""} { set phyType $phyType_ }
 
 	foreach src $nodes {
 		set nif [new NetIface $src $bw \
-				-ifqType $ifqType -macType $macType]
+				-ifqType $ifqType -macType $macType \
+				-phyType $phyType]
 		set mac [$nif set mac_]
-		$mac set addr_ [incr id_]
+		#$mac set addr_ [incr id_]
 		$mac channel $channel_
-		$mac classifier $mcl_
-		$mcl_ install $id_ $mac
+		set phy [$nif set phy_]
+		$phy channel $channel_
+		#$mac classifier $mcl_
+		#$mcl_ install $id_ $mac
 		$src addmac $mac
 		set netIface_($src) $nif
 

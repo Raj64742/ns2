@@ -30,8 +30,10 @@
 Class LanNode
 LanNode set ifqType_   Queue/DropTail
 LanNode set llType_    LL
-LanNode set macType_   Mac/Csma/Cd
+#LanNode set macType_   Mac/Csma/Cd
+LanNode set macType_   Mac
 LanNode set chanType_  Channel
+LanNode set phyType_   Phy/WiredPhy
 LanNode set address_   ""
 
 LanNode instproc address  {val} { $self set address_  $val }
@@ -41,12 +43,14 @@ LanNode instproc ifqType  {val} { $self set ifqType_  $val }
 LanNode instproc llType   {val} { $self set llType_   $val }
 LanNode instproc macType  {val} { $self set macType_  $val }
 LanNode instproc chanType {val} { $self set chanType_ $val }
+LanNode instproc phyType  {val} { $self set phyType_  $val }
 
 LanNode instproc init {ns args} {
 	set args [eval $self init-vars $args]
 	$self instvar bw_ delay_ ifqType_ llType_ macType_ chanType_
+	$self instvar phyType_
 	$self instvar ns_ nodelist_ defRouter_ cost_
-	$self instvar id_ address_ channel_ mcl_
+	$self instvar id_ address_ channel_ mcl_ varp_
 	$ns instvar Node_
 
 	$self next
@@ -73,27 +77,31 @@ LanNode instproc init {ns args} {
 		$defRouter_ switch $switch_
 	}
 	set channel_ [new $chanType_]
-	set mcl_ [new Classifier/Mac]
-	$mcl_ set offset_ [PktHdr_offset PacketHeader/Mac macDA_]
-	$channel_ target $mcl_
+	set varp_ [new VARPTable]
+	#set mcl_ [new Classifier/Mac]
+	#$mcl_ set offset_ [PktHdr_offset PacketHeader/Mac macDA_]
+	#$channel_ target $mcl_
 }
 
-LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} } {
-	$self instvar ifqType_ llType_ macType_ chanType_ 
+LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} \
+		{macType ""} {phyType ""}} {
+	$self instvar ifqType_ llType_ macType_ chanType_ phyType_
 	$self instvar id_ channel_ mcl_ lanIface_
-	$self instvar ns_ nodelist_ cost_
-	$ns_ instvar link_ Node_
+	$self instvar ns_ nodelist_ cost_ varp_
+	$ns_ instvar link_ Node_ 
 
 	if {$ifqType == ""} { set ifqType $ifqType_ }
 	if {$macType == ""} { set macType $macType_ }
 	if {$llType  == ""} { set llType $llType_ }
+	if {$phyType  == ""} { set phyType $phyType_ }
 
 	set vlinkcost [expr $cost_ / 2.0]
 	foreach src $nodes {
 		set nif [new LanIface $src $self \
 				-ifqType $ifqType \
 				-llType  $llType \
-				-macType $macType]
+				-macType $macType \
+				-phyType $phyType]
 		
 		set tr [$ns_ get-ns-traceall]
 		if {$tr != ""} {
@@ -104,20 +112,18 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} }
 			$nif nam-trace $ns_ $tr
 		}
 
+		
 		set ll [$nif set ll_]
-		$ll set bandwidth_ $bw
 		$ll set delay_ $delay
-
-		set mac [$nif set mac_]
-		set ipAddr [AddrParams set-hieraddr [$src node-addr]]
-		set macAddr [$self assign-mac $ipAddr] ;# cf LL's arp(int ip)
-		$mac set addr_ $macAddr
-		$mac set bandwidth_ $bw
-
-		$mac channel $channel_
-		$mac classifier $mcl_
-		$mcl_ install [$mac set addr_] $mac
-
+		$ll varp $varp_
+		
+		$varp_ mac-addr [[$nif set node_] id] \
+				[[$nif set mac_] id]
+		
+		set phy [$nif set phy_]
+		$phy channel $channel_
+		$channel_ addif $phy
+		
 		set lanIface_($src) $nif
 
 		$src add-neighbor $self
@@ -231,20 +237,23 @@ LanNode instproc split-addrstr addrstr {
 #------------------------------------------------------------
 Class LanIface 
 LanIface set ifqType_ Queue/DropTail
-LanIface set macType_ Mac/Csma/Cd
+#LanIface set macType_ Mac/Csma/Cd
+LanIface set macType_ Mac
 LanIface set llType_  LL
+LanIface set phyType_  Phy/WiredPhy
 
 LanIface instproc llType {val} { $self set llType_ $val }
 LanIface instproc ifqType {val} { $self set ifqType_ $val }
 LanIface instproc macType {val} { $self set macType_ $val }
+LanIface instproc phyType {val} { $self set phyType_ $val }
 
 LanIface instproc entry {} { $self set entry_ }
 LanIface instproc init {node lan args} {
 	set args [eval $self init-vars $args]
 	eval $self next $args
 
-	$self instvar llType_ ifqType_ macType_
-	$self instvar node_ lan_ ifq_ mac_ ll_
+	$self instvar llType_ ifqType_ macType_ phyType_
+	$self instvar node_ lan_ ifq_ mac_ ll_ phy_
 	$self instvar iface_ entry_
 
 	set node_ $node
@@ -254,13 +263,22 @@ LanIface instproc init {node lan args} {
 	set ifq_ [new $ifqType_]
 	set mac_ [new $macType_]
 	set iface_ [new NetworkInterface]
+	set phy_ [new $phyType_]
 
 	$ll_ set macDA_ -1	# bcast address if there is no LAN router
 	$ll_ lanrouter [$lan set defRouter_]
-	$ll_ recvtarget $iface_
-	$ll_ sendtarget $ifq_
+	$ll_ up-target $iface_
+	$ll_ down-target $ifq_
+	$ll_ mac $mac_
+	
 	$ifq_ target $mac_
-	$mac_ target $ll_
+	
+	#$mac_ target $ll_
+	$mac_ up-target $ll_
+	$mac_ down-target $phy_
+	$mac_ netif $phy_
+	
+	$phy_ up-target $mac_
 
 	$node addInterface $iface_
 	$iface_ target [$node entry]
@@ -375,18 +393,36 @@ Simulator instproc newLan {nodelist bw delay args} {
 
 # For convenience, use make-lan.  For more fine-grained control,
 # use newLan instead of make-lan.
+#{macType Mac/Csma/Cd} -> for now support for only Mac
 Simulator instproc make-lan {nodelist bw delay \
 		{llType LL} \
 		{ifqType Queue/DropTail} \
-		{macType Mac/Csma/Cd} \
-		{chanType Channel}} {
+		{macType Mac} \
+		{chanType Channel} \
+		{phyType Phy/WiredPhy}} {
 	set lan [new LanNode $self \
 			-bw $bw \
 			-delay $delay \
 			-llType $llType \
 			-ifqType $ifqType \
 			-macType $macType \
-			-chanType $chanType]
-	$lan addNode $nodelist $bw $delay $llType $ifqType $macType
+			-chanType $chanType \
+			-phyType $phyType]
+	$lan addNode $nodelist $bw $delay $llType $ifqType $macType \
+			$phyType
 	return $lan
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+

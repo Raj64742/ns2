@@ -1,27 +1,27 @@
 # ======================================================================
 # Default Script Options
 # ======================================================================
-set opt(chan)		newChannel/WirelessChannel
+set opt(chan)		Channel/WirelessChannel
 set opt(prop)		Propagation/TwoRayGround
 #set opt(netif)		NetIf/SharedMedia
 set opt(netif)		Phy/WirelessPhy
 #set opt(mac)		Mac/802_11
-set opt(mac)		newMac/new802_11
+set opt(mac)		Mac/802_11
 set opt(ifq)		Queue/DropTail/PriQueue
-set opt(ll)		newLL
+set opt(ll)		LL
 set opt(ant)            Antenna/OmniAntenna
 
-set opt(x)		0		;# X dimension of the topography
+set opt(x)		0	;# X dimension of the topography
 set opt(y)		0		;# Y dimension of the topography
-set opt(cp)		""		;# connection pattern file
-set opt(sc)		""		;# scenario file
+set opt(cp)		"../mobility/scene/cbr-50-20-4-512" ;# connection pattern file
+set opt(sc)		"../mobility/scene/scen-1500x300-50-0-20-1" ;# scenario file
 
 set opt(ifqlen)		50		;# max packet in ifq
 set opt(nn)		50		;# number of nodes
 set opt(seed)		0.0
 set opt(stop)		10.0		;# simulation time
 set opt(tr)		out.tr		;# trace file
-set opt(rp)             dsr            ;# routing protocol script
+set opt(rp)             dsdv            ;# routing protocol script
 set opt(lm)             "on"           ;# log movement
 
 # ======================================================================

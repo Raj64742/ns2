@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.23 1998/11/02 01:03:34 yuriy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.24 1999/01/04 19:59:07 haldar Exp $
  */
 
 #ifndef ns_trace_h
@@ -41,8 +41,9 @@
 #define NUMFLAGS 7
 
 #include <math.h> // floor
-#include "packet.h"
+#include <packet.h>
 #include "connector.h"
+
 
 class Trace : public Connector {
  protected:
@@ -51,6 +52,7 @@ class Trace : public Connector {
         nsaddr_t dst_;
         Tcl_Channel channel_;
         int callback_;
+
 #ifdef NAM_TRACE
 	Tcl_Channel namChan_;
 	char nwrk_ [256];
@@ -94,8 +96,9 @@ class DequeTrace : public Trace {
 public:
 	DequeTrace(int type) : Trace(type) {}
 	~DequeTrace();
-
 	void recv(Packet* p, Handler*);
+
 };
+
 
 #endif

@@ -49,8 +49,8 @@ proc usage {} {
 TestSuite instproc init {} {
 	$self instvar ns_ numnodes_ 
 	set ns_ [new Simulator]
-	$ns_ trace-all [open temp.rands w]
-	$ns_ namtrace-all [open temp.rands.nam w]
+	$ns_ trace-all [open ../../temp.rands w]
+	$ns_ namtrace-all [open ../../temp.rands.nam w]
 }
 
 TestSuite instproc finish {} {
@@ -60,7 +60,7 @@ TestSuite instproc finish {} {
 	$ns_ flush-trace
 	if { !$quiet } {
 		puts "running nam..."
-		exec nam temp.rands.nam &
+		exec ../../../nam-1/nam ../../temp.rands.nam &
 	}
 	exit 0
 }
@@ -76,8 +76,8 @@ Test/lan-routing-flat instproc init {} {
 		set node_($i) [$ns_ node]
 		lappend nodelist_ $node_($i)
 	}
-	set lan_ [$ns_ make-lan $nodelist_ 10Mb \
-			2ms LL Queue/DropTail Mac/Csma/Cd Channel]
+	#set lan_ [$ns_ make-lan $nodelist_ 10Mb 2ms LL Queue/DropTail Mac/Csma/Cd Channel]
+	set lan_ [$ns_ make-lan $nodelist_ 10Mb 2ms LL Queue/DropTail Mac Channel]
 	set node0_ [$ns_ node]
 	$ns_ duplex-link $node0_ $node_(1) 10Mb 2ms DropTail
 	$ns_ duplex-link-op $node0_ $node_(1) orient right
@@ -151,7 +151,7 @@ Test/lan-broadcast instproc init {} {
 		lappend nodelist_ $node_($i)
 	}
 	set lan_ [$ns_ newLan $nodelist_ 10Mb 2ms]
-	[$lan_ set mcl_] set bcast_ 1
+	##[$lan_ set mcl_] set bcast_ 1
 	
 	set node0_ [$ns_ node]
 	$ns_ duplex-link $node_(0) $node0_ 10Mb 2ms DropTail

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mac.cc,v 1.14 1998/09/04 18:12:56 yuriy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mac.cc,v 1.15 1999/01/04 19:58:56 haldar Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -64,7 +64,7 @@ public:
 void MacClassifier::recv(Packet* p, Handler*)
 {
 	Mac* mac;
-	hdr_mac* mh = hdr_mac::access(p);
+	hdr_mac* mh = HDR_MAC(p);
 
 	if (bcast_ || mh->macDA() == BCAST_ADDR || (mac = (Mac *)find(p)) == 0) {
 		// Replicate packets to all slots (broadcast)

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.19 1998/08/22 02:41:13 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.20 1999/01/04 19:59:05 haldar Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -136,7 +136,7 @@ Snoop::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "llsnoop") == 0) {
 			parent_ = (LLSnoop *) TclObject::lookup(argv[2]);
 			if (parent_)
-				recvtarget_ = parent_->recvtarget();
+				recvtarget_ = parent_->uptarget();
 			return (TCL_OK);
 		}
 		
@@ -199,7 +199,7 @@ Snoop::recv(Packet* p, Handler* h)
 		snoop_data(p);
 	else if (type == PT_ACK)
 		snoop_wired_ack(p);
-	parent_->sendto(p);	/* vector to LLSnoop's sendto() */
+	parent_->sendDown(p);	/* vector to LLSnoop's sendto() */
 }
 
 /*
@@ -667,7 +667,7 @@ Snoop::snoop_rxmit(Packet *pkt)
 			sh->sndTime() = s.clock();
 			sh->numRxmit() = sh->numRxmit() + 1;
 			Packet *p = pkt->copy();
-			parent_->sendto(p);
+			parent_->sendDown(p);
 		} else 
 			return SNOOP_PROPAGATE;
 	}
