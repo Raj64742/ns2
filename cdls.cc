@@ -146,15 +146,16 @@ Cdls::selectQueue()
 double
 Cdls::weight(IdPacketQueue* q)
 {
-	double w;
+	double w = 1;
 	if (q->length() == 0)
 		return 0;
 	if (q->em()) {
 		// w = 1.0 - q->em()->rate();
 		w = 1.0 / (q->em()->rate() + 1e-9);
 	}
-	else
-		w = (double) total_ / (numq_ * (q->total() + 1));
+	else {
+		// w = (double) total_ / (numq_ * (q->total() + 1));
+	}
 	return w;
 }
 
