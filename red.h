@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.17 2000/07/03 06:00:13 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.18 2000/07/04 01:57:27 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -94,6 +94,7 @@ struct edv {
 	TracedDouble v_ave;	/* average queue size */
 	TracedDouble v_prob1;	/* prob. of packet drop before "count". */
 	double v_slope;		/* used in computing average queue size */
+				/* obsolete */
 	double v_prob;		/* prob. of packet drop */
 	double v_a;		/* v_prob = v_a * v_ave + v_b */
 	double v_b;
@@ -120,6 +121,10 @@ class REDQueue : public Queue {
 	void run_estimator(int nqueued, int m);	/* Obsolete */
 	double estimator(int nqueued, int m, double ave, double q_w);
 	int drop_early(Packet* pkt);
+	double modify_p(double p, int count, int count_bytes, int bytes,
+	   int mean_pktsize, int wait, int size);
+ 	double calculate_p(double v_ave, double th_max, int gentle, 
+	  double v_a, double v_b, double v_c, double v_d, double max_p_inv);
 
 	LinkDelay* link_;	/* outgoing link */
 	int fifo_;		/* fifo queue? */

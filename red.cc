@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.46 2000/07/03 06:00:13 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.47 2000/07/04 01:57:27 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -211,34 +211,39 @@ Packet* REDQueue::deque()
 }
 
 /*
- * should the packet be dropped/marked due to a probabilistic drop?
+ * Calculate the drop probability.
  */
-
-int
-REDQueue::drop_early(Packet* pkt)
+double
+REDQueue::calculate_p(double v_ave, double th_max, int gentle, double v_a, 
+	double v_b, double v_c, double v_d, double max_p_inv)
 {
 	double p;
-	int no_ecn = 0;
-	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
-
-	if (edp_.gentle && edv_.v_ave >= edp_.th_max) {
+	if (gentle && v_ave >= th_max) {
 		// p ranges from max_p to 1 as the average queue
 		// size ranges from th_max to twice th_max 
-		p = edv_.v_c * edv_.v_ave + edv_.v_d;
-		no_ecn = 1;
+		p = v_c * v_ave + v_d;
 	} else {
 		// p ranges from 0 to max_p as the average queue
 		// size ranges from th_min to th_max 
-		p = edv_.v_a * edv_.v_ave + edv_.v_b;
-		p /= edp_.max_p_inv;
+		p = v_a * v_ave + v_b;
+		p /= max_p_inv;
 	}
-	edv_.v_prob1 = p;
-	if (edv_.v_prob1 > 1.0)
-		edv_.v_prob1 = 1.0;
-	double count1 = edv_.count;
-	if (edp_.bytes)
-		count1 = (double) (edv_.count_bytes/edp_.mean_pktsize);
-	if (edp_.wait) {
+	if (p > 1.0)
+		p = 1.0;
+	return p;
+}
+
+/*
+ * Make uniform instead of geometric interdrop periods.
+ */
+double
+REDQueue::modify_p(double p, int count, int count_bytes, int bytes, 
+   int mean_pktsize, int wait, int size)
+{
+	double count1 = (double) count;
+	if (bytes)
+		count1 = (double) (count_bytes/mean_pktsize);
+	if (wait) {
 		if (count1 * p < 1.0)
 			p = 0.0;
 		else if (count1 * p < 2.0)
@@ -251,12 +256,30 @@ REDQueue::drop_early(Packet* pkt)
 		else
 			p = 1.0;
 	}
-	if (edp_.bytes && p < 1.0) {
-		p = p * ch->size() / edp_.mean_pktsize;
+	if (bytes && p < 1.0) {
+		p = p * size / mean_pktsize;
 	}
 	if (p > 1.0)
 		p = 1.0;
-	edv_.v_prob = p;
+ 	return p;
+}
+
+/*
+ * 
+ */
+
+/*
+ * should the packet be dropped/marked due to a probabilistic drop?
+ */
+int
+REDQueue::drop_early(Packet* pkt)
+{
+	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
+
+	edv_.v_prob1 = calculate_p(edv_.v_ave, edp_.th_max, edp_.gentle, 
+  	  edv_.v_a, edv_.v_b, edv_.v_c, edv_.v_d, edp_.max_p_inv);
+	edv_.v_prob = modify_p(edv_.v_prob1, edv_.count, edv_.count_bytes,
+	  edp_.bytes, edp_.mean_pktsize, edp_.wait, ch->size());
 
 	// drop probability is computed, pick random number and act
 	double u = Random::uniform();
@@ -265,7 +288,7 @@ REDQueue::drop_early(Packet* pkt)
 		edv_.count = 0;
 		edv_.count_bytes = 0;
 		hdr_flags* hf = (hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
-		if (edp_.setbit && hf->ect() && no_ecn==0) {
+		if (edp_.setbit && hf->ect() && edv_.v_ave < edp_.th_max) {
 			hf->ce() = 1; 	// mark Congestion Experienced bit
 			return (0);	// no drop
 		} else {
