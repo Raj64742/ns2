@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.193 2000/07/19 04:45:02 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.194 2000/07/20 00:37:00 ratul Exp $
 
 #
 
@@ -876,22 +876,25 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	# construct the queue
 	set qtypeOrig $qtype
 	switch -exact $qtype {
-		ErrorModule {
-			if { [llength $args] > 0 } {
-				set q [eval new $qtype $args]
-			} else {
-				set q [new $qtype Fid]
-			}
+	    ErrorModule {
+		if { [llength $args] > 0 } {
+		    set q [eval new $qtype $args]
+		} else {
+		    set q [new $qtype Fid]
 		}
-		intserv {
-			set qtype [lindex $args 0]
-			set q [new Queue/$qtype]
+	    }
+	    intserv {
+		set qtype [lindex $args 0]
+		set q [new Queue/$qtype]
+	    }
+	    default {
+		if { [llength $args] == 0} {
+		    set q [new Queue/$qtype]
+		} else {
+		    set q [new Queue/$qtype $args]
 		}
-		default {
-			set q [new Queue/$qtype]
-		}
+	    }
 	}
-
 	# Now create the link
 	switch -exact $qtypeOrig {
 		RTM {
@@ -1237,20 +1240,26 @@ Simulator instproc namtrace-queue { n1 n2 {file ""} } {
 		set file $namtraceAllFile_
 	}
 	$link_([$n1 id]:[$n2 id]) nam-trace $self $file
+    
+	#added later for queue specific tracing events other than enque, deque and drop 
+	#as of now nam does not understand special events. 
+	#changes will have to be made to nam for it to understand events 
+	#like early drops if they are prefixed differently than "d". - ratul
+	set queue [$link_([$n1 id]:[$n2 id]) queue]
+	$queue attach-nam-traces $n1 $n2 $file
 }
 
 Simulator instproc trace-queue { n1 n2 {file ""} } {
-    $self instvar link_ traceAllFile_
-    if {$file == ""} {
-	if ![info exists traceAllFile_] return
-	set file $traceAllFile_
-    }
-    $link_([$n1 id]:[$n2 id]) trace $self $file
-    
-#added later for queue specific tracing events other than enque, 
-# deque and drop - ratul
-    set queue [$link_([$n1 id]:[$n2 id]) queue]
-    $queue attach-traces $n1 $n2 $file
+	$self instvar link_ traceAllFile_
+	if {$file == ""} {
+		if ![info exists traceAllFile_] return
+		set file $traceAllFile_
+	}
+	$link_([$n1 id]:[$n2 id]) trace $self $file
+	
+	#added later for queue specific tracing events other than enque, deque and drop - ratul
+	set queue [$link_([$n1 id]:[$n2 id]) queue]
+	$queue attach-traces $n1 $n2 $file
 }
 
 
@@ -1550,10 +1559,10 @@ Simulator instproc attach-fmon {lnk fm { edrop 0 } } {
 	set dsnoop [new SnoopQueue/Drop]
 	$lnk attach-monitors $isnoop $osnoop $dsnoop $fm
 	if { $edrop != 0 } {
-		set edsnoop [new SnoopQueue/EDrop]
-		$edsnoop set-monitor $fm
-		[$lnk queue] early-drop-target $edsnoop
-		$edsnoop target [$self set nullAgent_]
+	    set edsnoop [new SnoopQueue/EDrop]
+	    $edsnoop set-monitor $fm
+	    [$lnk queue] early-drop-target $edsnoop
+	    $edsnoop target [$self set nullAgent_]
 	}
 	[$lnk queue] drop-target $dsnoop
 }
