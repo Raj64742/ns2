@@ -16,7 +16,7 @@
  * WARRANTIES OF MERCHANTIBILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  */
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.c,v 1.1 1998/01/06 01:44:37 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/inet.c,v 1.2 1998/02/21 03:02:32 kfall Exp $ (LBL)";
 
 #include <stdlib.h>
 #include <string.h>
@@ -119,4 +119,18 @@ LookupHostName(u_int32_t addr)
 	p = (char *)malloc(strlen(hp->h_name) + 1);
 	strcpy(p, hp->h_name);
 	return p;
+}
+
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
+print_ip(struct ip *ip)
+{
+	char buf[64];
+	printf("IP v:%d, ihl:%d, tos:%d, id:%d, off:%d, sum:%d, prot:%d\n",
+		ip->ip_v, ip->ip_hl, ip->ip_tos,
+		ip->ip_id, ip->ip_off, ip->ip_sum, ip->ip_p);
+	addr2ascii(AF_INET, &ip->ip_src, 4, buf);
+	printf("IP len:%d ttl: %d, src: %s, dst: %s\n",
+		ip->ip_len, ip->ip_ttl, buf,
+			addr2ascii(AF_INET, &ip->ip_dst, 4, 0));
 }
