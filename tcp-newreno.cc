@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.42 2000/09/01 03:04:07 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.43 2000/10/06 05:07:50 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -61,10 +61,6 @@ NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0),
 void NewRenoTcpAgent::partialnewack(Packet* pkt)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
-#ifdef notyet
-	if (pkt->seqno_ == stp->maxpkts && stp->maxpkts > 0)
-		stp->endtime = (float) realtime();
-#endif
 	if (partial_window_deflation_) {
 		// Do partial window deflation before resetting last_ack_
 		unsigned int deflate = 0; // Should initialize it?? - haoboy
