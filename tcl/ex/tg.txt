@@ -1,0 +1,11 @@
+"ns tg.tcl" tests the following traffic generation modules:
+
+1.  on/off source with exponentially distributed on/off times.
+2.  same as above, but with pareto distributed on/off times.
+3.  traffic generation based on contents of a file (i.e., a trace).
+
+The plot shows packets from four connections.  The bottom connection
+is an exponential on/off source, the next connection is a pareto on/off source,
+and the third and fourth connections generate traffic based on the trace file
+"example-trace".
+
