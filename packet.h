@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.34 1998/08/14 20:09:30 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.35 1998/08/18 23:55:12 haoboy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -69,13 +69,14 @@
 #define PT_FTP		24
 #define PT_PARETO	25
 #define PT_EXP		26
-#define PT_NTYPE	27
+#define PT_INVAL	27
+#define PT_NTYPE	28
 
 #define PT_NAMES "tcp", "udp", "cbr", "audio", "video", "ack", \
 	"start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
 	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM", \
 	"sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject", \
-	"telnet", "ftp", "pareto", "exp" 
+	"telnet", "ftp", "pareto", "exp", "httpInval"
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 
