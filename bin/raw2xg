@@ -29,7 +29,7 @@ END
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 require 'getopts.pl';
-&Getopts('aceds:m:n:qlvt:') || usage;
+&Getopts('acefds:m:n:qlvt:') || usage;
 
 $c = 0;
 @p = @pc = @pg = @a = @ac = @ae = @d = @lu = @ld = ();
@@ -43,6 +43,7 @@ $plot_ecn = defined($opt_e);
 $plot_drops = defined($opt_d);
 $plot_event = defined($opt_v);
 $no_padding = defined($opt_c);
+$plot_full = defined($opt_f);
 
 $file = $acks = '';
 
@@ -63,7 +64,11 @@ while (<>) {
 	$is_echo = ($F[6] =~ /C/); 
 	next if ($is_ack && !$plot_acks);
 
-	($x, $y) = translate_point(@F[1, 10, 7]);
+	if ($plot_full) {
+  	    ($x, $y) = translate_point(@F[1, 12, 7]);
+	} else {
+	    ($x, $y) = translate_point(@F[1, 10, 7]);
+	}
 	if (defined($opt_q)) {
 	    if (/^\+/) {
 		$statement = undef;
