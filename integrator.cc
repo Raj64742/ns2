@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/integrator.cc,v 1.2 1997/04/24 04:52:14 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/integrator.cc,v 1.3 1997/06/12 22:53:28 kfall Exp $";
 #endif
 
 #include <stdlib.h>
@@ -70,7 +70,12 @@ void Integrator::newPoint(double x, double y)
 
 int Integrator::command(int argc, const char*const* argv)
 {
-	if (argc == 4) {
+	if (argc == 2) {
+		if (strcmp(argv[1], "reset") == 0) {
+			set(0., 0.);
+			return (TCL_OK);
+		}
+	} else if (argc == 4) {
 		if (strcmp(argv[1], "newpoint") == 0) {
 			double x = atof(argv[2]);
 			double y = atof(argv[3]);
