@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.251 2002/10/30 21:05:23 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.252 2002/11/26 18:43:43 haldar Exp $
 
 
 #
@@ -833,10 +833,22 @@ Simulator instproc chk-hier-field-lengths {} {
 	}
 }
 
+
+Simulator instproc check-smac {} {
+	$self instvar macType_
+	if { [info exist macType_] && $macType_ == "Mac/SMAC" } {
+		if { [$macType_ set syncFlag_] } {
+			puts "\nNOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.\n"
+		}
+	}
+}
+			
+
 Simulator instproc run {} {
 	# NIXVECTOR?
 	# global runstart
 	# set runstart [clock seconds]
+	$self check-smac                      ;# print warning if in sleep/wakeup cycle
 	$self check-node-num
 	$self rtmodel-configure			;# in case there are any
 	[$self get-routelogic] configure

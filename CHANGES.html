@@ -18,6 +18,14 @@ with the most recent changes coming first.
 <h3>ns-2.1b10
 [PENDING RELEASE DATE]</h3>
 <ul>
+
+<p><li><b>[Padma Haldar]</b>
+Tue Nov 26 10:37:04 PST 2002</li>
+<br>
+Checking in warning for SMAC and adding smac test-suite to daily-validation.
+NOTE FOR SMAC: The SMAC implementation in ns-2 is a first-cut and work in progress. I'm sure we could improve the performance by fine-tuning the parameters in future, especially the process of sync'ing with neighboring nodes about sleep schedules.
+The warning about SMAC using sleep-wakeup cycles is about starting apps only after nodes sync which is about 40sec with the current default values (duty-cycle of 10%).
+
 <p><li><b>[Padma Haldar]</b>
 Wed Nov  6 16:19:36 PST 2002</li>
 <br>
