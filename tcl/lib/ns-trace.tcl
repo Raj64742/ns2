@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.13 1997/11/05 23:47:48 kkumar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.14 1997/12/31 01:25:51 kannan Exp $
 #
 
 Trace instproc init type {
@@ -93,6 +93,19 @@ Trace/Generic instproc init {} {
 Class Trace/Var -superclass Trace
 Trace/Var instproc init {} {
 	$self next "f"
+}
+
+# Some pretty printing routines for generic use...
+proc f-time t {
+	# format time
+	format "%7.4f" $t
+}
+
+proc f-node n {
+	# format node id...
+	set node [expr $n >> 8]
+	set port [expr $n & 0xff]
+	return "$node.$port"
 }
 
 proc gc o {
