@@ -26,7 +26,7 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm-adaptive.tcl,v 1.6 1998/01/28 22:06:35 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm-adaptive.tcl,v 1.7 1998/02/24 23:42:36 kannan Exp $ (USC/ISI)
 #
 
 Agent/SRM/Adaptive set pdistance_	0.0	;# bound instance variables
@@ -272,7 +272,7 @@ SRM/repair/Adaptive instproc closest-repairor? {} {
     $self instvar agent_ requestor_ sent_ round_
     if {$sent_ == 1 && $round_ == 1} {
         if {[$agent_ set pdistance_] >			\
-		[expr 1.5 * [$self distance? requestor_]]} {
+		[expr 1.5 * [$self distance? $requestor_]]} {
             return 1
         } else {
             return 0
