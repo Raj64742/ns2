@@ -191,6 +191,17 @@ proc create_flowstats1 { link dump stoptime } {
     $ns at $drop_interval "flowmonDump $r1fm $dump $link $stoptime"
 }
 
+proc create_flowstats2 { link dump stoptime } {
+
+    global ns r1 r2 r1fm flowfile drop_interval flowdesc
+    
+    set r1fm [$ns makeflowmon Fid]
+    set flowdesc [open $flowfile w]
+    $r1fm attach $flowdesc
+    $ns attach-fmon $link $r1fm 0
+    $ns at $drop_interval "flowmonDump $r1fm $dump $link $stoptime"
+}
+
 #------------------------------------------------------------------
 
 #
