@@ -112,11 +112,11 @@ SessionSim instproc join-group { agent group } {
 
 
 	    #7. insert a simple queue
-	    set q [new Queue/DropTail]
-	    $q set limit_ 100
+	    #set q [new Queue/DropTail]
+	    #$q set limit_ 100
 	    #set queueMon_($index:$agent) [new Agent/LossMonitor]
-	    $q drop-target $nullAgent_
-	    $session_($index) insert-module $q $delay_module
+	    #$q drop-target $nullAgent_
+	    #$session_($index) insert-module $q $delay_module
 	}
     }
 }
@@ -218,6 +218,7 @@ SessionSim instproc compute-routes {} {
 		}
 	}
 	$r compute
+	#$self clearMemTrace
 }
 
 SessionSim instproc run {} {

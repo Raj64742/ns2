@@ -1,7 +1,7 @@
 #include <stdio.h>
 
 #define fDIFF(FIELD) (now_.FIELD - start_.FIELD)
-#define normalize(var) (var > 0 ? var : -var)
+#define normalize(var) (var > 0 ? var : var)
 
 struct MemInfo {
   long stack;

@@ -18,7 +18,7 @@
  * 
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delaymodel.h,v 1.3 1997/10/13 22:24:31 mccanne Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delaymodel.h,v 1.4 1997/10/23 21:52:52 polly Exp $ (UCB)
  */
 
 #ifndef ns_delaymodel_h
@@ -46,7 +46,7 @@ protected:
 	int command(int argc, const char*const* argv);
 	RandomVariable* ranvar_;
 	double bandwidth_;	/* bandwidth of underlying link (bits/sec) */
-	Event intr_;
+	//Event intr_;
 };
 
 #endif
