@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.148 1997/09/10 06:50:28 kannan Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.149 1997/09/10 08:04:11 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,16 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B> <B>Wed Sep 10 00:58:35 PDT 1997</B><BR>
+</LI>
+
+tcp-newreno.cc: moved the code in recv() that handles the case of partial new acks
+into a separate function called partialnewack_helper(). This allows derived classes,
+such as tcp-fs, to do redefine this function to do additional processing upon 
+receiving a partial new ack. Files affected are tcp-newreno.cc, tcp-fs.cc and
+tcp.h.
+
 
   <LI><B><A HREF=http://www.isi.edu/~kannan/>[KVa]</A> Tue Sep  9 23:48:19 PDT 1997</B><BR>
 	Minor updates to rtglib, moved things into rightful places.
