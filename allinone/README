@@ -9,27 +9,27 @@ ns out, ns-allinone may be easier than getting all the pieces by hand.
  
 Currently the package contains:
   
-- Tcl       Tcl release 8.0.4     (required component)
-- Tk        Tk release 8.0.4      (required component)
-- Otcl      otcl release 1.0a5    (required component)
-- TclCL     tclcl release 1.0b9   (required component)
-- Ns        ns release 2.1b6      (required component)
+- Tcl       Tcl release 8.3.2     (required component)
+- Tk        Tk release 8.3.2      (required component)
+- Otcl      otcl release 1.0a6    (required component)
+- TclCL     tclcl release 1.0b10  (required component)
+- Ns        ns release 2.1b7      (required component)
 - TclDebug  tcl-debug relase 1.9  (optional component)
-- Nam       Nam release 1.0a8     (optional component)
+- Nam       Nam release 1.0a9     (optional component)
 - Xgraph    xgraph version 12     (optional component)
-- GT-ITM    GT Internetwork
-            Topology Model        (optional component)
+- GT-ITM    Georgia Tech Internetwork
+            Topology Modeler      (optional component)
 - SGB       Stanford GraphBase
             package               (optional component)
 - CWEB      CWeb version 1.0 (?)  (optional component)
 - ZLib      zlib version 1.1.3    (optional component) 
 
-2. FEATURES IN ns-allinone?
----------------------------
+2. FEATURES IN ns-allinone2.1b7
+-------------------------------
 
 Features in this version include:
  
-- Self-contained:  All installation will be kept in a directory to help
+- Self-containing: All installation will be kept in a directory to help
 		   the user manange and use the package. The execution of ns
 		   ns or nam does not need any ther support outside
 		   this directory
@@ -39,54 +39,27 @@ Features in this version include:
                    TclDebug does not work with the recent versions of
                    Tcl/Tk.
 
-- Easy to Install: Only one-line command is needed to build all ns
+- Easy to use :    Only one-line command is needed to build all ns
 		   components
 
-
-2. Installing the package
+3. Installing the package
 --------------------------
 
 All you need to do is type "./install" under this directory. The install
 script will compile and install the whole package for you. The script also
 will tell you the final installation result.
 
-2.1. Known problems
----------------------
-- Apply geog.patch to gt-itm/src/geog.c if you experience compilation
-  problems.  
+Caveat:
 
-- Apply tclPosixStr.patch to tcl8.0.4/generic/tclPosixStr.c under
-  RedHat Linux. 
+- You may want to apply gt-itm/geog.patch. See 'man patch' on how to use 
+  the patch program.
 
-- Without --enable-gcc explicitly in the configure command line, ns will
-  not compile on some SPARC and HPUX platforms.
-
-The allinone package should install without error on most versions of
-Unix.  If you have problems, see:
-
-INSTALLATION PROBLEMS AND BUG FIXES:
-	<http://www-mash.cs.berkeley.edu/ns/ns-problems.html>
-
-to build it from parts (if allinone fails):
-DOWNLOADING AND BUILDING NS:
-	<http://www-mash.cs.berkeley.edu/ns/ns-build.html>
-
-DOCUMENTATION:
-	<http://www-mash.cs.berkeley.edu/ns/>
-	(includes notes about the limitations of model, debugging tips,
-	and a >50 page design overview/tutorial)
-
-LATEST INFORMATION:
-	<http://www-mash.cs.berkeley.edu/ns/>
-
-
-3. More information
+4. More information
 --------------------
 
 Ns-allinone is available from
-<http://www-mash.cs.berkeley.edu/ns/ns-build.html>
+<http://www.isi.edu/nsnam/ns/ns-build.html>
 
 -----------------------------
-Nader Salehi
-USC/ISI
-salehi@isi.edu
+The VINT Project
+http://www.isi.edu/nsnam
