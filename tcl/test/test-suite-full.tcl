@@ -86,7 +86,8 @@ TestSuite instproc finish testname {
 			puts "output files are $fname.{p,packs,acks,d,ctrl,es,ecn,cact}"
 			puts "  and $fname.r.{p,packs,acks,d,ctrl,es,ecn,cact}"
 		} else {
-			exec ../../bin/tcpf2xgr $tfile $outtype $testname &
+			global TCLSH
+			exec ../../bin/tcpf2xgr $TCLSH $tfile $outtype $testname &
 		}
 	}
 	exec cp $tfile temp.rands; # verification scripts wants stuff in 'temp.rands'
