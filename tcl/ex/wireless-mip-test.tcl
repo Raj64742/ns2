@@ -86,10 +86,10 @@ Phy/WirelessPhy set freq_ 914e+6
 Phy/WirelessPhy set L_ 1.0
 
 # ==================================================================
-source ../lib/ns-bsnode.tcl
-source ../mobility/com.tcl
-source ../mobility/dsr.tcl
-source ../lib/ns-mip.tcl
+#source ../lib/ns-bsnode.tcl
+#source ../mobility/com.tcl
+#source ../mobility/dsr.tcl
+#source ../lib/ns-mip.tcl
 source ../lib/ns-wireless-mip.tcl
 
 # intial setup - set addressing to hierarchical
