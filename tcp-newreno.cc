@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.31 1998/06/27 01:25:02 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.32 1998/08/22 17:19:09 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -44,9 +44,11 @@ public:
 	}
 } class_newreno;
 
-NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0), acked_(0)
+NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0), acked_(0),
+  newreno_changes1_(0)
 {
 	bind("newreno_changes_", &newreno_changes_);
+	bind("newreno_changes1_", &newreno_changes1_);
 }
 
 /* 
@@ -74,8 +76,70 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
 void NewRenoTcpAgent::partialnewack_helper(Packet* pkt)
 {
 	partialnewack(pkt);
-	output(last_ack_ + 1, 0);
+	if (newreno_changes1_) {
+		/* Open the congestion window with each partialnewack. */
+		if (dupwnd_ > 0) {
+			dupwnd_ = 0;
+			t_seqno_ = last_ack_ + 1;
+			cwnd_ = 1.0; 
+		} 
+		opencwnd();
+		send_much(0, 0, maxburst_);
+	} else {
+		/* Just retransmit one packet for every partialnewack. */
+		dupwnd_ = 0;
+		output(last_ack_ + 1, 0);
+	}
 }
+
+int
+NewRenoTcpAgent::allow_fast_retransmit(int last_cwnd_action_)
+{
+	return 0;
+}
+
+void
+NewRenoTcpAgent::dupack_action()
+{
+        int recovered = (highest_ack_ > recover_);
+        int allowFastRetransmit = allow_fast_retransmit(last_cwnd_action_);
+        if (recovered || (!bug_fix_ && !ecn_) || allowFastRetransmit) {
+                goto reno_action;
+        }
+
+        if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
+                last_cwnd_action_ = CWND_ACTION_DUPACK;
+                /*
+                 * What if there is a DUPACK action followed closely by ECN
+                 * followed closely by a DUPACK action?
+                 * The optimal thing to do would be to remember all
+                 * congestion actions from the most recent window
+                 * of data.  Otherwise "bugfix" might not prevent
+                 * all unnecessary Fast Retransmits.
+                 */
+                reset_rtx_timer(1,0);
+                output(last_ack_ + 1, TCP_REASON_DUPACK);
+                return;
+        }
+
+        if (bug_fix_) {
+                /*
+                 * The line below, for "bug_fix_" true, avoids
+                 * problems with multiple fast retransmits in one
+                 * window of data.
+                 */
+                return;
+        }
+
+reno_action:
+        recover_ = maxseq_;
+        last_cwnd_action_ = CWND_ACTION_DUPACK;
+        slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
+        reset_rtx_timer(1,0);
+        output(last_ack_ + 1, TCP_REASON_DUPACK);       // from top
+        return;
+}
+
 
 void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 {
@@ -123,7 +187,6 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		} else {
 			/* received new ack for a packet sent during Fast
 			 *  Recovery, but sender stays in Fast Recovery */
-			dupwnd_ = 0;
 			partialnewack_helper(pkt);
 		}
 	} else if (tcph->seqno() == last_ack_) {
