@@ -18,6 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
+# Version Date: $Date: 1997/10/23 20:53:35 $
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-star.tcl,v 1.7 1997/10/23 20:53:35 kannan Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {

@@ -18,6 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
+# Version Date: $Date: 1997/10/23 20:53:27 $
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/Attic/srm-adapt-rep-nam.tcl,v 1.3 1997/10/23 20:53:27 kannan Exp $ (USC/ISI)
 #
 
 proc nam_config {net} {

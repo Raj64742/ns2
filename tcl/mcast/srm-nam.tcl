@@ -26,6 +26,8 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm-nam.tcl,v 1.2 1997/10/23 20:53:38 kannan Exp $ (USC/ISI)
+#
 
 if ![info exists ctrlFid] {
     set ctrlFid 39

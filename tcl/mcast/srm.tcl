@@ -30,7 +30,12 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.9 1997/10/23 20:53:39 kannan Exp $ (USC/ISI)
+#
 
+# THis routine is a temporary hack.  It is likely to dissappear
+# at some point in time.
+#
 Agent instproc traffic-source agent {
 	$self instvar tg_
 	set tg_ $agent
@@ -177,20 +182,17 @@ Agent/SRM instproc recv {type args} {
 }
 
 Agent/SRM instproc recv-data {sender msgid} {
-	$self instvar pending_ nid_
+	$self instvar pending_
 	if ![info exists pending_($sender:$msgid)] {
 		# This is a very late data of some wierd sort.
 		# How did we get here?
 		error "Oy vey!  How did we get here?"
 	}
 	if {[$pending_($sender:$msgid) set round_] == 1} {
-	    if {$msgid==1 && $nid_!= 1} {
-	    } else {
 		$pending_($sender:$msgid) cancel DATA
 		$pending_($sender:$msgid) evTrace Q DATA
 		delete $pending_($sender:$msgid)
 		unset pending_($sender:$msgid)
-	    }
 	} else {
 		$pending_($sender:$msgid) recv-repair
 	}

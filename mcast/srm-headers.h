@@ -26,6 +26,8 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-headers.h,v 1.2 1997/10/23 20:53:24 kannan Exp $ (USC/ISI)
+//
 
 #ifndef ns_srm_headers_h
 #define ns_srm_headers_h

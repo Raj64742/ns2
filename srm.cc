@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.11 1997/09/06 04:39:14 polly Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/srm.cc,v 1.12 1997/10/23 20:53:25 kannan Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -118,7 +118,7 @@ int SRMAgent::command(int argc, const char*const* argv)
                 if (strcmp(argv[1], "distance?") == 0) {
                         int sender = atoi(argv[2]);
                         SRMinfo* sp = get_state(sender);
-                        tcl.resultf("%f", sp->distance_);
+                        tcl.resultf("%lf", sp->distance_);
                         return TCL_OK;
                 }
         }

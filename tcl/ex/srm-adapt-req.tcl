@@ -18,6 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
+# Version Date: $Date: 1997/10/23 20:53:29 $
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-req.tcl,v 1.5 1997/10/23 20:53:29 kannan Exp $ (USC/ISI)
 #
 
 #
@@ -98,7 +101,7 @@ $loss_module drop-packet 2 200 1
 $loss_module drop-target [$ns set nullAgent_]
 $ns lossmodel $loss_module $n(1) $n(0)
 
-$ns at 50 "finish $s"
+$ns at 150 "finish $s"
 
 proc finish src {
     $src stop

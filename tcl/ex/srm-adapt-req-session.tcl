@@ -18,6 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
+# Version Date: $Date: 1997/10/23 20:53:29 $
+#
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-req-session.tcl,v 1.2 1997/10/23 20:53:29 kannan Exp $ (USC/ISI)
 #
 
 #

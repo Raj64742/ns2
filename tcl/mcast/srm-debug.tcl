@@ -26,6 +26,8 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm-debug.tcl,v 1.3 1997/10/23 20:53:38 kannan Exp $ (USC/ISI)
+#
 
 SRM/request instproc compute-delay {} {
 	$self instvar C1_ C2_ agent_ sender_ backoff_
