@@ -275,7 +275,7 @@ CMUTrace::format_dsr(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset, 
-		"-P dsr -Pn %d -Pq %d -Ps %d -Pp %d -Pl %d -Pe %d->%d -Pw %d -Pm %d -Pc %d -Pb %d->%d ",
+		"-P dsr -Ph %d -Pq %d -Ps %d -Pp %d -Pl %d -Pe %d->%d -Pw %d -Pm %d -Pc %d -Pb %d->%d ",
 		    srh->num_addrs(),                   // how many nodes travered
 
 		srh->route_request(),
@@ -332,7 +332,7 @@ CMUTrace::format_tcp(Packet *p, int offset)
 	
 	if( newtrace_ ) {
 	    sprintf(wrk_ + offset,
-		"-p [ tcp [ %d %d ] %d %d ] ",
+		"-Pn tcp -Ps %d -Pa %d -Pf %d -Po %d ",
 		th->seqno_,
 		th->ackno_,
 		ch->num_forwards(),
@@ -381,7 +381,7 @@ CMUTrace::format_imep(Packet *p, int offset)
 
 	if (newtrace_) {
 	    sprintf(wrk_ + offset,
-                "-p [ imep %c %c %c 0x%04x ] ",
+                "-P imep -Pa %c -Ph %c -Po %c -Pl 0x%04x ] ",
                 (im->imep_block_flags & BLOCK_FLAG_ACK) ? 'A' : '-',
                 (im->imep_block_flags & BLOCK_FLAG_HELLO) ? 'H' : '-',
                 (im->imep_block_flags & BLOCK_FLAG_OBJECT) ? 'O' : '-',
@@ -412,7 +412,7 @@ CMUTrace::format_tora(Packet *p, int offset)
 
 		if (newtrace_) {
 		    sprintf(wrk_ + offset,
-			"-p [ tora 0x%x %d QUERY ] ",
+			"-P tora -Pt 0x%x -Pd %d -Pc QUERY ",
                         qh->tq_type, qh->tq_dst);
 			
                 } else {
@@ -426,7 +426,7 @@ CMUTrace::format_tora(Packet *p, int offset)
 
 		if (newtrace_) {
 		    sprintf(wrk_ + offset,
-                        "-p [ tora 0x%x %d (%f %d %d %d %d) UPDATE ] ",
+                        "-P tora -Pt 0x%x -Pd %d (%f %d %d %d %d) -Pc UPDATE ",
                         uh->tu_type,
                         uh->tu_dst,
                         uh->tu_tau,
@@ -439,7 +439,7 @@ CMUTrace::format_tora(Packet *p, int offset)
 		} else {
 
                     sprintf(wrk_ + offset,
-                        "[0x%x %d (%f %d %d %d %d)] (UPDATE)",
+                        "-Pt 0x%x -Pd %d -Pa %f -Po %d -Pr %d -Pe %d -Pi %d -Pc UPDATE ",
                         uh->tu_type,
                         uh->tu_dst,
                         uh->tu_tau,
@@ -453,7 +453,7 @@ CMUTrace::format_tora(Packet *p, int offset)
         case TORATYPE_CLR:
 		if (newtrace_) {
 		    sprintf(wrk_ + offset, 
-			"-p [ tora 0x%x %d %f %d] CLEAR ] ",
+			"-P tora -Pt 0x%x -Pd %d -Pa %f -Po %d -Pc CLEAR ",
                         ch->tc_type,
                         ch->tc_dst,
                         ch->tc_tau,
@@ -485,7 +485,7 @@ CMUTrace::format_aodv(Packet *p, int offset)
 		if (newtrace_) {
 
 		    sprintf(wrk_ + offset,
-			"-p [ aodv 0x%x %d %d [%d %d] [%d %d]] REQUEST ] ",
+			"-P aodv -Pt 0x%x -Ph %d -Pb %d -Pd %d -Pds %d -Ps %d -Pss %d -Pc REQUEST ",
 			rq->rq_type,
                         rq->rq_hop_count,
                         rq->rq_bcast_id,
@@ -516,7 +516,7 @@ CMUTrace::format_aodv(Packet *p, int offset)
 		if (newtrace_) {
 
 		    sprintf(wrk_ + offset,
-			"-p [aodv 0x%x %d [%d %d] %d] %s ] ",
+			"-P aodv -Pc 0x%x -Ph %d -Pd %d -Pds %d -Pl %d -Pc %s ",
 			rp->rp_type,
                         rp->rp_hop_count,
                         rp->rp_dst,

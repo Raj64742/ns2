@@ -123,8 +123,13 @@ set wtopo	[new Topography]
 set tracefd	[open $opt(tr) w]
 set namtrace    [open $opt(nam) w]
 
+
 $ns_ trace-all $tracefd
 $ns_ namtrace-all-wireless $namtrace $opt(x) $opt(y)
+
+# use new trace file format
+
+$ns_ use-newtrace 
 
 # define topology
 $wtopo load_flatgrid $opt(x) $opt(y)
