@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.6 1997/06/24 23:50:31 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.7 1997/06/25 19:35:04 gnguyen Exp $ (LBL)";
 #endif
 
 //
@@ -255,7 +255,7 @@ int HashClassifier::command(int argc, const char*const* argv)
 			else
 				buck = atoi(argv[2]);
 //printf("classifier-hash(%s), set-hash [%d/%d/%d] (buck:%d)(slot:%d)[%s]\n",
-name(), src, dst, fid, buck, slot, slot_[slot]->name());
+//name(), src, dst, fid, buck, slot, slot_[slot]->name());
 			insert(buck, src, dst, fid, slot);
 			return (TCL_OK);
 		}
@@ -286,7 +286,7 @@ name(), src, dst, fid, buck, slot, slot_[slot]->name());
 			int fid = atoi(argv[4]);
 			hnode* hn = lookup(src, dst, fid);
 //printf("classifier-hash(%s), deleting [%d/%d/%d] (node:%p)(slot:%d)\n",
-name(), src, dst, fid, hn, hn->slot);
+//name(), src, dst, fid, hn, hn->slot);
 			if (hn != NULL) {
 				hn->active = 0;
 				tcl.resultf("%u", hn->slot);
