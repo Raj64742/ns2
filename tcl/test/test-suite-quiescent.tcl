@@ -30,12 +30,18 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.2 2002/12/23 02:44:28 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.3 2002/12/30 22:31:27 sfloyd Exp $
 #
 
 source misc_simple.tcl
 source support.tcl
 Agent/TFRC set SndrType_ 1 
+Agent/TFRC set oldCode_ false
+Agent/TFRC set packetSize_ 500
+Agent/TCP set packetSize_ 500
+Application/Traffic/CBR set packetSize_ 500
+Agent/TCP set window_ 1000
+Agent/TCP set partial_ack_ 1
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.
@@ -75,33 +81,12 @@ Topology/net2 instproc init ns {
     set node_(s4) [$ns node]
 
     $self next
-    Queue/RED set gentle_ true
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
     $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
+    #$ns duplex-link $node_(r1) $node_(r2) 10Mb 20ms RED
     $ns queue-limit $node_(r1) $node_(r2) 50
-    $ns queue-limit $node_(r2) $node_(r1) 50
-    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
-    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
-}
-
-Class Topology/net2a -superclass Topology
-Topology/net2a instproc init ns {
-    $self instvar node_
-    set node_(s1) [$ns node]
-    set node_(s2) [$ns node]
-    set node_(r1) [$ns node]
-    set node_(r2) [$ns node]
-    set node_(s3) [$ns node]
-    set node_(s4) [$ns node]
-
-    $self next
-    Queue/RED set gentle_ true
-    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
-    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
-    $ns duplex-link $node_(r1) $node_(r2) 0.15Kb 2ms RED
-    $ns queue-limit $node_(r1) $node_(r2) 2
-    $ns queue-limit $node_(r2) $node_(r1) 50
+    $ns queue-limit $node_(r2) $node_(r1) 50 
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
 }
@@ -110,7 +95,7 @@ TestSuite instproc setTopo {} {
     $self instvar node_ net_ ns_ topo_
 
     set topo_ [new Topology/$net_ $ns_]
-    if {$net_ == "net2" || $net_ == "net2a"} {
+    if {$net_ == "net2"} {
         set node_(s1) [$topo_ node? s1]
         set node_(s2) [$topo_ node? s2]
         set node_(s3) [$topo_ node? s3]
@@ -123,26 +108,28 @@ TestSuite instproc setTopo {} {
 
 Class Test/tfrc_onoff -superclass TestSuite
 Test/tfrc_onoff instproc init {} {
-    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    $self instvar net_ test_ guide_ stopTime1_ sender 
     set net_	net2
     set test_ tfrc_onoff	
     set guide_  \
     "TFRC with a data source with limited, bursty data, no congestion."
-    set sndr_ TFRC
-    set rcvr_ TFRCSink
+    set sender TFRC
     Agent/TFRC set oldCode_ false
-    Agent/TFRC set SndrType_ 1
     set stopTime1_ 10
     $self next
 }
 Test/tfrc_onoff instproc run {} {
     global quiet
-    $self instvar ns_ node_ testName_ guide_ stopTime1_ sndr_ rcvr_
+    $self instvar ns_ node_ testName_ guide_ stopTime1_ sender 
     if {$quiet == "false"} {puts $guide_}
     $self setTopo
     set stopTime $stopTime1_
 
-    set tf1 [$ns_ create-connection $sndr_ $node_(s1) $rcvr_ $node_(s3) 0]
+    if {$sender == "TFRC"} {
+      set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    } elseif {$sender == "TCP"} {
+      set tf1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    }
     set ftp [new Application/FTP]
     $ftp attach-agent $tf1
     $ns_ at 0 "$ftp produce 100"
@@ -156,15 +143,13 @@ Test/tfrc_onoff instproc run {} {
 
 Class Test/tfrc_onoff_oldcode -superclass TestSuite
 Test/tfrc_onoff_oldcode instproc init {} {
-    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    $self instvar net_ test_ guide_ stopTime1_ sender 
     set net_	net2
     set test_ tfrc_onoff_oldcode	
     set guide_  \
     "TFRC, bursty data, no congestion, old code."
-    set sndr_ TFRC
-    set rcvr_ TFRCSink
+    set sender TFRC
     Agent/TFRC set oldCode_ true
-    Agent/TFRC set SndrType_ 1
     set stopTime1_ 10
     Test/tfrc_onoff_oldcode instproc run {} [Test/tfrc_onoff info instbody run ]
     $self next
@@ -172,14 +157,12 @@ Test/tfrc_onoff_oldcode instproc init {} {
 
 Class Test/tcp_onoff -superclass TestSuite
 Test/tcp_onoff instproc init {} {
-    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    $self instvar net_ test_ guide_ stopTime1_ sender 
     set net_	net2
     set test_ tcp_onoff	
     set guide_  \
     "TCP with a data source with limited, bursty data, no congestion."
-    set sndr_ TCP/Sack1
-    set rcvr_ TCPSink/Sack1
-    Agent/TFRC set SndrType_ 1
+    set sender TCP
     set stopTime1_ 10
     Test/tcp_onoff instproc run {} [Test/tfrc_onoff info instbody run ]
     $self next
@@ -187,29 +170,28 @@ Test/tcp_onoff instproc init {} {
 
 Class Test/tfrc_telnet -superclass TestSuite
 Test/tfrc_telnet instproc init {} {
-    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    $self instvar net_ test_ guide_ sender 
     set net_	net2
     set test_ tfrc_telnet	
     set guide_  \
     "TFRC with a Telnet data source, telnet data rate increased at time 4."
-    set sndr_ TFRC
-    set rcvr_ TFRCSink
-    Agent/TFRC set oldCode_ false
-    Agent/TFRC set SndrType_ 1
-    set stopTime1_ 10
+    set sender TFRC
     $self next
 }
 Test/tfrc_telnet instproc run {} {
     global quiet
-    $self instvar ns_ node_ testName_ guide_ stopTime1_ sndr_ rcvr_
+    $self instvar ns_ node_ testName_ guide_ sender 
     if {$quiet == "false"} {puts $guide_}
     $self setTopo
-    set stopTime $stopTime1_
+    set stopTime 10
 
-    set tf1 [$ns_ create-connection $sndr_ $node_(s1) $rcvr_ $node_(s3) 0]
+    if {$sender == "TFRC"} {
+      set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    } elseif {$sender == "TCP"} {
+      set tf1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    }
     set telnet1 [new Source/Telnet]
     $telnet1 attach-agent $tf1
-    $tf1 set type_ Telnet
     $telnet1 set interval_ 0.01
     $ns_ at 0.0 "$telnet1 start"
     $ns_ at 4.0 "$telnet1 set interval_ 0.001"
@@ -222,48 +204,61 @@ Test/tfrc_telnet instproc run {} {
 
 Class Test/tcp_telnet -superclass TestSuite
 Test/tcp_telnet instproc init {} {
-    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    $self instvar net_ test_ guide_ sender 
     set net_	net2
     set test_ tcp_telnet	
     set guide_  \
     "TCP with a Telnet data source, telnet data rate increased at time 4."
-    set sndr_ TCP/Sack1
-    set rcvr_ TCPSink/Sack1
-    Agent/TFRC set oldCode_ false
-    Agent/TFRC set SndrType_ 1
-    set stopTime1_ 10
+    set sender TCP
     Test/tcp_telnet instproc run {} [Test/tfrc_telnet info instbody run ]
+    $self next
+}
+
+Class Test/tcp_telnet_CWV -superclass TestSuite
+Test/tcp_telnet_CWV instproc init {} {
+    $self instvar net_ test_ guide_ sender 
+    set net_	net2
+    set test_ tcp_telnet_CWV	
+    set guide_  \
+    "TCP with a Telnet data source, with Congestion Window Validation."
+    set sender TCP
+    Agent/TCP set QOption_ 1
+    Agent/TCP set control_increase_ 1
+    # Agent/TCP set EnblRTTCtr_ 1
+    Test/tcp_telnet_CWV instproc run {} [Test/tfrc_telnet info instbody run]
     $self next
 }
 
 Class Test/tfrc_cbr -superclass TestSuite
 Test/tfrc_cbr instproc init {} {
-    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    $self instvar net_ test_ guide_ sender 
     set net_	net2
     set test_ tfrc_cbr	
     set guide_  \
-    "TFRC with a CBR data source, CBR data rate increased at time 4."
-    set sndr_ TFRC
-    set rcvr_ TFRCSink
-    Agent/TFRC set oldCode_ false
-    Agent/TFRC set SndrType_ 1
-    set stopTime1_ 10
+    "TFRC with a CBR data source, CBR data rate changes over time."
+    set sender TFRC
     $self next
 }
 Test/tfrc_cbr instproc run {} {
     global quiet
-    $self instvar ns_ node_ testName_ guide_ stopTime1_ sndr_ rcvr_
+    $self instvar ns_ node_ testName_ guide_ sender 
     if {$quiet == "false"} {puts $guide_}
     $self setTopo
-    set stopTime $stopTime1_
+    set stopTime 15
 
-    set tf1 [$ns_ create-connection $sndr_ $node_(s1) $rcvr_ $node_(s3) 0]
+    if {$sender == "TFRC"} {
+      set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    } elseif {$sender == "TCP"} {
+      set tf1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    }
     set cbr1 [new Application/Traffic/CBR]
     $cbr1 attach-agent $tf1
-    $tf1 set type_ CBR
+    # $tf1 set type_ CBR
     $cbr1 set interval_ 0.01
     $ns_ at 0.01 "$cbr1 start"
-    $ns_ at 4.0 "$cbr1 set interval_ 0.001"
+    $ns_ at 2.0 "$cbr1 set interval_ 0.002"
+    $ns_ at 3.0 "$cbr1 set interval_ 0.01"
+    $ns_ at 8.0 "$cbr1 set interval_ 0.002"
 
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
 
@@ -271,19 +266,43 @@ Test/tfrc_cbr instproc run {} {
     $ns_ run
 }
 
+Class Test/tfrc_cbr_conservative -superclass TestSuite
+Test/tfrc_cbr_conservative instproc init {} {
+    $self instvar net_ test_ guide_ sender
+    set net_	net2
+    set test_ tfrc_cbr_conservative	
+    set guide_  \
+    "TFRC with a CBR data source, conservative option."
+    set sender TFRC
+    Agent/TFRC set conservative_ true
+    Agent/TFRC set scmult_ 1.2
+    Test/tfrc_cbr_conservative instproc run {} [Test/tfrc_cbr info instbody run ]
+    $self next
+}
 Class Test/tcp_cbr -superclass TestSuite
 Test/tcp_cbr instproc init {} {
-    $self instvar net_ test_ guide_ stopTime1_ sndr_ rcvr_
+    $self instvar net_ test_ guide_ sender
     set net_	net2
     set test_ tcp_cbr	
     set guide_  \
-    "TCP with a CBR data source, CBR data rate increased at time 4."
-    set sndr_ TCP/Sack1
-    set rcvr_ TCPSink/Sack1
-    Agent/TFRC set oldCode_ false
-    Agent/TFRC set SndrType_ 1
-    set stopTime1_ 10
+    "TCP with a CBR data source, CBR data rate changes over time."
+    set sender TCP
     Test/tcp_cbr instproc run {} [Test/tfrc_cbr info instbody run ]
+    $self next
+}
+
+Class Test/tcp_cbr_CWV -superclass TestSuite
+Test/tcp_cbr_CWV instproc init {} {
+    $self instvar net_ test_ guide_ sender 
+    set net_	net2
+    set test_ tcp_cbr_CWV	
+    set guide_  \
+    "TCP with a CBR data source, with Congestion Window Validation." 
+    set sender TCP
+    Agent/TCP set QOption_ 1
+    Agent/TCP set control_increase_ 1
+    # Agent/TCP set EnblRTTCtr_ 1
+    Test/tcp_cbr_CWV instproc run {} [Test/tfrc_cbr info instbody run ]
     $self next
 }
 
