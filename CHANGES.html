@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.270 1998/08/05 00:02:49 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.271 1998/08/06 18:54:38 haldar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -21,12 +21,24 @@
     <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">
     Release of ns-2.1b4<a> on [PENDING]</h3>
     <p>
-<UL>      
-    <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
-       <b>Tue Aug  4 17:00:54 PDT 1998</b><br>
+    <UL>    
+    <li><b><a href="mailto:haldar@isi.edu">[haldar]</a></b>
+        <b>Thu Aug  6 11:39:02 PDT 1998</b>
+	Added scenario-generation library (~ns/tcl/scen-generation/
+	scen-lib) containing 3 congestion control scenario test cases
+	(ref: Mark Handley's RM congestion control schemes).
+	
+     <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+           <b>Tue Aug  4 17:00:54 PDT 1998</b><br>
 	 Re-wrote mem-trace.h to isolate the unportable code.
 	 Portions commented out for Windows platform based on
 	 feedback from <a href="mailto:jvicente@comet.columbia.edu">John Vicente</a>.
+
+      <li><b><a href="mailtohaldar@isi.edu">[haldar]</a></b>
+	<b>Wed Jul 29 17:20:08 PDT 1998</b>
+	Created a holder for all traffic models and added 
+	many_tcp traffic model (~ns/tcl/lib/ns-trafficgen.tcl) as a 
+	part of ns/lib
 
     <li><b><a href="mailto:breslau@parc.xerox.com">[LB]</A></B>
         <b>Tue Jul 28 16:41:29 PDT 1998</b>
@@ -42,10 +54,11 @@
 
       <LI><b><A HREF="http://www.isi.edu/~haldar/">[haldar]</A> 
 	  Fri Jul 17 14:21:25 PDT 1998</b>
-	Added topology semantics for agent distribution to scenario-generator -
+	Added topology semantics for agent distribution to 
+	scenario-generator -
 	allows placement of agents on designated src and dest
 	stub/locations for transit-stub topologies.
-	Added hierarchical addressing support to topology generator..
+	Added hierarchical addressing support to topology generator.
 
     <LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH] </A></B>
     <b> Mon Jul 13 18:23:53 PDT 1998 </b><br>
