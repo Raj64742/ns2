@@ -57,7 +57,7 @@ Node/MobileNode/BaseStationNode instproc mk-default-classifier {} {
     
     set levels [AddrParams set hlevel_]
     for {set n 1} {$n <= $levels} {incr n} {
-	set classifiers_($n) [new Classifier/Addr/Bcast]
+	set classifiers_($n) [new Classifier/Hash/Dest/Bcast 32]
 	$classifiers_($n) set mask_ [AddrParams set NodeMask_($n)]
 	$classifiers_($n) set shift_ [AddrParams set NodeShift_($n)]
     }

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.60 1999/09/29 18:45:33 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.61 1999/09/30 23:20:20 salehi Exp $
 #
 
 # for MobileIP
@@ -144,7 +144,7 @@ Node instproc split-addrstr addrstr {
 
 Node instproc mk-default-classifier {} {
     $self instvar address_ classifier_ id_
-    set classifier_ [new Classifier/Addr]
+    set classifier_ [new Classifier/Hash/Dest 32]
     # set up classifer as a router (default value 8 bit of addr and 8 bit port)
     $classifier_ set mask_ [AddrParams set NodeMask_(1)]
     $classifier_ set shift_ [AddrParams set NodeShift_(1)]
@@ -792,7 +792,7 @@ Class Node/Broadcast -superclass Node
  
 Node/Broadcast instproc mk-default-classifier {} {
         $self instvar address_ classifier_ id_ dmux_
-        set classifier_ [new Classifier/Addr/Bcast]
+        set classifier_ [new Classifier/Hash/Dest/Bcast]
  
         $classifier_ set mask_ [AddrParams set NodeMask_(1)]
         $classifier_ set shift_ [AddrParams set NodeShift_(1)]
