@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.65 2002/03/14 01:18:09 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.66 2002/04/01 23:07:28 buchheim Exp $
  */
 
 #include <packet.h>
@@ -127,6 +127,28 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 		if(src_ != src)
 			op = FWRD;
 	}
+
+	// use new tagged format if appropriate
+	if (pt_->tagged()) {
+		int next_hop = -1 ;
+		Node* nextnode = Node::get_node_by_address(ch->next_hop_);
+        	if (nextnode) next_hop = nextnode->nodeid(); 
+
+		if (op == DROP) op = 'd';
+		if (op == SEND) op = '+';
+		if (op == FWRD) op = 'h';
+		sprintf(pt_->buffer() + offset,
+			"%c "TIME_FORMAT" -s %d -d %d -p %s -k %3s -i %d",
+			op,
+			Scheduler::instance().clock(),
+			src_,
+			next_hop,
+			packet_info.name(ch->ptype()),
+			tracename,
+			ch->uid());
+		return;
+	}
+
 
 	// Use new ns trace format to replace the old cmu trace format)
 	if (newtrace_) {
@@ -226,7 +248,12 @@ CMUTrace::format_ip(Packet *p, int offset)
 	int src = Address::instance().get_nodeaddr(ih->saddr());
 	int dst = Address::instance().get_nodeaddr(ih->daddr());
 
-	if (newtrace_) {
+	if (pt_->tagged()) {
+		// Need to determine tag names for this data
+		//sprintf(pt_->buffer() + offset,
+		//	"",
+		//	);
+	} else if (newtrace_) {
 	    sprintf(pt_->buffer() + offset,
 		    "-Is %d.%d -Id %d.%d -It %s -Il %d -If %d -Ii %d -Iv %d ",
 		    src,                           // packet src
@@ -251,7 +278,12 @@ CMUTrace::format_arp(Packet *p, int offset)
 {
 	struct hdr_arp *ah = HDR_ARP(p);
 
-	if (newtrace_) {
+	if (pt_->tagged()) {
+		// Need to determine tag names for this data
+		//sprintf(pt_->buffer() + offset,
+		//	"",
+		//	);
+	} else if (newtrace_) {
 	    sprintf(pt_->buffer() + offset,
 		    "-P arp -Po %s -Pms %d -Ps %d -Pmd %d -Pd %d ",
 		    ah->arp_op == ARPOP_REQUEST ?  "REQUEST" : "REPLY",
@@ -276,7 +308,12 @@ CMUTrace::format_dsr(Packet *p, int offset)
 {
 	hdr_sr *srh = hdr_sr::access(p);
 
-	if (newtrace_) {
+	if (pt_->tagged()) {
+		// Need to determine tag names for this data
+		//sprintf(pt_->buffer() + offset,
+		//	"",
+		//	);
+	} else if (newtrace_) {
 	    sprintf(pt_->buffer() + offset, 
 		"-P dsr -Ph %d -Pq %d -Ps %d -Pp %d -Pn %d -Pl %d -Pe %d->%d -Pw %d -Pm %d -Pc %d -Pb %d->%d ",
 		    srh->num_addrs(),                   // how many nodes travered
@@ -331,7 +368,12 @@ CMUTrace::format_tcp(Packet *p, int offset)
 	struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_tcp *th = HDR_TCP(p);
 	
-	if( newtrace_ ) {
+	if (pt_->tagged()) {
+		// Need to determine tag names for this data
+		//sprintf(pt_->buffer() + offset,
+		//	"",
+		//	);
+	} else if (newtrace_) {
 	    sprintf(pt_->buffer() + offset,
 		"-Pn tcp -Ps %d -Pa %d -Pf %d -Po %d ",
 		th->seqno_,
@@ -368,7 +410,12 @@ CMUTrace::format_rtp(Packet *p, int offset)
 		}
         }
 
-	if (newtrace_) {
+	if (pt_->tagged()) {
+		// Need to determine tag names for this data
+		//sprintf(pt_->buffer() + offset,
+		//	"",
+		//	);
+	} else if (newtrace_) {
 		sprintf(pt_->buffer() + offset,
 			"-Pn cbr -Pi %d -Pf %d -Po %d ",
 			rh->seqno_,
@@ -390,7 +437,12 @@ CMUTrace::format_imep(Packet *p, int offset)
 
 #define U_INT16_T(x)    *((u_int16_t*) &(x))
 
-	if (newtrace_) {
+	if (pt_->tagged()) {
+		// Need to determine tag names for this data
+		//sprintf(pt_->buffer() + offset,
+		//	"",
+		//	);
+	} else if (newtrace_) {
 	    sprintf(pt_->buffer() + offset,
                 "-P imep -Pa %c -Ph %c -Po %c -Pl 0x%04x ] ",
                 (im->imep_block_flags & BLOCK_FLAG_ACK) ? 'A' : '-',
@@ -421,7 +473,12 @@ CMUTrace::format_tora(Packet *p, int offset)
 
         case TORATYPE_QRY:
 
-		if (newtrace_) {
+		if (pt_->tagged()) {
+			// Need to determine tag names for this data
+			//sprintf(pt_->buffer() + offset,
+			//	"",
+			//	);
+		} else if (newtrace_) {
 		    sprintf(pt_->buffer() + offset,
 			"-P tora -Pt 0x%x -Pd %d -Pc QUERY ",
                         qh->tq_type, qh->tq_dst);
@@ -435,7 +492,12 @@ CMUTrace::format_tora(Packet *p, int offset)
 
         case TORATYPE_UPD:
 
-		if (newtrace_) {
+		if (pt_->tagged()) {
+			// Need to determine tag names for this data
+			//sprintf(pt_->buffer() + offset,
+			//	"",
+			//	);
+		} else if (newtrace_) {
 		    sprintf(pt_->buffer() + offset,
                         "-P tora -Pt 0x%x -Pd %d (%f %d %d %d %d) -Pc UPDATE ",
                         uh->tu_type,
@@ -459,7 +521,12 @@ CMUTrace::format_tora(Packet *p, int offset)
                 break;
 
         case TORATYPE_CLR:
-		if (newtrace_) {
+		if (pt_->tagged()) {
+			// Need to determine tag names for this data
+			//sprintf(pt_->buffer() + offset,
+			//	"",
+			//	);
+		} else if (newtrace_) {
 		    sprintf(pt_->buffer() + offset, 
 			"-P tora -Pt 0x%x -Pd %d -Pa %f -Po %d -Pc CLEAR ",
                         ch->tc_type,
@@ -488,7 +555,12 @@ CMUTrace::format_aodv(Packet *p, int offset)
         switch(ah->ah_type) {
         case AODVTYPE_RREQ:
 
-		if (newtrace_) {
+		if (pt_->tagged()) {
+			// Need to determine tag names for this data
+			//sprintf(pt_->buffer() + offset,
+			//	"",
+			//	);
+		} else if (newtrace_) {
 
 		    sprintf(pt_->buffer() + offset,
 			"-P aodv -Pt 0x%x -Ph %d -Pb %d -Pd %d -Pds %d -Ps %d -Pss %d -Pc REQUEST ",
@@ -519,7 +591,12 @@ CMUTrace::format_aodv(Packet *p, int offset)
         case AODVTYPE_HELLO:
 	case AODVTYPE_RERR:
 		
-		if (newtrace_) {
+		if (pt_->tagged()) {
+			// Need to determine tag names for this data
+			//sprintf(pt_->buffer() + offset,
+			//	"",
+			//	);
+		} else if (newtrace_) {
 			
 			sprintf(pt_->buffer() + offset,
 			    "-P aodv -Pt 0x%x -Ph %d -Pd %d -Pds %d -Pl %f -Pc %s ",
