@@ -122,6 +122,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	    }
 	}
 
+
 	// hack the IP address to convert pkt format to hostid format
 	// for now until port ids are removed from IP address. -Padma.
 
@@ -573,6 +574,22 @@ CMUTrace::nam_format(Packet *p, int offset)
 	   distance = tmnode->propdelay(rmnode) * 300000000 ;
 	}
 
+	double energy = -1;
+	double initenergy = -1;
+	if (srcnode) {
+	    if (srcnode->energy_model()) {
+	       energy = srcnode->energy();
+	       initenergy = srcnode->initialenergy();
+	    }
+	}
+
+        int energyLevel = 0 ;
+        double energyLeft = (double)(energy/initenergy) ;
+
+
+        if ((energyLeft <= 1 ) && (energyLeft >= 0.5 )) energyLevel = 3;	
+        if ((energyLeft >= 0.2 ) && (energyLeft < 0.5 )) energyLevel = 2;	
+        if ((energyLeft > 0 ) && (energyLeft < 0.2 )) energyLevel = 1;	
 
 	// convert to nam format 
 	if (op == 's') op = 'h' ;
@@ -617,7 +634,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 	if(type_ == RECV && dst == -1 )dst = src_ ; //broadcasting event
 
 	sprintf(nwrk_ ,
-		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
+		"%c -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -l %d -k %3s",
 		op,
 		Scheduler::instance().clock(),
 		src,                           // this node
@@ -625,6 +642,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 		packet_info.name(ch->ptype()),
 		ch->size(),
 		ch->uid(),
+		energyLevel,
 		tracename);
 
 	offset = strlen(nwrk_);

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.12 1999/09/29 18:45:24 yaxu Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.h,v 1.13 1999/12/08 06:08:14 klan Exp $
  *
  */
 /* Ported from CMU/Monarch's code, nov'98 -Padma.
@@ -103,6 +103,7 @@ class Node : public TclObject {
 	virtual int command(int argc, const char*const* argv);
 	inline int address() { return address_;}
 	inline double energy() { return energy_model_->energy();}
+	inline double initialenergy() { return energy_model_->initialenergy();}
 	inline EnergyModel *energy_model() { return energy_model_; }
 	inline Location *location() { return location_;}
 
