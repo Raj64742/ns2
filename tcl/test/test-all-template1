@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.2 1997/10/16 00:59:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.3 1997/10/18 04:48:45 sfloyd Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -84,7 +84,7 @@ for t in $tests; do
 	    echo saving output for future validation
 	    success="unknown"
 	    compress $datafile  
-	    cp $datafile.Z $directory/$t.Z
+	    mv $datafile.Z $directory/$t.Z
 	else
 	    uncompress -c $directory/$t.Z | cmp -s $datafile -
 	    if [ $? = 0 ]; then
