@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.10 1998/07/05 21:24:51 sfloyd Exp $
+# $Id: many_tcp.tcl,v 1.11 1998/07/06 21:57:26 sfloyd Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -105,7 +105,7 @@ set raw_opt_info {
 	client-mouse-packets 10
 	client-elephant-packets 100
 	# For traffic in the reverse direction.
-	client-reverse-chance 10
+	client-reverse-chance 0
 	# Pkt size in bytes.
 	# NEEDSWORK:  should check that everything is uniformly
 	# specified (router queues are in packets of 1000B length?).
@@ -315,8 +315,8 @@ Main instproc create_client_nodes {node} {
 	$bottle_r_ add-route-to-adj-node $cs_r_($node)
 
 	if {$opts(debug)} {
-		 puts "t=[format %.3f $now]: node pair $node created"
-		 puts "delay $delay ldelay $ldelay"
+		 # puts "t=[format %.3f $now]: node pair $node created"
+		 # puts "delay $delay ldelay $ldelay"
 	}
 }
 
@@ -345,7 +345,7 @@ Main instproc create_a_client {} {
 		$self create_client_nodes $node
 	}
 	if {$opts(debug)} {
-		puts "t=[format %.3f $now]: client $i uses node pair $node"
+		# puts "t=[format %.3f $now]: client $i uses node pair $node"
 	}
 	
 	# create sources and sinks in both directions
