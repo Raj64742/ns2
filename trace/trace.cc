@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.52 1998/08/19 04:11:23 haoboy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.53 1998/08/21 00:42:29 tomh Exp $ (LBL)";
 
 #endif
 
@@ -214,7 +214,8 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	/* UDP's now have seqno's too */
 	if (t == PT_RTP || t == PT_CBR || t == PT_UDP)
 		seqno = rh->seqno();
-	else if (t == PT_TCP || t == PT_ACK)
+	else if (t == PT_TCP || t == PT_ACK || t == PT_HTTP || t == PT_FTP ||
+	    t == PT_TELNET)
 		seqno = tcph->seqno();
 	else
 		seqno = -1;
