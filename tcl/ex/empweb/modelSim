@@ -13,7 +13,7 @@
 #memory.
 #
 
-../big/ns-allinone-2.1b8/ns-2/ns isiweb.tcl > sim.log
+ns isigen.tcl > sim.log
 
 #
 # the set of tcl/awk/perl scripts are used to

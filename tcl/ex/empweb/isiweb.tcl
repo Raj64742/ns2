@@ -18,7 +18,7 @@
 #
 # Some attributes:
 # 1. Topology: ~1000 nodes, 960 web clients, 40 web servers
-# 2. Traffic: approximately 1,700,000 paackets, heavy-tailed connection 
+# 2. Traffic: approximately 1,700,000 packets, heavy-tailed connection 
 #             sizes, throughout 3600 second simulation time
 # 3. Simulation scale: ~33 MB memory, ~1 hrs running on Red Hat Linux 7.0
 #              Pentium II Xeon 450 MHz PC with 1GB physical memory
@@ -37,7 +37,7 @@ $ns rtproto Manual
 puts "creating topology"
 create_topology
 
-#trace files setup (isi: inbound traffic  www: outbound traffic)
+#trace files setup (isi: inbound traffic  www: all traffic)
 $ns trace-queue $n(7) $n(1) [open isi.in w]
 $ns trace-queue $n(1) $n(7) [open isi.out w]
 $ns trace-queue $n(7) $n([expr $num_node - 1]) [open www.out w]
@@ -73,9 +73,9 @@ set numSessionO 1500
 
 # Inter-session Interval
 set interSessionO [new RandomVariable/Empirical]
-$interSessionO loadCDF cdf/2pm.out.sess.inter.cdf
+$interSessionO loadCDF cdf/2pm.www.out.sess.inter.cdf
 set interSessionI [new RandomVariable/Empirical]
-$interSessionI loadCDF cdf/2pm.in.sess.inter.cdf
+$interSessionI loadCDF cdf/2pm.www.in.sess.inter.cdf
 #set interSessionO [new RandomVariable/Exponential]
 #$interSessionO set avg_ 13.6
 #set interSessionI [new RandomVariable/Exponential]
@@ -83,9 +83,9 @@ $interSessionI loadCDF cdf/2pm.in.sess.inter.cdf
 
 ## Number of Pages per Session
 set sessionSizeO [new RandomVariable/Empirical]
-$sessionSizeO loadCDF cdf/2pm.out.pagecnt.cdf
+$sessionSizeO loadCDF cdf/2pm.www.out.pagecnt.cdf
 set sessionSizeI [new RandomVariable/Empirical]
-$sessionSizeI loadCDF cdf/2pm.in.pagecnt.cdf
+$sessionSizeI loadCDF cdf/2pm.www.in.pagecnt.cdf
 
 
 # Random seed at every run
@@ -98,17 +98,17 @@ $pool set-num-session [expr $numSessionI + $numSessionO]
 puts "creating outbound session"
 
 set interPage [new RandomVariable/Empirical]
-$interPage loadCDF cdf/2pm.out.idle.cdf
+$interPage loadCDF cdf/2pm.www.out.idle.cdf
 
 set pageSize [new RandomVariable/Constant]
 $pageSize set val_ 1
 set interObj [new RandomVariable/Empirical]
-$interObj loadCDF cdf/objinter.dat.cdf  
+$interObj loadCDF cdf/2pm.www.out.obj.cdf  
 
 set objSize [new RandomVariable/Empirical]
-$objSize loadCDF cdf/2pm.out.pagesize.cdf
+$objSize loadCDF cdf/2pm.www.out.pagesize.cdf
 set reqSize [new RandomVariable/Empirical]
-$reqSize loadCDF cdf/2pm.dump.out.req.cdf
+$reqSize loadCDF cdf/2pm.www.out.req.cdf
 
 set persistSel [new RandomVariable/Empirical]
 $persistSel loadCDF cdf/persist.cdf
@@ -133,17 +133,17 @@ for {set i 0} {$i < $numSessionO} {incr i} {
 puts "creating inbound session"
 
 set interPage [new RandomVariable/Empirical]
-$interPage loadCDF cdf/2pm.in.idle.cdf
+$interPage loadCDF cdf/2pm.www.in.idle.cdf
 
 set pageSize [new RandomVariable/Constant]
 $pageSize set val_ 1
 set interObj [new RandomVariable/Empirical]
-$interObj loadCDF cdf/objinter.dat.cdf  
+$interObj loadCDF cdf/2pm.www.in.obj.cdf  
 
 set objSize [new RandomVariable/Empirical]
-$objSize loadCDF cdf/2pm.in.pagesize.cdf
+$objSize loadCDF cdf/2pm.www.in.pagesize.cdf
 set reqSize [new RandomVariable/Empirical]
-$reqSize loadCDF cdf/2pm.dump.in.req.cdf
+$reqSize loadCDF cdf/2pm.www.in.req.cdf
 
 set persistSel [new RandomVariable/Empirical]
 $persistSel loadCDF cdf/persist.cdf

@@ -27,7 +27,7 @@ while {[gets $fi line] >= 0} {
   set dip [lindex $d 0]
 
 if { $flag == "+"} {
-  if { $sip == 7 || $dip == 7} {
+  if { $sip == 9 || $dip == 9} {
      if { $size == 1000 } {
         set size 1500
      }
