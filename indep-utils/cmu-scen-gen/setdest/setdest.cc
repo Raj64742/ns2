@@ -1,3 +1,41 @@
+/*
+ *
+ * The original code of setdest was included in ns-2.1b8a.
+ * This file is the modified version by J. Yoon <jkyoon@eecs.umich.edu>,
+ *	Department of EECS, University of Michigan, Ann Arbor. 
+ *
+ * (1) Input parameters
+ *	<Original version>
+ *		=> -M maximum speed (minimum speed is zero as a default)
+ *		=> -p pause time (constant) 
+ *		=> -n number of nodes
+ *		=> -x x dimension of space
+ *		=> -y y dimension of space
+ *
+ *	<Modified version>
+ *		=> -s speed type (uniform, normal)
+ *		=> -m minimum speed > 0 
+ *		=> -M maximum speed
+ *		=> -P pause type (constant, uniform)
+ *		=> -p pause time (a median if uniform is chosen)
+ *		=> -n number of nodes
+ *		=> -x x dimension of space
+ *		=> -y y dimension of space
+ *
+ * (2) In case of modified version, the steady-state speed distribution is applied to 
+ *	the first trip to eliminate any speed decay. If pause is not zero, the first 
+ *	trip could be either a move or a pause depending on the probabilty that the 
+ *	first trip is a pause. After the first trip regardless of whether it is 
+ *	a move or a pause, all subsequent speeds are determined from the given speed 
+ *	distribution (e.g., uniform or normal).
+ *
+ * (3) Refer to and use scenario-generating scripts (make-scen.csh for original version, 
+ *	make-scen-steadystate.csh for modified version).
+ *
+ *
+ */
+
+
 
 extern "C" {
 #include <assert.h>
@@ -10,7 +48,7 @@ extern "C" {
 #include <sys/types.h>
 #include <sys/uio.h>
 #include <unistd.h>
-#if !defined(sun) && !defined(__CYGWIN__)
+#if !defined(sun)
 #include <err.h>
 #endif
 };
@@ -30,11 +68,12 @@ extern "C" {
 #define NODE_FORMAT2	"$node_(%d) setdest %.12f %.12f %.12f\n"
 #define NODE_FORMAT3	"$node_(%d) set %c_ %.12f\n"
 
-#undef		INFINITY
 #define		INFINITY	0x00ffffff
 #define		min(x,y)	((x) < (y) ? (x) : (y))
 #define		max(x,y)	((x) > (y) ? (x) : (y))
 #define		ROUND_ERROR	1e-9
+#define 	PI	 	3.1415926	
+
 
 static int count = 0;
 
@@ -57,18 +96,30 @@ void		show_counters(void);
 /* ======================================================================
    Global Variables
    ====================================================================== */
-const double	RANGE = 250.0;		// transmitter range in meters
-double		TIME = 0.0;		// my clock;
+const double	RANGE = 250.0;	// transmitter range in meters
+double		TIME = 0.0;			// my clock;
 double		MAXTIME = 0.0;		// duration of simulation
 
-double		MAXX = 0.0;
-double		MAXY = 0.0;
-double		MAXSPEED = 0.0;
-double		PAUSE = 0.0;
-u_int32_t	NODES = 0;
+double		MAXX = 0.0;			// width of space
+double		MAXY = 0.0;			// height of space
+double		PAUSE = 0.0;		// pause time
+double		MAXSPEED = 0.0;		// max speed
+double		MINSPEED = 0.0;		// min speed 
+double		SS_AVGSPEED = 0.0;	// steady-state avg speed 
+double 		KAPPA = 0.0;		// normalizing constant 
+double 		MEAN = 0.0;			// mean for normal speed
+double 		SIGMA = 0.0;		// std for normal speed
+double 		EXP_1_V = 0.0;		// expactation of 1/V
+double 		EXP_R = 0.0;		// expectation of travel distance R
+double 		PDFMAX = 0.0;		// max of pdf for rejection technique
+u_int32_t	SPEEDTYPE = 1;		// speed type (default = uniform)
+u_int32_t	PAUSETYPE = 1;		// pause type (default = constant)
+u_int32_t	VERSION = 1;		// setdest version (default = original by CMU) 
+u_int32_t	NODES = 0;			// number of nodes
 u_int32_t	RouteChangeCount = 0;
-u_int32_t       LinkChangeCount = 0;
+u_int32_t	LinkChangeCount = 0;
 u_int32_t	DestUnreachableCount = 0;
+
 
 Node		*NodeList = 0;
 u_int32_t	*D1 = 0;
@@ -89,20 +140,58 @@ uniform()
 {
         count++;
         return rng->uniform_double() ;
-} 
+}
 
 
 /* ======================================================================
    Misc Functions...
    ====================================================================== */
+
+
+/* compute the expectation of travel distance E[R] in a rectangle */
+void
+compute_EXP_R()
+{
+	#define csc(x) 		(1.0/sin(x))		// csc function
+	#define sec(x)		(1.0/cos(x))		// sec function
+	#define sin2(x)		(sin(x)*sin(x))		// sin^2
+	#define sin3(x)		(sin2(x)*sin(x))	// sin^3
+	#define cos2(x)		(cos(x)*cos(x))		// cos^2
+	#define cos3(x)		(cos2(x)*cos(x))	// cos^3
+
+	double x = MAXX, y = MAXY;			// max x and max y
+	double x2 = x*x, x3 = x*x*x;			// x^2 and x^3
+	double y2 = y*y, y3 = y*y*y;			// y^2 and y^3
+
+	double term1 = sin(atan2(y,x)) / 2.0 / cos2(atan2(y,x));
+	double term2 = 0.5 * log( sec(atan2(y,x)) + y/x );
+	double term3 = -1.0 * x3 / y2 / 60.0 / cos3(atan2(y,x)) + 1.0/60.0 * x3 / y2;
+	double term4 = (term1 + term2) * x2 / 12.0 / y + term3;
+
+	double term5 = -1.0 * cos(atan2(y,x)) / 2.0 / sin2(atan2(y,x));
+	double term6 = 0.5 * log( csc(atan2(y,x)) - x/y );
+	double term7 = -1.0 * y3 / x2 / 60.0 / sin3(atan2(y,x)) + 1.0/60.0 * y3 / x2;
+	double term8 = -1.0 * (term5 + term6) * y2 / 12.0 / x + term7;
+
+	EXP_R = (4 * (term4 + term8)); 			// E[R]
+}
+
 void
 usage(char **argv)
 {
+	fprintf(stderr, "\nusage:\n");
 	fprintf(stderr,
-		"\nusage: %s\t-n <nodes> -p <pause time> -s <max speed>\n",
+		"\n<original 1999 CMU version (version 1)>\n %s\t-v <1> -n <nodes> -p <pause time> -M <max speed>\n",
 		argv[0]);
 	fprintf(stderr,
-		"\t\t-t <simulation time> -x <max X> -y <max Y>\n\n");
+		"\t\t-t <simulation time> -x <max X> -y <max Y>\n");
+	fprintf(stderr,
+		"\nOR\n<modified 2003 U.Michigan version (version 2)>\n %s\t-v <2> -n <nodes> -s <speed type> -m <min speed> -M <max speed>\n",
+		argv[0]);
+	fprintf(stderr,
+		"\t\t-t <simulation time> -P <pause type> -p <pause time> -x <max X> -y <max Y>\n");
+	fprintf(stderr,
+		"\t\t(Refer to the script files make-scen.csh and make-scen-steadystate.csh for detail.) \n\n");
 }
 
 void
@@ -111,6 +200,44 @@ init()
 	/*
 	 * Initialized the Random Number Generation
 	 */
+	/* 
+	This part of init() is commented out and is replaced by more
+	portable RNG (random number generator class of ns) functions.	
+
+	struct timeval tp;
+	int fd, seed, bytes;
+
+	if((fd = open("/dev/random", O_RDONLY)) < 0) {
+		perror("open");
+		exit(1);
+	}
+	if((bytes = read(fd, random_state, sizeof(random_state))) < 0) {
+		perror("read");
+		exit(1);
+	}
+	close(fd);
+
+	fprintf(stderr, "*** read %d bytes from /dev/random\n", bytes);
+
+	if(bytes != sizeof(random_state)) {
+	  fprintf(stderr,"Not enough randomness. Reading `.rand_state'\n");
+	  if((fd = open(".rand_state", O_RDONLY)) < 0) {
+	    perror("open .rand_state");
+	    exit(1);
+	  }
+	  if((bytes = read(fd, random_state, sizeof(random_state))) < 0) {
+	    perror("reading .rand_state");
+	    exit(1);
+	  }
+	  close(fd);
+	}
+
+         if(gettimeofday(&tp, 0) < 0) {
+		perror("gettimeofday");
+		exit(1);
+	}
+	seed = (tp.tv_sec  >> 12 ) ^ tp.tv_usec;
+        (void) initstate(seed, random_state, bytes & 0xf8);*/
 
 	/*
 	 * Allocate memory for globals
@@ -143,24 +270,40 @@ main(int argc, char **argv)
 {
 	char ch;
 
-	while ((ch = getopt(argc, argv, "n:p:s:t:x:y:i:o:")) != EOF) {       
+	while ((ch = getopt(argc, argv, "v:n:s:m:M:t:P:p:x:y:i:o:")) != EOF) {       
 
 		switch (ch) { 
+		
+		case 'v':
+		  VERSION = atoi(optarg);
+		  break;
 
 		case 'n':
-			NODES = atoi(optarg);
-			break;
-
-		case 'p':
-			PAUSE = atof(optarg);
-			break;
+		  NODES = atoi(optarg);
+		  break;
 
 		case 's':
+			SPEEDTYPE = atoi(optarg);	
+			break;
+
+		case 'm':
+			MINSPEED = atof(optarg);	
+			break;
+
+		case 'M':
 			MAXSPEED = atof(optarg);
 			break;
 
 		case 't':
 			MAXTIME = atof(optarg);
+			break;
+
+		case 'P':
+			PAUSETYPE = atoi(optarg);	
+			break;
+
+		case 'p':
+			PAUSE = atof(optarg);
 			break;
 
 		case 'x':
@@ -181,13 +324,90 @@ main(int argc, char **argv)
 		usage(argv);
 		exit(1);
 	}
+	
+	/* specify the version */
+	if (VERSION != 1 && VERSION != 2) {
+	  printf("Please specify the setdest version you want to use. For original 1999 CMU version use 1; For modified 2003 U.Michigan version use 2\n");
+	  exit(1);
+	}
 
-	fprintf(stdout, "#\n# nodes: %d, pause: %.2f, max speed: %.2f  max x = %.2f, max y: %.2f\n#\n",
-		NODES , PAUSE, MAXSPEED, MAXX, MAXY);
+	if (VERSION == 2 && MINSPEED <= 0) {
+	  usage(argv);
+	  exit(1);
+	} else if (VERSION == 1 && MINSPEED > 0) {
+	  usage(argv);
+	  exit(1);
+	}
+
 
 	// The more portable solution for random number generation
 	rng = new RNG;
 	rng->set_seed(RNG::HEURISTIC_SEED_SOURCE); 
+
+
+
+	/****************************************************************************************
+ 	 * Steady-state avg speed and distribution depending on the initial distirbutions given
+	 ****************************************************************************************/
+	
+	/* original setdest */	
+	if (VERSION == 1) {	
+		fprintf(stdout, "#\n# nodes: %d, pause: %.2f, max speed: %.2f, max x: %.2f, max y: %.2f\n#\n",
+			NODES, PAUSE, MAXSPEED, MAXX, MAXY);
+	}	
+
+	/* modified version */
+	else if (VERSION == 2) {
+		/* compute the expectation of travel distance in a rectangle */
+		compute_EXP_R();
+
+		/* uniform speed from min to max */
+		if (SPEEDTYPE == 1) {
+			EXP_1_V = log(MAXSPEED/MINSPEED) / (MAXSPEED - MINSPEED);	// E[1/V]
+			SS_AVGSPEED = EXP_R / (EXP_1_V*EXP_R + PAUSE);				// steady-state average speed
+			PDFMAX = 1/MINSPEED*EXP_R / (EXP_1_V*EXP_R + PAUSE) / (MAXSPEED-MINSPEED);	// max of pdf for rejection technique
+		}
+		
+		/* normal speed clipped from min to max */
+		else if (SPEEDTYPE == 2) {
+			int bin_no = 10000;									// the number of bins for summation
+			double delta = (MAXSPEED - MINSPEED)/bin_no; 		// width of each bin 
+			int i;
+			double acc_k, acc_e, square, temp_v;
+
+			MEAN = (MAXSPEED + MINSPEED)/2.0;					// means for normal dist.
+			SIGMA = (MAXSPEED - MINSPEED)/4.0;					// std for normal dist.
+			/* computing a normalizing constant KAPPA, E[1/V], and pdf max */
+			KAPPA = 0.0;
+			EXP_1_V = 0.0;
+			PDFMAX = 0.0;
+
+			/* numerical integrals */
+			for (i=0; i<bin_no; ++i) {
+				temp_v = MINSPEED + i*delta;		// ith v from min speed
+				square = (temp_v - MEAN)*(temp_v - MEAN)/SIGMA/SIGMA;
+
+				acc_k = 1.0/sqrt(2.0*PI*SIGMA*SIGMA)*exp(-0.5*square);
+				KAPPA += (acc_k*delta);				// summing up the area of rectangle
+
+				acc_e = 1.0/temp_v/sqrt(2.0*PI*SIGMA*SIGMA)*exp(-0.5*square);
+				EXP_1_V += (acc_e*delta);			// summing up for the denominator of pdf
+	
+				/* find a max of pdf */
+				if (PDFMAX < acc_e) PDFMAX = acc_e;
+			}
+			EXP_1_V /= KAPPA;						// normalizing
+			SS_AVGSPEED = EXP_R / (EXP_1_V*EXP_R + PAUSE);			// steady-state average speed
+			PDFMAX = EXP_R*PDFMAX/KAPPA / (EXP_1_V*EXP_R + PAUSE);	// max of pdf for rejection technique
+		}
+		/* other types of speed for future use */
+		else
+			;
+	
+		fprintf(stdout, "#\n# nodes: %d, speed type: %d, min speed: %.2f, max speed: %.2f\n# avg speed: %.2f, pause type: %d, pause: %.2f, max x: %.2f, max y: %.2f\n#\n",
+			NODES , SPEEDTYPE, MINSPEED, MAXSPEED, SS_AVGSPEED, PAUSETYPE, PAUSE, MAXX, MAXY);
+	} 	
+
 
 	init();
 
@@ -219,6 +439,7 @@ main(int argc, char **argv)
 				else
 					nexttime = min(nexttime, n->time_arrival);
 			}
+
 		}
 
 		floyd_warshall();
@@ -251,6 +472,8 @@ main(int argc, char **argv)
 	  exit(-1);
 	  }
 	close(of);
+
+
 }
 
 
@@ -269,13 +492,45 @@ Node::Node()
 	//	return;
 
 	route_changes = 0;
-        link_changes = 0;
+    link_changes = 0;
 
-        /*
-         * For the first PAUSE seconds of the simulation, all nodes
-         * are stationary.
-         */
-	time_arrival = TIME + PAUSE;
+
+
+    /*******************************************************************************
+	 * Determine if the first trip is a pause or a move with the steady-state pdf
+     *******************************************************************************/
+
+	/* original version */
+	if (VERSION == 1) {
+			time_arrival = TIME + PAUSE;			// constant pause
+	}
+
+	/* modified version */ 
+	else if (VERSION == 2) {
+		/* probability that the first trip would be a pause */
+		double prob_pause = PAUSE / (EXP_1_V*EXP_R + PAUSE);
+	
+		/* the first trip is a pause */
+		if (prob_pause > uniform()) {
+			/* constant pause */
+			if (PAUSETYPE == 1) {
+				time_arrival = TIME + PAUSE;				// constant pause
+			}
+			/* uniform pause */
+			else if (PAUSETYPE == 2) {
+				time_arrival = TIME + 2*PAUSE*uniform();	// uniform pause [0, 2*PAUSE]
+			}
+				
+			first_trip = 0;						// indicating the first trip is a pause 
+		}
+		/* the first trip is a move based on the steady-state pdf */
+		else {
+			time_arrival = TIME;
+			first_trip = 1;						// indicating the first trip is a move 
+		}
+	}
+
+
 	time_update = TIME;
 	time_transition = 0.0;
 
@@ -308,8 +563,8 @@ Node::Node()
 void
 Node::RandomPosition()
 {
-        position.X = uniform() * MAXX;
-        position.Y = uniform() * MAXY;
+    position.X = uniform() * MAXX;
+    position.Y = uniform() * MAXY;
 	position.Z = 0.0;
 }
 
@@ -317,18 +572,85 @@ Node::RandomPosition()
 void
 Node::RandomDestination()
 {
-        destination.X = uniform() * MAXX;
-        destination.Y = uniform() * MAXY;
+   	destination.X = uniform() * MAXX;
+   	destination.Y = uniform() * MAXY;
 	destination.Z = 0.0;
 	assert(destination != position);
 }
 
+
+/****************************************************************************************** 
+ * Speeds are chosen based on the given type and distribution
+ ******************************************************************************************/
 void
 Node::RandomSpeed()
 {
-        speed = uniform() * MAXSPEED;
+	/* original version */
+	if (VERSION == 1) {
+       	speed = uniform() * MAXSPEED;
+		assert(speed != 0.0);
+	}
 
-	assert(speed != 0.0);
+	/* modified version */
+	else if (VERSION == 2) {
+		/* uniform speed */
+		if (SPEEDTYPE == 1) {
+			/* using steady-state distribution for the first trip */
+			if (first_trip == 1) {
+				/* pick a speed by rejection technique */
+				double temp_v, temp_fv;
+	
+				do {
+	        	 	temp_v = uniform() * (MAXSPEED - MINSPEED) + MINSPEED;
+					temp_fv = uniform() * PDFMAX;
+				} while (temp_fv > 1/temp_v*EXP_R / (EXP_1_V*EXP_R + PAUSE) / (MAXSPEED-MINSPEED));
+	 
+				speed = temp_v;
+				first_trip = 0;		// reset first_trip flag 	
+			}
+			/* using the original distribution from the second trip on */
+			else {
+	        	speed = uniform() * (MAXSPEED - MINSPEED) + MINSPEED;
+				assert(speed != 0.0);
+			}
+		}
+		/* normal speed */
+		else if (SPEEDTYPE == 2) {
+			/* using steady-state distribution for the first trip */
+			if (first_trip == 1) {
+				double temp_v, temp_fv, square, fv;
+	
+				/* rejection technique */
+				do {
+	        	 	temp_v = uniform() * (MAXSPEED - MINSPEED) + MINSPEED;
+					temp_fv = uniform() * PDFMAX;
+					square = (temp_v - MEAN)*(temp_v - MEAN)/SIGMA/SIGMA;
+					fv = 1/KAPPA/sqrt(2.0*PI*SIGMA*SIGMA) * exp(-0.5*square);
+				} while (temp_fv > 1.0/temp_v*fv*EXP_R / (EXP_1_V*EXP_R + PAUSE));
+	 
+				speed = temp_v;
+				first_trip = 0;
+			}
+			/* using the original distribution from the second trip on */
+			else {
+				double temp_v, temp_fv, square;
+				double max_normal = 1.0/KAPPA/sqrt(2.0*PI*SIGMA*SIGMA);		// max of normal distribution
+	
+				/* rejection technique */
+				do {
+	         		temp_v = uniform() * (MAXSPEED - MINSPEED) + MINSPEED;
+					temp_fv = uniform() * max_normal;
+					square = (temp_v - MEAN)*(temp_v - MEAN)/SIGMA/SIGMA;
+				} while (temp_fv > max_normal * exp(-0.5*square));
+	 
+				speed = temp_v;
+				assert(speed != 0.0);
+			}
+		}
+		/* other types of speed for future use */
+		else
+			;
+	}
 }
 
 
@@ -342,7 +664,7 @@ Node::Update()
 
 		if(speed == 0.0 || PAUSE == 0.0) {
 
-                       	RandomDestination();
+           	RandomDestination();
 			RandomSpeed();
 
 			v = destination - position;
@@ -354,7 +676,21 @@ Node::Update()
 			destination = position;
 			speed = 0.0;
 
-			time_arrival = TIME + PAUSE;
+			/* original version */
+			if (VERSION == 1) {
+				time_arrival = TIME + PAUSE;
+			}
+			/* modified version */
+			else if (VERSION == 2) {
+				/* constant pause */
+				if (PAUSETYPE == 1) {
+					time_arrival = TIME + PAUSE;
+				}
+				/* uniform pause */
+				else if (PAUSETYPE == 2) {
+					time_arrival = TIME + 2*PAUSE*uniform();
+				}
+			}
 		}
 
 		fprintf(stdout, NODE_FORMAT,

@@ -1,4 +1,4 @@
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/README,v 1.3 1999/11/02 17:00:29 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/README,v 1.4 2003/12/15 23:30:42 haldar Exp $
 
 ********** README for using CMU's node-movement **************
             ************** file generators ************
@@ -23,11 +23,9 @@ already while building ns). This creates a makefile for setdest.
 a stand-alone object file for ~ns/rng.cc (the stand-alone version doesnot
 use Tclcl libs) and then creates the executable setdest. 
 
-3. Run setdest with arguments as shown below: ./setdest [-n num_of_nodes]
-[-p pausetime] [-s maxspeed] [-t simtime] \
-      [-x maxx] [-y maxy] > [outdir/movement-file]
+3. Run setdest with arguments as shown below: ./setdest [-v version of setdest; 1 for original 1999 CMU version or 2 for modified 2003 U.Michigan version ] [-n num_of_nodes] [-p pausetime] [-s maxspeed] [-t simtime] [-x maxx] [-y maxy] > [outdir/movement-file]
  
-Example: ./setdest -n 20 -p 2.0 -s 10.0 -t 200 -x 500 -y 500 >
+Example: ./setdest -v 1 -n 20 -p 2.0 -s 10.0 -t 200 -x 500 -y 500 >
 scen-20-test
 and the output will be written in a file called scen-20-test.
 
