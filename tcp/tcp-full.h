@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.14 1997/12/18 03:10:03 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.15 1998/01/20 03:04:12 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -48,6 +48,7 @@
 #define TF_NODELAY      0x0004          /* don't delay packets to coalesce */
 #define TF_NOOPT        0x0008          /* don't use tcp options */
 #define TF_SENTFIN      0x0010          /* have sent FIN */
+#define	TF_RCVD_TSTMP	0x0100		/* timestamp rcv'd in SYN */
 
 #define TCPS_CLOSED             0       /* closed */
 #define TCPS_LISTEN             1       /* listening for connection */
@@ -143,20 +144,18 @@ class FullTcpAgent : public TcpAgent {
 	void newstate(int ns) { state_ = ns; } // future hook for traces
 
 	void reset_rtx_timer(int);  // adjust the rtx timer
-	void reset();       // reset to a known point
-	void connect();     // do active open
-	void listen();      // do passive open
-	void usrclosed();   // user requested a close
-	int need_send();    // need to send ACK/win-update now?
+	void reset();       		// reset to a known point
+	void connect();     		// do active open
+	void listen();      		// do passive open
+	void usrclosed();   		// user requested a close
+	int need_send();    		// send ACK/win-update now?
 	void output(int seqno, int reason = 0); // output 1 packet
 	void send_much(int force, int reason, int maxburst = 0);
 	void sendpacket(int seq, int ack, int flags, int dlen, int why);
-	void newack(Packet* pkt);   // process an ACK
+	void newack(Packet* pkt);	// process an ACK
+	void dooptions(Packet*);	// process option(s)
 	DelAckTimer delack_timer_;	// other timers in tcp.h
-	void cancel_timers() {
-		TcpAgent::cancel_timers();
-		delack_timer_.force_cancel();
-	}
+	void cancel_timers();		// cancel all timers
 
 	/*
 	* the following are part of a tcpcb in "real" RFC793 TCP
@@ -171,6 +170,8 @@ class FullTcpAgent : public TcpAgent {
 	* the following are part of a tcpcb in "real" RFC1323 TCP
 	*/
 	int last_ack_sent_; /* ackno field from last segment we sent */
+	double recent_;		// ts on SYN written by peer
+	double recent_age_;	// my time when recent_ was set
 };
 
 #endif
