@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.10 1998/05/21 02:40:12 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.11 1998/05/23 02:48:06 kfall Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -59,22 +59,32 @@ class Handler {
 	virtual void handle(Event* event) = 0;
 };
 
+#define	SCHED_START	0.0	/* start time (secs) */
+
 class Scheduler : public TclObject {
 public:
-	static Scheduler& instance() { return (*instance_); }
-	void schedule(Handler*, Event*, double delay);
+	static Scheduler& instance() {
+		return (*instance_);		// general access to scheduler
+	}
+	void schedule(Handler*, Event*, double delay);	// sched later event
 	void rc_schedule(Handler*, Event*, double delay);
-	virtual void run();
-	virtual void cancel(Event*) = 0;
-	virtual void insert(Event*) = 0;
-	virtual Event* lookup(int uid) = 0;
-	virtual Event* deque() = 0;		// next event
-	inline double clock() const { return (clock_); }
+	virtual void run();			// execute the simulator
+	virtual void cancel(Event*) = 0;	// cancel event
+	virtual void insert(Event*) = 0;	// schedule event
+	virtual Event* lookup(int uid) = 0;	// look for event
+	virtual Event* deque() = 0;		// next event (removes from q)
+	inline double clock() const {		// simulator virtual time
+		return (clock_);
+	}
 	virtual void sync() {};
-	inline void reset() { clock_ = 0.; }/*XXX*/
+	virtual double start() {		// start time
+		return SCHED_START;
+	}
+	inline void reset() { clock_ = SCHED_START; }/*XXX*/
 protected:
 	void dumpq();	// for debug: remove + print remaining events
 	void dispatch(Event*);	// execute an event
+	void dispatch(Event*, double);	// exec event, set clock_
 	Scheduler();
 	int command(int argc, const char*const* argv);
 	double clock_;
