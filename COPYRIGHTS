@@ -287,7 +287,7 @@ The "license.terms" file can be found in the tcl distribution.
 ----------------------------------------------------------------------
 
 To find copyright types:
-grep Copyright *.{cc,h} \
-  | awk '{print $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12;}' \
-  | sed -e 's/199./XXXX/g' -e 's/200./XXXX/g' t | sort | uniq 
 
+find ./ -name "*.[ch]*" | xargs grep Copyright | \
+	awk '{print $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12;}'   | \
+	sed -e 's/199./XXXX/g' -e 's/200./XXXX/g' | sort | uniq
