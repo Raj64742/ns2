@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.13 1997/10/31 22:48:44 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.14 1997/11/01 00:51:12 sfloyd Exp $
 #
 
 #source plotting.tcl
@@ -48,6 +48,7 @@ Object instproc exit args {
 Class TestSuite
 
 TestSuite instproc init { {dotrace 1} } {
+	global quiet
 	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_ 
 	$self instvar allchan_ namchan_
 	if [catch "$self get-simulator" ns_] {
@@ -56,8 +57,10 @@ TestSuite instproc init { {dotrace 1} } {
 	if { $dotrace } {
                 set allchan_ [open all.tr w]
                 $ns_ trace-all $allchan_
-                set namchan_ [open all.nam w]
-                $ns_ namtrace-all $namchan_
+		set namchan_ [open all.nam w]
+		if {$quiet == "false"} {
+                	$ns_ namtrace-all $namchan_
+		}
 	}
 	if {$net_ == ""} {
 		set net_ $defNet_
