@@ -32,191 +32,96 @@
  * SUCH DAMAGE.
  *
  *
- * Here is one set of parameters from one of my simulations:
- * 
- * ed [ q_weight=0.002 thresh=5 linterm=30 maxthresh=15
- *         mean_pktsize=500 dropmech=random-drop queue-size=60
- *         plot-file=none bytes=false doubleq=false dqthresh=50 
- *	   wait=true ]
- * 
- * 1/"linterm" is the max probability of dropping a packet. 
- * There are different options that make the code
- * more messy that it would otherwise be.  For example,
- * "doubleq" and "dqthresh" are for a queue that gives priority to
- *   small (control) packets, 
- * "bytes" indicates whether the queue should be measured in bytes 
- *   or in packets, 
- * "dropmech" indicates whether the drop function should be random-drop 
- *   or drop-tail when/if the queue overflows, and 
- *   the commented-out Holt-Winters method for computing the average queue 
- *   size can be ignored.
- * "wait" indicates whether the gateway should wait between dropping
- *   packets.
- *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.h,v 1.3 2000/06/28 21:59:34 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.h,v 1.4 2000/07/03 06:00:13 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_rio_h
 #define ns_rio_h
 
-#include "queue.h"
 #include "tclcl.h"
 #include "packet.h"
 #include "random.h"
 #include "flags.h"
 #include "delay.h"
 #include "template.h"
-
-class LinkDelay;
+#include "red.h"
 
 /*
- * Early drop parameters, supplied by user
+ * Early drop parameters, supplied by user, for a subqueue.
  */
-struct edp {
+struct edp_rio {
 	/*
 	 * User supplied.
 	 */
-	int mean_pktsize;	/* avg pkt size, linked into Tcl */
-	int bytes;		/* true if queue in bytes, false if packets */
-	int wait;		/* true for waiting between dropped packets */
-	int setbit;		/* true to set congestion indication bit */
-	double q_w;		/* queue weight given to cur q size sample */
-
-	int gentle;		/* true to increases dropping prob. slowly */
-	int in_gentle;	        /* when ave queue exceeds maxthresh. */
-	int out_gentle;
-
-	double in_th_min;	/* minimum threshold of average queue size */
-	double in_th_max;	/* maximum threshold of average queue size */
-	double in_max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
-
-	double out_th_min;	/* minimum threshold of average queue size */
-	double out_th_max;	/* maximum threshold of average queue size */
-	double out_max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
-
-        double total_min;
-        double total_max;
-        double max_p_inv;
-
-	/*
-	 * Computed as a function of user supplied paramters.
-	 */
-	double ptc;		/* packet time constant in packets/second */
+	int gentle;	        /* when ave queue exceeds maxthresh. */
+	double th_min;	/* minimum threshold of average queue size */
+	double th_max;	/* maximum threshold of average queue size */
+	double max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
 };
 
 /*
- * Early drop variables, maintained by RIO
+ * Early drop variables, maintained by RIO, for a subqueue.
  */
-struct edv {
-	TracedDouble v_ave;	/* average queue size */
-	TracedDouble v_prob1;	/* prob. of packet drop before "count". */
-	double v_slope;		/* used in computing average queue size */
-	double v_prob;		/* prob. of packet drop */
-	double v_a;		/* v_prob = v_a * v_ave + v_b */
-	double v_b;
-	double v_c;		/* used for "gentle" mode */
-	double v_d;		/* used for "gentle" mode */
-	int count;		/* # of packets since last drop */
-	int count_bytes;	/* # of bytes since last drop */
-	int old;		/* 0 when average queue first exceeds thresh */
-
+struct edv_rio {
         /* added by Wenjia modified by Yun: a new set In packets */
-        double in_v_ave;         /* average In queue size */
-	double in_v_prob1;	/* prob. of packet drop before "count". */
-        double in_v_slope;       /* used in computing average queue size */
-        double in_v_r;
-        double in_v_prob;        /* prob. of packet drop */
-        struct dlist* in_drops;
-        double in_v_a;           /* v_prob = v_a * v_ave + v_b */
-        double in_v_b;
-	double in_v_c;
-	double in_v_d;
-        int in_count;           /* # of packets since last drop */
-        int in_count_bytes;     /* # of bytes since last drop */
-        int in_old;             /* 0 when average queue first exceeds thresh */
+        double v_ave;         /* average In queue size */
+	double v_prob1;	/* prob. of packet drop before "count". */
+        double v_slope;       /* used in computing average queue size */
+        double v_r;
+        double v_prob;        /* prob. of packet drop */
+        struct dlist* drops;
+        double v_a;           /* v_prob = v_a * v_ave + v_b */
+        double v_b;
+	double v_c;
+	double v_d;
+        int count;           /* # of packets since last drop */
+        int count_bytes;     /* # of bytes since last drop */
+        int old;             /* 0 when average queue first exceeds thresh */
 
-        /* added by Wenjia modified by Yun: a new set for Out packets */
-        double out_v_ave;        /* average queue size */
-	double out_v_prob1;	/* prob. of packet drop before "count". */
-        double out_v_slope;      /* used in computing average queue size */
-        double out_v_r;
-        double out_v_prob;       /* prob. of packet drop */
-        struct dlist* out_drops;
-        double out_v_a;          /* v_prob = v_a * v_ave + v_b */
-        double out_v_b;
-	double out_v_c;
-	double out_v_d;
-        int out_count;          /* # of packets since last drop */
-        int out_count_bytes;    /* # of bytes since last drop */
-        int out_old;            /* 0 when average queue first exceeds thresh */
-
-	edv() : v_ave(0.0), v_prob1(0.0), v_slope(0.0), v_prob(0.0),
+	edv_rio() : v_ave(0.0), v_prob1(0.0), v_slope(0.0), v_prob(0.0),
 		v_a(0.0), v_b(0.0), count(0), count_bytes(0), old(0) { }
 };
 
-class RIOQueue : public Queue {
+class REDQueue;
+
+class RIOQueue : public virtual REDQueue {
  public:	
 	RIOQueue();
  protected:
-	int command(int argc, const char*const* argv);
 	void enque(Packet* pkt);
-	virtual Packet *pickPacketForECN(Packet* pkt);
-	virtual Packet *pickPacketToDrop();
 	Packet* deque();
 	void reset();
 
-        // modified by Yun: convert to two funtion for In and Out pkts
-	// void run_estimator(int nqueued, int m);
-	void run_in_estimator(int in, int total, int m);
 	void run_out_estimator(int out, int total, int m);
 
 	// int drop_early(Packet* pkt);
 	int drop_in_early(Packet* pkt);
 	int drop_out_early(Packet* pkt);
 
-	LinkDelay* link_;	/* outgoing link */
-	int fifo_;		/* fifo queue? */
-        PacketQueue *q_; 	/* underlying (usually) FIFO queue */
-		
-	int bcount_;	/* byte count */
-
 	/* added by Yun: In packets byte count */
 	int in_len_;	/* In Packets count */
 	int in_bcount_;	/* In packets byte count */
 
-	int qib_;	/* bool: queue measured in bytes? */
-	NsObject* de_drop_;	/* drop_early target */
-
-	Tcl_Channel tchan_;	/* place to write trace records */
-	TracedInt curq_;	/* current qlen seen by arrivals */
 	void trace(TracedVar*);	/* routine to write trace records */
 
 	/*
 	 * Static state.
 	 */
-	int drop_tail_;		/* drop-tail */
-	int drop_front_;	/* drop-from-front */
-	int drop_rand_;		/* drop-tail, or drop random? */
-	int ns1_compat_;	/* for ns-1 compatibility, bypass a */
-				/*   small bugfix */
 	int priority_method_;	/* 0 to leave priority field in header, */
 				/*  1 to use flowid as priority.  */
 
-	edp edp_;	/* early-drop params */
-	int doubleq_;	/* for experiments with priority for small packets */
-	int dqthresh_;	/* for experiments with priority for small packets */
+	edp_rio edp_in_; 	/* early-drop params for IN traffic */
+	edp_rio edp_out_;        /* early-drop params for OUT traffic */
 
 	/*
 	 * Dynamic state.
 	 */
-	int idle_;		/* queue is idle? */
-	double idletime_;	/* if so, since this time */
-
 	/* added by Wenjia noticed by Yun: to trace the idle */
 	int in_idle_;
 	double in_idletime_;
 
-	edv edv_;		/* early-drop variables */
+	edv_rio edv_in_;	/* early-drop variables for IN traffic */
+	edv_rio edv_out_;        /* early-drop variables for OUT traffic */ 
 
 	void print_edp();	// for debugging
 	void print_edv();	// for debugging

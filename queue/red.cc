@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.45 1999/12/04 16:25:01 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.46 2000/07/03 06:00:13 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -170,43 +170,21 @@ void REDQueue::reset()
 
 /*
  * Compute the average queue size.
- * The code contains two alternate methods for this, the plain EWMA
- * and the Holt-Winters method.
- * nqueued can be bytes or packets
+ * Nqueued can be bytes or packets.
  */
-void REDQueue::run_estimator(int nqueued, int m)
+double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 {
-	float f, f_sl, f_old;
+	float new_ave, old_ave;
 
-	f = (float)edv_.v_ave;
-	f_sl = (float)edv_.v_slope;
-#define RED_EWMA
-#ifdef RED_EWMA
+	new_ave = (float)ave;
 	while (--m >= 1) {
-		f_old = f;
-		f *= 1.0 - (float)edp_.q_w;
+		old_ave = new_ave;
+		new_ave *= 1.0 - (float)q_w;
 	}
-	f_old = f;
-	f *= 1.0 - (float)edp_.q_w;
-	f += (float)edp_.q_w * nqueued;
-#endif
-#ifdef RED_HOLT_WINTERS
-	while (--m >= 1) {
-		f_old = f;
-		f += f_sl;
-		f *= 1.0 - edp_.q_w;
-		f_sl *= 1.0 - 0.5 * edp_.q_w;
-		f_sl += 0.5 * edp_.q_w * (f - f_old);
-	}
-	f_old = f;
-	f += f_sl;
-	f *= 1.0 - edp_.q_w;
-	f += edp_.q_w * nqueued;
-	f_sl *= 1.0 - 0.5 * edp_.q_w;
-	f_sl += 0.5 * edp_.q_w * (f - f_old);
-#endif
-	edv_.v_ave = f;
-	edv_.v_slope = f_sl;
+	old_ave = new_ave;
+	new_ave *= 1.0 - (float)q_w;
+	new_ave += (float)q_w * nqueued;
+	return double(new_ave);
 }
 
 /*
@@ -376,8 +354,8 @@ void REDQueue::enque(Packet* pkt)
 	 * If the underlying queue is able to delete packets without
 	 * us knowing, then bcount_ will not be maintained properly!
 	 */
-
-	run_estimator(qib_ ? bcount_ : q_->length(), m + 1);
+	edv_.v_ave = estimator(qib_ ? bcount_ : q_->length(), m + 1, edv_.v_ave, edp_.q_w);
+	//run_estimator(qib_ ? bcount_ : q_->length(), m + 1);
 
 	/*
 	 * count and count_bytes keeps a tally of arriving traffic
@@ -589,3 +567,50 @@ void REDQueue::print_edv()
 {
 	printf("v_a: %f, v_b: %f\n", edv_.v_a, edv_.v_b);
 }
+
+/************************************************************/
+/*
+ * This procedure is obsolete, and only included for backward compatibility.
+ * The new procedure is REDQueue::estimator
+ */ 
+/*
+ * Compute the average queue size.
+ * The code contains two alternate methods for this, the plain EWMA
+ * and the Holt-Winters method.
+ * nqueued can be bytes or packets
+ */
+void REDQueue::run_estimator(int nqueued, int m)
+{
+	float f, f_sl, f_old;
+
+	f = (float)edv_.v_ave;
+	f_sl = (float)edv_.v_slope;
+#define RED_EWMA
+#ifdef RED_EWMA
+	while (--m >= 1) {
+		f_old = f;
+		f *= 1.0 - (float)edp_.q_w;
+	}
+	f_old = f;
+	f *= 1.0 - (float)edp_.q_w;
+	f += (float)edp_.q_w * nqueued;
+#endif
+#ifdef RED_HOLT_WINTERS
+	while (--m >= 1) {
+		f_old = f;
+		f += f_sl;
+		f *= 1.0 - edp_.q_w;
+		f_sl *= 1.0 - 0.5 * edp_.q_w;
+		f_sl += 0.5 * edp_.q_w * (f - f_old);
+	}
+	f_old = f;
+	f += f_sl;
+	f *= 1.0 - edp_.q_w;
+	f += edp_.q_w * nqueued;
+	f_sl *= 1.0 - 0.5 * edp_.q_w;
+	f_sl += 0.5 * edp_.q_w * (f - f_old);
+#endif
+	edv_.v_ave = f;
+	edv_.v_slope = f_sl;
+}
+

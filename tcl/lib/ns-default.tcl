@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.201 2000/06/28 22:04:38 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.202 2000/07/03 06:00:13 sfloyd Exp $
 
 
 #
@@ -371,38 +371,38 @@ Queue/RED set ave_ 0.0
 Queue/RED set prob1_ 0.0
 Queue/RED set curq_ 0
 
-Queue/RIO set bytes_ false
-Queue/RIO set queue_in_bytes_ false
-Queue/RIO set thresh_ 5
-Queue/RIO set maxthresh_ 15
-Queue/RIO set in_thresh_ 15
-Queue/RIO set in_maxthresh_ 30
-Queue/RIO set out_thresh_ 5
-Queue/RIO set out_maxthresh_ 15
-Queue/RIO set mean_pktsize_ 500
-Queue/RIO set q_weight_ 0.002
-Queue/RIO set wait_ true
-Queue/RIO set linterm_ 10
-Queue/RIO set in_linterm_ 50
-Queue/RIO set out_linterm_ 5
-Queue/RIO set setbit_ false
-Queue/RIO set gentle_ false
-Queue/RIO set in_gentle_ false
-Queue/RIO set out_gentle_ false
-Queue/RIO set drop_tail_ true
-Queue/RIO set drop_front_ false
-Queue/RIO set drop_rand_ false
-Queue/RIO set doubleq_ false
-Queue/RIO set ns1_compat_ false
-Queue/RIO set dqthresh_ 50
-Queue/RIO set ave_ 0.0
-Queue/RIO set in_ave_ 0.0
-Queue/RIO set out_ave_ 0.0
-Queue/RIO set prob1_ 0.0
-Queue/RIO set in_prob1_ 0.0
-Queue/RIO set out_prob1_ 0.0
-Queue/RIO set curq_ 0
-Queue/RIO set priority_method_ 0
+Queue/RED/RIO set bytes_ false
+Queue/RED/RIO set queue_in_bytes_ false
+Queue/RED/RIO set thresh_ 5
+Queue/RED/RIO set maxthresh_ 15
+Queue/RED/RIO set in_thresh_ 15
+Queue/RED/RIO set in_maxthresh_ 30
+Queue/RED/RIO set out_thresh_ 5
+Queue/RED/RIO set out_maxthresh_ 15
+Queue/RED/RIO set mean_pktsize_ 500
+Queue/RED/RIO set q_weight_ 0.002
+Queue/RED/RIO set wait_ true
+Queue/RED/RIO set linterm_ 10
+Queue/RED/RIO set in_linterm_ 50
+Queue/RED/RIO set out_linterm_ 5
+Queue/RED/RIO set setbit_ false
+Queue/RED/RIO set gentle_ false
+Queue/RED/RIO set in_gentle_ false
+Queue/RED/RIO set out_gentle_ false
+Queue/RED/RIO set drop_tail_ true
+Queue/RED/RIO set drop_front_ false
+Queue/RED/RIO set drop_rand_ false
+Queue/RED/RIO set doubleq_ false
+Queue/RED/RIO set ns1_compat_ false
+Queue/RED/RIO set dqthresh_ 50
+Queue/RED/RIO set ave_ 0.0
+Queue/RED/RIO set in_ave_ 0.0
+Queue/RED/RIO set out_ave_ 0.0
+Queue/RED/RIO set prob1_ 0.0
+Queue/RED/RIO set in_prob1_ 0.0
+Queue/RED/RIO set out_prob1_ 0.0
+Queue/RED/RIO set curq_ 0
+Queue/RED/RIO set priority_method_ 0
 
 Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000

@@ -22,7 +22,7 @@ public:
 
 static class SemanticRIOClass : public TclClass {
 public:
-	SemanticRIOClass() : TclClass("Queue/RIO/Semantic") {}
+	SemanticRIOClass() : TclClass("Queue/RED/RIO/Semantic") {}
 	TclObject* create(int, const char*const*) {
 		return (new SemanticRIOQueue);
 	}

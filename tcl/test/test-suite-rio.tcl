@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.2 2000/06/28 22:06:04 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.3 2000/07/03 06:00:14 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -94,7 +94,7 @@ Topology/net2 instproc init ns {
 
     $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
-    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RIO
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED/RIO
     #$ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
     $ns queue-limit $node_(r1) $node_(r2) 100
     $ns queue-limit $node_(r2) $node_(r1) 100
@@ -193,15 +193,15 @@ Test/strict instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ strict
-    Queue/RIO set in_thresh_ 10
-    Queue/RIO set in_maxthresh_ 20
-    Queue/RIO set out_thresh_ 3
-    Queue/RIO set out_maxthresh_ 9
-    Queue/RIO set in_linterm_ 10
-    Queue/RIO set linterm_ 10
-    Queue/RIO set priority_method_ 1
-    #Queue/RIO set debug_ true
-    Queue/RIO set debug_ false
+    Queue/RED/RIO set in_thresh_ 10
+    Queue/RED/RIO set in_maxthresh_ 20
+    Queue/RED/RIO set out_thresh_ 3
+    Queue/RED/RIO set out_maxthresh_ 9
+    Queue/RED/RIO set in_linterm_ 10
+    Queue/RED/RIO set linterm_ 10
+    Queue/RED/RIO set priority_method_ 1
+    #Queue/RED/RIO set debug_ true
+    Queue/RED/RIO set debug_ false
     $self next
 }
 Test/strict instproc run {} {
@@ -233,13 +233,13 @@ Test/proportional instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ proportional
-    Queue/RIO set in_thresh_ 3
-    Queue/RIO set in_maxthresh_ 15
-    Queue/RIO set out_thresh_ 3
-    Queue/RIO set out_maxthresh_ 15
-    Queue/RIO set in_linterm_ 3
-    Queue/RIO set linterm_ 12
-    Queue/RIO set priority_method_ 1
+    Queue/RED/RIO set in_thresh_ 3
+    Queue/RED/RIO set in_maxthresh_ 15
+    Queue/RED/RIO set out_thresh_ 3
+    Queue/RED/RIO set out_maxthresh_ 15
+    Queue/RED/RIO set in_linterm_ 3
+    Queue/RED/RIO set linterm_ 12
+    Queue/RED/RIO set priority_method_ 1
     Test/proportional instproc run {} [Test/strict info instbody run]
     $self next
 }
@@ -252,16 +252,16 @@ Test/gentle instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ gentle
-    Queue/RIO set in_thresh_ 3
-    Queue/RIO set in_maxthresh_ 15
-    Queue/RIO set out_thresh_ 3
-    Queue/RIO set out_maxthresh_ 15
-    Queue/RIO set in_linterm_ 50
-    Queue/RIO set linterm_ 200
-    Queue/RIO set priority_method_ 1
-    Queue/RIO set gentle_ false
-    Queue/RIO set in_gentle_ true
-    Queue/RIO set out_gentle_ true
+    Queue/RED/RIO set in_thresh_ 3
+    Queue/RED/RIO set in_maxthresh_ 15
+    Queue/RED/RIO set out_thresh_ 3
+    Queue/RED/RIO set out_maxthresh_ 15
+    Queue/RED/RIO set in_linterm_ 50
+    Queue/RED/RIO set linterm_ 200
+    Queue/RED/RIO set priority_method_ 1
+    Queue/RED/RIO set gentle_ false
+    Queue/RED/RIO set in_gentle_ true
+    Queue/RED/RIO set out_gentle_ true
     Test/gentle instproc run {} [Test/strict info instbody run]
     $self next
 }
@@ -274,16 +274,16 @@ Test/notGentle instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ notGentle
-    Queue/RIO set in_thresh_ 3
-    Queue/RIO set in_maxthresh_ 15
-    Queue/RIO set out_thresh_ 3
-    Queue/RIO set out_maxthresh_ 15
-    Queue/RIO set in_linterm_ 50
-    Queue/RIO set linterm_ 200
-    Queue/RIO set priority_method_ 1
-    Queue/RIO set gentle_ false
-    Queue/RIO set in_gentle_ false
-    Queue/RIO set out_gentle_ true
+    Queue/RED/RIO set in_thresh_ 3
+    Queue/RED/RIO set in_maxthresh_ 15
+    Queue/RED/RIO set out_thresh_ 3
+    Queue/RED/RIO set out_maxthresh_ 15
+    Queue/RED/RIO set in_linterm_ 50
+    Queue/RED/RIO set linterm_ 200
+    Queue/RED/RIO set priority_method_ 1
+    Queue/RED/RIO set gentle_ false
+    Queue/RED/RIO set in_gentle_ false
+    Queue/RED/RIO set out_gentle_ true
     Test/notGentle instproc run {} [Test/strict info instbody run]
     $self next
 }
@@ -297,13 +297,13 @@ Test/tagging instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ tagging
-    Queue/RIO set in_thresh_ 10
-    Queue/RIO set in_maxthresh_ 20
-    Queue/RIO set out_thresh_ 3
-    Queue/RIO set out_maxthresh_ 9
-    Queue/RIO set in_linterm_ 10
-    Queue/RIO set linterm_ 10
-    Queue/RIO set priority_method_ 0
+    Queue/RED/RIO set in_thresh_ 10
+    Queue/RED/RIO set in_maxthresh_ 20
+    Queue/RED/RIO set out_thresh_ 3
+    Queue/RED/RIO set out_maxthresh_ 9
+    Queue/RED/RIO set in_linterm_ 10
+    Queue/RED/RIO set linterm_ 10
+    Queue/RED/RIO set priority_method_ 0
     $self next
 }
 Test/tagging instproc run {} {

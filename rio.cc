@@ -57,42 +57,41 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.cc,v 1.3 2000/06/28 21:59:34 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rio.cc,v 1.4 2000/07/03 06:00:13 sfloyd Exp $ (LBL)";
 #endif
 
 #include "rio.h"
 
 static class RIOClass : public TclClass {
 public:
-	RIOClass() : TclClass("Queue/RIO") {}
+	RIOClass() : TclClass("Queue/RED/RIO") {}
 	TclObject* create(int, const char*const*) {
 		return (new RIOQueue);
 	}
 } class_rio;
 
-RIOQueue::RIOQueue() : link_(NULL), bcount_(0), in_len_(0), in_bcount_(0),
-	de_drop_(NULL), tchan_(0), idle_(1), in_idle_(1)
+RIOQueue::RIOQueue() : in_len_(0), in_bcount_(0), in_idle_(1)
 {
 	bind_bool("bytes_", &edp_.bytes);	    // boolean: use bytes?
 	bind_bool("queue_in_bytes_", &qib_);	    // boolean: q in bytes?
-	bind("thresh_", &edp_.total_min);	    // minthresh
-	bind("maxthresh_", &edp_.total_max);	    // maxthresh
-	bind("in_thresh_", &edp_.in_th_min);	    // In_minthresh
-	bind("in_maxthresh_", &edp_.in_th_max);	    // In_maxthresh
-	bind("out_thresh_", &edp_.out_th_min);	    // Out_minthresh
-	bind("out_maxthresh_", &edp_.out_th_max);   // Out_maxthresh
+	bind("thresh_", &edp_.th_min);	    // minthresh
+	bind("maxthresh_", &edp_.th_max);	    // maxthresh
+	bind("in_thresh_", &edp_in_.th_min);	    // In_minthresh
+	bind("in_maxthresh_", &edp_in_.th_max);	    // In_maxthresh
+	bind("out_thresh_", &edp_out_.th_min);	    // Out_minthresh
+	bind("out_maxthresh_", &edp_out_.th_max);   // Out_maxthresh
 	bind("mean_pktsize_", &edp_.mean_pktsize);  // avg pkt size
 	bind("q_weight_", &edp_.q_w);		    // for EWMA
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
-	bind("in_linterm_", &edp_.in_max_p_inv);
+	bind("in_linterm_", &edp_in_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
 	
 	bind_bool("gentle_", &edp_.gentle);         // increase the packet
 	/* added by ratul- allows a finer control over the policy.
 	   gentle automatically means both the below are gentle */
-	bind_bool("in_gentle_",&edp_.in_gentle);    // drop prob. slowly
-	bind_bool("out_gentle_",&edp_.out_gentle);  // when ave queue
+	bind_bool("in_gentle_",&edp_in_.gentle);    // drop prob. slowly
+	bind_bool("out_gentle_",&edp_out_.gentle);  // when ave queue
 						    // exceeds maxthresh
 
 	bind_bool("drop_tail_", &drop_tail_);	    // drop last pkt
@@ -101,11 +100,11 @@ RIOQueue::RIOQueue() : link_(NULL), bcount_(0), in_len_(0), in_bcount_(0),
 	bind_bool("ns1_compat_", &ns1_compat_);	    // ns-1 compatibility
 
 	bind("ave_", &edv_.v_ave);		    // average queue sie
-	bind("in_ave_", &edv_.in_v_ave);	    // In average queue sie
-	bind("out_ave_", &edv_.out_v_ave);	    // Out average queue sie
+	bind("in_ave_", &edv_in_.v_ave);	    // In average queue sie
+	bind("out_ave_", &edv_out_.v_ave);	    // Out average queue sie
 	bind("prob1_", &edv_.v_prob1);		    // dropping probability
-	bind("in_prob1_", &edv_.in_v_prob1);	    // In dropping probability
-	bind("out_prob1_", &edv_.out_v_prob1);	    // Out dropping probability
+	bind("in_prob1_", &edv_in_.v_prob1);	    // In dropping probability
+	bind("out_prob1_", &edv_out_.v_prob1);	    // Out dropping probability
 	bind("curq_", &curq_);			    // current queue size
 	bind("priority_method_", &priority_method_); // method for setting
 						    // priority
@@ -127,154 +126,52 @@ void RIOQueue::reset()
 	 */
 
 	if (qib_) {
-		edp_.in_th_min *= edp_.mean_pktsize;
-		edp_.in_th_max *= edp_.mean_pktsize;
+		edp_in_.th_min *= edp_.mean_pktsize;
+		edp_in_.th_max *= edp_.mean_pktsize;
 
-		edp_.out_th_min *= edp_.mean_pktsize;
-		edp_.out_th_max *= edp_.mean_pktsize;
+		edp_out_.th_min *= edp_.mean_pktsize;
+		edp_out_.th_max *= edp_.mean_pktsize;
 	}
 
-	/*
-	 * Compute the "packet time constant" if we know the
-	 * link bandwidth.  The ptc is the max number of (avg sized)
-	 * pkts per second which can be placed on the link.
-	 * The link bw is given in bits/sec, so scale mean psize
-	 * accordingly.
-	 */
-	 
-	if (link_)
-		edp_.ptc = link_->bandwidth() /
-			(8. * edp_.mean_pktsize);
-
-	edv_.v_ave = 0.0;
-	edv_.v_slope = 0.0;
-	edv_.count = 0;
-	edv_.count_bytes = 0;
-	edv_.old = 0;
-	edv_.v_a = 1 / (edp_.total_max - edp_.total_min);
-	edv_.v_b = - edp_.total_min / (edp_.total_max - edp_.total_min);
-	
 	//modified - ratul
 	if (edp_.gentle) {
-		edp_.in_gentle = true;
-		edp_.out_gentle = true;
+		edp_in_.gentle = true;
+		edp_out_.gentle = true;
 	}
-
-	if (edp_.in_gentle) {
-		edv_.in_v_c = ( 1.0 - 1 / edp_.in_max_p_inv ) / edp_.in_th_max;
-		edv_.in_v_d = 2 / edp_.in_max_p_inv - 1.0;
+	if (edp_in_.gentle) {
+		edv_in_.v_c = ( 1.0 - 1 / edp_in_.max_p_inv ) / edp_in_.th_max;
+		edv_in_.v_d = 2 / edp_in_.max_p_inv - 1.0;
 	}		
-
-	if (edp_.out_gentle) {
-		edv_.out_v_c = ( 1.0 - 1 / edp_.max_p_inv ) / edp_.out_th_max;
-		edv_.out_v_d = 2 / edp_.max_p_inv - 1.0;
+	if (edp_out_.gentle) {
+		edv_out_.v_c = ( 1.0 - 1 / edp_.max_p_inv ) / edp_out_.th_max;
+		edv_out_.v_d = 2 / edp_.max_p_inv - 1.0;
 	}
 
         /* Added by Wenjia */
-        edv_.in_v_ave = 0.0;
-        edv_.in_v_slope = 0.0;
-        edv_.in_drops = 0;
-        edv_.in_count = 0;
-        edv_.in_count_bytes = 0;
-        edv_.in_old = 0;
-        edv_.in_v_a = 1 / (edp_.in_th_max - edp_.in_th_min);
-        edv_.in_v_b = - edp_.in_th_min / (edp_.in_th_max - edp_.in_th_min);
+        edv_in_.v_ave = 0.0;
+        edv_in_.v_slope = 0.0;
+        edv_in_.drops = 0;
+        edv_in_.count = 0;
+        edv_in_.count_bytes = 0;
+        edv_in_.old = 0;
+        edv_in_.v_a = 1 / (edp_in_.th_max - edp_in_.th_min);
+        edv_in_.v_b = - edp_in_.th_min / (edp_in_.th_max - edp_in_.th_min);
 
         /* Added by Wenjia */
-        edv_.out_v_ave = 0.0;
-        edv_.out_v_slope = 0.0;
-        edv_.out_drops = 0;
-        edv_.out_count = 0;
-        edv_.out_count_bytes = 0;
-        edv_.out_old = 0;
-        edv_.out_v_a = 1 / (edp_.out_th_max - edp_.out_th_min);
-        edv_.out_v_b = - edp_.out_th_min / (edp_.out_th_max - edp_.out_th_min);
+        edv_out_.v_ave = 0.0;
+        edv_out_.v_slope = 0.0;
+        edv_out_.drops = 0;
+        edv_out_.count = 0;
+        edv_out_.count_bytes = 0;
+        edv_out_.old = 0;
+        edv_out_.v_a = 1 / (edp_out_.th_max - edp_out_.th_min);
+        edv_out_.v_b = - edp_out_.th_min / (edp_out_.th_max - edp_out_.th_min);
 
-	idle_ = 1;
 	in_idle_ = 1;
-	if (&Scheduler::instance() != NULL)
-		idletime_ = Scheduler::instance().clock();
-	else {
-		idletime_ = 0.0; /* sched not instantiated yet */
+	if (&Scheduler::instance() == NULL) {
 		in_idletime_ = 0.0; /* sched not instantiated yet */
-             }
-	Queue::reset();
-
-	bcount_ = 0;
-}
-
-/*
- * Compute the average queue size.
- * The code contains two alternate methods for this, the plain EWMA
- * and the Holt-Winters method.
- * nqueued can be bytes or packets
- */
-void RIOQueue::run_in_estimator(int in_queued, int total_queued, int m)
-{
-	float in_f, in_f_sl, in_f_old;
-        float total_f, total_f_sl, total_f_old;
-
-	in_f = (float)edv_.in_v_ave;
-	in_f_sl = (float)edv_.in_v_slope;
-
-	//added by ratul
-	total_f = (float)edv_.v_ave;
-	total_f_sl= (float)edv_.v_slope;
-
-#define RED_EWMA
-#ifdef RED_EWMA
-	while (--m >= 1) {
-		in_f_old = in_f;
-		in_f *= 1.0 - (float)edp_.q_w;
-
-                total_f_old = total_f;
-                total_f *= 1.0 - (float)edp_.q_w;
-	}
-	in_f_old = in_f;
-	in_f *= 1.0 - (float)edp_.q_w;
-	in_f += (float)edp_.q_w * in_queued;
-
-        total_f_old = total_f;
-        total_f *= 1.0 - (float)edp_.q_w;
-        total_f += (float)edp_.q_w * total_queued;
-#endif
-#ifdef RED_HOLT_WINTERS
-	while (--m >= 1) {
-		in_f_old = in_f;
-		in_f += in_f_sl;
-		in_f *= 1.0 - edp_.q_w;
-		in_f_sl *= 1.0 - 0.5 * edp_.q_w;
-		in_f_sl += 0.5 * edp_.q_w * (in_f - in_f_old);
-
-                total_f_old = total_f;
-                total_f += total_f_sl;
-                total_f *= 1.0 - edp_.q_w;
-                total_f_sl *= 1.0 * 0.5 * edp_.q_w;
-                total_f_sl *= 0.5 * edp_.q_w * (total_f - total_f_old);
-	}
-	in_f_old = in_f;
-	in_f += in_f_sl;
-	in_f *= 1.0 - edp_.q_w;
-	in_f += edp_.q_w * in_queued;
-	in_f_sl *= 1.0 - 0.5 * edp_.q_w;
-	in_f_sl += 0.5 * edp_.q_w * (in_f - in_f_old);
-
-        total_f_old = total_f;
-        total_f += total_f_sl;
-        total_f *= 1.0 - edp_.q_w;
-        total_f += edp_.q_w * total_queued;
-        total_f_sl *= 1.0 - 0.5 * edp_.q_w;
-        total_f_sl += 0.5 * edp_.q_w * (total_f - total_f_old);
-
-#endif
-	edv_.in_v_ave = in_f;
-	edv_.in_v_slope = in_f_sl;
-
-        edv_.v_ave  = total_f;
-        edv_.v_slope = total_f_sl;
-	//for debug
-	if (debug_)
-		printf("IN %f %f %f\n", Scheduler::instance().clock(), edv_.in_v_ave, total_f);
+        }     
+	REDQueue::reset();
 }
 
 /*
@@ -283,20 +180,17 @@ void RIOQueue::run_in_estimator(int in_queued, int total_queued, int m)
  * and the Holt-Winters method.
  * out_queued and total_queued can be bytes or packets
  */
-void RIOQueue::run_out_estimator( int out_queued, int total_queued, int m)
+void RIOQueue::run_out_estimator( int out_queued, int total_queued, int
+m)
 {
         float out_f, out_f_sl, out_f_old;
         float total_f, total_f_sl, total_f_old ;
 
-        out_f = edv_.out_v_ave;
-        out_f_sl = edv_.out_v_slope;
+        out_f = edv_out_.v_ave;
+        out_f_sl = edv_out_.v_slope;
 
         total_f = edv_.v_ave;
         total_f_sl = edv_.v_slope;
-
-#define RED_EWMA
-
-#ifdef RED_EWMA
         while (--m >= 1) {
                 out_f_old = out_f;
                 out_f *= 1.0 - edp_.q_w;
@@ -312,48 +206,18 @@ void RIOQueue::run_out_estimator( int out_queued, int total_queued, int m)
         total_f_old = total_f;
         total_f    *= 1.0 - edp_.q_w;
         total_f    += edp_.q_w * total_queued;
-
-#endif
-#ifdef RED_HOLT_WINTERS
-        while (--m >= 1) {
-                out_f_old = out_f;
-                out_f += out_f_sl;
-                out_f *= 1.0 - edp_.q_w;
-                out_f_sl *= 1.0 - 0.5 * edp_.q_w;
-                out_f_sl += 0.5 * edp_.q_w * (out_f - out_f_old);
-
-                total_f_old = total_f;
-                total_f += total_f_sl;
-                total_f *= 1.0 - edp_.q_w;
-                total_f_sl *= 1.0 * 0.5 * edp_.q_w;
-                total_f_sl *= 0.5 * edp_.q_w * (total_f - total_f_old);
-
-        }
-
-        out_f_old = out_f;
-        out_f += out_f_sl;
-        out_f *= 1.0 - edp_.q_w;
-        out_f += edp_.q_w * out_queued;
-        out_f_sl *= 1.0 - 0.5 * edp_.q_w;
-        out_f_sl += 0.5 * edp_.q_w * (out_f - out_f_old);
-
-        total_f_old = total_f;
-        total_f += total_f_sl;
-        total_f *= 1.0 - edp_.q_w;
-        total_f += edp_.q_w * total_queued;
-        total_f_sl *= 1.0 - 0.5 * edp_.q_w;
-        total_f_sl += 0.5 * edp_.q_w * (total_f - total_f_old);
-
-#endif
-        edv_.out_v_ave = out_f;
-        edv_.out_v_slope = out_f_sl;
+        edv_out_.v_ave = out_f;
+        edv_out_.v_slope = out_f_sl;
 
         edv_.v_ave  = total_f;
         edv_.v_slope = total_f_sl;
-	//for debug
-	if (debug_)
-		printf("OUT %f %f %f\n", Scheduler::instance().clock(), edv_.out_v_ave, total_f);
+        //for debug
+        if (debug_)
+                printf("OUT %f %f %f\n", Scheduler::instance().clock(),
+edv_out_
+.v_ave, total_f);
 }
+
 
 /*
  * Return the next packet in the queue for transmission.
@@ -403,22 +267,22 @@ RIOQueue::drop_in_early(Packet* pkt)
 
 	double p;
 
-	if (edp_.in_gentle && edv_.in_v_ave >= edp_.in_th_max) {
+	if (edp_in_.gentle && edv_in_.v_ave >= edp_in_.th_max) {
 		// p ranges from max_p to 1 as the average queue
 		// size ranges from th_max to twice th_max 
-		p = edv_.in_v_c * edv_.in_v_ave + edv_.in_v_d;
+		p = edv_in_.v_c * edv_in_.v_ave + edv_in_.v_d;
 	} else {
 		// p ranges from 0 to max_p as the average queue
 		// size ranges from th_min to th_max 
-		p = edv_.in_v_a * edv_.in_v_ave + edv_.in_v_b;
-		p /= edp_.in_max_p_inv;
+		p = edv_in_.v_a * edv_in_.v_ave + edv_in_.v_b;
+		p /= edp_in_.max_p_inv;
 	}
-	edv_.in_v_prob1 = p;
-	if (edv_.in_v_prob1 > 1.0)
-		edv_.in_v_prob1 = 1.0;
-	double count1 = edv_.in_count;
+	edv_in_.v_prob1 = p;
+	if (edv_in_.v_prob1 > 1.0)
+		edv_in_.v_prob1 = 1.0;
+	double count1 = edv_in_.count;
 	if (edp_.bytes)
-		count1 = (double) (edv_.in_count_bytes/edp_.mean_pktsize);
+		count1 = (double) (edv_in_.count_bytes/edp_.mean_pktsize);
 	if (edp_.wait) {
 		if (count1 * p < 1.0)
 			p = 0.0;
@@ -437,14 +301,14 @@ RIOQueue::drop_in_early(Packet* pkt)
 	}
 	if (p > 1.0)
 		p = 1.0;
-	edv_.in_v_prob = p;
+	edv_in_.v_prob = p;
 
 	// drop probability is computed, pick random number and act
 	double u = Random::uniform();
-	if (u <= edv_.in_v_prob) {
+	if (u <= edv_in_.v_prob) {
 		// DROP or MARK
-		edv_.in_count = 0;
-		edv_.in_count_bytes = 0;
+		edv_in_.count = 0;
+		edv_in_.count_bytes = 0;
 		hdr_flags* hf = 
                   (hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
 		if (edp_.setbit && hf->ect()) {
@@ -457,8 +321,8 @@ RIOQueue::drop_in_early(Packet* pkt)
 	return (0);			// no DROP/mark
 }
 
-/* The rationale here is that if the edv_.in_v_ave is close
- * to the edp_.in_th_max, (we are about to turn over to the
+/* The rationale here is that if the edv_in_.v_ave is close
+ * to the edp_in_.th_max, (we are about to turn over to the
  * congestion control phase, presumably because of Out packets.
  * then we should drop Out packets more severely.
  */
@@ -468,20 +332,20 @@ int RIOQueue::drop_out_early(Packet* pkt)
         hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 
 	double p;
-        if (edp_.out_gentle && edv_.v_ave >= edp_.out_th_max)
+        if (edp_out_.gentle && edv_.v_ave >= edp_out_.th_max)
 		// p ranges from max_p to 1 as the average queue   
-            p = edv_.out_v_c * edv_.v_ave + edv_.out_v_d;
+            p = edv_out_.v_c * edv_.v_ave + edv_out_.v_d;
         else {
-	        p = edv_.out_v_a * edv_.v_ave + edv_.out_v_b;
+	        p = edv_out_.v_a * edv_.v_ave + edv_out_.v_b;
 		//modified by ratul - changed out_max_p_inv to max_p_inv
 	        p /= edp_.max_p_inv;
         }
-       	edv_.out_v_prob1 = p;
-	if (edv_.out_v_prob1 > 1.0)
-	        edv_.out_v_prob1 = 1.0;
-	double count1 = edv_.out_count;
+       	edv_out_.v_prob1 = p;
+	if (edv_out_.v_prob1 > 1.0)
+	        edv_out_.v_prob1 = 1.0;
+	double count1 = edv_out_.count;
 	if (edp_.bytes)
-	   count1 = (double) (edv_.out_count_bytes/edp_.mean_pktsize);
+	   count1 = (double) (edv_out_.count_bytes/edp_.mean_pktsize);
 	if (edp_.wait) {
 	        if (count1 * p < 1.0)
 	                p = 0.0;
@@ -500,14 +364,14 @@ int RIOQueue::drop_out_early(Packet* pkt)
 	}
 	if (p > 1.0)
 	        p = 1.0;
-	edv_.out_v_prob = p;
+	edv_out_.v_prob = p;
 
         // drop probability is computed, pick random number and act
         double u = Random::uniform();
-        if (u <= edv_.out_v_prob) {
+        if (u <= edv_out_.v_prob) {
            // DROP or MARK
-           edv_.out_count = 0;
-           edv_.out_count_bytes = 0;
+           edv_out_.count = 0;
+           edv_out_.count_bytes = 0;
            hdr_flags* hf = (hdr_flags*)pickPacketForECN(pkt)->access(off_flags_);
            if (edp_.setbit && hf->ecn_capable_) {
              hf->ecn_to_echo_ = 1;
@@ -518,38 +382,6 @@ int RIOQueue::drop_out_early(Packet* pkt)
         return (0);  // no DROP/mark
 }
 
-/*
- * Pick packet for early congestion notification (ECN). This packet is then
- * marked or dropped. Having a separate function do this is convenient for
- * supporting derived classes that use the standard RED algorithm to compute
- * average queue size but use a different algorithm for choosing the packet for 
- * ECN notification.
- */
-Packet*
-RIOQueue::pickPacketForECN(Packet* pkt)
-{
-	return pkt; /* pick the packet that just arrived */
-}
-
-/*
- * Pick packet to drop. Having a separate function do this is convenient for
- * supporting derived classes that use the standard RED algorithm to compute
- * average queue size but use a different algorithm for choosing the victim.
- */
-Packet*
-RIOQueue::pickPacketToDrop() 
-{
-	int victim;
-
-	if (drop_front_)
-		victim = min(1, q_->length()-1);
-	else if (drop_rand_)
-		victim = Random::integer(q_->length());
-	else			/* default is drop_tail_ */
-		victim = q_->length() - 1;
-
-	return(q_->lookup(victim)); 
-}
 
 /*
  * Receive a new packet arriving at the queue.
@@ -611,8 +443,10 @@ void RIOQueue::enque(Packet* pkt)
 	 */
 
         // printf( "qlen %d\n", q_->length());
-	run_in_estimator(qib_ ? in_bcount_ : in_len_, 
-                         qib_ ? bcount_ : q_->length(), m + 1);
+	edv_.v_ave = REDQueue::estimator(qib_ ? bcount_ : q_->length(), m + 1,
+		edv_.v_ave, edp_.q_w);
+	edv_in_.v_ave = REDQueue::estimator(qib_ ? in_bcount_ : in_len_,
+		m + 1, edv_in_.v_ave, edp_.q_w);
 
 	/*
 	 * count and count_bytes keeps a tally of arriving traffic
@@ -625,8 +459,8 @@ void RIOQueue::enque(Packet* pkt)
 	edv_.count_bytes += ch->size();
 
         /* added by Yun */
-        ++edv_.in_count;
-        edv_.in_count_bytes += ch->size();
+        ++edv_in_.count;
+        edv_in_.count_bytes += ch->size();
 
 	/*
 	 * DROP LOGIC:
@@ -637,7 +471,7 @@ void RIOQueue::enque(Packet* pkt)
 	 */
 
 	register double qavg = edv_.v_ave;
-	register double in_qavg = edv_.in_v_ave;
+	register double in_qavg = edv_in_.v_ave;
 	int droptype = DTYPE_NONE;
 	int qlen = qib_ ? bcount_ : q_->length();
 	int in_qlen = qib_ ? in_bcount_ : in_len_;
@@ -645,27 +479,27 @@ void RIOQueue::enque(Packet* pkt)
 
 	curq_ = qlen;	// helps to trace queue during arrival, if enabled
 
-	if (in_qavg >= edp_.in_th_min && in_qlen > 1) {
-		if ((!edp_.in_gentle && in_qavg >= edp_.in_th_max) ||
-			(edp_.in_gentle && in_qavg >= 2 * edp_.in_th_max)) {
+	if (in_qavg >= edp_in_.th_min && in_qlen > 1) {
+		if ((!edp_in_.gentle && in_qavg >= edp_in_.th_max) ||
+			(edp_in_.gentle && in_qavg >= 2 * edp_in_.th_max)) {
 			droptype = DTYPE_FORCED;
-		} else if (edv_.in_old == 0) {
+		} else if (edv_in_.old == 0) {
 			/* 
 			 * The average queue size has just crossed the
 			 * threshold from below to above "minthresh", or
 			 * from above "minthresh" with an empty queue to
 			 * above "minthresh" with a nonempty queue.
 			 */
-			edv_.in_count = 1;
-			edv_.in_count_bytes = ch->size();
-			edv_.in_old = 1;
+			edv_in_.count = 1;
+			edv_in_.count_bytes = ch->size();
+			edv_in_.old = 1;
 		} else if (drop_in_early(pkt)) {
 			droptype = DTYPE_UNFORCED;
 		}
 	} else {
 		/* No packets are being dropped.  */
-		edv_.in_v_prob = 0.0;
-		edv_.in_old = 0;		
+		edv_in_.v_prob = 0.0;
+		edv_in_.old = 0;		
 	}
 	if (qlen >= qlim) {
 		// see if we've exceeded the queue size
@@ -727,8 +561,8 @@ void RIOQueue::enque(Packet* pkt)
 				// bug-fix from Philip Liu, <phill@ece.ubc.ca>
 				edv_.count = 0;
 				edv_.count_bytes = 0;
-				edv_.in_count = 0;
-				edv_.in_count_bytes = 0;
+				edv_in_.count = 0;
+				edv_in_.count_bytes = 0;
 			}
 		}
             }
@@ -758,8 +592,13 @@ void RIOQueue::enque(Packet* pkt)
 
 		// not sure whether this is correct, Yun
 	  //printf("qlen %d\n", q_->length());
+//	  edv_out_.v_ave = REDQueue::estimator(
+//		qib_ ? bcount_ - in_bcount_ : q_->length() - in_len_,
+//		m + 1, edv_out_.v_ave, edp_.q_w);
           run_out_estimator(qib_ ? bcount_ - in_bcount_ : q_->length() - in_len_,
                         qib_ ? bcount_ : q_->length(), m + 1);
+
+
           /*
            * count and count_bytes keeps a tally of arriving traffic
            * that has not been dropped (i.e. how long, in terms of traffic,
@@ -771,8 +610,8 @@ void RIOQueue::enque(Packet* pkt)
           edv_.count_bytes += ch->size();
 
           /* added by Yun */
-          ++edv_.out_count;
-          edv_.out_count_bytes += ch->size();
+          ++edv_out_.count;
+          edv_out_.count_bytes += ch->size();
 
           /*
            * DROP LOGIC:
@@ -787,7 +626,7 @@ void RIOQueue::enque(Packet* pkt)
                  */
 
           register double qavg = edv_.v_ave;
-          // register double in_qavg = edv_.in_v_ave;
+          // register double in_qavg = edv_in_.v_ave;
           int droptype = DTYPE_NONE;
           int qlen = qib_ ? bcount_ : q_->length();
           /* added by Yun, seems not useful */
@@ -797,26 +636,26 @@ void RIOQueue::enque(Packet* pkt)
 
           curq_ = qlen; // helps to trace queue during arrival, if enabled
 
-          if (qavg >= edp_.out_th_min && qlen > 1) {
-                  if (!edp_.out_gentle && qavg >= edp_.out_th_max ||
-		      (edp_.out_gentle && qavg >= 2 * edp_.out_th_max)) {
+          if (qavg >= edp_out_.th_min && qlen > 1) {
+                  if (!edp_out_.gentle && qavg >= edp_out_.th_max ||
+		      (edp_out_.gentle && qavg >= 2 * edp_out_.th_max)) {
                         droptype = DTYPE_FORCED;  // ? not sure, Yun
-                  } else if (edv_.out_old == 0) {
+                  } else if (edv_out_.old == 0) {
 			/* 
 			 * The average queue size has just crossed the
 			 * threshold from below to above "minthresh", or
 			 * from above "minthresh" with an empty queue to
 			 * above "minthresh" with a nonempty queue.
 			 */
-                        edv_.out_count = 1;
-                        edv_.out_count_bytes = ch->size();
-                        edv_.out_old = 1;
+                        edv_out_.count = 1;
+                        edv_out_.count_bytes = ch->size();
+                        edv_out_.old = 1;
                   } else if (drop_out_early(pkt)) {
                         droptype = DTYPE_UNFORCED; // ? not sure, Yun
                   }
           } else {
-                  edv_.out_v_prob = 0.0;
-                  edv_.out_old = 0;              // explain
+                  edv_out_.v_prob = 0.0;
+                  edv_out_.old = 0;              // explain
           }
           if (qlen >= qlim) {
                   // see if we've exceeded the queue size
@@ -878,68 +717,6 @@ void RIOQueue::enque(Packet* pkt)
 	return;
 }
 
-int RIOQueue::command(int argc, const char*const* argv)
-{
-	Tcl& tcl = Tcl::instance();
-	if (argc == 2) {
-		if (strcmp(argv[1], "reset") == 0) {
-			reset();
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "early-drop-target") == 0) {
-			if (de_drop_ != NULL)
-				tcl.resultf("%s", de_drop_->name());
-			return (TCL_OK);
-		}
-	} else if (argc == 3) {
-		// attach a file for variable tracing
-		if (strcmp(argv[1], "attach") == 0) {
-                  int mode;
-                  const char* id = argv[2];
-                  tchan_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
-                  if( tchan_ == 0 ) {
-                    tcl.resultf("RIO: trace: can't attach %s for writing", id);
-                    return (TCL_ERROR);
-                    }
-                  return (TCL_OK);
-		}
-		// tell RIO about link stats
-		if (strcmp(argv[1], "link") == 0) {
-			LinkDelay* del = (LinkDelay*)TclObject::lookup(argv[2]);
-			if (del == 0) {
-				tcl.resultf("RIO: no LinkDelay object %s",
-					argv[2]);
-				return(TCL_ERROR);
-			}
-			// set ptc now
-			link_ = del;
-			edp_.ptc = link_->bandwidth() /
-				(8. * edp_.mean_pktsize);
-
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "early-drop-target") == 0) {
-			NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
-			if (p == 0) {
-				tcl.resultf("no object %s", argv[2]);
-				return (TCL_ERROR);
-			}
-			de_drop_ = p;
-			return (TCL_OK);
-		}
-		if (!strcmp(argv[1], "packetqueue-attach")) {
-			delete q_;
-			if (!(q_ = (PacketQueue*) TclObject::lookup(argv[2])))
-				return (TCL_ERROR);
-			else {
-				pq_ = q_;
-				return (TCL_OK);
-			}
-		}
-	}
-	return (Queue::command(argc, argv));
-}
-
 /*
  * Routine called by TracedVar facility when variables change values.
  * Currently used to trace values of avg queue size, drop probability,
@@ -985,23 +762,17 @@ RIOQueue::trace(TracedVar* v)
 /* for debugging help */
 void RIOQueue::print_edp()
 {
-	printf("mean_pktsz: %d\n", edp_.mean_pktsize); 
-	printf("bytes: %d, wait: %d, setbit: %d\n",
-	       edp_.bytes, edp_.wait, edp_.setbit);
-	printf("minth: %f, maxth: %f\n", edp_.total_min, edp_.total_max);
-	printf("in_minth: %f, in_maxth: %f\n", edp_.in_th_min, edp_.in_th_max);
+	REDQueue::print_edp();
+	printf("in_minth: %f, in_maxth: %f\n", edp_in_.th_min, edp_in_.th_max);
 	printf("out_minth: %f, out_maxth: %f\n", 
-                edp_.out_th_min, edp_.out_th_max);
-	printf("max_p_inv: %f, qw: %f, ptc: %f\n",
-	       edp_.max_p_inv, edp_.q_w, edp_.ptc);
-	printf("qlim: %d, idletime: %f\n", qlim_, idletime_);
+                edp_out_.th_min, edp_out_.th_max);
 	printf("qlim: %d, in_idletime: %f\n", qlim_, in_idletime_);
 	printf("=========\n");
 }
 
 void RIOQueue::print_edv()
 {
-	printf("v_a: %f, v_b: %f\n", edv_.v_a, edv_.v_b);
-	printf("in_v_a: %f, in_v_b: %f\n", edv_.in_v_a, edv_.in_v_b);
-	printf("out_v_a: %f, out_v_b: %f\n", edv_.out_v_a, edv_.out_v_b);
+	REDQueue::print_edv();
+	printf("in_v_a: %f, in_v_b: %f\n", edv_in_.v_a, edv_in_.v_b);
+	printf("out_v_a: %f, out_v_b: %f\n", edv_out_.v_a, edv_out_.v_b);
 }
