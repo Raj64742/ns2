@@ -57,6 +57,7 @@ TestSuite instproc finish testname {
 	set tmpnam /tmp/$fname
 	exec ../../bin/getrc -s 2 -f 0 out.tr > $tmpnam
 	exec tclsh ../../bin/tcpfull-summarize.tcl $tmpnam $fname
+	exec tclsh ../../bin/tcpfull-summarize.tcl $tmpnam $fname.r reverse
 	exec rm -f $tmpnam
 
 	set outtype text
@@ -71,7 +72,7 @@ TestSuite instproc finish testname {
 			# writing .gnuplot is really gross, but if we
 			# don't do that it's tough to get gnuplot to
 			# display our graph and hang around for more user input
-			exec tclsh ../../bin/cplot.tcl $outtype $testname \
+			exec tclsh ../../bin/cplot.tcl $outtype $testname.forw \
 			  $fname.p "segments" \
 			  $fname.acks "acks w/data" \
 			  $fname.packs "pure acks" $fname.d "drops" \
@@ -82,18 +83,28 @@ TestSuite instproc finish testname {
 			exec rm -f .gnuplot
 		} else {
 	  
-			exec tclsh ../../bin/cplot.tcl $outtype $testname \
+			exec tclsh ../../bin/cplot.tcl $outtype $testname.forw \
 			  $fname.p "segments" \
 			  $fname.acks "acks w/data" \
 			  $fname.packs "pure acks" $fname.d "drops" \
 			  $fname.es "zero-len segments" \
 			  $fname.ctrl "SYN or FIN" | $outtype &
+
+			exec tclsh ../../bin/cplot.tcl $outtype $testname.rev \
+			  $fname.r.p "segments" \
+			  $fname.r.acks "acks w/data" \
+			  $fname.r.packs "pure acks" $fname.r.d "drops" \
+			  $fname.r.es "zero-len segments" \
+			  $fname.r.ctrl "SYN or FIN" | $outtype &
 		}
 		exec sleep 1
-		exec rm -f \
-			$fname.p $fname.acks $fname.packs $fname.d $fname.ctrl $fname.es
+#		exec rm -f \
+#			$fname.p $fname.acks $fname.packs $fname.d $fname.ctrl $fname.es
+#		exec rm -f \
+#			$fname.r.p $fname.r.acks $fname.r.packs $fname.r.d $fname.r.ctrl $fname.r.es
 	} else {
 		puts "output files are $fname.{p,packs,acks,d,ctrl,es}"
+		puts "  and $fname.r.{p,packs,acks,d,ctrl,es}"
 	}
 }
 
@@ -467,7 +478,7 @@ Test/droppedsyn instproc run {} {
 	set errmodule [$lossylink_ errormodule]
 	set errmodel [$errmodule errormodels]
 	if { [llength $errmodel] > 1 } {
-		puts "droppedfirstseg: confused by >1 err models..abort"
+		puts "droppedsyn: confused by >1 err models..abort"
 		exit 1
 	}
 
@@ -597,15 +608,15 @@ Test/droppedsecondseg instproc run {} {
 	$ns_ run
 }
 
-Class Test/simul -superclass TestSuite
-Test/simul instproc init topo {
+Class Test/simul-open -superclass TestSuite
+Test/simul-open instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_ $topo
 	set defNet_ net0-lossy
-	set test_ simul
+	set test_ simul-open
 	$self next
 }
-Test/simul instproc run {} {
+Test/simul-open instproc run {} {
 	$self instvar ns_ node_ testName_ topo_
 
 	set stopt 9.0	
@@ -614,7 +625,7 @@ Test/simul instproc run {} {
 	set errmodule [$lossylink_ errormodule]
 	set errmodel [$errmodule errormodels]
 	if { [llength $errmodel] > 1 } {
-		puts "simul: confused by >1 err models..abort"
+		puts "simul-open: confused by >1 err models..abort"
 		exit 1
 	}
 
@@ -635,6 +646,53 @@ Test/simul instproc run {} {
 	set ftp1 [$src attach-source FTP]
 	set ftp2 [$sink attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start; $ftp2 start"
+
+	# set up special params for this test
+	$src set window_ 100
+	$src set delay_growth_ true
+	$src set tcpTick_ 0.500
+	$src set packetSize_ 576
+
+	$sink set window_ 100
+	$sink set delay_growth_ true
+	$sink set tcpTick_ 0.500
+	$sink set packetSize_ 1460
+
+	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
+	$ns_ run
+}
+
+Class Test/simul-close -superclass TestSuite
+Test/simul-close instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ net0
+	set test_ simul-close-maybe-buggy
+	$self next
+}
+Test/simul-close instproc run {} {
+	$self instvar ns_ node_ testName_ topo_
+
+	set stopt 9.0	
+
+	# set up connection (do not use "create-connection" method because
+	# we need a handle on the sink object)
+	set src [new Agent/TCP/FullTcp]
+	set sink [new Agent/TCP/FullTcp]
+	$ns_ attach-agent $node_(s1) $src
+	$ns_ attach-agent $node_(k1) $sink
+	$src set fid_ 0
+	$sink set fid_ 0
+	$ns_ connect $src $sink; # this is bi-directional
+
+	# set up TCP-level connections
+	$src set dst_ [$sink set addr_]
+	set ftp1 [$src attach-source FTP]
+	set ftp2 [$sink attach-source FTP]
+	$ns_ at 0.7 "$ftp1 start"
+	$ns_ at 0.9 "$ftp2 start"
+
+	$ns_ at 1.6 "$src close; $sink close"
 
 	# set up special params for this test
 	$src set window_ 100
@@ -672,8 +730,8 @@ Test/droppednearfin instproc run {} {
 		exit 1
 	}
 
-	$errmodel set offset_ 15.0
-	$errmodel set period_ 10.0
+	$errmodel set offset_ 7.0
+	$errmodel set period_ 100.0
 
 	# set up connection (do not use "create-connection" method because
 	# we need a handle on the sink object)
@@ -723,8 +781,8 @@ Test/droppedlastseg instproc run {} {
 		exit 1
 	}
 
-	$errmodel set offset_ 16.0
-	$errmodel set period_ 10.0
+	$errmodel set offset_ 9.0
+	$errmodel set period_ 100.0
 
 	# set up connection (do not use "create-connection" method because
 	# we need a handle on the sink object)
@@ -774,8 +832,8 @@ Test/droppedfin instproc run {} {
 		exit 1
 	}
 
-	$errmodel set offset_ 17.0
-	$errmodel set period_ 10.0
+	$errmodel set offset_ 9.0
+	$errmodel set period_ 100.0
 
 	# set up connection (do not use "create-connection" method because
 	# we need a handle on the sink object)
