@@ -33,13 +33,21 @@ RTMechanisms instproc init { ns cbqlink rtt mtu } {
 	set hist_next_ 0
 
 	set Reward_interval_  5.0
+	#
+	# Set Detect_interval_ to INFINITY to turn off penalty box.
+	#
 	set Detect_interval_  5.0
+#	set Detect_interval_  500.0
 	set Hist_max_ 10
         set Safety_factor_ 1.2
         set Max_cbw_ 46750
         set Maxallot_ 0.98          
         set Mintime_ 0.5
+	#
+	# Set High_const_ to INFINITY to turn off HIGH-BANDWIDTH test.
+	#
         set High_const_ 12000   
+#       set High_const_ 1200000
 
 	# don't schedule reward initially;  nobody in pbox yet
 	$self sched-detect
