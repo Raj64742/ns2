@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.8 1998/06/27 01:03:43 gnguyen Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/udp.cc,v 1.9 1998/07/07 22:48:47 tomh Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -33,14 +33,20 @@ public:
 	}
 } class_udp_agent;
 
-UdpAgent::UdpAgent() : Agent(PT_UDP), seqno_(0)
+UdpAgent::UdpAgent() : Agent(PT_UDP)
 {
+	bind("packetSize_", &size_);
 }
 
 void UdpAgent::sendmsg(int nbytes, const char* flags)
 {
 	Packet *p;
-	int n = nbytes / size_;
+	int n;
+
+	if (size_)
+		n = nbytes / size_;
+	else
+		printf("Error: UDP size = 0\n");
 
 	if (nbytes == -1) {
 		printf("Error:  sendmsg() for UDP should not be -1\n");
@@ -61,7 +67,8 @@ void UdpAgent::sendmsg(int nbytes, const char* flags)
 
 
 /*
- * UDP_Agent below is a both an Agent and an application
+ * UDP_Agent below is a both an Agent and an application.  As noted in udp.h,
+ * this code remains for backward compatibility.
  */
 
 //"rtp timestamp" needs the samplerate
