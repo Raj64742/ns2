@@ -67,7 +67,7 @@ TestSuite instproc printtimersAll { tcp time interval } {
 }
 
 TestSuite instproc finish testname {
-	global env
+	global env quiet
 	$self instvar ns_
 
 	$ns_ halt
@@ -75,15 +75,17 @@ TestSuite instproc finish testname {
 	set fname [pid]
 	set tmpnam /tmp/$fname
 	exec ../../bin/getrc -s 2 -f 0 out.tr > $tmpnam
-	exec tclsh ../../bin/tcpfull-summarize.tcl $tmpnam $fname
-	exec tclsh ../../bin/tcpfull-summarize.tcl $tmpnam $fname.r reverse
-	exec rm -f $tmpnam
 
 	set outtype text
-	if { [info exists env(NSOUT)] } {
-		set outtype $env(NSOUT)
-	} elseif { [info exists env(DISPLAY)] } {
-		set outtype xgraph
+	if { $quiet != "true" } {
+		exec tclsh ../../bin/tcpfull-summarize.tcl $tmpnam $fname
+		exec tclsh ../../bin/tcpfull-summarize.tcl $tmpnam $fname.r reverse
+#		exec rm -f $tmpnam
+		if { [info exists env(NSOUT)] } {
+			set outtype $env(NSOUT)
+		} elseif { [info exists env(DISPLAY)] } {
+			set outtype xgraph
+		}
 	}
 
 	if { $outtype != "text" } {
@@ -122,9 +124,12 @@ TestSuite instproc finish testname {
 		exec rm -f \
 		$fname.r.p $fname.r.acks $fname.r.packs $fname.r.d $fname.r.ctrl $fname.r.es
 	} else {
-		puts "output files are $fname.{p,packs,acks,d,ctrl,es}"
-		puts "  and $fname.r.{p,packs,acks,d,ctrl,es}"
+		if { $quiet != "true" } {
+			puts "output files are $fname.{p,packs,acks,d,ctrl,es}"
+			puts "  and $fname.r.{p,packs,acks,d,ctrl,es}"
+		}
 	}
+	exec mv $tmpnam temp.rands
 }
 
 TestSuite instproc bsdcompat tcp {
