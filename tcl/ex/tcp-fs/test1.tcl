@@ -1,27 +1,23 @@
-#!../../../../ns
 source ../../../lan/ns-lan.tcl
 source ../../../ex/asym/util.tcl
+source ../../../ex/tcp-fs/web.tcl
 
 Queue/RED set q_weight_ 0.1
 
 # set up simulation
-
 set ns [new Simulator]
-
-set n(00) [$ns node]
-set n(01) [$ns node]
-set n(02) [$ns node]
-set n(03) [$ns node]
-set n(04) [$ns node]
+set numsrc 6
+set numdst 6
+for {set i 0} {$i < $numsrc} {incr i} {
+	set n(0$i) [$ns node]
+}
 set n(1) [$ns node]
 set n(2) [$ns node]
-set n(30) [$ns node]
-set n(31) [$ns node]
-set n(32) [$ns node]
-set n(33) [$ns node]
-set n(34) [$ns node]
+for {set i 0} {$i < $numdst} {incr i} {
+	set n(3$i) [$ns node]
+}
 
-set dir "/home/dwight/4c/home/padmanab/run"
+set dir "."
 set trace_opened 0
 set graph 0
 set connGraphFlag("") 0
@@ -30,9 +26,10 @@ set maxburst 0
 set upwin 0
 set tcpTick 0.1
 set ackSize 40
+set fbw 1.5Mb
 set rbw 28.8Kb
 set fqsize -1
-set rqsize 10
+set rqsize -1
 set qsize 10
 set fgw "DropTail"
 set rgw "DropTail"
@@ -42,6 +39,7 @@ set replace_head false
 set midtime 0
 set window 100
 set burstwin 0
+set webwin 0
 set nonfifo 0
 set priority_drop false
 set random_drop false
@@ -52,6 +50,7 @@ set fixed_period_except_first 0
 set fgw_q_weight -1
 set rgw_q_weight -1
 set burstsz 5
+set firstburstsz 0
 set pause 5
 set monitorq 0
 set traceq 0
@@ -76,7 +75,8 @@ proc finish {ns traceall tcptrace redtrace queuetrace graph connGraphFlag midtim
 	close $redtrace
 	flush $queuetrace
 	close $queuetrace
-	plotgraph $graph graphFlag $midtime $turnontime $turnofftime $qtraceflag $dir
+	processtrace $midtime $turnontime $turnofftime $qtraceflag $dir
+#	plotgraph $graph graphFlag $midtime $turnontime $turnofftime $qtraceflag $dir
 	exit 0
 }
 
@@ -226,6 +226,10 @@ while {$count < $argc} {
 			Agent/TCP/Session set tcpTick_ [lindex $argv [expr $count-1]]
 			continue
 		}
+		'-fbw' {
+			set fbw [lindex $argv [expr $count-1]]
+			continue
+		}
 		'-rbw' {
 			set rbw [lindex $argv [expr $count-1]]
 			continue
@@ -247,6 +251,10 @@ while {$count < $argc} {
 			set burstsz [lindex $argv [expr $count-1]]
 			continue
 		}
+		'-fbs' {
+			set firstburstsz [lindex $argv [expr $count-1]]
+			continue
+		}
 		'-pause' {
 			set pause [lindex $argv [expr $count-1]]
 			continue
@@ -257,6 +265,10 @@ while {$count < $argc} {
 		}
 		'-bwin' {
 			set burstwin [lindex $argv [expr $count-1]]
+			continue
+		}
+		'-webwin' {
+			set webwin [lindex $argv [expr $count-1]]
 			continue
 		}
 		'-upwin' {
@@ -342,6 +354,7 @@ while {$count < $argc} {
 	}
 
 	set burstflag 0
+	set webFlag false
 	set direction ""
 	while {$count < $argc} {
 		set arg [lindex $argv $count]
@@ -357,6 +370,10 @@ while {$count < $argc} {
 			}
 			'-up' {
 				set direction "up"
+				continue
+			}
+			'-web' {
+				set webFlag true
 				continue
 			}
 			default {
@@ -375,7 +392,6 @@ while {$count < $argc} {
 	} else {
 	}
 	
-
 	set arg [lindex $argv $count]
 	set slow_start_restart true
 	set srctype "TCP/Fack"
@@ -431,6 +447,9 @@ while {$count < $argc} {
 			set srctype "TCP/Int"
 			set sessionFlag true
 		}
+		default {
+			incr count -1
+		}
 	}
 	incr count 1
 	set arg [lindex $argv $count]
@@ -446,46 +465,65 @@ while {$count < $argc} {
 		set win $upwin
 	} elseif {($burstflag == 1) && ($burstwin > 0)} {
 		set win $burstwin
+	} elseif {$webFlag && $webwin > 0} {
+		set win $webwin
 	} else {
 		set win $window
 	}
-	set tcp [createTcpSource $srctype $maxburst $tcpTick $win]
-	$tcp set slow_start_restart_ $slow_start_restart
-	set sink [createTcpSink $sinktype $sinktrace]
-	set ftp [createFtp $ns $src $tcp $dst $sink]
-	if {$sessionFlag} {
-		setupTcpSession $tcp $count_bytes_acked $schedDisp
-#		set d [expr ([$tcp set dst_]/256)*256]
-#		set session [[$tcp set node_] getTcpSession $d]
-	}
-	setupTcpTracing $tcp $tcptrace $sessionFlag
-	setupGraphing $tcp $connGraph connGraphFlag $sessionFlag
-	if { $burstflag == 0 } {
-		$ns at $startTime "$ftp start"
-	} elseif { $fixed_period } {
-		$ns at $startTime "$ftp produce $burstsz"
-		$ns at [expr $startTime+$pause] "periodic_burst $ns $ftp $burstsz $pause"
-	} elseif { $fixed_period_except_first } {
-		$ns at $startTime "$ftp produce $burstsz"
-		$ns at [expr $pause+[exec rand 0 0.5]] "periodic_burst $ns $ftp $burstsz $pause"
+
+	if {$webFlag} {
+		set web [new WebCS $ns $src $dst "$srctype $maxburst $tcpTick $win $slow_start_restart" $tcptrace "$sinktype $sinktrace" false $sessionFlag "$count_bytes_acked $schedDisp"]
+		$ns at startTime "$web start"
 	} else {
-		$tcp proc done {} "burst_finish $ns $ftp $burstsz $pause"
-		$ns at $startTime "$ftp produce $burstsz"
-	}
-	set ok 1
-	while {$ok == 1 && $count < $argc} {
-		set arg [lindex $argv $count]
-		switch -exact '$arg' {
-			'-at' {
-				incr count 1
-				set time [lindex $argv $count]
-				incr count 1
-				set cmd [lindex $argv $count]
-				incr count 1
-				$ns at $time "$tcp $cmd"
+		set tcp [createTcpSource $srctype $maxburst $tcpTick $win $slow_start_restart]
+		set sink [createTcpSink $sinktype $sinktrace]
+		set ftp [createFtp $ns $src $tcp $dst $sink]
+		if {$sessionFlag} {
+			setupTcpSession $tcp $count_bytes_acked $schedDisp
+			#		set d [expr ([$tcp set dst_]/256)*256]
+			#		set session [[$tcp set node_] getTcpSession $d]
+		}
+		setupTcpTracing $tcp $tcptrace $sessionFlag
+		setupGraphing $tcp $connGraph connGraphFlag $sessionFlag
+		if { $burstflag == 0 } {
+			$ns at $startTime "$ftp start"
+		} elseif { $fixed_period } {
+			if {$firstburstsz > 0} {
+				$ns at $startTime "$ftp produce $firstburstsz"
+			} else {
+				$ns at $startTime "$ftp produce $burstsz"
 			}
-			default {
-				set ok 0
+			$ns at [expr $startTime+$pause] "periodic_burst $ns $ftp $burstsz $pause"
+		} elseif { $fixed_period_except_first } {
+			if {$firstburstsz > 0} {
+				$ns at $startTime "$ftp produce $firstburstsz"
+			} else {
+				$ns at $startTime "$ftp produce $burstsz"
+			}
+			$ns at [expr $pause+[expr $startTime/20.0]] "periodic_burst $ns $ftp $burstsz $pause"
+		} else {
+			$tcp proc done {} "burst_finish $ns $ftp $burstsz $pause"
+			if {$firstburstsz > 0} {
+				$ns at $startTime "$ftp produce $firstburstsz"
+			} else {
+				$ns at $startTime "$ftp produce $burstsz"
+			}
+		}
+		set ok 1
+		while {$ok == 1 && $count < $argc} {
+			set arg [lindex $argv $count]
+			switch -exact '$arg' {
+				'-at' {
+					incr count 1
+					set time [lindex $argv $count]
+					incr count 1
+					set cmd [lindex $argv $count]
+					incr count 1
+					$ns at $time "$tcp $cmd"
+				}
+				default {
+					set ok 0
+				}
 			}
 		}
 	}
@@ -511,22 +549,19 @@ if {$topology == "fs"} {
 	#     /  10Mb, 1ms           \ 10Mb, 1ms
 	#    /                        \
 	#  n01                         n31
-	$ns duplex-link $n(00) $n(1) 10Mb 1ms DropTail
-	$ns duplex-link $n(01) $n(1) 10Mb 1ms DropTail
-	$ns duplex-link $n(02) $n(1) 10Mb 1ms DropTail
-	$ns duplex-link $n(03) $n(1) 10Mb 1ms DropTail
-	$ns duplex-link $n(04) $n(1) 10Mb 1ms DropTail
-	$ns duplex-link $n(1) $n(2) 1Mb $delay $fgw
-	$ns duplex-link $n(2) $n(30) 10Mb 1ms DropTail
-	$ns duplex-link $n(2) $n(31) 10Mb 1ms DropTail
-	$ns duplex-link $n(2) $n(32) 10Mb 1ms DropTail
-	$ns duplex-link $n(2) $n(33) 10Mb 1ms DropTail
-	$ns duplex-link $n(2) $n(34) 10Mb 1ms DropTail
-
+	for {set i 0} {$i < $numsrc} {incr i 1} {
+		$ns duplex-link $n(0$i) $n(1) 10Mb 1ms DropTail
+	}
+	$ns duplex-link $n(1) $n(2) $fbw $delay $fgw
+	for {set i 0} {$i < $numdst} {incr i 1} {
+		$ns duplex-link $n(2) $n(3$i) 10Mb 1ms DropTail
+	}
 	# configure forward bottleneck queue
 	configQueue $ns $n(1) $n(2) $fgw $queuetrace $fqsize $nonfifo false false false $priority_drop $random_drop $random_ecn
+	configQueue $ns $n(2) $n(1) $rgw $queuetrace $rqsize $nonfifo false false false $priority_drop $random_drop $random_ecn
 	#configQueue $ns $n(1) $n(2) $fgw 0 $fqsize $nonfifo false false false $priority_drop $random_drop $random_ecn
 	configREDQueue $ns $n(1) $n(2) $fgw_q_weight
+	configREDQueue $ns $n(2) $n(1) $rgw_q_weight
 } elseif {$topology == "asym"} {
 	# topology
 	#
@@ -544,21 +579,12 @@ if {$topology == "fs"} {
 	configREDQueue $ns $n(2) $n(1) $rgw_q_weight
 }
 
-# monitor queues
-if { $monitorq } {
-	monitor_queue $ns $n(00) $n(1) $queuetrace 0.005
-	monitor_queue $ns $n(01) $n(1) $queuetrace 0.005
-	monitor_queue $ns $n(1) $n(2) $queuetrace 0.005
-} elseif { $traceq } {
-	trace_queue $ns $n(00) $n(1) $queuetrace
-	trace_queue $ns $n(01) $n(1) $queuetrace
-	trace_queue $ns $n(1) $n(2) $queuetrace
-} else {
-	foreach i [array names traceqFromNode] {
-		trace_queue $ns $n($traceqFromNode($i)) $n($traceqToNode($i)) $queuetrace
-		set traceq 1
-	}
+# trace queues
+foreach i [array names traceqFromNode] {
+	trace_queue $ns $n($traceqFromNode($i)) $n($traceqToNode($i)) $queuetrace
+	set traceq 1
 }
+
 		
 
 #end simulation
