@@ -50,8 +50,8 @@ class EmpFtpTrafSession : public TimerHandler {
 public: 
 	EmpFtpTrafSession(EmpFtpTrafPool *mgr, int np, int id) : 
 		rvInterFile_(NULL), rvFileSize_(NULL),
-		rvServerWin_(NULL), rvClientWin_(NULL),
 		rvServerSel_(NULL), 
+		rvServerWin_(NULL), rvClientWin_(NULL),
 		mgr_(mgr), nFile_(np), curFile_(0), 
 		id_(id) {}
 	virtual ~EmpFtpTrafSession();

@@ -28,7 +28,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.14 2002/02/13 22:58:04 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.15 2002/05/23 06:42:09 kclan Exp $
 
 #include <tclcl.h>
 
@@ -44,7 +44,7 @@
 class EmpWebPage : public TimerHandler {
 public:
 	EmpWebPage(int id, EmpWebTrafSession* sess, int nObj, Node* dst, int svrId) :
-		id_(id), sess_(sess), nObj_(nObj), curObj_(0), doneObj_(0), dst_(dst), svrId_(svrId), persistOption_(0) {}
+	persistOption_(0), id_(id), sess_(sess), nObj_(nObj), curObj_(0), doneObj_(0), dst_(dst), svrId_(svrId) {}
 	virtual ~EmpWebPage() {}
 
 	inline void start() {
@@ -345,8 +345,7 @@ int EmpWebTrafPool::delay_bind_dispatch(const char *varName,const char *localNam
 }
 
 EmpWebTrafPool::EmpWebTrafPool() : 
-	session_(NULL), nSrc_(0), server_(NULL), nClient_(0), client_(NULL),
-	concurrentSess_(0), nTcp_(0), nSink_(0)
+	concurrentSess_(0), nSrc_(0), server_(NULL), session_(NULL), nClient_(0), client_(NULL), nTcp_(0), nSink_(0)
 {
 	LIST_INIT(&tcpPool_);
 	LIST_INIT(&sinkPool_);

@@ -73,7 +73,6 @@ EmpFtpTrafSession::~EmpFtpTrafSession()
 // Launch the current file
 void EmpFtpTrafSession::expire(Event *)
 {
-	int n;
 
 	if (curFile_ >= nFile_) return;
 
@@ -106,9 +105,9 @@ void EmpFtpTrafSession::sendFile(int file, int size)
 	int window = (wins >= winc) ? wins : winc;
 
 	// Choose source and dest TCP agents for both source and destination
-	TcpAgent* ctcp = mgr_->picktcp(window);
+//	TcpAgent* ctcp = mgr_->picktcp(window);
 	TcpAgent* stcp = mgr_->picktcp(window);
-	TcpSink* csnk = mgr_->picksink();
+//	TcpSink* csnk = mgr_->picksink();
 	TcpSink* ssnk = mgr_->picksink();
 
 	// Setup new TCP connection and launch request
@@ -166,7 +165,7 @@ int EmpFtpTrafPool::delay_bind_dispatch(const char *varName,const char *localNam
 }
 
 EmpFtpTrafPool::EmpFtpTrafPool() : 
-	session_(NULL), nSrc_(0), server_(NULL), nClient_(0), client_(NULL),
+	nSrc_(0), server_(NULL), session_(NULL), nClient_(0), client_(NULL),
 	nTcp_(0), nSink_(0)
 {
 	LIST_INIT(&tcpPool_);

@@ -29,7 +29,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.h
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.15 2002/02/13 22:58:04 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.h,v 1.16 2002/05/23 06:42:09 kclan Exp $
 
 #ifndef ns_empweb_h
 #define ns_empweb_h
@@ -55,9 +55,8 @@ public:
 		rvInterObj_(NULL), rvObjSize_(NULL), 
 		rvReqSize_(NULL), rvPersistSel_(NULL), rvServerSel_(NULL),
 		rvServerWin_(NULL), rvClientWin_(NULL),
-		clientIdx_(cl), 
 		mgr_(mgr), src_(src), nPage_(np), curPage_(0), donePage_(0),
-		id_(id), interPageOption_(1) {}
+		id_(id), clientIdx_(cl), interPageOption_(1) {}
 	virtual ~EmpWebTrafSession();
 
 	// Queried by individual pages/objects
@@ -94,9 +93,10 @@ private:
 	int nPage_, curPage_, donePage_;
 	int id_;
 
-        int interPageOption_;
 
         int clientIdx_;
+
+        int interPageOption_;
 
 	TcpAgent* ctcp_;
         TcpAgent* stcp_;
