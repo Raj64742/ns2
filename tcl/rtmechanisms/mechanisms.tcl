@@ -92,7 +92,7 @@ RTMechanisms instproc mmetric { op flows } {
 RTMechanisms instproc setstate { flow reason bandwidth droprate } { 
 	$self instvar state_ ns_
 
-	$self vprint 0 "SETSTATE: flow: $flow NEWSTATE (reason:$reason, bw: $bandwidth, droprate: $droprate)"
+	$self vprint 1 "SETSTATE: flow: $flow NEWSTATE (reason:$reason, bw: $bandwidth, droprate: $droprate)"
 
 	set state_($flow,reason) $reason
 	set state_($flow,bandwidth) $bandwidth
@@ -204,14 +204,14 @@ RTMechanisms instproc penalize { badflow guideline_bw } {
 	#
 
 	set new_pbw [expr 0.5 * $guideline_bw * $npenalty_ ]
-	$self vprint 0 "npenalty $npenalty_ guideline_bw $guideline_bw"
+	$self vprint 1 "npenalty $npenalty_ guideline_bw $guideline_bw"
 	if { $new_pbw > $Max_cbw_ } {
 		set $new_pbw $Max_cbw_
 	}
 	$self instvar badclass_
 	# link bw is in bits/sec
 	set bw [expr [[$cbqlink_ link] set bandwidth_] / 8.0]
-	$self vprint 0 "new_pbw $new_pbw bw $bw" 
+	$self vprint 1 "new_pbw $new_pbw bw $bw" 
 	set nallot [expr $new_pbw / $bw]
 
 	$self pallot $nallot
@@ -230,7 +230,7 @@ RTMechanisms instproc unpenalize goodflow {
 	incr npenalty_ -1
 
 	set classifier [$cbqlink_ classifier]
-	$self vprint 1 "UNPENALIZE flow $goodflow"
+	$self vprint 0 "UNPENALIZE flow $goodflow"
 
 	#
 	# delete the bad flow from the cbq/mechanisms classifier
@@ -305,7 +305,7 @@ RTMechanisms instproc checkbw_droprate { droprateB droprateG } {
 		$self vprint 0 "Penalty box: was $old_allot now $new_allot"
 		return $new_allot
 	}
-	$self vprint 0 "Penalty box: $old_allot"
+	$self vprint 1 "Penalty box: $old_allot"
 	return "ok"
 }
 
@@ -456,7 +456,7 @@ RTMechanisms instproc sched-reward {} {
 	set then [expr $now + $Reward_interval_]
 	set reward_pending_ true
 	$ns_ at $then "$self do_reward"
-	$self vprint 0 "SCHEDULING REWARD for $then"
+	$self vprint 1 "SCHEDULING REWARD for $then"
 }
 RTMechanisms instproc do_reward {} {
 	$self instvar ns_
@@ -487,8 +487,8 @@ RTMechanisms instproc do_reward {} {
 	set pflows [$pboxfm_ flows] ; # all penalized flows
 
 
-	$self vprint 0 "DO_REWARD: droprateB: [$self frac $pdrops $parrivals] (pdrops: $pdrops, parr: $parrivals pdep: $pdepartures)"
-	$self vprint 0 "DO_REWARD: badbox pool of flows: $pflows"
+	$self vprint 1 "DO_REWARD: droprateB: [$self frac $pdrops $parrivals] (pdrops: $pdrops, parr: $parrivals pdep: $pdepartures)"
+	$self vprint 1 "DO_REWARD: badbox pool of flows: $pflows"
 
 	if { $parrivals == 0 && $elapsed > $Mintime_ } {
 		# nothing!, everybody becomes good
