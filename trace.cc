@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.45 1998/07/01 22:17:11 yaxu Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.46 1998/07/02 01:57:58 haoboy Exp $ (LBL)";
 
 #endif
 
@@ -189,12 +189,11 @@ void Trace::format(int tt, int s, int d, Packet* p)
 
 	int t = th->ptype();
 	const char* name = pt_names[t];
-	int t1 = sh->type();
 
         /* SRM-specific */
 	if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0) {
-            if ( t1 < 5 && t1 >= 0 ) {
-	        sname = srm_names[t1];
+            if ( sh->type() < 5 && sh->type() >= 0 ) {
+	        sname = srm_names[sh->type()];
 	    }
 	}
 
@@ -417,11 +416,10 @@ DequeTrace::recv(Packet* p, Handler* h)
 
 		int t = th->ptype();
 		const char* name = pt_names[t];
-		int t1 = sh->type();   
 		
 		if (strcmp(name,"SRM") == 0 || strcmp(name,"cbr") == 0) {
-		    if ( t1 < 5 && t1 >=0  ) {
-		        sname = srm_names[t1];
+		    if ( sh->type() < 5 && sh->type() >=0  ) {
+		        sname = srm_names[sh->type()];
 		    }
 		}   
 
