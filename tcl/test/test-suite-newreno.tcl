@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.19 2003/03/17 18:42:22 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.20 2003/04/16 21:38:07 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -103,15 +103,16 @@ Topology/net4a instproc init ns {
 
 TestSuite instproc finish file {
 	global quiet wrap PERL
-        exec $PERL ../../bin/set_flow_id -s all.tr | \
-          $PERL ../../bin/getrc -s 2 -d 3 | \
+        #exec $PERL ../../bin/set_flow_id -s all.tr | \
+        #  $PERL ../../bin/getrc -s 2 -d 3 | \
+        #  $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
+        exec $PERL ../../bin/getrc -s 2 -d 3 all.tr | \
           $PERL ../../bin/raw2xg -s 0.01 -m $wrap -t $file > temp.rands
-        # exec $PERL ../../bin/set_flow_id -d all.tr | \
-        #  $PERL ../../bin/getrc -s 3 -d 2 | \
-        #  $PERL ../../bin/raw2xg -a -s 0.01 -m $wrap -t $file > temp1.rands
+        exec $PERL ../../bin/getrc -s 3 -d 2 all.tr | \
+          $PERL ../../bin/raw2xg -a -c -p -s 0.01 -m $wrap -t $file >> \
+          temp.rands
+        #exec echo $stoptime 0 >> temp.rands
 	if {$quiet == "false"} {
-	#	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands \
-	#	temp1.rands &
 		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}
         ## now use default graphing tool to make a data file
