@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.108 2002/03/09 17:25:19 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.109 2002/03/14 04:31:19 xuanc Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -290,6 +290,12 @@ FullTcpAgent::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "advance-bytes") == 0) {
 			advance_bytes(atoi(argv[2]));
+			return (TCL_OK);
+		}
+	}
+	if (argc == 4) {
+		if (strcmp(argv[1], "sendmsg") == 0) {
+			sendmsg(atoi(argv[2]), argv[3]);
 			return (TCL_OK);
 		}
 	}
