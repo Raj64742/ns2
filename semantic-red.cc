@@ -12,7 +12,10 @@ class SemanticREDQueue : public REDQueue {
 public:
 	SemanticREDQueue() : REDQueue() {}
 	Packet* pickPacketToDrop() {
-		return(((SemanticPacketQueue*) q_)->pickPacketToDrop());
+		return(((SemanticPacketQueue*) pq_)->pickPacketToDrop());
+	}
+	Packet* pickPacketForECN(Packet *pkt) {
+		return(((SemanticPacketQueue*) pq_)->pickPacketForECN(pkt));
 	}
 };
 
