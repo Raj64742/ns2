@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/session-rtp.cc,v 1.3 1997/02/27 04:39:09 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/session-rtp.cc,v 1.4 1997/03/28 20:25:49 mccanne Exp $";
 #endif
 
 #include <Tcl.h>
@@ -129,7 +129,7 @@ int RTPSession::build_sdes()
 
 void RTPSession::recv(Packet* p)
 {
-	RTPHeader *rh = RTPHeader::access(p->bits());
+	hdr_rtp *rh = RTPHeader::access(p->bits());
 	u_int32_t srcid = rh->srcid();
 	RTPSource* s = lookup(srcid);
 	if (s == 0) {
@@ -143,7 +143,7 @@ void RTPSession::recv(Packet* p)
 
 void RTPSession::recv_ctrl(Packet* p)
 {
-	IPHeader *ip = IPHeader::access(p->bits());
+	hdr_ipv6 *ip = IPHeader::access(p->bits());
 	Tcl::instance().evalf("%s sample-size %d", name(), ip->size());
 }
 

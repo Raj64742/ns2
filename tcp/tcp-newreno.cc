@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.4 1997/03/13 22:49:31 tomh Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.5 1997/03/28 20:25:50 mccanne Exp $ (LBL)";
 #endif
 
 //
@@ -76,7 +76,7 @@ NewRenoTcpAgent::NewRenoTcpAgent() : dupwnd_(0)
  */
 void NewRenoTcpAgent::partialnewack(Packet* pkt)
 {
-	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+	bd_tcp *tcph = TCPHeader::access(pkt->bits());
         newtimer(pkt);
 #ifdef notyet
         if (pkt->seqno_ == stp->maxpkts && stp->maxpkts > 0)
@@ -94,8 +94,8 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
 
 void NewRenoTcpAgent::recv(Packet *pkt)
 {
-	TCPHeader *tcph = TCPHeader::access(pkt->bits());
-	IPHeader *iph = IPHeader::access(pkt->bits());
+	bd_tcp *tcph = TCPHeader::access(pkt->bits());
+	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		fprintf(stderr,

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.7 1997/03/27 07:01:52 elan Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.8 1997/03/28 20:25:47 mccanne Exp $";
 #endif
 
 
@@ -48,12 +48,12 @@ static char rcsid[] =
 #include "rtp.h"
 
 RTPHeader rtphdr;
-RTPHeader* RTPHeader::myaddress_ = &rtphdr;
+
 static class RTPHeaderClass : public TclClass {
 public:
         RTPHeaderClass() : TclClass("PacketHeader/RTP") {}
         TclObject* create(int argc, const char*const* argv) {
-                        return &rtphdr;
+		return &rtphdr;
         }       
 } class_rtphdr;
 
@@ -147,7 +147,7 @@ void RTPAgent::rate_change()
 void RTPAgent::sendpkt()
 {
 	Packet* p = allocpkt();
-	RTPHeader *rh = RTPHeader::access(p->bits());
+	hdr_rtp *rh = RTPHeader::access(p->bits());
 	lastpkttime_ = Scheduler::instance().clock();
 
 	/* Fill in srcid_ and seqno */

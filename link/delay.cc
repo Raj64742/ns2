@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.6 1997/03/25 22:22:11 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.7 1997/03/28 20:25:37 mccanne Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -49,7 +49,7 @@ class LinkDelay : public Connector {
 	void send(Packet* p, Handler*);
 	double delay() { return delay_; }
 	double txtime(Packet* p) {
-		IPHeader *hdr = IPHeader::access(p->bits());
+		hdr_ipv6 *hdr = IPHeader::access(p->bits());
 		return (hdr->size() * 8. / bandwidth_);
 	}
 
@@ -138,7 +138,7 @@ int LinkDelay::command(int argc, const char*const* argv)
 
 void LinkDelay::recv(Packet* p, Handler* h)
 {
-	IPHeader *hdr = IPHeader::access(p->bits());
+	hdr_ipv6 *hdr = IPHeader::access(p->bits());
 	double txtime = hdr->size() * 8. / bandwidth_;
 	Scheduler& s = Scheduler::instance();
 	if (dynamic_)

@@ -30,38 +30,33 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.h,v 1.1 1997/02/27 04:38:50 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.h,v 1.2 1997/03/28 20:25:42 mccanne Exp $
  */
 
 #ifndef ns_msg_h
 #define ns_msg_h
 
-struct bd_msg {
+struct hdr_msg {
 	char msg_[64];
-};
 
-class MessageHeader : public PacketHeader {
-private:
-        static MessageHeader* myaddress_;
-        bd_msg* hdr_;
-public:
-        MessageHeader() : hdr_(NULL) { }
-	inline int hdrsize() { return (sizeof(*hdr_)); }
-        inline void header_addr(u_char *base) {
-                if (offset_ < 0) abort();
-                hdr_ = (bd_msg *) (base + offset_);
-        }
-        static inline MessageHeader* access(u_char *p) {    
-                myaddress_->header_addr(p);
-                return (myaddress_);
-        }
         /* per-field member functions */
         char* msg() {
-                return (hdr_->msg_);
+                return (msg_);
         }
 	int maxmsg() {
-		return (sizeof(hdr_->msg_));
+		return (sizeof(msg_));
 	}
+};
+
+class MessageHeader;
+extern MessageHeader msghdr;
+
+class MessageHeader : public PacketHeader {
+public:
+	inline int hdrsize() { return (sizeof(hdr_msg)); }
+        static inline hdr_msg* access(u_char *p) {    
+                return ((hdr_msg*)(p + msghdr.offset_));
+        }
 };
 
 #endif

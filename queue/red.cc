@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.5 1997/02/27 04:38:59 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.6 1997/03/28 20:25:46 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -264,7 +264,7 @@ Packet* REDQueue::deque()
 		
 int REDQueue::drop_early(Packet* pkt)
 {
-	IPHeader *iph = IPHeader::access(pkt->bits());
+	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
 	if (edv_.v_ave >= edp_.th_max) {
 		// policy: if above max thresh, force drop
 		edv_.v_prob = 1.0;

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.6 1997/03/28 01:24:31 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.7 1997/03/28 20:25:45 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -46,7 +46,7 @@ public:
 	inline int length() const { return (len_); }
 	inline int bcount() const { return (bcount_); }
 	inline void enque(Packet* p) {
-		IPHeader *ip = IPHeader::access(p->bits());
+		hdr_ipv6 *ip = IPHeader::access(p->bits());
 		*tail_ = p;
 		tail_ = &p->next_;
 		*tail_ = 0;
@@ -57,7 +57,7 @@ public:
 		Packet* p = head_;
 		if (p != 0) {
 			--len_;
-			IPHeader *ip = IPHeader::access(p->bits());
+			hdr_ipv6 *ip = IPHeader::access(p->bits());
 			bcount_ -= ip->size();
 			head_ = p->next_;
 			if (head_ == 0)

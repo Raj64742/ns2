@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.h,v 1.1 1997/02/27 04:38:44 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.h,v 1.2 1997/03/28 20:25:39 mccanne Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -42,7 +42,7 @@
 
 
 #define	IP_ECN	0x01	/* ECN bit in flags below (experimental) */
-struct bd_ipv6 {
+struct hdr_ipv6 {
 	/* common to IPv{4,6} */
 	int		size_;
 	nsaddr_t	src_;
@@ -53,48 +53,45 @@ struct bd_ipv6 {
 	int		prio_;
 	/* ns: experimental */
 	int		flags_;
-};
 
 
-class IPHeader : public PacketHeader {
-private:
-	static IPHeader* myaddress_;
-	bd_ipv6* hdr_;
-public:
-	IPHeader() : hdr_(NULL) { }
-	inline int hdrsize() { return (sizeof(*hdr_)); }
-        inline void header_addr(u_char *base) {
-                if (offset_ < 0) abort();
-                hdr_ = (bd_ipv6 *) (base + offset_);
-        }
-        static inline IPHeader* access(u_char *p) {    
-                myaddress_->header_addr(p);
-                return (myaddress_);
-        }
 	/* per-field member functions */
 	int& size() {
-		return (hdr_->size_);
+		return (size_);
 	}
 	nsaddr_t& src() {
-		return (hdr_->src_);
+		return (src_);
 	}
 	nsaddr_t& dst() {
-		return (hdr_->dst_);
+		return (dst_);
 	}
 	int& ttl() {
-		return (hdr_->ttl_);
+		return (ttl_);
 	}
 	/* ipv6 fields */
 	int& flowid() {
-		return (hdr_->fid_);
+		return (fid_);
 	}
 	int& prio() {
-		return (hdr_->prio_);
+		return (prio_);
 	}
 	/* experimental */
 	int& flags() {
-		return (hdr_->flags_);
+		return (flags_);
 	}
+};
+
+
+/*XXX*/
+class IPHeader;
+extern IPHeader iphdr;
+
+class IPHeader : public PacketHeader {
+public:
+	inline int hdrsize() { return (sizeof(hdr_ipv6)); }
+        static inline hdr_ipv6* access(u_char *p) {    
+                return ((hdr_ipv6*)(p + iphdr.offset_));
+        }
 };
 
 #endif

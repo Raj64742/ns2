@@ -35,7 +35,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.1 1997/03/28 09:03:35 mccanne Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.2 1997/03/28 20:25:38 mccanne Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -161,7 +161,7 @@ Packet* FQ::deque()
  */
 void FQ::recv(Packet* p, Handler* handler)
 {
-	IPHeader *h = IPHeader::access(p->bits());
+	hdr_ipv6 *h = IPHeader::access(p->bits());
 	int flowid = h->flowid();
 	/* shouldn't be called when head-of-line is pending */
 	if (fs_[flowid].hol_ != 0)

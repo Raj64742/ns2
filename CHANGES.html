@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.45 1997/03/28 08:58:22 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.46 1997/03/28 20:25:32 mccanne Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <h1>ns: Change History</h1>
 <ul>
@@ -6,6 +6,22 @@
 
 <! I think that this ChangeLog is updated in the reverse order, right? >
 <! with the most recent changes coming first? >
+
+</ul>
+<hr>
+<h3><a href=http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz>ns-2.0a17</a>
+[PENDING RELESAE DATE]</h3>
+<ul>
+
+<li><b><a href=http://www.cs.berkeley.edu/~mccanne>[SM]</a></b>
+<b>Fri Mar 28 12:23:58 PST 1997</b><br>
+Another cut at packet format reorg.  Eliminated the need for
+static variables.  Moved the accessor methods from the
+"Header" classes into the "hdr" structs.  This rearrangement
+allowed us to alter a minimal amount of code in
+each module that ref'd a packet header (i.e., only
+needed to change the pointer type of the variable
+that pointed at the packet header.)
 
 </ul>
 <hr>

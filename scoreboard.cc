@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.cc,v 1.2 1997/02/27 04:39:07 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scoreboard.cc,v 1.3 1997/03/28 20:25:49 mccanne Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
@@ -71,7 +71,7 @@ void ScoreBoard::UpdateScoreBoard (int last_ack, Packet *pkt)
 		}
 	}	
 
-	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
 	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
 		sack_left = tcph->sa_left()[sack_index];
 		sack_right = tcph->sa_right()[sack_index];

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.4 1997/02/27 04:38:37 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.5 1997/03/28 20:25:37 mccanne Exp $";
 #endif
 
 #include <stdlib.h>
@@ -106,7 +106,7 @@ MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst) const
 
 int MCastClassifier::classify(Packet *const pkt)
 {
-	IPHeader *h = IPHeader::access(pkt->bits());
+	hdr_ipv6 *h = IPHeader::access(pkt->bits());
 	nsaddr_t src = h->src() >> 8; /*XXX*/
 	nsaddr_t dst = h->dst();
 	const hashnode* p = lookup(src, dst);

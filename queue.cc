@@ -33,14 +33,14 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.8 1997/03/28 01:24:31 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.cc,v 1.9 1997/03/28 20:25:44 mccanne Exp $ (LBL)";
 #endif
 
 #include "queue.h"
 
 void PacketQueue::remove(Packet* target)
 {
-	IPHeader *ip = IPHeader::access(target->bits());
+	hdr_ipv6 *ip = IPHeader::access(target->bits());
 	for (Packet** p = &head_; *p != 0; p = &(*p)->next_) {
 		Packet* pkt = *p;
 		if (pkt == target) {

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.2 1997/02/27 04:39:18 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.h,v 1.3 1997/03/28 20:25:55 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_tcp_h
@@ -54,48 +54,47 @@ struct bd_tcp {
                                  * not the holes.                         */
         int sa_length_;         /* Indicate the number of SACKs in this  *
                                  * packet.  Adds 2+sack_length*8 bytes   */ 
-};
-class TCPHeader : public PacketHeader {
-private:
-        static TCPHeader* myaddress_;           // TCPHeader object
-        bd_tcp* hdr_;               		// address in a packet
-public:
-	TCPHeader() : hdr_(NULL) { }
-	inline int hdrsize() { return (sizeof(*hdr_)); }
-        inline void header_addr(u_char *base) {
-		if (offset_ < 0) abort();
-                hdr_ = (bd_tcp *) (base + offset_);
-        }
-        static inline TCPHeader* access(u_char *p) {
-                myaddress_->header_addr(p);
-                return (myaddress_);
-        }
+
 	/* per-field member functions */
 	double& ts() {
-		return (hdr_->ts_);
+		return (ts_);
 	}
 	int& seqno() {
-		return (hdr_->seqno_);
+		return (seqno_);
 	}
 	int& reason() {
-		return (hdr_->reason_);
+		return (reason_);
 	}
 	int* sa_start() {
-		return (hdr_->sa_start_);
+		return (sa_start_);
 	}
 	int* sa_end() {
-		return (hdr_->sa_end_);
+		return (sa_end_);
 	}
 	int* sa_left() {
-		return (hdr_->sa_left_);
+		return (sa_left_);
 	}
 	int* sa_right() {
-		return (hdr_->sa_right_);
+		return (sa_right_);
 	}
 	int& sa_length() {
-		return (hdr_->sa_length_);
+		return (sa_length_);
 	}
 };
+
+/*XXX*/
+class TCPHeader;
+extern TCPHeader tcphdr;
+
+class TCPHeader : public PacketHeader {
+public:
+	inline int hdrsize() { return (sizeof(bd_tcp)); }
+        static inline bd_tcp* access(u_char *p) {
+                return ((bd_tcp*)(p + tcphdr.offset_));
+        }
+};
+
+typedef bd_tcp hdr_tcp;
 
 #define TCP_BETA 2.0
 #define TCP_ALPHA 0.125

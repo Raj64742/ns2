@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-simple.cc,v 1.1 1997/03/07 07:08:49 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-simple.cc,v 1.2 1997/03/28 20:25:52 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -115,7 +115,7 @@ void TcpSimpleAgent::reset()
 void TcpSimpleAgent::output(int seqno)
 {
 	Packet* p = allocpkt();
-	TCPHeader *tcph = TCPHeader::access(p->bits());
+	hdr_tcp *tcph = TCPHeader::access(p->bits());
 	double now = Scheduler::instance().clock();
 	tcph->seqno() = seqno;
 	tcph->ts() = now;
@@ -163,7 +163,7 @@ void TcpSimpleAgent::send()
  */
 void TcpSimpleAgent::newack(Packet* pkt)
 {
-	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
 	int ack = tcph->seqno();
 	if (ack_ < ack)
 		ack_ = ack;
@@ -177,8 +177,8 @@ void TcpSimpleAgent::newack(Packet* pkt)
  */
 void TcpSimpleAgent::recv(Packet *pkt, Handler*)
 {
-	TCPHeader *tcph = TCPHeader::access(pkt->bits());
-	IPHeader *iph = IPHeader::access(pkt->bits());
+	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
+	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
 	if (tcph->seqno() == ack_)
 		++dupacks_;
 	else if (tcph->seqno() > ack_)

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.8 1997/03/25 22:22:15 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.9 1997/03/28 20:25:56 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -46,12 +46,12 @@ static char rcsid[] =
 #include "queue.h"
 
 TraceHeader tracehdr;
-TraceHeader* TraceHeader::myaddress_ = &tracehdr;
+
 static class TraceHeaderClass : public TclClass {
 public:
         TraceHeaderClass() : TclClass("PacketHeader/Trace") {}
         TclObject* create(int argc, const char*const* argv) {
-                        return &tracehdr;
+		return &tracehdr;
         }       
 } class_iphdr;
 
@@ -124,10 +124,10 @@ char* pt_names[] = {
 // scripts don't break.
 void Trace::format(int tt, int s, int d, Packet* p)
 {
-	TraceHeader *th = TraceHeader::access(p->bits());
-	IPHeader *iph = IPHeader::access(p->bits());
-	TCPHeader *tcph = TCPHeader::access(p->bits());
-	RTPHeader *rh = RTPHeader::access(p->bits());
+	hdr_trace *th = TraceHeader::access(p->bits());
+	hdr_ipv6 *iph = IPHeader::access(p->bits());
+	bd_tcp *tcph = TCPHeader::access(p->bits());
+	hdr_rtp *rh = RTPHeader::access(p->bits());
 	int t = th->ptype();
 	const char* name = pt_names[t];
 

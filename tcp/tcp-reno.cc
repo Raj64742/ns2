@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.6 1997/03/13 22:49:59 tomh Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.7 1997/03/28 20:25:51 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -64,8 +64,8 @@ RenoTcpAgent::RenoTcpAgent() : dupwnd_(0)
 
 void RenoTcpAgent::recv(Packet *pkt, Handler*)
 {
-	TCPHeader *tcph = TCPHeader::access(pkt->bits());
-	IPHeader *iph = IPHeader::access(pkt->bits());
+	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
+	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		fprintf(stderr,

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.h,v 1.3 1997/02/27 04:39:06 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.h,v 1.4 1997/03/28 20:25:48 mccanne Exp $
  */
 
 
@@ -40,33 +40,29 @@
 #include "config.h"
 
 /* rtp packet.  For now, just have srcid + seqno. */
-struct bd_rtp { 
+struct hdr_rtp { 
         u_int32_t srcid_;
 	int seqno_;
-};   
 
-class RTPHeader : public PacketHeader {
-private:
-        static RTPHeader* myaddress_;
-        bd_rtp* hdr_;
-public: 
-        RTPHeader() : hdr_(NULL) { }
-	inline int hdrsize() { return (sizeof(*hdr_)); }
-        inline void header_addr(u_char *base) {
-                if (offset_ < 0) abort();
-                hdr_ = (bd_rtp *) (base + offset_);
-        }       
-        static inline RTPHeader* access(u_char *p) {
-                myaddress_->header_addr(p);
-                return (myaddress_);
-        }       
         /* per-field member functions */
 	u_int32_t& srcid() {
-		return (hdr_->srcid_);
+		return (srcid_);
 	}
 	int& seqno() {
-		return (hdr_->seqno_);
+		return (seqno_);
 	}
+};   
+
+/*XXX*/
+class RTPHeader;
+extern RTPHeader rtphdr;
+
+class RTPHeader : public PacketHeader {
+public: 
+	inline int hdrsize() { return (sizeof(hdr_rtp)); }
+        static inline hdr_rtp* access(u_char *p) {
+                return ((hdr_rtp*)(p + rtphdr.offset_));
+        }       
 };   
 
 

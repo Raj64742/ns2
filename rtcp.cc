@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.6 1997/03/17 23:23:37 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtcp.cc,v 1.7 1997/03/28 20:25:47 mccanne Exp $";
 #endif
 
 
@@ -104,7 +104,7 @@ void RTCPAgent::recv(Packet* p, Handler*)
 void RTCPAgent::sendpkt()
 {
 	Packet* p = allocpkt();
-	RTPHeader *rh = RTPHeader::access(p->bits());
+	hdr_rtp *rh = RTPHeader::access(p->bits());
 
 	/* Fill in srcid_ and seqno */
 	rh->seqno() = seqno_++;

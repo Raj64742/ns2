@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ttl.cc,v 1.3 1997/02/27 04:39:22 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ttl.cc,v 1.4 1997/03/28 20:25:57 mccanne Exp $";
 #endif
 
 #include "packet.h"
@@ -44,7 +44,7 @@ class TTLChecker : public Connector {
 public:
 	//int command(int argc, const char*const* argv);
 	void recv(Packet* p, Handler* h) {
-		IPHeader *iph = IPHeader::access(p->bits());
+		hdr_ipv6 *iph = IPHeader::access(p->bits());
 		int ttl = iph->ttl() - 1;
 		if (ttl <= 0) {
 			/* XXX should send to a drop object.*/

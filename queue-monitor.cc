@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.2 1997/02/27 04:38:54 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.cc,v 1.3 1997/03/28 20:25:43 mccanne Exp $";
 #endif
 
 #include "integrator.h"
@@ -63,7 +63,7 @@ public:
 
 void QueueMonitor::in(Packet* p)
 {
-	IPHeader *iph = IPHeader::access(p->bits());
+	hdr_ipv6 *iph = IPHeader::access(p->bits());
 	size_ += iph->size();
 	double now = Scheduler::instance().clock();
 	newPoint(now, double(size_));
@@ -71,7 +71,7 @@ void QueueMonitor::in(Packet* p)
 
 void QueueMonitor::out(Packet* p)
 {
-	IPHeader *iph = IPHeader::access(p->bits());
+	hdr_ipv6 *iph = IPHeader::access(p->bits());
 	size_ -= iph->size();
 	double now = Scheduler::instance().clock();
 	newPoint(now, double(size_));

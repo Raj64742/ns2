@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.1 1997/02/27 04:39:21 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.2 1997/03/28 20:25:57 mccanne Exp $
  */
 
 #ifndef ns_trace_h
@@ -60,34 +60,28 @@
 #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
         "start", "stop", "prune", "graft", "message", "rtcp", "rtp"
 
-struct bd_trace {
+struct hdr_trace {
 	int		ptype_;
 	int		uid_;
-};
 
-
-class TraceHeader : public PacketHeader {
-private:
-	static TraceHeader* myaddress_;
-	bd_trace* hdr_;
-public:
-	TraceHeader() : hdr_(NULL) { }
-	inline int hdrsize() { return (sizeof(*hdr_)); }
-        inline void header_addr(u_char *base) {
-                if (offset_ < 0) abort();
-                hdr_ = (bd_trace *) (base + offset_);
-        }
-        static inline TraceHeader* access(u_char *p) {    
-                myaddress_->header_addr(p);
-                return (myaddress_);
-        }
 	/* per-field member functions */
 	int& ptype() {
-		return (hdr_->ptype_);
+		return (ptype_);
 	}
 	int& uid() {
-		return (hdr_->uid_);
+		return (uid_);
 	}
+};
+
+class TraceHeader;
+extern TraceHeader tracehdr;
+
+class TraceHeader : public PacketHeader {
+public:
+	inline int hdrsize() { return (sizeof(hdr_trace)); }
+        static inline hdr_trace* access(u_char *p) {    
+                return ((hdr_trace*)(p + tracehdr.offset_));
+        }
 };
 
 class Trace : public Connector {

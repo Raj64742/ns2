@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.3 1997/02/27 04:38:45 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ivs.cc,v 1.4 1997/03/28 20:25:40 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -45,7 +45,7 @@ static char rcsid[] =
 #include "trace.h"
 
 /* ivs data packet; ctrl packets are sent back as "messages" */
-struct bd_ivs {                          
+struct hdr_ivs {                          
         double ts_;             /* timestamp sent at source */
         u_int8_t S_;
         u_int8_t R_;
@@ -55,58 +55,54 @@ struct bd_ivs {
         u_int16_t key_;
         double maxrtt_;
 	int seqno_;
-};   
-class IVSHeader : public PacketHeader {
-private:
-        static IVSHeader* myaddress_;
-        bd_ivs* hdr_;
-public:
-        IVSHeader() : hdr_(NULL) { }
-	inline int hdrsize() { return (sizeof(*hdr_)); }
-        inline void header_addr(u_char *base) {
-                if (offset_ < 0) abort();
-                hdr_ = (bd_ivs *) (base + offset_);
-        }
-        static inline IVSHeader* access(u_char *p) {    
-                myaddress_->header_addr(p);
-                return (myaddress_);
-        }
+
         /* per-field member functions */
 	double& ts() {
-		return (hdr_->ts_);
+		return (ts_);
 	}
 	u_int8_t& S() {
-		return (hdr_->S_);
+		return (S_);
 	}
 	u_int8_t& R() {
-		return (hdr_->R_);
+		return (R_);
 	}
 	u_int8_t& state() {
-		return (hdr_->state_);
+		return (state_);
 	}
 	u_int8_t& rshft() {
-		return (hdr_->rshft_);
+		return (rshft_);
 	}
 	u_int8_t& kshft() {
-		return (hdr_->kshft_);
+		return (kshft_);
 	}
 	u_int16_t& key() {
-		return (hdr_->key_);
+		return (key_);
 	}
 	double& maxrtt() {
-		return (hdr_->maxrtt_);
+		return (maxrtt_);
 	}
 	int& seqno() {
-		return (hdr_->seqno_);
+		return (seqno_);
 	}
+};   
+
+/*XXX*/
+class IVSHeader;
+extern IVSHeader ivshdr;
+
+class IVSHeader : public PacketHeader {
+public:
+	inline int hdrsize() { return (sizeof(hdr_ivs)); }
+        static inline hdr_ivs* access(u_char *p) {    
+                return ((hdr_ivs*)(p + ivshdr.offset_));
+        }
 } ivshdr;
-IVSHeader* IVSHeader::myaddress_ = &ivshdr;
 
 static class IVSHeaderClass : public TclClass {
 public:
         IVSHeaderClass() : TclClass("PacketHeader/IVS") {}
         TclObject* create(int argc, const char*const* argv) {
-                        return &ivshdr;
+		return &ivshdr;
         }       
 } class_ivshdr;
 
@@ -204,8 +200,8 @@ void IvsSource::recv(Packet* pkt, Handler*)
 {
 	char wrk[128];/*XXX*/
 	Tcl& tcl = Tcl::instance();
-	IVSHeader *p = IVSHeader::access(pkt->bits());
-	MessageHeader *q = MessageHeader::access(pkt->bits());
+	hdr_ivs *p = IVSHeader::access(pkt->bits());
+	hdr_msg *q = MessageHeader::access(pkt->bits());
 	sprintf(wrk, "%s handle {%s}", name(), q->msg());
 	Tcl::instance().eval(wrk);
 	Packet::free(pkt);
@@ -251,7 +247,7 @@ void IvsSource::probe_timeout()
 void IvsSource::sendpkt()
 {
 	Packet* pkt = allocpkt();
-	IVSHeader *p = IVSHeader::access(pkt->bits());
+	hdr_ivs *p = IVSHeader::access(pkt->bits());
 	/*fill in ivs fields */
 	p->ts() = Scheduler::instance().clock();
 	p->S() = S_;
@@ -427,7 +423,7 @@ int IvsReceiver::lossMeter(double timeDiff, u_int32_t seq, double maxrtt)
 
 void IvsReceiver::recv(Packet* pkt, Handler*)
 {
-	IVSHeader *p = IVSHeader::access(pkt->bits());
+	hdr_ivs *p = IVSHeader::access(pkt->bits());
 	double now = Scheduler::instance().clock();
 
 	if (lastPktTime_ == 0.) {
@@ -493,7 +489,7 @@ int IvsReceiver::command(int argc, const char*const* argv)
 	if (argc == 3) {
 		if (strcmp(argv[1], "send") == 0) {
 			Packet* pkt = allocpkt();
-			MessageHeader *p = MessageHeader::access(pkt->bits());
+			hdr_msg* p = MessageHeader::access(pkt->bits());
 			const char* s = argv[2];
 			int n = strlen(s);
 			if (n >= p->maxmsg()) {

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/loss-monitor.cc,v 1.5 1997/02/27 04:38:48 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/loss-monitor.cc,v 1.6 1997/03/28 20:25:41 mccanne Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -81,8 +81,8 @@ LossMonitor::LossMonitor() : Agent(-1)
 
 void LossMonitor::recv(Packet* pkt, Handler*)
 {
-	RTPHeader *p = RTPHeader::access(pkt->bits());
-	IPHeader *q = IPHeader::access(pkt->bits());
+	hdr_rtp *p = RTPHeader::access(pkt->bits());
+	hdr_ipv6 *q = IPHeader::access(pkt->bits());
 	seqno_ = p->seqno();
 	bytes_ += q->size();
 	++npkts_;

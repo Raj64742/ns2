@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.8 1997/03/07 07:08:49 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.9 1997/03/28 20:25:53 mccanne Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -123,12 +123,12 @@ void Acker::build_ack(Packet* newpkt, Packet *const pkt) const
 {
 	// the following is order-sensitive due to the static
 	// data created by the access() method
-	TCPHeader *h = TCPHeader::access(pkt->bits());
+	bd_tcp *h = TCPHeader::access(pkt->bits());
 	double ts = h->ts();
 	h = TCPHeader::access(newpkt->bits());
 	h->seqno() = Seqno();
 	h->ts() = ts;
-	IPHeader *ip = IPHeader::access(pkt->bits());
+	hdr_ipv6 *ip = IPHeader::access(pkt->bits());
 	int flags = ip->flags();
 	int fid = ip->flowid();
 	ip = IPHeader::access(newpkt->bits());
@@ -150,7 +150,7 @@ void TcpSink::ack(Packet *pkt)
 
 void TcpSink::recv(Packet* pkt, Handler*)
 {
-	TCPHeader *th = TCPHeader::access(pkt->bits());
+	bd_tcp *th = TCPHeader::access(pkt->bits());
       	acker_->update(th->seqno());
       	ack(pkt);
 	Packet::free(pkt);
@@ -183,7 +183,7 @@ DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker)
 
 void DelAckSink::recv(Packet* pkt, Handler*)
 {
-	TCPHeader *th = TCPHeader::access(pkt->bits());
+	bd_tcp *th = TCPHeader::access(pkt->bits());
 	acker_->update(th->seqno());
         /*
          * If there's no timer and the packet is in sequence, set a timer.
@@ -334,7 +334,7 @@ void Sacker::build_ack(Packet* newpkt, Packet *const pkt) const
         sack_index = 0;
 
 	// order-constrained; due to static data created by access()
-	TCPHeader *h = TCPHeader::access(pkt->bits());
+	bd_tcp *h = TCPHeader::access(pkt->bits());
 	int old_seqno = h->seqno();
 	h = TCPHeader::access(newpkt->bits());
 
@@ -411,6 +411,6 @@ void Sacker::build_ack(Packet* newpkt, Packet *const pkt) const
                 
         }
 	h->sa_length() = sack_index;
-	IPHeader *iph = IPHeader::access(newpkt->bits());
+	hdr_ipv6 *iph = IPHeader::access(newpkt->bits());
 	iph->size() += sack_index * 8;
 }

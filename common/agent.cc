@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.9 1997/03/18 23:42:56 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.10 1997/03/28 20:25:33 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -129,9 +129,9 @@ void Agent::recv(Packet* p, Handler*)
 Packet* Agent::allocpkt() const
 {
 	Packet* p = Packet::alloc();
-	TraceHeader *th = TraceHeader::access(p->bits());
+	hdr_trace *th = TraceHeader::access(p->bits());
 	th->ptype() = type_;
-	IPHeader *iph = IPHeader::access(p->bits());
+	hdr_ipv6 *iph = IPHeader::access(p->bits());
 	iph->flags() = flags_;
 	iph->src() = addr_;
 	iph->dst() = dst_;

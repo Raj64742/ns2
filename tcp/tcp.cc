@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.11 1997/03/28 08:54:08 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.12 1997/03/28 20:25:54 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -45,13 +45,12 @@ static char rcsid[] =
 #include "random.h"
 
 TCPHeader tcphdr;
-TCPHeader* TCPHeader::myaddress_ = &tcphdr;
 
 static class TCPHeaderClass : public TclClass {
 public:
         TCPHeaderClass() : TclClass("PacketHeader/TCP") {}
         TclObject* create(int argc, const char*const* argv) {
-                        return &tcphdr;
+		return &tcphdr;
         }       
 } class_tcphdr;
 
@@ -177,7 +176,7 @@ void TcpAgent::rtt_backoff()
 void TcpAgent::output(int seqno, int reason)
 {
 	Packet* p = allocpkt();
-	TCPHeader *tcph = TCPHeader::access(p->bits());
+	hdr_tcp *tcph = TCPHeader::access(p->bits());
 	double now = Scheduler::instance().clock();
 	tcph->seqno() = seqno;
 	tcph->ts() = now;
@@ -288,7 +287,7 @@ void TcpAgent::set_rtx_timer()
  */
 void TcpAgent::newtimer(Packet* pkt)
 {
-	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
         if (t_seqno_ > tcph->seqno())
 		set_rtx_timer();
         else if (pending_[TCP_TIMER_RTX])
@@ -419,7 +418,7 @@ void TcpAgent::closecwnd(int how)
  */
 void TcpAgent::newack(Packet* pkt)
 {
-	TCPHeader *tcph = TCPHeader::access(pkt->bits());
+	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
 	newtimer(pkt);
 	dupacks_ = 0;
 	last_ack_ = tcph->seqno();
@@ -482,8 +481,8 @@ void TcpAgent::quench(int how)
  */
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
-	TCPHeader *tcph = TCPHeader::access(pkt->bits());
-	IPHeader *iph = IPHeader::access(pkt->bits());
+	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
+	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
 		Tcl::instance().evalf("%s error \"received non-ack\"",

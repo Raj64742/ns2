@@ -35,7 +35,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.2 1997/02/27 04:39:11 kfall Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/sfq.cc,v 1.3 1997/03/28 20:25:50 mccanne Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -232,7 +232,7 @@ void SFQ::enque(Packet* pkt)
 
 int SFQ::hash(Packet* pkt)
 {
-  IPHeader *iph = IPHeader::access(pkt->bits());
+  hdr_ipv6 *iph = IPHeader::access(pkt->bits());
   int i = (int)iph->src();
   int j = (int)iph->dst();
   int k = i + j;

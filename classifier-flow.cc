@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-flow.cc,v 1.1 1997/03/28 01:24:29 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-flow.cc,v 1.2 1997/03/28 20:25:36 mccanne Exp $";
 #endif
 
 #include "config.h"
@@ -49,7 +49,7 @@ public:
 	}
 protected:
 	int classify(Packet *const p) {
-		IPHeader *h = IPHeader::access(p->bits());
+		hdr_ipv6 *h = IPHeader::access(p->bits());
 		return ((h->flowid() >> shift_) & mask_);
 	}
 	nsaddr_t mask_;

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.cc,v 1.6 1997/02/27 04:38:49 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/message.cc,v 1.7 1997/03/28 20:25:41 mccanne Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -43,13 +43,12 @@ static char rcsid[] =
 #include "message.h"
 
 
-MessageHeader msgheader;
-MessageHeader* MessageHeader::myaddress_ = &msgheader;
+MessageHeader msghdr;
 static class MessageHeaderClass : public TclClass {
 public:
         MessageHeaderClass() : TclClass("PacketHeader/Message") {}
         TclObject* create(int argc, const char*const* argv) {
-                        return &msgheader;
+		return &msghdr;
         }       
 } class_msgheader;
 
@@ -77,7 +76,7 @@ MessageAgent::MessageAgent() : Agent(PT_MESSAGE)
 
 void MessageAgent::recv(Packet* pkt, Handler*)
 {
-	MessageHeader *mh = MessageHeader::access(pkt->bits());
+	hdr_msg* mh = MessageHeader::access(pkt->bits());
 	char wrk[128];/*XXX*/
 	Tcl& tcl = Tcl::instance();
 	sprintf(wrk, "%s recv {%s}", name(), mh->msg());
@@ -95,8 +94,7 @@ int MessageAgent::command(int argc, const char*const* argv)
 	if (argc == 3) {
 		if (strcmp(argv[1], "send") == 0) {
 			Packet* pkt = allocpkt();
-			MessageHeader *mh =
-				MessageHeader::access(pkt->bits());
+			hdr_msg *mh = MessageHeader::access(pkt->bits());
 			const char* s = argv[2];
 			int n = strlen(s);
 			if (n >= mh->maxmsg()) {

@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.5 1997/02/27 04:39:14 kfall Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.6 1997/03/28 20:25:52 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -69,8 +69,8 @@ Sack1TcpAgent::Sack1TcpAgent() : pipe_(-1), fastrecov_(FALSE)
 
 void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 {
-	TCPHeader *tcph = TCPHeader::access(pkt->bits());
-	IPHeader *iph = IPHeader::access(pkt->bits());
+	hdr_tcp *tcph = TCPHeader::access(pkt->bits());
+	hdr_ipv6 *iph = IPHeader::access(pkt->bits());
 	int xmit_seqno;
 	int dontSend = 0;
 
