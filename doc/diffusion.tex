@@ -49,6 +49,15 @@ The above Figure~\ref{fig:filter} is from SCADDS' network routing API document a
 
 The above Figure~\ref{fig:diffusion-node} shows the internals of directed diffusion implementation in \ns. The core diffusion agent and diffusion application agent are attached to two well-known ports defined in \nsf{/tcl/lib/ns-default.tcl}. Diffusion applications attached to the node call the underlying diffusion application agent for publishing/subscribing/sending data.
 
+\section{Some mac issues for diffusion in ns}
+First of all, all diffusion packets in ns are broadcasted. In the shim layer that sits between diffusion and ns, (see diffusion3/ns dir for code implementing this layer) all diffusion packets are encapsulated within ns packets and are marked to be broadcasted.
+
+This can result in some problems at the mac layer. The mac-802.11 doesnot try to re-transmit a broadcast packet incase there is a collision and the packet is dropped. Coupled to this was the fact that mac-802.11 didn't do random selection of slots in the contention window before it transmitted a packet (a brdcast data or rts for unicast pkts). As a result there were a high number of collisions at the mac layer and a lot of packets were lost. This was fixed by adding random selection of slots before mac tx'ed a brdcast pkt (or a rts pkt).
+
+However if we have a large and dense topology, there is a chance that two or more nodes may select the same slot in the mac contention window (the contention window size varies from 31 to 1023 for DSSS PHY MIB specifications). Thus now we need to add some extra jitters at the higher application layer. Diffusion has a provision to do this by compiling ns with the macro USE\_BROADCAST\_MAC. 
+What this does is it in addition to delaying certain messages (to avoid collisions), when run with a BROADCAST MAC layer, diffusion will use a different set of values for delays and jitters. These different delay/jitter values are defined under diffusion3/lib/main/config.hh. Since this might increase the latency 
+you might want to fine-tune the delay values by hand. 
+
 
 \section{Ping: an example diffusion application implementation}
 \label{sec:ping_app}
