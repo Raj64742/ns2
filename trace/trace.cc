@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
@@ -33,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.32 1998/04/20 23:52:45 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.33 1998/04/22 23:25:32 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -47,21 +48,15 @@ static char rcsid[] =
 #include "trace.h"
 
 
-
-/*
- * tcl command interface
- */
-
 class TraceClass : public TclClass {
 public:
-    TraceClass() : TclClass("Trace") { }
-    TclObject* create(int args, const char*const* argv) {
-	if (args >= 5)
-	    return (new Trace(*argv[4]));
-	else
-	    return NULL;
-    }
-}trace_class;
+	TraceClass() : TclClass("Trace") { }
+	TclObject* create(int argc, const char*const* argv) {
+		if (argc >= 5)
+			return (new Trace(*argv[4]));
+		return 0;
+	}
+} trace_class;
 
 
 Trace::Trace(int type)
@@ -372,8 +367,7 @@ public:
 	TclObject* create(int args, const char*const* argv) {
 		if (args >= 5)
 			return (new DequeTrace(*argv[4]));
-		else
-			return NULL;
+		return NULL;
 	}
 } dequetrace_class;
 
