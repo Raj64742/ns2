@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.26 1998/10/28 19:26:45 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.27 1998/12/08 23:43:04 haldar Exp $";
 #endif
 
 #include <stdlib.h>
@@ -54,6 +54,9 @@ public:
 Classifier::Classifier() : slot_(0), nslot_(0), maxslot_(-1)
 	, shift_(0), mask_(0xffffffff)
 {
+
+	default_target_ = 0;
+
 	bind("offset_", &offset_);
 	bind("shift_", &shift_);
 	bind("mask_", &mask_);
@@ -142,6 +145,9 @@ NsObject* Classifier::find(Packet* p)
 	NsObject* node = NULL;
 	int cl = classify(p);
 	if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) { 
+
+		if (default_target_) return default_target_;
+
 		/*
 		 * Sigh.  Can't pass the pkt out to tcl because it's
 		 * not an object.
@@ -162,6 +168,15 @@ NsObject* Classifier::find(Packet* p)
 int Classifier::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
+	if(argc == 2) {
+
+                if (strcmp(argv[1], "defaulttarget") == 0) {
+                        if (default_target_ != 0)
+                                tcl.result(default_target_->name());
+                        return (TCL_OK);
+                }
+
+        }
 	if (argc == 3) {
 		/*
 		 * $classifier alloc-port nullagent
@@ -230,6 +245,15 @@ int Classifier::command(int argc, const char*const* argv)
 			tcl.result("-1");
 			return (TCL_OK);
 		}
+
+		if(strcmp(argv[1], "defaulttarget") == 0) {
+			default_target_=(NsObject*)TclObject::lookup(argv[2]);
+			if(default_target_ == 0)
+				return TCL_ERROR;
+			return TCL_OK;
+		}
+
+		
 	} else if (argc == 4) {
 		/*
 		 * $classifier install $slot $node

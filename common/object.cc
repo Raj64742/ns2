@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.13 1998/08/22 02:41:04 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.cc,v 1.14 1998/12/08 23:43:07 haldar Exp $ (LBL)";
 #endif
 
 #include "object.h"
@@ -107,4 +107,9 @@ int NsObject::command(int argc, const char*const* argv)
 void NsObject::handle(Event* e)
 {
 	recv((Packet*)e);
+}
+
+void NsObject::recv(Packet *p, const char*)
+{
+	Packet::free(p);
 }

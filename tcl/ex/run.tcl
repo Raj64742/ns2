@@ -252,6 +252,5 @@ puts $tracefd "M 0.0 sc $opt(sc) cp $opt(cp) seed $opt(seed)"
 puts $tracefd "M 0.0 prop $opt(prop) ant $opt(ant)"
 
 puts "Starting Simulation..."
-debug 1
 $ns_ run
 

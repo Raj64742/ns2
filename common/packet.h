@@ -31,14 +31,32 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.43 1998/12/02 22:39:12 gnguyen Exp $ (LBL)
+
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.44 1998/12/08 23:43:09 haldar Exp $ (LBL)
+
  */
 
 #ifndef ns_packet_h
 #define ns_packet_h
 
-#include "config.h"
-#include "scheduler.h"
+#include <config.h>
+#include <scheduler.h>
+#include <string.h>
+
+#include <object.h>
+#include <list.h>
+#include <packet-stamp.h>
+
+
+#define RT_PORT		255	/* port that all route msgs are sent to */
+#define HDR_CMN(p)      ((struct hdr_cmn*)(p)->access(hdr_cmn::offset_))
+#define HDR_ARP(p)      ((struct hdr_arp*)(p)->access(off_arp_))
+#define HDR_MAC(p)      ((struct hdr_mac802_11*)(p)->access(newhdr_mac::offset_))
+#define HDR_LL(p)       ((struct newhdr_ll*)(p)->access(newhdr_ll::offset_))
+#define HDR_IP(p)       ((struct hdr_ip*)(p)->access(hdr_ip::offset_))
+#define HDR_RTP(p)      ((struct hdr_rtp*)(p)->access(hdr_rtp::offset_))
+#define HDR_TCP(p)      ((struct hdr_tcp*)(p)->access(hdr_tcp::offset_))
+//
 
 #define PT_TCP		0
 #define PT_UDP		1
@@ -74,19 +92,47 @@
 #define PT_EXP		29
 #define PT_INVAL	30
 #define PT_HTTP		31
+
 /* new encapsulator */
 #define PT_ENCAPSULATED 	32
 #define PT_MFTP         33
 #define PT_NTYPE	34
 
+
+/* CMU/Monarch's extnsions */
+#define PT_ARP		33
+#define PT_MAC		34
+#define PT_TORA		35
+#define PT_DSR		36
+#define PT_AODV         37
+//
 #define PT_NAMES "tcp", "udp", "cbr", "audio", "video", "ack", \
-	"start", "stop", "prune", "graft", "graftAck", "join", "assert","message", "rtcp", "rtp", \
+	"start", "stop", "prune", "graft", "graftAck", "join", \
+	"assert","message", "rtcp", "rtp", \
 	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM", \
-	"sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject", \
-	"telnet", "ftp", "pareto", "exp", "httpInval", "http", "encap", "mftp"
+	"sa_req","sa_accept","sa_conf","sa_teardown", "live", \
+	"sa_reject", \
+	"telnet", "ftp", "pareto", "exp", "httpInval", "http", \
+	"encap", "mftp", "ARP", "MAC", "TORA", "DSR", "AODV"
+
+// Monarch ext
+extern char* packet_names[]; /* map PT_* to string name */
+
+#define DATA_PACKET(type) ( (type) == PT_TCP || \
+			    (type) == PT_TELNET || \
+			    (type) == PT_CBR || \
+			    (type) == PT_AUDIO || \
+			    (type) == PT_VIDEO || \
+			    (type) == PT_ACK \
+			    )
+//end_monarch
+
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 
+//Monarch ext
+typedef void (*FailureCallback)(Packet *,void *);
+//
 class Packet : public Event {
 private:
 	unsigned char* bits_;	// header bits
@@ -111,8 +157,17 @@ public:
 	}
 	inline unsigned char* accessdata() const { return data_; }
 	inline int datalen() const { return datalen_; }
-};
 
+	//Monarch extn
+	// the pkt stamp carries all info about how/where the pkt
+        // was sent needed for a receiver to determine if it correctly
+        // receives the pkt
+
+        PacketStamp	txinfo;  
+
+	//monarch extns end;
+
+};
 
 /* 
  * static constant associations between interface special (negative) 
@@ -141,6 +196,7 @@ private:
 static const iface_literal UNKN_IFACE(iface_literal::UNKN_IFACE, "?");
 static const iface_literal ANY_IFACE(iface_literal::ANY_IFACE, "*");
 
+
 struct hdr_cmn {
 	int	ptype_;		// packet type (see above)
 	int	size_;		// simulated packet size
@@ -151,13 +207,39 @@ struct hdr_cmn {
 	int	direction_;	// direction: 0=none, 1=up, -1=down
 	int	ref_count_;	// free the pkt until count to 0
 
+	//Monarch extn begins
+	nsaddr_t next_hop_;	// next hop for this packet
+	int      addr_type_;    // type of next_hop_ addr
+#define AF_NONE 0
+#define AF_LINK 1
+#define AF_INET 2
+
+        // called if pkt can't obtain media or isn't ack'd. not called if
+        // droped by a queue
+        FailureCallback xmit_failure_; 
+        void *xmit_failure_data_;
+
+        /*
+         * MONARCH wants to know if the MAC layer is passing this back because
+         * it could not get the RTS through or because it did not receive
+         * an ACK.
+         */
+        int     xmit_reason_;
+#define XMIT_REASON_RTS 0x01
+#define XMIT_REASON_ACK 0x02
+
+        // filled in by GOD on first transmission, used for trace analysis
+        int num_forwards_;	// how many times this pkt was forwarded
+        int opt_num_forwards_;   // optimal #forwards
+// Monarch extn ends;
+
 	static int offset_;	// offset for this header
 	inline static int& offset() { return offset_; }
 	inline static hdr_cmn* access(Packet* p) {
 		return (hdr_cmn*) p->access(offset_);
 	}
-
-	/* per-field member functions */
+	
+        /* per-field member functions */
 	inline int& ptype() { return (ptype_); }
 	inline int& size() { return (size_); }
 	inline int& uid() { return (uid_); }
@@ -166,6 +248,12 @@ struct hdr_cmn {
 	inline int& iface() { return (iface_); }
 	inline int& direction() { return (direction_); }
 	inline int& ref_count() { return (ref_count_); }
+	// monarch_begin
+	inline nsaddr_t& next_hop() { return (next_hop_); }
+	inline int& addr_type() { return (addr_type_); }
+	inline int& num_forwards() { return (num_forwards_); }
+	inline int& opt_num_forwards() { return (opt_num_forwards_); }
+        //monarch_end
 };
 
 
@@ -197,6 +285,8 @@ inline Packet* Packet::alloc()
 			abort();
 //		p->data_ = 0;
 //		p->datalen_ = 0;
+		bzero(p->bits_, hdrlen_);
+		//p->incoming = 0;
 	}
 	return (p);
 }
@@ -249,7 +339,13 @@ inline Packet* Packet::copy() const
 		p->data_ = new unsigned char[datalen_];
 		memcpy(p->data_, data_, datalen_);
 	}
+#ifdef NS_MOBILE
+	p->txinfo.init(&txinfo);
+#endif
 	return (p);
 }
 
 #endif
+
+
+

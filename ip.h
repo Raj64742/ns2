@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.h,v 1.9 1998/08/12 23:41:05 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.h,v 1.10 1998/12/08 23:43:06 haldar Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -41,11 +41,23 @@
 #include "config.h"
 #include "packet.h"
 
+
+#define IP_HDR_LEN      20
+#define IP_DEF_TTL      32
+#define IP_BROADCAST	((u_int32_t) 0xffffffff)
+
 struct hdr_ip {
 	/* common to IPv{4,6} */
 	nsaddr_t	src_;
 	nsaddr_t	dst_;
 	int		ttl_;
+
+	/* Monarch extn */
+	u_int16_t	sport_;
+	u_int16_t	dport_;
+        u_int16_t& sport() { return sport_;}
+        u_int16_t& dport() { return dport_;}
+	
 	/* IPv6 */
 	int		fid_;	/* flow id */
 	int		prio_;

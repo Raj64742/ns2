@@ -32,11 +32,16 @@
 #
 # Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
 #
-
 # Defaults for link-layer
 LL set bandwidth_ 2Mb
 LL set delay_ 1ms
 LL set macDA_ 0
+
+newLL set off_ll_ 0
+newLL set off_mac_ 0
+newLL set mindelay_ 4us
+newLL set delay_ 1ms
+newLL set bandwidth_ 2Mb
 
 if [TclObject is-class LL/Arq] {
 LL/Arq set mode_ 2
@@ -117,3 +122,12 @@ LL/LLSnoop instproc integrate { src dst } {
 		}
 	}
 }
+
+
+
+
+
+
+
+
+

@@ -35,6 +35,7 @@
 
 #default channel propagation delay (for a LAN)
 Channel set delay_ 4us
+newChannel set delay_ 4us
 
 Classifier/Mac set bcast_ 0
 
@@ -43,6 +44,14 @@ Mac set delay_ 0us
 Mac set bandwidth_ 1.5Mb
 Mac set hlen_ 0
 Mac set addr_ 0
+
+#temporary :default bandwidth setting
+# REMOVE when new-mac is merged.
+newMac set delay_ 5us
+newMac set bandwidth_ 1.5Mb
+newMac set off_mac_ 0
+
+
 
 # WaveLAN settings (also inherited by Csma/Ca, which is what WaveLAN is)
 Mac/Csma set delay_ 64us

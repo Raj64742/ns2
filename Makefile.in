@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.138 1998/11/25 22:50:08 polly Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.139 1998/12/08 23:43:03 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -120,7 +120,7 @@ OBJ_CC = \
 	sfq.o fq.o drr.o cbq.o \
 	hackloss.o errmodel.o \
 	delay.o ll.o snoop.o \
-	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o \
+
 	dynalink.o rtProtoDV.o net-interface.o \
 	ctrMcast.o mcast_ctrl.o srm.o \
 	sessionhelper.o delaymodel.o srm-ssm.o \
@@ -132,7 +132,17 @@ OBJ_CC = \
 	webcache/http.o webcache/tcp-simple.o webcache/pagepool.o \
 	webcache/inval-agent.o webcache/tcpapp.o webcache/http-aux.o \
 	lanRouter.o tfcc.o filter.o pkt-counter.o \
-	Decapsulator.o Encapsulator.o
+	Decapsulator.o Encapsulator.o \
+	channel.o mac.o mac-csma.o mac-802_11.o mac-multihop.o\
+	propagation.o tworayground.o antenna.o omni-antenna.o \
+	bi-connector.o node.o mobilenode.o \
+	arp.o god.o dem.o topography.o modulation.o priqueue.o \
+	phy.o wired-phy.o wireless-phy.o \
+	new-ll.o new-mac.o new-mac-802_11.o new-channel.o \
+	mac-timers.o cmu-trace.o \
+	dsdv/dsdv.o dsdv/rtable.o \
+	dsr/dsragent.o dsr/hdr_sr.o dsr/mobicache.o dsr/path.o \
+	dsr/requesttable.o dsr/routecache.o
 
 # what was here before is now in emulate/
 OBJ_C =
@@ -214,6 +224,8 @@ NS_TCL_LIB = \
 	tcl/lib/ns-errmodel.tcl \
 	tcl/lib/ns-lib.tcl \
 	tcl/lib/ns-link.tcl \
+	tcl/lib/ns-mobilenode.tcl \
+	tcl/lib/ns-cmutrace.tcl \
 	tcl/lib/ns-node.tcl \
 	tcl/lib/ns-hiernode.tcl \
 	tcl/lib/ns-packet.tcl \

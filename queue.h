@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.24 1998/10/15 23:14:09 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.25 1998/12/08 23:43:10 haldar Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -40,6 +40,7 @@
 #include "connector.h"
 #include "packet.h"
 #include "ip.h"
+class Packet;
 
 class PacketQueue : public TclObject {
 public:
@@ -74,11 +75,28 @@ public:
 	void remove(Packet *, Packet *);
 	inline Packet*& head() { return head_; }
 	inline Packet* tail() { return tail_ ? *tail_ : 0; }
+	// MONARCH EXTNS
+	virtual inline void enqueHead(Packet* p) {
+	        if (0 == head_) tail_ = &p->next_;
+	        p->next_ = head_;
+		head_ = p;
+		++len_;
+	}
+        inline void resetIterator() {iter = head_;}
+        inline Packet* getNext() { 
+	       if (0 == iter) return 0;
+	       Packet *tmp = iter; iter = iter->next_;
+	       return tmp;
+	}
 
 protected:
 	Packet* head_;
 	Packet** tail_;
 	int len_;		// packet count
+
+// MONARCH EXTNS
+private:
+	Packet *iter;
 };
 
 
@@ -92,11 +110,12 @@ private:
 	Queue& queue_;
 };
 
+
 class Queue : public Connector {
 public:
 	virtual void enque(Packet*) = 0;
 	virtual Packet* deque() = 0;
-	void recv(Packet*, Handler*);
+	virtual void recv(Packet*, Handler*);
 	void resume();
 	int blocked() const { return (blocked_ == 1); }
 	void unblock() { blocked_ = 0; }

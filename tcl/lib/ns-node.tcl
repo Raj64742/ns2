@@ -30,10 +30,10 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.48 1998/11/30 23:36:38 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.49 1998/12/08 23:43:13 haldar Exp $
 #
 
-Class Node
+#Class Node
 Node set nn_ 0
 Node proc getid {} {
 	set id [Node set nn_]
@@ -94,17 +94,22 @@ Node instproc add-neighbor p {
 	lappend neighbor_ $p
 }
 
-## not called anymore
+#
+# increase the routing table size counter - keeps track of rtg table 
+# size for each node
+#
 Node instproc incr-rtgtable-size {} {
-    $self instvar rtsize_
-    set rtsize_ [expr $rtsize_ + 1]
+	$self instvar rtsize_
+	set rtsize_ [expr $rtsize_ + 1]
 }
 
 Node instproc entry {} {
 	if [info exists router_supp_] {
 		return $router_supp_
 	}
-	$self instvar ns_
+	if ![info exist ns_] {
+		set ns_ [Simulator instance]
+	}
 	if [$ns_ multicast?] {
 		$self instvar switch_
 		return $switch_
@@ -114,12 +119,9 @@ Node instproc entry {} {
 }
 
 Node instproc add-route { dst target } {
-	$self instvar classifier_ rtsize_
+	$self instvar classifier_
 	$classifier_ install $dst $target
-    #
-    # increase the routing table size counter - keeps track of rtg table size for 
-    # each node
-    set rtsize_ [expr $rtsize_ + 1]
+	$self incr-rtgtable-size
 }
 
 Node instproc id {} {
@@ -149,7 +151,8 @@ Node instproc alloc-port { nullagent } {
 # Attach an agent to a node.  Pick a port and
 # bind the agent to the port number.
 #
-Node instproc attach { agent } {
+Node instproc attach { agent { port "" } } {
+
 	$self instvar agents_ address_ dmux_
 	#
 	# assign port number (i.e., this agent receives
@@ -175,9 +178,8 @@ Node instproc attach { agent } {
 	# Also, stash the node in the agent and set the
 	# local addr of this agent.
 	#
-	$agent target [$self entry]
+
 	$agent set node_ $self
-	
 	
 	#
 	# If a port demuxer doesn't exist, create it.
@@ -188,7 +190,6 @@ Node instproc attach { agent } {
 		$dmux_ set mask_ $mask
 		$dmux_ set shift_ $shift
 		
-		# $dmux_ set shift_ 0
 		#
 		# point the node's routing entry to itself
 		# at the port demuxer (if there is one)
@@ -199,9 +200,11 @@ Node instproc attach { agent } {
 			$self add-route $address_ $dmux_
 		}
 	}
-	set ns_ [Simulator instance]
-	$ns_ instvar nullAgent_
-	set port [$self alloc-port $nullAgent_]
+	if {$port == ""} {
+		set ns_ [Simulator instance]
+		$ns_ instvar nullAgent_
+		set port [$self alloc-port $nullAgent_]
+	}
 	$agent set portID_ $port
 	
 	if [Simulator set EnableHierRt_] {
@@ -214,14 +217,28 @@ Node instproc attach { agent } {
 	}
 	$agent set addr_ [expr (($port & $mask) << $shift) | ( ~($mask << $shift) & $nodeaddr)]
 	
-	$dmux_ install $port $agent
-	
-	#TESTING
-	set addr [$agent set addr_]
-	#     puts "node address: $address_"
-	#     puts "Agent addr: $addr" 
+	$self add-target $agent $port
 
 }
+
+#
+# add target to agent and add entry for port-id in port-dmux
+#
+Node instproc add-target {agent port} {
+	$self instvar dmux_
+	#
+	# Send Target
+	#
+	$agent target [$self entry]
+	
+	#
+	# Recv Target
+	#
+	$dmux_ install $port $agent
+}
+	
+	
+
 
 #
 # Detach an agent from a node.
@@ -580,3 +597,7 @@ Classifier/Virtual instproc find dst {
 
 Classifier/Virtual instproc install {dst target} {
 }
+
+
+
+

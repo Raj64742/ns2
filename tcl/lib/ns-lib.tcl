@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.131 1998/11/26 18:13:06 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.132 1998/12/08 23:43:12 haldar Exp $
 
 #
 
@@ -86,6 +86,7 @@ Class Simulator
 source ns-address.tcl
 source ns-node.tcl
 source ns-hiernode.tcl
+source ns-mobilenode.tcl
 source ns-link.tcl
 source ns-source.tcl
 source ns-compat.tcl
@@ -98,6 +99,7 @@ source ns-random.tcl
 source ns-route.tcl
 source ns-errmodel.tcl
 source ns-intserv.tcl
+source ns-cmutrace.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mlink.tcl
@@ -132,6 +134,8 @@ source ../webcache/http-server.tcl
 source ../webcache/http-cache.tcl
 source ../webcache/http-agent.tcl
 source ns-namsupp.tcl
+source ../mobility/dsdv.tcl
+source ../mobility/dsr.tcl
 
 source ns-default.tcl
 source ../emulate/ns-emulate.tcl

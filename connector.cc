@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.cc,v 1.13 1998/08/05 18:26:19 gnguyen Exp $ ";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.cc,v 1.14 1998/12/08 23:43:05 haldar Exp $ ";
 #endif
 
 #include "packet.h"
@@ -107,6 +107,14 @@ void Connector::drop(Packet* p)
 {
 	if (drop_ != 0)
 		drop_->recv(p);
+	else
+		Packet::free(p);
+}
+
+void Connector::drop(Packet* p, const char *s)
+{
+	if (drop_ != 0)
+		drop_->recv(p, s);
 	else
 		Packet::free(p);
 }

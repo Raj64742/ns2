@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.21 1998/11/26 18:13:07 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.22 1998/12/08 23:43:14 haldar Exp $
 #
 #
 # set up the packet format for the simulation
@@ -41,6 +41,14 @@ PacketHeaderManager set hdrlen_ 0
 
 #XXX could potentially get rid of this by searching having a more
 # uniform offset concept...
+
+
+## CMU extension
+
+foreach cl [PacketHeader info subclass] {
+	PacketHeaderManager set vartab_($cl) ""
+}
+
 foreach pair {
 		{ Common off_cmn_ }
 		{ Mac off_mac_ }
@@ -63,6 +71,8 @@ foreach pair {
 		{ HttpInval off_inv_}
 		{ RTP/TFCC off_tfcc }
 		{ MFTP off_mftp_ }
+		{ newMac off_newmac_ }
+		{ newLL off_newll_ }
 	} {
 	set cl PacketHeader/[lindex $pair 0]
 	set var [lindex $pair 1]
@@ -105,3 +115,5 @@ PacketHeaderManager instproc allochdr cl {
 
 	return $base
 }
+
+

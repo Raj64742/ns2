@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.h,v 1.9 1998/07/09 21:11:45 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/object.h,v 1.10 1998/12/08 23:43:08 haldar Exp $ (LBL)
  */
 
 #ifndef ns_object_h
@@ -46,6 +46,9 @@ class NsObject : public TclObject, public Handler {
 	NsObject();
 	virtual ~NsObject();
 	virtual void recv(Packet*, Handler* callback = 0) = 0;
+	// Monarch extn - used for logging reasons why the 
+	// pkt is handed off (eg droptargets)
+	virtual void recv(Packet* p, const char* s);
 	virtual int command(int argc, const char*const* argv);
 #ifdef TCLCL_CLASSINSTVAR
 	virtual void delay_bind_init_all();
