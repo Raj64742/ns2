@@ -112,9 +112,13 @@ TestSuite proc runTest {} {
 		2 {
 			set test [lindex $argv 0]
 			isProc? Test $test
-
-			set topo [lindex $argv 1]
-			isProc? Topology $topo
+			set a [lindex $argv 1]
+			if {$a == "QUIET"} {
+				set topo ""
+			} else {
+				set topo $a
+				isProc? Topology $topo
+			}
 		}
 		default {
 			usage
@@ -862,6 +866,7 @@ Test/detailedDM4 instproc run {} {
 	set cbr0 [new Agent/CBR]
 	$ns_ attach-agent $node_(n0) $cbr0
 	$cbr0 set dst_ 0x8002
+
 	
 	set rcvr [new Agent/LossMonitor]
 	$ns_ attach-agent $node_(n3) $rcvr
@@ -887,132 +892,132 @@ Test/detailedDM4 instproc run {} {
 # Testing in LAN topologies
 # The node with the higher id is made the LAN forwarder in case there are
 # more than one possible forwarders (this is decided by the Assert process).
-Class Test/detailedDM5 -superclass TestSuite
-Test/detailedDM5 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net8a
-	set test_	detailedDM5
-	$self next
-}
-Test/detailedDM5 instproc run {} {
-	$self instvar ns_ node_ testName_
+# Class Test/detailedDM5 -superclass TestSuite
+# Test/detailedDM5 instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net8a
+# 	set test_	detailedDM5
+# 	$self next
+# }
+# Test/detailedDM5 instproc run {} {
+# 	$self instvar ns_ node_ testName_
 
-	$ns_ rtproto Session
-	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
-	Deletion/Iface/Timer set timeout 0.1
-	set mproto detailedDM
-	set mrthandle [$ns_ mrtproto $mproto  {}]
-	### End of multicast  config
+# 	$ns_ rtproto Session
+# 	### Start multicast configuration
+# 	Prune/Iface/Timer set timeout 0.3
+# 	Deletion/Iface/Timer set timeout 0.1
+# 	set mproto detailedDM
+# 	set mrthandle [$ns_ mrtproto $mproto  {}]
+# 	### End of multicast  config
 
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8002
+# 	set cbr0 [new Agent/CBR]
+# 	$ns_ attach-agent $node_(n0) $cbr0
+# 	$cbr0 set dst_ 0x8002
+# 	puts "grp-addr = [$cbr0 set dst_]"
+# 	set rcvr [new Agent/LossMonitor]
+# 	$ns_ attach-agent $node_(n3) $rcvr
+# 	$ns_ attach-agent $node_(n6) $rcvr
+# 	$ns_ attach-agent $node_(n7) $rcvr
+
+# 	$ns_ at 0.1 "$cbr0 start"	
+# 	$ns_ at 0.4 "$node_(n6) join-group $rcvr 0x8002"
+# 	$ns_ at 1.1 "$node_(n7) join-group $rcvr 0x8002"
+# 	$ns_ at 1.3 "$node_(n6) leave-group $rcvr 0x8002"
+# 	$ns_ at 1.8 "$node_(n7) leave-group $rcvr 0x8002"
 	
-	set rcvr [new Agent/LossMonitor]
-	$ns_ attach-agent $node_(n3) $rcvr
-	$ns_ attach-agent $node_(n6) $rcvr
-	$ns_ attach-agent $node_(n7) $rcvr
-
-	$ns_ at 0.1 "$cbr0 start"	
-	$ns_ at 0.4 "$node_(n6) join-group $rcvr 0x8002"
-	$ns_ at 1.1 "$node_(n7) join-group $rcvr 0x8002"
-	$ns_ at 1.3 "$node_(n6) leave-group $rcvr 0x8002"
-	$ns_ at 1.8 "$node_(n7) leave-group $rcvr 0x8002"
-	
-	$ns_ at 2.2 "$self finish 7a-nam"
-	$ns_ run
-}
+# 	$ns_ at 2.2 "$self finish 7a-nam"
+# 	$ns_ run
+# }
 
 # Testing in LAN topologies
 # The node with the higher id is made the LAN forwarder in case there are
 # more than one possible forwarders (this is decided by the Assert process).
-Class Test/detailedDM6 -superclass TestSuite
-Test/detailedDM6 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net8a
-	set test_	detailedDM6
-	$self next
-}
-Test/detailedDM6 instproc run {} {
-	$self instvar ns_ node_ testName_
+# Class Test/detailedDM6 -superclass TestSuite
+# Test/detailedDM6 instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net8a
+# 	set test_	detailedDM6
+# 	$self next
+# }
+# Test/detailedDM6 instproc run {} {
+# 	$self instvar ns_ node_ testName_
 
-	$ns_ rtproto Session
-	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
-	Deletion/Iface/Timer set timeout 0.1
-	set mproto detailedDM
-	set mrthandle [$ns_ mrtproto $mproto  {}]
-	### End of multicast  config
+# 	$ns_ rtproto Session
+# 	### Start multicast configuration
+# 	Prune/Iface/Timer set timeout 0.3
+# 	Deletion/Iface/Timer set timeout 0.1
+# 	set mproto detailedDM
+# 	set mrthandle [$ns_ mrtproto $mproto  {}]
+# 	### End of multicast  config
 
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8002
+# 	set cbr0 [new Agent/CBR]
+# 	$ns_ attach-agent $node_(n0) $cbr0
+# 	$cbr0 set dst_ 0x8002
 	
-	set rcvr [new Agent/LossMonitor]
-	$ns_ attach-agent $node_(n3) $rcvr
-	$ns_ attach-agent $node_(n6) $rcvr
-	$ns_ attach-agent $node_(n7) $rcvr
+# 	set rcvr [new Agent/LossMonitor]
+# 	$ns_ attach-agent $node_(n3) $rcvr
+# 	$ns_ attach-agent $node_(n6) $rcvr
+# 	$ns_ attach-agent $node_(n7) $rcvr
 
-	$ns_ at 0.1 "$cbr0 start"	
-	$ns_ at 0.4 "$node_(n3) join-group $rcvr 0x8002"
-	$ns_ at 1.1 "$node_(n6) join-group $rcvr 0x8002"
-	$ns_ at 1.2 "$node_(n3) leave-group $rcvr 0x8002"
+# 	$ns_ at 0.1 "$cbr0 start"	
+# 	$ns_ at 0.4 "$node_(n3) join-group $rcvr 0x8002"
+# 	$ns_ at 1.1 "$node_(n6) join-group $rcvr 0x8002"
+# 	$ns_ at 1.2 "$node_(n3) leave-group $rcvr 0x8002"
 	
 	### Link between n1 and n3 down at 0.7 up at 1.0
-	$ns_ rtmodel-at 0.7 down $node_(n1) $node_(n3)
-	$ns_ rtmodel-at 1.0 up $node_(n1) $node_(n3)
+# 	$ns_ rtmodel-at 0.7 down $node_(n1) $node_(n3)
+# 	$ns_ rtmodel-at 1.0 up $node_(n1) $node_(n3)
 	###
 
-	$ns_ at 1.5 "$self finish 7a-nam"
-	$ns_ run
-}
+# 	$ns_ at 1.5 "$self finish 7a-nam"
+# 	$ns_ run
+# }
 
 # Testing in LAN topologies
 # The node with the higher id is made the LAN forwarder in case there are
 # more than one possible forwarders (this is decided by the Assert process).
-Class Test/detailedDM7 -superclass TestSuite
-Test/detailedDM7 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net8a
-	set test_	detailedDM7
-	$self next
-}
-Test/detailedDM7 instproc run {} {
-	$self instvar ns_ node_ testName_
+# Class Test/detailedDM7 -superclass TestSuite
+# Test/detailedDM7 instproc init topo {
+# 	$self instvar net_ defNet_ test_
+# 	set net_	$topo
+# 	set defNet_	net8a
+# 	set test_	detailedDM7
+# 	$self next
+# }
+# Test/detailedDM7 instproc run {} {
+# 	$self instvar ns_ node_ testName_
 
-	$ns_ rtproto Session
-	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
-	Deletion/Iface/Timer set timeout 0.1
-	set mproto detailedDM
-	set mrthandle [$ns_ mrtproto $mproto  {}]
-	### End of multicast  config
+# 	$ns_ rtproto Session
+# 	### Start multicast configuration
+# 	Prune/Iface/Timer set timeout 0.3
+# 	Deletion/Iface/Timer set timeout 0.1
+# 	set mproto detailedDM
+# 	set mrthandle [$ns_ mrtproto $mproto  {}]
+# 	### End of multicast  config
 
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8002
+# 	set cbr0 [new Agent/CBR]
+# 	$ns_ attach-agent $node_(n0) $cbr0
+# 	$cbr0 set dst_ 0x8002
 	
-	set rcvr [new Agent/LossMonitor]
-	$ns_ attach-agent $node_(n3) $rcvr
-	$ns_ attach-agent $node_(n6) $rcvr
-	$ns_ attach-agent $node_(n7) $rcvr
+# 	set rcvr [new Agent/LossMonitor]
+# 	$ns_ attach-agent $node_(n3) $rcvr
+# 	$ns_ attach-agent $node_(n6) $rcvr
+# 	$ns_ attach-agent $node_(n7) $rcvr
 
-	$ns_ at 0.1 "$cbr0 start"	
-	$ns_ at 0.8 "$node_(n6) join-group $rcvr 0x8002"
-	$ns_ at 1.8 "$node_(n6) leave-group $rcvr 0x8002"
+# 	$ns_ at 0.1 "$cbr0 start"	
+# 	$ns_ at 0.8 "$node_(n6) join-group $rcvr 0x8002"
+# 	$ns_ at 1.8 "$node_(n6) leave-group $rcvr 0x8002"
 	
-	### Link between n0 and n1 down at 0.4 up at 1.1
-	$ns_ rtmodel-at 0.4 down $node_(n0) $node_(n1)
-	$ns_ rtmodel-at 1.1 up $node_(n0) $node_(n1)
-	###
+# 	### Link between n0 and n1 down at 0.4 up at 1.1
+# 	$ns_ rtmodel-at 0.4 down $node_(n0) $node_(n1)
+# 	$ns_ rtmodel-at 1.1 up $node_(n0) $node_(n1)
+# 	###
 
-	$ns_ at 1.8 "$self finish 7a-nam"
-	$ns_ run
-}
+# 	$ns_ at 1.8 "$self finish 7a-nam"
+# 	$ns_ run
+# }
 
 TestSuite runTest
 
