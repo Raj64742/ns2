@@ -161,7 +161,11 @@ void TfrcAgent::nextpkt()
 	if (xrate > SMALLFLOAT) {
 		next = size_/xrate; 
 		if (overhead_ > SMALLFLOAT) {
-			next = next*(Random::uniform()+0.5);
+			// overhead_ set to 1.0 gives randomization of
+			//  plus or minus half the interdeparture time
+			// overhead_ set to 0.1 gives smaller randomization
+			double extra = 1.0 - overhead_/2;
+			next = next*(overhead_*Random::uniform()+extra);
 		}
 		if (next > SMALLFLOAT ) {
 			send_timer_.resched(next);
