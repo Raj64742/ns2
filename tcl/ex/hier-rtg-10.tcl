@@ -10,7 +10,7 @@ $ns trace-all [open hier-out-a.tr w]
 AddrParams set domain_num_ 2
 lappend cluster_num 2 2
 AddrParams set cluster_num_ $cluster_num
-lappend eilastlevel 2 3 2 2 
+lappend eilastlevel 2 3 2 3
 AddrParams set nodes_num_ $eilastlevel
 
 set naddr {0.0.0 0.0.1 0.1.0 0.1.1 0.1.2 1.0.0 1.0.1 1.1.0 1.1.1 1.1.2}
