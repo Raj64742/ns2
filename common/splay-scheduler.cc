@@ -16,11 +16,11 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.3 2002/07/18 23:09:53 yuri Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.4 2002/08/02 01:35:20 yuri Exp $
  */
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.3 2002/07/18 23:09:53 yuri Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.4 2002/08/02 01:35:20 yuri Exp $";
 #endif
 /**
  *
@@ -33,7 +33,7 @@ static const char rcsid[] =
  * binary search tree.  For every insert and deque operation,
  * "splaying" is performed aimed at shortening the search path for
  * "similar" priorities (time_).  This should give O(log(N)) amortized
- * time for basic operations.
+ * time for basic operations, may be even better for correlated inserts.
  *
  * Implementation notes: Event::next_ and Event::prev_ are used as
  * right and left pointers.  insert() and deque() use the "top-down"
@@ -52,33 +52,6 @@ static const char rcsid[] =
 #include <scheduler.h>
 #include <assert.h>
 
-class SplayScheduler : public Scheduler 
-{
-public:
-	SplayScheduler() : root_(0), qsize_(0) {}
-	virtual void insert(Event *);
-	virtual Event *deque();
-	virtual void cancel(Event *);
-	virtual Event *lookup(scheduler_uid_t);
-	void validate() { assert(validate(root_) == qsize_); };
-    
-protected:
-	//XXX even if debug is enabled, we want these inlined
-	//Event *&LEFT(Event *e)  { return e->prev_; }
-	//Event *&RIGHT(Event *e) { return e->next_; }
-#undef LEFT
-#undef RIGHT
-#define LEFT(e)				((e)->prev_)	
-#define RIGHT(e)			((e)->next_)
-
-	Event *uid_lookup(Event *);
-
-	Event			*root_;
-	scheduler_uid_t 	lookup_uid_;
-	int 			qsize_;
-private:
-	int validate(Event *);
-};
 
 static class SplaySchedulerClass : public TclClass 
 {
@@ -88,6 +61,11 @@ public:
                 return (new SplayScheduler);
         }
 } class_splay_sched;
+
+#undef LEFT
+#undef RIGHT
+#define LEFT(e)				((e)->prev_)	
+#define RIGHT(e)			((e)->next_)
 
 #define ROTATE_RIGHT(t, x)		\
     do {				\
@@ -195,6 +173,53 @@ SplayScheduler::insert(Event *n)
 	//validate();
 }
 
+const Event *
+SplayScheduler::head()
+{
+	Event *t;
+	Event *l;
+#if 1
+	if (root_ == 0)
+		return 0;
+	for (t = root_; (l = LEFT(t)); t = l)
+		;
+
+	return t;
+#else
+	Event *ll;
+	Event *lll;
+
+	if (root_ == 0)
+		return 0;
+
+	t = root_;
+	l = LEFT(t);
+
+	if (l == 0) {
+		return t;
+	}
+	for (;;) { 
+		ll = LEFT(l);
+		if (ll == 0) {
+			return l;
+		}
+
+		lll = LEFT(ll);
+		if (lll == 0) {
+			return ll;
+		}
+
+		// zig-zig: rotate l with ll
+		LEFT(t) = ll;
+		LEFT(l) = RIGHT(ll);
+		RIGHT(ll) = l;
+
+		t = ll;
+		l = lll;
+	}
+#endif /* 1/0 */
+}
+
 Event *
 SplayScheduler::deque()
 {
@@ -211,7 +236,7 @@ SplayScheduler::deque()
 	t = root_;
 	l = LEFT(t);
 
-	if (l == 0) {		// root is the element to dequeue
+	if (l == 0) {			// root is the element to dequeue
 		root_ = RIGHT(t);	// right branch becomes the root
 		//validate();
 		return t;

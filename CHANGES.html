@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.535 2002/07/23 21:35:19 yuri Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.536 2002/08/02 01:35:19 yuri Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -18,6 +18,26 @@ with the most recent changes coming first.
 <h3>ns-2.1b10
 [PENDING RELEASE DATE]</h3>
 <ul>
+<p><li><b>[Yuri Pryadkin]</b>
+Thu Aug  1 18:33:24 PDT 2002
+<br>
+Bugfixes in RealTimeScheduler:
+<ul>
+<li> Cancelled events may have been dispatched.
+<li> FIFO property for same time sim events was broken.
+</ul>
+Additionally: 
+<ul>
+<li> Added blocking wait if there is nothing to do
+<li> clock_ is always synchronized with the RT clock before
+dispatching events.
+<li> Now RealTimeScheduler is derived from CalendarScheduler for better
+performance.
+<li> Other cosmetic changes.
+</ul>
+Thanks to Shashi Guruprasad for helping test/debug various patches.<br>
+Files: common/{scheduler.{h,cc},scheduler-map.cc,splay-scheduler.cc}
+
 <p><li><b>[Yuri Pryadkin]</b> 
 Tue Jul 23 14:30:05 PDT 2002<br>
 Tuned up CalendarScheduler::newwidth() using the tcp bottleneck

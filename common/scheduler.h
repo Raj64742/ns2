@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.25 2002/07/23 21:35:21 yuri Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.26 2002/08/02 01:35:20 yuri Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -74,7 +74,6 @@ class Handler {
 };
 
 #define	SCHED_START	0.0	/* start time (secs) */
-#define CALENDAR_ALPHA  2.0    /* used for resizing bucket width incase of overflow */
 
 class Scheduler : public TclObject {
 public:
@@ -87,7 +86,8 @@ public:
 	virtual void insert(Event*) = 0;	// schedule event
 	virtual Event* lookup(scheduler_uid_t uid) = 0;	// look for event
 	virtual Event* deque() = 0;		// next event (removes from q)
-	inline double clock() const {		// simulator virtual time
+	virtual const Event* head() = 0;	// next event (not removed from q)
+	double clock() const {			// simulator virtual time
 		return (clock_);
 	}
 	virtual void sync() {};
@@ -110,11 +110,13 @@ protected:
 
 class ListScheduler : public Scheduler {
 public:
-	inline ListScheduler() : queue_(0) {}
-	virtual void cancel(Event*);
-	virtual void insert(Event*);
-	virtual Event* deque();
-	virtual Event* lookup(scheduler_uid_t uid);
+	ListScheduler() : queue_(0) {}
+	void cancel(Event*);
+	void insert(Event*);
+	Event* deque();
+	const Event* head() { return queue_; }
+	Event* lookup(scheduler_uid_t uid);
+
 protected:
 	Event* queue_;
 };
@@ -123,18 +125,19 @@ protected:
 
 class HeapScheduler : public Scheduler {
 public:
-	inline HeapScheduler() { hp_ = new Heap; } 
-	virtual void cancel(Event* e) {
+	HeapScheduler() { hp_ = new Heap; } 
+	void cancel(Event* e) {
 		if (e->uid_ <= 0)
 			return;
 		e->uid_ = - e->uid_;
 		hp_->heap_delete((void*) e);
 	}
-	virtual void insert(Event* e) {
+	void insert(Event* e) {
 		hp_->heap_insert(e->time_, (void*) e);
 	}
-	virtual Event* lookup(scheduler_uid_t uid);
-	virtual Event* deque();
+	Event* lookup(scheduler_uid_t uid);
+	Event* deque();
+	const Event* head() { return (const Event *)hp_->heap_min(); }
 protected:
 	Heap* hp_;
 };
@@ -142,11 +145,12 @@ protected:
 class CalendarScheduler : public Scheduler {
 public:
 	CalendarScheduler();
-	virtual ~CalendarScheduler();
-	virtual void cancel(Event*);
-	virtual void insert(Event*);
-	virtual Event* lookup(scheduler_uid_t uid);
-	virtual Event* deque();
+	~CalendarScheduler();
+	void cancel(Event*);
+	void insert(Event*);
+	Event* lookup(scheduler_uid_t uid);
+	Event* deque();
+	const Event* head();
 
 protected:
 	double width_;
@@ -174,5 +178,33 @@ private:
 	double cal_clock_;  // same as clock in sims, may be different in RT-scheduling.
 
 };
+
+class SplayScheduler : public Scheduler 
+{
+public:
+	SplayScheduler() : root_(0), qsize_(0) {}
+	void insert(Event *);
+	Event *deque();
+	const Event *head();
+	void cancel(Event *);
+	Event *lookup(scheduler_uid_t);
+
+	//void validate() { assert(validate(root_) == qsize_); };
+    
+protected:
+	/* XXX even if debug is enabled, we want these inlined, so
+	   XXX they are defined as macros in splay-scheduler.cc
+	   Event *&LEFT(Event *e)  { return e->prev_; }
+	   Event *&RIGHT(Event *e) { return e->next_; }
+	*/
+	Event *uid_lookup(Event *);
+
+	Event			*root_;
+	scheduler_uid_t 	lookup_uid_;
+	int 			qsize_;
+private:
+	int validate(Event *);
+};
+
 
 #endif

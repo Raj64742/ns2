@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.69 2002/07/23 21:35:21 yuri Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.70 2002/08/02 01:35:20 yuri Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.69 2002/07/23 21:35:21 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.70 2002/08/02 01:35:20 yuri Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -79,11 +79,14 @@ Scheduler::~Scheduler(){
  * is much harder (because we've lost all context about who did
  * the scheduling).
  */
-void Scheduler::schedule(Handler* h, Event* e, double delay)
+void 
+Scheduler::schedule(Handler* h, Event* e, double delay)
 {
 	// handler should ALWAYS be set... if it's not, it's a bug in the caller
 	if (!h) {
-		printf("Scheduler: attempt to schedule an event with a NULL handler.  Don't DO that.\n");
+		fprintf(stderr,
+			"Scheduler: attempt to schedule an event with a NULL handler."
+			"  Don't DO that.\n");
 		abort();
 	};
 	if (e->uid_ > 0) {
@@ -94,7 +97,9 @@ void Scheduler::schedule(Handler* h, Event* e, double delay)
 	if (delay < 0) {
 		// You probably don't want to do this
 		// (it probably represents a bug in your simulation).
-		fprintf(stderr, "warning: ns Scheduler::schedule: scheduling event\n\twith negative delay (%f) at time %f.\n", delay, clock_);
+		fprintf(stderr, 
+			"warning: ns Scheduler::schedule: scheduling event\n\t"
+			"with negative delay (%f) at time %f.\n", delay, clock_);
 	}
 
 	if (uid_ < 0) {
@@ -165,7 +170,8 @@ public:
 	void handle(Event* event);
 } at_handler;
 
-void AtHandler::handle(Event* e)
+void 
+AtHandler::handle(Event* e)
 {
 	AtEvent* at = (AtEvent*)e;
 	Tcl::instance().eval(at->proc_);
@@ -178,7 +184,8 @@ Scheduler::reset()
 	clock_ = SCHED_START;
 }
 
-int Scheduler::command(int argc, const char*const* argv)
+int 
+Scheduler::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 	if (instance_ == 0)
@@ -290,7 +297,8 @@ public:
 	}
 } class_list_sched;
 
-void ListScheduler::insert(Event* e)
+void 
+ListScheduler::insert(Event* e)
 {
 	double t = e->time_;
 	Event** p;
@@ -307,7 +315,8 @@ void ListScheduler::insert(Event* e)
  * must free the event if necessary; this routine only removes
  * it from the scheduler queue.
  */
-void ListScheduler::cancel(Event* e)
+void 
+ListScheduler::cancel(Event* e)
 {
 	Event** p;
 	if (e->uid_ <= 0)	// event not in queue
@@ -320,7 +329,8 @@ void ListScheduler::cancel(Event* e)
 	e->uid_ = - e->uid_;
 }
 
-Event* ListScheduler::lookup(scheduler_uid_t uid)
+Event* 
+ListScheduler::lookup(scheduler_uid_t uid)
 {
 	Event* e;
 	for (e = queue_; e != 0; e = e->next_)
@@ -401,9 +411,9 @@ int
 Heap::heap_delete(void* elem)
 {
 	int	i;
-		if ((i = heap_member(elem)) == 0)
+	if ((i = heap_member(elem)) == 0)
 		return 0;
-		for (--i; i; i = parent(i)) {
+	for (--i; i; i = parent(i)) {
 		swap(i, parent(i));
 	}
 	(void) heap_extract_min();
@@ -489,9 +499,10 @@ Heap::heap_extract_min()
 	void*	min;				  /* return value */
 	unsigned int	i;
 	unsigned int	l, r, x;
-		if (h_size == 0)
+
+	if (h_size == 0)
 		return 0;
-		min = h_elems[0].he_elem;
+	min = h_elems[0].he_elem;
 	h_elems[0] = h_elems[--h_size];
 // Heapify:
 	i = 0;
@@ -527,7 +538,8 @@ public:
 	}
 } class_heap_sched;
 
-Event* HeapScheduler::lookup(scheduler_uid_t uid)
+Event* 
+HeapScheduler::lookup(scheduler_uid_t uid)
 {
 	Event* e;
 	
@@ -578,7 +590,8 @@ CalendarScheduler::~CalendarScheduler() {
 	stat_qsize_ = 0;
 }
 
-void CalendarScheduler::insert(Event* e)
+void 
+CalendarScheduler::insert(Event* e)
 {
 	int i;
 	if (cal_clock_ > e->time_) {
@@ -615,9 +628,9 @@ void CalendarScheduler::insert(Event* e)
 		e->prev_->next_ = e;
 		if (newhead) {
 			buckets_[i].list_ = e;
-			assert(e->time_ <= e->next_->time_);
+			//assert(e->time_ <= e->next_->time_);
 		}
-		assert(e->prev_ != e);
+		//assert(e->prev_ != e);
 		if (e->prev_->time_ != e->time_) {
 			// unique timing
 			++stat_qsize_; 
@@ -625,8 +638,8 @@ void CalendarScheduler::insert(Event* e)
 		}
 	}
 	++qsize_;
-	assert(e == buckets_[i].list_ ||  e->prev_->time_ <= e->time_);
-	assert(e == buckets_[i].list_->prev_ || e->next_->time_ >= e->time_);
+	//assert(e == buckets_[i].list_ ||  e->prev_->time_ <= e->time_);
+	//assert(e == buckets_[i].list_->prev_ || e->next_->time_ >= e->time_);
 
   	if (stat_qsize_ > top_threshold_) {
   		resize(nbuckets_ << 1, cal_clock_);
@@ -634,7 +647,8 @@ void CalendarScheduler::insert(Event* e)
 	}
 }
 
-void CalendarScheduler::insert2(Event* e)
+void 
+CalendarScheduler::insert2(Event* e)
 {
 	// Same as insert, but for inserts e *before* any same-time-events, if
 	//   there should be any.  Since it is used only by CalendarScheduler::newwidth(),
@@ -667,7 +681,7 @@ void CalendarScheduler::insert2(Event* e)
 		e->prev_->next_ = e;
 		if (newhead) {
 			buckets_[i].list_ = e;
-			assert(e->time_ <= e->next_->time_);
+			//assert(e->time_ <= e->next_->time_);
 		}
 
 		if (e != e->next_ && e->next_->time_ != e->time_) {
@@ -676,15 +690,15 @@ void CalendarScheduler::insert2(Event* e)
 			++buckets_[i].count_;
 		}
 	}
-	assert(e == buckets_[i].list_ ||  e->prev_->time_ <= e->time_);
-	assert(e == buckets_[i].list_->prev_ || e->next_->time_ >= e->time_);
+	//assert(e == buckets_[i].list_ ||  e->prev_->time_ <= e->time_);
+	//assert(e == buckets_[i].list_->prev_ || e->next_->time_ >= e->time_);
 
 	++qsize_;
 	// no need to check resizing
 }
 
-Event*
-CalendarScheduler::deque()
+const Event*
+CalendarScheduler::head()
 {
 	if (qsize_ == 0)
 		return NULL;
@@ -727,20 +741,44 @@ do { 								\
 	    (e == NULL || min_e->time_ < e->time_))
 		e = min_e;
 	else {
-		assert(e);
+		//assert(e);
 		l = i;
 	}
  found_l:
-	assert(buckets_[l].count_ >= 0);
+	//assert(buckets_[l].count_ >= 0);
+	//assert(buckets_[l].list_ == e);
+
 	/* l is the index of the bucket to dequeue, e is the event */
-	assert(buckets_[l].list_ == e);
+	/* 
+	 * still want to advance lastbucket_ and cal_clock_ to save
+	 * time when deque() follows. 
+	 */
+	lastbucket_ = l;
+ 	cal_clock_  = e->time_;
+	
+	return e;
+}
+
+Event* 
+CalendarScheduler::deque()
+{
+	Event *e = const_cast<Event *>(head());
+
+	if (!e)
+		return 0;
+
+	int l = lastbucket_;
+
+	// update stats and unlink
 	if (e->next_ == e || e->next_->time_ != e->time_) {
 		--stat_qsize_;
-		assert(stat_qsize_ >= 0);
+		//assert(stat_qsize_ >= 0);
 		--buckets_[l].count_;
-		assert(buckets_[l].count_ >= 0);
+		//assert(buckets_[l].count_ >= 0);
 
 	}
+	--qsize_;
+
 	if (e->next_ == e)
 		buckets_[l].list_ = 0;
 	else {
@@ -749,15 +787,11 @@ do { 								\
 		buckets_[l].list_ = e->next_;
 	}
 
-	lastbucket_ = l;
 	e->next_ = e->prev_ = NULL;
 
-	--qsize_;
 
-	if (buckets_[l].count_ == 0)
-		assert(buckets_[l].list_ == 0);
-
- 	cal_clock_ = e->time_;
+	//if (buckets_[l].count_ == 0)
+	//	assert(buckets_[l].list_ == 0);
 
  	if (stat_qsize_ < bot_threshold_) {
 		resize(nbuckets_ >> 1, cal_clock_);
@@ -766,7 +800,8 @@ do { 								\
 	return e;
 }
 
-void CalendarScheduler::reinit(int nbuck, double bwidth, double start)
+void 
+CalendarScheduler::reinit(int nbuck, double bwidth, double start)
 {
 	buckets_ = new Bucket[nbuck];
 
@@ -788,7 +823,8 @@ void CalendarScheduler::reinit(int nbuck, double bwidth, double start)
 	top_threshold_ = (nbuck << 1);
 }
 
-void CalendarScheduler::resize(int newsize, double start)
+void 
+CalendarScheduler::resize(int newsize, double start)
 {
 	double bwidth = newwidth(newsize);
 
@@ -852,7 +888,8 @@ CalendarScheduler::newwidth(int newsize)
  * it from the scheduler queue.
  *
  */
-void CalendarScheduler::cancel(Event* e)
+void 
+CalendarScheduler::cancel(Event* e)
 {
 	if (e->uid_ <= 0)	// event not in queue
 		return;
@@ -892,7 +929,8 @@ void CalendarScheduler::cancel(Event* e)
 	return;
 }
 
-Event* CalendarScheduler::lookup(scheduler_uid_t uid)
+Event * 
+CalendarScheduler::lookup(scheduler_uid_t uid)
 {
 	for (int i = 0; i < nbuckets_; i++) {
 		Event* head =  buckets_[i].list_;
@@ -912,16 +950,7 @@ Event* CalendarScheduler::lookup(scheduler_uid_t uid)
 #include <sys/time.h>
 #endif
 
-/*
- * Really should instance the list/calendar/heap discipline
- * inside a RealTimeScheduler or VirtualTimeScheduler
- */
-
-#ifdef notyet
 class RealTimeScheduler : public CalendarScheduler {
-#endif
-
-class RealTimeScheduler : public ListScheduler {
 public:
 	RealTimeScheduler();
 	virtual void run();
@@ -929,7 +958,6 @@ public:
 	virtual void reset();
 protected:
 	void sync() { clock_ = tod(); }
-	int rwait(double);	// sleep
 	double tod();
 	double slop_;	// allowed drift between real-time and virt time
 	double start_;	// starting time
@@ -965,79 +993,50 @@ RealTimeScheduler::reset()
 	start_ = tod();
 }
 
-void RealTimeScheduler::run()
+void 
+RealTimeScheduler::run()
 { 
-	Event *p;
-	double now;
+	static const double RTSCHEDULER_MINWAIT = 1.0e-3; // don't wait for less
+	const Event *p;
 
 	/*XXX*/
 	instance_ = this;
 
 	while (!halted_) {
-		now = tod();
-		if ((now - clock_) > slop_) {
+		clock_ = tod();
+		p = head();
+		if (p && (clock_ - p->time_) > slop_) {
 			fprintf(stderr,
-			"RealTimeScheduler: warning: slop %f exceeded limit %f [now:%f, clock_:%f]\n",
-				now - clock_, slop_, now, clock_);
+				"RealTimeScheduler: warning: slop "
+				"%f exceeded limit %f [clock_:%f, p->time_:%f]\n",
+				clock_ - p->time_, slop_, clock_, p->time_);
 		}
+		// handle "old events"
+		while (p && p->time_ <= clock_) {
 
-		//
-		// first handle any "old events"
-		//
-		while ((p = deque()) != NULL && (p->time_ <= now)) {
-			dispatch(p);
+			dispatch(deque(), clock_);
+			if (halted_)
+				return;
+			p = head();
+			clock_ = tod();
 		}
-
-		//
-		// now handle a "future event", if there is one
-		//
-		if (p != NULL) {
-			int rval = rwait(p->time_);
-			if (rval < 0) {
-				fprintf(stderr, "RTScheduler: wait problem\n");
-				abort();
-			} else if (rval == 0) {
-				//
-				// proper time to dispatch sim event... do so
-				//
-				dispatch(p, clock_);
-			} else {
-				//
-				// there was a simulator event which fired, and
-				// may have added something to the queue, which
-				// could cause our event p to not be the next,
-				// so put p back into the event queue and cont
-				//
-				insert(p);
+		
+		if (!p) {
+			// blocking wait for TCL events
+			Tcl_WaitForEvent(0); // no sim events, wait forever
+			clock_ = tod();
+		} else {
+			double diff = p->time_ - clock_;
+			// blocking wait only if there is enough time
+			if (diff > RTSCHEDULER_MINWAIT) {
+				Tcl_Time to;
+				to.sec = long(diff);
+				to.usec = long(1e6*(diff - to.sec));
+				Tcl_WaitForEvent(&to);    // block
+				clock_ = tod();
 			}
-			continue;
 		}
-
-		//
-		// no sim events to handle at all, check with tcl
-		//
-		sync();
 		Tcl_DoOneEvent(TCL_DONT_WAIT);
 	}
-
-	return;	// we reach here only if halted
-}
-
-/*
- * wait until the specified amount has elapsed, or a tcl event has happened,
- * whichever comes first.  Return 1 if a tcl event happened, 0 if the
- * deadline has been reached, or -1 on error (shouldn't happen).
- */
-
-int
-RealTimeScheduler::rwait(double deadline)
-{
-	while (1) {
-		sync();
-		if (Tcl_DoOneEvent(TCL_DONT_WAIT) == 1)
-			return (1);
-		if (deadline <= tod())
-			return 0;
-	}
-	return -1;
+	// we reach here only if halted
 }

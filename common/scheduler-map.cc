@@ -54,10 +54,11 @@ public:
   virtual ~MapScheduler();
 public:
 	int command(int argc, const char*const* argv);
-  virtual void cancel(Event*);	                // cancel event
-  virtual void insert(Event*);	                // schedule event
-  virtual Event* lookup(scheduler_uid_t uid);	  // look for event
-  virtual Event* deque();		                    // next event (removes from q)
+  void cancel(Event*);	                // cancel event
+  void insert(Event*);	                // schedule event
+  Event* lookup(scheduler_uid_t uid);	  // look for event
+  Event* deque();		                    // next event (removes from q)
+	const Event *head() { return EventList.begin()->second; }
 protected:
   EventMap_t      EventList;                    // The actual event list
 #ifdef USING_UIDDEQ
