@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.4 1997/05/30 03:11:24 heideman Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.h,v 1.5 1997/05/30 20:30:31 heideman Exp $ (UCB)
  */
 
 #include "integrator.h"
@@ -132,7 +132,14 @@ public:
 protected:
 	int	off_ip_;
 
+#if 1
+#define	QM_FIDMAX	13
+	int	pkts_[QM_FIDMAX];
+	int	bytes_[QM_FIDMAX];
+	int	drops_[QM_FIDMAX];
+#else
 	intRVec	pkts_;
 	intRVec	bytes_;
 	intRVec	drops_;
+#endif
 };

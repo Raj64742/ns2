@@ -185,6 +185,82 @@ public:
  */
 
 #include "ip.h"
+#if 1
+QueueMonitorCompat::QueueMonitorCompat()
+{
+	memset(pkts_, '\0', sizeof(pkts_));
+	memset(bytes_, '\0', sizeof(bytes_));
+	memset(drops_, '\0', sizeof(drops_));
+	bind("off_ip_", &off_ip_);
+}
+
+void QueueMonitorCompat::out(Packet* pkt)
+{
+	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+	int fid = iph->flowid();
+	if (fid < 0 || fid > QM_FIDMAX) {
+		fprintf(stderr, "warning: pkt with fid over qm max %d\n",
+			QM_FIDMAX);
+	} else {
+		bytes_[fid] += ((hdr_cmn*)pkt->access(off_cmn_))->size();
+		pkts_[fid]++;
+	}
+	QueueMonitor::out(pkt);
+}
+
+void QueueMonitorCompat::in(Packet* pkt)
+{
+	//
+	// we're not keeping per-class running queue lengths, so
+	// don't really have to do anything here
+	//
+	QueueMonitor::in(pkt);
+}
+
+void QueueMonitorCompat::drop(Packet* pkt)
+{
+
+	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+	int fid = iph->flowid();
+	if (fid < 0 || fid > QM_FIDMAX) {
+		fprintf(stderr, "warning: pkt with fid over qm max %d\n",
+			QM_FIDMAX);
+	} else {
+		++drops_[fid];
+	}
+	QueueMonitor::drop(pkt);
+}
+
+int QueueMonitorCompat::command(int argc, const char*const* argv)
+{
+        Tcl& tcl = Tcl::instance();
+	int fid;
+	if (argc == 3) {
+		if (strcmp(argv[1], "bytes") == 0) {
+			if ((fid = atoi(argv[2])) >= 0 && (fid < QM_FIDMAX)) {
+				tcl.resultf("%u", bytes_[fid]);
+				return (TCL_OK);
+			}
+			return (TCL_ERROR);
+		}
+		if (strcmp(argv[1], "pkts") == 0) {
+			if ((fid = atoi(argv[2])) >= 0 && (fid < QM_FIDMAX)) {
+				tcl.resultf("%u", pkts_[fid]);
+				return (TCL_OK);
+			}
+			return (TCL_ERROR);
+		}
+		if (strcmp(argv[1], "drops") == 0) {
+			if ((fid = atoi(argv[2])) >= 0 && (fid < QM_FIDMAX)) {
+				tcl.resultf("%u", drops_[fid]);
+				return (TCL_OK);
+			}
+			return (TCL_ERROR);
+		}
+	}
+	return (QueueMonitor::command(argc, argv));
+}
+#else
 QueueMonitorCompat::QueueMonitorCompat() :
 	bytes_(4), 
 	pkts_(4), 
@@ -238,6 +314,7 @@ int QueueMonitorCompat::command(int argc, const char*const* argv)
 	}
 	return (QueueMonitor::command(argc, argv));
 }
+#endif
 
 static class QueueMonitorCompatClass : public TclClass {
  public: 
