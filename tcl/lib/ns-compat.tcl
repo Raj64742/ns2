@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.18 1997/03/27 22:30:20 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.19 1997/03/28 20:25:00 tomh Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -63,12 +63,13 @@ OldSim instproc init args {
 		eval $self next $args
 	}
 	#
-	# Catch set maxpkts for FTP sources, which is now "produce maxpkts"
+	# Catch set maxpkts for FTP sources, (needed because Source objects are
+	# not derived from TclObject, and hence can't use varMap method below)
 	#
 	Source/FTP instproc set args {
 		if { [llength $args] == 2 &&
 			[lindex $args 0] == "maxpkts" } {
-			$self produce [lindex $args 1]
+			$self set maxpkts_ [lindex $args 1]
 			return
 		}
 		eval $self next $args
@@ -84,14 +85,6 @@ OldSim instproc init args {
 		$src set agent_ $self
 		return $src
 	}
-	#
-	# Lower 8 bits of dst_ are portID_.  this proc supports backward compat.
-	# for setting the interval for delayed acks
-	#       
-	Agent instproc dst-port {} {
-		$self instvar dst_
-		return [expr $dst_%256]
-	}   
 	#
 	# support for new variable names
 	# it'd be nice to set up mappings on a per-class
@@ -143,9 +136,6 @@ OldSim instproc init args {
 	TclObject set varMap_(srtt) srtt_
 	TclObject set varMap_(rttvar) rttvar_
 	TclObject set varMap_(backoff) backoff_
-
-	# FTP
-	TclObject set varMap_(maxpkts) maxpkts_
 
 	# Queue
 	TclObject set varMap_(limit) limit_
@@ -219,6 +209,7 @@ OldSim instproc init args {
 	set classMap_(tcp-sack1) Agent/TCP/Sack1
 	set classMap_(sack1-tcp-sink) Agent/TCPSink/Sack1
 	set classMap_(tcp-sink-da) Agent/TCPSink/DelAck
+	set classMap_(sack1-tcp-sink-da) Agent/TCPSink/Sack1/DelAck
 	set classMap_(loss-monitor) Agent/LossMonitor
 
 	$self instvar queueMap_
