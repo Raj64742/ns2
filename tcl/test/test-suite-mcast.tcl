@@ -519,6 +519,7 @@ Topology/net8a instproc init ns {
 
 # Definition of test-suite tests
 
+# Testing group join/leave in a simple topology
 Class Test/DM1 -superclass TestSuite
 Test/DM1 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -565,6 +566,8 @@ Test/DM1 instproc run {} {
 	$ns_ run
 }
 
+# Testing group join/leave in a richer topology. Testing rcvr join before
+# the source starts sending pkts to the group.
 Class Test/DM2 -superclass TestSuite
 Test/DM2 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -603,6 +606,8 @@ Test/DM2 instproc run {} {
 	$ns_ run
 }
 
+# Testing group join/leave in a simple topology, changing the RP set. 
+# The RP node also has a source.
 Class Test/CtrMcast1 -superclass TestSuite
 Test/CtrMcast1 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -657,6 +662,8 @@ Test/CtrMcast1 instproc run {} {
 	$ns_ run
 }
 
+# Testing performance in the presence of dynamics. Also testing a rcvr joining
+# a group before the src starts sending pkts to the group.
 Class Test/CtrMcast2 -superclass TestSuite
 Test/CtrMcast2 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -702,6 +709,7 @@ Test/CtrMcast2 instproc run {} {
 	$ns_ run
 }
 
+# Group join/leave test
 Class Test/detailedDM1 -superclass TestSuite
 Test/detailedDM1 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -742,6 +750,7 @@ Test/detailedDM1 instproc run {} {
 	$ns_ run
 }
 
+# Group join/leave test with dynamics
 Class Test/detailedDM2 -superclass TestSuite
 Test/detailedDM2 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -785,6 +794,8 @@ Test/detailedDM2 instproc run {} {
 	$ns_ run
 }
 
+# Group join/leave test with dynamics. n3 joins group when an upstream link
+# on its shortest path to the source has failed.
 Class Test/detailedDM3 -superclass TestSuite
 Test/detailedDM3 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -828,6 +839,8 @@ Test/detailedDM3 instproc run {} {
 	$ns_ run
 }
 
+# Group join/leave test with dynamics. Node n3 joins the group when an
+# upstream link on its shortest path to the source has failed.
 Class Test/detailedDM4 -superclass TestSuite
 Test/detailedDM4 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -871,6 +884,9 @@ Test/detailedDM4 instproc run {} {
 	$ns_ run
 }
 
+# Testing in LAN topologies
+# The node with the higher id is made the LAN forwarder in case there are
+# more than one possible forwarders (this is decided by the Assert process).
 Class Test/detailedDM5 -superclass TestSuite
 Test/detailedDM5 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -909,6 +925,9 @@ Test/detailedDM5 instproc run {} {
 	$ns_ run
 }
 
+# Testing in LAN topologies
+# The node with the higher id is made the LAN forwarder in case there are
+# more than one possible forwarders (this is decided by the Assert process).
 Class Test/detailedDM6 -superclass TestSuite
 Test/detailedDM6 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -951,6 +970,9 @@ Test/detailedDM6 instproc run {} {
 	$ns_ run
 }
 
+# Testing in LAN topologies
+# The node with the higher id is made the LAN forwarder in case there are
+# more than one possible forwarders (this is decided by the Assert process).
 Class Test/detailedDM7 -superclass TestSuite
 Test/detailedDM7 instproc init topo {
 	$self instvar net_ defNet_ test_
@@ -999,3 +1021,5 @@ TestSuite runTest
 ### tcl-indent-level: 8
 ### tcl-default-application: ns
 ### End:
+
+
