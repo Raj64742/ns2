@@ -72,7 +72,8 @@ void TrafficGenerator::timeout()
 	/* figure out when to send the next one */
 	nextPkttime_ = next_interval(size_);
 	/* schedule it */
-	timer_.resched(nextPkttime_);
+	if (nextPkttime_ > 0)
+		timer_.resched(nextPkttime_);
 }
 
 

@@ -87,6 +87,6 @@ double CBR_Traffic::next_interval(int& size)
 	if (++seqno_ < maxpkts_)
 		return(t);
 	else
-		return(1<<28); // next timeout at infinity
+		return(-1); 
 }
 
