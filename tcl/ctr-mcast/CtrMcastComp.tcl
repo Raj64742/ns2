@@ -303,8 +303,16 @@ CtrMcastComp instproc switch-treetype group {
 }
 
 CtrMcastComp instproc set_c_rp { nodeList } {
+    $self instvar ns
+    
+    foreach n [$ns all-nodes-list] {
+	set arbiter [$n getArbiter]	   
+	set ctrmcast [$arbiter getType "CtrMcast"]
+	$ctrmcast unset_c_rp
+    }
+
     foreach node $nodeList {
-	set arbiter [$node getArbiter]
+	set arbiter [$node getArbiter]	   
 	set ctrmcast [$arbiter getType "CtrMcast"]
 	$ctrmcast set_c_rp
     }
@@ -356,3 +364,9 @@ Classifier/Replicator/Demuxer instproc reset {} {
     set nactive_ 0
     unset active_ index_
 }
+
+
+
+
+
+
