@@ -84,6 +84,7 @@ ReassemblyQueue::sremove(seginfo* p)
 		p->snext_->sprev_ = p->sprev_;
 	else
 		bottom_ = p->sprev_;
+
 }
 
 /*
@@ -137,6 +138,8 @@ ReassemblyQueue::clearto(TcpSeq seq)
 			flag |= p->pflags_;
 			sremove(p);
 			fremove(p);
+			if (p == hint_)
+				hint_ = NULL;
 			delete p;
 			p = q;
 		} else
@@ -188,8 +191,8 @@ ReassemblyQueue::dumplist()
 				printf("OOPS: LOOP1\n");
 				abort();
 			}
-			printf("[->%d, %d<-<0x%x>]",
-				p->startseq_, p->endseq_, p->pflags_);
+			printf("[->%d, %d<-<f:0x%x,c:%d>]",
+				p->startseq_, p->endseq_, p->pflags_, p->cnt_);
 			p->rqflags_ |= RQF_MARK;
 			p = p->next_;
 		}
@@ -252,6 +255,7 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 {
 
 	int needmerge = FALSE;
+	int initcnt = 1;	// initial value of cnt_ for new blk
 
 	if (end < start) {
 		fprintf(stderr, "ReassemblyQueue::add() - end(%d) before start(%d)\n",
@@ -274,6 +278,7 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		head_->endseq_ = end;
 		head_->pflags_ = tiflags;
 		head_->rqflags_ = rqflags;
+		head_->cnt_ = initcnt;
 
 		//
 		// this shouldn't really happen, but
@@ -335,25 +340,36 @@ start, end, p, q,
 		//
 		r = p ? p : head_;
 		while (r && r != q)  {
-			if (start < r->startseq_ && end > r->endseq_) {
+			if (start == r->startseq_ && end == r->endseq_) {
+				// exact overlap
+				r->pflags_ |= tiflags;
+				r->cnt_++;
+				return (r->pflags_);
+			} else if (start <= r->startseq_ && end >= r->endseq_) {
+				// complete overlap, not exact
 				n = r;
 				r = r->next_;
 				tiflags |= n->pflags_;
+				initcnt += n->cnt_;
 				fremove(n);
 				sremove(n);
+				if (n == hint_)
+					hint_ = NULL;
 				delete n;
-			} else if (start == r->startseq_ && end == r->endseq_) {
-				// exact overlap
-				r->pflags_ |= tiflags;
-				return (r->pflags_);
 			} else
 				r = r->next_;
 		}
+
+		//
+		// if we completely overlapped everything, the list
+		// will now be empty.  In this case, just add the new one
+		///
 
 		if (empty())
 			goto endfast;
 
 		// look for left-side merge
+		// update existing seg's start seq with new start
 		if (p == NULL || p->next_->startseq_ < start) {
 			if (p == NULL)
 				p = head_;
@@ -364,9 +380,12 @@ start, end, p, q,
 			start = p->endseq_;
 			needmerge = TRUE;
 			p->pflags_ |= tiflags;
+			p->cnt_++;
+			--initcnt;
 		}
 
 		// look for right-side merge
+		// update existing seg's end seq with new end
 		if (q == NULL || q->prev_->endseq_ > end) {
 			if (q == NULL)
 				q = tail_;
@@ -377,6 +396,14 @@ start, end, p, q,
 			end = q->startseq_;
 			needmerge = TRUE;
 			q->pflags_ |= tiflags;
+			if (!needmerge) {
+				// if needmerge is TRUE, that can
+				// only be the case if we did a left-side
+				// merge (above), which has already taken
+				// accounting of the new segment
+				q->cnt_++;
+				--initcnt;
+			}
 		}
 
 
@@ -403,6 +430,7 @@ endfast:
 		n->endseq_ = end;
 		n->pflags_ = tiflags;
 		n->rqflags_ = rqflags;
+		n->cnt_=  initcnt;
 
 		n->prev_ = p;
 		n->next_ = q;
@@ -439,6 +467,31 @@ endfast:
 	}
 }
 
+int
+ReassemblyQueue::nexthole(TcpSeq seq, int& nxtcnt)
+{
+	nxtcnt = -1;
+	if (!hint_) {
+again:
+		hint_ = head_;
+	}
+		
+	seginfo* p;
+	for (p = hint_; p; p = p->next_) {
+		if (p->startseq_ > seq)
+			return (-1);
+		if ((p->startseq_ <= seq) && (p->endseq_ >= seq)) {
+			hint_ = p;
+			if (p->next_)
+				nxtcnt = p->next_->cnt_;
+			return (p->endseq_);
+		}
+	}
+	if (hint_ != head_)
+		goto again;
+	return (-1);
+}
+
 /*
  * We need to see if we can coalesce together the
  * blocks in and around the new block
@@ -452,13 +505,16 @@ ReassemblyQueue::coalesce(seginfo *p, seginfo *n, seginfo *q)
 
 #ifdef RQDEBUG
 printf("coalesce(%p,%p,%p)\n", p, n, q);
-printf(" [%d,%d],[%d,%d],[%d,%d]\n",
+printf(" [(%d,%d),%d],[(%d,%d),%d],[(%d,%d),%d]\n",
 	p ? p->startseq_ : 0,
 	p ? p->endseq_ : 0,
+	p ? p->cnt_ : -1000,
 	n ? n->startseq_ : 0,
 	n ? n->endseq_ : 0,
+	n ? n->cnt_ : -1000,
 	q ? n->startseq_ : 0,
-	q ? n->endseq_ : 0);
+	q ? n->endseq_ : 0,
+	q ? n->cnt_ : -1000);
 dumplist();
 #endif
 
@@ -467,9 +523,14 @@ dumplist();
 		// delete the new block and the block after, update p
 		sremove(n);
 		fremove(n);
+		if (n == hint_)
+			hint_ = NULL;
 		sremove(q);
 		fremove(q);
+		if (q == hint_)
+			hint_ = NULL;
 		p->endseq_ = q->endseq_;
+		p->cnt_ += (n->cnt_ + q->cnt_);
 		flags = (p->pflags_ |= n->pflags_);
 		delete n;
 		delete q;
@@ -478,16 +539,22 @@ dumplist();
 		// update p with n's seq data, delete new block
 		sremove(n);
 		fremove(n);
+		if (n == hint_)
+			hint_ = NULL;
 		p->endseq_ = n->endseq_;
 		flags = (p->pflags_ |= n->pflags_);
+		p->cnt_ += n->cnt_;
 		delete n;
 	} else if (q && (n->endseq_ == q->startseq_)) {
 		// new block joins q, but not p
 		// update q with n's seq data, delete new block
 		sremove(n);
 		fremove(n);
+		if (n == hint_)
+			hint_ = NULL;
 		q->startseq_ = n->startseq_;
 		flags = (q->pflags_ |= n->pflags_);
+		q->cnt_ += n->cnt_;
 		delete n;
 		p = q;	// ensure p points to something
 	}
@@ -517,33 +584,33 @@ main()
 	rq.add(2, 4, 0, 0);
 	rq.add(6, 8, 0, 0);	// disc
 	printf("D1\n");
-	rq.dumplist();	// [2,4], [6,8]
+	rq.dumplist();	// [(2,4),1], [(6,8),1]
 
 	rq.add(1,2, 0, 0);	// l merge
 	printf("D2\n");
-	rq.dumplist();	// [1,4], [6,8]
+	rq.dumplist();	// [(1,4),2], [(6,8),1]
 
 	rq.add(8, 10, 0, 00);	// r merge
 	printf("D3\n");
-	rq.dumplist();	// [1,4], [6, 10]
+	rq.dumplist();	// [(1,4),2], [(6, 10),2]
 
 	rq.add(4, 6, 0, 0);	// m merge
 	printf("Simple output:\n");
-	rq.dumplist();	// [1, 10]
+	rq.dumplist();	// [(1, 10),5]
 
 	printf("X0:\n");
 	rq.init(1);
 	rq.add(5,10, 0, 0);
 	rq.add(11,20, 0, 0);
 	rq.add(5,10, 0, 0);	// dup left
-	rq.dumplist();	// [5,10], [11,20]
+	rq.dumplist();	// [(5,10),2], [(11,20),1]
 
 	printf("X1:\n");
 	rq.init(1);
 	rq.add(5,10, 0, 0);
 	rq.add(11,20, 0, 0);
-	rq.add(11, 20, 0, 0);	// dup rt
-	rq.dumplist();	// [5,10], [11,20]
+	rq.add(11,20, 0, 0);	// dup rt
+	rq.dumplist();	// [(5,10),1], [(11,20),2]
 
 	printf("X2:\n");
 	rq.init(1);
@@ -551,47 +618,47 @@ main()
 	rq.add(11,20, 0, 0);
 	rq.add(30, 40, 0, 0);	// dup mid
 	rq.add(11,20, 0, 0);
-	rq.dumplist();	// [5,10], [11,20], [30,40]
+	rq.dumplist();	// [(5,10),1], [(11,20),2], [(30,40),1]
 
 	printf("C1:\n");
 	rq.init(1);
 	rq.add(2, 4, 0, 0);
 	rq.add(1, 4, 0, 0);	// l overlap full
-	rq.dumplist();	// [1,4]
+	rq.dumplist();	// [(1,4),2]
 
 	printf("C2:\n");
 	rq.init(1);
 	rq.add(2, 4, 0, 0);
 	rq.add(1, 3, 0, 0);	// l overlap part
-	rq.dumplist();	// [1,4]
+	rq.dumplist();	// [(1,4),2]
 
 	printf("C3:\n");
 	rq.init(1);
 	rq.add(2, 4, 0, 0);
 	rq.add(2, 7, 0, 0);	// r overlap full
-	rq.dumplist();	// [2,7]
+	rq.dumplist();	// [(2,7),2]
 
 	printf("C4:\n");
 	rq.init(1);
 	rq.add(2, 4, 0, 0);
 	rq.add(3, 7, 0, 0);	// r overlap part
-	rq.dumplist();	// [2, 7]
+	rq.dumplist();	// [(2,7),2]
 
 	printf("C5:\n");
 	rq.init(1);
 	rq.add(2, 4, 0, 0);
 	rq.add(6, 8, 0, 0);
 	rq.add(1, 9, 0, 0);	// double olap - ends
-	rq.dumplist();	// [1,9]
+	rq.dumplist();	// [(1,9),3]
 
 	printf("C6:\n");
 	rq.init(1);
 	rq.add(2, 4, 0, 0);
 	rq.add(6, 8, 0, 0);
 	rq.add(15, 20, 0, 0);
-	rq.dumplist();	// [2,4], [6,8], [15,20]
+	rq.dumplist();	// [(2,4),1], [(6,8),1], [(15,20),1]
 	rq.add(5, 9, 0, 0);	// overlap middle
-	rq.dumplist();	// [2,4], [5,9], [15,20]
+	rq.dumplist();	// [(2,4),1], [(5,9),2], [(15,20),1]
 
 	printf("C7:\n");
 	rq.init(1);
@@ -599,9 +666,9 @@ main()
 	rq.add(3, 5, 0, 0);
 	rq.add(6, 8, 0, 0);
 	rq.add(9, 10, 0, 0);
-	rq.dumplist();	// [1,2],[3,5],[6,8],[9,10]
+	rq.dumplist();	// [(1,2),1],[(3,5),1],[(6,8),1],[(9,10),1]
 	rq.add(4, 7, 0, 0);	// double olap middle
-	rq.dumplist();	// [1,2], [3,8], [9,10]
+	rq.dumplist();	// [(1,2),1], [(3,8),3], [(9,10),1]
 
 	printf("C8:\n");
 	rq.init(1);
@@ -609,9 +676,9 @@ main()
 	rq.add(3, 5, 0, 0);
 	rq.add(10, 12, 0, 0);
 	rq.add(20, 30, 0, 0);
-	rq.dumplist();	// [1,2], [3,5], [10,12], [20,30]
+	rq.dumplist();	// [(1,2),1], [(3,5),1], [(10,12),1], [(20,30),1]
 	rq.add(4, 8, 0, 0);	// single olap middle
-	rq.dumplist();	// [1,2], [3,8], [10,12], [20,30]
+	rq.dumplist();	// [(1,2),1], [(3,8),2], [(10,12),1], [(20,30),1]
 
 	rq.init(1);
 	rq.add(1, 5, 0, 0);
@@ -619,10 +686,10 @@ main()
 	//rq.add(40321, 41281, 0, 0);
 	//rq.add(42241, 43201, 0, 0);
 	//rq.add(44161, 45121, 0, 0);
-	rq.dumplist();
+	rq.dumplist();	// [(1,5),1], [(10,20),1]
 	//rq.add(40321, 41281, 0, 0);
 	rq.add(1, 5, 0, 0);
-	rq.dumplist();
+	rq.dumplist();	// [(1,5),2], [(10,20),1]
 
 	exit(0);
 }
