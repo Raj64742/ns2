@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.172 1999/09/09 03:34:33 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.173 1999/10/04 18:42:10 sfloyd Exp $
 
 
 #
@@ -188,13 +188,12 @@ Agent/TFRC set ssmult_ 2
 Agent/TFRC set rate_ 0.0 
 Agent/TFRC set oldrate_ 0.0 
 Agent/TFRC set maxrate_ 0.0 
+Agent/TFRC set bval_ 1
 
 Agent/TFRCSink set packetSize_ 40
-Agent/TFRCSink set SampleSizeMult_ 4
-Agent/TFRCSink set MinNumLoss_ 4
 Agent/TFRCSink set InitHistorySize_ 100000
-Agent/TFRCSink set bval_ 1
 Agent/TFRCSink set NumFeedback_ 1 
+Agent/TFRCSink set AdjustHistoryAfterSS_ 1
 
 if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set segsperack_ 1; # ACK frequency
