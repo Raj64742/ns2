@@ -31,7 +31,7 @@
 Class CtrMcastComp
 
 CtrMcastComp instproc init sim {
-	$self instvar ns_ treetype_
+	$self instvar ns_
 	$self instvar Glist Mlist Slist
 
 	set ns_ $sim
@@ -58,20 +58,18 @@ CtrMcastComp instproc trace { f nop {op ""} } {
 CtrMcastComp instproc reset-mroutes {} {
 	$self instvar ns_ Glist Slist
 
-	set n [Node set nn_]
-	for {set i 0} {$i < $n} {incr i} {
-		set n1 [$ns_ get-node-by-id $i]
+	foreach node [$ns_ all-nodes-list] {
 		foreach group $Glist {
-			foreach r [$n1 getRep * $group] {
+			foreach r [$node getRep * $group] {
 				$r reset
 			}
-			$n1 unset repByGroup_($group) XXX
+			$node unset repByGroup_($group) XXX
 		}
 	    
 		if [info exists Slist($group)] {
 			foreach tmp $Slist($group) {
-				if {[$n1 getRep $tmp $group] != ""} {
-					$n1 unset replicator_($tmp:$group)
+				if {[$node getRep $tmp $group] != ""} {
+					$node unset replicator_($tmp:$group)
 				}
 			}
 		}
@@ -79,7 +77,7 @@ CtrMcastComp instproc reset-mroutes {} {
 }
 
 CtrMcastComp instproc compute-mroutes {} {
-	$self instvar ns_ Glist Slist
+	$self instvar Glist Slist
 
 	$self reset-mroutes
 	foreach group $Glist {
@@ -92,7 +90,7 @@ CtrMcastComp instproc compute-mroutes {} {
 }
 
 CtrMcastComp instproc compute-tree { src group } {
-	$self instvar ns_ Mlist
+	$self instvar Mlist
 
 	if { [$self exists-Mlist $group] } {
 		foreach m $Mlist($group) {
@@ -103,27 +101,21 @@ CtrMcastComp instproc compute-tree { src group } {
 
 
 CtrMcastComp instproc compute-branch { src group member } {
-    $self instvar ns treetype 
+    $self instvar ns_ treetype_
 
     #puts "create $src $member mcast entry until merging with an existing one"
 
+	set memh [$ns_ get-node-by-id $member]
     ### set (S,G) join target
     if { $treetype($group) == SPT } {
-	#puts "compute SPT branch: install ($src, $group) cache from $member to $src"
-	
 	set target $src
     } elseif { $treetype($group) == RPT } {
-	#puts "compute RPT branch"
-
-        set n [$ns set Node_($member)]
-	set RP [$self get_rp $n $group]
-	set target $RP
+	set target [$self get_rp $memh $group]
     }
 
 
     set tmp $member
     set downstreamtmp -1
-
     while { $downstreamtmp != $target } {
 
 	### set iif : RPF link dest id: interface label
@@ -289,8 +281,7 @@ CtrMcastComp instproc set_c_bsr args {
 }
 
 CtrMcastComp instproc get_rp { node group } {
-	set arbiter [$node getArbiter]
-	set ctrmcast [$arbiter getType "CtrMcast"]
+	set ctrmcast [[$node getArbiter] getType "CtrMcast"]
 	$ctrmcast get_rp $group
 }
 

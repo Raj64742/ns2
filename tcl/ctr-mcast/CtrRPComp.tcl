@@ -36,33 +36,30 @@ CtrRPComp instproc compute-rpset {} {
 	#    set routingTable [$ns set routingTable_]
 
 	### initialization
-	set n [Node set nn_]
-	for {set i 0} {$i < $n} {incr i} {
-		set connected($i) 0
+	foreach node [$ns_ all-nodes-list] {
+		set connected($node) 0
 	}
 	set urtl [$ns_ get-routelogic]
 	
 	### connected region algorithm
 	set ldomain ""
-	for {set i 0} {$i < $n} {incr i} {
-		set n1 [$ns_ get-node-by-id $i]
+	foreach node [$ns_ all-nodes-list] {
 		set m [llength $ldomain]
-		for {set j 0} {$j < $m} {incr j} {
-			set lvertix [lindex $ldomain $j]
+		foreach lvertix $ldomain {
 			set vertix  [lindex $lvertix 0]
-			if {[$urtl lookup $i [$vertix id]] >= 0} {
-				lappend lvertix $n1
+			if {[$urtl lookup [$node id] [$vertix id]] >= 0} {
+				lappend lvertix $node
 				set ldomain [lreplace $ldomain $j $j $lvertix]
-				set connected($i) 1
-				#puts "connected to [$vertix id] [$n1 id]"
+				set connected($node) 1
+				#puts "connected to [$vertix id] [$node id]"
 				break
 			}
 		}
 		
-		if {!$connected($i)} {
+		if {!$connected($node)} {
 			set lvertix ""
-			lappend lvertix $n1
-			set connected($i) 1
+			lappend lvertix $node
+			set connected($node) 1
 			#puts "new region [$n1 id]"
 			lappend ldomain $lvertix
 		}

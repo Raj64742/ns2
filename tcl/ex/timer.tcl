@@ -19,7 +19,6 @@ Timer instproc init ns {
 # sched aborts if the timer is already set. C++ timers maintain state 
 # (e.g. IDLE, PENDING..etc) that is checked before the timer is scheduled.
 Timer instproc sched delay {
-	global ns
 	$self instvar ns_ id_
 	$self cancel
 	set id_ [$ns_ after $delay "$self timeout"]
@@ -45,8 +44,4 @@ Timer instproc resched delay {
 # the subclass must provide the timeout function
 Timer instproc expire {} {
 	$self timeout
-}
-
-Timer instproc timeout {} {
-	# NOTHING.  The subclass must provide the timeout function
 }

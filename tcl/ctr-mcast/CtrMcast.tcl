@@ -63,23 +63,11 @@ CtrMcast instproc join-group  { group } {
 
 	if {![$agent_ exists-treetype $group] } {
 		$agent_ set treetype($group) $defaultTree_
-		set tmp [$agent_ set Glist]
-		if { [lsearch $tmp $group] < 0 } {
-			lappend tmp $group
-			$agent_ set Glist $tmp
-		}
+		$agent_ add-to-list Glist $group
 	}
 
 	### add new member to a global group member list
-	if [$agent_ exists-Mlist $group] { 
-		### add into Mlist
-		set tmp [$agent_ set Mlist($group)]
-		lappend tmp [$node_ id] 
-		$agent_ set Mlist($group) $tmp
-	} else { 
-		### create Mlist if not existing
-		$agent_ set Mlist($group) "[$node_ id]" 
-	}
+	$agent_ add-to-list Mlist($group) [$node_ id]
 
 	### puts "JOIN-GROUP: compute branch acrding to tree type"
 	if [$agent_ exists-Slist $group] {
@@ -92,25 +80,12 @@ CtrMcast instproc join-group  { group } {
 CtrMcast instproc leave-group  { group } {
 	$self next $group
 	$self instvar node_ ns_ agent_ defaultTree_
-	# puts "_node [$Node id], leaving group $group"
 
-	if ![$agent_ exists-Mlist $group] {
-		warn "$elf: leaving group that doesn't have any member"
-		return
-	}
-	set k [lsearch [$agent_ set Mlist($group)] [$node_ id]]
-	if { $k <= 0 } {
-		warn "$self: leaving group that doesn't contain this node"
-		return
-	}
-	### remove from Mlist
-	$agent_ set Mlist($group) [lreplace [$agent_ set Mlist($group)] $k $k]
-	### reset group tree type when no members
+	$agent_ remove-from-list Mlist($group) [$node_ id]
+
 	if { [$agent_ set Mlist($group)] == "" } {
-		#$agent_ set treetype($group) $default
-		set tmp [$agent_ set Glist]
-		set k [lsearch $tmp $group]
-		$agent_ set Glist [lreplace $tmp $k $k]
+		# $agent_ set treetype($group) $defaultTree_
+		$agent_ remove-from-list Glist $group
 	}
 	### prune off branches
 	if [$agent_ exists-Slist $group] {
@@ -124,14 +99,9 @@ CtrMcast instproc handle-cache-miss { srcID group iface } {
 	$self instvar ns_ agent_ node_
 	$self instvar defaultTree_
 
-	set change 0
 	if { ![$agent_ exists-treetype $group] } {
 		$agent_ set treetype($group) $defaultTree
-		set tmp [$agent_ set Glist]
-		if { [lsearch $tmp $group] < 0 } {
-			lappend tmp $group
-			$agent_ set Glist $tmp
-		}
+		$agent_ add-to-list Glist $group
 	}
 	if { [$node_ id] == $srcID } {
 		set RP [$self get_rp $group]
@@ -152,22 +122,8 @@ CtrMcast instproc handle-cache-miss { srcID group iface } {
 		}
 		
 		### add into global source list
-		if [$agent_ exists-Slist $group] {
-			set k [lsearch [$agent_ set Slist($group)] [$node_ id]]
-			if { $k < 0 } {
-				set tmp [$agent_ set Slist($group)]
-				lappend tmp [$node_ id] 
-				$agent_ set Slist($group) $tmp
-				set change 1
-			}
-		} else { 
-			$agent_ set Slist($group) "[$node_ id]" 
-			set change 1
-		}
-
-		### decide what tree to build acrding to tree type
-		if { $change } {
-			### new source, so compute tree
+		if [$agent_ add-to-list Slist($group) [$node_ id]] {
+			# new source, so compute tree
 			$agent_ compute-tree [$node_ id] $group
 		}
 	}
@@ -265,6 +221,3 @@ Node instproc getRegreplicator group {
 		return -1
 	}
 }
-
-
-

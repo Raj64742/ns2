@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.14 1998/05/09 00:35:53 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.14.2.1 1998/10/15 21:38:10 kannan Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -307,6 +307,17 @@ Topology/net1-DVm1 instproc init ns {
 #
 
 Class NodeTopology/6nodes -superclass SkelTopology
+NodeTopology/6nodes instproc init ns {
+    $self next
+
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(r2) [$ns node]
+    set node_(s3) [$ns node]
+    set node_(s4) [$ns node]
+}
 
 #
 # Create a simple six node topology:
@@ -319,18 +330,6 @@ Class NodeTopology/6nodes -superclass SkelTopology
 #         /                 \
 #        s2                 s4 
 #
-
-NodeTopology/6nodes instproc init ns {
-    $self next
-
-    $self instvar node_
-    set node_(s1) [$ns node]
-    set node_(s2) [$ns node]
-    set node_(r1) [$ns node]
-    set node_(r2) [$ns node]
-    set node_(s3) [$ns node]
-    set node_(s4) [$ns node]
-}
 
 Class Topology/cbq1 -superclass NodeTopology/6nodes
 Topology/cbq1 instproc init ns {
@@ -707,3 +706,338 @@ Topology/net3RED-DVm1 instproc init ns {
     $self checkConfig $class $ns
 }
 
+Class NodeTopology/4nodes/multicast -superclass NodeTopology/4nodes
+NodeTopology/4nodes/multicast instproc init ns {
+    $self next $ns
+
+    $self instvar node_
+
+    # The unicast version contains two sources, s1, s2, one router, r1, and
+    # one sink, k1.  Remap these into n0, n1, n2, and n3, for the multicast
+    # test suite.
+
+    foreach {old new} {s1 n0 s2 n1 r1 n2 k1 n3} {
+	set node_($new) $node_($old)
+	unset node_($old)
+    }
+}
+
+
+Class Topology/net4a -superclass NodeTopology/4nodes/multicast
+
+# Create a simple four node topology:
+#
+#	              n3
+#	             / 
+#       1.5Mb,10ms  / 1.5Mb,10ms                              
+#    n0 --------- n1
+#                  \  1.5Mb,10ms
+#	            \ 
+#	             n2
+#
+
+Topology/net4a instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net4b -superclass NodeTopology/4nodes/multicast
+
+# 4 nodes on the same LAN
+#
+#           n0   n1
+#           |    |
+#       -------------
+#           |    |
+#           n2   n3
+#
+#
+ 
+Topology/net4b instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
+     if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class NodeTopology/5nodes/multicast -superclass SkelTopology
+NodeTopology/5nodes/multicast instproc init ns {
+    $self next
+
+    $self instvar node_
+    set node_(n0) [$ns node]
+    set node_(n1) [$ns node]
+    set node_(n2) [$ns node]
+    set node_(n3) [$ns node]
+    set node_(n4) [$ns node]
+}
+
+
+Class Topology/net5a -superclass NodeTopology/5nodes/multicast
+
+#
+# Create a simple five node topology:
+#
+#                  n4
+#                 /  \                    
+#               n3    n2
+#               |     |
+#               n0    n1
+#
+# All links are of 1.5Mbps bandwidth with 10ms latency
+#
+
+Topology/net5a instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n1) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+
+Class Topology/net5b -superclass NodeTopology/5nodes/multicast
+
+#
+# Create a five node topology:
+#
+#                  n4
+#                 /  \                    
+#               n3----n2
+#               |     |
+#               n0    n1
+#
+# All links are of 1.5Mbps bandwidth with 10ms latency
+#
+
+Topology/net5b instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n1) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net5c -superclass NodeTopology/5nodes/multicast
+
+#
+# Create a five node topology:
+#
+#                  n4
+#                 /  \                    
+#               n3----n2
+#               | \  /|
+#               |  \  |
+#               | / \ |
+#               n0    n1
+#
+# All links are of 1.5Mbps bandwidth with 10ms latency
+#
+
+Topology/net5c instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
+    if {[$class info instprocs config] != ""} {
+	    $self config $ns
+    }
+}
+
+
+Class Topology/net5d -superclass NodeTopology/5nodes/multicast
+
+#
+# Create a five node topology:
+#
+#                  n4
+#                 /  \                    
+#               n3----n2
+#               | \  /|
+#               |  \  |
+#               | / \ |
+#               n0----n1
+#
+# All links are of 1.5Mbps bandwidth with 10ms latency
+#
+
+Topology/net5d instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
+    if {[$class info instprocs config] != ""} {
+	    $self config $ns
+    }
+}
+
+
+Class Topology/net5e -superclass NodeTopology/5nodes/multicast
+
+#
+# Create a five node topology with 4 nodes on a LAN:
+#
+#                  n4
+#                 /  \                    
+#               n3    n2
+#               |     |
+#             -----------
+#               |     |
+#               n0    n1
+#
+# All links are of 1.5Mbps bandwidth with 10ms latency
+#
+
+Topology/net5e instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail
+    if {[$class info instprocs config] != ""} {
+	    $self config $ns
+    }
+}
+
+
+Class NodeTopology/6nodes/multicast -superclass NodeTopology/6nodes
+
+NodeTopology/6nodes/multicast instproc init ns {
+    $self next $ns
+
+    $self instvar node_
+    foreach {old new} {s1 n0 s2 n1 r1 n2 r2 n3 s3 n4 s4 n5} {
+	set node_($new) $node_($old)
+	unset node_($old)
+    }
+}
+
+
+Class Topology/net6a -superclass NodeTopology/6nodes/multicast
+
+#
+# Create a simple six node topology:
+#
+#                  n0
+#                 /  \                    
+#               n1    n2
+#              /  \  /  \
+#             n3   n4   n5
+#
+# All links are of 1.5Mbps bandwidth with 10ms latency
+#
+
+Topology/net6a instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n1) $node_(n4) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
+    $ns duplex-link $node_(n2) $node_(n5) 1.5Mb 10ms DropTail 
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net6b -superclass NodeTopology/6nodes/multicast
+
+# 6 node topology with nodes n2, n3 and n5 on a LAN.
+#
+#          n4
+#          |
+#          n3
+#          |
+#    --------------
+#      |       |
+#      n5      n2
+#      |       |
+#      n0      n1
+#
+# All point-to-point links have 1.5Mbps Bandwidth, 10ms latency.
+#
+
+Topology/net6b instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns multi-link-of-interfaces [list $node_(n5) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n4) $node_(n3) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n5) $node_(n0) 1.5Mb 10ms DropTail
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+
+Class NodeTopology/8nodes/multicast -superclass NodeTopology/8nodes
+
+NodeTopology/8nodes instproc init ns {
+    $self next
+
+    $self instvar node_
+    foreach {old new} {s1 n0 s2 n1 s3 n2 s4 n3 r1 n4 r2 n5 r3 n6 r4 n7} {
+	set node_($new) $node_($old)
+	unset node_($old)
+    }
+}
+
+Class Topology/net8a -superclass NodeTopology/8nodes/multicast
+
+# 8 node topology with nodes n2, n3, n4 and n5 on a LAN.
+#
+#      n0----n1     
+#      |     |
+#      n2    n3
+#      |     |
+#    --------------
+#      |     |
+#      n4    n5
+#      |     |
+#      n6    n7
+#
+# All point-to-point links have 1.5Mbps Bandwidth, 10ms latency.
+#
+
+Topology/net8a instproc init ns {
+    $self next $ns
+    $self instvar node_
+    $ns multi-link-of-interfaces [list $node_(n2) $node_(n3) $node_(n4) $node_(n5)] 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n4) $node_(n6) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n5) $node_(n7) 1.5Mb 10ms DropTail
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}

@@ -8,16 +8,20 @@
 # 
 Class Timer
 
+Timer instproc init ns {
+	$self set ns_ $ns
+	$self next
+}
+
 # sched is the same as resched; the previous setting is cancelled
 # and another event is scheduled. No state is kept for the timers.
 # This is different than the C++ timer API in timer-handler.cc,h; where a 
 # sched aborts if the timer is already set. C++ timers maintain state 
 # (e.g. IDLE, PENDING..etc) that is checked before the timer is scheduled.
 Timer instproc sched delay {
-	$self instvar ns
-	$self instvar id_
+	$self instvar ns_ id_
 	$self cancel
-	set id_ [$ns at [expr [$ns now] + $delay] "$self timeout"]
+	set id_ [$ns_ after $delay "$self timeout"]
 }
 
 Timer instproc destroy {} {
@@ -25,10 +29,9 @@ Timer instproc destroy {} {
 }
 
 Timer instproc cancel {} {
-	$self instvar ns
-	$self instvar id_
+	$self instvar ns_ id_
 	if [info exists id_] {
-		$ns cancel $id_
+		$ns_ cancel $id_
 		unset id_
 	}
 }
@@ -42,4 +45,3 @@ Timer instproc resched delay {
 Timer instproc expire {} {
 	$self timeout
 }
-

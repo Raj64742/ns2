@@ -59,7 +59,6 @@ Simulator instproc clear-mcast {} {
 Simulator instproc mrtproto {mproto nodeList} {
 	$self instvar Node_ MrtHandle_
 	# assert [Class info instances $mproto] $mproto
-	puts stderr "[format %7.4f [$self now]]\t$self $proc $mproto $nodeList"
 	set mproto_args { $node }
 	if { $nodeList == "" } {
 		set mproto_args { $Node_($node) }

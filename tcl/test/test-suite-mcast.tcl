@@ -11,512 +11,16 @@
 # ns test-suite-mcast.tcl
 #
 
-Class TestSuite
+set dir [pwd]
+catch "cd tcl/test"
+source misc.tcl
+source topologies.tcl
+catch "cd $dir"
 
-TestSuite instproc init {} {
-	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
-	set ns_ [new Simulator]
-	Simulator set EnableMcast_ 1
-	$ns_ use-scheduler List
-
-	$ns_ trace-all [open all.tr w]
-	if {$net_ == ""} {
-		set net_ $defNet_
-	}
-	if ![Topology/$defNet_ info subclass Topology/$net_] {
-		global argv0
-		puts "$argv0: cannot run test $test_ over topology $net_"
-		exit 1
-	}
-
-	set topo_ [new Topology/$net_ $ns_]
-	foreach i [$topo_ array names node_] {
-		# This would be cool, but lets try to be compatible
-		# with test-suite.tcl as far as possible.
-		#
-		# $self instvar $i
-		# set $i [$topo_ node? $i]
-		#
-		set node_($i) [$topo_ node? $i]
-	}
-
-	if {$net_ == $defNet_} {
-		set testName_ "$test_"
-	} else {
-		set testName_ "$test_:$net_"
-	}
+# Method to create the multicast simulator...
+TestSuite instproc get-simulator {} {
+	new Simulator -multicast 1		;# viola
 }
-
-TestSuite instproc finish { file } {
-	$self instvar ns_
-	
-	$ns_ flush-trace
-#	exec awk -f ../nam-demo/nstonam.awk all.tr > [append file \.tr]
-#	puts "running nam ..."
-#	exec nam $file &
-	exit 0
-}
-
-TestSuite instproc openTrace { stopTime testName } {
-	$self instvar ns_
-	exec rm -f all.tr
-	set traceFile [open all.tr w]
-	puts $traceFile "v testName $testName"
-	$ns_ at $stopTime \
-		"close $traceFile ; $self finish $testName"
-	return $traceFile
-}
-
-proc usage {} {
-	global argv0
-	puts stderr "usage: ns $argv0 <tests> \[<topologies>\]"
-	puts stderr "Valid tests are:\t[get-subclasses TestSuite Test/]"
-	puts stderr "Valid Topologies are:\t[get-subclasses SkelTopology Topology/]"
-	exit 1
-}
-
-proc isProc? {cls prc} {
-	if [catch "Object info subclass $cls/$prc" r] {
-		global argv0
-		puts stderr "$argv0: no such $cls: $prc"
-		usage
-	}
-}
-
-proc get-subclasses {cls pfx} {
-	set ret ""
-	set l [string length $pfx]
-
-	set c $cls
-	while {[llength $c] > 0} {
-		set t [lindex $c 0]
-		set c [lrange $c 1 end]
-		if [string match ${pfx}* $t] {
-			lappend ret [string range $t $l end]
-		}
-		eval lappend c [$t info subclass]
-	}
-	set ret
-}
-
-TestSuite proc runTest {} {
-	global argc argv
-
-	switch $argc {
-		1 {
-			set test $argv
-			isProc? Test $test
-
-			set topo ""
-		}
-		2 {
-			set test [lindex $argv 0]
-			isProc? Test $test
-
-			set topo [lindex $argv 1]
-			isProc? Topology $topo
-		}
-		default {
-			usage
-		}
-	}
-	set t [new Test/$test $topo]
-	$t run
-}
-
-# Skeleton topology base class
-Class SkelTopology
-
-SkelTopology instproc init {} {
-    $self next
-}
-
-SkelTopology instproc node? n {
-    $self instvar node_
-    if [info exists node_($n)] {
-	set ret $node_($n)
-    } else {
-	set ret ""
-    }
-    set ret
-}
-
-SkelTopology instproc add-fallback-links {ns nodelist bw delay qtype args} {
-   $self instvar node_
-    set n1 [lindex $nodelist 0]
-    foreach n2 [lrange $nodelist 1 end] {
-	if ![info exists node_($n2)] {
-	    set node_($n2) [$ns node]
-	}
-	$ns duplex-link $node_($n1) $node_($n2) $bw $delay $qtype
-	foreach opt $args {
-	    set cmd [lindex $opt 0]
-	    set val [lindex $opt 1]
-	    if {[llength $opt] > 2} {
-		set x1 [lindex $opt 2]
-		set x2 [lindex $opt 3]
-	    } else {
-		set x1 $n1
-		set x2 $n2
-	    }
-	    $ns $cmd $node_($x1) $node_($x2) $val
-	    $ns $cmd $node_($x2) $node_($x1) $val
-	}
-	set n1 $n2
-    }
-}
-
-
-Class NodeTopology/4nodes -superclass SkelTopology
-
-
-NodeTopology/4nodes instproc init ns {
-    $self next
-
-    $self instvar node_
-    set node_(n0) [$ns node]
-    set node_(n1) [$ns node]
-    set node_(n2) [$ns node]
-    set node_(n3) [$ns node]
-}
-
-
-Class Topology/net4a -superclass NodeTopology/4nodes
-
-# Create a simple four node topology:
-#
-#	              n3
-#	             / 
-#       1.5Mb,10ms  / 1.5Mb,10ms                              
-#    n0 --------- n1
-#                  \  1.5Mb,10ms
-#	            \ 
-#	             n2
-#
-
-Topology/net4a instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Simulator set NumberInterfaces_ 1
-    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
-}
-
-Class Topology/net4b -superclass NodeTopology/4nodes
-
-# 4 nodes on the same LAN
-#
-#           n0   n1
-#           |    |
-#       -------------
-#           |    |
-#           n2   n3
-#
-#
- 
-Topology/net4b instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Simulator set NumberInterfaces_ 1
-    $ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
-     if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
-}
-
-Class NodeTopology/5nodes -superclass SkelTopology
-
-NodeTopology/5nodes instproc init ns {
-    $self next
-
-    $self instvar node_
-    set node_(n0) [$ns node]
-    set node_(n1) [$ns node]
-    set node_(n2) [$ns node]
-    set node_(n3) [$ns node]
-    set node_(n4) [$ns node]
-}
-
-
-Class Topology/net5a -superclass NodeTopology/5nodes
-
-#
-# Create a simple five node topology:
-#
-#                  n4
-#                 /  \                    
-#               n3    n2
-#               |     |
-#               n0    n1
-#
-# All links are of 1.5Mbps bandwidth with 10ms latency
-#
-
-Topology/net5a instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Simulator set NumberInterfaces_ 1
-    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n1) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
-}
-
-
-Class Topology/net5b -superclass NodeTopology/5nodes
-
-#
-# Create a five node topology:
-#
-#                  n4
-#                 /  \                    
-#               n3----n2
-#               |     |
-#               n0    n1
-#
-# All links are of 1.5Mbps bandwidth with 10ms latency
-#
-
-Topology/net5b instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Simulator set NumberInterfaces_ 1
-    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n1) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
-}
-
-Class Topology/net5c -superclass NodeTopology/5nodes
-
-#
-# Create a five node topology:
-#
-#                  n4
-#                 /  \                    
-#               n3----n2
-#               | \  /|
-#               |  \  |
-#               | / \ |
-#               n0    n1
-#
-# All links are of 1.5Mbps bandwidth with 10ms latency
-#
-
-Topology/net5c instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Simulator set NumberInterfaces_ 1
-    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
-    if {[$class info instprocs config] != ""} {
-	    $self config $ns
-    }
-}
-
-
-Class Topology/net5d -superclass NodeTopology/5nodes
-
-#
-# Create a five node topology:
-#
-#                  n4
-#                 /  \                    
-#               n3----n2
-#               | \  /|
-#               |  \  |
-#               | / \ |
-#               n0----n1
-#
-# All links are of 1.5Mbps bandwidth with 10ms latency
-#
-
-Topology/net5d instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Simulator set NumberInterfaces_ 1
-    $ns duplex-link $node_(n0) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail 
-    if {[$class info instprocs config] != ""} {
-	    $self config $ns
-    }
-}
-
-
-Class Topology/net5e -superclass NodeTopology/5nodes
-
-#
-# Create a five node topology with 4 nodes on a LAN:
-#
-#                  n4
-#                 /  \                    
-#               n3    n2
-#               |     |
-#             -----------
-#               |     |
-#               n0    n1
-#
-# All links are of 1.5Mbps bandwidth with 10ms latency
-#
-
-Topology/net5e instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Simulator set NumberInterfaces_ 1
-    $ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail
-    if {[$class info instprocs config] != ""} {
-	    $self config $ns
-    }
-}
-
-
-Class NodeTopology/6nodes -superclass SkelTopology
-
-NodeTopology/6nodes instproc init ns {
-    $self next
-
-    $self instvar node_
-    set node_(n0) [$ns node]
-    set node_(n1) [$ns node]
-    set node_(n2) [$ns node]
-    set node_(n3) [$ns node]
-    set node_(n4) [$ns node]
-    set node_(n5) [$ns node]
-}
-
-
-Class Topology/net6a -superclass NodeTopology/6nodes
-
-#
-# Create a simple six node topology:
-#
-#                  n0
-#                 /  \                    
-#               n1    n2
-#              /  \  /  \
-#             n3   n4   n5
-#
-# All links are of 1.5Mbps bandwidth with 10ms latency
-#
-
-Topology/net6a instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Simulator set NumberInterfaces_ 1
-    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n1) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail 
-    $ns duplex-link $node_(n2) $node_(n5) 1.5Mb 10ms DropTail 
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
-}
-
-Class Topology/net6b -superclass NodeTopology/6nodes
-
-# 6 node topology with nodes n2, n3 and n5 on a LAN.
-#
-#          n4
-#          |
-#          n3
-#          |
-#    --------------
-#      |       |
-#      n5      n2
-#      |       |
-#      n0      n1
-#
-# All point-to-point links have 1.5Mbps Bandwidth, 10ms latency.
-#
-
-Topology/net6b instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Simulator set NumberInterfaces_ 1
-    $ns multi-link-of-interfaces [list $node_(n5) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n1) $node_(n2) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n4) $node_(n3) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n5) $node_(n0) 1.5Mb 10ms DropTail
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
-}
-
-
-Class NodeTopology/8nodes -superclass SkelTopology
-
-NodeTopology/8nodes instproc init ns {
-    $self next
-
-    $self instvar node_
-    set node_(n0) [$ns node]
-    set node_(n1) [$ns node]
-    set node_(n2) [$ns node]
-    set node_(n3) [$ns node]
-    set node_(n4) [$ns node]
-    set node_(n5) [$ns node]
-    set node_(n6) [$ns node]
-    set node_(n7) [$ns node]
-}
-
-Class Topology/net8a -superclass NodeTopology/8nodes
-
-# 8 node topology with nodes n2, n3, n4 and n5 on a LAN.
-#
-#      n0----n1     
-#      |     |
-#      n2    n3
-#      |     |
-#    --------------
-#      |     |
-#      n4    n5
-#      |     |
-#      n6    n7
-#
-# All point-to-point links have 1.5Mbps Bandwidth, 10ms latency.
-#
-
-Topology/net8a instproc init ns {
-    $self next $ns
-    $self instvar node_
-    Simulator set NumberInterfaces_ 1
-    $ns multi-link-of-interfaces [list $node_(n2) $node_(n3) $node_(n4) $node_(n5)] 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n4) $node_(n6) 1.5Mb 10ms DropTail
-    $ns duplex-link $node_(n5) $node_(n7) 1.5Mb 10ms DropTail
-    if {[$class info instprocs config] != ""} {
-	$self config $ns
-    }
-}
-
 
 # Definition of test-suite tests
 
@@ -527,7 +31,7 @@ Test/DM1 instproc init topo {
 	set net_	$topo
 	set defNet_	net4a
 	set test_	DM1
-	$self next
+	$self next 1
 }
 Test/DM1 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -536,31 +40,34 @@ Test/DM1 instproc run {} {
 	set mrthandle [$ns_ mrtproto $mproto {}]
 	
 	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n1) $cbr0
 	$cbr0 set dst_ 0x8001
+	$ns_ attach-agent $node_(n1) $cbr0
+	$ns_ at 1.0 "$cbr0 start"
 	
 	set cbr1 [new Agent/CBR]
 	$cbr1 set dst_ 0x8002
 	$cbr1 set class_ 1
 	$ns_ attach-agent $node_(n3) $cbr1
+	$ns_ at 1.1 "$cbr1 start"
+
+	set rcvr [new Agent/LossMonitor]	;# multicast sink
+	$ns_ attach-agent $node_(n2) $rcvr
+	#
+	$ns_ at 1.35 "$node_(n2) join-group $rcvr 0x8001"
+	#
+	$ns_ at 1.2 "$node_(n2) join-group $rcvr 0x8002"
+	$ns_ at 1.25 "$node_(n2) leave-group $rcvr 0x8002"
+	$ns_ at 1.3 "$node_(n2) join-group $rcvr 0x8002"
 
 	set tcp [new Agent/TCP]
 	set sink [new Agent/TCPSink]
 	$ns_ attach-agent $node_(n0) $tcp
 	$ns_ attach-agent $node_(n3) $sink
 	$ns_ connect $tcp $sink
+
 	set ftp [new Source/FTP]
 	$ftp set agent_ $tcp
-	
-	set rcvr [new Agent/LossMonitor]
-	$ns_ attach-agent $node_(n2) $rcvr
-	$ns_ at 1.2 "$node_(n2) join-group $rcvr 0x8002; $ftp start"
-	$ns_ at 1.25 "$node_(n2) leave-group $rcvr 0x8002"
-	$ns_ at 1.3 "$node_(n2) join-group $rcvr 0x8002"
-	$ns_ at 1.35 "$node_(n2) join-group $rcvr 0x8001"
-	
-	$ns_ at 1.0 "$cbr0 start"
-	$ns_ at 1.1 "$cbr1 start"
+	$ns_ at 1.2 "$ftp start"
 	
 	$ns_ at 1.8 "$self finish 4a-nam"
 	$ns_ run
@@ -574,7 +81,7 @@ Test/DM2 instproc init topo {
 	set net_	$topo
 	set defNet_	net6a
 	set test_	DM2
-	$self next
+	$self next 1
 }
 Test/DM2 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -589,17 +96,18 @@ Test/DM2 instproc run {} {
 	$ns_ attach-agent $node_(n0) $cbr0
 	$cbr0 set dst_ 0x8002
 	
-	set rcvr [new Agent/LossMonitor]
+	set rcvr [new Agent/LossMonitor]	;# generic multicast sink
+	
 	$ns_ attach-agent $node_(n3) $rcvr
-	$ns_ attach-agent $node_(n4) $rcvr
-	$ns_ attach-agent $node_(n5) $rcvr
-	
 	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
-	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
 	$ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
-	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
 	$ns_ at 0.95 "$node_(n3) join-group $rcvr 0x8002"
+
+	$ns_ attach-agent $node_(n4) $rcvr
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
 	
+	$ns_ attach-agent $node_(n5) $rcvr
 	$ns_ at 0.3 "$cbr0 start"
 	$ns_ at 1.0 "$self finish 6a-nam"
 	
@@ -614,7 +122,7 @@ Test/CtrMcast1 instproc init topo {
 	set net_	$topo
 	set defNet_	net4a
 	set test_	CtrMcast1
-	$self next
+	$self next 1
 }
 # source and RP on same node
 Test/CtrMcast1 instproc run {} {
@@ -670,7 +178,7 @@ Test/CtrMcast2 instproc init topo {
 	set net_	$topo
 	set defNet_	net6a
 	set test_	CtrMcast2
-	$self next
+	$self next 1
 }
 Test/CtrMcast2 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -716,14 +224,15 @@ Test/detailedDM1 instproc init topo {
 	set net_	$topo
 	set defNet_	net6a
 	set test_	detailedDM1
-	$self next
+	$self next 1
 }
 Test/detailedDM1 instproc run {} {
 	$self instvar ns_ node_ testName_
 
 	$ns_ rtproto Session
+
 	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
+	Timer/Iface/Prune set timeout 0.3
 	set mproto detailedDM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
@@ -731,20 +240,21 @@ Test/detailedDM1 instproc run {} {
 	set cbr0 [new Agent/CBR]
 	$ns_ attach-agent $node_(n0) $cbr0
 	$cbr0 set dst_ 0x8002
-	
-	set rcvr [new Agent/LossMonitor]
+	$ns_ at 0.1 "$cbr0 start"
+
+	set rcvr [new Agent/LossMonitor]	;# generic multicast sink
 	$ns_ attach-agent $node_(n3) $rcvr
-	$ns_ attach-agent $node_(n4) $rcvr
-	$ns_ attach-agent $node_(n5) $rcvr
-	
 	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
-	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
 	$ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
-	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
 	$ns_ at 1.15 "$node_(n3) join-group $rcvr 0x8002"
 	$ns_ at 1.8 "$node_(n3) leave-group $rcvr 0x8002"
+
+	$ns_ attach-agent $node_(n4) $rcvr
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
 	
-	$ns_ at 0.1 "$cbr0 start"
+	$ns_ attach-agent $node_(n5) $rcvr
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
+	
 	$ns_ at 2.0 "$self finish 6a-nam"
 
 	$ns_ run
@@ -757,14 +267,14 @@ Test/detailedDM2 instproc init topo {
 	set net_	$topo
 	set defNet_	net6a
 	set test_	detailedDM2
-	$self next
+	$self next 1
 }
 Test/detailedDM2 instproc run {} {
 	$self instvar ns_ node_ testName_
 
 	$ns_ rtproto Session
 	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
+	Timer/Iface/Prune set timeout 0.3
 	set mproto detailedDM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
@@ -802,14 +312,14 @@ Test/detailedDM3 instproc init topo {
 	set net_	$topo
 	set defNet_	net6a
 	set test_	detailedDM3
-	$self next
+	$self next 1
 }
 Test/detailedDM3 instproc run {} {
 	$self instvar ns_ node_ testName_
 
 	$ns_ rtproto Session
 	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
+	Timer/Iface/Prune set timeout 0.3
 	set mproto detailedDM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
@@ -847,14 +357,14 @@ Test/detailedDM4 instproc init topo {
 	set net_	$topo
 	set defNet_	net6a
 	set test_	detailedDM4
-	$self next
+	$self next 1
 }
 Test/detailedDM4 instproc run {} {
 	$self instvar ns_ node_ testName_
 
 	$ns_ rtproto Session
 	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
+	Timer/Iface/Prune set timeout 0.3
 	set mproto detailedDM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
@@ -893,15 +403,15 @@ Test/detailedDM5 instproc init topo {
 	set net_	$topo
 	set defNet_	net8a
 	set test_	detailedDM5
-	$self next
+	$self next 1
 }
 Test/detailedDM5 instproc run {} {
 	$self instvar ns_ node_ testName_
 
 	$ns_ rtproto Session
 	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
-	Deletion/Iface/Timer set timeout 0.1
+	Timer/Iface/Prune set timeout 0.3
+	Timer/Iface/Deletion set timeout 0.1
 	set mproto detailedDM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
@@ -934,15 +444,15 @@ Test/detailedDM6 instproc init topo {
 	set net_	$topo
 	set defNet_	net8a
 	set test_	detailedDM6
-	$self next
+	$self next 1
 }
 Test/detailedDM6 instproc run {} {
 	$self instvar ns_ node_ testName_
 
 	$ns_ rtproto Session
 	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
-	Deletion/Iface/Timer set timeout 0.1
+	Timer/Iface/Prune set timeout 0.3
+	Timer/Iface/Deletion set timeout 0.1
 	set mproto detailedDM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
@@ -979,15 +489,15 @@ Test/detailedDM7 instproc init topo {
 	set net_	$topo
 	set defNet_	net8a
 	set test_	detailedDM7
-	$self next
+	$self next 1
 }
 Test/detailedDM7 instproc run {} {
 	$self instvar ns_ node_ testName_
 
 	$ns_ rtproto Session
 	### Start multicast configuration
-	Prune/Iface/Timer set timeout 0.3
-	Deletion/Iface/Timer set timeout 0.1
+	Timer/Iface/Prune set timeout 0.3
+	Timer/Iface/Deletion set timeout 0.1
 	set mproto detailedDM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config

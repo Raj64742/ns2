@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.18 1998/02/07 05:57:04 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.18.2.1 1998/10/15 21:38:08 kannan Exp $
 #
 
 #source plotting.tcl
@@ -55,6 +55,7 @@ TestSuite instproc init { {dotrace 1} } {
 	if [catch "$self get-simulator" ns_] {
 	    set ns_ [new Simulator]
 	}
+# This should be specific to those tests that want this feature.
 	if { $dotrace } {
                 set allchan_ [open all.tr w]
                 $ns_ trace-all $allchan_
@@ -90,13 +91,13 @@ TestSuite instproc init { {dotrace 1} } {
 	}
 
 	if { $dotrace } {
-		# XXX
-		if [info exists node_(k1)] {
-			set blink [$ns_ link $node_(r1) $node_(k1)]
-		} else {
-			set blink [$ns_ link $node_(r1) $node_(r2)] 
+		# XXX --- TCP-ish specific.  Maybe this should go into
+		# get-simulator{}...Cf. test-suite-mcast.tcl.
+		#
+		if { ![catch "$ns_ link $node_(r1) $node_(k1)" blink] ||    \
+		     ![catch "$ns_ link $node_(r1) $node_(r2)" blink] } {
+			$blink trace-dynamics $ns_ stdout 
 		}
-		$blink trace-dynamics $ns_ stdout 
 	}
 }
 
