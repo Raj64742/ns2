@@ -1185,7 +1185,7 @@ fprintf(stderr, "sending Reply from %d at %.2f\n", index, Scheduler::instance().
 }
 
 void
-AODV::sendError(Packet *p, bool jitter = true) {
+AODV::sendError(Packet *p, bool jitter) {
 struct hdr_cmn *ch = HDR_CMN(p);
 struct hdr_ip *ih = HDR_IP(p);
 struct hdr_aodv_error *re = HDR_AODV_ERROR(p);
