@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.34 2003/12/23 17:36:32 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.cc,v 1.35 2005/01/13 18:33:47 haldar Exp $
  *
  * Code in this file will be changed in the near future. From now on it 
  * should be treated as for backward compatibility only, although it is in
@@ -130,7 +130,7 @@ MobileNode::MobileNode(void) :
 	next_ = 0;
 	radius_ = 0;
 
-	position_update_interval_ = POSITION_UPDATE_INTERVAL;
+	position_update_interval_ = MN_POSITION_UPDATE_INTERVAL;
 	position_update_time_ = 0.0;
 	
 
@@ -466,7 +466,8 @@ MobileNode::update_position()
 {
 	double now = Scheduler::instance().clock();
 	double interval = now - position_update_time_;
-	double oldX = X_, oldY = Y_;
+	double oldX = X_;
+	//double oldY = Y_;
 
 	if ((interval == 0.0)&&(position_update_time_!=0))
 		return;         // ^^^ for list-based imprvmnt 

@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.264 2004/10/28 23:35:38 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.265 2005/01/13 18:33:50 haldar Exp $
 
 
 #
@@ -1430,6 +1430,9 @@ Simulator instproc monitor-queue { n1 n2 qtrace { sampleInterval 0.1 } } {
 Simulator instproc queue-limit { n1 n2 limit } {
 	$self instvar link_
 	[$link_([$n1 id]:[$n2 id]) queue] set limit_ $limit
+	if {[[$link_([$n1 id]:[$n2 id]) queue] info class] == "Queue/XCP"} {
+		[$link_([$n1 id]:[$n2 id]) queue] queue-limit $limit
+	}
 }
 
 Simulator instproc drop-trace { n1 n2 trace } {

@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.343 2004/10/30 19:21:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.344 2005/01/13 18:33:49 haldar Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -926,7 +926,7 @@ Agent/TCP/Fack set ss-div4_ false
 Agent/TCP/Fack set rampdown_ false
 
 Agent/TCP/Reno/XCP set timestamps_ true
-Agent/TCP/Reno/XCP set xcp_metered_output_ 1
+Agent/TCP/Reno/XCP set xcp_sparse_ false
 Agent/TCP/Reno/XCP set tcpTick_	0.01
 
 Agent/TCP set eln_ 0

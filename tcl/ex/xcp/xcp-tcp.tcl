@@ -15,16 +15,20 @@
 #         /                            
 #       ni                         
 #
-
 Queue/XCP set tcp_xcp_on_ 1
 Agent/TCP set minrto_ 1
-Queue/RED set bytes_ false ;
-Queue/RED set queue_in_bytes_ false ;
-Queue/RED set thresh_queue_ [expr 0.8 * [Queue set limit_]]
-Queue/RED set minthresh_queue_ [expr 0.6 * [Queue set limit_]]
-Queue/RED set q_weight_ 0.001
-Queue/RED set max_p_inv 10
 
+proc set-red-params { qsize } {
+
+	Queue/RED set thresh_ [expr 0.6 * $qsize]
+	Queue/RED set maxthresh_ [expr 0.8 * $qsize]
+	Queue/RED set q_weight_ 0.001
+	Queue/RED set linterm_ 10
+	Queue/RED set bytes_ false ;
+	Queue/RED set queue_in_bytes_ false ;
+	Agent/TCP set old_ecn_ true
+	Queue/RED set setbit_     true
+}
 
 
 proc create-topology2 { BW delay qtype qsize numSideLinks deltaDelay } {
@@ -236,6 +240,23 @@ proc plot-red-queue { TraceName PlotTime traceFile } {
     exec xgraph  -P -x time -y queue xgraph.red_queue &
 }
 
+proc plot-red {varname filename PlotTime} {
+    
+    exec rm -f temp.$filename
+    exec touch temp.$filename
+    
+    set result [exec awk -v PlotTime=$PlotTime -v what=$varname -v file=temp.$filename {
+	{
+	    if (( $1 == what ) && ($2 > PlotTime)) {
+		print $2, $3 >> file ;
+	    }  
+	}
+    } ft_red_Bottleneck.tr]
+
+    exec xgraph -P -x time -y $filename temp.$filename
+}
+
+
 
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Initializing Simulator -*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-#
 # BW is in Mbs and delay is in ms
@@ -261,7 +282,7 @@ $ns trace-all $f_all
 
 set  qSize  [expr round([expr ($BW / 8.0) * 4 * $delay * 1.0])];#set buffer to the pipe size
 
-set qSize [expr $qSize/4]
+#set qSize [expr $qSize/4]
 
 set tracedXCPs       "0 1 2 3"
 set SimStopTime      30
@@ -272,21 +293,23 @@ set PlotTime         0
 #---------- Create the simulation --------------------#
 
 # Create topology
+set-red-params $qSize
 create-topology2 $BW $delay $qType $qSize $nXCPs 0.0
+
 
 foreach link $all_links {
     set queue [$link queue]
     switch $qType {
 	"XCP" {
-	    $queue set-link-capacity [[$link set link_] set bandwidth_];
+		$queue set-link-capacity [[$link set link_] set bandwidth_];
 	}
 	"DropTail/XCP" {
-	    $queue set-link-capacity-Kbytes [expr [[$link set link_] set bandwidth_] / 8000];
+		$queue set-link-capacity-Kbytes [expr [[$link set link_] set bandwidth_] / 8000];
 	}
-	default {
-		puts "Incorrect qType $qType"
-		exit 0
-	}
+	    default {
+		    puts "Incorrect qType $qType"
+		    exit 0
+	    }
     }
 }
 
@@ -300,8 +323,8 @@ while { $i < $nXCPs  } {
     set src$i         [new GeneralSender $i [set n$i] $rcvr_XCP "$StartTime TCP/Reno/XCP"]
 	#[[set src$i] set tcp_]  set  packetSize_ [expr 100 * ($i +10)]
 	[[set src$i] set tcp_]  set  packetSize_ 1000
-    [[set src$i] set tcp_]  set  window_     [expr $qSize * 10]
-    incr i
+	[[set src$i] set tcp_]  set  window_     [expr $qSize * 10]
+	incr i
 }
 
 set StartTime 0.0900000000000000023
@@ -317,7 +340,7 @@ incr i
 
  
 #---------- Trace --------------------#
-
+set i 0
 # Trace sources
 foreach i $tracedXCPs {
 	[set src$i] trace-xcp "cwnd seqno"
@@ -386,11 +409,11 @@ flush-files
 set PostProcess 1
 if { $PostProcess } {
     #--- Traced TCPs
-    set TraceName "Flows --$qType-QS$qSize"
-    plot-xcp      $TraceName  $tracedXCPs  0.0  "cwnd_"
-    plot-xcp      $TraceName  $tracedXCPs  0.0  "t_seqno_"
-
-    plot-xcp-queue  $TraceName  $PlotTime   ft_red_Bottleneck.tr
-    plot-red-queue  $TraceName  $PlotTime   tcp.tr
-    
+	set TraceName "Flows --$qType-QS$qSize"
+	plot-xcp      $TraceName  $tracedXCPs  0.0  "cwnd_"
+	plot-xcp      $TraceName  $tracedXCPs  0.0  "t_seqno_"
+	
+	#plot-xcp-queue  $TraceName  $PlotTime   ft_red_Bottleneck.tr
+	#plot-red-queue  $TraceName  $PlotTime   tcp.tr
+	plot-red "u" util 0.0
 }

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.34 2004/10/28 23:35:37 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.35 2005/01/13 18:33:48 haldar Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -141,7 +141,7 @@ public:
 	/* max utilization over recent time period.
 	   Returns the maximum of recent measurements stored in util_buf_*/
 	double peak_utilization(void);
-	~Queue();
+	virtual ~Queue();
 protected:
 	Queue();
 	void reset();
@@ -165,8 +165,8 @@ protected:
 	double period_begin_;	/* time of starting the current utilization
 				   measurement */
 	double cur_util_;	/* utilization during current time period */
-	double *util_buf_;    /* Buffer for recent utilization measurements */
 	int buf_slot_;		/* Currently active utilization buffer */
+	double *util_buf_;    /* Buffer for recent utilization measurements */
 	int util_records_;	/* Number of recent utilization measurements
 				   stored in memory. One slot in buffer holds
 				   period of util_check_intv_ seconds. */

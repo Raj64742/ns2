@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.h,v 1.20 2004/10/11 17:06:42 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.h,v 1.21 2005/01/13 18:33:47 haldar Exp $
  *
  */
 
@@ -46,7 +46,7 @@
 #ifndef __ns_mobilenode_h__
 #define __ns_mobilenode_h__
 
-#define POSITION_UPDATE_INTERVAL	30.0   // seconds
+#define MN_POSITION_UPDATE_INTERVAL	30.0   // seconds
 #define MAX_SPEED			5.0    // meters per second (33.55 mph)
 #define MIN_SPEED			0.0
 

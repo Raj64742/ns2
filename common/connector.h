@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.h,v 1.9 1998/12/08 23:43:06 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/connector.h,v 1.10 2005/01/13 18:33:47 haldar Exp $
  */
 
 #ifndef ns_connector_h
@@ -47,6 +47,7 @@ public:
 	Connector();
 	inline NsObject* target() { return target_; }
 	virtual void drop(Packet* p);
+	void setDropTarget(NsObject *dt) {drop_ = dt; } 
 protected:
 	virtual void drop(Packet* p, const char *s);
 	int command(int argc, const char*const* argv);

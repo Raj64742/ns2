@@ -6,12 +6,6 @@
 # Descrp: parking lot topo
 #         
 Agent/TCP set minrto_ 1
-Queue/RED set bytes_ true ;
-Queue/RED set queue_in_bytes_ true ;
-Queue/RED set thresh_queue_ [expr 0.8 * [Queue set limit_]]
-Queue/RED set minthresh_queue_ [expr 0.6 * [Queue set limit_]]
-Queue/RED set q_weight_ 0.001
-Queue/RED set max_p_inv 10
 
  #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Utility Functions -*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-#
 
@@ -37,59 +31,49 @@ proc create-string-topology {numHops BW_list d_list qtype_list qsize_list } {
     }
 
 	# compute the pipe assuming packet size is 1000 bytes, delays are in msec and BWs are in Mbits
-    set i 0; set forwarddelay 0; global minBW; set minBW [lindex $BW_list 0];
-    while { $i < $numHops } {
-	set forwarddelay [expr $forwarddelay + [lindex $d_list $i]]
-	if {$minBW > [lindex $BW_list $i] } { set $minBW [lindex $BW_list $i] }
-	incr i
-    }
-	set pipe [expr round([expr ($minBW * 2.0 * $forwarddelay)/8.0 ])]
+	set forwarddelay 0; 
+	global minBW; 
+	set minBW [lindex $BW_list 0];
+	for { set i 0} { $i < $numHops } { incr i } {
+		set forwarddelay [expr $forwarddelay + [lindex $d_list $i]]
+		if {$minBW > [lindex $BW_list $i] } { set $minBW [lindex $BW_list $i] }
+	}
+	set pipe [expr round([expr $minBW /8 * $forwarddelay * 2])]
 
-
-    set i 0
-    while { $i < $numNodes } {
-	global n$i
-	set n$i [$ns node]
-	incr i
-    }
+	for { set i 0} { $i < $numNodes } { incr i } {
+		global n$i
+		set n$i [$ns node]
+	}
     
-    set  i 0 
-    while { $i < $numHops } {
-	set qsize [lindex $qsize_list $i]
-	set bw    [lindex $BW_list $i]
-	set delay [lindex $d_list $i]
-	set qtype [lindex $qtype_list $i]
+	for { set i 0} { $i < $numHops } { incr i } {
+		set qsize [lindex $qsize_list $i]
+		set bw    [lindex $BW_list $i]
+		set delay [lindex $d_list $i]
+		set qtype [lindex $qtype_list $i]
 
-	puts "$i bandwidth $bw"
-	if {$qsize == 0} { set qsize $pipe}
-	$ns duplex-link [set n$i] [set n[expr $i +1]] [set bw]Mb [set delay]ms $qtype
-	$ns queue-limit [set n$i] [set n[expr $i + 1]] $qsize
-	$ns queue-limit [set n[expr $i + 1]] [set n$i] $qsize
-	# Give a global handle to the Queues to allow setting the RED paramters
-	global q$i;  set  q$i   [ [$ns link [set n$i] [set n[expr $i + 1]]]  queue]
-	global rq$i; set  rq$i  [ [$ns link [set n[expr $i + 1]] [set n$i]] queue]
-	global l$i;  set  l$i   [$ns link [set n$i] [set n[expr $i + 1]]]
-	global rl$i; set  rl$i  [$ns link [set n[expr $i + 1]] [set n$i]]
-	    incr i
-    }
+		puts "$i bandwidth $bw"
+		if {$qsize == 0} { set qsize $pipe}
+		$ns duplex-link [set n$i] [set n[expr $i +1]] [set bw]Mb [set delay]ms $qtype
+		$ns queue-limit [set n$i] [set n[expr $i + 1]] $qsize
+		$ns queue-limit [set n[expr $i + 1]] [set n$i] $qsize
+		# Give a global handle to the Queues to allow setting the RED paramters
+		global q$i;  set  q$i   [ [$ns link [set n$i] [set n[expr $i + 1]]]  queue]
+		global rq$i; set  rq$i  [ [$ns link [set n[expr $i + 1]] [set n$i]] queue]
+		global l$i;  set  l$i   [$ns link [set n$i] [set n[expr $i + 1]]]
+		global rl$i; set  rl$i  [$ns link [set n[expr $i + 1]] [set n$i]]
+	}
 }
 
 
-proc set-red-params { queue qMinTh qMaxTh qWeight qLinterm } {
-    global ECN_FLAG
-
-    $queue set thresh_     $qMinTh
-    $queue set maxthresh_  $qMaxTh
-    $queue set q_weight_   $qWeight
-    $queue set linterm_    $qLinterm
-    if { $ECN_FLAG == "YES" } {
-	puts "ECN"
+proc set-red-params { qsize } {
+	Queue/RED set thresh_ [expr 0.6 * $qsize]
+	Queue/RED set maxthresh_ [expr 0.8 * $qsize]
+	Queue/RED set q_weight_ 0.001
+	Queue/RED set linterm_ 10
+	Queue/RED set bytes_ false ;
+	Queue/RED set queue_in_bytes_ false ;
 	Agent/TCP set old_ecn_ true
-	$queue set setbit_     true
-    }
-    if {[info exists GENTLE_FLAG] && ($GENTLE_FLAG == "YES")} {
-	$queue set gentle_ 1
-    }
+	Queue/RED set setbit_     true
 }
 
 proc flush-files { files } {
@@ -232,8 +216,9 @@ proc plot-red-queue { TraceName PlotTime traceFile } {
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Initializing Simulator -*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-#
 # BW is in Mbs and delay is in ms
 
-set-cmd-line-args " PostProcess seed qType BW nAllHopsTCPs delay"
+set-cmd-line-args " numHops PostProcess seed qType BW nAllHopsTCPs delay"
 
+set numNodes [expr $numHops + 1 ]
 set ns           [new Simulator]
 set rtg          [new RNG]
 $rtg seed        $seed
@@ -245,45 +230,36 @@ $rtg seed        $seed
 #set  delay  50
 
 
-set  qSize  [expr round([expr ($BW / 8.0) * 2.0 * $delay * 4.5 ])]
+set tracefd [open out.tr w]
+$ns trace-all $tracefd
+
+set  qSize  [expr round([expr ($BW / 8.0) * 2.0 * $delay * 10 ])]
+#set  qSize  [expr round([expr ($BW / 8.0) * $delay * 1000 ])]
 puts "queue is $qSize" 
 set  qEffective_RTT [expr  20 * $delay * 0.001]
 
-
-switch $qType {
-    "DropTail" {}
-    "RED" {
-	set qMaxTh    [expr round([expr $qSize * 0.6])]
-	set qMinTh    [expr round([expr $qSize * 0.3])]
-	set qWeight   0.002
-	set qLinterm  10
-	set ECN_FLAG  YES
-	set GENTLE_FLAG  YES
-    }
-    default {
-	#set qMaxTh    [expr round([expr $qSize * 0.8])]
-	#set qMinTh    [expr round([expr $qSize * 0.6])]
-	#set qWeight   [expr 0.01 / $qSize ]
-	#set qLinterm  3; #1
-	#set ECN_FLAG  YES
-	#set GENTLE_FLAG  YES
-    }
-}
+set-red-params $qSize
 
 set BW2                  [expr $BW / 2.0]
 puts "BW2 = $BW2"
-set numHops              9
-set BW_list              " $BW $BW $BW2 $BW $BW $BW $BW $BW $BW"
-set qType_list           " $qType $qType  $qType $qType  $qType $qType  $qType $qType  $qType"
-set delay_list           "$delay $delay $delay $delay $delay $delay $delay $delay $delay"
-set qSize_list           "$qSize $qSize $qSize $qSize $qSize $qSize $qSize $qSize $qSize"
-set tracedQueues         " "
-set tracedXCPs           " "
+set BW_list		{}
+set qType_list		{}
+set delay_list		{}
+set qSize_list		{}
+set nTCPsPerHop_list	{}
+set StartTime_list	{}
+for {set i 0} {$i < $numHops} {incr i} {
+	lappend		BW_list $BW
+	lappend		qType_list $qType
+	lappend		delay_list $delay
+	lappend		qSize_list $qSize
+	lappend		nTCPsPerHop_list 30
+	lappend		StartTime_list 0
+}
+set tracedQueues         ""
+set tracedXCPs           "0 1 2 3 4 5 6 7 8"
 #set nAllHopsTCPs         30; #num of TCPs crossing all hops
-set nTCPsPerHop_list     "30 30 30 30 30 30 30 30 30"
 set rTCPs                30; #traverse all of the reverse path
-set StartTime_list       "0 0 0 0 0 0 0 0 0"; #the starting time of flows at that hop
-
 
 set SimStartTime         0.0
 set SimStopTime          20
@@ -327,17 +303,16 @@ while { $i < $numHops } {
 		$queue set rempbo_       [expr $qSize * 0.33]
 	    }
 	}
-	"DropTail" { }
-	"XCP" {
+	    "DropTail" { }
+	    "XCP" {
 		foreach link "[set l$i] [set rl$i]" {
 		    set queue                   [$link queue]
 		    #set-red-params $queue $qMinTh $qMaxTh $qWeight $qLinterm
-		    $queue set-link-capacity [[$link set link_] set bandwidth_];
-			puts "$link BW [[$link set link_] set bandwidth_]"
-	    }
+			$queue set-link-capacity [[$link set link_] set bandwidth_];
+		}
 	}
-	"CSFQ" {
-	    foreach link "[set l$i]" {
+	    "CSFQ" {
+		    foreach link "[set l$i]" {
 		set queue   [$link queue]
 		set ff      0
 		while {$ff < $nAllHopsTCPs} {
@@ -383,7 +358,7 @@ while { $i < $nAllHopsTCPs  } {
 		set rcvr_TCP      [new Agent/XCPSink]
 		$ns attach-agent  [set n$numHops] $rcvr_TCP
 		set src$i         [new GeneralSender $i $n0 $rcvr_TCP "$StartTime TCP/Reno/XCP"]
-		
+		puts "starttime=$StartTime"
 	} else {
 		set rcvr_TCP      [new Agent/TCPSink]
 		$ns attach-agent  [set n$numHops] $rcvr_TCP
@@ -403,6 +378,7 @@ while {$i < $numHops} {
 	    set rcvr_TCP      [new Agent/XCPSink]
 		$ns attach-agent  [set  n[expr $i + 1]] $rcvr_TCP
 	    set src$j         [new GeneralSender $j [set n$i] $rcvr_TCP "$StartTime TCP/Reno/XCP"]
+		puts "starttime=$StartTime"
 	} else {
 	    set rcvr_TCP      [new Agent/TCPSink]
 	    $ns attach-agent  [set  n[expr $i + 1]] $rcvr_TCP
@@ -427,7 +403,8 @@ while {$i < $numHops} {
 	if {$qType == "XCP" } {
 	    set rcvr_TCP      [new Agent/XCPSink]
 	    $ns attach-agent  [set  n$i] $rcvr_TCP
-	    set src$s         [new GeneralSender $s [set  n[expr $i + 1]] $rcvr_TCP "$StartTime TCP/Reno/XCP"]
+		set src$s         [new GeneralSender $s [set  n[expr $i + 1]] $rcvr_TCP "$StartTime TCP/Reno/XCP"]
+		puts "starttime=$StartTime"
 	} else {
 	    set rcvr_TCP      [new Agent/TCPSink]
 	    $ns attach-agent  [set  n$i]  $rcvr_TCP

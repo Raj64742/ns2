@@ -37,12 +37,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.43 2004/10/11 17:06:43 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.44 2005/01/13 18:33:48 haldar Exp $ (UCB)";
 #endif
 
 // Time interval for updating a position of a node in the X-List
 // (can be adjusted by the user, depending on the nodes mobility). /* VAL NAUMOV */
-#define POSITION_UPDATE_INTERVAL 1.0 //seconds
+#define XLIST_POSITION_UPDATE_INTERVAL 1.0 //seconds
 
 
 
@@ -583,7 +583,7 @@ WirelessChannel::getAffectedNodes(MobileNode *mn, double radius,
 	for(tmp = xListHead_; tmp != NULL; tmp = tmp->nextX_) tmpList[n++] = tmp;
 	for(int i = 0; i < n; ++i)
 		if(tmpList[i]->speed()!=0.0 && (Scheduler::instance().clock() -
-						tmpList[i]->getUpdateTime()) > POSITION_UPDATE_INTERVAL )
+						tmpList[i]->getUpdateTime()) > XLIST_POSITION_UPDATE_INTERVAL )
 			tmpList[i]->update_position();
 	n=0;
 	

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.25 2004/10/28 23:35:39 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.26 2005/01/13 18:33:50 haldar Exp $
 #
 
 #
@@ -602,12 +602,26 @@ Simulator instproc create-XCPQ {} {
 }
 
 Queue/XCP instproc create-vqueues {} {
-	$self instvar vq_ 
-    
+	$self instvar vq_ limit_
+
 	# create virtual queues for xcp/tcp flows
 	$self set-xcpQ [set vq_(0) [new Queue/DropTail/XCPQ]]
 	$self set-tcpQ [set vq_(1) [new Queue/RED]]
 	$self set-otherQ [set vq_(2) [new Queue/RED]]
+}
+
+Queue/XCP instproc queue-limit { limit } {
+	$self instvar vq_
 	
-	#XXX this vq_ variable needs to go away XXX
+	$vq_(0) set limit_ $limit
+	$vq_(1) set limit_ $limit
+	$vq_(2) set limit_ $limit
+}
+
+Queue/XCP instproc reset {} {
+	$self instvar vq_
+
+	$vq_(0) reset
+	$vq_(1) reset
+	$vq_(2) reset
 }

@@ -16,14 +16,19 @@
 #       ni                         
 #
 
-Agent/TCP/Reno/XCP      set tcpTick_                    0.001
 Agent/TCP set minrto_ 1
-Queue/RED set bytes_ false ;
-Queue/RED set queue_in_bytes_ false ;
-Queue/RED set thresh_queue_ [expr 0.8 * [Queue set limit_]]
-Queue/RED set minthresh_queue_ [expr 0.6 * [Queue set limit_]]
-Queue/RED set q_weight_ 0.001
-Queue/RED set max_p_inv 10
+
+proc set-red-params { qsize } {
+
+	Queue/RED set thresh_ [expr 0.6 * $qsize]
+	Queue/RED set maxthresh_ [expr 0.8 * $qsize]
+	Queue/RED set q_weight_ 0.001
+	Queue/RED set linterm_ 10
+	Queue/RED set bytes_ false ;
+	Queue/RED set queue_in_bytes_ false ;
+	Agent/TCP set old_ecn_ true
+	Queue/RED set setbit_     true
+}
 
 proc create-topology2 { BW delay qtype qsize numSideLinks deltaDelay } {
     global ns 
@@ -202,6 +207,23 @@ proc plot-red-queue { TraceName PlotTime traceFile } {
     exec xgraph  -P -x time -y queue xgraph.red_queue &
 }
 
+proc plot-red {varname filename PlotTime} {
+    
+    exec rm -f temp.$filename
+    exec touch temp.$filename
+    
+    set result [exec awk -v PlotTime=$PlotTime -v what=$varname -v file=temp.$filename {
+	{
+	    if (( $1 == what ) && ($2 > PlotTime)) {
+		print $2, $3 >> file ;
+	    }  
+	}
+    } ft_red_Bottleneck.tr]
+
+    exec xgraph -P -x time -y $filename temp.$filename
+}
+
+
 #-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*-*- Initializing Simulator -*-*-*-*-*-*-*-*--*-*-*-*-*-*-*-*-#
 # BW is in Mbs and delay is in ms
 
@@ -226,9 +248,6 @@ $ns trace-all $f_all
 
 set  qSize  [expr round([expr ($BW / 8.0) * 4 * $delay * 1.0])];#set buffer to the pipe size
 
-set qSize [expr $qSize/2]
-puts "qsize:$qSize\n"
-
 set tracedXCPs       "0 1 2"
 set SimStopTime      30
 set PlotTime         0
@@ -238,6 +257,7 @@ set PlotTime         0
 #---------- Create the simulation --------------------#
 
 # Create topology
+set-red-params $qSize
 create-topology2 $BW $delay $qType $qSize $nXCPs 0.0
 
 foreach link $all_links {
@@ -335,7 +355,8 @@ if { $PostProcess } {
     #--- Traced TCPs
     set TraceName "Flows --$qType-QS$qSize"
     plot-xcp      $TraceName  $tracedXCPs  0.0  "cwnd_"
-    plot-xcp      $TraceName  $tracedXCPs  0.0  "t_seqno_"
+ #   plot-xcp      $TraceName  $tracedXCPs  0.0  "t_seqno_"
 
-    plot-red-queue  $TraceName  $PlotTime   ft_red_Bottleneck.tr
+#    plot-red-queue  $TraceName  $PlotTime   ft_red_Bottleneck.tr
+    plot-red "u" util 0.0
 }
