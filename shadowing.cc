@@ -52,7 +52,8 @@ Shadowing::Shadowing()
 	bind("dist0_", &dist0_);
 	bind("seed_", &seed_);
 	
-	ranVar = RNG::defaultrng(); 
+//	ranVar = RNG::defaultrng();
+	ranVar = new RNG;
 	ranVar->set_seed(RNG::PREDEF_SEED_SOURCE, seed_);
 }
 
@@ -104,7 +105,6 @@ double Shadowing::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 
 int Shadowing::command(int argc, const char* const* argv)
 {
-	Tcl& tcl = Tcl::instance();
 	if (argc == 4) {
 		if (strcmp(argv[1], "seed") == 0) {
 			int s = atoi(argv[3]);
