@@ -64,7 +64,7 @@ TestSuite instproc init {} {
     } else {
 	set ns_ [new Simulator]
 	$ns_ trace-all [open temp.rands w]
-	$ns_ namtrace-all [open hier-deDM.nam w]
+	$ns_ namtrace-all [open temp.rands.nam w]
     }
    # $ns_ trace-all [open temp.rands w]
     $ns_ set-address-format hierarchical
@@ -97,7 +97,13 @@ TestSuite instproc init {} {
 
 TestSuite instproc finish {} {
 	$self instvar ns_
+	global quiet
+
 	$ns_ flush-trace
+        if { !$quiet } {
+                puts "running nam..."
+                exec nam temp.rands.nam &
+        }
 	#puts "finishing.."
 	exit 0
 }
@@ -229,11 +235,17 @@ Test/hier-session instproc run {} {
 
 
 proc runtest {arg} {
+	global quiet
+	set quiet 0
+
 	set b [llength $arg]
 	if {$b == 1} {
 		set test $arg
 	} elseif {$b == 2} {
 		set test [lindex $arg 0]
+	    if {[lindex $arg 1] == "QUIET"} {
+		set quiet 1
+	    }
 	} else {
 		usage
 	}

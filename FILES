@@ -448,6 +448,8 @@ tcl/ex/scuba/noscuba-sat/demo-nam.tcl
 tcl/ex/scuba/noscuba-sat/demo.tcl
 tcl/ex/scuba/simple/demo-nam.tcl
 tcl/ex/scuba/simple/demo.tcl
+tcl/ex/shuttle-mcast.tcl
+tcl/ex/shuttle.tcl
 tcl/ex/simple-dyn.tcl
 tcl/ex/simple-eqp.tcl
 tcl/ex/simple-eqp1.tcl
