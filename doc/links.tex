@@ -244,3 +244,172 @@ TTLChecker &	will decrement the ttl in each packet that it receives.
 		as the last element on the link, between the delay element,
 		and the entry for the next node.\\
 \end{tabularx}
+
+
+\section{Commands at a glance}
+\label{sec:linkscommand}
+
+Following is a list of common link commands used in simulation scripts:
+
+\begin{program}
+$ns_ simplex-link <node1> <node2> <bw> <delay> <qtype> <args>
+\end{program}
+This command creates an unidirectional link between node1 and node2 with
+specified bandwidth (BW) and delay characteristics. The link uses a queue
+type of <qtype> and depending on the queue type different arguments are
+passed through <args>.
+
+
+\begin{program}
+$ns_ duplex-link <node1> <node2> <bw> <delay> <qtype> <args>
+\end{program}
+This creates a bi-directional link between node1 and node2. This procedure
+essentially creates a duplex-link from two simplex links, one from node1
+to node2 and the other from node2 to node1. The syntax for duplex-link is
+same as that of simplex-link described above.
+
+
+\begin{program}
+$ns_ duplex-intserv-link <n1> <n2> <bw> <dly> <sched> <signal> <adc> <args>
+\end{program}
+This creates a duplex-link between n1 and n2 with queue type of intserv, with
+specified BW and delay. This type of queue implements a scheduler with two
+level services priority. The type of intserv queue is given by <sched>, with
+admission control unit type of <adc> and signal module of type <signal>.
+
+
+\begin{program}
+$ns_ simplex-link-op <n1> <n2> <op> <args>
+\end{program}
+This is used to set attributes for a simplex link. The attributes may be
+the orientation, color or queue-position.
+
+
+\begin{program}
+$ns_ duplex-link-op <n1> <n2> <op> <args>
+\end{program}
+This command is used to set link attributes (like orientation of the links,
+color or queue-position) for duplex links.
+
+
+\begin{program}
+$ns_ link-lossmodel <lossobj> <from> <to>
+\end{program}
+This function generates losses (using the loss model <lossobj> in the link
+that can be visualized by nam.
+
+
+\begin{program}
+$ns_ lossmodel <lossobj> <from> <to>
+\end{program}
+This is used insert a loss module in regular links.
+
+
+
+Following is a list of internal link-related procedures:
+\begin{program}
+$ns_ register-nam-linkconfig <link>
+\end{program}
+This is an internal procedure used by \code{"$link orient"} to 
+register/update the order in which links should be created in nam.
+
+
+\begin{program}
+$ns_ remove-nam-linkconfig <id1> <id2>
+\end{program}
+This procedure is used to remove any duplicate links (duplicate links may be
+created by GT-ITM topology generator).
+
+
+\begin{program}
+$link head
+\end{program}
+Returns the instance variable \code{head_} for the link. The \code{head_} is
+the entry pont to the link and it points to the first object in the link.
+
+
+\begin{program}
+$link add-to-head <connector>
+\end{program}
+This allows the <connector> object to be now pointed by the \code{head_}
+element in the link, i.e, <connector> now becomes the first object in the
+link.
+
+
+\begin{program}
+$link link
+\end{program}
+Returns the instance variable \code{link_}. The \code{link_} is the element
+in the link that actually models the link in terms of delay and bandwidth
+characteristics of the link.
+
+
+\begin{program}
+$link queue
+\end{program}
+Returns the instance variable \code{queue_}. \code{queue_} is queue element
+in the link. There may be one or queue elements in a particular link.
+
+
+\begin{program}
+$link cost <c>
+\end{program}
+This sets a link cost of <c>.
+
+
+\begin{program}
+$link cost?
+\end{program}
+Returns the cost value for the link. Default cost of link is set to 1.
+
+
+\begin{program}
+$link if-label?
+\end{program}
+Returns the network interfaces associated with the link (for multicast routing).
+
+
+\begin{program}
+$link up
+\end{program}
+This sets the link status to "up". This command is a part of network
+dynamics support in \ns.
+
+
+\begin{program}
+$link down
+\end{program}
+Similar to up, this command marks the link status as "down".
+
+
+\begin{program}
+$link up?
+\end{program}
+Returns the link status. The status is always "up" as default, if link
+dynamics is not enabled.
+
+
+\begin{program}
+$link all-connectors op
+\end{program}
+This command applies the specified operation <op> to all connectors in the link.
+Like,  \code{$link all-connectors reset} or \code{$link all-connectors 
+isDynamic}.
+
+
+\begin{program}
+$link install-error <errmodel>
+\end{program}
+This installs an error module after the \code{link_} element.
+
+
+In addition to the Link and link-related commands listed above, there are
+other procedures to support the specific requirements of different types of
+links derived from the base class "Link"
+like simple-link (SimpleLink), integrated service (IntServLink), class-based
+queue (CBQLink), fair queue (FQLink) and procedures to support multicast
+routing, sessionsim, nam etc. These and the above procedures may be found
+in \ns/tcl/lib/{ns-lib.tcl, ns-link.tcl, ns-intserv.tcl, ns-namsupp.tcl,
+ns-queue.tcl}, \ns/tcl/mcast/{McastMonitor.tcl, ns-mcast.tcl},
+\ns/tcl/session/session.tcl.
+
