@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.308 2003/02/02 22:19:15 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.309 2003/02/12 04:16:09 sfloyd Exp $
 
 
 #
@@ -722,6 +722,8 @@ Agent/TCP set packetSize_ 1000
 Agent/TCP set tcpip_base_hdr_size_ 40
 Agent/TCP set ts_option_size_ 10; 	# in bytes
 Agent/TCP set bugFix_ true
+Agent/TCP set lessCareful_ false ;	# for the Less Careful variant of
+					# bugFix_, just for illustration.
 Agent/TCP set timestamps_ false
 Agent/TCP set slow_start_restart_ true
 Agent/TCP set restart_bugfix_ true

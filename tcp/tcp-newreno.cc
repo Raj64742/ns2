@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.48 2003/01/27 02:34:37 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.49 2003/02/12 04:16:09 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -114,10 +114,20 @@ void
 NewRenoTcpAgent::dupack_action()
 {
         int recovered = (highest_ack_ > recover_);
+	int recovered1 = (highest_ack_ == recover_);
         int allowFastRetransmit = allow_fast_retransmit(last_cwnd_action_);
         if (recovered || (!bug_fix_ && !ecn_) || allowFastRetransmit) {
                 goto reno_action;
         }
+	if (bug_fix_ && less_careful_ && recovered1) {
+		/*
+		 * For the Less Careful variant, allow a Fast Retransmit
+		 *  if highest_ack_ == recover.
+		 * RFC 2582 recommends the Careful variant, not the 
+		 *  Less Careful one.
+		 */
+                goto reno_action;
+	}
 
         if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
                 last_cwnd_action_ = CWND_ACTION_DUPACK;

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.106 2003/01/27 02:34:38 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.107 2003/02/12 04:16:10 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -268,6 +268,8 @@ protected:
 	int tcpip_base_hdr_size_;  /* size of base TCP/IP header */
 	int ts_option_size_;    // header bytes in a ts option
 	int bug_fix_;		/* 1 for multiple-fast-retransmit fix */
+	int less_careful_;	/* 1 for Less Careful variant of bug_fix_, */
+				/*  for illustration only  */
 	int ts_option_;		/* use RFC1323-like timestamps? */
 	int maxburst_;		/* max # packets can send back-2-back */
 	int maxcwnd_;		/* max # cwnd can ever be */

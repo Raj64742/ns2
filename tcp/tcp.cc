@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.143 2003/01/27 02:42:40 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.144 2003/02/12 04:16:09 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -127,6 +127,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("tcpip_base_hdr_size_");
 	delay_bind_init_one("ts_option_size_");
         delay_bind_init_one("bugFix_");
+	delay_bind_init_one("lessCareful_");
         delay_bind_init_one("slow_start_restart_");
         delay_bind_init_one("restart_bugfix_");
         delay_bind_init_one("timestamps_");
@@ -218,9 +219,10 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "tcpip_base_hdr_size_", &tcpip_base_hdr_size_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "ts_option_size_", &ts_option_size_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "bugFix_", &bug_fix_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "lessCareful_", &less_careful_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "timestamps_", &ts_option_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "slow_start_restart_", &slow_start_restart_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "restart_bugfix_", &restart_bugfix_ , tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "timestamps_", &ts_option_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxburst_", &maxburst_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "maxcwnd_", &maxcwnd_ , tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "numdupacks_", &numdupacks_, tracer)) return TCL_OK;
