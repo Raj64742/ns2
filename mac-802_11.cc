@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.cc,v 1.7 1997/07/22 22:33:19 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.cc,v 1.8 1997/07/23 02:21:04 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -188,6 +188,8 @@ Mac802_11::recvRtsCts(Packet* p)
 			return;
 		}
 		break;
+	default:
+		break;
 	}
 	drop(p);
 }
@@ -254,6 +256,7 @@ Mac802_11::lengthNAV(Packet* p)
 		delay += sifs_ + mh->txtime();
 	case MF_DATA:
 		delay += sifs_ + txtime(hlen_);
+	default:
 		break;
 	}
 	return delay;
