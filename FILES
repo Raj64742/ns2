@@ -21,6 +21,7 @@ app.cc
 app.h
 bin/cplot.tcl
 bin/dynamics.pl
+bin/gen-vcmake.pl
 bin/getrc
 bin/gnuplot.pl
 bin/ktest-all
