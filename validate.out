@@ -4,7 +4,7 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output,
-### on pig.ee.lbl.gov, Thu Jul  9 12:59:55 PDT 1998,
+### on pig.ee.lbl.gov, Sat Aug 29 18:40:34 PDT 1998,
 ### with tcl8.0p1, tk8.0p1.
 ###
 ### "Validate" ran correctly for Sally Floyd with the rev 1.10
@@ -743,19 +743,19 @@ using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Computing Hierarchical routes
 
-Sim.: utime/stime: 1892 46 	stack/heap: -20168 2625536
+Sim.: utime/stime: 1486 30 	stack/heap: -20180 2662400
 Test output agrees with reference output
 ../../ns test-suite-hier-routing.tcl hier-cmcast QUIET
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Computing Hierarchical routes
 
-Sim.: utime/stime: 2426 46 	stack/heap: -20168 2625536
+Sim.: utime/stime: 1906 30 	stack/heap: -20180 2662400
 Test output agrees with reference output
 ../../ns test-suite-hier-routing.tcl hier-deDM QUIET
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
 Computing Hierarchical routes
 
-Sim.: utime/stime: 2423 61 	stack/heap: -20168 2625536
+Sim.: utime/stime: 1947 46 	stack/heap: -20180 2662400
 Test output agrees with reference output
 ../../ns test-suite-hier-routing.tcl hier-session QUIET
 using backward compatible Agent/CBR; use Application/Traffic/CBR instead
@@ -825,16 +825,16 @@ Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Liveness QUIET
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PB QUIET
-6 Bandwidth*Hop -1 Stale 21.787709497206702 AverageRepTime 0.087379685363129275 BottleneckBW 67099 ServerBW 18577 StaleTime 2.5720725257183994
+6 Bandwidth*Hop -1 Stale 21.787709497206702 AverageRepTime 0.087379685363129275 BottleneckBW 67033 ServerBW 18577 StaleTime 2.5720725257183994
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PBP QUIET
-6 Bandwidth*Hop -1 Stale 21.787709497206702 AverageRepTime 0.087379685363129275 BottleneckBW 67099 ServerBW 18577 StaleTime 2.5720725257183994
+6 Bandwidth*Hop -1 Stale 21.787709497206702 AverageRepTime 0.087379685363129275 BottleneckBW 67033 ServerBW 18577 StaleTime 2.5720725257183994
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PBU QUIET
-6 Bandwidth*Hop -1 Stale 7.2625698324022352 AverageRepTime 0.020562173556795998 BottleneckBW 49933 ServerBW 22591 StaleTime 2.296295230978652
+6 Bandwidth*Hop -1 Stale 7.2625698324022352 AverageRepTime 0.020562173556795998 BottleneckBW 49867 ServerBW 22591 StaleTime 2.296295230978652
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl Mcast-PBU-MP QUIET
-6 Bandwidth*Hop -1 Stale 7.8212290502793298 AverageRepTime 0.020562173556796157 BottleneckBW 51933 ServerBW 23541 StaleTime 2.0231028351006222
+6 Bandwidth*Hop -1 Stale 7.8212290502793298 AverageRepTime 0.020562173556796157 BottleneckBW 51867 ServerBW 23541 StaleTime 2.0231028351006222
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl ttl-PB QUIET
 0.1 Bandwidth*Hop -1 Stale 5.8139534883720927 AverageRepTime 0.39467676910853028 BottleneckBW 152298 ServerBW 32953 StaleTime 0.5174959570748463
@@ -843,10 +843,10 @@ Test output agrees with reference output
 Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.12868432434457094 BottleneckBW 91162 ServerBW 19207 StaleTime 0
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl mmcast-PB QUIET
-6 Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.0 BottleneckBW 323714 ServerBW 69900 StaleTime 0
+6 Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.0 BottleneckBW 323648 ServerBW 69900 StaleTime 0
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl mmcast-PBU QUIET
-6 Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.0 BottleneckBW 306548 ServerBW 73914 StaleTime 0
+6 Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.0 BottleneckBW 306482 ServerBW 73914 StaleTime 0
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl mttl-PB QUIET
 0.1 Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.0 BottleneckBW 2522796 ServerBW 87726 StaleTime 0
@@ -855,7 +855,57 @@ Test output agrees with reference output
 Bandwidth*Hop -1 Stale 0.0 AverageRepTime 0.0 BottleneckBW 399100 ServerBW 70530 StaleTime 0
 Test output agrees with reference output
 ../../ns test-suite-webcache.tcl mcast-dreq QUIET
-30 Bandwidth*Hop -1 Stale 25.0 AverageRepTime 0.02189052307691788 BottleneckBW 3688 ServerBW 30127 StaleTime 16.167594851360057
+30 Bandwidth*Hop -1 Stale 25.0 AverageRepTime 0.02189052307691788 BottleneckBW 3656 ServerBW 30127 StaleTime 16.167594851360057
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-mcast
+Tests: DM1 DM2 CtrMcast1 CtrMcast2 detailedDM1 detailedDM2 detailedDM3 detailedDM4
+../../ns test-suite-mcast.tcl DM1 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+../../ns test-suite-mcast.tcl DM2 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+../../ns test-suite-mcast.tcl CtrMcast1 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+../../ns test-suite-mcast.tcl CtrMcast2 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+../../ns test-suite-mcast.tcl detailedDM1 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+../../ns test-suite-mcast.tcl detailedDM2 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+../../ns test-suite-mcast.tcl detailedDM3 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+../../ns test-suite-mcast.tcl detailedDM4 QUIET
+using backward compatible Agent/CBR; use Application/Traffic/CBR instead
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-newreno
+Tests: reno newreno reno1 newreno1 newreno1_A reno2 reno2_bugfix newreno2_A newreno2_A_bugfix
+../../ns test-suite-newreno.tcl reno QUIET
+Test output agrees with reference output
+../../ns test-suite-newreno.tcl newreno QUIET
+Test output agrees with reference output
+../../ns test-suite-newreno.tcl reno1 QUIET
+Test output agrees with reference output
+../../ns test-suite-newreno.tcl newreno1 QUIET
+Test output agrees with reference output
+../../ns test-suite-newreno.tcl newreno1_A QUIET
+Test output agrees with reference output
+../../ns test-suite-newreno.tcl reno2 QUIET
+Test output agrees with reference output
+../../ns test-suite-newreno.tcl reno2_bugfix QUIET
+Test output agrees with reference output
+../../ns test-suite-newreno.tcl newreno2_A QUIET
+Test output agrees with reference output
+../../ns test-suite-newreno.tcl newreno2_A_bugfix QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
