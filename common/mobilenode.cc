@@ -109,6 +109,10 @@ PositionHandler::handle(Event*)
    ====================================================================== */
 
 MobileNode::MobileNode(void) : Node(), pos_handle(this)
+#ifdef NAM_TRACE
+        , namChan_(0)
+#endif
+
 {
 	X = 0.0; Y = 0.0; Z = 0.0; speed = 0.0;
 	dX=0.0; dY=0.0; dZ=0.0;
@@ -355,8 +359,55 @@ MobileNode::set_destination(double x, double y, double s)
 #endif
   log_movement();
 
+  /* update gridkeeper */
+  if (GridKeeper::instance()){
+         GridKeeper* gp =  GridKeeper::instance();
+         gp-> new_moves(this);
+  }                     
+               
+   
+#ifdef NAM_TRACE                
+  if (namChan_ != 0) {
+                                
+     sprintf(nwrk_,     
+             "n -t %f -s %d -x %f -y %f -u %f -v %f -T %f",
+              Scheduler::instance().clock(),
+              address_,
+              X,Y,
+              speed*dX, speed*dY,
+              (destX-X)/speed*dX
+             );         
+                
+                
+     namdump();         
+  }
+#endif                  
+
+
   return 0;
 }
+
+#ifdef NAM_TRACE
+void MobileNode::namdump()
+{
+        int n = 0;
+    
+        /* Otherwise nwrk_ isn't initialized */
+        if (namChan_ != 0)
+                n = strlen(nwrk_);
+        if ((n > 0) && (namChan_ != 0)) {
+                /*
+                 * tack on a newline (temporarily) instead
+                 * of doing two writes
+                 */
+                nwrk_[n] = '\n';
+                nwrk_[n + 1] = 0;
+                (void)Tcl_Write(namChan_, nwrk_, n + 1);
+                nwrk_[n] = 0;
+        }
+}
+#endif
+
 
 void
 MobileNode::update_position()
