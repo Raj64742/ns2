@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.295 2002/10/19 22:41:36 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.296 2002/11/07 00:18:35 haldar Exp $
 
 
 #
@@ -661,6 +661,11 @@ Propagation/Shadowing set pathlossExp_ 2.0
 Propagation/Shadowing set std_db_ 4.0
 Propagation/Shadowing set dist0_ 1.0
 Propagation/Shadowing set seed_ 0
+
+# Turning on/off sleep-wakeup cycles for SMAC
+Mac/SMAC set syncFlag_ 0
+
+
 
 # variables of the link state module is moved to ns-rtProtoLS.tcl
 

@@ -30,52 +30,79 @@ Class TestSuite
 Class Test/brdcast1 -superclass TestSuite
 # 2 nodes brdcast ping req/replies to one another
 
+Class Test/brdcast1_sync -superclass TestSuite
+
 Class Test/brdcast2 -superclass TestSuite
 # 3 node topology brdcasting ping req/rep that result in collision
+
+Class Test/brdcast2_sync -superclass TestSuite
 
 Class Test/unicast1 -superclass TestSuite
 # 2 node topology unicasting with RTS/CTS/DATA/ACK exchange
 
+Class Test/unicast1_sync -superclass TestSuite
+
 Class Test/unicast2 -superclass TestSuite
 # 3 node topology where node 0 & 1 unicast and node 2 brdcast.
+
+Class Test/unicast2_sync -superclass TestSuite
 
 Class Test/unicast3 -superclass TestSuite
 #3 node topolofy where node 2 is neighbor to the sender node. can hear RTS/DATA, not CTS
 
+Class Test/unicast3_sync -superclass TestSuite
+
 Class Test/unicast4 -superclass TestSuite
 #3 node topology where node 2 is neighbor to the recvr node. can hear CTS only.
+
+Class Test/unicast4_sync -superclass TestSuite
 
 Class Test/unicast5 -superclass TestSuite
 # 4 node topology. 2 sender-recvr pairs (0->1 & 3->2)
 #3 cannot hear 0 & 1. 2 can hear only sender 0.
  
+Class Test/unicast5_sync -superclass TestSuite
+
 Class Test/unicast6 -superclass TestSuite
 # 4 node topology. 2 sender-recvr pairs (0->1 & 3->2)
 #3 cannot hear 0 & 1. 2 can hear only recvr 1.
+
+Class Test/unicast6_sync -superclass TestSuite
 
 Class Test/unicast7 -superclass TestSuite
 # 4 node topology. 2 sender-recvr pairs (0->1 & 2->3)
 #3 cannot hear 0 & 1. 2 can hear only sender 0.
  
+Class Test/unicast7_sync -superclass TestSuite
+
 Class Test/unicast8 -superclass TestSuite
 # 4 node topology. 2 sender-recvr pairs (0->1 & 2->3)
 #3 cannot hear 0. 2 can hear only recvr 1.
+
+Class Test/unicast8_sync -superclass TestSuite
 
 Class Test/unicast9 -superclass TestSuite
 # 4 node topology. 2 sender-recvr pairs (0->1 & 2->3)
 #2 & 3 can hear 0 & 1 but cannot recv pkts correctly. a lot of delay
 
+Class Test/unicast9_sync -superclass TestSuite
+
 Class Test/unicast10 -superclass TestSuite
 # 4 node topology. 2 sender-recvr pairs (0->1 & 2->3)
 #2 & 3 cannot hear and recv from 0 & 1. can send simultaneously.
 
+Class Test/unicast10_sync -superclass TestSuite
+
 Class Test/unicast11 -superclass TestSuite
 # 3 node triangle topology.1->2,2->3,3->1.
+
+Class Test/unicast11_sync -superclass TestSuite
 
 Class Test/unicast12 -superclass TestSuite
 # 3 node triangle topology.1->2,2->3,3->1.with error model on every incoming interface
 # that randomly drops pkts
 
+Class Test/unicast12_sync -superclass TestSuite
 
 proc usage {} {
     global argv0
@@ -99,12 +126,19 @@ proc default_options {} {
     set opt(rp)             DumbAgent               ;# routing protocol
     set opt(tr)             temp.rands
     set opt(stop)           5.0
+    set opt(stop-sync)      100.0        ;# extended run time for sync simulations
     set opt(seed)           1
 }
 
 TestSuite instproc init {} {
     global opt node_
     $self instvar ns_ topo_ tracefd_ testname_
+
+    set name [split $testname_ _]
+    puts "$name"
+    if { [lindex $name 1] == "sync" } {
+	Mac/SMAC set syncFlag_ 1
+    }
 
     set ns_         [new Simulator]
     
@@ -136,20 +170,44 @@ TestSuite instproc init {} {
     if {$testname_ == "unicast12" } {
 	$ns_ node-config --IncomingErrProc $opt(err)
     }
-
-			 
+    
+#    if { [lindex $name 1] == "sync" } {
+	#$ns_ node-config -macTrace OFF
+#    }
+    			 
     for {set i 0} {$i < $opt(nn) } {incr i} {
 	set node_($i) [$ns_ node]	
 	$node_($i) random-motion 0		;# disable random motion
     }
-    
-    
 }
 
 
+TestSuite instproc run {} {
+    global opt node_
+    $self instvar ns_ testname_
+
+    set n [split $testname_ _]
+    if { [lindex $n 1] == "sync" } {
+	set opt(stop) $opt(stop-sync)
+    }
+    puts "$opt(stop)"  
+    #
+    # Tell nodes when the simulation ends
+    #
+    for {set i 0} {$i < $opt(nn) } {incr i} {
+	$ns_ at $opt(stop) "$node_($i) reset";
+    }
+    
+    $ns_ at $opt(stop) "$self finish"
+    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
+
+    puts "Starting Simulation..."
+    $ns_  run
+}
+
 Test/brdcast1 instproc init {} {
     global opt node_
-    $self instvar ns_ net_ testname_ topo_ tracefd_
+    $self instvar ns_ testname_
     
     set testname_ brdcast1
     set opt(nn) 2
@@ -174,21 +232,45 @@ Test/brdcast1 instproc init {} {
     $ns_ attach-agent $node_(1) $ping1
     $ns_ at 1.0 "$ping1 start-WL-brdcast"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/brdcast1 instproc run {} {
     $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
+}
+
+    
+
+Test/brdcast1_sync instproc init {} {
+    global opt node_
+    $self instvar testname_ ns_
+    
+    set testname_ brdcast1_sync
+    set opt(nn) 2
+    $self next
+    
+    $node_(0) set X_ 5.0
+    $node_(0) set Y_ 2.0
+    $node_(0) set Z_ 0.0
+    
+    
+    $node_(1) set X_ 50.0
+    $node_(1) set Y_ 45.0
+    $node_(1) set Z_ 0.0
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    $ns_ at 40.0 "$ping0 start-WL-brdcast"
+    
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    $ns_ at 40.0 "$ping1 start-WL-brdcast"
+
+}
+
+Test/brdcast1_sync instproc run {} {
+    $self instvar ns_
+    $self next
 }
 
 Test/brdcast2 instproc init {} {
@@ -224,24 +306,53 @@ Test/brdcast2 instproc init {} {
     set ping2 [new Agent/Ping]
     $ns_ attach-agent $node_(2) $ping2
     $ns_ at 1.0 "$ping2 start-WL-brdcast"
-    
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
-
 }
 
 Test/brdcast2 instproc run {} {
     $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
 }
+
+Test/brdcast2_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ testname_
+    
+    set testname_ brdcast2_sync
+    set opt(nn)  3
+    $self next
+    
+    $node_(0) set X_ 5.0
+    $node_(0) set Y_ 2.0
+    $node_(0) set Z_ 0.0
+    
+    $node_(1) set X_ 50.0
+    $node_(1) set Y_ 45.0
+    $node_(1) set Z_ 0.0
+    
+    $node_(2) set X_ 150.0
+    $node_(2) set Y_ 150.0
+    $node_(2) set Z_ 0.0
+    
+    # all scheduled to brdcast at same time
+    
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    $ns_ at 40.0 "$ping0 start-WL-brdcast"
+    
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    $ns_ at 41.0 "$ping1 start-WL-brdcast"
+
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping2
+    $ns_ at 42.0 "$ping2 start-WL-brdcast"
+}
+
+Test/brdcast2_sync instproc run {} {
+    $self instvar ns_
+    $self next
+}
+
 
 Test/unicast1 instproc init {} {
     global opt node_
@@ -270,23 +381,50 @@ Test/unicast1 instproc init {} {
 
     $ns_ at 1.0 "$ping0 send"
 
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 
 Test/unicast1 instproc run {} {
     $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
 }
+
+Test/unicast1_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast1_sync
+    set opt(nn) 2
+    $self next
+
+    $node_(0) set X_ 5.0
+    $node_(0) set Y_ 2.0
+    $node_(0) set Z_ 0.0
+    
+    $node_(1) set X_ 50.0
+    $node_(1) set Y_ 45.0
+    $node_(1) set Z_ 0.0
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+
+    $ns_ at 40.0 "$ping0 send"
+
+}
+
+
+Test/unicast1_sync instproc run {} {
+    $self instvar ns_
+    $self next
+}
+
+
 
 Test/unicast2 instproc init {} {
     global opt node_
@@ -327,22 +465,59 @@ Test/unicast2 instproc init {} {
     # ping2 sends brdcast overlapping with ping0
     $ns_ at 0.2 "$ping2 start-WL-brdcast"
 
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast2 instproc run {} {
     $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
 }
+
+Test/unicast2_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast2_sync
+    set opt(nn) 3
+    $self next
+
+    $node_(0) set X_ 300.0
+    $node_(0) set Y_ 350.0
+    $node_(0) set Z_ 0.0
+    
+    $node_(1) set X_ 450.0
+    $node_(1) set Y_ 350.0
+    $node_(1) set Z_ 0.0
+    
+    # 2 can hear and recv from nodes 0 & 1 (sender and recvr)
+    $node_(2) set X_ 400.0
+    $node_(2) set Y_ 125.0
+    $node_(2) set Z_ 0.0
+    
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+    
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping2
+    
+    # start times for connections
+    $ns_ at 40.1 "$ping0 send"
+
+    # ping2 sends brdcast overlapping with ping0
+    $ns_ at 40.2 "$ping2 start-WL-brdcast"
+
+}
+
+Test/unicast2_sync instproc run {} {
+    $self instvar ns_
+    $self next
+}
+
 
 Test/unicast3 instproc init {} {
     global opt node_
@@ -380,21 +555,55 @@ Test/unicast3 instproc init {} {
     $ns_ at 0.1 "$ping0 send"
     $ns_ at 0.2 "$ping2 start-WL-brdcast"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast3 instproc run {} {
     $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
+}
+
+
+Test/unicast3_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast3_sync
+    set opt(nn) 3
+    $self next
+    
+    $node_(0) set X_ 300.0
+    $node_(0) set Y_ 300.0
+    $node_(0) set Z_ 0.0
+    
+    $node_(1) set X_ 150.0
+    $node_(1) set Y_ 150.0
+    $node_(1) set Z_ 0.0
+    
+    $node_(2) set X_ 470.0
+    $node_(2) set Y_ 470.0
+    $node_(2) set Z_ 0.0
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping2
+
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+
+    # start times for connections
+    $ns_ at 40.1 "$ping0 send"
+    $ns_ at 45.2 "$ping2 start-WL-brdcast"
+    
+}
+
+Test/unicast3_sync instproc run {} {
+    $self instvar ns_
+    $self next
 }
 
 
@@ -435,22 +644,57 @@ Test/unicast4 instproc init {} {
     $ns_ at 0.1 "$ping0 send"
     $ns_ at 0.2 "$ping2 start-WL-brdcast"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast4 instproc run {} {
     $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
 }
+
+Test/unicast4_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast4_sync
+    set opt(nn) 3
+    $self next
+    
+    # can hear recvr, CTS only.
+    $node_(1) set X_ 300.0
+    $node_(1) set Y_ 300.0
+    $node_(1) set Z_ 0.0
+    
+    $node_(0) set X_ 150.0
+    $node_(0) set Y_ 150.0
+    $node_(0) set Z_ 0.0
+    
+    $node_(2) set X_ 470.0
+    $node_(2) set Y_ 470.0
+    $node_(2) set Z_ 0.0
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping2
+
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+
+    # start times for connections
+    $ns_ at 40.1 "$ping0 send"
+    $ns_ at 40.2 "$ping2 start-WL-brdcast"
+    
+}
+
+Test/unicast4_sync instproc run {} {
+    $self instvar ns_
+    $self next
+}
+
 
 Test/unicast5 instproc init {} {
     global opt node_
@@ -499,21 +743,65 @@ Test/unicast5 instproc init {} {
     #sender cannot hear other tx
     $ns_ at 0.1 "$ping3 send"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast5 instproc run {} {
     $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
+}
+
+Test/unicast5_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast5_sync
+    set opt(nn) 4
+    $self next
+
+    $node_(0) set X_ 300.0
+    $node_(0) set Y_ 300.0
+    $node_(0) set Z_ 0.0
+    
+    $node_(1) set X_ 150.0
+    $node_(1) set Y_ 150.0
+    $node_(1) set Z_ 0.0
+    
+    # node 2 can hear 0 & 3
+    $node_(2) set X_ 450.0
+    $node_(2) set Y_ 450.0
+    $node_(2) set Z_ 0.0
+
+    # node 3 hears only 2
+    $node_(3) set X_ 600.0
+    $node_(3) set Y_ 600.0
+    $node_(3) set Z_ 0.0
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+    
+    
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping2
+    set ping3 [new Agent/Ping]
+    $ns_ attach-agent $node_(3) $ping3
+    # connect two agents
+    $ns_ connect $ping2 $ping3
+    
+    # start times for both connections
+    $ns_ at 40.1 "$ping0 send"
+
+    #sender cannot hear other tx
+    $ns_ at 40.1 "$ping3 send"
+    
+}
+
+Test/unicast5_sync instproc run {} {
+    $self instvar ns_
+    $self next
 }
 
 
@@ -564,22 +852,68 @@ Test/unicast6 instproc init {} {
     #sender cannot hear other tx
     $ns_ at 0.1 "$ping3 send"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast6 instproc run {} {
     $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
 }
+
+Test/unicast6_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast6_sync
+    set opt(nn) 4
+    $self next
+
+    $node_(1) set X_ 300.0
+    $node_(1) set Y_ 300.0
+    $node_(1) set Z_ 0.0
+    
+    $node_(0) set X_ 150.0
+    $node_(0) set Y_ 150.0
+    $node_(0) set Z_ 0.0
+    
+    # node 2 can hear 1 & 3
+    $node_(2) set X_ 450.0
+    $node_(2) set Y_ 450.0
+    $node_(2) set Z_ 0.0
+
+    # node 3 hears only 2
+    $node_(3) set X_ 600.0
+    $node_(3) set Y_ 600.0
+    $node_(3) set Z_ 0.0
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+    
+    
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping2
+    set ping3 [new Agent/Ping]
+    $ns_ attach-agent $node_(3) $ping3
+    # connect two agents
+    $ns_ connect $ping2 $ping3
+    
+    # start times for both connections
+    $ns_ at 40.1 "$ping0 send"
+
+    #sender cannot hear other tx
+    # node 2 and 3 have perfectly sync'ed cycles
+    # due to collision discovers each other after about 60s.
+    $ns_ at 60.1 "$ping3 send"
+    
+}
+
+Test/unicast6_sync instproc run {} {
+    $self next
+}
+
 
 Test/unicast7 instproc init {} {
     global opt node_
@@ -628,22 +962,65 @@ Test/unicast7 instproc init {} {
     #sender cannot hear other tx
     $ns_ at 0.1 "$ping2 send"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast7 instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
 }
+
+Test/unicast7_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast7_sync
+    set opt(nn) 4
+    $self next
+
+    $node_(1) set X_ 300.0
+    $node_(1) set Y_ 300.0
+    $node_(1) set Z_ 0.0
+    
+    $node_(0) set X_ 150.0
+    $node_(0) set Y_ 150.0
+    $node_(0) set Z_ 0.0
+    
+    # node 2 can hear 1 & 3
+    $node_(2) set X_ 450.0
+    $node_(2) set Y_ 450.0
+    $node_(2) set Z_ 0.0
+
+    # node 3 hears only 2
+    $node_(3) set X_ 600.0
+    $node_(3) set Y_ 600.0
+    $node_(3) set Z_ 0.0
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+    
+    
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping2
+    set ping3 [new Agent/Ping]
+    $ns_ attach-agent $node_(3) $ping3
+    # connect two agents
+    $ns_ connect $ping2 $ping3
+    
+    # start times for both connections
+    $ns_ at 40.1 "$ping0 send"
+
+    #sender cannot hear other tx
+    $ns_ at 60.1 "$ping2 send"
+    
+}
+
+Test/unicast7_sync instproc run {} {
+    $self next
+}
+
 
 Test/unicast8 instproc init {} {
     global opt node_
@@ -692,21 +1069,63 @@ Test/unicast8 instproc init {} {
     #sender cannot hear other tx
     $ns_ at 0.1 "$ping2 send"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast8 instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
+}
+
+Test/unicast8_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast8_sync
+    set opt(nn) 4
+    $self next
+
+    $node_(1) set X_ 300.0
+    $node_(1) set Y_ 300.0
+    $node_(1) set Z_ 0.0
+    
+    $node_(0) set X_ 150.0
+    $node_(0) set Y_ 150.0
+    $node_(0) set Z_ 0.0
+    
+    # node 2 can hear 1 & 3
+    $node_(2) set X_ 450.0
+    $node_(2) set Y_ 450.0
+    $node_(2) set Z_ 0.0
+
+    # node 3 hears only 2
+    $node_(3) set X_ 600.0
+    $node_(3) set Y_ 600.0
+    $node_(3) set Z_ 0.0
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+    
+    
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping2
+    set ping3 [new Agent/Ping]
+    $ns_ attach-agent $node_(3) $ping3
+    # connect two agents
+    $ns_ connect $ping2 $ping3
+    
+    # start times for both connections
+    $ns_ at 40.1 "$ping1 send"
+
+    #sender cannot hear other tx
+    $ns_ at 60.1 "$ping2 send"
+    
+}
+
+Test/unicast8_sync instproc run {} {
+    $self next
 }
 
 Test/unicast9 instproc init {} {
@@ -755,23 +1174,64 @@ Test/unicast9 instproc init {} {
     #sender cannot hear other tx
     $ns_ at 0.1 "$ping3 send"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast9 instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
 }
 
+
+Test/unicast9_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast9_sync
+    set opt(nn) 4
+    $self next
+
+    $node_(0) set X_ 300.0
+    $node_(0) set Y_ 300.0
+    $node_(0) set Z_ 0.0
+    
+    $node_(1) set X_ 150.0
+    $node_(1) set Y_ 150.0
+    $node_(1) set Z_ 0.0
+    
+    # node 2 & 3 cannot  hear 0 & 1
+    $node_(2) set X_ 500.0
+    $node_(2) set Y_ 550.0
+    $node_(2) set Z_ 0.0
+
+    $node_(3) set X_ 650.0
+    $node_(3) set Y_ 680.0
+    $node_(3) set Z_ 0.0
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+    
+    
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping2
+    set ping3 [new Agent/Ping]
+    $ns_ attach-agent $node_(3) $ping3
+    # connect two agents
+    $ns_ connect $ping2 $ping3
+    
+    # start times for both connections
+    $ns_ at 40.1 "$ping0 send"
+
+    #sender cannot hear other tx
+    $ns_ at 60.1 "$ping3 send"
+    
+}
+
+Test/unicast9_sync instproc run {} {
+    $self next
+}
 
 Test/unicast10 instproc init {} {
     global opt node_
@@ -819,21 +1279,62 @@ Test/unicast10 instproc init {} {
     #sender cannot hear other tx
     $ns_ at 0.1 "$ping3 send"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast10 instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
+}
+
+Test/unicast10_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast10_sync
+    set opt(nn) 4
+    $self next
+
+    $node_(0) set X_ 100.0
+    $node_(0) set Y_ 100.0
+    $node_(0) set Z_ 0.0
+    
+    $node_(1) set X_ 50.0
+    $node_(1) set Y_ 50.0
+    $node_(1) set Z_ 0.0
+    
+    # node 2 & 3 cannot  hear 0 & 1
+    $node_(2) set X_ 500.0
+    $node_(2) set Y_ 550.0
+    $node_(2) set Z_ 0.0
+
+    $node_(3) set X_ 650.0
+    $node_(3) set Y_ 680.0
+    $node_(3) set Z_ 0.0
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+    
+    
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping2
+    set ping3 [new Agent/Ping]
+    $ns_ attach-agent $node_(3) $ping3
+    # connect two agents
+    $ns_ connect $ping2 $ping3
+    
+    # start times for both connections
+    $ns_ at 40.1 "$ping0 send"
+
+    #sender cannot hear other tx
+    $ns_ at 40.1 "$ping3 send"
+    
+}
+
+Test/unicast10_sync instproc run {} {
+    $self next
 }
 
 
@@ -885,21 +1386,64 @@ Test/unicast11 instproc init {} {
     $ns_ at 0.1 "$ping2 send"
     $ns_ at 0.1 "$ping4 send"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast11 instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
+}
+
+Test/unicast11_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast11_sync
+    set opt(nn) 3
+    $self next
+
+    $node_(0) set X_ 100.0
+    $node_(0) set Y_ 100.0
+    $node_(0) set Z_ 0.0
+    
+    $node_(1) set X_ 200.0
+    $node_(1) set Y_ 200.0
+    $node_(1) set Z_ 0.0
+    
+    $node_(2) set X_ 300.0
+    $node_(2) set Y_ 100.0
+    $node_(2) set Z_ 0.0
+
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+    
+    
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping2
+    set ping3 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping3
+    # connect two agents
+    $ns_ connect $ping2 $ping3
+
+    set ping4 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping4
+    set ping5 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping5
+    # connect two agents
+    $ns_ connect $ping4 $ping5
+    
+    # start times for connections
+    $ns_ at 40.1 "$ping0 send"
+    $ns_ at 40.1 "$ping2 send"
+    $ns_ at 40.1 "$ping4 send"
+    
+}
+
+Test/unicast11_sync instproc run {} {
+    $self next
 }
 
 
@@ -957,23 +1501,71 @@ Test/unicast12 instproc init {} {
     $ns_ at 0.1 "$ping2 send"
     $ns_ at 0.1 "$ping4 send"
     
-    #
-    # Tell nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop) "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop) "$self finish"
-    $ns_ at $opt(stop) "puts \"NS EXITING...\" ; $ns_ halt"
 }
 
 Test/unicast12 instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_  run
+    $self next
 }
 
+Test/unicast12_sync instproc init {} {
+    global opt node_
+    $self instvar ns_ net_ testname_ topo_ tracefd_
+    
+    set testname_ unicast12_sync
+    set opt(nn) 3
+    set opt(err)            UniformErrorProc
+    set opt(FECstrength)    1
+
+    ErrorModel set rate_ 0.1
+    ErrorModel set bandwidth_ 1Kb
+    
+    $self next
+
+    $node_(0) set X_ 100.0
+    $node_(0) set Y_ 100.0
+    $node_(0) set Z_ 0.0
+    
+    $node_(1) set X_ 200.0
+    $node_(1) set Y_ 200.0
+    $node_(1) set Z_ 0.0
+    
+    $node_(2) set X_ 300.0
+    $node_(2) set Y_ 100.0
+    $node_(2) set Z_ 0.0
+
+
+    set ping0 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping0
+    set ping1 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping1
+    # connect two agents
+    $ns_ connect $ping0 $ping1
+    
+    
+    set ping2 [new Agent/Ping]
+    $ns_ attach-agent $node_(1) $ping2
+    set ping3 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping3
+    # connect two agents
+    $ns_ connect $ping2 $ping3
+
+    set ping4 [new Agent/Ping]
+    $ns_ attach-agent $node_(2) $ping4
+    set ping5 [new Agent/Ping]
+    $ns_ attach-agent $node_(0) $ping5
+    # connect two agents
+    $ns_ connect $ping4 $ping5
+    
+    # start times for connections
+    $ns_ at 40.1 "$ping0 send"
+    $ns_ at 40.1 "$ping2 send"
+    $ns_ at 40.1 "$ping4 send"
+    
+}
+
+Test/unicast12_sync instproc run {} {
+    $self next
+}
 
 
 #Define a 'recv' function for the class 'Agent/Ping'

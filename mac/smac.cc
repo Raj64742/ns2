@@ -167,11 +167,8 @@ void SmacCounterTimer::expire(Event *e) {
 
 
 
-SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(this), mhGene_(this), mhCS_(this) {
+SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(this), mhGene_(this), mhCS_(this), syncFlag_(0) {
 
-
-
-  
   state_ = IDLE;
   radioState_ = RADIO_IDLE;
   tx_active_ = 0;
@@ -207,26 +204,33 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
   numSched_ = 0;
   numNeighb_ = 0;
 
-#ifdef SMAC_NO_SYNC
-  txData_ = 0;
-#else
-  for (int i=0; i< MAX_NUM_SCHEDULES; i++) {
-    mhCounter_[i] = new SmacCounterTimer(this, i);
-  }
-
-  // listen for a whole period to choose a schedule first
-  // this typically results in each node following its own schedule
-  //double cw = (Random::random() % SYNC_CW) * SLOTTIME ;
+  Tcl& tcl = Tcl::instance();
+  tcl.evalf("Mac/SMAC set syncFlag_");
+  if (strcmp(tcl.result(), "0") != 0)  
+    syncFlag_ = 1;              // syncflag is set; use sleep-wakeup cycle
   
-  // The foll CW value allows neigh nodes to follow a single schedule
-  double w = (Random::random() % (SYNC_CW)) ;
-  double cw = w/10.0;
-  double c = CLKTICK2SEC(LISTENTIME) + CLKTICK2SEC(SLEEPTIME);
-  double s = SYNCPERIOD + 1;
-  double t = c * s ;
-  mhGene_.sched(t + cw);
-  //mhGene_.sched((CLKTICK2SEC(LISTENTIME) + CLKTICK2SEC(SLEEPTIME)) * CLKTICK2SEC(SYNCPERIOD + 1) + cw);
-#endif //!SMAC_NO_SYNC
+  if (!syncFlag_)
+    txData_ = 0;
+  
+  else {
+  
+    for (int i=0; i< MAX_NUM_SCHEDULES; i++) {
+    mhCounter_[i] = new SmacCounterTimer(this, i);
+    }
+
+    // listen for a whole period to choose a schedule first
+    // this typically results in each node following its own schedule
+    //double cw = (Random::random() % SYNC_CW) * SLOTTIME ;
+  
+    // The foll CW value allows neigh nodes to follow a single schedule
+    double w = (Random::random() % (SYNC_CW)) ;
+    double cw = w/10.0;
+    double c = CLKTICK2SEC(LISTENTIME) + CLKTICK2SEC(SLEEPTIME);
+    double s = SYNCPERIOD + 1;
+    double t = c * s ;
+    mhGene_.sched(t + cw);
+    //mhGene_.sched((CLKTICK2SEC(LISTENTIME) + CLKTICK2SEC(SLEEPTIME)) * CLKTICK2SEC(SYNCPERIOD + 1) + cw);
+  }
 }
 
 void SMAC::setMySched(Packet *pkt) 
@@ -307,11 +311,9 @@ void SMAC::handleSendTimer() {
    case ACK_PKT:
      sentACK(pktTx_);
      break;
-#ifndef SMAC_NO_SYNC     
   case SYNC_PKT:
     sentSYNC(pktTx_);
     break;
-#endif
   default:
     fprintf(stderr, "unknown mac pkt type, %d\n", sh->type);
     break;
@@ -382,11 +384,9 @@ void SMAC::handleRecvTimer() {
   case ACK_PKT:
     handleACK(pktRx_);
     break;
-#ifndef SMAC_NO_SYNC
   case SYNC_PKT:
     handleSYNC(pktRx_);
     break;
-#endif //!SMAC_NO_SYNC
   default:
     fprintf(stderr, "Unknown smac pkt type, %d\n", sh->type);
     break;
@@ -400,23 +400,21 @@ void SMAC::handleRecvTimer() {
 void SMAC::handleGeneTimer() 
 {
   
-#ifndef SMAC_NO_SYNC
-  // still in choose schedule state
-  if (numSched_ == 0) {
-    setMySched(0); // I'm the primary synchroniser
-    return;
-  } 
-#endif // !NO_SYNC
-
+  if (syncFlag_) {
+    // still in choose-schedule state
+    if (numSched_ == 0) {
+      setMySched(0); // I'm the primary synchroniser
+      return;
+    } 
+  }
   if (state_ == WAIT_CTS) {  // CTS timeout
     if (numRetry_ < RETRY_LIMIT) {
       numRetry_++;
       // wait until receiver's next wakeup
       state_ = IDLE;
       
-#ifdef SMAC_NO_SYNC
-      checkToSend();
-#endif
+      if (!syncFlag_)
+	checkToSend();
       
     } else {
       state_ = IDLE;
@@ -468,17 +466,16 @@ void SMAC::handleNavTimer() {
   // medium is now free
   nav_ = 0; // why have this variable?? probably not required use the timer instead
   
-#ifdef SMAC_NO_SYNC
-  if (state_ == SLEEP)
-    wakeup();
+  if (!syncFlag_) {
+    if (state_ == SLEEP)
+      wakeup();
 
-  // try to send waiting data, if any
-  checkToSend();
-#endif // NO_SYNC
- 
+    // try to send waiting data, if any
+    checkToSend();
+  } 
 }
 
-#ifdef SMAC_NO_SYNC
+
 int SMAC::checkToSend() {
   if (txData_ == 1) {
     assert(dataPkt_);
@@ -513,21 +510,13 @@ int SMAC::checkToSend() {
     }
     
   done:
-    // there could be corner cases when smac requires a timer to check if it has any pkt to send.
-    //if (!(mhChkSend_.busy()))
-    //mhChkSend_.sched(CLKTICK2SEC(CHK_INTERVAL));
     return 0;
     
   } else {
     return 0;
   }
 }
-#endif // NO_SYNC
 
-
-// void SMAC::handleChkSendTimer() {
-//   checkToSend();
-// }
 
 void SMAC::handleNeighNavTimer() {
   
@@ -541,9 +530,8 @@ void SMAC::handleNeighNavTimer() {
     // didnot get any/all data
     rxMsgDone(0); 
   } else {
-#ifdef SMAC_NO_SYNC
-    checkToSend();
-#endif
+    if (!syncFlag_)
+      checkToSend();
   }
 }
 
@@ -785,12 +773,10 @@ void SMAC::discard(Packet *p, const char* why)
       return;
     break;
 
-#ifndef SMAC_NO_SYNC
   case SYNC_PKT:
     if(drop_SYNC(p, why))
       return;
     break;
-#endif //!SMAC_NO_SYNC
 
   default:
     fprintf(stderr, "invalid MAC type (%x)\n", sh->type);
@@ -880,11 +866,11 @@ void SMAC::handleCTS(Packet *p) {
 
       if(sendDATA()) {
 	state_ = WAIT_ACK;
-#ifdef SMAC_NO_SYNC
-	txData_ = 0;
-#else
-	schedTab_[currSched_].txData = 0;
-#endif // SMAC_NO_SYNC
+
+	if (!syncFlag_)
+	  txData_ = 0;
+	else
+	  schedTab_[currSched_].txData = 0;
       }
     }
   } else { // for others
@@ -923,9 +909,8 @@ void SMAC::handleDATA(Packet *p) {
       else {
 	printf("Recd duplicate data pkt at %d from %d! free pkt\n",index_,sh->srcAddr);
 	Packet::free(p);
-#ifdef SMAC_NO_SYNC
-	checkToSend();
-#endif //SMAC_NO_SYNC
+	if (!syncFlag_)
+	  checkToSend();
       }
     } else if (state_ == IDLE || state_ == CR_SENSE ) {
       printf("got data pkt in %d state XXX %d\n", state_, index_);
@@ -939,9 +924,8 @@ void SMAC::handleDATA(Packet *p) {
       else {
 	printf("Recd duplicate data pkt! free pkt\n");
 	Packet::free(p);
-#ifdef SMAC_NO_SYNC
-	checkToSend();
-#endif //SMAC_NO_SYNC
+	if (!syncFlag_)
+	  checkToSend();
       }
     } else { // some other state
       // not sure we can handle this
@@ -1005,7 +989,7 @@ void SMAC::handleSYNC(Packet *p)
     mhGene_.cancel();
     double t = Scheduler::instance().clock();
     struct smac_sync_frame *sf = (struct smac_sync_frame *)p->access(hdr_mac::offset_);
-    printf("Recvd SYNC (follow) at %d from %d.....at %.6f\n", index_, sf->srcAddr, t);
+    //printf("Recvd SYNC (follow) at %d from %d.....at %.6f\n", index_, sf->srcAddr, t);
     setMySched(p);
     return;
   }
@@ -1017,7 +1001,7 @@ void SMAC::handleSYNC(Packet *p)
   int foundNeighb = 0;
   int schedId = MAX_NUM_SCHEDULES;
   double t = Scheduler::instance().clock();
-  printf("Recvd SYNC (not/f) at %d from %d.....at %.6f\n", index_, sf->srcAddr, t);
+  //printf("Recvd SYNC (not/f) at %d from %d.....at %.6f\n", index_, sf->srcAddr, t);
   
   for(i = 0; i < numNeighb_; i++) {
     if (neighbList_[i].nodeId == sf->srcAddr) {
@@ -1071,11 +1055,9 @@ void SMAC::rxMsgDone(Packet *p) {
   if (p)
     uptarget_->recv(p, (Handler*)0);
   
-#ifdef SMAC_NO_SYNC
-  // check if any pkt waiting to get tx'ed
-  checkToSend();
-#endif // smac_no-sync
-  
+  if (!syncFlag_)
+    // check if any pkt waiting to get tx'ed
+    checkToSend();
 }
 
 //void SMAC::rxFragDone(Packet *p) {
@@ -1145,22 +1127,22 @@ int SMAC::startUcast()
 
 void  SMAC::txMsgDone() 
 {
-#ifdef SMAC_NO_SYNC
-  // check if any data is waiting to get tx'ed
-  if(checkToSend())
-    return;
-  else if (callback_) { // signal upper layer
-    Handler *h = callback_;
-    callback_ = 0;
-    h->handle((Event*) 0);
+  if (!syncFlag_) {
+    // check if any data is waiting to get tx'ed
+    if(checkToSend())
+      return;
+    else if (callback_) { // signal upper layer
+      Handler *h = callback_;
+      callback_ = 0;
+      h->handle((Event*) 0);
+    }
+  } else {
+    if (callback_) { // signal upper layer
+      Handler *h = callback_;
+      callback_ = 0;
+      h->handle((Event*) 0);
+    }
   }
-#else
-  if (callback_) { // signal upper layer
-    Handler *h = callback_;
-    callback_ = 0;
-    h->handle((Event*) 0);
-  }
-#endif
   
 }
 
@@ -1212,20 +1194,18 @@ bool SMAC::bcastMsg(Packet *p) {
     schedTab_[i].txData = 1;
   }
 
-#ifdef SMAC_NO_SYNC
-
-  txData_ = 1;
-
-  // check if can send now
-  if (checkToSend())
+  if (!syncFlag_) {
+    txData_ = 1;
+    // check if can send now
+    if (checkToSend())
+      return 1;
+    else 
+      return 0;
+  
+  } else {
+    numBcast_ = numSched_;
     return 1;
-  else 
-    return 0;
-#else
-  numBcast_ = numSched_;
-  return 1;
-#endif // NO_SYNC
-
+  }
 }
 
 bool SMAC::unicastMsg(int numfrags, Packet *p) {
@@ -1245,20 +1225,20 @@ bool SMAC::unicastMsg(int numfrags, Packet *p) {
   // search for schedule of dest node
   struct hdr_smac *sh = HDR_SMAC(p);
   
-#ifndef SMAC_NO_SYNC
-  int found = 0;
-  for (int i=0; i < numNeighb_; i++) {
-    if (neighbList_[i].nodeId == dst) {
-      found = 1;
-      schedTab_[neighbList_[i].schedId].txData = 1;
-      break;
+  if (syncFlag_) {
+    int found = 0;
+    for (int i=0; i < numNeighb_; i++) {
+      if (neighbList_[i].nodeId == dst) {
+	found = 1;
+	schedTab_[neighbList_[i].schedId].txData = 1;
+	break;
+      }
+    }
+    if (found == 0) {
+      printf("Neighbor unknown; cannot send pkt\n");
+      return 0;  // unknown neighbor
     }
   }
-  if (found == 0) {
-    printf("Neighbor unknown; cannot send pkt\n");
-    return 0;  // unknown neighbor
-  }
-#endif //!SMAC_NO_SYNC
 
   sh->type = DATA_PKT;
   sh->length = SIZEOF_SMAC_DATAPKT;
@@ -1267,19 +1247,19 @@ bool SMAC::unicastMsg(int numfrags, Packet *p) {
   //numFrags_ = numfrags;
   dataPkt_ = p;
 
-#ifdef SMAC_NO_SYNC
-  txData_ = 1;
-
-  // check if can send now
-  if (checkToSend())
+  if (!syncFlag_) {
+    txData_ = 1;
+    
+    // check if can send now
+    if (checkToSend())
+      return 1;
+    else
+      return 0;
+    
+  } else 
     return 1;
-  else
-    return 0;
-#else
-  return 1;
-#endif //NO_SYNC
-
 }
+
 
 bool SMAC::sendRTS() {
   // construct RTS pkt
@@ -1432,7 +1412,7 @@ bool SMAC::sendSYNC()
   if (chkRadio()) {
     transmit(p);
     double t = Scheduler::instance().clock();
-    printf("Sent SYNC from %d.....at %.6f\n", cf->srcAddr, t);
+    //printf("Sent SYNC from %d.....at %.6f\n", cf->srcAddr, t);
     return 1;
     
   } else 
@@ -1468,24 +1448,25 @@ void SMAC::sentDATA(Packet *p)
   if (howToSend_ == BCASTDATA) { // if data was brdcast
     state_ = IDLE;
 
-#ifdef SMAC_NO_SYNC
-    txData_ = 0;
-    dataPkt_ = 0;
-    Packet::free(p);
-    
-    // signal upper layer
-    txMsgDone(); 
-#else 
-    schedTab_[currSched_].txData = 0;
-    numBcast_--;
-    if (numBcast_ == 0) {
+    if (!syncFlag_) {
+      txData_ = 0;
       dataPkt_ = 0;
       Packet::free(p);
-      
+    
       // signal upper layer
       txMsgDone(); 
+    
+    } else {
+      schedTab_[currSched_].txData = 0;
+      numBcast_--;
+      if (numBcast_ == 0) {
+	dataPkt_ = 0;
+	Packet::free(p);
+	
+	// signal upper layer
+	txMsgDone(); 
+      }
     }
-#endif //NO_SYNC
     
   } else {
     
@@ -1521,7 +1502,7 @@ void SMAC::sleep()
   // go to sleep, turn off radio
   state_ = SLEEP;
   radioState_ = RADIO_SLP;
-  printf("SLEEP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+  //printf("SLEEP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 }
 
 void SMAC::wakeup()
@@ -1535,7 +1516,7 @@ void SMAC::wakeup()
   // so careful not to change state of radio unless it is really sleeping
   if (radioState_ == RADIO_SLP)
     radioState_ = RADIO_IDLE;
-  printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+  //printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 
 }
 
@@ -1578,10 +1559,8 @@ double SMAC::txtime(Packet *p)
   case CTS_PKT:
   case ACK_PKT:
     return durCtrlPkt_;
-#ifndef SMAC_NO_SYNC
   case SYNC_PKT:
     return CLKTICK2SEC(SYNCPKTTIME);
-#endif
   default:
     fprintf(stderr, "invalid smac pkt type %d\n", sh->type);
     exit(1);

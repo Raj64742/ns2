@@ -393,11 +393,10 @@ class SMAC : public Mac {
 
   // functions for handling outgoing packets
   
-#ifdef SMAC_NO_SYNC
   // function checks for pending data pkt to be tx'ed
   // when smac is not following SYNC (sleep-wakeup) cycles.
   int checkToSend();               // check if can send, start cs 
-#endif
+
   bool chkRadio();         // checks radiostate
   void transmit(Packet *p);         // actually transmits packet
 
@@ -500,10 +499,10 @@ class SMAC : public Mac {
 
   // flag to check pending data pkt for tx
   // when smac is not following SYNC (sleep-wakeup) cycles.
-#ifdef SMAC_NO_SYNC
   int txData_ ;
-#endif
-  
+
+  int syncFlag_;  // is set to 1 when SMAC uses sleep-wakeup cycle
+
  protected:
   int command(int argc, const char*const* argv);
   virtual int initialized() { 
