@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.76 1998/01/01 04:32:51 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.77 1998/01/05 18:56:57 bajaj Exp $
 #
 
 #
@@ -336,7 +336,7 @@ Simulator instproc simplex-link { n1 n2 bw delay arg } {
 			set q [new $type Fid]
 		}
 	}
-	$q drop-target $nullAgent_
+
 	if { $argsz != 1 } {
 		# assume we have a string of form "linktype linkarg"
 		if { $type == "RTM" || $type == "CBQ" || $type == "CBQ/WRR" } {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.29 1997/11/18 00:50:44 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.30 1998/01/05 18:56:58 bajaj Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -189,6 +189,7 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 
 	set drophead_ [new Connector]
 	$drophead_ target [[Simulator instance] set nullAgent_]
+	$queue_ drop-target $drophead_
 
 	# XXX
 	# put the ttl checker after the delay
