@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.5 1998/12/01 08:19:15 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.6 1999/10/08 01:17:25 salehi Exp $";
 #endif
 
 #include <stdio.h>
@@ -144,7 +144,7 @@ NatAgent::recv(Packet *pkt, Handler *)
 	// address, otherwise we just keep sending to ourselves
 	// (ouch).
 	hdr_ip* iph = hdr_ip::access(pkt);
-	iph->src() = addr_;
+	iph->src() = here_;
 	iph->dst() = dst_;
 	send(pkt, 0);
 }
