@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.12 1998/04/17 22:45:09 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.13 1998/04/20 23:52:48 haoboy Exp $
 #
 
 #
@@ -316,9 +316,7 @@ Agent instproc add-var-trace { name value {type "v"} } {
 	if [info exists namTrace_] {
 		set ns [Simulator instance]
 		$self instvar addr_ dst_ ntName_ features_
-		set addr [expr $addr_ >> 8]
-		set dst [expr $dst_ >> 8]
-		puts $namTrace_ "f -t [$ns now] -s $addr -d $dst -T $type -n $name -v $value -a $ntName_"
+		puts $namTrace_ "f -t [$ns now] -s $addr_ -d $dst_ -T $type -n $name -v $value -a $ntName_"
 		set features_($name) $value
 	}
 }
@@ -329,9 +327,7 @@ Agent instproc update-var-trace { name value {type "v"} } {
 	if [info exists namTrace_] {
 		set ns [Simulator instance]
 		$self instvar addr_ dst_ ntName_ features_
-		set addr [expr $addr_ >> 8]
-		set dst [expr $dst_ >> 8]
-		puts $namTrace_ "f -t [$ns now] -s $addr -d $dst -T $type -n $name -v $value -a $ntName_ -o $features_($name)"
+		puts $namTrace_ "f -t [$ns now] -s $addr_ -d $dst_ -T $type -n $name -v $value -a $ntName_ -o $features_($name)"
 		set features_($name) $value
 	}
 }
@@ -342,9 +338,7 @@ Agent instproc delete-var-trace { name } {
 	if [info exists namTrace_] {
 		set ns [Simulator instance]
 		$self instvar addr_ dst_ ntName_ features_
-		set addr [expr $addr_ >> 8]
-		set dst [expr $dst_ >> 8]
-		puts $namTrace_ "f -t [$ns now] -s $addr -d $dst -n $name -a $ntName_ -o $features_($name) -x"
+		puts $namTrace_ "f -t [$ns now] -s $addr_ -d $dst_ -n $name -a $ntName_ -o $features_($name) -x"
 		unset features_($name)
 	}
 }

@@ -124,7 +124,7 @@ SessionSim instproc join-group { agent group } {
 	    # nam will deal with the issue whether all groups share a 
 	    # single queue per receiver. The simulator simply writes 
 	    # this information there
-	    $self puts-nam-traceall "G -t [$self now] -i $group -a $dst"
+	    $self puts-nam-config "G -t [$self now] -i $group -a $dst"
 
 	    # And we should add a trace object before each receiver,
 	    # because only this will capture the packet before it 

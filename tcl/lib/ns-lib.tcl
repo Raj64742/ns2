@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.90 1998/04/17 22:44:37 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.91 1998/04/20 23:52:48 haoboy Exp $
 
 #
 
@@ -277,6 +277,21 @@ Simulator instproc dump-namqueues {} {
     }
 }
 
+# Write hierarchical masks/shifts into trace file
+Simulator instproc dump-namaddress {} {
+	AddrParams instvar hlevel_ NodeShift_ NodeMask_ PortShift_ PortMask_ \
+		McastShift_ McastMask_
+
+	# First write number of hierarchies
+	$self puts-nam-config \
+		"A -t * -n $hlevel_ -p $PortShift_ -o $PortMask_ -c $McastShift_ -a $McastMask_"
+
+	for {set i 1} {$i <= $hlevel_} {incr i} {
+		$self puts-nam-config \
+			"A -t * -h $i -m $NodeMask_($i) -s $NodeShift_($i)"
+	}
+}
+
 Simulator instproc run {} {
     #$self compute-routes
     $self rtmodel-configure			;# in case there are any
@@ -298,6 +313,9 @@ Simulator instproc run {} {
 	set q [$link_($qn) queue]
 	$q reset
     }
+
+    # Addressing scheme
+    $self dump-namaddress
 
     # Color configuration for nam
     $self dump-namcolors

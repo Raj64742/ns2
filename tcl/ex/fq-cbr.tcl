@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq-cbr.tcl,v 1.5 1997/11/04 22:37:56 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq-cbr.tcl,v 1.6 1998/04/20 23:52:46 haoboy Exp $
 #
 
 set ns [new Simulator]
@@ -162,7 +162,7 @@ FQLink instproc dump-namconfig {} {
 	set bw [$link_ set bandwidth_]
 	set delay [$link_ set delay_]
 
-	$ns puts-nam-traceall \
+	$ns puts-nam-config \
 		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -o $attr_(ORIENTATION)"
 }
 
@@ -171,7 +171,7 @@ FQLink instproc dump-nam-queueconfig {} {
 
 	set ns [Simulator instance]
 	if [info exists attr_(QUEUE_POS)] {
-		$ns puts-nam-traceall "q -t * -s [$fromNode_ id] -d [$toNode_ id] -a $attr_(QUEUE_POS)"
+		$ns puts-nam-config "q -t * -s [$fromNode_ id] -d [$toNode_ id] -a $attr_(QUEUE_POS)"
 	} else {
 		set attr_(QUEUE_POS) ""
 	}

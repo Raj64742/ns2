@@ -49,6 +49,10 @@ class Address : public TclObject {
 	~Address();
 	char *print_nodeaddr(int address);
 	char *print_portaddr(int address);
+	int str2addr(char *str);
+	inline int set_word_field(int word, int field, int shift, int mask) {
+		return (((field & mask)<<shift) | ((~(mask << shift)) & word));
+	}
 	int PortShift_;
 	int PortMask_;
 	/* for now maximum number of hierarchical levels considered as 10 */

@@ -29,6 +29,8 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.3 1998/04/20 23:52:41 haoboy Exp $
  */
 
 
@@ -85,6 +87,20 @@ int Address::command(int argc, const char*const* argv)
 	}
     }
     if (argc >= 4) {
+	    if (strcmp(argv[1], "add-hier") == 0) {
+		    /*
+		     * <address> add-hier <level> <mask> <shift>
+		     */
+		    int level = atoi(argv[2]);
+		    int mask = atoi(argv[3]);
+		    int shift = atoi(argv[4]);
+		    if (levels_ < level)
+			    levels_ = level;
+		    NodeShift_[level] = shift;
+		    NodeMask_[level] = mask;
+		    return (TCL_OK);
+	    }
+
 	if (strcmp(argv[1], "idsbits-are") == 0) {
 	    temp = (argc - 2)/2;
 	    if (levels_) { 
@@ -117,6 +133,7 @@ int Address::command(int argc, const char*const* argv)
 	    return (TCL_OK);
 	}
     }
+    return TclObject::command(argc, argv);
 }
 
 char *Address::print_nodeaddr(int address)
@@ -155,4 +172,25 @@ char *Address::print_portaddr(int address)
   strcpy(addrstr, str);
 //   printf("Portaddr - %s\n",addrstr);
   return(addrstr);
+}
+
+// Convert address in string format to binary format (int). 
+int Address::str2addr(char *str)
+{
+	if (levels_ == 0) 
+		return atoi(str);
+	char *delim = ".";
+	char *tok;
+	int addr;
+	for (int i = 1; i <= levels_; i++) {
+		if (i == 1) {
+			tok = strtok(str, delim);
+			addr = atoi(tok);
+		} else {
+			tok = strtok(NULL, delim);
+			addr = set_word_field(addr, atoi(tok), 
+					      NodeShift_[i], NodeMask_[i]);
+		}
+	}
+	return addr;
 }

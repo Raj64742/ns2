@@ -2427,7 +2427,17 @@ Same function as \fB$ns trace-all\fP, except it will produce all equivalent
 traces in nam format. In addition, calling this command \fIbefore\fP the 
 simulator 
 starts to run will generate color configurations (if any) and topology 
-information needed by nam (nodes, links, queues).
+information needed by nam (nodes, links, queues). An example can be found 
+at ns-2/tcl/ex/nam-example.tcl.
+
+.IP "\fB$ns namtrace-config \fIfileID\fP"
+Assign a file to store nam configuration information, e.g., 
+node/link/agents and some Simulator-related traces such as annotations.
+When you don't want to trace every object. call this function and then 
+use \fI$ns namtrace-queue\fP, \fIrtModel trace\fP, etc., to insert 
+traces individually. Note that you should use the same file for individual 
+traces and nam configuration. An example for this is available at 
+ns-2/tcl/ex/nam-separate-trace.tcl.
 
 .IP "\fB$ns monitor-queue \fInode1 node2\fP"
 Arrange for queue length of link
@@ -2480,11 +2490,13 @@ queuePos	- Construct a queue of the simplex link (\fI$node1\fP,
 		  will be displayed.
 .fi
 
-.IP "\fB$ns add-agent-trace \fIagent name\fP"
+.IP "\fB$ns add-agent-trace \fIagent name [fileID]\fP"
 Write a nam trace line, which will create a trace agent for \fIagent\fP when
 interpreted by nam. The trace agent's name will be 
 \fIname\fP. This nam trace agent is used to show the position of \fIagent\fP
 and can be used to write nam traces of variables associated with the agent.
+By default traces will be written to the file assigned by \fInamtrace-all\fP.
+\fIfileID\fP can be used to write traces to another file.
 
 .IP "\fB$agent tracevar \fIname\fP"
 Label OTcl variable \fIname\fP of \fB$agent\fP to be traced. Then whenever 
@@ -2537,7 +2549,7 @@ where
 .LP
 .RS
 .nf
-<code> := [hd+-] h=hop d=drop +=enque -=deque
+<code> := [hd+-r] h=hop d=drop +=enque -=deque r=receive
 <time> := simulation time in seconds
 <hsrc> := first node address of hop/queuing link
 <hdst> := second node address of hop/queuing link

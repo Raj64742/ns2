@@ -26,7 +26,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.h,v 1.13 1998/02/06 04:03:42 gnguyen Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.h,v 1.14 1998/04/20 23:52:44 haoboy Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -45,7 +45,7 @@ protected:
 	int	dataCtr_;	          /* # of data packets sent */
 	int	sessCtr_;		  /* # of session messages sent */
 	int	packetSize_;	          /* size of data messages for repr */
-	SRMinfo *sip_;	          	  /* Table of sender info */
+	SRMinfo* sip_;	          	  /* Table of sender info */
 	Tcl_HashTable*	siphash_;
 	int	groupSize_;
 	int off_srm_;
