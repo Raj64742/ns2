@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.138 1997/08/26 03:57:49 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.139 1997/08/26 04:39:41 hari Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -53,6 +53,26 @@
 		((srtt>>3)+rttvar+1)*tick
 	Fix contributed by Kathie Nichols w/Van.
      </LI>
+
+  <LI><B><A HREF="http://www.cs.berkeley.edu/~hari/">[hari]</A> Sun Aug 24 18:10:50 PDT 1997</B><br>
+
+	TCP with integrated congestion control and loss recovery.
+	This helps to perform congestion control and loss recovery
+between communicating hosts on a <i>per-host</i>, rather than <i>per-connection</i>, basis.
+This is beneficial for Web-like workloads and in other situations
+where multiple, logically different TCP transfers may be in progress
+between two hosts simultaneously.  With IntTcpAgent, these logically
+different connections would share the same cwnd, srtt, etc. for better
+congestion control; in addition, data-driven loss recovery is improved
+as well.  Support for "proxy" hosts, acting on behalf of many users,
+is also included. <br>
+
+Files:  tcp-int.{cc ,h} : Integrated TCP agent. <br>
+        chost.{cc,h} : Per-host congestion control and loss recovery.
+                       The relevant TCP control block variables are
+                       maintained on w.r.t. each "Corresponding Host".<br>
+        nilist.{cc,h} : Generic linked list routines.<br>
+   </LI>
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A> Tue Aug 19 15:27:11 PDT 1997</B><br>
        Initialization bugs in Vegas fixed.
