@@ -161,7 +161,7 @@ class DiffusionAgent : public Agent {
   void consider_old(Packet *);
   void consider_new(Packet *);
   void Terminate();
-  void Start();
+  virtual void Start();
 
   Packet *create_packet();
   Packet *prepare_message(unsigned int dtype, ns_addr_t to_addr, int msg_type);

@@ -59,7 +59,6 @@
 #include "routing_table.h"
 #include "diff_rate.h"
 
-
 extern char *MsgStr[];
 
 static class DiffusionRateClass : public TclClass {
