@@ -20,9 +20,11 @@
 #include "adc.h"
 #include <stdlib.h>
 
-ADC::ADC() :bandwidth_(0)
+ADC::ADC() :bandwidth_(0), tchan_(0)
 {
 	bind_bw("bandwidth_",&bandwidth_);
+	bind("src_", &src_);
+	bind("dst_", &dst_);
 }
 
 int ADC::command(int argc,const char*const*argv)
@@ -58,7 +60,23 @@ int ADC::command(int argc,const char*const*argv)
 			return(TCL_OK);
 		}
 	}
+	else if (argc == 3) {
+		if (strcmp(argv[1], "attach") == 0) {
+			int mode;
+			const char* id = argv[2];
+			tchan_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+			if (tchan_ == 0) {
+				tcl.resultf("ADC: trace: can't attach %s for writing", id);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+			
+		} 
+
+	}
 	return (NsObject::command(argc,argv));
 }
+
+
 
 

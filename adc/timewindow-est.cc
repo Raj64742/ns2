@@ -34,6 +34,7 @@ protected:
 };
 
 void TimeWindow_Est::estimate() {
+	measload_ = meas_mod_->bitcnt()/period_;
 	if (meas_mod_->bitcnt()/period_ >avload_)
 		avload_=meas_mod_->bitcnt()/period_;
 	if (maxp < meas_mod_->bitcnt()/period_)

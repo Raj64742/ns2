@@ -40,7 +40,7 @@ protected:
 class Estimator : public NsObject {
 public:
 	Estimator();
-	inline double &avload() { return avload_;};
+	inline double avload() { return double(avload_);};
 
 	inline virtual void change_avload(double incr) { avload_ += incr;}
 	int command(int argc, const char*const* argv); 
@@ -49,14 +49,22 @@ public:
 	void start();
 	void stop();
 	void setmeasmod(MeasureMod *);
+	void setactype(const char*);
 	inline double &period(){ return period_;}
-	
+	void trace(TracedVar* v);
 protected:
-	double avload_; 
+	TracedDouble avload_;
+	TracedDouble measload_;
 	double period_; 
 	virtual void estimate()=0;
 	MeasureMod *meas_mod_;
 	Estimator_Timer est_timer_;
+	Tcl_Channel tchan_;
+	int src_;
+	int dst_;
+	double oavload_;
+	double omeasload_;
+	char *actype_;  
 };
 
 #endif

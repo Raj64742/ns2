@@ -165,17 +165,6 @@ Agent/CBR/UDP/SA instproc sched-stop { decision } {
 	}
 }
 
-#Helper  function to output link utilization and bw estimate
-IntServLink instproc trace { interval } {
-	global ns f
-	$self instvar est_
-	if [ info exists f ] {
-		puts $f "[$ns now] [$est_ load-est] [$est_ link-utlzn]" 
-	}
-	$ns at [expr [$ns now]+$interval] "$self trace $interval" 
-}
-	
-
 set ns [new Simulator]
 $ns expand-port-field-bits 16
 
@@ -191,7 +180,7 @@ set l01 [$ns link $n0 $n1]
 $l01 set qBytesEstimate_ 0
 $l01 set qPktsEstimate_ 0
 $l01 set sampleInterval_ 0
-$ns at $meastime "$l01 trace [expr $ptime*$S_]"
+$ns at $meastime "$l01 trace-util [expr $ptime*$S_] $f"
 
 #create 1 receiver agent
 set r [new Agent/SAack]

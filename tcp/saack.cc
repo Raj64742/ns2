@@ -57,7 +57,6 @@ void SAack_Agent::recv(Packet *p, Handler *h)
 	if (ch->ptype() == PT_REQUEST) {
 		Packet *newp =allocpkt();
 		hdr_cmn *newch=(hdr_cmn*)newp->access(off_cmn_);
-		newch->ptype() = PT_REPLY;
 		newch->size()=ch->size();
 		// turn the packet around by swapping src and dst
 		hdr_ip * iph = (hdr_ip*)p->access(off_ip_);
@@ -71,6 +70,10 @@ void SAack_Agent::recv(Packet *p, Handler *h)
 		newrv->decision()=rv->decision();
 		newrv->rate()=rv->rate();
 		newrv->bucket()=rv->bucket();
+		if (rv->decision())
+		        newch->ptype() = PT_ACCEPT;
+		else
+		        newch->ptype() = PT_REJECT;
 		target_->recv(newp);
 		Packet::free(p);
 		return;

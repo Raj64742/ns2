@@ -119,7 +119,7 @@ void SA_Agent::recv(Packet *p, Handler *)
 	hdr_cmn *ch= (hdr_cmn *)p->access(off_cmn_);
 	hdr_resv *rv=(hdr_resv *)p->access(off_resv_);
 	hdr_ip * iph = (hdr_ip*)p->access(off_ip_);
-	if ( ch->ptype() == PT_REPLY ) {
+	if ( ch->ptype() == PT_ACCEPT || ch->ptype() == PT_REJECT ) {
 		ch->ptype() = PT_CONFIRM;
 		// turn the packet around by swapping src and dst
 		nsaddr_t tmp;

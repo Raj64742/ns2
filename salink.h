@@ -32,6 +32,7 @@ class SALink : public Connector {
 public:
 	SALink();
 	int command(int argc, const char*const* argv); 
+	void trace(TracedVar* v);
 	
 protected:
 	void recv(Packet *,Handler *);
@@ -42,7 +43,12 @@ protected:
 	pending pending_[NFLOWS];
 	int lookup(int);
 	int get_nxt();
-	
+	TracedInt numfl_;
+	int onumfl_;  /* XXX: store previous value of numfl_ for nam */
+	Tcl_Channel tchan_;
+	int src_;   /* id of node we're connected to (for nam traces) */
+	int dst_;   /* id of node at end of the link */
+	int last_;      /* previous ac decision on this link */
 };
 
 

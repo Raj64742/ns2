@@ -34,8 +34,9 @@ public:
 
 
 
-SALink::SALink() : adc_(0)
+SALink::SALink() : adc_(0), numfl_(-1), tchan_(0), onumfl_(0), last_(-1)
 {
+
 	int i;
 	for (i=0;i<NFLOWS;i++) {
 		pending_[i].flowid=-1;
@@ -43,6 +44,11 @@ SALink::SALink() : adc_(0)
 	}
 	bind("off_resv_",&off_resv_);
 	bind("off_ip_",&off_ip_);
+	bind("src_", &src_);
+	bind("dst_", &dst_);
+
+	numfl_.tracer(this);
+	numfl_.name("\"Admitted Flows\"");
 }
 
 
@@ -60,26 +66,43 @@ void SALink::recv(Packet *p, Handler *h)
 	
 	switch(ch->ptype()) {
 	case PT_REQUEST:
-		{
+	        {
 			decide=adc_->admit_flow(cl,rv->rate(),rv->bucket());
+			if (tchan_)
+			        if (last_ != decide) {
+				        int n;
+				        char wrk[50];
+					double t = Scheduler::instance().clock();
+					sprintf(wrk, "l -t %g -s %d -d %d -S COLOR -c %s", 
+						t, src_, dst_, decide ? "MediumBlue" : "red" );
+					n = strlen(wrk);
+					wrk[n] = '\n';
+					wrk[n+1] = 0;
+					(void)Tcl_Write(tchan_, wrk, n+1);
+					last_ = decide;
+				}
 			//put decide in the packet
 			rv->decision() &= decide;
 			if (decide) {
 				j=get_nxt();
 				pending_[j].flowid=iph->flowid();
 				//pending_[j].status=decide;
+				numfl_++;
 			}
 			break;
 		}
-	case PT_REPLY:
+	case PT_ACCEPT:
+        case PT_REJECT:
 		break;
 	case PT_CONFIRM:
 		{
 			j=lookup(iph->flowid());
 			if (j!=-1) {
-				if (!rv->decision()) 
+				if (!rv->decision()) {
 					//decrease the avload for this class 
 					adc_->rej_action(cl,rv->rate(),rv->bucket());
+					numfl_--;
+				}
 				pending_[j].flowid=-1;
 			}
 			break;
@@ -87,6 +110,7 @@ void SALink::recv(Packet *p, Handler *h)
 	case PT_TEARDOWN:
 		{
 			adc_->teardown_action(cl,rv->rate(),rv->bucket());
+			numfl_--;
 			break;
 		}
 	default:
@@ -102,6 +126,7 @@ void SALink::recv(Packet *p, Handler *h)
 int SALink::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
+	char wrk[500];
 	
 	if (argc ==3) {
 		if (strcmp(argv[1],"attach-adc") == 0 ) {
@@ -111,6 +136,30 @@ int SALink::command(int argc, const char*const* argv)
 				return(TCL_ERROR);
 			}
 			return(TCL_OK);
+		}
+		if (strcmp(argv[1], "attach") == 0) {
+			int mode;
+			const char* id = argv[2];
+			tchan_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+			if (tchan_ == 0) {
+				tcl.resultf("SALink: trace: can't attach %s for writing", id);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+	}
+	if (argc == 2) {
+		if (strcmp(argv[1], "add-trace") == 0) {
+		        if (tchan_) {
+			        sprintf(wrk, "a -t * -n %s:%d-%d -s %d",
+					adc_->type(), src_, dst_, src_);
+				int n = strlen(wrk);
+				wrk[n] = '\n';
+				wrk[n+1] = 0;
+				(void)Tcl_Write(tchan_, wrk, n+1);
+				numfl_ = 0;
+			}
+			return (TCL_OK);
 		}
 	}
 	return Connector::command(argc,argv);
@@ -138,3 +187,37 @@ int SALink::get_nxt()
 	return i;
 }
 
+void SALink::trace(TracedVar* v)
+{
+
+        char wrk[500];
+	int *p, newval;
+
+	if (strcmp(v->name(), "\"Admitted Flows\"") == 0) {
+	        p = &onumfl_;
+	}
+	else {
+	        fprintf(stderr, "SALink: unknown trace var %s\n", v->name());
+		return;
+	}
+
+	newval = int(*((TracedInt*)v));
+
+        if (tchan_) {
+	        int n;
+	        double t = Scheduler::instance().clock();
+		/* f -t 0.0 -s 1 -a SA -T v -n Num -v 0 -o 0 */
+		sprintf(wrk, "f -t %g -s %d -a %s:%d-%d -T v -n %s -v %d -o %d",
+			t, src_, adc_->type(), src_, dst_, v->name(), newval, *p);
+		n = strlen(wrk);
+		wrk[n] = '\n';
+		wrk[n+1] = 0;
+		(void)Tcl_Write(tchan_, wrk, n+1);
+		
+	}
+
+	*p = newval;
+
+	return;
+	       
+}

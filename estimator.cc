@@ -19,9 +19,16 @@
 
 #include  "estimator.h"
 
-Estimator::Estimator() : meas_mod_(0),avload_(0),est_timer_(this)
+Estimator::Estimator() : meas_mod_(0),avload_(0.0),est_timer_(this), measload_(0.0), tchan_(0), omeasload_(0), oavload_(0)
 {
 	bind("period_",&period_);
+	bind("src_", &src_);
+	bind("dst_", &dst_);
+
+	avload_.tracer(this);
+	avload_.name("\"Estimated Util.\"");
+	measload_.tracer(this);
+	measload_.name("\"Measured Util.\"");
 }
 
 int Estimator::command(int argc, const char*const* argv)
@@ -29,11 +36,23 @@ int Estimator::command(int argc, const char*const* argv)
 	Tcl& tcl = Tcl::instance();
 	if (argc==2) {
 		if (strcmp(argv[1],"load-est") == 0) {
-			tcl.resultf("%.3f",avload_);
+			tcl.resultf("%.3f",double(avload_));
 			return(TCL_OK);
 		} else if (strcmp(argv[1],"link-utlzn") == 0) {
 			tcl.resultf("%.3f",meas_mod_->bitcnt()/period_);
 			return(TCL_OK);
+		}
+	}
+	if (argc == 3) {
+		if (strcmp(argv[1], "attach") == 0) {
+			int mode;
+			const char* id = argv[2];
+			tchan_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+			if (tchan_ == 0) {
+				tcl.resultf("Estimator: trace: can't attach %s for writing", id);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
 		}
 	}
 	return NsObject::command(argc,argv);
@@ -47,6 +66,7 @@ void Estimator::setmeasmod (MeasureMod *measmod)
 void Estimator::start()
 {
 	avload_=0;
+	measload_ = 0;
 	est_timer_.resched(period_);
 }
 
@@ -64,4 +84,51 @@ void Estimator::timeout(int)
 void Estimator_Timer::expire(Event *e) 
 {
 	est_->timeout(0);
+}
+
+void Estimator::trace(TracedVar* v)
+{
+        char wrk[500];
+	double *p, newval;
+
+	/* check for right variable */
+	if (strcmp(v->name(), "\"Estimated Util.\"") == 0) {
+	        p = &oavload_;
+	}
+	else if (strcmp(v->name(), "\"Measured Util.\"") == 0) {
+	        p = &omeasload_;
+	}
+	else {
+	        fprintf(stderr, "Estimator: unknown trace var %s\n", v->name());
+		return;
+	}
+
+	newval = double(*((TracedDouble*)v));
+
+        if (tchan_) {
+	        int n;
+	        double t = Scheduler::instance().clock();
+		/* f -t 0.0 -s 1 -a SA -T v -n Num -v 0 -o 0 */
+		sprintf(wrk, "f -t %g -s %d -a %s:%d-%d -T v -n %s -v %g -o %g",
+			t, src_, actype_, src_, dst_, v->name(), newval, *p);
+		n = strlen(wrk);
+		wrk[n] = '\n';
+		wrk[n+1] = 0;
+		(void)Tcl_Write(tchan_, wrk, n+1);
+		
+	}
+
+	*p = newval;
+
+	return;
+
+
+
+}
+
+void Estimator::setactype(const char* type)
+{
+        actype_ = new char[strlen(type)+1];
+	strcpy(actype_, type);
+	return;
 }

@@ -34,6 +34,8 @@ protected:
 MS_ADC::MS_ADC() 
 {
 	bind("utilization_",&utilization_);
+	type_ = new char[5];
+	strcpy(type_, "MSAC");
 }
 
 void MS_ADC::rej_action(int cl,double p,int r)

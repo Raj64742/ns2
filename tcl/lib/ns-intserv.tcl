@@ -24,6 +24,8 @@ Queue/SimpleIntServ set qlimit0_ 50
 Agent/CBR/UDP/SA set rate_ 0
 Agent/CBR/UDP/SA set bucket_ 0
 
+ADC set src_ -1
+ADC set dst_ -1
 ADC/MS set utilization_ 0.95
 ADC/HB set epsilon_ 0.7
 ADC/ACTO set s_ 0.002
@@ -36,12 +38,19 @@ Est set period_ 0.5
 
 ADC set bandwidth_ 0
 
+SALink set src_ -1
+SALink set dst_ -1
+
+Est set src_ -1
+Est set dst_ -1
+
+
 Class IntServLink -superclass  SimpleLink
 IntServLink instproc init { src dst bw delay q arg {lltype "DelayLink"} } {
 	
 	$self next $src $dst $bw $delay $q $lltype ; # SimpleLink ctor
 	$self instvar head_ queue_ link_
-	
+
 	$self instvar measclassifier_ signalmod_ adc_ est_ measmod_
 	
 	set ns_ [Simulator instance]
@@ -50,12 +59,15 @@ IntServLink instproc init { src dst bw delay q arg {lltype "DelayLink"} } {
 	set adctype [lindex $arg 3]
 	set adc_ [new ADC/$adctype]
 	$adc_ set bandwidth_ $bw
-	
+	$adc_ set src_ [$src id]
+	$adc_ set dst_ [$dst id]
 	
 	if { [lindex $arg 5] == "CL" } {
 		#Create a suitable est unit 
 		set esttype [lindex $arg 4]
 		set est_ [new Est/$esttype]
+		$est_ set src_ [$src id]
+		$est_ set dst_ [$dst id]
 		$adc_ attach-est $est_ 1
 		
 		#Create a Measurement Module 
@@ -67,6 +79,8 @@ IntServLink instproc init { src dst bw delay q arg {lltype "DelayLink"} } {
 	#Create the signalmodule
 	set signaltype [lindex $arg 2]
 	set signalmod_ [new $signaltype]
+	$signalmod_ set src_ [$src id]
+	$signalmod_ set dst_ [$dst id]
 	$signalmod_ target $queue_
 	$signalmod_ attach-adc $adc_
 	set head_ $signalmod_
@@ -98,3 +112,21 @@ IntServLink instproc create-meas-classifier {} {
 	$measclassifier_ set default_ 1
 }
 
+IntServLink instproc trace-sig { f } {
+	$self instvar signalmod_ est_ adc_
+	$signalmod_ attach $f
+	$est_ attach $f
+	$adc_ attach $f
+	set ns [Simulator instance]
+	$ns at 0.0 "$signalmod_ add-trace"
+}
+
+#Helper  function to output link utilization and bw estimate
+IntServLink instproc trace-util { interval {f ""}} {
+	$self instvar est_
+	set ns [Simulator instance]
+	if { $f != "" } {
+		puts $f "[$ns now] [$est_ load-est] [$est_ link-utlzn]" 
+	}
+	$ns at [expr [$ns now]+$interval] "$self trace-util $interval $f" 
+}

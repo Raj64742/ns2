@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.28 1998/03/26 05:07:18 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.29 1998/05/04 18:29:27 breslau Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -58,17 +58,18 @@
 #define PT_SRM		16
 //simple signalling  messages
 #define PT_REQUEST      17
-#define PT_REPLY        18
+#define PT_ACCEPT       18
 #define PT_CONFIRM      19
 #define PT_TEARDOWN    	20
 #define	PT_LIVE		21	/* packet from live network */
+#define PT_REJECT       22
 
-#define PT_NTYPE        22
+#define PT_NTYPE        23
 
 #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
 	"start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
 	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM",  \
-        "sa_req","sa_reply","sa_conf","sa_teardown", "live"
+        "sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject"
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 

@@ -31,13 +31,17 @@ public:
 	virtual void rej_action(int,double,int){}; 
 	virtual void teardown_action(int,double,int){}; 
 	inline void recv(Packet*, Handler *){} 
-	inline void setest(int cl,Estimator *est) {est_[cl]=est;}
+	inline void setest(int cl,Estimator *est) {est_[cl]=est;
+						 est_[cl]->setactype(type_);}
 	double peak_rate(int cl,double r,int b) {return r+b/est_[cl]->period();}
-	
+	char *type() {return type_;}
 protected:
 	Estimator *est_[CLASS];
 	double bandwidth_;
-	
+	char *type_;
+	Tcl_Channel tchan_;
+	int src_;
+	int dst_;
 };  
 
 #endif
