@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.125 1997/08/10 22:17:55 mccanne Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.126 1997/08/11 20:52:33 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,15 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+
+<LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall">[KF]</A></B>
+<B>Mon Aug 11 14:00:27 PDT 1997</B><BR>
+</LI>
+<UL>
+<LI>Fixed buffer overflow bug in flow monitor, caused by using
+tcl.resultf("%s", ptr) instead of tcl.result(ptr), where ptr
+points to a big string.
+</UL>
 
 <LI><B><A HREF="http://www.cs.berkeley.edu/~mccanne">[SM]</A></B>
 <B>Sun Aug 10 15:11:27 PDT 1997</B><BR>
