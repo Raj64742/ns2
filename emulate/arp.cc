@@ -1,4 +1,4 @@
-/*    
+/*
  * Copyright (c) 1998 Regents of the University of California.
  * All rights reserved.
  *    
@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.2 1998/05/29 17:57:10 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.3 1998/05/29 23:07:55 kfall Exp $";
 #endif
 
 #include "object.h"
@@ -60,17 +60,28 @@ static const char rcsid[] =
 #include "emulate/internet.h"
 
 //
-// arp.cc -- this agent may be inserted into nse as
-// an ARP requestor/responder
+// arp.cc -- this object may be used within nse as
+// an ARP requestor/responder.  Only the request side
+// is implemented now [5/98]
 // 
 
 class ArpAgent : public NsObject, public IOHandler {
 public:
 	ArpAgent();
 protected:
-	void	recvpkt();
+	struct acache_entry {
+		in_addr	ip;
+		ether_addr ether;
+	};
+		
+	acache_entry* find(in_addr&);
+	void 	insert(in_addr&, ether_addr&);
 	void	dispatch(int);
 	int	sendreq(in_addr);
+	int	resolve(const char* host, char*& result, int sendreq);
+
+	void	doreq(ether_arp*);
+	void	doreply(ether_arp*);
 
 	void recv(Packet*, Handler*) { abort(); }
 
@@ -81,9 +92,12 @@ protected:
 	ether_arp	ea_template_;
 	ether_addr	my_ether_;
 	in_addr		my_ip_;
-	int		base_size_;
-	char		callback_[80];
+	int		base_size_;	// size of rcv buf
 	u_char*		rcv_buf_;
+	acache_entry*	acache_;	// arp mapping cache
+	int		nacache_;	// # entries in cache
+	int		cur_;		// cur posn in cache
+	int		pending_;	// resolve pending?
 };
 
 static class ArpAgentClass : public TclClass { 
@@ -94,7 +108,7 @@ public:
         } 
 } class_arpagent;
 
-ArpAgent::ArpAgent() : net_(NULL)
+ArpAgent::ArpAgent() : net_(NULL), pending_(0)
 {
 	/* dest addr is broadcast */
 	eh_template_.ether_dhost[0] = 0xff;
@@ -119,8 +133,46 @@ ArpAgent::ArpAgent() : net_(NULL)
 	memset(&ea_template_.arp_tpa, 0, 4);			/* target hw */
 	base_size_ = sizeof(eh_template_) + sizeof(ea_template_);
 	rcv_buf_ = new u_char[base_size_];
+
+	bind("cachesize_", &nacache_);
+	acache_ = new acache_entry[nacache_];
+	memset(acache_, 0, nacache_*sizeof(acache_entry));
+	cur_ = nacache_;
 }
 
+ArpAgent::~ArpAgent()
+{
+	delete[] rcv_buf_;
+	delete[] acache_;
+}
+
+ArpAgent::acache_entry*
+ArpAgent::find(in_addr& target)
+{
+	int n = nacache_;
+	acache_entry* ae = &acache_[n-1];
+	while (--n >= 0) {
+		if (ae->ip.s_addr == target.s_addr) {
+			return (ae);
+		}
+		--ae;
+	}
+	return (NULL);
+}
+
+void
+ArpAgent::insert(in_addr& target, ether_addr& eaddr)
+{
+	acache_entry* ae;
+	if (--cur_ < 0)
+		cur_ = nacache_ - 1;
+
+	ae = &acache_[cur_];
+	ae->ip = target;
+	ae->ether = eaddr;
+	return;
+}
+		
 int
 ArpAgent::sendreq(in_addr target)
 {
@@ -146,56 +198,81 @@ ArpAgent::sendreq(in_addr target)
 	return (0);
 }
 
-void
-ArpAgent::dispatch(int)
-{
-printf("DISPATCH\n");
-	recvpkt();
-}
-
 /*
  * receive pkt from network:
  *	note that net->recv() gives us the pkt starting
  *	just BEYOND the frame header
  */
 void
-ArpAgent::recvpkt()
+ArpAgent::dispatch(int)
 {
 	double ts;
 	sockaddr sa;
 	int cc = net_->recv(rcv_buf_, base_size_, sa, ts);
 	if (cc < (base_size_ - sizeof(ether_header))) {
+		if (cc == 0)
+			return;
                 fprintf(stderr,
                     "ArpAgent(%s): recv small pkt (%d) [base sz:%d]: %s\n",
                     name(), cc, base_size_, strerror(errno));
 		return;
 	}
 	ether_arp* ea = (ether_arp*) rcv_buf_;
-	if (ea->ea_hdr.ar_op != htons(ARPOP_REPLY)) {
-                fprintf(stderr,
-                    "ArpAgent(%s): NOT REPLY(%hx)\n", name(),
-			ntohs(ea->ea_hdr.ar_op));
+	int op = ntohs(ea->ea_hdr.ar_op);
+	switch (op) {
+	case ARPOP_REPLY:
+		doreply(ea);
+		break;
+	case ARPOP_REQUEST:
+		doreq(ea);
+		break;
+	default:
+		fprintf(stderr,
+		    "ArpAgent(%s): cannot interpret ARP op %d\n",
+		    name(), op);
 		return;
 	}
+	return;
+}
+
+/*
+ * process an ARP reply frame -- insert into cache
+ */
+void
+ArpAgent::doreply(ether_arp* ea)
+{
+	/*
+	 * reply will be from the replier's point of view,
+	 * so, look in the sender ha/pa fields for the info
+	 * we want
+	 */
 	in_addr t;
-	memcpy(&t, ea->arp_tpa, 4);	// copy IP address
-	
-printf("IP %s -> Ether %s\n",
-inet_ntoa(t), Ethernet::etheraddr_string(ea->arp_tha));
+	ether_addr e;
+	memcpy(&t, ea->arp_spa, 4);	// copy IP address
+	memcpy(&e, ea->arp_sha, ETHER_ADDR_LEN);
+	insert(t, e);
+	return;
+}
+
+/*
+ * process an ARP request frame -- don't do anything now,
+ * but may be used in the future to implement proxy arp
+ */
+
+void
+ArpAgent::doreq(ether_arp* ea)
+{
+	return;
 }
 
 extern "C" {
 ether_addr* ether_aton();
 }
-
 int
 ArpAgent::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
-		if (strcmp(argv[1], "callback") == 0) {
-			strncpy(callback_, argv[2], sizeof(callback_));
-			return (TCL_OK);
-		}
                 if (strcmp(argv[1], "network") == 0) { 
                         net_ = (Network *)TclObject::lookup(argv[2]);
                         if (net_ != 0) { 
@@ -228,16 +305,38 @@ ArpAgent::command(int argc, const char*const* argv)
 				&my_ip_, 4);
 			return (TCL_OK);
 		}
-	} else if (argc == 4) {
-		/* $obj resolve-callback ip-addr callback-fn */
-		if (strcmp(argv[1], "resolve-callback") == 0) {
-			u_long a = inet_addr(argv[2]);
-			in_addr ia;
-			ia.s_addr = a;
-			sendreq(ia);
-			strncpy(callback_, argv[3], sizeof(callback_));
+		if (strcmp(argv[1], "lookup") == 0) {
+			char *p = NULL;
+			if (resolve(argv[2], p, 0) < 0)
+				return (TCL_ERROR);
+			if (p)
+				tcl.result(p);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "resolve") == 0) {
+			char *p = NULL;
+			if (resolve(argv[2], p, 1) < 0)
+				return (TCL_ERROR);
+			if (p)
+				tcl.resultf("%s", p);
 			return (TCL_OK);
 		}
 	}
 	return (NsObject::command(argc, argv));
+}
+
+int
+ArpAgent::resolve(const char* host, char*& result, int doreq)
+{
+	u_long a = inet_addr(host);
+	in_addr ia;
+	ia.s_addr = a;
+	acache_entry* ae;
+	if ((ae = find(ia)) == NULL) {
+		result = NULL;
+		if (doreq)
+			return(sendreq(ia));
+		return (0);
+	}
+	result = Ethernet::etheraddr_string((u_char*) &ae->ether);
 }
