@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.15 1997/11/04 03:06:30 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.16 1997/11/04 07:15:20 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -52,7 +52,7 @@ TestSuite instproc finish file {
 	global quiet
 	$self instvar ns_ tchan_ testName_
         exec ../../bin/getrc -s 2 -d 3 all.tr | \
-          ../../bin/raw2xg -s 0.01 -m 90 -t $file > temp.rands
+          ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp.rands
 	if {$quiet == "false"} {
         	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
 	}
@@ -82,8 +82,8 @@ Topology/net2 instproc config ns {
     # force identical behavior to ns-1.
     # the recommended value for linterm is now 10
     # and is placed in the default file (3/31/97)
-    [$ns link $node_(r1) $node_(r2)] set linterm_ 50
-    [$ns link $node_(r2) $node_(r1)] set linterm_ 50
+    [[$ns link $node_(r1) $node_(r2)] queue] set linterm_ 50
+    [[$ns link $node_(r2) $node_(r1)] queue] set linterm_ 50
 	
 }
 
@@ -137,7 +137,7 @@ TestSuite instproc tcpDumpAll { tcpSrc interval label } {
 	return
     }
     $ns_ at [expr [$ns_ now] + $interval] "$self tcpDumpAll $tcpSrc $interval $label"
-    puts time=[$ns_ now]/class=$label/ack=[$tcpSrc set ack_]
+    puts time=[$ns_ now]/class=$label/ack=[$tcpSrc set ack_]/packets_resent=[$tcpSrc set nrexmitpack_]
 }       
 
 
@@ -176,46 +176,6 @@ Test/red1 instproc run {} {
     $ns_ run
 }
 
-# For this test the average queue size in measured in bytes.
-Class Test/red1_bytes -superclass TestSuite
-Test/red1_bytes instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net2
-    set test_	red1_bytes
-    $self next
-}
-Test/red1_bytes instproc run {} {
-    $self instvar ns_ node_ testName_
-
-    set stoptime 10.0
-    
-    [$ns_ link $node_(r1) $node_(r2)] set bytes_ true
-    [$ns_ link $node_(r1) $node_(r2)] set mean_pktsize_ 1000
-
-	
-    set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(s3) 0]
-    $tcp1 set window_ 15
-
-    set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(s3) 1]
-    $tcp2 set window_ 15
-
-    set ftp1 [$tcp1 attach-source FTP]
-    set ftp2 [$tcp2 attach-source FTP]
-
-    $self enable_tracequeue $ns_
-    $ns_ at 0.0 "$ftp1 start"
-    $ns_ at 3.0 "$ftp2 start"
-
-    $self tcpDump $tcp1 5.0
-
-    # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
-
-    #puts seed=[ns-random 0]
-    $ns_ run
-}
-
 Class Test/ecn -superclass TestSuite
 Test/ecn instproc init topo {
     $self instvar net_ defNet_ test_
@@ -229,7 +189,8 @@ Test/ecn instproc run {} {
     $self instvar ns_ node_ testName_
 
     set stoptime 10.0
-    [$ns_ link $node_(r1) $node_(r2)] set setbit_ true
+    set redq [[$ns_ link $node_(r1) $node_(r2)] queue]
+    $redq set setbit_ true
 
     set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(s3) 0]
     $tcp1 set window_ 15
@@ -269,9 +230,10 @@ Test/red2 instproc run {} {
     $self instvar ns_ node_ testName_
 
     set stoptime 10.0
-    [$ns_ link $node_(r1) $node_(r2)] set thresh_ 5
-    [$ns_ link $node_(r1) $node_(r2)] set maxthresh_ 10
-    [$ns_ link $node_(r1) $node_(r2)] set q_weight_ 0.003
+    set redq [[$ns_ link $node_(r1) $node_(r2)] queue]
+    $redq set thresh_ 5
+    $redq set maxthresh_ 10
+    $redq set q_weight_ 0.003
 	
     set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(s3) 0]
     $tcp1 set window_ 15
@@ -296,15 +258,15 @@ Test/red2 instproc run {} {
 }
 
 # The queue is measured in "packets".
-Class XTest/red_twoway -superclass TestSuite
-XTest/red_twoway instproc init topo {
+Class Test/red_twoway -superclass TestSuite
+Test/red_twoway instproc init topo {
     $self instvar net_ defNet_ test_
     set net_	$topo
     set defNet_	net2
     set test_	red_twoway
     $self next
 }
-XTest/red_twoway instproc run {} {
+Test/red_twoway instproc run {} {
     $self instvar ns_ node_ testName_
 
     set stoptime 10.0
@@ -321,7 +283,7 @@ XTest/red_twoway instproc run {} {
     set tcp4 [$ns_ create-connection TCP/Reno $node_(s4) TCPSink $node_(s2) 3]
     $tcp4 set window_ 15
     set ftp3 [$tcp3 attach-source FTP]
-    set telnet1 [$tcp4 attach-source TELNET] ; $telnet1 set interval 0
+    set telnet1 [$tcp4 attach-source Telnet] ; $telnet1 set interval_ 0
 
     $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
@@ -339,20 +301,21 @@ XTest/red_twoway instproc run {} {
 }
 
 # The queue is measured in "bytes".
-Class XTest/red_twowaybytes -superclass TestSuite
-XTest/red_twowaybytes instproc init topo {
+Class Test/red_twowaybytes -superclass TestSuite
+Test/red_twowaybytes instproc init topo {
     $self instvar net_ defNet_ test_
     set net_	$topo
     set defNet_	net2
     set test_	red_twowaybytes
     $self next
 }
-XTest/red_twowaybytes instproc run {} {
+Test/red_twowaybytes instproc run {} {
     $self instvar ns_ node_ testName_
 
     set stoptime 10.0
-    [$ns_ link $node_(r1) $node_(r2)] set bytes_ true
-    [$ns_ link $node_(r2) $node_(r1)] set bytes_ true
+    set redq [[$ns_ link $node_(r1) $node_(r2)] queue]
+    $redq set bytes_ true
+    $redq set queue-in-bytes_ true
 		
     set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(s3) 0]
     $tcp1 set window_ 15
@@ -366,7 +329,7 @@ XTest/red_twowaybytes instproc run {} {
     set tcp4 [$ns_ create-connection TCP/Reno $node_(s4) TCPSink $node_(s2) 3]
     $tcp4 set window_ 15
     set ftp3 [$tcp3 attach-source FTP]
-    set telnet1 [$tcp4 attach-source TELNET] ; $telnet1 set interval 0
+    set telnet1 [$tcp4 attach-source Telnet] ; $telnet1 set interval_ 0
 
     $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
@@ -593,12 +556,12 @@ TestSuite instproc droptest { stoptime } {
 	$self dumpflows 10.0
 
 	$forwq set bytes_ true
-	$revq set wait_ false
+	$forwq set queue-in-bytes_ true
+	$forwq set wait_ false
 
         $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 $quiet 1000
 	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 $quiet 50
 	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
-##	$self new_cbr 1.4 $node_(s1) $node_(s4) 500 0.003 3
 
 	$ns_ at $stoptime "$self finish_flows $testName_"
 
