@@ -9,6 +9,6 @@ if [TclObject is-class Network/Pcap/Live] {
 	Network/Pcap/Live set optimize_ true;# bpf code optimizer
 }
 
-if [TclObject is-class Agent/Tap]
+if [TclObject is-class Agent/Tap] {
 	Agent/Tap set maxpkt_ 1600
 }
