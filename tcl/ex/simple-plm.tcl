@@ -1,8 +1,8 @@
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/simple-plm.tcl,v 1.1 2000/07/21 17:34:44 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/simple-plm.tcl,v 1.2 2000/07/27 00:53:14 haoboy Exp $
 
 
 #choose your scenario
-set scenario 3
+set scenario 0
 
 set packetSize 500
 set runtime 100
@@ -133,7 +133,7 @@ Scenario2 instproc init args {
     set nb_plm 3
     set nb_cbr 3
     set nb_src [expr $nb_plm + $nb_cbr]
-    puts $f "param $nb_plm $nb_cbr"
+    #puts $f "param $nb_plm $nb_cbr"
    
     $self build_link 0 1 20ms [expr 200e3 * $nb_plm]
     $ns duplex-link-op $node(0) $node(1) queuePos 0.5
@@ -199,7 +199,7 @@ Scenario3 instproc init args {
     set nb_tcp 2
     set nb_plm 1
     set nb_src [expr $nb_tcp + $nb_plm]
-    puts $f "param $nb_plm $nb_tcp"
+    #puts $f "param $nb_plm $nb_tcp"
 
     $self build_link 0 1 20ms [expr $nb_src * 100e3]
     $ns duplex-link-op $node(0) $node(1) queuePos 0.5
