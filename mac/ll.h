@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.20 1998/09/04 23:31:01 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.21 1998/09/05 00:03:10 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -89,6 +89,7 @@ public:
 
 protected:
 	int command(int argc, const char*const* argv);
+	void handle(Event* e) { recv((Packet*)e, 0); }
 	inline virtual int arp (int ip_addr) { return ip_addr; } 
 	int seqno_;			// link-layer sequence number
 	int ackno_;			// ACK received so far
