@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.84 2001/03/12 22:57:39 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.85 2001/03/15 02:39:54 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -392,6 +392,8 @@ class NewRenoTcpAgent : public virtual RenoTcpAgent {
 				       /* partial new ack (default) */
 				       /* 1 if deflate (cwnd + dupwnd) by */
 				       /* amount of data acked */
+				       /* "Partial window deflation" is */
+				       /* discussed in RFC 2582. */
 	int exit_recovery_fix_;	 /* 0 for setting cwnd to ssthresh upon */
 				 /* leaving fast recovery (default) */
 				 /* 1 for setting cwnd to min(ssthresh, */
