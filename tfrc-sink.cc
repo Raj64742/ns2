@@ -39,6 +39,7 @@
  
 #include "tfrc-sink.h"
 #include "formula-with-inverse.h"
+#include "flags.h"
 
 static class TfrcSinkClass : public TclClass {
 public:
@@ -114,8 +115,10 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 {
 	hdr_tfrc *tfrch = hdr_tfrc::access(pkt); 
+	hdr_flags* hf = hdr_flags::access(pkt);
 	double now = Scheduler::instance().clock();
 	double p = -1;
+	int ecn = 0;
 
 	rcvd_since_last_report ++;
 
@@ -158,11 +161,9 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 		tsvec_[seqno%hsz]=last_timestamp_;	
 		lossvec_[seqno%hsz] = RCVD;
 		int i = maxseq+1 ;
+		double delta = (tsvec_[seqno%hsz]-tsvec_[maxseq%hsz])/(seqno-maxseq) ; 
+		double tstamp = tsvec_[maxseq%hsz]+delta ;
 		if (i < seqno) {
-			double delta = (tsvec_[seqno%hsz]-tsvec_[maxseq%hsz])/(seqno-maxseq) ; 
-			double tstamp = tsvec_[maxseq%hsz]+delta ;
-			//double delta = 0 ;
-			//double tstamp = last_timestamp_ ;
 			while(i < seqno) {
 				rtvec_[i%hsz]=now;	
 				tsvec_[i%hsz]=tstamp;	
@@ -185,11 +186,21 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 				tstamp = tstamp+delta;
 			}
 		}
+		if (hf->ect() == 1 && hf->ce() == 1) {
+			// ECN action
+			ecn = 1;
+			lossvec_[seqno%hsz] = LOST;
+			UrgentFlag = 1 ;
+			lastloss = tstamp;
+			lastloss_round_id = round_id ;
+			losses_since_last_report++;
+		}
 		int x = maxseq ; 
 		maxseq = tfrch->seqno ;
 		// if we are in slow start (i.e. (loss_seen_yet ==0)), 
 		// and if we saw a loss, report it immediately
-		if ((algo == WALI) && (loss_seen_yet ==0) && (tfrch->seqno-x > 1)) {
+		if ((algo == WALI) && (loss_seen_yet ==0) && 
+		  (tfrch->seqno-x > 1 || ecn )) {
 			UrgentFlag = 1 ; 
 			loss_seen_yet = 1;
 			if (adjust_history_after_ss) {

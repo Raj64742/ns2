@@ -39,6 +39,7 @@
  
 #include "tfrc.h"
 #include "formula.h"
+#include "flags.h"
 
 int hdr_tfrc::offset_;
 int hdr_tfrc_ack::offset_;
@@ -88,6 +89,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("ca_", &ca_);
 	bind_bool("printStatus_", &printStatus_);
 	bind_bool("conservative_", &conservative_);
+	bind_bool("ecn_", &ecn_);
 	bind("maxHeavyRounds_", &maxHeavyRounds_);
 }
 
@@ -381,6 +383,10 @@ void TfrcAgent::sendpkt()
 	if (active_) {
 		Packet* p = allocpkt();
 		hdr_tfrc *tfrch = hdr_tfrc::access(p);
+		hdr_flags* hf = hdr_flags::access(p);
+		if (ecn_) {
+			hf->ect() = 1;  // ECN-capable transport
+		}
 		tfrch->seqno=seqno_++;
 		tfrch->timestamp=Scheduler::instance().clock();
 		tfrch->rtt=rtt_;
@@ -389,6 +395,7 @@ void TfrcAgent::sendpkt()
 		tfrch->psize=size_;
 		tfrch->UrgentFlag=UrgentFlag;
 		tfrch->round_id=round_id;
+
 		ndatapack_++;
 		send(p, 0);
 	}
