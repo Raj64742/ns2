@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.68 1998/05/12 02:01:44 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.69 1998/05/13 00:27:52 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -644,6 +644,9 @@ void TcpAgent::newack(Packet* pkt)
  * This is done at most once a roundtrip time;  after a source quench,
  * another one will not be done until the last packet transmitted before
  * the previous source quench has been ACKed.
+ *
+ * Note that this procedure is called before "highest_ack_" is
+ * updated to reflect the current ACK packet.  
  */
 void TcpAgent::ecn()
 {
@@ -809,16 +812,26 @@ void TcpAgent::timeout(int tno)
 			return;
 		};
 		recover_ = maxseq_;
-		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		if (highest_ack_ == -1 && wnd_init_option_ == 2)
 			/* 
 			 * First packet dropped, so don't use larger
 			 * initial windows. 
 			 */
 			wnd_init_option_ = 1;
-		/* if there is no outstanding data, don't cut down ssthresh_ */
 		if (highest_ack_ == maxseq_ && restart_bugfix_)
-			slowdown(CLOSE_CWND_INIT);
+		       /* 
+			* if there is no outstanding data, don't cut 
+			* down ssthresh_.
+			*/
+			slowdown(CLOSE_CWND_ONE);
+		else if (highest_ack_ < recover_ &&
+		  last_cwnd_action_ == CWND_ACTION_ECN) {
+		       /*
+			* if we are in recovery from a recent ECN,
+			* don't cut down ssthresh_.
+			*/
+			slowdown(CLOSE_CWND_ONE);
+		}
 		else {
 			++nrexmit_;
 			slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
@@ -830,6 +843,7 @@ void TcpAgent::timeout(int tno)
 		else {
 			reset_rtx_timer(0,1);
 		}
+		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		send_much(0, TCP_REASON_TIMEOUT, maxburst_);
 
 	} 
