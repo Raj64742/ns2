@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.56 1998/07/08 18:50:27 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.57 1998/07/08 18:56:58 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -812,8 +812,6 @@ FullTcpAgent::predict_ok(Packet* pkt)
 	int p5 = (tcph->seqno() == rcv_nxt_);		// in-order data
 	int p6 = (t_seqno_ == maxseq_);			// not re-xmit
 	int p7 = (!ecn_ || fh->ecnecho() == 0);		// no ECN
-
-return (FALSE);
 
 	return (p1 && p2 && p3 && p4 && p5 && p6 && p7);
 }
@@ -2498,7 +2496,7 @@ full_sack_action:
 	pipectrl_ = TRUE;
 	recover_ = maxseq_;
 	send_much(1, REASON_DUPACK, maxburst_);
-        cwnd_ = ssthresh_ + dupacks_;
+	cwnd_ = ssthresh_ + dupacks_;
         return;
 }
 
