@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.13 1997/07/21 21:56:19 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.14 1997/07/22 08:53:18 padmanab Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -96,7 +96,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 				recover_cause_ = 1;
 				recover_ = maxseq();
 				closecwnd(1);
-				reset_rtx_timer(1);
+				reset_rtx_timer(1,0);
 				output(last_ack_ + 1, TCP_REASON_DUPACK);
                         }
             /* the line below applies for NUMDUPACKS when
