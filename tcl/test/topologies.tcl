@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.10 1997/11/18 00:54:46 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.11 1997/11/21 00:56:42 kfall Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -154,15 +154,16 @@ Topology/net0-lossy instproc init ns {
     $ns duplex-link-op $node_(r1) $node_(k1) queuePos 0
     $ns duplex-link-op $node_(k1) $node_(r1) queuePos 0
 
-    set droplink [$ns link $node_(r1) $node_(k1)]
+    $self instvar lossylink_
+    set lossylink_ [$ns link $node_(r1) $node_(k1)]
     set em [new ErrorModule Fid]
     set errmodel [new ErrorModel/Periodic]
     $errmodel unit pkt
     $errmodel set offset_ 1.0
     $errmodel set period_ 25.0
-    $droplink errormodule $em
+    $lossylink_ errormodule $em
     $em insert $errmodel
-    $em bind $errmodel 1
+    $em bind $errmodel 0
 
     $self checkConfig $class $ns
 }
