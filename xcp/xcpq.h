@@ -15,13 +15,13 @@
 #define  INITIAL_Te_VALUE   0.05       // Was 0.3 Be conservative when 
                                        // we don't kow the RTT
 
-#define TRACE  0                       // when 0, we don't race or write 
+#define TRACE  1                       // when 0, we don't race or write 
                                        // var to disk
 
 extern double INITIAL_RTT_ESTIMATE;    // if H_rtt is set to this value, 
                                        // the source has no estimate of its RTT
  
-
+class XCPWrapQ;
 class XCPQueue;
 
 class XCPTimer : public TimerHandler { 
@@ -41,6 +41,7 @@ class XCPQueue : public REDQueue {
   void Tq_timeout ();                     // timeout every propagation delay 
   void Te_timeout ();                     // timeout every avg. rtt
   void setupTimer();                  // setup timers for xcp queue only
+  void routerId(XCPWrapQ* queue, int i);
   int routerId(int id = -1); 
   int limit(int len = 0);
   void setBW(double bw);
@@ -61,7 +62,7 @@ protected:
   double absolute(double d);
 
   virtual void trace_var(char * var_name, double var);
-  //virtual void drop(Packet* pkt);
+  virtual void drop(Packet* pkt);
 
   // Estimation & Control Helpers
   void init_vars();
@@ -81,6 +82,7 @@ protected:
 
   // ---- Variables --------
   unsigned int routerId_;
+  XCPWrapQ* myQueue_;   //pointer to wrapper queue lying on top
   XCPTimer*        queue_timer_;
   XCPTimer*        estimation_control_timer_;
   double          link_capacity_Kbytes_;
@@ -93,6 +95,7 @@ protected:
                              // estimator and control decisions
   double          Tq_;    
   double          avg_rtt_;
+  //double          cum_avg_rtt_;   // for tracing control interval
   double          xi_pos_;
   double          xi_neg_;
   double          BTA_;

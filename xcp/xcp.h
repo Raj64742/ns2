@@ -31,8 +31,8 @@ class XCPWrapQ : public Queue {
   unsigned int    routerId_;
   
   int qToDq_;                 // current queue being dequed
-  int wrrTemp_[MAX_QNUM];     // state of queue being serviced
-  int queueWeight_[MAX_QNUM]; // queue weight for each queue (dynamic)
+  double wrrTemp_[MAX_QNUM];     // state of queue being serviced
+  double queueWeight_[MAX_QNUM]; // queue weight for each queue (dynamic)
   int maxVirQ_;             // num of queues used in xcp router
 
   // --- Tracing

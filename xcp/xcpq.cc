@@ -21,6 +21,7 @@
 
 
 #include "xcpq.h"
+#include "xcp.h"
 
 static class XCPQClass : public TclClass {
 public:
@@ -70,6 +71,14 @@ void XCPQueue::config() {
   edp_.th_max_pkts = 0.8 * limit();
 }
 
+void XCPQueue::routerId(XCPWrapQ* queue, int id)
+{
+  if (id < 0 && queue == 0)
+    fprintf(stderr, "XCP:invalid routerId and queue\n");
+  routerId_ = id;
+  myQueue_ = queue;
+}
+
 int XCPQueue::routerId(int id)
 {
   if (id > -1) routerId_ = id;
@@ -106,14 +115,14 @@ Packet* XCPQueue::deque()
   return (p);
 }
 
-/*
-void drop(Packet* p) 
+
+void XCPQueue::drop(Packet* p) 
 {
-  char wrk[500];
+  //char wrk[500];
   
-  drops_++;
+  //drops_++;
   
-  if(TRACE){
+  /*if(TRACE){
     if(trace_drops_ && queue_trace_file_){
       int n;
       hdr_ip* iph = hdr_ip::access(p);
@@ -126,11 +135,11 @@ void drop(Packet* p)
       wrk[n+1] = 0;
       (void)Tcl_Write(queue_trace_file_, wrk, n+1);
     }
-  }
-  Connector::drop(p);
+    }*/
+  myQueue_->drop(p);
 }
   
-*/
+
 
 void XCPQueue::enque(Packet* pkt)
 {
@@ -165,6 +174,8 @@ void XCPQueue::do_before_packet_departure(Packet* p)
 
 void XCPQueue::fill_in_feedback(Packet* p)
 {
+  int id;
+  char buf[25];
   double pos_feedback_Kbytes=0, neg_feedback_Kbytes=0, inv_rate=0, rtt=0, feedback_packets=0;
 
   if (p != 0) {
@@ -185,8 +196,10 @@ void XCPQueue::fill_in_feedback(Packet* p)
 	cctcph->positive_feedback_ = feedback_packets;
 	cctcph->controlling_hop_ = routerId_;
 	
-	BTA_ = max(0, BTA_ - pos_feedback_Kbytes  * (Te_ / rtt) );
-	BTF_ = max(0, BTF_ - neg_feedback_Kbytes  * (Te_ / rtt) );
+	//BTA_ = max(0, BTA_ - pos_feedback_Kbytes  * (Te_ / rtt) );
+	//BTF_ = max(0, BTF_ - neg_feedback_Kbytes  * (Te_ / rtt) );
+	BTA_ = max(0, BTA_ - pos_feedback_Kbytes);
+	BTF_ = max(0, BTF_ - neg_feedback_Kbytes);
 
       } else {
 	if (cctcph->positive_feedback_ >= feedback_packets) {
@@ -195,8 +208,10 @@ void XCPQueue::fill_in_feedback(Packet* p)
 	  cctcph->positive_feedback_ = feedback_packets;
 	  cctcph->controlling_hop_ = routerId_;
 	  
-	  BTA_ = max(0, BTA_ - pos_feedback_Kbytes  * (Te_ / rtt) );
-	  BTF_ = max(0, BTF_ - neg_feedback_Kbytes  * (Te_ / rtt) );
+	  //BTA_ = max(0, BTA_ - pos_feedback_Kbytes  * (Te_ / rtt) );
+	  //BTF_ = max(0, BTF_ - neg_feedback_Kbytes  * (Te_ / rtt) );
+	  BTA_ = max(0, BTA_ - pos_feedback_Kbytes);
+	  BTF_ = max(0, BTF_ - neg_feedback_Kbytes);
 
 	} else {
 	  // a more congested upstream router has changed the congestion info 
@@ -204,20 +219,31 @@ void XCPQueue::fill_in_feedback(Packet* p)
 	  double feedback_Kbytes =  (cctcph->positive_feedback_ *(hdr_cmn::access(p)->size())/MULTI_FAC);
 	  
 	  if ( feedback_Kbytes > 0) { 
-	    BTA_  -= min( feedback_Kbytes * (Te_ /rtt), BTA_);
-	    BTF_  -= min(BTF_ , ((pos_feedback_Kbytes - neg_feedback_Kbytes) - feedback_Kbytes)  * (Te_ / rtt) );
+	    //BTA_  -= min( feedback_Kbytes * (Te_ /rtt), BTA_);
+	    //BTF_  -= min(BTF_ , ((pos_feedback_Kbytes - neg_feedback_Kbytes) - feedback_Kbytes)  * (Te_ / rtt) );
+	    BTA_  -= min( feedback_Kbytes, BTA_);
+	    BTF_  -= min(BTF_ , ((pos_feedback_Kbytes - neg_feedback_Kbytes) - feedback_Kbytes));
 	    
 	  } else {
-	    BTF_  -= min(-1*feedback_Kbytes *(Te_ /rtt), BTF_);
+	    //BTF_  -= min(-1*feedback_Kbytes *(Te_ /rtt), BTF_);
+	    BTF_  -= min(-1*feedback_Kbytes, BTF_);
 	    if (feedback_packets > 0) 
-	      BTF_  -= min((pos_feedback_Kbytes - neg_feedback_Kbytes) *(Te_ /rtt), BTF_);
+	      //BTF_  -= min((pos_feedback_Kbytes - neg_feedback_Kbytes) *(Te_ /rtt), BTF_);
+	      BTF_  -= min((pos_feedback_Kbytes - neg_feedback_Kbytes), BTF_);
 	  }
 	}
       }
       if (TRACE && (queue_trace_file_ != 0 )){
 	
-	printf("Q%d: %g, BTA %g, BTF %g, pos_fbk %g, neg_fbk %g, H_Feedback %g, cwnd %g, rtt %g, R %g flow %d\n", 
-	       routerId_, now(), BTA_, BTF_, pos_feedback_Kbytes, neg_feedback_Kbytes, cctcph->positive_feedback_, cctcph->cwnd_, cctcph->rtt_, cctcph->cwnd_/cctcph->rtt_, iph->flowid()); 
+	//printf("Q%d: %g, BTA %g, BTF %g, pos_fbk %g, neg_fbk %g, H_Feedback %g, cwnd %g, rtt %g, R %g flow %d\n", 
+	//routerId_, now(), BTA_, BTF_, pos_feedback_Kbytes, neg_feedback_Kbytes, cctcph->positive_feedback_, cctcph->cwnd_, cctcph->rtt_, cctcph->cwnd_/cctcph->rtt_, iph->flowid()); 
+	
+	trace_var("pos_feedback", pos_feedback_Kbytes);
+	trace_var("neg_feedback", neg_feedback_Kbytes);
+	trace_var("H_feedback", cctcph->positive_feedback_);
+	id = iph->flowid();
+	sprintf(buf, "Thruput%d",id);
+	trace_var(buf, cctcph->cwnd_/cctcph->rtt_);
       }
     }
   }
@@ -233,9 +259,10 @@ void XCPQueue::Tq_timeout()
   queue_timer_->resched(Tq_);
  
   if (TRACE && (queue_trace_file_ != 0)){
-    printf("Q%d: %g queue_timer TIMEOUT Tq_ = %g\n", routerId_, now(), Tq_);
+    //printf("Q%d: %g queue_timer TIMEOUT Tq_ = %g\n", routerId_, now(), Tq_);
     trace_var("Tq_",Tq_);
     trace_var("Queue_Kbytes_", Queue_Kbytes_);
+    trace_var("routerId", routerId_);
   }
 }
 
@@ -252,6 +279,7 @@ void XCPQueue::Te_timeout()
   if(sum_rtt_by_cwnd_ > 0){  // check we received packets
     
     avg_rtt_ = sum_rtt_square_by_cwnd_ / sum_rtt_by_cwnd_;
+    //cum_avg_rtt_ += avg_rtt_; 
     
     phi_Kbytes = alpha_ * (link_capacity_Kbytes_- input_traffic_Kbytes_ /Te_) * avg_rtt_ - beta_ * Queue_Kbytes_;
     
@@ -265,10 +293,10 @@ void XCPQueue::Te_timeout()
     BTA_ = max(0, phi_Kbytes) + shuffled_traffic_Kbytes;
     
     int len = length();
-    if (BTA_ > (0.6*limit()- len) * PACKET_SIZE_KB) {
-      BTA_ = max(0, (0.6*limit()-len)* PACKET_SIZE_KB);
+    //if (BTA_ > (0.6*limit()- len) * PACKET_SIZE_KB) {
+    //BTA_ = max(0, (0.6*limit()-len)* PACKET_SIZE_KB);
       //printf("MAXIMUM INCREASE \n"); 
-    }    
+    //}    
     
     BTF_    =  max(0, -1*phi_Kbytes)+ shuffled_traffic_Kbytes;
     xi_pos_ =  1.1 * BTA_ / (sum_rtt_by_cwnd_ * avg_rtt_); // Multiplication by 1.1 is experimental
@@ -278,14 +306,18 @@ void XCPQueue::Te_timeout()
 
   if (TRACE && (queue_trace_file_ != 0)) {
     
-    trace_var("input_trrafic_Kbytes_", input_traffic_Kbytes_ / (Te_*link_capacity_Kbytes_));
+    trace_var("input_traffic_Kbytes_", input_traffic_Kbytes_ / (Te_*link_capacity_Kbytes_));
+    //trace_var("input_traffic_Kbytes_", input_traffic_Kbytes_ / Te_);
     trace_var("avg_rtt_", avg_rtt_);
     trace_var("BTA_", BTA_);
     trace_var("BTF_", BTF_);
+    trace_var("Qsize",curq_);
+    trace_var("Qavg", edv_.v_ave);
+    trace_var("routerId", routerId_);
     
-    printf("Q%d: %g estimation_control_timer TIMEOUT Te_ = %g\n", routerId_, now(), Te_);
-    printf("Q%d: %g RTT %g\t N %g\t y %g\t Q %g\t phi %g\t H %g\t BTA %g\t BTF %g\t xi_p %g\t xi_n %g\n", 
-	   routerId_, now(), avg_rtt_, sum_rtt_by_cwnd_/avg_rtt_, input_traffic_Kbytes_/Te_, Queue_Kbytes_, phi_Kbytes/avg_rtt_, shuffled_traffic_Kbytes/avg_rtt_, BTA_, BTF_, xi_pos_, xi_neg_);
+    //printf("Q%d: %g estimation_control_timer TIMEOUT Te_ = %g\n", routerId_, now(), Te_);
+    //printf("Q%d: %g RTT %g\t N %g\t y %g\t Q %g\t phi %g\t H %g\t BTA %g\t BTF %g\t xi_p %g\t xi_n %g\n", 
+    //routerId_, now(), avg_rtt_, sum_rtt_by_cwnd_/avg_rtt_, input_traffic_Kbytes_/Te_, Queue_Kbytes_, phi_Kbytes/avg_rtt_, shuffled_traffic_Kbytes/avg_rtt_, BTA_, BTF_, xi_pos_, xi_neg_);
   } 
   
   input_traffic_Kbytes_ = 0.0;
@@ -377,6 +409,7 @@ void XCPQueue::init_vars()
   num_cc_packets_in_Te_   = 0;
   
   queue_trace_file_ = 0;
+  myQueue_ = 0;
 }
 
 

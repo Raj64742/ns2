@@ -20,7 +20,7 @@ XCPWrapQ::XCPWrapQ():xcpq_(NULL)
 void XCPWrapQ::setVirtualQueues() {
 
   for (int n=0; n < maxVirQ_; n++) {
-    xcpq_[n]->routerId(routerId_); 
+    xcpq_[n]->routerId(this,routerId_); 
     wrrTemp_[n] = 0;
   }
   
@@ -61,13 +61,14 @@ int XCPWrapQ::command(int argc, const char*const* argv)
     }
 
     if (strcmp(argv[1], "set-link-capacity-Kbytes") == 0) {
-      double link_capacity_Kbytes = strtod(argv[2],0)/2;
+      //double link_capacity_Kbytes = strtod(argv[2],0)/2;
+      double link_capacity_Kbytes = strtod(argv[2],0);
       
       if (link_capacity_Kbytes < 0.0) 
 	{printf("Error: BW < 0"); abort();};
 
       for (int n=0; n < MAX_QNUM; n++) {
-	xcpq_[n]->setBW(link_capacity_Kbytes); // ?????
+	xcpq_[n]->setBW(link_capacity_Kbytes); // divide by 2 for tcp/xcp flow types?????
 	xcpq_[n]->limit(limit());
 	xcpq_[n]->config();
       }
@@ -79,15 +80,15 @@ int XCPWrapQ::command(int argc, const char*const* argv)
       int mode;
       const char* id = argv[2];
       queue_trace_file_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
-
+       
       if (queue_trace_file_ == 0) {
 	tcl.resultf("queue.cc: trace-drops: can't attach %s for writing", id);
-	return (TCL_ERROR);
+ 	return (TCL_ERROR);
       }
-
+      
       for (int n=0; n < MAX_QNUM; n++)
 	xcpq_[n]->setChannel(queue_trace_file_);
-    
+      
       return (TCL_OK);
     }
   }
