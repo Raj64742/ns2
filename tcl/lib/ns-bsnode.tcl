@@ -118,13 +118,13 @@ Node/MobileNode/BaseStationNode instproc split-addrstr addrstr {
 
 Node/MobileNode/BaseStationNode instproc add-target {agent port } {
 
-    global RouterTrace AgentTrace
+    #global RouterTrace AgentTrace
     $self instvar dmux_ classifiers_
     $agent set sport_ $port
     set level [AddrParams set hlevel_]
 
     if { $port == 255 } {	
-	if { $RouterTrace == "ON" } {
+	if { [Simulator set RouterTrace_] == "ON" } {
 	    #
 	    # Send Target
 	    #
@@ -153,7 +153,7 @@ Node/MobileNode/BaseStationNode instproc add-target {agent port } {
 	    ##$classifiers_($level) defaulttarget $agent
 	}
     } else {
-	if { $AgentTrace == "ON" } {
+	if { [Simulator set AgentTrace_] == "ON" } {
 	    #
 	    # Send Target
 	    #

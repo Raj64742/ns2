@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.169 1999/08/24 05:05:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.170 1999/08/25 18:14:09 haldar Exp $
 
 
 #
@@ -525,3 +525,50 @@ Agent/RAP set debugEnable_ 0
 Agent/RAP set rap_base_hdr_size_ 44
 Agent/RAP set dpthresh_ 50
 Agent/RAP instproc done {} { }
+
+# Default values used for wireless simulations
+Simulator set AgentTrace_ ON
+Simulator set RouterTrace_ OFF
+Simulator set MacTrace_   OFF
+
+LL set mindelay_                50us
+LL set delay_                   25us
+LL set bandwidth_               0       ;# not used
+LL set off_prune_               0       ;# not used
+LL set off_CtrMcast_            0       ;# not used
+
+Agent/Null set sport_           0
+Agent/Null set dport_           0      
+
+Agent/CBR set sport_            0
+Agent/CBR set dport_            0
+
+Agent/TCPSink set sport_        0
+Agent/TCPSink set dport_        0
+
+Agent/TCP set sport_            0
+Agent/TCP set dport_            0
+Agent/TCP set packetSize_       1460
+
+Queue/DropTail/PriQueue set Prefer_Routing_Protocols    1
+
+# unity gain, omni-directional antennas
+# set up the antennas to be centered in the node and 1.5 meters above it
+Antenna/OmniAntenna set X_ 0
+Antenna/OmniAntenna set Y_ 0
+Antenna/OmniAntenna set Z_ 1.5 
+Antenna/OmniAntenna set Gt_ 1.0
+Antenna/OmniAntenna set Gr_ 1.0
+
+# Initialize the SharedMedia interface with parameters to make
+# it work like the 914MHz Lucent WaveLAN DSSS radio interface
+Phy/WirelessPhy set CPThresh_ 10.0
+Phy/WirelessPhy set CSThresh_ 1.559e-11
+Phy/WirelessPhy set RXThresh_ 3.652e-10
+Phy/WirelessPhy set Rb_ 2*1e6
+Phy/WirelessPhy set Pt_ 0.2818
+Phy/WirelessPhy set freq_ 914e+6
+Phy/WirelessPhy set L_ 1.0  
+
+
+

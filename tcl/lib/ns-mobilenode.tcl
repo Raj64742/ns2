@@ -115,7 +115,7 @@ Node/MobileNode instproc reset {} {
 
 Node/MobileNode instproc add-target {agent port } {
     
-    global RouterTrace AgentTrace opt
+    global opt
     $self instvar dmux_ classifier_
     $self instvar imep_
  
@@ -123,7 +123,7 @@ Node/MobileNode instproc add-target {agent port } {
     $agent set sport_ $port
     
     if { $port == 255 } {			# non-routing agents
-	if { $RouterTrace == "ON" } {
+	if { [Simulator set RouterTrace_] == "ON" } {
 	    #
 	    # Send Target
 	    #
@@ -190,7 +190,7 @@ Node/MobileNode instproc add-target {agent port } {
 	}
 	
     } else {
-	if { $AgentTrace == "ON" } {
+	if { [Simulator set AgentTrace_] == "ON" } {
 	    #
 	    # Send Target
 	    #
@@ -242,7 +242,8 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	$self instvar netif_ mac_ ifq_ ll_
 	$self instvar imep_
 
-	global ns_ MacTrace opt
+	global ns_ opt
+	#set MacTrace [Simulator set MacTrace_]
 
 	set t $nifs_
 	incr nifs_
@@ -334,7 +335,7 @@ Node/MobileNode instproc add-interface { channel pmodel \
 
 	# ============================================================
 
-	if { $MacTrace == "ON" } {
+	if { [Simulator set MacTrace_] == "ON" } {
 	    #
 	    # Trace RTS/CTS/ACK Packets
 	    #
