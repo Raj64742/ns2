@@ -121,16 +121,15 @@ Node* LogWebTrafPool::picksrc(int id) {
 Node* LogWebTrafPool::pickdst(int id) {
 	int n = id % nServer_;
 	assert((n >= 0) && (n < nServer_));
-	return server_[n].node;
+	return server_[n].get_node();
 }
 
 int LogWebTrafPool::launchReq(int cid, int sid, int size) {
-	// Choose source and dest TCP agents for both source and destination
-	TcpAgent* ctcp = picktcp();
-	TcpAgent* stcp = picktcp();
-
-	Agent* csnk = picksink();
-	Agent* ssnk = picksink();
+	TcpAgent *tcp;
+	Agent *snk;
+	
+	// Allocation new TCP connections for both directions
+	pick_ep(&tcp, &snk);
 
 	// pick client and server nodes
 	Node* client = picksrc(cid);
@@ -138,12 +137,12 @@ int LogWebTrafPool::launchReq(int cid, int sid, int size) {
 
 	int num_pkt = size / 1000 + 1;
 
-	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d",
-			      this->name(), num_obj++, num_obj, 
+	// Setup TCP connection and done
+	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %d %d", 
+			      name(), num_obj++, num_obj,
 			      client->name(), server->name(),
-			      ctcp->name(), csnk->name(), 
-			      stcp->name(), ssnk->name(), 
-			      num_pkt, NULL);
+			      tcp->name(), snk->name(), num_pkt, NULL);
+
 	return(1);
 }
 

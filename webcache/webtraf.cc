@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.24 2003/01/05 18:54:43 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.25 2003/01/05 22:55:02 xuanc Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -353,18 +353,18 @@ void WebTrafPool::launchReq(Node *src_, void* ClntData, int obj, int size) {
 
 // Launch a request for a particular object
 void WebTrafPool::launchResp(int obj_id, Node *svr_, Node *clnt_, Agent *tcp, Agent* snk, int size, void *ClntData) {
-	//TcpAgent *stcp;
-	//Agent *ssnk;
-	// Allocation new TCP connections for both directions
-	//pick_ep(&stcp, &ssnk);
+	int pid;
+	pid = obj_id;
 
-	// Get webpage (client data)
-	WebPage* pg = (WebPage*)ClntData;
+	// Get webpage (client data) if any
+	if (ClntData) {
+		WebPage* pg = (WebPage*)ClntData;
+		pid = pg->id();
+	}
 
 	// Setup TCP connection and done
 	Tcl::instance().evalf("%s launch-resp %d %d %s %s %s %s %d %d", 
-			      name(), obj_id, pg->id(),
-			      svr_->name(), clnt_->name(),
+			      name(), obj_id, pid, svr_->name(), clnt_->name(),
 			      tcp->name(), snk->name(), size, ClntData);
 
 	// Debug only
