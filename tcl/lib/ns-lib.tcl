@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.36 1997/06/26 01:48:09 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.37 1997/07/03 03:21:08 kfall Exp $
 #
 
 #
@@ -171,11 +171,25 @@ Simulator instproc run args {
 
 Simulator set NumberInterfaces_ 0
 
-Simulator instproc simplex-link { n1 n2 bw delay type } {
+Simulator instproc simplex-link { n1 n2 bw delay arg } {
 	$self instvar link_ queueMap_ nullAgent_
 	$self instvar traceAllFile_
 	set sid [$n1 id]
 	set did [$n2 id]
+
+	# XXX the following is an absolutely disgusting hack,
+	# but difficult to avoid for the moment (kf)
+	# idea: if arg (formerly type) is "QTYPE stuff", split
+	# the string so type is QTYPE and "stuff" is passed along
+	#
+	set argsz [llength $arg]
+	if { $argsz == 1 } {
+		set type $arg
+	} else {
+		set type [lindex $arg 0]
+		set larg [lindex $arg 1]
+	}
+
 	if [info exists queueMap_($type)] {
 		set type $queueMap_($type)
 	}
@@ -193,14 +207,24 @@ Simulator instproc simplex-link { n1 n2 bw delay type } {
 		set nd1 $n1
 		set nd2 $n2
 	}
+
 	set q [new Queue/$type]
 	$q drop-target $nullAgent_
 
-	#XXX yuck
-	if { $type == "CBQ" || $type == "CBQ/WRR" } {
-		set link_($sid:$did) [new CBQLink $nd1 $nd2 $bw $delay $q]
+	# XXX more disgusting hack
+	if { $argsz != 1 } {
+		# assume we have a string of form "linktype linkarg"
+		if { $type == "RTM" || $type == "CBQ" || $type == "CBQ/WRR" } {
+			set link_($sid:$did) [new CBQLink $nd1 $nd2 $bw $delay $q $larg]
+		}
 	} else {
-		set link_($sid:$did) [new SimpleLink $nd1 $nd2 $bw $delay $q]
+		if { $type == "CBQ" || $type == "CBQ/WRR" } {
+			# default classifier for cbq is just Fid type
+			set classifier [new Classifier/Hash/Fid 33]
+			set link_($sid:$did) [new CBQLink $nd1 $nd2 $bw $delay $q $classifier]
+		} else {
+			set link_($sid:$did) [new SimpleLink $nd1 $nd2 $bw $delay $q]
+		}
 	}
 	$n1 add-neighbor $n2
 
