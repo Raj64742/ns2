@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.60 2001/07/18 23:57:13 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.61 2001/07/20 18:40:40 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -152,33 +152,38 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 
 
 /*
+ * Note: if the link bandwidth changes in the course of the
+ * simulation, the bandwidth-dependent RED parameters do not change.
+ * This should be fixed, but it would require some extra parameters,
+ * and didn't seem worth the trouble...
+ */
+void REDQueue::initialize_params()
+{
+/*
  * If q_weight=0, set it to a reasonable value of 1-exp(-1/C)
  * This corresponds to choosing q_weight to be of that value for
  * which the packet time constant -1/ln(1-q_weight) per default RTT 
  * of 100ms is an order of magnitude more than the link capacity, C.
  */
-void REDQueue::initialize_q_w()
-{
-	edp_.q_w = 1 - exp(-1/edp_.ptc);
+	if (edp_.q_w == 0.0)
+		edp_.q_w = 1.0 - exp(-1.0/edp_.ptc);
+	// printf("ptc: %7.5f bandwidth: %5.3f pktsize: %d\n", edp_.ptc, link_->bandwidth(), edp_.mean_pktsize);
+        // printf("th_min: %7.5f th_max: %7.5f\n", edp_.th_min, edp_.th_max);
+	if (edp_.th_min == 0) {
+		edp_.th_min = 5.0;
+		// set th_min to 2.5 ms. of packets
+		if (edp_.th_min < 0.0025*edp_.ptc)
+			edp_.th_min = 0.0025*edp_.ptc;
+        }
+	if (edp_.th_max == 0) 
+		edp_.th_max = 3.0 * edp_.th_min;
+        //printf("th_min: %7.5f th_max: %7.5f\n", edp_.th_min, edp_.th_max);
+	//printf("q_w: %7.5f\n", edp_.q_w);
 }
 
 void REDQueue::reset()
 {
-	/*
-	 * If queue is measured in bytes, scale min/max thresh
-	 * by the size of an average packet (which is specified by user).
-	 */
 	
-	if (edp_.th_max == 0) 
-		edp_.th_max = 3 * edp_.th_min;
-        if (qib_ && first_reset_ == 1) {
-                //printf ("edp_.th_min: %5.3f \n", edp_.th_min);
-                edp_.th_min *= edp_.mean_pktsize;  
-                edp_.th_max *= edp_.mean_pktsize;
-                //printf ("edp_.th_min: %5.3f \n", edp_.th_min);
-                first_reset_ = 0;
-        }
-
 	/*
 	 * Compute the "packet time constant" if we know the
 	 * link bandwidth.  The ptc is the max number of (avg sized)
@@ -186,14 +191,22 @@ void REDQueue::reset()
 	 * The link bw is given in bits/sec, so scale mean psize
 	 * accordingly.
 	 */
-	 
-	if (link_) {
-		edp_.ptc = link_->bandwidth() /
-			(8. * edp_.mean_pktsize);
-		if (edp_.q_w == 0.0) 
-			initialize_q_w();
+        if (link_) {
+		edp_.ptc = link_->bandwidth() / (8. * edp_.mean_pktsize);
+		initialize_params();
 	}
-
+	if (edp_.th_max == 0) 
+		edp_.th_max = 3.0 * edp_.th_min;
+	/*
+	 * If queue is measured in bytes, scale min/max thresh
+	 * by the size of an average packet (which is specified by user).
+	 */
+        if (qib_ && first_reset_ == 1) {
+                edp_.th_min *= edp_.mean_pktsize;  
+                edp_.th_max *= edp_.mean_pktsize;
+                first_reset_ = 0;
+        }
+	 
 	edv_.v_ave = 0.0;
 	edv_.v_true_ave = 0.0;
 	edv_.v_total_time = 0.0;
@@ -647,8 +660,9 @@ int REDQueue::command(int argc, const char*const* argv)
 			link_ = del;
 			edp_.ptc = link_->bandwidth() /
 				(8. * edp_.mean_pktsize);
-			if (edp_.q_w == 0.0)
-                        	initialize_q_w();
+			if (edp_.q_w == 0.0 || edp_.th_min == 0 ||
+					edp_.th_max == 0)
+                        	initialize_params();
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "early-drop-target") == 0) {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.4 2001/07/18 16:11:45 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.5 2001/07/20 18:40:41 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -96,6 +96,27 @@ Topology/net2 instproc init ns {
     # A queue of 25 1500-byte packets would be 0.2 seconds. 
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
+}   
+
+Class Topology/netfast -superclass Topology
+Topology/netfast instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]    
+    set node_(r1) [$ns node]    
+    set node_(r2) [$ns node]    
+    set node_(s3) [$ns node]    
+    set node_(s4) [$ns node]    
+
+    $self next 
+
+    $ns duplex-link $node_(s1) $node_(r1) 100Mb 2ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 100Mb 3ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 15Mb 20ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 1000
+    $ns queue-limit $node_(r2) $node_(r1) 1000
+    $ns duplex-link $node_(s3) $node_(r2) 100Mb 4ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 100Mb 5ms DropTail
 }   
 
 Class Topology/net3 -superclass Topology
@@ -193,27 +214,48 @@ TestSuite instproc setTopo {} {
     [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout
 }
 
-TestSuite instproc maketraffic {} {
+TestSuite instproc maketraffic {{stoptime 50.0} {window 15} {starttime 3.0}} {
     $self instvar ns_ node_ testName_ net_
-    set stoptime 50.0
 
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
-    $tcp1 set window_ 15
+    $tcp1 set window_ $window
 
     set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s3) 1]
-    $tcp2 set window_ 15
+    $tcp2 set window_ $window
 
     set ftp1 [$tcp1 attach-app FTP]
     set ftp2 [$tcp2 attach-app FTP]
 
     $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
-    $ns_ at 3.0 "$ftp2 start"
+    $ns_ at $starttime "$ftp2 start"
 
     $self tcpDump $tcp1 5.0
     # trace only the bottleneck link
     #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
     $ns_ at $stoptime "$self cleanupAll $testName_"
+}
+
+TestSuite instproc maketraffic1 {window time} {
+    $self instvar ns_ node_ testName_ net_
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 2]
+    $tcp1 set window_ $window
+
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s3) 3]
+    $tcp2 set window_ $window
+
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
+
+    $ns_ at $time "$ftp1 start"
+    $ns_ at [expr 2 * $time] "$ftp2 start"
+}
+
+TestSuite instproc automatic queue {
+    $queue set thresh_ 0
+    $queue set maxthresh_ 0
+    $queue set q_weight_ 0
 }
 
 #####################################################################
@@ -244,13 +286,76 @@ Test/red1Adapt instproc run {} {
     $self setTopo
     set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
     $forwq set adaptive_ 1 
+    $self automatic $forwq
     $self maketraffic
     $ns_ run   
 }
 
 #####################################################################
 
-# THIS NEEDS TO REUSE CONNECTION STATE!
+Class Test/fastlink -superclass TestSuite
+Test/fastlink instproc init {} {
+    $self instvar net_ test_
+    set net_ netfast 
+    set test_ fastlink
+    $self next
+}
+Test/fastlink instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    $self setTopo
+    $self maketraffic 5.0 100 1.5
+    $self maketraffic1 100 0.5
+    $ns_ run
+}
+
+Class Test/fastlinkAutowq -superclass TestSuite
+Test/fastlinkAutowq instproc init {} {
+    $self instvar net_ test_ ns_
+    set net_ netfast 
+    set test_ fastlinkAutowq
+    Queue/RED set q_weight_ 0
+    Test/fastlinkAutowq instproc run {} [Test/fastlink info instbody run ]
+    $self next
+}
+
+Class Test/fastlinkAutothresh -superclass TestSuite
+Test/fastlinkAutothresh instproc init {} {
+    $self instvar net_ test_ ns_
+    set net_ netfast 
+    set test_ fastlinkAutothresh
+    Queue/RED set thresh_ 0 
+    Queue/RED set maxthresh_ 0
+    Test/fastlinkAutothresh instproc run {} [Test/fastlink info instbody run ]
+    $self next
+}
+
+Class Test/fastlinkAdapt -superclass TestSuite
+Test/fastlinkAdapt instproc init {} {
+    $self instvar net_ test_ ns_
+    set net_ netfast 
+    set test_ fastlinkAdapt
+    Queue/RED set adaptive_ 1
+    Test/fastlinkAdapt instproc run {} [Test/fastlink info instbody run ]
+    $self next
+}
+
+Class Test/fastlinkAllAdapt -superclass TestSuite
+Test/fastlinkAllAdapt instproc init {} {
+    $self instvar net_ test_ ns_
+    set net_ netfast 
+    set test_ fastlinkAllAdapt
+    Queue/RED set adaptive_ 1
+    Queue/RED set q_weight_ 0
+    Queue/RED set thresh_ 0
+    Queue/RED set maxthresh_ 0
+    Test/fastlinkAllAdapt instproc run {} [Test/fastlink info instbody run ]
+    $self next
+}
+
+#####################################################################
+
+# This reuses connection state, with $nums effective TCP connections,
+#   reusing state from $conns underlying TCP connections.
 TestSuite instproc newtraffic { num window packets start interval conns} {
     $self instvar ns_ node_ testName_ net_
 
@@ -298,6 +403,7 @@ Test/red2Adapt instproc run {} {
     $self setTopo
     set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
     $forwq set adaptive_ 1 
+    $self automatic $forwq
     $self maketraffic
     $self newtraffic 20 20 1000 25 0.1 20
     $ns_ run   
@@ -342,6 +448,8 @@ Test/red3Adapt instproc run {} {
     $self setTopo
     set forwq [[$ns_ link $node_(r1) $node_(r2)] queue]
     $forwq set adaptive_ 1 
+    $self automatic $forwq
+
     $self maketraffic
     $self newtraffic 15 20 300 0 0.1 15
     $ns_ run   
