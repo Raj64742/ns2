@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.19 1998/01/27 00:32:19 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.20 1998/01/29 02:26:08 haldar Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -488,6 +488,7 @@ TestSuite instproc finish_flows testname {
 	exit 0
 }
 
+
 TestSuite instproc new_tcp { startTime source dest window fid verbose size } {
 	$self instvar ns_
 	set tcp [$ns_ create-connection TCP/Reno $source TCPSink $dest $fid]
@@ -496,13 +497,16 @@ TestSuite instproc new_tcp { startTime source dest window fid verbose size } {
 	set ftp [$tcp attach-source FTP]
 	$ns_ at $startTime "$ftp start"
 	if {$verbose == "1"} {
+
 	  $self tcpDumpAll $tcp 20.0 $fid 
 	}
 }
 
 TestSuite instproc new_cbr { startTime source dest pktSize interval fid } {
+
 	$self instvar ns_
     set cbr [$ns_ create-connection CBR $source LossMonitor $dest $fid]
+
     if {$pktSize > 0} {
 	$cbr set packetSize_ $pktSize
     }
@@ -587,7 +591,6 @@ Test/flows_unforced instproc run {} {
 
 	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
 	$self instvar dump_pthresh_
- 
         set stoptime 500.0
 	set testName_ test_flows_unforced
 	set awkprocedure_ unforcedmakeawk
