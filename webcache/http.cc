@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.6 1999/01/26 18:30:52 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.7 1999/02/09 00:43:52 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -373,7 +373,8 @@ public:
 	}
 } class_httpyucinvalserver_app;
 
-HttpYucInvalServer::HttpYucInvalServer()
+HttpYucInvalServer::HttpYucInvalServer() :
+	inv_sender_(0), invlist_(0), num_inv_(0)
 {
 #ifdef JOHNH_CLASSINSTVAR
 #else /* ! JOHNH_CLASSINSTVAR */
@@ -423,73 +424,182 @@ int HttpYucInvalServer::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 
-	if (strcmp(argv[1], "count-request") == 0) {
-		ClientPage *pg = 
-			(ClientPage *)pool_->get_page(argv[2]);
-		if (pg == NULL) {
-			tcl.resultf("%d count-request: No page %s", 
-				    id_, argv[2]);
-			return TCL_ERROR;
+	switch (argv[1][0]) {
+	case 'a': 
+		if (strcmp(argv[1], "add-inval-sender") == 0) {
+			HttpUInvalAgent *tmp = 
+				(HttpUInvalAgent *)TclObject::lookup(argv[2]);
+			if (tmp == NULL) {
+				tcl.resultf("Non-existent agent %s", argv[2]);
+				return TCL_ERROR;
+			}
+			inv_sender_ = tmp;
+			return TCL_OK;
+		} if (strcmp(argv[1], "add-inv") == 0) {
+			/*
+			 * <server> add-inv <pageid> <modtime>
+			 */
+			double mtime = strtod(argv[3], NULL);
+			add_inv(argv[2], mtime);
+			return TCL_OK;
 		}
-		pg->count_request(Cb_, push_high_bound_);
-		log("S NTF p %s v %d\n", argv[2], pg->counter());
-		return TCL_OK;
-	} else if (strcmp(argv[1], "count-inval") == 0) {
-		ClientPage *pg = 
-			(ClientPage *)pool_->get_page(argv[2]);
-		if (pg == NULL) {
-			tcl.resultf("%d count-inval: No page %s", 
-				    id_, argv[2]);
-			return TCL_ERROR;
-		}
-		pg->count_inval(Ca_, push_low_bound_);
-		log("S NTF p %s v %d\n", argv[2], pg->counter());
-		return TCL_OK;
-	} else if (strcmp(argv[1], "is-pushable") == 0) {
-		ClientPage *pg = 
-			(ClientPage *)pool_->get_page(argv[2]);
-		if (pg == NULL) {
-			tcl.resultf("%d is-pushable: No page %s", 
-				    id_, argv[2]);
-			return TCL_ERROR;
-		}
+		break;
+	case 'c': 
+		if (strcmp(argv[1], "count-request") == 0) {
+			ClientPage *pg = 
+				(ClientPage *)pool_->get_page(argv[2]);
+			if (pg == NULL) {
+				tcl.resultf("%d count-request: No page %s", 
+					    id_, argv[2]);
+				return TCL_ERROR;
+			}
+			pg->count_request(Cb_, push_high_bound_);
+			log("S NTF p %s v %d\n", argv[2], pg->counter());
+			return TCL_OK;
+		} else if (strcmp(argv[1], "count-inval") == 0) {
+			ClientPage *pg = 
+				(ClientPage *)pool_->get_page(argv[2]);
+			if (pg == NULL) {
+				tcl.resultf("%d count-inval: No page %s", 
+					    id_, argv[2]);
+				return TCL_ERROR;
+			}
+			pg->count_inval(Ca_, push_low_bound_);
+			log("S NTF p %s v %d\n", argv[2], pg->counter());
+			return TCL_OK;
+		} 
+		break;
+	case 'i': 
+		if (strcmp(argv[1], "is-pushable") == 0) {
+			ClientPage *pg = 
+				(ClientPage *)pool_->get_page(argv[2]);
+			if (pg == NULL) {
+				tcl.resultf("%d is-pushable: No page %s", 
+					    id_, argv[2]);
+				return TCL_ERROR;
+			}
 			if (pg->is_mpush() && 
-(Scheduler::instance().clock() - pg->mpush_time() > 
- HTTP_HBEXPIRE_COUNT*hb_interval_)) {
-			// If mandatory push timer expires, stop push
+			    (Scheduler::instance().clock() - pg->mpush_time() >
+			     HTTP_HBEXPIRE_COUNT*hb_interval_)) {
+				// If mandatory push timer expires, stop push
 				pg->clear_mpush();
-			fprintf(stderr, "server %d timeout mpush\n", id_);
+				fprintf(stderr, 
+					"server %d timeout mpush\n", id_);
 			}
 			tcl.resultf("%d", (enable_upd_ && 
 					   (pg->counter() >= push_thresh_) ||
 					   pg->is_mpush()));
-		return TCL_OK;
-	} else if ((strcmp(argv[1], "request-mpush") == 0) ||
+			return TCL_OK;
+		}
+		break;
+	case 'r': 
+		if ((strcmp(argv[1], "request-mpush") == 0) ||
 		    (strcmp(argv[1], "refresh-mpush") == 0)) {
-		ClientPage *pg = 
-			(ClientPage *)pool_->get_page(argv[2]);
-		if (pg == NULL) {
-			tcl.resultf("%d is-valid: No page %s", 
-				    id_, argv[2]);
+			ClientPage *pg = 
+				(ClientPage *)pool_->get_page(argv[2]);
+			if (pg == NULL) {
+				tcl.resultf("%d is-valid: No page %s", 
+					    id_, argv[2]);
 			return TCL_ERROR;
-		}
-		pg->set_mpush(Scheduler::instance().clock());
-		return TCL_OK;
-	} else if (strcmp(argv[1], "stop-mpush") == 0) {
-		ClientPage *pg = 
-			(ClientPage *)pool_->get_page(argv[2]);
-		if (pg == NULL) {
-			tcl.resultf("%d is-valid: No page %s", 
-				    id_, argv[2]);
-			return TCL_ERROR;
-		}
+			}
+			pg->set_mpush(Scheduler::instance().clock());
+			return TCL_OK;
+		} 
+		break;
+	case 's': 
+		if (strcmp(argv[1], "send-hb") == 0) {
+			send_heartbeat();
+			return TCL_OK;
+		} else if (strcmp(argv[1], "stop-mpush") == 0) {
+			ClientPage *pg = 
+				(ClientPage *)pool_->get_page(argv[2]);
+			if (pg == NULL) {
+				tcl.resultf("%d is-valid: No page %s", 
+					    id_, argv[2]);
+				return TCL_ERROR;
+			}
 		pg->clear_mpush();
 		fprintf(stderr, "server %d stopped mpush\n", id_);
 		return TCL_OK;
+		}
+		break;
 	}
 
 	return HttpApp::command(argc, argv);
 }
+
+void HttpYucInvalServer::add_inv(const char *name, double mtime)
+{
+	InvalidationRec *p = get_invrec(name);
+	if ((p != NULL) && (p->mtime() < mtime)) {
+		p->detach();
+		delete p;
+		p = NULL;
+		num_inv_--;
+	} 
+	if (p == NULL) {
+		p = new InvalidationRec(name, mtime);
+		p->insert(&invlist_);
+		num_inv_++;
+	}
+}
+
+InvalidationRec* HttpYucInvalServer::get_invrec(const char *name)
+{
+	// XXX What should we do if we already have an
+	// invalidation record of this page in our 
+	// invlist_? --> We should replace it with the new one
+	InvalidationRec *r = invlist_;
+	for (r = invlist_; r != NULL; r = r->next())
+		if (strcmp(name, r->pg()) == 0)
+			return r;
+	return NULL;
+}
+
+HttpHbData* HttpYucInvalServer::pack_heartbeat()
+{
+	HttpHbData *data = new HttpHbData(id_, num_inv_);
+	InvalidationRec *p = invlist_, *q;
+	int i = 0;
+	while (p != NULL) {
+		data->add(i++, p);
+		// Clearing up invalidation sending list
+		if (!p->dec_scount()) {
+			// Each invalidation is sent to its children
+			// for at most HTTP_HBEXPIRE times. After that 
+			// the invalidation record is removed from 
+			// the list
+			q = p;
+			p = p->next();
+			q->detach();
+			delete q;
+			num_inv_--;
+		} else 
+			p = p->next();
+	}
+	return data;
+}
+
+void HttpYucInvalServer::send_hb_helper(int size, int datasize, 
+					const char *data)
+{
+	inv_sender_->send_data(size, datasize, data);
+}
+
+void HttpYucInvalServer::send_heartbeat()
+{
+	if (inv_sender_ == NULL)
+		return;
+
+	HttpHbData* d = pack_heartbeat();
+	char *tmp = new char[d->size()];
+	d->pack(tmp);
+	send_hb_helper(d->cost(), d->size(), (const char *)tmp);
+	delete []tmp;
+	delete d;
+}
+
+
 
 
 //----------------------------------------------------------------------
@@ -1052,7 +1162,8 @@ void HttpMInvalCache::recv_leave(HttpLeaveData *d)
 #endif
 
 	if (d->num() == 0) {
-		fprintf(stderr, "%s (%g) gets a leave without server!\n", 
+		fprintf(stderr, 
+		    "%s (%g) gets a leave from cache without server!\n", 
 			name_, Scheduler::instance().clock());
 		return;
 	}
@@ -1247,7 +1358,9 @@ void HttpMInvalCache::process_inv(int, InvalidationRec *ivlist, int cache)
 					__FILE__, __LINE__);
 				abort();
 			}
-			if (sst->cache()->cache()->id() == cache) {
+			if ((sst->cache()->cache()->id() == cache) && 
+			    (pg->mtime() > p->mtime())) {
+				// Don't count repeated invalidations.
 				pg->count_inval(Ca_, push_low_bound_);
 				log("E NTF p %s v %d\n",p->pg(),pg->counter());
 			}

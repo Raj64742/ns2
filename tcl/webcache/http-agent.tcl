@@ -17,7 +17,7 @@
 #
 # HTTP agents: server, client, cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.6 1999/01/26 18:30:49 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-agent.tcl,v 1.7 1999/02/09 00:43:49 haoboy Exp $
 
 Http set id_ 0	;# required by TclCL
 # Type of Tcp agent. Can be SimpleTcp or FullTcp
@@ -405,6 +405,9 @@ Http/Client instproc stop-session { server } {
 	# Clean up all pending requests
 	if [info exists nextreq_($sid)] {
 		$ns_ cancel $nextreq_($sid)
+	}
+	if {![info exists pending_]} {
+		return
 	}
 	# XXX If a client either connects to a *SINGLE* cache 
 	# or a *SINGLE* server, then we remove all pending requests 

@@ -17,7 +17,7 @@
 #
 # Implementation of an HTTP server
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.6 1999/01/26 18:30:50 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-server.tcl,v 1.7 1999/02/09 00:43:51 haoboy Exp $
 
 
 #
@@ -146,6 +146,7 @@ Http/Server instproc gen-page { pageid } {
 	array set data $pginfo
 	set age $data(age)
 	$self schedule-nextmod [expr [$ns_ now] + $age] $pageid
+	$self evTrace S MOD p $pageid m [$ns_ now] n [expr [$ns_ now] + $age]
 
 	$self instvar modtimes_ modseq_
 	set modseq_($pageid) 0
@@ -185,6 +186,8 @@ Http/Server instproc alloc-connection { client fid } {
 }
 
 Http/Server instproc handle-request-GET { pageid args } {
+	$self instvar ns_
+
 	if [$self exist-page $pageid] {
 		set pageinfo [$self get-page $pageid]
 	} else {
@@ -212,6 +215,7 @@ Http/Server instproc handle-request-IMS { pageid args } {
 		set pageinfo [$self get-page $pageid]
 		$self evTrace S SND p $pageid m $mt z $size t IMS-M
 	}
+
 	lappend res $size
 	eval lappend res $pageinfo
 	return $res
@@ -393,6 +397,26 @@ Http/Server/Inval/Yuc instproc set-parent-cache { cache } {
 	$self send $pcache_ [$self get-joinsize] \
 		"$pcache_ server-join $self $self"
 
+	# Establish an invalidation connection using TCP
+	Http instvar TRANSPORT_
+	$self instvar ns_ node_
+
+	set tcp [new Agent/TCP/$TRANSPORT_]
+	$tcp set fid_ [Http set HB_FID_]
+	$ns_ attach-agent $node_ $tcp
+	set dst [$pcache_ setup-unicast-hb]
+	set snk [$dst agent]
+	$ns_ connect $tcp $snk
+	#$tcp set dst_ [$snk set addr_] 
+	$tcp set window_ 100
+	$snk listen
+
+	set wrapper [new Application/TcpApp/HttpInval $tcp]
+	$wrapper connect $dst
+	$wrapper set-app $self
+
+	$self add-inval-sender $wrapper
+
 	# Start heartbeat after some time, otherwise TCP connection may 
 	# not be well established...
 	$self instvar ns_
@@ -401,10 +425,8 @@ Http/Server/Inval/Yuc instproc set-parent-cache { cache } {
 
 Http/Server/Inval/Yuc instproc heartbeat {} {
 	$self instvar pcache_ ns_
-	$self send $pcache_ [$self get-hbsize] \
-		"$pcache_ server-hb [$self id]"
-	# XXX 990122 Change to unreliable heartbeat!
-#	$self cmd send-heartbeat
+
+	$self cmd send-hb
 	$ns_ at [expr [$ns_ now] + [$self next-hb]] \
 		"$self heartbeat"
 }
@@ -433,14 +455,16 @@ Http/Server/Inval/Yuc instproc invalidate { pageid modtime } {
 
 	# Send invalidation to every cache, assuming a connection 
 	# exists between the server and the cache
-	set size [$self get-invsize]
+#	set size [$self get-invsize]
 	# Mark invalidation packet as another fid
-	set agent [[$self get-cnc $pcache_] agent]
-	set fid [$agent set fid_]
-	$agent set fid_ [Http set PINV_FID_]
-	$self send $pcache_ $size "$pcache_ invalidate $pageid $modtime"
-	$agent set fid_ $fid
-	$self evTrace S INV p $pageid m $modtime z $size
+#	set agent [[$self get-cnc $pcache_] agent]
+#	set fid [$agent set fid_]
+#	$agent set fid_ [Http set PINV_FID_]
+#	$self send $pcache_ $size "$pcache_ invalidate $pageid $modtime"
+#	$agent set fid_ $fid
+
+	$self cmd add-inv $pageid $modtime
+	$self evTrace S INV p $pageid m $modtime 
 }
 
 Http/Server/Inval/Yuc instproc push-page { pageid modtime } {

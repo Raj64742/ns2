@@ -17,7 +17,7 @@
 #
 # Implementation of web cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.5 1999/01/26 18:30:50 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.6 1999/02/09 00:43:50 haoboy Exp $
 
 Http/Cache instproc init args {
 	eval $self next $args
@@ -510,6 +510,9 @@ Http/Cache/Inval instproc get-response-REF { server pageid args } {
 #error "At [$ns_ now], cache $self ($id_) refetched an old page\
 #$pageid ($data(modtime), new time [$self get-modtime $pageid])\
 #from [$server id]"
+puts stderr "At [$ns_ now], cache $self ($id_) refetched an old page\
+$pageid ($data(modtime), new time [$self get-modtime $pageid])\
+from [$server id]"
 		# Do nothing; send back the newer page
 	} else {
 		# The page is re-validated by replacing the old entry

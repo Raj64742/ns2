@@ -17,7 +17,7 @@
 //
 // Definition of the HTTP agent
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.3 1999/01/26 18:30:52 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.4 1999/02/09 00:43:52 haoboy Exp $
 
 #ifndef ns_http_h
 #define ns_http_h
@@ -71,7 +71,6 @@ public:
 
 class HttpInvalServer : public HttpServer {
 public:
-	// All methods are in TCL
 };
 
 // Http server with periodic unicast heartbeat invalidations
@@ -84,8 +83,19 @@ public:
 	virtual int delay_bind_dispatch(const char *varName, const char *localName);
 #endif /* JOHNH_CLASSINSTVAR */
 	virtual int command(int argc, const char*const* argv);
+	void add_inv(const char *name, double mtime);
 
 protected:
+	// heartbeat methods
+	HttpUInvalAgent *inv_sender_; // Heartbeat/invalidation sender
+	InvalidationRec *invlist_; 
+	int num_inv_;
+
+	void send_heartbeat();
+	HttpHbData* pack_heartbeat();
+	virtual void send_hb_helper(int size, int datasize, const char *data);
+	InvalidationRec* get_invrec(const char *name);
+
 	int Ca_, Cb_, push_thresh_, enable_upd_;
 	int push_high_bound_, push_low_bound_;
 	double hb_interval_;		// Heartbeat interval (second)

@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.7 1999/01/26 18:30:54 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.8 1999/02/09 00:43:54 haoboy Exp $
 
 #include <stdlib.h>
 #include <sys/types.h>
@@ -956,14 +956,16 @@ int ProxyTracePagePool::command(int argc, const char*const* argv)
 			ClientRequest *p = load_req(id);
 			if ((p->nrt_ >= 0) && 
 			    (p->nrt_ < Scheduler::instance().clock())) {
-				// XXX Do NOT treat this as an error, but 
+				// XXX Do NOT treat this as an error, also
 				// do NOT disable further requests from this 
 				// client.
 				fprintf(stderr,
 					"%.17g: Wrong request time %g.\n",
 					Scheduler::instance().clock(),
 					p->nrt_);
-				p->nrt_ = 0;
+				// XXX If it's a little bit older than current 
+				// time, let it be a little bit later than now
+				p->nrt_ = Scheduler::instance().clock()+0.001;
 			}
 			tcl.resultf("%lf %d", 
 				    p->nrt_ - Scheduler::instance().clock(), 
@@ -1008,7 +1010,7 @@ int ProxyTracePagePool::command(int argc, const char*const* argv)
 			int id = atoi(argv[2]) % 10;
 			if (id >= br_)
 				// Static page
-				tcl.result("-86400");
+				tcl.result("0");
 			else
 				// Dynamic page
 				tcl.resultf("%.17g", 

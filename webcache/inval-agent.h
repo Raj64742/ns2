@@ -17,7 +17,7 @@
 //
 // Definition of Agent/Invalidation
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.3 1999/01/26 18:30:53 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.4 1999/02/09 00:43:54 haoboy Exp $
 
 #ifndef ns_invalagent_h
 #define ns_invalagent_h

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.14 1999/01/26 18:30:42 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.15 1999/02/09 00:43:22 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -185,7 +185,7 @@ char*
 FlowMon::flow_list()
 {
 	register const char* z;
-	register i, j = classifier_->maxslot();
+	register int i, j = classifier_->maxslot();
 	Flow* f;
 	register char* p = wrk_;
 	register char* q;
@@ -213,10 +213,8 @@ void
 FlowMon::fformat(Flow* f)
 {
 	double now = Scheduler::instance().clock();
-#if defined(HAVE_STRTOQ)
-	sprintf(wrk_, "%8.3f %d %d %d %d %d %d %qd %qd %d %d %qd %qd %d %d %d %d %d %d",
-#elif defined(HAVE_STRTOLL)
-	sprintf(wrk_, "%8.3f %d %d %d %d %d %d %lld %lld %d %d %qd %qd %d %d %d %d %d %d",
+#if defined(HAVE_INT64)
+	sprintf(wrk_, "%8.3f %d %d %d %d %d %d " STRTOI64_FMTSTR " " STRTOI64_FMTSTR " %d %d " STRTOI64_FMTSTR " " STRTOI64_FMTSTR " %d %d %d %d %d %d",
 #else /* no 64-bit int */
 	sprintf(wrk_, "%8.3f %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
 #endif

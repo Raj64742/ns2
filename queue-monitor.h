@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.13 1999/01/26 18:30:44 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.14 1999/02/09 00:43:23 haoboy Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -63,16 +63,11 @@ public:
 
 	int size() const { return (size_); }
 	int pkts() const { return (pkts_); }
-#if defined(HAVE_STRTOQ)
-	quad_t parrivals() const { return (parrivals_); }
-	quad_t barrivals() const { return (barrivals_); }
-	quad_t pdepartures() const { return (pdepartures_); }
-	quad_t bdepartures() const { return (bdepartures_); }
-#elif defined(HAVE_STRTOLL)
-	long long parrivals() const { return (parrivals_); }
-	long long barrivals() const { return (barrivals_); }
-	long long pdepartures() const { return (pdepartures_); }
-	long long bdepartures() const { return (bdepartures_); }
+#if defined(HAVE_INT64)
+	int64_t parrivals() const { return (parrivals_); }
+	int64_t barrivals() const { return (barrivals_); }
+	int64_t pdepartures() const { return (pdepartures_); }
+	int64_t bdepartures() const { return (bdepartures_); }
 #else /* no 64-bit integer */
 	int parrivals() const { return (parrivals_); }
 	int barrivals() const { return (barrivals_); }
@@ -94,16 +89,11 @@ protected:
 	int size_;			// current queue size (bytes)
 	int pkts_;			// current queue size (packets)
 	// aggregate counters bytes/packets
-#if defined(HAVE_STRTOQ)
-	quad_t parrivals_;
-	quad_t barrivals_;
-	quad_t pdepartures_;
-	quad_t bdepartures_;
-#elif defined(HAVE_STRTOLL)
-	long long parrivals_;
-	long long barrivals_;
-	long long pdepartures_;
-	long long bdepartures_;
+#if defined(HAVE_INT64)
+	int64_t parrivals_;
+	int64_t barrivals_;
+	int64_t pdepartures_;
+	int64_t bdepartures_;
 #else /* no 64-bit integer */
 	int parrivals_;
 	int barrivals_;

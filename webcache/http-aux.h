@@ -17,7 +17,7 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.7 1999/01/26 18:30:51 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.8 1999/02/09 00:43:51 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
