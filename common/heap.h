@@ -1,5 +1,5 @@
 /*
- * $Id: heap.h,v 1.1 1997/03/11 00:41:20 kannan Exp $
+ * $Id: heap.h,v 1.2 1997/05/16 07:58:25 kannan Exp $
  */
 
 #ifndef _heap_h
@@ -26,9 +26,9 @@ class Heap
 		heap_key_t he_key;
 		void*		he_elem;
 	} *h_elems;
-	int		h_size;
-	int		h_maxsize;
-	int		h_iter;
+	unsigned int	h_size;
+	unsigned int	h_maxsize;
+	unsigned int	h_iter;
 
 	unsigned int	parent(unsigned int i)	{ return ((i - 1) / 2); }
 	unsigned int	left(unsigned int i)	{ return ((i * 2) + 1); }
@@ -46,9 +46,9 @@ class Heap
 
 public:
 	Heap(int size =HEAP_DEFAULT_SIZE)
-		: h_maxsize(size), h_size(0), h_iter(0) {
+		: h_size(0), h_maxsize(size), h_iter(0) {
 		h_elems = new Heap_elem[h_maxsize];
-		for (int i = 0; i < h_maxsize; i++)
+		for (unsigned int i = 0; i < h_maxsize; i++)
 			h_elems[i].he_elem = 0;
 	};
 	~Heap() {
@@ -65,7 +65,7 @@ public:
 	 *	heap_delete() uses this routine to find an element in the heap.
 	 */
 	int	heap_member(void* elem) {
-		int i;
+		unsigned int i;
 		Heap_elem* he;
 		for (i = 0, he = h_elems; i < h_size; i++, he++)
 			if (he->he_elem == elem)
@@ -157,7 +157,7 @@ public:
 		unsigned int	i, par;
 
 		if (h_maxsize == h_size) {	  /* Adjust heap_size */
-			int osize = h_maxsize;
+			unsigned int osize = h_maxsize;
 			Heap_elem *he_old = h_elems;
 			h_maxsize *= 2;
 			h_elems = new Heap_elem[h_maxsize];

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.6 1997/05/14 19:49:10 polly Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.7 1997/05/16 07:58:24 kannan Exp $";
 #endif
 
 #include <stdlib.h>
@@ -123,6 +123,16 @@ int Classifier::command(int argc, const char*const* argv)
 			int slot = atoi(argv[2]);
 			clear(slot);
 			return (TCL_OK);
+		}
+		/*
+		 * $classifier installNext $node
+		 */
+		if (strcmp(argv[1], "installNext") == 0) {
+			int slot = maxslot_ + 1;
+			NsObject* node = (NsObject*)TclObject::lookup(argv[2]);
+			install(slot, node);
+			tcl.resultf("%d", slot);
+			return TCL_OK;
 		}
 	} else if (argc == 4) {
 		/*

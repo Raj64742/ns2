@@ -13,6 +13,7 @@ classifier.h
 classifier-addr.cc
 classifier-flow.cc
 classifier-mcast.cc
+classifier-mpath.cc
 classifier-hash.cc
 conf/configure.in.head
 conf/configure.in.tcl
@@ -185,3 +186,17 @@ bitmap/ff.xbm
 bitmap/play.xbm
 bitmap/rewind.xbm
 bitmap/stop.xbm
+bin/raw2xg
+bin/raw2gp
+bin/getrc
+bin/ktest-all
+tcl/ex/simple-eqp-nam.tcl
+tcl/ex/simple-eqp.tcl
+tcl/ex/simple-eqp1-nam.tcl
+tcl/ex/simple-eqp1.tcl
+tcl/test/topologies.tcl
+tcl/test/misc.tcl
+tcl/test/test-suite-red.tcl
+tcl/test/test-suite-sack.tcl
+tcl/test/test-suite-routed.tcl
+tcl/test/README

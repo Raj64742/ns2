@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.1 1997/04/28 19:31:31 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.2 1997/05/16 07:58:34 kannan Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -42,6 +42,11 @@
 # ns test-suite.tcl tahoe2
 # ...
 #
+
+if [file exists redefines.tcl] {
+	puts "sourcing redefines.tcl in [pwd]"
+	source redefines.tcl
+}
 
 Class TestSuite
 
@@ -75,6 +80,7 @@ TestSuite instproc init {} {
 		set testName_ "$test_:$net_"
 	}
 
+	# XXX
 	if [info exists node_(k1)] {
 		set blink [$ns_ link $node_(r1) $node_(k1)]
 	} else {
@@ -176,6 +182,14 @@ TestSuite instproc openTrace { stopTime testName } {
 	$ns_ at $stopTime \
 		"close $traceFile ; $self finish $testName"
 	return $traceFile
+}
+
+TestSuite instproc traceQueues { node traceFile } {
+	$self instvar ns_
+	foreach nbr [$node neighbors] {
+		$ns_ trace-queue $node $nbr $traceFile
+		[$ns_ link $node $nbr] trace-dynamics $ns_ $traceFile
+	}
 }
 
 proc usage {} {

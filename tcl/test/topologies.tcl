@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.1 1997/04/28 19:31:34 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.2 1997/05/16 07:58:38 kannan Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -59,18 +59,33 @@ SkelTopology instproc node? n {
     set ret
 }
 
-SkelTopology instproc add-fallback-links {ns nodelist bw delay qtype} {
-    $self instvar node_
+SkelTopology instproc add-fallback-links {ns nodelist bw delay qtype args} {
+   $self instvar node_
     set n1 [lindex $nodelist 0]
     foreach n2 [lrange $nodelist 1 end] {
 	if ![info exists node_($n2)] {
 	    set node_($n2) [$ns node]
 	}
 	$ns duplex-link $node_($n1) $node_($n2) $bw $delay $qtype
+	foreach opt $args {
+	    set cmd [lindex $opt 0]
+	    set val [lindex $opt 1]
+	    if {[llength $opt] > 2} {
+		set x1 [lindex $opt 2]
+		set x2 [lindex $opt 3]
+	    } else {
+		set x1 $n1
+		set x2 $n2
+	    }
+	    $ns $cmd $node_($x1) $node_($x2) $val
+	    $ns $cmd $node_($x2) $node_($x1) $val
+	}
 	set n1 $n2
     }
 }
-		
+
+#
+
 Class NodeTopology/4nodes -superclass SkelTopology
 
 # Create a simple four node topology:
@@ -93,12 +108,11 @@ NodeTopology/4nodes instproc init ns {
     set node_(k1) [$ns node]
 }
 
-Class Topology/net0 -superclass NodeTopology/4nodes
-
 #
 # Links1 uses 8Mb, 5ms feeders, and a 800Kb 100ms bottleneck.
 # Queue-limit on bottleneck is 6 packets.
 #
+Class Topology/net0 -superclass NodeTopology/4nodes
 Topology/net0 instproc init ns {
     $self next $ns
     $self instvar node_
@@ -112,9 +126,8 @@ Topology/net0 instproc init ns {
     }
 }
 
-Class Topology/net0-d -superclass Topology/net0
-
-Topology/net0-d instproc init ns {
+Class Topology/net0- -superclass Topology/net0
+Topology/net0- instproc init ns {
     $self next $ns
     $self instvar node_
     $ns rtmodel Exponential {} $node_(r1) $node_(k1)
@@ -126,9 +139,8 @@ Topology/net0-d instproc init ns {
     }
 }
 
-Class Topology/net0-d+fb+r:Session -superclass Topology/net0
-
-Topology/net0-d+fb+r:Session instproc init ns {
+Class Topology/net0-Session -superclass Topology/net0
+Topology/net0-Session instproc init ns {
     $self next $ns			;# instantiate entire topology
     $self add-fallback-links $ns {r1 b1 k1} 800Kb 100ms DropTail
     $self instvar node_
@@ -139,9 +151,8 @@ Topology/net0-d+fb+r:Session instproc init ns {
     }
 }
 
-Class Topology/net0-d+fb+r:DV -superclass Topology/net0
-
-Topology/net0-d+fb+r:DV instproc init ns {
+Class Topology/net0-DV -superclass Topology/net0
+Topology/net0-DV instproc init ns {
     $self next $ns			;# instantiate entire topology
     $self add-fallback-links $ns {r1 b1 k1} 800Kb 100ms DropTail
     $self instvar node_
@@ -152,12 +163,41 @@ Topology/net0-d+fb+r:DV instproc init ns {
     }
 }
 
-Class Topology/net1 -superclass NodeTopology/4nodes
+Class Topology/net0-DVm0 -superclass Topology/net0
+Topology/net0-DVm0 instproc init ns {
+    Node set multiPath_ 1
+    Agent/rtProto/Direct set preference_ 200	;# Cf. tcl/ex/simple-eqp1.tcl
 
+    $self next $ns			;# now instantiate entire topology
+    $self add-fallback-links $ns {r1 b1 k1} 800Kb 100ms DropTail {cost 2 r1 k1}
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net0-DVm1 -superclass Topology/net0
+Topology/net0-DVm1 instproc init ns {
+    Node set multiPath_ 1
+    Agent/rtProto/Direct set preference_ 200	;# Cf. tcl/ex/simple-eqp1.tcl
+
+    $self next $ns			;# now instantiate entire topology
+    $self add-fallback-links $ns {r1 b1 k1} 800Kb 100ms DropTail {cost 2 r1 k1}
+    $self instvar node_
+    $ns rtmodel Trace "dyn.tr" $node_(r1) $node_(k1)
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+#
 #
 # Links1 uses 10Mb, 5ms feeders, and a 1.5Mb 100ms bottleneck.
 # Queue-limit on bottleneck is 23 packets.
 #
+
+Class Topology/net1 -superclass NodeTopology/4nodes
 Topology/net1 instproc init ns {
     $self next $ns
     $self instvar node_
@@ -171,9 +211,8 @@ Topology/net1 instproc init ns {
     }
 }
 
-Class Topology/net1-d -superclass Topology/net1
-
-Topology/net1-d instproc init ns {
+Class Topology/net1- -superclass Topology/net1
+Topology/net1- instproc init ns {
     $self next $ns
     $self instvar node_
     $ns rtmodel Exponential {} $node_(r1) $node_(k1)
@@ -185,9 +224,8 @@ Topology/net1-d instproc init ns {
     }
 }
 
-Class Topology/net1-d+fb+r:Session -superclass Topology/net1
-
-Topology/net1-d+fb+r:Session instproc init ns {
+Class Topology/net1-Session -superclass Topology/net1
+Topology/net1-Session instproc init ns {
     $self next $ns			;# instantiate entire topology
     $self add-fallback-links $ns {r1 b1 k1} 1.5Mb 100ms DropTail
     $self instvar node_
@@ -198,9 +236,8 @@ Topology/net1-d+fb+r:Session instproc init ns {
     }
 }
 
-Class Topology/net1-d+fb+r:DV -superclass Topology/net1
-
-Topology/net1-d+fb+r:DV instproc init ns {
+Class Topology/net1-DV -superclass Topology/net1
+Topology/net1-DV instproc init ns {
     $self next $ns			;# instantiate entire topology
     $self add-fallback-links $ns {r1 b1 k1} 1.5Mb 100ms DropTail
     $self instvar node_
@@ -210,6 +247,36 @@ Topology/net1-d+fb+r:DV instproc init ns {
 	$self config $ns
     }
 }
+
+Class Topology/net1-DVm0 -superclass Topology/net1
+Topology/net1-DVm0 instproc init ns {
+    Node set multiPath_ 1
+    Agent/rtProto/Direct set preference_ 200	;# Cf. tcl/ex/simple-eqp1.tcl
+
+    $self next $ns			;# now instantiate entire topology
+    $self add-fallback-links $ns {r1 b1 k1} 1.5Mb 100ms DropTail {cost 2 r1 k1}
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net1-DVm1 -superclass Topology/net1
+Topology/net1-DVm1 instproc init ns {
+    Node set multiPath_ 1
+    Agent/rtProto/Direct set preference_ 200	;# Cf. tcl/ex/simple-eqp1.tcl
+
+    $self next $ns			;# now instantiate entire topology
+    $self add-fallback-links $ns {r1 b1 k1} 1.5Mb 100ms DropTail {cost 2 r1 k1}
+    $self instvar node_
+    $ns rtmodel Trace "dyn.tr" $node_(r1) $node_(k1)
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+#
 
 Class NodeTopology/6nodes -superclass SkelTopology
 
@@ -238,7 +305,6 @@ NodeTopology/6nodes instproc init ns {
 }
 
 Class Topology/net2 -superclass NodeTopology/6nodes
-
 Topology/net2 instproc init ns {
     $self next $ns
 
@@ -255,9 +321,8 @@ Topology/net2 instproc init ns {
     }
 }
 
-Class Topology/net2-d -superclass Topology/net2
-
-Topology/net2-d instproc init ns {
+Class Topology/net2- -superclass Topology/net2
+Topology/net2- instproc init ns {
     $self next $ns
     $self instvar node_
     $ns rtmodel Exponential {} $node_(r1) $node_(r2)
@@ -269,11 +334,11 @@ Topology/net2-d instproc init ns {
     }
 }
 
-Class Topology/net2-d+fb+r:Session -superclass Topology/net2
-
-Topology/net2-d+fb+r:Session instproc init ns {
+Class Topology/net2-Session -superclass Topology/net2
+Topology/net2-Session instproc init ns {
     $self next $ns			;# instantiate entire topology
-    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 20ms DropTail
+    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 10ms DropTail \
+	    {queue-limit 25}
     $self instvar node_
     $ns rtmodel Trace "dyn.tr" $node_(r1) $node_(r2)
     $ns rtproto Session
@@ -282,11 +347,11 @@ Topology/net2-d+fb+r:Session instproc init ns {
     }
 }
 
-Class Topology/net2-d+fb+r:DV -superclass Topology/net2
-
-Topology/net2-d+fb+r:DV instproc init ns {
+Class Topology/net2-DV -superclass Topology/net2
+Topology/net2-DV instproc init ns {
     $self next $ns			;# instantiate entire topology
-    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 20ms DropTail
+    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 10ms DropTail \
+	    {queue-limit 25}
     $self instvar node_
     $ns rtmodel Trace "dyn.tr" $node_(r1) $node_(r2)
     $ns rtproto DV
@@ -295,11 +360,37 @@ Topology/net2-d+fb+r:DV instproc init ns {
     }
 }
 
-Class Topology/net2-d+fb:RED+r:Session -superclass Topology/net2
-
-Topology/net2-d+fb:RED+r:Session instproc init ns {
+Class Topology/net2-DVm0 -superclass Topology/net2
+Topology/net2-DVm0 instproc init ns {
+    Node set multiPath_ 1
     $self next $ns			;# instantiate entire topology
-    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 20ms RED
+    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 10ms DropTail \
+	    {queue-limit 25} {cost 2 r1 r2}
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net2-DVm1 -superclass Topology/net2
+Topology/net2-DVm1 instproc init ns {
+    Node set multiPath_ 1
+    $self next $ns			;# instantiate entire topology
+    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 10ms DropTail \
+	    {queue-limit 25} {cost 2 r1 r2}
+    $self instvar node_
+    $ns rtmodel Trace "dyn.tr" $node_(r1) $node_(r2)
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net2RED-Session -superclass Topology/net2
+Topology/net2RED-Session instproc init ns {
+    $self next $ns			;# instantiate entire topology
+    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 10ms RED \
+	    {queue-limit 25}
     $self instvar node_
     $ns rtmodel Trace "dyn.tr" $node_(r1) $node_(r2)
     $ns rtproto Session
@@ -308,11 +399,11 @@ Topology/net2-d+fb:RED+r:Session instproc init ns {
     }
 }
 
-Class Topology/net2-d+fb:RED+r:DV -superclass Topology/net2
-
-Topology/net2-d+fb:RED+r:DV instproc init ns {
+Class Topology/net2RED-DV -superclass Topology/net2
+Topology/net2RED-DV instproc init ns {
     $self next $ns			;# instantiate entire topology
-    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 20ms RED
+    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 10ms RED \
+	    {queue-limit 25}
     $self instvar node_
     $ns rtmodel Trace "dyn.tr" $node_(r1) $node_(r2)
     $ns rtproto DV
@@ -320,15 +411,45 @@ Topology/net2-d+fb:RED+r:DV instproc init ns {
 	$self config $ns
     }
 }
+
+Class Topology/net2RED-DVm0 -superclass Topology/net2
+Topology/net2RED-DVm0 instproc init ns {
+    Node set multiPath_ 1
+    $self next $ns			;# instantiate entire topology
+    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 10ms RED \
+	    {queue-limit 25} {cost 2 r1 r2}
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net2RED-DVm1 -superclass Topology/net2
+Topology/net2RED-DVm1 instproc init ns {
+    Node set multiPath_ 1
+    $self next $ns			;# instantiate entire topology
+    $self add-fallback-links $ns {r1 b1 r2} 1.5Mb 10ms RED \
+	    {queue-limit 25} {cost 2 r1 r2}
+    $self instvar node_
+    $ns rtmodel Trace "dyn.tr" $node_(r1) $node_(r2)
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+
+#
+
 Class NodeTopology/8nodes -superclass SkelTopology
 
 #
 # Create a simple eight node topology:
 #
 #        s1                 s3
-#         \                 /
+#         \      4  x       /
 # 10Mb,2ms \  1.5Mb,20ms   / 10Mb,4ms
-#           r1 --------- r2
+#           r1 -.--.--.- r4
 # 10Mb,3ms /               \ 10Mb,5ms
 #         /                 \
 #        s2                 s4 
@@ -353,7 +474,6 @@ NodeTopology/8nodes instproc init ns {
 }
 
 Class Topology/net3 -superclass NodeTopology/8nodes
-
 Topology/net3 instproc init ns {
     $self next $ns
     
@@ -372,9 +492,8 @@ Topology/net3 instproc init ns {
     }
 }
 
-Class Topology/net3-d -superclass Topology/net3
-
-Topology/net3-d instproc init ns {
+Class Topology/net3- -superclass Topology/net3
+Topology/net3- instproc init ns {
     $self next $ns
     $self instvar node_
     set dynamicsTrace [open dyn.tr "w"]
@@ -390,16 +509,16 @@ Topology/net3-d instproc init ns {
     }
 }
 
-Class Topology/net3-d+fb+r:Session -superclass Topology/net3
-
-Topology/net3-d+fb+r:Session instproc init ns {
+Class Topology/net3-Session -superclass Topology/net3
+Topology/net3-Session instproc init ns {
     $self next $ns			;# instantiate entire topology
     $self instvar node_
     foreach i [list {r1 b1 r2} {r2 b2 r3} {r3 b3 r4}] {
 	set x1 [lindex $i 0]
 	set x2 [lindex $i 2]
 	set b1 [lindex $i 1]
-	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 20ms DropTail
+	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 10ms DropTail \
+		{queue-limit 25}
 	$ns rtmodel Trace "dyn.tr" $node_($x1) $node_($x2)
     }
     $ns rtproto Session
@@ -408,16 +527,16 @@ Topology/net3-d+fb+r:Session instproc init ns {
     }
 }
 
-Class Topology/net3-d+fb+r:DV -superclass Topology/net3
-
-Topology/net3-d+fb+r:DV instproc init ns {
+Class Topology/net3-DV -superclass Topology/net3
+Topology/net3-DV instproc init ns {
     $self next $ns			;# instantiate entire topology
     $self instvar node_
     foreach i [list {r1 b1 r2} {r2 b2 r3} {r3 b3 r4}] {
 	set x1 [lindex $i 0]
 	set x2 [lindex $i 2]
 	set b1 [lindex $i 1]
-	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 20ms DropTail
+	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 10ms DropTail \
+		{queue-limit 25}
 	$ns rtmodel Trace "dyn.tr" $node_($x1) $node_($x2)
     }
     $ns rtproto DV
@@ -426,16 +545,52 @@ Topology/net3-d+fb+r:DV instproc init ns {
     }
 }
 
-Class Topology/net3-d+fb:RED+r:Session -superclass Topology/net3
+Class Topology/net3-DVm0 -superclass Topology/net3
+Topology/net3-DVm0 instproc init ns {
+    Node set multiPath_ 1
+    $self next $ns			;# instantiate entire topology
+    foreach i [list {r1 b1 r2} {r2 b2 r3} {r3 b3 r4}] {
+	set x1 [lindex $i 0]
+	set x2 [lindex $i 2]
+	set b1 [lindex $i 1]
+	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 10ms DropTail \
+		{queue-limit 25} [list cost 2 $x1 $x2]
+    }
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
 
-Topology/net3-d+fb:RED+r:Session instproc init ns {
+Class Topology/net3-DVm1 -superclass Topology/net3
+Topology/net3-DVm1 instproc init ns {
+    Node set multiPath_ 1
     $self next $ns			;# instantiate entire topology
     $self instvar node_
     foreach i [list {r1 b1 r2} {r2 b2 r3} {r3 b3 r4}] {
 	set x1 [lindex $i 0]
 	set x2 [lindex $i 2]
 	set b1 [lindex $i 1]
-	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 20ms RED
+	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 10ms DropTail \
+		{queue-limit 25} [list cost 2 $x1 $x2]
+	$ns rtmodel Trace "dyn.tr" $node_($x1) $node_($x2)
+    }
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net3RED-Session -superclass Topology/net3
+Topology/net3RED-Session instproc init ns {
+    $self next $ns			;# instantiate entire topology
+    $self instvar node_
+    foreach i [list {r1 b1 r2} {r2 b2 r3} {r3 b3 r4}] {
+	set x1 [lindex $i 0]
+	set x2 [lindex $i 2]
+	set b1 [lindex $i 1]
+	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 10ms RED \
+		{queue-limit 25}
 	$ns rtmodel Trace "dyn.tr" $node_($x1) $node_($x2)
     }
     $ns rtproto Session
@@ -444,16 +599,16 @@ Topology/net3-d+fb:RED+r:Session instproc init ns {
     }
 }
 
-Class Topology/net3-d+fb:RED+r:DV -superclass Topology/net3
-
-Topology/net3-d+fb:RED+r:DV instproc init ns {
+Class Topology/net3RED-DV -superclass Topology/net3
+Topology/net3RED-DV instproc init ns {
     $self next $ns			;# instantiate entire topology
     $self instvar node_
     foreach i [list {r1 b1 r2} {r2 b2 r3} {r3 b3 r4}] {
 	set x1 [lindex $i 0]
 	set x2 [lindex $i 2]
 	set b1 [lindex $i 1]
-	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 20ms RED
+	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 10ms RED \
+		{queue-limit 25}
 	$ns rtmodel Trace "dyn.tr" $node_($x1) $node_($x2)
     }
     $ns rtproto DV
@@ -461,3 +616,40 @@ Topology/net3-d+fb:RED+r:DV instproc init ns {
 	$self config $ns
     }
 }
+
+Class Topology/net3RED-DVm0 -superclass Topology/net3
+Topology/net3RED-DVm0 instproc init ns {
+    Node set multiPath_ 1
+    $self next $ns			;# instantiate entire topology
+    foreach i [list {r1 b1 r2} {r2 b2 r3} {r3 b3 r4}] {
+	set x1 [lindex $i 0]
+	set x2 [lindex $i 2]
+	set b1 [lindex $i 1]
+	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 10ms RED \
+		{queue-limit 25} [list cost 2 $x1 $x2]
+    }
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net3RED-DVm1 -superclass Topology/net3
+Topology/net3RED-DVm1 instproc init ns {
+    Node set multiPath_ 1
+    $self next $ns			;# instantiate entire topology
+    $self instvar node_
+    foreach i [list {r1 b1 r2} {r2 b2 r3} {r3 b3 r4}] {
+	set x1 [lindex $i 0]
+	set x2 [lindex $i 2]
+	set b1 [lindex $i 1]
+	$self add-fallback-links $ns [list $x1 $b1 $x2] 1.5Mb 10ms RED \
+		{queue-limit 25} [list cost 2 $x1 $x2]
+	$ns rtmodel Trace "dyn.tr" $node_($x1) $node_($x2)
+    }
+    $ns rtproto DV
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+

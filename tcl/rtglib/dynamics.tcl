@@ -5,29 +5,60 @@ DynamicLink set status_ 1
 Simulator instproc rtmodel { dist parms args } {
     set ret ""
     if { [rtModel info subclass rtModel/$dist] != "" } {
-	$self instvar rtq_ traceAllFile_
-	if ![info exists rtq_] {
-	    set rtq_ [new rtQueue $self]
-	}
+	$self instvar traceAllFile_ rtModel_
 	set ret [eval new rtModel/$dist $self]
 	eval $ret set-elements $args
 	eval $ret set-parms $parms
 	if [info exists traceAllFile_] {
 	    $ret trace $self $traceAllFile_
 	}
+	if [info exists rtModel_] {
+	    lappend rtModel_ $ret
+	} else {
+	    set rtModel_ $ret
+	}
     }
     return $ret
 }
 
+Simulator instproc rtmodel-configure {} {
+    $self instvar rtq_ rtModel_
+    if [info exists rtModel_] {
+	set rtq_ [new rtQueue $self]
+	foreach m $rtModel_ {
+	    $m configure
+	}
+    }
+}
+
+Simulator instproc rtmodel-at {at op args} {
+    set parms [list $op $at]
+    eval $self rtmodel Manual [list $parms] $args
+}
+
+Simulator instproc rtmodel-delete model {
+    $self instvar rtModel_
+    set newRtModel ""
+    foreach i $rtModel_ {
+	if {$i == $model} {
+	    delete $i
+	} else {
+	    lappend newRtModel $i
+	}
+    }
+    set rtModel_ $newRtModel
+}
 
 SimpleLink instproc dynamic {} {
     $self instvar dynamics_ queue_ head_ enqT_ drpT_
 
+    if [info exists dynamics_] return
+	
     set dynamics_ [new DynamicLink]
     $dynamics_ target $head_
     set head_ $dynamics_
-
-    if [info exists drpT_] {
+    
+    if [info exists drpT_] {			;# XXX
 	$dynamics_ down-target $drpT_
     } else {
         $dynamics_ down-target [[Simulator instance] set nullAgent_]
@@ -104,6 +135,20 @@ rtQueue instproc insq { interval obj iproc args } {
     return $time
 }
 
+rtQueue instproc insq-exact { at obj iproc args } {
+    $self instvar rtq_ ns_
+    if {[$ns_ now] >= $at} {
+	puts stderr "$proc: Cannot set event in the past"
+	set at ""
+    } else {
+	if ![info exists rtq_($at)] {
+	    $ns_ at $at "$self runq $time"
+	}
+	lappend rtq_($at) "$obj $iproc $args"
+    }
+    return $at
+}
+
 rtQueue instproc delq { time obj } {
     $self instvar rtq_
     set ret ""
@@ -145,47 +190,89 @@ rtModel set quiesceTime_ 0.5
 
 rtModel instproc init ns {
     $self next
-    if { [rtModel set rtq_] == "" } {
-	rtModel set rtq_ [$ns set rtq_]
-    }
+    $self instvar ns_ quiesceTime_ upInterval_ downInterval_
+    set ns_ $ns
 }
 
 rtModel instproc set-elements args {
-    $self instvar links_ nodes_
-    set ns [Simulator instance]
+    $self instvar ns_ links_ nodes_
     if { [llength $args] == 2 } {
 	set n0 [lindex $args 0]
 	set n1 [lindex $args 1]
-
-	set l0 [$ns link $n0 $n1]
-	set l1 [$ns link $n1 $n0]
-	$l0 dynamic
-	$l1 dynamic
-
 	set n0id [$n0 id]
 	set n1id [$n1 id]
+	
 	set nodes_($n0id) $n0
 	set nodes_($n1id) $n1
-	set links_($n0id:$n1id) $l0
-	set links_($n1id:$n0id) $l1
+	set links_($n0id:$n1id) [$ns_ link $n0 $n1]
+	set links_($n1id:$n0id) [$ns_ link $n1 $n0]
     } else {
 	set n0 [lindex $args 0]
 	set n0id [$n0 id]
 	set nodes_($n0id) $n0
 	foreach nbr [$n0 set neighbor_] {
 	    set n1 $nbr
-
-	    set l0 [$ns link $n0 $n1]
-	    set l1 [$ns link $n1 $n0]
-	    $l0 dynamic
-	    $l1 dynamic
-
 	    set n1id [$n1 id]
+	    
 	    set nodes_($n1id) $n1
-	    set links_($n0id:$n1id) $l0
-	    set links_($n1id:$n0id) $l1
+	    set links_($n0id:$n1id) [$ns_ link $n0 $n1]
+	    set links_($n1id:$n0id) [$ns_ link $n1 $n0]
 	}
     }
+}
+
+rtModel instproc set-parms args {
+    $self instvar quiesceTime_ upInterval_ downInterval_
+
+    set cls [$self info class]
+    foreach i {"quiesceTime_" "upInterval_" "downInterval_"} {
+	if [catch "$cls set $i" $i] {
+	    set $i [$class set $i]
+	}
+    }
+
+    set off "-"
+    set up  "-"
+    set dn  "-"
+
+    switch [llength $args] {
+	2 {
+	    set off [lindex $args 0]
+	    set up  [lindex $args 1]
+	    set dn  [lindex $args 2]
+	}
+	1 {
+	    set up [lindex $args 0]
+	    set dn [lindex $args 1]
+	}
+    }
+    if {$off != "-" && $off != ""} {
+	set quiesceTime_ $off
+    }
+    if {$up != "-" && $up != ""} {
+	set upInterval_ $up
+    }
+    if {$dn != "-" && $dn != ""} {
+	set downInterval_ $dn
+    }
+}
+
+rtModel instproc configure {} {
+    $self instvar ns_ links_
+    if { [rtModel set rtq_] == "" } {
+	rtModel set rtq_ [$ns_ set rtq_]
+    }
+
+    foreach l [array names links_] {
+	$links_($l) dynamic
+    }
+    $self set-first-event
+}
+
+rtModel instproc set-first-event {} {
+    $self instvar quiesceTime_ upInterval_
+
+    [rtModel set rtq_] insq [expr $quiesceTime_ + $upInterval_] $self "down"
 }
 
 rtModel instproc up {} {
@@ -226,42 +313,11 @@ Class rtModel/Exponential -superclass rtModel
 rtModel/Exponential set upInterval_   10.0
 rtModel/Exponential set downInterval_  1.0
 
-rtModel/Exponential instproc init ns {
-    eval $self next $ns
+rtModel/Exponential instproc set-first-event {} {
+    $self instvar quiesceTime_ upInterval_
 
-    $self instvar upInterval_ downInterval_
-    set upInterval_ [$class set upInterval_]
-    set downInterval_ [$class set downInterval_]
-
-    $self instvar firstEv_
-    set interval			\
-	    [expr [rtModel set quiesceTime_] + [exponential] * $upInterval_]
-    set firstEv_ [[rtModel set rtq_] insq $interval $self "down"]
-}
-
-rtModel/Exponential instproc set-parms args {
-    $self instvar upInterval_ downInterval_ firstEv_
-
-    set changes 0
-    if { [llength $args] >= 1 } {
-	set ui [lindex $args 0]
-	if {$ui != "-"} {
-	    set upInterval_ [lindex $args 0]
-	    incr changes
-	}
-    }
-
-    if { [llength $args] >= 2 } {
-	set downInterval_ [lindex $args 1]
-	incr changes
-    }
-    
-    if {$changes} {
-        [rtModel set rtq_] delq $firstEv_ $self
-        set interval			\
-	        [expr [rtModel set quiesceTime_] + [exponential] * $upInterval_]
-        [rtModel set rtq_] insq $interval $self "down"
-    }
+    set interval [expr $quiesceTime_ + [exponential] * $upInterval_]
+    [rtModel set rtq_] insq $interval $self "down"
 }
 
 rtModel/Exponential instproc up { } {
@@ -287,42 +343,6 @@ Class rtModel/Deterministic -superclass rtModel
 rtModel/Deterministic set upInterval_   2.0
 rtModel/Deterministic set downInterval_ 1.0
 
-rtModel/Deterministic instproc init ns {
-    eval $self next $ns
-
-    $self instvar upInterval_ downInterval_
-    set upInterval_ [$class set upInterval_]
-    set downInterval_ [$class set downInterval_]
-
-    $self instvar firstEv_
-    set interval [expr $upInterval_ + [rtModel set quiesceTime_]]
-    set firstEv_ [[rtModel set rtq_] insq $interval $self "down"]
-}
-
-
-rtModel/Deterministic instproc set-parms args {
-    $self instvar upInterval_ downInterval_ firstEv_
-
-    set changes 0
-    if { [llength $args] >= 1 } {
-	set ui [lindex $args 0]
-	if {$ui != "-"} {
-	    set upInterval_ [lindex $args 0]
-	    incr changes
-	}
-    }
-    if { [llength $args] >= 2 } {
-	set downInterval_ [lindex $args 1]
-	incr changes
-    }
-
-    if {$changes} {
-	[rtModel set rtq_] delq $firstEv_ $self
-	set interval [expr $upInterval_ + [rtModel set quiesceTime_]]
-	[[rtModel set rtq_] insq $interval $self "down"]
-    }
-}
-
 rtModel/Deterministic instproc up { } {
     $self next
     $self instvar upInterval_
@@ -337,13 +357,14 @@ rtModel/Deterministic instproc down { } {
     [rtModel set rtq_] insq $downInterval_ $self "up"
 }
 
-Class rtModel/Trace -superclass rtModel
+#
+# Route Dynamics instantiated through a trace file.
+# Invoked through:
+#
+#    $ns_ rtmodel Trace $traceFile $node1 [$node2 ... ]
+#
 
-rtModel/Trace instproc init ns {
-    $self next $ns
-    $self instvar ns_
-    set ns_ [Simulator instance]
-}
+Class rtModel/Trace -superclass rtModel
 
 rtModel/Trace instproc get-next-event {} {
     $self instvar tracef_ links_
@@ -386,8 +407,11 @@ rtModel/Trace instproc set-parms traceFile {
     set tracef_ [open $traceFile "r"]
     set nextEvent_ [$self get-next-event]
     if {$nextEvent_ == ""} {
-	error "no relevant events in $traceFile"
+	puts stderr "no relevant events in $traceFile"
     }
+}
+
+rtModel/Trace instproc set-first-event {} {
     $self set-events
 }
 
@@ -401,3 +425,33 @@ rtModel/Trace instproc down {} {
     $self set-events
 }
 
+#
+# One-shot route dynamics events
+# Invoked through:
+#
+#	$ns_ link-op $op $at $node1 [$node2 ...]
+# or
+#	$ns_ rtmodel Manual {$op $at} $node1 [$node2 ...]
+#
+Class rtModel/Manual -superclass rtModel
+
+rtModel/Manual instproc set-first-event {} {
+    $self instvar op_ at_
+    [rtModel set rtq_] insq-exact $at_ $self $op_
+}
+
+rtModel/Manual instproc set-parms {$op $at} {
+    $self instvar op_ at_
+    set op_ $op
+    set at_ $at
+}
+
+rtModel/Manual instproc up {} {
+    $self next
+    delete $self
+}
+
+rtModel/Manual instproc down {} {
+    $self next
+    delete $self
+}

@@ -1,6 +1,6 @@
 #ifndef lint
 static char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/dynalink.cc,v 1.2 1997/04/09 00:10:06 kannan Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/dynalink.cc,v 1.3 1997/05/16 07:58:24 kannan Exp $";
 #endif
 
 #include "connector.h"
@@ -10,7 +10,7 @@ static char rcsid[] =
 
 class DynamicLink : public Connector {
 public:
-	DynamicLink() : status_(1), down_(0) { bind("status_", &status_); }
+	DynamicLink() : down_(0), status_(1) { bind("status_", &status_); }
 protected:
 	int command(int argc, const char*const* argv);
 	void recv(Packet* p, Handler* h);

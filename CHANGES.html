@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.67 1997/05/14 02:47:26 mccanne Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.68 1997/05/16 07:58:21 kannan Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>ns: Change History</h1>
@@ -16,6 +16,61 @@
 [PENDING RELEASE DATE]</h3>
 
 <ul>
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue May 13 23:37:08 PDT 1997</b><br>
+Added equal cost multi-path routing.  Usage is shown in two examples in 
+tcl/ex/simple-eqp.tcl and simple-eqp1.tcl.<br>
+As a side effect, added the instproc-like, <code>installNext</code>
+to classifier.cc, to install a TclObject in the next available slot.
+All, added instprocs install, clear, and installNext to track slots
+filled.  These are then used by the instproc adjacents, to return 
+information about adjacent TclObjects in the slot.<br>
+Files affected: classifier-mpath.cc (<b>new</b>),
+tcl/ex/simple-eqp.tcl (<b>new</b>),
+tcl/ex/simple-eqp1.tcl (<b>new</b>),
+tcp/ex/simple-eqp-nam.tcl (<b>new</b>),
+tcl/ex/simple-eqp1-nam.tcl (<b>new</b>),
+tcl/rtglib/route-proto.tcl.
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue May 13 23:37:08 PDT 1997</b><br>
+Trace manipulation tools:
+<ul>
+<li>raw2xg and raw2gp take the -a option,
+to trace acks as well, if trace information about them is present.
+<li>getrc will extract trace information about a single node or link.
+Usage is
+<pre>        getrc [-o output file] [-b] -s node1 [-d node2] [trace file...]</pre>
+Typically, all traffic from node1 is extracted.  If -b is specified,
+then all information to node1 is extracted as well.  If both node1 and
+node2 are specified, then all traffic on the link between node1 and
+node2 is extracted.  Specifying the -b option will extract traffic in
+both directions on that link.
+</ul>
+See also tcl/test/README for a relatively more comprehensive writeup.
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue May 13 23:37:08 PDT 1997</b><br>
+Cleaned up heap.h and dynalink.cc to elide compiler warnings seen with -Wall.
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue May 13 23:37:08 PDT 1997</b><br>
+The route dynamics code si cleaned up.  Route Models are only setup 
+just prior to initiating routing.  This eliminiates some unwanted side
+effects when initiating tracing on links that are dynamic.<br>
+Files affected:
+tcl/lib/ns-lib.tcl, tcl/lib/ns-link.tcl, tcl/rtglib/dynamics.tcl.
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Fri May 16 00:48:14 PDT 1997</b><br>
+New route model for one shot route dynamics.  It should now be possible to say
+<pre>        $ns_ rtmodel-at $time $op $node1 [$node2]</pre>
+to take $node1 (or the link $node1-$node2) up (or down, as specified by
+$op) at a particular time.  It is done by creating a one-shot route
+model, rtModel/Manual.  (It is currently untested, though no problems
+are anticipated by this author...hah!)
+
+</P>
+
 <li><b><a href="http://www.cs.berkeley.edu/~mccanne">[SM]</a></b>
 <b>Tue May 13 17:44:34 PDT 1997</b><br>
 <ul>

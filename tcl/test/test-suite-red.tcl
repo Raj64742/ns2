@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.1 1997/04/28 19:31:31 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.2 1997/05/16 07:58:34 kannan Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -41,8 +41,8 @@
 
 set dir [pwd]
 catch "cd tcl/test"
-source topologies.tcl
 source misc.tcl
+source topologies.tcl
 catch "cd $dir"
 
 set flowfile fairflow.tr
@@ -56,6 +56,9 @@ set pthresh 100
 #       set category 0
 #       set awkprocedure forcedmakeawk
 
+#
+# Reconfigure the net2 topology for the RED experiments.
+#
 Topology/net2 instproc config ns {
     $self instvar node_
     # force identical behavior to ns-1.
@@ -116,7 +119,6 @@ TestSuite instproc tcpDumpAll { tcpSrc interval label } {
 
 
 Class Test/red1 -superclass TestSuite
-
 Test/red1 instproc init topo {
     $self instvar net_ defNet_ test_
     set net_	$topo
@@ -124,7 +126,6 @@ Test/red1 instproc init topo {
     set test_	red1
     $self next
 }
-
 Test/red1 instproc run {} {
     $self instvar ns_ node_ testName_
 
@@ -146,11 +147,7 @@ Test/red1 instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    set traceFile [$self openTrace 5.0 $testName_]
-    $ns_ trace-queue $node_(r1) $node_(r2) $traceFile
-    if [info exists node_(b1)] {
-	$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-    }
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 
     puts seed=[ns-random 0]
     $ns_ run
@@ -165,7 +162,6 @@ Test/red1_bytes instproc init topo {
     set test_	red1_bytes
     $self next
 }
-
 Test/red1_bytes instproc run {} {
     $self instvar ns_ node_ testName_
 
@@ -191,11 +187,7 @@ Test/red1_bytes instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    set traceFile [$self openTrace 5.0 $testName_]
-    $ns_ trace-queue $node_(r1) $node_(r2) $traceFile
-    if [info exists node_(b1)] {
-	$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-    }
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 
     puts seed=[ns-random 0]
     $ns_ run
@@ -209,7 +201,6 @@ Test/ecn instproc init topo {
     set test_	ecn
     $self next
 }
-
 Test/ecn instproc run {} {
     $self instvar ns_ node_ testName_
 
@@ -234,11 +225,7 @@ Test/ecn instproc run {} {
     $self tcpDump $tcp1 5.0
         
     # trace only the bottleneck link
-    set traceFile [$self openTrace 5.0 $testName_]
-    $ns_ trace-queue $node_(r1) $node_(r2) $traceFile
-    if [info exists node_(b1)] {
-	$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-    }
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
         
     puts seed=[ns-random 0]
     $ns_ run
@@ -254,7 +241,6 @@ Test/red2 instproc init topo {
     set test_	red2
     $self next
 }
-
 Test/red2 instproc run {} {
     $self instvar ns_ node_ testName_
 
@@ -279,27 +265,22 @@ Test/red2 instproc run {} {
     $self tcpDump $tcp1 5.0
     
     # trace only the bottleneck link
-    set traceFile [$self openTrace 5.0 $testName_]
-    $ns_ trace-queue $node_(r1) $node_(r2) $traceFile
-    if [info exists node_(b1)] {
-	$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-    }
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 
     puts seed=[ns-random 0]
     $ns_ run
 }
 
 # The queue is measured in "packets".
-Class Test/red_twoway -superclass TestSuite
-Test/red_twoway instproc init topo {
+Class XTest/red_twoway -superclass TestSuite
+XTest/red_twoway instproc init topo {
     $self instvar net_ defNet_ test_
     set net_	$topo
     set defNet_	net2
     set test_	red_twoway
     $self next
 }
-
-Test/red_twoway instproc run {} {
+XTest/red_twoway instproc run {} {
     $self instvar ns_ node_ testName_
 
     set stoptime 10.0
@@ -327,11 +308,7 @@ Test/red_twoway instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    set traceFile [$self openTrace 5.0 $testName_]
-    $ns_ trace-queue $node_(r1) $node_(r2) $traceFile
-    if [info exists node_(b1)] {
-	$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-    }
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 
     puts seed=[ns-random 0]
     $ns_ run
@@ -340,6 +317,7 @@ Test/red_twoway instproc run {} {
 # The queue is measured in "bytes".
 Class Test/red_twowaybytes -superclass TestSuite
 Test/red_twowaybytes instproc init topo {
+    puts stderr "need source TELNET"; exit 1
     $self instvar net_ defNet_ test_
     set net_	$topo
     set defNet_	net2
@@ -377,15 +355,20 @@ Test/red_twowaybytes instproc run {} {
     $self tcpDump $tcp1 5.0
 
     # trace only the bottleneck link
-    set traceFile [$self openTrace 5.0 $testName_]
-    $ns_ trace-queue $node_(r1) $node_(r2) $traceFile
-    if [info exists node_(b1)] {
-	$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-    }
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 
     puts seed=[ns-random 0]
     $ns_ run
 }
+
+#
+#######################################################################
+#
+# The rest of the file defines the test suite for flows and flowgraphs.
+# As such they are not ported over to ns-2 yet.  The tests themselves
+# are nulled out.
+#			-- Kannan	Wed May  7 15:15:37 PDT 1997
+#
 
 proc create_flowstats {} {
 

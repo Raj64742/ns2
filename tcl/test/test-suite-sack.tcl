@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.2 1997/05/07 04:06:20 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.3 1997/05/16 07:58:36 kannan Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -46,498 +46,463 @@
 #awk '{print $2, $1, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12}' out2 > t
 
 set dir [pwd]
-if [file exists redefines.tcl] {
-	source redefines.tcl
-}
 catch "cd tcl/test"
-source topologies.tcl
 source misc.tcl
+source topologies.tcl
 catch "cd $dir"
 
-TestSuite instproc openTraces { stopTime testName filename node1 node2 } {
-        $self instvar ns_
-	exec rm -f $filename.tr $filename.tr1 temp.rands
-	set traceFile [open $filename.tr w]
-	puts $traceFile "v testName $testName"
-	$ns_ at $stopTime \
-		"close $traceFile" 
-	$ns_ trace-queue $node1 $node2 $traceFile
-
-	set traceFile1 [open $filename.tr1 w]
-	$ns_ at $stopTime \
-		"close $traceFile1 ; $self finish $testName"
-	$ns_ trace-queue $node2 $node1 $traceFile1
-
-	$self instvar node_
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node1 $node_(b1) $traceFile
-		$ns_ trace-queue $node_(b1) $node2 $traceFile1
-	}
-}
-
-#XXX need to flush pending output
-Agent/TCP instproc error msg {
-	$self instvar addr_
-	puts stderr "tcp source at [expr $addr_ >> 8]: $msg"
-	exit 1
-}
+#
+# The routine below appears to be used to trace the reverse path in
+# order to get traces about acks.  However, in the redesigned test
+# suite, we trace all activity through a node incident on the
+# bottleneck link, and this gets us the ack information as well
+# (misc.tcl/TestSuite::traceQueues).  Hence, this procedure would be
+# redundant, and is commented out for now.
+#
+#TestSuite instproc openTraces { stopTime testName filename node1 node2 } {
+#        $self instvar ns_
+#	exec rm -f $filename.tr $filename.tr1 temp.rands
+#	set traceFile [open $filename.tr w]
+#	$ns_ at $stopTime \
+#		"close $traceFile" 
+#	$ns_ trace-queue $node1 $node2 $traceFile
+#
+#	set traceFile1 [open $filename.tr1 w]
+#	$ns_ at $stopTime \
+#		"close $traceFile1 ; $self finish $testName"
+#	$ns_ trace-queue $node2 $node1 $traceFile1
+#}
 
 # single packet drop
 Class Test/sack1 -superclass TestSuite
 Test/sack1 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	sack1
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	sack1
+    $self next
 }
-
 Test/sack1 instproc run {} {
-	$self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_
 
-	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window_ 14
-	set ftp1 [$tcp1 attach-source FTP]
-	$ns_ at 1.0 "$ftp1 start"
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 14
+    set ftp1 [$tcp1 attach-source FTP]
+    $ns_ at 1.0 "$ftp1 start"
 
-	$self tcpDump $tcp1 1.0
+    $self tcpDump $tcp1 1.0
 
-	# trace only the bottleneck link
-        $self openTraces 5.0 $testName_ out $node_(r1) $node_(k1)
-
-	$ns_ run
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ run
 }
 
 # three packet drops
 Class Test/sack1a -superclass TestSuite
 Test/sack1a instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	sack1a
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	sack1a
+    $self next
 }
-
 Test/sack1a instproc run {} {
-	$self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_
 
-	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window_ 20
-	set ftp1 [$tcp1 attach-source FTP]
-	$ns_ at 0.0 "$ftp1 start"
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 20
+    set ftp1 [$tcp1 attach-source FTP]
+    $ns_ at 0.0 "$ftp1 start"
 
-	$self tcpDump $tcp1 1.0
-
-	# trace only the bottleneck link
-	$self openTraces 5.0 $testName_ out $node_(r1) $node_(k1)
-
-	$ns_ run
+    $self tcpDump $tcp1 1.0
+    
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ run
 }
 
 Class Test/sack1b -superclass TestSuite
 Test/sack1b instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	sack1b
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	sack1b
+    $self next
 }
-
 Test/sack1b instproc run {} {
-	$self instvar ns_ node_ testName_
-	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window_ 26
-	set ftp1 [$tcp1 attach-source FTP]
-	$ns_ at 0.0 "$ftp1 start"
+    $self instvar ns_ node_ testName_
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 26
+    set ftp1 [$tcp1 attach-source FTP]
+    $ns_ at 0.0 "$ftp1 start"
 
-	$self tcpDump $tcp1 1.0
-
-	# trace only the bottleneck link
-	$self openTraces 5.0 $testName_ out $node_(r1) $node_(k1)
-
-	$ns_ run
+    $self tcpDump $tcp1 1.0
+    
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
+    $ns_ run
 }
 
 Class Test/sack1c -superclass TestSuite
 Test/sack1c instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	sack1c
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	sack1c
+    $self next
 }
-
 Test/sack1c instproc run {} {
-	$self instvar ns_ node_ testName_
-	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window_ 27
-	set ftp1 [$tcp1 attach-source FTP]
-	$ns_ at 0.0 "$ftp1 start"
+    $self instvar ns_ node_ testName_
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 27
+    set ftp1 [$tcp1 attach-source FTP]
+    $ns_ at 0.0 "$ftp1 start"
 
-	$self tcpDump $tcp1 1.0
+    $self tcpDump $tcp1 1.0
 
-	# trace only the bottleneck link
-	$self openTraces 5.0 $testName_ out $node_(r1) $node_(k1)
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 
-	$ns_ run
+    $ns_ run
 }
 
 # this does not seem right
+#  Did I write this? -- Kannan
 Class Test/sack3 -superclass TestSuite
 Test/sack3 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	sack3
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	sack3
+    $self next
 }
-
 Test/sack3 instproc run {} {
-	$self instvar ns_ node_ testName_
-	$ns_ queue-limit $node_(r1) $node_(k1) 8
-	$ns_ queue-limit $node_(k1) $node_(r1) 8
+    $self instvar ns_ node_ testName_
+    $ns_ queue-limit $node_(r1) $node_(k1) 8
+    $ns_ queue-limit $node_(k1) $node_(r1) 8
 	
-	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window_ 100
-	$tcp1 set bugFix_ false
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 100
+    $tcp1 set bugFix_ false
 
-	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window_ 16
-	$tcp2 set bugFix_ false
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
+    $tcp2 set window_ 16
+    $tcp2 set bugFix_ false
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-source FTP]
+    set ftp2 [$tcp2 attach-source FTP]
 
-	$ns_ at 1.0 "$ftp1 start"
-	$ns_ at 0.5 "$ftp2 start"
+    $ns_ at 1.0 "$ftp1 start"
+    $ns_ at 0.5 "$ftp2 start"
 
-	$self tcpDump $tcp1 1.0
+    $self tcpDump $tcp1 1.0
 
-	# trace only the bottleneck link
-	$self openTraces 8.0 $testName_ out $node_(r1) $node_(k1)
-
-	$ns_ run
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 8.0 $testName_]
+    $ns_ run
 }
 
 Class Test/sack4 -superclass TestSuite
 Test/sack4 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	sack4
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	sack4
+    $self next
 }
-
 Test/sack4 instproc run {} {
-	$self instvar ns_ node_ testName_
-	$ns_ delay $node_(s2) $node_(r1) 200ms
-	$ns_ delay $node_(r1) $node_(s2) 200ms
-	$ns_ queue-limit $node_(r1) $node_(k1) 11
-	$ns_ queue-limit $node_(k1) $node_(r1) 11
+    $self instvar ns_ node_ testName_
+    $ns_ delay $node_(s2) $node_(r1) 200ms
+    $ns_ delay $node_(r1) $node_(s2) 200ms
+    $ns_ queue-limit $node_(r1) $node_(k1) 11
+    $ns_ queue-limit $node_(k1) $node_(r1) 11
 	
-	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window_ 30
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 30
+    
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
+    $tcp2 set window_ 30
 
-	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window_ 30
+    set ftp1 [$tcp1 attach-source FTP]
+    ## $ftp1 set maxpkts_ 10
+    set ftp2 [$tcp2 attach-source FTP]
+    ## $ftp2 set maxpkts_ 30
 
-	set ftp1 [$tcp1 attach-source FTP]
-	## $ftp1 set maxpkts_ 10
-	set ftp2 [$tcp2 attach-source FTP]
-	## $ftp2 set maxpkts_ 30
+    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at 0.0 "$ftp2 start"
 
-	$ns_ at 0.0 "$ftp1 start"
-	$ns_ at 0.0 "$ftp2 start"
+    $self tcpDump $tcp1 5.0
 
-	$self tcpDump $tcp1 5.0
-
-	# trace only the bottleneck link
-	$self openTraces 25.0 $testName_ out $node_(r1) $node_(k1)
-
-	$ns_ run
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
+    $ns_ run
 }
 
 Class Test/sack5 -superclass TestSuite
 Test/sack5 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net1
-	set test_	sack5
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net1
+    set test_	sack5
+    $self next
 }
-
 Test/sack5 instproc run {} {
-	$self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_
 
-	$ns_ delay $node_(s1) $node_(r1) 3ms
-	$ns_ delay $node_(r1) $node_(s1) 3ms
+    $ns_ delay $node_(s1) $node_(r1) 3ms
+    $ns_ delay $node_(r1) $node_(s1) 3ms
 
-	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window_ 50
-	$tcp1 set bugFix_ false
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 50
+    $tcp1 set bugFix_ false
 
-	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window_ 50
-	$tcp2 set bugFix_ false
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
+    $tcp2 set window_ 50
+    $tcp2 set bugFix_ false
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-source FTP]
+    set ftp2 [$tcp2 attach-source FTP]
 
-	$ns_ at 1.0 "$ftp1 start"
-	$ns_ at 1.75 "$ftp2 produce 100"
+    $ns_ at 1.0 "$ftp1 start"
+    $ns_ at 1.75 "$ftp2 produce 100"
 
-	$self tcpDump $tcp1 1.0
+    $self tcpDump $tcp1 1.0
 
-	# trace only the bottleneck link
-	$self openTraces 6.0 $testName_ out $node_(r1) $node_(k1)
-
-	$ns_ run
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
+    $ns_ run
 }
 
 # shows a long recovery from sack.
 Class Test/sackB2 -superclass TestSuite
 Test/sackB2 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	sackB2
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	sackB2
+    $self next
 }
-
 Test/sackB2 instproc run {} {
-	$self instvar ns_ node_ testName_
-	$ns_ queue-limit $node_(r1) $node_(k1) 9
+    $self instvar ns_ node_ testName_
+    $ns_ queue-limit $node_(r1) $node_(k1) 9
 
-	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window_ 50
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 50
 
-	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window_ 20
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
+    $tcp2 set window_ 20
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-source FTP]
+    set ftp2 [$tcp2 attach-source FTP]
 
-	$ns_ at 1.0 "$ftp1 start"
-	$ns_ at 1.0 "$ftp2 start"
+    $ns_ at 1.0 "$ftp1 start"
+    $ns_ at 1.0 "$ftp2 start"
 
-	$self tcpDump $tcp1 1.0
+    $self tcpDump $tcp1 1.0
 
-	# trace only the bottleneck link
-	$self openTraces 10.0 $testName_ out $node_(r1) $node_(k1)
-
-	$ns_ run
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+    $ns_ run
 }
 
 # two packets dropped
 Class Test/sackB4 -superclass TestSuite
 Test/sackB4 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net2
-	set test_	sackB4
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net2
+    set test_	sackB4
+    $self next
 }
-
 Test/sackB4 instproc run {} {
-        $self instvar ns_ node_ testName_
-        $ns_ queue-limit $node_(r1) $node_(r2) 29
-        set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(r2) 0]
-        $tcp1 set window_ 40
+    $self instvar ns_ node_ testName_
+    $ns_ queue-limit $node_(r1) $node_(r2) 29
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(r2) 0]
+    $tcp1 set window_ 40
 
-        set ftp1 [$tcp1 attach-source FTP]
-        $ns_ at 0.0 "$ftp1 start"
+    set ftp1 [$tcp1 attach-source FTP]
+    $ns_ at 0.0 "$ftp1 start"
 
-        $self tcpDump $tcp1 1.0
+    $self tcpDump $tcp1 1.0
 
-        # trace only the bottleneck link
-	$self openTraces 2.0 $testName_ out $node_(r1) $node_(r2)
-
-        $ns_ run
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
+    $ns_ run
 }
 
 # delayed ack not implemented yet
 #Class Test/delayedSack -superclass TestSuite
 #Test/delayedSack instproc init topo {
-#	$self instvar net_ defNet_ test_
-#	set net_	$topo
-#	set defNet_	net0
-#	set test_	delayedSack
-#	$self next
+#    $self instvar net_ defNet_ test_
+#    set net_    $topo
+#    set defNet_	net0
+#    set test_	delayedSack
+#    $self next
 #}
-#
 #Test/delayedSack instproc run {} {
-# 	$self instvar ns_ node_ testName_
-# 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-# 	$tcp1 set window_ 50
+#     $self instvar ns_ node_ testName_
+#     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+#     $tcp1 set window_ 50
 # 
-# 	# lookup up the sink and set it's delay interval
-# 	[$node_(k1) agent [$tcp1 dst-port]] set interval 100ms
+#     # lookup up the sink and set it's delay interval
+#     [$node_(k1) agent [$tcp1 dst-port]] set interval 100ms
 # 
-# 	set ftp1 [$tcp1 attach-source FTP]
-# 	$ns_ at 1.0 "$ftp1 start"
+#     set ftp1 [$tcp1 attach-source FTP]
+#     $ns_ at 1.0 "$ftp1 start"
 # 
-# 	$self tcpDump $tcp1 1.0
+#     $self tcpDump $tcp1 1.0
 # 
-# 	# trace only the bottleneck link
-# 	[$self openTraces 4.0 $testName_ out $node_(r1) $node_(k1)]
-# 
-# 	$ns_ run
+#     # trace only the bottleneck link
+#     $self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
+#     $ns_ run
 # }
 
 # segregation
 Class Test/phaseSack -superclass TestSuite
 Test/phaseSack instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	phaseSack
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	phaseSack
+    $self next
 }
-
 Test/phaseSack instproc run {} {
-	$self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_
 
-	$ns_ delay $node_(s2) $node_(r1) 3ms
-	$ns_ delay $node_(r1) $node_(s2) 3ms
-	$ns_ queue-limit $node_(r1) $node_(k1) 16
-	$ns_ queue-limit $node_(k1) $node_(r1) 100
+    $ns_ delay $node_(s2) $node_(r1) 3ms
+    $ns_ delay $node_(r1) $node_(s2) 3ms
+    $ns_ queue-limit $node_(r1) $node_(k1) 16
+    $ns_ queue-limit $node_(k1) $node_(r1) 100
 
-	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window_ 32
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 32
 
-	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window_ 32
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
+    $tcp2 set window_ 32
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-source FTP]
+    set ftp2 [$tcp2 attach-source FTP]
 
-	$ns_ at 5.0 "$ftp1 start"
-	$ns_ at 1.0 "$ftp2 start"
+    $ns_ at 5.0 "$ftp1 start"
+    $ns_ at 1.0 "$ftp2 start"
 
-	$self tcpDump $tcp1 5.0
+    $self tcpDump $tcp1 5.0
 
-	# trace only the bottleneck link
-	$self openTraces 25.0 $testName_ out $node_(r1) $node_(k1)
-
-	$ns_ run
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
+    $ns_ run
 }
 
 # random overhead, but segregation remains 
 Class Test/phaseSack2 -superclass TestSuite
 Test/phaseSack2 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	phaseSack2
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	phaseSack2
+    $self next
 }
-
 Test/phaseSack2 instproc run {} {
-        $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_
 
-        $ns_ delay $node_(s2) $node_(r1) 3ms
-        $ns_ delay $node_(r1) $node_(s2) 3ms
-        $ns_ queue-limit $node_(r1) $node_(k1) 16
-        $ns_ queue-limit $node_(k1) $node_(r1) 100
+    $ns_ delay $node_(s2) $node_(r1) 3ms
+    $ns_ delay $node_(r1) $node_(s2) 3ms
+    $ns_ queue-limit $node_(r1) $node_(k1) 16
+    $ns_ queue-limit $node_(k1) $node_(r1) 100
 
-        set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-        $tcp1 set window_ 32
-        $tcp1 set overhead_ 0.01
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 32
+    $tcp1 set overhead_ 0.01
 
-        set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-        $tcp2 set window_ 32
-        $tcp2 set overhead_ 0.01
-        
-        set ftp1 [$tcp1 attach-source FTP]
-        set ftp2 [$tcp2 attach-source FTP]
- 
-        $ns_ at 5.0 "$ftp1 start"
-        $ns_ at 1.0 "$ftp2 start"
-        
-        $self tcpDump $tcp1 5.0
- 
-        # trace only the bottleneck link
-    $self openTraces 25.0 $testName_ out $node_(r1) $node_(k1)
-
-        $ns_ run
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
+    $tcp2 set window_ 32
+    $tcp2 set overhead_ 0.01
+    
+    set ftp1 [$tcp1 attach-source FTP]
+    set ftp2 [$tcp2 attach-source FTP]
+    
+    $ns_ at 5.0 "$ftp1 start"
+    $ns_ at 1.0 "$ftp2 start"
+    
+    $self tcpDump $tcp1 5.0
+    
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
+    $ns_ run
 }
 
 # no segregation, because of random overhead
 Class Test/phaseSack3 -superclass TestSuite
 Test/phaseSack3 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net0
-	set test_	phaseSack3
-	$self next
+    $self instvar net_ defNet_ test_
+    set net_	$topo
+    set defNet_	net0
+    set test_	phaseSack3
+    $self next
 }
-
 Test/phaseSack3 instproc run {} {
-	$self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_
 
-	$ns_ delay $node_(s2) $node_(r1) 9.5ms
-	$ns_ delay $node_(r1) $node_(s2) 9.5ms
-	$ns_ queue-limit $node_(r1) $node_(k1) 16
-	$ns_ queue-limit $node_(k1) $node_(r1) 100
+    $ns_ delay $node_(s2) $node_(r1) 9.5ms
+    $ns_ delay $node_(r1) $node_(s2) 9.5ms
+    $ns_ queue-limit $node_(r1) $node_(k1) 16
+    $ns_ queue-limit $node_(k1) $node_(r1) 100
 
-	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window_ 32
-        $tcp1 set overhead_ 0.01
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+    $tcp1 set window_ 32
+    $tcp1 set overhead_ 0.01
 
-	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window_ 32
-        $tcp2 set overhead_ 0.01
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
+    $tcp2 set window_ 32
+    $tcp2 set overhead_ 0.01
 
-	set ftp1 [$tcp1 attach-source FTP]
-	set ftp2 [$tcp2 attach-source FTP]
+    set ftp1 [$tcp1 attach-source FTP]
+    set ftp2 [$tcp2 attach-source FTP]
 
-	$ns_ at 5.0 "$ftp1 start"
-	$ns_ at 1.0 "$ftp2 start"
+    $ns_ at 5.0 "$ftp1 start"
+    $ns_ at 1.0 "$ftp2 start"
 
-	$self tcpDump $tcp1 5.0
+    $self tcpDump $tcp1 5.0
 
-	# trace only the bottleneck link
-        $self openTraces 25.0 $testName_ out $node_(r1) $node_(k1)
-
-	$ns_ run
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
+    $ns_ run
 }
 
 #Class Test/timersSack -superclass TestSuite
 #Test/timersSack instproc init topo {
-#	$self instvar net_ defNet_ test_
-#	set net_	$topo
-#	set defNet_	net0
-#	set test_	timersSack
-#	$self next
+#    $self instvar net_ defNet_ test_
+#    set net_	$topo
+#    set defNet_	net0
+#    set test_	timersSack
+#    $self next
 #}
-#
 #Test/timersSack instproc run {} {
-# 	$self instvar ns_ node_ testName_
-# 	$ns_ queue-limit $node_(r1) $node_(k1) 2
-# 	$ns_ queue-limit $node_(k1) $node_(r1) 100
+#     $self instvar ns_ node_ testName_
+#     $ns_ queue-limit $node_(r1) $node_(k1) 2
+#     $ns_ queue-limit $node_(k1) $node_(r1) 100
 # 
-# 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-# 	$tcp1 set window_ 4
-# 	# lookup up the sink and set it's delay interval
-# 	[$node_(k1) agent [$tcp1 dst-port]] set interval 100ms
+#     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+#     $tcp1 set window_ 4
+#     # lookup up the sink and set it's delay interval
+#     [$node_(k1) agent [$tcp1 dst-port]] set interval 100ms
 # 
-# 	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-# 	$tcp2 set window_ 4
-# 	# lookup up the sink and set it's delay interval
-# 	[$node_(k1) agent [$tcp2 dst-port]] set interval 100ms
+#     set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
+#     $tcp2 set window_ 4
+#     # lookup up the sink and set it's delay interval
+#     [$node_(k1) agent [$tcp2 dst-port]] set interval 100ms
 # 
-# 	set ftp1 [$tcp1 attach-source FTP]
-# 	set ftp2 [$tcp2 attach-source FTP]
+#     set ftp1 [$tcp1 attach-source FTP]
+#     set ftp2 [$tcp2 attach-source FTP]
 # 
-# 	$ns_ at 1.0 "$ftp1 start"
-# 	$ns_ at 1.3225 "$ftp2 start"
+#     $ns_ at 1.0 "$ftp1 start"
+#     $ns_ at 1.3225 "$ftp2 start"
 # 
-# 	$self tcpDump $tcp1 5.0
+#     $self tcpDump $tcp1 5.0
 # 
-# 	# trace only the bottleneck link
-# 	$self openTraces 10.0 $testName_ out $node_(r1) $node_(k1)
-# 
-# 	$ns_ run
+#     # trace only the bottleneck link
+#     $self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+#     $ns_ run
 # }
 
 TestSuite runTest

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-routed.tcl,v 1.1 1997/04/28 19:31:33 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-routed.tcl,v 1.2 1997/05/16 07:58:35 kannan Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -45,12 +45,11 @@
 
 set dir [pwd]
 catch "cd tcl/test"
-source topologies.tcl
 source misc.tcl
+source topologies.tcl
 catch "cd $dir"
 
 Class Test/tahoe1 -superclass TestSuite
-
 Test/tahoe1 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -58,7 +57,6 @@ Test/tahoe1 instproc init topo {
 	set test_	tahoe
 	$self next
 }
-
 Test/tahoe1 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -73,16 +71,17 @@ Test/tahoe1 instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 5.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
+	#
+	# Actually, we now trace all activity at the node around the
+	# bottleneck link.  This allows us to track acks, as well
+	# packets taking any alternate paths around the bottleneck
+	# link.
+	#
+	$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 	$ns_ run
 }
 
 Class Test/tahoe2 -superclass TestSuite
-
 Test/tahoe2 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -90,7 +89,6 @@ Test/tahoe2 instproc init topo {
 	set test_	tahoe2
 	$self next
 }
-
 Test/tahoe2 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -103,16 +101,11 @@ Test/tahoe2 instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 5.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
+	$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 	$ns_ run
 }
 
 Class Test/tahoe3 -superclass TestSuite
-
 Test/tahoe3 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -120,7 +113,6 @@ Test/tahoe3 instproc init topo {
 	set test_	tahoe3
 	$self next
 }
-
 Test/tahoe3 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -141,17 +133,11 @@ Test/tahoe3 instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 8.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 8.0 $testName_]
 	$ns_ run
 }
 
 Class Test/tahoe4 -superclass TestSuite
-
 Test/tahoe4 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -159,7 +145,6 @@ Test/tahoe4 instproc init topo {
 	set test_	tahoe4
 	$self next
 }
-
 Test/tahoe4 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -182,16 +167,11 @@ Test/tahoe4 instproc run {} {
 	$self tcpDump $tcp1 5.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 25.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
+	$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
 	$ns_ run
 }
 
 Class Test/no_bug -superclass TestSuite
-
 Test/no_bug instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -199,7 +179,6 @@ Test/no_bug instproc init topo {
 	set test_	no_bug
 	$self next
 }
-
 Test/no_bug instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -220,17 +199,11 @@ Test/no_bug instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 6.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
 	$ns_ run
 }
 
 Class Test/bug -superclass TestSuite
-
 Test/bug instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -238,7 +211,6 @@ Test/bug instproc init topo {
 	set test_	bug
 	$self next
 }
-
 Test/bug instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -261,17 +233,11 @@ Test/bug instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 6.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 6.0 $testName_]
 	$ns_ run
 }
 
 Class Test/reno1 -superclass TestSuite
-
 Test/reno1 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -279,7 +245,6 @@ Test/reno1 instproc init topo {
 	set test_	reno1
 	$self next
 }
-
 Test/reno1 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -292,17 +257,11 @@ Test/reno1 instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# trace only the bottleneck link
-	set traceFile [$self openTrace 5.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 	$ns_ run
 }
 
 Class Test/reno -superclass TestSuite
-
 Test/reno instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -310,7 +269,6 @@ Test/reno instproc init topo {
 	set test_	reno
 	$self next
 }
-
 Test/reno instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -324,17 +282,11 @@ Test/reno instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# trace only the bottleneck link
-	set traceFile [$self openTrace 5.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 	$ns_ run
 }
 
 Class Test/renoA -superclass TestSuite
-
 Test/renoA instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -342,7 +294,6 @@ Test/renoA instproc init topo {
 	set test_	renoA
 	$self next
 }
-
 Test/renoA instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -367,17 +318,11 @@ Test/renoA instproc run {} {
 	$self tcpDump $tcp3 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 5.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 5.0 $testName_]
 	$ns_ run
 }
 
 Class Test/reno2 -superclass TestSuite
-
 Test/reno2 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -385,7 +330,6 @@ Test/reno2 instproc init topo {
 	set test_	reno2
 	$self next
 }
-
 Test/reno2 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -405,17 +349,11 @@ Test/reno2 instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 10.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
 	$ns_ run
 }
 
 Class Test/reno3 -superclass TestSuite
-
 Test/reno3 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -423,7 +361,6 @@ Test/reno3 instproc init topo {
 	set test_	reno3
 	$self next
 }
-
 Test/reno3 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -444,17 +381,11 @@ Test/reno3 instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 8.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 8.0 $testName_]
 	$ns_ run
 }
 
 Class Test/reno4 -superclass TestSuite
-
 Test/reno4 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -462,7 +393,6 @@ Test/reno4 instproc init topo {
 	set test_	reno4
 	$self next
 }
-
 Test/reno4 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -478,17 +408,11 @@ Test/reno4 instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 2.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(r2) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
 	$ns_ run
 }
 
 Class Test/reno4a -superclass TestSuite
-
 Test/reno4a instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -496,7 +420,6 @@ Test/reno4a instproc init topo {
 	set test_	reno4a
 	$self next
 }
-
 Test/reno4a instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -512,17 +435,11 @@ Test/reno4a instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 2.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(r2) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 2.0 $testName_]
 	$ns_ run
 }
 
 Class Test/reno5 -superclass TestSuite
-
 Test/reno5 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -530,7 +447,6 @@ Test/reno5 instproc init topo {
 	set test_	reno5
 	$self next
 }
-
 Test/reno5 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -552,17 +468,11 @@ Test/reno5 instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 10.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
 	$ns_ run
 }
 
 Class XTest/telnet -superclass TestSuite
-
 XTest/telnet instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -570,7 +480,6 @@ XTest/telnet instproc init topo {
 	set test_	telnet
 	$self next
 }
-
 XTest/telnet instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -593,11 +502,7 @@ XTest/telnet instproc run {} {
 	$self tcpDump $tcp1 5.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 50.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
+	$self traceQueues $node_(r1) [$self openTrace 50.0 $testName_]
 
 	# use a different seed each time
 	puts seed=[$ns_ random 0]
@@ -606,7 +511,6 @@ XTest/telnet instproc run {} {
 }
 
 Class Test/delayed -superclass TestSuite
-
 Test/delayed instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -614,7 +518,6 @@ Test/delayed instproc init topo {
 	set test_	delayed
 	$self next
 }
-
 Test/delayed instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -630,17 +533,11 @@ Test/delayed instproc run {} {
 	$self tcpDump $tcp1 1.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 4.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 4.0 $testName_]
 	$ns_ run
 }
 
 Class Test/phase -superclass TestSuite
-
 Test/phase instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -648,7 +545,6 @@ Test/phase instproc init topo {
 	set test_	phase
 	$self next
 }
-
 Test/phase instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -671,17 +567,11 @@ Test/phase instproc run {} {
 	$self tcpDump $tcp1 5.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 25.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
 	$ns_ run
 }
 
 Class Test/phase1 -superclass TestSuite
-
 Test/phase1 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -689,7 +579,6 @@ Test/phase1 instproc init topo {
 	set test_	phase1
 	$self next
 }
-
 Test/phase1 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -712,17 +601,11 @@ Test/phase1 instproc run {} {
 	$self tcpDump $tcp1 5.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 25.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
 	$ns_ run
 }
 
 Class Test/phase2 -superclass TestSuite
-
 Test/phase2 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -730,7 +613,6 @@ Test/phase2 instproc init topo {
 	set test_	phase2
 	$self next
 }
-
 Test/phase2 instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -755,17 +637,11 @@ Test/phase2 instproc run {} {
 	$self tcpDump $tcp1 5.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 25.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 25.0 $testName_]
 	$ns_ run
 }
 
 Class Test/timers -superclass TestSuite
-
 Test/timers instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -773,7 +649,6 @@ Test/timers instproc init topo {
 	set test_	timers
 	$self next
 }
-
 Test/timers instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -798,17 +673,11 @@ Test/timers instproc run {} {
 	$self tcpDump $tcp1 5.0
 
 	# Trace only the bottleneck link
-	set traceFile [$self openTrace 10.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
 	$ns_ run
 }
 
 Class Test/stats -superclass TestSuite
-
 Test/stats instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -816,22 +685,18 @@ Test/stats instproc init topo {
 	set test_	stats
 	$self next
 }
-
 Test/stats instproc printpkts { label tcp } {
 	puts "tcp $label total_packets_acked [$tcp set ack_]"
 }
-
 #XXX Still unfinished in ns-2
 Test/stats instproc printdrops { label link } {
 	puts "link $label total_drops [$link stat 0 drops]"
 	puts "link $label total_packets [$link stat 0 packets]"
 	puts "link $label total_bytes [$link stat 0 bytes]"
 }
-
 Test/stats instproc printstop { stoptime } {
 	puts "stop-time $stoptime"
 }
-
 Test/stats instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -862,17 +727,11 @@ Test/stats instproc run {} {
 	#$ns_ at $stoptime "$self printdrops 1 [$ns_ link $node_(r1) $node_(k1)]"
 
 	# trace only the bottleneck link
-	set traceFile [$self openTrace $stoptime $testName_]
-	$ns_ trace-queue $node_(r1) $node_(k1) $traceFile
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
+	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 	$ns_ run
 }
 
 Class Test/tahoe_long -superclass TestSuite
-
 Test/tahoe_long instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -880,7 +739,6 @@ Test/tahoe_long instproc init topo {
 	set test_	tahoe_long
 	$self next
 }
-
 Test/tahoe_long instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -899,21 +757,16 @@ Test/tahoe_long instproc run {} {
 
 	# Trace only the bottleneck link
 	set traceFile [$self openTrace 15.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(r2) $traceFile
+	$self traceQueues $node_(r1) $traceFile
 	foreach i [list {r2 r3} {r3 r4}] {
 		set L [$ns_ link $node_([lindex $i 0]) $node_([lindex $i 1])]
 		$L trace-dynamics $ns_ $traceFile
 		$L trace-dynamics $ns_ stdout
 	}
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
 	$ns_ run
 }
 
 Class Test/reno_long -superclass TestSuite
-
 Test/reno_long instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
@@ -921,7 +774,6 @@ Test/reno_long instproc init topo {
 	set test_	reno_long
 	$self next
 }
-
 Test/reno_long instproc run {} {
 	$self instvar ns_ node_ testName_
 
@@ -929,6 +781,8 @@ Test/reno_long instproc run {} {
 	$tcp1 set window_ 100
 	set tcp2 [$ns_ create-connection TCP/Reno $node_(s2) TCPSink $node_(s3) 1]
 	$tcp2 set window_ 16
+#	$tcp1 set bugFix_ false
+#	$tcp2 set bugFix_ false
 
 	set ftp1 [$tcp1 attach-source FTP]
 	set ftp2 [$tcp2 attach-source FTP]
@@ -940,16 +794,12 @@ Test/reno_long instproc run {} {
 
 	# Trace only the bottleneck link
 	set traceFile [$self openTrace 15.0 $testName_]
-	$ns_ trace-queue $node_(r1) $node_(r2) $traceFile
+	$self traceQueues $node_(r1) $traceFile
 	foreach i [list {r2 r3} {r3 r4}] {
 		set L [$ns_ link $node_([lindex $i 0]) $node_([lindex $i 1])]
 		$L trace-dynamics $ns_ $traceFile
 		$L trace-dynamics $ns_ stdout
 	}
-	if [info exists node_(b1)] {
-		$ns_ trace-queue $node_(r1) $node_(b1) $traceFile
-	}
-
 	$ns_ run
 }
 

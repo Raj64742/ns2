@@ -1,47 +1,62 @@
 #! /nfs/filb2/public/bin/perl
 #! /import/bin/perl
 
+($progname) = ($0 =~ m!([^/]+)$!);
+$usage = "usage: $progname [-a] [trace files...]\n";
 
 sub writeln { print @_, "\n"; }
 
-$c = 0;
-@p = @d = @lu = @ld = ();
+$opt_a = 0;
+require 'getopts.pl';
+&Getopts('a') || die $usage;
 
-$file = '';
+$c = 0;
+@p = @a = @d = @lu = @ld = ();
+
+$file = $acks = '';
 
 while (<>) {
-	@F = split;
-	/testName/ && do {
-		$file = $F[2];
-		$file =~ s/_/-/g;
-		next;
-		};
-	/^[\+-] / && do {
-		push(@p, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n")
-				if ($F[4] eq 'tcp' || $F[4] eq 'ack');
-		$c = $F[7] if ($c < $F[7]);
-		next;
-	};
-	/^d / && do {
-		push(@d, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
-		next;
-	};
-	/link-down/ && do {
-		next if ($F[3] > $F[4]);
+    $dfile = $ARGV;
+    @F = split;
+    /testName/ && do {
+	$file = $F[2];
+	$file =~ s/_/-/g;
+	next;
+    };
+    /^[\+-] / && do {
+	if ($F[4] eq 'tcp') {
+	    push(@p, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
+	} elsif ($opt_a && $F[4] eq 'ack') {
+	    push(@a, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
+	    $acks = ', "acks" w dots';
+	}
+	$c = $F[7] if ($c < $F[7]);
+	next;
+    };
+    /^d / && do {
+	push(@d, $F[1], ' ', $F[7] + ($F[10] % 90) * 0.01, "\n");
+	next;
+    };
+    /link-down/ && do {
+	next if ($F[3] > $F[4]);
+	    
+	push(@ld, $F[1]);
+	$sd{$F[1]} = "$F[3]$F[4]";
+	next;
+    };	
+    /link-up/ && do {
+	next if ($F[3] > $F[4]);
 
-		push(@ld, $F[1]);
-		$sd{$F[1]} = "$F[3]$F[4]";
-		next;
-	};
-	/link-up/ && do {
-		next if ($F[3] > $F[4]);
-
-		push(@lu, $F[1]);
-		$su{$F[1]} = "$F[3]$F[4]";
-		next;
-	};
+	push(@lu, $F[1]);
+	$su{$F[1]} = "$F[3]$F[4]";
+	next;
+    };
 }
 $c++;
+
+if ($file eq '') {
+	($file) = ($dfile =~ m!([^/]+)$!);
+}
 
 if (defined($ENV{'DISPLAY'})) {
 	writeln('set terminal x11');
@@ -56,6 +71,9 @@ writeln('set xrange [0:2]')		if ($#p < $[);
 writeln('set yrange [0:', $c, ']');
 
 open(OUT, '>packets');	print OUT @p;	close(OUT);
+if ($#a > $[) {
+    open(OUT, '>acks');	print OUT @a;	close(OUT);
+}
 open(OUT, '>drops');	print OUT @d;	close(OUT);
 
 $fails = '';
@@ -91,7 +109,8 @@ foreach $i (@lu) {
 close(OUT);
 unlink('link-recovery') if ($recov eq '');
 
-writeln('plot "packets" w points, "drops" w points', $fails, $recov);
+writeln('plot "packets" w points 1 5, "drops" w points 1 4',
+	$acks, $fails, $recov);
 writeln('exit');
 
 exit;

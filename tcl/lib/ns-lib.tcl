@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.31 1997/05/14 19:49:11 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.32 1997/05/16 07:58:30 kannan Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -134,6 +134,7 @@ Simulator instproc cancel args {
 
 Simulator instproc run args {
 	#$self compute-routes
+	$self rtmodel-configure			;# in case there are any
 	eval RouteLogic configure $args
 	$self instvar scheduler_ Node_ link_
 	#
