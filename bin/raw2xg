@@ -81,7 +81,7 @@ if ($file eq '') {
 }
 
 print "TitleText: $file\n" .
-    "Device: Postscrip\n" .
+    "Device: Postscript\n" .
     "BoundBox: true\n" .
     "Ticks: true\n" .
     (defined($opt_q) ? "" : "NoLines: true\n") .

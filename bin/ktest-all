@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/ktest-all,v 1.5 1997/09/10 06:50:32 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/ktest-all,v 1.6 1997/09/11 00:50:51 heideman Exp $
 #
 # This script was written and contributed by Matt Mathis (mathis@psc.edu)
 # This script was later hacked extensively by Kannan to build the rtglib
@@ -45,7 +45,8 @@ PROG=`basename $0`
 COMPRESSP=:
 
 if [ $# -ge 1 ] ; then
-	TESTSUITE=tcl/test/test-suite-$1 shift
+	TESTSUITE=tcl/test/test-suite-$1
+	shift
 else
 	TESTSUITE=tcl/test/test-suite-routed
 fi
