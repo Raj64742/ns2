@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.74 1997/11/18 22:29:16 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.75 1997/11/27 05:40:49 padmanab Exp $
 
 
 #
@@ -194,6 +194,7 @@ PacketQueue/Semantic set replace_head_ false
 PacketQueue/Semantic set priority_drop_ false
 PacketQueue/Semantic set random_drop_ false
 PacketQueue/Semantic set reconsAcks_ false
+PacketQueue/Semantic set random_ecn_ false
 
 #XXX other kinds of sinks -> should reparent
 Agent/TCPSink set packetSize_ 40

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.69 1997/11/25 02:28:29 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.70 1997/11/27 05:40:02 padmanab Exp $
 #
 
 #
@@ -346,7 +346,7 @@ Simulator instproc simplex-link { n1 n2 bw delay arg } {
 	$n1 add-neighbor $n2
 
 	#XXX yuck
-	if { $type == "RED" } {
+	if {[string first "RED" $type] != -1} {
 		$q link [$link_($sid:$did) set link_]
 	}
 
