@@ -4,7 +4,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.1 2004/07/20 17:35:34 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.2 2004/07/24 19:40:41 yuri Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -165,7 +165,13 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 		trace_var("reverse_feedback_", xh->reverse_feedback_);
 		trace_var("controlling_hop_", xh->controlling_hop_);
 	}
-	cwnd_ += xh->reverse_feedback_ * srtt_estimate_ / size_;
+	double delta_cwnd =  xh->reverse_feedback_ * srtt_estimate_ / size_;
+	double newcwnd = cwnd_ + delta_cwnd;
+	if (newcwnd < 1.0)
+		newcwnd = 1.0;
+        if (maxcwnd_ && (newcwnd > double(maxcwnd_)))
+                newcwnd = double(maxcwnd_);
+	cwnd_ = newcwnd;
 	// End of XCP changes
 
 	// code below is old TCP
