@@ -25,6 +25,7 @@ extern "C" {
 #define NODE_FORMAT2	"$node_(%d) setdest %.12f %.12f %.12f\n"
 #define NODE_FORMAT3	"$node_(%d) set %c_ %.12f\n"
 
+#undef		INFINITY
 #define		INFINITY	0x00ffffff
 #define		min(x,y)	((x) < (y) ? (x) : (y))
 #define		max(x,y)	((x) > (y) ? (x) : (y))

@@ -26,11 +26,11 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.21 2002/07/12 18:29:07 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.22 2002/10/09 03:47:02 difa Exp $
 
 #include "config.h"
 #include <tclcl.h>
-#include <iostream.h>
+#include <iostream>
 
 #include "node.h"
 #include "pagepool.h"

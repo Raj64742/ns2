@@ -35,7 +35,7 @@
 /* Standard Template Library */
 #include <map>
 #include <list>
-#include <algo.h>
+#include <algorithm>
 
 #include "config.h"
 #include "tclcl.h"

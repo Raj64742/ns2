@@ -36,13 +36,14 @@
  * Bertsekas' book.  Written originally by S. Keshav, 7/18/88
  * (his work covered by identical UC Copyright)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.h,v 1.8 2002/10/08 07:11:33 difa Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.h,v 1.9 2002/10/09 03:47:01 difa Exp $
  *
  */
 
 #ifndef ns_route_h
 #define ns_route_h
 
+#undef INFINITY
 #define INFINITY	0x3fff
 #define INDEX(i, j, N) ((N) * (i) + (j))
 

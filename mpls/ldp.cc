@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.6 2000/11/14 02:25:46 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/ldp.cc,v 1.7 2002/10/09 03:47:01 difa Exp $
 
 /**************************************************************************
 * Copyright (c) 2000 by Gaeil Ahn                                   	  *
@@ -44,7 +44,7 @@
 *                                                          *
 ***********************************************************/
 
-#include <iostream.h>
+#include <iostream>
 
 #include "ldp.h"
 

@@ -35,7 +35,7 @@
  * Contributed by Rishi Bhargava <rishi_bhargava@yahoo.com> May, 2001.
  */
 
-#include <iostream.h>
+#include <iostream>
 #include "classifier-addr.h"
 #include "classifier-sr.h"
 #include "hdr_src.h"

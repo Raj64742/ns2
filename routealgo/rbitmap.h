@@ -28,7 +28,7 @@
 #ifndef __BITMAP_H__
 #define __BITMAP_H__
 
-#include <iostream.h>
+#include <iostream>
 #include <sys/types.h>
 
 const unsigned  int BITS_ULONG = 32;

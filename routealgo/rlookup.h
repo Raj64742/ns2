@@ -10,7 +10,7 @@
 #include "routealgo/rnode.h"
 #include "routealgo/rbitmap.h"
 
-#include <iostream.h>
+#include <iostream>
 #ifdef USE_HASH_MAP
 #include <hash_map>
 #include <hash_set>

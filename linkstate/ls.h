@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.4 2001/05/30 16:57:13 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.5 2002/10/09 03:47:00 difa Exp $
 
 #ifndef ns_ls_h
 #define ns_ls_h
@@ -101,10 +101,10 @@ public:
 	LsMap() : baseMap() {}
 
 	// this next typedef of iterator seems extraneous but is required by gcc-2.96
-	typedef map<Key, T, less<Key> >::iterator iterator;
+	typedef typename map<Key, T, less<Key> >::iterator iterator;
 	typedef pair<iterator, bool> pair_iterator_bool;
 	iterator insert(const Key & key, const T & item) {
-		baseMap::value_type v(key, item);
+		typename baseMap::value_type v(key, item);
 		pair_iterator_bool ib = baseMap::insert(v);
 		return ib.second ? ib.first : baseMap::end();
 	}

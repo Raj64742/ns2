@@ -6,7 +6,7 @@
 #include <cstdlib>
 #include <stdlib.h>
 #include <stdio.h>
-#include <iostream.h>
+#include <iostream>
 #include <iomanip.h>
 #include <assert.h>
 #include <tclcl.h>

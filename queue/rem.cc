@@ -51,7 +51,7 @@
 #include "flags.h"
 #include "delay.h"
 #include "rem.h"
-#include <iostream.h>
+#include <iostream>
 
 static class REMClass : public TclClass {
 public:
@@ -220,7 +220,7 @@ Packet* REMQueue::deque()
 		}
 	}
 	double qlen = qib_ ? bcount_ : q_->length();
-	curq_ = qlen;
+	curq_ = (int) qlen;
 	return (p);
 }
 
@@ -269,7 +269,7 @@ void REMQueue::enque(Packet* pkt)
 		}
 	}
 	qlen = qib_ ? bcount_ : q_->length();
-	curq_ = qlen;
+	curq_ = (int) qlen;
 }
 
 

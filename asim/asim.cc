@@ -30,7 +30,7 @@
 #include <string.h>
 #include <strings.h>
 #include <assert.h>
-#include <iostream.h>
+#include <iostream>
 
 #include "agent.h"
 

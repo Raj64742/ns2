@@ -25,7 +25,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack-rh.cc,v 1.4 2000/11/10 01:45:20 sfloyd Exp $ (PSC-SACKRH)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sack-rh.cc,v 1.5 2002/10/09 03:47:02 difa Exp $ (PSC-SACKRH)";
 #endif
 
 #include <stdio.h>
@@ -295,7 +295,7 @@ void SackRHTcpAgent::boundparms()
 		cwnd_ = prior_cwnd_/2.0;
 	ssthresh_ = cwnd_;
 	if (ssthresh_ < prior_cwnd_/4.0)
-		ssthresh_ = prior_cwnd_/4.0;
+		ssthresh_ = (int) (prior_cwnd_/4.0);
 }
 
 /*  7.13: Corrections to Estimation  */
