@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.74 2002/03/30 20:08:55 buchheim Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.75 2002/04/13 20:14:00 buchheim Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -101,7 +101,8 @@ int Trace::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
                 if (strcmp(argv[1], "tagged") == 0) {
-                        return pt_->tagged();
+			tcl.resultf("%d", pt_->tagged());
+                        return (TCL_OK);
                 }
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "annotate") == 0) {

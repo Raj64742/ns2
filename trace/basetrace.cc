@@ -131,7 +131,8 @@ int BaseTrace::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "tagged") == 0) {
-			return tagged();
+			tcl.resultf("%d", tagged());
+                        return (TCL_OK);
 		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "attach") == 0) {
