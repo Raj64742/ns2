@@ -28,8 +28,8 @@
 
 #define SAMPLERATE 8000
 
-SA_Agent::SA_Agent() : trafgen_(0), rtd_(0), callback_(0), sa_timer_(this),
-    nextPkttime_(-1), running_(0), seqno_(-1), Agent(PT_UDP)
+SA_Agent::SA_Agent() : Agent(PT_UDP), trafgen_(0), rtd_(0), callback_(0), 
+    sa_timer_(this), nextPkttime_(-1), running_(0), seqno_(-1)
 {
 	bind ("off_resv_",&off_resv_);
 	bind("off_rtp_", &off_rtp_);

@@ -58,7 +58,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.14 1998/08/22 19:59:25 padmanab Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym-sink.cc,v 1.15 1998/08/27 16:38:58 tomh Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -95,7 +95,8 @@ public:
 	}
 } class_tcpasymsink;
 
-TcpAsymSink::TcpAsymSink(Acker* acker) : delackcount_(0), delackfactor_(1), delacklim_(0), ts_ecn_(0), ts_decrease_(0), DelAckSink(acker)
+TcpAsymSink::TcpAsymSink(Acker* acker) : DelAckSink(acker), delackcount_(0), 
+    delackfactor_(1), delacklim_(0), ts_ecn_(0), ts_decrease_(0)
 {
 	bind("maxdelack_", &maxdelack_);
 }
