@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.25 1999/01/22 02:37:28 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.26 1999/05/13 20:36:43 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -350,6 +350,7 @@ Test/red_twowaybytes instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	red_twowaybytes
+    Queue/RED set ns1-compat_ true
     $self next
 }
 Test/red_twowaybytes instproc run {} {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-red-v1a.tcl,v 1.2 1998/10/21 23:21:38 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-red-v1a.tcl,v 1.3 1999/05/13 20:36:12 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -68,6 +68,8 @@ set quiet false
 proc create_testnet2 { } {
 
 	global s1 s2 r1 r2 s3 s4 
+	# This line below was added for NS-2.
+	Queue/RED set ns1-compat_ true
 	set s1 [ns node]
 	set s2 [ns node]
 	set r1 [ns node]

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.8 1999/01/22 02:37:31 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.9 1999/05/13 20:36:43 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -258,6 +258,7 @@ Test/tahoe4 instproc init {} {
 	$self instvar net_ test_
 	set net_	net7
 	set test_	tahoe4(fast_retransmit)
+	Queue/RED set ns1-compat_ true
 	$self next
 }
 Test/tahoe4 instproc run {} {
@@ -354,6 +355,7 @@ Test/reno4 instproc init {} {
 	$self instvar net_ test_
 	set net_	net7
 	set test_	reno4(fast_retransmit)
+	Queue/RED set ns1-compat_ true
 	$self next
 }
 Test/reno4 instproc run {} {
@@ -451,6 +453,7 @@ Test/newreno4 instproc init {} {
 	$self instvar net_ test_
 	set net_	net7
 	set test_	newreno4(fast_retransmit)
+	Queue/RED set ns1-compat_ true
 	$self next
 }
 Test/newreno4 instproc run {} {
@@ -549,6 +552,7 @@ Test/sack4 instproc init {} {
 	$self instvar net_ test_
 	set net_	net7
 	set test_	sack4(fast_retransmit)
+	Queue/RED set ns1-compat_ true
 	$self next
 }
 Test/sack4 instproc run {} {
