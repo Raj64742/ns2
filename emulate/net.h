@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.2 1998/01/30 23:46:30 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.h,v 1.3 1998/01/31 00:26:10 kfall Exp $ (LBL)
  */
 
 #ifndef ns_net_h
@@ -53,7 +53,6 @@ public:
 	virtual int recv(u_char* buf, int len, u_int32_t& from) = 0;
 	virtual int rchannel() = 0;
 	virtual int schannel() = 0;
-	virtual void reset();
 	static int nonblock(int fd);
 };
 #endif
