@@ -33,21 +33,22 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.10 1997/09/08 22:03:24 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.11 1998/06/26 03:05:07 gnguyen Exp $ (LBL)";
 #endif
 
 #include "packet.h"
 #include "flags.h"
 
-int hdr_cmn::offset_;
-int Packet::hdrlen_ = 0;	/* size of a packet's header */
-Packet* Packet::free_;		/* free list */
+int Packet::hdrlen_ = 0;		// size of a packet's header
+Packet* Packet::free_;			// free list
+int hdr_cmn::offset_;			// static offset of common header
 
 
 PacketHeaderClass::PacketHeaderClass(const char* classname, int hdrlen) : 
 	TclClass(classname), hdrlen_(hdrlen), offset_(0)
 {
 }
+
 
 TclObject* PacketHeaderClass::create(int, const char*const*)
 {
@@ -103,7 +104,7 @@ int PacketHeaderClass::method(int ac, const char*const* av)
 
 class CommonHeaderClass : public PacketHeaderClass {
 public:
-        CommonHeaderClass() : PacketHeaderClass("PacketHeader/Common",
+	CommonHeaderClass() : PacketHeaderClass("PacketHeader/Common",
 						sizeof(hdr_cmn)) {
 		offset(&hdr_cmn::offset_);
 	}
@@ -117,7 +118,7 @@ public:
 
 class FlagsHeaderClass : public PacketHeaderClass {
 public:
-        FlagsHeaderClass() : PacketHeaderClass("PacketHeader/Flags",
+	FlagsHeaderClass() : PacketHeaderClass("PacketHeader/Flags",
 						sizeof(hdr_flags)) {}
 } class_flagshdr;
 
@@ -132,8 +133,8 @@ public:
 
 static class PacketHeaderManagerClass : public TclClass {
 public:
-        PacketHeaderManagerClass() : TclClass("PacketHeaderManager") {}
-        TclObject* create(int, const char*const*) {
-                return (new PacketHeaderManager);
-        }
+	PacketHeaderManagerClass() : TclClass("PacketHeaderManager") {}
+	TclObject* create(int, const char*const*) {
+		return (new PacketHeaderManager);
+	}
 } class_packethdr_mgr;

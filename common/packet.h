@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
@@ -30,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.30 1998/06/12 18:19:41 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.31 1998/06/26 03:05:07 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -39,77 +40,41 @@
 #include "config.h"
 #include "scheduler.h"
 
-#define PT_TCP          0
-#define PT_TELNET       1
-#define PT_CBR          2
-#define PT_AUDIO        3
-#define PT_VIDEO        4
-#define PT_ACK          5
-#define PT_START        6
-#define PT_STOP         7
-#define PT_PRUNE        8
-#define PT_GRAFT        9
-#define PT_MESSAGE      10
-#define PT_RTCP         11
-#define PT_RTP          12
+#define PT_TCP		0
+#define PT_UDP		1
+#define PT_CBR		2
+#define PT_AUDIO	3
+#define PT_VIDEO	4
+#define PT_ACK		5
+#define PT_START	6
+#define PT_STOP		7
+#define PT_PRUNE	8
+#define PT_GRAFT	9
+#define PT_MESSAGE	10
+#define PT_RTCP		11
+#define PT_RTP		12
 #define PT_RTPROTO_DV	13
 #define PT_CtrMcast_Encap 14
 #define PT_CtrMcast_Decap 15
 #define PT_SRM		16
-//simple signalling  messages
-#define PT_REQUEST      17
-#define PT_ACCEPT       18
-#define PT_CONFIRM      19
-#define PT_TEARDOWN    	20
-#define	PT_LIVE		21	/* packet from live network */
-#define PT_REJECT       22
+/* simple signalling messages */
+#define PT_REQUEST	17
+#define PT_ACCEPT	18
+#define PT_CONFIRM	19
+#define PT_TEARDOWN	20
+#define	PT_LIVE		21		// packet from live network
+#define PT_REJECT	22
 
-#define PT_NTYPE        23
+#define PT_TELNET	23		// not needed: telnet use TCP
+#define PT_NTYPE	24
 
-#define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
+#define PT_NAMES "tcp", "udp", "cbr", "audio", "video", "ack", \
 	"start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
-	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM",  \
-        "sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject"
+	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM", \
+	"sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject", \
+	"telnet"
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
-
-
-struct hdr_cmn {
-	int	ptype_;		// packet type (see above)
-	int	size_;		// simulated packet size
-	int	uid_;		// unique id
-	int	error_;		// error flag
-	double	ts_;		// timestamp: for q-delay measurement
-	int	iface_;		// receiving interface (label)
-        int     ref_count_;     // free the pkt until count to 0
-
-	static int offset_;	// offset for this header
-	inline int& offset() { return offset_; }
-
-	/* per-field member functions */
-	inline int& ptype() { return (ptype_); }
-	inline int& size() { return (size_); }
-	inline int& uid() { return (uid_); }
-	inline int& error() { return error_; }
-	inline double& timestamp() { return (ts_); }
-	inline int& iface() { return (iface_); }
-        inline int& ref_count() { return (ref_count_); }
-};
-
-
-class PacketHeaderClass : public TclClass {
-protected:
-	PacketHeaderClass(const char* classname, int hdrsize);
-	virtual int method(int argc, const char*const* argv);
-	void field_offset(const char* fieldname, int offset);
-	inline void offset(int* off) { offset_ = off; }
-	int hdrlen_;		// # of bytes for this header
-	int* offset_;		// offset for this header
-public:
-	virtual void bind();
-	virtual void export_offsets();
-        TclObject* create(int argc, const char*const* argv);
-};
 
 class Packet : public Event {
 private:
@@ -124,10 +89,10 @@ public:
 	Packet() : bits_(0), datalen_(0), next_(0) { }
 	unsigned char* const bits() { return (bits_); }
 	Packet* copy() const;
-        static Packet* alloc();
-        static Packet* alloc(int);
+	static Packet* alloc();
+	static Packet* alloc(int);
 	inline void allocdata(int);
-        static void free(Packet*);
+	static void free(Packet*);
 	inline unsigned char* access(int off) const {
 		if (off < 0)
 			abort();
@@ -135,6 +100,47 @@ public:
 	}
 	inline unsigned char* accessdata() const { return data_; }
 	inline int datalen() const { return datalen_; }
+};
+
+
+struct hdr_cmn {
+	int	ptype_;		// packet type (see above)
+	int	size_;		// simulated packet size
+	int	uid_;		// unique id
+	int	error_;		// error flag
+	double	ts_;		// timestamp: for q-delay measurement
+	int	iface_;		// receiving interface (label)
+	int	ref_count_;	// free the pkt until count to 0
+
+	static int offset_;	// offset for this header
+	inline static int& offset() { return offset_; }
+	inline static hdr_cmn* access(Packet* p, int off=-1) {
+		return (hdr_cmn*) p->access(off < 0 ? offset_ : off);
+	}
+
+	/* per-field member functions */
+	inline int& ptype() { return (ptype_); }
+	inline int& size() { return (size_); }
+	inline int& uid() { return (uid_); }
+	inline int& error() { return error_; }
+	inline double& timestamp() { return (ts_); }
+	inline int& iface() { return (iface_); }
+	inline int& ref_count() { return (ref_count_); }
+};
+
+
+class PacketHeaderClass : public TclClass {
+protected:
+	PacketHeaderClass(const char* classname, int hdrsize);
+	virtual int method(int argc, const char*const* argv);
+	void field_offset(const char* fieldname, int offset);
+	inline void offset(int* off) { offset_ = off; }
+	int hdrlen_;		// # of bytes for this header
+	int* offset_;		// offset for this header
+public:
+	virtual void bind();
+	virtual void export_offsets();
+	TclObject* create(int argc, const char*const* argv);
 };
 
 
@@ -158,9 +164,9 @@ inline Packet* Packet::alloc()
 
 inline Packet* Packet::alloc(int n)
 {
-        Packet* p = alloc();
+	Packet* p = alloc();
 	if (n > 0) 
-	       p->allocdata(n);
+		p->allocdata(n);
 	return (p);
 }
 
@@ -168,28 +174,28 @@ inline Packet* Packet::alloc(int n)
 
 inline void Packet::allocdata(int n)
 {
-        datalen_ = n;
+	datalen_ = n;
 	data_ = new unsigned char[n];
 	if (data_ == 0)
-	        abort();
+		abort();
 
 }
 
 inline void Packet::free(Packet* p)
 {
-        int off_cmn_ = hdr_cmn::offset_;
-        hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+	int off_cmn_ = hdr_cmn::offset_;
+	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 
-        if (ch->ref_count() == 0) {
-                p->next_ = free_;
-                free_ = p;
+	if (ch->ref_count() == 0) {
+		p->next_ = free_;
+		free_ = p;
 		if (p->datalen_) {
-                        delete[] p->data_;
-//                      p->data_ = 0;
-                        p->datalen_ = 0;
+			delete[] p->data_;
+//			p->data_ = 0;
+			p->datalen_ = 0;
 		}
 	} else {
-	        ch->ref_count() = ch->ref_count() - 1;
+		ch->ref_count() = ch->ref_count() - 1;
 	}
 }
 
@@ -198,8 +204,8 @@ inline Packet* Packet::copy() const
 	Packet* p = alloc();
 	memcpy(p->bits(), bits_, hdrlen_);
 	if (datalen_) {
-	        p->datalen_ = datalen_;
-	        p->data_ = new unsigned char[datalen_];
+		p->datalen_ = datalen_;
+		p->data_ = new unsigned char[datalen_];
 		memcpy(p->data_, data_, datalen_);
 	}
 	return (p);
