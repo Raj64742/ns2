@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.46 1998/01/21 19:26:20 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.47 1998/01/21 20:02:52 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -374,12 +374,6 @@ int TcpAgent::command(int argc, const char*const* argv)
 			t_srtt_ = other->t_srtt_;
 			t_rttvar_ = other->t_rttvar_;
 			t_backoff_ = other->t_backoff_;
-			return (TCL_OK);
-		}
-	}
-	else if (argc == 2) {
-		if (strcmp(argv[1], "reset") == 0) {
-			reset();
 			return (TCL_OK);
 		}
 	}
