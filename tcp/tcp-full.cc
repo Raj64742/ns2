@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.47 1998/06/22 23:36:13 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.48 1998/06/24 23:45:38 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -89,6 +89,9 @@ static const char rcsid[] =
 
 #define	TRUE 	1
 #define	FALSE 	0
+
+#define	MIN(x,y)	(((x)<(y))?(x):(y))
+#define	MAX(x,y)	(((x)>(y))?(x):(y))
 
 static class FullTcpClass : public TclClass { 
 public:
@@ -176,7 +179,7 @@ FullTcpAgent::reset()
 	else
 		recent_ = recent_age_ = -1.0;
 
-	sack_min_ = -1;
+	sack_max_ = sack_min_ = -1;
 }
 
 /*
@@ -605,7 +608,7 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 	 */
 
 	int nxtblk[2]; // left, right of 1 sack block
-	if (sack_option_) {
+	if (sack_option_ && !sq_.empty()) {
 		sq_.sync(); // reset to beginning of sack list
 		while (sq_.nextblk(nxtblk)) {
 			// skip past anything old
@@ -620,10 +623,20 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 			return;
 		}
 
-		if (sack_option_ && (t_seqno_ >= nxtblk[0] && t_seqno_ <= nxtblk[1])) {
-			t_seqno_ = nxtblk[1];
-			sq_.nextblk(nxtblk);
-			continue;
+		if (sack_option_ && !sq_.empty()) {
+//printf("%f SENDER(%s): tseq: %d sacks [nxt: %d, %d]:",
+//now(), name(), int(t_seqno_), nxtblk[0], nxtblk[1]);
+//sq_.dumplist();
+			if (t_seqno_ <= maxseq_ && t_seqno_ > sack_max_)
+				break;	// no extra out-of-range retransmits
+
+			if (t_seqno_ >= nxtblk[0] && t_seqno_ <= nxtblk[1]) {
+				t_seqno_ = nxtblk[1];
+				sq_.nextblk(nxtblk);
+//printf("%f (%s) SKIPSACK: tseq:%d, blk [%d, %d]\n",
+//now(), name(), int(t_seqno_), nxtblk[0], nxtblk[1]);
+				continue;
+			}
 		}
 
 		/*
@@ -1380,9 +1393,12 @@ trimthenstep6:
 				} else if (++dupacks_ == tcprexmtthresh_) {
 					// possibly trigger fast retransmit
 					dupack_action();
+					if (sack_option_)
+						t_seqno_ = highest_ack_;
 					goto drop;
 				} else if (dupacks_ > tcprexmtthresh_) {
-					if (fastrecov_) {
+					// don't to fast recov with sack
+					if (!sack_option_ && fastrecov_) {
 						// we just measure cwnd in
 						// packets, so don't scale by
 						// maxseg_ as real
@@ -1586,6 +1602,8 @@ step6:
 			// send an ACK to the other side right now.
 			// K: some changes here, figure out
 			tiflags = rq_.add(pkt);
+//printf("%f RECV(%s): RQ:", now(), name());
+//rq_.dumplist();
 			if (tiflags & TH_PUSH) {
 				// K: APPLICATION recv
 				needoutput = need_send();
@@ -1748,6 +1766,8 @@ FullTcpAgent::sack_action(hdr_tcp* tcph)
 	int i;
 
 	for (i = 0; i < slen; ++i) {
+		if (sack_max_ < tcph->sa_right(i))
+			sack_max_ = tcph->sa_right(i);
 //printf("%f TCP(%s): recv sack [%d, %d] (high ack:%d)\n", now(), name(),
 //tcph->sa_left(i), tcph->sa_right(i), int(highest_ack_));
 		sq_.add(tcph->sa_left(i), tcph->sa_right(i), 0);
@@ -1909,7 +1929,7 @@ void ReassemblyQueue::clear()
 	seginfo* p;
 	for (p = head_; p != NULL; p = p->next_)
 		delete p;
-	head_ = tail_ = last_added_ = NULL;
+	ptr_ = head_ = tail_ = last_added_ = NULL;
 	return;
 }
 
@@ -2001,6 +2021,30 @@ ReassemblyQueue::nextblk(int* sacks)
 }
 
 /*
+ * dumplist -- print out list (for debugging)
+ */
+
+void
+ReassemblyQueue::dumplist()
+{
+	register seginfo* p = head_;
+	if (!head_) {
+		printf("DUMPLIST: head_ is NULL\n");
+	}
+	while (p != NULL) {
+		if (p == ptr_) {
+			printf("[->%d, %d<-]",
+				p->startseq_, p->endseq_);
+		} else {
+			printf("[%d, %d]",
+				p->startseq_, p->endseq_);
+		}
+		p = p->next_;
+	}
+	printf("\n");
+}
+
+/*
  * sync the nextblk pointer to the head of the list
  */
 
@@ -2009,7 +2053,6 @@ ReassemblyQueue::sync()
 {
 	ptr_ = head_;
 }
-
 
 /*
  * add a packet to the reassembly queue..
@@ -2041,47 +2084,54 @@ int ReassemblyQueue::add(int start, int end, int tiflags)
 	if (head_ == NULL) {
 		// nobody there, just insert
 		last_added_ = tail_ = head_ = new seginfo;
-		head_->prev_ = NULL;
-		head_->next_ = NULL;
+		head_->prev_ = head_->next_ = NULL;
 		head_->startseq_ = start;
 		head_->endseq_ = end;
 		head_->flags_ = tiflags;
 	} else {
-		p = NULL;
-		last_added_ = n = new seginfo;
-		n->startseq_ = start;
-		n->endseq_ = end;
-		n->flags_ = tiflags;
 		if (tail_->endseq_ <= start) {
 			// common case of end of reass queue
 			p = tail_;
 			goto endfast;
 		}
 
-		q = head_;
 		// look for the segment after this one
-		while (q != NULL && (end > q->startseq_))
-			q = q->next_;
+		for (q = head_; q && (end > q->startseq_); q = q->next_)
+			;
 		// set p to the segment before this one
 		if (q == NULL)
 			p = tail_;
 		else
 			p = q->prev_;
 
-		if (p == NULL) {
-			// insert at head
-			n->next_ = head_;
-			n->prev_ = NULL;
-			head_->prev_ = n;
-			head_ = n;
-		} else {
+		if (p == NULL || (start >= p->endseq_)) {
+			// no overlap
 endfast:
-			// insert in the middle or end
-			n->next_ = p->next_;
-			p->next_ = n;
-			n->prev_ = p;
-			if (p == tail_)
-				tail_ = n;
+			last_added_ = n = new seginfo;
+			n->startseq_ = start;
+			n->endseq_ = end;
+			n->flags_ = tiflags;
+
+			if (p == NULL) {
+				// insert at head
+				n->next_ = head_;
+				n->prev_ = NULL;
+				head_->prev_ = n;
+				head_ = n;
+			} else {
+				// insert in the middle or end
+				n->next_ = p->next_;
+				p->next_ = n;
+				n->prev_ = p;
+				if (p == tail_)
+					tail_ = n;
+			}
+		} else {
+			// start or end overlaps p, so patch
+			// up p; will catch other overlaps below
+			p->startseq_ = MIN(p->startseq_, start);
+			p->endseq_ = MAX(p->endseq_, end);
+			p->flags_ |= tiflags;
 		}
 	}
 	//
@@ -2113,6 +2163,8 @@ endfast:
 
 		if (q == last_added_)
 			last_added_ = NULL;
+		if (q == ptr_)
+			ptr_ = NULL;
 		if (q->next_ && (q->endseq_ < q->next_->startseq_)) {
 			delete q;
 			break;		// only the in-seq stuff
