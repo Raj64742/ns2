@@ -1,4 +1,3 @@
-#
 # Copyright (C) 1999 by USC/ISI
 # All rights reserved.                                            
 #                                                                
@@ -15,49 +14,56 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-
-#
-# Maintainer: Polly Huang <huang@isi.edu>
-# Version Date: $Date: 1999/04/20 22:34:28 $
-#
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/large-scale-web-traffic.tcl,v 1.1 1999/04/20 22:34:28 polly Exp $ (USC/ISI)
-#
-#
 # An example script that simulates large-scale web traffic. 
 # See web-traffic.tcl for a smaller scale web traffic simulation.
+#
 # Some attributes:
 # 1. Topology: ~460 nodes, 420 web clients, 40 web servers
 # 2. Traffic: approximately 200,000 TCP connections, heavy-tailed connection 
 #             sizes, throughout 4200 second simulation time
-# 3. Simulation scale: ~800 MB memory, ~1.5-2 hrs running on FreeBSD 3.0
+# 3. Simulation scale: ~62 MB memory, ~1 hrs running on FreeBSD 3.0
 #              Pentium II Xeon 450 MHz PC with 1GB physical memory
 #
-puts "Warning!!!! Warning!!!!"
-puts "This simulation requires ~800 MB MEMORY to complete!!"
-puts "If this machine has less than 800 MB physical memory,"
-puts "expect this simulation to finish in a DAY or so."
-
-source ../http/http-mod.tcl
+# Created by Polly Huang (huang@catarina.usc.edu)
+# Modified by Haobo Yu (haoboy@isi.edu)
 
 global num_node n verbose
 set verbose 0
+source webtraf.tcl
 source varybell.tcl
 
 # Basic ns setup
 set ns [new Simulator]
-$ns set-address 10 21
 
 # Create generic packet trace
-$ns trace-all [open large-scale-web-traffic.out w]
+$ns trace-all [open my-largescale.out w]
 
+# Defined in varybell.tcl
 create_topology
 
 ########################### Modify From Here #####################
-## Number of Sessions
-## set numSession 400
+
+# Create page pool
+set pool [new PagePool/WebTraf]
+
+# Setup servers and clients
+$pool set-num-client [llength [$ns set src_]]
+$pool set-num-server [llength [$ns set dst_]]
+set i 0
+foreach s [$ns set src_] {
+	$pool set-client $i $n($s)
+	incr i
+}
+set i 0
+foreach s [$ns set dst_] {
+	$pool set-server $i $n($s)
+	incr i
+}
+
+# Number of Sessions
 set numSession 400
 
-## Inter-session Interval
+# Inter-session Interval
 set interSession [new RandomVariable/Exponential]
 $interSession set avg_ 1
 
@@ -65,29 +71,39 @@ $interSession set avg_ 1
 set sessionSize [new RandomVariable/Constant]
 $sessionSize set val_ 250
 
-set launchTime [$ns now]
+# Random seed at every run
+global defaultRNG
+$defaultRNG seed 0
+
+# Create sessions
+$pool set-num-session $numSession
+set launchTime 0
 for {set i 0} {$i < $numSession} {incr i} {
-    set numPage [$sessionSize value]
-    set httpSession($i) [new HttpSession $ns $numPage [$ns picksrc]]
-
-## Inter-Page Interval
-    $httpSession($i) setDistribution interPage_ Exponential 15
-
-## Number of Objects per Page
-    $httpSession($i) setDistribution pageSize_ Constant 1
-    $httpSession($i) createPage
-
-## Inter-Object Interval
-    $httpSession($i) setDistribution interObject_ Exponential 0.01
-
-## Number of Packets per Object
-    $httpSession($i) setDistribution objectSize_ ParetoII 12 1.2
-    $ns at [expr $launchTime + 0.1] "$httpSession($i) start"
-    set launchTime [expr $launchTime + [$interSession value]]
+	set numPage [$sessionSize value]
+	puts "Session $i has $numPage pages"
+	set interPage [new RandomVariable/Exponential]
+	$interPage set avg_ 15
+	set pageSize [new RandomVariable/Constant]
+	$pageSize set val_ 1
+	set interObj [new RandomVariable/Exponential]
+	$interObj set avg_ 0.01
+	set objSize [new RandomVariable/ParetoII]
+	$objSize set avg_ 12
+	$objSize set shape_ 1.2
+	$pool create-session $i $numPage [expr $launchTime + 0.1] \
+			$interPage $pageSize $interObj $objSize
+	set launchTime [expr $launchTime + [$interSession value]]
 }
 
 ## Start the simulation
-$ns at 4200.1 "exit 0"
-$ns run
+$ns at 4200.1 "finish"
 
+proc finish {} {
+	global ns
+	$ns flush-trace
+	exit 0
+}
+
+puts "ns started"
+$ns run
 

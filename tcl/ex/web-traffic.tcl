@@ -15,26 +15,15 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-
-#
-# Maintainer: Polly Huang <huang@isi.edu>
-# Version Date: $Date: 1999/09/20 17:42:43 $
-#
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/web-traffic.tcl,v 1.2 1999/09/20 17:42:43 haoboy Exp $ (USC/ISI)
-#
-#
 # An example script that simulates web traffic. 
 # See large-scale-web-traffic.tcl for a large-scale web traffic simulation.
-#
 
 # Initial setup
-source ../http/http-mod.tcl
+source webtraf.tcl
 source dumbbell.tcl
 global num_node n
 
 set ns [new Simulator]
-#$ns set-address-format expanded
-#$ns set-address 7 24     ;# set-address <bits for node address> <bits for port>
 
 # set up colors for nam 
 for {set i 1} {$i <= 30} {incr i} {
@@ -61,38 +50,47 @@ $ns trace-all [open validate.out w]
 
 create_topology
 
-########################### Modify From Here #####################
-## Number of Pages per Session
+set pool [new PagePool/WebTraf]
+
+# Set up server and client nodes
+$pool set-num-client [llength [$ns set src_]]
+$pool set-num-server [llength [$ns set dst_]]
+global n
+set i 0
+foreach s [$ns set src_] {
+	$pool set-client $i $n($s)
+	incr i
+}
+set i 0
+foreach s [$ns set dst_] {
+	$pool set-server $i $n($s)
+	incr i
+}
+
+# Number of Pages per Session
 set numPage 10
-set httpSession1 [new HttpSession $ns $numPage [$ns picksrc]]
-set httpSession2 [new HttpSession $ns $numPage [$ns picksrc]]
+# Session 0 starts from 0.1s, session 1 starts from 0.2s
+$pool set-num-session 2
 
-## Inter-Page Interval
-## Number of Objects per Page
-## Inter-Object Interval
-## Number of Packets per Object
-## have to set page specific attributes before createPage
-## have to set object specific attributes after createPage
-$httpSession1 setDistribution interPage_ Exponential 1 ;#in sec
-$httpSession1 setDistribution pageSize_ Constant 1 ;# number of objects/page
-$httpSession1 createPage
-$httpSession1 setDistribution interObject_ Exponential 0.01 ;# in sec
-$httpSession1 setDistribution objectSize_ ParetoII 10 1.2 ;# number of packets
+set interPage [new RandomVariable/Exponential -avg_ 1]
+set pageSize [new RandomVariable/Constant -val_ 1]
+set interObj [new RandomVariable/Exponential -avg_ 0.01]
+set objSize [new RandomVariable/ParetoII -avg_ 10 -shape_ 1.2]
+$pool create-session 0 $numPage 0.1 $interPage $pageSize $interObj $objSize
 
-# uses default 
-$httpSession2 createPage
+set interPage [new RandomVariable/Exponential -avg_ 1]
+set pageSize [new RandomVariable/Constant -val_ 1]
+set interObj [new RandomVariable/Exponential -avg_ 0.01]
+set objSize [new RandomVariable/ParetoII -avg_ 10 -shape_ 1.2]
+$pool create-session 1 $numPage 0.2 $interPage $pageSize $interObj $objSize
 
-$ns at 0.1 "$httpSession1 start" ;# in sec as well
-$ns at 0.2 "$httpSession2 start"
-
-$ns at 30.0 "finish"
+$ns at 1000.0 "finish"
 
 proc finish {} {
 	global ns
 	$ns flush-trace
-	puts "running nam..."
-    # exec to run unix command
-	exec nam validate.nam &
+	#puts "running nam..."
+	#exec nam validate.nam &
 	exit 0
 }
 

@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.16 1999/09/10 22:08:42 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.17 1999/09/24 23:50:11 haoboy Exp $
 # updated by Lloyd Wood
 
 if [string match {*.tcl} $argv0] {
@@ -26,6 +26,10 @@ set ns [new Simulator -multicast on]
 
 #$ns trace-all [open out.tr w]
 $ns namtrace-all [open out.nam w]
+# To test piping ns output in realtime to nam, comment the above line and 
+# uncomment the following line and use:
+#   ns nam-example.tcl | nam -
+#$ns namtrace-all stdout
 set srmStats [open srm-stats.tr w]
 
 # define color index
