@@ -54,7 +54,7 @@ cd ./tcl8.0.4/unix
 
 blame='Tcl is not part of the ns project.  Please see www.Scriptics.com
 to see if they have a fix for your platform.'
-./configure --prefix="$CUR_PATH/tclbox" || die "tcl8.0.4 configuration failed! Exiting ..."
+./configure --enable-gcc --prefix="$CUR_PATH/tclbox" || die "tcl8.0.4 configuration failed! Exiting ..."
 if make 
 then 
 	make install || die "tcl8.0.4 installation failed! Exiting ..."
@@ -72,7 +72,7 @@ cd ./tk8.0.4/unix
 
 blame='Tk is not part of the ns project.  Please see www.Scriptics.com
 to see if they have a fix for your platform.'
-./configure --prefix="$CUR_PATH/tkbox" || die "tk8.0.4 configuration failed! Exiting ..."
+./configure --enable-gcc --prefix="$CUR_PATH/tkbox" || die "tk8.0.4 configuration failed! Exiting ..."
 if make 
 then
 	make install || die "tk8.0.4 installation failed! Exiting ..."
@@ -96,7 +96,7 @@ cd ./otcl-1.0a5
 
 blame='Please check http://www-mash.cs.berkeley.edu/ns/ns-problems.html
 for common problems and bug fixes.'
-./configure --with-tcl=../tclbox --with-tk=../tkbox || die "otcl-1.0a4 configuration failed! Exiting ..."
+./configure --enable-gcc --with-tcl=../tclbox --with-tk=../tkbox || die "otcl-1.0a4 configuration failed! Exiting ..."
 
 if make 
 then
@@ -114,7 +114,7 @@ cd ../
 
 cd ./tclcl-1.0b9
 
-./configure --with-otcl=../otcl-1.0a5 --with-tcl=../tclbox --with-tk=../tkbox  --with-tcl-ver=8.0.4 --with-tk-ver=8.0.4 || die "tclcl-1.0b9 configuration failed! Exiting ..."
+./configure --enable-gcc --with-otcl=../otcl-1.0a5 --with-tcl=../tclbox --with-tk=../tkbox  --with-tcl-ver=8.0.4 --with-tk-ver=8.0.4 || die "tclcl-1.0b9 configuration failed! Exiting ..."
 
 if make
 then
@@ -131,7 +131,7 @@ cd ../
 #compile and install xgraph
 
 cd ./xgraph-12.1
-./configure --prefix=../
+./configure --enable-gcc --prefix=../
 if make
 then
 	echo "xgraph has been installed successfully. "
@@ -235,7 +235,7 @@ export PATH
 test -f ./otcl-1.0a5/libotcl.a && rm ./otcl-1.0a5/libotcl.so
 
 cd ./ns-2.1b6
-./configure --with-otcl=../otcl-1.0a5 --with-tclcl=../tclcl-1.0b9 --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Ns configuration failed! Exiting ..."
+./configure --enable-gcc --with-otcl=../otcl-1.0a5 --with-tclcl=../tclcl-1.0b9 --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Ns configuration failed! Exiting ..."
 
 if make
 then
@@ -271,7 +271,7 @@ cd ../
 
 cd ./nam-1.0a8
 
-./configure --with-otcl=../otcl-1.0a5 --with-tclcl=../tclcl-1.0b9 --with-tcl=../tclbox --with-tk=../tkbox --with-tcldebug=no --disable-static || die "Nam configuration failed! Exiting ..."
+./configure --enable-gcc --with-otcl=../otcl-1.0a5 --with-tclcl=../tclcl-1.0b9 --with-tcl=../tclbox --with-tk=../tkbox --with-tcldebug=no --disable-static || die "Nam configuration failed! Exiting ..."
 
 if make
 then 

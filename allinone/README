@@ -58,6 +58,9 @@ will tell you the final installation result.
 - Apply tclPosixStr.patch to tcl8.0.4/generic/tclPosixStr.c under
   RedHat Linux. 
 
+- Without --enable-gcc explicitly in the configure command line, ns will
+  not compile on some SPARC and HPUX platforms.
+
 The allinone package should install without error on most versions of
 Unix.  If you have problems, see:
 
