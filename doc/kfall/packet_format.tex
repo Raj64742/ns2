@@ -53,19 +53,14 @@ From rtp.h:
 	struct hdr_rtp { 
 		u_int32_t srcid_;
 		int seqno_;
-
 		/* per-field member functions */
-		u_int32_t& srcid() {
-			return (srcid_);
-		}
-		int& seqno() {
-			return (seqno_);
-		}
+		u_int32_t& srcid() { return (srcid_); }
+		int& seqno() { return (seqno_); }
 	};   
 
 
 From rtp.cc:
-	class RTPAgent: public CBQ_Agent {
+	class RTPAgent: public CBR_Agent {
 	...
 		int off_rtp_;
 	};
@@ -85,7 +80,7 @@ From rtp.cc:
 		/* Fill in srcid_ and seqno */
 		rh->seqno() = seqno_++;
 		rh->srcid() = session_->srcid();
-		target_->recv(p);
+		target_->recv(p, 0);
 	}
 
 	RTPAgent::RTPAgent()
