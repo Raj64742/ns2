@@ -31,6 +31,11 @@
  * SUCH DAMAGE.
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.25 1997/07/21 21:48:46 kfall Exp $ (LBL)";
+#endif
+
 #include <stdlib.h>
 #include <math.h>
 #include "Tcl.h"
@@ -104,7 +109,7 @@ public:
 static class TcpClass : public TclClass {
 public:
 	TcpClass() : TclClass("Agent/TCP") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int , const char*const*) {
 		return (new TcpAgent());
 	}
 } class_tcp;
@@ -731,7 +736,9 @@ void TcpAgent::finish() {
 
 	if (finish_ != "") 
 		sprintf(wrk, "%s", finish_);
-	else
+	else {
+		/* XXX this is not right */
 		sprintf(wrk, "finish", name());
+	}
 	Tcl::instance().eval(wrk);
 }
