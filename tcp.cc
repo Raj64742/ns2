@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.85 1998/11/29 19:14:21 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.86 1998/11/30 18:12:23 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -680,10 +680,15 @@ void TcpAgent::newack(Packet* pkt)
 			rtt_update(now - tcph->ts_echo());
 
 		if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
-			if (!ecn_backoff_)
-				/* Don't end backoff if ECN-Echo with
-			 	* a congestion window of 1 packet */
+			if (!ect_ || !ecn_backoff_ || 
+				!hdr_flags::access(pkt)->ecnecho()) {
+				/* 
+				 * Don't end backoff if still in ECN-Echo with
+			 	 * a congestion window of 1 packet. 
+				 */
 				t_backoff_ = 1;
+				ecn_backoff_ = 0;
+			}
 			rtt_active_ = 0;
 			if (!ts_option_)
 				rtt_update(now - rtt_ts_);
@@ -692,8 +697,6 @@ void TcpAgent::newack(Packet* pkt)
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
 	awnd_ += wnd_th_ * cwnd_;
-	/* hack to reset timer for first packet */
-//	if (last_ack_ == 0) newtimer(pkt);
 }
 
 
@@ -712,12 +715,12 @@ void TcpAgent::ecn(int seqno)
 	      last_cwnd_action_ == CWND_ACTION_TIMEOUT) {
 		recover_ =  maxseq_;
 		last_cwnd_action_ = CWND_ACTION_ECN;
-		slowdown(CLOSE_CWND_HALF|CLOSE_SSTHRESH_HALF);
 		if (cwnd_ <= 1.0) {
 			if (ecn_backoff_) 
 				rtt_backoff();
 			else ecn_backoff_ = 1;
 		} else ecn_backoff_ = 0;
+		slowdown(CLOSE_CWND_HALF|CLOSE_SSTHRESH_HALF);
 	}
 }
 
@@ -731,6 +734,8 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 		 * Therefore, open the congestion window. */
 	        opencwnd();
 	if (ect_) {
+		if (!hdr_flags::access(pkt)->ecnecho())
+			ecn_backoff_ = 0;
 		if (!ecn_burst_ && hdr_flags::access(pkt)->ecnecho())
 			ecn_burst_ = TRUE;
 		else if (ecn_burst_ && ! hdr_flags::access(pkt)->ecnecho())
