@@ -52,8 +52,8 @@ void
 Internet::print_ip(ip *ip)
 {   
         u_short off = ntohs(ip->ip_off);
-        printf("IP v:%d, ihl:%d, tos:0x%x, id:%d, off:%d [df:%d, mf:%d], sum:%d, p
-rot:%d\n",
+        printf("IP v:%d, ihl:%d, tos:0x%x, id:%d, off:%d [df:%d, mf:%d], "
+	       "sum:%d, prot:%d\n",
                 ip->ip_v, ip->ip_hl, ip->ip_tos, ntohs(ip->ip_id),
                 off & IP_OFFMASK,
                 (off & IP_DF) ? 1 : 0,

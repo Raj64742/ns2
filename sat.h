@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sat.h,v 1.3 1999/08/29 01:28:44 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sat.h,v 1.4 1999/09/18 00:26:17 haoboy Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -85,4 +85,4 @@ struct coordinate {
         // z = rcos(theta)
 };
 
-#endif __ns_sat_h__
+#endif // __ns_sat_h__

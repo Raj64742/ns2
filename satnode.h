@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satnode.h,v 1.1 1999/06/21 18:28:48 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satnode.h,v 1.2 1999/09/18 00:26:18 haoboy Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -77,4 +77,4 @@ class SatNode : public Node {
 	LinkHandoffMgr* hm_; 
 };
 
-#endif __satnode_h__
+#endif // __satnode_h__

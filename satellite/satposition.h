@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.h,v 1.5 1999/08/29 01:28:46 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.h,v 1.6 1999/09/18 00:26:19 haoboy Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -110,4 +110,4 @@ class TermSatPosition : public SatPosition {
  protected:
 };
 
-#endif __satposition_h__
+#endif // __satposition_h__
