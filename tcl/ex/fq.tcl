@@ -31,10 +31,7 @@ Class Classifier/Flow/FQ -superclass Classifier/Flow
 
 Classifier/Flow/FQ instproc no-slot flowID {
 	$self instvar fq_
-	puts "no-slot $flowID (fq $fq_)"
 	$fq_ new-flow $flowID
-	#XXX
-#	exit 1
 }
 
 Class FQLink -superclass Link
@@ -80,14 +77,25 @@ FQLink instproc update-cost {} {
 	}
 }
 
+Queue set limit_ 10
+
+FQLink set queueManagement_ RED
+FQLink set queueManagement_ DropTail
+
 FQLink instproc new-flow flowID {
 	$self instvar classifier_ nactive_ queue_ link_ drpT_
 	incr nactive_
 	$self update-cost
-	set q [new Queue/RED]
+
+
+	set type [$class set queueManagement_]
+	set q [new Queue/$type]
+
 	#XXX yuck
- 	set bw [$link_ set bandwidth_]
-	$q set ptc_ [expr $bw / (8. * [$q set meanPacketSize_])]
+	if { $type == "RED" } {
+	 	set bw [$link_ set bandwidth_]
+		$q set ptc_ [expr $bw / (8. * [$q set meanPacketSize_])]
+	}
 	$q drop-target $drpT_
 
 	$classifier_ install $flowID $q
@@ -128,69 +136,123 @@ FQLink instproc init-monitor ns {
 	puts stderr "FQLink::init-monitor not implemented"
 }
 
-set n0 [$ns node]
-set n1 [$ns node]
-set n2 [$ns node]
-set n3 [$ns node]
+#Queue/RED set thresh_ 3
+#Queue/RED set maxthresh_ 8
+
+proc build_topology { ns which } {
+	foreach i "0 1 2 3" {
+		global n$i
+		set n$i [$ns node]
+	}
+	$ns duplex-link $n0 $n2 5Mb 2ms DropTail
+	$ns duplex-link $n1 $n2 5Mb 10ms DropTail
+	if { $which == "FIFO" } {
+		$ns duplex-link $n2 $n3 1.5Mb 10ms DropTail
+	} elseif { $which == "RED" } {
+		$ns duplex-link $n2 $n3 1.5Mb 10ms RED
+	} else {
+		$ns duplex-link $n2 $n3 1.5Mb 10ms FQ
+	}
+}
 
 set f [open out.tr w]
 $ns trace-all $f
 
-$ns duplex-link $n0 $n2 5Mb 2ms DropTail
-$ns duplex-link $n1 $n2 5Mb 2ms DropTail
-$ns duplex-link $n2 $n3 1.5Mb 10ms FQ
+build_topology $ns FQ
 
-set cbr0 [new Agent/CBR]
-$ns attach-agent $n0 $cbr0
-$cbr0 set packetSize_ 250
-$cbr0 set interval_ 3ms
+proc build_tcp { from to startTime } {
+	global ns
+	set tcp [new Agent/TCP]
+	set sink [new Agent/TCPSink]
+	$ns attach-agent $from $tcp
+	$ns attach-agent $to $sink
+	$ns connect $tcp $sink
+	set ftp [new Source/FTP]
+	$ftp set agent_ $tcp
+	$ns at $startTime "$ftp start"
+	return $tcp
+}
 
-set cbr1 [new Agent/CBR]
-$ns attach-agent $n1 $cbr1
-$cbr1 set class_ 1
-$cbr1 set packetSize_ 550
-$cbr1 set interval_ 3ms
+proc finish file {
 
-set null0 [new Agent/Null]
-$ns attach-agent $n3 $null0
+	set f [open temp.rands w]
+	puts $f "TitleText: $file"
+	puts $f "Device: Postscript"
+	
+	exec rm -f temp.p temp.d 
+	exec touch temp.d temp.p
+	#
+	# split queue/drop events into two separate files.
+	# we don't bother checking for the link we're interested in
+	# since we know only such events are in our trace file
+	#
+	exec awk {
+		{
+			if (($1 == "+" || $1 == "-" ) && \
+			    ($5 == "tcp"))\
+					print $2, $8 + ($11 % 90) * 0.01
+		}
+	} out.tr > temp.p
+	exec awk {
+		{
+			if ($1 == "d")
+				print $2, $8 + ($11 % 90) * 0.01
+		}
+	} out.tr > temp.d
 
-set null1 [new Agent/Null]
-$ns attach-agent $n3 $null1
+	puts $f \"packets
+	flush $f
+	exec cat temp.p >@ $f
+	flush $f
+	# insert dummy data sets so we get X's for marks in data-set 4
+	puts $f [format "\n\"skip-1\n0 1\n\n\"skip-2\n0 1\n\n"]
 
-$ns connect $cbr0 $null0
-$ns connect $cbr1 $null1
+	puts $f \"drops
+	flush $f
+	#
+	# Repeat the first line twice in the drops file because
+	# often we have only one drop and xgraph won't print marks
+	# for data sets with only one point.
+	#
+	exec head -1 temp.d >@ $f
+	exec cat temp.d >@ $f
+	close $f
+	exec xgraph -bb -tk -nl -m -x time -y packet temp.rands &
 
-$ns at 1.0 "$cbr0 start"
-$ns at 1.1 "$cbr1 start"
+	# dump the highest seqno sent of each tcp agent
+	# this gives an idea of throughput
+	set k 1
+	while 1 {
+		global tcp$k
+		if [info exists tcp$k] {
+			set tcp [set tcp$k]
+			puts "tcp$k seqno [$tcp set t_seqno_]"
+		} else {
+			break
+		}
+		incr k
+	}
+	exit 0
+}
 
-#set tcp [new Agent/TCP]
-#$tcp set class_ 2
-#set sink [new Agent/TCPSink]
-#$ns attach-agent $n0 $tcp
-#$ns attach-agent $n3 $sink
-#$ns connect $tcp $sink
-#set ftp [new Source/FTP]
-#$ftp set agent_ $tcp
-#$ns at 1.2 "$ftp start"
+set tcp1 [build_tcp $n0 $n3 0.1]
+$tcp1 set class_ 1
+set tcp2 [build_tcp $n1 $n3 0.1]
+$tcp2 set class_ 2
 
-#$ns at 1.35 "$ns detach-agent $n0 $tcp ; $ns detach-agent $n3 $sink"
+$ns at 40.0 "finish Output"
 
-puts [$cbr0 set packetSize_]
-puts [$cbr0 set interval_]
-
-$ns at 3.0 "finish"
-
-proc finish {} {
+proc xfinish {} {
 	global ns f
 	$ns flush-trace
 	close $f
 
 	puts "converting output to nam format..."
-	exec awk -f ../nam-demo/nstonam.awk out.tr > simple-nam.tr 
+	exec awk -f ../nam-demo/nstonam.awk out.tr > fq-nam.tr 
 	exec rm -f out
 	#XXX
 	puts "running nam..."
-	exec nam simple-nam &
+	exec nam fq-nam &
 	exit 0
 }
 
