@@ -136,8 +136,6 @@ void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 
 void TfrmSinkAgent::nextpkt() {
 
-	double now = Scheduler::instance().clock();
-
 	/* send the report */
 	sendpkt();
 
