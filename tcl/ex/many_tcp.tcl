@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.7 1998/07/01 00:54:05 sfloyd Exp $
+# $Id: many_tcp.tcl,v 1.8 1998/07/01 01:43:05 sfloyd Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -154,6 +154,7 @@ set raw_opt_info {
 	# Animation options; complete traces are useful
 	# for nam only, so do those only when a tracefile
 	# is being used for nam
+	# Set trace-filename to "none" for no tracefile.
 	trace-filename out
 	trace-all 0
 	namtrace-some 0
@@ -458,26 +459,28 @@ Main instproc finish {} {
 		set droprate [expr 100.0*$drops / $pkts ]
 		puts [format "drop_percentage %7.4f" $droprate]
 	}
-	if {$opts(graph-join-queueing)} {
-		set q "-q"
-	} else {
-		set q ""
+        if {$opts(trace-filename) != "none"} {
+		if {$opts(graph-join-queueing)} {
+			set q "-q"
+		} else {
+			set q ""
+		}
+		set title $opts(title)
+		# Make sure that we run in place even without raw2xg in our path
+		# (for the test suites).
+		set raw2xg raw2xg
+		if [file exists ../../bin/raw2xg] {
+			set raw2xg ../../bin/raw2xg
+		}
+		exec $raw2xg -a $q < $trace_filename_.tr >$trace_filename_.xg
+		if {$opts(test-suite)} {
+			exec cp $trace_filename_.xg $opts(test-suite-file)
+		}
+		if {$opts(graph-results)} {
+			exec xgraph -t $title  < $trace_filename_.xg &
+		}
+	#	exec raw2xg -a < out.tr | xgraph -t "$opts(server-tcp-method)" &
 	}
-	set title $opts(title)
-	# Make sure that we run in place even without raw2xg in our path
-	# (for the test suites).
-	set raw2xg raw2xg
-	if [file exists ../../bin/raw2xg] {
-		set raw2xg ../../bin/raw2xg
-	}
-	exec $raw2xg -a $q < $trace_filename_.tr >$trace_filename_.xg
-	if {$opts(test-suite)} {
-		exec cp $trace_filename_.xg $opts(test-suite-file)
-	}
-	if {$opts(graph-results)} {
-		exec xgraph -t $title  < $trace_filename_.xg &
-	}
-#	exec raw2xg -a < out.tr | xgraph -t "$opts(server-tcp-method)" &
 
 	if {$opts(mem-trace)} {
 		$ns_ clearMemTrace
@@ -531,7 +534,12 @@ Main instproc init {av} {
 	$rng_ next-random
 
 	$self init_network
-	$self trace_stuff
+	if {$opts(trace-filename) == "none"} {
+		$ns_ at $opts(duration) "$self finish"
+	} else {
+		$self trace_stuff
+	}
+
 	# xxx: hack (next line)
 #	$self create_some_clients
 	$ns_ at 0 "$self schedule_initial_traffic"
