@@ -2541,6 +2541,8 @@ tcp/rtcp.cc
 tcp/saack.cc
 tcp/scoreboard-rh.cc
 tcp/scoreboard-rh.h
+tcp/scoreboard-rq.cc
+tcp/scoreboard-rq.h
 tcp/scoreboard.cc
 tcp/scoreboard.h
 tcp/snoop.cc
