@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.3 1997/06/06 23:30:43 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.4 1997/06/12 22:53:11 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -93,6 +93,7 @@ protected:
 	void	dumpflows();
 	void	dumpflow(Tcl_Channel, Flow*);
 	void	fformat(Flow*);
+	char*	flow_list();
 
 	Classifier*	classifier_;
 	Tcl_Channel	channel_;
@@ -153,9 +154,32 @@ FlowMon::dumpflows()
 	Flow* f;
 
 	for (i = 0; i <= j; i++) {
-		if ((f = (Flow*)classifier_->find(i)) != NULL)
+		if ((f = (Flow*)classifier_->index(i)) != NULL)
 			dumpflow(channel_, f);
 	}
+}
+
+char*
+FlowMon::flow_list()
+{
+	register i, j = classifier_->maxslot();
+	Flow* f;
+	register char* p = wrk_;
+	register char* q;
+	const register char* z;
+	q = p + sizeof(wrk_) - 2;
+	*p = '\0';
+	for (i = 0; i <= j; i++) {
+		if ((f = (Flow*)classifier_->index(i)) != NULL) {
+			z = f->name();
+			while (*z && p < q)
+				*p++ = *z++;
+			*p++ = ' ';
+		}
+	}
+	if (p != wrk_)
+		*--p = '\0';
+	return (wrk_);
 }
 
 void
@@ -212,6 +236,10 @@ FlowMon::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "dump") == 0) {
 			dumpflows();
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "flows") == 0) {
+			tcl.resultf("%s", flow_list());
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
