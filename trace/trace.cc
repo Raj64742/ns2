@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.33 1998/04/22 23:25:32 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.34 1998/04/24 01:29:45 yaxu Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -268,7 +268,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
+			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%d.%d %d.%d %d}",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -277,7 +277,10 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			th->size(),
 			iph->flowid(),
 			th->uid(),
-			iph->flowid());
+			iph->flowid()
+			iph->src() >> NODESHIFT, iph->src() & PORTMASK, // XXX
+			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK, //XXx
+			seqno);
 #endif      
 	delete [] src_nodeaddr;
 	delete [] src_portaddr;
@@ -395,7 +398,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 		//char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
 		
 		sprintf(nwrk_, 
-			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
+			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%d.%d %d.%d %d}",
 			'h',
 			Scheduler::instance().clock(),
 			src_,
@@ -404,7 +407,10 @@ DequeTrace::recv(Packet* p, Handler* h)
 			th->size(),
 			iph->flowid(),
 			th->uid(),
-			iph->flowid());
+			iph->flowid(),
+			iph->src() >> NODESHIFT, iph->src() & PORTMASK, // XXX
+			iph->dst() >> NODESHIFT, iph->dst() & PORTMASK, //XXx
+			-1);
 		namdump();
 	}
 #endif
