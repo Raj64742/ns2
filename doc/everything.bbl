@@ -51,6 +51,12 @@ S.~Deering, D.~Estrin, D.~Farinacci, V.~Jacobson, Ching-{G}ung Liu, and L.~Wei.
 \newblock Technical Report USC-SC-94-565, Computer Science Department,
   University of Southern California, Los Angeles, CA 90089., 1994.
 
+\bibitem{Feldmann99a}
+Anja Feldmann, Anna~C. Gilbert, Polly Huang, and Walter Willinger.
+\newblock Dynamics of {IP} traffic: A study of the role of variability and the
+  impact of control.
+\newblock pages 301--313, Cambridge, MA, USA, August 1999.
+
 \bibitem{Floy95:Reliable}
 S.~Floyd, V.~Jacobson, C.~Liu, S.~McCanne, and L.~Zhang.
 \newblock A reliable multicast framework for light-weight sessions and

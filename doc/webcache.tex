@@ -662,6 +662,102 @@ following major C++ methods:
 This page pool should support various cache replacement algorithms,
 however, it has not been implemented yet. 
 
+\subsection{PagePool/WebTraf}
+
+The class PagePool/WebTraf is a standalone Web traffic modle that utilizes
+PagePool framework. However, this class has nothing to do with the HttpApp 
+classes. Because we are only interested in using it to study Web traffic 
+pattern here, and do not want to be bothered with the burden of 
+transmitting HTTP headers, etc. It has the following two major data structures.
+Details can be found in ns/webcache/webtraf.cc and ns/webcache/webtraf.h, the
+architecture WebTraf model is also loosely described in~\cite{Feldmann99a}, 
+Section 2.4, paragraph 3-4 and the appendix A.1.
+
+\begin{itemize}
+\item \code{WebTrafSession} - a class that models Web user session. It is defined as follows:
+\begin{program}
+class WebTrafSession : public TimerHandler \{
+	public:   
+	        WebTrafSession(WebTrafPool *mgr, Node *src, int np, int id) : rvInterPage_(NULL),
+	        rvPageSize_(NULL), rvInterObj_(NULL), rvObjSize_(NULL), mgr_(mgr), src_(src), 
+	        nPage_(np), curPage_(0), donePage_(0), id_(id), interPageOption_(1) \{\} 
+	        virtual ~WebTrafSession();
+
+	        // Queried by individual pages/objects
+	        inline RandomVariable*& interPage() \{ return rvInterPage_; \}
+	        inline RandomVariable*& pageSize() \{ return rvPageSize_; \}
+	        inline RandomVariable*& interObj() \{ return rvInterObj_; \}
+	        inline RandomVariable*& objSize() \{ return rvObjSize_; \}
+		
+	        void donePage(void* ClntData); // all the pages within this
+	                                       // session have  been sent
+	        void launchReq(void* ClntData, int obj, int size);
+	        inline int id() const \{ return id_; \}
+	        inline WebTrafPool* mgr() \{ return mgr_; \}
+	 private:
+	        virtual void expire(Event *e = 0); // Lanuch request for a page
+	        virtual void handle(Event *e); // schedule the timer for next page
+
+	        RandomVariable *rvInterPage_, *rvPageSize_, *rvInterObj_, *rvObjSize_;
+	        WebTrafPool* mgr_;
+	        Node* src_;  // One Web client (source of request) per session
+	        nt nPage_; // number of pages per session
+	        int curPage_; // number of pages that have been sent
+	        int id_; // page ID
+	        int interPageOption_;
+\}
+\end{program}
+\item \code{WebPage} - a class that models Web Page. It is defined as follows:
+\begin{program}
+class WebPage : public TimerHandler \{
+	public:
+	        WebPage(int id, WebTrafSession* sess, int nObj, Node* dst) :
+	                id_(id), sess_(sess), nObj_(nObj), curObj_(0),
+	                doneObj_(0), dst_(dst) \{\}
+	        virtual ~WebPage() \{\}
+	        inline void start() \{ // Call expire() and schedule the next one if needed     
+	        void doneObject() \{ // All the objects within this page have been sent
+	        inline int id() const \{ return id_; \}
+	        Node* dst() \{ return dst_; \}
+	        inline int curObj() const \{ return curObj_; \}
+	        inline int doneObj() const \{ return doneObj_; \}
+	private:  
+	        virtual void expire(Event* = 0) \{ // Launch request for an object
+	        virtual void handle(Event *e) \{ // schedule the timer for the next object
+	        int id_; // object ID
+	        WebTrafSession* sess_; // the session that requested this page
+	        int nObj_; // number of object in this page
+	        int curObj_ ; // number of object that have been sent
+	        Node* dst_; //  server that this page has been requested from
+\}
+\end{program}
+\end{itemize}
+
+Following is a list of related OTcl methods to the WebTraf class.
+\begin{alist}
+set-num-session \tup{number-of-session} & set the total number of sessions in the WebTraf pool. \\
+set-num-server \tup{number-of-server} & set the total number of servers. \\
+set-num-client \tup{number-of-client} & set the total number clients. \\
+set-interPageOption \tup{option} & There are two ways to interpret \emph{inter-page} time: One is the time between the start of two consecutive page downloads by the same user, and the other is the time between the end of previous page download and the start of the following page by the same user.  \$option can be set 
+to either 0 or 1 (default is 1). When \$option is set to 1, the second interpretation is used for "inter-page" time. The first interpratation is adopted when \$option is set to 0. Note the resulted traffic volume using the first interpretation is much higher than the second interpretation. \\
+doneObj \tup{webpage} & all the objects in \$webpage have been sent. \\
+set-server \tup{id} \tup{node} & set \$node as server \$id. \\
+set-client \tup{id} \tup{node} & set \$node as client \$id. \\
+recycle \tup{tcp} \tup{sink} & Recycle a TCP source/sink pair. \\
+create-session \tup{session-index} \tup{pages-per-sess} & \\
+ \tup{launch-time} \tup{inter-page-rv} \tup{page-size-rv} & \\
+ \tup{inter-obj-rv} \tup{obj-size-rv} & 
+Create a Web session. \$session-index is the sesson index. \$pages-per-sess is
+the total number of pages per session. \$launch-time is session starting time. 
+\$inter-page-rv is the random variable that generates page inter-arrival time.
+\$page-size-rv is the random variable that generates number of objects per page.
+\$inter-obj-rv is the random variable that generates object inter-arrival time.
+\$obj-size-rv is the random variable that generates object size. \\
+\end{alist}
+
+The example script is available at ns/tcl/ex/web-traffic.tcl (also
+see ns/tcl/ex/large-scale-web-traffic.tcl for use of a large-scale web traffic 
+simulation)
 
 \section{Web client}
 \label{sec:webcache-client}
