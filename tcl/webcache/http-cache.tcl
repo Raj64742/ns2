@@ -17,7 +17,7 @@
 #
 # Implementation of web cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.10 1999/09/09 03:58:41 salehi Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.11 1999/10/01 22:08:29 haoboy Exp $
 
 Http/Cache instproc init args {
 	eval $self next $args
@@ -818,7 +818,7 @@ Http/Cache/Inval/Mcast instproc init-update-group { group } {
 
 	# Allow a cache to have multiple update groups. 
 	set snd [new Agent/HttpInval]
-	$snd set dst_ $group
+	$snd set dst_addr_ $group
 	$snd set dst_port_ 0
 	$self add-upd-sender $snd
 	$ns_ attach-agent $node_ $snd
