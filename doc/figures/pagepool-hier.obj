@@ -1,7 +1,7 @@
 %TGIF 4.0.12
-state(1,37,100.000,0,0,0,16,0,9,1,1,0,0,1,0,1,0,'Times-Roman',0,69120,0,0,0,10,0,0,1,1,0,16,0,0,1,1,1,0,1408,1088,0,0,2880,0).
+state(0,37,100.000,0,0,0,16,0,9,1,1,0,0,1,0,1,0,'Times-Roman',0,69120,0,0,0,10,0,0,1,1,0,16,0,0,1,1,1,0,1088,1408,0,0,2880,0).
 %
-% @(#)$Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/doc/figures/pagepool-hier.obj,v 1.1 1999/02/23 21:23:25 haoboy Exp $
+% @(#)$Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/doc/figures/pagepool-hier.obj,v 1.2 1999/02/23 21:53:05 haoboy Exp $
 % %W%
 %
 unit("1 pixel/pixel").

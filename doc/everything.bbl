@@ -10,7 +10,8 @@ C.~Alaettino\u{g}lu, A.U. Shankar, K.~Dussa-Zeiger, and I.~Matta.
 Paul Barford and Mark Crovella.
 \newblock Generating representative web workloads for network and server
   peformance evaluation.
-\newblock pages 151--160, June 1998.
+\newblock In {\em Proceedings of the~ACM SIGMETRICS}, pages 151--160, June
+  1998.
 
 \bibitem{Brak94:TCP}
 L.S. Brakmo, S.~O'Malley, and L.L. Peterson.
@@ -32,7 +33,7 @@ R.~Brown.
 \bibitem{Cao97:CacheConsistency}
 Pei Cao and Chengjie Liu.
 \newblock Maintaining strong cache consistency in the {World-Wide Web}.
-\newblock pages 12--21, May 1997.
+\newblock In {\em Proceedings of the~IEEE ICDCS}, pages 12--21, May 1997.
 
 \bibitem{Deer94a:Architecture}
 S.~Deering, D.~Estrin, D.~Farinacci, V.~Jacobson, Ching-{G}ung Liu, and L.~Wei.
