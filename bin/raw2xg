@@ -157,6 +157,9 @@ foreach $i (@lu) {
 }
 
 if ($plot_ecn && defined($pg[0])) {
+    if (!defined($d[0])) {
+	printf "\n\"skip-3\n0 1\n";
+    }
     @sorted_pg = sort (@pg);
     print "\n\"cong_act_packets\n", @pg[0..3], @sorted_pg;
 } 
