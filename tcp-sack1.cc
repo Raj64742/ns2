@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.38 2000/03/16 03:19:18 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.39 2000/07/10 01:56:59 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -119,7 +119,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 					tcph->seqno(), last_ack_);
 				abort();
 			}
-			scb_.UpdateScoreBoard (last_ack_, tcph);
+			scb_.UpdateScoreBoard (highest_ack_, tcph);
 			/*
 		 	 * Check for a duplicate ACK
 			 */
@@ -168,7 +168,7 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 			newtimer(pkt);
 		} else if (timeout_ == FALSE) {
 			/* got another dup ack */
-			scb_.UpdateScoreBoard (last_ack_, tcph);
+			scb_.UpdateScoreBoard (highest_ack_, tcph);
 			if (dupacks_ > 0)
 				dupacks_++;
 		}
@@ -231,6 +231,7 @@ sack_action:
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
 	pipe_ = int(cwnd_) - NUMDUPACKS;
+	//pipe_ = maxseq_ - highest_ack_ - NUMDUPACKS;
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	reset_rtx_timer(1,0);
 	fastrecov_ = TRUE;

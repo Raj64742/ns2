@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.11 1999/01/15 20:40:31 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/scoreboard.cc,v 1.12 2000/07/10 01:56:58 sfloyd Exp $ (LBL)";
 #endif
 
 /*  A quick hack version of the scoreboard  */
@@ -64,7 +64,7 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 	int retran_decr = 0;
 
 	//  If there is no scoreboard, create one.
-	if (length_ == 0) {
+	if (length_ == 0 && tcph->sa_length()) {
 		i = last_ack+1;
 		SBNI.seq_no_ = i;
 		SBNI.ack_flag_ = 0;
@@ -78,7 +78,29 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 			exit(1);
 		}
 	}	
-
+	
+	//  Advance the left edge of the block.
+	if (length_ && SBN[first_].seq_no_ <= last_ack) {
+		for (i=SBN[first_].seq_no_; i<=last_ack; i++) {
+			//  Advance the ACK
+			if (SBNI.seq_no_ <= last_ack) {
+				ASSERT(first_ == i%SBSIZE);
+				first_ = (first_+1)%SBSIZE; 
+				length_--;
+				ASSERT1(length_ >= 0);
+				SBNI.ack_flag_ = 1;
+				SBNI.sack_flag_ = 1;
+				if (SBNI.retran_) {
+					SBNI.retran_ = 0;
+					SBNI.snd_nxt_ = 0;
+					retran_decr++;
+				}
+				if (length_==0) 
+					break;
+			}
+		}
+	}
+	
 	for (sack_index=0; sack_index < tcph->sa_length(); sack_index++) {
 		sack_left = tcph->sa_left(sack_index);
 		sack_right = tcph->sa_right(sack_index);
@@ -96,28 +118,6 @@ int ScoreBoard::UpdateScoreBoard (int last_ack, hdr_tcp* tcph)
 				if (length_ >= SBSIZE) {
 					printf ("Error, scoreboard too large (increase SBSIZE for more space)\n");
 					exit(1);
-				}
-			}
-		}
-
-		//  Advance the left edge of the block.
-		if (SBN[first_].seq_no_ <= last_ack) {
-			for (i=SBN[(first_)%SBSIZE].seq_no_; i<=last_ack; i++) {
-				//  Advance the ACK
-				if (SBNI.seq_no_ <= last_ack) {
-					ASSERT(first_ == i%SBSIZE);
-					first_ = (first_+1)%SBSIZE; 
-					length_--;
-					ASSERT1(length_ >= 0);
-					SBNI.ack_flag_ = 1;
-					SBNI.sack_flag_ = 1;
-					if (SBNI.retran_) {
-						SBNI.retran_ = 0;
-						SBNI.snd_nxt_ = 0;
-						retran_decr++;
-					}
-					if (length_==0) 
-					  break;
 				}
 			}
 		}
