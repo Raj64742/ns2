@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.66 1997/08/19 18:54:43 heideman Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.67 1997/08/20 03:17:22 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -44,9 +44,9 @@ INCLUDES = \
 	@V_INCLUDES@
 
 LIB	= \
-	@V_LIB@ \
 	@V_LIBS@ \
 	@V_LIB_X11@ \
+	@V_LIB@ \
 	-lm @LIBS@
 
 INSTALL	= @INSTALL@
