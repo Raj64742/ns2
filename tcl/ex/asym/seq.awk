@@ -1,3 +1,8 @@
+BEGIN {
+	if (dir == "")
+		dir = ".";
+}	
+
 {
 if ($1 == "-" && ($5 == "tcp" || $5 == "ack")) {
 	split($9,a,"\.");
@@ -15,12 +20,12 @@ if ($1 == "-" && ($5 == "tcp" || $5 == "ack")) {
 	}
 	
 	if ($5 == "tcp" && !((saddr, sport, daddr, dport) in seqfile)) {
-		seqfile[saddr,sport,daddr,dport] = sprintf("seq-%d,%d-%d,%d.out", saddr, sport, daddr, dport);
+		seqfile[saddr,sport,daddr,dport] = sprintf("%s/seq-%d,%d-%d,%d.out", dir, saddr, sport, daddr, dport);
 		printf "TitleText: (%d,%d)->(%d,%d)\n", saddr, sport, daddr, dport > seqfile[saddr,sport,daddr,dport];
 		printf "Device: Postscript\n" > seqfile[saddr,sport,daddr,dport];
 	}
 	else if ($5 == "ack" && !((daddr, dport, saddr, sport) in ackfile)) {
-		ackfile[daddr,dport,saddr,sport] = sprintf("ack-%d,%d-%d,%d.out", daddr, dport, saddr, sport);
+		ackfile[daddr,dport,saddr,sport] = sprintf("%s/ack-%d,%d-%d,%d.out", dir, daddr, dport, saddr, sport);
 		printf "TitleText: (%d,%d)->(%d,%d)\n", daddr, dport, saddr, sport > ackfile[daddr,dport,saddr,sport];
 		printf "Device: Postscript\n" > ackfile[daddr,dport,saddr,sport];
 	}
