@@ -25,6 +25,7 @@
 
 #include <assert.h>
 #include <stdlib.h>  // due to definition of NULL
+#include <unistd.h>
 
 sb_uchar Codeword::minbit_array[256];
 sb_uchar Codeword::bitcount_array[256];
