@@ -21,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-bst.cc,v 1.3 1999/06/29 18:30:28 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-bst.cc,v 1.4 1999/07/02 21:02:05 haoboy Exp $";
 #endif
 
 #include <iostream.h>
@@ -40,12 +40,12 @@ static const char rcsid[] =
 
 int hdr_ump::offset_;
 
-typedef struct upstream_info_tag {
+struct upstream_info {
 	int dst;
 	int node_id;
 	char* oiflink;
-	struct upstream_info_tag* next;
-} upstream_info;
+	struct upstream_info* next;
+};
 
 class MCastBSTClassifier : public MCastClassifier {
 public:
@@ -191,7 +191,7 @@ void MCastBSTClassifier::recv(Packet *p, Handler *h)
 		// UMP option.
 		u_info = upstream_find(dst);
 		if (!u_info) {
-			cout << "Error: Mcast info does not exist\n";
+			printf("Error: Mcast info does not exist\n");
 			exit(0);
 		} // if
 		ump->isSet = 1;

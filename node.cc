@@ -52,12 +52,12 @@ public:
 LinkHead::LinkHead() : net_if_(0), node_(0), type_(0) { }
 
 int32_t LinkHead::label() {
-	if (net_if_)
-		return net_if_->intf_label();
-	else {
+		if (net_if_)
+				return net_if_->intf_label();
 		printf("Configuration error:  Network Interface missing\n");
 		exit(1);
-	}
+		// Make msvc happy
+		return 0;
 }
 
 int LinkHead::command(int argc, const char*const* argv)

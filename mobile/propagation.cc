@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  * 
  propagation.cc
- $Id: propagation.cc,v 1.2 1999/01/04 19:59:04 haldar Exp $
+ $Id: propagation.cc,v 1.3 1999/07/02 21:02:07 haoboy Exp $
 */
 
 #include <stdio.h>
@@ -73,15 +73,17 @@ Propagation::Pr(PacketStamp *, PacketStamp *, Phy *)
 {
 	fprintf(stderr,"Propagation model %s not implemented for generic NetIF\n",
 	  name);
-  abort();
+	abort();
+	return 0; // Make msvc happy
 }
 
 
 double
 Propagation::Pr(PacketStamp *, PacketStamp *, WirelessPhy *)
 {
-  fprintf(stderr,
-	  "Propagation model %s not implemented for SharedMedia interface\n",
-	  name);
-  abort();
+	fprintf(stderr,
+		"Propagation model %s not implemented for SharedMedia interface\n",
+		name);
+	abort();
+	return 0; // Make msvc happy
 }

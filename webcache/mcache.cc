@@ -26,7 +26,7 @@
 //
 // Multimedia cache implementation
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.1 1999/05/26 01:20:17 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.2 1999/07/02 21:02:19 haoboy Exp $
 
 #include <assert.h>
 #include <stdio.h>
@@ -436,6 +436,7 @@ int MClientPagePool::cache_replace(ClientPage *, int size)
 	fprintf(stderr, "cache_replace: cannot get enough space.\n");
 	Tcl::instance().eval("[Test instance] flush-trace");
 	abort();
+	return 0; // Make msvc happy
 }
 
 int MClientPagePool::remove_page(const char *name)
@@ -679,6 +680,7 @@ AppData* MediaCache::get_data(int& size, const AppData* req)
 		"MediaCache %s gets an unknown MediaRequest type %d\n",
 		name(), r->request());
 	abort();
+	return NULL; // Make msvc happy
 }
 
 // Add received media segment into page pool
@@ -993,7 +995,8 @@ AppData* MediaServer::get_data(int& size, const AppData *req)
 			name(), r->request());
 		abort();
 	}
-	/* NOTREACHED */
+	/*NOTREACHED*/
+	return NULL; // Make msvc happy
 }
 
 int MediaServer::command(int argc, const char*const* argv)

@@ -26,7 +26,7 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.4 1999/07/02 17:07:09 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.5 1999/07/02 21:02:15 haoboy Exp $
 
 #include <stdarg.h>
 
@@ -97,7 +97,7 @@ void MediaSegmentList::add(const MediaSegment& s)
 			s.start(), s.end());
 		fprintf(stderr, "List contents: ");
 		print();
-#if 0
+#if 1
 		//Tcl::instance().eval("[Test instance] flush-trace");
 		//abort();
 #endif
@@ -382,8 +382,8 @@ char* MediaSegmentList::dump2buf()
 	while (p != NULL) {
 		// XXX snprintf() should either be in libc or implemented
 		// by TclCL (see Tcl2.cc there).
-#ifdef NEED_SUNOS_PROTOS
-		snprintf(b, sz, "{%d %d} ", p->start(), p->end());
+#if (defined(NEED_SUNOS_PROTOS) || defined(WIN32))
+		sprintf(b, "{%d %d} ", p->start(), p->end());
 		i = strlen(b);
 #else
 		i = snprintf(b, sz, "{%d %d} ", p->start(), p->end());
@@ -943,7 +943,7 @@ bs2: %d\n", bs1, bs2);
 			// RAP should do that in its IpgTimeout()
 			// instead of DecreaseIpg(). See rap.cc.
 			if (layers == num_layer_){
-#if MCACHE_DEBUG
+#if 0
 				if (rate < num_layer_*LAYERBW_)
 					panic("ERROR: rate: %.2f is less than \
 MAX BW for all %d layers!\n", rate, layers);

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.cc,v 1.2 1999/06/23 23:41:56 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.cc,v 1.3 1999/07/02 21:02:08 haoboy Exp $";
 #endif
 
 #include "satposition.h"
@@ -242,7 +242,7 @@ PolarSatPosition::PolarSatPosition(float altitude, float Inc, float Lon,
 void PolarSatPosition::set(float Altitude, float Lon, float Alpha, float Incl)
 {
 	if (Altitude < 0) {
-		fprintf(stderr, "PolarSatPosition:  altitude out of 
+		fprintf(stderr, "PolarSatPosition:  altitude out of \
 		   bounds: %f\n", Altitude);
 		exit(1);
 	}
@@ -264,7 +264,7 @@ void PolarSatPosition::set(float Altitude, float Lon, float Alpha, float Incl)
 		initial_.phi = DEG_TO_RAD(Lon);
 	if (Incl < 0 || Incl > 180) {
 		// retrograde orbits = (90 < Inclination < 180)
-		fprintf(stderr, "PolarSatPosition:  inclination out of 
+		fprintf(stderr, "PolarSatPosition:  inclination out of \
 		    bounds: %f\n", Incl); 
 		exit(1);
 	}

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.cc,v 1.1 1999/06/21 18:28:49 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.cc,v 1.2 1999/07/02 21:02:08 haoboy Exp $";
 #endif
 
 #include "satroute.h"
@@ -288,7 +288,7 @@ void SatRouteObject::compute_topology()
 		phyrxp = channelp->ifhead_.lh_first;
 		for (; phyrxp; phyrxp = phyrxp->nextchnl()) {
 		    if (phyrxp == phytxp) {
-			printf("Configuration error:  a transmit interface 
+			printf("Configuration error:  a transmit interface \
 			  is a channel target\n");
 			exit(1);
 		    } 
@@ -305,7 +305,7 @@ void SatRouteObject::compute_topology()
 			phyrxp2 = channelp2->ifhead_.lh_first;
 			for (; phyrxp2; phyrxp2 = phyrxp2->nextchnl()) {
 		    	    if (phyrxp2 == phytxp2) {
-			        printf("Config error: a transmit interface 
+			        printf("Config error: a transmit interface \
 			          is a channel target\n");
 			        exit(1);
 			    }

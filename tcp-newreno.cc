@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.37 1999/03/13 03:53:06 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.38 1999/07/02 21:02:09 haoboy Exp $ (LBL)";
 #endif
 
 //
@@ -67,7 +67,7 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
 #endif
 	if (partial_window_deflation_) {
 		// Do partial window deflation before resetting last_ack_
-		unsigned int deflate;
+		unsigned int deflate = 0; // Should initialize it?? - haoboy
 		if (tcph->seqno() > last_ack_) // assertion
 			deflate = tcph->seqno() - last_ack_;
 		else 

@@ -2,11 +2,28 @@
 #include <ctype.h>
 #include "packet.h"
 
+// The following copied from ~tclcl/tcl2c++.c
+/*
+ * Define TCL2C_INT if your compiler has problems with long strings.
+ */
+#if defined(WIN32) || defined(_WIN32) || defined(__alpha__) || defined(__hpux)
+#define TCL2C_INT
+#endif
+
 char* p_info::name_[PT_NTYPE+1];
 
 void
 printLine(char *s) {
+#ifdef TCL2C_INT
+	for (unsigned int i = 0; i < strlen(s); i++) 
+		if ((i > 0) && ((i % 20) == 0))
+			printf("%u,\n", s[i]);
+		else
+			printf("%u,", s[i]);
+	printf("%u,%u,\n", '\\', '\n');
+#else
 	printf("%s\\n\\\n", s);
+#endif
 }
 
 char *
@@ -22,7 +39,11 @@ lcase(const char *s) {
 int main() {
 	p_info pinfo;
 
+#ifdef TCL2C_INT
+	printf("static const char code[] = {\n");
+#else
 	printLine("static const char code[] = \"");
+#endif
 	printLine("global ptype pvals");
 	printLine("set ptype(error) -1");
 	printLine("set pvals(-1) error");
@@ -48,7 +69,11 @@ int main() {
 	printLine("}");
 	printLine("set pvals($val)");
 	printLine("}");
+#ifdef TCL2C_INT
+	printf("0 };\n");
+#else
 	printf("\";\n");
+#endif
 	printf("#include \"tclcl.h\"\n");
 	printf("EmbeddedTcl et_ns_ptypes(code);\n");
 	return 0;

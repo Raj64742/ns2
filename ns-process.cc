@@ -26,7 +26,7 @@
 //
 // ADU and ADU processor
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ns-process.cc,v 1.1 1999/03/15 20:48:51 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ns-process.cc,v 1.2 1999/07/02 21:02:06 haoboy Exp $
 
 #include "ns-process.h"
 
@@ -47,6 +47,7 @@ AppData* Process::get_data(int&, const AppData*)
 {
 	abort();
 	/* NOTREACHED */
+	return NULL; // Make msvc happy 
 }
 
 int Process::command(int argc, const char*const* argv)

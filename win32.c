@@ -33,7 +33,7 @@
  * This module contributed by John Brezak <brezak@apollo.hp.com>.
  * January 31, 1996
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/win32.c,v 1.4 1998/09/17 16:33:10 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/win32.c,v 1.5 1999/07/02 21:02:10 haoboy Exp $ (LBL)
  */
 
 #ifdef WIN32
@@ -48,7 +48,7 @@
 #include <stdio.h>
 #include <time.h>
 #include <winsock.h>
-#include <tk.h>
+#include <tcl.h>
 #include "config.h"
 #include <locale.h>
 
