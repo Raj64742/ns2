@@ -18,13 +18,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.28 1998/05/11 19:13:51 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-newreno.cc,v 1.29 1998/05/14 01:15:17 sfloyd Exp $ (LBL)";
 #endif
 
 //
 // newreno-tcp: a revised reno TCP source, without sack
-//
-// first cut, Nov 1995;
 //
 
 #include <stdio.h>
@@ -36,6 +34,7 @@ static const char rcsid[] =
 #include "tcp.h"
 #include "flags.h"
 
+
 static class NewRenoTcpClass : public TclClass {
 public:
 	NewRenoTcpClass() : TclClass("Agent/TCP/Newreno") {}
@@ -44,20 +43,7 @@ public:
 	}
 } class_newreno;
 
-int NewRenoTcpAgent::window()
-{
-        //
-        // reno: inflate the window by dupwnd_
-        //      dupwnd_ will be non-zero during fast recovery,
-        //      at which time it contains the number of dup acks
-        //
-	int win = int(cwnd_) + dupwnd_;
-        if (win > int(wnd_))
-                win = int(wnd_);
-        return (win);
-}
-
-NewRenoTcpAgent::NewRenoTcpAgent() : dupwnd_(0), newreno_changes_(0), acked_(0)
+NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0), acked_(0)
 {
 	bind("newreno_changes_", &newreno_changes_);
 }
@@ -96,20 +82,20 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 
 	/* Use first packet to calculate the RTT  --contributed by Allman */
 
-	if (++acked_ == 1) 
-		basertt_ = Scheduler::instance().clock() - firstsent_;
-
-	/* Estimate ssthresh based on the calculated RTT and the estimated
-		bandwidth (using ACKs 2 and 3).  */
-
-	else if (acked_ == 2)
-		ack2_ = Scheduler::instance().clock();
-	else if (acked_ == 3) {
-		ack3_ = Scheduler::instance().clock();
-		new_ssthresh_ = int((basertt_ * (size_ / (ack3_ - ack2_))) / size_);
-		if (newreno_changes_ > 0 && new_ssthresh_ < ssthresh_)
-			ssthresh_ = new_ssthresh_;
-	}
+  	if (++acked_ == 1) 
+  		basertt_ = Scheduler::instance().clock() - firstsent_;
+  
+  	/* Estimate ssthresh based on the calculated RTT and the estimated
+  		bandwidth (using ACKs 2 and 3).  */
+  
+  	else if (acked_ == 2)
+  		ack2_ = Scheduler::instance().clock();
+  	else if (acked_ == 3) {
+  		ack3_ = Scheduler::instance().clock();
+  		new_ssthresh_ = int((basertt_ * (size_ / (ack3_ - ack2_))) / size_);
+  		if (newreno_changes_ > 0 && new_ssthresh_ < ssthresh_)
+  			ssthresh_ = new_ssthresh_;
+  	}
 
 #ifdef notdef
 	if (pkt->type_ != PT_ACK) {
@@ -125,14 +111,14 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		ecn();
 	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
-	    if (tcph->seqno() >= recover_ || 
-	       (last_cwnd_action_ != CWND_ACTION_DUPACK &&
-	        tcph->seqno() > last_ack_)) {
-			dupwnd_ = 0;
-			recv_newack_helper(pkt);
-			if (last_ack_ == 0 && delay_growth_) {
-				cwnd_ = initial_window();
-			}
+	    if (tcph->seqno() >= recover_ 
+	    	|| (last_cwnd_action_ != CWND_ACTION_DUPACK &&
+       		tcph->seqno() > last_ack_)) {
+		dupwnd_ = 0;
+		recv_newack_helper(pkt);
+		if (last_ack_ == 0 && delay_growth_) {
+			cwnd_ = initial_window();
+                }
 	    } else {
 		/* received new ack for a packet sent during Fast
 		 *  Recovery, but sender stays in Fast Recovery */
@@ -145,40 +131,25 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
                         return;
                 }
 		if (++dupacks_ == NUMDUPACKS) {
-			/*
-			 * Assume we dropped just one packet.
-			 * Retransmit last ack + 1
-			 * and try to resume the sequence.
-			 */
-                       /* The line below, for "bug_fix_" true, avoids
-                        * problems with multiple fast retransmits after
-			* a retransmit timeout.
-                        */
-			if ( (highest_ack_ > recover_) ||
-			    ( last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
-				last_cwnd_action_ = CWND_ACTION_DUPACK;
-				recover_ = maxseq_;
-				slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
-				reset_rtx_timer(1,0);
-				output(last_ack_ + 1, TCP_REASON_DUPACK);
-                        }
+			dupack_action();
 			dupwnd_ = NUMDUPACKS;
 		} else if (dupacks_ > NUMDUPACKS) {
-			++dupwnd_;
+			++dupwnd_;	// fast recovery
 			/* For every two duplicate ACKs we receive (in the
 			 * "fast retransmit phase"), send one entirely new
 			 * data packet "to keep the flywheel going".  --Allman
 			 */
 			if (newreno_changes_ > 0 && (dupacks_ % 2) == 1)
 				output (t_seqno_++,0);
-			
 		}
-        }
+
+	}
 	Packet::free(pkt);
 #ifdef notyet
 	if (trace_)
 		plot();
 #endif
+
 	/*
 	 * Try to send more data
 	 */
@@ -193,14 +164,3 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		send_much(0, 0, 2);
 }
 
-void NewRenoTcpAgent::timeout(int tno)
-{
-	if (tno == TCP_TIMER_RTX) {
-		dupwnd_ = 0;
-		dupacks_ = 0;
-		if (bug_fix_) recover_ = maxseq_;
-		TcpAgent::timeout(tno);
-	} else {
-		timeout_nonrtx(tno);
-	}
-}
