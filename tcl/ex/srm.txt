@@ -53,13 +53,15 @@ accurately yet.
 
 Example 4: srm-adapt-re[pq].tcl is a 8 node topology, identical to
 srm-star.tcl.  The simulation runs for 50s.  In the -req, the link
-incident to the source fails perioidically, causing data packets to be
+incident to the source fails periodically, causing data packets to be
 dropped.  This causes request parameter adaptation in all the other
 receivers.  The -rep form is the dual in which one of the receivers
 experiences the loss, and all the other members adapt their repair
 parameters to respond to this loss.  The default situation uses
 Adaptive timers, but can be setup to use Fixed timers by specifying it
 as a command line option (for e.g. ``../../ns srm-adapt-rep.tcl Fixed'').
+This allows us to compare adaptive timers with other types of timers
+(such as Fixed timers) in identical scenarios.
 
 In each of the examples, output statistics is written out to
 srmStats.tr.   Detailed event trace files are written to srmEvents.tr.
