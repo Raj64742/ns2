@@ -1,5 +1,5 @@
 
-# cOPYRight (c) 1995 The Regents of the University of California.
+# copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.25 2000/05/12 23:10:15 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.26 2000/05/16 21:33:23 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -54,7 +54,8 @@ TestSuite instproc finish file {
         ## now use default graphing tool to make a data file
         ## if so desired
 #       exec csh figure2.com $file
-#	exec csh gnuplotA.com temp1.rands $file
+#	exec cp temp1.rands temp.$file 
+#	exec csh gnuplotA.com temp.$file $file
 ###        exit 0
 }
 
@@ -183,8 +184,8 @@ TestSuite instproc finish_1 testname {
 
         exec cat temp.p >@ $f
         close $f
+	exec cp -f $graphfile temp2.rands
         if {$quiet == "false"} {
-		exec cp -f $graphfile temp2.rands
                 exec xgraph -bb -tk -x time -y packets temp2.rands &
         }
 #	exec csh gnuplotB.com temp2.rands $testname
@@ -783,8 +784,6 @@ Test/slow instproc run {} {
     $ns_ run
 }
 
-
-
 Class Test/twoDrops -superclass TestSuite
 Test/twoDrops instproc init {} {
     $self instvar net_ test_ drops_ stopTime1_
@@ -811,7 +810,7 @@ Test/manyDrops instproc init {} {
 ##  set stopTime1_ 100.0
     set stopTime1_ 100.0
 #    set drops_ " 0 1 "
-    set drops_ " 0 1 2 3 4 5 6 7 "
+    set drops_ " 0 1 2 3 4 5 6 "
     Test/manyDrops instproc run {} [Test/twoDrops info instbody run ]
     $self next
 }
@@ -847,6 +846,103 @@ Test/twoDrops instproc run {} {
 
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/HighLoss -superclass TestSuite
+Test/HighLoss instproc init {} {
+    $self instvar net_ test_ stopTime1_
+    set net_	net2
+    set test_ HighLoss	
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    set stopTime1_ 60
+    $self next
+}
+Test/HighLoss instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ stopTime1_
+    $self setTopo
+    set interval_ 1
+    set stopTime $stopTime1_
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    $ns_ at 0.0 "$tf1 start"
+
+    set udp1 [$ns_ create-connection UDP $node_(s2) UDP $node_(s4) 1]
+		set cbr1 [$udp1 attach-app Traffic/CBR]
+		$cbr1 set rate_ 3Mb
+		$ns_ at [expr $stopTime1_/3.0] "$cbr1 start"   
+		$ns_ at [expr 2.0*$stopTime1_/3.0] "$cbr1 stop"   
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/HighLossTCP -superclass TestSuite
+Test/HighLossTCP instproc init {} {
+    $self instvar net_ test_ stopTime1_
+    set net_	net2
+    set test_ HighLossTCP	
+    Agent/TFRCSink set discount_ 1
+    Agent/TFRCSink set smooth_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    set stopTime1_ 60
+    $self next
+}
+Test/HighLossTCP instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ stopTime1_
+    $self setTopo
+    set interval_ 1
+    set stopTime $stopTime1_
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    set ftp1 [$tcp1 attach-app FTP]
+    $ns_ at 0.0 "$ftp1 start"
+
+    set udp1 [$ns_ create-connection UDP $node_(s2) UDP $node_(s4) 1]
+		set cbr1 [$udp1 attach-app Traffic/CBR]
+		$cbr1 set rate_ 3Mb
+		$ns_ at [expr $stopTime1_/3.0] "$cbr1 start"   
+		$ns_ at [expr 2.0*$stopTime1_/3.0] "$cbr1 stop"   
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
     $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
