@@ -1129,6 +1129,7 @@ tcl/test/test-all-rap
 tcl/test/test-all-rbp
 tcl/test/test-all-realaudio
 tcl/test/test-all-red
+tcl/test/test-all-red-pd
 tcl/test/test-all-red-v1
 tcl/test/test-all-rfc2581
 tcl/test/test-all-rfc793edu
@@ -1510,6 +1511,10 @@ tcl/test/test-output-red/red_twoway.Z
 tcl/test/test-output-red/red_twowaybytes.Z
 tcl/test/test-output-red/ungentle.Z
 tcl/test/test-output-red/ungentleBadParams.Z
+tcl/test/test-output-red-pd/complete.Z
+tcl/test/test-output-red-pd/frp.Z
+tcl/test/test-output-red-pd/simple.Z
+tcl/test/test-output-red-pd/unresponsive.Z
 tcl/test/test-output-red-v1/ecn.Z
 tcl/test/test-output-red-v1/flows.Z
 tcl/test/test-output-red-v1/flows1.Z
