@@ -55,7 +55,7 @@ public:
 } class_channel_duplex;
 
 
-Channel::Channel() : DropConnector(), txstop_(0), cwstop_(0), numtx_(0), trace_(0)
+Channel::Channel() : DropConnector(), txstop_(0), cwstop_(0), numtx_(0), pkt_(0), trace_(0)
 {
 	bind_time("delay_", &delay_);
 	bind("off_ll_", &off_ll_);
