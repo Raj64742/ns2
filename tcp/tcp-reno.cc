@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.3 1997/01/26 23:26:26 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.4 1997/02/27 00:22:38 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -30,7 +30,7 @@ class RenoTcpAgent : public TcpAgent {
  public:
 	RenoTcpAgent();
 	virtual int window();
-	virtual void recv(Packet *pkt);
+	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
  protected:
 	u_int dupwnd_;
@@ -61,7 +61,7 @@ RenoTcpAgent::RenoTcpAgent() : dupwnd_(0)
 {
 }
 
-void RenoTcpAgent::recv(Packet *pkt)
+void RenoTcpAgent::recv(Packet *pkt, Handler*)
 {
 	if (pkt->type_ != PT_ACK) {
 		fprintf(stderr,
