@@ -173,3 +173,36 @@ IdPacketQueue::deque()
 	total_++;
 	return PacketQueue::deque();
 }
+
+
+#ifdef QUEUE_RR
+class RR : public Cdls {
+public:
+	RR() : Cdls(), curq_(0) {}
+	Packet* deque();
+protected:
+	int curq_;
+};
+
+
+static class RRClass : public TclClass {
+public:
+	RRClass() : TclClass("Queue/RR") {}
+	TclObject* create(int, const char*const*) {
+		return (new RR);
+	}
+} class_rr;
+
+Packet*
+RR::deque()
+{
+	if (qlen_ <= 0)
+		return 0;
+	for ( ; ; curq_ = (curq_ + 1) % numq_) {
+		if (q_[curq_]->length() > 0) {
+			qlen_--;
+			return q_[curq_]->deque();
+		}
+	}
+}
+#endif
