@@ -20,6 +20,7 @@ DVIPS=		dvips
 ##.PRECIOUS:	$(DVIOUT)
 
 all: doit $(PICTURES) $(POSTOUT)
+$(POSTOUT): $(DVIOUT)
 	
 .tex.dvi:
 	$(LATEX) $*
