@@ -44,7 +44,8 @@ RateLimitStrategy::RateLimitStrategy(double rate, int ptype, double share, doubl
   ptype_ = ptype;
   ptype_share_ = share;
   
-  printf("TB: Starting a token bucket at %g with rate %g bps\n", Scheduler::instance().clock(), rate);
+//  if (debug_)
+//    printf("TB: Starting a token bucket at %g with rate %g bps\n", Scheduler::instance().clock(), rate);
   rateEstimator_ = new RateEstimator(estimate);
   rateLimiter_ = new TokenBucketRateLimiter();
   
