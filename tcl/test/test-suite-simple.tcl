@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.34 2004/06/17 19:48:07 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.35 2004/09/22 22:56:48 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1800,7 +1800,8 @@ Test/statsTFRC instproc run {} {
 	$ns_ run
 }
 
-# printTimestamps.
+# Add a test to printTimestamps.
+# tcp-sink.cc, p. 337.
 
 TestSuite runTest
 
