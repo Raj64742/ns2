@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.215 2000/12/01 23:38:37 johnh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.216 2000/12/09 02:14:44 sfloyd Exp $
 
 #
 # Word of warning to developers:
@@ -833,7 +833,12 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
                                         $n1 $n2 $bw $delay $q]
                 }
         }
-	$n1 add-neighbor $n2
+	if {$qtype == "RED/Pushback"} {
+		set pushback 1
+	} else {
+		set pushback 0
+	}
+	$n1 add-neighbor $n2 $pushback
 	
 	#XXX yuck
 	if {[string first "RED" $qtype] != -1} {

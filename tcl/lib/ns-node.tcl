@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.84 2000/12/07 21:38:49 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.85 2000/12/09 02:14:44 sfloyd Exp $
 #
 
 Node set nn_ 0
@@ -535,12 +535,14 @@ Node instproc neighbors {} {
 	return [lsort $neighbor_]
 }
 
-Node instproc add-neighbor p {
+Node instproc add-neighbor {p {pushback 0}} {
 	$self instvar neighbor_
 	lappend neighbor_ $p
 	
 	#added for keeping the neighbor list in the Node (for pushback) - ratul
-	#$self cmd add-neighbor $p
+	if { $pushback == 1 } {
+		$self cmd add-neighbor $p
+	}
 }
 
 Node instproc is-neighbor { node } {
