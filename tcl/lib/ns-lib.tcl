@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.103 1998/05/23 02:50:33 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.104 1998/05/27 17:15:42 haldar Exp $
 
 #
 
@@ -56,6 +56,17 @@ if {[info commands debug] == ""} {
 		warn {Script debugging disabled.  Reconfigure with --with-tcldebug, and recompile.}
 	}
 }
+
+proc find-max list {
+	set max 0
+	foreach val $list {
+		if {$val > $max} {
+			set max $val
+		}
+	}
+	return $max
+}
+
 
 #
 # Create the core OTcl class called "Simulator".
@@ -161,7 +172,7 @@ Simulator instproc node args {
 	if [Simulator set EnableMcast_] {
 		$node enable-mcast $self
 	}
-	
+	$self check-node-num
 	return $node
 }
 
@@ -179,6 +190,7 @@ Simulator instproc hier-node haddr {
 	if [Simulator set EnableMcast_] {
 		$hiernode hier-enable-mcast $self
 	}
+	$self check-node-num
 	return $hiernode
 }
 # Simulator instproc hier-node haddr 
@@ -296,8 +308,52 @@ Simulator instproc dump-namaddress {} {
 	}
 }
 
+#
+# check if total num of nodes exceed 2 to the power n 
+# where <n=node field size in address>
+#
+Simulator instproc check-node-num {} {
+	AddrParams instvar nodebits_ 
+	if {[Node set nn_] > [expr pow(2, $nodebits_)]} {
+		error "Number of nodes exceeds node-field-size of $nodebits_ bits"
+	}
+	if [Simulator set EnableHierRt_] {
+		$self chk-hier-field-lengths
+	}
+}
+
+#
+# Check if number of items at each hier level (num of nodes, or clusters or domains)
+# exceed size of that hier level field size (in bits). should be modified to support 
+# n-level of hierarchies
+#
+Simulator instproc chk-hier-field-lengths {} {
+	AddrParams instvar domain_num_ cluster_num_ nodes_num_ NodeMask_
+	
+	if [info exists domain_num_] {
+		if {[expr $domain_num_ - 1]> $NodeMask_(1)} {
+			error "\# of domains exceed dom-field-size "
+		}
+	} 
+	if [info exists cluster_num_] {
+		set maxval [expr [find-max $cluster_num_] - 1] 
+		if {$maxval > [expr pow(2, $NodeMask_(2))]} {
+			error "\# of clusters exceed clus-field-size "
+		}
+	}
+	if [info exists nodes_num_] {
+		set maxval [expr [find-max $nodes_num_] -1]
+		if {$maxval > [expr pow(2, $NodeMask_(3))]} {
+			error "\# of nodess exceed node-field-size"
+		}
+	}
+}
+
+
 Simulator instproc run {} {
 	#$self compute-routes
+
+	$self check-node-num
 	$self rtmodel-configure			;# in case there are any
 	[$self get-routelogic] configure
 	$self instvar scheduler_ Node_ link_ started_ 
