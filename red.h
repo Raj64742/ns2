@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.20 2000/07/09 16:35:20 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.21 2000/07/19 04:43:11 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -61,6 +61,7 @@
 
 #include "queue.h"
 
+#include "trace.h"
 class LinkDelay;
 
 /*
@@ -134,6 +135,10 @@ class REDQueue : public Queue {
 	int qib_;	/* bool: queue measured in bytes? */
 	NsObject* de_drop_;	/* drop_early target */
 
+	//added to be able to trace EDrop Objects - ratul
+	//the other events - forced drop, enque and deque are traced by a different mechanism.
+	NsObject * EDTrace;    //early drop trace
+
 	Tcl_Channel tchan_;	/* place to write trace records */
 	TracedInt curq_;	/* current qlen seen by arrivals */
 	void trace(TracedVar*);	/* routine to write trace records */
@@ -157,10 +162,11 @@ class REDQueue : public Queue {
 	int idle_;		/* queue is idle? */
 	double idletime_;	/* if so, since this time */
 	edv edv_;		/* early-drop variables */
-	int first_reset_;	/* first time reset() is called */
+	int first_reset_;       /* first time reset() is called */
 
 	void print_edp();	// for debugging
 	void print_edv();	// for debugging
+
 };
 
 #endif

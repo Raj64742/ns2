@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.48 2000/07/09 16:30:57 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.49 2000/07/19 04:43:11 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -78,7 +78,7 @@ public:
 } class_red;
 
 REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
-	tchan_(0), idle_(1), first_reset_(1)
+	tchan_(0), idle_(1), first_reset_(1), EDTrace(NULL)
 {
 	bind_bool("bytes_", &edp_.bytes);	    // boolean: use bytes?
 	bind_bool("queue_in_bytes_", &qib_);	    // boolean: q in bytes?
@@ -129,13 +129,13 @@ void REDQueue::reset()
 	 * by the size of an average packet (which is specified by user).
 	 */
 
-	if (qib_ && first_reset_ == 1) {
-		//printf ("edp_.th_min: %5.3f \n", edp_.th_min);
-		edp_.th_min *= edp_.mean_pktsize;
-		edp_.th_max *= edp_.mean_pktsize;
-		//printf ("edp_.th_min: %5.3f \n", edp_.th_min);
-		first_reset_ = 0;
-	}
+        if (qib_ && first_reset_ == 1) {
+                //printf ("edp_.th_min: %5.3f \n", edp_.th_min);
+                edp_.th_min *= edp_.mean_pktsize;  
+                edp_.th_max *= edp_.mean_pktsize;
+                //printf ("edp_.th_min: %5.3f \n", edp_.th_min);
+                first_reset_ = 0;
+        }
 
 	/*
 	 * Compute the "packet time constant" if we know the
@@ -166,7 +166,12 @@ void REDQueue::reset()
 		idletime_ = Scheduler::instance().clock();
 	else
 		idletime_ = 0.0; /* sched not instantiated yet */
+	
+	if (debug_) 
+		printf("Doing a queue reset\n");
 	Queue::reset();
+	if (debug_) 
+		printf("Done queue reset\n");
 
 	bcount_ = 0;
 }
@@ -449,9 +454,18 @@ void REDQueue::enque(Packet* pkt)
 			bcount_ -= ((hdr_cmn*)pkt_to_drop->access(off_cmn_))->size();
 			pkt = pkt_to_drop; /* XXX okay because pkt is not needed anymore */
 		}
+	
+		//trace first if asked 
+		// if no snoop object (de_drop_) is defined, 
+		// this drop will show up twice in the tracefile.
+		// first because of this and then because of call "drop(pkt)"
+
 		// deliver to special "edrop" target, if defined
-		if (de_drop_ != NULL)
+		if (de_drop_ != NULL) {
+			if (EDTrace != NULL) 
+				((Trace *)EDTrace)->recvOnly(pkt);
 			de_drop_->recv(pkt);
+		}
 		else
 			drop(pkt);
 	} else {
@@ -487,6 +501,17 @@ int REDQueue::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "early-drop-target") == 0) {
 			if (de_drop_ != NULL)
 				tcl.resultf("%s", de_drop_->name());
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "edrop-trace") == 0) {
+			if (EDTrace != NULL) {
+				tcl.resultf("%s", EDTrace->name());
+				//printf("Exists according to RED\n");
+			}
+			else {
+				//printf("Doesn't exist according to RED\n");
+				tcl.resultf("0");
+			}
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
@@ -525,6 +550,20 @@ int REDQueue::command(int argc, const char*const* argv)
 			de_drop_ = p;
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "attach-edrop-trace") == 0) {
+			//printf("Ok, Here\n");
+			NsObject * t  = (NsObject *)TclObject::lookup(argv[2]);
+			if (debug_)  printf("Ok, Here too\n");
+			//	if (t == 0) {
+			//	tcl.resultf("no object %s", argv[2]);
+			//	return (TCL_ERROR);
+			//	}
+			if (debug_)  printf("Ok, Here too too %s\n", t->name());
+			EDTrace = t;
+			if (debug_)  printf("Ok, Here too too too %d\n", ((Trace *)EDTrace)->type_);
+			return (TCL_OK);
+		}
+		
 		if (!strcmp(argv[1], "packetqueue-attach")) {
 			delete q_;
 			if (!(q_ = (PacketQueue*) TclObject::lookup(argv[2])))
