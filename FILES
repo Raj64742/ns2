@@ -19,6 +19,7 @@ conf/configure.in.otcl
 conf/configure.in.Tcl
 conf/configure.in.misc
 conf/configure.in.tail
+conf/configure.in.tcldebug
 config.guess
 config.h
 config.sub
@@ -62,6 +63,8 @@ red.cc
 replicator.cc
 rlm.cc
 route.cc
+rtProto.cc
+rtProto.h
 rtp.h
 rtp.cc
 rtcp.cc
@@ -101,6 +104,8 @@ tcl/lib/ns-nam.tcl
 tcl/lib/ns-node.tcl
 tcl/lib/ns-source.tcl
 tcl/lib/ns-trace.tcl
+tcl/lib/ns-agent.tcl
+tcl/lib/ns-random.tcl
 tcl/nam-demo/nstonam.awk
 tcl/old/ns_default.tcl
 tcl/old/test-suite.tcl

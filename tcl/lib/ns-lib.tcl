@@ -30,8 +30,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.22 1997/04/03 22:44:07 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.23 1997/04/09 00:10:12 kannan Exp $
 #
+
+if {[info commands debug] == ""} {
+    proc debug args {
+	puts stderr "Script debugging disabled.  Reconfigure with the --with-tcldebug option, and recompile."
+    }
+}
 
 #
 # Create the core OTcl class called "Simulator".
@@ -48,6 +54,8 @@ source ns-compat.tcl
 source ns-nam.tcl
 source ns-packet.tcl
 source ns-trace.tcl
+source ns-agent.tcl
+source ns-random.tcl
 source ../rtp/session-rtp.tcl
 source ../rtglib/dynamics.tcl
 source ../rtglib/route-proto.tcl
@@ -298,19 +306,26 @@ Simulator proc instance {} {
     abort "Cannot find instance of simulator"
 }
 		
-Simulator instproc get-node-by-id id {
-    $self instvar Node_
-    return $Node_($id)
+Simulator proc get-node-by-id id {
+    set ns [Simulator instance]
+    $ns instvar Node_
+    return [$ns set Node_($id)]
 }
 
-Simulator instproc all-nodes-list {} {
-    $self instvar Node_
-    array names Node_
+Simulator proc all-nodes-list {} {
+    set ns [Simulator instance]
+    $ns instvar Node_
+    set nodes ""
+    foreach n [$ns array names Node_] {
+	lappend nodes $Node_($n)
+    }
+    return $nodes
 }
 
-Simulator instproc link { n1 n2 } {
-    $self instvar link_
-    return $link_([$n1 id]:[$n2 id])
+Simulator proc link { n1 n2 } {
+    set ns [Simulator instance]
+    $ns instvar link_
+    return [$ns set link_([$n1 id]:[$n2 id])]
 }
 
 # Creates connection. First creates a source agent of type s_type and binds

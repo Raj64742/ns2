@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.14 1997/04/01 02:34:02 bajaj Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.15 1997/04/09 00:10:03 kannan Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -41,7 +41,7 @@ LIB =  @V_LIB_BTCL@ \
 	@V_LIB_OTCL@ \
 	@V_LIB_TK@ \
 	@V_LIB_X11@ \
-	@V_LIB_TCL@ \
+	@V_LIB_TCL@ @V_LIB_TCLDEBUG@ \
 	@V_LIB@ \
 	-lm @LIBS@
 
@@ -85,7 +85,7 @@ OBJ_CC = \
 	loss-monitor.o queue-monitor.o message.o ivs.o integrator.o \
 	scoreboard.o tcp-sack1.o \
 	session-rtp.o rtp.o rtcp.o ip.o sfq.o fq.o drr.o \
-	dynalink.o
+	dynalink.o rtProtoDV.o
 #	cbq.o
 
 OBJ_NAM = \
@@ -110,7 +110,9 @@ SRC =	$(OBJ_C:.o=.c) $(OBJ_CC:.o=.cc) $(OBJ_NAM:.o=.cc) \
 OBJ =	$(OBJ_C) $(OBJ_CC) $(OBJ_GEN)
 HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	object.h packet.h random.h scheduler.h scoreboard.h tcp.h trace.h \
-	cbr.h rtp.h cbr.h classifier.h connector.h ip.h
+	cbr.h rtp.h cbr.h classifier.h connector.h ip.h \
+	delay.h \
+	rtProtoDV.h
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) gen/* core core.ns core.nsx
 
@@ -139,6 +141,8 @@ NS_TCL_LIB = \
 	tcl/lib/ns-source.tcl \
 	tcl/lib/ns-nam.tcl \
 	tcl/lib/ns-trace.tcl \
+	tcl/lib/ns-agent.tcl \
+	tcl/lib/ns-random.tcl \
 	tcl/rtp/session-rtp.tcl \
 	tcl/rtglib/dynamics.tcl \
 	tcl/rtglib/route-proto.tcl

@@ -84,6 +84,10 @@ Tcl_AppInit(Tcl_Interp *interp)
 	et_ns_lib.load();
 	init_misc();
 
+#ifdef TCL_DEBUG
+	Dbg_Init(interp);	/* Always returns TCL_OK */
+#endif /* TCL_DEBUG */
+
 #ifdef TCL_TEST
     if (Tcltest_Init(interp) == TCL_ERROR) {
 	return TCL_ERROR;

@@ -33,14 +33,14 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.9 1997/03/29 22:58:06 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.10 1997/04/09 00:10:05 kannan Exp $ (LBL)";
 #endif
 
 #include "delay.h"
 
 static class LinkDelayClass : public TclClass {
 public:
-	LinkDelayClass() : TclClass("Delay/Link") {}
+	LinkDelayClass() : TclClass("DelayLink") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new LinkDelay);
 	}

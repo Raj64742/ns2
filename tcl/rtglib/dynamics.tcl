@@ -1,6 +1,6 @@
 Class rtQueue
 
-Dynamic/Link set status_ 1
+DynamicLink set status_ 1
 
 Simulator instproc rtmodel { dist parms args } {
     set ret ""
@@ -21,7 +21,7 @@ Simulator instproc rtmodel { dist parms args } {
 SimpleLink instproc dynamic ns {
     $self instvar dynamics_ queue_ head_ drpT_
 
-    set dynamics_ [new Dynamic/Link]
+    set dynamics_ [new DynamicLink]
     $dynamics_ target $head_
     set head_ $dynamics_
     if [info exists drpT_] {
@@ -142,11 +142,11 @@ rtModel instproc init { ns args } {
 	set nodes_($nc) $n1
 	incr nc
 
-	set links_($lc) [$ns link $n0 $n1]
+	set links_($lc) [Simulator link $n0 $n1]
 	$links_($lc) dynamic $ns
 	incr lc
 
-	set links_($lc) [$ns link $n1 $n0]
+	set links_($lc) [Simulator link $n1 $n0]
 	$links_($lc) dynamic $ns
 	incr lc
     } else {
@@ -159,11 +159,11 @@ rtModel instproc init { ns args } {
 	    set nodes_($nc) $n1
 	    incr nc
 
-	    set links_($lc) [$ns link $n0 $n1]
+	    set links_($lc) [Simulator link $n0 $n1]
 	    $links_($lc) dynamic $ns
 	    incr lc
 
-	    set links_($lc) [$ns link $n1 $n0]
+	    set links_($lc) [Simulator link $n1 $n0]
 	    $links_($lc) dynamic $ns
 	    incr lc
 	}
@@ -229,7 +229,6 @@ rtModel instproc log-dynamic op {
 
 rtModel instproc create-trace f {
     $self instvar trace_
-    puts stderr "$self/$proc/$class So, why do I come here?"
     set trace_ $f
 }
 
@@ -241,11 +240,6 @@ Class rtModel/Exponential -superclass rtModel
 
 rtModel/Exponential set upInterval_   10.0
 rtModel/Exponential set downInterval_  1.0
-
-#Code to generate random numbers here
-proc exponential {} {
-    return [expr - log ([ns-random] / 0x7fffffff)]
-}
 
 rtModel/Exponential instproc init { ns parms args } {
     $self next $ns $args

@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.55 1997/04/03 03:09:22 wslee Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.56 1997/04/09 00:10:01 kannan Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>ns: Change History</h1>
@@ -15,6 +15,49 @@
 <h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</a>
 [PENDING RELEASE DATE]</h3>
 <ul>
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue Apr  8 16:33:49 PDT 1997</b><br>
+Added Distance Vector dynamic routing to <em>ns</em>;
+As a side effect, created the C++ random functions in
+tcl/lib/ns-random.tcl.<br>
+At some point, a test-suite-routed.tcl will be provided to show examples
+of routing.<br>
+Files affected:
+rtProtoDV.cc (<b>new</b>), rtProtoDV.h (<b>new</b>),
+trace.h,
+tcl/lib/ns-lib.tcl, tcl/lib/ns-random.tcl (<b>new</b>),
+tcl/rtglib/route-proto.tcl.
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue Apr  8 16:33:49 PDT 1997</b><br>
+Created a AgentClass, dervied from TclClass.
+Removed NullAgentClass, and moved Agent/Null into tcl/lib/ns-agent.tcl
+<br>
+Files affected:
+agent.cc, Makefile.in, tcl/lib/ns-lib.tcl,
+tcl/lib/ns-agent.tcl (<b>new</b>).
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue Apr  8 16:33:49 PDT 1997</b><br>
+Added TCL debugger capabilities to <em>ns</em>.<br>
+To use, reconfigure <em>ns</em> with <a
+href=http://expect.nist.gov/tcl-debug/tcl-debug.tar.gz>tcl-debug 5.20</a>.
+In your script, add `debug 1' at the location you want to start
+debugging.<br>
+More details about the Tcl debugger are in 
+<a href=http://expect.nist.gov/doc/tcl-debug.ps.Z>Don Libes' paper</a>.<br>
+Files affected:
+tclAppInit.cc, configure.in, tcl/lib/ns-lib.tcl,
+conf/configure.in.tcldebug (<b>new</b>).
+
+<li><b><a href="http://www.isi.edu/~kannan/">[KVa]</a></b>
+<b>Tue Apr  8 16:33:49 PDT 1997</b><br>
+Moved class <code>Delay/Link</code> to class <code>DelayLink</code>.<br>
+Files affected:
+delay.cc, tcl/ex/fq-cbr.tcl, tcl/ex/fq.tcl,
+tcl/lib/ns-default.tcl, tcl/lib/ns-link.tcl.
+</p>
+
 <li><b><a href="http://www.parc.xerox.com/csl/members/bajaj">[SB]</a></b>
 <b>Mon Mar 31 17:46:04 PST 1997</b><br>
 Added deficit round robin scheduling (drr.cc)

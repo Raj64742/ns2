@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq-cbr.tcl,v 1.1 1997/03/29 01:43:13 mccanne Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq-cbr.tcl,v 1.2 1997/04/09 00:10:10 kannan Exp $
 #
 
 set ns [new Simulator]
@@ -49,7 +49,7 @@ FQLink instproc init { src dst bw delay nullAgent } {
 	set drpT_ $nullAgent
 	set nactive_ 0
 	set queue_ [new Queue/FQ]
-	set link_ [new Delay/Link]
+	set link_ [new DelayLink]
 	$link_ set bandwidth_ $bw
 	$link_ set delay_ $delay
 

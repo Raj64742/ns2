@@ -1,6 +1,6 @@
 #ifndef lint
 static char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/dynalink.cc,v 1.1 1997/03/25 22:22:13 kannan Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/dynalink.cc,v 1.2 1997/04/09 00:10:06 kannan Exp $";
 #endif
 
 #include "connector.h"
@@ -20,7 +20,7 @@ protected:
 
 static class DynamicLinkClass : public TclClass {
 public:
-	DynamicLinkClass() : TclClass("Dynamic/Link") {}
+	DynamicLinkClass() : TclClass("DynamicLink") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new DynamicLink);
 	}

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.3 1997/03/29 01:43:11 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.4 1997/04/09 00:10:08 kannan Exp $
  */
 
 #ifndef ns_trace_h
@@ -55,10 +55,12 @@
 #define PT_MESSAGE      10
 #define PT_RTCP         11
 #define PT_RTP          12
-#define PT_NTYPE        13
+#define PT_RTPROTO_DV	13
+#define PT_NTYPE        14
 
 #define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack", \
-        "start", "stop", "prune", "graft", "message", "rtcp", "rtp"
+        "start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
+	"rtProtoDV"
 
 struct hdr_cmn {
 	int		ptype_;
