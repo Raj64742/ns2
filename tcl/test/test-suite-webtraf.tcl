@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webtraf.tcl,v 1.2 2001/11/28 23:04:28 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webtraf.tcl,v 1.3 2002/01/27 05:04:31 sfloyd Exp $
 
 # UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false
@@ -200,6 +200,7 @@ TestSuite instproc create-session { ns np } {
 		$objSize set shape_ 1.2
 		$pool create-session $i $np 0.1 $interPage $pageSize \
 				$interObj $objSize
+		# from webcache/webtraf.cc
 	}
 }
 
