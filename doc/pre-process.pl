@@ -1,5 +1,9 @@
 #!/local/bin/perl
 
+die "usage: $0 working-directory\n" if ($#ARGV < 0);
+my($working_dir) = $ARGV[0];
+chdir($working_dir) || die "cannot chdir $working_dir\n";
+
 @FILES = `ls *.tex`;
 
 foreach $filename (@FILES) {

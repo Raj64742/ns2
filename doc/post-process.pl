@@ -1,4 +1,9 @@
 #!/local/bin/perl
+
+die "usage: $0 working-directory\n" if ($#ARGV < 0);
+my($working_dir) = $ARGV[0];
+chdir($working_dir) || die "cannot chdir $working_dir\n";
+
 require "ctime.pl";
 
 %MonthTbl = ('jan', 'January', 'feb', 'February', 'mar', 'March', 'apr', 'April', 'may', 'May', 'jun', 'June', 'jul', 'July', 'aug', 'August', 'sep', 'September', 'oct', 'October', 'nov', 'November', 'dec', 'December');

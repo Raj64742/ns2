@@ -1,11 +1,12 @@
 #
-# $Id: Makefile,v 1.6 1999/05/11 23:45:34 haldar Exp $
+# $Id: Makefile,v 1.7 1999/05/12 22:33:25 heideman Exp $
 #
 
-LATEX2HTMLDIR=	/home/salehi/latex2html
-LATEX2HTML=	$(LATEX2HTMLDIR)/latex2html
-PRE_PROCESS=	./pre-process.pl
-POST_PROCESS=	./post-process.pl
+	# by default, just assume latex2html is in the user's path
+LATEX2HTML=	latex2html
+PRE_PROCESS=	pre-process.pl
+POST_PROCESS=	post-process.pl
+L2H_WORKING_DIR = ./l2h
 
 LATEX=          latex
 BIBTEX=         bibtex
@@ -47,13 +48,14 @@ FILES= \
 all: everything.dvi everything.ps everything.html
 
 everything.html: $(FILES)
-	@$(RM) -rf /tmp/everything
-	@mkdir /tmp/everything
-	@$(CP) -r * /tmp/everything
-	@cd /tmp/everything ; $(PRE_PROCESS) ; $(LATEX2HTML) everything.tex ; \
-		cd everything ; $(POST_PROCESS) 
-	@$(RM) -rf /tmp/everything/everything/*.org
-	@$(CP) -rf /tmp/everything/everything/* .
+	$(RM) -rf $(L2H_WORKING_DIR)
+	mkdir $(L2H_WORKING_DIR)
+	$(CP) -r *.{sty,tex,aux,bib,bbl,log} figures $(L2H_WORKING_DIR)
+	$(PRE_PROCESS)  $(L2H_WORKING_DIR);
+	cd $(L2H_WORKING_DIR); $(LATEX2HTML) everything.tex ;
+	$(POST_PROCESS) $(L2H_WORKING_DIR)
+	$(RM) -f $(L2H_WORKING_DIR)/everything/*.org
+	$(CP) -f $(L2H_WORKING_DIR)/everything/* .
 
 everything.ps: $(FILES) everything.dvi
 	dvips -f everything >everything.ps
