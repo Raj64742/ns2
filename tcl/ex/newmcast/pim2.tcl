@@ -22,6 +22,8 @@
  #
 ## register test 1 [1 lan]
 
+# NOTE: Only work for old nam
+
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
 

@@ -27,6 +27,8 @@
 #           |
 #          |2|
 
+# currently broken.
+
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
 
@@ -35,6 +37,12 @@ set n1 [$ns node]
 set n2 [$ns node]
 set n3 [$ns node]
 
+#$ns color 2 black
+#$ns color 112 red
+#$ns color 106 green
+#$ns color 104 blue
+#$ns color 1 DarkGreen
+
 set f [open out-pim1.tr w]
 $ns trace-all $f
 
@@ -42,6 +50,14 @@ Simulator set NumberInterfaces_ 1
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
+
+#$ns duplex-link-op $n0 $n1 orient right
+#$ns duplex-link-op $n1 $n2 orient right-up
+#$ns duplex-link-op $n1 $n3 orient right-down
+
+#$ns duplex-link-op $n0 $n1 queuePos 0.5
+#$ns duplex-link-op $n1 $n0 queuePos 0.5
+#$ns duplex-link-op $n3 $n1 queuePos 0.5
 
 set pim0 [new PIM $ns $n0 [list 1 1 0]]
 set pim1 [new PIM $ns $n1 [list 0 1 0]]
@@ -92,11 +108,9 @@ $ns at 0.0 "$ns run-mcast"
 proc finish {} {
         global ns
         $ns flush-trace
-        exec awk -f ../../nam-demo/nstonam.awk out-pim1.tr > pim1-nam.tr
-        # exec rm -f out
         #XXX
         puts "running nam..."
-        exec nam pim1-nam &
+        exec nam out-pim1 &
         exit 0
 }
 

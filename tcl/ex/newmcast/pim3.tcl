@@ -91,6 +91,8 @@ $ns at 2.2 "$sender0 send \"pkt5\""
 $ns at 2.5 "finish"
 # $ns at 2.01 "finish"
 
+# NOTE: only work for old nam.
+
 proc finish {} {
         global ns
         $ns flush-trace

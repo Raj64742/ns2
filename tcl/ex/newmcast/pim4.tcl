@@ -23,6 +23,8 @@
 ## modified register loop test 2,...
 ## testing joins and prunes
 
+# NOTE: only work for old nam
+
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
 

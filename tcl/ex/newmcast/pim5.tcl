@@ -22,6 +22,8 @@
  #
 ## testing joins and prunes.. richer 7 node topology
 
+# NOTE: only work for old nam
+
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
 
