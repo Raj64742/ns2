@@ -1,7 +1,12 @@
-%  	This draft written by Tom Henderson (8/29/97) based on John Heidemann's
+%       This draft written by Tom Henderson (8/29/97) based on John Heidemann's
 %   code comments.
 %
-\section{\shdr{Timers}{timer-handler.h}{sec:timers}}
+%
+% If you get conflicts, here's what you need to keep:  The chapter heading
+% in the first entry is essential.  The \endinput at end is useful.
+% Other mods are to promote each sub*section one level up.
+%
+\chapter{\shdr{Timers}{timer-handler.h}{sec:timers}}
 
 Timers may be implemented in C++ or OTcl.  In C++, timers are based on an 
 abstract base class defined in \code{timer-handler.h}.  They are most often 
@@ -13,7 +18,7 @@ In OTcl, a simple timer class is defined in \code{tcl/ex/timer.tcl}.
 Subclasses can be derived to provide a simple mechanism for scheduling events 
 at the OTcl level.
 
-\subsection{\shdr{C++ abstract base class TimerHandler}{timer-handler.h}{sec:abstractbaseclass}}
+\section{\shdr{C++ abstract base class TimerHandler}{timer-handler.h}{sec:abstractbaseclass}}
 
 The abstract base class \code{TimerHandler} contains the following public member functions:
 \begin{tt}
@@ -58,7 +63,7 @@ Finally, two private inline functions are defined:
 From this code we can see that timers make use of methods of the 
 \code{Scheduler} class.
 
-\subsubsection{\shdr{Definition of a new timer}{timer-handler.h}{sec:definition}}
+\subsection{\shdr{Definition of a new timer}{timer-handler.h}{sec:definition}}
 
 To define a new timer, subclass this function and define handle() if needed 
 (handle() is not always required):
@@ -102,7 +107,7 @@ Often \code{MyTimer} will be a friend of \code{MyAgentClass}, or
 Timers are not directly accessible from the OTcl level, although users are
 free to establish method bindings if they so desire.
 
-\subsubsection{\shdr{Example: Tcp retransmission timer}{tcp.cc}{sec:timerexample}}
+\subsection{\shdr{Example: Tcp retransmission timer}{tcp.cc}{sec:timerexample}}
 
 TCP is an example of an agent which requires timers.  There are three timers
 defined in the basic Tahoe TCP agent defined in \code{tcp.cc}:
@@ -167,7 +172,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 \end{small}
 
 In the following, we will focus only on the retransmission timer.  Various
-helper methods may be defined to schedule timer events; e.g.:
+helper methods may be defined to schedule timer events; \eg,
 
 \begin{small}
 \begin{verbatim}
@@ -249,22 +254,21 @@ void RtxTimer::expire(Event *e) {
 
 The various TCP agents contain additional examples of timers.
 
-\subsection{\shdr{OTcl Timer class}{timer.tcl}{sec:otcltimer}}
+\section{\shdr{OTcl Timer class}{timer.tcl}{sec:otcltimer}}
 
 A simple timer class is defined in \code{tcl/ex/timer.tcl}.  Subclasses of
 \code{Timer} can be defined as needed.  Unlike the C++ timer API, where a 
 \code{sched()} aborts if the timer is already set, \code{sched()} and
 \code{resched()} are the same; i.e., no state is kept for the OTcl timers.
 The following methods are defined in the \code{Timer} base class:
-\begin{small}
-\begin{verbatim}
+\begin{program}
 
-    $self sched $delay   -- causes "$self timeout" to be called 
-                            $delay seconds in the future
-    $self resched $delay -- same as "$self sched $delay" 
-    $self cancel         -- cancels any pending scheduled callback
-    $self destroy        -- same as "$self cancel"
-	$self expire         -- calls "$self timeout" immediately
+    $self sched $delay   \; causes "$self timeout" to be called $delay seconds in the future;
+    $self resched $delay \; same as "$self sched $delay" ;
+    $self cancel         \; cancels any pending scheduled callback;
+    $self destroy        \; same as "$self cancel";
+    $self expire         \; calls "$self timeout" immediately;
 
-\end{verbatim}
-\end{small}
+\end{program}
+
+\endinput
