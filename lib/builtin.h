@@ -31,6 +31,7 @@ Foundation, 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
 #include <stddef.h>
 // #include <std.h>
 // #include <cmath>
+#include <stdio.h>
 
 #ifndef __GNUC__
 #define __attribute__(x)
