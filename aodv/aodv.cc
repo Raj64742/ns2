@@ -1358,7 +1358,7 @@ double now = CURRENT_TIME;
  for(; nb; nb = nbn) {
    nbn = nb->nb_link.le_next;
    if(nb->nb_expire <= now) {
-     //nb_delete(nb->nb_addr);
+     nb_delete(nb->nb_addr);
    }
  }
 
