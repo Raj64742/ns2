@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.cc,v 1.17 1998/06/19 22:03:18 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-802_11.cc,v 1.18 1998/06/25 23:34:14 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -121,7 +121,7 @@ void Mac802_11::transmit(Packet* p, double ifs)
 
 void Mac802_11::RtsCts_send(Packet* p)
 {
-	hdr_mac* mh = hdr_mac::get(p);
+	hdr_mac* mh = hdr_mac::access(p);
 	mh->set(MF_DATA, addr_);
 	mh->txtime() = txtime(p);
 	pkt_ = p;
@@ -135,7 +135,7 @@ void Mac802_11::RtsCts_send(Packet* p)
 void Mac802_11::RtsCts_recv(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	hdr_mac* mh = hdr_mac::get(p);
+	hdr_mac* mh = hdr_mac::access(p);
 
 	// process received packets
 	switch(mh->ftype()) {
@@ -229,7 +229,7 @@ double Mac802_11::lengthNAV(Packet* p)
 	if (p == 0)
 		return 0;
 	double delay = 0;
-	hdr_mac* mh = hdr_mac::get(p);
+	hdr_mac* mh = hdr_mac::access(p);
 	switch (mh->ftype()) {
 	case MF_RTS:
 		delay += sifs_ + txtime(hlen_);
@@ -261,7 +261,7 @@ void Mac802_11::sendRts()
 	Packet* p = pkt_->copy();
 	CHECK_PKT(p);
 	((hdr_cmn*)p->access(off_cmn_))->size() = 0;
-	hdr_mac* mh = hdr_mac::get(p);
+	hdr_mac* mh = hdr_mac::access(p);
 	mh->ftype() = MF_RTS;
 	transmit(p, difs_);
 	state(MAC_RTS);
@@ -272,7 +272,7 @@ void Mac802_11::sendCts(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	s.schedule(&hIdle_, &eIdle_, lengthNAV(p));
-	hdr_mac* mh = hdr_mac::get(p);
+	hdr_mac* mh = hdr_mac::access(p);
 	sender_ = mh->macSA();
 	swap(mh->macSA(), mh->macDA());
 	mh->ftype() = MF_CTS;
@@ -290,7 +290,7 @@ void Mac802_11::sendData()
 	rtxAck_ = 0;
 	Packet* p = pkt_->copy();
 	CHECK_PKT(p);
-	hdr_mac* mh = hdr_mac::get(p);
+	hdr_mac* mh = hdr_mac::access(p);
 	mh->ftype() = MF_DATA;
 	transmit(p, sifs_);
 	state(MAC_SEND);
@@ -302,7 +302,7 @@ void Mac802_11::sendAck(Packet* p)
 	p = p->copy();
 	CHECK_PKT(p);
 	((hdr_cmn*)p->access(off_cmn_))->size() = 0;
-	hdr_mac* mh = hdr_mac::get(p);
+	hdr_mac* mh = hdr_mac::access(p);
 	swap(mh->macSA(), mh->macDA());
 	mh->ftype() = MF_ACK;
 	transmit(p, sifs_);

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.24 1998/06/19 22:03:17 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.25 1998/06/25 23:34:16 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -131,7 +131,7 @@ void Mac::recv(Packet* p, Handler* h)
 		return;
 	}
 	callback_ = h;
-	hdr_mac* mh = hdr_mac::get(p);
+	hdr_mac* mh = hdr_mac::access(p);
 	mh->set(MF_DATA, addr_);
 	state(MAC_SEND);
 	send(p);
@@ -158,5 +158,5 @@ void Mac::resume(Packet* p)
 
 Mac* Mac::getPeerMac(Packet* p)
 {
-	return (Mac*) mcl_->slot((hdr_mac::get(p))->macDA());
+	return (Mac*) mcl_->slot(hdr_mac::access(p)->macDA());
 }

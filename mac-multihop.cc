@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-multihop.cc,v 1.9 1998/06/19 22:03:17 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-multihop.cc,v 1.10 1998/06/25 23:34:15 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -198,7 +198,7 @@ void MultihopMac::send(Packet *p)
 		return;
 
 	double txt = txtime(p);
-	hdr_mac::get(p)->txtime() = txt;
+	hdr_mac::access(p)->txtime() = txt;
 	channel_->send(p, txt); // target is peer's mac handler
 	s.schedule(callback_, &intr_, txt); // callback to higher layer (LL)
 	mode_ = MAC_IDLE;
@@ -215,7 +215,7 @@ void MultihopMac::recv(Packet* p, Handler *h)
 		return;
 	}
 	callback_ = h;
-	hdr_mac* mh = hdr_mac::get(p);
+	hdr_mac* mh = hdr_mac::access(p);
 	mh->macSA() = addr_;
 	if (mh->ftype() == MF_ACK) {
 		mode_ = MAC_SND;
