@@ -11,6 +11,7 @@ rm -f fairflow.*
 rm -f t t? t.*
 rm -f chart? 
 rm -f flow? flows? 
+rm -rf line?
 for i in simple tcp full monitor red sack schedule cbq red-v1 cbq-v1 sack-v1 \
   v1 \
 vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing hier-routing \
@@ -21,7 +22,8 @@ rfc793edu friendly rfc2581 links wireless-tdma rio testReno LimTransmit \
 pushback diffserv tcp-init-win-full ecn ecn-full simple-full \
 red-pd tcpReset LimTransmit pi adaptive-red gk rem vq sack-full \
 testReno-full testReno-bayfull source-routing snoop diffusion3 broken \
-tcpHighspeed smac quiescent example quickstart tcpOptions t
+tcpHighspeed smac quiescent example examples quickstart tcpOptions t \
+tagged-trace misc message jobs webtraf 
 do
 	echo test-output-$i
 	rm -f test-output-$i/*.test
