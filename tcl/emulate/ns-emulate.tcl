@@ -7,6 +7,9 @@ if [TclObject is-class Network/Pcap/Live] {
 	Network/Pcap/Live set promisc_ false;
 	Network/Pcap/Live set timeout_ 0
 	Network/Pcap/Live set optimize_ true;# bpf code optimizer
+	Network/Pcap/Live set offset_ 0.0; # 
+
+	Network/Pcap/File set offset_ 0.0; # ts for 1st pkt in trace file
 }
 
 if [TclObject is-class Agent/Tap] {
