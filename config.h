@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.39 1999/09/28 04:32:15 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.40 1999/09/29 17:01:58 heideman Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -51,7 +51,9 @@
 #include "autoconf.h"
 
 /* after autoconf (and HAVE_INT64) we can pick up tclcl.h */
+#ifdef __cplusplus
 #include <tclcl.h>
+#endif /* __cplusplus */
 
 typedef int32_t nsaddr_t; 
 typedef int32_t nsmask_t; 
@@ -63,7 +65,7 @@ typedef struct ns_addr_tag {
 } ns_addr_t;
 
 // 64-bit integer support
-#if SIZEOF_LONG >= 8
+#if defined(SIZEOF_LONG) && SIZEOF_LONG >= 8
 #define STRTOI64 strtol
 #define STRTOI64_FMTSTR "%ld"
 
