@@ -560,9 +560,10 @@ CMUTrace::nam_format(Packet *p, int offset)
 
 	int src = Address::instance().get_nodeaddr(ih->saddr());
 	int dst = Address::instance().get_nodeaddr(ih->daddr());
+        int next_hop = ch->next_hop_ ;
 
 	srcnode = Node::get_node_by_address(src);
-	dstnode = Node::get_node_by_address(dst);
+	dstnode = Node::get_node_by_address(next_hop);
 
 
 	double distance = 0;
@@ -628,7 +629,7 @@ CMUTrace::nam_format(Packet *p, int offset)
 	// this value 250 is pre-calculated by using 
 	// two-ray ground refelction model with fixed
 	// transmission power 3.652e-10
-	if ((type_ == SEND)  && (distance > 250 )) return ;
+//	if ((type_ == SEND)  && (distance > 250 )) return ;
 
 	if(tracetype == TR_ROUTER && type_ == RECV && dst != -1 ) return ;
 	if(type_ == RECV && dst == -1 )dst = src_ ; //broadcasting event
