@@ -1,5 +1,4 @@
 #! /bin/sh
-# script to run all tests in test-suite-tcp.tcl
 #
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
@@ -32,70 +31,18 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-tcp,v 1.1 1997/10/13 22:25:11 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-tcp,v 1.2 1997/10/14 23:18:34 sfloyd Exp $
 #
-# The initial version of this script was written and contributed 
-# by Matt Mathis (mathis@psc.edu).
 #
-# To run in quiet mode:  "./test-all-tcp QUIET".
+# To run in quiet mode:  "./test-all-tcp quiet".
 
-xg='xgraph -bb -tk -nl -m -x time -y packets'
-quiet="false"
-tests=`awk '/^Class Test\//{ print substr($2,index($2, "/")+1) }' \
-  test-suite-tcp.tcl`
-if [ $# -ge 1 ] 
+file="test-suite-tcp.tcl"
+directory="test-output-tcp"
+version="v2"
+if [ $# -ge 1 ]
 then
-    flag="$*"
-    if (test "$flag" = "QUIET" -o "$flag" = "quiet") then
-        quiet="true"
-    else
-        tests="$*"
-    fi
+	flag=$1
+	./test-all-template $file $directory $version $flag
+else
+	./test-all-template $file $directory $version
 fi
-
-if [ ! -d test-output-tcp ]; then
-    mkdir test-output-tcp
-fi
-
-echo $tests
-for t in $tests; do
-    if (test "$quiet" = "false") then
-    	echo
-    fi
-    echo Running test $t
-
-    # Beware that xgraph is run asynchronously, and if it
-    # is slow to launch, you may get an incorrect graph
-    if (test "$quiet" = "true") then
-    	../../ns test-suite-tcp.tcl $t QUIET
-    else 
-	../../ns test-suite-tcp.tcl $t
-    fi
-    ../../bin/getrc -s 2 -d 3 all.tr | \
-	  ../../bin/raw2xg -s 0.01 -m 90 -t $t > temp 
-    if (test "$quiet" = "false") then
-	$xg temp &
-    fi
-    if [ -f temp ]; then
-	if [ ! -f test-output-tcp/$t ]; then
-	    echo saving output for future validation
-	    cp temp test-output-tcp/$t
-	else
-	    cmp -s temp test-output-tcp/$t
-	    if [ $? = 0 ]; then
-		echo Test output agrees with reference output
-	    else
-		echo Test output differs from reference output
-		cp temp test-output-tcp/$t.test
-		echo "Diagnose with: diff test-output-tcp/$t.test" \
-		  "test-output-tcp/$t"
-		echo "Differences due to floating-point formatting are not significant."
-
-	    fi
-	fi
-    fi
-    if (test "$quiet" = "false") then
-        echo 'next?'
-        read answer
-    fi
-done
