@@ -21,7 +21,7 @@
 # configuration interface. Be very careful as what is configuration and 
 # what is functionality.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.14 2002/03/19 21:55:00 ddutta Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/webtraf.tcl,v 1.15 2002/03/21 23:21:10 ddutta Exp $
 
 PagePool/WebTraf set debug_ false
 PagePool/WebTraf set TCPTYPE_ Reno
@@ -239,14 +239,27 @@ PagePool/WebTraf instproc send-message {tcp num_packet} {
 
 # Debo
 
+#PagePool/WebTraf instproc create-session { args } {
+#
+#    set ns [Simulator instance]
+#    set asimflag [$ns set useasim_]
+#    #puts "Here"
+#    $self use-asim
+#    $self cmd create-session $args
+#
+#} 
+
 PagePool/WebTraf instproc  add2asim { srcid dstid lambda mu } {
 
-    global sflows_ nsflows_
+    set sf_ [[Simulator instance] set sflows_]
+    set nsf_ [[Simulator instance] set nsflows_]
+    
+    lappend sf_ $srcid:$dstid:$lambda:$mu
+    incr nsf_
 
-#    set ns_ [Simulator instance]
-    lappend sflows_ $srcid:$dstid:$lambda:$mu
-    incr nsflows_
+    [Simulator instance] set sflows_ $sf_
+    [Simulator instance] set nsflows_ $nsf_
 
-    #puts "setup short flow .. now sflows_ = $sflows_"
+    #puts "setup short flow .. now sflows_ = $sf_"
 
 }

@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.11 2002/03/14 04:32:26 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.12 2002/03/21 23:21:11 ddutta Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -127,6 +127,9 @@ protected:
 	Node** server_;		/* Web servers */
 	int nClient_;
 	Node** client_; 	/* Browsers */
+
+	// Debo added this
+	int asimflag_;
 
 	// TCP agent pool management
 	struct AgentListElem {

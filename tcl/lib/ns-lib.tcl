@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.241 2002/03/19 07:10:15 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.242 2002/03/21 23:21:09 ddutta Exp $
 
 
 #
@@ -42,14 +42,7 @@
 # source this code to see changes take effect.
 #
 
-# Debojyoti added this
 
-set slinks_(0:0) 0
-set nconn_ 0
-set conn_ ""
-# for short flows stuff
-set sflows_ "" 
-set nsflows_ 0
 
 proc warn {msg} {
 	global warned_
@@ -220,8 +213,21 @@ source ../pgm/ns-pgm.tcl
 
 Simulator instproc init args {
 
-	# Debojyoti added this 
-	# global edges_ connections_;
+	# Debojyoti added this for asim 
+
+	$self instvar useasim_
+	$self instvar slinks_
+	$self instvar nconn_
+	$self instvar sflows_
+	$self instvar nsflows_
+
+	set slinks_(0:0) 0
+	set nconn_ 0
+	set conn_ ""
+	# for short flows stuff
+	set sflows_ "" 
+	set nsflows_ 0
+	set useasim_ 0
 
 	$self create_packetformat
 	$self use-scheduler Calendar
@@ -850,14 +856,15 @@ Simulator instproc clearMemTrace {} {
 }
 
 Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
-	$self instvar link_ queueMap_ nullAgent_
+	$self instvar link_ queueMap_ nullAgent_ useasim_
 	set sid [$n1 id]
 	set did [$n2 id]
 
 	# Debo
-	global slink_
-	set slink_($sid:$did) $self
-	
+	if { $useasim_ == 1 } {
+		set slink_($sid:$did) $self
+	}
+
 	if [info exists queueMap_($qtype)] {
 		set qtype $queueMap_($qtype)
 	}
@@ -1326,21 +1333,22 @@ Simulator instproc attach-tbf-agent { node agent tbf } {
 Simulator instproc detach-agent { node agent } {
 
 	# Debo added this
+	$self instvar conn_ nconn_ sflows_ nsflows_ useasim_
 
-	global conn_ nconn_
-
-	set list "" 
-	set s [$node id]
-	set d [[$self get-node-by-addr [$agent set dst_addr_]] id]
-	foreach x $conn_ {
-		set t [split $x ":"] 
-		if {[string compare [lindex $t 0]:[lindex $t 1] $s:$d] != 0} {
-			lappend list_ $x
+	if {$useasim_ == 1} {
+		set list "" 
+		set s [$node id]
+		set d [[$self get-node-by-addr [$agent set dst_addr_]] id]
+		foreach x $conn_ {
+			set t [split $x ":"] 
+			if {[string compare [lindex $t 0]:[lindex $t 1] $s:$d] != 0} {
+				lappend list_ $x
+			}
 		}
+		set conn_ list
+		set nconn_ [expr $nconn_ -1]
+		# ---------------------------------------
 	}
-	set conn_ list
-	set nconn_ [expr $nconn_ -1]
-	# ---------------------------------------
 
 	$self instvar nullAgent_
 	$node detach $agent $nullAgent_
@@ -1388,22 +1396,26 @@ Simulator instproc bandwidth { n1 n2 bandwidth {type simplex} } {
 #XXX need to check that agents are attached to nodes already
 Simulator instproc connect {src dst} {
 
+	$self instvar conn_ nconn_ sflows_ nsflows_ useasim_
+
 	$self simplex-connect $src $dst
 	$self simplex-connect $dst $src
 
+
 	# Debo
 
-	global nconn_ conn_
-	set sid [$src nodeid]
-	set sport [$src set agent_port_]
-        set did [$dst nodeid]
-	set dport [$dst set agent_port_]
-
-	if {[lindex [split [$src info class] "/"] 1] == "TCP"} {
-		lappend conn_ $sid:$did:$sport:$dport
-		incr nconn_
-		# set $nconn_ [expr $nconn_ + 1]
-		# puts "Set a connection with id $nconn_ between $sid and $did"
+	if {$useasim_ == 1} {
+		set sid [$src nodeid]
+		set sport [$src set agent_port_]
+		set did [$dst nodeid]
+		set dport [$dst set agent_port_]
+		
+		if {[lindex [split [$src info class] "/"] 1] == "TCP"} {
+			lappend conn_ $sid:$did:$sport:$dport
+			incr nconn_
+			# set $nconn_ [expr $nconn_ + 1]
+			# puts "Set a connection with id $nconn_ between $sid and $did"
+		}
 	}
 
 	return $src

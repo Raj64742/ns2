@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.35 2002/03/19 07:10:16 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.36 2002/03/21 23:21:09 ddutta Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -182,7 +182,6 @@ Simulator instproc dump-approx-sim-data {} {
         }
 
 	puts ""
-	global nconn_ conn_
 	puts "n $nconn_"
 	
 	for { set i 0 } { $i < $nconn_ } { incr i } {
@@ -601,6 +600,7 @@ Simulator instproc asim-run { } {
 Simulator instproc asim-dump { file } {
 
 	$self instvar routingTable_ Node_ link_
+        $self instvar nconn_ conn_ sflows_ nsflows_
         
         set tf_ [open "$file" w]
     
@@ -637,7 +637,6 @@ Simulator instproc asim-dump { file } {
         }
 
 	puts $tf_ ""
-	global nconn_ conn_ sflows_
 	puts $tf_ "n [expr $nconn_ + $nsflows_]"
 	
 	set i 0
@@ -720,7 +719,7 @@ Simulator instproc asim-getLinkTput { link } {
 
 Simulator instproc asim-getAggrTput { srcnode dstnode } {
 
-    global conn_
+    $self instvar conn_
     $self instvar asim_ 
     set src [$srcnode id]
     set dst [$dstnode id]
@@ -733,7 +732,7 @@ Simulator instproc asim-getAggrTput { srcnode dstnode } {
 
 Simulator instproc asim-getFlowTput { agent } {
 
-    global conn_
+    $self instvar conn_
     $self instvar asim_
 
     set srcnode [$self get-node-by-addr [$agent set agent_addr_]]
@@ -749,4 +748,7 @@ Simulator instproc asim-getFlowTput { agent } {
     return $t
 
 }
+
+
+
 

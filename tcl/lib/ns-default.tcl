@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.280 2002/03/10 04:43:31 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.281 2002/03/21 23:21:09 ddutta Exp $
 
 
 #
@@ -45,6 +45,11 @@
 #
 
 ########################################################
+
+# Debojyoti added this
+
+Simulator set useasim_ 1
+Asim set debug_ false
 
 # Increased Floating Point Precision
 set tcl_precision 17

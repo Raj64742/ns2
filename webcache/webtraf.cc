@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.18 2002/03/19 21:55:00 ddutta Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.19 2002/03/21 23:21:11 ddutta Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -248,7 +248,9 @@ void WebTrafSession::launchReq(void* ClntData, int obj, int size)
 
 static class WebTrafPoolClass : public TclClass {
 public:
-        WebTrafPoolClass() : TclClass("PagePool/WebTraf") {}
+        WebTrafPoolClass() : TclClass("PagePool/WebTraf") { 	
+
+	}
         TclObject* create(int, const char*const*) {
 		return (new WebTrafPool());
 	}
@@ -289,7 +291,8 @@ WebTrafPool::WebTrafPool() :
 {
 	bind("fulltcp_", &fulltcp_);
 	bind("recycle_page_", &recycle_page_);
-
+	// Debo
+	asimflag_=0;
 	LIST_INIT(&tcpPool_);
 	LIST_INIT(&sinkPool_);
 }
@@ -328,7 +331,16 @@ TcpSink* WebTrafPool::picksink()
 
 int WebTrafPool::command(int argc, const char*const* argv)
 {
-	if (argc == 3) {
+
+	// Debojyoti Dutta ... for asim
+	if (argc == 2){
+		if (strcmp(argv[1], "use-asim") == 0) {
+			asimflag_ = 1;
+			//Tcl::instance().evalf("puts \"Here\"");
+			return (TCL_OK);
+		}
+	}
+	else if (argc == 3) {
 		if (strcmp(argv[1], "set-num-session") == 0) {
 			if (session_ != NULL) {
 				for (int i = 0; i < nSession_; i++) 
@@ -440,20 +452,23 @@ int WebTrafPool::command(int argc, const char*const* argv)
 			}
 			p->sched(lt);
 			session_[n] = p;
-			
-/*			// Asim stuff. Added by Debojyoti Dutta
-			// Assumptions exist 
-			//Tcl::instance().evalf("puts \"Here\"");
-			double lambda = (1/(p->interPage())->avg())/(nSrc_*nClient_);
-			double mu = ((p->objSize())->value());
-			//Tcl::instance().evalf("puts \"Here\"");
-			for (int i=0; i<nSrc_; i++){
-				for(int j=0; j<nClient_; j++){
-					// Set up short flows info for asim
-					Tcl::instance().evalf("%s add2asim %d %d %lf %lf", this->name(),server_[i]->nodeid(),client_[j]->nodeid(),lambda, mu);
+
+			// Debojyoti added this for asim
+			if(asimflag_){										// Asim stuff. Added by Debojyoti Dutta
+				// Assumptions exist 
+				//Tcl::instance().evalf("puts \"Here\"");
+				double lambda = (1/(p->interPage())->avg())/(nSrc_*nClient_);
+				double mu = ((p->objSize())->value());
+				//Tcl::instance().evalf("puts \"Here\"");
+				for (int i=0; i<nSrc_; i++){
+					for(int j=0; j<nClient_; j++){
+						// Set up short flows info for asim
+						Tcl::instance().evalf("%s add2asim %d %d %lf %lf", this->name(),server_[i]->nodeid(),client_[j]->nodeid(),lambda, mu);
+					}
 				}
+				//Tcl::instance().evalf("puts \"Here\""); 
 			}
-			//Tcl::instance().evalf("puts \"Here\""); */
+
 			return (TCL_OK);
 		}
 	}
