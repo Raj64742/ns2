@@ -21,6 +21,17 @@ Agent/TCP set disable_ecn_ 0
 Agent/TCP set restart_bugfix_ true
 Agent/TCP/Fack set ss-div4 0
 Agent/TCP/Fack set rampdown 0
+Agent/TCP set timestamps_ true
+Agent/TCP set fast_loss_recov_ true
+Agent/TCP set fast_reset_timer_ true
+
+Agent/TCP/Int set rightEdge_ 0
+Agent/TCP/Int set uniqTS_ 1
+Agent/TCP/Int set winInc_ 1
+Agent/TCP/Int set winMult_ 0.5
+
+Agent/TCP/Session set proxyopt_ 0
+Agent/TCP/Session set count_bytes_acked_ false
 
 proc plotgraph {graph connGraphFlag midtime turnontime turnofftime { qtraceflag false } { dir "." } } {
 	global env
@@ -34,16 +45,23 @@ proc plotgraph {graph connGraphFlag midtime turnontime turnofftime { qtraceflag 
 		exec gawk --lint -f ../../../ex/asym/queue.awk $dir/q.tr
 	}
 
-	set if [open index.out r]
+	set if [open seq-index.out r]
 	while {[gets $if i] >= 0} {
 		if {$graph || $graphFlag($i)} {
 			set seqfile [format "%s/seq-%s.out" $dir $i]
 			set ackfile [format "%s/ack-%s.out" $dir $i]
+			exec xgraph -display $env(DISPLAY) -bb -tk -m -x time -y seqno $seqfile $ackfile &
+		}
+	}
+	close $if
+
+	set if [open index.out r]
+	while {[gets $if i] >= 0} {
+		if {$graph || $graphFlag($i)} {
 			set cwndfile [format "%s/cwnd-%s.out" $dir $i]
 			set ssthreshfile [format "%s/ssthresh-%s.out" $dir $i]
 			set srttfile [format "%s/srtt-%s.out" $dir $i]
 			set rttvarfile [format "%s/rttvar-%s.out" $dir $i]
-			exec xgraph -display $env(DISPLAY) -bb -tk -m -x time -y seqno $seqfile $ackfile &
 			exec xgraph -display $env(DISPLAY) -bb -tk -m -x time -y window $cwndfile &
 		}
 	}
@@ -89,24 +107,32 @@ proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } } {
 	return $tcp0
 } 
 
-proc setupTcpTracing { tcp0 tcptrace } {
-	$tcp0 attach $tcptrace
-	$tcp0 trace "t_seqno_" 
-	$tcp0 trace "rtt_" 
-	$tcp0 trace "srtt_" 
-	$tcp0 trace "rttvar_" 
-	$tcp0 trace "backoff_" 
-	$tcp0 trace "dupacks_" 
-	$tcp0 trace "ack_" 
-	$tcp0 trace "cwnd_"
-	$tcp0 trace "ssthresh_" 
-	$tcp0 trace "maxseq_" 
-	$tcp0 trace "seqno_"
-	$tcp0 trace "exact_srtt_"
-	$tcp0 trace "avg_win_"
+proc enableTcpTracing { tcp tcptrace } {
+	$tcp attach $tcptrace
+	$tcp trace "t_seqno_" 
+	$tcp trace "rtt_" 
+	$tcp trace "srtt_" 
+	$tcp trace "rttvar_" 
+	$tcp trace "backoff_" 
+	$tcp trace "dupacks_" 
+	$tcp trace "ack_" 
+	$tcp trace "cwnd_"
+	$tcp trace "ssthresh_" 
+	$tcp trace "maxseq_" 
+	$tcp trace "seqno_"
+	$tcp trace "exact_srtt_"
+	$tcp trace "avg_win_"
 }
 
-proc setupGraphing { tcp connGraph connGraphFlag } {
+proc setupTcpTracing { tcp tcptrace { sessionFlag false } } {
+	enableTcpTracing $tcp $tcptrace
+	if { $sessionFlag } {
+		set session [[$tcp set node_] createTcpSession [$tcp set dst_]]
+		enableTcpTracing $session $tcptrace
+	}
+}
+
+proc setupGraphing { tcp connGraph connGraphFlag {sessionFlag false} } {
 	upvar $connGraphFlag graphFlag
 
 	set saddr [expr [$tcp set addr_]/256]
@@ -115,6 +141,14 @@ proc setupGraphing { tcp connGraph connGraphFlag } {
 	set dport [expr [$tcp set dst_]%256]
 	set conn [format "%d,%d-%d,%d" $saddr $sport $daddr $dport]
 	set graphFlag($conn) $connGraph
+
+	if { $sessionFlag } {
+		set session [[$tcp set node_] createTcpSession [$tcp set dst_]]
+		set sport [expr [$session set addr_]%256]
+		set dport 0
+		set conn [format "%d,%d-%d,%d" $saddr $sport $daddr $dport]
+		set graphFlag($conn) $connGraph
+	}
 }
 
 proc createTcpSink { type sinktrace { ackSize 40 } { maxdelack 25 } } {
@@ -126,6 +160,22 @@ proc createTcpSink { type sinktrace { ackSize 40 } { maxdelack 25 } } {
 	$sink0 attach $sinktrace
 	return $sink0
 }
+
+proc setupTcpSession { tcp { count_bytes_acked false } } {
+	if {![[$tcp set node_] existsTcpSession [$tcp set dst_]]} {
+		set session [[$tcp set node_] createTcpSession [$tcp set dst_]]
+		$session set maxburst_ [$tcp set maxburst_]
+		$session set slow_start_restart_ [$tcp set slow_start_restart_]
+		$session set restart_bugfix_ [$tcp set restart_bugfix_]
+		$session set packetSize_ [$tcp set packetSize_]
+		$session set ecn_ [$tcp set ecn_]
+		$session set window_ [$tcp set window_]
+		$session set maxcwnd_ [$tcp set maxcwnd_]
+
+		$session set count_bytes_acked_ $count_bytes_acked
+	}
+}
+		
 
 proc createFtp { ns n0 tcp0 n1 sink0 } {
 	$ns attach-agent $n0 $tcp0
