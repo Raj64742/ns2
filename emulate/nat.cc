@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.2 1998/06/06 01:37:04 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.3 1998/12/01 06:49:49 kfall Exp $";
 #endif
 
 #include <stdio.h>
@@ -47,6 +47,7 @@ static const char rcsid[] =
 #include "agent.h"
 #include "scheduler.h"
 #include "packet.h"
+#include "ip.h"
 #include "emulate/net.h"
 #include "emulate/internet.h"
 
@@ -134,6 +135,14 @@ void
 NatAgent::recv(Packet *pkt, Handler *)
 {
 	nat(pkt);
+	// we are merely rewriting an already-existing
+	// packet (which was destined for us), so be
+	// sure to rewrite the simulator's notion of the
+	// address, otherwise we just keep sending to ourselves
+	// (ouch).
+	hdr_ip* iph = hdr_ip::access(pkt);
+	iph->src() = addr_;
+	iph->dst() = dst_;
 	send(pkt, 0);
 }
 
@@ -159,7 +168,7 @@ NatAgent::nat(Packet* pkt)
 {
         hdr_cmn* hc = (hdr_cmn*)pkt->access(off_cmn_);
         ip* iph = (ip*) pkt->accessdata();
-	if (pkt->datalen() != hc->size()) {
+	if (pkt->datalen() < hc->size()) {
 		fprintf(stderr,
 		    "NatAgent(%s): recvd packet with pkt sz %d but bsize %d\n",
 			name(), hc->size(), pkt->datalen());
