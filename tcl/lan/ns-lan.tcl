@@ -180,10 +180,12 @@ Link/LanLink instproc init {nodelist bw delay lltype ifqtype mactype chantype} {
 
 	set nodelist_ $nodelist
 	set channel_ [new $chantype]
-	set cclass [new Classifier/Channel]
+	set cclass [new Classifier/Mac]
+	$cclass set offset_ [PktHdr_offset PacketHeader/Mac macDA_]
 	$channel_ target $cclass
 
 	foreach src $nodelist {
+		incr numifaces_
 		set mac [set mac_($src) [new $mactype]]
 		$mac set bandwidth_ $bw
 		$mac set label_ $numifaces_
@@ -192,9 +194,9 @@ Link/LanLink instproc init {nodelist bw delay lltype ifqtype mactype chantype} {
 		$cclass install $numifaces_ $mac
 		set ifq_($src) [new $ifqtype]
 		$ifq_($src) target $mac
-		set mclass_($src) [new Classifier/Mac]
-		$mac target $mclass_($src)
-		incr numifaces_
+		set mclass_($src) [set cl [new Classifier]]
+		$cl set offset_ [PktHdr_offset PacketHeader/Mac macSA_]
+		$mac target $cl
 		# List of MACs
 		$src addmac $mac
 	}

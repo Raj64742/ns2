@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.8 1997/08/22 05:43:53 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.9 1997/08/29 22:05:16 gnguyen Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -59,11 +59,11 @@ void PacketHeaderClass::bind()
 	TclClass::bind();
 	Tcl& tcl = Tcl::instance();
 	tcl.evalf("%s set hdrlen_ %d", classname_, hdrlen_);
-	export_offset();
+	export_offsets();
 	add_method("offset");
 }
 
-void PacketHeaderClass::export_offset()
+void PacketHeaderClass::export_offsets()
 {
 }
 
@@ -107,7 +107,7 @@ public:
 						sizeof(hdr_cmn)) {
 		offset(&hdr_cmn::offset_);
 	}
-	void export_offset() {
+	void export_offsets() {
 		field_offset("ptype_", OFFSET(hdr_cmn, ptype_));
 		field_offset("uid_", OFFSET(hdr_cmn, uid_));
 		field_offset("size_", OFFSET(hdr_cmn, size_));
@@ -119,6 +119,7 @@ public:
         FlagsHeaderClass() : PacketHeaderClass("PacketHeader/Flags",
 						sizeof(hdr_flags)) {}
 } class_flagshdr;
+
 
 /* manages active packet header types */
 class PacketHeaderManager : public TclObject {

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.h,v 1.5 1997/07/24 00:06:43 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.h,v 1.6 1997/08/29 22:05:15 gnguyen Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -48,6 +48,8 @@ struct hdr_ip {
 	/* IPv6 */
 	int		fid_;	/* flow id */
 	int		prio_;
+
+	static int offset_;
 
 	/* per-field member acces functions */
 	nsaddr_t& src() {

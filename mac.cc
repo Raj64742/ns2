@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.14 1997/08/22 05:43:51 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac.cc,v 1.15 1997/08/29 22:05:15 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -51,7 +51,7 @@ public:
 					     sizeof(hdr_mac)) {
 		offset(&hdr_mac::offset_);
 	}
-	void export_offset() {
+	void export_offsets() {
 		field_offset("macSA_", OFFSET(hdr_mac, macSA_));
 		field_offset("macDA_", OFFSET(hdr_mac, macDA_));
 	}

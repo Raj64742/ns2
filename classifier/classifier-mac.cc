@@ -35,9 +35,8 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mac.cc,v 1.3 1997/07/21 21:20:26 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mac.cc,v 1.4 1997/08/29 22:05:13 gnguyen Exp $ (UCB)";
 #endif
-
 
 #include "config.h"
 #include "packet.h"
@@ -46,29 +45,8 @@ static const char rcsid[] =
 
 class MacClassifier : public Classifier {
 public:
-	MacClassifier() {
-		bind("off_mac_", &off_mac_);
-	}
-protected:
-	int classify(Packet *const p) {
-		return ((hdr_mac*)p->access(off_mac_))->macSA();
-	}
-	int off_mac_;
+	void recv(Packet*, Handler*);
 };
-
-
-class ChannelClassifier : public Classifier {
-public:
-	ChannelClassifier() {
-		bind("off_mac_", &off_mac_);
-	}
-protected:
-	int classify(Packet *const p) {
-		return ((hdr_mac*)p->access(off_mac_))->macDA();
-	}
-	int off_mac_;
-};
-
 
 static class MacClassifierClass : public TclClass {
 public:
@@ -78,10 +56,18 @@ public:
 	}
 } class_mac_classifier;
 
-static class ChannelClassifierClass : public TclClass {
-public:
-	ChannelClassifierClass() : TclClass("Classifier/Channel") {}
-	TclObject* create(int, const char*const*) {
-		return (new ChannelClassifier());
+
+void MacClassifier::recv(Packet* p, Handler*)
+{
+	NsObject* node = find(p);
+	if (node == 0) {
+		// Replicate packets to all slots (broadcast)
+		for (int i = 1; i < maxslot_; ++i) {
+			NsObject* o = slot_[i];
+			if (o != 0)
+				o->recv(p->copy());
+		}
+		return;
 	}
-} class_channel_classifier;
+	node->recv(p);
+}

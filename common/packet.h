@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.22 1997/08/22 05:43:54 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.23 1997/08/29 22:05:17 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -94,7 +94,7 @@ protected:
 	int* offset_;		// offset for this header
 public:
 	virtual void bind();
-	virtual void export_offset();
+	virtual void export_offsets();
         TclObject* create(int argc, const char*const* argv);
 };
 
