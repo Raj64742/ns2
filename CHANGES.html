@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.283 1998/09/28 19:31:10 haldar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.284 1998/10/05 23:46:44 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,12 +22,20 @@
     Release of ns-2.1b4<a> on [PENDING]</h3>
     <p>
     <UL>    
-<LI> <B><A href="http://www.isi.edu/~haldar">[haldar]</A></B>
-<b> Mon Sep 28 12:29:21 PDT 1998</b><br>
-Bug fix that now allows hierarchical routing to be used for single 
-level of hierarchy.
 
-     <LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH]</A></B>
+    <LI> <B><A href="http://www-scf.usc.edu/~bhuang">[PH]</A></B>
+           <b>Mon Oct  5 16:43:03 PDT 1998</b><br>
+	   Added algorithmic routing support for detailed simulator:
+	   example script: tcl/ex/newmcast/detailed-algo.tcl<br>
+	   Added Multi-field filter, expanded from single field filter,
+	   Filter/Field<br>
+
+    <LI> <B><A href="http://www.isi.edu/~haldar">[haldar]</A></B>
+           <b> Mon Sep 28 12:29:21 PDT 1998</b><br>
+	   Bug fix that now allows hierarchical routing to be used for single 
+	   level of hierarchy.
+
+    <LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH]</A></B>
            <b>Mon Sep 21 13:53:48 PDT 1998</b><br>
 	   Added algorithmic routing (API: $ns rtproto Algorithmic): 
 	   a space consumption O(n) routing mechanism, currently 
@@ -35,22 +43,22 @@ level of hierarchy.
 	   Added Pareto distribution the second kind (aka. Lomax distribution)
 	   into the random distribution collection
 
-     <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+    <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
            <b>Mon Sep 14 20:51:55 PDT 1998</b><br>
 	  Re-autoconf'ed; several version numbers bumped
 	  (suggested by Lloyd Wood).
 
-     <LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH]</A></B>
+    <LI><B><A HREF="http://www-scf.usc.edu/~bhuang/">[PH]</A></B>
            <b>Thu Sep 10 15:45:01 PDT 1998</b><br>
 	   changed session test suite output to avoid namtrace-all<br>
 	   re-enabled session suite in the validation test
 
-     <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+    <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
            <b>Mon Aug 31 15:26:17 PDT 1998</b><br>
 	  Re-autoconf'ed.
 	  Getrusage/sbrk are now detected in autoconf.
 
-      <li><b><a href="http://www-nrg.ee.lbl.gov/floyd/">[SF]</a></b>
+     <li><b><a href="http://www-nrg.ee.lbl.gov/floyd/">[SF]</a></b>
     <b>Sat Aug 29 16:50:06 PDT 1998</b><br>
     Included validation test for NewReno: test-all-newreno.
     This includes a new option, newreno_changes1_, that forces a

@@ -98,3 +98,65 @@ Filter::filter_e FieldFilter::filter(Packet *p)
 	return (*(int *)p->access(offset_) == match_) ? FILTER : PASS;
 }
 
+/* 10-5-98, Polly Huang, Filters that filter on multiple fields */
+static class MultiFieldFilterClass : public TclClass {
+public:
+	MultiFieldFilterClass() : TclClass("Filter/MultiField") {}
+	TclObject* create(int, const char*const*) {
+		return (new MultiFieldFilter);
+	}
+} class_filter_multifield;
+
+MultiFieldFilter::MultiFieldFilter() : field_list_(0)
+{
+
+}
+
+void MultiFieldFilter::add_field(fieldobj *p) 
+{
+	p->next = field_list_;
+	field_list_ = p;
+}
+
+MultiFieldFilter::filter_e MultiFieldFilter::filter(Packet *p) 
+{
+	fieldobj* tmpfield;
+
+	tmpfield = field_list_;
+	while (tmpfield != 0) {
+		if (*(int *)p->access(tmpfield->offset) == tmpfield->match)
+			tmpfield = tmpfield->next;
+		else 
+			return (PASS);
+	}
+	return(FILTER);
+}
+
+
+int MultiFieldFilter::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 2) {
+		if (strcmp(argv[1], "filter-target") == 0) {
+			if (filter_target_ != 0)
+				tcl.result(target_->name());
+			return TCL_OK;
+		}
+	}
+	else if (argc == 3) {
+		if (strcmp(argv[1], "filter-target") == 0) {
+			filter_target_ = (NsObject*)TclObject::lookup(argv[2]);
+			return TCL_OK;
+		}
+	}
+       else if (argc == 4) {
+		if (strcmp(argv[1], "filter-field") == 0) {
+			fieldobj *tmp = new fieldobj;
+			tmp->offset = atoi(argv[2]);
+			tmp->match = atoi(argv[3]);
+			add_field(tmp);
+			return TCL_OK;
+		}
+	}
+	return Connector::command(argc, argv);
+}

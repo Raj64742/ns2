@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.14 1998/09/28 19:26:13 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.15 1998/10/05 23:46:48 polly Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -364,4 +364,43 @@ source ../rtglib/dynamics.tcl
 source ../rtglib/algo-route-proto.tcl
 
 
+Simulator instproc compute-algo-routes {} {
+	$self instvar Node_ link_
+	#
+	# Compute all the routes using the route-logic helper object.
+	#
+	set r [$self get-routelogic]
 
+	$r BFS
+	$r compute
+
+	#
+	# Set up each classifer (aka node) to act as a router.
+	# Point each classifer table to the link object that
+	# in turns points to the right node.
+	#
+	set i 0
+	set n [Node set nn_]
+	#puts "total = $n"
+	while { $i < $n } {
+		if ![info exists Node_($i)] {
+		    incr i
+		    continue
+		}
+		set n1 $Node_($i)
+		set j 0
+		while { $j < $n } {
+			if { $i != $j } {
+				# shortened nexthop to nh, to fit add-route in
+				# a single line
+				set nh [$r lookup $i $j]
+			    puts "$i $j $nh"
+				if { $nh >= 0 } {
+					$n1 add-route $j [$link_($i:$nh) head]
+				}
+			} 
+			incr j
+		}
+		incr i
+	}
+}

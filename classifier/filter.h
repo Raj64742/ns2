@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/filter.h,v 1.2 1998/09/23 03:31:12 yuriy Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/filter.h,v 1.3 1998/10/05 23:46:47 polly Exp $ (USC/ISI)
  */
 
 #ifndef ns_filter_h
@@ -46,4 +46,23 @@ protected:
 	int offset_; // offset of the field
 	int match_;
 };
+
+
+struct fieldobj {
+	int offset;
+	int match;
+	fieldobj *next;
+};
+
+/* 10-5-98, Polly Huang, Filters that filter on multiple fields */
+class MultiFieldFilter : public Filter {
+public:
+	MultiFieldFilter(); 
+protected:
+	int command(int argc, const char*const* argv);
+	filter_e filter(Packet *p);
+	void add_field(fieldobj *p);
+	fieldobj* field_list_;
+};
+
 #endif

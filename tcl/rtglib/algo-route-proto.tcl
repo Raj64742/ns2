@@ -109,6 +109,7 @@ RouteLogic/Algorithmic instproc lookup {src dst} {
     set algosrc $algoAdd_($src)
     set algodst $algoAdd_($dst)
     set algonxt [$self algo-lookup $algosrc $algodst]
+#    puts "lookup: $algosrc $algodst $algonxt $id_($algonxt)"
     return $id_($algonxt)
 }
 
@@ -127,7 +128,7 @@ RouteLogic/Algorithmic instproc algo-lookup {src dst} {
 	set offset [expr $b % $rank_]
 	set b [expr $b / $rank_]
 	if {$offset == 0} {
-	    set offset 3
+	    set offset $rank_
 	    set b [expr $b - 1]
 	}
     }

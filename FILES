@@ -265,6 +265,7 @@ tcl/ex/newmcast/cmcast-nam.tcl
 tcl/ex/newmcast/cmcast-spt.tcl
 tcl/ex/newmcast/cmcast.tcl
 tcl/ex/newmcast/cmcast.txt
+tcl/ex/newmcast/detailed-algo.tcl
 tcl/ex/newmcast/detailedDM.txt
 tcl/ex/newmcast/detailedDM1-nam.tcl
 tcl/ex/newmcast/detailedDM1.tcl
