@@ -85,28 +85,13 @@
 /* Internal MAC parameters
  *--------------------------
  * Do NOT change them unless for tuning S-MAC
- * SLOTTIME: time of each slot in contention window. It should be large
- *   enough to receive the whole start symbol. Converted to sec
- * DIFS: DCF interframe space (from 802.11), in ms. It is used at the beginning
- *   of each contention window. It's the minmum time to wait to start a new 
- *   transmission.
- * SIFS: short interframe space (from 802.11), in ms. It is used before sending
- *   an CTS or ACK packet. It takes care of the processing delay of each pkt.
- * EIFS: Entended interfrane space (from 802.11) in ms. Used for backing off incase
- * of a collision.
  * SYNC_CW: number of slots in the sync contention window, must be 2^n - 1 
  * DATA_CW: number of slots in the data contention window, must be 2^n - 1
- * GUARDTIME: guard time at the end of each listen interval, in ms.
  * SYNC_PERIOD: period to send a sync pkt, in cycles.
  */
 
-#define SLOTTIME  0.001      // in sec
-#define DIFS 10
-#define SIFS 5
-#define EIFS 50
 #define SYNC_CW 31
 #define DATA_CW 63
-#define GUARDTIME 4
 #define SYNCPERIOD 10
 #define SYNCPKTTIME 3         // an adhoc value used for now later shld converge with durSyncPkt_
 
@@ -115,7 +100,6 @@
  * Based on the parameters from PHY_RADIO and RADIO_CONTROL
  * CLOCK_RES: clock resolution in ms. 
  * BANDWIDTH: bandwidth (bit rate) in kbps. Not directly used.
- * BYTE_TX_TIME: time to transmit a byte, in ms. Derived from bandwidth
  * PRE_PKT_BYTES: number of extra bytes transmitted before each pkt. It equals
  *   preamble + start symbol + sync bytes.
  * ENCODE_RATIO: output/input ratio of the number of bytes of the encoding
@@ -125,7 +109,7 @@
 
 #define CLOCKRES 1       // clock resolution is 1ms
 #define BANDWIDTH 20      // kbps =>CHANGE BYTE_TX_TIME WHENEVER BANDWIDTH CHANGES
-#define BYTE_TX_TIME 4/10 // 0.4 ms to tx one byte => changes when bandwidth does
+//#define BYTE_TX_TIME 4/10 // 0.4 ms to tx one byte => changes when bandwidth does
 #define PRE_PKT_BYTES 5
 #define ENCODE_RATIO 2   /* Manchester encoding has 2x overhead */
 #define PROC_DELAY 1
@@ -377,6 +361,15 @@ class SMAC : public Mac {
   void handleCsTimer();
   //void handleChkSendTimer();
   void handleCounterTimer(int i);
+
+  // Internal MAC parameters
+  double slotTime_;
+  double slotTime_sec_;
+  double difs_;
+  double sifs_;
+  double eifs_;
+  double guardTime_;
+  double byte_tx_time_;
   
  private:
   // functions for node schedule folowing sleep-wakeup cycles

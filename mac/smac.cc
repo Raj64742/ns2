@@ -189,26 +189,59 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
   dataPkt_ = 0;
   pktRx_ = 0;
   pktTx_ = 0;
+
+  /* setup internal mac and physical parameters
+   ----------------------------------------------
+  byte_tx_time_: time to transmit a byte, in ms. Derived from bandwidth
+  
+  slotTime_: time of each slot in contention window. It should be large
+  enough to receive the whole start symbol but cannot be smaller than clock 
+  resolution. in msec
+  
+  slotTime_sec_: slottime in sec
+  
+  difs_: DCF interframe space (from 802.11), in ms. It is used at the beginning
+  of each contention window. It's the minmum time to wait to start a new 
+  transmission.
+  
+  sifs_: short interframe space (from 802.11), in ms. It is used before sending
+  an CTS or ACK packet. It takes care of the processing delay of each pkt.
+  
+  eifs_: Entended interfrane space (from 802.11) in ms. Used for backing off 
+  incase of a collision.
+
+  guardTime_: guard time at the end of each listen interval, in ms.
+
+  */
+
+  byte_tx_time_ = 8.0 / BANDWIDTH;
+  double start_symbol = byte_tx_time_ * 2.5;  // time to tx 20 bits
+  slotTime_ = CLOCKRES >= start_symbol ? CLOCKRES : start_symbol;  // in msec
+  slotTime_sec_ = slotTime_ / 1.0e3;   // in sec
+  difs_ = 10.0 * slotTime_;
+  sifs_ = 5.0 * slotTime_;
+  eifs_ = 50.0 * slotTime_;
+  guardTime_ = 4.0 * slotTime_;
   
   // calculate packet duration. Following equations assume 4b/6b coding.
   // All calculations yield in usec
 
   //durSyncPkt_ = ((SIZEOF_SMAC_SYNCPKT) * 12 + 18) / 1.0e4 ;
 
-  durSyncPkt_ =  (PRE_PKT_BYTES + (SIZEOF_SMAC_SYNCPKT * ENCODE_RATIO)) * BYTE_TX_TIME + 1;
+  durSyncPkt_ =  (PRE_PKT_BYTES + (SIZEOF_SMAC_SYNCPKT * ENCODE_RATIO)) * byte_tx_time_ + 1;
   durSyncPkt_ = CLKTICK2SEC(durSyncPkt_);
 
   //durDataPkt_ = ((SIZEOF_SMAC_DATAPKT) * 12 + 18) / 1.0e4 ;
-  durDataPkt_ = (PRE_PKT_BYTES + (SIZEOF_SMAC_DATAPKT * ENCODE_RATIO)) * BYTE_TX_TIME + 1;
+  durDataPkt_ = (PRE_PKT_BYTES + (SIZEOF_SMAC_DATAPKT * ENCODE_RATIO)) * byte_tx_time_ + 1;
   durDataPkt_ = CLKTICK2SEC(durDataPkt_);
 
   //durCtrlPkt_ = ((SIZEOF_SMAC_CTRLPKT) * 12 + 18) / 1.0e4;
-  durCtrlPkt_ = (PRE_PKT_BYTES + (SIZEOF_SMAC_CTRLPKT * ENCODE_RATIO)) * BYTE_TX_TIME + 1;
+  durCtrlPkt_ = (PRE_PKT_BYTES + (SIZEOF_SMAC_CTRLPKT * ENCODE_RATIO)) * byte_tx_time_ + 1;
   durCtrlPkt_ = CLKTICK2SEC(durCtrlPkt_);
   
   // time to wait for CTS or ACK
   //timeWaitCtrl_ = durCtrlPkt_ + CLKTICK2SEC(4) ;    // timeout time
-  int delay = 2 * PROC_DELAY + SIFS;
+  int delay = 2 * PROC_DELAY + sifs_;
   timeWaitCtrl_ = CLKTICK2SEC(delay) + durCtrlPkt_;    // timeout time
 
   
@@ -227,8 +260,8 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
   
     // Calculate sync/data/sleeptime based on duty cycle
     // all time in ms
-    syncTime_ = DIFS + SEC2CLKTICK(SLOTTIME) * SYNC_CW + SEC2CLKTICK(durSyncPkt_) + GUARDTIME;
-    dataTime_ = DIFS + SEC2CLKTICK(SLOTTIME) * DATA_CW + SEC2CLKTICK(durCtrlPkt_) + GUARDTIME;
+    syncTime_ = difs_ + slotTime_ * SYNC_CW + SEC2CLKTICK(durSyncPkt_) + guardTime_;
+    dataTime_ = difs_ + slotTime_ * DATA_CW + SEC2CLKTICK(durCtrlPkt_) + guardTime_;
     listenTime_ = syncTime_ + dataTime_;
     cycleTime_ = listenTime_ * 100 / SMAC_DUTY_CYCLE + 1;
     sleepTime_ = cycleTime_ - listenTime_;
@@ -247,7 +280,7 @@ SMAC::SMAC() : Mac(), mhNav_(this), mhNeighNav_(this), mhSend_(this), mhRecv_(th
 
     // listen for a whole period to choose a schedule first
     // this typically results in each node following its own schedule
-    //double cw = (Random::random() % SYNC_CW) * SLOTTIME ;
+    //double cw = (Random::random() % SYNC_CW) * slotTime_sec_ ;
   
     // The foll CW value allows neigh nodes to follow a single schedule
     double w = (Random::random() % (SYNC_CW)) ;
@@ -372,7 +405,7 @@ void SMAC::handleRecvTimer() {
   if (mac_collision_) {
     discard(pktRx_, DROP_MAC_COLLISION);
     mac_collision_ = 0;
-    updateNav(CLKTICK2SEC(EIFS));
+    updateNav(CLKTICK2SEC(eifs_));
     
     if (state_ == CR_SENSE) 
       sleep(); // have to wait until next wakeup time
@@ -384,7 +417,7 @@ void SMAC::handleRecvTimer() {
   
   if (ch->error()) {
     Packet::free(pktRx_);
-    updateNav(CLKTICK2SEC(EIFS));
+    updateNav(CLKTICK2SEC(eifs_));
 
     if (state_ == CR_SENSE) 
       sleep();
@@ -526,8 +559,8 @@ int SMAC::checkToSend() {
       state_ = CR_SENSE;
     
       // start cstimer
-      double cw = (Random::random() % DATA_CW) * SLOTTIME;
-      mhCS_.sched(CLKTICK2SEC(DIFS) + cw);
+      double cw = (Random::random() % DATA_CW) * slotTime_sec_;
+      mhCS_.sched(CLKTICK2SEC(difs_) + cw);
       
       return 1;
     
@@ -613,8 +646,8 @@ void SMAC::handleCounterTimer(int id) {
   	howToSend_ = BCASTSYNC;
   	currSched_ = id;
   	state_ = CR_SENSE;
-	double cw = (Random::random() % SYNC_CW) * SLOTTIME;
-  	mhCS_.sched(CLKTICK2SEC(DIFS) + cw);
+	double cw = (Random::random() % SYNC_CW) * slotTime_sec_;
+  	mhCS_.sched(CLKTICK2SEC(difs_) + cw);
       }
     }
     // start to listen now
@@ -646,8 +679,8 @@ void SMAC::handleCounterTimer(int id) {
       currSched_ = id;
       state_ = CR_SENSE;
       // start cstimer
-      double cw = (Random::random() % DATA_CW) * SLOTTIME;
-      mhCS_.sched(CLKTICK2SEC(DIFS) + cw);
+      double cw = (Random::random() % DATA_CW) * slotTime_sec_;
+      mhCS_.sched(CLKTICK2SEC(difs_) + cw);
     }
   sched_2:
     mhCounter_[id]->sched(CLKTICK2SEC(dataTime_));
@@ -743,7 +776,7 @@ void SMAC::recv(Packet *p, Handler *h) {
 
 void SMAC::capture(Packet *p) {
   // we update NAV for this pkt txtime
-  updateNav(CLKTICK2SEC(EIFS) + txtime(p));
+  updateNav(CLKTICK2SEC(eifs_) + txtime(p));
   Packet::free(p);
 }
 
