@@ -43,11 +43,6 @@ PIM config $ns
 
 $ns at 0.0 "$ns run-mcast"
 
-Agent/Message instproc handle msg {
-	$self instvar node_
-	puts "@@@@@@@@@node [$node_ id] agent $self rxvd msg $msg. @@@@@@@@"
-}
-
 set rcvr0 [new Agent/Message]
 $ns attach-agent $n0 $rcvr0
 set rcvr1 [new Agent/Message]
