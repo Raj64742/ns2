@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.23 2003/12/11 23:14:55 haldar Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.24 2003/12/17 21:56:15 haldar Exp $ (LBL)";
  */
 
 /***********************************************************************\ 
@@ -339,7 +339,7 @@ public:
 	void verbose();
 	void verbose_mil();
 	void first_n(RNG::RNGSources source, long seed, int n);
-	void first_n_mil(RNG::RNGSources source, long seed, int n);
+	void first_n_mil(RNG::RNGSources source, long seed, int n, FILE *out);
 };
 #endif /* rng_test */
 
