@@ -30,13 +30,15 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.30 2002/01/01 23:47:55 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.31 2002/03/08 21:48:16 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
 #
 
 source misc.tcl
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
 # FOR UPDATING GLOBAL DEFAULTS:
 Queue/RED set q_weight_ 0.002
 Queue/RED set thresh_ 5 
@@ -54,6 +56,8 @@ Agent/TCP set minrto_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
+
+Agent/TCP set rfc2988_ true
 
 TestSuite instproc finish file {
 	global quiet PERL
@@ -119,6 +123,21 @@ Topology/net6 instproc init ns {
     $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail
     $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail
     $ns duplex-link $node_(r1) $node_(k1) 800Kb 20ms RED
+    $ns queue-limit $node_(r1) $node_(k1) 25
+    $ns queue-limit $node_(k1) $node_(r1) 25
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+Class Topology/net8 -superclass NodeTopology/4nodes
+Topology/net8 instproc init ns {
+    $self next $ns
+    $self instvar node_
+    Queue/RED set setbit_ true
+    $ns duplex-link $node_(s1) $node_(s2) 1000Mb 0ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 9.6Kb 1ms DropTail
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 10ms RED
     $ns queue-limit $node_(r1) $node_(k1) 25
     $ns queue-limit $node_(k1) $node_(r1) 25
     if {[$class info instprocs config] != ""} {
@@ -469,6 +488,16 @@ Test/timers5 instproc run {} {
         $ns_ run
 }
 
+TestSuite instproc printtcp { label tcp time } {
+	puts ""
+	puts "tcp: $label time: $time" 
+	puts "total_data_packets_sent: [$tcp set ndatapack_] data_bytes_sent: [$tcp set ndatabytes_]" 
+	puts "packets_resent: [$tcp set nrexmitpack_] bytes_resent: [$tcp set nrexmitbytes_]" 
+	puts "ack_packets_received: [$tcp set nackpack_]"
+	puts "retransmit_timeouts: [$tcp set nrexmit_]" 
+
+}
+
 Class Test/stats1 -superclass TestSuite
 Test/stats1 instproc init topo {
         $self instvar net_ defNet_ test_ guide_
@@ -478,15 +507,7 @@ Test/stats1 instproc init topo {
 	set guide_	"TCP statistics on the number of retransmit timeouts."
         $self next
 } 
-Test/stats1 instproc printtcp { label tcp time } {
-	puts ""
-	puts "tcp: $label time: $time" 
-	puts "total_data_packets_sent: [$tcp set ndatapack_] data_bytes_sent: [$tcp set ndatabytes_]" 
-	puts "packets_resent: [$tcp set nrexmitpack_] bytes_resent: [$tcp set nrexmitbytes_]" 
-	puts "ack_packets_received: [$tcp set nackpack_]"
-	puts "retransmit_timeouts: [$tcp set nrexmit_]" 
 
-}
 Test/stats1 instproc run {} {
 	global quiet
         $self instvar ns_ node_ testName_ guide_
@@ -847,6 +868,60 @@ Test/quiescent_500ms_coarse instproc init topo {
 	Test/quiescent_500ms_coarse instproc run {} [Test/quiescent_100ms info instbody run ]
         $self next
 } 
+
+####################################################################
+
+TestSuite instproc printtimeouts { label tcp time } {
+	global quiet
+	if {$quiet == "false"} {
+	  puts "tcp: $label time: $time retransmit_timeouts: [$tcp set nrexmit_]" 
+	}
+}
+
+# This test shows the packets and acknowledgements at the source,
+# for a path with a 9.6Kbps link, and 1500-byte packets.
+Class Test/dialup -superclass TestSuite
+Test/dialup instproc init topo {
+        $self instvar net_ defNet_ test_ 
+	set net_        $topo
+	set defNet_    	net8
+        set test_       dialup(9.6K-link,1500-byte-pkt)
+        $self next
+}
+Test/dialup instproc run {} {
+	global quiet
+        $self instvar ns_ node_ testName_
+        Agent/TCP set syn_ true
+        Agent/TCP set delay_growth_ true
+        Agent/TCP set windowInitOption_ 2
+        Agent/TCP set minrto_ 1
+ 	set runtime 30.01
+	set dumptime 30.0
+	set testName_ dialup
+	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
+        $tcp1 set packetSize_ 1500
+        set ftp1 [$tcp1 attach-app FTP] 
+        $ns_ at 0.0 "$ftp1 start"
+	$ns_ at $dumptime "$self printtimeouts 1 $tcp1 $dumptime" 
+
+        # $self tcpDump $tcp1 $dumptime
+	$self traceQueues $node_(r1) [$self openTrace $runtime $testName_]
+        $ns_ run
+}
+
+# This test shows the packets and acknowledgements at the source,
+# for a path with a 9.6Kbps link, and 1500-byte packets.
+# But this one has rfc2988_ set to false.
+Class Test/dialup1 -superclass TestSuite
+Test/dialup1 instproc init topo {
+        $self instvar net_ defNet_ test_ 
+	set net_        $topo
+	set defNet_    	net8
+        set test_       dialup1(9.6K-link,1500-byte-pkt)
+	Agent/TCP set rfc2988_ false
+	Test/dialup1 instproc run {} [Test/dialup info instbody run ]
+        $self next
+}
 
 TestSuite runTest
 
