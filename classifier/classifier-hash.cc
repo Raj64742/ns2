@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.1 1997/03/27 05:16:57 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.2 1997/04/10 03:31:28 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -63,20 +63,18 @@ protected:
 		int fid;
 		hnode *next;
 	};
-	virtual const hnode* lookup(IPHeader *h) = 0;
+	virtual const hnode* lookup(Packet*) = 0;
 	virtual void set_hash(nsaddr_t src, nsaddr_t dst, int fid, int slot) = 0;
 	int command(int argc, const char*const* argv);
-	int newflow(IPHeader*);
+	int newflow(Packet*);
 	void insert(int, nsaddr_t, nsaddr_t, int, int);
 	void reset();
 	int classify(Packet *const p) {
-		IPHeader *h = IPHeader::access(p->bits());
-		const hnode *hn = lookup(h);
+		const hnode *hn = lookup(p);
 		if (hn != NULL)
-			return(hn->slot);
-		return(newflow(h));
+			return (hn->slot);
+		return (newflow(p));
 	}
-
 	nsaddr_t mask_;
 	int shift_;
 	int buckets_;
@@ -85,17 +83,18 @@ protected:
 
 class SrcDestFidHashClassifier : public HashClassifier {
 public:
-	SrcDestFidHashClassifier(int nb) : HashClassifier(nb) {}
+	SrcDestFidHashClassifier(int nbuck) : HashClassifier(nbuck) {}
 protected:
 	int command(int argc, const char*const* argv);
-	const HashClassifier::hnode* lookup(IPHeader*);
+	const hnode* lookup(Packet *);
 	int hash(u_int32_t s, u_int32_t d, int f) {
 		s = s ^ d ^ f;
 		s ^= s >> 16;
 		s ^= s >> 8;
 		return (s % buckets_);
 	}
-	int compare(hnode *hn, IPHeader *h) {
+	int compare(hnode *hn, Packet *p) {
+		hdr_ip* h = (hdr_ip*)p->access(off_ip_);
 		return (hn->active && hn->src == h->src() &&
 			hn->dst == ((h->dst() >> shift_) & mask_)
 			&& hn->fid == h->flowid());
@@ -111,14 +110,15 @@ public:
 	SrcDestHashClassifier(int nb) : HashClassifier(nb) {}
 protected:
 	int command(int argc, const char*const* argv);
-	const hnode* lookup(IPHeader*);
+	const hnode* lookup(Packet *);
 	int hash(u_int32_t s, u_int32_t d) {
 		s = s ^ d;
 		s ^= s >> 16;
 		s ^= s >> 8;
 		return (s % buckets_);
 	}
-	int compare(hnode *hn, IPHeader *h) {
+	int compare(hnode *hn, Packet *p) {
+		hdr_ip* h = (hdr_ip*)p->access(off_ip_);
 		return (hn->active && hn->src == h->src() &&
 			hn->dst == ((h->dst() >> shift_) & mask_));
 	}
@@ -200,12 +200,12 @@ int HashClassifier::command(int argc, const char*const* argv)
 
 
 int
-HashClassifier::newflow(IPHeader *h)
+HashClassifier::newflow(Packet* pkt)
 {
-	const hnode *hn;
-	Tcl::instance().evalf("%s new-flow %u %u %u",
+	hdr_ip* h = (hdr_ip*)pkt->access(off_ip_);
+	Tcl::instance().evalf("%s unknown-flow %u %u %u",
 		name(), h->src(), h->dst(), h->flowid());
-	hn = lookup(h);
+	const hnode* hn = lookup(pkt);
 	if (hn == NULL)
 		return (-1);
 	return(hn->slot);
@@ -245,16 +245,17 @@ HashClassifier::insert(int buck, nsaddr_t src, nsaddr_t dst, int fid, int slot)
 	p->slot = slot;
 }
 
-/****************** Specific Methods **********************/
+/****************** Specific Lookup Methods **********************/
 
 const HashClassifier::hnode*
-SrcDestHashClassifier::lookup(IPHeader *h)
+SrcDestHashClassifier::lookup(Packet *pkt)
 {
+	hdr_ip* h = (hdr_ip*)pkt->access(off_ip_);
 	HashClassifier::hnode* hn;
 	int bucknum = hash(h->src(), ((h->dst() >> shift_) & mask_));
 	hn = &htab_[bucknum];
 	while (hn != NULL) {
-		if (compare(hn, h))
+		if (compare(hn, pkt))
 			break;
 		hn = hn->next;
 	}
@@ -262,13 +263,14 @@ SrcDestHashClassifier::lookup(IPHeader *h)
 }
 
 const HashClassifier::hnode*
-SrcDestFidHashClassifier::lookup(IPHeader *h)
+SrcDestFidHashClassifier::lookup(Packet *pkt)
 {
 	HashClassifier::hnode* hn;
+	hdr_ip* h = (hdr_ip*)pkt->access(off_ip_);
 	int bucknum = hash(h->src(), ((h->dst() >> shift_) & mask_), h->flowid());
 	hn = &htab_[bucknum];
 	while (hn != NULL) {
-		if (compare(hn, h))
+		if (compare(hn, pkt))
 			break;
 		hn = hn->next;
 	}
