@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-sack.tcl,v 1.2 1997/01/28 02:09:05 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-sack.tcl,v 1.3 1997/03/31 23:09:42 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -233,8 +233,7 @@ proc test_sack1 {} {
 	create_testnet
 
 	set tcp1 [ns_create_connection tcp-sack1 $s1 sack1-tcp-sink $k1 0]
-#	set tcp1 [ns_create_connection tcp $s1 tcp-sink $k1 0]
-	$tcp1 set window 50
+	$tcp1 set window 14
 	set ftp1 [$tcp1 source ftp]
 	ns at 1.0 "$ftp1 start"
 
@@ -423,7 +422,7 @@ proc test_sackB4 {} {
         tcpDump $tcp1 1.0
 
         # trace only the bottleneck link
-	openTraces 2.0 test_sackB4 out $r1 $k1
+	openTraces 2.0 test_sackB4 out $r1 $r2
 
         ns run
 }
