@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.5 1997/07/02 03:09:24 heideman Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.6 1997/07/09 17:51:46 heideman Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -55,18 +55,21 @@ static char rcsid[] =
 #endif /* 0 */
 
 
+#define RBP_MIN_SEGMENTS 2
+
 class RBPVegasTcpAgent;
 
-class RBPPaceTimer : public TimerHandler {
+class RBPVegasPaceTimer : public TimerHandler {
 public:
-	RBPPaceTimer(RBPVegasTcpAgent *a) : TimerHandler() { a_ = a; }
+	RBPVegasPaceTimer(RBPVegasTcpAgent *a) : TimerHandler() { a_ = a; }
 protected:
 	virtual void expire(Event *e);
 	RBPVegasTcpAgent *a_;
 };
+// Hmmm... ``a is a'' in the construction of the RBPVegasPaceTimer edifice :->
 
 class RBPVegasTcpAgent : public virtual VegasTcpAgent {
-	friend RBPPaceTimer;
+	friend RBPVegasPaceTimer;
  public:
 	RBPVegasTcpAgent();
 	virtual void recv(Packet *pkt, Handler *);
@@ -83,7 +86,7 @@ protected:
 	enum rbp_modes { RBP_GOING, RBP_POSSIBLE, RBP_OFF };
 	enum rbp_modes rbp_mode_;
 	double inter_pace_delay_;
-	RBPPaceTimer pace_timer_;
+	RBPVegasPaceTimer pace_timer_;
 };
 
 static class RBPVegasTcpClass : public TclClass {
@@ -92,15 +95,14 @@ public:
 	TclObject* create(int argc, const char*const* argv) {
 		return (new RBPVegasTcpAgent());
 	}
-} class_rbp;
+} class_vegas_rbp;
 
 
-void RBPPaceTimer::expire(Event *e) { a_->paced_send_one(); }
+void RBPVegasPaceTimer::expire(Event *e) { a_->paced_send_one(); }
 
 RBPVegasTcpAgent::RBPVegasTcpAgent() : TcpAgent(),
 	rbp_mode_(RBP_OFF),
-	pace_timer_(this),
-	rbp_rate_algorithm_(RBP_VEGAS_RATE_ALGORITHM)
+	pace_timer_(this)
 {
 	bind("rbp_scale_", &rbp_scale_);
 	bind("rbp_rate_algorithm_", &rbp_rate_algorithm_);
@@ -155,36 +157,28 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 		default:
 			abort();
 		};
-		if ((int(rbwin_vegas + 0.5)) <= 1) {
-			// Rbp not needed; back out.
-			//
-			// rbwin_vegas is now less than
-			// mss, then set rbwin_vegas to one mss and stop doing
-			// rate based pacing; such a situation is equivalent
-			// to slow start restart.
-			rbp_mode_ = RBP_OFF;
-			cwnd() = 1;
-			VegasTcpAgent::send_much(force,reason, maxburst);
-		} else {
-			// rbp needed; start it
+		rbwin_vegas = int(rbwin_vegas + 0.5);   // round
+		// Always pace at least RBP_MIN_SEGMENTS
+		if (rbwin_vegas <= RBP_MIN_SEGMENTS) {
+			rbwin_vegas = RBP_MIN_SEGMENTS;
+		};
 
-			// Conservatively set the congestion window to min of
-			// congestion window and the smoothed rbwin_vegas
-			RBP_DEBUG_PRINTF(("cwnd before check = %g\n", cwnd()));
-			cwnd() = MIN(cwnd(), rbwin_vegas);
-			RBP_DEBUG_PRINTF(("cwnd after check = %g\n", cwnd()));
-			RBP_DEBUG_PRINTF(("recv win = %g\n", wnd_));
-			// RBP timer calculations must be based on the actual
-			// window which is the min of the receiver's
-			// advertised window and the congestion window.
-			// TcpAgent::window() does this job.
-			// What this means is we expect to send window() pkts
-			// in v_rtt_ time.
-			inter_pace_delay_ = (v_rtt_)/(window() * 1.0);
-			RBP_DEBUG_PRINTF(("window is %d\n", window()));
-			RBP_DEBUG_PRINTF(("ipt = %g\n", inter_pace_delay_));
-			paced_send_one();
-		}
+		// Conservatively set the congestion window to min of
+		// congestion window and the smoothed rbwin_vegas
+		RBP_DEBUG_PRINTF(("cwnd before check = %g\n", cwnd()));
+		cwnd() = MIN(cwnd(), rbwin_vegas);
+		RBP_DEBUG_PRINTF(("cwnd after check = %g\n", cwnd()));
+		RBP_DEBUG_PRINTF(("recv win = %g\n", wnd_));
+		// RBP timer calculations must be based on the actual
+		// window which is the min of the receiver's
+		// advertised window and the congestion window.
+		// TcpAgent::window() does this job.
+		// What this means is we expect to send window() pkts
+		// in v_rtt_ time.
+		inter_pace_delay_ = (v_rtt_)/(window() * 1.0);
+		RBP_DEBUG_PRINTF(("window is %d\n", window()));
+		RBP_DEBUG_PRINTF(("ipt = %g\n", inter_pace_delay_));
+		paced_send_one();
 	} else {
 		VegasTcpAgent::send_much(force,reason, maxburst);
 	};
@@ -204,6 +198,145 @@ RBPVegasTcpAgent::paced_send_one()
 
 int
 RBPVegasTcpAgent::able_to_rbp_send_one()
+{
+	return t_seqno() < curseq_ && t_seqno() < highest_ack() + window();
+}
+
+
+/***********************************************************************
+ *
+ * The reno-based version
+ *
+ */
+
+
+class RBPRenoTcpAgent;
+
+class RBPRenoPaceTimer : public TimerHandler {
+public:
+	RBPRenoPaceTimer(RBPRenoTcpAgent *a) : TimerHandler() { a_ = a; }
+protected:
+	virtual void expire(Event *e);
+	RBPRenoTcpAgent *a_;
+};
+// Hmmm... ``a is a'' in the construction of the RBPRenoPaceTimer edifice :->
+
+class RBPRenoTcpAgent : public virtual RenoTcpAgent {
+	friend RBPRenoPaceTimer;
+ public:
+	RBPRenoTcpAgent();
+	virtual void recv(Packet *pkt, Handler *);
+	virtual void timeout(int tno);
+	virtual void RBPRenoTcpAgent::send_much(int force, int reason, int maxburst);
+
+	double rbp_scale_;   // conversion from actual -> rbp send rates
+	// enum rbp_rate_algorithms { RBP_NO_ALGORITHM, RBP_VEGAS_RATE_ALGORITHM, RBP_CWND_ALGORITHM };
+	// int rbp_rate_algorithm_;
+protected:
+	void paced_send_one();
+	int able_to_rbp_send_one();
+
+	enum rbp_modes { RBP_GOING, RBP_POSSIBLE, RBP_OFF };
+	enum rbp_modes rbp_mode_;
+	double inter_pace_delay_;
+	RBPRenoPaceTimer pace_timer_;
+};
+
+static class RBPRenoTcpClass : public TclClass {
+public:
+	RBPRenoTcpClass() : TclClass("Agent/TCP/Reno/RBP") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new RBPRenoTcpAgent());
+	}
+} class_reno_rbp;
+
+
+void RBPRenoPaceTimer::expire(Event *e) { a_->paced_send_one(); }
+
+RBPRenoTcpAgent::RBPRenoTcpAgent() : TcpAgent(),
+	rbp_mode_(RBP_OFF),
+	pace_timer_(this)
+{
+	bind("rbp_scale_", &rbp_scale_);
+	// algorithm is not used in Reno
+	// bind("rbp_rate_algorithm_", &rbp_rate_algorithm_);
+}
+
+void
+RBPRenoTcpAgent::recv(Packet *pkt, Handler *hand)
+{
+	if (rbp_mode_ != RBP_OFF) {
+		// reciept of anything disables rbp
+		rbp_mode_ = RBP_OFF;
+	};
+	RenoTcpAgent::recv(pkt, hand);
+}
+
+void
+RBPRenoTcpAgent::timeout(int tno)
+{
+	if (tno == TCP_TIMER_RTX) {
+		if (highest_ack_ == maxseq_) {
+			// Idle for a while => RBP next time.
+			rbp_mode_ = RBP_POSSIBLE;
+			return;
+		};
+	};
+	RenoTcpAgent::timeout(tno);
+}
+
+void
+RBPRenoTcpAgent::send_much(int force, int reason, int maxburst)
+{
+	if (rbp_mode_ == RBP_POSSIBLE && able_to_rbp_send_one()) {
+		// start paced mode
+		rbp_mode_ = RBP_GOING; 
+		double rbwin_reno;
+
+		// Pace out scaled cwnd.
+		rbwin_reno = cwnd() * rbp_scale_;
+
+		rbwin_reno = int(rbwin_reno + 0.5);   // round
+		// Always pace at least RBP_MIN_SEGMENTS
+		if (rbwin_reno <= RBP_MIN_SEGMENTS) {
+			rbwin_reno = RBP_MIN_SEGMENTS;
+		};
+
+		// Conservatively set the congestion window to min of
+		// congestion window and the smoothed rbwin_reno
+		RBP_DEBUG_PRINTF(("cwnd before check = %g\n", cwnd()));
+		cwnd() = MIN(cwnd(), rbwin_reno);
+		RBP_DEBUG_PRINTF(("cwnd after check = %g\n", cwnd()));
+		RBP_DEBUG_PRINTF(("recv win = %g\n", wnd_));
+		// RBP timer calculations must be based on the actual
+		// window which is the min of the receiver's
+		// advertised window and the congestion window.
+		// TcpAgent::window() does this job.
+		// What this means is we expect to send window() pkts
+		// in v_rtt_ time.
+		inter_pace_delay_ = (t_rtt())/(window() * 1.0);
+		RBP_DEBUG_PRINTF(("window is %d\n", window()));
+		RBP_DEBUG_PRINTF(("ipt = %g\n", inter_pace_delay_));
+		paced_send_one();
+	} else {
+		RenoTcpAgent::send_much(force,reason, maxburst);
+	};
+}
+
+void
+RBPRenoTcpAgent::paced_send_one()
+{
+	if (rbp_mode_ == RBP_GOING && able_to_rbp_send_one()) {
+		RBP_DEBUG_PRINTF(("Sending one rbp packet\n"));
+		// send one packet
+		output(t_seqno()++, TCP_REASON_RBP);
+		// schedule next pkt
+		pace_timer_.resched(inter_pace_delay_);
+	};
+}
+
+int
+RBPRenoTcpAgent::able_to_rbp_send_one()
 {
 	return t_seqno() < curseq_ && t_seqno() < highest_ack() + window();
 }
