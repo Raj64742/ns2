@@ -34,6 +34,10 @@
 #include <unistd.h>
 #endif
 
+#ifdef HAVE_SBRK
+#include <unistd.h>
+#endif /* HAVE_SBRK */
+
 /* hpux patch from Ketil Danielsen <Ketil.Danielsen@hiMolde.no> */
 #ifdef hpux
 #include <sys/resource.h>
