@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.3 1997/07/23 03:13:36 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.4 1997/07/29 22:50:51 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcpsink_h
@@ -42,6 +42,7 @@
 #include "tcp.h"
 #include "agent.h"
 #include "flags.h"
+#include "Tcl.h"
 
 /* max window size */
 #define MWS 1024
@@ -51,6 +52,7 @@
  * "window" parameter should be less than MWM/2.
  */
 
+class TcpSink;
 class Acker {
 public:
 	Acker();
@@ -65,16 +67,36 @@ protected:
 	int seen_[MWS];		/* array of packets seen  */
 };
 
+// derive Sacker from TclObject to allow for traced variable
+class SackStack;
+class Sacker : public Acker, public TclObject {
+public: 
+        Sacker() : base_nblocks_(-1), sf_(0) { };
+        ~Sacker();
+        void append_ack(hdr_cmn*, hdr_tcp*, int oldSeqno) const;
+        void reset();
+        void configure(TcpSink*);
+protected:
+        int base_nblocks_;
+        SackStack *sf_;
+        void trace(TracedVar*);
+};
+
 class TcpSink : public Agent {
 public:
 	TcpSink(Acker*);
 	void recv(Packet* pkt, Handler*);
 	void reset();
+	TracedInt& maxsackblocks() { return max_sack_blocks_; }
 protected:
 	void ack(Packet*);
 	virtual void add_to_ack(Packet* pkt);  
 	Acker* acker_;
 	int off_tcp_;
+
+	friend void Sacker::configure(TcpSink*);
+	TracedInt max_sack_blocks_;	/* used only by sack sinks */
+
 };
 
 #define DELAY_TIMER 0
