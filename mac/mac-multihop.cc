@@ -82,6 +82,27 @@ getPeerMac(Packet *p)
 }
 
 /*
+ * Returns 1 iff the specified MAC is in the prescribed state, AND all
+ * the other MACs are IDLE.
+ */
+int
+MultihopMac::checkInterfaces(int state) 
+{
+	MultihopMac *p;
+	
+	if (mode_ != state)
+		return 0;
+	else if (macList_ == 0)
+		return 1;
+	for (p = (MultihopMac *)macList_; p != this && p != NULL; 
+	     p = (MultihopMac *)(p->macList())) {
+		if (p->mode() != MAC_IDLE)
+			return 0;
+	}
+	return 1;
+}
+
+/*
  * Poll a peer node prior to a send.  There can be at most one POLL 
  * outstanding from a node at any point in time.  This is achieved implicitly
  * because there can be at most one packet down from LL (thru IFQ) to this MAC.
@@ -105,7 +126,7 @@ double now = s.clock();
 	double timeout = max(pm->rx_tx(), tx_rx_) + 4*pollTxtime(MAC_POLLSIZE);
 	s.schedule(&bh_, pendingPollEvent_, timeout);
 
-	if (mode_ == MAC_IDLE) {
+	if (checkInterfaces(MAC_IDLE)) {
 		mode_ = MAC_POLLING;
 		peer_ = pm;
 		s.schedule(pm->ph(), (Event *)pe, pollTxtime(MAC_POLLSIZE));
@@ -130,7 +151,7 @@ double now = s.clock();
 	 * Send POLLACK if either IDLE or currently receiving 
 	 * from same mac as the poller.
 	 */
-	if (myMac->mode() == MAC_IDLE) {
+	if (myMac->checkInterfaces(MAC_IDLE)) {
 		cout << now << " Handling poll\n";
 		myMac->mode(MAC_RCV);
 		pm = pe->peerMac();
@@ -157,7 +178,7 @@ double now = s.clock();
 	MultihopMac *pm = myMac->peer(); // now set to some random peer
 	
 	cout << "In pollack for " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << " mode " << mode << "\n";
-	if (mode == MAC_POLLING || mode == MAC_IDLE) {
+	if (myMac->checkInterfaces(MAC_POLLING | MAC_IDLE)) {
 		cout << now << " handling pollack for " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << "\n";
 		myMac->backoffTime(myMac->backoffBase());
 		myMac->mode(MAC_SND);

@@ -40,13 +40,15 @@
 #include "baseLL.h"
 
 #define MAC_POLLSIZE 40		/* completely arbitrary */
-#define MAC_POLLACKSIZE 40		/* completely arbitrary */
-#define MAC_IDLE 0
-#define MAC_RCV 1
-#define MAC_SND 2
-#define MAC_POLLING 3
+#define MAC_POLLACKSIZE 40	/* completely arbitrary */
 
-#define MAC_TICK 10000		/* for now */
+/* States of MultihopMac protocol */
+#define MAC_IDLE 0x0000
+#define MAC_POLLING 0x0001
+#define MAC_RCV 0x0010
+#define MAC_SND 0x0100
+
+#define MAC_TICK 16000		/* 1 tick = 1ms; 16 sub-ticks in a tick */
 
 class PollHandler;
 class PollAckHandler;
@@ -124,7 +126,7 @@ class MultihopMac : public Mac {
 	void send(Packet*); /* send data packet (assume POLLed) link */
 	void recv(Packet *, Handler *); /* call from higher layer (LL) */
 	void poll(Packet *); /* poll peer mac */
-	void poll2(Packet *); /* poll peer mac */
+	int checkInterfaces(int); /* probe state of this and other MACs */
 	void schedulePoll(MultihopMac *); /* schedule poll for later */
 	inline int mode() { return mode_; }
 	inline int mode(int m) { return mode_ = m; }
