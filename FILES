@@ -852,6 +852,9 @@ tcl/test/test-output-webcache/mottl-PB.Z
 tcl/test/test-output-webcache/mttl-PB.Z
 tcl/test/test-output-webcache/ottl-PB.Z
 tcl/test/test-output-webcache/ttl-PB.Z
+tcl/webcache/http-agent.tcl
+tcl/webcache/http-cache.tcl
+tcl/webcache/http-server.tcl
 tclAppInit.cc
 tcp-asym-fs.cc
 tcp-asym-sink.cc
