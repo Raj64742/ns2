@@ -87,6 +87,7 @@ emulate/em3.tcl
 emulate/emping.tcl
 emulate/arp.cc
 emulate/icmp.cc
+emulate/nat.cc
 errmodel.cc
 errmodel.h
 estimator.cc
