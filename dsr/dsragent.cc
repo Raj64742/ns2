@@ -312,7 +312,7 @@ public:
 /*===========================================================================
   DSRAgent methods
 ---------------------------------------------------------------------------*/
-DSRAgent::DSRAgent(): Agent(PT_DSR), request_table(128), route_cache(NULL), \
+DSRAgent::DSRAgent(): Agent(PT_DSR), request_table(128), route_cache(NULL),
 send_buf_timer(this), flow_table(), ars_table()
 {
   int c;
@@ -1192,7 +1192,7 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
 
 
 void
-DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay = 0.0)
+DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
      // take packet and send it out, packet must a have a route in it
      // return value is not very meaningful
      // if fresh is true then reset the path before using it, if fresh
