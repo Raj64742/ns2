@@ -42,7 +42,7 @@ class Channel : public Connector {
 public:
 	Channel();
 	void recv(Packet* p, Handler*);
-	int send(Packet* p, Handler* target, double txstart, double txstop=0);
+	int send(Packet* p, NsObject* target, double txstart, double txstop=0);
 	int hold(double txtime);
 	void drop(Packet* p);
 

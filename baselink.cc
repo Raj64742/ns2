@@ -32,45 +32,46 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ns_channel_h
-#define ns_channel_h
-
-#include "connector.h"
+#include "baselink.h"
+#include "ifqueue.h"
 
 
-class Channel : public Connector {
+static class BaseLinkClass : public TclClass {
 public:
-	Channel();
-	void recv(Packet* p, Handler*);
-	int send(Packet* p, NsObject* target, double txstart, double txstop=0);
-	int hold(double txtime);
-	void drop(Packet* p);
-
-	inline double delay() { return delay_; }
-	inline double txstop() { return txstop_; }
-	inline double cwstop() { return cwstop_; }
-	inline int numtx() { return numtx_; }
-
-protected:
-	int command(int argc, const char*const* argv);
-
-	double delay_;		// channel delay, for collision interval
-	double txstop_;		// end of the last transmission
-	double cwstop_;		// end of the contention window
-	int numtx_;		// number of transmissions during contention
-};
+	BaseLinkClass() : TclClass("BaseLink") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new BaseLink);
+	}
+} class_baselink;
 
 
-template <class Type1, class Type2>
-inline Type1 min(Type1 a, Type2 b)
+BaseLink::BaseLink() : LinkDelay(), ifq_(0), em_(0)
 {
-	return a < b ? a : b;
 }
 
-template <class Type1, class Type2>
-inline Type1 max(Type1 a, Type2 b)
+
+int
+BaseLink::command(int argc, const char*const* argv)
 {
-	return a < b ? b : a;
+	if (argc == 3) {
+		if (strcmp(argv[1], "ifqueue") == 0) {
+			ifq_ = (IFQueue*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "error") == 0) {
+			em_ = (ErrorModel*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+	}
+	return LinkDelay::command(argc, argv);
 }
 
-#endif
+
+void
+BaseLink::recv(Packet* p, Handler* h)
+{
+	if (em_ && em_->corrupt(p)) {
+		p->error(1);
+	}
+	ifq_->recv(p, h, target_, this);
+}

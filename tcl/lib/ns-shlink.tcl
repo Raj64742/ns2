@@ -54,7 +54,9 @@ Link/Shared instproc init { bw delay q mactype nodes } {
 				$link_ set bandwidth_ $bw
 				$link_ set delay_ $delay
 				$link_ ifq $ifq
-				$link_ target [$dst entry]
+				set dl [new BaseLink]
+				dl target [$dst entry]
+				$link_ target $dl
 			}
 		}
 	}

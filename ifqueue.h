@@ -3,7 +3,7 @@
 #define ns_ifqueue_h
 
 #include "queue.h"
-#include "maclink.h"
+#include "baselink.h"
 #include "mac.h"
 
 
@@ -31,7 +31,6 @@ protected:
 	void reset();
 	Mac* mac_;		// MAC to send to
 	PacketQueue q_;
-	/* TargetQueue tq_; */
 	IFQueueHandlerRs hRs_;	// resume handler
 };
 
