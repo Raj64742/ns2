@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.38 2000/09/01 03:04:07 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.39 2001/07/11 21:24:25 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -165,6 +165,7 @@ class FullTcpAgent : public TcpAgent {
 	int dupseg_fix_;    // fix bug with dup segs and dup acks?
 	int dupack_reset_;  // zero dupacks on dataful dup acks?
 	int halfclose_;	    // allow simplex closes?
+	int nopredict_;	    // disable header predication
 	double delack_interval_;
 
 	int headersize();   // a tcp header w/opts
