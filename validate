@@ -34,10 +34,9 @@ try () {
 
 any_failed=false
 failed_list=""
-try ./test-all
 
 cd tcl/test
-for i in tcp full red sack schedule cbq red-v1 cbq-v1 sack-v1 v1 \
+for i in simple tcp full red sack schedule cbq red-v1 cbq-v1 sack-v1 v1 \
   vegas-v1 rbp tcp-init-win tcpVariants ecn manual-routing
 do
 	try ./test-all-$i
