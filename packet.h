@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  *
 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.51 1999/01/08 19:39:14 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.52 1999/02/17 03:25:27 haoboy Exp $ (LBL)
 
  */
 
@@ -96,18 +96,19 @@
 #define PT_HTTP		31
 
 /* new encapsulator */
-#define PT_ENCAPSULATED 	32
+#define PT_ENCAPSULATED	32
 #define PT_MFTP         33
-#define PT_NTYPE	34
-
 
 /* CMU/Monarch's extnsions */
-#define PT_ARP		33
-#define PT_MAC		34
-#define PT_TORA		35
-#define PT_DSR		36
-#define PT_AODV         37
-//
+#define PT_ARP		34
+#define PT_MAC		35
+#define PT_TORA		36
+#define PT_DSR		37
+#define PT_AODV         38
+
+// This MUST be the HIGHEST of all packet indices!!
+#define PT_NTYPE	39
+
 #define PT_NAMES "tcp", "udp", "cbr", "audio", "video", "ack", \
 	"start", "stop", "prune", "graft", "graftAck", "join", \
 	"assert","message", "rtcp", "rtp", \
