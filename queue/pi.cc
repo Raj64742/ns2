@@ -1,6 +1,6 @@
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
- * Copyright (c) 2001  International Computer Science Institute
+ * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -13,17 +13,16 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *      This product includes software developed by ACIRI, the AT&T
- *      Center for Internet Research at ICSI (the International Computer
- *      Science Institute).
- * 4. Neither the name of ACIRI nor of ICSI may be used
+ *	This product includes software developed by the Computer Systems
+ *	Engineering Group at Lawrence Berkeley Laboratory.
+ * 4. Neither the name of the University nor of the Laboratory may be used
  *    to endorse or promote products derived from this software without
  *    specific prior written permission.
  *
- * THIS SOFTWARE IS PROVIDED BY ICSI AND CONTRIBUTORS ``AS IS'' AND
+ * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL ICSI OR CONTRIBUTORS BE LIABLE
+ * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
  * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
  * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
  * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
@@ -31,18 +30,17 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ *
  */
 
 /*
- * Based on PI conrtoller proposed by Hollot et. al.
- * C. Hollot, V. Misra, D. Towsley and W. Gong. On Designing Improved Controllers for AQM Routers
- * Supporting TCP Flows , INFOCOMM 2001. 
+ * Based on PI controller described in:
+ * C. Hollot, V. Misra, D. Towsley and W. Gong. 
+ * On Designing Improved Controllers for AQM Routers
+ * Supporting TCP Flows, 
+ * INFOCOMM 2001. 
  */
-
-#ifndef lint
-static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/pi.cc,v 1.2 2001/06/27 18:31:53 sfloyd Exp $ (LBL)";
-#endif
 
 #include <math.h>
 #include <sys/types.h>
@@ -69,7 +67,7 @@ PIQueue::PIQueue(const char * trace) : link_(NULL), bcount_(0),
   de_drop_(NULL), EDTrace(NULL), tchan_(0), first_reset_(1), CalcTimer(this)
 {
 	if (strlen(trace) >=20) {
-		printf("trace type too long - allocate more space to traceType in red.h and recompile\n");
+		printf("trace type too long - allocate more space to traceType in pi.h and recompile\n");
 		exit(0);
 	}
 	strcpy(traceType, trace);
@@ -92,9 +90,11 @@ PIQueue::PIQueue(const char * trace) : link_(NULL), bcount_(0),
 void PIQueue::reset()
 {
 	double now = Scheduler::instance().clock();
+	/*
 	if (qib_ && first_reset_ == 1) {
 		edp_.qref = edp_.qref*edp_.mean_pktsize;
 	}
+	*/
 	edv_.count = 0;
 	edv_.count_bytes = 0;
 	edv_.v_prob = 0;
@@ -105,30 +105,9 @@ void PIQueue::reset()
 	Queue::reset();
 }
 
-/*
- * Receive a new packet arriving at the queue.
- * The average queue size is computed.  If the average size
- * exceeds the threshold, then the dropping probability is computed,
- * and the newly-arriving packet is dropped with that probability.
- * The packet is also dropped if the maximum queue size is exceeded.
- *
- * "Forced" drops mean a packet arrived when the underlying queue was
- * full or when the average q size exceeded maxthresh.
- * "Unforced" means a PI random drop.
- *
- * For forced drops, either the arriving packet is dropped or one in the
- * queue is dropped, depending on the setting of drop_tail_.
- * For unforced drops, the arriving packet is always the victim.
- */
 
 void PIQueue::enque(Packet* pkt)
 {
-	/*
-	 * count and count_bytes keeps a tally of arriving traffic
-	 * that has not been dropped (i.e. how long, in terms of traffic,
-	 * it has been since the last early drop)
-	 */
-
 	double now = Scheduler::instance().clock();
 	hdr_cmn* ch = hdr_cmn::access(pkt);
 	++edv_.count;
@@ -142,26 +121,16 @@ void PIQueue::enque(Packet* pkt)
 	int qlim = qib_ ? (qlim_ * edp_.mean_pktsize) : qlim_;
 
 	if (qlen >= qlim) {
-		// see if we've exceeded the queue size
 		droptype = DTYPE_FORCED;
-		//printf ("# now=%f qlen=%d qref=%d FORCED drop\n", now, (int)curq_, (int)edp_.qref);
-		//fflush(stdout);
 	}
 	else {
 		if (drop_early(pkt, qlen)) {
 			droptype = DTYPE_UNFORCED;
-			//printf ("# now=%f qlen=%d qref=%d EARLY drop\n", now, (int)curq_, (int)edp_.qref);
-			//fflush(stdout);
 		}
 	}
 
 	if (droptype == DTYPE_UNFORCED) {
-		/* pick packet for ECN, which is dropping in this case */
 		Packet *pkt_to_drop = pickPacketForECN(pkt);
-		/* 
-		 * If the packet picked is different that the one that just arrived,
-		 * add it to the queue and remove the chosen packet.
-		 */
 		if (pkt_to_drop != pkt) {
 			q_->enque(pkt);
 			bcount_ += ch->size();
@@ -170,33 +139,21 @@ void PIQueue::enque(Packet* pkt)
 			pkt = pkt_to_drop; /* XXX okay because pkt is not needed anymore */
 		}
 
-		// deliver to special "edrop" target, if defined
 		if (de_drop_ != NULL) {
-	
-		//trace first if asked 
-		// if no snoop object (de_drop_) is defined, 
-		// this packet will not be traced as a special case.
 			if (EDTrace != NULL) 
 				((Trace *)EDTrace)->recvOnly(pkt);
-
 			de_drop_->recv(pkt);
 		}
 		else {
 			drop(pkt);
 		}
 	} else {
-		/* forced drop, or not a drop: first enqueue pkt */
 		q_->enque(pkt);
 		bcount_ += ch->size();
-
-		/* drop a packet if we were told to */
 		if (droptype == DTYPE_FORCED) {
-			/* drop random victim or last one */
 			pkt = pickPacketToDrop();
 			q_->remove(pkt);
-
 			bcount_ -= hdr_cmn::access(pkt)->size();
-
 			drop(pkt);
 			edv_.count = 0;
 			edv_.count_bytes = 0;
@@ -210,19 +167,19 @@ double PIQueue::calculate_p()
 	double now = Scheduler::instance().clock();
 	double p;
 	int qlen = qib_ ? bcount_ : q_->length();
-
-	p=edp_.a*(qlen-edp_.qref)-edp_.b*(edv_.qold-edp_.qref)+edv_.v_prob;
-
+	
+	if (qib_) {
+		p=edp_.a*(qlen*1.0/edp_.mean_pktsize-edp_.qref)-
+			edp_.b*(edv_.qold*1.0/edp_.mean_pktsize-edp_.qref)+
+			edv_.v_prob;
+	}
+	else {
+		p=edp_.a*(qlen-edp_.qref)-edp_.b*(edv_.qold-edp_.qref)+edv_.v_prob;
+	}
+		
 	if (p < 0) p = 0;
 	if (p > 1) p = 1;
-
-	/*
-	printf ("# now=%f qlen=%d qref=%d a=%f b=%f oldp=%f newp=%f w=%f\n", 
-  					now, (int)qlen, (int)edp_.qref, (double)edp_.a, (double)edp_.b, 
-  						(double)edv_.v_prob, p, (double)edp_.w);
-	fflush(stdout);
-	*/
-
+	
 	edv_.v_prob = p;
 	edv_.qold = qlen;
 
@@ -241,12 +198,8 @@ int PIQueue::drop_early(Packet* pkt, int qlen)
 		if (p > 1) p = 1; 
 	}
 
-	// drop probability is computed, pick random number and act
 	double u = Random::uniform();
-	//printf ("# now=%f qref=%d p=%f u=%f\n", now, (int)edp_.qref, p, u);
-	//fflush(stdout);
 	if (u <= p) {
-		// DROP or MARK
 		edv_.count = 0;
 		edv_.count_bytes = 0;
 		hdr_flags* hf = hdr_flags::access(pickPacketForECN(pkt));
@@ -260,22 +213,11 @@ int PIQueue::drop_early(Packet* pkt, int qlen)
 	return (0);			// no DROP/mark
 }
 
-/*
- * Pick packet for early congestion notification (ECN). This packet is then
- * marked or dropped. Having a separate function do this is convenient for
- * supporting derived classes that use the standard PI algorithm to compute
- * average queue size but use a different algorithm for choosing the packet for 
- * ECN notification.
- */
-Packet*
-PIQueue::pickPacketForECN(Packet* pkt)
+Packet* PIQueue::pickPacketForECN(Packet* pkt)
 {
 	return pkt; /* pick the packet that just arrived */
 }
 
-/*
- * Pick packet to drop. Same as above. 
- */
 Packet* PIQueue::pickPacketToDrop() 
 {
 	int victim;
@@ -374,26 +316,15 @@ int PIQueue::command(int argc, const char*const* argv)
 	return (Queue::command(argc, argv));
 }
 
-/*
- * Routine called by TracedVar facility when variables change values.
- * Currently used to trace values of avg queue size, drop probability,
- * and the instantaneous queue size seen by arriving packets.
- * Note that the tracing of each var must be enabled in tcl to work.
- */
-
-void
-PIQueue::trace(TracedVar* v)
+void PIQueue::trace(TracedVar* v)
 {
 	char wrk[500], *p;
 
-	if (((p = strstr(v->name(), "ave")) == NULL) &&
-	    ((p = strstr(v->name(), "prob")) == NULL) &&
+	if (((p = strstr(v->name(), "prob")) == NULL) &&
 	    ((p = strstr(v->name(), "curq")) == NULL)) {
-		fprintf(stderr, "PI:unknown trace var %s\n",
-			v->name());
+		fprintf(stderr, "PI:unknown trace var %s\n", v->name());
 		return;
 	}
-
 	if (tchan_) {
 		int n;
 		double t = Scheduler::instance().clock();
@@ -401,8 +332,7 @@ PIQueue::trace(TracedVar* v)
 		if (*p == 'c') {
 			sprintf(wrk, "Q %g %d", t, int(*((TracedInt*) v)));
 		} else {
-			sprintf(wrk, "%c %g %g", *p, t,
-				double(*((TracedDouble*) v)));
+			sprintf(wrk, "%c %g %g", *p, t, double(*((TracedDouble*) v)));
 		}
 		n = strlen(wrk);
 		wrk[n] = '\n'; 
@@ -416,5 +346,3 @@ void PICalcTimer::expire(Event *)
 {
 	a_->calculate_p();
 }
-
-
