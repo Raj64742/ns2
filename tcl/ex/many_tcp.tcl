@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.15 1998/07/10 22:25:08 heideman Exp $
+# $Id: many_tcp.tcl,v 1.16 1998/10/28 19:16:53 yuriy Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -575,7 +575,7 @@ Main instproc trace_stuff {} {
 # xxx
 		$bottle_l_ dump-namconfig
 		$bottle_r_ dump-namconfig
-		[$ns_ nodes-to-link $bottle_l_ $bottle_r_] dump-namconfig
+		[$ns_ link $bottle_l_ $bottle_r_] dump-namconfig
 		$ns_ namtrace-queue $bottle_l_ $bottle_r_ $nam_trace_file_
 		$ns_ namtrace-queue $bottle_r_ $bottle_l_ $nam_trace_file_
 	}
