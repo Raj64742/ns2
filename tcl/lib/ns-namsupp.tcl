@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu, haoboy@isi.edu
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.4 1997/11/04 22:45:44 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.5 1997/11/06 22:48:21 haoboy Exp $
 #
 
 #
@@ -125,6 +125,7 @@ SimpleLink instproc dump-namconfig {} {
 	if ![info exists attr_(COLOR)] {
 		set attr_(COLOR) "black"
 	}
+
 	if ![info exists attr_(ORIENTATION)] {
 		set attr_(ORIENTATION) ""
 	}
@@ -139,6 +140,10 @@ SimpleLink instproc dump-namconfig {} {
 
 Link instproc dump-nam-queueconfig {} {
 	$self instvar attr_ fromNode_ toNode_
+
+	if ![info exists attr_(COLOR)] {
+		set attr_(COLOR) "black"
+	}
 
 	set ns [Simulator instance]
 	if [info exists attr_(QUEUE_POS)] {
@@ -179,10 +184,10 @@ Link instproc color { color } {
 
 	set ns [Simulator instance]
 	if [$ns is-started] {
-		set attr_(COLOR) $color
-	} else {
 		$ns puts-nam-traceall \
 			[eval list "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S COLOR -c $color -o $attr_(COLOR)"]
+		set attr_(COLOR) $color
+	} else {
 		set attr_(COLOR) $color
 	}
 }
@@ -194,8 +199,8 @@ Link instproc change-color { color } {
 }
 
 Link instproc get-color {} {
-	$self instvar attr_
-	return $attr_(COLOR)
+	puts "Warning: Node::get-color is obsolete. Please use Node::get-attribute"
+	return [$self get-attribute "COLOR"]
 }
 
 #
