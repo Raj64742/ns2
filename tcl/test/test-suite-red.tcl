@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.22 1998/08/14 22:08:49 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.23 1998/09/14 02:06:43 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -41,8 +41,7 @@
 
 set dir [pwd]
 catch "cd tcl/test"
-source misc.tcl
-source topologies.tcl
+source misc_simple.tcl
 catch "cd $dir"
 
 set flowfile fairflow.tr; # file where flow data is written
@@ -74,18 +73,47 @@ TestSuite instproc enable_tracequeue ns {
 	$redq attach $tchan_
 }
 
-#
-# Reconfigure the net2 topology for the RED experiments.
-#
-Topology/net2 instproc config ns {
+Class Topology
+
+Topology instproc node? num {
     $self instvar node_
+    return $node_($num)
+}
+
+Class Topology/net2 -superclass Topology
+Topology/net2 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]    
+    set node_(r1) [$ns node]    
+    set node_(r2) [$ns node]    
+    set node_(s3) [$ns node]    
+    set node_(s4) [$ns node]    
+
+    $self next 
+
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 25
+    $ns queue-limit $node_(r2) $node_(r1) 25
+    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
+ 
+    $ns duplex-link-op $node_(s1) $node_(r1) orient right-down
+    $ns duplex-link-op $node_(s2) $node_(r1) orient right-up
+    $ns duplex-link-op $node_(r1) $node_(r2) orient right
+    $ns duplex-link-op $node_(r1) $node_(r2) queuePos 0
+    $ns duplex-link-op $node_(r2) $node_(r1) queuePos 0
+    $ns duplex-link-op $node_(s3) $node_(r2) orient left-down
+    $ns duplex-link-op $node_(s4) $node_(r2) orient left-up
+
     # force identical behavior to ns-1.
     # the recommended value for linterm is now 10
     # and is placed in the default file (3/31/97)
     [[$ns link $node_(r1) $node_(r2)] queue] set linterm_ 50
     [[$ns link $node_(r2) $node_(r1)] queue] set linterm_ 50
-	
-}
+}   
 
 TestSuite instproc plotQueue file {
 	global quiet
@@ -147,17 +175,29 @@ TestSuite instproc tcpDumpAll { tcpSrc interval label } {
     }
 }       
 
+TestSuite instproc setTopo {} {
+    $self instvar node_ net_ ns_ 
+
+    set topo_ [new Topology/$net_ $ns_]
+    set node_(s1) [$topo_ node? s1]
+    set node_(s2) [$topo_ node? s2]
+    set node_(s3) [$topo_ node? s3]
+    set node_(s4) [$topo_ node? s4]
+    set node_(r1) [$topo_ node? r1]
+    set node_(r2) [$topo_ node? r2]
+    [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout
+}
 
 Class Test/red1 -superclass TestSuite
-Test/red1 instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net2
-    set test_	red1
+Test/red1 instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ red1
     $self next
 }
 Test/red1 instproc run {} {
-    $self instvar ns_ node_ testName_
+    $self instvar ns_ node_ testName_ net_
+    $self setTopo
 
     set stoptime 10.0
     
@@ -183,16 +223,16 @@ Test/red1 instproc run {} {
 }
 
 Class Test/ecn -superclass TestSuite
-Test/ecn instproc init topo {
-    $self instvar net_ defNet_ test_
+Test/ecn instproc init {} {
+    $self instvar net_ test_
     Queue/RED set setbit_ true
-    set net_	$topo
-    set defNet_	net2
+    set net_	net2
     set test_	ecn
     $self next
 }
 Test/ecn instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo 
 
     set stoptime 10.0
     set redq [[$ns_ link $node_(r1) $node_(r2)] queue]
@@ -224,15 +264,15 @@ Test/ecn instproc run {} {
 # "Red2" changes some of the RED gateway parameters.
 # This should give worse performance than "red1".
 Class Test/red2 -superclass TestSuite
-Test/red2 instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net2
+Test/red2 instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
     set test_	red2
     $self next
 }
 Test/red2 instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
 
     set stoptime 10.0
     set redq [[$ns_ link $node_(r1) $node_(r2)] queue]
@@ -263,15 +303,15 @@ Test/red2 instproc run {} {
 
 # The queue is measured in "packets".
 Class Test/red_twoway -superclass TestSuite
-Test/red_twoway instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net2
+Test/red_twoway instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
     set test_	red_twoway
     $self next
 }
 Test/red_twoway instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
 
     set stoptime 10.0
 	
@@ -305,15 +345,15 @@ Test/red_twoway instproc run {} {
 
 # The queue is measured in "bytes".
 Class Test/red_twowaybytes -superclass TestSuite
-Test/red_twowaybytes instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_	$topo
-    set defNet_	net2
+Test/red_twowaybytes instproc init {} {
+    $self instvar net_ test_
+    set net_	net2
     set test_	red_twowaybytes
     $self next
 }
 Test/red_twowaybytes instproc run {} {
     $self instvar ns_ node_ testName_
+    $self setTopo
 
     set stoptime 10.0
     set redq [[$ns_ link $node_(r1) $node_(r2)] queue]
@@ -450,10 +490,12 @@ TestSuite instproc allmakeawk { } {
 }
 
 TestSuite instproc create_flow_graph { graphtitle graphfile } {
-        global flowfile
+        global flowfile quiet
 	$self instvar awkprocedure_
 
-puts "awkprocedure: $awkprocedure_"
+        if {$quiet == "false"} {
+		puts "awkprocedure: $awkprocedure_"
+	}
 
         set tmpfile1 /tmp/fg1[pid]
         set tmpfile2 /tmp/fg2[pid]
@@ -467,7 +509,9 @@ puts "awkprocedure: $awkprocedure_"
         puts $outdesc "Device: Postscript"
 
         exec rm -f $tmpfile1 $tmpfile2
-        puts "writing flow xgraph data to $graphfile..."
+	if {$quiet == "false"} {
+        	puts "writing flow xgraph data to $graphfile..."
+	}
 
         exec sort -n +1 -o $flowfile $flowfile
         exec awk [$self $awkprocedure_] $flowfile >@ $outdesc
@@ -480,7 +524,9 @@ TestSuite instproc finish_flows testname {
 	$r1fm_ dump
 	close $flowchan
 	$self create_flow_graph $testname $flowgraphfile
-	puts "running xgraph..."
+	if {$quiet == "false"} {
+		puts "running xgraph..."
+	}
 	exec cp $flowgraphfile temp.rands
 	if {$quiet == "false"} {
 		exec xgraph -bb -tk -nl -m -lx 0,100 -ly 0,100 -x "% of data bytes" -y "% of discards" $flowgraphfile &
@@ -587,10 +633,9 @@ TestSuite instproc droptest { stoptime } {
 
 
 Class Test/flows_unforced -superclass TestSuite
-Test/flows_unforced instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_    $topo   
-    set defNet_ net2
+Test/flows_unforced instproc init {} {
+    $self instvar net_ test_
+    set net_    net2   
     set test_   flows_unforced
     $self next 0; # zero here means don't product all.tr
 }   
@@ -599,6 +644,7 @@ Test/flows_unforced instproc run {} {
 
 	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
 	$self instvar dump_pthresh_
+	$self setTopo
         set stoptime 500.0
 	set testName_ test_flows_unforced
 	set awkprocedure_ unforcedmakeawk
@@ -609,10 +655,9 @@ Test/flows_unforced instproc run {} {
 }
 
 Class Test/flows_forced -superclass TestSuite
-Test/flows_forced instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_    $topo   
-    set defNet_ net2
+Test/flows_forced instproc init {} {
+    $self instvar net_ test_
+    set net_    net2   
     set test_   flows_forced
     $self next 0; # zero here means don't product all.tr
 }   
@@ -621,6 +666,7 @@ Test/flows_forced instproc run {} {
 
 	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
 	$self instvar dump_pthresh_
+	$self setTopo
  
         set stoptime 500.0
 	set testName_ test_flows_forced
@@ -631,10 +677,9 @@ Test/flows_forced instproc run {} {
 }
 
 Class Test/flows_combined -superclass TestSuite
-Test/flows_combined instproc init topo {
-    $self instvar net_ defNet_ test_
-    set net_    $topo   
-    set defNet_ net2
+Test/flows_combined instproc init {} {
+    $self instvar net_ test_
+    set net_    net2   
     set test_   flows_combined
     $self next 0; # zero here means don't product all.tr
 }   
@@ -643,6 +688,7 @@ Test/flows_combined instproc run {} {
 
 	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
 	$self instvar dump_pthresh_
+	$self setTopo
  
         set stoptime 500.0
 	set testName_ test_flows_combined
