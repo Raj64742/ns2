@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.50 2005/01/25 23:29:14 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.51 2005/03/21 18:51:30 haldar Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -441,6 +441,7 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
         } else {
 		$ll up-target [$self entry]
 	}
+
 	#
 	# Interface Queue
 	#
@@ -455,9 +456,18 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	if { $namfp != "" } {
 		$drpT namattach $namfp
 	}
+	if {[$ifq info class] == "Queue/XCP"} {		
+		$ifq set-link-capacity [$mac set bandwidth_]
+		$ifq queue-limit $qlen
+		$ifq link $ll
+		$mac set bandwidth_ [$ll set bandwidth_]
+		$mac set delay_ [$ll set delay_]
+	}
+
 	#
 	# Mac Layer
 	#
+	
 	$mac netif $netif
 	$mac up-target $ll
 

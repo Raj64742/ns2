@@ -392,6 +392,8 @@ void XCPQueue::everyRTT ()
 	trace_var("u_elep", thruput_elep_/(Tr_*link_capacity_bps_));
 	trace_var("u_mice", thruput_mice_/(Tr_*link_capacity_bps_));
 	total_thruput_ = 0;
+	thruput_elep_ = 0;
+	thruput_mice_ = 0;
   
 	rtt_timer_->resched(Tr_);
 }

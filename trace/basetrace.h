@@ -88,19 +88,6 @@ class EventTrace : public BaseTrace {
 public:
 	EventTrace() : BaseTrace() {}
 	virtual void trace();
-	//virtual int command(int argc, const char*const* argv);
-protected:
-	//Agent *a_;   //the owner (or agent) of the eventrace object
 };
 
-// tcp-specific eventtracer
-//  class TcpEventTrace : public EventTrace {
-//  public:
-//  	TcpEventTrace() : EventTrace() {}
-//  	virtual void trace(char *eventtype);
-//  	virtual int command(int argc, const char*const* argv);
-//  };
-
-
-	
 #endif // BaseTrace

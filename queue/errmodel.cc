@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.76 2003/05/05 21:57:46 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.77 2005/03/21 18:51:30 haldar Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.76 2003/05/05 21:57:46 sfloyd Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.77 2005/03/21 18:51:30 haldar Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -70,6 +70,15 @@ public:
 		return (new TwoStateErrorModel);
 	}
 } class_errormodel_twostate;
+
+static class ComplexTwoStateMarkovModelClass : public TclClass {
+public:
+ 	ComplexTwoStateMarkovModelClass() : TclClass("ErrorModel/ComplexTwoStateMarkov") {}
+ 	TclObject* create(int, const char*const*) {
+ 		return (new ComplexTwoStateErrorModel);
+ 	}
+} class_errormodel_complextwostatemarkov;
+
 
 static class MultiStateErrorModelClass : public TclClass {
 public:
@@ -99,7 +108,7 @@ inline double comb(int n, int k) {
 }
 
 
-ErrorModel::ErrorModel() : firstTime_(1), unit_(EU_PKT), ranvar_(0), FECstrength_(1) 
+ErrorModel::ErrorModel() : et_(0), firstTime_(1), unit_(EU_PKT), ranvar_(0), FECstrength_(1) 
 {
 	bind("enable_", &enable_);
 	bind("rate_", &rate_);
@@ -132,6 +141,10 @@ int ErrorModel::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "cntrlpktsize") == 0) {
 			cntrlpktsize_ = atoi(argv[2]);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "eventtrace") == 0) {
+			et_ = (EventTrace *)TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
 	} else if (argc == 2) {
@@ -330,11 +343,35 @@ int ErrorModel::CorruptTime(Packet *p)
 }
 #endif
 
+void ErrorModel::trace_event(char *eventtype)
+{
+	if (et_ == NULL) return;
+	char *wrk = et_->buffer();
+	char *nwrk = et_->nbuffer();
+	if (wrk != 0)
+		sprintf(wrk,
+			"E "TIME_FORMAT" ErrModelTimer %x %s",
+			et_->round(Scheduler::instance().clock()),   // time
+			this,
+			eventtype                    // event type
+			);
+	
+	if (nwrk != 0)
+		sprintf(nwrk,
+			"E -t "TIME_FORMAT" ErrModelTimer %x %s",
+			et_->round(Scheduler::instance().clock()),   // time
+			this,
+			eventtype                    // event type
+			);
+	et_->trace();
+}
+
+
 
 /*
  * Two-State:  error-free and error
  */
-TwoStateErrorModel::TwoStateErrorModel() : remainLen_(0)
+TwoStateErrorModel::TwoStateErrorModel() : remainLen_(0), twoStateTimer_(NULL)
 {
 	ranvar_[0] = ranvar_[1] = 0;
 }
@@ -352,14 +389,17 @@ int TwoStateErrorModel::command(int argc, const char*const* argv)
 			tcl.resultf("%s", ranvar_[i]->name());
 			return (TCL_OK);
 		}
-		// else if (argc == 4)
-		ranvar_[i] = (RandomVariable*)TclObject::lookup(argv[3]);
-		return (TCL_OK);
+		if (argc == 4) {
+			ranvar_[i] = (RandomVariable*)TclObject::lookup(argv[3]);
+			if (ranvar_[0] != 0 && ranvar_[1] != 0)
+				checkUnit();
+			return (TCL_OK);
+		} 
 	}
 	return ErrorModel::command(argc, argv);
 }
 
-int TwoStateErrorModel::corrupt(Packet* p)
+int TwoStateErrorModel::corruptPkt(Packet* p)
 {
 #define ZERO 0.00000
 	int error;
@@ -381,6 +421,124 @@ int TwoStateErrorModel::corrupt(Packet* p)
 	}
 	return error;
 }
+
+void TwoStateErrorModel::checkUnit() 
+{
+	if (unit_ == EU_TIME) {
+		// setup timer for keeping states in time
+		twoStateTimer_ = new TwoStateErrModelTimer(this, &TwoStateErrorModel::transitionState);
+		transitionState();
+	}
+	
+}
+
+void TwoStateErrorModel::transitionState()
+{
+	char buf[SMALL_LEN];
+	
+	if (firstTime_) {
+		firstTime_ = 0;
+		state_ = 0;
+		remainLen_ = ranvar_[state_]->value();
+		twoStateTimer_->sched(remainLen_);
+		return;
+	}
+	state_ ^= 1;
+	remainLen_ = ranvar_[state_]->value();
+	twoStateTimer_->resched(remainLen_);
+	sprintf (buf,"STATE TRANSITION to %d",state_);
+	trace_event(buf);
+	
+}
+
+
+
+int TwoStateErrorModel::corrupt(Packet* p)
+{
+	if (unit_ == EU_TIME)
+		return corruptTime(p);
+	else
+		return corruptPkt(p);
+}
+
+int TwoStateErrorModel::corruptTime(Packet* p)
+{
+	int error = 0;
+	if (state_ == 1)
+		error = 1;
+	return error;
+	
+}
+
+ComplexTwoStateErrorModel::ComplexTwoStateErrorModel() 
+{
+	em_[0] = new TwoStateErrorModel();
+	em_[1] = new TwoStateErrorModel();
+}
+
+ComplexTwoStateErrorModel::~ComplexTwoStateErrorModel()
+{
+	delete em_[0];
+	delete em_[1];
+}
+
+int ComplexTwoStateErrorModel::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		if (strcmp(argv[1], "unit") == 0) {
+			unit_ = STR2EU(argv[2]);
+			em_[0]->setunit(unit_); 
+			em_[1]->setunit(unit_);
+			return TCL_OK;
+		}
+		if (strcmp(argv[1], "eventtrace") == 0) {
+			EventTrace* et = (EventTrace *)TclObject::lookup(argv[2]);
+			em_[0]->et_ = et;
+			em_[1]->et_ = et;
+			return (TCL_OK);
+		}
+	}
+	else if (argc == 5) {
+		if (strcmp(argv[1], "ranvar") == 0) {
+			int i = atoi(argv[2]);
+			int j = atoi(argv[3]);
+			if (i < 0 || i > 1) {
+				tcl.add_errorf("%s does not has em_[%d]", name_, i);
+				return (TCL_ERROR);
+			}
+			if (j < 0 || j > 1) {
+				tcl.add_errorf("%s does not has ranvar_[%d]", name_, i);
+				return (TCL_ERROR);
+			}
+
+			em_[i]->ranvar_[j] = (RandomVariable*)TclObject::lookup(argv[4]);
+			if (em_[i]->ranvar_[0] != 0 && em_[i]->ranvar_[1] != 0)
+				em_[i]->checkUnit();
+			return (TCL_OK);
+		}
+		
+	}
+	return ErrorModel::command(argc, argv);
+}
+
+
+int ComplexTwoStateErrorModel::corruptTime(Packet* p)
+{
+	int error = 0;
+	if (em_[0]->state_ == 1 && em_[1]->state_ == 1)
+		error = 1;
+	return error;
+}
+
+int ComplexTwoStateErrorModel::corruptPkt(Packet* p)
+{
+	fprintf(stderr, "Error model defined in time; not in packets\n");
+	return -1;
+	
+}
+
+
 
 static char * st_names[]={ST_NAMES};
 
@@ -1065,3 +1223,9 @@ printf ("Error Model: DROPPING pkt type %d, seqno %d\n", pkt_type_, rh->seqno())
         	}
 	return 0;
 }
+
+void TwoStateErrModelTimer::expire(Event *e) 
+{
+	(*a_.*call_back_)();
+}
+

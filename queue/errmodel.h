@@ -34,15 +34,17 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.48 2003/05/05 21:57:46 sfloyd Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.49 2005/03/21 18:51:30 haldar Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
 #define ns_errmodel_h
 
 #include "connector.h"
+#include "timer-handler.h"
 #include "ranvar.h"
 #include "packet.h"
+#include "basetrace.h"
 
 enum ErrorUnit { EU_TIME=0, EU_BYTE, EU_PKT, EU_BIT };
 #define EU_NAMES "time", "byte", "pkt", "bit"
@@ -54,6 +56,7 @@ enum StTypeUnit {ST_TIME=0, ST_PKT };
 
 #define EM_GOOD	1
 #define EM_BAD	2
+
 
 /* 
  * Basic object for error models.  This can be used unchanged by error 
@@ -69,7 +72,7 @@ public:
 	virtual int corrupt(Packet*);
 	inline double rate() { return rate_; }
 	inline ErrorUnit unit() { return unit_; }
-
+	
 protected:
 	virtual int command(int argc, const char*const* argv);
 	int CorruptPkt(Packet*);
@@ -79,6 +82,10 @@ protected:
 	double PktLength(Packet*);
 	double * ComputeBitErrProb(int);
 
+	// event-tracing
+	virtual void trace_event(char *eventtype);
+	EventTrace *et_;
+	
 	int enable_;		// true if this error module is turned on
 	int markecn_;		// mark ecn instead of dropping on corruption?
 	int delay_pkt_;		// delay packet instead of dropping
@@ -97,18 +104,46 @@ protected:
 	Event intr_;		// set callback to queue
 };
 
+class TwoStateErrorModel;
+/* Timer for Errormodels using time to change states */
+class TwoStateErrModelTimer : public TimerHandler {
+public:
+	TwoStateErrModelTimer(TwoStateErrorModel *a, void (TwoStateErrorModel::*call_back)())
+		: a_(a), call_back_(call_back) {};
+protected:
+	virtual void expire (Event *e);
+	TwoStateErrorModel *a_;
+	void (TwoStateErrorModel::*call_back_)();
+};
 
 class TwoStateErrorModel : public ErrorModel {
+	friend class ComplexTwoStateErrorModel;
 public:
 	TwoStateErrorModel();
 	virtual int corrupt(Packet*);
+	void setunit(ErrorUnit unit) {unit_ = unit;}
 protected:
 	int command(int argc, const char*const* argv);
+	virtual int corruptPkt(Packet* p);
+	virtual int corruptTime(Packet* p);
+	virtual void checkUnit();
+	void transitionState();
 	int state_;		// state: 0=error-free, 1=error
 	double remainLen_;	// remaining length of the current state
 	RandomVariable *ranvar_[2]; // ranvar staying length for each state
+	TwoStateErrModelTimer*  twoStateTimer_;
 };
 
+class ComplexTwoStateErrorModel : public TwoStateErrorModel {
+public:
+	ComplexTwoStateErrorModel();
+	~ComplexTwoStateErrorModel();
+protected:
+	int command(int argc, const char*const* argv);
+	virtual int corruptPkt(Packet* p);
+	virtual int corruptTime(Packet* p);
+	TwoStateErrorModel*  em_[2];
+};
 
 class MultiStateErrorModel : public ErrorModel {
 public:
@@ -251,6 +286,8 @@ protected:
 	int	off_rtp_;
 	int	off_lms_;
 };
+
+
 
 
 #endif 

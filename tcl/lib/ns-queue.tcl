@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.27 2005/01/19 00:20:57 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-queue.tcl,v 1.28 2005/03/21 18:51:30 haldar Exp $
 #
 
 #
@@ -592,13 +592,9 @@ SimpleLink instproc insert-delayer args  {
 }
 
 # XCP queue consists of underlying virtual queues, for xcp, tcp and other flows. 
-
-Simulator instproc create-XCPQ {} {
-    
-	# create xcp wrapper queue
-	set xcp [new Queue/XCP]
-	$xcp create-vqueues
-	return $xcp
+Queue/XCP instproc init {} {
+	$self next
+	$self create-vqueues
 }
 
 Queue/XCP instproc create-vqueues {} {
@@ -608,16 +604,16 @@ Queue/XCP instproc create-vqueues {} {
 	$self set-xcpQ [set vq_(0) [new Queue/DropTail/XCPQ]]
 	$self set-tcpQ [set vq_(1) [new Queue/RED]]
 	$self set-otherQ [set vq_(2) [new Queue/RED]]
-	
-	
 }
 
 Queue/XCP instproc link {del} {
 	$self instvar vq_ 
 
 	# XXX yuck
-	$vq_(1) link $del              ;#link info to RED queue
-	$vq_(2) link $del              ;#link info to RED queue
+	#link info to RED queue
+	$vq_(1) link $del
+	$vq_(2) link $del
+
 }
 
 Queue/XCP instproc queue-limit { limit } {

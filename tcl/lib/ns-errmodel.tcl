@@ -61,6 +61,12 @@
 # enough plumbing to construct flow-based Errors.
 #
 
+ErrorModel instproc init {} {
+	eval $self next
+	set ns [Simulator instance]
+	$ns create-eventtrace Event $self
+}
+
 ErrorModel/Trace instproc init {{filename ""}} {
 	$self instvar file_
 	$self next
@@ -102,6 +108,16 @@ ErrorModel/TwoState instproc init {rv0 rv1 {unit "pkt"}} {
 	$self ranvar 0 $rv0
 	$self ranvar 1 $rv1
 }
+
+# ErrorModel/TwoState instproc init {rv0 rv1 rv2 rv3 {unit "pkt"}} {
+# 	$self next
+# 	$self unit $unit
+# 	$self ranvar 0 0 $rv0
+# 	$self ranvar 0 1 $rv1
+# 	$self ranvar 1 0 $rv2
+# 	$self ranvar 1 1 $rv3
+# }
+
 
 Class ErrorModel/Uniform -superclass ErrorModel
 Class ErrorModel/Expo -superclass ErrorModel/TwoState
@@ -245,18 +261,17 @@ ErrorModel/MultiState instproc transition { } {
 }
 
 
-Class ErrorModel/TwoStateMarkov -superclass ErrorModel/TwoState
+Class ErrorModel/TwoStateMarkov -superclass ErrorModel/Expo
 
-ErrorModel/TwoStateMarkov instproc init {rate eu {transition}} {
-	$self next
-	$self unit time
+ErrorModel/TwoStateMarkov instproc init {rate {unit "time"}} {
+	
+#	set rv0 [new RandomVariable/Exponential]
+#	set rv1 [new RandomVariable/Exponential]
+#	$rv0 set avg_ [lindex $rate 0]
+#	$rv1 set avg_ [lindex $rate 1]
 
-	set rv0 [new RandomVariable/Exponential]
-	set rv1 [new RandomVariable/Exponential]
-	$rv0 set avg_ [lindex $rate 0]
-	$rv1 set avg_ [lindex $rate 1]
-	$self ranvar 0 $rv0
-	$self ranvar 1 $rv1
+	$self next $rate $unit
+
 
 #	set p01 [lindex $transition 0]
 #	set p10 [lindex $transition 1]
@@ -267,6 +282,24 @@ ErrorModel/TwoStateMarkov instproc init {rate eu {transition}} {
 #	$self next $states_ $trans $eu $i [lindex $states_ 0]
 }
 
+ErrorModel/ComplexTwoStateMarkov instproc init {avgList {unit "time"}} {
+	
+	$self next
+	$self unit $unit
+	set rv0 [new RandomVariable/Exponential]
+	set rv1 [new RandomVariable/Exponential]
+	$rv0 set avg_ [lindex $avgList 0]
+	$rv1 set avg_ [lindex $avgList 1]
+
+	set rv2 [new RandomVariable/Exponential]
+	set rv3 [new RandomVariable/Exponential]
+	$rv2 set avg_ [lindex $avgList 2]
+	$rv3 set avg_ [lindex $avgList 3]
+	$self ranvar 0 0 $rv0 
+	$self ranvar 0 1 $rv1 
+	$self ranvar 1 0 $rv2 
+	$self ranvar 1 1 $rv3
+}
 
 #
 # the following is a "ErrorModule";

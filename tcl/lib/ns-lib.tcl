@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.266 2005/01/19 00:20:57 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.267 2005/03/21 18:51:30 haldar Exp $
 
 
 #
@@ -970,9 +970,6 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 			set qtype [lindex $args 0]
 			set q [new Queue/$qtype]
 		}
-		XCP {
-			set q [ $self create-XCPQ ]
-		}
 		default {
 			if { [llength $args] == 0} {
 				set q [new Queue/$qtype]
@@ -1031,7 +1028,7 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	    [string first "XCP" $qtype] != -1} {
 		$q link [$link_($sid:$did) set link_]
 	}
-	
+
 	set trace [$self get-ns-traceall]
 	if {$trace != ""} {
 		$self trace-queue $n1 $n2 $trace
