@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.18 2000/07/04 01:57:27 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.19 2000/07/09 16:30:57 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -157,6 +157,7 @@ class REDQueue : public Queue {
 	int idle_;		/* queue is idle? */
 	double idletime_;	/* if so, since this time */
 	edv edv_;		/* early-drop variables */
+	int first_reset_;	/* first time reset() is called? */
 
 	void print_edp();	// for debugging
 	void print_edv();	// for debugging

@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.47 2000/07/04 01:57:27 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.48 2000/07/09 16:30:57 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -78,7 +78,7 @@ public:
 } class_red;
 
 REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
-	tchan_(0), idle_(1)
+	tchan_(0), idle_(1), first_reset_(1)
 {
 	bind_bool("bytes_", &edp_.bytes);	    // boolean: use bytes?
 	bind_bool("queue_in_bytes_", &qib_);	    // boolean: q in bytes?
@@ -129,9 +129,12 @@ void REDQueue::reset()
 	 * by the size of an average packet (which is specified by user).
 	 */
 
-	if (qib_) {
+	if (qib_ && first_reset_ == 1) {
+		//printf ("edp_.th_min: %5.3f \n", edp_.th_min);
 		edp_.th_min *= edp_.mean_pktsize;
 		edp_.th_max *= edp_.mean_pktsize;
+		//printf ("edp_.th_min: %5.3f \n", edp_.th_min);
+		first_reset_ = 0;
 	}
 
 	/*
