@@ -33,10 +33,14 @@
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  */
 
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.8 1997/07/22 21:59:53 kfall Exp $ (UCB)";
+#endif
+
 #include "packet.h"
 #include "ll.h"
 #include "errmodel.h"
-
 
 static class ErrorModelClass : public TclClass {
 public:
