@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.372 1999/11/24 01:31:50 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.373 1999/11/24 20:37:31 haldar Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,13 @@
 
 
 <ul>
+  <li><b><a href="http://www.isi.edu/haldar">[haldar]</a></b>
+  <b>Wed Nov 24 12:34:48 PST 1999  </b><br>
+  <p> Added "section: Commands at a glance" to all chapters in nsN&D. This
+is intended to replace the outdated manual pages. also nsN&D shall be
+renamed as ns manual.
+
+
   <p>
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Tue Nov 23 17:31:14 PST 1999</b><br>
@@ -1548,7 +1555,9 @@ set in packet header (it's usually not set, unless there's an ack reconstructor 
 control from Tcl, and derived TCP classes can define their own trace function. <br>
 Files: tcp.{cc,h}
 	
-	 <li> Added ack-recons.{cc,h} as a TCP ack reconstructor object (first cut).  Sits on other end of constrained reverse link and intersperses (reconstructs) acks to the TCP source.  Typically used in conjunction with schemes like ack filtering for asymmetric networks. <br>
+	 <li> Added ack-recons.{cc,h} as a TCP ack reconstructor object (first cut).  Sits on other end of constrained reverse link and intersperses (reconstructs) acks to the TCP source.  Typically used in conjunction with schemes like ack filtering for asymmet
+
+ric networks. <br>
 Files: ack-recons.{cc,h}, tcl/lib/ns-queue.tcl
 	
 	<li> Tracing tcp-asym-specific variables; controlling parameters from Tcl, fix for ACC to work with ECN.  Added new test script with many changes from the previous version. <br>
