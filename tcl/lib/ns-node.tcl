@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-09-13 17:57:54 haoboy>
+# Time-stamp: <2000-09-14 14:00:11 haoboy>
 #
 # Copyright (c) 1996-2000 Regents of the University of California.
 # All rights reserved.
@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.79 2000/09/14 18:19:27 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.80 2000/09/16 01:46:01 haoboy Exp $
 #
 
 Node set nn_ 0
@@ -85,11 +85,6 @@ Node instproc init args {
 	set ptnotif_ {}
 	set rtnotif_ {}
 	set nodetype_ [$ns_ get-nodetype]
-
-	if [$ns_ multicast?] {
-		#$self enable-mcast $ns_
-		Node enable-module Mcast
-	}
 
 	$self mk-default-classifier
 

@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.17 2000/02/08 23:35:13 salehi Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.18 2000/09/16 01:46:01 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -128,7 +128,7 @@ public:
 	double t_firstpkt_;		// ts of 1st pkt recvd
 
 protected:
-	static void phandler(u_char* u, pcap_pkthdr* h, u_char* p);
+	static void phandler(u_char* u, const pcap_pkthdr* h, const u_char* p);
 	virtual void bindvars() = 0;
 
 	char errbuf_[PCAP_ERRBUF_SIZE];		// place to put err msgs
@@ -308,11 +308,11 @@ struct pcap_singleton {
 };   
 
 void
-PcapNetwork::phandler(u_char* userdata, pcap_pkthdr* ph, u_char* pkt)
+PcapNetwork::phandler(u_char* userdata, const pcap_pkthdr* ph, const u_char* pkt)
 {
 	pcap_singleton *ps = (pcap_singleton*) userdata;
-	ps->hdr = ph;
-	ps->pkt = pkt;
+	ps->hdr = (pcap_pkthdr*)ph;
+	ps->pkt = (u_char*)pkt;
 }
 
 int

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.6 2000/02/08 23:35:12 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/arp.cc,v 1.7 2000/09/16 01:46:01 haoboy Exp $";
 #endif
 
 #include "object.h"
@@ -373,7 +373,7 @@ ArpAgent::command(int argc, const char*const* argv)
                         return(TCL_OK);
                 }       
 		if (strcmp(argv[1], "myether") == 0) {
-			my_ether_ = *(::ether_aton(argv[2]));
+			my_ether_ = *(::ether_aton((char*)argv[2]));
 			memcpy(&eh_template_.ether_shost, &my_ether_,
 				ETHER_ADDR_LEN);
 			memcpy(&ea_template_.arp_sha,
@@ -415,7 +415,7 @@ ArpAgent::command(int argc, const char*const* argv)
 				return (TCL_ERROR);
 			in_addr ia;
 			ia.s_addr = a;
-			ether_addr ea = *(::ether_aton(argv[3]));
+			ether_addr ea = *(::ether_aton((char*)argv[3]));
 			insert(ia, ea, icode(argv[4]));
 			return (TCL_OK);
 		}

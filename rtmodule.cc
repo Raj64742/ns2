@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.cc,v 1.2 2000/09/15 02:03:33 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtmodule.cc,v 1.3 2000/09/16 01:46:01 haoboy Exp $
  */
 
 #include <assert.h>
@@ -98,3 +98,4 @@ public:
 		return (new VcRoutingModule);
 	}
 } class_vc_routing_module;
+

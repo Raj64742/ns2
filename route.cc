@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.35 2000/09/14 18:19:25 haoboy Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/route.cc,v 1.36 2000/09/16 01:46:01 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -303,7 +303,6 @@ RouteLogic::RouteLogic()
 	hroute_ = 0;
 	hconnect_ = 0;
 	cluster_size_ = 0;
-	
 }
 	
 RouteLogic::~RouteLogic()
@@ -485,7 +484,6 @@ void RouteLogic::hier_alloc(int i)
 	}
 }
 
-
 void RouteLogic::hier_check(int i)
 {
 	if(hsize_[i] > 0)
@@ -523,7 +521,6 @@ void RouteLogic::str2address(const char*const* argv, int *src_addr, int *dst_add
 	ns_strtok(src, src_addr);
 	ns_strtok(dst, dst_addr);
 }
-
 
 void RouteLogic::ns_strtok(char *addr, int *addrstr)
 {
@@ -731,8 +728,6 @@ void RouteLogic::hier_compute_routes(int i, int j)
 	delete[] parent;
 }
 
-
-
 /* function to check the adjacency matrices created */
 void RouteLogic::hier_print_hadj() {
 	int i, j, k;
@@ -763,7 +758,6 @@ void RouteLogic::hier_print_hadj() {
 		}
 }
 
-
 void RouteLogic::hier_compute()
 {
 	int i, j, k, m, n;
@@ -788,7 +782,6 @@ void RouteLogic::hier_compute()
 /*
  * Prints routing table - debugging function
  */
-
 void RouteLogic::hier_print_route()
 {
 	for (int j=1; j < D_; j++) 

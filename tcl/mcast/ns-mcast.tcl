@@ -32,6 +32,7 @@ MultiSim instproc init args {
 
 Simulator instproc multicast args {
         $self set multiSim_ 1
+	Node enable-module Mcast
 }
 
 Simulator instproc multicast? {} {
@@ -219,26 +220,6 @@ Node instproc leave-group { agent group { src "" } } {
         }
 }
 
-#Node instproc join-group-source { agent group source } {
-#        $self instvar Agents_ mrtObject_ replicator_
-#        set group [expr $group]
-#        ## send a message for the mcastproto agent to inform the mcast protocols
-#        $mrtObject_ join-group $group $source
-#        lappend Agents_($source:$group) $agent
-#        if [info exists replicator_($source:$group)] {
-#                $replicator_($source:$group) insert $agent
-#        }
-#}
-
-#Node instproc leave-group-source { agent group source } {
-#        $self instvar replicator_ Agents_ mrtObject_
-#        set group [expr $group]
-#        if [info exists replicator_($source:$group)] {
-#                $replicator_($source:$group) disable $agent
-#        }
-#        $mrtObject_ leave-group $group $source
-#}
-
 Node instproc add-mfc { src group iif oiflist } {
 	$self instvar multiclassifier_ \
 			replicator_ Agents_ 
@@ -414,30 +395,6 @@ Classifier/Replicator/Demuxer instproc reset {} {
 	set nactive_ 0
 	unset active_
 }
-
-#
-# XXX
-#
-#
-# XXX These are PIM specific?  Why are they here?
-# 
-#Simulator instproc getNodeIDs {} {
-#	 $self instvar Node_
-#	 return [array names Node_]
-#}
-#Simulator instproc setPIMProto { index proto } {
-#	 $self instvar pimProtos
-#	 set pimProtos($index) $proto
-#}
-#
-#Simulator instproc getPIMProto { index } {
-#	 $self instvar pimProtos
-#	 if [info exists pimProtos($index)] {
-#		 return $pimProtos($index)
-#	 }
-#	 return -1
-#}
-#
 
 Agent/Mcast/Control instproc init { protocol } {
 	 $self next
