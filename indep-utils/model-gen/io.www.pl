@@ -92,6 +92,7 @@ $woutf=join(".",$fext,"outbound");
 $winf=join(".",$fext,"inbound");
 
 $http_port="80";
+$http_port_alias="http";
 #$HttpPrefixPort=join(".",$prefix,$http_port);
 
 open(WOUT,"> $woutf") || die("cannot open $woutf\n");
@@ -99,10 +100,11 @@ open(WIN,"> $winf") || die("cannot open $winf\n");
 
 
 while (<>) {
-        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2) = split(/[.:() ]/,$_);
+        ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2) = split(/[.:() ]/,$_);
+#        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2) = split(/[.:() ]/,$_);
 
 
-        $dummy0="";
+#        $dummy0="";
         $dummy1="";
         $dummy2="";
 	$time1=0;
@@ -119,12 +121,12 @@ while (<>) {
               (($ip12 <= $ip2h) && ($ip12 >= $ip2)) &&
               (($ip13 <= $ip3h) && ($ip13 >= $ip3)) &&
               (($ip14 <= $ip4h) && ($ip14 >= $ip4))) && 
-	                    ($srcPort eq $http_port)) ||
+	                    (($srcPort eq $http_port) || ($srcPort eq $http_port_alias))) ||
             (((($ip21 <= $ip1h) && ($ip21 >= $ip1)) &&
               (($ip22 <= $ip2h) && ($ip22 >= $ip2)) &&
               (($ip23 <= $ip3h) && ($ip23 >= $ip3)) &&
               (($ip24 <= $ip4h) && ($ip24 >= $ip4))) && 
-	                    ($dstPort eq $http_port))) 
+	                    (($dstPort eq $http_port) || ($dstPort eq $http_port_alias))) ) 
 {
 		print WOUT "$_";
 	} else {
@@ -134,12 +136,12 @@ while (<>) {
                       (($ip12 <= $ip2h) && ($ip12 >= $ip2)) &&
                       (($ip13 <= $ip3h) && ($ip13 >= $ip3)) &&
                        (($ip14 <= $ip4h) && ($ip14 >= $ip4))) && 
-	                    ($srcPort eq $http_port)) ||
+	                    (($srcPort eq $http_port) || ($srcPort eq $http_port_alias))) ||
                     (!((($ip21 <= $ip1h) && ($ip21 >= $ip1)) &&
                        (($ip22 <= $ip2h) && ($ip22 >= $ip2)) &&
                        (($ip23 <= $ip3h) && ($ip23 >= $ip3)) &&
                        (($ip24 <= $ip4h) && ($ip24 >= $ip4))) && 
-	                    ($dstPort eq $http_port))) 
+	                    (($dstPort eq $http_port) || ($dstPort eq $http_port_alias)))) 
 		{
 			print WIN "$_";
 		}

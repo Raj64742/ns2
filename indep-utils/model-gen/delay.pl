@@ -57,10 +57,11 @@ while ($dbopts->getopt) {
 
 
 while (<>) {
-        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy,$ip21,$ip22,$ip23,$ip24,$dstPort,$flag,$seq1,$win,$seq2,$others) = split(/[. ]/,$_);
+        ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy,$ip21,$ip22,$ip23,$ip24,$dstPort,$flag,$seq1,$win,$seq2,$others) = split(/[. ]/,$_);
+#        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy,$ip21,$ip22,$ip23,$ip24,$dstPort,$flag,$seq1,$win,$seq2,$others) = split(/[. ]/,$_);
 
 
-        $dummy0="";
+#        $dummy0="";
         $dummy="";
 	$others="";
 

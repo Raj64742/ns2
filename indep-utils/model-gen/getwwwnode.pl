@@ -32,8 +32,8 @@ $wc=0;
 $ws=0;
 
 while (<>) {
-        #($time,$client,$port,$dummy1, $dummy2, $tt, $dummy3, $dummy4,$server,$rest)= split(/[\n ]/,$_);
-        ($time,$client,$port,$dummy1, $dummy2, $dummy3,$server1,$server2,$rest)= split(/[\n ]/,$_);
+        ($time,$client,$port,$dummy1, $dummy2, $tt, $dummy3, $dummy4,$server,$rest)= split(/[\n ]/,$_);
+#        ($time,$client,$port,$dummy1, $dummy2, $dummy3,$server1,$server2,$rest)= split(/[\n ]/,$_);
 
 	$dummy1="";
 	$dummy2="";

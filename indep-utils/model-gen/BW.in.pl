@@ -83,7 +83,10 @@ while (<>) {
 	} else {
 	        $len = $seq - $q;
 		$interval = ($time - $t) * 1000000;
-		$bw =  $len / $interval;
+		$bw=0;
+		if (($interval gt 0) && ($len gt 0)) {
+			$bw =  $len / $interval;
+		}
 		if ($bw gt 0) {
 			$n[$j]=$bw;
 			$j=$j + 1;

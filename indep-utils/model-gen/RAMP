@@ -45,7 +45,24 @@
 #
 #             example: ./RAMP tracefile 1000 128.9.0.0/255.255.0.0
 #
-# Note that current it's only tested on Linux system
+# Currently it's only tested on Linux system
+#
+# Here is the version of tcpdump we used for testing
+# tcpdump version 3.6.3
+# libpcap version 0.6
+#
+# We assume the output of tcpdump with the following format for
+# TCP packets
+#
+# timestamp src > dst: flags data‐seqno ack window urgent options
+#
+# Note that some version of tcpdump might output with an extra "<"
+# i.e.
+# timestamp < src > dst: flags data‐seqno ack window urgent options
+# 
+# which is not compatible with our codes
+# One simple workaround is to use the provided remove.pl script
+# to remove the extra "<" in the tcpdump output
 #
 # This work is supported by DARPA through SAMAN Project
 # (http://www.isi.edu/saman/), administered by the Space and Naval
@@ -65,7 +82,6 @@ then
 	f=$2
 	t=$3
 	p=$4
-	TCPDUMP=/usr/sbin/tcpdump
    else
    	echo "CoralReef to Tcpdump converter does not exist!!"
 	exit 0
@@ -76,7 +92,6 @@ then
         f=$2
         t=$3
         p=$4
-        TCPDUMP=./tcpdump
         filter=yes
    else
         echo "model.conf does not exist!!"
@@ -86,11 +101,10 @@ else
 	f=$1
 	t=$2
 	p=$3
-#	TCPDUMP=./tcpdump
-	TCPDUMP=/nfs/gren/kclan/nms/tcpdump
 
 fi
 
+TCPDUMP=/usr/sbin/tcpdump
 
 
 #preprocessing the trace file
@@ -123,7 +137,7 @@ cat  $f.tcp | getFTP.pl -r $f.ftp2 > $f.ftp
 #extract tcp flows from Web server
 date
 echo "***  parsing .http-srv  ***"
-$TCPDUMP -n -tt -r $f tcp src port 80 > $f.http-srv
+$TCPDUMP -nn -tt -r $f tcp src port 80 > $f.http-srv
 
 
 
@@ -289,14 +303,14 @@ dat2cdf -e 0 -i 1 -d 1 -t $f.www.outbound.pktsize
 
 date
 echo "Locate SYN connection"
-cat $f.www | delay.pl -p 80 > $f.sync
-sort -s -o $f.sync.sorted -T /tmp $f.sync
+cat $f.www | delay.pl -p 80 > $f.www.sync
+sort -s -o $f.www.sync.sorted -T /tmp $f.www.sync
 
 date
 echo "compute delay for each SYN connection pair between servers and clients"
-pair.tcl $f.sync.sorted >  $f.sync.delay
-sort -s -o $f.sync.delay.sorted -T /tmp $f.sync.delay
-awk -f delay.awk < $f.sync.delay.sorted > $f.www.inbound.delay
+pair.tcl $f.www.sync.sorted $p >  $f.www.sync.delay
+sort -s -o $f.www.sync.delay.sorted -T /tmp $f.www.sync.delay
+awk -f delay.awk < $f.www.sync.delay.sorted > $f.www.inbound.delay
 
 dat2cdf -e 0 -i 0.001 -d 1 -t $f.www.inbound.delay
 
@@ -307,7 +321,7 @@ echo "Estimate delay and bottleneck bandwidth for FTP traffic"
 
 date
 echo "pre-processing: output traffic between ftp servers and clients"
-cat  $f.ftp | BW-seq-ftp.pl -r $f.ftp2 
+cat  $f.ftp | BW-seq-ftp.pl -r $f.ftp2 -s $p
 sort inbound.seq -o inbound.seq.sorted
 sort outbound.seq -o outbound.seq.sorted
 
@@ -332,7 +346,7 @@ sort -s -o $f.sync.sorted -T /tmp $f.sync
 
 date
 echo "compute delay for each SYN connection pair between servers and clients"
-pair.tcl $f.sync.sorted >  $f.sync.delay
+pair.tcl $f.sync.sorted $p >  $f.sync.delay
 sort -s -o $f.sync.delay.sorted -T /tmp $f.sync.delay
 awk -f delay.awk < $f.sync.delay.sorted > $f.ftp.inbound.delay
 

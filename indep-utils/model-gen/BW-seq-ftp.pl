@@ -27,10 +27,13 @@
 
 sub usage {
         print STDERR <<END;
-        usage: $0 [-r Filename]
+        usage: $0 [-r Filename] [-s DomainPrefix]
 	        Options:
 	            -r string  file that contains a list of FTP clients, which
 	                       is output of getFTPclient.pl
+		    -s string  specify IP prefix to distinguish Inbound from 
+		               outbound traffic (eg. 192.1)
+
 END
 exit 1;
 }
@@ -43,17 +46,30 @@ require "dblib.pl";
 my(@orig_argv) = @ARGV;
 &usage if ($#ARGV < 0);
 my($prog) = &progname;
-my($dbopts) = new DbGetopt("r:?", \@ARGV);
+my($dbopts) = new DbGetopt("r:s:?", \@ARGV);
 my($ch);
 while ($dbopts->getopt) {
         $ch = $dbopts->opt;
         if ($ch eq 'r') {
                 $infile = $dbopts->optarg;
+        } elsif ($ch eq 's') {
+		$prefix = $dbopts->optarg;
         } else {
                 &usage;
         };
 };
 
+
+($ip1,$ip2,$ip3,$ip4,$m1,$m2,$m3,$m4) = split(/[.\/ ]/,$prefix);
+$ip3="";
+$ip4="";
+$m1="";
+$m2="";
+$m3="";
+$m4="";
+
+
+$isiPrefix=join(".",$ip1,$ip2);
 
 
 
@@ -75,11 +91,12 @@ close(FIN);
 
 
 while (<>) {
-        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2,$flag,$seqb,$seqe,$size,$size1) = split(/[.:() ]/,$_);
+        ($time1,$time2,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2,$flag,$seqb,$seqe,$size,$size1) = split(/[.:() ]/,$_);
+#        ($time1,$time2,$dummy0,$ip11,$ip12,$ip13,$ip14,$srcPort,$dummy1,$ip21,$ip22,$ip23,$ip24,$dstPort,$dummy2,$flag,$seqb,$seqe,$size,$size1) = split(/[.:() ]/,$_);
 
 
 	$sTime=join(".",$time1,$time2);
-	$dummy0="";
+#	$dummy0="";
 	$dummy1="";
 	$dummy2="";
 	$flag="";
@@ -89,6 +106,9 @@ while (<>) {
 	   $seqe=$size;
 	   $size=$size1;
 	}
+
+        $prefixc=join(".",$ip11,$ip12);
+	$prefixs=join(".",$ip21,$ip22);
 
 	$src=join(".",$ip11,$ip12,$ip13,$ip14);
 	$dst=join(".",$ip21,$ip22,$ip23,$ip24);
@@ -119,23 +139,25 @@ while (<>) {
 	# 2. data packet from the server
 	# 3. ack packet to the server
 
-        #data packet from server
-	if ($srcp eq $server) {
+        #data packet from ISI server
+	if ( $prefixc eq $isiPrefix) {
+		
+#	if ($srcp eq $server) {
 		if ( $seqe ne "ack" ) {
 #			if ( $size eq 1460 ) {
-			if ( $size >  1400 ) {
+			if ( $size >  1000 ) {
 				print OUT "$client $server $seqe $sTime data\n"
 			}	
                 }
 	}
 	#ACK packet to ISI
-	if ($srcp eq $client) {
+	if ($prefixs eq $isiPrefix)  {
 		if ($seqe eq "ack") {   
 			print OUT "$client $server $size $sTime ack\n"
 		}
 		else {
 #			if ( $size eq 1460 ) {
-			if ( $size > 1400 ) {
+			if ( $size > 1000 ) {
 				print IN "$client $server $sTime $seqe\n";
 			}
                 }
