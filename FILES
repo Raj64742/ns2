@@ -1313,6 +1313,11 @@ test-output-LimTransmit/onedrop_sack.Z
 tcl/test/test-output-WLtutorial/wireless1.Z
 tcl/test/test-output-WLtutorial/wireless2.Z
 tcl/test/test-output-WLtutorial/wireless3.Z
+tcl/test/test-output-adaptive-red/fastlink.Z
+tcl/test/test-output-adaptive-red/fastlinkAdapt.Z
+tcl/test/test-output-adaptive-red/fastlinkAllAdapt.Z
+tcl/test/test-output-adaptive-red/fastlinkAutothresh.Z
+tcl/test/test-output-adaptive-red/fastlinkAutowq.Z
 tcl/test/test-output-adaptive-red/red1.Z
 tcl/test/test-output-adaptive-red/red1Adapt.Z
 tcl/test/test-output-adaptive-red/red2.Z
