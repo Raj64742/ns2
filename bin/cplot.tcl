@@ -43,8 +43,8 @@ proc run {} {
 	init
 	set package [lindex $argv 0]
 	set title [lindex $argv 1]
-	if { [info exists labelproc($package)] < 0 } {
-		puts stderr "Invalid package $package, known packages: [array names labelproc]"
+	if { ![info exists labelproc($package)] } {
+		puts stderr "cplot: invalid output package $package, known packages: [array names labelproc]"
 		exit 1
 	}
 	set ifile 2
