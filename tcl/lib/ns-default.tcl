@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.259 2001/08/17 19:01:47 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.260 2001/08/20 22:50:46 kfall Exp $
 
 
 #
@@ -841,6 +841,9 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp/Sack set sack_option_size_ 2; # bytes in opt hdr
 	Agent/TCP/FullTcp/Sack set max_sack_blocks_ 3; # max # of sack blks
 	Agent/TCP/FullTcp/Sack set clear_on_timeout_ true; # clear sq at sender on timeout?
+	Agent/TCP/FullTcp/Sack set sack_rtx_cthresh_ 1; # dup cnt to trigger rtx
+	Agent/TCP/FullTcp/Sack set sack_rtx_bthresh_ 1; # dup bcnt to trigger rtx
+	Agent/TCP/FullTcp/Sack set sack_rtx_threshmode_ 1; # 1 = cnt only
 
 	Agent/TCP/FullTcp/Tahoe instproc init {} {
 		$self next
