@@ -84,23 +84,23 @@ the case maybe.
 
 The packet header that is used by XCP is implemented as a structure
 called hdr\_xcp in \ns{} and is defined as follows:
-  \begin{program}
-    double	throughput_;
-    double	rtt_;
-    enum {
-      XCP_DISABLED = 0,
-      XCP_ENABLED,
-      XCP_ACK,
-    } 	xcp_enabled_;		// to indicate that the flow is XCP enabled
-    bool	xcp_sparse_;    // flag used with xcp_sparse extension
-    int	        xcpId_;		// Sender's ID (debugging only)
-    double	cwnd_;		// The current window (debugging only) 
-    double	reverse_feedback_; 
-    
-    // --- Initialized by source and Updated by Router 
-    double delta_throughput_;
-    unsigned int controlling_hop_;
-  \end{program}
+\begin{program}
+  double	throughput_;
+  double	rtt_;
+  enum \{
+    XCP_DISABLED = 0,
+    XCP_ENABLED,
+    XCP_ACK,
+  \} 	xcp_enabled_;		// to indicate that the flow is XCP enabled
+  bool	xcp_sparse_;    // flag used with xcp_sparse extension
+  int	        xcpId_;		// Sender's ID (debugging only)
+  double	cwnd_;		// The current window (debugging only) 
+  double	reverse_feedback_; 
+  
+  // --- Initialized by source and Updated by Router 
+  double delta_throughput_;
+  unsigned int controlling_hop_; 
+\end{program}
   
     The xcp receiver is responsible for copying the delta\_throughput
     value into the reverse\_feedback field of the ack packets. In some
@@ -108,13 +108,22 @@ called hdr\_xcp in \ns{} and is defined as follows:
     the delta\_throughput values in arriving packets for copying into the
     reverse\_feedback field of the outgoing ack packet.
 
+    The controlling\_hop\_ field that carries the address of the router
+    who has last updated the feedback is used for debugging purposes only.
+
     In case of a packet loss in the network, TCP's Van Jacobson
-    congestion control overrides XCP. This happens with cwnd being
-    halved and fast retransmit and fast recovery algorithms being used
-    for the rest of the connection. The assumption here is that a packet
-    drop indicates the presence of a non-xcp router in the path and
-    hence the more conservative congestion control algorithm should be
-    used in this case. 
+    congestion control should most likely override XCP.However in \ns
+    this happens 
+    a little differently. With receiving of duplicate acks indicating
+    packet loss, the cwnd gets halved and fast retransmit and fast
+    recovery algorithms come into play. However xcp routers continue to send
+    feedback to the source based on which the source tries to open its
+    cwnd. So it seems to be a mish-mash of VJCC and XCP
+    algorithms. However for most cases this issue doesnot arise as XCP
+    router very rarely experiences a pkt drop as the queue is
+    continuously regulated and drained by XCP. Understanding the correct
+    behaviour of XCP in face of pkt loss is an area of current study and
+    shall be implemented in the future. 
 
     \subsection{XCP Router}
     \label {sec:xcp_wrapper}
@@ -138,7 +147,7 @@ called hdr\_xcp in \ns{} and is defined as follows:
     of the router between the XCP and TCP queues in simulations that
     use both flow types. This is supposed to be a temporary fix and
     should go away once the dynamic queue weights come into effect. A
-    caveat for the tcp\_xcp flag is that it is set as a class variable
+    caveat for the tcp\_xcp flag is that it is set as an OTcl class variable
     and not per instance variable. This might cause some 
     problems in topologies that uses mix of intermittent xcp and tcp
     flows for which some router would require to support both TCP and
@@ -231,29 +240,12 @@ called hdr\_xcp in \ns{} and is defined as follows:
     set R0 [$ns node]       ;# create Bottleneck between nodes R0 and R1 
     set R1 [$ns node]
     $ns duplex-link $R0 $R1 <BW>Mb <delay>ms XCP 
-  \end{program}
+  \end{program} %$
 
   The side links connecting source nodes to the bottleneck link have
   drop-tail queues. 
   The API \code{queue-limit} allows users to set the buffer size in the queue.
   
-  Note that is it necessary to set RED parameters in the tcl script as
-  these values default to zero. Hence you should set RED values
-  explicitly in the tcl script. An example of setting the same is as
-  folllows: 
-  \begin{program}
-    proc set-red-params { qsize } {
-      Queue/RED set thresh_ [expr 0.6 * $qsize]
-      Queue/RED set maxthresh_ [expr 0.8 * $qsize]
-      Queue/RED set q_weight_ 0.001
-      Queue/RED set linterm_ 10
-      Queue/RED set bytes_ false ;
-      Queue/RED set queue_in_bytes_ false ;
-      Agent/TCP set old_ecn_ true
-      Queue/RED set setbit_     true
-    }
-  \end{program}
-
   The xcp source and sink is created as follows (very similar to tcp):
   \begin{program}
     set xcp [new Agent/TCP/Reno/XCP]
@@ -263,7 +255,7 @@ called hdr\_xcp in \ns{} and is defined as follows:
     $ns connect $xcp $xcp_sink
     ...
     ...
-  \end{program}
+  \end{program} %$
   
   There is a tcl class GeneralSender used in the example script that
   sets up xcp agents in the source nodes and then connects them to the
@@ -276,28 +268,28 @@ called hdr\_xcp in \ns{} and is defined as follows:
   following tcl command:
   
   \code{ $xcp_queue set-link-capacity <bandwidth_in_bits_per_sec>}
-  
+  %$
   Next we need to trace variables in the xcp router and xcp
   sources. The GeneralSender class procedure trace-xcp sets up tracing
   for xcp sources using variable-tracing in \ns{}. 
   
   \begin{program}
-    GeneralSender instproc trace-xcp parameters {
+    GeneralSender instproc trace-xcp parameters \{
       $self instvar tcp_ id_ tcpTrace_
       global ftracetcp$id_ 
       set ftracetcp$id_ [open  xcp$id_.tr  w]
       set tcpTrace_ [set ftracetcp$id_]
       $tcp_ attach-trace [set ftracetcp$id_]
-      if { -1 < [lsearch $parameters cwnd]  } { $tcp_ tracevar cwnd_ }
-      if { -1 < [lsearch $parameters seqno] } { $tcp_ tracevar t_seqno_ }
-    }
-  \end{program}
+      if \{ -1 < [lsearch $parameters cwnd]  \} \{ $tcp_ tracevar cwnd_ \}
+      if \{ -1 < [lsearch $parameters seqno] \} \{ $tcp_ tracevar t_seqno_ \}
+      \}
+  \end{program} %$
     
   For tracing xcp queue it is required to attach a file descriptor to
   the xcp queue.  
   \begin{program} 
     $xcpq attach <file-descriptor> 
-  \end{program}
+  \end{program} %$
     
   This is an example of how the trace at an xcp source looks like:
   \begin{program}
@@ -313,7 +305,7 @@ called hdr\_xcp in \ns{} and is defined as follows:
     0.11906  2  0  1  0  t_seqno_ 2
     0.119064 x x x x throughput 50000
     0.11906  2  0  1  0  t_seqno_ 3
-  \end{program}
+  \end{program} %$
   
   The first field gives the timestamp; the next 4 fields give the
   source id (node/port) and destination id (node/port) for the xcp
@@ -428,28 +420,30 @@ called hdr\_xcp in \ns{} and is defined as follows:
     This command creates an XCP sink.
 
     \code{$ns duplex-link $R0 $R1 <BW>Mb <delay>ms XCP}\\
+    %$
     This code creates a duplex link with specified bandwidth and link
     delay using an XCP router between node R0 and R1.
 
     \code{$xcp_queue set-link-capacity <bandwidth_in_bits_per_sec>}\\
+    %$
     This command propagates the link bandwidth information to the xcp
     queue which uses it for the router feedback calculation.
 
-    \code{ set tfile [open tfile w] }
+    \code{ set tfile [open tfile w] } \\
     \code{ $xcp_queue attach $tfile }\\
     This Tcl command allows a file to be attached for tracing xcp queue
     parameters. 
     
-    \code{$xcp_src attach-trace <file-descriptor>}
+    \code{$xcp_src attach-trace <file-descriptor>} %$
     \code{$xcp_src tracevar <var-to-traced>}\\
     This command allows the xcp sources to trace variables.
     
-    \code{$queue queue-sample-everyrtt $rtt_value}\\
+    \code{$queue queue-sample-everyrtt $rtt_value}\\ %$
     This command allows the user to set rtt interval values at which
     variables like packet\_drops and queue lengths are measured at the
     xcp queue.
 
-    \code{set tcp_xcp_on_ 1}\\
+    \code{Queue/XCP set tcp_xcp_on_ 1}\\
     This flag lets tcp and xcp flows to use the same xcp router. This
     flag is a temporary fix and should go away when dynamic queue
     weights come into effect.
