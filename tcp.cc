@@ -127,6 +127,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("overhead_", &overhead_);
 	bind("tcpTick_", &tcp_tick_);
 	bind("ecn_", &ecn_);
+	bind("disable_ecn_", &disable_ecn_);
 	bind("packetSize_", &size_);
 	bind_bool("bugFix_", &bug_fix_);
 	bind_bool("slow_start_restart_", &slow_start_restart_);
@@ -644,7 +645,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 	}
 #endif
 	ts_peer_ = tcph->ts();
-	if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
+	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && !disable_ecn_)
 		quench(1);
 	/* grow cwnd and check if the connection is done */ 
 	recv_helper(pkt);

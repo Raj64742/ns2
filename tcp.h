@@ -293,6 +293,7 @@ protected:
 	int maxseq_;		/* used for Karn algorithm */
 				/* highest seqno sent so far */
 	int ecn_;		/* 1 to avoid multiple Fast Retransmits */
+	int disable_ecn_;       /* 1 if reaction to ECN is disabled */
 	double firstsent_;  /* When first packet was sent  --Allman */
 	int off_ip_;
 	int off_tcp_;

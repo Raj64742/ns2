@@ -69,7 +69,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 #endif
 	ts_peer_ = tcph->ts();
 
-	if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
+	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && !disable_ecn_)
 		quench(1);
 	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
