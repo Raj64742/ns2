@@ -19,7 +19,7 @@ set opt(y)		670     ;# Y dimension of the topography
 set opt(ifqlen)		50	;# max packet in ifq
 set opt(nn)		3	;# number of nodes
 set opt(seed)		0.0
-set opt(stop)		200	;# simulation time
+set opt(stop)		50	;# simulation time
 set opt(prestop)        19       ;# time to prepare to stop
 set opt(tr)		"diffusion.tr"	;# trace file
 set opt(nam)            "diffusion.nam"  ;# nam file

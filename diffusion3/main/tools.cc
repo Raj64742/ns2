@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.cc,v 1.4 2001/12/13 22:29:11 haldar Exp $
+// $Id: tools.cc,v 1.5 2001/12/14 21:43:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -60,6 +60,7 @@ void getTime(struct timeval *tv)
 void getSeed(struct timeval *tv) 
 {
 #ifdef NS_DIFFUSION
+  // NS RNG is seeded using otcl proc ns-random <seed>
   //double seed = Random::seed_heuristically();
   //srand(seed);
 #else
@@ -70,10 +71,7 @@ void getSeed(struct timeval *tv)
 int getRand() 
 {
 #ifdef NS_DIFFUSION
-  int num = Random::random();
-  printf(".............num=%d.......\n", num);
-  return num;
-  //return (Random::random());
+  return (Random::random());
 #else
   return (rand());
 #endif // NS_DIFFUSION

@@ -3,7 +3,7 @@
 // Authors       : Lewis Girod and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: events.hh,v 1.3 2001/12/11 23:21:44 haldar Exp $
+// $Id: events.hh,v 1.4 2001/12/14 21:43:55 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -96,9 +96,13 @@ void timeval_addusecs(struct timeval *tv, int usecs);
 // event routines
 int event_cmp(event *x, event *y);
 
+#ifdef NS_DIFFUSION
+#define RAND_MAX 2147483647
+#else
 #ifndef RAND_MAX
 #define RAND_MAX 2147483647
-#endif
+#endif // RAND_MAX
+#endif // NS_DIFFUSION
 
 // MALLOC hack (thanks jeremy)
 #ifndef MALLOC
