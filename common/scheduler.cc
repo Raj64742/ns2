@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.23 1997/12/11 22:11:12 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.24 1997/12/17 19:52:55 gnguyen Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.23 1997/12/11 22:11:12 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.24 1997/12/17 19:52:55 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -43,14 +43,12 @@ static const char rcsid[] =
 #include "scheduler.h"
 
 
-#include "ostream.h"
-
 #ifdef MEMDEBUG_SIMULATIONS
 #include "mem-trace.h"
 #endif
 
 Scheduler* Scheduler::instance_;
-int Scheduler::uid_;
+int Scheduler::uid_ = 1;
 
 Scheduler::Scheduler() : clock_(0.), halted_(0)
 {
@@ -63,7 +61,10 @@ Scheduler::Scheduler() : clock_(0.), halted_(0)
  * something in the past.
  */
 void Scheduler::schedule(Handler* h, Event* e, double delay)
-{ 
+{
+	if (e->uid_ > 0) {
+		abort();
+	}
 	e->uid_ = uid_++;
 	e->handler_ = h;
 	double t = clock_ + delay;
@@ -92,6 +93,8 @@ void AtHandler::handle(Event* e)
 int Scheduler::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
+	if (instance_ == 0)
+		instance_ = this;
 	if (argc == 2) {
 		if (strcmp(argv[1], "run") == 0) {
 			/* set global to 0 before calling object reset methods */
