@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.173 1999/10/04 18:42:10 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.174 1999/10/11 23:28:46 haoboy Exp $
 
 
 #
@@ -339,6 +339,10 @@ ErrorModel/Trace set loss_ 0
 ErrorModel/Periodic set period_ 1.0
 ErrorModel/Periodic set offset_ 0.0
 ErrorModel/Periodic set burstlen_ 0.0
+#ErrorModel/MultiState set curperiod_ 0.0
+#ErrorModel/MultiState set sttype_ pkt
+#ErrorModel/MultiState set texpired_ 0
+
 SelectErrorModel set enable_ 1
 SelectErrorModel set markecn_ false
 SelectErrorModel set rate_ 0
@@ -414,6 +418,10 @@ RandomVariable/Empirical set minCDF_ 0
 RandomVariable/Empirical set maxCDF_ 1
 RandomVariable/Empirical set interpolation_ 0
 RandomVariable/Empirical set maxEntry_ 32
+RandomVariable/Normal set avg_ 0.0
+RandomVariable/Normal set std_ 1.0
+RandomVariable/LogNormal set avg_ 1.0
+RandomVariable/LogNormal set std_ 1.0
 
 SessionHelper set rc_ 0                      ;# just to eliminate warnings
 
