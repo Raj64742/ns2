@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.89 2001/07/17 18:01:20 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.90 2001/07/18 16:35:26 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -2299,9 +2299,11 @@ SackFullTcpAgent::reset()
 void
 SackFullTcpAgent::recv(Packet* pkt, Handler* h)
 {
+#ifdef notdef
 	hdr_tcp* tcph = hdr_tcp::access(pkt);
 	int ackno = tcph->ackno();
 
+/* don't do of this until full TCP sack is fixed completely */
 	if (state_ == TCPS_ESTABLISHED &&
 	    (ackno > iss_ && ackno <= maxseq_)) {
 
@@ -2314,6 +2316,7 @@ SackFullTcpAgent::recv(Packet* pkt, Handler* h)
 			sq_.add(tcph->sa_left(i), tcph->sa_right(i), 0);  
 		}
 	}
+#endif
 	FullTcpAgent::recv(pkt, h);
 }
 
