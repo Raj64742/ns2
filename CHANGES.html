@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.490 2001/12/06 03:23:38 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.491 2001/12/20 01:48:09 haldar Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -19,7 +19,10 @@ ns-2.1b9 release PENDING</h3>
 
 <ul>
 
-<p>
+<p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>Wed Dec 19 17:19:47 PST 2001</li>
+<br>Re organisation of top level ns-2 dir undertaken. For the first cut, the top level files are re organised under broad sub dirs. Example of some of the dirs created are common (that holds the core ns infrastructure), mac (holds all wired and wireless components), classifier, adc (admission control), satellite, tools (for now have merged tools and traffic generator), trace, link, queue, tcp, apps etc.
+Pl note that the order in which object files get linked have been preserved as changing of this resulted in strange seg faults.
+
 <p><li><b><a href="http://www.aciri.org/floyd/">[Sally Floyd]</a></b>
 Mon Dec  3 2001
 <br>Added a test "test-all-broken" in "tcl/test" to illustrate some of
