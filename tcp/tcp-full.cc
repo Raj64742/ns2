@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.74 1999/08/17 02:00:11 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.75 1999/09/09 03:22:51 salehi Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1589,8 +1589,8 @@ cancel_timers();	// DOES THIS BELONG HERE?, probably (see tcp_cose
                                 fprintf(stderr,
                                 "%f: %d.%d>%d.%d FullTcpAgent::recv(%s) received non-ACK (state:%d)\n",
                                         now(),
-                                        iph->src() >> 8, iph->src() & 0xff,
-                                        iph->dst() >> 8, iph->dst() & 0xff,
+                                        iph->saddr(), iph->sport(),
+                                        iph->daddr(), iph->dport(),
                                         name(), state_);
                         }
 			break;

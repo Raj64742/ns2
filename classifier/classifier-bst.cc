@@ -21,7 +21,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-bst.cc,v 1.4 1999/07/02 21:02:05 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-bst.cc,v 1.5 1999/09/09 03:22:30 salehi Exp $";
 #endif
 
 #include <iostream.h>
@@ -90,8 +90,8 @@ int MCastBSTClassifier::classify(Packet *const pkt)
 	hdr_cmn* h = hdr_cmn::access(pkt);
 	hdr_ip* ih = hdr_ip::access(pkt);
 
-	nsaddr_t src = ih->src() >> 8; /*XXX*/
-	nsaddr_t dst = ih->dst();
+	nsaddr_t src = ih->saddr(); /*XXX*/
+	nsaddr_t dst = ih->daddr();
 
 	int iface = h->iface();
 	Tcl& tcl = Tcl::instance();
@@ -106,7 +106,7 @@ int MCastBSTClassifier::classify(Packet *const pkt)
 			p = lookup_star(dst);
 		if (p == 0) {
   			// Didn't find an entry.
-			tcl.evalf("%s new-group %u %u %d cache-miss", 
+			tcl.evalf("%s new-group %ld %ld %d cache-miss", 
 				  name(), src, dst, iface);
 			// XXX see McastProto.tcl for the return values 0 -
 			// once, 1 - twice 
@@ -120,7 +120,7 @@ int MCastBSTClassifier::classify(Packet *const pkt)
 		if (p->iif == ANY_IFACE.value()) // || iface == UNKN_IFACE.value())
 			return p->slot;
 
-		tcl.evalf("%s new-group %u %u %d wrong-iif", 
+		tcl.evalf("%s new-group %ld %ld %d wrong-iif", 
 			  name(), src, dst, iface);
 		//printf("wrong-iif result= %s\n", tcl.result());
 		int res= atoi(tcl.result());
@@ -135,7 +135,7 @@ void MCastBSTClassifier::recv(Packet *p, Handler *h)
 	hdr_cmn* h_cmn = hdr_cmn::access(p);
 	hdr_ip* ih = hdr_ip::access(p);
  	hdr_ump* ump = hdr_ump::access(p);
-	nsaddr_t dst = ih->dst();
+	nsaddr_t dst = ih->daddr();
 	Tcl& tcl = Tcl::instance();
 	upstream_info *u_info;
 
@@ -144,12 +144,7 @@ void MCastBSTClassifier::recv(Packet *p, Handler *h)
 		sscanf(tcl.result(), "%d", &node_id_);
 	} // if
 
-	nsaddr_t src = ih->src() >> 8; /*XXX*/
-
-	if (node_id_ == 4) {
-		node_id_ = 0;
-		node_id_ = 4;
-	} // if
+	nsaddr_t src = ih->saddr(); /*XXX*/
 
 	NsObject *node = find(p);
 	if (node == NULL) {

@@ -20,7 +20,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drr.cc,v 1.6 1998/06/27 01:23:46 gnguyen Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drr.cc,v 1.7 1999/09/09 03:22:37 salehi Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -149,12 +149,12 @@ void DRR::enque(Packet* pkt)
 	q=&drr[which];
 
 	/*detect collisions here */
-	int compare=(!mask_ ? ((int)iph->src()) : ((int)iph->src()&0xfff0));
+	int compare=(!mask_ ? ((int)iph->saddr()) : ((int)iph->saddr()&0xfff0));
 	if (q->src ==-1)
 		q->src=compare;
 	else
 		if (q->src != compare)
-			fprintf(stderr,"Collisions between %d and %d src addresses\n",q->src,(int)iph->src());      
+			fprintf(stderr,"Collisions between %d and %d src addresses\n",q->src,(int)iph->saddr());      
 
 	q->enque(pkt);
 	++q->pkts;
@@ -293,8 +293,8 @@ int DRR::hash(Packet* pkt)
 	hdr_ip *iph=(hdr_ip*)pkt->access(off_ip_);
 	int i;
 	if (mask_)
-		i = (int)iph->src() & (0xfff0);
+		i = (int)iph->saddr() & (0xfff0);
 	else
-		i = (int)iph->src();
+		i = (int)iph->saddr();
 	return ((i + (i >> 8) + ~(i>>4)) % ((2<<23)-1))+1; // modulo a large prime
 }

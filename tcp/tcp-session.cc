@@ -590,9 +590,13 @@ TcpSessionAgent::traceVar(TracedVar* v)
 	curtime = &s ? s.clock() : 0;
 	if (!strcmp(v->name(), "ownd_") || !strcmp(v->name(), "owndCorr_")) {
 		if (!strcmp(v->name(), "ownd_"))
-			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), double(*((TracedDouble*) v)));
+			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", 
+				curtime, addr(), port(), daddr(), dport(),
+				v->name(), double(*((TracedDouble*) v))); 
 		else if (!strcmp(v->name(), "owndCorr_"))
-			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v)));
+			sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %d", 
+				curtime, addr(), port(), daddr(), dport(),
+				v->name(), int(*((TracedInt*) v))); 
 		n = strlen(wrk);
 		wrk[n] = '\n';
 		wrk[n+1] = 0;

@@ -43,7 +43,7 @@
    NOTE: Tcl node indexs are 0 based, NS C++ node IP addresses (and the
    node->index() are 1 based.
 
-   $Id: god.cc,v 1.5 1999/08/26 18:39:09 haldar Exp $
+   $Id: god.cc,v 1.6 1999/09/09 03:22:38 salehi Exp $
    */
 
 #include <object.h>
@@ -82,8 +82,8 @@ God::stampPacket(Packet *p)
 {
         hdr_cmn *ch = HDR_CMN(p);
         struct hdr_ip *ih = HDR_IP(p);
-        nsaddr_t src = ih->src();
-        nsaddr_t dst = ih->dst();
+        nsaddr_t src = ih->saddr();
+        nsaddr_t dst = ih->daddr();
 
         assert(min_hops);
 

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.2 1999/08/30 21:59:18 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.3 1999/09/09 03:22:33 salehi Exp $";
 #endif
 extern "C" {
 #include <tcl.h>
@@ -57,12 +57,19 @@ public:
 	~VirtualClassifier() {
 		Tcl_DeleteHashTable(&ht_);
 	}
+
 protected:
+	NsObject* next_;
 	Tcl_HashTable ht_;
 	RouteLogic *routelogic_;
 	NsObject* target_;
 	bool enableHrouting_;
 	char nodeaddr_[SMALL_LEN];
+
+	int classify(Packet *const p) {
+		hdr_ip* iph = hdr_ip::access(p);
+		return mshift(iph->daddr());
+	}
 
 	void recv(Packet* p, Handler* h) {
 		if (!routelogic_) {
@@ -78,7 +85,7 @@ protected:
 		 */
 		Tcl &tcl = Tcl::instance();
 		hdr_ip* iph = hdr_ip::access(p);
-		char* adst= Address::instance().print_nodeaddr(iph->dst());
+		char* adst= Address::instance().print_nodeaddr(iph->daddr());
 		//adst[strlen(adst)-1]= 0;
 		target_= 0;
 

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) Sun Microsystems, Inc. 1998 All rights reserved.
  *
@@ -50,10 +51,11 @@ public:
 	}
 } class_mipencapsulator;
 
-MIPEncapsulator::MIPEncapsulator() : Connector(), addr_(-1),
-	mask_(0xffffffff), shift_(8), defttl_(32)
+MIPEncapsulator::MIPEncapsulator() : Connector(), mask_(0xffffffff), 
+	shift_(8), defttl_(32)
 {
-	bind("addr_", (int*)&addr_);
+	bind("addr_", (int*)&(here_.addr_));
+	bind("port_", (int*)&(here_.port_));
 	bind("shift_", &shift_);
 	bind("mask_", &mask_);
 	bind("off_ip_", &off_ip_);
@@ -84,7 +86,7 @@ void MIPEncapsulator::recv(Packet* p, Handler *h)
 	}
 	hdr_ipinip *inhdr = new hdr_ipinip;
 	//int dst = ((hdr->dst() >> shift_) & mask_);
-	int dst = Address::instance().get_nodeaddr(hdr->dst());
+	int dst = Address::instance().get_nodeaddr(hdr->daddr());
 	tcl.evalf("%s tunnel-exit %d", name_, dst);
 	int te = atoi(tcl.result());
 
@@ -92,9 +94,11 @@ void MIPEncapsulator::recv(Packet* p, Handler *h)
 	*ppinhdr = inhdr;
 	inhdr->hdr_ = *hdr;
 
-	hdr->src() = addr_;
+	hdr->saddr() = here_.addr_;
+	hdr->sport() = here_.port_;
 	//hdr->dst() = addr_ & ~(~(nsaddr_t)0 << shift_) | (te & mask_) << shift_;;
-	hdr->dst() = Address::instance().create_ipaddr(te,1);
+	hdr->daddr() = te;
+	hdr->dport() = 1;
 	hdr->ttl() = defttl_;
 	((hdr_cmn*)p->access(off_cmn_))->size() += IP_HEADER_SIZE;
 

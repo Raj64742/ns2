@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.25 1998/12/02 22:39:10 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/link/delay.cc,v 1.26 1999/09/09 03:22:36 salehi Exp $ (LBL)";
 #endif
 
 #include "delay.h"
@@ -138,11 +138,11 @@ void LinkDelay::pktintran(int src, int group)
 		Packet* p = itq_->lookup(len);
 		hdr_ip* iph = hdr_ip::access(p);
 		if (iph->flowid() == prune) {
-			if (iph->src() == src && iph->dst() == group) {
+			if (iph->saddr() == src && iph->daddr() == group) {
 				total_[0]++;
 			}
 		} else if (iph->flowid() == graft) {
-			if (iph->src() == src && iph->dst() == group) {
+			if (iph->saddr() == src && iph->daddr() == group) {
 				total_[1]++;
 			}
 		} else if (iph->flowid() == reg) {
@@ -151,7 +151,7 @@ void LinkDelay::pktintran(int src, int group)
 				total_[2]++;
 			}
 		} else if (iph->flowid() == data) {
-			if (iph->src() == src+1 && iph->dst() == group) {
+			if (iph->saddr() == src+1 && iph->daddr() == group) {
 				total_[3]++;
 			}
 		}

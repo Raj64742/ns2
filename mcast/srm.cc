@@ -30,7 +30,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.22 1998/12/09 00:39:15 haldar Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.cc,v 1.23 1999/09/09 03:22:49 salehi Exp $ (USC/ISI)";
 #endif
 
 #include <stdlib.h>
@@ -163,10 +163,10 @@ void SRMAgent::recv(Packet* p, Handler* h)
 	hdr_ip*  ih = (hdr_ip*) p->access(off_ip_);
 	hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
 	
-	if (ih->dst() == -1) {
+	if (ih->daddr() == -1) {
 		// Packet from local agent.  Add srm headers, set dst, and fwd
 		sh->type() = SRM_DATA;
-		sh->sender() = addr_;
+		sh->sender() = addr();
 		sh->seqnum() = ++dataCtr_;
 		addExtendedHeaders(p);
 		ih->dst() = dst_;
@@ -187,7 +187,7 @@ void SRMAgent::recv(Packet* p, Handler* h)
 			recv_data(sh->sender(), sh->seqnum(), p->accessdata());
 			break;
 		case SRM_RQST:
-			recv_rqst(ih->src(),
+			recv_rqst(ih->saddr(),
 				  sh->round(), sh->sender(), sh->seqnum());
 			break;
 		case SRM_REPR:
@@ -233,7 +233,7 @@ void SRMAgent::sendmsg(int nbytes, const char* /*flags*/)
 	rh->seqno() = ++seqno_;
 	// Add srm headers, set dst, and fwd
 	sh->type() = SRM_DATA;
-	sh->sender() = addr_;
+	sh->sender() = addr();
 	sh->seqnum() = ++dataCtr_;
 	addExtendedHeaders(p);
 	ih->dst() = dst_;
@@ -304,7 +304,7 @@ void SRMAgent::send_sess()
 	Packet* p = Agent::allocpkt(size);
 	hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
 	sh->type() = SRM_SESS;
-	sh->sender() = addr_;
+	sh->sender() = addr();
 	sh->seqnum() = ++sessCtr_;
 	addExtendedHeaders(p);
 
@@ -342,7 +342,7 @@ void SRMAgent::recv_sess(Packet*, int sessCtr, int* data)
 
 	/* The first block contains the sender's own state */
 	GET_SESSION_INFO;
-	if (sender == addr_)			// sender's own session message
+	if (sender == addr())			// sender's own session message
 		return;
 
 	sp = get_state(sender);
@@ -362,7 +362,7 @@ void SRMAgent::recv_sess(Packet*, int sessCtr, int* data)
 	
 	for (i = 1; i < cnt; i++) {
 		GET_SESSION_INFO;
-		if (sender == addr_ && now) {
+		if (sender == addr() && now) {
 			//
 			//    This session message from sender sentBy:
 			//		  vvvvv

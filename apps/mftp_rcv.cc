@@ -50,7 +50,8 @@ MFTPRcvAgent::MFTPRcvAgent()
       FseekOffset(0),
       cw_matrixline_buf(NULL)
 {
-    bind("reply_", (int*)&reply_);
+    bind("reply_addr_", (int*)&reply_.addr_);
+    bind("reply_port_", (int*)&reply_.port_);
 }
 
 // inspect a Tcl command (overloaded function):
@@ -85,7 +86,7 @@ void MFTPRcvAgent::recv(Packet* p, Handler* h)
     hdr_ip* ih = (hdr_ip*) p->access(off_ip_);
     hdr_mftp* mh = (hdr_mftp*) p->access(off_mftp_);
 
-    if(ih->dst() == 0) {
+    if(ih->daddr() == 0) {
         // packet from local agent
         fprintf(stderr, "%s: send not allowed with Agent/MFTP/Rcv\n", name_);
         assert(false);

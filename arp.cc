@@ -35,7 +35,7 @@
 
    /* arp.cc
    basic arp cache and MAC addr resolution
-   $Id: arp.cc,v 1.5 1999/04/10 00:10:33 haldar Exp $
+   $Id: arp.cc,v 1.6 1999/09/09 03:22:29 salehi Exp $
 
    Note: code in this file violates the convention that addresses of
    type Af_INET stored in nsaddr_t variables are stored in 24/8 format.
@@ -289,7 +289,7 @@ ARPTable::arpinput(Packet *p, LL *ll)
                 
 		// XXXHACK for now: 
 		// Future work: separate port-id from IP address ??
-		int dst = Address::instance().get_nodeaddr(ih->dst());
+		int dst = Address::instance().get_nodeaddr(ih->daddr());
 		
 		if((ch->addr_type() == AF_NONE &&
                     dst == ah->arp_spa) ||

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.3 1999/07/07 22:11:21 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satroute.cc,v 1.4 1999/09/09 03:22:45 salehi Exp $";
 #endif
 
 #include "satroute.h"
@@ -130,10 +130,10 @@ void SatRouteAgent::forwardPacket(Packet * p)
 	NsObject* link_entry_;
 
 	hdrc->direction_ = -1; // send it down the stack
-	int dst = Address::instance().get_nodeaddr(iph->dst());
+	int dst = Address::instance().get_nodeaddr(iph->daddr());
 	// Here we need to have an accurate encoding of the next hop routing
 	// information
-	if (myaddr_ == iph->dst()) {
+	if (myaddr_ == iph->daddr()) {
 		printf("Error:  trying to forward a packet destined to self: %d\n", myaddr_); 
 		Packet::free(p);
 	}
@@ -170,11 +170,11 @@ void SatRouteAgent::recv (Packet * p, Handler *)
 	hdr_ip *iph = (hdr_ip *) p->access (off_ip_);
 	hdr_cmn *cmh = (hdr_cmn *) p->access (off_cmn_);
 
-	if (iph->src() == myaddr_ && cmh->num_forwards() == 0) {
+	if (iph->saddr() == myaddr_ && cmh->num_forwards() == 0) {
 	 	// Must be a packet I'm originating... add the IP header
 		cmh->size() += IP_HDR_LEN;    
 		iph->ttl_ = IP_DEF_TTL;
-	} else if (iph->src() == myaddr_) {
+	} else if (iph->saddr() == myaddr_) {
 		// I received a packet that I sent.  Probably a routing loop.
 		Packet::free(p);
 		return;
@@ -186,7 +186,7 @@ void SatRouteAgent::recv (Packet * p, Handler *)
 			return;
 		}
 	}
-	if ((iph->src() != myaddr_) && (iph->dport() == ROUTER_PORT)) {
+	if ((iph->saddr() != myaddr_) && (iph->dport() == ROUTER_PORT)) {
 		// DISTRIBUTED ROUTING PROTOCOL COULD GO HERE
 		printf("Error:  distributed routing not available\n");
 		exit(1);

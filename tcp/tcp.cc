@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.90 1999/08/24 05:05:41 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.91 1999/09/09 03:22:53 salehi Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -150,7 +150,15 @@ TcpAgent::traceAll() {
 	int n;
 
 	curtime = &s ? s.clock() : 0;
-	sprintf(wrk,"time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f rttvar: %-6.3f bkoff: %-d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, int(maxseq_), int(highest_ack_), int(t_seqno_), double(cwnd_), int(ssthresh_), int(dupacks_), int(t_rtt_)*tcp_tick_, (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_, int(t_rttvar_)*tcp_tick_/4.0, int(t_backoff_));
+	sprintf(wrk,"time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport:"
+		" %-2d maxseq: %-4d hiack: %-4d seqno: %-4d cwnd: %-6.3f"
+		" ssthresh: %-3d dupacks: %-2d rtt: %-6.3f srtt: %-6.3f"
+		" rttvar: %-6.3f bkoff: %-d", curtime, addr(), port(),
+		daddr(), dport(), int(maxseq_), int(highest_ack_),
+		int(t_seqno_), double(cwnd_), int(ssthresh_),
+		int(dupacks_), int(t_rtt_)*tcp_tick_, 
+		(int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_, 
+		int(t_rttvar_)*tcp_tick_/4.0, int(t_backoff_)); 
 	n = strlen(wrk);
 	wrk[n] = '\n';
 	wrk[n+1] = 0;
@@ -171,15 +179,27 @@ TcpAgent::traceVar(TracedVar* v)
 
 	curtime = &s ? s.clock() : 0;
 	if (!strcmp(v->name(), "cwnd_") || !strcmp(v->name(), "maxrto_"))
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), double(*((TracedDouble*) v)));
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
+			curtime, addr(), port(), daddr(), dport(),
+			v->name(), double(*((TracedDouble*) v))); 
 	else if (!strcmp(v->name(), "rtt_"))
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v))*tcp_tick_);
-	else if (!strcmp(v->name(), "srtt_"))
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), (int(*((TracedInt*) v)) >> T_SRTT_BITS)*tcp_tick_);
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
+			curtime, addr(), port(), daddr(), dport(),
+			v->name(), int(*((TracedInt*) v))*tcp_tick_); 
+	else if (!strcmp(v->name(), "srtt_")) 
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
+			curtime, addr(), port(), daddr(), dport(),
+			v->name(), 
+			(int(*((TracedInt*) v)) >> T_SRTT_BITS)*tcp_tick_); 
 	else if (!strcmp(v->name(), "rttvar_"))
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v))*tcp_tick_/4.0);
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f",
+			curtime, addr(), port(), daddr(), dport(),
+			v->name(), 
+			int(*((TracedInt*) v))*tcp_tick_/4.0); 
 	else
-		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, v->name(), int(*((TracedInt*) v)));
+		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %d",
+			curtime, addr(), port(), daddr(), dport(),
+			v->name(), int(*((TracedInt*) v))); 
 	n = strlen(wrk);
 	wrk[n] = '\n';
 	wrk[n+1] = 0;

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.21 1999/02/18 02:19:23 yuriy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/snoop.cc,v 1.22 1999/09/09 03:22:47 salehi Exp $ (UCB)";
 #endif
 
 #include "snoop.h"
@@ -169,14 +169,17 @@ void LLSnoop::recv(Packet *p, Handler *h)
 	/* get-snoop creates a snoop object if none currently exists */
 	if (h == 0)
 		/* In ns, addresses have ports embedded in them. */
-		tcl.evalf("%s get-snoop %d %d", name(), iph->dst(),iph->src());
+		tcl.evalf("%s get-snoop %d %d", name(), iph->daddr(),
+			  iph->saddr()); 
 	else
-		tcl.evalf("%s get-snoop %d %d", name(), iph->src(),iph->dst());
+		tcl.evalf("%s get-snoop %d %d", name(), iph->saddr(),
+			  iph->daddr());
 	
 	Snoop *snoop = (Snoop *) TclObject::lookup(tcl.result());
 	snoop->recv(p, h);
 	if (integrate_)
-		tcl.evalf("%s integrate %d %d", name(), iph->src(),iph->dst());
+		tcl.evalf("%s integrate %d %d", name(), iph->saddr(),
+			  iph->daddr());
 	if (h)			/* resume higher layer (queue) */
 		Scheduler::instance().schedule(h, &intr_, 0.000001);
 	return;

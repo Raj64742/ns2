@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.17 1999/08/30 21:59:17 yuriy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/address.cc,v 1.18 1999/09/09 03:22:28 salehi Exp $
  */
 
 #include <stdio.h>
@@ -52,8 +52,7 @@ public:
 Address* Address::instance_;
 
 
-Address::Address() : PortShift_(0), PortMask_(0),  
-	NodeShift_(NULL), NodeMask_(NULL), McastShift_(0),McastMask_(0), levels_(0)
+Address::Address() : NodeShift_(NULL), NodeMask_(NULL), McastShift_(0),McastMask_(0), levels_(0)
 { }
 
 
@@ -77,12 +76,14 @@ int Address::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
-	if (argc == 4) {
-		if (strcmp(argv[1], "portbits-are") == 0) {
-			PortShift_ = atoi(argv[2]);
-			PortMask_ = atoi(argv[3]);
-			return (TCL_OK);
-		}
+ 	if (argc == 4) {
+		// The following code is no longer supported in the
+		// 32-bit addressing
+// 		if (strcmp(argv[1], "portbits-are") == 0) {
+// 			PortShift_ = atoi(argv[2]);
+// 			PortMask_ = atoi(argv[3]);
+// 			return (TCL_OK);
+// 		}
 
 		if (strcmp(argv[1], "mcastbits-are") == 0) {
 			McastShift_ = atoi(argv[2]);
@@ -116,7 +117,7 @@ int Address::command(int argc, const char*const* argv)
 			else 
 				levels_ = temp;
 			NodeShift_ = new int[levels_ + 1];
-			for (i = 3, c = 1; c <= levels_; c++, i+=2) 
+			for (i = 3, c = 1; c <= levels_; c++, i+=2)
 				NodeShift_[c] = atoi(argv[i]);
 			return (TCL_OK); 
 		}
@@ -202,7 +203,7 @@ int Address::get_nodeaddr(int address)
 	
 	temp = print_nodeaddr(address);
 	a = str2addr(temp);
-	delete temp;
+	delete [] temp;
 	return a;
 }
 
@@ -210,6 +211,9 @@ int Address::get_nodeaddr(int address)
 //Sets address in pkthdr format (having port and node fields)
 int Address::create_ipaddr(int nodeid, int portid)
 {
+	return nodeid;
+	// The following code is obsolete
+#if 0
 	int address;
 	if (levels_ < 2) 
 		address = (nodeid & NodeMask_[1]) << NodeShift_[1];
@@ -218,6 +222,7 @@ int Address::create_ipaddr(int nodeid, int portid)
 	address = ((portid & PortMask_) << PortShift_) | \
 		((~(PortMask_) << PortShift_) & address);
 	return address;
+#endif
 }
 
 int Address::get_lastaddr(int address)
@@ -236,9 +241,11 @@ char *Address::print_portaddr(int address)
 	char *addrstr;
 
 	str[0] = '\0';
+#if 0
 	a = address >> PortShift_;
 	a = a & PortMask_;
-	sprintf(str, "%d", a);
+#endif
+	sprintf(str, "%d", address);
 	addrstr = new char[strlen(str)+1];
 	strcpy(addrstr, str);
 	// printf("Portaddr - %s\n",addrstr);
@@ -268,7 +275,7 @@ int Address::str2addr(const char *str) const
 				      NodeShift_[i+1], NodeMask_[i+1]);
 	}
 
-	delete istr;
+	delete [] istr;
 
 	return addr;
 }

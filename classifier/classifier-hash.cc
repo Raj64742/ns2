@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.19 1999/01/26 18:30:40 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.20 1999/09/09 03:22:31 salehi Exp $ (LBL)";
 #endif
 
 //
@@ -366,9 +366,9 @@ HashClassifier::newflow(Packet* pkt)
 {
 	hdr_ip* h = hdr_ip::access(pkt);
 
-	int buck = find_hash(h->src(), h->dst(), h->flowid());
+	int buck = find_hash(h->saddr(), h->daddr(), h->flowid());
 	Tcl::instance().evalf("%s unknown-flow %u %u %u %u",
-		name(), h->src(), h->dst(), h->flowid(), buck);
+		name(), h->saddr(), h->daddr(), h->flowid(), buck);
 	hnode* hn = lookup(pkt);
 	if (hn == NULL)
 		return (-1);
@@ -432,7 +432,7 @@ HashClassifier::hnode*
 HashClassifier::lookup(Packet *pkt)
 {
 	hdr_ip* h = hdr_ip::access(pkt);
-	return (lookup(h->src(), h->dst(), h->flowid()));
+	return (lookup(h->saddr(), h->daddr(), h->flowid()));
 }
 
 int SrcDestHashClassifier::command(int argc, const char*const* argv)

@@ -58,7 +58,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.15 1998/08/27 16:38:58 tomh Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.16 1999/09/09 03:22:49 salehi Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -180,7 +180,11 @@ void TcpAsymSink::recv(Packet* pkt, Handler*)
 		int n;
 
 		/* we print src and dst in reverse order to conform to sender side */
-		sprintf(wrk, "time: %-6.3f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d dafactor: %2d dalim: %2d max_scs: %4d win: %4d\n", now, dst_/256, dst_%256, addr_/256, addr_%256, delackfactor_, delacklim_,max_sender_can_send, tha->win());
+		sprintf(wrk, "time: %-6.3f saddr: %-2d sport: %-2d daddr:"
+			" %-2d dport: %-2d dafactor: %2d dalim: %2d max_scs:"
+			" %4d win: %4d\n", now, addr(), port(),
+			daddr(), dport(), delackfactor_,
+			delacklim_,max_sender_can_send, tha->win());  
 		n = strlen(wrk);
 		wrk[n] = '\n';
 		wrk[n+1] = 0;

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.27 1998/12/08 23:43:04 haldar Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.28 1999/09/09 03:22:33 salehi Exp $";
 #endif
 
 #include <stdlib.h>
@@ -90,6 +90,8 @@ void Classifier::alloc(int slot)
 
 void Classifier::install(int slot, NsObject* p)
 {
+	if (!strcmp(name_, "_o317")) 
+		strcmp(name_, "_o317");
 	if (slot >= nslot_)
 		alloc(slot);
 	slot_[slot] = p;
@@ -152,7 +154,7 @@ NsObject* Classifier::find(Packet* p)
 		 * Sigh.  Can't pass the pkt out to tcl because it's
 		 * not an object.
 		 */
-		Tcl::instance().evalf("%s no-slot %d", name(), cl);
+		Tcl::instance().evalf("%s no-slot %ld", name(), cl);
 		if (cl == TWICE) {
 			/*
 			 * Try again.  Maybe callback patched up the table.

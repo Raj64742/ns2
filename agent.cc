@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.57 1999/08/24 04:16:12 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.58 1999/09/09 03:22:28 salehi Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -82,8 +82,10 @@ Agent::Agent(packet_t pkttype) :
 //	memset(pending_, 0, sizeof(pending_));
 	// this is really an IP agent, so set up
 	// for generating the appropriate IP fields...
-	bind("addr_", (int*)&addr_);
-	bind("dst_", (int*)&dst_);
+	bind("agent_addr_", (int*)&(here_.addr_));
+	bind("agent_port_", (int*)&(here_.port_));
+	bind("dst_addr_", (int*)&(dst_.addr_));
+	bind("dst_port_", (int*)&(dst_.port_));
 	bind("fid_", (int*)&fid_);
 	bind("prio_", (int*)&prio_);
 	bind("flags_", (int*)&flags_);
@@ -99,8 +101,10 @@ Agent::Agent(packet_t pkttype) :
 void
 Agent::delay_bind_init_all()
 {
-	delay_bind_init_one("addr_");
-	delay_bind_init_one("dst_");
+	delay_bind_init_one("agent_addr_");
+	delay_bind_init_one("agent_port_");
+	delay_bind_init_one("dst_addr_");
+	delay_bind_init_one("dst_port_");
 	delay_bind_init_one("fid_");
 	delay_bind_init_one("prio_");
 	delay_bind_init_one("flags_");
@@ -115,8 +119,10 @@ Agent::delay_bind_init_all()
 int
 Agent::delay_bind_dispatch(const char *varName, const char *localName)
 {
-	DELAY_BIND_DISPATCH(varName, localName, "addr_", delay_bind, (int*)&addr_);
-	DELAY_BIND_DISPATCH(varName, localName, "dst_", delay_bind, (int*)&dst_);
+	DELAY_BIND_DISPATCH(varName, localName, "agent_addr_", delay_bind, (int*)&(here_.addr_));
+	DELAY_BIND_DISPATCH(varName, localName, "agent_port_", delay_bind, (int*)&(here_.port_));
+	DELAY_BIND_DISPATCH(varName, localName, "dst_addr_", delay_bind, (int*)&(dst_.addr_));
+	DELAY_BIND_DISPATCH(varName, localName, "dst_port_", delay_bind, (int*)&(dst_.port_));
 	DELAY_BIND_DISPATCH(varName, localName, "fid_", delay_bind, (int*)&fid_);
 	DELAY_BIND_DISPATCH(varName, localName, "prio_", delay_bind, (int*)&prio_);
 	DELAY_BIND_DISPATCH(varName, localName, "flags_", delay_bind, (int*)&flags_);
@@ -234,12 +240,8 @@ void Agent::flushAVar(TracedVar *v)
 		// no value, because no writes has occurred to this var
 		return;
 	sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -o %s -T v -x",
-		Scheduler::instance().clock(),
-		addr_ >> (Address::instance().NodeShift_[1]),
-		dst_ >> (Address::instance().NodeShift_[1]),
-		v->name(),
-		traceName_,
-		value);
+		Scheduler::instance().clock(), addr(), dst_.addr_,
+		v->name(), traceName_, value); 
 	n = strlen(wrk);
 	wrk[n] = '\n';
 	wrk[n+1] = 0;
@@ -259,10 +261,8 @@ void Agent::deleteAgentTrace()
 	// we need to flush all var values to trace file, 
 	// so nam can do backtracing
 	sprintf(wrk, "a -t %.17f -s %d -d %d -n %s -x",
-		Scheduler::instance().clock(),
-		addr_ >> (Address::instance().NodeShift_[1]),
-		dst_ >> (Address::instance().NodeShift_[1]),
-		traceName_);
+		Scheduler::instance().clock(), here_.addr_,
+		dst_.addr_, traceName_); 
 	if (traceName_ != NULL)
 		delete[] traceName_;
 	traceName_ = NULL;
@@ -313,25 +313,16 @@ void Agent::trace(TracedVar* v)
 	if (ov != NULL) {
 		sprintf(wrk, 
 			"f -t %.17f -s %d -d %d -n %s -a %s -v %s -o %s -T v",
-			Scheduler::instance().clock(),
-			addr_ >> (Address::instance().NodeShift_[1]),
-			dst_ >> (Address::instance().NodeShift_[1]),
-			v->name(),
-			traceName_,
-			value,
-			ov->val_);
+			Scheduler::instance().clock(), here_.addr_,
+			dst_.addr_, v->name(), traceName_, value, ov->val_);
 		strncpy(ov->val_, 
 			value,
 			min(strlen(value)+1, TRACEVAR_MAXVALUELENGTH));
 	} else {
 		// if there is value, insert it into old value list
 		sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -v %s -T v",
-			Scheduler::instance().clock(),
-			addr_ >> (Address::instance().NodeShift_[1]),
-			dst_ >> (Address::instance().NodeShift_[1]),
-			v->name(),
-			traceName_,
-			value);
+			Scheduler::instance().clock(), here_.addr_,
+			dst_.addr_, v->name(), traceName_, value);
 		insertOldValue(v, value);
 	}
 	n = strlen(wrk);
@@ -348,9 +339,7 @@ void Agent::monitorAgentTrace()
 			  Scheduler::instance().clock());
 	
 	sprintf(wrk, "v -t %.17f monitor_agent %d %s",
-		curTime,
-		addr_ >> (Address::instance().NodeShift_[1]),
-		traceName_);
+		curTime, here_.addr_, traceName_);
 	n = strlen(wrk);
 	wrk[n] = '\n';
 	wrk[n+1] = 0;
@@ -366,10 +355,7 @@ void Agent::addAgentTrace(const char *name)
 			  Scheduler::instance().clock());
 	
 	sprintf(wrk, "a -t %.17f -s %d -d %d -n %s",
-		curTime,
-		addr_ >> (Address::instance().NodeShift_[1]),
-		dst_ >> (Address::instance().NodeShift_[1]),
-			 name);
+		curTime, here_.addr_, dst_.addr_, name);
 	n = strlen(wrk);
 	wrk[n] = '\n';
 	wrk[n+1] = 0;
@@ -493,8 +479,10 @@ Agent::initpkt(Packet* p) const
 	ch->error() = 0;	/* pkt not corrupt to start with */
 
 	hdr_ip* iph = hdr_ip::access(p);
-	iph->src() = addr_;
-	iph->dst() = dst_;
+	iph->saddr() = here_.addr_;
+	iph->sport() = here_.port_;
+	iph->daddr() = dst_.addr_;
+	iph->dport() = dst_.port_;
 	
 	//DEBUG
 	//if (dst_ != -1)

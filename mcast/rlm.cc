@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/rlm.cc,v 1.5 1998/06/27 01:24:33 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/rlm.cc,v 1.6 1999/09/09 03:22:43 salehi Exp $ (LBL)";
 #endif
 
 #include "agent.h"
@@ -142,7 +142,7 @@ void RLM_Sender::sendpkt(int size, int level)
 	rh->blkno() = blkno_;
 	rh->blkitem() = blkitem_++;
 	iph->size() = size;
-	iph->dst() += level;
+	iph->daddr() += level;
 #ifdef notdef
 	iph->class() += level;/*XXX*/
 #endif

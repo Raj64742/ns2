@@ -61,7 +61,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym.cc,v 1.16 1998/08/22 02:41:19 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym.cc,v 1.17 1999/09/09 03:22:50 salehi Exp $ (UCB)";
 #endif
 
 #include "tcp-asym.h"
@@ -183,11 +183,11 @@ void TcpAsymAgent::traceVar(TracedVar* v) {
 	double curtime = &s ? s.clock() : 0;
 	if (!strcmp(v->name(), "exact_srtt_"))
 		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", 
-			curtime, addr_/256, addr_%256, dst_/256, dst_%256, 
+			curtime, addr(), port(), daddr(), dport(),
 			v->name(), double(*((TracedDouble*) v)));
 	else if (!strcmp(v->name(), "avg_win_"))
 		sprintf(wrk,"%-8.5f %-2d %-2d %-2d %-2d %s %-6.3f", 
-			curtime, addr_/256, addr_%256, dst_/256, dst_%256, 
+			curtime, addr(), port(), daddr(), dport(), 
 			v->name(), double(*((TracedDouble*) v)));
 	else {
 		TcpAgent::traceVar(v);
@@ -213,8 +213,9 @@ TcpAsymAgent::traceAll() {
 
 	TcpAgent::traceAll();
 	curtime = &s ? s.clock() : 0;
-	sprintf(wrk, "time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d exact_srtt %d", curtime, addr_/256, addr_%256, dst_/256, dst_%256, 
-		(int(t_exact_srtt_)));
+	sprintf(wrk, "time: %-8.5f saddr: %-2d sport: %-2d daddr: %-2d dport:"
+		" %-2d exact_srtt %d", curtime, addr(), port(),
+		daddr(), dport(), (int(t_exact_srtt_)));
 	n = strlen(wrk);
 	wrk[n] = '\n';
 	wrk[n+1] = 0;

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sfq.cc,v 1.7 1999/02/02 16:33:36 heideman Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sfq.cc,v 1.8 1999/09/09 03:22:47 salehi Exp $ (ANS)";
 #endif
 
 #include <stdlib.h>
@@ -235,8 +235,8 @@ void SFQ::enque(Packet* pkt)
 int SFQ::hash(Packet* pkt)
 {
   hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
-  int i = (int)iph->src();
-  int j = (int)iph->dst();
+  int i = (int)iph->saddr();
+  int j = (int)iph->daddr();
   int k = i + j;
 
   return (k + (k >> 8) + ~(k >> 4)) % ((2<<19)-1); // modulo a large prime

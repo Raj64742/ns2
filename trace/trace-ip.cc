@@ -86,8 +86,8 @@ void TraceIp::recv(Packet* p, Handler* h)
 {
 	// XXX: convert IP address to node number
 	hdr_ip *iph = hdr_ip::access(p);
-	int src = (src_ >= 0) ? src_ : (iph->src() >> shift_) & mask_;
-	int dst = (iph->dst() >> shift_) & mask_;
+	int src = (src_ >= 0) ? src_ : (iph->saddr() >> shift_) & mask_;
+	int dst = (iph->daddr() >> shift_) & mask_;
 	format(type_, src, dst , p);
 	dump();
 	target_ ? send(p, h) : Packet::free(p);
@@ -101,8 +101,8 @@ void TraceIpMac::recv(Packet* p, Handler* h)
 	
 	hdr_ip *iph = HDR_IP(p);
 	
-	int src = (src_ >= 0) ? src_ : (iph->src() >> shift_) & mask_;
-	int dst = (iph->dst() >> shift_) & mask_;
+	int src = (src_ >= 0) ? src_ : (iph->saddr() >> shift_) & mask_;
+	int dst = (iph->daddr() >> shift_) & mask_;
 
 	hdr_mac* mh = HDR_MAC(p);
 	

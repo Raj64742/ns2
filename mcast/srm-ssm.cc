@@ -1,4 +1,38 @@
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
+//
+// Copyright (c) 1997 by the University of Southern California
+// All rights reserved.
+//
+// Permission to use, copy, modify, and distribute this software and its
+// documentation in source and binary forms for non-commercial purposes
+// and without fee is hereby granted, provided that the above copyright
+// notice appear in all copies and that both the copyright notice and
+// this permission notice appear in supporting documentation. and that
+// any documentation, advertising materials, and other materials related
+// to such distribution and use acknowledge that the software was
+// developed by the University of Southern California, Information
+// Sciences Institute.  The name of the University may not be used to
+// endorse or promote products derived from this software without
+// specific prior written permission.
+//
+// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
+// the suitability of this software for any purpose.  THIS SOFTWARE IS
+// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
+// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+//
+// Other copyrights might apply to parts of this software and are so
+// noted when applicable.
+//
+//	Maintainer:	
+//	Version Date:	Tue Jul 22 15:41:16 PDT 1997
+// The code implements scalable session message. See
+// http://catarina.usc.edu/estrin/papers/infocom98/ssession.ps
+//
+#ifndef lint
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-ssm.cc,v 1.7 1999/09/09 03:22:48 salehi Exp $ (USC/ISI)";
+#endif
 
 #include <stdlib.h>
 #include <assert.h>
@@ -80,7 +114,7 @@ int SSMSRMAgent::command(int argc, const char*const* argv)
 
   if (argc == 2) {
     if (strcmp(argv[1], "start") == 0) {
-      sip_->sender_ = addr_;
+      sip_->sender_ = addr();
       sip_->distance_ = 0.0;
       /* sip_->repid_ = addr_;
 	 sip_->scopeFlag_ = SRM_GLOBAL;
@@ -89,12 +123,12 @@ int SSMSRMAgent::command(int argc, const char*const* argv)
 	 */		  
       groupScope_ = 32;
       senderFlag_ = 0;
-      printf("%s is %d and rep-status %d\n",name_, addr_, scopeFlag_);
+      printf("%s is %d and rep-status %d\n", name_, addr(), scopeFlag_);
       return TCL_OK;
     }
     if (strcmp(argv[1], "ch-rep") == 0) {
       if(scopeFlag_ == SRM_GLOBAL) {
-	sip_->repid_ = repid_ = addr_;
+	sip_->repid_ = repid_ = addr();
 	sip_->scopeFlag_ = SRM_GLOBAL;
       } else {
 	sip_->repid_ = repid_;
@@ -146,14 +180,14 @@ void SSMSRMAgent::recv(Packet* p, Handler* h)
   hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
   hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
 	
-  if (ih->dst() == 0) {
+  if (ih->daddr() == 0) {
     // Packet from local agent.  Add srm headers, set dst, and fwd
     sh->type() = SRM_DATA;
-    sh->sender() = addr_;
+    sh->sender() = addr();
     sh->seqnum() = ++dataCtr_;
     seh->repid() = repid_;
     ih->dst() = dst_;
-    ih->src() = addr_;
+    ih->src() = here_;
     target_->recv(p, h);
   } else {
 
@@ -171,8 +205,8 @@ void SSMSRMAgent::recv(Packet* p, Handler* h)
       Packet::free(p);
       break;
     case SRM_RQST:
-      recv_rqst(ih->src(), sh->round(), sh->sender(), 
-		sh->seqnum(), seh->repid());
+      recv_rqst(ih->saddr(), sh->round(), sh->sender(), sh->seqnum(),
+		seh->repid());  
       Packet::free(p);
       break;
     case SRM_REPR:
@@ -256,7 +290,7 @@ void SSMSRMAgent::send_glb_sess()
 	printf("sending global session message\n");
 #endif
         sh->type() = SRM_SESS;
-        sh->sender() = addr_;
+        sh->sender() = addr();
         sh->seqnum() = ++glb_sessCtr_;
 	seh->repid() = repid_;
 
@@ -268,7 +302,7 @@ void SSMSRMAgent::send_glb_sess()
 	  /* Global Session Message has information about Senders/reps */
            if ((sp->senderFlag_ || 
 		(sp->scopeFlag_ == SRM_GLOBAL) ||
-		(sp->sender_ == addr_))
+		(sp->sender_ == addr()))
 	       && (is_active(sp))) {      
 	        *data++ = sp->sender_;
                 *data++ = sp->ldata_;
@@ -304,7 +338,7 @@ void SSMSRMAgent::send_loc_sess()
         hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
         hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
         sh->type() = SRM_SESS;
-        sh->sender() = addr_;
+        sh->sender() = addr();
         sh->seqnum() = ++loc_sessCtr_;
 	seh->repid() = repid_;
 #if 0
@@ -322,7 +356,7 @@ void SSMSRMAgent::send_loc_sess()
 	       (sp->scopeFlag_ == SRM_LOCAL) ||
 	       (sp->distanceFlag_ = SELF_DISTANCE) || 
 	       /* For the reps that I am hearing from */
-	       (sp->sender_ == addr_) ||   
+	       (sp->sender_ == addr()) ||   
 	       // just in case, I have not set the flags properly, 
 	       // one entry has to be there
 	       (repid_ == sp->sender_)) 
@@ -361,7 +395,7 @@ void SSMSRMAgent::send_rep_sess()
         hdr_srm* sh = (hdr_srm*) p->access(off_srm_);
         hdr_srm_ext* seh = (hdr_srm_ext*) p->access(off_srm_ext_);
         sh->type() = SRM_SESS;
-        sh->sender() = addr_;
+        sh->sender() = addr();
         sh->seqnum() = ++rep_sessCtr_;
 	seh->repid() = repid_;
 #if 0
@@ -463,7 +497,7 @@ void SSMSRMAgent::recv_glb_sess(int sessCtr, int* data, Packet* p)
   /* As as included type of session message also */
   /* The first block contains the sender's own state */
   GET_SESSION_INFO;
-  if (sender == addr_)			
+  if (sender == addr())			
     // sender's own session message
     return;
   if (seh->repid() != repid) {
@@ -507,7 +541,7 @@ void SSMSRMAgent::recv_glb_sess(int sessCtr, int* data, Packet* p)
   
   for (i = 1; i < cnt; i++) {
     GET_SESSION_INFO;
-    if (sender == addr_ && now) {
+    if (sender == addr() && now) {
       int rtt = (now - sentAt) + (rtime - stime);
       sp = get_state(sentBy);
       sp->distance_ = (double) rtt / 2 / 1000;
@@ -552,7 +586,7 @@ void SSMSRMAgent::recv_loc_sess(int sessCtr, int* data, Packet* p)
 
   /* The first block contains the sender's own state */
   GET_SESSION_INFO;
-  if (sender == addr_)			// sender's own session message
+  if (sender == addr())			// sender's own session message
     return;
   
   sp = get_state(sender);
@@ -584,7 +618,7 @@ void SSMSRMAgent::recv_loc_sess(int sessCtr, int* data, Packet* p)
   
   for (i = 1; i < cnt; i++) {
     GET_SESSION_INFO;
-    if (sender == addr_ && now) {
+    if (sender == addr() && now) {
       int rtt = (now - sentAt) + (rtime - stime);
       sp = get_state(sentBy);
       sp->distance_ = (double) rtt / 2 / 1000;
@@ -626,7 +660,7 @@ void SSMSRMAgent::recv_rep_sess(int sessCtr, int* data, Packet*)
 
   /* The first block contains the sender's own state */
   GET_SESSION_INFO;
-  if (sender == addr_)			// sender's own session message
+  if (sender == addr())			// sender's own session message
     return;
   if (sender != repid_)                 // not from my rep
     return;
@@ -656,7 +690,7 @@ void SSMSRMAgent::recv_rep_sess(int sessCtr, int* data, Packet*)
 	
   for (i = 1; i < cnt; i++) {
     GET_SESSION_INFO;
-    if (sender == addr_ && now) {
+    if (sender == addr() && now) {
       int rtt = (now - sentAt) + (rtime - stime);
       sp = get_state(sentBy);
       sp->distance_ = (double) rtt / 2 / 1000;
@@ -709,7 +743,7 @@ int SSMSRMAgent::is_active(SRMinfo *sp)
 {
   int now;
   now = (int) (Scheduler::instance().clock() * 1000);
-  if ((sp->sender_ != addr_) && ((now - sp->recvTime_) >= 3*sessionDelay)) {
+  if ((sp->sender_ != addr()) && ((now - sp->recvTime_) >= 3*sessionDelay)) {
     return 0;
   } else {
     return 1;

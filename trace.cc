@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.65 1999/09/08 20:56:52 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.66 1999/09/09 03:22:55 salehi Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -62,7 +62,7 @@ public:
 
 
 Trace::Trace(int type)
-	: Connector(), type_(type), src_(0), dst_(0), channel_(0), callback_(0)
+	: Connector(), type_(type), channel_(0), callback_(0)
 #ifdef NAM_TRACE
 	, namChan_(0)
 #endif
@@ -260,10 +260,10 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
 	flags[5] = 0;
 #endif
-	char *src_nodeaddr = Address::instance().print_nodeaddr(iph->src());
-	char *src_portaddr = Address::instance().print_portaddr(iph->src());
-	char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
-	char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
+	char *src_nodeaddr = Address::instance().print_nodeaddr(iph->saddr());
+	char *src_portaddr = Address::instance().print_portaddr(iph->sport());
+	char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->daddr());
+	char *dst_portaddr = Address::instance().print_portaddr(iph->dport());
 
 	if (!show_tcphdr_) {
 		sprintf(wrk_, "%c "TIME_FORMAT" %d %d %s %d %s %d %s.%s %s.%s %d %d",
@@ -457,10 +457,10 @@ DequeTrace::recv(Packet* p, Handler* h)
 		    }
 		}   
 
-		char *src_nodeaddr = Address::instance().print_nodeaddr(iph->src());
-		char *src_portaddr = Address::instance().print_portaddr(iph->src());
-		char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
-		char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
+		char *src_nodeaddr = Address::instance().print_nodeaddr(iph->saddr());
+		char *src_portaddr = Address::instance().print_portaddr(iph->sport());
+		char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->daddr());
+		char *dst_portaddr = Address::instance().print_portaddr(iph->dport());
 
 		char flags[NUMFLAGS+1];
 		for (int i = 0; i < NUMFLAGS; i++)

@@ -120,7 +120,7 @@ void MFTPSndAgent::recv(Packet* p, Handler* h)
     hdr_ip* ih = (hdr_ip*) p->access(off_ip_);
     hdr_mftp* mh = (hdr_mftp*) p->access(off_mftp_);
 
-    if(ih->dst() == 0) {
+    if(ih->daddr() == 0) {
         assert(false);        // Packet from local agent.
     } else {
         switch(mh->type) {

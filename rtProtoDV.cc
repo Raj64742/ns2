@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtProtoDV.cc,v 1.5 1998/08/12 23:41:13 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtProtoDV.cc,v 1.6 1999/09/09 03:22:44 salehi Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
@@ -50,7 +50,9 @@ public:
 int rtProtoDV::command(int argc, const char*const* argv)
 {
 	if (strcmp(argv[1], "send-update") == 0) {
-		nsaddr_t  dst   = atoi(argv[2]);
+		ns_addr_t dst;
+		dst.addr_ = atoi(argv[2]);
+		dst.port_ = 0;
 		u_int32_t mtvar = atoi(argv[3]);
 		u_int32_t size  = atoi(argv[4]);
 		sendpkt(dst, mtvar, size);
@@ -59,9 +61,10 @@ int rtProtoDV::command(int argc, const char*const* argv)
 	return Agent::command(argc, argv);
 }
 
-void rtProtoDV::sendpkt(nsaddr_t dst, u_int32_t mtvar, u_int32_t size)
+void rtProtoDV::sendpkt(ns_addr_t dst, u_int32_t mtvar, u_int32_t size)
 {
-	dst_ = dst;
+	daddr() = dst.addr_;
+	dport() = dst.port_;
 	size_ = size;
 	
 	Packet* p = Agent::allocpkt();
@@ -76,6 +79,6 @@ void rtProtoDV::recv(Packet* p, Handler*)
 	hdr_DV* rh = (hdr_DV*)p->access(off_DV_);
 	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
 	Tcl::instance().evalf("%s recv-update %d %d", name(),
-			      ih->src(), rh->metricsVar());
+			      ih->saddr(), rh->metricsVar());
 	Packet::free(p);
 }

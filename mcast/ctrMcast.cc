@@ -23,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/ctrMcast.cc,v 1.7 1998/08/12 23:41:01 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/ctrMcast.cc,v 1.8 1999/09/09 03:22:36 salehi Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
@@ -95,11 +95,13 @@ void CtrMcastEncap::recv(Packet* p, Handler*)
 	hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
 	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
 
-	ch->src() = ih->src();
-	ch->group() = ih->dst();
+	ch->src() = ih->saddr();
+	ch->group() = ih->daddr();
 	ch->flowid() = ih->flowid();
-	ih->src() = addr_;
-	ih->dst() = dst_;
+	ih->saddr() = addr();
+	ih->sport() = port();
+	ih->daddr() = daddr();
+	ih->dport() = dport();
 	ih->flowid() = fid_;
 
 	target_->recv(p);
@@ -110,8 +112,8 @@ void CtrMcastDecap::recv(Packet* p, Handler*)
 	hdr_CtrMcast* ch = (hdr_CtrMcast*)p->access(off_CtrMcast_);
 	hdr_ip* ih = (hdr_ip*)p->access(off_ip_);
 
-	ih->src() = ch->src();
-	ih->dst() = ch->group();
+	ih->saddr() = ch->src();
+	ih->daddr() = ch->group();
 	ih->flowid() = ch->flowid();
 
 	target_->recv(p);

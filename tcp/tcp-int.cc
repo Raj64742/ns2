@@ -154,12 +154,12 @@ IntTcpAgent::createTcpSession()
 	Tcl& tcl = Tcl::instance();
 
 	tcl.evalf("%s set node_", name());
-	tcl.evalf("%s createTcpSession %d", tcl.result(), (dst_/256)*256);
+	tcl.evalf("%s createTcpSession %d", tcl.result(), daddr());
 	Islist_iter<TcpSessionAgent> session_iter(TcpSessionAgent::sessionList_);
 	TcpSessionAgent *cur;
 
 	while ((cur = session_iter()) != NULL) {
-		if (cur->addr()/256 == addr_/256 && cur->dst()/256 == dst_/256) {
+		if (cur->addr()/256 == addr() && cur->daddr() == daddr()) {
 			session_ = cur;
 			break;
 		}
@@ -231,9 +231,9 @@ IntTcpAgent::send_much(int force, int reason, int /*maxburst*/)
 void
 IntTcpAgent::send_one(int sessionSeqno)
 {
-	int daddr = dst_/256;
-	int dport = dst_%256;
-	int sport = addr_%256;
+	int dst_addr = daddr();
+	int dst_port = dport();
+	int sport = port();
 
 	if (!session_)
 		createTcpSession();
@@ -242,7 +242,8 @@ IntTcpAgent::send_one(int sessionSeqno)
 	 * we have data to send.
 	 */
 	output(t_seqno_++); 
-	session_->add_pkts(size_,t_seqno_-1,sessionSeqno,daddr,dport,sport,lastTS_,this);
+	session_->add_pkts(size_, t_seqno_ - 1, sessionSeqno,
+			   dst_addr, dst_port, sport, lastTS_, this); 
 }
 
 
@@ -274,9 +275,9 @@ IntTcpAgent::rxmit_last(int reason, int seqno, int sessionSeqno, double /*ts*/)
 	 */
 	session_->reset_rtx_timer(1,0); 
 	output(seqno, reason);
-	daddr_ = dst_/256;
-	dport_ = dst_%256;
-	sport_ = addr_%256;
+	daddr_ = daddr();
+	dport_ = dport();
+	sport_ = port();
 	return (session_->add_pkts(size_, seqno, sessionSeqno, daddr_, 
 				   dport_, sport_, lastTS_, this));
 	return NULL;

@@ -158,13 +158,14 @@ void SA_Agent::recv(Packet *p, Handler *)
 	hdr_ip * iph = (hdr_ip*)p->access(off_ip_);
 	if ( ch->ptype() == PT_ACCEPT || ch->ptype() == PT_REJECT ) {
 		ch->ptype() = PT_CONFIRM;
+
 		// turn the packet around by swapping src and dst
-		nsaddr_t tmp;
+		// (address and port)
+		ns_addr_t tmp;
 		tmp = iph->src();
-		iph->src()=iph->dst();
-		iph->dst()=tmp;
+		iph->src() = iph->dst();
+		iph->dst() = tmp;
 		ctrl_target_->recv(p);
-		
 	}
 	
 	// put an additional check here to see if admission was granted

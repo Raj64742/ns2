@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sattrace.cc,v 1.3 1999/08/30 21:59:21 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sattrace.cc,v 1.4 1999/09/09 03:22:46 salehi Exp $";
 #endif
 
 #include <stdio.h>
@@ -139,10 +139,10 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 	flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
 	flags[5] = 0;
 #endif
-	char *src_nodeaddr = Address::instance().print_nodeaddr(iph->src());
-	char *src_portaddr = Address::instance().print_portaddr(iph->src());
-	char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
-	char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
+	char *src_nodeaddr = Address::instance().print_nodeaddr(iph->saddr());
+	char *src_portaddr = Address::instance().print_portaddr(iph->sport());
+	char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->daddr());
+	char *dst_portaddr = Address::instance().print_portaddr(iph->dport());
 
 	// Find position of previous hop and next hop
 	double s_lat = -999, s_lon = -999, d_lat = -999, d_lon = -999;
@@ -294,10 +294,10 @@ SatDequeTrace::recv(Packet* p, Handler* h)
 		    }
 		}   
 
-		char *src_nodeaddr = Address::instance().print_nodeaddr(iph->src());
-		char *src_portaddr = Address::instance().print_portaddr(iph->src());
-		char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->dst());
-		char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
+		char *src_nodeaddr = Address::instance().print_nodeaddr(iph->saddr());
+		char *src_portaddr = Address::instance().print_portaddr(iph->sport());
+		char *dst_nodeaddr = Address::instance().print_nodeaddr(iph->daddr());
+		char *dst_portaddr = Address::instance().print_portaddr(iph->dport());
 
 		char flags[NUMFLAGS+1];
 		for (int i = 0; i < NUMFLAGS; i++)

@@ -73,12 +73,12 @@ void MIPBSAgent::recv(Packet* p, Handler *)
 	hdr_mip *miph = (hdr_mip *)p->access(off_mip_);
 	hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
 	hdr_cmn *ch = (hdr_cmn*)p->access(off_cmn_);
-	int nodeaddr = Address::instance().get_nodeaddr(addr_);
+	int nodeaddr = Address::instance().get_nodeaddr(addr());
 	
 	switch (miph->type_) {
 	case MIPT_REG_REQUEST:
 	  //if (miph->ha_ == (addr_ >> shift_ & mask_)) {
-	  if (miph->ha_ == (Address::instance().get_nodeaddr(addr_))){
+	  if (miph->ha_ == (Address::instance().get_nodeaddr(addr()))){
 	    if (miph->ha_ == miph->coa_) { // back home
 	      tcl.evalf("%s clear-reg %d", name_,
 			miph->haddr_);
@@ -93,9 +93,11 @@ void MIPBSAgent::recv(Packet* p, Handler *)
 	  }
 	  else {
 	    //iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) | (miph->ha_ & mask_) << shift_;
-	    iph->dst() = Address::instance().create_ipaddr(miph->ha_,0);
+	    iph->daddr() = miph->ha_;
+	    iph->dport() = 0;
 	  }
-	  iph->src() = addr_;
+	  iph->saddr() = addr();
+	  iph->sport() = port();
 	  // by now should be back to normal route
 	  // if dst is the mobile
 	  // also initialise forward counter to 0. otherwise routing
@@ -121,7 +123,8 @@ void MIPBSAgent::recv(Packet* p, Handler *)
 	  
 	  iph->src() = iph->dst();
 	  //iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) |(miph->haddr_ & mask_) << shift_;
-	  iph->dst() = Address::instance().create_ipaddr(miph->haddr_,0);
+	  iph->daddr() = miph->haddr_;
+	  iph->dport() = 0;
 	  if (obj == NULL)
 	    obj = ragent_;
 	  obj->recv(p, (Handler*)0);
@@ -171,14 +174,15 @@ void MIPBSAgent::send_ads(int dst, NsObject *target)
 	hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
 	h->haddr_ = h->ha_ = -1;
 	//h->coa_ = addr_ >> shift_ & mask_;
-	h->coa_ = Address::instance().get_nodeaddr(addr_);
+	h->coa_ = Address::instance().get_nodeaddr(addr());
 	h->type_ = MIPT_ADS;
 	h->lifetime_ = adlftm_;
 	h->seqno_ = ++seqno_;
 	if (dst != -1) {
 	  //hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
 	  //iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) | (dst & mask_) << shift_;
-	  iph->dst() = Address::instance().create_ipaddr(dst,0);
+	  iph->daddr() = dst;
+	  iph->dport() = 0;
 	}
 	else {
 	  // if bcast pkt
@@ -199,7 +203,8 @@ MIPBSAgent::sendOutBCastPkt(Packet *p)
   hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
   hdrc->next_hop_ = IP_BROADCAST;
   hdrc->addr_type_ = AF_INET;
-  iph->dst() = Address::instance().create_ipaddr(IP_BROADCAST,0);
+  iph->daddr() = IP_BROADCAST;
+  iph->dport() = 0;
 }
 
 void AgtListTimer::expire(Event *) {
@@ -365,10 +370,11 @@ void MIPMHAgent::reg()
 	Packet *p = allocpkt();
 	hdr_ip *iph = (hdr_ip *)p->access(off_ip_);
 	//iph->dst() = iph->dst() & ~(~(nsaddr_t)0 << shift_) | (coa_ & mask_) << shift_;
-	iph->dst() = Address::instance().create_ipaddr(coa_,0);
+	iph->daddr() = coa_;
+	iph->dport() = 0;
 	hdr_mip *h = (hdr_mip *)p->access(off_mip_);
 	//h->haddr_ = addr_ >> shift_ & mask_;
-	h->haddr_ = Address::instance().get_nodeaddr(addr_);
+	h->haddr_ = Address::instance().get_nodeaddr(addr());
 	h->ha_ = ha_;
 	h->coa_ = coa_;
 	h->type_ = MIPT_REG_REQUEST;
@@ -388,7 +394,7 @@ void MIPMHAgent::send_sols()
 	hdr_mip *h = (hdr_mip *)p->access(off_mip_);
 	h->coa_ = -1;
 	//h->haddr_ = addr_ >> shift_ & mask_;
-	h->haddr_ = Address::instance().get_nodeaddr(addr_);
+	h->haddr_ = Address::instance().get_nodeaddr(addr());
 	h->ha_ = ha_;
 	h->type_ = MIPT_SOL;
 	h->lifetime_ = reglftm_;
@@ -409,5 +415,6 @@ void MIPMHAgent::sendOutBCastPkt(Packet *p)
   hdr_cmn *hdrc = (hdr_cmn *)p->access (off_cmn_);
   hdrc->next_hop_ = IP_BROADCAST;
   hdrc->addr_type_ = AF_INET;
-  iph->dst() = Address::instance().create_ipaddr(IP_BROADCAST,0);
+  iph->daddr() = IP_BROADCAST;
+  iph->dport() = 0;
 }

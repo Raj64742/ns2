@@ -23,7 +23,8 @@ static const char rcsid[] =
     "@(#) $Header: /usr/src/mash/repository/vint/ns-2/lanRouter.cc";
 #endif
 
-
+#include <tcl.h>
+#include <iostream.h>
 #include "lanRouter.h"
 #include "address.h"
 #include "ip.h"
@@ -43,14 +44,20 @@ int LanRouter::next_hop(Packet *p) {
 	if (!routelogic_) return -1;
 
 	hdr_ip* iph= hdr_ip::access(p);
-	char* adst= Address::instance().print_nodeaddr(iph->dst());
+	char* adst= Address::instance().print_nodeaddr(iph->daddr());
 	int next_hopIP;
+
 	if (enableHrouting_) {
+		char* bdst;
+
 		routelogic_->lookup_hier(lanaddr_, adst, next_hopIP);
-		char* bdst = Address::instance().print_nodeaddr(next_hopIP);
+		// hacking: get rid of the last "."
+		bdst = Address::instance().print_nodeaddr(next_hopIP);
+// 		bdst[strlen(bdst)-1] = '\0';
 		Tcl &tcl = Tcl::instance();
-		tcl.evalf("[Simulator instance] get-node-id-by-addr %s",bdst);
+		tcl.evalf("[Simulator instance] get-node-id-by-addr %s", bdst);
 		sscanf(tcl.result(), "%d", &next_hopIP);
+		delete [] bdst;
 	} else {
 		routelogic_->lookup_flat(lanaddr_, adst, next_hopIP);
 	}

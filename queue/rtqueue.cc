@@ -142,7 +142,7 @@ rtqueue::findPacketWithDst(nsaddr_t dst, Packet*& p, Packet*& prev)
 	p = prev = 0;
 
 	for(p = head_; p; p = p->next_) {
-		if(HDR_IP(p)->dst() == dst) {
+		if((HDR_IP(p)->daddr() == dst)) {
 			return;
 		}
 		prev = p;

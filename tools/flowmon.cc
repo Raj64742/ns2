@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.16 1999/02/18 02:19:16 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.17 1999/09/09 03:22:37 salehi Exp $ (LBL)";
 #endif
 
 //
@@ -67,8 +67,8 @@ public:
 	void setfields(Packet *p) {
 		hdr_ip* hdr = (hdr_ip*)p->access(off_ip_);
 		hdr_cmn* chdr = (hdr_cmn*)p->access(off_cmn_);
-		src_ = hdr->src();
-		dst_ = hdr->dst();
+		src_ = hdr->saddr();
+		dst_ = hdr->daddr();
 		fid_ = hdr->flowid();
 		type_ = chdr->ptype();
 	}

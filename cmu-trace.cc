@@ -108,7 +108,7 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	
 	// hack the IP address to convert pkt format to hostid format
 	// for now until port ids are removed from IP address. -Padma.
-	int src = Address::instance().get_nodeaddr(ih->src());
+	int src = Address::instance().get_nodeaddr(ih->saddr());
 	
 	if(tracetype == TR_ROUTER && type_ == SEND) {
 		if(src_ != src)
@@ -155,8 +155,8 @@ CMUTrace::format_ip(Packet *p, int offset)
 	
 	// hack the IP address to convert pkt format to hostid format
 	// for now until port ids are removed from IP address. -Padma.
-	int src = Address::instance().get_nodeaddr(ih->src());
-	int dst = Address::instance().get_nodeaddr(ih->dst());
+	int src = Address::instance().get_nodeaddr(ih->saddr());
+	int dst = Address::instance().get_nodeaddr(ih->daddr());
 	sprintf(wrk_ + offset, "------- [%d:%d %d:%d %d %d] ",
 		src, ih->sport(),
 		dst, ih->dport(),
@@ -375,7 +375,8 @@ CMUTrace::recv(Packet *p, Handler *h)
 	
 	// hack the IP address to convert pkt format to hostid format
 	// for now until port ids are removed from IP address. -Padma.
-	//int src = Address::instance().get_nodeaddr(ih->src());
+
+// 	int src = Address::instance().get_nodeaddr(ih->saddr());
         
         assert(initialized());
 
@@ -415,7 +416,7 @@ CMUTrace::recv(Packet *p, const char* why)
          * not have been stamped by GOD.  Stamp it before logging the
          * information.
          */
-        if(src_ == ih->src()) {
+        if(src_ == ih->saddr()) {
                 God::instance()->stampPacket(p);
         }
 #endif

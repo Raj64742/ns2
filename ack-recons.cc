@@ -72,7 +72,7 @@ AckReconsController::recv(Packet *p, Handler *)
 	Tcl& tcl = Tcl::instance();
 	hdr_ip *ip = (hdr_ip *)p->access(off_ip_);
 	tcl.evalf("%s demux %d %d", name(),
-		  ip->src(), ip->dst());
+		  ip->saddr(), ip->daddr());
 	AckRecons *ackRecons = 
 		(AckRecons *) TclObject::lookup(tcl.result());
 	if (ackRecons == NULL) {

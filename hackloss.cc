@@ -1,7 +1,7 @@
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 #ifndef lint
 static const char rcsid[] =
-	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hackloss.cc,v 1.4 1998/06/27 01:23:55 gnguyen Exp $";
+	"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/hackloss.cc,v 1.5 1999/09/09 03:22:38 salehi Exp $";
 #endif
 
 #include "connector.h"
@@ -65,7 +65,7 @@ void HackLossyLink::recv(Packet* p, Handler* h)
 {
 	hdr_ip* iph = (hdr_ip*) p->access(off_ip_);
 	if (nth_ && (iph->flowid() == fid_) &&
-	    (iph->src() == src_) && (iph->dst() == dst_) &&
+	    (iph->saddr() == src_) && (iph->daddr() == dst_) &&
 	    ((++ctr_ % nth_) == 0))
 		down_->recv(p);	// XXX  Why no handler?
 	else

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.25 1999/06/28 22:30:05 salehi Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.26 1999/09/09 03:22:31 salehi Exp $";
 #endif
 
 #include <stdlib.h>
@@ -117,8 +117,8 @@ int MCastClassifier::classify(Packet *const pkt)
 	hdr_cmn* h = hdr_cmn::access(pkt);
 	hdr_ip* ih = hdr_ip::access(pkt);
 
-	nsaddr_t src = ih->src() >> 8; /*XXX*/
-	nsaddr_t dst = ih->dst();
+	nsaddr_t src = ih->saddr();
+	nsaddr_t dst = ih->daddr();
 
 	int iface = h->iface();
 	Tcl& tcl = Tcl::instance();
@@ -133,7 +133,7 @@ int MCastClassifier::classify(Packet *const pkt)
 			p = lookup_star(dst);
 		if (p == 0) {
   			// Didn't find an entry.
-			tcl.evalf("%s new-group %u %u %d cache-miss", 
+			tcl.evalf("%s new-group %ld %ld %d cache-miss", 
 				  name(), src, dst, iface);
 			// XXX see McastProto.tcl for the return values 0 -
 			// once, 1 - twice 
@@ -145,7 +145,7 @@ int MCastClassifier::classify(Packet *const pkt)
 		if (p->iif == ANY_IFACE.value()) // || iface == UNKN_IFACE.value())
 			return p->slot;
 
-		tcl.evalf("%s new-group %u %u %d wrong-iif", 
+		tcl.evalf("%s new-group %ld %ld %d wrong-iif", 
 			  name(), src, dst, iface);
 		//printf("wrong-iif result= %s\n", tcl.result());
 		int res= atoi(tcl.result());
