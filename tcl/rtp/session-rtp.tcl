@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.4 1997/01/27 01:16:27 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.5 1997/03/27 07:03:15 elan Exp $
 #
 
 proc mvar args {
@@ -79,6 +79,7 @@ Session/RTP instproc init {} {
 	$self localsrc $localsrc_
 
 	$self set srctab_ $localsrc_
+	$self set stopped_ 1
 }
 
 Session/RTP instproc start {} {
@@ -103,10 +104,11 @@ Session/RTP instproc bye {} {
 	$cchan_ bye
 }
 
-Session/RTP instproc attach-to { node } {
+Session/RTP instproc attach-node { node } {
 	mvar dchan_ cchan_
-	$node attach $dchan_
-	$node attach $cchan_
+	global ns
+	$ns attach-agent $node $dchan_
+	$ns attach-agent $node $cchan_
 
 	$self set node_ $node
 }
@@ -127,12 +129,12 @@ Session/RTP instproc join-group { g } {
 
 	mvar node_ dchan_ cchan_ 
 
-	$dchan_ set dst $g
+	$dchan_ set dst_ $g
 	$node_ join-group $dchan_ $g
 
 	incr g
 
-	$cchan_ set dst $g
+	$cchan_ set dst_ $g
 	$node_ join-group $cchan_ $g
 }
 
@@ -162,15 +164,21 @@ Session/RTP instproc transmit { bspec } {
 
 	$self set txBW_ $b
 
-	mvar dchan_
-
-	$dchan_ stop 
+	$self instvar dchan_ stopped_
 	if { $b == 0 } {
-	    return 
+		$dchan_ stop
+		set stopped_ 1
 	}
+
 	set ps [$dchan_ set packet-size]
-	$dchan_ set interval_ [expr 8.*$ps/$b]
-	$dchan_ start
+	$dchan_ set interval_  [expr 8.*$ps/$b]
+
+	if { $stopped_ == 1 } {
+		$dchan_ start
+		set stopped_ 0
+	} else {
+		$dchan_ rate-change
+	}
 }
 
 
