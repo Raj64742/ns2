@@ -96,7 +96,7 @@ proc finish {} {
         # exec rm -f out
         #XXX
         puts "running nam..."
-        exec ./nam pim6-nam &
+        exec nam pim6-nam &
         exit 0
 }
 

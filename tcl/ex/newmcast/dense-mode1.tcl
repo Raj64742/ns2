@@ -58,7 +58,7 @@ proc finish {} {
         exec rm -f out
         #XXX
         puts "running nam..."
-        exec ./nam dense-mode1-nam &
+        exec nam dense-mode1-nam &
         exit 0
 }
 

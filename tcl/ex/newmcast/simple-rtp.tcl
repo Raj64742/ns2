@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/newmcast/Attic/simple-rtp.tcl,v 1.2 1997/05/22 20:56:04 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/newmcast/Attic/simple-rtp.tcl,v 1.3 1997/05/22 23:47:24 breslau Exp $
 #
 
 set ns [new MultiSim]
@@ -96,7 +96,7 @@ proc finish {} {
 	exec rm -f out
         #XXX
 	puts "running nam..."
-	exec ./nam rtp-nam &
+	exec nam rtp-nam &
 	exit 0
 }
 
