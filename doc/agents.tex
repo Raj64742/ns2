@@ -1,0 +1,722 @@
+%
+% personal commentary:
+%        handlers and how they are used are confusing
+%        Connector::send is needed, but so is just send()... confusing
+%        default handler in Connector::recv is confusing
+%        this is a DRAFT DRAFT DRAFT
+%        - KFALL
+%
+\chapter{\shdr{Agents}{agent.h}{sec:agents}}
+
+Agents represent endpoints where network-layer
+packets are constructed or consumed, and provide
+some functions helpful in developing transport-layer and other
+protocols.
+The C++ agent class supports an array of
+timers which are often
+useful in constructing protocol sources or sinks.
+Generally, a user wishing to create a new
+source or sink for network-layer packets
+will create a class derived from {\tt Agent}.
+The class \code{Agent} has an implementation partly in
+OTcl and partly in C++.
+The C++ implementation is contained in \code{agent.cc} and
+\code{agent.h}, and the OTcl support is in
+\code{tcl/lib/ns-agent.tcl}.
+
+\section{\shdr{Agent state}{agent.h}{sec:agentstate}}
+
+The C++ class \code{Agent} includes enough internal state
+to assign various fields to a simulated packet before
+it is sent.
+This state includes the following:
+\begin{quote}
+\begin{itemize}
+        \item[addr\_] - node address of myself (source address in packets)
+        \item[dst\_] - where I am sending packets to
+        \item[size\_] - packet size in bytes (placed into the common packet header)
+        \item[type\_] - type of packet (in the common header, see packet.h)
+        \item[fid\_] - the IP flow identifier (formerly {\em class} in ns-1)
+        \item[prio\_] - the IP priority field
+	\item[flags\_] - packet flags (similar to ns-1)
+	\item[defttl\_] - default IP ttl value
+\end{itemize}
+\end{quote}
+The class also keeps an array of timers which may be used
+by classes derived from \code{Agent} as needed.
+These variables may be modified by any class derived from \code{Agent},
+although not all of them may be needed by any particular agent.
+
+\section{\shdr{Agent methods}{agent.h}{sec:agentmethods}}
+
+The \code{Agent} class supports packet generation, reception,
+and timer management.
+The following member functions are implemented by the C++ Agent class, and are
+generally {\em not} over-ridden by derived classes:
+\begin{tt}
+\begin{quote}
+\begin{itemize}
+\item[void sched(delay, timeout number)] - schedule a time out in {\em delay} secs
+\item[void cancel(timeout number)] - cancel a time out
+\item[void handle(Event*)] - dispatcher for time outs
+\item[Packet* allocpkt()] - allocate new packet and assign its fields
+\item[Packet* allocpkt(int)] - allocate new packet with a data payload of n bytes and assign its fields
+\end{itemize}
+\end{quote}
+\end{tt}
+The following member functions are also defined by the \code{Agent} class,
+but {\em are} intended to be over-ridden by classes deriving from Agent:
+\begin{tt}
+\begin{quote}
+\begin{itemize}
+        \item[void timeout(timeout number)] - subclass-specific time out handler
+        \item[void recv(Packet*, Handler*)] - receiving agent main receive path
+\end{itemize}
+\end{quote}
+\end{tt}
+The \code{sched} function causes the \code{handle} function
+of the same agent to be invoked after \code{delay} simulated
+seconds have elapsed.
+The \code{timeout number} parameter is an index into the
+timeout arrays \code{pending\_} and \code{timer\_} included in the
+C++ \code{Agent} base class.
+The \code{cancel} function cancels a scheduled timeout.
+Generally, the \code{handle} function is invoked either
+because the agent has scheduled an event using \code{sched}, or
+because a packet has arrived from an upstream node (packets are events).
+If the handler has \emph{not} been invoked due to a packet arrival,
+\code{handle} invokes the \code{timeout} function.
+The \code{timeout} function is intended to be used in whatever fashion
+a specific type of agent requires it
+(e.g. the TCP agent might generate a retransmission).
+
+The \code{allocpkt} function is used by derived classes to create
+packets to send.
+The function fills in the following fields in the common packet
+header (see \ref{sec:pformat}): {\tt uid, ptype, size}, and the
+following fields in the IP header: {\tt src, dst, flowid, prio, ttl}.
+It also zero-fills in the following fields of the Flags header:
+{\tt ecn, pri, usr1, usr2}.
+Any packet header information not included in these lists must
+be must be handled in the classes derived from \code{Agent}.
+
+The \code{recv} function is the main entrypoint for an
+Agent which receives packets, and
+is invoked by upstream nodes when sending a packet.
+In most cases, Agents make no use of the second argument (the handler
+defined by upstream nodes).
+
+\section{\shdr{Protocol Agents}{cbr.h}{sec:protoagents}}
+
+There are several agents supported in the simulator.
+These are their names in OTcl:
+\begin{quote}
+\begin{itemize}
+        \item[TCP] - a ``Tahoe'' TCP sender (cwnd = 1 on any loss)
+        \item[TCP/Reno] - a ``Reno'' TCP sender  (with fast recovery)
+        \item[TCP/NewReno] - a modified Reno TCP sender (changes fast recovery)
+        \item[TCP/Sack1] - a SACK TCP sender
+        \item[TCP/Fack] - a ``forward'' SACK sender TCP 
+	\item[TCP/FullTcp] - a more full-functioned TCP with 2-way traffic
+	\item[TCP/Vegas] - a ``Vegas'' TCP sender
+	\item[TCP/Vegas/RBP] - a Vegas TCP with ``rate based pacing''
+	\item[TCP/Vegas/RBP] - a Reno TCP with ``rate based pacing''
+	\item[TCP/Asym] - an experimental Tahoe TCP for asymmetric links
+	\item[TCP/Reno/Asym] - an experimental Reno TCP for asymmetric links
+	\item[TCP/Newreno/Asym] - an experimental NewReno TCP for asymmetric links
+        \item[TCPSink] - a Reno or Tahoe TCP receiver (not used for FullTcp)
+        \item[TCPSink/DelAck] - a TCP delayed-ACK receiver
+        \item[TCPSink/Asym] - an experimental  TCP sink for asymmetric links
+        \item[TCPSink/Sack1] - a SACK TCP receiver
+	\item[TCPSink/Sack1/DelAck] - a delayed-ACK SACK TCP receiver
+
+        \item[CBR] - connectioness protocol with sequence numbers
+        \item[CBR/RTP] - an RTP sender and receiver
+	\item[CBR/UDP] - UDP with sequence numbers and traffic sources
+        \item[RTCP] - an RTCP sender and receiver
+
+	\item[LossMonitor] - a packet sink which checks for losses
+
+	\item[IVS/Source] - an IVS source
+	\item[IVS/Receiver] - an IVS receiver
+
+	\item[CtrMcast/Encap] - a ``centralised multicast'' encapsulator
+	\item[CtrMcast/Decap] - a ``centralised multicast'' de-encapsulator
+	\item[Message] - a protocol to carry textual messages
+	\item[Message/Prune] - processes multicast routing prune messages
+
+	\item[SRM] - an SRM agent with non-adaptive timers
+	\item[SRM/Adaptive] - an SRM agent with adaptive timers
+
+	\item[Tap] - interfaces the simulator to a live network
+
+	\item[Null] - a degenerate agent which discards packets
+
+	\item[rtProto/DV] - distance-vector routing protocol agent
+\end{itemize}
+\end{quote}
+Agents are used in the implementation of protocols at various layers.
+Thus, for some transport protocols (e.g.~UDP) the distribution
+of packet sizes and/or inter-departure times
+may be dictated by some separate
+object representing the demands of an application.
+For agents used in the implementation of lower-layer protocols
+(e.g. routing agents), size and departure timing is generally dictated
+by the agent's own processing of protocol messages.
+
+\section{\shdr{OTcl Linkage}{../ns/ns-default.tcl}{sec:agentotcl}}
+
+Agents may be created within OTcl and an agent's internal
+state can be modified by use of Tcl's \code{set} function and
+any Tcl functions an Agent (or its base classes) implements.
+Note that some of an Agent's internal state may exist
+only within OTcl, and is thus is not directly accessible from C++.
+
+\subsection{\shdr{creating and manipulating agents}{../ns/ns-lib.tcl}{sec:agentcreateotcl}}
+
+The following example illustrates the creation and modification
+of an Agent in OTcl:
+\begin{small}
+\begin{verbatim}
+        set newtcp [new Agent/TCP] ; # create new object (and C++ shadow object)
+        $newtcp set window_ 20 ; # sets the tcp agent's window to 20
+        $newtcp target $dest ; # target is implemented in Connector class
+        $newtcp set portID_ 1 ; # exists only in OTcl, not in C++
+\end{verbatim}
+\end{small}
+
+\subsection{\shdr{default values}{../ns/ns-default.tcl}{sec:agentdefaults}}
+
+Default values for member variables, those visible in OTcl only and those
+linked between OTcl and C++ with \code{bind} are initialized
+in the \code{tcl/lib/ns-default.tcl} file.  For example,
+\code{Agent} and \code{CBR_Agent}
+are initialized as follows:
+\begin{small}
+\begin{verbatim}
+        Agent set fid_ 0
+        Agent set prio_ 0
+        Agent set addr_ 0
+        Agent set dst_ 0
+        Agent set flags_ 0
+
+        Agent/CBR set interval_ 3.75ms
+        Agent/CBR set random_ 0
+        Agent/CBR set packetSize_ 210
+	...
+\end{verbatim}
+\end{small}
+
+Generally these initializations are placed in the OTcl namespace
+before any objects of these types are created.
+Thus, when an \code{Agent} or \code{Agent/CBR} object
+is created, the calls to \code{bind}
+in the objects' constructors will causes the corresponding member variables
+to be set to these specified defaults.
+
+\subsection{\shdr{OTcl methods}{../ns/ns-agent.tcl}{sec:agentmethodsotcl}}
+
+The instance procedures defined for the OTcl \code{Agent} class are
+currently found in \code{tcl/lib/ns-agent.tcl}.
+They are as follows:
+\begin{small}
+\begin{verbatim}
+	port - the agent's port identifier
+	dst-port - the destination's port identifier
+	attach-source <stype> - create and attach a Source object to an agent
+\end{verbatim}
+\end{small}
+
+\section{\shdr{Examples: Tcp, TCP Sink Agents}{tcp-simple.cc}{sec:agentexample}}
+
+The class \code{TCP} represents a simplified TCP sender.
+It sends data to a \code{TCPSink} agent and processes its acknowledgments.
+It has a separate object associated with it which represents
+an application's demand.
+By looking at the \code{TCPAgent} and \code{TCPSinkAgent} classes
+we may see how relatively complex agents are constructed.
+An example from the Tahoe TCP agent \code{TCPAgent} is also given
+to illustrate the use of timers.
+
+\subsection{\shdr{creating the agent}{tcp-simple.cc}{sec:createtcpsimple}}
+
+The following OTcl code fragment creates a \code{TCP} agent
+and sets it up:
+\begin{small}
+\begin{verbatim}
+        set tcp [new Agent/TCP] ; # create sender agent
+        $tcp set fid_ 2 ; # set IP-layer flow ID
+        set sink [new Agent/TCPSink] ; # create receiver agent
+        $ns attach-agent $n0 $tcp ; # put sender on node $n0
+        $ns attach-agent $n3 $sink ; # put receiver on node $n3
+        $ns connect $tcp $sink ; # establish TCP connection
+        set ftp [new Source/FTP] ; # create an FTP source "application"
+        $ftp set agent_ $tcp ; # associate FTP with the TCP sender
+        $ns at 1.2 "$ftp start" ; # arrange for FTP to start at time 1.2 secs
+\end{verbatim}
+\end{small}
+The OTcl instruction \code{new Agent/TCP} results in the
+creation of a C++ \code{TcpAgent} class object.
+It's constructor performs first invokes the constructor of the
+\code{Agent} base class and then performs its own bindings.
+These two constructors appear as follows:
+\begin{small}
+\begin{verbatim}
+
+The TcpSimpleAgent constructor (tcp.cc):
+
+        TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1)
+        {
+                bind("window_", &wnd_);
+                bind("windowInit_", &wnd_init_);
+                bind("windowOption_", &wnd_option_);
+                bind("windowConstant_", &wnd_const_);
+                ...
+                bind("off_ip_", &off_ip_);
+                bind("off_tcp_", &off_tcp_);
+                ...
+
+The Agent constructor (agent.cc):
+
+        Agent::Agent(int pkttype) : 
+                addr_(-1), dst_(-1), size_(0), type_(pkttype), fid_(-1),
+                prio_(-1), flags_(0)
+        {
+                memset(pending_, 0, sizeof(pending_)); // timers
+                // this is really an IP agent, so set up
+                // for generating the appropriate IP fields...
+                bind("addr_", (int*)&addr_);
+                bind("dst_", (int*)&dst_);
+                bind("fid_", (int*)&fid_);
+                bind("prio_", (int*)&prio_);
+                bind("flags_", (int*)&flags_);
+                ...
+\end{verbatim}
+\end{small}
+These code fragments illustrate the common case where an agent's
+constructor passes a packet type identifier to the \code{Agent}
+constructor.
+The values for the various packet types are used by the packet tracing
+facility (see \ref{sec:trace}) and are defined in \code{trace.h}.
+The variables which are bound in the \code{TcpAgent} constructor
+are ordinary instance/member variables for the class
+with the exception of the special integer values \code{off_tcp_}
+and \code{off_ip_}.
+These are needed in order to access a TCP header and IP header,
+respectively.
+For details on how to access packet headers, see \ref{sec:ppackethdr}.
+
+\subsection{\shdr{starting the agent}{tcp.cc}{sec:starttcp}}
+
+The \code{TcpAgent} agent is started in the example when its
+FTP source receives the \code{start} directive at time 1.2.
+The \code{start} operation is an instance procedure defined on the
+\code{Source/FTP} class (and described in \ref{sec:sources}).
+It is defined in \code{tcl/lib/ns-source.tcl} as follows:
+\begin{small}
+\begin{verbatim}
+        Source/FTP instproc start {} {
+                $self instvar agent_ maxpkts_
+                $agent_ advance $maxpkts_
+        }
+\end{verbatim}
+\end{small}
+In this case, \code{agent\_} refers to our simple TCP agent and
+\code{maxpkts\_} defaults to a large value (2147483647).
+
+The call to \code{advance} eventually results in the simple TCP sender
+generating some packets.  The following function \code{output}
+performs this:
+\begin{small}
+\begin{verbatim}
+        void TcpAgent::output(int seqno, int reason)
+        {
+                Packet* p = allocpkt();
+                hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
+                double now = Scheduler::instance().clock();
+                tcph->seqno() = seqno;
+                tcph->ts() = now;
+                tcph->reason() = reason;
+                Connector::send(p, 0);
+                ...
+                if (!pending_[TCP_TIMER_RTX])
+                        /* No timer pending.  Schedule one. */
+                        set_rtx_timer();
+        }
+\end{verbatim}
+\end{small}
+Here we see an illustration of the use of the \code{Agent::allocpkt()}
+function.
+This output routine first allocates a new packet
+(with its common and IP headers already filled in), but then must fill
+in the appropriate TCP-layer header fields.
+To find the TCP header in a packet (assuming it has been enabled, see
+\ref{sec:packethdrmgr}) the \code{off_tcp_} must be properly initialized,
+as illustrated in the constructor.
+The packet \code{access()} function returns a pointer to the TCP
+header, its sequence number and time stamp fields are filled in,
+and the \code{send} function of the \code{Connector} class is called
+to send the packet downstream one hop.
+Note that the C++ \code{::} scoping operator is used here to avoid
+calling \code{TcpSimpleAgent::send()} (which is also defined).
+The check for a pending timer uses the array \code{pending_} which
+is defined in the \code{Agent} base class.
+It is used here to set a retransmission timer if one is not already set
+(a TCP sender only sets one timer per window of packets on each connection).
+
+\subsection{\shdr{processing input at receiver}{tcp-sink.cc}{sec:tcpsink}}
+
+Many of the TCP agents can be used with the \code{TCPSink} class
+as the peer.
+This class defines the \code{recv} and \code{ack} functions as follows:
+\begin{small}
+\begin{verbatim}
+        void TcpSink::recv(Packet* pkt, Handler*)
+        {
+                hdr_tcp *th = (hdr_tcp*)pkt->access(off_tcp_);
+                acker_->update(th->seqno());
+                ack(pkt);
+                Packet::free(pkt);
+        }
+        void TcpSink::ack(Packet* opkt)
+        {
+                Packet* npkt = allocpkt();
+        
+                hdr_tcp *otcp = (hdr_tcp*)opkt->access(off_tcp_);
+                hdr_tcp *ntcp = (hdr_tcp*)npkt->access(off_tcp_);
+                ntcp->seqno() = acker_->Seqno();
+                ntcp->ts() = otcp->ts();
+        
+                hdr_ip* oip = (hdr_ip*)opkt->access(off_ip_);
+                hdr_ip* nip = (hdr_ip*)npkt->access(off_ip_);
+                nip->flowid() = oip->flowid();
+        
+                hdr_flags* of = (hdr_flags*)opkt->access(off_flags_);
+                hdr_flags* nf = (hdr_flags*)npkt->access(off_flags_);
+                nf->ecn_ = of->ecn_;
+        
+                acker_->append_ack((hdr_cmn*)npkt->access(off_cmn_),
+                                   ntcp, otcp->seqno());
+                send(npkt, 0);
+        }
+\end{verbatim}
+\end{small}
+The \code{recv} function overrides the \code{Agent::recv} function
+(which merely discards the received packet).
+It updates some internal state with the sequence number of the
+received packet (and therefore requires the \code{off_tcp_} variable
+to be properly initialized.
+It then generates an acknowledgment for the received packet.
+The \code{ack} function makes liberal use of access to packet header
+fields including separate accesses to the TCP header, IP header,
+Flags header, and common header.
+The call to \code{send} invokes the \code{Connector::send} function.
+
+\subsection{\shdr{processing responses at the sender}{tcp-simple.cc}{sec:tcpsimpleack}}
+
+Once the simple TCP's peer receives data and generates an ACK, the
+sender must (usually) process the ACK.
+In the \code{TcpAgent} agent, this is done as follows:
+\begin{small}
+\begin{verbatim}
+        /*
+         * main reception path - should only see acks, otherwise the
+         * network connections are misconfigured
+         */
+        void TcpAgent::recv(Packet *pkt, Handler*)
+        {
+                hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+                hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+                ...
+                if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
+                        quench(1);
+                if (tcph->seqno() > last_ack_) {
+                        newack(pkt);
+                        opencwnd();
+                } else if (tcph->seqno() == last_ack_) {
+                        if (++dupacks_ == NUMDUPACKS) {
+                                ...
+                        }
+                }
+                Packet::free(pkt);
+                send(0, 0, maxburst_);
+       }
+\end{verbatim}
+\end{small}
+This routine is invoked when an ACK arrives at the sender.
+In this case, once the information in the ACK is processed (by \code{newack})
+the packet is no longer needed and is returned to the packet memory
+allocator.
+In addition, the receipt of the ACK indicates the possibility of sending
+additional data, so the \code{TcpSimpleAgent::send} routine is
+invoked which attempts to send more data if the TCP window allows.
+
+\subsection{\shdr{implementing timers}{tcp.cc}{sec:tcptimer}}
+
+As mentioned above in section \ref{sec:agentmethods}, an agent
+may wish to override the \code{Agent::timeout} function (which does
+nothing).
+In the case of the Tahoe TCP agent, two timers are used: a delayed
+send timer and a retransmission timer.
+The retransmission timer is the more interesting of the two.
+It is set with the following function:
+\begin{small}
+\begin{verbatim}
+from tcp.h:
+        #define TCP_TIMER_RTX           0
+        #define TCP_TIMER_DELSND        1
+
+from tcp.cc:
+
+        /*
+         * Set retransmit timer.  If one is already pending, cancel it
+         * and set a new one based on the current rtt estimate.
+         */
+        void TcpAgent::set_rtx_timer()
+        {
+                if (pending_[TCP_TIMER_RTX])
+                        cancel(TCP_TIMER_RTX);
+                sched(rtt_timeout(), TCP_TIMER_RTX);
+        }
+        void TcpAgent::timeout(int tno)
+        {
+                /* retransmit timer */
+                if (tno == TCP_TIMER_RTX) {
+                        ...
+                        closecwnd(0);
+                        reset_rtx_timer(0);
+                        send(0, TCP_REASON_TIMEOUT);
+                } else {
+                        /*
+                         * delayed-send timer, with random overhead
+                         * to avoid phase effects
+                         */
+                        send(1, TCP_REASON_TIMEOUT);
+                }
+        }
+
+\end{verbatim}
+\end{small}
+
+\section{\shdr{Creating a New Agent}{agent.cc}{sec:createagent}}
+
+To create a new agent, one has to do the following:
+\begin{enumerate}
+        \item decide its inheritance structure (section \ref{sec:pingexample})
+        \item create the class, \code{recv}, and \code{timeout} functions (section \ref{}
+        \item define OTcl linkage functions (section \ref{})
+        \item write the necessary OTcl code to access your agent (section \ref{})
+\end{enumerate}
+
+The action required to create and agent can be illustrated
+by means of a very simple example.
+Suppose we wish to construct an agent which performs
+the ICMP ECHO REQUEST/REPLY (or ``ping'') operations.
+
+\subsection{\shdr{Example: A ``ping'' requestor (Inheritance Structure)}{agent.h}{sec:pingexample}}
+
+Deciding on the inheritance structure is a matter of personal choice, but is
+likely to be related to the layer at which the agent will operate
+and its assumptions on lower layer functionality.
+For protocol endpoints wishing to use a connectionless
+datagram-oriented transport layer (like UDP) with sequencing,
+the \code{CBR_Agent} base class is likely to be appropriate.
+For protocols wishing to use a connection-oriented stream transport
+(like TCP), the various TCP Agents could be used.
+Finally, if a new transport or ``sub-transport'' protocol
+is to be developed, using \code{Agent}
+as the base class would likely be the best choice.
+In our example, we'll use Agent as the base class, given that
+we are constructing an agent logically belonging to the IP layer
+(or just above it).
+
+We may use the following class definition:
+\begin{small}
+\begin{verbatim}
+        class ECHO_Agent : public Agent {
+         public:
+                ECHO_Agent();
+                int command(int argc, const char*const* argv);
+         protected:
+                void timeout(int);
+                void sendit();
+                double interval_;
+        };
+\end{verbatim}
+\end{small}
+
+The implementation of the member functions will look similar to
+the \code{CBR_Agent} described above.
+
+\subsection{The \code{recv} and \code{timeout} functions}
+
+The \code{recv} function is not defined here, as this agent
+represents a request function and will generally not be receiving
+events or packets\footnote{This is perhaps unrealistically simple.
+An ICMP ECHO REQUEST agent would likely wish to process
+ECHO REPLY messages.}
+By not defining the \code{recv} function, the base class version
+of \code{recv} (i.e. \code{Connector::recv}) is used.
+The \code{timeout} function is used to periodically send request packets.
+The following \code{timeout} function is used, along with a helper
+function \code{sendit}:
+
+\begin{small}
+\begin{verbatim}
+        void ECHO_Agent::timeout(int)
+        {
+                sendit();
+                sched(interval_, 0);
+        }
+        void ECHO_Agent::sendit()
+        {
+                Packet* p = allocpkt();
+                ECHOHeader *eh = ECHOHeader::access(p->bits());
+                eh->timestamp() = Scheduler::instance().clock();
+                send(p, 0);     // Connector::send()
+        }
+\end{verbatim}
+\end{small}
+
+The \code{timeout} function simply arranges for \code{sendit} to be
+executed every \code{interval_} seconds.
+The \code{sendit} function create a new packet with most of its
+header fields already set up by the \code{allocpkt} function.
+The packet is only lacking the current time stamp. 
+The call to \code{access} provides for a structured interface to the
+packet header fields, and is used to set the timestamp field.
+Note that this agent uses its own special header (``ECHOHeader'').
+The creation and use of packet headers is described in (see \ref{pheader});
+To send the packet to the next downstream node, \code{Connector::send()}
+is invoked without a handler.
+
+\subsection{Linking the ``ping'' agent with OTcl}
+
+There are three items we must handle to properly link our agent
+with Otcl.
+First we need to establish a mapping between the OTcl name
+for our class and the actual object created when an
+instantiation of the class is requested in OTcl.
+This is done as follows:
+\begin{small}
+\begin{verbatim}
+        static class ECHOClass : public TclClass {
+        public:
+                ECHOClass() : TclClass("Agent/ECHO") {}
+                TclObject* create(int argc, const char*const* argv) {
+                        return (new ECHO\_Agent());
+                }
+        } class_echo;
+\end{verbatim}
+\end{small}
+
+Here, a {\em static} object ``class\_echo'' is created. It's constructor
+(executed immediately when the simulator is executed) places the class name
+``Agent/ECHO'' into the OTcl name space.  The mixing of case is
+by convention, although the ``/'' character is interpreted by the
+\code{Tcl} library as a hierarchy delimiter and is required.
+The definition of the \code{create} function specifies how a C++
+shadow object should be created when
+the OTcl interpreter is instructed to create an
+object of class ``Agent/ECHO''.  In this case, a dynamically-allocated
+object is returned.  This is the normal way new C++ shadow objects
+are created.
+Note that arguments could have been passed to our constructor
+via OTcl through the conventional \code{argc/argv} pairs of the
+\code{create} function, although this is rare.
+
+Once we have the object creation set up, we will want to link
+C++ member variables with corresponding variables in the OTcl
+name space, so that accesses to OTcl variables are actually
+backed by member variables in C++.
+Assume we would like OTcl to be able to adjust the sending
+interval and the packet size.
+This is accomplished in the class's constructor:
+\begin{small}
+\begin{verbatim}
+
+        ECHO_Agent::ECHO_Agent() : Agent(PT_ECHO)
+        {
+                bind_time("interval_", &interval_);
+                bind("packetSize_", &size_);
+        }
+\end{verbatim}
+\end{small}
+
+Here, the C++ variables \code{interval_} and \code{size_} are
+linked to the OTcl instance variables \code{interval_} and
+\code{packetSize_}, respectively.
+Any read or modify operation to the Otcl variables will result
+in a corresponding access to the underlying C++ variables.
+See \ref{c++linkage} for more detail on how the various \code{bind}
+functions work.
+The defined constant \code{PT_ECHO} is passed to the \code{Agent}
+constuctor so that the \code{Agent::allocpkt} function may set
+the packet type field used by the trace support
+(see section \ref{traceptype}).  In this case, \code{PT_ECHO} represents
+a new packet type and must be defined in \code{trace.h}.
+(see section \ref{sec:traceformat}).
+
+Once object creation and variable binding is set up, we may
+want to create methods implemented in C++ but which can
+be invoked from OTcl.
+These are often control functions that initiate, terminate or
+modify behavior.
+In our present example, we may wish to be able to start the
+ping query agent from OTcl using a ``start'' directive.
+This may be implemented as follows (very similar to the CBR Agent):
+\begin{small}
+\begin{verbatim}
+
+        int ECHO_Agent::command(int argc, const char*const* argv)
+        {
+                if (argc == 2) {
+                        if (strcmp(argv[1], "start") == 0) {
+                                timeout(0);
+                                return (TCL_OK);
+                        }
+                }
+                return (Agent::command(argc, argv));
+        }
+\end{verbatim}
+\end{small}
+Here, the \code{start} method available to OTcl simply calls
+the C++ member function \code{timeout} which initiates the
+first packet generation and schedules the next.
+Note this class is so simple it does not even include a
+way to be stopped.
+
+\section{Using the agent through OTcl}
+
+The agent we have created will have to be instantiated and attached
+to a node.
+Note that a node and simulator object is assumed to have
+already been
+created (Section \ref{tcllink} describes how this is done).
+The following OTcl code performs these functions:
+\begin{small}
+\begin{verbatim}
+        set echoagent [new Agent/ECHO]
+        $simulator attach-agent $node $echoagent
+\end{verbatim}
+\end{small}
+
+To set the interval and packet size, and start packet generation,
+the following OTcl code is executed:
+\begin{small}
+\begin{verbatim}
+
+        $echoagent set dst_ $dest
+        $echoagent set fid_ 0
+        $echoagent set prio_ 0
+        $echoagent set flags_ 0
+        $echoagent set interval_ 1.5
+        $echoagent set packetSize_ 1024
+        $echoagent start
+\end{verbatim}
+\end{small}
+
+This will cause our agent to generate one 1024-byte packet destined for
+node \code{$dest} every 1.5 seconds.
+
+\endinput
