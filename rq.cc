@@ -203,6 +203,7 @@ ReassemblyQueue::dumplist()
 		}
 		printf("\n");
 	}
+	printf("RCVNXT: %d\n", rcv_nxt_);
 	printf("\n");
 	fflush(stdout);
 }
@@ -241,7 +242,11 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		head_->pflags_ = tiflags;
 		head_->rqflags_ = rqflags;
 
-		rcv_nxt_ = end;
+		//
+		// this shouldn't really happen, but
+		// do the right thing just in case
+		if (rcv_nxt_ >= start)
+			rcv_nxt_ = end;
 
 		return (tiflags);
 	} else {
@@ -302,15 +307,8 @@ endfast:
 
 		if (p)
 			p->next_ = n;
-		else {
+		else
 			head_ = n;
-			// only if inserting at head
-			// can this lead to an update of
-			// rcv_nxt_.  Set it to end now,
-			// and coalesce will update it higher
-			// needed
-			rcv_nxt_ = end;
-		}
 
 		if (q)
 			q->prev_ = n;
@@ -318,8 +316,19 @@ endfast:
 			tail_ = n;
 
 
+		//
+		// If there is an adjacency condition,
+		// call coalesce to deal with it.
+		// If not, there is a chance we inserted
+		// at the head at the rcv_nxt_ point.  In
+		// this case we ned to update rcv_nxt_ to
+		// the end of the newly-inserted segment
+		//
+
 		if (needmerge)
 			return(coalesce(p, n, q));
+		else if (rcv_nxt_ >= start)
+			rcv_nxt_ = end;
 
 		return tiflags;
 	}
@@ -383,7 +392,7 @@ dumplist();
 	// block.  If it advances the highest in-seq value,
 	// update rcv_nxt_ appropriately
 	//
-	if (p->endseq_ > rcv_nxt_);
+	if (rcv_nxt_ >= p->startseq_)
 		rcv_nxt_ = p->endseq_;
 	return (flags);
 }
