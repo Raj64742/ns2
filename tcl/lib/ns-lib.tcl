@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.174 1999/09/29 18:45:31 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.175 1999/09/30 00:48:50 yaxu Exp $
 
 #
 
@@ -454,7 +454,9 @@ Simulator instproc create-wireless-node { args } {
 	# basestation address setting
 
         if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
-	     $node mip-call $ragent
+	    if { $routingAgent_ != "DSR" } {
+	        $node mip-call $ragent
+	    }
 	}
 
 	#
