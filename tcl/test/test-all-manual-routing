@@ -19,7 +19,7 @@
 # 
 
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-manual-routing,v 1.1 1998/06/29 23:57:40 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-manual-routing,v 1.2 2000/10/03 03:12:03 sfloyd Exp $
 #
 
 feature="manual-routing"
@@ -28,7 +28,7 @@ directory="test-output-$feature"
 version="v2"
 if [ $# -ge 1 ]
 then
-	flag=$1
+	flag=$*
 	./test-all-template1 $file $directory $version $flag
 else
 	./test-all-template1 $file $directory $version

@@ -39,7 +39,7 @@ directory="test-output-oddBehaviors"
 version="v2"
 if [ $# -ge 1 ]
 then
-	flag=$1
+	flag=$*
 	./test-all-template1 $file $directory $version $flag
 else
 	./test-all-template1 $file $directory $version

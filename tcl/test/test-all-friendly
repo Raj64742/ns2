@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-friendly,v 1.1 1998/09/22 04:53:58 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-friendly,v 1.2 2000/10/03 03:12:03 sfloyd Exp $
 
 file="test-suite-friendly.tcl"
 ##
@@ -39,7 +39,7 @@ directory="test-output-friendly"
 version="v2"
 if [ $# -ge 1 ]
 then
-	flag=$1
+	flag=$*
 	./test-all-template1 $file $directory $version $flag
 else
 	./test-all-template1 $file $directory $version

@@ -31,7 +31,7 @@ directory="test-output-vegas-v1"
 version="v1"
 if [ $# -ge 1 ]
 then
-	flag=$1
+	flag=$*
 	./test-all-template1 $file $directory $version $flag
 else
 	./test-all-template1 $file $directory $version

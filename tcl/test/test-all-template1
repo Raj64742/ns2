@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.30 2000/10/03 00:34:25 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.31 2000/10/03 03:12:04 sfloyd Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -50,6 +50,9 @@ fi
 quiet=false
 new=false
 alltests=true
+case $# in
+quiet|QUIET) quiet=true;;
+esac
 # echo "num=$#, args $@"
 while test $# -ge 1
 do
@@ -58,9 +61,6 @@ do
 	new|NEW) new=true;;
 	*) alltests=false; tlist="$tlist $1";;
 	esac
-        case $# in
-        quiet|QUIET) quiet=true;;
-        esac
 	shift
 done
 test="$@"

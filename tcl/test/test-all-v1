@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-all-v1,v 1.4 1997/10/15 05:25:40 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-all-v1,v 1.5 2000/10/03 03:12:04 sfloyd Exp $
 
 ## The file "test-suite-v1a.tcl" is needed for running in "quiet" mode.
 file="test-suite-v1a.tcl"
@@ -42,7 +42,7 @@ directory="test-output-v1"
 version="v1"
 if [ $# -ge 1 ]
 then
-        flag=$1
+        flag=$*
         ./test-all-template1 $file $directory $version $flag
 else
         ./test-all-template1 $file $directory $version

@@ -19,14 +19,14 @@
 #
 # Test suite for web caching code. Based on test-all-full by Kevin.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-mcache,v 1.1 1999/07/02 21:16:42 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-mcache,v 1.2 2000/10/03 03:12:03 sfloyd Exp $
 
 file="test-suite-mcache.tcl"
 directory="test-output-mcache"
 version="v2"
 if [ $# -ge 1 ]
 then
-	flag=$1
+	flag=$*
 	./test-all-template1 $file $directory $version $flag
 else
 	./test-all-template1 $file $directory $version
