@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.26 1998/06/27 01:24:07 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.cc,v 1.27 1998/08/13 00:12:41 gnguyen Exp $ (UCB)";
 #endif
 
 #include "classifier.h"
@@ -49,7 +49,7 @@ static class MacHeaderClass : public PacketHeaderClass {
 public:
 	MacHeaderClass() : PacketHeaderClass("PacketHeader/Mac",
 					     sizeof(hdr_mac)) {
-		offset(&hdr_mac::offset_);
+		bind_offset(&hdr_mac::offset_);
 	}
 	void export_offsets() {
 		field_offset("macSA_", OFFSET(hdr_mac, macSA_));

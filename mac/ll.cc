@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.23 1998/08/05 01:58:42 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.24 1998/08/13 00:12:40 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -49,7 +49,7 @@ static class LLHeaderClass : public PacketHeaderClass {
 public:
 	LLHeaderClass()	: PacketHeaderClass("PacketHeader/LL",
 					    sizeof(hdr_ll)) {
-		offset(&hdr_ll::offset_);
+		bind_offset(&hdr_ll::offset_);
 	}
 } class_hdr_ll;
 
