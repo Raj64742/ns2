@@ -122,8 +122,8 @@ MacTdma::MacTdma(PHY_MIB* p) : Mac(), mhSlot_(this), mhTxPkt_(this), mhRxPkt_(th
   bind("slot_packet_len_", &slot_packet_len_);
   bind("max_node_num_", &max_node_num_);
 
-  slot_packet_len_ = 1500;
-  max_node_num_ = 64;
+//  slot_packet_len_ = 1500;
+//  max_node_num_ = 64;
   // Calculate the slot time based on the MAX allowed data length.
   slot_time_ = DATA_Time(slot_packet_len_);
 
