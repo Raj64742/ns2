@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.53 1997/08/11 16:05:57 ahelmy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.54 1997/08/12 00:33:53 kfall Exp $
 
 
 #
@@ -156,13 +156,13 @@ Queue/DRR set quantum_ 250
 Queue/DRR set mask_ 0
 
 Queue/CBQ set algorithm_ 0 ;# used by compat only, not bound
-Queue/CBQ/WRR set maxpkt_ 1024
-CBQClass set maxidle_ .004
+Queue/CBQ set maxpkt_ 1024
 CBQClass set priority_ 0
 CBQClass set level_ 1
 CBQClass set extradelay_ 0.0
 CBQClass set def_qtype_ DropTail
 CBQClass set okborrow_ true
+CBQClass set automaxidle_gain_ 0.9375
 
 PacketQueue/Semantic set acksfirst_ false
 PacketQueue/Semantic set filteracks_ false
