@@ -37,7 +37,7 @@
    priqueue.cc
    
    A simple priority queue with a remove packet function
-   $Id: priqueue.cc,v 1.6 2004/09/28 18:12:43 haldar Exp $
+   $Id: priqueue.cc,v 1.7 2004/10/07 17:56:03 haldar Exp $
    */
 
 #include <object.h>
@@ -182,8 +182,8 @@ PriQueue::Terminate()
 {
 	Packet *p;
 	while((p = deque())) {
-		//Connector::drop(p, DROP_END_OF_SIMULATION);
-		drop(p);
+		drop(p, DROP_END_OF_SIMULATION);
+		//drop(p);
 		
 	}
 }

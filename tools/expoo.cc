@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/expoo.cc,v 1.13 2004/09/28 18:12:44 haldar Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/expoo.cc,v 1.14 2004/10/07 17:56:04 haldar Exp $ (Xerox)";
 #endif
 
 #include <stdlib.h>
@@ -98,8 +98,8 @@ void EXPOO_Traffic::init()
 	interval_ = (double)(size_ << 3)/(double)rate_;
 	burstlen_.setavg(ontime_/interval_);
 	rem_ = 0;
-	//if (agent_)
-	//agent_->set_pkttype(PT_EXP);
+	if (agent_)
+		agent_->set_pkttype(PT_EXP);
 }
 
 double EXPOO_Traffic::next_interval(int& size)

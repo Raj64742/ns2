@@ -149,7 +149,7 @@ Test/simple-ping instproc run {} {
 	         -diffusionFilter $opt(filters) \
 		 -agentTrace ON \
                  -routerTrace ON \
-                 -macTrace ON 
+                 -macTrace OFF 
              
     for {set i 0} {$i < $opt(nn) } {incr i} {
 	set node_($i) [$ns_ node $i]
