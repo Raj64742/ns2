@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.216 2001/05/15 21:15:26 alefiyah Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.217 2001/05/21 19:27:31 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -187,6 +187,7 @@ OBJ_CC = \
 	pushback/logging-data-struct.o pushback/rate-estimator.o \
 	pushback/pushback-queue.o pushback/pushback.o \
 	parentnode.o \
+	basetrace.o \
 	simulator.o \
 	@V_STLOBJ@
 

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.121 2001/05/12 21:32:43 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.122 2001/05/21 19:27:31 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -43,6 +43,7 @@ static const char rcsid[] =
 #include "tcp.h"
 #include "flags.h"
 #include "random.h"
+#include "basetrace.h"
 
 int hdr_tcp::offset_;
 
@@ -71,7 +72,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
 	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
 	ect_(0), restart_bugfix_(1), closed_(0), nrexmit_(0),
-	first_decrease_(1)
+	first_decrease_(1), et_(0)
 	
 {
 #ifdef TCP_DELAY_BIND_ALL
@@ -96,6 +97,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
         bind("nrexmitbytes_", &nrexmitbytes_);
 	bind("singledup_", &singledup_);
 #endif /* TCP_DELAY_BIND_ALL */
+
 }
 
 void
@@ -226,6 +228,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "control_increase_", &control_increase_ , tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "oldCode_", &oldCode_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "timerfix_", &timerfix_, tracer)) return TCL_OK;
+
 
 #ifdef TCP_DELAY_BIND_ALL
 	// not if (delay-bound delay-bound tracevars aren't yet supported
@@ -610,6 +613,10 @@ int TcpAgent::command(int argc, const char*const* argv)
 			advanceby(atoi(argv[2]));
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "eventtrace") == 0) {
+			et_ = (EventTrace *)TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
 		/*
 		 * Curtis Villamizar's trick to transfer tcp connection
 		 * parameters to emulate http persistent connections.
@@ -848,6 +855,9 @@ TcpAgent::slowdown(int how)
 	// we are in slowstart for sure if cwnd < ssthresh
 	if (cwnd_ < ssthresh_)
 		slowstart = 1;
+	// we are in slowstart - need to trace this event
+	trace_event("SLOW_START");
+
         if (precision_reduce_) {
 		halfwin = windowd() / 2;
                 if (wnd_option_ == 6) {
@@ -1135,6 +1145,9 @@ TcpAgent::dupack_action()
 	}
 
 tahoe_action:
+	// we are now going to fast-retransmit and willtrace that event
+	trace_event("FAST_RETX");
+
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_ONE);
@@ -1211,6 +1224,10 @@ void TcpAgent::timeout(int tno)
 {
 	/* retransmit timer */
 	if (tno == TCP_TIMER_RTX) {
+
+		// There has been a timeout - will trace this event
+		trace_event("TCP_TIMEOUT");
+
 	        if (cwnd_ < 1) cwnd_ = 1;
 		if (highest_ack_ == maxseq_ && !slow_start_restart_) {
 			/*
@@ -1504,4 +1521,34 @@ void TcpAgent::process_qoption_after_ack (int seqno)
 				RTT_count ++ ;
 		}
 	}
+}
+
+void TcpAgent::trace_event(char *eventtype)
+{
+	if (et_ == NULL) return;
+	
+	char *wrk = et_->buffer();
+	char *nwrk = et_->nbuffer();
+	if (wrk != 0)
+		sprintf(wrk,
+			"E -t "TIME_FORMAT" -o TCP -e %s -s %d.%d -d %d.%d",
+			et_->round(Scheduler::instance().clock()),   // time
+			eventtype,                    // event type
+			addr(),                       // owner (src) node id
+			port(),                       // owner (src) port id
+			daddr(),                      // dst node id
+			dport()                       // dst port id
+			);
+	
+	if (nwrk != 0)
+		sprintf(nwrk,
+			"E -t "TIME_FORMAT" -o TCP -e %s -s %d.%d -d %d.%d",
+			et_->round(Scheduler::instance().clock()),   // time
+			eventtype,                    // event type
+			addr(),                       // owner (src) node id
+			port(),                       // owner (src) port id
+			daddr(),                      // dst node id
+			dport()                       // dst port id
+			);
+	et_->trace();
 }

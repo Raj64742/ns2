@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code 
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep.cc,v 1.9 2000/09/01 03:04:10 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/imep/imep.cc,v 1.10 2001/05/21 19:27:33 haldar Exp $
  */
 
 #include <packet.h>
@@ -993,18 +993,18 @@ imepAgent::log_neighbor_list()
 
         if(! verbose ) return;
 	
-        sprintf(logtarget_->buffer(),
+        sprintf(logtarget_->pt_->buffer(),
                 "T %.9f _%d_ neighbors: ", CURRENT_TIME, ipaddr);
 
 	for(l = imepLinkHead.lh_first; l; l = l->link.le_next) {
-	  offset = strlen(logtarget_->buffer());
-	  sprintf(logtarget_->buffer() + offset,
+	  offset = strlen(logtarget_->pt_->buffer());
+	  sprintf(logtarget_->pt_->buffer() + offset,
 		  "%d%c ", l->index(),
 		  l->status() == LINK_BI ? '+' : 
 		    (l->status() == LINK_IN ? '-' : 
 		     (l->status() == LINK_OUT ? '|' : 'X')));
 	}
-        logtarget_->dump();
+        logtarget_->pt_->dump();
 }
 
 void
@@ -1015,8 +1015,8 @@ imepAgent::trace(char* fmt, ...)
   if (!logtarget_) return;
 
   va_start(ap, fmt);
-  vsprintf(logtarget_->buffer(), fmt, ap);
-  logtarget_->dump();
+  vsprintf(logtarget_->pt_->buffer(), fmt, ap);
+  logtarget_->pt_->dump();
   va_end(ap);
 }
 

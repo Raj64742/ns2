@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora.cc,v 1.12 2000/09/01 03:04:12 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora.cc,v 1.13 2001/05/21 19:27:34 haldar Exp $
  */
 
 #include <agent.h>
@@ -560,9 +560,9 @@ toraAgent::recvUPD(Packet *p)
 
 						if (logtarget) 
 						  {
-						    sprintf(logtarget->buffer(), "T %.9f _%d_ rule IIA2a(ii)x fires %d",
+						    sprintf(logtarget->pt_->buffer(), "T %.9f _%d_ rule IIA2a(ii)x fires %d",
 							    Scheduler::instance().clock(), ipaddr(), td->index);
-						    logtarget->dump();
+						    logtarget->pt_->dump();
 						  }
 #endif
 						sendUPD(td->index);
@@ -702,8 +702,8 @@ toraAgent::trace(char* fmt, ...)
   if (!logtarget) return;
 
   va_start(ap, fmt);
-  vsprintf(logtarget->buffer(), fmt, ap);
-  logtarget->dump();
+  vsprintf(logtarget->pt_->buffer(), fmt, ap);
+  logtarget->pt_->dump();
   va_end(ap);
 }
 

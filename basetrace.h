@@ -31,75 +31,72 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.33 2001/05/21 19:27:32 haldar Exp $
+
  */
 
-#ifndef ns_trace_h
-#define ns_trace_h
+#ifndef ns_basetrace_h
+#define ns_basetrace_h
 
-#define NUMFLAGS 7
+#include <math.h> //floor
+#include "tcp.h"
 
-#include <math.h> // floor
-#include "packet.h"
-#include "basetrace.h"
-
-
-/* Tracing has evolved into two types, packet tracing and event tracing.
-Class Trace essentially supports packet tracing. 
-However in addition to the basic tracing properties (that it derives from a BaseTrace class), pkt-tracing also requires to inherit some of the Connector class properties as well.
-
-Hence Trace should be renamed as ConnectorTrace in the future.
-And it shall have a BaseTrace * variable, where BaseTrace class supporting pure tracing functionalities and should be the parent class for all subsequent trace-related classes.
-*/
-
-class Trace : public Connector {
-protected:
-	nsaddr_t src_;
-        nsaddr_t dst_;
-        int callback_;
-
-        virtual void format(int tt, int s, int d, Packet* p);
-        void annotate(const char* s);
-	int show_tcphdr_;  // bool flags; backward compat
-	void callback();
+class BaseTrace : public TclObject {
 public:
-	Trace(int type);
-        ~Trace();
+	BaseTrace();
+	~BaseTrace();
+	virtual int command(int argc, const char*const* argv);
+	virtual void dump();
+	virtual void namdump();
+	inline char* buffer() { return wrk_ ; }
+	inline char *nbuffer() {return nwrk_; }
 
-	BaseTrace *pt_;    // support for pkt tracing
+	inline Tcl_Channel channel() { return channel_; }
+	inline void channel(Tcl_Channel ch) {channel_ = ch; }
 
-	int type_;	
-        int command(int argc, const char*const* argv);
-	static int get_seqno(Packet* p);
-        void recv(Packet* p, Handler*);
-	void recvOnly(Packet *p);
+	inline Tcl_Channel namchannel() { return namChan_; }
+	inline void namchannel(Tcl_Channel namch) {namChan_ = namch; }
+
+	void flush(Tcl_Channel channel) { Tcl_Flush(channel); }
 
 	//Default rounding is to 6 digits after decimal
-	//#define PRECISION 1.0E+6
+#define PRECISION 1.0E+6
 	//According to freeBSD /usr/include/float.h 15 is the number of digits 
 	// in a double.  We can specify all of them, because we're rounding to
 	// 6 digits after the decimal and and %g removes trailing zeros.
-	//#define TIME_FORMAT "%.15g"
+#define TIME_FORMAT "%.15g"
 	// annoying way of tackling sprintf rounding platform 
 	// differences :
 	// use round(Scheduler::instance().clock()) instead of 
 	// Scheduler::instance().clock().
-	//static double round (double x, double precision=PRECISION) {
-	//return (double)floor(x*precision + 0.5)/precision;
-	//}
-
-	virtual void write_nam_trace(const char *s);
-	void trace(TracedVar* var);
-	//void namdump();
+	
+	static double round (double x, double precision=PRECISION) {
+		return (double)floor(x*precision + 0.5)/precision;
+	}
+	
+protected:
+	Tcl_Channel channel_;
+	Tcl_Channel namChan_;
+	char *wrk_;
+	char *nwrk_;
 };
 
-class DequeTrace : public Trace {
+class EventTrace : public BaseTrace {
 public:
-	DequeTrace(int type) : Trace(type) {}
-	~DequeTrace();
-	void recv(Packet* p, Handler*);
-
+	EventTrace() : BaseTrace() {}
+	virtual void trace();
+	//virtual int command(int argc, const char*const* argv);
+protected:
+	//Agent *a_;   //the owner (or agent) of the eventrace object
 };
 
+// tcp-specific eventtracer
+//  class TcpEventTrace : public EventTrace {
+//  public:
+//  	TcpEventTrace() : EventTrace() {}
+//  	virtual void trace(char *eventtype);
+//  	virtual int command(int argc, const char*const* argv);
+//  };
 
-#endif
+
+	
+#endif // BaseTrace

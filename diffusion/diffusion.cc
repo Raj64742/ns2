@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.8 2001/04/20 23:59:03 intanago Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.9 2001/05/21 19:27:33 haldar Exp $
 
 /****************************************************************/
 /* diffusion.cc : Chalermek Intanagonwiwat (USC/ISI)  05/18/99  */
@@ -604,8 +604,8 @@ void DiffusionAgent::trace (char *fmt,...)
     return;
 
   va_start (ap, fmt);
-  vsprintf (tracetarget->buffer (), fmt, ap);
-  tracetarget->dump ();
+  vsprintf (tracetarget->pt_->buffer (), fmt, ap);
+  tracetarget->pt_->dump ();
   va_end (ap);
 }
 

@@ -89,7 +89,7 @@ void TraceIp::recv(Packet* p, Handler* h)
 	int src = (src_ >= 0) ? src_ : (iph->saddr() >> shift_) & mask_;
 	int dst = (iph->daddr() >> shift_) & mask_;
 	format(type_, src, dst , p);
-	dump();
+	pt_->dump();
 	target_ ? send(p, h) : Packet::free(p);
 }
 
@@ -110,6 +110,6 @@ void TraceIpMac::recv(Packet* p, Handler* h)
 		format(type_, dst, src , p);
 	else
 		format(type_, src, dst , p);
-	dump();
+	pt_->dump();
 	target_ ? send(p, h) : Packet::free(p);
 }

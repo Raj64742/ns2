@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sattrace.cc,v 1.10 2000/09/01 03:04:07 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sattrace.cc,v 1.11 2001/05/21 19:27:31 haldar Exp $";
 #endif
 
 #include <stdio.h>
@@ -161,9 +161,9 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 	}
 
 	if (!show_tcphdr_) {
-		sprintf(wrk_, "%c %.4f %d %d %s %d %s %d %s.%s %s.%s %d %d %.2f %.2f %.2f %.2f",
+		sprintf(pt_->buffer(), "%c %.4f %d %d %s %d %s %d %s.%s %s.%s %d %d %.2f %.2f %.2f %.2f",
 			tt,
-			round(Scheduler::instance().clock()),
+			pt_->round(Scheduler::instance().clock()),
 			lasth,
 			nexth,
 			name,
@@ -185,10 +185,10 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 			d_lat,
 			d_lon);
 	} else {
-		sprintf(wrk_, 
+		sprintf(pt_->buffer(), 
 			"%c %.4f %d %d %s %d %s %d %s.%s %s.%s %d %d %d 0x%x %d %d %.2f %.2f %.2f %.2f",
 			tt,
-			round(Scheduler::instance().clock()),
+			pt_->round(Scheduler::instance().clock()),
 			lasth,
 			nexth,
 			name,
@@ -214,8 +214,8 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 			d_lat,
 			d_lon);
 	}
-	if (namChan_ != 0)
-		sprintf(nwrk_, 
+	if (pt_->namchannel() != 0)
+		sprintf(pt_->nbuffer(), 
 			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
 			tt,
 			Scheduler::instance().clock(),
@@ -240,7 +240,7 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 void SatTrace::traceonly(Packet* p)
 {        
 	format(type_, src_, dst_, p);
-	dump();
+	pt_->dump();
 }
 
 //
@@ -264,10 +264,10 @@ SatDequeTrace::recv(Packet* p, Handler* h)
 {
 	// write the '-' event first
 	format(type_, src_, dst_, p);
-	dump();
-	namdump();
+	pt_->dump();
+	pt_->namdump();
 
-	if (namChan_ != 0) {
+	if (pt_->namchannel() != 0) {
 		hdr_cmn *th = hdr_cmn::access(p);
 		hdr_ip *iph = hdr_ip::access(p);
 		hdr_srm *sh = hdr_srm::access(p);
@@ -308,7 +308,7 @@ SatDequeTrace::recv(Packet* p, Handler* h)
 		flags[5] = 0;
 #endif
 		
-		sprintf(nwrk_, 
+		sprintf(pt_->nbuffer(), 
 			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
 			'h',
 			Scheduler::instance().clock(),
@@ -324,7 +324,7 @@ SatDequeTrace::recv(Packet* p, Handler* h)
 			dst_nodeaddr,
 			dst_portaddr,
 			-1, flags, sname);
-		namdump();
+		pt_->namdump();
 		delete [] src_nodeaddr;
 		delete [] src_portaddr;
 		delete [] dst_nodeaddr;

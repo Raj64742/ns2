@@ -31,13 +31,15 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.87 2001/05/11 05:18:15 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.88 2001/05/21 19:27:32 haldar Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
 
 #include "agent.h"
 #include "packet.h"
+
+class EventTrace;
 
 struct hdr_tcp {
 #define NSA 3
@@ -145,8 +147,7 @@ protected:
 class TcpAgent : public Agent {
 public:
 	TcpAgent();
-
-	virtual void recv(Packet*, Handler*);
+        virtual void recv(Packet*, Handler*);
 	virtual void timeout(int tno);
 	virtual void timeout_nonrtx(int tno);
 	int command(int argc, const char*const* argv);
@@ -320,6 +321,10 @@ protected:
 	int noFastRetrans_;	/* No Fast Retransmit option.  */
 	int oldCode_;		/* Use old code. */
 
+
+        /* support for event-tracing */
+        EventTrace *et_;
+        void trace_event(char *eventtype);
 
 	/* these function are now obsolete, see other above */
 	void closecwnd(int how);

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mobilenode.cc,v 1.27 2001/02/07 10:25:35 yaxu Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mobilenode.cc,v 1.28 2001/05/21 19:27:31 haldar Exp $
  *
  * Code in this file will be changed in the near future. From now on it 
  * should be treated as for backward compatibility only, although it is in
@@ -329,10 +329,10 @@ MobileNode::log_movement()
 		return;
 
 	Scheduler& s = Scheduler::instance();
-	sprintf(log_target_->buffer(),
+	sprintf(log_target_->pt_->buffer(),
 		"M %.5f %d (%.2f, %.2f, %.2f), (%.2f, %.2f), %.2f",
 		s.clock(), address_, X_, Y_, Z_, destX_, destY_, speed_);
-	log_target_->dump();
+	log_target_->pt_->dump();
 }
 
 
@@ -343,13 +343,13 @@ MobileNode::log_energy(int flag)
 		return;
 	Scheduler &s = Scheduler::instance();
 	if (flag) {
-		sprintf(log_target_->buffer(),"N -t %f -n %d -e %f", s.clock(),
+		sprintf(log_target_->pt_->buffer(),"N -t %f -n %d -e %f", s.clock(),
 			address_, energy_model_->energy()); 
 	} else {
-		sprintf(log_target_->buffer(),"N -t %f -n %d -e 0 ", s.clock(),
+		sprintf(log_target_->pt_->buffer(),"N -t %f -n %d -e 0 ", s.clock(),
 			address_); 
 	}
-	log_target_->dump();
+	log_target_->pt_->dump();
 }
 
 //void

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satgeometry.cc,v 1.5 1999/12/20 03:03:25 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satgeometry.cc,v 1.6 2001/05/21 19:27:31 haldar Exp $";
 #endif
 
 #include "satgeometry.h"
@@ -58,7 +58,7 @@ double SatGeometry::distance(coordinate a, coordinate b)
         double a_x, a_y, a_z, b_x, b_y, b_z;     // cartesian
 	spherical_to_cartesian(a.r, a.theta, a.phi, a_x, a_y, a_z);
 	spherical_to_cartesian(b.r, b.theta, b.phi, b_x, b_y, b_z);
-        return (Trace::round(DISTANCE(a_x, a_y, a_z, b_x, b_y, b_z), 1.0E+8));
+        return (BaseTrace::round(DISTANCE(a_x, a_y, a_z, b_x, b_y, b_z), 1.0E+8));
 
 
 }
@@ -75,7 +75,7 @@ void SatGeometry::spherical_to_cartesian(double R, double Theta,
 double SatGeometry::propdelay(coordinate a, coordinate b)
 {
 	double delay = distance(a, b)/LIGHT;
-	return (Trace::round(delay, 1.0E+8));
+	return (BaseTrace::round(delay, 1.0E+8));
 }
 
 double SatGeometry::get_altitude(coordinate a)

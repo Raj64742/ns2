@@ -334,8 +334,8 @@ void FloodingAgent::trace (char *fmt,...)
     return;
 
   va_start (ap, fmt);
-  vsprintf (tracetarget->buffer (), fmt, ap);
-  tracetarget->dump ();
+  vsprintf (tracetarget->pt_->buffer(), fmt, ap);
+  tracetarget->pt_->dump ();
   va_end (ap);
 }
 

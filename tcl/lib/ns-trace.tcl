@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.22 2000/12/20 10:15:26 alefiyah Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.23 2001/05/21 19:27:34 haldar Exp $
 #
 
 Trace instproc init type {
@@ -57,6 +57,16 @@ Trace instproc attach fp {
 
 	set fp_ $fp
 	$self cmd attach $fp_
+}
+
+# For now separate attach instprocs for Trace and BaseTrace
+# later will merge both. change Trace to BaseTrace/Trace
+
+BaseTrace instproc attach fp {
+    $self instvar fp_
+    
+    set fp_ $fp
+    $self cmd attach $fp_
 }
 
 Class Trace/Hop -superclass Trace

@@ -1,5 +1,5 @@
 /*
-  $Id: tora_logs.cc,v 1.2 1999/09/22 21:05:11 yaxu Exp $
+  $Id: tora_logs.cc,v 1.3 2001/05/21 19:27:34 haldar Exp $
   */
 
 #include <agent.h>
@@ -23,10 +23,10 @@ toraAgent::log_route_loop(nsaddr_t prev, nsaddr_t next)
 {
         if(! logtarget || ! verbose ) return;
 
-        sprintf(logtarget->buffer(),
+        sprintf(logtarget->pt_->buffer(),
                 "T %.9f _%d_ routing loop (%d --> %d --> %d)",
                 CURRENT_TIME, ipaddr(), prev, ipaddr(), next);
-        logtarget->dump();
+        logtarget->pt_->dump();
 }
 
 void
@@ -37,7 +37,7 @@ toraAgent::log_link_layer_feedback(Packet *p)
 
         if(! logtarget || ! verbose) return;
 
-        sprintf(logtarget->buffer(),
+        sprintf(logtarget->pt_->buffer(),
                 "T %.9f _%d_ LL unable to deliver packet %d to %d (%d) (reason = %d, ifqlen = %d)",
                 CURRENT_TIME,
                 ipaddr(),
@@ -47,7 +47,7 @@ toraAgent::log_link_layer_feedback(Packet *p)
                 ch->xmit_reason_,
                 ifqueue->length());
 
-	logtarget->dump();
+	logtarget->pt_->dump();
 }
 
 
@@ -59,7 +59,7 @@ toraAgent::log_link_layer_recycle(Packet *p)
 
         if(! logtarget || ! verbose) return;
 
-        sprintf(logtarget->buffer(),
+        sprintf(logtarget->pt_->buffer(),
                 "T %.9f _%d_ recycling packet %d (src = %d, dst = %d, prev = %d, next = %d)",
                 CURRENT_TIME,
                 ipaddr(),
@@ -67,7 +67,7 @@ toraAgent::log_link_layer_recycle(Packet *p)
 		//                ih->src_, ih->dst_,
 		ih->saddr(),ih->daddr(),
                 ch->prev_hop_, ch->next_hop_);
-        logtarget->dump();
+        logtarget->pt_->dump();
 }
         
 void
@@ -81,14 +81,14 @@ toraAgent::log_lnk_del(nsaddr_t dst)
          *  If "god" thinks that these two nodes are still
          *  reachable then this is an erroneous deletion.
          */
-        sprintf(logtarget->buffer(),
+        sprintf(logtarget->pt_->buffer(),
                 "T %.9f _%d_ deleting LL hop to %d (delete %d is %s)",
                 CURRENT_TIME,
                 ipaddr(),
                 dst,
                 ++link_del,
                 God::instance()->hops(ipaddr(), dst) != 1 ? "VALID" : "INVALID");
-        logtarget->dump();
+        logtarget->pt_->dump();
 }
 
 void
@@ -103,14 +103,14 @@ toraAgent::log_lnk_kept(nsaddr_t dst)
          *  unreachable, then we are erroneously keeping
          *  a bad route.
          */
-        sprintf(logtarget->buffer(),
+        sprintf(logtarget->pt_->buffer(),
                 "T %.9f _%d_ keeping LL hop to %d (keep %d is %s)",
                 CURRENT_TIME,
                 ipaddr(),
                 dst,
                 ++link_kept,
                 God::instance()->hops(ipaddr(), dst) == 1 ? "VALID" : "INVALID");
-        logtarget->dump();
+        logtarget->pt_->dump();
 }
 
 void
@@ -118,12 +118,12 @@ toraAgent::log_nb_del(nsaddr_t dst, nsaddr_t id)
 {
         if(! logtarget || ! verbose) return;
 
-        sprintf(logtarget->buffer(),
+        sprintf(logtarget->pt_->buffer(),
                 "T %.9f _%d_ destination %d removing neighbor %d",
                 CURRENT_TIME,
                 ipaddr(),
                 dst, id);
-        logtarget->dump();
+        logtarget->pt_->dump();
 }
 
 void
@@ -134,10 +134,10 @@ toraAgent::log_recv_qry(Packet *p)
 
 	if(! logtarget || ! verbose) return;
 
-	sprintf(logtarget->buffer(),
+	sprintf(logtarget->pt_->buffer(),
 		"T %.9f %d received `QRY` from %d --- %d",
 		CURRENT_TIME, ipaddr(), ih->saddr(), qh->tq_dst);
-	logtarget->dump();
+	logtarget->pt_->dump();
 }
 
 void
@@ -148,14 +148,14 @@ toraAgent::log_recv_upd(Packet *p)
 
 	if(! logtarget || ! verbose) return;
 
-	sprintf(logtarget->buffer(),
+	sprintf(logtarget->pt_->buffer(),
 		"T %.9f _%d_ received `UPD` from %d --- %d (%f %d %d %d %d)",
 		CURRENT_TIME,
                 ipaddr(),
 		// ih->src_, uh->tu_dst,
 		ih->saddr(), uh->tu_dst,
 		uh->tu_tau, uh->tu_oid, uh->tu_r, uh->tu_delta, uh->tu_id);
-	logtarget->dump();
+	logtarget->pt_->dump();
 }
 
 void
@@ -166,14 +166,14 @@ toraAgent::log_recv_clr(Packet *p)
 
 	if(! logtarget || ! verbose) return;
 
-	sprintf(logtarget->buffer(),
+	sprintf(logtarget->pt_->buffer(),
 		"T %.9f _%d_ received `CLR` from %d --- %d (%f %d)",
 		CURRENT_TIME,
                 ipaddr(),
                 // ih->src_,
 		ih->saddr(),
 		ch->tc_dst, ch->tc_tau, ch->tc_oid);
-	logtarget->dump();
+	logtarget->pt_->dump();
 }
 
 
@@ -188,7 +188,7 @@ toraAgent::log_route_table()
 	for(td = dstlist.lh_first; td; td = td->link.le_next) {
 		tn = td->nb_find_next_hop();
 
-		sprintf(logtarget->buffer(),
+		sprintf(logtarget->pt_->buffer(),
 			"T %.9f _%d_ %2d (%9f %2d %2d %2d %2d) ---> %2d (%9f %2d %2d %2d %2d) %d %.9f --- (%2d a, %2d d, %2d u) %d %9f",
 			CURRENT_TIME,
                         ipaddr(),
@@ -206,12 +206,12 @@ toraAgent::log_route_table()
 			td->num_active, td->num_down, td->num_up,
 			td->rt_req, td->time_upd);
 
-		logtarget->dump();
+		logtarget->pt_->dump();
 	}
 
-	sprintf(logtarget->buffer(),
+	sprintf(logtarget->pt_->buffer(),
 		"T --------------------------------------------------");
-	logtarget->dump();
+	logtarget->pt_->dump();
 }
 
 //////////////////////////////////////////////////////////////////////
@@ -224,7 +224,7 @@ toraAgent::logToraDest(TORADest *td)
 
 	assert(td);
 
-	sprintf(logtarget->buffer(),
+	sprintf(logtarget->pt_->buffer(),
 		"T %.9f _%d_ TD %2d (%9f %2d %2d %2d %2d) --- (%2d a, %2d d, %2d u) %d %9f",
 			CURRENT_TIME,
                         ipaddr(),
@@ -233,7 +233,7 @@ toraAgent::logToraDest(TORADest *td)
 			td->height.delta, td->height.id,
 			td->num_active, td->num_down, td->num_up,
 			td->rt_req, td->time_upd);
-	logtarget->dump();
+	logtarget->pt_->dump();
 }
 
 
@@ -244,7 +244,7 @@ toraAgent::logToraNeighbor(TORANeighbor *tn)
 
 	assert(tn);
 
-	sprintf(logtarget->buffer(),
+	sprintf(logtarget->pt_->buffer(),
 		"T %.9f _%d_ TN %2d (%.9f %2d %2d %2d %2d) %d %.9f",
 		CURRENT_TIME,
 		ipaddr(),
@@ -256,7 +256,7 @@ toraAgent::logToraNeighbor(TORANeighbor *tn)
 		tn->height.id,
 		tn->lnk_stat,
 		tn->time_act);
-	logtarget->dump();
+	logtarget->pt_->dump();
 }
 
 void
@@ -275,16 +275,16 @@ toraAgent::logNextHopChange(TORADest *td)
 
 	n = td->nb_find_next_hop();
 	if(n) {
-		sprintf(logtarget->buffer(), "T %.9f _%d_ nexthop for %d is %d", 
+		sprintf(logtarget->pt_->buffer(), "T %.9f _%d_ nexthop for %d is %d", 
 			CURRENT_TIME, ipaddr(), td->index, n->index);
-		logtarget->dump();
+		logtarget->pt_->dump();
 	}
 
-	sprintf(logtarget->buffer(),
+	sprintf(logtarget->pt_->buffer(),
 		"T %.9f _%d_ --------------------------------------------------",
 		CURRENT_TIME,
 		ipaddr());
-	logtarget->dump();
+	logtarget->pt_->dump();
 }
 
 void
@@ -292,11 +292,11 @@ toraAgent::logNbDeletedLastDN(TORADest *td)
 {
 	if(! verbose) return;
 
-	sprintf(logtarget->buffer(), "T %.9f _%d_ lost last downstream link for destination %d",
+	sprintf(logtarget->pt_->buffer(), "T %.9f _%d_ lost last downstream link for destination %d",
 		CURRENT_TIME,
 		ipaddr(),
 		td->index);
-	logtarget->dump();
+	logtarget->pt_->dump();
 
 	logNextHopChange(td);
 }

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.32 2001/01/15 00:00:19 sfloyd Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.33 2001/05/21 19:27:32 haldar Exp $
  */
 
 #ifndef ns_trace_h
@@ -41,52 +41,56 @@
 
 #include <math.h> // floor
 #include "packet.h"
-#include "connector.h"
+#include "basetrace.h"
 
+
+/* Tracing has evolved into two types, packet tracing and event tracing.
+Class Trace essentially supports packet tracing. 
+However in addition to the basic tracing properties (that it derives from a BaseTrace class), pkt-tracing also requires to inherit some of the Connector class properties as well.
+
+Hence Trace should be renamed as ConnectorTrace in the future.
+And it shall have a BaseTrace * variable, where BaseTrace class supporting pure tracing functionalities and should be the parent class for all subsequent trace-related classes.
+*/
 
 class Trace : public Connector {
 protected:
 	nsaddr_t src_;
         nsaddr_t dst_;
-        Tcl_Channel channel_;
         int callback_;
 
-        char wrk_[1024];
         virtual void format(int tt, int s, int d, Packet* p);
         void annotate(const char* s);
 	int show_tcphdr_;  // bool flags; backward compat
-
-	Tcl_Channel namChan_;
-	char nwrk_ [256];
-
+	void callback();
 public:
-	int type_;
 	Trace(int type);
         ~Trace();
+
+	BaseTrace *pt_;    // support for pkt tracing
+
+	int type_;	
         int command(int argc, const char*const* argv);
 	static int get_seqno(Packet* p);
         void recv(Packet* p, Handler*);
 	void recvOnly(Packet *p);
-	void trace(TracedVar*);
-        void dump();
-        inline char* buffer() { return (wrk_); }
 
 	//Default rounding is to 6 digits after decimal
-#define PRECISION 1.0E+6
+	//#define PRECISION 1.0E+6
 	//According to freeBSD /usr/include/float.h 15 is the number of digits 
 	// in a double.  We can specify all of them, because we're rounding to
 	// 6 digits after the decimal and and %g removes trailing zeros.
-#define TIME_FORMAT "%.15g"
+	//#define TIME_FORMAT "%.15g"
 	// annoying way of tackling sprintf rounding platform 
 	// differences :
 	// use round(Scheduler::instance().clock()) instead of 
 	// Scheduler::instance().clock().
-	static double round (double x, double precision=PRECISION) {
-		return (double)floor(x*precision + 0.5)/precision;
-	}
+	//static double round (double x, double precision=PRECISION) {
+	//return (double)floor(x*precision + 0.5)/precision;
+	//}
 
 	virtual void write_nam_trace(const char *s);
-	void namdump();
+	void trace(TracedVar* var);
+	//void namdump();
 };
 
 class DequeTrace : public Trace {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.22 2001/04/03 00:01:38 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.23 2001/05/21 19:27:34 haldar Exp $
 #
 
 #
@@ -160,6 +160,15 @@ Agent proc set-maxttl {objectOrClass var} {
 	}
 	$objectOrClass set $var
 }
+
+
+
+Agent/TCP instproc init {} {
+    eval $self next
+    set ns [Simulator instance]
+    $ns create-eventtrace Event $self
+}
+
 
 #
 # Full Tcp constructors for other than the baseline Reno

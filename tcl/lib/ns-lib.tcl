@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.222 2001/04/03 00:01:38 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.223 2001/05/21 19:27:34 haldar Exp $
 
 #
 # Word of warning to developers:
@@ -1059,7 +1059,21 @@ Simulator instproc namtrace-all-wireless {file optx opty} {
         }       
         $self puts-nam-config "W -t * -x $optx -y $opty"
 }
+
+# Support for event-tracing
         
+Simulator instproc eventtrace-all {{file ""}} {
+	$self instvar eventTraceAll_ eventtraceAllFile_ traceAllFile_
+	set eventTraceAll_ 1
+	if {$file != ""} {
+		set eventtraceAllFile_ $file
+	} else {
+		set eventtraceAllFile_ $traceAllFile_
+	}
+}
+
+
+
 Simulator instproc initial_node_pos {nodep size} {
 	$self instvar addressType_
 	$self instvar energyModel_ 
@@ -1180,6 +1194,27 @@ Simulator instproc create-trace { type file src dst {op ""} } {
 	}
 	return $p
 }
+
+
+Simulator instproc create-eventtrace {type owner } {
+	$self instvar alltrace_ 
+	$self instvar eventTraceAll_ eventtraceAllFile_ namtraceAllFile_
+	
+	if ![info exists eventTraceAll_] return
+
+	if { $eventTraceAll_ == 1 } {
+		
+		set et [new BaseTrace/$type]
+		$owner cmd eventtrace $et
+		
+		lappend alltrace_ $et
+		$et attach $eventtraceAllFile_
+		if [info exists namtraceAllFile_] {
+			$et namattach $namtraceAllFile_
+		}
+	}
+}
+
 
 Simulator instproc namtrace-queue { n1 n2 {file ""} } {
 	$self instvar link_ namtraceAllFile_

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.71 2001/01/15 00:00:19 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.72 2001/05/21 19:27:32 haldar Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -62,12 +62,13 @@ public:
 
 
 Trace::Trace(int type)
-	: Connector(), channel_(0), callback_(0), namChan_(0), type_(type)
+	: Connector(), callback_(0), pt_(0), type_(type)
 {
 	bind("src_", (int*)&src_);
 	bind("dst_", (int*)&dst_);
 	bind("callback_", &callback_);
 	bind("show_tcphdr_", &show_tcphdr_);
+	pt_ = new BaseTrace;
 }
 
 Trace::~Trace()
@@ -84,29 +85,34 @@ int Trace::command(int argc, const char*const* argv)
 	Tcl& tcl = Tcl::instance();
 	if (argc == 2) {
 		if (strcmp(argv[1], "detach") == 0) {
-			channel_ = 0;
-			namChan_ = 0;
+			pt_->channel(0) ;
+			pt_->namchannel(0) ;
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "flush") == 0) {
-			if (channel_ != 0) 
-				Tcl_Flush(channel_);
-			if (namChan_ != 0)
-				Tcl_Flush(namChan_);
+			Tcl_Channel ch = pt_->channel();
+			Tcl_Channel namch = pt_->namchannel();
+			if (ch != 0) 
+				pt_->flush(ch);
+				//Tcl_Flush(pt_.channel());
+			if (namch != 0)
+				//Tcl_Flush(pt_->namchannel());
+				pt_->flush(namch);
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "annotate") == 0) {
-			if (channel_ != 0)
+			if (pt_->channel() != 0)
 				annotate(argv[2]);
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "attach") == 0) {
 			int mode;
 			const char* id = argv[2];
-			channel_ = Tcl_GetChannel(tcl.interp(), (char*)id,
+			Tcl_Channel ch = Tcl_GetChannel(tcl.interp(), (char*)id,
 						  &mode);
-			if (channel_ == 0) {
+			pt_->channel(ch); 
+			if (pt_->channel() == 0) {
 				tcl.resultf("trace: can't attach %s for writing", id);
 				return (TCL_ERROR);
 			}
@@ -115,16 +121,17 @@ int Trace::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "namattach") == 0) {
 			int mode;
 			const char* id = argv[2];
-			namChan_ = Tcl_GetChannel(tcl.interp(), (char*)id,
-						  &mode);
-			if (namChan_ == 0) {
+			Tcl_Channel namch = Tcl_GetChannel(tcl.interp(), 
+							   (char*)id, &mode);
+			pt_->namchannel(namch); 
+			if (pt_->namchannel() == 0) {
 				tcl.resultf("trace: can't attach %s for writing", id);
 				return (TCL_ERROR);
 			}
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "ntrace") == 0) {
-			if (namChan_ != 0) 
+			if (pt_->namchannel() != 0) 
 				write_nam_trace(argv[2]);
 			return (TCL_OK);
 		}
@@ -134,24 +141,22 @@ int Trace::command(int argc, const char*const* argv)
 
 void Trace::write_nam_trace(const char *s)
 {
-	sprintf(nwrk_, "%s", s);
-	namdump();
+	sprintf(pt_->nbuffer(), "%s", s);
+	pt_->namdump();
 }
 
 void Trace::annotate(const char* s)
 {
-	sprintf(wrk_, "v "TIME_FORMAT" eval {set sim_annotation {%s}}", 
-		round(Scheduler::instance().clock()), s);
-	dump();
-	sprintf(nwrk_, "v -t %.17g sim_annotation %g %s", 
+	sprintf(pt_->buffer(), "v "TIME_FORMAT" eval {set sim_annotation {%s}}", 
+		pt_->round(Scheduler::instance().clock()), s);
+	pt_->dump();
+	callback();
+	sprintf(pt_->nbuffer(), "v -t %.17g sim_annotation %g %s", 
 		Scheduler::instance().clock(), 
 		Scheduler::instance().clock(), s);
-	namdump();
+	pt_->namdump();
 }
 
-//  char* pt_names[] = {
-//  	PT_NAMES
-//  };
 
 char* srm_names[] = {
         SRM_NAMES
@@ -239,9 +244,9 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	char *dst_portaddr = Address::instance().print_portaddr(iph->dport());
 
 	if (!show_tcphdr_) {
-		sprintf(wrk_, "%c "TIME_FORMAT" %d %d %s %d %s %d %s.%s %s.%s %d %d",
+		sprintf(pt_->buffer(), "%c "TIME_FORMAT" %d %d %s %d %s %d %s.%s %s.%s %d %d",
 			tt,
-			round(Scheduler::instance().clock()),
+			pt_->round(Scheduler::instance().clock()),
 			s,
 			d,
 			name,
@@ -259,10 +264,10 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			seqno,
 			th->uid() /* was p->uid_ */);
 	} else {
-		sprintf(wrk_, 
+		sprintf(pt_->buffer(), 
 			"%c "TIME_FORMAT" %d %d %s %d %s %d %s.%s %s.%s %d %d %d 0x%x %d %d",
 			tt,
-			round(Scheduler::instance().clock()),
+			pt_->round(Scheduler::instance().clock()),
 			s,
 			d,
 			name,
@@ -284,8 +289,8 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			tcph->hlen(),
 			tcph->sa_length());
 	}
-	if (namChan_ != 0)
-		sprintf(nwrk_, 
+	if (pt_->namchannel() != 0)
+		sprintf(pt_->nbuffer(), 
 			"%c -t "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
 			tt,
 			Scheduler::instance().clock(),
@@ -307,50 +312,12 @@ void Trace::format(int tt, int s, int d, Packet* p)
    	delete [] dst_portaddr;
 }
 
-void Trace::dump()
-{
-	int n = strlen(wrk_);
-	if ((n > 0) && (channel_ != 0)) {
-		/*
-		 * tack on a newline (temporarily) instead
-		 * of doing two writes
-		 */
-		wrk_[n] = '\n';
-		wrk_[n + 1] = 0;
-		(void)Tcl_Write(channel_, wrk_, n + 1);
-		wrk_[n] = 0;
-	}
-
-	if (callback_) {
-		Tcl& tcl = Tcl::instance();
-		tcl.evalf("%s handle { %s }", name(), wrk_);
-	}
-}
-
-void Trace::namdump()
-{
-	int n = 0;
-
-	/* Otherwise nwrk_ isn't initialized */
-	if (namChan_ != 0)
-		n = strlen(nwrk_);
-	if ((n > 0) && (namChan_ != 0)) {
-		/*
-		 * tack on a newline (temporarily) instead
-		 * of doing two writes
-		 */
-		nwrk_[n] = '\n';
-		nwrk_[n + 1] = 0;
-		(void)Tcl_Write(namChan_, nwrk_, n + 1);
-		nwrk_[n] = 0;
-	}
-}
-
 void Trace::recv(Packet* p, Handler* h)
 {
 	format(type_, src_, dst_, p);
-	dump();
-	namdump();
+	pt_->dump();
+	callback();
+	pt_->namdump();
 	/* hack: if trace object not attached to anything free packet */
 	if (target_ == 0)
 		Packet::free(p);
@@ -361,8 +328,9 @@ void Trace::recv(Packet* p, Handler* h)
 void Trace::recvOnly(Packet *p)
 {
 	format(type_, src_, dst_, p);
-	dump();
-	namdump();	
+	pt_->dump();
+	callback();
+	pt_->namdump();	
 	target_->recvOnly(p);
 }
 
@@ -374,13 +342,22 @@ void Trace::trace(TracedVar* var)
 		return;
 
 	// format: use Mark's nam feature code without the '-' prefix
-	sprintf(wrk_, "%c t"TIME_FORMAT" a%s n%s v%s",
+	sprintf(pt_->buffer(), "%c t"TIME_FORMAT" a%s n%s v%s",
 		type_,
-		round(s.clock()),
+		pt_->round(s.clock()),
 		var->owner()->name(),
 		var->name(),
 		var->value(tmp, 256));
-	dump();
+	pt_->dump();
+	callback();
+}
+
+void Trace::callback() 
+{
+	if (callback_) {
+		Tcl& tcl = Tcl::instance();
+		tcl.evalf("%s handle { %s }", name(), pt_->buffer());
+	}
 }
 
 //
@@ -408,10 +385,11 @@ DequeTrace::recv(Packet* p, Handler* h)
 {
 	// write the '-' event first
 	format(type_, src_, dst_, p);
-	dump();
-	namdump();
+	pt_->dump();
+	callback();
+	pt_->namdump();
 
-	if (namChan_ != 0) {
+	if (pt_->namchannel() != 0) {
 		hdr_cmn *th = hdr_cmn::access(p);
 		hdr_ip *iph = hdr_ip::access(p);
 		hdr_srm *sh = hdr_srm::access(p);
@@ -452,7 +430,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 		flags[5] = 0;
 #endif
 		
-		sprintf(nwrk_, 
+		sprintf(pt_->nbuffer(), 
 			"%c -t "TIME_FORMAT" -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",
 			'h',
 			Scheduler::instance().clock(),
@@ -468,7 +446,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 			dst_nodeaddr,
 			dst_portaddr,
 			-1, flags, sname);
-		namdump();
+		pt_->namdump();
 		delete [] src_nodeaddr;
 		delete [] src_portaddr;
 		delete [] dst_nodeaddr;
@@ -481,3 +459,4 @@ DequeTrace::recv(Packet* p, Handler* h)
 	else
 		send(p, h);
 }
+

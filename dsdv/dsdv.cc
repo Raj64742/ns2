@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.21 2000/09/01 03:04:09 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.22 2001/05/21 19:27:33 haldar Exp $
  */
 
 extern "C" {
@@ -82,8 +82,8 @@ trace (char *fmt,...)
     return;
 
   va_start (ap, fmt);
-  vsprintf (tracetarget->buffer (), fmt, ap);
-  tracetarget->dump ();
+  vsprintf (tracetarget->pt_->buffer (), fmt, ap);
+  tracetarget->pt_->dump ();
   va_end (ap);
 }
 

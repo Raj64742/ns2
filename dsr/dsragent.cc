@@ -36,7 +36,7 @@
  * Requires a radio model such that sendPacket returns true
  * iff the packet is recieved by the destination node.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/dsragent.cc,v 1.23 2001/02/07 10:25:36 yaxu Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsr/dsragent.cc,v 1.24 2001/05/21 19:27:33 haldar Exp $
  */ 
 
 #include <assert.h>
@@ -1768,8 +1768,8 @@ DSRAgent::trace(char* fmt, ...)
 
   if (verbose) {
       va_start(ap, fmt);
-      vsprintf(logtarget->buffer(), fmt, ap);
-      logtarget->dump();
+      vsprintf(logtarget->pt_->buffer(), fmt, ap);
+      logtarget->pt_->dump();
       va_end(ap);
   }
 }

@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* routecache.cc
-   $Id: routecache.cc,v 1.3 1999/08/28 22:21:26 yaxu Exp $
+   $Id: routecache.cc,v 1.4 2001/05/21 19:27:33 haldar Exp $
 
    handles routes
 */
@@ -130,8 +130,8 @@ RouteCache::trace(char* fmt, ...)
   if (!logtarget) return;
 
   va_start(ap, fmt);
-  vsprintf(logtarget->buffer(), fmt, ap);
-  logtarget->dump();
+  vsprintf(logtarget->pt_->buffer(), fmt, ap);
+  logtarget->pt_->dump();
   va_end(ap);
 }
 
