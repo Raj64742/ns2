@@ -1,12 +1,11 @@
 #
-# $Id: Makefile,v 1.16 2000/07/08 00:44:37 johnh Exp $
+# $Id: Makefile,v 1.17 2000/07/12 22:58:23 johnh Exp $
 #
 
 # by default, just assume latex2html is in the user's path
 LATEX2HTML=	latex2html
-PRE_PROCESS=	pre-process.pl
-POST_PROCESS=	post-process.pl
 L2H_WORKING_DIR = ./l2h
+WEB_TARGET_DIR = /nfs/web/isi.edu/htdocs/nsnam/ns/doc
 
 LATEX=          latex
 BIBTEX=         bibtex
@@ -49,19 +48,32 @@ FILES= \
 	namtrace.tex \
 	energymodel.tex
 
-all: everything.dvi everything.ps everything.html
+all: everything.dvi everything.ps.gz everything.html everything.pdf
 
-everything.html: $(FILES)
+html-pre-process:
 	$(RM) -rf $(L2H_WORKING_DIR)
 	mkdir $(L2H_WORKING_DIR)
 	$(CP) -r *.sty *.tex *.aux *.bib *.bbl *.log figures $(L2H_WORKING_DIR)
-	cd $(L2H_WORKING_DIR); 	../$(PRE_PROCESS) .; \
-		$(LATEX2HTML) -show_section_numbers everything.tex ; cd everything ; ../../$(POST_PROCESS) .;
-	$(RM) -rf $(L2H_WORKING_DIR)/everything/*.org
-	$(CP) -rf $(L2H_WORKING_DIR)/everything/* .
+	cd $(L2H_WORKING_DIR); 	../pre-process.pl .
+
+html-process:
+	cd $(L2H_WORKING_DIR); $(LATEX2HTML) -show_section_numbers everything.tex
+
+html-post-process:
+	cd $(L2H_WORKING_DIR); ../post-process.pl .
+
+everything.html: html-pre-process html-process html-post-process
+	@echo html results are in  $(L2H_WORKING_DIR)/everything
+
 
 everything.ps: $(FILES) everything.dvi
 	dvips -f everything >everything.ps
+
+everything.ps.gz: $(FILES) everything.dvi everything.ps
+	gzip < everything.ps >everything.ps.gz
+
+everything.pdf: $(FILES) everything.ps everything.pdf
+	ps2pdf everything.ps
 
 everything.dvi: $(FILES)
 	$(LATEX) everything
@@ -69,3 +81,8 @@ everything.dvi: $(FILES)
 
 gv: everything.ps $(FILES)
 	gv everything.ps
+
+ns-doc-auto: everything.ps.gz everything.html everything.pdf
+	cp everything.ps.gz everything.pdf  $(L2H_WORKING_DIR)/everything/*.{html,css,gif} $(WEB_TARGET_DIR)
+
+
