@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.30 1998/02/16 20:37:40 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.31 1998/03/06 21:19:32 haoboy Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -67,11 +67,11 @@ ErrorModel::ErrorModel() : Connector(), unit_(EU_PKT), ranvar_(0),
 	onlink_(0), enable_(1), firstTime_(1)
 {
 	bind("rate_", &rate_);
-	bind("errPkt_", &errByte_);
+	bind("errPkt_", &errPkt_);
 	bind("errByte_", &errByte_);
 	bind("errTime_", &errTime_);
 	bind("onlink_", &onlink_);
-	bind("enable_", &onlink_);
+	bind("enable_", &enable_);
 	bind("off_mac_", &off_mac_);
 }
 
