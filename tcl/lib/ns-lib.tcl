@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.98 1998/05/18 22:34:02 aswan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.99 1998/05/19 02:02:32 kfall Exp $
 
 #
 
@@ -118,6 +118,11 @@ Simulator instproc init args {
 	$self set nullAgent_ [new Agent/Null]
 	$self set-address-format def
 	eval $self next $args
+}
+
+Simulator instproc nullagent {} {
+	$self instvar nullAgent_
+	return $nullAgent_
 }
 
 Simulator instproc use-scheduler type {
