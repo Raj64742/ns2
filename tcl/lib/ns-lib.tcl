@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.45 1997/08/12 23:21:56 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.46 1997/08/27 19:20:36 kannan Exp $
 #
 
 #
@@ -178,6 +178,11 @@ Simulator instproc run args {
                 $q reset
         }
         return [$scheduler_ run]
+}
+
+Simulator instproc halt {} {
+	$self instvar scheduler_
+	$scheduler_ halt
 }
 
 Simulator set NumberInterfaces_ 0
