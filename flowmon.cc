@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.17 1999/09/09 03:22:37 salehi Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/flowmon.cc,v 1.18 2000/06/21 05:29:07 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -48,6 +48,8 @@ static const char rcsid[] =
 #include "queue-monitor.h"
 #include "classifier.h"
 #include "ip.h"
+#include "flags.h"
+#include "random.h"
 
 // for convenience, we need most of the stuff in a QueueMonitor
 // plus some flow info which looks like pkt header info
@@ -72,6 +74,7 @@ public:
 		fid_ = hdr->flowid();
 		type_ = chdr->ptype();
 	}
+	virtual void tagging(Packet *p) {}
 protected:
 	int		off_ip_;
 	nsaddr_t	src_;
@@ -79,6 +82,307 @@ protected:
 	int		fid_;
 	packet_t	type_;
 };
+
+/* TaggerTBFlow will use Token Bucket to check whehter the data flow stays in
+ * the pre-set profile and mark it as In or Out accordingly.
+ * By Yun Wang, based on Wenjia's algorithm.
+ */
+class TaggerTBFlow : public Flow {
+public:
+	TaggerTBFlow() : target_rate_(0.0), time_last_sent_(0.0),
+			total_in(0.0), total_out(0.0)
+	{
+		bind_bw("target_rate_", &target_rate_);
+		bind("bucket_depth_", &bucket_depth_);
+		bind("tbucket_", &tbucket_);
+		bind("off_flags_", &off_flags_);
+	}
+	void tagging(Packet *p) {
+	    hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+            double now = Scheduler::instance().clock();
+            double time_elapsed;
+
+            time_elapsed      = now - time_last_sent_;
+            tbucket_ += time_elapsed * target_rate_ / 8.0;
+            if (tbucket_ > bucket_depth_)
+                tbucket_ = bucket_depth_;         /* never overflow */
+
+      	    if ((double)hdr->size_ < tbucket_ ) {
+		((hdr_flags*)p->access(off_flags_))->pri_=1; //Tag the packet as In.
+          	tbucket_ -= hdr->size_;
+                total_in += 1;
+            }
+      	    else {
+                total_out += 1;
+      	    }
+	    time_last_sent_ = now;
+	}
+protected:
+	/* User defined parameters */
+	double	target_rate_;		//predefined flow rate in bytes/sec
+	double	bucket_depth_;		//depth of the token bucket
+
+	double 	tbucket_;
+	/* Dynamic state variables */
+	double 	time_last_sent_;
+	double	total_in;
+	double	total_out;
+	int 	off_flags_;
+};
+
+/* TaggerTSWFlow will use Time Slide Window to check whehter the data flow 
+ * stays in the pre-set profile and mark it as In or Out accordingly.
+ * By Yun Wang, based on Wenjia's algorithm.
+ */
+class TaggerTSWFlow : public Flow {
+public:
+	TaggerTSWFlow() : target_rate_(0.0), avg_rate_(0.0), 
+			t_front_(0.0), total_in(0.0), total_out(0.0) 
+	{
+		bind_bw("target_rate_", &target_rate_);
+		bind("win_len_", &win_len_);
+		bind_bool("wait_", &wait_);
+		bind("off_flags_", &off_flags_);
+	}
+	void tagging(Packet *);
+	void run_rate_estimator(Packet *p, double now){
+
+	        hdr_cmn* hdr = (hdr_cmn*)p->access(off_cmn_);
+		double bytes_in_tsw = avg_rate_ * win_len_;
+		double new_bytes    = bytes_in_tsw + hdr->size_;
+		avg_rate_ = new_bytes / (now - t_front_ + win_len_);
+		t_front_  = now;
+	}
+protected:
+	/* User-defined parameters. */
+	double	target_rate_;		//predefined flow rate in bytes/sec
+	double	win_len_;		//length of the slide window
+	double	avg_rate_;		//average rate
+	double	t_front_;
+	int	count;
+	int	wait_;
+
+	/* Counters for In/Out packets. */
+	double 	total_in;
+	double 	total_out;
+	int	off_flags_;
+};
+
+void TaggerTSWFlow::tagging(Packet *pkt)
+{
+        double now = Scheduler::instance().clock();;
+        double  p, prob, u;
+        int count1;
+        int retVal;
+
+        run_rate_estimator(pkt, now);
+
+        if (avg_rate_ <= target_rate_) {
+                prob = 0;
+                retVal = 0;
+        }
+        else {
+               prob = (avg_rate_ - target_rate_) / avg_rate_;
+               p    = prob;
+               count1 = count;
+
+               if ( p < 0.5) {
+                 if (wait_) {
+                   if (count1 * p < 1)
+                     p = 0;
+                   else if (count1 * p < 2)
+                     p /= (2 - count1 *p);
+                   else
+                     p = 1;
+                 }
+                 else if (!wait_) {
+                   if (count1 * p < 1)
+                     p /= (1 - count1 * p);
+                   else
+                     p = 1;
+                 }
+               }
+
+                u = Random::uniform();
+                if (u < p) {
+                    retVal = 1;
+                }
+                else
+                  retVal = 0;
+
+//                if (trace_) {
+//                  sprintf(trace_->buffer(), "Tagged prob %g, p %g, count %d",
+//                          prob, p, count1);
+//                  trace_->dump();
+//                }
+        }
+
+        if (retVal == 0) {
+            ((hdr_flags*)pkt->access(off_flags_))->pri_=1; //Tag the packet as In.
+            total_in = total_in + 1;
+            ++count;
+        }
+        else {
+            total_out = total_out + 1;
+            count = 0;
+        }
+};
+
+/* Tagger performes like the queue monitor with a classifier
+ * to demux by flow and mark the packets based on the flow profile
+ */
+class Tagger : public EDQueueMonitor {
+public:
+	Tagger() : classifier_(NULL), channel_(NULL) {}
+	void in(Packet *);
+	int command(int argc, const char*const* argv);
+protected:
+        void    dumpflows();
+        void    dumpflow(Tcl_Channel, Flow*);
+        void    fformat(Flow*);
+        char*   flow_list();
+
+        Classifier*     classifier_;
+        Tcl_Channel     channel_;
+
+        char    wrk_[2048];     // big enough to hold flow list
+};
+
+void
+Tagger::in(Packet *p)
+{
+        Flow* desc;
+        EDQueueMonitor::in(p);
+        if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
+                desc->setfields(p);
+		desc->tagging(p);
+                desc->in(p);
+        }
+} 
+
+void
+Tagger::dumpflows()
+{
+        register int i, j = classifier_->maxslot();
+        Flow* f;
+
+        for (i = 0; i <= j; i++) {
+                if ((f = (Flow*)classifier_->slot(i)) != NULL)
+                        dumpflow(channel_, f);
+        }
+}
+
+char*
+Tagger::flow_list()
+{
+        register const char* z;
+        register int i, j = classifier_->maxslot();
+        Flow* f;
+        register char* p = wrk_;
+        register char* q;
+        q = p + sizeof(wrk_) - 2;
+        *p = '\0';
+        for (i = 0; i <= j; i++) {
+                if ((f = (Flow*)classifier_->slot(i)) != NULL) {
+                        z = f->name();
+                        while (*z && p < q)
+                                *p++ = *z++;
+                        *p++ = ' ';
+                }
+                if (p >= q) {
+                        fprintf(stderr, "Tagger:: flow list exceeded working buffer\n");
+                        fprintf(stderr, "\t  recompile ns with larger Tagger::wrk_[] array\n");
+                        exit (1);
+                }
+        }
+        if (p != wrk_)
+                *--p = '\0';
+        return (wrk_);
+}
+
+void
+Tagger::fformat(Flow* f)
+{
+        double now = Scheduler::instance().clock();
+        sprintf(wrk_, "%8.3f %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+                now,            // 1: time
+                f->flowid(),    // 2: flowid
+                0,              // 3: category
+                f->ptype(),     // 4: type (from common header)
+                f->flowid(),    // 5: flowid (formerly class)
+                f->src(),       // 6: sender
+                f->dst(),       // 7: receiver
+                f->parrivals(), // 8: arrivals this flow (pkts)
+                f->barrivals(), // 9: arrivals this flow (bytes)
+                f->epdrops(),   // 10: early drops this flow (pkts)
+                f->ebdrops(),   // 11: early drops this flow (bytes)
+                parrivals(),    // 12: all arrivals (pkts)
+                barrivals(),    // 13: all arrivals (bytes)
+                epdrops(),      // 14: total early drops (pkts)
+                ebdrops(),      // 15: total early drops (bytes)
+                pdrops(),       // 16: total drops (pkts)
+                bdrops(),       // 17: total drops (bytes)
+                f->pdrops(),    // 18: drops this flow (pkts) [includes edrops]
+                f->bdrops()     // 19: drops this flow (bytes) [includes edrops]
+        );
+}
+
+void
+Tagger::dumpflow(Tcl_Channel tc, Flow* f)
+{
+        fformat(f);
+        if (tc != 0) {
+                int n = strlen(wrk_);
+                wrk_[n++] = '\n';
+                wrk_[n] = '\0';
+                (void)Tcl_Write(tc, wrk_, n);
+                wrk_[n-1] = '\0';
+        }
+}
+
+int
+Tagger::command(int argc, const char*const* argv)
+{
+        Tcl& tcl = Tcl::instance();
+        if (argc == 2) {
+                if (strcmp(argv[1], "classifier") == 0) {
+                        if (classifier_)
+                                tcl.resultf("%s", classifier_->name());
+                        else
+                                tcl.resultf("");
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "dump") == 0) {
+                        dumpflows();
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "flows") == 0) {
+                        tcl.result(flow_list());
+                        return (TCL_OK);
+                }
+        } else if (argc == 3) {
+                if (strcmp(argv[1], "classifier") == 0) {
+                        classifier_ = (Classifier*)
+                                TclObject::lookup(argv[2]);
+                        if (classifier_ == NULL)
+                                return (TCL_ERROR);
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "attach") == 0) {
+                        int mode;
+                        const char* id = argv[2];
+                        channel_ = Tcl_GetChannel(tcl.interp(),
+                                (char*) id, &mode);
+                        if (channel_ == NULL) {
+                                tcl.resultf("Tagger (%s): can't attach %s for writing",
+                                        name(), id);
+                                return (TCL_ERROR);
+                        }
+                        return (TCL_OK);
+                }
+        }
+        return (EDQueueMonitor::command(argc, argv));
+}
 
 /*
  * flow monitoring is performed like queue-monitoring with
@@ -312,3 +616,31 @@ static class FlowClass : public TclClass {
 		return (new Flow);
 	}
 } flow_class;
+
+/* Added by Yun Wang */
+static class TaggerTBFlowClass : public TclClass {
+ public:
+	TaggerTBFlowClass() : TclClass("QueueMonitor/ED/Flow/TB") {}
+	TclObject* create(int, const char*const*) {
+		return (new TaggerTBFlow);
+	}
+} flow_tb_class;
+
+/* Added by Yun Wang */
+static class TaggerTSWFlowClass : public TclClass {
+ public:
+	TaggerTSWFlowClass() : TclClass("QueueMonitor/ED/Flow/TSW") {}
+	TclObject* create(int, const char*const*) {
+		return (new TaggerTSWFlow);
+	}
+} flow_tsw_class;
+
+/* Added by Yun Wang */
+static class TaggerClass : public TclClass {
+ public:
+	TaggerClass() : TclClass("QueueMonitor/ED/Tagger") {}
+	TclObject* create(int, const char*const*) {
+		return (new Tagger);
+	}
+} tagger_class;
+
