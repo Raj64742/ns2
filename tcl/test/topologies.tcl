@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.11 1997/11/21 00:56:42 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.12 1998/05/05 03:40:24 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -385,6 +385,23 @@ Topology/net2 instproc init ns {
     $ns duplex-link-op $node_(s4) $node_(r2) orient left-up
 
     $self checkConfig $class $ns
+}
+
+Class Topology/net2-lossy -superclass Topology/net2
+Topology/net2-lossy instproc init ns {
+    $self next $ns
+    $self instvar node_
+
+    $self instvar lossylink_
+    set lossylink_ [$ns link $node_(r1) $node_(r2)]
+    set em [new ErrorModule Fid]
+    set errmodel [new ErrorModel/Periodic]
+    $errmodel unit pkt
+    $errmodel set offset_ 1.0
+    $errmodel set period_ 25.0
+    $lossylink_ errormodule $em
+    $em insert $errmodel
+    $em bind $errmodel 0
 }
 
 Class Topology/net2- -superclass Topology/net2
