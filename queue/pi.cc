@@ -63,7 +63,7 @@ public:
 } class_pi;
 
 
-PIQueue::PIQueue(const char * trace) : link_(NULL), bcount_(0), 
+PIQueue::PIQueue(const char * trace) : link_(NULL), 
   de_drop_(NULL), EDTrace(NULL), tchan_(0), first_reset_(1), CalcTimer(this)
 {
 	if (strlen(trace) >=20) {
@@ -100,7 +100,6 @@ void PIQueue::reset()
 	edv_.v_prob = 0;
 	edv_.qold = 0;
 	curq_ = 0;
-	bcount_ = 0;
 	calculate_p();
 	Queue::reset();
 }
@@ -115,7 +114,7 @@ void PIQueue::enque(Packet* pkt)
 
 	int droptype = DTYPE_NONE;
 
-	int qlen = qib_ ? bcount_ : q_->length();
+	int qlen = qib_ ? q_->byteLength() : q_->length();
 	curq_ = qlen;	// helps to trace queue during arrival, if enabled
 
 	int qlim = qib_ ? (qlim_ * edp_.mean_pktsize) : qlim_;
@@ -133,9 +132,7 @@ void PIQueue::enque(Packet* pkt)
 		Packet *pkt_to_drop = pickPacketForECN(pkt);
 		if (pkt_to_drop != pkt) {
 			q_->enque(pkt);
-			bcount_ += ch->size();
 			q_->remove(pkt_to_drop);
-			bcount_ -= hdr_cmn::access(pkt_to_drop)->size();
 			pkt = pkt_to_drop; /* XXX okay because pkt is not needed anymore */
 		}
 
@@ -149,11 +146,9 @@ void PIQueue::enque(Packet* pkt)
 		}
 	} else {
 		q_->enque(pkt);
-		bcount_ += ch->size();
 		if (droptype == DTYPE_FORCED) {
 			pkt = pickPacketToDrop();
 			q_->remove(pkt);
-			bcount_ -= hdr_cmn::access(pkt)->size();
 			drop(pkt);
 			edv_.count = 0;
 			edv_.count_bytes = 0;
@@ -166,7 +161,7 @@ double PIQueue::calculate_p()
 {
 	double now = Scheduler::instance().clock();
 	double p;
-	int qlen = qib_ ? bcount_ : q_->length();
+	int qlen = qib_ ? q_->byteLength() : q_->length();
 	
 	if (qib_) {
 		p=edp_.a*(qlen*1.0/edp_.mean_pktsize-edp_.qref)-
@@ -229,10 +224,7 @@ Packet* PIQueue::deque()
 {
 	Packet *p;
 	p = q_->deque();
-	if (p != 0) {
-		bcount_ -= hdr_cmn::access(p)->size();
-	} 
-	curq_ = qib_ ? bcount_ : q_->length(); // helps to trace queue during arrival, if enabled
+	curq_ = qib_ ? q_->byteLength() : q_->length(); // helps to trace queue during arrival, if enabled
 	return (p);
 }
 

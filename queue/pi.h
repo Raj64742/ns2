@@ -111,7 +111,6 @@ class PIQueue : public Queue {
 	int fifo_;		/* fifo queue? */
   PacketQueue *q_; 	/* underlying (usually) FIFO queue */
 		
-	int bcount_;	/* byte count */
 	int qib_;	/* bool: queue measured in bytes? */
 	NsObject* de_drop_;	/* drop_early target */
 
