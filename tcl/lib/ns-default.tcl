@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.122 1998/07/08 23:40:03 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.123 1998/07/20 21:17:20 kfall Exp $
 
 
 #
@@ -162,7 +162,6 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 
 	Agent/TCP/FullTcp/Newreno set recov_maxburst_ 2; # max burst dur recov
 
-	Agent/TCP/FullTcp/Sack set sack_option_ false; # don't use sacks
 	Agent/TCP/FullTcp/Sack set sack_block_size_ 8; # bytes in a SACK block
 	Agent/TCP/FullTcp/Sack set sack_option_size_ 2; # bytes in opt hdr
 	Agent/TCP/FullTcp/Sack set max_sack_blocks_ 3; # max # of sack blks
