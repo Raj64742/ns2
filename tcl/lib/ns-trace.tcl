@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.8 1997/08/13 05:24:17 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.9 1997/08/14 18:20:48 elan Exp $
 #
 
 
@@ -163,3 +163,8 @@ proc trace_annotate { s } {
 	puts $f [format "v %s %s {set sim_annotation {%s}}" [$ns now] eval $s]
 }
 
+proc flash_annotate { start duration msg } {
+	global ns
+	$ns at $start "trace_annotate {$msg}"
+	$ns at [expr $start+$duration] "trace_annotate {}"
+}
