@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.h,v 1.4 1997/05/13 22:27:56 polly Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ip.h,v 1.5 1997/07/24 00:06:43 kfall Exp $
  */
 
 /* a network layer; basically like IPv6 */
@@ -40,10 +40,6 @@
 #include "config.h"
 #include "packet.h"
 
-/* for interface code */
-#define interfaceLabel int
-
-#define	IP_ECN	0x01	/* ECN bit in flags below (experimental) */
 struct hdr_ip {
 	/* common to IPv{4,6} */
 	nsaddr_t	src_;
@@ -52,12 +48,8 @@ struct hdr_ip {
 	/* IPv6 */
 	int		fid_;	/* flow id */
 	int		prio_;
-#ifdef notdef
-	/* ns: experimental */
-	int		flags_;
-#endif
-        interfaceLabel  iface_;
 
+	/* per-field member acces functions */
 	nsaddr_t& src() {
 		return (src_);
 	}
@@ -74,16 +66,6 @@ struct hdr_ip {
 	int& prio() {
 		return (prio_);
 	}
-#ifdef notdef
-	/* experimental */
-	int& flags() {
-		return (flags_);
-	}
-#endif
-        interfaceLabel& iface() {
-	        return (iface_);
-	}
 };
-
   
 #endif
