@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.66 1999/09/09 03:22:55 salehi Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.67 1999/10/27 23:12:33 heideman Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -403,7 +403,7 @@ void Trace::trace(TracedVar* var)
 		round(s.clock()),
 		var->owner()->name(),
 		var->name(),
-		var->value(tmp));
+		var->value(tmp, 256));
 	dump();
 }
 

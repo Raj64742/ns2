@@ -18,7 +18,7 @@ Encapsulator::Encapsulator() :
 	bind("status_", &status_);
 	bind("off_encap_", &off_encap_);
 	bind("overhead_", &overhead_);
-};
+}
 
 int Encapsulator::command(int argc, const char*const* argv)
 {

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.61 1999/10/14 22:19:21 yuriy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.62 1999/10/27 23:12:33 heideman Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -208,7 +208,7 @@ void Agent::flushAVar(TracedVar *v)
 	int n;
 
 	// XXX we need to keep track of old values. What's the best way?
-	v->value(value);
+	v->value(value, 128);
 	if (strcmp(value, "") == 0) 
 		// no value, because no writes has occurred to this var
 		return;
@@ -273,7 +273,7 @@ void Agent::trace(TracedVar* v)
 	int n;
 
 	// XXX we need to keep track of old values. What's the best way?
-	v->value(value);
+	v->value(value, 128);
 
 	// XXX hack: how do I know ns has not started yet?
 	// if there's nothing in value, return
