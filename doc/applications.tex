@@ -328,6 +328,17 @@ parameterized as follows:
         $e set rate_ 100k
 \end{program}
 
+{\bf NOTE:} The Exponential On/Off generator can be configured to behave
+as a {\bf Poisson process} by setting the variable \code{burst_time_} to \code{0}
+and the variable \code{rate_} to a very large value.  The C++ code
+guarantees that even if the burst time is zero, at least one packet is
+sent.  Additionally, the next interarrival time is the sum of the
+assumed packet transmission time (governed by the variable \code{rate_}) and 
+the random variate corresponding to \code{idle_time_}.  
+Therefore, to make the first term in the sum very small, make the burst
+rate very large so that the transmission time is negligible compared to
+the typical idle times.
+
 \paragraph{Pareto On/Off}
 A Pareto On/Off object is embodied in the OTcl class Application/Traffic/Pareto.
 The member variables that parameterize this object are:
