@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.39 1997/07/22 09:02:57 padmanab Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.40 1997/07/25 19:25:29 kkumar Exp $
 #
 
 #
@@ -126,11 +126,18 @@ Simulator instproc dumper obj {
 	return $t
 }
 
+Simulator set EnableMcast_ 0
+Simulator set McastShift_ 15
+Simulator set McastAddr_ 0x8000
+
 Simulator instproc node {} {
 	$self instvar Node_
 	set node [new Node]
-	set Node_([$node id]) $node
-	return $node
+        set Node_([$node id]) $node
+        if [Simulator set EnableMcast_] {
+	    $node enable-mcast $self
+	}
+        return $node
 }
 
 Simulator instproc now {} {
