@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.15 1997/03/07 21:11:14 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.16 1997/03/09 00:10:21 tomh Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -58,6 +58,17 @@ OldSim instproc init args {
 			[lindex $args 0] == "queue-limit" } {
 			# this will recursively call ourself
 			$self set limit_ [lindex $args 1]
+			return
+		}
+		eval $self next $args
+	}
+	#
+	# Catch set maxpkts for FTP sources, which is now "produce maxpkts"
+	#
+	Source/FTP instproc set args {
+		if { [llength $args] == 2 &&
+			[lindex $args 0] == "maxpkts" } {
+			$self produce [lindex $args 1]
 			return
 		}
 		eval $self next $args
@@ -132,6 +143,9 @@ OldSim instproc init args {
 	TclObject set varMap_(srtt) srtt_
 	TclObject set varMap_(rttvar) rttvar_
 	TclObject set varMap_(backoff) backoff_
+
+	# FTP
+	TclObject set varMap_(maxpkts) maxpkts_
 
 	# Queue
 	TclObject set varMap_(limit) limit_
