@@ -277,13 +277,10 @@ Throughout this section
 the object variable name $ns 
 is used to imply a 
 Simulator object.
-
 .IP "\fB$ns node\fP"
 Create a new node object and return a handle to it.
-
 .IP "\fB$ns all-nodes-list\fP"
 Returns a list of all the node objects defined in the simulation.
-
 .IP "\fB$ns simplex-link\fI node1 node2 bw delay type\fP"
 Create a new unidirectional link between
 .I node1
@@ -342,7 +339,6 @@ setting Simulator NumberInterfaces_ variable to 1.
 All the subsequently created links will have interface labels.
 To disable creation of interfaces simply reset NumberInterfaces_ to 0
 (this is the default).
-
 .IP "\fB$ns duplex-link\fI node1 node2 bw delay type\fP"
 Create a new bidirectional link between
 .I node1
@@ -395,7 +391,6 @@ setting Simulator NumberInterfaces_ variable to 1.
 All the subsequently created links will have interface labels.
 To disable creation of interfaces simply reset NumberInterfaces_ to 0
 (this is the default).
-
 .IP "\fB$ns link\fI node1 node2\fP"
 Returns a reference to the link connecting nodes
 .I node1
@@ -404,7 +399,6 @@ and
 This is useful for 
 setting link configuration parameters
 and to invoke tracing methods (see LINK OBJECTS section).
-
 .IP "\fB$ns queue-limit\fI node1 node2 queue-limit\fP"
 Set the maximum number of packets
 that can be queued on the link
@@ -416,7 +410,6 @@ to
 .I queue-limit.
 The link between node1 and node2
 should have already been created.
-
 .IP "\fB$ns delay\fI node1 node2 time-interval\fP"
 Set the latency of the link
 in the direction from
@@ -428,7 +421,6 @@ to
 seconds.
 The link between node1 and node2
 should have already been created.
-
 .IP "\fB$ns cost \fI node1 node2 cost-val\fP"
 Assign the cost
 .I cost-val
@@ -440,7 +432,6 @@ The costs assigned to links
 are used in unicast route computations.
 All the links default
 to a cost of 1.
-
 .IP "\fBnew Agent/\fItype\fP"
 Create an Agent
 of type
@@ -479,7 +470,6 @@ Such agents need sources attached to them
 to generate data
 (see attach-source and attach-traffic methods 
 in AGENT OBJECTS section).
-
 .IP "\fB$ns attach-agent \fInode agent\fP"
 Attach the agent object
 .I agent
@@ -490,13 +480,11 @@ The
 and
 .I node
 objects should have already been created.
-
 .IP "\fB$ns detach-agent \fInode agent\fP"
 Detach the agent object
 .I agent
 from
 .I node.
-
 .IP "\fB$ns connect \fIsrc dst\fP"
 Establish a two-way connection between the agent
 .I src
@@ -511,7 +499,6 @@ facilitate creating and attaching an agent
 to each of two nodes
 and establishing a two-way connection between them.
 (see BUILTINS section).
-
 .IP "\fB$ns use-scheduler \fItype\fP"
 Use an event scheduler of type
 .I type
@@ -523,7 +510,6 @@ A Heap scheduler uses a heap for event queueing.
 A Calendar scheduler uses a calendar queue to keep track of events.
 RealTime scheduler is used in emulation mode when the simulator
 interacts with an external agent.
-
 .IP "\fB$ns at\fI time procedure\fP"
 Evaluate
 .I procedure
@@ -536,22 +522,18 @@ to start and stop sources,
 dynamically reconfigure the simulator,
 dump statistics at specified intervals, etc.
 Returns an event id.
-
 .IP "\fB$ns cancel \fIeid\fP"
 Remove the event specified by the event id
 .I eid
 from the event queue.
-
 .IP "\fB$ns now\fP"
 Return the current simulation time.
-
 .IP "\fB$ns gen-map\fP"
 Walks through the simulation topology
 and lists all the objects
 that have been created
 and the way they are hooked up to each other.
 This is useful to debug simulation scripts.
-
 .IP "\fBns-version\fP"
 Return a string identifying the version of ns currently running. 
 This method is executed in 
@@ -574,7 +556,6 @@ the global context
 by the interpreter.
 
 .SH "OBJECT HIERARCHY"
-
 A brief description of 
 the object hierarchy in
 .I ns
@@ -620,6 +601,9 @@ The following diagram depicts the object hierarchy:
           CBQ
           CBQ/WRR
     QueueMonitor
+          ED
+               Flowmon
+               Flow
     rtObject
     RouteLogic
     Agent
@@ -652,6 +636,7 @@ The following diagram depicts the object hierarchy:
                RTP [how is this diff from Agent/CBR/RTP]
     Source
           FTP
+          Telnet
     Traffic
           Expoo
           Pareto
@@ -690,6 +675,7 @@ For example,
 implies the tcp object class and all of its child classes.
 
 .SH "NODE OBJECTS"
+[NOTE: This section has not been verified to be up-to-date with the release.]
 .IP "\fB$node id\fP"
 Returns the node id.
 .IP "\fB$node neighbors\fP"
@@ -739,6 +725,7 @@ There are no state variables or configuration parameters
 specific to the node class.
 
 .SH "LINK OBJECTS"
+[NOTE: This section has not been verified to be up-to-date with the release.]
 .IP "\fB$link trace-dynamics \fIns fileID\fP"
 Trace the dynamics of this link
 and write the output to
@@ -751,6 +738,7 @@ that was created to invoke the simulation
 for the output trace format).
 
 .SH "SIMPLELINK OBJECTS"
+[NOTE: This section has not been verified to be up-to-date with the release.]
 .IP "\fB$link cost \fIcost-val\fP"
 Make 
 .I cost-val
@@ -761,6 +749,7 @@ Return the cost of this link.
 Any configuration parameters or state variables?
 
 .SH "DELAYLINK OBJECTS"
+[NOTE: This section has not been verified to be up-to-date with the release.]
 The DelayLink Objects determine
 the amount of time required for a packet to
 traverse a link.
@@ -1502,6 +1491,7 @@ Configuration parameters \fP
 Timeout value for the prune state at nodes.
 
 .SH "AGENT OBJECTS"
+[NOTE: This section has not been verified to be up-to-date with the release.]
 .IP "\fB$agent port\fP"
 Return the transport-level port of the agent.
 Ports are used to identify agents within a node.
@@ -1557,6 +1547,7 @@ There are no state variables specific to the generic agent class.
 .RE
 
 .SH "NULL OBJECTS"
+[NOTE: This section has not been verified to be up-to-date with the release.]
 Null objects are a subclass of agent objects that 
 implement a traffic sink.
 They inherit all of the generic agent object functionality.
@@ -1564,6 +1555,7 @@ There are no methods, configuration parameters or state variables
 specific to this object.
 
 .SH "LOSSMONITOR OBJECTS"
+[NOTE: This section has not been verified to be up-to-date with the release.]
 LossMonitor objects are a subclass of agent objects 
 that implement a traffic sink which also maintains some 
 statistics about the received data e.g.,
@@ -1927,6 +1919,7 @@ duplicates, when we should adjust parameters to decrease delay.
 .RE
 
 .SH "CONSTANT BIT-RATE OBJECTS"
+[NOTE: This section has not been verified to be up-to-date with the release.]
 CBR objects generate packets at a constant bit rate.
 They inherit all of the generic agent functionality.
 .IP "\fB$cbr start\fP"
@@ -2074,10 +2067,11 @@ packet is generated in microseconds.  The second indicates the length
 of the next packet in bytes.
 
 .SH "TRACE AND MONITORING METHODS"
+[NOTE: This section has not been verified to be up-to-date with the release.]
 Trace objects are used to generate event level capture logs typically
 to an output file. 
 Throughout this section $ns 
-refers to a Simulator/MultiSim object.
+refers to a Simulator object.
 
 .IP "\fB$ns create-trace \fItype fileID node1 node2\fP"
 Create a Trace object of type
@@ -2277,6 +2271,7 @@ There are no configuration parameters or state variables specific to
 this object. 
 
 .SH BUILTINS
+[NOTE: This section has not been verified to be up-to-date with the release.]
 Because
 .I OTcl
 is a full-fledged programming language, it is easy to build
@@ -2286,7 +2281,6 @@ are embedded into the ns interpreter
 as methods of the Simulator class.
 Throughout this section
 $ns represents a Simulator object.
-
 .IP "\fB$ns create-connection \fIsrcType srcNode dstType dstNode class\fP
 Create a source agent of type
 .I srcType
