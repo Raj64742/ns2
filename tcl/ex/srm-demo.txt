@@ -1,0 +1,24 @@
+"ns srm-demo.tcl": a Reliable Multicast demo using nam.
+From the change log: "a simple, completely contrived script to generate
+SRM-like sample paths to illustrate SRM".
+
+At time 1.0 a CBR source at node 14 starts sending (red packets) to
+group B, which has nodes 0-8 as members.
+Receivers are of type "Agent/Message/MC_Acker", and send an ACK (white
+packet) unicast to the source for every packet.
+
+Starting at time 1.5, receivers at nodes 0-8 are of type
+"Agent/Message/MC_Nacker", and send unicast NACK packets (blue)
+to the origin sender.
+Congestion is created by unicast connections (yellow packets),
+causing multicast packets to be dropped also.
+
+Starting at time 3.0, receivers at nodes 0-8 are of type
+"Agent/Message/MC_SRM" using deterministic behavior, and at a
+deterministic time send NACK/request packets multicast to the group.
+
+Starting at time 3.5, receivers at nodes 0-8 are now of type
+"Agent/Message/MC_SRM" using randomization.  Using randomization to
+determine when to sent a request, a receiver sends the
+request multicast to the group.
+
