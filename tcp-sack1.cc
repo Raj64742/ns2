@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.34 1998/11/30 18:10:29 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.35 1999/09/20 18:36:06 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -87,6 +87,10 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 	int ecnecho = hdr_flags::access(pkt)->ecnecho();
 	if (ecnecho && ecn_)
 		ecn(tcph->seqno());
+	/*
+	 * If DSACK is being used, check for DSACK blocks here.
+	 * Possibilities:  Check for unnecessary Fast Retransmits.
+	 */
 	if (!fastrecov_) {
 		/* normal... not fast recovery */
 		if ((int)tcph->seqno() > last_ack_) {
@@ -217,12 +221,23 @@ sack_action:
 	fastrecov_ = TRUE;
 	scb_.MarkRetran(highest_ack_+1);
 	output(last_ack_ + 1, TCP_REASON_DUPACK);	// from top
+	/*
+	 * If dynamically adjusting NUMDUPACKS, record information
+	 *  at this point.
+	 */
 	return;
 }
 
 void Sack1TcpAgent::timeout(int tno)
 {
 	if (tno == TCP_TIMER_RTX) {
+		/*
+		 * IF DSACK and dynamic adjustment of NUMDUPACKS,
+		 *  check whether a smaller value of NUMDUPACKS
+		 *  would have prevented this retransmit timeout.
+		 * If DSACK and detection of premature retransmit
+		 *  timeouts, then save some info here.
+		 */ 
 		dupacks_ = 0;
 		fastrecov_ = FALSE;
 		timeout_ = TRUE;
