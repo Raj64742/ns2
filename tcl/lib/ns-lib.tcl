@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.24 1997/04/10 19:31:23 padmanab Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.25 1997/04/24 03:17:19 kfall Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -53,6 +53,7 @@ source ns-default.tcl
 source ns-compat.tcl
 source ns-nam.tcl
 source ns-packet.tcl
+source ns-queue.tcl
 source ns-trace.tcl
 source ns-agent.tcl
 source ns-random.tcl
@@ -137,7 +138,12 @@ Simulator instproc simplex-link { n1 n2 bw delay type } {
 	set q [new Queue/$type]
 	$q drop-target $nullAgent_
 
-	set link_($sid:$did) [new SimpleLink $n1 $n2 $bw $delay $q]
+	#XXX yuck
+	if { $type == "CBQ" || $type == "CBQ/WRR" } {
+		set link_($sid:$did) [new CBQLink $n1 $n2 $bw $delay $q]
+	} else {
+		set link_($sid:$did) [new SimpleLink $n1 $n2 $bw $delay $q]
+	}
 	$n1 add-neighbor $n2
 
 	#XXX yuck
