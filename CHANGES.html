@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.468 2001/06/15 00:26:02 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.469 2001/06/16 01:27:29 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -16,6 +16,17 @@ with the most recent changes coming first.
 <hr>
 <h3>
 ns-2.1b9 release PENDING</h3>
+
+<li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
+Fri Jun 15 18:24:24 PDT 2001</li>
+<br>Adding code for the PI controller, a version of active queue
+management.
+The code is from Jitendra Padhye, based on the PI controller proposed
+by Hollot et. al., in the paper ``On Designing Improved Controllers 
+for AQM Routers Supporting TCP Flows'', in Infocom 2001.
+The validation test in "./test-all-pi" in "tcl/test". 
+The file "tcl/ex/picoeff.m" is a Matlab script for generating
+PI parameters.
 
 <li><b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
 Thu Jun 14 17:19:43 PDT 2001</li>
