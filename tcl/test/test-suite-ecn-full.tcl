@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.15 2003/01/16 17:11:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-full.tcl,v 1.16 2003/01/19 03:54:03 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -342,7 +342,7 @@ Test/ecn_nodrop_reno_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_nodrop_reno_full instproc run {} {
 	$self instvar ns_
@@ -360,7 +360,7 @@ Test/ecn_twoecn_reno_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_twoecn_reno_full instproc run {} {
 	$self instvar ns_ lossmodel
@@ -379,7 +379,7 @@ Test/ecn_drop_reno_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_drop_reno_full instproc run {} {
 	$self instvar ns_
@@ -397,7 +397,7 @@ Test/ecn_drop1_reno_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_drop1_reno_full instproc run {} {
 	$self instvar ns_
@@ -418,7 +418,7 @@ Test/ecn_noecn_reno_full instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_noecn_reno_full
 	Test/ecn_noecn_reno_full instproc run {} [Test/ecn_drop_reno_full info instbody run ]
-        $self next 2
+        $self next pktTraceFile
 }
 
 # Multiple dup acks with bugFix_
@@ -431,7 +431,7 @@ Test/ecn_bursty_reno_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_bursty_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_bursty_reno_full instproc run {} {
 	$self instvar ns_
@@ -453,7 +453,7 @@ Test/ecn_burstyEcn_reno_full instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_burstyEcn_reno_full
 	Test/ecn_burstyEcn_reno_full instproc run {} [Test/ecn_bursty_reno_full info instbody run ]   
-        $self next 2
+        $self next pktTraceFile
 }
 
 # Multiple dup acks without bugFix_
@@ -468,7 +468,7 @@ Test/ecn_noBugfix_reno_full instproc init {} {
         set test_	ecn_noBugfix_reno_full
 	Test/ecn_noBugfix_reno_full instproc run {} [Test/ecn_bursty_reno_full info instbody run ]
 
-        $self next 2
+        $self next pktTraceFile
 }
 
 # ECN followed by timeout.
@@ -480,7 +480,7 @@ Test/ecn_timeout_reno_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_timeout_reno_full instproc run {} {
 	$self instvar ns_
@@ -500,7 +500,7 @@ Test/ecn_timeout1_reno_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout1_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_timeout1_reno_full instproc run {} {
 	$self instvar ns_
@@ -519,7 +519,7 @@ Test/ecn_smallwin_reno_full instproc init {} {
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_smallwin_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_smallwin_reno_full instproc run {} {
 	$self instvar ns_
@@ -539,7 +539,7 @@ Test/ecn_smallwinEcn_reno_full instproc init {} {
 	Agent/TCP set bugFix_ true
 	Agent/TCP set rfc2988_ true
         set test_	ecn_smallwinEcn_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_smallwinEcn_reno_full instproc run {} {
 	$self instvar ns_ errmodel1
@@ -559,7 +559,7 @@ Test/ecn_secondpkt_reno_full instproc init {} {
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_secondpkt_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_secondpkt_reno_full instproc run {} {
 	$self instvar ns_
@@ -578,7 +578,7 @@ Test/ecn_secondpktEcn_reno_full instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_secondpktEcn_reno_full
-        $self next 2
+        $self next pktTraceFile
 }
 Test/ecn_secondpktEcn_reno_full instproc run {} {
 	$self instvar ns_ errmodel1

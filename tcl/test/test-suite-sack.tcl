@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.21 2003/01/16 17:11:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.22 2003/01/19 03:54:04 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -205,7 +205,7 @@ Test/sack1 instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sack1 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -229,7 +229,7 @@ Test/sack1z instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1z
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sack1z instproc run {} {
     $self instvar ns_ node_ testName_
@@ -255,7 +255,7 @@ Test/sack1a instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1a
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sack1a instproc run {} {
     $self instvar ns_ node_ testName_
@@ -280,7 +280,7 @@ Test/sack1aa instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1aa
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sack1aa instproc run {} {
     $self instvar ns_ node_ testName_
@@ -305,7 +305,7 @@ Test/sack1b instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1b
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sack1b instproc run {} {
     $self instvar ns_ node_ testName_
@@ -328,7 +328,7 @@ Test/sack1c instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack1c
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sack1c instproc run {} {
     $self instvar ns_ node_ testName_
@@ -352,7 +352,7 @@ Test/sack3 instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sack3
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sack3 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -387,7 +387,7 @@ Test/sack5 instproc init {} {
     $self instvar net_ test_
     set net_	net1
     set test_	sack5
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sack5 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -423,7 +423,7 @@ Test/sack5a instproc init {} {
     $self instvar net_ test_
     set net_	net1
     set test_	sack5a
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sack5a instproc run {} {
     $self instvar ns_ node_ testName_
@@ -461,7 +461,7 @@ Test/sackB2 instproc init {} {
     $self instvar net_ test_
     set net_	net0
     set test_	sackB2
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sackB2 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -494,7 +494,7 @@ Test/sackB4 instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	sackB4
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sackB4 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -520,7 +520,7 @@ Test/sackB4a instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	sackB4a
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sackB4a instproc run {} {
     $self instvar ns_ node_ testName_
@@ -548,7 +548,7 @@ Test/FalsePipe instproc init {} {
     $self instvar net_ test_
     set net_ net3
     set test_ FalsePipe
-    $self next 2
+    $self next pktTraceFile
 }
 
 Test/FalsePipe instproc run {} {
@@ -576,7 +576,7 @@ Test/FalsePipe1 instproc init {} {
     $self instvar net_ test_
     set net_ net3
     set test_ FalsePipe1
-    $self next 2
+    $self next pktTraceFile
 }
 
 Test/FalsePipe1 instproc run {} {
@@ -603,7 +603,7 @@ Test/sack_dupacks instproc init {} {
     $self instvar net_ test_
     set net_	net4
     set test_	sack_dupacks
-    $self next 2
+    $self next pktTraceFile
 }
 Test/sack_dupacks instproc run {} {
     $self instvar ns_ node_ testName_
@@ -632,7 +632,7 @@ Test/sack_dupacks1 instproc init {} {
     set test_	sack_dupacks1
     Agent/TCP set numdupacksFrac_ 4
     Test/sack_dupacks1 instproc run {} [Test/sack_dupacks info instbody run] 
-    $self next 2
+    $self next pktTraceFile
 }
 
 # delayed ack not implemented yet
@@ -641,7 +641,7 @@ Test/sack_dupacks1 instproc init {} {
 #    $self instvar net_ test_
 #    set net_    net0
 #    set test_	delayedSack
-#    $self next 2
+#    $self next pktTraceFile
 #}
 #Test/delayedSack instproc run {} {
 #     $self instvar ns_ node_ testName_
@@ -668,7 +668,7 @@ Test/sack_dupacks1 instproc init {} {
 #    $self instvar net_ test_
 #    set net_	net0
 #    set test_	phaseSack
-#    $self next 2
+#    $self next pktTraceFile
 #}
 #Test/phaseSack instproc run {} {
 #    $self instvar ns_ node_ testName_
@@ -704,7 +704,7 @@ Test/sack_dupacks1 instproc init {} {
 #    $self instvar net_ test_
 #    set net_	net0
 #    set test_	phaseSack2
-#    $self next 2
+#    $self next pktTraceFile
 #}
 #Test/phaseSack2 instproc run {} {
 #    $self instvar ns_ node_ testName_
@@ -742,7 +742,7 @@ Test/sack_dupacks1 instproc init {} {
 #    $self instvar net_ test_
 #    set net_	net0
 #    set test_	phaseSack3
-#    $self next 2
+#    $self next pktTraceFile
 #}
 #Test/phaseSack3 instproc run {} {
 #    $self instvar ns_ node_ testName_
@@ -779,7 +779,7 @@ Test/sack_dupacks1 instproc init {} {
 #    $self instvar net_ test_
 #    set net_	net0
 #    set test_	timersSack
-#    $self next 2
+#    $self next pktTraceFile
 #}
 #Test/timersSack instproc run {} {
 #     $self instvar ns_ node_ testName_

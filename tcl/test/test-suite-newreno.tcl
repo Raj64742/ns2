@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.13 2003/01/16 17:11:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.14 2003/01/19 03:54:03 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -229,7 +229,7 @@ Test/reno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	reno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/reno instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -241,7 +241,7 @@ Test/reno instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	reno_bugfix
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/reno_bugfix instproc run {} {
 # 	Agent/TCP set bugFix_ true
@@ -253,7 +253,7 @@ Test/newreno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	newreno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -265,7 +265,7 @@ Test/newreno instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	newreno_bugfix
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/newreno_bugfix instproc run {} {
 # 	Agent/TCP set bugFix_ true
@@ -277,7 +277,7 @@ Test/newreno instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	newreno_A
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/newreno_A instproc run {} {
 # 	Agent/TCP set bugFix_ false
@@ -290,7 +290,7 @@ Test/newreno instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	newreno_bugfix_A
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/newreno_bugfix_A instproc run {} {
 # 	Agent/TCP set bugFix_ true
@@ -303,7 +303,7 @@ Test/newreno_B instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	newreno_B
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno_B instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -323,7 +323,7 @@ Test/reno1 instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	reno1
-	$self next 2
+	$self next pktTraceFile
 }
 Test/reno1 instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -335,7 +335,7 @@ Test/reno1 instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	reno1_bugfix
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/reno1_bugfix instproc run {} {
 # 	Agent/TCP set bugFix_ true
@@ -347,7 +347,7 @@ Test/newreno1 instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	newreno1
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno1 instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -359,7 +359,7 @@ Test/newreno1 instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	newreno1_bugfix
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/newreno1_bugfix instproc run {} {
 # 	Agent/TCP set bugFix_ true
@@ -371,7 +371,7 @@ Test/newreno1_A instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	newreno1_A
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno1_A instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -384,7 +384,7 @@ Test/newreno1_A instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	newreno1_A_bugfix
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/newreno1_A_bugfix instproc run {} {
 # 	Agent/TCP set bugFix_ true
@@ -397,7 +397,7 @@ Test/newreno1_B0 instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	newreno1_B0
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno1_B0 instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -411,7 +411,7 @@ Test/newreno1_B instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	newreno1_B
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno1_B instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -430,7 +430,7 @@ Test/reno2 instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	reno2
-	$self next 2
+	$self next pktTraceFile
 }
 Test/reno2 instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -442,7 +442,7 @@ Test/reno2_bugfix instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	reno2_bugfix
-	$self next 2
+	$self next pktTraceFile
 }
 Test/reno2_bugfix instproc run {} {
 	Agent/TCP set bugFix_ true
@@ -455,7 +455,7 @@ Test/newreno2_A instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	newreno2_A
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno2_A instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -468,7 +468,7 @@ Test/newreno2_A_bugfix instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	newreno2_A_bugfix
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno2_A_bugfix instproc run {} {
 	Agent/TCP set bugFix_ true
@@ -481,7 +481,7 @@ Test/newreno2_B instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	newreno2_B
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno2_B instproc run {} {
 	Agent/TCP set bugFix_ false
@@ -496,7 +496,7 @@ Test/newreno2_B_bugfix instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	newreno2_B_bugfix
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno2_B_bugfix instproc run {} {
 	Agent/TCP set bugFix_ true
@@ -511,7 +511,7 @@ Test/newreno2_B_bugfix instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	newreno3
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/newreno3 instproc run {} {
 # 	Agent/TCP set bugFix_ false
@@ -523,7 +523,7 @@ Test/newreno2_B_bugfix instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	newreno3_bugfix
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/newreno3_bugfix instproc run {} {
 # 	Agent/TCP set bugFix_ true
@@ -535,7 +535,7 @@ Test/newreno2_B_bugfix instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	newreno4_A
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/newreno4_A instproc run {} {
 # 	Agent/TCP set bugFix_ false
@@ -548,7 +548,7 @@ Test/newreno2_B_bugfix instproc run {} {
 # 	$self instvar net_ test_
 # 	set net_	net4
 # 	set test_	newreno4_A_bugfix
-# 	$self next 2
+# 	$self next pktTraceFile
 # }
 # Test/newreno4_A_bugfix instproc run {} {
 # 	Agent/TCP set bugFix_ true

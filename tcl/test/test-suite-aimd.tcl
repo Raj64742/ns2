@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.17 2003/01/16 17:11:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.18 2003/01/19 03:54:03 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -117,7 +117,7 @@ Test/tcp instproc init {} {
     set guide_	"Sack TCP."
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
-    $self next 2
+    $self next pktTraceFile
 }
 Test/tcp instproc run {} {
     global quiet
@@ -169,7 +169,7 @@ Test/tcpA instproc init {} {
     Agent/TCP set increase_num_ 0.41
     Agent/TCP set decrease_num_ 0.75
     Test/tcpA instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/tcpA_precise -superclass TestSuite
@@ -185,7 +185,7 @@ Test/tcpA_precise instproc init {} {
     Agent/TCP set decrease_num_ 0.75
     Agent/TCP set precisionReduce_ true
     Test/tcpA_precise instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/tcpB -superclass TestSuite
@@ -200,7 +200,7 @@ Test/tcpB instproc init {} {
     Agent/TCP set increase_num_ 1.0
     Agent/TCP set decrease_num_ 0.875
     Test/tcpB instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 TestSuite instproc emod {} {
@@ -245,7 +245,7 @@ Test/ssthresh instproc init {} {
     set guide_	"Retransmit Timeout with Sack TCP."
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
-    $self next 2
+    $self next pktTraceFile
 }
 Test/ssthresh instproc run {} {
     global quiet
@@ -291,7 +291,7 @@ Test/ssthreshA instproc init {} {
     Agent/TCP set increase_num_ 0.41
     Agent/TCP set decrease_num_ 0.75
     Test/ssthreshA instproc run {} [Test/ssthresh info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 # Second retransmit timeout, ssthresh_second decrease depends on decrease_num_.
@@ -303,7 +303,7 @@ Test/ssthresh_second instproc init {} {
     set guide_	"Two Retransmit Timeouts with Sack TCP."
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
-    $self next 2
+    $self next pktTraceFile
 }
 Test/ssthresh_second instproc run {} {
     global quiet
@@ -349,7 +349,7 @@ Test/ssthresh_secondA instproc init {} {
     Agent/TCP set increase_num_ 0.41
     Agent/TCP set decrease_num_ 0.75
     Test/ssthresh_secondA instproc run {} [Test/ssthresh_second info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 ###################################################3
@@ -363,7 +363,7 @@ Test/tcp_tahoe instproc init {} {
     set sender_ TCP
     set receiver_ TCPSink
     Test/tcp_tahoe instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 Class Test/tcpA_tahoe -superclass TestSuite
 Test/tcpA_tahoe instproc init {} {
@@ -376,7 +376,7 @@ Test/tcpA_tahoe instproc init {} {
     Agent/TCP set increase_num_ 0.41
     Agent/TCP set decrease_num_ 0.75
     Test/tcpA_tahoe instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 Class Test/tcpA_precise_tahoe -superclass TestSuite
 Test/tcpA_precise_tahoe instproc init {} {
@@ -391,7 +391,7 @@ Test/tcpA_precise_tahoe instproc init {} {
     Agent/TCP set decrease_num_ 0.75
     Agent/TCP set precisionReduce_ true
     Test/tcpA_precise_tahoe instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/tcp_reno -superclass TestSuite
@@ -403,7 +403,7 @@ Test/tcp_reno instproc init {} {
     set sender_ TCP/Reno
     set receiver_ TCPSink
     Test/tcp_reno instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 Class Test/tcpA_reno -superclass TestSuite
 Test/tcpA_reno instproc init {} {
@@ -416,7 +416,7 @@ Test/tcpA_reno instproc init {} {
     Agent/TCP set increase_num_ 0.41
     Agent/TCP set decrease_num_ 0.75
     Test/tcpA_reno instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 Class Test/tcpA_precise_reno -superclass TestSuite
 Test/tcpA_precise_reno instproc init {} {
@@ -431,7 +431,7 @@ Test/tcpA_precise_reno instproc init {} {
     Agent/TCP set decrease_num_ 0.75
     Agent/TCP set precisionReduce_ true
     Test/tcpA_precise_reno instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/tcp_newreno -superclass TestSuite
@@ -443,7 +443,7 @@ Test/tcp_newreno instproc init {} {
     set sender_ TCP/Newreno
     set receiver_ TCPSink
     Test/tcp_newreno instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 Class Test/tcpA_newreno -superclass TestSuite
 Test/tcpA_newreno instproc init {} {
@@ -456,7 +456,7 @@ Test/tcpA_newreno instproc init {} {
     Agent/TCP set increase_num_ 0.41
     Agent/TCP set decrease_num_ 0.75
     Test/tcpA_newreno instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 Class Test/tcpA_precise_newreno -superclass TestSuite
 Test/tcpA_precise_newreno instproc init {} {
@@ -471,7 +471,7 @@ Test/tcpA_precise_newreno instproc init {} {
     Agent/TCP set decrease_num_ 0.75
     Agent/TCP set precisionReduce_ true
     Test/tcpA_precise_newreno instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 ############################################################
@@ -492,7 +492,7 @@ Test/binomial1 instproc init {} {
     Agent/TCP set l_parameter_ 0.0
     Agent/TCP set windowOption_ 6
     Test/binomial1 instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 # SQRT, Square Root
@@ -510,7 +510,7 @@ Test/binomial2 instproc init {} {
     Agent/TCP set l_parameter_ 0.5
     Agent/TCP set windowOption_ 6
     Test/binomial2 instproc run {} [Test/tcp info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 TestSuite runTest 

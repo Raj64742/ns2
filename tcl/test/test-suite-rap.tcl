@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rap.tcl,v 1.5 2003/01/16 17:11:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rap.tcl,v 1.6 2003/01/19 03:54:03 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -138,7 +138,7 @@ Test/onedrop_rap instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_rap
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_rap instproc run {} {
         $self setup RAP {14}
@@ -153,7 +153,7 @@ Test/twodrops_rap instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_rap
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_rap instproc run {} {
         $self setup RAP {14 28}
@@ -169,7 +169,7 @@ Test/threedrops_rap instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_rap
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_rap instproc run {} {
         $self setup RAP {14 26 28}
@@ -184,7 +184,7 @@ Test/fourdrops_rap instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_rap
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_rap instproc run {} {
         $self setup RAP {14 24 26 28}
@@ -200,7 +200,7 @@ Test/diff_decrease_rap instproc init {} {
 	set net_	net4
 	set test_	diff_decrease_rap
 	Agent/RAP set beta_ 0.875
-	$self next 2
+	$self next pktTraceFile
 }
 Test/diff_decrease_rap instproc run {} {
         $self setup RAP {14}
@@ -216,7 +216,7 @@ Test/diff_increase_rap instproc init {} {
 	set net_	net4
 	set test_	diff_increase_rap
 	Agent/RAP set alpha_ 0.2
-	$self next 2
+	$self next pktTraceFile
 }
 Test/diff_increase_rap instproc run {} {
         $self setup RAP {14}

@@ -201,7 +201,7 @@ Test/gk1 instproc init {} {
     Agent/TCP set ecn_ 1
     set net_	net2
     set test_	ecn
-    $self next 2
+    $self next pktTraceFile
 }
 Test/gk1 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -241,7 +241,7 @@ Test/gk2 instproc init {} {
     $self instvar net_ test_
     set net_	net3
     set test_	gk2
-    $self next 2
+    $self next pktTraceFile
 }
 Test/gk2 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -281,7 +281,7 @@ Test/gk_twoway instproc init {} {
     $self instvar net_ test_
     set net_	net3
     set test_	gk_twoway
-    $self next 2
+    $self next pktTraceFile
 }
 Test/gk_twoway instproc run {} {
     $self instvar ns_ node_ testName_

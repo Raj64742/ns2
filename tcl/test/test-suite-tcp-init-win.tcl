@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.22 2003/01/16 17:11:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win.tcl,v 1.23 2003/01/19 03:54:04 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -220,7 +220,7 @@ Test/tahoe1 instproc init {} {
 	$self instvar net_ test_ 
 	set net_	net6
 	set test_	tahoe1(variable_packet_sizes)
-        $self next 2
+        $self next pktTraceFile
 }
 Test/tahoe1 instproc run {} {
         $self instvar ns_ node_ testName_
@@ -242,7 +242,7 @@ Test/tahoe2 instproc init {} {
 	$self instvar net_ test_
 	set net_	net6
 	set test_	tahoe2(static_initial_windows)
-	$self next 2
+	$self next pktTraceFile
 }
 Test/tahoe2 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -264,7 +264,7 @@ Test/tahoe3 instproc init {} {
 	$self instvar net_ test_ 
 	set net_	net6
 	set test_	tahoe3(dropped_syn)
-        $self next 2
+        $self next pktTraceFile
 }
 
 ## Drop the n-th packet for flow on link.
@@ -297,7 +297,7 @@ Test/tahoe4 instproc init {} {
 	set net_	net7
 	set test_	tahoe4(fast_retransmit)
 	Queue/RED set ns1_compat_ true
-	$self next 2
+	$self next pktTraceFile
 }
 Test/tahoe4 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -317,7 +317,7 @@ Test/reno1 instproc init {} {
 	$self instvar net_ test_ 
 	set net_	net6
 	set test_	reno1(variable_packet_sizes)
-        $self next 2
+        $self next pktTraceFile
 }
 Test/reno1 instproc run {} {
         $self instvar ns_ node_ testName_
@@ -339,7 +339,7 @@ Test/reno2 instproc init {} {
 	$self instvar net_ test_
 	set net_	net6
 	set test_	reno2(static_initial_windows)
-	$self next 2
+	$self next pktTraceFile
 }
 Test/reno2 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -361,7 +361,7 @@ Test/reno3 instproc init {} {
 	$self instvar net_ test_ 
 	set net_	net6
 	set test_	reno3(dropped_syn)
-        $self next 2
+        $self next pktTraceFile
 }
 
 ## Drop the n-th packet for flow on link.
@@ -394,7 +394,7 @@ Test/reno4 instproc init {} {
 	set net_	net7
 	set test_	reno4(fast_retransmit)
 	Queue/RED set ns1_compat_ true
-	$self next 2
+	$self next pktTraceFile
 }
 Test/reno4 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -415,7 +415,7 @@ Test/newreno1 instproc init {} {
 	$self instvar net_ test_ 
 	set net_	net6
 	set test_	newreno1(variable_packet_sizes)
-        $self next 2
+        $self next pktTraceFile
 }
 Test/newreno1 instproc run {} {
         $self instvar ns_ node_ testName_
@@ -437,7 +437,7 @@ Test/newreno2 instproc init {} {
 	$self instvar net_ test_
 	set net_	net6
 	set test_	newreno2(static_initial_windows)
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno2 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -459,7 +459,7 @@ Test/newreno3 instproc init {} {
 	$self instvar net_ test_ 
 	set net_	net6
 	set test_	newreno3(dropped_syn)
-        $self next 2
+        $self next pktTraceFile
 }
 
 ## Drop the n-th packet for flow on link.
@@ -492,7 +492,7 @@ Test/newreno4 instproc init {} {
 	set net_	net7
 	set test_	newreno4(fast_retransmit)
 	Queue/RED set ns1_compat_ true
-	$self next 2
+	$self next pktTraceFile
 }
 Test/newreno4 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -514,7 +514,7 @@ Test/sack1 instproc init {} {
 	$self instvar net_ test_ 
 	set net_	net6
 	set test_	sack1(variable_packet_sizes)
-        $self next 2
+        $self next pktTraceFile
 }
 Test/sack1 instproc run {} {
         $self instvar ns_ node_ testName_
@@ -536,7 +536,7 @@ Test/sack2 instproc init {} {
 	$self instvar net_ test_
 	set net_	net6
 	set test_	sack2(static_initial_windows)
-	$self next 2
+	$self next pktTraceFile
 }
 Test/sack2 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -558,7 +558,7 @@ Test/sack3 instproc init {} {
 	$self instvar net_ test_ 
 	set net_	net6
 	set test_	sack3(dropped_syn)
-        $self next 2
+        $self next pktTraceFile
 }
 
 ## Drop the n-th packet for flow on link.
@@ -591,7 +591,7 @@ Test/sack4 instproc init {} {
 	set net_	net7
 	set test_	sack4(fast_retransmit)
 	Queue/RED set ns1_compat_ true
-	$self next 2
+	$self next pktTraceFile
 }
 Test/sack4 instproc run {} {
 	$self instvar ns_ node_ testName_
@@ -638,7 +638,7 @@ Test/slowLink instproc init {} {
 	set net_	net8
 	set test_	slowLink(9.6K-link,1000-byte-pkt)
         set plotacks true
-        $self next 2
+        $self next pktTraceFile
 }
 
 Test/slowLink instproc run {} {
@@ -663,7 +663,7 @@ Test/slowLink instproc run {} {
 # 	set net_	net8
 # 	set test_	slowLinkDelayAck(9.6K-link,1000-byte-pkt)
 #         set plotacks true
-#         $self next 2
+#         $self next pktTraceFile
 # }
 # 
 # Test/slowLinkDelayAck instproc run {} {
@@ -688,7 +688,7 @@ Test/slowLink1 instproc init {} {
 	set net_	net8
 	set test_	slowLink1(9.6K-link,1500-byte-pkt)
         set plotacks true
-        $self next 2
+        $self next pktTraceFile
 }
 
 Test/slowLink1 instproc run {} {
@@ -713,7 +713,7 @@ Test/slowLink2 instproc init {} {
 	set net_	net8
 	set test_	slowLink2(9.6K-link,1500-byte-pkt)
         set plotacks true
-        $self next 2
+        $self next pktTraceFile
 }
 
 Test/slowLink2 instproc run {} {

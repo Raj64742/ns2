@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.12 2003/01/16 17:11:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.13 2003/01/19 03:54:03 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -135,7 +135,7 @@ Test/links instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	links
-	$self next 2
+	$self next pktTraceFile
 }
 Test/links instproc run {} {
 	global wrap wrap1
@@ -164,7 +164,7 @@ Test/changeDelay instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	changeDelay
-	$self next 2
+	$self next pktTraceFile
 }
 Test/changeDelay instproc run {} {
 	global wrap wrap1
@@ -195,7 +195,7 @@ Test/links1 instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	links1
-	$self next 2
+	$self next pktTraceFile
 }
 Test/links1 instproc run {} {
 	global wrap wrap1
@@ -220,7 +220,7 @@ Test/changeBandwidth instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	changeBandwidth
-	$self next 2
+	$self next pktTraceFile
 }
 Test/changeBandwidth instproc run {} {
 	global wrap wrap1
@@ -252,7 +252,7 @@ Test/dropPacket instproc init {} {
 	set net_	net4
 	set test_	dropPacket
 	Agent/TCP set minrto_ 1
-	$self next 2
+	$self next pktTraceFile
 }
 Test/dropPacket instproc run {} {
 	global wrap wrap1
@@ -286,7 +286,7 @@ Test/delayPacket instproc init {} {
 	ErrorModel set drop_ false
 	ErrorModel set delay_ 0.3
 	Test/delayPacket instproc run {} [Test/dropPacket info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 TestSuite runTest

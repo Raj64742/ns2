@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.11 2003/01/16 17:11:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.12 2003/01/19 03:54:04 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -116,7 +116,7 @@ Test/tcp instproc init {} {
     set guide_	"Sack TCP, bad queue."
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
-    $self next 0
+    $self next noTraceFiles
 }
 Test/tcp instproc run {} {
     global quiet
@@ -157,7 +157,7 @@ Test/tcpHighspeed instproc init {} {
     set receiver_ TCPSink/Sack1 
     Agent/TCP set windowOption_ 8
     Test/tcpHighspeed instproc run {} [Test/tcp info instbody run ]
-    $self next 0
+    $self next noTraceFiles
 }
 
 Class Test/tcp1 -superclass TestSuite
@@ -169,7 +169,7 @@ Test/tcp1 instproc init {} {
     set sender_ TCP/Sack1
     set receiver_ TCPSink/Sack1 
     Test/tcp1 instproc run {} [Test/tcp info instbody run ]
-    $self next 0
+    $self next noTraceFiles
 }
 Class Test/tcp1A -superclass TestSuite
 Test/tcp1A instproc init {} {
@@ -181,7 +181,7 @@ Test/tcp1A instproc init {} {
     set receiver_ TCPSink/Sack1 
     Agent/TCP set max_ssthresh_ 100
     Test/tcp1A instproc run {} [Test/tcp info instbody run ]
-    $self next 0
+    $self next noTraceFiles
 }
 
 ## tcpHighspeed1 uses max_ssthresh_.
@@ -196,7 +196,7 @@ Test/tcpHighspeed1 instproc init {} {
     Agent/TCP set windowOption_ 8
     Agent/TCP set max_ssthresh_ 100
     Test/tcpHighspeed1 instproc run {} [Test/tcp info instbody run ]
-    $self next 0
+    $self next noTraceFiles
 }
 
 ## tcpHighspeed2 uses a different value for low_window_.
@@ -211,7 +211,7 @@ Test/tcpHighspeed2 instproc init {} {
     Agent/TCP set windowOption_ 8
     Agent/TCP set low_window_ 25
     Test/tcpHighspeed2 instproc run {} [Test/tcp info instbody run ]
-    $self next 0
+    $self next noTraceFiles
 }
 
 ## tcpHighspeed3 uses different values for high_p_ and high_decrease_,
@@ -229,7 +229,7 @@ Test/tcpHighspeed3 instproc init {} {
     Agent/TCP set high_p_ 0.00000001
     Agent/TCP set high_decrease_ 0.5
     Test/tcpHighspeed3 instproc run {} [Test/tcp info instbody run ]
-    $self next 0
+    $self next noTraceFiles
 }
 
 ## tcpHighspeed4 uses different values for the response function.
@@ -246,7 +246,7 @@ Test/tcpHighspeed4 instproc init {} {
     Agent/TCP set high_p_ 0.0000001
     Agent/TCP set high_decrease_ 0.25
     Test/tcpHighspeed4 instproc run {} [Test/tcp info instbody run ]
-    $self next 0
+    $self next noTraceFiles
 }
 
 ## tcpHighspeed5 uses different values for the response function.
@@ -264,7 +264,7 @@ Test/tcpHighspeed5 instproc init {} {
     Agent/TCP set high_p_ 0.000001
     Agent/TCP set high_decrease_ 0.1
     Test/tcpHighspeed5 instproc run {} [Test/tcp info instbody run ]
-    $self next 0
+    $self next noTraceFiles
 }
 
 ## tcpHighspeed6 computes the increase and decrease parameters
@@ -281,7 +281,7 @@ Test/tcpHighspeed6 instproc init {} {
     Agent/TCP set max_ssthresh_ 100
     Agent/TCP set cwnd_frac_ 1.1
     Test/tcpHighspeed6 instproc run {} [Test/tcp info instbody run ]
-    $self next 0
+    $self next noTraceFiles
 }
 
 TestSuite runTest 

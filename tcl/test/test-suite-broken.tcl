@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-broken.tcl,v 1.6 2003/01/16 17:11:33 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-broken.tcl,v 1.7 2003/01/19 03:54:03 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -373,7 +373,7 @@ Test/tahoe4-nobugfix instproc init {} {
         set test_       tahoe4-nobugfix
         Agent/TCP set bugFix_ false
         Test/tahoe4-nobugfix instproc run {} [Test/tahoe4 info instbody run ]
-        $self next 2
+        $self next pktTraceFile
 }
 
 TestSuite runTest

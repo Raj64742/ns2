@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.5 2003/01/16 17:11:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.6 2003/01/19 03:54:03 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -101,7 +101,7 @@ Test/tfrc_onoff instproc init {} {
     set sender TFRC
     Agent/TFRC set oldCode_ false
     set stopTime1_ 10
-    $self next 2
+    $self next pktTraceFile
 }
 Test/tfrc_onoff instproc run {} {
     global quiet
@@ -137,7 +137,7 @@ Test/tfrc_onoff_oldcode instproc init {} {
     Agent/TFRC set oldCode_ true
     set stopTime1_ 10
     Test/tfrc_onoff_oldcode instproc run {} [Test/tfrc_onoff info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/tcp_onoff -superclass TestSuite
@@ -150,7 +150,7 @@ Test/tcp_onoff instproc init {} {
     set sender TCP
     set stopTime1_ 10
     Test/tcp_onoff instproc run {} [Test/tfrc_onoff info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/tfrc_telnet -superclass TestSuite
@@ -161,7 +161,7 @@ Test/tfrc_telnet instproc init {} {
     set guide_  \
     "TFRC with a Telnet data source, telnet data rate increased at time 4."
     set sender TFRC
-    $self next 2
+    $self next pktTraceFile
 }
 Test/tfrc_telnet instproc run {} {
     global quiet
@@ -196,7 +196,7 @@ Test/tcp_telnet instproc init {} {
     "TCP with a Telnet data source, telnet data rate increased at time 4."
     set sender TCP
     Test/tcp_telnet instproc run {} [Test/tfrc_telnet info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/tcp_telnet_CWV -superclass TestSuite
@@ -211,7 +211,7 @@ Test/tcp_telnet_CWV instproc init {} {
     Agent/TCP set control_increase_ 1
     # Agent/TCP set EnblRTTCtr_ 1
     Test/tcp_telnet_CWV instproc run {} [Test/tfrc_telnet info instbody run]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/tfrc_cbr -superclass TestSuite
@@ -222,7 +222,7 @@ Test/tfrc_cbr instproc init {} {
     set guide_  \
     "TFRC with a CBR data source, CBR data rate changes over time."
     set sender TFRC
-    $self next 2
+    $self next pktTraceFile
 }
 Test/tfrc_cbr instproc run {} {
     global quiet
@@ -262,7 +262,7 @@ Test/tfrc_cbr_conservative instproc init {} {
     Agent/TFRC set conservative_ true
     Agent/TFRC set scmult_ 1.2
     Test/tfrc_cbr_conservative instproc run {} [Test/tfrc_cbr info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 Class Test/tcp_cbr -superclass TestSuite
 Test/tcp_cbr instproc init {} {
@@ -273,7 +273,7 @@ Test/tcp_cbr instproc init {} {
     "TCP with a CBR data source, CBR data rate changes over time."
     set sender TCP
     Test/tcp_cbr instproc run {} [Test/tfrc_cbr info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/tcp_cbr_CWV -superclass TestSuite
@@ -288,7 +288,7 @@ Test/tcp_cbr_CWV instproc init {} {
     Agent/TCP set control_increase_ 1
     # Agent/TCP set EnblRTTCtr_ 1
     Test/tcp_cbr_CWV instproc run {} [Test/tfrc_cbr info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 TestSuite runTest

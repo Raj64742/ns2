@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.53 2003/01/16 17:11:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.54 2003/01/19 03:54:03 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -276,7 +276,7 @@ Test/slowStartDiscount instproc init {} {
     Agent/TFRCSink set discount_ 1
     Queue/RED set gentle_ false
     Test/slowStartDiscount instproc run {} [Test/slowStart info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/slowStartDiscountCA -superclass TestSuite
@@ -291,7 +291,7 @@ Test/slowStartDiscountCA instproc init {} {
     Agent/TFRC set ca_ 1
     Queue/RED set gentle_ false
     Test/slowStartDiscountCA instproc run {} [Test/slowStart info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/smooth -superclass TestSuite
@@ -304,7 +304,7 @@ Test/smooth instproc init {} {
     Agent/TFRCSink set discount_ 1
     Agent/TFRCSink set smooth_ 1
     Test/smooth instproc run {} [Test/slowStart info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/smoothCA -superclass TestSuite
@@ -319,7 +319,7 @@ Test/smoothCA instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/smoothCA instproc run {} [Test/slowStart info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/slowStart -superclass TestSuite
@@ -331,7 +331,7 @@ Test/slowStart instproc init {} {
     "TFRC with smooth_, discount_, and ca_ all false."
     Agent/TFRCSink set discount_ 0
     Queue/RED set gentle_ false
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/slowStartCA -superclass TestSuite
@@ -345,7 +345,7 @@ Test/slowStartCA instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/slowStartCA instproc run {} [Test/slowStart info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Test/slowStart instproc run {} {
@@ -400,7 +400,7 @@ Test/slowStartEWMA instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/slowStartEWMA instproc run {} [Test/slowStart info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 # This test uses Fixed Windows for estimating the loss event rate.
@@ -415,7 +415,7 @@ Test/slowStartFixed instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/slowStartFixed instproc run {} [Test/slowStart info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/ecn -superclass TestSuite
@@ -428,7 +428,7 @@ Test/ecn instproc init {} {
     Agent/TFRC set ecn_ 1
     Queue/RED set setbit_ true
     Test/ecn instproc run {} [Test/slowStart info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/slowStartTcp -superclass TestSuite
@@ -438,7 +438,7 @@ Test/slowStartTcp instproc init {} {
     set test_	slowStartTcp
     set guide_  \
     "TCP"
-    $self next 2
+    $self next pktTraceFile
 }
 Test/slowStartTcp instproc run {} {
     global quiet
@@ -489,7 +489,7 @@ Test/impulseDiscount instproc init {} {
     "TFRC with discount_ true, for discounting older loss intervals."
     Agent/TFRCSink set discount_ 1
     Test/impulseDiscount instproc run {} [Test/impulseCA info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/impulseDiscountCA -superclass TestSuite
@@ -503,7 +503,7 @@ Test/impulseDiscountCA instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/impulseDiscountCA instproc run {} [Test/impulseCA info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/impulse -superclass TestSuite
@@ -515,7 +515,7 @@ Test/impulse instproc init {} {
     "TFRC with smooth_, discount_, and ca_ all false."
     Agent/TFRCSink set discount_ 0
     Test/impulse instproc run {} [Test/impulseCA info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/impulseCA -superclass TestSuite
@@ -529,7 +529,7 @@ Test/impulseCA instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
 #    Test/impulseCA instproc run {} [Test/impulseCA info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Test/impulseCA instproc run {} {
@@ -581,7 +581,7 @@ Test/impulseMultReportDiscount instproc init {} {
     Agent/TFRCSink set NumFeedback_ 4
     Agent/TFRCSink set discount_ 1
     Test/impulseMultReportDiscount instproc run {} [Test/impulseMultReport info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 # Feedback 4 times per roundtrip time.
@@ -597,7 +597,7 @@ Test/impulseMultReportDiscountCA instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/impulseMultReportDiscountCA instproc run {} [Test/impulseMultReport info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/impulseMultReport -superclass TestSuite
@@ -609,7 +609,7 @@ Test/impulseMultReport instproc init {} {
     "TFRC with feedback four times per RTT." 
     Agent/TFRCSink set NumFeedback_ 4
     Agent/TFRCSink set discount_ 0
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/impulseMultReportCA -superclass TestSuite
@@ -624,7 +624,7 @@ Test/impulseMultReportCA instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/impulseMultReportCA instproc run {} [Test/impulseMultReport info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Test/impulseMultReport instproc run {} {
@@ -671,7 +671,7 @@ Test/impulseTcp instproc init {} {
     set test_	impulseTcp
     set guide_  \
     "TFRC with discount_, smooth_, and ca_ false."
-    $self next 2
+    $self next pktTraceFile
 }
 Test/impulseTcp instproc run {} {
     global quiet
@@ -723,7 +723,7 @@ Test/two-friendly instproc init {} {
     Agent/TFRCSink set discount_ 0
     Agent/TCP set timerfix_ false
     # The default is being changed to true.
-    $self next 2
+    $self next pktTraceFile
 }
 
 # Two TFRC connections and three TCP connections.
@@ -740,7 +740,7 @@ Test/two-friendlyCA instproc init {} {
     Agent/TCP set timerfix_ false
     # The default is being changed to true.
     Test/two-friendlyCA instproc run {} [Test/two-friendly info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Test/two-friendly instproc run {} {
@@ -784,7 +784,7 @@ Test/OnlyTcp instproc init {} {
     "Five TCP connections."
     Agent/TCP set timerfix_ false
     # The default is being changed to true.
-    $self next 2
+    $self next pktTraceFile
 }
 Test/OnlyTcp instproc run {} {
     global quiet
@@ -827,7 +827,7 @@ Test/randomized instproc init {} {
     "Random delay added to sending times."
     Agent/TFRC set overhead_ 0.5
     Test/randomized instproc run {} [Test/slowStart info instbody run]
-    $self next 2
+    $self next pktTraceFile
 }
 
 ## Random factor added to sending times
@@ -842,7 +842,7 @@ Test/randomizedCA instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/randomizedCA instproc run {} [Test/slowStart info instbody run]
-    $self next 2
+    $self next pktTraceFile
 }
 
 ## Smaller random factor added to sending times
@@ -855,7 +855,7 @@ Test/randomized1 instproc init {} {
     "Smaller random delay added to sending times."
     Agent/TFRC set overhead_ 0.1
     Test/randomized1 instproc run {} [Test/slowStart info instbody run]
-    $self next 2
+    $self next pktTraceFile
 }
 
 ## Smaller random factor added to sending times
@@ -870,7 +870,7 @@ Test/randomized1CA instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     Test/randomized1CA instproc run {} [Test/slowStart info instbody run]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/slow -superclass TestSuite
@@ -884,7 +884,7 @@ Test/slow instproc init {} {
     Agent/TFRCSink set smooth_ 1
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
-    $self next 2
+    $self next pktTraceFile
 }
 
 Test/slow instproc run {} {
@@ -935,7 +935,7 @@ Test/twoDrops instproc init {} {
     Agent/TFRC set ca_ 1
     set drops_ " 2 3 "
     set stopTime1_ 5.0
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/manyDrops -superclass TestSuite 
@@ -954,7 +954,7 @@ Test/manyDrops instproc init {} {
 #    set drops_ " 0 1 "
     set drops_ " 0 1 2 3 4 5 6 "
     Test/manyDrops instproc run {} [Test/twoDrops info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Test/twoDrops instproc run {} {
@@ -1014,7 +1014,7 @@ Test/HighLoss instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     set stopTime1_ 60
-    $self next 2
+    $self next pktTraceFile
 }
 Test/HighLoss instproc run {} {
     global quiet
@@ -1069,7 +1069,7 @@ Test/HighLossImprecise instproc init {} {
     Agent/TFRC set ca_ 1
     Agent/TFRCSink set PreciseLoss_ 0
     set stopTime1_ 80
-    $self next 2
+    $self next pktTraceFile
 }
 Test/HighLossImprecise instproc run {} {
     global quiet
@@ -1124,7 +1124,7 @@ Test/HighLossConservative instproc init {} {
     Agent/TFRC set conservative_ true
     set stopTime1_ 60
     # Test/HighLossConservative instproc run {} [Test/HighLoss info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 Test/HighLossConservative instproc run {} {
     global quiet
@@ -1178,7 +1178,7 @@ Test/HighLossTCP instproc init {} {
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
     set stopTime1_ 60
-    $self next 2
+    $self next pktTraceFile
 }
 Test/HighLossTCP instproc run {} {
     global quiet
@@ -1232,7 +1232,7 @@ Test/TFRC_FTP instproc init {} {
     Agent/TFRC set discount_ 1
     Agent/TCP set oldCode_ false
     set stopTime1_ 15
-    $self next 2
+    $self next pktTraceFile
 }
 Test/TFRC_FTP instproc run {} {
     global quiet
@@ -1279,7 +1279,7 @@ Test/printLosses instproc init {} {
     Agent/TFRCSink set discount_ 1
     Agent/TFRCSink set printLosses_ 1
     Agent/TFRCSink set printLoss_ 1
-    $self next 2
+    $self next pktTraceFile
 }
 Test/printLosses instproc run {} {
     global quiet
@@ -1330,7 +1330,7 @@ Test/goodTFRC instproc init {} {
     set guide_  \
     "One TFRC flow, no reordering and no extra drops."
     set period_ 10000.0
-    $self next 2
+    $self next pktTraceFile
 }
 Test/goodTFRC instproc run {} {
     global quiet
@@ -1377,7 +1377,7 @@ Test/droppedTFRC instproc init {} {
     "One TFRC flow, with extra dropped packets."
     set period_ 40.0
     Test/droppedTFRC instproc run {} [Test/goodTFRC info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/delayedTFRC superclass TestSuite
@@ -1393,7 +1393,7 @@ Test/delayedTFRC instproc init {} {
     ErrorModel set delay_ 0.03
     Agent/TFRCSink set numPkts_ 1
     Test/delayedTFRC instproc run {} [Test/goodTFRC info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/delayedTFRC1 superclass TestSuite
@@ -1409,7 +1409,7 @@ Test/delayedTFRC1 instproc init {} {
     ErrorModel set delay_ 0.03
     Agent/TFRCSink set numPkts_ 5
     Test/delayedTFRC1 instproc run {} [Test/goodTFRC info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/delayedTFRC2 superclass TestSuite
@@ -1425,7 +1425,7 @@ Test/delayedTFRC2 instproc init {} {
     ErrorModel set delay_ 0.01
     Agent/TFRCSink set numPkts_ 3
     Test/delayedTFRC2 instproc run {} [Test/goodTFRC info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/goodTCP superclass TestSuite
@@ -1437,7 +1437,7 @@ Test/goodTCP instproc init {} {
     "One TCP flow, no reordering and no extra drops."
     set list_ {50000 50001}
     set period_ 1000.0
-    $self next 2
+    $self next pktTraceFile
 }
 Test/goodTCP instproc run {} {
     global quiet
@@ -1484,7 +1484,7 @@ Test/droppedTCP instproc init {} {
     "One TCP flow, with extra dropped packets."
     set period_ 40.0
     Test/droppedTCP instproc run {} [Test/goodTCP info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/delayedTCP superclass TestSuite
@@ -1499,7 +1499,7 @@ Test/delayedTCP instproc init {} {
     ErrorModel set drop_ false
     ErrorModel set delay_ 0.03
     Test/delayedTCP instproc run {} [Test/goodTCP info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 Class Test/delayedTCP2 superclass TestSuite
@@ -1514,7 +1514,7 @@ Test/delayedTCP2 instproc init {} {
     ErrorModel set drop_ false
     ErrorModel set delay_ 0.01
     Test/delayedTCP2 instproc run {} [Test/goodTCP info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 
 TestSuite runTest

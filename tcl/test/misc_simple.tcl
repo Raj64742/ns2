@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.12 2003/01/16 17:09:54 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.13 2003/01/19 03:51:18 sfloyd Exp $
 #
 
 Object instproc exit args {
@@ -41,20 +41,23 @@ Object instproc exit args {
 
 Class TestSuite
 
-# Use "$self next 0" to avoid creating all.tr and all.nam.
-# Use "$self next 2" to create only all.tr, but not all.nam.
-TestSuite instproc init { {dotrace 1} } {
+# Use "$self next 0" or "$self next noTraceFiles" to avoid creating 
+#   all.tr and all.nam.
+# Use "$self next 2" or "$self next pktTraceFile" to create only all.tr, 
+#   but not all.nam.
+TestSuite instproc init { {dotrace traceFiles} } {
 	global quiet argv0
 	$self instvar ns_ test_ node_ testName_ 
 	$self instvar allchan_ namchan_
 	if [catch "$self get-simulator" ns_] {
 	    set ns_ [new Simulator]
 	}
-	if { $dotrace >= 1 } {
+	if { $dotrace == 1 || $dotrace == 2 || $dotrace == "traceFiles" || 
+		   $dotrace == "pktTraceFile" } {
                 set allchan_ [open all.tr w]
                 $ns_ trace-all $allchan_
         } 
-        if { $dotrace == 1 } {
+        if { $dotrace == "traceFiles" || $dotrace == 1 } {
 		set namchan_ [open all.nam w]
 		if {$quiet == "false"} {
                 	$ns_ namtrace-all $namchan_

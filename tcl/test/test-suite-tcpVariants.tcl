@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.19 2003/01/16 17:11:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpVariants.tcl,v 1.20 2003/01/19 03:54:04 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -220,7 +220,7 @@ Test/onedrop_tahoe instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_tahoe
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_tahoe instproc run {} {
         $self setup Tahoe {14}
@@ -233,7 +233,7 @@ Test/onedrop_SA_tahoe instproc init {} {
 	set test_	onedrop_SA_tahoe
 	Agent/TCP set singledup_ 1
 	Test/onedrop_SA_tahoe instproc run {} [Test/onedrop_tahoe info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/onedrop_tahoe_full -superclass TestSuite
@@ -241,7 +241,7 @@ Test/onedrop_tahoe_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_tahoe_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_tahoe_full instproc run {} {
         $self setup FullTcpTahoe {16}
@@ -252,7 +252,7 @@ Test/onedrop_reno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_reno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_reno instproc run {} {
         $self setup Reno {14}
@@ -265,7 +265,7 @@ Test/onedrop_SA_reno instproc init {} {
 	set test_	onedrop_SA_reno
 	Agent/TCP set singledup_ 1
 	Test/onedrop_SA_reno instproc run {} [Test/onedrop_reno info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/onedrop_reno_full -superclass TestSuite
@@ -274,7 +274,7 @@ Test/onedrop_reno_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_reno_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_reno_full instproc run {} {
         $self setup FullTcp {16}
@@ -285,7 +285,7 @@ Test/onedrop_newreno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_newreno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_newreno instproc run {} {
         $self setup Newreno {14}
@@ -298,7 +298,7 @@ Test/onedrop_SA_newreno instproc init {} {
 	set test_	onedrop_SA_newreno
 	Agent/TCP set singledup_ 1
 	Test/onedrop_SA_newreno instproc run {} [Test/onedrop_newreno info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/onedrop_newreno_full -superclass TestSuite
@@ -306,7 +306,7 @@ Test/onedrop_newreno_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_newreno_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_newreno_full instproc run {} {
         $self setup FullTcpNewreno {16}
@@ -317,7 +317,7 @@ Test/onedrop_sack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_sack
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_sack instproc run {} {
         $self setup Sack1 {14}
@@ -330,7 +330,7 @@ Test/onedrop_SA_sack instproc init {} {
 	set test_	onedrop_SA_sack
 	Agent/TCP set singledup_ 1
 	Test/onedrop_SA_sack instproc run {} [Test/onedrop_sack info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/onedrop_sack_full -superclass TestSuite
@@ -338,7 +338,7 @@ Test/onedrop_sack_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_sack_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_sack_full instproc run {} {
         $self setup FullTcpSack1 {16}
@@ -349,7 +349,7 @@ Test/onedrop_fack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_fack
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_fack instproc run {} {
         $self setup Fack {14}
@@ -360,7 +360,7 @@ Test/onedrop_sackRH instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_sackRH
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_sackRH instproc run {} {
         $self setup SackRH {14}
@@ -375,7 +375,7 @@ Test/twodrops_tahoe instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_tahoe
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_tahoe instproc run {} {
         $self setup Tahoe {14 28}
@@ -388,7 +388,7 @@ Test/twodrops_SA_tahoe instproc init {} {
 	set test_	twodrops_SA_tahoe
 	Agent/TCP set singledup_ 1
 	Test/twodrops_SA_tahoe instproc run {} [Test/twodrops_tahoe info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/twodrops_tahoe_full -superclass TestSuite
@@ -396,7 +396,7 @@ Test/twodrops_tahoe_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_tahoe_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_tahoe_full instproc run {} {
         $self setup FullTcpTahoe {16 30}
@@ -407,7 +407,7 @@ Test/twodrops_reno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_reno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_reno instproc run {} {
         $self setup Reno {14 28}
@@ -420,7 +420,7 @@ Test/twodrops_SA_reno instproc init {} {
 	set test_	twodrops_SA_reno
 	Agent/TCP set singledup_ 1
 	Test/twodrops_SA_reno instproc run {} [Test/twodrops_reno info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/twodrops_reno_full -superclass TestSuite
@@ -428,7 +428,7 @@ Test/twodrops_reno_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_reno_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_reno_full instproc run {} {
         $self setup FullTcp {16 30}
@@ -439,7 +439,7 @@ Test/twodrops_newreno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_newreno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_newreno instproc run {} {
         $self setup Newreno {14 28}
@@ -452,7 +452,7 @@ Test/twodrops_SA_newreno instproc init {} {
 	set test_	twodrops_SA_newreno
 	Agent/TCP set singledup_ 1
 	Test/twodrops_SA_newreno instproc run {} [Test/twodrops_newreno info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/twodrops_newreno_full -superclass TestSuite
@@ -460,7 +460,7 @@ Test/twodrops_newreno_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_newreno_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_newreno_full instproc run {} {
         $self setup FullTcpNewreno {16 30}
@@ -471,7 +471,7 @@ Test/twodrops_sack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_sack
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_sack instproc run {} {
         $self setup Sack1 {14 28}
@@ -484,7 +484,7 @@ Test/twodrops_SA_sack instproc init {} {
 	set test_	twodrops_SA_sack
 	Agent/TCP set singledup_ 1
 	Test/twodrops_SA_sack instproc run {} [Test/twodrops_sack info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/twodrops_sack_full -superclass TestSuite
@@ -492,7 +492,7 @@ Test/twodrops_sack_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_sack_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_sack_full instproc run {} {
         $self setup FullTcpSack1 {16 30}
@@ -503,7 +503,7 @@ Test/twodrops_fack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_fack
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_fack instproc run {} {
         $self setup Fack {14 28}
@@ -514,7 +514,7 @@ Test/twodrops_sackRH instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	twodrops_sackRH
-	$self next 2
+	$self next pktTraceFile
 }
 Test/twodrops_sackRH instproc run {} {
         $self setup SackRH {14 28}
@@ -529,7 +529,7 @@ Test/threedrops_tahoe instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_tahoe
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_tahoe instproc run {} {
         $self setup Tahoe {14 26 28}
@@ -542,7 +542,7 @@ Test/threedrops_SA_tahoe instproc init {} {
 	set test_	threedrops_SA_tahoe
 	Agent/TCP set singledup_ 1
 	Test/threedrops_SA_tahoe instproc run {} [Test/threedrops_tahoe info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/threedrops_tahoe_full -superclass TestSuite
@@ -550,7 +550,7 @@ Test/threedrops_tahoe_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_tahoe_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_tahoe_full instproc run {} {
         $self setup FullTcpTahoe {16 28 30}
@@ -561,7 +561,7 @@ Test/threedrops_reno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_reno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_reno instproc run {} {
         $self setup Reno {14 26 28}
@@ -574,7 +574,7 @@ Test/threedrops_SA_reno instproc init {} {
 	set test_	threedrops_SA_reno
 	Agent/TCP set singledup_ 1
 	Test/threedrops_SA_reno instproc run {} [Test/threedrops_reno info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/threedrops_reno_full -superclass TestSuite
@@ -582,7 +582,7 @@ Test/threedrops_reno_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_reno_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_reno_full instproc run {} {
         $self setup FullTcp {16 28 30}
@@ -593,7 +593,7 @@ Test/threedrops_newreno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_newreno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_newreno instproc run {} {
         $self setup Newreno {14 26 28}
@@ -606,7 +606,7 @@ Test/threedrops_SA_newreno instproc init {} {
 	set test_	threedrops_SA_newreno
 	Agent/TCP set singledup_ 1
 	Test/threedrops_SA_newreno instproc run {} [Test/threedrops_newreno info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/threedrops_newreno_full -superclass TestSuite
@@ -614,7 +614,7 @@ Test/threedrops_newreno_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_newreno_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_newreno_full instproc run {} {
         $self setup FullTcpNewreno {16 28 30}
@@ -625,7 +625,7 @@ Test/threedrops_sack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_sack
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_sack instproc run {} {
         $self setup Sack1 {14 26 28}
@@ -638,7 +638,7 @@ Test/threedrops_SA_sack instproc init {} {
 	set test_	threedrops_SA_sack
 	Agent/TCP set singledup_ 1
 	Test/threedrops_SA_sack instproc run {} [Test/threedrops_sack info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/threedrops_sack_full -superclass TestSuite
@@ -646,7 +646,7 @@ Test/threedrops_sack_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_sack_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_sack_full instproc run {} {
         $self setup FullTcpSack1 {16 28 30}
@@ -657,7 +657,7 @@ Test/threedrops_fack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_fack
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_fack instproc run {} {
         $self setup Fack {14 26 28}
@@ -668,7 +668,7 @@ Test/threedrops_sackRH instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	threedrops_sackRH
-	$self next 2
+	$self next pktTraceFile
 }
 Test/threedrops_sackRH instproc run {} {
         $self setup SackRH {14 26 28}
@@ -684,7 +684,7 @@ Test/fourdrops_tahoe instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_tahoe
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_tahoe instproc run {} {
         $self setup Tahoe {14 24 26 28}
@@ -697,7 +697,7 @@ Test/fourdrops_SA_tahoe instproc init {} {
 	set test_	fourdrops_SA_tahoe
 	Agent/TCP set singledup_ 1
 	Test/fourdrops_SA_tahoe instproc run {} [Test/fourdrops_tahoe info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/fourdrops_tahoe_full -superclass TestSuite
@@ -705,7 +705,7 @@ Test/fourdrops_tahoe_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_tahoe_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_tahoe_full instproc run {} {
         $self setup FullTcpTahoe {16 26 28 30}
@@ -716,7 +716,7 @@ Test/fourdrops_reno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_reno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_reno instproc run {} {
         $self setup Reno {14 24 26 28}
@@ -729,7 +729,7 @@ Test/fourdrops_SA_reno instproc init {} {
 	set test_	fourdrops_SA_reno
 	Agent/TCP set singledup_ 1
 	Test/fourdrops_SA_reno instproc run {} [Test/fourdrops_reno info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/fourdrops_reno_full -superclass TestSuite
@@ -737,7 +737,7 @@ Test/fourdrops_reno_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_reno_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_reno_full instproc run {} {
         $self setup FullTcp {16 26 28 30}
@@ -748,7 +748,7 @@ Test/fourdrops_newreno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_newreno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_newreno instproc run {} {
         $self setup Newreno {14 24 26 28}
@@ -761,7 +761,7 @@ Test/fourdrops_SA_newreno instproc init {} {
 	set test_	fourdrops_SA_newreno
 	Agent/TCP set singledup_ 1
 	Test/fourdrops_SA_newreno instproc run {} [Test/fourdrops_newreno info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/fourdrops_newreno_full -superclass TestSuite
@@ -769,7 +769,7 @@ Test/fourdrops_newreno_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_newreno_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_newreno_full instproc run {} {
         $self setup FullTcpNewreno {16 26 28 30}
@@ -780,7 +780,7 @@ Test/fourdrops_sack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_sack
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_sack instproc run {} {
         $self setup Sack1 {14 24 26 28}
@@ -793,7 +793,7 @@ Test/fourdrops_SA_sack instproc init {} {
 	set test_	fourdrops_SA_sack
 	Agent/TCP set singledup_ 1
 	Test/fourdrops_SA_sack instproc run {} [Test/fourdrops_sack info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/fourdrops_sack_full -superclass TestSuite
@@ -801,7 +801,7 @@ Test/fourdrops_sack_full instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_sack_full
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_sack_full instproc run {} {
         $self setup FullTcpSack1 {16 26 28 30}
@@ -812,7 +812,7 @@ Test/fourdrops_fack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_fack
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_fack instproc run {} {
         $self setup Fack {14 24 26 28}
@@ -822,7 +822,7 @@ Test/fourdrops_sackRH instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	fourdrops_sackRH
-	$self next 2
+	$self next pktTraceFile
 }
 Test/fourdrops_sackRH instproc run {} {
         $self setup SackRH {14 24 26 28}
@@ -837,7 +837,7 @@ Test/multiple_tahoe instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	multiple_tahoe
-	$self next 2
+	$self next pktTraceFile
 }
 Test/multiple_tahoe instproc run {} {
         $self setup Tahoe {11 12 13 14 16 17 18 19 }
@@ -853,7 +853,7 @@ Test/multiple_SA_tahoe instproc init {} {
 	set test_	multiple_SA_tahoe
 	Agent/TCP set singledup_ 1
 	Test/multiple_SA_tahoe instproc run {} [Test/multiple_tahoe info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/multiple_reno -superclass TestSuite
@@ -861,7 +861,7 @@ Test/multiple_reno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	multiple_reno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/multiple_reno instproc run {} {
 	$self setup Reno {11 12 13 14 16 17 18 19 }
@@ -874,7 +874,7 @@ Test/multiple_SA_reno instproc init {} {
 	set test_	multiple_SA_reno
 	Agent/TCP set singledup_ 1
 	Test/multiple_SA_reno instproc run {} [Test/multiple_reno info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/multiple_newreno -superclass TestSuite
@@ -882,7 +882,7 @@ Test/multiple_newreno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	multiple_newreno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/multiple_newreno instproc run {} {
 	$self setup Newreno {11 12 13 14 16 17 18 19 }
@@ -895,7 +895,7 @@ Test/multiple_SA_newreno instproc init {} {
 	set test_	multiple_SA_newreno
 	Agent/TCP set singledup_ 1
 	Test/multiple_SA_newreno instproc run {} [Test/multiple_newreno info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 Class Test/multiple_sack -superclass TestSuite
@@ -903,7 +903,7 @@ Test/multiple_sack instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	multiple_sack
-	$self next 2
+	$self next pktTraceFile
 }
 Test/multiple_sack instproc run {} {
 	$self setup Sack1 {11 12 13 14 16 17 18 19 } 
@@ -917,7 +917,7 @@ Test/multiple_SA_sack instproc init {} {
 	set test_	multiple_SA_sack
 	Agent/TCP set singledup_ 1
 	Test/multiple_SA_sack instproc run {} [Test/multiple_sack info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 # Partial_ack 
@@ -928,7 +928,7 @@ Test/multiple_partial_ack_sack instproc init {} {
 	set test_	multiple_partial_ack_sack
 	Agent/TCP set partial_ack_ 1
 	Test/multiple_partial_ack_sack instproc run {} [Test/multiple_sack info instbody run ]
-	$self next 2
+	$self next pktTraceFile
 }
 
 TestSuite runTest

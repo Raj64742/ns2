@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.7 2003/01/16 17:11:34 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-oddBehaviors.tcl,v 1.8 2003/01/19 03:54:03 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -242,7 +242,7 @@ Test/onedrop_reno instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
 	set test_	onedrop_reno
-	$self next 2
+	$self next pktTraceFile
 }
 Test/onedrop_reno instproc run {} {
         $self setup Reno {3}

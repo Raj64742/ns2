@@ -245,7 +245,7 @@ Test/simple instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ simple
-    $self next 2
+    $self next pktTraceFile
 }
 Test/simple instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -283,7 +283,7 @@ Test/unresponsive instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ unresponsive
-    $self next 2
+    $self next pktTraceFile
 }
 Test/unresponsive instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -324,7 +324,7 @@ Test/frp instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ frp
-    $self next 2
+    $self next pktTraceFile
 }
 Test/frp instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -360,7 +360,7 @@ Test/complete instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ complete
-    $self next 2
+    $self next pktTraceFile
 }
 Test/complete instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -408,7 +408,7 @@ Test/cbrs instproc init {} {
     set net_ net2 
     set test_ cbrs
     Queue/RED/PD set noidle_ false
-    $self next 2
+    $self next pktTraceFile
 }
 Test/cbrs instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -466,6 +466,6 @@ Test/cbrs-noidle instproc init {} {
     set test_ cbrs-noidle
     Queue/RED/PD set noidle_ true
     Test/cbrs-noidle instproc run {} [Test/cbrs info instbody run ]
-    $self next 2
+    $self next pktTraceFile
 }
 TestSuite runTest

@@ -207,7 +207,7 @@ Test/pi1 instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ pi1
-    $self next 2
+    $self next pktTraceFile
 }
 Test/pi1 instproc run {} {
     $self instvar ns_ node_ testName_ net_
@@ -251,7 +251,7 @@ Test/ecn instproc init {} {
     Agent/TCP set old_ecn_ 1
     set net_	net2
     set test_	ecn
-    $self next 2
+    $self next pktTraceFile
 }
 Test/ecn instproc run {} {
     $self instvar ns_ node_ testName_
@@ -294,7 +294,7 @@ Test/pi2 instproc init {} {
     $self instvar net_ test_
     set net_	net3
     set test_	pi2
-    $self next 2
+    $self next pktTraceFile
 }
 Test/pi2 instproc run {} {
     $self instvar ns_ node_ testName_
@@ -335,7 +335,7 @@ Test/pi_twoway instproc init {} {
     $self instvar net_ test_
     set net_	net3
     set test_	pi_twoway
-    $self next 2
+    $self next pktTraceFile
 }
 Test/pi_twoway instproc run {} {
     $self instvar ns_ node_ testName_
@@ -383,7 +383,7 @@ Test/pi_twowaybytes instproc init {} {
     $self instvar net_ test_
     set net_	net2
     set test_	pi_twowaybytes
-    $self next 2
+    $self next pktTraceFile
 }
 Test/pi_twowaybytes instproc run {} {
     $self instvar ns_ node_ testName_

@@ -411,7 +411,7 @@ Test/cbrs instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ cbrs
-    $self next 0
+    $self next noTraceFiles
 }
 Test/cbrs instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -430,7 +430,7 @@ Test/cbrs-acc instproc init {} {
     set test_ cbrs-acc
     Queue/RED/Pushback set rate_limiting_ 1
     Test/cbrs-acc instproc run {} [Test/cbrs info instbody run]
-    $self next 0
+    $self next noTraceFiles
 }
 
 #
@@ -442,7 +442,7 @@ Test/cbrs1 instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ cbrs1
-    $self next 0
+    $self next noTraceFiles
 }
 Test/cbrs1 instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_
@@ -464,7 +464,7 @@ Test/cbrs-acc1 instproc init {} {
     set test_ cbrs-acc1
     Queue/RED/Pushback set rate_limiting_ 1
     Test/cbrs-acc1 instproc run {} [Test/cbrs1 info instbody run]
-    $self next 0
+    $self next noTraceFiles
 }
 
 TestSuite instproc setup1 {} {
@@ -524,7 +524,7 @@ Test/slowgrow instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ slowgrow
-    $self next 0
+    $self next noTraceFiles
 }
 Test/slowgrow instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -544,7 +544,7 @@ Test/slowgrow-acc instproc init {} {
     set test_ slowgrow-acc
     Queue/RED/Pushback set rate_limiting_ 1
     Test/slowgrow-acc instproc run {} [Test/slowgrow info instbody run]
-    $self next 0
+    $self next noTraceFiles
 }
 
 ######################################################33
@@ -609,7 +609,7 @@ Test/demo instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ demo
-    $self next 0
+    $self next noTraceFiles
 }
 Test/demo instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -628,7 +628,7 @@ Test/demo-acc instproc init {} {
     set test_ demo-acc
     Queue/RED/Pushback set rate_limiting_ 1
     Test/demo-acc instproc run {} [Test/demo info instbody run]
-    $self next 0
+    $self next noTraceFiles
 }
 
 ######################################################33
@@ -831,7 +831,7 @@ Test/tcp instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ tcp
-    $self next 0
+    $self next noTraceFiles
 }
 Test/tcp instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -851,7 +851,7 @@ Test/tcp-acc instproc init {} {
     set test_ tcp-acc
     Queue/RED/Pushback set rate_limiting_ 1
     Test/tcp-acc instproc run {} [Test/tcp info instbody run]
-    $self next 0
+    $self next noTraceFiles
 }
 
 TestSuite instproc setup4a {} {
@@ -897,7 +897,7 @@ Test/tcp1 instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ tcp1
-    $self next 0
+    $self next noTraceFiles
 }
 Test/tcp1 instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -917,7 +917,7 @@ Test/tcp1-acc instproc init {} {
     set test_ tcp1-acc
     Queue/RED/Pushback set rate_limiting_ 1
     Test/tcp1-acc instproc run {} [Test/tcp1 info instbody run]
-    $self next 0
+    $self next noTraceFiles
 }
 
 TestSuite instproc setup4b {} {
@@ -973,7 +973,7 @@ Test/tcp2 instproc init {} {
     $self instvar net_ test_
     set net_ net2 
     set test_ tcp2
-    $self next 0
+    $self next noTraceFiles
 }
 Test/tcp2 instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -993,7 +993,7 @@ Test/tcp2-acc instproc init {} {
     set test_ tcp2-acc
     Queue/RED/Pushback set rate_limiting_ 1
     Test/tcp2-acc instproc run {} [Test/tcp2 info instbody run]
-    $self next 0
+    $self next noTraceFiles
 }
 
 ######################################################33
@@ -1068,7 +1068,7 @@ Test/tcp2-acc instproc init {} {
 ##     $self instvar net_ test_
 ##     set net_ net2 
 ##     set test_ onoff
-##     $self next 0
+##     $self next noTraceFiles
 ## }
 ## Test/onoff instproc run {} {
 ##     $self instvar ns_ node_ testName_ net_ topo_
@@ -1086,7 +1086,7 @@ Test/tcp2-acc instproc init {} {
 ##     set test_ onoff-acc
 ##     Queue/RED/Pushback set rate_limiting_ 1
 ##     Test/onoff-acc instproc run {} [Test/onoff info instbody run]
-##     $self next 0
+##     $self next noTraceFiles
 ## }
 ## 
 
@@ -1151,7 +1151,7 @@ Test/A_noACC instproc init {} {
     $self instvar net_ test_
     set net_ net3 
     set test_ A_noACC
-    $self next 0
+    $self next noTraceFiles
 }
 Test/A_noACC instproc run {} {
     $self instvar ns_ node_ testName_ net_ topo_
@@ -1171,7 +1171,7 @@ Test/A_ACC instproc init {} {
     Queue/RED/Pushback set rate_limiting_ 1
     Agent/Pushback set enable_pushback_ 0
     Test/A_ACC instproc run {} [Test/A_noACC info instbody run]
-    $self next 0
+    $self next noTraceFiles
 }
 
 #
@@ -1185,7 +1185,7 @@ Test/A_Push instproc init {} {
     Queue/RED/Pushback set rate_limiting_ 1
     Agent/Pushback set enable_pushback_ 1
     Test/A_Push instproc run {} [Test/A_noACC info instbody run]
-    $self next 0
+    $self next noTraceFiles
 }
 
 TestSuite runTest
