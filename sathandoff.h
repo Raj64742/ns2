@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sathandoff.h,v 1.1 1999/06/21 18:28:46 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sathandoff.h,v 1.2 1999/07/18 20:02:10 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -82,7 +82,7 @@ protected:
 	//
 	// The remaining functions are helper functions for handoff
 	//
-	float distance(coordinate, coordinate);
+	double distance(coordinate, coordinate);
 	SatNode* get_peer(SatLinkHead*);
 	SatLinkHead* get_peer_next_linkhead(SatNode*);
 	SatLinkHead* get_peer_linkhead(SatLinkHead*);

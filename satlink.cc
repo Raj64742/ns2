@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.3 1999/06/25 20:48:15 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.4 1999/07/18 20:02:11 tomh Exp $";
 #endif
 
 /*
@@ -515,7 +515,7 @@ void SatPhy::sendDown(Packet *p)
 // Note that this doesn't do that much right now.  If you want to incorporate
 // an error model, you could insert a "propagation" object like in the
 // wireless case.
-int SatPhy::sendUp(Packet *p)
+int SatPhy::sendUp(Packet * /* pkt */)
 {
 	return TRUE;
 }

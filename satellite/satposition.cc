@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.cc,v 1.4 1999/07/09 05:05:22 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.cc,v 1.5 1999/07/18 20:02:08 tomh Exp $";
 #endif
 
 #include "satposition.h"
@@ -77,7 +77,7 @@ public:
 	GeoSatPositionClass() : TclClass("Position/Sat/Geo") {}
 	TclObject* create(int argc, const char*const* argv) {
 		if (argc == 5) 
-			return (new GeoSatPosition(float(atof(argv[4]))));
+			return (new GeoSatPosition(double(atof(argv[4]))));
 		else 
 			return (new GeoSatPosition);
 	}
@@ -86,7 +86,7 @@ public:
 static class SatPositionClass : public TclClass {
 public:
 	SatPositionClass() : TclClass("Position/Sat") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 			printf("Error:  do not instantiate Position/Sat\n");
 			return (0);
 	}
@@ -105,10 +105,10 @@ double SatPosition::distance(SatPosition* first, SatPosition* second)
 {
 	coordinate a = first->getCoordinate();
 	coordinate b = second->getCoordinate();
-	float s_x, s_y, s_z, e_x, e_y, e_z;     // cartesian
+	double s_x, s_y, s_z, e_x, e_y, e_z;     // cartesian
 	spherical_to_cartesian(a.r, a.theta, a.phi, s_x, s_y, s_z);
 	spherical_to_cartesian(b.r, b.theta, b.phi, e_x, e_y, e_z);
-	return (DISTANCE(s_x, s_y, s_z, e_x, e_y, e_z));
+	return (Trace::round(DISTANCE(s_x, s_y, s_z, e_x, e_y, e_z), 1.0E+8));
 
 }
 
@@ -119,8 +119,8 @@ double SatPosition::propdelay(SatPosition* remote)
 	return (Trace::round(delay, 1.0E+8));
 }
 
-void SatPosition::spherical_to_cartesian(float R, float Theta,
-    float Phi, float &X, float &Y, float &Z)
+void SatPosition::spherical_to_cartesian(double R, double Theta,
+    double Phi, double &X, double &Y, double &Z)
 {       
         X = R * sin(Theta) * cos (Phi);
         Y = R * sin(Theta) * sin (Phi);
@@ -148,7 +148,7 @@ int SatPosition::command(int argc, const char*const* argv) {
 
 // Specify initial coordinates.  Default coordinates place the terminal
 // on the Earth's surface at 0 deg lat, 0 deg long.
-TermSatPosition::TermSatPosition(float Theta, float Phi)  {
+TermSatPosition::TermSatPosition(double Theta, double Phi)  {
 	initial_.r = EARTH_RADIUS;  	
 	set(Theta, Phi);
 	type_ = POSITION_SAT_TERM;
@@ -161,7 +161,7 @@ TermSatPosition::TermSatPosition(float Theta, float Phi)  {
 // Longitude is in the range (-180, 180) with neg. values -> west
 // Initial_.phi is stored from 0 to 2*PI (spherical)
 //
-void TermSatPosition::set(float latitude, float longitude)
+void TermSatPosition::set(double latitude, double longitude)
 {
 	if (latitude < -90 || latitude > 90)
 		fprintf(stderr, "TermSatPosition:  latitude out of bounds %f\n",
@@ -179,9 +179,9 @@ void TermSatPosition::set(float latitude, float longitude)
 // Returns longitude in radians,  ranging from -PI to PI
 // This returns earth-centric longitude, for trace purposes (coordinates
 // stored in constellation-centric coordinate system)
-float TermSatPosition::get_longitude()
+double TermSatPosition::get_longitude()
 {
-	float earth_longitude = initial_.phi;
+	double earth_longitude = initial_.phi;
 	if (earth_longitude > PI)
 		return (-(2*PI - earth_longitude));
 	else
@@ -191,7 +191,7 @@ float TermSatPosition::get_longitude()
 // Returns latitude in radians, in the range from -PI/2 to PI/2
 // This returns earth-centric longitude, for trace purposes (coordinates
 // stored in constellation-centric coordinate system)
-float TermSatPosition::get_latitude()
+double TermSatPosition::get_latitude()
 {
 	coordinate temp = getCoordinate();
 	return (PI/2 - temp.theta);
@@ -200,7 +200,7 @@ float TermSatPosition::get_latitude()
 coordinate TermSatPosition::getCoordinate()
 {
 	coordinate current;
-	float period = EARTH_PERIOD; // seconds
+	double period = EARTH_PERIOD; // seconds
 
 	current.r = initial_.r;
 	current.theta = initial_.theta;
@@ -217,8 +217,8 @@ coordinate TermSatPosition::getCoordinate()
 // class PolarSatPosition
 /////////////////////////////////////////////////////////////////////
 
-PolarSatPosition::PolarSatPosition(float altitude, float Inc, float Lon, 
-    float Alpha, float Plane) : next_(0), plane_(0) {
+PolarSatPosition::PolarSatPosition(double altitude, double Inc, double Lon, 
+    double Alpha, double Plane) : next_(0), plane_(0) {
 	set(altitude, Lon, Alpha, Inc);
         if (Plane) {
 		plane_ = int(Plane);
@@ -240,7 +240,7 @@ PolarSatPosition::PolarSatPosition(float altitude, float Inc, float Lon,
 // -- this is the $lon parameter in OTcl
 // Note that with this system, only theta changes with time
 //
-void PolarSatPosition::set(float Altitude, float Lon, float Alpha, float Incl)
+void PolarSatPosition::set(double Altitude, double Lon, double Alpha, double Incl)
 {
 	if (Altitude < 0) {
 		fprintf(stderr, "PolarSatPosition:  altitude out of \
@@ -319,22 +319,22 @@ coordinate PolarSatPosition::getCoordinate()
 		printf("ERROR:  inclination_ > PI\n");
 	
 	current.r = initial_.r;
-	current.theta = (float)theta_new;
-	current.phi = (float)phi_new;
+	current.theta = theta_new;
+	current.phi = phi_new;
 	return current;
 }
 
 // Returns (earth-centric) longitude of satellite nadir point in radians,  
 // ranging from -PI to PI
-float PolarSatPosition::get_longitude()
+double PolarSatPosition::get_longitude()
 {
-	float period = EARTH_PERIOD; // period of earth in seconds
+	double period = EARTH_PERIOD; // period of earth in seconds
 	// use getCoordinate() to get constellation-centric latitude and
 	// longitude
 	coordinate temp = getCoordinate();
 	// adjust longitude so that it is earth-centric (i.e., account
 	// for earth rotating beneath)
-	float earth_longitude = fmod((temp.phi - 
+	double earth_longitude = fmod((temp.phi - 
 	    (fmod(NOW + time_advance_,period)/period) * 2*PI), 2*PI);
 	if (earth_longitude > PI)
 		return (-(2*PI - earth_longitude));
@@ -344,7 +344,7 @@ float PolarSatPosition::get_longitude()
 
 // Returns (earth-centric) latitude of satellite nadir point in radians,  
 // in the range from -PI/2 to PI/2
-float PolarSatPosition::get_latitude()
+double PolarSatPosition::get_latitude()
 {
 	coordinate temp = getCoordinate();
 	return (PI/2 - temp.theta);
@@ -377,7 +377,7 @@ int PolarSatPosition::command(int argc, const char*const* argv) {
 // class GeoSatPosition
 /////////////////////////////////////////////////////////////////////
 
-GeoSatPosition::GeoSatPosition(float longitude) 
+GeoSatPosition::GeoSatPosition(double longitude) 
 {
 	initial_.r = EARTH_RADIUS + GEO_ALTITUDE;
 	initial_.theta = PI/2;
@@ -397,9 +397,9 @@ coordinate GeoSatPosition::getCoordinate()
 }
 
 // Returns (earth-centric) longitude in radians,  ranging from -PI to PI
-float GeoSatPosition::get_longitude()
+double GeoSatPosition::get_longitude()
 {
-	float earth_longitude = initial_.phi;
+	double earth_longitude = initial_.phi;
 	if (earth_longitude > PI)
 		return (-(2*PI - earth_longitude));
 	else
@@ -409,7 +409,7 @@ float GeoSatPosition::get_longitude()
 //
 // Longitude is in the range (0, 180) with negative values -> west
 //
-void GeoSatPosition::set(float longitude)
+void GeoSatPosition::set(double longitude)
 {
 	if (longitude < -180 || longitude > 180)
 		fprintf(stderr, "GeoSatPosition:  longitude out of bounds %f\n",

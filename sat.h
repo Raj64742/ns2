@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sat.h,v 1.1 1999/06/21 18:28:45 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sat.h,v 1.2 1999/07/18 20:02:11 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -47,7 +47,6 @@
 #define LIGHT 299793 // km/s
 #define DEG_TO_RAD(x) ((x) * PI/180)
 #define RAD_TO_DEG(x) ((x) * 180/PI)
-#define fatof(i) float(atof((i)))
 #define DISTANCE(s_x, s_y, s_z, e_x, e_y, e_z) (sqrt((s_x - e_x) * (s_x - e_x) \
                 + (s_y - e_y) * (s_y - e_y) + (s_z - e_z) * (s_z - e_z)))
 
@@ -73,9 +72,9 @@
 
 
 struct coordinate {
-        float r;        // km
-        float theta;    // radians
-        float phi;      // radians
+        double r;        // km
+        double theta;    // radians
+        double phi;      // radians
         // Convert to cartesian as follows:
         // x = rsin(theta)cos(phi)
         // y = rsin(theta)sin(phi)

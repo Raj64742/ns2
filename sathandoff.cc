@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sathandoff.cc,v 1.2 1999/06/23 23:41:58 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sathandoff.cc,v 1.3 1999/07/18 20:02:10 tomh Exp $";
 #endif
 
 #include "random.h"
@@ -108,9 +108,9 @@ int LinkHandoffMgr::command(int argc, const char*const* argv)
 }
 
 // Helper function-- returns the distance between points a and b
-float LinkHandoffMgr::distance(coordinate a, coordinate b)
+double LinkHandoffMgr::distance(coordinate a, coordinate b)
 {
-        float a_x, a_y, a_z, b_x, b_y, b_z;     // cartesian
+        double a_x, a_y, a_z, b_x, b_y, b_z;     // cartesian
         a_x = a.r * sin(a.theta) * cos (a.phi);
         a_y = a.r * sin(a.theta) * sin (a.phi);
         a_z = a.r * cos(a.theta);

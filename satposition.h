@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.h,v 1.3 1999/07/09 05:05:21 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satposition.h,v 1.4 1999/07/18 20:02:09 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -53,12 +53,12 @@ class SatPosition : public TclObject {
 	int type() { return type_; }
 	Node* node() { return node_; }
 	virtual coordinate getCoordinate() = 0; 
-	virtual float get_latitude() = 0;
-	virtual float get_longitude() = 0;
+	virtual double get_latitude() = 0;
+	virtual double get_longitude() = 0;
 	static double distance(SatPosition*, SatPosition*);
 	double propdelay(SatPosition*);
-	static void spherical_to_cartesian(float, float, float,
-	    float &, float &, float &);
+	static void spherical_to_cartesian(double, double, double,
+	    double &, double &, double &);
 
 	// configuration parameters
 	static double time_advance_;
@@ -71,13 +71,13 @@ class SatPosition : public TclObject {
 
 class PolarSatPosition : public SatPosition {
  public:
-	PolarSatPosition(float = 1000, float = 90, float = 0, float = 0, 
-            float = 0);
+	PolarSatPosition(double = 1000, double = 90, double = 0, double = 0, 
+            double = 0);
 	virtual coordinate getCoordinate();
-	void set(float Altitude, float Lon, float Alpha, float inclination=90); 
-	virtual float get_latitude(); 
-	virtual float get_longitude(); 
-	float get_altitude() { return initial_.r; }
+	void set(double Altitude, double Lon, double Alpha, double inclination=90); 
+	virtual double get_latitude(); 
+	virtual double get_longitude(); 
+	double get_altitude() { return initial_.r; }
 	PolarSatPosition* next() { return next_; }
 	int plane() { return plane_; }
 	static int num_planes() { return num_planes_; }
@@ -87,28 +87,28 @@ class PolarSatPosition : public SatPosition {
         PolarSatPosition* next_;    // Next intraplane satellite
 	int plane_;  // Orbital plane that this satellite resides in
 	static int num_planes_; // Number of planes
-	float inclination_; // radians
+	double inclination_; // radians
 
 	
 };
 
 class GeoSatPosition : public SatPosition {
  public:
-	GeoSatPosition(float longitude = 0);
+	GeoSatPosition(double longitude = 0);
 	virtual coordinate getCoordinate();
-	void set(float longitude); 
-	virtual float get_latitude() { return 0; } 
-	virtual float get_longitude(); 
+	void set(double longitude); 
+	virtual double get_latitude() { return 0; } 
+	virtual double get_longitude(); 
  protected:
 };
 
 class TermSatPosition : public SatPosition {
  public:
-	TermSatPosition(float = 0, float = 0);
+	TermSatPosition(double = 0, double = 0);
 	virtual coordinate getCoordinate();
-	void set(float latitude, float longitude);
-	virtual float get_latitude(); 
-	virtual float get_longitude(); 
+	void set(double latitude, double longitude);
+	virtual double get_latitude(); 
+	virtual double get_longitude(); 
  protected:
 };
 

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.1 1999/06/21 18:28:50 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.2 1999/07/18 20:02:12 tomh Exp $";
 #endif
 
 #include <stdio.h>
@@ -145,7 +145,7 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 	char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
 
 	// Find position of previous hop and next hop
-	float s_lat = -999, s_lon = -999, d_lat = -999, d_lon = -999;
+	double s_lat = -999, s_lon = -999, d_lat = -999, d_lon = -999;
 	n = Node::nodehead_.lh_first;
 // XXX what if n is not a SatNode?? Need a dynamic cast here, or make sure that
 // only sat tracing elements go between sat nodes.
