@@ -66,12 +66,7 @@ Node/MacNode instproc linkmacs {} {
 	$self instvar macList_
 	$self instvar numMacs_
 
-	puts "#macs = $numMacs_"
-	puts "[expr 1%1]"
-
 	for {set i 0} {$i < $numMacs_} {incr i} {
-		puts "MACLIST $macList_"
-		puts "MACLIST($i) [lindex $macList_ $i]"
 		[lindex $macList_ $i] set-maclist [lindex $macList_ [expr ($i+1)%$numMacs_]]
 	}
 }

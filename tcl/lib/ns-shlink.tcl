@@ -168,12 +168,9 @@ Link/SharedDuplex instproc init {nodelist bw delay lltype ifqtype mactype} {
 			set l [$src set macList_]
 			lappend l $mac_($src)
 			$src set macList_ $l
-			puts "** $l mac $mac_($src)"
-			puts "In init: Maclist $l"
 			set t [$src set numMacs_]
 			incr t
 			$src set numMacs_ $t
-			puts "numMacs = $t [$src set numMacs_]"
 		}
 
 		set ifq_($src) [new $ifqtype]
