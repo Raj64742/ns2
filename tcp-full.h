@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.19 1998/05/02 01:39:11 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.20 1998/05/14 01:27:48 kfall Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -49,6 +49,7 @@
 #define TF_NOOPT        0x0008          /* don't use tcp options */
 #define TF_SENTFIN      0x0010          /* have sent FIN */
 #define	TF_RCVD_TSTMP	0x0100		/* timestamp rcv'd in SYN */
+#define	TF_NEEDFIN	0x0800		/* send FIN (implicit state) */
 
 #define TCPS_CLOSED             0       /* closed */
 #define TCPS_LISTEN             1       /* listening for connection */
@@ -78,6 +79,8 @@
 #define TH_ACK  0x10        /* ACK: ack number is valid */
 
 #define PF_TIMEOUT 0x04		/* protocol defined */
+
+#define	TCP_PAWS_IDLE	(24 * 24 * 60 * 60)	/* 24 days in secs */
 
 class FullTcpAgent;
 
@@ -122,6 +125,7 @@ class FullTcpAgent : public TcpAgent {
 
  protected:
 	int closed_;
+	int ts_option_size_;	// header bytes in a ts option
 	int segs_per_ack_;  // for window updates
 	int nodelay_;       // disable sender-side Nagle?
 	int data_on_syn_;   // send data on initial SYN?
@@ -145,6 +149,7 @@ class FullTcpAgent : public TcpAgent {
 
 	void finish();
 	void reset_rtx_timer(int);  // adjust the rtx timer
+	void dupack_action();		// what to do on dup acks
 	void reset();       		// reset to a known point
 	void connect();     		// do active open
 	void listen();      		// do passive open
