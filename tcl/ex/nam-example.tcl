@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.8 1998/09/01 01:47:01 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.9 1998/09/05 00:15:21 haoboy Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -81,11 +81,6 @@ set group [Node allocaddr]
 set cmc [$ns mrtproto CtrMcast {}]
 $ns at 0.3 "$cmc switch-treetype $group"
 
-Agent instproc tracevar { name } {
-	$self instvar $name
-	$self tracevar $name
-}
-
 # set group members
 set fid  0
 for {set i 0} {$i <= 5} {incr i} {
@@ -95,11 +90,11 @@ for {set i 0} {$i <= 5} {incr i} {
 	$srm($i) trace $srmStats
 	$ns at 1.0 "$srm($i) start"
 
-#	$ns attach-agent $n($i) $srm($i)
-#	$ns add-agent-trace $srm($i) srm($i)
-#	$ns monitor-agent-trace $srm($i) ;# turn nam monitor on from the start
-#	$srm($i) tracevar C1_
-#	$srm($i) tracevar C2_
+	$ns attach-agent $n($i) $srm($i)
+	$ns add-agent-trace $srm($i) srm($i)
+	$ns monitor-agent-trace $srm($i) ;# turn nam monitor on from the start
+	$srm($i) tracevar C1_
+	$srm($i) tracevar C2_
 }
 
 # set traffic source
