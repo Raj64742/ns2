@@ -1592,7 +1592,7 @@ tworayground.h
 udp.cc
 udp.h
 ump.h
-validate.in
+validate
 validate.out
 varp.cc 
 varp.h
