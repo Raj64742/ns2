@@ -46,18 +46,17 @@ $ns duplex-link $n0 $n1 0.2Mbps 100ms DropTail
 $ns duplex-link-op $n2 $n1 orient right-down
 $ns duplex-link-op $n0 $n1 orient right-up
 
-set exp1 [new Traffic/Expoo]
-$exp1 set packet-size 128
-$exp1 set burst-time [expr 20.0/64]
-$exp1 set idle-time 325ms
-$exp1 set rate 65.536k
+set exp1 [new Application/Traffic/Exponential]
+$exp1 set packet_size_ 128
+$exp1 set burst_time_ [expr 20.0/64]
+$exp1 set idle_time_ 325ms
+$exp1 set rate_ 65.536k
 
-set a [new Agent/CBR/UDP]
+set a [new Agent/UDP]
 $a set fid_ 0
 $a set rate_ 32.768k
 $a set bucket_ 1024
-
-$a attach-traffic $exp1
+$exp1 attach-agent $a
 
 set tbf [new TBF]
 $tbf set bucket_ [$a set bucket_]
@@ -71,24 +70,22 @@ $ns attach-agent $n1 $rcvr
 
 $ns connect $a $rcvr
 
-set exp2 [new Traffic/Expoo]
-$exp2 set packet-size 128
-$exp2 set burst-time [expr 20.0/64]
-$exp2 set idle-time 325ms
-$exp2 set rate 65.536k
+set exp2 [new Application/Traffic/Exponential]
+$exp2 set packet_size_ 128
+$exp2 set burst_time_ [expr 20.0/64]
+$exp2 set idle_time_ 325ms
+$exp2 set rate_ 65.536k
 
-set a2 [new Agent/CBR/UDP]
+set a2 [new Agent/UDP]
 $a2 set fid_ 1
-
-$a2 attach-traffic $exp2
+$exp2 attach-agent $a2
 
 $ns attach-agent $n2 $a2
 
-
 $ns connect $a2 $rcvr
 
-$ns at 0.0 "$a start;$a2 start"
-$ns at 20.0 "$a stop;$a2 stop;close $f;close $nf;exec nam out.nam &;exit 0"
+$ns at 0.0 "$exp1 start;$exp2 start"
+$ns at 20.0 "$exp1 stop;$exp2 stop;close $f;close $nf;exec nam out.nam &;exit 0"
 $ns run
 
 

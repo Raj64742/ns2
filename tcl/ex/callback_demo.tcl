@@ -1,7 +1,7 @@
 
 #
 # callback_demo.tcl
-# $Id: callback_demo.tcl,v 1.2 1997/09/10 16:47:03 heideman Exp $
+# $Id: callback_demo.tcl,v 1.3 1998/09/02 20:38:42 tomh Exp $
 #
 # Copyright (c) 1997 University of Southern California.
 # All rights reserved.                                            
@@ -49,44 +49,13 @@ own callbacks.
 
 Class TestFeature
 
-Source/FTP instproc fire {} {
+Application/FTP instproc fire {} {
 	global opts
 	$self instvar maxpkts_
 	set maxpkts_ [expr $maxpkts_ + $opts(web-page-size)]
-	$self start
-# advance crashes the simulator,
-# see <file:///~/NOTES/199706/970611#* VINT/ns/bugs>
-#	$self advance $opts(web-page-size)
-	# puts "$self fire to $maxpkts_"
+	$self produce $maxpkts_
 }
 
-
-# #### HACK HACK HACK!  Fixes bug in ns-lib.tcl.
-# # added to ns as of Tue Aug 12 16:19:51 PDT 1997
-# Simulator instproc create-trace { type file src dst } {
-# 	$self instvar alltrace_
-# 	set p [new Trace/$type]
-# 	$p set src_ [$src id]
-# 	$p set dst_ [$dst id]
-# 	lappend alltrace_ $p
-# 	if {$file != ""} {
-# 		$p attach $file
-# 	}
-# 	return $p
-# }
-# 
-# #### HACK HACK HACK!  Should be in ns-link.tcl.
-# # added to ns as of Tue Aug 12 16:19:51 PDT 1997
-# SimpleLink instproc trace-callback {ns cmd} {
-# 	$self trace $ns {}
-# 	foreach part {enqT_ deqT_ drpT_} {
-# 		$self instvar $part
-# 		set to [$self set $part]
-# 		$to set callback_ 1
-# #		$to proc handle {args} "$cmd \$args"
-# 		$to proc handle a "$cmd \$a"
-# 	}
-# }
 
 TestFeature instproc print_traces {args} {
 	# if you want args not as a list, call the parameter something else
@@ -126,7 +95,7 @@ TestFeature instproc init {} {
 	# traffic
 	$self instvar tcp_ ftp_
 	set tcp_ [$ns_ create-connection TCP/Reno $node1_ TCPSink/DelAck $node2_ 0]
-	set ftp_ [$tcp_ attach-source FTP]
+	set ftp_ [$tcp_ attach-app FTP]
 	$ftp_ set maxpkts_ 0
 	$ns_ at 0 "$ftp_ fire"
 

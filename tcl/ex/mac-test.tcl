@@ -32,7 +32,7 @@ set opt(chan)	Channel
 set opt(tcp)	TCP/Reno
 set opt(sink)	TCPSink
 
-set opt(source)	FTP
+set opt(app)	FTP
 
 
 proc Usage {} {
@@ -133,7 +133,7 @@ proc create-source {} {
 		set dst $i
 		set tp($i) [$ns create-connection $opt(tcp) \
 				$node($src) $opt(sink) $node($dst) 0]
-		set source($i) [$tp($i) attach-source $opt(source)]
+		set source($i) [$tp($i) attach-app $opt(app)]
 		$ns at [expr $i/1000.0] "$source($i) start"
 	}
 }

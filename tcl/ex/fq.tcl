@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.14 1998/08/05 22:48:10 kfall Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.15 1998/09/02 20:38:42 tomh Exp $
 #
 
 set ns [new Simulator]
@@ -284,8 +284,8 @@ proc build_tcp { from to startTime } {
 	$ns attach-agent $from $tcp
 	$ns attach-agent $to $sink
 	$ns connect $tcp $sink
-	set ftp [new Source/FTP]
-	$ftp set agent_ $tcp
+	set ftp [new Application/FTP]
+	$ftp attach-agent $tcp
 	$ns at $startTime "$ftp start"
 	return $tcp
 }

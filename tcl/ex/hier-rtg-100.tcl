@@ -43,8 +43,8 @@ set sink [new Agent/TCPSink]
 $ns attach-agent $n(0) $tcp
 $ns attach-agent $n(5) $sink
 $ns connect $tcp $sink
-set ftp [new Source/FTP]
-$ftp set agent_ $tcp
+set ftp [new Application/FTP]
+$ftp attach-agent $tcp
 $ns at 1.2 "$ftp start"
 $ns at 3.0 "finish"
 

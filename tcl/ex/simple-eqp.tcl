@@ -100,8 +100,8 @@ proc build-tcp { n0 n1 startTime } {
 
     $ns connect $tcp $snk
 
-    set ftp [new Source/FTP]
-    $ftp set agent_ $tcp
+    set ftp [new Application/FTP]
+    $ftp attach-agent $tcp
     $ns at $startTime "$ftp start"
     return $tcp
 }

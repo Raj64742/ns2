@@ -32,7 +32,7 @@ set opt(chan)	Channel
 set opt(tcp)	TCP/Reno
 set opt(sink)	TCPSink
 
-set opt(source)	FTP
+set opt(app)	FTP
 
 
 proc finish {} {
@@ -95,7 +95,7 @@ create-topology
 set tcp0 [$ns create-connection TCP/Reno $node0 TCPSink $node(7) 0]
 $tcp0 set window_ 15
 
-set ftp0 [$tcp0 attach-source FTP]
+set ftp0 [$tcp0 attach-app FTP]
 
 $ns at 0.0 "$ftp0 start"
 

@@ -49,7 +49,7 @@ $ns duplex-link-op $n0 $n1 queuePos 0.5
 ## set up the exponential on/off source, parameterized by packet size,
 ## ave on time, ave off time and peak rate
 
-set s1 [new Agent/CBR/UDP]
+set s1 [new Agent/UDP]
 $ns attach-agent $n2 $s1
 
 set null1 [new Agent/Null]
@@ -58,17 +58,17 @@ $ns attach-agent $n1 $null1
 $ns connect $s1 $null1
 
 set exp1 [new Application/Traffic/Exponential]
-$exp1 set packet-size 210
-$exp1 set burst-time 500ms
-$exp1 set idle-time 500ms
-$exp1 set rate 100k
+$exp1 set packet_size_ 210
+$exp1 set burst_time_ 500ms
+$exp1 set idle_time_ 500ms
+$exp1 set rate_ 100k
 
-$s1 attach-traffic $exp1
+$exp1 attach-agent $s1
 
 ## set up the pareto on/off source, parameterized by packet size,
 ## ave on time, ave  off time, peak rate and pareto shape parameter
 
-set s2 [new Agent/CBR/UDP]
+set s2 [new Agent/UDP]
 $ns attach-agent $n3 $s2
 
 set null2 [new Agent/Null]
@@ -77,14 +77,13 @@ $ns attach-agent $n1 $null2
 $ns connect $s2 $null2
 
 set pareto2 [new Application/Traffic/Pareto]
-$pareto2 set packet-size 210
-$pareto2 set burst-time 500ms
-$pareto2 set idle-time 500ms
-$pareto2 set rate 200k
-$pareto2 set shape 1.5
+$pareto2 set packet_size_ 210
+$pareto2 set burst_time_ 500ms
+$pareto2 set idle_time_ 500ms
+$pareto2 set rate_ 200k
+$pareto2 set shape_ 1.5
 
-$s2 attach-traffic $pareto2
-
+$pareto2 attach-agent $s2
 
 ## initialize a trace file
 set tfile [new Tracefile]
@@ -92,7 +91,7 @@ $tfile filename example-trace
 
 ## set up a source that uses the trace file
 
-set s3 [new Agent/CBR/UDP]
+set s3 [new Agent/UDP]
 $ns attach-agent $n4 $s3
 
 set null3 [new Agent/Null]
@@ -107,12 +106,11 @@ $tfile filename example-trace
 set trace3 [new Application/Traffic/Trace]
 $trace3 attach-tracefile $tfile
 
-$s3 attach-traffic $trace3
-
+$trace3 attach-agent $s3
 
 ## attach a 2nd source to the same trace file
 
-set s4 [new Agent/CBR/UDP]
+set s4 [new Agent/UDP]
 $ns attach-agent $n5 $s4
 
 set null4 [new Agent/Null]
@@ -123,17 +121,17 @@ $ns connect $s4 $null4
 set trace4 [new Application/Traffic/Trace]
 $trace4 attach-tracefile $tfile
 
-$s4 attach-traffic $trace4
+$trace4 attach-agent $s4
 
-$ns at 1.0 "$s1 start"
-$ns at 1.0 "$s2 start"
-$ns at 1.0 "$s3 start"
-$ns at 1.0 "$s4 start"
+$ns at 1.0 "$exp1 start"
+$ns at 1.0 "$pareto2 start"
+$ns at 1.0 "$trace3 start"
+$ns at 1.0 "$trace4 start"
 
-$ns at $stoptime "$s1 stop"
-$ns at $stoptime "$s2 stop"
-$ns at $stoptime "$s3 stop"
-$ns at $stoptime "$s4 stop"
+$ns at $stoptime "$exp1 stop"
+$ns at $stoptime "$pareto2 stop"
+$ns at $stoptime "$trace3 stop"
+$ns at $stoptime "$trace4 stop"
 
 $ns at $plottime "close $f"
 $ns at $plottime "finish tg"

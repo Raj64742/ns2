@@ -68,15 +68,17 @@ Simulator instproc create-agent { node type pktClass } {
 
 Simulator instproc cbr_flow { node fid addr bw } {
 	global packetSize
-	set agent [$self create-agent $node Agent/CBR $fid]
+	set agent [$self create-agent $node Agent/UDP $fid]
+	set cbr [new Application/Traffic/CBR]
+	$cbr attach-agent $agent
 	
 	#XXX abstraction violation
 	$agent set dst_ $addr
 	
-	$agent set packetSize_ $packetSize
-	$agent set interval_ [expr $packetSize * 8. / $bw]
-	$agent set random_ 1
-	return $agent
+	$cbr set packet_size_ $packetSize
+	$cbr set interval_ [expr $packetSize * 8. / $bw]
+	$cbr set random_ 1
+	return $cbr
 }
 
 Simulator instproc build_source_set { mmgName rates addrs baseClass node when } {
