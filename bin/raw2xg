@@ -47,8 +47,7 @@ while (<>) {
     /^[\+-] / && do {
 	$c = $F[7] if ($c < $F[7]);
 	$is_ack = ($F[4] eq 'ack');
-	$is_ecn_ack = ($F[6] eq '----E--');
-	$is_ecn = ($F[6] eq '----E-N');
+	$is_ecn = ($F[6] =~ /E/);
 	next if ($is_ack && !$plot_acks);
 
 	($x, $y) = translate_point(@F[1, 10, 7]);
@@ -64,7 +63,7 @@ while (<>) {
 	};
 	if (defined($statement)) {
 	    if ($is_ack) { 
-		if ($is_ecn_ack) {
+		if ($is_ecn) {
 		    push(@ac, $statement);
 		} else {
 		    push(@a, $statement);
