@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.3 2000/07/18 02:41:47 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.4 2001/01/11 06:34:40 sfloyd Exp $
 #
 
 Object instproc exit args {
@@ -73,6 +73,25 @@ TestSuite instproc tcpDump { tcpSrc interval } {
 	}
 	$ns_ at [expr [$ns_ now] + $interval] "$self tcpDump $tcpSrc $interval"
 	set report [$ns_ now]/cwnd=[format "%.4f" [$tcpSrc set cwnd_]]/ssthresh=[$tcpSrc set ssthresh_]/ack=[$tcpSrc set ack_]
+        if {$quiet == "false"} {
+                puts $report
+        }
+}
+
+#
+# Arrange for time to be printed every
+# $interval seconds of simulation time
+#
+TestSuite instproc timeDump { interval } {
+	global quiet
+	$self instvar dump_inst_ ns_
+	if ![info exists dump_inst_] {
+		set dump_inst_ 1
+		$ns_ at 0.0 "$self timeDump $interval"
+		return
+	}
+	$ns_ at [expr [$ns_ now] + $interval] "$self timeDump $interval"
+	set report [$ns_ now]
         if {$quiet == "false"} {
                 puts $report
         }
