@@ -124,45 +124,45 @@ proc create-dsdv-routing-agent { node id } {
 
 
 proc dsdv-create-mobile-node { id args } {
-	global ns ns_ chan prop topo tracefd opt node_
-	global chan prop tracefd topo opt
-        
-        set ns_ [Simulator instance]
-	if {[Simulator set EnableHierRt_]} {
-	    if [Simulator set mobile_ip_] {
-		set node_($id) [new MobileNode/MIPMH $args]
-	    } else {
-		set node_($id) [new Node/MobileNode/BaseStationNode $args]
-	    }
+    global ns ns_ chan prop topo tracefd opt node_
+    global chan prop tracefd topo opt
+    
+    set ns_ [Simulator instance]
+    if {[Simulator set EnableHierRt_]} {
+	if [Simulator set mobile_ip_] {
+	    set node_($id) [new MobileNode/MIPMH $args]
 	} else {
-	    set node_($id) [new Node/MobileNode]
+	    set node_($id) [new Node/MobileNode/BaseStationNode $args]
 	}
-	set node $node_($id)
-	$node random-motion 0		;# disable random motion
-	$node topography $topo
-
-	#
-	# This Trace Target is used to log changes in direction
-	# and velocity for the mobile node.
-	#
-	set T [new Trace/Generic]
-	$T target [$ns_ set nullAgent_]
-	$T attach $tracefd
-	$T set src_ $id
-	$node log-target $T
-
-	$node add-interface $chan $prop $opt(ll) $opt(mac)	\
-		$opt(ifq) $opt(ifqlen) $opt(netif) $opt(ant)
-
-	#
-	# Create a Routing Agent for the Node
-	#
-	create-$opt(rp)-routing-agent $node $id
-	
-	    
-
-	# ============================================================
-
+    } else {
+	set node_($id) [new Node/MobileNode]
+    }
+    set node $node_($id)
+    $node random-motion 0		;# disable random motion
+    $node topography $topo
+    
+    #
+    # This Trace Target is used to log changes in direction
+    # and velocity for the mobile node.
+    #
+    set T [new Trace/Generic]
+    $T target [$ns_ set nullAgent_]
+    $T attach $tracefd
+    $T set src_ $id
+    $node log-target $T
+    
+    $node add-interface $chan $prop $opt(ll) $opt(mac)	\
+	    $opt(ifq) $opt(ifqlen) $opt(netif) $opt(ant)
+    
+    #
+    # Create a Routing Agent for the Node
+    #
+    create-$opt(rp)-routing-agent $node $id
+    
+    
+    
+    # ============================================================
+    
 	if { $opt(pos) == "Box" } {
 		#
 		# Box Configuration

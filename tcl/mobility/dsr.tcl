@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.8 1999/05/05 19:59:37 haldar Exp $
+# $Id: dsr.tcl,v 1.9 1999/05/07 01:02:46 haldar Exp $
 
 # ======================================================================
 # Default Script Options
@@ -93,6 +93,9 @@ SRNode instproc init {args} {
 
 	$dsr_agent_ addr $address_
 	$dsr_agent_ node $self
+	if [Simulator set mobile_ip_] {
+	    $dsr_agent_ port-dmux [$self set dmux_]
+	}
 	# set up IP address
 	$self addr $address_
 	
@@ -190,7 +193,11 @@ proc dsr-create-mobile-node { id args } {
 	global ns_ chan prop topo tracefd opt node_
 	set ns_ [Simulator instance] 
         if {[Simulator set EnableHierRt_]} {
-	    set node_($id) [new SRNode $args]
+	    if [Simulator set mobile_ip_] {
+		set node_($id) [new SRNode/MIPMH $args]
+	    } else {
+		set node_($id) [new SRNode $args]
+	    }
 	} else {
 	    set node_($id) [new SRNode]
 	}

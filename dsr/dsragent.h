@@ -36,7 +36,7 @@
 /* -*- c++ -*-
    dsragent.h
 
-   $Id: dsragent.h,v 1.4 1999/04/22 18:53:47 haldar Exp $
+   $Id: dsragent.h,v 1.5 1999/05/07 01:02:37 haldar Exp $
    */
 
 #ifndef _DSRAgent_h
@@ -106,6 +106,8 @@ public:
 
   void Terminate(void);
 	// called at the end of the simulation to purge all packets
+	
+  void sendOutBCastPkt(Packet *p);
 
   DSRAgent();
   ~DSRAgent();
@@ -124,9 +126,12 @@ private:
   NsObject *ll;		        // our link layer output 
   PriQueue *ifq;		// output interface queue
 
-	// extensions for wired cum wireless sim mode
-	MobileNode *node_;
-	int diff_subnet(ID dest, ID myid);
+  // extensions for wired cum wireless sim mode
+  MobileNode *node_;
+  int diff_subnet(ID dest, ID myid);
+
+  // extensions for mobileIP
+  NsObject *port_dmux_;    // my port dmux
 
   /******** internal state ********/
   RequestTable request_table;
@@ -217,6 +222,8 @@ private:
   void testinit();
   void trace(char* fmt, ...);
 
+  virtual void handPktToDmux(SRPacket& p);
+
   friend void XmitFailureCallback(Packet *pkt, void *data);
   friend int FilterFailure(Packet *p, void *data);
   friend class SendBufferTimer;
@@ -236,4 +243,14 @@ public:
 	static DSRAgent_List agthead;
 };
 
+
+class BS_DSRAgent : public DSRAgent {
+public:
+	BS_DSRAgent() { }
+protected:
+	void handPktToDmux(SRPacket& p);
+};
+
 #endif // _DSRAgent_h
+
+

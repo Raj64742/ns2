@@ -125,29 +125,32 @@ MobileNode/MIPMH instproc init { args } {
     $regagent_ node $self
 }
 
-#Class SRNode/MIPMH -superclass SRNode
+#Class SRNode -superclass Node/MobileNode
 
-#SRNode/MIPMH instproc init { args } {
+Class SRNode/MIPMH -superclass SRNode
+
+SRNode/MIPMH instproc init { args } {
+    eval $self next $args
+    $self instvar regagent_ dmux_ address_
     
-    #$self instvar regagent_
-    
-    #if { $dmux_ == "" } {
-	#set dmux_ [new Classifier/Addr/Reserve]
-	#$dmux_ set mask_ [AddrParams set PortMask_]
-	#$dmux_ set shift_ [AddrParams set PortShift_]
+    if { $dmux_ == "" } {
+	set dmux_ [new Classifier/Addr/Reserve]
+	$dmux_ set mask_ [AddrParams set PortMask_]
+	$dmux_ set shift_ [AddrParams set PortShift_]
 	
-	#if [Simulator set EnableHierRt_] {  
-	    #   $self add-hroute $address_ $dmux_
-	    #} else {
-		#$self add-route $address_ $dmux_
-		#}
-		#} 
-		#eval $self next $args
-		#set regagent_ [new Agent/MIPMH]
-		#$self attach $regagent_ [Node/MobileNode set REGAGENT_PORT]
-		#$regagent_ set mask_ [AddrParams set NodeMask_(1)]
-		#$regagent_ set shift_ [AddrParams set NodeShift_(1)]
-		#$regagent_ set dst_ [expr (~0) << [AddrParams set NodeShift_(1)]]
-		#}
+	if [Simulator set EnableHierRt_] {  
+	    $self add-hroute $address_ $dmux_
+	} else {
+	    $self add-route $address_ $dmux_
+	}
+    } 
+    eval $self next $args
+    set regagent_ [new Agent/MIPMH $self]
+    $self attach $regagent_ [Node/MobileNode set REGAGENT_PORT]
+    #$regagent_ set mask_ [AddrParams set NodeMask_(1)]
+    #$regagent_ set shift_ [AddrParams set NodeShift_(1)]
+    #$regagent_ set dst_ [expr (~0) << [AddrParams set NodeShift_(1)]]
+    $regagent_ node $self
+}
 		
 		

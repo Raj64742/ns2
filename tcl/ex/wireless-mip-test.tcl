@@ -23,10 +23,10 @@ set opt(ll)		LL
 set opt(ant)            Antenna/OmniAntenna
 set opt(x)		670	;# X & Y dimension of the topography
 set opt(y)		670     ;# hard wired for now...
-set opt(rp)             dsdv        ;# for now, supports only dsdv
+set opt(rp)             dsr    ;# rotuing protocls: dsdv/dsr
 set opt(ifqlen)		50		;# max packet in ifq
 set opt(seed)		0.0
-set opt(stop)		500.0		;# simulation time
+set opt(stop)		250.0		;# simulation time
 set opt(cc)             "off"
 set opt(tr)		wireless-mip-out.tr	;# trace file
 set opt(cp)             ""
@@ -88,7 +88,8 @@ Phy/WirelessPhy set L_ 1.0
 # ==================================================================
 source ../lib/ns-bsnode.tcl
 source ../mobility/com.tcl
-#source ../lib/ns-mip.tcl
+source ../mobility/dsr.tcl
+source ../lib/ns-mip.tcl
 source ../lib/ns-wireless-mip.tcl
 
 # intial setup - set addressing to hierarchical
@@ -157,9 +158,10 @@ set HAaddress [AddrParams set-hieraddr [$HA node-addr]]
 $MH set Z_ 0.000000000000
 $MH set Y_ 2.000000000000
 $MH set X_ 2.000000000000
+
 # starts to move towards FA
 $ns at 100.000000000000 "$MH setdest 640.000000000000 610.000000000000 20.000000000000"
- # goes back to HA
+# goes back to HA
 $ns at 200.000000000000 "$MH setdest 2.000000000000 2.000000000000 20.000000000000"
 
 
@@ -227,13 +229,6 @@ $ns_ at $opt(stop).21 "finish"
 $ns_ at $opt(stop).20 "puts \"NS EXITING...\" ; "
 ###$ns_ halt"
 
-puts $tracefd "M 0.0 nn $opt(nn) x $opt(x) y $opt(y) rp $opt(rp)"
-puts $tracefd "M 0.0 sc $opt(sc) cp $opt(cp) seed $opt(seed)"
-puts $tracefd "M 0.0 prop $opt(prop) ant $opt(ant)"
-
-puts "Starting Simulation..."
-$ns_ run
-
 proc finish {} {
 	global ns_ trace namtrace
 	$ns_ flush-trace
@@ -245,4 +240,13 @@ proc finish {} {
         puts "Finishing ns.."
 	exit 0
 }
+
+puts $tracefd "M 0.0 nn $opt(nn) x $opt(x) y $opt(y) rp $opt(rp)"
+puts $tracefd "M 0.0 sc $opt(sc) cp $opt(cp) seed $opt(seed)"
+puts $tracefd "M 0.0 prop $opt(prop) ant $opt(ant)"
+
+puts "Starting Simulation..."
+$ns_ run
+
+
 

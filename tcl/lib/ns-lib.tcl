@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.148 1999/05/06 00:57:53 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.149 1999/05/07 01:04:38 haldar Exp $
 
 #
 
@@ -103,7 +103,7 @@ source ns-errmodel.tcl
 source ns-intserv.tcl
 source ns-cmutrace.tcl
 source ns-mip.tcl
-source ns-wireless-mip.tcl
+#source ns-wireless-mip.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mac.tcl

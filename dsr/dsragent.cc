@@ -39,7 +39,7 @@
    requires a radio model such that sendPacket returns true
    iff the packet is recieved by the destination node.
 
-   $Id: dsragent.cc,v 1.9 1999/05/05 19:59:29 haldar Exp $
+   $Id: dsragent.cc,v 1.10 1999/05/07 01:02:35 haldar Exp $
 */
 
 #include <assert.h>
@@ -281,12 +281,23 @@ public:
   }
 } class_DSRAgent;
 
+
+static class BS_DSRAgentClass : public TclClass {
+public:
+  BS_DSRAgentClass() : TclClass("Agent/DSRAgent/BS_DSRAgent") {}
+  TclObject* create(int, const char*const*) {
+    return (new BS_DSRAgent);
+  }
+} class_BS_DSRAgent;
+
+
 /*===========================================================================
   DSRAgent methods
 ---------------------------------------------------------------------------*/
 DSRAgent::DSRAgent(): Agent(PT_DSR),request_table(128), \
-route_cache(NULL), send_buf_timer(this) 
+route_cache(NULL), send_buf_timer(this)
 {
+  port_dmux_ = 0;
   int c;
   route_request_num = 1;
 
@@ -449,7 +460,11 @@ DSRAgent::command(int argc, const char*const* argv)
 	   node_ = (MobileNode *) obj;
 	   return TCL_OK;
 	}
-      
+      else if (strcasecmp (argv[1], "port-dmux") == 0) 
+	{
+	   port_dmux_ = (NsObject *) obj;
+	   return TCL_OK;
+	}
     }
   else if (argc == 4)
     {
@@ -498,6 +513,13 @@ DSRAgent::diff_subnet(ID dest, ID myid)
 }
 
 void
+DSRAgent::sendOutBCastPkt(Packet *p)
+{
+	// no jitter required
+	Scheduler::instance().schedule(ll, p, 0.0);
+}
+
+void
 DSRAgent::recv(Packet* packet, Handler*)
   /* handle packets with a MAC destination address of this host, or
      the MAC broadcast addr */
@@ -505,7 +527,7 @@ DSRAgent::recv(Packet* packet, Handler*)
   hdr_sr *srh =  (hdr_sr*)packet->access(off_sr_);
   hdr_ip *iph =  (hdr_ip*)packet->access(off_ip_);
   hdr_cmn *cmh =  (hdr_cmn*)packet->access(off_cmn_);
-
+  
   assert(cmh->size() >= 0);
 
   SRPacket p(packet, srh);
@@ -513,18 +535,32 @@ DSRAgent::recv(Packet* packet, Handler*)
   p.src = ID((Address::instance().get_nodeaddr(iph->src())),::IP);
 
   assert(logtarget != 0);
-
-  if (srh->valid() != 1)
-    { // this must be an outgoing packet, it doesn't have a SR header on it
-      srh->init();		 // give packet an SR header now
-      cmh->size() += IP_HDR_LEN; // add on IP header size
-      if (verbose)
+  
+  if (srh->valid() != 1) {
+	  int dst = cmh->next_hop();
+	  if (dst == IP_BROADCAST) {
+		  // extensions for mobileIP --Padma, 04/99.
+		  // Brdcast pkt - treat differently
+		  if (p.src == net_id)
+			  // I have originated this pkt
+			  sendOutBCastPkt(packet);
+		  else 
+			  //hand it over to port-dmux
+			  port_dmux_->recv(packet, (Handler*)0);
+  } else { 
+  
+  // this must be an outgoing packet, it doesn't have a SR header on it
+  
+   srh->init();		 // give packet an SR header now
+   cmh->size() += IP_HDR_LEN; // add on IP header size
+   if (verbose)
 	trace("S %.9f _%s_ originating %s -> %s",
-	      Scheduler::instance().clock(), net_id.dump(), p.src.dump(), 
+	    Scheduler::instance().clock(), net_id.dump(), p.src.dump(), 
 	      p.dest.dump());
       handlePktWithoutSR(p, false);
       goto done;
-    }
+  }
+  }
   else if (srh->valid() == 1) 
     {
        if (p.dest == net_id || p.dest == IP_broadcast)
@@ -555,7 +591,7 @@ DSRAgent::recv(Packet* packet, Handler*)
     { // we're not the intended final recpt, but we're a hop
       handleForwarding(p);
     }
-  }
+    }
   else {
 	  // some invalid pkt has reached here
 	  fprintf(stderr,"dsragent: Error-received Invalid pkt!\n");
@@ -591,9 +627,12 @@ DSRAgent::handlePktWithoutSR(SRPacket& p, bool retry)
   //if pkt dst outside my subnet, route to base_stn
 
   ID dest;
-  if (diff_subnet(p.dest,net_id)) 
- 	  //dest = ID(node_->base_stn()->address(),::IP);
+  if (diff_subnet(p.dest,net_id)) {
 	  dest = ID(node_->base_stn(),::IP);
+	  if (dest == net_id) 
+		  // Iam the base-station
+		  dest = p.dest;
+  }
   else
 	  dest = p.dest;
 
@@ -655,16 +694,32 @@ DSRAgent::handlePacketReceipt(SRPacket& p)
 
   /* give the data in the packet to our higher layer (our port dmuxer, most 
    likely) */
-  assert(p.dest == net_id || p.dest == MAC_id);
-  // set pkt address format as the dmux expects 
-  
-  if (iph->dport() == 255) {
-	  int mask = Address::instance().portmask();
-	  int shift = Address::instance().portshift();  
-	  iph->dst() = ((iph->dport() & mask) << shift) | ((~(mask) << shift) & iph->dst());
-  }
-  target_->recv(p.pkt, (Handler*)0);
-  p.pkt = 0;
+  handPktToDmux(p);
+}
+
+void 
+DSRAgent::handPktToDmux(SRPacket &p)
+{
+	hdr_ip *iph = HDR_IP(p.pkt);
+	assert(p.dest == net_id || p.dest == MAC_id);
+	if (iph->dport() == 255) {
+		int mask = Address::instance().portmask();
+		int shift = Address::instance().portshift();  
+		iph->dst() = ((iph->dport() & mask) << shift) | ((~(mask) << shift) & iph->dst());
+	}
+	target_->recv(p.pkt, (Handler*)0);
+	p.pkt = 0;
+}
+
+void 
+
+BS_DSRAgent::handPktToDmux(SRPacket &p)
+{
+	//since the demux has handed this pkt to the DSRagent,
+	// silently drop this pkt.
+	Packet::free(p.pkt);  
+	p.pkt = 0;
+
 }
 
 void
@@ -891,9 +946,9 @@ DSRAgent::replyFromRouteCache(SRPacket &p)
   p.pkt = allocpkt();
 
   hdr_ip *iph =  (hdr_ip*)p.pkt->access(off_ip_);
-  iph->src() = Address::instance().create_ipaddr(p.src.addr,0);
+  iph->src() = Address::instance().create_ipaddr(p.src.addr,RT_PORT);
   iph->sport() = RT_PORT;
-  iph->dst() = Address::instance().create_ipaddr(p.dest.addr,0);
+  iph->dst() = Address::instance().create_ipaddr(p.dest.addr,RT_PORT);
   iph->dport() = RT_PORT;
   iph->ttl() = 255;
 
@@ -935,9 +990,13 @@ DSRAgent::sendOutPacketWithRoute(SRPacket& p, bool fresh, Time delay)
   assert(cmnh->size() > 0);
 
   ID dest;
-  if (diff_subnet(p.dest,net_id)) 
+  if (diff_subnet(p.dest,net_id)) {
 	  //dest = ID(node_->base_stn()->address(),::IP);
 	  dest = ID(node_->base_stn(),::IP);
+	  if (dest == net_id) 
+		  // Iam the base-station
+		  dest = p.dest;
+  }
   else
 	  dest = p.dest;
   if (dest == net_id)
@@ -1034,9 +1093,9 @@ DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
   hdr_sr *srh =  (hdr_sr*)rrp.pkt->access(off_sr_);
   hdr_ip *iph =  (hdr_ip*)rrp.pkt->access(off_ip_);
   hdr_cmn *cmnh =  (hdr_cmn*)rrp.pkt->access(off_cmn_);
-  iph->dst() = Address::instance().create_ipaddr(dest.getNSAddr_t(),0);
+  iph->dst() = Address::instance().create_ipaddr(dest.getNSAddr_t(),RT_PORT);
   iph->dport() = RT_PORT;
-  iph->src() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),0);
+  iph->src() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT);
   iph->sport() = RT_PORT;
   cmnh->ptype() = PT_DSR;
   cmnh->size() = size_;
@@ -1052,10 +1111,10 @@ DSRAgent::getRouteForPacket(SRPacket &p, ID dest, bool retry)
   hdr_ip *iph =  (hdr_ip*)rrp.pkt->access(off_ip_);
   hdr_cmn *cmnh =  (hdr_cmn*)rrp.pkt->access(off_cmn_);
   
-  iph->dst() = Address::instance().create_ipaddr(dest.getNSAddr_t(),0);
+  iph->dst() = Address::instance().create_ipaddr(dest.getNSAddr_t(),RT_PORT);
   
   iph->dport() = RT_PORT;
-  iph->src() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),0);
+  iph->src() = Address::instance().create_ipaddr(net_id.getNSAddr_t(),RT_PORT);
   iph->sport() = RT_PORT;
   cmnh->ptype() = PT_DSR;
   cmnh->size() = size_ + IP_HDR_LEN; // add in IP header
@@ -1181,9 +1240,9 @@ DSRAgent::returnSrcRteForOutsideDomainToRequestor(SRPacket &p)
   p_copy.route.appendToPath(p_copy.src);
   
   hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
-  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),0);
+  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
-  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),0);
+  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1243,9 +1302,9 @@ DSRAgent::returnSrcRouteToRequestor(SRPacket &p)
   p_copy.route.appendToPath(net_id);
 
   hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
-  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),0);
+  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
-  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),0);
+  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1334,11 +1393,14 @@ DSRAgent::acceptRouteReply(SRPacket &p)
   for (int c = 0; c < SEND_BUF_SIZE; c++)
     {
       if (send_buf[c].p.pkt == NULL) continue;
+
       // check if pkt is destined to outside domain
-      if (diff_subnet(send_buf[c].p.dest,net_id)) 
-	      //dest = ID(node_->base_stn()->address(),::IP);
+      if (diff_subnet(send_buf[c].p.dest,net_id)) {
 	      dest = ID(node_->base_stn(),::IP);
-      
+	      if (dest == net_id) 
+		      // Iam the base-station
+		      dest = send_buf[c].p.dest;
+      }
       else
 	      dest = send_buf[c].p.dest;
       if (route_cache->findRoute(dest, send_buf[c].p.route, 1))
@@ -1443,10 +1505,10 @@ DSRAgent::processBrokenRouteError(SRPacket& p)
   p_copy.src = net_id;
 
   //new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
-  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),0);
+  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
   //new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
-  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),0);
+  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
       
@@ -1623,10 +1685,10 @@ DSRAgent::sendRouteShortening(SRPacket &p, int heard_at, int xmit_at)
 
   hdr_ip *new_iph =  (hdr_ip*)p_copy.pkt->access(off_ip_);
   //new_iph->dst() = (p_copy.dest.addr) << Address::instance().nodeshift();
-  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),0);
+  new_iph->dst() = Address::instance().create_ipaddr(p_copy.dest.getNSAddr_t(),RT_PORT);
   new_iph->dport() = RT_PORT;
   //new_iph->src() = (p_copy.src.addr) << Address::instance().nodeshift();
-  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),0);
+  new_iph->src() = Address::instance().create_ipaddr(p_copy.src.getNSAddr_t(),RT_PORT);
   new_iph->sport() = RT_PORT;
   new_iph->ttl() = 255;
 
@@ -1936,10 +1998,10 @@ DSRAgent::xmitFailed(Packet *pkt)
   srh->route_request() = 0;
 
   //iph->dst() = (deadlink->tell_addr) << Address::instance().nodeshift();
-  iph->dst() = Address::instance().create_ipaddr(deadlink->tell_addr,0);
+  iph->dst() = Address::instance().create_ipaddr(deadlink->tell_addr,RT_PORT);
   iph->dport() = RT_PORT;
   //iph->src() = (net_id.addr) << Address::instance().nodeshift();
-  iph->src() = Address::instance().create_ipaddr(net_id.addr,0);
+  iph->src() = Address::instance().create_ipaddr(net_id.addr,RT_PORT);
   iph->sport() = RT_PORT;
   iph->ttl() = 255;
 

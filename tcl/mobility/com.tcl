@@ -101,6 +101,7 @@ proc create-dsdv-bs-node {node id} {
 
 proc create-dsr-bs-node {node id} {
     global ns_ chan prop opt
+    $node instvar regagent_ ragent_
     
     $node add-interface $chan $prop $opt(ll) $opt(mac)	\
 	    $opt(ifq) $opt(ifqlen) $opt(netif) \
@@ -108,6 +109,10 @@ proc create-dsr-bs-node {node id} {
     
     create-$opt(rp)-routing-agent $node $id
     $node create-xtra-interface 
+    
+    if [info exists regagent_] {
+	$regagent_ ragent $ragent_
+    }
     
     $ns_ at 0.0 "$node start-dsr"
 }
@@ -119,14 +124,17 @@ proc create-dsr-routing-agent { node id } {
     # 
     # Create routing agent and attach it to port 255
     #
-    set ragent_($id) [new Agent/DSRAgent]
+    set ragent_($id) [new Agent/DSRAgent/BS_DSRAgent]
     set ragent $ragent_($id)
     
     # setup address (supports hier-addr) for dsdv agent 
     set address [$node node-addr]
     $ragent addr $address
     $ragent node $node
-
+    if [Simulator set mobile_ip_] {
+	$ragent port-dmux [$node set dmux_]
+    }
+    
     $node addr $address
     $node set ragent_ $ragent
     
@@ -182,10 +190,9 @@ proc create-dsr-routing-agent { node id } {
 
     $ragent target $dmux
     
-    # packets to the DSR port should be dropped, since we've
-    # already handled them in the DSRAgent at the entry.
-    set nullAgent_ [$ns_ set nullAgent_]
-    $dmux install $opt(rt_port) $nullAgent_
+    # packets to the DSR port should be handed over to ragent_
+    # since all pkts now donot go thru ragent
+    $dmux install $opt(rt_port) $ragent
 }
 
 

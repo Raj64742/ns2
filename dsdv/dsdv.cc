@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.9 1999/05/06 00:39:51 yaxu Exp $
+   $Id: dsdv.cc,v 1.10 1999/05/07 01:02:39 haldar Exp $
 
    */
 
@@ -1086,7 +1086,7 @@ static class DSDVClass:public TclClass
 } class_dsdv;
 
 DSDV_Agent::DSDV_Agent (): Agent (PT_MESSAGE), ll_queue (0), seqno_ (0), 
-  myaddr_ (0), subnet_ (0), node_ (0),
+  myaddr_ (0), subnet_ (0), node_ (0), port_dmux_(0),
   periodic_callback_ (0), be_random_ (1), 
   use_mac_ (0), verbose_ (1), trace_wst_ (0), lasttup_ (-10), 
   alpha_ (0.875),  wst0_ (6), perup_ (15), 

@@ -198,7 +198,8 @@ Agent/MIPBS instproc add-ads-bcast-link { ll } {
 Agent/MIPMH instproc init { node args } {
     eval $self next $args
     # if mobilenode, donot use bcasttarget; use target_ instead;
-    if {[$node info class] != "MobileNode/MIPMH"} {
+    if {[$node info class] != "MobileNode/MIPMH" && \
+	    [$node info class] != "SRNode/MIPMH" } {
 	$self instvar BcastTarget_
 	set BcastTarget_ [new Classifier/Replicator]
 	$self bcast-target $BcastTarget_
@@ -209,7 +210,8 @@ Agent/MIPMH instproc init { node args } {
 Agent/MIPMH instproc update-reg coa {
     $self instvar node_
     ## dont need to set up routing for mobilenodes, so..
-    if {[$node_ info class] != "MobileNode/MIPMH"} {
+    if {[$node_ info class] != "MobileNode/MIPMH" && \
+	    [$node_ info class] != "SRNode/MIPMH"} {
 	set n [Node set nn_]
 	set ns [Simulator instance]
 	set id [$node_ id]
@@ -224,7 +226,8 @@ Agent/MIPMH instproc update-reg coa {
     
 Agent/MIPMH instproc get-link { src dst } {
     $self instvar node_
-    if {[$node_ info class] != "MobileNode/MIPMH"} {
+    if {[$node_ info class] != "MobileNode/MIPMH" && \
+	    [$node_ info class] != "SRNode/MIPMH" } {
 	set ns [Simulator instance]
 	return [[$ns link [$ns get-node-by-addr $src] \
 		[$ns get-node-by-addr $dst]] head]

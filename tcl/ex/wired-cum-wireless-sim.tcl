@@ -31,10 +31,10 @@ set opt(y)		670     ;# hard wired for now...
 ##set opt(cp)		"../mobility/scene/cbr-3-test" ;# connection pattern file
 set opt(cp)             ""
 set opt(sc)		"../mobility/scene/scen-3-test" ;# scenario file
-set opt(rp)             dsdv        ;# for now, supports only dsdv
-set opt(ifqlen)		50		;# max packet in ifq
+set opt(rp)             dsr      ;# available routing proto:dsdv/dsr
+set opt(ifqlen)		50	   ;# max packet in ifq
 set opt(seed)		0.0
-set opt(stop)		500.0		;# simulation time
+set opt(stop)		500.0	   ;# simulation time
 set opt(cc)             "off"
 set opt(tr)		wired-and-wireless-out.tr	;# trace file
 set opt(ftp1-start)     200.0
@@ -95,6 +95,7 @@ Phy/WirelessPhy set freq_ 914e+6
 Phy/WirelessPhy set L_ 1.0
 
 # ======================================================================
+source ../lib/ns-wireless-mip.tcl
 
 # intial setup - set addressing to hierarchical
 
