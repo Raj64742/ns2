@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.109 1998/07/06 19:31:30 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.110 1998/07/06 21:43:24 sfloyd Exp $
 
 #
 
@@ -847,6 +847,23 @@ Simulator instproc create-connection {s_type source d_type dest pktClass} {
 	return $s_agent
 }
 
+# Creates connection. First creates a source agent of type s_type and binds
+# it to source.  Next creates a destination agent of type d_type and binds
+# it to dest.  Finally creates bindings for the source and destination agents,
+# connects them, and  returns a list of source agent and destination agent.
+Simulator instproc create-connection-list {s_type source d_type dest pktClass} {
+    set s_agent [new Agent/$s_type]
+    set d_agent [new Agent/$d_type]
+    $s_agent set fid_ $pktClass
+    $d_agent set fid_ $pktClass
+    $self attach-agent $source $s_agent
+    $self attach-agent $dest $d_agent
+    $self connect $s_agent $d_agent
+
+    return [list $s_agent $d_agent]
+}   
+
+# This seems to be an obsolete procedure.
 Simulator instproc create-tcp-connection {s_type source d_type dest pktClass} {
 	set s_agent [new Agent/$s_type]
 	set d_agent [new Agent/$d_type]
