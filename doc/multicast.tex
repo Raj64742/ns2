@@ -100,7 +100,7 @@ An example of a relatively simple multicast configuration is:
 some types of packet activity about a specific source group pair.
 The module counts the number of packets in transit periodically
 and prints the results to stdout.
-Currently, it only traces register, join, prune, and data packets.
+Currently, it only traces prune, join, register, and data packets.
 \begin{program}
 	set mcastmonitor [$ns McastMonitor]
 	$mcastmonitor set period_ 0.02         \; default 0.03 (sec);
@@ -108,6 +108,16 @@ Currently, it only traces register, join, prune, and data packets.
 \end{program}
 
 % SAMPLE OUTPUT?
+The following sample output illustrates the output file format (time, prune, join, register, data, source, group):
+{\small
+\begin{verbatim}
+0.14999999999999999 0 0 4 0 0 32770
+0.17999999999999999 0 0 4 0 0 32770
+0.20999999999999999 0 0 4 2 0 32770
+0.23999999999999999 0 0 4 7 0 32770
+0.27000000000000002 0 0 4 8 0 32770
+\end{verbatim}
+}
 
 \subsection{Protocol Specific configuration}
 
@@ -367,7 +377,7 @@ There are instance procedures to control the elements in each slot:
 \proc[oif]{enable} &  enable the slot pointing to the specified oif.\\
 \proc[]{is-active} & returns true if the replicator has atleast one active slot.\\
 \proc[oif]{exists} & returns true if the slot pointing to the specified oif is active.\\
-\proc[]{change-iface} & modified the iif entry for the particular replicator.\\
+\proc[source, group, oldiif, newiif]{change-iface} & modified the iif entry for the particular replicator.\\
 \end{alist}
 
 \subsection{Protocol Internals}
@@ -421,9 +431,9 @@ its outgoing interface to the encapsulation agent.
 \begin{alist}
 \proc[]{reset-mroutes} & resets all mutlicast forwarding entries.\\
 \proc[]{compute-mroutes} & (re)computes all multicast forwarding entries.\\
-\proc[]{compute-tree} & computes a multicast tree for one source to reach 
+\proc[source, group]{compute-tree} & computes a multicast tree for one source to reach 
 		all the receivers in a specific group.\\
-\proc[]{compute-branch} & is executed when a receiver joins a multicast group.
+\proc[source, group, member]{compute-branch} & is executed when a receiver joins a multicast group.
 	It could also be invoked by \proc[]{compute-tree} when it itself
 	is recomputing the multicast tree, and has to reparent
 	all receivers.
@@ -434,7 +444,7 @@ its outgoing interface to the encapsulation agent.
 	a part of the relevent multicast tree.
 	 During the process, several new replicators and an
 	outgoing interface will be installed.\\
-\proc[]{prune-branch} & is similar to \proc[]{compute-branch} except the
+\proc[source, group, member]{prune-branch} & is similar to \proc[]{compute-branch} except the
 	outgoing interface is disabled;
 	if the outgoing interface list is empty at that node,
 	it will walk up the multicast tree, pruning at each of the
@@ -445,10 +455,10 @@ its outgoing interface to the encapsulation agent.
 
 \subsubsection{Dense Mode}
 \begin{alist}
-\proc[]{join-group} & sends graft messages upstream if \tup{S,G} does not
+\proc[group]{join-group} & sends graft messages upstream if \tup{S,G} does not
 	contain any active outgoing slots (\ie, no downstream receivers).\\
-\proc[]{leave-group} & does not do anything.\\
-\proc[]{handle-cache-miss} & creates \tup{S,G} with only
+\proc[group]{leave-group} & does not do anything.\\
+\proc[group]{handle-cache-miss} & creates \tup{S,G} with only
 	the outgoing interfaces to each of the child nodes.
 	For basic dense mode,
 	parent-child relationship is computed only once at the start-up.\\
@@ -459,15 +469,15 @@ its outgoing interface to the encapsulation agent.
 	\proc[]{handle-cache-miss} is the same as in dynamic dense mode,
 	except that the outgoing interface list is set to all neighbours
 	excluding the incoming interface.\\
-\proc[]{drop} & sends prune messages upstream.
+\proc[replicator, source, group]{drop} & sends prune messages upstream.
 	Recall that the packet is only dropped when there are
 	no downstream receivers for the \tup{S, G} tuple.\\
-\proc[]{recv-prune} & resets the prune timer
+\proc[from, source, group]{recv-prune} & resets the prune timer
 	 if the interface had been pruned previously;
 	otherwise, it starts the prune timer and disables the interface;
 	furthermore,  if the outgoing interface list becomes empty,
 	it forwards the prune message upstream.\\
-\proc[]{recv-graft} & cancels any existing prune timer, and
+\proc[from, source, group]{recv-graft} & cancels any existing prune timer, and
 	re-enables the pruned interface.
 	If the outgoing interface list was previously empty,
 	it forwards the graft upstream.\\
