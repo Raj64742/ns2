@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.32 2003/07/29 20:37:24 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.33 2003/07/29 21:50:59 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -56,7 +56,6 @@ Agent/TCP set minrto_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
-Agent/TCP set exitFastRetrans_ false
 
 Agent/TCP set rfc2988_ true
 
