@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satgeometry.cc,v 1.2 1999/11/02 05:58:15 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satgeometry.cc,v 1.3 1999/11/12 16:45:01 tomh Exp $";
 #endif
 
 #include "satgeometry.h"
@@ -76,6 +76,11 @@ double SatGeometry::propdelay(coordinate a, coordinate b)
 {
 	double delay = distance(a, b)/LIGHT;
 	return (Trace::round(delay, 1.0E+8));
+}
+
+double SatGeometry::get_altitude(coordinate a)
+{
+        return (a.r - EARTH_RADIUS);
 }
 
 // Returns latitude in radians, in the range from -PI/2 to PI/2

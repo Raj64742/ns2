@@ -77,13 +77,14 @@ public:
 	static double propdelay(coordinate, coordinate);
 	static double get_latitude(coordinate);
 	static double get_longitude(coordinate);
-	static double get_altitude(coordinate a) { return a.r; }
+	static double get_radius(coordinate a) { return a.r; }
+	static double get_altitude(coordinate a);
 	static double check_elevation(coordinate, coordinate, double);
 	static int check_atmos_margin(coordinate, coordinate);
 
 protected: 
 	// Define "command" appropriately if you want OTcl access to this class
-        int command(int argc, const char*const* argv) { return 0; }
+        int command(/*int argc, const char*const* argv */) { return 0; }
 };
 
 #endif // __ns_sat_geometry_h__
