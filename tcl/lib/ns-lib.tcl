@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.61 1997/11/04 03:06:49 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.62 1997/11/04 03:40:38 kfall Exp $
 #
 
 #
@@ -589,6 +589,8 @@ Simulator instproc makeflowmon { cltype { clslots 29 } } {
 
         $cl proc unknown-flow { src dst fid hashbucket }  {
                 set fdesc [new QueueMonitor/ED/Flow]
+		set dsamp [new Samples]
+		$fdesc set-delay-samples $dsamp
                 set slot [$self installNext $fdesc] 
                 $self set-hash $hashbucket $src $dst $fid $slot
 	}
