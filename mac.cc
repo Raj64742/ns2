@@ -140,8 +140,10 @@ Mac::send(Packet* p)
 
 
 void
-Mac::resume()
+Mac::resume(Packet* p)
 {
+	if (p != 0)
+		drop(p);
 	state(MAC_IDLE);
 	callback_->handle(&intr_);
 }

@@ -81,15 +81,17 @@ class Mac802_11 : public CsmaCaMac
 {
 public:
 	Mac802_11();
-	virtual void recv(Packet* p, Handler* h);
-	virtual void resume();
+	void recv(Packet* p, Handler* h);
+	void resume(Packet* p = 0);
 	void sendRts();
 	void sendData();
 
 protected:
 	int command(int argc, const char*const* argv);
+	void backoff(Handler* h, Packet* p, double delay = 0);
 	void send(Packet* p, double ifs);
-	void processRtsCts(Packet* p, Handler* h);
+	void recvRtsCts(Packet* p);
+	void sendRtsCts(Packet* p);
 	void sendCts(Packet* p);
 	void sendAck(Packet* p);
 	double lengthNAV(Packet* p);

@@ -57,12 +57,12 @@ protected:
 class CsmaMac : public Mac {
 public:
 	CsmaMac();
-	virtual void send(Packet* p);
-	virtual void resume();
-	virtual void backoff(Handler* h, Packet* p, double delay=0);
+	void send(Packet* p);
+	void resume(Packet* p = 0);
 	virtual void endofContention(Packet* p);
 
 protected:
+	virtual void backoff(Handler* h, Packet* p, double delay=0);
 	double delay_;		// MAC overhead
 	double txstart_;	// when the transmission starts
 	double ifs_;		// interframe spacing

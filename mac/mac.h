@@ -58,7 +58,6 @@ enum MacState {
 	MAC_RECV 	= 0x0010,
 	MAC_SEND 	= 0x0100,
 	MAC_RTS		= 0x0200,
-	MAC_RTS_END	= 0x0400,
 	MAC_ACK		= 0x1000,
 };
 
@@ -109,8 +108,7 @@ public:
 	Mac();
 	virtual void recv(Packet* p, Handler* h);
 	virtual void send(Packet* p);
-	virtual void resume();
-	Mac* getPeerMac(Packet* p);
+	virtual void resume(Packet* p = 0);
 
 	inline double txtime(Packet* p) {
 		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
@@ -122,12 +120,12 @@ public:
 	inline double bandwidth() const { return bandwidth_; }
 	inline int label() { return label_; }
 	inline MacState state() { return state_; }
-	inline MacState state(MacState m) { return state_ = m; }
 	inline MacState state(int m) { return state_ = (MacState) m; }
 	inline Mac*& macList() { return macList_; }
 
 protected:
 	int command(int argc, const char*const* argv);
+	Mac* getPeerMac(Packet* p);
 	double bandwidth_;	// bandwidth of this MAC
 	int hlen_;		// MAC header length
 	int label_;		// MAC address

@@ -85,12 +85,14 @@ CsmaCaMac::CsmaCaMac() : CsmaMac()
 
 
 void
-CsmaMac::resume()
+CsmaMac::resume(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	s.schedule(callback_, &intr_, ifs_ + slotTime_ * cw_);
+	if (p != 0)
+		drop(p);
 	callback_ = 0;
-	state((MacState) (state_ & ~MAC_SEND));
+	state(MAC_IDLE);
 	rtx_ = 0;
 	cw_ = cwmin_;
 }
@@ -127,10 +129,8 @@ CsmaMac::backoff(Handler* h, Packet* p, double delay)
 		s.schedule(h, p, delay + slotTime_ * slot);
 		cw_ = min(2 * cw_, cwmax_);
 	}
-	else {
-		drop(p);
-		CsmaMac::resume();
-	}
+	else
+		resume(p);
 }
 
 
