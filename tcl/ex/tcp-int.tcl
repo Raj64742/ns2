@@ -1,3 +1,5 @@
+source ../../../ex/asym/util.tcl
+
 set ns [new Simulator]
 
 $ns color 0 blue
