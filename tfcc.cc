@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.14 1998/09/18 18:29:06 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.15 1998/09/18 21:35:03 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -158,7 +158,7 @@ protected:
 	int needresponse_;	// send a packet in response to current one
 	int last_ecn_;		// last recv had an ecn
 
-	friend class TFCCAckTimer : public TimerHandler {
+	class TFCCAckTimer : public TimerHandler {
 	public: 
 		TFCCAckTimer(TFCCAgent *a) : TimerHandler() { a_ = a; }
 	protected:      
@@ -166,15 +166,17 @@ protected:
 		TFCCAgent *a_;
 	};
 
+	friend TFCCAckTimer;
 	TFCCAckTimer ack_timer_;	// periodic timer for ack generation
 
-	friend class TFCCRttTimer : public TimerHandler {
+	class TFCCRttTimer : public TimerHandler {
 	public: 
 		TFCCRttTimer(TFCCAgent *a) : TimerHandler() { a_ = a; }
 	protected:
 		void expire(Event *) { a_->rtt_timeout(this); }
 		TFCCAgent *a_;
 	};
+	friend TFCCRttTimer;
 	TFCCRttTimer rtt_timer_; 	// periodic rtt-based heartbeat
 };
 
