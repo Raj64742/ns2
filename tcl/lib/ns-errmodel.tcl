@@ -88,7 +88,8 @@ Class ErrorModel/Uniform -superclass ErrorModel
 Class ErrorModel/Expo -superclass ErrorModel
 
 ErrorModel/Uniform instproc init { rate unit } {
-	$self instvar $rv_
+	$self instvar rv_
+
         set rv_ [new RandomVariable/Uniform]
 	$rv_ set min_ 0
 	$rv_ set max_ [expr 2*$rate]
@@ -99,10 +100,23 @@ ErrorModel/Uniform instproc init { rate unit } {
 ErrorModel/Expo instproc init { rate unit } {
 	$self next
 	$self instvar rv_
+
 	set rv_ [new RandomVariable/Exponential]
 	$rv_ set avg_ $rate
 	$self initvars $rate $unit
-}	
+}
+
+ErrorModel/Empirical instproc initrv { files } {
+	$self instvar grv_ brv_
+	
+	set grv_ [new RandomVariable/Empirical]
+	$grv_ loadCDF [lindex $files 0]
+	$self granvar $grv_
+
+	set brv_ [new RandomVariable/Empirical]
+	$brv_ loadCDF [lindex $files 1]
+	$self branvar $brv_
+}
 
 Class ErrorModel/MultiState -superclass ErrorModel
 
@@ -137,8 +151,8 @@ ErrorModel/MultiState instproc corrupt { } {
 	return $retval
 }
 
-# XXX eventually want to put in expected times of staying in each state before 
-# transition here.  Punt on this for now.
+# XXX eventually want to put in expected times of staying in each state 
+# before transition here.  Punt on this for now.
 ErrorModel instproc insert-error { parent } {
 	return [$self corrupt $parent]
 	
