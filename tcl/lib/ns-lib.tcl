@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.197 2000/07/22 23:52:34 xuanc Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.198 2000/07/23 00:27:51 xuanc Exp $
 
 #
 
@@ -342,6 +342,7 @@ Simulator instproc node-config args {
   	   error "Can't specify both channel and channelType, error!"
          } elseif {[info exists channelType_]} {
  	    # Single channel, single interface
+	    warn "Please use -channel as shown in ns/tcl/ex/wireless-mitf.tcl"
  	    if {![info exists chan]} {
                 set chan [new $channelType_]
                 #puts "no channel specified, create a new one."
