@@ -103,9 +103,13 @@ TestSuite proc runTest {} {
 		2 {
 			set test [lindex $argv 0]
 			isProc? Test $test
-
-			set topo [lindex $argv 1]
-			isProc? Topology $topo
+			set a [lindex $argv 1]
+			if {$a == "QUIET"} {
+				set topo ""
+			} else {
+				set topo $a
+				isProc? Topology $topo
+			}
 		}
 		default {
 			usage

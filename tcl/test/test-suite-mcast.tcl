@@ -23,6 +23,9 @@ TestSuite instproc init {} {
 	
 	$ns_ trace-all [open temp.rands w]
 	$ns_ namtrace-all [open temp.rands.nam w]
+	$ns_ color 0 blue
+	$ns_ color 1 red
+	$ns_ color 2 yellow
 	$ns_ color 30 purple
 	$ns_ color 31 green
 	
@@ -768,6 +771,7 @@ Test/CtrMcast1 instproc run {} {
 	set grp [Node allocaddr]
 	
 	$udp1 set dst_ $grp
+	$udp1 set class_ 1
 	##$udp1 set dst_ 0x8003
 	
 	set cbr1 [new Application/Traffic/CBR]
@@ -776,6 +780,7 @@ Test/CtrMcast1 instproc run {} {
 	set udp2 [new Agent/UDP]
 	$ns_ attach-agent $node_(n3) $udp2
 	$udp2 set dst_ $grp
+	$udp2 set class_ 2
 	##$udp2 set dst_ 0x8003
 	
 	set cbr2 [new Application/Traffic/CBR]
@@ -816,53 +821,54 @@ Test/CtrMcast1 instproc run {} {
 
 # Testing performance in the presence of dynamics. Also testing a rcvr joining
 # a group before the src starts sending pkts to the group.
-#Class Test/CtrMcast2 -superclass TestSuite
-#Test/CtrMcast2 instproc init topo {
-#	 $self instvar net_ defNet_ test_
-#	 set net_	$topo
-#	 set defNet_	net6a
-#	 set test_	CtrMcast2
-#	 $self next
-#}
-#Test/CtrMcast2 instproc run {} {
-#	 $self instvar ns_ node_ testName_
-#
-#	 $ns_ rtproto Session
-#	 set mproto CtrMcast
-#	 set mrthandle [$ns_ mrtproto $mproto  {}]
-#	 
-#	 set udp0 [new Agent/UDP]
-#	 $ns_ attach-agent $node_(n0) $udp0
-#	 $udp0 set dst_ 0x8003
-#	 set cbr0 [new Application/Traffic/CBR]
-#	 $cbr0 attach-agent $udp0
-#
-#	 set rcvr [new Agent/Null]
-#	 $ns_ attach-agent $node_(n3) $rcvr
-#	 $ns_ attach-agent $node_(n4) $rcvr
-#	 $ns_ attach-agent $node_(n5) $rcvr
-#	 
-#	 $ns_ at 0.3 "$node_(n3) join-group  $rcvr 0x8003"
-#	 $ns_ at 0.35 "$cbr0 start"
-#	 $ns_ at 0.4 "$node_(n4) join-group  $rcvr 0x8003"
-#	 $ns_ at 0.5 "$node_(n5) join-group  $rcvr 0x8003"
-#
-#	 ### Link between n2 & n4 down at 0.6, up at 1.2
-#	 $ns_ rtmodel-at 0.6 down $node_(n2) $node_(n4)
-#	 $ns_ rtmodel-at 1.2 up $node_(n2) $node_(n4)
-#	 ###
-#
-#	 $ns_ at 1.0 "$mrthandle switch-treetype 0x8003"
-#
-#	 ### Link between n0 & n1 down at 1.5, up at 2.0
-#	 $ns_ rtmodel-at 1.5 down $node_(n0) $node_(n1)
-#	 $ns_ rtmodel-at 2.0 up $node_(n0) $node_(n1)
-#	 ###
-#	 $ns_ at 2.2 "$self finish 6a-nam"
-#	 
-#	 $ns_ run
-#}
-#
+Class Test/CtrMcast2 -superclass TestSuite
+Test/CtrMcast2 instproc init topo {
+	 $self instvar net_ defNet_ test_
+	 set net_	$topo
+	 set defNet_	net6a
+	 set test_	CtrMcast2
+	 $self next
+}
+Test/CtrMcast2 instproc run {} {
+	 $self instvar ns_ node_ testName_
+
+	 $ns_ rtproto Session
+	 set mproto CtrMcast
+	 set mrthandle [$ns_ mrtproto $mproto  {}]
+	 
+	 set udp0 [new Agent/UDP]
+	 $ns_ attach-agent $node_(n0) $udp0
+	 $udp0 set dst_ 0x8003
+	 $udp0 set class_ 1
+	 set cbr0 [new Application/Traffic/CBR]
+	 $cbr0 attach-agent $udp0
+
+	 set rcvr [new Agent/Null]
+	 $ns_ attach-agent $node_(n3) $rcvr
+	 $ns_ attach-agent $node_(n4) $rcvr
+	 $ns_ attach-agent $node_(n5) $rcvr
+	 
+	 $ns_ at 0.3 "$node_(n3) join-group  $rcvr 0x8003"
+	 $ns_ at 0.35 "$cbr0 start"
+	 $ns_ at 0.4 "$node_(n4) join-group  $rcvr 0x8003"
+	 $ns_ at 0.5 "$node_(n5) join-group  $rcvr 0x8003"
+
+	 ### Link between n2 & n4 down at 0.6, up at 1.2
+	 $ns_ rtmodel-at 0.6 down $node_(n2) $node_(n4)
+	 $ns_ rtmodel-at 0.8 up $node_(n2) $node_(n4)
+	 ###
+
+	 $ns_ at 1.2 "$mrthandle switch-treetype 0x8003"
+
+	 ### Link between n0 & n1 down at 1.5, up at 2.0
+	 $ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
+	 $ns_ rtmodel-at 1.4 up $node_(n0) $node_(n1)
+	 ###
+	 $ns_ at 1.5 "$self finish 6a-nam"
+	 
+	 $ns_ run
+}
+
 
 # Group join/leave test 
 #Class Test/detailedDM1 -superclass TestSuite
