@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.17 1997/03/28 19:22:26 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.18 1997/03/28 20:26:59 tomh Exp $
 #
 
 #
@@ -306,6 +306,22 @@ Simulator instproc link { n1 n2 } {
     return $link_([$n1 id]:[$n2 id])
 }
 
+# Creates connection. First creates a source agent of type s_type and binds
+# it to source.  Next creates a destination agent of type d_type and binds
+# it to dest.  Finally creates bindings for the source and destination agents,
+# connects them, and  returns the source agent.
+Simulator instproc create-connection {s_type source d_type dest pktClass} {
+	set s_agent [new Agent/$s_type]
+	set d_agent [new Agent/$d_type]
+	$s_agent set fid_ $pktClass
+	$d_agent set fid_ $pktClass
+	$self attach-agent $source $s_agent
+	$self attach-agent $dest $d_agent
+	$self connect $s_agent $d_agent
+	
+	return $s_agent
+}
+
 #
 # debugging method to dump table (see route.cc for C++ methods)
 #
@@ -330,6 +346,25 @@ Classifier instproc no-slot slot {
 Agent instproc port {} {
 	$self instvar portID_
 	return $portID_
+}
+
+#
+# Lower 8 bits of dst_ are portID_.  this proc supports setting the interval
+# for delayed acks
+#       
+Agent instproc dst-port {} {
+	$self instvar dst_
+	return [expr $dst_%256]
+}
+
+#
+# Add source of type s_type to agent and return the source
+#
+Agent instproc attach-source {s_type} {
+	set source [new Source/$s_type]
+	$source set agent_ $self
+	$self set type_ $s_type
+	return $source
 }
 
 Agent/LossMonitor instproc log-loss {} {
