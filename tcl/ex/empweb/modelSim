@@ -1,0 +1,12 @@
+../big/ns-allinone-2.1b8/ns-2/ns isiweb.tcl > sim.log
+awk -f filter.awk < isi.in > in.time
+awk -f filter.awk < isi.out > out.time
+filter.tcl www.in > www.in.time
+filter.tcl www.out > www.out.time
+cat in.time out.time | sort -n > isi.merge
+cat www.in.time www.out.time | sort -n > www.merge
+cat isi.merge | time-series.pl > isi.time
+cat www.merge | time-series.pl > www.time
+sort -n +2 +5 sim.log > sim.log.sorted
+modelCDF sim.log.sorted
+
