@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.58 1999/03/13 03:53:10 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.59 1999/06/13 00:43:31 kfall Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -237,7 +237,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	flags[2] = '-';
 	flags[3] = hf->cong_action_ ? 'A' : '-';   // Congestion Action
 	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';   // Congestion Experienced
-	flags[5] = hf->fs_ ? 'F' : '-';
+	flags[5] = hf->fs_ ? 'F' : '-';		   // Fast start: see tcp-fs and tcp-int
 	flags[6] = hf->ecn_capable_ ? 'N' : '-';
 	
 #ifdef notdef
