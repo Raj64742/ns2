@@ -56,10 +56,11 @@ class Node : public TclObject {
  public:
 	Node(void);
 	virtual int command(int argc, const char*const* argv);
-	//apparently the subclasses cannot access private variable of the superclass 
+	inline int address() { return address_;}
+
+protected:
 	struct if_head ifhead_;
- private:
-	//struct if_head ifhead_;
+	int address_;
 	
 };
 

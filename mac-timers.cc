@@ -71,7 +71,6 @@ void
 MacTimer::start(double time)
 {
 	Scheduler &s = Scheduler::instance();
-
 	assert(busy_ == 0);
 
 	busy_ = 1;

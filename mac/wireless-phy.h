@@ -80,8 +80,8 @@ class WirelessPhy : public Phy {
   
   Antenna *ant_;
   Propagation *propagation_;	// Propagation Model
-  Modulation *modulation_;	// Modulation Scheme
-  MobileNode* node_;
+  Modulation *modulation_;	// Modulation Schem
+  MobileNode* node_;         // Mobile Node to which interface is attached .
   
  private:
   

@@ -119,70 +119,70 @@ Node/MobileNode instproc reset {} {
 # if portnumber is 255, default target is set to the routing agent
 #
 Node/MobileNode instproc add-target {agent port } {
-
-	global RouterTrace AgentTrace
-	$self instvar dmux_
-	
-	$agent set sport_ $port
-
-	if { $port == 255 } {			# non-routing agents
-		#if { $RouterTrace == "ON" } {
-			#
-			# Send Target
-			#
-			#set sndT [cmu-trace Send "RTR" $self]
-			#$sndT target [$self set ll_(0)]
-			#$agent target $sndT
-			
-			#
-			# Recv Target
-			#
-			#set rcvT [cmu-trace Recv "RTR" $self]
-			#$rcvT target $agent
-			#[$self set classifier_] defaulttarget $rcvT
-			#$dmux_ install $port $rcvT
-			
-		#} else {
-			#
-			# Send Target
-			#
-			$agent target [$self set ll_(0)]
-
-			#
-			# Recv Target
-			#
-			[$self set classifier_] defaulttarget $agent
-			$dmux_ install $port $agent
-			#}
-
+    
+    global RouterTrace AgentTrace
+    $self instvar dmux_
+    
+    $agent set sport_ $port
+    
+    if { $port == 255 } {			# non-routing agents
+	if { $RouterTrace == "ON" } {
+	    #
+	    # Send Target
+	    #
+	    set sndT [cmu-trace Send "RTR" $self]
+	    $sndT target [$self set ll_(0)]
+	    $agent target $sndT
+	    
+	    #
+	    # Recv Target
+	    #
+	    set rcvT [cmu-trace Recv "RTR" $self]
+	    $rcvT target $agent
+	    [$self set classifier_] defaulttarget $rcvT
+	    $dmux_ install $port $rcvT
+	    
 	} else {
-		#if { $AgentTrace == "ON" } {
-			#
-			# Send Target
-			#
-			#set sndT [cmu-trace Send AGT $self]
-			#$sndT target [$self entry]
-			#$agent target $sndT
-
-			#
-			# Recv Target
-			#
-			#set rcvT [cmu-trace Recv AGT $self]
-			#$rcvT target $agent
-			#$dmux_ install $port $rcvT
-
-		#} else {
-			#
-			# Send Target
-			#
-			$agent target [$self entry]
-
-			#
-			# Recv Target
-			#
-			$dmux_ install $port $agent
-		#}
+	    #
+	    # Send Target
+	    #
+	    $agent target [$self set ll_(0)]
+		
+	    #
+	    # Recv Target
+	    #
+	    [$self set classifier_] defaulttarget $agent
+	    $dmux_ install $port $agent
 	}
+	
+    } else {
+	if { $AgentTrace == "ON" } {
+	    #
+	    # Send Target
+	    #
+	    set sndT [cmu-trace Send AGT $self]
+	    $sndT target [$self entry]
+	    $agent target $sndT
+		
+	    #
+	    # Recv Target
+	    #
+	    set rcvT [cmu-trace Recv AGT $self]
+	    $rcvT target $agent
+	    $dmux_ install $port $rcvT
+		
+	} else {
+	    #
+	    # Send Target
+	    #
+	    $agent target [$self entry]
+	    
+	    #
+	    # Recv Target
+	    #
+	    $dmux_ install $port $agent
+	}
+    }
 }
 
 

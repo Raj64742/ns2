@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.144 1999/03/16 17:53:26 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.145 1999/04/10 00:17:34 haldar Exp $
 
 #
 
@@ -95,8 +95,8 @@ source ns-nam.tcl
 source ns-packet.tcl
 source ns-queue.tcl
 source ns-trace.tcl
-source ns-agent.tcl
 source ns-random.tcl
+source ns-agent.tcl
 source ns-route.tcl
 source ns-errmodel.tcl
 source ns-intserv.tcl

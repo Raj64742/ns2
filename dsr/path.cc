@@ -36,7 +36,7 @@
 /* path.cc
 
    handles source routes
-   $Id: path.cc,v 1.4 1999/03/13 03:53:18 haoboy Exp $
+   $Id: path.cc,v 1.5 1999/04/10 00:17:32 haldar Exp $
 */
 
 extern "C" {
@@ -139,7 +139,7 @@ Path::Path(const struct hdr_sr *srh)
 { /* make a path from the bits of an NS source route header */
   path = new ID[MAX_SR_LEN];
 
-  if (!srh->valid_)
+  if (srh->valid_ != 1)
     {
       len = 0;
       cur_index = 0;
@@ -150,9 +150,9 @@ Path::Path(const struct hdr_sr *srh)
   cur_index = srh->cur_addr_;
 
   assert(len <= MAX_SR_LEN);
-
+  
   for (int i = 0 ; i < len ; i++)
-    path[i] = ID(srh->addrs[i]);
+	  path[i] = ID(srh->addrs[i]);
 }
 
 void
