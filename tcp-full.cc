@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.63 1998/07/29 21:14:13 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.64 1998/08/03 23:29:33 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -154,6 +154,7 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	bind_bool("reno_fastrecov_", &reno_fastrecov_);
 	bind_bool("pipectrl_", &pipectrl_);
 	bind_bool("open_cwnd_on_pack_", &open_cwnd_on_pack_);
+	bind_bool("halfclose_", &halfclose_);
 
 	reset();
 }
@@ -324,10 +325,6 @@ void FullTcpAgent::sendmsg(int nbytes, const char *flags)
 {
 	if (flags && strcmp(flags, "MSG_EOF") == 0) 
 		close_on_empty_ = TRUE;	
-
-//printf("close on empty: %d\n, nbytes: %d\n",
-//close_on_empty_, nbytes);
-
 	if (nbytes == -1) {
 		infinite_send_ = TRUE;
 		advance_bytes(0);
@@ -462,7 +459,7 @@ void FullTcpAgent::cancel_timers()
 void FullTcpAgent::output(int seqno, int reason)
 {
 	int is_retransmit = (seqno < maxseq_);
-	int idle_ = (highest_ack_ == maxseq_);
+	int quiet = (highest_ack_ == maxseq_);
 	int pflags = outflags();
 	int syn = (seqno == iss_);
 	int emptying_buffer = FALSE;
@@ -487,9 +484,6 @@ void FullTcpAgent::output(int seqno, int reason)
 	else
 		datalen = min(buffered_bytes, win) - off;
 
-//printf("%f (%s): buff_bytes: %d, off: %d, congact:%d\n", now(), name(),
-//buffered_bytes, off, cong_action_);
-
 	//
 	// in real TCP datalen (len) could be < 0 if there was window
 	// shrinkage, or if a FIN has been sent and neither ACKd nor
@@ -501,15 +495,15 @@ void FullTcpAgent::output(int seqno, int reason)
 		datalen = maxseg_;
 	}
 
+
 	//
 	// this is an option that causes us to slow-start if we've
 	// been idle for a "long" time, where long means a rto or longer
 	// the slow-start is a sort that does not set ssthresh
 	//
 
-	if (slow_start_restart_ && idle_ && datalen > 0) {
+	if (slow_start_restart_ && quiet && datalen > 0) {
 		if (idle_restart()) {
-//printf("%f %s.. restart\n", now(), name());
 			slowdown(CLOSE_CWND_INIT);
 		}
 	}
@@ -526,7 +520,7 @@ void FullTcpAgent::output(int seqno, int reason)
 		//
 		if (!syn) {
 			idle();
-			if (close_on_empty_ && idle_) {
+			if (close_on_empty_ && quiet) {
 				flags_ |= TF_NEEDCLOSE;
 			}
 		}
@@ -547,7 +541,7 @@ void FullTcpAgent::output(int seqno, int reason)
 		if (datalen == maxseg_)
 			goto send;
 		// if Nagle disabled and buffer clearing, ok
-		if ((idle_ || nodelay_)  && emptying_buffer)
+		if ((quiet || nodelay_)  && emptying_buffer)
 			goto send;
 		// if a retransmission
 		if (is_retransmit)
@@ -927,7 +921,6 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int datalen = th->size() - tcph->hlen(); // # payload bytes
 	int ackno = tcph->ackno();		 // ack # from packet
 	int tiflags = tcph->flags() ; 		 // tcp flags from packet
-
 	if (state_ == TCPS_CLOSED)
 		goto drop;
 
@@ -1351,13 +1344,14 @@ trimthenstep6:
          * then advance tp->snd_una to ti->ti_ack and drop
          * data from the retransmission queue.
 	 *
-	 * note that states CLOSE_WAIT and TIME_WAIT aren't used
+	 * note that state TIME_WAIT isn't used
 	 * in the simulator
          */
 
         case TCPS_ESTABLISHED:
         case TCPS_FIN_WAIT_1:
         case TCPS_FIN_WAIT_2:
+	case TCPS_CLOSE_WAIT:
         case TCPS_CLOSING:
         case TCPS_LAST_ACK:
 
@@ -1543,8 +1537,10 @@ process_ACK:
                  * then enter FIN_WAIT_2.
                  */
 		case TCPS_FIN_WAIT_1:	/* doing active close */
-			if (ourfinisacked)
+			if (ourfinisacked) {
 				newstate(TCPS_FIN_WAIT_2);
+				needoutput = FALSE;
+			}
 			break;
 
                 /*
@@ -1661,20 +1657,11 @@ step6:
                 /*
                  * In SYN_RECEIVED and ESTABLISHED STATES
                  * enter the CLOSE_WAIT state.
-		 * (in the simulator, go to LAST_ACK)
 		 * (passive close)
-		 *
-		 * special to ns:
-		 * Because there is no CLOSE_WAIT state, the
-		 * ACK that should be generated for the FIN is
-		 * performed directly here..  This code generates
-		 * a pure ACK for the FIN, although strictly speaking
-		 * it appears to be "TCP-legal" to have data in this packet.
                  */
                 case TCPS_SYN_RECEIVED:
                 case TCPS_ESTABLISHED:
-			sendpacket(t_seqno_, rcv_nxt_, TH_ACK, 0, 0);
-			newstate(TCPS_LAST_ACK);
+			newstate(TCPS_CLOSE_WAIT);
                         break;
 
                 /*
@@ -1693,8 +1680,6 @@ step6:
 		 * (completion of active close)
                  */
                 case TCPS_FIN_WAIT_2:
-//this was extraneous and wrong
-//sendpacket(t_seqno_, rcv_nxt_, TH_ACK, 0, 0);
                         newstate(TCPS_CLOSED);
 			cancel_timers();
                         break;
@@ -1706,6 +1691,10 @@ step6:
 	else if (curseq_ >= highest_ack_ || infinite_send_)
 		send_much(0, REASON_NORMAL, maxburst_);
 	// K: which state to return to when nothing left?
+
+	if (!halfclose_ && state_ == TCPS_CLOSE_WAIT && highest_ack_ == maxseq_)
+		usrclosed();
+
 	Packet::free(pkt);
 	return;
 
@@ -1716,9 +1705,9 @@ dropafterack:
 
 dropwithreset:
 	/* we should be sending an RST here, but can't in simulator */
-	if (tiflags & TH_ACK)
+	if (tiflags & TH_ACK) {
 		sendpacket(ackno, 0, 0x0, 0, REASON_NORMAL);
-	else {
+	} else {
 		int ack = tcph->seqno() + datalen;
 		if (tiflags & TH_SYN)
 			ack--;
@@ -1756,7 +1745,6 @@ FullTcpAgent::dupack_action()
         }       
     
         if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
-//printf("%f %s.. dupecn\n", now(), name());
                 slowdown(CLOSE_CWND_HALF);
 		cancel_rtx_timer();
 		rtt_active_ = FALSE;
@@ -1774,7 +1762,6 @@ FullTcpAgent::dupack_action()
         }
     
 full_reno_action:    
-//printf("%f %s.. renodupack\n", now(), name());
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
 	cancel_rtx_timer();
 	rtt_active_ = FALSE;
@@ -1792,7 +1779,6 @@ FullTcpAgent::timeout_action()
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 	slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
-//printf("%f %s.. timeout\n", now(), name());
 	reset_rtx_timer(1);
 	t_seqno_ = (highest_ack_ < 0) ? iss_ : int(highest_ack_);
 	fastrecov_ = FALSE;
@@ -1841,7 +1827,6 @@ void FullTcpAgent::listen()
 
 void FullTcpAgent::usrclosed()
 {
-
 	curseq_ = t_seqno_ - 1;	// truncate buffer
 	infinite_send_ = 0;
 	switch (state_) {
@@ -1860,6 +1845,11 @@ void FullTcpAgent::usrclosed()
 	case TCPS_SYN_RECEIVED:
 	case TCPS_ESTABLISHED:
 		newstate(TCPS_FIN_WAIT_1);
+		flags_ |= TF_NEEDFIN;
+		send_much(1, REASON_NORMAL, maxburst_);
+		break;
+	case TCPS_CLOSE_WAIT:
+		newstate(TCPS_LAST_ACK);
 		flags_ |= TF_NEEDFIN;
 		send_much(1, REASON_NORMAL, maxburst_);
 		break;
