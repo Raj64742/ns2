@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.61 1999/04/14 19:38:55 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.62 1999/06/19 04:58:47 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -74,6 +74,8 @@ enum packet_t {
 	PT_JOIN,
 	PT_ASSERT,
 	PT_MESSAGE,
+	PT_TF,
+	PT_TFC,
 	PT_RTCP,
 	PT_RTP,
 	PT_RTPROTO_DV,
@@ -132,6 +134,8 @@ public:
 		name_[PT_JOIN]= "join";
 		name_[PT_ASSERT]= "assert";
 		name_[PT_MESSAGE]= "message";
+		name_[PT_TF]= "tcpFriend";
+		name_[PT_TFC]= "tcpFriendCtl";
 		name_[PT_RTCP]= "rtcp";
 		name_[PT_RTP]= "rtp";
 		name_[PT_RTPROTO_DV]= "rtProtoDV";
@@ -175,6 +179,7 @@ public:
 			 (type) == PT_CBR || \
 			 (type) == PT_AUDIO || \
 			 (type) == PT_VIDEO || \
+			 (type) == PT_TF || \
 			 (type) == PT_ACK \
 			 );
 	}
