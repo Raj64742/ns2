@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.21 1999/04/14 01:12:03 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-template1,v 1.22 1999/10/05 23:23:02 sfloyd Exp $
 #
 # The initial version of this script was written and contributed 
 # by Matt Mathis (mathis@psc.edu).
@@ -125,7 +125,7 @@ for t in $tests; do
 		cp $datafile $directory/$t.test
 		uncompress -c $directory/$t.Z > $directory/$t
 		echo "Diagnose with: diff $directory/$t.test $directory/$t"
-		echo "Differences due to floating-point formatting are not significant."
+		echo "Or see URL \"http://www-mash.cs.berkeley.edu/ns/ns-problems.html\"."
 
 	    fi
 	 fi
