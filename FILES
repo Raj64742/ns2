@@ -512,6 +512,7 @@ tcl/ex/virtual-classifier.tcl
 tcl/ex/vlantest-flat.tcl
 tcl/ex/vlantest-hier.tcl
 tcl/ex/vlantest-mcst.tcl
+tcl/ex/wireless.tcl
 tcl/http/README
 tcl/http/data/HttpConnections.cdf
 tcl/http/data/HttpReplyLength.cdf
