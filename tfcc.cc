@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.7 1998/09/15 02:25:47 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.8 1998/09/16 21:07:31 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -92,7 +92,7 @@ public:
 	TFCCAgent() : srtt_(-1.0), rttvar_(-1.0), peer_rtt_est_(-1.0),
 	last_ts_(-1.0), last_loss_time_(-1.0), last_rtime_(-1.0),
 	expected_(0), nlost_(0), plost_(0), cseq_(0), highest_cseq_seen_(-1),
-	last_cseq_checked_(-1), needresponse_(0), last_ecn_(0),
+	last_cseq_checked_(-1), silence_(0), needresponse_(0), last_ecn_(0),
 	ack_timer_(this), rtt_timer_(this) {
 		bind("alpha_", &alpha_);
 		bind("beta_", &beta_);
@@ -360,8 +360,8 @@ TFCCAgent::speedup()
 {
 	if (running_) {
 		interval_ = (srtt_ * interval_) / (srtt_ + interval_);
-printf("%s SPEEDUP [srtt:%f], new interval:%f, ppw:%d\n",
-	name(), srtt_, interval_, int(srtt_ / interval_));
+printf("%s %f SPEEDUP [srtt:%f], new interval:%f, ppw:%d\n",
+	name(), now(), srtt_, interval_, int(srtt_ / interval_));
 		rate_change();
 	}
 }
@@ -376,8 +376,8 @@ TFCCAgent::slowdown()
 {
 	if (running_) {
 		interval_ *= 2.0;
-printf("%s SLOWDOWN [srtt: %f], new interval:%f, ppw:%d\n",
-	name(), srtt_, interval_, int(srtt_ / interval_));
+printf("%s %f SLOWDOWN [srtt: %f], new interval:%f, ppw:%d\n",
+	name(), now(), srtt_, interval_, int(srtt_ / interval_));
 		rate_change();
 	}
 }
@@ -391,6 +391,7 @@ void
 TFCCAgent::nopeer()
 {
 	// for now, just 1/2 sending rate
+printf("%s %f NOPEER, silence:%d\n", name(), now(), silence_);
 	slowdown();
 	silence_ = 0;
 }
@@ -444,8 +445,8 @@ printf(">>>>> %f: %s: RTT beat: last_checked:%d, highest_seen:%d\n",
 		} else {
 			// yep, heard something
 			silence_ = 0;
-			timer->resched(srtt_);
 		}
+		timer->resched(srtt_);
 	}
 	return;
 }
