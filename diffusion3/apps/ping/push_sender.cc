@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: push_sender.cc,v 1.1 2003/07/09 17:45:02 haldar Exp $
+// $Id: push_sender.cc,v 1.2 2004/01/09 00:15:23 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -47,7 +47,7 @@ void PushSenderApp::send()
   lastEventTime_->useconds_ = tmv.tv_usec;
 
   // Send data probe
-  DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
+  DiffPrint(DEBUG_ALWAYS, "Node%d: Sending Data %d\n", ((DiffusionRouting *)dr_)->getNodeId(), last_seq_sent_);
   retval = dr_->send(pubHandle_, &data_attr_);
 
   // Update counter

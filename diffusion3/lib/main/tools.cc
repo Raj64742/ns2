@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: tools.cc,v 1.11 2004/01/08 23:05:54 haldar Exp $
+// $Id: tools.cc,v 1.12 2004/01/09 00:15:24 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -60,14 +60,7 @@ void SetSeed(struct timeval *tv)
 int GetRand()
 {
 #ifdef NS_DIFFUSION
-  static RNG *rng = NULL;
-  if (rng == NULL) 
-    rng = new RNG(RNG::RAW_SEED_SOURCE, 188312339);
-  
-  long r = rng->uniform_positive_int();
-  printf("%lu \n", r);
-  return r;
-  //return (Random::random());
+  return (Random::random());
 #else
   return (rand());
 #endif // NS_DIFFUSION
