@@ -47,6 +47,25 @@ catch "cd $dir"
 
 Trace set show_tcphdr_ 1 ; # needed to plot ack numbers for tracing 
 
+TestSuite instproc printtimers { tcp time} {
+        global quiet
+        if {$quiet == "false"} {
+                puts "time: $time sRTT(in ticks): [$tcp set srtt_]/8 RTTvar(in ticks): [$tcp set rttvar_]/4 backoff: [$tcp set backoff_]"
+        }
+}
+
+TestSuite instproc printtimersAll { tcp time interval } {
+        $self instvar dump_inst_ ns_
+        if ![info exists dump_inst_($tcp)] {
+                set dump_inst_($tcp) 1
+                $ns_ at $time "$self printtimersAll $tcp $time $interval"
+                return
+        }
+        set newTime [expr [$ns_ now] + $interval]
+        $ns_ at $time "$self printtimers $tcp $time"
+        $ns_ at $newTime "$self printtimersAll $tcp $newTime $interval"
+}
+
 TestSuite instproc finish testname {
 	global env
 	$self instvar ns_
@@ -110,6 +129,7 @@ TestSuite instproc finish testname {
 
 TestSuite instproc bsdcompat tcp {
 	$tcp set segsperack_ 2
+	## 
 	$tcp set dupseg_fix_ false
 	$tcp set dupack_reset_ true
 	$tcp set bugFix_ false
@@ -503,7 +523,7 @@ Test/droppedsyn instproc run {} {
 	# set up special params for this test
 	$src set window_ 100
 	$src set delay_growth_ true
-	$src set tcpTick_ 0.500
+	$src set tcpTick_ 0.01
 	$src set packetSize_ 576
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
@@ -548,11 +568,12 @@ Test/droppedfirstseg instproc run {} {
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
+#	$ns_ at 0.5 "$self printtimersAll $src 0.5 0.5"
 
 	# set up special params for this test
 	$src set window_ 100
 	$src set delay_growth_ true
-	$src set tcpTick_ 0.500
+	$src set tcpTick_ 0.01
 	$src set packetSize_ 576
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
@@ -597,11 +618,12 @@ Test/droppedsecondseg instproc run {} {
 	$sink listen
 	set ftp1 [$src attach-source FTP]
 	$ns_ at 0.7 "$ftp1 start"
+#	$ns_ at 0.5 "$self printtimersAll $src 0.5 0.5"
 
 	# set up special params for this test
 	$src set window_ 100
 	$src set delay_growth_ true
-	$src set tcpTick_ 0.500
+	$src set tcpTick_ 0.01
 	$src set packetSize_ 576
 
 	$self traceQueues $node_(r1) [$self openTrace $stopt $testName_]
