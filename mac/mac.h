@@ -36,7 +36,7 @@
 #define ns_mac_h
 
 #include <iostream.h>
-#include "delay.h"
+#include "biconnector.h"
 #include "channel.h"
 
 
@@ -51,19 +51,22 @@ protected:
 };
 
 
-class Mac : public LinkDelay {
+class Mac : public BiConnector {
 public:
 	Mac();
 	virtual void recv(Packet* p, Handler* h);
 	virtual void send(Packet* p);
-	void drop(Packet* p);
 	inline Channel* channel() { return channel_; }
-	inline Handler* callback() { return callback_; }
+	inline double bandwidth() const { return bandwidth_; }
+	inline double txtime(Packet* p) {
+		hdr_cmn *hdr = (hdr_cmn*)p->access(off_cmn_);
+		return (hdr->size() * 8. / bandwidth_);
+	}
 
 protected:
 	int command(int argc, const char*const* argv);
+	double bandwidth_;	// bandwidth of this MAC
 	Channel* channel_;	// channel this MAC is connected to
-	NsObject* drop_;	// drop target for this Mac
 	Handler* callback_;	// callback for end-of-transmission
 	MacHandler mh_;		// handle delay send due to busy channel
 };

@@ -35,16 +35,15 @@
 #ifndef ns_channel_h
 #define ns_channel_h
 
-#include "connector.h"
+#include "biconnector.h"
 
 
-class Channel : public Connector {
+class Channel : public BiConnector {
 public:
 	Channel();
-	void senseCarrier(Packet* p, Handler*);
-	int send(Packet* p, Handler* target, double txtime, double txstart=0.);
+	int send(Packet* p, Handler* target, double txtime, double txstart=0);
+	void content(Packet*, Handler*); // content for the channel
 	int hold(double txtime);
-	void drop(Packet* p);
 
 	inline double delay() { return delay_; }
 	inline double txstop() { return txstop_; }
@@ -52,23 +51,11 @@ public:
 	inline int numtx() { return numtx_; }
 
 protected:
+	int command(int argc, const char*const* argv);
 	double delay_;		// channel delay, for collision interval
 	double txstop_;		// end of the last transmission
 	double cwstop_;		// end of the contention window
 	int numtx_;		// number of transmissions during contention
 };
-
-
-template <class Type1, class Type2>
-inline Type1 min(Type1 a, Type2 b)
-{
-	return a < b ? a : b;
-}
-
-template <class Type1, class Type2>
-inline Type1 max(Type1 a, Type2 b)
-{
-	return a < b ? b : a;
-}
 
 #endif

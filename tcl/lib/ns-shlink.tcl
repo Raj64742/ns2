@@ -36,11 +36,8 @@
 LL/Base set bandwidth_ 1.5Mb
 LL/Base set delay_ 1ms
 
-Mac/Base set bandwidth_ 1.5Mb
-Mac/Base set delay_ 1ms
-Mac/Csma set delay_ 1ms
-
 Channel set delay_ 16us
+Mac/Base set bandwidth_ 1.5Mb
 
 # WaveLAN settings
 Mac/Csma set bandwidth_ 2Mb
@@ -60,6 +57,12 @@ TraceIp set src_ 0
 TraceIp set dst_ 0
 TraceIp set callback_ 0
 
+
+TraceIp instproc init type {
+    $self next $type
+    $self instvar type_
+    set type_ $type
+}
 
 Class TraceIp/Drop -superclass TraceIp
 TraceIp/Drop instproc init {} {

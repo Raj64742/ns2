@@ -32,7 +32,6 @@
  * SUCH DAMAGE.
  */
 
-#include "mac.h"
 #include "channel.h"
 
 
@@ -45,14 +44,21 @@ public:
 } class_channel;
 
 
-Channel::Channel() : txstop_(0), cwstop_(0), numtx_(0)
+Channel::Channel() : BiConnector(), txstop_(0), cwstop_(0), numtx_(0)
 {
 	bind_time("delay_", &delay_);
 }
 
 
+int
+Channel::command(int argc, const char*const* argv)
+{
+	return BiConnector::command(argc, argv);
+}
+
+
 void
-Channel::senseCarrier(Packet* p, Handler* h)
+Channel::content(Packet* p, Handler* h)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
@@ -94,12 +100,4 @@ Channel::hold(double txtime)
 	}
 	txstop_ = now + txtime;
 	return (now < cwstop_);
-}
-
-
-void
-Channel::drop(Packet* p)
-{
-	// XXX: log dropped packet
-	Packet::free(p);
 }

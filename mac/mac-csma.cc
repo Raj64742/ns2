@@ -88,16 +88,13 @@ CsmaMac::send(Packet* p)
 	double now = s.clock();
 	double txstop = channel_->txstop();
 
-	// if there is an ongoing transmission, then backoff
-	// else if within the ifs, then wait until the end of ifs
-	// else do carrier sense
+	// if channel is not ready, then wait
+	// else content for the channel
 	if (txstop + ifs_ > now)
 		s.schedule(&mh_, p, txstop + ifs_ - now);
-//	else if (txstop + ifs_ > now)
-//		backoff(p);
 	else {
 		txstart_ = now;
-		channel_->senseCarrier(p, &mhEoc_);
+		channel_->content(p, &mhEoc_);
 	}
 }
 
@@ -130,6 +127,8 @@ CsmaMac::endofContention(Packet* p)
 	double txt = txtime(p) - (s.clock() - txstart_);
 	channel_->send(p, p->target(), txt);
 	s.schedule(callback_, &intr_, txt);
+	rtx_ = 0;
+	cw_ = cwmin_;
 }
 
 
@@ -158,6 +157,6 @@ CsmaCaMac::send(Packet* p)
 		backoff(p, txstop + ifs_ - now);
 	else {
 		txstart_ = now;
-		channel_->senseCarrier(p, &mhEoc_);
+		channel_->content(p, &mhEoc_);
 	}
 }

@@ -1,7 +1,7 @@
 /*
  * Copyright (c) 1997 Regents of the University of California.
  * All rights reserved.
- *
+ * 
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
  * are met:
@@ -12,13 +12,12 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- *	This product includes software developed by the Computer Systems
- *	Engineering Group at Lawrence Berkeley Laboratory and the Daedalus
- *	research group at UC Berkeley.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
+ * 	This product includes software developed by the MASH Research
+ * 	Group at the University of California Berkeley.
+ * 4. Neither the name of the University nor of the Research Group may be
+ *    used to endorse or promote products derived from this software without
  *    specific prior written permission.
- *
+ * 
  * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
  * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
  * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
@@ -32,30 +31,45 @@
  * SUCH DAMAGE.
  */
 
-#ifndef ns_channel_h
-#define ns_channel_h
-
 #include "biconnector.h"
 
 
-class Channel : public BiConnector {
-public:
-	Channel();
-	int send(Packet* p, Handler* target, double txtime, double txstart=0);
-	void content(Packet*, Handler*); // content for the channel
-	int hold(double txtime);
+BiConnector::BiConnector() : Connector(), drop_(0)
+{
+}
 
-	inline double delay() { return delay_; }
-	inline double txstop() { return txstop_; }
-	inline double cwstop() { return cwstop_; }
-	inline int numtx() { return numtx_; }
 
-protected:
-	int command(int argc, const char*const* argv);
-	double delay_;		// channel delay, for collision interval
-	double txstop_;		// end of the last transmission
-	double cwstop_;		// end of the contention window
-	int numtx_;		// number of transmissions during contention
-};
+int
+BiConnector::command(int argc, const char*const* argv)
+{
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		if (strcmp(argv[1], "drop-target") == 0) {
+			NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
+			if (p == 0) {
+				tcl.resultf("no object %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			drop_ = p;
+			return (TCL_OK);
+		}
+	}
+	else if (argc == 2) {
+		if (strcmp(argv[1], "drop-target") == 0) {
+			if (drop_ != 0)
+				tcl.resultf("%s", drop_->name());
+			return (TCL_OK);
+		}
+	}
+	return Connector::command(argc, argv);
+}
 
-#endif
+
+void
+BiConnector::drop(Packet* p)
+{
+	if (drop_)
+		drop_->recv(p);
+	else
+		Packet::free(p);
+}

@@ -44,8 +44,9 @@ public:
 } class_mac;
 
 
-Mac::Mac() : LinkDelay(), callback_(0), channel_(0), mh_(*this)
+Mac::Mac() : BiConnector(), channel_(0), callback_(0), mh_(*this)
 {
+	bind_bw("bandwidth_", &bandwidth_);
 }
 
 
@@ -58,28 +59,14 @@ Mac::command(int argc, const char*const* argv)
 			channel_ = (Channel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
-		else if (strcmp(argv[1], "drop-target") == 0) {
-			NsObject* p = (NsObject*)TclObject::lookup(argv[2]);
-			if (p == 0) {
-				tcl.resultf("no object %s", argv[2]);
-				return (TCL_ERROR);
-			}
-			drop_ = p;
-			return (TCL_OK);
-		}
 	}
 	else if (argc == 2) {
 		if (strcmp(argv[1], "channel") == 0) {
 			tcl.resultf("%s", channel_->name());
 			return (TCL_OK);
 		}
-		else if (strcmp(argv[1], "drop-target") == 0) {
-			if (drop_ != 0)
-				tcl.resultf("%s", drop_->name());
-			return (TCL_OK);
-		}
 	}
-	return LinkDelay::command(argc, argv);
+	return BiConnector::command(argc, argv);
 }
 
 
@@ -98,16 +85,6 @@ Mac::send(Packet* p)
 	double txt = txtime(p);
 	channel_->send(p, p->target(), txt);
 	s.schedule(callback_, &intr_, txt);
-}
-
-
-void
-Mac::drop(Packet* p)
-{
-	if (drop_)
-		drop_->recv(p);
-	else
-		Packet::free(p);
 }
 
 
