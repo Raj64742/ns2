@@ -397,7 +397,7 @@ MobileNode::set_destination(double x, double y, double s)
               address_,
               X,Y,
               speed*dX, speed*dY,
-              (destX-X)/speed*dX
+              ((speed*dX) != 0 ) ? (destX-X)/speed*dX : speed*dX
              );         
                 
                 
