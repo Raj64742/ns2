@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.28 1997/07/25 21:38:21 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.29 1997/07/25 22:58:28 sfloyd Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -180,6 +180,13 @@ OldSim instproc init args {
 	TclObject set varMap_(srtt) srtt_
 	TclObject set varMap_(rttvar) rttvar_
 	TclObject set varMap_(backoff) backoff_
+
+	# Agent/TCP/NewReno
+	TclObject set varMap_(changes) newreno_changes_
+
+	# Agent/TCP/Fack
+	TclObject set varMap_(rampdown) rampdown_ 
+	TclObject set varMap_(ss-div4) ss-div4_
 
 	# Queue
 	TclObject set varMap_(limit) limit_
