@@ -16,8 +16,12 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.2 2002/07/16 22:36:20 yuri Exp $
  */
-
+#ifndef lint
+static const char rcsid[] =
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/splay-scheduler.cc,v 1.2 2002/07/16 22:36:20 yuri Exp $ (LBL)";
+#endif
 /**
  *
  * Scheduler based on a splay tree.
