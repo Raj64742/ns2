@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.38 2002/06/14 23:15:03 yuri Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.39 2002/07/03 20:45:22 yuri Exp $ (UCB)";
 #endif
 
 //#include "template.h"
@@ -248,7 +248,7 @@ Channel::dump(void)
 
 struct ChannelDelayEvent : public Event {
 public:
-	ChannelDelayEvent(Packet *p, Phy *txphy) : , p_(p), txphy_(txphy) {};
+	ChannelDelayEvent(Packet *p, Phy *txphy) : p_(p), txphy_(txphy) {};
 	Packet *p_;
 	Phy *txphy_;
 };
