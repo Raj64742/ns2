@@ -623,13 +623,14 @@ PushbackAgent::pushbackRefresh(int qid) {
       else {
 		  //change the rate limit most half way.
 		  double newLimit;
-		  if (oldLimit > 0) {
-			  //if (oldLimit > requiredLimit_) {
-			  newLimit = 0.5*requiredLimit_ + 0.5*oldLimit;
-			  if (newLimit < lowerBound) 
-				  newLimit = lowerBound;
-		  } else 								 
+		  if (oldLimit > 1.25 * requiredLimit_ || oldLimit ==0) 
 			  newLimit = requiredLimit_;
+		  else 
+			  newLimit = 0.5*requiredLimit_ + 0.5*oldLimit;
+		  
+		  if (newLimit < lowerBound) 
+			  newLimit = lowerBound;
+		  
 		  listItem->refreshed();
 		  listItem->setLimit(newLimit);
 		  if (listItem->pushbackON_) 
