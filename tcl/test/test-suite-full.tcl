@@ -689,7 +689,7 @@ Test/simul-close instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_ $topo
 	set defNet_ net0
-	set test_ simul-close-maybe-buggy
+	set test_ simul-close
 	$self next
 }
 Test/simul-close instproc run {} {
@@ -705,6 +705,7 @@ Test/simul-close instproc run {} {
 	$ns_ attach-agent $node_(k1) $sink
 	$src set fid_ 0
 	$sink set fid_ 0
+	$sink set iss_ 10000
 	$ns_ connect $src $sink; # this is bi-directional
 
 	# set up TCP-level connections
