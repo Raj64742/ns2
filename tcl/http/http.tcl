@@ -45,7 +45,7 @@ proc rvValue {rv {op ""}} {
 }
 
 
-Class Http -superclass InitObject
+Class Http
 
 Http set srcType_ TCP/Reno
 Http set snkType_ TCPSink

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.135 1998/10/14 01:21:37 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.136 1998/10/15 23:11:40 gnguyen Exp $
 
 
 #
@@ -293,6 +293,8 @@ ErrorModel set enable_ 1
 ErrorModel set markecn_ false
 ErrorModel set rate_ 0
 ErrorModel set bandwidth_ 2Mb
+ErrorModel/Trace set good_ 123456789
+ErrorModel/Trace set loss_ 0
 ErrorModel/Periodic set period_ 1.0
 ErrorModel/Periodic set offset_ 0.0
 ErrorModel/Periodic set burstlen_ 0.0

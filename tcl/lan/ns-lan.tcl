@@ -92,8 +92,7 @@ Trace/Recv instproc init {} {
 # Trace/Loss trace the packets that are loss due to error model
 Class Trace/Loss -superclass Trace
 Trace/Loss instproc init {} {
-	#$self next "l" 	XXX conflicts with nam link definition
-	$self next "d"
+	$self next "e"
 }
 
 #
@@ -225,7 +224,7 @@ NetIface instproc install-error {em macSA} {
 #
 # LanLink:  a LAN abstraction
 #
-Class LanLink -superclass InitObject
+Class LanLink
 LanLink set llType_ LL
 LanLink set ifqType_ Queue/DropTail
 LanLink set macType_ Mac/Csma/Cd

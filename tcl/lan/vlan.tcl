@@ -27,7 +27,7 @@
 # WARNING: if used with hierarchical routing, one has to assign
 # a hierarchical address to the lan itself.  This maybe confusing.
 #------------------------------------------------------------
-Class LanNode -superclass InitObject
+Class LanNode
 LanNode set ifqType_   Queue/DropTail
 LanNode set llType_    LL
 LanNode set macType_   Mac/Csma/Cd

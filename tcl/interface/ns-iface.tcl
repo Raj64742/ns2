@@ -20,7 +20,7 @@
  # Ported by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  # 
  #
-Class NetInterface -superclass InitObject
+Class NetInterface
 NetInterface set ifacenum 0
 NetInterface proc getid {} {
 	set id [NetInterface set ifacenum]

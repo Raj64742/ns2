@@ -59,6 +59,41 @@
 # enough plumbing to construct flow-based Errors.
 #
 
+ErrorModel/Trace instproc init {{filename ""}} {
+	$self instvar file_
+	$self next
+	set file_ ""
+	if {$filename != ""} {
+		$self open $filename
+	}
+}
+
+ErrorModel/Trace instproc open {filename} {
+	$self instvar file_
+	if {! [file readable $filename]} {
+		puts "$class: cannot open $filename"
+		return
+	}
+	if {$file_ != ""} {
+		close $file_
+	}
+	set file_ [open $filename]
+	$self read
+}
+
+ErrorModel/Trace instproc read {} {
+	$self instvar file_ good_ loss_
+	if {$file_ != ""} {
+		set line [gets $file_]
+		set good_ [lindex $line 0]
+		set loss_ [lindex $line 1]
+	} else {
+		set good_ 123456789
+		set loss_ 0
+	}
+}
+
+
 ErrorModel/TwoState instproc init {rv0 rv1 {unit "pkt"}} {
 	$self next
 	$self unit $unit

@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.30 1998/09/29 21:38:13 yuriy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.31 1998/10/15 23:11:36 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -113,12 +113,8 @@ int LL::command(int argc, const char*const* argv)
 
 void LL::recv(Packet* p, Handler* h)
 {
-	if (h == 0) {		// from MAC classifier
-		if (recvtarget_) {
-			recvfrom(p);
-		} else { 
-			drop(p);
-		}
+	if (h == 0) {			// from MAC classifier
+		recvtarget_ ? recvfrom(p) : drop(p);
 	}
 	else {
 		hdr_ll::access(p)->lltype() = LL_DATA;
@@ -127,7 +123,7 @@ void LL::recv(Packet* p, Handler* h)
 }
 
 
-Packet* LL::sendto(Packet* p, Handler* h)
+void LL::sendto(Packet* p, Handler* h)
 {	
 	int nh = (lanrouter_) ? lanrouter_->next_hop(p) : -1;
 	hdr_mac::access(p)->macDA_= (nh < 0) ? BCAST_ADDR : arp(nh);
@@ -138,19 +134,17 @@ Packet* LL::sendto(Packet* p, Handler* h)
 #ifdef undef_oldlan
 	if (h) {
 		Scheduler& s = Scheduler::instance();
-		s.schedule(h, &intr_, txtime(p) - delay_);
+		s.schedule(h, &intr_, txtime(p));
 	}
 #endif
-	return p;
 }
 
 
-Packet* LL::recvfrom(Packet* p)
+void LL::recvfrom(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
-	if (((hdr_cmn*)p->access(off_cmn_))->error() > 0)
+	if (hdr_cmn::access(p)->error() > 0)
 		drop(p);
 	else
 		s.schedule(recvtarget_, p, delay_);
-	return p;
 }

@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.22 1998/09/29 21:38:14 yuriy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.23 1998/10/15 23:11:35 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -77,8 +77,8 @@ class LL : public LinkDelay {
 public:
 	LL();
 	virtual void recv(Packet* p, Handler* h);
-	virtual Packet* sendto(Packet* p, Handler* h = 0);
-	virtual Packet* recvfrom(Packet* p);
+	virtual void sendto(Packet* p, Handler* h = 0);
+	virtual void recvfrom(Packet* p);
 
 	inline int seqno() { return seqno_; }
 	inline int ackno() { return ackno_; }

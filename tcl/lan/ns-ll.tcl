@@ -35,16 +35,25 @@
 
 # Defaults for link-layer
 LL set bandwidth_ 2Mb
-LL set delay_ 0.5ms
+LL set delay_ 1ms
 LL set macDA_ 0
 
 if [TclObject is-class LL/Arq] {
-LL/Arq set mode_ 1
+LL/Arq set mode_ 2
 LL/Arq set hlen_ 16
+LL/Arq set slen_ 1400
 LL/Arq set limit_ 8
-LL/Arq set segsize_ 1400
-LL/Arq set srtt_ 0.1
+LL/Arq set timeout_ 100ms
+
+Class LL/Rlp -superclass LL/Arq
+LL/Rlp set mode_ 1
+LL/Rlp set hlen_ 6
+LL/Rlp set slen_ 30
+LL/Rlp set limit_ 63
+LL/Rlp set timeout_ 500ms
+LL/Rlp set delay_ 70ms
 }
+
 
 # Snoop variables
 if [TclObject is-class Snoop] {
