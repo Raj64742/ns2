@@ -8,10 +8,10 @@
 
 static class TfrmSinkClass : public TclClass {
 public:
-  	TfrmSinkClass() : TclClass("Agent/TFRMSink") {}
-  	TclObject* create(int, const char*const*) {
-     		return (new TfrmSinkAgent());
-  	}
+  TfrmSinkClass() : TclClass("Agent/TFRMSink") {}
+  TclObject* create(int, const char*const*) {
+     return (new TfrmSinkAgent());
+  }
 } class_tfrmSink; 
 
 
@@ -24,13 +24,18 @@ TfrmSinkAgent::TfrmSinkAgent() : Agent(PT_TFRMC), rate_(0.0),
 	bind("SampleSizeMult_", &k_);
 	bind("MinNumLoss_", &MinNumLoss_);
 	bind("InitHistorySize_", &InitHistorySize_);
+	bind("HysterisisLower_", &HysterisisLower_);
+	bind("HysterisisUpper_", &HysterisisUpper_);
+	bind("bval_", &bval_);
 	prevpkt_=-1;
+	loss_seen_yet = 0 ;
 }
 
 void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 {
 	double prevrtt ;
-  	hdr_tfrm *tfrmh = hdr_tfrm::access(pkt); 
+  hdr_tfrm *tfrmh = hdr_tfrm::access(pkt); 
+	double now = Scheduler::instance().clock();
 
 	total_received_++;
 
@@ -41,7 +46,8 @@ void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 		pvecfirst_=0; pveclast_=0;
 		pvec_[0]=tfrmh->seqno;
 		tsvec_[0]=tfrmh->timestamp;
-	} else {
+	} 
+	else {
 		pveclast_++;
 		if (pveclast_==pveclen_) pveclast_=0;
 		if (pvecfirst_==pveclast_) pvecfirst_++;
@@ -58,8 +64,19 @@ void TfrmSinkAgent::recv(Packet *pkt, Handler *)
 	version_=tfrmh->version;
 	last_arrival_=Scheduler::instance().clock();
 	last_timestamp_=tfrmh->timestamp;
-	if ((rate_==0.0)||(prevrtt==0.0))
+
+	if ((rate_==0.0)||(prevrtt==0.0)||
+			((pveclast_>1) && 
+			 (loss_seen_yet ==0) &&
+			 (tfrmh->seqno-pvec_[pveclast_-1] > 1))) {
 		nextpkt();
+	}
+
+	if ((pveclast_>1) && 
+			(loss_seen_yet ==0) && 
+			(tfrmh->seqno-pvec_[pveclast_-1] > 1)) {
+		loss_seen_yet = 1;
+	}
 	rate_=tfrmh->rate;
 	Packet::free(pkt);
 }
@@ -73,7 +90,7 @@ void TfrmSinkAgent::nextpkt() {
 void TfrmSinkAgent::sendpkt()
 {
 	int sample ;	
-        double p;
+  double p;
 	Packet* pkt = allocpkt();
 	hdr_tfrmc *tfrmch = hdr_tfrmc::access(pkt);
 
@@ -91,10 +108,11 @@ void TfrmSinkAgent::sendpkt()
 	tfrmch->timestamp_offset=now-last_arrival_;
 	tfrmch->timestamp=now;
 
-        if (rate_!=0) {
-                p = b_to_p(rate_, rtt_, tzero_, psize_);
-        } else {
-                p=1;
+  if (rate_!=0) {
+    p = b_to_p(rate_, rtt_, tzero_, psize_, bval_);
+  } 
+	else {
+    p=1;
 	}
 
 	sample = (int)(k_/p); 
@@ -107,7 +125,8 @@ void TfrmSinkAgent::sendpkt()
 		//we don't have a long enough pvec for this low loss rate
 		//we'd like this never to happen!
 		increase_pvec(sample);
-	} else {
+	} 
+	else {
 		int sent=0;
 		int lost=0;
 		int rcvd=0;
@@ -136,13 +155,15 @@ void TfrmSinkAgent::sendpkt()
 		}
 		flost_=((float)lost)/((float)sent);
 		if (version_==0) {
-			if (flost_>p*1.5) {
+			if (flost_> (p*(1+HysterisisUpper_)) ) {
 				//we're nonconformant
 				tfrmch->signal = DECREASE;
-			} else if (flost_<(p/2.0)) {
+			} 
+			else if (flost_< (p*(1-HysterisisLower_)) ) {
 				//we're overconformant
 				tfrmch->signal = INCREASE;
-			} else {
+			} 
+			else {
 				/* do nothing */
 			}
 		}
@@ -173,7 +194,6 @@ void TfrmSinkAgent::increase_pvec(int size)
 	pvecfirst_=0;
 	pveclast_=i;
 }
-
 void TfrmNackTimer::expire(Event *e) {
 	a_->nextpkt();
 }

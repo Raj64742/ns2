@@ -10,18 +10,18 @@ int hdr_tfrmc::offset_;
 
 static class TFRMHeaderClass : public PacketHeaderClass {
 public:
-        TFRMHeaderClass() : PacketHeaderClass("PacketHeader/TFRM",
-               sizeof(hdr_tfrm)) {
-    		bind_offset(&hdr_tfrm::offset_);
-  	}
+	TFRMHeaderClass() : PacketHeaderClass("PacketHeader/TFRM",
+	       sizeof(hdr_tfrm)) {
+    bind_offset(&hdr_tfrm::offset_);
+  }
 } class_tfrmhdr;
 
 static class TFRMCHeaderClass : public PacketHeaderClass {
 public:
-        TFRMCHeaderClass() : PacketHeaderClass("PacketHeader/TFRMC",
-               sizeof(hdr_tfrmc)) {
-    		bind_offset(&hdr_tfrmc::offset_);
-  	}
+	TFRMCHeaderClass() : PacketHeaderClass("PacketHeader/TFRMC",
+	       sizeof(hdr_tfrmc)) {
+    bind_offset(&hdr_tfrmc::offset_);
+  }
 } class_tfrmchdr;
 
 static class TfrmClass : public TclClass {
@@ -34,7 +34,7 @@ public:
 
 
 TfrmAgent::TfrmAgent() : Agent(PT_TFRM), tcp_tick_(0.1), 
-	incrrate_(0.1), send_timer_(this), df_(0.9), version_(0), slowincr_(0),
+	incrrate_(0.1), send_timer_(this), df_(0.5), version_(0), slowincr_(0),
 	ndatapack_(0)
 {
 	bind("packetSize_", &size_);
@@ -52,6 +52,9 @@ TfrmAgent::TfrmAgent() : Agent(PT_TFRM), tcp_tick_(0.1),
 	bind("T_RTTVAR_BITS", &T_RTTVAR_BITS);
 	bind("InitRate_", &InitRate_);
 	bind("SampleSizeMult_", &k_);
+	bind("bval_", &bval_);
+	bind("overhead_", &overhead_);
+	bind("ssmult_", &ssmult_);
 }
 
 
@@ -73,11 +76,14 @@ int TfrmAgent::command(int argc, const char*const* argv)
 
 void TfrmAgent::start()
 {
-	rate_=InitRate_;  /* Starting rate */
-	rtt_=0.0;         /* "accurate" rtt */ 
-	seqno_=0;	/* Initial Sequence Number */
+	oldrate_ = rate_=InitRate_;  /* Starting rate */
+	delta_ = 0;
+	rtt_=0;	 /* "accurate" rtt */ 
+	seqno_=0;					/* Initial Sequence Number */
 	run_=1;
 	last_change_=0.0;
+	rate_change_ = SLOW_START ;
+
 	sendpkt();
 	send_timer_.resched(size_/rate_);
 
@@ -95,116 +101,188 @@ void TfrmAgent::stop()
 
 void TfrmAgent::nextpkt()
 {
-	if (run_==0) 
-		return;
+	/* cancel any pending send timer */
+	send_timer_.force_cancel () ;
 	sendpkt();
-	if (rate_>0.0)
-		send_timer_.resched((0.5+(Random::uniform()))*size_/rate_);
+	if (rate_>0) {
+		if ((rate_change_ == SLOW_START) ||
+				(rate_change_ == CONG_AVOID &&
+				 version_ == 1 && slowincr_ == 3)) {
+			oldrate_ = oldrate_ + delta_ ;
+			send_timer_.resched((size_/(oldrate_))+Random::uniform(overhead_)); 
+		}
+		else {
+			send_timer_.resched(size_/rate_+Random::uniform(overhead_));
+		}
+	}
+}
+
+void TfrmAgent::update_rtt (double tao, double now) {
+
+	t_rtt_ = int((now-tao) /tcp_tick_ + 0.5);
+	if (t_rtt_==0) t_rtt_=1;
+	if (t_srtt_ != 0) {
+		register short delta;
+		delta = t_rtt_ - (t_srtt_ >> T_SRTT_BITS);    
+		if ((t_srtt_ += delta) <= 0)    
+			t_srtt_ = 1;
+		if (delta < 0)
+			delta = -delta;
+	  delta -= (t_rttvar_ >> T_RTTVAR_BITS);
+	  if ((t_rttvar_ += delta) <= 0)  
+			t_rttvar_ = 1;
+	} else {
+		t_srtt_ = t_rtt_ << T_SRTT_BITS;		
+		t_rttvar_ = t_rtt_ << (T_RTTVAR_BITS-1);	
+	}
+	t_rtxcur_ = (((t_rttvar_ << (rttvar_exp_ + (T_SRTT_BITS - T_RTTVAR_BITS))) + t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
+	tzero_=t_rtxcur_;
+
+	/* fine grained RTT estimate */
+
+	if (rtt_ > 0) {
+		rtt_ = df_*rtt_ + ((1-df_)*(now - tao));
+	} else {
+		rtt_ = now - tao;
+	}
+
 }
 
 void TfrmAgent::recv(Packet *pkt, Handler *)
 {
 	double now = Scheduler::instance().clock();
 	hdr_tfrmc *nck = hdr_tfrmc::access(pkt);
+	double ts = nck->timestamp_echo ;
+	double flost = nck->flost ; 
+	int signal = nck->signal ; 
 
-	/*if we didn't know RTT before, set rate to one packet per RTT*/
-	if (rtt_==0.0) {
-		rate_=size_/(now - nck->timestamp_echo);
-	}
-	
-	//This code calculates RTO using TCP's course grain algorithm
-	//code taken from TCP Tahoe in ns
-	t_rtt_ = int((now-nck->timestamp_echo) /tcp_tick_ + 0.5);
-	if (t_rtt_==0) t_rtt_=1;
-	//
-	// srtt has 3 bits to the right of the binary point
-	// rttvar has 2
-	//
-	if (t_srtt_ != 0) {
-	          register short delta;
-	          delta = t_rtt_ - (t_srtt_ >> T_SRTT_BITS);    
-		  // d = (m - a0)
-	          if ((t_srtt_ += delta) <= 0)    
-		  	// a1 = 7/8 a0 + 1/8 m
-	                t_srtt_ = 1;
-	          if (delta < 0)
-	                delta = -delta;
-	          delta -= (t_rttvar_ >> T_RTTVAR_BITS);
-	          if ((t_rttvar_ += delta) <= 0)  
-			// var1 = 3/4 var0 + 1/4 |d|
-	               t_rttvar_ = 1;
-	} else {
-		t_srtt_ = t_rtt_ << T_SRTT_BITS;                
-		// srtt = rtt
-		t_rttvar_ = t_rtt_ << (T_RTTVAR_BITS-1);        
-		// rttvar = rtt / 2
-	}
-	//
-	// Current retransmit value is
-	//    (unscaled) smoothed round trip estimate
-	//    plus 2^rttvar_exp_ times (unscaled) rttvar.
-	//
-	t_rtxcur_ = (((t_rttvar_ << (rttvar_exp_ + (T_SRTT_BITS - T_RTTVAR_BITS))) + t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
-	tzero_=t_rtxcur_;
+	update_rtt (ts, now) ;
 
-	//keep our own RTT accurately for use in the equation
-	//the TCP coarse grain version is not useful here
-	if (rtt_!=0.0) {
-		rtt_ = df_*rtt_ + ((1-df_)*(now - nck->timestamp_echo));
-	} else {
-		rtt_ = now - nck->timestamp_echo;
+	if ((rate_change_ == SLOW_START) && !(flost > 0)) {
+		slowstart () ;
+		Packet::free(pkt);
+		return ;
 	}
+	else if ((rate_change_ == SLOW_START) && (flost > 0)) {
+		rate_change_ = OUT_OF_SLOW_START ; 
+	}
+			
+	double rcvrate = p_to_b(flost, rtt_, tzero_, size_, bval_);
 
-	if (version_==0) {
-		if (nck->signal==INCREASE) {
-			if (slowincr_==1) {
-				if (now-last_change_ < (k_-0.5)*rtt_) {
-	  				Packet::free(pkt);
-	  				return;
-				}
-				if (rate_>(size_/rtt_*4))
-	  				rate_+=size_/rtt_;
-				else {
-	  				rate_+=rate_/4.0;
-				}
-			} else if (slowincr_==0) {
-				rate_+=size_/rtt_;
-			} else if (slowincr_==2) {
-				rate_*=1.0+incrrate_;
+	switch (version_) {
+		case 0:
+			switch (signal) {
+				case INCREASE:		
+					increase_rate (flost, now) ;
+					break ; 
+				case DECREASE:
+					decrease_rate (flost, now) ;
+					break ; 
+				case NORMAL:
+					break ; 
+				default: 
+					printf ("Wrong NACK signal %d\n", nck->signal); 
+					abort() ; 
 			}
+			break ; 
+		case 1: 
+			if (rcvrate>(rate_+(size_/rtt_))) {
+				increase_rate (flost, now) ;
+			}
+			else {
+				decrease_rate (flost, now) ;		
+			}
+	}				
+	Packet::free(pkt);
+}
+
+void TfrmAgent::slowstart () 
+{
+	double now = Scheduler::instance().clock(); 
+	if (rate_ < size_/rtt_ ) {
+		oldrate_ = rate_ ;
+		rate_ = size_/rtt_ ;
+		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
+		last_change_ = now ;
+	}
+	else {
+		if (now - last_change_ > rtt_) {
+			oldrate_ = rate_ ;
+			rate_ = ssmult_*rate_ ; 
+			delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
+			last_change_ = now ; 
+		}
+		else {
+			oldrate_ = rate_ ;
+			delta_ = 0 ; 
+		}
+	}
+	nextpkt() ;
+}
+void TfrmAgent::increase_rate (double p, double now) 
+{
+	double rcvrate = p_to_b(p, rtt_, tzero_, size_, bval_);
+	rate_change_ = CONG_AVOID ;
+	switch (slowincr_) {
+		case 0:
+			rate_+=size_/rtt_;
 			last_change_=now;
-		} else if (nck->signal==DECREASE) {
+			break ; 
+		case 1: 
+			if (now-last_change_ >= (k_-0.5)*rtt_) {
+				last_change_=now;
+				if (rate_>(size_/(rtt_*4)))
+	  			rate_+=size_/rtt_;
+				else 
+	  			rate_+=rate_/4.0;
+			}
+			break ;
+		case 2:
+			if (rate_*(1.0+incrrate_)> rcvrate && version_ == 1)
+	  		rate_ = rcvrate;
+			else
+	  		rate_*=1.0+incrrate_;
+			last_change_=now;
+			break ;
+		case 3:
+			/* the idea is to increase the rate to rate_*(1+incrrate_) 
+			 * in k_*srate_*rtt round trip times.
+			 * srate_ = rate_/size_ ;
+			 */
+			 oldrate_ = rate_ ;
+			 rate_ = rate_ + incrrate_*size_/(k_*rtt_) ; 
+			 if (rate_ > rcvrate)
+				rate_ =  rcvrate ;
+			delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
+			last_change_=now;
+			break ; 
+		default: 
+			printf ("error: invalid slowincr_ value %d\n", slowincr_);
+			abort () ; 
+	}
+}
+
+void TfrmAgent::decrease_rate (double p, double now) 
+{
+	double rcvrate = p_to_b(p, rtt_, tzero_, size_, bval_);
+	rate_change_ = RATE_DECREASE ;
+	switch (version_) {
+		case 0: 
 			rate_*=0.5;
 			last_change_=now;
-		}
-	} else {
-		double rcvrate = p_to_b(nck->flost, rtt_, tzero_, size_);
-		if (rcvrate>(rate_+(size_/rtt_))) {
-			if (slowincr_==1) {
-				if (now-last_change_ < (k_-0.5)*rtt_) {
-	  				Packet::free(pkt);
-	  				return;
-				}
-				if (rate_>(size_/rtt_*4))
-	  				rate_+=size_/rtt_;
-				else {
-  					rate_+=rate_/4.0;
-				}
-			} else if (slowincr_==0) {
-				rate_+=size_/rtt_;
-			} else if (slowincr_==2) {
-				if (rate_*1.0+incrrate_ > rcvrate)
-	  				rate_ = rcvrate;
-				else
-	  				rate_*=1.0+incrrate_;
-			}
-			last_change_=now;
-		} else if (rcvrate<rate_) {
-			rate_=rcvrate;
-			last_change_=now;
-		} 
+			break ; 
+		case 1: 
+			if (rcvrate<rate_) {
+				rate_=rcvrate;
+				last_change_=now;
+			} 
+			oldrate_ = rate_ ; 
+			delta_ = 0 ;
+			break ; 
+		default: 
+			printf ("error: invalid version_ value %d\n", version_);
+			abort () ; 
 	}
-	Packet::free(pkt);
 }
 
 void TfrmAgent::sendpkt()

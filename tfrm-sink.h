@@ -47,36 +47,40 @@ class TfrmSinkAgent;
 
 class TfrmNackTimer : public TimerHandler {
 public:
-        TfrmNackTimer(TfrmSinkAgent *a) : TimerHandler() { a_ = a; }
-        virtual void expire(Event *e);
+  TfrmNackTimer(TfrmSinkAgent *a) : TimerHandler() { a_ = a; }
+  virtual void expire(Event *e);
 protected:
-        TfrmSinkAgent *a_;
+  TfrmSinkAgent *a_;
 };
 
 class TfrmSinkAgent : public Agent {
-        friend TfrmNackTimer;
+  friend TfrmNackTimer;
 public:
-        TfrmSinkAgent();
-        void recv(Packet*, Handler*);
+  TfrmSinkAgent();
+  void recv(Packet*, Handler*);
 protected:
-        void sendpkt();
-        void nextpkt();
-        void increase_pvec(int);
+  void sendpkt();
+  void nextpkt();
+  void increase_pvec(int);
 
-        double rate_;
-        double rtt_, tzero_;
-        double flost_;
-        double last_timestamp_, last_arrival_, last_nack_;
-        int *pvec_;
-        double *tsvec_;
-        int pveclen_;
-        int pvecfirst_, pveclast_;
-        int prevpkt_;
-        int psize_;
-        int k_;
+  double rate_;
+  double rtt_, tzero_;
+  double flost_;
+  double last_timestamp_, last_arrival_, last_nack_;
+  int *pvec_;
+  double *tsvec_;
+  int pveclen_;
+  int pvecfirst_, pveclast_;
+  int prevpkt_;
+  int psize_;
+  int k_;
 	int MinNumLoss_ ;
-        int version_;
-        int total_received_;
+  int version_;
+  int total_received_;
 	int InitHistorySize_ ;
-        TfrmNackTimer nack_timer_;
+	double HysterisisLower_ ;
+	double HysterisisUpper_ ;
+	int bval_ ;
+	int loss_seen_yet ;
+  TfrmNackTimer nack_timer_;
 }; 
