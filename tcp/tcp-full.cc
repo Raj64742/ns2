@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.99 2001/08/21 23:01:07 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.100 2001/08/21 23:29:02 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1893,12 +1893,9 @@ process_ACK:
 				opencwnd();
 		}
 
-		// K: added state check in equal but diff way
-		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno == maxseq_)) {
+		if ((state_ >= TCPS_FIN_WAIT_1) && (ackno == maxseq_))
 			ourfinisacked = TRUE;
-		} else {
-			ourfinisacked = FALSE;
-		}
+
 		// additional processing when we're in special states
 
 		switch (state_) {
@@ -2001,7 +1998,7 @@ step6:
 			// is but there's stuff on the reass queue);
 			// do whatever we need to do for out-of-order
 			// segments or hole-fills.  Also,
-			// send an ACK (or DSACK) to the other side right now.
+			// send an ACK (or SACK) to the other side right now.
 			// Note that we may have just a FIN here (datalen = 0)
 			int rcv_nxt_old_ = rcv_nxt_; // notify app. if changes
 			tiflags = reass(pkt);
@@ -2137,6 +2134,7 @@ FullTcpAgent::dupack_action()
 	fastrecov_ = TRUE;
 
         if (recovered || (!bug_fix_ && !ecn_) ||
+	    // Q: is last_cwnd_action dupack enough?
 	    last_cwnd_action_ == CWND_ACTION_DUPACK) {
                 goto full_reno_action;
         }       
@@ -2167,7 +2165,7 @@ full_reno_action:
 	// we measure cwnd in packets,
 	// so don't scale by maxseg_
 	// as real TCP does
-	cwnd_ = ssthresh_ + dupacks_;
+	cwnd_ = double(ssthresh_) + double(dupacks_);
         return;
 }
 
@@ -2202,51 +2200,53 @@ FullTcpAgent::timeout_action()
  * are all measured in 'tcp_tick_'-second units
  */
 
-void FullTcpAgent::timeout(int tno)
+void
+FullTcpAgent::timeout(int tno)
 {
-	/*
-	 * shouldn't be getting timeouts here
-	 */
 
 //if (tno == TCP_TIMER_RTX)
 //printf("%f: RTX TIMEOUT: t_seqno:%d\n",
 //now(), int(t_seqno_));
 
 	if (state_ == TCPS_CLOSED || state_ == TCPS_LISTEN) {
-		fprintf(stderr, "%f: (%s) unexpected timeout %d in state %d\n",
+	 	// shouldn't be getting timeouts here
+		fprintf(stderr, "%f: (%s) FullTcp: unexpected timeout %d in state %d\n",
 			now(), name(), tno, state_);
 		return;
 	}
- 
-	if (tno == TCP_TIMER_RTX) {
-		/* retransmit timer */
-		++nrexmit_;
-		timeout_action();
-		send_much(1, PF_TIMEOUT, maxburst_);
-	} else if (tno == TCP_TIMER_DELSND) {
-		/*
-		 * delayed-send timer, with random overhead
-		 * to avoid phase effects
-		 */
-		send_much(1, PF_TIMEOUT, maxburst_);
-	} else if (tno == TCP_TIMER_DELACK) {
-		if (flags_ & TF_DELACK) {
-			flags_ &= ~TF_DELACK;
-			flags_ |= TF_ACKNOW;
-			send_much(1, REASON_NORMAL, 0);
-		}
-		delack_timer_.resched(delack_interval_);
-	} else {
-		fprintf(stderr, "%f: (%s) UNKNOWN TIMEOUT %d\n",
+
+	switch (tno) {
+
+	case TCP_TIMER_RTX:
+                /* retransmit timer */
+                ++nrexmit_;
+                timeout_action();
+		/* fall thru */
+	case TCP_TIMER_DELSND:
+		/* for phase effects */
+                send_much(1, PF_TIMEOUT, maxburst_);
+		break;
+
+	case TCP_TIMER_DELACK:
+                if (flags_ & TF_DELACK) {
+                        flags_ &= ~TF_DELACK;
+                        flags_ |= TF_ACKNOW;
+                        send_much(1, REASON_NORMAL, 0);
+                }
+                delack_timer_.resched(delack_interval_);
+		break;
+	default:
+		fprintf(stderr, "%f: FullTcpAgent(%s) Unknown Timeout %d\n",
 			now(), name(), tno);
 	}
+	return;
 }
 
 void
 FullTcpAgent::dooptions(Packet* pkt)
 {
 	// interesting options: timestamps (here),
-	//	CC, CCNEW, CCECHO (future work perhaps)
+	//	CC, CCNEW, CCECHO (future work perhaps?)
 
         hdr_flags *fh = hdr_flags::access(pkt);
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
@@ -2262,6 +2262,8 @@ FullTcpAgent::dooptions(Packet* pkt)
 			recent_age_ = now();
 		}
 	}
+
+	return;
 }
 
 //
@@ -2270,8 +2272,9 @@ FullTcpAgent::dooptions(Packet* pkt)
 void
 FullTcpAgent::process_sack(hdr_tcp*)
 {
-	fprintf(stderr, "%f: (%s) Non-SACK capable FullTcpAgent received a SACK\n",
+	fprintf(stderr, "%f: FullTcpAgent(%s) Non-SACK capable FullTcpAgent received a SACK\n",
 		now(), name());
+	return;
 }
 
 
@@ -2311,17 +2314,18 @@ TahoeFullTcpAgent::dupack_action()
 	fastrecov_ = TRUE;
 
         if (recovered || (!bug_fix_ && !ecn_) ||
+	    // Q: is last_cwnd_action dupack enough?
             last_cwnd_action_ == CWND_ACTION_DUPACK) {
                 goto full_tahoe_action;
         }
    
         if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
+		// slow start on ECN
 		last_cwnd_action_ = CWND_ACTION_DUPACK;
                 slowdown(CLOSE_CWND_ONE);
 		set_rtx_timer();
                 rtt_active_ = FALSE;
-		t_seqno_ = highest_ack_;	// slow-start
-//send_much(0, REASON_NORMAL, 0);
+		t_seqno_ = highest_ack_;
                 return; 
         }
    
@@ -2335,13 +2339,14 @@ TahoeFullTcpAgent::dupack_action()
         }
    
 full_tahoe_action:
+	// slow-start and reset ssthresh
 	trace_event("FAST_RETX");
 	recover_ = maxseq_;
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_ONE);	// cwnd->1
 	set_rtx_timer();
         rtt_active_ = FALSE;
-	t_seqno_ = highest_ack_;		// slow-start
+	t_seqno_ = highest_ack_;
 	send_much(0, REASON_NORMAL, 0);
         return; 
 }  
@@ -2365,11 +2370,12 @@ void
 NewRenoFullTcpAgent::pack_action(Packet*)
 {
 	(void)fast_retransmit(highest_ack_);
-	cwnd_ = ssthresh_;
+	cwnd_ = double(ssthresh_);
 	if (save_maxburst_ < 0) {
 		save_maxburst_ = maxburst_;
 		maxburst_ = recov_maxburst_;
 	}
+	return;
 }
 
 void
@@ -2380,6 +2386,7 @@ NewRenoFullTcpAgent::ack_action(Packet* p)
 		save_maxburst_ = -1;
 	}
 	FullTcpAgent::ack_action(p);
+	return;
 }
 
 /*
@@ -2398,8 +2405,6 @@ SackFullTcpAgent::reset()
 {
 	sq_.clear();			// no SACK blocks
 	sack_min_ = h_seqno_ -1;	// no left edge of SACK blocks
-	reno_fastrecov_ = FALSE;	// always F for sack
-	pipectrl_ = FALSE;		// start in window mode
 	FullTcpAgent::reset();
 }
 
@@ -2535,6 +2540,8 @@ SackFullTcpAgent::timeout_action()
 		sq_.clear();
 		sack_min_ = highest_ack_;
 	}
+
+	return;
 }
 
 void
@@ -2563,6 +2570,8 @@ SackFullTcpAgent::process_sack(hdr_tcp* tcph)
 		}
 		sq_.add(tcph->sa_left(i), tcph->sa_right(i), 0);  
 	}
+
+	return;
 }
 
 int
