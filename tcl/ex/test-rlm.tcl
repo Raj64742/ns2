@@ -17,26 +17,42 @@
 # software. 
 #
 
-set rectFile rect.out
+#XXX
+proc uniform01 {} {
+	return [expr double(([ns-random] % 10000000) + 1) / 1e7]
+}
+
+proc uniform { a b } {
+	return [expr ($b - $a) * [uniform01] + $a]
+}
+
+proc exponential mean {
+	return [expr - $mean * log([uniform01])]
+}
+
+proc trunc_exponential lambda {
+	while 1 {
+		set u [exponential $lambda]
+		if { $u < [expr 4 * $lambda] } {
+			return $u
+		}
+	}
+}
+
+
 set packetSize 1000
 set runtime 600
 set scenario 0
 set rlm_debug_flag 1
 set seed 1
 set rates "32e3 64e3 128e3 256e3 512e3 1024e3 2048e3"
+#set rates "32e3 64e3 128e3 256e3"
 set level [llength $rates]
 set proto rlm
+set run_nam 0
 
-
-Agent/LossMonitor set nlost_ 0
-Agent/LossMonitor set npkts_ 0
-Agent/LossMonitor set expected_ -1
+#XXX
 Queue/DropTail set limit_ 15
-
-
-if [info exists rlmTraceFile] {
-	set rlmTraceFile [open $rlmTraceFile w]
-}
 
 
 Simulator instproc create-agent { node type pktClass } {
@@ -63,37 +79,33 @@ Simulator instproc cbr_flow { node fid addr bw } {
 	return $agent
 }
 
-Simulator instproc build_source_set { mmgName rates baseClass baseAddr node when } {
+Simulator instproc build_source_set { mmgName rates addrs baseClass node when } {
 	global src_mmg src_rate
-	set i 0
-	foreach r $rates {
-		set src_rate([expr $baseAddr]) $r
+	set n [llength $rates]
+	for {set i 0} {$i<$n} {incr i} {
+		set r [lindex $rates $i]
+		set addr [expr [lindex $addrs $i]]
+
+		set src_rate($addr) $r
 		set k $mmgName:$i
-		incr i
-		set src_mmg($k) [$self cbr_flow $node $baseClass $baseAddr $r]
+		set src_mmg($k) [$self cbr_flow $node $baseClass $addr $r]
 		$self at $when "$src_mmg($k) start"
 		incr baseClass
-		incr baseAddr
 	}
 }
 
 Simulator instproc finish {} {
 	#XXX
-	global rcvrMMG  proto scenario lossTraceFile debugfile
+	global rcvrMMG  proto scenario lossTraceFile debugfile run_nam
 	puts finish
 	#XXX
 	
-	flush_all_trace
+	#flush_all_trace
 	
 	if [info exists plots] {
 		close $plots
 	}
-	
-	
-	#XXX
-	if { $proto == "rlm" } { 
-		$proto\_finish
-	}
+
 	#XXX
 	if [info exists lossTraceFile] {
 		close $lossTraceFile
@@ -112,9 +124,11 @@ Simulator instproc finish {} {
 		puts "loss-frac [expr 1024. * [node_loss $rcvrMMG] / $bd] \
 			goodput [expr $bd / [optimal_bytes]]"
 	}
-	
-	puts "running nam..."
-	exec nam -g 600x700 -f dynamic-nam.conf out.nam &
+
+	if {$run_nam} {
+		puts "running nam..."
+		exec nam -g 600x700 -f dynamic-nam.conf out.nam &
+	}
 	
 	exit 0
 }
@@ -128,15 +142,9 @@ Simulator instproc tick {} {
 Class Topology
 
 Topology instproc init { simulator } {
-	$self instvar addr_allocator ns
+	$self instvar ns id
 	set ns $simulator
-	set addr_allocator [expr 0x8000]
-	
-	#XXXX
-	proc ns-now {} "return \[$ns now]"
-	global sim
-	set sim $ns
-	
+	set id 0
 }
 
 Topology instproc mknode nn {
@@ -164,44 +172,42 @@ Topology instproc build_link { a b delay bw } {
 	$ns duplex-link $node($a) $node($b) $bw $delay DropTail
 }
 
-Topology instproc alloc-addr {} {
-	$self instvar addr_allocator
-	set a $addr_allocator
-	incr addr_allocator 32
-	return $a
-}
-
-
 #
 # build a new source (by allocating a new address) and
 # place it at node $nn.  start it up at random time 
 #
-Topology instproc place_source { nn when level } {
+Topology instproc place_source { nn when } {
 	#XXX
 	global rates 
+	$self instvar node ns id addrs caddrs
+
+	incr id
+	set caddrs($id) [Node allocaddr]
+	set addrs($id) {}
+	foreach r $rates {
+		lappend addrs($id) [Node allocaddr]
+	}
+
+	$ns build_source_set s$id $rates $addrs($id) 1 $node($nn) $when
 	
-	$self instvar node ns
-	set a [$self alloc-addr]
-	
-	$ns build_source_set s$a $rates 1 $a $node($nn) $when
-	
-	return $a
+	return $id
 }
 
-Topology instproc place_receiver { nn addr when } {
+Topology instproc place_receiver { nn id when } {
 	$self instvar ns
-	$ns at $when "$self build_receiver $nn $addr"
+	$ns at $when "$self build_receiver $nn $id"
 }
 
 #
-# build a new receiver for address $addr and
+# build a new receiver for source $id and
 # place it at node $nn.
 #
-Topology instproc build_receiver { nn addr } {
-	global level 
-	
-	$self instvar node ns
-	set rcvr [build_loss_monitors $ns $node($nn) $addr $level]
+Topology instproc build_receiver { nn id } {
+	$self instvar node ns addrs caddrs
+	set rcvr [new MMG/ns $ns $node($nn) $caddrs($id) $addrs($id)]
+
+	global rlm_debug_flag
+	$rcvr set debug_ $rlm_debug_flag
 }
 
 
@@ -220,7 +226,6 @@ Scenario0 instproc init args {
 	#                       \N3____R3
 	#                         50kb
 	#
-	global level
 	eval $self next $args
 	$self instvar ns node
 	
@@ -247,7 +252,7 @@ Scenario0 instproc init args {
 	$ns duplex-link-op $node(5) $node(6) queuePos 0.5
 
 	set time [expr  double([ns-random] % 10000000) / 1e7 * 60]
-	set addr [$self place_source 0 $time $level]
+	set addr [$self place_source 0 $time]
 
 	$self place_receiver 2 $addr $time
 	$self place_receiver 4 $addr $time
@@ -259,10 +264,38 @@ Scenario0 instproc init args {
 	set mrthandle [$ns mrtproto $mproto {} ]
 }
 
+Class Scenario1 -superclass Topology
 
+Scenario1 instproc init args {
+	eval $self next $args
+	$self instvar ns node
+	
+	$self build_link 0 1 200ms  100e3
+
+	$ns duplex-link-op $node(0) $node(1) orient right
+	$ns duplex-link-op $node(0) $node(1) queuePos 0.5
+
+	set time [expr  double([ns-random] % 10000000) / 1e7 * 60]
+	set id [$self place_source 0 $time]
+
+	$self place_receiver 1 $id $time
+
+#mcast set up
+	DM set PruneTimeout 1000
+	set mproto DM
+	set mrthandle [$ns mrtproto $mproto {} ]
+}
+
+foreach a $argv {
+	set L [split $a =]
+	if {[llength $L] != 2} { continue }
+	set var [lindex $L 0]
+	set val [lindex $L 1]
+	set $var $val
+}
 
 #Clean up rectFile
-rlm_init $rectFile $level $runtime  
+#rlm_init $rectFile $level $runtime  
 
 set ns [new Simulator]
 #XXXX
@@ -272,6 +305,10 @@ $ns color 1 blue
 $ns color 2 green
 $ns color 3 red
 $ns color 4 white
+
+# prunes, grafts
+$ns color 30 orange
+$ns color 31 yellow
 
 $ns trace-all [open out.tr w]
 $ns namtrace-all [open out.nam w]
@@ -283,9 +320,4 @@ Simulator set NumberInterfaces_ 1
 set scn [new Scenario$scenario $ns]
 $ns at [expr $runtime +1] "$ns finish"
 $ns run
-
-
-
-
-
 
