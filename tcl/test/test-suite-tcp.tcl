@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.10 1998/08/14 20:14:26 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.11 1998/10/21 23:19:28 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -119,6 +119,7 @@ Test/ecn instproc init topo {
 	set net_	$topo
 	set defNet_	net6
 	set test_	ecn_(one_with_ecn,_one_without)
+	Agent/TCP set old_ecn_ 1
 	$self next
 }
 Test/ecn instproc run {} {
