@@ -94,6 +94,7 @@ void Sack1TcpAgent::reset ()
 void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	int valid_ack = 0;
 
         if (qs_approved_ == 1 && tcph->seqno() > last_ack_)
 		endQuickStart();
@@ -117,6 +118,9 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 	int ecnecho = hdr_flags::access(pkt)->ecnecho();
 	if (ecnecho && ecn_)
 		ecn(tcph->seqno());
+        if (tcph->seqno() >= last_ack_)
+		// Check if ACK is valid.  Suggestion by Mark Allman.
+		valid_ack = 1;
 	/*
 	 * If DSACK is being used, check for DSACK blocks here.
 	 * Possibilities:  Check for unnecessary Fast Retransmits.
@@ -161,8 +165,9 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
  				}
 			}
 		}
-		if (dupacks_ == 0)
-			send_much(FALSE, 0, maxburst_);
+        	if (valid_ack || aggressive_maxburst_)
+			if (dupacks_ == 0)
+				send_much(FALSE, 0, maxburst_);
 	} else {
 		/* we are in fast recovery */
 		--pipe_;
@@ -214,7 +219,8 @@ void Sack1TcpAgent::recv(Packet *pkt, Handler*)
  			        	dupacks_++;
  			}
 		}
-		send_much(FALSE, 0, maxburst_);
+        	if (valid_ack || aggressive_maxburst_)
+			send_much(FALSE, 0, maxburst_);
 	}
 
 	Packet::free(pkt);

@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.49 2003/02/12 04:16:09 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.50 2003/06/03 23:32:26 sfloyd Exp $ (LBL)";
 #endif
 
 //
@@ -167,6 +167,7 @@ reno_action:
 void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	int valid_ack = 0;
 
 	/* Use first packet to calculate the RTT  --contributed by Allman */
 
@@ -254,6 +255,9 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
                         send_one();
                 }
 	}
+        if (tcph->seqno() >= last_ack_)
+                // Check if ACK is valid.  Suggestion by Mark Allman.
+                valid_ack = 1;
 	Packet::free(pkt);
 #ifdef notyet
 	if (trace_)
@@ -264,13 +268,14 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 	 * Try to send more data
 	 */
 
-	if (dupacks_ == 0) 
-		/*
-		 * Maxburst is really only needed for the first
-		 *  window of data on exiting Fast Recovery.
-		 */
-		send_much(0, 0, maxburst_);
-	else if (dupacks_ > numdupacks_ - 1 && newreno_changes_ == 0)
-		send_much(0, 0, 2);
+        if (valid_ack || aggressive_maxburst_)
+		if (dupacks_ == 0) 
+			/*
+			 * Maxburst is really only needed for the first
+			 *  window of data on exiting Fast Recovery.
+			 */
+			send_much(0, 0, maxburst_);
+		else if (dupacks_ > numdupacks_ - 1 && newreno_changes_ == 0)
+			send_much(0, 0, 2);
 }
 

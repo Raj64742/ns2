@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.38 2003/01/27 02:34:38 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-reno.cc,v 1.39 2003/06/03 23:32:26 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -72,6 +72,7 @@ RenoTcpAgent::RenoTcpAgent() : TcpAgent(), dupwnd_(0)
 void RenoTcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	int valid_ack = 0;
         if (qs_approved_ == 1 && tcph->seqno() > last_ack_)
 		endQuickStart();
         if (qs_requested_ == 1)
@@ -115,6 +116,9 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 			send_one();
 		}
 	}
+        if (tcph->seqno() >= last_ack_)
+                // Check if ACK is valid.  Suggestion by Mark Allman.
+                valid_ack = 1;
 	Packet::free(pkt);
 #ifdef notyet
 	if (trace_)
@@ -125,8 +129,9 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 	 * Try to send more data
 	 */
 
-	if (dupacks_ == 0 || dupacks_ > numdupacks_ - 1)
-		send_much(0, 0, maxburst_);
+        if (valid_ack || aggressive_maxburst_)
+		if (dupacks_ == 0 || dupacks_ > numdupacks_ - 1)
+			send_much(0, 0, maxburst_);
 }
 
 int
