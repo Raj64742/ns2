@@ -34,7 +34,7 @@
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.12 1999/05/17 22:50:49 yaxu Exp $
+   $Id: dsdv.cc,v 1.13 1999/07/05 17:06:33 haoboy Exp $
 
    */
 
@@ -978,7 +978,7 @@ DSDV_Agent::forwardPacket (Packet * p)
   else
 	  hdrc->next_hop_ = dst;
   if (verbose_)
-	  trace ("Routing pkts outside domain:
+	  trace ("Routing pkts outside domain: \
 VFP %.5f _%d_ %d:%d -> %d:%d", now, myaddr_, iph->src_,
 		 iph->sport_, iph->dst_,
 		 iph->dport_);  
