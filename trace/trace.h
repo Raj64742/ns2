@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.31 2000/09/01 03:04:08 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.32 2001/01/15 00:00:19 sfloyd Exp $
  */
 
 #ifndef ns_trace_h
@@ -64,6 +64,7 @@ public:
 	Trace(int type);
         ~Trace();
         int command(int argc, const char*const* argv);
+	static int get_seqno(Packet* p);
         void recv(Packet* p, Handler*);
 	void recvOnly(Packet *p);
 	void trace(TracedVar*);

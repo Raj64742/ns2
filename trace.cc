@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.70 2000/09/01 03:04:08 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.71 2001/01/15 00:00:19 sfloyd Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -157,6 +157,33 @@ char* srm_names[] = {
         SRM_NAMES
 };
 
+int
+Trace::get_seqno(Packet* p)
+{
+	hdr_cmn *th = hdr_cmn::access(p);
+	hdr_tcp *tcph = hdr_tcp::access(p);
+	hdr_rtp *rh = hdr_rtp::access(p);
+        hdr_rap *raph = hdr_rap::access(p);
+	hdr_tfrc *tfrch = hdr_tfrc::access(p);
+	packet_t t = th->ptype();
+	int seqno;
+
+	/* UDP's now have seqno's too */
+	if (t == PT_RTP || t == PT_CBR || t == PT_UDP || t == PT_EXP ||
+	    t == PT_PARETO)
+		seqno = rh->seqno();
+        else if (t == PT_RAP_DATA || t == PT_RAP_ACK)
+                seqno = raph->seqno();
+	else if (t == PT_TCP || t == PT_ACK || t == PT_HTTP || t == PT_FTP ||
+	    t == PT_TELNET)
+		seqno = tcph->seqno();
+	else if (t == PT_TFRC)
+		seqno = tfrch->seqno;
+	else
+		seqno = -1;
+ 	return seqno;
+}
+
 // this function should retain some backward-compatibility, so that
 // scripts don't break.
 void Trace::format(int tt, int s, int d, Packet* p)
@@ -164,10 +191,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	hdr_cmn *th = hdr_cmn::access(p);
 	hdr_ip *iph = hdr_ip::access(p);
 	hdr_tcp *tcph = hdr_tcp::access(p);
-	hdr_rtp *rh = hdr_rtp::access(p);
 	hdr_srm *sh = hdr_srm::access(p); 
-        hdr_rap *raph = hdr_rap::access(p);
-	hdr_tfrc *tfrch = hdr_tfrc::access(p);
 
 	const char* sname = "null";
 
@@ -184,21 +208,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	if (name == 0)
 		abort();
 
-	int seqno;
-	/* XXX */
-	/* UDP's now have seqno's too */
-	if (t == PT_RTP || t == PT_CBR || t == PT_UDP || t == PT_EXP ||
-	    t == PT_PARETO)
-		seqno = rh->seqno();
-        else if (t == PT_RAP_DATA || t == PT_RAP_ACK)
-                seqno = raph->seqno();
-	else if (t == PT_TCP || t == PT_ACK || t == PT_HTTP || t == PT_FTP ||
-	    t == PT_TELNET)
-		seqno = tcph->seqno();
-	else if (t == PT_TFRC)
-		seqno = tfrch->seqno;
-	else
-		seqno = -1;
+	int seqno = get_seqno(p);
         /* 
          * When new flags are added, make sure to change NUMFLAGS
          * in trace.h
