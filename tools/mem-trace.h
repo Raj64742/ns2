@@ -22,8 +22,8 @@
 #include "config.h"
 #include <stdio.h>
 #ifndef WIN32
-#include <sys/resource.h>
 #include <sys/time.h>
+#include <sys/resource.h>
 #include <unistd.h>
 #endif /* WIN32 */
 
