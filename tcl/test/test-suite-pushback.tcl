@@ -46,21 +46,99 @@ set flowgraphfile fairflow.xgr; # file given to graph tool
 
 TestSuite instproc finish file {
 	global quiet PERL
-	$self instvar ns_ tchan_ testName_
+	$self instvar ns_ tchan_ testName_ tmpschan_
 	# was: -s 2 -d 3 
-        exec $PERL ../../bin/getrc -s 12 -d 13 all.tr | \
-          $PERL ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp.rands
-	if {$quiet == "false"} {
-        	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
-	}
+        #exec $PERL ../../bin/getrc -s 12 -d 13 all.tr | \
+        #  $PERL ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp2.rands
+	#if {$quiet == "false"} {
+        #	exec xgraph -bb -tk -nl -m -x time -y packets temp2.rands &
+	#}
         ## now use default graphing tool to make a data file
         ## if so desired
 
 	if { [info exists tchan_] && $quiet == "false" } {
-		$self plotQueue $testName_
+		#$self plotQueue $testName_
+	}
+	if { [info exists tmpschan_]} {
+		$self finishflows $testName_
+		close $tmpschan_
 	}
 	$ns_ halt
 }
+
+# display graph of results
+#
+# temp.s:
+# time: 4.000 LinkUtilThisTime  1.002 totalLinkUtil: 1.000 totalOQPkts: 1250
+# fid: 1 Util: 0.124 OQdroprate: 0.320 OQpkts: 155 OQdrops: 73
+#
+TestSuite instproc finishflows testname {
+        global quiet
+        $self instvar tmpschan_ tmpqchan_ topo_ node_ ns_
+	$self instvar packetsize_
+        $topo_ instvar cbqlink_ bandwidth1_
+
+        set graphfile temp.rands
+        set maxbytes [expr $bandwidth1_ / 8.0]
+	set maxpkts [expr 1.0 * $maxbytes / $packetsize_]
+
+        set awkCode  {
+		{
+		if ($1 == 0) {time=1; oldpkts=0;}
+		if ($1 == "time:" && $3 == "LinkUtilThisTime") {
+			time = $2
+		}
+		if ($1 == "fid:" && $2==flow) {
+		  newpkts = $8;
+		  pkts = newpkts - oldpkts;
+		  print time, pkts/maxpkts;
+		  oldpkts = newpkts
+		}}
+        }
+        set awkCodeAll {
+		{
+		if ($1==0) {oldpkts=0}
+		if ($1 == "time:" && $7 == "totalOQPkts:") {
+			time = $2;
+		  	newpkts = $8;
+		  	pkts = newpkts - oldpkts;
+		  	print time, pkts/maxpkts;
+		  	oldpkts = newpkts
+		}}
+        }
+
+        if { [info exists tmpschan_] } {
+                close $tmpschan_
+        }
+
+        set f [open $graphfile w]
+        puts $f "TitleText: $testname"
+        puts $f "Device: Postscript"
+
+        exec rm -f temp.p
+        exec touch temp.p
+        foreach i { 1 2 3 4 5 } {
+                exec echo "\n\"flow $i" >> temp.p
+                exec awk $awkCode flow=$i maxpkts=$maxpkts temp.s > temp.$i
+                exec cat temp.$i >> temp.p
+                exec echo " " >> temp.p
+        }
+
+        exec awk $awkCodeAll maxpkts=$maxpkts temp.s > temp.all
+        exec echo "\n\"all " >> temp.p
+        exec cat temp.all >> temp.p
+
+        exec cat temp.p >@ $f
+        close $f
+	##if {$quiet == "false"} {
+               	exec xgraph -bb -tk -ly 0,1 -x time -y bandwidth $graphfile &
+	##}
+#       exec csh figure2.com $file
+
+        exit 0
+}
+
+
 
 TestSuite instproc enable_tracequeue ns {
 	$self instvar tchan_ node_
@@ -80,7 +158,9 @@ Topology instproc node? num {
 
 Class Topology/net2 -superclass Topology
 Topology/net2 instproc init ns {
-    $self instvar node_ 
+    $self instvar node_ bandwidth_ bandwidth1_
+    set bandwidth_ 0.5Mb
+    set bandwidth1_ 500000
     #the destinations; declared first 
     for {set i 0} {$i < 2} {incr i} {
         set node_(d$i) [$ns node]
@@ -102,8 +182,8 @@ Topology/net2 instproc init ns {
 
     $ns duplex-link $node_(s0) $node_(r0) 10Mb 2ms DropTail
     $ns duplex-link $node_(s1) $node_(r0) 10Mb 3ms DropTail
-    $ns pushback-simplex-link $node_(r0) $node_(r1) 0.5Mb 10ms 
-    $ns simplex-link $node_(r1) $node_(r0) 0.5Mb 10ms DropTail
+    $ns pushback-simplex-link $node_(r0) $node_(r1) $bandwidth_ 10ms 
+    $ns simplex-link $node_(r1) $node_(r0) $bandwidth_ 10ms DropTail
     $ns duplex-link $node_(d0) $node_(r1) 10Mb 2ms DropTail
     $ns duplex-link $node_(d1) $node_(r1) 10Mb 2ms DropTail
 
@@ -190,14 +270,18 @@ TestSuite instproc setTopo {} {
 #    
 TestSuite instproc statsDump { interval fmon packetsize oldpkts } {
         global quiet 
-        $self instvar dump_inst_ ns_ 
+        $self instvar dump_inst_ ns_ tmpschan_ f
+	set dumpfile temp.s
         if ![info exists dump_inst_] {
+		$self instvar tmpschan_ f
                 set dump_inst_ 1
+		set f [open $dumpfile w]
+		set tmpschan_ $f
                 $ns_ at 0.0 "$self statsDump $interval $fmon $packetsize $oldpkts"
                 return
         }
         set time [$ns_ now]
-        puts "$time"
+        puts $f "$time"
         set newtime [expr [$ns_ now] + $interval]
 	## $quiet == "false"
         if { $time > 0} {
@@ -208,27 +292,31 @@ TestSuite instproc statsDump { interval fmon packetsize oldpkts } {
     	    set recentUtil [expr (1.0*$packets*$packetsize)/($interval*$linkBps)]
     	    set totalLinkUtil [expr (1.0*$totalPkts*$packetsize)/($time*$linkBps)]
             set now [$ns_ now]
-    	    puts "time: [format %.3f $now] LinkUtilThisTime  [format %.3f $recentUtil] totalLinkUtil: [format %.3f $totalLinkUtil] totalOQPkts: $totalPkts" 
+    	    puts $f "time: [format %.3f $now] LinkUtilThisTime  [format %.3f $recentUtil] totalLinkUtil: [format %.3f $totalLinkUtil] totalOQPkts: $totalPkts" 
     	    set fcl [$fmon classifier];
 	    ## this 
-    	    for {set i 1} {$i < 4} {incr i} {
+    	    for {set i 1} {$i < 6} {incr i} {
     	        set flow [$fcl lookup auto 0 0 $i]
-		set flowpkts($flow) [$flow set pdepartures_]
-    	        set flowutil [expr (1.0*$flowpkts($flow)*$packetsize)/($time*$linkBps)]
-		set flowdrops($flow) [$flow set pdrops_]
-    	        set flowdroprate [expr (1.0*$flowdrops($flow)/($flowpkts($flow) + $flowdrops($flow)))] 
-		puts "fid: $i Util: [format %.3f $flowutil] OQdroprate: [format %.3f $flowdroprate] OQpkts: [format %d $flowpkts($flow)] OQdrops: [format %d $flowdrops($flow)]"
+		if {$flow != "" } {
+		  set flowpkts($flow) [$flow set pdepartures_]
+    	          set flowutil [expr (1.0*$flowpkts($flow)*$packetsize)/($time*$linkBps)]
+		  set flowdrops($flow) [$flow set pdrops_]
+    	          set flowdroprate [expr (1.0*$flowdrops($flow)/($flowpkts($flow) + $flowdrops($flow)))] 
+		  puts $f "fid: $i Util: [format %.3f $flowutil] OQdroprate: [format %.3f $flowdroprate] OQpkts: [format %d $flowpkts($flow)] OQdrops: [format %d $flowdrops($flow)]"
+		}
 	    }
         }
         $ns_ at $newtime "$self statsDump $interval $fmon $packetsize $oldpkts"
 }
 
 TestSuite instproc setup {} {
-    $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_
+    $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
     $self setTopo
 
     set stoptime 30.0
     #set stoptime 5.0
+    #set dumptime 5.0
+    set dumptime 1.0
     set stoptime1 [expr $stoptime + 1.0]
     set packetsize_ 200
     Application/Traffic/CBR set random_ 0
@@ -261,8 +349,7 @@ TestSuite instproc setup {} {
     $cbr_ set random_ 0.001
     $ns_ at 0.0 "$cbr_ start"
 
-    $self statsDump 5.0 $fmon $packetsize_ 0 
-    #$self statsDump 1.0 $fmon $packetsize_ 0
+    $self statsDump $dumptime $fmon $packetsize_ 0
     # trace only the bottleneck link
     #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
     $ns_ at $stoptime1 "$self cleanupAll $testName_"
@@ -322,6 +409,124 @@ Test/cbrs-acc1 instproc run {} {
     $ns_ at 10.0 "$cbr_ set rate_ 0.1Mb"
     $ns_ at 15.0 "$cbr2_ set rate_ 0.5Mb"
     $ns_ run
+}
+
+TestSuite instproc setup1 {} {
+    $self instvar ns_ node_ testName_ net_ topo_ cbr_ cbr2_ packetsize_
+    $self setTopo
+
+    set stoptime 30.0
+    #set dumptime 5.0
+    set dumptime 1.0
+    #set stoptime 5.0
+    set stoptime1 [expr $stoptime + 1.0]
+    set packetsize_ 200
+    Application/Traffic/CBR set random_ 0
+    Application/Traffic/CBR set packetSize_ $packetsize_
+
+    set slink [$ns_ link $node_(r0) $node_(r1)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
+
+    set udp1 [$ns_ create-connection UDP $node_(s0) Null $node_(d0) 1]
+    set cbr1_ [$udp1 attach-app Traffic/CBR]
+    $cbr1_ set rate_ 0.1Mb
+    $cbr1_ set random_ 0.005
+
+    set udp2 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 2]
+    set cbr2_ [$udp2 attach-app Traffic/CBR]
+    $cbr2_ set rate_ 0.1Mb
+    $cbr2_ set random_ 0.005
+
+    set udp3 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 3]
+    set cbr3_ [$udp3 attach-app Traffic/CBR]
+    $cbr3_ set rate_ 0.1Mb
+    $cbr3_ set random_ 0.005
+
+    set udp4 [$ns_ create-connection UDP $node_(s1) Null $node_(d1) 4]
+    set cbr4_ [$udp4 attach-app Traffic/CBR]
+    $cbr4_ set rate_ 0.1Mb
+    $cbr4_ set random_ 0.005
+
+    $self enable_tracequeue $ns_
+    $ns_ at 0.2 "$cbr1_ start"
+    $ns_ at 0.1 "$cbr2_ start"
+    $ns_ at 0.3 "$cbr3_ start"
+    $ns_ at 0.4 "$cbr4_ start"
+
+    # bad traffic
+    set udp [$ns_ create-connection UDP $node_(s0) Null $node_(d1) 5]
+    set cbr_ [$udp attach-app Traffic/CBR]
+    $cbr_ set rate_ 0.1Mb
+    $cbr_ set random_ 0.001
+    $ns_ at 0.0 "$cbr_ start"
+    $ns_ at 1.0 "$cbr_ set rate_ 0.15Mb"
+    $ns_ at 2.0 "$cbr_ set rate_ 0.2Mb"
+    $ns_ at 3.0 "$cbr_ set rate_ 0.25Mb"
+    $ns_ at 4.0 "$cbr_ set rate_ 0.3Mb"
+    $ns_ at 5.0 "$cbr_ set rate_ 0.35Mb"
+    $ns_ at 6.0 "$cbr_ set rate_ 0.4Mb"
+    $ns_ at 7.0 "$cbr_ set rate_ 0.45Mb"
+    $ns_ at 8.0 "$cbr_ set rate_ 0.5Mb"
+    $ns_ at 9.0 "$cbr_ set rate_ 0.55Mb"
+    $ns_ at 10.0 "$cbr_ set rate_ 0.6Mb"
+    $ns_ at 11.0 "$cbr_ set rate_ 0.65Mb"
+    $ns_ at 12.0 "$cbr_ set rate_ 0.7Mb"
+    $ns_ at 13.0 "$cbr_ set rate_ 0.75Mb"
+    $ns_ at 14.0 "$cbr_ set rate_ 0.8Mb"
+    $ns_ at 15.0 "$cbr_ set rate_ 0.855Mb"
+    $ns_ at 17.0 "$cbr_ set rate_ 0.8Mb"
+    $ns_ at 17.0 "$cbr_ set rate_ 0.75Mb"
+    $ns_ at 18.0 "$cbr_ set rate_ 0.7Mb"
+    $ns_ at 19.0 "$cbr_ set rate_ 0.65Mb"
+    $ns_ at 20.0 "$cbr_ set rate_ 0.6Mb"
+    $ns_ at 21.0 "$cbr_ set rate_ 0.55Mb"
+    $ns_ at 22.0 "$cbr_ set rate_ 0.5Mb"
+    $ns_ at 23.0 "$cbr_ set rate_ 0.45Mb"
+    $ns_ at 24.0 "$cbr_ set rate_ 0.4Mb"
+    $ns_ at 25.0 "$cbr_ set rate_ 0.35Mb"
+    $ns_ at 26.0 "$cbr_ set rate_ 0.3Mb"
+    $ns_ at 27.0 "$cbr_ set rate_ 0.25Mb"
+    $ns_ at 28.0 "$cbr_ set rate_ 0.2Mb"
+    $ns_ at 29.0 "$cbr_ set rate_ 0.15Mb"
+    $ns_ at 30.0 "$cbr_ set rate_ 0.1Mb"
+
+    $self statsDump $dumptime $fmon $packetsize_ 0
+    # trace only the bottleneck link
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime1 "$self cleanupAll $testName_"
+}
+
+#
+# one complete test with CBR flows only, no pushback and no red-pd.
+# Slowly-growing bad flow.
+#
+Class Test/slowgrow -superclass TestSuite
+Test/slowgrow instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ slowgrow
+    $self next
+}
+Test/slowgrow instproc run {} {
+    $self instvar ns_ node_ testName_ net_ topo_
+    $self setTopo
+    $self setup1
+    $ns_ run
+}
+
+#
+# one complete test with CBR flows only, no pushback and no red-pd.
+# Slowly-growing bad flow, but with local ACC.
+#
+Class Test/slowgrow-acc -superclass TestSuite
+Test/slowgrow-acc instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ slowgrow-acc
+    Queue/RED/Pushback set rate_limiting_ 1
+    Test/slowgrow-acc instproc run {} [Test/slowgrow info instbody run]
+    $self next
 }
 
 TestSuite runTest
