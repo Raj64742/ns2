@@ -50,6 +50,7 @@ Mac/Csma set slotTime_ 16us
 Mac/Csma set cwmin_ 16
 Mac/Csma set cwmax_ 1024
 Mac/Csma set rtxLimit_ 16
+Mac/Csma set csense_ 1
 
 # 10 Mbps Ethernet settings
 Mac/Csma/Cd set bandwidth_ 10Mb

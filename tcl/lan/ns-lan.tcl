@@ -134,11 +134,6 @@ Simulator instproc make-lan {nodelist bw delay \
 			}
 			set link_($sid:$did) [new Link/LanDuplex \
 					$src $dst $bw $delay $q($src:$dst) $llt]
-			set drpT_ [$self create-trace Loss $traceAllFile_ $src $dst]
-			if [info exists namtraceAllFile_] {
-				$drpT_ attach-nam $namtraceAllFile_
-			}
-			[$link_($sid:$did) link] drop-target $drpT_
 		}
 	}
 	foreach src $nodelist {
@@ -152,9 +147,11 @@ Simulator instproc make-lan {nodelist bw delay \
 			set peerlabel [[$lan get-mac $dst] set label_]
 			$mclass install $peerlabel [$link_($sid:$did) link]
 #			puts "SRC $src DST $dst peerlabel $peerlabel"
-			$self trace-queue $src $dst $traceAllFile_
-			if [info exists namtraceAllFile_] {
-				$self namtrace-queue $src $dst $namtraceAllFile_
+			if [info exists traceAllFile_] {
+				$self trace-queue $src $dst $traceAllFile_
+				if [info exists namtraceAllFile_] {
+					$self namtrace-queue $src $dst $namtraceAllFile_
+				}
 			}
 		}
 	}
@@ -194,6 +191,13 @@ Link/LanDuplex instproc trace { ns f } {
 	set recvT_ [$ns create-trace Recv $f $toNode_ $fromNode_]
 	$recvT_ target [$link_ recvtarget]
 	$link_ recvtarget $recvT_
+
+	set drpT_ [$ns create-trace Loss $f $fromNode_ $toNode_]
+	set namtrfd [$ns get-nam-traceall]
+	if {$namtrfd != ""} {
+		$drpT_ attach-nam $namtraceAllFile_
+	}
+	$link_ drop-target $drpT_
 }
 
 Class Link/LanLink
@@ -241,12 +245,17 @@ Link/LanLink instproc get-mclass {src} {
 	return $mclass_($src)
 }
 
-Link/LanLink instproc install-error {src dst em} {
-	$self instvar mac_ mclass_
-	set peerlabel [$mac_($src) set label_]
-	set mclass $mclass_($dst)
-	$em target [$mclass slot $peerlabel]
-	$mclass install $peerlabel $em
+Link/LanLink instproc install-error {em {src ""} {dst ""}} {
+	$self instvar channel_ mac_ mclass_
+	if {$src == ""} {
+		$em target [$channel_ target]
+		$channel_ target $em
+	} else {
+		set peerlabel [$mac_($src) set label_]
+		set mclass $mclass_($dst)
+		$em target [$mclass slot $peerlabel]
+		$mclass install $peerlabel $em
+	}
 }
 
 Link/LanLink instproc create-error { src dstlist emname rate unit \
