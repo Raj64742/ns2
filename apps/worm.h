@@ -35,6 +35,16 @@ class WormApp : public  Application {
 
   // id of the node attached
   int my_addr_;
+
+  // the toal Internet address space
+  static double total_addr_;
+  // flag to record first probe
+  static int first_probe_;
+
+  // configs for worm probing behavior
+  double scan_rate_;
+  int scan_port_;
+  int p_size_;
 };
 
 // model invulnerable hosts in detailed networks
@@ -54,22 +64,21 @@ class DnhWormApp : public WormApp {
   void probe();
 
   int infected_;
+  static int infect_total_;
 
   ProbingTimer *timer_;
 
   // control the rate of probing
   double p_inv_;
-  double p_rate_;
 
-  int p_port_;
-  int p_size_;
-
-  int total_addr_;
   // the address space of my networks
-  int addr_low_, addr_high_;
-
+  static int addr_low_, addr_high_;
+  
+  // the probability to scan local hosts
+  static float local_p_;
+  
   // the access point to other networks like AN
-  int default_gw_;
+  static int default_gw_;
 };
 
 // model a network with SIR model
@@ -94,10 +103,6 @@ class AnWormApp : public WormApp {
 
   int time_step_;
 
-  int p_port_;
-  int p_size_;
-
-  int total_addr_;
   // the address space of my networks
   int addr_low_, addr_high_;
   int dn_low_, dn_high_;
@@ -109,7 +114,7 @@ class AnWormApp : public WormApp {
 
   // interaction with DN
   double probe_in, probe_recv;
-  double probe_out, probe_total;
+  double probe_out;
 };
 
 

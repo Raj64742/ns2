@@ -19,7 +19,19 @@ public:
 	}
 } class_app_worm;
 
+// Initialize static variables
+double WormApp::total_addr_ = pow(2, 32);
+int WormApp::first_probe_ = 0;
+
 WormApp::WormApp() : Application() {
+  // get probing rate from configuration
+  bind("ScanRate", &scan_rate_);
+
+  // get probing port from configuration
+  bind("ScanPort", &scan_port_);
+
+  // get probing port from configuration
+  bind("ScanPacketSize", &p_size_);
 }
 
 void WormApp::process_data(int nbytes, AppData* data) {
@@ -27,7 +39,13 @@ void WormApp::process_data(int nbytes, AppData* data) {
 }
 
 void WormApp::recv(int nbytes) {
-  printf("Node %d is NOT vulnerable!\n", my_addr_);
+  if (!first_probe_) {
+    first_probe_ = 1;
+    printf("D FP %d\n", (int)Scheduler::instance().clock());
+  }
+
+  //printf("D U %d %d\n",
+  //       (int)Scheduler::instance().clock(), my_addr_);
 }
 
 void WormApp::timeout() {
@@ -53,6 +71,13 @@ int WormApp::command(int argc, const char*const* argv) {
   return(Application::command(argc, argv));
 }
 
+// Initialize stats (number of infected hosts) for DN
+int DnhWormApp::infect_total_ = 0;
+int DnhWormApp::addr_high_ = 0;
+int DnhWormApp::addr_low_ = 0;
+int DnhWormApp::default_gw_ = 0;
+float DnhWormApp::local_p_ = 0;
+
 // class to model vulnerable hosts in detailed network
 static class DnhWormAppClass : public TclClass {
 public:
@@ -65,25 +90,20 @@ public:
 DnhWormApp::DnhWormApp() : WormApp() {
   infected_ = 0;
   timer_ = NULL;
-  default_gw_ = 0;
-  addr_low_ = addr_high_ = my_addr_;
-
-  // get probing rate from configuration
-  bind("ScanRate", &p_rate_);
-
-  // get probing port from configuration
-  bind("ScanPort", &p_port_);
-
-  // get probing port from configuration
-  bind("ScanPacketSize", &p_size_);
 }
 
 void DnhWormApp::recv(int nbytes) {
   if (infected_) {
-    printf("Node %d is infected already...\n", my_addr_);
+    //printf("Node %d is infected already...\n", my_addr_);
   } else {
-    printf("Node %d is compromised...:(\n", my_addr_);
+    if (!first_probe_) {
+        first_probe_ = 1;
+        printf("D FP %d\n", (int)Scheduler::instance().clock());
+    }
 
+    printf("D C %d %d %d\n", 
+    	   (int)Scheduler::instance().clock(), infect_total_, my_addr_);
+    
     // start to probe other hosts
     probe();
   }
@@ -96,10 +116,11 @@ void DnhWormApp::timeout() {
 
 void DnhWormApp::probe() {
   infected_ = 1;
-  total_addr_ = (int)pow(2, 32) - 1;
+  infect_total_++;
 
-  if (p_rate_) {
-    p_inv_ = 1.0 / p_rate_;
+
+  if (scan_rate_) {
+    p_inv_ = 1.0 / scan_rate_;
 
     timer_ = new ProbingTimer((WormApp *)this);
     timer_->sched(p_inv_);
@@ -107,25 +128,35 @@ void DnhWormApp::probe() {
 }
 
 void DnhWormApp::send_probe() {
+  double range_low, range_high;
   int d_addr;
   ns_addr_t dst;
 
   // do not probe myself
   d_addr = my_addr_;
+  
+  if (Random::uniform(0.0, 1.0) < local_p_) {
+    range_low = addr_low_;
+    range_high = addr_high_;
+  } else {
+    range_low = 0;
+    range_high = total_addr_;
+  }
+  
   while (d_addr == my_addr_)
-    d_addr = (int)Random::uniform(total_addr_);
+    d_addr = (int)Random::uniform(range_low, range_high);
 
   // probe within my AS
   if (addr_low_ <= d_addr && d_addr <= addr_high_) {
-    printf("Node %d is probing node %d, within DN\n", my_addr_, d_addr);
-    dst.addr_ = d_addr;
+    //printf("D PD %d %d %d\n", 
+	//   (int)Scheduler::instance().clock(), my_addr_, d_addr);
   } else {
     //printf("Node %d is probing node %d, within AN, send to node %d\n", 
     //	   my_addr_, d_addr, default_gw_);
-    dst.addr_ = default_gw_;
   }
 
-  dst.port_ = p_port_;
+  dst.addr_ = d_addr;
+  dst.port_ = scan_port_;
   agent_->sendto((int)p_size_, (const char *)NULL, dst);
 }
 
@@ -135,6 +166,10 @@ int DnhWormApp::command(int argc, const char*const* argv) {
       default_gw_ = atoi(argv[2]);
       return(TCL_OK);
     }
+    if (strcmp(argv[1], "local-p") == 0) {
+        local_p_ = atof(argv[2]);
+        return(TCL_OK);
+    }   
   }
   if (argc == 4) {
     if (strcmp(argv[1], "addr-range") == 0) {
@@ -159,7 +194,7 @@ public:
 
 AnWormApp::AnWormApp() : WormApp() {
   // using 1 second as the unit of time step
-  time_step_ = 1;
+  //time_step_ = 1;
   timer_ = NULL;
 
   addr_low_ = addr_high_ = my_addr_;
@@ -168,13 +203,10 @@ AnWormApp::AnWormApp() : WormApp() {
   beta_ = gamma_ = 0;
   n_ = r_ = 1;
   
-  probe_in = probe_out = probe_recv = probe_total = 0;
+  probe_in = probe_out = probe_recv = 0;
 
-  // get probing port from configuration
-  bind("ScanPort", &p_port_);
-
-  // get probing port from configuration
-  bind("ScanPacketSize", &p_size_);
+  // get time step from configuration
+  bind("TimeStep", &time_step_);
 }
 
 void AnWormApp::start() {
@@ -182,10 +214,10 @@ void AnWormApp::start() {
   i_ = 1;
   s_ -= 1;
 
-  total_addr_ = (int)pow(2, 32) - 1;
-
   timer_ = new ProbingTimer((WormApp *)this);
   timer_->sched((double)time_step_);
+
+  //printf("start\n");
 }
 
 void AnWormApp::recv(int nbytes) {
@@ -195,6 +227,7 @@ void AnWormApp::recv(int nbytes) {
 }
 
 void AnWormApp::timeout() {
+  //printf("timeout\n");
   timer_->resched((double)time_step_);
   update();
 }
@@ -203,7 +236,7 @@ void AnWormApp::update() {
   // schedule next timeout
   timer_->resched(time_step_);
 
-  probe_out = beta_ * i_ * (dn_high_ - dn_low_ + 1)  * time_step_ / total_addr_;
+  probe_out = scan_rate_ * i_ * (dn_high_ - dn_low_ + 1)  * time_step_ / total_addr_;
   // not every probe received has effect
   probe_in = probe_recv * s_ / n_;
   probe_recv = 0;
@@ -234,16 +267,17 @@ void AnWormApp::update() {
   // use n = r + i + s
   s_ = n_ - r_ - i_;
 
- //printf("ANS %f %f %f %f %f\n", s_, i_, r_, probe_in, probe_out);
-	     
+  printf("A %d %d %d %d %d %d\n",
+	 (int)Scheduler::instance().clock(),
+	 (int)s_, (int)i_, (int)r_, (int)probe_in, (int)probe_out);
+
   // probe outside networks
-  probe_total += probe_out;
-  if (probe_total > 1) { 
-    printf("ANS %d %d %d %d %d %d\n", 
-            (int)Scheduler::instance().clock(), 
-	    (int)s_, (int)i_, (int)r_, (int)probe_in, (int)probe_out);
-    probe((int)(probe_total + 0.5));
-    probe_total = 0;
+  // should not be cumulated!!!
+  if (probe_out > 1) { 
+    //printf("ANS %d %d %d %d %d %d\n", 
+    //        (int)Scheduler::instance().clock(), 
+    //        (int)s_, (int)i_, (int)r_, (int)probe_in, (int)probe_out);
+    probe((int)(probe_out + 0.5));
   }
 }
 
@@ -259,10 +293,10 @@ void AnWormApp::probe(int times) {
     // do not send to myself or AS
     if (dn_low_ < d_addr && d_addr < dn_high_) {
       // probe outside
-      printf("AN is probing node %d, outside AN\n", d_addr);
+      //printf("AN is probing node %d, outside AN\n", d_addr);
 
       dst.addr_ = d_addr;
-      dst.port_ = p_port_;
+      dst.port_ = scan_port_;
       agent_->sendto((int)p_size_, (const char *)NULL, dst);
 
       i++;
@@ -284,7 +318,12 @@ int AnWormApp::command(int argc, const char*const* argv) {
 	  s_ = 1;
 	s_max_ = s_;
 	r_ = n_ - s_;
-	
+
+	// use the equation in Moore's Internet Quarantine paper:
+	// beta = scan_rate * total_vulnerable / 2^32
+	beta_ = scan_rate_ * s_max_ / total_addr_;
+	//printf("inferred beta from scan rate: %f, %f, %d, %f\n", 
+	//	beta_, scan_rate_, (int)s_max_, total_addr_);
 	return(TCL_OK);
       }
     }
