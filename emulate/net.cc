@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.5 1998/05/23 02:44:40 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net.cc,v 1.6 1998/09/09 23:44:04 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -91,7 +91,6 @@ int Network::command(int argc, const char*const* argv)
 		Tcl& tcl = Tcl::instance();
 		if (strcmp(argv[1], "flush") == 0) {
 			if (mode_ == O_RDWR || mode_ == O_RDONLY) {
-				int rchan = rchannel();
 				unsigned char buf[1024];
 				sockaddr from;		    
 				double ts;
