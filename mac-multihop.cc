@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-multihop.cc,v 1.5 1997/11/06 04:19:29 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/mac-multihop.cc,v 1.6 1998/01/23 21:33:47 gnguyen Exp $ (UCB)";
 #endif
 
 #include "template.h"
@@ -43,8 +43,7 @@ static const char rcsid[] =
 /* 
  * For debugging.
  */
-void 
-dump_iphdr(hdr_ip *iph) 
+void dump_iphdr(hdr_ip *iph) 
 {
         printf("\tsrc = %d, ", iph->src_);
         printf("\tdst = %d\n", iph->dst_);
@@ -58,7 +57,7 @@ public:
 	}
 } class_mac_multihop;
 
-MultihopMac::MultihopMac() : Mac(), mode_(MAC_IDLE), peer_(0),
+MultihopMac::MultihopMac() : mode_(MAC_IDLE), peer_(0),
 	pendingPollEvent_(0), pkt_(0),
 	ph_(this), pah_(this), pnh_(this), pth_(this), bh_(this)
 {
@@ -70,18 +69,11 @@ MultihopMac::MultihopMac() : Mac(), mode_(MAC_IDLE), peer_(0),
 	backoffTime_ = backoffBase_;
 }
 
-int
-MultihopMac::command(int argc, const char*const* argv)
-{
-	return Mac::command(argc, argv);
-}
-
 /*
  * Returns 1 iff the specified MAC is in the prescribed state, AND all
  * the other MACs are IDLE.
  */
-int
-MultihopMac::checkInterfaces(int state) 
+int MultihopMac::checkInterfaces(int state) 
 {
 	MultihopMac *p;
 	
@@ -103,22 +95,13 @@ MultihopMac::checkInterfaces(int state)
  * outstanding from a node at any point in time.  This is achieved implicitly
  * because there can be at most one packet down from LL (thru IFQ) to this MAC.
  */
-void
-MultihopMac::poll(Packet *p)
+void MultihopMac::poll(Packet *p)
 {
 	Scheduler& s = Scheduler::instance();
 	MultihopMac *pm = (MultihopMac*) getPeerMac(p);
 	PollEvent *pe = new PollEvent(pm, this);
 
 	pendingPollEvent_ = new PollEvent(pm, this);
-	
-#ifdef notdef
-double now = s.clock();
-cout << now << " polling " << ((hdr_cmn *)(p->access(0)))->uid()  << " size " << ((hdr_cmn*)p->access(0))->size() << " mode " << mode_ << "\n";
-hdr_ip  *iph  = (hdr_ip *)p->access(24);
-dump_iphdr(iph);
-#endif
-
 	pkt_ = p->copy();	/* local copy for poll retries */
 	double timeout = max(pm->rx_tx(), tx_rx_) + 4*pollTxtime(MAC_POLLSIZE);
 	s.schedule(&bh_, pendingPollEvent_, timeout);
@@ -154,8 +137,8 @@ PollHandler::handle(Event *e)
 			max(mac_->tx_rx(), pm->rx_tx());
 		s.schedule(pm->pah(), pae, t);
 	} else {
-//		printf("ignoring poll %d\n", mac_->label());
-	// could send NACKPOLL but don't (at least for now)
+		// printf("ignoring poll %d\n", mac_->label());
+		// could send NACKPOLL but don't (at least for now)
 	}
 }
 
@@ -167,18 +150,8 @@ PollAckHandler::handle(Event *e)
 {
 	PollEvent *pe = (PollEvent *) e;
 	Scheduler& s = Scheduler::instance();
-	
-#ifdef notdef
-	double now = s.clock();
-	int mode = mac_->mode();
-//cout << "In pollack for " << ((hdr_cmn *)(mac_->pkt()->access(0)))->uid() << " mode " << mode << "\n";
-#endif
 
 	if (mac_->checkInterfaces(MAC_POLLING | MAC_IDLE)) {
-
-#ifdef notdef
-//cout << now << " handling pollack for " << ((hdr_cmn *)(mac_->pkt()->access(0)))->uid() << "\n";
-#endif
 		mac_->backoffTime(mac_->backoffBase());
 		mac_->mode(MAC_SND);
 		mac_->peer(pe->peerMac());
@@ -189,7 +162,7 @@ PollAckHandler::handle(Event *e)
 	}
 }
 
-void 
+void
 PollNackHandler::handle(Event *)
 {
 }
@@ -204,16 +177,6 @@ BackoffHandler::handle(Event *)
 	bTime = (1+Random::integer(MAC_TICK)*1./MAC_TICK)*bTime + 
 		2*mac_->backoffBase();
 
-#ifdef notdef
-double now = s.clock();
-if (bTime/mac_->backoffBase() > mac_->maxAttempt()) {
-	cout << "giving up attempts\n";
-	return;
-}
-Packet *p = mac_->pkt();
-cout << now << " backing off " << ((hdr_cmn *)(mac_->pkt()->access(0)))->uid() << " for " << bTime << " s " << ((hdr_cmn*)p->access(0))->size() << "\n";
-dump_iphdr((hdr_ip *)p->access(24));
-#endif
 //	printf("backing off %d\n", mac_->label());
 	s.schedule(mac_->pth(), mac_->pendingPE(), bTime);
 }
@@ -221,12 +184,6 @@ dump_iphdr((hdr_ip *)p->access(24));
 void 
 PollTimeoutHandler::handle(Event *)
 {
-
-#ifdef notdef
-Scheduler& s = Scheduler::instance();
-double  now = s.clock();
-cout << now << " timeout handler for " << ((hdr_cmn *)(mac_->pkt()->access(0)))->uid() << "\n";
-#endif
 	mac_->poll(mac_->pkt());
 }
 
@@ -234,27 +191,11 @@ cout << now << " timeout handler for " << ((hdr_cmn *)(mac_->pkt()->access(0)))-
 /*
  * Actually send the data frame.
  */
-void 
-MultihopMac::send(Packet *p)
+void MultihopMac::send(Packet *p)
 {
-
 	Scheduler& s = Scheduler::instance();
-
-#ifdef notdef
-double now = s.clock();
-#endif
-
-	if (mode_ != MAC_SND) {
-//cout << now << " not ready to send\n";
+	if (mode_ != MAC_SND)
 		return;
-	}	
-
-#ifdef notdef
-//cout << now << " mhmac sending " << ((hdr_cmn *)(p->access(0)))->uid() << " size " << ((hdr_cmn*)p->access(off_cmn_))->size() << "\n";
-
-hdr_ip  *iph  = (hdr_ip *)p->access(24);
-//dump_iphdr(iph);
-#endif
 
 	double txt = txtime(p);
 	((hdr_mac*) p->access(off_mac_))->txtime() = txt;
@@ -266,8 +207,7 @@ hdr_ip  *iph  = (hdr_ip *)p->access(24);
 /*
  * This is the call from the higher layer of the protocol stack (i.e., LL)
  */
-void
-MultihopMac::recv(Packet* p, Handler *h)
+void MultihopMac::recv(Packet* p, Handler *h)
 {
 	if (h == 0) {		/* from MAC classifier (pass pkt to LL) */
 		mode_ = MAC_IDLE;
