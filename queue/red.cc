@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.64 2001/08/02 03:53:10 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.65 2001/10/25 23:40:04 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -114,6 +114,8 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 	bind("beta_", &edp_.beta);                  // adaptive red param
 	bind("interval_", &edp_.interval);	    // adaptive red param
 	bind("targetdelay_", &edp_.targetdelay);    // target delay
+	bind("top_", &edp_.top);		    // maximum for max_p	
+	bind("bottom_", &edp_.bottom);		    // minimum for max_p	
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
@@ -267,11 +269,11 @@ double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 	if (edp_.adaptive == 1 && now > edv_.lastset + edp_.interval ) {
 		double part = 0.4*(edp_.th_max - edp_.th_min);
 		// AIMD rule to keep target Q~1/2(th_min+th_max)
-		if ( new_ave < edp_.th_min + part && edv_.cur_max_p > 0.01 ) {
+		if ( new_ave < edp_.th_min + part && edv_.cur_max_p > edp_.bottom) {
 			// we increase the average queue size, so decrease max_p
 			edv_.cur_max_p = edv_.cur_max_p * edp_.beta;
 			edv_.lastset = now;
-		} else if (new_ave > edp_.th_max - part && 0.5 > edv_.cur_max_p ) {
+		} else if (new_ave > edp_.th_max - part && edp_.top > edv_.cur_max_p ) {
 			// we decrease the average queue size, so increase max_p
 			double alpha = edp_.alpha;
                         if ( alpha > 0.25*edv_.cur_max_p )
