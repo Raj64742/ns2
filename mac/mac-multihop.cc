@@ -97,7 +97,6 @@ MultihopMac::checkInterfaces(int state)
 	for (p = (MultihopMac *)macList_; p != this && p != NULL; 
 	     p = (MultihopMac *)(p->macList())) {
 		if (p->mode() != MAC_IDLE) {
-			cout << "IF BUSY";
 			return 0;
 		}
 	}
@@ -119,7 +118,7 @@ double now = s.clock();
 
 	pendingPollEvent_ = new PollEvent(pm, this);
 	
-	cout << now << " polling " << ((hdr_cmn *)(p->access(0)))->uid()  << " size " << ((hdr_cmn*)p->access(0))->size() << " mode " << mode_ << "\n";
+//	cout << now << " polling " << ((hdr_cmn *)(p->access(0)))->uid()  << " size " << ((hdr_cmn*)p->access(0))->size() << " mode " << mode_ << "\n";
 	hdr_ip  *iph  = (hdr_ip *)p->access(24);
 	dump_iphdr(iph);
 	
@@ -147,14 +146,14 @@ double now = s.clock();
 	MultihopMac* myMac = (MultihopMac *) (&mac_);
 	MultihopMac* pm = myMac->peer(); // here, random unless in MAC_RCV mode
 	
-	cout << now << " In pollhandler\n";
+//	cout << now << " In pollhandler\n";
 
 	/*
 	 * Send POLLACK if either IDLE or currently receiving 
 	 * from same mac as the poller.
 	 */
 	if (myMac->checkInterfaces(MAC_IDLE)) {
-		cout << now << " Handling poll\n";
+//		cout << now << " Handling poll\n";
 		myMac->mode(MAC_RCV);
 		pm = pe->peerMac();
 		myMac->peer(pm);
@@ -179,9 +178,9 @@ double now = s.clock();
 	int mode = myMac->mode();
 	MultihopMac *pm = myMac->peer(); // now set to some random peer
 	
-	cout << "In pollack for " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << " mode " << mode << "\n";
+//	cout << "In pollack for " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << " mode " << mode << "\n";
 	if (myMac->checkInterfaces(MAC_POLLING | MAC_IDLE)) {
-		cout << now << " handling pollack for " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << "\n";
+//		cout << now << " handling pollack for " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << "\n";
 		myMac->backoffTime(myMac->backoffBase());
 		myMac->mode(MAC_SND);
 		myMac->peer(pe->peerMac());
@@ -216,7 +215,7 @@ double now = s.clock();
 	}
 */     
 	Packet *p = myMac->pkt();
-	cout << now << " backing off " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << " for " << bTime << " s " << ((hdr_cmn*)p->access(0))->size() << "\n";
+//	cout << now << " backing off " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << " for " << bTime << " s " << ((hdr_cmn*)p->access(0))->size() << "\n";
 	dump_iphdr((hdr_ip *)p->access(24));
 	
 	s.schedule(myMac->pth(), myMac->pendingPE(), bTime);
@@ -228,7 +227,7 @@ PollTimeoutHandler::handle(Event *e)
 	Scheduler& s = Scheduler::instance();
 	double  now = s.clock();
 	MultihopMac *myMac = (MultihopMac *) &mac_;;
-	cout << now << " timeout handler for " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << "\n";
+//	cout << now << " timeout handler for " << ((hdr_cmn *)(myMac->pkt()->access(0)))->uid() << "\n";
 	myMac->poll(myMac->pkt());
 }
 
@@ -243,10 +242,10 @@ MultihopMac::send(Packet *p)
 	Scheduler& s = Scheduler::instance();
 double now = s.clock();
 	if (mode_ != MAC_SND) {
-		cout << now << " not ready to send\n";
+//		cout << now << " not ready to send\n";
 		return;
 	}	
-	cout << now << " mhmac sending " << ((hdr_cmn *)(p->access(0)))->uid() << " size " << ((hdr_cmn*)p->access(off_cmn_))->size() << "\n";
+//	cout << now << " mhmac sending " << ((hdr_cmn *)(p->access(0)))->uid() << " size " << ((hdr_cmn*)p->access(off_cmn_))->size() << "\n";
 
 	hdr_ip  *iph  = (hdr_ip *)p->access(24);
 	dump_iphdr(iph);
@@ -268,7 +267,7 @@ double now = s.clock();
 	Packet *p = (Packet *) e;
 	// If this is an LL-ack, terminate polllink setup
 
-	cout << now << " recv " << ((hdr_cmn *)(p->access(0)))->uid() << " from peer " << " size " << ((hdr_cmn*)p->access(0))->size() << "\n";
+//	cout << now << " recv " << ((hdr_cmn *)(p->access(0)))->uid() << " from peer " << " size " << ((hdr_cmn*)p->access(0))->size() << "\n";
 	hdr_ip  *iph  = (hdr_ip *)p->access(24);
 	dump_iphdr(iph);	
 	s.schedule(p->target(), e, 0); // pass packet up to LL (which acks)
@@ -284,7 +283,7 @@ MultihopMac::recv(Packet* p, Handler *h)
 {
 	Scheduler& s = Scheduler::instance();
 double now = s.clock();
-	cout << now << " mhmac recv from higher layer " << ((hdr_cmn *)(p->access(0)))->uid()  << "\n";
+//	cout << now << " mhmac recv from higher layer " << ((hdr_cmn *)(p->access(0)))->uid()  << "\n";
 	callback_ = h;
 	poll(p);		/* poll first */
 }
