@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2002 by the University of Southern California
 // Copyright (C) 2000-2002 by the University of California
-// $Id: geo-routing.cc,v 1.12 2002/09/24 18:09:31 haldar Exp $
+// $Id: geo-routing.cc,v 1.13 2002/09/26 23:28:34 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -135,8 +135,8 @@ void GeoRoutingFilter::beaconTimeout()
   // We broadcast the request from time to time, in case a new
   // neighbor joins in and never gets a chance to get its informaiton
 
-  if ((tv.tv_sec - last_neighbor_request_tv_.tv_sec) >
-      GEO_NEIGHBOR_REQUEST_PERIOD){
+  if ((last_neighbor_request_tv_.tv_sec == 0) ||
+      (tv.tv_sec - last_neighbor_request_tv_.tv_sec) >= GEO_NEIGHBOR_REQUEST_PERIOD){
 
     // Update timestamp
     GetTime(&last_neighbor_request_tv_);
