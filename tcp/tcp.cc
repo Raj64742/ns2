@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.135 2002/05/31 04:49:17 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.136 2002/09/16 05:28:39 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -581,6 +581,7 @@ void TcpAgent::output(int seqno, int reason)
 	tcph->ts() = Scheduler::instance().clock();
 	tcph->ts_echo() = ts_peer_;
 	tcph->reason() = reason;
+	tcph->last_rtt() = int(int(t_rtt_)*tcp_tick_*1000);
 	if (ecn_) {
 		hf->ect() = 1;	// ECN-capable transport
 	}

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.98 2002/05/31 04:50:13 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.99 2002/09/16 05:28:39 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -54,6 +54,8 @@ struct hdr_tcp {
 	int ackno_;             /* ACK number for FullTcp */
 	int hlen_;              /* header len (bytes) for FullTcp */
 	int tcp_flags_;         /* TCP flags for FullTcp */
+	int last_rtt_;		/* more recent RTT measurement in ms, */
+				/*   for statistics only */
 
 	static int offset_;	// offset for this header
 	inline static int& offset() { return offset_; }
@@ -72,6 +74,7 @@ struct hdr_tcp {
 	int& hlen() { return (hlen_); }
 	int& ackno() { return (ackno_); }  
 	int& flags() { return (tcp_flags_); }
+	int& last_rtt() { return (last_rtt_); }
 };
 
 /* these are used to mark packets as to why we xmitted them */
