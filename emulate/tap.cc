@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.5 1998/03/02 19:15:14 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.6 1998/03/07 02:24:02 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -164,6 +164,7 @@ public:
  */
 void TapAgent::recvpkt()
 {
+
 	sockaddr addr;
 
 	if (net_->mode() != O_RDWR && net_->mode() != O_RDONLY) {
@@ -173,16 +174,22 @@ void TapAgent::recvpkt()
 		return;
 	}
 
+
 	Packet* p = allocpkt();
 	hdr_tap* ht = (hdr_tap*)p->access(off_tap_);
+
 	int cc = net_->recv(ht->buf, sizeof(ht->buf), addr);
-	if (cc < 0) {
-		perror("recv");
+	if (cc <= 0) {
+		if (cc < 0) {
+			perror("recv");
+		}
+		return;
 	}
 
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	ch->size() = cc;
 	target_->recv(p);
+	return;
 }
 
 void TapAgent::dispatch(int)
@@ -193,7 +200,8 @@ void TapAgent::dispatch(int)
 	 * if there is a queue in the socket buffer; this allows
 	 * other events to get a chance to slip in...
 	 */
-	Scheduler::instance().sync();
+	Scheduler::instance().sync();	// sim clock gets set to now
+
 	recvpkt();
 }
 
@@ -218,7 +226,7 @@ TapAgent::sendpkt(Packet* p)
 		fprintf(stderr,
 		    "TapAgent(%s): recvpkt called while in write-only mode!\n",
 		    name());
-		return;
+		return -1;
 	}
 
 	// send packet into the live network
