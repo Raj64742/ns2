@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.97 2001/08/20 23:11:56 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.98 2001/08/21 22:17:48 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -129,13 +129,14 @@ static const char rcsid[] =
 #define	FALSE 	0
 #endif
 
-#ifndef MIN
-#define	MIN(x,y)	(((x)<(y))?(x):(y))
-#endif
-
-#ifndef MAX
-#define	MAX(x,y)	(((x)>(y))?(x):(y))
-#endif
+/*
+ * Tcl Linkage for the following:
+ *	Agent/TCP/FullTcp, Agent/TCP/FullTcp/Tahoe,
+ *	Agent/TCP/FullTcp/Newreno, Agent/TCP/FullTcp/Sack
+ *
+ * See tcl/lib/ns-default.tcl for init methods for
+ *	Tahoe, Newreno, and Sack
+ */
 
 static class FullTcpClass : public TclClass { 
 public:
@@ -149,8 +150,7 @@ static class TahoeFullTcpClass : public TclClass {
 public:
 	TahoeFullTcpClass() : TclClass("Agent/TCP/FullTcp/Tahoe") {}
 	TclObject* create(int, const char*const*) { 
-		// tcl lib code
-		// sets reno_fastrecov_ to false
+		// ns-default sets reno_fastrecov_ to false
 		return (new TahoeFullTcpAgent());
 	}
 } class_tahoe_full;
@@ -159,8 +159,7 @@ static class NewRenoFullTcpClass : public TclClass {
 public:
 	NewRenoFullTcpClass() : TclClass("Agent/TCP/FullTcp/Newreno") {}
 	TclObject* create(int, const char*const*) { 
-		// tcl lib code
-		// sets deflate_on_pack_ to false
+		// ns-default sets open_cwnd_on_pack_ to false
 		return (new NewRenoFullTcpAgent());
 	}
 } class_newreno_full;
@@ -169,23 +168,15 @@ static class SackFullTcpClass : public TclClass {
 public:
 	SackFullTcpClass() : TclClass("Agent/TCP/FullTcp/Sack") {}
 	TclObject* create(int, const char*const*) { 
+		// ns-default sets reno_fastrecov_ to false
+		// ns-default sets open_cwnd_on_pack_ to false
 		return (new SackFullTcpAgent());
 	}
 } class_sack_full;
 
 /*
- * Tcl bound variables:
- *	segsperack: for delayed ACKs, how many to wait before ACKing
- *	segsize: segment size to use when sending
+ * Delayed-binding variable linkage
  */
-FullTcpAgent::FullTcpAgent() :  
-	closed_(0), pipe_(-1), fastrecov_(FALSE), 
-	last_send_time_(-1.0), infinite_send_(0), irs_(-1), 
-	delack_timer_(this), flags_(0), 
-	state_(TCPS_CLOSED), ect_(FALSE), recent_ce_(FALSE), 
-	last_state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1)
-{
-}
 
 void
 FullTcpAgent::delay_bind_init_all()
@@ -210,6 +201,29 @@ FullTcpAgent::delay_bind_init_all()
 	TcpAgent::delay_bind_init_all();
        
       	reset();
+}
+
+int
+FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
+{
+        if (delay_bind(varName, localName, "segsperack_", &segs_per_ack_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "segsize_", &maxseg_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "tcprexmtthresh_", &tcprexmtthresh_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "iss_", &iss_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "nodelay_", &nodelay_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "data_on_syn_", &data_on_syn_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "dupseg_fix_", &dupseg_fix_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "dupack_reset_", &dupack_reset_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "close_on_empty_", &close_on_empty_, tracer)) return TCL_OK;
+        if (delay_bind_time(varName, localName, "interval_", &delack_interval_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "ts_option_size_", &ts_option_size_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "reno_fastrecov_", &reno_fastrecov_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "pipectrl_", &pipectrl_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "open_cwnd_on_pack_", &open_cwnd_on_pack_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "halfclose_", &halfclose_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "nopredict_", &nopredict_, tracer)) return TCL_OK;
+
+        return TcpAgent::delay_bind_dispatch(varName, localName, tracer);
 }
 
 void
@@ -238,125 +252,56 @@ SackFullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName
         return FullTcpAgent::delay_bind_dispatch(varName, localName, tracer);
 }
 
-
 int
-FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
+FullTcpAgent::command(int argc, const char*const* argv)
 {
-        if (delay_bind(varName, localName, "segsperack_", &segs_per_ack_, tracer)) return TCL_OK;
-        if (delay_bind(varName, localName, "segsize_", &maxseg_, tracer)) return TCL_OK;
-        if (delay_bind(varName, localName, "tcprexmtthresh_", &tcprexmtthresh_, tracer)) return TCL_OK;
-        if (delay_bind(varName, localName, "iss_", &iss_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "nodelay_", &nodelay_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "data_on_syn_", &data_on_syn_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "dupseg_fix_", &dupseg_fix_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "dupack_reset_", &dupack_reset_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "close_on_empty_", &close_on_empty_, tracer)) return TCL_OK;
-        if (delay_bind_time(varName, localName, "interval_", &delack_interval_, tracer)) return TCL_OK;
-        if (delay_bind(varName, localName, "ts_option_size_", &ts_option_size_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "reno_fastrecov_", &reno_fastrecov_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "pipectrl_", &pipectrl_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "open_cwnd_on_pack_", &open_cwnd_on_pack_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "halfclose_", &halfclose_, tracer)) return TCL_OK;
-        if (delay_bind_bool(varName, localName, "nopredict_", &nopredict_, tracer)) return TCL_OK;
+	// would like to have some "connect" primitive
+	// here, but the problem is that we get called before
+	// the simulation is running and we want to send a SYN.
+	// Because no routing exists yet, this fails.
+	// Instead, see code in advance().
+	//
+	// listen can happen any time because it just changes state_
+	//
+	// close is designed to happen at some point after the
+	// simulation is running (using an ns 'at' command)
 
-        return TcpAgent::delay_bind_dispatch(varName, localName, tracer);
-}
-
-/*
- * reset to starting point, don't set state_ here,
- * because our starting point might be LISTEN rather
- * than CLOSED if we're a passive opener
- */
-void
-FullTcpAgent::reset()
-{
-	cancel_timers();	// cancel timers first
-      	TcpAgent::reset();	// resets most variables
-	rq_.clear();		// clear reassembly queue
-	rtt_init();		// zero rtt, srtt, backoff
-
-	last_ack_sent_ = -1;
-	rcv_nxt_ = -1;
-	pipe_ = 0;
-	flags_ = 0;
-	t_seqno_ = iss_;
-	maxseq_ = -1;
-	irs_ = -1;
-	last_send_time_ = -1.0;
-	if (ts_option_)
-		recent_ = recent_age_ = 0.0;
-	else
-		recent_ = recent_age_ = -1.0;
-
-	fastrecov_ = FALSE;
-}
-
-/*
- * pack() -- is the ACK a partial ACK? (not past recover_)
- */
-
-int
-FullTcpAgent::pack(Packet *pkt)
-{
-	hdr_tcp *tcph = hdr_tcp::access(pkt);
-	return (tcph->ackno() >= highest_ack_ &&
-		tcph->ackno() < recover_);
-}
-
-/*
- * baseline reno TCP exists fast recovery on a partial ACK
- */
-
-void
-FullTcpAgent::pack_action(Packet*)
-{
-	if (reno_fastrecov_ && fastrecov_ && cwnd_ > ssthresh_) {
-		cwnd_ = ssthresh_; // retract window if inflated
+	if (argc == 2) {
+		if (strcmp(argv[1], "listen") == 0) {
+			// just a state transition
+			listen();
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "close") == 0) {
+			usrclosed();
+			return (TCL_OK);
+		}
 	}
-	fastrecov_ = FALSE;
-//printf("%f: EXITED FAST RECOVERY\n", now());
-	dupacks_ = 0;
-}
-
-/*
- * ack_action -- same as partial ACK action for base Reno TCP
- */
-
-void
-FullTcpAgent::ack_action(Packet* p)
-{
-	FullTcpAgent::pack_action(p);
-}
-
-/*
- * headersize:
- *	how big is an IP+TCP header in bytes; include options such as ts
- * this function should be virtual so others (e.g. SACK) can override
- */
-int
-FullTcpAgent::headersize()
-{
-	int total = tcpip_base_hdr_size_;
-	if (total < 1) {
-		fprintf(stderr,
-		    "TCP-FULL(%s): warning: tcpip hdr size is only %d bytes\n",
-			name(), tcpip_base_hdr_size_);
+	if (argc == 3) {
+		if (strcmp(argv[1], "advance") == 0) {
+			advanceby(atoi(argv[2]));
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "advanceby") == 0) {
+			advanceby(atoi(argv[2]));
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "advance-bytes") == 0) {
+			advance_bytes(atoi(argv[2]));
+			return (TCL_OK);
+		}
 	}
-
-	if (ts_option_)
-		total += ts_option_size_;
-
-	return (total);
+	return (TcpAgent::command(argc, argv));
 }
 
 /*
- * free resources: any pending timers + reassembly queue
+ * "User Interface" Functions for Full TCP
+ *	advanceby(number of packets)
+ *	advance_bytes(number of bytes)
+ *	sendmsg(int bytes, char* buf)
+ *	listen
+ *	close
  */
-FullTcpAgent::~FullTcpAgent()
-{
-	cancel_timers();	// cancel all pending timers
-	rq_.clear();		// free mem in reassembly queue
-}
 
 /*
  * the 'advance' interface to the regular tcp is in packet
@@ -440,6 +385,163 @@ FullTcpAgent::sendmsg(int nbytes, const char *flags)
 		advance_bytes(0);
 	} else
 		advance_bytes(nbytes);
+}
+
+/*
+ * do an active open
+ * (in real TCP, see tcp_usrreq, case PRU_CONNECT)
+ */
+void
+FullTcpAgent::connect()
+{
+	newstate(TCPS_SYN_SENT);	// sending a SYN now
+	sent(iss_, foutput(iss_, REASON_NORMAL));
+	return;
+}
+
+/*
+ * be a passive opener
+ * (in real TCP, see tcp_usrreq, case PRU_LISTEN)
+ * (for simulation, make this peer's ptype ACKs)
+ */
+void
+FullTcpAgent::listen()
+{
+	newstate(TCPS_LISTEN);
+	type_ = PT_ACK;	// instead of PT_TCP
+}
+
+/*
+ * called when user/application performs 'close'
+ */
+
+void FullTcpAgent::usrclosed()
+{
+//curseq_ = t_seqno_ - 1;	// truncate buffer
+	curseq_ = maxseq_ - 1;
+	infinite_send_ = 0;
+	switch (state_) {
+	case TCPS_CLOSED:
+	case TCPS_LISTEN:
+		cancel_timers();
+		newstate(TCPS_CLOSED);
+		break;
+	case TCPS_SYN_SENT:
+		newstate(TCPS_CLOSED);
+		/* fall through */
+	case TCPS_LAST_ACK:
+		flags_ |= TF_NEEDFIN;
+		send_much(1, REASON_NORMAL, maxburst_);
+		break;
+	case TCPS_SYN_RECEIVED:
+	case TCPS_ESTABLISHED:
+		newstate(TCPS_FIN_WAIT_1);
+		flags_ |= TF_NEEDFIN;
+		send_much(1, REASON_NORMAL, maxburst_);
+		break;
+	case TCPS_CLOSE_WAIT:
+		newstate(TCPS_LAST_ACK);
+		flags_ |= TF_NEEDFIN;
+		send_much(1, REASON_NORMAL, maxburst_);
+		break;
+	case TCPS_FIN_WAIT_1:
+	case TCPS_FIN_WAIT_2:
+	case TCPS_CLOSING:
+		/* usr asked for a close more than once [?] */
+		fprintf(stderr,
+		  "%f FullTcpAgent(%s): app close in bad state %d\n",
+		  now(), name(), state_);
+		break;
+	default:
+		fprintf(stderr,
+		  "%f FullTcpAgent(%s): app close in unknown state %d\n",
+		  now(), name(), state_);
+	}
+
+	return;
+}
+
+/*
+ * Utility type functions
+ */
+
+void
+FullTcpAgent::cancel_timers()
+{
+
+	TcpAgent::cancel_timers();      
+	delack_timer_.force_cancel();
+}
+
+void
+DelAckTimer::expire(Event *) {
+        a_->timeout(TCP_TIMER_DELACK);
+}
+
+/*
+ * reset to starting point, don't set state_ here,
+ * because our starting point might be LISTEN rather
+ * than CLOSED if we're a passive opener
+ */
+void
+FullTcpAgent::reset()
+{
+	cancel_timers();	// cancel timers first
+      	TcpAgent::reset();	// resets most variables
+	rq_.clear();		// clear reassembly queue
+	rtt_init();		// zero rtt, srtt, backoff
+
+	last_ack_sent_ = -1;
+	rcv_nxt_ = -1;
+	pipe_ = 0;
+	flags_ = 0;
+	t_seqno_ = iss_;
+	maxseq_ = -1;
+	irs_ = -1;
+	last_send_time_ = -1.0;
+	if (ts_option_)
+		recent_ = recent_age_ = 0.0;
+	else
+		recent_ = recent_age_ = -1.0;
+
+	fastrecov_ = FALSE;
+}
+
+/*
+ * This function is invoked when the connection is done. It in turn
+ * invokes the Tcl finish procedure that was registered with TCP.
+ * This function mimics tcp_close()
+ */
+
+void
+FullTcpAgent::finish()
+{
+	if (closed_)
+		return;
+	closed_ = 1;
+	rq_.clear();
+	cancel_timers();
+	Tcl::instance().evalf("%s done", this->name());
+}
+/*
+ * headersize:
+ *	how big is an IP+TCP header in bytes; include options such as ts
+ * this function should be virtual so others (e.g. SACK) can override
+ */
+int
+FullTcpAgent::headersize()
+{
+	int total = tcpip_base_hdr_size_;
+	if (total < 1) {
+		fprintf(stderr,
+		    "TCP-FULL(%s): warning: tcpip hdr size is only %d bytes\n",
+			name(), tcpip_base_hdr_size_);
+	}
+
+	if (ts_option_)
+		total += ts_option_size_;
+
+	return (total);
 }
 
 /*
@@ -544,6 +646,44 @@ FullTcpAgent::build_options(hdr_tcp* tcph)
 }
 
 /*
+ * pack() -- is the ACK a partial ACK? (not past recover_)
+ */
+
+int
+FullTcpAgent::pack(Packet *pkt)
+{
+	hdr_tcp *tcph = hdr_tcp::access(pkt);
+	return (tcph->ackno() >= highest_ack_ &&
+		tcph->ackno() < recover_);
+}
+
+/*
+ * baseline reno TCP exists fast recovery on a partial ACK
+ */
+
+void
+FullTcpAgent::pack_action(Packet*)
+{
+	if (reno_fastrecov_ && fastrecov_ && cwnd_ > ssthresh_) {
+		cwnd_ = ssthresh_; // retract window if inflated
+	}
+	fastrecov_ = FALSE;
+//printf("%f: EXITED FAST RECOVERY\n", now());
+	dupacks_ = 0;
+}
+
+/*
+ * ack_action -- same as partial ACK action for base Reno TCP
+ */
+
+void
+FullTcpAgent::ack_action(Packet* p)
+{
+	FullTcpAgent::pack_action(p);
+}
+
+
+/*
  * sendpacket: 
  *	allocate a packet, fill in header fields, and send
  *	also keeps stats on # of data pkts, acks, re-xmits, etc
@@ -603,13 +743,20 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
 	send(p, 0);
 }
 
-void FullTcpAgent::cancel_timers()
+//
+// reset_rtx_timer: called during a retransmission timeout
+// to perform exponential backoff.  Also, note that because
+// we have performed a retransmission, our rtt timer is now
+// invalidated (indicate this by setting rtt_active_ false)
+//
+void
+FullTcpAgent::reset_rtx_timer(int /* mild */)
 {
-
-	TcpAgent::cancel_timers();      
-	delack_timer_.force_cancel();
+	// cancel old timer, set a new one
+        rtt_backoff();		// double current timeout
+        set_rtx_timer();	// set new timer
+        rtt_active_ = FALSE;	// no timing during this window
 }
-
 
 /*
  * see if we should send a segment, and if so, send it
@@ -890,45 +1037,6 @@ FullTcpAgent::send_allowed(int seq)
 
 	return (seq < topwin);
 }
-
-/*
- * SACK TCP: either we are in window mode or pipe control mode
-*/
-int
-SackFullTcpAgent::send_allowed(int seq)
-{
-	// not in pipe control, so use regular control
-	if (!pipectrl_)
-		return (FullTcpAgent::send_allowed(seq));
-
-	// don't overshoot receiver's advertised window
-	int topawin = highest_ack_ + int(wnd_) * maxseg_;
-	if (seq >= topawin) {
-//printf("%f: SEND(%d) NOT ALLOWED DUE TO AWIN:%d, pipe:%d, cwnd:%d\n",
-//now(), seq, topawin, pipe_, int(cwnd_));
-		return FALSE;
-	}
-
-	// don't overshoot cwnd_
-	int cwin = int(cwnd_) * maxseg_;
-	return (pipe_ < cwin);
-}
-
-/*
- * This function is invoked when the connection is done. It in turn
- * invokes the Tcl finish procedure that was registered with TCP.
- * This function mimics tcp_close()
- */
-void FullTcpAgent::finish()
-{
-	if (closed_)
-		return;
-	closed_ = 1;
-	rq_.clear();
-	cancel_timers();
-	Tcl::instance().evalf("%s done", this->name());
-}
-
 /*
  * Process an ACK
  *	this version of the routine doesn't necessarily
@@ -1067,7 +1175,8 @@ FullTcpAgent::fast_retransmit(int seq)
  * there's at least 'segs_per_ack_' pkts not yet acked
  */
 
-int FullTcpAgent::need_send()
+int
+FullTcpAgent::need_send()
 {
 	if (flags_ & TF_ACKNOW)
 		return TRUE;
@@ -1105,11 +1214,16 @@ FullTcpAgent::idle_restart()
  * the one in tcp.cc
  */
 void
-FullTcpAgent::set_initial_window() {
+FullTcpAgent::set_initial_window()
+{
+	syn_ = TRUE;	// full-tcp always models SYN exchange
+	TcpAgent::set_initial_window();
+#ifdef notdef
 	if (delay_growth_)
 		cwnd_ = wnd_init_;
 	else    
 		cwnd_ = initial_window();
+#endif
 }       
 
 /*
@@ -1118,7 +1232,8 @@ FullTcpAgent::set_initial_window() {
  * advance() is called when connection is established with size sent from
  * user/application agent
  */
-void FullTcpAgent::recv(Packet *pkt, Handler*)
+void
+FullTcpAgent::recv(Packet *pkt, Handler*)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
 	hdr_cmn *th = hdr_cmn::access(pkt);
@@ -2067,134 +2182,6 @@ FullTcpAgent::timeout_action()
 	fastrecov_ = FALSE;
 	dupacks_ = 0;
 }
-
-//
-// reset_rtx_timer: called during a retransmission timeout
-// to perform exponential backoff.  Also, note that because
-// we have performed a retransmission, our rtt timer is now
-// invalidated (indicate this by setting rtt_active_ false)
-//
-void FullTcpAgent::reset_rtx_timer(int /* mild */)
-{
-	// cancel old timer, set a new one
-        rtt_backoff();		// double current timeout
-        set_rtx_timer();	// set new timer
-        rtt_active_ = FALSE;	// no timing during this window
-}
-
-/*
- * do an active open
- * (in real TCP, see tcp_usrreq, case PRU_CONNECT)
- */
-void FullTcpAgent::connect()
-{
-	newstate(TCPS_SYN_SENT);	// sending a SYN now
-	sent(iss_, foutput(iss_, REASON_NORMAL));
-	return;
-}
-
-/*
- * be a passive opener
- * (in real TCP, see tcp_usrreq, case PRU_LISTEN)
- * (for simulation, make this peer's ptype ACKs)
- */
-void FullTcpAgent::listen()
-{
-	newstate(TCPS_LISTEN);
-	type_ = PT_ACK;	// instead of PT_TCP
-}
-
-/*
- * called when user/application performs 'close'
- */
-
-void FullTcpAgent::usrclosed()
-{
-//curseq_ = t_seqno_ - 1;	// truncate buffer
-	curseq_ = maxseq_ - 1;
-	infinite_send_ = 0;
-	switch (state_) {
-	case TCPS_CLOSED:
-	case TCPS_LISTEN:
-		cancel_timers();
-		newstate(TCPS_CLOSED);
-		break;
-	case TCPS_SYN_SENT:
-		newstate(TCPS_CLOSED);
-		/* fall through */
-	case TCPS_LAST_ACK:
-		flags_ |= TF_NEEDFIN;
-		send_much(1, REASON_NORMAL, maxburst_);
-		break;
-	case TCPS_SYN_RECEIVED:
-	case TCPS_ESTABLISHED:
-		newstate(TCPS_FIN_WAIT_1);
-		flags_ |= TF_NEEDFIN;
-		send_much(1, REASON_NORMAL, maxburst_);
-		break;
-	case TCPS_CLOSE_WAIT:
-		newstate(TCPS_LAST_ACK);
-		flags_ |= TF_NEEDFIN;
-		send_much(1, REASON_NORMAL, maxburst_);
-		break;
-	case TCPS_FIN_WAIT_1:
-	case TCPS_FIN_WAIT_2:
-	case TCPS_CLOSING:
-		/* usr asked for a close more than once [?] */
-		fprintf(stderr,
-		  "%f FullTcpAgent(%s): app close in bad state %d\n",
-		  now(), name(), state_);
-		break;
-	default:
-		fprintf(stderr,
-		  "%f FullTcpAgent(%s): app close in unknown state %d\n",
-		  now(), name(), state_);
-	}
-
-	return;
-}
-
-int FullTcpAgent::command(int argc, const char*const* argv)
-{
-	// would like to have some "connect" primitive
-	// here, but the problem is that we get called before
-	// the simulation is running and we want to send a SYN.
-	// Because no routing exists yet, this fails.
-	// Instead, see code in advance() above.
-	//
-	// listen can happen any time because it just changes state_
-	//
-	// close is designed to happen at some point after the
-	// simulation is running (using an ns 'at' command)
-
-	if (argc == 2) {
-		if (strcmp(argv[1], "listen") == 0) {
-			// just a state transition
-			listen();
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "close") == 0) {
-			usrclosed();
-			return (TCL_OK);
-		}
-	}
-	if (argc == 3) {
-		if (strcmp(argv[1], "advance") == 0) {
-			advanceby(atoi(argv[2]));
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "advanceby") == 0) {
-			advanceby(atoi(argv[2]));
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "advance-bytes") == 0) {
-			advance_bytes(atoi(argv[2]));
-			return (TCL_OK);
-		}
-	}
-	return (TcpAgent::command(argc, argv));
-}
-
 /*
  * deal with timers going off.
  * 2 types for now:
@@ -2273,11 +2260,6 @@ FullTcpAgent::dooptions(Packet* pkt)
 	}
 }
 
-void FullTcpAgent::newstate(int ns)
-{
-	state_ = ns;
-}
-
 //
 // this shouldn't ever happen
 //
@@ -2288,16 +2270,15 @@ FullTcpAgent::process_sack(hdr_tcp*)
 		now(), name());
 }
 
-void DelAckTimer::expire(Event *) {
-        a_->timeout(TCP_TIMER_DELACK);
-}
 
 /*
+ * ****** Tahoe ******
+ *
  * for TCP Tahoe, we force a slow-start as the dup ack
  * action.  Also, no window inflation due to multiple dup
  * acks.  The latter is arranged by setting reno_fastrecov_
- * false [which is performed by the Tcl constructor for Tahoe in
- * ns-agent.tcl].
+ * false [which is performed by the Tcl init function for Tahoe in
+ * ns-default.tcl].
  */
 
 /* 
@@ -2361,8 +2342,9 @@ full_tahoe_action:
         return; 
 }  
 
-
 /*
+ * ****** Newreno ******
+ *
  * for NewReno, a partial ACK does not exit fast recovery,
  * and does not reset the dup ACK counter (which might trigger fast
  * retransmits we don't want).  In addition, the number of packets
@@ -2400,27 +2382,12 @@ NewRenoFullTcpAgent::ack_action(Packet* p)
  *
  * ****** SACK ******
  *
- * for Sack, do the following
+ * for Sack, receiver part must report SACK data
+ * sender part maintains a 'scoreboard' (sq_) that
+ * records what it hears from receiver
+ * sender fills holes during recovery and obeys
+ * "pipe" style control until recovery is complete
  */
-
-SackFullTcpAgent::SackFullTcpAgent() : sack_min_(-1), sq_(sack_min_), h_seqno_(-1)
-{
-#ifdef notdef
-	bind("sack_option_size_", &sack_option_size_);
-	bind("sack_block_size_", &sack_block_size_);
-	bind("max_sack_blocks_", &max_sack_blocks_);
-	bind("sack_rtx_bthresh_", &sack_rtx_bthresh_);
-	bind("sack_rtx_cthresh_", &sack_rtx_cthresh_);
-	bind("clear_on_timeout_", &clean_on_timeout_);
-#endif
-}
-
-SackFullTcpAgent::~SackFullTcpAgent()
-{
-	// we're gone... clear out anything hanging around
-	// ~FullTcpAgent() will clear rq_ for us
-	sq_.clear();
-}
 
 void
 SackFullTcpAgent::reset()
@@ -2594,13 +2561,32 @@ SackFullTcpAgent::process_sack(hdr_tcp* tcph)
 	}
 }
 
+int
+SackFullTcpAgent::send_allowed(int seq)
+{
+	// not in pipe control, so use regular control
+	if (!pipectrl_)
+		return (FullTcpAgent::send_allowed(seq));
+
+	// don't overshoot receiver's advertised window
+	int topawin = highest_ack_ + int(wnd_) * maxseg_;
+	if (seq >= topawin) {
+//printf("%f: SEND(%d) NOT ALLOWED DUE TO AWIN:%d, pipe:%d, cwnd:%d\n",
+//now(), seq, topawin, pipe_, int(cwnd_));
+		return FALSE;
+	}
+
+	// don't overshoot cwnd_
+	int cwin = int(cwnd_) * maxseg_;
+	return (pipe_ < cwin);
+}
+
+
 //
 // Calculate the next seq# to send by send_much.  If we are recovering and
 // we have learned about data cached at the receiver via a SACK,
 // we may want something other than new data (t_seqno)
 //
-
-#define	SACKTHRESH	1	// XXX: to be a parameter
 
 int
 SackFullTcpAgent::nxt_tseq()
