@@ -279,9 +279,8 @@ Test/dsr instproc init {} {
 
     $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;"
     #$ns_ halt"
-    $ns_ at $opt(stop).1 "$self finish"
+    $ns_ at $opt(stop).1 "$self finish-dsr"
 }
-
 
 
 Test/dsr instproc run {} {
@@ -289,6 +288,47 @@ Test/dsr instproc run {} {
     puts "Starting Simulation..."
     $ns_ run
 }
+
+TestSuite instproc finish-dsr {} {
+	$self instvar ns_
+	global quiet opt
+
+	$ns_ flush-trace
+        
+        set tracefd	[open $opt(tr) r]
+        set tracefd2    [open $opt(tr).w w]
+
+        while { [eof $tracefd] == 0 } {
+
+	    set line [gets $tracefd]
+	    set items [split $line " "]
+
+	    set time [lindex $items 1]
+	    
+	    set times [split $time "."]
+	    set time1 [lindex $times 0]
+	    set time2 [lindex $times 1]
+	    set newtime2 [string range $time2 0 3]
+	    set time $time1.$newtime2
+	    
+	    set newline [lreplace $line 1 1 $time] 
+
+	    puts $tracefd2 $newline
+
+	}
+	
+	close $tracefd
+	close $tracefd2
+
+	exec mv $opt(tr).w $opt(tr)
+	
+	puts "finishing.."
+	exit 0
+	
+
+}
+
+
 
 Test/dsdv-wired-cum-wireless instproc init {} {
     global opt god_ node_ topo
