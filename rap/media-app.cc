@@ -26,7 +26,7 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.2 1999/05/19 21:09:11 polly Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.3 1999/07/02 00:38:33 haoboy Exp $
 
 #include <stdarg.h>
 
@@ -64,15 +64,14 @@ MediaSegment::MediaSegment(const HttpMediaData& d) : flags_(0)
 
 void MediaSegmentList::add(const MediaSegment& s) 
 {
-	// Update total stored length
-	length_ += s.datasize();
-
 	MediaSegment* tmp = (MediaSegment *)head_;
 	while ((tmp != NULL) && (tmp->before(s))) {
 		tmp = tmp->next();
 	}
+
 	// Append at the tail, or the first element in list
 	if (tmp == NULL) {
+		length_ += s.datasize();
 		if ((tail_ != NULL) && ((MediaSegment *)tail_)->overlap(s)) 
 			// Don't need to merge because it's merged at the end
 			((MediaSegment*)tail_)->merge(s);
@@ -83,27 +82,50 @@ void MediaSegmentList::add(const MediaSegment& s)
 			else 
 				append(p, tail_);
 		}
-		if (getsize() != length_)
+		if (getsize() != length_) {
+			fprintf(stderr, 
+				"MediaSegmentList corrupted: Point 1.\n");
 			abort();
+		}
+		return;
+	}
+
+	// Update total stored length ONLY IF s is not in tmp.
+	if (tmp->in(s)) {
+		fprintf(stderr, 
+			"MediaSegmentList: get a seg (%d %d) which is already in cache!\n",
+			s.start(), s.end());
+		fprintf(stderr, "List contents: ");
+		print();
+#if 1
+		//Tcl::instance().eval("[Test instance] flush-trace");
+		//abort();
+#endif
+		// XXX Don't abort, simply continue
 		return;
 	}
 
 	// Insert a MediaSegment into list. Note: Don't do merge!
-	if (tmp->overlap(s)) 
-		tmp->merge(s);
-	else {
+	if (tmp->overlap(s)) {
+		length_ += (s.datasize() - tmp->merge(s));
+	} else {
 		MediaSegment *p = new MediaSegment(s);
 		insert(p, tmp);
 		tmp = p;
+		length_ += s.datasize();
 	}
 
-	if (getsize() != length_)
+	if (getsize() != length_) {
+		fprintf(stderr, "MediaSegmentList corrupted: Point 2.\n");
 		abort();
+	}
 
 	merge_seg(tmp);
 
-	if (getsize() != length_)
+	if (getsize() != length_) {
+		fprintf(stderr, "MediaSegmentList corrupted: Point 3.\n");
 		abort();
+	}
 }
 
 void MediaSegmentList::merge_seg(MediaSegment* tmp)
@@ -286,13 +308,39 @@ MediaSegmentList MediaSegmentList::check_holes(const MediaSegment& s)
 	soff = s.start();
 	eoff = s.end();
 	while ((tmp != NULL) && (tmp->overlap(s))) {
-		if (soff < tmp->start())
-			res.add(MediaSegment(soff, min(eoff, tmp->end())));
+		if (soff < tmp->start()) {
+			// Only refetches the missing part
+			res.add(MediaSegment(soff, min(eoff, tmp->start())));
+#if 1
+			// DEBUG ONLY
+			// Check if these holes are really holes!
+			if (in(MediaSegment(soff, min(eoff, tmp->start())))) {
+				fprintf(stderr, "Wrong hole: (%d %d) ", 
+					soff, min(eoff, tmp->start()));
+				fprintf(stderr, "tmp(%d %d), s(%d %d)\n",
+					tmp->start(), tmp->end(),
+					soff, eoff);
+				fprintf(stderr, "List content: ");
+				print();
+			}
+#endif
+		}
 		soff = tmp->end();
 		tmp = tmp->next();
 	}
-	if (soff < eoff)
+	if (soff < eoff) {
 		res.add(MediaSegment(soff, eoff));
+#if 1		
+		// DEBUG ONLY
+		// Check if these holes are really holes!
+		if (in(MediaSegment(soff, eoff))) {
+			fprintf(stderr, "Wrong hole #2: (%d %d)\n", 
+				soff, eoff);
+			fprintf(stderr, "List content: ");
+			print();
+		}
+#endif
+	}
 	return res;
 }
 
@@ -362,9 +410,9 @@ HttpMediaData::HttpMediaData(const char* sender, const char* page, int layer,
 			     int st, int et) :
 	HttpData(MEDIA_DATA, 0), layer_(layer), st_(st), et_(et), flags_(0)
 {
-	assert((int)strlen(page)+1 <= HTTP_MAXURLLEN);
+	assert(strlen(page)+1 <= HTTP_MAXURLLEN);
 	strcpy(page_, page);
-	assert((int)strlen(sender)+1 <= HTTP_MAXURLLEN);
+	assert(strlen(sender)+1 <= HTTP_MAXURLLEN);
 	strcpy(sender_, sender);
 }
 
@@ -674,6 +722,9 @@ rate: %.3f, avgrate: %.3f, srtt:%.3f\n", rate, avgrate_, srtt);
 	// i.e. RAP has received an ACK
 	slope = seg_size_/srtt;
 	bufavail = 0.0;
+
+	// XXX Is this a correct initial value????
+	bufneeded = 0.0; 
   
 	// calculate layers & bufavail
 	for (i = 0; i < MAX_LAYER; i++) {
@@ -781,9 +832,9 @@ TotBuf(avail:%.1f, needed:%.1f), \n",
 		 ** filling phase **
 		 *******************/
       
-      //debug("-->> FILLING, layers: %d now: %.2f, rate: %.3f, avgrate: %.3f, 
-		// srtt:%.3f, slope: %.3f\n",
-		// layers, now, rate, avgrate_, srtt, slope);
+      //debug("-->> FILLING, layers: %d now: %.2f, rate: %.3f, avgrate: %.3f, \
+// srtt:%.3f, slope: %.3f\n",
+// 	  layers, now, rate, avgrate_, srtt, slope);
       
 		last_rate = rate; /* this is used for the next drain phase */
 		flag = 1;
@@ -866,7 +917,7 @@ TotBuf(avail:%.1f, needed:%.1f), \n",
 
 		/* debug */
 //       if ((totbufs2 <= TotalBuf(layers, buffer_)) && (bs2 <= MAXBKOFF_)) {
-// 	panic("# ERROR: totbufs1: %.2f,tot bufs2: %.2f, 
+// 	panic("# ERROR: totbufs1: %.2f,tot bufs2: %.2f, \
 // totbuf: %.2f, bs1: %d, bs2: %d, totneededbuf1: %.2f, totneededbuf2: %2f\n",
 // 	      totbufs1, totbufs2, TotalBuf(layers, buffer_), bs1, bs2,
 // 	      TotalBuf(layers, optbufs1), TotalBuf(layers, optbufs2));
@@ -1066,7 +1117,7 @@ scen: %d, totbufs1: %.2f, totbufs2: %.2f, totbufavail: %.2f\n",
 		 ** Draining phase **
 		 *******************/
 
-//    debug("-->> DRAINING, layers: %d rate: %.3f, avgrate: %.3f, srtt:%.3f,
+//    debug("-->> DRAINING, layers: %d rate: %.3f, avgrate: %.3f, srtt:%.3f, \
 // slope: %.3f\n", 
 // 	 layers, rate, avgrate_, srtt, seg_size_/srtt);
 
@@ -1619,7 +1670,7 @@ void QA::DrainBuffers()
 			/* Drop all higher layers if they still have data */
 			for (j = i+1; j < MAX_LAYER; j++)
 				if (sending_[j] == 1) {
-// 					panic("# ERROR: layer %d 
+// 					panic("# ERROR: layer %d \
 // is playing with %.2f buf but layer %d ran dry with %.2f buf\n",
 // 					      j, buffer_[j], i, buffer_[i]);
  					debug("# DROP layer %d: it \
@@ -1679,7 +1730,7 @@ void QA::DumpInfo(float t, float last_t, float rate,
 			if (last_t == 0) 
 				// Startup phase
 				return;
-// 			debug("WARNING: last_srtt: %.4f != 
+// 			debug("WARNING: last_srtt: %.4f != \
 // interval: %.4f, diff: %f t1: %f, t2: %f, last_t: %f, t: %f\n",
 // 				last_srtt, interval, diff, t1, t2, last_t, t);
 			//abort();

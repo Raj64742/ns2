@@ -30,7 +30,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.4 1999/06/09 21:54:09 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.5 1999/07/02 00:38:36 haoboy Exp $
 
 #include "rap.h"
 
@@ -360,7 +360,9 @@ void RapAgent::RecvAck(hdr_rap *ackHeader)
 	if (LossDetection(RAP_ACK_BASED, ackHeader))
 		LossHandler();
 
-	if (ackHeader->seqno_ >= curseq_ ) 
+	// XXX We only stop by sequence number when we are in 
+	// "counting sequence number" mode.   -- haoboy
+	if (counting_pkt() && (ackHeader->seqno_ >= curseq_)) 
 		finish();
 }
 
@@ -414,7 +416,7 @@ void RapAgent::IpgTimeout()
 			SendPacket(size_);
 			dctr_++;
 		}
-	}  else if (seqno_ < curseq_) {
+	} else if (seqno_ < curseq_) {
 			SendPacket(size_);
 			dctr_++;
 	}

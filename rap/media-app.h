@@ -33,7 +33,7 @@
 // transport agent, and contact the above application on behalf of the 
 // transport agent.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.2 1999/05/19 21:09:12 polly Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.3 1999/07/02 00:38:35 haoboy Exp $
 
 #ifndef ns_media_app_h
 #define ns_media_app_h
@@ -148,12 +148,16 @@ public:
 		assert(s.start_ <= s.end_);
 		return ((s.end_ >= start_) && (s.start_ <= end_));
 	}
-	void merge(const MediaSegment& s) {
+	// Return the overlapping size between the two
+	int merge(const MediaSegment& s) {
 		if ((s.end_ < start_) || (s.start_ > end_))
 			// No overlap
-			return;
+			return 0;
+		int size = datasize() + s.datasize();
 		if (s.start_ < start_) start_ = s.start_;
 		if (s.end_ > end_) end_ = s.end_;
+		assert(size >= datasize());
+		return (size - datasize());
 	}
 	// Return the amount of data evicted
 	int evict_tail(int sz) {
@@ -195,7 +199,7 @@ private:
 // Maintains received segments of every layer
 class MediaSegmentList : public DoubleList {
 public:
-	MediaSegmentList() : DoubleList(), length_(0) {}
+	MediaSegmentList() : length_(0), DoubleList() {}
 
 	int length() const { return length_; }
 	void add(const MediaSegment& s);
