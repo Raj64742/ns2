@@ -142,9 +142,10 @@ proc test_forced1 { seed } {
 
 # all drops, combined drop metric, RED
 proc test_combined { seed } {
-    global ns_link queuetype
+    global ns_link queuetype category
     set queuetype packets
     set ns_link(queue-in-bytes) false
+    set category combined
     test combined $seed plot_dropscombined c create_flowstats1 flowDump1 RED
 }
 
