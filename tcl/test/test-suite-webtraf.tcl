@@ -37,7 +37,7 @@ Agent/TCP set rfc2988_ false
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webtraf.tcl,v 1.4 2002/03/08 21:55:44 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webtraf.tcl,v 1.5 2003/01/05 18:56:48 xuanc Exp $
 
 # UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false
@@ -135,7 +135,8 @@ TestSuite proc runTest {} {
 }
 
 # Create $ns sessions, each of which has $np pages
-TestSuite instproc create-session { ns np } {
+# server mode flag: $sm
+TestSuite instproc create-session { ns np sm } {
 	# Polly's dumbbell topology
 
 	$self instvar ns_
@@ -176,6 +177,9 @@ TestSuite instproc create-session { ns np } {
 	# Set debug to produce detailed output
 	$pool set debug_ 1
 
+	$pool set resp_trace_ 0
+	$pool set req_trace_ 0
+	
 	$pool set-num-client [llength [$ns_ set src_]]
 	$pool set-num-server [llength [$ns_ set dst_]]
 
@@ -189,6 +193,12 @@ TestSuite instproc create-session { ns np } {
 		$pool set-server $i $n($s)
 		incr i
 	}
+
+	# Config server mode: 
+	# 0: no server processing delay
+	# 1: FCFS server scheduling policy
+	# 2: STF server scheduling policy
+	$pool set-server-mode $sm
 
 	# Session 0 starts from 0.1s, session 1 starts from 0.2s
 	$pool set-num-session $ns
@@ -214,24 +224,40 @@ Class Test/1s-1p -superclass TestSuite
 
 Test/1s-1p instproc init args {
 	eval $self next $args
-	$self openTrace 1000.0
-	$self create-session 1 1
+	$self openTrace 100.0
+	$self create-session 1 1 0
 }
 
 Class Test/1s-2p -superclass TestSuite
 
 Test/1s-2p instproc init args {
 	eval $self next $args
-	$self openTrace 1000.0
-	$self create-session 1 2
+	$self openTrace 100.0
+	$self create-session 1 2 0
 }
 
 Class Test/3s-2p -superclass TestSuite
 
 Test/3s-2p instproc init args {
 	eval $self next $args
-	$self openTrace 1000.0
-	$self create-session 3 2
+	$self openTrace 100.0
+	$self create-session 3 2 0
+}
+
+Class Test/fcfs -superclass TestSuite
+
+Test/fcfs instproc init args {
+	eval $self next $args
+	$self openTrace 100.0
+	$self create-session 3 2 1
+}
+
+Class Test/stf -superclass TestSuite
+
+Test/stf instproc init args {
+	eval $self next $args
+	$self openTrace 100.0
+	$self create-session 3 2 2
 }
 
 TestSuite runTest
