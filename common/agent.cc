@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.55 1999/03/13 03:52:38 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.56 1999/04/22 19:32:21 haldar Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -495,6 +495,11 @@ Agent::initpkt(Packet* p) const
 	hdr_ip* iph = hdr_ip::access(p);
 	iph->src() = addr_;
 	iph->dst() = dst_;
+	
+	//DEBUG
+	//if (dst_ != -1)
+	//  printf("pl break\n");
+	
 	iph->flowid() = fid_;
 	iph->prio() = prio_;
 	iph->ttl() = defttl_;
