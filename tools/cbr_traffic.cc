@@ -66,7 +66,9 @@ void CBR_Traffic::init()
         // compute inter-packet interval 
 	interval_ = (double)(size_ << 3)/(double)rate_;
 	if (agent_)
-		agent_->set_pkttype(PT_CBR);
+		if (agent_->get_pkttype() != PT_TCP &&
+ 		    agent_->get_pkttype() != PT_TFRC)
+			agent_->set_pkttype(PT_CBR);
 }
 
 void CBR_Traffic::start()
