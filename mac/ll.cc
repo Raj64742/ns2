@@ -37,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.28 1998/09/04 23:05:01 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.29 1998/09/05 01:13:56 yuriy Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -134,7 +134,7 @@ Packet* LL::sendto(Packet* p, Handler* h)
 	hdr_ll::access(p)->seqno_ = ++seqno_;
 
 	// let mac decide when to take a new packet from the queue.
-	sendtarget_->recv(p);
+	sendtarget_->recv(p, h);
 #ifdef undef_oldlan
 	if (h) {
 		Scheduler& s = Scheduler::instance();
