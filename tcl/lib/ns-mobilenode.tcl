@@ -95,6 +95,8 @@ Node/MobileNode instproc reset {} {
 	    $mac_($i) reset
 	    $ll_($i) reset
 	    $ifq_($i) reset
+	    if { [info exists opt(imep)] && $opt(imep) == "ON" } { $imep_($i) reset }
+
 	}
 
 	if { $arptable_ != "" } {
@@ -123,16 +125,53 @@ Node/MobileNode instproc add-target {agent port } {
 	    # Send Target
 	    #
 	    set sndT [cmu-trace Send "RTR" $self]
+
+            if { [info exists opt(imep)] && $opt(imep) == "ON" } {
+                 $agent target $imep_(0)
+                 $imep_(0) sendtarget $sndT
+
+                 # need a second tracer to see the actual
+                 # types of tora packets before imep packs them
+                 if { $opt(debug) == "ON" } {
+                       set sndT2 [cmu-trace Send "TRP" $self]
+                       $sndT2 target $imep_(0)
+                       $agent target $sndT2
+                 }
+             } else {  ;#  no IMEP
+                  $agent target $sndT
+             }
+	    
 	    $sndT target [$self set ll_(0)]
-	    $agent target $sndT
+#	    $agent target $sndT
 	    
 	    #
 	    # Recv Target
 	    #
 	    set rcvT [cmu-trace Recv "RTR" $self]
-	    $rcvT target $agent
-	    $classifier_ defaulttarget $rcvT
-	    $dmux_ install $port $rcvT
+
+            if {[info exists opt(imep)] && $opt(imep) == "ON" } {
+                puts "Hacked for tora20 runs!! No RTR revc trace"
+                [$self set ll_(0)] recvtarget $imep_(0)
+                $classifier_ defaulttarget $agent
+
+                # need a second tracer to see the actual
+                # types of tora packets after imep unpacks them
+                if { $opt(debug) == "ON" } {
+                                set rcvT2 [cmu-trace Recv "TRP" $self]
+                                $rcvT2 target $agent
+                                [$self set classifier_] defaulttarget $rcvT2
+                 }
+
+             } else {
+                 $rcvT target $agent
+                 [$self set classifier_] defaulttarget $rcvT
+		 $classifier_ defaulttarget $rcvT
+                 $dmux_ install $port $rcvT
+	     }
+
+#	    $rcvT target $agent
+#	    $classifier_ defaulttarget $rcvT
+#	    $dmux_ install $port $rcvT
 	    
 	} else {
 	    #
@@ -187,6 +226,7 @@ Node/MobileNode instproc add-interface { channel pmodel \
 
 	$self instvar arptable_ nifs_
 	$self instvar netif_ mac_ ifq_ ll_
+	$self instvar imep_
 
 	global ns_ MacTrace opt
 
@@ -198,6 +238,17 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	set ifq_($t)	[new $qtype]		;# interface queue
 	set ll_($t)	[new $lltype]		;# link layer
         set ant_($t)    [new $anttype]
+
+        if {[info exists opt(imep)] && $opt(imep) == "ON" } {              ;# IMEP layer
+            set imep_($t) [new Agent/IMEP [$self id]]
+            set imep $imep_($t)
+
+            set drpT [cmu-trace Drop "RTR" $self]
+            $imep drop-target $drpT
+
+            $ns_ at 0.[$self id] "$imep_($t) start"     ;# start beacon timer
+        }
+
 
 	#
 	# Local Variables
@@ -222,8 +273,20 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	#
 	$ll arptable $arptable_
 	$ll mac $mac
-	$ll up-target [$self entry]
+#	$ll up-target [$self entry]
 	$ll down-target $ifq
+
+	if {[info exists opt(imep)] && $opt(imep) == "ON" } {
+	    $imep recvtarget [$self entry]
+            $imep sendtarget $ll
+            $ll up-target $imep
+        } else {
+            $ll up-target [$self entry]
+	}
+
+
+
+
 
 	#
 	# Interface Queue

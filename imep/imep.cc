@@ -1,6 +1,6 @@
 /*
   imep.cc
-  $Id: imep.cc,v 1.2 1999/08/05 22:13:40 yaxu Exp $
+  $Id: imep.cc,v 1.3 1999/08/08 22:58:27 yaxu Exp $
   */
 
 #include <packet.h>
@@ -656,7 +656,13 @@ imepAgent::recv_incoming(Packet *p)
 	// hasn't actually be done. seems unlikely to be of help, and is
 	// fairly hard to do. -dam 8/19/98
 
-	assert(ch->ptype() == PT_IMEP);
+	if (ch->ptype() != PT_IMEP) {
+	  printf("OK");
+
+	}
+
+
+	//assert(ch->ptype() == PT_IMEP);
 	assert(im->imep_version == IMEP_VERSION);
 
 	if(im->imep_block_flags == 0) {

@@ -87,6 +87,9 @@ private:
 	int off_arp_;
 	int off_mac_;
 	int off_sr_;
+        int off_TORA_;
+        int off_IMEP_;
+
 
 	char	tracename[MAX_ID_LEN + 1];
         int     tracetype;
@@ -105,6 +108,9 @@ private:
 	void	format_msg(Packet *p, int offset);
 	void	format_tcp(Packet *p, int offset);
 	void	format_rtp(Packet *p, int offset);
+	void	format_tora(Packet *p, int offset);
+        void    format_imep(Packet *p, int offset);
+
 };
 
 

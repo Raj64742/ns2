@@ -1459,7 +1459,7 @@ Mac802_11::recvDATA(Packet *p)
 	 *  XXX - we could schedule an event to account
 	 *  for this processing delay.
 	 */
-	//p->incoming = 1;
+	p->incoming = 1;
 	uptarget_->recv(p, (Handler*) 0);
 }
 

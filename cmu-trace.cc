@@ -42,6 +42,8 @@
 #include <mac.h>
 #include <mac-802_11.h>
 #include <address.h>
+#include <tora/tora_packet.h> //TORA
+#include <imep/imep_spec.h>         // IMEP
 
 #include <cmu-trace.h>
 
@@ -87,6 +89,10 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 	//bind("off_mac_", &off_mac_);
 	bind("off_arp_", &off_arp_);
 	bind("off_SR_", &off_sr_);
+	bind("off_TORA_", &off_TORA_);
+        bind("off_IMEP_", &off_IMEP_);
+	//        bind("off_AODV_", &off_AODV_);
+
 }
 
 void
@@ -227,6 +233,62 @@ CMUTrace::format_rtp(Packet *p, int offset)
 		ch->opt_num_forwards());
 }
 
+void
+CMUTrace::format_imep(Packet *p, int offset)
+{
+        struct hdr_imep *im = HDR_IMEP(p);
+
+#define U_INT16_T(x)    *((u_int16_t*) &(x))
+
+        sprintf(wrk_ + offset,
+                "[%c %c %c 0x%04x] ",
+                (im->imep_block_flags & BLOCK_FLAG_ACK) ? 'A' : '-',
+                (im->imep_block_flags & BLOCK_FLAG_HELLO) ? 'H' : '-',
+                (im->imep_block_flags & BLOCK_FLAG_OBJECT) ? 'O' : '-',
+                U_INT16_T(im->imep_length));
+
+#undef U_INT16_T
+}
+
+
+void
+CMUTrace::format_tora(Packet *p, int offset)
+{
+        struct hdr_tora *th = HDR_TORA(p);
+        struct hdr_tora_qry *qh = HDR_TORA_QRY(p);
+        struct hdr_tora_upd *uh = HDR_TORA_UPD(p);
+        struct hdr_tora_clr *ch = HDR_TORA_CLR(p);
+
+        switch(th->th_type) {
+
+        case TORATYPE_QRY:
+                sprintf(wrk_ + offset, "[0x%x %d] (QUERY)",
+                        qh->tq_type, qh->tq_dst);
+                break;
+
+        case TORATYPE_UPD:
+                sprintf(wrk_ + offset,
+                        "[0x%x %d (%f %d %d %d %d)] (UPDATE)",
+                        uh->tu_type,
+                        uh->tu_dst,
+                        uh->tu_tau,
+                        uh->tu_oid,
+                        uh->tu_r,
+                        uh->tu_delta,
+                        uh->tu_id);
+                break;
+
+        case TORATYPE_CLR:
+                sprintf(wrk_ + offset, "[0x%x %d %f %d] (CLEAR)",
+                        ch->tc_type,
+                        ch->tc_dst,
+                        ch->tc_tau,
+                        ch->tc_oid);
+                break;
+        }
+}
+
+
 
 void CMUTrace::format(Packet* p, const char *why)
 {
@@ -253,6 +315,14 @@ void CMUTrace::format(Packet* p, const char *why)
 		offset = strlen(wrk_);
 
 		switch(ch->ptype()) {
+		
+		 case PT_TORA:
+                        format_tora(p, offset);
+                        break;
+
+                case PT_IMEP:
+                        format_imep(p, offset);
+                        break;
 
 		case PT_DSR:
 			format_dsr(p, offset);
