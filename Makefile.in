@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.100 1998/03/19 22:08:27 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.101 1998/03/20 02:55:49 gnguyen Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -29,7 +29,6 @@ prefix	= @prefix@
 BINDEST	= @prefix@/bin
 # Pathname of directory to install the man page
 MANDEST	= @prefix@/man
-INSTALL	= @INSTALL@
 
 BLANK	= # make a blank space.  DO NOT add anything to this line
 
@@ -38,12 +37,16 @@ CC	= @CC@
 CPP	= @CXX@
 LINK	= $(CPP)
 MKDEP	= ./mkdep
-AR	= ar rc $(BLANK)
-RANLIB	= @V_RANLIB@
-PERL	= perl
-RM	= rm -f
 TCLSH	= @V_TCLSH@
 TCL2C	= @V_TCL2CPP@
+AR	= ar rc $(BLANK)
+
+RANLIB	= @V_RANLIB@
+INSTALL	= @INSTALL@
+LN	= ln
+TEST	= test
+RM	= rm -f
+PERL	= perl
 
 
 CCOPT	= @V_CCOPT@
@@ -54,15 +57,15 @@ LDOUT	= -o $(BLANK)
 DEFINE	= -DNO_TK @V_DEFINE@ @V_DEFINES@
 
 INCLUDES = \
-	-I. @V_INCLUDE_X11@ \
-	@V_INCLUDES@
+	-I. @V_INCLUDES@ \
+	@V_INCLUDE_X11@
 
-#	-L@libdir@ \
 LIB	= \
 	@V_LIBS@ \
 	@V_LIB_X11@ \
 	@V_LIB@ \
 	-lm @LIBS@
+#	-L@libdir@ \
 
 CFLAGS	= $(CCOPT) $(DEFINE)
 
@@ -85,7 +88,6 @@ LIB_DIR	= lib/
 NS	= ns
 NSX	= nsx
 NSE	= nse
-
 
 # WIN32: uncomment the following line to include specific make for VC++
 # !include <makefile.win>
@@ -265,11 +267,6 @@ TAGS:	force
 depend: $(SRC)
 	$(MKDEP) $(CFLAGS) $(INCLUDES) $(SRC)
 
-# Create makefile.vc for Win32 development by replacing:
-# "# !include ..." 	-> 	"!include ..."
-makefile.vc:
-	$(PERL) -pe 's/# (\!include)/$1/o' < Makefile.in > makefile.vc
-
 srctar:
 	@cwd=`pwd` ; dir=`basename $$cwd` ; \
 	    name=ns-`cat VERSION | tr A-Z a-z` ; \
@@ -288,3 +285,7 @@ srctar:
 
 force:
 
+# Create makefile.vc for Win32 development by replacing:
+# "# !include ..." 	-> 	"!include ..."
+makefile.vc:
+	$(PERL) -pe 's/^# (\!include)/\!include/o' < Makefile.in > makefile.vc
