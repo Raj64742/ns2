@@ -33,6 +33,8 @@
  *
  * Contributed by the Daedalus Research Group, U.C.Berkeley
  * http://daedalus.cs.berkeley.edu
+ *
+ * @(#) $Header: 
  */
 
 /*
@@ -48,11 +50,15 @@
  * subsequent round-trip period during which it does not receive an ECN, 
  * it gradually increases the frequency of acks (up to a maximum of 1 
  * per data packet).
+ *
+ * For questions/comments, please contact:
+ *   Venkata N. Padmanabhan (padmanab@cs.berkeley.edu)
+ *   http://www.cs.berkeley.edu/~padmanab
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.11 1998/08/12 23:41:18 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-asym-sink.cc,v 1.12 1998/08/19 04:52:07 padmanab Exp $ (UCB)";
 #endif
 
 #include "template.h"

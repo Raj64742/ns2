@@ -33,6 +33,8 @@
  *
  * Contributed by the Daedalus Research Group, U.C.Berkeley
  * http://daedalus.cs.berkeley.edu
+ *
+ * @(#) $Header:
  */
 
 /*
@@ -51,11 +53,15 @@
  * using which the sink can perform ack congestion control (tcp-asym-sink.cc). 
  * The tcp-asym source is usually used in conjunction with a tcp-asym sink, or
  * with a router/end-host implementing ack filtering (semantic-packetqueue.cc).
+ * 
+ * For questions/comments, please contact:
+ *   Venkata N. Padmanabhan (padmanab@cs.berkeley.edu)
+ *   http://www.cs.berkeley.edu/~padmanab
  */ 
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.14 1998/08/12 23:41:18 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.15 1998/08/19 04:51:51 padmanab Exp $ (UCB)";
 #endif
 
 #include "tcp-asym.h"
