@@ -996,7 +996,7 @@ void EWPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet 
 int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
   //  printf("enter applyPolicer\n");
   if (ew->testAlarm(pkt)) {
-    //printf(" DOWNGRADE!\n");	
+    //    printf(" DOWNGRADE!\n");	
     return(policer->downgrade1);
   } else { 
     //printf(" OK!\n");	
@@ -1034,15 +1034,7 @@ EW::~EW(){
   struct AListEntry *ap, *aq;
 
   for (int i = 0; i < htab_point; i++) {
-    p = q = htab[i]->swin.head;
-    while (p) {
-      q = p;
-      p = p->next;
-      free(q);
-    }
-    
-    p = q = NULL;
-    htab[i]->swin.head = htab[i]->swin.tail = NULL;
+    freeHTabEntry(htab[i]);
   }
 
   htab_point = 0;
@@ -1080,7 +1072,7 @@ void EW::runEW(Packet *pkt) {
 
   // There is a timeout!
   if (now >= timer) {
-    //printf("Timeout(%d):", now);
+    //    printf("Timeout(%d):", now);
     // Sleeps previously, now start working
     if (sleep) {
       //printf("sleep->detect\n");
@@ -1107,9 +1099,16 @@ void EW::runEW(Packet *pkt) {
 
 // Test if the alarm has been triggered.
 int EW::testAlarm(Packet *pkt) {
-  hdr_ip* iph = hdr_ip::access(pkt);
+  hdr_cmn *th = hdr_cmn::access(pkt);
+  hdr_ip *iph = hdr_ip::access(pkt);
   int dst_id = iph->daddr();
-  
+
+  // Can't touch acks for response.
+  if (th->ptype() == PT_ACK) {
+    //printf("an ack\n");
+    return 0;
+  }
+
   if(cew)
     return(cew->testAlarmCouple(dst_id));
   else
@@ -1175,10 +1174,10 @@ void EW::applyDetector(Packet *pkt) {
 
   // update the existing (or just created) entry in AList
   assert(p && p->node_id == src_id);
-  p->bytes += hdr->size() * 8;
+  p->bytes += hdr->size();
 }
 
-// Find the right index for slinding window
+// Find the right index for HTab
 int EW::getHTabIndex(int node_id) {
   //printf("EW[%d:%d] look for %d, point: %d\n", 
   // ew_src, ew_dst, node_id, htab_point);
@@ -1192,65 +1191,157 @@ int EW::getHTabIndex(int node_id) {
   return EW_MAX_WIN;
 }
 
-// Find the right index for slinding window
-int EW::addHTabEntry(int node_id) {
-  // Create new entry for new aggregate
+// generate a new entry to HTable
+struct HTableEntry * EW::newHTabEntry(int node_id) {
+  struct HTableEntry *new_entry;
+
+  // Initialize a potential new entry for HTable
+  new_entry = new HTableEntry;
+  new_entry->node_id = node_id;
+  
+  // Initial SWin
+  new_entry->swin.head = NULL;
+  new_entry->swin.tail = NULL;
+  new_entry->swin.count = 0;
+  new_entry->swin.ravg = 0;
+  
+  new_entry->cur_rate = 0;
+  new_entry->last_t = 0;
+  new_entry->alarm_count = 0;
+  new_entry->alarm = 0;
+  
+  return(new_entry);
+}
+
+// destroy an existing entry in HTable
+void EW::freeHTabEntry(struct HTableEntry *h) {
+  struct SWinEntry *p, *q;
+
+  // release the memory occupied by swin
+  p = q = h->swin.head;
+  while (p) {
+    q = p;
+    p = p->next;
+    free(q);
+  }
+  
+  p = q = NULL;
+  h->swin.head = h->swin.tail = NULL;
+  
+  // free the HTab entry itself
+  free(h);
+}
+
+// Add new entry to AList
+int EW::addHTabEntry(struct AListEntry * max) {
+  struct HTableEntry *new_entry;
+  new_entry = newHTabEntry(max->node_id);
+
+  // record how many bits having been sent.
+  new_entry->cur_rate = max->bytes;
+  // reset the bytes in AList
+  max->bytes = 0;
+
+  // Insert the new entry into HTAB:
+  // 1. there is extra space left in HTAB
+  // 2. when there is no space left, 
+  //    swap the existing entry which has smaller cur_rate or ravg out
+  //    (the last one should be the first candidate)
+
+  // If there is an extra space left for new entry
   if (htab_point < EW_MAX_WIN) {
-    htab[htab_point] = new HTableEntry;
+    htab[htab_point] = new_entry;
+    htab_point++;
+    return (htab_point - 1);
+  };
 
-    // Initial SWin
-    htab[htab_point]->swin.head = NULL;
-    htab[htab_point]->swin.tail = NULL;
-    htab[htab_point]->swin.count = 0;
-    htab[htab_point]->swin.ravg = 0;
-    
-    htab[htab_point]->cur_rate = 0;
-    htab[htab_point]->last_t = 0;
-    htab[htab_point]->alarm_count = 0;
-    htab[htab_point]->alarm = 0;
+  assert(htab_point == EW_MAX_WIN);
+  // When no extra space left, 
+  // need to find a place to insert the new_entry (hopefully)
+  // The last entry in HTab is the candidate for sawpping.
 
-    htab[htab_point]->node_id = node_id;
-    // Initialize threshold and detection interval
+  // Compare cur_rate first, then ravg
+  // if cur_rate is nozero, compare it first, otherwise ravg from swin
+  if ((htab[htab_point - 1]->cur_rate == 0 || 
+       htab[htab_point - 1]->cur_rate < new_entry->cur_rate) &&
+      htab[htab_point - 1]->swin.ravg < new_entry->cur_rate) {
+    freeHTabEntry(htab[htab_point - 1]);
+    htab[htab_point - 1] = new_entry;
+    return(htab_point - 1);
+  }
+
+  freeHTabEntry(new_entry);
+  return(htab_point);
+
+  /*
+  if (i == htab_point) {
+    // Insert the new entry to the tail of HTAB
+    if (i < EW_MAX_WIN) {
+      htab[i] = new_entry;
+      htab_point++;
+      //printf("add %d at %d, point: %d\n", node_id, i, htab_point);
+
+    } else {
+      // There is no space left...
+      //printf("NO SPACE LEFT IN HTABLE for %d\n", node_id);
+      free(new_entry);
+    }
+  } else {
+    // Insert the new entry in the middle of HTAB
+    if (htab_point == EW_MAX_WIN) {
+      // Remove the last entry, which is the smallest one
+      free(htab[htab_point - 1]);
+      htab_point--;
+    }
+
+    //printf("add HTAB: before move\n");
+    // move the entries
+    int j = htab_point - 1;
+    while (j >= i) {
+      htab[j + 1] = htab[j];
+      j--;
+    }
+    //printf("add HTAB: after move\n");
+    htab[i] = new_entry;
     htab_point++;
 
-    //printf("add %d, point: %d\n", node_id, htab_point);
-    // Output the current HTable info
-    //printHTab();
-
-    return(htab_point - 1);
-  } else {
-    printf("Error!!! NO SPACE LEFT IN HTABLE for %d\n", node_id);
-    return(-1); 
+    //printf("add %d at %d, point: %d\n", node_id, i, htab_point);
   }
+
+  // Output the current HTable info
+  //printHTab();
+
+  return(i);
+  */
 }
 
 // update HTab after detection timeout.
 void EW::updateHTab() {
   struct AListEntry *max;
-  int i = 0;
+  int id = 0;
 
   // Pick the highest K values in AList and keep it in HTab
   // The first one
   max = maxAList();
 
-  while (max && max->bytes > 0 && i < EW_MAX_WIN) {
-    int id = getHTabIndex(max->node_id);
-    // Add the entry into HTable and get the index 
-    if (id == EW_MAX_WIN) {
-      id = addHTabEntry(max->node_id);
-    }
-    
-    if (id < EW_MAX_WIN && id >= 0) {
-      // record how may bits having been sent.
-      htab[id]->cur_rate = (int)(max->bytes * 8 / EW_DETECT_INTERVAL);
-      // reset the bytes in AList
+  while (max && max->bytes > 0 && id < EW_MAX_WIN) {
+    id = getHTabIndex(max->node_id);
+    //    printf("node_id: %d, index %d\n", max->node_id, id);
+ 
+    if (id >= 0 && id < EW_MAX_WIN) {
+      // update the existing entry in HTAB
+      htab[id]->cur_rate = max->bytes;
       max->bytes = 0;
+    } else if (id == EW_MAX_WIN) {
+      // Add the entry into HTable
+      id = addHTabEntry(max);
+    } else {
+      printf("ERROR!!! Invalid return value from getHTabIndex\n");
     }
+    //printf("node_id: %d, index %d\n", max->node_id, id);
 
-    // The first one
+    // Get the first one in AList
     max = maxAList();
-    
-    i++;
   }
 
   // Change detection by running average with a sliding window
@@ -1262,15 +1353,17 @@ void EW::updateHTab() {
     // do change detection
     detectChange(i);
   }
-  //printHTab();
-  // sort HTab based on ravg just calculated to get the hot resources.
+
+  // keep HTab sorted
   sortHTab();
+  //printHTab();
 }
 
 // Find the max value in AList
 struct AListEntry * EW::maxAList() {
   struct AListEntry *p, *max;
 
+  //printAList();
   p = max = alist.head;
 
   while(p) {
@@ -1281,7 +1374,9 @@ struct AListEntry * EW::maxAList() {
   assert(max);
   if (max) {
     //printf("MAX: %d(%d)\n", max->node_id, max->bytes);
+    max->bytes = (int)(max->bytes * 8 / EW_DETECT_INTERVAL);
   }
+
   return(max);
 }
 
@@ -1372,12 +1467,12 @@ void EW::ravgSWin(int id) {
 void EW::detectChange(int id) {
   if (htab[id]->swin.ravg >= th) {
     if (htab[id]->alarm) {
-      printf("w+ %d %d\n", htab[id]->node_id, now);
+      printf("w+ %d %d %d\n", htab[id]->node_id, htab[id]->swin.ravg, now);
     } else {
       htab[id]->alarm_count++;
       if (htab[id]->alarm_count >= EW_A_TH) {
 	htab[id]->alarm = 1;
-	printf("w+ %d %d\n", htab[id]->node_id, now);
+	printf("w+ %d %d %d\n", htab[id]->node_id, htab[id]->swin.ravg, now);
       } else {
 	//decSWin(id);
       }
@@ -1483,6 +1578,6 @@ void EW::coupleEW(EW *ew) {
   } else {
     cew = ew;
     detector_on = 0;
-    //printf("Coupled!\n");
+    //    printf("Coupled!\n");
   }
 }

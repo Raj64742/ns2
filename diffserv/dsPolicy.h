@@ -359,7 +359,11 @@ class EW {
   // get the Atable id given the node id
   int getHTabIndex(int);
   // add an entry to HTable
-  int addHTabEntry(int);
+  int addHTabEntry(struct AListEntry *);
+  // generate a new entry for HTable
+  struct HTableEntry *newHTabEntry(int);
+  // destroy an existing entry in HTable
+  void freeHTabEntry(struct HTableEntry *);
   // sort HTab based on ravg to find the hostest resources
   void sortHTab();
 
