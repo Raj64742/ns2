@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.3 2000/07/03 06:00:14 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.4 2000/07/03 06:32:21 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -283,7 +283,7 @@ Test/notGentle instproc init {} {
     Queue/RED/RIO set priority_method_ 1
     Queue/RED/RIO set gentle_ false
     Queue/RED/RIO set in_gentle_ false
-    Queue/RED/RIO set out_gentle_ true
+    Queue/RED/RIO set out_gentle_ false
     Test/notGentle instproc run {} [Test/strict info instbody run]
     $self next
 }
