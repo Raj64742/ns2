@@ -1,7 +1,7 @@
 
 #
 # rbp_simulation.tcl
-# $Id: rbp_demo.tcl,v 1.3 1997/12/20 00:41:35 heideman Exp $
+# $Id: rbp_demo.tcl,v 1.4 1998/10/21 02:29:47 tomh Exp $
 #
 # Copyright (c) 1997 University of Southern California.
 # All rights reserved.                                            
@@ -196,15 +196,11 @@ TestScale instproc init_network {} {
 	}
 }
 
-Source/FTP instproc fire {} {
+Application/FTP instproc fire {} {
 	global opts
 	$self instvar maxpkts_
 	set maxpkts_ [expr $maxpkts_ + $opts(web-page-size)]
-	$self start
-# advance crashes the simulator,
-# see <file:///~/NOTES/199706/970611#* VINT/ns/bugs>
-#	$self advance $opts(web-page-size)
-	# puts "$self fire to $maxpkts_"
+	$self produce $maxpkts_
 }
 
 TestScale instproc init_connections {} {
@@ -219,7 +215,7 @@ TestScale instproc init_connections {} {
 			$tcp_($i) set rbp_rate_algorithm_ $opts(rbp-rate-algorithm)
 		}
 		$tcp_($i) set slow_start_restart_ $opts(server-tcp-slow-start-restart)
-		set ftp_($i) [$tcp_($i) attach-source FTP]
+		set ftp_($i) [$tcp_($i) attach-app FTP]
 		$ftp_($i) set maxpkts_ 0
 		# $ftp_($i) set experiment_matching_tcp_ $tcp_($i)
 		# $tcp_($i) set experiment_matching_ftp_ $ftp_($i)
