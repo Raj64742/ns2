@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.10 1998/05/19 02:26:46 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.11 1998/05/19 02:29:54 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -120,9 +120,6 @@ protected:
 	virtual void reconfigure();	// restore state after reset
 	int close();
 
-#ifdef notanymore
-static void getaddr(Socket, sockaddr_in*); // sock -> addr discovery
-#endif
 	time_t last_reset_;
 };
 
@@ -132,12 +129,6 @@ public:
 	int recv(u_char*, int, sockaddr&);
 	int open(int mode);			// mode only
 
-#ifdef notanymore
-int send_open(int, in_addr&, u_int16_t); 	// mode, port
-int recv_open(int, u_int16_t); // mode, port
-int openssock(in_addr& addr, u_int16_t port);
-int openrsock(in_addr& addr, u_int16_t port, sockaddr_in& local);
-#endif
 	int command(int argc, const char*const* argv);
 	void reconfigure();
 protected:
@@ -178,129 +169,6 @@ UDPIPNetwork::UDPIPNetwork() :
         port_(htons(0))
 {
 }
-
-#ifdef notanymore
-/*
- * open a datagram socket to be used for receiving things
- * specify the address/port # to bind it to.  Our local address
- * is returned in "local".  Set some options on the socket also:
- *	non blocking, reuseaddr, reuseport (if available).
- * Also, subscribe to mcast group if appropriate
- */
-
-Socket
-UDPIPNetwork::openrsock(in_addr& addr, u_int16_t port, sockaddr_in& local)
-{
-	Socket fd;
-
-	fd = ::socket(AF_INET, SOCK_DGRAM, 0);
-	if (fd < 0) {
-		fprintf(stderr,
-	"UDPIPNetwork(%s): openrsock: unable to open datagram socket: %s\n",
-			name(), strerror(errno));
-		return (-1);
-	}
-
-	nonblock(fd);
-	int on = 1;
-	if (::setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (char *)&on,
-			sizeof(on)) < 0) {
-		fprintf(stderr,
-	"UDPIPNetwork(%s): openrsock: warning: unable set REUSEADDR: %s\n",
-			name(), strerror(errno));
-	}
-#ifdef SO_REUSEPORT
-	on = 1;
-	if (::setsockopt(fd, SOL_SOCKET, SO_REUSEPORT, (char *)&on,
-		       sizeof(on)) < 0) {
-		fprintf(stderr,
-	"UDPIPNetwork(%s): openrsock: warning: unable set REUSEPORT: %s\n",
-			name(), strerror(errno));
-	}
-#endif
-#ifdef IP_ADD_MEMBERSHIP
-	if (IN_CLASSD(ntohl(addr.s_addr))) {
-		(void)add_membership(fd, addr);
-	} else
-#endif
-	{
-		/*
-		 * bind the local host's address to this socket.  If that
-		 * fails, another process probably has the addresses bound so
-		 * just exit.
-		 */
-		sockaddr_in sin;
-		if (bindsock(fd, local.sin_addr, port, sin) < 0) {
-			port = ntohs(port);
-			fprintf(stderr,
-	"UDPIPNetwork(%s): openrsock: unable to bind %s [port:%hu]: %s\n",
-				name(), inet_ntoa(local.sin_addr),
-				port, strerror(errno));
-		}
-		/*
-		 * MS Windows currently doesn't compy with the Internet Host
-		 * Requirements standard (RFC-1122) and won't let us include
-		 * the source address in the receive socket demux state.
-		 */
-#ifndef WIN32
-		/*
-		 * (try to) connect the foreign host's address to this socket.
-		 */
-		connectsock(fd, addr, 0, sin);
-#endif
-	}
-	/*
-	 * XXX don't need this for the session socket.
-	 */	
-	if (rbufsize(fd, 80*1024) < 0) {
-		if (rbufsize(fd, 32*1024) < 0) {
-			fprintf(stderr,
-	"UDPIPNetwork(%s): openrsock: unable to set r bufsize to 32KB: %s\n",
-				name(), strerror(errno));
-		}
-	}
-	return (fd);
-}
-
-/*
- * open a datagram socket to be used for sending things
- * specify the address/port # to connect it to.
- * Set some options on the socket also:
- *	non blocking
- */
-
-Socket
-UDPIPNetwork::openssock(in_addr& addr, u_short port)
-{
-	Socket fd = ::socket(AF_INET, SOCK_DGRAM, 0);
-	if (fd < 0) {
-		perror("socket");
-		return (-1);
-	}
-
-	nonblock(fd);
-
-	struct sockaddr_in sin;
-	static struct in_addr any = { INADDR_ANY };
-#ifdef WIN32
-	bindsock(fd, any, 0, sin);
-#endif
-	connectsock(fd, addr, port, sin);
-
-	int firsttry = 80 * 1024;
-	int secondtry = 48 * 1024;
-
-	if (sbufsize(fd, firsttry) < 0) {
-		if (sbufsize(fd, secondtry) < 0) {
-			fprintf(stderr,
-	  "UDPIPNetwork(%s): warning: cannot set send sockbuf size to %d bytes, using default\n",
-			name(), secondtry);
-		}
-	}
-	return (fd);
-}
-
-#endif
 
 /*
  * UDPIP::send -- send "len" bytes in buffer "buf" out the sending
@@ -475,66 +343,6 @@ UDPIPNetwork::open(int mode)
 	return (0);
 }
 
-
-#ifdef notanymore
-//
-// open the sending side (open for writing)
-//	port is assumed to be in NETWORK order
-//
-int
-UDPIPNetwork::send_open(int mode, in_addr& addr, u_int16_t port)
-{
-	if (mode == O_RDONLY) {
-		fprintf(stderr,
-"UDPIPNetwork(%s): open: warning: changing read-only mode to read-write\n",
-			name());
-		mode = O_RDWR;
-	}
-	mode_ = mode;
-	ssock_ = openssock(addr, port);
-	if (ssock_ < 0) {
-		mode_ = -1;
-		return (-1);
-	}
-	destaddr_ = addr;
-	port_ = port;	// network order
-
-	last_reset_ = 0;
-	return (0);
-}
-
-//
-// open the server/receiver side
-//	port is assumed to be in NETWORK order
-//
-int
-UDPIPNetwork::recv_open(int mode, u_int16_t port)
-{
-	Socket fd;
-	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
-		perror("socket");
-		return (-1);
-	}
-	rsock_ = fd;
-	mode_ = mode;	// well, sort of
-
-	localaddr_.s_addr = INADDR_ANY;
-	port_ = port;	// network order
-	mttl_ = 0;
-	struct sockaddr_in saddr;
-	if (bindsock(fd, localaddr_, port, saddr) < 0) {
-		port = ntohs(port);
-		fprintf(stderr,
-	"UDPIPNetwork(%s): open: unable to bind %s [port:%hu]: %s\n",
-			name(), inet_ntoa(localaddr_),
-			port, strerror(errno));
-		return (-1);
-	}
-	last_reset_ = 0;
-	return (0);
-}
-#endif
-
 //
 // server-side bind (or mcast subscription)
 //
@@ -663,34 +471,6 @@ UDPIPNetwork::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	}
-
-#ifdef notanymore
-// $obj open <mode> <port>
-if (strcmp(argv[1], "open") == 0) {
-	int mode = parsemode(argv[2]);
-	u_int16_t port = htons(atoi(argv[3]));
-	if (open(mode, port) < 0)
-		tcl.result("0");
-	else
-		tcl.result("1");
-	return (TCL_OK);
-}
-} else if (argc == 6) {
-	// $obj open <mode> <addr> <port> <ttl>
-	if (strcmp(argv[1], "open") == 0) {
-		in_addr addr;
-		addr.s_addr = LookupHostAddr(argv[3]);
-		u_int16_t port = htons(atoi(argv[4]));
-		int mode = parsemode(argv[2]);
-		int ttl = atoi(argv[5]);
-		if (open(mode, addr, port, ttl) < 0)
-			tcl.result("0");
-		else
-			tcl.result("1");
-		return (TCL_OK);
-	}
-}
-#endif
 	return (IPNetwork::command(argc, argv));
 }
 
@@ -1044,80 +824,6 @@ IPNetwork::setmloop(Socket s, int loop)
 	loop_ = c;
 	return (0);
 }
-
-#ifdef notdef
-	rsock_ = openrsock(destaddr_, port_, local);
-	if (rsock_ < 0) {
-		if (ssock_ >= 0)
-			(void)::close(ssock_);
-		return (-1);
-	}
-	// add_membership() adds READ to mode
-	if (mode_ == O_WRONLY) {
-		fprintf(stderr,
-"UDPIPNetwork(%s): add_membership: writeonly mode changed to readwrite\n",
-			name());
-		mode_ = O_RDWR;
-	}
-	localaddr_ = local.sin_addr;
-
-#if defined(sun) && defined(__svr4__)
-	/*
-	 * gethostname on solaris prior to 2.6 always returns 0 for
-	 * udp sockets.  do a horrible kluge that often fails on
-	 * multihomed hosts to get the local address (we don't use
-	 * this to open the recv sock, only for the 'interface'
-	 * tcl command).
-	 */
-	if (localaddr_ == 0) {
-		char myhostname[1024];
-		int error;
-
-		error = sysinfo(SI_HOSTNAME, myhostname, sizeof(myhostname));
-		if (error == -1) {
-			perror("Getting my hostname");
-			exit(-1);
-		}
-		local_ = LookupHostAddr(myhostname);
-	}
-#endif
-	lport_ = local.sin_port;
-
-	return (0);
-}
-#endif
-
-#ifdef notanymore
-/*
- * get the address for the specified socket [not used!]
- */
-
-void
-IPNetwork::getaddr(Socket s, sockaddr_in* p)
-{
-	memset((char *)p, 0, sizeof(*p));
-	p->sin_family = AF_INET;
-	int len = sizeof(*p);
-	if (::getsockname(s, (struct sockaddr *)p, &len) < 0) {
-		perror("getsockname");
-		p->sin_addr.s_addr = 0;
-		p->sin_port = 0;
-	}
-#ifdef WIN32
-	if (p->sin_addr.s_addr == 0) {
-		char hostname[80];
-		struct hostent *hp;
-
-		if (::gethostname(hostname, sizeof(hostname)) >= 0) {
-			if ((hp = ::gethostbyname(hostname)) >= 0) {
-				p->sin_addr.s_addr = ((struct in_addr *)hp->h_addr)->s_addr;
-			}
-		}
-	}
-#endif	
-	return;
-}
-#endif
 
 void
 IPNetwork::reset(int restart)
