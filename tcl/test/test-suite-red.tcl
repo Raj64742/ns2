@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.9 1997/11/01 01:58:02 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.10 1997/11/01 02:10:33 kfall Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -416,9 +416,14 @@ TestSuite instproc unforcedmakeawk { } {
         set awkCode {
             {
                 if ($2 != prev) {
-                        print " "; print "\"flow " $2; print 100.0 * $9/$13, 100.0 * $10 / $14; prev = $2
-                } else
+                        print " "; print "\"flow " $2;
+			if ($13 > 0 && $14 > 0) {
+			    print 100.0 * $9/$13, 100.0 * $10 / $14
+			}
+			prev = $2;
+                } else if ($13 > 0 && $14 > 0) {
                         print 100.0 * $9 / $13, 100.0 * $10 / $14
+		}
             }
         }
         return $awkCode
@@ -434,9 +439,14 @@ TestSuite instproc forcedmakeawk { } {
             BEGIN { print "\"flow 0" }
             {
                 if ($2 != prev) {
-                        print " "; print "\"flow " $2; print 100.0 * $9/$13, 100.0 * ($19 - $11) / ($17 - $15); prev = $2
-                } else
+                        print " "; print "\"flow " $2;
+			if ($13 > 0 && ($17 - $15) > 0) {
+				print 100.0 * $9/$13, 100.0 * ($19 - $11) / ($17 - $15);
+			}
+			prev = $2;
+                } else if ($13 > 0 && ($17 - $15) > 0) {
                         print 100.0 * $9 / $13, 100.0 * ($19 - $11) / ($17 - $15)
+		}
             }
         }
         return $awkCode
@@ -553,7 +563,7 @@ TestSuite instproc dumpflows interval {
     if { $awkprocedure_ == "unforcedmakeawk" } {
 	set pcnt [$r1fm_ set epdrops_]
     } elseif { $awkprocedure_ == "forcedmakeawk" } {
-	set pcnt [expr [$r1fm_ set pdrops_] - [$r1fm_ epdrops]]
+	set pcnt [expr [$r1fm_ set pdrops_] - [$r1fm_ set epdrops_]]
     } elseif { $awkprocedure_ == "combined" } {
 	set pcnt [$r1fm_ set pdrops_]
     } else {
@@ -580,7 +590,7 @@ Test/flows-unforced instproc init topo {
     $self instvar net_ defNet_ test_
     set net_    $topo   
     set defNet_ net2
-    set test_   flows
+    set test_   flows_unforced
     $self next 0; # zero here means don't product all.tr
 }   
 
@@ -592,6 +602,47 @@ Test/flows-unforced instproc run {} {
         set stoptime 500.0
 	set testName_ test_flows_unforced
 	set awkprocedure_ unforcedmakeawk
+	set dump_pthresh_ 100
+
+	[$ns_ link $node_(r1) $node_(r2)] set mean_pktsize 1000
+	[$ns_ link $node_(r2) $node_(r1)] set mean_pktsize 1000
+	[$ns_ link $node_(r1) $node_(r2)] set linterm 10
+	[$ns_ link $node_(r2) $node_(r1)] set linterm 10
+	[$ns_ link $node_(r1) $node_(r2)] set queue-limit 100
+	[$ns_ link $node_(r2) $node_(r1)] set queue-limit 100
+
+	$self create_flowstats 
+	$self dumpflows 10.0
+
+	[$ns_ link $node_(r1) $node_(r2)] set bytes true
+	[$ns_ link $node_(r1) $node_(r2)] set wait false
+
+        $self new_tcp 1.0 $node_(s1) $node_(s3) 100 1 1 1000
+	$self new_tcp 1.2 $node_(s2) $node_(s4) 100 2 1 50
+	$self new_cbr 1.4 $node_(s1) $node_(s4) 190 0.003 3
+
+	$ns_ at $stoptime "$self finish_flows $testName_"
+
+	$ns_ run
+}
+
+Class Test/flows-forced -superclass TestSuite
+Test/flows-forced instproc init topo {
+    $self instvar net_ defNet_ test_
+    set net_    $topo   
+    set defNet_ net2
+    set test_   flows_forced
+    $self next 0; # zero here means don't product all.tr
+}   
+
+Test/flows-forced instproc run {} {
+
+	$self instvar ns_ node_ testName_ r1fm_ awkprocedure_
+	$self instvar dump_pthresh_
+ 
+        set stoptime 500.0
+	set testName_ test_flows_forced
+	set awkprocedure_ forcedmakeawk
 	set dump_pthresh_ 100
 
 	[$ns_ link $node_(r1) $node_(r2)] set mean_pktsize 1000
