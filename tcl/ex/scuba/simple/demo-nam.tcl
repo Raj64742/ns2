@@ -26,7 +26,7 @@ proc nam_config {net} {
 		{ 7 6 right-down }
 	}
 
-	makelinks $net 400kb 50ms {
+	makelinks $net 400Kb 50ms {
 		{ 3 7 right }
 	}
 
