@@ -1,6 +1,6 @@
 (Validation can take 1-30 hours to run.)
 *** ./test-all-simple
-Tests: tahoe1 tahoe1Bytes tahoe1RED tahoe1REDbytes tahoe2 tahoe3 tahoe3RED tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers manyflows stats statsECN stats1 stats1Bytes stats1a stats1aBytes statsHeaders stats2
+Tests: tahoe1 tahoe1Bytes tahoe1RED tahoe1REDbytes tahoe2 tahoe3 tahoe3RED tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 reno5_nobug telnet delayed phase phase1 phase2 timers manyflows stats statsECN stats1 stats1Bytes stats1a stats1aBytes statsHeaders stats2 stats3 stats4
 Running test tahoe1:
 ../../ns test-suite-simple.tcl tahoe1 QUIET
 True average queue: 0.425 time: 4.997
@@ -59,6 +59,9 @@ Test output agrees with reference output
 Running test reno5:
 ../../ns test-suite-simple.tcl reno5 QUIET
 Test output agrees with reference output
+Running test reno5_nobug:
+../../ns test-suite-simple.tcl reno5_nobug QUIET
+Test output agrees with reference output
 Running test telnet:
 ../../ns test-suite-simple.tcl telnet QUIET
 Test output agrees with reference output
@@ -92,8 +95,10 @@ tcp0/time=10/cwnd=11.4952/ssthresh=10/ack=328/rtt=3
 tcp1/time=10.000019999999999/cwnd=2.0000/ssthresh=7/ack=87/rtt=7
 tcp 0 highest_seqment_acked 336
 tcp 0 data_bytes_sent 375000
+tcp 0 most_recent_rtt 0.200
 tcp 1 highest_seqment_acked 87
 tcp 1 data_bytes_sent 108000
+tcp 1 most_recent_rtt 0.700
 fid: 0 per-link total_drops 13
 fid: 0 per-link total_marks 0
 fid: 0 per-link total_packets 360
@@ -127,8 +132,10 @@ ftp 0 segments_produced 9 (using `FTP produce pktcnt')
 ftp 1 bytes_produced 900 (using `FTP send nbytes')
 tcp 0 highest_seqment_acked 9
 tcp 0 data_bytes_sent 900
+tcp 0 most_recent_rtt 0.200
 tcp 1 highest_seqment_acked 9
 tcp 1 data_bytes_sent 900
+tcp 1 most_recent_rtt 0.600
 fid: 0 per-link total_drops 0
 fid: 0 per-link total_marks 0
 fid: 0 per-link total_packets 10
@@ -149,8 +156,10 @@ ftp 0 segments_produced 9 (using `FTP produce pktcnt')
 ftp 1 bytes_produced 900 (using `FTP send nbytes')
 tcp 0 highest_seqment_acked 9
 tcp 0 data_bytes_sent 900
+tcp 0 most_recent_rtt 0.200
 tcp 1 highest_seqment_acked 9
 tcp 1 data_bytes_sent 900
+tcp 1 most_recent_rtt 0.600
 fid: 0 per-link total_drops 0
 fid: 0 per-link total_marks 0
 fid: 0 per-link total_packets 10
@@ -171,8 +180,10 @@ ftp 0 segments_produced 9 (using `FTP produce pktcnt')
 ftp 1 bytes_produced 900 (using `FTP send nbytes')
 tcp 0 highest_seqment_acked 9
 tcp 0 data_bytes_sent 900
+tcp 0 most_recent_rtt 0.200
 tcp 1 highest_seqment_acked 9
 tcp 1 data_bytes_sent 900
+tcp 1 most_recent_rtt 0.600
 fid: 0 per-link total_drops 0
 fid: 0 per-link total_marks 0
 fid: 0 per-link total_packets 10
@@ -193,8 +204,10 @@ ftp 0 segments_produced 9 (using `FTP produce pktcnt')
 ftp 1 bytes_produced 900 (using `FTP send nbytes')
 tcp 0 highest_seqment_acked 9
 tcp 0 data_bytes_sent 900
+tcp 0 most_recent_rtt 0.200
 tcp 1 highest_seqment_acked 9
 tcp 1 data_bytes_sent 900
+tcp 1 most_recent_rtt 0.600
 fid: 0 per-link total_drops 0
 fid: 0 per-link total_marks 0
 fid: 0 per-link total_packets 10
@@ -215,8 +228,10 @@ ftp 0 segments_produced 9 (using `FTP produce pktcnt')
 ftp 1 bytes_produced 900 (using `FTP send nbytes')
 tcp 0 highest_seqment_acked 9
 tcp 0 data_bytes_sent 900
+tcp 0 most_recent_rtt 0.200
 tcp 1 highest_seqment_acked 9
 tcp 1 data_bytes_sent 900
+tcp 1 most_recent_rtt 0.600
 fid: 0 per-link total_drops 0
 fid: 0 per-link total_marks 0
 fid: 0 per-link total_packets 10
@@ -233,6 +248,534 @@ Test output agrees with reference output
 Running test stats2:
 ../../ns test-suite-simple.tcl stats2 QUIET
 True average queue: 8.422 time: 9.999
+Test output agrees with reference output
+Running test stats3:
+../../ns test-suite-simple.tcl stats3 QUIET
+Distribution of RTTs, 10 ms bins, time 1.10
+0 to 10 ms: frac 0.004 num 2 time 1.10
+20 to 30 ms: frac 0.404 num 206 time 1.10
+30 to 40 ms: frac 0.408 num 208 time 1.10
+80 to 90 ms: frac 0.125 num 64 time 1.10
+90 to 100 ms: frac 0.059 num 30 time 1.10
+Distribution of Seqnos, 100 seqnos per bin, time 1.10
+0 to 99 seqnos: frac 0.382 num 195 time 1.10
+100 to 199 seqnos: frac 0.196 num 100 time 1.10
+200 to 299 seqnos: frac 0.196 num 100 time 1.10
+300 to 399 seqnos: frac 0.196 num 100 time 1.10
+400 to 499 seqnos: frac 0.029 num 15 time 1.10
+Test output agrees with reference output
+Running test stats4:
+../../ns test-suite-simple.tcl stats4 QUIET
+time: 0.50 fid: 0 new_bytes 174040
+time: 0.50 fid: 1 new_bytes 24040
+time: 0.60 fid: 0 new_bytes 40000
+time: 0.60 fid: 1 new_bytes 10000
+time: 0.70 fid: 0 new_bytes 40000
+time: 0.70 fid: 1 new_bytes 10000
+time: 0.80 fid: 0 new_bytes 40000
+time: 0.80 fid: 1 new_bytes 14000
+time: 0.90 fid: 0 new_bytes 40000
+time: 0.90 fid: 1 new_bytes 16000
+time: 1.00 fid: 0 new_bytes 40000
+time: 1.00 fid: 1 new_bytes 10000
+time: 1.10 fid: 0 new_bytes 40000
+time: 1.10 fid: 1 new_bytes 10000
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-tcp
+Tests: ecn timers timersA timersAfix timersA1 timersA2 timersA3 timers1 timers2 timers3 timers4 timers5 stats1 quiescent_100ms quiescentB quiescentB_qoption underutilized_100ms underutilized_100ms_control underutilized_100ms_control_Q underutilized_100ms_Q underutilized_100ms_control_Reno underutilized_100ms_control_Newreno underutilized_100ms_control_Sack quiescent_100ms_fine quiescent_100ms_coarse quiescent_1ms_fine quiescent_1ms_coarse quiescent_500ms_fine quiescent_500ms_coarse dialup dialup1
+Running test ecn:
+../../ns test-suite-tcp.tcl ecn QUIET
+Test output agrees with reference output
+Running test timers:
+../../ns test-suite-tcp.tcl timers QUIET
+Test output agrees with reference output
+Running test timersA:
+../../ns test-suite-tcp.tcl timersA QUIET
+Test output agrees with reference output
+Running test timersAfix:
+../../ns test-suite-tcp.tcl timersAfix QUIET
+Test output agrees with reference output
+Running test timersA1:
+../../ns test-suite-tcp.tcl timersA1 QUIET
+Test output agrees with reference output
+Running test timersA2:
+../../ns test-suite-tcp.tcl timersA2 QUIET
+Test output agrees with reference output
+Running test timersA3:
+../../ns test-suite-tcp.tcl timersA3 QUIET
+Test output agrees with reference output
+Running test timers1:
+../../ns test-suite-tcp.tcl timers1 QUIET
+Test output agrees with reference output
+Running test timers2:
+../../ns test-suite-tcp.tcl timers2 QUIET
+Test output agrees with reference output
+Running test timers3:
+../../ns test-suite-tcp.tcl timers3 QUIET
+Test output agrees with reference output
+Running test timers4:
+../../ns test-suite-tcp.tcl timers4 QUIET
+Test output agrees with reference output
+Running test timers5:
+../../ns test-suite-tcp.tcl timers5 QUIET
+Test output agrees with reference output
+Running test stats1:
+../../ns test-suite-tcp.tcl stats1 QUIET
+tcp1/window=30/packetSize=1000/bugFix=1
+tcp2/window=3/packetSize=1000/bugFix=1
+tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
+tcp2/time=0/cwnd=1.0000/ssthresh=3/ack=-1/rtt=0
+
+tcp: 1 time: 10.0
+total_data_packets_sent: 541 data_bytes_sent: 541000
+packets_resent: 10 bytes_resent: 10000
+ack_packets_received: 507
+retransmit_timeouts: 1
+
+tcp: 2 time: 10.0
+total_data_packets_sent: 42 data_bytes_sent: 42000
+packets_resent: 0 bytes_resent: 0
+ack_packets_received: 39
+retransmit_timeouts: 0
+
+tcp1/time=10/cwnd=29.8405/ssthresh=7/ack=501/rtt=3
+tcp2/time=10/cwnd=9.1730/ssthresh=3/ack=38/rtt=7
+Test output agrees with reference output
+Running test quiescent_100ms:
+../../ns test-suite-tcp.tcl quiescent_100ms QUIET
+Test output agrees with reference output
+Running test quiescentB:
+../../ns test-suite-tcp.tcl quiescentB QUIET
+Test output agrees with reference output
+Running test quiescentB_qoption:
+../../ns test-suite-tcp.tcl quiescentB_qoption QUIET
+Test output agrees with reference output
+Running test underutilized_100ms:
+../../ns test-suite-tcp.tcl underutilized_100ms QUIET
+Test output agrees with reference output
+Running test underutilized_100ms_control:
+../../ns test-suite-tcp.tcl underutilized_100ms_control QUIET
+Test output agrees with reference output
+Running test underutilized_100ms_control_Q:
+../../ns test-suite-tcp.tcl underutilized_100ms_control_Q QUIET
+Test output agrees with reference output
+Running test underutilized_100ms_Q:
+../../ns test-suite-tcp.tcl underutilized_100ms_Q QUIET
+Test output agrees with reference output
+Running test underutilized_100ms_control_Reno:
+../../ns test-suite-tcp.tcl underutilized_100ms_control_Reno QUIET
+Test output agrees with reference output
+Running test underutilized_100ms_control_Newreno:
+../../ns test-suite-tcp.tcl underutilized_100ms_control_Newreno QUIET
+Test output agrees with reference output
+Running test underutilized_100ms_control_Sack:
+../../ns test-suite-tcp.tcl underutilized_100ms_control_Sack QUIET
+Test output agrees with reference output
+Running test quiescent_100ms_fine:
+../../ns test-suite-tcp.tcl quiescent_100ms_fine QUIET
+Test output agrees with reference output
+Running test quiescent_100ms_coarse:
+../../ns test-suite-tcp.tcl quiescent_100ms_coarse QUIET
+Test output agrees with reference output
+Running test quiescent_1ms_fine:
+../../ns test-suite-tcp.tcl quiescent_1ms_fine QUIET
+Test output agrees with reference output
+Running test quiescent_1ms_coarse:
+../../ns test-suite-tcp.tcl quiescent_1ms_coarse QUIET
+Test output agrees with reference output
+Running test quiescent_500ms_fine:
+../../ns test-suite-tcp.tcl quiescent_500ms_fine QUIET
+Test output agrees with reference output
+Running test quiescent_500ms_coarse:
+../../ns test-suite-tcp.tcl quiescent_500ms_coarse QUIET
+Test output agrees with reference output
+Running test dialup:
+../../ns test-suite-tcp.tcl dialup QUIET
+Test output agrees with reference output
+Running test dialup1:
+../../ns test-suite-tcp.tcl dialup1 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-testReno
+Tests: Tahoe_TCP Tahoe_TCP_without_Fast_Retransmit Reno_TCP NewReno_TCP Sack_TCP Tahoe_TCP2 Tahoe_TCP2_without_Fast_Retransmit Reno_TCP2 NewReno_TCP2 Sack_TCP2
+Running test Tahoe_TCP:
+../../ns test-suite-testReno.tcl Tahoe_TCP QUIET
+Test output agrees with reference output
+Running test Tahoe_TCP_without_Fast_Retransmit:
+../../ns test-suite-testReno.tcl Tahoe_TCP_without_Fast_Retransmit QUIET
+Test output agrees with reference output
+Running test Reno_TCP:
+../../ns test-suite-testReno.tcl Reno_TCP QUIET
+Test output agrees with reference output
+Running test NewReno_TCP:
+../../ns test-suite-testReno.tcl NewReno_TCP QUIET
+Test output agrees with reference output
+Running test Sack_TCP:
+../../ns test-suite-testReno.tcl Sack_TCP QUIET
+Test output agrees with reference output
+Running test Tahoe_TCP2:
+../../ns test-suite-testReno.tcl Tahoe_TCP2 QUIET
+Test output agrees with reference output
+Running test Tahoe_TCP2_without_Fast_Retransmit:
+../../ns test-suite-testReno.tcl Tahoe_TCP2_without_Fast_Retransmit QUIET
+Test output agrees with reference output
+Running test Reno_TCP2:
+../../ns test-suite-testReno.tcl Reno_TCP2 QUIET
+Test output agrees with reference output
+Running test NewReno_TCP2:
+../../ns test-suite-testReno.tcl NewReno_TCP2 QUIET
+Test output agrees with reference output
+Running test Sack_TCP2:
+../../ns test-suite-testReno.tcl Sack_TCP2 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-newreno
+Tests: reno reno_noLT newreno newreno_noLT newreno_B newreno_B_noLT reno1 newreno1 newreno1_BF newreno1_A newreno1_A_noLT newreno1_A_BF newreno1_A_BF_LC newreno1_B0 newreno1_B newreno1_B_BF newreno1_B_BF_LC newreno1_B_noLT newreno1A_A newreno1A_A_BF newreno1A_A_BF_LC newreno1A_A_noLT reno2 reno2_noLT reno2_bugfix reno2_bugfix_noLT newreno2_A newreno2_A_noLT newreno2_A_bugfix newreno2_A_bugfix_LC newreno2_B newreno2_B_noLT newreno2_B_bugfix newreno2_B_bugfix_LC newreno5 sack5 newreno5_LC newreno5_noLT newreno5_noLT_LC newreno5_noBF newreno5_noLT_noBF reno5 reno5_noBF reno5_noLT_noBF reno5a reno5a_noLT_noBF newreno6
+Running test reno:
+../../ns test-suite-newreno.tcl reno QUIET
+Test output agrees with reference output
+Running test reno_noLT:
+../../ns test-suite-newreno.tcl reno_noLT QUIET
+Test output agrees with reference output
+Running test newreno:
+../../ns test-suite-newreno.tcl newreno QUIET
+Test output agrees with reference output
+Running test newreno_noLT:
+../../ns test-suite-newreno.tcl newreno_noLT QUIET
+Test output agrees with reference output
+Running test newreno_B:
+../../ns test-suite-newreno.tcl newreno_B QUIET
+Test output agrees with reference output
+Running test newreno_B_noLT:
+../../ns test-suite-newreno.tcl newreno_B_noLT QUIET
+Test output agrees with reference output
+Running test reno1:
+../../ns test-suite-newreno.tcl reno1 QUIET
+Test output agrees with reference output
+Running test newreno1:
+../../ns test-suite-newreno.tcl newreno1 QUIET
+Test output agrees with reference output
+Running test newreno1_BF:
+../../ns test-suite-newreno.tcl newreno1_BF QUIET
+Test output agrees with reference output
+Running test newreno1_A:
+../../ns test-suite-newreno.tcl newreno1_A QUIET
+Test output agrees with reference output
+Running test newreno1_A_noLT:
+../../ns test-suite-newreno.tcl newreno1_A_noLT QUIET
+Test output agrees with reference output
+Running test newreno1_A_BF:
+../../ns test-suite-newreno.tcl newreno1_A_BF QUIET
+Test output agrees with reference output
+Running test newreno1_A_BF_LC:
+../../ns test-suite-newreno.tcl newreno1_A_BF_LC QUIET
+Test output agrees with reference output
+Running test newreno1_B0:
+../../ns test-suite-newreno.tcl newreno1_B0 QUIET
+Test output agrees with reference output
+Running test newreno1_B:
+../../ns test-suite-newreno.tcl newreno1_B QUIET
+Test output agrees with reference output
+Running test newreno1_B_BF:
+../../ns test-suite-newreno.tcl newreno1_B_BF QUIET
+Test output agrees with reference output
+Running test newreno1_B_BF_LC:
+../../ns test-suite-newreno.tcl newreno1_B_BF_LC QUIET
+Test output agrees with reference output
+Running test newreno1_B_noLT:
+../../ns test-suite-newreno.tcl newreno1_B_noLT QUIET
+Test output agrees with reference output
+Running test newreno1A_A:
+../../ns test-suite-newreno.tcl newreno1A_A QUIET
+Test output agrees with reference output
+Running test newreno1A_A_BF:
+../../ns test-suite-newreno.tcl newreno1A_A_BF QUIET
+Test output agrees with reference output
+Running test newreno1A_A_BF_LC:
+../../ns test-suite-newreno.tcl newreno1A_A_BF_LC QUIET
+Test output agrees with reference output
+Running test newreno1A_A_noLT:
+../../ns test-suite-newreno.tcl newreno1A_A_noLT QUIET
+Test output agrees with reference output
+Running test reno2:
+../../ns test-suite-newreno.tcl reno2 QUIET
+Test output agrees with reference output
+Running test reno2_noLT:
+../../ns test-suite-newreno.tcl reno2_noLT QUIET
+Test output agrees with reference output
+Running test reno2_bugfix:
+../../ns test-suite-newreno.tcl reno2_bugfix QUIET
+Test output agrees with reference output
+Running test reno2_bugfix_noLT:
+../../ns test-suite-newreno.tcl reno2_bugfix_noLT QUIET
+Test output agrees with reference output
+Running test newreno2_A:
+../../ns test-suite-newreno.tcl newreno2_A QUIET
+Test output agrees with reference output
+Running test newreno2_A_noLT:
+../../ns test-suite-newreno.tcl newreno2_A_noLT QUIET
+Test output agrees with reference output
+Running test newreno2_A_bugfix:
+../../ns test-suite-newreno.tcl newreno2_A_bugfix QUIET
+Test output agrees with reference output
+Running test newreno2_A_bugfix_LC:
+../../ns test-suite-newreno.tcl newreno2_A_bugfix_LC QUIET
+Test output agrees with reference output
+Running test newreno2_B:
+../../ns test-suite-newreno.tcl newreno2_B QUIET
+Test output agrees with reference output
+Running test newreno2_B_noLT:
+../../ns test-suite-newreno.tcl newreno2_B_noLT QUIET
+Test output agrees with reference output
+Running test newreno2_B_bugfix:
+../../ns test-suite-newreno.tcl newreno2_B_bugfix QUIET
+Test output agrees with reference output
+Running test newreno2_B_bugfix_LC:
+../../ns test-suite-newreno.tcl newreno2_B_bugfix_LC QUIET
+Test output agrees with reference output
+Running test newreno5:
+../../ns test-suite-newreno.tcl newreno5 QUIET
+Test output agrees with reference output
+Running test sack5:
+../../ns test-suite-newreno.tcl sack5 QUIET
+Test output agrees with reference output
+Running test newreno5_LC:
+../../ns test-suite-newreno.tcl newreno5_LC QUIET
+Test output agrees with reference output
+Running test newreno5_noLT:
+../../ns test-suite-newreno.tcl newreno5_noLT QUIET
+Test output agrees with reference output
+Running test newreno5_noLT_LC:
+../../ns test-suite-newreno.tcl newreno5_noLT_LC QUIET
+Test output agrees with reference output
+Running test newreno5_noBF:
+../../ns test-suite-newreno.tcl newreno5_noBF QUIET
+Test output agrees with reference output
+Running test newreno5_noLT_noBF:
+../../ns test-suite-newreno.tcl newreno5_noLT_noBF QUIET
+Test output agrees with reference output
+Running test reno5:
+../../ns test-suite-newreno.tcl reno5 QUIET
+Test output agrees with reference output
+Running test reno5_noBF:
+../../ns test-suite-newreno.tcl reno5_noBF QUIET
+Test output agrees with reference output
+Running test reno5_noLT_noBF:
+../../ns test-suite-newreno.tcl reno5_noLT_noBF QUIET
+Test output agrees with reference output
+Running test reno5a:
+../../ns test-suite-newreno.tcl reno5a QUIET
+Test output agrees with reference output
+Running test reno5a_noLT_noBF:
+../../ns test-suite-newreno.tcl reno5a_noLT_noBF QUIET
+Test output agrees with reference output
+Running test newreno6:
+../../ns test-suite-newreno.tcl newreno6 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-sack
+Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a FalsePipe FalsePipe1 sack_dupacks sack_dupacks1
+Running test sack1:
+../../ns test-suite-sack.tcl sack1 QUIET
+Test output agrees with reference output
+Running test sack1z:
+../../ns test-suite-sack.tcl sack1z QUIET
+Test output agrees with reference output
+Running test sack1a:
+../../ns test-suite-sack.tcl sack1a QUIET
+Test output agrees with reference output
+Running test sack1aa:
+../../ns test-suite-sack.tcl sack1aa QUIET
+Test output agrees with reference output
+Running test sack1b:
+../../ns test-suite-sack.tcl sack1b QUIET
+Test output agrees with reference output
+Running test sack1c:
+../../ns test-suite-sack.tcl sack1c QUIET
+Test output agrees with reference output
+Running test sack3:
+../../ns test-suite-sack.tcl sack3 QUIET
+Test output agrees with reference output
+Running test sack5:
+../../ns test-suite-sack.tcl sack5 QUIET
+Test output agrees with reference output
+Running test sack5a:
+../../ns test-suite-sack.tcl sack5a QUIET
+Test output agrees with reference output
+Running test sackB2:
+../../ns test-suite-sack.tcl sackB2 QUIET
+Test output agrees with reference output
+Running test sackB4:
+../../ns test-suite-sack.tcl sackB4 QUIET
+Test output agrees with reference output
+Running test sackB4a:
+../../ns test-suite-sack.tcl sackB4a QUIET
+Test output agrees with reference output
+Running test FalsePipe:
+../../ns test-suite-sack.tcl FalsePipe QUIET
+Test output agrees with reference output
+Running test FalsePipe1:
+../../ns test-suite-sack.tcl FalsePipe1 QUIET
+Test output agrees with reference output
+Running test sack_dupacks:
+../../ns test-suite-sack.tcl sack_dupacks QUIET
+Test output agrees with reference output
+Running test sack_dupacks1:
+../../ns test-suite-sack.tcl sack_dupacks1 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-tcpOptions
+Tests: onedrop_tahoe onedrop_numdup4_tahoe onedrop_tahoe_full onedrop_numdup4_tahoe_full onedrop_reno onedrop_numdup4_reno onedrop_reno_full onedrop_numdup4_reno_full onedrop_newreno onedrop_numdup4_newreno onedrop_newreno_full onedrop_numdup4_newreno_full onedrop_sack onedrop_numdup4_sack maxburst_tahoe maxburst_tahoe1 maxburst_reno maxburst_reno1 maxburst_newreno maxburst_newreno1 maxburst_sack maxburst_sack1 timeouts_tahoe timeouts_tahoe1 timeouts_tahoe2 timeouts_tahoe3 timeouts_reno timeouts_reno1 timeouts_reno2 timeouts_reno3 timeouts_newreno timeouts_newreno1 timeouts_newreno2 timeouts_newreno3 timeouts_sack timeouts_sack1 timeouts_sack2 timeouts_sack3 timeoutsA_tahoe timeoutsA_tahoe1
+Running test onedrop_tahoe:
+../../ns test-suite-tcpOptions.tcl onedrop_tahoe QUIET
+Test output agrees with reference output
+Running test onedrop_numdup4_tahoe:
+../../ns test-suite-tcpOptions.tcl onedrop_numdup4_tahoe QUIET
+Test output agrees with reference output
+Running test onedrop_tahoe_full:
+../../ns test-suite-tcpOptions.tcl onedrop_tahoe_full QUIET
+Test output agrees with reference output
+Running test onedrop_numdup4_tahoe_full:
+../../ns test-suite-tcpOptions.tcl onedrop_numdup4_tahoe_full QUIET
+Test output agrees with reference output
+Running test onedrop_reno:
+../../ns test-suite-tcpOptions.tcl onedrop_reno QUIET
+Test output agrees with reference output
+Running test onedrop_numdup4_reno:
+../../ns test-suite-tcpOptions.tcl onedrop_numdup4_reno QUIET
+Test output agrees with reference output
+Running test onedrop_reno_full:
+../../ns test-suite-tcpOptions.tcl onedrop_reno_full QUIET
+Test output agrees with reference output
+Running test onedrop_numdup4_reno_full:
+../../ns test-suite-tcpOptions.tcl onedrop_numdup4_reno_full QUIET
+Test output agrees with reference output
+Running test onedrop_newreno:
+../../ns test-suite-tcpOptions.tcl onedrop_newreno QUIET
+Test output agrees with reference output
+Running test onedrop_numdup4_newreno:
+../../ns test-suite-tcpOptions.tcl onedrop_numdup4_newreno QUIET
+Test output agrees with reference output
+Running test onedrop_newreno_full:
+../../ns test-suite-tcpOptions.tcl onedrop_newreno_full QUIET
+Test output agrees with reference output
+Running test onedrop_numdup4_newreno_full:
+../../ns test-suite-tcpOptions.tcl onedrop_numdup4_newreno_full QUIET
+Test output agrees with reference output
+Running test onedrop_sack:
+../../ns test-suite-tcpOptions.tcl onedrop_sack QUIET
+Test output agrees with reference output
+Running test onedrop_numdup4_sack:
+../../ns test-suite-tcpOptions.tcl onedrop_numdup4_sack QUIET
+Test output agrees with reference output
+Running test maxburst_tahoe:
+../../ns test-suite-tcpOptions.tcl maxburst_tahoe QUIET
+Test output agrees with reference output
+Running test maxburst_tahoe1:
+../../ns test-suite-tcpOptions.tcl maxburst_tahoe1 QUIET
+Test output agrees with reference output
+Running test maxburst_reno:
+../../ns test-suite-tcpOptions.tcl maxburst_reno QUIET
+Test output agrees with reference output
+Running test maxburst_reno1:
+../../ns test-suite-tcpOptions.tcl maxburst_reno1 QUIET
+Test output agrees with reference output
+Running test maxburst_newreno:
+../../ns test-suite-tcpOptions.tcl maxburst_newreno QUIET
+Test output agrees with reference output
+Running test maxburst_newreno1:
+../../ns test-suite-tcpOptions.tcl maxburst_newreno1 QUIET
+Test output agrees with reference output
+Running test maxburst_sack:
+../../ns test-suite-tcpOptions.tcl maxburst_sack QUIET
+Test output agrees with reference output
+Running test maxburst_sack1:
+../../ns test-suite-tcpOptions.tcl maxburst_sack1 QUIET
+Test output agrees with reference output
+Running test timeouts_tahoe:
+../../ns test-suite-tcpOptions.tcl timeouts_tahoe QUIET
+Test output agrees with reference output
+Running test timeouts_tahoe1:
+../../ns test-suite-tcpOptions.tcl timeouts_tahoe1 QUIET
+Test output agrees with reference output
+Running test timeouts_tahoe2:
+../../ns test-suite-tcpOptions.tcl timeouts_tahoe2 QUIET
+Test output agrees with reference output
+Running test timeouts_tahoe3:
+../../ns test-suite-tcpOptions.tcl timeouts_tahoe3 QUIET
+Test output agrees with reference output
+Running test timeouts_reno:
+../../ns test-suite-tcpOptions.tcl timeouts_reno QUIET
+Test output agrees with reference output
+Running test timeouts_reno1:
+../../ns test-suite-tcpOptions.tcl timeouts_reno1 QUIET
+Test output agrees with reference output
+Running test timeouts_reno2:
+../../ns test-suite-tcpOptions.tcl timeouts_reno2 QUIET
+Test output agrees with reference output
+Running test timeouts_reno3:
+../../ns test-suite-tcpOptions.tcl timeouts_reno3 QUIET
+Test output agrees with reference output
+Running test timeouts_newreno:
+../../ns test-suite-tcpOptions.tcl timeouts_newreno QUIET
+Test output agrees with reference output
+Running test timeouts_newreno1:
+../../ns test-suite-tcpOptions.tcl timeouts_newreno1 QUIET
+Test output agrees with reference output
+Running test timeouts_newreno2:
+../../ns test-suite-tcpOptions.tcl timeouts_newreno2 QUIET
+Test output agrees with reference output
+Running test timeouts_newreno3:
+../../ns test-suite-tcpOptions.tcl timeouts_newreno3 QUIET
+Test output agrees with reference output
+Running test timeouts_sack:
+../../ns test-suite-tcpOptions.tcl timeouts_sack QUIET
+Test output agrees with reference output
+Running test timeouts_sack1:
+../../ns test-suite-tcpOptions.tcl timeouts_sack1 QUIET
+Test output agrees with reference output
+Running test timeouts_sack2:
+../../ns test-suite-tcpOptions.tcl timeouts_sack2 QUIET
+Test output agrees with reference output
+Running test timeouts_sack3:
+../../ns test-suite-tcpOptions.tcl timeouts_sack3 QUIET
+Test output agrees with reference output
+Running test timeoutsA_tahoe:
+../../ns test-suite-tcpOptions.tcl timeoutsA_tahoe QUIET
+Test output agrees with reference output
+Running test timeoutsA_tahoe1:
+../../ns test-suite-tcpOptions.tcl timeoutsA_tahoe1 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-tcpReset
+Tests: reset resetDelAck resetDelAck1 reset1 resetDelAck2 resetDelAck3 resetNewreno resetSack1 resetReno
+Running test reset:
+../../ns test-suite-tcpReset.tcl reset QUIET
+Test output agrees with reference output
+Running test resetDelAck:
+../../ns test-suite-tcpReset.tcl resetDelAck QUIET
+Test output agrees with reference output
+Running test resetDelAck1:
+../../ns test-suite-tcpReset.tcl resetDelAck1 QUIET
+Test output agrees with reference output
+Running test reset1:
+../../ns test-suite-tcpReset.tcl reset1 QUIET
+Test output agrees with reference output
+Running test resetDelAck2:
+../../ns test-suite-tcpReset.tcl resetDelAck2 QUIET
+Test output agrees with reference output
+Running test resetDelAck3:
+../../ns test-suite-tcpReset.tcl resetDelAck3 QUIET
+Test output agrees with reference output
+Running test resetNewreno:
+../../ns test-suite-tcpReset.tcl resetNewreno QUIET
+Test output agrees with reference output
+Running test resetSack1:
+../../ns test-suite-tcpReset.tcl resetSack1 QUIET
+Test output agrees with reference output
+Running test resetReno:
+../../ns test-suite-tcpReset.tcl resetReno QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-simple-full
@@ -317,905 +860,537 @@ aggregate per-link total_drops 0
 aggregate per-link total_packets 16
 Test output agrees with reference output
 All test output agrees with reference output.
-*** ./test-all-tcp
-Tests: ecn timers timersA timersAfix timersA1 timersA2 timersA3 timers1 timers2 timers3 timers4 timers5 stats1 quiescent_100ms quiescentB quiescentB_qoption underutilized_100ms underutilized_100ms_control underutilized_100ms_control_Q underutilized_100ms_Q underutilized_100ms_control_Reno underutilized_100ms_control_Newreno underutilized_100ms_control_Sack quiescent_100ms_fine quiescent_100ms_coarse quiescent_1ms_fine quiescent_1ms_coarse quiescent_500ms_fine quiescent_500ms_coarse dialup dialup1
-Running test ecn:
-../../ns test-suite-tcp.tcl ecn QUIET
-time: 11:32:34
-Test output agrees with reference output
-Running test timers:
-../../ns test-suite-tcp.tcl timers QUIET
-time: 11:32:37
-Test output agrees with reference output
-Running test timersA:
-../../ns test-suite-tcp.tcl timersA QUIET
-time: 11:32:40
-Test output agrees with reference output
-Running test timersAfix:
-../../ns test-suite-tcp.tcl timersAfix QUIET
-time: 11:32:42
-Test output agrees with reference output
-Running test timersA1:
-../../ns test-suite-tcp.tcl timersA1 QUIET
-time: 11:32:43
-Test output agrees with reference output
-Running test timersA2:
-../../ns test-suite-tcp.tcl timersA2 QUIET
-time: 11:32:45
-Test output agrees with reference output
-Running test timersA3:
-../../ns test-suite-tcp.tcl timersA3 QUIET
-time: 11:32:47
-Test output agrees with reference output
-Running test timers1:
-../../ns test-suite-tcp.tcl timers1 QUIET
-time: 11:32:49
-Test output agrees with reference output
-Running test timers2:
-../../ns test-suite-tcp.tcl timers2 QUIET
-time: 11:32:51
-Test output agrees with reference output
-Running test timers3:
-../../ns test-suite-tcp.tcl timers3 QUIET
-time: 11:32:53
-Test output agrees with reference output
-Running test timers4:
-../../ns test-suite-tcp.tcl timers4 QUIET
-time: 11:32:54
-Test output agrees with reference output
-Running test timers5:
-../../ns test-suite-tcp.tcl timers5 QUIET
-time: 11:32:56
-Test output agrees with reference output
-Running test stats1:
-../../ns test-suite-tcp.tcl stats1 QUIET
-tcp1/window=30/packetSize=1000/bugFix=1
-tcp2/window=3/packetSize=1000/bugFix=1
-tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
-tcp2/time=0/cwnd=1.0000/ssthresh=3/ack=-1/rtt=0
-
-tcp: 1 time: 10.0
-total_data_packets_sent: 541 data_bytes_sent: 541000
-packets_resent: 10 bytes_resent: 10000
-ack_packets_received: 507
-retransmit_timeouts: 1
-
-tcp: 2 time: 10.0
-total_data_packets_sent: 42 data_bytes_sent: 42000
-packets_resent: 0 bytes_resent: 0
-ack_packets_received: 39
-retransmit_timeouts: 0
-
-tcp1/time=10/cwnd=29.8405/ssthresh=7/ack=501/rtt=3
-tcp2/time=10/cwnd=9.1730/ssthresh=3/ack=38/rtt=7
-time: 11:32:58
-Test output agrees with reference output
-Running test quiescent_100ms:
-../../ns test-suite-tcp.tcl quiescent_100ms QUIET
-time: 11:33:01
-Test output agrees with reference output
-Running test quiescentB:
-../../ns test-suite-tcp.tcl quiescentB QUIET
-time: 11:33:03
-Test output agrees with reference output
-Running test quiescentB_qoption:
-../../ns test-suite-tcp.tcl quiescentB_qoption QUIET
-time: 11:33:05
-Test output agrees with reference output
-Running test underutilized_100ms:
-../../ns test-suite-tcp.tcl underutilized_100ms QUIET
-time: 11:33:07
-Test output agrees with reference output
-Running test underutilized_100ms_control:
-../../ns test-suite-tcp.tcl underutilized_100ms_control QUIET
-time: 11:33:09
-Test output agrees with reference output
-Running test underutilized_100ms_control_Q:
-../../ns test-suite-tcp.tcl underutilized_100ms_control_Q QUIET
-time: 11:33:11
-Test output agrees with reference output
-Running test underutilized_100ms_Q:
-../../ns test-suite-tcp.tcl underutilized_100ms_Q QUIET
-time: 11:33:13
-Test output agrees with reference output
-Running test underutilized_100ms_control_Reno:
-../../ns test-suite-tcp.tcl underutilized_100ms_control_Reno QUIET
-time: 11:33:15
-Test output agrees with reference output
-Running test underutilized_100ms_control_Newreno:
-../../ns test-suite-tcp.tcl underutilized_100ms_control_Newreno QUIET
-time: 11:33:17
-Test output agrees with reference output
-Running test underutilized_100ms_control_Sack:
-../../ns test-suite-tcp.tcl underutilized_100ms_control_Sack QUIET
-time: 11:33:19
-Test output agrees with reference output
-Running test quiescent_100ms_fine:
-../../ns test-suite-tcp.tcl quiescent_100ms_fine QUIET
-time: 11:33:22
-Test output agrees with reference output
-Running test quiescent_100ms_coarse:
-../../ns test-suite-tcp.tcl quiescent_100ms_coarse QUIET
-time: 11:33:23
-Test output agrees with reference output
-Running test quiescent_1ms_fine:
-../../ns test-suite-tcp.tcl quiescent_1ms_fine QUIET
-time: 11:33:25
-Test output agrees with reference output
-Running test quiescent_1ms_coarse:
-../../ns test-suite-tcp.tcl quiescent_1ms_coarse QUIET
-time: 11:33:27
-Test output agrees with reference output
-Running test quiescent_500ms_fine:
-../../ns test-suite-tcp.tcl quiescent_500ms_fine QUIET
-time: 11:33:29
-Test output agrees with reference output
-Running test quiescent_500ms_coarse:
-../../ns test-suite-tcp.tcl quiescent_500ms_coarse QUIET
-time: 11:33:31
-Test output agrees with reference output
-Running test dialup:
-../../ns test-suite-tcp.tcl dialup QUIET
-time: 11:33:32
-Test output agrees with reference output
-Running test dialup1:
-../../ns test-suite-tcp.tcl dialup1 QUIET
-time: 11:33:34
-Test output agrees with reference output
-All test output agrees with reference output.
-*** ./test-all-testReno
-Tests: Tahoe_TCP Tahoe_TCP_without_Fast_Retransmit Reno_TCP NewReno_TCP Sack_TCP Tahoe_TCP2 Tahoe_TCP2_without_Fast_Retransmit Reno_TCP2 NewReno_TCP2 Sack_TCP2
-Running test Tahoe_TCP:
-../../ns test-suite-testReno.tcl Tahoe_TCP QUIET
-time: 11:33:36
-Test output agrees with reference output
-Running test Tahoe_TCP_without_Fast_Retransmit:
-../../ns test-suite-testReno.tcl Tahoe_TCP_without_Fast_Retransmit QUIET
-time: 11:33:37
-Test output agrees with reference output
-Running test Reno_TCP:
-../../ns test-suite-testReno.tcl Reno_TCP QUIET
-time: 11:33:39
-Test output agrees with reference output
-Running test NewReno_TCP:
-../../ns test-suite-testReno.tcl NewReno_TCP QUIET
-time: 11:33:40
-Test output agrees with reference output
-Running test Sack_TCP:
-../../ns test-suite-testReno.tcl Sack_TCP QUIET
-time: 11:33:42
-Test output agrees with reference output
-Running test Tahoe_TCP2:
-../../ns test-suite-testReno.tcl Tahoe_TCP2 QUIET
-time: 11:33:43
-Test output agrees with reference output
-Running test Tahoe_TCP2_without_Fast_Retransmit:
-../../ns test-suite-testReno.tcl Tahoe_TCP2_without_Fast_Retransmit QUIET
-time: 11:33:45
-Test output agrees with reference output
-Running test Reno_TCP2:
-../../ns test-suite-testReno.tcl Reno_TCP2 QUIET
-time: 11:33:46
-Test output agrees with reference output
-Running test NewReno_TCP2:
-../../ns test-suite-testReno.tcl NewReno_TCP2 QUIET
-time: 11:33:47
-Test output agrees with reference output
-Running test Sack_TCP2:
-../../ns test-suite-testReno.tcl Sack_TCP2 QUIET
-time: 11:33:49
-Test output agrees with reference output
-All test output agrees with reference output.
-*** ./test-all-newreno
-Tests: reno newreno newreno_B reno1 newreno1 newreno1_A newreno1_B0 newreno1_B reno2 reno2_bugfix newreno2_A newreno2_A_bugfix newreno2_B newreno2_B_bugfix
-Running test reno:
-../../ns test-suite-newreno.tcl reno QUIET
-time: 11:33:51
-Test output agrees with reference output
-Running test newreno:
-../../ns test-suite-newreno.tcl newreno QUIET
-time: 11:33:52
-Test output agrees with reference output
-Running test newreno_B:
-../../ns test-suite-newreno.tcl newreno_B QUIET
-time: 11:33:54
-Test output agrees with reference output
-Running test reno1:
-../../ns test-suite-newreno.tcl reno1 QUIET
-time: 11:33:56
-Test output agrees with reference output
-Running test newreno1:
-../../ns test-suite-newreno.tcl newreno1 QUIET
-time: 11:33:57
-Test output agrees with reference output
-Running test newreno1_A:
-../../ns test-suite-newreno.tcl newreno1_A QUIET
-time: 11:33:59
-Test output agrees with reference output
-Running test newreno1_B0:
-../../ns test-suite-newreno.tcl newreno1_B0 QUIET
-time: 11:34:00
-Test output agrees with reference output
-Running test newreno1_B:
-../../ns test-suite-newreno.tcl newreno1_B QUIET
-time: 11:34:02
-Test output agrees with reference output
-Running test reno2:
-../../ns test-suite-newreno.tcl reno2 QUIET
-time: 11:34:04
-Test output agrees with reference output
-Running test reno2_bugfix:
-../../ns test-suite-newreno.tcl reno2_bugfix QUIET
-time: 11:34:05
-Test output agrees with reference output
-Running test newreno2_A:
-../../ns test-suite-newreno.tcl newreno2_A QUIET
-time: 11:34:07
-Test output agrees with reference output
-Running test newreno2_A_bugfix:
-../../ns test-suite-newreno.tcl newreno2_A_bugfix QUIET
-time: 11:34:08
-Test output agrees with reference output
-Running test newreno2_B:
-../../ns test-suite-newreno.tcl newreno2_B QUIET
-time: 11:34:10
-Test output agrees with reference output
-Running test newreno2_B_bugfix:
-../../ns test-suite-newreno.tcl newreno2_B_bugfix QUIET
-time: 11:34:12
-Test output agrees with reference output
-All test output agrees with reference output.
-*** ./test-all-sack
-Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a FalsePipe FalsePipe1
-Running test sack1:
-../../ns test-suite-sack.tcl sack1 QUIET
-time: 11:34:13
-Test output agrees with reference output
-Running test sack1z:
-../../ns test-suite-sack.tcl sack1z QUIET
-time: 11:34:15
-Test output agrees with reference output
-Running test sack1a:
-../../ns test-suite-sack.tcl sack1a QUIET
-time: 11:34:17
-Test output agrees with reference output
-Running test sack1aa:
-../../ns test-suite-sack.tcl sack1aa QUIET
-time: 11:34:18
-Test output agrees with reference output
-Running test sack1b:
-../../ns test-suite-sack.tcl sack1b QUIET
-time: 11:34:20
-Test output agrees with reference output
-Running test sack1c:
-../../ns test-suite-sack.tcl sack1c QUIET
-time: 11:34:22
-Test output agrees with reference output
-Running test sack3:
-../../ns test-suite-sack.tcl sack3 QUIET
-time: 11:34:24
-Test output agrees with reference output
-Running test sack5:
-../../ns test-suite-sack.tcl sack5 QUIET
-time: 11:34:25
-Test output agrees with reference output
-Running test sack5a:
-../../ns test-suite-sack.tcl sack5a QUIET
-time: 11:34:27
-Test output agrees with reference output
-Running test sackB2:
-../../ns test-suite-sack.tcl sackB2 QUIET
-time: 11:34:29
-Test output agrees with reference output
-Running test sackB4:
-../../ns test-suite-sack.tcl sackB4 QUIET
-time: 11:34:31
-Test output agrees with reference output
-Running test sackB4a:
-../../ns test-suite-sack.tcl sackB4a QUIET
-time: 11:34:33
-Test output agrees with reference output
-Running test FalsePipe:
-../../ns test-suite-sack.tcl FalsePipe QUIET
-time: 11:34:35
-Test output agrees with reference output
-Running test FalsePipe1:
-../../ns test-suite-sack.tcl FalsePipe1 QUIET
-time: 11:34:36
-Test output agrees with reference output
-All test output agrees with reference output.
-*** ./test-all-tcpOptions
-Tests: onedrop_tahoe onedrop_numdup4_tahoe onedrop_tahoe_full onedrop_numdup4_tahoe_full onedrop_reno onedrop_numdup4_reno onedrop_reno_full onedrop_numdup4_reno_full onedrop_newreno onedrop_numdup4_newreno onedrop_newreno_full onedrop_numdup4_newreno_full onedrop_sack onedrop_numdup4_sack
-Running test onedrop_tahoe:
-../../ns test-suite-tcpOptions.tcl onedrop_tahoe QUIET
-time: 11:34:38
-Test output agrees with reference output
-Running test onedrop_numdup4_tahoe:
-../../ns test-suite-tcpOptions.tcl onedrop_numdup4_tahoe QUIET
-time: 11:34:39
-Test output agrees with reference output
-Running test onedrop_tahoe_full:
-../../ns test-suite-tcpOptions.tcl onedrop_tahoe_full QUIET
-time: 11:34:41
-Test output agrees with reference output
-Running test onedrop_numdup4_tahoe_full:
-../../ns test-suite-tcpOptions.tcl onedrop_numdup4_tahoe_full QUIET
-time: 11:34:42
-Test output agrees with reference output
-Running test onedrop_reno:
-../../ns test-suite-tcpOptions.tcl onedrop_reno QUIET
-time: 11:34:44
-Test output agrees with reference output
-Running test onedrop_numdup4_reno:
-../../ns test-suite-tcpOptions.tcl onedrop_numdup4_reno QUIET
-time: 11:34:46
-Test output agrees with reference output
-Running test onedrop_reno_full:
-../../ns test-suite-tcpOptions.tcl onedrop_reno_full QUIET
-time: 11:34:47
-Test output agrees with reference output
-Running test onedrop_numdup4_reno_full:
-../../ns test-suite-tcpOptions.tcl onedrop_numdup4_reno_full QUIET
-time: 11:34:48
-Test output agrees with reference output
-Running test onedrop_newreno:
-../../ns test-suite-tcpOptions.tcl onedrop_newreno QUIET
-time: 11:34:50
-Test output agrees with reference output
-Running test onedrop_numdup4_newreno:
-../../ns test-suite-tcpOptions.tcl onedrop_numdup4_newreno QUIET
-time: 11:34:51
-Test output agrees with reference output
-Running test onedrop_newreno_full:
-../../ns test-suite-tcpOptions.tcl onedrop_newreno_full QUIET
-time: 11:34:53
-Test output agrees with reference output
-Running test onedrop_numdup4_newreno_full:
-../../ns test-suite-tcpOptions.tcl onedrop_numdup4_newreno_full QUIET
-time: 11:34:54
-Test output agrees with reference output
-Running test onedrop_sack:
-../../ns test-suite-tcpOptions.tcl onedrop_sack QUIET
-time: 11:34:56
-Test output agrees with reference output
-Running test onedrop_numdup4_sack:
-../../ns test-suite-tcpOptions.tcl onedrop_numdup4_sack QUIET
-time: 11:34:57
-Test output agrees with reference output
-All test output agrees with reference output.
 *** ./test-all-full
 Tests: full close twoway twoway1 twowayrandom delack iw=4 droppedsyn droppedfirstseg droppedsecondseg simul-open simul-close droppednearfin droppedlastseg droppedretransmit droppednearretransmit droppedfastrexmit ecn1 ecn2 droppedfin smallpkts telnet telnet2 SSR SSR2 tsopt winlimited
 Running test full:
 ../../ns test-suite-full.tcl full QUIET
-time: 11:34:59
-time: 11:34:59
 Test output agrees with reference output
 Running test close:
 ../../ns test-suite-full.tcl close QUIET
-time: 11:35:00
-time: 11:35:01
 Test output agrees with reference output
 Running test twoway:
 ../../ns test-suite-full.tcl twoway QUIET
-time: 11:35:02
-time: 11:35:02
 Test output agrees with reference output
 Running test twoway1:
 ../../ns test-suite-full.tcl twoway1 QUIET
-time: 11:35:04
-time: 11:35:04
 Test output agrees with reference output
 Running test twowayrandom:
 ../../ns test-suite-full.tcl twowayrandom QUIET
 second TCP starting at time 1
-time: 11:35:05
-time: 11:35:05
 Test output agrees with reference output
 Running test delack:
 ../../ns test-suite-full.tcl delack QUIET
-time: 11:35:07
-time: 11:35:07
 Test output agrees with reference output
 Running test iw=4:
 ../../ns test-suite-full.tcl iw=4 QUIET
-time: 11:35:09
-time: 11:35:09
 Test output agrees with reference output
 Running test droppedsyn:
 ../../ns test-suite-full.tcl droppedsyn QUIET
-time: 11:35:10
-time: 11:35:10
 Test output agrees with reference output
 Running test droppedfirstseg:
 ../../ns test-suite-full.tcl droppedfirstseg QUIET
-time: 11:35:12
-time: 11:35:12
 Test output agrees with reference output
 Running test droppedsecondseg:
 ../../ns test-suite-full.tcl droppedsecondseg QUIET
-time: 11:35:14
-time: 11:35:14
 Test output agrees with reference output
 Running test simul-open:
 ../../ns test-suite-full.tcl simul-open QUIET
-time: 11:35:15
-time: 11:35:16
 Test output agrees with reference output
 Running test simul-close:
 ../../ns test-suite-full.tcl simul-close QUIET
-time: 11:35:20
-time: 11:35:20
  [0:0.0>3.0] (hlen:40, dlen:0, seq:0, ack:-1, flags:0xa (<PSH,SYN>), salen:0, reason:0x0)
 Test output agrees with reference output
 Running test droppednearfin:
 ../../ns test-suite-full.tcl droppednearfin QUIET
-time: 11:35:22
-time: 11:35:22
 Test output agrees with reference output
 Running test droppedlastseg:
 ../../ns test-suite-full.tcl droppedlastseg QUIET
-time: 11:35:23
-time: 11:35:23
 Test output agrees with reference output
 Running test droppedretransmit:
 ../../ns test-suite-full.tcl droppedretransmit QUIET
-time: 11:35:24
-time: 11:35:25
 Test output agrees with reference output
 Running test droppednearretransmit:
 ../../ns test-suite-full.tcl droppednearretransmit QUIET
-time: 11:35:26
-time: 11:35:26
 Test output agrees with reference output
 Running test droppedfastrexmit:
 ../../ns test-suite-full.tcl droppedfastrexmit QUIET
-time: 11:35:28
-time: 11:35:28
 Test output agrees with reference output
 Running test ecn1:
 ../../ns test-suite-full.tcl ecn1 QUIET
-time: 11:35:29
-time: 11:35:29
 Test output agrees with reference output
 Running test ecn2:
 ../../ns test-suite-full.tcl ecn2 QUIET
-time: 11:35:31
-time: 11:35:31
 Test output agrees with reference output
 Running test droppedfin:
 ../../ns test-suite-full.tcl droppedfin QUIET
-time: 11:35:32
-time: 11:35:32
 Test output agrees with reference output
 Running test smallpkts:
 ../../ns test-suite-full.tcl smallpkts QUIET
-time: 11:35:34
-time: 11:35:34
 Test output agrees with reference output
 Running test telnet:
 ../../ns test-suite-full.tcl telnet QUIET
-time: 11:35:35
-time: 11:35:35
 Test output agrees with reference output
 Running test telnet2:
 ../../ns test-suite-full.tcl telnet2 QUIET
-time: 11:35:37
-time: 11:35:37
 Test output agrees with reference output
 Running test SSR:
 ../../ns test-suite-full.tcl SSR QUIET
-time: 11:35:38
-time: 11:35:38
 Test output agrees with reference output
 Running test SSR2:
 ../../ns test-suite-full.tcl SSR2 QUIET
-time: 11:35:40
-time: 11:35:40
 Test output agrees with reference output
 Running test tsopt:
 ../../ns test-suite-full.tcl tsopt QUIET
-time: 11:35:41
-time: 11:35:41
 Test output agrees with reference output
 Running test winlimited:
 ../../ns test-suite-full.tcl winlimited QUIET
-time: 11:35:43
-time: 11:35:43
 Test output agrees with reference output
 All test output agrees with reference output.
-*** ./test-all-tcpReset
-Tests: reset resetDelAck resetDelAck1 reset1 resetDelAck2 resetDelAck3 resetNewreno resetSack1 resetReno
-Running test reset:
-../../ns test-suite-tcpReset.tcl reset QUIET
-time: 11:35:44
+*** ./test-all-testReno-full
+Tests: Tahoe_FullTCP Reno_FullTCP Reno_BayFullTCP NewReno_FullTCP Tahoe_FullTCP2 Reno_FullTCP2 Reno_BayFullTCP2 NewReno_FullTCP2
+Running test Tahoe_FullTCP:
+../../ns test-suite-testReno-full.tcl Tahoe_FullTCP QUIET
 Test output agrees with reference output
-Running test resetDelAck:
-../../ns test-suite-tcpReset.tcl resetDelAck QUIET
-time: 11:35:46
+Running test Reno_FullTCP:
+../../ns test-suite-testReno-full.tcl Reno_FullTCP QUIET
 Test output agrees with reference output
-Running test resetDelAck1:
-../../ns test-suite-tcpReset.tcl resetDelAck1 QUIET
-time: 11:35:48
+Running test Reno_BayFullTCP:
+../../ns test-suite-testReno-full.tcl Reno_BayFullTCP QUIET
 Test output agrees with reference output
-Running test reset1:
-../../ns test-suite-tcpReset.tcl reset1 QUIET
-time: 11:35:49
+Running test NewReno_FullTCP:
+../../ns test-suite-testReno-full.tcl NewReno_FullTCP QUIET
 Test output agrees with reference output
-Running test resetDelAck2:
-../../ns test-suite-tcpReset.tcl resetDelAck2 QUIET
-time: 11:35:51
+Running test Tahoe_FullTCP2:
+../../ns test-suite-testReno-full.tcl Tahoe_FullTCP2 QUIET
 Test output agrees with reference output
-Running test resetDelAck3:
-../../ns test-suite-tcpReset.tcl resetDelAck3 QUIET
-time: 11:35:52
+Running test Reno_FullTCP2:
+../../ns test-suite-testReno-full.tcl Reno_FullTCP2 QUIET
 Test output agrees with reference output
-Running test resetNewreno:
-../../ns test-suite-tcpReset.tcl resetNewreno QUIET
-time: 11:35:54
+Running test Reno_BayFullTCP2:
+../../ns test-suite-testReno-full.tcl Reno_BayFullTCP2 QUIET
 Test output agrees with reference output
-Running test resetSack1:
-../../ns test-suite-tcpReset.tcl resetSack1 QUIET
-time: 11:35:56
+Running test NewReno_FullTCP2:
+../../ns test-suite-testReno-full.tcl NewReno_FullTCP2 QUIET
 Test output agrees with reference output
-Running test resetReno:
-../../ns test-suite-tcpReset.tcl resetReno QUIET
-time: 11:35:57
+All test output agrees with reference output.
+*** ./test-all-testReno-bayfull
+Tests: Reno_FullTCP Reno_FullTCP2
+Running test Reno_FullTCP:
+../../ns test-suite-testReno-bayfull.tcl Reno_FullTCP QUIET
+Test output agrees with reference output
+Running test Reno_FullTCP2:
+../../ns test-suite-testReno-bayfull.tcl Reno_FullTCP2 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-sack-full
+Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a
+Running test sack1:
+../../ns test-suite-sack-full.tcl sack1 QUIET
+Test output agrees with reference output
+Running test sack1z:
+../../ns test-suite-sack-full.tcl sack1z QUIET
+Test output agrees with reference output
+Running test sack1a:
+../../ns test-suite-sack-full.tcl sack1a QUIET
+Test output agrees with reference output
+Running test sack1aa:
+../../ns test-suite-sack-full.tcl sack1aa QUIET
+Test output agrees with reference output
+Running test sack1b:
+../../ns test-suite-sack-full.tcl sack1b QUIET
+Test output agrees with reference output
+Running test sack1c:
+../../ns test-suite-sack-full.tcl sack1c QUIET
+Test output agrees with reference output
+Running test sack3:
+../../ns test-suite-sack-full.tcl sack3 QUIET
+Test output agrees with reference output
+Running test sack5:
+../../ns test-suite-sack-full.tcl sack5 QUIET
+Test output agrees with reference output
+Running test sack5a:
+../../ns test-suite-sack-full.tcl sack5a QUIET
+Test output agrees with reference output
+Running test sackB2:
+../../ns test-suite-sack-full.tcl sackB2 QUIET
+Test output agrees with reference output
+Running test sackB4:
+../../ns test-suite-sack-full.tcl sackB4 QUIET
+Test output agrees with reference output
+Running test sackB4a:
+../../ns test-suite-sack-full.tcl sackB4a QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcp-init-win
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 reno1 reno2 reno3 reno4 newreno1 newreno2 newreno3 newreno4 sack1 sack2 sack3 sack4 slowLink slowLink1 slowLink2
 Running test tahoe1:
 ../../ns test-suite-tcp-init-win.tcl tahoe1 QUIET
-time: 11:35:59
 Test output agrees with reference output
 Running test tahoe2:
 ../../ns test-suite-tcp-init-win.tcl tahoe2 QUIET
-time: 11:36:00
 Test output agrees with reference output
 Running test tahoe3:
 ../../ns test-suite-tcp-init-win.tcl tahoe3 QUIET
-time: 11:36:02
 Test output agrees with reference output
 Running test tahoe4:
 ../../ns test-suite-tcp-init-win.tcl tahoe4 QUIET
-time: 11:36:04
 Test output agrees with reference output
 Running test reno1:
 ../../ns test-suite-tcp-init-win.tcl reno1 QUIET
-time: 11:36:05
 Test output agrees with reference output
 Running test reno2:
 ../../ns test-suite-tcp-init-win.tcl reno2 QUIET
-time: 11:36:07
 Test output agrees with reference output
 Running test reno3:
 ../../ns test-suite-tcp-init-win.tcl reno3 QUIET
-time: 11:36:09
 Test output agrees with reference output
 Running test reno4:
 ../../ns test-suite-tcp-init-win.tcl reno4 QUIET
-time: 11:36:11
 Test output agrees with reference output
 Running test newreno1:
 ../../ns test-suite-tcp-init-win.tcl newreno1 QUIET
-time: 11:36:13
 Test output agrees with reference output
 Running test newreno2:
 ../../ns test-suite-tcp-init-win.tcl newreno2 QUIET
-time: 11:36:14
 Test output agrees with reference output
 Running test newreno3:
 ../../ns test-suite-tcp-init-win.tcl newreno3 QUIET
-time: 11:36:16
 Test output agrees with reference output
 Running test newreno4:
 ../../ns test-suite-tcp-init-win.tcl newreno4 QUIET
-time: 11:36:18
 Test output agrees with reference output
 Running test sack1:
 ../../ns test-suite-tcp-init-win.tcl sack1 QUIET
-time: 11:36:19
 Test output agrees with reference output
 Running test sack2:
 ../../ns test-suite-tcp-init-win.tcl sack2 QUIET
-time: 11:36:21
 Test output agrees with reference output
 Running test sack3:
 ../../ns test-suite-tcp-init-win.tcl sack3 QUIET
-time: 11:36:23
 Test output agrees with reference output
 Running test sack4:
 ../../ns test-suite-tcp-init-win.tcl sack4 QUIET
-time: 11:36:25
 Test output agrees with reference output
 Running test slowLink:
 ../../ns test-suite-tcp-init-win.tcl slowLink QUIET
-time: 11:36:26
 Test output agrees with reference output
 Running test slowLink1:
 ../../ns test-suite-tcp-init-win.tcl slowLink1 QUIET
-time: 11:36:28
 Test output agrees with reference output
 Running test slowLink2:
 ../../ns test-suite-tcp-init-win.tcl slowLink2 QUIET
-time: 11:36:29
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcpVariants
-Tests: onedrop_tahoe onedrop_SA_tahoe onedrop_tahoe_full onedrop_reno onedrop_SA_reno onedrop_reno_full onedrop_newreno onedrop_SA_newreno onedrop_newreno_full onedrop_sack onedrop_SA_sack onedrop_fack onedrop_sackRH twodrops_tahoe twodrops_tahoe_full twodrops_reno twodrops_reno_full twodrops_newreno twodrops_newreno_full twodrops_sack twodrops_fack twodrops_sackRH threedrops_tahoe threedrops_tahoe_full threedrops_reno threedrops_reno_full threedrops_newreno threedrops_newreno_full threedrops_sack threedrops_fack threedrops_sackRH fourdrops_tahoe fourdrops_tahoe_full fourdrops_reno fourdrops_reno_full fourdrops_newreno fourdrops_newreno_full fourdrops_sack fourdrops_fack fourdrops_sackRH
+Tests: onedrop_tahoe onedrop_SA_tahoe onedrop_tahoe_full onedrop_reno onedrop_SA_reno onedrop_reno_full onedrop_newreno onedrop_SA_newreno onedrop_newreno_full onedrop_sack onedrop_SA_sack onedrop_sack_full onedrop_fack onedrop_sackRH twodrops_tahoe twodrops_SA_tahoe twodrops_tahoe_full twodrops_reno twodrops_SA_reno twodrops_reno_full twodrops_newreno twodrops_SA_newreno twodrops_newreno_full twodrops_sack twodrops_SA_sack twodrops_sack_full twodrops_fack twodrops_sackRH threedrops_tahoe threedrops_SA_tahoe threedrops_tahoe_full threedrops_reno threedrops_SA_reno threedrops_reno_full threedrops_newreno threedrops_SA_newreno threedrops_newreno_full threedrops_sack threedrops_SA_sack threedrops_sack_full threedrops_fack threedrops_sackRH fourdrops_tahoe fourdrops_SA_tahoe fourdrops_tahoe_full fourdrops_reno fourdrops_SA_reno fourdrops_reno_full fourdrops_newreno fourdrops_SA_newreno fourdrops_newreno_full fourdrops_sack fourdrops_SA_sack fourdrops_sack_full fourdrops_fack fourdrops_sackRH multiple_tahoe multiple_SA_tahoe multiple_reno multiple_SA_reno multiple_newreno multiple_SA_newreno multiple_sack multiple_SA_sack multiple_partial_ack_sack multiple2_tahoe multiple2_SA_tahoe multiple2_reno multiple2_SA_reno multiple2_newreno multiple2_SA_newreno multiple2_sack multiple2_SA_sack multiple2_partial_ack_sack
 Running test onedrop_tahoe:
 ../../ns test-suite-tcpVariants.tcl onedrop_tahoe QUIET
-time: 11:36:31
 Test output agrees with reference output
 Running test onedrop_SA_tahoe:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_tahoe QUIET
-time: 11:36:33
 Test output agrees with reference output
 Running test onedrop_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_tahoe_full QUIET
-time: 11:36:34
 Test output agrees with reference output
 Running test onedrop_reno:
 ../../ns test-suite-tcpVariants.tcl onedrop_reno QUIET
-time: 11:36:36
 Test output agrees with reference output
 Running test onedrop_SA_reno:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_reno QUIET
-time: 11:36:38
 Test output agrees with reference output
 Running test onedrop_reno_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_reno_full QUIET
-time: 11:36:40
 Test output agrees with reference output
 Running test onedrop_newreno:
 ../../ns test-suite-tcpVariants.tcl onedrop_newreno QUIET
-time: 11:36:42
 Test output agrees with reference output
 Running test onedrop_SA_newreno:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_newreno QUIET
-time: 11:36:43
 Test output agrees with reference output
 Running test onedrop_newreno_full:
 ../../ns test-suite-tcpVariants.tcl onedrop_newreno_full QUIET
-time: 11:36:45
 Test output agrees with reference output
 Running test onedrop_sack:
 ../../ns test-suite-tcpVariants.tcl onedrop_sack QUIET
-time: 11:36:47
 Test output agrees with reference output
 Running test onedrop_SA_sack:
 ../../ns test-suite-tcpVariants.tcl onedrop_SA_sack QUIET
-time: 11:36:49
+Test output agrees with reference output
+Running test onedrop_sack_full:
+../../ns test-suite-tcpVariants.tcl onedrop_sack_full QUIET
 Test output agrees with reference output
 Running test onedrop_fack:
 ../../ns test-suite-tcpVariants.tcl onedrop_fack QUIET
-time: 11:36:50
 Test output agrees with reference output
 Running test onedrop_sackRH:
 ../../ns test-suite-tcpVariants.tcl onedrop_sackRH QUIET
-time: 11:36:53
 Test output agrees with reference output
 Running test twodrops_tahoe:
 ../../ns test-suite-tcpVariants.tcl twodrops_tahoe QUIET
-time: 11:36:54
+Test output agrees with reference output
+Running test twodrops_SA_tahoe:
+../../ns test-suite-tcpVariants.tcl twodrops_SA_tahoe QUIET
 Test output agrees with reference output
 Running test twodrops_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_tahoe_full QUIET
-time: 11:36:56
 Test output agrees with reference output
 Running test twodrops_reno:
 ../../ns test-suite-tcpVariants.tcl twodrops_reno QUIET
-time: 11:36:58
+Test output agrees with reference output
+Running test twodrops_SA_reno:
+../../ns test-suite-tcpVariants.tcl twodrops_SA_reno QUIET
 Test output agrees with reference output
 Running test twodrops_reno_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_reno_full QUIET
-time: 11:37:00
 Test output agrees with reference output
 Running test twodrops_newreno:
 ../../ns test-suite-tcpVariants.tcl twodrops_newreno QUIET
-time: 11:37:01
+Test output agrees with reference output
+Running test twodrops_SA_newreno:
+../../ns test-suite-tcpVariants.tcl twodrops_SA_newreno QUIET
 Test output agrees with reference output
 Running test twodrops_newreno_full:
 ../../ns test-suite-tcpVariants.tcl twodrops_newreno_full QUIET
-time: 11:37:04
 Test output agrees with reference output
 Running test twodrops_sack:
 ../../ns test-suite-tcpVariants.tcl twodrops_sack QUIET
-time: 11:37:05
+Test output agrees with reference output
+Running test twodrops_SA_sack:
+../../ns test-suite-tcpVariants.tcl twodrops_SA_sack QUIET
+Test output agrees with reference output
+Running test twodrops_sack_full:
+../../ns test-suite-tcpVariants.tcl twodrops_sack_full QUIET
 Test output agrees with reference output
 Running test twodrops_fack:
 ../../ns test-suite-tcpVariants.tcl twodrops_fack QUIET
-time: 11:37:07
 Test output agrees with reference output
 Running test twodrops_sackRH:
 ../../ns test-suite-tcpVariants.tcl twodrops_sackRH QUIET
-time: 11:37:09
 Test output agrees with reference output
 Running test threedrops_tahoe:
 ../../ns test-suite-tcpVariants.tcl threedrops_tahoe QUIET
-time: 11:37:10
+Test output agrees with reference output
+Running test threedrops_SA_tahoe:
+../../ns test-suite-tcpVariants.tcl threedrops_SA_tahoe QUIET
 Test output agrees with reference output
 Running test threedrops_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_tahoe_full QUIET
-time: 11:37:12
 Test output agrees with reference output
 Running test threedrops_reno:
 ../../ns test-suite-tcpVariants.tcl threedrops_reno QUIET
-time: 11:37:14
+Test output agrees with reference output
+Running test threedrops_SA_reno:
+../../ns test-suite-tcpVariants.tcl threedrops_SA_reno QUIET
 Test output agrees with reference output
 Running test threedrops_reno_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_reno_full QUIET
-time: 11:37:16
 Test output agrees with reference output
 Running test threedrops_newreno:
 ../../ns test-suite-tcpVariants.tcl threedrops_newreno QUIET
-time: 11:37:17
+Test output agrees with reference output
+Running test threedrops_SA_newreno:
+../../ns test-suite-tcpVariants.tcl threedrops_SA_newreno QUIET
 Test output agrees with reference output
 Running test threedrops_newreno_full:
 ../../ns test-suite-tcpVariants.tcl threedrops_newreno_full QUIET
-time: 11:37:19
 Test output agrees with reference output
 Running test threedrops_sack:
 ../../ns test-suite-tcpVariants.tcl threedrops_sack QUIET
-time: 11:37:21
+Test output agrees with reference output
+Running test threedrops_SA_sack:
+../../ns test-suite-tcpVariants.tcl threedrops_SA_sack QUIET
+Test output agrees with reference output
+Running test threedrops_sack_full:
+../../ns test-suite-tcpVariants.tcl threedrops_sack_full QUIET
 Test output agrees with reference output
 Running test threedrops_fack:
 ../../ns test-suite-tcpVariants.tcl threedrops_fack QUIET
-time: 11:37:23
 Test output agrees with reference output
 Running test threedrops_sackRH:
 ../../ns test-suite-tcpVariants.tcl threedrops_sackRH QUIET
-time: 11:37:25
 Test output agrees with reference output
 Running test fourdrops_tahoe:
 ../../ns test-suite-tcpVariants.tcl fourdrops_tahoe QUIET
-time: 11:37:27
+Test output agrees with reference output
+Running test fourdrops_SA_tahoe:
+../../ns test-suite-tcpVariants.tcl fourdrops_SA_tahoe QUIET
 Test output agrees with reference output
 Running test fourdrops_tahoe_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_tahoe_full QUIET
-time: 11:37:29
 Test output agrees with reference output
 Running test fourdrops_reno:
 ../../ns test-suite-tcpVariants.tcl fourdrops_reno QUIET
-time: 11:37:30
+Test output agrees with reference output
+Running test fourdrops_SA_reno:
+../../ns test-suite-tcpVariants.tcl fourdrops_SA_reno QUIET
 Test output agrees with reference output
 Running test fourdrops_reno_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_reno_full QUIET
-time: 11:37:32
 Test output agrees with reference output
 Running test fourdrops_newreno:
 ../../ns test-suite-tcpVariants.tcl fourdrops_newreno QUIET
-time: 11:37:34
+Test output agrees with reference output
+Running test fourdrops_SA_newreno:
+../../ns test-suite-tcpVariants.tcl fourdrops_SA_newreno QUIET
 Test output agrees with reference output
 Running test fourdrops_newreno_full:
 ../../ns test-suite-tcpVariants.tcl fourdrops_newreno_full QUIET
-time: 11:37:36
 Test output agrees with reference output
 Running test fourdrops_sack:
 ../../ns test-suite-tcpVariants.tcl fourdrops_sack QUIET
-time: 11:37:37
+Test output agrees with reference output
+Running test fourdrops_SA_sack:
+../../ns test-suite-tcpVariants.tcl fourdrops_SA_sack QUIET
+Test output agrees with reference output
+Running test fourdrops_sack_full:
+../../ns test-suite-tcpVariants.tcl fourdrops_sack_full QUIET
 Test output agrees with reference output
 Running test fourdrops_fack:
 ../../ns test-suite-tcpVariants.tcl fourdrops_fack QUIET
-time: 11:37:39
 Test output agrees with reference output
 Running test fourdrops_sackRH:
 ../../ns test-suite-tcpVariants.tcl fourdrops_sackRH QUIET
-time: 11:37:41
+Test output agrees with reference output
+Running test multiple_tahoe:
+../../ns test-suite-tcpVariants.tcl multiple_tahoe QUIET
+Test output agrees with reference output
+Running test multiple_SA_tahoe:
+../../ns test-suite-tcpVariants.tcl multiple_SA_tahoe QUIET
+Test output agrees with reference output
+Running test multiple_reno:
+../../ns test-suite-tcpVariants.tcl multiple_reno QUIET
+Test output agrees with reference output
+Running test multiple_SA_reno:
+../../ns test-suite-tcpVariants.tcl multiple_SA_reno QUIET
+Test output agrees with reference output
+Running test multiple_newreno:
+../../ns test-suite-tcpVariants.tcl multiple_newreno QUIET
+Test output agrees with reference output
+Running test multiple_SA_newreno:
+../../ns test-suite-tcpVariants.tcl multiple_SA_newreno QUIET
+Test output agrees with reference output
+Running test multiple_sack:
+../../ns test-suite-tcpVariants.tcl multiple_sack QUIET
+Test output agrees with reference output
+Running test multiple_SA_sack:
+../../ns test-suite-tcpVariants.tcl multiple_SA_sack QUIET
+Test output agrees with reference output
+Running test multiple_partial_ack_sack:
+../../ns test-suite-tcpVariants.tcl multiple_partial_ack_sack QUIET
+Test output agrees with reference output
+Running test multiple2_tahoe:
+../../ns test-suite-tcpVariants.tcl multiple2_tahoe QUIET
+Test output agrees with reference output
+Running test multiple2_SA_tahoe:
+../../ns test-suite-tcpVariants.tcl multiple2_SA_tahoe QUIET
+Test output agrees with reference output
+Running test multiple2_reno:
+../../ns test-suite-tcpVariants.tcl multiple2_reno QUIET
+Test output agrees with reference output
+Running test multiple2_SA_reno:
+../../ns test-suite-tcpVariants.tcl multiple2_SA_reno QUIET
+Test output agrees with reference output
+Running test multiple2_newreno:
+../../ns test-suite-tcpVariants.tcl multiple2_newreno QUIET
+Test output agrees with reference output
+Running test multiple2_SA_newreno:
+../../ns test-suite-tcpVariants.tcl multiple2_SA_newreno QUIET
+Test output agrees with reference output
+Running test multiple2_sack:
+../../ns test-suite-tcpVariants.tcl multiple2_sack QUIET
+Test output agrees with reference output
+Running test multiple2_SA_sack:
+../../ns test-suite-tcpVariants.tcl multiple2_SA_sack QUIET
+Test output agrees with reference output
+Running test multiple2_partial_ack_sack:
+../../ns test-suite-tcpVariants.tcl multiple2_partial_ack_sack QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-LimTransmit
 Tests: onedrop_sack onedrop_SA_sack onedrop_ECN_sack nodrop_sack badtimeout notimeout badretransmit nobadretransmit
 Running test onedrop_sack:
 ../../ns test-suite-LimTransmit.tcl onedrop_sack QUIET
-time: 11:37:43
 Test output agrees with reference output
 Running test onedrop_SA_sack:
 ../../ns test-suite-LimTransmit.tcl onedrop_SA_sack QUIET
-time: 11:37:45
 Test output agrees with reference output
 Running test onedrop_ECN_sack:
 ../../ns test-suite-LimTransmit.tcl onedrop_ECN_sack QUIET
-time: 11:37:47
 Test output agrees with reference output
 Running test nodrop_sack:
 ../../ns test-suite-LimTransmit.tcl nodrop_sack QUIET
-time: 11:37:48
 Test output agrees with reference output
 Running test badtimeout:
 ../../ns test-suite-LimTransmit.tcl badtimeout QUIET
-time: 11:37:50
 Test output agrees with reference output
 Running test notimeout:
 ../../ns test-suite-LimTransmit.tcl notimeout QUIET
-time: 11:37:52
 Test output agrees with reference output
 Running test badretransmit:
 ../../ns test-suite-LimTransmit.tcl badretransmit QUIET
-time: 11:37:53
 Test output agrees with reference output
 Running test nobadretransmit:
 ../../ns test-suite-LimTransmit.tcl nobadretransmit QUIET
-time: 11:37:55
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-aimd
 Tests: tcp tcpA tcpA_precise tcpB ssthresh ssthreshA ssthresh_second ssthresh_secondA tcp_tahoe tcpA_tahoe tcpA_precise_tahoe tcp_reno tcpA_reno tcpA_precise_reno tcp_newreno tcpA_newreno tcpA_precise_newreno binomial1 binomial2
 Running test tcp:
 ../../ns test-suite-aimd.tcl tcp QUIET
-time: 11:37:58
 Test output agrees with reference output
 Running test tcpA:
 ../../ns test-suite-aimd.tcl tcpA QUIET
-time: 11:38:05
 Test output agrees with reference output
 Running test tcpA_precise:
 ../../ns test-suite-aimd.tcl tcpA_precise QUIET
-time: 11:38:11
 Test output agrees with reference output
 Running test tcpB:
 ../../ns test-suite-aimd.tcl tcpB QUIET
-time: 11:38:18
 Test output agrees with reference output
 Running test ssthresh:
 ../../ns test-suite-aimd.tcl ssthresh QUIET
-time: 11:38:22
 Test output agrees with reference output
 Running test ssthreshA:
 ../../ns test-suite-aimd.tcl ssthreshA QUIET
-time: 11:38:24
 Test output agrees with reference output
 Running test ssthresh_second:
 ../../ns test-suite-aimd.tcl ssthresh_second QUIET
-time: 11:38:26
 Test output agrees with reference output
 Running test ssthresh_secondA:
 ../../ns test-suite-aimd.tcl ssthresh_secondA QUIET
-time: 11:38:28
 Test output agrees with reference output
 Running test tcp_tahoe:
 ../../ns test-suite-aimd.tcl tcp_tahoe QUIET
-time: 11:38:31
 Test output agrees with reference output
 Running test tcpA_tahoe:
 ../../ns test-suite-aimd.tcl tcpA_tahoe QUIET
-time: 11:38:37
 Test output agrees with reference output
 Running test tcpA_precise_tahoe:
 ../../ns test-suite-aimd.tcl tcpA_precise_tahoe QUIET
-time: 11:38:43
 Test output agrees with reference output
 Running test tcp_reno:
 ../../ns test-suite-aimd.tcl tcp_reno QUIET
-time: 11:38:49
 Test output agrees with reference output
 Running test tcpA_reno:
 ../../ns test-suite-aimd.tcl tcpA_reno QUIET
-time: 11:38:55
 Test output agrees with reference output
 Running test tcpA_precise_reno:
 ../../ns test-suite-aimd.tcl tcpA_precise_reno QUIET
-time: 11:39:02
 Test output agrees with reference output
 Running test tcp_newreno:
 ../../ns test-suite-aimd.tcl tcp_newreno QUIET
-time: 11:39:07
 Test output agrees with reference output
 Running test tcpA_newreno:
 ../../ns test-suite-aimd.tcl tcpA_newreno QUIET
-time: 11:39:14
 Test output agrees with reference output
 Running test tcpA_precise_newreno:
 ../../ns test-suite-aimd.tcl tcpA_precise_newreno QUIET
-time: 11:39:20
 Test output agrees with reference output
 Running test binomial1:
 ../../ns test-suite-aimd.tcl binomial1 QUIET
-time: 11:39:27
 Test output agrees with reference output
 Running test binomial2:
 ../../ns test-suite-aimd.tcl binomial2 QUIET
-time: 11:39:32
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-greis
@@ -1250,70 +1425,54 @@ All test output agrees with reference output.
 Tests: rtt-jacobson rtt-rfc793 seqno-nofastrtx seqno-fastrtx rto-karn rto-nokarn jacobson88-noss jacobson88-ss
 Running test rtt-jacobson:
 ../../ns test-suite-rfc793edu.tcl rtt-jacobson QUIET
-time: 11:39:50
 Test output agrees with reference output
 Running test rtt-rfc793:
 ../../ns test-suite-rfc793edu.tcl rtt-rfc793 QUIET
-time: 11:39:51
 Test output agrees with reference output
 Running test seqno-nofastrtx:
 ../../ns test-suite-rfc793edu.tcl seqno-nofastrtx QUIET
-time: 11:39:53
 Test output agrees with reference output
 Running test seqno-fastrtx:
 ../../ns test-suite-rfc793edu.tcl seqno-fastrtx QUIET
-time: 11:39:55
 Test output agrees with reference output
 Running test rto-karn:
 ../../ns test-suite-rfc793edu.tcl rto-karn QUIET
-time: 11:39:56
 Test output agrees with reference output
 Running test rto-nokarn:
 ../../ns test-suite-rfc793edu.tcl rto-nokarn QUIET
-time: 11:39:58
 Test output agrees with reference output
 Running test jacobson88-noss:
 ../../ns test-suite-rfc793edu.tcl jacobson88-noss QUIET
-time: 11:40:00
 Test output agrees with reference output
 Running test jacobson88-ss:
 ../../ns test-suite-rfc793edu.tcl jacobson88-ss QUIET
-time: 11:40:02
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rfc2581
 Tests: immediateAck noImmediateAck immediateAckReno noImmediateAckReno immediateAckNewReno noImmediateAckNewReno immediateAckSack noImmediateAckSack
 Running test immediateAck:
 ../../ns test-suite-rfc2581.tcl immediateAck QUIET
-time: 11:40:06
 Test output agrees with reference output
 Running test noImmediateAck:
 ../../ns test-suite-rfc2581.tcl noImmediateAck QUIET
-time: 11:40:08
 Test output agrees with reference output
 Running test immediateAckReno:
 ../../ns test-suite-rfc2581.tcl immediateAckReno QUIET
-time: 11:40:09
 Test output agrees with reference output
 Running test noImmediateAckReno:
 ../../ns test-suite-rfc2581.tcl noImmediateAckReno QUIET
-time: 11:40:11
 Test output agrees with reference output
 Running test immediateAckNewReno:
 ../../ns test-suite-rfc2581.tcl immediateAckNewReno QUIET
-time: 11:40:12
 Test output agrees with reference output
 Running test noImmediateAckNewReno:
 ../../ns test-suite-rfc2581.tcl noImmediateAckNewReno QUIET
-time: 11:40:14
 Test output agrees with reference output
 Running test immediateAckSack:
 ../../ns test-suite-rfc2581.tcl immediateAckSack QUIET
-time: 11:40:15
 Test output agrees with reference output
 Running test noImmediateAckSack:
 ../../ns test-suite-rfc2581.tcl noImmediateAckSack QUIET
-time: 11:40:17
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rbp
@@ -1340,143 +1499,145 @@ Running test vegas_pacing_cwnd:
 ../../ns test-suite-rbp.tcl vegas_pacing_cwnd QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
+*** ./test-all-tcpHighspeed
+Tests: tcp tcpHighspeed tcp1 tcp1A tcpHighspeed1 tcpHighspeed2 tcpHighspeed3 tcpHighspeed4 tcpHighspeed5 tcpHighspeed6
+Running test tcp:
+../../ns test-suite-tcpHighspeed.tcl tcp QUIET
+Test output agrees with reference output
+Running test tcpHighspeed:
+../../ns test-suite-tcpHighspeed.tcl tcpHighspeed QUIET
+Test output agrees with reference output
+Running test tcp1:
+../../ns test-suite-tcpHighspeed.tcl tcp1 QUIET
+Test output agrees with reference output
+Running test tcp1A:
+../../ns test-suite-tcpHighspeed.tcl tcp1A QUIET
+Test output agrees with reference output
+Running test tcpHighspeed1:
+../../ns test-suite-tcpHighspeed.tcl tcpHighspeed1 QUIET
+Test output agrees with reference output
+Running test tcpHighspeed2:
+../../ns test-suite-tcpHighspeed.tcl tcpHighspeed2 QUIET
+Test output agrees with reference output
+Running test tcpHighspeed3:
+../../ns test-suite-tcpHighspeed.tcl tcpHighspeed3 QUIET
+Test output agrees with reference output
+Running test tcpHighspeed4:
+../../ns test-suite-tcpHighspeed.tcl tcpHighspeed4 QUIET
+Test output agrees with reference output
+Running test tcpHighspeed5:
+../../ns test-suite-tcpHighspeed.tcl tcpHighspeed5 QUIET
+Test output agrees with reference output
+Running test tcpHighspeed6:
+../../ns test-suite-tcpHighspeed.tcl tcpHighspeed6 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
 *** ./test-all-friendly
-Tests: slowStartDiscount slowStartDiscountCA smooth smoothCA slowStart slowStartCA slowStartEWMA slowStartFixed ecn slowStartTcp impulseDiscount impulseDiscountCA impulse impulseCA impulseMultReportDiscount impulseMultReportDiscountCA impulseMultReport impulseMultReportCA impulseTcp two-friendly two-friendlyCA OnlyTcp randomized randomizedCA randomized1 randomized1CA slow twoDrops manyDrops HighLoss HighLossConservative HighLossTCP TFRC_FTP printLosses
+Tests: slowStartDiscount slowStartDiscountCA smooth smoothCA slowStart slowStartCA slowStartEWMA slowStartFixed ecn slowStartTcp impulseDiscount impulseDiscountCA impulse impulseCA impulseMultReportDiscount impulseMultReportDiscountCA impulseMultReport impulseMultReportCA impulseTcp two-friendly two-friendlyCA OnlyTcp randomized randomizedCA randomized1 randomized1CA slow twoDrops manyDrops HighLoss HighLossImprecise HighLossConservative HighLossTCP TFRC_FTP printLosses goodTFRC droppedTFRC delayedTFRC delayedTFRC1 delayedTFRC2 goodTCP droppedTCP delayedTCP delayedTCP2
 Running test slowStartDiscount:
 ../../ns test-suite-friendly.tcl slowStartDiscount QUIET
-time: 11:40:32
 Test output agrees with reference output
 Running test slowStartDiscountCA:
 ../../ns test-suite-friendly.tcl slowStartDiscountCA QUIET
-time: 11:40:40
 Test output agrees with reference output
 Running test smooth:
 ../../ns test-suite-friendly.tcl smooth QUIET
-time: 11:40:47
 Test output agrees with reference output
 Running test smoothCA:
 ../../ns test-suite-friendly.tcl smoothCA QUIET
-time: 11:40:54
 Test output agrees with reference output
 Running test slowStart:
 ../../ns test-suite-friendly.tcl slowStart QUIET
-time: 11:41:01
 Test output agrees with reference output
 Running test slowStartCA:
 ../../ns test-suite-friendly.tcl slowStartCA QUIET
-time: 11:41:08
 Test output agrees with reference output
 Running test slowStartEWMA:
 ../../ns test-suite-friendly.tcl slowStartEWMA QUIET
-time: 11:41:15
 Test output agrees with reference output
 Running test slowStartFixed:
 ../../ns test-suite-friendly.tcl slowStartFixed QUIET
-time: 11:41:22
 Test output agrees with reference output
 Running test ecn:
 ../../ns test-suite-friendly.tcl ecn QUIET
-time: 11:41:29
 Test output agrees with reference output
 Running test slowStartTcp:
 ../../ns test-suite-friendly.tcl slowStartTcp QUIET
-time: 11:41:37
 Test output agrees with reference output
 Running test impulseDiscount:
 ../../ns test-suite-friendly.tcl impulseDiscount QUIET
-time: 11:41:45
 Test output agrees with reference output
 Running test impulseDiscountCA:
 ../../ns test-suite-friendly.tcl impulseDiscountCA QUIET
-time: 11:41:53
 Test output agrees with reference output
 Running test impulse:
 ../../ns test-suite-friendly.tcl impulse QUIET
-time: 11:42:00
 Test output agrees with reference output
 Running test impulseCA:
 ../../ns test-suite-friendly.tcl impulseCA QUIET
-time: 11:42:08
 Test output agrees with reference output
 Running test impulseMultReportDiscount:
 ../../ns test-suite-friendly.tcl impulseMultReportDiscount QUIET
-time: 11:42:15
 Test output agrees with reference output
 Running test impulseMultReportDiscountCA:
 ../../ns test-suite-friendly.tcl impulseMultReportDiscountCA QUIET
-time: 11:42:23
 Test output agrees with reference output
 Running test impulseMultReport:
 ../../ns test-suite-friendly.tcl impulseMultReport QUIET
-time: 11:42:30
 Test output agrees with reference output
 Running test impulseMultReportCA:
 ../../ns test-suite-friendly.tcl impulseMultReportCA QUIET
-time: 11:42:41
 Test output agrees with reference output
 Running test impulseTcp:
 ../../ns test-suite-friendly.tcl impulseTcp QUIET
-time: 11:42:53
 Test output agrees with reference output
 Running test two-friendly:
 ../../ns test-suite-friendly.tcl two-friendly QUIET
-time: 11:43:02
 Test output agrees with reference output
 Running test two-friendlyCA:
 ../../ns test-suite-friendly.tcl two-friendlyCA QUIET
-time: 11:43:09
 Test output agrees with reference output
 Running test OnlyTcp:
 ../../ns test-suite-friendly.tcl OnlyTcp QUIET
-time: 11:43:18
 Test output agrees with reference output
 Running test randomized:
 ../../ns test-suite-friendly.tcl randomized QUIET
-time: 11:43:26
 Test output agrees with reference output
 Running test randomizedCA:
 ../../ns test-suite-friendly.tcl randomizedCA QUIET
-time: 11:43:34
 Test output agrees with reference output
 Running test randomized1:
 ../../ns test-suite-friendly.tcl randomized1 QUIET
-time: 11:43:41
 Test output agrees with reference output
 Running test randomized1CA:
 ../../ns test-suite-friendly.tcl randomized1CA QUIET
-time: 11:43:49
 Test output agrees with reference output
 Running test slow:
 ../../ns test-suite-friendly.tcl slow QUIET
-time: 11:43:54
 Test output agrees with reference output
 Running test twoDrops:
 ../../ns test-suite-friendly.tcl twoDrops QUIET
-time: 11:43:56
 Test output agrees with reference output
 Running test manyDrops:
 ../../ns test-suite-friendly.tcl manyDrops QUIET
-time: 11:43:59
 Test output agrees with reference output
 Running test HighLoss:
 ../../ns test-suite-friendly.tcl HighLoss QUIET
-time: 11:44:11
+Test output agrees with reference output
+Running test HighLossImprecise:
+../../ns test-suite-friendly.tcl HighLossImprecise QUIET
 Test output agrees with reference output
 Running test HighLossConservative:
 ../../ns test-suite-friendly.tcl HighLossConservative QUIET
-time: 11:44:36
 Test output agrees with reference output
 Running test HighLossTCP:
 ../../ns test-suite-friendly.tcl HighLossTCP QUIET
-time: 11:45:05
 Test output agrees with reference output
 Running test TFRC_FTP:
 ../../ns test-suite-friendly.tcl TFRC_FTP QUIET
-time: 11:45:26
 Test output agrees with reference output
 Running test printLosses:
 ../../ns test-suite-friendly.tcl printLosses QUIET
-time: 11:45:28
 1.608345: sample 0:     0 1:  1024 2:     0 3:     0 4:     0
 time: 1.83768 loss_rate: 0.00098 
 time: 1.83768 sample 0:    90 loss_rate: 0.00098 
@@ -1518,6 +1679,37 @@ time: 2.93014 loss_rate: 0.00344
 time: 2.93014 sample 0:     1 loss_rate: 0.00344 
 2.930145: sample 0:     1 1:   129 2:    64 3:    91 4:  1024
 Test output agrees with reference output
+Running test goodTFRC:
+../../ns test-suite-friendly.tcl goodTFRC QUIET
+Test output agrees with reference output
+Running test droppedTFRC:
+../../ns test-suite-friendly.tcl droppedTFRC QUIET
+Test output agrees with reference output
+Running test delayedTFRC:
+../../ns test-suite-friendly.tcl delayedTFRC QUIET
+Test output agrees with reference output
+Running test delayedTFRC1:
+../../ns test-suite-friendly.tcl delayedTFRC1 QUIET
+Test output agrees with reference output
+Running test delayedTFRC2:
+../../ns test-suite-friendly.tcl delayedTFRC2 QUIET
+Test output agrees with reference output
+Running test goodTCP:
+../../ns test-suite-friendly.tcl goodTCP QUIET
+tcp 0 highest_seqment_acked 3597
+Test output agrees with reference output
+Running test droppedTCP:
+../../ns test-suite-friendly.tcl droppedTCP QUIET
+tcp 0 highest_seqment_acked 1952
+Test output agrees with reference output
+Running test delayedTCP:
+../../ns test-suite-friendly.tcl delayedTCP QUIET
+tcp 0 highest_seqment_acked 2552
+Test output agrees with reference output
+Running test delayedTCP2:
+../../ns test-suite-friendly.tcl delayedTCP2 QUIET
+tcp 0 highest_seqment_acked 3627
+Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-srm
 Tests: srm-chain srm-star srm-adapt-rep srm-adapt-req
@@ -1543,572 +1735,321 @@ Tests: realaudio
 Running test realaudio:
 ../../ns test-suite-realaudio.tcl realaudio QUIET
 NS EXITING...
-time: 11:45:39
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-ecn
 Tests: ecn ecn_nodrop_tahoe ecn_twoecn_tahoe ecn_drop_tahoe ecn_drop1_tahoe ecn_drop2_tahoe ecn_noecn_tahoe ecn_bursty_tahoe ecn_burstyEcn_tahoe ecn_noBugfix_tahoe ecn_timeout_tahoe ecn_timeout2_tahoe ecn_timeout3_tahoe ecn_smallwin_tahoe ecn_smallwinEcn_tahoe ecn_smallwin1Ecn_tahoe ecn_smallwin2Ecn_tahoe ecn_smallwin3Ecn_tahoe ecn_secondpkt_tahoe ecn_secondpktEcn_tahoe ecn_secondpkt1Ecn_tahoe ecn_nodrop_tahoe_delack ecn_twoecn_tahoe_delack ecn_drop_tahoe_delack ecn_drop1_tahoe_delack ecn_smallwinEcn_tahoe_delack ecn_nodrop_reno ecn_twoecn_reno ecn_drop_reno ecn_drop1_reno ecn_noecn_reno ecn_bursty_reno ecn_burstyEcn_reno ecn_noBugfix_reno ecn_timeout_reno ecn_timeout1_reno ecn_smallwin_reno ecn_smallwinEcn_reno ecn_smallwin1Ecn_reno ecn_secondpkt_reno ecn_secondpktEcn_reno ecn_nodrop_reno_delack ecn_twoecn_reno_delack ecn_drop_reno_delack ecn_drop1_reno_delack ecn_smallwinEcn_reno_delack ecn_nodrop_sack ecn_twoecn_sack ecn_drop_sack ecn_drop1_sack ecn_noecn_sack ecn_bursty_sack ecn_burstyEcn_sack ecn_burstyEcn1_sack ecn_noBugfix_sack ecn_timeout_sack ecn_timeout1_sack ecn_fourdrops_sack ecn_smallwin_sack ecn_smallwinEcn_sack ecn_smallwin1Ecn_sack ecn_secondpkt_sack ecn_secondpktEcn_sack ecn_nodrop_sack_delack ecn_twoecn_sack_delack ecn_drop_sack_delack ecn_drop1_sack_delack ecn_smallwinEcn_sack_delack ecn_nodrop_newreno ecn_twoecn_newreno ecn_drop_newreno ecn_drop1_newreno ecn_noecn_newreno ecn_bursty_newreno ecn_burstyEcn_newreno ecn_timeout_newreno ecn_timeout1_newreno ecn_smallwin_newreno ecn_smallwinEcn_newreno ecn_secondpkt_newreno ecn_secondpktEcn_newreno ecn_nodrop_newreno_delack ecn_twoecn_newreno_delack ecn_drop_newreno_delack ecn_drop1_newreno_delack ecn_smallwinEcn_newreno_delack ecn1
 Running test ecn:
 ../../ns test-suite-ecn.tcl ecn QUIET
-time: 11:45:41
-time: 11:45:45
 Test output agrees with reference output
 Running test ecn_nodrop_tahoe:
 ../../ns test-suite-ecn.tcl ecn_nodrop_tahoe QUIET
-time: 11:45:47
-time: 11:45:48
 Test output agrees with reference output
 Running test ecn_twoecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_twoecn_tahoe QUIET
-time: 11:45:50
-time: 11:45:51
 Test output agrees with reference output
 Running test ecn_drop_tahoe:
 ../../ns test-suite-ecn.tcl ecn_drop_tahoe QUIET
-time: 11:45:53
-time: 11:45:53
 Test output agrees with reference output
 Running test ecn_drop1_tahoe:
 ../../ns test-suite-ecn.tcl ecn_drop1_tahoe QUIET
-time: 11:45:55
-time: 11:45:56
 Test output agrees with reference output
 Running test ecn_drop2_tahoe:
 ../../ns test-suite-ecn.tcl ecn_drop2_tahoe QUIET
-time: 11:45:58
-time: 11:45:59
 Test output agrees with reference output
 Running test ecn_noecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_noecn_tahoe QUIET
-time: 11:46:00
-time: 11:46:01
 Test output agrees with reference output
 Running test ecn_bursty_tahoe:
 ../../ns test-suite-ecn.tcl ecn_bursty_tahoe QUIET
-time: 11:46:03
-time: 11:46:03
 Test output agrees with reference output
 Running test ecn_burstyEcn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_burstyEcn_tahoe QUIET
-time: 11:46:05
-time: 11:46:06
 Test output agrees with reference output
 Running test ecn_noBugfix_tahoe:
 ../../ns test-suite-ecn.tcl ecn_noBugfix_tahoe QUIET
-time: 11:46:08
-time: 11:46:09
 Test output agrees with reference output
 Running test ecn_timeout_tahoe:
 ../../ns test-suite-ecn.tcl ecn_timeout_tahoe QUIET
-time: 11:46:10
-time: 11:46:11
 Test output agrees with reference output
 Running test ecn_timeout2_tahoe:
 ../../ns test-suite-ecn.tcl ecn_timeout2_tahoe QUIET
-time: 11:46:13
-time: 11:46:13
 Test output agrees with reference output
 Running test ecn_timeout3_tahoe:
 ../../ns test-suite-ecn.tcl ecn_timeout3_tahoe QUIET
-time: 11:46:15
-time: 11:46:16
 Test output agrees with reference output
 Running test ecn_smallwin_tahoe:
 ../../ns test-suite-ecn.tcl ecn_smallwin_tahoe QUIET
-time: 11:46:17
-time: 11:46:18
 Test output agrees with reference output
 Running test ecn_smallwinEcn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_tahoe QUIET
-time: 11:46:19
-time: 11:46:20
 Test output agrees with reference output
 Running test ecn_smallwin1Ecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_smallwin1Ecn_tahoe QUIET
-time: 11:46:22
-time: 11:46:26
 Test output agrees with reference output
 Running test ecn_smallwin2Ecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_smallwin2Ecn_tahoe QUIET
-time: 11:46:27
-time: 11:46:28
 Test output agrees with reference output
 Running test ecn_smallwin3Ecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_smallwin3Ecn_tahoe QUIET
-time: 11:46:31
-time: 11:46:33
 Test output agrees with reference output
 Running test ecn_secondpkt_tahoe:
 ../../ns test-suite-ecn.tcl ecn_secondpkt_tahoe QUIET
-time: 11:46:34
-time: 11:46:35
 Test output agrees with reference output
 Running test ecn_secondpktEcn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_tahoe QUIET
-time: 11:46:36
-time: 11:46:37
 Test output agrees with reference output
 Running test ecn_secondpkt1Ecn_tahoe:
 ../../ns test-suite-ecn.tcl ecn_secondpkt1Ecn_tahoe QUIET
-time: 11:46:38
-time: 11:46:39
 Test output agrees with reference output
 Running test ecn_nodrop_tahoe_delack:
 ../../ns test-suite-ecn.tcl ecn_nodrop_tahoe_delack QUIET
-time: 11:46:41
-time: 11:46:41
 Test output agrees with reference output
 Running test ecn_twoecn_tahoe_delack:
 ../../ns test-suite-ecn.tcl ecn_twoecn_tahoe_delack QUIET
-time: 11:46:43
-time: 11:46:43
 Test output agrees with reference output
 Running test ecn_drop_tahoe_delack:
 ../../ns test-suite-ecn.tcl ecn_drop_tahoe_delack QUIET
-time: 11:46:45
-time: 11:46:46
 Test output agrees with reference output
 Running test ecn_drop1_tahoe_delack:
 ../../ns test-suite-ecn.tcl ecn_drop1_tahoe_delack QUIET
-time: 11:46:47
-time: 11:46:48
 Test output agrees with reference output
 Running test ecn_smallwinEcn_tahoe_delack:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_tahoe_delack QUIET
-time: 11:46:49
-time: 11:46:50
 Test output agrees with reference output
 Running test ecn_nodrop_reno:
 ../../ns test-suite-ecn.tcl ecn_nodrop_reno QUIET
-time: 11:46:51
-time: 11:46:52
 Test output agrees with reference output
 Running test ecn_twoecn_reno:
 ../../ns test-suite-ecn.tcl ecn_twoecn_reno QUIET
-time: 11:46:54
-time: 11:46:55
 Test output agrees with reference output
 Running test ecn_drop_reno:
 ../../ns test-suite-ecn.tcl ecn_drop_reno QUIET
-time: 11:46:56
-time: 11:46:57
 Test output agrees with reference output
 Running test ecn_drop1_reno:
 ../../ns test-suite-ecn.tcl ecn_drop1_reno QUIET
-time: 11:46:59
-time: 11:47:00
 Test output agrees with reference output
 Running test ecn_noecn_reno:
 ../../ns test-suite-ecn.tcl ecn_noecn_reno QUIET
-time: 11:47:01
-time: 11:47:02
 Test output agrees with reference output
 Running test ecn_bursty_reno:
 ../../ns test-suite-ecn.tcl ecn_bursty_reno QUIET
-time: 11:47:04
-time: 11:47:05
 Test output agrees with reference output
 Running test ecn_burstyEcn_reno:
 ../../ns test-suite-ecn.tcl ecn_burstyEcn_reno QUIET
-time: 11:47:06
-time: 11:47:07
 Test output agrees with reference output
 Running test ecn_noBugfix_reno:
 ../../ns test-suite-ecn.tcl ecn_noBugfix_reno QUIET
-time: 11:47:09
-time: 11:47:09
 Test output agrees with reference output
 Running test ecn_timeout_reno:
 ../../ns test-suite-ecn.tcl ecn_timeout_reno QUIET
-time: 11:47:11
-time: 11:47:12
 Test output agrees with reference output
 Running test ecn_timeout1_reno:
 ../../ns test-suite-ecn.tcl ecn_timeout1_reno QUIET
-time: 11:47:14
-time: 11:47:14
 Test output agrees with reference output
 Running test ecn_smallwin_reno:
 ../../ns test-suite-ecn.tcl ecn_smallwin_reno QUIET
-time: 11:47:16
-time: 11:47:17
 Test output agrees with reference output
 Running test ecn_smallwinEcn_reno:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_reno QUIET
-time: 11:47:18
-time: 11:47:19
 Test output agrees with reference output
 Running test ecn_smallwin1Ecn_reno:
 ../../ns test-suite-ecn.tcl ecn_smallwin1Ecn_reno QUIET
-time: 11:47:21
-time: 11:47:24
 Test output agrees with reference output
 Running test ecn_secondpkt_reno:
 ../../ns test-suite-ecn.tcl ecn_secondpkt_reno QUIET
-time: 11:47:25
-time: 11:47:26
 Test output agrees with reference output
 Running test ecn_secondpktEcn_reno:
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_reno QUIET
-time: 11:47:27
-time: 11:47:28
 Test output agrees with reference output
 Running test ecn_nodrop_reno_delack:
 ../../ns test-suite-ecn.tcl ecn_nodrop_reno_delack QUIET
-time: 11:47:29
-time: 11:47:30
 Test output agrees with reference output
 Running test ecn_twoecn_reno_delack:
 ../../ns test-suite-ecn.tcl ecn_twoecn_reno_delack QUIET
-time: 11:47:32
-time: 11:47:32
 Test output agrees with reference output
 Running test ecn_drop_reno_delack:
 ../../ns test-suite-ecn.tcl ecn_drop_reno_delack QUIET
-time: 11:47:34
-time: 11:47:35
 Test output agrees with reference output
 Running test ecn_drop1_reno_delack:
 ../../ns test-suite-ecn.tcl ecn_drop1_reno_delack QUIET
-time: 11:47:36
-time: 11:47:37
 Test output agrees with reference output
 Running test ecn_smallwinEcn_reno_delack:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_reno_delack QUIET
-time: 11:47:38
-time: 11:47:39
 Test output agrees with reference output
 Running test ecn_nodrop_sack:
 ../../ns test-suite-ecn.tcl ecn_nodrop_sack QUIET
-time: 11:47:41
-time: 11:47:42
 Test output agrees with reference output
 Running test ecn_twoecn_sack:
 ../../ns test-suite-ecn.tcl ecn_twoecn_sack QUIET
-time: 11:47:44
-time: 11:47:44
 Test output agrees with reference output
 Running test ecn_drop_sack:
 ../../ns test-suite-ecn.tcl ecn_drop_sack QUIET
-time: 11:47:46
-time: 11:47:47
 Test output agrees with reference output
 Running test ecn_drop1_sack:
 ../../ns test-suite-ecn.tcl ecn_drop1_sack QUIET
-time: 11:47:49
-time: 11:47:49
 Test output agrees with reference output
 Running test ecn_noecn_sack:
 ../../ns test-suite-ecn.tcl ecn_noecn_sack QUIET
-time: 11:47:51
-time: 11:47:52
 Test output agrees with reference output
 Running test ecn_bursty_sack:
 ../../ns test-suite-ecn.tcl ecn_bursty_sack QUIET
-time: 11:47:54
-time: 11:47:54
 Test output agrees with reference output
 Running test ecn_burstyEcn_sack:
 ../../ns test-suite-ecn.tcl ecn_burstyEcn_sack QUIET
-time: 11:47:56
-time: 11:47:57
 Test output agrees with reference output
 Running test ecn_burstyEcn1_sack:
 ../../ns test-suite-ecn.tcl ecn_burstyEcn1_sack QUIET
-time: 11:47:58
-time: 11:47:59
 Test output agrees with reference output
 Running test ecn_noBugfix_sack:
 ../../ns test-suite-ecn.tcl ecn_noBugfix_sack QUIET
-time: 11:48:01
-time: 11:48:02
 Test output agrees with reference output
 Running test ecn_timeout_sack:
 ../../ns test-suite-ecn.tcl ecn_timeout_sack QUIET
-time: 11:48:04
-time: 11:48:05
 Test output agrees with reference output
 Running test ecn_timeout1_sack:
 ../../ns test-suite-ecn.tcl ecn_timeout1_sack QUIET
-time: 11:48:07
-time: 11:48:07
 Test output agrees with reference output
 Running test ecn_fourdrops_sack:
 ../../ns test-suite-ecn.tcl ecn_fourdrops_sack QUIET
-time: 11:48:09
-time: 11:48:10
 Test output agrees with reference output
 Running test ecn_smallwin_sack:
 ../../ns test-suite-ecn.tcl ecn_smallwin_sack QUIET
-time: 11:48:12
-time: 11:48:12
 Test output agrees with reference output
 Running test ecn_smallwinEcn_sack:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_sack QUIET
-time: 11:48:14
-time: 11:48:15
 Test output agrees with reference output
 Running test ecn_smallwin1Ecn_sack:
 ../../ns test-suite-ecn.tcl ecn_smallwin1Ecn_sack QUIET
-time: 11:48:17
-time: 11:48:21
 Test output agrees with reference output
 Running test ecn_secondpkt_sack:
 ../../ns test-suite-ecn.tcl ecn_secondpkt_sack QUIET
-time: 11:48:23
-time: 11:48:23
 Test output agrees with reference output
 Running test ecn_secondpktEcn_sack:
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_sack QUIET
-time: 11:48:25
-time: 11:48:25
 Test output agrees with reference output
 Running test ecn_nodrop_sack_delack:
 ../../ns test-suite-ecn.tcl ecn_nodrop_sack_delack QUIET
-time: 11:48:27
-time: 11:48:28
 Test output agrees with reference output
 Running test ecn_twoecn_sack_delack:
 ../../ns test-suite-ecn.tcl ecn_twoecn_sack_delack QUIET
-time: 11:48:29
-time: 11:48:30
 Test output agrees with reference output
 Running test ecn_drop_sack_delack:
 ../../ns test-suite-ecn.tcl ecn_drop_sack_delack QUIET
-time: 11:48:31
-time: 11:48:32
 Test output agrees with reference output
 Running test ecn_drop1_sack_delack:
 ../../ns test-suite-ecn.tcl ecn_drop1_sack_delack QUIET
-time: 11:48:34
-time: 11:48:34
 Test output agrees with reference output
 Running test ecn_smallwinEcn_sack_delack:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_sack_delack QUIET
-time: 11:48:36
-time: 11:48:38
 Test output agrees with reference output
 Running test ecn_nodrop_newreno:
 ../../ns test-suite-ecn.tcl ecn_nodrop_newreno QUIET
-time: 11:48:40
-time: 11:48:41
 Test output agrees with reference output
 Running test ecn_twoecn_newreno:
 ../../ns test-suite-ecn.tcl ecn_twoecn_newreno QUIET
-time: 11:48:43
-time: 11:48:44
 Test output agrees with reference output
 Running test ecn_drop_newreno:
 ../../ns test-suite-ecn.tcl ecn_drop_newreno QUIET
-time: 11:48:45
-time: 11:48:46
 Test output agrees with reference output
 Running test ecn_drop1_newreno:
 ../../ns test-suite-ecn.tcl ecn_drop1_newreno QUIET
-time: 11:48:48
-time: 11:48:49
 Test output agrees with reference output
 Running test ecn_noecn_newreno:
 ../../ns test-suite-ecn.tcl ecn_noecn_newreno QUIET
-time: 11:48:50
-time: 11:48:51
 Test output agrees with reference output
 Running test ecn_bursty_newreno:
 ../../ns test-suite-ecn.tcl ecn_bursty_newreno QUIET
-time: 11:48:53
-time: 11:48:53
 Test output agrees with reference output
 Running test ecn_burstyEcn_newreno:
 ../../ns test-suite-ecn.tcl ecn_burstyEcn_newreno QUIET
-time: 11:48:55
-time: 11:48:56
 Test output agrees with reference output
 Running test ecn_timeout_newreno:
 ../../ns test-suite-ecn.tcl ecn_timeout_newreno QUIET
-time: 11:48:58
-time: 11:48:58
 Test output agrees with reference output
 Running test ecn_timeout1_newreno:
 ../../ns test-suite-ecn.tcl ecn_timeout1_newreno QUIET
-time: 11:49:00
-time: 11:49:01
 Test output agrees with reference output
 Running test ecn_smallwin_newreno:
 ../../ns test-suite-ecn.tcl ecn_smallwin_newreno QUIET
-time: 11:49:02
-time: 11:49:03
 Test output agrees with reference output
 Running test ecn_smallwinEcn_newreno:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_newreno QUIET
-time: 11:49:04
-time: 11:49:05
 Test output agrees with reference output
 Running test ecn_secondpkt_newreno:
 ../../ns test-suite-ecn.tcl ecn_secondpkt_newreno QUIET
-time: 11:49:07
-time: 11:49:07
 Test output agrees with reference output
 Running test ecn_secondpktEcn_newreno:
 ../../ns test-suite-ecn.tcl ecn_secondpktEcn_newreno QUIET
-time: 11:49:09
-time: 11:49:09
 Test output agrees with reference output
 Running test ecn_nodrop_newreno_delack:
 ../../ns test-suite-ecn.tcl ecn_nodrop_newreno_delack QUIET
-time: 11:49:11
-time: 11:49:11
 Test output agrees with reference output
 Running test ecn_twoecn_newreno_delack:
 ../../ns test-suite-ecn.tcl ecn_twoecn_newreno_delack QUIET
-time: 11:49:13
-time: 11:49:14
 Test output agrees with reference output
 Running test ecn_drop_newreno_delack:
 ../../ns test-suite-ecn.tcl ecn_drop_newreno_delack QUIET
-time: 11:49:16
-time: 11:49:17
 Test output agrees with reference output
 Running test ecn_drop1_newreno_delack:
 ../../ns test-suite-ecn.tcl ecn_drop1_newreno_delack QUIET
-time: 11:49:18
-time: 11:49:19
 Test output agrees with reference output
 Running test ecn_smallwinEcn_newreno_delack:
 ../../ns test-suite-ecn.tcl ecn_smallwinEcn_newreno_delack QUIET
-time: 11:49:21
-time: 11:49:22
 Test output agrees with reference output
 Running test ecn1:
 ../../ns test-suite-ecn.tcl ecn1 QUIET
-time: 11:49:24
-time: 11:49:24
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-ecn-ack
 Tests: ecn_ack
 Running test ecn_ack:
 ../../ns test-suite-ecn-ack.tcl ecn_ack QUIET
-time: 11:49:26
-time: 11:49:27
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-ecn-full
 Tests: ecn_nodrop_reno_full ecn_twoecn_reno_full ecn_drop_reno_full ecn_drop1_reno_full ecn_noecn_reno_full ecn_bursty_reno_full ecn_burstyEcn_reno_full ecn_noBugfix_reno_full ecn_timeout_reno_full ecn_timeout1_reno_full ecn_smallwin_reno_full ecn_smallwinEcn_reno_full ecn_secondpkt_reno_full ecn_secondpktEcn_reno_full
 Running test ecn_nodrop_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_nodrop_reno_full QUIET
-time: 11:49:28
-time: 11:49:29
 Test output agrees with reference output
 Running test ecn_twoecn_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_twoecn_reno_full QUIET
-time: 11:49:31
-time: 11:49:32
 Test output agrees with reference output
 Running test ecn_drop_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_drop_reno_full QUIET
-time: 11:49:33
-time: 11:49:34
 Test output agrees with reference output
 Running test ecn_drop1_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_drop1_reno_full QUIET
-time: 11:49:36
-time: 11:49:36
 Test output agrees with reference output
 Running test ecn_noecn_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_noecn_reno_full QUIET
-time: 11:49:38
-time: 11:49:39
 Test output agrees with reference output
 Running test ecn_bursty_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_bursty_reno_full QUIET
-time: 11:49:41
-time: 11:49:41
 Test output agrees with reference output
 Running test ecn_burstyEcn_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_burstyEcn_reno_full QUIET
-time: 11:49:43
-time: 11:49:43
 Test output agrees with reference output
 Running test ecn_noBugfix_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_noBugfix_reno_full QUIET
-time: 11:49:45
-time: 11:49:46
 Test output agrees with reference output
 Running test ecn_timeout_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_timeout_reno_full QUIET
-time: 11:49:47
-time: 11:49:48
 Test output agrees with reference output
 Running test ecn_timeout1_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_timeout1_reno_full QUIET
-time: 11:49:50
-time: 11:49:50
 Test output agrees with reference output
 Running test ecn_smallwin_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_smallwin_reno_full QUIET
-time: 11:49:52
-time: 11:49:53
 Test output agrees with reference output
 Running test ecn_smallwinEcn_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_smallwinEcn_reno_full QUIET
-time: 11:49:55
-time: 11:49:57
 Test output agrees with reference output
 Running test ecn_secondpkt_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_secondpkt_reno_full QUIET
-time: 11:49:59
-time: 11:49:59
 Test output agrees with reference output
 Running test ecn_secondpktEcn_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_secondpktEcn_reno_full QUIET
-time: 11:50:00
-time: 11:50:01
-Test output agrees with reference output
-All test output agrees with reference output.
-*** ./test-all-testReno-full
-Tests: Tahoe_FullTCP Reno_FullTCP Reno_BayFullTCP NewReno_FullTCP Tahoe_FullTCP2 Reno_FullTCP2 Reno_BayFullTCP2 NewReno_FullTCP2
-Running test Tahoe_FullTCP:
-../../ns test-suite-testReno-full.tcl Tahoe_FullTCP QUIET
-time: 11:50:02
-Test output agrees with reference output
-Running test Reno_FullTCP:
-../../ns test-suite-testReno-full.tcl Reno_FullTCP QUIET
-time: 11:50:04
-Test output agrees with reference output
-Running test Reno_BayFullTCP:
-../../ns test-suite-testReno-full.tcl Reno_BayFullTCP QUIET
-time: 11:50:06
-Test output agrees with reference output
-Running test NewReno_FullTCP:
-../../ns test-suite-testReno-full.tcl NewReno_FullTCP QUIET
-time: 11:50:07
-Test output agrees with reference output
-Running test Tahoe_FullTCP2:
-../../ns test-suite-testReno-full.tcl Tahoe_FullTCP2 QUIET
-time: 11:50:09
-Test output agrees with reference output
-Running test Reno_FullTCP2:
-../../ns test-suite-testReno-full.tcl Reno_FullTCP2 QUIET
-time: 11:50:10
-Test output agrees with reference output
-Running test Reno_BayFullTCP2:
-../../ns test-suite-testReno-full.tcl Reno_BayFullTCP2 QUIET
-time: 11:50:12
-Test output agrees with reference output
-Running test NewReno_FullTCP2:
-../../ns test-suite-testReno-full.tcl NewReno_FullTCP2 QUIET
-time: 11:50:14
-Test output agrees with reference output
-All test output agrees with reference output.
-*** ./test-all-testReno-bayfull
-Tests: Reno_FullTCP Reno_FullTCP2
-Running test Reno_FullTCP:
-../../ns test-suite-testReno-bayfull.tcl Reno_FullTCP QUIET
-time: 11:50:16
-Test output agrees with reference output
-Running test Reno_FullTCP2:
-../../ns test-suite-testReno-bayfull.tcl Reno_FullTCP2 QUIET
-time: 11:50:18
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-manual-routing
@@ -2250,31 +2191,21 @@ Running test Mixmode10:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red
-Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined ungentle gentle gentleEcn ungentleBadParams gentleBadParams q_weight q_weight_auto
+Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined ungentle gentle gentleEcn gentleEcn1 ungentleBadParams gentleBadParams q_weight q_weight_auto
 Running test red1:
 ../../ns test-suite-red.tcl red1 QUIET
-time: 11:51:50
-time: 11:51:53
 Test output agrees with reference output
 Running test ecn:
 ../../ns test-suite-red.tcl ecn QUIET
-time: 11:51:55
-time: 11:51:56
 Test output agrees with reference output
 Running test red2:
 ../../ns test-suite-red.tcl red2 QUIET
-time: 11:51:59
-time: 11:52:00
 Test output agrees with reference output
 Running test red_twoway:
 ../../ns test-suite-red.tcl red_twoway QUIET
-time: 11:52:02
-time: 11:52:05
 Test output agrees with reference output
 Running test red_twowaybytes:
 ../../ns test-suite-red.tcl red_twowaybytes QUIET
-time: 11:52:08
-time: 11:52:10
 Test output agrees with reference output
 Running test flows_unforced:
 ../../ns test-suite-red.tcl flows_unforced QUIET
@@ -2288,439 +2219,322 @@ Test output agrees with reference output
 Running test ungentle:
 ../../ns test-suite-red.tcl ungentle QUIET
 total_drops 405 total_packets 7597
-time: 11:52:54
-time: 11:53:00
 Test output agrees with reference output
 Running test gentle:
 ../../ns test-suite-red.tcl gentle QUIET
 total_drops 353 total_packets 7783
-time: 11:53:06
-time: 11:53:11
 Test output agrees with reference output
 Running test gentleEcn:
 ../../ns test-suite-red.tcl gentleEcn QUIET
 total_drops 187 total_packets 7690
-time: 11:53:17
-time: 11:53:23
+Test output agrees with reference output
+Running test gentleEcn1:
+../../ns test-suite-red.tcl gentleEcn1 QUIET
+total_drops 142 total_packets 7530
 Test output agrees with reference output
 Running test ungentleBadParams:
 ../../ns test-suite-red.tcl ungentleBadParams QUIET
 total_drops 854 total_packets 6556
-time: 11:53:28
-time: 11:53:33
 Test output agrees with reference output
 Running test gentleBadParams:
 ../../ns test-suite-red.tcl gentleBadParams QUIET
 total_drops 430 total_packets 7251
-time: 11:53:38
-time: 11:53:43
 Test output agrees with reference output
 Running test q_weight:
 ../../ns test-suite-red.tcl q_weight QUIET
-time: 11:53:45
-time: 11:53:48
 Test output agrees with reference output
 Running test q_weight_auto:
 ../../ns test-suite-red.tcl q_weight_auto QUIET
-time: 11:53:51
-time: 11:53:52
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-adaptive-red
-Tests: red1 red1Adapt red1AdaptFeng fastlink fastlinkAutowq fastlinkAutothresh fastlinkAdapt fastlinkAllAdapt fastlinkAllAdapt1 longlink longlinkAdapt longlinkAdapt1 red2 red2Adapt red2A-Adapt red2-AdaptFeng red3 red3Adapt red4Adapt transient transient1 transient2 notcautious cautious cautious2 cautious3
+Tests: red1 red1Adapt red1ECN red1AdaptECN red1AdaptFeng fastlink fastlinkAutowq fastlinkAutothresh fastlinkAdapt fastlinkAllAdapt fastlinkAllAdaptECN fastlinkAllAdapt1 longlink longlinkAdapt longlinkAdapt1 red2 red2Adapt red2A-Adapt red2-AdaptFeng red3 red3Adapt red4Adapt transient transient1 transient2 notcautious cautious cautious2 cautious3
 Running test red1:
 ../../ns test-suite-adaptive-red.tcl red1 QUIET
-time: 11:54:00
-time: 11:54:06
 Test output agrees with reference output
 Running test red1Adapt:
 ../../ns test-suite-adaptive-red.tcl red1Adapt QUIET
-time: 11:54:12
-time: 11:54:19
+Test output agrees with reference output
+Running test red1ECN:
+../../ns test-suite-adaptive-red.tcl red1ECN QUIET
+Test output agrees with reference output
+Running test red1AdaptECN:
+../../ns test-suite-adaptive-red.tcl red1AdaptECN QUIET
 Test output agrees with reference output
 Running test red1AdaptFeng:
 ../../ns test-suite-adaptive-red.tcl red1AdaptFeng QUIET
-time: 11:54:26
-time: 11:54:34
 Test output agrees with reference output
 Running test fastlink:
 ../../ns test-suite-adaptive-red.tcl fastlink QUIET
-time: 11:54:39
-time: 11:54:43
 Test output agrees with reference output
 Running test fastlinkAutowq:
 ../../ns test-suite-adaptive-red.tcl fastlinkAutowq QUIET
-time: 11:54:49
-time: 11:54:54
 Test output agrees with reference output
 Running test fastlinkAutothresh:
 ../../ns test-suite-adaptive-red.tcl fastlinkAutothresh QUIET
-time: 11:54:59
-time: 11:55:05
 Test output agrees with reference output
 Running test fastlinkAdapt:
 ../../ns test-suite-adaptive-red.tcl fastlinkAdapt QUIET
-time: 11:55:10
-time: 11:55:15
 Test output agrees with reference output
 Running test fastlinkAllAdapt:
 ../../ns test-suite-adaptive-red.tcl fastlinkAllAdapt QUIET
-time: 11:55:20
-time: 11:55:25
+Test output agrees with reference output
+Running test fastlinkAllAdaptECN:
+../../ns test-suite-adaptive-red.tcl fastlinkAllAdaptECN QUIET
 Test output agrees with reference output
 Running test fastlinkAllAdapt1:
 ../../ns test-suite-adaptive-red.tcl fastlinkAllAdapt1 QUIET
-time: 11:55:31
-time: 11:55:36
 Test output agrees with reference output
 Running test longlink:
 ../../ns test-suite-adaptive-red.tcl longlink QUIET
-time: 11:55:43
-time: 11:55:50
 Test output agrees with reference output
 Running test longlinkAdapt:
 ../../ns test-suite-adaptive-red.tcl longlinkAdapt QUIET
-time: 11:55:56
-time: 11:56:04
 Test output agrees with reference output
 Running test longlinkAdapt1:
 ../../ns test-suite-adaptive-red.tcl longlinkAdapt1 QUIET
-time: 11:56:10
-time: 11:56:17
 Test output agrees with reference output
 Running test red2:
 ../../ns test-suite-adaptive-red.tcl red2 QUIET
-time: 11:56:24
-time: 11:56:32
 Test output agrees with reference output
 Running test red2Adapt:
 ../../ns test-suite-adaptive-red.tcl red2Adapt QUIET
-time: 11:56:39
-time: 11:56:46
 Test output agrees with reference output
 Running test red2A-Adapt:
 ../../ns test-suite-adaptive-red.tcl red2A-Adapt QUIET
-time: 11:56:53
-time: 11:57:01
 Test output agrees with reference output
 Running test red2-AdaptFeng:
 ../../ns test-suite-adaptive-red.tcl red2-AdaptFeng QUIET
-time: 11:57:07
-time: 11:57:15
 Test output agrees with reference output
 Running test red3:
 ../../ns test-suite-adaptive-red.tcl red3 QUIET
-time: 11:57:22
-time: 11:57:29
 Test output agrees with reference output
 Running test red3Adapt:
 ../../ns test-suite-adaptive-red.tcl red3Adapt QUIET
-time: 11:57:35
-time: 11:57:42
 Test output agrees with reference output
 Running test red4Adapt:
 ../../ns test-suite-adaptive-red.tcl red4Adapt QUIET
-time: 11:57:48
-time: 11:57:55
 Test output agrees with reference output
 Running test transient:
 ../../ns test-suite-adaptive-red.tcl transient QUIET
-time: 11:58:00
-time: 11:58:05
 Test output agrees with reference output
 Running test transient1:
 ../../ns test-suite-adaptive-red.tcl transient1 QUIET
-time: 11:58:09
-time: 11:58:14
 Test output agrees with reference output
 Running test transient2:
 ../../ns test-suite-adaptive-red.tcl transient2 QUIET
-time: 11:58:19
-time: 11:58:23
 Test output agrees with reference output
 Running test notcautious:
 ../../ns test-suite-adaptive-red.tcl notcautious QUIET
-time: 11:58:27
-time: 11:58:30
 Test output agrees with reference output
 Running test cautious:
 ../../ns test-suite-adaptive-red.tcl cautious QUIET
-time: 11:58:35
-time: 11:58:39
 Test output agrees with reference output
 Running test cautious2:
 ../../ns test-suite-adaptive-red.tcl cautious2 QUIET
-time: 11:58:42
-time: 11:58:45
 Test output agrees with reference output
 Running test cautious3:
 ../../ns test-suite-adaptive-red.tcl cautious3 QUIET
-time: 11:58:49
-time: 11:58:53
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red-pd
 Tests: simple unresponsive frp complete cbrs cbrs-noidle
 Running test simple:
 ../../ns test-suite-red-pd.tcl simple QUIET
-time: 11:58:55
-time: 11:58:57
 Test output agrees with reference output
 Running test unresponsive:
 ../../ns test-suite-red-pd.tcl unresponsive QUIET
-time: 11:59:00
-time: 11:59:06
 Test output agrees with reference output
 Running test frp:
 ../../ns test-suite-red-pd.tcl frp QUIET
-time: 11:59:08
-time: 11:59:09
 Test output agrees with reference output
 Running test complete:
 ../../ns test-suite-red-pd.tcl complete QUIET
-time: 11:59:13
-time: 11:59:19
 Test output agrees with reference output
 Running test cbrs:
 ../../ns test-suite-red-pd.tcl cbrs QUIET
 link utilization 0.985
-time: 11:59:24
-time: 11:59:33
 Test output agrees with reference output
 Running test cbrs-noidle:
 ../../ns test-suite-red-pd.tcl cbrs-noidle QUIET
 link utilization 1.000
-time: 11:59:39
-time: 11:59:49
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rio
 Tests: strict proportional gentle notGentle tagging
 Running test strict:
 ../../ns test-suite-rio.tcl strict QUIET
-time: 11:59:52
-time: 11:59:56
 Test output agrees with reference output
 Running test proportional:
 ../../ns test-suite-rio.tcl proportional QUIET
-time: 11:59:59
-time: 12:00:02
 Test output agrees with reference output
 Running test gentle:
 ../../ns test-suite-rio.tcl gentle QUIET
-time: 12:00:05
-time: 12:00:09
 Test output agrees with reference output
 Running test notGentle:
 ../../ns test-suite-rio.tcl notGentle QUIET
-time: 12:00:12
-time: 12:00:16
 Test output agrees with reference output
 Running test tagging:
 ../../ns test-suite-rio.tcl tagging QUIET
-time: 12:00:20
-time: 12:00:23
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-vq
 Tests: vq1 ecn vq2 vq_twoway vq_twowaybytes
 Running test vq1:
 ../../ns test-suite-vq.tcl vq1 QUIET
-time: 12:00:26
-time: 12:00:27
 Test output agrees with reference output
 Running test ecn:
 ../../ns test-suite-vq.tcl ecn QUIET
-time: 12:00:29
-time: 12:00:30
 Test output agrees with reference output
 Running test vq2:
 ../../ns test-suite-vq.tcl vq2 QUIET
-time: 12:00:32
-time: 12:00:32
 Test output agrees with reference output
 Running test vq_twoway:
 ../../ns test-suite-vq.tcl vq_twoway QUIET
-time: 12:00:34
-time: 12:00:36
 Test output agrees with reference output
 Running test vq_twowaybytes:
 ../../ns test-suite-vq.tcl vq_twowaybytes QUIET
-time: 12:00:38
-time: 12:00:39
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rem
 Tests: rem1 ecn rem2 rem_twoway rem_twowayecn
 Running test rem1:
 ../../ns test-suite-rem.tcl rem1 QUIET
-time: 12:00:41
-time: 12:00:42
 Test output agrees with reference output
 Running test ecn:
 ../../ns test-suite-rem.tcl ecn QUIET
-time: 12:00:45
-time: 12:00:46
 Test output agrees with reference output
 Running test rem2:
 ../../ns test-suite-rem.tcl rem2 QUIET
-time: 12:00:48
-time: 12:00:50
 Test output agrees with reference output
 Running test rem_twoway:
 ../../ns test-suite-rem.tcl rem_twoway QUIET
-time: 12:00:52
-time: 12:00:54
 Test output agrees with reference output
 Running test rem_twowayecn:
 ../../ns test-suite-rem.tcl rem_twowayecn QUIET
-time: 12:00:57
-time: 12:00:58
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-gk
 Tests: gk1 gk2 gk_twoway
 Running test gk1:
 ../../ns test-suite-gk.tcl gk1 QUIET
-time: 12:01:00
-time: 12:01:02
 Test output agrees with reference output
 Running test gk2:
 ../../ns test-suite-gk.tcl gk2 QUIET
-time: 12:01:03
-time: 12:01:04
 Test output agrees with reference output
 Running test gk_twoway:
 ../../ns test-suite-gk.tcl gk_twoway QUIET
-time: 12:01:06
-time: 12:01:07
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-pi
+Tests: pi1 ecn pi2 pi_twoway pi_twowaybytes
+Running test pi1:
+../../ns test-suite-pi.tcl pi1 QUIET
+Test output agrees with reference output
+Running test ecn:
+../../ns test-suite-pi.tcl ecn QUIET
+Test output agrees with reference output
+Running test pi2:
+../../ns test-suite-pi.tcl pi2 QUIET
+Test output agrees with reference output
+Running test pi_twoway:
+../../ns test-suite-pi.tcl pi_twoway QUIET
+Test output agrees with reference output
+Running test pi_twowaybytes:
+../../ns test-suite-pi.tcl pi_twowaybytes QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-cbq
 Tests: WRR PRR AO TL FORMAL FORMAL_TCP MAX1 MAX2 EXTRA1 EXTRA2 MIN1 MIN3 MIN4 MIN6 TwoAO TwoAO2 TwoAO3 TwoTL TwoF TwoDynamic TwoDynamic1 TwoDynamic1WRR TwoWRR
 Running test WRR:
 ../../ns test-suite-cbq.tcl WRR QUIET
-time: 12:01:09
 Test output agrees with reference output
 Running test PRR:
 ../../ns test-suite-cbq.tcl PRR QUIET
-time: 12:01:11
 Test output agrees with reference output
 Running test AO:
 ../../ns test-suite-cbq.tcl AO QUIET
-time: 12:01:14
 Test output agrees with reference output
 Running test TL:
 ../../ns test-suite-cbq.tcl TL QUIET
-time: 12:01:17
 Test output agrees with reference output
 Running test FORMAL:
 ../../ns test-suite-cbq.tcl FORMAL QUIET
-time: 12:01:20
 Test output agrees with reference output
 Running test FORMAL_TCP:
 ../../ns test-suite-cbq.tcl FORMAL_TCP QUIET
-time: 12:01:22
 Test output agrees with reference output
 Running test MAX1:
 ../../ns test-suite-cbq.tcl MAX1 QUIET
-time: 12:01:24
-time: 12:01:24
 Test output agrees with reference output
 Running test MAX2:
 ../../ns test-suite-cbq.tcl MAX2 QUIET
-time: 12:01:26
-time: 12:01:26
 Test output agrees with reference output
 Running test EXTRA1:
 ../../ns test-suite-cbq.tcl EXTRA1 QUIET
-time: 12:01:27
-time: 12:01:27
 Test output agrees with reference output
 Running test EXTRA2:
 ../../ns test-suite-cbq.tcl EXTRA2 QUIET
-time: 12:01:29
-time: 12:01:29
 Test output agrees with reference output
 Running test MIN1:
 ../../ns test-suite-cbq.tcl MIN1 QUIET
-time: 12:01:30
 Test output agrees with reference output
 Running test MIN3:
 ../../ns test-suite-cbq.tcl MIN3 QUIET
-time: 12:01:32
 Test output agrees with reference output
 Running test MIN4:
 ../../ns test-suite-cbq.tcl MIN4 QUIET
-time: 12:01:34
 Test output agrees with reference output
 Running test MIN6:
 ../../ns test-suite-cbq.tcl MIN6 QUIET
-time: 12:01:36
 Test output agrees with reference output
 Running test TwoAO:
 ../../ns test-suite-cbq.tcl TwoAO QUIET
-time: 12:01:38
 Test output agrees with reference output
 Running test TwoAO2:
 ../../ns test-suite-cbq.tcl TwoAO2 QUIET
-time: 12:01:42
 Test output agrees with reference output
 Running test TwoAO3:
 ../../ns test-suite-cbq.tcl TwoAO3 QUIET
-time: 12:01:46
 Test output agrees with reference output
 Running test TwoTL:
 ../../ns test-suite-cbq.tcl TwoTL QUIET
-time: 12:01:49
 Test output agrees with reference output
 Running test TwoF:
 ../../ns test-suite-cbq.tcl TwoF QUIET
-time: 12:01:53
 Test output agrees with reference output
 Running test TwoDynamic:
 ../../ns test-suite-cbq.tcl TwoDynamic QUIET
-time: 12:01:57
 Test output agrees with reference output
 Running test TwoDynamic1:
 ../../ns test-suite-cbq.tcl TwoDynamic1 QUIET
-time: 12:02:00
 Test output agrees with reference output
 Running test TwoDynamic1WRR:
 ../../ns test-suite-cbq.tcl TwoDynamic1WRR QUIET
-time: 12:02:03
 Test output agrees with reference output
 Running test TwoWRR:
 ../../ns test-suite-cbq.tcl TwoWRR QUIET
-time: 12:02:05
-time: 12:02:05
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-schedule
 Tests: fifo-droptail fifo-red sfq fq fq_small_queue drr
 Running test fifo-droptail:
 ../../ns test-suite-schedule.tcl fifo-droptail QUIET
-time: 12:02:07
 Test output agrees with reference output
 Running test fifo-red:
 ../../ns test-suite-schedule.tcl fifo-red QUIET
-time: 12:02:09
 Test output agrees with reference output
 Running test sfq:
 ../../ns test-suite-schedule.tcl sfq QUIET
-time: 12:02:12
 Test output agrees with reference output
 Running test fq:
 ../../ns test-suite-schedule.tcl fq QUIET
-time: 12:02:14
 Test output agrees with reference output
 Running test fq_small_queue:
 ../../ns test-suite-schedule.tcl fq_small_queue QUIET
-time: 12:02:16
 Test output agrees with reference output
 Running test drr:
 ../../ns test-suite-schedule.tcl drr QUIET
-time: 12:02:18
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rr
@@ -2737,6 +2551,141 @@ Running test tcp:
 Test output agrees with reference output
 Running test tcp-monitor:
 ../../ns test-suite-monitor.tcl tcp-monitor QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-jobs
+Tests: jobs-rate jobs-lossdel
+Running test jobs-rate:
+../../ns test-suite-jobs.tcl jobs-rate QUIET
+Starting Simulation...
+Finishing Simulation...
+finishing..
+
+Configured RDC, with:
+	Class 1: 	Not concerned
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured RLC, with:
+	Class 1: 	Not concerned
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured ALC, with:
+	Class 1: 	Not concerned
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured ADC, with:
+	Class 1: 	Not concerned
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured ARC, with:
+	Class 1: 	4000000.000000
+	Class 2: 	3000000.000000
+	Class 3: 	2000000.000000
+	Class 4: 	1000000.000000
+
+Configured RDC, with:
+	Class 1: 	Not concerned
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured RLC, with:
+	Class 1: 	Not concerned
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured ALC, with:
+	Class 1: 	Not concerned
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured ADC, with:
+	Class 1: 	Not concerned
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured ARC, with:
+	Class 1: 	4000000.000000
+	Class 2: 	3000000.000000
+	Class 3: 	2000000.000000
+	Class 4: 	1000000.000000
+Test output agrees with reference output
+Running test jobs-lossdel:
+../../ns test-suite-jobs.tcl jobs-lossdel QUIET
+Starting Simulation...
+Finishing Simulation...
+finishing..
+
+Configured RDC, with:
+	Class 1: 	Not concerned
+	Class 2: 	4.000000	(64.000000)
+	Class 3: 	4.000000	(16.000000)
+	Class 4: 	4.000000	(4.000000)
+
+Configured RLC, with:
+	Class 1: 	Not concerned
+	Class 2: 	2.000000	(8.000000)
+	Class 3: 	2.000000	(4.000000)
+	Class 4: 	2.000000	(2.000000)
+
+Configured ALC, with:
+	Class 1: 	0.010000
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured ADC, with:
+	Class 1: 	0.005000 secs
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured ARC, with:
+	Class 1: 	Not concerned
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured RDC, with:
+	Class 1: 	Not concerned
+	Class 2: 	4.000000	(64.000000)
+	Class 3: 	4.000000	(16.000000)
+	Class 4: 	4.000000	(4.000000)
+
+Configured RLC, with:
+	Class 1: 	Not concerned
+	Class 2: 	2.000000	(8.000000)
+	Class 3: 	2.000000	(4.000000)
+	Class 4: 	2.000000	(2.000000)
+
+Configured ALC, with:
+	Class 1: 	0.010000
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured ADC, with:
+	Class 1: 	0.005000 secs
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
+
+Configured ARC, with:
+	Class 1: 	Not concerned
+	Class 2: 	Not concerned
+	Class 3: 	Not concerned
+	Class 4: 	Not concerned
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-intserv
@@ -2866,19 +2815,29 @@ Running test ottl-PB:
 Test output agrees with reference output
 Running test Mcast-PBtr:
 ../../ns test-suite-webcache.tcl Mcast-PBtr QUIET
-Test output agrees with reference output
+Test output differs from reference output
+Diagnose with: diff test-output-webcache/Mcast-PBtr.test test-output-webcache/Mcast-PBtr
+Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
 Running test Mcast-PBPtr:
 ../../ns test-suite-webcache.tcl Mcast-PBPtr QUIET
-Test output agrees with reference output
+Test output differs from reference output
+Diagnose with: diff test-output-webcache/Mcast-PBPtr.test test-output-webcache/Mcast-PBPtr
+Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
 Running test Mcast-PBUtr:
 ../../ns test-suite-webcache.tcl Mcast-PBUtr QUIET
-Test output agrees with reference output
+Test output differs from reference output
+Diagnose with: diff test-output-webcache/Mcast-PBUtr.test test-output-webcache/Mcast-PBUtr
+Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
 Running test ttl-PBtr:
 ../../ns test-suite-webcache.tcl ttl-PBtr QUIET
-Test output agrees with reference output
+Test output differs from reference output
+Diagnose with: diff test-output-webcache/ttl-PBtr.test test-output-webcache/ttl-PBtr
+Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
 Running test ottl-PBtr:
 ../../ns test-suite-webcache.tcl ottl-PBtr QUIET
-Test output agrees with reference output
+Test output differs from reference output
+Diagnose with: diff test-output-webcache/ottl-PBtr.test test-output-webcache/ottl-PBtr
+Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
 Running test mmcast-PB:
 ../../ns test-suite-webcache.tcl mmcast-PB QUIET
 Test output agrees with reference output
@@ -2894,7 +2853,7 @@ Test output agrees with reference output
 Running test mcast-dreq:
 ../../ns test-suite-webcache.tcl mcast-dreq QUIET
 Test output agrees with reference output
-All test output agrees with reference output.
+Some test failed.
 *** ./test-all-mcache
 Tests: media1 media2 media3 media3a media4 media5
 Running test media1:
@@ -2917,7 +2876,7 @@ Running test media5:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-webtraf
-Tests: 1s-1p 1s-2p 3s-2p
+Tests: 1s-1p 1s-2p 3s-2p fcfs stf
 Running test 1s-1p:
 ../../ns test-suite-webtraf.tcl 1s-1p QUIET
 Test output agrees with reference output
@@ -2927,9 +2886,15 @@ Test output agrees with reference output
 Running test 3s-2p:
 ../../ns test-suite-webtraf.tcl 3s-2p QUIET
 Test output agrees with reference output
+Running test fcfs:
+../../ns test-suite-webtraf.tcl fcfs QUIET
+Test output agrees with reference output
+Running test stf:
+../../ns test-suite-webtraf.tcl stf QUIET
+Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-simultaneous
-Tests: List Calendar Heap
+Tests: List Calendar Heap Splay Map
 Running test List:
 ../../ns test-suite-simultaneous.tcl List QUIET
 Test output agrees with reference output
@@ -2938,6 +2903,12 @@ Running test Calendar:
 Test output agrees with reference output
 Running test Heap:
 ../../ns test-suite-simultaneous.tcl Heap QUIET
+Test output agrees with reference output
+Running test Splay:
+../../ns test-suite-simultaneous.tcl Splay QUIET
+Test output agrees with reference output
+Running test Map:
+../../ns test-suite-simultaneous.tcl Map QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-mip
@@ -2953,30 +2924,33 @@ Running test mip-adv-multi:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-links
-Tests: links changeDelay links1 changeBandwidth dropPacket delayPacket
+Tests: links changeDelay changeDelay1 changeDelay2 links1 changeBandwidth dropPacket delayPacket delayPacket1
 Running test links:
 ../../ns test-suite-links.tcl links QUIET
-time: 12:07:55
 Test output agrees with reference output
 Running test changeDelay:
 ../../ns test-suite-links.tcl changeDelay QUIET
-time: 12:07:56
+Test output agrees with reference output
+Running test changeDelay1:
+../../ns test-suite-links.tcl changeDelay1 QUIET
+Test output agrees with reference output
+Running test changeDelay2:
+../../ns test-suite-links.tcl changeDelay2 QUIET
 Test output agrees with reference output
 Running test links1:
 ../../ns test-suite-links.tcl links1 QUIET
-time: 12:07:58
 Test output agrees with reference output
 Running test changeBandwidth:
 ../../ns test-suite-links.tcl changeBandwidth QUIET
-time: 12:08:00
 Test output agrees with reference output
 Running test dropPacket:
 ../../ns test-suite-links.tcl dropPacket QUIET
-time: 12:08:01
 Test output agrees with reference output
 Running test delayPacket:
 ../../ns test-suite-links.tcl delayPacket QUIET
-time: 12:08:03
+Test output agrees with reference output
+Running test delayPacket1:
+../../ns test-suite-links.tcl delayPacket1 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-plm
@@ -3012,7 +2986,6 @@ All test output agrees with reference output.
 Tests: onedrop_reno
 Running test onedrop_reno:
 ../../ns test-suite-oddBehaviors.tcl onedrop_reno QUIET
-time: 12:08:49
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-shadowing
@@ -3095,8 +3068,7 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 18.842327
-Network parition !! Exiting... at time 18.842327
+Network parition !! Exiting... at time 18.019753
 Test output agrees with reference output
 Running test diff-rate-other:
 ../../ns test-suite-wireless-diffusion.tcl diff-rate-other QUIET
@@ -3110,10 +3082,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 9.497436
-Network parition !! Exiting... at time 9.497436
-Network parition !! Exiting... at time 9.497436
-Network parition !! Exiting... at time 9.497436
+Network parition !! Exiting... at time 11.117633
+Network parition !! Exiting... at time 11.117633
 Test output agrees with reference output
 Running test diff-prob:
 ../../ns test-suite-wireless-diffusion.tcl diff-prob QUIET
@@ -3138,8 +3108,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 9.259913
-Network parition !! Exiting... at time 9.259913
+Network parition !! Exiting... at time 9.435148
+Network parition !! Exiting... at time 9.435148
 Test output agrees with reference output
 Running test flooding:
 ../../ns test-suite-wireless-diffusion.tcl flooding QUIET
@@ -3152,7 +3122,10 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 6.506932
+Network parition !! Exiting... at time 6.895848
+Network parition !! Exiting... at time 6.895848
+Network parition !! Exiting... at time 6.895848
+Network parition !! Exiting... at time 6.895848
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-lan-newnode
@@ -3224,21 +3197,18 @@ Loading connection pattern...
 Loading scenario file...
 Starting Simulation...
 NS EXITING...
-time: 12:17:09
 num_nodes is set 3
 Test output agrees with reference output
 Running test wireless2:
 ../../ns test-suite-WLtutorial.tcl wireless2 QUIET
 Starting Simulation...
 NS EXITING...
-time: 12:17:22
 num_nodes is set 4
 Test output agrees with reference output
 Running test wireless3:
 ../../ns test-suite-WLtutorial.tcl wireless3 QUIET
 Starting Simulation...
 NS EXITING...
-time: 12:17:33
 num_nodes is set 3
 Test output agrees with reference output
 All test output agrees with reference output.
@@ -3250,7 +3220,6 @@ Loading connection pattern...
 Loading scenario file...
 Load complete...
 NS EXITING...
-time: 12:17:37
 num_nodes is set 5
 Test output agrees with reference output
 Running test dsr:
@@ -3259,7 +3228,6 @@ Loading connection pattern...
 Loading scenario file...
 Load complete...
 NS EXITING...
-time: 12:17:39
 num_nodes is set 5
 Test output agrees with reference output
 Running test aodv:
@@ -3268,7 +3236,6 @@ Loading connection pattern...
 Loading scenario file...
 Load complete...
 NS EXITING...
-time: 12:17:41
 num_nodes is set 5
 Test output agrees with reference output
 All test output agrees with reference output.
@@ -3534,9 +3501,8 @@ All test output agrees with reference output.
 Tests: simple-ping
 Running test simple-ping:
 ../../ns test-suite-diffusion3.tcl simple-ping QUIET
-num_nodes is set 3
 NS EXITING...
-time: 12:19:48
+num_nodes is set 3
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-misc
@@ -3554,4 +3520,29 @@ bdep + 0:                       -1312283256
 bdep * 1:                       -1312283256
 Test output agrees with reference output
 All test output agrees with reference output.
-validate overall report: all tests passed
+*** ./test-all-tagged-trace
+Tests: simple wireless Format-simple
+Running test simple:
+../../ns test-suite-tagged-trace.tcl simple QUIET
+Starting Simulation...
+Test output agrees with reference output
+Running test wireless:
+../../ns test-suite-tagged-trace.tcl wireless QUIET
+Starting Simulation...
+num_nodes is set 4
+Test output agrees with reference output
+Running test Format-simple:
+../../ns test-suite-tagged-trace.tcl Format-simple QUIET
+Required Perl module not found, Format-simple test skipped.
+Test not implemented
+All test output agrees with reference output.
+These messages are NOT errors and can be ignored:
+    warning: using backward compatibility mode
+    This test is not implemented in backward compatibility mode
+
+
+validate overall report: some tests failed:
+     ./test-all-webcache
+to re-run a specific test, cd tcl/test; ../../ns test-all-TEST-NAME
+Notice that some tests in webcache will fail on freebsd when -O is turned on.
+This is due to some event reordering, which will disappear when -g is turned on.
