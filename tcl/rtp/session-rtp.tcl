@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.5 1997/03/27 07:03:15 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/rtp/session-rtp.tcl,v 1.6 1997/06/14 00:17:31 elan Exp $
 #
 
 proc mvar args {
@@ -66,7 +66,7 @@ Session/RTP instproc init {} {
 	mvar dchan_ cchan_
 	set cchan_ [new Agent/RTCP]
 	set dchan_ [new Agent/CBR/RTP]
-	$dchan_ set packet-size 1024
+	$dchan_ set packetSize_ 512
 
 	$dchan_ session $self
 	$cchan_ session $self
@@ -111,6 +111,15 @@ Session/RTP instproc attach-node { node } {
 	$ns attach-agent $node $cchan_
 
 	$self set node_ $node
+}
+
+Session/RTP instproc detach-node { node } {
+	mvar dchan_ cchan_
+	global ns
+	$ns detach-agent $node $dchan_
+	$ns detach-agent $node $cchan_
+
+	$self unset node_
 }
 
 # Hook to enable easy syncronization with RTCP timeouts.
@@ -170,9 +179,8 @@ Session/RTP instproc transmit { bspec } {
 		set stopped_ 1
 	}
 
-	set ps [$dchan_ set packet-size]
+	set ps [$dchan_ set packetSize_]
 	$dchan_ set interval_  [expr 8.*$ps/$b]
-
 	if { $stopped_ == 1 } {
 		$dchan_ start
 		set stopped_ 0
