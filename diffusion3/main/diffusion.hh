@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffusion.hh,v 1.2 2001/11/20 22:28:17 haldar Exp $
+// $Id: diffusion.hh,v 1.3 2001/11/29 23:25:31 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -49,6 +49,7 @@
 #include <tcl.h>
 #else
 #include "hashutils.hh"
+#include "diffrtg.h"
 #endif // NS 
 
 
@@ -112,27 +113,6 @@ public:
   }
 };
 
-#ifdef NS_DIFFUSION
-class DiffRoutingAgent;
-
-class LocalApp : public DiffusionIO {
-public:
-  LocalApp(DiffRoutingAgent *agent) { agent_ = agent;}
-  DiffPacket RecvPacket(int fd);
-  void SendPacket(DiffPacket pkt, int len, int dst); 
-protected:
-  DiffRoutingAgent *agent_;
-};
-
-class LinkLayerAbs : public DiffusionIO {
-public:
-  LinkLayerAbs(DiffRoutingAgent *agent) { agent_ = agent;}
-  DiffPacket RecvPacket(int fd);
-  void SendPacket(DiffPacket pkt, int len, int dst); 
-protected:
-  DiffRoutingAgent *agent_;
-};
-#endif // NS
 
 class DiffusionCoreAgent {
 public:

@@ -132,22 +132,19 @@ $node_(2) set Z_ 0.000000000000
 
 
 #Diffusion src application
-set src_(0) [new Application/DiffSource]
+set src_(0) [new Application/DiffApp/PingSource]
 $ns_ attach-diffapp $node_(0) $src_(0)
 $ns_ at 0.123 "$src_(0) publish"
 
 
-#setup diffAppAgent in the intermediate node
-$node_(1) create-diffusion-routing
-
-# or add application
-#set src_(1) [new Application/DiffSource]
+# another diff application
+#set src_(1) [new Application/DiffApp/PingSource]
 #$ns_ attach-diffapp $node_(1) $src_(1)
 #$ns_ at 1.3 "$src_(1) publish"
 
 
 #Diffusion sink application
-set snk_(0) [new Application/DiffSink]
+set snk_(0) [new Application/DiffApp/PingSink]
 $ns_ attach-diffapp $node_(2) $snk_(0)
 $ns_ at 1.456 "$snk_(0) subscribe"
 

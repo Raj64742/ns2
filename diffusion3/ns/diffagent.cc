@@ -43,6 +43,19 @@ public:
 } class_diffusion_app_agent;
 
 
+void NsLocal::SendPacket(DiffPacket pkt, int len, int dst) {
+  agent_->sendPacket(pkt, len, dst);
+}
+
+DiffPacket NsLocal::RecvPacket(int fd) {
+  DiffPacket p;
+  fprintf(stderr, "This function should not get called; call DiffAppAgent::recv(Packet *, Handler *) instead\n\n");
+  exit(1);
+  return (p);  // to keep the compiler happy
+}
+
+
+
 DiffEvent::DiffEvent(int type, void *payload, int time) {
 	type_ = type;
 	payload_ = payload;
@@ -108,7 +121,7 @@ void DiffAppAgent::diffTimeout(Event *de) {
 
 
 int DiffAppAgent::command(int argc, const char*const* argv) {
-	Tcl& tcl = Tcl::instance();
+	//Tcl& tcl = Tcl::instance();
   
 	if (argc == 3) {
 		if (strcmp(argv[1], "agent-id") == 0) {

@@ -45,6 +45,44 @@ public:
 } class_diffusion_routing_agent;
 
 
+void LocalApp::SendPacket(DiffPacket pkt, int len, int dst) {
+  agent_->sendPacket(pkt, len, dst); 
+}
+
+
+DiffPacket LocalApp::RecvPacket(int fd) {
+  DiffPacket p;
+  
+  fprintf(stderr, "This function should not get called; call DiffRoutingAgent::recv(Packet *, Handler *) instead\n\n");
+  exit(1);
+  return (p);  // to keep the compiler happy
+}
+
+
+void LinkLayerAbs::SendPacket(DiffPacket pkt, int len, int dst) {
+  Packet *p;
+  Handler *h;
+  hdr_ip *iph;
+  
+  p = agent_->createNsPkt(pkt, len, dst); 
+  iph = HDR_IP(p);
+  iph->saddr() = agent_->addr();
+  iph->sport() = agent_->port();    //RT_PORT;
+  iph->daddr() = IP_BROADCAST;
+  iph->dport() = agent_->port();    //RT_PORT;
+  agent_->send(p, h);
+
+}
+
+
+DiffPacket LinkLayerAbs::RecvPacket(int fd) {
+  DiffPacket p;
+  
+  fprintf(stderr, "This function should not get called; call DiffRoutingAgent::recv(Packet *, Handler *) instead\n\n");
+  exit(1);
+  return (p);  // to keep the compiler happy
+}
+
 
 void DiffusionCoreEQ::eq_addAfter(int type, void *payload, int delay_msec) {
   

@@ -33,10 +33,12 @@
 #ifndef NS_DIFF_SNK
 #define NS_DIFF_SNK
 
+#include "diffapp.h"
 #include "agent.hh"
 
 
-class DiffusionSink : public Application {
+//class DiffusionSink : public Application {
+class DiffusionSink : public DiffApp {
  public:
   DiffusionSink();
   handle setupInterest(NR *dr);
@@ -49,7 +51,7 @@ class DiffusionSink : public Application {
 
  private:
   
-  NR *dr;
+	//NR *dr;
   MySnkReceive *mr;
   handle subHandle;
 };

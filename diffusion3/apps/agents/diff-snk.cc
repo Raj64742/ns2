@@ -71,10 +71,10 @@ void MySnkReceive::recv(NRAttrVec *data, NR::handle my_handle)
 #ifdef NS_DIFFUSION
 static class DiffusionSinkClass : public TclClass {
 public:
-  DiffusionSinkClass() : TclClass("Application/DiffSink") {}
-  TclObject* create(int , const char*const* ) {
-    return(new DiffusionSink());
-  }
+    DiffusionSinkClass() : TclClass("Application/DiffApp/PingSink") {}
+    TclObject* create(int , const char*const* ) {
+	    return(new DiffusionSink());
+    }
 } class_diffusion_sink;
 
 
@@ -90,15 +90,15 @@ int DiffusionSink::command(int argc, const char*const* argv) {
       //exit(0);
     }
   }
-  if (argc == 3) {
-    if (strcmp(argv[1], "dr") == 0) {
-      DiffAppAgent *agent;
-      agent = (DiffAppAgent *)TclObject::lookup(argv[2]);
-      dr = agent->dr();
-      return TCL_OK;
-    }
-  }
-  return Application::command(argc, argv);
+  //if (argc == 3) {
+  //if (strcmp(argv[1], "dr") == 0) {
+  //  DiffAppAgent *agent;
+  //  agent = (DiffAppAgent *)TclObject::lookup(argv[2]);
+  //  dr = agent->dr();
+  //  return TCL_OK;
+  //}
+  //}
+  return DiffApp::command(argc, argv);
 }
 
 void DiffusionSink::start() {

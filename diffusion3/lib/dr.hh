@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.hh,v 1.2 2001/11/20 22:28:18 haldar Exp $
+// $Id: dr.hh,v 1.3 2001/11/29 23:22:36 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -98,20 +98,6 @@ public:
   NR::handle subscription_handle;
 };
 
-
-#ifdef NS_DIFFUSION
-class DiffAppAgent;
-
-class NsLocal : public DiffusionIO {
-public:
-  NsLocal(DiffAppAgent *agent) { agent_ = agent;}
-  DiffPacket RecvPacket(int fd);
-  void SendPacket(DiffPacket pkt, int len, int dst); 
-protected:
-  DiffAppAgent *agent_;
-};
-
-#endif // ns
 
 class DiffusionRouting : public NR {
 public:

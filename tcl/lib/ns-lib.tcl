@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.235 2001/11/08 18:12:18 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.236 2001/11/29 23:25:32 haldar Exp $
 
 
 #
@@ -1886,6 +1886,9 @@ Simulator instproc create-core-diffusion-rtg-agent {node} {
 	set ragent [new Agent/DiffusionRouting]
 	$node set ragent_ $ragent
 	#$ragent start
+
+	$node create-diffusionApp-agent
+
 	return $ragent
 }
 

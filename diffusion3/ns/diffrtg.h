@@ -41,8 +41,27 @@
 #include "ns-process.h"
 #include "agent.h"
 #include "trace.h"
-#include "diffrtg.h"
 
+
+class DiffRoutingAgent;
+
+class LocalApp : public DiffusionIO {
+public:
+  LocalApp(DiffRoutingAgent *agent) { agent_ = agent;}
+  DiffPacket RecvPacket(int fd);
+  void SendPacket(DiffPacket pkt, int len, int dst); 
+protected:
+  DiffRoutingAgent *agent_;
+};
+
+class LinkLayerAbs : public DiffusionIO {
+public:
+  LinkLayerAbs(DiffRoutingAgent *agent) { agent_ = agent;}
+  DiffPacket RecvPacket(int fd);
+  void SendPacket(DiffPacket pkt, int len, int dst); 
+protected:
+  DiffRoutingAgent *agent_;
+};
  
 class DiffusionCoreEQ : public eventQueue {
 public:

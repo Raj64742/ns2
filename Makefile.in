@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.231 2001/11/08 21:59:58 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.232 2001/11/29 23:22:35 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -214,6 +214,7 @@ OBJ_CC = \
 	diffusion3/main/tools.o \
 	diffusion3/main/drivers/rpc_stats.o \
 	diffusion3/apps/sysapps/gradient.o \
+	diffusion3/apps/agents/diffapp.o \
 	diffusion3/apps/agents/diff-snk.o \
 	diffusion3/apps/agents/diff-src.o \
 	@V_STLOBJ@

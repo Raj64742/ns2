@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.268 2001/11/29 22:29:29 buchheim Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.269 2001/11/29 23:25:32 haldar Exp $
 
 
 #
@@ -458,6 +458,9 @@ SALink set debug_ false
 Node set multiPath_ 0
 Node set rtagent_port_ 255
 
+# setting port for diffusion application agent
+Node set DIFFUSION_APP_PORT 254
+
 Node/MobileNode set X_				0
 Node/MobileNode set Y_				0
 Node/MobileNode set Z_				0
@@ -467,6 +470,7 @@ Node/MobileNode set bandwidth_			0	;# not used
 Node/MobileNode set delay_				0	;# not used
 Node/MobileNode set REGAGENT_PORT 0
 Node/MobileNode set DECAP_PORT 1
+
 
 # Default settings for Hierarchical topology
 #

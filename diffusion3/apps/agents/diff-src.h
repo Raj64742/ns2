@@ -33,6 +33,7 @@
 #ifndef NS_DIFF_SRC
 #define NS_DIFF_SRC
 
+#include "diffapp.h"
 #include "agent.hh"
 
 
@@ -48,9 +49,9 @@ protected:
 };
 
 
-//class DiffusionSource : public DiffApp {
-class DiffusionSource : public Application {
- public:
+//class DiffusionSource : public Application {
+class DiffusionSource : public DiffApp {
+public:
   DiffusionSource();
   handle setupInterest(NR *dr);
   handle setupPublication(NR *dr);
@@ -65,7 +66,7 @@ class DiffusionSource : public Application {
  
  private:
   
-  NR *dr;
+	// NR *dr;
 
   MySrcReceive *mr;
   

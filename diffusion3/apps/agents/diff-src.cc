@@ -83,7 +83,7 @@ void MySrcReceive::recv(NRAttrVec *data, NR::handle my_handle)
 #ifdef NS_DIFFUSION
 static class DiffusionSourceClass : public TclClass {
 public:
-  DiffusionSourceClass() : TclClass("Application/DiffSource") {}
+  DiffusionSourceClass() : TclClass("Application/DiffApp/PingSource") {}
   TclObject* create(int , const char*const* ) {
     return(new DiffusionSource());
   }
@@ -93,7 +93,7 @@ void sendDataTimer::expire(Event *e) {
   a_->send();
 }
 
-DiffusionSource::DiffusionSource() :  counter(0), sdt(this) {
+DiffusionSource::DiffusionSource() : counter(0), sdt(this) {
   mr = new MySrcReceive;
 }
 
@@ -123,6 +123,7 @@ void DiffusionSource::send() {
 
 }
 
+
 int DiffusionSource::command(int argc, const char*const* argv) {
   Tcl& tcl = Tcl::instance();
   if (argc == 2) {
@@ -135,15 +136,15 @@ int DiffusionSource::command(int argc, const char*const* argv) {
       //exit(0);
     }
   }
-  if (argc == 3) {
-    if (strcmp(argv[1], "dr") == 0) {
-      DiffAppAgent *agent;
-      agent = (DiffAppAgent *)TclObject::lookup(argv[2]);
-      dr = agent->dr();
-      return TCL_OK;
-    }
-  }
-  return Application::command(argc, argv);
+  //if (argc == 3) {
+  // if (strcmp(argv[1], "dr") == 0) {
+  //  DiffAppAgent *agent;
+  //  agent = (DiffAppAgent *)TclObject::lookup(argv[2]);
+  //  dr = agent->dr();
+  //  return TCL_OK;
+  //}
+  //}
+  return DiffApp::command(argc, argv);
 }
 #endif
 

@@ -40,6 +40,17 @@
 #include "dr.hh"
 #include "difftimer.h"
 
+class DiffAppAgent;
+
+class NsLocal : public DiffusionIO {
+public:
+  NsLocal(DiffAppAgent *agent) { agent_ = agent;}
+  DiffPacket RecvPacket(int fd);
+  void SendPacket(DiffPacket pkt, int len, int dst); 
+protected:
+  DiffAppAgent *agent_;
+};
+
 
 class DiffEvent : public Event {
 private:
@@ -55,8 +66,6 @@ public:
 	int type() { return type_; }
 	void* payload() { return payload_; }
 };
-
-class DiffAppAgent;
 
 class DiffEventQueue : public eventQueue { 
 public: 
