@@ -4,7 +4,7 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output,
-### on pig.ee.lbl.gov, Mon Jul 6 1998,
+### on pig.ee.lbl.gov, Thu Jul  9 11:54:59 PDT 1998,
 ### with tcl8.0p1, tk8.0p1.
 ###
 ### "Validate" ran correctly for Sally Floyd with the rev 1.10
@@ -124,7 +124,7 @@ retransmit_timeouts: 1
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-full
-Tests: full close twoway twoway1 twoway_bsdcompat oneway_bsdcompat twowayrandom delack iw=4 droppedsyn droppedfirstseg droppedsecondseg simul-open simul-close droppednearfin droppedlastseg droppedretransmit droppednearretransmit droppedfastrexmit ecn1 ecn2 droppedfin smallpkts telnet telnet2 SSR SSR2 tsopt winlimited
+Tests: full close twoway twoway1 twowayrandom delack iw=4 droppedsyn droppedfirstseg droppedsecondseg simul-open simul-close droppednearfin droppedlastseg droppedretransmit droppednearretransmit droppedfastrexmit ecn1 ecn2 droppedfin smallpkts telnet telnet2 SSR SSR2 tsopt winlimited
 Running test full:  ../../ns test-suite-full.tcl full QUIET
 Test output agrees with reference output
 Running test close:  ../../ns test-suite-full.tcl close QUIET
@@ -132,10 +132,6 @@ Test output agrees with reference output
 Running test twoway:  ../../ns test-suite-full.tcl twoway QUIET
 Test output agrees with reference output
 Running test twoway1:  ../../ns test-suite-full.tcl twoway1 QUIET
-Test output agrees with reference output
-Running test twoway_bsdcompat:  ../../ns test-suite-full.tcl twoway_bsdcompat QUIET
-Test output agrees with reference output
-Running test oneway_bsdcompat:  ../../ns test-suite-full.tcl oneway_bsdcompat QUIET
 Test output agrees with reference output
 Running test twowayrandom:  ../../ns test-suite-full.tcl twowayrandom QUIET
 second TCP starting at time 1
@@ -520,38 +516,70 @@ Running test sack4:  ../../ns test-suite-tcp-init-win.tcl sack4 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcpVariants
-Tests: onedrop_tahoe onedrop_reno onedrop_newreno onedrop_sack twodrops_tahoe twodrops_reno twodrops_newreno twodrops_sack threedrops_tahoe threedrops_reno threedrops_newreno threedrops_sack fourdrops_tahoe fourdrops_reno fourdrops_newreno fourdrops_sack
+Tests: onedrop_tahoe onedrop_tahoe_full onedrop_reno onedrop_reno_full onedrop_newreno onedrop_newreno_full onedrop_sack onedrop_sack_full twodrops_tahoe twodrops_tahoe_full twodrops_reno twodrops_reno_full twodrops_newreno twodrops_newreno_full twodrops_sack twodrops_sack_full threedrops_tahoe threedrops_tahoe_full threedrops_reno threedrops_reno_full threedrops_newreno threedrops_newreno_full threedrops_sack threedrops_sack_full fourdrops_tahoe fourdrops_tahoe_full fourdrops_reno fourdrops_reno_full fourdrops_newreno fourdrops_newreno_full fourdrops_sack fourdrops_sack_full
 Running test onedrop_tahoe:  ../../ns test-suite-tcpVariants.tcl onedrop_tahoe QUIET
+Test output agrees with reference output
+Running test onedrop_tahoe_full:  ../../ns test-suite-tcpVariants.tcl onedrop_tahoe_full QUIET
 Test output agrees with reference output
 Running test onedrop_reno:  ../../ns test-suite-tcpVariants.tcl onedrop_reno QUIET
 Test output agrees with reference output
+Running test onedrop_reno_full:  ../../ns test-suite-tcpVariants.tcl onedrop_reno_full QUIET
+Test output agrees with reference output
 Running test onedrop_newreno:  ../../ns test-suite-tcpVariants.tcl onedrop_newreno QUIET
+Test output agrees with reference output
+Running test onedrop_newreno_full:  ../../ns test-suite-tcpVariants.tcl onedrop_newreno_full QUIET
 Test output agrees with reference output
 Running test onedrop_sack:  ../../ns test-suite-tcpVariants.tcl onedrop_sack QUIET
 Test output agrees with reference output
+Running test onedrop_sack_full:  ../../ns test-suite-tcpVariants.tcl onedrop_sack_full QUIET
+Test output agrees with reference output
 Running test twodrops_tahoe:  ../../ns test-suite-tcpVariants.tcl twodrops_tahoe QUIET
+Test output agrees with reference output
+Running test twodrops_tahoe_full:  ../../ns test-suite-tcpVariants.tcl twodrops_tahoe_full QUIET
 Test output agrees with reference output
 Running test twodrops_reno:  ../../ns test-suite-tcpVariants.tcl twodrops_reno QUIET
 Test output agrees with reference output
+Running test twodrops_reno_full:  ../../ns test-suite-tcpVariants.tcl twodrops_reno_full QUIET
+Test output agrees with reference output
 Running test twodrops_newreno:  ../../ns test-suite-tcpVariants.tcl twodrops_newreno QUIET
+Test output agrees with reference output
+Running test twodrops_newreno_full:  ../../ns test-suite-tcpVariants.tcl twodrops_newreno_full QUIET
 Test output agrees with reference output
 Running test twodrops_sack:  ../../ns test-suite-tcpVariants.tcl twodrops_sack QUIET
 Test output agrees with reference output
+Running test twodrops_sack_full:  ../../ns test-suite-tcpVariants.tcl twodrops_sack_full QUIET
+Test output agrees with reference output
 Running test threedrops_tahoe:  ../../ns test-suite-tcpVariants.tcl threedrops_tahoe QUIET
+Test output agrees with reference output
+Running test threedrops_tahoe_full:  ../../ns test-suite-tcpVariants.tcl threedrops_tahoe_full QUIET
 Test output agrees with reference output
 Running test threedrops_reno:  ../../ns test-suite-tcpVariants.tcl threedrops_reno QUIET
 Test output agrees with reference output
+Running test threedrops_reno_full:  ../../ns test-suite-tcpVariants.tcl threedrops_reno_full QUIET
+Test output agrees with reference output
 Running test threedrops_newreno:  ../../ns test-suite-tcpVariants.tcl threedrops_newreno QUIET
+Test output agrees with reference output
+Running test threedrops_newreno_full:  ../../ns test-suite-tcpVariants.tcl threedrops_newreno_full QUIET
 Test output agrees with reference output
 Running test threedrops_sack:  ../../ns test-suite-tcpVariants.tcl threedrops_sack QUIET
 Test output agrees with reference output
+Running test threedrops_sack_full:  ../../ns test-suite-tcpVariants.tcl threedrops_sack_full QUIET
+Test output agrees with reference output
 Running test fourdrops_tahoe:  ../../ns test-suite-tcpVariants.tcl fourdrops_tahoe QUIET
+Test output agrees with reference output
+Running test fourdrops_tahoe_full:  ../../ns test-suite-tcpVariants.tcl fourdrops_tahoe_full QUIET
 Test output agrees with reference output
 Running test fourdrops_reno:  ../../ns test-suite-tcpVariants.tcl fourdrops_reno QUIET
 Test output agrees with reference output
+Running test fourdrops_reno_full:  ../../ns test-suite-tcpVariants.tcl fourdrops_reno_full QUIET
+Test output agrees with reference output
 Running test fourdrops_newreno:  ../../ns test-suite-tcpVariants.tcl fourdrops_newreno QUIET
 Test output agrees with reference output
+Running test fourdrops_newreno_full:  ../../ns test-suite-tcpVariants.tcl fourdrops_newreno_full QUIET
+Test output agrees with reference output
 Running test fourdrops_sack:  ../../ns test-suite-tcpVariants.tcl fourdrops_sack QUIET
+Test output agrees with reference output
+Running test fourdrops_sack_full:  ../../ns test-suite-tcpVariants.tcl fourdrops_sack_full QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-ecn
@@ -660,4 +688,16 @@ total clients started: 1
 total clients finished: 1
 Test output agrees with reference output
 All test output agrees with reference output.
+*** ./test-all-session
+Tests: Session1 Session2 Session3
+Running test Session1
+tracing
+Test output agrees with reference output
+Running test Session2
+tracing
+Test output agrees with reference output
+Running test Session3
+tracing
+Test output agrees with reference output
+All test outputs agree with reference outputs
 validate overall report: all tests passed
