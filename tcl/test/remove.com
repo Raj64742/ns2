@@ -17,7 +17,7 @@ intserv webcache mcast newreno srm session mixmode algo-routing vc \
 simultaneous lan wireless-lan ecn-ack mip energy wireless-gridkeeper mcache \
 satellite wireless-lan-newnode wireless-lan-aodv WLtutorial aimd greis \
 rfc793edu friendly rfc2581 links wireless-tdma rio testReno LimTransmit \
-pushback
+pushback diffserv
 do
 	echo test-output-$i
 	rm -f test-output-$i/*.test
