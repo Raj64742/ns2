@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/heap.h,v 1.5 1999/01/28 23:08:20 yuriy Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/heap.h,v 1.6 1999/08/21 01:27:36 yuriy Exp $ (USC/ISI)
  */
 
 #ifndef ns_heap_h
@@ -61,8 +61,9 @@ class Heap
 		h_elems[j] = __he;
 		return;
 	};
-	unsigned int	KEY_LESS_THAN(heap_key_t k1, heap_key_t k2) {
-		return (k1 < k2);
+	unsigned int	KEY_LESS_THAN(heap_key_t k1, heap_secondary_key_t ks1,
+				      heap_key_t k2, heap_secondary_key_t ks2) {
+		return (k1 < k2) || ((k1==k2)&&(ks1<ks2));
 	};
 	unsigned int	KEY_LESS_OR_EQUAL_THAN(heap_key_t k1, heap_key_t k2) {
 		return (k1 <= k2);
@@ -192,9 +193,9 @@ public:
 	
 		i = h_size++;
 		par = parent(i);
-		while ((i > 0) && (KEY_LESS_THAN(key, h_elems[par].he_key) ||
-				   ((key==h_elems[par].he_key) &&
-				    h_s_key < h_elems[par].he_s_key))) {
+		while ((i > 0) && 
+		       (KEY_LESS_THAN(key, h_s_key,
+				      h_elems[par].he_key, h_elems[par].he_s_key))) {
 			h_elems[i] = h_elems[par];
 			i = par;
 			par = parent(i);
@@ -268,18 +269,16 @@ public:
 			l = left(i);
 			r = right(i);
 			if (r < h_size) {
-				if (KEY_LESS_THAN(h_elems[l].he_key, h_elems[r].he_key)) {
+				if (KEY_LESS_THAN(h_elems[l].he_key, h_elems[l].he_s_key,
+						  h_elems[r].he_key, h_elems[r].he_s_key))
 					x= l;
-				} else if (h_elems[l].he_key==h_elems[r].he_key)
-					x= (h_elems[l].he_s_key < h_elems[r].he_s_key) ? l : r;
 				else
 					x= r;
 			} else
 				x = (l < h_size ? l : i);
-			if ((x != i) && (KEY_LESS_THAN(h_elems[x].he_key,
-						       h_elems[i].he_key) ||
-					 ((h_elems[x].he_key==h_elems[i].he_key) &&
-					  (h_elems[x].he_s_key < h_elems[i].he_s_key)))) {
+			if ((x != i) && 
+			    (KEY_LESS_THAN(h_elems[x].he_key, h_elems[x].he_s_key,
+					   h_elems[i].he_key, h_elems[i].he_s_key))) {
 				swap(i, x);
 				i = x;
 			} else {
