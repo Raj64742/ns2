@@ -995,13 +995,13 @@ void EWPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet 
 -----------------------------------------------------------------------------*/
 int EWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
   //  printf("enter applyPolicer\n");
-  if (ew->testAlarm(pkt)) {
+  //if (ew->testAlarm(pkt)) {
     //    printf(" DOWNGRADE!\n");	
-    return(policer->downgrade1);
-  } else { 
+  //  return(policer->downgrade1);
+  //} else { 
     //printf(" OK!\n");	
     return(policer->initialCodePt);
-  }
+    //}
 }
 
 // End of EWP
@@ -1019,6 +1019,9 @@ EW::EW() {
   timer = EW_SLEEP_INTERVAL;
   sleep = 1;
 
+  s_inv = EW_SLEEP_INTERVAL;
+  d_inv = EW_DETECT_INTERVAL;
+
   // Initialize ALIST
   alist.head = alist.tail = NULL;
   alist.count = 0;
@@ -1031,7 +1034,6 @@ EW::EW() {
 //Deconstructor.
 EW::~EW(){
   struct SWinEntry *p, *q;
-  struct AListEntry *ap, *aq;
 
   for (int i = 0; i < htab_point; i++) {
     freeHTabEntry(htab[i]);
@@ -1040,15 +1042,7 @@ EW::~EW(){
   htab_point = 0;
   cew = NULL;
 
-  ap = aq = alist.head;
-    while (ap) {
-      aq = ap;
-      ap = ap->next;
-      free(aq);
-    }
-    
-    ap = aq = NULL;
-    alist.head = alist.tail = NULL;
+  resetAList();
 }
 
 // Initialize the EW parameters
@@ -1056,6 +1050,14 @@ void EW::init(int ew_th, int ew_inv, int qsrc, int qdst) {
   // detection threshold and sample interval
   init_th = th = ew_th;
   init_inv = inv = ew_inv;
+
+  // Detection and sample interval
+  s_inv = ew_inv;
+  d_inv = (int) (ew_inv / 6);
+  if (d_inv < EW_MIN_DETECT_INTERVAL)
+    d_inv = EW_MIN_DETECT_INTERVAL;
+
+  //  printf("s_inv: %d, d_inv: %d\n", s_inv, d_inv);
   // EW id
   ew_src = qsrc;
   ew_dst = qdst;
@@ -1072,21 +1074,22 @@ void EW::runEW(Packet *pkt) {
 
   // There is a timeout!
   if (now >= timer) {
-    //    printf("Timeout(%d):", now);
+    //printf("Timeout(%d):", now);
     // Sleeps previously, now start working
     if (sleep) {
       //printf("sleep->detect\n");
       sleep = 0;
       // setup the detection timer
-      timer = now + EW_DETECT_INTERVAL;
+      timer = now + d_inv;
     } else {
       // works previously, now sleep!
       //printf("detect->sleep\n");
       sleep = 1;
       // setup the sleeping timer
-      timer = now + EW_SLEEP_INTERVAL;
+      timer = now + s_inv;
       //printAList();
-      updateHTab();
+      //updateHTab();
+      choseHBA();
       resetAList();
     }
   } 
@@ -1150,14 +1153,15 @@ void EW::applyDetector(Packet *pkt) {
   AListEntry *p;
 
   p = alist.head;
-  while (p && p->node_id != src_id)
+  while (p && (p->src_id != src_id || p->dst_id != dst_id))
     p = p->next;
 
   // Add new entry to AList
   if (!p) {
     // New AList entry
     p = new AListEntry;
-    p->node_id = src_id;
+    p->src_id = src_id;
+    p->dst_id = dst_id;
     p->bytes = 0;
     p->next = NULL;
 
@@ -1176,6 +1180,23 @@ void EW::applyDetector(Packet *pkt) {
   assert(p && p->node_id == src_id);
   p->bytes += hdr->size();
 }
+
+// Choose the high-bandwidth aggregates
+void EW::choseHBA() {
+  int i;
+  struct AListEntry *max;
+
+  // Pick the highest K bandwidth aggregates
+  i = 0;
+  while (i < 4) {
+    max = maxAList();
+    //printAListEntry(max, -1);
+    max->bytes = 0;
+    i++;
+  }
+  printf("\n");
+}
+
 
 // Find the right index for HTab
 int EW::getHTabIndex(int node_id) {
@@ -1235,7 +1256,7 @@ void EW::freeHTabEntry(struct HTableEntry *h) {
 // Add new entry to AList
 int EW::addHTabEntry(struct AListEntry * max) {
   struct HTableEntry *new_entry;
-  new_entry = newHTabEntry(max->node_id);
+  new_entry = newHTabEntry(max->src_id);
 
   // record how many bits having been sent.
   new_entry->cur_rate = max->bytes;
@@ -1272,47 +1293,6 @@ int EW::addHTabEntry(struct AListEntry * max) {
 
   freeHTabEntry(new_entry);
   return(htab_point);
-
-  /*
-  if (i == htab_point) {
-    // Insert the new entry to the tail of HTAB
-    if (i < EW_MAX_WIN) {
-      htab[i] = new_entry;
-      htab_point++;
-      //printf("add %d at %d, point: %d\n", node_id, i, htab_point);
-
-    } else {
-      // There is no space left...
-      //printf("NO SPACE LEFT IN HTABLE for %d\n", node_id);
-      free(new_entry);
-    }
-  } else {
-    // Insert the new entry in the middle of HTAB
-    if (htab_point == EW_MAX_WIN) {
-      // Remove the last entry, which is the smallest one
-      free(htab[htab_point - 1]);
-      htab_point--;
-    }
-
-    //printf("add HTAB: before move\n");
-    // move the entries
-    int j = htab_point - 1;
-    while (j >= i) {
-      htab[j + 1] = htab[j];
-      j--;
-    }
-    //printf("add HTAB: after move\n");
-    htab[i] = new_entry;
-    htab_point++;
-
-    //printf("add %d at %d, point: %d\n", node_id, i, htab_point);
-  }
-
-  // Output the current HTable info
-  //printHTab();
-
-  return(i);
-  */
 }
 
 // update HTab after detection timeout.
@@ -1325,7 +1305,7 @@ void EW::updateHTab() {
   max = maxAList();
 
   while (max && max->bytes > 0 && id < EW_MAX_WIN) {
-    id = getHTabIndex(max->node_id);
+    id = getHTabIndex(max->src_id);
     //    printf("node_id: %d, index %d\n", max->node_id, id);
  
     if (id >= 0 && id < EW_MAX_WIN) {
@@ -1373,8 +1353,9 @@ struct AListEntry * EW::maxAList() {
   }
   assert(max);
   if (max) {
-    //printf("MAX: %d(%d)\n", max->node_id, max->bytes);
-    max->bytes = (int)(max->bytes * 8 / EW_DETECT_INTERVAL);
+    // B/s
+    max->bytes = (int)(max->bytes * 8 / d_inv);
+    printAListEntry(max, -1);
   }
 
   return(max);
@@ -1382,14 +1363,17 @@ struct AListEntry * EW::maxAList() {
 
 // Reset the bytes field in AList
 void EW::resetAList() {
-  struct AListEntry *p;
+  struct AListEntry *ap, *aq;
 
-  p = alist.head;
-
-  while(p) {
-    p->bytes = 0;
-    p = p->next;
+  ap = aq = alist.head;
+  while (ap) {
+    aq = ap;
+    ap = ap->next;
+    free(aq);
   }
+  
+  ap = aq = NULL;
+  alist.head = alist.tail = NULL;  
 }
 
 // sort HTab based on ravg to find the hostest resources
@@ -1548,14 +1532,20 @@ void EW::printHTabEntry(int id) {
   printf("\n");
 }
 
-// Prints the entries in HTab.
+// Print the entries in HTab.
 void EW::printHTab() {
   for (int i = 0; i < htab_point; i++) {
     printHTabEntry(i);
   }
 }
 
-// Prints the entries in AList
+// Print one entry in AList
+void EW::printAListEntry(struct AListEntry *p, int i) {
+  assert(p);
+  printf("[%d: %d->%d (%d)] ", i, p->src_id, p->dst_id, p->bytes);
+}
+
+// Print the entries in AList
 void EW::printAList() {
   struct AListEntry *p;
   printf("AList(%d): ", alist.count);
@@ -1563,7 +1553,8 @@ void EW::printAList() {
   p = alist.head;
   int i = 0;
   while (p) {
-    printf("[%d: %d(%d)] ", i++, p->node_id, p->bytes);
+    printAListEntry(p, i);
+    i++;
     p = p->next;
   }
   p = NULL;

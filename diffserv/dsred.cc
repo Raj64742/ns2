@@ -165,51 +165,58 @@ void dsREDQueue::applyTSWMeter(int q_id, int pkt_size) {
 }
 
 
-/*------------------------------------------------------------------------------
+/*-----------------------------------------------------------------------------
 void enque(Packet* pkt) 
     The following method outlines the enquing mechanism for a Diffserv router.
 This method is not used by the inheriting classes; it only serves as an 
 outline.
-------------------------------------------------------------------------------*/
+-----------------------------------------------------------------------------*/
 void dsREDQueue::enque(Packet* pkt) {
-   int codePt, queue, prec;
-   hdr_ip* iph = hdr_ip::access(pkt);
-   //extracting the marking done by the edge router
-   codePt = iph->prio();	
-   int ecn = 0;
+  int codePt, eq_id, prec;
+  hdr_ip* iph = hdr_ip::access(pkt);
+  //extracting the marking done by the edge router
+  codePt = iph->prio();	
+  int ecn = 0;
+  
+  //looking up queue and prec numbers for that codept
+  lookupPHBTable(codePt, &eq_id, &prec);	
 
-   //looking up queue and prec numbers for that codept
-   lookupPHBTable(codePt, &queue, &prec);	
+  // code added for ECN support
+  //hdr_flags* hf = (hdr_flags*)(pkt->access(off_flags_));
+  // Changed for the latest version instead of 2.1b6
+  hdr_flags* hf = hdr_flags::access(pkt);
 
-   // code added for ECN support
-   //hdr_flags* hf = (hdr_flags*)(pkt->access(off_flags_));
-   // Changed for the latest version instead of 2.1b6
-   hdr_flags* hf = hdr_flags::access(pkt);
-
-   if (ecn_ && hf->ect()) ecn = 1;
-
-	stats.pkts_CP[codePt]++;
-	stats.pkts++;
-
-   switch(redq_[queue].enque(pkt, prec, ecn)) {
-      case PKT_ENQUEUED:
+  if (ecn_ && hf->ect()) ecn = 1;
+  
+  stats.pkts_CP[codePt]++;
+  stats.pkts++;
+  
+  switch(redq_[eq_id].enque(pkt, prec, ecn)) {
+  case PKT_ENQUEUED:
+    break;
+  case PKT_DROPPED:
+    stats.drops_CP[codePt]++;
+    stats.drops++;
+    drop(pkt);
          break;
-      case PKT_DROPPED:
-         stats.drops_CP[codePt]++;
-	 stats.drops++;
-         drop(pkt);
-         break;
-      case PKT_EDROPPED:
-	 stats.edrops_CP[codePt]++;
-	 stats.edrops++;
-         edrop(pkt);
-         break;
-      case PKT_MARKED:
-         hf->ce() = 1; 	// mark Congestion Experienced bit		
-         break;			
-      default:
-         break;
-   }
+  case PKT_EDROPPED:
+    stats.edrops_CP[codePt]++;
+    stats.edrops++;
+    edrop(pkt);
+    break;
+  case PKT_MARKED:
+    hf->ce() = 1; 	// mark Congestion Experienced bit		
+    break;			
+  default:
+    break;
+  }
+
+  // update state variables for the "virtual" queue
+  // the incoming packet may be actually dropped 
+  // (and the queue should be set to idle again).
+  // bug reported by T. Wagner
+  //   fixed by xuanc, 12/03/01
+  redq_[eq_id].updateREDStateVar(prec);
 }
 
 // Dequing mechanism for both edge and core router.
@@ -231,7 +238,7 @@ Packet* dsREDQueue::deque() {
     iph= hdr_ip::access(p);
     fid = iph->flowid()/32;
     pktcount[dq_id]+=1;
-
+    
     // update the average rate for pri-queue
     // Modified by xuanc(xuanc@isi.edu) Oct 18, 2001, 
     // referring to the patch contributed by 
@@ -247,6 +254,10 @@ Packet* dsREDQueue::deque() {
     // for the packet dequeued.
     lookupPHBTable(getCodePt(p), &queue, &prec);
     
+    // decrement virtual queue length
+    // Previously in updateREDStateVar, moved by xuanc (12/03/01)
+    //redq_[dq_id].qParam_[prec].qlen--;	
+    redq_[dq_id].updateVREDLen(prec);	
     // update state variables for that "virtual" queue
     redq_[dq_id].updateREDStateVar(prec);
   }

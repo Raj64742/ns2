@@ -54,8 +54,9 @@
 #define EW_MAX_WIN 8
 #define EW_WIN_SIZE 4
 #define EW_A_TH 1
-#define EW_SLEEP_INTERVAL 60
-#define EW_DETECT_INTERVAL 10
+#define EW_SLEEP_INTERVAL 300
+#define EW_DETECT_INTERVAL 60
+#define EW_MIN_DETECT_INTERVAL 30
 
 enum policerType {dumbPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, SFDPolicer, EWPolicer};
 
@@ -227,7 +228,8 @@ void printFlowTable();
 
 // Record the detection result
 struct AListEntry {
-  int node_id;
+  int src_id;
+  int dst_id;
   int bytes;
   struct AListEntry *next;
 };
@@ -301,6 +303,8 @@ class EW {
 
   // output contents in AList
   void printAList();
+  // Print one entry in AList
+  void printAListEntry(struct AListEntry *, int);
 
  private:
   // The nodes connected by EW
@@ -328,6 +332,11 @@ class EW {
   // Initial interval
   int init_inv;  
 
+  // Detection interval
+  int d_inv;
+  // Sample interval
+  int s_inv;
+
   // List to keep the detection results
   struct AList alist;
 
@@ -339,6 +348,8 @@ class EW {
   // Measurement:
   // Find the max value in AList
   struct AListEntry *maxAList();
+  // Choose the high-bandwidth aggregates
+  void choseHBA();
   // Reset the bytes field in AList
   void resetAList();
 
