@@ -125,6 +125,7 @@ ReassemblyQueue::clear()
 		delete(p);
 	}
 	tail_ = NULL;
+	total_ = 0;
 	return;
 }
 
@@ -142,6 +143,7 @@ ReassemblyQueue::clearto(TcpSeq seq)
 		if (p->endseq_ <= seq) {
 			q = p->next_;
 			flag |= p->pflags_;
+			total_ -= (p->endseq_ - p->startseq_);
 			sremove(p);
 			fremove(p);
 			delete p;
@@ -185,7 +187,7 @@ void
 ReassemblyQueue::dumplist()
 {
 
-	printf("FIFO: ");
+	printf("FIFO [size:%d]: ", total_);
 	if (head_ == NULL) {
 		printf("NULL\n");
 	} else {
@@ -285,6 +287,8 @@ ReassemblyQueue::add(TcpSeq start, TcpSeq end, TcpFlag tiflags, RqFlag rqflags)
 		head_->rqflags_ = rqflags;
 		head_->cnt_ = initcnt;
 
+		total_ = (end - start);
+
 		//
 		// this shouldn't really happen, but
 		// do the right thing just in case
@@ -353,6 +357,7 @@ start, end, p, q,
 				return (r->pflags_);
 			} else if (start <= r->startseq_ && end >= r->endseq_) {
 				// complete overlap, not exact
+				total_ -= (r->endseq_ - r->startseq_);
 				n = r;
 				r = r->next_;
 				tiflags |= n->pflags_;
@@ -387,7 +392,10 @@ start, end, p, q,
 			else
 				p = p->next_;
 				
-			p->startseq_ = MIN(p->startseq_, start);
+			if (start < p->startseq_) {
+				total_ += (p->startseq_ - start);
+				p->startseq_ = start;
+			}
 			start = p->endseq_;
 			needmerge = TRUE;
 			p->pflags_ |= tiflags;
@@ -403,7 +411,10 @@ start, end, p, q,
 			else
 				q = q->prev_;
 
-			q->endseq_ = MAX(q->endseq_, end);
+			if (end > q->endseq_) {
+				total_ += (end - q->endseq_);
+				q->endseq_ = end;
+			}
 			end = q->startseq_;
 			needmerge = TRUE;
 			q->pflags_ |= tiflags;
@@ -467,6 +478,8 @@ endfast:
 		// this case we ned to update rcv_nxt_ to
 		// the end of the newly-inserted segment
 		//
+
+		total_ += (end - start);
 
 		if (needmerge)
 			return(coalesce(p, n, q));
