@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.8 2000/09/01 03:04:10 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/nat.cc,v 1.9 2002/05/22 18:57:10 johnh Exp $";
 #endif
 
 #include <stdio.h>
@@ -44,7 +44,7 @@ static const char rcsid[] =
 
 #ifndef __FAVOR_BSD
 #define __FAVOR_BSD
-#endif;
+#endif
 #include <netinet/tcp.h>
 #include <arpa/inet.h>
 

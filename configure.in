@@ -14,6 +14,7 @@ dnl default to non-static
 enable_static=no
 
 builtin(include, ./conf/configure.in.head)
+builtin(include, ./conf/configure.in.stl)
 builtin(include, ./conf/configure.in.tcl)
 builtin(include, ./conf/configure.in.tk)
 builtin(include, ./conf/configure.in.otcl)

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.51 2001/09/21 20:45:56 alefiyah Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.52 2002/05/22 18:57:09 johnh Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -60,6 +60,9 @@
 #include <tclcl.h>
 #endif /* __cplusplus */
 #endif
+
+/* handle stl and namespaces */
+
 
 /*
  * add u_char and u_int
