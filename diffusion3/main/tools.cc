@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.cc,v 1.6 2002/01/08 19:06:33 haldar Exp $
+// $Id: tools.cc,v 1.7 2002/01/18 00:47:25 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -53,8 +53,13 @@ void InitMainLogger()
 void getTime(struct timeval *tv)
 {
 #ifdef NS_DIFFUSION
-  tv->tv_sec = (long)Scheduler::instance().clock();
-  tv->tv_usec = 0; //using an arbitrary value as this is used as seed for random generators;
+
+  double time = Scheduler::instance().clock();
+  double sec = (int)(time*1000000)/1000000;
+  double usec = (int)(time*1000000)%1000000;
+  tv->tv_sec = sec;  
+  tv->tv_usec = usec;
+  //printf("tv->sec=%d, tv->usec=%d\n",tv->tv_sec, tv->tv_usec);
 #else
   gettimeofday(tv, NULL);
 #endif // NS_DIFFUSION
