@@ -657,4 +657,173 @@ The last entry in the table gets the ``original'' packet.
 Since the \fcn[]{classify} method is pure virtual in the base class,
 the replicator defines an empty \fcn[]{classify} method.
 
+\clearpage
+
+\section{Commands at a glance}
+\label{sec:nodescommand}
+
+Following is a list of common node commands used in simulation scripts:
+
+\begin{program}
+$ns_ node
+\end{program}
+Command to create a simple node. This returns a handle to the node instance
+created.
+
+
+\begin{program}
+$ns_ node <hierarchical address>
+\end{program}
+Command to create a node with hierarchical addressing/routing. This too returns
+a handle to the hier-node instance.
+
+
+\begin{program}
+$ns_ node-config <-option> <value>
+\end{program}
+This command is a part of the new Node APIs and sets up configuration for a
+given node type. Note that this command has to be called before creation of
+the nodes. The default value (i.e if node-config is not called) sets up
+configuration for a simple node with flat addressing/routing. The details
+on different <options> and their available <values> that can be used to
+configure a node can be found in chapter titled "Restructuring ns node
+and new Node APIs" in ns Notes and Documentation. 
+
+
+\begin{program}
+$node id
+\end{program}
+Returns the id number of the node.
+
+
+\begin{program}
+$node node-addr
+\end{program}
+Returns the address of the node. In case of flat addressing, the node address
+is same as its node-id. In case of hierarchical addressing, the node address
+in the form of a string (viz. "1.4.3") is returned.
+
+
+\begin{program}
+$node reset
+\end{program}
+Resets all agent attached to this node.
+
+
+\begin{program}
+$node agent <port_num>
+\end{program}
+Returns the handle of the agent at the specified port. If no agent is found
+at the given port, a null string is returned.
+
+
+\begin{program}
+$node entry
+\end{program}
+Returns the entry point for the node. This is first object that handles packet
+receiving at this node.
+
+
+\begin{program}
+$node attach <agent> <optional:port_num>
+\end{program}
+Attaches the <agent> to this node. Incase no specific port number is passed,
+the node allocates a port number and binds the agent to this port. Thus once
+the agent is attached, it receives packets destined for this host (node) and port.
+
+
+\begin{program}
+$node detach <agent> <null_agent>
+\end{program}
+This is the dual of "attach" described above. It detaches the agent from this node
+and installs a null-agent to the port this agent was attached. This is done to
+handle transit packets that may be destined to the detached agent. These on-the-fly
+pkts are then sinked  at the null-agent.
+
+
+\begin{program}
+$node neighbors
+\end{program}
+This returns the list of neighbors for the node.
+
+
+\begin{program}
+$node add-neighbor <neighbor_node>
+\end{program}
+This is a command to add \code{<neighbor_node>} to the list of neighbors 
+maintained by the node.
+
+
+Following is a list of internal node methods that may be used for
+changes/modification of the core code:
+
+\begin{program}
+$node enable-mcast
+\end{program}
+This is an internal procedure used by Class Simulator while creating a 
+node and is used to install additional multicast classifiers within the node
+that converts an unicast node into a multicast one.
+
+
+\begin{program}
+$node add-route <destination_id> <target>
+\end{program}
+This is used in unicast routing to populate the classifier. The target is a
+Tcl object, which may be the entry of \code{dmux_} (port demultiplexer in
+the node) incase the \code{<destination_id>} is same as this node-id.
+Otherwise it is usually the head of the link for that destination. It
+could also be the entry for other classifiers.
+
+
+\begin{program}
+$node alloc-port <null_agent>
+\end{program}
+This returns the next available port number. Uses instance variable
+\code{np_} to track the next unallocated port number.
+
+
+\begin{program}
+$node incr-rtgtable-size
+\end{program}
+The instance variable \code{rtsize_} is used to keep track of size of
+routing-table in each node. This command is used to increase the
+routing-table size every time an routing-entry is added to the
+classifiers.
+
+
+\begin{program}
+$node getNode
+\end{program}
+Returns the instance of self (the node).
+
+
+\begin{program}
+$node attachInterfaces <ifaces>
+\end{program}
+Attaches the node to each of the <ifaces>.
+
+
+\begin{program}
+$node addInterface <iface>
+\end{program}
+Adds the <iface> to the list of interfaces for the node.
+
+
+\begin{program}
+$node createInterface <num>
+\end{program}
+Creates a new network interface and labels it with <num>.
+
+
+\begin{program}
+$node getInterfaces
+\end{program}
+Returns the list of interfaces for the node.
+
+
+There are other specific node commands that supports hierarchical routing, PIM, IntTCP,
+detailed dynamic routing, equal cost multipath routing, PGM router, manual
+routing and power model for mobilenodes. These and other methods described
+earlier can be found in \ns/tcl/lib/ns-node.tcl.
+
 \endinput
