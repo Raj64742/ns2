@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.71 1999/10/22 05:47:26 yaxu Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.72 1999/11/23 23:43:31 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -119,6 +119,7 @@ enum packet_t {
 
 	PT_TFRC,
 	PT_TFRC_ACK,
+	PT_PING,
 	PT_NTYPE // This MUST be the LAST one
 };
 
@@ -173,6 +174,7 @@ public:
 
  		name_[PT_TFRC]= "tcpFriend";
 		name_[PT_TFRC_ACK]= "tcpFriendCtl";
+		name_[PT_PING]="ping";
 
 		name_[PT_NTYPE]= "undefined";
 	}
