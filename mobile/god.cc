@@ -43,7 +43,7 @@
    NOTE: Tcl node indexs are 0 based, NS C++ node IP addresses (and the
    node->index() are 1 based.
 
-   $Id: god.cc,v 1.8 2000/07/12 04:40:35 intanago Exp $
+   $Id: god.cc,v 1.9 2000/08/16 19:02:53 intanago Exp $
    */
 
 #include <object.h>
@@ -608,8 +608,8 @@ void God::StopSimulation()
   Tcl& tcl=Tcl::instance();
 
   printf("Network parition !! Exiting... at time %f\n", NOW);
-  tcl.evalf("$ns_ at %lf \"finish\"", (NOW)+0.000001);
-  tcl.evalf("$ns_ at %lf \"$ns_ halt\"", (NOW)+0.000002);
+  tcl.evalf("[Simulator instance] at %lf \"finish\"", (NOW)+0.000001);
+  tcl.evalf("[Simulator instance] at %lf \"[Simulator instance] halt\"", (NOW)+0.000002);
 }
 
 
