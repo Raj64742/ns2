@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.7 1997/05/16 07:58:24 kannan Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.8 1997/06/12 22:52:40 kfall Exp $";
 #endif
 
 #include <stdlib.h>
@@ -92,24 +92,37 @@ void Classifier::clear(int slot)
  */
 void Classifier::recv(Packet* p, Handler*)
 {
-	NsObject* node;
-	int cl = classify(p);
-	if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) {
-	        Tcl::instance().evalf("%s no-slot %d", name(), cl);
+	NsObject* node = find(p);
+	if (node == NULL) {
 		/*
-		 * Try again.  Maybe callback patched up the table.
+		 * XXX this should be "dropped" somehow.  Right now,
+		 * these events aren't traced.
 		 */
-		cl = classify(p);
-		if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) {
-			/*
-			 * XXX this should be "dropped" somehow.  Right now,
-			 * these events aren't traced.
-			 */
-			Packet::free(p);
-			return;
-		}
+		Packet::free(p);
+		return;
 	}
 	node->recv(p);
+}
+
+/*
+ * perform the mapping from packet to object
+ * perform upcall if no mapping
+ */
+
+NsObject* Classifier::find(Packet* p)
+{
+        NsObject* node = NULL;
+        int cl = classify(p);
+        if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) { 
+                Tcl::instance().evalf("%s no-slot %d", name(), cl);
+                /*      
+                 * Try again.  Maybe callback patched up the table.
+                 */      
+                cl = classify(p);
+                if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0)
+			return (NULL);
+	}
+	return (node);
 }
 
 int Classifier::command(int argc, const char*const* argv)
@@ -131,7 +144,7 @@ int Classifier::command(int argc, const char*const* argv)
 			int slot = maxslot_ + 1;
 			NsObject* node = (NsObject*)TclObject::lookup(argv[2]);
 			install(slot, node);
-			tcl.resultf("%d", slot);
+			tcl.resultf("%u", slot);
 			return TCL_OK;
 		}
 	} else if (argc == 4) {
