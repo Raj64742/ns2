@@ -1,5 +1,5 @@
 #
-# Copyright (c) 1996 Regents of the University of California.
+# Copyright (c) 1996-1997 Regents of the University of California.
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.9 1997/02/23 06:00:47 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.10 1997/02/27 04:41:30 kfall Exp $
 
 
 #
@@ -45,11 +45,16 @@ Trace set src_ 0
 Trace set dst_ 0
 Trace set callback_ 0
 
-Agent set class_ 0
+Agent set fid_ 0
+Agent set prio_ 0
 Agent set addr_ 0
 Agent set dst_ 0
-Agent set seqno_ 0
+Agent set flags_ 0
 
+##Agent set seqno_ 0 now is gone
+##Agent set class_ 0 now is gone
+
+Agent/TCP set seqno_ 0
 Agent/TCP set maxburst_ 0
 Agent/TCP set maxcwnd_ 0
 Agent/TCP set window_ 20

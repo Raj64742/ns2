@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.8 1997/02/23 01:28:59 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.9 1997/02/27 04:41:31 kfall Exp $
 #
 
 #
@@ -46,6 +46,7 @@ source ns-source.tcl
 source ns-default.tcl
 source ns-compat.tcl
 source ns-nam.tcl
+source ns-packet.tcl
 source ../rtp/session-rtp.tcl
 
 Simulator instproc init args {
@@ -53,6 +54,7 @@ Simulator instproc init args {
 	$self instvar scheduler_ nullAgent_
 	set scheduler_ [new Scheduler/List]
 	set nullAgent_ [new Agent/Null]
+	$self create_packetformat
 }
 
 #

@@ -1,5 +1,5 @@
 #
-# Copyright (c) 1996 Regents of the University of California.
+# Copyright (c) 1996-1997 Regents of the University of California.
 # All rights reserved.
 # 
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.13 1997/02/27 00:10:38 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.14 1997/02/27 04:41:29 kfall Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -92,8 +92,11 @@ OldSim instproc init args {
 	# Agent
 	TclObject set varMap_(addr) addr_
 	TclObject set varMap_(dst) dst_
-	TclObject set varMap_(seqno) seqno_
-	TclObject set varMap_(cls) class_
+## now gone
+###TclObject set varMap_(seqno) seqno_
+###TclObject set varMap_(cls) class_
+## class -> flow id
+	TclObject set varMap_(cls) fid_
 
 	# Trace
 	TclObject set varMap_(src) src_
@@ -179,10 +182,10 @@ OldSim instproc init args {
 			set q [[ns set link_($link_)] queue]
 			$q set limit_ $val
 		} elseif { $var == "bandwidth"  || $var == "bandwidth_" } {
-			set d [[ns set link_($link_)] queue]
+			set d [[ns set link_($link_)] link]
 			$d set bandwidth_ $val
 		} elseif { $var == "delay"  || $var == "delay_" } {
-			set d [[ns set link_($link_)] queue]
+			set d [[ns set link_($link_)] link]
 			$d set delay_ $val
 		}
 	}
@@ -222,7 +225,8 @@ OldSim instproc create-agent { node type pktClass } {
 		exit 1
 	}
 	set agent [new $classMap_($type)]
-	$agent set class_ $pktClass
+	# new mapping old class -> flowid
+	$agent set fid_ $pktClass
 	$self attach-agent $node $agent
 
 	$agent proc get var {

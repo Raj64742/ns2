@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.4 1997/02/23 01:29:00 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.5 1997/02/27 04:41:32 kfall Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -49,6 +49,11 @@ Link instproc head {} {
 Link instproc queue {} {
 	$self instvar queue_
 	return $queue_
+}
+
+Link instproc link {} {
+	$self instvar link_
+	return $link_
 }
 
 Class SimpleLink -superclass Link
