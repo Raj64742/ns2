@@ -30,10 +30,14 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.1 2002/03/08 00:52:32 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.2 2002/03/08 21:55:44 sfloyd Exp $
 #
 
 source misc_simple.tcl
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.

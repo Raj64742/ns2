@@ -30,13 +30,17 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win-full.tcl,v 1.7 2001/12/03 02:44:30 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win-full.tcl,v 1.8 2002/03/08 21:55:43 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
 #
 
 source misc_simple.tcl
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 set wrap [expr 90 * 1000 + 40]
 set scale 0.00001
 Agent/TCP/FullTcp set segsize_ 0 ;	# segsize_ will come from packetSize_

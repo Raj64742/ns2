@@ -5,12 +5,16 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.19 2001/11/28 23:04:28 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.20 2002/03/08 21:55:44 sfloyd Exp $
 
 #----------------------------------------------------------------------
 # Related Files
 #----------------------------------------------------------------------
 source misc.tcl
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 source topologies.tcl
 
 # FOR UPDATING GLOBAL DEFAULTS:

@@ -1,4 +1,8 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 #
 # Time-stamp: <2000-09-07 12:53:04 haoboy>
 #
@@ -33,7 +37,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webtraf.tcl,v 1.3 2002/01/27 05:04:31 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webtraf.tcl,v 1.4 2002/03/08 21:55:44 sfloyd Exp $
 
 # UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false

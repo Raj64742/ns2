@@ -30,13 +30,17 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.8 2001/11/28 23:04:26 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-links.tcl,v 1.9 2002/03/08 21:55:42 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
 #
 
 source misc_simple.tcl
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 source support.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false

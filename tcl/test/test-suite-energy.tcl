@@ -1,4 +1,8 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
@@ -23,7 +27,7 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.7 2001/11/28 23:04:26 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.8 2002/03/08 21:55:41 sfloyd Exp $
 
 # To run all tests: test-all-energy
 # to run individual test:

@@ -1,4 +1,8 @@
 #
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
@@ -37,7 +41,7 @@ Agent/TCP set singledup_ 0
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-v1a.tcl,v 1.7 2001/11/28 23:04:28 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-v1a.tcl,v 1.8 2002/03/08 21:55:44 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:

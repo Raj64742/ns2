@@ -30,13 +30,17 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.14 2002/01/03 04:36:16 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.15 2002/03/08 21:55:41 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
 set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 catch "cd $dir"
 
 # FOR UPDATING GLOBAL DEFAULTS:

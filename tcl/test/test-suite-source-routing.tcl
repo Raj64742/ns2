@@ -1,4 +1,8 @@
 #
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
 #                                                                
@@ -17,7 +21,7 @@
 #
 # Contributed by Rishi Bhargava <rishi_bhargava@yahoo.com> May, 2001.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-source-routing.tcl,v 1.2 2001/11/28 23:04:28 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-source-routing.tcl,v 1.3 2002/03/08 21:55:43 sfloyd Exp $
 #
 
 #

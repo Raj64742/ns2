@@ -1,4 +1,8 @@
 #
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
@@ -20,7 +24,7 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan.tcl,v 1.23 2001/05/27 02:15:00 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan.tcl,v 1.24 2002/03/08 21:55:45 sfloyd Exp $
 
 # THIS TEST IS SUBSUMED BY TEST-SUITE-WIRELESS-LAN-NEWNODE.TCL 
 # - Sep 15, 2000

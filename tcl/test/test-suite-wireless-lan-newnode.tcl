@@ -1,4 +1,8 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 #
 # Copyright (c) 1998,2000 University of Southern California.
 # All rights reserved.                                            
@@ -16,7 +20,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.21 2001/11/28 23:04:29 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode.tcl,v 1.22 2002/03/08 21:55:44 sfloyd Exp $
 
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false

@@ -1,4 +1,8 @@
 # This test suite is for validating the algorithmic routing support
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set windowInit_ 1
 # The default is being changed to 2.

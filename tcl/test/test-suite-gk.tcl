@@ -35,6 +35,10 @@
 set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
 Agent/TCP set overhead_ 0.001

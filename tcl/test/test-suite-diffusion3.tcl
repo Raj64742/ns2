@@ -25,6 +25,11 @@
 
 # This test validates a simple diffusion (ping) application
 
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
+
 # ======================================================================
 # Define options
 # ======================================================================

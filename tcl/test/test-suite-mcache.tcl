@@ -5,12 +5,16 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.11 2001/11/28 23:04:26 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.12 2002/03/08 21:55:42 sfloyd Exp $
 
 #----------------------------------------------------------------------
 # Related Files
 #----------------------------------------------------------------------
 #source misc.tcl
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.

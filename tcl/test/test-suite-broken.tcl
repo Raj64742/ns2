@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-broken.tcl,v 1.2 2001/12/04 04:40:54 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-broken.tcl,v 1.3 2002/03/08 21:55:41 sfloyd Exp $
 #
 # To run all tests: test-all-ecn-full
 
@@ -42,6 +42,10 @@
 set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 
 catch "cd $dir"
 set scale 0.00001
@@ -376,6 +380,7 @@ Test/ecn_smallwinEcn_reno_full instproc run {} {
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 10.0 1
 	$self drop_pkts {2 3 4 5 6 7 8 9 10 11 12 13 120 135 143 148 150 151 152 153} 
+	# $self drop_pkts {6 10 11 13 14 15 122 137 145 150 152 153 154 155}
 	$errmodel1 set markecn_ true
 	$ns_ run
 }
