@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.155 1999/06/29 00:01:57 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.156 1999/07/23 01:30:09 yaxu Exp $
 
 #
 
@@ -180,10 +180,71 @@ Simulator instproc dumper obj {
 	return $t
 }
 
+# New node structure
+
+# Define global node configuration
+# $ns_ node-config -addressingType flat/hierarchical/expanded
+#                  -routingAgent   "Agent/DSDV"/"Agent/DSR"
+#                  -nodefactory    "Node"/"Node/MobileNode/DSDV"/...
+#                  -llType
+#                  -macType
+#                  -propType
+#                  -ifqType
+#                  -ifqlen
+#                  phyType
+#                  antType
+
+Simulator set routingAgent_ ""
+Simulator set addressType_   ""
+#Simulator set llType_   ""
+#Simulator set macType_   ""
+#Simulator set propType_   ""
+#Simulator set ifqType_   ""
+#Simulator set phyType_   ""
+#Simulator set antType_   ""
+#Simulator set ifqlen_   ""
+
+Simulator set nodefactory_ Node
+Simulator instproc addressType  {val} { $self set addressType_  $val }
+Simulator instproc routingAgent  {val} { $self set routingAgent_  $val }
+Simulator instproc nodefactory  {val} { $self set nodefactory_  $val }
+Simulator instproc llType  {val} { $self set llType_  $val }
+Simulator instproc macType  {val} { $self set macType_  $val }
+Simulator instproc propType  {val} { $self set propType_  $val }
+Simulator instproc ifqType  {val} { $self set ifqType_  $val }
+Simulator instproc ifqlen  {val} { $self set ifqlen_  $val }
+Simulator instproc phyType  {val} { $self set phyType_  $val }
+Simulator instproc antType  {val} { $self set antType_  $val }
+
+
+
+Simulator instproc node-config args {
+        set args [eval $self init-vars $args]
+        $self instvar  addressType_  routingAgent_ nodefactory_ propType_  
+      
+        # hacking for matching old cmu add-interface
+        # not good style, for back-compability ONLY
+
+        set propType_ [new $propType_] 
+
+        if [info exists nodefactory_] {
+            Simulator instvar node_factory_
+            set node_factory_ $nodefactory_
+	}
+
+# set address type, hierarchical or expanded
+
+    if {[string compare $addressType_ ""] != 0} {
+	    $self set-address-format $addressType_ 
+	}
+
+}
+
+
 # Default behavior is changed: consider nam as not initialized if 
 # no shape OR color parameter is given
 Simulator instproc node args {
-	$self instvar Node_
+	$self instvar Node_ routingAgent_
         if { [Simulator info vars EnableMcast_] != "" } {
                 warn "Flag variable Simulator::EnableMcast_ discontinued.\n\t\
                       Use multicast methods as:\n\t\t\
@@ -197,6 +258,16 @@ Simulator instproc node args {
                       Setting (or not) this variable will not affect the simulations."
                 Simulator unset NumberInterfaces_
         }
+	
+	# wireless-ready node
+
+	if [info exists routingAgent_] {
+	    if  {[string compare $routingAgent_ ""] != 0} {
+	        set node [$self create-wireless-node $args]
+	        return $node
+	    }
+	}
+
 	set node [new [Simulator set node_factory_] $args]
 	set Node_([$node id]) $node
 	$node set ns_ $self
@@ -205,6 +276,86 @@ Simulator instproc node args {
 	}
 	$self check-node-num
 	return $node
+}
+
+Simulator instproc create-wireless-node { args } {
+
+        $self instvar routingAgent_
+
+        switch -exact $routingAgent_ {
+	    Agent/DSDV {
+		set node [$self create-dsdv-node $args]
+		return $node
+	    }
+	    Agent/DSR {
+		set node [$self create-dsr-node $args]
+		return $node
+	    }
+	    default {
+		puts "Wrong node routing agent!"
+		exit
+	    }
+
+	}
+}
+
+Simulator instproc create-dsdv-node { args } {
+
+    $self instvar propType_ llType_ macType_ ifqType_ ifqlen_ phyType_ antType_
+
+    if {[Simulator set EnableHierRt_]} {
+        if [Simulator set mobile_ip_] {
+            set node [new MobileNode/MIPMH $args]
+        } else {
+            set node [new Node/MobileNode/BaseStationNode $args]
+        }
+    } else {
+        set node [new Node/MobileNode]
+    }
+
+    $node add-interface $args $propType_ $llType_ $macType_ $ifqType_ $ifqlen_ $phyType_ $antType_
+
+
+    # Create a dsdv routing agent for this node
+
+    set ragent [new Agent/DSDV]
+
+    ## setup address (supports hier-addr) for dsdv agent
+    ## and mobilenode
+    set addr [$node node-addr]
+
+    $ragent addr $addr
+    $ragent node $node
+
+    if [Simulator set mobile_ip_] {
+        $ragent port-dmux [$node set dmux_]
+    }
+    $node addr $addr
+    $node set ragent_ $ragent
+
+    $node attach $ragent 255
+
+    $self at 0.0 "$ragent start-dsdv"    ;# start updates
+
+    return $node
+
+}
+
+Simulator instproc mobility-trace {ttype atype node tracefd} {
+
+        if { $tracefd == "" } {
+		return ""
+	}
+
+	set T [new CMUTrace/$ttype $atype]
+	$T target [$self set nullAgent_]
+	$T attach $tracefd
+        $T set src_ [$node id]
+
+        $T node $node
+
+	return $T
+
 }
 
 Simulator instproc hier-node haddr {

@@ -28,8 +28,8 @@ set opt(ll)		LL
 set opt(ant)            Antenna/OmniAntenna
 set opt(x)		670	;# X & Y dimension of the topography
 set opt(y)		670     ;# hard wired for now...
-##set opt(cp)		"../mobility/scene/cbr-3-test" ;# connection pattern file
-set opt(cp)             ""
+set opt(cp)		"../mobility/scene/cbr-3-test" ;# connection pattern file
+#set opt(cp)             ""
 set opt(sc)		"../mobility/scene/scen-3-test" ;# scenario file
 set opt(rp)             dsr      ;# available routing proto:dsdv/dsr
 set opt(ifqlen)		50	   ;# max packet in ifq
