@@ -16,6 +16,12 @@ if [TclObject is-class Agent/Tap] {
 	Agent/Tap set maxpkt_ 1600
 }
 
+if [TclObject is-class Agent/IcmpAgent] {
+	Agent/IcmpAgent set ttl_ 254
+}
+
+
+
 if [TclObject is-class ArpAgent] {
 
 	ArpAgent set cachesize_ 10; # entries in arp cache
@@ -23,10 +29,10 @@ if [TclObject is-class ArpAgent] {
 		$self next
 	}
 
-	ArpAgent instproc config {} {
+	ArpAgent instproc config ifname {
 		$self instvar net_ myether_ myip_
 		set net_ [new Network/Pcap/Live]
-		$net_ open readwrite
+		$net_ open readwrite $ifname
 		set myether_ [$net_ linkaddr]
 		set myip_ [$net_ netaddr]
 		$net_ filter "arp and (not ether src $myether_) and \
