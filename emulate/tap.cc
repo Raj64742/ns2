@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.11 1998/05/27 23:15:52 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.12 1998/09/09 23:43:24 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -277,7 +277,7 @@ TapAgent::sendpkt(Packet* p)
 	hdr_cmn* hc = (hdr_cmn*)p->access(off_cmn_);
 	if (net_ == NULL) {
 		fprintf(stderr,
-	         "TapAgent(%s): sendpkt attempted with NULL net: %s\n",
+	         "TapAgent(%s): sendpkt attempted with NULL net\n",
 		 name());
 		drop(p);
 		return (-1);
