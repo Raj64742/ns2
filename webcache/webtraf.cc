@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.12 2001/11/21 17:33:51 polly Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.13 2002/02/11 19:35:39 kclan Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -92,7 +92,13 @@ private:
 			// one. Otherwise stop and tell session to delete me.
 			TimerHandler::handle(e);
 			curObj_++;
-			sched(sess_->interObj()->value());
+			// Kun-chan Lan: Mon Feb 11 10:12:27 PST 2002
+			// Don't schedule another one when curObj_ = nObj_
+			// otherwise the page might already have been deleted
+			// before the next one is up and cause seg fault
+			// in the case of larger interObj()->value()
+			// sched(sess_->interObj()->value());
+			if (curObj_ < nObj_) sched(sess_->interObj()->value());
 		}
 	}
 	int id_;
