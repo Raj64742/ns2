@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.10 2001/07/31 02:18:09 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.11 2001/10/11 14:12:15 tomh Exp $
 
 
 # ======================================================================
@@ -518,6 +518,25 @@ Node/SatNode instproc interface-errormodel { em { index 0 } } {
 
 # ======================================================================
 #
+# methods to add tracing support to Mac/Sat
+#
+# ======================================================================
+
+Mac/Sat instproc init args {
+	eval $self next $args           ;# parent class constructor
+
+	set ns_ [Simulator instance]
+	set trace_ [$ns_ get-ns-traceall]
+	if {$trace_ != ""} {
+		set dropT_ [$ns_ create-trace Sat/Drop $trace_ $self $self ""]
+		$self set_drop_trace $dropT_
+		set collT_ [$ns_ create-trace Sat/Collision $trace_ $self $self ""]
+		$self set_coll_trace $collT_
+	}
+}
+
+# ======================================================================
+#
 # methods for routing 
 #
 # ======================================================================
@@ -662,6 +681,11 @@ Trace/Sat/Error instproc init {} {
         $self next "e"
 }
 
+Class Trace/Sat/Collision -superclass Trace/Sat
+Trace/Sat/Collision instproc init {} {
+	$self next "c"
+}
+
 Class Trace/Sat/Generic -superclass Trace/Sat
 Trace/Sat/Generic instproc init {} {
         $self next "v"
@@ -674,7 +698,7 @@ Trace/Sat/Generic instproc init {} {
 #
 # ======================================================================
 
-Node/SatNode set dist_routing_ "false"; # distributed routing not yet supported
+Node/SatNode set dist_routing_ false; # distributed routing not yet supported
 Position/Sat set time_advance_ 0; # time offset to start of simulation 
 Position/Sat/Polar set plane_ 0
 HandoffManager/Term set elevation_mask_ 0
@@ -682,9 +706,11 @@ HandoffManager/Term set term_handoff_int_ 10
 HandoffManager/Sat set sat_handoff_int_ 10
 HandoffManager/Sat set latitude_threshold_ 70
 HandoffManager/Sat set longitude_threshold_ 0
-HandoffManager set handoff_randomization_ "false" 
-SatRouteObject set metric_delay_ "true"
-SatRouteObject set data_driven_computation_ "false"
+HandoffManager set handoff_randomization_ false 
+SatRouteObject set metric_delay_ true
+SatRouteObject set data_driven_computation_ false
+Mac/Sat set trace_drops_ true
+Mac/Sat set trace_collisions_ true
 Mac/Sat/UnslottedAloha set mean_backoff_ 1s; # mean backoff time upon collision
 Mac/Sat/UnslottedAloha set rtx_limit_ 3; # Retransmission limit 
 Mac/Sat/UnslottedAloha set send_timeout_ 270ms; # Timer interval for new sends

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.h,v 1.4 1999/10/26 17:35:08 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.h,v 1.5 2001/10/11 14:12:14 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -59,6 +59,8 @@
 #define LINK_ISL_CROSSSEAM 8 
 
 class SatLinkHead;
+class SatTrace;
+class SatNode;
 
 class SatLL : public LL {
 public:
@@ -102,7 +104,7 @@ protected:
 
 class SatMac : public Mac {
 public:
-	SatMac() : Mac(), send_timer_(this), recv_timer_(this) {}
+	SatMac();
 	void sendDown(Packet* p);
 	void sendUp(Packet *p);
 	virtual void send_timer() {}
@@ -112,6 +114,10 @@ protected:
 	int command(int argc, const char*const* argv);
 	MacSendTimer send_timer_; 
 	MacRecvTimer recv_timer_; 
+	SatTrace* drop_trace_; // Trace object for dropped packets in Mac
+	int trace_drops_; // OTcl-settable flag for whether we trace drops
+	SatTrace* coll_trace_; // Trace object for collisions in Mac
+	int trace_collisions_; // OTcl-settable flag for whether we trace coll.
 };
 
 

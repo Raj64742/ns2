@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.8 1999/10/26 17:35:08 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/satlink.cc,v 1.9 2001/10/11 14:12:14 tomh Exp $";
 #endif
 
 /*
@@ -279,8 +279,15 @@ void MacRecvTimer::expire(Event*)
         a_->recv_timer();
 }
 
+SatMac::SatMac() : Mac(), send_timer_(this), recv_timer_(this)
+{
+	bind_bool("trace_collisions_", &trace_collisions_);
+	bind_bool("trace_drops_", &trace_drops_);
+}
+
 int SatMac::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
 	if(argc == 2) {
 	}
 	else if (argc == 3) {
@@ -293,8 +300,23 @@ int SatMac::command(int argc, const char*const* argv)
 			//channel_ = (Channel*) obj;
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "set_drop_trace") == 0) {
+			drop_trace_ = (SatTrace *) TclObject::lookup(argv[2]);
+			if (drop_trace_ == 0) {
+				tcl.resultf("no such object %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "set_coll_trace") == 0) {
+			coll_trace_ = (SatTrace *) TclObject::lookup(argv[2]);
+			if (coll_trace_ == 0) {
+				tcl.resultf("no such object %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
 	}
-	
 	return Mac::command(argc, argv);
 }
 
@@ -392,6 +414,7 @@ void UnslottedAlohaMac::recv_timer()
 void UnslottedAlohaMac::sendUp(Packet* p) 
 {
 	hdr_mac* mh = HDR_MAC(p);
+	int dst;
 	
 	if (rx_state_ == MAC_IDLE) {
 		// First bit of packet has arrived-- wait for 
@@ -402,14 +425,30 @@ void UnslottedAlohaMac::sendUp(Packet* p)
 		recv_timer_.resched(mh->txtime());
 	} else {
 		// Collision: figure out if contention phase must be lengthened
-		double temp = NOW + mh->txtime();
-		if (temp > end_of_contention_) {
-			recv_timer_.resched(temp - NOW);
+		if ( (NOW + mh->txtime()) > end_of_contention_ ) {
+			recv_timer_.resched(mh->txtime());
 		}
-		drop(p);
-		if (rcv_pkt_)
+		// If this is the first collision, we will also have a
+		// rcv_pkt_ pending
+		if (rcv_pkt_) {
+			// Before dropping rcv_pkt_, trace the collision
+			// if it was intended for us
+			mh = HDR_MAC(rcv_pkt_);
+			dst = this->hdr_dst((char*)mh); // mac dest. address
+			if (((u_int32_t)dst == MAC_BROADCAST)||(dst == index_))
+				if (coll_trace_ && trace_collisions_)
+					coll_trace_->traceonly(rcv_pkt_);
 			drop(rcv_pkt_);
+		}
 		rcv_pkt_ = 0;
+		// Again, before we drop this packet, log a collision if
+		// it was intended for us
+		mh = HDR_MAC(p);
+		dst = this->hdr_dst((char*)mh); // mac destination address
+		if (((u_int32_t)dst == MAC_BROADCAST) || (dst == index_))
+			if (coll_trace_ && trace_collisions_)
+				coll_trace_->traceonly(p);
+		drop(p);
 	}
 }
 
@@ -447,7 +486,7 @@ void UnslottedAlohaMac::end_of_contention(Packet* p)
 	
 	if (((u_int32_t)dst != MAC_BROADCAST) && (dst != index_) && 
     	    (src != index_)) {
-		drop(p);
+		drop(p); // Packet not intended for our station
 		return;
 	} 
 	if (src == index_) {
@@ -481,6 +520,9 @@ void UnslottedAlohaMac::backoff(double delay)
 	} else {
 		tx_state_ = MAC_IDLE;
 		rtx_ = 0;
+		// trace the dropped packet
+		if (drop_trace_ && trace_drops_)
+			drop_trace_->traceonly(snd_pkt_);
 		resume(snd_pkt_);
 	}
 }
