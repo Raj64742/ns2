@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.43 1998/10/14 21:45:43 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.44 1998/10/23 22:11:25 polly Exp $
 #
 
 Class Node
@@ -578,7 +578,7 @@ Classifier/Virtual instproc find dst {
     }
 
     if {[$node_ id] == $dst} {
-	set currentTarget_ [$node_ set dmux_]
+	$self set-target [$node_ set dmux_]
     } else {
 	set nh [$routingTable_ lookup [$node_ id] $dst]
 	$self set-target [[$ns_ link $node_ [$ns_ set Node_($nh)]] head]
