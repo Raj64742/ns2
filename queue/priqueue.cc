@@ -37,14 +37,14 @@
    priqueue.cc
    
    A simple priority queue with a remove packet function
-   $Id: priqueue.cc,v 1.4 2002/07/19 02:34:10 haldar Exp $
+   $Id: priqueue.cc,v 1.5 2003/02/21 00:40:22 haldar Exp $
    */
 
 #include <object.h>
 #include <queue.h>
 #include <drop-tail.h>
 #include <packet.h>
-//#include <cmu/cmu-trace.h>
+#include <cmu-trace.h>
 
 #include "priqueue.h"
 
@@ -182,8 +182,8 @@ PriQueue::Terminate()
 {
 	Packet *p;
 	while((p = deque())) {
-		//drop(p, DROP_END_OF_SIMULATION);
-		drop(p);
+		drop(p, DROP_END_OF_SIMULATION);
+		//drop(p);
 		
 	}
 }

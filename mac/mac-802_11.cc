@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.40 2002/06/06 22:54:42 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.41 2003/02/21 00:40:22 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  */
@@ -1359,8 +1359,8 @@ Mac802_11::recvCTS(Packet *p)
 	 * that our RTS was successful.  Hence, we can reset
 	 * the Short Retry Count and the CW.
 	 */
-	ssrc_ = 0;
-	rst_cw();
+	//ssrc_ = 0;
+	//rst_cw();
 
 	tx_resume();
 
@@ -1400,8 +1400,8 @@ Mac802_11::recvDATA(Packet *p)
 				 * Our CTS got through.
 				 */
 				//printf("(%d): RECVING DATA!\n",index_);
-				ssrc_ = 0;
-				rst_cw();
+				//ssrc_ = 0;
+				//rst_cw();
 			}
 			else {
 				discard(p, DROP_MAC_BUSY);
