@@ -105,7 +105,7 @@ Agent/MIPBS instproc init { node args } {
     eval $self next $args
     
     # if mobilenode, donot use bcasttarget; use target_ instead;
-    if {[$node info class] != "MobileNode/MIPBS"} {
+    if {[$node info class] != "MobileNode/MIPBS" && [$node info class] != "Node/MobileNode"} {
 	$self instvar BcastTarget_
 	set BcastTarget_ [new Classifier/Replicator]
 	$self bcast-target $BcastTarget_
@@ -118,7 +118,7 @@ Agent/MIPBS instproc clear-reg mhaddr {
 	if [info exists OldRoute_($mhaddr)] {
 		$node_ add-route $mhaddr $OldRoute_($mhaddr)
 	}
-	if {[$node_ info class] == "MobileNode/MIPBS"} {
+	if {[$node_ info class] == "MobileNode/MIPBS" || [$node_ info class] =="Node/MobileNode" } {
 	    eval $node_ clear-hroute [AddrParams get-hieraddr $mhaddr]
 	}
 	if { [info exists RegTimer_($mhaddr)] && $RegTimer_($mhaddr) != "" } {
@@ -132,7 +132,7 @@ Agent/MIPBS instproc encap-route { mhaddr coa lifetime } {
 	set ns [Simulator instance]
         set encap [$node_ set encap_]
 
-        if {[$node_ info class] == "MobileNode/MIPBS"} {
+        if {[$node_ info class] == "MobileNode/MIPBS" || [$node_ info class] == "Node/MobileNode"} {
 	    set addr [AddrParams get-hieraddr $mhaddr]
 	    set a [split $addr]
 	    set b [join $a .]
@@ -158,7 +158,7 @@ Agent/MIPBS instproc decap-route { mhaddr target lifetime } {
     # decap's for mobilenodes can have a default-target; in this 
     # case the def-target is the routing-agent.
     
-    if {[$node_ info class] != "MobileNode/MIPBS"} {
+    if {[$node_ info class] != "MobileNode/MIPBS" && [$node_ info class] != "Node/MobileNode" } {
 	set ns [Simulator instance]
 	[$node_ set decap_] install $mhaddr $target
 	
@@ -184,7 +184,7 @@ Agent/MIPBS instproc clear-decap mhaddr {
 
 Agent/MIPBS instproc get-link { src dst } {
     $self instvar node_
-    if {[$node_ info class] != "MobileNode/MIPBS"} {
+    if {[$node_ info class] != "MobileNode/MIPBS" && [$node_ info class] != "Node/MobileNode"} {
 	set ns [Simulator instance]
 	return [[$ns link [$ns get-node-by-addr $src] \
 		[$ns get-node-by-addr $dst]] head]
@@ -202,7 +202,7 @@ Agent/MIPMH instproc init { node args } {
     eval $self next $args
     # if mobilenode, donot use bcasttarget; use target_ instead;
     if {[$node info class] != "MobileNode/MIPMH" && \
-	    [$node info class] != "SRNode/MIPMH" } {
+	    [$node info class] != "SRNode/MIPMH" && [$node info class] != "Node/MobileNode" } {
 	$self instvar BcastTarget_
 	set BcastTarget_ [new Classifier/Replicator]
 	$self bcast-target $BcastTarget_
@@ -214,7 +214,7 @@ Agent/MIPMH instproc update-reg coa {
     $self instvar node_
     ## dont need to set up routing for mobilenodes, so..
     if {[$node_ info class] != "MobileNode/MIPMH" && \
-	    [$node_ info class] != "SRNode/MIPMH"} {
+	    [$node_ info class] != "SRNode/MIPMH" && [$node_ info class] != "Node/MobileNode" } {
 	set n [Node set nn_]
 	set ns [Simulator instance]
 	set id [$node_ id]
@@ -230,7 +230,7 @@ Agent/MIPMH instproc update-reg coa {
 Agent/MIPMH instproc get-link { src dst } {
     $self instvar node_
     if {[$node_ info class] != "MobileNode/MIPMH" && \
-	    [$node_ info class] != "SRNode/MIPMH" } {
+	    [$node_ info class] != "SRNode/MIPMH" &&  [$node_ info class] != "Node/MobileNode" } {
 	set ns [Simulator instance]
 	return [[$ns link [$ns get-node-by-addr $src] \
 		[$ns get-node-by-addr $dst]] head]
