@@ -10,11 +10,6 @@ $ns namtrace-all [open session-hier-1000.nam w]
 
 create-hier-topology $linkBW
 
-set cbr0 [new Agent/CBR]
-$ns attach-agent $n(0) $cbr0
-
-$ns at 1.0 "$cbr0 start"
-
 $ns at 3.0 "finish"
 proc finish {} {
     global ns
