@@ -16,6 +16,18 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.27 [PENDING RELEASE]</h3>
 <ul>
+<p><li><b>[Padma Haldar]</b>
+Mon Oct  6 16:54:58 PDT 2003
+Diffusion documentation added to ns-manual.
+
+<p><li><b>[Padma Haldar]</b>
+Diffusion changes made includes
+(1)Added tcl example scripts for 2 phase-pull, push, 1 phase-pull and gear (with push and 2pp) scenarios.
+For gear and other node-position dependent routing in diffusion, need to have a callback to update node positions. since the routing filter (like gear) is init'ed before node positions are assigned gear doesn't get the correct node positions, hence the callback is required. callback would also be reqd to support node movements in diffusion in future.
+For now start gear filters (in tcl scripts) after node positions are assigned to nodes. This will go away once callbacks are implemented.
+(2)Added fix suggested by Andreas Koepke <koepke@ee.tu-berlin.de> for overflow problem in lib/main/tools.cc
+
+
 
 <p><li><b><a href="mailto:xuanc@isi.edu">[Xuan Chen]</a></b>
 Sat Oct  4 14:59:08 PDT 2003
