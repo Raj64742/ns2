@@ -38,6 +38,7 @@ bitmap/play.xbm
 bitmap/rewind.xbm
 bitmap/stop.xbm
 conf/makefile.win
+conf/mkdep
 cbq.cc
 cbr_traffic.cc
 channel.cc
