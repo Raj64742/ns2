@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.66 1998/08/04 03:00:40 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.67 1998/08/14 22:37:16 tomh Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -512,7 +512,8 @@ void FullTcpAgent::output(int seqno, int reason)
 	// see if sending this packet will empty the send buffer
 	// a dataless SYN packet counts also
 	//
-	if ((seqno + datalen) > curseq_ || (syn && datalen == 0)) {
+	if (!infinite_send_ && ((seqno + datalen) > curseq_ || 
+	    (syn && datalen == 0))) {
 		emptying_buffer = TRUE;
 		//
 		// if not a retransmission, notify application that 
@@ -533,6 +534,8 @@ void FullTcpAgent::output(int seqno, int reason)
 		/* not emptying buffer, so can't be FIN */
 		pflags &= ~TH_FIN;
 	}
+	if (infinite_send_ && (syn && datalen == 0))
+		pflags |= TH_PUSH;  // set PUSH for dataless SYN
 
 	/* sender SWS avoidance (Nagle) */
 
