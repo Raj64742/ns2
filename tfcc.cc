@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.5 1998/09/14 22:04:41 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.6 1998/09/15 01:32:54 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -88,29 +88,7 @@ public:
 
 /**************************** class defn ********************************/
 
-class TFCCAgent;
-
-class TFCCRttTimer : public TimerHandler {
-public: 
-        TFCCRttTimer(TFCCAgent *a) : TimerHandler() { a_ = a; }
-protected:
-        void expire(Event *e);
-        TFCCAgent *a_;
-};
-
-class TFCCAckTimer : public TimerHandler {
-public: 
-        TFCCAckTimer(TFCCAgent *a) : TimerHandler() { a_ = a; }
-protected:
-        void expire(Event *e);
-        TFCCAgent *a_;
-};
-
 class TFCCAgent : public RTPAgent {
-
-	friend class TFCCAckTimer;
-	friend class TFCCRttTimer;
-
 public:
 	TFCCAgent() : srtt_(-1.0), rttvar_(-1.0), peer_rtt_est_(-1.0),
 	last_ts_(-1.0), last_loss_time_(-1.0), last_rtime_(-1.0),
@@ -120,6 +98,8 @@ public:
 		bind("alpha_", &alpha_);
 		bind("beta_", &beta_);
 		bind("srtt_", &srtt_);
+		bind("minrtt_", &minrtt_);
+		bind("maxrtt_", &maxrtt_);
 		bind("rttvar_", &rttvar_);
 		bind("peer_rtt_est_", &peer_rtt_est_);
 		bind("ack_interval_", &ack_interval_);
@@ -133,9 +113,13 @@ protected:
 	virtual void peer_rttest_known(double); // called when peer knows rtt
 	virtual void rtt_known(double);	// called when we know rtt
 	void ack_rate_change();		// changes the ack gen rate
-	void slowdown();	// reason to slow down
-	void speedup();		// possible opportunity to speed up
-	void nopeer();		// lost ack stream from peer
+	virtual void slowdown();	// reason to slow down
+	virtual void speedup();		// possible opportunity to speed up
+	virtual void nopeer();		// lost ack stream from peer
+
+	virtual void rtt_timeout(TimerHandler*);	// rtt heartbeat
+	virtual void ack_timeout(TimerHandler*);	// ack sender
+
         double now() const { return Scheduler::instance().clock(); };
 	double rtt_sample(double samp);
 
@@ -144,6 +128,8 @@ protected:
 
 	double srtt_;
 	double rttvar_;
+	double maxrtt_;		// max rtt seen
+	double minrtt_;		// min rtt seen
 	double peer_rtt_est_;	// peer's est of the rtt
 	double last_ts_;	// ts field carries on last pkt
 	double last_loss_time_;	// last time we saw a loss
@@ -161,8 +147,21 @@ protected:
 	int needresponse_;	// send a packet in response to current one
 	int last_ecn_;		// last recv had an ecn
 
-	TFCCAckTimer ack_timer_;// periodic timer for ack generation
-	TFCCRttTimer rtt_timer_;// periodic rtt-based heartbeat
+	class TFCCAckTimer : public TimerHandler {
+	public: 
+		TFCCAckTimer(TFCCAgent *a) : TimerHandler() { a_ = a; }
+	protected:      
+		void expire(Event *e) { a_->ack_timeout(this); }
+		TFCCAgent *a_;
+	} ack_timer_;	// periodic timer for ack generation
+
+	class TFCCRttTimer : public TimerHandler {
+	public: 
+		TFCCRttTimer(TFCCAgent *a) : TimerHandler() { a_ = a; }
+	protected:
+		void expire(Event *e) { a_->rtt_timeout(this); }
+		TFCCAgent *a_;
+	} rtt_timer_; // periodic rtt-based heartbeat
 };
 
 static class TFCCAgentClass : public TclClass {
@@ -191,6 +190,10 @@ name(), now(), m);
                 srtt_ = m;
                 rttvar_ = srtt_ / 2.0;
         }
+	if (m > maxrtt_)
+		maxrtt_ = m;
+	if (m < minrtt_)
+		minrtt_ = m;
         return srtt_;
 }       
 
@@ -404,39 +407,39 @@ TFCCAgent::ack_rate_change()
  * called on RTT periods to determine action to take
  */
 void
-TFCCRttTimer::expire(Event*)
+TFCCAgent::rtt_timeout(TimerHandler* timer)
 {
 printf(">>>>> %f: %s: RTT beat: last_checked:%d, highest_seen:%d\n",
-    a_->now(), a_->name(), a_->last_cseq_checked_, a_->highest_cseq_seen_);
+    now(), name(), last_cseq_checked_, highest_cseq_seen_);
 
-	if (a_->last_cseq_checked_ < 0) {
+	if (last_cseq_checked_ < 0) {
 		// initialize
-		a_->last_cseq_checked_ = a_->highest_cseq_seen_;
-		a_->last_expected_ = a_->expected_;
-		resched(a_->srtt_);
+		last_cseq_checked_ = highest_cseq_seen_;
+		last_expected_ = expected_;
+		timer->resched(srtt_);
 	} else {
 		//
 		// check peer's congestion status
 		//
-		if (a_->last_cseq_checked_ == a_->highest_cseq_seen_) {
-			a_->speedup();
+		if (last_cseq_checked_ == highest_cseq_seen_) {
+			speedup();
 		} else {
-			a_->slowdown();
-			a_->last_cseq_checked_ = a_->highest_cseq_seen_;
+			slowdown();
+			last_cseq_checked_ = highest_cseq_seen_;
 		}
 
 		//
 		// check if we've heard anything from peer in awhile
 		//
 
-		if (a_->expected_ == a_->last_expected_) {
+		if (expected_ == last_expected_) {
 			// nothing since last beat
-			if (++a_->silence_ >= a_->silence_thresh_)
-				a_->nopeer();
+			if (++silence_ >= silence_thresh_)
+				nopeer();
 		} else {
 			// yep, heard something
-			a_->silence_ = 0;
-			resched(a_->srtt_);
+			silence_ = 0;
+			timer->resched(srtt_);
 		}
 	}
 	return;
@@ -446,8 +449,41 @@ printf(">>>>> %f: %s: RTT beat: last_checked:%d, highest_seen:%d\n",
  * called periodically to send acks
  */
 void
-TFCCAckTimer::expire(Event*)
+TFCCAgent::ack_timeout(TimerHandler* timer)
 {
-	a_->sendpkt();
-	resched(a_->ack_interval_);
+	sendpkt();
+	timer->resched(ack_interval_);
 }
+
+#ifdef notyet
+/******************** EXTENSIONS ****************************/
+
+// VTFCC -- "VegasLike" TFCC
+class VTFCC : public TFCC {
+public:
+	VTFCC()  { }
+protected:
+	void slowdown();
+	void speedup();
+	void peer_rtt_known(double rtt);
+	void rtt_known();
+
+	double expectedrate_;
+	double actualrate_;
+	double lowerthresh_;
+	double upperthresh_;
+};
+
+VTFCC::slowdown()
+{
+}
+
+VTFCC::speedup()
+{
+}
+
+VTFCC::speedup()
+{
+}
+
+#endif
