@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.22 2001/12/11 00:01:31 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.23 2002/01/16 23:15:21 buchheim Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -175,7 +175,7 @@ RNGImplementation::next_double()
 /*
  * RNG implements a nice front-end around RNGImplementation
  */
-#ifndef stand_alone
+#ifndef rng_stand_alone
 static class RNGClass : public TclClass {
 public:
 	RNGClass() : TclClass("RNG") {}
@@ -183,7 +183,7 @@ public:
 		return(new RNG());
 	}
 } class_rng;
-#endif /* stand_alone */
+#endif /* rng_stand_alone */
 
 /* default RNG */
 
@@ -215,7 +215,7 @@ RNG::normal(double avg, double std)
 	}
 }
 
-#ifndef stand_alone
+#ifndef rng_stand_alone
 int
 RNG::command(int argc, const char*const* argv)
 {
@@ -317,7 +317,7 @@ RNG::command(int argc, const char*const* argv)
 	}
 	return(TclObject::command(argc, argv));
 }
-#endif /* stand_alone */
+#endif /* rng_stand_alone */
 
 void
 RNG::set_seed(RNGSources source, int seed)
@@ -401,13 +401,13 @@ RNG::set_seed(RNGSources source, int seed)
  * Make sure the RNG makes known values.
  * Optionally, print out some stuff.
  *
- * gcc rng.cc -Dstand_alone -o rng_test -lm
+ * gcc rng.cc -Drng_stand_alone -o rng_test -lm
  *
  * Simple test program:
  */
 #ifdef rng_stand_alone
 int main() { RNGTest test; test.verbose(); }
-#endif 
+#endif /* rng_stand_alone */
 
 #ifdef rng_test
 RNGTest::RNGTest()

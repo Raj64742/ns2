@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.20 2001/11/30 22:30:49 buchheim Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.21 2002/01/16 23:15:21 buchheim Exp $ (LBL)";
  */
 
 /***********************************************************************\ 
@@ -64,9 +64,9 @@
 #include <math.h>
 #include <stdlib.h>			// for atoi
 
-#ifndef stand_alone
+#ifndef rng_stand_alone
 #include "config.h"
-#endif   /* stand_alone */
+#endif   /* rng_stand_alone */
 
 #ifndef MAXINT
 #define	MAXINT	2147483647	// XX [for now]
@@ -94,9 +94,9 @@ private:
  * Use class RNG in real programs.
  */
 class RNG 
-#ifndef stand_alone
+#ifndef rng_stand_alone
 	: public TclObject 
-#endif  /* stand_alone */
+#endif  /* rng_stand_alone */
 {
 
 public:
@@ -231,9 +231,9 @@ public:
 	*/
 #endif /* !OLD_RNG */
 
-#ifndef stand_alone
+#ifndef rng_stand_alone
 	int command(int argc, const char*const* argv);
-#endif  /* stand_alone */
+#endif  /* rng_stand_alone */
 
 	// These are primitive but maybe useful.
 	inline int uniform_positive_int() {  // range [0, MAXINT]
