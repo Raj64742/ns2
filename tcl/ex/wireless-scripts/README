@@ -1,0 +1,5 @@
+To run the simulations in the paper "Modeling Wireless Links for
+Transport Protocols",
+"http://www.cs.helsinki.fi/u/gurtov/papers/mtp.html":
+
+% ./runall.cmd xgraph
