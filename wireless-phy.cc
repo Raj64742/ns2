@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/wireless-phy.cc,v 1.15 2001/02/07 10:25:36 yaxu Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/wireless-phy.cc,v 1.16 2001/03/13 19:23:11 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -102,6 +102,7 @@ WirelessPhy::WirelessPhy() : Phy(), idle_timer_(this), status_(IDLE)
 	lambda_ = SPEED_OF_LIGHT / freq_;
 
 	node_ = 0;
+	ant_ = 0;
 	propagation_ = 0;
 	modulation_ = 0;
 
