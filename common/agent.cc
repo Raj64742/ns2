@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.14 1997/05/22 00:00:58 breslau Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.15 1997/06/11 04:46:38 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -137,6 +137,7 @@ Packet* Agent::allocpkt() const
 
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 	hf->ecn_ = 0;
+	hf->ecn_to_echo_ = 0;
 	hf->pri_ = 0;
 	hf->usr1_ = 0;
 	hf->usr2_ = 0;

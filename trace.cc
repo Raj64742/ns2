@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.12 1997/06/03 21:33:46 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.13 1997/06/11 04:46:39 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -61,7 +61,7 @@ public:
 
 
 Trace::Trace(int type)
-	: type_(type), src_(0), dst_(0), channel_(0), callback_(0)
+	: Connector(), type_(type), src_(0), dst_(0), channel_(0), callback_(0)
 {
 	bind("src_", (int*)&src_);
 	bind("dst_", (int*)&dst_);
@@ -139,16 +139,17 @@ void Trace::format(int tt, int s, int d, Packet* p)
 
 	/*XXX*/
 	char flags[5];
-	flags[0] = flags[1] = flags[2] = flags[3] = '-';
-	flags[4] = 0;
+	flags[0] = flags[1] = flags[2] = flags[3] = flags[4] = '-';
+	flags[5] = 0;
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 	flags[0] = hf->ecn_ ? 'C' : '-';
+	flags[4] = hf->ecn_to_echo_ ? 'E' : '-';
 
 #ifdef notdef
 flags[1] = (iph->flags() & PF_PRI) ? 'P' : '-';
 flags[2] = (iph->flags() & PF_USR1) ? '1' : '-';
 flags[3] = (iph->flags() & PF_USR2) ? '2' : '-';
-flags[4] = 0;
+flags[5] = 0;
 #endif
 
 	sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
