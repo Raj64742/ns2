@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.11 1997/11/06 03:13:57 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.12 1997/11/10 22:54:14 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -113,6 +113,42 @@ TestSuite instproc insert_flat cbqlink {
 	$cbqlink bind $dataclass_ 3; # fid 3
 }
 
+TestSuite instproc create_flat2 { } {
+	$self instvar topclass_ audioclass_ dataclass_
+	$self instvar cbq_qtype_
+
+	set qlim 1000
+	set cbq_qtype_ DropTail
+
+	set topclass_ [new CBQClass]
+	# (topclass_ doesn't have a queue)
+	$topclass_ setparams none 0 0.98 auto 8 2 0
+
+	set audioclass_ [new CBQClass]
+	$self make_queue $audioclass_ $qlim
+	$audioclass_ setparams $topclass_ true 0.03 auto 1 1 0
+
+	set dataclass_ [new CBQClass]
+	$self make_queue $dataclass_ $qlim
+	$dataclass_ setparams $topclass_ true 0.65 auto 2 1 0
+}
+
+TestSuite instproc insert_flat2 cbqlink {
+	$self instvar topclass_ audioclass_ dataclass_
+
+	#
+	# note: auto settings for maxidle are resolved in insert
+	# (see tcl/lib/ns-queue.tcl)
+	#
+
+ 	$cbqlink insert $topclass_
+ 	$cbqlink insert $audioclass_
+        $cbqlink insert $dataclass_
+
+ 	$cbqlink bind $audioclass_ 1;# fid 1
+	$cbqlink bind $dataclass_ 2; # fid 2
+}
+
 # Create a two-agency link-sharing structure.
 #
 #	4 leaf classes for 2 "agencies":
@@ -138,7 +174,7 @@ TestSuite instproc create_twoagency { } {
 		$topClass_ setparams none 0 0.97 auto 8 3 0
 		$topAClass_ setparams $topClass_ 1 0.69 auto 8 2 0
 		$topBClass_ setparams $topClass_ 1 0.29 auto 8 2 0
-	} else if { $cbqalgorithm_ == "top-level" } {
+	} elseif { $cbqalgorithm_ == "top-level" } {
 		# For Top-Level link-sharing?
 		# borrowing from $topAClass_ is occuring before from $topClass
 		# yellow borrows from $topBClass_
@@ -148,7 +184,7 @@ TestSuite instproc create_twoagency { } {
 		$topClass_ setparams none 0 0.97 0.001 8 3 0
 		$topAClass_ setparams $topClass_ 1 0.69 auto 8 2 0
 		$topBClass_ setparams $topClass_ 1 0.29 auto 8 2 0
-	} else if { $cbqalgorithm_ == "formal" } {
+	} elseif { $cbqalgorithm_ == "formal" } {
 		# For Formal link-sharing
 		# The allocated bandwidth can be exact for parent classes.
 		$topClass_ setparams none 0 1.0 1.0 8 3 0
@@ -176,7 +212,7 @@ TestSuite instproc create_twoagency { } {
 	$self make_queue $dataBClass_ $qlim
 }
 
-TestSuite instproc insert_twoAgency { cbqlink } {
+TestSuite instproc insert_twoagency cbqlink {
 
 	$self instvar topClass_ topAClass_ topBClass_
 	$self instvar vidAClass_ vidBClass_
@@ -354,6 +390,25 @@ TestSuite instproc three_cbrs {} {
         $ns_ at 24.0 "$cbr1 start"
 }
 
+#
+# Create two CBR connections.
+#
+TestSuite instproc two_cbrs {} {
+	$self instvar ns_ node_
+	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r2) 1]
+	$cbr1 set packetSize_ 1000
+	$cbr1 set interval_ 0.001
+
+	set cbr2 [$ns_ create-connection CBR $node_(s2) LossMonitor $node_(r2) 2]
+	$cbr2 set packetSize_ 1000
+	$cbr2 set interval_ 0.01
+
+	$ns_ at 0.0 "$cbr1 start; $cbr2 start"
+	$ns_ at 0.002 "$cbr1 stop"
+	$ns_ at 1.0 "$cbr1 start"
+	$ns_ at 1.08 "$cbr1 stop"
+}
+
 TestSuite instproc four_cbrs {} {
 	$self instvar ns_ node_
 	set cbr1 [$ns_ create-connection CBR $node_(s1) LossMonitor $node_(r2) 1]
@@ -462,7 +517,7 @@ Test/AO instproc init topo {
 	set test_ CBQ_AO
 	$self next 0
 }
-TestSuite instproc run {} {
+Test/AO instproc run {} {
 	$self instvar cbqalgorithm_ ns_ net_ topo_
 	set stopTime 40.1
 	set maxbytes 187500
@@ -470,6 +525,7 @@ TestSuite instproc run {} {
 
 	$topo_ instvar cbqlink_
 	$self create_twoagency
+	$self insert_twoagency $cbqlink_
 	$self four_cbrs
 	$self make_fmon $cbqlink_
 	[$cbqlink_ queue] algorithm $cbqalgorithm_
@@ -477,7 +533,37 @@ TestSuite instproc run {} {
 	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
 	$self openTrace $stopTime CBQ_AO
 
-	$self openTrace $stopTime CBQ_AO
+	$ns_ run
+}
+
+#
+# Figure 13 from the link-sharing paper.
+# WRR, Top link-sharing.
+# ~/newr/rm/testA.com
+#
+Class Test/TL -superclass TestSuite
+Test/TL instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ cbq1-wrr
+	set test_ CBQ_TL
+	$self next 0
+}
+Test/TL instproc run {} {
+	$self instvar cbqalgorithm_ ns_ net_ topo_
+	set stopTime 40.1
+	set maxbytes 187500
+	set cbqalgorithm_ top-level
+
+	$topo_ instvar cbqlink_
+	$self create_twoagency
+	$self insert_twoagency $cbqlink_
+	$self four_cbrs
+	$self make_fmon $cbqlink_
+	[$cbqlink_ queue] algorithm $cbqalgorithm_
+
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
+	$self openTrace $stopTime CBQ_TL
 
 	$ns_ run
 }
@@ -485,63 +571,69 @@ TestSuite instproc run {} {
 ### I AM HERE
 
 #
-# Figure 13 from the link-sharing paper.
-# WRR, Top link-sharing.
-# ~/newr/rm/testA.com
-#
-TestSuite instproc test_cbqTL {} {
-	global s1 s2 s3 s4 r1 k1 
-	set qlen 20
-	set stopTime 40.1
-	set CBQalgorithm 1
-	create_graph $stopTime wrr-cbq $qlen
-	create_twoAgency [ns link $r1 $k1] $CBQalgorithm $qlen
-	four_cbrs
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
-
-	openTrace2 $stopTime test_cbqTL
-
-	ns run
-}
-
-#
 # Figure 11 from the link-sharing paper.
 # WRR, Formal (new) link-sharing.
 # ~/newr/rm/testA.com
 #
-TestSuite instproc test_cbqFor {} {
-	global s1 s2 s3 s4 r1 k1 
-	set qlen 20
+
+Class Test/FORMAL -superclass TestSuite
+Test/FORMAL instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_ $topo
+	set defNet_ cbq1-wrr
+	set test_ CBQ_FORMAL
+	$self next 0
+}
+Test/FORMAL instproc run {} {
+	$self instvar cbqalgorithm_ ns_ net_ topo_
 	set stopTime 40.1
-	set CBQalgorithm 2
-	create_graph $stopTime wrr-cbq $qlen
-	create_twoAgency [ns link $r1 $k1] $CBQalgorithm $qlen
-	four_cbrs
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
+	set maxbytes 187500
+	set cbqalgorithm_ formal
 
-	openTrace2 $stopTime test_cbqFor
+	$topo_ instvar cbqlink_
+	$self create_twoagency
+	$self insert_twoagency $cbqlink_
+	$self four_cbrs
+	$self make_fmon $cbqlink_
+	[$cbqlink_ queue] algorithm $cbqalgorithm_
 
-	ns run
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
+	$self openTrace $stopTime CBQ_FORMAL
+
+	$ns_ run
 }
 
 #
 # Figure 11 from the link-sharing paper, but Formal (old) link-sharing.
 # WRR. 
-# ~/newr/rm/testA.com
+# ~/newr/rm/testA.com DELETED
 #
-proc test_cbqForOld {} {
-	global s1 s2 s3 s4 r1 k1 
-	set qlen 20
-	set stopTime 40.1
-	set CBQalgorithm 3
-	create_graph $stopTime wrr-cbq $qlen
-	create_twoAgency [ns link $r1 $k1] $CBQalgorithm $qlen
-	four_cbrs
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
 
-	openTrace2 $stopTime test_cbqForOld
+Class Test/MAX1 -superclass TestSuite
+Test/MAX1 instproc init topo { 
+        $self instvar net_ defNet_ test_
+        set net_ $topo
+        set defNet_ cbq1-wrr
+        set test_ CBQ_MAX1
+        $self next 0
+}
+Test/MAX1 instproc run {} {
+        $self instvar cbqalgorithm_ ns_ net_ topo_
+        set stopTime 2.1
+        set maxbytes 187500
+        set cbqalgorithm_ formal
+ 
+        $topo_ instvar cbqlink_
+        $self create_flat2
+        $self insert_flat2 $cbqlink_
+        $self two_cbrs
+        [$cbqlink_ queue] algorithm $cbqalgorithm_
 
-	ns run
+        ## need to redef finish procedure here somehow
+	TestSuite instproc finish tname { puts "all done $tname" }
+        $self openTrace $stopTime CBQ_MAX1
+
+        $ns_ run
 }
 
 #
