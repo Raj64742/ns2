@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.27 1998/04/08 20:09:41 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.28 1998/04/11 01:17:31 ahelmy Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -146,5 +146,36 @@ protected:
 	void recv(Packet*, Handler*);
 	Classifier* classifier_;
 };
+
+/* error model that reads a loss trace (instead of a math/computed model) */
+class TraceErrorModel : public ErrorModel {
+public:
+        TraceErrorModel();
+        virtual int match(Packet* p);
+        virtual int corrupt(Packet* p);
+        virtual void recv(Packet* pkt, Handler* h);
+protected:
+        double loss_;
+        double good_;
+};
+        
+#include <string.h>
+#include "prune.h"
+/* error model for multicast routing,... now inherits from trace.. later
+may make them separate and use pointer/containment.. etc */
+class MrouteErrorModel : public TraceErrorModel {
+public:
+        MrouteErrorModel();
+        virtual int match(Packet* p);
+        inline int maxtype() { return sizeof(msg_type); }
+protected:
+        int command(int argc, const char*const* argv);
+        int off_prune_; /* don't forget to bind this to tcl */
+        char msg_type[15]; /* to which to copy the message code (e.g.
+                            *  "prune","join"). It's size is the same
+                            * as type_ in prune.h [also returned by maxtype.]
+                            */
+};
+
 
 #endif
