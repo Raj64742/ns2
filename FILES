@@ -38,8 +38,6 @@ bitmap/play.xbm
 bitmap/rewind.xbm
 bitmap/stop.xbm
 cbq.cc
-cbr.cc
-cbr.h
 cbr_traffic.cc
 channel.cc
 channel.h
@@ -465,7 +463,6 @@ tcl/test/test-all-tcp
 tcl/test/test-all-tcp-init-win
 tcl/test/test-all-tcpVariants
 tcl/test/test-all-tcpVariants2
-tcl/test/test-all-template-mcast
 tcl/test/test-all-template-session
 tcl/test/test-all-template1
 tcl/test/test-all-v1
