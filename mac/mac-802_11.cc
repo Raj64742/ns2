@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.44 2003/10/02 03:23:02 ddutta Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.45 2003/10/23 21:09:45 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  */
@@ -1108,66 +1108,67 @@ Mac802_11::check_pktTx()
 	return 0;
 }
 /*void
-Mac802_11::sendSCANREQ(int dst)
-{
-        Packet *p = Packet::alloc();
-        hdr_cmn* ch = HDR_CMN(p);
-        struct probereq_frame *pbr = (struct probereq_frame*)p->access(hdr_mac::offset_);
+  Mac802_11::sendSCANREQ(int dst)
+  {
+  Packet *p = Packet::alloc();
+  hdr_cmn* ch = HDR_CMN(p);
+  struct probereq_frame *pbr = (struct probereq_frame*)p->access(hdr_mac::offset_);
 
-        assert(pktTx_);
-        assert(pktRTS_ == 0);
-
-
-        ch->uid() = 0;
-        ch->ptype() = PT_MAC;
-        // change wrt Mike's code
-        //ch->size() = ETHER_RTS_LEN;
-        ch->size() = phymib_.getRTSlen();
-        ch->iface() = -2;
-        ch->error() = 0;
-
-        bzero(srf, MAC_HDR_LEN);
-
-        pbr->preq_fc.fc_protocol_version = MAC_ProtocolVersion;
-        pbr->preq_fc.fc_type       = MAC_Type_Management;
-        pbr->preq_fc.fc_subtype    = MAC_Subtype_ProbeReq;
-        pbr->preq_fc.fc_to_ds      = 0;
-        pbr->preq_fc.fc_from_ds    = 0;
-        pbr->preq_fc.fc_more_frag  = 0;
-        pbr->preq_fc.fc_retry      = 0;
-        pbr->preq_fc.fc_pwr_mgt    = 0;
-	
-	//rf->rf_duration = RTS_DURATION(pktTx_);
-        STORE4BYTE(&dst, (srf->rf_ra));
-*/
-       /*  store rts tx time */
+  assert(pktTx_);
+  assert(pktRTS_ == 0);
   
+  
+  ch->uid() = 0;
+  ch->ptype() = PT_MAC;
+  // change wrt Mike's code
+  //ch->size() = ETHER_RTS_LEN;
+  ch->size() = phymib_.getRTSlen();
+  ch->iface() = -2;
+  ch->error() = 0;
+  
+  bzero(srf, MAC_HDR_LEN);
+  
+  pbr->preq_fc.fc_protocol_version = MAC_ProtocolVersion;
+  pbr->preq_fc.fc_type       = MAC_Type_Management;
+  pbr->preq_fc.fc_subtype    = MAC_Subtype_ProbeReq;
+  pbr->preq_fc.fc_to_ds      = 0;
+  pbr->preq_fc.fc_from_ds    = 0;
+  pbr->preq_fc.fc_more_frag  = 0;
+  pbr->preq_fc.fc_retry      = 0;
+  pbr->preq_fc.fc_pwr_mgt    = 0;
+  
+  //rf->rf_duration = RTS_DURATION(pktTx_);
+  STORE4BYTE(&dst, (srf->rf_ra));
+  
+  /*  store rts tx time */
+
 
 /*      ch->txtime() = txtime(ch->size(), basicRate_);
+	
+STORE4BYTE(&index_, (srf->rf_ta));*/
+/* calculate rts duration field */
 
-        STORE4BYTE(&index_, (srf->rf_ta));*/
-        /* calculate rts duration field */
-
-        // change wrt Mike's code
-        /*
-        pbr->rf_duration = usec(sifs_
-                               + txtime(ETHER_CTS_LEN, basicRate_)
-                               + sifs_
-                               + txtime(pktTx_)
-                               + sifs_
-                               + txtime(ETHER_ACK_LEN, basicRate_));
-        */
+// change wrt Mike's code
 /*
-           pbr->preq_duration = usec(phymib_.getSIFS()
-                              + txtime(phymib_.getCTSlen(), basicRate_)
-                              + phymib_.getSIFS()
-                               + txtime(pktTx_)
-                              + phymib_.getSIFS()
-                              + txtime(phymib_.getACKlen(), basicRate_));
-
-        pktRTS_ = p;
-
-}
+  pbr->rf_duration = usec(sifs_
+  + txtime(ETHER_CTS_LEN, basicRate_)
+  + sifs_
+  + txtime(pktTx_)
+  + sifs_
+  + txtime(ETHER_ACK_LEN, basicRate_));
+*/
+/*
+  pbr->preq_duration = usec(phymib_.getSIFS()
+  + txtime(phymib_.getCTSlen(), basicRate_)
+  + phymib_.getSIFS()
+  + txtime(pktTx_)
+  + phymib_.getSIFS()
+  + txtime(phymib_.getACKlen(), basicRate_));
+  
+  pktRTS_ = p;
+  
+  }
+*/
 
 /*
  * Low-level transmit functions that actually place the packet onto
@@ -1526,13 +1527,15 @@ Mac802_11::RetransmitDATA()
 // change wrt Mike's code
 	//if(*rcount > *thresh) {
 	//	macmib_->FailedCount++;
-	if(*rcount > thresh) {
-               macmib_.FailedCount++;
+	if(*rcount >= thresh) {
+		/* IEEE Spec section 9.2.3.5 says this should be greater than
+		   or equal */
+		macmib_.FailedCount++;
 		/* tell the callback the send operation failed 
 		   before discarding the packet */
 		hdr_cmn *ch = HDR_CMN(pktTx_);
 		if (ch->xmit_failure_) {
-// change wrt Mike's code
+			// change wrt Mike's code
                         //ch->size() -= ETHER_HDR_LEN11;
                         ch->size() -= phymib_.getHdrLen11();
 			ch->xmit_reason_ = XMIT_REASON_ACK;
@@ -1928,10 +1931,11 @@ Mac802_11::recvCTS(Packet *p)
 
 	/*
 	 * The successful reception of this CTS packet implies
-	 * that our RTS was successful.  Hence, we can reset
-	 * the Short Retry Count and the CW.
+	 * that our RTS was successful. 
+	 * According to the IEEE spec 9.2.5.3, you must 
+	 * reset the ssrc_, but not the congestion window.
 	 */
-	//ssrc_ = 0;
+	ssrc_ = 0;
 	//rst_cw();
 
 	tx_resume();
@@ -2091,12 +2095,12 @@ Mac802_11::recvACK(Packet *p)
 	struct hdr_cmn *ch = HDR_CMN(p);
 
 	if(tx_state_ != MAC_SEND) {
-	discard(p, DROP_MAC_INVALID_STATE);
-	return;
+		discard(p, DROP_MAC_INVALID_STATE);
+		return;
 	}
 	//printf("(%d)...................recving ACK:%x\n",index_,p);
 	assert(pktTx_);
-	Packet::free(pktTx_); pktTx_ = 0;
+	//Packet::free(pktTx_); pktTx_ = 0;
 
 	mhSend_.stop();
 
@@ -2104,18 +2108,21 @@ Mac802_11::recvACK(Packet *p)
 	 * The successful reception of this ACK packet implies
 	 * that our DATA transmission was successful.  Hence,
 	 * we can reset the Short/Long Retry Count and the CW.
+	 *
+	 * need to check the size of the packet we sent that's being
+	 * ACK'd, not the size of the ACK packet.
 	 */
-// chnage wrt Mike's code
-	//if((u_int32_t) ch->size() <= macmib_->RTSThreshold)
-	if((u_int32_t) ch->size() <= macmib_.getRTSThreshold())
+	if((u_int32_t) HDR_CMN(pktTx_)->size() <= macmib_.getRTSThreshold())
 		ssrc_ = 0;
 	else
 		slrc_ = 0;
-
+	rst_cw();
+	Packet::free(pktTx_); pktTx_ = 0;
+	
 	/*
 	 * Backoff before sending again.
 	 */
-	rst_cw();
+	//rst_cw();
 	assert(mhBackoff_.busy() == 0);
 	mhBackoff_.start(cw_, is_idle());
 

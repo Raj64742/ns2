@@ -328,9 +328,9 @@ tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
 tcp2/time=0/cwnd=1.0000/ssthresh=3/ack=-1/rtt=0
 
 tcp: 1 time: 10.0
-total_data_packets_sent: 541 data_bytes_sent: 541000
+total_data_packets_sent: 538 data_bytes_sent: 538000
 packets_resent: 10 bytes_resent: 10000
-ack_packets_received: 507
+ack_packets_received: 504
 retransmit_timeouts: 1
 
 tcp: 2 time: 10.0
@@ -339,7 +339,7 @@ packets_resent: 0 bytes_resent: 0
 ack_packets_received: 39
 retransmit_timeouts: 0
 
-tcp1/time=10/cwnd=29.8405/ssthresh=7/ack=501/rtt=3
+tcp1/time=10/cwnd=29.7397/ssthresh=7/ack=498/rtt=3
 tcp2/time=10/cwnd=9.1730/ssthresh=3/ack=38/rtt=7
 Test output agrees with reference output
 Running test quiescent_100ms:
@@ -431,7 +431,7 @@ Running test Sack_TCP2:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-newreno
-Tests: reno reno_noLT newreno newreno_noLT newreno_B newreno_B_noLT reno1 newreno1 newreno1_BF newreno1_A newreno1_A_noLT newreno1_A_BF newreno1_A_BF_LC newreno1_B0 newreno1_B newreno1_B_BF newreno1_B_BF_LC newreno1_B_noLT newreno1A_A newreno1A_A_BF newreno1A_A_BF_LC newreno1A_A_noLT reno2 reno2_noLT reno2_bugfix reno2_bugfix_noLT newreno2_A newreno2_A_noLT newreno2_A_bugfix newreno2_A_bugfix_LC newreno2_B newreno2_B_noLT newreno2_B_bugfix newreno2_B_bugfix_LC newreno5 sack5 newreno5_LC newreno5_noLT newreno5_noLT_LC newreno5_noBF newreno5_noLT_noBF reno5 reno5_noBF reno5_noLT_noBF reno5a reno5a_noLT_noBF newreno6
+Tests: reno reno_noLT newreno newreno_noLT newreno_B newreno_B_noLT reno1 newreno1 newreno1_BF newreno1_A newreno1_A_noLT newreno1_A_BF newreno1_A_BF_LC newreno1_B0 newreno1_B newreno1_B_BF newreno1_B_BF_LC newreno1_B_noLT newreno1A_A newreno1A_A_BF newreno1A_A_BF_LC newreno1A_A_noLT reno2 reno2_noLT reno2_bugfix reno2_bugfix_noLT newreno2_A newreno2_A_noLT newreno2_A_bugfix newreno2_A_bugfix_LC newreno2_B newreno2_B_noLT newreno2_B_bugfix newreno2_B_bugfix_LC newreno5 sack5 newreno5_LC newreno5_noLT newreno5_noLT_LC newreno5_noBF newreno5_noLT_noBF reno5 reno5_noBF reno5_noLT_noBF reno5a reno5a_noLT_noBF newreno6 newreno_rto_loss newreno_rto_loss_ack newreno_rto_loss_ts newreno_rto_loss_tsh newreno_rto_dup newreno_rto_dup_ack newreno_rto_loss_ackf newreno_rto_dup_ts newreno_rto_dup_tsh impatient1 slow1 impatient2 slow2 impatient3 slow3 impatient4 slow4
 Running test reno:
 ../../ns test-suite-newreno.tcl reno QUIET
 Test output agrees with reference output
@@ -573,6 +573,57 @@ Test output agrees with reference output
 Running test newreno6:
 ../../ns test-suite-newreno.tcl newreno6 QUIET
 Test output agrees with reference output
+Running test newreno_rto_loss:
+../../ns test-suite-newreno.tcl newreno_rto_loss QUIET
+Test output agrees with reference output
+Running test newreno_rto_loss_ack:
+../../ns test-suite-newreno.tcl newreno_rto_loss_ack QUIET
+Test output agrees with reference output
+Running test newreno_rto_loss_ts:
+../../ns test-suite-newreno.tcl newreno_rto_loss_ts QUIET
+Test output agrees with reference output
+Running test newreno_rto_loss_tsh:
+../../ns test-suite-newreno.tcl newreno_rto_loss_tsh QUIET
+Test output agrees with reference output
+Running test newreno_rto_dup:
+../../ns test-suite-newreno.tcl newreno_rto_dup QUIET
+Test output agrees with reference output
+Running test newreno_rto_dup_ack:
+../../ns test-suite-newreno.tcl newreno_rto_dup_ack QUIET
+Test output agrees with reference output
+Running test newreno_rto_loss_ackf:
+../../ns test-suite-newreno.tcl newreno_rto_loss_ackf QUIET
+Test output agrees with reference output
+Running test newreno_rto_dup_ts:
+../../ns test-suite-newreno.tcl newreno_rto_dup_ts QUIET
+Test output agrees with reference output
+Running test newreno_rto_dup_tsh:
+../../ns test-suite-newreno.tcl newreno_rto_dup_tsh QUIET
+Test output agrees with reference output
+Running test impatient1:
+../../ns test-suite-newreno.tcl impatient1 QUIET
+Test output agrees with reference output
+Running test slow1:
+../../ns test-suite-newreno.tcl slow1 QUIET
+Test output agrees with reference output
+Running test impatient2:
+../../ns test-suite-newreno.tcl impatient2 QUIET
+Test output agrees with reference output
+Running test slow2:
+../../ns test-suite-newreno.tcl slow2 QUIET
+Test output agrees with reference output
+Running test impatient3:
+../../ns test-suite-newreno.tcl impatient3 QUIET
+Test output agrees with reference output
+Running test slow3:
+../../ns test-suite-newreno.tcl slow3 QUIET
+Test output agrees with reference output
+Running test impatient4:
+../../ns test-suite-newreno.tcl impatient4 QUIET
+Test output agrees with reference output
+Running test slow4:
+../../ns test-suite-newreno.tcl slow4 QUIET
+Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-sack
 Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a FalsePipe FalsePipe1 sack_dupacks sack_dupacks1
@@ -626,7 +677,7 @@ Running test sack_dupacks1:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcpOptions
-Tests: onedrop_tahoe onedrop_numdup4_tahoe onedrop_tahoe_full onedrop_numdup4_tahoe_full onedrop_reno onedrop_numdup4_reno onedrop_reno_full onedrop_numdup4_reno_full onedrop_newreno onedrop_numdup4_newreno onedrop_newreno_full onedrop_numdup4_newreno_full onedrop_sack onedrop_numdup4_sack maxburst_tahoe maxburst_tahoe1 maxburst_reno maxburst_reno1 maxburst_newreno maxburst_newreno1 maxburst_sack maxburst_sack1 timeouts_tahoe timeouts_tahoe1 timeouts_tahoe2 timeouts_tahoe3 timeouts_reno timeouts_reno1 timeouts_reno2 timeouts_reno3 timeouts_newreno timeouts_newreno1 timeouts_newreno2 timeouts_newreno3 timeouts_sack timeouts_sack1 timeouts_sack2 timeouts_sack3 timeoutsA_tahoe timeoutsA_tahoe1
+Tests: onedrop_tahoe onedrop_numdup4_tahoe onedrop_tahoe_full onedrop_numdup4_tahoe_full onedrop_reno onedrop_numdup4_reno onedrop_reno_full onedrop_numdup4_reno_full onedrop_newreno onedrop_numdup4_newreno onedrop_newreno_full onedrop_numdup4_newreno_full onedrop_sack onedrop_numdup4_sack maxburst_tahoe maxburst_tahoe1 maxburst_reno maxburst_reno1 maxburst_newreno maxburst_newreno1 maxburst_sack maxburst_sack1 timeouts_tahoe timeouts_tahoe1 timeouts_tahoe2 timeouts_tahoe3 timeouts_reno timeouts_reno_noexitFR timeouts_reno1 timeouts_reno2 timeouts_reno3 timeouts_newreno timeouts_newreno_noexitFR timeouts_newreno1 timeouts_newreno2 timeouts_newreno3 timeouts_sack timeouts_sack1 timeouts_sack2 timeouts_sack3 timeoutsA_tahoe timeoutsA_tahoe1
 Running test onedrop_tahoe:
 ../../ns test-suite-tcpOptions.tcl onedrop_tahoe QUIET
 Test output agrees with reference output
@@ -708,6 +759,9 @@ Test output agrees with reference output
 Running test timeouts_reno:
 ../../ns test-suite-tcpOptions.tcl timeouts_reno QUIET
 Test output agrees with reference output
+Running test timeouts_reno_noexitFR:
+../../ns test-suite-tcpOptions.tcl timeouts_reno_noexitFR QUIET
+Test output agrees with reference output
 Running test timeouts_reno1:
 ../../ns test-suite-tcpOptions.tcl timeouts_reno1 QUIET
 Test output agrees with reference output
@@ -719,6 +773,9 @@ Running test timeouts_reno3:
 Test output agrees with reference output
 Running test timeouts_newreno:
 ../../ns test-suite-tcpOptions.tcl timeouts_newreno QUIET
+Test output agrees with reference output
+Running test timeouts_newreno_noexitFR:
+../../ns test-suite-tcpOptions.tcl timeouts_newreno_noexitFR QUIET
 Test output agrees with reference output
 Running test timeouts_newreno1:
 ../../ns test-suite-tcpOptions.tcl timeouts_newreno1 QUIET
@@ -1394,7 +1451,7 @@ Running test binomial2:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-greis
-Tests: example1 example1a example1b example2 example3 example4 ping
+Tests: example1 example1a example1b example2 example3 example4 ping pingOneWay
 Running test example1:
 ../../ns test-suite-greis.tcl example1 QUIET
 Test output agrees with reference output
@@ -1419,6 +1476,15 @@ node 0 received ping answer from  2 with round-trip-time 42.0 ms.
 node 2 received ping answer from  0 with round-trip-time 42.0 ms.
 node 0 received ping answer from  2 with round-trip-time 42.0 ms.
 node 2 received ping answer from  0 with round-trip-time 42.0 ms.
+Test output agrees with reference output
+Running test pingOneWay:
+../../ns test-suite-greis.tcl pingOneWay QUIET
+ping reply from node 2 to 0 with seqno 0: forward 161.7 ms, reverse 71.7 ms.
+ping reply from node 0 to 2 with seqno 0: forward 84.6 ms, reverse 161.7 ms.
+ping reply from node 2 to 0 with seqno 1: forward 161.7 ms, reverse 71.7 ms.
+ping reply from node 0 to 2 with seqno 1: forward 71.7 ms, reverse 192.4 ms.
+ping reply from node 2 to 0 with seqno 2: forward 202.9 ms, reverse 71.7 ms.
+ping reply from node 0 to 2 with seqno 2: forward 112.9 ms, reverse 192.4 ms.
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rfc793edu
@@ -1497,6 +1563,123 @@ Running test vegas_pacing_rate:
 Test output agrees with reference output
 Running test vegas_pacing_cwnd:
 ../../ns test-suite-rbp.tcl vegas_pacing_cwnd QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-sctp
+Tests: sctp-2packetsTimeout sctp-AMR-Exceeded sctp-Rel1-Loss2 sctp-burstAfterFastRtxRecovery sctp-burstAfterFastRtxRecovery-2 sctp-cwndFreeze sctp-cwndFreeze-multistream sctp-hugeRwnd sctp-initRtx sctp-multihome1-2 sctp-multihome2-1 sctp-multihome2-2AMR-Exceeded sctp-multihome2-2Failover sctp-multihome2-2Failover0 sctp-multihome2-2Failover1 sctp-multihome2-2Rtx1 sctp-multihome2-2Rtx3 sctp-multihome2-2Timeout sctp-multihome2-R-2 sctp-multihome3-3Timeout sctp-multipleDropsSameWnd-1 sctp-multipleDropsSameWnd-1-delayed sctp-multipleDropsSameWnd-2 sctp-multipleDropsSameWnd-3 sctp-multipleDropsTwoWnds-1-delayed sctp-multipleRtx sctp-multipleRtx-early sctp-noEarlyHBs sctp-smallRwnd sctp-zeroRtx sctp-zeroRtx-burstLoss sctp-hbAfterRto-2packetsTimeout sctp-hbAfterRto-multihome2-2Timeout sctp-multipleFastRtx-2packetsTimeout sctp-multipleFastRtx-multihome2-2Timeout sctp-newReno sctp-timestamp-multihome2-2Rtx3 sctp-timestamp-multihome2-2Timeout
+Running test sctp-2packetsTimeout:
+../../ns test-suite-sctp.tcl sctp-2packetsTimeout QUIET
+Test output agrees with reference output
+Running test sctp-AMR-Exceeded:
+../../ns test-suite-sctp.tcl sctp-AMR-Exceeded QUIET
+Test output agrees with reference output
+Running test sctp-Rel1-Loss2:
+../../ns test-suite-sctp.tcl sctp-Rel1-Loss2 QUIET
+Test output agrees with reference output
+Running test sctp-burstAfterFastRtxRecovery:
+../../ns test-suite-sctp.tcl sctp-burstAfterFastRtxRecovery QUIET
+Test output agrees with reference output
+Running test sctp-burstAfterFastRtxRecovery-2:
+../../ns test-suite-sctp.tcl sctp-burstAfterFastRtxRecovery-2 QUIET
+Test output agrees with reference output
+Running test sctp-cwndFreeze:
+../../ns test-suite-sctp.tcl sctp-cwndFreeze QUIET
+Test output agrees with reference output
+Running test sctp-cwndFreeze-multistream:
+../../ns test-suite-sctp.tcl sctp-cwndFreeze-multistream QUIET
+Test output agrees with reference output
+Running test sctp-hugeRwnd:
+../../ns test-suite-sctp.tcl sctp-hugeRwnd QUIET
+Test output agrees with reference output
+Running test sctp-initRtx:
+../../ns test-suite-sctp.tcl sctp-initRtx QUIET
+Test output agrees with reference output
+Running test sctp-multihome1-2:
+../../ns test-suite-sctp.tcl sctp-multihome1-2 QUIET
+Test output agrees with reference output
+Running test sctp-multihome2-1:
+../../ns test-suite-sctp.tcl sctp-multihome2-1 QUIET
+Test output agrees with reference output
+Running test sctp-multihome2-2AMR-Exceeded:
+../../ns test-suite-sctp.tcl sctp-multihome2-2AMR-Exceeded QUIET
+Test output agrees with reference output
+Running test sctp-multihome2-2Failover:
+../../ns test-suite-sctp.tcl sctp-multihome2-2Failover QUIET
+Test output agrees with reference output
+Running test sctp-multihome2-2Failover0:
+../../ns test-suite-sctp.tcl sctp-multihome2-2Failover0 QUIET
+Test output agrees with reference output
+Running test sctp-multihome2-2Failover1:
+../../ns test-suite-sctp.tcl sctp-multihome2-2Failover1 QUIET
+Test output agrees with reference output
+Running test sctp-multihome2-2Rtx1:
+../../ns test-suite-sctp.tcl sctp-multihome2-2Rtx1 QUIET
+Test output agrees with reference output
+Running test sctp-multihome2-2Rtx3:
+../../ns test-suite-sctp.tcl sctp-multihome2-2Rtx3 QUIET
+Test output agrees with reference output
+Running test sctp-multihome2-2Timeout:
+../../ns test-suite-sctp.tcl sctp-multihome2-2Timeout QUIET
+Test output agrees with reference output
+Running test sctp-multihome2-R-2:
+../../ns test-suite-sctp.tcl sctp-multihome2-R-2 QUIET
+Test output agrees with reference output
+Running test sctp-multihome3-3Timeout:
+../../ns test-suite-sctp.tcl sctp-multihome3-3Timeout QUIET
+Test output agrees with reference output
+Running test sctp-multipleDropsSameWnd-1:
+../../ns test-suite-sctp.tcl sctp-multipleDropsSameWnd-1 QUIET
+Test output agrees with reference output
+Running test sctp-multipleDropsSameWnd-1-delayed:
+../../ns test-suite-sctp.tcl sctp-multipleDropsSameWnd-1-delayed QUIET
+Test output agrees with reference output
+Running test sctp-multipleDropsSameWnd-2:
+../../ns test-suite-sctp.tcl sctp-multipleDropsSameWnd-2 QUIET
+Test output agrees with reference output
+Running test sctp-multipleDropsSameWnd-3:
+../../ns test-suite-sctp.tcl sctp-multipleDropsSameWnd-3 QUIET
+Test output agrees with reference output
+Running test sctp-multipleDropsTwoWnds-1-delayed:
+../../ns test-suite-sctp.tcl sctp-multipleDropsTwoWnds-1-delayed QUIET
+Test output agrees with reference output
+Running test sctp-multipleRtx:
+../../ns test-suite-sctp.tcl sctp-multipleRtx QUIET
+Test output agrees with reference output
+Running test sctp-multipleRtx-early:
+../../ns test-suite-sctp.tcl sctp-multipleRtx-early QUIET
+Test output agrees with reference output
+Running test sctp-noEarlyHBs:
+../../ns test-suite-sctp.tcl sctp-noEarlyHBs QUIET
+Test output agrees with reference output
+Running test sctp-smallRwnd:
+../../ns test-suite-sctp.tcl sctp-smallRwnd QUIET
+Test output agrees with reference output
+Running test sctp-zeroRtx:
+../../ns test-suite-sctp.tcl sctp-zeroRtx QUIET
+Test output agrees with reference output
+Running test sctp-zeroRtx-burstLoss:
+../../ns test-suite-sctp.tcl sctp-zeroRtx-burstLoss QUIET
+Test output agrees with reference output
+Running test sctp-hbAfterRto-2packetsTimeout:
+../../ns test-suite-sctp.tcl sctp-hbAfterRto-2packetsTimeout QUIET
+Test output agrees with reference output
+Running test sctp-hbAfterRto-multihome2-2Timeout:
+../../ns test-suite-sctp.tcl sctp-hbAfterRto-multihome2-2Timeout QUIET
+Test output agrees with reference output
+Running test sctp-multipleFastRtx-2packetsTimeout:
+../../ns test-suite-sctp.tcl sctp-multipleFastRtx-2packetsTimeout QUIET
+Test output agrees with reference output
+Running test sctp-multipleFastRtx-multihome2-2Timeout:
+../../ns test-suite-sctp.tcl sctp-multipleFastRtx-multihome2-2Timeout QUIET
+Test output agrees with reference output
+Running test sctp-newReno:
+../../ns test-suite-sctp.tcl sctp-newReno QUIET
+Test output agrees with reference output
+Running test sctp-timestamp-multihome2-2Rtx3:
+../../ns test-suite-sctp.tcl sctp-timestamp-multihome2-2Rtx3 QUIET
+Test output agrees with reference output
+Running test sctp-timestamp-multihome2-2Timeout:
+../../ns test-suite-sctp.tcl sctp-timestamp-multihome2-2Timeout QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcpHighspeed
@@ -2089,9 +2272,15 @@ Running test Algo2:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-lan
-Tests: lan-routing-flat lan-routing-hier lan-broadcast lan-abstract lan-mactrace
+Tests: lan-routing-flat lan-routing-flat-qlimit congested lan-routing-hier lan-broadcast lan-abstract lan-mactrace
 Running test lan-routing-flat:
 ../../ns test-suite-lan.tcl lan-routing-flat QUIET
+Test output agrees with reference output
+Running test lan-routing-flat-qlimit:
+../../ns test-suite-lan.tcl lan-routing-flat-qlimit QUIET
+Test output agrees with reference output
+Running test congested:
+../../ns test-suite-lan.tcl congested QUIET
 Test output agrees with reference output
 Running test lan-routing-hier:
 ../../ns test-suite-lan.tcl lan-routing-hier QUIET
@@ -2815,29 +3004,19 @@ Running test ottl-PB:
 Test output agrees with reference output
 Running test Mcast-PBtr:
 ../../ns test-suite-webcache.tcl Mcast-PBtr QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-webcache/Mcast-PBtr.test test-output-webcache/Mcast-PBtr
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Test output agrees with reference output
 Running test Mcast-PBPtr:
 ../../ns test-suite-webcache.tcl Mcast-PBPtr QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-webcache/Mcast-PBPtr.test test-output-webcache/Mcast-PBPtr
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Test output agrees with reference output
 Running test Mcast-PBUtr:
 ../../ns test-suite-webcache.tcl Mcast-PBUtr QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-webcache/Mcast-PBUtr.test test-output-webcache/Mcast-PBUtr
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Test output agrees with reference output
 Running test ttl-PBtr:
 ../../ns test-suite-webcache.tcl ttl-PBtr QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-webcache/ttl-PBtr.test test-output-webcache/ttl-PBtr
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Test output agrees with reference output
 Running test ottl-PBtr:
 ../../ns test-suite-webcache.tcl ottl-PBtr QUIET
-Test output differs from reference output
-Diagnose with: diff test-output-webcache/ottl-PBtr.test test-output-webcache/ottl-PBtr
-Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Test output agrees with reference output
 Running test mmcast-PB:
 ../../ns test-suite-webcache.tcl mmcast-PB QUIET
 Test output agrees with reference output
@@ -2853,7 +3032,7 @@ Test output agrees with reference output
 Running test mcast-dreq:
 ../../ns test-suite-webcache.tcl mcast-dreq QUIET
 Test output agrees with reference output
-Some test failed.
+All test output agrees with reference output.
 *** ./test-all-mcache
 Tests: media1 media2 media3 media3a media4 media5
 Running test media1:
@@ -2924,7 +3103,7 @@ Running test mip-adv-multi:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-links
-Tests: links changeDelay changeDelay1 changeDelay2 links1 changeBandwidth dropPacket delayPacket delayPacket1
+Tests: links changeDelay changeDelay1 changeDelay2 links1 changeBandwidth dropPacket delayPacket delayPacket1 delaySpike delaySpike1 delaySpikes delaySpikes1 channelAllocDelay channelAllocDelay1
 Running test links:
 ../../ns test-suite-links.tcl links QUIET
 Test output agrees with reference output
@@ -2951,6 +3130,24 @@ Running test delayPacket:
 Test output agrees with reference output
 Running test delayPacket1:
 ../../ns test-suite-links.tcl delayPacket1 QUIET
+Test output agrees with reference output
+Running test delaySpike:
+../../ns test-suite-links.tcl delaySpike QUIET
+Test output agrees with reference output
+Running test delaySpike1:
+../../ns test-suite-links.tcl delaySpike1 QUIET
+Test output agrees with reference output
+Running test delaySpikes:
+../../ns test-suite-links.tcl delaySpikes QUIET
+Test output agrees with reference output
+Running test delaySpikes1:
+../../ns test-suite-links.tcl delaySpikes1 QUIET
+Test output agrees with reference output
+Running test channelAllocDelay:
+../../ns test-suite-links.tcl channelAllocDelay QUIET
+Test output agrees with reference output
+Running test channelAllocDelay1:
+../../ns test-suite-links.tcl channelAllocDelay1 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-plm
@@ -3068,7 +3265,7 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 18.019753
+Network parition !! Exiting... at time 18.095945
 Test output agrees with reference output
 Running test diff-rate-other:
 ../../ns test-suite-wireless-diffusion.tcl diff-rate-other QUIET
@@ -3082,8 +3279,7 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 11.117633
-Network parition !! Exiting... at time 11.117633
+Network parition !! Exiting... at time 10.761029
 Test output agrees with reference output
 Running test diff-prob:
 ../../ns test-suite-wireless-diffusion.tcl diff-prob QUIET
@@ -3108,8 +3304,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 9.435148
-Network parition !! Exiting... at time 9.435148
+Network parition !! Exiting... at time 9.326060
+Network parition !! Exiting... at time 9.326060
 Test output agrees with reference output
 Running test flooding:
 ../../ns test-suite-wireless-diffusion.tcl flooding QUIET
@@ -3239,6 +3435,14 @@ NS EXITING...
 num_nodes is set 5
 Test output agrees with reference output
 All test output agrees with reference output.
+*** ./test-all-diffusion3
+Tests: simple-ping
+Running test simple-ping:
+../../ns test-suite-diffusion3.tcl simple-ping QUIET
+Test output differs from reference output
+Diagnose with: diff test-output-diffusion3/simple-ping.test test-output-diffusion3/simple-ping
+Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Some test failed.
 *** ./test-all-v1
 Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers stats
 Running test tahoe1:
@@ -3497,14 +3701,6 @@ Starting Simulation...
 finishing..
 Test output agrees with reference output
 All test output agrees with reference output.
-*** ./test-all-diffusion3
-Tests: simple-ping
-Running test simple-ping:
-../../ns test-suite-diffusion3.tcl simple-ping QUIET
-NS EXITING...
-num_nodes is set 3
-Test output agrees with reference output
-All test output agrees with reference output.
 *** ./test-all-misc
 Tests: stats64
 Running test stats64:
@@ -3533,8 +3729,702 @@ num_nodes is set 4
 Test output agrees with reference output
 Running test Format-simple:
 ../../ns test-suite-tagged-trace.tcl Format-simple QUIET
-Required Perl module not found, Format-simple test skipped.
-Test not implemented
+Starting Simulation...
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-message
+Tests: wired
+Running test wired:
+../../ns test-suite-message.tcl wired QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-smac
+Tests: brdcast1 brdcast1_sync brdcast2 brdcast2_sync unicast1 unicast1_sync unicast2 unicast2_sync unicast3 unicast3_sync unicast4 unicast4_sync unicast5 unicast5_sync unicast6 unicast6_sync unicast7 unicast7_sync unicast8 unicast8_sync unicast9 unicast9_sync unicast10 unicast10_sync unicast11 unicast11_sync unicast12 unicast12_sync
+Running test brdcast1:
+../../ns test-suite-smac.tcl brdcast1 QUIET
+brdcast1
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+NS EXITING...
+num_nodes is set 2
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 1.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Test output agrees with reference output
+Running test brdcast1_sync:
+../../ns test-suite-smac.tcl brdcast1_sync QUIET
+brdcast1 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+NS EXITING...
+num_nodes is set 2
+Cancelling CS- node 0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 0.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Test output agrees with reference output
+Running test brdcast2:
+../../ns test-suite-smac.tcl brdcast2 QUIET
+brdcast2
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 1
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 2.0 from 0.0
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 2.0 from 1.0
+Cancelling CS- node 1
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Cancelling CS- node 1
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 2.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Cancelling CS- node 1
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 2.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Test output agrees with reference output
+Running test brdcast2_sync:
+../../ns test-suite-smac.tcl brdcast2_sync QUIET
+brdcast2 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 2.0 from 0.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 2.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 2.0 from 1.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Test output agrees with reference output
+Running test unicast1:
+../../ns test-suite-smac.tcl unicast1 QUIET
+unicast1
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 399.0 ms.
+NS EXITING...
+num_nodes is set 2
+Test output agrees with reference output
+Running test unicast1_sync:
+../../ns test-suite-smac.tcl unicast1_sync QUIET
+unicast1 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4553.0 ms.
+NS EXITING...
+num_nodes is set 2
+Cancelling CS- node 0
+Test output agrees with reference output
+Running test unicast2:
+../../ns test-suite-smac.tcl unicast2 QUIET
+unicast2
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 632.1 ms.
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Test output agrees with reference output
+Running test unicast2_sync:
+../../ns test-suite-smac.tcl unicast2_sync QUIET
+unicast2 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4400.0 ms.
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Test output agrees with reference output
+Running test unicast3:
+../../ns test-suite-smac.tcl unicast3 QUIET
+unicast3
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 440.0 ms.
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Test output agrees with reference output
+Running test unicast3_sync:
+../../ns test-suite-smac.tcl unicast3_sync QUIET
+unicast3 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 10122.0 ms.
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Test output agrees with reference output
+Running test unicast4:
+../../ns test-suite-smac.tcl unicast4 QUIET
+unicast4
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 425.0 ms.
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 2
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Test output agrees with reference output
+Running test unicast4_sync:
+../../ns test-suite-smac.tcl unicast4_sync QUIET
+unicast4 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4400.0 ms.
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Test output agrees with reference output
+Running test unicast5:
+../../ns test-suite-smac.tcl unicast5 QUIET
+unicast5
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 550.0 ms.
+NS EXITING...
+num_nodes is set 4
+Cancelling CS- node 3
+Test output agrees with reference output
+Running test unicast5_sync:
+../../ns test-suite-smac.tcl unicast5_sync QUIET
+unicast5 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 5869.0 ms.
+node 3 received ping answer from  2 with round-trip-time 11553.0 ms.
+NS EXITING...
+num_nodes is set 4
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Test output agrees with reference output
+Running test unicast6:
+../../ns test-suite-smac.tcl unicast6 QUIET
+unicast6
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 476.0 ms.
+NS EXITING...
+num_nodes is set 4
+Test output agrees with reference output
+Running test unicast6_sync:
+../../ns test-suite-smac.tcl unicast6_sync QUIET
+unicast6 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4393.0 ms.
+node 3 received ping answer from  2 with round-trip-time 5907.0 ms.
+NS EXITING...
+num_nodes is set 4
+Cancelling CS- node 2
+Cancelling CS- node 0
+Cancelling CS- node 3
+Cancelling CS- node 3
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 1
+Test output agrees with reference output
+Running test unicast7:
+../../ns test-suite-smac.tcl unicast7 QUIET
+unicast7
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 492.0 ms.
+node 2 received ping answer from  3 with round-trip-time 939.0 ms.
+NS EXITING...
+num_nodes is set 4
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 3
+Test output agrees with reference output
+Running test unicast7_sync:
+../../ns test-suite-smac.tcl unicast7_sync QUIET
+unicast7 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4393.0 ms.
+node 2 received ping answer from  3 with round-trip-time 5863.0 ms.
+NS EXITING...
+num_nodes is set 4
+Cancelling CS- node 2
+Cancelling CS- node 0
+Cancelling CS- node 3
+Cancelling CS- node 3
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 1
+Test output agrees with reference output
+Running test unicast8:
+../../ns test-suite-smac.tcl unicast8 QUIET
+unicast8
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 1 received ping answer from  0 with round-trip-time 367.0 ms.
+node 2 received ping answer from  3 with round-trip-time 873.0 ms.
+NS EXITING...
+num_nodes is set 4
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Test output agrees with reference output
+Running test unicast8_sync:
+../../ns test-suite-smac.tcl unicast8_sync QUIET
+unicast8 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 1 received ping answer from  0 with round-trip-time 4393.0 ms.
+node 2 received ping answer from  3 with round-trip-time 5863.0 ms.
+NS EXITING...
+num_nodes is set 4
+Cancelling CS- node 2
+Cancelling CS- node 0
+Cancelling CS- node 3
+Cancelling CS- node 3
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 1
+Test output agrees with reference output
+Running test unicast9:
+../../ns test-suite-smac.tcl unicast9 QUIET
+unicast9
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 550.0 ms.
+NS EXITING...
+num_nodes is set 4
+Cancelling CS- node 3
+Test output agrees with reference output
+Running test unicast9_sync:
+../../ns test-suite-smac.tcl unicast9_sync QUIET
+unicast9 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4393.0 ms.
+node 3 received ping answer from  2 with round-trip-time 5863.0 ms.
+NS EXITING...
+num_nodes is set 4
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Test output agrees with reference output
+Running test unicast10:
+../../ns test-suite-smac.tcl unicast10 QUIET
+unicast10
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 3 received ping answer from  2 with round-trip-time 376.0 ms.
+node 0 received ping answer from  1 with round-trip-time 430.0 ms.
+NS EXITING...
+num_nodes is set 4
+Test output agrees with reference output
+Running test unicast10_sync:
+../../ns test-suite-smac.tcl unicast10_sync QUIET
+unicast10 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4393.0 ms.
+node 3 received ping answer from  2 with round-trip-time 4396.0 ms.
+NS EXITING...
+num_nodes is set 4
+Cancelling CS- node 0
+Cancelling CS- node 2
+Test output agrees with reference output
+Running test unicast11:
+../../ns test-suite-smac.tcl unicast11 QUIET
+unicast11
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 2 received ping answer from  0 with round-trip-time 695.0 ms.
+node 1 received ping answer from  2 with round-trip-time 1080.0 ms.
+node 0 received ping answer from  1 with round-trip-time 1199.0 ms.
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 1
+Cancelling CS- node 1
+Test output agrees with reference output
+Running test unicast11_sync:
+../../ns test-suite-smac.tcl unicast11_sync QUIET
+unicast11 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 2 received ping answer from  0 with round-trip-time 12991.0 ms.
+node 1 received ping answer from  2 with round-trip-time 14418.0 ms.
+node 0 received ping answer from  1 with round-trip-time 15890.0 ms.
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 2
+Cancelling CS- node 0
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 1
+Test output agrees with reference output
+Running test unicast12:
+../../ns test-suite-smac.tcl unicast12 QUIET
+unicast12
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 2 received ping answer from  0 with round-trip-time 695.0 ms.
+node 1 received ping answer from  2 with round-trip-time 1080.0 ms.
+node 0 received ping answer from  1 with round-trip-time 1199.0 ms.
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 1
+Cancelling CS- node 1
+Test output agrees with reference output
+Running test unicast12_sync:
+../../ns test-suite-smac.tcl unicast12_sync QUIET
+unicast12 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 2 received ping answer from  0 with round-trip-time 12991.0 ms.
+node 1 received ping answer from  2 with round-trip-time 14418.0 ms.
+node 0 received ping answer from  1 with round-trip-time 15890.0 ms.
+NS EXITING...
+num_nodes is set 3
+Cancelling CS- node 2
+Cancelling CS- node 0
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 1
+Test output agrees with reference output
 All test output agrees with reference output.
 These messages are NOT errors and can be ignored:
     warning: using backward compatibility mode
@@ -3542,7 +4432,7 @@ These messages are NOT errors and can be ignored:
 
 
 validate overall report: some tests failed:
-     ./test-all-webcache
+     ./test-all-diffusion3
 to re-run a specific test, cd tcl/test; ../../ns test-all-TEST-NAME
 Notice that some tests in webcache will fail on freebsd when -O is turned on.
 This is due to some event reordering, which will disappear when -g is turned on.
