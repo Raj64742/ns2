@@ -34,7 +34,8 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.36 1998/04/28 07:01:00 yaxu Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.37 1998/05/01 19:06:59 haldar Exp $ (LBL)";
+
 #endif
 
 #include <stdio.h>
@@ -184,7 +185,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 
 	int seqno;
 	/* XXX */
-		/* CBR's now have seqno's too */
+	/* CBR's now have seqno's too */
 	if (t == PT_RTP || t == PT_CBR)
 		seqno = rh->seqno();
 	else if (t == PT_TCP || t == PT_ACK)
@@ -197,7 +198,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
          */
         char flags[NUMFLAGS+1];
         for (int i = 0; i < NUMFLAGS; i++)
-	    flags[i] = '-';
+		flags[i] = '-';
         flags[NUMFLAGS] = 0;
 
 	hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
@@ -221,25 +222,25 @@ void Trace::format(int tt, int s, int d, Packet* p)
 	char *dst_portaddr = Address::instance().print_portaddr(iph->dst());
 
 	if (!show_tcphdr_) {
-	  sprintf(wrk_, "%c %g %d %d %s %d %s %d %s%s %s%s %d %d",
-		    tt,
-		    Scheduler::instance().clock(),
-		    s,
-		    d,
-		    name,
-		    th->size(),
-		    flags,
-		    iph->flowid() /* was p->class_ */,
-		    // iph->src() >> (Address::instance().NodeShift_[1]), 
-//   		    iph->src() & (Address::instance().PortMask_), 
-//   		    iph->dst() >> (Address::instance().NodeShift_[1]), 
-//   		    iph->dst() & (Address::instance().PortMask_),
-		    src_nodeaddr,
-		    src_portaddr,
-		    dst_nodeaddr,
-		    dst_portaddr,
-		    seqno,
-		    th->uid() /* was p->uid_ */);
+		sprintf(wrk_, "%c %g %d %d %s %d %s %d %s%s %s%s %d %d",
+			tt,
+			Scheduler::instance().clock(),
+			s,
+			d,
+			name,
+			th->size(),
+			flags,
+			iph->flowid() /* was p->class_ */,
+			// iph->src() >> (Address::instance().NodeShift_[1]), 
+                        // iph->src() & (Address::instance().PortMask_), 
+                        // iph->dst() >> (Address::instance().NodeShift_[1]), 
+                        // iph->dst() & (Address::instance().PortMask_),
+			src_nodeaddr,
+			src_portaddr,
+			dst_nodeaddr,
+			dst_portaddr,
+			seqno,
+			th->uid() /* was p->uid_ */);
 	} else {
 		sprintf(wrk_, 
 			"%c %g %d %d %s %d %s %d %s%s %s%s %d %d %d 0x%x %d",
@@ -252,9 +253,9 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			flags,
 			iph->flowid(), /* was p->class_ */
 		        // iph->src() >> (Address::instance().NodeShift_[1]), 
-			//iph->src() & (Address::instance().PortMask_), 
-  		        //iph->dst() >> (Address::instance().NodeShift_[1]), 
-  		        //iph->dst() & (Address::instance().PortMask_),
+			// iph->src() & (Address::instance().PortMask_), 
+  		        // iph->dst() >> (Address::instance().NodeShift_[1]), 
+  		        // iph->dst() & (Address::instance().PortMask_),
 			src_nodeaddr,
 			src_portaddr,
 			dst_nodeaddr,
