@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.14 1998/09/14 21:59:03 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.15 1999/08/12 04:19:05 sfloyd Exp $
 #
 
 #
@@ -149,29 +149,4 @@ Agent/TCP/FullTcp/Newreno instproc init {} {
 	$self next
 	$self instvar open_cwnd_on_pack_
 	set open_cwnd_on_pack_ false
-}
-
-#
-# TFCC - TCP-friendly congestion control [kfall]
-#
-
-Agent/RTP/TFCC instproc set_slow_start {} {
-	$self instvar interval_
-	set interval_ 100.00; # very large start interval
-}
-
-Agent/RTP/TFCC instproc rtt_known rtt {
-	# called once when the rtt is first known
-	puts "$self: rtt now known as $rtt"
-}
-
-Agent/RTP/TFCC instproc peer_rttest_known peerrtt {
-	# called once when the peer knows the rtt
-	puts "$self: peer's rtt now known as $peerrtt"
-}
-Agent/RTP/TFCC instproc init ns {
-	$self instvar ns_
-	$self next
-	$self set_slow_start
-	set ns_ $ns
 }
