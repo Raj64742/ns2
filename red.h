@@ -53,7 +53,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.27 2001/06/15 00:18:13 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.28 2001/07/03 03:49:18 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -111,7 +111,7 @@ struct edv {
 	int count;		/* # of packets since last drop */
 	int count_bytes;	/* # of bytes since last drop */
 	int old;		/* 0 when average queue first exceeds thresh */
-	double cur_max_p;	//current max_p
+	TracedDouble cur_max_p;	//current max_p
 	double lastset;		/* adaptive RED: last time adapted */
 	double v_true_ave;	/* true long-term average queue size */
 	double v_total_time;	/* total time average queue size compute for */

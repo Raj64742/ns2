@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.57 2001/06/15 00:18:13 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.58 2001/07/03 03:49:18 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -138,6 +138,7 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), bcount_(0), de_drop_(NULL)
 	bind("ave_", &edv_.v_ave);		    // average queue sie
 	bind("prob1_", &edv_.v_prob1);		    // dropping probability
 	bind("curq_", &curq_);			    // current queue size
+	bind("cur_max_p_", &edv_.cur_max_p);        // current max_p
 	
 	q_ = new PacketQueue();			    // underlying queue
 	pq_ = q_;
@@ -230,7 +231,6 @@ double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 	if (edp_.adaptive == 1 && now > edv_.lastset + edp_.interval ) {
 		double part = 0.4*(edp_.th_max - edp_.th_min);
 		// AIMD rule to keep target Q~1/2(th_min+th_max)
-		int change = 0;
 		if ( new_ave < edp_.th_min + part && edv_.cur_max_p > 0.01 ) {
 			// we increase the average queue size, so decrease max_p
 			edv_.cur_max_p = edv_.cur_max_p * edp_.beta;
@@ -683,7 +683,8 @@ REDQueue::trace(TracedVar* v)
 
 	if (((p = strstr(v->name(), "ave")) == NULL) &&
 	    ((p = strstr(v->name(), "prob")) == NULL) &&
-	    ((p = strstr(v->name(), "curq")) == NULL)) {
+	    ((p = strstr(v->name(), "curq")) == NULL) &&
+	    ((p = strstr(v->name(), "cur_max_p"))==NULL) ) {
 		fprintf(stderr, "RED:unknown trace var %s\n",
 			v->name());
 		return;
@@ -693,7 +694,7 @@ REDQueue::trace(TracedVar* v)
 		int n;
 		double t = Scheduler::instance().clock();
 		// XXX: be compatible with nsv1 RED trace entries
-		if (*p == 'c') {
+		if (strstr(v->name(), "curq") != NULL) {
 			sprintf(wrk, "Q %g %d", t, int(*((TracedInt*) v)));
 		} else {
 			sprintf(wrk, "%c %g %g", *p, t,
@@ -715,7 +716,7 @@ void REDQueue::print_edp()
 		edp_.bytes, edp_.wait, edp_.setbit);
 	printf("minth: %f, maxth: %f\n", edp_.th_min, edp_.th_max);
 	printf("max_p: %f, qw: %f, ptc: %f\n",
-		edv_.cur_max_p, edp_.q_w, edp_.ptc);
+		(double) edv_.cur_max_p, edp_.q_w, edp_.ptc);
 	printf("qlim: %d, idletime: %f\n", qlim_, idletime_);
 	printf("=========\n");
 }
