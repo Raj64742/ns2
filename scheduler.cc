@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.31 1998/05/21 02:30:55 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.32 1998/05/23 02:48:22 kfall Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.31 1998/05/21 02:30:55 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.32 1998/05/23 02:48:22 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -50,7 +50,7 @@ static const char rcsid[] =
 Scheduler* Scheduler::instance_;
 int Scheduler::uid_ = 1;
 
-Scheduler::Scheduler() : clock_(0.), halted_(0)
+Scheduler::Scheduler() : clock_(SCHED_START), halted_(0)
 {
 }
 
@@ -90,11 +90,17 @@ Scheduler::run()
  */
 
 void
-Scheduler::dispatch(Event* p)
+Scheduler::dispatch(Event* p,  double t)
 {
-	clock_ = p->time_;
+	clock_ = t;
 	p->uid_ = -p->uid_;	// being dispatched
 	p->handler_->handle(p);	// dispatch
+}
+
+void
+Scheduler::dispatch(Event* p)
+{
+	dispatch(p, p->time_);
 }
 
 class AtEvent : public Event {
@@ -602,7 +608,6 @@ Event* CalendarScheduler::lookup(int uid)
  * inside a RealTimeScheduler or VirtualTimeScheduler
  */
 
-#define	MAXSLOP	0.010	/* 10ms max slop */
 #ifdef notyet
 class RealTimeScheduler : public CalendarScheduler {
 #endif
@@ -611,12 +616,13 @@ class RealTimeScheduler : public ListScheduler {
 public:
 	RealTimeScheduler();
 	virtual void run();
+	double start() const { return start_; }
 protected:
 	void sync() { clock_ = tod(); }
 	int rwait(double);	// sleep
 	double tod();
 	double slop_;	// allowed drift between real-time and virt time
-	timeval start_;	// starting time of scheduler
+	double start_;	// starting time
 };
 
 static class RealTimeSchedulerClass : public TclClass {
@@ -627,19 +633,21 @@ public:
 	}
 } class_realtime_sched;
 
-RealTimeScheduler::RealTimeScheduler() : slop_(MAXSLOP)
+RealTimeScheduler::RealTimeScheduler() : start_(0.0)
 {
-	(void) gettimeofday(&start_, 0);
+	start_ = tod();
+	bind("maxslop_", &slop_);
 }
 
-double RealTimeScheduler::tod()
-{
-	timeval tv;
-	gettimeofday(&tv, 0);
-	double s = tv.tv_sec - start_.tv_sec;
-	s += 1e-6 * (tv.tv_usec - start_.tv_usec);
-	return (s);
-}
+double
+RealTimeScheduler::tod()
+{   
+        timeval tv;
+        gettimeofday(&tv, 0);
+        double s = tv.tv_sec;
+        s += (1e-6 * tv.tv_usec);
+        return (s - start_);
+}   
 
 static void nullTimer(ClientData)
 {
@@ -654,10 +662,17 @@ void RealTimeScheduler::run()
 	instance_ = this;
 
 	while (!halted_) {
+		now = tod();
+		if ((clock_ - now) > slop_) {
+			fprintf(stderr,
+			  "RealTimeScheduler: warning: slop %f exceeded limit %f\n",
+			      (clock_ - now), slop_);
+		}
+
 		//
 		// first handle any "old events"
 		//
-		now = tod();
+
 		while ((p = deque()) != NULL && (p->time_ <= now)) {
 			dispatch(p);
 		}
@@ -669,9 +684,12 @@ void RealTimeScheduler::run()
 			int rval = rwait(p->time_);
 			if (rval < 0) {
 				fprintf(stderr, "RTScheduler: wait problem\n");
+				abort();
 			} else if (rval == 0) {
-				// time elapsed, dispatch sim event
-				dispatch(p);
+				//
+				// proper time to dispatch sim event... do so
+				//
+				dispatch(p, clock_);
 			} else {
 				//
 				// there was a simulator event which fired, and
@@ -687,12 +705,8 @@ void RealTimeScheduler::run()
 		//
 		// no sim events to handle at all, check with tcl
 		//
+		sync();
 		Tcl_DoOneEvent(TCL_DONT_WAIT);
-		if ((clock_ - now) > slop_) {
-			fprintf(stderr,
-			  "RealTimeScheduler: warning: slop %f exceeded limit %f\n",
-			      (clock_ - now), slop_);
-		}
 	}
 
 	return;	// we reach here only if halted
@@ -708,6 +722,7 @@ int
 RealTimeScheduler::rwait(double deadline)
 {
 	while (1) {
+		sync();
 		if (Tcl_DoOneEvent(TCL_DONT_WAIT) == 1)
 			return (1);
 		if (deadline <= tod())
