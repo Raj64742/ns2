@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.11 1998/08/24 19:39:45 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.h,v 1.12 1999/03/05 18:42:08 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_tcpsink_h
@@ -102,6 +102,8 @@ protected:
 
 	friend void Sacker::configure(TcpSink*);
 	TracedInt max_sack_blocks_;	/* used only by sack sinks */
+	Packet* save_;		/* place to stash saved packet while delaying */
+				/* used by DelAckSink */
 
 };
 
@@ -121,7 +123,6 @@ public:
 	void recv(Packet* pkt, Handler*);
 	virtual void timeout(int tno);
 protected:
-	Packet* save_;		/* place to stash packet while delaying */
 	double interval_;
 	DelayTimer delay_timer_;
 };

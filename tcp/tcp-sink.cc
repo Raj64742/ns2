@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.31 1999/02/23 00:51:07 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.32 1999/03/05 18:42:08 sfloyd Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -134,12 +134,14 @@ int TcpSink::command(int argc, const char*const* argv)
 void TcpSink::reset() 
 {
 	acker_->reset();	
+	save_ = NULL;
 }
 
 void TcpSink::ack(Packet* opkt)
 {
 	Packet* npkt = allocpkt();
 	double now = Scheduler::instance().clock();
+	hdr_flags *sf;
 
 	hdr_tcp *otcp = hdr_tcp::access(opkt);
 	hdr_tcp *ntcp = hdr_tcp::access(npkt);
@@ -157,20 +159,25 @@ void TcpSink::ack(Packet* opkt)
 
 	hdr_flags* of = (hdr_flags*)opkt->access(off_flags_);
 	hdr_flags* nf = (hdr_flags*)npkt->access(off_flags_);
-	if (of->ect()) { 
-		if (of->cong_action())
-			/* Sender has responded to congestion. */
-			acker_->update_ecn_unacked(0);
-		if (of->ce())
-			/* New report of congestion. */
-			acker_->update_ecn_unacked(1);
+	if (save_ != NULL) 
+		sf = (hdr_flags*)save_->access(off_flags_);
+		// Look at delayed packet being acked. 
+	if ( (save_ != NULL && sf->cong_action()) || of->cong_action() ) 
+		// Sender has responsed to congestion. 
+		acker_->update_ecn_unacked(0);
+	if ( (save_ != NULL && sf->ect() && sf->ce())  || 
+			(of->ect() && of->ce()) )
+		// New report of congestion.  
+		acker_->update_ecn_unacked(1);
+	if ( (save_ != NULL && sf->ect()) || of->ect() )
+		// Set EcnEcho bit.  
 		nf->ecnecho() = acker_->ecn_unacked();
-	}
-	if (!of->ect() && of->ecnecho())
-		/* We are not checking for of->cong_action() also. 
-		 * In this respect, this does not conform to the 
-		 * specifications in the internet draft 
-		 */
+	if (!of->ect() && of->ecnecho() ||
+		(save_ != NULL && !sf->ect() && sf->ecnecho()) ) 
+		 // This is the negotiation for ECN-capability.
+		 // We are not checking for of->cong_action() also. 
+		 // In this respect, this does not conform to the 
+		 // specifications in the internet draft 
 		nf->ecnecho() = 1;
 	acker_->append_ack((hdr_cmn*)npkt->access(off_cmn_),
 			   ntcp, otcp->seqno());
@@ -225,9 +232,7 @@ void DelAckSink::recv(Packet* pkt, Handler*)
          */
         if (delay_timer_.status() != TIMER_PENDING && 
 				th->seqno() == acker_->Seqno()) {
-                /*
-                 * There's no timer, so set one and delay this ack.
-                 */
+               	// There's no timer, so set one and delay this ack.
 		save_ = pkt;
 		delay_timer_.resched(interval_);
                 return;
@@ -235,12 +240,14 @@ void DelAckSink::recv(Packet* pkt, Handler*)
         /*
          * If there was a timer, turn it off.
          */
-	if (delay_timer_.status() == TIMER_PENDING) {
+	if (delay_timer_.status() == TIMER_PENDING) 
 		delay_timer_.cancel();
-		Packet::free(save_);
-		save_ = 0;
-	}
 	ack(pkt);
+        if (save_ != NULL) {
+                Packet::free(save_);
+                save_ = NULL;
+        }
+
 	Packet::free(pkt);
 }
 
@@ -252,7 +259,7 @@ void DelAckSink::timeout(int)
 	 */
 	Packet* pkt = save_;
 	ack(pkt);
-	save_ = 0;
+	save_ = NULL;
 	Packet::free(pkt);
 }
 
