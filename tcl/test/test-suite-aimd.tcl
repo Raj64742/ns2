@@ -30,11 +30,11 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.7 2000/08/20 04:27:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.8 2000/08/20 05:14:59 sfloyd Exp $
 #
 
 source misc_simple.tcl
-Agent/TCP set oldCode_ true
+#Agent/TCP set oldCode_ true
 
 # Uncomment the line below to use a random seed for the
 #  random number generator.
