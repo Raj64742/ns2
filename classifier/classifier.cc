@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.13 1997/12/19 22:20:11 bajaj Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.14 1997/12/23 19:28:51 bajaj Exp $";
 #endif
 
 #include <stdlib.h>
@@ -106,13 +106,13 @@ void Classifier::clear(int slot)
 
 int Classifier::getnxt()
 {
-  int i;
-  for (i=0; i < nslot_; i++)
-    if (slot_[i]==0)
-      return i;
-  i=nslot_;
-  alloc(nslot_);
-  return i;
+  	int i;
+  	for (i=0; i < nslot_; i++)
+    	if (slot_[i]==0)
+     	 return i;
+  	i=nslot_;
+  	alloc(nslot_);
+  	return i;
 }
 
 /*
