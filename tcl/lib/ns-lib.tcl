@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.231 2001/07/05 21:17:47 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.232 2001/07/31 02:18:08 tomh Exp $
 
 
 #
@@ -327,6 +327,8 @@ Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
 Simulator instproc macTrace  {val} { $self set macTrace_  $val }
 Simulator instproc movementTrace  {val} { $self set movementTrace_  $val }
 Simulator instproc toraDebug {val} {$self set toraDebug_ $val }
+Simulator instproc satNodeType {val} {$self set satNodeType_ $val}
+Simulator instproc downlinkBW {val} {$self set downlinkBW_ $val}
 Simulator instproc MPLS { val } { 
 	if { $val == "ON" } {
 		Node enable-module "MPLS"
@@ -384,7 +386,7 @@ Simulator instproc node-config args {
         $self instvar addressType_  routingAgent_ propType_  macTrace_ \
 		routerTrace_ agentTrace_ movementTrace_ channelType_ channel_ \
 		chan topoInstance_ propInstance_ mobileIP_ rxPower_ \
-		txPower_ idlePower_
+		txPower_ idlePower_ satNodeType_
 
         if [info exists macTrace_] {
 		Simulator set MacTrace_ $macTrace_
@@ -419,7 +421,7 @@ Simulator instproc node-config args {
  	# If both variables are specified, error!
  	if {[info exists channelType_] && [info exists channel_]} { 
 		error "Can't specify both channel and channelType, error!"
-	} elseif {[info exists channelType_]} {
+	} elseif {[info exists channelType_] && ![info exists satNodeType_]} {
 		# Single channel, single interface
 		warn "Please use -channel as shown in tcl/ex/wireless-mitf.tcl"
 		if {![info exists chan]} {
@@ -449,7 +451,7 @@ Simulator instproc node-config args {
 # Default behavior is changed: consider nam as not initialized if 
 # no shape OR color parameter is given
 Simulator instproc node args {
-	$self instvar Node_ routingAgent_ wiredRouting_
+	$self instvar Node_ routingAgent_ wiredRouting_ satNodeType_
         if { [Simulator info vars EnableMcast_] != "" } {
                 warn "Flag variable Simulator::EnableMcast_ discontinued.\n\t\
                       Use multicast methods as:\n\t\t\
@@ -473,6 +475,11 @@ Simulator instproc node args {
 			#simulator's nodelist in C++ space
 			$self add-node $node [$node id] 
 		}
+		return $node
+	}
+	# Satellite node
+	if { [info exists satNodeType_] } {
+		set node [eval $self create-satnode]
 		return $node
 	}
 

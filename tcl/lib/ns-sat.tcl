@@ -32,7 +32,7 @@
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.9 2001/01/12 17:43:52 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-sat.tcl,v 1.10 2001/07/31 02:18:09 tomh Exp $
 
 
 # ======================================================================
@@ -120,6 +120,103 @@ Node/SatNode instproc add-target {agent port } {
 #
 # ======================================================================
 
+Simulator instproc create-satnode {} {
+	$self instvar satNodeType_ llType_ ifqType_ ifqlen_ macType_ \
+		downlinkBW_ phyType_ channelType_
+	if {![info exists satNodeType_]} {
+		puts "Error: create-satnode called, but no satNodeType_; exiting"
+		exit 1
+	}
+	# Case conversion (for backward compatibility)
+	if {$satNodeType_ == "Polar"} {set satNodeType_ "polar"}
+	if {$satNodeType_ == "Geo"} {set satNodeType_ "geo"}
+	if {$satNodeType_ == "Terminal"} {set satNodeType_ "terminal"}
+	if {$satNodeType_ == "Geo-repeater"} {set satNodeType_ "geo-repeater"}
+	if {[lsearch {polar geo terminal geo-repeater} $satNodeType_] < 0} {
+		puts "Error: undefined satNodeType: $satNodeType_; exiting"
+		exit 1
+	}
+	# Create the satnode
+	set tmp [$self newsatnode]
+	set linkargs "$llType_ $ifqType_ $ifqlen_ $macType_ $downlinkBW_ \
+		$phyType_"
+	# Add uplink and downlink if this is not a terminal
+	if {$satNodeType_ == "polar" || $satNodeType_ == "geo"} {
+		$self add-first-links $tmp gsl $linkargs $channelType_
+	}
+	if {$satNodeType_ == "geo-repeater"} {
+		$self add-first-links $tmp gsl-repeater "" $channelType_
+	}
+	return $tmp
+}
+
+Simulator instproc newsatnode {} {
+	$self instvar Node_ satNodeType_
+	if ![info exists satNodeType_] {
+		puts "Error: satNodeType_ does not exist in newsatnode; exiting"
+		exit 1
+	}
+	set node [new Node/SatNode]
+	# Create a routing agent for all types except the repeater node
+	if {$satNodeType_ == "polar" || $satNodeType_ == "geo" || \
+	    $satNodeType_ == "terminal"} {
+		$node create-ragent
+	}
+	set Node_([$node id]) $node
+	$node set ns_ $self
+	if [$self multicast?] {
+		$node enable-mcast $self
+	}
+	$self check-node-num
+	return $node
+}
+
+Node/SatNode instproc set-position args {
+	set ns_ [Simulator instance]
+	set nodetype_ [$ns_ set satNodeType_]
+	if {$nodetype_ == "polar"} {
+		if {[llength $args] != 5 } {
+			puts "Error:  satNodeType_ is polar, but number\
+			      of position arguments incorrect: $args; exiting"
+			exit 1
+		}
+		$self set pos_ [new Position/Sat/Polar $args]
+		$self cmd set_position [$self set pos_]
+		[$self set pos_] setnode $self
+		# Set up handoff manager
+		$self set hm_ [new HandoffManager/Sat]
+		$self cmd set_handoff_mgr [$self set hm_]
+		[$self set hm_] setnode $self
+	} elseif {$nodetype_ == "geo" || $nodetype_ == "geo-repeater"} {
+		if {[llength $args] != 1 } {
+			puts "Error:  satNodeType_ is geo, but number\
+			      of position arguments incorrect: $args; exiting"
+			exit 1
+		}
+		$self set pos_ [new Position/Sat/Geo $args]
+		$self cmd set_position [$self set pos_]
+		[$self set pos_] setnode $self
+	} elseif {$nodetype_ == "terminal"} {
+		if {[llength $args] != 2 } {
+			puts "Error:  satNodeType_ is terminal, but number\
+		              of position arguments incorrect: $args; exiting"
+			exit 1
+		}
+		$self set pos_ [new Position/Sat/Term $args]
+		$self cmd set_position [$self set pos_]
+		[$self set pos_] setnode $self
+		$self set hm_ [new HandoffManager/Term]
+		$self cmd set_handoff_mgr [$self set hm_]
+		[$self set hm_] setnode $self
+	} else {
+		puts "Error:  satNodeType_ not set appropriately:\
+		     $satNodeType_ exiting"
+		exit 1
+	}
+}
+
+## Backward compatibility code starts
+
 # Wrapper method for making a polar satellite node that first creates a 
 # satnode plus two link interfaces (uplink and downlink) plus two 
 # satellite channels (uplink and downlink)
@@ -198,6 +295,8 @@ Simulator instproc satnode args {
 	$self check-node-num
 	return $node
 }
+
+## Backward compatibility code ends 
 
 # ======================================================================
 #
