@@ -30,8 +30,12 @@
  * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
+ *
+ * Ported from CMU/Monarch's code, appropriate copyright applies.
+ * nov'98 -Padma.
+ *
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cmu-trace.cc,v 1.52 2000/03/25 01:24:19 haoboy Exp $
  */
-/* Ported from CMU/Monarch's code, nov'98 -Padma.*/
 
 #include <packet.h>
 #include <ip.h>
