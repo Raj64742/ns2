@@ -56,6 +56,8 @@ if [TclObject is-class Mac/802_11] {
 	Mac/802_11 set difs_ 16us
 	Mac/802_11 set rtxAckLimit_ 1
 	Mac/802_11 set rtxRtsLimit_ 3
+        Mac/802_11 set basicRate_ 1Mb  ;# set this to 0 if want to use bandwidth_ for 
+        Mac/802_11 set dataRate_ 1Mb   ;# both control and data pkts
 }
 
 # IEEE 802.14 MAC settings

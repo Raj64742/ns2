@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.12 2000/09/01 03:04:05 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.13 2002/03/14 01:18:09 haldar Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -66,6 +66,8 @@
 #define DROP_MAC_RETRY_COUNT_EXCEEDED	"RET"
 #define DROP_MAC_INVALID_STATE		"STA"
 #define DROP_MAC_BUSY			"BSY"
+#define DROP_MAC_INVALID_DST            "DST"
+
 
 #define DROP_RTR_NO_ROUTE		"NRTE"  // no route
 #define DROP_RTR_ROUTE_LOOP		"LOOP"  // routing loop
@@ -73,9 +75,12 @@
 #define DROP_RTR_QFULL                  "IFQ"   // queue full
 #define DROP_RTR_QTIMEOUT               "TOUT"  // packet expired
 #define DROP_RTR_MAC_CALLBACK           "CBK"   // MAC callback
+#define DROP_RTR_SALVAGE	        "SAL"
 
 #define DROP_IFQ_QFULL                  "IFQ"   // no buffer space in IFQ
 #define DROP_IFQ_ARP_FULL               "ARP"   // dropped by ARP
+#define DROP_IFQ_FILTER                 "FIL"
+
 #define DROP_OUTSIDE_SUBNET             "OUT"   // dropped by base stations if received rtg updates from nodes outside its domain.
 
 #define MAX_ID_LEN	3

@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.64 2002/02/06 18:48:48 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.65 2002/03/14 01:18:09 haldar Exp $
  */
 
 #include <packet.h>
@@ -186,9 +186,16 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 #endif
 		tracename,
 		why,
-
+		
                 ch->uid(),                      // identifier for this event
-		packet_info.name(ch->ptype()),
+		
+		((ch->ptype() == PT_MAC) ? (
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_RTS) ? "RTS"  :
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_CTS) ? "CTS"  :
+		  (mh->dh_fc.fc_subtype == MAC_Subtype_ACK) ? "ACK"  :
+		  "UNKN"
+		  ) : packet_info.name(ch->ptype())),
+		
 		ch->size(),
 
 		//*((u_int16_t*) &mh->dh_fc),

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.87 2001/11/08 18:12:18 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.88 2002/03/14 01:18:09 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -439,6 +439,10 @@ struct hdr_cmn {
         int num_forwards_;	// how many times this pkt was forwarded
         int opt_num_forwards_;   // optimal #forwards
 	// Monarch extn ends;
+
+	// tx time for this packet in sec
+	double txtime_;
+	inline double& txtime() { return(txtime_); }
 
 	static int offset_;	// offset for this header
 	inline static int& offset() { return offset_; }
