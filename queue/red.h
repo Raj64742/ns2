@@ -59,7 +59,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.1.2.1 1997/04/28 02:39:43 hari Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.h,v 1.1.2.2 1997/05/01 05:49:51 gnguyen Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -148,13 +148,5 @@ class REDQueue : public Queue {
 	void print_edp();
 	void print_edv();
 };
-
-static class REDClass : public TclClass {
-public:
-	REDClass() : TclClass("Queue/RED") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new REDQueue);
-	}
-} class_red;
 
 #endif

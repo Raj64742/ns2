@@ -33,20 +33,19 @@
  */
 
 #include "random.h"
-#include "ll-block.h"
 #include "csdp.h"
 
 
 static class CsdpClass : public TclClass {
 public:
-	CsdpClass() : TclClass("Queue/CSDP") {}
+	CsdpClass() : TclClass("Queue/Csdp") {}
 	TclObject* create(int argc, const char*const* argv) {
 		return (new Csdp);
 	}
 } class_csdp;
 
 
-Csdp::Csdp() : maxq_(4), numq_(0), qlen_(0), totalweight_(0)
+Csdp::Csdp() : maxq_(4), numq_(0), qlen_(0), totalweight_(0), gqid_(0), bqid_(0)
 {
 	q_ = new IdPacketQueue*[maxq_];
 }
@@ -77,7 +76,7 @@ Csdp::enque(Packet* p)
 		q_[i] = new IdPacketQueue;
 		q_[i]->id() = id;
 	}
-	insert(q_[i], p);
+	enque(p, q_[i]);
 }
 
 
@@ -88,10 +87,10 @@ Csdp::deque()
 		return 0;
 	double r = Random::uniform(totalweight_);
 	for (int i = 0;  i < numq_;  i++) {
-		r -= weight(q_[i]);
-		if (r <= 0) {
+		gqid_ = (gqid_ + 1) % numq_;
+		if (q_[gqid_]->length() > 0) {
 			qlen_--;
-			return extract(q_[i]);
+			return deque(q_[gqid_]);
 		}
 	}
 	return 0;
@@ -99,23 +98,19 @@ Csdp::deque()
 
 
 void
-Csdp::insert(IdPacketQueue* q, Packet* p)
+Csdp::enque(Packet* p, IdPacketQueue* q)
 {
-	double oldweight = weight(q);
 	q->enque(p);
 	if (p->error())
 		q->loss()++;
 	q->total()++;
-	totalweight_ += weight(q) - oldweight;
 }
 
 
 Packet*
-Csdp::extract(IdPacketQueue* q)
+Csdp::deque(IdPacketQueue* q)
 {
-	double oldweight = weight(q);
 	Packet *p = q->deque();
-	totalweight_ += weight(q) - oldweight;
 	return p;
 }
 

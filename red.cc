@@ -64,6 +64,15 @@
 #include "flags.h"
 #include "red.h"
 
+
+static class REDClass : public TclClass {
+public:
+	REDClass() : TclClass("Queue/RED") {}
+	TclObject* create(int argc, const char*const* argv) {
+		return (new REDQueue);
+	}
+} class_red;
+
 REDQueue::REDQueue() : Queue()
 {
 	bind("bytes_", &edp_.bytes);			// boolean: use bytes?

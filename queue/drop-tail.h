@@ -49,12 +49,4 @@ class DropTail : public Queue {
 	Packet* deque();
 };
 
-static class DropTailClass : public TclClass {
-public:
-	DropTailClass() : TclClass("Queue/DropTail") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new DropTail);
-	}
-} class_drop_tail;
-
 #endif

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.10.2.8 1997/04/30 19:51:09 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.10.2.9 1997/05/01 05:49:49 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -55,15 +55,6 @@ public:
 			qm_->in(p);
 	}
 
-	inline void enque(Packet* p, int off_cmn) {
-		int type = ((hdr_cmn*)p->access(off_cmn))->ptype_;
-		if (type == PT_ACK) 
-			ack_count_++;
-		else
-			data_count_++;
-		enque(p);
-	}
-
 	Packet* deque() {
 		Packet* p = head_;
 		if (p != 0) {
@@ -84,6 +75,21 @@ public:
 		}
 		return (0);
 	}
+
+	inline void insert_head(Packet* p) {
+		p->next_ = head_;
+		head_ = p;
+	}
+
+	inline void enque(Packet* p, int off_cmn) {
+		int type = ((hdr_cmn*)p->access(off_cmn))->ptype_;
+		if (type == PT_ACK) 
+			ack_count_++;
+		else
+			data_count_++;
+		enque(p);
+	}
+
 	/* interleave between TCP acks and others while dequeuing */
 	Packet* deque_interleave(int off_cmn);
 	/* deque TCP acks before any other type of packet */

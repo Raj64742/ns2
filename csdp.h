@@ -58,8 +58,8 @@ public:
 protected:
 	void enque(Packet*);
 	Packet* deque();
-	virtual void insert(IdPacketQueue*, Packet*);
-	virtual Packet* extract(IdPacketQueue*);
+	virtual void enque(Packet*, IdPacketQueue*);
+	virtual Packet* deque(IdPacketQueue*);
 	virtual double weight(IdPacketQueue*);
 
 	IdPacketQueue** q_;
@@ -67,6 +67,8 @@ protected:
 	int maxq_;
 	int qlen_;
 	double totalweight_;
+	int gqid_;
+	int bqid_;
 };
 
 #endif
