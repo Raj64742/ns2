@@ -17,6 +17,9 @@ TestSuite instproc init {} {
 	$self instvar ns_ net_ defNet_ test_ topo_ node_ testName_
 	set ns_ [new Simulator -multicast on]
 	$ns_ use-scheduler List
+	if {$test_ == "CtrMcast1"} {
+		Node expandaddr
+	}
 
 	$ns_ trace-all [open temp.rands w]
 	$ns_ namtrace-all [open temp.rands.nam w]
@@ -623,16 +626,23 @@ Test/CtrMcast1 instproc run {} {
 	set mproto CtrMcast
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	$mrthandle set_c_rp [list $node_(n2)]
-		
+
 	set udp1 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp1
-	$udp1 set dst_ 0x8003
+	
+	set grp [Node allocaddr]
+
+	$udp1 set dst_ $grp
+	##$udp1 set dst_ 0x8003
+	
 	set cbr1 [new Application/Traffic/CBR]
 	$cbr1 attach-agent $udp1
 
 	set udp2 [new Agent/UDP]
 	$ns_ attach-agent $node_(n3) $udp2
-	$udp2 set dst_ 0x8003
+	$udp2 set dst_ $grp
+	##$udp2 set dst_ 0x8003
+	
 	set cbr2 [new Application/Traffic/CBR]
 	$cbr2 attach-agent $udp2
 
@@ -647,24 +657,27 @@ Test/CtrMcast1 instproc run {} {
 	
 	$ns_ at 0.2 "$cbr1 start"
 	$ns_ at 0.25 "$cbr2 start"
-	$ns_ at 0.3 "$node_(n1) join-group  $rcvr1 0x8003"
-	$ns_ at 0.4 "$node_(n0) join-group  $rcvr0 0x8003"
+	$ns_ at 0.3 "$node_(n1) join-group  $rcvr1 $grp"
+	$ns_ at 0.4 "$node_(n0) join-group  $rcvr0 $grp"
 
-	$ns_ at 0.45 "$mrthandle switch-treetype 0x8003"
+	$ns_ at 0.45 "$mrthandle switch-treetype $grp"
 
-	$ns_ at 0.5 "$node_(n3) join-group  $rcvr3 0x8003"
-	$ns_ at 0.65 "$node_(n2) join-group  $rcvr2 0x8003"
+	$ns_ at 0.5 "$node_(n3) join-group  $rcvr3 $grp"
+	$ns_ at 0.65 "$node_(n2) join-group  $rcvr2 $grp"
 	
-	$ns_ at 0.7 "$node_(n0) leave-group $rcvr0 0x8003"
-	$ns_ at 0.8 "$node_(n2) leave-group  $rcvr2 0x8003"
+	$ns_ at 0.7 "$node_(n0) leave-group $rcvr0 $grp"
+	$ns_ at 0.8 "$node_(n2) leave-group  $rcvr2 $grp"
 
-	$ns_ at 0.9 "$node_(n3) leave-group  $rcvr3 0x8003"
-	$ns_ at 1.0 "$node_(n1) leave-group $rcvr1 0x8003"
-	$ns_ at 1.1 "$node_(n1) join-group $rcvr1 0x8003"
+	$ns_ at 0.9 "$node_(n3) leave-group  $rcvr3 $grp"
+	$ns_ at 1.0 "$node_(n1) leave-group $rcvr1 $grp"
+	$ns_ at 1.1 "$node_(n1) join-group $rcvr1 $grp"
 	$ns_ at 1.2 "$self finish 4a-nam"
 	
 	$ns_ run
 }
+
+
+
 
 # Testing performance in the presence of dynamics. Also testing a rcvr joining
 # a group before the src starts sending pkts to the group.
