@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.111 2000/08/08 15:27:03 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.112 2000/08/10 00:05:53 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -139,6 +139,8 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("awnd_");
         delay_bind_init_one("decrease_num_");
         delay_bind_init_one("increase_num_");
+	delay_bind_init_one("k_parameter_");
+	delay_bind_init_one("l_parameter_");
         delay_bind_init_one("trace_all_oneline_");
         delay_bind_init_one("nam_tracevar_");
 
@@ -210,6 +212,9 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "awnd_", &awnd_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "decrease_num_", &decrease_num_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "increase_num_", &increase_num_, tracer)) return TCL_OK;
+	if (delay_bind(varName, localName, "k_parameter_", &k_parameter_, tracer)) return TCL_OK;
+        if (delay_bind(varName, localName, "l_parameter_", &l_parameter_, tracer)) return TCL_OK;
+
 
         if (delay_bind_bool(varName, localName, "trace_all_oneline_", &trace_all_oneline_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "nam_tracevar_", &nam_tracevar_ , tracer)) return TCL_OK;
@@ -794,6 +799,10 @@ void TcpAgent::opencwnd()
                         } else
                                 fcnt_ = f;
                         break;
+                case 6:
+                        /* binomial controls */ 
+                        cwnd_ += increase_num_ / (cwnd_*pow(cwnd_,k_parameter_));                
+                        break; 
 
 		default:
 #ifdef notdef
@@ -820,13 +829,21 @@ TcpAgent::slowdown(int how)
 		slowstart = 1;
         if (precision_reduce_) {
 		halfwin = windowd() / 2;
-	 	decreasewin = decrease_num_ * windowd();
+                if (wnd_option_ == 6) {
+                        /* binomial controls */
+                        decreasewin = windowd() - (1.0-decrease_num_)*pow(windowd(),l_parameter_);
+                } else
+	 		decreasewin = decrease_num_ * windowd();
 		win = windowd();
 	} else  {
 		int temp;
 		temp = (int)(window() / 2);
 		halfwin = (double) temp;
-	 	temp = (int)(decrease_num_ * window());
+                if (wnd_option_ == 6) {
+                        /* binomial controls */
+                        temp = (int)(window() - (1.0-decrease_num_)*pow(window(),l_parameter_));
+                } else
+	 		temp = (int)(decrease_num_ * window());
 		decreasewin = (double) temp;
 		win = (double) window();
 	}

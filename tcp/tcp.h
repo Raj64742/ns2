@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.77 2000/08/08 02:39:41 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.78 2000/08/10 00:05:52 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -244,6 +244,8 @@ protected:
 				/* 2 for using large initial windows */
 	double decrease_num_;   /* factor for multiplicative decrease */
 	double increase_num_;   /* factor for additive increase */
+	double k_parameter_;     /* k parameter in binomial controls */
+	double l_parameter_;     /* l parameter in binomial controls */
 	int precision_reduce_;  /* non-integer reduction of cwnd */
 	int syn_;		/* 1 for modeling SYN/ACK exchange */
 	int delay_growth_;  	/* delay opening cwnd until 1st data recv'd */

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.211 2000/08/08 06:12:32 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.212 2000/08/10 00:05:53 sfloyd Exp $
 
 
 #
@@ -100,6 +100,8 @@ Agent/TCP set windowConstant_ 4
 Agent/TCP set windowThresh_ 0.002
 Agent/TCP set decrease_num_ 0.5
 Agent/TCP set increase_num_ 1.0
+Agent/TCP set k_parameter_ 0.0 ;	# for binomial congestion control
+Agent/TCP set l_parameter_ 1.0 ;  	# for binomial congestion control
 Agent/TCP set overhead_ 0
 Agent/TCP set ecn_ 0
 Agent/TCP set old_ecn_ 0
