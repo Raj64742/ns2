@@ -32,7 +32,7 @@ RTMechanisms instproc vprint args {
 	$self instvar verbose_
 	set level [lindex $args 0]
 	set a [lrange $args 1 end]
-	if { $level <= $verbose } {
+	if { $level <= $verbose_ } {
 		$self instvar ns_
 		puts "[$ns_ now] $a"
 		flush stdout
