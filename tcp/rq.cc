@@ -570,30 +570,38 @@ ReassemblyQueue::nexthole(TcpSeq seq, int& nxtcnt)
 {
 
 	nxtcnt = -1;
+	hint_ = head_;
+#ifdef notdef
 	if (hint_ == NULL) {
 again:
 		hint_ = head_;
 	}
+#endif
 		
 	seginfo* p;
 	for (p = hint_; p; p = p->next_) {
-		// seq# is prior to SACK block
+		// seq# is prior to SACK region
+		// so it looksl like a legit "hole"
 		if (p->startseq_ > seq) {
 			nxtcnt = p->cnt_;
-			return (-1);
+			return (seq);
+//return (-1);
 		}
 
-		// seq# is covered by SACK block
+		// seq# is covered by SACK region
+		// so the hole is at the end of the region
 		if ((p->startseq_ <= seq) && (p->endseq_ >= seq)) {
-			hint_ = p;
+			//hint_ = p;
 			if (p->next_)
 				nxtcnt = p->next_->cnt_;
 			return (p->endseq_);
 		}
 	}
+#ifdef notdef
 	if (hint_ != head_) {
 		goto again;
 	}
+#endif
 	return (-1);
 }
 
