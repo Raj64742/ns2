@@ -101,6 +101,22 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	last_pkt_time_ = 0.0;
 }
 
+/*
+ * Must convert bytes into packets. 
+ * If nbytes == -1, this corresponds to infinite send.  We approximate
+ * infinite by a very large number (TCP_MAXSEQ).
+ */
+void TfrcAgent::sendmsg(int nbytes, const char* /*flags*/)
+{
+        if (nbytes == -1 && maxseq_ < MAXSEQ)
+		advanceby(MAXSEQ - maxseq_);
+        else {
+		int npkts = nbytes/psize_ + (nbytes%psize_ ? 1 : 0);
+		advanceby(npkts);
+	}
+}
+
+
 void TfrcAgent::advanceby(int delta)
 {
   	maxseq_ += delta;
@@ -131,16 +147,22 @@ int TfrcAgent::command(int argc, const char*const* argv)
 			return TCL_OK;
 		}
 	}
-  if ((argc == 3) && (SndrType_ == 1)) {
+  	if ((argc == 3) && (SndrType_ == 1)) {
 		// or do we need an FTP type app? 
-    if (strcmp(argv[1], "advance") == 0) {
-      advanceby(atoi(argv[2]));
-      return (TCL_OK);
-    }
-    if (strcmp(argv[1], "advanceby") == 0) {
-      advanceby(atoi(argv[2]));
-      return (TCL_OK);
-    }
+    	if (strcmp(argv[1], "advance") == 0) {
+            	int newseq = atoi(argv[2]);
+		// THIS ISN"T USED.
+		// newseq: new sequence
+		// seqno_: next sequence to be sent
+		// maxseq_: max seq_  produced by app so far.
+            	if (newseq > maxseq_)
+                 	advanceby(newseq - maxseq_);
+            	return (TCL_OK);
+    	}
+    	if (strcmp(argv[1], "advanceby") == 0) {
+      		advanceby(atoi(argv[2]));
+      		return (TCL_OK);
+    		}
 	}
 	return (Agent::command(argc, argv));
 }

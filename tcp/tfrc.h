@@ -47,6 +47,10 @@
 #define NORMAL 2
 #define INCREASE 3
 
+#define MAXSEQ 1073741824   /* Number that curseq_ is set to for */
+                                /* "infinite send" (2^30)            */
+
+
 /* modes of rate change */
 #define SLOW_START 1
 #define CONG_AVOID 2
@@ -129,7 +133,7 @@ public:
 	void slowstart();
 	void reduce_rate_on_no_feedback();
 	void advanceby(int delta); 
-
+	void sendmsg(int nbytes, const char *flags = 0);
 protected:
 	TfrcSendTimer send_timer_;
 	TfrcNoFeedbackTimer NoFeedbacktimer_;
