@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.40 1998/11/10 03:51:33 polly Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.41 1998/11/16 20:45:34 polly Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -82,7 +82,7 @@
 	"start", "stop", "prune", "graft", "graftAck", "join", "assert","message", "rtcp", "rtp", \
 	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM", \
 	"sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject", \
-	"telnet", "ftp", "pareto", "exp", "httpInval", "http"
+	"telnet", "ftp", "pareto", "exp", "httpInval", "http", "encap"
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 
