@@ -468,6 +468,55 @@ Topology/net6b instproc init ns {
 }
 
 
+Class NodeTopology/8nodes -superclass SkelTopology
+
+NodeTopology/8nodes instproc init ns {
+    $self next
+
+    $self instvar node_
+    set node_(n0) [$ns node]
+    set node_(n1) [$ns node]
+    set node_(n2) [$ns node]
+    set node_(n3) [$ns node]
+    set node_(n4) [$ns node]
+    set node_(n5) [$ns node]
+    set node_(n6) [$ns node]
+    set node_(n7) [$ns node]
+}
+
+Class Topology/net8a -superclass NodeTopology/8nodes
+
+# 8 node topology with nodes n2, n3, n4 and n5 on a LAN.
+#
+#      n0----n1     
+#      |     |
+#      n2    n3
+#      |     |
+#    --------------
+#      |     |
+#      n4    n5
+#      |     |
+#      n6    n7
+#
+# All point-to-point links have 1.5Mbps Bandwidth, 10ms latency.
+#
+
+Topology/net8a instproc init ns {
+    $self next $ns
+    $self instvar node_
+    Simulator set NumberInterfaces_ 1
+    $ns multi-link-of-interfaces [list $node_(n2) $node_(n3) $node_(n4) $node_(n5)] 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n0) $node_(n1) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n0) $node_(n2) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n1) $node_(n3) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n4) $node_(n6) 1.5Mb 10ms DropTail
+    $ns duplex-link $node_(n5) $node_(n7) 1.5Mb 10ms DropTail
+    if {[$class info instprocs config] != ""} {
+	$self config $ns
+    }
+}
+
+
 # Definition of test-suite tests
 
 Class Test/DM1 -superclass TestSuite
@@ -512,7 +561,7 @@ Test/DM1 instproc run {} {
 	$ftp set agent_ $tcp
 	$ns_ at 1.2 "$ftp start"
 
-	$ns_ at 1.7 "$self finish DM1-nam"
+	$ns_ at 1.8 "$self finish 4a-nam"
 	$ns_ run
 }
 
@@ -520,57 +569,15 @@ Class Test/DM2 -superclass TestSuite
 Test/DM2 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_	$topo
-	set defNet_	net4b
+	set defNet_	net6a
 	set test_	DM2
 	$self next
 }
 Test/DM2 instproc run {} {
 	$self instvar ns_ node_ testName_
-	
-	set mproto DM
-	set mrthandle [$ns_ mrtproto $mproto {}]
 
-	set rcvr0 [new Agent/Null]
-	$ns_ attach-agent $node_(n0) $rcvr0
-	set rcvr1 [new Agent/Null]
-	$ns_ attach-agent $node_(n1) $rcvr1
-	set rcvr2  [new Agent/Null]
-	$ns_ attach-agent $node_(n2) $rcvr2
-	set rcvr3 [new Agent/Null]
-	$ns_ attach-agent $node_(n3) $rcvr3
-	
-	set sender0 [new Agent/CBR]
-	$sender0 set dst_ 0x8003
-	$sender0 set class_ 2
-	$ns_ attach-agent $node_(n0) $sender0
-	
-	#$ns_ at 1.95 "$node_(n0) join-group $rcvr0 0x8003"
-	#$ns_ at 1.96 "$node_(n1) join-group $rcvr1 0x8003"
-	$ns_ at 2.05 "$node_(n1) join-group $rcvr1 0x8003"
-	$ns_ at 2.2 "$node_(n2) join-group $rcvr2 0x8003"
-	# $ns_ at 1.98 "$node_(n3) join-group $rcvr3 0x8003"
-	# $ns_ at 2.05 "$node_(n3) join-group $rcvr3 0x8003"
-	$ns_ at 2.0 "$sender0 start"
-	
-	$ns_ at 2.7 "$self finish DM2-nam"
-	$ns_ run
-}
-
-Class Test/DM3 -superclass TestSuite
-Test/DM3 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net6a
-	set test_	DM3
-	$self next
-}
-Test/DM3 instproc run {} {
-	$self instvar ns_ node_ testName_
-
-	$ns_ rtproto Session
 	### Start multicast configuration
 	DM set PruneTimeout 0.3
-	dynamicDM set ReportRouteTimeout 0.15
 	set mproto DM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
@@ -588,65 +595,10 @@ Test/DM3 instproc run {} {
 	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
 	$ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
 	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
-	$ns_ at 0.8 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 0.95 "$node_(n3) join-group $rcvr 0x8002"
 	
-	#### Link between n0 & n1 down at 1.0, up at 1.2
-	$ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
-	$ns_ rtmodel-at 1.2 up $node_(n0) $node_(n1)
-	####
-	
-	$ns_ at 0.1 "$cbr0 start"
-	$ns_ at 1.6 "$self finish DM3-nam"
-	
-	$ns_ run
-}
-
-Class Test/DM4 -superclass TestSuite
-Test/DM4 instproc init topo {
-	$self instvar net_ defNet_ test_
-	set net_	$topo
-	set defNet_	net6b
-	set test_	DM4
-	$self next
-}
-Test/DM4 instproc run {} {
-	$self instvar ns_ node_ testName_
-
-	set mproto DM
-	set mrthandle [$ns_ mrtproto $mproto {}]
-	
-	set rcvr0 [new Agent/Message]
-	$ns_ attach-agent $node_(n0) $rcvr0
-	set rcvr1 [new Agent/Message]
-	$ns_ attach-agent $node_(n1) $rcvr1
-	set rcvr2  [new Agent/Message]
-	$ns_ attach-agent $node_(n2) $rcvr2
-	set rcvr3 [new Agent/Message]
-	$ns_ attach-agent $node_(n3) $rcvr3
-	
-	set sender0 [new Agent/Message]
-	$sender0 set dst_ 0x8003
-	$sender0 set class_ 2
-	$ns_ attach-agent $node_(n0) $sender0
-	
-	$ns_ at 1.95 "$node_(n0) join-group $rcvr0 0x8003"
-	#$ns_ at 1.96 "$node_(n1) join-group $rcvr1 0x8003"
-	$ns_ at 2.05 "$node_(n1) join-group $rcvr1 0x8003"
-	# $ns_ at 1.97 "$node_(n2) join-group $rcvr2 0x8003"
-	# $ns_ at 1.98 "$node_(n3) join-group $rcvr3 0x8003"
-	# $ns_ at 2.05 "$node_(n3) join-group $rcvr3 0x8003"
-	
-	$ns_ at 2.0 "$sender0 send \"pkt1\""
-	$ns_ at 2.1 "$sender0 send \"pkt2\""
-	$ns_ at 2.13 "$sender0 send \"pkt3\""
-	$ns_ at 2.16 "$sender0 send \"pkt4\""
-	$ns_ at 2.2 "$sender0 send \"pkt5\""
-	$ns_ at 2.24 "$sender0 send \"pkt6\""
-	$ns_ at 2.28 "$sender0 send \"pkt7\""
-	$ns_ at 3.12 "$sender0 send \"pkt8\""
-	$ns_ at 3.16 "$sender0 send \"pkt9\""
-	$ns_ at 4.0 "$sender0 send \"pkt10\""
-	$ns_ at 5.0 "$self finish DM4-nam"
+	$ns_ at 0.3 "$cbr0 start"
+	$ns_ at 1.0 "$self finish 6a-nam"
 	
 	$ns_ run
 }
@@ -659,21 +611,22 @@ Test/CtrMcast1 instproc init topo {
 	set test_	CtrMcast1
 	$self next
 }
+# source and RP on same node
 Test/CtrMcast1 instproc run {} {
 	$self instvar ns_ node_ testName_
 
 	set mproto CtrMcast
 	set mrthandle [$ns_ mrtproto $mproto  {}]
-	# if {$mrthandle != ""} {
-	#    $mrthandle set_c_rp [list $node_(n2) $node_(n3)]
-	#    $mrthandle set_c_bsr [list $node_(n1):0]
-	# }
-	### End of multicast configuration
+	$mrthandle set_c_rp [list $node_(n2)]
 		
 	set cbr1 [new Agent/CBR]
 	$ns_ attach-agent $node_(n2) $cbr1
 	$cbr1 set dst_ 0x8003
-		
+
+	set cbr2 [new Agent/CBR]
+	$ns_ attach-agent $node_(n3) $cbr2
+	$cbr2 set dst_ 0x8003
+
 	set rcvr0 [new Agent/Null]
 	$ns_ attach-agent $node_(n0) $rcvr0
 	set rcvr1 [new Agent/Null]
@@ -684,27 +637,360 @@ Test/CtrMcast1 instproc run {} {
 	$ns_ attach-agent $node_(n3) $rcvr3
 	
 	$ns_ at 0.2 "$cbr1 start"
+	$ns_ at 0.2 "$cbr2 start"
 	$ns_ at 0.3 "$node_(n1) join-group  $rcvr1 0x8003"
 	$ns_ at 0.4 "$node_(n0) join-group  $rcvr0 0x8003"
-	if {$mrthandle != ""} {
-		$ns_ at 0.45 "$mrthandle switch-treetype 0x8003"
-	}
+
+	$ns_ at 0.45 "$mrthandle switch-treetype 0x8003"
+
 	$ns_ at 0.5 "$node_(n3) join-group  $rcvr3 0x8003"
 	$ns_ at 0.65 "$node_(n2) join-group  $rcvr2 0x8003"
 	
 	$ns_ at 0.7 "$node_(n0) leave-group $rcvr0 0x8003"
 	$ns_ at 0.8 "$node_(n2) leave-group  $rcvr2 0x8003"
-	if {$mrthandle != ""} {
-		#$ns_ at 0.85 "$mrthandle compute-mroutes"
-	}
+
 	$ns_ at 0.9 "$node_(n3) leave-group  $rcvr3 0x8003"
 	$ns_ at 1.0 "$node_(n1) leave-group $rcvr1 0x8003"
 	$ns_ at 1.1 "$node_(n1) join-group $rcvr1 0x8003"
-	$ns_ at 1.2 "$self finish CtrMcast1-nam"
+	$ns_ at 1.2 "$self finish 4a-nam"
 	
 	$ns_ run
 }
 
+Class Test/CtrMcast2 -superclass TestSuite
+Test/CtrMcast2 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6a
+	set test_	CtrMcast2
+	$self next
+}
+Test/CtrMcast2 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ rtproto Session
+	set mproto CtrMcast
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	
+	set cbr0 [new Agent/CBR]
+	$ns_ attach-agent $node_(n0) $cbr0
+	$cbr0 set dst_ 0x8003
+
+	set rcvr [new Agent/Null]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n4) $rcvr
+	$ns_ attach-agent $node_(n5) $rcvr
+	
+	$ns_ at 0.3 "$node_(n3) join-group  $rcvr 0x8003"
+	$ns_ at 0.35 "$cbr0 start"
+	$ns_ at 0.4 "$node_(n4) join-group  $rcvr 0x8003"
+	$ns_ at 0.5 "$node_(n5) join-group  $rcvr 0x8003"
+
+	### Link between n2 & n4 down at 0.6, up at 1.2
+	$ns_ rtmodel-at 0.6 down $node_(n2) $node_(n4)
+	$ns_ rtmodel-at 1.2 up $node_(n2) $node_(n4)
+	###
+
+	$ns_ at 1.0 "$mrthandle switch-treetype 0x8003"
+
+	### Link between n0 & n1 down at 1.5, up at 2.0
+	$ns_ rtmodel-at 1.5 down $node_(n0) $node_(n1)
+	$ns_ rtmodel-at 2.0 up $node_(n0) $node_(n1)
+	###
+	$ns_ at 2.2 "$self finish 6a-nam"
+	
+	$ns_ run
+}
+
+Class Test/detailedDM1 -superclass TestSuite
+Test/detailedDM1 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6a
+	set test_	detailedDM1
+	$self next
+}
+Test/detailedDM1 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ rtproto Session
+	### Start multicast configuration
+	Prune/Iface/Timer set timeout 0.3
+	set mproto detailedDM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+
+	set cbr0 [new Agent/CBR]
+	$ns_ attach-agent $node_(n0) $cbr0
+	$cbr0 set dst_ 0x8002
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n4) $rcvr
+	$ns_ attach-agent $node_(n5) $rcvr
+	
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
+	$ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
+	$ns_ at 1.15 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 1.8 "$node_(n3) leave-group $rcvr 0x8002"
+	
+	$ns_ at 0.1 "$cbr0 start"
+	$ns_ at 2.0 "$self finish 6a-nam"
+
+	$ns_ run
+}
+
+Class Test/detailedDM2 -superclass TestSuite
+Test/detailedDM2 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6a
+	set test_	detailedDM2
+	$self next
+}
+Test/detailedDM2 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ rtproto Session
+	### Start multicast configuration
+	Prune/Iface/Timer set timeout 0.3
+	set mproto detailedDM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+
+	set cbr0 [new Agent/CBR]
+	$ns_ attach-agent $node_(n0) $cbr0
+	$cbr0 set dst_ 0x8002
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n4) $rcvr
+	$ns_ attach-agent $node_(n5) $rcvr
+	
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
+	$ns_ at 1.8 "$node_(n3) leave-group $rcvr 0x8002"
+	
+	### Link between n0 and n1 down at 1.0 up at 1.6
+	$ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
+	$ns_ rtmodel-at 1.6 up $node_(n0) $node_(n1)
+	###
+
+	$ns_ at 0.1 "$cbr0 start"
+	$ns_ at 2.0 "$self finish 6a-nam"
+
+	$ns_ run
+}
+
+Class Test/detailedDM3 -superclass TestSuite
+Test/detailedDM3 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6a
+	set test_	detailedDM3
+	$self next
+}
+Test/detailedDM3 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ rtproto Session
+	### Start multicast configuration
+	Prune/Iface/Timer set timeout 0.3
+	set mproto detailedDM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+
+	set cbr0 [new Agent/CBR]
+	$ns_ attach-agent $node_(n0) $cbr0
+	$cbr0 set dst_ 0x8002
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n4) $rcvr
+	$ns_ attach-agent $node_(n5) $rcvr
+	
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
+	$ns_ at 1.1 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 1.8 "$node_(n3) leave-group $rcvr 0x8002"
+	
+	### Link between n0 and n1 down at 1.0 up at 1.6
+	$ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
+	$ns_ rtmodel-at 1.6 up $node_(n0) $node_(n1)
+	###
+
+	$ns_ at 0.1 "$cbr0 start"
+	$ns_ at 2.0 "$self finish 6a-nam"
+
+	$ns_ run
+}
+
+Class Test/detailedDM4 -superclass TestSuite
+Test/detailedDM4 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net6a
+	set test_	detailedDM4
+	$self next
+}
+Test/detailedDM4 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ rtproto Session
+	### Start multicast configuration
+	Prune/Iface/Timer set timeout 0.3
+	set mproto detailedDM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+
+	set cbr0 [new Agent/CBR]
+	$ns_ attach-agent $node_(n0) $cbr0
+	$cbr0 set dst_ 0x8002
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n4) $rcvr
+	$ns_ attach-agent $node_(n5) $rcvr
+	
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
+	$ns_ at 1.35 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 1.8 "$node_(n3) leave-group $rcvr 0x8002"
+	
+	### Link between n0 and n1 down at 1.0 up at 1.6
+	$ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
+	$ns_ rtmodel-at 1.6 up $node_(n0) $node_(n1)
+	###
+
+	$ns_ at 0.5 "$cbr0 start"
+	$ns_ at 2.0 "$self finish 6a-nam"
+
+	$ns_ run
+}
+
+Class Test/detailedDM5 -superclass TestSuite
+Test/detailedDM5 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net8a
+	set test_	detailedDM5
+	$self next
+}
+Test/detailedDM5 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ rtproto Session
+	### Start multicast configuration
+	Prune/Iface/Timer set timeout 0.3
+	Deletion/Iface/Timer set timeout 0.1
+	set mproto detailedDM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+
+	set cbr0 [new Agent/CBR]
+	$ns_ attach-agent $node_(n0) $cbr0
+	$cbr0 set dst_ 0x8002
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n6) $rcvr
+	$ns_ attach-agent $node_(n7) $rcvr
+
+	$ns_ at 0.1 "$cbr0 start"	
+	$ns_ at 0.4 "$node_(n6) join-group $rcvr 0x8002"
+	$ns_ at 1.1 "$node_(n7) join-group $rcvr 0x8002"
+	$ns_ at 1.3 "$node_(n6) leave-group $rcvr 0x8002"
+	$ns_ at 1.8 "$node_(n7) leave-group $rcvr 0x8002"
+	
+	$ns_ at 2.2 "$self finish 7a-nam"
+	$ns_ run
+}
+
+Class Test/detailedDM6 -superclass TestSuite
+Test/detailedDM6 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net8a
+	set test_	detailedDM6
+	$self next
+}
+Test/detailedDM6 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ rtproto Session
+	### Start multicast configuration
+	Prune/Iface/Timer set timeout 0.3
+	Deletion/Iface/Timer set timeout 0.1
+	set mproto detailedDM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+
+	set cbr0 [new Agent/CBR]
+	$ns_ attach-agent $node_(n0) $cbr0
+	$cbr0 set dst_ 0x8002
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n6) $rcvr
+	$ns_ attach-agent $node_(n7) $rcvr
+
+	$ns_ at 0.1 "$cbr0 start"	
+	$ns_ at 0.4 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 1.1 "$node_(n6) join-group $rcvr 0x8002"
+	$ns_ at 1.2 "$node_(n3) leave-group $rcvr 0x8002"
+	
+	### Link between n1 and n3 down at 0.6 up at 1.0
+	$ns_ rtmodel-at 0.7 down $node_(n1) $node_(n3)
+	$ns_ rtmodel-at 1.0 up $node_(n1) $node_(n3)
+	###
+
+	$ns_ at 1.5 "$self finish 7a-nam"
+	$ns_ run
+}
+
+Class Test/detailedDM7 -superclass TestSuite
+Test/detailedDM7 instproc init topo {
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net8a
+	set test_	detailedDM7
+	$self next
+}
+Test/detailedDM7 instproc run {} {
+	$self instvar ns_ node_ testName_
+
+	$ns_ rtproto Session
+	### Start multicast configuration
+	Prune/Iface/Timer set timeout 0.3
+	Deletion/Iface/Timer set timeout 0.1
+	set mproto detailedDM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+
+	set cbr0 [new Agent/CBR]
+	$ns_ attach-agent $node_(n0) $cbr0
+	$cbr0 set dst_ 0x8002
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n3) $rcvr
+	$ns_ attach-agent $node_(n6) $rcvr
+	$ns_ attach-agent $node_(n7) $rcvr
+
+	$ns_ at 0.1 "$cbr0 start"	
+	$ns_ at 0.8 "$node_(n6) join-group $rcvr 0x8002"
+	$ns_ at 1.8 "$node_(n6) leave-group $rcvr 0x8002"
+	
+	### Link between n0 and n1 down at 0.4 up at 1.1
+	$ns_ rtmodel-at 0.4 down $node_(n0) $node_(n1)
+	$ns_ rtmodel-at 1.1 up $node_(n0) $node_(n1)
+	###
+
+	$ns_ at 1.8 "$self finish 7a-nam"
+	$ns_ run
+}
 
 TestSuite runTest
 
