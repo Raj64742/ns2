@@ -17,7 +17,12 @@
 #
 # Taken from the UCB Home-IP trace by Steve Gribble <gribble@cs.berkeley.edu>
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/ucb/Makefile.in,v 1.1 1999/02/24 01:28:58 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/ucb/Makefile.in,v 1.2 2000/02/16 18:08:28 haoboy Exp $
+
+# Top level hierarchy
+prefix  = @prefix@
+# Pathname of directory to install the binary
+BINDEST = @prefix@/bin
 
 CC = @CXX@
 MKDEP	= ../../../conf/mkdep
@@ -26,14 +31,18 @@ INCLUDE = -I. @V_INCLUDES@
 CFLAGS = @V_CCOPT@
 LDFLAGS = @V_STATIC@
 LIBS = @V_LIB_TCL@ @V_LIB@ @LIBS@
+INSTALL = @INSTALL@
 
 SRC = tr-stat.cc logparse.cc utils.cc
 OBJ = $(SRC:.cc=.o)
 
-all: tr-stat
+all: ucb-tr-stat
 
-tr-stat: $(OBJ)
+ucb-tr-stat: $(OBJ)
 	$(CC) $(LDFLAGS) $(CFLAGS) -o $@ $(OBJ) $(LIBS)
+
+install: ucb-tr-stat
+	$(INSTALL) -m 555 -o bin -g bin ucb-tr-stat $(DESTDIR)$(BINDEST)
 
 .SUFFIXES: .cc
 
@@ -42,7 +51,7 @@ tr-stat: $(OBJ)
 	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $*.cc
 
 clean:
-	-/bin/rm -f *.o *~ tr-stat core
+	-/bin/rm -f *.o *~ ucb-tr-stat *core
 
 FORCE:
 	;

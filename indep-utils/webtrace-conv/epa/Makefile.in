@@ -23,7 +23,12 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/epa/Makefile.in,v 1.2 1999/02/24 01:52:00 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/epa/Makefile.in,v 1.3 2000/02/16 18:08:26 haoboy Exp $
+
+# Top level hierarchy
+prefix  = @prefix@
+# Pathname of directory to install the binary
+BINDEST = @prefix@/bin
 
 CC = @CXX@
 MKDEP	= ../../../conf/mkdep
@@ -32,14 +37,18 @@ INCLUDE = -I. @V_INCLUDES@
 CFLAGS = @V_CCOPT@
 LDFLAGS = @V_STATIC@
 LIBS = @V_LIB_TCL@ @V_LIB@ @LIBS@
+INSTALL = @INSTALL@
 
 SRC = tr-stat.cc
 OBJ = $(SRC:.cc=.o)
 
-all: tr-stat
+all: epa-tr-stat
 
-tr-stat: $(OBJ)
+epa-tr-stat: $(OBJ)
 	$(CC) -o $@ $(LDFLAGS) $(CFLAGS) $(INCLUDE) $(OBJ) $(LIBS)
+
+install: epa-tr-stat
+	$(INSTALL) -m 555 -o bin -g bin epa-tr-stat $(DESTDIR)$(BINDEST)
 
 .SUFFIXES: .cc
 
@@ -48,7 +57,7 @@ tr-stat: $(OBJ)
 	$(CC) -c $(CFLAGS) $(INCLUDE) -o $@ $*.cc
 
 clean: 
-	@rm -f *~ *.o tr-stat core
+	@rm -f *~ *.o epa-tr-stat *core
 
 depend: $(SRC)
 	$(MKDEP) $(CFLAGS) $(INCLUDE) $(SRC)
