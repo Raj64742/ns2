@@ -17,7 +17,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.36 2001/10/12 00:45:47 buchheim Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.37 2003/09/11 22:10:20 sfloyd Exp $
 
 # LanNode----------------------------------------------------
 #
@@ -29,6 +29,7 @@
 #------------------------------------------------------------
 #Class LanNode
 LanNode set ifqType_   Queue/DropTail
+LanNode set ifqLen_    ""
 LanNode set llType_    LL
 #LanNode set macType_   Mac/Csma/Cd
 LanNode set macType_   Mac
@@ -41,6 +42,7 @@ LanNode instproc address  {val} { $self set address_  $val }
 LanNode instproc bw       {val} { $self set bw_       $val }
 LanNode instproc delay    {val} { $self set delay_    $val }
 LanNode instproc ifqType  {val} { $self set ifqType_  $val }
+LanNode instproc ifqLen   {val} { $self set ifqLen_   $val }
 LanNode instproc llType   {val} { $self set llType_   $val }
 LanNode instproc macType  {val} { $self set macType_  $val }
 LanNode instproc chanType {val} { $self set chanType_ $val }
@@ -49,7 +51,7 @@ LanNode instproc mactrace    {val} { $self set mactrace_    $val }
 
 LanNode instproc init {ns args} {
 	set args [eval $self init-vars $args]
-	$self instvar bw_ delay_ ifqType_ llType_ macType_ chanType_
+	$self instvar bw_ delay_ llType_ macType_ chanType_
 	$self instvar phyType_ mactrace_
 	$self instvar ns_ nodelist_ defRouter_ cost_
 	$self instvar id_ address_ channel_ mcl_ varp_
@@ -89,13 +91,15 @@ LanNode instproc init {ns args} {
 }
 
 LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} \
-	        {macType ""} {phyType ""} {mactrace ""}} {
-	$self instvar ifqType_ llType_ macType_ chanType_ phyType_ mactrace_
+	        {macType ""} {phyType ""} {mactrace ""} {ifqLen ""}} {
+	$self instvar ifqType_ ifqLen_ llType_ macType_ chanType_ phyType_ 
+	$self instvar mactrace_
 	$self instvar id_ channel_ mcl_ lanIface_
 	$self instvar ns_ nodelist_ cost_ varp_
 	$ns_ instvar link_ Node_ 
 
 	if {$ifqType == ""} { set ifqType $ifqType_ }
+	if {$ifqLen == ""} { set ifqLen $ifqLen_ }
 	if {$macType == ""} { set macType $macType_ }
 	if {$llType  == ""} { set llType $llType_ }
 	if {$phyType  == ""} { set phyType $phyType_ }
@@ -105,6 +109,7 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} \
 	foreach src $nodes {
 		set nif [new LanIface $src $self \
 				-ifqType $ifqType \
+				-ifqLen $ifqLen \
 				-llType  $llType \
 				-macType $macType \
 				-phyType $phyType \
@@ -252,6 +257,7 @@ LanIface set mactrace_ false
 
 LanIface instproc llType {val} { $self set llType_ $val }
 LanIface instproc ifqType {val} { $self set ifqType_ $val }
+LanIface instproc ifqLen {val} { $self set ifqLen_ $val }
 LanIface instproc macType {val} { $self set macType_ $val }
 LanIface instproc phyType {val} { $self set phyType_ $val }
 LanIface instproc mactrace {val} { $self set mactrace_ $val }
@@ -262,7 +268,7 @@ LanIface instproc init {node lan args} {
 	eval $self next $args
 
 	$self instvar llType_ ifqType_ macType_ phyType_ mactrace_
-	$self instvar node_ lan_ ifq_ mac_ ll_ phy_
+	$self instvar node_ lan_ ifq_ ifqLen_ mac_ ll_ phy_
 	$self instvar iface_ entry_ drophead_
 
 	set node_ $node
@@ -270,6 +276,7 @@ LanIface instproc init {node lan args} {
 
 	set ll_ [new $llType_]
 	set ifq_ [new $ifqType_]
+	if {$ifqLen_ != ""} { $ifq_ set limit_ $ifqLen_ }
 	set mac_ [new $macType_]
         if {[string compare $macType_ "Mac/802_3"] == 0} {
 	    $mac_ set trace_ $mactrace_
@@ -465,6 +472,7 @@ Simulator instproc make-lan { args } {
 	    set macType [lindex $args 7]
 	    set chanType [lindex $args 8]
 	    set phyType [lindex $args 9]
+	    set ifqLen [lindex $args 10]
 	} else {
 	    set nodelist [lindex $args 0]
 	    set bw [lindex $args 1]
@@ -474,6 +482,7 @@ Simulator instproc make-lan { args } {
 	    set macType [lindex $args 5]
 	    set chanType [lindex $args 6]
 	    set phyType [lindex $args 7]
+	    set ifqLen [lindex $args 8]
 	}
 	
 	if { $llType == "" } {
@@ -503,12 +512,13 @@ Simulator instproc make-lan { args } {
 			-delay $delay \
 			-llType $llType \
 			-ifqType $ifqType \
+			-ifqLen $ifqLen \
 			-macType $macType \
 			-chanType $chanType \
 			-phyType $phyType \
 			-mactrace $mactrace]
 	$lan addNode $nodelist $bw $delay $llType $ifqType $macType \
-			$phyType $mactrace
+			$phyType $mactrace $ifqLen
 	
 	return $lan
 }
