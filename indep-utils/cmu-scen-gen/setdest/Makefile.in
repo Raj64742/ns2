@@ -25,7 +25,7 @@
 #
 # Makefile for CMU mobile code scenario generation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Makefile.in,v 1.8 2002/10/08 07:11:32 difa Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/Makefile.in,v 1.9 2004/01/20 19:56:42 haldar Exp $
 
 # Top level hierarchy
 prefix	= @prefix@
@@ -37,7 +37,7 @@ CC = @CC@
 MKDEP	= ../../../conf/mkdep
 
 # when including files from ns, we need to take care STL_NAMESPACE
-DEFINE = -Dstand_alone -DSTL_NAMESPACE=@STL_NAMESPACE@
+DEFINE = -Dstand_alone -DSTL_NAMESPACE=@STL_NAMESPACE@ -DCPP_NAMESPACE=@CPP_NAMESPACE@
 CFLAGS = @V_CCOPT@ 
 LDFLAGS = @V_STATIC@
 LIBS = @V_LIB@ -lm @LIBS@
