@@ -147,7 +147,7 @@ class DiffusionAgent : public Agent {
   void DataForSink(Packet *);
   void StopSource();
 
-  void MACprepare(Packet *pkt, nsaddr_t next_hop, unsigned int type, 
+  void MACprepare(Packet *pkt, nsaddr_t next_hop, int type, 
 		  bool lk_dtct);
   void MACsend(Packet *pkt, Time delay=0);
   void xmitFailed(Packet *pkt);

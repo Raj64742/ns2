@@ -187,7 +187,7 @@ void DiffusionAgent::Terminate()
 {
   printf("Diffusion node %d : terminates (overhead %d)\n", 
 	 THIS_NODE, overhead);  
-  printf("node %d: remaining energy %lf, initial energy %lf\n", THIS_NODE, 
+  printf("node %d: remaining energy %f, initial energy %f\n", THIS_NODE, 
 	 node->energy(), node->initialenergy() );
 
   Print_IOlist();
@@ -352,7 +352,7 @@ Packet * DiffusionAgent:: create_packet()
 
 
 void DiffusionAgent::MACprepare(Packet *pkt, nsaddr_t next_hop, 
-				unsigned int type, bool lk_dtct)
+				int type, bool lk_dtct)
 {
   hdr_diff* dfh = HDR_DIFF(pkt);
   hdr_cmn* cmh = HDR_CMN(pkt);

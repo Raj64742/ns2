@@ -80,7 +80,7 @@ public:
       Packet::free(pkt_);
   }
 
-  virtual void expire(Event *e);
+  void expire(Event *e);
 protected:
   DiffusionProb *a_;
   Pkt_Hash_Entry *hashPtr_;

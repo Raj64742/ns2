@@ -134,10 +134,6 @@ void DiffusionRate::consider_old(Packet *pkt)
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
 
-  Pkt_Hash_Entry *hashPtr;
-  From_List  *fromPtr;
-  nsaddr_t from_nodeID, forward_nodeID;
-
   switch (msg_type) {
     case INTEREST :
       InterestHandle(pkt);
@@ -145,7 +141,7 @@ void DiffusionRate::consider_old(Packet *pkt)
 
     case DATA: 
 
-      if (cmh->next_hop_ == MAC_BROADCAST) {
+      if (cmh->next_hop_ == (nsaddr_t)MAC_BROADCAST) {
 	num_data_bcast_rcv++;
       }
 
@@ -156,7 +152,7 @@ void DiffusionRate::consider_old(Packet *pkt)
       return;
     
     case NEG_REINFORCE:
-      if (cmh->next_hop_ == MAC_BROADCAST) {
+      if (cmh->next_hop_ == (nsaddr_t)MAC_BROADCAST) {
 	num_neg_bcast_rcv++;
       }
       break;
@@ -175,17 +171,9 @@ void DiffusionRate::consider_new(Packet *pkt)
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
 
-  Pkt_Hash_Entry *hashPtr;
-  From_List  *fromPtr;
   Agent_List *agentPtr;
-  Agent_List *cur;
-  PrvCurPtr  RetVal;
-  nsaddr_t   from_nodeID, forward_nodeID;
-
   Packet *gen_pkt;
   hdr_diff *gen_dfh;
-
-  int i;
 
   switch (msg_type) {
     case INTEREST : 
@@ -203,7 +191,7 @@ void DiffusionRate::consider_new(Packet *pkt)
       return;
 
     case NEG_REINFORCE :  
-      if (cmh->next_hop_ == MAC_BROADCAST) {
+      if (cmh->next_hop_ == (nsaddr_t)MAC_BROADCAST) {
 	num_neg_bcast_rcv++;
       } else {
 	routing_table[dtype].CntNeg(dfh->forward_agent_id);
@@ -253,7 +241,7 @@ void DiffusionRate::consider_new(Packet *pkt)
 
     case DATA :
 
-      if (cmh->next_hop_ == MAC_BROADCAST) {
+      if (cmh->next_hop_ == (nsaddr_t)MAC_BROADCAST) {
 	num_data_bcast_rcv++;
       }
 
@@ -395,10 +383,7 @@ void DiffusionRate::InterestHandle(Packet *pkt)
 
 void DiffusionRate::NegReinfTimeOut()
 {
-  int i;
-  Agent_List *cur_out, **prv_out;
- 
-  for (i=0; i<MAX_DATA_TYPE; i++) {
+  for (int i=0; i<MAX_DATA_TYPE; i++) {
     GenNeg(i);
     routing_table[i].new_org_counter = 0;
     routing_table[i].ClrAllNewOrg();
@@ -443,7 +428,6 @@ bool DiffusionRate::FwdSubsample(Packet *pkt)
   Packet   *cur_pkt;
   hdr_diff *cur_dfh;
   hdr_ip   *cur_iph;
-  hdr_cmn  *cur_cmh;
   unsigned int dtype = dfh->data_type;
 
     if (routing_table[dtype].num_active <= 0) {   // Won't forward
@@ -498,6 +482,8 @@ bool DiffusionRate::FwdSubsample(Packet *pkt)
 	
 	return true;
     }   // endif unicast sub
+
+    return false;
 }
 
 
@@ -546,7 +532,6 @@ void DiffusionRate::FwdOriginal(Packet *pkt)
   Packet   *cur_pkt;
   hdr_diff *cur_dfh;
   hdr_ip   *cur_iph;
-  hdr_cmn  *cur_cmh;
  
   if (org_type_ == BCAST_ORG) {
     MACprepare(pkt, MAC_BROADCAST, NS_AF_ILINK, 0);
@@ -603,11 +588,6 @@ void DiffusionRate::FwdData(Packet *pkt)
 {
   hdr_diff *dfh = HDR_DIFF(pkt);
   unsigned int dtype = dfh->data_type;
-  Out_List *cur_out;
-  Packet   *cur_pkt;
-  hdr_diff *cur_dfh;
-  hdr_ip   *cur_iph;
-  hdr_cmn  *cur_cmh;
   nsaddr_t forwarder_node;
   ns_addr_t forward_agent;
   bool forward_flag;
@@ -668,8 +648,6 @@ void DiffusionRate::DataReqAll(unsigned int dtype, int report_rate)
 void DiffusionRate::GenNeg(int dtype)
 {
   In_List *cur;
-  Packet *pkt = NULL;
-  hdr_diff *dfh;
 
   if (neg_thr_type_ == NEG_ABSOLUTE) {
     for (cur= routing_table[dtype].iif; cur != NULL; cur= IN_NEXT(cur)) {
@@ -810,11 +788,6 @@ void DiffusionRate::ProcessPosReinf(Packet *pkt)
   nsaddr_t next_node;
   In_List *recent_in;
   In_List  *cur;
-  Packet   *cur_pkt;
-  hdr_diff *cur_dfh;
-  hdr_cmn  *cur_cmh;
-  hdr_ip   *cur_iph;
-  hdr_cmn  *cmh = HDR_CMN(pkt);
 
   switch(pos_type_) {
 

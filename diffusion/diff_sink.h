@@ -74,7 +74,7 @@ class SinkAgent : public Agent {
   bool periodic_;
   bool always_max_rate_;
   int pk_count;
-  int data_type_;
+  unsigned int data_type_;
   int num_recv;
   int num_send;
   int RecvPerSec;

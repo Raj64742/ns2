@@ -31,7 +31,7 @@ void Pkt_Hash_Table::reset()
 
   entryPtr = Tcl_FirstHashEntry(&htable, &searchPtr);
   while (entryPtr != NULL) {
-    hashPtr = Tcl_GetHashValue(entryPtr);
+    hashPtr = (Pkt_Hash_Entry *)Tcl_GetHashValue(entryPtr);
     delete hashPtr;
     Tcl_DeleteHashEntry(entryPtr);
     entryPtr = Tcl_NextHashEntry(&searchPtr);

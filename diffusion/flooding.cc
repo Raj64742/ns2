@@ -85,21 +85,16 @@ void FloodingAgent::recv(Packet* packet, Handler*)
 void FloodingAgent::ConsiderNew(Packet *pkt)
 {
   hdr_diff* dfh = HDR_DIFF(pkt);
-  hdr_cmn * cmh = HDR_CMN(pkt);
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
 
   Pkt_Hash_Entry *hashPtr;
-  From_List  *fromPtr;
   Agent_List *agentPtr;
-  Agent_List *cur;
   PrvCurPtr  RetVal;
   nsaddr_t   from_nodeID, forward_nodeID;
 
   Packet *gen_pkt;
   hdr_diff *gen_dfh;
-
-  int i;
 
   switch (msg_type) {
     case INTEREST : 
@@ -181,7 +176,7 @@ void FloodingAgent::reset()
 
 void FloodingAgent::Terminate() 
 {
-  printf("node %d: remaining energy %lf, initial energy %lf\n", THIS_NODE, 
+  printf("node %d: remaining energy %f, initial energy %f\n", THIS_NODE, 
 	 node->energy(), node->initialenergy() );
 }
 

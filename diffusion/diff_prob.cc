@@ -114,7 +114,6 @@ void DiffusionProb::recv(Packet* packet, Handler*)
 void DiffusionProb::consider_old(Packet *pkt)
 {
   hdr_diff* dfh = HDR_DIFF(pkt);
-  hdr_cmn* cmh = HDR_CMN(pkt);
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
 
@@ -172,7 +171,6 @@ void DiffusionProb::consider_old(Packet *pkt)
 void DiffusionProb::consider_new(Packet *pkt)
 {
   hdr_diff* dfh = HDR_DIFF(pkt);
-  hdr_cmn * cmh = HDR_CMN(pkt);
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
 
@@ -182,9 +180,6 @@ void DiffusionProb::consider_new(Packet *pkt)
   Agent_List *cur;
   PrvCurPtr  RetVal;
   nsaddr_t   from_nodeID, forward_nodeID;
-
-  Packet *gen_pkt;
-  hdr_diff *gen_dfh;
 
   int i;
 

@@ -316,7 +316,6 @@ int SinkAgent::command(int argc, const char*const* argv)
 void SinkAgent::recv(Packet* pkt, Handler*)
 {
   hdr_diff* dfh = HDR_DIFF(pkt);
-  hdr_cmn* cmh = HDR_CMN(pkt); 
 
   /*
   printf("SK %d recv (%x, %x, %d) %s size %d at time %lf\n", here_.addr_, 

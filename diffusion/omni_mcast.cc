@@ -193,21 +193,16 @@ void OmniMcastAgent::recv(Packet* packet, Handler*)
 void OmniMcastAgent::ConsiderNew(Packet *pkt)
 {
   hdr_diff* dfh = HDR_DIFF(pkt);
-  hdr_cmn * cmh = HDR_CMN(pkt);
   unsigned char msg_type = dfh->mess_type;
   unsigned int dtype = dfh->data_type;
 
   Pkt_Hash_Entry *hashPtr;
-  From_List  *fromPtr;
   Agent_List *agentPtr;
-  Agent_List *cur;
   PrvCurPtr  RetVal;
   nsaddr_t   from_nodeID, forward_nodeID;
 
   Packet *gen_pkt;
   hdr_diff *gen_dfh;
-
-  int i;
 
   switch (msg_type) {
     case INTEREST : 
@@ -279,7 +274,7 @@ void OmniMcastAgent::ConsiderNew(Packet *pkt)
 
 void OmniMcastAgent::Terminate() 
 {
-  printf("node %d: remaining energy %lf, initial energy %lf\n", THIS_NODE, 
+  printf("node %d: remaining energy %f, initial energy %f\n", THIS_NODE, 
 	 node->energy(), node->initialenergy() );
 }
 
@@ -328,7 +323,7 @@ void OmniMcastAgent::MACprepare(Packet *pkt, nsaddr_t next_hop,
   hdr_ip*  iph = HDR_IP(pkt);
 
   dfh->forward_agent_id = here_; 
-  if (type == NS_AF_ILINK && next_hop == MAC_BROADCAST) {
+  if (type == NS_AF_ILINK && next_hop == (nsaddr_t)MAC_BROADCAST) {
       cmh->xmit_failure_ = 0;
       cmh->next_hop() = MAC_BROADCAST;
       cmh->addr_type() = NS_AF_ILINK;
@@ -510,14 +505,7 @@ void OmniMcastAgent::StickPacketInSendBuffer(Packet *p)
 
 void OmniMcastAgent::SendBufferCheck()
 {
-  int c;
-  hdr_diff *dfh;
-  hdr_cmn  *cmh;
-  hdr_ip   *iph;
-  int dtype;
-  PrvCurPtr RetVal;
-
-  for (c = 0; c < SEND_BUF_SIZE; c++) {
+  for (int c = 0; c < SEND_BUF_SIZE; c++) {
     if (send_buf[c].p != NULL) {
       MACsend(send_buf[c].p, 0);
       send_buf[c].p = NULL;
