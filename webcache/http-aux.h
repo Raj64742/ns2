@@ -17,13 +17,15 @@
 //
 // Auxiliary classes for HTTP multicast invalidation proxy cache
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.8 1999/02/09 00:43:51 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http-aux.h,v 1.9 1999/02/18 22:58:27 haoboy Exp $
 
 #ifndef ns_http_aux_h
 #define ns_http_aux_h
 
 #include <tclcl.h>
+
 #include "random.h"
+#include "app-connector.h"
 #include "pagepool.h"
 #include "timer-handler.h"
 
@@ -150,6 +152,8 @@ const int HTTP_JOIN		= 4;
 const int HTTP_LEAVE		= 5;
 const int HTTP_PUSH		= 6; // Selectively pushed pages (v2)
 
+const int HTTP_NORMAL		= 7; // Normal req/resp packets
+
 const int HTTPDATA_COST		= 8;
 
 // User-level packets
@@ -164,30 +168,75 @@ public:
 		int id_;
 	};
 public:
-	HttpData() { type() = HTTP_DATA; }
+	HttpData() { type_ = HTTP_DATA; }
 	HttpData(int t, int d) {
-		type() = t;
-		id() = d;
+		type_ = t;
+		id_ = d;
 	}
 	HttpData(char *b) {
 		hdr* h = (hdr *)b;
-		type() = h->type_;
+		type_ = h->type_;
 		id_ = h->id_;
 	}
-	inline int& type() { return type_; }
-	inline int& id() { return id_; }
-	virtual int size() { return sizeof(hdr); }
-	virtual int cost() { return HTTPDATA_COST; }
 
-	// Pack type and id into buf, and return a pointer to next 
-	// available area
-	virtual int hdrlen() { return sizeof(hdr); }
-	virtual void pack(char *buf) {
-		((hdr*)buf)->type_ = type_;
-		((hdr*)buf)->id_ = id_;
+	inline int& id() { return id_; }
+	inline int type() const { return type_; }
+	virtual int size() const { return sizeof(hdr); }
+	virtual int cost() const { return HTTPDATA_COST; }
+	virtual int hdrlen() const { return sizeof(hdr); }
+
+	virtual AppData* pack() const {
+		AppData* d = new AppData(size());
+		assert(d != NULL);
+		((hdr*)d->data())->type_ = type_;
+		((hdr*)d->data())->id_ = id_;
+		return d;
 	}
 };
 
+
+
+// HTTP data during normal request and response: containing a tcl command
+//
+// This is a "temporary" object. Its whole purpose is to provide a 
+// consistent data interface for HttpApp. Unlike other Http*Data classes, 
+// it doesn't store anything.
+class HttpNormalData : public HttpData {
+private: 
+	char *str_;
+	int cost_;
+protected:
+	struct hdr : public HttpData::hdr {
+		int cost_;
+	};
+public:
+	HttpNormalData(int id, int cost, char *str) : 
+		HttpData(HTTP_NORMAL, id) {
+		str_ = str;
+		cost_ = cost;
+	}
+	HttpNormalData(char *data) : HttpData(data) {
+		cost_ = ((hdr *)data)->cost_;
+		str_ = (char *)(data+sizeof(hdr));
+	}
+	virtual int size() const {
+		return (sizeof(hdr)+strlen(str_)+1);
+	}
+	virtual int cost() const { return cost_; }
+	virtual int hdrlen() const { return sizeof(hdr); }
+	char* str() const { return str_; }
+	virtual AppData* pack() const {
+		AppData* d = HttpData::pack();
+		char *buf = (char *)(d->data());
+		((hdr*)buf)->cost_ = cost_;
+		buf += sizeof(hdr);
+		strcpy(buf, str_);
+		return d;
+	}
+};
+
+
+
 const int HTTPDATA_MAXURLLEN = 20;
 // XXX assign cost to a constant so as to be more portable
 const int HTTPHBDATA_COST = 32;
@@ -234,17 +283,19 @@ public:
 		delete []inv_rec_;
 	}
 
-	virtual int size() {
+	virtual int size() const {
 		return (num_inv_*sizeof(InvalRec) + sizeof(hdr));
 	}
 	// XXX byte cost to appear in trace file
-	virtual int cost() { return (num_inv_*HTTPHBDATA_COST); }
-	virtual int hdrlen() { return sizeof(hdr); }
-	virtual void pack(char *buf) {
-		HttpData::pack(buf);
+	virtual int cost() const { return (num_inv_*HTTPHBDATA_COST); }
+	virtual int hdrlen() const { return sizeof(hdr); }
+	virtual AppData* pack() const {
+		AppData* d = HttpData::pack();
+		char *buf = (char *)(d->data());
 		((hdr*)buf)->num_inv_ = num_inv_;
 		buf += sizeof(hdr);
 		memcpy(buf, inv_rec_, num_inv_*sizeof(InvalRec));
+		return d;
 	}
 
 	inline int& num_inv() { return num_inv_; }
@@ -256,6 +307,8 @@ public:
 	void extract(InvalidationRec*& ivlist);
 };
 
+
+
 class HttpUpdateData : public HttpData {
 protected:
 	struct hdr : public HttpData::hdr {
@@ -282,8 +335,8 @@ private:
 	inline PageRec* rec() { return rec_; }
 public:
 	HttpUpdateData(int id, int n) : HttpData(HTTP_UPDATE, id) {
-		num() = n;
-		pgsize() = 0;
+		num_ = n;
+		pgsize_ = 0;
 		rec_ = new PageRec[num_];
 	}
 	HttpUpdateData(char *data) : HttpData(data) {
@@ -296,23 +349,27 @@ public:
 		delete []rec_;
 	}
 
-	virtual int size() { 
+	virtual int size() const { 
 		return sizeof(hdr) + num_*sizeof(PageRec); 
 	}
-	virtual int cost() { return pgsize_; }
-	virtual int hdrlen() { return sizeof(hdr); }
-	virtual void pack(char *buf) {
-		HttpData::pack(buf);
+	virtual int cost() const { return pgsize_; }
+	virtual int hdrlen() const { return sizeof(hdr); }
+	virtual AppData* pack() const {
+		AppData* d = HttpData::pack();
+		char* buf = (char *)(d->data());
 		((hdr*)buf)->num_ = num();
 		((hdr*)buf)->pgsize_ = pgsize();
 		memcpy(buf+sizeof(hdr), rec_, num_*sizeof(PageRec));
+		return d;
 	}
 
-	inline int& num() { return num_; }
-	inline int& pgsize() { return pgsize_; }
+	inline int num() const { return num_; }
+	inline int pgsize() const { return pgsize_; }
+
+	inline void set_pgsize(int s) { pgsize_ = s; }
 	inline void add(int i, ClientPage *p) {
 		rec()[i].copy(p);
-		pgsize() += p->size();
+		pgsize_ += p->size();
 	}
 
 	inline char* rec_page(int i) { return rec()[i].pg_; }
@@ -321,6 +378,8 @@ public:
 	inline double& rec_mtime(int i) { return rec()[i].mtime_; }
 };
 
+
+
 const int HTTPLEAVE_COST = 4;
 
 // Message: server leave
@@ -347,18 +406,20 @@ public:
 		delete []rec_;
 	}
 
-	virtual int size() { 
+	virtual int size() const { 
 		return sizeof(hdr) + num_*sizeof(int);
 	}
-	virtual int cost() { return num_*HTTPLEAVE_COST; }
-	virtual int hdrlen() { return sizeof(hdr); }
-	virtual void pack(char* buf) {
-		HttpData::pack(buf);
+	virtual int cost() const { return num_*HTTPLEAVE_COST; }
+	virtual int hdrlen() const { return sizeof(hdr); }
+	virtual AppData* pack() const {
+		AppData* d = HttpData::pack();
+		char* buf = (char *)(d->data());
 		((hdr*)buf)->num_ = num();
 		memcpy(buf+sizeof(hdr), rec_, num_*sizeof(int));
+		return d;
 	}
 
-	inline int& num() { return num_; }
+	inline int num() const { return num_; }
 	inline void add(int i, int id) {
 		rec()[i] = id;
 	}
@@ -380,7 +441,7 @@ public:
 	int is_down() { return down_; }
 	void down() { down_ = 1; }
 	void up() { down_ = 0; }
-	int num() { return sl_.num(); }
+	int num() const { return sl_.num(); }
 	HttpMInvalCache* cache() { return cache_; }
 	void pack_leave(HttpLeaveData&);
 	int is_server_down(int sid);
@@ -412,7 +473,7 @@ public:
 		}
 		// We don't need a detach()
 		ServerEntry* gethead() { return head_; } // For iterations
-		int num() { return num_; }
+		int num() const { return num_; }
 		ServerEntry *head_;
 		int num_;
 	};

@@ -17,7 +17,7 @@
 //
 // Definition of Agent/Invalidation
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.4 1999/02/09 00:43:54 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.h,v 1.5 1999/02/18 22:58:29 haoboy Exp $
 
 #ifndef ns_invalagent_h
 #define ns_invalagent_h
@@ -43,7 +43,7 @@ struct hdr_inval {
 // base class pointer to derived class pointer, and TclObject::lookup 
 // must do such a conversion, we cannot declare a common interface here. :(
 
-class HttpMInvalCache;
+class HttpApp;
 
 // Implementation 1: multicast, this is a real agent
 class HttpInvalAgent : public Agent {
@@ -51,28 +51,24 @@ public:
 	HttpInvalAgent();
 
 	virtual void recv(Packet *, Handler *);
-	virtual void send_data(int realsize, int datasize, const char* data);
-	void set_app(HttpMInvalCache *a) { a_ = a; }
+	virtual void send(int realsize, AppData* data);
+	void set_app(HttpApp *a) { app_ = (Application *)a; }
 
 protected:
-	HttpMInvalCache *a_;
 	int off_inv_;
 };
 
 // Implementation 2: unicast, actually an application on top of TCP
 class HttpUInvalAgent : public TcpApp {
 public:
-	HttpUInvalAgent(Agent *a) : TcpApp(a), a_(0) {}
+	HttpUInvalAgent(Agent *a) : TcpApp(a) {}
 
-	void set_app(HttpMInvalCache *a) { a_ = a; }
-	virtual void send_data(int realsize, int datasize, const char* data) {
-		TcpApp::send(realsize, datasize, data);
+	void send(int realsize, AppData* data) {
+		TcpApp::send(realsize, data);
 	}
-	virtual void process_data(int size, char *data);
-	virtual int command(int argc, const char*const* argv);
-
+	virtual void process_data(AppData *data);
 protected:
-	HttpMInvalCache *a_;
+	virtual int command(int argc, const char*const* argv);
 };
 
 #endif // ns_invalagent_h

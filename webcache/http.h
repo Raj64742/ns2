@@ -17,7 +17,7 @@
 //
 // Definition of the HTTP agent
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.4 1999/02/09 00:43:52 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.h,v 1.5 1999/02/18 22:58:28 haoboy Exp $
 
 #ifndef ns_http_h
 #define ns_http_h
@@ -26,6 +26,7 @@
 #include <tcl.h>
 #include "config.h"
 #include "agent.h"
+#include "app-connector.h"
 #include "app.h"
 
 #include "pagepool.h"
@@ -33,7 +34,7 @@
 #include "tcpapp.h"
 #include "http-aux.h"
 
-class HttpApp : public TclObject {
+class HttpApp : public TclObject, public AppConnector {
 public:
 	HttpApp();
 	virtual ~HttpApp();
@@ -46,6 +47,8 @@ public:
 
 	void log(const char *fmt, ...);
 	int id() const { return id_; }
+
+	virtual void process_data(AppData* d);
 
 protected:
 	int add_cnc(HttpApp *client, TcpApp *agt);
@@ -93,7 +96,7 @@ protected:
 
 	void send_heartbeat();
 	HttpHbData* pack_heartbeat();
-	virtual void send_hb_helper(int size, int datasize, const char *data);
+	virtual void send_hb_helper(int size, AppData *data);
 	InvalidationRec* get_invrec(const char *name);
 
 	int Ca_, Cb_, push_thresh_, enable_upd_;
@@ -129,7 +132,7 @@ public:
 #endif /* JOHNH_CLASSINSTVAR */
 
 	virtual int command(int argc, const char*const* argv);
-	virtual void recv_pkt(int size, char* data);
+	virtual void process_data(AppData* data);
 	virtual void timeout(int reason);
 
 	void handle_node_failure(int cid);
@@ -146,7 +149,7 @@ protected:
 
 	void send_heartbeat();
 	HttpHbData* pack_heartbeat();
-	virtual void send_hb_helper(int size, int datasize, const char *data);
+	virtual void send_hb_helper(int size, AppData *data);
 
 	int recv_inv(HttpHbData *d);
 	virtual void process_inv(int n, InvalidationRec *ivlist, int cache);
@@ -198,7 +201,7 @@ protected:
 	void add_update(const char *name, double mtime);
 	void send_upd(ClientPage *pg);
 	int recv_upd(HttpUpdateData *d);
-	virtual void send_upd_helper(int pgsize, int size, const char* data);
+	virtual void send_upd_helper(int pgsize, AppData* data);
 	HttpUpdateData* pack_upd(ClientPage *pg);
 
 	// Use a static mapping to convert cache id to cache pointers

@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.5 1999/02/09 00:43:56 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.cc,v 1.6 1999/02/18 22:58:30 haoboy Exp $
 //
 // Tcp application: transmitting real application data
 // 
@@ -29,14 +29,14 @@
 CBuf::CBuf(const char *c, int size, int nbytes)
 {
 	nbytes_ = nbytes;
-	if (c != NULL) {
-		data_ = new char[size];
-		memcpy(data_, c, size);
-		size_ = size;
-	} else {
-		data_ = NULL;
-		size_ = 0;
-	}
+	data_ = new AppData(size, c);
+	next_ = NULL;
+}
+
+CBuf::CBuf(AppData *c, int nbytes)
+{
+	nbytes_ = nbytes;
+	data_ = new AppData(c);
 	next_ = NULL;
 }
 
@@ -103,9 +103,9 @@ TcpApp::~TcpApp()
 }
 
 // Send with callbacks to transfer application data
-void TcpApp::send(int nbytes, int datasize, const char *cbk)
+void TcpApp::send(int nbytes, AppData *cbk)
 {
-	CBuf *p = new CBuf(cbk, datasize, nbytes);
+	CBuf *p = new CBuf(cbk, nbytes);
 #ifdef TCPAPP_DEBUG
 	p->time() = Scheduler::instance().clock();
 #endif
@@ -134,7 +134,7 @@ void TcpApp::recv(int size)
 	if (curbytes_ == curdata_->bytes()) {
 		// We've got exactly the data we want
 		// If we've received all data, execute the callback
-		process_data(curdata_->size(), curdata_->data());
+		process_data(curdata_->data());
 		// Then cleanup this data transmission
 		delete curdata_;
 		curdata_ = NULL;
@@ -143,7 +143,7 @@ void TcpApp::recv(int size)
 		// We've got more than we expected. Must contain other data.
 		// Continue process callbacks until the unfinished callback
 		while (curbytes_ >= curdata_->bytes()) {
-			process_data(curdata_->size(), curdata_->data());
+			process_data(curdata_->data());
 			curbytes_ -= curdata_->bytes();
 #ifdef TCPAPP_DEBUG
 			fprintf(stderr, "[%g] Get data size %d(left %d) %s\n", 
@@ -189,9 +189,12 @@ int TcpApp::command(int argc, const char*const* argv)
 		 */
 		int size = atoi(argv[2]);
 		if (argc == 3)
-			send(size, 0, NULL);
-		else 
-			send(size, strlen(argv[3])+1, argv[3]);
+			send(size, NULL);
+		else {
+			AppData *tmp = new AppData(strlen(argv[3])+1, argv[3]);
+			send(size, tmp);
+			delete tmp;
+		}
 		return (TCL_OK);
 	} else if (strcmp(argv[1], "dst") == 0) {
 		tcl.resultf("%s", dst_->name());

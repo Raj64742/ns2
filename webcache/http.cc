@@ -19,7 +19,7 @@
 // we are interested in (detailed) HTTP headers, instead of just request and 
 // response patterns.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.7 1999/02/09 00:43:52 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.8 1999/02/18 22:58:27 haoboy Exp $
 
 #include <stdlib.h>
 #include <assert.h>
@@ -248,6 +248,8 @@ int HttpApp::command(int argc, const char*const* argv)
 					    name_, argv[2]);
 				return TCL_ERROR;
 			}
+			// Set data delivery target
+			cnc->target() = (AppConnector*)this;
 			return TCL_OK;
 		} else if (strcmp(argv[1], "set-modtime") == 0) {
 			double mt = strtod(argv[3], NULL);
@@ -265,7 +267,7 @@ int HttpApp::command(int argc, const char*const* argv)
 	} else {
 		if (strcmp(argv[1], "send") == 0) {
 			/*
-			 * <http> send <client> <bytes> <first-byte callback> 
+			 * <http> send <client> <bytes> <callback> 
 			 */
 			HttpApp *client = 
 				(HttpApp *)TclObject::lookup(argv[2]);
@@ -282,7 +284,14 @@ int HttpApp::command(int argc, const char*const* argv)
 				// Tolerate it
 				return TCL_OK;
 			}
-			cnc->send(bytes, strlen(argv[4])+1, argv[4]);
+			char *buf = strdup(argv[4]);
+			HttpNormalData *d = 
+				new HttpNormalData(id_, bytes, buf);
+			AppData *tmp = d->pack();
+			cnc->send(bytes, tmp);
+			delete tmp;
+			delete d;
+			free(buf);
 			return TCL_OK;
 		
 		} else if (strcmp(argv[1], "enter-page") == 0) {
@@ -343,6 +352,25 @@ void HttpApp::log(const char* fmt, ...)
 	vsprintf(p, fmt, ap);
 	if (log_ != 0)
 		Tcl_Write(log_, buf, strlen(buf));
+}
+
+void HttpApp::process_data(AppData *data)
+{
+	HttpData *d = new HttpData((char *)(data->data()));
+	switch (d->type()) {
+	case HTTP_NORMAL: {
+		HttpNormalData *tmp=new HttpNormalData((char*)(data->data()));
+		Tcl::instance().eval(tmp->str());
+		delete tmp;
+		break;
+	}
+	default:
+		fprintf(stderr, "Bad http invalidation data type %d\n", 
+			d->type());
+		abort();
+		break;
+	}
+	delete d;
 }
 
 
@@ -580,10 +608,9 @@ HttpHbData* HttpYucInvalServer::pack_heartbeat()
 	return data;
 }
 
-void HttpYucInvalServer::send_hb_helper(int size, int datasize, 
-					const char *data)
+void HttpYucInvalServer::send_hb_helper(int size, AppData *data)
 {
-	inv_sender_->send_data(size, datasize, data);
+	inv_sender_->send(size, data);
 }
 
 void HttpYucInvalServer::send_heartbeat()
@@ -592,10 +619,9 @@ void HttpYucInvalServer::send_heartbeat()
 		return;
 
 	HttpHbData* d = pack_heartbeat();
-	char *tmp = new char[d->size()];
-	d->pack(tmp);
-	send_hb_helper(d->cost(), d->size(), (const char *)tmp);
-	delete []tmp;
+	AppData* tmp = d->pack();
+	send_hb_helper(d->cost(), tmp);
+	delete tmp;
 	delete d;
 }
 
@@ -895,7 +921,7 @@ int HttpMInvalCache::command(int argc, const char*const* argv)
 				else if (strcmp(argv[i], "size") == 0) {
 				  d->rec_size(0) = atoi(argv[i+1]);
 				  // XXX need to set total update page size
-				  d->pgsize() = d->rec_size(0);
+				  d->set_pgsize(d->rec_size(0));
 				} else if (strcmp(argv[i], "age") == 0)
 				  d->rec_age(0) = strtod(argv[i+1], NULL);
 			}
@@ -1202,10 +1228,9 @@ void HttpMInvalCache::recv_leave(HttpLeaveData *d)
 
 void HttpMInvalCache::send_leave(HttpLeaveData *d)
 {
-	char *tmp = new char[d->size()];
-	d->pack(tmp);
-	send_hb_helper(d->cost(), d->size(), tmp);
-	delete []tmp;
+	AppData* tmp = d->pack();
+	send_hb_helper(d->cost(), tmp);
+	delete tmp;
 }
 
 void HttpMInvalCache::timeout(int reason)
@@ -1225,37 +1250,36 @@ void HttpMInvalCache::timeout(int reason)
 	}
 }
 
-void HttpMInvalCache::recv_pkt(int /*size*/, char* data)
+void HttpMInvalCache::process_data(AppData* data)
 {
-	HttpData *d = new HttpData(data);
+	HttpData *d = new HttpData((char *)(data->data()));
 	
 	switch (d->type()) {
 	case HTTP_INVALIDATION: {
 		// Update timer for the source of the heartbeat
 		recv_heartbeat(d->id());
-		HttpHbData *inv = new HttpHbData(data);
+		HttpHbData *inv = new HttpHbData((char *)(data->data()));
 		recv_inv(inv);
 		delete inv;
 		break;
 	}
 	case HTTP_UPDATE: {
 		// Replace all updated pages
-		HttpUpdateData *pg = new HttpUpdateData(data);
+		HttpUpdateData *pg = new HttpUpdateData((char*)(data->data()));
 		recv_upd(pg);
 		delete(pg);
 		break;
 	}
 	// JOIN messages are sent via TCP and direct TCL callback.
 	case HTTP_LEAVE: {
-		HttpLeaveData *l = new HttpLeaveData(data);
+		HttpLeaveData *l = new HttpLeaveData((char *)(data->data()));
 		recv_leave(l);
 		delete(l);
 		break;
 	}
 	default:
-		fprintf(stderr, "Bad http invalidation data type %d\n", 
-			d->type());
-		abort();
+		HttpApp::process_data(data);
+		return;
 	}
 	// Delete user packet after use
 	delete(d);
@@ -1406,12 +1430,12 @@ void HttpMInvalCache::process_inv(int, InvalidationRec *ivlist, int cache)
 	}
 }
 
-void HttpMInvalCache::send_hb_helper(int size, int datasize, const char *data)
+void HttpMInvalCache::send_hb_helper(int size, AppData *data)
 {
 	if (inv_parent_ != NULL) 
-		inv_parent_->send_data(size, datasize, data);
+		inv_parent_->send(size, data);
 	for (int i = 0; i < num_sender_; i++)
-		inv_sender_[i]->send_data(size, datasize, data);
+		inv_sender_[i]->send(size, data);
 }
 
 void HttpMInvalCache::send_heartbeat()
@@ -1420,10 +1444,9 @@ void HttpMInvalCache::send_heartbeat()
 		return;
 
 	HttpHbData* d = pack_heartbeat();
-	char *tmp = new char[d->size()];
-	d->pack(tmp);
-	send_hb_helper(d->cost(), d->size(), (const char *)tmp);
-	delete []tmp;
+	AppData* tmp = d->pack();
+	send_hb_helper(d->cost(), tmp);
+	delete tmp;
 	delete d;
 }
 
@@ -1488,10 +1511,10 @@ HttpUpdateData* HttpMInvalCache::pack_upd(ClientPage* page)
 	return data;
 }
 
-void HttpMInvalCache::send_upd_helper(int pgsize, int size, const char* data)
+void HttpMInvalCache::send_upd_helper(int pgsize, AppData* data)
 {
 	for (int i = 0; i < num_updater_; i++)
-		upd_sender_[i]->send_data(pgsize, size, data);
+		upd_sender_[i]->send(pgsize, data);
 }
 
 void HttpMInvalCache::send_upd(ClientPage *page)
@@ -1500,10 +1523,9 @@ void HttpMInvalCache::send_upd(ClientPage *page)
 		return;
 
 	HttpUpdateData* d = pack_upd(page);
-	char *tmp = new char[d->size()];
-	d->pack(tmp);
-	send_upd_helper(d->pgsize(), d->size(), (const char *)tmp);
-	delete []tmp;
+	AppData *tmp = d->pack();
+	send_upd_helper(d->pgsize(), tmp);
+	delete tmp;
 	delete d;
 }
 

@@ -17,7 +17,7 @@
 //
 // Agents used to send and receive invalidation records
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.5 1999/02/09 00:43:53 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/inval-agent.cc,v 1.6 1999/02/18 22:58:29 haoboy Exp $
 
 #include "inval-agent.h"
 #include "ip.h"
@@ -38,8 +38,7 @@ public:
 	}
 } class_httpinval_agent;
 
-HttpInvalAgent::HttpInvalAgent() : 
-	Agent(PT_INVAL), a_(0)
+HttpInvalAgent::HttpInvalAgent() : Agent(PT_INVAL)
 {
 	bind("off_inv_", &off_inv_);
 }
@@ -50,29 +49,29 @@ void HttpInvalAgent::recv(Packet *pkt, Handler*)
 	if (ip->src() == addr_)
 		// XXX Why do we need this?
 		return;
-	if (a_ == 0) 
+	if (app_ == 0) 
 		return;
-	hdr_inval *ih = (hdr_inval *)pkt->access(off_inv_);
-	char *data = (char *)pkt->accessdata();
-	a_->recv_pkt(ih->size(), data);
+	AppData* tmp = new AppData((char *)pkt->accessdata());
+	((HttpApp*)app_)->process_data(tmp);
+	delete tmp;
 	Packet::free(pkt);
 }
 
 // Send a list of invalidation records in user data area
 // realsize: the claimed size
 // datasize: the actual size of user data, used to allocate packet
-void HttpInvalAgent::send_data(int realsize, int datasize, const char* data)
+void HttpInvalAgent::send(int realsize, AppData* data)
 {
-	Packet *pkt = allocpkt(datasize);
+	Packet *pkt = allocpkt(data->size());
 	hdr_inval *ih = (hdr_inval *)pkt->access(off_inv_);
-	ih->size() = datasize;
+	ih->size() = data->size();
 	char *p = (char *)pkt->accessdata();
-	memcpy(p, data, datasize);
+	data->pack(p);
 
 	// Set packet size proportional to the number of invalidations
 	hdr_cmn *ch = (hdr_cmn*) pkt->access(off_cmn_);
 	ch->size() = sizeof(hdr_inval) + realsize;
-	send(pkt, 0);
+	Agent::send(pkt, 0);
 }
 
 
@@ -90,17 +89,18 @@ public:
 	}
 } class_httpuinval_agent;
 
-void HttpUInvalAgent::process_data(int size, char *data) 
+void HttpUInvalAgent::process_data(AppData *data) 
 {
-	a_->recv_pkt(size, data);
+	target_->process_data(data);
 }
 
 int HttpUInvalAgent::command(int argc, const char*const* argv)
 {
 	if (strcmp(argv[1], "set-app") == 0) {
-		HttpMInvalCache* c = 
-			(HttpMInvalCache*)TclObject::lookup(argv[2]);
-		set_app(c);
+		// Compatibility interface
+		HttpApp* c = 
+			(HttpApp*)TclObject::lookup(argv[2]);
+		target_ = (AppConnector *)c;
 		return TCL_OK;
 	}
 	return TcpApp::command(argc, argv);

@@ -15,7 +15,7 @@
 // These notices must be retained in any copies of any part of this
 // software. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.5 1999/02/09 00:43:57 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/tcpapp.h,v 1.6 1999/02/18 22:58:30 haoboy Exp $
 //
 // TcpApp - Transmitting real application data via TCP
 //
@@ -25,18 +25,20 @@
 #ifndef ns_tcpapp_h
 #define ns_tcpapp_h
 
+#include "app-connector.h"
 #include "app.h"
 
 // Buffer management stuff.
 class CBuf { 
 public:
 	CBuf(const char *c, int size, int nbytes); 
+	CBuf(AppData *c, int nbytes);
 	~CBuf() {
 		if (data_ != NULL)
-			delete []data_;
+			delete data_;
 	}
-	char *data() { return data_; }
-	int size() { return size_; }
+	AppData* data() { return data_; }
+	int size() { return data_->size(); }
 	int bytes() { return nbytes_; }
 
 #ifdef TCPAPP_DEBUG	
@@ -46,8 +48,7 @@ public:
 
 protected:
 	friend class CBufList;
-	char *data_;
-	int size_;
+	AppData *data_;
 	int nbytes_; 	// Total length of this transmission
 	CBuf *next_;
 
@@ -78,18 +79,23 @@ protected:
 #endif
 };
 
-class TcpApp : public Application {
+class TcpApp : public Application, public AppConnector {
 public:
 	TcpApp(Agent *tcp);
 	~TcpApp();
 
 	virtual void recv(int nbytes);
-	void send(int nbytes, int datasize, const char *data);
+	void send(int nbytes, AppData *data);
 
 	void connect(TcpApp *dst) { dst_ = dst; }
-	virtual void process_data(int, char *data) { 
-		if (data != NULL)
-			Tcl::instance().eval(data); 
+
+	virtual void process_data(AppData* data) {
+		// XXX Default behavior:
+		// If there isn't a target, use tcl to evaluate the data
+		if (target_ != 0)
+			send_data(data);
+		else 
+			Tcl::instance().eval((char *)(data->data()));
 	}
 
 	// Do nothing when a connection is terminated
