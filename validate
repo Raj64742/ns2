@@ -19,7 +19,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.83 2000/10/09 22:46:12 yewei Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/validate,v 1.84 2000/10/18 04:18:24 haoboy Exp $
 
 try () {
 	echo "*** $1"
@@ -54,6 +54,8 @@ then
 	echo "validate overall report: some tests failed:"
 	echo "    $failed_list"
 	echo "to re-run a specific test, cd tcl/test; ../../ns test-all-TEST-NAME"
+	echo "Notice that some tests in webcache will fail on freebsd when -O is turned on."
+	echo "This is due to some event reordering, which will disappear when -g is turned on."
 	exit 1
 else
 	echo "validate overall report: all tests passed"
