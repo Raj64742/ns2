@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.27 1997/10/13 22:25:04 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.28 1997/11/04 22:26:44 haoboy Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -73,6 +73,16 @@ Link instproc dst {} {
 	return $dest_
 }
 
+Link instproc fromNode {} {
+	$self instvar fromNode_
+	return $fromNode_
+}
+
+Link instproc toNode {} {
+	$self instvar toNode_
+	return $toNode_
+}
+
 Link instproc cost c {
 	$self instvar cost_
 	set cost_ $c
@@ -96,6 +106,7 @@ Link instproc up { } {
 			set ns [Simulator instance]
 			$self instvar fromNode_ toNode_
 			$tr ntrace "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S UP"
+			$tr ntrace "v -t [$ns now] link-up [$ns now] [$fromNode_ id] [$toNode_ id]"
 		}
 	}
 }
@@ -114,6 +125,7 @@ Link instproc down { } {
 			set ns [Simulator instance]
 			$self instvar fromNode_ toNode_
 			$tr ntrace "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S DOWN"
+			$tr ntrace "v -t [$ns now] link-down [$ns now] [$fromNode_ id] [$toNode_ id]"
 		}
 	}
 }
@@ -131,6 +143,7 @@ Link instproc all-connectors op {
 	foreach c [$self info vars] {
 		$self instvar $c
 		if ![info exists $c] continue
+		if [array size $c] continue
 		foreach var [$self set $c] {
 			if [catch "$var info class"] {
 				continue
@@ -140,22 +153,6 @@ Link instproc all-connectors op {
 			}
 		}
 	}
-}
-
-# a link doesn't have its own trace file, write it to global trace file
-Link instproc change-color { color } {
-	$self instvar color_ source_ dest_
-	set ns [Simulator instance]
-	$ns instvar namtraceAllFile_
-	if [info exists namtraceAllFile_] {
-		puts $namtraceAllFile_ [eval list "l -t [$ns now] -s [$source_ id] -d [$dest_ id] -c $color -o $color_"]
-		set color_ $color
-	}
-}
-
-Link instproc get-color {} {
-	$self instvar color_
-	return $color_
 }
 
 Class SimpleLink -superclass Link

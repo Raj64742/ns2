@@ -34,25 +34,27 @@
 Class rtQueue
 
 Simulator instproc rtmodel { dist parms args } {
-    set ret ""
-    if { [rtModel info subclass rtModel/$dist] != "" } {
-	$self instvar traceAllFile_ rtModel_ namtraceAllFile_
-	set ret [eval new rtModel/$dist $self]
-	eval $ret set-elements $args
-	eval $ret set-parms $parms
-	if [info exists traceAllFile_] {
-	    $ret trace $self $traceAllFile_
+	set ret ""
+	if { [rtModel info subclass rtModel/$dist] != "" } {
+		$self instvar  rtModel_
+		set ret [eval new rtModel/$dist $self]
+		eval $ret set-elements $args
+		eval $ret set-parms $parms
+		set trace [$self get-ns-traceall]
+		if {$trace != ""} {
+			$ret trace $self $trace
+		}
+		set trace [$self get-nam-traceall]
+		if {$trace != ""} {
+			$ret trace $self $trace "nam"
+		}
+		if [info exists rtModel_] {
+			lappend rtModel_ $ret
+		} else {
+			set rtModel_ $ret
+		}
 	}
-	if [info exists namtraceAllFile_] {
-		$ret trace $self $namtraceAllFile_ "nam"
-	}
-	if [info exists rtModel_] {
-	    lappend rtModel_ $ret
-	} else {
-	    set rtModel_ $ret
-	}
-    }
-    return $ret
+	return $ret
 }
 
 Simulator instproc rtmodel-configure {} {

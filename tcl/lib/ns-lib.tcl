@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.62 1997/11/04 03:40:38 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.63 1997/11/04 22:26:43 haoboy Exp $
 #
 
 #
@@ -138,17 +138,16 @@ Simulator set EnableMcast_ 0
 Simulator set McastShift_ 15
 Simulator set McastAddr_ 0x8000
 
-Simulator instproc node { {shape "circle"} {color "black"} } {
-	$self instvar Node_ namtraceAllFile_
+# Default behavior is changed: consider nam as not initialized if 
+# no shape OR color parameter is given
+Simulator instproc node {} {
+	$self instvar Node_
 	set node [new Node]
 	set Node_([$node id]) $node
         if [Simulator set EnableMcast_] {
 	    $node enable-mcast $self
 	}
 
-	if [info exists namtraceAllFile_] {
-		$node trace $namtraceAllFile_ $shape $color
-	}
 	return $node
 }
 
@@ -171,12 +170,33 @@ Simulator instproc run {} {
 	#$self compute-routes
 	$self rtmodel-configure			;# in case there are any
 	[$self get-routelogic] configure
-	$self instvar scheduler_ Node_ link_
+	$self instvar scheduler_ Node_ link_ started_ 
+	$self instvar color_ tracedAgents_ linkConfigList_
+
+	set started_ 1
+
+	# 
+	# dump color configuration for nam
 	#
-	# Reset every node, which resets every agent
+	foreach id [array names color_] {
+		$self puts-nam-traceall "c -t * -i $id -n $color_($id)"
+	}
+	#
+	# Reset every node, which resets every agent.
+	# And dump nam configuration of each node
 	#
 	foreach nn [array names Node_] {
+		$Node_($nn) dump-namconfig
 		$Node_($nn) reset
+	}
+	#
+	# write link configurations
+	#
+	if [info exists linkConfigList_] {
+		foreach lnk $linkConfigList_ {
+			$lnk dump-namconfig
+		}
+		unset linkConfigList_
 	}
         #
         # also reset every queue
@@ -184,13 +204,28 @@ Simulator instproc run {} {
         foreach qn [array names link_] {
                 set q [$link_($qn) queue]
                 $q reset
+		$link_($qn) dump-nam-queueconfig
         }
+	#
+	# traced agents
+	#
+	if [info exists tracedAgents_] {
+		foreach id [array names tracedAgents_] {
+			$tracedAgents_($id) add-agent-trace $id
+		}
+		unset tracedAgents_
+	}
         return [$scheduler_ run]
 }
 
 Simulator instproc halt {} {
 	$self instvar scheduler_
 	$scheduler_ halt
+}
+
+Simulator instproc is-started {} {
+	$self instvar started_
+	return [info exists started_]
 }
 
 Simulator instproc clearMemTrace {} {
@@ -200,7 +235,6 @@ Simulator instproc clearMemTrace {} {
 
 Simulator instproc simplex-link { n1 n2 bw delay arg } {
 	$self instvar link_ queueMap_ nullAgent_
-	$self instvar traceAllFile_
 	set sid [$n1 id]
 	set did [$n2 id]
 
@@ -260,27 +294,71 @@ Simulator instproc simplex-link { n1 n2 bw delay arg } {
 		$q link [$link_($sid:$did) set link_]
 	}
 
-	$self instvar namtraceAllFile_
-	if [info exists traceAllFile_] {
-		$self trace-queue $n1 $n2 $traceAllFile_
+	set trace [$self get-ns-traceall]
+	if {$trace != ""} {
+		$self trace-queue $n1 $n2 $trace
 	}
-	if [info exists namtraceAllFile_] {
-		$self namtrace-queue $n1 $n2 $namtraceAllFile_
+	set trace [$self get-nam-traceall]
+	if {$trace != ""} {
+		$self namtrace-queue $n1 $n2 $trace
 	}
 }
 
-Simulator instproc duplex-link { n1 n2 bw delay type {ori ""} {q_clrid 0} } {
+#
+# This is used by Link::orient to register/update the order in which links 
+# should created in nam. This is important because different creation order
+# may result in different layout.
+#
+# A poor hack. :( Any better ideas?
+#
+Simulator instproc register-nam-linkconfig link {
+	$self instvar linkConfigList_ link_
+	if [info exists linkConfigList_] {
+		# Check whether the reverse simplex link is registered,
+		# if so, don't register this link again.
+		# We should have a separate object for duplex link.
+		set i1 [[$link fromNode] id]
+		set i2 [[$link toNode] id]
+		if [info exists link_($i2:$i1)] {
+			set pos [lsearch $linkConfigList_ $link_($i2:$i1)]
+			if {$pos >= 0} {
+				set a1 [$link_($i2:$i1) get-attribute "ORIENTATION"]
+				set a2 [$link get-attribute "ORIENTATION"]
+				if {$a1 == "" && $a2 != ""} {
+					# If this duplex link has not been 
+					# assigned an orientation, do it.
+					set linkConfigList_ \
+					[lreplace $linkConfigList_ $pos $pos]
+				} else {
+					return
+				}
+			}
+		}
+
+		# Remove $link from list if it's already there
+		set pos [lsearch $linkConfigList_ $link]
+		if {$pos >= 0} {
+			set linkConfigList_ \
+				[lreplace $linkConfigList_ $pos $pos]
+		}
+	}
+	lappend linkConfigList_ $link
+}
+
+Simulator instproc duplex-link { n1 n2 bw delay type } {
 	$self simplex-link $n1 $n2 $bw $delay $type
 	$self simplex-link $n2 $n1 $bw $delay $type
 
-	#
-	# make a duplex link in nam
-	#
-	$self instvar namtraceAllFile_
-	if [info exists namtraceAllFile_] {
-		puts $namtraceAllFile_ "l -t * -s [$n1 id] -d [$n2 id] -S UP -r $bw -D $delay -o $ori"
-		puts $namtraceAllFile_ "q -t * -s [$n1 id] -d [$n2 id] -a $q_clrid"
-	}
+	# nam only has duplex link. We do a registration here because 
+	# automatic layout doesn't require calling Link::orient.
+	$self instvar link_
+	$self register-nam-linkconfig $link_([$n1 id]:[$n2 id])
+}
+
+Simulator instproc duplex-link-op { n1 n2 op args } {
+	$self instvar link_
+	eval $link_([$n1 id]:[$n2 id]) $op $args
+	eval $link_([$n2 id]:[$n1 id]) $op $args
 }
 
 Simulator instproc flush-trace {} {
@@ -297,14 +375,48 @@ Simulator instproc namtrace-all file {
 	set namtraceAllFile_ $file
 }
 
-Simulator instproc namtrace-queue { n1 n2 file } {
-	$self instvar link_
-	$link_([$n1 id]:[$n2 id]) nam-trace $self $file
-}
-
 Simulator instproc trace-all file {
 	$self instvar traceAllFile_
 	set traceAllFile_ $file
+}
+
+Simulator instproc get-nam-traceall {} {
+	$self instvar namtraceAllFile_
+	if [info exists namtraceAllFile_] {
+		return $namtraceAllFile_
+	} else {
+		return ""
+	}
+}
+
+Simulator instproc get-ns-traceall {} {
+	$self instvar traceAllFile_
+	if [info exists traceAllFile_] {
+		return $traceAllFile_
+	} else {
+		return ""
+	}
+}
+
+# If exists a traceAllFile_, print $str to $traceAllFile_
+Simulator instproc puts-ns-traceall { str } {
+	$self instvar traceAllFile_
+	if [info exists traceAllFile_] {
+		puts $traceAllFile_ $str
+	}
+}
+
+# If exists a traceAllFile_, print $str to $traceAllFile_
+Simulator instproc puts-nam-traceall { str } {
+	$self instvar namtraceAllFile_
+	if [info exists namtraceAllFile_] {
+		puts $namtraceAllFile_ $str
+	}
+}
+
+Simulator instproc color { id name } {
+	$self instvar color_
+	set color_($id) $name
 }
 
 # you can pass in {} as a null file
@@ -318,6 +430,11 @@ Simulator instproc create-trace { type file src dst {op ""} } {
 		$p ${op}attach $file		
 	}
 	return $p
+}
+
+Simulator instproc namtrace-queue { n1 n2 file } {
+	$self instvar link_
+	$link_([$n1 id]:[$n2 id]) nam-trace $self $file
 }
 
 Simulator instproc trace-queue { n1 n2 file } {
@@ -483,7 +600,6 @@ Simulator instproc simplex-link-of-interfaces { f1 f2 bw delay type } {
 }
 
 Simulator instproc duplex-link-of-interfaces { n1 n2 bw delay type {ori ""} {q_clrid 0} } {
-        $self instvar traceAllFile_
         set f1 [new DuplexNetInterface]
         $n1 addInterface $f1
         set f2 [new DuplexNetInterface]
@@ -491,29 +607,25 @@ Simulator instproc duplex-link-of-interfaces { n1 n2 bw delay type {ori ""} {q_c
         $self simplex-link-of-interfaces $f1 $f2 $bw $delay $type
         $self simplex-link-of-interfaces $f2 $f1 $bw $delay $type
 
-	#
-	# XXX we should have simplex/duplex representation for queue in nam?
-	#
-	$self instvar namtraceAllFile_
-	if [info exists namtraceAllFile_] {
-		puts $namtraceAllFile_ "l -t * -s [$n1 id] -d [$n2 id] -S UP -r $bw -D $delay -o $ori"
-		puts $namtraceAllFile_ "q -t * -s [$n1 id] -d [$n2 id] -a $q_clrid"
+	set trace [$self get-ns-traceall]
+	if {$trace != ""} {
+		$self trace-queue $n1 $n2 $trace
+                $self trace-queue $n2 $n1 $trace
+	}
+	set trace [$self get-nam-traceall]
+	if {$trace != ""} {
+		$self namtrace-queue $n1 $n2 $trace
+                $self namtrace-queue $n2 $n1 $trace
 	}
 
-
-	$self instvar traceAllFile_ namtraceAllFile_
-	if [info exists traceAllFile_] {
-		$self trace-queue $n1 $n2 $traceAllFile_
-                $self trace-queue $n2 $n1 $traceAllFile_
-	}
-	if [info exists namtraceAllFile_] {
-		$self namtrace-queue $n1 $n2 $namtraceAllFile_
-                $self namtrace-queue $n2 $n1 $namtraceAllFile_
-	}
+	# nam only has duplex link. We do a registration here because 
+	# automatic layout doesn't require calling Link::orient.
+	$self instvar link_
+	$self register-nam-linkconfig $link_([$n1 id]:[$n2 id])
 }
 
 Simulator instproc multi-link { nodes bw delay type } {
-	$self instvar link_ traceAllFile_ 
+	$self instvar link_ 
 	# set multiLink [new PhysicalMultiLink $nodes $bw $delay $type]
 	set multiLink [new NonReflectingMultiLink $nodes $bw $delay $type]
 	# set up dummy links for unicast routing
@@ -527,12 +639,13 @@ Simulator instproc multi-link { nodes bw delay type } {
 				set dumlink [new DummyLink $n2 $n $q $l]
 				set link_($sid:$did) $dumlink
 				$dumlink setContainingObject $multiLink
-				if [info exists traceAllFile_] {
-					$self trace-queue $n2 $n $traceAllFile_
+				set trace [$self get-ns-traceall]
+				if {$trace != ""} {
+					$self trace-queue $n2 $n $trace
 				}
-				$self instvar namtraceAllFile_
-				if [info exists namtraceAllFile_] {
-					$self namtrace-queue $n2 $n $namtraceAllFile_
+				set trace [$self get-nam-traceall]
+				if {$trace != ""} {
+					$self namtrace-queue $n2 $n $trace
 				}
 			}
 		}
@@ -540,7 +653,7 @@ Simulator instproc multi-link { nodes bw delay type } {
 }
 
 Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
-        $self instvar link_ traceAllFile_ namtraceAllFile_
+        $self instvar link_ 
         
         # create the interfaces
         set ifs ""
@@ -559,15 +672,18 @@ Simulator instproc multi-link-of-interfaces { nodes bw delay type } {
                 foreach f2 $ifs {
                         set n2 [$f2 getNode]
                         if { [$n2 id] != $did } {
-                           set sid [$n2 id]   
-                           set dumlink [new DummyLink $f2 $f $q $l $multiLink]
-                           set link_($sid:$did) $dumlink
-                           if [info exists traceAllFile_] {
-                                     $self trace-queue $n2 $n $traceAllFile_
-                           }
-			   if [info exists namtraceAllFile_] {
-				   $self namtrace-queue $n2 $n $namtraceAllFile_
-			   }
+				set sid [$n2 id]   
+				set dumlink [new DummyLink $f2 $f $q $l $multiLink]
+				set link_($sid:$did) $dumlink
+
+				set trace [$self get-ns-traceall]
+				if {$trace != "" } {
+					$self trace-queue $n2 $n $trace
+				}
+				set trace [$self get-nam-traceall]
+				if {$trace != ""} {
+				   $self namtrace-queue $n2 $n $trace
+				}
                         }
                 }
         }

@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu, haoboy@isi.edu
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.2 1997/10/13 22:25:05 mccanne Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.3 1997/11/04 22:26:44 haoboy Exp $
 #
 
 #
@@ -54,52 +54,167 @@
 # tcl/lib/ns-link.tcl
 #   SimpleLink::nam-trace
 
-#----------------------------------------------------------------------
-# Following should stay in this file
-#----------------------------------------------------------------------
+#
+# Support for node tracing
+#
 
-#
-# Support for node coloring. Used in 
-#
-Node instproc trace { file shape color } {
-	# write a configuration to file immediately
-	$self instvar trace_ id_ color_
-	set trace_ $file
-	set color_ $color    ;# save this for later tracing
-	puts $trace_ [eval list "n -t * -s $id_ -S UP -v $shape -c $color"]
+# This will only work during initialization. Not possible to change shape 
+# dynamically
+Node instproc shape { shape } {
+	$self instvar attr_ 
+	set attr_(SHAPE) $shape
+}
+
+Node instproc color { color } {
+	$self instvar attr_ id_
+
+	set ns [Simulator instance]
+
+	if [$ns is-started] {
+		# color must be initialized
+		$ns puts-nam-traceall \
+			[eval list "n -t [$ns now] -s $id_ -S COLOR -c $color -o $attr_(COLOR)"]
+		set attr_(COLOR) $color
+	} else {
+		set attr_(COLOR) $color
+	}
+}
+
+Node instproc dump-namconfig {} {
+	$self instvar attr_ id_
+	set ns [Simulator instance]
+
+	if ![info exists attr_(SHAPE)] {
+		set attr_(SHAPE) "circle"
+	} 
+	if ![info exists attr_(COLOR)] {
+		set attr_(COLOR) "black"
+	}
+	$ns puts-nam-traceall \
+		[eval list "n -t * -s $id_ -S UP -v $attr_(SHAPE) -c $attr_(COLOR)"]
 }
 
 Node instproc change-color { color } {
-	$self instvar trace_ id_ color_
-	if [info exists trace_] {
-		set ns [Simulator instance]
-		# we don't need shape info here, and don't need UP/DOWN?
-		puts $trace_ [eval list "n -t [$ns now] -s $id_ -S COLOR -c $color -o $color_"]
-		set color_ $color
+	puts "Warning: Node::change-color is obsolete. Use Node::color instead"
+	$self color $color
+}
+
+Node instproc get-attribute { name } {
+	$self instvar attr_
+	if [info exists attr_($name)] {
+		return $attr_($name)
+	} else {
+		return ""
 	}
 }
 
 Node instproc get-color {} {
-	$self instvar trace_ color_
-	if [info exists trace_] {
-		return $color_
-	}
-}
-
-Simulator instproc color { id name } {
-	$self instvar Color_ namtraceAllFile_
-
-	if [info exists namtraceAllFile_] {
-		puts $namtraceAllFile_ "c -t * -i $id -n $name"
-	}
+	puts "Warning: Node::get-color is obsolete. Please use Node::get-attribute"
+	return [$self get-attribute "COLOR"]
 }
 
 #
-# support for agent tracing
+# Support for link tracing
+# XXX only SimpleLink (and its children) can dump nam config, because Link
+# doesn't have bandwidth and delay.
 #
+SimpleLink instproc dump-namconfig {} {
+	# make a duplex link in nam
+	$self instvar link_ attr_ fromNode_ toNode_
+
+	if ![info exists attr_(COLOR)] {
+		set attr_(COLOR) "black"
+	}
+	if ![info exists attr_(ORIENTATION)] {
+		set attr_(ORIENTATION) ""
+	}
+
+	set ns [Simulator instance]
+	set bw [$link_ set bandwidth_]
+	set delay [$link_ set delay_]
+
+	$ns puts-nam-traceall \
+		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -o $attr_(ORIENTATION)"
+}
+
+SimpleLink instproc dump-nam-queueconfig {} {
+	$self instvar attr_ fromNode_ toNode_
+
+	set ns [Simulator instance]
+	if [info exists attr_(QUEUE_POS)] {
+		$ns puts-nam-traceall "q -t * -s [$fromNode_ id] -d [$toNode_ id] -a $attr_(QUEUE_POS)"
+	} else {
+		set attr_(QUEUE_POS) ""
+	}
+}
 
 #
-# agent trace is added when attaching to a traced node
+# XXX
+# This function should be called ONLY ONCE during initialization. 
+# The order in which links are created in nam is determined by the calling 
+# order of this function.
+#
+Link instproc orient { ori } {
+	$self instvar attr_
+	set attr_(ORIENTATION) $ori
+	[Simulator instance] register-nam-linkconfig $self
+}
+
+Link instproc get-attribute { name } {
+	$self instvar attr_
+	if [info exists attr_($name)] {
+		return $attr_($name)
+	} else {
+		return ""
+	}
+}
+
+Link instproc queuePos { pos } {
+	$self instvar attr_
+	set attr_(QUEUE_POS) $pos
+}
+
+Link instproc color { color } {
+	$self instvar attr_ fromNode_ toNode_ 
+
+	set ns [Simulator instance]
+	if [$ns is-started] {
+		set attr_(COLOR) $color
+	} else {
+		$ns puts-nam-traceall \
+			[eval list "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S COLOR -c $color -o $attr_(COLOR)"]
+		set attr_(COLOR) $color
+	}
+}
+
+# a link doesn't have its own trace file, write it to global trace file
+Link instproc change-color { color } {
+	puts "Warning: Link::change-color is obsolete. Please use Link::color."
+	$self color $color
+}
+
+Link instproc get-color {} {
+	$self instvar attr_
+	return $attr_(COLOR)
+}
+
+#
+# Support for agent tracing
+#
+
+# This function records agents being traced, so they will be written into nam
+# trace when the simulator starts
+Simulator instproc add-agent-trace { agent name } {
+	$self instvar tracedAgents_
+	set tracedAgents_($name) $agent
+}
+
+Simulator instproc delete-agent-trace { agent } {
+	$agent delete-agent-trace
+}
+
+#
+# Agent trace is added when attaching to a traced node
 # we need to keep a file handle in tcl so that var tracing can also be 
 # done in tcl by manual inserting update-var-trace{}
 #
@@ -111,7 +226,7 @@ Agent instproc attach-trace { file } {
 }
 
 #
-# keep the following because we can then use both TracedVar and 
+# Keep the following because we can then use both TracedVar and 
 # insert var tracing code wherever we like.
 #
 Agent instproc add-var-trace { name value {type "v"} } {
