@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.190 1997/12/08 00:47:15 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.191 1997/12/16 03:35:12 mccanne Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -14,6 +14,24 @@
  This ChangeLog is updated in the reverse order
   with the most recent changes coming first.
   --></P>
+
+<hr>
+<H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b2.tar.gz">ns-2.1b2</A> [not released yet]</H3>
+<UL>
+
+<LI><B><A HREF="http://www.cs.berkeley.edu/~mccanne">[SM]</A></B>
+<B>Sun Aug 10 15:11:27 PDT 1997</B><BR>
+</LI>
+<UL>
+<LI>Added doc-hdr.html for otcldoc.  This html stub is included
+at the top of index.html from the otcldoc output.
+We still need to create a Makefile rule for running otcldoc,
+but in the meantime you can run it manually as follows:
+<pre>
+	../tclcl/otcldoc -h doc-hdr.html tcl/*/*.tcl tcl/*/*/*.tcl
+</pre>
+<li> Fixed up some of the formatting in this change history.
+</UL>
 
 <LI><B><A HREF=http://www.cs.berkeley.edu/~elan>[EA]</A>
 Fri Nov 28 19:13:31 PST 1997
@@ -24,9 +42,6 @@ Fri Nov 28 19:13:31 PST 1997
 <li> Fixed bug in namsupp where queues weren't being outputed.
 </ul>
 
-<hr>
-<H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b2.tar.gz">ns-2.1b2</A> [not released yet]</H3>
-<UL>
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>Sun Dec  7 16:44:39 PST 1997<br>
        A first cut at the Vegas test suite.
        Tests are very similar to ns-1.4
@@ -55,7 +70,7 @@ such as SemanticREDQueue.
 </UL>
 
   <LI><B><A HREF=http://www.cs.berkeley.edu/~hari>[hari]</A></B>
-       Tue Nov 18 17:22:12 PST 1997 <br>
+       <b>Tue Nov 18 17:22:12 PST 1997</b> <br>
 	<ul>
      <LI>  Multi-state error models and restructuring of OTcl support
      code in tcl/ex/ns-errmodel.tcl (ns-ber.tcl now obsolete).  
@@ -73,15 +88,13 @@ such as SemanticREDQueue.
 <P> Release to incorporate tracing features for nam-1.0a2. This release is CVS tagged with NS_2_1B1 </P>
 
 <UL>
-
-<UL>
   <LI><B><A HREF="http://www.isi.edu/~kkumar/">[SK]</A></B>
-       Tue Nov 11 18:29:44 PST 1997 <br>
+       <b>Tue Nov 11 18:29:44 PST 1997</b> <br>
        validate now runs only v2 tests.
        There's a new script validate-v1 to run v1 tests.
      </LI>
   <LI><B><A HREF=http://www.isi.edu/~kannan/>[KVa]</A></B>
-	Tue Nov 11 12:40:44 PST 1997
+	<b>Tue Nov 11 12:40:44 PST 1997</b>
 	<br>
 	Minor updates:
 	<ul>
@@ -94,14 +107,14 @@ such as SemanticREDQueue.
 		``Agent/SRM set sessionFunction_ "SRM/session/log-scaled"''
 	</ul>
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[kfall]</A></B>
-       Mon Nov 10 16:54:52 PST 1997<br>
+       <b>Mon Nov 10 16:54:52 PST 1997</b><br>
        Update to ns-lib to have an intf to allocating and attaching flow
        monitors.  Add this to the red test suite so that it may now re-
        produce what it did for ns1.<br>
        Finish the v2 CBQ test suite.  Validated output is still lacking.
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
-       Mon Nov 10 15:54:54 PST 1997<br>
+       <b>Mon Nov 10 15:54:54 PST 1997</b><br>
        Configuration for tcl/tk changed to search for tcl/tk-8.0
        and fall-back on 7.6/4.2.
        The builder is responsible to make sure that the same
@@ -111,7 +124,7 @@ such as SemanticREDQueue.
        (or --with-tcl=/full/path/to/tcl7.6 etc.).
 
   <LI><B><A HREF=http://www.cs.berkeley.edu/~hari>[hari]</A></B>
-       Wed Nov  5 20:44:32 PST 1997 <br>
+       <b>Wed Nov  5 20:44:32 PST 1997</b> <br>
 	<ul>
      <LI>  Massive changes to error model structures and error generation to make 
 	it work correctly.  Three kinds of error models -- packet-based, 
@@ -124,7 +137,7 @@ such as SemanticREDQueue.
        </ul>    
 
   <LI><B><A HREF="http://www.isi.edu/~kkumar/">[SK]</A></B>
-       Wed Nov  5 19:07:12 PST 1997 <br>
+       <b>Wed Nov  5 19:07:12 PST 1997</b> <br>
        Major bug fixes made to detailedDM multicast routing protocol 
        implementation.
        Added example scripts and documentation.
@@ -134,25 +147,25 @@ such as SemanticREDQueue.
      </LI>
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
-       Wed Nov  5 19:03:00 PST 1997<br>
+       <b>Wed Nov  5 19:03:00 PST 1997</b><br>
        Validate changed to detect and report failed tests.
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
-       Wed Nov  5 18:29:13 PST 1997<br>
+       <b>Wed Nov  5 18:29:13 PST 1997</b><br>
        Agent/TCP set restart_bugfix_ is back to true by default
        (but not in v1-mode).
        ./test-all::telnet and ./test-all-red::red_twowaybytes:
        both changed (very slightly) and were updated.
 
   <LI><B><A HREF="mailto:huang@isi.edu">[PH]</a></b>
-       Mon Nov  3 15:59:56 PST 1997<br>
+       <b>Mon Nov  3 15:59:56 PST 1997</b><br>
        Checked in the codes to improve SessionSim scalibility and to enable
        multiple loss modules per tree.
        Files changed: sessionhelper.cc, tcl/session/session.tcl, 
        tcl/ex/newmcast/session3.tcl
      </LI>
   <LI><B><A HREF="http://www.isi.edu/~kkumar/">[SK]</A></B>
-       Wed Oct 29 23:22:24 PST 1997 <br>
+       <b>Wed Oct 29 23:22:24 PST 1997</b> <br>
        Checked in new multicast code that adapts to network dynamics
        and supports LAN topologies
        Files added: tcl/mcast/{detailedDM.tcl, timer.tcl}
@@ -160,7 +173,7 @@ such as SemanticREDQueue.
      </LI>
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
-       Tue Oct 28 15:04:32 PST 1997<br>
+       <b>Tue Oct 28 15:04:32 PST 1997</b><br>
        Some test suite work:
        <ul>
 	 <li> validate:  a new program in the top directory which runs
@@ -182,12 +195,12 @@ such as SemanticREDQueue.
        </ul>
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
-       Mon Oct 27 18:52:25 PST 1997<br>
+       <b>Mon Oct 27 18:52:25 PST 1997</b><br>
        Agent/TCP set restart_bugfix_ => false
        (temporarily).
 
   <LI><B><A HREF="http://www.cs.berkeley.edu/~hari/">[hari]</A></B>
-       Sat Oct 25 23:24:56 PDT 1997 <br>
+       <b>Sat Oct 25 23:24:56 PDT 1997</b> <br>
 	Several changes, including some bug fixes:
 
        <ul>
@@ -221,13 +234,13 @@ Files: semantic-packetqueue.{cc,h}, queue.cc
      </LI>
 
   <LI><B><A HREF=http://www.isi.edu/~kannan/>[KVa]</A></B>
-	Thu Oct 23 13:09:11 PDT 1997
+	<b>Thu Oct 23 13:09:11 PDT 1997</b>
 	<br>
 	SRM fixes, from Christoph Haenle &lt;christoph@starburst.com&gt; and
 	Haobo Yu &lt;haoboy@isi.edu&gt;.
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
-       Wed Oct 22 21:20:57 PDT 1997<br>
+       <b>Wed Oct 22 21:20:57 PDT 1997</b><br>
        Some ns TcpAgent changes:
 
        <ul>
@@ -247,7 +260,7 @@ Files: semantic-packetqueue.{cc,h}, queue.cc
      </LI>
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
-       Wed Oct 22 21:18:33 PDT 1997<br>
+       <b>Wed Oct 22 21:18:33 PDT 1997</b><br>
        tcp-rbp bug fixes for Agent/TCP/Reno/RBP:
        prevent bursting after pacing,
        properly compute pacing interval.
@@ -255,11 +268,11 @@ Files: semantic-packetqueue.{cc,h}, queue.cc
      </LI>
 
   <LI><B><A HREF=http://www.isi.edu/~kannan/>[KVa]</A></B>
-	Wed Oct 22 13:58:15 PDT 1997<br>
+	<b>Wed Oct 22 13:58:15 PDT 1997</b><br>
 	Minor cleanup following the crash.
 
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[KF]</A></B>
-       Mon Oct 20 19:56:51 PDT 1997<br>
+       <b>Mon Oct 20 19:56:51 PDT 1997</b><br>
     <UL>
 
     <LI> The tcp-full.cc is updated to incorporate some of (but not yet all of)
@@ -286,7 +299,7 @@ Files: semantic-packetqueue.{cc,h}, queue.cc
        put together with extensibility in mind.<br>
      </UL>
   <LI><B><A HREF="http://www.isi.edu/~kkumar/">[SK]</A></B>
-       Sun Oct 19 23:56:51 PDT 1997<br>
+       <b>Sun Oct 19 23:56:51 PDT 1997</b><br>
        Checked in multicast validation tests.
        Files added: test-all-mcast, test-all-template-mcast, 
        test-suite-mcast.tcl, test-output-mcast/{CtrMcast1.Z, DM1.Z, DM2.Z,
@@ -295,14 +308,14 @@ Files: semantic-packetqueue.{cc,h}, queue.cc
 
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
-       Sat Oct 18 20:28:37 PDT 1997<br>
+       <b>Sat Oct 18 20:28:37 PDT 1997</b><br>
        Random number seed starts at 1;
        RBP now uses srtt rather than rtt;
        configure now checks for perl.
      </LI>
 
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B>
-      Sat Oct 18 14:39:35 PDT 1997<br>
+      <b>Sat Oct 18 14:39:35 PDT 1997</b><br>
       <UL>
       <LI>Made a bugfix so that maxburst now works correctly with
       SACK1 TCP.
@@ -312,12 +325,12 @@ Files: semantic-packetqueue.{cc,h}, queue.cc
       and test-all-v1.
       </UL>
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[KF]</A></B>
-      Fri Oct 17 11:29:10 PDT 1997<br>
+      <b>Fri Oct 17 11:29:10 PDT 1997</b><br>
       First cut at changing the fullTCP test suite over to the
       "simplified" version (using tcl/test/misc.tcl).
       </LI>
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B>
-      Fri Oct 10 19:29:10 PDT 1997<br>
+      <b>Fri Oct 10 19:29:10 PDT 1997</b><br>
       A few more small changes to code for retransmit timers.
       Added new configuration variables for setting initial values
       for retransmit timers.  (The CVS log for these changes 
@@ -325,7 +338,7 @@ Files: semantic-packetqueue.{cc,h}, queue.cc
       disk crash of Oct. 10.)
       </LI>
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B>
-      Wed Oct  8 21:16:36 PDT 1997<br>
+      <b>Wed Oct  8 21:16:36 PDT 1997</b><br>
       <UL>
       <LI> Added tracing of number of transmitted and retransmitted packets
       to TCP,
@@ -339,35 +352,35 @@ Files: semantic-packetqueue.{cc,h}, queue.cc
       the functionality more in line with that of actual implementations.
       </UL>
   <LI><B><A HREF="mailto:huang@isi.edu">[PH]</a></b>
-       Wed Oct  8 17:22:44 PDT 1997<br>
+       <b>Wed Oct  8 17:22:44 PDT 1997</b><br>
        Added simple queue and ttl checker modules for SessionSim
      </LI>
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B>
-      Mon Oct  6 13:48:10 PDT 1997<br>
+      <b>Mon Oct  6 13:48:10 PDT 1997</b><br>
       Bug fix for ns-compatibility mode for CBQ.
       Code contributed by Greg Minshall, minshall@acm.org.
       </LI>
   <LI><B><A HREF="http://north.east.isi.edu/~mjh/">[mjh]</A></B>
-       Fri Oct  3 12:59:37 EDT 1997<br>
+       <b>Fri Oct  3 12:59:37 EDT 1997</b><br>
        Changed nam tracefile code to generate more Tcl-like format
      </LI>
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
-       Thu Oct  2 13:46:29 PDT 1997<br>
+       <b>Thu Oct  2 13:46:29 PDT 1997</b><br>
        Default scheduler changed to List in backwards compatibilty mode.
      </LI>
 
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B>
-  Wed Oct  1 14:41:13 PDT 1997<BR>
+  <b>Wed Oct  1 14:41:13 PDT 1997</b><BR>
   Changed the default RED behavior when queue is full from random-drop
   to drop-tail.
   </LI>
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B> 
-  Mon Sep 29 16:51:33 PDT 1997<BR>
+  <b>Mon Sep 29 16:51:33 PDT 1997</b><BR>
   Added an ECN-Capable flag to the packet header (ecn_capable_), and
   modified tcp.cc and red.cc to set and check it.
   </LI>
 
-  <LI><A HREF="mailto:huang@isi.edu">[PH]</A> Fri Sep 19 15:19:08 PDT 1997<br>
+  <LI><A HREF="mailto:huang@isi.edu">[PH]</A> <b>Fri Sep 19 15:19:08 PDT 1997</b><br>
   <UL>
   <LI>modified SRM example scripts, tcl/ex/srm-*.tcl, to use error model instead of rtmodel.
   <LI>added equivalent SRM example scripts using session level simulator. tcl/ex/srm-*-session.tcl
@@ -390,7 +403,7 @@ Sep 10, 1997</H3>
 <UL>
 
   <LI><B><A HREF="http://catarina.usc.edu/~haoboy/">[haoboy]</A></B>
-  Thu Sep 11 18:35:24 PDT 1997
+  <b>Thu Sep 11 18:35:24 PDT 1997</b><br>
   Support for Mark's new nam trace file format. All events except routing are 
   supported. It requires updates of Tcl.cc, which is already checked in. The 
   document of new trace file format is 
@@ -399,7 +412,7 @@ Sep 10, 1997</H3>
   Also minor changes to nam-1 to make down link more visible.
   </LI>
 
-  <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+  <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A>
        and <a href="http://www.isi.edu/~haoboy/">[haoboy]</a>
        Wed Sep 10 22:51:33 PDT 1997</b><br>
        2.0 release.
