@@ -55,6 +55,8 @@ $ns attach-agent $n1 $null1
 
 $ns connect $cbr0 $null1
 
+$ns rtproto DV
+
 $ns rtmodel Deterministic {} $n0 $n1
 [$ns link $n0 $n1] trace-dynamics $ns stdout
 [$ns link $n0 $n1] trace-dynamics $ns stdout "nam"
