@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.78 1997/12/18 03:29:25 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.79 1997/12/18 23:08:43 haoboy Exp $
 
 
 #
@@ -250,6 +250,8 @@ ErrorModel set onlink_ 0
 ErrorModel set enable_ 0
 ErrorModel/Periodic set period_ 1.0
 ErrorModel/Periodic set offset_ 0.0
+SRMErrorModel set errByte_ 0
+SRMErrorModel set errTime_ 0
 
 QueueMonitor set size_ 0
 QueueMonitor set pkts_ 0
