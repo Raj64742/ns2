@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/realaudio/realaudio.cc,v 1.3 2000/10/18 01:19:41 haoboy Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/realaudio/realaudio.cc,v 1.4 2000/11/14 01:48:56 kclan Exp $ (USC/ISI)";
 #endif
 
 #ifndef WIN32 
@@ -86,6 +86,8 @@ void RA_Traffic::init()
 //      int res1 = Ontime_.loadCDF("ontimecdf");
         timeval tv;
 	gettimeofday(&tv, 0);
+
+        if (res < 0)  printf("error:unable to load offtimecdf");
 
 	interval_ = ontime_ ;
 	burstlen_ = (double) ( rate_ * (ontime_ + offtime_))/ (double)(size_ << 3);
