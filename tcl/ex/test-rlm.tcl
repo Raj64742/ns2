@@ -42,7 +42,7 @@ if [info exists rlmTraceFile] {
 Simulator instproc create-agent { node type pktClass } {
 	$self instvar Agents PortID 
 	set agent [new $type]
-	$agent set class_ $pktClass
+	$agent set fid_ $pktClass
 	$self attach-agent $node $agent
 	$agent proc get var {
 		return [$self set $var]
@@ -50,9 +50,9 @@ Simulator instproc create-agent { node type pktClass } {
 	return $agent
 }
 
-Simulator instproc cbr_flow { node class addr bw } {
+Simulator instproc cbr_flow { node fid addr bw } {
 	global packetSize
-	set agent [$self create-agent $node Agent/CBR $class]
+	set agent [$self create-agent $node Agent/CBR $fid]
 	
 	#XXX abstraction violation
 	$agent set dst_ $addr
@@ -265,8 +265,9 @@ Scenario0 instproc init args {
 rlm_init $rectFile $level $runtime  
 
 set ns [new Simulator]
+#XXXX
+proc ns-now {} "return \[$ns now]"
 
-#$ns color 0 
 $ns color 1 blue
 $ns color 2 green
 $ns color 3 red
