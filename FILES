@@ -471,6 +471,14 @@ random.cc
 random.h
 ranvar.cc
 ranvar.h
+rap/media-app.cc
+rap/media-app.h
+rap/rap.cc
+rap/rap.h
+rap/raplist.cc
+rap/raplist.h
+rap/utilities.cc
+rap/utilities.h
 red.cc
 red.h
 replicator.cc
