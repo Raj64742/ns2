@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.4 1997/04/09 00:10:08 kannan Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.h,v 1.5 1997/04/24 03:28:49 kfall Exp $
  */
 
 #ifndef ns_trace_h
@@ -63,9 +63,10 @@
 	"rtProtoDV"
 
 struct hdr_cmn {
-	int		ptype_;
-	int		uid_;
-	int		size_;
+	double		ts_;	// timestamp: for q-delay measurement
+	int		ptype_;	// packet type (see above)
+	int		uid_;	// unique id
+	int		size_;	// simulated packet size
 
 	/* per-field member functions */
 	int& ptype() {
@@ -76,6 +77,9 @@ struct hdr_cmn {
 	}
 	int& size() {
 		return (size_);
+	}
+	double& timestamp() {
+		return (ts_);
 	}
 };
 
