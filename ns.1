@@ -820,7 +820,14 @@ the current color of the node in nam trace file, if there is one.
 .\"
 .IP "\fB$node get-attribute \fIname\fP"
 Get the specified attribute \fIname\fP of the node. Currently a Node object
-has two attributes: \fICOLOR\fP and \fISHAPE\fP. 
+has two attributes: \fICOLOR\fP and \fISHAPE\fP. Note: these letters must be 
+capital.
+.IP "\fB$node add-mark \fIname color shape\fP"
+Add a mark (in nam trace file) with \fIcolor\fP and \fIshape\fP around
+the node. The shape can be """circle""", """hexagon""" and """square""" (case
+sensitive). The added mark will be identified by \fIname\fP.
+.IP "\fB$node delete-mark \fIname\fP"
+Delete the mark with \fIname\fP in the given node. 
 
 .LP
 There are no state variables or configuration parameters
