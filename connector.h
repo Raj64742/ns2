@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.h,v 1.5 1997/07/24 04:45:06 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/connector.h,v 1.6 1997/07/24 08:55:01 padmanab Exp $
  */
 
 #ifndef ns_connector_h
@@ -45,11 +45,11 @@ class Connector : public NsObject {
 public:
 	Connector();
 	inline NsObject* target() { return target_; }
+	virtual void drop(Packet* p);
 protected:
 	int command(int argc, const char*const* argv);
 	void recv(Packet*, Handler* callback = 0);
 	inline void send(Packet* p, Handler* h) { target_->recv(p, h); }
-	virtual void drop(Packet* p);
 
 	NsObject* target_;
 	NsObject* drop_;	// drop target for this connector
