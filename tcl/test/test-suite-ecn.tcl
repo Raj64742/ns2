@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.10 1998/05/14 01:07:25 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.11 1998/05/27 23:42:59 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -49,12 +49,17 @@ set flowfile fairflow.tr; # file where flow data is written
 set flowgraphfile fairflow.xgr; # file given to graph tool 
 
 TestSuite instproc finish file {
-	global quiet
+	global quiet 
 	$self instvar ns_ tchan_ testName_ cwnd_chan_
         exec ../../bin/getrc -s 2 -d 3 all.tr | \
-          ../../bin/raw2xg -a -s 0.01 -m 90 -t $file > temp.rands
+	   ../../bin/raw2xg -a -e -s 0.01 -m 90 -t $file > temp.rands
+	exec ../../bin/getrc -s 3 -d 2 all.tr | \
+	  ../../bin/raw2xg -a -e -s 0.01 -m 90 -t $file > temp1.rands
 	if {$quiet == "false"} {
-        	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+		exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
+# The line below plots both data and ack packets.
+#        	exec xgraph -bb -tk -nl -m -x time -y packets temp.rands \
+#                     temp1.rands &
 	}
         ## now use default graphing tool to make a data file
         ## if so desired
