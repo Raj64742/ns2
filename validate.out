@@ -1,14 +1,20 @@
 (Validation can take 1-30 hours to run.)
 *** ./test-all-simple
-Tests: tahoe1 tahoe2 tahoe3 tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers manyflows stats stats1 stats2
+Tests: tahoe1 tahoe1RED tahoe2 tahoe3 tahoe3RED tahoe4 no_bug bug reno1 reno renoA reno2 reno3 reno4 reno4a reno5 telnet delayed phase phase1 phase2 timers manyflows stats stats1 stats1a statsHeaders stats2
 Running test tahoe1:
 ../../ns test-suite-simple.tcl tahoe1 QUIET
+Test output agrees with reference output
+Running test tahoe1RED:
+../../ns test-suite-simple.tcl tahoe1RED QUIET
 Test output agrees with reference output
 Running test tahoe2:
 ../../ns test-suite-simple.tcl tahoe2 QUIET
 Test output agrees with reference output
 Running test tahoe3:
 ../../ns test-suite-simple.tcl tahoe3 QUIET
+Test output agrees with reference output
+Running test tahoe3RED:
+../../ns test-suite-simple.tcl tahoe3RED QUIET
 Test output agrees with reference output
 Running test tahoe4:
 ../../ns test-suite-simple.tcl tahoe4 QUIET
@@ -71,11 +77,13 @@ tcp1/window=30/packetSize=1000/bugFix=1
 tcp0/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
 tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
 tcp0/time=5/cwnd=7.0000/ssthresh=7/ack=96/rtt=3
-tcp1/time=5.0000099999999996/cwnd=2.0000/ssthresh=13/ack=26/rtt=6
+tcp1/time=5.0000099999999996/cwnd=2.0000/ssthresh=13/ack=26/rtt=7
 tcp0/time=10/cwnd=11.4952/ssthresh=10/ack=328/rtt=2
 tcp1/time=10.000019999999999/cwnd=2.0000/ssthresh=7/ack=87/rtt=6
 tcp 0 highest_seqment_acked 336
+tcp 0 data_bytes_sent 375000
 tcp 1 highest_seqment_acked 87
+tcp 1 data_bytes_sent 108000
 fid: 0 per-link total_drops 13
 fid: 0 per-link total_packets 360
 fid: 0 per-link total_bytes 359040
@@ -88,10 +96,12 @@ Test output agrees with reference output
 Running test stats1:
 ../../ns test-suite-simple.tcl stats1 QUIET
 TCP packetSize 100
-ftp 0 segments_produced 10 (using `FTP produce pktcnt')
-ftp 1 bytes_produced 1000 (using `FTP send nbytes')
+ftp 0 segments_produced 9 (using `FTP produce pktcnt')
+ftp 1 bytes_produced 900 (using `FTP send nbytes')
 tcp 0 highest_seqment_acked 9
+tcp 0 data_bytes_sent 900
 tcp 1 highest_seqment_acked 9
+tcp 1 data_bytes_sent 900
 fid: 0 per-link total_drops 0
 fid: 0 per-link total_packets 10
 fid: 0 per-link total_bytes 940
@@ -100,10 +110,49 @@ fid: 1 per-link total_packets 10
 fid: 1 per-link total_bytes 940
 aggregate per-link total_drops 0
 aggregate per-link total_packets 20
+True average queue: 0.004 time: 3.007
+Test output agrees with reference output
+Running test stats1a:
+../../ns test-suite-simple.tcl stats1a QUIET
+TCP packetSize 100
+ftp 0 segments_produced 9 (using `FTP produce pktcnt')
+ftp 1 bytes_produced 900 (using `FTP send nbytes')
+tcp 0 highest_seqment_acked 9
+tcp 0 data_bytes_sent 900
+tcp 1 highest_seqment_acked 9
+tcp 1 data_bytes_sent 900
+fid: 0 per-link total_drops 0
+fid: 0 per-link total_packets 10
+fid: 0 per-link total_bytes 940
+fid: 1 per-link total_drops 0
+fid: 1 per-link total_packets 10
+fid: 1 per-link total_bytes 940
+aggregate per-link total_drops 0
+aggregate per-link total_packets 20
+True average queue: 0.004 time: 3.007
+Test output agrees with reference output
+Running test statsHeaders:
+../../ns test-suite-simple.tcl statsHeaders QUIET
+TCP packetSize 100
+ftp 0 segments_produced 9 (using `FTP produce pktcnt')
+ftp 1 bytes_produced 900 (using `FTP send nbytes')
+tcp 0 highest_seqment_acked 9
+tcp 0 data_bytes_sent 900
+tcp 1 highest_seqment_acked 9
+tcp 1 data_bytes_sent 900
+fid: 0 per-link total_drops 0
+fid: 0 per-link total_packets 10
+fid: 0 per-link total_bytes 1300
+fid: 1 per-link total_drops 0
+fid: 1 per-link total_packets 10
+fid: 1 per-link total_bytes 1300
+aggregate per-link total_drops 0
+aggregate per-link total_packets 20
+True average queue: 0.006 time: 3.009
 Test output agrees with reference output
 Running test stats2:
 ../../ns test-suite-simple.tcl stats2 QUIET
-True average queue: 7.231 time: 9.997
+True average queue: 8.632 time: 9.999
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-simple-full
@@ -154,12 +203,12 @@ Running test stats:
 ../../ns test-suite-simple-full.tcl stats QUIET
 tcp0/window=30/packetSize=1000/bugFix=1
 tcp1/window=30/packetSize=1000/bugFix=1
-tcp0/time=0/cwnd=2.0000/ssthresh=30/ack=-1/rtt=0
-tcp1/time=0/cwnd=2.0000/ssthresh=30/ack=-1/rtt=0
-tcp0/time=5/cwnd=4.0953/ssthresh=2/ack=89281/rtt=3
+tcp0/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
+tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
+tcp0/time=5/cwnd=4.0953/ssthresh=2/ack=89281/rtt=2
 tcp1/time=5.0000099999999996/cwnd=2.0000/ssthresh=13/ack=24961/rtt=6
 tcp0/time=10/cwnd=9.3894/ssthresh=8/ack=267841/rtt=2
-tcp1/time=10.000019999999999/cwnd=2.0000/ssthresh=7/ack=84481/rtt=7
+tcp1/time=10.000019999999999/cwnd=2.0000/ssthresh=7/ack=84481/rtt=6
 tcp 0 highest_seqment_acked 276481
 tcp 1 highest_seqment_acked 84481
 fid: 0 per-link total_drops 11
@@ -234,9 +283,9 @@ tcp1/time=0/cwnd=1.0000/ssthresh=30/ack=-1/rtt=0
 tcp2/time=0/cwnd=1.0000/ssthresh=3/ack=-1/rtt=0
 
 tcp: 1 time: 10.0
-total_data_packets_sent: 530 data_bytes_sent: 530000
+total_data_packets_sent: 541 data_bytes_sent: 541000
 packets_resent: 10 bytes_resent: 10000
-ack_packets_received: 496
+ack_packets_received: 507
 retransmit_timeouts: 1
 
 tcp: 2 time: 10.0
@@ -245,7 +294,7 @@ packets_resent: 0 bytes_resent: 0
 ack_packets_received: 39
 retransmit_timeouts: 0
 
-tcp1/time=10/cwnd=29.4693/ssthresh=7/ack=490/rtt=3
+tcp1/time=10/cwnd=29.8405/ssthresh=7/ack=501/rtt=3
 tcp2/time=10/cwnd=9.1730/ssthresh=3/ack=38/rtt=7
 Test output agrees with reference output
 Running test quiescent_100ms:
@@ -376,7 +425,7 @@ Running test newreno2_B_bugfix:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-sack
-Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a
+Tests: sack1 sack1z sack1a sack1aa sack1b sack1c sack3 sack5 sack5a sackB2 sackB4 sackB4a FalsePipe FalsePipe1
 Running test sack1:
 ../../ns test-suite-sack.tcl sack1 QUIET
 Test output agrees with reference output
@@ -412,6 +461,12 @@ Running test sackB4:
 Test output agrees with reference output
 Running test sackB4a:
 ../../ns test-suite-sack.tcl sackB4a QUIET
+Test output agrees with reference output
+Running test FalsePipe:
+../../ns test-suite-sack.tcl FalsePipe QUIET
+Test output agrees with reference output
+Running test FalsePipe1:
+../../ns test-suite-sack.tcl FalsePipe1 QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcpOptions
@@ -497,6 +552,7 @@ Running test simul-open:
 Test output agrees with reference output
 Running test simul-close:
 ../../ns test-suite-full.tcl simul-close QUIET
+ [0:0.0>3.0] (hlen:40, dlen:0, seq:0, ack:-1, flags:0xa (<PSH,SYN>), salen:0, reason:0x0)
 Test output agrees with reference output
 Running test droppednearfin:
 ../../ns test-suite-full.tcl droppednearfin QUIET
@@ -545,7 +601,7 @@ Running test winlimited:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcpReset
-Tests: reset resetDelAck resetDelAck1
+Tests: reset resetDelAck resetDelAck1 reset1 resetDelAck2 resetDelAck3 resetNewreno resetSack1 resetReno
 Running test reset:
 ../../ns test-suite-tcpReset.tcl reset QUIET
 Test output agrees with reference output
@@ -554,6 +610,24 @@ Running test resetDelAck:
 Test output agrees with reference output
 Running test resetDelAck1:
 ../../ns test-suite-tcpReset.tcl resetDelAck1 QUIET
+Test output agrees with reference output
+Running test reset1:
+../../ns test-suite-tcpReset.tcl reset1 QUIET
+Test output agrees with reference output
+Running test resetDelAck2:
+../../ns test-suite-tcpReset.tcl resetDelAck2 QUIET
+Test output agrees with reference output
+Running test resetDelAck3:
+../../ns test-suite-tcpReset.tcl resetDelAck3 QUIET
+Test output agrees with reference output
+Running test resetNewreno:
+../../ns test-suite-tcpReset.tcl resetNewreno QUIET
+Test output agrees with reference output
+Running test resetSack1:
+../../ns test-suite-tcpReset.tcl resetSack1 QUIET
+Test output agrees with reference output
+Running test resetReno:
+../../ns test-suite-tcpReset.tcl resetReno QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-tcp-init-win
@@ -1042,42 +1116,42 @@ time: 1.84301 sample 0:    92 loss_rate: 0.00098
 time: 1.84835 loss_rate: 0.00179 
 time: 1.84835 sample 0:     1 loss_rate: 0.00179 
 1.848345: sample 0:     1 1:    93 2:  1024 3:     0 4:     0
-time: 2.07768 loss_rate: 0.00254 
-time: 2.07768 sample 0:     1 loss_rate: 0.00254 
-2.077678: sample 0:     1 1:    62 2:    93 3:  1024 4:     0
-time: 2.31139 loss_rate: 0.00254 
-time: 2.31139 sample 0:    35 loss_rate: 0.00254 
-2.311393: sample 0:    35 1:    62 2:    93 3:  1024 4:     0
-time: 2.42041 loss_rate: 0.00254 
-time: 2.42041 sample 0:    46 loss_rate: 0.00254 
-2.420415: sample 0:    46 1:    62 2:    93 3:  1024 4:     0
-time: 2.49749 loss_rate: 0.00254 
-time: 2.49749 sample 0:    55 loss_rate: 0.00254 
-2.497489: sample 0:    55 1:    62 2:    93 3:  1024 4:     0
-time: 2.56332 loss_rate: 0.00254 
-time: 2.56332 sample 0:    64 loss_rate: 0.00254 
-2.563317: sample 0:    64 1:    62 2:    93 3:  1024 4:     0
-time: 2.62789 loss_rate: 0.00254 
-time: 2.62789 sample 0:    74 loss_rate: 0.00254 
-2.627890: sample 0:    74 1:    62 2:    93 3:  1024 4:     0
-time: 2.69139 loss_rate: 0.00254 
-time: 2.69139 sample 0:    85 loss_rate: 0.00254 
-2.691393: sample 0:    85 1:    62 2:    93 3:  1024 4:     0
-time: 2.75539 loss_rate: 0.00254 
-time: 2.75539 sample 0:    97 loss_rate: 0.00254 
-2.755393: sample 0:    97 1:    62 2:    93 3:  1024 4:     0
-time: 2.81939 loss_rate: 0.00254 
-time: 2.81939 sample 0:   109 loss_rate: 0.00254 
-2.819393: sample 0:   109 1:    62 2:    93 3:  1024 4:     0
-time: 2.88339 loss_rate: 0.00254 
-time: 2.88339 sample 0:   121 loss_rate: 0.00254 
-2.883393: sample 0:   121 1:    62 2:    93 3:  1024 4:     0
-time: 2.95273 loss_rate: 0.00254 
-time: 2.95273 sample 0:   134 loss_rate: 0.00254 
-2.952726: sample 0:   134 1:    62 2:    93 3:  1024 4:     0
-time: 2.95806 loss_rate: 0.00343 
-time: 2.95806 sample 0:     1 loss_rate: 0.00343 
-2.958059: sample 0:     1 1:   135 2:    62 3:    93 4:  1024
+time: 2.06701 loss_rate: 0.00255 
+time: 2.06701 sample 0:     1 loss_rate: 0.00255 
+2.067012: sample 0:     1 1:    61 2:    93 3:  1024 4:     0
+time: 2.30051 loss_rate: 0.00255 
+time: 2.30051 sample 0:    35 loss_rate: 0.00255 
+2.300512: sample 0:    35 1:    61 2:    93 3:  1024 4:     0
+time: 2.40978 loss_rate: 0.00255 
+time: 2.40978 sample 0:    46 loss_rate: 0.00255 
+2.409777: sample 0:    46 1:    61 2:    93 3:  1024 4:     0
+time: 2.48701 loss_rate: 0.00255 
+time: 2.48701 sample 0:    55 loss_rate: 0.00255 
+2.487006: sample 0:    55 1:    61 2:    93 3:  1024 4:     0
+time: 2.55293 loss_rate: 0.00255 
+time: 2.55293 sample 0:    64 loss_rate: 0.00255 
+2.552932: sample 0:    64 1:    61 2:    93 3:  1024 4:     0
+time: 2.61758 loss_rate: 0.00255 
+time: 2.61758 sample 0:    74 loss_rate: 0.00255 
+2.617576: sample 0:    74 1:    61 2:    93 3:  1024 4:     0
+time: 2.68113 loss_rate: 0.00255 
+time: 2.68113 sample 0:    85 loss_rate: 0.00255 
+2.681132: sample 0:    85 1:    61 2:    93 3:  1024 4:     0
+time: 2.74513 loss_rate: 0.00255 
+time: 2.74513 sample 0:    97 loss_rate: 0.00255 
+2.745132: sample 0:    97 1:    61 2:    93 3:  1024 4:     0
+time: 2.80913 loss_rate: 0.00255 
+time: 2.80913 sample 0:   109 loss_rate: 0.00255 
+2.809132: sample 0:   109 1:    61 2:    93 3:  1024 4:     0
+time: 2.87313 loss_rate: 0.00255 
+time: 2.87313 sample 0:   121 loss_rate: 0.00255 
+2.873132: sample 0:   121 1:    61 2:    93 3:  1024 4:     0
+time: 2.91580 loss_rate: 0.00345 
+time: 2.91580 sample 0:     1 loss_rate: 0.00345 
+2.915798: sample 0:     1 1:   129 2:    61 3:    93 4:  1024
+time: 2.99580 loss_rate: 0.00345 
+time: 2.99580 sample 0:    16 loss_rate: 0.00345 
+2.995798: sample 0:    16 1:   129 2:    61 3:    93 4:  1024
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-srm
@@ -1415,6 +1489,42 @@ Running test ecn_secondpkt_reno_full:
 ../../ns test-suite-ecn-full.tcl ecn_secondpkt_reno_full QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
+*** ./test-all-testReno-full
+Tests: Tahoe_FullTCP Reno_FullTCP Reno_BayFullTCP NewReno_FullTCP Tahoe_FullTCP2 Reno_FullTCP2 Reno_BayFullTCP2 NewReno_FullTCP2
+Running test Tahoe_FullTCP:
+../../ns test-suite-testReno-full.tcl Tahoe_FullTCP QUIET
+Test output agrees with reference output
+Running test Reno_FullTCP:
+../../ns test-suite-testReno-full.tcl Reno_FullTCP QUIET
+Test output agrees with reference output
+Running test Reno_BayFullTCP:
+../../ns test-suite-testReno-full.tcl Reno_BayFullTCP QUIET
+Test output agrees with reference output
+Running test NewReno_FullTCP:
+../../ns test-suite-testReno-full.tcl NewReno_FullTCP QUIET
+Test output agrees with reference output
+Running test Tahoe_FullTCP2:
+../../ns test-suite-testReno-full.tcl Tahoe_FullTCP2 QUIET
+Test output agrees with reference output
+Running test Reno_FullTCP2:
+../../ns test-suite-testReno-full.tcl Reno_FullTCP2 QUIET
+Test output agrees with reference output
+Running test Reno_BayFullTCP2:
+../../ns test-suite-testReno-full.tcl Reno_BayFullTCP2 QUIET
+Test output agrees with reference output
+Running test NewReno_FullTCP2:
+../../ns test-suite-testReno-full.tcl NewReno_FullTCP2 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-testReno-bayfull
+Tests: Reno_FullTCP Reno_FullTCP2
+Running test Reno_FullTCP:
+../../ns test-suite-testReno-bayfull.tcl Reno_FullTCP QUIET
+Test output agrees with reference output
+Running test Reno_FullTCP2:
+../../ns test-suite-testReno-bayfull.tcl Reno_FullTCP2 QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
 *** ./test-all-manual-routing
 Tests: one_client
 Running test one_client:
@@ -1425,7 +1535,7 @@ set-address-format expanded is obsoleted by 32-bit addressing.
 t=0.000: creating clients 0 to 15
 t=0.000: client 0 created
 t=0.000: client 0 started
-t=3.426: client 0 finished (10 pkts, 3.4264963032650391 s)
+t=1.968: client 0 finished (10 pkts, 1.9675224614756353 s)
 total clients started: 1
 total clients finished: 1
 Test output agrees with reference output
@@ -1581,23 +1691,23 @@ Running test flows_combined:
 Test output agrees with reference output
 Running test ungentle:
 ../../ns test-suite-red.tcl ungentle QUIET
-total_drops 395 total_packets 7723
+total_drops 431 total_packets 7465
 Test output agrees with reference output
 Running test gentle:
 ../../ns test-suite-red.tcl gentle QUIET
-total_drops 364 total_packets 7805
+total_drops 382 total_packets 7712
 Test output agrees with reference output
 Running test gentleEcn:
 ../../ns test-suite-red.tcl gentleEcn QUIET
-total_drops 201 total_packets 7809
+total_drops 182 total_packets 7836
 Test output agrees with reference output
 Running test ungentleBadParams:
 ../../ns test-suite-red.tcl ungentleBadParams QUIET
-total_drops 677 total_packets 6401
+total_drops 690 total_packets 6080
 Test output agrees with reference output
 Running test gentleBadParams:
 ../../ns test-suite-red.tcl gentleBadParams QUIET
-total_drops 442 total_packets 7481
+total_drops 433 total_packets 7051
 Test output agrees with reference output
 Running test q_weight:
 ../../ns test-suite-red.tcl q_weight QUIET
@@ -1607,12 +1717,39 @@ Running test q_weight_auto:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-adaptive-red
-Tests: red1 red1Adapt red2 red2Adapt red2A-Adapt red3 red3Adapt red4Adapt
+Tests: red1 red1Adapt fastlink fastlinkAutowq fastlinkAutothresh fastlinkAdapt fastlinkAllAdapt fastlinkAllAdapt1 longlink longlinkAdapt longlinkAdapt1 red2 red2Adapt red2A-Adapt red3 red3Adapt red4Adapt transient transient1 transient2 notcautious cautious
 Running test red1:
 ../../ns test-suite-adaptive-red.tcl red1 QUIET
 Test output agrees with reference output
 Running test red1Adapt:
 ../../ns test-suite-adaptive-red.tcl red1Adapt QUIET
+Test output agrees with reference output
+Running test fastlink:
+../../ns test-suite-adaptive-red.tcl fastlink QUIET
+Test output agrees with reference output
+Running test fastlinkAutowq:
+../../ns test-suite-adaptive-red.tcl fastlinkAutowq QUIET
+Test output agrees with reference output
+Running test fastlinkAutothresh:
+../../ns test-suite-adaptive-red.tcl fastlinkAutothresh QUIET
+Test output agrees with reference output
+Running test fastlinkAdapt:
+../../ns test-suite-adaptive-red.tcl fastlinkAdapt QUIET
+Test output agrees with reference output
+Running test fastlinkAllAdapt:
+../../ns test-suite-adaptive-red.tcl fastlinkAllAdapt QUIET
+Test output agrees with reference output
+Running test fastlinkAllAdapt1:
+../../ns test-suite-adaptive-red.tcl fastlinkAllAdapt1 QUIET
+Test output agrees with reference output
+Running test longlink:
+../../ns test-suite-adaptive-red.tcl longlink QUIET
+Test output agrees with reference output
+Running test longlinkAdapt:
+../../ns test-suite-adaptive-red.tcl longlinkAdapt QUIET
+Test output agrees with reference output
+Running test longlinkAdapt1:
+../../ns test-suite-adaptive-red.tcl longlinkAdapt1 QUIET
 Test output agrees with reference output
 Running test red2:
 ../../ns test-suite-adaptive-red.tcl red2 QUIET
@@ -1632,6 +1769,21 @@ Test output agrees with reference output
 Running test red4Adapt:
 ../../ns test-suite-adaptive-red.tcl red4Adapt QUIET
 Test output agrees with reference output
+Running test transient:
+../../ns test-suite-adaptive-red.tcl transient QUIET
+Test output agrees with reference output
+Running test transient1:
+../../ns test-suite-adaptive-red.tcl transient1 QUIET
+Test output agrees with reference output
+Running test transient2:
+../../ns test-suite-adaptive-red.tcl transient2 QUIET
+Test output agrees with reference output
+Running test notcautious:
+../../ns test-suite-adaptive-red.tcl notcautious QUIET
+Test output agrees with reference output
+Running test cautious:
+../../ns test-suite-adaptive-red.tcl cautious QUIET
+Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-red-pd
 Tests: simple unresponsive frp complete cbrs cbrs-noidle
@@ -1649,7 +1801,7 @@ Running test complete:
 Test output agrees with reference output
 Running test cbrs:
 ../../ns test-suite-red-pd.tcl cbrs QUIET
-link utilization 0.979
+link utilization 0.985
 Test output agrees with reference output
 Running test cbrs-noidle:
 ../../ns test-suite-red-pd.tcl cbrs-noidle QUIET
@@ -2140,8 +2292,7 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 20.477477
-Network parition !! Exiting... at time 20.477477
+Network parition !! Exiting... at time 18.620874
 Test output agrees with reference output
 Running test diff-rate-other:
 ../../ns test-suite-wireless-diffusion.tcl diff-rate-other QUIET
@@ -2155,7 +2306,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 11.827115
+Network parition !! Exiting... at time 7.973422
+Network parition !! Exiting... at time 7.973422
 Test output agrees with reference output
 Running test diff-prob:
 ../../ns test-suite-wireless-diffusion.tcl diff-prob QUIET
@@ -2180,7 +2332,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 13.782095
+Network parition !! Exiting... at time 14.350687
+Network parition !! Exiting... at time 14.350687
 Test output agrees with reference output
 Running test flooding:
 ../../ns test-suite-wireless-diffusion.tcl flooding QUIET
@@ -2193,10 +2346,8 @@ Loading traffic file...
 Load complete...
 NS EXITING ...
 num_nodes is set 30
-Network parition !! Exiting... at time 10.651152
-Network parition !! Exiting... at time 10.651152
-Network parition !! Exiting... at time 10.651152
-Network parition !! Exiting... at time 10.651152
+Network parition !! Exiting... at time 10.532930
+Network parition !! Exiting... at time 10.532930
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-wireless-lan-newnode
@@ -2240,15 +2391,24 @@ num_nodes is set 3
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-satellite
-Tests: repeater mixed aloha
+Tests: repeater mixed wired aloha aloha.collisions mixed.legacy
 Running test repeater:
 ../../ns test-suite-satellite.tcl repeater QUIET
 Test output agrees with reference output
 Running test mixed:
 ../../ns test-suite-satellite.tcl mixed QUIET
 Test output agrees with reference output
+Running test wired:
+../../ns test-suite-satellite.tcl wired QUIET
+Test output agrees with reference output
 Running test aloha:
 ../../ns test-suite-satellite.tcl aloha QUIET
+Test output agrees with reference output
+Running test aloha.collisions:
+../../ns test-suite-satellite.tcl aloha.collisions QUIET
+Test output agrees with reference output
+Running test mixed.legacy:
+../../ns test-suite-satellite.tcl mixed.legacy QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-WLtutorial
@@ -2560,6 +2720,25 @@ Tests: source_rtg
 Running test source_rtg:
 ../../ns test-suite-source-routing.tcl source_rtg QUIET
 Starting Simulation...
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-snoop
+Tests: simple
+Running test simple:
+../../ns test-suite-snoop.tcl simple QUIET
+Starting Simulation...
+finishing..
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-diffusion3
+Tests: simple-ping
+Running test simple-ping:
+../../ns test-suite-diffusion3.tcl simple-ping QUIET
+num_nodes is set 3
+creating new DiffAppAgent_
+creating new DiffAppAgent_
+creating new DiffAppAgent_
+NS EXITING...
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: some tests failed:
