@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.275 1998/08/22 20:04:36 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.276 1998/08/30 01:45:00 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,12 @@
     Release of ns-2.1b4<a> on [PENDING]</h3>
     <p>
     <UL>    
+    <li><b><a href="http://www-nrg.ee.lbl.gov/floyd/">[SF]</a></b>
+    <b>Sat Aug 29 16:50:06 PDT 1998</b><br>
+    Included validation test for NewReno: test-all-newreno.
+    This includes a new option, newreno_changes1_, that forces a
+    slow-start when many packets are dropped from a window of data.
+
 	<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B> <B>Sat Aug 22 11:59:47 PDT 1998</B><BR>
 	<ul>
 	<li> <i>tcp-asym-sink.cc</i>: call to acker_->update() in recv() had 
