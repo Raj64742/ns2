@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.34 1998/05/02 01:38:49 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.35 1998/05/04 22:55:51 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -647,7 +647,7 @@ void FullTcpAgent::fast_retransmit(int seq)
 {
 	int onxt = t_seqno_;		// output() changes t_seqno_
 	recover_ = maxseq_;		// keep a copy of highest sent
-	recover_cause_ = REASON_DUPACK;	// why we started this recovery period
+	last_cwnd_action_ = CWND_ACTION_DUPACK;
 	output(seq, REASON_DUPACK);	// send one pkt
 	t_seqno_ = onxt;
 }
@@ -1074,7 +1074,7 @@ trimthenstep6:
 					// possibly trigger fast retransmit
 					if (!bug_fix_ ||
 					   (highest_ack_ > recover_) ||
-					   (recover_cause_ != REASON_TIMEOUT)) {
+					   (last_cwnd_action_ != CWND_ACTION_TIMEOUT)) {
 						closecwnd(1);
 						cancel_rtx_timer();
 						rtt_active_ = FALSE;
@@ -1626,7 +1626,7 @@ void FullTcpAgent::timeout(int tno)
 		/* retransmit timer */
 		++nrexmit_;
 		recover_ = maxseq_;
-		recover_cause_ = REASON_TIMEOUT;
+		last_cwnd_action_ = CWND_ACTION_TIMEOUT;
 		closecwnd(0);
 		reset_rtx_timer(1);
 		t_seqno_ = highest_ack_;
