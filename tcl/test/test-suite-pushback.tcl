@@ -184,24 +184,6 @@ TestSuite instproc setTopo {} {
     [$ns_ link $node_(r0) $node_(r1)] trace-dynamics $ns_ stdout
 }
 
-TestSuite instproc printall { fmon time packetsize} {
-	$self instvar ns_
-	set packets [$fmon set pdepartures_]
-	set linkBps [ expr 500000/8 ]
-	set totalFlowUtil [expr ($packets*$packetsize)/($time*$linkBps)]
-        set now [$ns_ now]
-	puts "time: [format %.3f $now] link totalFlowUtil [format %.3f $totalFlowUtil]"
-	set fcl [$fmon classifier];
-	for {set i 1} {$i < 4} {incr i} {
-	    set flow [$fcl lookup auto 0 0 $i]
-	    set flowpkts [$flow set pdepartures_]
-	    set flowutil [expr ($flowpkts*$packetsize)/($time*$linkBps)]
-	    set flowdrops [$flow set pdrops_]
-	    set flowdroprate [expr (1.0*$flowdrops)/($flowpkts + $flowdrops)]
-	    puts "fid: $i totalFlowUtil: [format %.3f $flowutil] OQdroprate: [format %.3f $flowdroprate]" 
-	}
-}
-
 #    
 # Arrange for time to be printed every
 # $interval seconds of simulation time
@@ -226,7 +208,7 @@ TestSuite instproc statsDump { interval fmon packetsize oldpkts } {
     	    set recentUtil [expr (1.0*$packets*$packetsize)/($interval*$linkBps)]
     	    set totalLinkUtil [expr (1.0*$totalPkts*$packetsize)/($time*$linkBps)]
             set now [$ns_ now]
-    	    puts "time: [format %.3f $now] LinkUtil [format %.3f $recentUtil] totalLinkUtil: [format %.3f $totalLinkUtil] totalPkts: $totalPkts" 
+    	    puts "time: [format %.3f $now] LinkUtilThisTime  [format %.3f $recentUtil] totalLinkUtil: [format %.3f $totalLinkUtil] totalOQPkts: $totalPkts" 
     	    set fcl [$fmon classifier];
 	    ## this 
     	    for {set i 1} {$i < 4} {incr i} {
@@ -235,7 +217,7 @@ TestSuite instproc statsDump { interval fmon packetsize oldpkts } {
     	        set flowutil [expr (1.0*$flowpkts($flow)*$packetsize)/($time*$linkBps)]
 		set flowdrops($flow) [$flow set pdrops_]
     	        set flowdroprate [expr (1.0*$flowdrops($flow)/($flowpkts($flow) + $flowdrops($flow)))] 
-		puts "fid: $i Util: [format %.3f $flowutil] OQdroprate: [format %.3f $flowdroprate] pkts: [format %d $flowpkts($flow)] drops: [format %d $flowdrops($flow)]"
+		puts "fid: $i Util: [format %.3f $flowutil] OQdroprate: [format %.3f $flowdroprate] OQpkts: [format %d $flowpkts($flow)] OQdrops: [format %d $flowdrops($flow)]"
 	    }
         }
         $ns_ at $newtime "$self statsDump $interval $fmon $packetsize $oldpkts"
@@ -280,9 +262,9 @@ TestSuite instproc setup {} {
     $ns_ at 0.0 "$cbr_ start"
 
     $self statsDump 5.0 $fmon $packetsize_ 0 
+    #$self statsDump 1.0 $fmon $packetsize_ 0
     # trace only the bottleneck link
     #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
-    #$ns_ at $stoptime1 "$self printall $fmon $stoptime $packetsize_"
     $ns_ at $stoptime1 "$self cleanupAll $testName_"
 }
 
