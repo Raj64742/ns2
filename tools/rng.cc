@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.23 2002/01/16 23:15:21 buchheim Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.cc,v 1.24 2002/01/23 21:38:23 buchheim Exp $ (LBL)";
 #endif
 
 /* new random number generator */
@@ -67,7 +67,6 @@ static const char rcsid[] =
 #include <string.h>
 #endif /* !OLD_RNG */
 #include "rng.h"
-#include "config.h"  // for gettimeofday
 
 #ifdef OLD_RNG
 /*
@@ -175,7 +174,7 @@ RNGImplementation::next_double()
 /*
  * RNG implements a nice front-end around RNGImplementation
  */
-#ifndef rng_stand_alone
+#ifndef stand_alone
 static class RNGClass : public TclClass {
 public:
 	RNGClass() : TclClass("RNG") {}
@@ -183,7 +182,7 @@ public:
 		return(new RNG());
 	}
 } class_rng;
-#endif /* rng_stand_alone */
+#endif /* stand_alone */
 
 /* default RNG */
 
@@ -215,7 +214,7 @@ RNG::normal(double avg, double std)
 	}
 }
 
-#ifndef rng_stand_alone
+#ifndef stand_alone
 int
 RNG::command(int argc, const char*const* argv)
 {
@@ -317,7 +316,7 @@ RNG::command(int argc, const char*const* argv)
 	}
 	return(TclObject::command(argc, argv));
 }
-#endif /* rng_stand_alone */
+#endif /* stand_alone */
 
 void
 RNG::set_seed(RNGSources source, int seed)

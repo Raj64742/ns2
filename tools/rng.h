@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.21 2002/01/16 23:15:21 buchheim Exp $ (LBL)";
+ * "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/rng.h,v 1.22 2002/01/23 21:38:23 buchheim Exp $ (LBL)";
  */
 
 /***********************************************************************\ 
@@ -58,15 +58,18 @@
 #ifndef _rng_h_
 #define _rng_h_
 
-// Define rng_test to build the test harness.
+
+#ifdef rng_stand_alone
+#define stand_alone
 #define rng_test
+#endif
 
 #include <math.h>
 #include <stdlib.h>			// for atoi
 
-#ifndef rng_stand_alone
+#ifndef stand_alone
 #include "config.h"
-#endif   /* rng_stand_alone */
+#endif   /* stand_alone */
 
 #ifndef MAXINT
 #define	MAXINT	2147483647	// XX [for now]
@@ -94,9 +97,9 @@ private:
  * Use class RNG in real programs.
  */
 class RNG 
-#ifndef rng_stand_alone
+#ifndef stand_alone
 	: public TclObject 
-#endif  /* rng_stand_alone */
+#endif  /* stand_alone */
 {
 
 public:
@@ -231,9 +234,9 @@ public:
 	*/
 #endif /* !OLD_RNG */
 
-#ifndef rng_stand_alone
+#ifndef stand_alone
 	int command(int argc, const char*const* argv);
-#endif  /* rng_stand_alone */
+#endif  /* stand_alone */
 
 	// These are primitive but maybe useful.
 	inline int uniform_positive_int() {  // range [0, MAXINT]
