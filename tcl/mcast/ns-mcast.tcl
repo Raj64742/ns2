@@ -177,8 +177,10 @@ Node instproc new-group { src group iface code } {
 
 Node instproc join-group { agent group { src "" } } {
         $self instvar replicator_ Agents_ mrtObject_
-        set group [expr $group] ;# use expr to get rid of possible leading 0x
+        set group [expr $group] ;# use expr to convert to decimal
+
         $mrtObject_ join-group $group $src
+
         lappend Agents_($group) $agent
 	if { $src == "" } {
 		set reps [$self getReps "*" $group]

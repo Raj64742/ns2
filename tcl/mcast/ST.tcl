@@ -23,6 +23,10 @@
 # group (no bootstrap):
 #      "ST set RP_($group) $node"
 # indicates that $node acts as an RP for the $group
+#
+# TO DO: local receivers receive packets from local senders only after
+# the trip to RP and back.  Would be nice to receive right away using
+# Decapsulator's decap-target...
 
 Class ST -superclass McastProtocol
 
@@ -56,13 +60,8 @@ ST instproc init { sim node } {
 				$node attach $e
 				$agent target $e
 
-				$e decap-target [$node entry]
+				$e decap-target ""
 				lappend encaps_($grp) $e
-
-				$node add-mfc $id_ $grp "?" ""
-				# if there should be local receivers, they'll receive off this replicator
-				set src_rep [$node getReps $id_ $grp]
-				$src_rep set ignore_ 1
 			}
 		}
 		#if the node is an RP, need to attach a Decapsulator
@@ -137,9 +136,11 @@ ST instproc handle-cache-miss { srcID group iface } {
 	$self instvar node_
 	ST instvar RP_
 
+	# RP gets packets from the local decapsulator, so iface must be "?" (-1)
+	if { $iface != -1 } {$self dbg ".....invalid cache miss" }
 	$self dbg "cache miss, src: $srcID, group: $group, iface: $iface"
-	$self dbg "********* miss: adding <x, $group, ?, >"
-	$node_ add-mfc "x" $group "?" "" ;# RP gets packets from the local decapsulator
+	$self dbg "********* miss: adding <x, $group, $iface, >"
+	$node_ add-mfc "x" $group $iface "" 
 	return 1
 }
 
@@ -149,9 +150,9 @@ ST instproc drop { replicator src dst iface} {
 	
 	# No downstream listeners
 	# Send a prune back toward the RP
-	$self dbg "drops src: $src, dst: $dst, replicator: [$replicator set srcID_]"
+	$self dbg "drops src: $src, dst: $dst, iface: $iface, replicator: [$replicator set srcID_]"
 	
-	if {$iface != "?"} {
+	if {$iface != -1} {
 		# so, this packet came from outside of the node
 		$self send-ctrl "prune" $RP_($dst) $dst
 	}
