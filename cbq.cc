@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.16 1997/05/13 23:59:26 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.17 1997/05/14 00:06:33 mccanne Exp $ (LBL)";
 #endif
 
 //
@@ -198,7 +198,7 @@ CBQueue::CBQueue() : last_lender_(NULL), pending_pkt_(NULL), link_(NULL),
 	// memset(eleigible_) because eligible_(NULL) above
 	// causes (incorrect) compiler errors with gcc-2.7.2.1
 	// under Linux.
-	memset(eligible_, '\0', sizeof(eligible_));
+	memset(&eligible_, '\0', sizeof(eligible_));
 }
 
 /*
