@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.36 1998/03/18 00:06:38 polly Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.37 1998/04/07 23:53:52 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -44,6 +44,8 @@ static const char rcsid[] =
 #include "packet.h"
 #include "ip.h"
 #include "flags.h"
+#include "address.h"
+
 
 #ifndef min
 #define min(a, b) (((a) < (b)) ? (a) : (b))
@@ -152,8 +154,8 @@ void Agent::flushAVar(TracedVar *v)
 		return;
 	sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -o %s -T v -x",
 		Scheduler::instance().clock(),
-		addr_ >> NODESHIFT,
-		dst_ >> NODESHIFT,
+		addr_ >> (Address::instance().NodeShift_[1]),
+		dst_ >> (Address::instance().NodeShift_[1]),
 		v->name(),
 		traceName_,
 		value);
@@ -178,8 +180,8 @@ void Agent::deleteAgentTrace()
 	// so nam can do backtracing
 	sprintf(wrk, "a -t %.17f -s %d -d %d -n %s -x",
 		Scheduler::instance().clock(),
-		addr_ >> NODESHIFT,
-		dst_ >> NODESHIFT,
+		addr_ >> (Address::instance().NodeShift_[1]),
+		dst_ >> (Address::instance().NodeShift_[1]),
 		traceName_);
 	if (traceName_ != NULL)
 		delete[] traceName_;
@@ -229,8 +231,8 @@ void Agent::trace(TracedVar* v)
 	if (ov != NULL) {
 		sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -v %s -o %s -T v",
 			Scheduler::instance().clock(),
-			addr_ >> NODESHIFT,
-			dst_ >> NODESHIFT,
+			addr_ >> (Address::instance().NodeShift_[1]),
+			dst_ >> (Address::instance().NodeShift_[1]),
 			v->name(),
 			traceName_,
 			value,
@@ -242,8 +244,8 @@ void Agent::trace(TracedVar* v)
 		// if there is value, insert it into old value list
 		sprintf(wrk, "f -t %.17f -s %d -d %d -n %s -a %s -v %s -T v",
 			Scheduler::instance().clock(),
-			addr_ >> NODESHIFT,
-			dst_ >> NODESHIFT,
+			addr_ >> (Address::instance().NodeShift_[1]),
+			dst_ >> (Address::instance().NodeShift_[1]),
 			v->name(),
 			traceName_,
 			value);
@@ -264,7 +266,7 @@ void Agent::monitorAgentTrace()
 	
 	sprintf(wrk, "v -t %.17f monitor_agent %d %s",
 		curTime,
-		addr_ >> NODESHIFT,
+		addr_ >> (Address::instance().NodeShift_[1]),
 		traceName_);
 	n = strlen(wrk);
 	wrk[n] = '\n';
@@ -282,9 +284,9 @@ void Agent::addAgentTrace(const char *name)
 	
 	sprintf(wrk, "a -t %.17f -s %d -d %d -n %s",
 		curTime,
-		addr_ >> NODESHIFT,
-		dst_ >> NODESHIFT,
-		name);
+		addr_ >> (Address::instance().NodeShift_[1]),
+		dst_ >> (Address::instance().NodeShift_[1]),
+			 name);
 	n = strlen(wrk);
 	wrk[n] = '\n';
 	wrk[n+1] = 0;
