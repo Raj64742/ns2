@@ -139,8 +139,7 @@ Test/lan-broadcast instproc init {} {
 	set testName_ lan-broadcast
 	$self next
  
-	Simulator set EnableMcast_ 1
-	Simulator set NumberInterfaces_ 1
+	$ns_ multicast on
 
 	set num 3
 	for {set i 0} {$i < $num} {incr i} {
