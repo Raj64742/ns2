@@ -4,7 +4,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.7 2004/08/13 23:24:13 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.8 2004/08/16 21:24:36 yuri Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -118,6 +118,7 @@ void XcpAgent::output(int seqno, int reason)
 			if (srtt_estimate_ != 0) {
 				last_send_ticks_ = now_ticks;
 				xcp_feedback_ = 0.0;
+				sent_bytes_ = 0;
 			}
 		} else {
 			long delta_ticks = now_ticks - last_send_ticks_;
@@ -157,7 +158,7 @@ void XcpAgent::output(int seqno, int reason)
 			xh->delta_throughput_ = 0;
 		}
 	}
-	if(channel_){
+	if(channel_) {
 		trace_var("throughput", xh->throughput_);
 	}
 	// End of XCP Changes
@@ -241,10 +242,17 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 
 	double delta_cwnd = 0;
 	if (xcp_metered_output_) {
-		if (estimated_throughput_ != 0.0) {
+		double bw = estimated_throughput_ + xcp_feedback_;
+		/* XXX we add xcp_feedback here, because we change
+		 * snd_cnwd for every received reverse_feedback;
+		 * alternatively, we could keep an old copy of cnwd
+		 * (cwnd at the beginning of metered "timeout"), use
+		 * it here and not add xcp_feedback.  This lets us do
+		 * without explicitly using srtt. */
+		if (bw != 0.0) {
 			delta_cwnd = (xh->reverse_feedback_ 
-				      / (estimated_throughput_ + xcp_feedback_)
-				      * cwnd_);
+				      * double(cwnd_)
+				      / bw);
 		}
 	} else {
 		delta_cwnd = (xh->reverse_feedback_ 
