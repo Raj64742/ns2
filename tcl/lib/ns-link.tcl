@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.35 1998/07/09 18:46:33 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.36 1998/08/19 04:46:50 padmanab Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -418,8 +418,10 @@ SimpleLink instproc init-monitor { ns qtrace sampleInterval} {
 SimpleLink instproc start-tracing { } {
 	$self instvar qMonitor_ ns_ qtrace_ sampleInterval_
 	$self instvar source_ dest_
-	
-	$qMonitor_ trace $qtrace_
+
+	if {$qtrace_ != 0} {
+		$qMonitor_ trace $qtrace_
+	}
 	$qMonitor_ set-src-dst [$source_ id] [$dest_ id]
 } 
 
@@ -428,7 +430,9 @@ SimpleLink instproc queue-sample-timeout { } {
 	$self instvar source_ dest_
 	
 	set qavg [$self sample-queue-size]
-	puts $qtrace_ "[$ns_ now] [$source_ id] [$dest_ id] $qavg"
+	if {$qtrace_ != 0} {
+		puts $qtrace_ "[$ns_ now] [$source_ id] [$dest_ id] $qavg"
+	}
 	$ns_ at [expr [$ns_ now] + $sampleInterval_] "$self queue-sample-timeout"
 }
 
