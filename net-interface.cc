@@ -20,35 +20,29 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.2 1997/07/23 00:57:03 kfall Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.3 1997/07/24 00:14:22 kfall Exp $ (USC/ISI)";
 #endif
 
 #include "connector.h"
 #include "packet.h"
-#include "ip.h"
+#include "trace.h"
 
 class NetworkInterface : public Connector {
 public:
-	interfaceLabel label;
-	NetworkInterface() : label(-1) { bind("off_ip_", &off_ip_); }
-	NetworkInterface(interfaceLabel lbl) : label(lbl) { bind("off_ip_", &off_ip_); }
-
-	~NetworkInterface() {}
-
-	command(int argc, const char*const* argv);
-
-	void recv(Packet* pkt, Handler*);
+	NetworkInterface() : intf_label_(-1) {
+		bind("off_cmn_", &off_cmn_);
+	}
+	NetworkInterface(int32_t lbl) : intf_label_(lbl) {
+		bind("off_cmn_", &off_cmn_);
+	}
+	int command(int argc, const char*const* argv);
+	void recv(Packet* pkt, Handler* h) {
+        	((hdr_cmn*)pkt->access(off_cmn_))->iface() = intf_label_;
+		send(pkt, h);
+	}
 protected:
-        int off_ip_;
+	int32_t intf_label_;
 };
-
-void NetworkInterface::recv(Packet* pkt, Handler* h) 
-{
-        hdr_ip *iph = (hdr_ip*)pkt->access(off_ip_);
-	iph->iface() = label;
-	//printf ("networkinterface: %u\n", iph->iface());
-	send(pkt,h);
-}
 
 static class NetworkInterfaceClass : public TclClass {
 public:
@@ -62,9 +56,9 @@ int NetworkInterface::command(int argc, const char*const* argv)
 {
         if (argc == 3) {
                 if (strcmp(argv[1], "label") == 0) {
-                        label = atoi(argv[2]);
-                return (TCL_OK);
-                }
+			intf_label_ = atoi(argv[2]);
+			return (TCL_OK);
+		}
         }
         return (Connector::command(argc, argv));
 }
