@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.64 1999/07/07 03:42:43 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.65 1999/08/03 04:06:10 yaxu Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -59,6 +59,8 @@
 #define HDR_SR(p)       ((struct hdr_sr*)(p)->access(hdr_sr::offset_))
 #define HDR_TFRM(p)      ((struct hdr_tfrm*)(p)->access(hdr_tfrm::offset_))
 #define HDR_TFRM(p)      ((struct hdr_tfrm*)(p)->access(hdr_tfrm::offset_))
+#define HDR_TORA(p)     ((struct hdr_tora*)(p)->access(off_TORA_))
+#define HDR_IMEP(p)     ((struct hdr_imep*)(p)->access(off_IMEP_))
 
 
 enum packet_t {
@@ -107,6 +109,7 @@ enum packet_t {
 	PT_TORA,
 	PT_DSR,
 	PT_AODV,
+	PT_IMEP,
 
 	// RAP packets
 	PT_RAP_DATA,
@@ -163,6 +166,7 @@ public:
 		name_[PT_TORA]= "TORA";
 		name_[PT_DSR]= "DSR";
 		name_[PT_AODV]= "AODV";
+		name_[PT_IMEP]= "IMEP";
 
 		name_[PT_RAP_DATA] = "rap_data";
 		name_[PT_RAP_ACK] = "rap_ack";
@@ -190,6 +194,16 @@ private:
 };
 extern p_info packet_info; /* map PT_* to string name */
 //extern char* p_info::name_[];
+
+
+#define DATA_PACKET(type) ( (type) == PT_TCP || \
+                            (type) == PT_TELNET || \
+                            (type) == PT_CBR || \
+                            (type) == PT_AUDIO || \
+                            (type) == PT_VIDEO || \
+                            (type) == PT_ACK \
+                            )
+
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 
@@ -225,11 +239,24 @@ public:
 	inline int datalen() const { return datalen_; }
 
 	//Monarch extn
+
+	static void dump_header(Packet *p, int offset, int length);
 	// the pkt stamp carries all info about how/where the pkt
         // was sent needed for a receiver to determine if it correctly
         // receives the pkt
 
         PacketStamp	txinfo_;  
+
+	/*
+         * According to cmu code:
+	 * This flag is set by the MAC layer on an incoming packet
+         * and is cleared by the link layer.  It is an ugly hack, but
+         * there's really no other way because NS always calls
+         * the recv() function of an object.
+	 * 
+         */
+        u_int8_t        incoming;
+
 
 	//monarch extns end;
 
@@ -274,6 +301,7 @@ struct hdr_cmn {
 	int	ref_count_;	// free the pkt until count to 0
 
 	//Monarch extn begins
+	nsaddr_t prev_hop_;     // IP addr of forwarding hop
 	nsaddr_t next_hop_;	// next hop for this packet
 	int      addr_type_;    // type of next_hop_ addr
 	nsaddr_t last_hop_;     // for tracing on multi-user channels
@@ -428,6 +456,29 @@ inline Packet* Packet::copy() const
 	p->txinfo_.init(&txinfo_);
 	return (p);
 }
+inline void
+Packet::dump_header(Packet *p, int offset, int length)
+{
+        assert(offset + length <= p->hdrlen_);
+        struct hdr_cmn *ch = HDR_CMN(p);
+
+        fprintf(stderr, "\nPacket ID: %d\n", ch->uid());
+
+        for(int i = 0; i < length ; i+=16) {
+                fprintf(stderr, "%02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x\n",
+                        p->bits_[offset + i],     p->bits_[offset + i + 1],
+                        p->bits_[offset + i + 2], p->bits_[offset + i + 3],
+                        p->bits_[offset + i + 4], p->bits_[offset + i + 5],
+                        p->bits_[offset + i + 6], p->bits_[offset + i + 7],
+                        p->bits_[offset + i + 8], p->bits_[offset + i + 9],
+                        p->bits_[offset + i + 10], p->bits_[offset + i + 11],
+                        p->bits_[offset + i + 12], p->bits_[offset + i + 13],
+                        p->bits_[offset + i + 14], p->bits_[offset + i + 15]);
+        }
+}
+
+
+
 
 #endif
 

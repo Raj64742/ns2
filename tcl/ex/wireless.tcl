@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.4 1999/04/22 18:53:53 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless.tcl,v 1.5 1999/08/03 04:06:12 yaxu Exp $
 #
 # Ported from CMU/Monarch's code, nov'98 -Padma.
 
@@ -130,21 +130,23 @@ proc getopt {argc argv} {
 }
 
 
-proc cmu-trace { ttype atype node } {
-	global ns_ tracefd
-
-	if { $tracefd == "" } {
-		return ""
-	}
-	set T [new CMUTrace/$ttype $atype]
-	$T target [$ns_ set nullAgent_]
-	$T attach $tracefd
-        $T set src_ [$node id]
-
-        $T node $node
-
-	return $T
-}
+#proc cmu-trace { ttype atype node } {
+#	global ns_ tracefd
+#
+#        puts ABC
+#	if { $tracefd == "" } {
+#		return ""
+#	}
+#	puts BCD
+#	set T [new CMUTrace/$ttype $atype]
+#	$T target [$ns_ set nullAgent_]
+#	$T attach $tracefd
+#        $T set src_ [$node id]
+#	
+#        $T node $node
+#
+#	return $T
+#}
 
 
 
