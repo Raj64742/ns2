@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.138 1998/10/27 00:50:15 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.139 1998/11/05 03:12:31 tomh Exp $
 
 
 #
@@ -124,6 +124,8 @@ Agent/TCP/Newreno set newreno_changes_ 0
 # setting this to 1 allows the retransmit timer to expire for
 # a window with many packet drops
 Agent/TCP/Newreno set newreno_changes1_ 0
+Agent/TCP/Newreno set partial_window_deflation_ 0
+Agent/TCP/Newreno set exit_recovery_fix_ 0
 
 Agent/TCP/Vegas set v_alpha_ 1
 Agent/TCP/Vegas set v_beta_ 3

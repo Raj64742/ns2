@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.57 1998/10/20 23:33:59 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.58 1998/11/05 03:11:58 tomh Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -326,6 +326,14 @@ class NewRenoTcpAgent : public virtual RenoTcpAgent {
 	int acked_, new_ssthresh_;  /* used if newreno_changes_ == 1 */
 	double ack2_, ack3_, basertt_; /* used if newreno_changes_ == 1 */
 	int firstpartial_; 	/* For the first partial ACK. */ 
+	int partial_window_deflation_; /* 0 if set cwnd to ssthresh upon */
+				       /* partial new ack (default) */
+				       /* 1 if deflate (cwnd + dupwnd) by */
+				       /* amount of data acked */
+	int exit_recovery_fix_;	 /* 0 for setting cwnd to ssthresh upon */
+				 /* leaving fast recovery (default) */
+				 /* 1 for setting cwnd to min(ssthresh, */
+				 /* amnt. of data in network) when leaving */
 };
 
 /* TCP vegas (VegasTcpAgent) */

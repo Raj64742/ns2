@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.34 1998/08/25 01:53:28 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-newreno.cc,v 1.35 1998/11/05 03:11:58 tomh Exp $ (LBL)";
 #endif
 
 //
@@ -45,10 +45,13 @@ public:
 } class_newreno;
 
 NewRenoTcpAgent::NewRenoTcpAgent() : newreno_changes_(0), 
-  newreno_changes1_(0), acked_(0), firstpartial_(0)
+  newreno_changes1_(0), acked_(0), firstpartial_(0), 
+  partial_window_deflation_(0), exit_recovery_fix_(0)
 {
 	bind("newreno_changes_", &newreno_changes_);
 	bind("newreno_changes1_", &newreno_changes1_);
+	bind("exit_recovery_fix_", &exit_recovery_fix_);
+	bind("partial_window_deflation_", &partial_window_deflation_);
 }
 
 /* 
@@ -62,6 +65,22 @@ void NewRenoTcpAgent::partialnewack(Packet* pkt)
 	if (pkt->seqno_ == stp->maxpkts && stp->maxpkts > 0)
 		stp->endtime = (float) realtime();
 #endif
+	if (partial_window_deflation_) {
+		// Do partial window deflation before resetting last_ack_
+		unsigned int deflate;
+		if (tcph->seqno() > last_ack_) // assertion
+			deflate = tcph->seqno() - last_ack_;
+		else 
+		  	printf("False call to partialnewack:  deflate %u 
+			    last_ack_ %d\n", deflate, last_ack_);
+		if (dupwnd_ > deflate)
+			dupwnd_ -= (deflate - 1);
+		else {
+			cwnd_ -= (deflate - dupwnd_);
+			// Leave dupwnd_ > 0 to flag "fast recovery" phase
+			dupwnd_ = 1; 
+		}
+	}
 	last_ack_ = tcph->seqno();
 	highest_ack_ = last_ack_;
 	if (t_seqno_ < last_ack_ + 1)
@@ -172,10 +191,15 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		ecn(tcph->seqno());
 	recv_helper(pkt);
 	if (tcph->seqno() > last_ack_) {
-		dupwnd_ = 0;
 		if (tcph->seqno() >= recover_ 
 		    || (last_cwnd_action_ != CWND_ACTION_DUPACK &&
 			tcph->seqno() > last_ack_)) {
+			if (dupwnd_ > 0 && exit_recovery_fix_) {
+				int outstanding = maxseq_ - tcph->seqno() + 1;
+				cwnd_ = (ssthresh_ < outstanding ?
+				    ssthresh_ : outstanding);
+			}
+			dupwnd_ = 0;
 			firstpartial_ = 0;
 			recv_newack_helper(pkt);
 			if (last_ack_ == 0 && delay_growth_) {
@@ -184,6 +208,8 @@ void NewRenoTcpAgent::recv(Packet *pkt, Handler*)
 		} else {
 			/* received new ack for a packet sent during Fast
 			 *  Recovery, but sender stays in Fast Recovery */
+			if (partial_window_deflation_ == 0)
+				dupwnd_ = 0;
 			partialnewack_helper(pkt);
 		}
 	} else if (tcph->seqno() == last_ack_) {
