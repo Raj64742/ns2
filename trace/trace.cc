@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.79 2003/08/26 00:02:24 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.80 2004/06/16 17:53:05 haldar Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -203,7 +203,7 @@ Trace::get_seqno(Packet* p)
         else if (t == PT_RAP_DATA || t == PT_RAP_ACK)
                 seqno = raph->seqno();
 	else if (t == PT_TCP || t == PT_ACK || t == PT_HTTP || t == PT_FTP ||
-	    t == PT_TELNET)
+	    t == PT_TELNET || t == PT_XCP)
 		seqno = tcph->seqno();
 	else if (t == PT_TFRC)
 		seqno = tfrch->seqno;
