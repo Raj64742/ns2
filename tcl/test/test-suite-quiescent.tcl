@@ -29,15 +29,15 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.8 2004/10/22 04:39:44 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.9 2004/10/22 23:46:53 sfloyd Exp $
 #
 
 source misc_simple.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
-Agent/TFRC set ss_changes_ 0 ; 	# Added on 10/21/2004
+Agent/TFRC set ss_changes_ 1 ; 	# Added on 10/21/2004
 Agent/TFRC set slow_increase_ 1 ; 	# Added on 10/20/2004
-Agent/TFRC set rate_init_ 1 ;          # Added on 10/20/2004
-Agent/TFRC set rate_init_option_ 1 ;    # Added on 10/20/2004
+Agent/TFRC set rate_init_ 2 ;
+Agent/TFRC set rate_init_option_ 2 ;    # Added on 10/20/2004
 
 source support.tcl
 Agent/TFRC set SndrType_ 1 
