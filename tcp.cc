@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.79 1998/08/22 02:41:25 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.80 1998/08/24 19:39:19 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -224,6 +224,7 @@ TcpAgent::reset()
 	wnd_restart_ = 1.;
 	awnd_ = wnd_init_ / 2.0;
 	recover_ = 0;
+	closed_ = 0;
 	last_cwnd_action_ = 0;
 	boot_time_ = Random::uniform(tcp_tick_);
 }
