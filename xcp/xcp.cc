@@ -140,7 +140,7 @@ int XCPWrapQ::command(int argc, const char*const* argv)
     
 		else if (strcmp(argv[1], "queue-sample-everyrtt") == 0) {
 			double e_rtt = strtod(argv[2],0);
-			printf(" timer at %f \n",e_rtt);
+			//printf(" timer at %f \n",e_rtt);
 			xcpq_[XCPQ]->setEffectiveRtt(e_rtt);
 			return (TCL_OK);
 		}

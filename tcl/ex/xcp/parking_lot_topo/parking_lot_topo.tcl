@@ -29,14 +29,14 @@ proc create-string-topology {numHops BW_list d_list qtype_list qsize_list } {
 	}
     }
 
-    # compute the pipe assuming packet size is 1000 bytes, delays are in msec and BWs are in Mbits
+	# compute the pipe assuming packet size is 1000 bytes, delays are in msec and BWs are in Mbits
     set i 0; set forwarddelay 0; global minBW; set minBW [lindex $BW_list 0];
     while { $i < $numHops } {
 	set forwarddelay [expr $forwarddelay + [lindex $d_list $i]]
 	if {$minBW > [lindex $BW_list $i] } { set $minBW [lindex $BW_list $i] }
 	incr i
     }
-    set pipe [expr round([expr ($minBW * 2.0 * $forwarddelay)/8.0 ])]
+	set pipe [expr round([expr ($minBW * 2.0 * $forwarddelay)/8.0 ])]
 
 
     set i 0
@@ -63,9 +63,10 @@ proc create-string-topology {numHops BW_list d_list qtype_list qsize_list } {
 	global rq$i; set  rq$i  [ [$ns link [set n[expr $i + 1]] [set n$i]] queue]
 	global l$i;  set  l$i   [$ns link [set n$i] [set n[expr $i + 1]]]
 	global rl$i; set  rl$i  [$ns link [set n[expr $i + 1]] [set n$i]]
-	incr i
+	    incr i
     }
 }
+
 proc set-red-params { queue qMinTh qMaxTh qWeight qLinterm } {
     global ECN_FLAG
 
@@ -252,12 +253,12 @@ switch $qType {
 	set GENTLE_FLAG  YES
     }
     default {
-	set qMaxTh    [expr round([expr $qSize * 0.8])]
-	set qMinTh    [expr round([expr $qSize * 0.6])]
-	set qWeight   [expr 0.01 / $qSize ]
-	set qLinterm  3; #1
-	set ECN_FLAG  YES
-	set GENTLE_FLAG  YES
+	#set qMaxTh    [expr round([expr $qSize * 0.8])]
+	#set qMinTh    [expr round([expr $qSize * 0.6])]
+	#set qWeight   [expr 0.01 / $qSize ]
+	#set qLinterm  3; #1
+	#set ECN_FLAG  YES
+	#set GENTLE_FLAG  YES
     }
 }
 
@@ -320,10 +321,10 @@ while { $i < $numHops } {
 	}
 	"DropTail" { }
 	"XCP" {
-	    foreach link "[set l$i] [set rl$i]" {
-		set queue                   [$link queue]
-		#set-red-params $queue $qMinTh $qMaxTh $qWeight $qLinterm
-		$queue set-link-capacity [[$link set link_] set bandwidth_];
+		foreach link "[set l$i] [set rl$i]" {
+		    set queue                   [$link queue]
+		    #set-red-params $queue $qMinTh $qMaxTh $qWeight $qLinterm
+		    $queue set-link-capacity [[$link set link_] set bandwidth_];
 	    }
 	}
 	"CSFQ" {
@@ -368,16 +369,16 @@ while { $i < $numHops } {
 # Create sources: 1) Long TCPs
 set i 0
 while { $i < $nAllHopsTCPs  } {
-    set StartTime     [expr [$rtg integer 1000] * 0.001 * (0.01 * $numHops * $delay) + $SimStartTime] 
-    if {$qType == "XCP" } {
-	set rcvr_TCP      [new Agent/XCPSink]
-	$ns attach-agent  [set n$numHops] $rcvr_TCP
-	set src$i         [new GeneralSender $i $n0 $rcvr_TCP "$StartTime TCP/Reno/XCP"]
-
-    } else {
-	set rcvr_TCP      [new Agent/TCPSink]
-	$ns attach-agent  [set n$numHops] $rcvr_TCP
-	set src$i         [new GeneralSender $i $n0 $rcvr_TCP "$StartTime TCP/Reno"]
+	set StartTime     [expr [$rtg integer 1000] * 0.001 * (0.01 * $numHops * $delay) + $SimStartTime] 
+	if {$qType == "XCP" } {
+		set rcvr_TCP      [new Agent/XCPSink]
+		$ns attach-agent  [set n$numHops] $rcvr_TCP
+		set src$i         [new GeneralSender $i $n0 $rcvr_TCP "$StartTime TCP/Reno/XCP"]
+		
+	} else {
+		set rcvr_TCP      [new Agent/TCPSink]
+		$ns attach-agent  [set n$numHops] $rcvr_TCP
+		set src$i         [new GeneralSender $i $n0 $rcvr_TCP "$StartTime TCP/Reno"]
     }
     [[set src$i] set tcp_]  set  window_     [expr $qSize * 10]
     incr i
@@ -391,7 +392,7 @@ while {$i < $numHops} {
 	set StartTime     [expr [lindex $StartTime_list $i]+[$rtg integer 1000] * 0.001 * (0.01 * $numHops * $delay)+ $SimStartTime] 
 	if {$qType == "XCP" } {
 	    set rcvr_TCP      [new Agent/XCPSink]
-	    $ns attach-agent  [set  n[expr $i + 1]] $rcvr_TCP
+		$ns attach-agent  [set  n[expr $i + 1]] $rcvr_TCP
 	    set src$j         [new GeneralSender $j [set n$i] $rcvr_TCP "$StartTime TCP/Reno/XCP"]
 	} else {
 	    set rcvr_TCP      [new Agent/TCPSink]
@@ -463,7 +464,7 @@ while { $i < $numHops } {
 	    #"RED/XCP" {}
 	    default { #RED and XCP
 		global "ft_red_$queue_name"
-		set "ft_red_$queue_name" [open TR/ft_red_[set queue_name].tr w]
+		    set "ft_red_$queue_name" [open TR/ft_red_[set queue_name].tr w]
 		$queue attach       [set ft_red_$queue_name]
 		#$queue trace curq_
 		#$queue trace ave_
@@ -477,15 +478,15 @@ while { $i < $numHops } {
 	puts "attaching a file to $queue_name $qType"
 	set queue [set "$queue_name"]
 	$queue queue-sample-everyrtt $qEffective_RTT
-	#global ft_trace_$queue_name
-	#set    ft_trace_$queue_name [open TR/ft_trace_[set queue_name].tr w]
-	#$queue queue-attach   [set ft_trace_$queue_name]
-	#$queue queue-trace-drops  
-	#$queue queue-trace-curq
+	    #global ft_trace_$queue_name
+	    #set    ft_trace_$queue_name [open TR/ft_trace_[set queue_name].tr w]
+	    #$queue queue-attach   [set ft_trace_$queue_name]
+	    #$queue queue-trace-drops  
+	    #$queue queue-trace-curq
     }
-    ### Trace Utilization
-    #[set q$i] queue-set-link-capacity [[[$ns link [set n$i] [set n[expr $i +1]]] set link_] set bandwidth_]
-    incr i
+	### Trace Utilization
+	#[set q$i] queue-set-link-capacity [[[$ns link [set n$i] [set n[expr $i +1]]] set link_] set bandwidth_]
+	incr i
 }
 #---------------- Run the simulation ------------------------#
 

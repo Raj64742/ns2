@@ -6,7 +6,7 @@ set ns_dir = "../../../../"
 set out_dir = "out/"
 
 @ BW = 30
-@ seed = 35083
+@ seed = 472904
 @ delay = 10
 set tcl_file =  parking_lot_topo.tcl
 
@@ -20,7 +20,7 @@ foreach exp ( XCP )
     echo "Experiment: Efficiency of a ${exp} Queue with BW= ${BW} delay= ${delay} msec "
     ${ns_dir}ns $tcl_file 0 ${seed}  ${exp} ${BW} 30  $delay  > ${out_dir}tmp.log 
     
-    \rm ${out_dir}u.$e ${out_dir}q.$e ${out_dir}d.$e
+#    \rm ${out_dir}u.$e ${out_dir}q.$e ${out_dir}d.$e
  
     @ l = 0
     while ( $l < 9 )

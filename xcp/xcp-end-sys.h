@@ -18,7 +18,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.3 2004/10/04 20:28:17 yuri Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.4 2004/10/13 16:23:19 haldar Exp $
  */
 
 #ifndef ns_xcp_end_sys_h
@@ -92,7 +92,9 @@ protected:
 class XcpAgent : public RenoTcpAgent {
 public:
 	XcpAgent();
+
 protected:
+	
 	double time_now()  { return  Scheduler::instance().clock(); };
 	void trace_var(char * var_name, double var);
 	
