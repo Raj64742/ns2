@@ -70,13 +70,13 @@ MacHandlerEoc::handle(Event* e)
 }
 
 
-CsmaMac::CsmaMac() : Mac(), attempt_(0), mhEoc_(*this)
+CsmaMac::CsmaMac() : Mac(), rtx_(0), mhEoc_(*this)
 {
 	bind_time("ifs_", &ifs_);
 	bind_time("slotTime_", &slotTime_);
 	bind("cwmin_", &cwmin_);
 	bind("cwmax_", &cwmax_);
-	bind("maxAttempt_", &maxAttempt_);
+	bind("rtxmax_", &rtxmax_);
 	cw_ = cwmin_;
 }
 
@@ -91,7 +91,6 @@ CsmaMac::send(Packet* p)
 	// if there is an ongoing transmission, then backoff
 	// else if within the ifs, then wait until the end of ifs
 	// else do carrier sense
-
 	if (txstop > now)
 		backoff(p);
 	else if (txstop + ifs_ > now)
@@ -107,19 +106,20 @@ void
 CsmaMac::backoff(Packet* p, double delay)
 {
 	Scheduler& s = Scheduler::instance();
-	if (++attempt_ < maxAttempt_) {
-		// exponential backoff
+
+	// if retransmission time within limit, do exponential backoff
+	// else drop the packet and resume
+	if (++rtx_ < rtxmax_) {
 		double txstart = channel_->txstop() + ifs_;
 		delay += max(txstart - s.clock(), 0);
 		cw_ = min(2 * cw_, cwmax_);
-		int slot = Random::integer(cw_);
+		int slot = Random::integer(cw_) + 1;
 		s.schedule(&mh_, p, delay + slotTime_ * slot);
 	}
 	else {
-		// if exceed maximum attempts, drop the packet and resume
 		callback_->handle(&intr_);
 		drop(p);
-		attempt_ = 1;
+		rtx_ = 1;
 		cw_ = cwmin_;
 	}
 }

@@ -63,8 +63,8 @@ protected:
 	int cw_;		// current contention window
 	int cwmin_;		// minimum contention window for 1st backoff
 	int cwmax_;		// maximum contention window (backoff range)
-	int attempt_;		// number of access attempts for 1 frame
-	int maxAttempt_;	// maximum number of attempts
+	int rtx_;		// number of retransmission attempt
+	int rtxmax_;		// maximum number of retransmission attempt
 	MacHandlerEoc mhEoc_;	// handle end-of-contention
 };
 
