@@ -5,19 +5,13 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.1 1998/08/18 23:45:58 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.2 1998/08/19 00:50:35 haoboy Exp $
 
 #----------------------------------------------------------------------
 # Related Files
 #----------------------------------------------------------------------
-source $env(NS2HOME)/tcl/test/misc.tcl
-source $env(NS2HOME)/tcl/test/topologies.tcl
-#source $env(HOME)/research/lib/test.tcl
-
-source $env(NS2HOME)/tcl/http/http-agent.tcl
-source $env(NS2HOME)/tcl/http/http-server.tcl
-source $env(NS2HOME)/tcl/http/http-cache.tcl
-
+source misc.tcl
+source topologies.tcl
 
 #----------------------------------------------------------------------
 # Misc setup
