@@ -34,7 +34,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.4 1998/02/21 01:10:41 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-ip.cc,v 1.5 1998/02/21 03:02:15 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -76,6 +76,8 @@ class IPNetwork : public Network {
 	inline Socket schannel() { return(ssock_); }	// virtual in Network
 
         int send(u_char* buf, int len) {		// virtual in Network
+printf(">>> IPNetwork send(%d, %p, %d, 0)\n", ssock_, buf, len);
+print_ip(buf);
 		return (::send(ssock_, (char*)buf, len, 0));
 	}
         int recv(u_char* buf, int len, sockaddr& from);	// virtual in Network
@@ -345,7 +347,8 @@ int IPNetwork::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "open") == 0) {
-			open();
+			if (open() < 0)
+				return (TCL_ERROR);
 			return (TCL_OK);
 		}
 
@@ -374,10 +377,34 @@ int IPNetwork::command(int argc, const char*const* argv)
 int
 IPNetwork::open()
 {
+	// obtain a raw socket we can use to send ip datagrams
 	Socket fd = socket(AF_INET, SOCK_RAW, IPPROTO_IP);
 	if (fd < 0) {
 		perror("socket(RAW)");
+		if (::getuid() != 0 && ::geteuid() != 0) {
+			fprintf(stderr,
+			    "use of the Network/IP object requires super-user privs\n");
+		}
+
 		return (-1);
+	}
+
+	// turn on HDRINCL option (we will be writing IP header)
+	// in FreeBSD 2.2.5 (and possibly others), the IP id field
+	// is set by the kernel routine rip_output()
+	// only if it is non-zero, so we should be ok.
+	int one = 1;
+	if (setsockopt(fd, IPPROTO_IP, IP_HDRINCL, &one, sizeof(one)) < 0) {
+		perror("setsockopt(IP_HDRINCL)");
+		return (-1);
+	}
+
+	// sort of curious, but do a connect() even though we have
+	// HDRINCL on.  Otherwise, we get ENOTCONN when doing a send()
+	sockaddr_in sin;
+	in_addr ia = { INADDR_ANY };
+	if (connectsock(fd, ia, 0, sin) < 0) {
+		perror("connect");
 	}
 	rsock_ = ssock_ = fd;
 	return 0;
