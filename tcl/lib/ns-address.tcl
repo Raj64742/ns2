@@ -412,18 +412,22 @@ AddrParams proc set-hieraddr addrstr {
 # a node.
 #
 AddrParams proc elements-in-level? {nodeaddr level} {
-    AddrParams instvar hlevel_ eilevel_ eilastlevel_
+    AddrParams instvar hlevel_ domain_num_ cluster_num_ nodes_num_
     set L [split $nodeaddr .] 
-    ### for now, assuming only 3 levels of hierarchy and that only the last level 
-    ### has non-uniform size distribution
-    if { $level == [expr $hlevel_ - 1]} {
-	### use some hashing function to retrieve the size
-	set funct [expr [expr [lindex $L 0] * [lindex $eilevel_ 1]] + [lindex $L 1]]
-	set size [lindex $eilastlevel_ $funct]
-    } else {
-	set size [lindex $eilevel_ $level]
+    set level [expr $level + 1]
+    ### for now, assuming only 3 levels of hierarchy 
+    if { $level == 1} {
+	return $domain_num_
     }
-    return $size
+    if { $level == 2} {
+	return [lindex $cluster_num_ [lindex $L 0]]
+    }
+    if { $level == 3} {
+	set cluster [lindex $cluster_num_ [lindex $L 0]]
+	set funct [expr [lindex $L 0] * $cluster + [lindex $L 1]]
+	return [lindex $nodes_num_ $funct]
+    } 
+	
 }
 
 
