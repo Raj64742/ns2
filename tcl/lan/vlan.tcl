@@ -255,7 +255,7 @@ LanIface instproc init {node lan args} {
 
 	$self instvar llType_ ifqType_ macType_ phyType_
 	$self instvar node_ lan_ ifq_ mac_ ll_ phy_
-	$self instvar iface_ entry_
+	$self instvar iface_ entry_ drophead_
 
 	set node_ $node
 	set lan_ $lan
@@ -266,7 +266,10 @@ LanIface instproc init {node lan args} {
 	set iface_ [new NetworkInterface]
 	set phy_ [new $phyType_]
 
-	$ll_ set macDA_ -1	# bcast address if there is no LAN router
+	set entry_ [new Connector]
+	set drophead_ [new Connector]
+
+	$ll_ set macDA_ -1	;# bcast address if there is no LAN router
 	$ll_ lanrouter [$lan set defRouter_]
 	$ll_ up-target $iface_
 	$ll_ down-target $ifq_
@@ -283,18 +286,43 @@ LanIface instproc init {node lan args} {
 
 	$node addInterface $iface_
 	$iface_ target [$node entry]
-	set entry_ $ll_
+	$entry_ target $ll_
+
+	set ns [Simulator instance]
+	
+	#drophead is the same for all drops in the lan
+	$drophead_ target [$ns set nullAgent_]
+
+	$ifq_ drop-target $drophead_ 
+	$mac_ drop-target $drophead_ 
+	$ll_ drop-target $drophead_
 }
 
 LanIface instproc trace {ns f {op ""}} {
-	$self instvar hopT_ rcvT_ iface_
-	$self instvar entry_ node_ lan_
+	$self instvar hopT_ rcvT_ enqT_ deqT_ drpT_ 
+	$self instvar iface_ entry_ node_ lan_ drophead_ 
+	$self instvar ll_ ifq_
+
 	set hopT_ [$ns create-trace Hop $f $node_ $lan_ $op]
 	set rcvT_ [$ns create-trace Recv $f $lan_ $node_ $op]
-	$hopT_ target $entry_
-	set entry_ $hopT_
+	set enqT_ [$ns create-trace Enque $f $lan_ $node_ $op]
+	set deqT_ [$ns create-trace Deque $f $lan_ $node_ $op]
+	set drpT_ [$ns create-trace Drop $f $lan_ $node_ $op]
+
+	$hopT_ target [$entry_ target]
+	$entry_ target $hopT_
+
 	$rcvT_ target [$iface_ target]
 	$iface_ target $rcvT_
+
+	$enqT_ target [$ll_ down-target]
+	$ll_ down-target $enqT_
+
+	$deqT_ target [$ifq_ target]
+	$ifq_ target $deqT_
+
+	$drpT_ target [$drophead_ target]
+	$drophead_ target $drpT_
 }
 # should be called after LanIface::trace
 LanIface instproc nam-trace {ns f} {
