@@ -30,14 +30,14 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.6 1997/05/28 17:40:11 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.7 1997/06/10 01:33:20 suchi Exp $ (LBL)
  */
 
 #ifndef ns_config_h
 #define ns_config_h
 
 
-#if defined(sgi) || defined(__bsdi__)
+#if defined(sgi) || defined(__bsdi__) || defined(__FreeBSD__)
 #include <sys/types.h>
 #elif defined(linux)
 #include <sys/bitypes.h>
