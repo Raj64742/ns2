@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.28 1998/04/21 18:24:29 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.29 1998/05/21 01:44:13 kfall Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.28 1998/04/21 18:24:29 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.29 1998/05/21 01:44:13 kfall Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -70,6 +70,18 @@ void Scheduler::schedule(Handler* h, Event* e, double delay)
 	double t = clock_ + delay;
 	e->time_ = t;
 	insert(e);
+}
+
+void
+Scheduler::run()
+{
+	instance_ = this;
+	Event *p;
+	while ((p = deque()) && !halted_) {
+		clock_ = p->time_;
+		p->uid_ = -p->uid_;
+		p->handler_->handle(p);
+	}
 }
 
 class AtEvent : public Event {
@@ -153,6 +165,15 @@ int Scheduler::command(int argc, const char*const* argv)
 		} else if (strcmp(argv[1], "is-running") == 0) {
 			sprintf(tcl.buffer(), "%d", !halted_);
 			return (TCL_OK);
+		} else if (strcmp(argv[1], "dumpq") == 0) {
+			if (!halted_) {
+				fprintf(stderr,
+				  "Scheduler: dumpq only allowed while halted\n");
+				tcl.result("0");
+				return (TCL_ERROR);
+			}
+			dumpq();
+			return (TCL_OK);
 		}
 	} else if (argc == 3) {
 		if (strcmp(argv[1], "at") == 0 ||
@@ -203,14 +224,25 @@ int Scheduler::command(int argc, const char*const* argv)
 	return (TclObject::command(argc, argv));
 }
 
-/* XXX need to implement a calendar queue as well */
+void
+Scheduler::dumpq()
+{
+	Event *p;
+
+	printf("Contents of scheduler queue (events) [cur time: %f]---\n",
+		clock());
+	while ((p = deque()) != NULL) {
+		printf("t:%f uid: %d handler: 0x%p\n",
+			p->time_, p->uid_, p->handler_);
+	}
+}
 
 class ListScheduler : public Scheduler {
 public:
 	inline ListScheduler() : queue_(0) {}
-	virtual void run();
 	virtual void cancel(Event*);
 	virtual void insert(Event*);
+	virtual Event* deque();
 	virtual Event* lookup(int uid);
 protected:
 	Event* queue_;
@@ -263,21 +295,13 @@ Event* ListScheduler::lookup(int uid)
 	return (e);
 }
 
-void ListScheduler::run()
+
+Event*
+ListScheduler::deque()
 { 
-	/*XXX*/
-	instance_ = this;
-	while (queue_ != 0 && !halted_) {
-	  //printf("got here, ");
-		Event* e = queue_;
-		queue_ = e->next_;
-		clock_ = e->time_;
-		//printf("clock_ %f, before e->uid_:%d,", clock_, e->uid_);
-		e->uid_ = - e->uid_;
-		//printf("after e->uid_:%d,", e->uid_);
-		e->handler_->handle(e);
-		//printf("queue%d, halted%d\n",queue_, halted_);
-	}
+	Event* e = queue_;
+	queue_ = e->next_;
+	return (e);
 }
 
 #include "heap.h"
@@ -295,7 +319,7 @@ public:
 		hp_->heap_insert(e->time_, (void*) e);
 	}
 	virtual Event* lookup(int uid);
-	virtual void run();
+	virtual Event* deque();
 protected:
 	Heap* hp_;
 };
@@ -319,15 +343,10 @@ Event* HeapScheduler::lookup(int uid)
 	return e;
 }
 
-void HeapScheduler::run()
+Event*
+HeapScheduler::deque()
 {
-	Event* e;
-	instance_ = this;
-	while (((e = (Event*) hp_->heap_extract_min()) != 0) && !halted_) {
-		clock_ = e->time_;
-		e->uid_ = - e->uid_;
-		e->handler_->handle(e);
-	}
+	return ((Event*) hp_->heap_extract_min());
 }
 
 /*
@@ -343,16 +362,17 @@ class CalendarScheduler : public Scheduler {
 public:
 	CalendarScheduler();
 	virtual ~CalendarScheduler();
-	virtual void run();
 	virtual void cancel(Event*);
 	virtual void insert(Event*);
 	virtual Event* lookup(int uid);
+	virtual Event* deque();
 
 protected:
 	int resizeenabled_;
 	double width_;
 	double oneonwidth_;
 	double buckettop_;
+	double last_clock_;
 	int nbuckets_;
 	int buckbits_;
 	int lastbucket_;
@@ -361,7 +381,6 @@ protected:
 	Event** buckets_;
 	int qsize_;
 
-	virtual Event* dequeue();
 	virtual void reinit(int nbuck, double bwidth, double start);
 	virtual void resize(int newsize);
 	virtual double newwidth();
@@ -402,9 +421,11 @@ void CalendarScheduler::insert(Event* e)
 		resize(2*nbuckets_);
 }
 
-Event* CalendarScheduler::dequeue()
+Event*
+CalendarScheduler::deque()
 {
-	if (qsize_ == 0) return NULL;
+	if (qsize_ == 0)
+		return NULL;
 	int i = lastbucket_;
 
 	// check for an event this `year'
@@ -413,11 +434,13 @@ Event* CalendarScheduler::dequeue()
 		if ((e != NULL) && (e->time_ < buckettop_)) {
 			buckets_[i] = e->next_;
 			lastbucket_ = i;
-			clock_ = e->time_;
-			if (--qsize_ < bot_threshold_) resize(nbuckets_/2);
+			last_clock_ = e->time_;
+			if (--qsize_ < bot_threshold_)
+				resize(nbuckets_/2);
 			return e;
 		} else {
-			if (++i == nbuckets_) i = 0;
+			if (++i == nbuckets_)
+				i = 0;
 			buckettop_ += width_;
 		}
 	} while (i != lastbucket_);
@@ -425,9 +448,13 @@ Event* CalendarScheduler::dequeue()
 	// or direct search for the minimum event
 	int pos = 0;
 	Event* min;
-	do { min =  buckets_[pos++]; } while (min == NULL); pos--;
+	do {
+		min =  buckets_[pos++];
+	} while (min == NULL);
+	pos--;
 
-	for (int k = pos+1; k < nbuckets_; k++) {
+	int k;
+	for (k = pos+1; k < nbuckets_; k++) {
 		Event* e = buckets_[k];
 		if ((e != NULL) && (e->time_ < min->time_)) {
 			min = e; pos = k;
@@ -436,11 +463,11 @@ Event* CalendarScheduler::dequeue()
   
 	// adjust year and resume
 	lastbucket_ = pos;
-	clock_ = min->time_;
-	long n = (long)(clock_ * oneonwidth_);
+	last_clock_ = min->time_;
+	long n = (long)(min->time_ * oneonwidth_);
 	buckettop_ = (n + 1) * width_ + 0.5 * width_;
 
-	return dequeue();
+	return deque();
 }
 
 void CalendarScheduler::reinit(int nbuck, double bwidth, double start)
@@ -452,7 +479,7 @@ void CalendarScheduler::reinit(int nbuck, double bwidth, double start)
 	nbuckets_ = nbuck;
 	buckbits_ = nbuck-1;
 	qsize_ = 0;
-	clock_ = start;
+	last_clock_ = start;
 	long n = (long)(start * oneonwidth_);
 	lastbucket_ = n % nbuck;
 	buckettop_ = (n + 1) * width_ + 0.5 * width_;
@@ -470,7 +497,8 @@ void CalendarScheduler::resize(int newsize)
 
 	// copy events to new buckets
 	reinit(newsize, bwidth, clock_);
-	for (int i = oldn-1; i >= 0; i--) {
+	int i;
+	for (i = oldn-1; i >= 0; i--) {
 		Event* e = oldb[i];
 		while (e != NULL) {
 			Event* en = e->next_;
@@ -485,7 +513,8 @@ void CalendarScheduler::resize(int newsize)
 #define MIN_WIDTH (1.0e-6)
 #define MAX_HOLD  25
 
-double CalendarScheduler::newwidth()
+double
+CalendarScheduler::newwidth()
 {
 	static Event* hold[MAX_HOLD];
 	int nsamples;
@@ -499,7 +528,7 @@ double CalendarScheduler::newwidth()
 	double olp = clock_;
 	double olt = buckettop_;
 	int olb = lastbucket_;
-	for (int i = 0; i < nsamples; i++) hold[i] = dequeue();
+	for (int i = 0; i < nsamples; i++) hold[i] = deque();
 	for (int j = nsamples-1; j >= 0; j--) insert(hold[j]);
 	clock_ = olp;
 	buckettop_ = olt;
@@ -548,17 +577,6 @@ Event* CalendarScheduler::lookup(int uid)
 		for (Event* p = buckets_[i]; p != NULL; p = p->next_)
 			if (p->uid_== uid) return p;
 	return NULL;
-}
-
-void CalendarScheduler::run()
-{ 
-	Event* p;
-	/*XXX*/
-	instance_ = this;
-	while (((p = dequeue()) != NULL) && !halted_) {
-		p->uid_ = - p->uid_;
-		p->handler_->handle(p);
-	}
 }
 
 #ifndef WIN32
@@ -623,7 +641,7 @@ void RealTimeScheduler::run()
 		// first handle any "old events"
 		//
 		now = tod();
-		while ((p = dequeue()) != NULL && (p->time_ <= now)) {
+		while ((p = deque()) != NULL && (p->time_ <= now)) {
 			dispatch(p);
 		}
 

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.h,v 1.8 1998/02/27 15:23:03 polly Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.h,v 1.9 1998/05/21 01:43:03 kfall Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -64,14 +64,16 @@ public:
 	static Scheduler& instance() { return (*instance_); }
 	void schedule(Handler*, Event*, double delay);
 	void rc_schedule(Handler*, Event*, double delay);
-	virtual void run() = 0;
+	virtual void run();
 	virtual void cancel(Event*) = 0;
 	virtual void insert(Event*) = 0;
 	virtual Event* lookup(int uid) = 0;
+	virtual Event* deque() = 0;		// next event
 	inline double clock() const { return (clock_); }
 	virtual void sync() {};
 	inline void reset() { clock_ = 0.; }/*XXX*/
 protected:
+	void dumpq();	// for debug: remove + print remaining events
 	Scheduler();
 	int command(int argc, const char*const* argv);
 	double clock_;
