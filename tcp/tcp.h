@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.97 2002/04/23 05:07:17 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.98 2002/05/31 04:50:13 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -212,6 +212,8 @@ protected:
 	void reset_qoption();	/* for QOption with EnblRTTCtr_ */
 	void rtt_counting();	/* for QOption with EnblRTTCtr_ */
 	int network_limited();	/* Sending limited by network? */
+	double limited_slow_start(double cwnd, double max_ssthresh, double increment);
+				/* Limited slow-start for high windows */
 
 	/* Helper functions. Currently used by tcp-asym */
 	virtual void output_helper(Packet*) { return; }

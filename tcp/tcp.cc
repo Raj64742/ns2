@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.134 2002/04/29 01:56:39 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.135 2002/05/31 04:49:17 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -830,11 +830,24 @@ double TcpAgent::linear(double x, double x_1, double y_1, double x_2, double y_2
 }
 
 /*
+ * Limited Slow-Start for large congestion windows.
+ * This is only used when max_ssthresh_ is non-zero.
+ */
+double TcpAgent::limited_slow_start(double cwnd, double max_ssthresh, double increment)
+{
+	int round = int(cwnd / (double(max_ssthresh)/2.0));
+	double increment1 = 1.0/(double(round)); 
+	if (increment < increment1)
+		increment = increment1;
+	return increment;
+}
+
+/*
  * open up the congestion window
  */
 void TcpAgent::opencwnd()
 {
-	double increment, increment1;
+	double increment;
 	if (cwnd_ < ssthresh_) {
 		/* slow-start (exponential) */
 		cwnd_ += 1;
@@ -852,11 +865,11 @@ void TcpAgent::opencwnd()
 		case 1:
 			/* This is the standard algorithm. */
 			increment = increase_num_ / cwnd_;
-			if (last_cwnd_action_ == 0 && max_ssthresh_ > 0) {
-				int round = int(cwnd_ / (double(max_ssthresh_)/2.0));
-				increment1 = 1.0/(double(round)); 
-				if (increment < increment1)
-					increment = increment1;
+			if ((last_cwnd_action_ == 0 ||
+			  last_cwnd_action_ == CWND_ACTION_TIMEOUT) 
+			  && max_ssthresh_ > 0) {
+				increment = limited_slow_start(cwnd_,
+				  max_ssthresh_, increment);
 			}
 			cwnd_ += increment;
 			break;
@@ -942,11 +955,11 @@ void TcpAgent::opencwnd()
 			//	} 
                                 increment = (increase / cwnd_) ;
                         }       
-			if (last_cwnd_action_ == 0 && max_ssthresh_ > 0) {
-				int round = int(cwnd_ / (double(max_ssthresh_)/2.0));
-				increment1 = 1.0/(double(round)); 
-				if (increment < increment1)
-					increment = increment1;
+			if ((last_cwnd_action_ == 0 ||
+			  last_cwnd_action_ == CWND_ACTION_TIMEOUT) 
+			  && max_ssthresh_ > 0) {
+				increment = limited_slow_start(cwnd_,
+				  max_ssthresh_, increment);
 			}
 			cwnd_ += increment;
                         break;
