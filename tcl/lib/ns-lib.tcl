@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.175 1999/09/30 00:48:50 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.176 1999/10/05 20:01:48 yaxu Exp $
 
 #
 
@@ -427,6 +427,10 @@ Simulator instproc create-wireless-node { args } {
 		$self at 0.0 "$node start-dsr"
 	    }
 
+	    AODV {
+		set ragent [$self create-aodv-agent $node]
+	    }
+
 	    TORA {
 		set imepflag_ ON
 		set ragent [$self create-tora-agent $node]
@@ -614,6 +618,44 @@ Simulator instproc create-dsdv-agent { node } {
 
     return $ragent
 }
+
+Simulator instproc create-aodv-agent { node } {
+
+        #
+        #  Create the Routing Agent and attach it to port 255.
+        #
+
+        set ragent [new Agent/AODV [$node id]]
+
+        #set ragent_($id) [new $opt(ragent) $id]
+        #set ragent $ragent_($id)
+        #$node attach $ragent 255
+
+        #$ragent if-queue [$node set ifq_(0)]    ;# ifq between LL and MAC
+
+        $self at 0.0 "$ragent start"     ;# start BEACON/HELLO Messages
+
+        #
+        # Drop Target (always on regardless of other tracing)
+        #
+        #set drpT [cmu-trace Drop "RTR" $node]
+        #$ragent drop-target $drpT
+
+        #
+        # Log Target
+        #
+        #set T [new Trace/Generic]
+        #$T target [$ns_ set nullAgent_]
+        #$T attach $tracefd
+        #$T set src_ $id
+        #$ragent log-target $T
+    
+        $node set ragent_ $ragent
+        return $ragent
+}
+
+
+
 
 Simulator instproc mobility-trace {ttype atype node} {
 

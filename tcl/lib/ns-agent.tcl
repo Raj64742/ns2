@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.19 1999/10/04 18:45:18 salehi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.20 1999/10/05 20:01:47 yaxu Exp $
 #
 
 #
@@ -192,6 +192,13 @@ Agent/TORA instproc init args {
 Agent/TORA set sport_	0
 Agent/TORA set dport_	0
 
+Agent/AODV instproc init args {
+
+         $self next $args
+}
+
+Agent/AODV set sport_   0
+Agent/AODV set dport_   0
 
 
 

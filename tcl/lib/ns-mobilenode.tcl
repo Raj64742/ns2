@@ -242,7 +242,11 @@ Node/MobileNode instproc add-target {agent port } {
 
     }
 
-
+    # speciall processing for AODV
+    set aodvonly [string first "AODV" [$agent info class]] 
+    if {$aodvonly != -1 } {
+	$agent if-queue [$self set ifq_(0)]    ;# ifq between LL and MAC
+    }
     
     if { $port == 255 } {			# routing agents
 

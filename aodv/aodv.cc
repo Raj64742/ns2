@@ -1,6 +1,6 @@
 /* 
    aodv.cc
-   $Id: aodv.cc,v 1.1 1999/09/30 20:30:06 yaxu Exp $
+   $Id: aodv.cc,v 1.2 1999/10/05 20:04:12 yaxu Exp $
  */
 
 /* The AODV code developed by the CMU/MONARCH group was optimized
@@ -77,7 +77,7 @@ public:
 
 static class AODVclass : public TclClass {
 public:
-        AODVclass() : TclClass("Agent/rtProto/AODV") {}
+        AODVclass() : TclClass("Agent/AODV") {}
         TclObject* create(int argc, const char*const* argv) {
                 assert(argc == 5);
                 return (new AODV((nsaddr_t) atoi(argv[4])));
@@ -205,7 +205,7 @@ AODV::command(int argc, const char*const* argv)
                         index = atoi(argv[2]);
                         return TCL_OK;
                 }
-                else if(strcmp(argv[1], "log-target") == 0) {
+                else if(strcmp(argv[1], "log-target") == 0 || strcmp(argv[1], "tracetarget") == 0 ) {
                         logtarget = (Trace*) TclObject::lookup(argv[2]);
                         if(logtarget == 0)
                                 return TCL_ERROR;
@@ -659,9 +659,9 @@ AODV::recv(Packet *p, Handler*)
 {
         struct hdr_cmn *ch = HDR_CMN(p);
         struct hdr_ip *ih = HDR_IP(p);
-
+	
         assert(initialized());
-        assert(p->incoming == 0);
+        //assert(p->incoming == 0);
 
         if(ch->ptype() == PT_AODV) {
 

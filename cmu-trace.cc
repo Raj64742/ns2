@@ -44,7 +44,7 @@
 #include <address.h>
 #include <tora/tora_packet.h> //TORA
 #include <imep/imep_spec.h>         // IMEP
-
+#include <aodv/aodv_packet.h> //AODV
 #include <cmu-trace.h>
 
 // #define LOG_POSITION
@@ -94,7 +94,7 @@ CMUTrace::CMUTrace(const char *s, char t) : Trace(t)
 	bind("off_SR_", &off_sr_);
 	bind("off_TORA_", &off_TORA_);
         bind("off_IMEP_", &off_IMEP_);
-	//        bind("off_AODV_", &off_AODV_);
+	bind("off_AODV_", &off_AODV_);
 
 }
 
@@ -106,8 +106,6 @@ CMUTrace::format_mac(Packet *p, const char *why, int offset)
 	struct hdr_mac802_11 *mh = HDR_MAC802_11(p);
 	char op = (char) type_;
 	Node* thisnode = Node::get_node_by_address(src_);
-
-	//printf("Node [%d] energy level = %f\n", src_, thisnode->energy());
 
 	// hack the IP address to convert pkt format to hostid format
 	// for now until port ids are removed from IP address. -Padma.
@@ -306,6 +304,47 @@ CMUTrace::format_tora(Packet *p, int offset)
         }
 }
 
+void
+CMUTrace::format_aodv(Packet *p, int offset)
+{
+        struct hdr_aodv *ah = HDR_AODV(p);
+        struct hdr_aodv_request *rq = HDR_AODV_REQUEST(p);
+        struct hdr_aodv_reply *rp = HDR_AODV_REPLY(p);
+
+        switch(ah->ah_type) {
+        case AODVTYPE_RREQ:
+		sprintf(wrk_ + offset,
+			"[0x%x %d %d [%d %d] [%d %d]] (REQUEST)",
+			rq->rq_type,
+                        rq->rq_hop_count,
+                        rq->rq_bcast_id,
+                        rq->rq_dst,
+                        rq->rq_dst_seqno,
+                        rq->rq_src,
+                        rq->rq_src_seqno);
+                break;
+
+        case AODVTYPE_RREP:
+        case AODVTYPE_UREP:
+        case AODVTYPE_HELLO:
+		sprintf(wrk_ + offset,
+			"[0x%x %d [%d %d] %d] (%s)",
+			rp->rp_type,
+                        rp->rp_hop_count,
+                        rp->rp_dst,
+                        rp->rp_dst_seqno,
+                        rp->rp_lifetime,
+                        rp->rp_type == AODVTYPE_RREP ? "REPLY" :
+                        (rp->rp_type == AODVTYPE_UREP ? "UNSOLICITED REPLY" :
+                         "HELLO"));
+                break;
+
+        default:
+                fprintf(stderr,
+                        "%s: invalid AODV packet type\n", __FUNCTION__);
+                abort();
+        }
+}
 
 
 void CMUTrace::format(Packet* p, const char *why)
@@ -334,6 +373,10 @@ void CMUTrace::format(Packet* p, const char *why)
 
 		switch(ch->ptype()) {
 		
+		 case PT_AODV:
+			 format_aodv(p, offset);
+			 break;
+
 		 case PT_TORA:
                         format_tora(p, offset);
                         break;
