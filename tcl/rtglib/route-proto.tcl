@@ -192,9 +192,7 @@ rtObject instproc compute-routes {} {
 
 rtObject instproc flag-multicast changes {
     $self instvar node_
-    if ![catch "$node_ getArbiter" mrtObject] {
-	$mrtObject notify $changes
-    }
+    $node_ notify-mcast $changes
 }
 
 rtObject instproc intf-changed {} {
