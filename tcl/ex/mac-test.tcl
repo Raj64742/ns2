@@ -86,7 +86,7 @@ proc finish {} {
 	$ns flush-trace
 	close $trfd
 
-	exec perl $pwd/${nshome}bin/trsplit -tt r -pt tcp -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan) $opt(seed)" $opt(tr) 2>$opt(tr)-bwt > $opt(tr)-bw
+	exec perl $pwd/${nshome}bin/trsplit -f -tt r -pt tcp -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan) $opt(seed)" $opt(tr) 2>$opt(tr)-bwt > $opt(tr)-bw
 	cat $opt(tr)-bwt
 	exec cat $opt(tr)-bw $opt(tr)-bwt >> $pwd/$opt(tr)-bw
 	exec rm $opt(tr)-bwt
