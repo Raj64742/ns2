@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.17 1998/10/29 03:52:40 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.18 1998/11/02 23:07:52 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -129,7 +129,7 @@ MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst,
 	for (p = ht_[h]; p != 0; p = p->next) {
 		if (p->src == src && p->dst == dst)
  			if (p->iif == iface ||
- 			    p->iif == UNKN_IFACE.value() ||
+ 			    //p->iif == UNKN_IFACE.value() ||
  			    iface == ANY_IFACE.value())
 			break;
 	}
@@ -166,11 +166,8 @@ int MCastClassifier::classify(Packet *const pkt)
 		if ((p = lookup(src, dst)) == 0)
 			p = lookup_star(dst);
 		if (p == 0) {
-  			/*
-  			 * Didn't find an entry.
-  			 * Call tcl exactly once to install one.
-  			 * If tcl doesn't come through then fail.
-  			 */
+  			// Didn't find an entry.
+			// Call tcl exactly once to install one.
 			Tcl::instance().evalf("%s new-group %u %u %d cache-miss", 
 					      name(), src, dst, iface);
 			return Classifier::TWICE;
@@ -210,16 +207,12 @@ void MCastClassifier::set_hash(hashnode* ht[], nsaddr_t src, nsaddr_t dst,
 int MCastClassifier::command(int argc, const char*const* argv)
 {
 	if (argc == 6) {
-		/*
-		 * $classifier set-hash $src $group $slot $iif
-		 *      $iif can be:(1) iif
-		 *                  (2) "*" - matches any interface
-		 *                  (3) "?" - interface is unknown
-		 *			      (usually this means that
-		 *			       the packet came from a
-		 *			       local (for this node) agent.)
-		 */
 		if (strcmp(argv[1], "set-hash") == 0) {
+			// $classifier set-hash $src $group $slot $iif
+			//      $iif can be:(1) <number>
+			//                  (2) "*" - matches any interface
+			//                  (3) "?" - interface is unknown (usually this means that
+			//			       the packet came from a local agent)
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int slot = atoi(argv[4]);
@@ -227,7 +220,7 @@ int MCastClassifier::command(int argc, const char*const* argv)
 				: (strcmp(argv[5], UNKN_IFACE.name())==0) ? UNKN_IFACE.value() 
 				: atoi(argv[5]); 
 			if (strcmp("*", argv[2]) == 0) {
-			    // install a <*,G> entry
+			    // install a <*,G> entry: give 0 as src, but can be anything
 			    set_hash(ht_star_, 0, dst, slot, iface);
 			} else {
 			    //install a <S,G> entry
@@ -236,35 +229,30 @@ int MCastClassifier::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "change-iface") == 0) {
+			// $classifier change-iface $src $dst $olfiif $newiif
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int oldiface = atoi(argv[4]);
 			int newiface = atoi(argv[5]);
 			if (strcmp("*", argv[2]) == 0) {
-				// change interface for a <*,G>
 				change_iface(dst, oldiface, newiface);
 			} else {
-				// change interface for a <S,G>
 				change_iface(src, dst, oldiface, newiface);
 			}
 			return (TCL_OK);
 		}
 	} else if (argc == 5) {
-		/*
-		 * $classifier lookup-iface $src $group $iface
-		 */
 		if (strcmp(argv[1], "lookup") == 0) {
+			// $classifier lookup $src $group $iface
+			// returns name of the object (replicator)
 			Tcl &tcl = Tcl::instance();
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int iface = atoi(argv[4]);
 			
-			// source specific entries have higher precedence
-			// XXX shouldn't we check if argv[2]=="*", instead?
-			hashnode* p = lookup(src, dst, iface); 
-			if (p == 0)
-				p= lookup_star(dst, iface); // if they aren't found, lookup <*,G>
-			if ((p == NULL) || (slot_[p->slot] == 0))
+			hashnode* p= (strcmp("*", argv[2]) == 0) ? lookup_star(dst, iface)
+				: lookup(src, dst, iface);
+			if ((p == 0) || (slot_[p->slot] == 0))
 				tcl.resultf("");
 			else 
 				tcl.resultf("%s", slot_[p->slot]->name());
@@ -272,17 +260,13 @@ int MCastClassifier::command(int argc, const char*const* argv)
 		}
 	} else if (argc == 4) {
 		if (strcmp(argv[1], "lookup-iface") == 0) {
+			// $classifier lookup-iface $src $group 
+			// returns incoming iface
 			Tcl &tcl = Tcl::instance();
+			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
-			hashnode* p;
-			// source specific entries have higher precedence
-			if (0 == strcmp(argv[2], "*")) {
-				p= lookup_star(dst);
-			}
-			else {
-				nsaddr_t src = strtol(argv[2], (char**)0, 0);
-				p= lookup(src, dst);
-			}
+			hashnode* p= (strcmp(argv[2], "*") == 0) ? lookup_star(dst)
+				: lookup(src, dst);
 			if (p == 0)
 				tcl.resultf("");
 			else 
@@ -300,12 +284,11 @@ int MCastClassifier::command(int argc, const char*const* argv)
 
 
 /* interface look up for the interface code*/
-
 void MCastClassifier::change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface)
 {
 
 	hashnode* p = lookup(src, dst, oldiface);
-	p->iif = newiface;
+	if (p) p->iif = newiface;
 }
 
 void MCastClassifier::change_iface(nsaddr_t dst, int oldiface, int newiface)
