@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.70 1997/10/28 02:53:24 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.71 1997/11/06 02:46:13 kkumar Exp $
 
 
 #
@@ -295,6 +295,11 @@ networkinterface set intf_label_ -1
 #
 Simulator set NumberInterfaces_ 0		;# to get intfs for mcast
 Node set multiPath_ 0
+
+Simulator set EnableMcast_ 0                    ;# to enable mcast
+# Defaults for multicast addresses
+Simulator set McastShift_ 15
+Simulator set McastAddr_ 0x8000
 
 # Dynamic routing defaults
 rtObject set maxpref_   255
