@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.15 2002/03/08 21:55:41 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.16 2002/04/30 19:26:51 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -350,6 +350,29 @@ Test/red1Adapt instproc run {} {
     $self maketraffic
     $ns_ run   
 }
+
+Class Test/red1ECN -superclass TestSuite
+Test/red1ECN instproc init {} {
+    $self instvar net_ test_
+    set net_ net2
+    set test_ red1ECN
+    Queue/RED set setbit_ true
+    Agent/TCP set ecn_ 1
+    Test/red1ECN instproc run {} [Test/red1 info instbody run ]
+    $self next
+}
+
+Class Test/red1AdaptECN -superclass TestSuite
+Test/red1AdaptECN instproc init {} {
+    $self instvar net_ test_ ns_
+    set net_ net2
+    set test_ red1AdaptECN
+    Queue/RED set setbit_ true
+    Agent/TCP set ecn_ 1
+    Test/red1AdaptECN instproc run {} [Test/red1Adapt info instbody run ]
+    $self next
+}
+
 
 Class Test/red1AdaptFeng -superclass TestSuite
 Test/red1AdaptFeng instproc init {} {
