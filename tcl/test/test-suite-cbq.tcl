@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.8 1997/11/05 19:19:44 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.9 1997/11/06 02:57:19 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -49,9 +49,10 @@ source misc.tcl
 source topologies.tcl
 catch "cd $dir"
 
-TestSuite instproc make_queue cl {
+TestSuite instproc make_queue { cl qlim } {
 	$self instvar cbq_qtype_
 	set q [new Queue/$cbq_qtype_]
+	$q set limit_ $qlim
 	$cl install-queue $q
 }
 
@@ -74,23 +75,24 @@ TestSuite instproc create_flat { } {
 	$self instvar topclass_ vidclass_ audioclass_ dataclass_
 	$self instvar cbq_qtype_
 
+	set qlim 20
+	set cbq_qtype_ DropTail
+
 	set topclass_ [new CBQClass]
+	# (topclass_ doesn't have a queue)
 	$topclass_ setparams none 0 0.98 auto 8 2 0
 
  	set vidclass_ [new CBQClass]
-	$vidclass_ setparams $topclass_ 1 0.32 auto 1 1 0
+	$self make_queue $vidclass_ $qlim
+	$vidclass_ setparams $topclass_ true 0.32 auto 1 1 0
 
 	set audioclass_ [new CBQClass]
-	$audioclass_ setparams $topclass_ 1 0.03 auto 1 1 0
+	$self make_queue $audioclass_ $qlim
+	$audioclass_ setparams $topclass_ true 0.03 auto 1 1 0
 
 	set dataclass_ [new CBQClass]
-	$dataclass_ setparams $topclass_ 1 0.65 auto 2 1 0
-
-	# (topclass_ doesn't have a queue)
-	set cbq_qtype_ DropTail
-	$self make_queue $vidclass_
-	$self make_queue $audioclass_
-	$self make_queue $dataclass_
+	$self make_queue $dataclass_ $qlim
+	$dataclass_ setparams $topclass_ true 0.65 auto 2 1 0
 }
 
 TestSuite instproc insert_flat cbqlink {
@@ -123,6 +125,8 @@ TestSuite instproc create_twoagency { } {
 
 	$self instvar cbqalgorithm_
 	$self instvar topClass_ topAClass_ topBClass_
+
+	set qlim 20
 
 	set topClass_ [new CBQClass]
 	set topAClass_ [new CBQClass]
@@ -165,10 +169,10 @@ TestSuite instproc create_twoagency { } {
 
 	# (topclass_ doesn't have a queue)
 	set cbq_qtype_ DropTail
-	$self make_queue $vidAClass_
-	$self make_queue $dataAClass_
-	$self make_queue $vidBClass_
-	$self make_queue $dataBClass_
+	$self make_queue $vidAClass_ $qlim
+	$self make_queue $dataAClass_ $qlim
+	$self make_queue $vidBClass_ $qlim
+	$self make_queue $dataBClass_ $qlim
 }
 
 TestSuite instproc insert_twoAgency { cbqlink } {
@@ -248,6 +252,7 @@ TestSuite instproc finish testname {
 # File: temp.s
 #
 TestSuite instproc cbrDump4 { linkno interval stopTime maxBytes } {
+	set dumpfile temp.s
 	$self instvar oldbytes_
 	$self instvar ns_
 
@@ -276,7 +281,7 @@ TestSuite instproc cbrDump4 { linkno interval stopTime maxBytes } {
 	}
 
 	$self instvar tmpschan_
-	set f [open temp.s w]
+	set f [open $dumpfile w]
 	set tmpschan_ $f
 	puts $f "maxbytes $maxBytes"
 	$ns_ at 0.0 "$self cdump $linkno $interval $f"
@@ -403,6 +408,7 @@ Test/WRR instproc run {} {
 	$self insert_flat $cbqlink_
 	$self three_cbrs
 	$self make_fmon $cbqlink_
+	[$cbqlink_ queue] algorithm $cbqalgorithm_
 
 	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
 	$self openTrace $stopTime CBQ_WRR
