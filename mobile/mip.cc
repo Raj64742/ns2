@@ -142,9 +142,9 @@ void MIPDecapsulator::recv(Packet* p, Handler *h)
 
 	NsObject* link = find(p);
 	// for mobilenodes use default-target which is probably the 
-	// node entry point
-	//if (link == NULL)
-	//link = def_target_;
+	// RA. cannot use node_entry point instead, as hier address
+	// of MH point to HA. hence hand decapsulated pkt directly 
+	// to RA.
 
 	if (link == NULL || pinhdr->ttl_ <= 0) {
 		/*

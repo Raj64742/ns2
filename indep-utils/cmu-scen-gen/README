@@ -1,4 +1,4 @@
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/README,v 1.1 1999/02/25 19:12:03 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/README,v 1.2 1999/05/12 21:35:05 haldar Exp $
 
 ********** README for using CMU's scenario and connction pattern  *****
             ************** file generator ************
@@ -27,18 +27,14 @@ B. Connection pattern file generator
 
 Files:
 cbrgen.tcl -- for generating CBR connections
-tcpgen.tcl -- for generating TCP connections
+& for generating TCP connections
 
 Method:
 
-to create CBR connecions, run
+to create CBR/TCP connecions, run
 
 ns cbrgen.tcl [-type cbr|tcp] [-nn nodes] [-seed seed] [-mc connections]
 [-rate rate]
-
-and to create TCP connections, run
-
-ns tcpgen.tcl [-nn nodes] [-seed seed]
 
 note: You will need to pipe the outputs from above to a cbr-* or a tcp-*
 file. 

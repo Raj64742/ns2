@@ -17,11 +17,13 @@
 # 
 
 
-# This test suite is for validating wireless lans (CMU extension)
+# This test suite is for validating wireless lans 
 # To run all tests: test-all-wireless-lan
 # to run individual test:
 # ns test-suite-wireless-lan.tcl dsdv
 # ns test-suite-wireless-lan.tcl dsr
+# ns test-suite-wireless-lan.tcl wired-cum-wireless
+# ns test-suite-wireless-lan.tcl wireless-mip
 # ....
 #
 # To view a list of available test to run with this script:
@@ -39,6 +41,21 @@ Class Test/dsdv -superclass TestSuite
 #Class Test/dsr -superclass TestSuite
 # wireless model using dynamic source routing
 
+Class Test/dsdv-wired-cum-wireless -superclass TestSuite
+# simulation between a wired and a wireless domain through
+# gateways called base-stations.
+
+#Class Test/dsr-wired-cum-wireless -superclass TestSuite
+# same as above , only with DSR routing.
+
+Class Test/dsdv-wireless-mip -superclass TestSuite
+# Wireless Mobile IP model in which a mobilehost roams between 
+# a Home Agent and Foreign Agent.
+
+#Class Test/dsr-wireless-mip -superclass TestSuite
+# same as above, only with DSR routing
+
+# XXX The dsr version of the tests are not added to test-suite as their outputs are not consistent (events vary, even with the same random seed value) and thus couldnot be validated. -Padma, may 1999.
 
 proc usage {} {
 	global argv0
@@ -49,24 +66,20 @@ proc usage {} {
 
 
 proc default_options {} {
-	global opt
-	set opt(chan)		Channel/WirelessChannel
-	set opt(prop)		Propagation/TwoRayGround
-	set opt(netif)		Phy/WirelessPhy
-	set opt(mac)		Mac/802_11
-        set opt(ifq)		Queue/DropTail/PriQueue
-	set opt(ll)		LL
-	set opt(ant)            Antenna/OmniAntenna
-	set opt(x)		670 ;# X dimension of the topography
-	set opt(y)		670;# Y dimension of the topography
-	set opt(cp)		"../mobility/scene/cbr-50-20-4-512" ;# connection pattern file
-	set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0" ;# scenario file
-	set opt(ifqlen)		50	      ;# max packet in ifq
-	set opt(nn)		50	      ;# number of nodes
-	set opt(seed)		0.0
-	set opt(stop)		1000.0	      ;# simulation time
-	set opt(tr)		temp.rands    ;# trace file
-	set opt(lm)             "off"          ;# log movement
+    global opt
+    set opt(chan)	Channel/WirelessChannel
+    set opt(prop)	Propagation/TwoRayGround
+    set opt(netif)	Phy/WirelessPhy
+    set opt(mac)	Mac/802_11
+    set opt(ifq)	Queue/DropTail/PriQueue
+    set opt(ll)		LL
+    set opt(ant)        Antenna/OmniAntenna
+    set opt(x)		670 ;# X dimension of the topography
+    set opt(y)		670;# Y dimension of the topography
+    set opt(ifqlen)	50	      ;# max packet in ifq
+    set opt(seed)	0.0
+    set opt(tr)		temp.rands    ;# trace file
+    set opt(lm)         "off"          ;# log movement
 
 }
 
@@ -124,12 +137,21 @@ TestSuite instproc init {} {
 	global node_ god_ 
 	$self instvar ns_ testName_
 	set ns_         [new Simulator]
+    if {[string compare $testName_ "dsdv"] && \
+	    [string compare $testName_ "dsr"]} {
+	     $ns_ set-address-format hierarchical
+	     AddrParams set domain_num_ 3
+	     lappend cluster_num 2 1 1
+	     AddrParams set cluster_num_ $cluster_num
+	     lappend eilastlevel 1 1 4 1
+	     AddrParams set nodes_num_ $eilastlevel
+        }  
 	set chan	[new $opt(chan)]
 	set prop	[new $opt(prop)]
 	set topo	[new Topography]
 	set tracefd	[open $opt(tr) w]
 
-	set opt(rp) $testName_
+	#set opt(rp) $testName_
 	$topo load_flatgrid $opt(x) $opt(y)
 	$prop topography $topo
 	#
@@ -143,50 +165,47 @@ TestSuite instproc init {} {
 	if { $opt(lm) == "on" } {
 		$self log-movement
 	}
-	source ../mobility/$testName_.tcl
-	for {set i 0} {$i < $opt(nn) } {incr i} {
-		$testName_-create-mobile-node $i
-	}
-	puts "Loading connection pattern..."
-	source $opt(cp)
 	
-	#
-	# Tell all the nodes when the simulation ends
-	#
-	for {set i 0} {$i < $opt(nn) } {incr i} {
-		$ns_ at $opt(stop).000000001 "$node_($i) reset";
-	}
-
-	$ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;" 
-	#$ns_ halt"
-	$ns_ at $opt(stop).1 "$self finish"
-	puts "Loading scenario file..."
-	source $opt(sc)
-	puts "Load complete..."
 	puts $tracefd "M 0.0 nn:$opt(nn) x:$opt(x) y:$opt(y) rp:$opt(rp)"
 	puts $tracefd "M 0.0 sc:$opt(sc) cp:$opt(cp) seed:$opt(seed)"
 	puts $tracefd "M 0.0 prop:$opt(prop) ant:$opt(ant)"
 }
 
 
-TestSuite instproc finish {} {
-	$self instvar ns_
-	global quiet
-
-	$ns_ flush-trace
-        #if { !$quiet } {
-        #        puts "running nam..."
-        #        exec nam temp.rands.nam &
-        #}
-	puts "finishing.."
-	exit 0
-}
-
 Test/dsdv instproc init {} {
+    global opt node_ god_
     $self instvar ns_ testName_
-    set testName_ dsdv
+    set testName_       dsdv
+    set opt(rp)         dsdv
+    set opt(cp)		"../mobility/scene/cbr-50-20-4-512" 
+    set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0" ;
+    set opt(nn)		50	      
+    set opt(stop)       1000.0
+    
     $self next
+
+    for {set i 0} {$i < $opt(nn) } {incr i} {
+	$testName_-create-mobile-node $i
+    }
+    puts "Loading connection pattern..."
+    source $opt(cp)
+    
+    puts "Loading scenario file..."
+    source $opt(sc)
+    puts "Load complete..."
+    
+    #
+    # Tell all the nodes when the simulation ends
+    #
+    for {set i 0} {$i < $opt(nn) } {incr i} {
+	$ns_ at $opt(stop).000000001 "$node_($i) reset";
+    }
+    
+    $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;" 
+    #$ns_ halt"
+    $ns_ at $opt(stop).1 "$self finish"
 }
+
 
 Test/dsdv instproc run {} {
     $self instvar ns_
@@ -194,18 +213,175 @@ Test/dsdv instproc run {} {
     $ns_ run
 }
 
-#Test/dsr instproc init {} {
-	#$self instvar ns_ testName_ 
-	#set testName_ dsr
-	#$self next 
-#}
 
-#Test/dsr instproc run {} {
-	#$self instvar ns_ 
-	#puts "Starting Simulation..."
-	#$ns_ run
+Test/dsdv-wired-cum-wireless instproc init {} {
+    global opt god_ node_ 
+    $self instvar ns_ testName_
+    set testName_ dsdv-wired-cum-wireless
+    set opt(rp)            dsdv
+    set opt(sc)            "../mobility/scene/scen-3-test"
+    set opt(cp)            ""
+    set opt(nn)            5
+    set opt(stop)          500.0
+    set num_wired_nodes    2
+    set num_wireless_nodes 3
+
+    $self next
+
+    #setup wired nodes
+    set temp {0.0.0 0.1.0}
+    for {set i 0} {$i < $num_wired_nodes} {incr i} {
+	set W($i) [$ns_ node [lindex $temp $i]] 
+    }
+    
+    # setup base stations & wireless nodes
+    set temp {1.0.0 1.0.1 1.0.2 1.0.3}
+    set BS(0) [create-base-station-node [lindex $temp 0]]
+    set BS(1) [create-base-station-node 2.0.0]
+
+    #provide some co-ord (fixed) to base stations
+    $BS(0) set X_ 1.0
+    $BS(0) set Y_ 2.0
+    $BS(0) set Z_ 0.0
+    
+    $BS(1) set X_ 650.0
+    $BS(1) set Y_ 600.0
+    $BS(1) set Z_ 0.0
+    
+    #create some mobilenodes in the same domain as BS_0
+    for {set j 0} {$j < $num_wireless_nodes} {incr j} {
+	set node_($j) [ $opt(rp)-create-mobile-node $j [lindex $temp \
+		[expr $j+1]] ]
+	$node_($j) base-station [AddrParams set-hieraddr \
+		[$BS(0) node-addr]]
+    }
+    
+    puts "Loading connection pattern..."
+    $self create-udp-traffic 0 $node_(0) $W(0) 240.00000000000000
+    $self create-tcp-traffic 0 $W(1) $node_(2) 160.00000000000000
+    $self create-tcp-traffic 1 $node_(0) $W(0) 200.00000000000000
+    
+    puts "Loading scenario file..."
+    source $opt(sc)
+    puts "Load complete..."
+ 
+    #create links between wired and BS nodes
+    
+    $ns_ duplex-link $W(0) $W(1) 5Mb 2ms DropTail
+    $ns_ duplex-link $W(1) $BS(0) 5Mb 2ms DropTail
+    $ns_ duplex-link $W(1) $BS(1) 5Mb 2ms DropTail
+    
+    $ns_ duplex-link-op $W(0) $W(1) orient down
+    $ns_ duplex-link-op $W(1) $BS(0) orient left-down
+    $ns_ duplex-link-op $W(1) $BS(1) orient right-down
+    
+    #
+    # Tell all the nodes when the simulation ends
+    #
+    for {set i 0} {$i < $num_wireless_nodes} {incr i} {
+	$ns_ at $opt(stop).000000001 "$node_($i) reset";
+    }
+    $ns_ at $opt(stop).0000010 "$BS(0) reset";
+    $ns_ at $opt(stop).0000010 "$BS(1) reset";
 	
-#}
+    $ns_ at $opt(stop).20 "puts \"NS EXITING...\" ;" 
+    $ns_ at $opt(stop).21 "$self finish"
+    
+}
+
+Test/dsdv-wired-cum-wireless instproc run {} {
+    $self instvar ns_ 
+    puts "Starting Simulation..."
+    $ns_ run
+}
+
+
+Test/dsdv-wireless-mip instproc init {} {
+    global opt god_ node_ 
+    $self instvar ns_ testName_
+    
+    set testName_ dsdv-wireless-mip
+    set opt(rp)            dsdv
+    set opt(sc)            "../mobility/scene/scen-3-test"
+    set opt(cp)            ""
+    set opt(nn)            3       ;#total no of wireless nodes
+    set opt(stop)          250.0
+    set num_wired_nodes    2
+    set num_wireless_nodes 1
+    source ../lib/ns-wireless-mip.tcl
+    
+    $self next
+    
+    # set mobileIP flag
+    Simulator set mobile_ip_ 1
+
+    ## setup the wired nodes
+    set temp {0.0.0 0.1.0}
+    for {set i 0} {$i < $num_wired_nodes} {incr i} {
+	set W($i) [$ns_ node [lindex $temp $i]] 
+    }
+    
+    ## setup ForeignAgent and HomeAgent nodes
+    set HA [create-base-station-node 1.0.0]
+    set FA [create-base-station-node 2.0.0]
+    
+    #provide some co-ord (fixed) to these base-station nodes.
+    $HA set X_ 1.000000000000
+    $HA set Y_ 2.000000000000
+    $HA set Z_ 0.000000000000
+    
+    $FA set X_ 650.000000000000
+    $FA set Y_ 600.000000000000
+    $FA set Z_ 0.000000000000
+    
+    # create a mobilenode that would be moving between HA and FA.
+    # note address of MH indicates its in the same domain as HA.
+    
+    set MH [$opt(rp)-create-mobile-node 0 1.0.2]
+    set HAaddress [AddrParams set-hieraddr [$HA node-addr]]
+    [$MH set regagent_] set home_agent_ $HAaddress
+    
+    # movement of MH
+    $MH set Z_ 0.000000000000
+    $MH set Y_ 2.000000000000
+    $MH set X_ 2.000000000000
+    # starts to move towards FA
+    $ns_ at 100.000000000000 "$MH setdest 640.000000000000 610.000000000000 20.000000000000"
+    # goes back to HA
+    $ns_ at 200.000000000000 "$MH setdest 2.000000000000 2.000000000000 20.000000000000"
+    
+    # create links between wired and BaseStation nodes
+    $ns_ duplex-link $W(0) $W(1) 5Mb 2ms DropTail
+    $ns_ duplex-link $W(1) $HA 5Mb 2ms DropTail
+    $ns_ duplex-link $W(1) $FA 5Mb 2ms DropTail
+    
+    $ns_ duplex-link-op $W(0) $W(1) orient down
+    $ns_ duplex-link-op $W(1) $HA orient left-down
+    $ns_ duplex-link-op $W(1) $FA orient right-down
+    
+    # setup TCP connections between a wired node and the MH
+    puts "Loading connection pattern..."
+    $self create-tcp-traffic 0 $W(0) $MH 100.0
+    #
+    # Tell all the nodes when the simulation ends
+    #
+    for {set i 0} {$i < $num_wireless_nodes } {incr i} {
+	$ns_ at $opt(stop).0000010 "$node_($i) reset";
+    }
+    $ns_ at $opt(stop).0000010 "$HA reset";
+    $ns_ at $opt(stop).0000010 "$FA reset";
+    
+    $ns_ at $opt(stop).21 "$self finish"
+    $ns_ at $opt(stop).20 "puts \"NS EXITING...\" ; "
+}
+
+Test/dsdv-wireless-mip instproc run {} {
+    $self instvar ns_ 
+    puts "Starting Simulation..."
+    $ns_ run
+}
+
+
 
 proc cmu-trace { ttype atype node } {
 	global ns tracefd
@@ -222,6 +398,19 @@ proc cmu-trace { ttype atype node } {
         $T node $node
 
 	return $T
+}
+
+TestSuite instproc finish {} {
+	$self instvar ns_
+	global quiet
+
+	$ns_ flush-trace
+        #if { !$quiet } {
+        #        puts "running nam..."
+        #        exec nam temp.rands.nam &
+        #}
+	puts "finishing.."
+	exit 0
 }
 
 TestSuite instproc create-god { nodes } {
@@ -249,6 +438,38 @@ TestSuite instproc log-movement {} {
 
 	set logtimer_ [new LogTimer]
 	$logtimer_ sched 0.1
+}
+
+TestSuite instproc create-tcp-traffic {id src dst start} {
+    $self instvar ns_
+    set tcp_($id) [new Agent/TCP]
+    $tcp_($id) set class_ 2
+    set sink_($id) [new Agent/TCPSink]
+    $ns_ attach-agent $src $tcp_($id)
+    $ns_ attach-agent $dst $sink_($id)
+    $ns_ connect $tcp_($id) $sink_($id)
+    set ftp_($id) [new Application/FTP]
+    $ftp_($id) attach-agent $tcp_($id)
+    $ns_ at $start "$ftp_($id) start"
+    
+}
+
+
+TestSuite instproc create-udp-traffic {id src dst start} {
+    $self instvar ns_
+    set udp_($id) [new Agent/UDP]
+    $ns_ attach-agent $src $udp_($id)
+    set null_($id) [new Agent/Null]
+    $ns_ attach-agent $dst $null_($id)
+    set cbr_($id) [new Application/Traffic/CBR]
+    $cbr_($id) set packetSize_ 512
+    $cbr_($id) set interval_ 4.0
+    $cbr_($id) set random_ 1
+    $cbr_($id) set maxpkts_ 10000
+    $cbr_($id) attach-agent $udp_($id)
+    $ns_ connect $udp_($id) $null_($id)
+    $ns_ at $start "$cbr_($id) start"
+
 }
 
 
