@@ -77,7 +77,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.28 1998/01/22 00:04:16 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.29 1998/01/22 00:16:03 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -289,9 +289,6 @@ void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int
                 nrexmitbytes_ += datalen;
         }
 
-printf("%f: tcp(%s): SENDPKT: seq:%d, ackno:%d, dlen:%d, flags:0x%x\n",
-now(), name(), seqno, ackno, datalen, flags_);
-
 	last_send_time_ = now();
         send(p, 0);
 }
@@ -439,6 +436,11 @@ send:
 
 	sendpacket(seqno, rcv_nxt_, pflags, datalen, reason);
 	last_ack_sent_ = rcv_nxt_;
+
+        /*      
+         * Data sent (as far as we can tell).
+         * Any pending ACK has now been sent.
+         */      
 	flags_ &= ~(TF_ACKNOW|TF_DELACK);
 
 	if (seqno == t_seqno_)
@@ -472,11 +474,6 @@ send:
 		set_rtx_timer();  // no timer pending, schedule one
 	}
 
-        /*      
-         * Data sent (as far as we can tell).
-         * Any pending ACK has now been sent.
-         */      
-	flags_ &= ~(TF_ACKNOW|TF_DELACK);
 	return;
 }
 
@@ -699,10 +696,6 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 
 	if (state_ != TCPS_LISTEN)
 		dooptions(pkt);
-
-printf("%f: tcp(%s): RCVPKT: dlen:%d, ackno:%d, flags_:0x%x, highest_ack_:%d, seq:%d, rcv_nxt:%d\n",
-now(), name(), datalen, ackno, flags_, int(highest_ack_),
-tcph->seqno(), int(rcv_nxt_));
 
 	//
 	// if we are using delayed-ACK timers and
@@ -1212,10 +1205,6 @@ step6:
 		 */
 		// K: this is deleted
 		tiflags &= ~TH_FIN;
-printf("%f: tcp(%s): FUNNY ACK: dlen:%d, ackno:%d, needout:%d, flags_:0x%x, curseq_:%d, highest_ack_:%d\n",
-now(), name(), datalen, ackno, needoutput, flags_, int(curseq_),
-int(highest_ack_));
-
 	}
 
 	/*
@@ -1562,8 +1551,6 @@ void FullTcpAgent::timeout(int tno)
 		send_much(1, PF_TIMEOUT);
 	} else if (tno == TCP_TIMER_DELACK) {
 		if (flags_ & TF_DELACK) {
-printf("%f: tcp(%s): DEL_SND\n",
-now(), name());
 			flags_ &= ~TF_DELACK;
 			flags_ |= TF_ACKNOW;
 			send_much(1, REASON_NORMAL, 0);
