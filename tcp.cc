@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.4 1997/01/27 01:16:19 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.5 1997/01/28 02:09:04 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -447,9 +447,10 @@ void TcpAgent::quench(int how)
 void TcpAgent::recv(Packet *pkt, Handler*)
 {
 	if (pkt->type_ != PT_ACK) {
-		fprintf(stderr,
-			"ns: confiuration error: tcp received non-ack\n");
-		exit(1);
+		Tcl::instance().evalf("%s error \"received non-ack\"",
+				      name());
+		Packet::free(pkt);
+		return;
 	}
 	/*XXX only if ecn_ true*/
 	if (pkt->flags_ & PF_ECN)

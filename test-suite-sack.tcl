@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-sack.tcl,v 1.1 1996/12/19 03:22:46 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite-sack.tcl,v 1.2 1997/01/28 02:09:05 mccanne Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -62,6 +62,11 @@ proc create_testnet { } {
 	set s2 [ns node]
 	set r1 [ns node]
 	set k1 [ns node]
+
+	puts s1=[$s1 id]
+	puts s2=[$s2 id]
+	puts r1=[$r1 id]
+	puts k1=[$k1 id]
 
 	ns_duplex $s1 $r1 8Mb 5ms drop-tail
 	ns_duplex $s2 $r1 8Mb 5ms drop-tail
@@ -214,13 +219,22 @@ proc openTraces { stopTime testName filename node1 node2} {
 	[ns link $node2 $node1] trace $T1
 }
 
+#XXX need to flush pending output
+Agent/TCP instproc error msg {
+	$self instvar addr_
+	puts stderr "tcp source at [expr $addr_ >> 8]: $msg"
+	exit 1
+}
+
+
 # single packet drop
 proc test_sack1 {} {
 	global s1 s2 r1 k1
 	create_testnet
 
 	set tcp1 [ns_create_connection tcp-sack1 $s1 sack1-tcp-sink $k1 0]
-	$tcp1 set window 14
+#	set tcp1 [ns_create_connection tcp $s1 tcp-sink $k1 0]
+	$tcp1 set window 50
 	set ftp1 [$tcp1 source ftp]
 	ns at 1.0 "$ftp1 start"
 

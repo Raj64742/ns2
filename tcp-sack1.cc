@@ -17,7 +17,7 @@
  */
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.3 1997/01/26 23:26:27 mccanne Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.4 1997/01/28 02:09:03 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -38,7 +38,7 @@ class Sack1TcpAgent : public TcpAgent {
  public:
 	Sack1TcpAgent();
 	virtual int window();
-	virtual void recv(Packet *pkt);
+	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno);
 	void plot();
 	void send(int force, int reason, int maxburst);
@@ -66,15 +66,16 @@ Sack1TcpAgent::Sack1TcpAgent() : pipe_(-1), fastrecov_(FALSE)
 {
 }
 
-void Sack1TcpAgent::recv(Packet *pkt)
+void Sack1TcpAgent::recv(Packet *pkt, Handler*)
 {
 	int xmit_seqno;
 	int dontSend = 0;
 
 	if (pkt->type_ != PT_ACK) {
-		fprintf(stderr,
-			"ns: confiuration error: tcp received non-ack\n");
-		exit(1);
+		Tcl::instance().evalf("%s error \"received non-ack\"",
+				      name());
+		Packet::free(pkt);
+		return;
 	}
 
 	if (pkt->flags_ & PF_ECN)
