@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.25 2002/09/16 05:40:02 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.26 2002/09/17 03:46:21 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -1328,9 +1328,6 @@ TestSuite instproc printdrops { fid fmon } {
 	# that isn't being printed here.
 	#
 }
-TestSuite instproc printrtts { fmon } {
-	$fmon printRTTs
-}
 TestSuite instproc printstop { stoptime } {
 	puts "stop-time $stoptime"
 }
@@ -1605,8 +1602,11 @@ Test/stats3 instproc init topo {
 	QueueMonitor set keepRTTstats_ 1
 	QueueMonitor set maxRTT_ 1
 	QueueMonitor set binsPerSec_ 100
+	QueueMonitor set keepSeqnoStats_ 1
+	QueueMonitor set maxSeqno_ 2000
+	QueueMonitor set SeqnoBinSize_ 100
 	Agent/TCP set tcpTick_ 0.01
-	set guide_	"Printing RTT statistics."
+	set guide_	"Printing RTT and Seqno statistics."
 	$self next
 }
 
@@ -1614,16 +1614,16 @@ Test/stats3 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_ 
 	if {$quiet == "false"} {puts $guide_}
-	set stoptime 2.1 
+	set stoptime 1.1 
 
 	set slink [$ns_ link $node_(r1) $node_(r2)]; 
 	set fmon [new QueueMonitor]
 	$ns_ attach-fmon $slink $fmon
 
 	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 0]
-	$tcp0 set window_ 20
+	$tcp0 set window_ 10
 	set tcp1 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s3) 1]
-	$tcp1 set window_ 20
+	$tcp1 set window_ 10
 
 	set ftp0 [$tcp0 attach-app FTP]
 	set ftp1 [$tcp1 attach-app FTP]
@@ -1633,7 +1633,20 @@ Test/stats3 instproc run {} {
 	set link1 [$ns_ link $node_(r1) $node_(r2)]
 	set queue1 [$link1 queue]
 
-	$ns_ at $stoptime "$self printrtts $fmon"
+	$ns_ at $stoptime "$fmon printRTTs"
+	#
+	## to plot RTTs:  
+	## ./test-all-simple stats3 > out %
+	## awk -f rtts.awk out > data   
+        ## xgraph -bb -tk -x rtt -y frac_of_pkts data &
+	#
+	$ns_ at $stoptime "$fmon printSeqnos"
+	#
+	## to plot seqnos:  
+	## ./test-all-simple stats3 > out &
+	## awk -f seqnos.awk out > data   
+        ## xgraph -bb -tk -x seqno_bin -y frac_of_pkts data &
+	#
 	# trace only the bottleneck link
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 	$ns_ run
