@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.8 2002/04/29 01:56:39 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.9 2002/12/06 00:25:45 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -199,6 +199,8 @@ Test/tcp1A instproc init {} {
     Test/tcp1A instproc run {} [Test/tcp info instbody run ]
     $self next 0
 }
+
+## tcpHighspeed1 uses max_ssthresh_.
 Class Test/tcpHighspeed1 -superclass TestSuite
 Test/tcpHighspeed1 instproc init {} {
     $self instvar net_ test_ sender_ receiver_ guide_
@@ -212,6 +214,8 @@ Test/tcpHighspeed1 instproc init {} {
     Test/tcpHighspeed1 instproc run {} [Test/tcp info instbody run ]
     $self next 0
 }
+
+## tcpHighspeed2 uses a different value for low_window_.
 Class Test/tcpHighspeed2 -superclass TestSuite
 Test/tcpHighspeed2 instproc init {} {
     $self instvar net_ test_ sender_ receiver_ guide_
@@ -225,6 +229,9 @@ Test/tcpHighspeed2 instproc init {} {
     Test/tcpHighspeed2 instproc run {} [Test/tcp info instbody run ]
     $self next 0
 }
+
+## tcpHighspeed3 uses different values for high_p_ and high_decrease_,
+##   to give essentially the same response function as TCP.
 Class Test/tcpHighspeed3 -superclass TestSuite
 Test/tcpHighspeed3 instproc init {} {
     $self instvar net_ test_ sender_ receiver_ guide_
@@ -240,6 +247,8 @@ Test/tcpHighspeed3 instproc init {} {
     Test/tcpHighspeed3 instproc run {} [Test/tcp info instbody run ]
     $self next 0
 }
+
+## tcpHighspeed4 uses different values for the response function.
 Class Test/tcpHighspeed4 -superclass TestSuite
 Test/tcpHighspeed4 instproc init {} {
     $self instvar net_ test_ sender_ receiver_ guide_
@@ -255,6 +264,8 @@ Test/tcpHighspeed4 instproc init {} {
     Test/tcpHighspeed4 instproc run {} [Test/tcp info instbody run ]
     $self next 0
 }
+
+## tcpHighspeed5 uses different values for the response function.
 Class Test/tcpHighspeed5 -superclass TestSuite
 Test/tcpHighspeed5 instproc init {} {
     $self instvar net_ test_ sender_ receiver_ guide_
@@ -269,6 +280,23 @@ Test/tcpHighspeed5 instproc init {} {
     Agent/TCP set high_p_ 0.000001
     Agent/TCP set high_decrease_ 0.1
     Test/tcpHighspeed5 instproc run {} [Test/tcp info instbody run ]
+    $self next 0
+}
+
+## tcpHighspeed6 computes the increase and decrease parameters
+##   less frequently.
+Class Test/tcpHighspeed6 -superclass TestSuite
+Test/tcpHighspeed6 instproc init {} {
+    $self instvar net_ test_ sender_ receiver_ guide_
+    set net_	net2b
+    set test_	tcpHighspeed6
+    set guide_	"Highspeed TCP, good queue, max_ssthresh=100."
+    set sender_ TCP/Sack1
+    set receiver_ TCPSink/Sack1 
+    Agent/TCP set windowOption_ 8
+    Agent/TCP set max_ssthresh_ 100
+    Agent/TCP set cwnd_frac_ 1.1
+    Test/tcpHighspeed6 instproc run {} [Test/tcp info instbody run ]
     $self next 0
 }
 
