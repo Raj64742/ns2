@@ -83,20 +83,20 @@ The following tests are similar to the Tahoe tests:  ecn_nodrop_sack,
 ecn_twoecn_sack, ecn_drop_sack, ecn_drop1_sack, ecn_noecn_sack.
 
 ecn_bursty_sack: A Fast Retransmit followed by a Retransmit Timeout.  
-  It doesn't send a new packet when it receives the ACK for the
+  The sender doesn't send a new packet when it receives the ACK for the
   retransmitted packet because "pipe_" indicates that it still
   has too many outstanding packets.
-ecn_burstyEcn_sack: An ECN followed by a Fast Retransmit.  Oddly enough,
-  the ECN causes the sender to reduce its congestion window *before*
-  the Fast Retransmit.  So the TCP sender makes the wrong guess
-  about how many packets it had in flight when the Fast Retransmit
-  happens, I think.  This needs to be looked at.***
+ecn_burstyEcn_sack: An ECN followed by a Fast Retransmit.  Because
+  of the ECN, the sender has fewer packets in flight when the
+  three dup acks arrive.
+ecn_burstyEcn1_sack: An ECN followed by a Fast Retransmit, followed
+  by a Retransmit Timeout.  This test has two more packets dropped 
+  that "ecn_burstyEcn_sack".
 
 ecn_noBugfix_sack: This shows the unnecessary Fast Retransmit from
   the absence of Bugfix_.
 
 ecn_timeout_sack: An ECN followed by a Retransmit Timeout.
-ecn_timeout4_sack  ***
 ecn_timeout1_sack: ECN followed by a Retransmit Timeout, followed
   by an ECN representing a new instance of congestion.
 ecn_fourdrops_sack: ECN followed by four interspersed packet drops.
