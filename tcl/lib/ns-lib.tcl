@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.99 1998/05/19 02:02:32 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.100 1998/05/20 23:07:36 kfall Exp $
 
 #
 
@@ -136,17 +136,6 @@ Simulator instproc use-scheduler type {
 	}
 	set scheduler_ [new Scheduler/$type]
 	$scheduler_ now
-	if { $type == "RealTime" } {
-		#
-		# allocate room for packet bodies but only
-		# if we use the real-time scheduler (otherwise,
-		# we would waste a tremendous amount of memory)
-		# XXX this implicitly creates a dependence between
-		# Scheduler/RealTime and Agent/Tap
-		#
-		$self instvar packetManager_
-		TclObject set off_tap_ [$packetManager_ allochdr Tap]
-	}
 }
 
 #
