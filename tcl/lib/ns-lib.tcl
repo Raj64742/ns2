@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.237 2001/12/30 04:51:07 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.238 2002/01/02 23:58:17 jahn Exp $
 
 
 #
@@ -322,7 +322,8 @@ Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
 Simulator instproc txPower  {val} { $self set txPower_  $val }
 Simulator instproc rxPower  {val} { $self set rxPower_  $val }
 Simulator instproc idlePower  {val} { $self set idlePower_  $val }
-Simulator instproc errProc  {val} { $self set errProc_  $val }
+Simulator instproc IncomingErrProc  {val} { $self set inerrProc_  $val }
+Simulator instproc OutgoingErrProc  {val} { $self set outerrProc_  $val }
 Simulator instproc FECProc  {val} { $self set FECProc_  $val }
 Simulator instproc agentTrace  {val} { $self set agentTrace_  $val }
 Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
@@ -527,7 +528,7 @@ Simulator instproc create-wireless-node args {
         $self instvar routingAgent_ wiredRouting_ propInstance_ llType_ \
 		macType_ ifqType_ ifqlen_ phyType_ chan antType_ energyModel_ \
 		initialEnergy_ txPower_ rxPower_ idlePower_ \
-		topoInstance_ level1_ level2_ errProc_ FECProc_
+		topoInstance_ level1_ level2_ inerrProc_ outerrProc_ FECProc_
 
 	Simulator set IMEPFlag_ OFF
 
@@ -580,8 +581,11 @@ Simulator instproc create-wireless-node args {
 
 	# errProc_ and FECProc_ are an option unlike other 
         # parameters for node interface
-	if ![info exist errProc_] {
-		set errProc_ ""
+	if ![info exist inerrProc_] {
+		set inerrProc_ ""
+	}
+	if ![info exist outerrProc_] {
+		set outerrProc_ ""
 	}
 	if ![info exist FECProc_] {
 		set FECProc_ ""
@@ -589,7 +593,8 @@ Simulator instproc create-wireless-node args {
 
 	# Add main node interface
 	$node add-interface $chan $propInstance_ $llType_ $macType_ \
-			$ifqType_ $ifqlen_ $phyType_ $antType_ $errProc_ $FECProc_
+			$ifqType_ $ifqlen_ $phyType_ $antType_ \
+			$inerrProc_ $outerrProc_ $FECProc_
 	# Attach agent
 	if {$routingAgent_ != "DSR"} {
 		$node attach $ragent [Node set rtagent_port_]

@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.40 2001/03/07 18:30:03 jahn Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.41 2002/01/02 23:58:17 jahn Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -347,8 +347,8 @@ Node/MobileNode instproc add-target-rtagent { agent port } {
 # and physical layer structures for the mobile node.
 #
 Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
-		qtype qlen iftype anttype errproc fecproc} {
-	$self instvar arptable_ nifs_ netif_ mac_ ifq_ ll_ imep_ err_ fec_
+		qtype qlen iftype anttype inerrproc outerrproc fecproc} {
+	$self instvar arptable_ nifs_ netif_ mac_ ifq_ ll_ imep_ inerr_ outerr_ fec_
 	
 	set ns [Simulator instance]
 	set imepflag [$ns imep-support]
@@ -361,9 +361,13 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	set ll_($t)	[new $lltype]		;# link layer
         set ant_($t)    [new $anttype]
 
-	set err_($t) ""
-	if {$errproc != ""} {
-		set err_($t) [$errproc]
+	set inerr_($t) ""
+	if {$inerrproc != ""} {
+		set inerr_($t) [$inerrproc]
+	}
+	set outerr_($t) ""
+	if {$outerrproc != ""} {
+		set outerr_($t) [$outerrproc]
 	}
 	set fec_($t) ""
 	if {$fecproc != ""} {
@@ -391,8 +395,10 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	set ifq $ifq_($t)
 	set ll $ll_($t)
 
-	set err $err_($t)
+	set inerr $inerr_($t)
+	set outerr $outerr_($t)
 	set fec $fec_($t)
+
 	#
 	# Initialize ARP table only once.
 	#
@@ -443,17 +449,17 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	$mac netif $netif
 	$mac up-target $ll
 
-	if {$err == "" && $fec == ""} {
+	if {$outerr == "" && $fec == ""} {
 		$mac down-target $netif
-	} elseif {$err != "" && $fec == ""} {
-		$mac down-target $err
-		$err target $netif
-	} elseif {$err == "" && $fec != ""} {
+	} elseif {$outerr != "" && $fec == ""} {
+		$mac down-target $outerr
+		$outerr target $netif
+	} elseif {$outerr == "" && $fec != ""} {
 		$mac down-target $fec
 		$fec down-target $netif
 	} else {
 		$mac down-target $fec
-		$fec down-target $err
+		$fec down-target $outerr
 		$err target $netif
 	}
 
@@ -464,11 +470,25 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	#
 	# Network Interface
 	#
+	#if {$fec == ""} {
+        #		$netif up-target $mac
+	#} else {
+        #		$netif up-target $fec
+	#	$fec up-target $mac
+	#}
+
 	$netif channel $channel
-	if {$fec == ""} {
+	if {$inerr == "" && $fec == ""} {
 		$netif up-target $mac
-	} else {
+	} elseif {$inerr != "" && $fec == ""} {
+		$netif up-target $inerr
+		$inerr target $mac
+	} elseif {$err == "" && $fec != ""} {
 		$netif up-target $fec
+		$fec up-target $mac
+	} else {
+		$netif up-target $inerr
+		$inerr target $fec
 		$fec up-target $mac
 	}
 
