@@ -397,7 +397,7 @@ weighted round-robin scheduler.
 \end{itemize}
 
 
-\textsc{CBQclass Objects}
+\textsc{CBQclass Objects}\\
 CBQClass objects implement the traffic classes associated with CBQ
 objects. 
 
@@ -444,7 +444,7 @@ increase the delay experienced by a delayed class by the specified time
 \end{description}
 
 
-\textsc{Queue-monitor objects}
+\textsc{Queue-monitor objects}\\
 QueueMonitor Objects are used to monitor a set of packet and byte arrival,
 departure and drop counters. It also includes support for aggregate
 statistics such as average queue size, etc.
@@ -504,7 +504,7 @@ size in packets. The sum\_ variable of this object has the running sum
 \end{description}
 
 
-\textsc{QUEUEMONITOR/ED Objects}
+\textsc{QUEUEMONITOR/ED Objects}\\
 This derived object is capable of differentiating regular packet drops
 from early drops. Some queues distinguish regular drops (e.g. drops due to
 buffer exhaustion) from other drops (e.g. random drops in RED queues).
@@ -525,7 +525,7 @@ the total number of dropped packets and bytes, including both early and
 non-early drops. 
 
 
-\textsc{QueueMonitor/ED/Flowmon Objects}
+\textsc{QueueMonitor/ED/Flowmon Objects}\\
 These objects may be used in the place of a conventional QueueMonitor
 object when wishing to collect per-flow counts and statistics in addition
 to the aggregate counts and statistics provided by the basic QueueMonitor. 
@@ -571,7 +571,7 @@ information is kept.
 \end{description}
 
 
-\textsc{QueueMonitor/ED/Flow Objects}
+\textsc{QueueMonitor/ED/Flow Objects}\\
 These objects contain per-flow counts and statistics managed by a
 QueueMonitor/ED/Flowmon object. They are generally created in an OTcl
 callback procedure when a flow monitor is given a packet it cannot map on
