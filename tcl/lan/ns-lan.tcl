@@ -33,6 +33,27 @@
 # Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
 #
 
+Class NsObject
+
+NsObject instproc init {args} {
+	# initialize default vars first
+	$self init-vars [$self info class]
+	eval $self next $args
+}
+
+NsObject instproc init-vars {parents} {
+	foreach cl $parents {
+		if {$cl == "Object"} continue
+		# depth first: set vars of ancestors first
+		$self init-vars "[$cl info superclass]"
+		foreach var [$cl info vars] {
+			if [catch "$self set $var"] {
+				$self set $var [$cl set $var]
+			}
+		}
+	}
+}
+
 # Defaults for link-layer
 LL set bandwidth_ 2Mb
 LL set delay_ 0.5ms
@@ -108,7 +129,7 @@ Trace/Loss instproc init {} {
 #
 # newLAN:  create a LAN from a sete of nodes
 #
-Simulator instproc newLAN {nodelist bw delay args} {
+Simulator instproc newLan {nodelist bw delay args} {
 	set lan [eval new LanLink $self $args]
 	foreach node $nodelist {
 		$lan addNode $node $bw $delay
@@ -153,8 +174,7 @@ Link/LanDuplex instproc trace {ns f} {
 #
 # LanLink:  a LAN abstract
 #
-Class LanLink
-
+Class LanLink -superclass NsObject
 LanLink set llType_ LL
 LanLink set ifqType_ Queue/DropTail
 LanLink set macType_ Mac/Csma/Cd
@@ -166,9 +186,9 @@ LanLink instproc macType {val} { $self set macType_ $val }
 LanLink instproc chanType {val} { $self set chanType_ $val }
 
 LanLink instproc init {ns args} {
-	eval $self next $args
 	$self instvar llType_ ifqType_ macType_ chanType_
 	$self instvar ns_ nodelist_ id_ ifq_ mac_ channel_ mcl_ lcl_
+	eval $self next $args
 
 	set ns_ $ns
 	set nodelist_ ""

@@ -33,7 +33,7 @@
 # Code contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
 #
 
-Class Http
+Class Http -superclass NsObject
 
 Http set srcType_ TcpFull	# type of source agent
 Http set snkType_ ""		# type of sink agent: "" means same as srcType_
