@@ -153,8 +153,8 @@ proc finish_ns {f} {
 proc test_simple { interval bandwidth datafile } {
     global ns s1 s2 r1 r2 s3 s4 flowfile packetsize
     set testname simple
-    set stoptime 10.1
-    set printtime 10.0
+    set stoptime 100.1
+    set printtime 100.0
     set queuetype RED
     
     set ns [new Simulator]
