@@ -82,6 +82,8 @@ while (<>) {
 	$ip23="";
 	$ip24="";
 
+	$prefixc=join(".",$ip11,$ip12);
+	$prefixs=join(".",$ip21,$ip22);
 	$prefixcp=join(".",$ip11,$ip12,$srcPort);
 	$prefixsp=join(".",$ip21,$ip22,$dstPort);
 
@@ -89,7 +91,10 @@ while (<>) {
 	if (( $prefixcp eq $HttpPrefixPort) || ( $prefixsp eq $HttpPrefixPort)) {
 		print WOUT "$_";
 	} else {
-		print WIN "$_";
+		if ((($prefixc ne $prefix) && ($srcPort eq $http_port)) || 
+		    (($prefixs ne $prefix) && ($dstPort eq $http_port))) {
+			print WIN "$_";
+		}
 	}
 }
 close(WOUT);
