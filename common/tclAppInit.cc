@@ -63,7 +63,7 @@ main(int argc, char **argv)
 
 
 #if defined(HAVE_FESETPRECISION) || defined(__GNUC__)
-#ifndef HAVE_FESETPRECISION
+#if !defined(HAVE_FESETPRECISION) && defined(__i386__)
 /*
  * From:
  |  Floating-point environment <fenvwm.h>                                    |
