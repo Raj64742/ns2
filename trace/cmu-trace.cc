@@ -580,24 +580,26 @@ CMUTrace::nam_format(Packet *p, int offset)
 
 	if (op == 'h') {
 	   sprintf(nwrk_ ,
-		"+ -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d ",
+		"+ -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s ",
 		Scheduler::instance().clock(),
 		src,                           // this node
 		dst,
 		packet_info.name(ch->ptype()),
 		ch->size(),
-		ch->uid());
+		ch->uid(),
+		tracename);
 
 	   offset = strlen(nwrk_);
 	   namdump();
 	   sprintf(nwrk_ ,
-		"- -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d ",
+		"- -t %.9f -s %d -d %d -p %s -e %d -c 2 -a 0 -i %d -k %3s",
 		Scheduler::instance().clock(),
 		src,                           // this node
 		dst,
 		packet_info.name(ch->ptype()),
 		ch->size(),
-		ch->uid());
+		ch->uid(),
+		tracename);
 
 	   offset = strlen(nwrk_);
            namdump();
