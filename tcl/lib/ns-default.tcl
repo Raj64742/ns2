@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.202 2000/07/03 06:00:13 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.203 2000/07/08 14:31:26 sfloyd Exp $
 
 
 #
@@ -107,6 +107,7 @@ Agent/TCP set T_SRTT_BITS 3
 Agent/TCP set T_RTTVAR_BITS 2
 Agent/TCP set rttvar_exp_ 2
 Agent/TCP instproc done {} { }
+Agent/TCP set noFastRetrans_ false
 
 Agent/TCP set dupacks_ 0
 Agent/TCP set ack_ 0

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.106 2000/07/07 21:26:35 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.107 2000/07/08 14:31:26 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -145,6 +145,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("QOption_");
         delay_bind_init_one("EnblRTTCtr_");
         delay_bind_init_one("control_increase_");
+	delay_bind_init_one("noFastRetrans_");
 
 #ifdef TCP_DELAY_BIND_ALL
 	// out because delay-bound tracevars aren't yet supported
@@ -236,6 +237,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "nrexmitpack_", &nrexmitpack_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "nrexmitbytes_", &nrexmitbytes_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "singledup_", &singledup_ , tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "noFastRetrans_", &noFastRetrans_, tracer)) return TCL_OK;
 #endif
 
         return Agent::delay_bind_dispatch(varName, localName, tracer);
@@ -1109,7 +1111,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
                         tcp_eln(pkt);
                         return;
                 }
-		if (++dupacks_ == NUMDUPACKS) {
+		if (++dupacks_ == NUMDUPACKS && !noFastRetrans_) {
 			dupack_action();
 		} else if (dupacks_ < NUMDUPACKS && singledup_ ) {
 			send_one();

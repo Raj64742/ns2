@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.73 2000/03/15 22:28:20 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.74 2000/07/08 14:31:26 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -310,6 +310,7 @@ protected:
 	int first_decrease_;	/* First decrease of congestion window.  */
 				/* Used for decrease_num_ != 0.5. */
         TracedInt singledup_;   /* Send on a single dup ack.  */
+	int noFastRetrans_;	/* No Fast Retransmit option.  */
 
 	/* these function are now obsolete, see other above */
 	void closecwnd(int how);
