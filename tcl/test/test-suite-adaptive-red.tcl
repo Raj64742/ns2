@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.3 2001/07/17 21:22:09 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.4 2001/07/18 16:11:45 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -364,29 +364,29 @@ TestSuite instproc printall { fmon } {
 }
 
 
-Class Test/red5Adapt -superclass TestSuite
-Test/red5Adapt instproc init {} {
-    $self instvar net_ test_ ns_
-    set net_ net2 
-    set test_ red5Adapt
-    Queue/RED set alpha_ 0.02
-    Queue/RED set beta_ 0.8
-    $self next
-}
-Test/red5Adapt instproc run {} {
-    $self instvar ns_ node_ testName_ net_
-    $self setTopo
-    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
-    set fmon [$ns_ makeflowmon Fid]
-    $ns_ attach-fmon $slink $fmon
-    $self maketraffic
-    $self newtraffic 20 20 300 0 0.001 10
-    # To run many flows:
-    # $self newtraffic 4000 20 300 0 0.005 500
-    # $self newtraffic 40000 20 300 0 0.001 500
-    $ns_ at 49.99 "$self printall $fmon" 
-    $ns_ run
-}
+# Class Test/red5 -superclass TestSuite
+# Test/red5 instproc init {} {
+#     $self instvar net_ test_ ns_
+#     set net_ net2 
+#     set test_ red5
+#     Queue/RED set alpha_ 0.02
+#     Queue/RED set beta_ 0.8
+#     $self next
+# }
+# Test/red5 instproc run {} {
+#     $self instvar ns_ node_ testName_ net_
+#     $self setTopo
+#     set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
+#     set fmon [$ns_ makeflowmon Fid]
+#     $ns_ attach-fmon $slink $fmon
+#     $self maketraffic
+#     $self newtraffic 20 20 300 0 0.001 10
+#     # To run many flows:
+#     # $self newtraffic 4000 20 300 0 0.005 500
+#     # $self newtraffic 40000 20 300 0 0.001 500
+#     $ns_ at 49.99 "$self printall $fmon" 
+#     $ns_ run
+# }
 
 #####################################################################
 
