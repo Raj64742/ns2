@@ -1,6 +1,6 @@
 /*
   imep.cc
-  $Id: imep.cc,v 1.1 1999/08/03 04:12:35 yaxu Exp $
+  $Id: imep.cc,v 1.2 1999/08/05 22:13:40 yaxu Exp $
   */
 
 #include <packet.h>
@@ -575,7 +575,7 @@ imepAgent::scheduleIncoming(Packet *p, u_int32_t s)
 void
 imepAgent::recv(Packet *p, Handler *)
 {
-	struct hdr_ip *ih = HDR_IP(p);
+	//struct hdr_ip *ih = HDR_IP(p);
 	struct hdr_cmn *ch = HDR_CMN(p);
 
 	assert(initialized());
@@ -998,7 +998,7 @@ imepAgent::dumpResponseList(Packet *p)
 
   for(i = 0, r0 = r; i < ob->ob_num_responses; i++, r0++) 
     {
-      ptr += sprintf(ptr,"%d ", INT32_T(r0->resp_ipaddr));
+      ptr += (int)sprintf(ptr,"%d ", INT32_T(r0->resp_ipaddr));
     }
   return buf;
 }
