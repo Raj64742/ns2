@@ -16,6 +16,12 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.27 [PENDING RELEASE]</h3>
 <ul>
+<p><li><b><a href="mailto:xuanc@isi.edu">[Xuan Chen]</a></b>
+Thu Nov 27 15:33:28 PST 2003
+<br>
+Change the name of dumbPolicy to nullPolicy for consistency with diffserv
+documentations (suggested by <a href="mailto:sayenko@cc.jyu.fi">Alexander Sayenko</a>).
+
 <p><li><b>[Padma Haldar]</b>
 Tue Nov 18 16:33:49 PST 2003
 Added list-based improvement to ns-2. Code contributed by Valerie Naoumuv (naoumov@inf.ethz.ch). The improvement involves maintaining a doubly-linked list to organise mobilenodes based on their X-coordinates. When sending a packet only those neighbor nodes are considered who are within a circle corresponding to the carrier-sense threshold energy level, below which a node cannot hear the packet. Improvement on original version where all nodes in topology is considered. considerable gain in run-time performance- goes down by about 4 to 20 times, depending on the size of the topology. The larger the topology and greater the no of nodes, greater the improvement seen with the list-based implementation. Pl see relevant papaer "simulation of large adhoc networks", appeared at MSWiM'03, san diego, USA for details.
