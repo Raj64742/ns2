@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.168 1999/08/18 00:25:23 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.169 1999/08/24 05:05:43 sfloyd Exp $
 
 
 #
@@ -111,7 +111,8 @@ Agent/TCP set nrexmitbytes_ 0
 Agent/TCP set trace_all_oneline_ false
 
 Agent/TCP set QOption_ 0 
-Agent/TCP set CoarseTimer_ 0 
+Agent/TCP set EnblRTTCtr_ 0
+Agent/TCP set control_increase_ 0
 
 # XXX Generate nam trace or plain old text trace for variables. 
 # When it's true, generate nam trace.
@@ -159,10 +160,7 @@ Agent/TCP/Newreno/Asym set g_ 0.125
 
 Agent/TFRC set packetSize_ 1000
 Agent/TFRC set df_ 0.5
-Agent/TFRC set version_ 1
 Agent/TFRC set tcp_tick_ 0.1
-Agent/TFRC set incrrate_ 1
-Agent/TFRC set slowincr_ 3
 Agent/TFRC set ndatapack_ 0
 Agent/TFRC set srtt_init_ 0
 Agent/TFRC set rttvar_init_ 12
@@ -181,8 +179,6 @@ Agent/TFRCSink set packetSize_ 40
 Agent/TFRCSink set SampleSizeMult_ 4
 Agent/TFRCSink set MinNumLoss_ 4
 Agent/TFRCSink set InitHistorySize_ 100000
-Agent/TFRCSink set HysterisisLower_ 0.5
-Agent/TFRCSink set HysterisisUpper_ 0.5
 Agent/TFRCSink set bval_ 1
 Agent/TFRCSink set NumFeedback_ 1 
 

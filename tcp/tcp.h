@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.65 1999/08/19 04:15:53 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.66 1999/08/24 05:05:42 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -137,13 +137,6 @@ protected:
 	TcpAgent *a_;
 };
 
-class QTimer : public TimerHandler {
-public: 
-	QTimer(TcpAgent *a) : TimerHandler() { a_ = a; }
-protected:
-	virtual void expire(Event *e);
-	TcpAgent *a_;
-};
 
 class TcpAgent : public Agent {
 public:
@@ -215,13 +208,11 @@ protected:
 	RtxTimer rtx_timer_;
 	DelSndTimer delsnd_timer_;
 	BurstSndTimer burstsnd_timer_;
-	QTimer q_timer_;
 
 	virtual void cancel_timers() {
 		rtx_timer_.force_cancel();
 		burstsnd_timer_.force_cancel();
 		delsnd_timer_.force_cancel();
-		q_timer_.force_cancel();
 	}
 	virtual void cancel_rtx_timer() {
 		rtx_timer_.force_cancel();
@@ -314,11 +305,22 @@ protected:
 	void process_qoption_after_ack(int seqno) ;
 
 	int QOption_ ; /* TCP quiescence option */
-	int t_full ; /* last time the window was full */
-	int maxutil ;   /* max util in current measurement period */
-	int CoarseTimer_ ; /* are we using a corase grained timer? */
-	int t_start ;
-	int RTT_count, RTT_goodcount, F_counting, W_timed, F_full ; 
+	int EnblRTTCtr_ ; /* are we using a corase grained timer? */
+	int T_full ; /* last time the window was full */
+	int T_last ;
+	int T_prev ;
+	int T_start ;
+	int RTT_count ;
+	int RTT_prev ;
+	int RTT_goodcount ;
+	int F_counting ;
+	int W_used ; 
+	int W_timed ;
+	int F_full ; 
+	int Backoffs ;
+
+	int control_increase_ ; 
+	int prev_highest_ack_ ; 
 };
 
 /* TCP Reno */

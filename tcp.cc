@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.89 1999/08/19 04:15:52 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.90 1999/08/24 05:05:41 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -66,7 +66,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	t_seqno_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), 
 	t_backoff_(0), ts_peer_(0), 
 	rtx_timer_(this), delsnd_timer_(this), 
-	burstsnd_timer_(this), q_timer_(this),
+	burstsnd_timer_(this), 
 	dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
 	count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
 	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
@@ -133,7 +133,9 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	bind_bool("nam_tracevar_", &nam_tracevar_);
 
 	bind("QOption_", &QOption_) ; 
-	bind("CoarseTimer_", &CoarseTimer_) ; 
+	bind("EnblRTTCtr_", &EnblRTTCtr_) ; 
+
+	bind("control_increase_", &control_increase_) ; 
 
 	// reset used for dynamically created agent
 	reset();
@@ -236,15 +238,30 @@ TcpAgent::reset()
 	last_cwnd_action_ = 0;
 	boot_time_ = Random::uniform(tcp_tick_);
 
+	if (control_increase_) {
+		prev_highest_ack_ = highest_ack_ ; 
+	}
+
 	if (QOption_) {
+
 		int now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
-		t_start = t_full = now ;
-		maxutil = 0 ;
-		RTT_count = 1 ; 
-		RTT_goodcount = 1 ; 
-		F_counting = 0 ; 
-		W_timed = -1 ; 
-		F_full = 0 ;
+
+		T_last = now ; 
+		T_prev = now ; 
+		W_used = 0 ;
+		
+		if (EnblRTTCtr_) {
+			T_start = now ; 
+			T_full = now ; 
+			RTT_count = 0 ; 
+			RTT_prev = 0 ; 
+			RTT_goodcount = 1 ; 
+			F_counting = 0 ; 
+			W_timed = -1 ; 
+			F_full = 0 ;
+			Backoffs = 0 ; 
+		}
+
 	}
 }
 
@@ -515,6 +532,7 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
 			delsnd_timer_.resched(Random::uniform(overhead_));
 			return;
 		}
+		win = window();
 		if (maxburst && npackets == maxburst)
 			break;
 	}
@@ -685,6 +703,7 @@ void TcpAgent::newack(Packet* pkt)
 	newtimer(pkt);
 	dupacks_ = 0;
 	last_ack_ = tcph->seqno();
+	prev_highest_ack_ = highest_ack_ ;
 	highest_ack_ = last_ack_;
 
 	if (t_seqno_ < last_ack_ + 1)
@@ -749,11 +768,25 @@ void TcpAgent::recv_newack_helper(Packet *pkt) {
 	//hdr_tcp *tcph = hdr_tcp::access(pkt);
 	newack(pkt);
 	if (!ect_ || !hdr_flags::access(pkt)->ecnecho() ||
-		(old_ecn_ && ecn_burst_)) 
+		(old_ecn_ && ecn_burst_)) {
 		/* If "old_ecn", this is not the first ACK carrying ECN-Echo
 		 * after a period of ACKs without ECN-Echo.
 		 * Therefore, open the congestion window. */
-	        opencwnd();
+		/* if control option is set, and the sender is not
+			 window limited, then do not increase the window size */
+		
+		if (control_increase_ ) {
+			int win = window () ;
+			if (t_seqno_ > (prev_highest_ack_ + win)) {
+	      	opencwnd();
+			}
+		}
+		else {
+			if (!control_increase_) {
+				opencwnd();
+			}
+		}
+	}
 	if (ect_) {
 		if (!hdr_flags::access(pkt)->ecnecho())
 			ecn_backoff_ = 0;
@@ -890,7 +923,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 		}
 	}
 
-	if (QOption_)
+	if (QOption_ && EnblRTTCtr_)
 		process_qoption_after_ack (tcph->seqno());
 
 	Packet::free(pkt);
@@ -913,37 +946,6 @@ void TcpAgent::timeout_nonrtx(int tno)
 	 	* to avoid phase effects
 	 	*/
 		send_much(1, TCP_REASON_TIMEOUT, maxburst_);
-	}
-	if (tno == TCP_TIMER_Q) {
-
-		int now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
-		int win = window () ; 
-		double check_interval ; 
-
-		if (CoarseTimer_) {
-			double rtt = (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_ ;
-			check_interval = 2*rtt ;
-		}
-		else {
-			check_interval = t_rtxcur_ ;  
-		}
-		if (cwnd_ > 1) {
-			cwnd_ = win/2 ;
-		}
-		if (cwnd_ <= 1) {
-			cwnd_ = 1 ; 
-		}
-		else {
-			t_full = now  ; 
-			maxutil = 0 ;
-			if (CoarseTimer_) {
-				F_full = 1;
-				F_counting = 0 ;
-				RTT_count = 0 ;
-			}
-			q_timer_.resched (check_interval);
-		}
-		/*printf ("timeout: %d %d %f\n", now, CoarseTimer_, (float)cwnd_);*/
 	}
 }
 	
@@ -1044,11 +1046,6 @@ void BurstSndTimer::expire(Event*)
 	a_->timeout(TCP_TIMER_BURSTSND);
 }
 
-void QTimer::expire(Event*)
-{
-	a_->timeout(TCP_TIMER_Q);
-}
-
 /*
  * THE FOLLOWING FUNCTIONS ARE OBSOLETE, but REMAIN HERE
  * DUE TO OTHER PEOPLE's TCPs THAT MIGHT USE THEM
@@ -1125,83 +1122,127 @@ void TcpAgent::closecwnd(int how)
 
 void TcpAgent::process_qoption_after_send ()
 {
-	int now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
-	int win = window();
-	double check_interval ; 
+	int tcp_now = (int)(Scheduler::instance().clock()/tcp_tick_ + 0.5);
+	int win = window ();
+	int rtt = (int(t_srtt_) >> T_SRTT_BITS) ;
+	int rto = (int)(t_rtxcur_/tcp_tick_) ; 
+	double initwin = initial_window() ;
 
-	if (CoarseTimer_) {
-		double rtt = (int(t_srtt_) >> T_SRTT_BITS)*tcp_tick_ ;
-		check_interval = 2*rtt ;
-		if (now	- t_start >= check_interval) {
-			if (RTT_count == 0)
-				RTT_count = 1 ; 
-			if ((F_full == 1) || (RTT_count > RTT_goodcount))
-				RTT_goodcount = RTT_count ;
-			RTT_count = 0 ; 
-			t_start = now ; 
-			F_full=0 ; 
+	/*double ct = Scheduler::instance().clock();*/
+
+	if (!EnblRTTCtr_) {
+		if (tcp_now - T_last >= rto) {
+/*
+printf ("nodata: %f %d %d %d %f\n", 
+ct, tcp_now, T_last, rto, (float)cwnd_); 
+*/
+			for (int i = 0 ; i < (tcp_now - T_last)/rto; i ++) {
+				win = window () ; 
+				cwnd_ = win/2 ; 
+				if (cwnd_ < initwin) 
+					cwnd_ = initwin ;
+			}
+			T_prev = tcp_now ;
+			W_used = 0 ;
+/*printf ("after:%f\n", (float)cwnd_);*/
 		}
-	}
-	else {
-		check_interval = t_rtxcur_ ;  
-	}
-
-	if (t_seqno_ == highest_ack_ + win) {
-		t_full = now ;
-		maxutil = 0 ; 
-		F_full=1 ;
-	}
-	else {
-		if ((t_seqno_ > 0) && (t_seqno_ == curseq_-1) && (cwnd_ > 1)) { 
-			int tmp = t_seqno_ - highest_ack_ ;
-			if (tmp > maxutil)
-				maxutil = tmp ;
-			/*
-			printf ("before: %d %d %d %f %d %f %d %d %d %d\n", 
-							 now, t_full, now - t_full, 
-							 check_interval, maxutil, (float)cwnd_, (int)highest_ack_, 
-							 (int)win, (int)t_seqno_, (int)curseq_); 
-			fflush(stdout);
-			*/	
-			if ((now - t_full) >= check_interval) {
-				if (CoarseTimer_) {
-					if (RTT_goodcount < 1)
-						RTT_goodcount = 1 ; 
-					for (int i = 0 ; i < RTT_goodcount ; i ++) {
-						if (maxutil < win) {
-							win = window();
-							cwnd_ =  win - (win-maxutil)/2.0;
-						}
-						else {
-							break ; 
-						}
-					}
-					F_counting = 0 ;
-					/*
-					printf ("after: %d %f %d %d\n", now, (float)cwnd_, 
-									 maxutil, RTT_goodcount);
-					fflush(stdout);
-					*/
+		T_last = tcp_now ;
+		win = window () ;
+		if (t_seqno_ == highest_ack_+win) {
+			T_prev = tcp_now ; 
+			W_used = 0 ; 
+		}
+		else {
+			if (t_seqno_ == curseq_-1) {
+				int tmp = t_seqno_ - highest_ack_ ;
+				if (tmp > W_used)
+					W_used = tmp ;
+/*
+printf ("somedata: %f %d %d %d %f %d %d %d\n", 
+ct, tcp_now, T_prev, rto, 
+(float)cwnd_, (int)t_seqno_, (int)(curseq_-1), W_used); 
+*/
+				if (tcp_now - T_prev >= rto) {
+					win = window () ; 
+					cwnd_ = win - (win - W_used)/2 ; 
+					if (cwnd_ < initwin) 
+						cwnd_ = initwin ;
+					T_prev = tcp_now ;
+					W_used = 0 ;
 				}
-				else {
-					if (maxutil < win) {
-						cwnd_ =  win - (win-maxutil)/2.0; 
-					}
-					/*
-					printf ("after: %d %f %d\n", now, (float)cwnd_, maxutil);
-					fflush(stdout);
-					*/
-				}
-				maxutil = 0 ; 
-				t_full = now ; 
+/*printf ("after:%f\n", (float)cwnd_);*/
 			}
 		}
 	}
-	if (F_counting == 0) {
-		W_timed = t_seqno_  ; 
-		F_counting = 1 ;
+	else {
+		if (rtt < 1) 
+			rtt = 1 ;
+		win = window () ; 
+		if (tcp_now - T_full >= 2*rtt) {
+/*
+printf ("Nodata: %f %d %d %d %f %d %d\n", 
+ct, tcp_now, T_full, rtt*2, (float)cwnd_, RTT_goodcount, Backoffs); 
+*/
+			int RTTs ; 
+			RTTs = (tcp_now -T_full)*RTT_goodcount/(rtt*2) ; 
+			RTTs = RTTs - Backoffs ; 
+			Backoffs = 0 ; 
+			T_full = tcp_now ;
+			if (RTTs > 0) {
+				for (int i = 0 ; i < RTTs ; i ++) {
+					win = window () ; 
+					cwnd_ = win/2 ; 
+					if (cwnd_ < initwin) 
+						cwnd_ = initwin ;
+					RTT_prev = RTT_count ; 
+					W_used = 0 ;
+				}
+			}
+/*printf ("After:%f\n", (float)cwnd_);*/
+		}
+		if (tcp_now - T_start >= 2*rtt) {
+			if ((RTT_count > RTT_goodcount) || (F_full == 1)) {
+				RTT_goodcount = RTT_count ; 
+				if (RTT_goodcount < 1) RTT_goodcount = 1 ; 
+			}
+			RTT_prev = RTT_prev - RTT_count ;
+			RTT_count = 0 ; 
+			T_start  = tcp_now ;
+			F_full = 0;
+		}
+		win = window () ;
+		if (t_seqno_ == highest_ack_+win) {
+			W_used = 0 ; 
+			F_full = 1 ; 
+			T_full = tcp_now ; 
+			RTT_prev = RTT_count ;
+		}
+		else {
+			if (t_seqno_ == curseq_-1) {
+				int tmp = t_seqno_ - highest_ack_ ;
+				if (tmp > W_used)
+					W_used = tmp ;
+				if (RTT_count - RTT_prev >= 2) {
+/*
+printf ("Somedata: %f %d %d %d %f %d %d %d\n", ct, tcp_now, RTT_count,
+RTT_prev, (float)cwnd_, (int)t_seqno_, (int)(curseq_-1), W_used);
+*/
+					win = window () ; 
+					cwnd_ = win - (win-W_used)/2 ; 
+					if (cwnd_ < initwin) 
+						cwnd_ = initwin ;
+					RTT_prev = RTT_count ; 
+					Backoffs ++ ; 
+					W_used = 0;
+/*printf ("After:%f\n", (float)cwnd_);*/
+				}
+			}
+		}
+		if (F_counting == 0) {
+			W_timed = t_seqno_  ;
+			F_counting = 1 ;
+		}
 	}
-	q_timer_.resched (check_interval);
 }
 
 void TcpAgent::process_qoption_after_ack (int seqno)
@@ -1212,7 +1253,8 @@ void TcpAgent::process_qoption_after_ack (int seqno)
 			F_counting = 0 ; 
 		}
 		else {
-			RTT_count ++ ;
+			if (dupacks_ == NUMDUPACKS)
+				RTT_count ++ ;
 		}
 	}
 }
