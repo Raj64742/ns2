@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.10 2000/12/20 10:13:57 alefiyah Exp $
+   $Id: mac-802_3.cc,v 1.11 2001/02/19 20:36:04 yuri Exp $
    */
 #include <packet.h>
 #include <random.h>
@@ -148,22 +148,23 @@ void Mac802_3::sendUp(Packet *p, Handler *) {
 	FPRINTF(stderr, "%.15f : %d : %s\n", Scheduler::instance().clock(), index_, __PRETTY_FUNCTION__);
 	/* just received the 1st bit of a packet */
 	if (state_ != MAC_IDLE && mhIFS_.busy()) {
-		// this must mean either that 
-		//   a. mhIFS_ is about to expire now - concurrent events ordering - or
-		//   b. (txtime + ifs + propdelay) < (propdelay + txtime + ifs) for the prev. packet
-		// so we assume that IFS is over and resume
-#ifdef MAC_DEBUG
-#define EPS 1.0e-15
+#define EPS 1.0e-15 /* can be considered controller clock resolution */
 		if (mhIFS_.expire() - Scheduler::instance().clock() > EPS) {
-			fprintf(stderr, "mhIFS_: %.20f, time= %.20f, diff= %e\n",  
-				mhIFS_.expire(), Scheduler::instance().clock(),
-				mhIFS_.expire() - Scheduler::instance().clock());
-			assert(0);
+			// This can happen when 3 nodes TX:
+			// 1 was TX, then IFS, then TX again;
+			// 2,3 were in RX (from 1), then IFS, then TX, then collision with 1 and IFS
+			// while 3 in IFS it RX from 2 and vice versa.
+			// We ignore it and let the ifs timer take care of things.
+			return;
+		} else {
+			// This means that mhIFS_ is about to expire now. We assume that IFS is over 
+			// and resume, because we want to give this guy a chance - otherwise the guy 
+			// who TX before will TX again (fairness); if we have anything to
+			// TX, this forces a collision.
+			mhIFS_.cancel();
+			resume();
 		}
 #undef EPS
-#endif
-		mhIFS_.cancel();
-		resume();
 	} 
 	if(state_ == MAC_IDLE) {
 		state_ = MAC_RECV;
