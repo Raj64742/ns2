@@ -24,8 +24,8 @@
 # Lan implementation as a virtual node: LanNode mimics a real
 # node and uses an address (id) from Node's address space
 #
-# problems: won't work with hierarchical routing, because 
-# somebody has to assign a hierarchical address to the Lan.
+# WARNING: if used with hierarchical routing, one has to assign
+# a hierarchical address to the lan itself.  This maybe confusing.
 #------------------------------------------------------------
 Class LanNode -superclass InitObject
 LanNode set ifqType_ Queue/DropTail
@@ -33,74 +33,13 @@ LanNode set macType_ Mac/Csma/Cd
 LanNode set chanType_ Channel
 LanNode set address_ ""
 
-LanNode instproc bw {val} { $self set bw_ $val }
 LanNode instproc address {val} { $self set address_ $val }
+LanNode instproc bw {val} { $self set bw_ $val }
 LanNode instproc delay {val} { $self set delay_ $val }
 LanNode instproc ifqType {val} { $self set ifqType_ $val }
 LanNode instproc macType {val} { $self set macType_ $val }
 LanNode instproc chanType {val} { $self set chanType_ $val }
 
-LanNode instproc rtObject? {} {
-	return ""
-}
-LanNode instproc id {} { $self set id_ }
-LanNode instproc node-addr {{addr ""}} { 
-	eval $self set address_ $addr
-}
-LanNode instproc reset {} {
-	#NOTHING: needed for node processing by ns routing
-}
-LanNode instproc is-lan? {} { return 1 }
-LanNode instproc dump-namconfig {} {
-	$self instvar ns_ bw_ delay_ nodelist_ id_
-	$ns_ puts-nam-config \
-			"X -t * -n $id_ -r $bw_ -D $delay_ -o left"
-	set cnt 0
-	set LanOrient(0) "up"
-	set LanOrient(1) "down"
-	
-	foreach n $nodelist_ {
-		$ns_ puts-nam-config \
-				"L -t * -s $id_ -d [$n id] -o $LanOrient($cnt)"
-		set cnt [expr 1 - $cnt]
-	}
-}
-
-#
-# multicast support
-#
-LanNode instproc enable-mcast sim {
-	$self instvar switch_ defRouter_
-
-	set switch_ [new Classifier/Addr]
-	$switch_ set mask_ [AddrParams set McastMask_]
-	$switch_ set shift_ [AddrParams set McastShift_]
-
-	$defRouter_ switch $switch_
-}
-
-LanNode instproc init-outLink {} { 
-#
-#	$self instvar outLink_ nodelist_ lanIface_
-#	foreach node $nodelist_ {
-#		set iface [$lanIface_([$node id]) set iface_]
-#                set label [$iface set intf_label_]
-#                set outLink_($label) $oif
-# 	}
-}
-LanNode instproc start-mcast {} { 
-	#NOTHING
-}
-LanNode instproc getArbiter {} {
-	$self instvar arbiter_
-	if ![info exists arbiter_] {
-		set arbiter_ [new McastProtoArbiter ""]
-	}
-	return $arbiter_
-}
-LanNode instproc attach {agent} {
-	#NOTHING
-}
 LanNode instproc init {ns args} {
 	set args [eval $self init-vars $args]
 	$self instvar bw_ delay_ ifqType_ macType_ chanType_
@@ -115,48 +54,26 @@ LanNode instproc init {ns args} {
 
 	set id_ [Node getid]
 	set Node_($id_) $self
-	if {$address_ == ""} {
+	if [Simulator set EnableHierRt_] {
+		if {$address_ == ""} {
+			error "LanNode: use \"-address\" option \
+					with hierarchical routing"
+		}
+	} else {
 		set address_ $id_
 	}
 	set defRouter_ [new lanRouter $ns $self]
 	if [Simulator set EnableMcast_] {
-		$self enable-mcast $ns
+		set switch_ [new Classifier/Addr]
+		$switch_ set mask_ [AddrParams set McastMask_]
+		$switch_ set shift_ [AddrParams set McastShift_]
+
+		$defRouter_ switch $switch_
 	}
 	set channel_ [new $chanType_]
 	set mcl_ [new Classifier/Mac]
 	$mcl_ set offset_ [PktHdr_offset PacketHeader/Mac macDA_]
 	$channel_ target $mcl_
-}
-
-LanNode instproc add-route {args} {
-	#NOTHING: use defRouter to find routes
-}
-LanNode instproc add-hroute {args} {
-	#NOTHING: use defRouter to find routes
-	#puts "add-hroute: $args"
-}
-
-LanNode instproc assign-mac {ip} {
-	return $ip ;# use ip addresses at MAC layer
-}
-LanNode instproc cost c {
-	$self instvar ns_ nodelist_ id_ cost_
-	$ns_ instvar link_
-	set cost_ $c
-	set vlinkcost [expr $c / 2.0]
-	foreach node $nodelist_ {
-		set nid [$node id]
-		$link_($id_:$nid) cost $vlinkcost
-		$link_($nid:$id_) cost $vlinkcost
-	}
-}
-LanNode instproc cost? {} {
-	$self instvar cost_
-	return $cost_
-}
-LanNode instproc split-addrstr addrstr {
-	set L [split $addrstr .]
-	return $L
 }
 LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 	$self instvar ifqType_ macType_ chanType_ 
@@ -199,6 +116,77 @@ LanNode instproc addNode {nodes bw delay {ifqType ""} {macType ""} } {
 		$link_($id_:$sid) cost $vlinkcost
 	}
 	set nodelist_ [concat $nodelist_ $nodes]
+}
+LanNode instproc assign-mac {ip} {
+	return $ip ;# use ip addresses at MAC layer
+}
+LanNode instproc cost c {
+	$self instvar ns_ nodelist_ id_ cost_
+	$ns_ instvar link_
+	set cost_ $c
+	set vlinkcost [expr $c / 2.0]
+	foreach node $nodelist_ {
+		set nid [$node id]
+		$link_($id_:$nid) cost $vlinkcost
+		$link_($nid:$id_) cost $vlinkcost
+	}
+}
+LanNode instproc cost? {} {
+	$self instvar cost_
+	return $cost_
+}
+LanNode instproc rtObject? {} {
+	# NOTHING
+}
+LanNode instproc id {} { $self set id_ }
+LanNode instproc node-addr {{addr ""}} { 
+	eval $self set address_ $addr
+}
+LanNode instproc reset {} {
+	# NOTHING: needed for node processing by ns routing
+}
+LanNode instproc is-lan? {} { return 1 }
+LanNode instproc dump-namconfig {} {
+	# Redefine this function if needed
+	$self instvar ns_ bw_ delay_ nodelist_ id_
+	$ns_ puts-nam-config \
+			"X -t * -n $id_ -r $bw_ -D $delay_ -o left"
+	set cnt 0
+	set LanOrient(0) "up"
+	set LanOrient(1) "down"
+	
+	foreach n $nodelist_ {
+		$ns_ puts-nam-config \
+				"L -t * -s $id_ -d [$n id] -o $LanOrient($cnt)"
+		set cnt [expr 1 - $cnt]
+	}
+}
+LanNode instproc init-outLink {} { 
+	#NOTHING
+}
+LanNode instproc start-mcast {} { 
+	# NOTHING
+}
+LanNode instproc getArbiter {} {
+	# just give an arbiter to those protocols who want it.
+	$self instvar arbiter_
+	if ![info exists arbiter_] {
+		set arbiter_ [new McastProtoArbiter ""]
+	}
+	return $arbiter_
+}
+LanNode instproc attach {agent} {
+	# NOTHING
+}
+LanNode instproc add-route {args} {
+	# NOTHING: use defRouter to find routes
+}
+LanNode instproc add-hroute {args} {
+	# NOTHING: use defRouter to find routes
+}
+LanNode instproc split-addrstr addrstr {
+	set L [split $addrstr .]
+	return $L
 }
 
 # LanIface---------------------------------------------------
@@ -244,9 +232,6 @@ LanIface instproc init {node bw lan args} {
 # zero delay and infinite bandwidth
 #------------------------------------------------------------
 Class Vlink
-Vlink instproc dump-nam-queueconfig {} {
-	#nothing
-}
 Vlink instproc up? {} {
 	return "up"
 }
@@ -263,22 +248,23 @@ Vlink instproc init {ns lan src dst b d} {
 	set bw_ $b
 	set delay_ $d
 }
-
-# if this is a link TO the lan vnode, return the lanIface object
-# if this is a link FROM the lan vnode, return the LL object of the dest.
+Vlink instproc dump-nam-queueconfig {} {
+	#nothing
+}
 Vlink instproc head {} {
 	$self instvar lan_ dst_ src_
 	if {$src_ == [$lan_ set id_]} {
-		# from the LAN vnode 
+		# if this is a link FROM the lan vnode, 
+		# return the LL object of the dest.
 		set dst_lif [$lan_ set lanIface_($dst_)]
 		return  [$dst_lif set ll_]
 	} else {
-		# to the LAN
+		# if this is a link TO the lan vnode, 
+		# return the lanIface object
 		set src_lif [$lan_ set lanIface_($src_)]
 		return $src_lif
 	}
 }
-
 Vlink instproc cost c { $self set cost_ $c}	
 Vlink instproc cost? {} {
 	$self instvar cost_
@@ -291,12 +277,12 @@ Vlink instproc cost? {} {
 # lanRouter--------------------------------------------------
 #
 # "Virtual node lan" needs to know which of the lan nodes is
-# the next hop towards the packet's destination.
+# the next hop towards the packet's (maybe remote) destination.
 #------------------------------------------------------------
 lanRouter instproc init {ns lan} {
 	$self next
 	Simulator instvar EnableHierRt_
-	if {[info exists EnableHierRt_] && $EnableHierRt_} {
+	if {$EnableHierRt_} {
 		$self routing hier
 	} else {
 		$self routing flat
