@@ -50,6 +50,12 @@ Mac/Csma set rtxmax_ 10
 Channel set delay_ 16us
 
 
+Class Trace/Recv -superclass Trace
+Trace/Recv instproc init {} {
+	$self next "r"
+}
+
+
 Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } { lltype "LL/Base" } { ifqtype "Queue/DropTail" } { mactype "Mac/Base" } } {
 	$self instvar link_ queueMap_ nullAgent_ traceAllFile_
 
@@ -110,9 +116,15 @@ Link/SharedDuplex instproc init { src dst bw delay qtype lltype } {
 
 Link/SharedDuplex instproc setuplinkage { src ifq dstlink } {
 	$self instvar link_
-
 	$link_ ifq $ifq
 	$link_ recvtarget [$src entry]
 	$link_ sendtarget [$dstlink link]
 }
 
+Link/SharedDuplex instproc trace { ns f } {
+	$self next $ns $f
+	$self instvar link_ fromNode_ toNode_
+	set recvT_ [$ns create-trace Recv $f $toNode_ $fromNode_]
+	$recvT_ target [$link_ recvtarget]
+	$link_ recvtarget $recvT_
+}
