@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.1 1997/04/28 19:31:34 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.2 1997/05/07 04:06:20 kannan Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -46,6 +46,9 @@
 #awk '{print $2, $1, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12}' out2 > t
 
 set dir [pwd]
+if [file exists redefines.tcl] {
+	source redefines.tcl
+}
 catch "cd tcl/test"
 source topologies.tcl
 source misc.tcl
@@ -93,7 +96,7 @@ Test/sack1 instproc run {} {
 	$self instvar ns_ node_ testName_
 
 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window 14
+	$tcp1 set window_ 14
 	set ftp1 [$tcp1 attach-source FTP]
 	$ns_ at 1.0 "$ftp1 start"
 
@@ -119,7 +122,7 @@ Test/sack1a instproc run {} {
 	$self instvar ns_ node_ testName_
 
 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window 20
+	$tcp1 set window_ 20
 	set ftp1 [$tcp1 attach-source FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
@@ -143,7 +146,7 @@ Test/sack1b instproc init topo {
 Test/sack1b instproc run {} {
 	$self instvar ns_ node_ testName_
 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window 26
+	$tcp1 set window_ 26
 	set ftp1 [$tcp1 attach-source FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
@@ -167,7 +170,7 @@ Test/sack1c instproc init topo {
 Test/sack1c instproc run {} {
 	$self instvar ns_ node_ testName_
 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window 27
+	$tcp1 set window_ 27
 	set ftp1 [$tcp1 attach-source FTP]
 	$ns_ at 0.0 "$ftp1 start"
 
@@ -195,11 +198,11 @@ Test/sack3 instproc run {} {
 	$ns_ queue-limit $node_(k1) $node_(r1) 8
 	
 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window 100
+	$tcp1 set window_ 100
 	$tcp1 set bugFix_ false
 
 	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window 16
+	$tcp2 set window_ 16
 	$tcp2 set bugFix_ false
 
 	set ftp1 [$tcp1 attach-source FTP]
@@ -233,15 +236,15 @@ Test/sack4 instproc run {} {
 	$ns_ queue-limit $node_(k1) $node_(r1) 11
 	
 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window 30
+	$tcp1 set window_ 30
 
 	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window 30
+	$tcp2 set window_ 30
 
 	set ftp1 [$tcp1 attach-source FTP]
-	## $ftp1 set maxpkts 10
+	## $ftp1 set maxpkts_ 10
 	set ftp2 [$tcp2 attach-source FTP]
-	## $ftp2 set maxpkts 30
+	## $ftp2 set maxpkts_ 30
 
 	$ns_ at 0.0 "$ftp1 start"
 	$ns_ at 0.0 "$ftp2 start"
@@ -270,11 +273,11 @@ Test/sack5 instproc run {} {
 	$ns_ delay $node_(r1) $node_(s1) 3ms
 
 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window 50
+	$tcp1 set window_ 50
 	$tcp1 set bugFix_ false
 
 	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window 50
+	$tcp2 set window_ 50
 	$tcp2 set bugFix_ false
 
 	set ftp1 [$tcp1 attach-source FTP]
@@ -306,10 +309,10 @@ Test/sackB2 instproc run {} {
 	$ns_ queue-limit $node_(r1) $node_(k1) 9
 
 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window 50
+	$tcp1 set window_ 50
 
 	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window 20
+	$tcp2 set window_ 20
 
 	set ftp1 [$tcp1 attach-source FTP]
 	set ftp2 [$tcp2 attach-source FTP]
@@ -339,7 +342,7 @@ Test/sackB4 instproc run {} {
         $self instvar ns_ node_ testName_
         $ns_ queue-limit $node_(r1) $node_(r2) 29
         set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(r2) 0]
-        $tcp1 set window 40
+        $tcp1 set window_ 40
 
         set ftp1 [$tcp1 attach-source FTP]
         $ns_ at 0.0 "$ftp1 start"
@@ -365,7 +368,7 @@ Test/sackB4 instproc run {} {
 #Test/delayedSack instproc run {} {
 # 	$self instvar ns_ node_ testName_
 # 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-# 	$tcp1 set window 50
+# 	$tcp1 set window_ 50
 # 
 # 	# lookup up the sink and set it's delay interval
 # 	[$node_(k1) agent [$tcp1 dst-port]] set interval 100ms
@@ -400,10 +403,10 @@ Test/phaseSack instproc run {} {
 	$ns_ queue-limit $node_(k1) $node_(r1) 100
 
 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window 32
+	$tcp1 set window_ 32
 
 	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window 32
+	$tcp2 set window_ 32
 
 	set ftp1 [$tcp1 attach-source FTP]
 	set ftp2 [$tcp2 attach-source FTP]
@@ -438,12 +441,12 @@ Test/phaseSack2 instproc run {} {
         $ns_ queue-limit $node_(k1) $node_(r1) 100
 
         set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-        $tcp1 set window 32
-        $tcp1 set overhead 0.01
+        $tcp1 set window_ 32
+        $tcp1 set overhead_ 0.01
 
         set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-        $tcp2 set window 32
-        $tcp2 set overhead 0.01
+        $tcp2 set window_ 32
+        $tcp2 set overhead_ 0.01
         
         set ftp1 [$tcp1 attach-source FTP]
         set ftp2 [$tcp2 attach-source FTP]
@@ -478,12 +481,12 @@ Test/phaseSack3 instproc run {} {
 	$ns_ queue-limit $node_(k1) $node_(r1) 100
 
 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-	$tcp1 set window 32
-        $tcp1 set overhead 0.01
+	$tcp1 set window_ 32
+        $tcp1 set overhead_ 0.01
 
 	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-	$tcp2 set window 32
-        $tcp2 set overhead 0.01
+	$tcp2 set window_ 32
+        $tcp2 set overhead_ 0.01
 
 	set ftp1 [$tcp1 attach-source FTP]
 	set ftp2 [$tcp2 attach-source FTP]
@@ -514,12 +517,12 @@ Test/phaseSack3 instproc run {} {
 # 	$ns_ queue-limit $node_(k1) $node_(r1) 100
 # 
 # 	set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 0]
-# 	$tcp1 set window 4
+# 	$tcp1 set window_ 4
 # 	# lookup up the sink and set it's delay interval
 # 	[$node_(k1) agent [$tcp1 dst-port]] set interval 100ms
 # 
 # 	set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(k1) 1]
-# 	$tcp2 set window 4
+# 	$tcp2 set window_ 4
 # 	# lookup up the sink and set it's delay interval
 # 	[$node_(k1) agent [$tcp2 dst-port]] set interval 100ms
 # 
