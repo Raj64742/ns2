@@ -353,7 +353,8 @@ start, end, p, q,
 			if (start == r->startseq_ && end == r->endseq_) {
 				// exact overlap
 				r->pflags_ |= tiflags;
-				r->cnt_++;
+				if (RQC_CNTDUPS == TRUE)
+					r->cnt_++;
 				return (r->pflags_);
 			} else if (start <= r->startseq_ && end >= r->endseq_) {
 				// complete overlap, not exact
