@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.10 2002/12/19 16:12:48 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc_simple.tcl,v 1.11 2003/01/16 01:58:49 sfloyd Exp $
 #
 
 Object instproc exit args {
@@ -271,6 +271,15 @@ TestSuite proc runTest {} {
         }
         set t [new Test/$test]
         $t run
+}
+
+TestSuite instproc setTopo {} {
+    $self instvar node_ net_ ns_ topo_
+
+    set topo_ [new Topology/$net_ $ns_]
+    foreach i [$topo_ array names node_] {
+        set node_($i) [$topo_ node? $i]
+    }
 }
 
 ### Local Variables:
