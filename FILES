@@ -348,6 +348,7 @@ tcl/lib/ns-node.tcl
 tcl/lib/ns-packet.tcl
 tcl/lib/ns-queue.tcl
 tcl/lib/ns-random.tcl
+tcl/lib/ns-route.tcl
 tcl/lib/ns-source.tcl
 tcl/lib/ns-trace.tcl
 tcl/lib/t.tcl

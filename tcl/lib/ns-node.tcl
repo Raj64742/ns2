@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.11 1997/08/24 18:11:39 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.12 1997/09/10 06:50:38 kannan Exp $
 #
 
 Class Node
@@ -270,3 +270,92 @@ Node instproc addCorresHost {addr cw mtu maxcw wndopt } {
 		set chaddrs_($addr) $chost
 	}
 }
+
+#
+# Node support for detailed dynamic routing
+#
+Node instproc init-routing rtObject {
+    $self instvar multiPath_ routes_ rtObject_
+    set multiPath_ [$class set multiPath_]
+    set nn [$class set nn_]
+    for {set i 0} {$i < $nn} {incr i} {
+	set routes_($i) 0
+    }
+    if ![info exists rtObject_] {
+	$self set rtObject_ $rtObject
+    }
+    $self set rtObject_
+}
+
+Node instproc rtObject? {} {
+    $self instvar rtObject_
+    if ![info exists rtObject_] {
+	return ""
+    } else {
+	return $rtObject_
+    }
+}
+
+#
+# Node support for equal cost multi path routing
+#
+Node instproc add-routes {id ifs} {
+    $self instvar classifier_ multiPath_ routes_ mpathClsfr_
+    if {[llength $ifs] > 1 && ! $multiPath_} {
+	puts stderr "$class::$proc cannot install multiple routes"
+	set ifs [llength $ifs 0]
+	set routes_($id) 0
+    }
+    if { $routes_($id) <= 0 && [llength $ifs] == 1 &&	\
+	    ![info exists mpathClsfr_($id)] } {
+	# either we really have no route, or
+	# only one route that must be replaced.
+	$self add-route $id [$ifs head]
+	incr routes_($id)
+    } else {
+	if ![info exists mpathClsfr_($id)] {
+	    set mclass [new Classifier/MultiPath]
+	    if {$routes_($id) > 0} {
+		array set current [$classifier_ adjacents]
+		foreach i [array names current] {
+		    if {$current($i) == $id} {
+			$mclass installNext $i
+			break
+		    }
+		}
+	    }
+	    $classifier_ install $id $mclass
+	    set mpathClsfr_($id) $mclass
+	}
+	foreach L $ifs {
+	    $mpathClsfr_($id) installNext [$L head]
+	    incr routes_($id)
+	}
+    }
+}
+
+Node instproc delete-routes {id ifs nullagent} {
+    $self instvar mpathClsfr_ routes_
+    if [info exists mpathClsfr_($id)] {
+	array set eqPeers [$mpathClsfr_($id) adjacents]
+	foreach L $ifs {
+	    set link [$L head]
+	    if [info exists eqPeers($link)] {
+		$mpathClsfr_($id) clear $eqPeers($link)
+		unset eqPeers($link)
+		incr routes_($id) -1
+	    }
+	}
+    } else {
+	$self add-route $id $nullagent
+	incr routes_($id) -1
+    }
+}
+
+Node instproc intf-changed { } {
+    $self instvar rtObject_
+    if [info exists rtObject_] {	;# i.e. detailed dynamic routing
+        $rtObject_ intf-changed
+    }
+}
+

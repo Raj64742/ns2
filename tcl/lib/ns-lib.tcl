@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.48 1997/09/09 00:13:26 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.49 1997/09/10 06:50:36 kannan Exp $
 #
 
 #
@@ -61,7 +61,6 @@ Class Simulator
 source ns-node.tcl
 source ns-link.tcl
 source ns-source.tcl
-source ns-default.tcl
 source ns-compat.tcl
 source ns-nam.tcl
 source ns-packet.tcl
@@ -69,9 +68,8 @@ source ns-queue.tcl
 source ns-trace.tcl
 source ns-agent.tcl
 source ns-random.tcl
+source ns-route.tcl
 source ../rtp/session-rtp.tcl
-source ../rtglib/dynamics.tcl
-source ../rtglib/route-proto.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mlink.tcl
 source ../lan/ns-mac.tcl
@@ -95,6 +93,7 @@ source ../mcast/srm.tcl
 source ../mcast/srm-ssm.tcl
 source ../mcast/McastMonitor.tcl
 source ../session/session.tcl
+source ns-default.tcl
 
 Simulator instproc init args {
 	eval $self next $args
@@ -160,10 +159,10 @@ Simulator instproc cancel args {
 	return [eval $scheduler_ cancel $args]
 }
 
-Simulator instproc run args {
+Simulator instproc run {} {
 	#$self compute-routes
 	$self rtmodel-configure			;# in case there are any
-	eval RouteLogic configure $args
+	[$self get-routelogic] configure
 	$self instvar scheduler_ Node_ link_
 	#
 	# Reset every node, which resets every agent
@@ -191,9 +190,6 @@ Simulator instproc clearMemTrace {} {
         $self instvar scheduler_
         $scheduler_ clearMemTrace
 }
-
-
-Simulator set NumberInterfaces_ 0
 
 Simulator instproc simplex-link { n1 n2 bw delay arg } {
 	$self instvar link_ queueMap_ nullAgent_
@@ -318,6 +314,11 @@ Simulator instproc drop-trace { n1 n2 trace } {
 	[$link_([$n1 id]:[$n2 id]) queue] drop-target $trace
 }
 
+Simulator instproc cost {n1 n2 c} {
+	$self instvar link_
+	$link_([$n1 id]:[$n2 id]) cost $c
+}
+
 Simulator instproc attach-agent { node agent } {
 	$node attach $agent
 }
@@ -351,54 +352,6 @@ Simulator instproc connect { src dst } {
 	$src set dst_ [expr [$dstNode id] << 8 | [$dst port]]
 	$dst set dst_ [expr [$srcNode id] << 8 | [$src port]]
 	return $src
-}
-
-Simulator instproc compute-routes {} {
-	$self instvar Node_ routingTable_ link_
-	#
-	# Compute all the routes using the route-logic helper object.
-	#
-        set r [$self get-routelogic]
-        #set r [new RouteLogic]		;# must not create multiple instances
-	foreach ln [array names link_] {
-		set L [split $ln :]
-		set srcID [lindex $L 0]
-		set dstID [lindex $L 1]
-	        if { [$link_($ln) up?] == "up" } {
-			$r insert $srcID $dstID [$link_($ln) cost?]
-		} else {
-			$r reset $srcID $dstID
-		}
-	}
-	$r compute
-	#$r dump $nn
-
-	#
-	# Set up each classifer (aka node) to act as a router.
-	# Point each classifer table to the link object that
-	# in turns points to the right node.
-	#
-	set i 0
-	set n [Node set nn_]
-	while { $i < $n } {
-		set n1 $Node_($i)
-		set j 0
-		while { $j < $n } {
-			if { $i != $j } {
-			        # shortened nexthop to nh, to fit add-route in
-			        # a single line
-				set nh [$r lookup $i $j]
-			        if { $nh >= 0 } {
-					$n1 add-route $j [$link_($i:$nh) head]
-				}
-			} 
-			incr j
-		}
-		incr i
-	}
-#	delete $r
-#XXX used by multicast router
-	#set routingTable_ $r		;# already set by get-routelogic
 }
 
 #
@@ -454,25 +407,31 @@ Simulator instproc create-connection {s_type source d_type dest pktClass} {
 	return $s_agent
 }
 
-#
-# debugging method to dump table (see route.cc for C++ methods)
-#
-RouteLogic instproc dump nn {
-	set i 0
-	while { $i < $nn } {
-		set j 0
-		while { $j < $nn } {
-			puts "$i -> $j via [$self lookup $i $j]"
-			incr j
-		}
-		incr i
-	}
-}
-
 Classifier instproc no-slot slot {
 	#XXX should say something better for routing problem
 	puts stderr "$self: no target for slot $slot"
 	exit 1
+}
+
+#
+# Other classifier methods overload the instproc-likes to track 
+# and return the installed objects.
+#
+Classifier instproc install {slot val} {
+    $self instvar elements_
+    set elements_($val) $slot
+    $self cmd install $slot $val
+}
+
+Classifier instproc installNext val {
+    $self instvar elements_
+    set elements_($val) [$self cmd installNext $val]
+    return $elements_($val)
+}
+
+Classifier instproc adjacents {} {
+    $self instvar elements_
+    return [array get elements_]
 }
 
 

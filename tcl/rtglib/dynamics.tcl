@@ -28,9 +28,10 @@
 # Maintainer: <kannan@isi.edu>.
 #
 
-Class rtQueue
+# The API for this code is still somewhat fluid and subject to change.
+# Check the documentation for details.
 
-DynamicLink set status_ 1
+Class rtQueue
 
 Simulator instproc rtmodel { dist parms args } {
     set ret ""
@@ -72,80 +73,6 @@ Simulator instproc rtmodel-delete model {
     if { $idx != -1 } {
 	delete $model
 	set rtModel_ [lreplace $rtModel_ $idx $idx]
-    }
-}
-
-SimpleLink instproc dynamic {} {
-    $self instvar dynamics_ queue_ head_ enqT_ drpT_
-
-    if [info exists dynamics_] return
-	
-    set dynamics_ [new DynamicLink]
-    $dynamics_ target $head_
-    set head_ $dynamics_
-    
-    if [info exists drpT_] {			;# XXX
-	$dynamics_ down-target $drpT_
-    } else {
-        $dynamics_ down-target [[Simulator instance] set nullAgent_]
-    }
-    $self all-connectors dynamic
-}
-
-Link instproc up { } {
-    $self instvar dynamics_ dynT_
-    $dynamics_ set status_ 1
-    if [info exists dynT_] {
-	foreach tr $dynT_ {
-	    $tr format link-up {$src_} {$dst_}
-	}
-    }
-}
-
-Link instproc down { } {
-    $self instvar dynamics_ dynT_
-    $dynamics_ set status_ 0
-    $self all-connectors reset
-    if [info exists dynT_] {
-	foreach tr $dynT_ {
-	    $tr format link-down {$src_} {$dst_}
-	}
-    }
-}
-
-Link instproc up? {} {
-    $self instvar dynamics_
-    if [info exists dynamics_] {
-	return [$dynamics_ status?]
-    } else {
-	return "up"
-    }
-}
-
-Link instproc all-connectors op {
-    foreach c [$self info vars] {
-	$self instvar $c
-	if ![info exists $c] continue
-	foreach var [$self set $c] {
-	    if [catch "$var info class"] {
-		continue
-	    }
-	    if ![$var info class Node] {  ;# $op on everything but the node
-	        catch "$var $op"   ;# in case the instvar is not a connector
-	    }
-	}
-    }
-}
-
-SimpleLink instproc trace-dynamics { ns f } {
-    $self instvar dynT_ fromNode_ toNode_
-    lappend dynT_ [$ns create-trace Generic $f $fromNode_ $toNode_]
-}
-
-Node instproc intf-changed { } {
-    $self instvar rtObject_
-    if [info exists rtObject_] {	;# i.e. detailed dynamic routing
-        $rtObject_ intf-changed
     }
 }
 
@@ -217,8 +144,6 @@ rtQueue instproc runq { time } {
 Class rtModel
 
 rtModel set rtq_ ""
-rtModel set startTime_ 0.5
-rtModel set finishTime_ "-"
 
 rtModel instproc init ns {
     $self next
@@ -353,7 +278,7 @@ rtModel instproc notify {} {
     foreach n [array names nodes_] {
 	$nodes_($n) intf-changed
     }
-    [RouteLogic info instances] notify
+    [$ns_ get-routelogic] notify
 }
 
 rtModel instproc trace { ns f } {
@@ -368,9 +293,6 @@ rtModel instproc trace { ns f } {
 #
 
 Class rtModel/Exponential -superclass rtModel
-
-rtModel/Exponential set upInterval_   10.0
-rtModel/Exponential set downInterval_  1.0
 
 rtModel/Exponential instproc set-first-event {} {
     $self instvar startTime_ upInterval_
@@ -394,9 +316,6 @@ rtModel/Exponential instproc down { } {
 #
 
 Class rtModel/Deterministic -superclass rtModel
-
-rtModel/Deterministic set upInterval_   2.0
-rtModel/Deterministic set downInterval_ 1.0
 
 rtModel/Deterministic instproc up { } {
     $self next

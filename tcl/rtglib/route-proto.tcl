@@ -28,218 +28,12 @@
 # Maintainer: <kannan@isi.edu>.
 #
 
-Simulator instproc rtproto {proto args} {
-    eval [$self get-routelogic] register $proto $args
-}
-
-Simulator instproc get-routelogic {} {
-    $self instvar routingTable_
-    if ![info exists routingTable_] {
-	set routingTable_ [new RouteLogic]
-    }
-    return $routingTable_
-}
-
-Simulator instproc cost {n1 n2 c} {
-    $self instvar link_
-    $link_([$n1 id]:[$n2 id]) cost $c
-}
-
-Link instproc cost c {
-    $self instvar cost_
-    set cost_ $c
-}
-
-Link instproc cost? {} {
-    $self instvar cost_
-    if ![info exists cost_] {
-	set cost_ 1
-    }
-    set cost_
-}
-
-RouteLogic instproc register {proto args} {
-    $self instvar rtprotos_
-    if [info exists rtprotos_($proto)] {
-	eval lappend rtprotos_($proto) $args
-    } else {
-	set rtprotos_($proto) $args
-    }
-}
-
-RouteLogic proc configure args {
-    set ns [Simulator instance]
-    eval [$ns get-routelogic] config-protos $args
-}
-
-RouteLogic instproc config-protos args {
-    $self instvar rtprotos_
-    if [info exists rtprotos_] {
-	if { [llength $args] != 0 } {
-	    puts stderr [concat {Routing protocol overspecification.  } \
-		    {Arguments to `$Simulator run' ignored.}]
-	}
-	foreach proto [array names rtprotos_] {
-	    eval Agent/rtProto/$proto init-all $rtprotos_($proto)
-	}
-    } else {
-	if {[llength $args] == 0} {
-	    Agent/rtProto/Static init-all
-	} else {
-	    switch [lindex $args 0] {
-		Static {
-		    Agent/rtProto/Static init-all
-		    set rtprotos_(Static) 1
-		}
-		Dynamic {
-		    if { [llength $args] == 1 } {
-			Agent/rtProto/DV init-all
-			set rtprotos_(DV) 1
-		    } else {
-			set proto [lindex $args 1]
-			set pargs [lrange $args 2 end]
-			eval Agent/rtProto/$proto init-all $pargs
-			set rtprotos_($proto) 1
-		    }
-		}
-		Session {
-		    Agent/rtProto/Session init-all
-		    set rtprotos_(Session) 1
-		}
-		default {
-		    error "unknown rtProto argument: [lindex $args 0]"
-		}
-	    }
-	}
-    }
-}
-
-RouteLogic instproc lookup { nodeid destid } {
-    if { $nodeid == $destid } {
-	return $nodeid
-    }
-
-    set ns [Simulator instance]
-    set node [$ns get-node-by-id $nodeid]
-    set rtobj [$node rtObject?]
-    if { $rtobj != "" } {
-	$rtobj lookup [$ns get-node-by-id $destid]
-    } else {
-	$self cmd lookup $nodeid $destid
-    }
-}
-
-RouteLogic instproc notify {} {
-    $self instvar rtprotos_
-    foreach i [array names rtprotos_] {
-	Agent/rtProto/$i compute-all
-    }
-
-    foreach i [CtrMcastComp info instances] {
-	$i notify
-    }
-}
-
-
-Node set multiPath_ 0
-
-Node instproc init-routing rtObject {
-    $self instvar multiPath_ routes_ rtObject_
-    set multiPath_ [$class set multiPath_]
-    set nn [$class set nn_]
-    for {set i 0} {$i < $nn} {incr i} {
-	set routes_($i) 0
-    }
-    if ![info exists rtObject_] {
-	$self set rtObject_ $rtObject
-    }
-    $self set rtObject_
-}
-
-Node instproc rtObject? {} {
-    $self instvar rtObject_
-    if ![info exists rtObject_] {
-	return ""
-    } else {
-	return $rtObject_
-    }
-}
-
-Node instproc add-routes {id ifs} {
-    $self instvar classifier_ multiPath_ routes_ mpathClsfr_
-    if {[llength $ifs] > 1 && ! $multiPath_} {
-	puts stderr "$class::$proc cannot install multiple routes"
-	set ifs [llength $ifs 0]
-	set routes_($id) 0
-    }
-    if { $routes_($id) <= 0 && [llength $ifs] == 1 &&	\
-	    ![info exists mpathClsfr_($id)] } {
-	# either we really have no route, or
-	# only one route that must be replaced.
-	$self add-route $id [$ifs head]
-	incr routes_($id)
-    } else {
-	if ![info exists mpathClsfr_($id)] {
-	    set mclass [new Classifier/MultiPath]
-	    if {$routes_($id) > 0} {
-		array set current [$classifier_ adjacents]
-		foreach i [array names current] {
-		    if {$current($i) == $id} {
-			$mclass installNext $i
-			break
-		    }
-		}
-	    }
-	    $classifier_ install $id $mclass
-	    set mpathClsfr_($id) $mclass
-	}
-	foreach L $ifs {
-	    $mpathClsfr_($id) installNext [$L head]
-	    incr routes_($id)
-	}
-    }
-}
-
-Node instproc delete-routes {id ifs nullagent} {
-    $self instvar mpathClsfr_ routes_
-    if [info exists mpathClsfr_($id)] {
-	array set eqPeers [$mpathClsfr_($id) adjacents]
-	foreach L $ifs {
-	    set link [$L head]
-	    if [info exists eqPeers($link)] {
-		$mpathClsfr_($id) clear $eqPeers($link)
-		unset eqPeers($link)
-		incr routes_($id) -1
-	    }
-	}
-    } else {
-	$self add-route $id $nullagent
-	incr routes_($id) -1
-    }
-}
-
-Classifier instproc install {slot val} {
-    $self instvar elements_
-    set elements_($val) $slot
-    $self cmd install $slot $val
-}
-
-Classifier instproc installNext val {
-    $self instvar elements_
-    set elements_($val) [$self cmd installNext $val]
-    return $elements_($val)
-}
-
-Classifier instproc adjacents {} {
-    $self instvar elements_
-    return [array get elements_]
-}
-
-#
+# This file only contains the methods for dynamic routing
+# Check ../lib/ns-route.tcl for the Simulator routing support
+#
 Class rtObject
 
-rtObject set maxpref_   255
-rtObject set unreach_	 -1
+rtObject set unreach_ -1
 
 rtObject proc init-all args {
     foreach node $args {
@@ -276,7 +70,7 @@ rtObject instproc init node {
 	}
     }
     $self add-proto Direct $node
-    $self compute-proto-routes
+    $rtProtos_(Direct) compute-routes
 #    $self compute-routes
 }
 
@@ -293,14 +87,6 @@ rtObject instproc lookup dest {
 	return -1
     } else {
 	return [[$nextHop_($dest) set toNode_] id]
-    }
-}
-
-rtObject instproc compute-proto-routes {} {
-    # Each protocol computes its best routes
-    $self instvar rtProtos_
-    foreach p [array names rtProtos_] {
-	$rtProtos_($p) compute-routes
     }
 }
 
@@ -415,25 +201,18 @@ rtObject instproc intf-changed {} {
     $self instvar ns_ node_ rtProtos_ rtVia_ nextHop_ rtpref_ metric_
     foreach p [array names rtProtos_] {
 	$rtProtos_($p) intf-changed
+	$rtProtos_($p) compute-routes
     }
-    $self compute-proto-routes
     $self compute-routes
-}
-
-proc TclObjectCompare {a b} {
-    set o1 [string range $a 2 end]
-    set o2 [string range $b 2 end]
-    if {$o1 < $o2} {
-	return -1
-    } elseif {$o1 == $o2} {
-	return 0
-    } else {
-	return 1
-    }
 }
 
 rtObject instproc dump-routes chan {
     $self instvar ns_ node_ nextHop_ rtpref_ metric_ rtVia_
+
+    if ![info proc SplitObjectCompare] {
+	puts stderr "$class::$proc failed.  Update your TclCL library"
+	return
+    }
 
     if {$ns_ != ""} {
 	set time [$ns_ now]
@@ -443,7 +222,7 @@ rtObject instproc dump-routes chan {
     puts $chan [concat "Node:\t${node_}([$node_ id])\tat t ="		\
 	    [format "%4.2f" $time]]
     puts $chan "  Dest\t\t nextHop\tPref\tMetric\tProto"
-    foreach dest [lsort -command TclObjectCompare [$ns_ all-nodes-list]] {
+    foreach dest [lsort -command SplitObjectCompare [$ns_ all-nodes-list]] {
 	if {[llength $nextHop_($dest)] > 1} {
 	    set p [split [$rtVia_($dest) info class] /]
 	    set proto [lindex $p [expr [llength $p] - 1]]
@@ -534,8 +313,6 @@ rtPeer instproc preference? dest {
 #
 #Class Agent/rtProto -superclass Agent
 
-Agent/rtProto set preference_ 200		;# global default preference
-
 Agent/rtProto proc init-all args {
     error "No initialisation defined"
 }
@@ -607,9 +384,6 @@ Agent/rtProto/Session proc compute-all {} {
 # in the release yet, and hence should not be a problem to anyone.
 #
 Class Agent/rtProto/Direct -superclass Agent/rtProto
-
-Agent/rtProto/Direct set preference_ 100
-
 Agent/rtProto/Direct instproc init node {
     $self next $node
     $self instvar ns_ rtpref_ nextHop_ metric_ ifs_
@@ -646,11 +420,7 @@ Agent/rtProto/Direct instproc compute-routes {} {
 # Distance Vector Route Computation
 #
 # Class Agent/rtProto/DV -superclass Agent/rtProto
-
-Agent/rtProto/DV set preference_	120
-Agent/rtProto/DV set INFINITY		 32
 Agent/rtProto/DV set UNREACHABLE	[rtObject set unreach_]
-Agent/rtProto/DV set advertInterval	  2
 Agent/rtProto/DV set mid_		  0
 
 Agent/rtProto/DV proc init-all args {

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.60 1997/09/08 22:03:27 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.61 1997/09/10 06:50:35 kannan Exp $
 
 
 #
@@ -193,6 +193,7 @@ Agent/Message set packetSize_ 180
 
 DelayLink set bandwidth_ 1.5Mb
 DelayLink set delay_ 100ms
+DynamicLink set status_ 1
 
 Classifier set offset_ 0
 Classifier set shift_ 0
@@ -261,3 +262,28 @@ ErrorModel set rate_ 0.0
 Source/Telnet set interval_ 1.0
 
 networkinterface set intf_label_ -1
+
+#
+# The following are defautls for objects that are not necessarily TclObjects
+#
+Simulator set NumberInterfaces_ 0		;# to get intfs for mcast
+Node set multiPath_ 0
+
+# Dynamic routing defaults
+rtObject set maxpref_   255
+Agent/rtProto set preference_ 200		;# global default preference
+Agent/rtProto/Direct set preference_ 100
+Agent/rtProto/DV set preference_	120
+Agent/rtProto/DV set INFINITY		 32
+Agent/rtProto/DV set advertInterval	  2
+
+rtModel set startTime_ 0.5
+rtModel set finishTime_ "-"
+rtModel/Exponential set upInterval_   10.0
+rtModel/Exponential set downInterval_  1.0
+rtModel/Deterministic set upInterval_   2.0
+rtModel/Deterministic set downInterval_ 1.0
+
+#
+# SRM Agent defaults are in ../tcl/mcast/srm.tcl and ../mcast/srm-adaptive.tcl
+#

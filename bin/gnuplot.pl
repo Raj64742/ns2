@@ -1,11 +1,11 @@
+$file = '';
 sub plotPreamble {
     my($OUT, $title, $xlabel, $xrange, $ylabel, $yrange) = @_;
-#    if (defined($ENV{'DISPLAY'})) {
-# 	writeln('set terminal x11');
-#    } else {
-# 	writeln('set terminal postscript');
-# 	writeln('set output "', $file, '.ps"');
+#    if (! defined($ENV{'DISPLAY'})) {
+#	print $OUT 'set terminal dumb', "\n";
+#	print $OUT 'set output "/dev/null"', "\n";
 #    }
+    $file = $title;
     print $OUT "set title  '$title'   \n";
     print $OUT "set xlabel '$xlabel'  \n";
     print $OUT "set ylabel '$ylabel'  \n";
@@ -81,6 +81,10 @@ sub plotRecov {
 
 sub plotPostamble {
     my($OUT) = shift @_;
+#    print $OUT "set terminal postscript\n";
+#    print $OUT "set output '${file}.ps'\n";
+#    print $OUT "replot\n";
+#    print $OUT "set output\n";
     print $OUT "exit\n";
     close(OUT);
 }

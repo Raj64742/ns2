@@ -32,7 +32,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/ktest-all,v 1.4 1997/06/20 16:51:52 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/ktest-all,v 1.5 1997/09/10 06:50:32 kannan Exp $
 #
 # This script was written and contributed by Matt Mathis (mathis@psc.edu)
 # This script was later hacked extensively by Kannan to build the rtglib
@@ -118,7 +118,7 @@ compare() {
 	    if [ ! -d ps-files ] ; then
 		mkdir ps-files
 	    fi
-	    if raw2gp -a out.tr | gnuplot ; then
+	    if raw2gp -g -a -s 0.01 -m 90 out.tr | gnuplot ; then
 		egrep BoundingBox $file.ps > ps-files/$file.bb
 		gzip $file.ps 
 		mv $file.ps.gz ps-files

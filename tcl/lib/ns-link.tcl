@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.18 1997/08/12 23:21:56 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.19 1997/09/10 06:50:37 kannan Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -59,6 +59,69 @@ Link instproc queue {} {
 Link instproc link {} {
 	$self instvar link_
 	return $link_
+}
+
+Link instproc cost c {
+	$self instvar cost_
+	set cost_ $c
+}
+
+Link instproc cost? {} {
+	$self instvar cost_
+	if ![info exists cost_] {
+		set cost_ 1
+	}
+	set cost_
+}
+
+Link instproc up { } {
+	$self instvar dynamics_ dynT_
+	if ![info exists dynamics_] return
+	$dynamics_ set status_ 1
+	if [info exists dynT_] {
+		foreach tr $dynT_ {
+			$tr format link-up {$src_} {$dst_}
+		}
+	}
+}
+
+Link instproc down { } {
+	$self instvar dynamics_ dynT_
+	if ![info exists dynamics_] {
+		puts stderr "$class::$proc Link $self was not declared dynamic, and cannot be taken down.  ignored"
+		return
+	}
+	$dynamics_ set status_ 0
+	$self all-connectors reset
+	if [info exists dynT_] {
+		foreach tr $dynT_ {
+			$tr format link-down {$src_} {$dst_}
+		}
+	}
+}
+
+Link instproc up? {} {
+	$self instvar dynamics_
+	if [info exists dynamics_] {
+		return [$dynamics_ status?]
+	} else {
+		return "up"
+	}
+}
+
+Link instproc all-connectors op {
+	foreach c [$self info vars] {
+		$self instvar $c
+		if ![info exists $c] continue
+		foreach var [$self set $c] {
+			if [catch "$var info class"] {
+				continue
+			}
+			if ![$var info class Node] { ;# $op on most everything
+				catch "$var $op";# in case var isn't a connector
+			}
+		}
+	}
 }
 
 Class SimpleLink -superclass Link
@@ -132,6 +195,11 @@ SimpleLink instproc trace { ns f } {
 	if [info exists dynamics_] {
 		$self trace-dynamics $ns $f
 	}
+}
+
+SimpleLink instproc trace-dynamics { ns f } {
+    $self instvar dynT_ fromNode_ toNode_
+    lappend dynT_ [$ns create-trace Generic $f $fromNode_ $toNode_]
 }
 
 #
@@ -249,4 +317,21 @@ SimpleLink instproc sample-queue-size { } {
 	set lastSample_ $now
 
 	return "$meanBytesQ $meanPktsQ"
-}	
+}
+
+SimpleLink instproc dynamic {} {
+	$self instvar dynamics_ queue_ head_ enqT_ drpT_
+
+	if [info exists dynamics_] return
+	
+	set dynamics_ [new DynamicLink]
+	$dynamics_ target $head_
+	set head_ $dynamics_
+	
+	if [info exists drpT_] {			;# XXX
+		$dynamics_ down-target $drpT_
+	} else {
+		$dynamics_ down-target [[Simulator instance] set nullAgent_]
+	}
+	$self all-connectors dynamic
+}

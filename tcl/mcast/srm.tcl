@@ -143,6 +143,10 @@ Agent/SRM instproc repairFunction f {
 	set repairFunction_ $f
 }
 
+Agent/SRM instproc groupSize? {} {
+	$self set groupSize_
+}
+
 global alpha
 if ![info exists alpha] {
 	set alpha	0.25

@@ -35,7 +35,6 @@ if {[llength $argv] > 0} {
 source ../mcast/srm-nam.tcl		;# to separate control messages.
 #source ../mcast/srm-debug.tcl		;# to trace delay compute fcn. details.
 ns-random 1
-puts "[uniform 0 1]"
 Simulator set NumberInterfaces_ 1
 set ns [new MultiSim]
 $ns trace-all [open out.tr w]
@@ -107,20 +106,20 @@ proc finish src {
 	$ns flush-trace		;# NB>  Did not really close out.tr...:-)
 	close $srmStats
 	close $srmEvents
-    foreach index [array name srm] {
-	puts ""
-	puts " $index [$srm($index) array get stats_]"
-    }
-
-#	puts "converting output to nam format..."
-#	exec awk -f ../nam-demo/nstonam.awk out.tr > $prog-nam.tr 
-
-#	if [info exists env(DISPLAY)] {
-#		puts "running nam..."
-#		exec nam $prog-nam &
-#	} else {
-#		exec cat srmStats.tr >@stdout
+#	foreach index [array name srm] {
+#		puts ""
+#		puts " $index [$srm($index) array get stats_]"
 #	}
+
+	puts "converting output to nam format..."
+	exec awk -f ../nam-demo/nstonam.awk out.tr > $prog-nam.tr 
+
+	if [info exists env(DISPLAY)] {
+		puts "running nam..."
+		exec nam $prog-nam &
+	} else {
+		exec cat srmStats.tr >@stdout
+	}
 	exit 0
 }
 

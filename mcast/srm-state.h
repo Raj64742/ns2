@@ -92,8 +92,8 @@ protected:
 public:
 	SRMinfo(int sender) : next_(0), sender_(sender),
 		lsess_(-1), sendTime_(0), recvTime_(0), distance_(1.0),
-		ldata_(-1), received_(0), recvmax_(-1) ,
-                  activeFlag_(ACTIVE), distanceFlag_(NO_DISTANCE) { 
+		activeFlag_(ACTIVE), distanceFlag_(NO_DISTANCE),
+		ldata_(-1), received_(0), recvmax_(-1) { 
                     lglbsess_ = -1;
                     llocsess_ = -1;
                     lrepsess_ = -1;

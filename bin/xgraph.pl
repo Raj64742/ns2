@@ -38,7 +38,7 @@ sub plotFails {
     my($OUT, $minY, $maxY, $tag, @vals) = @_;
     if ($#vals >= $[) {
 	foreach $i (@vals) {
-	    push(@{$linkFails{$tag}}, "$i $minY\n", "$i $maxY\n");
+	    push(@{$linkFails{$tag}}, "move $i $minY\n", "draw $i $maxY\n");
 	}
     }
 }
@@ -47,13 +47,14 @@ sub plotRecov {
     my($OUT, $minY, $maxY, $tag, @vals) = @_;
     if ($#vals >= $[) {
 	foreach $i (@vals) {
-	    push(@{$linkRecov{$tag}}, "$i $minY\n", "$i $maxY\n");
+	    push(@{$linkRecov{$tag}}, "move $i $minY\n", "draw $i $maxY\n");
 	}
     }
 }
 
 sub plotPostamble {
     my($OUT) = shift @_;
+    print $OUT "Nolines: true\n";
     foreach $i (keys %linkFails) {
 	plot($OUT, 0, 'link ' . $i . ' fail', '', @{$linkFails{$i}});
     }

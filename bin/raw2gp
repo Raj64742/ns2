@@ -61,6 +61,7 @@ sub translate_point {
     return ($time, $flow + ($seq % $modulus) * $scale);
 }
 
+($minY, $maxY) = (9999999, -9999999);
 while (<>) {
     $dfile = $ARGV;
     next if /rtProto/;
@@ -93,16 +94,19 @@ while (<>) {
 	        push(@p, $statement);
 	    };
 	};
+	$minY = $y if ($minY > $y);
+	$maxY = $y if ($maxY < $y);
 	next;
     };
     /^d / && do {
 	($x, $y) = translate_point(@F[1, 10, 7]);
 	push(@d, "$x $y\n");
+	$minY = $y if ($minY > $y);
+	$maxY = $y if ($maxY < $y);
 	next;
     };
     /^v / && (parseDynamics(@F), next);
 }	
-$maxY++;
 
 if ($file eq '') {
 	($file) = ($dfile =~ m!([^/]+)$!);
@@ -119,6 +123,6 @@ if ($opt_g) {
 }
 
 plot(STDOUT, 0, 'drops',   'w points 1 4', @d);
-plotDynamics(STDOUT, 0, $maxY);
+plotDynamics(STDOUT, $minY, $maxY);
 plotPostamble(STDOUT);
 exit;
