@@ -34,7 +34,7 @@
 
 #ifndef lint
 static char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.51 1998/08/14 20:09:34 tomh Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.52 1998/08/19 04:11:23 haoboy Exp $ (LBL)";
 
 #endif
 
@@ -163,7 +163,7 @@ void Trace::annotate(const char* s)
 	sprintf(wrk_, "v %g eval {set sim_annotation {%s}}", 
 		Scheduler::instance().clock(), s);
 	dump();
-	sprintf(nwrk_, "v -t %.17g sim_annotation %.17g %s", 
+	sprintf(nwrk_, "v -t %.17g sim_annotation %g %s", 
 		Scheduler::instance().clock(), 
 		Scheduler::instance().clock(), s);
 	namdump();
@@ -384,7 +384,7 @@ void Trace::trace(TracedVar* var)
 		return;
 
 	// format: use Mark's nam feature code without the '-' prefix
-	sprintf(wrk_, "%c t%.17g a%s n%s v%s",
+	sprintf(wrk_, "%c t%g a%s n%s v%s",
 		type_,
 		s.clock(),
 		var->owner()->name(),
