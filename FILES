@@ -220,6 +220,8 @@ srm-topo.cc
 srm-topo.h
 srm.cc
 srm.h
+tbf.cc
+tbf.h
 tcl/ctr-mcast/CtrMcast.tcl
 tcl/ctr-mcast/CtrMcastComp.tcl
 tcl/ctr-mcast/CtrRPComp.tcl
@@ -324,7 +326,8 @@ tcl/ex/tcp-fs/web.tcl
 tcl/ex/tcp-int.tcl
 tcl/ex/test-drr.tcl
 tcl/ex/test-emulator.tcl
-tcl/ex/test-suite.tcl
+tcl/ex/test-tbf.tcltcl/ex/test-suite.tcl
+
 tcl/ex/tg.tcl
 tcl/ex/tg.txt
 tcl/ex/timer.tcl
