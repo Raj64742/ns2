@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.13 1998/08/05 01:19:54 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.cc,v 1.14 1998/08/13 00:03:02 gnguyen Exp $ (LBL)";
 #endif
 
 #include "packet.h"
@@ -108,7 +108,7 @@ class CommonHeaderClass : public PacketHeaderClass {
 public:
 	CommonHeaderClass() : PacketHeaderClass("PacketHeader/Common",
 						sizeof(hdr_cmn)) {
-		offset(&hdr_cmn::offset_);
+		bind_offset(&hdr_cmn::offset_);
 	}
 	void export_offsets() {
 		field_offset("ptype_", OFFSET(hdr_cmn, ptype_));
@@ -122,7 +122,7 @@ class FlagsHeaderClass : public PacketHeaderClass {
 public:
 	FlagsHeaderClass() : PacketHeaderClass("PacketHeader/Flags",
 						sizeof(hdr_flags)) {
-		offset(&hdr_flags::offset_);
+		bind_offset(&hdr_flags::offset_);
 	}
 } class_flagshdr;
 
