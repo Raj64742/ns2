@@ -16,7 +16,7 @@
 # These notices must be retained in any copies of any part of this
 # software. 
 #
-#@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/test-rcvr.tcl,v 1.1 1998/04/25 00:57:49 bajaj Exp $
+#@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/test-rcvr.tcl,v 1.2 1998/10/21 21:44:36 tomh Exp $
 
 #This script demonstrates support for two different delay-adaptive receiver types,
 #namely the vat-receiver adaptation algorithm and a conservative adapatation 
@@ -76,34 +76,34 @@ Simulator instproc create-receiver {node rcvrType} {
 
 Simulator instproc create-sender {node rate rcvr fid sndType } {
 	global runtime btime itime
-	set s [new Agent/CBR/UDP]
+	set s [new Agent/UDP]
 	$self attach-agent $node $s
 	#Create exp on/off source
 	if { $sndType == "expo" } {
-		set tr [new Traffic/Expoo]
-		$tr set packet-size 200
-		$tr set burst-time $btime
-		$tr set idle-time $itime
-		$tr set rate $rate
+		set tr [new Application/Traffic/Exponential]
+		$tr set packet_size_ 200
+		$tr set burst_time_ $btime
+		$tr set idle_time_ $itime
+		$tr set rate_ $rate
 	} else {    
 		#create victrace source
 		set tfile [new Tracefile]
 		$tfile filename "vic.32.200"
-		set tr [new Traffic/Trace]
+		set tr [new Application/Traffic/Trace]
 		$tr attach-tracefile $tfile
 
 	}
 	
-	$s attach-traffic $tr
+	$tr attach-agent $s
 	$s set fid_ $fid
 	
 	$self connect $s $rcvr
-	$self at [expr double([ns-random] % 10000000) / 1e7]  "$s start"
-	$self at $runtime "$s stop"
+	$self at [expr double([ns-random] % 10000000) / 1e7]  "$tr start"
+	$self at $runtime "$tr stop"
 }
 
 proc finish {} {
-	global rcvrType
+	global env rcvrType
 	set f [open temp.rands w]
 	puts $f "TitleText: $rcvrType"
 	puts $f "Device: Postscript"
@@ -131,7 +131,7 @@ proc finish {} {
 	close $f
 	
 	exec rm -f temp.p1 temp.p2
-	exec xgraph -bb -tk -nl -m -x simtime -y delay temp.rands &
+	exec xgraph -display $env(DISPLAY) -bb -tk -nl -m -x simtime -y delay temp.rands &
 
 	exec rm -f out.tr
 	exit 0
