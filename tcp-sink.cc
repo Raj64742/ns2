@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.20 1997/12/25 21:36:23 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.21 1998/05/02 01:40:53 kfall Exp $ (LBL)";
 #endif
 
 #include "tcp-sink.h"
@@ -133,7 +133,7 @@ void TcpSink::ack(Packet* opkt)
 
 	hdr_flags* of = (hdr_flags*)opkt->access(off_flags_);
 	hdr_flags* nf = (hdr_flags*)npkt->access(off_flags_);
-	nf->ecn_ = of->ecn_to_echo_;
+	nf->ecnecho() = of->ce();
 
 	acker_->append_ack((hdr_cmn*)npkt->access(off_cmn_),
 			   ntcp, otcp->seqno());
