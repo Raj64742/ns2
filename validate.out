@@ -351,4 +351,29 @@ class: 1 per-link total_packets 103
 class: 1 per-link total_bytes 103000
 Test output agrees with reference output
 All test output agrees with reference output.
+*** ./test-all-mcast
+Tests: DM1 DM2 CtrMcast1 CtrMcast2 detailedDM1 detailedDM2 detailedDM3 detailedDM4 detailedDM5 detailedDM6 detailedDM7
+Running test DM1
+Test output agrees with reference output
+Running test DM2
+Test output agrees with reference output
+Running test CtrMcast1
+Test output agrees with reference output
+Running test CtrMcast2
+Test output agrees with reference output
+Running test detailedDM1
+Test output agrees with reference output
+Running test detailedDM2
+Test output agrees with reference output
+Running test detailedDM3
+Test output agrees with reference output
+Running test detailedDM4
+Test output agrees with reference output
+Running test detailedDM5
+Test output agrees with reference output
+Running test detailedDM6
+Test output agrees with reference output
+Running test detailedDM7
+Test output agrees with reference output
+All test output agrees with reference output
 validate overall report: all tests passed
