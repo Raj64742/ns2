@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.57 1997/10/30 21:29:48 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.58 1997/10/31 02:42:08 kfall Exp $
 #
 
 #
@@ -582,18 +582,17 @@ Simulator instproc getlink { id1 id2 } {
         return -1
 }
 
-Simulator instproc makeflowmon {} {
+Simulator instproc makeflowmon { cltype { clslots 29 } } {
 
 	set flowmon [new QueueMonitor/ED/Flowmon]
-        set cl [new Classifier/Hash/SrcDestFid 33]
+        set cl [new Classifier/Hash/$cltype $clslots]
 
-        set pbody {
+        $cl proc unknown-flow { src dst fid hashbucket }  {
                 set fdesc [new QueueMonitor/ED/Flow]
-                set slot [$self installNext $fdesc]
+                set slot [$self installNext $fdesc] 
                 $self set-hash $hashbucket $src $dst $fid $slot
-        }
+	}
 
-        $cl proc unknown-flow { src dst fid hashbucket } $pbody
 	$cl proc no-slot slotnum {
 		#
 		# note: we can wind up here when a packet passes
