@@ -1,6 +1,6 @@
 #! /bin/sh
 #
-# Copyright (C) 1998 by USC/ISI
+# Copyright (C) 2000 by USC/ISI
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms are permitted
@@ -55,8 +55,14 @@ cd ./tcl8.0.4/unix
 blame='Tcl is not part of the ns project.  Please see www.Scriptics.com
 to see if they have a fix for your platform.'
 ./configure --prefix="$CUR_PATH/tclbox" || die "tcl8.0.4 configuration failed! Exiting ..."
-make || die "tcl8.0.4 make failed! Exiting ..."
-make install || die "tcl8.0.4 installation failed! Exiting ..."
+if make 
+then 
+	make install || die "tcl8.0.4 installation failed! Exiting ..."
+else
+	echo "tcl8.0.4 make failed! Exiting ..."
+	echo "For problems with Tcl/Tk see http://www.scriptics.com"
+	exit
+fi
 
 cd ../../
 
@@ -67,8 +73,15 @@ cd ./tk8.0.4/unix
 blame='Tk is not part of the ns project.  Please see www.Scriptics.com
 to see if they have a fix for your platform.'
 ./configure --prefix="$CUR_PATH/tkbox" || die "tk8.0.4 configuration failed! Exiting ..."
-make || die "tk8.0.4 make failed! Exiting ..."
-make install || die "tk8.0.4 installation failed! Exiting ..."
+if make 
+then
+	make install || die "tk8.0.4 installation failed! Exiting ..."
+else
+	echo "tk8.0.4 make failed! Exiting ..."
+	echo "For problems with Tcl/Tk see http://www.scriptics.com"
+	exit
+fi
+
 
 cd ../../
 
@@ -79,43 +92,51 @@ cp ./tk8.0.4/generic/*.h ./tkbox/include/ || die "cp failed"
 
 # compile and install otcl
 
-cd ./otcl-1.0a4
+cd ./otcl-1.0a5
 
 blame='Please check http://www-mash.cs.berkeley.edu/ns/ns-problems.html
 for common problems and bug fixes.'
 ./configure --with-tcl=../tclbox --with-tk=../tkbox || die "otcl-1.0a4 configuration failed! Exiting ..."
 
-make || die "otcl-1.0a4 make failed! Exiting ..."
+if make 
+then
+	echo "otcl-1.0a5 has been installed successfully."
+else
+	echo "otcl-1.0a5 make failed! Exiting ..."
+	echo "See http://www-mash.CS.Berkeley.EDU/ns/ns-problems.html for problems"
+	exit
+fi
 
-echo "otcl-1.0a4 has been installed successfully."
 
 cd ../
 
-# compile and install tclcl-1.0b8
+# compile and install tclcl-1.0b9
 
-cd ./tclcl-1.0b8
+cd ./tclcl-1.0b9
 
-./configure --with-otcl=../otcl-1.0a4 --with-tcl=../tclbox --with-tk=../tkbox  --with-tcl-ver=8.0.4 --with-tk-ver=8.0.4 || die "tclcl-1.0b8 configuration failed! Exiting ..."
+./configure --with-otcl=../otcl-1.0a5 --with-tcl=../tclbox --with-tk=../tkbox  --with-tcl-ver=8.0.4 --with-tk-ver=8.0.4 || die "tclcl-1.0b9 configuration failed! Exiting ..."
 
-make || die "tclcl-1.0b8 make failed! Exiting ..."
+if make
+then
+	echo "tclcl-1.0b9 has been installed successfully."
+else
+	echo "tclcl-1.0b9 make failed! Exiting ..."
+	echo "See http://www-mash.CS.Berkeley.EDU/ns/ns-problems.html for problems"
+	exit
+fi	
 
-echo "tclcl-1.0b8 has been installed successfully."
 
 cd ../
 
 #compile and install xgraph
 
-cd ./xgraph
-if xmkmf
+cd ./xgraph-12.1
+./configure --prefix=../
+if make
 then
-    if make
-    then
 	echo "xgraph has been installed successfully. "
-    else 
+else 
 	echo "Can not create xgraph; But xgraph is an optional package, continuing..."
-    fi
-else
-    echo " Can not create Makefile for xgraph; but xgraph is an optional package, continuing..."
 fi
 
 cd ../
@@ -211,14 +232,20 @@ export PATH
 #echo $PATH
 
 # John's hack
-rm ./otcl-1.0a4/libotcl.so
+test -f ./otcl-1.0a5/libotcl.a && rm ./otcl-1.0a5/libotcl.so
 
-cd ./ns-2.1b5
-./configure --with-otcl=../otcl-1.0a4 --with-tclcl=../tclcl-1.0b8 --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Ns configuration failed! Exiting ..."
+cd ./ns-2.1b6
+./configure --with-otcl=../otcl-1.0a5 --with-tclcl=../tclcl-1.0b9 --with-tcl=../tclbox --with-tk=../tkbox --disable-static || die "Ns configuration failed! Exiting ..."
 
-make || die "Ns make failed! Exiting ..."
+if make
+then
+	echo " Ns has been installed successfully." 
+else
+	echo "Ns make failed!"
+	echo "See http://www-mash.CS.Berkeley.EDU/ns/ns-problems.html for problems"
+	exit
+fi
 
-echo " Ns has been installed successfully." 
 
 cd ../
 
@@ -242,15 +269,16 @@ cd ../
 
 #compile and install nam
 
-cd ./nam-1.0a7
+cd ./nam-1.0a8
 
-./configure --with-otcl=../otcl-1.0a4 --with-tclcl=../tclcl-1.0b8 --with-tcl=../tclbox --with-tk=../tkbox --with-tcldebug=no --disable-static || die "Nam configuration failed! Exiting ..."
+./configure --with-otcl=../otcl-1.0a5 --with-tclcl=../tclcl-1.0b9 --with-tcl=../tclbox --with-tk=../tkbox --with-tcldebug=no --disable-static || die "Nam configuration failed! Exiting ..."
 
 if make
 then 
     echo "Nam has been installed successfully."
 else
     echo "Nam make failed! Continue ..."
+    echo "See http://www-mash.CS.Berkeley.EDU/ns/ns-problems.html for problems"
 fi
 
 cd ../
@@ -264,18 +292,18 @@ fi
 
 cd bin
 
-ln -s $CUR_PATH/ns-2.1b5/ns ns
+ln -s $CUR_PATH/ns-2.1b6/ns ns
 
-if test -x $CUR_PATH/nam-1.0a7/nam
+if test -x $CUR_PATH/nam-1.0a8/nam
 then
-    ln -s $CUR_PATH/nam-1.0a7/nam nam
+    ln -s $CUR_PATH/nam-1.0a8/nam nam
 else
     echo "Please compile your nam separately."
 fi
 
-if test -x $CUR_PATH/xgraph/xgraph
+if test -x $CUR_PATH/xgraph-12.1/xgraph
 then
-    ln -s $CUR_PATH/xgraph/xgraph xgraph
+    ln -s $CUR_PATH/xgraph-12.1/xgraph xgraph
 else
     echo "Please compile your xgraph separately."
 fi
@@ -294,20 +322,20 @@ fi
 
 echo "Ns-allinone package has been installed successfully."
 echo "Here are the installation places:"
-echo "ns:	$CUR_PATH/ns-2.1b5/ns"
-echo "otcl:	$CUR_PATH/otcl-1.0a4"
-echo "tclcl:	$CUR_PATH/tclcl-1.0b8"
+echo "ns:	$CUR_PATH/ns-2.1b6/ns"
+echo "otcl:	$CUR_PATH/otcl-1.0a5"
+echo "tclcl:	$CUR_PATH/tclcl-1.0b9"
 echo "tcl8.0.4:	$CUR_PATH/tclbox"
 echo "tk8.0.4:	$CUR_PATH/tkbox"
 
-if [ -x $CUR_PATH/nam-1.0a7/nam ]
+if [ -x $CUR_PATH/nam-1.0a8/nam ]
 then
-echo "nam:	$CUR_PATH/nam-1.0a7/nam"
+echo "nam:	$CUR_PATH/nam-1.0a8/nam"
 fi
 
-if [ -x $CUR_PATH/xgraph/xgraph ]
+if [ -x $CUR_PATH/xgraph-12.1/xgraph ]
 then
-echo "xgraph:	$CUR_PATH/xgraph"
+echo "xgraph:	$CUR_PATH/xgraph-12.1"
 fi
 if [ -x $CUR_PATH/gt-itm/bin/sgb2ns ] 
 then
@@ -320,10 +348,10 @@ echo "you want save your disk space"
 
 echo "-----------------------------------------------------"
 echo "Please put $CUR_PATH/bin into your PATH environment."
-echo "Please put $CUR_PATH/otcl-1.0a4 into your LD_LIBRARY_PATH environment!"
+echo "On some systems you many need to put $CUR_PATH/otcl-1.0a5 into your LD_LIBRARY_PATH environment!"
 echo ""
 echo "You can run the ns validation suite with"
-echo "cd ns-2.1b5; ./validate"
+echo "cd ns-2.1b6; ./validate"
 
 exit 0
 
