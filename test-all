@@ -32,18 +32,26 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.9 1997/09/08 21:34:06 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/test-all,v 1.10 1997/10/13 22:24:46 mccanne Exp $
 #
-# This script was written and contributed by Matt Mathis (mathis@psc.edu)
+# The initial version of this script was written and contributed 
+# by Matt Mathis (mathis@psc.edu).
 #
+# To run in quiet mode:  "./test-all QUIET".
 
-if [ $# -ge 1 ]
+quiet="false"
+tests=`awk '/^Class Test\//{ print substr($2,index($2, "/")+1) }' \
+  test-suite.tcl`
+if [ $# -ge 1 ] 
 then
-	tests="$*"
-else
-	tests=`awk '/^Class Test\//{ print substr($2,index($2, "/")+1) }' \
-		test-suite.tcl`
+        flag="$*"
+	if (test "$flag" = "QUIET" -o "$flag" = "quiet") then
+	    quiet="true"
+	else
+	    tests="$*"
+	fi
 fi
+
 
 # Note that the telnet test includes random source behavior - its output
 # is not currently repeatable from run to run
@@ -54,12 +62,18 @@ fi
 
 echo $tests
 for t in $tests; do
-    echo
+    if (test "$quiet" = "false") then
+    	echo
+    fi
     echo Running test $t
 
     # Beware that xgraph is run on temp.rands asynchronously, if it
     # is slow to launch, you may get an incorrect graph
-    ./ns test-suite.tcl $t
+    if (test "$quiet" = "true") then
+    	./ns test-suite.tcl $t QUIET
+    else 
+	./ns test-suite.tcl $t
+    fi
     if [ -f temp.rands ]; then
 	if [ ! -f test-output/$t ]; then
 	    echo saving output for future validation
@@ -77,6 +91,8 @@ for t in $tests; do
 	    fi
 	fi
     fi
-    echo 'next?'
-    read answer
+    if (test "$quiet" = "false") then
+        echo 'next?'
+        read answer
+    fi
 done

@@ -29,6 +29,7 @@
 # 3    4     5
 #
 set ns [new SessionSim]
+#SessionSim set EnableTTL_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
@@ -45,6 +46,7 @@ $ns duplex-link $n2 $n4 1.5Mb 10ms DropTail
 $ns duplex-link $n2 $n5 1.5Mb 10ms DropTail
 
 set cbr0 [new Agent/CBR]
+#$cbr0 set ttl_ 2
 $ns attach-agent $n0 $cbr0
 $cbr0 set dst_ 0x8002
 set sessionhelper [$ns create-session $n0 $cbr0]
@@ -93,7 +95,8 @@ $ns at 0.1 "$cbr0 start"
 $ns at 1.6 "finish"
 
 proc finish {} {
-        global rcvr3 rcvr4 rcvr5  n0 
+        global rcvr3 rcvr4 rcvr5  n0 rcvr2
+        puts "lost [$rcvr2 set nlost_] pkt, rcv [$rcvr2 set npkts_]"
         puts "lost [$rcvr3 set nlost_] pkt, rcv [$rcvr3 set npkts_]"
         puts "lost [$rcvr4 set nlost_] pkt, rcv [$rcvr4 set npkts_]"
         puts "lost [$rcvr5 set nlost_] pkt, rcv [$rcvr5 set npkts_]"

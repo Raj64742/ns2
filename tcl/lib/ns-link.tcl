@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.26 1997/10/02 02:31:07 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.27 1997/10/13 22:25:04 mccanne Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -95,7 +95,7 @@ Link instproc up { } {
 			$tr format link-up {$src_} {$dst_}
 			set ns [Simulator instance]
 			$self instvar fromNode_ toNode_
-			$tr ntrace "l -t[$ns now] -s[$fromNode_ id] -d[$toNode_ id] -SUP"
+			$tr ntrace "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S UP"
 		}
 	}
 }
@@ -113,7 +113,7 @@ Link instproc down { } {
 			$tr format link-down {$src_} {$dst_}
 			set ns [Simulator instance]
 			$self instvar fromNode_ toNode_
-			$tr ntrace "l -t[$ns now] -s[$fromNode_ id] -d[$toNode_ id] -SDOWN"
+			$tr ntrace "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S DOWN"
 		}
 	}
 }
@@ -148,7 +148,7 @@ Link instproc change-color { color } {
 	set ns [Simulator instance]
 	$ns instvar namtraceAllFile_
 	if [info exists namtraceAllFile_] {
-		puts $namtraceAllFile_ [eval list "l -t[$ns now] -s[$source_ id] -d[$dest_ id] -c$color -o$color_"]
+		puts $namtraceAllFile_ [eval list "l -t [$ns now] -s [$source_ id] -d [$dest_ id] -c $color -o $color_"]
 		set color_ $color
 	}
 }

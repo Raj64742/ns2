@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.4 1997/08/05 01:12:14 polly Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.5 1997/10/13 22:24:57 mccanne Exp $
 #
 
 #
@@ -44,13 +44,15 @@
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
 
+set f [open out.tr w]
+$ns trace-all $f
+$ns namtrace-all [open out.nam w]
+
 set n0 [$ns node]
 set n1 [$ns node]
 set n2 [$ns node]
 set n3 [$ns node]
 
-set f [open out.tr w]
-$ns trace-all $f
 #$ns trace-all stdout
 Simulator set NumberInterfaces_ 1
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail

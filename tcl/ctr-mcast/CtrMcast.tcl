@@ -54,6 +54,11 @@ CtrMcast instproc init { sim node agent confArgs } {
 	$self trace $ns $tracefile $node
     }
 
+    set tracefile [$ns getnamtraceAllFile]
+    if { $tracefile != 0 } {
+	$self trace $ns $tracefile $node "nam"
+    }
+
     ### config PIM nodes
     if ![info exists confArgs] { return 0 }
     if { ! [set len [llength $confArgs]] } { return 0 }

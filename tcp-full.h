@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.4 1997/08/14 00:00:09 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.h,v 1.5 1997/10/13 22:24:41 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -80,82 +80,85 @@ class FullTcpAgent;
 
 class DelAckTimer : public TimerHandler {
 public:
-    DelAckTimer(FullTcpAgent *a) : TimerHandler() { a_ = a; }
+	DelAckTimer(FullTcpAgent *a) : TimerHandler(), a_(a) { }
 protected:
-    virtual void expire(Event *e);
-    FullTcpAgent *a_;
+	virtual void expire(Event *);
+	FullTcpAgent *a_;
 };
 
 class ReassemblyQueue : public TcpAgent {
-    struct seginfo {
-        seginfo* next_;
-        seginfo* prev_;
-        int startseq_;
-        int endseq_;
-};
+	struct seginfo {
+		seginfo* next_;
+		seginfo* prev_;
+		int startseq_;
+		int endseq_;
+	};
 
 public:
-    ReassemblyQueue(int& nxt) : head_(NULL), tail_(NULL),
-        rcv_nxt_(nxt) { }
-    int empty() { return (head_ == NULL); }
-    void add(Packet*);
-    void clear();
+	ReassemblyQueue(int& nxt) : head_(NULL), tail_(NULL),
+		rcv_nxt_(nxt) { }
+	int empty() { return (head_ == NULL); }
+	void add(Packet*);
+	void clear();
 protected:
-    seginfo* head_;
-    seginfo* tail_;
-    int& rcv_nxt_;
+	seginfo* head_;
+	seginfo* tail_;
+	int& rcv_nxt_;
 };
 
 class FullTcpAgent : public TcpAgent {
  public:
-    FullTcpAgent();
-    ~FullTcpAgent();
-    virtual void recv(Packet *pkt, Handler*);
+	FullTcpAgent();
+	~FullTcpAgent();
+	virtual void recv(Packet *pkt, Handler*);
 	virtual void timeout(int tno); 	// tcp_timers() in real code
-    void advance(int);
-    int command(int argc, const char*const* argv);
+	void advance(int);
+	int command(int argc, const char*const* argv);
 
  protected:
-    int segs_per_ack_;  // for window updates
-    int nodelay_;       // disable sender-side Nagle?
-    int data_on_syn_;   // send data on initial SYN?
-    int tcprexmtthresh_;    // fast retransmit threshold
-    int iss_;       // initial send seq number
-    int dupseg_fix_;    // fix bug with dup segs and dup acks?
-    int dupack_reset_;  // zero dupacks on dataful dup acks?
-    double delack_interval_;
+	int segs_per_ack_;  // for window updates
+	int nodelay_;       // disable sender-side Nagle?
+	int data_on_syn_;   // send data on initial SYN?
+	int tcprexmtthresh_;    // fast retransmit threshold
+	int iss_;       // initial send seq number
+	int dupseg_fix_;    // fix bug with dup segs and dup acks?
+	int dupack_reset_;  // zero dupacks on dataful dup acks?
+	double delack_interval_;
 
-    int headersize();   // a tcp header
-    int outflags();     // state-specific tcp header flags
-    int predict_ok(Packet*); // predicate for recv-side header prediction
-    void fast_retransmit(int);  // do a fast-retransmit on specified seg
+	int headersize();   // a tcp header
+	int outflags();     // state-specific tcp header flags
+	int predict_ok(Packet*); // predicate for recv-side header prediction
+	void fast_retransmit(int);  // do a fast-retransmit on specified seg
+	inline double now() { return Scheduler::instance().clock(); }
 
-    void reset_rtx_timer(int);  // adjust the rtx timer
-    void reset();       // reset to a known point
-    void connect();     // do active open
-    void listen();      // do passive open
-    void usrclosed();   // user requested a close
-    int need_send();    // need to send ACK/win-update now?
-    void output(int seqno, int reason = 0); // output 1 packet
-    void send_much(int force, int reason, int maxburst = 0);
-    void newack(Packet* pkt);   // process an ACK
-    void cancel_rtx_timeout();  // cancel the rtx timeout
+	void reset_rtx_timer(int);  // adjust the rtx timer
+	void reset();       // reset to a known point
+	void connect();     // do active open
+	void listen();      // do passive open
+	void usrclosed();   // user requested a close
+	int need_send();    // need to send ACK/win-update now?
+	void output(int seqno, int reason = 0); // output 1 packet
+	void send_much(int force, int reason, int maxburst = 0);
+	void sendpacket(int seq, int ack, int flags, int dlen, int why);
+	void newack(Packet* pkt);   // process an ACK
+	DelAckTimer delack_timer_;	// other timers in tcp.h
+	void cancel_timers() {
+		TcpAgent::cancel_timers();
+		delack_timer_.force_cancel();
+	}
 
-	/* Rest of timers are declared in tcp.h */
-	DelAckTimer delack_timer_;
-
-    /*
-     * the following are part of a tcpcb in "real" RFC793 TCP
-     */
-    int maxseg_;        /* MSS */
-    int flags_;     /* controls next output() call */
-    int state_;     /* enumerated type: FSM state */
-    int rcv_nxt_;       /* next sequence number expected */
-    ReassemblyQueue rq_;    /* TCP reassembly queue */
-    /*
-     * the following are part of a tcpcb in "real" RFC1323 TCP
-     */
-    int last_ack_sent_; /* ackno field from last segment we sent */
+	/*
+	* the following are part of a tcpcb in "real" RFC793 TCP
+	*/
+	int maxseg_;        /* MSS */
+	int flags_;     /* controls next output() call */
+	int state_;     /* enumerated type: FSM state */
+	int rcv_nxt_;       /* next sequence number expected */
+	ReassemblyQueue rq_;    /* TCP reassembly queue */
+	/*
+	* the following are part of a tcpcb in "real" RFC1323 TCP
+	*/
+	int last_ack_sent_; /* ackno field from last segment we sent */
 };
 
 #endif

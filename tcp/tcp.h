@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.28 1997/09/10 07:48:59 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.29 1997/10/13 22:24:45 mccanne Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -123,9 +123,6 @@ struct hdr_tcpasym {
 	}
 };
 
-#define TCP_BETA 2.0
-#define TCP_ALPHA 0.125
-
 /* these are used to mark packets as to why we xmitted them */
 #define TCP_REASON_TIMEOUT	0x01
 #define	TCP_REASON_DUPACK	0x02
@@ -136,7 +133,6 @@ struct hdr_tcpasym {
  * default 0.1,
  * 0.3 for 4.3 BSD, 
  * 0.01 for new window algorithms,
- * 0.0001 or 0.0005 for ATM
  */
 
 #define NUMDUPACKS 3		/* normally 3, sometimes 1 */
@@ -199,26 +195,27 @@ protected:
 	TracedInt t_seqno_;	/* sequence number */
 	TracedInt t_rtt_;      	/* round trip time */
 	TracedInt t_srtt_;     	/* smoothed round-trip time */
+	int srtt_init_;		/* initial value for computing t_srtt_ */
 	TracedInt t_rttvar_;   	/* variance in round-trip time */
-	TracedInt t_backoff_;
+	int rttvar_init_;       /* initial value for computing t_rttvar_ */
+	double t_rtxcur_;	/* current retransmit value */
+	double rtxcur_init_;       /* initial value for t_rtxcur_ */
+	TracedInt t_backoff_;	/* current multiplier, 1 if not backed off */
 	void rtt_init();
-	double rtt_timeout();
-	void rtt_update(double tao);
-	void rtt_backoff();
+	double rtt_timeout();	/* provide an RTO based on RTT estimates */
+	void rtt_update(double tao);	/* update RTT estimate with sample */
+	void rtt_backoff();		/* double multiplier */
 
 	double ts_peer_;        /* the most recent timestamp the peer sent */
 
-	/*XXX start/stop */
+	/* connection and packet dynamics */
 	virtual void output(int seqno, int reason = 0);
 	virtual void send_much(int force, int reason, int maxburst = 0);
-	virtual void set_rtx_timer();
-	void reset_rtx_timer(int mild);
-	void reset_rtx_timer(int mild, int backoff);
-	virtual void newtimer(Packet* pkt);
+	virtual void newtimer(Packet*);
 	void opencwnd();
 	void closecwnd(int how);
 	void reset();
-	void newack(Packet* pkt);
+	void newack(Packet*);
 	void quench(int how);
 	void finish(); /* called when the connection is terminated */
 
@@ -227,22 +224,35 @@ protected:
 	virtual void send_helper(int) { return; }
 	virtual void send_idle_helper() { return; }
 	virtual void recv_helper(Packet*) { return; }
-	virtual void recv_newack_helper(Packet* pkt);
-	virtual void partialnewack_helper(Packet* pkt) {};
+	virtual void recv_newack_helper(Packet*);
+	virtual void partialnewack_helper(Packet*) {};
 
 	/* Timers */
 	RtxTimer rtx_timer_;
 	DelSndTimer delsnd_timer_;
 	BurstSndTimer burstsnd_timer_;
+	virtual void cancel_timers() {
+		rtx_timer_.force_cancel();
+		burstsnd_timer_.force_cancel();
+		delsnd_timer_.force_cancel();
+	}
+	void cancel_rtx_timer() {
+		rtx_timer_.force_cancel();
+	}
+	virtual void set_rtx_timer();
+	void reset_rtx_timer(int mild, int backoff = 1);
 
+	double boot_time_;	/* where between 'ticks' this sytem came up */
 	double overhead_;
 	double wnd_;
 	double wnd_const_;
 	double wnd_th_;		/* window "threshold" */
 	double wnd_init_;
+	double wnd_restart_;
 	double tcp_tick_;	/* clock granularity */
 	int wnd_option_;
 	int bug_fix_;		/* 1 for multiple-fast-retransmit fix */
+	int ts_option_;		/* use RFC1323-like timestamps? */
 	int maxburst_;		/* max # packets can send back-2-back */
 	int maxcwnd_;		/* max # cwnd can ever be */
 	double maxrto_;		/* max value of an RTO */
@@ -282,6 +292,13 @@ protected:
 				   For now, it is off by default. */ 
 	char finish_[100];      /* name of Tcl proc to call at finish time */
 	int closed_;            /* whether this connection has closed */
+        TracedInt ndatapack_;   /* number of data packets sent */
+        TracedInt ndatabytes_;  /* number of data bytes sent */
+        TracedInt nackpack_;    /* number of ack packets received */
+        TracedInt nrexmit_;     /* number of retransmit timeouts 
+				   when there was data outstanding */
+        TracedInt nrexmitpack_; /* number of retransmited packets */
+        TracedInt nrexmitbytes_; /* number of retransmited bytes */
 };
 
 /* TCP Reno */
@@ -370,4 +387,3 @@ protected:
 // End:
 
 #endif
-

@@ -34,6 +34,10 @@ dynamicDM instproc init { sim node } {
         if { $tracefile != 0 } {
 	    $self trace $ns $tracefile $node
 	}
+	set tracefile [$ns getnamtraceAllFile]
+	if { $tracefile != 0 } {
+		$self trace $ns $tracefile $node "nam"
+	}
 }
 
 dynamicDM instproc start { } {

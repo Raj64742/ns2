@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.6 1997/10/01 22:29:40 mjh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/misc.tcl,v 1.7 1997/10/13 22:25:10 mccanne Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -105,57 +105,10 @@ TestSuite instproc finish file {
 #	raw2xg, and raw2gp, in ~ns/bin.  raw2xg generates output suitable
 #	for xgraph, and raw2gp, that suitable for gnuplot.
 #
-#	#
-#	# we don't bother checking for the link we're interested in
-#	# since we know only such events are in our trace file
-#	#
-#	set perlCode {
-#		sub BEGIN { $c = 0; @p = @d = @lu = @ld = (); }
-#		/^[\+-] / && do {
-#			push(@p, $F[1], ' ',		\
-#					$F[7] + ($F[10] % 90) * 0.01, "\n") \
-#				if ($F[4] eq 'tcp' || $F[4] eq 'ack');
-#			$c = $F[7] if ($c < $F[7]);
-#			next;
-#		};
-#		/^d / && do {
-#			push(@d, $F[1], ' ',		\
-#					$F[7] + ($F[10] % 90) * 0.01, "\n");
-#			next;
-#		};
-#		/link-down/ && push(@ld, $F[1]);
-#		/link-up/ && push(@lu, $F[1]);
-#		sub END {
-#			print "\"packets\n", @p, "\n";
-#			# insert dummy data sets
-#			# so we get X's for marks in data-set 4
-#			print "\"skip-1\n0 1\n\n\"skip-2\n0 1\n\n";
-#			#
-#			# Repeat the first line twice in the drops file because
-#			# often we have only one drop and xgraph won't print
-#			# marks for data sets with only one point.
-#			#
-#			print "\n", '"drops', "\n", @d[0..3], @d;
-#			$c++;
-#			foreach $i (@ld) {
-#				print "\n\"link-down\n$i 0\n$i $c\n";
-#			}
-#			foreach $i (@lu) {
-#				print "\n\"link-up\n$i 0\n$i $c\n";
-#			}
-#		}
-#	}
-#
-#	set f [open temp.rands w]
-#	puts $f "TitleText: $file"
-#	puts $f "Device: Postscript"
-#	exec perl -ane $perlCode out.tr >@ $f
-#	close $f
-#	if [info exists env(DISPLAY)] {
-#	    exec xgraph -display $env(DISPLAY) -bb -tk -nl -m -x time -y packet temp.rands &
-#	} else {
-#	    puts stderr "output trace is in temp.rands"
-#	}
+#       To reproduce old functionality:
+#	../../bin/getrc -s 2 -d 3 all.tr | \
+#	  ../../bin/raw2xg -s 0.01 -m 90 | \
+#	  $xgraph -bb -tk -nl -m -x time -y packets
 #	
         catch "$self exit 0"
 	exit 0
@@ -166,6 +119,7 @@ TestSuite instproc finish file {
 # $interval seconds of simulation time
 #
 TestSuite instproc tcpDump { tcpSrc interval } {
+	global quiet
 	$self instvar dump_inst_ ns_
 	if ![info exists dump_inst_($tcpSrc)] {
 		set dump_inst_($tcpSrc) 1
@@ -173,7 +127,10 @@ TestSuite instproc tcpDump { tcpSrc interval } {
 		return
 	}
 	$ns_ at [expr [$ns_ now] + $interval] "$self tcpDump $tcpSrc $interval"
-	puts [$ns_ now]/cwnd=[format "%.4f" [$tcpSrc set cwnd_]]/ssthresh=[$tcpSrc set ssthresh_]/ack=[$tcpSrc set ack_]
+	set report [$ns_ now]/cwnd=[format "%.4f" [$tcpSrc set cwnd_]]/ssthresh=[$tcpSrc set ssthresh_]/ack=[$tcpSrc set ack_]
+        if {$quiet == "false"} {
+                puts $report
+        }
 }
 
 TestSuite instproc tcpDumpAll { tcpSrc interval label } {
@@ -239,31 +196,48 @@ proc get-subclasses {cls pfx} {
 }
 
 TestSuite proc runTest {} {
-	global argc argv
+        global argc argv quiet
 
-	switch $argc {
-		1 {
-			set test $argv
-			isProc? Test $test
+        set quiet false
+        switch $argc {
+                1 {
+                        set test $argv
+                        isProc? Test $test
 
-			set topo ""
-		}
-		2 {
-			set test [lindex $argv 0]
-			isProc? Test $test
+                        set topo ""
+                }
+                2 {
+                        set test [lindex $argv 0]
+                        isProc? Test $test
 
-			set topo [lindex $argv 1]
-			isProc? Topology $topo
-		}
-		default {
-			usage
-		}
-	}
-	set t [new Test/$test $topo]
-	$t run
+                        set topo [lindex $argv 1]
+                        if {$topo == "QUIET"} {
+                                set quiet true 
+                                set topo ""
+                        } else {
+                                isProc? Topology $topo
+                        }
+                }
+                3 {
+                        set test [lindex $argv 0]
+                        isProc? Test $test
+
+                        set topo [lindex $argv 1]
+                        isProc? Topology $topo
+
+                        set extra [lindex $argv 2]
+                        if {$extra == "QUIET"} {
+                                set quiet true
+                        }
+                }
+                default {
+                        usage
+                }
+        }
+        set t [new Test/$test $topo]
+        $t run
 }
 
-	
 ### Local Variables:
 ### mode: tcl
 ### tcl-indent-level: 8

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.64 1997/10/01 21:39:14 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.65 1997/10/13 22:25:03 mccanne Exp $
 
 
 #
@@ -69,10 +69,14 @@ Agent/TCP set overhead_ 0
 Agent/TCP set ecn_ 0
 Agent/TCP set packetSize_ 1000
 Agent/TCP set bugFix_ true
+Agent/TCP set timestamps_ false
 Agent/TCP set slow_start_restart_ true
 Agent/TCP set restart_bugfix_ false
 Agent/TCP set tcpTick_ 0.1
-Agent/TCP set maxrto_ 64
+Agent/TCP set maxrto_ 100000
+Agent/TCP set srtt_init_ 0
+Agent/TCP set rttvar_init_ 12
+Agent/TCP set rtxcur_init_ 6.0
 
 Agent/TCP set dupacks_ 0
 Agent/TCP set ack_ 0
@@ -84,6 +88,13 @@ Agent/TCP set srtt_ 0
 Agent/TCP set rttvar_ 0
 Agent/TCP set backoff_ 0
 Agent/TCP set maxseq_ 0
+
+Agent/TCP set ndatapack_ 0
+Agent/TCP set ndatabytes_ 0
+Agent/TCP set nackpack_ 0
+Agent/TCP set nrexmit_ 0
+Agent/TCP set nrexmitpack_ 0
+Agent/TCP set nrexmitbytes_ 0
 
 Agent/TCP/Fack set ss-div4_ false
 Agent/TCP/Fack set rampdown_ false
@@ -149,6 +160,9 @@ Queue/RED set setbit_ false
 Queue/RED set drop-tail_ true
 Queue/RED set doubleq_ false
 Queue/RED set dqthresh_ 50
+Queue/RED set ave_ 0.0
+Queue/RED set prob1_ 0.0
+Queue/RED set curq_ 0
 
 Queue/DRR set buckets_ 10
 Queue/DRR set blimit_ 25000

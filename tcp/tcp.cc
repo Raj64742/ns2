@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.38 1997/09/29 23:49:41 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.39 1997/10/13 22:24:44 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -63,7 +63,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	ts_peer_(0),dupacks_(0), t_seqno_(0), highest_ack_(0), cwnd_(0),
 	ssthresh_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0),
 	t_backoff_(0), curseq_(0), maxseq_(0), closed_(0), restart_bugfix_(0),
-	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this) 
+	rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this)
 {
 	// Defaults for bound variables should be set in ns-default.tcl.
 	bind("window_", &wnd_);
@@ -78,9 +78,13 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind_bool("bugFix_", &bug_fix_);
 	bind_bool("slow_start_restart_", &slow_start_restart_);
 	bind_bool("restart_bugfix_", &restart_bugfix_);
+	bind_bool("timestamps_", &ts_option_);
 	bind("maxburst_", &maxburst_);
 	bind("maxcwnd_", &maxcwnd_);
 	bind("maxrto_", &maxrto_);
+	bind("srtt_init_", &srtt_init_);
+	bind("rttvar_init_", &rttvar_init_);
+	bind("rtxcur_init_", &rtxcur_init_);
 
 	bind("dupacks_", &dupacks_);
 	bind("seqno_", &curseq_);
@@ -96,6 +100,12 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
 	bind("maxseq_", &maxseq_);
 	bind("off_ip_", &off_ip_);
 	bind("off_tcp_", &off_tcp_);
+        bind("ndatapack_", &ndatapack_);
+        bind("ndatabytes_", &ndatabytes_);
+        bind("nackpack_", &nackpack_);
+        bind("nrexmit_", &nrexmit_);
+        bind("nrexmitpack_", &nrexmitpack_);
+        bind("nrexmitbytes_", &nrexmitbytes_);
 
 	finish_[0] = 0;
 
@@ -167,9 +177,12 @@ void TcpAgent::reset()
 	last_ack_ = -1;
 	highest_ack_ = -1;
 	ssthresh_ = int(wnd_);
+	wnd_restart_ = 1.;
 	awnd_ = wnd_init_ / 2.0;
 	recover_ = 0;
+	
 	recover_cause_ = 0;
+	boot_time_ = Random::uniform(tcp_tick_);
 }
 
 /*
@@ -177,17 +190,18 @@ void TcpAgent::reset()
  */
 void TcpAgent::rtt_init()
 {
-	t_rtt_ = t_srtt_ = 0;
-	/* the setting of t_rttvar depends on the value for tcp_tick_ */
-	t_rttvar_ = int(3. / tcp_tick_);
+	t_rtt_ = 0;
+	t_srtt_ = int(srtt_init_ / tcp_tick_) << 3;
+	t_rttvar_ = int(rttvar_init_ / tcp_tick_) << 2;
+	t_rtxcur_ = rtxcur_init_;
 	t_backoff_ = 1;
 }
 
 /* This has been modified to use the tahoe code. */
 double TcpAgent::rtt_timeout()
 {
-	double timeout = ((t_srtt_ >> 3) + t_rttvar_ + 1) * tcp_tick_ ;
-        timeout *= t_backoff_;
+	double timeout;
+        timeout = t_rtxcur_ * t_backoff_;
 
 	if (timeout > maxrto_)
 		timeout = maxrto_;
@@ -206,11 +220,15 @@ double TcpAgent::rtt_timeout()
 /* This has been modified to use the tahoe code. */
 void TcpAgent::rtt_update(double tao)
 {
-	//
-	// tao is the measured RTT sample
-	// t_rtt_ is tao expressed in tcp_tick_ units and rounded
-	//
-	t_rtt_ = int((tao / tcp_tick_) + 0.5);
+	if (ts_option_)
+		t_rtt_ = int(tao /tcp_tick_ + 0.5);
+	else {
+		double now = Scheduler::instance().clock();
+		double sendtime = now - tao;
+		sendtime += boot_time_;
+		double tickoff = fmod(sendtime, tcp_tick_);
+		t_rtt_ = int((tao + tickoff) / tcp_tick_);
+	}
 	if (t_rtt_ < 1)
 		t_rtt_ = 1;
 
@@ -232,6 +250,12 @@ void TcpAgent::rtt_update(double tao)
 		t_srtt_ = t_rtt_ << 3;		// srtt = rtt
 		t_rttvar_ = t_rtt_ << 1;	// rttvar = rtt / 2
 	}
+	//
+	// Current retransmit value is 
+	//    (unscaled) smoothed round trip estimate
+	//    plus 4 times (unscaled) rttvar. 
+	//
+	t_rtxcur_ = (((t_rttvar_ << 3) + t_srtt_)  >> 3 ) * tcp_tick_;
 }
 
 void TcpAgent::rtt_backoff()
@@ -239,13 +263,15 @@ void TcpAgent::rtt_backoff()
 	if (t_backoff_ < 64)
 		t_backoff_ <<= 1;
 
-	if (t_backoff_ > 8)
+	if (t_backoff_ > 8) {
 		/*
 		 * If backed off this far, clobber the srtt
 		 * value, storing it in the mean deviation
 		 * instead.
 		 */
+		t_rttvar_ += (t_srtt_ >> 3);
 		t_srtt_ = 0;
+	}
 }
 
 void TcpAgent::output(int seqno, int reason)
@@ -253,15 +279,15 @@ void TcpAgent::output(int seqno, int reason)
 	int force_set_rtx_timer = 0;
 	Packet* p = allocpkt();
 	hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
-	double now = Scheduler::instance().clock();
 	tcph->seqno() = seqno;
-	tcph->ts() = now;
+	tcph->ts() = Scheduler::instance().clock();
 	tcph->ts_echo() = ts_peer_;
 	tcph->reason() = reason;
 	if (ecn_) {
 		hdr_flags* hf = (hdr_flags*)p->access(off_flags_);
 		hf->ecn_capable_ = 1;
 	}
+        int bytes = ((hdr_cmn*)p->access(off_cmn_))->size();
 
 	/* if no outstanding data, be sure to set rtx timer again */
 	if (highest_ack_== maxseq_)
@@ -269,14 +295,21 @@ void TcpAgent::output(int seqno, int reason)
 	/* call helper function to fill in additional fields */
 	output_helper(p);
 
+        ++ndatapack_;
+        ndatabytes_ += bytes;
 	send(p, 0);
 	if (seqno > maxseq_) {
 		maxseq_ = seqno;
 		if (!rtt_active_) {
 			rtt_active_ = 1;
-			if (seqno > rtt_seq_)
+			if (seqno > rtt_seq_) {
 				rtt_seq_ = seqno;
+			}
+					
 		}
+	} else {
+        	++nrexmitpack_;
+        	nrexmitbytes_ += bytes;
 	}
 	if (!(rtx_timer_.status() == TIMER_PENDING) || force_set_rtx_timer)
 		/* No timer pending.  Schedule one. */
@@ -397,27 +430,13 @@ void TcpAgent::send_much(int force, int reason, int maxburst)
  * We got a timeout or too many duplicate acks.  Clear the retransmit timer.  
  * Resume the sequence one past the last packet acked.  
  * "mild" is 0 for timeouts and Tahoe dup acks, 1 for Reno dup acks.
- */
-void TcpAgent::reset_rtx_timer(int mild)
-{
-	set_rtx_timer();
-	rtt_backoff();
-	if (!mild)
-		t_seqno_ = highest_ack_ + 1;
-	rtt_active_ = 0;
-}
-
-/*
- * We got a timeout or too many duplicate acks.  Clear the retransmit timer.  
- * Resume the sequence one past the last packet acked.  
- * "mild" is 0 for timeouts and Tahoe dup acks, 1 for Reno dup acks.
  * "backoff" is 1 if the timer should be backed off, 0 otherwise.
  */
-void TcpAgent::reset_rtx_timer(int mild, int backoff)
+void TcpAgent::reset_rtx_timer(int mild, int backoff = 1)
 {
-	set_rtx_timer();
 	if (backoff)
 		rtt_backoff();
+	set_rtx_timer();
 	if (!mild)
 		t_seqno_ = highest_ack_ + 1;
 	rtt_active_ = 0;
@@ -442,8 +461,8 @@ void TcpAgent::newtimer(Packet* pkt)
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	if (t_seqno_ > tcph->seqno())
 		set_rtx_timer();
-	else if (rtx_timer_.status() == TIMER_PENDING)
-		rtx_timer_.cancel();
+	else
+		cancel_rtx_timer();
 }
 
 /*
@@ -539,12 +558,11 @@ void TcpAgent::closecwnd(int how)
 {   
 	switch (how) {
 	case 0:
-		/* timeouts, Tahoe dup acks */
+		/* timeouts */
 		ssthresh_ = int( window() / 2 );
 		if (ssthresh_ < 2)
 			ssthresh_ = 2;
-		/* Old code: ssthresh_ = int(cwnd_ / 2); */
-		cwnd_ = int(wnd_init_);
+		cwnd_ = int(wnd_restart_);
 		break;
 
 	case 1:
@@ -556,13 +574,21 @@ void TcpAgent::closecwnd(int how)
 		break;
 
 	case 2:
-		/* Tahoe dup acks  		*
+		/* Tahoe dup acks  		
 		 * after a recent congestion indication */
 		cwnd_ = wnd_init_;
 		break;
 
 	case 3:
+		/* Retransmit timeout, but no outstanding data. */ 
 		cwnd_ = int(wnd_init_);
+		break;
+	case 4:
+		/* Tahoe dup acks */
+		ssthresh_ = int( window() / 2 );
+		if (ssthresh_ < 2)
+			ssthresh_ = 2;
+		cwnd_ = 1;
 		break;
 
 	default:
@@ -578,6 +604,7 @@ void TcpAgent::closecwnd(int how)
  */
 void TcpAgent::newack(Packet* pkt)
 {
+	double now = Scheduler::instance().clock();
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 	newtimer(pkt);
 	dupacks_ = 0;
@@ -585,13 +612,15 @@ void TcpAgent::newack(Packet* pkt)
 	highest_ack_ = last_ack_;
 	if (t_seqno_ < last_ack_ + 1)
 		t_seqno_ = last_ack_ + 1;
+	if (ts_option_)
+		rtt_update(now - tcph->ts_echo());
+
 	if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
-		rtt_active_ = 0;
 		t_backoff_ = 1;
+		rtt_active_ = 0;
+		if (!ts_option_)
+			rtt_update(now - tcph->ts_echo());
 	}
-	/* with timestamp option */
-	double tao = Scheduler::instance().clock() - tcph->ts_echo();
-	rtt_update(tao);
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
 	awnd_ += wnd_th_ * cwnd_;
@@ -660,6 +689,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 		return;
 	}
 #endif
+	++nackpack_;
 	ts_peer_ = tcph->ts();
 	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && ecn_)
 		quench(1);
@@ -676,7 +706,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
 		   	if (!bug_fix_ || highest_ack_ > recover_) {
 				recover_ = maxseq_;
 				recover_cause_ = 1;
-				closecwnd(0);
+				closecwnd(4);
 				reset_rtx_timer(0,0);
 			}
 			else if (ecn_ && recover_cause_ != 1) {
@@ -701,7 +731,7 @@ void TcpAgent::recv(Packet *pkt, Handler*)
  * function allows derived classes to make alterations/enhancements (e.g.,
  * response to new types of timeout events).
  */ 
-void TcpAgent::timeout_nonrtx(int tno) 
+void TcpAgent::timeout_nonrtx(int) 
 {
 	/*
 	 * delayed-send timer, with random overhead
@@ -726,14 +756,19 @@ void TcpAgent::timeout(int tno)
 		/* if there is no outstanding data, don't cut down ssthresh_ */
 		if (highest_ack_ == maxseq_ && restart_bugfix_)
 			closecwnd(3);
-		else
+		else {
+			++nrexmit_;
 			closecwnd(0);
+		}
 		/* if there is no outstanding data, don't back off rtx timer */
-		if (highest_ack_ == maxseq_ && restart_bugfix_)
+		if (highest_ack_ == maxseq_ && restart_bugfix_) {
 			reset_rtx_timer(0,0);
-		else
+		}
+		else {
 			reset_rtx_timer(0,1);
+		}
 		send_much(0, TCP_REASON_TIMEOUT, maxburst_);
+
 	} 
 	else {
 		timeout_nonrtx(tno);
@@ -753,15 +788,15 @@ void TcpAgent::finish() {
 	}
 }
 
-void RtxTimer::expire(Event *e) {
+void RtxTimer::expire(Event*) {
 	a_->timeout(TCP_TIMER_RTX);
 }
 
-void DelSndTimer::expire(Event *e) {
+void DelSndTimer::expire(Event*) {
 	a_->timeout(TCP_TIMER_DELSND);
 }
 
-void BurstSndTimer::expire(Event *e) {
+void BurstSndTimer::expire(Event*) {
 	a_->timeout(TCP_TIMER_BURSTSND);
 }
 

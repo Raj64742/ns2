@@ -79,13 +79,19 @@ McastProtocol instproc leave-group {} {
 	}
 }
 
-McastProtocol instproc trace-dynamics { ns f src } {
+McastProtocol instproc trace-dynamics { ns f src {op ""} } {
         $self instvar dynT_
-        lappend dynT_ [$ns create-trace Generic $f $src $src]
+	if {$op == "nam" && [info exists dynT_]} {
+		foreach tr $dynT_ {
+			$tr namattach $f
+		}
+	} else {
+		lappend dynT_ [$ns create-trace Generic $f $src $src $op]
+	}
 }
 
-McastProtocol instproc trace { ns f src } {
-	$self trace-dynamics $ns $f $src
+McastProtocol instproc trace { ns f src {op ""} } {
+	$self trace-dynamics $ns $f $src $op
 }
 
 McastProtocol instproc notify changes {

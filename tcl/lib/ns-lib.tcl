@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.53 1997/10/01 00:35:16 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.54 1997/10/13 22:25:04 mccanne Exp $
 #
 
 #
@@ -275,8 +275,8 @@ Simulator instproc duplex-link { n1 n2 bw delay type {ori ""} {q_clrid 0} } {
 	#
 	$self instvar namtraceAllFile_
 	if [info exists namtraceAllFile_] {
-		puts $namtraceAllFile_ "l -t* -s[$n1 id] -d[$n2 id] -SUP -r$bw -D$delay -o$ori"
-		puts $namtraceAllFile_ "q -t* -s[$n1 id] -d[$n2 id] -a$q_clrid"
+		puts $namtraceAllFile_ "l -t * -s [$n1 id] -d [$n2 id] -S UP -r $bw -D $delay -o $ori"
+		puts $namtraceAllFile_ "q -t * -s [$n1 id] -d [$n2 id] -a $q_clrid"
 	}
 }
 
@@ -493,8 +493,8 @@ Simulator instproc duplex-link-of-interfaces { n1 n2 bw delay type {ori ""} {q_c
 	#
 	$self instvar namtraceAllFile_
 	if [info exists namtraceAllFile_] {
-		puts $namtraceAllFile_ "l -t* -s[$n1 id] -d[$n2 id] -SUP -r$bw -D$delay -o$ori"
-		puts $namtraceAllFile_ "q -t* -s[$n1 id] -d[$n2 id] -a$q_clrid"
+		puts $namtraceAllFile_ "l -t * -s [$n1 id] -d [$n2 id] -S UP -r $bw -D $delay -o $ori"
+		puts $namtraceAllFile_ "q -t * -s [$n1 id] -d [$n2 id] -a $q_clrid"
 	}
 
 

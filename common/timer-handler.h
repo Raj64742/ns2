@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.h,v 1.4 1997/08/15 23:32:59 heideman Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/timer-handler.h,v 1.5 1997/10/13 22:24:51 mccanne Exp $ (USC/ISI)
  */
 
 #ifndef timer_handler_h
@@ -48,6 +48,7 @@
  * See tcp-rbp.{cc,h} for a real example.
  */
 #define TIMER_HANDLED -1.0         // xxx: should be const double in class?
+
 class TimerHandler : public Handler {
 public:
 	TimerHandler() : status_(TIMER_IDLE) { }
@@ -57,14 +58,20 @@ public:
 				     // if you don't know the pending status,
 				     // call resched()
 	void cancel();               // must be pending
+	inline void force_cancel() {	// cancel!
+		if (status_ == TIMER_PENDING) {
+			_cancel();
+			status_ = TIMER_IDLE;
+		}
+	}
 	enum TimerStatus { TIMER_IDLE, TIMER_PENDING, TIMER_HANDLING };
 	int status() { return status_; };
 
 protected:
-	virtual void expire(Event *e) = 0;  // must be filled in by client
+	virtual void expire(Event *) = 0;  // must be filled in by client
 	// Should call resched() if it wants to reschedule the interface.
 
-	virtual void handle(Event *e);
+	virtual void handle(Event *);
 	int status_;
 	Event event_;
 

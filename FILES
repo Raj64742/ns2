@@ -390,6 +390,7 @@ tcl/test/test-all-cbq-v1
 tcl/test/test-all-full
 tcl/test/test-all-red-v1
 tcl/test/test-all-sack-v1
+tcl/test/test-all-tcp
 tcl/test/test-all-v1
 tcl/test/test-sack-v1
 tcl/test/test-suite-cbq-v1.tcl
@@ -399,6 +400,7 @@ tcl/test/test-suite-red.tcl
 tcl/test/test-suite-routed.tcl
 tcl/test/test-suite-sack-v1.tcl
 tcl/test/test-suite-sack.tcl
+tcl/test/test-suite-tcp.tcl
 tcl/test/test-suite-v1.tcl
 tcl/test/test-vegas-v1
 tcl/test/topologies.tcl

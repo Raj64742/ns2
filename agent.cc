@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.28 1997/09/29 23:47:27 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.29 1997/10/13 22:24:26 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -144,7 +144,7 @@ void Agent::flushAVar(TracedVar *v)
 	if (strcmp(value, "") == 0) 
 		// no value, because no writes has occurred to this var
 		return;
-	sprintf(wrk, "f -t%-8.5f -s%d -d%d -n%s -a%s -o%s -Tv -x",
+	sprintf(wrk, "f -t %-8.5f -s %d -d %d -n %s -a %s -o %s -T v -x",
 		Scheduler::instance().clock(),
 		addr_ >> 8,
 		dst_ >> 8,
@@ -170,7 +170,7 @@ void Agent::deleteAgentTrace()
 
 	// we need to flush all var values to trace file, 
 	// so nam can do backtracing
-	sprintf(wrk, "a -t-%8.5f -s%d -d%d -n%s -x",
+	sprintf(wrk, "a -t %-8.5f -s %d -d %d -n %s -x",
 		Scheduler::instance().clock(),
 		addr_ >> 8,
 		dst_ >> 8,
@@ -221,7 +221,7 @@ void Agent::trace(TracedVar* v)
 
 	OldValue *ov = lookupOldValue(v);
 	if (ov != NULL) {
-		sprintf(wrk, "f -t%-8.5f -s%d -d%d -n%s -a%s -v%s -o%s -Tv",
+		sprintf(wrk, "f -t %-8.5f -s %d -d %d -n %s -a %s -v %s -o %s -T v",
 			Scheduler::instance().clock(),
 			addr_ >> 8,
 			dst_ >> 8,
@@ -234,7 +234,7 @@ void Agent::trace(TracedVar* v)
 			min(strlen(value)+1, TRACEVAR_MAXVALUELENGTH));
 	} else {
 		// if there is value, insert it into old value list
-		sprintf(wrk, "f -t%-8.5f -s%d -d%d -n%s -a%s -v%s -Tv",
+		sprintf(wrk, "f -t %-8.5f -s %d -d %d -n %s -a %s -v %s -T v",
 			Scheduler::instance().clock(),
 			addr_ >> 8,
 			dst_ >> 8,
@@ -256,7 +256,7 @@ void Agent::addAgentTrace(const char *name)
 	double curTime = (&Scheduler::instance() == NULL ? 0 : 
 			  Scheduler::instance().clock());
 	
-	sprintf(wrk, "a -t%-8.5f -s%d -d%d -n%s",
+	sprintf(wrk, "a -t %-8.5f -s %d -d %d -n %s",
 		curTime,
 		addr_ >> 8,
 		dst_ >> 8,

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.76 1997/09/10 06:50:30 kannan Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.77 1997/10/13 22:24:25 mccanne Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -152,7 +152,7 @@ HDR =   agent.h config.h data-source.h integrator.h link.h node.h \
 	delay.h \
 	snoop.h ll.h mac.h mac-multihop.h mac-csma.h mac-802_11.h \
 	rtProtoDV.h ctrMcast.h prune.h ranvar.h delaymodel.h timers.h \
-	srm-ssm.h srm-ssm-state.h mem-debug.h
+	srm-ssm.h mem-debug.h
 
 CLEANFILES = ns nsx ns.dyn $(OBJ) $(OBJ_NAM) tclAppInit.o \
 	$(GEN_DIR)* core core.ns core.nsx

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.10 1997/07/23 02:39:27 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.11 1997/10/13 22:24:36 mccanne Exp $ (UCB)
  */
 
 #ifndef ns_queue_monitor_h
@@ -170,11 +170,15 @@ class SnoopQueueEDrop : public SnoopQueue {
 };
 
 
+#ifndef	MAXFLOW
+#define	MAXFLOW	32
+#endif
+
 /*
  * a 'QueueMonitorCompat', which is used by the compat
  * code to produce the link statistics available in ns-1
  */
-#include "lib/int.RVec.h"
+
 class QueueMonitorCompat : public QueueMonitor {
 public:
 	QueueMonitorCompat();
@@ -183,11 +187,13 @@ public:
         void drop(Packet*);
         int command(int argc, const char*const* argv);
 protected:
+	void	flowstats(int flowid);	/* create a flowstats structure */
 	int	off_ip_;
 
-	intRVec	pkts_;
-	intRVec	bytes_;
-	intRVec	drops_;
+	int	pkts_[MAXFLOW];
+	int	bytes_[MAXFLOW];
+	int	drops_[MAXFLOW];
+	Samples *flowstats_[MAXFLOW];
 };
 
 #endif

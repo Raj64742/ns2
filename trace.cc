@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.21 1997/10/02 02:31:07 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/trace.cc,v 1.22 1997/10/13 22:24:52 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -156,10 +156,12 @@ void Trace::write_nam_trace(const char *s)
 
 void Trace::annotate(const char* s)
 {
-	sprintf(wrk_, "v %g sim_annotation %g %s", 
-		Scheduler::instance().clock(), 
+	sprintf(wrk_, "v %g eval {set sim_annotation {%s}}", 
 		Scheduler::instance().clock(), s);
 	dump();
+	sprintf(nwrk_, "v %g sim_annotation %g %s", 
+		Scheduler::instance().clock(), 
+		Scheduler::instance().clock(), s);
 	namdump();
 }
 
@@ -248,7 +250,7 @@ flags[5] = 0;
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t%g -s%d -d%d -p%s -e%d -c%d -i%d -a%d",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -365,7 +367,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 		const char* name = pt_names[t];
 
 		sprintf(nwrk_, 
-			"%c -t%g -s%d -d%d -p%s -e%d -c%d -i%d -a%d",
+			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
 			'h',
 			Scheduler::instance().clock(),
 			src_,

@@ -1,5 +1,7 @@
 Class SessionSim -superclass Simulator
 
+SessionSim set EnableTTL_ 0
+
 SessionSim instproc bw_parse { bspec } {
         if { [scan $bspec "%f%s" b unit] == 1 } {
                 set unit bps
@@ -53,7 +55,7 @@ SessionSim instproc create-session { node agent } {
 }
 
 SessionSim instproc join-group { agent group } {
-    $self instvar session_
+    $self instvar session_ nullAgent_ queueMon_
 
     foreach index [array names session_] {
 	set pair [split $index :]
@@ -71,6 +73,17 @@ SessionSim instproc join-group { agent group } {
 	    set delay [$self get-delay $dst $src]
 
             $self update-dependency $dst $src $group
+
+	    #2.5. setup a ttl object for a virtual link
+	    if [SessionSim set EnableTTL_] {
+		set ttl_module [new TTLChecker/Session]
+		set ttl [$self get-ttl $dst $src]
+		puts "$src $dst ttl: $ttl"
+		$ttl_module tick $ttl
+		$ttl_module drop-target $nullAgent_
+		$session_($index) insert-module $ttl_module $agent
+	    }
+
 	    #3. set up a constant delay module
 	    set random_variable [new RandomVariable/Constant]
 	    $random_variable set val_ $delay
@@ -79,21 +92,31 @@ SessionSim instproc join-group { agent group } {
 	    $delay_module ranvar $random_variable
 	    
 	    #4. insert the delay module in front of the dest agent
-	    $session_($index) insert-module $delay_module $agent
+	    if [SessionSim set EnableTTL_] {
+		$session_($index) insert-module $delay_module $ttl_module
+	    } else {
+		$session_($index) insert-module $delay_module $agent
+	    }
 
 	    #5. set up a constant loss module
 	    #set loss_random_variable [new RandomVariable/Constant]
 	    #$loss_random_variable set avg_ 2
 	    #set loss_module [new ErrorModel]
 	    # when ranvar avg_ < erromodel rate_ pkts are dropped
-	    #$loss_module drop-target [new Agent/Null]
+	    #$loss_module drop-target $nullAgent_
 	    #$loss_module set rate_ 1
 	    #$loss_module ranvar $loss_random_variable
 
 	    #6. insert the loss module in front of the delay module
 	    #$session_($index) insert-module $loss_module $delay_module
 
-	    # puts "add-dst $accu_bw $delay $src $dst"
+
+	    #7. insert a simple queue
+	    set q [new Queue/DropTail]
+	    $q set limit_ 100
+	    #set queueMon_($index:$agent) [new Agent/LossMonitor]
+	    $q drop-target $nullAgent_
+	    $session_($index) insert-module $q $delay_module
 	}
     }
 }
@@ -107,6 +130,18 @@ Simulator instproc update-dependency { src dst group } {
         $nextnode insert-child $dst $group $Node_($tmp)
         set tmp $next
     }
+}
+
+SessionSim instproc get-ttl { src dst } {
+    $self instvar routingTable_ delay_
+    set ttl 0
+    set tmp $src
+    while {$tmp != $dst} {
+	set next [$routingTable_ lookup $tmp $dst]
+	incr ttl
+	set tmp $next
+    }
+    return $ttl
 }
 
 SessionSim instproc get-delay { src dst } {

@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.158 1997/10/01 21:45:04 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.159 1997/10/13 22:24:22 mccanne Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -20,12 +20,44 @@
 [release pending]</H3>
 
 <UL>
-  <LI><B><A HREF="mailto:floyd@ee.lbl.gov">[SF]</A></B>
+  <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B>
+      Wed Oct  8 21:16:36 PDT 1997<br>
+      <UL>
+      <LI> Added tracing of number of transmitted and retransmitted packets
+      to TCP,
+      and added a new variable for window initialization after a timeout,
+      for research on TCP window initialization, both based on
+      code contributed by Kathie Nichols and Van Jacobson.
+      <LI> With Kevin Fall, made the following changes to
+      TCP's retransmit timers:  The default is now that average
+      roundtrip times are recomputed once a window, not once every
+      packet;  changed initial values of retransmit timers;  brought
+      the functionality more in line with that of actual implementations.
+      </UL>
+  <LI><B><A HREF="mailto:huang@isi.edu">[PH]</a></b>
+       Wed Oct  8 17:22:44 PDT 1997<br>
+       Added simple queue and ttl checker modules for SessionSim
+     </LI>
+  <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B>
+      Mon Oct  6 13:48:10 PDT 1997<br>
+      Bug fix for ns-compatibility mode for CBQ.
+      Code contributed by Greg Minshall, minshall@acm.org.
+      </LI>
+  <LI><B><A HREF="http://north.east.isi.edu/~mjh/">[mjh]</A></B>
+       Fri Oct  3 12:59:37 EDT 1997<br>
+       Changed nam tracefile code to generate more Tcl-like format
+     </LI>
+  <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
+       Thu Oct  2 13:46:29 PDT 1997<br>
+       Default scheduler changed to List in backwards compatibilty mode.
+     </LI>
+
+  <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B>
   Wed Oct  1 14:41:13 PDT 1997<BR>
   Changed the default RED behavior when queue is full from random-drop
   to drop-tail.
   </LI>
-  <LI><B><A HREF="mailto:floyd@ee.lbl.gov">[SF]</A></B> 
+  <LI><B><A HREF="http://www-nrg.ee.lbl.gov/floyd/">[SF]</A></B> 
   Mon Sep 29 16:51:33 PDT 1997<BR>
   Added an ECN-Capable flag to the packet header (ecn_capable_), and
   modified tcp.cc and red.cc to set and check it.

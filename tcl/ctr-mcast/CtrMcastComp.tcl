@@ -43,19 +43,29 @@ CtrMcastComp instproc init sim {
     if { $tracefile != 0 } {
 	$self trace $ns $tracefile
     }
+    set tracefile [$ns getnamtraceAllFile]
+    if { $tracefile != 0 } {
+	$self trace $ns $tracefile "nam"
+    }
 }
 
 CtrMcastComp instproc id {} {
     return 0
 }
 
-CtrMcastComp instproc trace-dynamics { ns f } {
+CtrMcastComp instproc trace-dynamics { ns f {op ""} } {
         $self instvar dynT_
-        lappend dynT_ [$ns create-trace Generic $f $self $self]
+	if {$op == "nam" && [info exists dynT_]} {
+		foreach tr $dynT_ {
+			$tr namattach $f
+		}
+	} else {
+		lappend dynT_ [$ns create-trace Generic $f $self $self $op]
+	}
 }
 
-CtrMcastComp instproc trace { ns f } {
-	$self trace-dynamics $ns $f
+CtrMcastComp instproc trace { ns f {op ""} } {
+	$self trace-dynamics $ns $f $op
 }  
 
 ##### Main computation functions #####

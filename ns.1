@@ -1658,6 +1658,15 @@ the source can send in response to a single incoming ACK.
 .IP \fIslow_start_restart_\fP
 Boolean; set to 1 to slow-start after the connection goes idle.
 On by default.
+.IP \fIsrtt_init_\fP
+Initial value for the smoothed roundtrip time estimate.
+Default is 0 seconds.
+.IP \fIt_rttvar_\fP
+Initial value for the variance in roundtrip time. 
+Default is 3 seconds.
+.IP \fIrtxcur_init_\fP
+Initial value for the retransmit value.  
+Default is 6 seconds.
 .RE 
 .LP 
 .HD 
@@ -1696,13 +1705,16 @@ Current value of the slow-start threshold
 (in packets).
 .IP \fIrtt_\fP
 Round-trip time estimate.
-In seconds.
+In seconds (expressed in multiples of tcpTick_).
 .IP \fIsrtt_\fP
 Smoothed round-trip time estimate.
-In seconds.
+In seconds (in multiples of tcpTick_/8).
 .IP \fIrttvar_\fP
 Round-trip time mean deviation estimate.
 .\" what units?
+.IP \fIt_rtxcur_\fP
+Current retransmit value.
+In seconds.
 .IP \fIbackoff_\fP
 Round-trip time exponential backoff constant.
 .RE

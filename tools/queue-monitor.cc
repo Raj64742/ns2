@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.17 1997/08/10 07:49:47 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.18 1997/10/13 22:24:36 mccanne Exp $";
 #endif
 
 #include "queue-monitor.h"
@@ -241,24 +241,72 @@ static class QueueMonitorEDClass : public TclClass {
 QueueMonitorCompat::QueueMonitorCompat()
 {
 	bind("off_ip_", &off_ip_);
+
+	memset(pkts_, 0, sizeof(pkts_));
+	memset(bytes_, 0, sizeof(bytes_));
+	memset(drops_, 0, sizeof(drops_));
+	memset(flowstats_, 0, sizeof(flowstats_));
 }
+
+
+/*
+ * create an entry in the flowstats_ array.
+ */
+
+void
+QueueMonitorCompat::flowstats(int flowid)
+{
+        Tcl& tcl = Tcl::instance();
+
+	/*
+	 * here is the deal.  we are in C code.  we'd like to do
+	 *     flowstats_[flowid] = new Samples;
+	 * but, we want to create an object that can be
+	 * referenced via tcl.  (in particular, we want ->name_
+	 * to be valid.)
+	 *
+	 * so, how do we do this?
+	 *
+	 * well, the answer is, call tcl to create it.  then,
+	 * do a lookup on the result from tcl!
+	 */
+
+	tcl.evalf("new Samples");
+	flowstats_[flowid] = (Samples*)TclObject::lookup(tcl.result());
+	if (flowstats_[flowid] == 0) {
+		abort();
+		/*NOTREACHED*/
+	}
+}
+
 
 void QueueMonitorCompat::out(Packet* pkt)
 {
+	hdr_cmn* hdr = (hdr_cmn*)pkt->access(off_cmn_);
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+        double now = Scheduler::instance().clock();
 	int fid = iph->flowid();
+
+	if (fid >= MAXFLOW) {
+		abort();
+		/*NOTREACHED*/
+	}
 	// printf("QueueMonitorCompat::out(), fid=%d\n", fid);
 	bytes_[fid] += ((hdr_cmn*)pkt->access(off_cmn_))->size();
 	pkts_[fid]++;
+	if (flowstats_[fid] == 0) {
+		flowstats(fid);
+	}
+	flowstats_[fid]->newPoint(now - hdr->timestamp());
 	QueueMonitor::out(pkt);
 }
 
 void QueueMonitorCompat::in(Packet* pkt)
 {
-	//
-	// we're not keeping per-class running queue lengths, so
-	// don't really have to do anything here
-	//
+	hdr_cmn* hdr = (hdr_cmn*)pkt->access(off_cmn_);
+        double now = Scheduler::instance().clock();
+	// QueueMonitor::in() *may* do this, but we always need it...
+	hdr->timestamp() = now;
 	QueueMonitor::in(pkt);
 }
 
@@ -267,6 +315,10 @@ void QueueMonitorCompat::drop(Packet* pkt)
 
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 	int fid = iph->flowid();
+	if (fid >= MAXFLOW) {
+		abort();
+		/*NOTREACHED*/
+	}
 	++drops_[fid];
 	QueueMonitor::drop(pkt);
 }
@@ -276,16 +328,47 @@ int QueueMonitorCompat::command(int argc, const char*const* argv)
         Tcl& tcl = Tcl::instance();
 	int fid;
 	if (argc == 3) {
+		fid = atoi(argv[2]);
 		if (strcmp(argv[1], "bytes") == 0) {
-			tcl.resultf("%d", bytes_[fid = atoi(argv[2])]);
+			if (fid >= MAXFLOW) {
+				abort();
+				/*NOTREACHED*/
+			}
+			tcl.resultf("%d", bytes_[fid]);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "pkts") == 0) {
-			tcl.resultf("%d", pkts_[fid = atoi(argv[2])]);
+			if (fid >= MAXFLOW) {
+				abort();
+				/*NOTREACHED*/
+			}
+			tcl.resultf("%d", pkts_[fid]);
 			return TCL_OK;
 		} else if (strcmp(argv[1], "drops") == 0) {
-			tcl.resultf("%d", drops_[fid = atoi(argv[2])]);
+			if (fid >= MAXFLOW) {
+				abort();
+				/*NOTREACHED*/
+			}
+			tcl.resultf("%d", drops_[fid]);
 			return TCL_OK;
-		};
+		} else if (strcmp(argv[1], "get-class-delay-samples") == 0) {
+			if (fid >= MAXFLOW) {
+				abort();
+				/*NOTREACHED*/
+			}
+			if (flowstats_[fid] == 0) {
+				/*
+				 * instantiate one if user actually
+				 * cares enough to ask for it!
+				 *
+				 * (otherwise, need to return "",
+				 * and then special-case caller to
+				 * handle this null return.)
+				 */
+				flowstats(fid);
+			}
+			tcl.resultf("%s", flowstats_[fid]->name());
+			return TCL_OK;
+		}
 	}
 	return (QueueMonitor::command(argc, argv));
 }

@@ -35,6 +35,10 @@ DM instproc init { sim node } {
         if { $tracefile != 0 } {
 	    $self trace $ns $tracefile $node
 	}
+	set tracefile [$ns getnamtraceAllFile]
+	if { $tracefile != 0 } {
+		$self trace $ns $tracefile $node "nam"
+	}
 }
 
 DM instproc initialize { } {
@@ -216,6 +220,15 @@ Simulator instproc gettraceAllFile {} {
         $self instvar traceAllFile_
         if [info exists traceAllFile_] {
 	    return $traceAllFile_
+	} else {
+	    return 0
+	}
+}
+
+Simulator instproc getnamtraceAllFile {} {
+        $self instvar namtraceAllFile_
+        if [info exists namtraceAllFile_] {
+	    return $namtraceAllFile_
 	} else {
 	    return 0
 	}

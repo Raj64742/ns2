@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.34 1997/09/11 02:04:01 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.35 1997/10/13 22:25:02 mccanne Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -158,6 +158,12 @@ OldSim instproc init args {
 	eval $self next $args
 	puts stderr "warning: using backward compatibility mode"
 	$self instvar classMap_
+
+	#
+	# Always use the list scheduler.
+	$self instvar scheduler_
+	set scheduler_ [new Scheduler/List]
+
 	#
 	# in CBQ, setting the algorithm_ variable becomes invoking
 	# the algorithm method
@@ -202,7 +208,13 @@ OldSim instproc init args {
                 }
                 eval $self next $args
         }
-
+	Queue/RED instproc enable-vartrace file {
+		$self trace ave_
+		$self trace prob_
+		$self trace curq_
+		$self attach $file
+	}
+		
 	#
 	# Catch set maxpkts for FTP sources, (needed because Source objects are
 	# not derived from TclObject, and hence can't use varMap method below)
@@ -385,7 +397,13 @@ OldSim instproc init args {
 	}
 	linkHelper instproc trace traceObj {
 		$self instvar node1_ node2_
-		ns trace-queue $node1_ $node2_ [$traceObj set file_]
+		$self instvar queue_
+		set tfile [$traceObj set file_]
+		ns trace-queue $node1_ $node2_ $tfile
+		# XXX: special-case RED queue for var tracing
+		if { [string first Queue/RED [$queue_ info class]] == 0 } {
+			$queue_ enable-vartrace $tfile
+		}
 	}
  	linkHelper instproc callback {fn} {
 		# Reach deep into the guts of the link and twist...
@@ -537,8 +555,12 @@ OldSim instproc init args {
 		} elseif { $item == "drops"} {
 			return [$qmon drops $classid]
 		} elseif { $item == "mean-qdelay" } {
-			set dsamp [$qmon get-delay-samples]
-			return [$dsamp mean]
+			set dsamp [$qmon get-class-delay-samples $classid]
+			if { [$dsamp cnt] > 0 } {
+				return [$dsamp mean]
+			} else {
+				return NaN
+			}
 		} else {
 			puts stderr "linkHelper: unknown stat op $item"
 			exit 1
@@ -602,8 +624,16 @@ OldSim instproc init args {
 			error "ns-v1 compat: malformed class operation: op $op"
 			return
 		}
-		set a [lrange $args 2 [expr $arglen - 1]]
-		CBQClass create $id $a
+                #
+                # we need to prevent a "phantom" argument from
+                # showing up in the argument list to [CBQClass create],
+                # so, don't pass an empty string if we weren't
+                # called with one!
+                #
+                # by calling through [eval], we suppress any {} that
+                # might result from the [lrange ...] below
+                #
+                eval CBQClass create $id [lrange $args 2 [expr $arglen - 1]]
 	}
 }
 

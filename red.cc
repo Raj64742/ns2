@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.25 1997/09/29 23:49:04 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.26 1997/10/13 22:24:38 mccanne Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -69,11 +69,9 @@ public:
 	}
 } class_red;
 
-REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL), idle_(1)
+REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
+	tchan_(0), idle_(1)
 {
-	memset(&edp_, '\0', sizeof(edp_));
-	memset(&edv_, '\0', sizeof(edv_));
-
 	bind_bool("bytes_", &edp_.bytes);	    // boolean: use bytes?
 	bind_bool("queue-in-bytes_", &qib_);	    // boolean: q in bytes?
 	bind("thresh_", &edp_.th_min);		    // minthresh
@@ -84,6 +82,10 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL), idle_(1)
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
 	bind_bool("drop-tail_", &drop_tail_);	    // drop last pkt or random
+
+	bind("ave_", &edv_.v_ave);		    // average queue sie
+	bind("prob1_", &edv_.v_prob1);		    // dropping probability
+	bind("curq_", &curq_);			    // current queue size
 
 	q_ = new PacketQueue();			    // underlying queue
 	reset();
@@ -98,23 +100,27 @@ print_edv();
 void REDQueue::reset()
 {
 	/*
-	 * if queue is measured in bytes, scale min/max thresh
-	 * by the size of an average packet
+	 * If queue is measured in bytes, scale min/max thresh
+	 * by the size of an average packet (which is specified by user).
 	 */
 
 	if (qib_) {
 		edp_.th_min *= edp_.mean_pktsize;
 		edp_.th_max *= edp_.mean_pktsize;
 	}
+
 	/*
-	 * compute the "packet time constant" if we know the
+	 * Compute the "packet time constant" if we know the
 	 * link bandwidth.  The ptc is the max number of (avg sized)
-	 * pkts per second which can be placed on the link
+	 * pkts per second which can be placed on the link.
+	 * The link bw is given in bits/sec, so scale mean psize
+	 * accordingly.
 	 */
 	 
 	if (link_)
 		edp_.ptc = link_->bandwidth() /
 			(8. * edp_.mean_pktsize);
+
 	edv_.v_ave = 0.0;
 	edv_.v_slope = 0.0;
 	edv_.count = 0;
@@ -172,32 +178,6 @@ void REDQueue::run_estimator(int nqueued, int m)
 #endif
 	edv_.v_ave = f;
 	edv_.v_slope = f_sl;
-}
-
-/*
- * Output the average queue size and the dropping probability. 
- */
-void REDQueue::plot()
-{
-#ifdef notyet
-	double t = Scheduler::instance().clock();
-	sprintf(trace_->buffer(), "a %g %g", t, edv_.v_ave);
-	trace_->dump();
-	sprintf(trace_->buffer(), "p %g %g", t, edv_.v_prob);
-	trace_->dump();
-#endif
-}
-
-/*
- * print the queue seen by arriving packets only
- */
-void REDQueue::plot1(int)
-{
-#ifdef notyet
-        double t =  Scheduler::instance().clock();
-        sprintf(trace_->buffer(), "Q %g %d", t, length);
-	trace_->dump();
-#endif
 }
 
 /*
@@ -289,18 +269,22 @@ REDQueue::pickPacketToDrop() {
  * exceeds the threshold, then the dropping probability is computed,
  * and the newly-arriving packet is dropped with that probability.
  * The packet is also dropped if the maximum queue size is exceeded.
+ *
+ * "Forced" drops mean a packet arrived when the underlying queue was
+ * full or when the average q size exceeded maxthresh.
+ * "Unforced" means a RED random drop.
+ *
+ * For forced drops, either the arriving packet is dropped or one in the
+ * queue is dropped, depending on the setting of drop_tail_.
+ * For unforced drops, the arriving packet is always the victim.
  */
 
+#define	DTYPE_NONE	0	/* ok, no drop */
 #define	DTYPE_FORCED	1	/* a "forced" drop */
 #define	DTYPE_UNFORCED	2	/* an "unforced" (random) drop */
 
 void REDQueue::enque(Packet* pkt)
 {
-	double now = Scheduler::instance().clock();
-	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
-
-	int droptype = -1;
-	int m = 0;
 
 	/*
 	 * if we were idle, we pretend that m packets arrived during
@@ -308,23 +292,31 @@ void REDQueue::enque(Packet* pkt)
 	 * of time we've been idle for
 	 */
 
+	int m = 0;
         if (idle_) {
+		double now = Scheduler::instance().clock();
 		/* To account for the period when the queue was empty.  */
                 idle_ = 0;
 		m = int(edp_.ptc * (now - idletime_));
         }
 
 	/*
-	 * run the estimator with either 1 new packet arrival, or with
-	 * the scaled version above [scaled due to idle time]
-	 * (bcount_ maintains the byte count in the underlying queue)
+	 * Run the estimator with either 1 new packet arrival, or with
+	 * the scaled version above [scaled by m due to idle time]
+	 * (bcount_ maintains the byte count in the underlying queue).
+	 * If the underlying queue is able to delete packets without
+	 * us knowing, then bcount_ will not be maintained properly!
 	 */
+
 	run_estimator(qib_ ? bcount_ : q_->length(), m + 1);
 
 	/*
 	 * count and count_bytes keeps a tally of arriving traffic
-	 * that has not been dropped
+	 * that has not been dropped (i.e. how long, in terms of traffic,
+	 * it has been since the last early drop)
 	 */
+
+	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 	++edv_.count;
 	edv_.count_bytes += ch->size();
 
@@ -336,16 +328,18 @@ void REDQueue::enque(Packet* pkt)
 	 *	3> if (q+1) > hard q limit, this is a FORCED drop
 	 */
 
-	// see if we drop early
-
 	register double qavg = edv_.v_ave;
+	int droptype = DTYPE_NONE;
 	int qlen = qib_ ? bcount_ : q_->length();
 	int qlim = qib_ ?  (qlim_ * edp_.mean_pktsize) : qlim_;
+
+	curq_ = qlen;	// helps to trace queue during arrival, if enabled
 
 	if (qavg >= edp_.th_min && qlen > 1) {
 		if (qavg >= edp_.th_max) {
 			droptype = DTYPE_FORCED;
 		} else if (edv_.old == 0) {
+			// SALLY: would like a comment here
 			edv_.count = 1;
 			edv_.count_bytes = ch->size();
 			edv_.old = 1;
@@ -354,30 +348,33 @@ void REDQueue::enque(Packet* pkt)
 		}
 	} else {
 		edv_.v_prob = 0.0;
-		edv_.old = 0;
+		edv_.old = 0;		// explain
 	}
 	if (qlen >= qlim) {
 		// see if we've exceeded the queue size
 		droptype = DTYPE_FORCED;
 	}
 
-        if (droptype != DTYPE_UNFORCED) {
+	if (droptype == DTYPE_UNFORCED) {
+		// deliver to special "edrop" target, if defined
+		if (de_drop_ != NULL)
+			de_drop_->recv(pkt);
+		else
+			drop(pkt);
+	} else {
+		/* forced drop, or not a drop: first enqueue pkt */
 		q_->enque(pkt);
 		bcount_ += ch->size();
 		qlen = qib_ ? bcount_ : q_->length();
-	}
-	if (droptype == DTYPE_FORCED) {
-		/* drop random victim or last one */
-		pkt = pickPacketToDrop();
-		q_->remove(pkt);
-		bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size();
-	}
-	else if (droptype == DTYPE_UNFORCED && de_drop_ != NULL) {
-		de_drop_->recv(pkt);
-		return;
-	}
-	if (droptype == DTYPE_FORCED || droptype == DTYPE_UNFORCED) {
-		drop(pkt);
+
+		/* drop a packet if we were told to */
+		if (droptype == DTYPE_FORCED) {
+			/* drop random victim or last one */
+			pkt = pickPacketToDrop();
+			q_->remove(pkt);
+			bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size();
+			drop(pkt);
+		}
 	}
 	return;
 }
@@ -396,6 +393,18 @@ int REDQueue::command(int argc, const char*const* argv)
                         return (TCL_OK);
                 }
 	} else if (argc == 3) {
+		// attach a file for variable tracing
+		if (strcmp(argv[1], "attach") == 0) {
+			int mode;
+			const char* id = argv[2];
+			tchan_ = Tcl_GetChannel(tcl.interp(), (char*)id, &mode);
+			if (tchan_ == 0) {
+				tcl.resultf("RED: trace: can't attach %s for writing", id);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+		// tell RED about link stats
 		if (strcmp(argv[1], "link") == 0) {
 			LinkDelay* del = (LinkDelay*)TclObject::lookup(argv[2]);
 			if (del == 0) {
@@ -429,6 +438,45 @@ int REDQueue::command(int argc, const char*const* argv)
 	}
 	return (Queue::command(argc, argv));
 }
+
+/*
+ * Routine called by TracedVar facility when variables change values.
+ * Currently used to trace values of avg queue size, drop probability,
+ * and the instantaneous queue size seen by arriving packets.
+ * Note that the tracing of each var must be enabled in tcl to work.
+ */
+
+void
+REDQueue::trace(TracedVar* v)
+{
+        char wrk[500], *p;
+
+	if (((p = strstr(v->name(), "ave")) == NULL) &&
+	    ((p = strstr(v->name(), "prob")) == NULL) &&
+	    ((p = strstr(v->name(), "curq")) == NULL)) {
+		fprintf(stderr, "RED:unknown trace var %s\n",
+			v->name());
+		return;
+	}
+
+	if (tchan_) {
+		int n;
+		double t = Scheduler::instance().clock();
+		// XXX: be compatible with nsv1 RED trace entries
+		if (*p == 'c') {
+			sprintf(wrk, "Q %g %d", t, int(*((TracedInt*) v)));
+		} else {
+			sprintf(wrk, "%c %g %g", *p, t,
+				double(*((TracedDouble*) v)));
+		}
+		n = strlen(wrk);
+		wrk[n] = '\n'; 
+		wrk[n+1] = 0;
+		(void)Tcl_Write(tchan_, wrk, n+1);
+	}
+        return; 
+}
+
 /* for debugging help */
 void REDQueue::print_edp()
 {

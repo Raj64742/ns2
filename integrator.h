@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/integrator.h,v 1.5 1997/08/10 07:49:39 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/integrator.h,v 1.6 1997/10/13 22:24:33 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_integrator_h
@@ -62,10 +62,16 @@ public:
 	}
 	int cnt() const { return (cnt_); }
 	double sum() const { return (sum_); }
-	double mean() const { return (sum_ / cnt_); }
+	double mean() const {
+		if (cnt_)
+			return (sum_ / cnt_);
+		return sum_; // yes, that is 0.0...
+	}
 	double variance() const {
 		// use cnt_-1 degrees of freedom
-		return ((sqsum_ - mean() * sum_) / (cnt_ - 1));
+		if (cnt_ > 1)
+			return ((sqsum_ - mean() * sum_) / (cnt_ - 1));
+		return 0.0;
 	}
 	void reset() { cnt_ = 0; sum_ = sqsum_ = 0.0; }
 	int command(int argc, const char*const* argv);

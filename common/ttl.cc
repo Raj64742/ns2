@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.7 1997/09/10 16:59:56 kannan Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.8 1997/10/13 22:24:53 mccanne Exp $";
 #endif
 
 #include "packet.h"
@@ -71,3 +71,48 @@ public:
 		return (new TTLChecker);
 	}
 } ttl_checker_class;
+
+
+class SessionTTLChecker : public Connector {
+public:
+	SessionTTLChecker() {
+		bind("off_ip_", &off_ip_);
+	}
+	int command(int argc, const char*const* argv);
+	void recv(Packet* p, Handler* h) {
+		hdr_ip* iph = (hdr_ip*)p->access(off_ip_);
+		int ttl = iph->ttl() - tick_;
+		if (ttl <= 0) {
+			/* XXX should send to a drop object.*/
+			// Yes, and now it does...
+			// Packet::free(p);
+			printf("ttl exceeded\n");
+			drop(p);
+			return;
+		}
+		iph->ttl() = ttl;
+		send(p, h);
+	}
+protected:
+	int off_ip_;
+        int tick_;
+};
+
+static class SessionTTLCheckerClass : public TclClass {
+public:
+	SessionTTLCheckerClass() : TclClass("TTLChecker/Session") {}
+	TclObject* create(int, const char*const*) {
+		return (new SessionTTLChecker);
+	}
+} session_ttl_checker_class;
+
+int SessionTTLChecker::command(int argc, const char*const* argv)
+{
+        if (argc == 3) {
+                if (strcmp(argv[1], "tick") == 0) {
+                        tick_ = atoi(argv[2]);
+                        return (TCL_OK);
+                }
+        }
+        return (Connector::command(argc, argv));
+}

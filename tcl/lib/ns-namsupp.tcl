@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu, haoboy@isi.edu
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.1 1997/09/12 19:24:07 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.2 1997/10/13 22:25:05 mccanne Exp $
 #
 
 #
@@ -66,7 +66,7 @@ Node instproc trace { file shape color } {
 	$self instvar trace_ id_ color_
 	set trace_ $file
 	set color_ $color    ;# save this for later tracing
-	puts $trace_ [eval list "n -t* -s$id_ -SUP -v$shape -c$color"]
+	puts $trace_ [eval list "n -t * -s $id_ -S UP -v $shape -c $color"]
 }
 
 Node instproc change-color { color } {
@@ -74,7 +74,7 @@ Node instproc change-color { color } {
 	if [info exists trace_] {
 		set ns [Simulator instance]
 		# we don't need shape info here, and don't need UP/DOWN?
-		puts $trace_ [eval list "n -t[$ns now] -s$id_ -SCOLOR -c$color -o$color_"]
+		puts $trace_ [eval list "n -t [$ns now] -s $id_ -S COLOR -c $color -o $color_"]
 		set color_ $color
 	}
 }
@@ -90,7 +90,7 @@ Simulator instproc color { id name } {
 	$self instvar Color_ namtraceAllFile_
 
 	if [info exists namtraceAllFile_] {
-		puts $namtraceAllFile_ "c -t* -i$id -n$name"
+		puts $namtraceAllFile_ "c -t * -i $id -n $name"
 	}
 }
 
@@ -122,7 +122,7 @@ Agent instproc add-var-trace { name value {type "v"} } {
 		$self instvar addr_ dst_ ntName_ features_
 		set addr [expr $addr_ >> 8]
 		set dst [expr $dst_ >> 8]
-		puts $namTrace_ "f -t[$ns now] -s$addr -d$dst -T$type -n$name -v$value -a$ntName_"
+		puts $namTrace_ "f -t [$ns now] -s $addr -d $dst -T $type -n $name -v $value -a $ntName_"
 		set features_($name) $value
 	}
 }
@@ -135,7 +135,7 @@ Agent instproc update-var-trace { name value {type "v"} } {
 		$self instvar addr_ dst_ ntName_ features_
 		set addr [expr $addr_ >> 8]
 		set dst [expr $dst_ >> 8]
-		puts $namTrace_ "f -t[$ns now] -s$addr -d$dst -T$type -n$name -v$value -a$ntName_ -o$features_($name)"
+		puts $namTrace_ "f -t [$ns now] -s $addr -d $dst -T $type -n $name -v $value -a $ntName_ -o $features_($name)"
 		set features_($name) $value
 	}
 }
@@ -148,7 +148,11 @@ Agent instproc delete-var-trace { name } {
 		$self instvar addr_ dst_ ntName_ features_
 		set addr [expr $addr_ >> 8]
 		set dst [expr $dst_ >> 8]
-		puts $namTrace_ "f -t[$ns now] -s$addr -d$dst -n$name -a$ntName_ -o$features_($name) -x"
+		puts $namTrace_ "f -t [$ns now] -s $addr -d $dst -n $name -a $ntName_ -o $features_($name) -x"
 		unset features_($name)
 	}
 }
+
+
+
+

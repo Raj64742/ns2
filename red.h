@@ -52,7 +52,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.9 1997/08/10 07:49:50 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.10 1997/10/13 22:24:39 mccanne Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -84,30 +84,30 @@ struct edp {
 	double th_min;		/* minimum threshold of average queue size */
 	double th_max;		/* maximum threshold of average queue size */
 	double max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
-	double q_w;		/* queue weight */
-				   
+	double q_w;		/* queue weight given to cur q size sample */
+
 	/*
 	 * Computed as a function of user supplied paramters.
 	 */
 	double ptc;		/* packet time constant in packets/second */
-	int adjusted_for_bytes_;      /* adjusted for byte-counting
-					 instead of packet-counting */
 };
 
 /*
  * Early drop variables, maintained by RED
  */
 struct edv {
-	float v_ave;		/* average queue size */
-	float v_slope;		/* used in computing average queue size */
-	float v_r;			
-	float v_prob;		/* prob. of packet drop */
-	float v_prob1;		/* prob. of packet drop before "count". */
-	float v_a;		/* v_prob = v_a * v_ave + v_b */
-	float v_b;
+	TracedDouble v_ave;	/* average queue size */
+	TracedDouble v_prob1;	/* prob. of packet drop before "count". */
+	double v_slope;		/* used in computing average queue size */
+	double v_prob;		/* prob. of packet drop */
+	double v_a;		/* v_prob = v_a * v_ave + v_b */
+	double v_b;
 	int count;		/* # of packets since last drop */
 	int count_bytes;	/* # of bytes since last drop */
 	int old;		/* 0 when average queue first exceeds thresh */
+
+	edv() : v_ave(0.0), v_prob1(0.0), v_slope(0.0), v_prob(0.0),
+		v_a(0.0), v_b(0.0), count(0), count_bytes(0), old(0) { }
 };
 
 class REDQueue : public Queue {
@@ -120,34 +120,37 @@ class REDQueue : public Queue {
 	Packet* deque();
 	void reset();
 	void run_estimator(int nqueued, int m);
-	void plot();
-	void plot1(int qlen);
 	int drop_early(Packet* pkt);
 
 	LinkDelay* link_;	/* outgoing link */
 	int fifo_;		/* fifo queue? */
-        PacketQueue *q_; /* underlying FIFO queue */
+        PacketQueue *q_; 	/* underlying (usually) FIFO queue */
 		
 	int bcount_;	/* byte count */
 	int qib_;	/* bool: queue measured in bytes? */
 	NsObject* de_drop_;	/* drop_early target */
 
+	Tcl_Channel tchan_;	/* place to write trace records */
+	TracedInt curq_;	/* current qlen seen by arrivals */
+	void trace(TracedVar*);	/* routine to write trace records */
+
 	/*
 	 * Static state.
 	 */
-	int drop_tail_;
-	edp edp_;
+	int drop_tail_;	/* drop-tail, or drop random? */
+	edp edp_;	/* early-drop params */
 	int doubleq_;	/* for experiments with priority for small packets */
 	int dqthresh_;	/* for experiments with priority for small packets */
 
 	/*
 	 * Dynamic state.
 	 */
-	int idle_;
-	double idletime_;
-	edv edv_;
-	void print_edp();
-	void print_edv();
+	int idle_;		/* queue is idle? */
+	double idletime_;	/* if so, since this time */
+	edv edv_;		/* early-drop variables */
+
+	void print_edp();	// for debugging
+	void print_edv();	// for debugging
 };
 
 #endif

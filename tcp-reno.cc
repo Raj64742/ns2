@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.18 1997/08/26 03:33:41 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-reno.cc,v 1.19 1997/10/13 22:24:42 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -65,6 +65,7 @@ void RenoTcpAgent::recv(Packet *pkt, Handler*)
 		exit(1);
 	}
 #endif
+	++nackpack_;
 	ts_peer_ = tcph->ts();
 
 	if (((hdr_flags*)pkt->access(off_flags_))->ecn_ && ecn_)

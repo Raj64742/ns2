@@ -69,7 +69,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.9 1997/08/14 00:00:26 tomh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.10 1997/10/13 22:24:41 mccanne Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -84,10 +84,10 @@ static const char rcsid[] =
 
 static class FullTcpClass : public TclClass { 
 public:
-    FullTcpClass() : TclClass("Agent/TCP/FullTcp") {}
-    TclObject* create(int, const char*const*) { 
-        return (new FullTcpAgent());
-    }
+	FullTcpClass() : TclClass("Agent/TCP/FullTcp") {}
+	TclObject* create(int, const char*const*) { 
+		return (new FullTcpAgent());
+	}
 } class_full;
 
 /*
@@ -95,8 +95,8 @@ public:
  *	segsperack: for delayed ACKs, how many to wait before ACKing
  *	segsize: segment size to use when sending
  */
-FullTcpAgent::FullTcpAgent() : flags_(0),
-	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1), delack_timer_(this)
+FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0),
+	state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -119,10 +119,11 @@ FullTcpAgent::FullTcpAgent() : flags_(0),
 void
 FullTcpAgent::reset()
 {
+	TcpAgent::reset();
+	highest_ack_ = -1;
 	last_ack_sent_ = -1;
 	rcv_nxt_ = -1;
 	flags_ = 0;
-	TcpAgent::reset();
 	t_seqno_ = iss_;
 }
 
@@ -176,10 +177,9 @@ FullTcpAgent::advance(int np)
 	//	if anything else (establishing), do nothing here
 	//
 	if (state_ > TCPS_ESTABLISHED) {
-		double now = Scheduler::instance().clock();
 		fprintf(stderr,
 		 "%f: FullTcpAgent::advance(%s): cannot advance while in state %d\n",
-		 now, name(), state_);
+		 now(), name(), state_);
 		return;
 	} else if (state_ == TCPS_CLOSED)
 		connect();		// initiate new connection
@@ -205,6 +205,42 @@ int FullTcpAgent::outflags()
 
 	return (flags);
 }
+
+/*
+ * sendpacket: 
+ *	allocate a packet, fill in header fields, and send
+ *	also keeps stats on # of data pkts, acks, re-xmits, etc
+ *
+ * fill in packet fields.  Agent::allocpkt() fills
+ * in most of the network layer fields for us.
+ * So fill in tcp hdr and adjust the packet size.
+ */
+void FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reason)
+{
+        Packet* p = allocpkt();
+        hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
+        hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
+        tcph->seqno() = seqno;
+        tcph->ackno() = ackno;
+        tcph->flags() = pflags;
+        tcph->hlen() = headersize();
+        tcph->ts() = now();
+	/* Open issue:  should tcph->reason map to pkt->flags_ as in ns-1?? */
+        tcph->reason() |= reason;
+        th->size() = datalen + headersize();
+        if (datalen <= 0)
+                ++nackpack_;
+        else {
+                ++ndatapack_;
+                ndatabytes_ += datalen;
+        }
+        if (reason == REASON_TIMEOUT || reason == REASON_DUPACK) {
+                ++nrexmitpack_;
+                nrexmitbytes_ += datalen;
+        }
+        send(p, 0);
+}
+
 
 /*
  * see if we should send a segment, and if so, send it
@@ -273,31 +309,12 @@ void FullTcpAgent::output(int seqno, int reason)
 	return;		// no reason to send now
 
 send:
-	Packet* p = allocpkt();
-	double now = Scheduler::instance().clock();
-    hdr_tcp *tcph = (hdr_tcp*)p->access(off_tcp_);
-    hdr_cmn *th = (hdr_cmn*)p->access(off_cmn_);
 
 	if (datalen > 0 && emptying_buffer)
 		pflags |= TH_PUSH;
 
-	/*
-	 * fill in packet fields.  Agent::allocpkt()
-	 * has already filled most of the network layer
-	 * fields for us.   So fill in tcp hdr and adjust
-	 * the packet size.
-	 */
-	tcph->seqno() = seqno;
-	tcph->flags() = pflags;
-	tcph->hlen() = headersize();
-	tcph->ts() = now;
-	tcph->ackno() = rcv_nxt_; // what we want next
-	last_ack_sent_ = tcph->ackno();
-    /* Open issue:  should tcph->reason map to pkt->flags_ as in ns-1?? */
-	tcph->reason() |= reason;
-	th->size() = datalen + headersize();
-
-	send(p, 0); 	// send it
+	sendpacket(seqno, rcv_nxt_, pflags, datalen, reason);
+	last_ack_sent_ = rcv_nxt_;
 	flags_ &= ~(TF_ACKNOW|TF_DELACK);
 
 	if (pflags & TH_FIN)
@@ -363,13 +380,6 @@ void FullTcpAgent::send_much(int force, int reason, int maxburst)
 	return;
 }
 
-void FullTcpAgent::cancel_rtx_timeout()
-{
-	if (rtx_timer_.status() == TIMER_PENDING) {
-		rtx_timer_.cancel();
-	}
-}
-
 /*
  * Process an ACK
  *	this version of the routine doesn't necessarily
@@ -385,9 +395,8 @@ void FullTcpAgent::cancel_rtx_timeout()
  */
 void FullTcpAgent::newack(Packet* pkt)
 {
-    hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 
-	double now = Scheduler::instance().clock();
 	register int ackno = tcph->ackno();
 
 	// we were timing the segment and we
@@ -399,11 +408,11 @@ void FullTcpAgent::newack(Packet* pkt)
 	}
 
 	/* always with timestamp option */
-	double tao = now - tcph->ts();
+	double tao = now() - tcph->ts();
 	rtt_update(tao);
 
 	if (ackno == maxseq_)
-		cancel_rtx_timeout();
+		cancel_rtx_timer();
 	else {
 		if (ackno > highest_ack_) {
 			set_rtx_timer();
@@ -424,7 +433,7 @@ void FullTcpAgent::newack(Packet* pkt)
  */
 int FullTcpAgent::predict_ok(Packet* pkt)
 {
-    hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
 
 	int p1 = (state_ == TCPS_ESTABLISHED);		// ready
 	int p2 = (tcph->flags() == TH_ACK);		// is an ACK
@@ -474,8 +483,8 @@ int FullTcpAgent::need_send()
  */
 void FullTcpAgent::recv(Packet *pkt, Handler*)
 {
-    hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-    hdr_cmn *th = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_cmn *th = (hdr_cmn*)pkt->access(off_cmn_);
 
 	int needoutput = 0;
 	int ourfinisacked = 0;
@@ -494,9 +503,8 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	// that t0 > now
 	//
 	if (!(delack_timer_.status() == TIMER_PENDING)) {
-		double now = Scheduler::instance().clock();
-		int last = int(now / delack_interval_);
-		delack_timer_.resched(delack_interval_ * (last + 1.0) - now);
+		int last = int(now() / delack_interval_);
+		delack_timer_.resched(delack_interval_ * (last + 1.0) - now());
 	}
 
 	int datalen = th->size() - tcph->hlen();
@@ -546,19 +554,17 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	switch (state_) {
 	case TCPS_LISTEN:	/* awaiting peer's SYN */
 		if (tiflags & TH_ACK) {
-			double now = Scheduler::instance().clock();
 			// ACK shouldn't be on here
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): got ACK(%d) while in LISTEN\n",
-				now, name(), ackno);
+				now(), name(), ackno);
 			goto drop;
 		}
 		if ((tiflags & TH_SYN) == 0) {
-			double now = Scheduler::instance().clock();
 			// we're looking for a SYN in return
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): got a non-SYN while in LISTEN\n",
-				now, name());
+				now(), name());
 			goto drop;
 		}
 		flags_ |= TF_ACKNOW;
@@ -568,23 +574,21 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		goto step6;
 	case TCPS_SYN_SENT:	/* we sent SYN, expecting SYN+ACK */
 		if ((tiflags & TH_ACK) && (ackno > maxseq_)) {
-			double now = Scheduler::instance().clock();
 			// not an ACK for our SYN, discard
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): bad ACK (%d) for our SYN(%d)\n",
-			        now, name(), int(ackno), int(maxseq_));
+			        now(), name(), int(ackno), int(maxseq_));
 			goto drop;
 		}
 		if ((tiflags & TH_SYN) == 0) {
-			double now = Scheduler::instance().clock();
 			// we're looking for a SYN in return
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): no SYN for our SYN(%d)\n",
-			        now, name(), int(maxseq_));
+			        now(), name(), int(maxseq_));
 			goto drop;
 		}
 		rcv_nxt_ = tcph->seqno();	// initial expected seq#
-		cancel_rtx_timeout();	// cancel timer on our 1st SYN
+		cancel_rtx_timer();	// cancel timer on our 1st SYN
 		flags_ |= TF_ACKNOW;	// ACK peer's SYN
 		if (tiflags & TH_ACK) {
 			// got SYN+ACK (what we're expecting)
@@ -638,17 +642,15 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	}
 
 	if (tiflags & TH_SYN) {
-		double now = Scheduler::instance().clock();
 		fprintf(stderr,
 		    "%f: FullTcpAgent::recv(%s) received unexpected SYN (state:%d)\n",
-		        now, name(), state_);
+		        now(), name(), state_);
 		goto drop;
 	}
 
 	if ((tiflags & TH_ACK) == 0) {
-		double now = Scheduler::instance().clock();
 		fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (seq %d)\n",
-			now, name(), tcph->seqno());
+			now(), name(), tcph->seqno());
 		goto drop;
 	}
 
@@ -717,7 +719,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 					   (highest_ack_ > recover_) ||
 					   (recover_cause_ != REASON_TIMEOUT)) {
 						closecwnd(1);
-						cancel_rtx_timeout();
+						cancel_rtx_timer();
 						rtt_active_ = FALSE;
 						fast_retransmit(ackno);
 						// we measure cwnd in packets,
@@ -761,11 +763,10 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		}
 		dupacks_ = 0;
 		if (ackno > maxseq_) {
-			double now = Scheduler::instance().clock();
 			// ack more than we sent(!?)
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s) too-big ACK (ack: %d, maxseq:%d)\n",
-				now, name(), int(ackno), int(maxseq_));
+				now(), name(), int(ackno), int(maxseq_));
 			goto dropafterack;
 		}
 
@@ -904,7 +905,7 @@ step6:
                  */
                 case TCPS_FIN_WAIT_2:
                         state_ = TCPS_CLOSED;
-			cancel_rtx_timeout();
+			cancel_rtx_timer();
                         break;
 		}
 	}
@@ -1037,8 +1038,8 @@ void ReassemblyQueue::clear()
  */
 void ReassemblyQueue::add(Packet* pkt)
 {
-    hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-    hdr_cmn *th = (hdr_cmn*)pkt->access(off_cmn_);
+	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
+	hdr_cmn *th = (hdr_cmn*)pkt->access(off_cmn_);
 
 	int start = tcph->seqno();
 	int end = start + th->size() - tcph->hlen();
@@ -1163,13 +1164,12 @@ void FullTcpAgent::timeout(int tno)
 		}
 		delack_timer_.resched(delack_interval_);
 	} else {
-		double now = Scheduler::instance().clock();
 		fprintf(stderr, "%f: (%s) UNKNOWN TIMEOUT %d\n",
-			now, name(), tno);
+			now(), name(), tno);
 	}
 }
 
-void DelAckTimer::expire(Event *e) {
-	a_->timeout(TCP_TIMER_DELACK);
+void DelAckTimer::expire(Event *) {
+        a_->timeout(TCP_TIMER_DELACK);
 }
 

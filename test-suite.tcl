@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.10 1997/10/01 16:53:31 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.11 1997/10/13 22:24:51 mccanne Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -93,7 +93,7 @@ TestSuite instproc init {} {
 }
 
 TestSuite instproc finish file {
-	global env
+	global env quiet
 
 	#
 	# we don't bother checking for the link we're interested in
@@ -147,10 +147,12 @@ TestSuite instproc finish file {
 	puts $f "Device: Postscript"
     exec perl -ane $perlCode out.tr >@ $f
 	close $f
-	if {[info exists env(DISPLAY)] && ![info exists env(NOXGRAPH)]} {
+	if {$quiet == "false"} {
+	  if {[info exists env(DISPLAY)] && ![info exists env(NOXGRAPH)]} {
 	    exec xgraph -display $env(DISPLAY) -bb -tk -nl -m -x time -y packet temp.rands &
-	} else {
+	  } else {
 	    puts stderr "output trace is in temp.rands"
+	  }
 	}
 	
 	exit 0
@@ -161,6 +163,7 @@ TestSuite instproc finish file {
 # $interval seconds of simulation time
 #
 TestSuite instproc tcpDump { tcpSrc interval } {
+	global quiet
 	$self instvar dump_inst_ ns_
 	if ![info exists dump_inst_($tcpSrc)] {
 		set dump_inst_($tcpSrc) 1
@@ -168,7 +171,10 @@ TestSuite instproc tcpDump { tcpSrc interval } {
 		return
 	}
 	$ns_ at [expr [$ns_ now] + $interval] "$self tcpDump $tcpSrc $interval"
-	puts [$ns_ now]/cwnd=[format "%.4f" [$tcpSrc set cwnd_]]/ssthresh=[$tcpSrc set ssthresh_]/ack=[$tcpSrc set ack_]
+	set report [$ns_ now]/cwnd=[format "%.4f" [$tcpSrc set cwnd_]]/ssthresh=[$tcpSrc set ssthresh_]/ack=[$tcpSrc set ack_]
+	if {$quiet == "false"} {
+		puts $report
+	}
 }
 
 TestSuite instproc tcpDumpAll { tcpSrc interval label } {
@@ -234,8 +240,9 @@ proc get-subclasses {cls pfx} {
 }
 
 TestSuite proc runTest {} {
-	global argc argv
+	global argc argv quiet
 
+	set quiet false
 	switch $argc {
 		1 {
 			set test $argv
@@ -248,7 +255,24 @@ TestSuite proc runTest {} {
 			isProc? Test $test
 
 			set topo [lindex $argv 1]
+			if {$topo == "QUIET"} {
+				set quiet true
+				set topo ""
+			} else {
+				isProc? Topology $topo
+			}
+		}
+		3 {
+			set test [lindex $argv 0]
+			isProc? Test $test
+
+			set topo [lindex $argv 1]
 			isProc? Topology $topo
+
+			set extra [lindex $argv 2]
+			if {$extra == "QUIET"} {
+				set quiet true
+			}
 		}
 		default {
 			usage

@@ -1,9 +1,14 @@
+Makefile
+TAGS
 config.cache
 config.log
+config.status
 embedded-tclobj.cc
 embedded-tk.cc
 gen
-config.status
-Makefile
 ns
 ns-src*.tar.gz
+*.ps
+*.tr
+*.dat
+out.*

@@ -12,6 +12,7 @@ options:
     -m MODULUS  treat TCP sequence numbers as mod MODULUS
     -q		show queueing delay by connecting lines
     -l		show packet length
+    -t TITLE    title of test
 
 Traditional ``wrapping'' ns plots (as called from the test scripts)
 can be generated with -s 0.01 -m 90.
@@ -20,9 +21,8 @@ END
 };
 $usage = "usage: $progname [-a] [trace files...]\n";
 
-$opt_a = 0;
 require 'getopts.pl';
-&Getopts('as:m:ql') || usage;
+&Getopts('as:m:qlt:') || usage;
 
 $c = 0;
 @p = @a = @d = @lu = @ld = ();
@@ -47,7 +47,7 @@ while (<>) {
 	$is_ack = ($F[4] eq 'ack');
 	next if ($is_ack && !$plot_acks);
 
-	($x, $y) = translate_point(@F[1, 10, 7]);
+	($x, $y) = translate_point(@F[1, 10, 8]);
 	if (defined($opt_q)) {
 	    if (/^\+/) {
 		$statement = undef;
@@ -68,7 +68,7 @@ while (<>) {
 	next;
     };
     /^d / && do {
-	($x, $y) = translate_point(@F[1, 10, 7]);
+	($x, $y) = translate_point(@F[1, 10, 8]);
 	push(@d, "$x $y\n");
 	next;
     };
@@ -80,7 +80,8 @@ if ($file eq '') {
 	($file) = ($dfile =~ m!([^/]+)$!);
 }
 
-print "TitleText: $file\n" .
+$title  = defined($opt_t) ? $opt_t : $file;
+print "TitleText: $title\n" .
     "Device: Postscript\n" .
     "BoundBox: true\n" .
     "Ticks: true\n" .
