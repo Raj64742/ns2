@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.9 1997/11/06 02:57:19 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.10 1997/11/06 03:04:41 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -421,31 +421,31 @@ Test/WRR instproc run {} {
 
 Class Test/PRR -superclass TestSuite
 Test/PRR instproc init topo {
-exit 1
 	$self instvar net_ defNet_ test_
 	set net_ $topo
-	set defNet_ cbq1
-	set test CBQ_PRR
-	$self next
+	set defNet_ cbq1-prr
+	set test_ CBQ_PRR
+	$self next 0
 }
 
 #
 # Figure 10, but packet-by-packet RR, and Formal.
 # 
 Test/PRR instproc run {} {
-	$self instvar ns_
-
-
-
-	global s1 s2 s3 s4 r1 k1 
-	set qlen 20
+	$self instvar cbqalgorithm_ ns_ net_ topo_
+	set cbqalgorithm_ formal
 	set stopTime 28.1
-	set CBQalgorithm 2
- 	$self create_flat [ns link $r1 $k1] $qlen
-	$self three_cbrs
-	[ns link $r1 $k1] set algorithm $CBQalgorithm
+	set maxbytes 187500
 
-	openTrace2 $stopTime test_cbqPRR
+	$topo_ instvar cbqlink_
+	$self create_flat
+	$self insert_flat $cbqlink_
+	$self three_cbrs
+	$self make_fmon $cbqlink_
+	[$cbqlink_ queue] algorithm $cbqalgorithm_
+
+	$self cbrDump4 $cbqlink_ 1.0 $stopTime $maxbytes
+	$self openTrace $stopTime CBQ_PRR
 
 	$ns_ run
 }
