@@ -225,9 +225,9 @@ TestSuite instproc finish {} {
 	if [info exists tracedFlows_] {
 		foreach i $tracedFlows_ {
 			set file [[set src_($i)] set tcpTrace_]
-			if {[info exists $file]} {
-				flush [set $file]
-				close [set $file]
+			if {[info exists file]} {
+				flush $file
+				close $file
 			}	
 		}
 	}
@@ -238,9 +238,9 @@ TestSuite instproc finish {} {
 	}
 	if {[info exists qtraces_]} {
 		foreach file $qtraces_ {
-			if {[info exists $file]} {
-				flush [set $file]
-				close [set $file]
+			if {[info exists file]} {
+				flush $file
+				close $file
 			}
 		}
 	}
@@ -559,6 +559,7 @@ Test/parking-lot-topo instproc run {} {
    				"XCP" {
    					set qtrace [open ft_red_[set queue_name].tr w]
    					$queue attach $qtrace
+					lappend qtraces_ $qtrace
    				}
    			}
    		}
@@ -567,11 +568,6 @@ Test/parking-lot-topo instproc run {} {
    			set queue [set "$queue_name"]
    			$queue queue-sample-everyrtt $qEffective_RTT_
    		}
-   		incr i
-   	}
-   	set i 0;
-   	while { $i < $numHops_ } {
-   		set qtraces_ "ft_red_q$i ft_red_rq$i"
    		incr i
    	}
 	

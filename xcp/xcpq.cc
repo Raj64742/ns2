@@ -36,7 +36,7 @@ public:
 XCPQueue::XCPQueue(): queue_timer_(NULL), 
 		      estimation_control_timer_(NULL),
 		      rtt_timer_(NULL), effective_rtt_(0.0),
-		      spread_bytes_(0)
+		      spread_bytes_(false)
 {
 	init_vars();
 }

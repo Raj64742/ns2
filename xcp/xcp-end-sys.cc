@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.6 2005/01/13 18:39:06 haldar Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.7 2005/02/03 18:27:12 haldar Exp $";
 #endif
 
 #include <stdio.h>
@@ -234,12 +234,13 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 
 	if (channel_)
 		trace_var("xcp_sparse_seqno_", xcp_sparse_seqno_);
-	if (xcp_sparse_) {
+	if (xcp_sparse_) {	
 		hdr_tcp *tcph = hdr_tcp::access(pkt);
 		if (xcp_sparse_seqno_ == tcph->seqno()) {
 			xcp_sparse_seqno_ = -1; //signal to send again
 		}
 	}
+		
 	hdr_xcp *xh = hdr_xcp::access(pkt);
 	if (xh->xcp_enabled_ != hdr_xcp::XCP_DISABLED) {
 		if(channel_) {

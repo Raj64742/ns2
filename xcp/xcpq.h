@@ -18,7 +18,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.6 2005/01/13 18:39:06 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.7 2005/02/03 18:27:12 haldar Exp $
  */
 
 
@@ -67,7 +67,7 @@ public:
 	void setChannel(Tcl_Channel queue_trace_file);
 	double totalDrops() { return total_drops_; }
   
-	void spread_bytes(int b) { 
+	void spread_bytes(bool b) { 
 		spread_bytes_ = b; 
 		if (b) 
 			Te_ = BWIDTH;
@@ -136,7 +136,7 @@ protected:
 	double          running_min_queue_bytes_;
 	unsigned int    num_cc_packets_in_Te_;
   
-	int			spread_bytes_; 
+	bool			spread_bytes_; 
 	static const int	BSIZE = 4096;
 	double			b_[BSIZE];
 	double			t_[BSIZE];

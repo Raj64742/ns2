@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp.cc,v 1.8 2005/01/13 18:39:06 haldar Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp.cc,v 1.9 2005/02/03 18:27:12 haldar Exp $";
 #endif
 
 
@@ -39,7 +39,7 @@ public:
 	}
 } class_xcp_queue;
 
-XCPWrapQ::XCPWrapQ() : xcpq_(0), qToDq_(0), spread_bytes_(0), tcp_xcp_on_(false)
+XCPWrapQ::XCPWrapQ() : xcpq_(0), qToDq_(0), spread_bytes_(0), tcp_xcp_on_(0)
 {
 	// If needed wrrTemp and queueWeight will be reset to more useful
 	// values in XCPWrapQ::setVirtualQueues
