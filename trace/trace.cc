@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.24 1997/12/19 22:20:13 bajaj Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.25 1998/02/25 02:18:45 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -156,10 +156,10 @@ void Trace::write_nam_trace(const char *s)
 
 void Trace::annotate(const char* s)
 {
-	sprintf(wrk_, "v %g eval {set sim_annotation {%s}}", 
+	sprintf(wrk_, "v %.17g eval {set sim_annotation {%s}}", 
 		Scheduler::instance().clock(), s);
 	dump();
-	sprintf(nwrk_, "v %g sim_annotation %g %s", 
+	sprintf(nwrk_, "v %.17g sim_annotation %.17g %s", 
 		Scheduler::instance().clock(), 
 		Scheduler::instance().clock(), s);
 	namdump();
@@ -218,7 +218,7 @@ flags[5] = 0;
 #endif
 
 	if (!show_tcphdr_) {
-		sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d",
+		sprintf(wrk_, "%c %.17g %d %d %s %d %s %d %d.%d %d.%d %d %d",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -232,7 +232,7 @@ flags[5] = 0;
 			seqno,
 			th->uid() /* was p->uid_ */);
 	} else {
-		sprintf(wrk_, "%c %g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x %d",
+		sprintf(wrk_, "%c %.17g %d %d %s %d %s %d %d.%d %d.%d %d %d %d 0x%x %d",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -252,7 +252,7 @@ flags[5] = 0;
 #ifdef NAM_TRACE
 	if (namChan_ != 0)
 		sprintf(nwrk_, 
-			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
+			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
 			tt,
 			Scheduler::instance().clock(),
 			s,
@@ -323,7 +323,7 @@ void Trace::trace(TracedVar* var)
 		return;
 
 	// format: use Mark's nam feature code without the '-' prefix
-	sprintf(wrk_, "%c t%g a%s n%s v%s",
+	sprintf(wrk_, "%c t%.17g a%s n%s v%s",
 		type_,
 		s.clock(),
 		var->owner()->name(),
@@ -369,7 +369,7 @@ DequeTrace::recv(Packet* p, Handler* h)
 		const char* name = pt_names[t];
 
 		sprintf(nwrk_, 
-			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
+			"%c -t %.17g -s %d -d %d -p %s -e %d -c %d -i %d -a %d",
 			'h',
 			Scheduler::instance().clock(),
 			src_,
