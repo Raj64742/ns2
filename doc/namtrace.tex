@@ -433,7 +433,7 @@ This is a listing of all possible nam trace event codes and the flags associated
   n : & node & & \\
     &  -t & <time> & time \\
     &  -s & <int> & node id \\
-    &  -v & <string> & shape (circle, triangle, hexagon) \\
+    &  -v & <shape> & shape (circle, triangle, hexagon) \\
     &  -c & <color> & color \\
     &  -z & <double> & size of node \\
     &  -a & <int> & address \\
@@ -455,6 +455,7 @@ This is a listing of all possible nam trace event codes and the flags associated
     &  -U & <string> & x velocity \\
     &  -V & <string> & y velocity \\
     &  -T & <string> & node stop time \\
+    &  -w & <flag> & wireless node \\
   \end{tabular}
 
   \begin{tabular}{llll}
@@ -470,7 +471,7 @@ This is a listing of all possible nam trace event codes and the flags associated
     &  -c & <color> & color \\
     &  -o & <color> & previous color \\
     &  -S & <string> & state (UP, DOWN) \\
-    &  -l & <string> & label \\
+    &  -l & <string l> & label \\
     &  -L & <string> & previous label \\
     &  -e & <color> & label color \\
     &  -E & <color> & previous label color \\
@@ -628,16 +629,12 @@ This is a listing of all possible nam trace event codes and the flags associated
   \end{tabular}
 
   \begin{tabular}{llll}
-  q : & queue config -- initialization & & \\
-    &  -t & <time> & time \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
   L : & lan link & & \\
     &  -t & <time> & time \\
     &  -s & <int> & source id \\
     &  -d & <int> & destination id \\
     &  -o & <orientation> & orientation \\
+    &  -O & <orientation> & orientation \\
   \end{tabular}
 
   \begin{tabular}{llll}
@@ -713,7 +710,7 @@ This is a listing of all possible nam trace event codes and the flags associated
   \end{tabular}
 
   \begin{tabular}{llll}
-  q : & define packet queue -- initialization only & & \\
+  q : & create packet queue -- initialization only & & \\
     &  -t & <time> & time \\
     &  -s & <int> & source id \\
     &  -d & <int> & destination id \\
@@ -727,5 +724,7 @@ This is a listing of all possible nam trace event codes and the flags associated
     &  -r & <double> & rate \\
     &  -D & <double> & delay \\
     &  -o & <orientation> & orientation \\
+    &  -O & <orientation> & orientation \\
   \end{tabular}
+
 
