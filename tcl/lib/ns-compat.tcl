@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.31 1997/07/26 00:15:25 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.32 1997/07/26 00:42:47 kfall Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -47,120 +47,44 @@ proc ns args {
 }
 
 
-proc old_default_abort {varName index op} {
+OldSim instproc old_default_abort {varName index op} {
 	upvar $varName var
-	puts "old_default_abort: trying to set ns-v1 defaults by old interface."
+	puts "error: ns-2 compatibility library cannot set ns-v1 defaults"
 	puts "\t$varName $index $op"
 	exit 1
 }
 
-proc map_ns_defaults {old_var pairs} {
+OldSim instproc map_ns_defaults old_var {
 	global $old_var
-	trace variable $old_var rwu old_default_abort
+	trace variable $old_var rwu "$self old_default_abort"
 	# eventually we'll try to emulate the old variables.
 }
 
-proc trace_old_defaults {} {
+OldSim instproc trace_old_defaults {} {
 	# all ns-v1 defaults as of 1.4
-	map_ns_defaults ns_tcp {maxburst 0
-		maxcwnd 0
-		window 20
-		window-init 1
-		overhead 0
-		ecn 0
-		packet-size 1000
-		bug-fix true
-		tcp-tick 0.1
-		v-alpha 1	
-		v-beta  3
-		v-gamma 1
-		window-option 1
-		window-constant 4
-		window-thresh 0.002}
-	map_ns_defaults ns_tcpnewreno {changes 0}
-	map_ns_defaults ns_trace {show_tcphdr false}
-	map_ns_defaults ns_fulltcp {segsperack 1
-		segsize 536
-		tcprexmtthresh 3
-		nodelay false
-		data_on_syn false
-		iss 0
-		dupseg_fix true
-		dupack_reset false}
-	map_ns_defaults ns_red {bytes false
-		thresh 5
-		maxthresh 15
-		mean_pktsize 500
-		q_weight 0.002
-		wait true
-		linterm 10
-		setbit false
-		drop-tail false
-		concise false	
-		time_diff 0.1	
-		ave_diff 0.2	
-		doubleq false	
-		dqthresh 50		
-		subclasses 1	
-		thresh1 5
-		maxthresh1 15
-		mean_pktsize1 500}
-	map_ns_defaults ns_cbq {algorithm 0
-		max-pktsize 1024}
-	map_ns_defaults ns_class {priority 0
-		depth 0
-		allotment 0.0
-		maxidle 4ms
-		minidle -1000ms
-		extradelay 0
-		plot false
-		qdisc drop-tail}
-	map_ns_defaults ns_sink {packet-size 40}
-	map_ns_defaults ns_delsink {interval 100ms}
-	map_ns_defaults ns_sacksink {max-sack-blocks 3}
-	map_ns_defaults ns_cbr {interval 3.75ms
-		random 0
-		packet-size 210}
-	map_ns_defaults ns_rlm {interval 3.75ms
-		packet-size 210}
-	map_ns_defaults ns_ivs {S 1
-		R 1
-		state 0
-		rttShift 0
-		keyShift 0
-		key 0
-		maxrtt 0.0
-		ignoreR 0}
-	map_ns_defaults ns_source {maxpkts 0}
-	map_ns_defaults ns_telnet {interval 1000ms}
-	map_ns_defaults ns_bursty {interval 0
-		burst-size 2}
-	map_ns_defaults ns_message {packet-size 40}
-	map_ns_defaults ns_facktcp {ss-div4 1
-		rampdown 1}
-	map_ns_defaults ns_link {state 1
-		bandwidth 1.5Mb
-		delay 100ms
-		queue-limit 50
-		link-concise 0
-		queue-in-bytes false
-		mean_pktsize 1024}
-	map_ns_defaults ns_lossy_uniform {loss_prob 0.00}
-	map_ns_defaults ns_lossy_patt {loss_prob 0.00
-		patt loss_burst 1
-		patt loss_interval 0}
-	map_ns_defaults ns_queue {size 50}
-	map_ns_defaults ns_srm {repair-size 210
-		request-size 48
-		request-delay 50ms
-		repair-delay 50ms
-		ignore-delay 50ms
-		request-c1 0.5
-		request-c2 2.0
-		repair-d1 0.5
-		repair-d2 2.0
-		ignore-constant 3.0
-		backoff 2.0}
+	$self map_ns_defaults ns_tcp
+	$self map_ns_defaults ns_tcpnewreno
+	$self map_ns_defaults ns_trace
+	$self map_ns_defaults ns_fulltcp
+	$self map_ns_defaults ns_red
+	$self map_ns_defaults ns_cbq
+	$self map_ns_defaults ns_class
+	$self map_ns_defaults ns_sink
+	$self map_ns_defaults ns_delsink
+	$self map_ns_defaults ns_sacksink
+	$self map_ns_defaults ns_cbr
+	$self map_ns_defaults ns_rlm
+	$self map_ns_defaults ns_ivs
+	$self map_ns_defaults ns_source
+	$self map_ns_defaults ns_telnet
+	$self map_ns_defaults ns_bursty
+	$self map_ns_defaults ns_message
+	$self map_ns_defaults ns_facktcp
+	$self map_ns_defaults ns_link
+	$self map_ns_defaults ns_lossy_uniform
+	$self map_ns_defaults ns_lossy_patt
+	$self map_ns_defaults ns_queue
+	$self map_ns_defaults ns_srm
 }
 
 OldSim instproc init args {
@@ -552,7 +476,7 @@ OldSim instproc init args {
 	set queueMap_(cbq) CBQ
 	set queueMap_(wrr-cbq) CBQ/WRR
 
-	trace_old_defaults
+	$self trace_old_defaults
 }
 
 #
