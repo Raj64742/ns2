@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.14 1999/10/04 18:44:11 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.15 1999/10/04 19:44:40 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -421,12 +421,13 @@ Test/impulseTcp instproc run {} {
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
     set ftp1 [$tcp1 attach-app FTP]
     $ns_ at 0.0 "$ftp1 start"
-    set tf2 [$ns_ create-connection TFRC $node_(s2) TFRCSink $node_(s4) 1]
-    $ns_ at 10.0 "$tf2 start"
-    $ns_ at 20.0 "$tf2 stop"
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s4) 1]
+    set ftp2 [$tcp2 attach-app FTP]
+    $ns_ at 10.0 "$ftp2 start"
+    $ns_ at 20.0 "$ftp2 stop"
 
     $self tfccDump 1 $tcp1 $interval_ $dumpfile_
-    $self tfccDump 2 $tf2 $interval_ $dumpfile_
+    $self tfccDump 2 $tcp2 $interval_ $dumpfile_
 
     $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
     $self traceQueues $node_(r1) [$self openTrace $stopTime $testName_]
