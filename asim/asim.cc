@@ -459,14 +459,15 @@ public:
   // Check whether everything is all right 
   assert (nConnections > 0);
   assert (nLinks > 0);
-  for (int i=0; i<nConnections; ++i)
+  int i;
+  for (i=0; i<nConnections; ++i)
     assert(nAdj[i] > 0);
 
   
   // check all the edges and store all the connections that flow 
   // through a particular link
   
-  for(int i=0;i<nLinks;i++){
+  for(i=0;i<nLinks;i++){
 
     //    cout << i << sp;
     int c=0; links[i].tlambda=0;
@@ -638,14 +639,15 @@ void PrintData(){
 }
 
 void PrintResults(){
+  int i;
 
-  for(int i=0;i<nLinks;i++){
+  for(i=0;i<nLinks;i++){
     // cout << i << sp << links[i].qdelay << sp << links[i].drop;
     cout << sp << "Qdelay = " << links[i].prop << sp << links[i].lambda;
     cout << sp << links[i].drop << endl;
   }
 
-  for(int i=0; i<nConnections; i++){
+  for(i=0; i<nConnections; i++){
     cout << i << sp << flows[i].delay << sp;
     cout << flows[i].drop << sp << flows[i].p_tput << sp;
     cout << sp <<  endl;
@@ -658,11 +660,12 @@ void UpdateHelper(int flag=0){
   // if flag = 1 then update only when link is unscaled as of now
   // if flag = 0 then do the usual update 
 
-  for(int i=0; i<nLinks; i++){
+  int i;
+  for(i=0; i<nLinks; i++){
     links[i].tlambda=0;
   }
 
-  for(int i=0; i<nConnections; i++){
+  for(i=0; i<nConnections; i++){
     if(!flag || !flows[i].scaled) 
       for(int j=0;j<nAdj[i];j++)
 	links[Adj[i][j]].tlambda += flows[i].p_tput;
@@ -732,9 +735,10 @@ void Update3(int flag = 0){
 
   double maxtlambda = -1e7;
   int bneck = -1;
+  int i;
 
   // 1st get set scaled var of all flows to 0
-  for(int i=0; i<nConnections; i++)
+  for(i=0; i<nConnections; i++)
     flows[i].scaled = 0;
 
   // Calculate the tlambdas
@@ -742,7 +746,7 @@ void Update3(int flag = 0){
 
   // Find out the link with the max throughput
 
-  for(int i=0; i<nLinks; i++){
+  for(i=0; i<nLinks; i++){
     //cout << "after updatehelper link #" << i << " " << links[i].tlambda << "\n";
     if(links[i].tlambda>maxtlambda){
       bneck = i;
@@ -763,7 +767,8 @@ void Update3(int flag = 0){
 
     // Now lets reduce this to tk
     assert(bneck>=0 && bneck<=nLinks);
-    for(int i=0; i<links[bneck].nflows; i++){
+    int i;
+    for(i=0; i<links[bneck].nflows; i++){
  
      // For all the connections passing through this link
       int t = links[bneck].theflows[i]; // get a connection id
@@ -782,7 +787,7 @@ void Update3(int flag = 0){
 
     }
 
-    for (int i =0; i<nLinks;i++){
+    for (i=0; i<nLinks;i++){
       cout << "Link " << i << " tlambda = " << links[i].tlambda << endl;
     }
 
@@ -794,7 +799,7 @@ void Update3(int flag = 0){
     // Find out the link with the max throughput
     bneck = -1;
     maxtlambda = -1e7;
-    for(int i=0; i<nLinks; i++){
+    for(i=0; i<nLinks; i++){
       if(links[i].tlambda>maxtlambda){
 	bneck = i;
 	maxtlambda = links[i].tlambda;
@@ -809,7 +814,7 @@ void Update3(int flag = 0){
 
   Update(0);
   cout << "Out of the converge loop\n";
-    for (int i =0; i<nLinks;i++){
+    for (i =0; i<nLinks;i++){
       cout << "Link " << i << " tlambda = " << links[i].tlambda << endl;
     }
 
@@ -818,9 +823,10 @@ void Update3(int flag = 0){
 
 void newupdate(int niter){
 
-  // 1st init all unscaled tputs and cap
+  int i;
 
-  for (int i=0;i<nLinks;i++){
+  // 1st init all unscaled tputs and cap
+  for (i=0;i<nLinks;i++){
     links[i].uc = links[i].mu*(1.1);
     links[i].utput = 0;
   }
@@ -828,7 +834,7 @@ void newupdate(int niter){
 
   // calc all the unscaled tputs and C set all short flows 
   // to be scaled already 
-  for(int i=0; i<nConnections; i++){
+  for(i=0; i<nConnections; i++){
     if(flows[i].is_sflow)
       flows[i].scaled = 1;
     else 
@@ -841,7 +847,7 @@ void newupdate(int niter){
     }
   }
 
-  //  for(int i =0; i<nLinks; i++ ){
+  //  for(i=0; i<nLinks; i++ ){
   //cout << i << sp << links[i].uc << sp << links[i].utput << endl;
   //}
 
@@ -851,7 +857,7 @@ void newupdate(int niter){
 
   bneck = -1;
   maxgamma = 0;
-  for(int i=0; i<nLinks; i++){
+  for(i=0; i<nLinks; i++){
     if(links[i].uc){
       t=links[i].utput/links[i].uc;
       if(t > maxgamma){
@@ -865,7 +871,7 @@ void newupdate(int niter){
 
   //char c= getchar();
   /*
-  for(int i=0;i<nConnections;i++){
+  for(i=0;i<nConnections;i++){
     cout << "connection" << sp << i << sp << "-"; 
     for(int j=0;j<nAdj[i];j++){
       cout << sp << Adj[i][j];
@@ -879,7 +885,7 @@ void newupdate(int niter){
 
     // cout << "bneck = " << bneck << sp << links[bneck].uc << sp << links[bneck].utput << sp << maxgamma << sp << links[bneck].nflows <<endl;
 
-    for(int i=0; i<links[bneck].nflows; i++){
+    for(i=0; i<links[bneck].nflows; i++){
      // For all the connections passing through this link
       int t = links[bneck].theflows[i]; // get a connection id
       //     cout << i<< sp << t << sp ;
@@ -906,7 +912,7 @@ void newupdate(int niter){
 
     bneck = -1;
     maxgamma = 0;
-    for(int i=0; i<nLinks; i++){
+    for(i=0; i<nLinks; i++){
       if(links[i].uc){
 	t=links[i].utput/links[i].uc;
 	if(t > maxgamma){
@@ -918,7 +924,7 @@ void newupdate(int niter){
     /*
     c = getchar();
 
-    for(int i=0;i<nConnections;i++){
+    for(i=0;i<nConnections;i++){
       cout << "connection" << sp << i << sp << "-"; 
       for(int j=0;j<nAdj[i];j++){
 	cout << sp << Adj[i][j];
