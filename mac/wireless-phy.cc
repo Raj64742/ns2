@@ -61,6 +61,7 @@ public:
 
 WirelessPhy::WirelessPhy(void) : Phy()
 {
+	node_ = 0;
 	propagation_ = 0;
 	modulation_ = 0;
 	bandwidth_ = 2*1e6;                 // 2 Mb
