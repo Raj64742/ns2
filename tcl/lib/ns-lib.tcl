@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.239 2002/03/15 19:01:01 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.240 2002/03/18 10:14:47 ddutta Exp $
 
 
 #
@@ -1333,7 +1333,8 @@ Simulator instproc detach-agent { node agent } {
 	set s [$node id]
 	set d [[$self get-node-by-addr [$agent set dst_addr_]] id]
 	foreach x $conn_ {
-		if {[string compare $x $s:$d] != 0} {
+		set t [split $x ":"] 
+		if {[string compare [lindex $t 0]:[lindex $t 1] $s:$d] != 0} {
 			lappend list_ $x
 		}
 	}
@@ -1394,11 +1395,12 @@ Simulator instproc connect {src dst} {
 
 	global nconn_ conn_
 	set sid [$src nodeid]
+	set sport [$src set agent_port_]
         set did [$dst nodeid]
+	set dport [$dst set agent_port_]
 
 	if {[lindex [split [$src info class] "/"] 1] == "TCP"} {
-#		set conn_($nconn_) $sid:$did
-		lappend conn_ $sid:$did
+		lappend conn_ $sid:$did:$sport:$dport
 		incr nconn_
 		# set $nconn_ [expr $nconn_ + 1]
 		# puts "Set a connection with id $nconn_ between $sid and $did"
