@@ -156,7 +156,7 @@ PushbackQueue::timeout(int from) {
     //  3) will also set up appropriate timers.
     pushback_->identifyAggregate(pushbackID_, rateEstimator_->estRate_, link_->bandwidth());
   }
-  else if (rlsList_->noMySessions(pushback_->node_->nodeid())) {
+  else if (rlsList_->noMySessions(pushback_->node_->nodeid()) && LOWER_BOUND_MODE == 1) {
       pushback_->calculateLowerBound(pushbackID_, rateEstimator_->estRate_);
   }
 

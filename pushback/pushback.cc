@@ -170,7 +170,7 @@ PushbackAgent::calculateLowerBound(int qid, double arrRate) {
   }
   
   if (i == aggReturn->finalIndex_+1) {
-    sprintf(prnMsg, "Warning: All clusters being rate limited");
+    sprintf(prnMsg, "Warning: All clusters being rate limited\n");
     printMsg(prnMsg,0);
     //exit(-1);
   }
@@ -444,18 +444,25 @@ PushbackAgent::pushbackRefresh(int qid) {
 // timer_->insert(event);
     return;
   }
-  pbq->rlsList_->mergeSessions(node_->nodeid());
-  int noSessions = pbq->rlsList_->noMySessions(node_->nodeid());
   
-  if (noSessions!=oldSessions) {
-    sprintf(prnMsg, " Some sessions merged. old = %d new = %d\n",  oldSessions, noSessions);
-    printMsg(prnMsg,0);
+  int noSessions = oldSessions;
+
+  if (MERGER_MODE == 1) {
+      pbq->rlsList_->mergeSessions(node_->nodeid());
+      noSessions = pbq->rlsList_->noMySessions(node_->nodeid());
+      
+      if (noSessions!=oldSessions) {
+	      sprintf(prnMsg, " Some sessions merged. old = %d new = %d\n",  oldSessions, noSessions);
+	      printMsg(prnMsg,0);
+      } else {
+	      sprintf(prnMsg, " No sessions merged. number = %d\n", noSessions);
+	      printMsg(prnMsg,0);
+      }
   } else {
-        sprintf(prnMsg, " No sessions merged. number = %d\n", noSessions);
-	 printMsg(prnMsg,0);
+	  sprintf(prnMsg, "Number of sessions = %d\n", noSessions);
+	  printMsg(prnMsg,0);
   }
-  
-  
+
   double linkBW = pbq->getBW();
   double arrRate = pbq->getRate();
   double targetRate = linkBW/(1 - TARGET_DROPRATE);
@@ -477,8 +484,9 @@ PushbackAgent::pushbackRefresh(int qid) {
     listItem = listItem->next_;
   }
 
-  //Sally - comment this out to revert to earlier mode.
-  lowerBound = queue_list_[qid].idTree_->lowerBound_;
+  if (LOWER_BOUND_MODE == 1) {
+	  lowerBound = queue_list_[qid].idTree_->lowerBound_;
+  }
 
   double requiredLimit;
   double excessRate = (arrRate - totalLimit + totalRateLimitedArrivalRate) - targetRate;

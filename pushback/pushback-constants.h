@@ -51,6 +51,14 @@
 //make it 1 to classify on the basis of flowid
 #define AGGREGATE_CLASSIFICATION_MODE_FID 1
 
+//0 for the old version
+//1 for the dynamic version
+#define LOWER_BOUND_MODE 1
+
+//0 for No Mergers of aggregate prefixes
+//1 for Mergers
+#define MERGER_MODE 0
+
 // maximum no of queues on the node
 #define MAX_QUEUES 10
 
