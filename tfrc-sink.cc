@@ -388,6 +388,9 @@ void TfrcSinkAgent::print_loss(int sample, double ave_interval)
 {
 	double now = Scheduler::instance().clock();
 	double drops = 1/ave_interval;
+	// This is ugly to include this twice, but the first one is
+	//   for backward compatibility with earlier scripts. 
+	printf ("time: %7.5f loss_rate: %7.5f \n", now, drops);
 	printf ("time: %7.5f sample 0: %5d loss_rate: %7.5f \n", 
 		now, sample, drops);
 	//printf ("time: %7.5f send_rate: %7.5f\n", now, sendrate);
