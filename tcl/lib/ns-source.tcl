@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.6 1997/03/08 23:58:32 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-source.tcl,v 1.7 1997/03/28 20:27:50 tomh Exp $
 #
 
 Class Source
@@ -59,8 +59,7 @@ Source/FTP instproc stop {} {
 }
 
 Source/FTP instproc produce { pktcnt } {
-	$self instvar agent_ maxpkts_
-	set maxpkts_ $pktcnt
+	$self instvar agent_ 
 	$agent_ advance $pktcnt
 }
 
