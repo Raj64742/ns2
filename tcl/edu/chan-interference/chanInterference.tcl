@@ -114,11 +114,13 @@ $node_(1) set X_ 330.0
 $node_(1) set Y_ 150.0
 $node_(1) set Z_ 0.0
 
-$node_(2) set X_ 60.0
+$node_(2) set X_ 460.0
 $node_(2) set Y_ 30.0
 $node_(2) set Z_ 0.0
 
-$ns at 0.25 "$node_(2) setdest 800.0 30.0 10000.0"
+$ns at 0.25 "$node_(2) setdest 900.0 30.0 10000.0"
+$ns at 0.40 "$node_(2) setdest 700.0 30.0 10000.0"
+$ns at 0.65 "$node_(2) setdest 600.0 30.0 10000.0"
 
 # subclass Agent/MessagePassing to make it do flooding
 
@@ -175,13 +177,16 @@ $ns at 0.45 "$a(2) send_message 500 14 {fourteenth_message} $MESSAGE_PORT"
 $ns at 0.55 "$a(0) send_message 500 15 {fifth_message} $MESSAGE_PORT"
 $ns at 0.55 "$a(2) send_message 500 16 {sixth_message} $MESSAGE_PORT"
 
+$ns at 0.75 "$a(0) send_message 500 21 {tenth_message} $MESSAGE_PORT"
+$ns at 0.75 "$a(0) send_message 500 22 {eleventh_message} $MESSAGE_PORT"
+
 for {set i 0} {$i < 3} {incr i} {
 	$ns initial_node_pos $node_($i) 30
-	$ns at 2.5 "$node_($i) reset";
+	$ns at 20.5 "$node_($i) reset";
 }
 
-$ns at 2.5 "finish"
-$ns at 2.5 "puts \"NS EXITING...\"; $ns halt"
+$ns at 20.5 "finish"
+$ns at 20.5 "puts \"NS EXITING...\"; $ns halt"
 
 
 
