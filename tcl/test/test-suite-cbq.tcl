@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.3 1997/11/04 01:51:05 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.4 1997/11/04 03:05:38 kfall Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -53,6 +53,12 @@ TestSuite instproc make_queue cl {
 	$self instvar cbq_qtype_
 	set q [new Queue/$cbq_qtype_]
 	$cl install-queue $q
+}
+
+TestSuite instproc make_fmon cbqlink {
+	$self instvar ns_ fmon_
+	set fmon_ [$ns_ makeflowmon Fid]
+	$ns_ attach-fmon $cbqlink $fmon_
 }
 
 # ~/newr/rm/testB
@@ -87,7 +93,7 @@ TestSuite instproc create_flat { } {
 	$self make_queue $dataclass_
 }
 
-TestSuite instproc insert_flat { cbqlink } {
+TestSuite instproc insert_flat cbqlink {
 	$self instvar topclass_ vidclass_ audioclass_ dataclass_
 
 	#
@@ -181,6 +187,8 @@ TestSuite instproc insert_twoAgency { cbqlink } {
 # display graph of results
 TestSuite instproc finish testname {
 
+	$self instvar tmpschan_ tmpqchan_
+	
 	set awkCode  { {
 	  if ($1 == "maxbytes") maxbytes = $2;
 	  if ($2 == class) print $1, $3/maxbytes > "temp.t"; 
@@ -191,6 +199,9 @@ TestSuite instproc finish testname {
 	  sum += $3/maxbytes;
 	  if (NF==3) time = $1; else time = 0;
 	} }
+
+	close $tmpschan_
+	close $tmpqchan_
 
 	set f [open temp.rands w]
 	puts $f "TitleText: $testname"
@@ -225,51 +236,59 @@ TestSuite instproc finish testname {
 # File: temp.s
 #
 TestSuite instproc cbrDump4 { linkno interval stopTime maxBytes } {
-	$self instvar oldbytes1 oldbytes2 oldbytes3 oldbytes4
+	$self instvar oldbytes_
 	$self instvar ns_
 
 	TestSuite instproc cdump { lnk interval file }  {
-	  $self instvar oldbytes1 oldbytes2 oldbytes3 oldbytes4
-	  $self instvar ns_
-	  set timenow [$ns_ now]
-	  set bytes1 [$lnk stat 1 bytes]
-	  set bytes2 [$lnk stat 2 bytes]
-	  set bytes3 [$lnk stat 3 bytes]
-	  set bytes4 [$lnk stat 4 bytes]
-	  puts "$timenow"
-	  # format: time, class, bytes
-	  puts $file "$timenow 1 [expr $bytes1 - $oldbytes1]"
-	  puts $file "$timenow 2 [expr $bytes2 - $oldbytes2]"
-	  puts $file "$timenow 3 [expr $bytes3 - $oldbytes3]"
-	  puts $file "$timenow 4 [expr $bytes4 - $oldbytes4]"
-	  set oldbytes1 $bytes1
-	  set oldbytes2 $bytes2
-	  set oldbytes3 $bytes3
-	  set oldbytes4 $bytes4
-	  $ns_ at [expr $timenow + $interval] "$self cdump $lnk $interval $file"
-	}
-	set oldbytes1 0
-	set oldbytes2 0
-        set oldbytes3 0
-	set oldbytes4 0
+	  $self instvar oldbytes_
+	  $self instvar ns_ fmon_
+	  set now [$ns_ now]
+	  set fcl [$fmon_ classifier]
+	  set fids { 1 2 3 4 }
 
+	  puts "$now"
+	  foreach i $fids {
+		  set flow($i) [$fcl lookup auto 0 0 $i]
+		  if { $flow($i) != "" } {
+puts "FLOW: $i, FCL: $fcl, flows: [$fmon_ flows]"
+			  set bytes($i) [$flow($i) set bdepartures_]
+			  puts $file "$now $i [expr $bytes($i) - oldbytes_($i)]"
+			  set oldbytes_($i) bytes($i)
+		  }
+	  }
+	  $ns_ at [expr $now + $interval] "$self cdump $lnk $interval $file"
+	}
+
+	set fids { 1 2 3 4 }
+	foreach i $fids {
+		set oldbytes_($i) 0
+	}
+
+	$self instvar tmpschan_
 	set f [open temp.s w]
+	set tmpschan_ $f
 	puts $f "maxbytes $maxBytes"
 	$ns_ at 0.0 "$self cdump $linkno $interval $f"
-	$ns_ at $stopTime "close $f"
 
-	TestSuite instproc cdumpdel { lnk file }  {
-	  set timenow [$ns_ now]
-	  # format: time, class, delay
-	  puts $file "$timenow 1 [$lnk stat 1 mean-qdelay]"
-	  puts $file "$timenow 2 [$lnk stat 2 mean-qdelay]"
-	  puts $file "$timenow 3 [$lnk stat 3 mean-qdelay]"
-	  puts $file "$timenow 4 [$lnk stat 4 mean-qdelay]"
+	TestSuite instproc cdumpdel file {
+	  $self instvar ns_ fmon_
+	  set now [$ns_ now]
+	  set fcl [$fmon_ classifier]
+
+	  set fids { 1 2 3 4 }
+	  foreach i $fids {
+		  set flow [$fcl lookup auto 0 0 $i]
+		  if { $flow != "" } {
+			  set dsamp [$flow get-delay-samples]
+			  puts $file "$now $i [$dsamp mean]"
+		  }
+	  }
 	}
+	$self instvar tmpqchan_
 	set f1 [open temp.q w]
+	set tmpqchan_ $f1
 	puts $f1 "delay"
-	$ns_ at $stopTime "cdumpdel $linkno $f1"
-	$ns_ at $stopTime "close $f1"
+	$ns_ at $stopTime "$self cdumpdel $f1"
 }
 
 #
@@ -370,6 +389,7 @@ Test/WRR instproc run {} {
 
 	$topo_ instvar cbqlink_
 	$self create_flat
+	$self make_fmon $cbqlink_
 	$self insert_flat $cbqlink_
 	$self three_cbrs
 
