@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: config.hh,v 1.4 2002/01/08 19:06:33 haldar Exp $
+// $Id: config.hh,v 1.5 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -21,8 +21,8 @@
 //
 
 // Software information
-#define PROGRAM "Diffusion 3.0.6"
-#define RELEASE "Steel Knight Release"
+#define PROGRAM "Diffusion 3.0.7"
+#define RELEASE "Gear Alpha Release"
 #define DEFAULT_CONFIG_FILE "config.txt"
 
 // Timers
@@ -49,12 +49,16 @@
 #define DEBUG_IMPORTANT         2
 #define DEBUG_ALWAYS            1
 
+#ifdef NS_DIFFUSION
 #define DEBUG_DEFAULT           0
+#else
+#define DEBUG_DEFAULT           1
+#endif // NS_DIFFUSION
 
 #ifdef BBN_LOGGER
 #define LOGGER_BUFFER_SIZE 512
 #define LOGGER_CONFIG_FILE "/sensit/Logger.ISI"
-#endif
+#endif // BBN_LOGGER
 
 // Configurable parameters start here
 

@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: iodev.cc,v 1.3 2001/12/11 23:21:45 haldar Exp $
+// $Id: iodev.cc,v 1.4 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -29,7 +29,7 @@ DiffusionIO::DiffusionIO()
   max_in_descriptor = 0;
 }
 
-void DiffusionIO::AddInFDS(fd_set *fds, int *max)
+void DiffusionIO::addInFDS(fd_set *fds, int *max)
 {
   list<int>::iterator itr;
 
@@ -41,7 +41,7 @@ void DiffusionIO::AddInFDS(fd_set *fds, int *max)
     *max = max_in_descriptor;
 }
 
-int DiffusionIO::CheckInFDS(fd_set *fds)
+int DiffusionIO::checkInFDS(fd_set *fds)
 {
   list<int>::iterator itr;
 

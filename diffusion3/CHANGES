@@ -1,0 +1,102 @@
+Diffusion 3.0.7
+---------------
+
+- Added the first alpha version GEAR in the apps directory. Diffusion
+  now should be able to use geographic information to route packets,
+  not requiring all interest messages to be flooded.
+- Changed the filter scheme so now each filter has to have a
+  distinct priority (i.e. we don't support two filters with the
+  same priority value anymore).
+- Merged SendMessage and SendMessageToNext into a single function,
+  (SendMessage). It now allows filters to specify the next filter's
+  priority and therefore allows filters to be bypassed.
+- Changed the message class not to include a copy of the raw packet
+  anymore.
+- Changed all instances of FLAGGED_DATA to EXPLORATORY_DATA, in order
+  to be consistent with the names used elsewhere.
+- Added functionality to the API allowing filters work to in a single
+  thread mode. Added the doIt() and doOne() API functions to allow
+  the application/filter to give up its thread (either permanently
+  or just for a moment) for the library API to receive packets and
+  manage timers.
+- Added the DiffApp class that applications and filters can derive
+  from. It adds basic command line parsing code and keeps some of
+  the library's interface code.
+- Fixed a bug in agent1/agent2 when running in multi-threaded mode
+  (there's a lock inside libc that blocks fflush when also doing a
+  getc).
+- Added the iPaq ARM platform to the supported systems (in config.mk).
+
+Diffusion 3.0.6
+---------------
+
+- Added support for BBN's distributed logger.
+- Changed the diffPrint function to use the variable argument
+  list syntax, as suggested by Peter Boettcher.
+- Renamed the agent applications to ping_sender and ping_receiver,
+  and added some extra functionality to measure latency and packet
+  loss.
+- Included the Steel Knight Applications (sk_sensorApp and
+  sk_gatewayApp).
+- Fixed bug when receiving an incoming message from the MoteNIC.
+- Included the nested queries applications in the distribution under
+  apps/nested.
+
+Diffusion 3.0.5
+---------------
+
+- Changed several makefiles to ease code integration.
+- Changed diffusion statistics to include total number of messages sent
+  to a neighbor (unicast + broadcast).
+- Changed some internal names to allow easier NS integration.
+- Added wrappers for time and output functions to allow distributed
+  logging and easier NS integration.
+- Added option to support delayed positive reinforcement messages in
+  response to an exploratory data message.
+
+Diffusion 3.0.4
+---------------
+
+- Fixed the code to work when only a single data packet is sent in
+  response to an interest message.
+- Added more randomization to the code so it works better when clocks
+  are synchronized.
+- The distribution now includes a source routing filter that can be
+  used to send a message along a pre-specified path.
+- Tuned diffusion parameters for optimal operation on the SensIT
+  hardware.
+
+Diffusion 3.0.3
+---------------
+
+- Diffusion can now use alternate ports (instead of the default 2000)
+  with the new command line option '-p port'. Other apps will have to
+  be change to use this feature.
+- The '-s' command line option has been removed.
+- This version features an initial implementation of the device independent
+  layer in diffusion along with diffusion drivers for the RPC, the MoteNic
+  Wired UDP and UDP communication with local modules/apps. Everything has
+  been moved to main/drivers.
+- Diffusion/and the API library now use dynamically allocated buffers for
+  both incoming and outgoing packets.
+- Fixed the code to compile without warnings on gcc 2.97 (used to cross
+  compile code for the new Sensoria nodes).
+- Fixed all Makefiles to include the config.mk configuration file.
+- The UDP driver now can support diffusion running on port other than
+  2000. The config file for the wired diffusion now accepts the port
+  number along with the host ip address. This allows one to run multiple
+  'diffusion nodes' on a single machine.
+- Diffusion now has a driver for the WINSNG 2.0 nodes' radios.
+
+Diffusion 3.0.2
+---------------
+
+- Removed all dependencies from the radiometrix library.
+  It should compile fine now with Red Hat 7.1. This version
+  of diffusion does not support the old 'userland' implementation
+  of the radiometrix drivers.
+
+Diffusion 3.0.1
+---------------
+
+Initial release of diffusion 3.

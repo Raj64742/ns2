@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: nr.hh,v 1.8 2001/12/12 00:30:47 haldar Exp $
+// $Id: nr.hh,v 1.9 2002/03/20 22:49:41 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -29,7 +29,7 @@
 #include <assert.h>
 #include <vector>
 
-#ifdef NS_DIFFUSION
+#ifdef NS_DIFFUSiON
 #include "config.h"
 #endif // NS_DIFFUSION
 

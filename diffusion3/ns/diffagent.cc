@@ -63,7 +63,7 @@ DiffEvent::DiffEvent(int type, void *payload, int time) {
   timeval_addusecs(&tv_, time*1000);
 }
 
-void DiffEventQueue::eq_addAfter(int type, void *payload, int delay_msec) {
+void DiffEventQueue::eqAddAfter(int type, void *payload, int delay_msec) {
   DiffEvent* de;
 	
   de = new DiffEvent(type, payload, delay_msec);
@@ -87,7 +87,7 @@ void DiffAppAgent::diffTimeout(Event *de) {
   case INTEREST_TIMER:
 	  
 	  //pthread_mutex_lock(drMtx);
-	  ((DiffusionRouting *)dr_)->InterestTimeout((Handle_Entry *)(e->payload()));
+	  ((DiffusionRouting *)dr_)->interestTimeout((HandleEntry *)(e->payload()));
 	  //pthread_mutex_unlock(drMtx);
 	  
 	  delete e;
@@ -97,7 +97,7 @@ void DiffAppAgent::diffTimeout(Event *de) {
   case FILTER_KEEPALIVE_TIMER:
 	  
 	  //pthread_mutex_lock(drMtx);
-	  ((DiffusionRouting *)dr_)->FilterKeepaliveTimeout((Filter_Entry *) (e->payload()));
+	  ((DiffusionRouting *)dr_)->filterKeepaliveTimeout((FilterEntry *) (e->payload()));
 	  //pthread_mutex_unlock(drMtx);
 	  
 	  delete e;
@@ -106,7 +106,7 @@ void DiffAppAgent::diffTimeout(Event *de) {
 	  
   case APPLICATION_TIMER:
 	  
-	  ((DiffusionRouting *)dr_)->ApplicationTimeout((Timer_Entry *) (e->payload()));
+	  ((DiffusionRouting *)dr_)->applicationTimeout((TimerEntry *) (e->payload()));
 	  
 	  delete e;
 	  

@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.cc,v 1.6 2002/03/12 01:23:36 haldar Exp $
+// $Id: dr.cc,v 1.7 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -24,6 +24,46 @@
 #include <stdio.h>
 
 #include "dr.hh"
+
+class CallbackEntry {
+public:
+  NR::Callback *cb;
+  NR::handle subscription_handle;
+
+  CallbackEntry(NR::Callback *_cb, NR::handle _subscription_handle) :
+    cb(_cb), subscription_handle(_subscription_handle) {};
+};
+
+class TimerEntry {
+public:
+  handle         hdl;
+  int            timeout;
+  void           *p;
+  TimerCallbacks *cb;
+
+  TimerEntry(handle _hdl, int _timeout, void *_p, TimerCallbacks *_cb) : 
+    hdl(_hdl), timeout(_timeout), p(_p), cb(_cb) {};
+};
+
+class HandleEntry {
+public:
+  handle hdl;
+  bool valid;
+  NRAttrVec *attrs;
+  NR::Callback *cb;
+
+  HandleEntry()
+  {
+    valid = true;
+    cb = NULL;
+  };
+
+  ~HandleEntry(){
+
+    ClearAttrs(attrs);
+    delete attrs;
+  };
+};
 
 #ifdef NS_DIFFUSION
 class DiffEventQueue;
@@ -115,9 +155,8 @@ DiffusionRouting::DiffusionRouting(u_int16_t port)
 #ifdef NS_DIFFUSION
   eq = new DiffEventQueue(da);
 #else
-  eq = new eventQueue;
+  eq = new EventQueue;
 #endif // NS_DIFFUSION
-  eq->eq_new();
 
   // Initialize input device
 #ifdef NS_DIFFUSION
@@ -146,9 +185,26 @@ DiffusionRouting::DiffusionRouting(u_int16_t port)
 #endif // USE_THREADS
 }
 
+DiffusionRouting::~DiffusionRouting()
+{
+  HandleList::iterator itr;
+  HandleEntry *current;
+
+  // Delete all Handles
+  for (itr = sub_list.begin(); itr != sub_list.end(); ++itr){
+    current = *itr;
+    delete current;
+  }
+
+  for (itr = pub_list.begin(); itr != pub_list.end(); ++itr){
+    current = *itr;
+    delete current;
+  }
+}
+
 handle DiffusionRouting::subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb)
 {
-  Handle_Entry *my_handle;
+  HandleEntry *my_handle;
   NRAttribute *scopeAttr;
 
   // Get lock first
@@ -162,7 +218,7 @@ handle DiffusionRouting::subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb)
   }
 
   // Create and Initialize the handle_entry structute
-  my_handle = new Handle_Entry;
+  my_handle = new HandleEntry;
   my_handle->hdl = next_handle;
   next_handle++;
   my_handle->cb = (NR::Callback *) cb;
@@ -178,7 +234,7 @@ handle DiffusionRouting::subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb)
   }
 
   // Send interest and add it to the queue
-  InterestTimeout(my_handle);
+  interestTimeout(my_handle);
 
   // Release lock
   releaseLock(drMtx);
@@ -188,7 +244,7 @@ handle DiffusionRouting::subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb)
 
 int DiffusionRouting::unsubscribe(handle subscription_handle)
 {
-  Handle_Entry *my_handle = NULL;
+  HandleEntry *my_handle = NULL;
 
   // Get the lock first
   getLock(drMtx);
@@ -200,7 +256,7 @@ int DiffusionRouting::unsubscribe(handle subscription_handle)
     return FAIL;
   }
 
-  // Handle will be destroyed when next InterestTimeout happens
+  // Handle will be destroyed when next interest timeout happens
   my_handle->valid = false;
 
   // Release the lock
@@ -211,7 +267,7 @@ int DiffusionRouting::unsubscribe(handle subscription_handle)
 
 handle DiffusionRouting::publish(NRAttrVec *publishAttrs)
 {
-  Handle_Entry *my_handle;
+  HandleEntry *my_handle;
   NRAttribute *scopeAttr;
 
   // Get the lock first
@@ -225,7 +281,7 @@ handle DiffusionRouting::publish(NRAttrVec *publishAttrs)
   }
 
   // Create and Initialize the handle_entry structute
-  my_handle = new Handle_Entry;
+  my_handle = new HandleEntry;
   my_handle->hdl = next_handle;
   next_handle++;
   pub_list.push_back(my_handle);
@@ -247,7 +303,7 @@ handle DiffusionRouting::publish(NRAttrVec *publishAttrs)
 
 int DiffusionRouting::unpublish(handle publication_handle)
 {
-  Handle_Entry *my_handle = NULL;
+  HandleEntry *my_handle = NULL;
 
   // Get the lock first
   getLock(drMtx);
@@ -271,8 +327,8 @@ int DiffusionRouting::unpublish(handle publication_handle)
 int DiffusionRouting::send(handle publication_handle,
 			   NRAttrVec *sendAttrs)
 {
-  Message *sendMessage;
-  Handle_Entry *my_handle;
+  Message *myMessage;
+  HandleEntry *my_handle;
 
   // Get the lock first
   getLock(drMtx);
@@ -292,29 +348,29 @@ int DiffusionRouting::send(handle publication_handle,
   }
 
   // Initialize message structure
-  sendMessage = new Message(DIFFUSION_VERSION, DATA, agent_id, 0,
-			    0, pkt_count, rdm_id, LOCALHOST_ADDR,
-			    LOCALHOST_ADDR);
+  myMessage = new Message(DIFFUSION_VERSION, DATA, agent_id, 0,
+			  0, pkt_count, rdm_id, LOCALHOST_ADDR,
+			  LOCALHOST_ADDR);
   // Increment pkt_counter
   pkt_count++;
 
   // First, we duplicate the 'publish' attributes
-  sendMessage->msg_attr_vec = CopyAttrs(my_handle->attrs);
+  myMessage->msg_attr_vec = CopyAttrs(my_handle->attrs);
 
   // Now, we add the send attributes
-  AddAttrs(sendMessage->msg_attr_vec, sendAttrs);
+  AddAttrs(myMessage->msg_attr_vec, sendAttrs);
 
   // Compute the total number and size of the joined attribute sets
-  sendMessage->num_attr = sendMessage->msg_attr_vec->size();
-  sendMessage->data_len = CalculateSize(sendMessage->msg_attr_vec);
+  myMessage->num_attr = myMessage->msg_attr_vec->size();
+  myMessage->data_len = CalculateSize(myMessage->msg_attr_vec);
 
   // Release the lock
   releaseLock(drMtx);
 
   // Send Packet
-  sendMessageToDiffusion(sendMessage);
+  sendMessageToDiffusion(myMessage);
 
-  delete sendMessage;
+  delete myMessage;
 
   return OK;
 }
@@ -322,7 +378,7 @@ int DiffusionRouting::send(handle publication_handle,
 handle DiffusionRouting::addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
 				   FilterCallback *cb)
 {
-  Filter_Entry *my_filter;
+  FilterEntry *my_filter;
   NRAttrVec *attrs;
   NRAttribute *ctrlmsg;
   ControlMessage *controlblob;
@@ -338,7 +394,7 @@ handle DiffusionRouting::addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
   getLock(drMtx);
 
   // Create and Initialize the handle_entry structute
-  my_filter = new Filter_Entry(next_handle, priority, agent_id);
+  my_filter = new FilterEntry(next_handle, priority, agent_id);
   next_handle++;
   my_filter->cb = (FilterCallback *) cb;
   filter_list.push_back(my_filter);
@@ -378,7 +434,7 @@ handle DiffusionRouting::addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
 
   // Add keepalive to event queue
   getLock(queueMtx);
-  eq->eq_addAfter(FILTER_KEEPALIVE_TIMER, (void *) my_filter,
+  eq->eqAddAfter(FILTER_KEEPALIVE_TIMER, (void *) my_filter,
 		  FILTER_KEEPALIVE_DELAY);
   releaseLock(queueMtx);
 
@@ -391,7 +447,7 @@ handle DiffusionRouting::addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
 
 int DiffusionRouting::removeFilter(handle filterHandle)
 {
-  Filter_Entry *entry = NULL;
+  FilterEntry *entry = NULL;
   ControlMessage *controlblob;
   NRAttribute *ctrlmsg;
   NRAttrVec *attrs;
@@ -447,12 +503,12 @@ int DiffusionRouting::removeFilter(handle filterHandle)
 
 handle DiffusionRouting::addTimer(int timeout, void *p, TimerCallbacks *cb)
 {
-  Timer_Entry *entry;
+  TimerEntry *entry;
 
-  entry = new Timer_Entry(next_handle, timeout, p, cb);
+  entry = new TimerEntry(next_handle, timeout, p, cb);
 
   getLock(queueMtx);
-  eq->eq_addAfter(APPLICATION_TIMER, (void *) entry, timeout);
+  eq->eqAddAfter(APPLICATION_TIMER, (void *) entry, timeout);
   releaseLock(queueMtx);
 
   next_handle++;
@@ -465,26 +521,26 @@ handle DiffusionRouting::addTimer(int timeout, void *p, TimerCallbacks *cb)
 int DiffusionRouting::removeTimer(handle hdl)
 {
   event *e;
-  Timer_Entry *entry;
+  TimerEntry *entry;
   int found = -1;
 
   getLock(queueMtx);
 
   // Find the timer in the queue
-  e = eq->eq_findEvent(APPLICATION_TIMER);
+  e = eq->eqFindEvent(APPLICATION_TIMER);
   while (e){
-    entry = (Timer_Entry *) e->payload;
+    entry = (TimerEntry *) e->payload;
     if (entry->hdl == hdl){
       found = 0;
       break;
     }
 
-    e = eq->eq_findNextEvent(APPLICATION_TIMER, e->next);
+    e = eq->eqFindNextEvent(APPLICATION_TIMER, e->next);
   }
 
   // If timer found, remove it from the queue
   if (e){
-    if (eq->eq_remove(e) != 0){
+    if (eq->eqRemove(e) != 0){
       diffPrint(DEBUG_ALWAYS, "Error: Can't remove event from queue !\n");
       exit(-1);
     }
@@ -502,9 +558,9 @@ int DiffusionRouting::removeTimer(handle hdl)
 }
 #endif // NS_DIFFUSION
 
-void DiffusionRouting::FilterKeepaliveTimeout(Filter_Entry *entry)
+void DiffusionRouting::filterKeepaliveTimeout(FilterEntry *entry)
 {
-  Filter_Entry *my_handle = NULL;
+  FilterEntry *my_handle = NULL;
   ControlMessage *controlblob;
   NRAttribute *ctrlmsg;
   NRAttrVec *attrs;
@@ -539,7 +595,7 @@ void DiffusionRouting::FilterKeepaliveTimeout(Filter_Entry *entry)
 
     // Add another keepalive to event queue
     getLock(queueMtx);
-    eq->eq_addAfter(FILTER_KEEPALIVE_TIMER, (void *) entry,
+    eq->eqAddAfter(FILTER_KEEPALIVE_TIMER, (void *) entry,
 		    FILTER_KEEPALIVE_DELAY);
     releaseLock(queueMtx);
 
@@ -560,9 +616,9 @@ void DiffusionRouting::FilterKeepaliveTimeout(Filter_Entry *entry)
   }
 }
 
-void DiffusionRouting::InterestTimeout(Handle_Entry *entry)
+void DiffusionRouting::interestTimeout(HandleEntry *entry)
 {
-  Handle_Entry *my_handle = NULL;
+  HandleEntry *my_handle = NULL;
   Message *myMessage;
 
   if (entry->valid){
@@ -582,9 +638,9 @@ void DiffusionRouting::InterestTimeout(Handle_Entry *entry)
     // Send Packet
     sendMessageToDiffusion(myMessage);
 
-    // Add another InterestTimeout to the queue
+    // Add another interest timeout to the queue
     getLock(queueMtx);
-    eq->eq_addAfter(INTEREST_TIMER, (void *) entry,
+    eq->eqAddAfter(INTEREST_TIMER, (void *) entry,
 		    INTEREST_DELAY +
 		    (int) ((INTEREST_JITTER * (getRand() * 1.0 / RAND_MAX)) -
 			   (INTEREST_JITTER / 2)));
@@ -598,7 +654,7 @@ void DiffusionRouting::InterestTimeout(Handle_Entry *entry)
 
     // We should have removed the correct handle
     if (my_handle != entry){
-      diffPrint(DEBUG_ALWAYS, "DiffusionRouting::InterestTimeout: Handles should match !\n");
+      diffPrint(DEBUG_ALWAYS, "DiffusionRouting::interestTimeout: Handles should match !\n");
       exit(-1);
     }
 
@@ -606,11 +662,11 @@ void DiffusionRouting::InterestTimeout(Handle_Entry *entry)
   }
 }
 
-void DiffusionRouting::ApplicationTimeout(Timer_Entry *entry)
+void DiffusionRouting::applicationTimeout(TimerEntry *entry)
 {
   int new_timeout;
 
-  new_timeout = entry->cb->recv(entry->hdl, entry->p);
+  new_timeout = entry->cb->expire(entry->hdl, entry->p);
   getLock(queueMtx);
   if (new_timeout >= 0){
     if (new_timeout > 0){
@@ -618,7 +674,7 @@ void DiffusionRouting::ApplicationTimeout(Timer_Entry *entry)
       entry->timeout = new_timeout;
     }
 
-    eq->eq_addAfter(APPLICATION_TIMER, (void *) entry, entry->timeout);
+    eq->eqAddAfter(APPLICATION_TIMER, (void *) entry, entry->timeout);
   }
   else{
     entry->cb->del(entry->p);
@@ -718,12 +774,12 @@ void DiffusionRouting::run(bool wait_condition, long max_timeout)
     max_sock = 0;
 
     for (itr = in_devices.begin(); itr != in_devices.end(); ++itr){
-      (*itr)->AddInFDS(&fds, &max_sock);
+      (*itr)->addInFDS(&fds, &max_sock);
     }
 
     // Check for the next timer
     getLock(queueMtx);
-    tv = eq->eq_nextTimer();
+    tv = eq->eqNextTimer();
     releaseLock(queueMtx);
 
     if (!tv){
@@ -753,9 +809,9 @@ void DiffusionRouting::run(bool wait_condition, long max_timeout)
     status = select(max_sock+1, &fds, NULL, NULL, tv);
 
     getLock(queueMtx);
-    if (eq->eq_topInPast()){
+    if (eq->eqTopInPast()){
       // We got a timeout
-      event *e = eq->eq_pop();
+      event *e = eq->eqPop();
       releaseLock(queueMtx);
 
       // Timeouts
@@ -764,7 +820,7 @@ void DiffusionRouting::run(bool wait_condition, long max_timeout)
       case INTEREST_TIMER:
 
 	getLock(drMtx);
-	InterestTimeout((Handle_Entry *) e->payload);
+	interestTimeout((HandleEntry *) e->payload);
 	releaseLock(drMtx);
 
 	free(e);
@@ -774,7 +830,7 @@ void DiffusionRouting::run(bool wait_condition, long max_timeout)
       case FILTER_KEEPALIVE_TIMER:
 
 	getLock(drMtx);
-	FilterKeepaliveTimeout((Filter_Entry *) e->payload);
+	filterKeepaliveTimeout((FilterEntry *) e->payload);
 	releaseLock(drMtx);
 
 	free(e);
@@ -783,7 +839,7 @@ void DiffusionRouting::run(bool wait_condition, long max_timeout)
 
       case APPLICATION_TIMER:
 
-	ApplicationTimeout((Timer_Entry *) e->payload);
+	applicationTimeout((TimerEntry *) e->payload);
 
 	free(e);
 
@@ -803,10 +859,10 @@ void DiffusionRouting::run(bool wait_condition, long max_timeout)
 	do{
 	  flag = false;
 	  for (itr = in_devices.begin(); itr != in_devices.end(); ++itr){
-	    fd = (*itr)->CheckInFDS(&fds);
+	    fd = (*itr)->checkInFDS(&fds);
 	    if (fd != 0){
 	      // Message waiting
-	      in_pkt = (*itr)->RecvPacket(fd);
+	      in_pkt = (*itr)->recvPacket(fd);
 	      recvPacket(in_pkt);
 
 	      // Clear this fd
@@ -827,23 +883,7 @@ void DiffusionRouting::run(bool wait_condition, long max_timeout)
 
 #endif // NS_DIFFUSION
 
-#ifdef NS_DIFFUSION
-void DiffusionRouting::sendMessageToDiffusion(Message *msg)
-{
-  Message* myMsg;
-  DeviceList::iterator itr;
-  int len;
-  
-  myMsg = CopyMessage(msg);
-  len = CalculateSize(myMsg->msg_attr_vec);
-  len = len + sizeof(struct hdr_diff);
-
-  for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
-    (*itr)->sendPacket((DiffPacket)myMsg, len, diffusion_port);
-  }
-}
-
-#else
+#ifndef NS_DIFFUSION
 void DiffusionRouting::sendMessageToDiffusion(Message *msg)
 {
   DiffPacket out_pkt = NULL;
@@ -870,10 +910,25 @@ void DiffusionRouting::sendMessageToDiffusion(Message *msg)
   SRC_PORT(dfh) = htons(msg->source_port);
 
   sendPacketToDiffusion(out_pkt, sizeof(struct hdr_diff) + len, diffusion_port);
-  
+
   delete [] out_pkt;
 }
-#endif
+#else
+void DiffusionRouting::sendMessageToDiffusion(Message *msg)
+{
+  Message *myMsg;
+  DeviceList::iterator itr;
+  int len;
+
+  myMsg = CopyMessage(msg);
+  len = CalculateSize(myMsg->msg_attr_vec);
+  len = len + sizeof(struct hdr_diff);
+
+  for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
+    (*itr)->sendPacket((DiffPacket) myMsg, len, diffusion_port);
+  }
+}
+#endif // !NS_DIFFUSION
 
 void DiffusionRouting::sendPacketToDiffusion(DiffPacket pkt, int len, int dst)
 {
@@ -916,14 +971,9 @@ void DiffusionRouting::recvPacket(DiffPacket pkt)
 
   // We are done
   delete rcv_message;
-
-  //#ifndef NS_DIFFUSION
-  // In the NS implementation, the packet gets deleted when
-  // Packet::free() gets called from recv(Packet *, handler *)
   delete [] pkt;
-  //#endif // NS_DIFFUSION
 }
-#endif //NOT_NS_DIFF
+#endif // !NS_DIFFUSION
 
 void DiffusionRouting::recvMessage(Message *msg)
 {
@@ -947,7 +997,7 @@ void DiffusionRouting::processControlMessage(Message *msg)
   NRSimpleAttribute<void *> *originalHeader = NULL;
   NRAttrVec::iterator place = msg->msg_attr_vec->begin();
   RedirectMessage *originalHdr;
-  Filter_Entry *entry;
+  FilterEntry *entry;
   handle my_handle;
 
   // Find the attribute containing the original packet header
@@ -999,10 +1049,10 @@ void DiffusionRouting::processControlMessage(Message *msg)
 void DiffusionRouting::processMessage(Message *msg)
 {
   CallbackList cbl;
-  Callback_Entry *aux;
+  CallbackEntry *aux;
   HandleList::iterator sub_itr;
   CallbackList::iterator cbl_itr;
-  Handle_Entry *entry; 
+  HandleEntry *entry; 
   NRAttrVec *callbackAttrs;
 
   // First, acquire the lock
@@ -1012,9 +1062,7 @@ void DiffusionRouting::processMessage(Message *msg)
     entry = *sub_itr;
     if ((entry->valid) && (MatchAttrs(msg->msg_attr_vec, entry->attrs)))
       if (entry->cb){
-	aux = new Callback_Entry;
-	aux->cb = entry->cb;
-	aux->subscription_handle = entry->hdl;
+	aux = new CallbackEntry(entry->cb, entry->hdl);
 	cbl.push_back(aux);
       }
   }
@@ -1041,10 +1089,10 @@ void DiffusionRouting::processMessage(Message *msg)
   cbl.clear();
 }
 
-Handle_Entry * DiffusionRouting::removeHandle(handle my_handle, HandleList *hl)
+HandleEntry * DiffusionRouting::removeHandle(handle my_handle, HandleList *hl)
 {
   HandleList::iterator itr;
-  Handle_Entry *entry;
+  HandleEntry *entry;
 
   for (itr = hl->begin(); itr != hl->end(); ++itr){
     entry = *itr;
@@ -1056,10 +1104,10 @@ Handle_Entry * DiffusionRouting::removeHandle(handle my_handle, HandleList *hl)
   return NULL;
 }
 
-Handle_Entry * DiffusionRouting::findHandle(handle my_handle, HandleList *hl)
+HandleEntry * DiffusionRouting::findHandle(handle my_handle, HandleList *hl)
 {
   HandleList::iterator itr;
-  Handle_Entry *entry;
+  HandleEntry *entry;
 
   for (itr = hl->begin(); itr != hl->end(); ++itr){
     entry = *itr;
@@ -1069,10 +1117,10 @@ Handle_Entry * DiffusionRouting::findHandle(handle my_handle, HandleList *hl)
   return NULL;
 }
 
-Filter_Entry * DiffusionRouting::deleteFilter(handle my_handle)
+FilterEntry * DiffusionRouting::deleteFilter(handle my_handle)
 {
   FilterList::iterator itr;
-  Filter_Entry *entry;
+  FilterEntry *entry;
 
   for (itr = filter_list.begin(); itr != filter_list.end(); ++itr){
     entry = *itr;
@@ -1084,10 +1132,10 @@ Filter_Entry * DiffusionRouting::deleteFilter(handle my_handle)
   return NULL;
 }
 
-Filter_Entry * DiffusionRouting::findFilter(handle my_handle)
+FilterEntry * DiffusionRouting::findFilter(handle my_handle)
 {
   FilterList::iterator itr;
-  Filter_Entry *entry;
+  FilterEntry *entry;
 
   for (itr = filter_list.begin(); itr != filter_list.end(); ++itr){
     entry = *itr;

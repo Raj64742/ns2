@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.hh,v 1.4 2002/03/12 01:23:36 haldar Exp $
+// $Id: tools.hh,v 1.5 2002/03/20 22:49:41 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -27,8 +27,8 @@
 // error logging happens in some non-trivial way).
 //
 
-#ifndef tools_hh
-#define tools_hh
+#ifndef _TOOLS_HH_
+#define _TOOLS_HH_
 
 #include <stdio.h>
 #include <stdarg.h>
@@ -52,4 +52,4 @@ void getTime(struct timeval *tv);
 int getRand();
 void diffPrint(int msg_level, const char *fmt, ...);
 
-#endif // tools_hh
+#endif // !_TOOLS_HH_

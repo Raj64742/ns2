@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Padma Haldar
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffapp.hh,v 1.1 2001/12/11 23:21:43 haldar Exp $
+// $Id: diffapp.hh,v 1.2 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -37,11 +37,11 @@ public:
   virtual void run() = 0;
 #ifdef NS_DIFFUSION
   int command(int argc, const char*const* argv);
-#endif //NS_DIFFUSION
-  
+#endif // NS_DIFFUSION
 protected:
   NR *dr;
   u_int16_t diffusion_port;
+  char *config_file;
 
 #ifndef NS_DIFFUSION
   void usage(char *s);

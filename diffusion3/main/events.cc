@@ -1,9 +1,9 @@
 // 
-// events.cc     : Provides the eventQueue
+// events.cc     : Provides the EventQueue
 // authors       : Lewis Girod and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: events.cc,v 1.3 2001/12/11 23:21:44 haldar Exp $
+// $Id: events.cc,v 1.4 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -94,15 +94,10 @@ int event_cmp(event *x, event *y)
 }
 
 //
-//  eventQueue Methods
+//  EventQueue Methods
 //
 
-void eventQueue::eq_new()
-{
-  head = NULL;
-}
-
-void eventQueue::eq_add(event *n)
+void EventQueue::eqAdd(event *n)
 {
   event *ptr = head;
   event *last = ptr;
@@ -120,7 +115,7 @@ void eventQueue::eq_add(event *n)
   }
 }
 
-event * eventQueue::eq_pop()
+event * EventQueue::eqPop()
 {
   event *e = head;
   if (e){
@@ -130,49 +125,46 @@ event * eventQueue::eq_pop()
   return e;
 }
 
-event * eventQueue::eq_findEvent(int type)
+event * EventQueue::eqFindEvent(int type)
 {
-  return eq_findNextEvent(type, head);
+  return eqFindNextEvent(type, head);
 }
 
-event * eventQueue::eq_findNextEvent(int type, event *e)
+event * EventQueue::eqFindNextEvent(int type, event *e)
 {
   while (e){
-
     if (e->type == type)
       return e;
-
     e = e->next;
   }
 
   return e;
 }
 
-void eventQueue::eq_addAfter(int type, void *payload, int delay_msec)
+void EventQueue::eqAddAfter(int type, void *payload, int delay_msec)
 {
-  event *e = MALLOC(event *,sizeof(event));
+  event *e = MALLOC(event *, sizeof(event));
   e->type = type;
   e->payload = payload;
-  event_setDelay(e,delay_msec);
-  eq_add(e);
+  setDelay(e, delay_msec);
+  eqAdd(e);
 }
 
-void eventQueue::event_setDelay(event *e, int delay_msec)
+void EventQueue::setDelay(event *e, int delay_msec)
 {
   getTime(&(e->tv));
-  timeval_addusecs(&(e->tv),delay_msec*1000);
+  timeval_addusecs(&(e->tv), delay_msec * 1000);
 }
 
 // caution: returns pointer to statically allocated timeval
-struct timeval * eventQueue::eq_nextTimer()
+struct timeval * EventQueue::eqNextTimer()
 {
   static struct timeval tv;
+  struct timeval now;
 
   if (head){
-    struct timeval now;
-    
     getTime(&now);
-    tv = *timeval_sub(&(head->tv),&now);
+    tv = *timeval_sub(&(head->tv), &now);
     return &tv;
   }
   else
@@ -180,25 +172,27 @@ struct timeval * eventQueue::eq_nextTimer()
 }
 
 
-int eventQueue::eq_topInPast()
+int EventQueue::eqTopInPast()
 {
-  if (head){
     struct timeval now;
+
+  if (head){
     getTime(&now);
-    return (timeval_cmp(&(head->tv),&now) <= 0);
+    return (timeval_cmp(&(head->tv), &now) <= 0);
   }
   return 0;
 }
 
-void eventQueue::eq_print()
+void EventQueue::eqPrint()
 {
   event *e = head;
+
   for (; (e); e = e->next){
-    printf("  time=%ld:%06ld type=%d\n",e->tv.tv_sec,e->tv.tv_usec,e->type);
+    printf("time=%ld:%06ld type=%d\n", e->tv.tv_sec, e->tv.tv_usec, e->type);
   }
 }
 
-int eventQueue::eq_remove(event *e)
+int EventQueue::eqRemove(event *e)
 {
   event *ce, *pe;
 
@@ -230,8 +224,8 @@ int eventQueue::eq_remove(event *e)
 // note that most OS timers have granularities on order of 5-15 ms.
 // timer[2] = { base_timer, variance }
 
-int eventQueue::randDelay(int timer[2])
+int EventQueue::randDelay(int timer[2])
 {
-  //return (int) (timer[0] + ((((float)rand())/((float)RAND_MAX)) - 0.5)*timer[1]);
-  return (int) (timer[0] + ((((float)getRand())/((float)RAND_MAX)) - 0.5)*timer[1]);
+  return (int) (timer[0] + ((((float) getRand()) /
+			     ((float) RAND_MAX)) - 0.5) * timer[1]);
 }

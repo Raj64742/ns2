@@ -3,8 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-
-// $Id: gradient.cc,v 1.6 2002/03/12 01:23:36 haldar Exp $
+// $Id: gradient.cc,v 1.7 2002/03/20 22:49:39 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -30,10 +29,9 @@ public:
   TclObject* create(int argc, const char*const* argv) {
     if (argc == 5)
       return(new GradientFilter(argv[4]));
-    else {
+    else
       fprintf(stderr, "Insufficient number of args for creating GradientFilter");
-      return(NULL);
-    }
+    return (NULL);
   }
 } class_gradient_filter;
 
@@ -65,12 +63,12 @@ void GradientFilterReceive::recv(Message *msg, handle h)
   app->recv(msg, h);
 }
 
-int MyTimerReceive::recv(handle hdl, void *p)
+int GradientTimerReceive::expire(handle hdl, void *p)
 {
   return app->ProcessTimers(hdl, p);
 }
 
-void MyTimerReceive::del(void *p)
+void GradientTimerReceive::del(void *p)
 {
   TimerType *timer;
   NRAttrVec *attrs;
@@ -527,10 +525,10 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
     dtimer->param = (void *) pos_rmsg;
 
     // Add timer for forwarding the data packet
-    //((DiffusionRouting *)dr)->addTimer(POS_REINFORCEMENT_SEND_DELAY +
-    //(int) ((POS_REINFORCEMENT_JITTER * (rand() * 1.0 / RAND_MAX) - (POS_REINFORCEMENT_JITTER / 2))),
-    //(void *) dtimer, tcb);
-    ((DiffusionRouting *)dr)->addTimer(POS_REINFORCEMENT_SEND_DELAY + (int) ((POS_REINFORCEMENT_JITTER * (getRand() * 1.0 / RAND_MAX) - (POS_REINFORCEMENT_JITTER / 2))), (void *) dtimer, tcb);
+    ((DiffusionRouting *)dr)->addTimer(POS_REINFORCEMENT_SEND_DELAY +
+				       (int) ((POS_REINFORCEMENT_JITTER * (getRand() * 1.0 / RAND_MAX) - (POS_REINFORCEMENT_JITTER / 2))),
+				       (void *) dtimer, tcb);
+
     pkt_count++;
     ClearAttrs(attrs);
     delete reinforcementblob;
@@ -570,8 +568,9 @@ void GradientFilter::ForwardData(Message *msg, Routing_Entry *entry,
       dtimer->param = (void *) dmsg;
 
       // Add timer for forwarding the data packet
-      //((DiffusionRouting *)dr)->addTimer(DATA_FORWARD_DELAY + (int) ((DATA_FORWARD_JITTER * (rand() * 1.0 / RAND_MAX) - (DATA_FORWARD_JITTER / 2))), (void *) dtimer, tcb);
-      ((DiffusionRouting *)dr)->addTimer(DATA_FORWARD_DELAY + (int) ((DATA_FORWARD_JITTER * (getRand() * 1.0 / RAND_MAX) - (DATA_FORWARD_JITTER / 2))), (void *) dtimer, tcb);
+      ((DiffusionRouting *)dr)->addTimer(DATA_FORWARD_DELAY +
+					 (int) ((DATA_FORWARD_JITTER * (getRand() * 1.0 / RAND_MAX) - (DATA_FORWARD_JITTER / 2))),
+					 (void *) dtimer, tcb);
     }
 #else
     // Forward DATA to all output gradients
@@ -906,9 +905,11 @@ void GradientFilter::ProcessNewMessage(Message *msg)
 
       timer = new TimerType(INTEREST_TIMER);
       timer->param = (void *) CopyMessage(msg);
-      
-      //((DiffusionRouting *)dr)->addTimer(INTEREST_FORWARD_DELAY + (int) ((INTEREST_FORWARD_JITTER * (rand() * 1.0 / RAND_MAX) - (INTEREST_FORWARD_JITTER / 2))), (void *) timer, tcb);
-      ((DiffusionRouting *)dr)->addTimer(INTEREST_FORWARD_DELAY + (int) ((INTEREST_FORWARD_JITTER * (getRand() * 1.0 / RAND_MAX) - (INTEREST_FORWARD_JITTER / 2))), (void *) timer, tcb);
+
+      ((DiffusionRouting *)dr)->addTimer(INTEREST_FORWARD_DELAY +
+					 (int) ((INTEREST_FORWARD_JITTER * (getRand() * 1.0 / RAND_MAX) - (INTEREST_FORWARD_JITTER / 2))),
+					 (void *) timer, tcb);
+
     }
     else{
       if ((nrclass->getOp() != NRAttribute::IS) &&
@@ -920,8 +921,9 @@ void GradientFilter::ProcessNewMessage(Message *msg)
 	timer = new TimerType(SUBSCRIPTION_TIMER);
 	timer->param = (void *) CopyAttrs(msg->msg_attr_vec);
 
-	//((DiffusionRouting *)dr)->addTimer(SUBSCRIPTION_DELAY + (int) (SUBSCRIPTION_DELAY * (rand() * 1.0 / RAND_MAX)), (void *) timer, tcb);
-	((DiffusionRouting *)dr)->addTimer(SUBSCRIPTION_DELAY + (int) (SUBSCRIPTION_DELAY * (getRand() * 1.0 / RAND_MAX)), (void *) timer, tcb);
+	((DiffusionRouting *)dr)->addTimer(SUBSCRIPTION_DELAY +
+					   (int) (SUBSCRIPTION_DELAY * (getRand() * 1.0 / RAND_MAX)),
+					   (void *) timer, tcb);
       }
 
       // Subscriptions don't have to match other subscriptions
@@ -1166,11 +1168,8 @@ GradientFilter::GradientFilter(int argc, char **argv)
 #endif // NS_DIFFUSION
 
   // Create callback classes and set up pointers
-  fcb = new GradientFilterReceive;
-  tcb = new MyTimerReceive;
-
-  fcb->app = this;
-  tcb->app = this;
+  fcb = new GradientFilterReceive(this);
+  tcb = new GradientTimerReceive(this);
 
   // Initialize Hashing structures
   Tcl_InitHashTable(&htable, 2);

@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: log.cc,v 1.1 2001/12/11 23:21:43 haldar Exp $
+// $Id: log.cc,v 1.2 2002/03/20 22:49:39 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -29,10 +29,10 @@ char *msg_types[] = {"INTEREST", "POSITIVE REINFORCEMENT",
 #ifdef NS_DIFFUSION
 static class LogFilterClass : public TclClass {
 public:
-    LogFilterClass() : TclClass("Application/DiffApp/LogFilter") {}
-    TclObject* create(int , const char*const* ) {
-	    return(new LogFilter());
-    }
+  LogFilterClass() : TclClass("Application/DiffApp/LogFilter") {}
+  TclObject * create(int argc, const char*const* argv) {
+    return(new LogFilter());
+  }
 } class_log_filter;
 
 int LogFilter::command(int argc, const char*const* argv) {
@@ -105,11 +105,10 @@ void LogFilter::run()
 #else
   // Doesn't do anything
   while (1){
-    sleep(100);
+    sleep(1000);
   }
 #endif // NS_DIFFUSION
 }
-
 
 #ifdef NS_DIFFUSION
 LogFilter::LogFilter()
@@ -123,8 +122,7 @@ LogFilter::LogFilter(int argc, char **argv)
   dr = NR::createNR(diffusion_port);
 #endif // NS_DIFFUSION
 
-  fcb = new LogFilterReceive;
-  fcb->app = this;
+  fcb = new LogFilterReceive(this);
 
 #ifndef NS_DIFFUSION
   // Set up the filter

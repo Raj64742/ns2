@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.cc,v 1.8 2002/03/12 01:23:36 haldar Exp $
+// $Id: tools.cc,v 1.9 2002/03/20 22:49:41 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -27,10 +27,7 @@
 #include "random.h"
 #endif // NS_DIFFUSION
 
-// XXXX setting debug level to 0 for now; (Default value is now changed from 1 to 0; will add tcl wrapper for changing debug level.
 int global_debug_level = DEBUG_DEFAULT;
-
-
 int default_debug_level = DEBUG_DEFAULT;
 
 char *application_id = NULL;
@@ -53,13 +50,14 @@ void InitMainLogger()
 void getTime(struct timeval *tv)
 {
 #ifdef NS_DIFFUSION
+  double time, sec, usec;
 
-  double time = Scheduler::instance().clock();
-  double sec = (int)(time*1000000)/1000000;
-  double usec = (int)(time*1000000)%1000000;
-  tv->tv_sec = sec;  
+  time = Scheduler::instance().clock();
+  sec = (int) (time * 1000000) / 1000000;
+  usec = (int) (time * 1000000) % 1000000;
+  tv->tv_sec = sec;
   tv->tv_usec = usec;
-  //printf("tv->sec=%d, tv->usec=%d\n",tv->tv_sec, tv->tv_usec);
+  //  printf("tv->sec = %d, tv->usec = %d\n", tv->tv_sec, tv->tv_usec);
 #else
   gettimeofday(tv, NULL);
 #endif // NS_DIFFUSION
@@ -68,15 +66,14 @@ void getTime(struct timeval *tv)
 void setSeed(struct timeval *tv) 
 {
 #ifdef NS_DIFFUSION
-  // NS RNG is seeded using otcl proc ns-random <seed>
-  //double seed = Random::seed_heuristically();
-  //srand(seed);
+  // Don't need to do anything since NS's RNG is seeded using
+  // otcl proc ns-random <seed>
 #else
   srand(tv->tv_usec);
 #endif // NS_DIFFUSION
 }
 
-int getRand() 
+int getRand()
 {
 #ifdef NS_DIFFUSION
   return (Random::random());

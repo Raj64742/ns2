@@ -3,9 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-
-// $Id: gradient.hh,v 1.4 2001/12/12 00:48:56 haldar Exp $
-
+// $Id: gradient.hh,v 1.5 2002/03/20 22:49:39 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -22,8 +20,8 @@
 //
 //
 
-#ifndef GRADIENT_HH
-#define GRADIENT_HH
+#ifndef _GRADIENT_HH_
+#define _GRADIENT_HH_
 
 #include "diffapp.hh"
 
@@ -34,7 +32,7 @@
 #include "hashutils.hh"
 #endif // NS_DIFFUSION
 
-#define GRADIENT_FILTER_PRIORITY 2
+#define GRADIENT_FILTER_PRIORITY 4
 #define OLD_MESSAGE -1
 #define NEW_MESSAGE 1
 
@@ -71,16 +69,22 @@ public:
 
 class GradientFilterReceive : public FilterCallback {
 public:
+  GradientFilterReceive(GradientFilter *_app) : app(_app)
+  {};
+
   GradientFilter *app;
 
   void recv(Message *msg, handle h);
 };
 
-class MyTimerReceive : public TimerCallbacks {
+class GradientTimerReceive : public TimerCallbacks {
 public:
+  GradientTimerReceive(GradientFilter *_app) : app(_app)
+  {};
+
   GradientFilter *app;
 
-  int recv(handle hdl, void *p);
+  int expire(handle hdl, void *p);
   void del(void *p);
 };
 
@@ -194,7 +198,7 @@ protected:
 
   // Receive Callback for the filter
   GradientFilterReceive *fcb;
-  MyTimerReceive *tcb;
+  GradientTimerReceive *tcb;
 
   // List of all known datatypes
   RoutingList routing_list;
@@ -237,4 +241,4 @@ protected:
   void PutHash(Hash_Entry *newHashPtr, unsigned int, unsigned int);
 };
 
-#endif //GRADIENT_HH
+#endif // !_GRADIENT_HH_

@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: message.hh,v 1.3 2001/12/11 23:21:45 haldar Exp $
+// $Id: message.hh,v 1.4 2002/03/20 22:49:41 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -42,7 +42,7 @@ public:
 
   // Added variables
   int new_message;
-  int16_t next_port;
+  u_int16_t next_port;
 
   // Message attributes
   NRAttrVec *msg_attr_vec;
@@ -113,7 +113,7 @@ public:
   int32_t next_hop;
   int32_t last_hop;
   int32_t handle;
-  int16_t next_port;
+  u_int16_t next_port;
 };
 
 Message * CopyMessage(Message *msg);

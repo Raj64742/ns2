@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.hh,v 1.5 2002/02/25 20:23:53 haldar Exp $
+// $Id: dr.hh,v 1.6 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -44,55 +44,20 @@
 #define WAIT_FOREVER       -1
 #define POLLING_INTERVAL   10 // seconds
 
-class Handle_Entry;
-class Callback_Entry;
-
 typedef long handle;
-typedef list<Handle_Entry *> HandleList;
-typedef list<Callback_Entry *> CallbackList;
+
+class HandleEntry;
+class TimerEntry;
+class CallbackEntry;
+
+typedef list<HandleEntry *> HandleList;
+typedef list<CallbackEntry *> CallbackList;
 typedef list<DiffusionIO *> DeviceList;
 
 class TimerCallbacks {
 public:
-  virtual int recv(handle hdl, void *p) = 0;
+  virtual int expire(handle hdl, void *p) = 0;
   virtual void del(void *p) = 0;
-};
-
-class Timer_Entry {
-public:
-  handle         hdl;
-  int            timeout;
-  void           *p;
-  TimerCallbacks *cb;
-
-  Timer_Entry(handle _hdl, int _timeout, void *_p, TimerCallbacks *_cb) : 
-    hdl(_hdl), timeout(_timeout), p(_p), cb(_cb) {};
-};
-
-class Handle_Entry {
-public:
-  handle hdl;
-  bool valid;
-  NRAttrVec *attrs;
-  NR::Callback *cb;
-
-  Handle_Entry()
-  {
-    valid = true;
-    cb = NULL;
-  };
-
-  ~Handle_Entry(){
-
-    ClearAttrs(attrs);
-    delete attrs;
-  };
-};
-
-class Callback_Entry {
-public:
-  NR::Callback *cb;
-  NR::handle subscription_handle;
 };
 
 class DiffusionRouting : public NR {
@@ -106,22 +71,7 @@ public:
   void run(bool wait_condition, long max_timeout);
 #endif // NS_DIFFUSION
 
-  ~DiffusionRouting()
-  {
-    HandleList::iterator itr;
-    Handle_Entry *current;
-
-    // Delete all Handles
-    for (itr = sub_list.begin(); itr != sub_list.end(); ++itr){
-      current = *itr;
-      delete current;
-    }
-
-    for (itr = pub_list.begin(); itr != pub_list.end(); ++itr){
-      current = *itr;
-      delete current;
-    }
-  };
+  ~DiffusionRouting();
 
   // NR (publish-subscribe) API functions
 
@@ -161,9 +111,9 @@ protected:
 
   void recvPacket(DiffPacket pkt);
   void recvMessage(Message *msg);
-  void InterestTimeout(Handle_Entry *entry);
-  void FilterKeepaliveTimeout(Filter_Entry *entry);
-  void ApplicationTimeout(Timer_Entry *entry);
+  void interestTimeout(HandleEntry *entry);
+  void filterKeepaliveTimeout(FilterEntry *entry);
+  void applicationTimeout(TimerEntry *entry);
 
 #ifdef NS_DIFFUSION
   // In NS, the protected members start here
@@ -180,11 +130,11 @@ protected:
   bool checkPublication(NRAttrVec *attrs);
   bool checkSend(NRAttrVec *attrs);
 
-  Handle_Entry * removeHandle(handle my_handle, HandleList *hl);
-  Handle_Entry * findHandle(handle my_handle, HandleList *hl);
+  HandleEntry * removeHandle(handle my_handle, HandleList *hl);
+  HandleEntry * findHandle(handle my_handle, HandleList *hl);
 
-  Filter_Entry * deleteFilter(handle my_handle);
-  Filter_Entry * findFilter(handle my_handle);
+  FilterEntry * deleteFilter(handle my_handle);
+  FilterEntry * findFilter(handle my_handle);
   bool hasScope(NRAttrVec *attrs);
 
   // Handle variables
@@ -198,7 +148,7 @@ protected:
   pthread_mutex_t *queueMtx;
 
   // Data structures
-  eventQueue *eq;
+  EventQueue *eq;
 
   // Lists
   DeviceList in_devices;

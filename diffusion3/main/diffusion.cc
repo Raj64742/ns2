@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffusion.cc,v 1.7 2002/03/12 01:23:36 haldar Exp $
+// $Id: diffusion.cc,v 1.8 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -23,12 +23,34 @@
 #include "diffusion.hh"
 
 #ifndef NS_DIFFUSION
-
 DiffusionCoreAgent *agent;
+#endif // !NS_DIFFUSION
+
+class HashEntry {
+public:
+  bool dummy;
+
+  HashEntry() { 
+    dummy  = false;
+  }
+};
+
+class NeighborEntry {
+public:
+  int32_t id;
+  struct timeval tmv;
+
+  NeighborEntry(int _id) : id(_id)
+  {
+    getTime(&tmv);
+  }
+};
+
+#ifndef NS_DIFFUSION
 
 void signal_handler(int p)
 {
-  agent->TimetoStop();
+  agent->timeToStop();
   exit(0);
 }
 
@@ -47,7 +69,7 @@ void DiffusionCoreAgent::usage()
   exit(0);
 }
 
-void DiffusionCoreAgent::TimetoStop()
+void DiffusionCoreAgent::timeToStop()
 {
   FILE *outfile = NULL;
 
@@ -93,32 +115,32 @@ void DiffusionCoreAgent::run()
     max_sock = 0;
 
     for (itr = in_devices.begin(); itr != in_devices.end(); ++itr){
-      (*itr)->AddInFDS(&fds, &max_sock);
+      (*itr)->addInFDS(&fds, &max_sock);
     }
 
     // Figure out how much to wait
-    tv = eq->eq_nextTimer();
+    tv = eq->eqNextTimer();
 
     fflush(stdout);
     status = select(max_sock+1, &fds, NULL, NULL, tv);
 
-    if ((status == 0) || (eq->eq_topInPast())){
+    if ((status == 0) || (eq->eqTopInPast())){
       // We got a timeout
-      event *e = eq->eq_pop();
+      event *e = eq->eqPop();
 
       // Timeouts
       switch (e->type){
 
       case NEIGHBORS_TIMER:
 
-	NeighborsTimeOut();
+	neighborsTimeOut();
 	free(e);
 
 	break;
 
       case FILTER_TIMER:
 
-	FilterTimeOut();
+	filterTimeOut();
 	free(e);
 
 	break;
@@ -126,7 +148,7 @@ void DiffusionCoreAgent::run()
       case STOP_TIMER:
 
 	free(e);
-	TimetoStop();
+	timeToStop();
 	exit(0);
 
 	break;
@@ -138,10 +160,10 @@ void DiffusionCoreAgent::run()
       do{
 	flag = false;
 	for (itr = in_devices.begin(); itr != in_devices.end(); ++itr){
-	  fd = (*itr)->CheckInFDS(&fds);
+	  fd = (*itr)->checkInFDS(&fds);
 	  if (fd != 0){
 	    // Message waiting
-	    in_pkt = (*itr)->RecvPacket(fd);
+	    in_pkt = (*itr)->recvPacket(fd);
 
 	    if (in_pkt)
 	      recvPacket(in_pkt);
@@ -161,13 +183,12 @@ void DiffusionCoreAgent::run()
     }
   }
 }
+#endif // !NS_DIFFUSION
 
-#endif // NS_DIFFUSION
-
-void DiffusionCoreAgent::NeighborsTimeOut()
+void DiffusionCoreAgent::neighborsTimeOut()
 {
   struct timeval tmv;
-  Neighbor_Entry *myNeighbor;
+  NeighborEntry *myNeighbor;
   NeighborList::iterator itr;
 
   diffPrint(DEBUG_MORE_DETAILS, "Neighbors Timeout !\n");
@@ -189,13 +210,13 @@ void DiffusionCoreAgent::NeighborsTimeOut()
   }
 
   // Re-schedule this timer
-  eq->eq_addAfter(NEIGHBORS_TIMER, NULL, NEIGHBORS_DELAY);
+  eq->eqAddAfter(NEIGHBORS_TIMER, NULL, NEIGHBORS_DELAY);
 }
 
-void DiffusionCoreAgent::FilterTimeOut()
+void DiffusionCoreAgent::filterTimeOut()
 {
   struct timeval tmv;
-  Filter_Entry *myFilter;
+  FilterEntry *myFilter;
   FilterList::iterator itr;
 
   diffPrint(DEBUG_MORE_DETAILS, "Filter Timeout !\n");
@@ -220,17 +241,17 @@ void DiffusionCoreAgent::FilterTimeOut()
   }
 
   // Re-Schedule this timer
-  eq->eq_addAfter(FILTER_TIMER, NULL, FILTER_DELAY);
+  eq->eqAddAfter(FILTER_TIMER, NULL, FILTER_DELAY);
 }
 
-void DiffusionCoreAgent::SendMessage(Message *msg)
+void DiffusionCoreAgent::sendMessage(Message *msg)
 {
   Tcl_HashEntry *entryPtr;
   unsigned int key[2];
   Message *myMessage;
   
-  //myMessage = new Message(DIFFUSION_VERSION, msg->msg_type, diffusion_port, 0,0, msg->pkt_num, msg->rdm_id, 0, msg->next_hop);
-  myMessage = new Message(DIFFUSION_VERSION, msg->msg_type, diffusion_port, 0,0, msg->pkt_num, msg->rdm_id, msg->next_hop, 0);
+  myMessage = new Message(DIFFUSION_VERSION, msg->msg_type, diffusion_port, 0,
+			  0, msg->pkt_num, msg->rdm_id, msg->next_hop, 0);
 
   myMessage->msg_attr_vec = CopyAttrs(msg->msg_attr_vec);
   myMessage->num_attr = myMessage->msg_attr_vec->size();
@@ -272,7 +293,7 @@ void DiffusionCoreAgent::SendMessage(Message *msg)
 
     // Add message to the hash table      
     if (entryPtr == NULL)
-      PutHash(key[0], key[1]);
+      putHash(key[0], key[1]);
     else
       diffPrint(DEBUG_DETAILS, "Message being sent is an old message !\n");
 
@@ -283,7 +304,7 @@ void DiffusionCoreAgent::SendMessage(Message *msg)
   delete myMessage;
 }
 
-void DiffusionCoreAgent::ForwardMessage(Message *msg, Filter_Entry *dst)
+void DiffusionCoreAgent::forwardMessage(Message *msg, FilterEntry *dst)
 {
   DeviceList::iterator itr;
   RedirectMessage *originalHdr;
@@ -326,24 +347,8 @@ void DiffusionCoreAgent::ForwardMessage(Message *msg, Filter_Entry *dst)
   delete originalHdr;
 }
 
-#ifdef NS_DIFFUSION
-void DiffusionCoreAgent::sendMessageToLibrary(Message *msg, int dst_agent_id)
-{
-  Message* myMsg;
-  DeviceList::iterator itr;
-  int len;
-  
-  myMsg = CopyMessage(msg);
-  len = CalculateSize(myMsg->msg_attr_vec);
-  len = len + sizeof(struct hdr_diff);
-
-  for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
-    (*itr)->sendPacket((DiffPacket)myMsg, len, dst_agent_id);
-  }
-}
-
-#else
-void DiffusionCoreAgent::sendMessageToLibrary(Message *msg, int dst_agent_id)
+#ifndef NS_DIFFUSION
+void DiffusionCoreAgent::sendMessageToLibrary(Message *msg, u_int16_t agent_id)
 {
   DiffPacket out_pkt = NULL;
   struct hdr_diff *dfh;
@@ -368,30 +373,28 @@ void DiffusionCoreAgent::sendMessageToLibrary(Message *msg, int dst_agent_id)
   NUM_ATTR(dfh) = htons(msg->num_attr);
   SRC_PORT(dfh) = htons(msg->source_port);
 
-  sendPacketToLibrary(out_pkt, sizeof(struct hdr_diff) + len, dst_agent_id);
+  sendPacketToLibrary(out_pkt, sizeof(struct hdr_diff) + len, agent_id);
 
   delete [] out_pkt;
 }
-#endif // NS_DIFFUSION
-
-#ifdef NS_DIFFUSION
-void DiffusionCoreAgent::sendMessageToNetwork(Message *msg)
+#else
+void DiffusionCoreAgent::sendMessageToLibrary(Message *msg, u_int16_t agent_id)
 {
-  Message* myMsg;
-  int len;
-  int32_t dst;
+  Message *myMsg;
   DeviceList::iterator itr;
+  int len;
 
   myMsg = CopyMessage(msg);
   len = CalculateSize(myMsg->msg_attr_vec);
   len = len + sizeof(struct hdr_diff);
-  dst = myMsg->next_hop;
-  
-  for (itr = out_devices.begin(); itr != out_devices.end(); ++itr){
-    (*itr)->sendPacket((DiffPacket)myMsg, len, dst);
+
+  for (itr = local_out_devices.begin(); itr != local_out_devices.end(); ++itr){
+    (*itr)->sendPacket((DiffPacket) myMsg, len, agent_id);
   }
 }
-#else
+#endif // !NS_DIFFUSION
+
+#ifndef NS_DIFFUSION
 void DiffusionCoreAgent::sendMessageToNetwork(Message *msg)
 {
   DiffPacket out_pkt = NULL;
@@ -421,9 +424,27 @@ void DiffusionCoreAgent::sendMessageToNetwork(Message *msg)
 
   delete [] out_pkt;
 }
-#endif // NS_DIFFUSION
+#else
+void DiffusionCoreAgent::sendMessageToNetwork(Message *msg)
+{
+  Message *myMsg;
+  int len;
+  int32_t dst;
+  DeviceList::iterator itr;
 
-void DiffusionCoreAgent::sendPacketToLibrary(DiffPacket pkt, int len, int dst)
+  myMsg = CopyMessage(msg);
+  len = CalculateSize(myMsg->msg_attr_vec);
+  len = len + sizeof(struct hdr_diff);
+  dst = myMsg->next_hop;
+
+  for (itr = out_devices.begin(); itr != out_devices.end(); ++itr){
+    (*itr)->sendPacket((DiffPacket) myMsg, len, dst);
+  }
+}
+#endif // !NS_DIFFUSION
+
+void DiffusionCoreAgent::sendPacketToLibrary(DiffPacket pkt, int len,
+					     u_int16_t dst)
 {
   DeviceList::iterator itr;
 
@@ -434,13 +455,17 @@ void DiffusionCoreAgent::sendPacketToLibrary(DiffPacket pkt, int len, int dst)
 
 void DiffusionCoreAgent::sendPacketToNetwork(DiffPacket pkt, int len, int dst)
 {
-  dvi_send((char *) pkt, len);
+  DeviceList::iterator itr;
+
+  for (itr = out_devices.begin(); itr != out_devices.end(); ++itr){
+    (*itr)->sendPacket((DiffPacket) pkt, len, dst);
+  }
 }
 
-void DiffusionCoreAgent::UpdateNeighbors(int id)
+void DiffusionCoreAgent::updateNeighbors(int id)
 {
   NeighborList::iterator itr;
-  Neighbor_Entry *newNeighbor;
+  NeighborEntry *newNeighbor;
 
   if (id == LOCALHOST_ADDR || id == myId)
     return;
@@ -452,7 +477,7 @@ void DiffusionCoreAgent::UpdateNeighbors(int id)
 
   if (itr == my_neighbors.end()){
     // This is a new neighbor
-    newNeighbor = new Neighbor_Entry(id);
+    newNeighbor = new NeighborEntry(id);
     my_neighbors.push_front(newNeighbor);
   }
   else{
@@ -461,10 +486,10 @@ void DiffusionCoreAgent::UpdateNeighbors(int id)
   }
 }
 
-Filter_Entry * DiffusionCoreAgent::FindFilter(int16_t handle, u_int16_t agent)
+FilterEntry * DiffusionCoreAgent::findFilter(int16_t handle, u_int16_t agent)
 {
   FilterList::iterator itr;
-  Filter_Entry *current;
+  FilterEntry *current;
 
   for (itr = filter_list.begin(); itr != filter_list.end(); ++itr){
     current = *itr;
@@ -477,10 +502,10 @@ Filter_Entry * DiffusionCoreAgent::FindFilter(int16_t handle, u_int16_t agent)
   return NULL;
 }
 
-Filter_Entry * DiffusionCoreAgent::DeleteFilter(int16_t handle, u_int16_t agent)
+FilterEntry * DiffusionCoreAgent::deleteFilter(int16_t handle, u_int16_t agent)
 {
   FilterList::iterator itr = filter_list.begin();
-  Filter_Entry *current = NULL;
+  FilterEntry *current = NULL;
 
   while (itr != filter_list.end()){
     current = *itr;
@@ -494,11 +519,11 @@ Filter_Entry * DiffusionCoreAgent::DeleteFilter(int16_t handle, u_int16_t agent)
   return current;
 }
 
-bool DiffusionCoreAgent::AddFilter(NRAttrVec *attrs, u_int16_t agent,
+bool DiffusionCoreAgent::addFilter(NRAttrVec *attrs, u_int16_t agent,
 				   int16_t handle, u_int16_t priority)
 {
   FilterList::iterator itr;
-  Filter_Entry *entry;
+  FilterEntry *entry;
 
   itr = filter_list.begin();
   while (itr != filter_list.end()){
@@ -508,7 +533,7 @@ bool DiffusionCoreAgent::AddFilter(NRAttrVec *attrs, u_int16_t agent,
     itr++;
   }
 
-  entry = new Filter_Entry(handle, priority, agent);
+  entry = new FilterEntry(handle, priority, agent);
 
   // Copy the Attribute Vector
   entry->filterAttrs = CopyAttrs(attrs);
@@ -519,10 +544,10 @@ bool DiffusionCoreAgent::AddFilter(NRAttrVec *attrs, u_int16_t agent,
   return true;
 }
 
-FilterList::iterator DiffusionCoreAgent::FindMatchingFilter(NRAttrVec *attrs,
+FilterList::iterator DiffusionCoreAgent::findMatchingFilter(NRAttrVec *attrs,
 							FilterList::iterator itr)
 {
-  Filter_Entry *entry;
+  FilterEntry *entry;
 
   for (;itr != filter_list.end(); ++itr){
     entry = *itr;
@@ -535,7 +560,7 @@ FilterList::iterator DiffusionCoreAgent::FindMatchingFilter(NRAttrVec *attrs,
   return itr;
 }
 
-bool DiffusionCoreAgent::RestoreOriginalHeader(Message *msg)
+bool DiffusionCoreAgent::restoreOriginalHeader(Message *msg)
 {
   NRAttrVec::iterator place = msg->msg_attr_vec->begin();
   NRSimpleAttribute<void *> *originalHeader = NULL;
@@ -569,11 +594,11 @@ bool DiffusionCoreAgent::RestoreOriginalHeader(Message *msg)
   return true;
 }
 
-FilterList * DiffusionCoreAgent::GetFilterList(NRAttrVec *attrs)
+FilterList * DiffusionCoreAgent::getFilterList(NRAttrVec *attrs)
 {
   FilterList *my_list = new FilterList;
   FilterList::iterator itr, myItr;
-  Filter_Entry *entry, *listEntry;
+  FilterEntry *entry, *listEntry;
 
   // We need to come up with a list of filters to call
   // F1 will be called before F2 if F1->priority > F2->priority
@@ -582,7 +607,7 @@ FilterList * DiffusionCoreAgent::GetFilterList(NRAttrVec *attrs)
   // are equal, the one with the lower port number will be
   // called first.
 
-  itr = FindMatchingFilter(attrs, filter_list.begin());
+  itr = findMatchingFilter(attrs, filter_list.begin());
 
   while (itr != filter_list.end()){
     // We have a match
@@ -610,17 +635,17 @@ FilterList * DiffusionCoreAgent::GetFilterList(NRAttrVec *attrs)
 
     itr++;
 
-    itr = FindMatchingFilter(attrs, itr);
+    itr = findMatchingFilter(attrs, itr);
   }
   return my_list;
 }
 
-u_int16_t DiffusionCoreAgent::GetNextFilterPriority(int16_t handle,
+u_int16_t DiffusionCoreAgent::getNextFilterPriority(int16_t handle,
 						    u_int16_t priority,
 						    u_int16_t agent)
 {
   FilterList::iterator itr;
-  Filter_Entry *entry;
+  FilterEntry *entry;
 
   if ((priority < FILTER_MIN_PRIORITY) ||
       (priority > FILTER_KEEP_PRIORITY))
@@ -645,13 +670,13 @@ u_int16_t DiffusionCoreAgent::GetNextFilterPriority(int16_t handle,
   return FILTER_INVALID_PRIORITY;
 }
 
-void DiffusionCoreAgent::ProcessMessage(Message *msg)
+void DiffusionCoreAgent::processMessage(Message *msg)
 {
   FilterList *my_list;
   FilterList::iterator itr;
-  Filter_Entry *entry;
+  FilterEntry *entry;
 
-  my_list = GetFilterList(msg->msg_attr_vec);
+  my_list = getFilterList(msg->msg_attr_vec);
 
   // Ok, we have a list of Filters to call. Send this message
   // to the first filter on this list
@@ -659,20 +684,20 @@ void DiffusionCoreAgent::ProcessMessage(Message *msg)
     itr = my_list->begin();
     entry = *itr;
 
-    ForwardMessage(msg, entry);
+    forwardMessage(msg, entry);
     my_list->clear();
   }
   delete my_list;
 }
 
-void DiffusionCoreAgent::ProcessControlMessage(Message *msg)
+void DiffusionCoreAgent::processControlMessage(Message *msg)
 {
   NRSimpleAttribute<void *> *ctrlmsg = NULL;
   NRAttrVec::iterator place;
   ControlMessage *controlblob = NULL;
   FilterList *flist;
   FilterList::iterator listitr;
-  Filter_Entry *entry;
+  FilterEntry *entry;
   int command, param1, param2;
   u_int16_t priority, source_port, new_priority;
   int16_t handle;
@@ -747,7 +772,7 @@ void DiffusionCoreAgent::ProcessControlMessage(Message *msg)
   //          and figure out the current agent's position on the
   //          list. Then, we send to the next guy.
 
-  LogControlMessage(msg, command, param1, param2);
+  logControlMessage(msg, command, param1, param2);
 
   // First we remove the control attribute from the message
   msg->msg_attr_vec->erase(place);
@@ -759,7 +784,7 @@ void DiffusionCoreAgent::ProcessControlMessage(Message *msg)
     priority = param1;
     handle = param2;
 
-    entry = FindFilter(handle, msg->source_port);
+    entry = findFilter(handle, msg->source_port);
 
     if (entry){
       // Filter already present
@@ -785,7 +810,7 @@ void DiffusionCoreAgent::ProcessControlMessage(Message *msg)
     }
 
     // This is a new filter
-    if (!AddFilter(msg->msg_attr_vec, msg->source_port, handle, priority)){
+    if (!addFilter(msg->msg_attr_vec, msg->source_port, handle, priority)){
       diffPrint(DEBUG_ALWAYS, "Failed to add filter %d, %d, %d\n",
 		msg->source_port, handle, priority);
     }
@@ -799,7 +824,7 @@ void DiffusionCoreAgent::ProcessControlMessage(Message *msg)
   case REMOVE_FILTER:
 
     handle = param1;
-    entry = DeleteFilter(handle, msg->source_port);
+    entry = deleteFilter(handle, msg->source_port);
     if (entry){
       // Filter deleted
       diffPrint(DEBUG_NO_DETAILS, "Filter %d, %d, %d deleted.\n",
@@ -816,7 +841,7 @@ void DiffusionCoreAgent::ProcessControlMessage(Message *msg)
   case KEEPALIVE_FILTER:
 
     handle = param1;
-    entry = FindFilter(handle, msg->source_port);
+    entry = findFilter(handle, msg->source_port);
     if (entry){
       // Update filter timeout
       getTime(&(entry->tmv));
@@ -835,23 +860,23 @@ void DiffusionCoreAgent::ProcessControlMessage(Message *msg)
     priority = param2;
     source_port = msg->source_port;
 
-    if (!RestoreOriginalHeader(msg))
+    if (!restoreOriginalHeader(msg))
       break;
 
-    new_priority = GetNextFilterPriority(handle, priority, source_port);
+    new_priority = getNextFilterPriority(handle, priority, source_port);
 
     if (new_priority == FILTER_INVALID_PRIORITY)
       break;
 
     // Now process the incoming message
-    flist = GetFilterList(msg->msg_attr_vec);
+    flist = getFilterList(msg->msg_attr_vec);
 
     // Find the filter after the 'current' filter on the list
     if (flist->size() > 0){
       for (listitr = flist->begin(); listitr != flist->end(); ++listitr){
 	entry = *listitr;
 	if (entry->priority <= new_priority){
-	  ForwardMessage(msg, entry);
+	  forwardMessage(msg, entry);
 	  break;
 	}
       }
@@ -866,7 +891,7 @@ void DiffusionCoreAgent::ProcessControlMessage(Message *msg)
 
     if (filter_is_last){
       // Forward message to the network or the destination application
-      SendMessage(msg);
+      sendMessage(msg);
     }
 
     flist->clear();
@@ -883,7 +908,7 @@ void DiffusionCoreAgent::ProcessControlMessage(Message *msg)
   }
 }
 
-void DiffusionCoreAgent::LogControlMessage(Message *msg, int command,
+void DiffusionCoreAgent::logControlMessage(Message *msg, int command,
 					   int param1, int param2)
 {
   // Logs the incoming message
@@ -917,22 +942,6 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 #ifdef BBN_LOGGER
   InitMainLogger();
 #endif // BBN_LOGGER
-
-  if (scadds_env != NULL){
-    myId = atoi(scadds_env);
-  }
-  else{
-    diffPrint(DEBUG_ALWAYS, "Diffusion : scadds_addr not set. Using random id.\n");
-
-    // Generate random ID
-    do{
-      getTime(&tv);
-      setSeed(&tv);
-      myId = getRand();
-
-    }
-    while(myId == LOCALHOST_ADDR || myId == BROADCAST_ADDR);
-  }
 
 #ifndef NS_DIFFUSION
   // Parse command line options
@@ -1023,7 +1032,23 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 
   if (!config_file)
     config_file = strdup(DEFAULT_CONFIG_FILE);
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION
+
+  // Get diffusion ID
+  if (scadds_env != NULL){
+    myId = atoi(scadds_env);
+  }
+  else{
+    diffPrint(DEBUG_ALWAYS, "Diffusion : scadds_addr not set. Using random id.\n");
+
+    // Generate random ID
+    do{
+      getTime(&tv);
+      setSeed(&tv);
+      myId = getRand();
+    }
+    while(myId == LOCALHOST_ADDR || myId == BROADCAST_ADDR);
+  }
 
   // Initialize variables
   lon = 0.0;
@@ -1034,9 +1059,9 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 #  ifndef WIRED
 #     ifdef USE_RPC
   rpcstats = new RPCStats(myId);
-#     endif
-#  endif
-#endif
+#     endif // USE_RPC
+#  endif // !WIRED
+#endif // STATS
 
   getTime(&tv);
   setSeed(&tv);
@@ -1045,20 +1070,19 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 
   Tcl_InitHashTable(&htable, 2);
 
-  // Initialize eventQueue
+  // Initialize EventQueue
 #ifdef NS_DIFFUSION
   eq = new DiffusionCoreEQ(diffrtg);
 #else
-  eq = new eventQueue;
-#endif
-  eq->eq_new();
+  eq = new EventQueue;
+#endif // NS_DIFFUSION
 
-  // Add timers to the eventQueue
-  eq->eq_addAfter(NEIGHBORS_TIMER, NULL, NEIGHBORS_DELAY);
-  eq->eq_addAfter(FILTER_TIMER, NULL, FILTER_DELAY);
+  // Add timers to the EventQueue
+  eq->eqAddAfter(NEIGHBORS_TIMER, NULL, NEIGHBORS_DELAY);
+  eq->eqAddAfter(FILTER_TIMER, NULL, FILTER_DELAY);
 
   if (stop_time > 0) 
-    eq->eq_addAfter(STOP_TIMER, NULL, stop_time * 1000);
+    eq->eqAddAfter(STOP_TIMER, NULL, stop_time * 1000);
 
   getTime(&tv);
 
@@ -1105,8 +1129,8 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 #endif // USE_WINSNG2
 }
 
-Hash_Entry * DiffusionCoreAgent::GetHash(unsigned int pkt_num,
-				     unsigned int rdm_id)
+HashEntry * DiffusionCoreAgent::getHash(unsigned int pkt_num,
+					 unsigned int rdm_id)
 {
   unsigned int key[2];
 
@@ -1118,14 +1142,14 @@ Hash_Entry * DiffusionCoreAgent::GetHash(unsigned int pkt_num,
   if (entryPtr == NULL)
     return NULL;
 
-  return (Hash_Entry *)Tcl_GetHashValue(entryPtr);
+  return (HashEntry *)Tcl_GetHashValue(entryPtr);
 }
 
-void DiffusionCoreAgent::PutHash(unsigned int pkt_num,
-			     unsigned int rdm_id)
+void DiffusionCoreAgent::putHash(unsigned int pkt_num,
+				 unsigned int rdm_id)
 {
   Tcl_HashEntry *entryPtr;
-  Hash_Entry    *hashPtr;
+  HashEntry *hashPtr;
   HashList::iterator itr;
   unsigned int key[2];
   int newPtr;
@@ -1137,7 +1161,7 @@ void DiffusionCoreAgent::PutHash(unsigned int pkt_num,
 		     && (hash_list.size() > 0)); i++){
       itr = hash_list.begin();
       entryPtr = *itr;
-      hashPtr = (Hash_Entry *) Tcl_GetHashValue(entryPtr);
+      hashPtr = (HashEntry *) Tcl_GetHashValue(entryPtr);
       delete hashPtr;
       hash_list.erase(itr);
       Tcl_DeleteHashEntry(entryPtr);
@@ -1154,24 +1178,11 @@ void DiffusionCoreAgent::PutHash(unsigned int pkt_num,
     return;
   }
 
-  hashPtr = new Hash_Entry;
+  hashPtr = new HashEntry;
 
   Tcl_SetHashValue(entryPtr, hashPtr);
 
   hash_list.push_back(entryPtr);
-}
-
-void DiffusionCoreAgent::dvi_send(char *pkt, int length)
-{
-  DeviceList::iterator itr;
-  struct hdr_diff *dfh = HDR_DIFF(pkt);
-  int32_t dst;
-
-  dst = ntohl(NEXT_HOP(dfh));
-
-  for (itr = out_devices.begin(); itr != out_devices.end(); ++itr){
-    (*itr)->sendPacket((DiffPacket) pkt, length, dst);
-  }
 }
 
 #ifndef NS_DIFFUSION
@@ -1201,20 +1212,15 @@ void DiffusionCoreAgent::recvPacket(DiffPacket pkt)
   // Read all attributes into the Message structure
   rcv_message->msg_attr_vec = UnpackAttrs(pkt, num_attr);
 
-
   // Process the incoming message
   recvMessage(rcv_message);
 
   // Don't forget to message when we're done
   delete rcv_message;
 
-  //#ifndef NS_DIFFUSION
-  // Delete the incoming packet. In NS, it will be deleted then Packet::free() gets
-  // called in the DiffRoutingAgent::recv(Packet *, handler *)
   delete [] pkt;
-  //#endif // NS_DIFFUSION
 }
-#endif //NOT_NS_DIFF
+#endif // !NS_DIFFUSION
 
 void DiffusionCoreAgent::recvMessage(Message *msg)
 {
@@ -1251,7 +1257,7 @@ void DiffusionCoreAgent::recvMessage(Message *msg)
     }
     else{
       // Add message to the hash table
-      PutHash(key[0], key[1]);
+      putHash(key[0], key[1]);
       msg->new_message = 1;
     }
   }
@@ -1262,28 +1268,9 @@ void DiffusionCoreAgent::recvMessage(Message *msg)
 
   // Check if it's a control of a regular message
   if (msg->msg_type == CONTROL)
-    ProcessControlMessage(msg);
+    processControlMessage(msg);
   else
-    ProcessMessage(msg);
-}
-
-DiffPacket DupPacket(DiffPacket pkt)
-{
-  int p_size;
-  struct hdr_diff *dfh = HDR_DIFF(pkt);
-
-  p_size = sizeof(struct hdr_diff) + ntohs(DATA_LEN(dfh));
-
-  DiffPacket dup = new int [1 + (p_size / sizeof(int))];
-
-  if (dup == NULL){
-    diffPrint(DEBUG_ALWAYS, "Can't allocate memory. Duplicate Packet fails.\n");
-    exit(-1);
-  }
-
-  memcpy(dup, pkt, sizeof(struct hdr_diff) + ntohs(DATA_LEN(dfh)));
-
-  return dup;
+    processMessage(msg);
 }
 
 #ifndef NS_DIFFUSION
@@ -1297,4 +1284,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION

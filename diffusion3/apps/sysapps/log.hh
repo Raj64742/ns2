@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: log.hh,v 1.1 2001/12/12 00:56:25 haldar Exp $
+// $Id: log.hh,v 1.2 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -31,6 +31,9 @@ class LogFilter;
 
 class LogFilterReceive : public FilterCallback {
 public:
+  LogFilterReceive(LogFilter *_app) : app(_app)
+  {};
+
   LogFilter *app;
 
   void recv(Message *msg, handle h);
@@ -49,10 +52,8 @@ public:
   void recv(Message *msg, handle h);
 
 protected:
-
   // General Variables/Functions
   handle filterHandle;
-  void usage();
 
   // Receive Callback for the filter
   LogFilterReceive *fcb;

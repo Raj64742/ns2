@@ -87,7 +87,7 @@ DiffPacket LinkLayerAbs::recvPacket(int fd) {
 }
 
 
-void DiffusionCoreEQ::eq_addAfter(int type, void *payload, int delay_msec) {
+void DiffusionCoreEQ::eqAddAfter(int type, void *payload, int delay_msec) {
   
   DiffEvent* de = new DiffEvent(type, payload, delay_msec);
   CoreDiffEventHandler *dh = a_->getDiffTimer();
@@ -112,14 +112,14 @@ void DiffRoutingAgent::diffTimeout(Event *de) {
 
   case NEIGHBORS_TIMER:
 
-    agent_->NeighborsTimeOut();
+    agent_->neighborsTimeOut();
     delete e;
 
     break;
 
   case FILTER_TIMER:
     
-    agent_->FilterTimeOut();
+    agent_->filterTimeOut();
     delete e;
     
     break;

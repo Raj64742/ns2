@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping_sender.cc,v 1.1 2001/12/11 23:21:42 haldar Exp $
+// $Id: ping_sender.cc,v 1.2 2002/03/20 22:49:39 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -144,6 +144,9 @@ void PingSenderApp::run()
   struct timeval tmv;
   int retval;
   char input;
+#ifdef INTERACTIVE
+  fd_set FDS;
+#endif // INTERATIVE
 
   // Setup publication and subscription
   subHandle = setupSubscription();
@@ -170,7 +173,10 @@ void PingSenderApp::run()
   // Main thread will send ping probes
   while(1){
 #ifdef INTERACTIVE
+    FD_SET(0, &FDS);
     fprintf(stdout, "Press <Enter> to send a ping probe...");
+    fflush(NULL);
+    select(1, &FDS, NULL, NULL, NULL);
     input = getc(stdin);
     if (input == 'c'){
       dr->unsubscribe(subHandle);

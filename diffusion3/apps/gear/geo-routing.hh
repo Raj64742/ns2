@@ -3,7 +3,7 @@
 // geo-routing.hh  : GEAR Include File
 // author          : Yan Yu
 //
-// $Id: geo-routing.hh,v 1.1 2002/03/12 01:26:05 haldar Exp $
+// $Id: geo-routing.hh,v 1.2 2002/03/20 22:49:39 haldar Exp $
 //
 // *********************************************************
 
@@ -11,7 +11,12 @@
 #define GEO_ROUTING_HH
 
 #include <list>
+
+#ifndef USE_WINSNG2
 #include <hash_map>
+#else
+#include <ext/hash_map>
+#endif // !USE_WINSNG2
 
 #ifdef NS_DIFFUSION
 #include <mobilenode.h>
@@ -178,7 +183,7 @@ class GeoRoutingFilter;
 
 typedef	hash_map<int, Neighbor_Entry *> Neighbors_Hash;
 typedef list<Pkt_Header *> Packets_List;
- 
+
 class GeoFilterReceive : public FilterCallback {
 public:
   GeoRoutingFilter *app;
@@ -194,7 +199,6 @@ public:
   GeoTimerReceive(GeoRoutingFilter *_app) : app(_app) {};
   int expire(handle hdl, void *p);
   void del(void *p);
-  int recv(handle hdl, void *p) {};
 };
 
 class H_value_entry {
@@ -355,7 +359,7 @@ protected:
   double RetrieveH_Value(GeoLocation dst);
   void BroadcastH_Value(GeoLocation dst, double  new_h, int to_id);
 
-  // GetNodeLocation --> This will move to the library in future
+  // GetNodeLocation --> This will move to the library in the future
   void GetNodeLocation(double *x, double *y);
 #ifdef NS_DIFFUSION
   // This will also go away in the future

@@ -3,7 +3,7 @@
 // Authors       : Lewis Girod and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: events.hh,v 1.5 2002/03/14 22:04:18 haldar Exp $
+// $Id: events.hh,v 1.6 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,8 +20,8 @@
 //
 //
 
-#ifndef __EVENT_H
-#define __EVENT_H
+#ifndef _EVENT_H_
+#define _EVENT_H_
 
 #include "tools.hh"
 
@@ -38,38 +38,37 @@ typedef struct _event {
   struct _event *next;
 } event;
 
-class eventQueue {
+class EventQueue {
 
 //
 //  Methods
 //
-//  eq_new        initializes the event queue
-//  eq_add        inserts an event into the queue
-//  eq_addAfter   creates a new event and inserts it
-//  eq_pop        extracts the first event and returns it
-//  eq_nextTimer  returns the time of expiration for the next event
-//  eq_topInPast  returns true if the head of the timer queue is in the past
-//  eq_remove     remove an event from the queue
+//  eqAdd        inserts an event into the queue
+//  eqAddAfter   creates a new event and inserts it
+//  eqPop        extracts the first event and returns it
+//  eqNextTimer  returns the time of expiration for the next event
+//  eqTopInPast  returns true if the head of the timer queue is in the past
+//  eqRemove     remove an event from the queue
 //
 
 public:
-  eventQueue(){
+  EventQueue(){
     // Empty
+    head = NULL;
   };
-  ~eventQueue(){
+  ~EventQueue(){
     // Empty
   };
 
-  virtual void eq_new();
-  void eq_add(event *n);
-  virtual void eq_addAfter(int type, void *payload, int delay_msec);
-  event * eq_pop();
-  event * eq_findEvent(int type);
-  event * eq_findNextEvent(int type, event *e);
-  struct timeval * eq_nextTimer();
-  int eq_topInPast();
-  void eq_print();
-  int eq_remove(event *e);
+  void eqAdd(event *n);
+  virtual void eqAddAfter(int type, void *payload, int delay_msec);
+  event * eqPop();
+  event * eqFindEvent(int type);
+  event * eqFindNextEvent(int type, event *e);
+  struct timeval * eqNextTimer();
+  int eqTopInPast();
+  void eqPrint();
+  int eqRemove(event *e);
 
 //
 //  Event methods
@@ -81,7 +80,7 @@ public:
 
 private:
 
-  void event_setDelay(event *e, int delay_msec);
+  void setDelay(event *e, int delay_msec);
   int randDelay(int timer[2]);
 
   event *head;
@@ -97,14 +96,11 @@ void timeval_addusecs(struct timeval *tv, int usecs);
 int event_cmp(event *x, event *y);
 
 #ifdef NS_DIFFUSION
-#ifdef RAND_MAX
-#undef RAND_MAX
-#endif
 #define RAND_MAX 2147483647
 #else
 #ifndef RAND_MAX
 #define RAND_MAX 2147483647
-#endif // RAND_MAX
+#endif // !RAND_MAX
 #endif // NS_DIFFUSION
 
 // MALLOC hack (thanks jeremy)
@@ -113,4 +109,4 @@ void *check_malloc(size_t s);
 #define MALLOC(type,size)   (type)check_malloc(size)
 #endif
 
-#endif // __EVENT_H
+#endif // !_EVENT_H_

@@ -3,7 +3,7 @@
 // geo-routing.cc : GEAR Filter
 // author         : Yan Yu
 //
-// $Id: geo-routing.cc,v 1.1 2002/03/12 01:26:04 haldar Exp $
+// $Id: geo-routing.cc,v 1.2 2002/03/20 22:49:39 haldar Exp $
 //
 // *********************************************************
 
@@ -33,6 +33,7 @@ int GeoRoutingFilter::command(int argc, const char*const* argv) {
       return TCL_OK;
     }
   }
+
   return DiffApp::command(argc, argv);
 }
 #endif // NS_DIFFUSION
@@ -323,7 +324,7 @@ void GeoRoutingFilter::PreProcessMessage(Message *msg, handle h)
 
 	((DiffusionRouting *)dr)->addTimer(GEO_BEACON_GENERATE_DELAY +
 					   (int) ((GEO_BEACON_GENERATE_JITTER *
-						   (rand() * 1.0 / RAND_MAX) -
+						   (getRand() * 1.0 / RAND_MAX) -
 						   (GEO_BEACON_GENERATE_JITTER / 2))),
 					   (void *) timer, tcb);
 
@@ -573,6 +574,7 @@ void GeoRoutingFilter::GetNodeLocation(double *x, double *y)
 {
 #ifdef NS_DIFFUSION
   double z;
+
   node_->getLoc(x, y, &z);
 #else
   char *x_env, *y_env;
@@ -682,7 +684,7 @@ void GeoRoutingFilter::SendNeighborRequest(int32_t neighbor_id, Message *msg)
  
     ((DiffusionRouting *)dr)->addTimer(GEO_BEACON_REQUEST_DELAY +
 				       (int) ((GEO_BEACON_REQUEST_JITTER *
-					       (rand() * 1.0 / RAND_MAX) -
+					       (getRand() * 1.0 / RAND_MAX) -
 					       (GEO_BEACON_REQUEST_JITTER / 2))),
 				       (void *) timer, tcb);
 
@@ -1125,7 +1127,7 @@ void GeoRoutingFilter::BroadcastH_Value(GeoLocation dst, double new_h, int to_id
 
   ((DiffusionRouting *)dr)->addTimer(GEO_BEACON_REQUEST_DELAY +
 				     (int) ((GEO_BEACON_REQUEST_JITTER *
-					     (rand() * 1.0 / RAND_MAX) -
+					     (getRand() * 1.0 / RAND_MAX) -
 					     (GEO_BEACON_REQUEST_JITTER / 2))),
 				     (void *) timer, tcb);
 

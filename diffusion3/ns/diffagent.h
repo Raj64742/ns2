@@ -67,11 +67,10 @@ public:
 	void* payload() { return payload_; }
 };
 
-class DiffEventQueue : public eventQueue { 
+class DiffEventQueue : public EventQueue { 
 public: 
-	void eq_new() { }         ;//do nothing 
 	DiffEventQueue(DiffAppAgent *a) { a_ = a; } 
-	void eq_addAfter(int type, void *, int delay_msec); 
+	void eqAddAfter(int type, void *, int delay_msec); 
 private: 
 	DiffAppAgent *a_;
 }; 

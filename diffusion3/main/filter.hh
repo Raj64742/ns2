@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: filter.hh,v 1.3 2001/12/11 23:21:44 haldar Exp $
+// $Id: filter.hh,v 1.4 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -38,13 +38,13 @@
 
 using namespace std;
 
-class Filter_Entry;
+class FilterEntry;
 class FilterCallback;
 
-typedef list<Filter_Entry *> FilterList;
+typedef list<FilterEntry *> FilterList;
 typedef long handle;
 
-class Filter_Entry {
+class FilterEntry {
 public:
   NRAttrVec          *filterAttrs;
   int16_t            handle;
@@ -54,14 +54,14 @@ public:
   struct timeval     tmv;
   bool               valid;
    
-  Filter_Entry(int16_t _handle, u_int16_t _priority, u_int16_t _agent) : handle(_handle), priority(_priority), agent(_agent)
+  FilterEntry(int16_t _handle, u_int16_t _priority, u_int16_t _agent) : handle(_handle), priority(_priority), agent(_agent)
   {
     valid = true;
     cb = NULL;
     getTime(&tmv);
   }
 
-  ~Filter_Entry()
+  ~FilterEntry()
   {
     if (filterAttrs){
       ClearAttrs(filterAttrs);

@@ -34,7 +34,6 @@
 #ifndef DIFFUSION_RTG
 #define DIFFUSION_RTG
 
-//#include "diffusion.hh"
 #include "difftimer.h"
 #include "iodev.hh"
 #include "events.hh"
@@ -43,7 +42,7 @@
 #include "ns-process.h"
 #include "agent.h"
 #include "trace.h"
-
+#include "message.hh"
 
 class DiffusionCoreAgent;
 class DiffRoutingAgent;
@@ -67,11 +66,10 @@ protected:
 	DiffRoutingAgent *agent_;
 };
  
-class DiffusionCoreEQ : public eventQueue {
+class DiffusionCoreEQ : public EventQueue {
 public:
-	void eq_new() { }         ;//do nothing 
 	DiffusionCoreEQ(DiffRoutingAgent *agent) { a_ = agent; }
-	void eq_addAfter(int type, void *, int delay);
+	void eqAddAfter(int type, void *, int delay);
 private:
 	DiffRoutingAgent *a_;
 };

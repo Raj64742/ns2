@@ -3,7 +3,7 @@
 // author           : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: ping_receiver.cc,v 1.2 2002/02/25 20:23:52 haldar Exp $
+// $Id: ping_receiver.cc,v 1.3 2002/03/20 22:49:39 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -149,9 +149,9 @@ void PingReceiverApp::run()
 #ifndef NS_DIFFUSION
   // Do nothing
   while (1){
-    sleep(100);
+    sleep(1000);
   }
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION
 }
 
 #ifdef NS_DIFFUSION
@@ -164,13 +164,12 @@ PingReceiverApp::PingReceiverApp(int argc, char **argv)
   num_msg_recv = 0;
   first_msg_recv = -1;
 
-  mr = new MyReceiverReceive;
-  mr->app = this;
+  mr = new MyReceiverReceive(this);
 
 #ifndef NS_DIFFUSION
   ParseCommandLine(argc, argv);
   dr = NR::createNR(diffusion_port);
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION
 }
 
 #ifndef NS_DIFFUSION
@@ -183,4 +182,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION

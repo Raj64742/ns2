@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: iodev.hh,v 1.5 2002/03/12 01:23:36 haldar Exp $
+// $Id: iodev.hh,v 1.6 2002/03/20 22:49:41 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -27,17 +27,18 @@
 
 #include "header.hh"
 #include "tools.hh"
-#include "message.hh"
 
 using namespace std;
 
 class DiffusionIO {
 public:
   DiffusionIO();
-  void AddInFDS(fd_set *fds, int *max);
-  int CheckInFDS(fd_set *fds);
+
+  void addInFDS(fd_set *fds, int *max);
+  int checkInFDS(fd_set *fds);
   virtual DiffPacket recvPacket(int fd) = 0;
   virtual void sendPacket(DiffPacket p, int len, int dst) = 0;
+
 protected:
   int num_out_descriptors;
   int num_in_descriptors;

@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Padma Haldar
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffapp.cc,v 1.1 2001/12/11 23:21:43 haldar Exp $
+// $Id: diffapp.cc,v 1.2 2002/03/20 22:49:40 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -23,7 +23,6 @@
 #include "diffapp.hh"
 
 #ifdef NS_DIFFUSION
-
 int DiffApp::command(int argc, const char*const* argv) {
   Tcl& tcl = Tcl::instance();
   //if (argc == 2) {
@@ -49,9 +48,10 @@ int DiffApp::command(int argc, const char*const* argv) {
 
 #else
 void DiffApp::usage(char *s){
-  diffPrint(DEBUG_ALWAYS, "Usage: %s [-d debug] [-p port] [-h]\n\n", s);
+  diffPrint(DEBUG_ALWAYS, "Usage: %s [-d debug] [-p port] [-f file] [-h]\n\n", s);
   diffPrint(DEBUG_ALWAYS, "\t-d - Sets debug level (0-10)\n");
   diffPrint(DEBUG_ALWAYS, "\t-p - Uses port 'port' to talk to diffusion\n");
+  diffPrint(DEBUG_ALWAYS, "\t-f - Specifies a config file\n");
   diffPrint(DEBUG_ALWAYS, "\t-h - Prints this information\n");
   diffPrint(DEBUG_ALWAYS, "\n");
   exit(0);
@@ -63,6 +63,7 @@ void DiffApp::ParseCommandLine(int argc, char **argv)
   int opt;
   u_int16_t diff_port = DEFAULT_DIFFUSION_PORT;
 
+  config_file = NULL;
   opterr = 0;
   application_id = strdup(argv[0]);
 
@@ -71,7 +72,7 @@ void DiffApp::ParseCommandLine(int argc, char **argv)
 #endif // BBN_LOGGER
 
   while (1){
-    opt = getopt(argc, argv, "hd:p:");
+    opt = getopt(argc, argv, "f:hd:p:");
     switch (opt){
 
     case 'p':
@@ -100,6 +101,17 @@ void DiffApp::ParseCommandLine(int argc, char **argv)
       }
 
       global_debug_level = debug_level;
+
+      break;
+
+    case 'f':
+
+      if (!strncasecmp(optarg, "-", 1)){
+	diffPrint(DEBUG_ALWAYS, "Error: Parameter missing !\n");
+	usage(argv[0]);
+      }
+
+      config_file = strdup(optarg);
 
       break;
 
