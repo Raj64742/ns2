@@ -1,0 +1,390 @@
+\documentclass{article}
+
+\PassOptionsToPackage{draft}{MyPreamble}
+\usepackage[widen-page,skrunch-figures]{MyPreamble}
+\usepackage{nsDoc}
+
+\begin{document}
+
+\title{\nsTcl\ internals documentation}
+\author{%
+  Kevin Fall \tup{kfall@ee.lbl.gov}\\
+  Kannan Varadhan \tup{kannan@catarina.usc.edu}}
+\date{\today}
+
+\def\c#1{\ensuremath{C_{#1}}}
+\def\d#1{\ensuremath{D_{#1}}}
+
+% \maketitle
+
+\section{\shdr{TCP}{tcp.cc}{sec:tcp}}
+
+This section describes the operation of the TCP agents in \ns.
+There are two major types of TCP agents: one-way agents
+and a two-way agent.
+One-way agents are further subdivided into a set of TCP senders
+(which obey different congestion and error control techniques)
+and receivers (``sinks'').
+The two-way agent is symmetric in the sense that it represents
+both a sender and receiver.
+It is still under development.
+
+The one-way TCP sending agents currently supported are:
+\begin{itemize}
+	\item Agent/TCP - a ``tahoe'' TCP sender
+	\item Agent/TCP/Reno - a ``Reno'' TCP sender
+	\item Agent/TCP/NewReno - Reno with a modification
+	\item Agent/TCP/Sack1 - TCP with selective repeat (follows RFC2018)
+	\item Agent/TCP/Vegas - TCP Vegas
+	\item Agent/TCP/Fack - Reno TCP with ``forward acknowledgement''
+\end{itemize}
+The one-way TCP receiving agents currently supported are:
+\begin{itemize}
+	\item Agent/TCPSink - TCP sink with one ACK per packet
+	\item Agent/TCPSink/DelAck - TCP sink with configurable delay per ACK
+	\item Agent/TCPSink/Sack1 - selective ACK sink (follows RFC2018)
+	\item Agent/TCPSink/Sack1/DelAck - Sack1 with DelAck
+\end{itemize}
+The two-way experimental sender currently supports only a Reno form of TCP:
+\begin{itemize}
+	\item Agent/TCP/FullTcp
+\end{itemize}
+
+The section comprises three parts:
+the first part is a simple overview and example of configuring
+the base TCP send/sink agents (the sink requires no configuration).
+The second part describes the internals of the base send agent,
+and last part is a description of the extensions
+for the other types of agents that have been included in the
+simulator.
+
+\subsection{\shdr{One-Way TCP Senders}{tcp.h}{sec:tcp}}
+
+The simulator supports several versions of an abstracted TCP sender.
+These objects attempt to capture the essence of the TCP congestion
+and error control behaviors, but are not intended to be faithful
+replicas of real-world TCP implementations.
+They do not contain a dynamic window advertisement, they do segment
+number and ACK number computations entirely in packet units,
+there is no SYN/FIN connection establishment/teardown, and no
+data is ever transferred (e.g. no checksums or urgent data).
+
+\subsubsection{\shdr{tahoe TCP}{tcp.cc}{sec:tahoetcp}}
+
+The ``Tahoe'' TCP agent \code{Agent/TCP} performs congestion
+control and round-trip-time estimation
+in a way similar to the version of TCP released with the
+4.3BSD ``Tahoe'' UN'X system release from UC Berkeley.
+The congestion window is increased by one packet per new ACK received
+during slow-start (when $cwnd_ < ssthresh_$) and is increased
+by $1/cwnd_$ for each new ACK received during congestion avoidance
+(when $cwnd_ >= ssthresh_).
+
+\paragraph{responses to congestion}
+Tahoe TCP assumes a packet has been lost (due to congestion)
+when it observes {\tt NUMDUPACKS} (defined in \code{tcp.h}, currently 3)
+duplicate ACKs, or when a retransmission timer expires.
+In either case, Tahoe TCP reacts by setting {\tt ssthresh\_} to half
+of the current window size (the minimum of {\tt cwnd\_} and {\tt window\_})
+or 2, whichever is larger.
+It then initializes {\tt cwnd\_} back to the value of
+{\tt windowInit\_}.  This will typically cause the TCP to
+enter slow-start.
+
+\paragraph{round-trip time estimation and RTO timeout selection}
+Four variables are used to estimate the round-trip time and
+set the retransmission timer: {\tt rtt\_, srtt\_, rttvar\_, tcpTick\_,
+and backoff\_}.
+TCP initializes rttvar to $3/tcpTick\_$ and backoff to 1.
+When any future retransmission timer is set, it's execution
+time is set to the current time plus $\max(bt(a+4v), 64)$ seconds,
+where $b$ is the current backoff value, $t$ is the value of tcpTick,
+$a$ is the value of srtt, and $v$ is the value of rttvar.
+
+Round-trip time samples arrive with new ACKs.
+The sample is computed as the difference between the current
+time and a ``time echo'' field in the ACK packet.
+
+%%% I AM HERE
+
+When new data is sent and no 
+The running estimat of the round-trip time is performed by
+
+
+The other values are set to zero.
+Tahoe TCP initiali
+
+\subsection{Configuration}
+\label{sec:tcp-config}
+
+Running an TCP simulation requires
+creating and configuring the agent,
+attaching an application-level data source (a traffic generator), and
+starting the agent and the traffic generator.
+
+\subsubsection{Simple Configuration}
+
+\paragraph{Creating the Agent}
+\begin{program}
+set ns [new Simulator]                  \; preamble initialisation;
+set node1 [$ns node]                     \; agent to reside on this node;
+set node2 [$ns node]                     \; agent to reside on this node;
+\\
+{\bfseries set tcp1 [$ns create-connection TCP $node1 TCPSink $node2 42]}     \\
+$tcp  set window_ 50                   \; configure the TCP agent;
+{\bfseries set ftp1 [$tcp1 attach-source FTP]}     \\
+$ns at 0.0 "$ftp start"
+\end{program}
+This example illustrates the use of the simulator built-in
+function {\tt create-connection}.
+The arguments to this function are: the source agent to create,
+the source node, the target agent to create, the target node, and
+the flow ID to be used on the connection.
+The function operates by creating the two agents, setting the
+flow ID fields in the agents, attaching the source and target agents
+to their respective nodes, and finally connecting the agents
+(i.e. setting appropriate source and destination addresses and ports).
+The return value of the function is the name of the source agent created.
+
+\paragraph{TCP Data Source}
+The TCP agent does not generate any application data on its own;
+instead, the simulation user can connect any traffic generation
+module to the TCP agent to generate data.
+Two sources are commonly used for TCP: FTP and Telnet.
+FTP represents a bulk data transfer of large size, and telnet chooses
+its transfer sizes randomly from tcplib (see the file \code{tcplib-telnet.cc}.
+Creation and configuration of the source
+is accomplished by the {\tt Agent attach-source} {\em stype} function,
+which creates a new object of type \code{Source/}{\em stype} and
+returns its name.
+The returned object may be started at a later time.
+
+\subsubsection{Other Configuration Parameters}
+
+In addition to the \code{window\_} parameter listed above,
+the TCP agent supports additional configuration variables.
+Each of the variables described in this subsection is
+both a class variable and an instance variable.
+Changing the class variable changes the default value
+for all agents that are created subsequently.
+Changing the instance variable of a particular agent
+only affects the values used by that agent.
+For example,
+\begin{program}
+  \>Agent/TCP set window_ 100     \; Changes the class variable;
+  \>$tcp set window_ 2.0          \; Changes window_ for the $tcp object only;
+\end{program}
+
+The default parameters for each TCP agent are:
+\begin{program}
+Agent/TCP set window_   20              \; max bound on window size
+Agent/TCP set windowInit_ 1             \; initial/reset value of cwnd
+Agent/TCP set windowOption_ 1           \; cong avoid algorithm (1: standard)
+Agent/TCP set windowConstant_ 4         \; used only when windowOption != 1
+Agent/TCP set windowThresh_ 0.002       \; used in computing averaged window
+Agent/TCP set overhead_ 0               \; !=0 adds random time between sends
+Agent/TCP set ecn_ 0                    \; TCP should react to ecn bit 
+Agent/TCP set packetSize_ 1000          \; packet size used by sender (bytes)
+Agent/TCP set bugFix_ true              \; see explanation
+Agent/TCP set slow_start_restart_ true  \; see explanation
+Agent/TCP set tcpTick_ 0.1              \; timer granulatiry in sec (.1 is NONSTANDARD)
+Agent/TCP set maxrto_ 64                \; bound on RTO (seconds)
+Agent/TCP set dupacks_ 0                \; duplicate ACK counter
+Agent/TCP set ack_ 0                    \; highest ACK received
+Agent/TCP set cwnd_ 0                   \; congestion window (packets)
+Agent/TCP set awnd_ 0                   \; averaged cwnd (experimental)
+Agent/TCP set ssthresh_ 0               \; slow-stat threshold (packets)
+Agent/TCP set rtt_ 0                    \; rtt sample
+Agent/TCP set srtt_ 0                   \; smoothed (averaged) rtt
+Agent/TCP set rttvar_ 0                 \; mean deviation of rtt samples
+Agent/TCP set backoff_ 0                \; current RTO backoff factor
+Agent/TCP set maxseq_ 0                 \; max (packet) seq number sent
+
+\end{program}
+
+For many simulations, few of the configuration parameters are likely
+to require modification.
+The more commonly modified parameters include: {\tt window\_} and
+{\tt packetSize\_}.
+The first of these bounds the window TCP uses, and is considered
+to play the role of the receiver's advertised window in real-world
+TCP (although it remains constant).
+The packet size essentially functions like the MSS size in real-world
+TCP.
+Changes to these parameters can have a profound effect on the behavior
+of TCP.
+Generally, those TCPs with larger packet sizes, bigger windows, and
+smaller round trip times (a result of the topology and congestion) are
+more agressive in acquiring network bandwidth.
+
+\subsubsection{Statistics}
+
+\paragraph{Statistics in Response to Data Losses}
+\paragraph{Overall Statistics}
+
+%% HERE
+\subsection{Architecture and Internals}
+\label{sec:architecture}
+
+The TCP agent implementation splits the protocol functions
+into packet handling, error recovery, and session message activity.
+
+Packet handling consists of forwarding application data messages,
+sending and receipt of control messages.
+These activities are executed by C++ methods.
+
+Error detection is done in C++ due to reciept of messages.
+However, the error recovery is entirely done through 
+instance procedures in OTcl.
+
+The sending and processing of messages is accomplished in C++;
+the policy about when these messages should be sent is decided
+by instance procedures in OTcl.
+
+\paragraph{Packet Handling: Processing received messages}
+The
+\fcnref{\fcn[]{recv}}{../ns-2/srm.cc}{TCPAgent::recv}
+method can receive four type of messages:
+data, request, repair, and session messages.
+The method assumes that
+the agent is a member of the multicast group, and 
+therefore will get a copy of each message sent by it to the group.
+
+\subparagraph{Processing Data Packets}
+The agent does not generate any data messages.
+The user has to specify an external agent to generate traffic.
+The \fcn[]{recv} method must distinguish between
+locally originated data that must be sent to the multicast group,
+and data received from multicast group that must be processed.
+Therefore, the application agent must
+set the packet's destination address to zero.
+
+For locally originated data, 
+the agent adds the appropriate TCP headers,
+sets the destination address to the multicast group, 
+and forwards the packet to its target.
+
+On receiving a data message from the group,
+\fcnref{\fcn[sender, msgid]{recv\_data}}{../ns-2/srm.cc}{TCPAgent::recv\_data}
+will update its state marking message
+\tup{sender, msgid} received,
+and possibly trigger requests if it detects losses.
+In addition, if the message was an older message received out of order,
+then there must be a pending request or repair that must be cleared.
+In that case, the compiled object invokes the OTcl instance procedure,
+\fcnref{\proc[sender,
+  msgid]{recv-data}}{../ns-2/srm.tcl}{Agent/TCP::recv-data}%
+\footnote{Technically,
+  \fcn[]{recv\_data} invokes the instance procedure
+  \|recv data \tup{sender} \tup{msgid}|,
+  that then invokes \proc[]{recv-data}.}.
+
+Currently, there is no provision for the receivers
+to actually receive any application data.
+The agent does not also store any of the user data.
+It only generates repair messages of the appropriate size,
+defined by the instance variable \|packetSize\_|.
+However, the agent assumes that any application data
+is placed in the data portion of the packet,
+pointed to by \|packet->accessdata()|.
+
+\subparagraph{Processing Request Packets}
+On receiving a request, 
+\fcnref{\fcn[sender, msgid]{recv\_rqst}}{../ns-2/srm.cc}{TCPAgent::recv\_rqst}
+will check whether it needs to schedule requests for other missing data.
+If it has received this request
+before it was aware that the source had generated this data message
+(\ie, the sequence number of the request is higher than 
+the last known sequence number of data from this source),
+then the agent can infer that it is missing this, as well as
+data between the last known sequence number and that on the request;
+it schedules requests for all of this data, and returns.
+On the other hand, if the sequence number of the request is less
+than the last known sequence number from the source,
+then the agent can be in one of three states:
+(1) it does not have this data, and has a request pending for it,
+(2) it has the data, and has seen an earlier request,
+    upon which it has a repair pending for it, or
+(3) it has the data, and it should instantiate a repair.
+All of these error recovery mechanisms are done in OTcl,
+and \fcn[]{recv\_rqst} invokes the instance procedure
+\fcnref{\proc[sender, msgid,
+  requester]{recv-rqst}}{../ns-2/srm.tcl}{Agent/TCP::recv-rqst}
+for further processing.
+
+\subparagraph{Processing Repair Packets}
+On receiving a repair, 
+\fcnref{\fcn[sender, msgid]{recv\_repr}}{../ns-2/srm.cc}{TCPAgent::recv\_repr}
+will check whether it needs to schedule requests for other missing data.
+If it has received this repair
+before it was aware that the source had generated this data message
+(\ie, the sequence number of the repair is higher than 
+the last known sequence number of data from this source),
+then the agent can infer that it is missing all
+data between the last known sequence number and that on the repair;
+it schedules requests for all of this data,
+marks this message as received, and returns.
+On the other hand, if the sequence number of the request is less
+than the last known sequence number from the source,
+then the agent can be in one of three states:
+(1) it does not have this data, and has a request pending for it,
+(2) it has the data, and has seen an earlier request,
+    upon which it has a repair pending for it, or
+(3) it has the data, and probably scheduled a repair for it at some time;
+    after error recovery, its holddown timer (equal to three times its
+    distance to some requestor) expired, at which time the pending object
+    was cleared.  In this last situation, the agent will simply ignore
+    the repair, for lack of being able to do anything meaningful.
+All of these error recovery mechanisms are done in OTcl,
+and \fcn[]{recv\_repr} invokes the instance procedure
+\fcnref{\proc[sender,
+  msgid]{recv-rqst}}{../ns-2/srm.tcl}{Agent/TCP::recv-rqst}
+for further processing.
+
+\subparagraph{Receiving Session Packets}
+On receiving a session message,
+the agent updates its sequence numbers for all active sources,
+and computes its instantaneous distance to the sending agent if possible.
+The agent will ignore earlier session messages from a group member,
+if it has received a later one out of order.
+
+Session message processing is done in
+\fcnref{\fcn[]{recv\_sess}}{../ns-2/srm.cc}{TCPAgent::recv\_sess}.
+The format of the session message is:
+\tup{count of tuples in this message, list of tuples},
+where each tuple indicates the
+\tup{sender id, last sequence number from the source, time the last
+  session message was received from this sender, time that that message
+  was sent}.
+The first tuple is the information about the local agent%
+\footnote{Note that this implementation of session message handling
+  is subtly different from that used in \emph{wb} or described in
+  \cite{Floy95:Reliable} in that, in the other schemes, agents
+  disseminate a list of the data actually available at that agent,
+  whereas we currently disseminate a list of the last message we are
+  aware of.
+  This will be fixed at some point in time.}.
+
+
+\subsection{Timer Based Functions}
+\label{sec:timers}
+
+In the last section,
+we described the agent behaviour when it receives a message.
+Recall that the agent does not generate any data.
+All control messages are sent based on timer settings.
+This section describes the mehanisms to set timers, and send these messages.
+
+
+
+\subsection{Extending the Base Class Agent}
+\label{sec:extensions}
+
+
+\subsubsection{Fixed Timers}
+
+
+\subsubsection{Adaptive Timers}
+
+
+\end{document}
