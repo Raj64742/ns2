@@ -6,7 +6,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.122 1997/08/08 02:55:22 polly Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.123 1997/08/10 09:15:03 ahelmy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,25 @@
 [PENDING RELEASE DATE]</H3>
 
 <UL>
+
+<LI><A HREF="mailto:ahelmy@usc.edu">[AH]</A> <B>Sun Aug 10 02:05:12 PDT 1997<BR></B>
+<UL>
+<LI>Major changes and fixes to the pim-sm code in tcl/pim; pim-init.tcl 
+added trace functions, pim-messagers.tcl tracing for protocol actions, 
+pim-mrt.tcl updates, pim-recvr/sender.tcl support for asserts and 
+prune-overrides (for LAN operation), pim-vifs.tcl added joining 
+source-group pairs for source-specific trees (leave fix, also).
+<LI>Added a first test-suite for pim-sm in 
+tcl/ex/newmcast/pim-test-suite-1.tcl. This covers 6 basic scenarios for 
+the pim protocol behavior to stress pim. [note: pim1.tcl does not work 
+due to the way CBR source allocates packets, and interaction with pim 
+encapsulation].
+<LI>Added functions for clearing mcast forwarding caches in 
+classifier-mcast.cc.
+<LI>Major change to tcl/mcast/McastProto.tcl to support well-known-groups 
+for local multicast on LANs. Also changes to ns-mcast.tcl for various 
+fixes and source-group-joins.
+</UL>
 
 <LI><A HREF="mailto:huang@isi.edu">[PH]</A> <B>Thu Aug  7 19:53:17 PDT 1997<BR></B>
 <UL>
