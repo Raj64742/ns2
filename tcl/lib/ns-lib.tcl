@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.185 2000/01/23 03:25:12 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.186 2000/01/24 17:58:19 klan Exp $
 
 #
 
@@ -423,6 +423,8 @@ Simulator instproc create-wireless-node { args } {
         if { [info exist wiredRouting_] && $wiredRouting_ == "ON" } {
 	    $node base-station [AddrParams set-hieraddr [$node node-addr]]
     	}
+
+        $node nodeid [$node id] 
 
         switch -exact $routingAgent_ {
 	    DSDV {
