@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.7 1997/11/05 19:34:31 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/topologies.tcl,v 1.8 1997/11/05 22:05:41 haoboy Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -123,11 +123,18 @@ Class Topology/net0 -superclass NodeTopology/4nodes
 Topology/net0 instproc init ns {
     $self next $ns
     $self instvar node_
-    $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail right-down
-    $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail right-up
-    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail right
+    $ns duplex-link $node_(s1) $node_(r1) 8Mb 5ms DropTail 
+    $ns duplex-link $node_(s2) $node_(r1) 8Mb 5ms DropTail 
+    $ns duplex-link $node_(r1) $node_(k1) 800Kb 100ms DropTail
     $ns queue-limit $node_(r1) $node_(k1) 6
     $ns queue-limit $node_(k1) $node_(r1) 6
+
+    $ns duplex-link-op $node_(s1) $node_(r1) orient right-down
+    $ns duplex-link-op $node_(s2) $node_(r1) orient right-up
+    $ns duplex-link-op $node_(r1) $node_(k1) orient right
+    $ns duplex-link-op $node_(r1) $node_(k1) queuePos 0
+    $ns duplex-link-op $node_(k1) $node_(r1) queuePos 0
+
     $self checkConfig $class $ns
 }
 
@@ -196,11 +203,19 @@ Class Topology/net1 -superclass NodeTopology/4nodes
 Topology/net1 instproc init ns {
     $self next $ns
     $self instvar node_
-    $ns duplex-link $node_(s1) $node_(r1) 10Mb 5ms DropTail right-down
-    $ns duplex-link $node_(s2) $node_(r1) 10Mb 5ms DropTail right-up
-    $ns duplex-link $node_(r1) $node_(k1) 1.5Mb 100ms DropTail right
+
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 5ms DropTail 
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 5ms DropTail 
+    $ns duplex-link $node_(r1) $node_(k1) 1.5Mb 100ms DropTail
     $ns queue-limit $node_(r1) $node_(k1) 23
     $ns queue-limit $node_(k1) $node_(r1) 23
+
+    $ns duplex-link-op $node_(s1) $node_(r1) orient right-down
+    $ns duplex-link-op $node_(s2) $node_(r1) orient right-up
+    $ns duplex-link-op $node_(r1) $node_(k1) orient right
+    $ns duplex-link-op $node_(r1) $node(k1) queuePos 0
+    $ns duplex-link-op $node_(k1) $node(r1) queuePos 0
+
     $self checkConfig $class $ns
 }
 
@@ -323,13 +338,22 @@ Topology/net2 instproc init ns {
     $self next $ns
 
     $self instvar node_
-    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail right-down
-    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail right-up
-    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED right
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail 
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail 
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED 
     $ns queue-limit $node_(r1) $node_(r2) 25
     $ns queue-limit $node_(r2) $node_(r1) 25
-    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail left-down
-    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail left-up
+    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail 
+    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail 
+
+    $ns duplex-link-op $node_(s1) $node_(r1) orient right-down
+    $ns duplex-link-op $node_(s2) $node_(r1) orient right-up
+    $ns duplex-link-op $node_(r1) $node_(r2) orient right
+    $ns duplex-link-op $node_(r1) $node_(r2) queuePos 0
+    $ns duplex-link-op $node_(r2) $node_(r1) queuePos 0
+    $ns duplex-link-op $node_(s3) $node_(r2) orient left-down
+    $ns duplex-link-op $node_(s4) $node_(r2) orient left-up
+
     $self checkConfig $class $ns
 }
 
@@ -471,15 +495,26 @@ Topology/net3 instproc init ns {
     $self next $ns
     
     $self instvar node_
-    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail right-down
-    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail right-up
-    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED right
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail 
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail 
+    $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED 
     $ns queue-limit $node_(r1) $node_(r2) 25
     $ns queue-limit $node_(r2) $node_(r1) 25
-    $ns duplex-link $node_(r2) $node_(r3) 1.5Mb 20ms DropTail right
-    $ns duplex-link $node_(r3) $node_(r4) 1.5Mb 20ms DropTail right
-    $ns duplex-link $node_(s3) $node_(r4) 10Mb 4ms DropTail left-down
-    $ns duplex-link $node_(s4) $node_(r4) 10Mb 5ms DropTail left-up
+    $ns duplex-link $node_(r2) $node_(r3) 1.5Mb 20ms DropTail 
+    $ns duplex-link $node_(r3) $node_(r4) 1.5Mb 20ms DropTail 
+    $ns duplex-link $node_(s3) $node_(r4) 10Mb 4ms DropTail 
+    $ns duplex-link $node_(s4) $node_(r4) 10Mb 5ms DropTail 
+
+    $ns duplex-link-op $node_(s1) $node_(r1) orient right-down
+    $ns duplex-link-op $node_(s2) $node_(r1) orient right-up
+    $ns duplex-link-op $node_(r1) $node_(r2) orient right
+    $ns duplex-link-op $node_(r1) $node_(r2) queuePos 0
+    $ns duplex-link-op $node_(r2) $node_(r1) queuePos 0
+    $ns duplex-link-op $node_(r2) $node_(r3) orient right
+    $ns duplex-link-op $node_(r3) $node_(r4) orient right
+    $ns duplex-link-op $node_(s3) $node_(r4) orient left-down
+    $ns duplex-link-op $node_(s4) $node_(r4) orient left-up
+
     $self checkConfig $class $ns
 }
 
