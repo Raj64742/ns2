@@ -84,34 +84,24 @@ array. For an example as how to derive from an ADU, look at
 
 \subsection{Passing data between applications}
 
-The class Application does not define how to handle application-level
-data, nor does it define how to pass those data between
-applications. We provide an abstract interface, class AppConnector,
-for this purpose. It's defined as follows:
-
+The base class of Application, Process, allows applications to pass
+data or request data between each other. It is defined as follows:
 \begin{program}
-        class AppConnector \{
+        class Process \{
         public: 
-                AppConnector() : target_(0) \{\}
-                inline AppConnector*& target() \{ return target_; \}
+                Process() : target_(0) \{\}
+                inline Process*& target() \{ return target_; \}
 
                 virtual void process_data(int size, char* data) = 0;
                 virtual void send_data(int size, char* data = 0);
 
         protected:
-                AppConnector* target_;
+                Process* target_;
         \};
 \end{program}
 
-AppConnector enables Applications to link together, just as Connector
-enables Agents to link together. An application can either inherit
-directly from AppConnector, or it can inherit from both TclObject (or
-another Application) and AppConnector. The latter allows an
-application to both handle user data and to enjoy the benefits
-provided by TclCL (e.g., split object). For example, in the web cache
-code, class HttpApp is derived from both TclObject and AppConnector 
-(\ns/webcache/http.h), and class TcpApp is derived from both
-AppConnector and Application. 
+Process enables Application to link together. 
+{\bf TBA}
 
 \subsection{Transmitting user data over UDP}
 

@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.1 1999/02/26 19:50:03 heideman Exp $
+# $Id: Makefile,v 1.2 1999/03/04 01:06:51 haoboy Exp $
 #
 
 LATEX=          latex
@@ -23,7 +23,6 @@ FILES= \
 	otcl.tex \
 	packet_format.tex \
 	queue_mgmt.tex \
-	rng.tex \
 	session.tex \
 	sim.tex \
 	srm.tex \
