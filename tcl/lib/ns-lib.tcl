@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.68 1997/11/18 22:29:17 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.69 1997/11/25 02:28:29 haoboy Exp $
 #
 
 #
@@ -168,55 +168,101 @@ Simulator instproc cancel args {
 	return [eval $scheduler_ cancel $args]
 }
 
-Simulator instproc run {} {
-	#$self compute-routes
-	$self rtmodel-configure			;# in case there are any
-	[$self get-routelogic] configure
-	$self instvar scheduler_ Node_ link_ started_ 
-	$self instvar color_ tracedAgents_ linkConfigList_
+Simulator instproc dump-namagents {} {
+	$self instvar tracedAgents_
 
-	set started_ 1
-
-	# 
-	# dump color configuration for nam
-	#
-	foreach id [array names color_] {
-		$self puts-nam-traceall "c -t * -i $id -n $color_($id)"
+	if ![$self is-started] {
+		return
 	}
-	#
-	# Reset every node, which resets every agent.
-	# And dump nam configuration of each node
-	#
-	foreach nn [array names Node_] {
-		$Node_($nn) dump-namconfig
-		$Node_($nn) reset
-	}
-	#
-	# write link configurations
-	#
-	if [info exists linkConfigList_] {
-		foreach lnk $linkConfigList_ {
-			$lnk dump-namconfig
-		}
-		unset linkConfigList_
-	}
-        #
-        # also reset every queue
-        #
-        foreach qn [array names link_] {
-                set q [$link_($qn) queue]
-                $q reset
-		$link_($qn) dump-nam-queueconfig
-        }
-	#
-	# traced agents
-	#
 	if [info exists tracedAgents_] {
 		foreach id [array names tracedAgents_] {
 			$tracedAgents_($id) add-agent-trace $id
 		}
 		unset tracedAgents_
 	}
+}
+
+Simulator instproc dump-namcolors {} {
+	$self instvar color_
+	if ![$self is-started] {
+		return 
+	}
+	foreach id [array names color_] {
+		$self puts-nam-traceall "c -t * -i $id -n $color_($id)"
+	}
+}
+
+Simulator instproc dump-namlinks {} {
+	$self instvar linkConfigList_
+	if ![$self is-started] {
+		return
+	}
+	if [info exists linkConfigList_] {
+		foreach lnk $linkConfigList_ {
+			$lnk dump-namconfig
+		}
+		unset linkConfigList_
+	}
+}
+
+Simulator instproc dump-namnodes {} {
+	$self instvar Node_
+	if ![$self is-started] {
+		return
+	}
+	foreach nn [array names Node_] {
+		$Node_($nn) dump-namconfig
+	}
+}
+
+Simulator instproc dump-namqueues {} {
+	$self instvar Node_
+	if ![$self is-started] {
+		return
+	}
+        foreach qn [array names link_] {
+                set q [$link_($qn) queue]
+		$link_($qn) dump-nam-queueconfig
+        }
+}
+
+Simulator instproc run {} {
+	#$self compute-routes
+	$self rtmodel-configure			;# in case there are any
+	[$self get-routelogic] configure
+	$self instvar scheduler_ Node_ link_ started_ 
+
+	set started_ 1
+
+	#
+	# Reset every node, which resets every agent.
+	#
+	foreach nn [array names Node_] {
+		$Node_($nn) reset
+	}
+	#
+        # Also reset every queue
+        #
+        foreach qn [array names link_] {
+                set q [$link_($qn) queue]
+                $q reset
+        }
+
+	# Color configuration for nam
+	$self dump-namcolors
+
+	# Node configuration for nam
+	$self dump-namnodes
+
+	# Link configurations for nam
+	$self dump-namlinks 
+
+	# nam queue configurations
+	$self dump-namqueues
+
+	# Traced agents for nam
+	$self dump-namagents
+
         return [$scheduler_ run]
 }
 

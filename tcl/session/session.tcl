@@ -156,17 +156,22 @@ SessionSim instproc leave-group { agent group } {
 }
 
 SessionSim instproc simplex-link { n1 n2 bw delay type } {
-    $self instvar link_ delay_
+    $self instvar link_ delay_ linkAttr_
     set sid [$n1 id]
     set did [$n2 id]
 
     set link_($sid:$did) [$self bw_parse $bw]
     set delay_($sid:$did) [$self delay_parse $delay]
+
+	set linkAttr_($sid:$did:ORIENT) ""
+	set linkAttr_($sid:$did:COLOR) "black"
 }
 
 SessionSim instproc duplex-link { n1 n2 bw delay type } {
     $self simplex-link $n1 $n2 $bw $delay $type
     $self simplex-link $n2 $n1 $bw $delay $type
+
+	$self register-nam-linkconfig [$n1 id]:[$n2 id]
 }
 
 SessionSim instproc simplex-link-of-interfaces { n1 n2 bw delay type } {
@@ -176,6 +181,43 @@ SessionSim instproc simplex-link-of-interfaces { n1 n2 bw delay type } {
 SessionSim instproc duplex-link-of-interfaces { n1 n2 bw delay type } {
     $self simplex-link $n1 $n2 $bw $delay $type
     $self simplex-link $n2 $n1 $bw $delay $type
+
+	$self register-nam-linkconfig [$n1 id]:[$n2 id]
+}
+
+# Assume ops to be performed is 'orient' only
+# XXX Poor hack. What should we do without a link object??
+SessionSim instproc duplex-link-op { n1 n2 op args } {
+	$self instvar linkAttr_ link_
+
+	set sid [$n1 id]
+	set did [$n2 id]
+
+	if ![info exists link_($sid:$did)] {
+		error "Non-existent link [$n1 id]:[$n2 id]"
+	}
+
+	switch $op {
+		"orient" {
+			set linkAttr_($sid:$did:ORIENT) $args
+			set linkAttr_($did:$sid:ORIENT) $args
+		}
+		"color" {
+			set ns [Simulator instance]
+			$ns puts-nam-traceall \
+				[eval list "l -t [$self now] -s $sid -d $did \
+-S COLOR -c $args -o $linkAttr_($sid:$did:COLOR)"]
+			$ns puts-nam-traceall \
+				[eval list "l -t [$self now] -s $did -d $sid \
+-S COLOR -c $args -o $linkAttr_($sid:$did:COLOR)"]
+			eval set attr_($sid:$did:COLOR) $args
+			eval set attr_($did:$sid:COLOR) $args
+		}
+		default {
+			eval puts "Duplex link option $args not implemented \
+in SessionSim"
+		}
+	} 
 }
 
 SessionSim instproc compute-routes {} {
@@ -197,16 +239,79 @@ SessionSim instproc compute-routes {} {
 	$r compute
 }
 
+# Because here we don't have a link object, we need to have a new 
+# link register method
+SessionSim instproc register-nam-linkconfig link {
+	$self instvar linkConfigList_ link_ linkAttr_
+	if [info exists linkConfigList_] {
+		# Check whether the reverse simplex link is registered,
+		# if so, don't register this link again.
+		# We should have a separate object for duplex link.
+		set tmp [split $link :]
+		set i1 [lindex $tmp 0]
+		set i2 [lindex $tmp 1]
+		if [info exists link_($i2:$i1)] {
+			set pos [lsearch $linkConfigList_ $i2:$i1]
+			if {$pos >= 0} {
+				set a1 $linkAttr_($i2:$i1:ORIENT)
+				set a2 $linkAttr_($link:ORIENT)
+				if {$a1 == "" && $a2 != ""} {
+					# If this duplex link has not been 
+					# assigned an orientation, do it.
+					set linkConfigList_ \
+					[lreplace $linkConfigList_ $pos $pos]
+				} else {
+					return
+				}
+			}
+		}
+
+		# Remove $link from list if it's already there
+		set pos [lsearch $linkConfigList_ $link]
+		if {$pos >= 0} {
+			set linkConfigList_ \
+				[lreplace $linkConfigList_ $pos $pos]
+		}
+	}
+	lappend linkConfigList_ $link
+}
+
+# write link configurations
+SessionSim instproc dump-namlinks {} {
+	$self instvar link_ delay_ linkConfigList_ linkAttr_
+
+	set ns [Simulator instance]
+	foreach lnk $linkConfigList_ {
+		set tmp [split $lnk :]
+		set i1 [lindex $tmp 0]
+		set i2 [lindex $tmp 1]
+		$ns puts-nam-traceall \
+			"l -t * -s $i1 -d $i2 -S UP -r $link_($lnk) -D \
+$delay_($lnk) -o $linkAttr_($lnk:ORIENT)"
+	}
+	
+}
+
 SessionSim instproc run args {
         $self rtmodel-configure                 ;# in case there are any
         [$self get-routelogic] configure
-	$self instvar scheduler_ Node_
+	$self instvar scheduler_ Node_ started_
+
+	set started_ 1
+
 	#
 	# Reset every node, which resets every agent
 	#
 	foreach nn [array names Node_] {
 		$Node_($nn) reset
 	}
+
+	# We don't have queues in SessionSim
+	$self dump-namcolors
+	$self dump-namnodes
+	$self dump-namlinks
+	$self dump-namagents
+
         return [$scheduler_ run]
 }
 ############## SessionNode ##############
@@ -238,6 +343,8 @@ SessionNode instproc attach agent {
     $agent set node_ $self
     set port [$self alloc-port]
     $agent set addr_ [expr $id_ << 8 | $port]
+
+	$self namtrace-agent $agent
 }
 
 SessionNode instproc join-group { agent group } {

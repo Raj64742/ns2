@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.11 1997/08/10 08:46:11 ahelmy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.12 1997/11/25 02:28:27 haoboy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -195,6 +195,22 @@ int MCastClassifier::command(int argc, const char*const* argv)
 			int oldiface = atoi(argv[4]);
                         int newiface = atoi(argv[5]);
                         change_iface(src, dst, oldiface, newiface);
+			return (TCL_OK);
+		}
+	} else if (argc == 5) {
+		/*
+		 * $classifier lookup-iface $src $group $iface
+		 */
+		if (strcmp(argv[1], "lookup-iface") == 0) {
+			Tcl &tcl = Tcl::instance();
+			nsaddr_t src = strtol(argv[2], (char**)0, 0);
+			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
+			int iface = atoi(argv[4]);
+			hashnode *p = lookupiface(src, dst, iface);
+			if ((p == NULL) || (slot_[p->slot] == 0))
+				tcl.resultf("");
+			else 
+				tcl.resultf("%s", slot_[p->slot]->name());
 			return (TCL_OK);
 		}
 	}

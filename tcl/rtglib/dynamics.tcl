@@ -246,7 +246,7 @@ rtModel instproc configure {} {
 rtModel instproc set-event-exact {fireTime op} {
     $self instvar ns_ finishTime_
     if {$finishTime_ != "-" && $fireTime > $finishTime_} {
-	if {$op == up} {
+	if {$op == "up"} {
 	    [rtModel set rtq_] insq $finishTime_ $self $op
 	}
     } else {

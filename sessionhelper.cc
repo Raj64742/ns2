@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.5 1997/11/04 00:13:21 polly Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.6 1997/11/25 02:28:28 haoboy Exp $ (USC/ISI)";
 #endif
 
 #include "Tcl.h"
@@ -239,7 +239,17 @@ void SessionHelper::show_loss_depobj(loss_depobj *loss_obj) {
 
 int SessionHelper::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
         if (argc == 2) {
+		if (strcmp(argv[1], "list-mbr") == 0) {
+			dstobj *tmp = dstobj_;
+			while (tmp != 0) {
+				tcl.resultf("%s %s", tcl.result(),
+					    tmp->obj->name());
+				tmp = tmp->next;
+			}
+			return (TCL_OK);
+		}
 		if (strcmp(argv[1], "show-loss-depobj") == 0) {
                         show_loss_depobj(loss_dependency_);
 			return (TCL_OK);
@@ -262,7 +272,6 @@ int SessionHelper::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	} else if (argc == 4) {
-	  Tcl& tcl = Tcl::instance();
 		if (strcmp(argv[1], "update-loss-rcv") == 0) {
 			ErrorModel *tmperr = (ErrorModel*)TclObject::lookup(argv[2]);
 			NsObject *tmpobj = (NsObject*)TclObject::lookup(argv[3]);
