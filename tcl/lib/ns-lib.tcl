@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.259 2003/09/27 01:01:31 aditi Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.260 2003/10/03 16:47:28 xuanc Exp $
 
 
 #
@@ -157,6 +157,11 @@ source ns-diffusion.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mac.tcl
+
+# Added by Sushmita to support event tracing for mac-simple and 802.11
+source ../lan/ns-mac-simple.tcl
+#source ../lan/ns-mac-802_11.tcl
+
 source ../lan/ns-ll.tcl
 source ../lan/vlan.tcl
 source ../lan/abslan.tcl
