@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.103 1998/04/21 02:34:18 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.104 1998/05/01 19:08:49 haldar Exp $
 
 
 #
@@ -217,8 +217,8 @@ Agent/TCPSink set ts_echo_bugfix_ false
 
 Agent/TCPSink/DelAck set interval_ 100ms
 catch {
-    Agent/TCPSink/Asym set interval_ 100ms
-    Agent/TCPSink/Asym set maxdelack_ 5
+	Agent/TCPSink/Asym set interval_ 100ms
+	Agent/TCPSink/Asym set maxdelack_ 5
 }
 Agent/TCPSink/Sack1/DelAck set interval_ 100ms
 
