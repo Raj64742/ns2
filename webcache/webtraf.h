@@ -30,7 +30,7 @@
 // only interested in traffic pattern here, we do not want to be bothered 
 // with the burden of transmitting HTTP headers, etc. 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.2 1999/09/26 21:26:11 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.h,v 1.3 1999/11/18 22:31:29 haoboy Exp $
 
 #ifndef ns_webtraf_h
 #define ns_webtraf_h
@@ -64,8 +64,8 @@ public:
 	RandomVariable*& interObj() { return rvInterObj_; }
 	RandomVariable*& objSize() { return rvObjSize_; }
 
-	void donePage(int id, void* ClntData);
-	void launchReq(int page, int obj, int size);
+	void donePage(void* ClntData);
+	void launchReq(void* ClntData, int obj, int size);
 
 	static int LASTPAGE_;
 

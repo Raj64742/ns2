@@ -26,7 +26,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.2 1999/10/11 23:31:59 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.3 1999/11/18 22:31:29 haoboy Exp $
 
 #include <tclcl.h>
 
@@ -42,18 +42,20 @@
 
 class WebPage : public TimerHandler {
 public:
-	WebPage(int id, WebTrafSession* sess, int nObj) : 
-		id_(id), sess_(sess), nObj_(nObj), curObj_(0) {}
+	WebPage(int id, WebTrafSession* sess, int nObj, Node* dst) :
+		id_(id), sess_(sess), nObj_(nObj), curObj_(0), dst_(dst) {}
 	virtual ~WebPage() {}
 
 	void start() {
 		expire();
 		schedNext();
 	}
+	Node* dst() { return dst_; }
+
 private:
 	virtual void expire(Event* = 0) {
 		// Launch a request. Make sure size is not 0!
-		sess_->launchReq(id_, LASTOBJ_++, 
+		sess_->launchReq(this, LASTOBJ_++, 
 				 (int)ceil(sess_->objSize()->value()));
 	}
 	virtual void handle(Event *e) {
@@ -64,7 +66,7 @@ private:
 		// Schedule next timer
 		if (++curObj_ >= nObj_) {
 			// We are done with this page, tell parent to delete me
-			sess_->donePage(id_, (void*)this);
+			sess_->donePage((void*)this);
 			return;
 		}
 		sched(sess_->interObj()->value());
@@ -72,6 +74,7 @@ private:
 	int id_;
 	WebTrafSession* sess_;
 	int nObj_, curObj_;
+	Node* dst_;
 	static int LASTOBJ_;
 };
 
@@ -95,7 +98,7 @@ WebTrafSession::~WebTrafSession()
 		Tcl::instance().evalf("delete %s", rvObjSize_->name());
 }
 
-void WebTrafSession::donePage(int /*id*/, void* ClntData) 
+void WebTrafSession::donePage(void* ClntData) 
 {
 	donePage_++;
 	delete (WebPage*)ClntData;
@@ -104,9 +107,11 @@ void WebTrafSession::donePage(int /*id*/, void* ClntData)
 // Launch the current page
 void WebTrafSession::expire(Event *)
 {
-	// Mke sure page size is not 0!
+	// Pick destination for this page
+	Node* dst = mgr_->pickdst();
+	// Make sure page size is not 0!
 	WebPage* pg = new WebPage(LASTPAGE_++, this, 
-				  (int)ceil(rvPageSize_->value()));
+				  (int)ceil(rvPageSize_->value()), dst);
 	pg->start();
 }
 
@@ -125,10 +130,10 @@ void WebTrafSession::handle(Event *e)
 }
 
 // Launch a request for a particular object
-void WebTrafSession::launchReq(int /*page*/, int obj, int size)
+void WebTrafSession::launchReq(void* ClntData, int obj, int size)
 {
-	// Pick destination
-	Node* dst = mgr_->pickdst();
+	WebPage* pg = (WebPage*)ClntData;
+
 	// Choose source and dest TCP agents for both source and destination
 	TcpAgent* ctcp = mgr_->picktcp();
 	TcpAgent* stcp = mgr_->picktcp();
@@ -137,7 +142,8 @@ void WebTrafSession::launchReq(int /*page*/, int obj, int size)
 
 	// Setup TCP connection and done
 	Tcl::instance().evalf("%s launch-req %d %s %s %s %s %s %s %d", 
-			      mgr_->name(), obj, src_->name(), dst->name(),
+			      mgr_->name(), obj, src_->name(), 
+			      pg->dst()->name(),
 			      ctcp->name(), csnk->name(), stcp->name(),
 			      ssnk->name(), size);
 	// Debug only
