@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.28 1999/06/21 18:14:04 tomh Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.29 1999/07/29 21:42:25 yuriy Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -570,7 +570,8 @@ void RouteLogic::ns_strtok(char *addr, int *addrstr)
 			i++;
 		}
 		else {
-			addrstr[i] = atoi(next) + 1;
+			if (*next != '\0') //damn that ending point
+				addrstr[i] = atoi(next) + 1;
 			break;
 		}
 	}
