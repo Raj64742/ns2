@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.5 1997/08/10 07:49:49 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/random.cc,v 1.6 1997/08/15 23:17:03 heideman Exp $ (LBL)";
 #endif
 
 #ifndef WIN32
@@ -44,6 +44,13 @@ static const char rcsid[] =
 #if defined(sun)
 extern "C" int srandom(...);
 #endif
+
+
+#ifdef USE_RNG
+
+RNG Random::rng_;  // isn't this exciting
+
+#else /* ! USE_RNG */
 
 void Random::seed(int s)
 {
@@ -62,3 +69,5 @@ int Random::seed_heuristically()
 	seed(s);
 	return (s);
 }
+
+#endif /* USE_RNG */

@@ -30,13 +30,41 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.4 1997/04/25 22:11:57 breslau Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/random.h,v 1.5 1997/08/15 23:17:04 heideman Exp $ (LBL)
  */
 
 #ifndef ns_random_h
 #define ns_random_h
 
 #include <math.h>
+
+#ifdef USE_RNG
+
+/* new rng version under developement */
+
+
+#include "rng.h"
+
+class Random {
+private:
+	static RNG rng_;
+	static RNG &rng() { return rng_; }
+
+public:
+	static void seed(int s) { rng().set_seed(RNG::RAW_SEED_SOURCE, s); }
+	static int seed_heuristically() { rng().set_seed(RNG::RAW_SEED_SOURCE); return rng().seed(); };
+
+	static int random() { return rng().uniform_positive_int(); }
+	static double uniform() { return rng().uniform_double();}
+	static double uniform(double r) { return rng().uniform(r); }
+	static double uniform(double a, double b) { return rng().uniform(a,b); }
+	static double exponential() { return rng().exponential(); }
+	static int integer(int k) { return rng().uniform(k); }
+        static double exponential(double r) { return rng().exponential(r); }
+	static double pareto(double scale, double shape) { return rng().pareto(scale, shape); }
+};
+
+#else
 
 #include "config.h"
 
@@ -81,5 +109,7 @@ public:
 	        return (scale * (1.0/pow(uniform(), 1.0/shape)));
 	}
 };
+
+#endif
 
 #endif

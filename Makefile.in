@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.63 1997/08/14 20:20:06 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.64 1997/08/15 23:17:05 heideman Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -91,7 +91,7 @@ NSX	= nsx
 
 
 OBJ_CC = \
-	random.o ranvar.o misc.o timer-handler.o \
+	random.o rng.o ranvar.o misc.o timer-handler.o \
 	scheduler.o object.o \
 	classifier.o classifier-addr.o classifier-flow.o classifier-hash.o \
 	classifier-mcast.o classifier-mpath.o replicator.o \
