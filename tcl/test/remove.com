@@ -1,13 +1,13 @@
 # To remove temporary files in tcl/test.
 # To run: "csh remove.com"
 #
-rm -f temp.*
+rm -f temp* *.ps
 rm -f t?.tcl
-rm -f *.tr *.tr1
+rm -f *.tr *.tr1 *.nam *.xgr
 rm -f all.*
 rm -f fairflow.*
 rm -f t t?
-rm -f chart?
+rm -f chart? 
 @ count = 1
 again:
 t1: 
@@ -71,6 +71,9 @@ t20:
 set directory=test-output-lan
 goto doit
 t21:
+set directory=test-output-ecn-ack
+goto doit
+t22:
 exit
 doit:
 echo $directory
