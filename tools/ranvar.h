@@ -14,7 +14,7 @@
  *  
  * These notices must be retained in any copies of any part of this software.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.5 1997/08/27 21:08:29 gnguyen Exp $ (Xerox)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/ranvar.h,v 1.6 1998/01/21 19:28:44 gnguyen Exp $ (Xerox)
  */
 
 #ifndef ns_ranvar_h
@@ -110,6 +110,37 @@ class HyperExponentialRandomVariable : public RandomVariable {
 	double avg_;
 	double cov_;
 	double alpha_;
+};
+
+
+#define INTER_DISCRETE 0	// no interpolation (discrete)
+#define INTER_CONTINUOUS 1	// linear interpolation
+#define INTER_INTEGRAL 2	// linear interpolation and round up
+
+struct CDFentry {
+	double cdf_;
+	double val_;
+};
+
+class EmpiricalRandomVariable : public RandomVariable {
+public:
+	virtual double value();
+	virtual double interpolate(double u, double x1, double y1, double x2, double y2);
+	EmpiricalRandomVariable();
+	double& minCDF() { return minCDF_; }
+	double& maxCDF() { return maxCDF_; }
+
+protected:
+	int command(int argc, const char*const* argv);
+	int loadCDF(const char* filename);
+	int lookup(double u);
+
+	double minCDF_;		// min value of the CDF (default to 0)
+	double maxCDF_;		// max value of the CDF (default to 1)
+	int interpolation_;	// how to interpolate data (INTER_DISCRETE...)
+	CDFentry* table_;	// CDF table of (val_, cdf_)
+	int numEntry_;		// number of entries in the CDF table
+	int maxEntry_;		// size of the CDF table (mem allocation)
 };
 
 #endif

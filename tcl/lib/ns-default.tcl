@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.88 1998/01/21 05:53:58 padmanab Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.89 1998/01/21 19:28:46 gnguyen Exp $
 
 
 #
@@ -300,6 +300,10 @@ RandomVariable/Pareto set shape_ 1.5
 RandomVariable/Constant set val_ 1.0
 RandomVariable/HyperExponential set avg_ 1.0
 RandomVariable/HyperExponential set cov_ 4.0
+RandomVariable/Empirical set minCDF_ 0
+RandomVariable/Empirical set maxCDF_ 1
+RandomVariable/Empirical set interpolation_ 0
+RandomVariable/Empirical set maxEntry_ 32
 
 ErrorModel set rate_ 0.0
 SelectErrorModel set rate_ 0.0                  ;# just to eliminate warnings
