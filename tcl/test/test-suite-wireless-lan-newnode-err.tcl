@@ -21,7 +21,7 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode-err.tcl,v 1.2 2001/05/27 02:15:00 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-lan-newnode-err.tcl,v 1.3 2002/01/02 23:55:53 jahn Exp $
 
 # This test suite is for validating wireless lans with transmission errors 
 # To run all tests: test-all-wireless-lan
@@ -188,7 +188,7 @@ Test/dsdv-uniform-err instproc init {} {
                          -routerTrace OFF \
                          -macTrace OFF \
                          -movementTrace OFF \
-			 -errProc $opt(err) 
+			 -IncomingErrProc $opt(err) -OutgoingErrProc $opt(err) 
 
     for {set i 0} {$i < $opt(nn) } {incr i} {
                 set node_($i) [$ns_ node]
@@ -243,7 +243,8 @@ Test/dsdv-multistate-err instproc init {} {
                          -routerTrace OFF \
                          -macTrace OFF \
                          -movementTrace OFF \
-			 -errType MultistateErrProc
+			 -IncomingErrProc MultistateErrorProc \
+			 -OutgoingErrProc MultistateErrorProc
 
     for {set i 0} {$i < $opt(nn) } {incr i} {
                 set node_($i) [$ns_ node]

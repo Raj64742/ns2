@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.495 2001/12/30 07:35:39 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.496 2002/01/02 23:55:03 jahn Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -18,27 +18,21 @@ with the most recent changes coming first.
 ns-2.1b9 release PENDING</h3>
 
 <ul>
-<p><li><b><a href="http://www.aciri.org/floyd/">[Sally Floyd]</a></b>
-Sat Dec 29 2001</li>
-<br>Changed the global defaults for Queue/RED parameters thresh_,
-maxthresh_, and q_weight_ to use automatic configuration.
-I have not yet changed the global default for adaptive_==1 to use adaptive
-mode for adapting max_p - I will add that change later.
 
-<p><li><b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b>Thu Dec 20 14:24:46 PST 2001</li>
-<br>Added inet2ns, a Inet to ns topology converter and updated the ns topology webpage.
+<p><li><b><a href="mailto:jahn@isi.edu">[Jong-Suk Ahn]</a></b> Tue Jan 2 2002</li>
 
-<p><li><b><a href="mailto:haldar@isi.edu">[Padma Haldar]</a></b>Wed Dec 19 17:19:47 PST 2001</li>
-<br>Re organisation of top level ns-2 dir undertaken. For the first cut, the top level files are re organised under broad sub dirs. Example of some of the dirs created are common (that holds the core ns infrastructure), mac (holds all wired and wireless components), classifier, adc (admission control), satellite, tools (for now have merged tools and traffic generator), trace, link, queue, tcp, apps etc.
-Pl note that the order in which object files get linked have been preserved as changing of this resulted in strange seg faults.
-
-<p><li><b><a href="http://www.aciri.org/floyd/">[Sally Floyd]</a></b>
-Mon Dec  3 2001
-<br>Added a test "test-all-broken" in "tcl/test" to illustrate some of
-the functionality known not to perform correctly in FullTCP.  FullTCP 
-continues to be in experimental status.
+<br>Expanded the error option of node-config command from errProc to two options such
+as IncomingErrProc and OutgoinigErrProc. Previously, aritifcial errors could be added
+to packets only from outgoing stacks of senders, causing all packets to suffer the same
+degree of propagation errors. The addition of IncomingErrProc allows each receiver to
+receive packets corrupted differently based on their separation from the sender. 
+Other than changing the name of options for corrupting packets, the usgae of these two
+options are the same as the previous errProc in that the option value is the procedure
+name creating a new error module that is inserted into the wireless stack. For the usage, 
+see test-suite-wireless-lan-newnode-err.tcl.
 
 <p>
+
 <p><li><b><a href="http://www.aciri.org/floyd/">[Sally Floyd]</a></b>
 Mon Dec  3 2001
 <br> Added a patch from Tom Kelly for ECN in FullTCP: 
@@ -53,16 +47,6 @@ The validation test is in test-all-ecn-full in tcl/test.
 Mon Dec  3 2001
 <br> Corrected one-way TCP so that when "syn_" is used, the first
 40-byte packet consists of header bytes, with no data bytes used.
-
-
-<p>
-<li>
-<b><a href="mailto:kclan@isi.edu">[Kun-chan Lan]</a></b>
-Fri Nov 30 15:29:19 PDT 2001
-<br> Adding an empirical FTP traffic model that simulates FTP 
-traffic based on a set of CDF (Cumulative Distribution Function) data 
-derived from live tcpdump trace
-
 
 <p>
 <p><li><b><a href="http://www.isi.edu/~buchheim/">[Tim Buchheim]</a></b>
@@ -117,30 +101,10 @@ ns documentation).  New example script:  tcl/ex/sat-wired.tcl
 
 <p>
 <li>
-<b><a href="mailto:kclan@isi.edu">[Kun-chan Lan]</a></b>
-Thur Nov 1 09:18:27 PDT 2001
-<br> Adding an empirical Web traffic model that simulates Web 
-traffic based on a set of CDF (Cumulative Distribution Function) data 
-derived from live tcpdump trace
-
-
-<p>
-<li>
 <b><a href="mailto:tomh@tomh.org">[Tom Henderson]</a></b>
 Thur Oct 11 07:15:31 PDT 2001
 <br>Added support for tracing satellite aloha collisions, and enhanced the
 example test script.
-
-<p>
-<li>
-<b><a href="mailto:kclan@isi.edu">[Kun-chan Lan]</a></b>
-Sat Oct 6 16:09:52 PDT 2001
-<br> Creation of a rapid model generation tool "ModelGen", which
-is a set of scripts that take tcpdump trace as input and
-output a set of CDF files that model Web traffic. It also outputs
-a time series of traffic size (in 1ms block) for further wavelet
-scaling analysis
-
 
   <p>
 <li><b><a href="mailto:alefiyah@usc.edu">[Alefiya Hussain]</a></b>
