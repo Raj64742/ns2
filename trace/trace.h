@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.20 1998/08/22 02:41:29 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.h,v 1.21 1998/10/06 21:36:58 yuriy Exp $
  */
 
 #ifndef ns_trace_h
@@ -66,6 +66,15 @@ class Trace : public Connector {
 	void trace(TracedVar*);
         void dump();
         inline char* buffer() { return (wrk_); }
+
+	inline double round(double x) const { 
+		// annoying way of tackling sprintf rounding platform 
+		// differences :
+		// use round(Scheduler::instance().clock()) instead of 
+		// Scheduler::instance().clock().
+		static const double PRECISION= 1.0e+6; //keep six digits after the decimal
+		return (double)floor(x*PRECISION + 0.5)/PRECISION;
+	}
 
 #ifdef NAM_TRACE
 	virtual void write_nam_trace(const char *s);
