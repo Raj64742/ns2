@@ -33,7 +33,7 @@
 
 /*
  * This code below was motivated in part by code contributed by
- * Kathie Nichols (nichols@com21.com).  The code below is based primarily
+ * Kathie Nichols (nichols@baynetworks.com).  The code below is based primarily
  * on the 4.4BSD TCP implementation. -KF [kfall@ee.lbl.gov]
  *
  * Kathie Nichols and Van Jacobson have contributed a significant bug fixes,
@@ -72,7 +72,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.14 1997/11/21 18:42:24 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.15 1997/11/22 00:44:40 kfall Exp $ (LBL)";
 #endif
 
 #include "tclcl.h"
@@ -231,6 +231,20 @@ int FullTcpAgent::outflags()
 		flags |= TH_FIN;
 
 	return (flags);
+}
+
+/*
+ * utility function to set rcv_next_ during inital exchange of seq #s
+ */
+
+int FullTcpAgent::rcvseqinit(int seq, int dlen)
+{
+#ifdef notdef
+	if (datalen == 0)
+		return irs_ + 1;
+#endif
+
+	return (seq + dlen + 1);
 }
 
 /*
@@ -578,6 +592,8 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int ourfinisacked = 0;
 	int todrop = 0;
 	int dupseg = FALSE;
+	int myack = 0;
+
 
 	//
 	// if no delayed-ACK timer is set, set one
@@ -648,7 +664,6 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
          */
 
 	case TCPS_LISTEN:	/* awaiting peer's SYN */
-
 		if (tiflags & TH_ACK) {
 			goto dropwithreset;
 		}
@@ -663,9 +678,9 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		flags_ |= TF_ACKNOW;
 		state_ = TCPS_SYN_RECEIVED;
 		irs_ = tcph->seqno();
-		rcv_nxt_ = irs_+1;
+		rcv_nxt_ = rcvseqinit(irs_, datalen);
 		t_seqno_ = iss_;
-		goto step6;
+		goto trimthenstep6;
 
         /*
          * If the state is SYN_SENT:
@@ -680,55 +695,76 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
          */
 
 	case TCPS_SYN_SENT:	/* we sent SYN, expecting SYN+ACK */
-		if ((tiflags & TH_ACK) && (ackno < (iss_+1))) {
-			// not an ACK for our SYN, discard
-			fprintf(stderr,
-			    "%f: FullTcpAgent::recv(%s): bad ACK (%d) for our SYN(%d)\n",
-			        now(), name(), int(ackno), int(maxseq_));
-			goto dropwithreset;
-		}
+		/* drop if not a SYN */
 		if ((tiflags & TH_SYN) == 0) {
-			// we're looking for a SYN in return
 			fprintf(stderr,
 			    "%f: FullTcpAgent::recv(%s): no SYN for our SYN(%d)\n",
 			        now(), name(), int(maxseq_));
 			goto drop;
 		}
 
+		/* drop if it's a SYN+ACK and the ack field is bad */
+		if ((tiflags & TH_ACK) && ((ackno < (iss_+1)) ||
+		    (ackno > (maxseq_+1)))) {
+			// not an ACK for our SYN, discard
+			fprintf(stderr,
+			    "%f: FullTcpAgent::recv(%s): bad ACK (%d) for our SYN(%d)\n",
+			        now(), name(), int(ackno), int(maxseq_));
+			goto dropwithreset;
+		}
+
+		/* looks like an ok SYN or SYN+ACK */
 		cancel_rtx_timer();	// cancel timer on our 1st SYN
 		irs_ = tcph->seqno();	// get initial recv'd seq #
-		rcv_nxt_ = irs_ + 1;	// next expected seq#
-		flags_ |= TF_ACKNOW;	// ACK peer's SYN
+		rcv_nxt_ = rcvseqinit(irs_, datalen);
 
-		// if we are here, must be at least an ok SYN
+		/*
+		 * if there's data, delay ACK; if tehre's also a FIN
+		 * ACKNOW will be turned on later.
+		 */
+		if (datalen > 0) {
+			flags_ |= TF_DELACK;	// data there: wait
+		} else {
+			flags_ |= TF_ACKNOW;	// ACK peer's SYN
+		}
+
 		if (tiflags & TH_ACK) {
 			// SYN+ACK
-			if ((highest_ack_ = ackno) > iss_) {
-				state_ = TCPS_ESTABLISHED;
-				/*
-				 * if we didn't have to retransmit the SYN,
-				 * use its rtt as our initial srtt & rtt var.
-				 */
-				if (t_rtt_) {
-					double tao = now() - tcph->ts();
-					rtt_update(tao);
-				}
-				// new:
-				// 	generate pure ACK here.
-				//	this simulates the ordinary connection establishment
-				//	where the ACK of the peer's SYN+ACK contains no data... data
-				//	comes later on a subsequent send [which happens below]
-				sendpacket(iss_, rcv_nxt_, TH_ACK, 0, 0);
-			}
+			highest_ack_ = ackno;
 			if (t_seqno_ < highest_ack_)
 				t_seqno_ = highest_ack_;
+			state_ = TCPS_ESTABLISHED;
+			/*
+			 * if we didn't have to retransmit the SYN,
+			 * use its rtt as our initial srtt & rtt var.
+			 */
+			if (t_rtt_) {
+				double tao = now() - tcph->ts();
+				rtt_update(tao);
+			}
+			// new to ns:
+			//  generate pure ACK here.
+			//  this simulates the ordinary connection establishment
+			//  where the ACK of the peer's SYN+ACK contains
+			//  no data.  This is typically caused by the way
+			//  the connect() socket call works in which the
+			//  entire 3-way handshake occurs prior to the app
+			//  being able to issue a write() [which actually
+			//  causes the segment to be sent].
+			sendpacket(t_seqno_, rcv_nxt_, TH_ACK, 0, 0);
 		} else {
-			// simultaneous active opens
+			// SYN (no ACK) (simultaneous active opens)
+			flags_ |= TF_ACKNOW;
+			cancel_rtx_timer();
 			state_ = TCPS_SYN_RECEIVED;
 		}
 
+trimthenstep6:
+		/*
+		 * advance the seq# to correspond to first data byte
+		 */
+		tcph->seqno()++;
 		goto step6;
-
 	}
 
 	// check for redundant data at head/tail of segment
@@ -743,24 +779,34 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	// is enabled.
 	//
 	todrop = rcv_nxt_ - tcph->seqno();  // how much overlap?
+
 	if (todrop > 0) {
-		// segment is something we've seen (perhaps partially)
 		if (tiflags & TH_SYN) {
+			tiflags &= ~TH_SYN;
+			tcph->seqno()++;
+			todrop--;
+
 #ifdef notdef
 			// K: small change here
 			t_seqno_ = highest_ack_;
 			if ((tiflags & TH_ACK) == 0)
 				goto dropafterack;
 #endif
-			tiflags &= ~TH_SYN;
+
 		}
+		//
+		// see Stevens, vol 2, p. 960 for this check;
+		// this check is to see if we are dropping
+		// more than this segment (i.e. the whole pkt + a FIN),
+		// or just the whole packet (no FIN)
+		//
 		if (todrop > datalen ||
-		    (todrop == datalen && ((tiflags & TH_FIN) == 0))) {
-			/*
-			 * Any valid FIN must be to the left of the window.
-			 * At this point the FIN must be a duplicate or out
-			 * of sequence; drop it.
-			 */
+		    (todrop == datalen && (tiflags & TH_FIN) == 0)) {
+                        /*
+                         * Any valid FIN must be to the left of the window.
+                         * At this point the FIN must be a duplicate or out
+                         * of sequence; drop it.
+                         */
 
 			tiflags &= ~TH_FIN;
 
@@ -769,8 +815,8 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			 * But keep on processing for RST or ACK.
 			 */
 
-			todrop = datalen;
 			flags_ |= TF_ACKNOW;
+			todrop = datalen;
 			dupseg = TRUE;
 		}
 		tcph->seqno() += todrop;
@@ -781,7 +827,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 		fprintf(stderr,
 		    "%f: FullTcpAgent::recv(%s) received unexpected SYN (state:%d)\n",
 		        now(), name(), state_);
-		goto drop;
+		goto dropwithreset;
 	}
 
 	// K: added TH_SYN, but it is already known here!
@@ -801,13 +847,15 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// not in useful range
 			goto dropwithreset;
 		}
-		/*
-		 * turn off ACKNOW, as it will generally be set above
-		 * because we were fooled into believing our peer's ack for
-		 * our SYN+ACK is actually a duplicate (and needed an ACK)
-		 */
-		flags_ &= ~TF_ACKNOW;
-		dupseg = FALSE;
+#ifdef notdef
+/*
+ * turn off ACKNOW, as it will generally be set above
+ * because we were fooled into believing our peer's ack for
+ * our SYN+ACK is actually a duplicate (and needed an ACK)
+ */
+flags_ &= ~TF_ACKNOW;
+dupseg = FALSE;
+#endif
 		state_ = TCPS_ESTABLISHED;
 		/* fall into ... */
 
@@ -928,8 +976,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
                  * timer, using current (possibly backed-off) value.
                  */
 		newack(pkt);
-		// K: state established and < compare
-		if (state_ == TCPS_ESTABLISHED && ackno < maxseq_)
+		if (ackno >= maxseq_)
 			needoutput = TRUE;
 		// if we are delaying initial cwnd growth (probably due to
 		// large initial windows), then only open cwnd if data has
@@ -961,8 +1008,10 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
                  * the segment.
                  */
 		case TCPS_CLOSING:	/* simultaneous active close */;
-			if (ourfinisacked)
+			if (ourfinisacked) {
 				state_ = TCPS_CLOSED;
+				cancel_timers();
+			}
 			break;
                 /*
                  * In LAST_ACK, we may still be waiting for data to drain
@@ -987,7 +1036,7 @@ d non-ACK (state:%d)\n",
                                         iph->dst() >> 8, iph->dst() & 0xff,
                                         name(), state_);
                         }
-
+			break;
 
 		/* no case for TIME_WAIT in simulator */
 		} // inner switch
@@ -1000,7 +1049,8 @@ step6:
 	 * DATA processing
 	 */
 
-	if (datalen > 0 || (tiflags & TH_FIN)) {
+	if ((datalen > 0 || (tiflags & TH_FIN)) &&
+	    state_ <= TCPS_ESTABLISHED) {
 		// K: assigns first_data true here
 		// see the "TCP_REASS" macro for this code
 		if (tcph->seqno() == rcv_nxt_ && rq_.empty()) {
@@ -1037,8 +1087,8 @@ step6:
 			}
 		}
 	} else {
+		/* we're closing down or this is a pure ACK */
 		// K: this is deleted
-		// pure ack, not a FIN
 		tiflags &= ~TH_FIN;
 	}
 
@@ -1048,7 +1098,10 @@ step6:
 	 */
 
 	if (tiflags & TH_FIN) {
-		flags_ |= TF_ACKNOW;
+		if (state_ <= TCPS_ESTABLISHED) {
+			flags_ |= TF_ACKNOW;
+			rcv_nxt_++;
+		}
 		rq_.clear();	// other side shutting down
 		switch (state_) {
                 /*
@@ -1079,16 +1132,18 @@ step6:
                  */
                 case TCPS_FIN_WAIT_2:
                         state_ = TCPS_CLOSED;
-			cancel_rtx_timer();
+			cancel_timers();
                         break;
 		}
 	}
 
 	if (needoutput || (flags_ & TF_ACKNOW))
 		send_much(1, REASON_NORMAL, 0);
+#ifdef notdef
 	else if ((curseq_ + iss_) > highest_ack_)
 		send_much(0, REASON_NORMAL, 0);
 	// K: which state to return to??
+#endif
 	Packet::free(pkt);
 	return;
 
@@ -1098,8 +1153,15 @@ dropafterack:
 	goto drop;
 
 dropwithreset:
-	sendpacket(ackno, tcph->seqno() + 1, TH_ACK, 0,
-		REASON_NORMAL);
+	/* we should be sending an RST here, but can't in simulator */
+	if (tiflags & TH_ACK)
+		sendpacket(ackno, 0, 0x0, 0, REASON_NORMAL);
+	else {
+		int ack = tcph->seqno() + datalen;
+		if (tiflags & TH_SYN)
+			ack--;
+		sendpacket(0, ack, TH_ACK, 0, REASON_NORMAL);
+	}
 drop:
    	Packet::free(pkt);
 	return;
