@@ -110,13 +110,11 @@ RTMechanisms instproc makeflowmon {} {
 		}
                 set fdesc [new QueueMonitor/ED/Flow]
                 set slot [$self installNext $fdesc]
-puts "[$ns now] (self:$self) installing flow $fdesc (s:$src,d:$dst,f:$fid) in buck: $hashbucket, slot >$slot<"
+		$rtm_ vprint 2 "(self:$self) installing flow $fdesc (s:$src,d:$dst,f:$fid) in buck: $hashbucket, slot >$slot<"
                 $self set-hash $hashbucket $src $dst $fid $slot
-puts "[$ns now] (self: $self) unknown-flow done"
+		$rtm_ vprint 2 "(self: $self) unknown-flow done"
 flush stdout
         }
-#	set pbody \
-#	    "set ns_ $ns_ ; set pboxfm_ $pboxfm_ ; set okboxfm_ $okboxfm_ $pbody"
 	set pbody "set rtm_ $self ; $pbody"
 
         $cl proc unknown-flow { src dst fid hashbucket } $pbody
