@@ -1,4 +1,4 @@
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/README,v 1.1 1999/08/12 21:11:39 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/README,v 1.2 1999/08/12 21:26:52 haldar Exp $
 
 ********** README for using CMU's node-movement **************
             ************** file generators ************
@@ -65,4 +65,5 @@ and the output will be written in a file called scen-20-test.
 
 4a. OR run make-scen.csh to generate multiple scenario files.
 
-
+Note: The nodes created are indexed starting from 1. Edit setdest.cc
+incase you want the indexing to start from 0.

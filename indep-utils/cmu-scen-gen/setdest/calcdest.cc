@@ -11,7 +11,7 @@ extern "C" {
 #include <unistd.h>
 /* #include <err.h>*/
 };
-
+#include <rng.h>
 #include "setdest.h"
 
 //#define		DEBUG
@@ -79,12 +79,13 @@ FILE            *out_file;
 #define INVERSE_M	((double)4.656612875e-10)
 
 char random_state[32];
+RNG *rng;
 
 double
 uniform()
 {
 	count++;
-	return random() * INVERSE_M;
+	return rng->uniform_double();
 }
 
 
@@ -112,7 +113,7 @@ init()
 	/*
 	 * Initialized the Random Number Generation
 	 */
-	struct timeval tp;
+	/* struct timeval tp;
 	int fd, seed, bytes;
 
 	if((fd = open("/dev/random", O_RDONLY)) < 0) {
@@ -145,7 +146,7 @@ init()
 		exit(1);
 	}
 	seed = (tp.tv_sec  >> 12 ) ^ tp.tv_usec;
-	(void) initstate(seed, random_state, bytes & 0xf8);
+	(void) initstate(seed, random_state, bytes & 0xf8); */
 
 	/*
 	 * Allocate memory for globals
@@ -308,7 +309,9 @@ main(int argc, char **argv)
 		usage(argv);
 		exit(1);
 	}
-
+	// A more portable solution for random number generation
+        rng = new RNG;
+        rng->set_seed(RNG::HEURISTIC_SEED_SOURCE); 
 	init();
 
 	ReadInMovementPattern();
