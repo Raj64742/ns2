@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.158 1999/08/13 22:29:42 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.159 1999/08/26 07:05:27 yaxu Exp $
 
 #
 
@@ -197,6 +197,10 @@ Simulator instproc dumper obj {
 #                  -initialEnergy  (in Joules)
 #                  -RxPower        (in W)
 #                  -TxPower        (in W)
+#                  -AgentTrace  ON
+#                  -RouterTrace ON 
+#                  -MacTrace OFF 
+#                  -MovementTrace OFF
 
 Simulator set routingAgent_ ""
 Simulator set addressType_   ""
@@ -209,6 +213,8 @@ Simulator set addressType_   ""
 #Simulator set ifqlen_   ""
 
 Simulator set nodefactory_ Node
+Simulator set MovementTrace OFF
+
 Simulator instproc addressType  {val} { $self set addressType_  $val }
 Simulator instproc routingAgent  {val} { $self set routingAgent_  $val }
 Simulator instproc nodefactory  {val} { $self set nodefactory_  $val }
@@ -223,12 +229,32 @@ Simulator instproc energyModel  {val} { $self set energyModel_  $val }
 Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
 Simulator instproc TxPower  {val} { $self set txPower__  $val }
 Simulator instproc RxPower  {val} { $self set rxPower_  $val }
-
+Simulator instproc AgentTrace  {val} { $self set agentTrace_  $val }
+Simulator instproc RouterTrace  {val} { $self set routerTrace_  $val }
+Simulator instproc MacTrace  {val} { $self set macTrace_  $val }
+Simulator instproc MovementTrace  {val} { $self set movementTrace_  $val }
 
 Simulator instproc node-config args {
         set args [eval $self init-vars $args]
         $self instvar  addressType_  routingAgent_ nodefactory_ propType_  
-      
+        $self instvar macTrace_ routerTrace_ agentTrace_ movementTrace_
+
+        if [info exists macTrace_] {
+            Simulator set MacTrace_ $macTrace_
+	}
+
+        if [info exists routerTrace_] {
+            Simulator set RouterTrace_ $routerTrace_
+	}
+
+        if [info exists agentTrace_] {
+            Simulator set AgentTrace_ $agentTrace_
+	}
+
+        if [info exists movementTrace_] {
+            Simulator set MovementTrace_ $movementTrace_
+	}
+	
         # hacking for matching old cmu add-interface
         # not good style, for back-compability ONLY
 
@@ -358,6 +384,7 @@ Simulator instproc create-dsdv-node { args } {
 
     $self at 0.0 "$ragent start-dsdv"    ;# start updates
 
+    $node nodetrace [$self get-ns-traceall] 
     return $node
 
 }

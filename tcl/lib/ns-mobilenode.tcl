@@ -241,9 +241,13 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	$self instvar arptable_ nifs_
 	$self instvar netif_ mac_ ifq_ ll_
 	$self instvar imep_
+	
+	global opt
 
-	global ns_ opt
+	#global ns_ opt
 	#set MacTrace [Simulator set MacTrace_]
+
+	set ns_ [Simulator instance]
 
 	set t $nifs_
 	incr nifs_
@@ -318,7 +322,7 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	$mac up-target $ll
 	$mac down-target $netif
 	$mac nodes $opt(nn)
-
+	
 	#
 	# Network Interface
 	#
@@ -329,7 +333,7 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	$netif antenna $ant_($t)
 
 	#
-	# Physical Channel
+	# Physical Channel`
 	#
 	$channel addif $netif
 
