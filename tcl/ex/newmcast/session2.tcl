@@ -29,6 +29,7 @@
 # 3    4     5
 #
 set ns [new SessionSim]
+#SessionSim set rc_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.91 1998/02/16 20:39:30 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.92 1998/02/27 15:23:06 polly Exp $
 
 
 #
@@ -261,6 +261,22 @@ ErrorModel set enable_ 0
 ErrorModel set errTime_ 0
 ErrorModel/Periodic set period_ 1.0
 ErrorModel/Periodic set offset_ 0.0
+SelectErrorModel set errByte_ 0
+SelectErrorModel set errPkt_ 0
+SelectErrorModel set onlink_ 0
+SelectErrorModel set enable_ 0
+SelectErrorModel set errTime_ 0
+SelectErrorModel set pkt_type_ 2
+SelectErrorModel set drop_cycle_ 10
+SelectErrorModel set drop_offset_ 1
+SRMErrorModel set errByte_ 0
+SRMErrorModel set errPkt_ 0
+SRMErrorModel set onlink_ 0
+SRMErrorModel set enable_ 0
+SRMErrorModel set errTime_ 0
+SRMErrorModel set pkt_type_ 2
+SRMErrorModel set drop_cycle_ 10
+SRMErrorModel set drop_offset_ 1
 
 QueueMonitor set size_ 0
 QueueMonitor set pkts_ 0
@@ -309,8 +325,10 @@ RandomVariable/Empirical set interpolation_ 0
 RandomVariable/Empirical set maxEntry_ 32
 
 ErrorModel set rate_ 0.0
-SelectErrorModel set rate_ 0.0                  ;# just to eliminate warnings
+SelectErrorModel set rate_ 0.0               ;# just to eliminate warnings
 SRMErrorModel set rate_ 0.0                  ;# just to eliminate warnings
+
+SessionHelper set rc_ 0                      ;# just to eliminate warnings
 
 Source/Telnet set interval_ 1.0
 
@@ -323,6 +341,7 @@ Simulator set NumberInterfaces_ 0		;# to get intfs for mcast
 Node set multiPath_ 0
 
 Simulator set EnableMcast_ 0                    ;# to enable mcast
+SessionSim set rc_ 0                           ;# to enable packet reference count
 # Defaults for unicast addresses
 # While changing these, ensure that the values are consistent in config.h
 Simulator set NodeMask_ 0xffffff

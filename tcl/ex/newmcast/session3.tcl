@@ -29,7 +29,7 @@
 # 3    4     5
 #
 set ns [new SessionSim]
-#SessionSim set EnableTTL_ 1
+#SessionSim set rc_ 1
 
 $ns namtrace-all [open s3.nam w]
 

@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.7 1998/01/22 08:06:52 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.8 1998/02/27 15:23:03 polly Exp $ (USC/ISI)";
 #endif
 
 #include "Tcl.h"
@@ -34,6 +34,7 @@ static const char rcsid[] =
 struct dstobj {
 	double bw;
 	double delay;
+	double prev_arrival;
         int ttl;
         int dropped;
 	nsaddr_t addr;
@@ -64,6 +65,7 @@ protected:
         void mark_dropped(loss_depobj*);
         void clear_dropped();
         dstobj* find_dstobj(NsObject*);
+        void delete_dstobj(NsObject*);
         loss_depobj* find_loss_depobj(ErrorModel*);
         void show_dstobj();
         void show_loss_depobj(loss_depobj*);
@@ -71,6 +73,8 @@ protected:
         dstobj *dstobj_;
         loss_depobj *loss_dependency_;
         int off_ip_;
+        int ndst_;
+        int rc_;
 };
 
 static class SessionHelperClass : public TclClass {
@@ -81,9 +85,10 @@ public:
 	}
 } class_sessionhelper;
 
-SessionHelper::SessionHelper() : dstobj_(0)
+SessionHelper::SessionHelper() : dstobj_(0), ndst_(0), rc_(0)
 {
         bind("off_ip_", &off_ip_);
+        bind("rc_", &rc_);
 	loss_dependency_ = new loss_depobj;
 	loss_dependency_->obj = 0;
 	loss_dependency_->loss_dep = 0;
@@ -97,35 +102,43 @@ void SessionHelper::recv(Packet* pkt, Handler*)
 	Scheduler& s = Scheduler::instance();
 	hdr_cmn* th = (hdr_cmn*)pkt->access(off_cmn_);
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
+	double tmp_arrival;
 
-	//printf (" size %d\n", th->size());
-
+	clear_dropped();
 	get_dropped(loss_dependency_->loss_dep, pkt);
+	th->ref_count() = ndst_;
 
 	while (tmpdst != 0) {
-	  if (!tmpdst->dropped) {
-                int ttl = iph->ttl() - tmpdst->ttl;
-                if (ttl > 0) {
-		  Packet* tmppkt = pkt->copy();
-		  hdr_ip* tmpiph = (hdr_ip*)tmppkt->access(off_ip_);
-		  tmpiph->ttl() = ttl;
-		  //printf ("ttl=%d\n", tmpiph->ttl());
-		  //printf ("%d ", tmpdst->addr);
-		  if (tmpdst->bw == 0) {
-		    s.schedule(tmpdst->obj, tmppkt, tmpdst->delay);
-		  } else {
-		    //printf("schedule delay %f\n", th->size()/bw + delay);
-		    s.schedule(tmpdst->obj, tmppkt, th->size()*8/tmpdst->bw + tmpdst->delay);
-		  }
-		} else {
-		  //printf("ttl exceeded\n");
-		}
+	  if (!(tmpdst->dropped)) {
+	    int ttl = iph->ttl() - tmpdst->ttl;
+	    if (ttl > 0) {
+	      if (tmpdst->bw == 0) {
+		tmp_arrival = tmpdst->delay;
+	      } else {
+		tmp_arrival = th->size()*8/tmpdst->bw + tmpdst->delay;
+	      }
+	      if (tmpdst->prev_arrival >= tmp_arrival) {
+		tmp_arrival = tmpdst->prev_arrival + 0.000001;
+		/* Assume 1 ns process delay; just to maintain the causality */
+	      }
+	      tmpdst->prev_arrival = tmp_arrival;
+	      if (rc_) {
+		s.rc_schedule(tmpdst->obj, pkt, tmp_arrival);
+	      } else {
+		Packet* tmppkt = pkt->copy();
+		hdr_ip* tmpiph = (hdr_ip*)tmppkt->access(off_ip_);
+		tmpiph->ttl() = ttl;
+		s.schedule(tmpdst->obj, tmppkt, tmp_arrival);
+	      }
+	    } else {
+	      if (rc_) th->ref_count() -= 1;
+	    }
+	  } else {
+	    if (rc_) th->ref_count() -= 1;
 	  }
 	  tmpdst = tmpdst->next;
 	}
-	clear_dropped();
 	Packet::free(pkt);
-
 }
 
 void SessionHelper::get_dropped(loss_depobj* loss_dep, Packet* pkt)
@@ -210,6 +223,22 @@ void SessionHelper::show_dstobj() {
 	dstobj *tmpdst = dstobj_;
 	while (tmpdst != 0) {
 	  printf("bw:%.2f, delay:%.2f, ttl:%d, dropped:%d, addr:%d, obj:%s\n", tmpdst->bw, tmpdst->delay, tmpdst->ttl, tmpdst->dropped, tmpdst->addr, tmpdst->obj->name());
+	  tmpdst = tmpdst->next;
+	}
+}
+
+void SessionHelper::delete_dstobj(NsObject *obj) {
+	dstobj *tmpdst = dstobj_;
+	dstobj *tmpprev = 0;
+
+	while (tmpdst != 0) {
+	  if (tmpdst->obj == obj) {
+	    if (tmpprev == 0) dstobj_ = tmpdst->next;
+	    else tmpprev->next = tmpdst->next;
+	    free(tmpdst);
+	    return;
+	  }
+	  tmpprev = tmpdst;
 	  tmpdst = tmpdst->next;
 	}
 }
@@ -312,17 +341,25 @@ int SessionHelper::command(int argc, const char*const* argv)
 			tmplossparent->loss_dep = tmplosschild;
 			return (TCL_OK);
 		}
+		if (strcmp(argv[1], "delete-dst") == 0) {
+			int tmpaddr = atoi(argv[2]);
+			NsObject *tmpobj = (NsObject*)TclObject::lookup(argv[3]);
+			printf ("addr = %d\n", tmpaddr);
+			return (TCL_OK);
+		}
 	} else if (argc == 7) {
 		if (strcmp(argv[1], "add-dst") == 0) {
 			dstobj *tmp = new dstobj;
 			tmp->bw = atof(argv[2]);
 			tmp->delay = atof(argv[3]);
+			tmp->prev_arrival = 0;
 			tmp->ttl = atoi(argv[4]);
 			tmp->addr = atoi(argv[5]);
 			tmp->obj = (NsObject*)TclObject::lookup(argv[6]);
 			//printf ("addr = %d, argv3 = %s, obj = %d, ttl=%d\n", tmp->addr, argv[3], tmp->obj, tmp->ttl);
 			tmp->next = dstobj_;
 			dstobj_ = tmp;
+			ndst_ += 1;
 			return (TCL_OK);
 		}
 	}

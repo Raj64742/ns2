@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.h,v 1.7 1997/08/10 07:49:54 mccanne Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.h,v 1.8 1998/02/27 15:23:03 polly Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -63,6 +63,7 @@ class Scheduler : public TclObject {
 public:
 	static Scheduler& instance() { return (*instance_); }
 	void schedule(Handler*, Event*, double delay);
+	void rc_schedule(Handler*, Event*, double delay);
 	virtual void run() = 0;
 	virtual void cancel(Event*) = 0;
 	virtual void insert(Event*) = 0;

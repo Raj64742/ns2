@@ -30,9 +30,9 @@
 #          |2|
 
 set ns [new SessionSim]
+#SessionSim set rc_ 1
 
 $ns namtrace-all [open s1.nam w]
-
 set n0 [$ns node]
 set n1 [$ns node]
 set n2 [$ns node]
@@ -50,7 +50,7 @@ $cbr1 set dst_ 0x8003
 ####            after creating the source and 
 ####            before adding members
 ####  
-$ns create-session $n2 $cbr1 
+$ns create-session $n2 $cbr1
 
 set rcvr0 [new Agent/LossMonitor]
 $ns attach-agent $n0 $rcvr0

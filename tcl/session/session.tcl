@@ -5,7 +5,7 @@ SessionSim instproc bw_parse { bspec } {
                 set unit bps
         }
         switch $unit {
-        b  { return $b }
+        bps  { return $b }
         kb { return [expr $b*1000] }
         Mb { return [expr $b*1000000] }
         Gb { return [expr $b*1000000000] }
@@ -58,6 +58,9 @@ SessionSim instproc create-session { node agent } {
 		$agent target $session_($nid:$dst)
 	}
 
+    if [SessionSim set rc_] {
+	$session_($nid:$dst) set rc_ 1
+    }
 	return $session_($nid:$dst)
 }
 

@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.26 1998/02/09 21:03:11 bajaj Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.27 1998/02/27 15:23:01 polly Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -79,6 +79,7 @@ struct hdr_cmn {
 	int	error_;		// error flag
 	double	ts_;		// timestamp: for q-delay measurement
 	int	iface_;		// receiving interface (label)
+        int     ref_count_;     // free the pkt until count to 0
 
 	static int offset_;	// offset for this header
 	inline int& offset() { return offset_; }
@@ -90,6 +91,7 @@ struct hdr_cmn {
 	inline int& error() { return error_; }
 	inline double& timestamp() { return (ts_); }
 	inline int& iface() { return (iface_); }
+        inline int& ref_count() { return (ref_count_); }
 };
 
 
@@ -168,12 +170,19 @@ inline void Packet::allocdata(int n)
 
 inline void Packet::free(Packet* p)
 {
-	p->next_ = free_;
-	free_ = p;
-	if (p->datalen_) {
-	        delete[] p->data_;
-//		p->data_ = 0;
-		p->datalen_ = 0;
+        int off_cmn_ = hdr_cmn::offset_;
+        hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
+
+        if (ch->ref_count() == 0) {
+                p->next_ = free_;
+                free_ = p;
+		if (p->datalen_) {
+                        delete[] p->data_;
+//                      p->data_ = 0;
+                        p->datalen_ = 0;
+		}
+	} else {
+	        ch->ref_count() = ch->ref_count() - 1;
 	}
 }
 
