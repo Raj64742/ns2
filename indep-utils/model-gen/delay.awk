@@ -29,7 +29,8 @@
 		sum = sum + $3
 	} else {
 		if (cnt != 0) {
-	        	print sum/cnt
+	        	rtt=sum/cnt
+			print (rtt/2.0)
 		}
 		cnt = 1
 		sum = $3

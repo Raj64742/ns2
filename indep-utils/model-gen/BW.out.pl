@@ -92,7 +92,7 @@ while (<>) {
 		   @dataq = sort numerically @q;
 		   $m=int($j/2);
 #		   print OUTDELAY "$c1 $s1 $dataq[$m]\n";
-		   print OUTDELAY "$dataq[$m]\n";
+		   print OUTDELAY "$dataq[$m]/2.0\n";
 		}
 		$#q=0;
 		$q[0]=$delay;
