@@ -524,6 +524,7 @@ tcl/ex/asym/tcp.awk
 tcl/ex/asym/util.tcl
 tcl/ex/asym/webbench.tcl
 tcl/ex/callback_demo.tcl
+tcl/ex/dumbbell.tcl
 tcl/ex/dynamic-nam.conf
 tcl/ex/example-trace
 tcl/ex/fq-cbr.tcl
@@ -532,6 +533,7 @@ tcl/ex/hier-rtg-10.tcl
 tcl/ex/hier-rtg-100.tcl
 tcl/ex/hts100-0.tcl
 tcl/ex/lantest.tcl
+tcl/ex/large-scale-web-traffic.tcl
 tcl/ex/mac-test.tcl
 tcl/ex/many_tcp.tcl
 tcl/ex/many_tcp.txt
@@ -594,6 +596,7 @@ tcl/ex/ranvar.tcl
 tcl/ex/ranvar.txt
 tcl/ex/rbp_demo.tcl
 tcl/ex/rc.tcl
+tcl/ex/sample.trace
 tcl/ex/scuba/complete/demo-nam.tcl
 tcl/ex/scuba/complete/demo.tcl
 tcl/ex/scuba/noscuba-equal/demo-nam.tcl
@@ -659,10 +662,13 @@ tcl/ex/topo-gen-script.tcl
 tcl/ex/topo-gen.tcl
 tcl/ex/topo-gen.txt
 tcl/ex/topo-view.tcl
+tcl/ex/trace-driven.tcl
+tcl/ex/varybell.tcl
 tcl/ex/virtual-classifier.tcl
 tcl/ex/vlantest-flat.tcl
 tcl/ex/vlantest-hier.tcl
 tcl/ex/vlantest-mcst.tcl
+tcl/ex/web-traffic.tcl
 tcl/ex/wireless.tcl
 tcl/ex/wireless-test.tcl
 tcl/http/README
@@ -671,9 +677,7 @@ tcl/http/data/HttpReplyLength.cdf
 tcl/http/data/HttpRequestLength.cdf
 tcl/http/data/HttpServerStay.cdf
 tcl/http/data/HttpThinkTime.cdf
-tcl/http/dumbbell.tcl
 tcl/http/http-ex.tcl
-tcl/http/http-mod-ex.tcl
 tcl/http/http-mod.tcl
 tcl/http/http-mult.tcl
 tcl/http/http-single.tcl
