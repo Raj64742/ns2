@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.73 2002/04/30 17:24:21 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.74 2002/05/01 18:46:28 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -531,7 +531,8 @@ REDQueue::pickPacketToDrop()
  * The packet is also dropped if the maximum queue size is exceeded.
  *
  * "Forced" drops mean a packet arrived when the underlying queue was
- * full or when the average q size exceeded maxthresh.
+ * full, or when the average queue size exceeded some threshold and no
+ * randomization was used in selecting the packet to be dropped.
  * "Unforced" means a RED random drop.
  *
  * For forced drops, either the arriving packet is dropped or one in the
