@@ -4,7 +4,7 @@
 ### ./validate > out ; diff out validate.out
 ###
 ### "Validate" ran correctly for Sally Floyd with this output,
-### on pig.ee.lbl.gov, Tue Apr 21 1998, with tcl8.0p1, tk8.0p1.
+### on pig.ee.lbl.gov, Fri Apr 24 19:54:20 PDT 1998, with tcl8.0p1, tk8.0p1.
 ###
 ### "Validate" ran correctly for Sally Floyd with the rev 1.10
 ### version of this output,
@@ -447,6 +447,41 @@ Test output agrees with reference output
 Running test vegas_pacing_rate.
 Test output agrees with reference output
 Running test vegas_pacing_cwnd.
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-tcp-init-win
+Tests: tahoe1 tahoe2 tahoe3 tahoe4 reno1 reno2 reno3 reno4 newreno1 newreno2 newreno3 newreno4 sack1 sack2 sack3 sack4
+Running test tahoe1.
+Test output agrees with reference output
+Running test tahoe2.
+Test output agrees with reference output
+Running test tahoe3.
+Test output agrees with reference output
+Running test tahoe4.
+Test output agrees with reference output
+Running test reno1.
+Test output agrees with reference output
+Running test reno2.
+Test output agrees with reference output
+Running test reno3.
+Test output agrees with reference output
+Running test reno4.
+Test output agrees with reference output
+Running test newreno1.
+Test output agrees with reference output
+Running test newreno2.
+Test output agrees with reference output
+Running test newreno3.
+Test output agrees with reference output
+Running test newreno4.
+Test output agrees with reference output
+Running test sack1.
+Test output agrees with reference output
+Running test sack2.
+Test output agrees with reference output
+Running test sack3.
+Test output agrees with reference output
+Running test sack4.
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
