@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.18 1997/11/06 04:15:59 hari Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue.h,v 1.19 1997/12/17 19:52:13 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -71,6 +71,9 @@ public:
 	virtual void remove(Packet*);
 	/* Remove a packet, located after a given packet. Either could be 0. */
 	void remove(Packet *, Packet *);
+	inline Packet* head() { return head_; }
+	inline Packet* tail() { return tail ? *tail_ : 0; }
+
 protected:
 	Packet* head_;
 	Packet** tail_;
