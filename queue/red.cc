@@ -31,7 +31,8 @@
  * SUCH DAMAGE.
  *
  *
- * Here is one set of parameters from one of my simulations:
+ * Here is one set of parameters from one of Sally's simulations
+ * (this is from tcpsim, the older simulator):
  * 
  * ed [ q_weight=0.002 thresh=5 linterm=30 maxthresh=15
  *         mean_pktsize=500 dropmech=random-drop queue-size=60
@@ -54,8 +55,8 @@
  */
 
 #ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.17 1997/07/18 22:06:04 ktieu Exp $ (LBL)";
+static const char rcsid[] =
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.18 1997/07/22 01:47:20 kfall Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -63,7 +64,7 @@ static char rcsid[] =
 static class REDClass : public TclClass {
 public:
 	REDClass() : TclClass("Queue/RED") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new REDQueue);
 	}
 } class_red;
@@ -73,40 +74,54 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL), idle_(1)
 	memset(&edp_, '\0', sizeof(edp_));
 	memset(&edv_, '\0', sizeof(edv_));
 
-	bind_bool("bytes_", &edp_.bytes);		// boolean: use bytes?
-	bind_bool("queue-in-bytes_", &qib_);		// boolean: q in bytes?
-	bind("thresh_", &edp_.th_min);			// minthresh
-	bind("maxthresh_", &edp_.th_max);		// maxthresh
-	bind("mean_pktsize_", &edp_.mean_pktsize);	// avg pkt size
-	bind("q_weight_", &edp_.q_w);			// for EWMA
+	bind_bool("bytes_", &edp_.bytes);	    // boolean: use bytes?
+	bind_bool("queue-in-bytes_", &qib_);	    // boolean: q in bytes?
+	bind("thresh_", &edp_.th_min);		    // minthresh
+	bind("maxthresh_", &edp_.th_max);	    // maxthresh
+	bind("mean_pktsize_", &edp_.mean_pktsize);  // avg pkt size
+	bind("q_weight_", &edp_.q_w);		    // for EWMA
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
-	bind_bool("setbit_", &edp_.setbit);
-	bind_bool("drop-tail_", &drop_tail_);
-	bind_bool("fracthresh_", &edp_.fracthresh);
-	bind("fracminthresh_", &edp_.frac_th_min);			// frac minthresh
-	bind("fracmaxthresh_", &edp_.frac_th_max);		// frac maxthresh
+	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
+	bind_bool("drop-tail_", &drop_tail_);	    // drop last pkt or random
+	bind_bool("fracthresh_", &edp_.fracthresh); // min/maxth fracts of qlim
+	bind("fracminthresh_", &edp_.frac_th_min);     // frac minthresh of qlim
+	bind("fracmaxthresh_", &edp_.frac_th_max);     // frac maxthresh of qlim
 
-	bind_bool("doubleq_", &doubleq_);
-	bind("dqthresh_", &dqthresh_);
-
-	q_ = new PacketQueue();
+	q_ = new PacketQueue();			    // underlying queue
 	reset();
+
 #ifdef notdef
 print_edp();
 print_edv();
 #endif
+
 }
 
 void REDQueue::reset()
 {
+	/*
+	 * if queue is measured in bytes, scale min/max thresh
+	 * by the size of an average packet
+	 */
+
 	if (qib_) {
 		edp_.th_min *= edp_.mean_pktsize;
 		edp_.th_max *= edp_.mean_pktsize;
 	}
+	/*
+	 * compute the "packet time constant" if we know the
+	 * link bandwidth.  The ptc is the max number of (avg sized)
+	 * pkts per second which can be placed on the link
+	 */
+	 
 	if (link_)
 		edp_.ptc = link_->bandwidth() /
 			(8. * edp_.mean_pktsize);
+	/*
+	 * a way to choose max/minth as a fraction of the
+	 * queue limit (optionally enabled)
+	 */
 	if (edp_.fracthresh) {
 		edp_.th_min = edp_.frac_th_min*qlim_;
 		edp_.th_max = edp_.frac_th_max*qlim_;
@@ -176,8 +191,8 @@ void REDQueue::run_estimator(int nqueued, int m)
  */
 void REDQueue::plot()
 {
-	double t = Scheduler::instance().clock();
 #ifdef notyet
+	double t = Scheduler::instance().clock();
 	sprintf(trace_->buffer(), "a %g %g", t, edv_.v_ave);
 	trace_->dump();
 	sprintf(trace_->buffer(), "p %g %g", t, edv_.v_prob);
@@ -188,10 +203,10 @@ void REDQueue::plot()
 /*
  * print the queue seen by arriving packets only
  */
-void REDQueue::plot1(int length)
+void REDQueue::plot1(int)
 {
-        double t =  Scheduler::instance().clock();
 #ifdef notyet
+        double t =  Scheduler::instance().clock();
         sprintf(trace_->buffer(), "Q %g %d", t, length);
 	trace_->dump();
 #endif
@@ -219,45 +234,39 @@ Packet* REDQueue::deque()
 	}
 	return (p);
 }
-		
+
 int REDQueue::drop_early(Packet* pkt)
 {
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
-	if (edv_.v_ave >= edp_.th_max) {
-	  // policy: if above max thresh, force drop
-	  // THIS IS A FORCED PACKET DROP.
-	  //	  edv_.v_prob = 1.0; (orig)
-	  return 2;  // (KT)
-	} else {
-	        // THIS IS AN UNFORCED PACKET DROP.
-		double p = edv_.v_a * edv_.v_ave + edv_.v_b;
-		p /= edp_.max_p_inv;
-		edv_.v_prob1 = p;
-		if (edv_.v_prob1 > 1.0)
-			edv_.v_prob1 = 1.0;
-		double count1 = edv_.count;
-		if (edp_.bytes)
-			count1 = (double) (edv_.count_bytes/edp_.mean_pktsize);
-		if (edp_.wait) {
-			if (count1 * p < 1.0)
-				p = 0.0;
-			else if (count1 * p < 2.0)
-				p /= (2 - count1 * p);
-			else
-				p = 1.0;
-		} else if (!edp_.wait) {
-			if (count1 * p < 1.0)
-				p /= (1.0 - count1 * p);
-			else
-				p = 1.0;
-		}
-		if (edp_.bytes && p < 1.0) {
-			p = p * ch->size() / edp_.mean_pktsize;
-		}
-		if (p > 1.0)
+
+	double p = edv_.v_a * edv_.v_ave + edv_.v_b;
+	p /= edp_.max_p_inv;
+	edv_.v_prob1 = p;
+	if (edv_.v_prob1 > 1.0)
+		edv_.v_prob1 = 1.0;
+	double count1 = edv_.count;
+	if (edp_.bytes)
+		count1 = (double) (edv_.count_bytes/edp_.mean_pktsize);
+	if (edp_.wait) {
+		if (count1 * p < 1.0)
+			p = 0.0;
+		else if (count1 * p < 2.0)
+			p /= (2 - count1 * p);
+		else
 			p = 1.0;
-		edv_.v_prob = p;
+	} else {
+		if (count1 * p < 1.0)
+			p /= (1.0 - count1 * p);
+		else
+			p = 1.0;
 	}
+	if (edp_.bytes && p < 1.0) {
+		p = p * ch->size() / edp_.mean_pktsize;
+	}
+	if (p > 1.0)
+		p = 1.0;
+	edv_.v_prob = p;
+
 	/* Trace RED queue parameters. */
 	if (channel_) {
 		char wrk[500];
@@ -271,9 +280,10 @@ int REDQueue::drop_early(Packet* pkt)
 		wrk[n] = 0;
 	}
 
-// drop probability is computed, pick random number and act
+	// drop probability is computed, pick random number and act
 	double u = Random::uniform();
 	if (u <= edv_.v_prob) {
+		// DROP or MARK
 		edv_.count = 0;
 		edv_.count_bytes = 0;
 		if (edp_.setbit) {
@@ -283,7 +293,7 @@ int REDQueue::drop_early(Packet* pkt)
 			return (1);
 		}
 	}
-	return (0);
+	return (0);  // no DROP/mark
 }
 
 /*
@@ -293,102 +303,108 @@ int REDQueue::drop_early(Packet* pkt)
  * and the newly-arriving packet is dropped with that probability.
  * The packet is also dropped if the maximum queue size is exceeded.
  */
+
+#define	DTYPE_FORCED	1	/* a "forced" drop */
+#define	DTYPE_UNFORCED	2	/* an "unforced" (random) drop */
+
 void REDQueue::enque(Packet* pkt)
 {
 	double now = Scheduler::instance().clock();
 	hdr_cmn* ch = (hdr_cmn*)pkt->access(off_cmn_);
 
-	int m;
-	int rtn; // (KT)
+	int droptype = -1;
+	int m = 0;
+
+	/*
+	 * if we were idle, we pretend that m packets arrived during
+	 * the idle period.  m is set to be the ptc times the amount
+	 * of time we've been idle for
+	 */
+
         if (idle_) {
 		/* To account for the period when the queue was empty.  */
                 idle_ = 0;
 		m = int(edp_.ptc * (now - idletime_));
-        } else
-                m = 0;
+        }
 
+	/*
+	 * run the estimator with either 1 new packet arrival, or with
+	 * the scaled version above [scaled due to idle time]
+	 * (bcount_ maintains the byte count in the underlying queue)
+	 */
 	run_estimator(qib_ ? bcount_ : q()->length(), m + 1);
 
+	/*
+	 * count and count_bytes keeps a tally of arriving traffic
+	 * that has not been dropped
+	 */
 	++edv_.count;
 	edv_.count_bytes += ch->size();
 
 	/*
-	 * if average exceeds the min threshold, we may drop
+	 * DROP LOGIC:
+	 *	q = current q size, ~q = averaged q size
+	 *	1> if ~q > maxthresh, this is a FORCED drop
+	 *	2> if minthresh < ~q < maxthresh, this may be an UNFORCED drop
+	 *	3> if (q+1) > hard q limit, this is a FORCED drop
 	 */
-	if (edv_.v_ave >= edp_.th_min && q()->length() > 1) { 
+
+	// see if we drop early
+
+	register double qavg = edv_.v_ave;
+	int qlen = qib_ ? bcount_ : q()->length();
+	int qlim = qib_ ?  (qlim_ * edp_.mean_pktsize) : qlim_;
+
+	if (qavg >= edp_.th_min && qlen > 1) {
+		if (qavg >= edp_.th_max) {
+			droptype = DTYPE_FORCED;
+			goto dropv;
+		}
 		if (edv_.old == 0) {
 			edv_.count = 1;
 			edv_.count_bytes = ch->size();
 			edv_.old = 1;
-		} else {
-			/*
-			 * Drop each packet with probability edv.v_prob.
-			 */
-		            // if (drop_early(pkt)) { (orig)
-		            // if ave queue size before maxthresh (KT)
-		            if ((rtn=drop_early(pkt)) == 1) {  // (KT)
-		                // this could be either a forced or an
-				// unforced packet drop, depending on
-				// whether the ave queue size exceeds
-				// maxthresh
-		                if (de_drop_ != NULL)
-					de_drop_->recv(pkt);
-				else
-					drop(pkt);
-				pkt = 0;
-			}
+		} else if (drop_early(pkt)) {
+			droptype = DTYPE_UNFORCED;
+			goto dropme;
 		}
 	} else {
 		edv_.v_prob = 0.0;
 		edv_.old = 0;
 	}
-	/*
-	 * If we didn't drop the packet above, send it to the interface,
-	 * checking for absolute queue overflow.
-	 */
-	// begin (KT)
-	// forced packet drop because ave queue size > maxthresh
-	if (rtn == 2) {
-	  int victim;
-	  if (drop_tail_)
-	    victim = q()->length() - 1;
-	  else
-	    victim = Random::integer(q()->length());
-	  
-	  pkt = q()->lookup(victim);
-	  remove(q(), pkt);
-	  bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
-	  drop(pkt);
-	}
-	// if (pkt != 0) {  // (orig)
-	else if (pkt != 0) {
-	  // end (KT)
-		enque(q(), pkt);
-		bcount_ += ch->size();
-		int metric = qib_ ? bcount_ : q()->length();
-		int limit = qib_ ?
-			(qlim_ * edp_.mean_pktsize) : qlim_;
-		if (metric > limit) {
-			int victim;
-			if (drop_tail_)
-				victim = q()->length() - 1;
-			else
-				victim = Random::integer(q()->length());
-				
-			pkt = q()->lookup(victim);
-			remove(q(), pkt);
-			bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
-			drop(pkt);
-			// forced packet drop because of queue overflow
-		}
-	}
-#ifdef notyet
-	if (trace_)
-		plot();
-#endif
 
-	return;	/* end of enque() */
+	// see if we've exceeded the queue size
+
+	enque(q(), pkt);
+	bcount_ += ch->size();
+
+	if (qlen > qlim) {
+		droptype = DTYPE_FORCED;
+		goto dropv;
+	}
+
+	return;
+
+dropv:
+	/* drop random victim or last one */
+	{
+		int victim = drop_tail_ ?
+			q()->length() - 1 :
+			Random::integer(q()->length());
+		pkt = q()->lookup(victim);
+	}
+	remove(q(), pkt);
+	bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size_;
+dropme:
+	if (droptype == DTYPE_UNFORCED && de_drop_ != NULL) {
+		de_drop_->recv(pkt);
+		return;
+	}
+
+	drop(pkt);
+	return;
 }
+
 int REDQueue::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
