@@ -122,6 +122,15 @@ AODV::command(int argc, const char*const* argv) {
 	return TCL_ERROR;
       return TCL_OK;
     }
+    else if (strcmp(argv[1], "port-dmux") == 0) {
+    	dmux_ = (PortClassifier *)TclObject::lookup(argv[2]);
+	if (dmux_ == 0) {
+		fprintf (stderr, "%s: %s lookup of %s failed\n", __FILE__,
+		argv[1], argv[2]);
+		return TCL_ERROR;
+	}
+	return TCL_OK;
+    }
   }
   return Agent::command(argc, argv);
 }
@@ -563,6 +572,7 @@ struct hdr_ip *ih = HDR_IP(p);
    return;
  }
 
+
  /*
   *  Must be a packet I'm originating...
   */
@@ -1000,6 +1010,13 @@ struct hdr_ip *ih = HDR_IP(p);
  
   drop(p, DROP_RTR_TTL);
   return;
+ }
+
+ if (ch->ptype() != PT_AODV && ch->direction() == hdr_cmn::UP &&
+	((u_int32_t)ih->daddr() == IP_BROADCAST)
+		|| ((u_int32_t)ih->daddr() == here_.addr_)) {
+	dmux_->recv(p,0);
+	return;
  }
 
  if (rt) {

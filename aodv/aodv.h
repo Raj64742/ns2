@@ -43,6 +43,7 @@ The AODV code developed by the CMU/MONARCH group was optimized and tuned by Sami
 #include <priqueue.h>
 #include <aodv/aodv_rtable.h>
 #include <aodv/aodv_rqueue.h>
+#include <classifier/classifier-port.h>
 
 /*
   Allows local repair of routes 
@@ -321,6 +322,10 @@ class AODV: public Agent {
         void            log_link_del(nsaddr_t dst);
         void            log_link_broke(Packet *p);
         void            log_link_kept(nsaddr_t dst);
+
+	/* for passing packets up to agents */
+	PortClassifier *dmux_;
+
 };
 
 #endif /* __aodv_h__ */

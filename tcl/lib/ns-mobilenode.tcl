@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.44 2003/04/23 00:15:44 buchheim Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.45 2003/05/05 21:43:37 buchheim Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -250,9 +250,7 @@ Node/MobileNode instproc add-target-rtagent { agent port } {
 	set classifier_ [$self entry]
 
 	# let the routing agent know about the port dmux
-	if {[$agent info class] != "Agent/AODV"} {
-	    $agent port-dmux $dmux_
-	}
+	$agent port-dmux $dmux_
 
 	if { [Simulator set RouterTrace_] == "ON" } {
 		#
