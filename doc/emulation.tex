@@ -38,6 +38,17 @@ Network objects are installed in tap agents and provide an entrypoint
 for the sending and receipt of live data.
 Both objects are described in the following sections.
 
+When using the emulation mode, a special version of the system
+scheduler is used: the {\tt RealTime} scheduler.
+This scheduler uses the same underlying structure as the
+standard calendar-queue based scheduler, but ties the execution of
+events to real-time.
+It is described below.
+
+\section{Real-Time Scheduler}
+
+In progress.
+
 \section{Tap Agents}
 
 The class {\tt TapAgent} is a simple class derived from the base
@@ -128,6 +139,49 @@ IP packets, as the system's routing function will be used to determine
 proper link-layer encapsulating headers.
 
 \paragraph{Configuration}
+Pcap network objects may be configured as either associated with a
+live network or with a trace file.
+If associated with a live network, the particular network interface
+to be used may be specified, as well as an optional promiscuous flag.
+As with all network objects, they may be opened for reading or writing.
+Here is an example:
+\begin{verbatim}
+     set me [exec hostname]
+     set pf1 [new Network/Pcap/Live]
+     $pf1 set promisc_ true
+     set intf [$pf1 open readonly]
+     puts "pf1 configured on interface $intf"
+     set filt "(ip src host foobar) and (not ether broadcast)"
+     set nbytes [$pf1 filter $filt]
+     puts "filter compiled to $nbytes bytes"
+     puts "drops: [$pf1 pdrops], pkts: [$pf1 pkts]"
+\end{verbatim}
+This example first determines the name of the local system which
+will be used in constructing a BPF/libpcap filter predicate.
+The {\tt new Network/Pcap/Live} call creates an instance of the
+pcap network object for capturing live traffic.
+The {\tt promisc\_} flag tells the packet filter whether it should
+configure the undelying interface in promiscuous mode (if it is supported).
+The {\tt open} call activates the packet filter, and may be specified
+as {\tt readonly}, {\tt writeonly}, or {\tt readwrite}.
+It returns the name of the network interface the filter is associated
+with.
+The {\tt open} call takes an optional extra parameter (not illustrated)
+indicating the name of the interface to use in cases where a particular
+interface should be used on a multi-homed host.
+The {\tt filter} method is used to create a BPF-compatible packet
+filter program which is loaded into the underlying BPF machinery.
+The {\tt filter} method returns the number of bytes used by the
+filter predicate. 
+The {\tt pdrops} and {\tt pkts} methods are available for statistics
+collection.
+They report the number of packets dropped by the filter due to 
+buffer exhaustion and the
+total number of packets that arrived at the filter, respectively
+({\em not} the number of packets accepted by the filter).
+
+\subsection{IP Network Objects}
+
 
 
 \endinput
