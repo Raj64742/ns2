@@ -260,7 +260,7 @@ Node instproc getRepByGroup { group } {
 Node instproc getReps { src group } {
 	$self instvar replicator_
 	set reps ""
-	foreach key [array names replicator_ "$src:$group"] { 
+	foreach key [array names replicator_ "\\$src:$group"] { 
 		lappend reps $replicator_($key)
 	}
 	set reps

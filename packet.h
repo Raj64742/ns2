@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.32.2.5 1998/07/24 22:46:16 yuriy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.32.2.6 1998/07/28 20:16:09 yuriy Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -110,6 +110,32 @@ public:
 	inline int datalen() const { return datalen_; }
 };
 
+/* 
+ * static constant associations between interface special (negative) 
+ * values and their c-string representations that are used from tcl
+ */
+class iface_literal {
+public:
+	enum iface_constant { 
+		UNKN_IFACE= -1, /* iface value for locally originated packets 
+				 */
+		ANY_IFACE= -2   /* hashnode with iif == ANY_IFACE_                           
+				 * matches any pkt iface (imported from TCL);                
+				 * this value should be different from hdr_cmn::UNKN_IFACE   
+				 * from packet.h                                             
+				 */                                                          
+	};
+	iface_literal(const iface_constant i, const char * const n) : 
+		value_(i), name_(n) {}
+	inline int value() const { return value_; }
+	inline const char * const name() const { return name_; }
+private:
+	const iface_constant value_;
+	const char * const name_; /* strings used in TCL to access those special values */
+};
+
+static const iface_literal UNKN_IFACE(iface_literal::UNKN_IFACE, "?");
+static const iface_literal ANY_IFACE(iface_literal::ANY_IFACE, "*");
 
 struct hdr_cmn {
 	int	ptype_;		// packet type (see above)
@@ -122,15 +148,6 @@ struct hdr_cmn {
 
 	static int offset_;	// offset for this header
 
-	enum iface_constant { 
-		UNKN_IFACE= -1, /* iface value for locally originated packets 
-				 */
-		ANY_IFACE= -2   /* hashnode with iif == ANY_IFACE_                           
-				 * matches any pkt iface (imported from TCL);                
-				 * this value should be different from hdr_cmn::UNKN_IFACE   
-				 * from packet.h                                             
-				 */                                                          
-	};
 
 	inline static int& offset() { return offset_; }
 	inline static hdr_cmn* access(Packet* p, int off=-1) {

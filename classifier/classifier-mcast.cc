@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.13.2.3 1998/07/24 21:41:38 yuriy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.13.2.4 1998/07/28 20:16:08 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -72,8 +72,8 @@ protected:
 	hashnode* ht_[HASHSIZE];
     	hashnode* ht_star_[HASHSIZE]; //for search by group only (not <s,g>)
 
-	hashnode* const lookup(nsaddr_t src, nsaddr_t dst, int iface = hdr_cmn::ANY_IFACE) const;
-	hashnode* const lookup_star(nsaddr_t dst, int iface = hdr_cmn::ANY_IFACE) const;
+	hashnode* const lookup(nsaddr_t src, nsaddr_t dst, int iface = ANY_IFACE.value()) const;
+	hashnode* const lookup_star(nsaddr_t dst, int iface = ANY_IFACE.value()) const;
     
         void change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface);
         void change_iface(nsaddr_t dst, int oldiface, int newiface);
@@ -118,7 +118,7 @@ void MCastClassifier::clearAll()
 }
 
 MCastClassifier::hashnode* const
-MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst, int iface = hdr_cmn::ANY_IFACE) const
+MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst, int iface = ANY_IFACE.value()) const
 {
 	int h = hash(src, dst);
 	hashnode* p;
@@ -130,7 +130,7 @@ MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst, int iface = hdr_cmn::ANY_IFA
 }
 
 MCastClassifier::hashnode* const
-MCastClassifier::lookup_star(nsaddr_t dst, int iface = hdr_cmn::ANY_IFACE) const
+MCastClassifier::lookup_star(nsaddr_t dst, int iface = ANY_IFACE.value()) const
 {
 	int h = hash(0, dst);
 	hashnode* p;
@@ -171,10 +171,7 @@ int MCastClassifier::classify(Packet *const pkt)
 					      name(), src, dst, iface);
 			return -1;
 		}
-		//		cout << "classified with no iif\n";
-		//		if (p->iif == hdr_cmn::ANY_IFACE) cout << "xxx Classified as any_iface\n";
-
-		if (p->iif == hdr_cmn::ANY_IFACE || iface == hdr_cmn::UNKN_IFACE)
+		if (p->iif == ANY_IFACE.value() || iface == UNKN_IFACE.value())
 			return p->slot;
 
 		Tcl::instance().evalf("%s new-group %u %u %d wrong-iif", 
@@ -220,11 +217,9 @@ int MCastClassifier::command(int argc, const char*const* argv)
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int slot = atoi(argv[4]);
-                        int iface = (strcmp(argv[5], "*")==0) ? hdr_cmn::ANY_IFACE 
-				: (strcmp(argv[5], "?")==0) ? hdr_cmn::UNKN_IFACE 
+                        int iface = (strcmp(argv[5], ANY_IFACE.name())==0) ? ANY_IFACE.value() 
+				: (strcmp(argv[5], UNKN_IFACE.name())==0) ? UNKN_IFACE.value() 
 				: atoi(argv[5]); 
-// 			if (iface == hdr_cmn::ANY_IFACE)
-// 				cout << "installed any_iface entry\n";
 			if (strcmp("*", argv[2]) == 0) {
 			    // install a <*,G> entry
 			    set_hash(ht_star_, 0, dst, slot, iface);

@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.6.2.1 1998/07/15 18:34:13 kannan Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/net-interface.cc,v 1.6.2.2 1998/07/28 20:16:09 yuriy Exp $ (USC/ISI)";
 #endif
 
 #include "connector.h"
@@ -30,7 +30,7 @@ static const char rcsid[] =
 
 class NetworkInterface : public Connector {
 public:
-	NetworkInterface() : intf_label_(-1) { /*NOTHING*/ }
+	NetworkInterface() : intf_label_(UNKN_IFACE.value()) { /*NOTHING*/ }
 	int command(int argc, const char*const* argv) {
 		if (argc == 2) {
 			if (strcmp(argv[1], "label") == 0) {

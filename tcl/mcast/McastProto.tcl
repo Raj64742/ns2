@@ -88,6 +88,18 @@ McastProtocol instproc dump-routes args {
 	# NOTHING
 }
 
+# Find out what interface packets sent from $node will arrive at
+# this node. $node need not be a neighbor.
+McastProtocol instproc from-node-iface { node } {
+	$self instvar ns_ node_
+	set rpfnbr [$ns_ upstream-node [$node_ id] [$node id]]
+	if {![catch { set rpflink [$ns_ link $rpfnbr $node_]}]} {
+		return [$rpflink if-label?]
+	}
+	return "?" ;#unknown iface
+}
+
+
 
 ###################################################
 Class mrtObject
