@@ -585,7 +585,7 @@ again:
 }
 
 
-//#ifdef RQDEBUG
+#ifdef RQDEBUG
 main()
 {
 	int rcvnxt = 1;
@@ -722,5 +722,5 @@ main()
 
 	exit(0);
 }
-//#endif
+#endif
 
