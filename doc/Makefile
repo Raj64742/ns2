@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.33 2003/08/21 18:22:00 haldar Exp $
+# $Id: Makefile,v 1.34 2003/12/14 06:52:38 xuanc Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -17,6 +17,7 @@ FILES= \
 	asim.tex \
 	agents.tex \
 	applications.tex \
+	worm-model.tex \
 	basic.tex \
 	delays.tex \
 	dynamics.tex \

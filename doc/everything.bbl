@@ -45,23 +45,12 @@ Pei Cao and Chengjie Liu.
 \newblock Maintaining strong cache consistency in the {World-Wide Web}.
 \newblock In {\em Proceedings of the~IEEE ICDCS}, pages 12--21, May 1997.
 
- \bibitem{SCTP_CARO_2003e}
- A.~Caro, P.~Amer, J.~Iyengar, and R.~Stewart.
- \newblock {Retransmission Policies with Transport Layer Multihoming}.
- \newblock In {\em ICON 2003}, Sydney, Australia, September 2003.
- 
- \bibitem{SCTP_CARO_2003b}
- A.~Caro, K.~Shah, J.~Iyengar, P.~Amer, and R.~Stewart.
- \newblock {SCTP and TCP Variants: Congestion Control Under Multiple Losses}.
- \newblock Tech Report TR2003-04, CIS Dept, University of Delaware, February
-   2003.
- 
- \bibitem{ChLiAb02a}
- N.~Christin, J.~Liebeherr, and T.~Abdelzaher.
- \newblock A quantitative assured forwarding service.
- \newblock In {\em Proceedings of {IEEE INFOCOM 2002}}, volume~2, pages
-   864--873, New York, NY, June 2002.
- 
+\bibitem{ChLiAb02a}
+N.~Christin, J.~Liebeherr, and T.~Abdelzaher.
+\newblock A quantitative assured forwarding service.
+\newblock In {\em Proceedings of {IEEE INFOCOM 2002}}, volume~2, pages
+  864--873, New York, NY, June 2002.
+
 \bibitem{Deer94a:Architecture}
 S.~Deering, D.~Estrin, D.~Farinacci, V.~Jacobson, Ching-{G}ung Liu, and L.~Wei.
 \newblock An architecture for wise-area multicast routing.
@@ -84,6 +73,11 @@ S.~Floyd, V.~Jacobson, C.~Liu, S.~McCanne, and L.~Zhang.
 H.~T. Friis.
 \newblock A note on a simple transmission formula.
 \newblock {\em Proc. IRE}, 34, 1946.
+
+\bibitem{Hethcote00inf}
+H.~W. Hethcote.
+\newblock The mathematics of infectious diseases.
+\newblock {\em SIAM Review}, 42(4):599--653, October 2000.
 
 \bibitem{Heyb89:Netsim}
 A.~Heybey.
@@ -121,18 +115,18 @@ A.~Legout and E.W. Biersack.
 \newblock In {\em Proceedings of the~ACM SIGMETRICS}, Santa Clara, CA, U.S.A.,
   June 2000.
 
- \bibitem{LiCh01}
- J.~Liebeherr and N.~Christin.
- \newblock {JoBS}: Joint buffer management and scheduling for differentiated
-   services.
- \newblock In {\em Proceedings of {IWQoS 2001}}, pages 404--418, Karlsruhe,
-   Germany, June 2001.
- 
- \bibitem{LiCh02}
- J.~Liebeherr and N.~Christin.
- \newblock Rate allocation and buffer management for differentiated services.
- \newblock {\em Computer Networks}, 40(1):89--110, September 2002.
- 
+\bibitem{LiCh01}
+J.~Liebeherr and N.~Christin.
+\newblock {JoBS}: Joint buffer management and scheduling for differentiated
+  services.
+\newblock In {\em Proceedings of {IWQoS 2001}}, pages 404--418, Karlsruhe,
+  Germany, June 2001.
+
+\bibitem{LiCh02}
+J.~Liebeherr and N.~Christin.
+\newblock Rate allocation and buffer management for differentiated services.
+\newblock {\em Computer Networks}, 40(1):89--110, September 2002.
+
 \bibitem{Math96:Forward}
 M.~Mathis and J.~Mahdavi.
 \newblock Forward acknowledgement: Refining {TCP} congestion control.
