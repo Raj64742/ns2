@@ -30,19 +30,20 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.25 1997/09/27 21:33:39 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.26 1997/10/02 02:31:07 haoboy Exp $
 #
 Class Link
 Link instproc init { src dst } {
 	$self next
 
         #modified for interface code
-	$self instvar trace_ fromNode_ toNode_ source_ dest_ color_
+	$self instvar trace_ fromNode_ toNode_ source_ dest_ color_ oldColor_
 	set fromNode_ [$src getNode]
 	set toNode_ [$dst getNode]
         set source_ $src
         set dest_ $dst
 	set color_ "black"
+	set oldColor_ "black"
 
 	set trace_ ""
 }

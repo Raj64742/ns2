@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.20 1997/09/30 00:35:50 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.21 1997/10/02 02:31:07 haoboy Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -156,9 +156,11 @@ void Trace::write_nam_trace(const char *s)
 
 void Trace::annotate(const char* s)
 {
-	sprintf(wrk_, "v %g eval {set sim_annotation {%s}}", 
+	sprintf(wrk_, "v %g sim_annotation %g %s", 
+		Scheduler::instance().clock(), 
 		Scheduler::instance().clock(), s);
 	dump();
+	namdump();
 }
 
 char* pt_names[] = {
