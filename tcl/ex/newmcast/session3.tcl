@@ -72,35 +72,36 @@ $ns at 0.2 "$n5 join-group $rcvr5 0x8002"
 
 # set up a constant loss module; see tcl/ex/ranvar.tcl for more 
 # random variables
-set loss_random_variable [new RandomVariable/Constant]
-$loss_random_variable set avg_ 2
-set loss_module [new ErrorModel]
+#set loss_random_variable [new RandomVariable/Constant]
+#$loss_random_variable set avg_ 2
+#set loss_module [new ErrorModel]
 # when ranvar avg_ < erromodel rate_ pkts are dropped
-$loss_module drop-target [new Agent/Null]
-$loss_module set rate_ 3
-$loss_module ranvar $loss_random_variable
+#$loss_module drop-target [new Agent/Null]
+#$loss_module set rate_ 3
+#$loss_module ranvar $loss_random_variable
+
+set loss_module [new SelectErrorModel]
+$loss_module drop-packet 2 20 1     ;# drop one PT_CBR packet every 20 packets
+
 
 # insert the loss module in front of the rcvr5 and its delay module
-$ns at 0.25 "insert-loss  $loss_module $rcvr5"
+$ns at 0.25 "$sessionhelper insert-depended-loss  $loss_module $rcvr1 $cbr0 0x8002"
 
 $ns at 0.1 "$cbr0 start"
  
 $ns at 1.6 "finish"
 
-proc insert-loss { loss_module receiver } {
-    global sessionhelper
-    set index [$sessionhelper set index_($receiver)]
-    set current_target [$sessionhelper slot $index]
-    $sessionhelper insert-module $loss_module $current_target
-}
-    
 proc finish {} {
-        global rcvr3 rcvr4 rcvr5
+        global rcvr3 rcvr4 rcvr5  n0 
         puts "lost [$rcvr3 set nlost_] pkt, rcv [$rcvr3 set npkts_]"
         puts "lost [$rcvr4 set nlost_] pkt, rcv [$rcvr4 set npkts_]"
         puts "lost [$rcvr5 set nlost_] pkt, rcv [$rcvr5 set npkts_]"
+        puts "Showing Dependency List:"
+        $n0 dump-dependency 0 0x8002
+        puts "[$n0 get-dependency 0 0x8002]"
         exit 0
 }
 
 $ns run Session
+
 

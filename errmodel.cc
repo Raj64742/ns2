@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.12 1997/09/06 04:39:07 polly Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.13 1997/09/08 19:50:14 polly Exp $ (UCB)";
 #endif
 
 #include "packet.h"
@@ -160,7 +160,7 @@ SelectErrorModel::corrupt(Packet* p)
 {
   if (eu_ == EU_SPKT) {
     hdr_cmn *ch = (hdr_cmn*) p->access(off_cmn_);
-      printf ("may drop packet type %d, uid %d\n", pkt_type_, ch->uid());
+    //printf ("may drop packet type %d, uid %d\n", pkt_type_, ch->uid());
     if (ch->ptype() == pkt_type_ && ch->uid() % drop_cycle_ == drop_offset_) {
       printf ("drop packet type %d, uid %d\n", pkt_type_, ch->uid());
       return 1;
@@ -173,11 +173,8 @@ void
 SelectErrorModel::recv(Packet* p, Handler*)
 {
 	if (corrupt(p)) {
-		if (drop_) {
-			drop_->recv(p);
-			return;
-		}
 		Packet::free(p);
+		return;
 	}
 	if (target_)
 		target_->recv(p);

@@ -35,6 +35,7 @@ SessionSim instproc join-group { agent group } {
 	    set accu_bw [$self get-bw $dst $src]
 	    set delay [$self get-delay $dst $src]
 
+            $self update-dependency $dst $src $group
 	    #3. set up a constant delay module
 	    set random_variable [new RandomVariable/Constant]
 	    $random_variable set val_ $delay
@@ -59,6 +60,17 @@ SessionSim instproc join-group { agent group } {
 
 	    # puts "add-dst $accu_bw $delay $src $dst"
 	}
+    }
+}
+
+Simulator instproc update-dependency { src dst group } {
+    $self instvar routingTable_ Node_
+    set tmp $src
+    while {$tmp != $dst} {
+        set next [$routingTable_ lookup $tmp $dst]
+        set nextnode $Node_($next)
+        $nextnode insert-child $dst $group $Node_($tmp)
+        set tmp $next
     }
 }
 
@@ -175,9 +187,10 @@ SessionNode instproc alloc-port {} {
 }
 
 SessionNode instproc attach agent {
-    $self instvar id_
+    $self instvar id_ agents_
 
     $agent set node_ $self
+    lappend agents_ $agent
     set port [$self alloc-port]
     $agent set addr_ [expr $id_ << 8 | $port]
 }
@@ -192,6 +205,63 @@ SessionNode instproc leave-group { agent group } {
     [Simulator instance] leave-group $agent $group
 }
 
+Node instproc insert-child { src group child } {
+    $self instvar child_
+    set group [expr $group]
+    set childlist [$self get-child $src $group]
+    if {[lsearch $childlist $child] < 0} {
+        lappend childlist $child
+        set child_($src:$group) $childlist
+    }
+}
+
+Node instproc get-child { src group } {
+    $self instvar child_
+    set group [expr $group]
+    if [info exists child_($src:$group)] {
+        return $child_($src:$group)
+    } else {
+        return ""
+    }
+}
+
+Node instproc get-dependency { src group } {
+    $self instvar child_
+    set group [expr $group]
+    set returnlist ""
+    set allchild "$self"
+
+    while { $allchild != "" } {
+        set tmp [lindex $allchild 0]
+        set allchild [lreplace $allchild 0 0]
+        lappend returnlist $tmp
+        foreach child [$tmp get-child $src $group] {
+            lappend allchild $child
+        }
+    }
+    return $returnlist
+}
+
+Node instproc dump-dependency { src group } {
+    $self instvar child_
+    set group [expr $group]
+    set allchild "$self:0"
+
+    while { $allchild != "" } {
+        set fixed ""
+        set tmp [lindex $allchild 0]
+        set allchild [lreplace $allchild 0 0]
+        set tmp [split $tmp :]
+        for {set i 0} {$i < [lindex $tmp 1]} {incr i} {
+            puts -nonewline "\t"
+        }
+        puts [[lindex $tmp 0] id]
+        foreach child [[lindex $tmp 0] get-child $src $group] {
+            lappend fixed $child:[expr [lindex $tmp 1] + 1]
+        }
+        set allchild [concat $allchild $fixed]
+    }
+}
 
 Agent/LossMonitor instproc show-delay { seqno delay } {
     $self instvar node_
@@ -218,3 +288,52 @@ Classifier/Replicator/Demuxer instproc insert-module {module target} {
 	unset active_($target)
 }
 
+Classifier/Replicator/Demuxer instproc insert-loss {loss_module target} {
+    $self instvar index_
+
+    if [info exists index_($target)] {
+        set current_target [$self slot $index_($target)]
+        $self insert-module $loss_module $current_target
+    }
+}
+
+Classifier/Replicator/Demuxer instproc insert-depended-loss {loss_module target src group} {
+
+    $self instvar index_ active_
+    set group [expr $group]
+    set src [[$src set node_] id]
+    set alldepended [[$target set node_] get-dependency $src $group]
+
+    puts "found bad node dependency: $alldepended"
+    puts -nonewline "real member in dependency: "
+
+    set newrep [new Classifier/Replicator/Demuxer]
+
+    foreach depended $alldepended {
+	puts -nonewline "$depended "
+	foreach agent [$depended getAgents] {
+	    puts "insert loss for [$agent info class]"
+	    if [info exists index_($agent)] {
+		set current_target [$self slot $index_($agent)]
+		$newrep insert $current_target
+		$self disable $current_target
+	    }
+	}
+    }
+    if [$newrep is-active] {
+	$self insert $loss_module
+	$loss_module target $newrep
+    } else {
+	delete $newrep
+    }
+}
+
+Node instproc getAgents {} {
+    $self instvar agents_
+
+    if [info exists agents_] {
+	return $agents_
+    } else {
+	return ""
+    }
+}
