@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.14 1999/08/18 00:27:39 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.15 1999/08/18 00:58:36 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -472,19 +472,32 @@ Test/quiescent instproc run {} {
 	set stoptime 30.1
 
 	set count 100 
+	set count1 1
     	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
     	set ftp0 [$tcp0 attach-app FTP]
     	$ns_ at 0.0  "$ftp0 produce $count" 
 	$ns_ at 2.0  "$ftp0 producemore $count"  
-	$ns_ at 3.0  "$ftp0 producemore $count"
+	$ns_ at 2.1  "$ftp0 producemore $count1"
+	$ns_ at 2.2  "$ftp0 producemore $count1"
+	$ns_ at 2.3  "$ftp0 producemore $count1"
+	$ns_ at 2.4  "$ftp0 producemore $count1"
+	$ns_ at 2.5  "$ftp0 producemore $count1"
+	$ns_ at 2.6  "$ftp0 producemore $count1"
+	$ns_ at 2.7  "$ftp0 producemore $count1"
+	$ns_ at 2.8  "$ftp0 producemore $count1"
+	$ns_ at 2.9  "$ftp0 producemore $count1"
+	$ns_ at 3.0  "$ftp0 producemore $count1" 
+	$ns_ at 3.1  "$ftp0 producemore $count1" 
+	$ns_ at 3.2  "$ftp0 producemore $count1" 
+	$ns_ at 3.3  "$ftp0 producemore $count1" 
+	$ns_ at 3.4  "$ftp0 producemore $count1" 
 	$ns_ at 3.5  "$ftp0 producemore $count"
-	$ns_ at 4.0  "$ftp0 producemore $count"
-	$ns_ at 4.4  "$ftp0 producemore $count"
+	$ns_ at 3.9  "$ftp0 producemore $count"
+	$ns_ at 4.6  "$ftp0 producemore $count"
+	$ns_ at 5.9  "$ftp0 producemore $count"
 	$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
 	$ns_ run
-
 }
-
 
 Class Test/quiescent_op -superclass TestSuite
 Test/quiescent_op instproc init topo {
@@ -494,6 +507,18 @@ Test/quiescent_op instproc init topo {
         set test_       quiescent_op
 	Agent/TCP set QOption_ 1
 	Test/quiescent_op instproc run {} [Test/quiescent info instbody run ]
+        $self next
+} 
+
+Class Test/quiescent_op2 -superclass TestSuite
+Test/quiescent_op2 instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_op2
+	Agent/TCP set QOption_ 1
+	Agent/TCP set CoarseTimer_ 1
+	Test/quiescent_op2 instproc run {} [Test/quiescent info instbody run ]
         $self next
 } 
 
