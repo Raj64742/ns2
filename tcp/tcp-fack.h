@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.h,v 1.2 1997/07/23 02:54:55 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-fack.h,v 1.3 1997/08/26 03:30:14 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_tcp_fack_h
@@ -38,6 +38,12 @@
 
 #include "tcp.h"
 #include "scoreboard.h"
+
+#define TRUE    1
+#define FALSE   0
+#define RECOVER_DUPACK  1
+#define RECOVER_TIMEOUT 2
+#define RECOVER_QUENCH  3
 
 /* TCP Fack */
 class FackTcpAgent : public virtual TcpAgent {
