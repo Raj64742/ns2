@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.66 1997/11/11 20:46:47 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.67 1997/11/18 00:53:52 kfall Exp $
 #
 
 #
@@ -70,6 +70,7 @@ source ns-agent.tcl
 source ns-random.tcl
 source ns-route.tcl
 source ns-namsupp.tcl
+source ns-ber.tcl
 source ../rtp/session-rtp.tcl
 source ../interface/ns-iface.tcl
 source ../lan/ns-mlink.tcl
@@ -270,10 +271,18 @@ Simulator instproc simplex-link { n1 n2 bw delay arg } {
 		set nd2 $n2
 	}
 
-	set q [new Queue/$type]
-	$q drop-target $nullAgent_
 
 	# XXX more disgusting hack
+	if { [string first "ErrorModule" $type] != 0 } {
+		set q [new Queue/$type]
+	} else {
+		if { $argsz > 1 } {
+			set q [eval new $type $larg]
+		} else {
+			set q [new $type Fid]
+		}
+	}
+	$q drop-target $nullAgent_
 	if { $argsz != 1 } {
 		# assume we have a string of form "linktype linkarg"
 		if { $type == "RTM" || $type == "CBQ" || $type == "CBQ/WRR" } {
