@@ -108,11 +108,13 @@ void TfrcAgent::advanceby(int delta)
 	if (seqno_ == -1) {
 		// if no packets hve been sent so far, call start. 
   		start(); 
-	} else if (datalimited_ && maxseq_ > seqno_ && !oldCode_) {
+	} else if (datalimited_ && maxseq_ > seqno_) {
 		// We were data-limited - send a packet now!
 		// The old code always waited for a timer to expire!!
 		datalimited_ = 0;
-		sendpkt();
+		if (!oldCode_) {
+			sendpkt();
+		}
 	}
 } 
 
@@ -449,9 +451,8 @@ void TfrcAgent::reduce_rate_on_no_feedback()
 {
 	double now = Scheduler::instance().clock();
 	rate_change_ = RATE_DECREASE; 
-	if (oldCode_ || last_pkt_time_ > now - 2*rtt_ ||
-		rate_ > 4.0 * size_/rtt_ ) {
-		// if a packet was sent within the last 2 RTTs,
+	if (oldCode_ || !datalimited_ || rate_ > 4.0 * size_/rtt_ ) {
+		// if we are not datalimited,
 		//   or the current rate is greater than four pkts per RTT
 		rate_*=0.5;
 	}
