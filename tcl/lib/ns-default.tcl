@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.301 2002/12/18 03:36:37 sundarra Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.302 2002/12/19 05:23:26 sfloyd Exp $
 
 
 #
@@ -889,6 +889,9 @@ Agent/TFRC set scmult_ 1.5 ;	# self clocking parameter for conservative_
 Agent/TFRC set ecn_ 0 ;		# Set to 1 for ECN-capable connection.
 Agent/TFRC set SndrType_ 0 ;    # Set to 1 to use data-producing applications
                                 #   such as FTP.
+Agent/TFRC set oldCode_ false ; # Set to 1 to use old code for datalimited
+				#   applications.
+				# Parameter added on 12/18/02.
 
 Agent/TFRCSink set packetSize_ 40
 Agent/TFRCSink set InitHistorySize_ 100000

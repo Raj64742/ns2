@@ -94,22 +94,25 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("maxHeavyRounds_", &maxHeavyRounds_);
 	bind("SndrType_", &SndrType_); 
 	bind("scmult_", &scmult_);
+	bind_bool("oldCode_", &oldCode_);
 	seqno_ = -1;
 	maxseq_ = 0;
+	datalimited_ = 0;
+	last_pkt_time_ = 0.0;
 }
 
 void TfrcAgent::advanceby(int delta)
 {
-  maxseq_ += delta;
-	
-	// if no packets hve been sent so far, 
-	// we call start. Otherwise, we wiat for
-	// next packet send timer to expire, which
-	// can be aftera long time. Is this the desired
-	// behavior?
+  	maxseq_ += delta;
 	
 	if (seqno_ == -1) {
-  	start(); 
+		// if no packets hve been sent so far, call start. 
+  		start(); 
+	} else if (datalimited_ && maxseq_ > seqno_ && !oldCode_) {
+		// We were data-limited - send a packet now!
+		// The old code always waited for a timer to expire!!
+		datalimited_ = 0;
+		sendpkt();
 	}
 } 
 
@@ -191,7 +194,8 @@ void TfrcAgent::nextpkt()
 	else {
 		if (maxseq_ > seqno_) {
 			sendpkt();
-		}
+		} else
+			datalimited_ = 1;
 	}
 	
 	// during slow start and congestion avoidance, we increase rate
@@ -435,14 +439,22 @@ void TfrcAgent::sendpkt()
 		tfrch->UrgentFlag=UrgentFlag;
 		tfrch->round_id=round_id;
 		ndatapack_++;
+		double now = Scheduler::instance().clock(); 
+		last_pkt_time_ = now;
 		send(p, 0);
 	}
 }
 
 void TfrcAgent::reduce_rate_on_no_feedback()
 {
+	double now = Scheduler::instance().clock();
 	rate_change_ = RATE_DECREASE; 
-	rate_*=0.5;
+	if (oldCode_ || last_pkt_time_ > now - 2*rtt_ ||
+		rate_ > 4.0 * size_/rtt_ ) {
+		// if a packet was sent within the last 2 RTTs,
+		//   or the current rate is greater than four pkts per RTT
+		rate_*=0.5;
+	}
 	UrgentFlag = 1;
 	round_id ++ ;
 	double t = 2*rtt_ ; 

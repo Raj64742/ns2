@@ -147,6 +147,11 @@ protected:
 				//  rate at which the receiver is _receving_ 
 	double ss_maxrate_;	// max rate for during slowstart
  	int printStatus_;	// to print status reports
+	int datalimited_;	// to send immediately when a new packet
+				//   arrives after a data-limited period
+	int oldCode_;		// set to 1 not to use "datalimited_"
+				//   parameter.
+	double last_pkt_time_;	// time the last data packet was sent
 
 	/* "accurate" estimates for formula */
 	double rtt_; /*EWMA version*/
