@@ -12,8 +12,8 @@
  *    documentation and/or other materials provided with the distribution.
  * 3. All advertising materials mentioning features or use of this software
  *    must display the following acknowledgement:
- * 	This product includes software developed by the MASH Research
- * 	Group at the University of California Berkeley.
+ *      This product includes software developed by the MASH Research
+ *      Group at the University of California Berkeley.
  * 4. Neither the name of the University nor of the Research Group may be
  *    used to endorse or promote products derived from this software without
  *    specific prior written permission.
@@ -33,7 +33,8 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/queue-monitor.cc,v 1.4 1997/03/29 01:42:58 mccanne Exp $";
+    "@(#) $Header: /home/barad-dur/b/grad/hari/src/ns/RCS/queue-monitor.cc,v 1.1 1997/03/24 22:
+59:47 hari Exp hari $";
 #endif
 
 #include "integrator.h"
@@ -41,88 +42,150 @@ static char rcsid[] =
 #include "packet.h"
 #include "ip.h"
 
-class QueueMonitor : public Integrator {
+class BytesIntegrator : public Integrator {
  public:
-	QueueMonitor() : size_(0) {
-		bind("size_", &size_);
+        BytesIntegrator() : Integrator() {}
+};
+
+class PktsIntegrator : public Integrator {
+ public:
+        PktsIntegrator() : Integrator() {}
+};
+
+class QueueMonitor : public TclObject {
+ public:
+        QueueMonitor() : size_(0), pkts_(0) {
+                bind("size_", &size_);
+                bind("pkts_", &pkts_);
 		bind("off_cmn_", &off_cmn_);
-	}
-	void in(Packet*);
-	void out(Packet*);
-	//	int command(int argc, const char*const* argv);
+        };
+        void in(Packet*);
+        void out(Packet*);
+        int command(int argc, const char*const* argv);
+        BytesIntegrator *bytesInt_;
+        PktsIntegrator  *pktsInt_;
 protected:
-	int size_;
+        int size_;
+        int pkts_;
 	int off_cmn_;
 };
 
+int QueueMonitor::command(int argc, const char*const* argv) {
+        Tcl& tcl = Tcl::instance();
+
+        if (argc == 2) {
+                if (strcmp(argv[1], "get-bytes-integrator") == 0) {
+                        tcl.resultf("%s", bytesInt_->name());
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "get-pkts-integrator") == 0) {
+                        tcl.resultf("%s", pktsInt_->name());
+                        return (TCL_OK);
+                }
+        }
+
+        if (argc == 3) {
+                if (strcmp(argv[1], "set-bytes-integrator") == 0) {
+			bytesInt_ = (BytesIntegrator *)
+				TclObject::lookup(argv[2]);
+                        return (TCL_OK);
+                }
+                if (strcmp(argv[1], "set-pkts-integrator") == 0) {
+			pktsInt_ = (PktsIntegrator *)
+				TclObject::lookup(argv[2]);
+                        return (TCL_OK);
+                }
+        }
+}
+
 static class QueueMonitorClass : public TclClass {
-public:
-	QueueMonitorClass() : TclClass("QueueMonitor") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new QueueMonitor());
-	}
+ public:
+        QueueMonitorClass() : TclClass("QueueMonitor") {}
+        TclObject* create(int argc, const char*const* argv) {
+                return (new QueueMonitor());
+        }
 } queue_monitor_class;
+
+static class BytesIntegratorClass : public TclClass {
+ public:
+        BytesIntegratorClass() : TclClass("BytesIntegrator") {}
+        TclObject* create(int argc, const char*const* argv) {
+                return (new BytesIntegrator());
+        }
+} bytes_integrator_class;
+
+static class PktsIntegratorClass : public TclClass {
+ public:
+        PktsIntegratorClass() : TclClass("PktsIntegrator") {}
+        TclObject* create(int argc, const char*const* argv) {
+                return (new PktsIntegrator());
+        }
+} pkts_integrator_class;
+
 
 void QueueMonitor::in(Packet* p)
 {
 	size_ += ((hdr_cmn*)p->access(off_cmn_))->size();
-	double now = Scheduler::instance().clock();
-	newPoint(now, double(size_));
+        pkts_++;
+        double now = Scheduler::instance().clock();
+        bytesInt_->newPoint(now, double(size_));
+        pktsInt_->newPoint(now, double(pkts_));
 }
 
 void QueueMonitor::out(Packet* p)
 {
-	size_ -= ((hdr_cmn*)p->access(off_cmn_))->size();
-	double now = Scheduler::instance().clock();
-	newPoint(now, double(size_));
+        size_ -= ((hdr_cmn*)p->access(off_cmn_))->size();
+        pkts_--;
+        double now = Scheduler::instance().clock();
+        bytesInt_->newPoint(now, double(size_));
+        pktsInt_->newPoint(now, double(pkts_));
 }
 
 class SnoopQueue : public Connector {
  public:
-	SnoopQueue() : qm_(0) {}
-	int command(int argc, const char*const* argv) {
-		if (argc == 3) {
-			if (strcmp(argv[1], "set-monitor") == 0) {
-				qm_ = (QueueMonitor*)
-					TclObject::lookup(argv[2]);
-				return (TCL_OK);
-			}
-		}
-		return (Connector::command(argc, argv));
-	}
+        SnoopQueue() : qm_(0) {}
+        int command(int argc, const char*const* argv) {
+                if (argc == 3) {
+                        if (strcmp(argv[1], "set-monitor") == 0) {
+                                qm_ = (QueueMonitor*)
+                                        TclObject::lookup(argv[2]);
+                                return (TCL_OK);
+                        }
+                }
+                return (Connector::command(argc, argv));
+        }
  protected:
-	QueueMonitor* qm_;
+        QueueMonitor* qm_;
 };
 
 class SnoopQueueIn : public SnoopQueue {
  public:
-	void recv(Packet* p, Handler* h) {
-		qm_->in(p);
-		send(p, h);
-	}
+        void recv(Packet* p, Handler* h) {
+                qm_->in(p);
+                send(p, h);
+        }
 };
 
 class SnoopQueueOut : public SnoopQueue {
  public:
-	void recv(Packet* p, Handler* h) {
-		qm_->out(p);
-		send(p, h);
-	}
+        void recv(Packet* p, Handler* h) {
+                qm_->out(p);
+                send(p, h);
+        }
 };
 
 static class SnoopQueueInClass : public TclClass {
 public:
-	SnoopQueueInClass() : TclClass("SnoopQueue/In") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new SnoopQueueIn());
-	}
+        SnoopQueueInClass() : TclClass("SnoopQueue/In") {}
+        TclObject* create(int argc, const char*const* argv) {
+                return (new SnoopQueueIn());
+        }
 } snoopq_in_class;
 
 static class SnoopQueueOutClass : public TclClass {
 public:
-	SnoopQueueOutClass() : TclClass("SnoopQueue/Out") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new SnoopQueueOut());
-	}
+        SnoopQueueOutClass() : TclClass("SnoopQueue/Out") {}
+        TclObject* create(int argc, const char*const* argv) {
+                return (new SnoopQueueOut());
+        }
 } snoopq_out_class;
-
