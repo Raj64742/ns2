@@ -30,10 +30,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.8 1998/05/02 01:35:52 kfall Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/flags.h,v 1.9 1998/05/02 01:43:47 kfall Exp $
  */
 
-/* a network layer; basically like IPv6 */
+/*
+ * contains a "flags header", which is common to each packet
+ */
+
 #ifndef ns_flags_h
 #define ns_flags_h
 
