@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.27 1997/12/17 01:16:10 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.28 1997/12/17 19:48:48 gnguyen Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -291,7 +291,7 @@ void ErrorModel::em_reset()
 static class SelectErrorModelClass : public TclClass {
 public:
 	SelectErrorModelClass() : TclClass("SelectErrorModel") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new SelectErrorModel);
 	}
 } class_selecterrormodel;
@@ -404,7 +404,7 @@ int PeriodicErrorModel::corrupt(Packet* p)
 static class SRMErrorModelClass : public TclClass {
 public:
 	SRMErrorModelClass() : TclClass("SRMErrorModel") {}
-	TclObject* create(int argc, const char*const* argv) {
+	TclObject* create(int, const char*const*) {
 		return (new SRMErrorModel);
 	}
 } class_srmerrormodel;
