@@ -1,5 +1,5 @@
 #
-# Copyright (c) 1995 The Regents of the University of California.
+# Copyright (c) 1995-1997 The Regents of the University of California.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-vegas-v1.tcl,v 1.1 1997/06/17 00:52:45 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-vegas-v1.tcl,v 1.2 1997/06/19 00:43:46 heideman Exp $
 #
 # Create a simple four node topology:
 #
