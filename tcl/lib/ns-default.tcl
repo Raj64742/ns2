@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.112 1998/06/12 18:05:32 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.113 1998/06/18 01:13:31 kfall Exp $
 
 
 #
@@ -156,6 +156,10 @@ if [TclObject is-class Agent/TCP/FullTcp] {
 	Agent/TCP/FullTcp set ts_option_size_ 10; # in bytes
 	Agent/TCP/FullTcp set fastrecov_ true; # fast recov true by default
 	Agent/TCP/FullTcp set deflate_on_pack_ true; # part ack deflate
+	Agent/TCP/FullTcp set sack_option_ false; # don't use sacks
+	Agent/TCP/FullTcp set sack_block_size_ 8; # bytes in a SACK block
+	Agent/TCP/FullTcp set sack_option_size_ 2; # bytes in an empty SACK opt
+	Agent/TCP/FullTcp set max_sack_blocks_ 3; # max # of blks to ever send
 }
 
 Integrator set lastx_ 0.0
