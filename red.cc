@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.59 2001/07/06 23:21:17 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.60 2001/07/18 23:57:13 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -252,7 +252,10 @@ double REDQueue::estimator(int nqueued, int m, double ave, double q_w)
 			edv_.lastset = now;
 		} else if (new_ave > edp_.th_max - part && 0.5 > edv_.cur_max_p ) {
 			// we decrease the average queue size, so increase max_p
-			edv_.cur_max_p = edv_.cur_max_p + edp_.alpha;
+			double alpha = edp_.alpha;
+                        if ( alpha < 0.25*edv_.cur_max_p )
+				alpha = 0.25*edv_.cur_max_p;
+			edv_.cur_max_p = edv_.cur_max_p + alpha;
 			edv_.lastset = now;
 		} 
 	}
