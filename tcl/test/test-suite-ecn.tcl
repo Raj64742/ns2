@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.5 1998/05/09 00:34:48 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.6 1998/05/11 22:26:01 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -247,50 +247,16 @@ TestSuite instproc ecnsetup { tcptype { tcp1fid 0 } } {
     $redq set setbit_ true
 
     if {$tcptype == "Tahoe"} {
-      set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) $tcp1fid]
+      set tcp1 [$ns_ create-connection TCP $node_(s1) \
+	  TCPSink $node_(s3) $tcp1fid]
     } else {
-      set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) TCPSink 
-		$node_(s3) $tcp1fid]
+      set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) \
+	  TCPSink $node_(s3) $tcp1fid]
     }
     $tcp1 set window_ 30
     $tcp1 set ecn_ 1
     set ftp1 [$tcp1 attach-source FTP]
     $self enable_tracecwnd $ns_ $tcp1
-        
-    #$self enable_tracequeue $ns_
-    $ns_ at 0.0 "$ftp1 start"
-        
-    $self tcpDump $tcp1 5.0
-        
-    # trace only the bottleneck link
-    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
-}
-
-TestSuite instproc ecn_timeout { tcptype } {
-    $self instvar ns_ node_ testName_ net_
-
-    set delay 10ms
-    $ns_ delay $node_(r1) $node_(r2) $delay
-    $ns_ delay $node_(r2) $node_(r1) $delay
-
-    set stoptime 3.0
-    set redq [[$ns_ link $node_(r1) $node_(r2)] queue]
-    $redq set setbit_ true
-
-    if {$tcptype == "Tahoe"} {
-      set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 0]
-    } else {
-      set tcp1 [$ns_ create-connection TCP/$tcptype $node_(s1) TCPSink 
-		$node_(s3) 0]
-    }
-    $tcp1 set window_ 30
-    $tcp1 set ecn_ 1
-    set ftp1 [$tcp1 attach-source FTP]
-    $self enable_tracecwnd $ns_ $tcp1
-
-#    set tcp2 [$ns_ create-connection TCP $node_(s2) TCPSink $node_(s3) 1]
-#    set ftp2 [$tcp2 attach-source FTP]
-#    $ns_ at 1.0  "$ftp2 start"
         
     #$self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
@@ -304,10 +270,11 @@ TestSuite instproc ecn_timeout { tcptype } {
 TestSuite instproc second_tcp { tcptype starttime } {
     $self instvar ns_ node_
     if {$tcptype == "Tahoe"} {
-      set tcp [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 2]    
+      set tcp [$ns_ create-connection TCP $node_(s1) \
+	 TCPSink $node_(s3) 2]    
     } else {
-      set tcp [$ns_ create-connection TCP/$tcptype $node_(s1) TCPSink
-                $node_(s3) 2]
+      set tcp [$ns_ create-connection TCP/$tcptype $node_(s1) \
+	 TCPSink $node_(s3) 2]
     }
     $tcp set window_ 30
     $tcp set ecn_ 1
@@ -334,6 +301,8 @@ TestSuite instproc drop_pkts pkts {
 }
 
 #######################################################################
+# Tahoe Tests #
+#######################################################################
 
 # Plain ECN
 Class Test/ecn_nodrop_tahoe -superclass TestSuite
@@ -342,13 +311,12 @@ Test/ecn_nodrop_tahoe instproc init topo {
         Queue/RED set setbit_ true
         set net_	$topo
         set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_tahoe
         $self next
 }
-
 Test/ecn_nodrop_tahoe instproc run {} {
 	$self instvar ns_
-	Agent/TCP set bugFix_ true
 	$self ecnsetup Tahoe 
 	$self drop_pkt 10000
 	$ns_ run
@@ -357,17 +325,16 @@ Test/ecn_nodrop_tahoe instproc run {} {
 # Two ECNs close together
 Class Test/ecn_twoecn_tahoe -superclass TestSuite
 Test/ecn_twoecn_tahoe instproc init topo {
-        $self instvar net_ defNet_ test_
+        $self instvar net_ defNet_ test_ 
         Queue/RED set setbit_ true
         set net_	$topo
         set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_tahoe
         $self next
 }
-
 Test/ecn_twoecn_tahoe instproc run {} {
 	$self instvar ns_ lossmodel
-	Agent/TCP set bugFix_ true
 	$self ecnsetup Tahoe 
 	$self drop_pkt 243
 	$lossmodel set markecn_ true
@@ -381,17 +348,14 @@ Test/ecn_drop_tahoe instproc init topo {
         Queue/RED set setbit_ true
         set net_	$topo
         set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
         set test_	ecn_drop_tahoe
         $self next
 }
-
 Test/ecn_drop_tahoe instproc run {} {
 	$self instvar ns_
-	Agent/TCP set bugFix_ true
 	$self ecnsetup Tahoe
-        set lossmodel [$self setloss]
-        $lossmodel set offset_ 243
-        $lossmodel set period_ 10000
+	$self drop_pkt 243
 	$ns_ run
 }
 
@@ -402,17 +366,14 @@ Test/ecn_drop1_tahoe instproc init topo {
         Queue/RED set setbit_ true
         set net_	$topo
         set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_tahoe
         $self next
 }
-
 Test/ecn_drop1_tahoe instproc run {} {
 	$self instvar ns_
-	Agent/TCP set bugFix_ true
 	$self ecnsetup Tahoe
-        set lossmodel [$self setloss]
-        $lossmodel set offset_ 241
-        $lossmodel set period_ 10000
+	$self drop_pkt 241
 	$ns_ run
 }
 
@@ -425,18 +386,10 @@ Test/ecn_noecn_tahoe instproc init topo {
 	Queue/RED set maxthresh_ 1000
         set net_	$topo
         set defNet_	net2-lossy
-        set test_	ecn_noecn_tahoe
-        $self next
-}
-
-Test/ecn_noecn_tahoe instproc run {} {
-	$self instvar ns_
 	Agent/TCP set bugFix_ true
-	$self ecnsetup Tahoe
-        set lossmodel [$self setloss]
-        $lossmodel set offset_ 243
-        $lossmodel set period_ 10000
-	$ns_ run
+        set test_	ecn_noecn_tahoe
+	Test/ecn_noecn_tahoe instproc run {} [Test/ecn_drop_tahoe info instbody run ]
+        $self next
 }
 
 # Multiple dup acks with bugFix_
@@ -448,13 +401,12 @@ Test/ecn_bursty_tahoe instproc init topo {
 	Queue/RED set maxthresh_ 100
         set net_	$topo
         set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
         set test_	ecn_bursty_tahoe
         $self next
 }
-
 Test/ecn_bursty_tahoe instproc run {} {
 	$self instvar ns_
-	Agent/TCP set bugFix_ true
 
 	$self ecnsetup Tahoe
         set lossmodel [$self setloss]
@@ -471,20 +423,10 @@ Test/ecn_burstyEcn_tahoe instproc init topo {
         Queue/RED set setbit_ true
         set net_	$topo
         set defNet_	net2-lossy
-        set test_	ecn_burstyEcn_tahoe
-        $self next
-}
-
-Test/ecn_burstyEcn_tahoe instproc run {} {
-	$self instvar ns_
 	Agent/TCP set bugFix_ true
-
-	$self ecnsetup Tahoe
-        set lossmodel [$self setloss]
-        $lossmodel set offset_ 245
-	$lossmodel set burstlen_ 15
-        $lossmodel set period_ 10000
-	$ns_ run
+        set test_	ecn_burstyEcn_tahoe
+	Test/ecn_burstyEcn_tahoe instproc run {} [Test/ecn_bursty_tahoe info instbody run ]   
+        $self next
 }
 
 # Multiple dup acks without bugFix_
@@ -496,20 +438,11 @@ Test/ecn_noBugfix_tahoe instproc init topo {
         Queue/RED set setbit_ true
         set net_	$topo
         set defNet_	net2-lossy
-        set test_	ecn_noBugfix_tahoe
-        $self next
-}
-
-Test/ecn_noBugfix_tahoe instproc run {} {
-	$self instvar ns_
 	Agent/TCP set bugFix_ false
+        set test_	ecn_noBugfix_tahoe
+	Test/ecn_noBugfix_tahoe instproc run {} [Test/ecn_bursty_tahoe info instbody run ]
 
-	$self ecnsetup Tahoe
-        set lossmodel [$self setloss]
-        $lossmodel set offset_ 245
-	$lossmodel set burstlen_ 15
-        $lossmodel set period_ 10000
-	$ns_ run
+        $self next
 }
 
 # ECN followed by timeout.
@@ -519,13 +452,12 @@ Test/ecn_timeout_tahoe instproc init topo {
         Queue/RED set setbit_ true
         set net_	$topo
         set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
         set test_	ecn_timeout_tahoe
         $self next
 }
-
 Test/ecn_timeout_tahoe instproc run {} {
 	$self instvar ns_
-	Agent/TCP set bugFix_ true
 	$self ecnsetup Tahoe 1
 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -541,16 +473,200 @@ Test/ecn_timeout1_tahoe instproc init topo {
         Queue/RED set setbit_ true
         set net_	$topo
         set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
         set test_	ecn_timeout1_tahoe
         $self next
 }
-
 Test/ecn_timeout1_tahoe instproc run {} {
 	$self instvar ns_
-	Agent/TCP set bugFix_ true
 	$self ecnsetup Tahoe 1
 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
 	$self second_tcp Tahoe 1.0
+	$ns_ run
+}
+
+#######################################################################
+# Reno Tests #
+#######################################################################
+
+# Plain ECN
+Class Test/ecn_nodrop_reno -superclass TestSuite
+Test/ecn_nodrop_reno instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_nodrop_reno
+        $self next
+}
+Test/ecn_nodrop_reno instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Reno 
+	$self drop_pkt 10000
+	$ns_ run
+}
+
+# Two ECNs close together
+Class Test/ecn_twoecn_reno -superclass TestSuite
+Test/ecn_twoecn_reno instproc init topo {
+        $self instvar net_ defNet_ test_ 
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_twoecn_reno
+        $self next
+}
+Test/ecn_twoecn_reno instproc run {} {
+	$self instvar ns_ lossmodel
+	$self ecnsetup Reno 
+	$self drop_pkt 243
+	$lossmodel set markecn_ true
+	$ns_ run
+}
+
+# ECN followed by packet loss.
+Class Test/ecn_drop_reno -superclass TestSuite
+Test/ecn_drop_reno instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_drop_reno
+        $self next
+}
+Test/ecn_drop_reno instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Reno
+	$self drop_pkt 243
+	$ns_ run
+}
+
+# ECN preceded by packet loss.
+Class Test/ecn_drop1_reno -superclass TestSuite
+Test/ecn_drop1_reno instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_drop1_reno
+        $self next
+}
+Test/ecn_drop1_reno instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Reno
+	$self drop_pkt 241
+	$ns_ run
+}
+
+# Packet loss only.
+Class Test/ecn_noecn_reno -superclass TestSuite
+Test/ecn_noecn_reno instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+	Queue/RED set thresh_ 1000
+	Queue/RED set maxthresh_ 1000
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_noecn_reno
+	Test/ecn_noecn_reno instproc run {} [Test/ecn_drop_reno info instbody run ]
+        $self next
+}
+
+# Multiple dup acks with bugFix_
+Class Test/ecn_bursty_reno -superclass TestSuite
+Test/ecn_bursty_reno instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+	Queue/RED set thresh_ 100
+	Queue/RED set maxthresh_ 100
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_bursty_reno
+        $self next
+}
+Test/ecn_bursty_reno instproc run {} {
+	$self instvar ns_
+
+	$self ecnsetup Reno
+        set lossmodel [$self setloss]
+        $lossmodel set offset_ 245
+	$lossmodel set burstlen_ 15
+        $lossmodel set period_ 10000
+	$ns_ run
+}
+
+# Multiple dup acks following ECN
+Class Test/ecn_burstyEcn_reno -superclass TestSuite
+Test/ecn_burstyEcn_reno instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_burstyEcn_reno
+	Test/ecn_burstyEcn_reno instproc run {} [Test/ecn_bursty_reno info instbody run ]   
+        $self next
+}
+
+# Multiple dup acks without bugFix_
+Class Test/ecn_noBugfix_reno -superclass TestSuite
+Test/ecn_noBugfix_reno instproc init topo {
+        $self instvar net_ defNet_ test_
+	Queue/RED set thresh_ 100 
+	Queue/RED set maxthresh_ 100
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ false
+        set test_	ecn_noBugfix_reno
+	Test/ecn_noBugfix_reno instproc run {} [Test/ecn_bursty_reno info instbody run ]
+
+        $self next
+}
+
+# ECN followed by timeout.
+Class Test/ecn_timeout_reno -superclass TestSuite
+Test/ecn_timeout_reno instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_timeout_reno
+        $self next
+}
+Test/ecn_timeout_reno instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Reno 1
+	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
+
+	$ns_ run
+}
+
+# Timeout followed by ECN.
+# But redo this without dropping packets 264 and 265, so that we
+#  get a Dup Ack with ECN.
+Class Test/ecn_timeout1_reno -superclass TestSuite
+Test/ecn_timeout1_reno instproc init topo {
+        $self instvar net_ defNet_ test_
+        Queue/RED set setbit_ true
+        set net_	$topo
+        set defNet_	net2-lossy
+	Agent/TCP set bugFix_ true
+        set test_	ecn_timeout1_reno
+        $self next
+}
+Test/ecn_timeout1_reno instproc run {} {
+	$self instvar ns_
+	$self ecnsetup Reno 1
+	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
+	$self second_tcp Reno 1.0
 	$ns_ run
 }
 
