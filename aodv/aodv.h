@@ -258,7 +258,7 @@ class AODV: public Agent {
 
  protected:
         int             command(int, const char *const *);
-        int             initialized() { return target_; }
+        int             initialized() { return 1 && target_; }
 
         /*
          * Route Table Management
