@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/filter.h,v 1.6 2001/12/20 00:15:34 haldar Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/filter.h,v 1.6 2001/12/20 00:15:34 haldar Exp $ (USC/ISI)
  */
 
 #ifndef ns_filter_h

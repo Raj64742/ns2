@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-port.h,v 1.7 2001/12/20 00:15:33 haldar Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-port.h,v 1.7 2001/12/20 00:15:33 haldar Exp $ (USC/ISI)
  */
 
 #ifndef ns_classifier_port_h

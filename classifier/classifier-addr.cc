@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-addr.cc,v 1.27 2001/12/20 00:15:32 haldar Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-addr.cc,v 1.27 2001/12/20 00:15:32 haldar Exp $";
 #endif
 
 #include "classifier-addr.h"
