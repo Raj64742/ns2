@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2002 by the University of Southern California
 // Copyright (C) 2000-2002 by the University of California
-// $Id: geo-routing.cc,v 1.10 2002/07/02 21:50:14 haldar Exp $
+// $Id: geo-routing.cc,v 1.11 2002/09/16 17:57:20 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -28,7 +28,7 @@ static class GeoRoutingFilterClass : public TclClass {
 public:
   GeoRoutingFilterClass() : TclClass("Application/DiffApp/GeoRoutingFilter") {}
   TclObject * create(int argc, const char*const* argv) {
-    return(new GeoRoutingFilter());
+    return (new GeoRoutingFilter());
   }
 } class_geo_routing_filter;
 
@@ -209,12 +209,12 @@ void GeoRoutingFilter::messageTimeout(Message *msg)
 void GeoRoutingFilter::recv(Message *msg, handle h)
 {
   if (h == pre_filter_handle_){
-    preProcessMessage(msg);
+    preProcessFilter(msg);
     return;
   }
 
   if (h == post_filter_handle_){
-    postProcessMessage(msg);
+    postProcessFilter(msg);
     return;
   }
 
@@ -222,7 +222,7 @@ void GeoRoutingFilter::recv(Message *msg, handle h)
 	    "Error: Received message for an unknown handle %d !\n", h);
 }
 
-void GeoRoutingFilter::preProcessMessage(Message *msg)
+void GeoRoutingFilter::preProcessFilter(Message *msg)
 {
   NRSimpleAttribute<void *> *heuristic_value_attribute = NULL;
   NRSimpleAttribute<int> *beacon_type_attribute = NULL;
@@ -244,12 +244,16 @@ void GeoRoutingFilter::preProcessMessage(Message *msg)
   switch (msg->msg_type_){
 
   case INTEREST:
+  case EXPLORATORY_DATA:
+  case PUSH_EXPLORATORY_DATA:
 
     if (msg->new_message_){
-      // Don't worry about old interests
+      // Don't worry about old messages
 
-      // Take out the header
-      pkt_header = preProcessInterest(msg);
+      // Pre-process the messages, extracting the geo-header attribute
+      // if it's present (or trying to create a new geo-header
+      // otherwise)
+      pkt_header = preProcessMessage(msg);
 
       // If we have a packet header, add it to the message list
       if (pkt_header){
@@ -448,7 +452,7 @@ void GeoRoutingFilter::preProcessMessage(Message *msg)
   }
 }
 
-void GeoRoutingFilter::postProcessMessage(Message *msg)
+void GeoRoutingFilter::postProcessFilter(Message *msg)
 {
   PktHeader *pkt_header = NULL;
   GeoHeader *geo_header = NULL;
@@ -458,8 +462,12 @@ void GeoRoutingFilter::postProcessMessage(Message *msg)
   switch (msg->msg_type_){
 
   case INTEREST:
+  case EXPLORATORY_DATA:
+  case PUSH_EXPLORATORY_DATA:
 
+    // Ignore messages with a local application as destination
     if (msg->next_hop_ != LOCALHOST_ADDR){
+
       // Retrieve packet header from previous stage
       pkt_header = retrievePacketHeader(msg);
 
@@ -471,54 +479,77 @@ void GeoRoutingFilter::postProcessMessage(Message *msg)
 	// Increment path_len
 	geo_header->path_len_++;
 
-	// Add extra attribute to the interest message
-	msg->msg_attr_vec_->push_back(GeoHeaderAttr.make(NRAttribute::IS,
-							 (void *) geo_header,
-							 sizeof(GeoHeader)));
-
 	// Check if we have to broadcast this message. We do not need
 	// to check if I have seen this broadcast packet before, since
-	// this is called by PostProcessMessage, so it must be a new
+	// this is called by PostProcessFilter, so it must be a new
 	// packet. We only need to check if we are inside the target
 	// region
 	action = floodInsideRegion(geo_header);
 
-	// We (along with our neighbors) are inside the target
-	// region. So, we just broadcast this interest message
-	if (action == BROADCAST){
-	  DiffPrint(DEBUG_IMPORTANT,
-		    "GEO: BROADCAST Interest: last_hop: %d!\n",
-		    msg->last_hop_);
+	// Add GeoHeader attribute to the message
+	msg->msg_attr_vec_->push_back(GeoHeaderAttr.make(NRAttribute::IS,
+							 (void *) geo_header,
+							 sizeof(GeoHeader)));
 
+	switch (action){
+
+	case BROADCAST:
+
+	  // We are inside the region and have at least a neighbor
+	  // which is inside the region too, so we just broadcast this
+	  // message
+	  DiffPrint(DEBUG_IMPORTANT,
+		    "GEO: BROADCAST Message: last_hop: %d!\n",
+		    msg->last_hop_);
+	  
 	  msg->next_hop_ = BROADCAST_ADDR;
 	  ((DiffusionRouting *)dr_)->sendMessage(msg, post_filter_handle_);
-	}
 
-	if (action == BROADCAST_SUPPRESS){
-	  // We are outside the destination region, do not forward
-	  // this message
+	  break;
+
+	case BROADCAST_SUPPRESS:
+
+	  // We are either inside the region and have no neighbors
+	  // also inside this region OR packet came from inside the
+	  // region and we are outside the region. In either case, we
+	  // do not forward the packet
 	  DiffPrint(DEBUG_IMPORTANT, "GEO: BROADCAST_SUPPRESS !\n");
-	}
 
-	if (action == OUTSIDE_REGION){
-	  // If we ate still outside the region, we need to route this
-	  // packet towards the region. We first try using a 'greedy
-	  // mode'. If that doesn't work, we probably need to navigate
-	  // around a hole
+	  break;
+
+	case OUTSIDE_REGION:
+
+	  // The packet is still outside the region. In order to route
+	  // it to the region, we first try using a 'greedy mode'. If
+	  // that doesn't work, we probably need to navigate around a
+	  // hole
 	  next_hop = findNextHop(geo_header, true);
 
-	  if (next_hop == BROADCAST_ADDR)
-	    next_hop = findNextHop(geo_header, false);
+	  // If there are no neighbors, let's try to go around a hole
+	  if (next_hop == BROADCAST_ADDR){
 
+	    // Check if we should still be looking for a path
+	    if (geo_header->path_len_ < MAX_PATH_LEN)
+	      next_hop = findNextHop(geo_header, false);
+	  }
+
+	  // Still no neighbors, nothing we can do !
 	  if (next_hop == BROADCAST_ADDR){
 	    DiffPrint(DEBUG_IMPORTANT, "GEO: Cannot find next hop !\n");
 	  }
 	  else{
+	    // Forward message to next_hop
 	    msg->next_hop_ = next_hop;
 	    DiffPrint(DEBUG_IMPORTANT, "GEO: Next Hop: %d\n", next_hop);
-	    DiffPrint(DEBUG_IMPORTANT, "GEO: Interest: %d\n", msg->last_hop_);
+	    DiffPrint(DEBUG_IMPORTANT, "GEO: Last Hop: %d\n", msg->last_hop_);
 	    ((DiffusionRouting *)dr_)->sendMessage(msg, post_filter_handle_);
 	  }
+	
+	  break;
+
+	default:
+
+	  break;
 	}
 
 	// Let's not forget to delete both geo_header and pkt_header
@@ -541,8 +572,7 @@ void GeoRoutingFilter::postProcessMessage(Message *msg)
 
   default:
 
-    // There should not be any other types of messages handled by this function
-    DiffPrint(DEBUG_ALWAYS, "GEO: Non-Interest message in post process stage !\n");
+    // All other messages are just forwarded without any changes
     ((DiffusionRouting *)dr_)->sendMessage(msg, post_filter_handle_);
 
     break;
@@ -570,8 +600,9 @@ handle GeoRoutingFilter::setupPostFilter()
   NRAttrVec attrs;
   handle h;
 
-  // This is a filter that matches all interest messages
-  attrs.push_back(NRClassAttr.make(NRAttribute::EQ,
+  // This is a filter that matches all packets after processing by the
+  // gradient filter
+  attrs.push_back(NRClassAttr.make(NRAttribute::IS,
 				   NRAttribute::INTEREST_CLASS));
 
   h = ((DiffusionRouting *)dr_)->addFilter(&attrs,
@@ -586,12 +617,12 @@ void GeoRoutingFilter::run()
 {
 #ifdef NS_DIFFUSION
   TimerType *timer;
-  
-  // set node location
+
+  // Set up node location
   getNodeLocation(&geo_longitude_, &geo_latitude_);
   DiffPrint(DEBUG_ALWAYS, "GEAR: Location %f,%f\n",
 	    geo_longitude_, geo_latitude_);
-  
+
   // Set up filters
   pre_filter_handle_ = setupPreFilter();
   post_filter_handle_ = setupPostFilter();
@@ -608,8 +639,10 @@ void GeoRoutingFilter::run()
 				      (void *) timer,
 				      timer_callback_);
 
-  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for pre Filter !\n", pre_filter_handle_);
-  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for post Filter !\n", post_filter_handle_);
+  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for pre Filter !\n",
+	    pre_filter_handle_);
+  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for post Filter !\n",
+	    post_filter_handle_);
   DiffPrint(DEBUG_ALWAYS, "GEAR Initialized !\n");
 #endif // NS_DIFFUSION
 
@@ -626,17 +659,17 @@ void GeoRoutingFilter::run()
 
 #ifdef NS_DIFFUSION
 GeoRoutingFilter::GeoRoutingFilter()
-#else
-  GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
-#endif // NS_DIFFUSION
 {
-  
-  struct timeval tv;
+#else
+GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
+{
+  TimerType *timer;
 
-#ifndef NS_DIFFUSION
   // Parse command line options
   parseCommandLine(argc, argv);
-#endif // !NS_DIFFUSION
+#endif // NS_DIFFUSION
+
+  struct timeval tv;
 
   // Initialize a few parameters
   initial_energy_ = GEO_INITIAL_ENERGY;
@@ -651,11 +684,10 @@ GeoRoutingFilter::GeoRoutingFilter()
   last_neighbor_request_tv_.tv_sec = 0;
   last_neighbor_request_tv_.tv_usec = 0;
 
-#ifndef NS_DIFFUSION
   getNodeLocation(&geo_longitude_, &geo_latitude_);
+
   DiffPrint(DEBUG_ALWAYS, "GEAR: Location %f,%f\n",
 	    geo_longitude_, geo_latitude_);
-#endif // !NS_DIFF
 
   GetTime(&tv);
   SetSeed(&tv);
@@ -699,6 +731,7 @@ void GeoRoutingFilter::getNodeLocation(double *longitude, double *latitude)
 {
 #ifdef NS_DIFFUSION
   double z;
+
   MobileNode *node = ((DiffusionRouting *)dr_)->getNode();
   node->getLoc(longitude, latitude, &z);
 #else
@@ -834,7 +867,7 @@ PktHeader * GeoRoutingFilter::retrievePacketHeader(Message *msg)
   return NULL;
 }
 
-PktHeader * GeoRoutingFilter::preProcessInterest(Message *msg)
+PktHeader * GeoRoutingFilter::preProcessMessage(Message *msg)
 {
   float longitude_min, longitude_max;
   float latitude_min, latitude_max;
@@ -843,10 +876,11 @@ PktHeader * GeoRoutingFilter::preProcessInterest(Message *msg)
   pkt_header = stripOutHeader(msg);
 
   if (!pkt_header){
-    // This is an interest message coming from a local application
-    // So, we must compose the geo_header from the raw msg by
-    // trying to extract geographic information from this interest
-
+    // This is a message either coming from a local application (for
+    // which a geo_header hasn't been extracted yet) or a message with
+    // no geographic information (in which case there's nothing we can
+    // do about). We first try to extract geographic information from
+    // the message in order to create a new geo_header
     if (extractLocation(msg, &longitude_min, &longitude_max,
 			&latitude_min, &latitude_max)){
 
@@ -875,6 +909,7 @@ PktHeader * GeoRoutingFilter::preProcessInterest(Message *msg)
 						 latitude_max) / 2;
     }
   }
+
   return pkt_header;
 }
 
@@ -944,7 +979,7 @@ bool GeoRoutingFilter::extractLocation(Message *msg,
   attrs = msg->msg_attr_vec_;
 
   // Extracts longitude coordinates of the target region from the
-  // interest/data message
+  // message
   itr = attrs->begin();
 
   for (;;){
@@ -966,11 +1001,12 @@ bool GeoRoutingFilter::extractLocation(Message *msg,
       *longitude_max = long_attr->getVal();
     }
 
-    itr++; // Avoids infinite loops
+    // Increment itr to avoid an infinite loop
+    itr++;
   }
 
-  // Now we extract x coordinates of the target region from the
-  // interest message
+  // Now we extract latitude coordinates of the target region from the
+  // message
   itr = attrs->begin();
 
   for (;;){
@@ -992,14 +1028,12 @@ bool GeoRoutingFilter::extractLocation(Message *msg,
       *latitude_max = lat_attr->getVal();
     }
 
-    itr++; // Avoids infinite loops
+    // Increment itr to avoid an infinite loop
+    itr++;
   }
 
-  if (has_long_min && has_long_max && has_lat_min && has_lat_min){
-    DiffPrint(DEBUG_IMPORTANT, "GEO: ExtractLocation %lf, %lf, %lf, %lf\n",
-	      *longitude_min, *longitude_max, *latitude_min, *latitude_max);
+  if (has_long_min && has_long_max && has_lat_min && has_lat_min)
     return true;
-  }
 
   return false;
 }
@@ -1043,6 +1077,8 @@ int32_t GeoRoutingFilter::findNextHop(GeoHeader *geo_header, bool greedy)
   min_learned_cost = MAX_INT;
   num_neighbors = 0;
 
+  // Now we go through out list of neighbor and compute the cost to
+  // each one
   for (neighbor_itr = neighbors_list_.begin();
        neighbor_itr != neighbors_list_.end(); ++neighbor_itr){
     neighbor_entry = *neighbor_itr;
@@ -1055,13 +1091,15 @@ int32_t GeoRoutingFilter::findNextHop(GeoHeader *geo_header, bool greedy)
     distance = Distance(neighbor_entry->longitude_, neighbor_entry->latitude_,
 			destination.longitude_, destination.latitude_);
 
-    // If we are in 'greedy mode', we do not want to move away
+    // If we are in 'greedy mode', we do not want to move away, so we
+    // skip neighbors that are farther away than us from the region
     if (greedy && (distance > current_distance))
       continue;
 
     DiffPrint(DEBUG_IMPORTANT, "GEO: Neighbor: %d: cost = %f, min_cost = %f\n",
 	      neighbor_id, current_learned_cost, min_learned_cost);
 
+    // Found a neighbor with a lower cost
     if (current_learned_cost < min_learned_cost){
       min_learned_cost = current_learned_cost;
       min_cost_id = neighbor_entry->id_;
@@ -1071,10 +1109,12 @@ int32_t GeoRoutingFilter::findNextHop(GeoHeader *geo_header, bool greedy)
   }
 
   DiffPrint(DEBUG_IMPORTANT, "GEO: # neighbors: %d; cur: %f,%f, dst: %f,%f\n",
-	    num_neighbors, geo_longitude_, geo_latitude_, destination.longitude_,
-	    destination.latitude_);
+	    num_neighbors, geo_longitude_, geo_latitude_,
+	    destination.longitude_, destination.latitude_);
 
+  // Check if we have neighbors we can use to forward this message
   if (min_learned_cost < MAX_INT){
+
     // Calculate the cost from me to my next hop neighbor
     gap = Distance(min_neighbor_location.longitude_,
 		   min_neighbor_location.latitude_,
@@ -1086,6 +1126,8 @@ int32_t GeoRoutingFilter::findNextHop(GeoHeader *geo_header, bool greedy)
     // Broadcast the new heuristic value if it's changed significantly
     if (h_value_table_.updateEntry(destination, new_heuristic_value))
       broadcastHeuristicValue(destination, new_heuristic_value);
+
+    // Return neighbor this message should go
     return min_cost_id;
   }
 

@@ -2,8 +2,8 @@
 // dr.hh           : Diffusion Routing Class Definitions
 // authors         : John Heidemann and Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.hh,v 1.11 2002/07/02 21:50:14 haldar Exp $
+// Copyright (C) 2000-2002 by the University of Southern California
+// $Id: dr.hh,v 1.12 2002/09/16 17:57:28 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -37,7 +37,7 @@
 #include <pthread.h>
 #include <string.h>
 
-#include "main/events.hh"
+#include "main/timers.hh"
 #include "main/filter.hh"
 #include "main/config.hh"
 #include "main/iodev.hh"
@@ -53,21 +53,54 @@
 
 #define WAIT_FOREVER       -1
 #define POLLING_INTERVAL   10 // seconds
+#define SMALL_TIMEOUT      10 // milliseconds
 
 typedef long handle;
 
 class HandleEntry;
-class TimerEntry;
 class CallbackEntry;
+class DiffusionRouting;
 
 typedef list<HandleEntry *> HandleList;
 typedef list<CallbackEntry *> CallbackList;
-typedef list<DiffusionIO *> DeviceList;
 
 class TimerCallbacks {
 public:
   virtual int expire(handle hdl, void *p) = 0;
   virtual void del(void *p) = 0;
+};
+
+class InterestCallback : public TimerCallback {
+public:
+  InterestCallback(DiffusionRouting *drt, HandleEntry *handle_entry) :
+    drt_(drt), handle_entry_(handle_entry) {};
+  ~InterestCallback() {};
+  int expire();
+
+  DiffusionRouting *drt_;
+  HandleEntry *handle_entry_;
+};
+
+class FilterKeepaliveCallback : public TimerCallback {
+public:
+  FilterKeepaliveCallback(DiffusionRouting *drt, FilterEntry *filter_entry) :
+    drt_(drt), filter_entry_(filter_entry) {};
+  ~FilterKeepaliveCallback() {};
+  int expire();
+
+  DiffusionRouting *drt_;
+  FilterEntry *filter_entry_;
+};
+
+class OldAPITimer : public TimerCallback {
+public:
+  OldAPITimer(TimerCallbacks *cb, void *p) :
+    cb_(cb), p_(p) {};
+  ~OldAPITimer() {};
+  int expire();
+
+  TimerCallbacks *cb_;
+  void *p_;
 };
 
 class DiffusionRouting : public NR {
@@ -76,11 +109,12 @@ public:
 #ifdef NS_DIFFUSION
   DiffusionRouting(u_int16_t port, DiffAppAgent *da);
   int getAgentId(int id = -1);
-  MobileNode *getNode(MobileNode *mn = 0) {
+  MobileNode *getNode(MobileNode *mn = 0)
+  {
     if (mn != 0)
       node_ = mn;
     return node_;
-  }
+  };
 #else
   DiffusionRouting(u_int16_t port);
   void run(bool wait_condition, long max_timeout);
@@ -90,30 +124,33 @@ public:
 
   // NR Publish/Subscribe API functions
 
-  handle subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb);
+  handle subscribe(NRAttrVec *subscribe_attrs, NR::Callback *cb);
 
   int unsubscribe(handle subscription_handle);
 
-  handle publish(NRAttrVec *publishAttrs);
+  handle publish(NRAttrVec *publish_attrs);
 
   int unpublish(handle publication_handle);
 
-  int send(handle publication_handle, NRAttrVec *sendAttrs);
+  int send(handle publication_handle, NRAttrVec *send_attrs);
 
   // NR Filter API functions
 
-  handle addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
+  handle addFilter(NRAttrVec *filter_attrs, u_int16_t priority,
 		   FilterCallback *cb);
 
-  int removeFilter(handle filterHandle);
+  int removeFilter(handle filter_handle);
 
   int sendMessage(Message *msg, handle h, u_int16_t priority = FILTER_KEEP_PRIORITY);
 
   // NR Timer API functions
+  handle addTimer(int timeout, TimerCallback *callback);
 
+  // This is an old API function that will be discontinued in
+  // diffusion's next major release
   handle addTimer(int timeout, void *param, TimerCallbacks *cb);
 
-  int removeTimer(handle hdl);
+  bool removeTimer(handle hdl);
 
   // NR API functions that allow single thread support
 
@@ -121,20 +158,20 @@ public:
 
   void doOne(long timeout = WAIT_FOREVER);
 
+  int interestTimeout(HandleEntry *handle_entry);
+  int filterKeepaliveTimeout(FilterEntry *filter_entry);
+
 #ifndef NS_DIFFUSION
   // Outside NS, all these can be protected members
 protected:
 #endif // !NS_DIFFUSION
-
   void recvPacket(DiffPacket pkt);
   void recvMessage(Message *msg);
-  void interestTimeout(HandleEntry *entry);
-  void filterKeepaliveTimeout(FilterEntry *entry);
-  void applicationTimeout(TimerEntry *entry);
-
 #ifdef NS_DIFFUSION
   // In NS, the protected members start here
 protected:
+  // Handle to MobileNode
+  MobileNode *node_;
 #endif // NS_DIFFUSION
 
   void sendMessageToDiffusion(Message *msg);
@@ -163,10 +200,9 @@ protected:
 
   // Threads and Mutexes
   pthread_mutex_t *dr_mtx_;
-  pthread_mutex_t *queue_mtx_;
 
   // Data structures
-  EventQueue *eq_;
+  TimerManager *timers_manager_;
 
   // Lists
   DeviceList in_devices_;
@@ -179,9 +215,6 @@ protected:
 
 #ifdef NS_DIFFUSION
   int agent_id_;
-  
-  // handle to mobilenode
-  MobileNode *node_;
 #else
   u_int16_t agent_id_;
 #endif // NS_DIFFUSION

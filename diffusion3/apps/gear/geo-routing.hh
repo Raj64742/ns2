@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2002 by the University of Southern California
 // Copyright (C) 2000-2002 by the University of California
-// $Id: geo-routing.hh,v 1.9 2002/07/02 21:50:14 haldar Exp $
+// $Id: geo-routing.hh,v 1.10 2002/09/16 17:57:21 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -127,6 +127,8 @@ enum geo_actions {
 #define	BROADCAST_TYPE   2
 #define	MAX_INT          10000
 
+#define MAX_PATH_LEN     200
+
 class TimerType {
 public:
   TimerType(int which_timer) : which_timer_(which_timer)
@@ -213,7 +215,6 @@ public:
 class GeoRoutingFilter : public DiffApp {
 public:
 #ifdef NS_DIFFUSION
-  //GeoRoutingFilter(const char * mnode);
   GeoRoutingFilter();
   int command(int argc, const char*const* argv);
 #else
@@ -271,8 +272,8 @@ protected:
   handle setupPreFilter();
 
   // Message Processing functions
-  void preProcessMessage(Message *msg);
-  void postProcessMessage(Message *msg);
+  void preProcessFilter(Message *msg);
+  void postProcessFilter(Message *msg);
 
   // Timers
   void messageTimeout(Message *msg);
@@ -281,7 +282,7 @@ protected:
   void neighborTimeout();
   
   // Message processing functions
-  PktHeader * preProcessInterest(Message *msg);
+  PktHeader * preProcessMessage(Message *msg);
   PktHeader * stripOutHeader(Message *msg);
   PktHeader * retrievePacketHeader(Message *msg);
   bool extractLocation(Message *msg,

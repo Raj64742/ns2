@@ -2,8 +2,8 @@
 // dr.cc           : Diffusion Routing Class
 // authors         : John Heidemann and Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.cc,v 1.11 2002/05/29 21:58:12 haldar Exp $
+// Copyright (C) 2000-2002 by the University of Southern California
+// $Id: dr.cc,v 1.12 2002/09/16 17:57:28 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -34,17 +34,6 @@ public:
     cb_(cb), subscription_handle_(subscription_handle) {};
 };
 
-class TimerEntry {
-public:
-  handle         hdl_;
-  int            timeout_;
-  void           *p_;
-  TimerCallbacks *cb_;
-
-  TimerEntry(handle hdl, int timeout, void *p, TimerCallbacks *cb) : 
-    hdl_(hdl), timeout_(timeout), p_(p), cb_(cb) {};
-};
-
 class HandleEntry {
 public:
   handle hdl_;
@@ -66,6 +55,45 @@ public:
     delete attrs_;
   };
 };
+
+int InterestCallback::expire()
+{
+  int retval;
+
+  // Call the interestTimeout function
+  retval = drt_->interestTimeout(handle_entry_);
+
+  if (retval < 0)
+    delete this;
+
+  return retval;
+}
+
+int FilterKeepaliveCallback::expire()
+{
+  int retval;
+
+  // Call the filterTimeout function
+  retval = drt_->filterKeepaliveTimeout(filter_entry_);
+
+  if (retval < 0)
+    delete this;
+
+  return retval;
+}
+
+int OldAPITimer::expire()
+{
+  int retval;
+
+  // Call the callback function with the provided API
+  retval = cb_->expire(0, p_);
+
+  if (retval < 0)
+    delete this;
+
+  return retval;
+}
 
 #ifdef NS_DIFFUSION
 class DiffEventQueue;
@@ -92,7 +120,7 @@ void * ReceiveThread(void *dr)
 }
 #endif // USE_THREADS
 
-NR * NR::createNR(u_int16_t port = 0)
+NR * NR::createNR(u_int16_t port)
 {
   // Create Diffusion Routing Class
   if (dr)
@@ -117,14 +145,14 @@ NR * NR::createNR(u_int16_t port = 0)
 }
 #endif // NS_DIFFUSION
 
-void getLock(pthread_mutex_t *mutex)
+void GetLock(pthread_mutex_t *mutex)
 {
 #ifdef USE_THREADS
   pthread_mutex_lock(mutex);
 #endif // USE_THREADS
 }
 
-void releaseLock(pthread_mutex_t *mutex)
+void ReleaseLock(pthread_mutex_t *mutex)
 {
 #ifdef USE_THREADS
   pthread_mutex_unlock(mutex);
@@ -153,12 +181,8 @@ DiffusionRouting::DiffusionRouting(u_int16_t port)
 
   diffusion_port_ = port;
 
-  // Initialize event queue
-#ifdef NS_DIFFUSION
-  eq_ = new DiffEventQueue(da);
-#else
-  eq_ = new EventQueue;
-#endif // NS_DIFFUSION
+  // Initialize timer manager
+  timers_manager_ = new TimerManager;
 
   // Initialize input device
 #ifdef NS_DIFFUSION
@@ -180,10 +204,7 @@ DiffusionRouting::DiffusionRouting(u_int16_t port)
 #ifdef USE_THREADS
   // Initialize Semaphores
   dr_mtx_ = new pthread_mutex_t;
-  queue_mtx_ = new pthread_mutex_t;
-
   pthread_mutex_init(dr_mtx_, NULL);
-  pthread_mutex_init(queue_mtx_, NULL);
 #endif // USE_THREADS
 }
 
@@ -204,18 +225,19 @@ DiffusionRouting::~DiffusionRouting()
   }
 }
 
-handle DiffusionRouting::subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb)
+handle DiffusionRouting::subscribe(NRAttrVec *subscribe_attrs, NR::Callback *cb)
 {
   HandleEntry *my_handle;
-  NRAttribute *scopeAttr;
+  NRAttribute *scope_attr;
+  TimerCallback *timer_callback;
 
   // Get lock first
-  getLock(dr_mtx_);
+  GetLock(dr_mtx_);
 
   // Check the published attributes
-  if (!checkSubscription(subscribeAttrs)){
+  if (!checkSubscription(subscribe_attrs)){
     DiffPrint(DEBUG_ALWAYS, "Error : Invalid class/scope attributes in the subscribe attributes !\n");
-    releaseLock(dr_mtx_);
+    ReleaseLock(dr_mtx_);
     return FAIL;
   }
 
@@ -227,19 +249,20 @@ handle DiffusionRouting::subscribe(NRAttrVec *subscribeAttrs, NR::Callback *cb)
   sub_list_.push_back(my_handle);
 
   // Copy the attributes   
-  my_handle->attrs_ = CopyAttrs(subscribeAttrs);
+  my_handle->attrs_ = CopyAttrs(subscribe_attrs);
 
   // For subscriptions, scope is global if not specified
-  if (!hasScope(subscribeAttrs)){
-    scopeAttr = NRScopeAttr.make(NRAttribute::IS, NRAttribute::GLOBAL_SCOPE);
-    my_handle->attrs_->push_back(scopeAttr);
+  if (!hasScope(subscribe_attrs)){
+    scope_attr = NRScopeAttr.make(NRAttribute::IS, NRAttribute::GLOBAL_SCOPE);
+    my_handle->attrs_->push_back(scope_attr);
   }
 
-  // Send interest and add it to the queue
-  interestTimeout(my_handle);
+  // Create Interest Timer and add it to the queue
+  timer_callback = new InterestCallback(this, my_handle);
+  timers_manager_->addTimer(SMALL_TIMEOUT, timer_callback);
 
   // Release lock
-  releaseLock(dr_mtx_);
+  ReleaseLock(dr_mtx_);
 
   return my_handle->hdl_;
 }
@@ -249,12 +272,12 @@ int DiffusionRouting::unsubscribe(handle subscription_handle)
   HandleEntry *my_handle = NULL;
 
   // Get the lock first
-  getLock(dr_mtx_);
+  GetLock(dr_mtx_);
 
   my_handle = findHandle(subscription_handle, &sub_list_);
   if (!my_handle){
     // Handle doesn't exist, return FAIL
-    releaseLock(dr_mtx_);
+    ReleaseLock(dr_mtx_);
     return FAIL;
   }
 
@@ -262,23 +285,23 @@ int DiffusionRouting::unsubscribe(handle subscription_handle)
   my_handle->valid_ = false;
 
   // Release the lock
-  releaseLock(dr_mtx_);
+  ReleaseLock(dr_mtx_);
 
   return OK;
 }
 
-handle DiffusionRouting::publish(NRAttrVec *publishAttrs)
+handle DiffusionRouting::publish(NRAttrVec *publish_attrs)
 {
   HandleEntry *my_handle;
-  NRAttribute *scopeAttr;
+  NRAttribute *scope_attr;
 
   // Get the lock first
-  getLock(dr_mtx_);
+  GetLock(dr_mtx_);
 
   // Check the published attributes
-  if (!checkPublication(publishAttrs)){
+  if (!checkPublication(publish_attrs)){
     DiffPrint(DEBUG_ALWAYS, "Error : Invalid class/scope attributes in the publish attributes !\n");
-    releaseLock(dr_mtx_);
+    ReleaseLock(dr_mtx_);
     return FAIL;
   }
 
@@ -289,16 +312,16 @@ handle DiffusionRouting::publish(NRAttrVec *publishAttrs)
   pub_list_.push_back(my_handle);
 
   // Copy the attributes
-  my_handle->attrs_ = CopyAttrs(publishAttrs);
+  my_handle->attrs_ = CopyAttrs(publish_attrs);
 
   // For publications, scope is local if not specified
-  if (!hasScope(publishAttrs)){
-    scopeAttr = NRScopeAttr.make(NRAttribute::IS, NRAttribute::NODE_LOCAL_SCOPE);
-    my_handle->attrs_->push_back(scopeAttr);
+  if (!hasScope(publish_attrs)){
+    scope_attr = NRScopeAttr.make(NRAttribute::IS, NRAttribute::NODE_LOCAL_SCOPE);
+    my_handle->attrs_->push_back(scope_attr);
   }
 
   // Release the lock
-  releaseLock(dr_mtx_);
+  ReleaseLock(dr_mtx_);
 
   return my_handle->hdl_;
 }
@@ -308,12 +331,12 @@ int DiffusionRouting::unpublish(handle publication_handle)
   HandleEntry *my_handle = NULL;
 
   // Get the lock first
-  getLock(dr_mtx_);
+  GetLock(dr_mtx_);
 
   my_handle = removeHandle(publication_handle, &pub_list_);
   if (!my_handle){
     // Handle doesn't exist, return FAIL
-    releaseLock(dr_mtx_);
+    ReleaseLock(dr_mtx_);
     return FAIL;
   }
 
@@ -321,40 +344,40 @@ int DiffusionRouting::unpublish(handle publication_handle)
   delete my_handle;
 
   // Release the lock
-  releaseLock(dr_mtx_);
+  ReleaseLock(dr_mtx_);
 
   return OK;
 }
 
 int DiffusionRouting::send(handle publication_handle,
-			   NRAttrVec *sendAttrs)
+			   NRAttrVec *send_attrs)
 {
-  Message *myMessage;
+  Message *my_message;
   HandleEntry *my_handle;
   int8_t send_message_type = DATA;
   struct timeval current_time;
 
   // Get the lock first
-  getLock(dr_mtx_);
+  GetLock(dr_mtx_);
 
   // Get attributes associated with handle
   my_handle = findHandle(publication_handle, &pub_list_);
   if (!my_handle){
-    releaseLock(dr_mtx_);
+    ReleaseLock(dr_mtx_);
     return FAIL;
   }
 
   // Check the send attributes
-  if (!checkSend(sendAttrs)){
+  if (!checkSend(send_attrs)){
     DiffPrint(DEBUG_ALWAYS, "Error : Invalid class/scope attributes in the send attributes !\n");
-    releaseLock(dr_mtx_);
+    ReleaseLock(dr_mtx_);
     return FAIL;
   }
 
   // Check if it is time to send another exploratory data message
   GetTime(&current_time);
 
-  if (TimevalCmp(&current_time, &(my_handle->exploratory_time_)) > 0){
+  if (TimevalCmp(&current_time, &(my_handle->exploratory_time_)) >= 0){
 
     // Check if it is a push data message or a regular data message
     if (isPushData(my_handle->attrs_)){
@@ -378,386 +401,353 @@ int DiffusionRouting::send(handle publication_handle,
   }
 
   // Initialize message structure
-  myMessage = new Message(DIFFUSION_VERSION, send_message_type, agent_id_,
-			  0, 0, pkt_count_, random_id_, LOCALHOST_ADDR,
-			  LOCALHOST_ADDR);
+  my_message = new Message(DIFFUSION_VERSION, send_message_type, agent_id_,
+			   0, 0, pkt_count_, random_id_, LOCALHOST_ADDR,
+			   LOCALHOST_ADDR);
   // Increment pkt_counter
   pkt_count_++;
 
   // First, we duplicate the 'publish' attributes
-  myMessage->msg_attr_vec_ = CopyAttrs(my_handle->attrs_);
+  my_message->msg_attr_vec_ = CopyAttrs(my_handle->attrs_);
 
   // Now, we add the send attributes
-  AddAttrs(myMessage->msg_attr_vec_, sendAttrs);
+  AddAttrs(my_message->msg_attr_vec_, send_attrs);
 
   // Compute the total number and size of the joined attribute sets
-  myMessage->num_attr_ = myMessage->msg_attr_vec_->size();
-  myMessage->data_len_ = CalculateSize(myMessage->msg_attr_vec_);
+  my_message->num_attr_ = my_message->msg_attr_vec_->size();
+  my_message->data_len_ = CalculateSize(my_message->msg_attr_vec_);
 
   // Release the lock
-  releaseLock(dr_mtx_);
+  ReleaseLock(dr_mtx_);
 
   // Send Packet
-  sendMessageToDiffusion(myMessage);
+  sendMessageToDiffusion(my_message);
 
-  delete myMessage;
+  delete my_message;
 
   return OK;
 }
 
-handle DiffusionRouting::addFilter(NRAttrVec *filterAttrs, u_int16_t priority,
+handle DiffusionRouting::addFilter(NRAttrVec *filter_attrs, u_int16_t priority,
 				   FilterCallback *cb)
 {
-  FilterEntry *my_filter;
+  FilterEntry *filter_entry;
   NRAttrVec *attrs;
-  NRAttribute *ctrlmsg;
-  ControlMessage *controlblob;
-  Message *myMessage;
+  NRAttribute *ctrl_msg_attr;
+  ControlMessage *control_blob;
+  Message *my_message;
+  TimerCallback *timer_callback;
 
   // Check parameters
-  if (!filterAttrs || !cb || priority < FILTER_MIN_PRIORITY || priority > FILTER_MAX_PRIORITY){
+  if (!filter_attrs || !cb || priority < FILTER_MIN_PRIORITY || priority > FILTER_MAX_PRIORITY){
     DiffPrint(DEBUG_ALWAYS, "Received invalid parameters when adding filter !\n");
     return FAIL;
   }
 
   // Get lock first
-  getLock(dr_mtx_);
+  GetLock(dr_mtx_);
 
   // Create and Initialize the handle_entry structute
-  my_filter = new FilterEntry(next_handle_, priority, agent_id_);
+  filter_entry = new FilterEntry(next_handle_, priority, agent_id_);
   next_handle_++;
-  my_filter->cb_ = (FilterCallback *) cb;
-  filter_list_.push_back(my_filter);
+  filter_entry->cb_ = (FilterCallback *) cb;
+  filter_list_.push_back(filter_entry);
 
   // Copy attributes (keep them for matching later)
-  my_filter->filterAttrs_ = CopyAttrs(filterAttrs);
+  filter_entry->filter_attrs_ = CopyAttrs(filter_attrs);
 
   // Copy the attributes (and add the control attr)
-  attrs = CopyAttrs(filterAttrs);
-  controlblob = new ControlMessage(ADD_FILTER, priority, my_filter->handle_);
+  attrs = CopyAttrs(filter_attrs);
+  control_blob = new ControlMessage(ADD_UPDATE_FILTER,
+				    priority, filter_entry->handle_);
 
-  ctrlmsg = ControlMsgAttr.make(NRAttribute::IS, (void *)controlblob, sizeof(ControlMessage));
+  ctrl_msg_attr = ControlMsgAttr.make(NRAttribute::IS,
+				      (void *)control_blob,
+				      sizeof(ControlMessage));
 
-  attrs->push_back(ctrlmsg);
+  attrs->push_back(ctrl_msg_attr);
 
   // Initialize message structure
-  myMessage = new Message(DIFFUSION_VERSION, CONTROL, agent_id_, 0,
-			  0, pkt_count_, random_id_, LOCALHOST_ADDR,
-			  LOCALHOST_ADDR);
+  my_message = new Message(DIFFUSION_VERSION, CONTROL, agent_id_, 0,
+			   0, pkt_count_, random_id_, LOCALHOST_ADDR,
+			   LOCALHOST_ADDR);
 
   // Increment pkt_counter
   pkt_count_++;
 
   // Add attributes to the message
-  myMessage->msg_attr_vec_ = attrs;
-  myMessage->num_attr_ = attrs->size();
-  myMessage->data_len_ = CalculateSize(attrs);
+  my_message->msg_attr_vec_ = attrs;
+  my_message->num_attr_ = attrs->size();
+  my_message->data_len_ = CalculateSize(attrs);
 
   // Release the lock
-  releaseLock(dr_mtx_);
+  ReleaseLock(dr_mtx_);
 
   // Send Packet
-  sendMessageToDiffusion(myMessage);
+  sendMessageToDiffusion(my_message);
 
-  // Add keepalive to event queue
-  getLock(queue_mtx_);
-  eq_->eqAddAfter(FILTER_KEEPALIVE_TIMER, (void *) my_filter,
-		  FILTER_KEEPALIVE_DELAY);
-  releaseLock(queue_mtx_);
+  // Add keepalive timer to the event queue
+  timer_callback = new FilterKeepaliveCallback(this, filter_entry);
+  timers_manager_->addTimer(FILTER_KEEPALIVE_DELAY, timer_callback);
 
   // Delete message, attribute set and controlblob
-  delete myMessage;
-  delete controlblob;
+  delete my_message;
+  delete control_blob;
 
-  return my_filter->handle_;
+  return filter_entry->handle_;
 }
 
-int DiffusionRouting::removeFilter(handle filterHandle)
+int DiffusionRouting::removeFilter(handle filter_handle)
 {
-  FilterEntry *entry = NULL;
-  ControlMessage *controlblob;
-  NRAttribute *ctrlmsg;
+  FilterEntry *filter_entry = NULL;
+  ControlMessage *control_blob;
+  NRAttribute *ctrl_msg_attr;
   NRAttrVec *attrs;
-  Message *myMessage;
+  Message *my_message;
 
   // Get lock first
-  getLock(dr_mtx_);
+  GetLock(dr_mtx_);
 
-  entry = findFilter(filterHandle);
-  if (!entry){
+  filter_entry = findFilter(filter_handle);
+  if (!filter_entry){
     // Handle doesn't exist, return FAIL
-    releaseLock(dr_mtx_);
+    ReleaseLock(dr_mtx_);
     return FAIL;
   }
 
-  controlblob = new ControlMessage(REMOVE_FILTER, entry->handle_, 0);
+  control_blob = new ControlMessage(REMOVE_FILTER, filter_entry->handle_, 0);
 
-  ctrlmsg = ControlMsgAttr.make(NRAttribute::IS, (void *)controlblob, sizeof(ControlMessage));
+  ctrl_msg_attr = ControlMsgAttr.make(NRAttribute::IS,
+				      (void *)control_blob,
+				      sizeof(ControlMessage));
 
   attrs = new NRAttrVec;
-  attrs->push_back(ctrlmsg);
+  attrs->push_back(ctrl_msg_attr);
 
-  myMessage = new Message(DIFFUSION_VERSION, CONTROL, agent_id_, 0,
-			  0, pkt_count_, random_id_, LOCALHOST_ADDR,
-			  LOCALHOST_ADDR);
+  my_message = new Message(DIFFUSION_VERSION, CONTROL, agent_id_, 0,
+			   0, pkt_count_, random_id_, LOCALHOST_ADDR,
+			   LOCALHOST_ADDR);
 
   // Increment pkt_counter
   pkt_count_++;
 
   // Add attributes to the message
-  myMessage->msg_attr_vec_ = attrs;
-  myMessage->num_attr_ = attrs->size();
-  myMessage->data_len_ = CalculateSize(attrs);
+  my_message->msg_attr_vec_ = attrs;
+  my_message->num_attr_ = attrs->size();
+  my_message->data_len_ = CalculateSize(attrs);
 
   // Handle will be destroyed when next keepalive timer happens
-  entry->valid_ = false;
+  filter_entry->valid_ = false;
 
   // Send Packet
-  sendMessageToDiffusion(myMessage);
+  sendMessageToDiffusion(my_message);
 
   // Release the lock
-  releaseLock(dr_mtx_);
+  ReleaseLock(dr_mtx_);
 
   // Delete message
-  delete myMessage;
-  delete controlblob;
+  delete my_message;
+  delete control_blob;
 
   return OK;
 }
 
+handle DiffusionRouting::addTimer(int timeout, TimerCallback *callback)
+{
+  return (timers_manager_->addTimer(timeout, callback));
+}
+
 handle DiffusionRouting::addTimer(int timeout, void *p, TimerCallbacks *cb)
 {
-  TimerEntry *entry;
+  TimerCallback *callback;
 
-  entry = new TimerEntry(next_handle_, timeout, p, cb);
+  callback = new OldAPITimer(cb, p);
 
-  getLock(queue_mtx_);
-  eq_->eqAddAfter(APPLICATION_TIMER, (void *) entry, timeout);
-  releaseLock(queue_mtx_);
-
-  next_handle_++;
-
-  return entry->hdl_;
+  return (addTimer(timeout, callback));
 }
 
-#ifndef NS_DIFFUSION
-// This function is currently unsupported in the NS implementation of diffusion
-int DiffusionRouting::removeTimer(handle hdl)
+
+bool DiffusionRouting::removeTimer(handle hdl)
 {
-  DiffusionEvent *e;
-  TimerEntry *entry;
-  int found = -1;
-
-  getLock(queue_mtx_);
-
-  // Find the timer in the queue
-  e = eq_->eqFindEvent(APPLICATION_TIMER);
-  while (e){
-    entry = (TimerEntry *) e->payload_;
-    if (entry->hdl_ == hdl){
-      found = 0;
-      break;
-    }
-
-    e = eq_->eqFindNextEvent(APPLICATION_TIMER, e->next_);
-  }
-
-  // If timer found, remove it from the queue
-  if (e){
-    if (eq_->eqRemove(e) != 0){
-      DiffPrint(DEBUG_ALWAYS, "Error: Can't remove event from queue !\n");
-      exit(-1);
-    }
-
-    // Call the application provided delete function
-    entry->cb_->del(entry->p_);
-
-    delete entry;
-    delete e;
-  }
-
-  releaseLock(queue_mtx_);
-
-  return found;
+  return (timers_manager_->removeTimer(hdl));
 }
-#endif // NS_DIFFUSION
 
-void DiffusionRouting::filterKeepaliveTimeout(FilterEntry *entry)
+int DiffusionRouting::filterKeepaliveTimeout(FilterEntry *filter_entry)
 {
   FilterEntry *my_entry = NULL;
-  ControlMessage *controlblob;
-  NRAttribute *ctrlmsg;
+  ControlMessage *control_blob;
+  NRAttribute *ctrl_msg_attr;
   NRAttrVec *attrs;
-  Message *myMessage;
+  Message *my_message;
 
-  if (entry->valid_){
+  // Acquire lock first
+  GetLock(dr_mtx_);
+
+  if (filter_entry->valid_){
     // Send keepalive
-    controlblob = new ControlMessage(KEEPALIVE_FILTER, entry->handle_, 0);
+    control_blob = new ControlMessage(ADD_UPDATE_FILTER,
+				      filter_entry->priority_,
+				      filter_entry->handle_);
 
-    ctrlmsg = ControlMsgAttr.make(NRAttribute::IS, (void *)controlblob, sizeof(ControlMessage));
+    ctrl_msg_attr = ControlMsgAttr.make(NRAttribute::IS,
+					(void *)control_blob,
+					sizeof(ControlMessage));
 
-    attrs = new NRAttrVec;
-    attrs->push_back(ctrlmsg);
+    attrs = CopyAttrs(filter_entry->filter_attrs_);
+    attrs->push_back(ctrl_msg_attr);
 
-    myMessage = new Message(DIFFUSION_VERSION, CONTROL, agent_id_, 0,
-			    0, pkt_count_, random_id_, LOCALHOST_ADDR,
-			    LOCALHOST_ADDR);
+    my_message = new Message(DIFFUSION_VERSION, CONTROL, agent_id_, 0,
+			     0, pkt_count_, random_id_, LOCALHOST_ADDR,
+			     LOCALHOST_ADDR);
 
     // Increment pkt_counter
     pkt_count_++;
 
     // Add attributes to the message
-    myMessage->msg_attr_vec_ = attrs;
-    myMessage->num_attr_ = attrs->size();
-    myMessage->data_len_ = CalculateSize(attrs);
+    my_message->msg_attr_vec_ = attrs;
+    my_message->num_attr_ = attrs->size();
+    my_message->data_len_ = CalculateSize(attrs);
 
     // Send Message
-    sendMessageToDiffusion(myMessage);
+    sendMessageToDiffusion(my_message);
 
-    // Add another keepalive to event queue
-    getLock(queue_mtx_);
-    eq_->eqAddAfter(FILTER_KEEPALIVE_TIMER, (void *) entry,
-		    FILTER_KEEPALIVE_DELAY);
-    releaseLock(queue_mtx_);
+    delete my_message;
+    delete control_blob;
 
-    delete myMessage;
-    delete controlblob;
+    // Release lock
+    ReleaseLock(dr_mtx_);
+
+    // Reschedule another filter keepalive timer in event queue
+    return (FILTER_KEEPALIVE_DELAY);
   }
   else{
     // Filter was removed
-    my_entry = deleteFilter(entry->handle_);
+    my_entry = deleteFilter(filter_entry->handle_);
 
     // We should have removed the correct handle
-    if (my_entry != entry){
+    if (my_entry != filter_entry){
       DiffPrint(DEBUG_ALWAYS, "DiffusionRouting::KeepaliveTimeout: Handles should match !\n");
       exit(-1);
     }
 
     delete my_entry;
+
+    // Release lock
+    ReleaseLock(dr_mtx_);
+
+    return -1;
   }
 }
 
-void DiffusionRouting::interestTimeout(HandleEntry *entry)
+int DiffusionRouting::interestTimeout(HandleEntry *handle_entry)
 {
   HandleEntry *my_handle = NULL;
-  Message *myMessage;
+  Message *my_message;
 
-  if (entry->valid_){
-    // Send the interest
-    myMessage = new Message(DIFFUSION_VERSION, INTEREST, agent_id_, 0,
-			    0, pkt_count_, random_id_, LOCALHOST_ADDR,
-			    LOCALHOST_ADDR);
+  // Acquire lock first
+  GetLock(dr_mtx_);
+
+  if (handle_entry->valid_){
+    // Send the interest message if entry is still valid
+    my_message = new Message(DIFFUSION_VERSION, INTEREST, agent_id_, 0,
+			     0, pkt_count_, random_id_, LOCALHOST_ADDR,
+			     LOCALHOST_ADDR);
 
     // Increment pkt_counter
     pkt_count_++;
 
     // Add attributes to the message
-    myMessage->msg_attr_vec_ = CopyAttrs(entry->attrs_);
-    myMessage->num_attr_ = entry->attrs_->size();
-    myMessage->data_len_ = CalculateSize(entry->attrs_);
+    my_message->msg_attr_vec_ = CopyAttrs(handle_entry->attrs_);
+    my_message->num_attr_ = handle_entry->attrs_->size();
+    my_message->data_len_ = CalculateSize(handle_entry->attrs_);
 
     // Send Packet
-    sendMessageToDiffusion(myMessage);
+    sendMessageToDiffusion(my_message);
 
-    // Add another interest timeout to the queue
-    getLock(queue_mtx_);
-    eq_->eqAddAfter(INTEREST_TIMER, (void *) entry,
-		    INTEREST_DELAY +
-		    (int) ((INTEREST_JITTER * (GetRand() * 1.0 / RAND_MAX)) -
-			   (INTEREST_JITTER / 2)));
-    releaseLock(queue_mtx_);
+    delete my_message;
 
-    delete myMessage;
+    // Release lock
+    ReleaseLock(dr_mtx_);
+
+    // Reschedule this timer in the queue
+    return (INTEREST_DELAY +
+	    (int) ((INTEREST_JITTER * (GetRand() * 1.0 / RAND_MAX)) -
+		   (INTEREST_JITTER / 2)));
   }
   else{
     // Interest was canceled. Just delete it from the handle_list
-    my_handle = removeHandle(entry->hdl_, &sub_list_);
+    my_handle = removeHandle(handle_entry->hdl_, &sub_list_);
 
     // We should have removed the correct handle
-    if (my_handle != entry){
-      DiffPrint(DEBUG_ALWAYS, "DiffusionRouting::interestTimeout: Handles should match !\n");
+    if (my_handle != handle_entry){
+      DiffPrint(DEBUG_ALWAYS,
+		"Error: interestTimeout: Handles should match !\n");
       exit(-1);
     }
 
     delete my_handle;
+
+    // Release lock
+    ReleaseLock(dr_mtx_);
+
+    // Delete timer from the queue
+    return -1;
   }
-}
-
-void DiffusionRouting::applicationTimeout(TimerEntry *entry)
-{
-  int new_timeout;
-
-  new_timeout = entry->cb_->expire(entry->hdl_, entry->p_);
-  getLock(queue_mtx_);
-  if (new_timeout >= 0){
-    if (new_timeout > 0){
-      // Change the timer's timeout
-      entry->timeout_ = new_timeout;
-    }
-
-    eq_->eqAddAfter(APPLICATION_TIMER, (void *) entry, entry->timeout_);
-  }
-  else{
-    entry->cb_->del(entry->p_);
-    delete entry;
-  }
-
-  releaseLock(queue_mtx_);
 }
 
 int DiffusionRouting::sendMessage(Message *msg, handle h,
-				  u_int16_t priority = FILTER_KEEP_PRIORITY)
+				  u_int16_t priority)
 {
-  RedirectMessage *originalHdr;
-  NRAttribute *originalAttr, *ctrlmsg;
-  ControlMessage *controlblob;
+  RedirectMessage *original_hdr;
+  NRAttribute *original_attr, *ctrl_msg_attr;
+  ControlMessage *control_blob;
   NRAttrVec *attrs;
-  Message *myMessage;
+  Message *my_message;
 
   if ((priority < FILTER_MIN_PRIORITY) ||
       (priority > FILTER_KEEP_PRIORITY))
     return FAIL;
 
   // Create an attribute with the original header
-  originalHdr = new RedirectMessage(msg->new_message_, msg->msg_type_,
-				    msg->source_port_, msg->data_len_,
-				    msg->num_attr_, msg->rdm_id_,
-				    msg->pkt_num_, msg->next_hop_,
-				    msg->last_hop_, 0,
-				    msg->next_port_);
+  original_hdr = new RedirectMessage(msg->new_message_, msg->msg_type_,
+				     msg->source_port_, msg->data_len_,
+				     msg->num_attr_, msg->rdm_id_,
+				     msg->pkt_num_, msg->next_hop_,
+				     msg->last_hop_, 0,
+				     msg->next_port_);
 
-  originalAttr = OriginalHdrAttr.make(NRAttribute::IS, (void *)originalHdr,
-				      sizeof(RedirectMessage));
+  original_attr = OriginalHdrAttr.make(NRAttribute::IS, (void *)original_hdr,
+				       sizeof(RedirectMessage));
 
   // Create the attribute with the control message
-  controlblob = new ControlMessage(SEND_MESSAGE, h, priority);
+  control_blob = new ControlMessage(SEND_MESSAGE, h, priority);
 
-  ctrlmsg = ControlMsgAttr.make(NRAttribute::IS, (void *)controlblob,
-				sizeof(ControlMessage));
+  ctrl_msg_attr = ControlMsgAttr.make(NRAttribute::IS, (void *)control_blob,
+				      sizeof(ControlMessage));
 
   // Copy Attributes and add originalAttr and controlAttr
   attrs = CopyAttrs(msg->msg_attr_vec_);
-  attrs->push_back(originalAttr);
-  attrs->push_back(ctrlmsg);
+  attrs->push_back(original_attr);
+  attrs->push_back(ctrl_msg_attr);
 
-  myMessage = new Message(DIFFUSION_VERSION, CONTROL, agent_id_, 0,
-			  0, pkt_count_, random_id_, LOCALHOST_ADDR,
-			  LOCALHOST_ADDR);
+  my_message = new Message(DIFFUSION_VERSION, CONTROL, agent_id_, 0,
+			   0, pkt_count_, random_id_, LOCALHOST_ADDR,
+			   LOCALHOST_ADDR);
 
   // Increment pkt_counter
   pkt_count_++;
 
   // Add attributes to the message
-  myMessage->msg_attr_vec_ = attrs;
-  myMessage->num_attr_ = attrs->size();
-  myMessage->data_len_ = CalculateSize(attrs);
+  my_message->msg_attr_vec_ = attrs;
+  my_message->num_attr_ = attrs->size();
+  my_message->data_len_ = CalculateSize(attrs);
 
   // Send Packet
-  sendMessageToDiffusion(myMessage);
+  sendMessageToDiffusion(my_message);
 
-  delete myMessage;
-  delete controlblob;
-  delete originalHdr;
+  delete my_message;
+  delete control_blob;
+  delete original_hdr;
 
   return OK;
 }
@@ -768,7 +758,7 @@ void DiffusionRouting::doIt()
   run(true, WAIT_FOREVER);
 }
 
-void DiffusionRouting::doOne(long timeout = WAIT_FOREVER)
+void DiffusionRouting::doOne(long timeout)
 {
   run(false, timeout);
 }
@@ -780,126 +770,71 @@ void DiffusionRouting::run(bool wait_condition, long max_timeout)
   bool flag;
   DiffPacket in_pkt;
   fd_set fds;
-  DiffusionEvent *e;
-  struct timeval *tv;
-  struct timeval tmv;
+  struct timeval tv;
+  struct timeval max_tv;
 
   do{
     FD_ZERO(&fds);
-    tv = NULL;
     max_sock = 0;
+
+    // Set the maximum timeout value
+    max_tv.tv_sec = (int) (max_timeout / 1000);
+    max_tv.tv_usec = (int) ((max_timeout % 1000) * 1000);
 
     for (itr = in_devices_.begin(); itr != in_devices_.end(); ++itr){
       (*itr)->addInFDS(&fds, &max_sock);
     }
 
     // Check for the next timer
-    getLock(queue_mtx_);
-    tv = eq_->eqNextTimer();
-    releaseLock(queue_mtx_);
+    timers_manager_->nextTimerTime(&tv);
 
-    if (!tv){
+    if (tv.tv_sec == MAXVALUE){
       // If we don't have any timers, we wait for POLLING_INTERVAL
-      tv = new struct timeval;
-      *tv = tmv;
       if (max_timeout == WAIT_FOREVER){
-	tv->tv_sec = POLLING_INTERVAL;
-	tv->tv_usec = 0;
+	tv.tv_sec = POLLING_INTERVAL;
+	tv.tv_usec = 0;
       }
       else{
-	tv->tv_sec = (int) (max_timeout / 1000);
-	tv->tv_usec = (int) ((max_timeout % 1000) * 1000);
+	tv = max_tv;
       }
     }
     else{
-      tmv.tv_sec = (int) (max_timeout / 1000);
-      tmv.tv_usec = (int) ((max_timeout % 1000) * 1000);
-      if ((max_timeout != WAIT_FOREVER) && ((tv->tv_sec > tmv.tv_sec)
-					    || ((tv->tv_sec == tmv.tv_sec) &&
-					(tv->tv_usec > tmv.tv_usec)))){
-	// Timeout value is smaller than next timer's time
-	// so, we use the max_timeout value instead
-	*tv = tmv;
+      if ((max_timeout != WAIT_FOREVER) && (TimevalCmp(&tv, &max_tv) > 0)){
+	// max_timeout value is smaller than next timer's time, so we
+	// use themax_timeout value instead
+	tv = max_tv;
       }
     }
 
-    status = select(max_sock+1, &fds, NULL, NULL, tv);
+    status = select(max_sock+1, &fds, NULL, NULL, &tv);
 
-    // Let's delete tv before we forget
-    delete tv;
-
-    getLock(queue_mtx_);
-    if (eq_->eqTopInPast()){
-      // We got a timeout
-      e = eq_->eqPop();
-      releaseLock(queue_mtx_);
-
-      // Timeouts
-      switch (e->type_){
-
-      case INTEREST_TIMER:
-
-	getLock(dr_mtx_);
-	interestTimeout((HandleEntry *) e->payload_);
-	releaseLock(dr_mtx_);
-
-	delete e;
-
-	break;
-
-      case FILTER_KEEPALIVE_TIMER:
-
-	getLock(dr_mtx_);
-	filterKeepaliveTimeout((FilterEntry *) e->payload_);
-	releaseLock(dr_mtx_);
-
-	delete e;
-
-	break;
-
-      case APPLICATION_TIMER:
-
-	applicationTimeout((TimerEntry *) e->payload_);
-
-	delete e;
-
-	break;
-
-      default:
-
-	delete e;
-
-	break;
-
-      }
+    if (status == 0){
+      // Process all timers that have expired
+      timers_manager_->executeAllExpiredTimers();
     }
-    else{
-      // Don't forget to release the lock
-      releaseLock(queue_mtx_);
 
-      if (status > 0){
-	do{
-	  flag = false;
-	  for (itr = in_devices_.begin(); itr != in_devices_.end(); ++itr){
-	    fd = (*itr)->checkInFDS(&fds);
-	    if (fd != 0){
-	      // Message waiting
-	      in_pkt = (*itr)->recvPacket(fd);
-	      recvPacket(in_pkt);
+    if (status > 0){
+      do{
+	flag = false;
+	for (itr = in_devices_.begin(); itr != in_devices_.end(); ++itr){
+	  fd = (*itr)->checkInFDS(&fds);
+	  if (fd != 0){
+	    // Message waiting
+	    in_pkt = (*itr)->recvPacket(fd);
+	    recvPacket(in_pkt);
 
-	      // Clear this fd
-	      FD_CLR(fd, &fds);
-	      status--;
-	      flag = true;
-	    }
+	    // Clear this fd
+	    FD_CLR(fd, &fds);
+	    status--;
+	    flag = true;
 	  }
-	} while ((status > 0) && (flag == true));
-      }
-      else
-	if (status < 0){
-	  DiffPrint(DEBUG_IMPORTANT, "Select returned %d\n", status);
 	}
+      } while ((status > 0) && (flag == true));
     }
+    else
+      if (status < 0){
+	DiffPrint(DEBUG_IMPORTANT, "Select returned %d\n", status);
+      }
   } while (wait_condition);
 }
 
@@ -938,16 +873,16 @@ void DiffusionRouting::sendMessageToDiffusion(Message *msg)
 #else
 void DiffusionRouting::sendMessageToDiffusion(Message *msg)
 {
-  Message *myMsg;
+  Message *my_msg;
   DeviceList::iterator itr;
   int len;
 
-  myMsg = CopyMessage(msg);
-  len = CalculateSize(myMsg->msg_attr_vec_);
+  my_msg = CopyMessage(msg);
+  len = CalculateSize(my_msg->msg_attr_vec_);
   len = len + sizeof(struct hdr_diff);
 
   for (itr = local_out_devices_.begin(); itr != local_out_devices_.end(); ++itr){
-    (*itr)->sendPacket((DiffPacket) myMsg, len, diffusion_port_);
+    (*itr)->sendPacket((DiffPacket) my_msg, len, diffusion_port_);
   }
 }
 #endif // !NS_DIFFUSION
@@ -1048,13 +983,13 @@ void DiffusionRouting::processControlMessage(Message *msg)
   delete original_header_attr;
 
   // Find the right callback
-  getLock(dr_mtx_);
+  GetLock(dr_mtx_);
 
   entry = findFilter(my_handle);
   if (entry && entry->valid_){
     // Just to confirm
-    if (OneWayMatch(entry->filterAttrs_, msg->msg_attr_vec_)){
-      releaseLock(dr_mtx_);
+    if (OneWayMatch(entry->filter_attrs_, msg->msg_attr_vec_)){
+      ReleaseLock(dr_mtx_);
       entry->cb_->recv(msg, my_handle);
       return;
     }
@@ -1068,7 +1003,7 @@ void DiffusionRouting::processControlMessage(Message *msg)
 	      "Report: Cannot find filter (possibly deleted ?)\n");
   }
 
-  releaseLock(dr_mtx_);
+  ReleaseLock(dr_mtx_);
 }
 
 void DiffusionRouting::processMessage(Message *msg)
@@ -1078,10 +1013,10 @@ void DiffusionRouting::processMessage(Message *msg)
   HandleList::iterator sub_itr;
   CallbackList::iterator cbl_itr;
   HandleEntry *entry; 
-  NRAttrVec *callbackAttrs;
+  NRAttrVec *callback_attrs;
 
   // First, acquire the lock
-  getLock(dr_mtx_);
+  GetLock(dr_mtx_);
 
   for (sub_itr = sub_list_.begin(); sub_itr != sub_list_.end(); ++sub_itr){
     entry = *sub_itr;
@@ -1093,21 +1028,21 @@ void DiffusionRouting::processMessage(Message *msg)
   }
 
   // We can release the lock now
-  releaseLock(dr_mtx_);
+  ReleaseLock(dr_mtx_);
 
   // Now we just call all callback functions
   for (cbl_itr = cbl.begin(); cbl_itr != cbl.end(); ++cbl_itr){
     // Copy attributes
-    callbackAttrs = CopyAttrs(msg->msg_attr_vec_);
+    callback_attrs = CopyAttrs(msg->msg_attr_vec_);
 
     // Call app-specific callback function
     aux = *cbl_itr;
-    aux->cb_->recv(msg->msg_attr_vec_, aux->subscription_handle_);
+    aux->cb_->recv(callback_attrs, aux->subscription_handle_);
     delete aux;
 
     // Clean up callback attributes
-    ClearAttrs(callbackAttrs);
-    delete callbackAttrs;
+    ClearAttrs(callback_attrs);
+    delete callback_attrs;
   }
 
   // We are done

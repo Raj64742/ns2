@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.hh,v 1.7 2002/05/30 17:44:03 haldar Exp $
+// $Id: tools.hh,v 1.8 2002/09/16 17:57:29 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -44,11 +44,6 @@
 #include <sys/time.h>
 #include <unistd.h>
 
-// Includes config.hh if using the BBN Logger
-#ifdef BBN_LOGGER
-#include "config.hh"
-#endif // BBN_LOGGER
-
 // Defines the various debug levels
 #define DEBUG_NEVER            11
 #define DEBUG_LOTS_DETAILS     10
@@ -67,15 +62,6 @@
 #endif // NS_DIFFUSION
 
 extern int global_debug_level;
-extern char *application_id;
-
-// BBN Logger definitions. If you want to use the logger, be sure to
-// set the logger configuration file in 'config.hh'
-#ifdef BBN_LOGGER
-#include "Logger.h"
-
-void InitMainLogger();
-#endif // BBN_LOGGER
 
 // SetSeed sets the random number generator's seed with the timeval
 // structure given in tv (which is not changed)
@@ -92,8 +78,7 @@ int GetRand();
 // just like fprintf), DiffPrint also requires a debug level for this
 // particular message. This is is compared to the global debug level
 // and if it is below the current global debug level, the message is
-// sent to the logging device (this is usually set to stderr, but will
-// go to the BBN logger if that option is compiled with).
+// sent to the logging device (usually set to stderr).
 void DiffPrint(int msg_debug_level, const char *fmt, ...);
 
 #endif // !_TOOLS_HH_

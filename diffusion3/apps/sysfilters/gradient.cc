@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: gradient.cc,v 1.4 2002/05/29 21:58:11 haldar Exp $
+// $Id: gradient.cc,v 1.5 2002/09/16 17:57:23 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -467,7 +467,8 @@ void GradientFilter::updateAgent(RoutingEntry *routing_entry,
   routing_entry->agents_.push_back(agent_entry);
 }
 
-void GradientFilter::forwardPushExploratoryData(Message *msg)
+void GradientFilter::forwardPushExploratoryData(Message *msg,
+						DataForwardingHistory *forwarding_history)
 {
   RoutingTable::iterator routing_itr;
   RoutingEntry *routing_entry;
@@ -477,7 +478,6 @@ void GradientFilter::forwardPushExploratoryData(Message *msg)
   TimerType *data_timer;
   unsigned int key[2];
   HashEntry *hash_entry;
-  bool has_sink;
 
   // Sink processing
   routing_itr = routing_list_.begin();
@@ -488,28 +488,31 @@ void GradientFilter::forwardPushExploratoryData(Message *msg)
 
   while (routing_entry){
 
-    // Reset the has_sink flag for each new data type
-    has_sink = false;
-
     // Forward message to all local sinks
     for (agent_itr = routing_entry->agents_.begin();
 	 agent_itr != routing_entry->agents_.end(); ++agent_itr){
       agent_entry = *agent_itr;
 
-      // We have sinks for this data message, send reinforcement later
-      has_sink = true;
+      if (!forwarding_history->alreadyForwardedToLibrary(agent_entry->port_)){
+	// Send DATA message to local sinks
+	sink_message->next_hop_ = LOCALHOST_ADDR;
+	sink_message->next_port_ = agent_entry->port_;
 
-      // Send DATA message to local sinks
-      sink_message->next_hop_ = LOCALHOST_ADDR;
-      sink_message->next_port_ = agent_entry->port_;
+	((DiffusionRouting *)dr_)->sendMessage(sink_message, filter_handle_);
 
-      ((DiffusionRouting *)dr_)->sendMessage(sink_message, filter_handle_);
+	// Add agent to the forwarding history
+	forwarding_history->forwardingToLibrary(agent_entry->port_);
+      }
     }
 
-    if (has_sink){
+    if ((!forwarding_history->alreadyReinforced()) &&
+	(routing_entry->agents_.size() > 0)){
       // Send a positive reinforcement if we have sinks
       sendPositiveReinforcement(routing_entry->attrs_, msg->rdm_id_,
 				msg->pkt_num_, msg->last_hop_);
+      // Record reinforcement in the forwarding history so we do it
+      // only once per received data message
+      forwarding_history->sendingReinforcement();
     }
 
     // Look for other matching data types
@@ -534,20 +537,26 @@ void GradientFilter::forwardPushExploratoryData(Message *msg)
   }
 
   // Rebroadcast the exploratory push data message
-  data_msg = CopyMessage(msg);
-  data_msg->next_hop_ = BROADCAST_ADDR;
+  if (!forwarding_history->alreadyForwardedToNetwork(BROADCAST_ADDR)){
+    data_msg = CopyMessage(msg);
+    data_msg->next_hop_ = BROADCAST_ADDR;
 
-  data_timer = new TimerType(MESSAGE_SEND_TIMER);
-  data_timer->param_ = (void *) data_msg;
+    data_timer = new TimerType(MESSAGE_SEND_TIMER);
+    data_timer->param_ = (void *) data_msg;
 
-  // Add data timer to the queue
-  ((DiffusionRouting *)dr_)->addTimer(PUSH_DATA_FORWARD_DELAY +
-				      (int) ((PUSH_DATA_FORWARD_JITTER * (GetRand() * 1.0 / RAND_MAX) - (PUSH_DATA_FORWARD_JITTER / 2))),
-				      (void *) data_timer, timer_callback_);
+    // Add data timer to the queue
+    ((DiffusionRouting *)dr_)->addTimer(PUSH_DATA_FORWARD_DELAY +
+					(int) ((PUSH_DATA_FORWARD_JITTER * (GetRand() * 1.0 / RAND_MAX) - (PUSH_DATA_FORWARD_JITTER / 2))),
+					(void *) data_timer, timer_callback_);
+
+    // Add broadcast information to forwarding history
+    forwarding_history->forwardingToNetwork(BROADCAST_ADDR);
+  }
 }
 
 void GradientFilter::forwardExploratoryData(Message *msg,
-					    RoutingEntry *routing_entry)
+					    RoutingEntry *routing_entry,
+					    DataForwardingHistory *forwarding_history)
 {
 #ifdef USE_BROADCAST_MAC
   Message *data_msg;
@@ -561,7 +570,6 @@ void GradientFilter::forwardExploratoryData(Message *msg,
   Message *sink_message;
   unsigned int key[2];
   HashEntry *hash_entry;
-  bool has_sink = false;
 
   sink_message = CopyMessage(msg);
 
@@ -570,24 +578,32 @@ void GradientFilter::forwardExploratoryData(Message *msg,
        agent_itr != routing_entry->agents_.end(); ++agent_itr){
     agent_entry = *agent_itr;
 
-    has_sink = true;
+    if (!forwarding_history->alreadyForwardedToLibrary(agent_entry->port_)){
+      // Forward the data message to local sinks
+      sink_message->next_hop_ = LOCALHOST_ADDR;
+      sink_message->next_port_ = agent_entry->port_;
 
-    // Forward the data message to local sinks
-    sink_message->next_hop_ = LOCALHOST_ADDR;
-    sink_message->next_port_ = agent_entry->port_;
+      // Add agent to the forwarding list
+      forwarding_history->forwardingToLibrary(agent_entry->port_);
 
-    ((DiffusionRouting *)dr_)->sendMessage(sink_message, filter_handle_);
+      ((DiffusionRouting *)dr_)->sendMessage(sink_message, filter_handle_);
+    }
   }
 
   delete sink_message;
 
-  if (routing_entry->agents_.size() > 0){
+  // Step 1A: Reinforcement Processing
+  if ((!forwarding_history->alreadyReinforced()) &&
+      (routing_entry->agents_.size() > 0)){
     // Send reinforcement to 'last_hop'
     sendPositiveReinforcement(routing_entry->attrs_, msg->rdm_id_,
 			      msg->pkt_num_, msg->last_hop_);
+    // Record reinforcement in the forwarding history so we do it only
+    // once per received data message
+    forwarding_history->sendingReinforcement();
   }
 
-  // Step 3: Intermediate Processing
+  // Step 2: Intermediate Processing
 
   // Set reinforcement flags
   if (msg->last_hop_ != LOCALHOST_ADDR){
@@ -606,18 +622,23 @@ void GradientFilter::forwardExploratoryData(Message *msg,
 
   // Forward the EXPLORATORY message
 #ifdef USE_BROADCAST_MAC
-  if (routing_entry->gradients_.size() > 0){
-    // Broadcast DATA message
-    data_msg = CopyMessage(msg);
-    data_msg->next_hop_ = BROADCAST_ADDR;
+  if (!forwarding_history->alreadyForwardedToNetwork(BROADCAST_ADDR)){
+    if (routing_entry->gradients_.size() > 0){
+      // Broadcast DATA message
+      data_msg = CopyMessage(msg);
+      data_msg->next_hop_ = BROADCAST_ADDR;
 
-    data_timer = new TimerType(MESSAGE_SEND_TIMER);
-    data_timer->param_ = (void *) data_msg;
+      // Add to the forwarding history
+      forwarding_history->forwardingToNetwork(BROADCAST_ADDR);
 
-    // Add timer for forwarding the data packet
-    ((DiffusionRouting *)dr_)->addTimer(DATA_FORWARD_DELAY +
-					(int) ((DATA_FORWARD_JITTER * (GetRand() * 1.0 / RAND_MAX) - (DATA_FORWARD_JITTER / 2))),
-					(void *) data_timer, timer_callback_);
+      data_timer = new TimerType(MESSAGE_SEND_TIMER);
+      data_timer->param_ = (void *) data_msg;
+
+      // Add timer for forwarding the data packet
+      ((DiffusionRouting *)dr_)->addTimer(DATA_FORWARD_DELAY +
+					  (int) ((DATA_FORWARD_JITTER * (GetRand() * 1.0 / RAND_MAX) - (DATA_FORWARD_JITTER / 2))),
+					  (void *) data_timer, timer_callback_);
+    }
   }
 #else
   // Forward DATA to all output gradients
@@ -625,13 +646,21 @@ void GradientFilter::forwardExploratoryData(Message *msg,
        gradient_itr != routing_entry->gradients_.end(); ++gradient_itr){
 
     gradient_entry = *gradient_itr;
-    msg->next_hop_ = gradient_entry->node_addr_;
-    ((DiffusionRouting *)dr_)->sendMessage(msg, filter_handle_);
+
+    // Check forwarding history
+    if (!forwarding_history->alreadyForwardedToNetwork(gradient_entry->node_addr_)){
+      msg->next_hop_ = gradient_entry->node_addr_;
+      ((DiffusionRouting *)dr_)->sendMessage(msg, filter_handle_);
+
+      // Add to the forwarding history
+      forwarding_history->forwardingToNetwork(gradient_entry->node_addr_);
+    }
   }
 #endif //USE_BROADCAST_MAC
 }
 
-void GradientFilter::forwardData(Message *msg, RoutingEntry *routing_entry)
+void GradientFilter::forwardData(Message *msg, RoutingEntry *routing_entry,
+				 DataForwardingHistory *forwarding_history)
 {
   GradientList::iterator gradient_itr;
   AgentList::iterator agent_itr;
@@ -648,11 +677,16 @@ void GradientFilter::forwardData(Message *msg, RoutingEntry *routing_entry)
 
     has_sink = true;
 
-    // Forward DATA to local sinks
-    sink_message->next_hop_ = LOCALHOST_ADDR;
-    sink_message->next_port_ = agent_entry->port_;
+    if (!forwarding_history->alreadyForwardedToLibrary(agent_entry->port_)){
+      // Forward DATA to local sinks
+      sink_message->next_hop_ = LOCALHOST_ADDR;
+      sink_message->next_port_ = agent_entry->port_;
 
-    ((DiffusionRouting *)dr_)->sendMessage(sink_message, filter_handle_);
+      // Add agent to the forwarding list
+      forwarding_history->forwardingToLibrary(agent_entry->port_);
+
+      ((DiffusionRouting *)dr_)->sendMessage(sink_message, filter_handle_);
+    }
   }
 
   delete sink_message;
@@ -674,11 +708,16 @@ void GradientFilter::forwardData(Message *msg, RoutingEntry *routing_entry)
       // Found reinforced path
       msg->next_hop_ = gradient_entry->node_addr_;
 
-      DiffPrint(DEBUG_NO_DETAILS,
-		"Forwarding data through Reinforced Gradient to node %d !\n",
-		gradient_entry->node_addr_);
+      if (!forwarding_history->alreadyForwardedToNetwork(msg->next_hop_)){
+	DiffPrint(DEBUG_NO_DETAILS,
+		  "Forwarding data through Reinforced Gradient to node %d !\n",
+		  gradient_entry->node_addr_);
 
-      ((DiffusionRouting *)dr_)->sendMessage(msg, filter_handle_);
+	((DiffusionRouting *)dr_)->sendMessage(msg, filter_handle_);
+
+	// Add the node to the forwarding history
+	forwarding_history->forwardingToNetwork(msg->next_hop_);
+      }
 
       // Move to the next one
       gradient_itr++;
@@ -992,6 +1031,7 @@ void GradientFilter::processOldMessage(Message *msg)
 void GradientFilter::processNewMessage(Message *msg)
 {
   NRSimpleAttribute<void *> *reinforcement_attr = NULL;
+  DataForwardingHistory *forwarding_history;
   NRSimpleAttribute<int> *nrclass = NULL;
   NRSimpleAttribute<int> *nrscope = NULL;
   ReinforcementBlob *reinforcement_blob;
@@ -1106,17 +1146,22 @@ void GradientFilter::processNewMessage(Message *msg)
 
     DiffPrint(DEBUG_NO_DETAILS, "Received Data !\n");
 
+    // Create data message forwarding cache
+    forwarding_history = new DataForwardingHistory;
+
     // Find the correct routing entry
     routing_itr = routing_list_.begin();
     routing_entry = matchRoutingEntry(msg->msg_attr_vec_, routing_itr,
 				      &routing_itr);
 
     while (routing_entry){
-      forwardData(msg, routing_entry);
+      forwardData(msg, routing_entry, forwarding_history);
       routing_itr++;
       routing_entry = matchRoutingEntry(msg->msg_attr_vec_, routing_itr,
 					&routing_itr);
     }
+
+    delete forwarding_history;
 
     break;
 
@@ -1124,24 +1169,38 @@ void GradientFilter::processNewMessage(Message *msg)
 
     DiffPrint(DEBUG_NO_DETAILS, "Received Exploratory Data !\n");
 
+    // Create data message forwarding cache
+    forwarding_history = new DataForwardingHistory;
+
     // Find the correct routing entry
     routing_itr = routing_list_.begin();
     routing_entry = matchRoutingEntry(msg->msg_attr_vec_, routing_itr,
 				      &routing_itr);
 
     while (routing_entry){
-      forwardExploratoryData(msg, routing_entry);
+      forwardExploratoryData(msg, routing_entry, forwarding_history);
       routing_itr++;
       routing_entry = matchRoutingEntry(msg->msg_attr_vec_, routing_itr,
 					&routing_itr);
     }
+
+    // Delete data forwarding cache
+    delete forwarding_history;
 
     break;
 
   case PUSH_EXPLORATORY_DATA:
 
     DiffPrint(DEBUG_NO_DETAILS, "Received Push Exploratory Data !\n");
-    forwardPushExploratoryData(msg);
+
+    // Create data message forwarding cache
+    forwarding_history = new DataForwardingHistory;
+
+    // Forward data message
+    forwardPushExploratoryData(msg, forwarding_history);
+
+    // Delete data forwarding cache
+    delete forwarding_history;
 
     break;
 

@@ -37,9 +37,7 @@
 #include <tclcl.h>
 #include <agent.h>
 #include <mobilenode.h>
-#include <events.hh>
 #include <dr.hh>
-#include "difftimer.h"
 
 class DiffAppAgent;
 
@@ -53,32 +51,6 @@ protected:
 	DiffAppAgent *agent_;
 };
 
-
-class DiffEvent : public Event {
-private:
-	struct timeval tv_;	
-	int type_;
-	void* payload_;
-public:
-	DiffEvent(int type, void *payload, int time);
-	~DiffEvent() { }
-	int gettime() {
-		return ((tv_.tv_sec) + ((tv_.tv_usec)/1000000));
-	}
-	int type() { return type_; }
-	void* payload() { return payload_; }
-};
-
-class DiffEventQueue : public EventQueue { 
-public: 
-	DiffEventQueue(DiffAppAgent *a) { a_ = a; } 
-	void eqAddAfter(int type, void *, int delay_msec); 
-private: 
-	DiffAppAgent *a_;
-}; 
-
-
-
 class DiffAppAgent : public Agent {
 public:
   
@@ -91,18 +63,11 @@ public:
 	
 	NR *dr() {return dr_; }
   
-	//timer functions
-	DiffEventHandler *getDiffTimer() { return difftimer_ ; }
-	void diffTimeout(Event *e);	
-	
 protected:
 	
 	// diffusion transport agent or DR
 	NR *dr_;
 	
-	//timers
-	DiffEventHandler *difftimer_;
-  
 };
 
 #endif //diffagent

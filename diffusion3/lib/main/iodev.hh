@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: iodev.hh,v 1.4 2002/05/29 21:58:13 haldar Exp $
+// $Id: iodev.hh,v 1.5 2002/09/16 17:57:29 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -48,8 +48,9 @@ public:
     // Nothing to do
   };
 
-  void addInFDS(fd_set *fds, int *max);
-  int checkInFDS(fd_set *fds);
+  virtual void addInFDS(fd_set *fds, int *max);
+  virtual bool hasFD(int fd);
+  virtual int checkInFDS(fd_set *fds);
   virtual DiffPacket recvPacket(int fd) = 0;
   virtual void sendPacket(DiffPacket p, int len, int dst) = 0;
 
@@ -60,5 +61,7 @@ protected:
   list<int> in_fds_;
   list<int> out_fds_;
 };
+
+typedef list<DiffusionIO *> DeviceList;
 
 #endif // !_IODEV_HH_

@@ -1,9 +1,9 @@
 //
 // events.hh     : Implements a queue of timer-based events
-// Authors       : Lewis Girod and Fabio Silva
+// Authors       : Lewis Girod, John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: events.hh,v 1.4 2002/05/29 21:58:13 haldar Exp $
+// $Id: events.hh,v 1.5 2002/09/16 17:57:29 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -36,13 +36,16 @@
 
 #include "tools.hh"
 
-class DiffusionEvent {
+typedef long handle;
+#define MAXVALUE 0x7ffffff // No events in the queue
+
+class QueueEvent {
 public:
   struct timeval tv_;
-  int type_;
+  handle handle_;
   void *payload_;
 
-  DiffusionEvent *next_;
+  QueueEvent *next_;
 };
 
 class EventQueue {
@@ -50,12 +53,13 @@ class EventQueue {
 //
 //  Methods
 //
-//  eqAdd        inserts an event into the queue
-//  eqAddAfter   creates a new event and inserts it
-//  eqPop        extracts the first event and returns it
-//  eqNextTimer  returns the time of expiration for the next event
-//  eqTopInPast  returns true if the head of the timer queue is in the past
-//  eqRemove     remove an event from the queue
+//  eqAdd         inserts an event into the queue
+//  eqAddAfter    creates a new event and inserts it
+//  eqPop         extracts the first event and returns it
+//  eqNextTimer   returns the time of expiration for the next event
+//  eqTopInPast   returns true if the head of the timer queue is in the past
+//  eqRemoveEvent removes an event from the queue
+//  eqRemove      removes the event with the given handle from the queue
 //
 
 public:
@@ -67,18 +71,22 @@ public:
     // Empty
   };
 
-  void eqAdd(DiffusionEvent *n);
-  virtual void eqAddAfter(int type, void *payload, int delay_msec);
-  DiffusionEvent * eqPop();
-  DiffusionEvent * eqFindEvent(int type);
-  DiffusionEvent * eqFindNextEvent(int type, DiffusionEvent *e);
-  struct timeval * eqNextTimer();
+  virtual void eqAddAfter(handle hdl, void *payload, int delay_msec);
+  QueueEvent * eqPop();
+  QueueEvent * eqFindEvent(handle hdl);
+  void eqNextTimer(struct timeval *tv);
+  virtual bool eqRemove(handle hdl);
+
+private:
+
   int eqTopInPast();
   void eqPrint();
-  int eqRemove(DiffusionEvent *e);
+  bool eqRemoveEvent(QueueEvent *e);
+  QueueEvent * eqFindNextEvent(handle hdl, QueueEvent *e);
+  void eqAdd(QueueEvent *e);
 
 //
-//  DiffusionEvent methods
+//  QueueEvent methods
 //
 //  setDelay   sets the expiration time to a delay after present time
 //  randDelay  computes a delay given a vector {base delay, variance}
@@ -87,13 +95,11 @@ public:
 //             -1, 0 1 for <, == and >
 //
 
-private:
-
-  void setDelay(DiffusionEvent *e, int delay_msec);
+  void setDelay(QueueEvent *e, int delay_msec);
   int randDelay(int timer[2]);
-  int eventCmp(DiffusionEvent *x, DiffusionEvent *y);
+  int eventCmp(QueueEvent *x, QueueEvent *y);
 
-  DiffusionEvent *head_;
+  QueueEvent *head_;
 
 };
 
@@ -102,8 +108,8 @@ private:
 // Compares two timeval structures, returning -1, 0 or 1 for <, == or >
 int TimevalCmp(struct timeval *x, struct timeval *y);
 
-// Returns x - y (or 0,0 if x < y)
-struct timeval *TimevalSub(struct timeval *x, struct timeval *y);
+// tv will be x - y (or 0,0 if x < y)
+void TimevalSub(struct timeval *x, struct timeval *y, struct timeval *tv);
 
 // Add usecs to tv
 void TimevalAddusecs(struct timeval *tv, int usecs);

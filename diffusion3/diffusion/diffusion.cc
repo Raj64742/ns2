@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: diffusion.cc,v 1.5 2002/07/02 21:50:14 haldar Exp $
+// $Id: diffusion.cc,v 1.6 2002/09/16 17:57:27 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -46,6 +46,65 @@ public:
   }
 };
 
+int NeighborsTimeoutTimer::expire()
+{
+  agent_->neighborsTimeout();
+
+  return 0;
+}
+
+int FilterTimeoutTimer::expire()
+{
+  agent_->filterTimeout();
+
+  return 0;
+}
+
+int DiffusionStopTimer::expire()
+{
+  agent_->timeToStop();
+#ifndef NS_DIFFUSION
+  exit(0);
+#endif //NS_DIFFUSION
+
+  // Never gets here !
+  return 0;
+}
+
+void DiffusionCoreAgent::timeToStop()
+{
+  FILE *outfile = NULL;
+
+  if (global_debug_level > DEBUG_SOME_DETAILS){
+#ifdef NS_DIFFUSION
+    outfile = fopen("/tmp/diffusion.out", "a");
+#else
+    outfile = fopen("/tmp/diffusion.out", "w");
+#endif // NS_DIFFUSION
+
+    if (outfile == NULL){
+      DiffPrint(DEBUG_ALWAYS ,"Diffusion Error: Can't create /tmp/diffusion.out\n");
+      return;
+    }
+  }
+
+#ifdef STATS
+  stats_->printStats(stdout);
+  if (outfile)
+    stats_->printStats(outfile);
+#  ifndef WIRED
+#     ifdef USE_RPC
+  rpcstats_->printStats(stdout);
+  if (outfile)
+    rpcstats_->printStats(outfile);
+#     endif // USE_RPC
+#  endif // WIRED
+#endif // STATS
+
+  if (outfile)
+    fclose(outfile);
+}
+
 #ifndef NS_DIFFUSION
 
 void signal_handler(int p)
@@ -69,16 +128,15 @@ void DiffusionCoreAgent::usage()
   exit(0);
 }
 
-
 void DiffusionCoreAgent::run()
 {
-  DeviceList::iterator itr;
+  DeviceList::iterator device_itr;
   DiffPacket in_pkt;
   fd_set fds;
-  DiffusionEvent *e;
+  //  DiffusionEvent *e;
   bool flag;
   int status, max_sock, fd;
-  struct timeval *tv;
+  struct timeval tv;
 
   // Main Select Loop
   while (1){
@@ -86,64 +144,37 @@ void DiffusionCoreAgent::run()
     // Wait for incoming packets
     FD_ZERO(&fds);
     max_sock = 0;
-    tv = NULL;
 
-    for (itr = in_devices_.begin(); itr != in_devices_.end(); ++itr){
-      (*itr)->addInFDS(&fds, &max_sock);
+    // Figure out how much time to wait
+    timers_manager_->nextTimerTime(&tv);
+    if (tv.tv_sec == 0 && tv.tv_usec == 0){
+      // Timer has expired !
+      timers_manager_->executeAllExpiredTimers();
+      continue;
     }
 
-    // Figure out how much to wait
-    tv = eq_->eqNextTimer();
+    for (device_itr = in_devices_.begin();
+	 device_itr != in_devices_.end(); ++device_itr){
+      (*device_itr)->addInFDS(&fds, &max_sock);
+    }
 
-    status = select(max_sock+1, &fds, NULL, NULL, tv);
+    status = select(max_sock+1, &fds, NULL, NULL, &tv);
 
-    // Delete tv before we forget
-    delete tv;
-
-    if ((status == 0) || (eq_->eqTopInPast())){
-      // We got a timeout
-      e = eq_->eqPop();
-
-      // Timeouts
-      switch (e->type_){
-
-      case NEIGHBORS_TIMER:
-
-	neighborsTimeOut();
-
-	break;
-
-      case FILTER_TIMER:
-
-	filterTimeOut();
-
-	break;
-
-      case STOP_TIMER:
-
-	delete e;
-	timeToStop();
-	exit(0);
-
-	break;
-
-      default:
-
-	delete e;
-
-	break;
-      }
+    if (status == 0){
+      // We process all expired timers
+      timers_manager_->executeAllExpiredTimers();
     }
 
     // Check for new packets
     if (status > 0){
       do{
 	flag = false;
-	for (itr = in_devices_.begin(); itr != in_devices_.end(); ++itr){
-	  fd = (*itr)->checkInFDS(&fds);
+	for (device_itr = in_devices_.begin();
+	     device_itr != in_devices_.end(); ++device_itr){
+	  fd = (*device_itr)->checkInFDS(&fds);
 	  if (fd != 0){
 	    // Message waiting
-	    in_pkt = (*itr)->recvPacket(fd);
+	    in_pkt = (*device_itr)->recvPacket(fd);
 
 	    if (in_pkt)
 	      recvPacket(in_pkt);
@@ -165,197 +196,157 @@ void DiffusionCoreAgent::run()
 }
 #endif // !NS_DIFFUSION
 
-
-void DiffusionCoreAgent::timeToStop()
-{
-  FILE *outfile = NULL;
-
-  if (global_debug_level > DEBUG_SOME_DETAILS){
-
-#ifdef NS_DIFFUSION
-    outfile = fopen("/tmp/diffusion.out", "a");
-#else
-    outfile = fopen("/tmp/diffusion.out", "w");
-#endif //NS_DIFFUSION
-
-    if (outfile == NULL){
-      DiffPrint(DEBUG_ALWAYS ,"Diffusion Error: Can't create /tmp/diffusion.out\n");
-      return;
-    }
-  }
-  
-#ifdef STATS
-  stats_->printStats(stdout);
-  if (outfile)
-    stats_->printStats(outfile);
-#  ifndef WIRED
-#     ifdef USE_RPC
-  rpcstats_->printStats(stdout);
-  if (outfile)
-    rpcstats_->printStats(outfile);
-#     endif // USE_RPC
-#  endif // WIRED
-#endif // STATS
-  
-  if (outfile)
-    fclose(outfile);
-}
-
-
-
-void DiffusionCoreAgent::neighborsTimeOut()
+void DiffusionCoreAgent::neighborsTimeout()
 {
   struct timeval tmv;
-  NeighborEntry *myNeighbor;
-  NeighborList::iterator itr;
+  NeighborEntry *neighbor_entry;
+  NeighborList::iterator neighbor_itr;
 
   DiffPrint(DEBUG_MORE_DETAILS, "Neighbors Timeout !\n");
 
   GetTime(&tmv);
 
-  itr = neighbor_list_.begin();
+  neighbor_itr = neighbor_list_.begin();
 
-  while(itr != neighbor_list_.end()){
-    myNeighbor = *itr;
-    if (tmv.tv_sec > myNeighbor->tmv.tv_sec + NEIGHBORS_TIMEOUT){
+  while(neighbor_itr != neighbor_list_.end()){
+    neighbor_entry = *neighbor_itr;
+    if (tmv.tv_sec > neighbor_entry->tmv.tv_sec + NEIGHBORS_TIMEOUT){
       // This neighbor expired
-      itr = neighbor_list_.erase(itr);
-      delete myNeighbor;
+      neighbor_itr = neighbor_list_.erase(neighbor_itr);
+      delete neighbor_entry;
     }
     else{
-      itr++;
+      neighbor_itr++;
     }
   }
-
-  // Re-schedule this timer
-  eq_->eqAddAfter(NEIGHBORS_TIMER, NULL, NEIGHBORS_DELAY);
 }
 
-void DiffusionCoreAgent::filterTimeOut()
+void DiffusionCoreAgent::filterTimeout()
 {
   struct timeval tmv;
-  FilterEntry *myFilter;
-  FilterList::iterator itr;
+  FilterEntry *filter_entry;
+  FilterList::iterator filter_itr;
 
   DiffPrint(DEBUG_MORE_DETAILS, "Filter Timeout !\n");
 
   GetTime(&tmv);
 
-  itr = filter_list_.begin();
+  filter_itr = filter_list_.begin();
 
-  while(itr != filter_list_.end()){
-    myFilter = *itr;
-    if (tmv.tv_sec > myFilter->tmv_.tv_sec + FILTER_TIMEOUT){
+  while(filter_itr != filter_list_.end()){
+    filter_entry = *filter_itr;
+    if (tmv.tv_sec > filter_entry->tmv_.tv_sec + FILTER_TIMEOUT){
 
       // This filter expired
       DiffPrint(DEBUG_NO_DETAILS, "Filter %d, %d, %d timed out !\n",
-		myFilter->agent_, myFilter->handle_, myFilter->priority_);
-      itr = filter_list_.erase(itr);
-      delete myFilter;
+		filter_entry->agent_, filter_entry->handle_,
+		filter_entry->priority_);
+      filter_itr = filter_list_.erase(filter_itr);
+      delete filter_entry;
     }
     else{
-      itr++;
+      filter_itr++;
     }
   }
-
-  // Re-Schedule this timer
-  eq_->eqAddAfter(FILTER_TIMER, NULL, FILTER_DELAY);
 }
 
 void DiffusionCoreAgent::sendMessage(Message *msg)
 {
-  Tcl_HashEntry *entryPtr;
+  Tcl_HashEntry *tcl_hash_entry;
   unsigned int key[2];
-  Message *myMessage;
+  Message *send_message;
   
-  myMessage = new Message(DIFFUSION_VERSION, msg->msg_type_, diffusion_port_, 0,
-			  0, msg->pkt_num_, msg->rdm_id_, msg->next_hop_, 0);
+  send_message = new Message(DIFFUSION_VERSION, msg->msg_type_, diffusion_port_,
+			     0, 0, msg->pkt_num_, msg->rdm_id_,
+			     msg->next_hop_, 0);
 
-  myMessage->msg_attr_vec_ = CopyAttrs(msg->msg_attr_vec_);
-  myMessage->num_attr_ = myMessage->msg_attr_vec_->size();
-  myMessage->data_len_ = CalculateSize(myMessage->msg_attr_vec_);
+  send_message->msg_attr_vec_ = CopyAttrs(msg->msg_attr_vec_);
+  send_message->num_attr_ = send_message->msg_attr_vec_->size();
+  send_message->data_len_ = CalculateSize(send_message->msg_attr_vec_);
 
   // Adjust message size for logging and check hash
   key[0] = msg->pkt_num_;
   key[1] = msg->rdm_id_;
-  entryPtr = Tcl_FindHashEntry(&htable_, (char *) key);
-  if (entryPtr)
+  tcl_hash_entry = Tcl_FindHashEntry(&htable_, (char *) key);
+  if (tcl_hash_entry)
     msg->new_message_ = 0;
   else
     msg->new_message_ = 1;
 
-  myMessage->new_message_ = msg->new_message_;
+  send_message->new_message_ = msg->new_message_;
 
   // Check if message goes to an agent or the network
   if (msg->next_port_){
     // Message goes to an agent
-    myMessage->last_hop_ = LOCALHOST_ADDR;
+    send_message->last_hop_ = LOCALHOST_ADDR;
 
     // If it's a local message, it has to go to a local agent
-    if (myMessage->next_hop_ != LOCALHOST_ADDR){
+    if (send_message->next_hop_ != LOCALHOST_ADDR){
       DiffPrint(DEBUG_ALWAYS, "Error: Message destination is a local agent but next_hop != LOCALHOST_ADDR !\n");
-      delete myMessage;
+      delete send_message;
       return;
     }
 
     // Send the message to the agent specified
-    sendMessageToLibrary(myMessage, msg->next_port_);
+    sendMessageToLibrary(send_message, msg->next_port_);
   }
   else{
     // Message goes to the network
-    myMessage->last_hop_ = my_id_;
+    send_message->last_hop_ = my_id_;
 
 #ifdef STATS
-    stats_->logOutgoingMessage(myMessage);
+    stats_->logOutgoingMessage(send_message);
 #endif // STATS
 
     // Add message to the hash table      
-    if (entryPtr == NULL)
+    if (tcl_hash_entry == NULL)
       putHash(key[0], key[1]);
     else
       DiffPrint(DEBUG_DETAILS, "Message being sent is an old message !\n");
 
     // Send Message
-    sendMessageToNetwork(myMessage);
+    sendMessageToNetwork(send_message);
   }
 
-  delete myMessage;
+  delete send_message;
 }
 
-void DiffusionCoreAgent::forwardMessage(Message *msg, FilterEntry *dst)
+void DiffusionCoreAgent::forwardMessage(Message *msg, FilterEntry *filter_entry)
 {
-  RedirectMessage *originalHdr;
-  NRAttribute *originalAttr;
-  Message *myMessage;
+  RedirectMessage *original_hdr;
+  NRAttribute *original_header_attr;
+  Message *send_message;
 
   // Create an attribute with the original header
-  originalHdr = new RedirectMessage(msg->new_message_, msg->msg_type_,
-				    msg->source_port_, msg->data_len_,
-				    msg->num_attr_, msg->rdm_id_,
-				    msg->pkt_num_, msg->next_hop_,
-				    msg->last_hop_, dst->handle_,
-				    msg->next_port_);
+  original_hdr = new RedirectMessage(msg->new_message_, msg->msg_type_,
+				     msg->source_port_, msg->data_len_,
+				     msg->num_attr_, msg->rdm_id_,
+				     msg->pkt_num_, msg->next_hop_,
+				     msg->last_hop_, filter_entry->handle_,
+				     msg->next_port_);
 
-  originalAttr = OriginalHdrAttr.make(NRAttribute::IS, (void *)originalHdr, sizeof(RedirectMessage));
+  original_header_attr = OriginalHdrAttr.make(NRAttribute::IS,
+					      (void *)original_hdr,
+					      sizeof(RedirectMessage));
 
-  myMessage = new Message(DIFFUSION_VERSION, REDIRECT, diffusion_port_, 0,
-			  0, pkt_count_, random_id_, LOCALHOST_ADDR, my_id_);
+  send_message = new Message(DIFFUSION_VERSION, REDIRECT, diffusion_port_, 0,
+			     0, pkt_count_, random_id_, LOCALHOST_ADDR, my_id_);
 
   // Increment pkt_counter
   pkt_count_++;
 
   // Duplicate the message's attributes
-  myMessage->msg_attr_vec_ = CopyAttrs(msg->msg_attr_vec_);
+  send_message->msg_attr_vec_ = CopyAttrs(msg->msg_attr_vec_);
   
   // Add the extra attribute
-  myMessage->msg_attr_vec_->push_back(originalAttr);
-  myMessage->num_attr_ = myMessage->msg_attr_vec_->size();
-  myMessage->data_len_ = CalculateSize(myMessage->msg_attr_vec_);
+  send_message->msg_attr_vec_->push_back(original_header_attr);
+  send_message->num_attr_ = send_message->msg_attr_vec_->size();
+  send_message->data_len_ = CalculateSize(send_message->msg_attr_vec_);
 
-  sendMessageToLibrary(myMessage, dst->agent_);
+  sendMessageToLibrary(send_message, filter_entry->agent_);
 
-  delete myMessage;
-  delete originalHdr;
+  delete send_message;
+  delete original_hdr;
 }
 
 #ifndef NS_DIFFUSION
@@ -391,16 +382,17 @@ void DiffusionCoreAgent::sendMessageToLibrary(Message *msg, u_int16_t agent_id)
 #else
 void DiffusionCoreAgent::sendMessageToLibrary(Message *msg, u_int16_t agent_id)
 {
-  Message *myMsg;
-  DeviceList::iterator itr;
+  Message *send_message;
+  DeviceList::iterator device_itr;
   int len;
 
-  myMsg = CopyMessage(msg);
-  len = CalculateSize(myMsg->msg_attr_vec_);
+  send_message = CopyMessage(msg);
+  len = CalculateSize(send_message->msg_attr_vec_);
   len = len + sizeof(struct hdr_diff);
 
-  for (itr = local_out_devices_.begin(); itr != local_out_devices_.end(); ++itr){
-    (*itr)->sendPacket((DiffPacket) myMsg, len, agent_id);
+  for (device_itr = local_out_devices_.begin();
+       device_itr != local_out_devices_.end(); ++device_itr){
+    (*device_itr)->sendPacket((DiffPacket) send_message, len, agent_id);
   }
 }
 #endif // !NS_DIFFUSION
@@ -438,18 +430,19 @@ void DiffusionCoreAgent::sendMessageToNetwork(Message *msg)
 #else
 void DiffusionCoreAgent::sendMessageToNetwork(Message *msg)
 {
-  Message *myMsg;
+  Message *send_message;
   int len;
   int32_t dst;
-  DeviceList::iterator itr;
+  DeviceList::iterator device_itr;
 
-  myMsg = CopyMessage(msg);
-  len = CalculateSize(myMsg->msg_attr_vec_);
+  send_message = CopyMessage(msg);
+  len = CalculateSize(send_message->msg_attr_vec_);
   len = len + sizeof(struct hdr_diff);
-  dst = myMsg->next_hop_;
+  dst = send_message->next_hop_;
 
-  for (itr = out_devices_.begin(); itr != out_devices_.end(); ++itr){
-    (*itr)->sendPacket((DiffPacket) myMsg, len, dst);
+  for (device_itr = out_devices_.begin();
+       device_itr != out_devices_.end(); ++device_itr){
+    (*device_itr)->sendPacket((DiffPacket) send_message, len, dst);
   }
 }
 #endif // !NS_DIFFUSION
@@ -457,206 +450,199 @@ void DiffusionCoreAgent::sendMessageToNetwork(Message *msg)
 void DiffusionCoreAgent::sendPacketToLibrary(DiffPacket pkt, int len,
 					     u_int16_t dst)
 {
-  DeviceList::iterator itr;
+  DeviceList::iterator device_itr;
 
-  for (itr = local_out_devices_.begin(); itr != local_out_devices_.end(); ++itr){
-    (*itr)->sendPacket(pkt, len, dst);
+  for (device_itr = local_out_devices_.begin();
+       device_itr != local_out_devices_.end(); ++device_itr){
+    (*device_itr)->sendPacket(pkt, len, dst);
   }
 }
 
 void DiffusionCoreAgent::sendPacketToNetwork(DiffPacket pkt, int len, int dst)
 {
-  DeviceList::iterator itr;
+  DeviceList::iterator device_itr;
 
-  for (itr = out_devices_.begin(); itr != out_devices_.end(); ++itr){
-    (*itr)->sendPacket((DiffPacket) pkt, len, dst);
+  for (device_itr = out_devices_.begin();
+       device_itr != out_devices_.end(); ++device_itr){
+    (*device_itr)->sendPacket(pkt, len, dst);
   }
 }
 
 void DiffusionCoreAgent::updateNeighbors(int id)
 {
-  NeighborList::iterator itr;
-  NeighborEntry *newNeighbor;
+  NeighborList::iterator neighbor_itr;
+  NeighborEntry *neighbor_entry;
 
   if (id == LOCALHOST_ADDR || id == my_id_)
     return;
 
-  for (itr = neighbor_list_.begin(); itr != neighbor_list_.end(); ++itr){
-    if ((*itr)->id == id)
+  for (neighbor_itr = neighbor_list_.begin();
+       neighbor_itr != neighbor_list_.end(); ++neighbor_itr){
+    if ((*neighbor_itr)->id == id)
       break;
   }
 
-  if (itr == neighbor_list_.end()){
+  if (neighbor_itr == neighbor_list_.end()){
     // This is a new neighbor
-    newNeighbor = new NeighborEntry(id);
-    neighbor_list_.push_front(newNeighbor);
+    neighbor_entry = new NeighborEntry(id);
+    neighbor_list_.push_front(neighbor_entry);
   }
   else{
     // Just update the neighbor timeout
-    GetTime(&((*itr)->tmv));
+    GetTime(&((*neighbor_itr)->tmv));
   }
 }
 
 FilterEntry * DiffusionCoreAgent::findFilter(int16_t handle, u_int16_t agent)
 {
-  FilterList::iterator itr;
-  FilterEntry *current;
+  FilterList::iterator filter_itr;
+  FilterEntry *filter_entry;
 
-  for (itr = filter_list_.begin(); itr != filter_list_.end(); ++itr){
-    current = *itr;
-    if (handle != current->handle_ || agent != current->agent_)
+  for (filter_itr = filter_list_.begin();
+       filter_itr != filter_list_.end(); ++filter_itr){
+    filter_entry = *filter_itr;
+    if (handle != filter_entry->handle_ || agent != filter_entry->agent_)
       continue;
 
     // Found
-    return current;
+    return filter_entry;
   }
   return NULL;
 }
 
 FilterEntry * DiffusionCoreAgent::deleteFilter(int16_t handle, u_int16_t agent)
 {
-  FilterList::iterator itr = filter_list_.begin();
-  FilterEntry *current = NULL;
+  FilterList::iterator filter_itr = filter_list_.begin();
+  FilterEntry *filter_entry = NULL;
 
-  while (itr != filter_list_.end()){
-    current = *itr;
-    if (handle == current->handle_ && agent == current->agent_){
-      filter_list_.erase(itr);
+  while (filter_itr != filter_list_.end()){
+    filter_entry = *filter_itr;
+    if (handle == filter_entry->handle_ && agent == filter_entry->agent_){
+      filter_list_.erase(filter_itr);
       break;
     }
-    current = NULL;
-    itr++;
+    filter_entry = NULL;
+    filter_itr++;
   }
-  return current;
+  return filter_entry;
 }
 
 bool DiffusionCoreAgent::addFilter(NRAttrVec *attrs, u_int16_t agent,
 				   int16_t handle, u_int16_t priority)
 {
-  FilterList::iterator itr;
-  FilterEntry *entry;
+  FilterList::iterator filter_itr;
+  FilterEntry *filter_entry;
 
-  itr = filter_list_.begin();
-  while (itr != filter_list_.end()){
-    entry = *itr;
-    if (entry->priority_ == priority)
+  filter_itr = filter_list_.begin();
+  while (filter_itr != filter_list_.end()){
+    filter_entry = *filter_itr;
+    if (filter_entry->priority_ == priority)
       return false;
-    itr++;
+    filter_itr++;
   }
 
-  entry = new FilterEntry(handle, priority, agent);
+  filter_entry = new FilterEntry(handle, priority, agent);
 
   // Copy the Attribute Vector
-  entry->filterAttrs_ = CopyAttrs(attrs);
+  filter_entry->filter_attrs_ = CopyAttrs(attrs);
 
   // Add this filter to the filter list
-  filter_list_.push_back(entry);
+  filter_list_.push_back(filter_entry);
 
   return true;
 }
 
 FilterList::iterator DiffusionCoreAgent::findMatchingFilter(NRAttrVec *attrs,
-							FilterList::iterator itr)
+							    FilterList::iterator filter_itr)
 {
-  FilterEntry *entry;
+  FilterEntry *filter_entry;
 
-  for (;itr != filter_list_.end(); ++itr){
-    entry = *itr;
+  for (;filter_itr != filter_list_.end(); ++filter_itr){
+    filter_entry = *filter_itr;
 
-    if (OneWayMatch(entry->filterAttrs_, attrs)){
+    if (OneWayMatch(filter_entry->filter_attrs_, attrs)){
       // That's a match !
       break;
     }
   }
-  return itr;
+  return filter_itr;
 }
 
 bool DiffusionCoreAgent::restoreOriginalHeader(Message *msg)
 {
-  NRAttrVec::iterator place = msg->msg_attr_vec_->begin();
-  NRSimpleAttribute<void *> *originalHeader = NULL;
-  RedirectMessage *originalHdr;
+  NRAttrVec::iterator attr_itr = msg->msg_attr_vec_->begin();
+  NRSimpleAttribute<void *> *original_header_attr = NULL;
+  RedirectMessage *original_hdr;
 
   // Find original Header
-  originalHeader = OriginalHdrAttr.find_from(msg->msg_attr_vec_, place, &place);
-  if (!originalHeader){
+  original_header_attr = OriginalHdrAttr.find_from(msg->msg_attr_vec_,
+						   attr_itr, &attr_itr);
+  if (!original_header_attr){
     DiffPrint(DEBUG_ALWAYS, "Error: DiffusionCoreAgent::ProcessControlMessage couldn't find the OriginalHdrAttr !\n");
     return false;
   }
 
   // Restore original Header
-  originalHdr = (RedirectMessage *) originalHeader->getVal();
+  original_hdr = (RedirectMessage *) original_header_attr->getVal();
 
-  msg->msg_type_ = originalHdr->msg_type_;
-  msg->source_port_ = originalHdr->source_port_;
-  msg->pkt_num_ = originalHdr->pkt_num_;
-  msg->rdm_id_ = originalHdr->rdm_id_;
-  msg->next_hop_ = originalHdr->next_hop_;
-  msg->last_hop_ = originalHdr->last_hop_;
-  msg->new_message_ = originalHdr->new_message_;
-  msg->num_attr_ = originalHdr->num_attr_;
-  msg->data_len_ = originalHdr->data_len_;
-  msg->next_port_ = originalHdr->next_port_;
+  msg->msg_type_ = original_hdr->msg_type_;
+  msg->source_port_ = original_hdr->source_port_;
+  msg->pkt_num_ = original_hdr->pkt_num_;
+  msg->rdm_id_ = original_hdr->rdm_id_;
+  msg->next_hop_ = original_hdr->next_hop_;
+  msg->last_hop_ = original_hdr->last_hop_;
+  msg->new_message_ = original_hdr->new_message_;
+  msg->num_attr_ = original_hdr->num_attr_;
+  msg->data_len_ = original_hdr->data_len_;
+  msg->next_port_ = original_hdr->next_port_;
 
   // Delete attribute from original set
-  msg->msg_attr_vec_->erase(place);
-  delete originalHeader;
+  msg->msg_attr_vec_->erase(attr_itr);
+  delete original_header_attr;
 
   return true;
 }
 
 FilterList * DiffusionCoreAgent::getFilterList(NRAttrVec *attrs)
 {
-  FilterList *my_list = new FilterList;
-  FilterList::iterator itr, myItr;
-  FilterEntry *entry, *listEntry;
+  FilterList *matching_filter_list = new FilterList;
+  FilterList::iterator known_filters_itr, filter_list_itr;
+  FilterEntry *matching_filter_entry, *filter_entry;
 
   // We need to come up with a list of filters to call
   // F1 will be called before F2 if F1->priority > F2->priority
-  // If F1 and F2 have the same priority, F1 will be called
-  // before F2 is F1->handle < F2->handle. If both handles
-  // are equal, the one with the lower port number will be
-  // called first.
 
-  itr = findMatchingFilter(attrs, filter_list_.begin());
+  known_filters_itr = findMatchingFilter(attrs, filter_list_.begin());
 
-  while (itr != filter_list_.end()){
-    // We have a match
-    entry = *itr;
+  while (known_filters_itr != filter_list_.end()){
+    // We have a match !
+    matching_filter_entry = *known_filters_itr;
 
-    for (myItr = my_list->begin(); myItr != my_list->end(); ++myItr){
-      listEntry = *myItr;
+    for (filter_list_itr = matching_filter_list->begin();
+	 filter_list_itr != matching_filter_list->end(); ++filter_list_itr){
+      filter_entry = *filter_list_itr;
 
       // Figure out where to insert 
-      if (entry->priority_ > listEntry->priority_)
+      if (matching_filter_entry->priority_ > filter_entry->priority_)
 	break;
-
-      if (entry->priority_ == listEntry->priority_){
-	if (entry->handle_ < listEntry->handle_)
-	  break;
-
-	if (entry->handle_ == listEntry->handle_)
-	  if (entry->agent_ < listEntry->agent_)
-	    break;
-
-      }
     }
 
-    my_list->insert(myItr, entry);
+    // Insert matching filter in the list
+    matching_filter_list->insert(filter_list_itr, matching_filter_entry);
 
-    itr++;
-
-    itr = findMatchingFilter(attrs, itr);
+    // Continue the search
+    known_filters_itr++;
+    known_filters_itr = findMatchingFilter(attrs, known_filters_itr);
   }
-  return my_list;
+  return matching_filter_list;
 }
 
 u_int16_t DiffusionCoreAgent::getNextFilterPriority(int16_t handle,
 						    u_int16_t priority,
 						    u_int16_t agent)
 {
-  FilterList::iterator itr;
-  FilterEntry *entry;
+  FilterList::iterator filter_itr;
+  FilterEntry *filter_entry;
 
   if ((priority < FILTER_MIN_PRIORITY) ||
       (priority > FILTER_KEEP_PRIORITY))
@@ -665,17 +651,17 @@ u_int16_t DiffusionCoreAgent::getNextFilterPriority(int16_t handle,
   if (priority < FILTER_KEEP_PRIORITY)
     return (priority - 1);
 
-  itr = filter_list_.begin();
+  filter_itr = filter_list_.begin();
 
-  while (itr != filter_list_.end()){
-    entry = *itr;
+  while (filter_itr != filter_list_.end()){
+    filter_entry = *filter_itr;
 
-    if ((entry->handle_ == handle) && (entry->agent_ == agent)){
+    if ((filter_entry->handle_ == handle) && (filter_entry->agent_ == agent)){
       // Found this filter
-      return (entry->priority_ - 1);
+      return (filter_entry->priority_ - 1);
     }
 
-    itr++;
+    filter_itr++;
   }
 
   return FILTER_INVALID_PRIORITY;
@@ -683,32 +669,32 @@ u_int16_t DiffusionCoreAgent::getNextFilterPriority(int16_t handle,
 
 void DiffusionCoreAgent::processMessage(Message *msg)
 {
-  FilterList *my_list;
-  FilterList::iterator itr;
-  FilterEntry *entry;
+  FilterList *filter_list;
+  FilterList::iterator filter_list_itr;
+  FilterEntry *filter_entry;
 
-  my_list = getFilterList(msg->msg_attr_vec_);
+  filter_list = getFilterList(msg->msg_attr_vec_);
 
   // Ok, we have a list of Filters to call. Send this message
   // to the first filter on this list
-  if (my_list->size() > 0){
-    itr = my_list->begin();
-    entry = *itr;
+  if (filter_list->size() > 0){
+    filter_list_itr = filter_list->begin();
+    filter_entry = *filter_list_itr;
 
-    forwardMessage(msg, entry);
-    my_list->clear();
+    forwardMessage(msg, filter_entry);
+    filter_list->clear();
   }
-  delete my_list;
+  delete filter_list;
 }
 
 void DiffusionCoreAgent::processControlMessage(Message *msg)
 {
-  NRSimpleAttribute<void *> *ctrlmsg = NULL;
-  NRAttrVec::iterator place;
-  ControlMessage *controlblob = NULL;
-  FilterList *flist;
-  FilterList::iterator listitr;
-  FilterEntry *entry;
+  NRSimpleAttribute<void *> *ctrl_msg_attr = NULL;
+  NRAttrVec::iterator attr_itr;
+  ControlMessage *control_blob = NULL;
+  FilterList *filter_list;
+  FilterList::iterator filter_list_itr;
+  FilterEntry *filter_entry;
   int command, param1, param2;
   u_int16_t priority, source_port, new_priority;
   int16_t handle;
@@ -716,39 +702,40 @@ void DiffusionCoreAgent::processControlMessage(Message *msg)
 
   // Control messages should not come from other nodes
   if (msg->last_hop_ != LOCALHOST_ADDR){
-    DiffPrint(DEBUG_ALWAYS, "Error: Received control message from another node !\n");
+    DiffPrint(DEBUG_ALWAYS,
+	      "Error: Received control message from another node !\n");
     return;
   }
 
   // Find the control attribute
-  place = msg->msg_attr_vec_->begin();
-  ctrlmsg = ControlMsgAttr.find_from(msg->msg_attr_vec_, place, &place);
+  attr_itr = msg->msg_attr_vec_->begin();
+  ctrl_msg_attr = ControlMsgAttr.find_from(msg->msg_attr_vec_,
+					   attr_itr, &attr_itr);
 
-  if (!ctrlmsg){
+  if (!ctrl_msg_attr){
     // Control message is invalid
     DiffPrint(DEBUG_ALWAYS, "Error: Control message received is invalid !\n");
     return;
   }
 
   // Extract the control message info
-  controlblob = (ControlMessage *) ctrlmsg->getVal();
-  command = controlblob->command_;
-  param1 = controlblob->param1_;
-  param2 = controlblob->param2_;
+  control_blob = (ControlMessage *) ctrl_msg_attr->getVal();
+  command = control_blob->command_;
+  param1 = control_blob->param1_;
+  param2 = control_blob->param2_;
 
   // Filter API definitions
   //
-  // command = ADD_FILTER
+  // command = ADD_UPDATE_FILTER
   // param1  = priority
   // param2  = handle
   // attrs   = other attrs specify the filter
   // 
   // Remarks: If this filter is already present for this module,
   //          we don't create a new one. A filter is identified
-  //          by the handle and the originating agent. We output
-  //          a warning message if the same handle is added twice
-  //          and do nothing. However, if attrs and handle are
-  //          the same, we just update priority.
+  //          by the handle and the originating agent. The filter
+  //          gets refreshed if it already exists. If attrs and
+  //          handle are the same, we update the priority.
   //
   //
   // command = REMOVE_FILTER
@@ -758,76 +745,77 @@ void DiffusionCoreAgent::processControlMessage(Message *msg)
   //          If it's not found, a warning message is generated.
   //
   //
-  // command = KEEPALIVE_FILTER
-  // param1  = handle
-  //
-  // Remarks: Update the filter's timeout so it doesn't expire.
-  //          If filter is not found, output a warning message.
-  //
-  //
-  // command = SEND_MESSAGE
-  // param1  = agent_id
-  //
   // Remarks: Send message from a local App to another App or
   //          a neighbor. If agent_id is zero, the packet goes
   //          out to the network. Otherwise, it goes to the
   //          agent_id located on this node.
   //
   //
-  // command = SEND_TO_NEXT
+  // command = SEND_MESSAGE
   // param1  = handle
   // param2  = priority
   //
-  // Remarks: Send this message to the next application in the
-  //          priority list. We have to assemble the list again
+  // Remarks: Send this message to the next filter or to a local
+  //          application. We have to assemble the list again
   //          and figure out the current agent's position on the
-  //          list. Then, we send to the next guy.
+  //          list. Then, we send to the next guy. If there is
+  //          no other filter in the list, we try to send it to
+  //          the network, if next_hop contains a node address.
 
   logControlMessage(msg, command, param1, param2);
 
   // First we remove the control attribute from the message
-  msg->msg_attr_vec_->erase(place);
-  delete ctrlmsg;
+  msg->msg_attr_vec_->erase(attr_itr);
+  delete ctrl_msg_attr;
 
   switch(command){
-  case ADD_FILTER:
+  case ADD_UPDATE_FILTER:
 
     priority = param1;
     handle = param2;
 
-    entry = findFilter(handle, msg->source_port_);
+    filter_entry = findFilter(handle, msg->source_port_);
 
-    if (entry){
-      // Filter already present
+    if (filter_entry){
+      // Filter already present, must be an update message
+      if (PerfectMatch(filter_entry->filter_attrs_, msg->msg_attr_vec_)){
+	// Attrs also match, let's update the filter's timeout
+	GetTime(&(filter_entry->tmv_));
 
-      if (PerfectMatch(entry->filterAttrs_, msg->msg_attr_vec_)){
-	// Attrs also match
-	if (priority == entry->priority_){
+	// Check if the priority has changed...
+	if (priority == filter_entry->priority_){
 	  // Nothing to do !
-	  DiffPrint(DEBUG_NO_DETAILS,
-		    "Attempt to add filter %d, %d, %d twice !\n",
-		    msg->source_port_, handle, priority);
+	  DiffPrint(DEBUG_SOME_DETAILS, "Filter %d, %d, %d refreshed.\n",
+		    filter_entry->agent_, filter_entry->handle_,
+		    filter_entry->priority_);
 	}
 	else{
 	  // Update the priority
 	  DiffPrint(DEBUG_NO_DETAILS,
 		    "Updated priority of filter %d, %d, %d to %d\n",
-		    msg->source_port_, handle, entry->priority_, priority);
-	  entry->priority_ = priority;
+		    msg->source_port_, handle, filter_entry->priority_, priority);
+	  filter_entry->priority_ = priority;
 	}
 
 	break;
       }
-    }
-
-    // This is a new filter
-    if (!addFilter(msg->msg_attr_vec_, msg->source_port_, handle, priority)){
-      DiffPrint(DEBUG_ALWAYS, "Failed to add filter %d, %d, %d\n",
-		msg->source_port_, handle, priority);
+      else{
+	// Filter attributes have changed ! This is not allowed !
+	DiffPrint(DEBUG_ALWAYS,
+		  "Filter attributes cannot change during an update !\n");
+	break;
+      }
     }
     else{
-      DiffPrint(DEBUG_NO_DETAILS, "Adding filter %d, %d, %d\n",
-		msg->source_port_, handle, priority);
+      // This is a new filter
+      if (!addFilter(msg->msg_attr_vec_, msg->source_port_, handle, priority)){
+	DiffPrint(DEBUG_ALWAYS, "Failed to add filter %d, %d, %d\n",
+		  msg->source_port_, handle, priority);
+      }
+      else{
+	DiffPrint(DEBUG_NO_DETAILS, "Adding filter %d, %d, %d\n",
+		  msg->source_port_, handle, priority);
+      }
     }
 
     break;
@@ -835,32 +823,17 @@ void DiffusionCoreAgent::processControlMessage(Message *msg)
   case REMOVE_FILTER:
 
     handle = param1;
-    entry = deleteFilter(handle, msg->source_port_);
-    if (entry){
+    filter_entry = deleteFilter(handle, msg->source_port_);
+    if (filter_entry){
       // Filter deleted
       DiffPrint(DEBUG_NO_DETAILS, "Filter %d, %d, %d deleted.\n",
-		entry->agent_, entry->handle_, entry->priority_);
+		filter_entry->agent_, filter_entry->handle_,
+		filter_entry->priority_);
 
-      delete entry;
+      delete filter_entry;
     }
     else{
       DiffPrint(DEBUG_ALWAYS, "Couldn't find filter to delete !\n");
-    }
-
-    break;
-
-  case KEEPALIVE_FILTER:
-
-    handle = param1;
-    entry = findFilter(handle, msg->source_port_);
-    if (entry){
-      // Update filter timeout
-      GetTime(&(entry->tmv_));
-      DiffPrint(DEBUG_SOME_DETAILS, "Filter %d, %d, %d refreshed.\n",
-		entry->agent_, entry->handle_, entry->priority_);
-    }
-    else{
-      DiffPrint(DEBUG_ALWAYS, "Couldn't find filter to update !\n");
     }
 
     break;
@@ -880,19 +853,20 @@ void DiffusionCoreAgent::processControlMessage(Message *msg)
       break;
 
     // Now process the incoming message
-    flist = getFilterList(msg->msg_attr_vec_);
+    filter_list = getFilterList(msg->msg_attr_vec_);
 
     // Find the filter after the 'current' filter on the list
-    if (flist->size() > 0){
-      for (listitr = flist->begin(); listitr != flist->end(); ++listitr){
-	entry = *listitr;
-	if (entry->priority_ <= new_priority){
-	  forwardMessage(msg, entry);
+    if (filter_list->size() > 0){
+      for (filter_list_itr = filter_list->begin();
+	   filter_list_itr != filter_list->end(); ++filter_list_itr){
+	filter_entry = *filter_list_itr;
+	if (filter_entry->priority_ <= new_priority){
+	  forwardMessage(msg, filter_entry);
 	  break;
 	}
       }
 
-      if (listitr == flist->end())
+      if (filter_list_itr == filter_list->end())
 	filter_is_last = true;
 
     }
@@ -905,9 +879,9 @@ void DiffusionCoreAgent::processControlMessage(Message *msg)
       sendMessage(msg);
     }
 
-    flist->clear();
+    filter_list->clear();
 
-    delete flist;
+    delete filter_list;
 
     break;
 
@@ -934,27 +908,22 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
   int opt;
   int debug_level;
 #endif // NS_DIFFUSION
+  DeviceList *in_devices, *out_devices, *local_out_devices;
   DiffusionIO *device;
+  TimerCallback *callback;
   char *scadds_env;
   long stop_time;
   struct timeval tv;
+#ifdef IO_LOG
+  IOLog *pseudo_io_device;
+#endif // IO_LOG
 
   opterr = 0;
   config_file_ = NULL;
   stop_time = 0;
 
-#ifdef NS_DIFFUSION
-  application_id = strdup("DIFFUSION_NS");
-  my_id_ = nodeid;
-#else
-  application_id = strdup(argv[0]);
-#endif // NS_DIFFUSION
   scadds_env = getenv("scadds_addr");
   diffusion_port_ = DEFAULT_DIFFUSION_PORT;
-
-#ifdef BBN_LOGGER
-  InitMainLogger();
-#endif // BBN_LOGGER
 
 #ifndef NS_DIFFUSION
   // Parse command line options
@@ -967,7 +936,8 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 
       diffusion_port_ = (u_int16_t) atoi(optarg);
       if ((diffusion_port_ < 1024) || (diffusion_port_ >= 65535)){
-	DiffPrint(DEBUG_ALWAYS, "Diffusion Error: Port must be between 1024 and 65535 !\n");
+	DiffPrint(DEBUG_ALWAYS,
+		  "Diffusion Error: Port must be between 1024 and 65535 !\n");
 	exit(-1);
       }
 
@@ -1005,7 +975,8 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
       debug_level = atoi(optarg);
 
       if (debug_level < 1 || debug_level > 10){
-	DiffPrint(DEBUG_ALWAYS, "Error: Debug level outside range or missing !\n");
+	DiffPrint(DEBUG_ALWAYS,
+		  "Error: Debug level outside range or missing !\n");
 	usage();
       }
 
@@ -1026,7 +997,9 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
 
     case '?':
 
-      DiffPrint(DEBUG_ALWAYS, "Error: %c isn't a valid option or its parameter is missing !\n", optopt);
+      DiffPrint(DEBUG_ALWAYS,
+		"Error: %c isn't a valid option or its parameter is missing !\n",
+		optopt);
       usage();
 
       break;
@@ -1047,26 +1020,29 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
     config_file_ = strdup(DEFAULT_CONFIG_FILE);
 
   // Get diffusion ID
-  if (scadds_env != NULL) {
+  if (scadds_env != NULL){
     my_id_ = atoi(scadds_env);
   }
-  else {
-    DiffPrint(DEBUG_ALWAYS, "Diffusion : scadds_addr not set. Using random id.\n");
+  else{
+    DiffPrint(DEBUG_ALWAYS,
+	      "Diffusion : scadds_addr not set. Using random id.\n");
 
     // Generate random ID
-    do {
+    do{
       GetTime(&tv);
       SetSeed(&tv);
       my_id_ = GetRand();
     }
     while(my_id_ == LOCALHOST_ADDR || my_id_ == BROADCAST_ADDR);
   }
+#else
+  my_id_ = nodeid;
 #endif // !NS_DIFFUSION
-  
+
   // Initialize variables
   lon_ = 0.0;
   lat_ = 0.0;
-  
+
 #ifdef STATS
   stats_ = new DiffusionStats(my_id_);
 #  ifndef WIRED
@@ -1084,68 +1060,83 @@ DiffusionCoreAgent::DiffusionCoreAgent(int argc, char **argv)
   Tcl_InitHashTable(&htable_, 2);
 
   // Initialize EventQueue
-#ifdef NS_DIFFUSION
-  eq_ = new DiffusionCoreEQ(diffrtg);
-#else
-  eq_ = new EventQueue;
-#endif // NS_DIFFUSION
+  timers_manager_ = new TimerManager;
 
-  // Add timers to the EventQueue
-  eq_->eqAddAfter(NEIGHBORS_TIMER, NULL, NEIGHBORS_DELAY);
-  eq_->eqAddAfter(FILTER_TIMER, NULL, FILTER_DELAY);
-  
-  if (stop_time > 0) 
-    eq_->eqAddAfter(STOP_TIMER, NULL, stop_time * 1000);
-  
+  // Create regular timers
+  callback = new NeighborsTimeoutTimer(this);
+  timers_manager_->addTimer(NEIGHBORS_DELAY, callback);
+
+  callback = new FilterTimeoutTimer(this);
+  timers_manager_->addTimer(FILTER_DELAY, callback);
+
+  if (stop_time > 0){
+    callback = new DiffusionStopTimer(this);
+    timers_manager_->addTimer((stop_time * 1000), callback);
+  }
+
   GetTime(&tv);
-  
+
   // Print Initialization message
   DiffPrint(DEBUG_ALWAYS, "Diffusion : starting at time %ld:%ld\n",
 	    tv.tv_sec, tv.tv_usec);
   DiffPrint(DEBUG_ALWAYS, "Diffusion : Node id = %d\n", my_id_);
 
   // Initialize diffusion io devices
+#ifdef IO_LOG
+  pseudo_io_device = new IOLog(my_id_);
+  in_devices_.push_back(pseudo_io_device);
+  out_devices_.push_back(pseudo_io_device);
+
+  in_devices = &(pseudo_io_device->in_devices_);
+  out_devices = &(pseudo_io_device->out_devices_);
+  local_out_devices = &(local_out_devices_);
+#else
+  in_devices = &(in_devices_);
+  out_devices = &(out_devices_);
+  local_out_devices = &(local_out_devices_);
+#endif // IO_LOG
+
 #ifdef NS_DIFFUSION
   device = new LocalApp(diffrtg);
-  local_out_devices_.push_back(device);
+  local_out_devices->push_back(device);
+
   device = new LinkLayerAbs(diffrtg);
-  out_devices_.push_back(device);
+  out_devices->push_back(device);
 #endif // NS_DIFFUSION
 
 #ifdef UDP
   device = new UDPLocal(&diffusion_port_);
-  in_devices_.push_back(device);
-  local_out_devices_.push_back(device);
-  
+  in_devices->push_back(device);
+  local_out_devices->push_back(device);
+
 #ifdef WIRED
   device = new UDPWired(config_file_);
-  out_devices_.push_back(device);
+  out_devices->push_back(device);
 #endif // WIRED
 #endif // UDP
 
 #ifdef USE_RPC
   device = new RPCIO();
-  in_devices_.push_back(device);
-  out_devices_.push_back(device);
+  in_devices->push_back(device);
+  out_devices->push_back(device);
 #endif // USE_RPC
-  
+
 #ifdef USE_MOTE_NIC
   device = new MOTEIO();
-  in_devices_.push_back(device);
-  out_devices_.push_back(device);
+  in_devices->push_back(device);
+  out_devices->push_back(device);
 #endif // USE_MOTE_NIC
 
 #ifdef USE_WINSNG2
   device = new WINSNG2();
-  in_devices_.push_back(device);
-  out_devices_.push_back(device);
+  in_devices->push_back(device);
+  out_devices->push_back(device);
 #endif // USE_WINSNG2
 }
- 
- 
+
 HashEntry * DiffusionCoreAgent::getHash(unsigned int pkt_num,
 					 unsigned int rdm_id)
-  {
+{
   unsigned int key[2];
 
   key[0] = pkt_num;
@@ -1157,47 +1148,45 @@ HashEntry * DiffusionCoreAgent::getHash(unsigned int pkt_num,
     return NULL;
 
   return (HashEntry *)Tcl_GetHashValue(entryPtr);
-  }
-
+}
 
 void DiffusionCoreAgent::putHash(unsigned int pkt_num,
 				 unsigned int rdm_id)
 {
-  Tcl_HashEntry *entryPtr;
-  HashEntry *hashPtr;
-  HashList::iterator itr;
+  Tcl_HashEntry *tcl_hash_entry;
+  HashEntry *hash_entry;
+  HashList::iterator hash_itr;
   unsigned int key[2];
-  int newPtr;
+  int new_hash_key;
 
   if (hash_list_.size() == HASH_TABLE_MAX_SIZE){
     // Hash table reached maximum size
 
     for (int i = 0; ((i < HASH_TABLE_REMOVE_AT_ONCE)
 		     && (hash_list_.size() > 0)); i++){
-      itr = hash_list_.begin();
-      entryPtr = *itr;
-      hashPtr = (HashEntry *) Tcl_GetHashValue(entryPtr);
-      delete hashPtr;
-      hash_list_.erase(itr);
-      Tcl_DeleteHashEntry(entryPtr);
+      hash_itr = hash_list_.begin();
+      tcl_hash_entry = *hash_itr;
+      hash_entry = (HashEntry *) Tcl_GetHashValue(tcl_hash_entry);
+      delete hash_entry;
+      hash_list_.erase(hash_itr);
+      Tcl_DeleteHashEntry(tcl_hash_entry);
     }
   }
 
   key[0] = pkt_num;
   key[1] = rdm_id;
 
-  entryPtr = Tcl_CreateHashEntry(&htable_, (char *)key, &newPtr);
+  tcl_hash_entry = Tcl_CreateHashEntry(&htable_, (char *)key, &new_hash_key);
 
-  if (newPtr == 0){
+  if (new_hash_key == 0){
     DiffPrint(DEBUG_IMPORTANT, "Key already exists in hash !\n");
     return;
   }
 
-  hashPtr = new HashEntry;
+  hash_entry = new HashEntry;
 
-  Tcl_SetHashValue(entryPtr, hashPtr);
-
-  hash_list_.push_back(entryPtr);
+  Tcl_SetHashValue(tcl_hash_entry, hash_entry);
+  hash_list_.push_back(tcl_hash_entry);
 }
 
 #ifndef NS_DIFFUSION
@@ -1239,7 +1228,7 @@ void DiffusionCoreAgent::recvPacket(DiffPacket pkt)
 
 void DiffusionCoreAgent::recvMessage(Message *msg)
 {
-  Tcl_HashEntry *entryPtr;
+  Tcl_HashEntry *tcl_hash_entry;
   unsigned int key[2];
 
   // Check version
@@ -1264,9 +1253,9 @@ void DiffusionCoreAgent::recvMessage(Message *msg)
   
     key[0] = msg->pkt_num_;
     key[1] = msg->rdm_id_;
-    entryPtr = Tcl_FindHashEntry(&htable_, (char *) key);
+    tcl_hash_entry = Tcl_FindHashEntry(&htable_, (char *) key);
 
-    if (entryPtr != NULL){
+    if (tcl_hash_entry != NULL){
       DiffPrint(DEBUG_DETAILS, "Received old message !\n");
       msg->new_message_ = 0;
     }

@@ -34,22 +34,99 @@
 #include "diffagent.h"
 #include "diffrtg.h"
 
+DiffEvent::DiffEvent(d_handle hdl, void *payload, int time) {
+	handle_ = hdl;
+	payload_ = payload;
+	GetTime(&tv_);
+	TimevalAddusecs(&tv_, time*1000);
+}
 
+void DiffEventQueue::eqAddAfter(d_handle hdl, void *payload, int delay_msec) {
+	DiffEvent* de;
+	
+	de = new DiffEvent(hdl, payload, delay_msec);
+	DiffEventHandler *dh = timerHandler_;
+	double delay = ((double)delay_msec)/1000;   //convert msec to sec
+	
+	(void)Scheduler::instance().schedule(dh, de, delay);
+	scheduler_uid_t uid = ((Event *)de)->uid_;
+	
+	setUID(hdl, uid);
+}
+
+
+DiffEvent *DiffEventQueue::eqFindEvent(d_handle hdl) {
+	scheduler_uid_t uid = getUID(hdl);
+	if (uid != -1) {
+		Event *p = Scheduler::instance().lookup(uid);
+		if (p != 0) {
+			return ((DiffEvent *)p);
+		} else {
+			fprintf(stderr, "Error: Can't find event in scheduler queue\n");
+			return NULL;
+		}
+	} else {
+		fprintf(stderr, "Error: Can't find event in uidmap!\n");
+		return NULL;
+	}
+}
+
+bool DiffEventQueue::eqRemove(d_handle hdl) {
+	// first lookup UID
+	scheduler_uid_t uid = getUID(hdl);
+	if (uid != -1) {
+		// next look for event in scheduler queue
+		Event *p = Scheduler::instance().lookup(uid);
+		if (p != 0) {
+			// remove event from scheduler
+			Scheduler::instance().cancel(p);
+			TimerEntry* te = (TimerEntry *)((DiffEvent *)p)->payload();
+			delete te;
+			delete p;
+			return 1;
+		} else {
+			fprintf(stderr, "Error: Can't find event in scheduler queue\n");
+			return 0;
+		}
+	} else {
+		fprintf(stderr, "Error: Can't find event in uidmap!\n");
+		return 0;
+	}
+}
+
+// sets value of UID and matching handle into uidmap
+void DiffEventQueue::setUID(d_handle hdl, scheduler_uid_t uid) {
+	MapEntry *me = new MapEntry;
+	me->hdl_ = hdl;
+	me->uid_ = uid;
+	uidmap_.push_back(me);
+}
+
+// finds UID for matching handle; removes entry from uidmap and returns uid
+scheduler_uid_t DiffEventQueue::getUID(d_handle hdl) {
+	UIDMap_t::iterator itr;
+	MapEntry* entry;
+	for (itr = uidmap_.begin(); itr != uidmap_.end(); ++itr) {
+		entry = *itr;
+		if (entry->hdl_ == hdl) { // found handle
+			// don't need this entry, take it out of list
+			scheduler_uid_t uid = entry->uid_;
+			itr = uidmap_.erase(itr);
+			delete entry;
+			return uid;
+		}
+	}
+	return (-1);
+}
+
+// event handler that gets called at expiry time of event
 void DiffEventHandler::handle(Event *e) {
-  a_->diffTimeout(e);
+	DiffEvent *de = (DiffEvent *)e;
+	
+	d_handle hdl = de->getHandle();
+	queue_->getUID(hdl); // only removes entry from uidmap
+	a_->diffTimeout(de);
 }
 
-//bool DiffEventHandler::findEvent(){ 
-// not supported as yet.
-//}
-
-//void DiffEventHandler::removeEvent(Event *e) {
-// not supported as yet. - Future work
-//}
-
-
-void CoreDiffEventHandler::handle(Event *e) {
-  a_->diffTimeout(e);
-}
 
 #endif // NS

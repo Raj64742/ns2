@@ -1,9 +1,9 @@
 //
-// ping_common.cc : Ping App Common File
-// author         : Fabio Silva
+// iolog.hh      : IO Log Include File
+// Authors       : Fabio Silva and Yutaka Mori
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: ping_common.cc,v 1.5 2002/09/16 17:57:21 haldar Exp $
+// $Id: iolog.hh,v 1.1 2002/09/16 17:57:28 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,8 +20,23 @@
 //
 //
 
-#include "ping.hh"
+#ifndef _IOLOG_HH_
+#define _IOLOG_HH_
 
-NRSimpleAttributeFactory<char *> TargetAttr(NRAttribute::TARGET_KEY, NRAttribute::STRING_TYPE);
-NRSimpleAttributeFactory<int> AppCounterAttr(COUNTER_KEY, NRAttribute::INT32_TYPE);
-NRSimpleAttributeFactory<void *> TimeAttr(TIME_KEY, NRAttribute::BLOB_TYPE);
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif // HAVE_CONFIG_H
+
+#include <netinet/in.h>
+#include "main/iohook.hh"
+
+class IOLog : public IOHook {
+public:
+  IOLog(int32_t id);
+  DiffPacket recvPacket(int fd);
+  void sendPacket(DiffPacket pkt, int len, int dst);
+
+  int32_t node_id_;
+};
+
+#endif // !_IOLOG_HH_

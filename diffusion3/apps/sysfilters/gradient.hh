@@ -3,7 +3,7 @@
 // author         : Fabio Silva and Chalermek Intanagonwiwat
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: gradient.hh,v 1.4 2002/05/29 21:58:11 haldar Exp $
+// $Id: gradient.hh,v 1.5 2002/09/16 17:57:23 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -27,6 +27,7 @@
 #include "config.h"
 #endif // HAVE_CONFIG_H
 
+#include <algorithm>
 #include "diffapp.hh"
 
 #ifdef NS_DIFFUSION
@@ -186,6 +187,65 @@ public:
   GradientFilter *app_;
 };
 
+class DataForwardingHistory {
+public:
+  DataForwardingHistory()
+  {
+    data_reinforced_ = false;
+  };
+
+  ~DataForwardingHistory()
+  {
+    node_list_.clear();
+    agent_list_.clear();
+  };
+
+  bool alreadyForwardedToNetwork(int32_t node_id)
+  {
+    list<int32_t>::iterator list_itr;
+
+    list_itr = find(node_list_.begin(), node_list_.end(), node_id);
+    if (list_itr == node_list_.end())
+      return false;
+    return true;
+  };
+
+  bool alreadyForwardedToLibrary(u_int16_t agent_id)
+  {
+    list<u_int16_t>::iterator list_itr;
+
+    list_itr = find(agent_list_.begin(), agent_list_.end(), agent_id);
+    if (list_itr == agent_list_.end())
+      return false;
+    return true;
+  };
+
+  bool alreadyReinforced()
+  {
+    return data_reinforced_;
+  };
+
+  void sendingReinforcement()
+  {
+    data_reinforced_ = true;
+  };
+
+  void forwardingToNetwork(int32_t node_id)
+  {
+    node_list_.push_back(node_id);
+  };
+
+  void forwardingToLibrary(u_int16_t agent_id)
+  {
+    agent_list_.push_back(agent_id);
+  };
+
+private:
+  list<int32_t> node_list_;
+  list<u_int16_t> agent_list_;
+  bool data_reinforced_;
+};
+
 class TimerType {
 public:
   TimerType(int which_timer) : which_timer_(which_timer)
@@ -256,9 +316,12 @@ protected:
   void sendDisinterest(NRAttrVec *attrs, RoutingEntry *routing_entry);
   void sendPositiveReinforcement(NRAttrVec *reinf_attrs, int32_t data_rdm_id,
 				 int32_t data_pkt_num, int32_t destination);
-  void forwardData(Message *msg, RoutingEntry *routing_entry);
-  void forwardExploratoryData(Message *msg, RoutingEntry *routing_entry);
-  void forwardPushExploratoryData(Message *msg);
+  void forwardData(Message *msg, RoutingEntry *routing_entry,
+		   DataForwardingHistory *forwarding_history);
+  void forwardExploratoryData(Message *msg, RoutingEntry *routing_entry,
+			      DataForwardingHistory *forwarding_history);
+  void forwardPushExploratoryData(Message *msg,
+				  DataForwardingHistory *forwarding_history);
 
   // Message Processing functions
   void processOldMessage(Message *msg);

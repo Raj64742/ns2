@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: config.hh,v 1.4 2002/05/29 21:58:13 haldar Exp $
+// $Id: config.hh,v 1.5 2002/09/16 17:57:29 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -25,28 +25,16 @@
 #endif // HAVE_CONFIG_H
 
 // Software information
-#define PROGRAM "Diffusion 3.0.7"
-#define RELEASE "Gear Alpha Release"
+#define PROGRAM "Diffusion 3.1.2"
+#define RELEASE "Gear + Push Release"
 #define DEFAULT_CONFIG_FILE "config.txt"
 
 // Timers
 #define INTEREST_TIMER         1
-#define ENERGY_TIMER           2
 #define GRADIENT_TIMER         3
 #define SUBSCRIPTION_TIMER     4
-#define NEIGHBORS_TIMER        5
-#define FILTER_TIMER           6
-#define FILTER_KEEPALIVE_TIMER 7
-#define APPLICATION_TIMER      8
 #define REINFORCEMENT_TIMER    9
 #define MESSAGE_SEND_TIMER     10
-#define STOP_TIMER             11
-#define PACKET_RECEIVED        12
-
-#ifdef BBN_LOGGER
-#define LOGGER_BUFFER_SIZE 512
-#define LOGGER_CONFIG_FILE "/sensit/Logger.ISI"
-#endif // BBN_LOGGER
 
 // Configurable parameters start here
 

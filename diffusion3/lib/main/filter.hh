@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: filter.hh,v 1.4 2002/05/29 21:58:13 haldar Exp $
+// $Id: filter.hh,v 1.5 2002/09/16 17:57:29 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -50,13 +50,13 @@ typedef long handle;
 
 class FilterEntry {
 public:
-  NRAttrVec          *filterAttrs_;
-  int16_t            handle_;
-  u_int16_t          priority_;
-  u_int16_t          agent_;
-  FilterCallback     *cb_;
-  struct timeval     tmv_;
-  bool               valid_;
+  NRAttrVec *filter_attrs_;
+  int16_t handle_;
+  u_int16_t priority_;
+  u_int16_t agent_;
+  FilterCallback *cb_;
+  struct timeval tmv_;
+  bool valid_;
    
   FilterEntry(int16_t handle, u_int16_t priority, u_int16_t agent) :
     handle_(handle), priority_(priority), agent_(agent)
@@ -68,9 +68,9 @@ public:
 
   ~FilterEntry()
   {
-    if (filterAttrs_){
-      ClearAttrs(filterAttrs_);
-      delete filterAttrs_;
+    if (filter_attrs_){
+      ClearAttrs(filter_attrs_);
+      delete filter_attrs_;
     }
   }
 };

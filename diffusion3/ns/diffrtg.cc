@@ -31,7 +31,6 @@
 #ifdef NS_DIFFUSION
 
 #include "diffrtg.h"
-#include "diffusion.hh"
 #include "address.h"
 #include "scheduler.h"
 #include "diffagent.h"
@@ -91,54 +90,10 @@ DiffPacket LinkLayerAbs::recvPacket(int fd) {
 }
 
 
-void DiffusionCoreEQ::eqAddAfter(int type, void *payload, int delay_msec) {
-  
-  DiffEvent* de = new DiffEvent(type, payload, delay_msec);
-  CoreDiffEventHandler *dh = a_->getDiffTimer();
-  double delay = delay_msec/1000; //convert msec to sec
-  
-  (void)Scheduler::instance().schedule(dh, de, delay);
-}
- 
 
 DiffRoutingAgent::DiffRoutingAgent(int nodeid) : Agent(PT_DIFF) {
-	difftimer_ = new CoreDiffEventHandler(this);
 	agent_ = new DiffusionCoreAgent(this, nodeid);
 
-}
-
-
-void DiffRoutingAgent::diffTimeout(Event *de) {
-  DiffEvent *e = (DiffEvent *)de;
-
-  // Timeouts
-  switch (e->type()){
-
-  case NEIGHBORS_TIMER:
-
-    agent_->neighborsTimeOut();
-    delete e;
-
-    break;
-
-  case FILTER_TIMER:
-    
-    agent_->filterTimeOut();
-    delete e;
-    
-    break;
-    
-  case STOP_TIMER:
-
-    delete e;
-    agent_->timeToStop();
-    
-    break;
-    
-  default:
-    // no error for unknown type of timer ??
-    break;
-  }
 }
 
 
@@ -207,7 +162,9 @@ int DiffRoutingAgent::command(int argc, const char*const* argv) {
 		if (strcasecmp(argv[1], "stop-time")==0) {
 			// add stop-event which when fired dumps statistical data
 			// at end of ns simulation
-			agent_->eq_->eqAddAfter(STOP_TIMER, NULL, atoi(argv[2])*1000);
+			TimerCallback *callback;
+			callback = new DiffusionStopTimer(agent_);
+			agent_->timers_manager_->addTimer(atoi(argv[2])*1000, callback);
 			return TCL_OK;
 		}
 		TclObject *obj;

@@ -1,3 +1,43 @@
+Diffusion 3.1.3
+---------------
+
+- Diffusion now compiles with GCC 3.1 without any warnings.
+
+Diffusion 3.1.2
+---------------
+
+- Fixed timing issue in dr.cc (ns related issue).
+- Added support for gear to work with push.
+- Added an iohook layer that allows code to work between diffusion core
+  and the device drivers.
+- Added support for an iolog layer that logs incoming and outgoing
+  packets as they are received/sent to the various device drivers.
+- Removed support for the BBN logger.
+
+Diffusion 3.1.1
+---------------
+
+- Added support for the new Sensoria RF API (Tested with Sensoria
+  software version 2.0.1).
+- Changed the filter add/update scheme so diffusion can be
+  started after filters.
+
+Diffusion 3.1
+-------------
+
+- Revised GEAR to add support for all four operators (GE, GT, LE, LT)
+  for declaring a closed geographic region.
+- Added support for PUSH in the library API and in the gradient filter.
+- Added push_sender and push_receiver to the pingapp directory. These
+  are the 'push' versions of ping_sender and ping_receiver.
+- Removed agent1/agent2 from the distribution.
+- Changed the log filter to also print the packet size.
+- Included a revised (release 9.0) API document, with examples of
+  PUSH and GEAR subscriptions/publications.
+- Diffusion now uses autoconf/automake. It simplifies configuring/
+  compiling diffusion for the different hardware platforms and
+  rf device options.
+
 Diffusion 3.0.7
 ---------------
 
@@ -99,4 +139,4 @@ Diffusion 3.0.2
 Diffusion 3.0.1
 ---------------
 
-Initial release of diffusion 3.
+- Initial release of diffusion 3.

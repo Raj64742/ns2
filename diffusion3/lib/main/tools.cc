@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tools.cc,v 1.4 2002/05/29 21:58:13 haldar Exp $
+// $Id: tools.cc,v 1.5 2002/09/16 17:57:29 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -28,24 +28,6 @@
 #endif // NS_DIFFUSION
 
 int global_debug_level = DEBUG_DEFAULT;
-int default_debug_level = DEBUG_DEFAULT;
-
-char *application_id = NULL;
-
-#ifdef BBN_LOGGER
-Logger *log_general = NULL;
-
-void InitMainLogger()
-{
-  // Init logger
-  log_general = new Logger();
-
-  // Configure and start logging
-  log_general->initFromPropertiesFile(LOGGER_CONFIG_FILE);
-
-  log_general->Go();
-}
-#endif // BBN_LOGGER
 
 void GetTime(struct timeval *tv)
 {
@@ -85,26 +67,14 @@ int GetRand()
 
 void DiffPrint(int msg_debug_level, const char *fmt, ...)
 {
-#ifdef BBN_LOGGER
-  char buf[LOGGER_BUFFER_SIZE];
-  int retval;
-#endif // BBN_LOGGER
   va_list ap;
 
   va_start(ap, fmt);
 
   if (global_debug_level >= msg_debug_level){
-
-#ifdef BBN_LOGGER
-    // Log into BBN logger
-    retval = vsnprintf(buf, LOGGER_BUFFER_SIZE, fmt, ap);
-    if (log_general && application_id)
-      log_general->LogMessage(application_id, buf);
-#else
     // Print message
     vfprintf(stderr, fmt, ap);
     fflush(NULL);
-#endif
   }
 
   va_end(ap);

@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: message.hh,v 1.4 2002/05/29 21:58:13 haldar Exp $
+// $Id: message.hh,v 1.5 2002/09/16 17:57:29 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -105,9 +105,8 @@ extern NRSimpleAttributeFactory<void *> OriginalHdrAttr;
 
 // Control Message types
 typedef enum ctl_t_ {
-  ADD_FILTER,
+  ADD_UPDATE_FILTER,
   REMOVE_FILTER,
-  KEEPALIVE_FILTER,
   SEND_MESSAGE
 } ctl_t;
 

@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2002 by the University of Southern California
 // Copyright (C) 2000-2002 by the University of California
-// $Id: geo-tools.hh,v 1.1 2002/05/29 22:11:54 haldar Exp $
+// $Id: geo-tools.hh,v 1.2 2002/09/16 17:57:21 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,

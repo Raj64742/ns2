@@ -3,7 +3,7 @@
 // authors       : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: diffusion.hh,v 1.5 2002/07/02 21:50:14 haldar Exp $
+// $Id: diffusion.hh,v 1.6 2002/09/16 17:57:28 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -36,12 +36,16 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include "main/events.hh"
+#include "main/timers.hh"
 #include "main/message.hh"
 #include "main/filter.hh"
 #include "main/config.hh"
 #include "main/tools.hh"
 #include "main/iodev.hh"
+
+#ifdef IO_LOG
+#include "iolog.hh"
+#endif // IO_LOG
 
 #ifdef NS_DIFFUSION
 #include <tcl.h>
@@ -85,7 +89,6 @@ class NeighborEntry;
 
 typedef list<NeighborEntry *> NeighborList;
 typedef list<Tcl_HashEntry *> HashList;
-typedef list<DiffusionIO *> DeviceList;
 
 class DiffusionCoreAgent {
 public:
@@ -98,6 +101,10 @@ public:
   void run();
 #endif // NS_DIFFUSION
   void timeToStop();
+  // Timer functions
+  void neighborsTimeout();
+  void filterTimeout();
+
 protected:
   float lon_;
   float lat_;
@@ -130,7 +137,8 @@ protected:
   HashList hash_list_;
 
   // Data structures
-  EventQueue *eq_;
+  TimerManager *timers_manager_;
+  //  EventQueue *eq_;
   Tcl_HashTable htable_;
 
   // Device-Independent send
@@ -162,17 +170,41 @@ protected:
   FilterEntry * findFilter(int16_t handle, u_int16_t agent);
   FilterEntry * deleteFilter(int16_t handle, u_int16_t agent);
   bool addFilter(NRAttrVec *attrs, u_int16_t agent, int16_t handle, u_int16_t priority);
-  FilterList::iterator findMatchingFilter(NRAttrVec *attrs, FilterList::iterator itr);
+  FilterList::iterator findMatchingFilter(NRAttrVec *attrs, FilterList::iterator filter_itr);
   u_int16_t getNextFilterPriority(int16_t handle, u_int16_t priority, u_int16_t agent);
 
   // Send messages to modules
-  void forwardMessage(Message *msg, FilterEntry *dst);
+  void forwardMessage(Message *msg, FilterEntry *filter_entry);
   void sendMessage(Message *msg);
-
-  // Timer functions
-  void neighborsTimeOut();
-  void filterTimeOut();
-  void energyTimeOut();
 };
+
+class NeighborsTimeoutTimer : public TimerCallback {
+public:
+  NeighborsTimeoutTimer(DiffusionCoreAgent *agent) : agent_(agent) {};
+  ~NeighborsTimeoutTimer() {};
+  int expire();
+
+  DiffusionCoreAgent *agent_;
+};
+
+class FilterTimeoutTimer : public TimerCallback {
+public:
+  FilterTimeoutTimer(DiffusionCoreAgent *agent) : agent_(agent) {};
+  ~FilterTimeoutTimer() {};
+  int expire();
+
+  DiffusionCoreAgent *agent_;
+};
+
+
+class DiffusionStopTimer : public TimerCallback {
+public:
+  DiffusionStopTimer(DiffusionCoreAgent *agent) : agent_(agent) {};
+  ~DiffusionStopTimer() {};
+  int expire();
+
+  DiffusionCoreAgent *agent_;
+};
+
 
 #endif // !_DIFFUSION_HH_

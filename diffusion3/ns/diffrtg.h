@@ -34,7 +34,7 @@
 #ifndef DIFFUSION_RTG
 #define DIFFUSION_RTG
 
-#include "difftimer.h"
+#include "diffusion.hh"
 #include "iodev.hh"
 #include "events.hh"
 #include "classifier-port.h"
@@ -66,15 +66,6 @@ protected:
 	DiffRoutingAgent *agent_;
 };
  
-class DiffusionCoreEQ : public EventQueue {
-public:
-	DiffusionCoreEQ(DiffRoutingAgent *agent) { a_ = agent; }
-	void eqAddAfter(int type, void *, int delay);
-private:
-	DiffRoutingAgent *a_;
-};
-
-
 class DiffusionData : public AppData {
 private:
 	Message *data_;
@@ -110,10 +101,6 @@ public:
 	//trace support
 	void trace (char *fmt,...);
 	
-	//timer functions
-	CoreDiffEventHandler *getDiffTimer() { return difftimer_ ; }
-	void diffTimeout(Event *de);
-
 	PortClassifier *port_dmux() {return port_dmux_; }
 private:
 	int addr_;
@@ -121,9 +108,6 @@ private:
 	
 	//  diffusion core agent 
 	DiffusionCoreAgent *agent_;
-	
-	// timer
-	CoreDiffEventHandler *difftimer_;
 	
 	//port-dmux
 	PortClassifier *port_dmux_;

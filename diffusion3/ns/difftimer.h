@@ -33,36 +33,89 @@
 #ifndef diffevent_handler_h
 #define diffevent_handler_h
 
+
+#include <list>
 #include "scheduler.h"
+#include "timers.hh"
+
+
+class MapEntry;
+class DiffEventQueue;
+
+typedef long d_handle;
+typedef list<MapEntry *> UIDMap_t;
+
+
+class MapEntry {
+public:
+	d_handle hdl_;
+	scheduler_uid_t uid_;
+};
+
+
 
 /* This handler class keeps track of diffusion specific events. 
    It schedules multiple events and irrespective of the event types, 
    always calls back the callback function of its agent.
 */
 
-class DiffAppAgent;
+class DiffEvent : public Event {
+private:
+	struct timeval tv_;	
+	d_handle handle_;
+	void* payload_;
+public:
+	DiffEvent(d_handle hdl, void *payload, int time);
+	~DiffEvent() { }
+	int gettime() {
+		return ((tv_.tv_sec) + ((tv_.tv_usec)/1000000));
+	}
+	d_handle getHandle() { return handle_; }
+	void* payload() { return payload_; }
+};
+
 
 class DiffEventHandler : public Handler {
- public:
-  DiffEventHandler(DiffAppAgent *agent) { a_ = agent; }
-  void handle(Event *);
-  //bool findEvent(Event *); FUTURE WORK
-  //void removeEvent(Event *e); FUTURE WORK
- private:
-  DiffAppAgent *a_;
+public:
+	DiffEventHandler(TimerManager *agent, DiffEventQueue *deq) { 
+		a_ = agent; 
+		queue_ = deq;
+	}
+	void handle(Event *);
+
+private:
+	TimerManager *a_;
+	DiffEventQueue *queue_;
 };
 
-class DiffRoutingAgent;
 
-class CoreDiffEventHandler : public Handler {
- public:
-  CoreDiffEventHandler(DiffRoutingAgent *agent) { a_ = agent; }
-  void handle(Event *);
-  //bool findEvent(Event *);
-  //void removeEvent(Event *e);
- private:
-  DiffRoutingAgent *a_;
-};
+class DiffEventQueue : public EventQueue { 
+public: 
+	DiffEventQueue(TimerManager* a) { 
+		a_ = a; 
+		timerHandler_ = new DiffEventHandler(a_, this);
+	} 
+	~DiffEventQueue() { delete timerHandler_; }
+	// queue functions
+	void eqAddAfter(d_handle hdl, void *payload, int delay_msec);
+	DiffEvent *eqFindEvent(d_handle hdl);
+	bool eqRemove(d_handle hdl);
+	
+	// mapping functions
+	void setUID(d_handle hdl, scheduler_uid_t uid);
+	scheduler_uid_t getUID(d_handle hdl);
+	
+private: 
+	TimerManager *a_;
+	DiffEventHandler *timerHandler_;
+	
+	// map for diffusion handle and ns scheduler uid
+	UIDMap_t uidmap_;
+}; 
+
+
+
+
 
 #endif //diffusion_timer_h
 #endif // NS

@@ -55,68 +55,8 @@ DiffPacket NsLocal::recvPacket(int fd) {
 }
 
 
-
-DiffEvent::DiffEvent(int type, void *payload, int time) {
-  type_ = type;
-  payload_ = payload;
-  GetTime(&tv_);
-  TimevalAddusecs(&tv_, time*1000);
-}
-
-void DiffEventQueue::eqAddAfter(int type, void *payload, int delay_msec) {
-  DiffEvent* de;
-	
-  de = new DiffEvent(type, payload, delay_msec);
-  DiffEventHandler *dh = a_->getDiffTimer();
-  double delay = delay_msec/1000;   //convert msec to sec
-	
-  (void)Scheduler::instance().schedule(dh, de, delay);
-}
-
-
 DiffAppAgent::DiffAppAgent() : Agent(PT_DIFF) {
   dr_ = NR::create_ns_NR(DEFAULT_DIFFUSION_PORT, this);
-  difftimer_ = new DiffEventHandler(this);
-}
-
-void DiffAppAgent::diffTimeout(Event *de) {
-  DiffEvent *e = (DiffEvent *)de;
-  
-  switch (e->type()) {
-	  
-  case INTEREST_TIMER:
-	  
-	  //pthread_mutex_lock(drMtx);
-	  ((DiffusionRouting *)dr_)->interestTimeout((HandleEntry *)(e->payload()));
-	  //pthread_mutex_unlock(drMtx);
-	  
-	  delete e;
-	  
-	  break;
-	  
-  case FILTER_KEEPALIVE_TIMER:
-	  
-	  //pthread_mutex_lock(drMtx);
-	  ((DiffusionRouting *)dr_)->filterKeepaliveTimeout((FilterEntry *) (e->payload()));
-	  //pthread_mutex_unlock(drMtx);
-	  
-	  delete e;
-	  
-	  break;
-	  
-  case APPLICATION_TIMER:
-	  
-	  ((DiffusionRouting *)dr_)->applicationTimeout((TimerEntry *) (e->payload()));
-	  
-	  delete e;
-	  
-	  break;
-	  
-  default:
-	  // no error for unknown type of timer ??
-	  break;
-	  
-  }
 }
 
 

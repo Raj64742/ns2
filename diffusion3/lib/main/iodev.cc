@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: iodev.cc,v 1.4 2002/05/29 21:58:13 haldar Exp $
+// $Id: iodev.cc,v 1.5 2002/09/16 17:57:29 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -44,11 +44,26 @@ void DiffusionIO::addInFDS(fd_set *fds, int *max)
 int DiffusionIO::checkInFDS(fd_set *fds)
 {
   list<int>::iterator itr;
+  int fd;
 
   for (itr = in_fds_.begin(); itr != in_fds_.end(); ++itr){
-    if (FD_ISSET(*itr, fds)){
-      return (*itr);
+    fd = *itr;
+    if (FD_ISSET(fd, fds)){
+      return (fd);
     }
   }
   return 0;
+}
+
+bool DiffusionIO::hasFD(int fd)
+{
+  list<int>::iterator itr;
+  int device_fd;
+
+  for (itr = in_fds_.begin(); itr != in_fds_.end(); ++itr){
+    device_fd = *itr;
+    if (device_fd == fd)
+      return true;
+  }
+  return false;
 }

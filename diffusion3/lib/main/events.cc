@@ -1,9 +1,9 @@
 // 
 // events.cc     : Provides the EventQueue
-// authors       : Lewis Girod and Fabio Silva
+// authors       : Lewis Girod John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: events.cc,v 1.4 2002/05/29 21:58:13 haldar Exp $
+// $Id: events.cc,v 1.5 2002/09/16 17:57:29 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -38,12 +38,8 @@ int TimevalCmp(struct timeval *x, struct timeval *y)
   return 0;
 }
 
-struct timeval *TimevalSub(struct timeval *x, struct timeval *y)
+void TimevalSub(struct timeval *x, struct timeval *y, struct timeval *tv)
 {
-  struct timeval *tv;
-
-  tv = new struct timeval;
-
   if (TimevalCmp(x, y) < 0) 
     tv->tv_sec = tv->tv_usec = 0;
   else{
@@ -57,7 +53,6 @@ struct timeval *TimevalSub(struct timeval *x, struct timeval *y)
     tv->tv_usec -= y->tv_usec;
     tv->tv_sec -= y->tv_sec;
   }
-  return tv;
 }
 
 void TimevalAddusecs(struct timeval *tv, int usecs)
@@ -73,33 +68,33 @@ void TimevalAddusecs(struct timeval *tv, int usecs)
 //  EventQueue Methods
 //
 
-int EventQueue::eventCmp(DiffusionEvent *x, DiffusionEvent *y)
+int EventQueue::eventCmp(QueueEvent *x, QueueEvent *y)
 {
   return TimevalCmp(&(x->tv_), &(y->tv_));
 }
 
-void EventQueue::eqAdd(DiffusionEvent *n)
+void EventQueue::eqAdd(QueueEvent *e)
 {
-  DiffusionEvent *ptr = head_;
-  DiffusionEvent *last = ptr;
+  QueueEvent *ptr = head_;
+  QueueEvent *last = ptr;
 
-  while (ptr && (eventCmp(n, ptr) > 0)){
+  while (ptr && (eventCmp(e, ptr) > 0)){
     last = ptr; 
     ptr = ptr->next_;
   }
   if (last == ptr){
-    n->next_ = head_;
-    head_ = n;
+    e->next_ = head_;
+    head_ = e;
   }
   else{
-    n->next_ = ptr;
-    last->next_ = n;
+    e->next_ = ptr;
+    last->next_ = e;
   }
 }
 
-DiffusionEvent * EventQueue::eqPop()
+QueueEvent * EventQueue::eqPop()
 {
-  DiffusionEvent *e = head_;
+  QueueEvent *e = head_;
 
   if (e){
     head_ = head_->next_;
@@ -108,15 +103,15 @@ DiffusionEvent * EventQueue::eqPop()
   return e;
 }
 
-DiffusionEvent * EventQueue::eqFindEvent(int type)
+QueueEvent * EventQueue::eqFindEvent(handle hdl)
 {
-  return eqFindNextEvent(type, head_);
+  return eqFindNextEvent(hdl, head_);
 }
 
-DiffusionEvent * EventQueue::eqFindNextEvent(int type, DiffusionEvent *e)
+QueueEvent * EventQueue::eqFindNextEvent(handle hdl, QueueEvent *e)
 {
   while (e){
-    if (e->type_ == type)
+    if (e->handle_ == hdl)
       return e;
     e = e->next_;
   }
@@ -124,34 +119,34 @@ DiffusionEvent * EventQueue::eqFindNextEvent(int type, DiffusionEvent *e)
   return e;
 }
 
-void EventQueue::eqAddAfter(int type, void *payload, int delay_msec)
+void EventQueue::eqAddAfter(handle hdl, void *payload, int delay_msec)
 {
-  DiffusionEvent *e = new DiffusionEvent;
+  QueueEvent *e = new QueueEvent;
 
-  e->type_ = type;
+  e->handle_ = hdl;
   e->payload_ = payload;
   setDelay(e, delay_msec);
   eqAdd(e);
 }
 
-void EventQueue::setDelay(DiffusionEvent *e, int delay_msec)
+void EventQueue::setDelay(QueueEvent *e, int delay_msec)
 {
   GetTime(&(e->tv_));
   TimevalAddusecs(&(e->tv_), delay_msec * 1000);
 }
 
-struct timeval * EventQueue::eqNextTimer()
+void EventQueue::eqNextTimer(struct timeval *tv)
 {
-  struct timeval *tv;
   struct timeval now;
 
   if (head_){
     GetTime(&now);
-    tv = TimevalSub(&(head_->tv_), &now);
-    return tv;
+    TimevalSub(&(head_->tv_), &now, tv);
   }
-  else
-    return NULL;
+  else{
+    tv->tv_sec = MAXVALUE;
+    tv->tv_usec = 0;
+  }
 }
 
 int EventQueue::eqTopInPast()
@@ -167,22 +162,22 @@ int EventQueue::eqTopInPast()
 
 void EventQueue::eqPrint()
 {
-  DiffusionEvent *e = head_;
+  QueueEvent *e = head_;
 
   for (; (e); e = e->next_){
-    fprintf(stderr, "time = %d:%06d, type = %d\n",
-	    e->tv_.tv_sec, e->tv_.tv_usec, e->type_);
+    fprintf(stderr, "time = %d:%06d, handle = %ld\n",
+	    e->tv_.tv_sec, e->tv_.tv_usec, e->handle_);
   }
 }
 
-int EventQueue::eqRemove(DiffusionEvent *e)
+bool EventQueue::eqRemoveEvent(QueueEvent *e)
 {
-  DiffusionEvent *ce, *pe;
+  QueueEvent *ce, *pe;
 
   if (e){
     if (head_ == e){
       head_ = e->next_;
-      return 0;
+      return true;
     }
 
     pe = head_;
@@ -191,7 +186,7 @@ int EventQueue::eqRemove(DiffusionEvent *e)
     while (ce){
       if (ce == e){
 	pe->next_ = e->next_;
-	return 0;
+	return true;
       }
       else{
 	pe = ce;
@@ -200,7 +195,22 @@ int EventQueue::eqRemove(DiffusionEvent *e)
     }
   }
 
-  return -1;
+  return false;
+}
+
+bool EventQueue::eqRemove(handle hdl)
+{
+  QueueEvent *e = NULL;
+
+  // Look in the event queue for an event with handle hdl
+  e = eqFindEvent(hdl);
+
+  // If found, delete event
+  if (e){
+    return (eqRemoveEvent(e));
+  }
+
+  return false;
 }
 
 // Computes a randomized delay, measured in milliseconds. Note that

@@ -2,8 +2,8 @@
 // diffapp.cc     : Base Class for Diffusion Apps and Filters
 // author         : Fabio Silva and Padma Haldar
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffapp.cc,v 1.6 2002/05/29 21:58:12 haldar Exp $
+// Copyright (C) 2000-2002 by the University of Southern California
+// $Id: diffapp.cc,v 1.7 2002/09/16 17:57:28 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -64,11 +64,6 @@ void DiffApp::parseCommandLine(int argc, char **argv)
 
   config_file_ = NULL;
   opterr = 0;
-  application_id = strdup(argv[0]);
-
-#ifdef BBN_LOGGER
-  InitMainLogger();
-#endif // BBN_LOGGER
 
   while (1){
     opt = getopt(argc, argv, "f:hd:p:");

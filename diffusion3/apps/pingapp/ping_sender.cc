@@ -2,8 +2,8 @@
 // ping_sender.cc : Ping Server Main File
 // author         : Fabio Silva
 //
-// Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: ping_sender.cc,v 1.5 2002/05/29 23:05:25 haldar Exp $
+// Copyright (C) 2000-2002 by the University of Southern California
+// $Id: ping_sender.cc,v 1.6 2002/09/16 17:57:22 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -41,7 +41,8 @@ void PingSenderApp::send()
   struct timeval tmv;
   int retval;
 
-  if (tasks_ > 0){
+  // Send data if we have active subscriptions
+  if (num_subscriptions_ > 0){
     // Update time in the packet
     GetTime(&tmv);
     lastEventTime_->seconds_ = tmv.tv_sec;
@@ -55,6 +56,7 @@ void PingSenderApp::send()
     last_seq_sent_++;
     counterAttr_->setVal(last_seq_sent_);
   }
+
   // re-schedule the timer 
   sdt_.resched(SEND_DATA_INTERVAL);
 }
@@ -91,13 +93,13 @@ void PingSenderApp::recv(NRAttrVec *data, NR::handle my_handle)
   case NRAttribute::INTEREST_CLASS:
 
     DiffPrint(DEBUG_ALWAYS, "Received an Interest message !\n");
-    tasks_++;
+    num_subscriptions_++;
     break;
 
   case NRAttribute::DISINTEREST_CLASS:
 
     DiffPrint(DEBUG_ALWAYS, "Received a Disinterest message !\n");
-    tasks_--;
+    num_subscriptions_--;
     break;
 
   default:
@@ -184,25 +186,28 @@ void PingSenderApp::run()
     select(1, &FDS, NULL, NULL, NULL);
     input = getc(stdin);
 #else
-    sleep(5);
+    sleep(SEND_DATA_INTERVAL);
 #endif // INTERACTIVE
 
-    // Update time in the packet
-    GetTime(&tmv);
-    lastEventTime_->seconds_ = tmv.tv_sec;
-    lastEventTime_->useconds_ = tmv.tv_usec;
+    // Send data packet if we have active subscriptions
+    if (num_subscriptions_ > 0){
+      // Update time in the packet
+      GetTime(&tmv);
+      lastEventTime_->seconds_ = tmv.tv_sec;
+      lastEventTime_->useconds_ = tmv.tv_usec;
 
-    // Send data probe
-    DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
-    retval = dr_->send(pubHandle_, &data_attr_);
+      // Send data probe
+      DiffPrint(DEBUG_ALWAYS, "Sending Data %d\n", last_seq_sent_);
+      retval = dr_->send(pubHandle_, &data_attr_);
 
-    // Update counter
-    last_seq_sent_++;
-    counterAttr_->setVal(last_seq_sent_);
+      // Update counter
+      last_seq_sent_++;
+      counterAttr_->setVal(last_seq_sent_);
+    }
   }
 #else
   send();
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION
 }
 
 #ifdef NS_DIFFUSION
@@ -212,7 +217,7 @@ PingSenderApp::PingSenderApp(int argc, char **argv)
 #endif // NS_DIFFUSION
 {
   last_seq_sent_ = 0;
-  tasks_= 0;
+  num_subscriptions_ = 0;
 
   mr_ = new PingSenderReceive(this);
 

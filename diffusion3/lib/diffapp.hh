@@ -2,8 +2,8 @@
 // diffapp.hh     : Base Class for Diffusion Apps and Filters
 // author         : Fabio Silva and Padma Haldar
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: diffapp.hh,v 1.5 2002/05/29 21:58:12 haldar Exp $
+// Copyright (C) 2000-2002 by the University of Southern California
+// $Id: diffapp.hh,v 1.6 2002/09/16 17:57:28 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,

@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2002 by the University of Southern California
 // Copyright (C) 2000-2002 by the University of California
-// $Id: geo-attr.hh,v 1.4 2002/05/29 21:58:09 haldar Exp $
+// $Id: geo-attr.hh,v 1.5 2002/09/16 17:57:20 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
