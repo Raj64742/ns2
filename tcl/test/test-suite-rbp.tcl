@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.3 1998/01/21 22:38:21 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rbp.tcl,v 1.4 1998/04/15 22:07:38 heideman Exp $
 #
 
 #
@@ -254,13 +254,13 @@ TestScale instproc init_connections {} {
 	if [string match {*Vegas/RBP*} $opts(server-tcp-method)] {
 		Agent/$opts(server-tcp-method) instproc done {} {
 			$self instvar rbp_segs_actually_paced_ rbp_inter_pace_delay_ experiment_connection_i_ cwnd_ v_rtt_
-			puts "$experiment_connection_i_: cwnd_=$cwnd_ v_rtt_=$v_rtt_ rbp_segs_actually_paced_=$rbp_segs_actually_paced_ rbp_inter_pace_delay_=$rbp_inter_pace_delay_"
+			# puts "$experiment_connection_i_: cwnd_=$cwnd_ v_rtt_=$v_rtt_ rbp_segs_actually_paced_=$rbp_segs_actually_paced_ rbp_inter_pace_delay_=$rbp_inter_pace_delay_"
 		}
 	}
 	if [string match {*Reno/RBP*} $opts(server-tcp-method)] {
 		Agent/$opts(server-tcp-method) instproc done {} {
 			$self instvar rbp_segs_actually_paced_ rbp_inter_pace_delay_ experiment_connection_i_ cwnd_ rtt_ srtt_
-			puts "$experiment_connection_i_: cwnd_=$cwnd_ rtt=$rtt_ srtt=$srtt_ rbp_segs_actually_paced_=$rbp_segs_actually_paced_ rbp_inter_pace_delay_=$rbp_inter_pace_delay_"
+			# puts "$experiment_connection_i_: cwnd_=$cwnd_ rtt=$rtt_ srtt=$srtt_ rbp_segs_actually_paced_=$rbp_segs_actually_paced_ rbp_inter_pace_delay_=$rbp_inter_pace_delay_"
 		}
 	}
 }
