@@ -4,7 +4,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.5 2004/08/09 21:30:58 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.1.2.6 2004/08/10 22:16:50 yuri Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -118,10 +118,8 @@ void XcpAgent::output(int seqno, int reason)
 			last_send_ticks_ = now_ticks;
 			xcp_feedback_ = 0.0;
 		} else {
-			double delta_s = (double(now_ticks 
-						 - last_send_ticks_)
-					  * tcp_tick_);
-			while (delta_s >= TP_TO_S) {
+			long delta_ticks = now_ticks - last_send_ticks_;
+			while (delta_ticks >= TP_TO_TICKS) {
 				/* each iteration is a "timeout" */
 				if (sent_bytes_ > s_sent_bytes_)
 					s_sent_bytes_ = sent_bytes_;
@@ -130,12 +128,12 @@ void XcpAgent::output(int seqno, int reason)
 					s_sent_bytes_ += sent_bytes_;
 					s_sent_bytes_ /= TP_AVG_EXP;
 				}
-				delta_s -= TP_TO_S;
+				delta_ticks -= TP_TO_TICKS;
 				sent_bytes_ = 0;
 				xcp_feedback_ = 0;
 				last_send_ticks_ = now_ticks;
 			}
-			estimated_throughput = s_sent_bytes_ / TP_TO_S;
+			estimated_throughput = s_sent_bytes_ / tcp_tick_ / TP_TO_TICKS;
 		}
 	}
 #define MAX_THROUGHPUT	1e24
@@ -242,7 +240,7 @@ void XcpAgent::recv_newack_helper(Packet *pkt) {
 			     * srtt_estimate_ 
 			     / size_);
 
-// 	double estimated_throughput = s_sent_bytes_ / TP_TO_S;
+// 	double estimated_throughput = s_sent_bytes_ / tcp_tick_ / TP_TO_TICKS;
 	
 // 	if (estimated_throughput == 0)
 // 		estimated_throughput = 1;
