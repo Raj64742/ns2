@@ -84,7 +84,7 @@ ErrorModel/Expo instproc init {avgList {unit "pkt"}} {
 	$self next $rv0 $rv1 $unit
 }
 
-ErrorModel/Empirical instproc initrv {fileList {unit "pkt"}} {
+ErrorModel/Empirical instproc init {fileList {unit "pkt"}} {
 	set rv0 [new RandomVariable/Empirical]
 	set rv1 [new RandomVariable/Empirical]
 	$rv0 loadCDF [lindex $fileList 0]
