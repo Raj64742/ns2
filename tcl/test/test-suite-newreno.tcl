@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.2 1998/09/14 02:22:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.3 1998/11/10 04:34:34 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -291,6 +291,21 @@ Test/newreno instproc run {} {
 #         $self setup Newreno {14 26 28}
 # }
 
+Class Test/newreno_B -superclass TestSuite
+Test/newreno_B instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	newreno_B
+	$self next
+}
+Test/newreno_B instproc run {} {
+	Agent/TCP set bugFix_ false
+	Agent/TCP/Newreno set newreno_changes1_ 1
+	Agent/TCP/Newreno set partial_window_deflation_ 1
+	Agent/TCP/Newreno set exit_recovery_fix_ 1
+        $self setup Newreno {14 26 28}
+}
+
 ###################################################
 ## Many drops, Reno has a retransmit timeout.
 ###################################################
@@ -370,6 +385,21 @@ Test/newreno1_A instproc run {} {
 #         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
 # }
 
+Class Test/newreno1_B -superclass TestSuite
+Test/newreno1_B instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	newreno1_B
+	$self next
+}
+Test/newreno1_B instproc run {} {
+	Agent/TCP set bugFix_ false
+	Agent/TCP/Newreno set newreno_changes1_ 1
+	Agent/TCP/Newreno set partial_window_deflation_ 1
+	Agent/TCP/Newreno set exit_recovery_fix_ 1
+        $self setup Newreno {14 15 16 17 18 19 20 21 25 }
+}
+
 ###################################################
 ## Multiple fast retransmits.
 ###################################################
@@ -422,6 +452,36 @@ Test/newreno2_A_bugfix instproc init {} {
 Test/newreno2_A_bugfix instproc run {} {
 	Agent/TCP set bugFix_ true
 	Agent/TCP/Newreno set newreno_changes1_ 1
+	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
+}
+
+Class Test/newreno2_B -superclass TestSuite
+Test/newreno2_B instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	newreno2_B
+	$self next
+}
+Test/newreno2_B instproc run {} {
+	Agent/TCP set bugFix_ false
+	Agent/TCP/Newreno set newreno_changes1_ 1
+	Agent/TCP/Newreno set partial_window_deflation_ 1
+	Agent/TCP/Newreno set exit_recovery_fix_ 1
+	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
+}
+
+Class Test/newreno2_B_bugfix -superclass TestSuite
+Test/newreno2_B_bugfix instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	newreno2_B_bugfix
+	$self next
+}
+Test/newreno2_B_bugfix instproc run {} {
+	Agent/TCP set bugFix_ true
+	Agent/TCP/Newreno set newreno_changes1_ 1
+	Agent/TCP/Newreno set partial_window_deflation_ 1
+	Agent/TCP/Newreno set exit_recovery_fix_ 1
 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
 }
 
