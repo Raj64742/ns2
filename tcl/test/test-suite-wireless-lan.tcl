@@ -36,7 +36,7 @@ Class TestSuite
 Class Test/dsdv -superclass TestSuite
 # wireless model using destination sequence distance vector
 
-Class Test/dsr -superclass TestSuite
+#Class Test/dsr -superclass TestSuite
 # wireless model using dynamic source routing
 
 
@@ -194,18 +194,18 @@ Test/dsdv instproc run {} {
     $ns_ run
 }
 
-Test/dsr instproc init {} {
-	$self instvar ns_ testName_ 
-	set testName_ dsr
-	$self next 
-}
+#Test/dsr instproc init {} {
+	#$self instvar ns_ testName_ 
+	#set testName_ dsr
+	#$self next 
+#}
 
-Test/dsr instproc run {} {
-	$self instvar ns_ 
-	puts "Starting Simulation..."
-	$ns_ run
+#Test/dsr instproc run {} {
+	#$self instvar ns_ 
+	#puts "Starting Simulation..."
+	#$ns_ run
 	
-}
+#}
 
 proc cmu-trace { ttype atype node } {
 	global ns tracefd
