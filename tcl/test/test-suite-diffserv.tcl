@@ -140,6 +140,7 @@ TestSuite instproc create_q {qec_ qce_ s1 s2 d1 d2} {
 
 # Create the simulation scenario for the test suite.
 TestSuite instproc create-scenario {} { 
+    global quiet
     $self instvar ns_ packetSize_ finishTime_ testName_ rate0 rate1
 
     # Set up the network topology shown above:
@@ -198,14 +199,16 @@ TestSuite instproc create-scenario {} {
     $ns_ at 0.0 "$cbr1 start"
     $ns_ at $finishTime_ "$cbr1 stop"
 
-    $qE1C printPolicyTable
-    $qE1C printPolicerTable
-    $ns_ at 10.0 "$qCE2 printStats"
-    $ns_ at 20.0 "$qCE2 printStats"
+    if {$quiet == 0} {
+	$qE1C printPolicyTable
+	$qE1C printPolicerTable
+	$ns_ at 10.0 "$qCE2 printStats"
+	$ns_ at 20.0 "$qCE2 printStats"
+    }
 }
 
 TestSuite instproc init {} {
-    global tracefd
+    global tracefd quiet
     $self instvar ns_ testName_ finishTime_ packetSize_
 
     set ns_         [new Simulator]
@@ -215,7 +218,10 @@ TestSuite instproc init {} {
     set finishTime_ 30.0
     set packetSize_ 1000
     
-    $ns_ at $finishTime_ "puts \"NS EXITING...\" ;"
+    if {$quiet == 0} {
+	$ns_ at $finishTime_ "puts \"NS EXITING...\" ;"
+    }
+
     $ns_ at [expr $finishTime_ + 1.0] "$self finish"
 }
 
@@ -235,8 +241,7 @@ Test/tb instproc init {} {
 
 Test/tb instproc run {} {
     $self instvar ns_
-
-    puts "Starting Simulation..."
+    
     $self create-scenario
     $ns_ run
 }
@@ -255,7 +260,6 @@ Test/tsw2cm instproc init {} {
 Test/tsw2cm instproc run {} {
     $self instvar ns_
 
-    puts "Starting Simulation..."
     $self create-scenario
     $ns_ run
 }
@@ -276,7 +280,6 @@ Test/tsw3cm instproc init {} {
 Test/tsw3cm instproc run {} {
     $self instvar ns_
 
-    puts "Starting Simulation..."
     $self create-scenario
     $ns_ run
 }
@@ -299,7 +302,6 @@ Test/srtcm instproc init {} {
 Test/srtcm instproc run {} {
     $self instvar ns_
 
-    puts "Starting Simulation..."
     $self create-scenario
     $ns_ run
 }
@@ -325,7 +327,6 @@ Test/trtcm instproc init {} {
 Test/trtcm instproc run {} {
     $self instvar ns_
 
-    puts "Starting Simulation..."
     $self create-scenario
     $ns_ run
 }
@@ -337,7 +338,9 @@ TestSuite instproc finish {} {
     $ns_ flush-trace
     close $tracefd
     
-    puts "finishing.."
+    if {$quiet == 0} {
+	puts "finishing.." }
+
     exit 0
 }
 
@@ -356,7 +359,10 @@ proc runtest {arg} {
 	} else {
 		usage
 	}
+
 	set t [new Test/$test]
+	if {$quiet == 0} {
+	    puts "Starting Simulation..." }
 	$t run
 }
 
