@@ -4101,7 +4101,7 @@ if test "${with_tcl_ver+set}" = set; then
   withval="$with_tcl_ver"
   TCL_VERS=$withval
 else
-  TCL_VERS=8.4.5
+  TCL_VERS=8.3.2
 fi;
 
 
@@ -4109,7 +4109,7 @@ TCL_HI_VERS=`echo $TCL_VERS | sed 's/^\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1.\2/'
 TCL_MAJOR_VERS=`echo $TCL_VERS | sed 's/^\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1/'`
 TCL_ALT_VERS=`echo $TCL_HI_VERS | sed 's/\.//'`
 
-TCL_OLD_VERS=8.3.2
+TCL_OLD_VERS=7.6
 TCL_OLD_ALT_VERS=`echo $TCL_OLD_VERS | sed 's/\.//'`
 
 TCL_TCL_PLACES_D="$d \
@@ -4138,6 +4138,10 @@ TCL_TCL_PLACES="../lib/tcl$TCL_HI_VERS \
 		/usr/lib/tcl$TCL_HI_VERS \
 		/usr/lib/tcl$TCL_ALT_VERS \
 		/usr/lib/tcl \
+		/usr/share/tcl$TCL_VERS \
+		/usr/share/tcl$TCL_HI_VERS \
+		/usr/share/tcl$TCL_ALT_VERS \
+		/usr/share/tcl \
 		/lib/tcl$TCL_VERS \
 		/lib/tcl$TCL_HI_VERS \
 		/lib/tcl$TCL_ALT_VERS \
@@ -4258,6 +4262,8 @@ TCL_LIB_PLACES=" \
 
 
 V_TCL_LIBRARY_FILES="\$(TCL_`echo $TCL_ALT_VERS`_LIBRARY_FILES)"
+test "x$TCL_VERS" = x8.3.5 && V_TCL_LIBRARY_FILES="\$(TCL_835_LIBRARY_FILES)"
+
 
 
 
@@ -4554,7 +4560,7 @@ if test "${with_tk_ver+set}" = set; then
   withval="$with_tk_ver"
   TK_VERS=$withval
 else
-  TK_VERS=8.4.5
+  TK_VERS=8.3.2
 fi;
 
 
@@ -4563,7 +4569,7 @@ TK_HI_VERS=`echo $TK_VERS | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1.\2/'`
 TK_MAJOR_VERS=`echo $TK_VERS | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1/'`
 TK_ALT_VERS=`echo $TK_VERS | sed 's/\.//'`
 
-TK_OLD_VERS=8.3.2
+TK_OLD_VERS=4.2
 TK_OLD_ALT_VERS=`echo $TK_OLD_VERS | sed 's/\.//'`
 
 TK_TCL_PLACES_D="$d \
@@ -4605,6 +4611,11 @@ TK_TCL_PLACES=" \
                 /usr/lib/tk$TK_VERS \
                 /usr/lib/tk$TK_ALT_VERS \
                 /usr/lib/tk$TK_HI_VERS \
+                /usr/lib/tk \
+                /usr/share/tk$TK_VERS \
+                /usr/share/tk$TK_ALT_VERS \
+                /usr/share/tk$TK_HI_VERS \
+                /usr/share/tk \
 		../tk$TK_OLD_VERS/library \
                 ../tk$TK_OLD_ALT_VERS/library \
                 /usr/src/local/tk$TK_OLD_VERS/library \
@@ -4924,7 +4935,7 @@ else
   d=""
 fi;
 
-OTCL_VERS=1.8
+OTCL_VERS=1.0a8
 OTCL_ALT_VERS=1.0
 
 OTCL_H_PLACES_D="$d \
@@ -5142,7 +5153,7 @@ else
   d=""
 fi;
 
-TCLCL_VERS=1.15
+TCLCL_VERS=1.0b13
 TCLCL_ALT_VERS=1.0
 
 TCLCL_H_PLACES="\
@@ -6552,7 +6563,8 @@ fi
 
 
 
-for ac_func in bcopy bzero fesetprecision getrusage sbrk snprintf
+
+for ac_func in bcopy bzero fesetprecision feenableexcept getrusage sbrk snprintf
 do
 as_ac_var=`echo "ac_cv_func_$ac_func" | $as_tr_sh`
 echo "$as_me:$LINENO: checking for $ac_func" >&5

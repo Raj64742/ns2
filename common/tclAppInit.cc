@@ -62,7 +62,7 @@ main(int argc, char **argv)
 }
 
 
-#if defined(linux) && defined(i386) && (defined(HAVE_FESETPRECISION) || defined(__GNUC__))
+#if defined(HAVE_FESETPRECISION) || defined(__GNUC__)
 #ifndef HAVE_FESETPRECISION
 /*
  * From:
@@ -104,8 +104,14 @@ static inline int fesetprecision(int prec)
     return 0;
 }
 #endif /* !HAVE_FESETPRECISION */
+#endif
 
 /*
+ * setup_floating_point_environment
+ *
+ * Set up the floating point environment to be as standard as possible.
+ *
+ * For example:
  * Linux i386 uses 60-bit floats for calculation,
  * not 56-bit floats, giving different results.
  * Fix that.
@@ -117,15 +123,24 @@ static inline int fesetprecision(int prec)
  *
  */
 static inline void
-fix_i386_linux_floats()
+setup_floating_point_environment()
 {
+	// In general, try to use the C99 standards to set things up.
+	// If we can't do that, do nothing and hope the default is right.
+#if defined(HAVE_FESETPRECISION) || defined(__GNUC__)
 	fesetprecision(FE_DBLPREC);
-}
-#else
-static inline void
-fix_i386_linux_floats()
-{}
 #endif
+#ifdef HAVE_FEENABLEEXCEPT
+	/*
+	 * In general we'd like to catch some serious exceptions (div by zero)
+	 * and ignore the boring ones (overflow/underflow).
+	 * We set up that up here.
+	 * This depends on feenableexcept which is (currently) GNU
+	 * specific.
+	 */
+	feenableexcept(FE_DIVBYZERO|FE_INVALID);
+#endif /* HAVE_FEENABLEEXCEPT */
+}
 
 
 /*
@@ -155,7 +170,7 @@ Tcl_AppInit(Tcl_Interp *interp)
         globalMemTrace = new MemTrace;
 #endif
 
-	fix_i386_linux_floats();
+	setup_floating_point_environment();
        
 	if (Tcl_Init(interp) == TCL_ERROR ||
 	    Otcl_Init(interp) == TCL_ERROR)
