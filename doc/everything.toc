@@ -244,7 +244,7 @@
 \contentsline {paragraph}{Preference Assignment and Control}{200}
 \contentsline {paragraph}{Link Cost Assignment and Control}{200}
 \contentsline {section}{\numberline {23.2}Other Configuration Mechanisms for Specialised Routing}{200}
-\contentsline {paragraph}{Asymetric Routing}{201}
+\contentsline {paragraph}{Asymmetric Routing}{201}
 \contentsline {paragraph}{MultiPath Routing}{201}
 \contentsline {section}{\numberline {23.3}Protocol Specific Configuration Parameters}{201}
 \contentsline {paragraph}{Static Routing}{201}

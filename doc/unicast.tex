@@ -141,8 +141,8 @@ It is possible to adjust preference and cost mechanisms to get two
 special types of route configurations: 
 asymmetric routing, and multipath routing.
 
-\paragraph{Asymetric Routing}
-Asymetric routing occurs when the path from node $n_1$ to node $n_2$
+\paragraph{Asymmetric Routing}
+Asymmetric routing occurs when the path from node $n_1$ to node $n_2$
 is different from the path from $n_2$ to $n_1$.
 The following shows a simple topology, and cost configuration
 that can achieve such a result:
@@ -154,13 +154,7 @@ All other pairs of nodes use symmetric paths to reach each other.
 \end{minipage}
 \hfil
 \begin{minipage}{1.in}
-  \begin{pspicture}(-1,-1)(1,1)
-    \cnodeput( 0, 1){r1}{$r_1$}
-    \cnodeput( 0,-1){r2}{$r_2$}
-    \cnodeput( 1, 0){n2}{$n_2$}
-    \cnodeput(-1, 0){n1}{$n_1$}
-    \ncline{n1}{r1}\ncline{r1}{n2}\ncline{n2}{r2}\ncline{r2}{n1}
-  \end{pspicture}
+  \includegraphics[height=1in]{asymmetric_routing.eps}
 \end{minipage}
 \hfil
 \begin{minipage}{1.85in}
