@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.41 1997/10/23 04:31:12 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.42 1997/10/26 05:54:02 hari Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -106,6 +106,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP), rtt_active_(0), rtt_seq_(-1),
         bind("nrexmit_", &nrexmit_);
         bind("nrexmitpack_", &nrexmitpack_);
         bind("nrexmitbytes_", &nrexmitbytes_);
+	bind_bool("trace_all_oneline_", &trace_all_oneline_);
 
 	// reset used for dynamically created agent
 	reset();
@@ -132,7 +133,8 @@ TcpAgent::traceAll() {
 
 /* Print out just the variable that is modified */
 void
-TcpAgent::traceVar(TracedVar* v) {
+TcpAgent::traceVar(TracedVar* v) 
+{
 	double curtime;
 	Scheduler& s = Scheduler::instance();
 	char wrk[500];
@@ -159,8 +161,12 @@ TcpAgent::traceVar(TracedVar* v) {
 }
 
 void
-TcpAgent::trace(TracedVar* v) {
-	traceVar(v);
+TcpAgent::trace(TracedVar* v) 
+{
+	if (trace_all_oneline_)
+		traceAll();
+	else 
+		traceVar(v);
 }
 
 void TcpAgent::reset()
@@ -601,14 +607,23 @@ void TcpAgent::newack(Packet* pkt)
 
 	if (t_seqno_ < last_ack_ + 1)
 		t_seqno_ = last_ack_ + 1;
-	if (ts_option_)
-		rtt_update(now - tcph->ts_echo());
-
-	if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
-		t_backoff_ = 1;
-		rtt_active_ = 0;
-		if (!ts_option_)
+	/* 
+	 * Update RTT only if it's OK to do so from info in the flags header.
+	 * This is needed for protocols in which intermediate agents
+	 * in the network intersperse acks (e.g., ack-reconstructors) for
+	 * various reasons (without violating e2e semantics).
+	 */	
+	hdr_flags *fh = (hdr_flags *)pkt->access(off_flags_);
+	if (!fh->no_ts_) {
+		if (ts_option_)
 			rtt_update(now - tcph->ts_echo());
+
+		if (rtt_active_ && tcph->seqno() >= rtt_seq_) {
+			t_backoff_ = 1;
+			rtt_active_ = 0;
+			if (!ts_option_)
+				rtt_update(now - tcph->ts_echo());
+		}
 	}
 	/* update average window */
 	awnd_ *= 1.0 - wnd_th_;
