@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.6 1998/01/06 17:18:03 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.7 1998/03/18 20:05:59 bajaj Exp $
 #
 
 #
@@ -62,6 +62,16 @@ Agent instproc attach-source {s_type} {
 }
 
 #
+# Attach tbf to an agent
+#
+Agent instproc attach-tbf { tbf } {
+	$tbf target [$self target]
+	$self target $tbf
+
+}
+
+
+#
 # OTcl support for classes derived from Agent
 #
 Class Agent/Null -superclass Agent
@@ -72,6 +82,15 @@ Agent/Null instproc init args {
 
 Agent/LossMonitor instproc log-loss {} {
 }
+
+#Signalling agent attaches tbf differently as none of its signalling mesages
+#go via the tbf
+Agent/CBR/UDP/SA instproc attach-tbf { tbf } {
+	$tbf target [$self target]
+	$self target $tbf
+	$self ctrl-target [$tbf target]
+}
+
 
 #
 # A lot of agents want to store the maxttl locally.  However,

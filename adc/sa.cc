@@ -43,6 +43,26 @@ public:
 
 int SA_Agent::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
+	if (argc==3) {
+		if (strcmp(argv[1], "target") == 0) {
+			target_ = (NsObject*)TclObject::lookup(argv[2]);
+			if (target_ == 0) {
+				tcl.resultf("no such object %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			ctrl_target_=target_;
+			return (TCL_OK);
+		} 
+		else if (strcmp(argv[1],"ctrl-target")== 0) {
+			ctrl_target_=(NsObject*)TclObject::lookup(argv[2]);
+			if (ctrl_target_ == 0) {
+				tcl.resultf("no such object %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+	}
 	return (UDP_Agent::command(argc,argv));
 }
 
@@ -77,7 +97,7 @@ void SA_Agent::sendreq()
 	rv->decision() =1;
 	rv->rate()=rate_;
 	rv->bucket()=bucket_;
-	target_->recv(p);
+	ctrl_target_->recv(p);
 }
 
 void SA_Agent::sendteardown()
@@ -90,7 +110,7 @@ void SA_Agent::sendteardown()
 	rv->decision() =1;
 	rv->rate()=rate_;
 	rv->bucket()=bucket_;
-	target_->recv(p);
+	ctrl_target_->recv(p);
 }
 
 
@@ -106,7 +126,7 @@ void SA_Agent::recv(Packet *p, Handler *)
 		tmp = iph->src();
 		iph->src()=iph->dst();
 		iph->dst()=tmp;
-		target_->recv(p);
+		ctrl_target_->recv(p);
 		
 	}
 	

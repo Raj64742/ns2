@@ -17,28 +17,38 @@
  * software. 
  */
 
-#ifndef ns_sa_h
-#define ns_sa_h
+#ifndef ns_tbf_h
+#define ns_tbf_h
 
-#include "resv.h"
+#include "connector.h"
+#include "timer-handler.h"
 
+class TBF;
 
-class SA_Agent : public UDP_Agent {
+class TBF_Timer : public TimerHandler {
 public:
-	SA_Agent();
-	int command(int, const char*const*);
+	TBF_Timer(TBF *t) : TimerHandler() { tbf_ = t;}
 	
 protected:
-	void start(); 
-	void stop(); 
-	void sendreq();
-	void sendteardown();
-	void recv(Packet *, Handler *);
-	int off_resv_;
-	double rate_;
-	int bucket_;
-	NsObject* ctrl_target_;
+	virtual void expire(Event *e);
+	TBF *tbf_;
 };
 
+
+class TBF : public Connector {
+public:
+	TBF();
+	void timeout(int);
+protected:
+	void recv(Packet *, Handler *);
+	double getupdatedtokens();
+	double tokens_; //acumulated tokens
+	double rate_; //token bucket rate
+	int bucket_; //bucket depth
+	int qlen_;
+	double lastpkttime_;
+	PacketQueue *q_;
+	TBF_Timer tbf_timer_;
+};
 
 #endif

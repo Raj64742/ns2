@@ -37,6 +37,7 @@ protected:
 	int off_resv_;
 	double rate_;
 	int bucket_;
+	NsObject* ctrl_target_;
 };
 
 

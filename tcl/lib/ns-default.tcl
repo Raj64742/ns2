@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.96 1998/03/17 08:28:27 gnguyen Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.97 1998/03/18 20:06:00 bajaj Exp $
 
 
 #
@@ -363,6 +363,11 @@ rtModel/Deterministic set downInterval_ 1.0
 #
 
 #IntServ Object specific defaults are in ../tcl/lib/ns-intserv.tcl
+
+# defaults for tbf
+TBF set rate_ 64k
+TBF set bucket_ 1024
+TBF set qlen_ 0
 
 #Increased Floating Point Precision
 set tcl_precision 17

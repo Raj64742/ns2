@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.84 1998/03/03 02:01:42 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.85 1998/03/18 20:06:01 bajaj Exp $
 #
 
 #
@@ -603,6 +603,12 @@ Simulator instproc cost {n1 n2 c} {
 Simulator instproc attach-agent { node agent } {
 	$node attach $agent
 }
+
+Simulator instproc attach-tbf-agent { node agent tbf } {
+	$node attach $agent
+	$agent attach-tbf $tbf
+}
+
 
 Simulator instproc detach-agent { node agent } {
 	$self instvar nullAgent_
