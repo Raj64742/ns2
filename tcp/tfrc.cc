@@ -415,17 +415,18 @@ void TfrcAgent::slowstart ()
 {
 	double now = Scheduler::instance().clock(); 
 
-	if (rate_+SMALLFLOAT< size_/rtt_) {
-		/* If this is the first report, */
+	if (round_id <= 1) {
+		/* This is the first report, so */
 		/*   change rate to initial rate.*/
-                /* If slow_increase_ is set to true,  */
-		/*   compute delta so rate increases slowly to new value, */
 		oldrate_ = rate_;
-		if (round_id <= 1) {
-			rate_ =  initial_rate()*size_/rtt_;
-		} else {
-			rate_ = size_/rtt_;
-		}
+		rate_ =  initial_rate()*size_/rtt_;
+		/* Compute delta so that if slow_increase_ is set to true, */
+		/*  rate increases slowly to new value. */
+		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
+		last_change_ = now;
+	} else if (!ss_changes_ && rate_+SMALLFLOAT< size_/rtt_) {
+		oldrate_ = rate_;
+		rate_ = size_/rtt_;
 		delta_ = (rate_ - oldrate_)/(rate_*rtt_/size_);
 		last_change_ = now;
 	} else if (ss_maxrate_ > 0) {
