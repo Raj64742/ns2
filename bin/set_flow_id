@@ -45,7 +45,7 @@ END
     exit 1;
 }
 
-use strict;
+#use strict;
 
 use Getopt::Long;
 &usage if ($#ARGV >= 0 && $ARGV[0] eq '-?');
@@ -60,18 +60,26 @@ $mode = $MODE_SRC if (defined($opts{'s'}));
 $mode = $MODE_DEST if (defined($opts{'d'}));
 
 while (<>) {
-    if (/^[^-+hdr]/) {
+    if (/^[^-+hdrE]/) {
 	print;
     } else {
 	chomp;
 	my(@f) = split(/ /);
-	my($hacky_src, $hacky_dest) = @f[8,9];
-	my($src) = split(/\./, $hacky_src);
-	my($dest) = split(/\./, $hacky_dest);
-	my($min) = $src < $dest ? $src : $dest;
-	$f[7] = $min if ($mode == $MODE_MIN);
-	$f[7] = $src if ($mode == $MODE_SRC);
-	$f[7] = $dest if ($mode == $MODE_DEST);
+	if ($f[0] ne "E") {
+	    ($hacky_src, $hacky_dest) = @f[8,9];
+	    ($src) = split(/\./, $hacky_src);
+	    ($dest) = split(/\./, $hacky_dest);
+	    ($min) = ($src < $dest) ? $src : $dest;
+	    $f[7] = $min if ($mode == $MODE_MIN);
+	    $f[7] = $src if ($mode == $MODE_SRC);
+	    $f[7] = $dest if ($mode == $MODE_DEST);
+	} else {
+	    ($src, $dest) = @f[2,3];
+	    $min = ($src < $dest) ? $src : $dest;
+	    $f[6] = $min if ($mode == $MODE_MIN);
+	    $f[6] = $src if ($mode == $MODE_SRC);
+	    $f[6] = $dest if ($mode == $MODE_DEST);
+	}
 	print join(" ", @f), "\n";
     };
 }
