@@ -539,14 +539,18 @@ Test/DM1 instproc run {} {
 	set mproto DM
 	set mrthandle [$ns_ mrtproto $mproto {}]
 	
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n1) $cbr0
-	$cbr0 set dst_ 0x8001
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n1) $udp0
+	$udp0 set dst_ 0x8001
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
 	
-	set cbr1 [new Agent/CBR]
-	$cbr1 set dst_ 0x8002
-	$cbr1 set class_ 1
-	$ns_ attach-agent $node_(n3) $cbr1
+	set udp1 [new Agent/UDP]
+	$ns_ attach-agent $node_(n3) $udp1
+	$udp1 set dst_ 0x8002
+	$udp1 set class_ 1
+	set cbr1 [new Application/Traffic/CBR]
+	$cbr1 attach-agent $udp1
 
 	set tcp [new Agent/TCP]
 	set sink [new Agent/TCPSink]
@@ -589,9 +593,11 @@ Test/DM2 instproc run {} {
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 	
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8002
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n0) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
 	
 	set rcvr [new Agent/LossMonitor]
 	$ns_ attach-agent $node_(n3) $rcvr
@@ -628,13 +634,17 @@ Test/CtrMcast1 instproc run {} {
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	$mrthandle set_c_rp [list $node_(n2)]
 		
-	set cbr1 [new Agent/CBR]
-	$ns_ attach-agent $node_(n2) $cbr1
-	$cbr1 set dst_ 0x8003
+	set udp1 [new Agent/UDP]
+	$ns_ attach-agent $node_(n2) $udp1
+	$udp1 set dst_ 0x8003
+	set cbr1 [new Application/Traffic/CBR]
+	$cbr1 attach-agent $udp1
 
-	set cbr2 [new Agent/CBR]
-	$ns_ attach-agent $node_(n3) $cbr2
-	$cbr2 set dst_ 0x8003
+	set udp2 [new Agent/UDP]
+	$ns_ attach-agent $node_(n3) $udp2
+	$udp2 set dst_ 0x8003
+	set cbr2 [new Application/Traffic/CBR]
+	$cbr2 attach-agent $udp2
 
 	set rcvr0 [new Agent/Null]
 	$ns_ attach-agent $node_(n0) $rcvr0
@@ -683,9 +693,11 @@ Test/CtrMcast2 instproc run {} {
 	set mproto CtrMcast
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8003
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n0) $udp0
+	$udp0 set dst_ 0x8003
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
 
 	set rcvr [new Agent/Null]
 	$ns_ attach-agent $node_(n3) $rcvr
@@ -732,9 +744,11 @@ Test/detailedDM1 instproc run {} {
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8002
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n0) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
 	
 	set rcvr [new Agent/LossMonitor]
 	$ns_ attach-agent $node_(n3) $rcvr
@@ -773,9 +787,11 @@ Test/detailedDM2 instproc run {} {
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8002
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n0) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
 	
 	set rcvr [new Agent/LossMonitor]
 	$ns_ attach-agent $node_(n3) $rcvr
@@ -818,9 +834,11 @@ Test/detailedDM3 instproc run {} {
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8002
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n0) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
 	
 	set rcvr [new Agent/LossMonitor]
 	$ns_ attach-agent $node_(n3) $rcvr
@@ -863,9 +881,11 @@ Test/detailedDM4 instproc run {} {
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8002
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n0) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
 
 	
 	set rcvr [new Agent/LossMonitor]
@@ -911,9 +931,11 @@ Test/detailedDM4 instproc run {} {
 # 	set mrthandle [$ns_ mrtproto $mproto  {}]
 # 	### End of multicast  config
 
-# 	set cbr0 [new Agent/CBR]
-# 	$ns_ attach-agent $node_(n0) $cbr0
-# 	$cbr0 set dst_ 0x8002
+# 	set udp0 [new Agent/UDP]
+# 	$ns_ attach-agent $node_(n0) $udp0
+# 	$udp0 set dst_ 0x8002
+#	set cbr0 [new Application/Traffic/CBR]
+#	$cbr0 attach-agent $udp0
 # 	puts "grp-addr = [$cbr0 set dst_]"
 # 	set rcvr [new Agent/LossMonitor]
 # 	$ns_ attach-agent $node_(n3) $rcvr
@@ -952,9 +974,11 @@ Test/detailedDM4 instproc run {} {
 # 	set mrthandle [$ns_ mrtproto $mproto  {}]
 # 	### End of multicast  config
 
-# 	set cbr0 [new Agent/CBR]
-# 	$ns_ attach-agent $node_(n0) $cbr0
-# 	$cbr0 set dst_ 0x8002
+# 	set udp0 [new Agent/UDP]
+# 	$ns_ attach-agent $node_(n0) $udp0
+# 	$udp0 set dst_ 0x8002
+#	set cbr0 [new Application/Traffic/CBR]
+#	$cbr0 attach-agent $udp0
 	
 # 	set rcvr [new Agent/LossMonitor]
 # 	$ns_ attach-agent $node_(n3) $rcvr
@@ -997,9 +1021,11 @@ Test/detailedDM4 instproc run {} {
 # 	set mrthandle [$ns_ mrtproto $mproto  {}]
 # 	### End of multicast  config
 
-# 	set cbr0 [new Agent/CBR]
-# 	$ns_ attach-agent $node_(n0) $cbr0
-# 	$cbr0 set dst_ 0x8002
+# 	set udp0 [new Agent/UDP]
+# 	$ns_ attach-agent $node_(n0) $udp0
+# 	$udp0 set dst_ 0x8002
+#	set cbr0 [new Application/Traffic/CBR]
+#	$cbr0 attach-agent $udp0
 	
 # 	set rcvr [new Agent/LossMonitor]
 # 	$ns_ attach-agent $node_(n3) $rcvr

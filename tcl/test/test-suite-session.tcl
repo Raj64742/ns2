@@ -275,10 +275,12 @@ Test/Session1 instproc init net {
 Test/Session1 instproc run {} {
 	$self instvar ns_ node_ testName_
 
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n2) $cbr0
-	$cbr0 set dst_ 0x8001
-	$ns_ create-session $node_(n2) $cbr0	
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n2) $udp0
+	$udp0 set dst_ 0x8001
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
+	$ns_ create-session $node_(n2) $udp0	
 	
 	set rcvr0 [new Agent/LossMonitor]
 	$ns_ attach-agent $node_(n0) $rcvr0
@@ -312,10 +314,12 @@ Test/Session2 instproc init net {
 Test/Session2 instproc run {} {
 	$self instvar ns_ node_ testName_
 
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8002
-	$ns_ create-session $node_(n0) $cbr0
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n0) $udp0
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
+	$udp0 set dst_ 0x8002
+	$ns_ create-session $node_(n0) $udp0
 	
 	set rcvr0 [new Agent/LossMonitor]
 	set rcvr1 [new Agent/LossMonitor]
@@ -357,11 +361,13 @@ Test/Session3 instproc init net {
 Test/Session3 instproc run {} {
 	$self instvar ns_ node_ testName_
 
-	set cbr0 [new Agent/CBR]
-	$cbr0 set ttl_ 3
-	$ns_ attach-agent $node_(n0) $cbr0
-	$cbr0 set dst_ 0x8002
-	set sessionhelper [$ns_ create-session $node_(n0) $cbr0]
+	set udp0 [new Agent/UDP]
+	$udp0 set ttl_ 3
+	$ns_ attach-agent $node_(n0) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
+	set sessionhelper [$ns_ create-session $node_(n0) $udp0]
 	
 	set rcvr0 [new Agent/LossMonitor]
 	set rcvr1 [new Agent/LossMonitor]

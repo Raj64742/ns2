@@ -15,12 +15,16 @@ global n ns
 create-hier-topology $linkBW
 
 
-set cbr0 [new Agent/CBR]
-$ns attach-agent $n(0) $cbr0
+set udp0 [new Agent/UDP]
+$ns attach-agent $n(0) $udp0
+set cbr0 [new Application/Traffic/CBR]
+$cbr0 attach-agent $udp0
 
-set cbr1 [new Agent/CBR]
-$ns attach-agent $n(500) $cbr1
-$cbr1 set class_ 1
+set udp1 [new Agent/UDP]
+$ns attach-agent $n(500) $udp1
+$udp1 set class_ 1
+set cbr1 [new Application/Traffic/CBR]
+$cbr1 attach-agent $udp1
 
 set null0 [new Agent/Null]
 $ns attach-agent $n(10) $null0
@@ -28,8 +32,8 @@ $ns attach-agent $n(10) $null0
 set null1 [new Agent/Null]
 $ns attach-agent $n(600) $null1
 
-$ns connect $cbr0 $null0
-$ns connect $cbr1 $null1
+$ns connect $udp0 $null0
+$ns connect $udp1 $null1
 
 $ns at 1.0 "$cbr0 start"
 $ns at 1.1 "$cbr1 start"
@@ -45,7 +49,7 @@ $ftp set agent_ $tcp
 $ns at 1.2 "$ftp start"
 $ns at 3.0 "finish"
 
-puts [$cbr0 set packetSize_]
+puts [$cbr0 set packet_size_]
 puts [$cbr0 set interval_]
 
 $ns at 3.0 "finish"

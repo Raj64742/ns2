@@ -110,19 +110,23 @@ Test/hier-simple instproc init {flag} {
 
 Test/hier-simple instproc run {} {
 	$self instvar ns_ n_ 
-	set cbr0 [new Agent/CBR]
-	$ns_ attach-agent $n_(0) $cbr0
-	set cbr1 [new Agent/CBR]
-	$ns_ attach-agent $n_(2) $cbr1
-	$cbr1 set class_ 1
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $n_(0) $udp0
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
+	set udp1 [new Agent/UDP]
+	$ns_ attach-agent $n_(2) $udp1
+	$udp1 set class_ 1
+	set cbr1 [new Application/Traffic/CBR]
+	$cbr1 attach-agent $udp1
 
 	set null0 [new Agent/Null]
 	$ns_ attach-agent $n_(8) $null0
 	set null1 [new Agent/Null]
 	$ns_ attach-agent $n_(6) $null1
 
-	$ns_ connect $cbr0 $null0
-	$ns_ connect $cbr1 $null1
+	$ns_ connect $udp0 $null0
+	$ns_ connect $udp1 $null1
 	$ns_ at 1.0 "$cbr0 start"
 	$ns_ at 1.1 "$cbr1 start"
 	$ns_ at 3.0 "$self finish"
@@ -149,10 +153,12 @@ Test/hier-cmcast instproc run {} {
 		$ns_ at $i "$n_($i) join-group $rcvr($i) $g_"
 		incr i
 	}
-	set sender [new Agent/CBR]
-	$sender set dst_ $g_
-	$sender set class_ 2
-	$ns_ attach-agent $n_(0) $sender
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $n_(0) $udp0
+	$udp0 set dst_ $g_
+	$udp0 set class_ 2
+	set sender [new Application/Traffic/CBR]
+	$sender attach-agent $udp0
 	$ns_ at 0.0 "$sender start"
 	$ns_ at 10.0 "$self finish"
 	
@@ -178,10 +184,12 @@ Test/hier-deDM instproc run {} {
 		$ns_ at $i "$n_($i) join-group $rcvr($i) $g_"
 		incr i
 	}
-	set sender [new Agent/CBR]
-	$sender set dst_ $g_
-	$sender set class_ 2
-	$ns_ attach-agent $n_(0) $sender
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $n_(0) $udp0
+	$udp0 set dst_ $g_
+	$udp0 set class_ 2
+	set sender [new Application/Traffic/CBR]
+	$sender attach-agent $udp0
 	$ns_ at 0.1 "$sender start"
 	$ns_ at 10.0 "$self finish"
 	
@@ -205,10 +213,12 @@ Test/hier-session instproc run {} {
 		$ns_ at $i "$n_($i) join-group $rcvr($i) $g_"
 		incr i
 	}
-	set sender [new Agent/CBR]
-	$sender set dst_ $g_
-	$ns_ attach-agent $n_(0) $sender
-	$ns_ create-session $n_(0) $sender
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $n_(0) $udp0
+	$udp0 set dst_ $g_
+	set sender [new Application/Traffic/CBR]
+	$sender attach-agent $udp0
+	$ns_ create-session $n_(0) $udp0
 	$ns_ at 0.1 "$sender start"
 	$ns_ at 10.0 "$self finish"
 	

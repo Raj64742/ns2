@@ -1118,7 +1118,6 @@ Test/smallpkts instproc run {} {
 
 	# set up TCP-level connections
 	$sink listen
-	set ftp1 [$src attach-app FTP]
 	$ns_ at 0.5 "$src advance-bytes 30"
 	$ns_ at 0.75 "$src advance-bytes 300"
 

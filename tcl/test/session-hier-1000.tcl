@@ -10,11 +10,12 @@ $ns namtrace-all [open session-hier-1000.nam w]
 
 create-hier-topology $linkBW
 
-
-set cbr [new Agent/CBR]
-$ns attach-agent $n(500) $cbr
-$cbr set dst_ 0x8002
-$ns create-session $n(500) $cbr
+set udp [new Agent/UDP]
+$ns attach-agent $n(500) $udp
+set cbr [new Application/Traffic/CBR]
+$cbr attach-agent $udp
+$udp set dst_ 0x8002
+$ns create-session $n(500) $udp
 
 set rcvr0 [new Agent/LossMonitor]
 set rcvr1 [new Agent/LossMonitor]
