@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.2 2000/03/18 23:24:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-testReno.tcl,v 1.3 2000/07/08 14:34:04 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-testReno.tcl
@@ -88,6 +88,7 @@ TestSuite instproc finish file {
 	}
         ## now use default graphing tool to make a data file
 	## if so desired
+	# exec csh gnuplotC.com temp.rands $file
         exit 0
 }
 
@@ -153,47 +154,61 @@ TestSuite instproc setup {tcptype list} {
 ## Two drops
 ###################################################
 
-Class Test/twodrops_tahoe -superclass TestSuite
-Test/twodrops_tahoe instproc init {} {
+Class Test/Tahoe_TCP -superclass TestSuite
+Test/Tahoe_TCP instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
-	set test_	twodrops_tahoe
+	set test_	Tahoe_TCP
 	$self next
 }
-Test/twodrops_tahoe instproc run {} {
+Test/Tahoe_TCP instproc run {} {
         $self setup Tahoe {15 18}
 }
 
-Class Test/twodrops_reno -superclass TestSuite
-Test/twodrops_reno instproc init {} {
+Class Test/Tahoe_TCP_without_Fast_Retransmit -superclass TestSuite
+Test/Tahoe_TCP_without_Fast_Retransmit instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
-	set test_	twodrops_reno
+	set test_	Tahoe_TCP_without_Fast_Retransmit
+	Agent/TCP set noFastRetrans_ true
 	$self next
 }
-Test/twodrops_reno instproc run {} {
+Test/Tahoe_TCP_without_Fast_Retransmit instproc run {} {
+        $self setup Tahoe {15 18}
+}
+
+Class Test/Reno_TCP -superclass TestSuite
+Test/Reno_TCP instproc init {} {
+	$self instvar net_ test_
+	set net_	net4
+	set test_	Reno_TCP
+	$self next
+}
+Test/Reno_TCP instproc run {} {
         $self setup Reno {15 18}
 }
 
-Class Test/twodrops_newreno -superclass TestSuite
-Test/twodrops_newreno instproc init {} {
+Class Test/NewReno_TCP -superclass TestSuite
+Test/NewReno_TCP instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
-	set test_	twodrops_newreno
+	set test_	NewReno_TCP
+	Agent/TCP set noFastRetrans_ false
 	$self next
 }
-Test/twodrops_newreno instproc run {} {
+Test/NewReno_TCP instproc run {} {
         $self setup Newreno {15 18}
 }
 
-Class Test/twodrops_sack -superclass TestSuite
-Test/twodrops_sack instproc init {} {
+Class Test/Sack_TCP -superclass TestSuite
+Test/Sack_TCP instproc init {} {
 	$self instvar net_ test_
 	set net_	net4
-	set test_	twodrops_sack
+	set test_	Sack_TCP
+	Agent/TCP set noFastRetrans_ false
 	$self next
 }
-Test/twodrops_sack instproc run {} {
+Test/Sack_TCP instproc run {} {
         $self setup Sack1 {15 18}
 }
 
