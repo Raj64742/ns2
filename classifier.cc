@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1996 Regents of the University of California.
  * All rights reserved.
@@ -33,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.20 1998/06/19 18:43:22 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.cc,v 1.21 1998/06/26 00:02:28 gnguyen Exp $";
 #endif
 
 #include <stdlib.h>
@@ -105,13 +106,13 @@ void Classifier::clear(int slot)
 
 int Classifier::getnxt(NsObject *nullagent)
 {
-  	int i;
-  	for (i=0; i < nslot_; i++)
-    	if (slot_[i]==0 || slot_[i]==nullagent)
-     	 return i;
-  	i=nslot_;
-  	alloc(nslot_);
-  	return i;
+	int i;
+	for (i=0; i < nslot_; i++)
+		if (slot_[i]==0 || slot_[i]==nullagent)
+			return i;
+	i=nslot_;
+	alloc(nslot_);
+	return i;
 }
 
 /*
@@ -139,19 +140,19 @@ void Classifier::recv(Packet* p, Handler*h)
 
 NsObject* Classifier::find(Packet* p)
 {
-        NsObject* node = NULL;
-        int cl = classify(p);
-        if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) { 
+	NsObject* node = NULL;
+	int cl = classify(p);
+	if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0) { 
 		/*
 		 * Sigh.  Can't pass the pkt out to tcl because it's
 		 * not an object.
 		 */
-                Tcl::instance().evalf("%s no-slot %d", name(), cl);
-                /*      
-                 * Try again.  Maybe callback patched up the table.
-                 */      
-                cl = classify(p);
-                if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0)
+		Tcl::instance().evalf("%s no-slot %d", name(), cl);
+		/*
+		 * Try again.  Maybe callback patched up the table.
+		 */
+		cl = classify(p);
+		if (cl < 0 || cl >= nslot_ || (node = slot_[cl]) == 0)
 			return (NULL);
 	}
 	return (node);

@@ -1,3 +1,4 @@
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8 -*- */
 /*
  * Copyright (c) 1994 Regents of the University of California.
  * All rights reserved.
@@ -30,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.33 1998/06/19 21:24:03 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.34 1998/06/26 00:02:30 gnguyen Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.33 1998/06/19 21:24:03 gnguyen Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.34 1998/06/26 00:02:30 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -90,7 +91,7 @@ Scheduler::run()
  */
 
 void
-Scheduler::dispatch(Event* p,  double t)
+Scheduler::dispatch(Event* p, double t)
 {
 	clock_ = t;
 	p->uid_ = -p->uid_;	// being dispatched
@@ -123,25 +124,25 @@ void AtHandler::handle(Event* e)
 
 class RcEvent : public Event {
 public:
-        Packet* packet_;
-        Handler* real_handler_;
+	Packet* packet_;
+	Handler* real_handler_;
 };
 
 class RcHandler : public Handler {
 public:
-        void handle(Event* event);
+	void handle(Event* event);
 } rc_handler;
 
 void RcHandler::handle(Event* e)
 {
-        RcEvent* rc = (RcEvent*)e;
+	RcEvent* rc = (RcEvent*)e;
 	rc->real_handler_->handle(rc->packet_);
 	delete rc;
 }
 
 void Scheduler::rc_schedule(Handler* h, Event* e, double delay)
 {
-        RcEvent* rc = new RcEvent;
+	RcEvent* rc = new RcEvent;
 	rc->uid_ = uid_++;
 	rc->handler_ = &rc_handler;
 	double t = clock_ + delay;
@@ -174,20 +175,19 @@ int Scheduler::command(int argc, const char*const* argv)
 			halted_ = 1;
 			return (TCL_OK);
 
-                } else if (strcmp(argv[1], "clearMemTrace") == 0) {
+		} else if (strcmp(argv[1], "clearMemTrace") == 0) {
 #ifdef MEMDEBUG_SIMULATIONS
-                        extern MemTrace *globalMemTrace;
-                        if (globalMemTrace)
-                                globalMemTrace->diff("Sim.");
+			extern MemTrace *globalMemTrace;
+			if (globalMemTrace)
+				globalMemTrace->diff("Sim.");
 #endif
-                        return (TCL_OK);
+			return (TCL_OK);
 		} else if (strcmp(argv[1], "is-running") == 0) {
 			sprintf(tcl.buffer(), "%d", !halted_);
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "dumpq") == 0) {
 			if (!halted_) {
-				fprintf(stderr,
-				  "Scheduler: dumpq only allowed while halted\n");
+				fprintf(stderr, "Scheduler: dumpq only allowed while halted\n");
 				tcl.result("0");
 				return (TCL_ERROR);
 			}
@@ -206,25 +206,25 @@ int Scheduler::command(int argc, const char*const* argv)
 				delete ae;
 			}
 		} else if (strcmp(argv[1], "at-now") == 0) {
-                        const char* proc = argv[2];
+			const char* proc = argv[2];
 
 			// "at [$ns now]" may not work because of tcl's 
 			// string number resolution
-                        AtEvent* e = new AtEvent;
-                        int n = strlen(proc);
-                        e->proc_ = new char[n + 1];
-                        strcpy(e->proc_, proc);
-                        schedule(&at_handler, e, 0);
-                        sprintf(tcl.buffer(), "%u", e->uid_);
-                        tcl.result(tcl.buffer());
-                }
+			AtEvent* e = new AtEvent;
+			int n = strlen(proc);
+			e->proc_ = new char[n + 1];
+			strcpy(e->proc_, proc);
+			schedule(&at_handler, e, 0);
+			sprintf(tcl.buffer(), "%u", e->uid_);
+			tcl.result(tcl.buffer());
+		}
 		return (TCL_OK);
 	} else if (argc == 4) {
 		if (strcmp(argv[1], "at") == 0) {
 			/* t < 0 means relative time: delay = -t */
 			double delay, t = atof(argv[2]);
 			const char* proc = argv[3];
-	
+
 			AtEvent* e = new AtEvent;
 			int n = strlen(proc);
 			e->proc_ = new char[n + 1];
@@ -354,7 +354,7 @@ public:
 
 Event* HeapScheduler::lookup(int uid)
 {
-        Event* e;
+	Event* e;
 	
 	for (e = (Event*) hp_->heap_iter_init(); e;
 	     e = (Event*) hp_->heap_iter())
@@ -433,10 +433,10 @@ void CalendarScheduler::insert(Event* e)
 	// insert event in stable time sorted order
 	while ((*p != NULL) && (e->time_ >= (*p)->time_))
 		p = &(*p)->next_;
-  
+
 	e->next_ = *p;
 	*p = e;
-  
+
 	if (++qsize_ > top_threshold_)
 		resize(2*nbuckets_);
 }
@@ -469,7 +469,7 @@ CalendarScheduler::deque()
 	int pos = 0;
 	Event* min;
 	do {
-		min =  buckets_[pos++];
+		min = buckets_[pos++];
 	} while (min == NULL);
 	pos--;
 
@@ -480,7 +480,7 @@ CalendarScheduler::deque()
 			min = e; pos = k;
 		}
 	}
-  
+
 	// adjust year and resume
 	lastbucket_ = pos;
 	last_clock_ = min->time_;
@@ -538,7 +538,7 @@ CalendarScheduler::newwidth()
 {
 	static Event* hold[MAX_HOLD];
 	int nsamples;
-  
+
 	if (qsize_ < 2) return 1.0;
 	if (qsize_ < 5) nsamples = qsize_;
 	else nsamples = 5 + qsize_ / 10;
@@ -559,12 +559,12 @@ CalendarScheduler::newwidth()
 	double asep2 = 0.0;
 	double min = (clock_ + 1.0) * MIN_WIDTH; 
 	int count = 0;
-  
+
 	for (int k = 1; k < nsamples; k++) {
 		double diff = hold[k]->time_ - hold[k-1]->time_;
 		if (diff < 2.0*asep) { asep2 += diff; count++; }
 	}
-  
+
 	// but don't let things get too small for numerical stability
 	double nw = count ? 3.0*(asep2/count) : asep;
 	if (nw < min) nw = min;
@@ -643,13 +643,13 @@ RealTimeScheduler::RealTimeScheduler() : start_(0.0)
 
 double
 RealTimeScheduler::tod()
-{   
-        timeval tv;
-        gettimeofday(&tv, 0);
-        double s = tv.tv_sec;
-        s += (1e-6 * tv.tv_usec);
-        return (s - start_);
-}   
+{
+	timeval tv;
+	gettimeofday(&tv, 0);
+	double s = tv.tv_sec;
+	s += (1e-6 * tv.tv_usec);
+	return (s - start_);
+}
 
 static void nullTimer(ClientData)
 {
@@ -666,9 +666,8 @@ void RealTimeScheduler::run()
 	while (!halted_) {
 		now = tod();
 		if ((clock_ - now) > slop_) {
-			fprintf(stderr,
-			  "RealTimeScheduler: warning: slop %f exceeded limit %f\n",
-			      (clock_ - now), slop_);
+			fprintf(stderr, "RealTimeScheduler: warning: slop %f exceeded limit %f\n",
+				(clock_ - now), slop_);
 		}
 
 		//
