@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.34 1998/05/27 19:46:49 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.35 1998/06/29 23:03:12 heideman Exp $
 #
 
 Class Node
@@ -463,8 +463,7 @@ ManualRtNode instproc mk-default-classifier {} {
 	# Note the very small hash size---
 	# you're supposed to resize it if you want more.
 	set classifier_ [new Classifier/Hash/Dest 2]
-# commenting out next line is a hack!
-#	$classifier_ set mask_ [AddrParams set NodeMask_(1)]
+	$classifier_ set mask_ [AddrParams set NodeMask_(1)]
 	$classifier_ set shift_ [AddrParams set NodeShift_(1)]
 	set address_ $id_
 	#
@@ -481,9 +480,9 @@ ManualRtNode instproc add-route {dst_address target} {
 		$classifier_ set default_ $slot
 	} else {
 		# don't encode the address here, set-hash bypasses that for us
-		# set encoded_dst_address [expr $dst_address << [AddrParams set NodeShift_(1)]]
-		# $classifier_ set-hash auto 0 $encoded_dst_address 0 $slot
-		$classifier_ set-hash auto 0 $dst_address 0 $slot
+		set encoded_dst_address [expr $dst_address << [AddrParams set NodeShift_(1)]]
+		$classifier_ set-hash auto 0 $encoded_dst_address 0 $slot
+		# $classifier_ set-hash auto 0 $dst_address 0 $slot
 	}
 # 	puts "ManualRtNode::add-route: $dst $target, classifier=$classifier_ slot=$slot"
 #	puts "\t*slot=[$classifier_ slot $slot]"
