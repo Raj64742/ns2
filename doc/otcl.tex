@@ -626,6 +626,80 @@ One way of providing such primitives in \ns\ is through
 the \fcn[]{command} method described in the next section.
 
 
+\subsection{Variable Tracing}
+\label{sec:VarTrace}
+
+In addition to variable bindings, TclObject also supports tracing of
+both C++ and Tcl instance variables.  A traced variable can be created
+and configured either in C++ or Tcl.  To establish variable tracing at
+the Tcl level, the variable must be visible in Tcl, which means that it
+must be a bounded C++/Tcl or a pure Tcl instance variable.  In addition,
+the object that owns the traced variable is also required to establish
+tracing using the Tcl \code{trace} method of TclObject.  The first
+argument to the \code{trace} method must be the name of the variable.
+The optional second argument specifies the trace object that is
+responsible for tracing that variable.  If the trace object is not
+specified, the object that own the variable is responsible for tracing
+it.
+
+For a TclObject to trace variables, it must extend the C++
+\code{trace} method that is virtually defined in TclObject.  The Trace
+class implements a simple \code{trace} method, thereby, it can act as a
+generic tracer for variables.
+
+\begin{verbatim}
+class Trace : public Connector {
+        ...
+        virtual void trace(TracedVar*);
+};
+\end{verbatim}
+
+Below is a simple example for setting up variable tracing in Tcl:
+
+\begin{small}
+\begin{verbatim}
+        # $tcp tracing its own variable cwnd_
+        $tcp trace cwnd_
+
+        # the variable ssthresh_ of $tcp is traced by a generic $tracer
+        set tracer [new Trace/Var]
+        $tcp trace ssthresh_ $tracer
+\end{verbatim}
+\end{small}
+
+For a C++ variable to be traceable, it must belong to a class that
+derives from TracedVar.  The virtual base class TracedVar keeps track of
+the variable's name, owner, and tracer.  Classes that derives from
+TracedVar must implement the virtual method \code{value}, that takes a
+character buffer as an argument and writes the value of the variable
+into that buffer.
+
+\begin{small}
+\begin{verbatim}
+class TracedVar {
+        ...
+        virtual char* value(char* buf) = 0;
+protected:
+        TracedVar(const char* name);
+        const char* name_;      // name of the variable
+        TclObject* owner_;      // the object that owns this variable
+        TclObject* tracer_;     // callback when the variable is changed
+        ...
+};
+\end{verbatim}
+\end{small}
+
+The TclCL library exports two classes of TracedVar:  \code{TracedInt} and
+\code{TracedDouble}.  These classes can be used in place of the basic
+type int and double respectively.  Both TracedInt and TracedDouble
+overload all the operators that can change the value of the variable
+such as assignment, increment, and decrement.  These overloaded
+operators use the \code{assign} method to assign the new value to the
+variable and call the tracer if the new value is different from the old
+one.  TracedInt and TracedDouble also implement their \code{value}
+methods that output the value of the variable into string.  The width
+and precision of the output can be pre-specified.
+
 \subsection{\code{command} Methods: Definition and Invocation}
 \label{sec:Commands}
 
