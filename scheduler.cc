@@ -30,12 +30,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.22 1997/11/11 00:21:13 haoboy Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.23 1997/12/11 22:11:12 gnguyen Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.22 1997/11/11 00:21:13 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/scheduler.cc,v 1.23 1997/12/11 22:11:12 gnguyen Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -210,6 +210,8 @@ void ListScheduler::insert(Event* e)
 void ListScheduler::cancel(Event* e)
 {
 	Event** p;
+	if (e->uid_ <= 0)	// event not in queue
+		return;
 	for (p = &queue_; *p != e; p = &(*p)->next_)
 		if (*p == 0)
 			abort();
@@ -220,11 +222,11 @@ void ListScheduler::cancel(Event* e)
 
 Event* ListScheduler::lookup(int uid)
 {
-	Event* p;
-	for (p = queue_; p != 0; p = p->next_)
-		if (p->uid_ == uid)
+	Event* e;
+	for (e = queue_; e != 0; e = e->next_)
+		if (e->uid_ == uid)
 			break;
-	return (p);
+	return (e);
 }
 
 void ListScheduler::run()
@@ -233,13 +235,13 @@ void ListScheduler::run()
 	instance_ = this;
 	while (queue_ != 0 && !halted_) {
 	  //printf("got here, ");
-		Event* p = queue_;
-		queue_ = p->next_;
-		clock_ = p->time_;
-		//printf("clock_ %f, before p->uid_:%d,", clock_, p->uid_);
-		p->uid_ = - p->uid_;
-		//printf("after p->uid_:%d,", p->uid_);
-		p->handler_->handle(p);
+		Event* e = queue_;
+		queue_ = e->next_;
+		clock_ = e->time_;
+		//printf("clock_ %f, before e->uid_:%d,", clock_, e->uid_);
+		e->uid_ = - e->uid_;
+		//printf("after e->uid_:%d,", e->uid_);
+		e->handler_->handle(e);
 		//printf("queue%d, halted%d\n",queue_, halted_);
 	}
 }
@@ -249,11 +251,14 @@ void ListScheduler::run()
 class HeapScheduler : public Scheduler {
 public:
 	inline HeapScheduler() { hp_ = new Heap; } 
-	virtual void cancel(Event* p) {
-		hp_->heap_delete((void*) p);
+	virtual void cancel(Event* e) {
+		if (e->uid_ <= 0)
+			return;
+		e->uid_ = - e->uid_;
+		hp_->heap_delete((void*) e);
 	}
-	virtual void insert(Event* p) {
-		hp_->heap_insert(p->time_, (void*) p);
+	virtual void insert(Event* e) {
+		hp_->heap_insert(e->time_, (void*) e);
 	}
 	virtual Event* lookup(int uid);
 	virtual void run();
@@ -271,23 +276,23 @@ public:
 
 Event* HeapScheduler::lookup(int uid)
 {
-        Event* p;
+        Event* e;
 	
-	for (p = (Event*) hp_->heap_iter_init(); p;
-	     p = (Event*) hp_->heap_iter())
-		if (p->uid_ == uid)
+	for (e = (Event*) hp_->heap_iter_init(); e;
+	     e = (Event*) hp_->heap_iter())
+		if (e->uid_ == uid)
 			break;
-	return p;
+	return e;
 }
 
 void HeapScheduler::run()
 {
-	Event* p;
+	Event* e;
 	instance_ = this;
-	while (((p = (Event*) hp_->heap_extract_min()) != 0) && !halted_) {
-		clock_ = p->time_;
-		p->uid_ = - p->uid_;
-		p->handler_->handle(p);
+	while (((e = (Event*) hp_->heap_extract_min()) != 0) && !halted_) {
+		clock_ = e->time_;
+		e->uid_ = - e->uid_;
+		e->handler_->handle(e);
 	}
 }
 
