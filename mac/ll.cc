@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.10 1997/11/06 04:15:57 hari Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.11 1998/01/23 08:11:08 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -57,8 +57,9 @@ public:
 } class_ll;
 
 
-LL::LL() : LinkDelay(), seqno_(0), peerLL_(0), mac_(0)
+LL::LL() : LinkDelay(), seqno_(0), macDA_(0), ifq_(0)
 {
+	bind("macDA_", &macDA_);
 	bind("off_ll_", &off_ll_);
 	bind("off_mac_", &off_mac_);
 }
@@ -69,20 +70,12 @@ LL::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
-		if (strcmp(argv[1], "peerLL") == 0) {
-			peerLL_ = (LL*) TclObject::lookup(argv[2]);
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "mac") == 0) {
-			mac_ = (Mac*) TclObject::lookup(argv[2]);
+		if (strcmp(argv[1], "ifq") == 0) {
+			ifq_ = (Queue*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "sendtarget") == 0) {
 			sendtarget_ = (NsObject*) TclObject::lookup(argv[2]);
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "ifq") == 0) {
-			ifq_ = (Queue*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "recvtarget") == 0) {
@@ -92,14 +85,6 @@ LL::command(int argc, const char*const* argv)
 	}
 
 	else if (argc == 2) {
-		if (strcmp(argv[1], "peerLL") == 0) {
-			tcl.resultf("%s", peerLL_->name());
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "mac") == 0) {
-			tcl.resultf("%s", mac_->name());
-			return (TCL_OK);
-		}
 		if (strcmp(argv[1], "ifq") == 0) {
 			tcl.resultf("%s", ifq_->name());
 			return (TCL_OK);
@@ -146,8 +131,7 @@ LL::sendto(Packet* p, Handler* h)
 	hdr_ll *llh = (hdr_ll*)p->access(off_ll_);
 
 	llh->seqno() = ++seqno_;
-	((hdr_mac*)p->access(off_mac_))->macDA() = peerLL_->mac()->label();
-	((hdr_mac*)p->access(off_mac_))->ftype() = MF_DATA;
+	((hdr_mac*)p->access(off_mac_))->macDA() = macDA_;
 	s.schedule(sendtarget_, p, delay_); // schedule (typically) MAC
 	s.schedule(h, &intr_, 0.000001); // XXX -- resume higher layer
 }
