@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.29 1998/05/04 18:29:27 breslau Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.30 1998/06/12 18:19:41 kfall Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -113,11 +113,11 @@ public:
 
 class Packet : public Event {
 private:
-	unsigned char* bits_;
+	unsigned char* bits_;	// header bits
 	unsigned char* data_;	// variable size buffer for 'data'
 	unsigned int datalen_;	// length of variable size buffer
 protected:
-	static Packet* free_;
+	static Packet* free_;	// packet free list
 public:
 	Packet* next_;		// for queues and the free list
 	static int hdrlen_;
@@ -128,8 +128,13 @@ public:
         static Packet* alloc(int);
 	inline void allocdata(int);
         static void free(Packet*);
-	inline unsigned char* access(int off) { if (off < 0) abort(); return (&bits_[off]); }
-	inline unsigned char* accessdata() {return data_;}
+	inline unsigned char* access(int off) const {
+		if (off < 0)
+			abort();
+		return (&bits_[off]);
+	}
+	inline unsigned char* accessdata() const { return data_; }
+	inline int datalen() const { return datalen_; }
 };
 
 
