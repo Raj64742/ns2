@@ -164,6 +164,7 @@ OBJ_CC = \
 	common/agent.o common/message.o apps/udp.o \
 	common/session-rtp.o apps/rtp.o tcp/rtcp.o \
 	common/ivs.o \
+	common/messpass.o \
 	tcp/tcp.o tcp/tcp-sink.o tcp/tcp-reno.o \
 	tcp/tcp-newreno.o \
 	tcp/tcp-vegas.o tcp/tcp-rbp.o tcp/tcp-full.o tcp/rq.o \
