@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.22 2002/04/10 20:37:46 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.23 2002/07/09 02:23:33 yuri Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -56,6 +56,7 @@ class Handler;
 class Event {
 public:
 	Event* next_;		/* event list */
+	Event* prev_;
 	Handler* handler_;	/* handler to call when event ready */
 	double time_;		/* time at which event is ready */
 	scheduler_uid_t uid_;	/* unique ID */
@@ -150,25 +151,23 @@ public:
 protected:
 	int resizeenabled_;
 	double width_;
-	double oneonwidth_; /* this variable is always equal 1/width_
-			     * we use it for a speedup (mul is cheaper than div),
-			     * but we may also lose precision with it.
-			     */
-	double buckettop_;
-	double last_clock_;
-	double prevtop_;
+	double diff0_, diff1_, diff2_; /* wrap-around checks */
+
+	int stat_qsize_;		/* # of distinct priorities in queue*/
 	int nbuckets_;
-	int buckbits_;
 	int lastbucket_;
 	int top_threshold_;
 	int bot_threshold_;
 
-	Event** buckets_;
+	struct Bucket {
+		Event *list_;
+		int    count_;
+	} *buckets_;
+		
 	int qsize_;
-	double max_;
 
 	virtual void reinit(int nbuck, double bwidth, double start);
-	virtual void resize(int newsize);
+	virtual void resize(int newsize, double start);
 	virtual double newwidth();
 
 private:
