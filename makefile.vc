@@ -18,14 +18,13 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.6 1998/01/29 20:16:54 gnguyen Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/makefile.vc,v 1.7 1998/02/05 21:03:03 hari Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
 #
 
-# Top level hierarchy
-prefix	= /usr/local
+# Top level hierarchyprefix	= /usr/local
 # Pathname of directory to install the binary
 BINDEST	= /usr/local/bin
 # Pathname of directory to install the man page
@@ -82,6 +81,7 @@ CFLAGS	= $(INCLUDES) $(DEFINE) $(CCOPT)
 GEN_DIR	= gen/
 LIB_DIR	= lib/
 NS	= ns
+NSE	= nse
 NSX	= nsx
 
 
@@ -228,8 +228,7 @@ $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)
 
 $(GEN_DIR)version.c: VERSION
 	$(RM) $@
-	$(TCLSH) bin/printver.tcl < VERSION > $@
-
+	$(PERL) -ne "chop; print \"char version_string[]=\\\"$$_\\\";\n\"" VERSION > gen\version.c
 
 install: force
 	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)
