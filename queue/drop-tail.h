@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.h,v 1.5 1997/07/25 09:09:47 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/drop-tail.h,v 1.6 1997/10/26 05:36:27 hari Exp $ (LBL)
  */
 
 #ifndef ns_drop_tail_h
@@ -44,12 +44,16 @@
  */
 class DropTail : public Queue {
   public:
-	DropTail() { q_ = new PacketQueue; }
+	DropTail() { 
+		q_ = new PacketQueue; 
+		bind_bool("drop-front_", &drop_front_);
+	}
   protected:
 	int command(int argc, const char*const* argv); 
 	void enque(Packet*);
 	Packet* deque();
-        PacketQueue *q_; /* underlying FIFO queue */
+        PacketQueue *q_;	/* underlying FIFO queue */
+	int drop_front_;	/* drop-from-front (rather than from tail) */
 };
 
 #endif

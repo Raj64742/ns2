@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.26 1997/10/13 22:24:38 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.27 1997/10/26 05:36:25 hari Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -81,7 +81,9 @@ REDQueue::REDQueue() : link_(NULL), bcount_(0), de_drop_(NULL),
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
-	bind_bool("drop-tail_", &drop_tail_);	    // drop last pkt or random
+	bind_bool("drop-tail_", &drop_tail_);	    // drop last pkt
+	bind_bool("drop-front_", &drop_front_);	    // drop first pkt
+	bind_bool("drop-rand_", &drop_rand_);	    // drop pkt at random
 
 	bind("ave_", &edv_.v_ave);		    // average queue sie
 	bind("prob1_", &edv_.v_prob1);		    // dropping probability
@@ -258,9 +260,18 @@ int REDQueue::drop_early(Packet* pkt)
  * the victim.
  */
 Packet*
-REDQueue::pickPacketToDrop() {
-	int victim = drop_tail_ ? q_->length() - 1 : Random::integer(q_->length());
-	return(q_->lookup(victim));
+REDQueue::pickPacketToDrop() 
+{
+	int victim;
+
+	if (drop_front_)
+		victim = min(1, q_->length()-1);
+	else if (drop_rand_)
+		victim = Random::integer(q_->length());
+	else			/* default is drop_tail_ */
+		victim = q_->length() - 1;
+
+	return(q_->lookup(victim)); 
 }
 
 /*

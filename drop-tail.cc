@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.6 1997/07/25 09:09:46 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.7 1997/10/26 05:36:26 hari Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -67,8 +67,13 @@ void DropTail::enque(Packet* p)
 {
 	q_->enque(p);
 	if (q_->length() >= qlim_) {
-		q_->remove(p);
-		drop(p);
+		if (drop_front_) { /* remove from head of queue */
+			Packet *pp = q_->deque();
+			drop(pp);
+		} else {
+			q_->remove(p);
+			drop(p);
+		}
 	}
 }
 
