@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.210 1998/01/27 18:48:59 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.211 1998/01/28 22:29:38 kannan Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -19,6 +19,17 @@
 <hr>
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b2.tar.gz">ns-2.1b2</A> [not released yet]</H3>
 <UL>
+
+  <LI><B><A HREF="http://www.isi.edu/~kannan/">[KVa]</A></B>
+	<b>
+	Wed Jan 28 14:05:09 PST 1998
+	</b><br>
+	Typo in srm-adaptive.tcl:121, 
+	Agent/SRM/Adaptive::recompute-request-params{}
+	pointed out by 
+	<a href="mailto:woja@media.mit.edu">
+	"Roger \"WOJA\" Kermode" &lt;woja@media.mit.edu&gt;
+	</a>
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Tue Jan 27 10:47:24 PST 1998</b><br>
@@ -44,7 +55,7 @@
         the procedure as proc ::class.
         <li> info proc SplitObjectCompare not found. The info command finds 
         only procedures in the *current* namespace. I added a second check 
-        for ::SplitObjectCompare before bailing out. <li> 
+        for ::SplitObjectCompare before bailing out.
         </ul>
 
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[KF]</A></B>
@@ -341,7 +352,7 @@ such as SemanticREDQueue.
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Mon Oct 27 18:52:25 PST 1997</b><br>
-       Agent/TCP set restart_bugfix_ => false
+       Agent/TCP set restart_bugfix_ =&gt; false
        (temporarily).
 
   <LI><B><A HREF="http://www.cs.berkeley.edu/~hari/">[hari]</A></B>
@@ -667,9 +678,9 @@ Files affected: semantic-packetqueue.{cc,h}
   <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[Kevin Fall]</A> Mon Aug 25 13:27:11 PDT 1997</B><br>
 	Change timeout initialization in tcp.cc:rtt_timeout().
 	Old code:
-		((srtt>>3)+rttvar)*tick
+		((srtt&gt;&gt;3)+rttvar)*tick
 	new code
-		((srtt>>3)+rttvar+1)*tick
+		((srtt&gt;&gt;3)+rttvar+1)*tick
 	Fix contributed by Kathie Nichols w/Van.
      </LI>
 
