@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.194 1997/12/23 19:28:49 bajaj Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.195 1997/12/25 01:08:46 padmanab Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -19,6 +19,16 @@
 <hr>
 <H3><A HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b2.tar.gz">ns-2.1b2</A> [not released yet]</H3>
 <UL>
+<LI><B><A HREF="http://www.cs.berkeley.edu/~padmanab/">[VNP]</A></B> <B>Wed Dec 24 16:59:44 PST 1997</B><BR>
+</LI>
+<UL>
+<LI> Added tcp-session.{cc,h} (which implement TcpSessionAgent). 
+<LI> Restructured IntTcpAgent to be a bare-bones TCP that only implements an
+     ordered data stream abstraction. Congestion control and loss 
+     detection/recovery are done by TcpSessionAgent with the help of CorresHost.
+<LI> Added some test files for tcp-fs, tcp-asym, tcp-asym-fs and tcp-int
+     to tcl/ex/tcp-fs. These are still to be cleaned up.
+</UL>
 
   <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Fri Dec 19 16:14:20 PST 1997</b><br>
