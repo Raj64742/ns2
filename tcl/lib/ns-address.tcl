@@ -88,6 +88,8 @@
 
 # Name :            expand-port-field-bits ()
 # Synopsis :        expand-port-field-bits <#bits for portid> 
+# Status:	    Obsolete.  It is no longer needed in the 32-bit addressing
+#		    scheme
 # Description :     This should be used incase of need to extend portid. 
 #                   This commnad may be used in conjuction with 
 #                   set-address-format command explained above.
@@ -133,15 +135,17 @@ Simulator instproc get-AllocAddrBits {prog} {
 Simulator instproc set-address-format {opt args} {
 	set len [llength $args]
 	if {[string compare $opt "def"] == 0} {
-		$self set-address 8 8
+		$self set-address 32
+		set mcastshift [AddrParams set McastShift_]
+		Simulator set McastAddr_ [expr 1 << $mcastshift]
+		mrtObject expandaddr
 	} elseif {[string compare $opt "expanded"] == 0} {
 		$self expand-address
 	} elseif {[string compare $opt "hierarchical"] == 0 && $len == 0} {
 		if [$self multicast?] {
-			
-			$self set-hieraddress 3 6 8 8
+			$self set-hieraddress 3 9 11 11
 		} else {
-			$self set-hieraddress 3 7 8 8
+			$self set-hieraddress 3 10 11 11
 		}
 	} else {
 		if {[string compare $opt "hierarchical"] == 0 && $len > 0} {
@@ -152,12 +156,9 @@ Simulator instproc set-address-format {opt args} {
 
 
 Simulator instproc expand-port-field-bits nbits {
-	set a [$self get-AllocAddrBits "notnew"]
-	if {$nbits <= [$a set portsize_]} {
-		error "expand-port-field-bits:requested portsize less than or equal to existing portsize"
-	} 
-
-	$a expand-portbits $nbits
+	# The function is obsolete, given that ports are now 32 bits wide
+	puts "Warning: Simulator::expand-port-field-bits is obsolete.  Ports are 32 bits wide"
+	return
 }
 
 
@@ -169,10 +170,10 @@ Simulator instproc expand-port-field-bits nbits {
 # and finally portbits
 # this is true for both set-address and set-hieraddress
 
-Simulator instproc set-address {node port} {
+Simulator instproc set-address {node} {
 	set a [$self get-AllocAddrBits "new"]
 	$a set size_ [AllocAddrBits set DEFADDRSIZE_]
-	if {[expr $node + $port] > [$a set size_]} {
+	if {[expr $node] > [$a set size_]} {
 		$a set size_ [AllocAddrBits set MAXADDRSIZE_]
 	}
 		
@@ -181,18 +182,11 @@ Simulator instproc set-address {node port} {
 	$a set-mcastbits 1
 	set lastbit [expr $node - [$a set mcastsize_]]
 	$a set-idbits 1 $lastbit
-	$a set-portbits $port
 }
 
 Simulator instproc expand-address {} {
-	if ![Simulator set EnableHierRt_] {
-		$self set-address 23 8
-	} else {
-		puts "Address format set to hierarchical mode;"
-	}
-	set mcastshift [AddrParams set McastShift_]
-	Simulator set McastAddr_ [expr 1 << $mcastshift]
-	mrtObject expandaddr
+	puts "Warning: Simulator::expand-address is obsolete.  The node address is 32 bits wides"
+	return
 }
 
 
@@ -211,7 +205,6 @@ Simulator instproc set-hieraddress {hlevel args} {
 		$a set-mcastbits 1
 	}
 	eval $a set-idbits $hlevel $args
-	$a set-portbits 8 
 }
 
 
@@ -266,61 +259,18 @@ AllocAddrBits instproc chksize {bit_num prog} {
 
 
 AllocAddrBits instproc set-portbits {bit_num} {
-	$self instvar size_ portsize_ 
-	set portsize_ $bit_num
-	if [$self chksize portsize_ "setport"] {
-		error "set-portbits: size_ has been changed."
-	}
-	
-	set a [$self get-AllocAddr] 
-	set v [$a setbit $bit_num $size_]
-	
-	AddrParams set PortMask_ [lindex $v 0]
-	AddrParams set PortShift_ [lindex $v 1]
-	### TESTING
-	# set mask [lindex $v 0]
-	# set shift [lindex $v 1]
-	# puts "Portshift = $shift \n PortMask = $mask\n"
-
-	set ad [$self get-Address]
-	$ad portbits-are [AddrParams set PortShift_] [AddrParams set PortMask_]
+	# The function is obsolete, given that ports are now 32 bits wide
+	puts "Warning: AllocAddrBits::set-portbits is obsolete.  Ports are 32 bits wide."
+	return
 }
 
 
 
 AllocAddrBits instproc expand-portbits nbits {
-	$self instvar portsize_ size_ mcastsize_ idsize_ hlevel_ hbits_ addrStruct_
-	set temp $portsize_
-	set portsize_ $nbits
-	
-	# these extra checks and re-allocation are done to ensure mcast bit is always the
-	# MSB; so when size_ gets expanded as a result of expanding port, need to re-allocate 
-	# mcast and id bits.
-	
-	if [$self chksize $nbits "expandport"] {
-		set addrStruct_ [new AllocAddr]
-		if {$mcastsize_ > 0} {
-			$self set-mcastbits $mcastsize_
-		}
-		if {$idsize_ > 0} {
-			eval $self set-idbits $hlevel_ $hbits_ 
-		}
-		$self set-portbits $nbits
-	} else {
-		set a [$self get-AllocAddr] 
-		set v [$a expand-port [expr $nbits - $temp] $size_ $temp ]
-		AddrParams set PortMask_ [lindex $v 0]
-		AddrParams set PortShift_ [lindex $v 1]
-		set ad [$self get-Address]
-		$ad portbits-are [AddrParams set PortShift_] [AddrParams set PortMask_]
-		### TESTING
-		# set mask [lindex $v 0]
-		# set shift [lindex $v 1]
-		# puts "size = $size_\n Portshift = $shift \n PortMask = $mask\n"
-	}
+	# The function is obsolete, given that ports are now 32 bits wide
+	puts "Warning: AllocAddrBits::expand-portbits is obsolete.  Ports are 32 bits wide."
+	return
 }
-
-
 
 AllocAddrBits instproc set-mcastbits {bit_num} {
 	$self instvar size_ mcastsize_

@@ -294,6 +294,7 @@ Test/VC1 instproc init net {
 Test/VC1 instproc run {} {
 	$self instvar ns_ node_ testName_
 
+	set grp0 [Node allocaddr]
         $ns_ rtproto Algorithmic
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
@@ -302,12 +303,12 @@ Test/VC1 instproc run {} {
 	}
 
         if {$mrthandle != ""} {
-	    $ns_ at 0.3 "$mrthandle switch-treetype 0x8001"
+	    $ns_ at 0.3 "$mrthandle switch-treetype $grp0"
         }
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n1) $udp0
-	$udp0 set dst_ 0x8001
+	$udp0 set dst_ $grp0
 	$udp0 set class_ 1
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
@@ -320,9 +321,9 @@ Test/VC1 instproc run {} {
 	$ns_ attach-agent $node_(n2) $rcvr2
 
 	$ns_ at 0.1 "$cbr0 start"
-	$ns_ at 0.1 "$node_(n1) join-group $rcvr1 0x8001"
-	$ns_ at 0.1 "$node_(n0) join-group $rcvr0 0x8001"
-	$ns_ at 0.1 "$node_(n2) join-group $rcvr2 0x8001"
+	$ns_ at 0.1 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.1 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.1 "$node_(n2) join-group $rcvr2 $grp0"
 	
 	$ns_ at 0.5 "$self finish [list $rcvr0 $rcvr1 $rcvr2]"
 	$ns_ run
@@ -341,6 +342,7 @@ Test/VC2 instproc init net {
 Test/VC2 instproc run {} {
 	$self instvar ns_ node_ testName_
 
+	set grp0 [Node allocaddr]
         $ns_ rtproto Algorithmic
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
@@ -349,12 +351,12 @@ Test/VC2 instproc run {} {
 	}
 
         if {$mrthandle != ""} {
-	    $ns_ at 0.3 "$mrthandle switch-treetype 0x8001"
+	    $ns_ at 0.3 "$mrthandle switch-treetype $grp0"
         }
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n4) $udp0
-	$udp0 set dst_ 0x8001
+	$udp0 set dst_ $grp0
 	$udp0 set class_ 1
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
@@ -373,12 +375,12 @@ Test/VC2 instproc run {} {
 	$ns_ attach-agent $node_(n5) $rcvr5
 
 	$ns_ at 0.1 "$cbr0 start"
-	$ns_ at 0.1 "$node_(n1) join-group $rcvr1 0x8001"
-	$ns_ at 0.1 "$node_(n0) join-group $rcvr0 0x8001"
-	$ns_ at 0.1 "$node_(n3) join-group $rcvr3 0x8001"
-	$ns_ at 0.1 "$node_(n2) join-group $rcvr2 0x8001"
-	$ns_ at 0.1 "$node_(n4) join-group $rcvr4 0x8001"
-	$ns_ at 0.1 "$node_(n5) join-group $rcvr5 0x8001"
+	$ns_ at 0.1 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.1 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.1 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.1 "$node_(n2) join-group $rcvr2 $grp0"
+	$ns_ at 0.1 "$node_(n4) join-group $rcvr4 $grp0"
+	$ns_ at 0.1 "$node_(n5) join-group $rcvr5 $grp0"
 	
 	$ns_ at 0.5 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3 $rcvr4 $rcvr5]"
 	$ns_ run

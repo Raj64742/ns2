@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.171 1999/08/29 02:21:41 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.172 1999/09/09 03:34:33 salehi Exp $
 
 
 #
@@ -48,8 +48,10 @@ Trace set show_tcphdr_ 0
 
 Agent set fid_ 0
 Agent set prio_ 0
-Agent set addr_ -1
-Agent set dst_ -1
+Agent set agent_addr_ -1
+Agent set agent_port_ -1
+Agent set dst_addr_ -1
+Agent set dst_port_ -1
 Agent set flags_ 0
 Agent set ttl_ 32 ; # arbitrary choice here
 
@@ -427,10 +429,13 @@ Node set multiPath_ 0
 
 ####  Bits are allocated for different fields like port, nodeid, mcast, hierarchical-levels
 ####  All Mask and Shift values are stored in Class AddrParams.
+AddrParams set ALL_BITS_SET 0xffffffff
+AddrParams set PortShift_ 0
+AddrParams set PortMask_ [AddrParams set ALL_BITS_SET]
 
 ####  Default and Maximum Address space - leaving the MSB as signed bit
-AllocAddrBits set DEFADDRSIZE_ 16
-AllocAddrBits set MAXADDRSIZE_ 31                ;# leaving the signed bit
+AllocAddrBits set DEFADDRSIZE_ 32
+AllocAddrBits set MAXADDRSIZE_ 32                ;# leaving the signed bit
 
 Simulator set node_factory_ Node
 
@@ -456,7 +461,8 @@ AddrParams set def_nodes 5
 
 # Defaults for multicast addresses
 #Simulator set McastShift_ 15
-Simulator set McastAddr_ 0x8000
+Simulator set McastBaseAddr_ 0x80000000
+Simulator set McastAddr_ 0x80000000
 
 # Dynamic routing defaults
 Agent/rtProto set preference_ 200		;# global default preference
@@ -494,20 +500,21 @@ Agent/Encapsulator set overhead_ 20
 #mobile Ip
  
 MIPEncapsulator set addr_ 0
+MIPEncapsulator set port_ 0
 MIPEncapsulator set shift_ 0
-MIPEncapsulator set mask_ 0xffffffff
+MIPEncapsulator set mask_ [AddrParams set ALL_BITS_SET]
 MIPEncapsulator set ttl_ 32
  
 Agent/MIPBS set adSize_ 48
 Agent/MIPBS set shift_ 0
-Agent/MIPBS set mask_ 0xffffffff
+Agent/MIPBS set mask_ [AddrParams set ALL_BITS_SET]
 Agent/MIPBS set ad_lifetime_ 2
  
 Agent/MIPMH set home_agent_ 0
 Agent/MIPMH set rreqSize_ 52
 Agent/MIPMH set reg_rtx_ 0.5
 Agent/MIPMH set shift_ 0
-Agent/MIPMH set mask_ 0xffffffff
+Agent/MIPMH set mask_ [AddrParams set ALL_BITS_SET]
 Agent/MIPMH set reg_lifetime_ 2
  
 Classifier/Replicator set ignore_ 0

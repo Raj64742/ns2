@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.14 1999/07/02 01:49:34 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example.tcl,v 1.15 1999/09/09 03:29:45 salehi Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -22,7 +22,7 @@ ns-random 1
 #Simulator set NumberInterfaces_ 1
 # Simulator set EnableMcast_ 1
 set ns [new Simulator -multicast on]
-Node expandaddr
+#Node expandaddr
 
 #$ns trace-all [open out.tr w]
 $ns namtrace-all [open out.nam w]
@@ -87,7 +87,8 @@ $ns at 0.3 "$cmc switch-treetype $group"
 set fid  0
 for {set i 0} {$i <= 5} {incr i} {
 	set srm($i) [new Agent/SRM/$srmSimType]
-	$srm($i) set dst_ $group
+	$srm($i) set dst_addr_ $group
+	$srm($i) set dst_port_ 0
 	$srm($i) set fid_ [incr fid]
 	$srm($i) trace $srmStats
 	$ns at 1.0 "$srm($i) start"

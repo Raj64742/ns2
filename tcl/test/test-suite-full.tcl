@@ -119,6 +119,7 @@ Test/full instproc run {} {
 
 	# set up connection (do not use "create-connection" method because
 	# we need a handle on the sink object)
+
 	set src [new Agent/TCP/FullTcp]
 	set sink [new Agent/TCP/FullTcp]
 	$ns_ attach-agent $node_(s1) $src

@@ -30,12 +30,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.55 1999/08/30 21:59:28 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.56 1999/09/09 03:34:36 salehi Exp $
 #
 
 # for MobileIP
+# Class Classifier/Port/MIP -superclass Classifier/Port
  
-Classifier/Addr/Reserve instproc init args {
+Classifier/Port/Reserve instproc init args {
         eval $self next
         $self reserve-port 2
 }
@@ -181,12 +182,14 @@ Node instproc attach { agent { port "" } } {
 	#
 	# Check if number of agents exceeds length of port-address-field size
 	#
-	set mask [AddrParams set PortMask_]
-	set shift [AddrParams set PortShift_]
+	set mask [AddrParams set ALL_BITS_SET]
+	set shift 0
 	
-	if {[expr [llength $agents_] - 1] > $mask} {
-		error "\# of agents attached to node $self exceeds port-field length of $mask bits\n"
-	}
+	# The following code is no longer needed.  It is unlikely that
+	# a node holds billions of agents
+# 	if {[expr [llength $agents_] - 1] > $mask} {
+# 		error "\# of agents attached to node $self exceeds port-field length of $mask bits\n"
+# 	}
 
 	#
 	# Attach agents to this node (i.e., the classifier inside).
@@ -200,10 +203,12 @@ Node instproc attach { agent { port "" } } {
 	$agent set node_ $self
 	
 	if [Simulator set EnableHierRt_] {
-	    set nodeaddr [AddrParams set-hieraddr $address_]
+	    $agent set agent_addr_ [AddrParams set-hieraddr $address_]
 	    
 	} else {
-	    set nodeaddr [expr ( $address_ & [AddrParams set NodeMask_(1)] ) <<	[AddrParams set NodeShift_(1) ]]
+	    $agent set agent_addr_ [expr ($address_ & \
+					      [AddrParams set NodeMask_(1)]) \
+					<< [AddrParams set NodeShift_(1) ]]
 	}
 	
 	#
@@ -211,7 +216,7 @@ Node instproc attach { agent { port "" } } {
 	#
 	
 	if { $dmux_ == "" } {
-		set dmux_ [new Classifier/Addr]
+		set dmux_ [new Classifier/Port]
 		$dmux_ set mask_ $mask
 		$dmux_ set shift_ $shift
 		
@@ -230,10 +235,7 @@ Node instproc attach { agent { port "" } } {
 		$ns_ instvar nullAgent_
 		set port [$self alloc-port $nullAgent_]
 	}
-	$agent set portID_ $port
-	
-	
-	$agent set addr_ [expr (($port & $mask) << $shift) | ( ~($mask << $shift) & $nodeaddr)]
+	$agent set agent_port_ $port
 	
 	$self add-target $agent $port
 
@@ -276,10 +278,10 @@ Node instproc detach { agent nullagent } {
 	# sanity -- clear out any potential linkage
 	#
 	$agent set node_ ""
-	$agent set addr_ 0
+	$agent set agent_addr_ 0
 	$agent target $nullagent
 	
-	set port [$agent set portID_]
+	set port [$agent set agent_port_]
 	
 	#Install nullagent to sink transit packets   
 	#    $dmux_ clear $port
@@ -289,7 +291,7 @@ Node instproc detach { agent nullagent } {
 Node instproc agent port {
 	$self instvar agents_
 	foreach a $agents_ {
-		if { [$a set portID_] == $port } {
+		if { [$a set agent_port_] == $port } {
 			return $a
 		}
 	}
@@ -628,9 +630,9 @@ Node/Broadcast instproc mk-default-classifier {} {
         $classifier_ set shift_ [AddrParams set NodeShift_(1)]
         set address_ $id_
         if { $dmux_ == "" } {
-                set dmux_ [new Classifier/Addr/Reserve]
-                $dmux_ set mask_ [AddrParams set PortMask_]
-                $dmux_ set shift_ [AddrParams set PortShift_]
+                set dmux_ [new Classifier/Port/Reserve]
+		$dmux_ set mask_ [AddrParams set ALL_BITS_SET]
+                $dmux_ set shift_ 0
  
                 if [Simulator set EnableHierRt_] {  
                         $self add-hroute $address_ $dmux_

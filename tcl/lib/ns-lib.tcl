@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.163 1999/09/02 01:27:07 yaxu Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.164 1999/09/09 03:34:34 salehi Exp $
 
 #
 
@@ -557,7 +557,7 @@ Simulator instproc check-node-num {} {
 		error "Number of nodes exceeds node-field-size of $nodebits_ bits"
 	}
 	if [Simulator set EnableHierRt_] {
-		$self chk-hier-field-lengths
+# 		$self chk-hier-field-lengths
 	}
 }
 
@@ -1049,7 +1049,8 @@ Simulator instproc connect {src dst} {
 }
 
 Simulator instproc simplex-connect { src dst } {
-	$src set dst_ [$dst set addr_] 
+	$src set dst_addr_ [$dst set agent_addr_] 
+	$src set dst_port_ [$dst set agent_port_]
 
         # Polly Huang: to support abstract TCP simulations
         if {[lindex [split [$src info class] "/"] 1] == "AbsTCP"} {

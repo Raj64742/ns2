@@ -35,7 +35,7 @@
 # to illustrate the basic srm suppression algorithms.
 # It is not an srm implementation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.11 1997/11/04 21:54:39 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.12 1999/09/09 03:29:49 salehi Exp $
 #
 
 Simulator set NumberInterfaces_ 1
@@ -109,6 +109,7 @@ Agent/Message/MC_Acker instproc recv msg {
 	set type [lindex $msg 0]
 	set from [lindex $msg 1]
 	set seqno [lindex $msg 2]
+	puts "Agent/Message/MC_Acker::recv $msg, $from"
 	$self set dst_ $from
 	$self send "ack $from $seqno"
 }
@@ -133,14 +134,15 @@ Agent/Message/MC_Sender instproc init {} {
 }
 
 Agent/Message/MC_Sender instproc send-pkt {} {
-	$self instvar seqno_ addr_
-	$self send "data $addr_ $seqno_"
+	$self instvar seqno_ agent_addr_ agent_port_
+	$self send "data $agent_addr_ $agent_port_ $seqno_"
 	incr seqno_
 }
 
+set grp [Node allocaddr]
 set sndr [new Agent/Message/MC_Sender]
 $sndr set packetSize_ 1400
-$sndr set dst_ 0x8002
+$sndr set dst_ $grp
 $sndr set class_ 1
 
 $ns at 1.0 {
@@ -149,9 +151,9 @@ $ns at 1.0 {
 		set rcvr($k) [new Agent/Message/MC_Acker]
 		$ns attach-agent $node($k) $rcvr($k)
 		$rcvr($k) set class_ 2
-		$node($k) join-group $rcvr($k) 0x8002
+		$node($k) join-group $rcvr($k) $grp
 	}
-	$node(14) join-group $sndr 0x8002
+	$node(14) join-group $sndr $grp
 }
 
 Class Agent/Message/MC_Nacker -superclass Agent/Message
@@ -160,6 +162,7 @@ Agent/Message/MC_Nacker instproc recv msg {
 	set type [lindex $msg 0]
 	set from [lindex $msg 1]
 	set seqno [lindex $msg 2]
+	puts "Agent/Message/MC_Nacker::recv $msg"
 	$self instvar dst_ ack_
 	if [info exists ack_] {
 		set expected [expr $ack_ + 1]
@@ -175,6 +178,7 @@ Class Agent/Message/MC_SRM -superclass Agent/Message
 Agent/Message/MC_SRM set packetSize_ 800
 Agent/Message/MC_SRM instproc recv msg {
 	$self instvar dst_ ack_ nacked_ random_
+	global grp
 	set type [lindex $msg 0]
 	set from [lindex $msg 1]
 	set seqno [lindex $msg 2]
@@ -185,7 +189,7 @@ Agent/Message/MC_SRM instproc recv msg {
 	if [info exists ack_] {
 		set expected [expr $ack_ + 1]
 		if { $seqno > $expected } {
-			set dst_ 0x8002
+			set dst_ $grp
 			if [info exists random_] {
 				global ns
 				set r [expr ([ns-random] / double(0x7fffffff) + 0.1) * $random_]
@@ -201,8 +205,9 @@ Agent/Message/MC_SRM instproc recv msg {
 
 Agent/Message/MC_SRM instproc send-nack { from seqno } {
 	$self instvar nacked_ dst_
+	global grp
 	if ![info exists nacked_($seqno)] {
-		set dst_ 0x8002
+		set dst_ $grp
 		$self send "nack $from $seqno"
 	}
 }
@@ -210,26 +215,26 @@ Agent/Message/MC_SRM instproc send-nack { from seqno } {
 $ns at 1.5 {
 	global rcvr node
 	foreach k "0 1 2 3 4 5 6 7 8" {
-		$node($k) leave-group $rcvr($k) 0x8002
+		$node($k) leave-group $rcvr($k) $grp
 		$ns detach-agent $node($k) $rcvr($k)
 		delete $rcvr($k)
 		set rcvr($k) [new Agent/Message/MC_Nacker]
 		$ns attach-agent $node($k) $rcvr($k)
 		$rcvr($k) set class_ 3
-		$node($k) join-group $rcvr($k) 0x8002
+		$node($k) join-group $rcvr($k) $grp
 	}
 }
 
 $ns at 3.0 {
 	global rcvr node
 	foreach k "0 1 2 3 4 5 6 7 8" {
-		$node($k) leave-group $rcvr($k) 0x8002
+		$node($k) leave-group $rcvr($k) $grp
 		$ns detach-agent $node($k) $rcvr($k)
 		delete $rcvr($k)
 		set rcvr($k) [new Agent/Message/MC_SRM]
 		$ns attach-agent $node($k) $rcvr($k)
 		$rcvr($k) set class_ 3
-		$node($k) join-group $rcvr($k) 0x8002
+		$node($k) join-group $rcvr($k) $grp
 	}
 }
 

@@ -45,7 +45,8 @@ Node/MIPBS instproc init { args } {
 	$self attach $regagent_ 0
 	$regagent_ set mask_ [AddrParams set NodeMask_(1)]
 	$regagent_ set shift_ [AddrParams set NodeShift_(1)]
-	$regagent_ set dst_ [expr (~0) << [AddrParams set NodeShift_(1)]]
+  	$regagent_ set dst_addr_ [expr (~0) << [AddrParams set NodeShift_(1)]]
+	$regagent_ set dst_port_ 0
 
 	set encap_ [new MIPEncapsulator]
 	set decap_ [new Classifier/Addr/MIPDecapsulator]
@@ -58,12 +59,12 @@ Node/MIPBS instproc init { args } {
 	#
 	# Check if number of agents exceeds length of port-address-field size
 	#
-	set mask [AddrParams set PortMask_]
-	set shift [AddrParams set PortShift_]
+	set mask [AddrParams set ALL_BITS_SET]
+	set shift 0
 	
-	if {[expr [llength $agents_] - 1] > $mask} {
-		error "\# of agents attached to node $self exceeds port-field length of $mask bits\n"
-	}
+# 	if {[expr [llength $agents_] - 1] > $mask} {
+# 		error "\# of agents attached to node $self exceeds port-field length of $mask bits\n"
+# 	}
 	
 	if [Simulator set EnableHierRt_] {
 		set nodeaddr [AddrParams set-hieraddr $address_]
@@ -73,7 +74,8 @@ Node/MIPBS instproc init { args } {
 				[AddrParams set NodeMask_(1)] ) <<	\
 					[AddrParams set NodeShift_(1) ]]
 	}
-	$encap_ set addr_ [expr ((1 & $mask) << $shift) | ( ~($mask << $shift) & $nodeaddr)]
+	$encap_ set addr_ $nodeaddr
+	$encap_ set port_ 1
 	$encap_ target [$self entry]
 	$encap_ set node_ $self
 	
@@ -95,7 +97,8 @@ Node/MIPMH instproc init { args } {
 	$self attach $regagent_ 0
 	$regagent_ set mask_ [AddrParams set NodeMask_(1)]
 	$regagent_ set shift_ [AddrParams set NodeShift_(1)]
-	$regagent_ set dst_ [expr (~0) << [AddrParams set NodeShift_(1)]]
+ 	$regagent_ set dst_addr_ [expr (~0) << [AddrParams set NodeShift_(1)]]
+	$regagent_ set dst_port_ 0
 }
 
 Agent/MIPBS instproc init { node args } {

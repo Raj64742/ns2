@@ -30,7 +30,7 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.13 1998/08/31 23:50:20 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.14 1999/09/09 03:37:05 salehi Exp $ (USC/ISI)
 #
 
 # THis routine is a temporary hack.  It is likely to dissappear
@@ -40,7 +40,8 @@ Agent instproc traffic-source agent {
 	$self instvar tg_
 	set tg_ $agent
 	$tg_ target $self
-	$tg_ set addr_ [$self set addr_]
+	$tg_ set agent_addr_ [$self set agent_addr_]
+	$tg_ set agent_port_ [$self set agent_port_]
 }
 
 Agent/SRM set packetSize_  1024	;# assume default message size for repair is 1K
@@ -115,11 +116,11 @@ Agent/SRM instproc delete {} {
 }
 
 Agent/SRM instproc start {} {
-	$self instvar node_ dst_	;# defined in Agent base class
-	set dst_ [expr $dst_]		;# get rid of possibly leading 0x etc.
+	$self instvar node_ dst_addr_	;# defined in Agent base class
+	set dst_addr_ [expr $dst_addr_]	; # get rid of possibly leading 0x etc.
 	$self cmd start
 
-	$node_ join-group $self $dst_
+	$node_ join-group $self $dst_addr_
 
 	$self instvar ns_ session_ sessionFunction_
 	set session_ [new $sessionFunction_ $ns_ $self]

@@ -235,7 +235,7 @@ mrtObject registerWellKnownGroups ALL_PIM_ROUTERS
 
 mrtObject proc expandaddr {} {
 	# extend the space to 32 bits
-	mrtObject set mask-wkgroups	0x7ffffff0
+	mrtObject set mask-wkgroups	0x7fffffff
 
 	foreach {name group} [mrtObject array get wkgroups] {
 		mrtObject set wkgroups($name) [expr $group | 0x7fffffff]

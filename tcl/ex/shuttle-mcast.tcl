@@ -18,9 +18,9 @@
 
 #
 # Maintained by: Polly Huang Tue Feb  2 14:34:54 PST 1999
-# Version Date: $Date: 1999/04/20 22:34:29 $
+# Version Date: $Date: 1999/09/09 03:29:46 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/shuttle-mcast.tcl,v 1.2 1999/04/20 22:34:29 polly Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/shuttle-mcast.tcl,v 1.3 1999/09/09 03:29:46 salehi Exp $ (USC/ISI)
 #
 # Creating 3 multicast sessions over a partial mbone topology (1996)
 
@@ -57,7 +57,7 @@ $ns namtrace-all $nf
 # creating mbone shuttle session topology 
 # generated from 1996 trace
 puts "This simulation will take a long time..."
-Node expandaddr
+#Node expandaddr
 create-topology
 
 # mcast config
@@ -77,7 +77,8 @@ for {set i 0} {$i < $mcastConnection} {incr i} {
     $ns attach-agent $n($i) $udp($i)
     set cbr($i) [new Application/Traffic/CBR]
     $cbr($i) attach-agent $udp($i)
-    $udp($i) set dst_ $g($i)
+    $udp($i) set dst_addr_ $g($i)
+    $udp($i) set dst_port_ 0
     $udp($i) set fid_ $i
     $ns at [expr $i + 1] "$cbr($i) start"
 

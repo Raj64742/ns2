@@ -50,7 +50,7 @@ ST instproc init { sim node } {
 			unset RP_($grpx)
 		}
 		foreach agent [$node set agents_] {
-			if {$grp == [$agent set dst_]}  {
+			if {$grp == [$agent set dst_addr_]}  {
 				#found an agent that's sending to a group.
 				#need to insert an Encapsulator
 				$self dbg "attaching a Encapsulator for group $grp"

@@ -142,7 +142,8 @@ TestSuite instproc set-mcast {src num time} {
     set fid 0
     for {set i 0} {$i <= $num} {incr i} {
 	set srm($i) [new Agent/SRM/Deterministic]
-	$srm($i) set dst_ $g_
+	$srm($i) set dst_addr_ $g_
+	$srm($i) set dst_port_ 0
 	$srm($i) set fid_ [incr fid]
 	$ns_ at 1.0 "$srm($i) start"
 	$ns_ attach-agent $n_($i) $srm($i)
@@ -167,7 +168,7 @@ TestSuite instproc set-session {src num time } {
     set fid 0
     for {set i 0} {$i <= $num} {incr i} {
 	set srm($i) [new Agent/SRM/Deterministic]
-	$srm($i) set dst_ $g_
+	$srm($i) set dst_addr_ $g_
 	$srm($i) set fid_ [incr fid]
 	$ns_ at 1.0 "$srm($i) start"
 	$ns_ attach-agent $n_($i) $srm($i)

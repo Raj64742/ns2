@@ -317,15 +317,17 @@ Test/Mixmode1 instproc run {} {
 
 	$ns_ detailed-duplex-link $node_(n0) $node_(n1)
 
+	set grp0 [Node allocaddr]
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
-	    $ns_ at 0.01 "$mrthandle switch-treetype 0x8001"
+	    $ns_ at 0.01 "$mrthandle switch-treetype $grp0"
         }
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp0
-	$udp0 set dst_ 0x8001
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	$ns_ create-session $node_(n2) $udp0	
@@ -340,10 +342,10 @@ Test/Mixmode1 instproc run {} {
 	$ns_ attach-agent $node_(n3) $rcvr3
 
 	$ns_ at 0.3 "$cbr0 start"
-	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 0x8001"
-	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 0x8001"
-	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 0x8001"
-	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 0x8001"
+	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 $grp0"
 	
 	$ns_ at 1.1 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3]"
 	$ns_ run
@@ -363,6 +365,7 @@ Test/Mixmode2 instproc run {} {
 
 	$ns_ detailed-duplex-link $node_(n1) $node_(n2)
 
+	set grp0 [Node allocaddr]
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
@@ -371,7 +374,8 @@ Test/Mixmode2 instproc run {} {
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp0
-	$udp0 set dst_ 0x8001
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	$ns_ create-session $node_(n2) $udp0	
@@ -386,10 +390,10 @@ Test/Mixmode2 instproc run {} {
 	$ns_ attach-agent $node_(n3) $rcvr3
 
 	$ns_ at 0.3 "$cbr0 start"
-	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 0x8001"
-	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 0x8001"
-	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 0x8001"
-	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 0x8001"
+	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 $grp0"
 	
 	$ns_ at 1.1 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3]"
 	$ns_ run
@@ -409,15 +413,17 @@ Test/Mixmode3 instproc run {} {
 
 	$ns_ detailed-duplex-link $node_(n1) $node_(n3)
 
+	set grp0 [Node allocaddr]
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
-	    $ns_ at 0.01 "$mrthandle switch-treetype 0x8001"
+	    $ns_ at 0.01 "$mrthandle switch-treetype $grp0"
         }
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp0
-	$udp0 set dst_ 0x8001
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	$ns_ create-session $node_(n2) $udp0	
@@ -432,10 +438,10 @@ Test/Mixmode3 instproc run {} {
 	$ns_ attach-agent $node_(n3) $rcvr3
 
 	$ns_ at 0.3 "$cbr0 start"
-	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 0x8001"
-	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 0x8001"
-	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 0x8001"
-	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 0x8001"
+	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 $grp0"
 	
 	$ns_ at 1.1 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3]"
 	$ns_ run
@@ -456,15 +462,17 @@ Test/Mixmode4 instproc run {} {
 	$ns_ detailed-duplex-link $node_(n0) $node_(n1)
 	$ns_ detailed-duplex-link $node_(n1) $node_(n2)
 
+	set grp0 [Node allocaddr]
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
-	    $ns_ at 0.01 "$mrthandle switch-treetype 0x8001"
+	    $ns_ at 0.01 "$mrthandle switch-treetype $grp0"
         }
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp0
-	$udp0 set dst_ 0x8001
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	$ns_ create-session $node_(n2) $udp0	
@@ -479,10 +487,10 @@ Test/Mixmode4 instproc run {} {
 	$ns_ attach-agent $node_(n3) $rcvr3
 
 	$ns_ at 0.3 "$cbr0 start"
-	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 0x8001"
-	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 0x8001"
-	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 0x8001"
-	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 0x8001"
+	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 $grp0"
 	
 	$ns_ at 1.1 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3]"
 	$ns_ run
@@ -503,15 +511,17 @@ Test/Mixmode5 instproc run {} {
 	$ns_ detailed-duplex-link $node_(n0) $node_(n1)
 	$ns_ detailed-duplex-link $node_(n1) $node_(n3)
 
+	set grp0 [Node allocaddr]
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
-	    $ns_ at 0.01 "$mrthandle switch-treetype 0x8001"
+	    $ns_ at 0.01 "$mrthandle switch-treetype $grp0"
         }
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp0
-	$udp0 set dst_ 0x8001
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	$ns_ create-session $node_(n2) $udp0	
@@ -526,10 +536,10 @@ Test/Mixmode5 instproc run {} {
 	$ns_ attach-agent $node_(n3) $rcvr3
 
 	$ns_ at 0.3 "$cbr0 start"
-	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 0x8001"
-	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 0x8001"
-	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 0x8001"
-	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 0x8001"
+	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 $grp0"
 	
 	$ns_ at 1.1 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3]"
 	$ns_ run
@@ -550,15 +560,17 @@ Test/Mixmode6 instproc run {} {
 	$ns_ detailed-duplex-link $node_(n1) $node_(n2)
 	$ns_ detailed-duplex-link $node_(n1) $node_(n3)
 
+	set grp0 [Node allocaddr]
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
-	    $ns_ at 0.01 "$mrthandle switch-treetype 0x8001"
+	    $ns_ at 0.01 "$mrthandle switch-treetype $grp0"
         }
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp0
-	$udp0 set dst_ 0x8001
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	$ns_ create-session $node_(n2) $udp0	
@@ -573,10 +585,10 @@ Test/Mixmode6 instproc run {} {
 	$ns_ attach-agent $node_(n3) $rcvr3
 
 	$ns_ at 0.3 "$cbr0 start"
-	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 0x8001"
-	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 0x8001"
-	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 0x8001"
-	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 0x8001"
+	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 $grp0"
 	
 	$ns_ at 1.1 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3]"
 	$ns_ run
@@ -598,15 +610,17 @@ Test/Mixmode7 instproc run {} {
 	$ns_ detailed-duplex-link $node_(n1) $node_(n2)
 	$ns_ detailed-duplex-link $node_(n1) $node_(n3)
 
+	set grp0 [Node allocaddr]
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
-	    $ns_ at 0.01 "$mrthandle switch-treetype 0x8001"
+	    $ns_ at 0.01 "$mrthandle switch-treetype $grp0"
         }
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n2) $udp0
-	$udp0 set dst_ 0x8001
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	$ns_ create-session $node_(n2) $udp0	
@@ -621,10 +635,10 @@ Test/Mixmode7 instproc run {} {
 	$ns_ attach-agent $node_(n3) $rcvr3
 
 	$ns_ at 0.3 "$cbr0 start"
-	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 0x8001"
-	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 0x8001"
-	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 0x8001"
-	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 0x8001"
+	$ns_ at 0.3 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.3 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.3 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.3 "$node_(n2) join-group $rcvr2 $grp0"
 	
 	$ns_ at 1.1 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3]"
 	$ns_ run
@@ -648,17 +662,19 @@ Test/Mixmode8 instproc run {} {
         $ns_ detailed-duplex-link $node_(n1) $node_(n3)
         $ns_ detailed-duplex-link $node_(n2) $node_(n4)
 
+	set grp0 [Node allocaddr]
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
-	    $ns_ at 0.01 "$mrthandle switch-treetype 0x8002"
+	    $ns_ at 0.01 "$mrthandle switch-treetype $grp0"
         }
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n0) $udp0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
-	$udp0 set dst_ 0x8002
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	$ns_ create-session $node_(n0) $udp0
 	
 	set rcvr0 [new Agent/LossMonitor]
@@ -674,12 +690,12 @@ Test/Mixmode8 instproc run {} {
 	$ns_ attach-agent $node_(n4) $rcvr4
 	$ns_ attach-agent $node_(n5) $rcvr5
 	
-	$ns_ at 0.2 "$node_(n0) join-group $rcvr0 0x8002"
-	$ns_ at 0.2 "$node_(n1) join-group $rcvr1 0x8002"
-	$ns_ at 0.2 "$node_(n2) join-group $rcvr2 0x8002"
-	$ns_ at 0.2 "$node_(n3) join-group $rcvr3 0x8002"
-	$ns_ at 0.2 "$node_(n4) join-group $rcvr4 0x8002"
-	$ns_ at 0.2 "$node_(n5) join-group $rcvr5 0x8002"
+	$ns_ at 0.2 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.2 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.2 "$node_(n2) join-group $rcvr2 $grp0"
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.2 "$node_(n4) join-group $rcvr4 $grp0"
+	$ns_ at 0.2 "$node_(n5) join-group $rcvr5 $grp0"
 	
 	$ns_ at 0.1 "$cbr0 start"
 	$ns_ at 1.6 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3 \
@@ -704,16 +720,18 @@ Test/Mixmode9 instproc run {} {
         $ns_ detailed-duplex-link $node_(n1) $node_(n3)
         $ns_ detailed-duplex-link $node_(n2) $node_(n5)
 
+	set grp0 [Node allocaddr]
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto {}]
         if {$mrthandle != ""} {
-	    $ns_ at 0.01 "$mrthandle switch-treetype 0x8002"
+	    $ns_ at 0.01 "$mrthandle switch-treetype $grp0"
         }
 
 	set udp0 [new Agent/UDP]
 	$udp0 set ttl_ 3
 	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ 0x8002
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	$ns_ create-session $node_(n0) $udp0
@@ -731,12 +749,12 @@ Test/Mixmode9 instproc run {} {
 	$ns_ attach-agent $node_(n4) $rcvr4
 	$ns_ attach-agent $node_(n5) $rcvr5
 	
-	$ns_ at 0.2 "$node_(n0) join-group $rcvr0 0x8002"
-	$ns_ at 0.2 "$node_(n1) join-group $rcvr1 0x8002"
-	$ns_ at 0.2 "$node_(n2) join-group $rcvr2 0x8002"
-	$ns_ at 0.2 "$node_(n3) join-group $rcvr3 0x8002"
-	$ns_ at 0.2 "$node_(n4) join-group $rcvr4 0x8002"
-	$ns_ at 0.2 "$node_(n5) join-group $rcvr5 0x8002"
+	$ns_ at 0.2 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.2 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.2 "$node_(n2) join-group $rcvr2 $grp0"
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.2 "$node_(n4) join-group $rcvr4 $grp0"
+	$ns_ at 0.2 "$node_(n5) join-group $rcvr5 $grp0"
 	
 	set loss_module1 [new SelectErrorModel]
 	$loss_module1 drop-packet 2 20 1
@@ -777,15 +795,17 @@ Test/Mixmode10 instproc run {} {
         $ns_ detailed-duplex-link $node_(n0) $node_(n1)
         $ns_ detailed-duplex-link $node_(n3) $node_(n6)
 
+	set grp0 [Node allocaddr]
         set mproto CtrMcast
         set mrthandle [$ns_ mrtproto $mproto  {}]
         if {$mrthandle != ""} {
-	    $ns_ at 0.01 "$mrthandle switch-treetype 0x8002"
+	    $ns_ at 0.01 "$mrthandle switch-treetype $grp0"
 	}
 
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ 0x8002
+	$udp0 set dst_addr_ $grp0
+	$udp0 set dst_port_ 0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	set sessionhelper [$ns_ create-session $node_(n0) $udp0]
@@ -811,16 +831,16 @@ Test/Mixmode10 instproc run {} {
 	$ns_ attach-agent $node_(n8) $rcvr8
 	$ns_ attach-agent $node_(n9) $rcvr9
 	
-	$ns_ at 0.2 "$node_(n0) join-group $rcvr0 0x8002"
-	$ns_ at 0.2 "$node_(n1) join-group $rcvr1 0x8002"
-	$ns_ at 0.2 "$node_(n2) join-group $rcvr2 0x8002"
-	$ns_ at 0.2 "$node_(n3) join-group $rcvr3 0x8002"
-	$ns_ at 0.2 "$node_(n4) join-group $rcvr4 0x8002"
-	$ns_ at 0.2 "$node_(n5) join-group $rcvr5 0x8002"
-	$ns_ at 0.2 "$node_(n6) join-group $rcvr6 0x8002"
-	$ns_ at 0.2 "$node_(n7) join-group $rcvr7 0x8002"
-	$ns_ at 0.2 "$node_(n8) join-group $rcvr8 0x8002"
-	$ns_ at 0.2 "$node_(n9) join-group $rcvr9 0x8002"
+	$ns_ at 0.2 "$node_(n0) join-group $rcvr0 $grp0"
+	$ns_ at 0.2 "$node_(n1) join-group $rcvr1 $grp0"
+	$ns_ at 0.2 "$node_(n2) join-group $rcvr2 $grp0"
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr3 $grp0"
+	$ns_ at 0.2 "$node_(n4) join-group $rcvr4 $grp0"
+	$ns_ at 0.2 "$node_(n5) join-group $rcvr5 $grp0"
+	$ns_ at 0.2 "$node_(n6) join-group $rcvr6 $grp0"
+	$ns_ at 0.2 "$node_(n7) join-group $rcvr7 $grp0"
+	$ns_ at 0.2 "$node_(n8) join-group $rcvr8 $grp0"
+	$ns_ at 0.2 "$node_(n9) join-group $rcvr9 $grp0"
 	
 	$ns_ at 0.1 "$cbr0 start"
 	$ns_ at 1.6 "$self finish [list $rcvr0 $rcvr1 $rcvr2 $rcvr3 \

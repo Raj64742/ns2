@@ -1,7 +1,7 @@
 #
 # example of adding nam traces separately without using namtrace-all
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-separate-trace.tcl,v 1.4 1999/07/02 01:49:35 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-separate-trace.tcl,v 1.5 1999/09/09 03:29:45 salehi Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -82,7 +82,7 @@ $ns namtrace-queue $n(0) $n(1) $mytrace
 $ns namtrace-queue $n(1) $n(0) $mytrace
 
 # set routing
-set group 0x8000
+set group [Node allocaddr]
 #XXX do *NOT* use DM here, it won't work with rtmodel!
 #set mh [$ns mrtproto DM {}]
 #$ns at 0.0 "$ns run-mcast"
@@ -93,7 +93,8 @@ $ns at 0.3 "$cmc switch-treetype $group"
 set fid  0
 for {set i 0} {$i <= 5} {incr i} {
 	set srm($i) [new Agent/SRM/$srmSimType]
-	$srm($i) set dst_ $group
+	$srm($i) set dst_addr_ $group
+	$srm($i) set dst_port_ 0
 	$srm($i) set fid_ [incr fid]
 	$srm($i) trace $srmStats
 	$ns at 1.0 "$srm($i) start"

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.42 1999/07/26 22:22:49 yuriy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.43 1999/09/09 03:34:33 salehi Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -151,7 +151,7 @@ OldSim instproc trace_old_defaults {} {
 	$self map_ns_defaults ns_lossy_uniform
 	$self map_ns_defaults ns_lossy_patt
 	$self map_ns_defaults ns_queue
-	$self map_ns_defaults ns_srm
+  	$self map_ns_defaults ns_srm
 }
 
 OldSim instproc init args {
@@ -647,7 +647,7 @@ OldSim instproc init args {
 	set classMap_(class) CBQClass
 	set classMap_(ivs) Agent/IVS/Source
 	set classMap_(trace) Trace
-	set classMap_(srm) Agent/SRM
+  	set classMap_(srm) Agent/SRM
 
 	$self instvar queueMap_
 	set queueMap_(drop-tail) DropTail

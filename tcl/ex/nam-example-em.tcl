@@ -1,7 +1,7 @@
 #
 # example of new ns support for nam trace, adapted from Kannan's srm2.tcl
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example-em.tcl,v 1.2 1999/07/02 01:49:33 tomh Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/nam-example-em.tcl,v 1.3 1999/09/09 03:29:44 salehi Exp $
 #
 
 if [string match {*.tcl} $argv0] {
@@ -52,7 +52,8 @@ $ns at 0.3 "$cmc switch-treetype $group"
 # set group members
 set udp0 [new Agent/UDP]
 $ns attach-agent $n(0) $udp0
-$udp0 set dst_ $group
+$udp0 set dst_addr_ $group
+$udp0 set dst_port_ 0
 
 # set traffic source
 set packetSize 800

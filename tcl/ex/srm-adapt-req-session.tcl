@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1998/09/10 20:36:18 $
+# Version Date: $Date: 1999/09/09 03:29:47 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-req-session.tcl,v 1.4 1998/09/10 20:36:18 polly Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-req-session.tcl,v 1.5 1999/09/09 03:29:47 salehi Exp $ (USC/ISI)
 #
 
 #
@@ -57,7 +57,7 @@ for {set i 1} {$i <= $nmax} {incr i} {
 }
 
 # configure multicast
-set group 0x8000
+set group [Node allocaddr]
 
 # now the agents
 set srmStats [open srmStats.tr w]
@@ -76,7 +76,8 @@ for {set i 2} {$i <= $nmax} {incr i} {
 set fid 0
 for {set i 1} {$i <= $nmax} {incr i} {
     set srm($i) [new Agent/SRM/$srmSimType]
-    $srm($i) set dst_ $group
+    $srm($i) set dst_addr_ $group
+    $srm($i) set dst_port_ 0
     $srm($i) set fid_ [incr fid]
     $srm($i) log $srmStats
     $srm($i) trace $srmEvents

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.10 1999/07/20 21:53:09 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.11 1999/09/09 03:29:43 salehi Exp $
 #
 
 #
@@ -72,14 +72,18 @@ $ns duplex-link-op $n0 $n1 queuePos 0.5
 set mproto DM
 set mrthandle [$ns mrtproto $mproto {}]
 
+set grp0 [Node allocaddr]
 set udp0 [new Agent/UDP]
 $ns attach-agent $n1 $udp0
-$udp0 set dst_ 0x8001
+$udp0 set dst_addr_ $grp0
+$udp0 set dst_port_ 0
 set cbr0 [new Application/Traffic/CBR]
 $cbr0 attach-agent $udp0
 
+set grp1 [Node allocaddr]
 set udp1 [new Agent/UDP]
-$udp1 set dst_ 0x8002
+$udp1 set dst_addr_ $grp1
+$udp1 set dst_port_ 0
 $udp1 set class_ 1
 $ns attach-agent $n3 $udp1
 set cbr1 [new Application/Traffic/CBR]
@@ -87,10 +91,10 @@ $cbr1 attach-agent $udp1
 
 set rcvr [new Agent/LossMonitor]
 $ns attach-agent $n2 $rcvr
-$ns at 1.2 "$n2 join-group $rcvr 0x8002"
-$ns at 1.25 "$n2 leave-group $rcvr 0x8002"
-$ns at 1.3 "$n2 join-group $rcvr 0x8002"
-$ns at 1.35 "$n2 join-group $rcvr 0x8001"
+$ns at 1.2 "$n2 join-group $rcvr $grp1"
+$ns at 1.25 "$n2 leave-group $rcvr $grp1"
+$ns at 1.3 "$n2 join-group $rcvr $grp1"
+$ns at 1.35 "$n2 join-group $rcvr $grp0"
 
 $ns at 1.0 "$cbr0 start"
 #$ns at 1.001 "$cbr0 stop"

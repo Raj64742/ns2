@@ -5,13 +5,13 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.11 1999/05/26 01:23:47 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.12 1999/09/09 03:44:21 salehi Exp $
 
 #----------------------------------------------------------------------
 # Related Files
 #----------------------------------------------------------------------
-source misc.tcl
-source topologies.tcl
+source /home/salehi/programming/ns/32bit/misc.tcl
+source /home/salehi/programming/ns/32bit/topologies.tcl
 
 #----------------------------------------------------------------------
 # Misc setup
@@ -871,7 +871,8 @@ Test/SimpleTcp instproc start-connection { s d } {
 	$ns_ attach-agent $node_($d) $dst_
 	$ns_ connect $src_ $dst_ 
 
-	$src_ set dst_ [$dst_ set addr_]
+	$src_ set dst_addr_ [$dst_ set agent_addr_]
+	$src_ set dst_port_ [$dst_ set agent_port_]
 	$src_ set window_ 100
 	$dst_ listen
 	$ns_ at [expr [$ns_ now] + 1.0] "$src_ send 1000"

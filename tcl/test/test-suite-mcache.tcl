@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.2 1999/07/06 22:57:13 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.3 1999/09/09 03:44:17 salehi Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -42,7 +42,6 @@ Test proc instance {} {
 		}
 		set tl $ntl
 	}
-	debug 1
 	error "Cannot find instance of Test"
 }
 

@@ -147,7 +147,6 @@ TrafficGen/ManyTCP instproc set_raw_opt {} {
 	gen-map 0
 	mem-trace 0
 	print-drop-rate 0
-	debug 1
 	title none
 	# set test-suite to write the graph to opts_(test-suite-file)
 	test-suite 0

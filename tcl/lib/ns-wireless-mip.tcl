@@ -40,9 +40,9 @@ MobileNode/MIPBS instproc init {args} {
     $self instvar regagent_ encap_ decap_ agents_ address_ dmux_ id_
 
    if { $dmux_ == "" } {
-       set dmux_ [new Classifier/Addr/Reserve]
-       $dmux_ set mask_ [AddrParams set PortMask_]
-       $dmux_ set shift_ [AddrParams set PortShift_]
+       set dmux_ [new Classifier/Port/Reserve]
+       $dmux_ set mask_ 0x7fffffff
+       $dmux_ set shift_ 0
        
        if [Simulator set EnableHierRt_] {  
 	   $self add-hroute $address_ $dmux_
@@ -67,8 +67,8 @@ MobileNode/MIPBS instproc attach-encap {} {
     $self instvar encap_ address_ 
     
     set encap_ [new MIPEncapsulator]
-    set mask [AddrParams set PortMask_]
-    set shift [AddrParams set PortShift_]
+    set mask 0x7fffffff
+    set shift 0
     if [Simulator set EnableHierRt_] {
 	set nodeaddr [AddrParams set-hieraddr $address_]
     } else {
@@ -76,7 +76,8 @@ MobileNode/MIPBS instproc attach-encap {} {
 		[AddrParams set NodeMask_(1)] ) <<	\
 		[AddrParams set NodeShift_(1) ]]
     }
-    $encap_ set addr_ [expr ((1 & $mask) << $shift) | ( ~($mask << $shift) & $nodeaddr)]
+    $encap_ set addr_ [expr ( ~($mask << $shift) & $nodeaddr)]
+    $encap_ set port_ 1
     $encap_ target [$self entry]
     $encap_ set node_ $self
     #$encap_ set mask_ [AddrParams set NodeMask_(1)]
@@ -88,8 +89,8 @@ MobileNode/MIPBS instproc attach-decap {} {
     
     set decap_ [new Classifier/Addr/MIPDecapsulator]
     lappend agents_ $decap_
-    set mask [AddrParams set PortMask_]
-    set shift [AddrParams set PortShift_]
+    set mask 0x7fffffff
+    set shift 0
     if {[expr [llength $agents_] - 1] > $mask} {
 	error "\# of agents attached to node $self exceeds port-field length of $mask bits\n"
     }
@@ -106,9 +107,9 @@ MobileNode/MIPMH instproc init { args } {
     $self instvar regagent_ dmux_ address_
  
     if { $dmux_ == "" } {
-	set dmux_ [new Classifier/Addr/Reserve]
-	$dmux_ set mask_ [AddrParams set PortMask_]
-	$dmux_ set shift_ [AddrParams set PortShift_]
+	set dmux_ [new Classifier/Port/Reserve]
+	$dmux_ set mask_ 0x7fffffff
+	$dmux_ set shift_ 0
 	
 	if [Simulator set EnableHierRt_] {  
 	    $self add-hroute $address_ $dmux_
@@ -134,9 +135,9 @@ SRNode/MIPMH instproc init { args } {
     $self instvar regagent_ dmux_ address_
     
     if { $dmux_ == "" } {
-	set dmux_ [new Classifier/Addr/Reserve]
-	$dmux_ set mask_ [AddrParams set PortMask_]
-	$dmux_ set shift_ [AddrParams set PortShift_]
+	set dmux_ [new Classifier/Port/Reserve]
+	$dmux_ set mask_ 0x7fffffff
+	$dmux_ set shift_ 0
 	
 	if [Simulator set EnableHierRt_] {  
 	    $self add-hroute $address_ $dmux_

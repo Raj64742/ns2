@@ -26,14 +26,16 @@ Agent/MFTP/Rcv set dtusPerGroup_ 8
 Agent/MFTP/Rcv set fileSize_ 1000000
 Agent/MFTP/Rcv set nakCount_ 0
 Agent/MFTP/Rcv set seekCount_ 0
-Agent/MFTP/Rcv set reply_ 0           ;# unicast reply addr (=address of server)
+Agent/MFTP/Rcv set reply_addr_ 0           ; # unicast reply addr (=address of server)
+Agent/MFTP/Rcv set reply_port_ 0           ; # unicast reply addr (=address of server)
 
 Agent/MFTP/Rcv instproc init {} {
     $self next
-    $self instvar ns_ dtuSize_ dtusPerBlock_ dtusPerGroup_ fileSize_ reply_ nakCount_ seekCount_
+    $self instvar ns_ dtuSize_ dtusPerBlock_ dtusPerGroup_ fileSize_ 
+    $self instvar reply_addr_ reply_port_ nakCount_ seekCount_
 
     set ns_ [Simulator instance]
-    foreach var { dtuSize_ dtusPerBlock_ dtusPerGroup_ fileSize_ reply_ nakCount_ seekCount_} {
+    foreach var { dtuSize_ dtusPerBlock_ dtusPerGroup_ fileSize_ reply_addr_ reply_port_ nakCount_ seekCount_} {
         $self init-instvar $var
     }
 }

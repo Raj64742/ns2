@@ -403,7 +403,7 @@ Classifier/Replicator/Demuxer instproc is-active-target target {
 
 Classifier/Replicator/Demuxer instproc drop { src dst {iface -1} } {
 	$self instvar node_
-	[$node_ getArbiter] drop $self [expr $src >> 8] $dst $iface
+	[$node_ getArbiter] drop $self $src $dst $iface
 }
 
 Node instproc change-iface { src dst oldiface newiface} {

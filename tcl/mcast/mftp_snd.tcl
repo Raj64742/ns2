@@ -29,16 +29,19 @@ Agent/MFTP/Snd set interval_ 512000         ;# default transmission rate is 512k
 Agent/MFTP/Snd set txStatusLimit_ 100       ;# default max. number of consecutive status requests without NAK
 Agent/MFTP/Snd set txStatusDelay_ 2         ;# default time to wait for status responses after a request before polling again
 Agent/MFTP/Snd set rspBackoffWindow_ 1      ;# default max. time for receivers to wait before replying with nak(s) after a request
-Agent/MFTP/Snd set reply_ undefined         ;# application _must_ specify the sender address (i.e. the one
+Agent/MFTP/Snd set reply_addr_ undefined    ; # application _must_ specify the sender address (i.e. the one
                                             ;# to which NAKs are unicast to). Default is "undefined"
+Agent/MFTP/Snd set reply_port_ undefined
+
 Agent/MFTP/Snd set nakCount_ 0
 Agent/MFTP/Snd set seekCount_ 0             ;# number of disk seeks performed
 
 Agent/MFTP/Snd instproc init {} {
     $self next
-    $self instvar ns_ dtuSize_ dtusPerBlock_ dtusPerGroup_ fileSize_ reply_
-    $self instvar readAheadBufsize_ interval_ txStatusLimit_ txStatusDelay_
-    $self instvar rspBackoffWindow_ nakCount_ seekCount_
+    $self instvar ns_ dtuSize_ dtusPerBlock_ dtusPerGroup_ fileSize_ 
+    $self instvar reply_addr_ reply_port_ readAheadBufsize_ interval_ 
+    $self instvar txStatusLimit_ txStatusDelay_ rspBackoffWindow_ nakCount_ 
+    $self instvar seekCount_
 
     set ns_ [Simulator instance]
     foreach var { dtuSize_ dtusPerBlock_ dtusPerGroup_ fileSize_ \

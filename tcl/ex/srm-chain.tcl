@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1999/07/02 01:49:39 $
+# Version Date: $Date: 1999/09/09 03:29:49 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-chain.tcl,v 1.9 1999/07/02 01:49:39 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-chain.tcl,v 1.10 1999/09/09 03:29:49 salehi Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -80,7 +80,7 @@ $ns duplex-link-op $n([expr $nmax - 2]) $n([expr $nmax-1]) orient right-down
 $ns queue-limit $n(0) $n(1) 2	;# q-limit is 1 more than max #packets in q.
 $ns queue-limit $n(1) $n(0) 2
 
-set group 0x8000
+set group [Node allocaddr]
 set mh [$ns mrtproto CtrMcast {}]
 $ns at 0.3 "$mh switch-treetype $group"
 
@@ -91,7 +91,8 @@ set srmEvents [open srmEvents.tr w]
 set fid 0
 for {set i 0} {$i <= 5} {incr i} {
     set srm($i) [new Agent/SRM/$srmSimType]
-    $srm($i) set dst_ $group
+    $srm($i) set dst_addr_ $group
+    $srm($i) set dst_port_ 0
     $srm($i) set fid_ [incr fid]
     $srm($i) trace $srmEvents
     $srm($i) log $srmStats

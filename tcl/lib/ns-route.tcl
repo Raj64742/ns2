@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.21 1999/04/22 18:54:00 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.22 1999/09/09 03:34:38 salehi Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -275,6 +275,7 @@ RouteLogic instproc lookup { nodeid destid } {
     if [Simulator set EnableHierRt_] {
 	set dest [$ns get-node-by-id $destid]
 	set nh [$self hier-lookup [$node node-addr] [$dest node-addr]]
+
 	return [$ns get-node-id-by-addr $nh]
     }
 	set rtobj [$node rtObject?]
@@ -538,7 +539,6 @@ Simulator instproc compute-route-for-mobilenodes {} {
 	
 	for {set i 0} {$i < $mn_} {incr i} {
 		set srcID [$MobileNode_($i) node-addr]
-		debug 1
 		set bs [$MobileNode_($i) base-station?]
 		set dstID [$bs node-addr]
 		$r hier-insert $srcID $dstID 1  

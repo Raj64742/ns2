@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1999/07/02 01:49:38 $
+# Version Date: $Date: 1999/09/09 03:29:48 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-req.tcl,v 1.8 1999/07/02 01:49:38 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-req.tcl,v 1.9 1999/09/09 03:29:48 salehi Exp $ (USC/ISI)
 #
 
 #
@@ -89,7 +89,7 @@ $ns duplex-link-op $n(8) $n(0) orient right-up
 $ns duplex-link-op $n(0) $n(1) queuePos 0
 
 # configure multicast
-set group 0x8000
+set group [Node allocaddr]
 set cmc [$ns mrtproto CtrMcast {}]
 $ns at 0.3 "$cmc switch-treetype $group"
 
@@ -100,7 +100,8 @@ set srmEvents [open srmEvents.tr w]
 set fid 0
 for {set i 1} {$i <= $nmax} {incr i} {
     set srm($i) [new Agent/SRM/$srmSimType]
-    $srm($i) set dst_ $group
+    $srm($i) set dst_addr_ $group
+    $srm($i) set dst_port_ 0
     $srm($i) set fid_ [incr fid]
     $srm($i) log $srmStats
     $srm($i) trace $srmEvents

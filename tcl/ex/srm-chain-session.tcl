@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1999/07/02 01:49:39 $
+# Version Date: $Date: 1999/09/09 03:29:48 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-chain-session.tcl,v 1.5 1999/07/02 01:49:39 tomh Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-chain-session.tcl,v 1.6 1999/09/09 03:29:48 salehi Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -59,7 +59,7 @@ $ns duplex-link $n([expr $nmax - 2]) $n($nmax) 1.5Mb 10ms DropTail
 #$ns queue-limit $n(0) $n(1) 2	;# q-limit is 1 more than max #packets in q.
 #$ns queue-limit $n(1) $n(0) 2
 
-set group 0x8000
+set group [Node allocaddr]
 
 # now the multicast, and the agents
 set srmStats [open srmStatsSes.tr w]
@@ -75,7 +75,8 @@ $ns insert-loss $loss_module 0 1
 set fid 0
 for {set i 0} {$i <= 5} {incr i} {
     set srm($i) [new Agent/SRM/$srmSimType]
-    $srm($i) set dst_ $group
+    $srm($i) set dst_addr_ $group
+    $srm($i) set dst_port_ 0
     $srm($i) set fid_ [incr fid]
     $srm($i) trace $srmEvents
     $srm($i) log $srmStats

@@ -32,7 +32,7 @@
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 # dsr.tcl
-# $Id: dsr.tcl,v 1.9 1999/05/07 01:02:46 haldar Exp $
+# $Id: dsr.tcl,v 1.10 1999/09/09 03:39:37 salehi Exp $
 
 # ======================================================================
 # Default Script Options
@@ -74,7 +74,7 @@ SRNode instproc init {args} {
 
 	eval $self next $args	;# parent class constructor
 	if {$dmux_ == "" } {
-		set dmux_ [new Classifier/Addr]
+		set dmux_ [new Classifier/Port]
 		$dmux_ set mask_ [AddrParams set PortMask_]
 		$dmux_ set shift_ [AddrParams set PortShift_]
 		#

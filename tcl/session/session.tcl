@@ -6,7 +6,7 @@ SessionSim instproc create-session { srcNode srcAgent } {
     $self instvar session_
 
     set nid [$srcNode id]
-    set dst [$srcAgent set dst_]
+    set dst [$srcAgent set dst_addr_]
     set session_($nid:$dst:$nid) [new SessionHelper]
     $session_($nid:$dst:$nid) set-node $nid
     if [SessionSim set rc_] {
@@ -736,18 +736,16 @@ SessionNode instproc attach agent {
     $agent set node_ $self
     set port [$self alloc-port]
 
-    set mask [AddrParams set PortMask_]
-    set shift [AddrParams set PortShift_]
+    set mask 0xffffffff
+    set shift 0
     if [Simulator set EnableHierRt_] {
 	set nodeaddr [AddrParams set-hieraddr $address_]
     } else {
-	set nodeaddr [expr [expr $address_ & [AddrParams set NodeMask_(1)]] \
+	set nodeaddr [expr [expr $address_ & [AddrParams set NodeMask_(1)]]\
 			  << [AddrParams set NodeShift_(1)]]
     }
-
-    $agent set addr_ [expr [expr [expr $port & $mask] << $shift] | \
-		      [expr [expr ~[expr $mask << $shift]] & $nodeaddr]]
-    # $agent set addr_ [expr $id_ << 8 | $port]
+    $agent set agent_addr_ $nodeaddr
+    $agent set agent_port_ $port
 }
 
 SessionNode instproc join-group { rcvAgent group } {

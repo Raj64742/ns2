@@ -17,7 +17,7 @@
 #
 # Implementation of web cache
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.9 1999/05/26 01:20:32 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-cache.tcl,v 1.10 1999/09/09 03:58:41 salehi Exp $
 
 Http/Cache instproc init args {
 	eval $self next $args
@@ -602,6 +602,7 @@ Http/Cache/Inval/Mcast instproc get-response-GET { server pageid args } {
 
 	# XXX Assume once server-neighbor cache relationship is fixed, they
 	# never change.
+# 	debug 1
 	set sid [[lindex [split $pageid :] 0] id]
 	set cid [$server id]
 	$self register-server $cid $sid
@@ -622,7 +623,8 @@ Http/Cache/Inval/Mcast instproc join-inval-group { group } {
 	}
 	set invalListener_ [new Agent/HttpInval]
 	set invListenGroup_ $group
-	$invalListener_ set dst_ $group
+	$invalListener_ set dst_addr_ $group
+	$invalListener_ set dst_port_ 0
 
 	$self add-inval-listener $invalListener_
 	$ns_ attach-agent $node_ $invalListener_
@@ -639,7 +641,8 @@ Http/Cache/Inval/Mcast instproc init-inval-group { group } {
 	}
 	set invalSender_ [new Agent/HttpInval]
 	set invSndGroup_ $group
-	$invalSender_ set dst_ $group
+	$invalSender_ set dst_addr_ $group
+	$invalSender_ set dst_port_ 0
 
 	$self add-inval-sender $invalSender_
 	$ns_ attach-agent $node_ $invalSender_
@@ -816,6 +819,7 @@ Http/Cache/Inval/Mcast instproc init-update-group { group } {
 	# Allow a cache to have multiple update groups. 
 	set snd [new Agent/HttpInval]
 	$snd set dst_ $group
+	$snd set dst_port_ 0
 	$self add-upd-sender $snd
 	$ns_ attach-agent $node_ $snd
 	$node_ join-group $snd $group
@@ -829,7 +833,8 @@ Http/Cache/Inval/Mcast instproc join-update-group { group }  {
 	if ![info exists updListener_] {
 		set updListener_ [new Agent/HttpInval]
 		$self add-upd-listener $updListener_
-		$updListener_ set dst_ $updListenGroup_
+		$updListener_ set dst_addr_ $updListenGroup_
+		$updListener_ set dst_port_ 0
 		$ns_ attach-agent $node_ $updListener_
 	}
 	$node_ join-group $updListener_ $updListenGroup_
@@ -963,7 +968,8 @@ Http/Cache/Inval/Mcast instproc join-tlc-group { group } {
 	}
 	set tlcAgent_ [new Agent/HttpInval]
 	set tlcGroup_ $group
-	$tlcAgent_ set dst_ $group
+	$tlcAgent_ set dst_addr_ $group
+	$tlcAgent_ set dst_port_ 0
 
 	$self add-inval-sender $tlcAgent_
 	$self add-inval-listener $tlcAgent_
@@ -973,6 +979,7 @@ Http/Cache/Inval/Mcast instproc join-tlc-group { group } {
 
 Http/Cache/Inval/Mcast instproc get-response-TLC { server pageid tlc } {
 	# Continue query...
+# 	debug 1
 	$self register-server [$tlc id] [$server id]
 	$self instvar ns_ id_
 #	puts "[$ns_ now]: Cache $id_ knows server [$server id] -> tlc [$tlc id]"
@@ -1014,6 +1021,7 @@ Http/Cache/Inval/Mcast/Perc instproc check-sstate {sid cid} {
 # established before any request is sent.
 Http/Cache/Inval/Mcast/Perc instproc register-server {cid sid} {
 	$self instvar parent_ direct_request_
+# 	debug 1
 	if {$direct_request_ && [info exists parent_]} {
 		$self cmd register-server [$parent_ id] $sid
 	} 

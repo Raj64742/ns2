@@ -544,25 +544,27 @@ Test/DM1 instproc run {} {
 	set mproto DM
 	set mrthandle [$ns_ mrtproto $mproto {}]
 	
+	set grp0 [Node allocaddr]
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n1) $udp0
-	$udp0 set dst_ 0x8001
+	$udp0 set dst_ $grp0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	
+	set grp1 [Node allocaddr]
 	set udp1 [new Agent/UDP]
 	$ns_ attach-agent $node_(n3) $udp1
-	$udp1 set dst_ 0x8002
+	$udp1 set dst_ $grp1
 	$udp1 set class_ 1
 	set cbr1 [new Application/Traffic/CBR]
 	$cbr1 attach-agent $udp1
 	
 	set rcvr [new Agent/LossMonitor]
 	$ns_ attach-agent $node_(n2) $rcvr
-	$ns_ at 1.2 "$node_(n2) join-group $rcvr 0x8002"
-	$ns_ at 1.25 "$node_(n2) leave-group $rcvr 0x8002"
-	$ns_ at 1.3 "$node_(n2) join-group $rcvr 0x8002"
-	$ns_ at 1.35 "$node_(n2) join-group $rcvr 0x8001"
+	$ns_ at 1.2 "$node_(n2) join-group $rcvr $grp1"
+	$ns_ at 1.25 "$node_(n2) leave-group $rcvr $grp1"
+	$ns_ at 1.3 "$node_(n2) join-group $rcvr $grp1"
+	$ns_ at 1.35 "$node_(n2) join-group $rcvr $grp0"
 	
 	$ns_ at 1.0 "$cbr0 start"
 	$ns_ at 1.1 "$cbr1 start"
@@ -591,9 +593,10 @@ Test/DM2 instproc run {} {
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 	
+	set grp0 [Node allocaddr]
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ 0x8002
+	$udp0 set dst_ $grp0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	
@@ -602,11 +605,11 @@ Test/DM2 instproc run {} {
 	$ns_ attach-agent $node_(n4) $rcvr
 	$ns_ attach-agent $node_(n5) $rcvr
 	
-	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
-	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
-	$ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
-	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
-	$ns_ at 0.95 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr $grp0"
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr $grp0"
+	$ns_ at 0.6 "$node_(n3) leave-group $rcvr $grp0"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr $grp0"
+	$ns_ at 0.95 "$node_(n3) join-group $rcvr $grp0"
 	
 	$ns_ at 0.3 "$cbr0 start"
 	$ns_ at 1.0 "$self finish 6a-nam"
@@ -634,9 +637,10 @@ Test/DM3 instproc run {} {
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 	
+	set grp0 [Node allocaddr]
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ 0x8002
+	$udp0 set dst_ $grp0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	
@@ -645,11 +649,11 @@ Test/DM3 instproc run {} {
 	$ns_ attach-agent $node_(n4) $rcvr
 	$ns_ attach-agent $node_(n5) $rcvr
 	
-	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
-	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
-	$ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
-	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
-	$ns_ at 0.95 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr $grp0"
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr $grp0"
+	$ns_ at 0.6 "$node_(n3) leave-group $rcvr $grp0"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr $grp0"
+	$ns_ at 0.95 "$node_(n3) join-group $rcvr $grp0"
 	
 	$ns_ at 0.3 "$cbr0 start"
 	$ns_ at 1.0 "$self finish 6a-nam"
@@ -676,9 +680,10 @@ Test/DM4 instproc run {} {
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 	
+	set grp0 [Node allocaddr]
 	set udp0 [new Agent/UDP]
 	$ns_ attach-agent $node_(n0) $udp0
-	$udp0 set dst_ 0x8002
+	$udp0 set dst_ $grp0
 	set cbr0 [new Application/Traffic/CBR]
 	$cbr0 attach-agent $udp0
 	
@@ -687,11 +692,11 @@ Test/DM4 instproc run {} {
 	$ns_ attach-agent $node_(n4) $rcvr
 	$ns_ attach-agent $node_(n5) $rcvr
 	
-	$ns_ at 0.2 "$node_(n3) join-group $rcvr 0x8002"
-	$ns_ at 0.4 "$node_(n4) join-group $rcvr 0x8002"
-	$ns_ at 0.6 "$node_(n3) leave-group $rcvr 0x8002"
-	$ns_ at 0.7 "$node_(n5) join-group $rcvr 0x8002"
-	$ns_ at 0.8 "$node_(n3) join-group $rcvr 0x8002"
+	$ns_ at 0.2 "$node_(n3) join-group $rcvr $grp0"
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr $grp0"
+	$ns_ at 0.6 "$node_(n3) leave-group $rcvr $grp0"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr $grp0"
+	$ns_ at 0.8 "$node_(n3) join-group $rcvr $grp0"
 	#### Link between n0 & n1 down at 1.0, up at 1.2
 	$ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
 	$ns_ rtmodel-at 1.2 up   $node_(n0) $node_(n1)
@@ -842,9 +847,10 @@ Test/CtrMcast2 instproc run {} {
 	  set mproto CtrMcast
 	  set mrthandle [$ns_ mrtproto $mproto  {}]
 	  
+	  set grp0 [Node allocaddr]
 	  set udp0 [new Agent/UDP]
 	  $ns_ attach-agent $node_(n0) $udp0
-	  $udp0 set dst_ 0x8003
+	  $udp0 set dst_ $grp0
 	  $udp0 set class_ 1
 	  set cbr0 [new Application/Traffic/CBR]
 	  $cbr0 attach-agent $udp0
@@ -854,17 +860,17 @@ Test/CtrMcast2 instproc run {} {
 	  $ns_ attach-agent $node_(n4) $rcvr
 	  $ns_ attach-agent $node_(n5) $rcvr
 	  
-	  $ns_ at 0.3 "$node_(n3) join-group  $rcvr 0x8003"
+	  $ns_ at 0.3 "$node_(n3) join-group  $rcvr $grp0"
 	  $ns_ at 0.35 "$cbr0 start"
-	  $ns_ at 0.4 "$node_(n4) join-group  $rcvr 0x8003"
-	  $ns_ at 0.5 "$node_(n5) join-group  $rcvr 0x8003"
+	  $ns_ at 0.4 "$node_(n4) join-group  $rcvr $grp0"
+	  $ns_ at 0.5 "$node_(n5) join-group  $rcvr $grp0"
 
 	  ### Link between n2 & n4 down at 0.6, up at 1.2
 	  $ns_ rtmodel-at 0.6 down $node_(n2) $node_(n4)
 	  $ns_ rtmodel-at 0.8 up $node_(n2) $node_(n4)
 	  ###
 
-	  $ns_ at 1.2 "$mrthandle switch-treetype 0x8003"
+	  $ns_ at 1.2 "$mrthandle switch-treetype $grp0"
 
 	  ### Link between n0 & n1 down at 1.5, up at 2.0
 	  $ns_ rtmodel-at 1.0 down $node_(n0) $node_(n1)
@@ -893,9 +899,10 @@ Test/ST1 instproc init topo {
 Test/ST1 instproc run {} {
 	$self instvar ns_ node_ testName_
 
+	set grp3 [Node allocaddr]
 	set udp3 [new Agent/UDP]
 	$ns_ attach-agent $node_(n3) $udp3
-	$udp3 set dst_ 0x8002
+	$udp3 set dst_ $grp3
 	set cbr3 [new Application/Traffic/CBR]
 	$cbr3 attach-agent $udp3
 
@@ -909,17 +916,17 @@ Test/ST1 instproc run {} {
 	$ns_ attach-agent $node_(n5) $rcvr5
 	
 	### Start multicast configuration
-	ST set RP_(0x8002) $node_(n0)
+	ST set RP_($grp3) $node_(n0)
 	$ns_ mrtproto ST  ""
 
 	### End of multicast  config
 
 	$ns_ at 0.1 "$cbr3 start"
-	$ns_ at 0.2 "$node_(n2) join-group $rcvr2 0x8002"
-	$ns_ at 0.4 "$node_(n4) join-group $rcvr4 0x8002"
-	$ns_ at 0.6 "$node_(n2) leave-group $rcvr2 0x8002"
-	$ns_ at 0.7 "$node_(n5) join-group $rcvr5 0x8002"
-	$ns_ at 0.8 "$node_(n2) join-group $rcvr2 0x8002"
+	$ns_ at 0.2 "$node_(n2) join-group $rcvr2 $grp3"
+	$ns_ at 0.4 "$node_(n4) join-group $rcvr4 $grp3"
+	$ns_ at 0.6 "$node_(n2) leave-group $rcvr2 $grp3"
+	$ns_ at 0.7 "$node_(n5) join-group $rcvr5 $grp3"
+	$ns_ at 0.8 "$node_(n2) join-group $rcvr2 $grp3"
 	####
 	
 	$ns_ at 1.6 "$self finish 6a-nam"

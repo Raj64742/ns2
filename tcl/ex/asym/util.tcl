@@ -5,7 +5,7 @@ set RANDOM 3
 
 # configure RED parameters
 Queue/RED set setbit_ true
-Queue/RED set drop-tail_ false
+Queue/RED set drop_tail_ false
 Queue/RED set fracthresh_ true
 Queue/RED set fracminthresh_ 0.15
 Queue/RED set fracmaxthresh_ 0.6
@@ -170,7 +170,7 @@ proc setupTcpTracing { tcp tcptrace { sessionFlag false } } {
 	}
 	enableTcpTracing $tcp $tcptrace
 	if { $sessionFlag } {
-		set dst [expr ([$tcp set dst_]/256)*256]
+		set dst [$tcp set dst_addr_]
 		set session [[$tcp set node_] createTcpSession $dst]
 		enableTcpTracing $session $tcptrace
 		$session trace "ownd_"
@@ -181,17 +181,17 @@ proc setupTcpTracing { tcp tcptrace { sessionFlag false } } {
 proc setupGraphing { tcp connGraph connGraphFlag {sessionFlag false} } {
 	upvar $connGraphFlag graphFlag
 
-	set saddr [expr [$tcp set addr_]/256]
-	set sport [expr [$tcp set addr_]%256]
-	set daddr [expr [$tcp set dst_]/256]
-	set dport [expr [$tcp set dst_]%256]
+	set saddr $tcp set agent_addr_]
+	set sport [$tcp set agent_port_]
+	set daddr [$tcp set dst_addr]
+	set dport [$tcp set dst_port_]
 	set conn [format "%d,%d-%d,%d" $saddr $sport $daddr $dport]
 	set graphFlag($conn) $connGraph
 
 	if { $sessionFlag } {
-		set dst [expr ([$tcp set dst_]/256)*256]
+		set dst [expr ([$tcp set dst_addr]
 		set session [[$tcp set node_] createTcpSession $dst]
-		set sport [expr [$session set addr_]%256]
+		set sport [expr [$session set agent_port_]
 		set dport 0
 		set conn [format "%d,%d-%d,%d" $saddr $sport $daddr $dport]
 		set graphFlag($conn) $connGraph
@@ -211,7 +211,7 @@ proc createTcpSink { type {sinktrace 0} { ackSize 40 } { maxdelack 25 } } {
 }
 
 proc setupTcpSession { tcp { count_bytes_acked false } { schedDisp $FINE_ROUND_ROBIN} {fs_enable false} {disableIntLossRecov false} } {
-	set dst [expr ([$tcp set dst_]/256)*256]
+	set dst [$tcp set dst_addr_]
 	if {![[$tcp set node_] existsTcpSession $dst]} {
 		set session [[$tcp set node_] createTcpSession $dst]
 		$session set maxburst_ [$tcp set maxburst_]
