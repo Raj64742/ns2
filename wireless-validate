@@ -38,7 +38,8 @@ failed_list=""
 cd tcl/test
 
 for i in lan wireless-lan mip wireless-gridkeeper \
-wireless-lan-newnode wireless-lan-tora wireless-lan-aodv
+wireless-lan-newnode wireless-lan-tora wireless-lan-aodv \
+wireless-tdma wireless-diffusion energy WLtutorial
 do
 	try ./test-all-$i
 done
