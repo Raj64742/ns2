@@ -76,6 +76,7 @@ protected:
   int mask_;     /*if set hashes on just the node address otherwise on 
 		   node+port address*/
   int bytecnt ; //cumulative sum of bytes across all flows
+  int pktcnt ; // cumulative sum of packets across all flows
   int flwcnt ; //total number of active flows
   PacketDRR *curr; //current active flow
   PacketDRR *drr ; //pointer to the entire drr struct
@@ -90,6 +91,17 @@ protected:
 	maxflow=tmp;
     }
     return maxflow;
+  }
+  
+public:
+  //returns queuelength in packets
+  inline int length () {
+    return pktcnt;
+  }
+
+  //returns queuelength in bytes
+  inline int blength () {
+    return bytecnt;
   }
 };
 
@@ -109,6 +121,7 @@ DRR::DRR()
   curr=0;
   flwcnt=0;
   bytecnt=0;
+  pktcnt=0;
   mask_=0;
   bind("buckets_",&buckets_);
   bind("blimit_",&blimit_);
@@ -131,7 +144,7 @@ void DRR::enque(Packet* pkt)
   q=&drr[which];
 
   /*detect collisions here */
-  int compare=(!mask_ ? ((int)iph->src()) : ((int)iph->src()&0xff00));
+  int compare=(!mask_ ? ((int)iph->src()) : ((int)iph->src()&0xfff0));
   if (q->src ==-1)
     q->src=compare;
   else
@@ -140,8 +153,10 @@ void DRR::enque(Packet* pkt)
 
   q->enque(pkt);
   ++q->pkts;
+  ++pktcnt;
   q->bcount += ch->size();
   bytecnt +=ch->size();
+
 
   if (q->pkts==1)
     {
@@ -161,6 +176,7 @@ void DRR::enque(Packet* pkt)
     bytecnt -= remch->size();
     drop(p);
     --remq->pkts;
+    --pktcnt;
     if (remq->pkts==0) {
       curr=remq->idle(curr);
       --flwcnt;
@@ -178,7 +194,6 @@ Packet *DRR::deque(void)
     return(0);
   }
   
-  
   while (!pkt) {
     if (!curr->turn) {
       curr->deficitCounter+=quantum_;
@@ -193,6 +208,7 @@ Packet *DRR::deque(void)
       pkt=curr->deque();
       curr->bcount -= ch->size();
       --curr->pkts;
+      --pktcnt;
       bytecnt -= ch->size();
       if (curr->pkts == 0) {
 	curr->turn=0;
@@ -271,7 +287,7 @@ int DRR::hash(Packet* pkt)
   hdr_ip *iph=(hdr_ip*)pkt->access(off_ip_);
   int i;
   if (mask_)
-     i = (int)iph->src() & (0xff00);
+     i = (int)iph->src() & (0xfff0);
   else
     i = (int)iph->src();
   return ((i + (i >> 8) + ~(i>>4)) % ((2<<23)-1))+1; // modulo a large prime
