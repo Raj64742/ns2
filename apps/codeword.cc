@@ -61,7 +61,7 @@ Codeword::Codeword() :
 sb_void Codeword::setSourceWordLen(sb_ulong k_)
 {
     k = k_;
-    n = ((unsigned long long) 1) << (k-1);
+    n = ((CW_PATTERN_t) 1) << (k-1);
     cw_index = 0;
     cw_pat = 1;
     cw_saved = 0;
@@ -95,7 +95,7 @@ CW_PATTERN_t Codeword::getNextCwPat()
     // step 4
     cw_index = (cw_index + 1) % n;
 
-    assert(0 < ret && ret < ((unsigned long long) n << 1) | 1);
+    assert(0 < ret && ret < ((CW_PATTERN_t) n << 1) | 1);
     return ret;
 }
 
@@ -138,10 +138,10 @@ bool Codeword::is_valid(CW_PATTERN_t cw, sb_ulong k)
     /* -1 == 0xFFFFFFF... Verfiy this behavious to avoid strange results: */
     //    assert(((CW_PATTERN_t) 1 << 8 * sizeof(CW_PATTERN_t)) - 1 == ~((CW_PATTERN_t) 0));
 
-    assert(0 <= k && k <= 8 * sizeof(CW_PATTERN_t));
-    return(0 <= cw && cw <= ((CW_PATTERN_t) 1 << k) - 1); 
+    assert(k <= 8 * sizeof(CW_PATTERN_t));
+    return(cw <= ((CW_PATTERN_t) 1 << k) - 1); 
     // Ex: for k=8, highest
-    // codword is 255, although according to Reed-Muller order 1, only the odd
+    // codeword is 255, although according to Reed-Muller order 1, only the odd
     // codewords are valid (but we don't check this for "manual" enhancements made
     // with the set of codewords.
 }
@@ -158,7 +158,7 @@ sb_void Codeword::init_bitcount_array(sb_uchar* arr, sb_uint nb_bits)
 
     for(i = 0; i < bitcount_array_size; ++i) {
         count = 0;
-        for(bit = 0; 0 <= bit && bit < nb_bits; bit++) {
+        for(bit = 0;bit < nb_bits; bit++) {
             if(i & ((sb_uint32) 1 << bit)) {
                 count++;
             } /* if */
@@ -177,7 +177,7 @@ sb_void Codeword::init_minbit_array(sb_uchar* arr, sb_uint minbits)
     assert(arr != NULL);
 
     for(i = 0; i < minbit_array_size; ++i) {
-        for(bit = 0; 0 <= bit && bit < minbits; bit++) {
+        for(bit = 0;bit < minbits; bit++) {
             if(i & ((sb_uint) 1 << bit)) {
                 arr[i] = (unsigned char) bit;
                 break;

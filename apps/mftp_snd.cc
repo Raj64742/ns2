@@ -353,7 +353,7 @@ sb_int MFTPSndAgent::fill_read_ahead_buf()
     sb_ulong seek_offset;   // where to position the head for disk seeks
     sb_ulong buf_pos = 0;   // position where data is written (into main memory) when
                             // read from disk, relative to the start of read_ahead_buf
-    sb_int status = 0;
+    //sb_int status = 0;
     CW_PATTERN_t cw_pat_tmp = nmstats.CwPat;
     sb_ulong i;
     sb_ulong len;
@@ -478,10 +478,10 @@ sb_int MFTPSndAgent::send_data()
         hdr->spec.data.group_nb = nmstats.CurrentGroup;
         hdr->spec.data.cw_pat   = nmstats.CwPat & mask;
 
-        tcl.evalf("%s send-notify %lu %lu %llu", name_,
+        tcl.evalf("%s send-notify %lu %lu %lu", name_,
                   (unsigned long) nmstats.CurrentPass,
                   (unsigned long) nmstats.CurrentGroup,
-                  (unsigned long long) nmstats.CwPat & mask);
+                  (unsigned long) nmstats.CwPat & mask);
 
         /* RESET THE DTU STATUS BIT IN THE NACK BITMAP */
         RESET_BIT(naks, nmstats.CurrentGroup);

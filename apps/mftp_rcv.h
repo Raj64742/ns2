@@ -48,7 +48,7 @@ public:
     void recv(Packet* p, Handler* h);
 
 protected:
-    typedef unsigned long long CW_PATTERN_t;
+    typedef sb_uint32 CW_PATTERN_t;
 
     typedef struct {
         CW_PATTERN_t left;
