@@ -1,7 +1,5 @@
 Class REDPDSim
 
-source helper.tcl
-
 #
 # routine which inserts high dr flows into history
 #
@@ -57,8 +55,8 @@ REDPDSim instproc insert-high-dr-flows {} {
 	set high_dr_flow_hist_ [lrange $high_dr_flow_hist_ 1 end]
     }
     
-    puts -nonewline "High DR History: "
-    $self printListOfLists $high_dr_flow_hist_
+    $self vprint-nonewline 2 "High DR History: "
+    $self printListOfLists 2 $high_dr_flow_hist_
     
     #unset total_flows
     #return $total_flows
@@ -108,8 +106,8 @@ REDPDSim instproc check-regular {} {
 	#memory 
 	unset flow_count drop_count
     }
-    puts -nonewline "Regular List: "
-    $self printListOfLists $ret_list
+    $self vprint-nonewline 2 "Regular List: "
+    $self printListOfLists 2 $ret_list
     return $ret_list
 }
 
@@ -433,8 +431,8 @@ REDPDSim instproc do_detect {} {
 			set mon_flow_hist_($fid,hist) [lrange $mon_flow_hist_($fid,hist) 1 end]
 		    }
 		    
-		    puts -nonewline "History of $flow $fid: "
-		    $self printListOfLists $mon_flow_hist_($fid,hist)
+		    $self vprint-nonewline 2 "History of $flow $fid: "
+		    $self printListOfLists 2 $mon_flow_hist_($fid,hist)
 		    
 		    #memory
 		    unset pre_drop_rate new_hist
@@ -625,8 +623,8 @@ REDPDSim instproc check-unresponsive {flow} {
 	
 	set fid [$flow set flowid_]
 	set flow_hist [lsort -real -index 1 $mon_flow_hist_($fid,hist)]
-	puts -nonewline "checking unresponsiveness $flow $fid "
-	$self printListOfLists $flow_hist
+	$self vprint-nonewline 2 "checking unresponsiveness $flow $fid "
+	$self printListOfLists 2 $flow_hist
 
 	set good 0
 	set bad 0
@@ -646,7 +644,7 @@ REDPDSim instproc check-unresponsive {flow} {
 			}
 			set rootx [expr {sqrt($x)}]
 			# y = rootx ideally.
-			puts "unresp $histItem1 $histItem2 $x $y $rootx"
+			$self vprint 2 "unresp $histItem1 $histItem2 $x $y $rootx"
 			if { $y > $rootx } {
 				incr bad
 			} elseif  { $y <= $rootx } {

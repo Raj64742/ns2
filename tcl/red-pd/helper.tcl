@@ -18,7 +18,7 @@ REDPDSim instproc init { ns redpdq redpdflowmon redpdlink id enable } {
 	set counter_ 0
 
 	$self instvar verbose_
-	set verbose_ 2	; #-1 means no messages
+	set verbose_ 0	; #-1 means no messages
 	
 	$self instvar redpdq_ redpdflowmon_ redpdlink_
 	set redpdq_ $redpdq
@@ -129,18 +129,29 @@ REDPDSim instproc vprint args {
 	}
 }
 
+REDPDSim instproc vprint-nonewline args {
+	$self instvar verbose_ id_
+	set level [lindex $args 0]
+	set a [lrange $args 1 end]
+	if { $level <= $verbose_ } {
+		$self instvar ns_
+		puts -nonewline "[$ns_ now] ($id_) $a"
+		flush stdout
+	}
+}
+
 #
 #generic function to print a list of lists 
 #
-REDPDSim instproc printListOfLists {listOfLists} {
+REDPDSim instproc printListOfLists {level listOfLists} {
 
 	foreach i $listOfLists {
-		puts -nonewline "{ "
+		$self vprint-nonewline $level "{ "
 		foreach j $i {
-			puts -nonewline "$j "
+			$self vprint-nonewline $level -nonewline "$j "
 		}
-		puts -nonewline " } "
+		$self vprint-nonewline $level " } "
 	}
 
-	puts ""
+	$self vprint $level ""
 }

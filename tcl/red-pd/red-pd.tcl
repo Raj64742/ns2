@@ -3,6 +3,7 @@
 #
 Class TestSuite
 source monitoring.tcl
+source helper.tcl
 source sources.tcl
 source plot.tcl
 source traffic.tcl
