@@ -27,7 +27,7 @@
 // rap.cc 
 //      Code for the 'RAP Source' Agent Class
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.2 1999/05/19 21:09:13 polly Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.3 1999/05/21 05:15:09 polly Exp $
 
 #include "rap.h"
 
@@ -83,9 +83,9 @@ int EqualSeqno(void *i1, void *i2)
 //----------------------------------------------------------------------
 
 RapAgent::RapAgent() : Agent(PT_RAP_DATA), ipgTimer_(this), rttTimer_(this),
-	seqno_(0), sessionLossCount_(0), ipg_(2.0), srtt_(2.0), timeout_(2.0),
-	lastRecv_(0), lastMiss_(0), prevRecv_(0), dctr_(0), flags_(0), 
-	fixIpg_(0)
+ 	seqno_(0), sessionLossCount_(0), curseq_(0), ipg_(2.0), srtt_(2.0), 
+	timeout_(2.0), lastRecv_(0), lastMiss_(0), prevRecv_(0), dctr_(0), 
+	flags_(0), fixIpg_(0)
 {
 	bind("packetSize_", &size_);	// Default 512
 	bind("seqno_", &seqno_);	// Default 0
@@ -228,7 +228,13 @@ int RapAgent::command(int argc, const char*const* argv)
 			listen();
 			return (TCL_OK);
 		}
+	} else if (argc == 3) {
+                if (strcmp(argv[1], "advanceby") == 0) {
+                        advanceby(atoi(argv[2]));
+                        return (TCL_OK);
+                }
 	}
+
 
 	// If the command hasn't been processed by RapAgent()::command,
 	// call the command() function for the base class
@@ -350,6 +356,9 @@ void RapAgent::RecvAck(hdr_rap *ackHeader)
   
 	if (LossDetection(RAP_ACK_BASED, ackHeader))
 		LossHandler();
+
+	if (ackHeader->seqno_ >= curseq_ ) 
+		finish();
 }
 
 //----------------------------------------------------------------------
@@ -383,25 +392,29 @@ void RapAgent::IpgTimeout()
 
 	if (LossDetection(RAP_TIMER_BASED))
 		LossHandler();
-	else if (app_) {
-		int nbytes;
-		AppData* data = app_->get_data(nbytes);
-		// Missing data in application. What should we do??
-		// For now, simply schedule the next SendPacket(). 
-		// If the application has nothing to send, it'll stop the 
-		// rap agent later on. 
-		if (data != NULL) {
-			SendPacket(nbytes, data);
-			delete data;
+	else if (!counting_pkt()) {
+		if (app_) {
+			int nbytes;
+			AppData* data = app_->get_data(nbytes);
+			// Missing data in application. What should we do??
+			// For now, simply schedule the next SendPacket(). 
+			// If the application has nothing to send, it'll stop the 
+			// rap agent later on. 
+			if (data != NULL) {
+				SendPacket(nbytes, data);
+				delete data;
+				dctr_++;
+			}
+		} else {
+			// If RAP doesn't have application, just go ahead and 
+			// send packet
+			SendPacket(size_);
 			dctr_++;
 		}
-	} else {
-		// If RAP doesn't have application, just go ahead and 
-		// send packet
-		SendPacket(size_);
-		dctr_++;
+	}  else if (seqno_ < curseq_) {
+			SendPacket(size_);
+			dctr_++;
 	}
-
 
 	// XXX If we only bound IPG in DecreaseIpg(), the thresholding will 
 	// happen immediately because DecreaseIpg() isn't called immediately. 
@@ -675,3 +688,19 @@ void RapAgent::UpdateLastHole(int seqNum)
 
 	assert(seqNum <= prevRecv_);	// Pretty late...
 }
+
+
+// take pkt count
+void RapAgent::advanceby(int delta)
+{
+	flags_ |= RF_COUNTPKT;
+        curseq_ = delta;
+	start();
+}
+
+void RapAgent::finish()
+{
+	stop();
+	Tcl::instance().evalf("%s done", this->name());
+}
+

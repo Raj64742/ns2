@@ -27,7 +27,7 @@
 // rap.h 
 //      Header File for the 'RAP Source' Agent Class
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.h,v 1.1 1999/05/14 18:12:21 polly Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.h,v 1.2 1999/05/21 05:15:10 polly Exp $
 
 #ifndef RAP_H
 #define RAP_H
@@ -128,6 +128,7 @@ protected:
 // Rap flags
 const int RF_ANYACK = 0x01;	// Received first ack
 const int RF_STOP   = 0x02;	// This agent has stopped
+const int RF_COUNTPKT = 0x04;    // This agent will send up to certain # of pkts
 
 class RapAgent : public Agent	// RAP source
 {
@@ -148,6 +149,8 @@ public:
 	void start();
 	void stop();
 	void listen();
+	void advanceby(int delta);
+	void finish();
 
 	// Data member access methods
 	double srtt() { return srtt_; }
@@ -155,6 +158,7 @@ public:
 
 	int anyack() { return flags_ & RF_ANYACK; }
 	int is_stopped() { return flags_ & RF_STOP; }
+	int counting_pkt() { return flags_ & RF_COUNTPKT; }
 	void FixIpg(double fipg) { fixIpg_ = fipg; }
 
 protected:
@@ -193,7 +197,8 @@ protected:
 	List transmissionHistory_;	// Of packets sent out
   
 	TracedInt seqno_;		// Current sequence number
-	TracedInt sessionLossCount_;	// ~ Packets lost in RAP session	     
+	TracedInt sessionLossCount_;	// ~ Packets lost in RAP session
+	TracedInt curseq_;              // max # of pkts sent
 
 	TracedDouble ipg_;		// Inter packet gap
 	double beta_;			// Decrease factor
