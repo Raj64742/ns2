@@ -35,7 +35,7 @@
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.18 2000/07/10 07:24:45 intanago Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.19 2000/08/14 15:57:14 johnh Exp $
  */
 
 #include <phy.h>
@@ -100,7 +100,7 @@ struct node_head Node::nodehead_ = { 0 }; // replaces LIST_INIT macro
 Node::Node(void) : address_(-1), energy_model_(NULL), sleep_mode_(0), total_sleeptime_(0),
 	           total_rcvtime_(0), total_sndtime_(0), adaptivefidelity_(0),
 	           powersavingflag_(0), namDefinedFlag_(0), last_time_gosleep(0),max_inroute_time_(300),
-	           maxttl_(5), node_on_(true)
+	           node_on_(true), maxttl_(5)
 {
 	LIST_INIT(&ifhead_);
 	LIST_INIT(&linklisthead_);

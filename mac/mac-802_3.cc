@@ -1,6 +1,6 @@
 /* 
    mac-802_3.cc
-   $Id: mac-802_3.cc,v 1.7 2000/02/16 23:38:09 yuriy Exp $
+   $Id: mac-802_3.cc,v 1.8 2000/08/14 15:57:14 johnh Exp $
    */
 #include <packet.h>
 #include <random.h>
@@ -69,7 +69,7 @@ void Mac8023HandlerSend::handle(Event*) {
 	p_= 0;
 	mac->mhRetx_.free();
 	mac->mhRetx_.reset();
-	mac->mhIFS_.schedule(mac->netif_->txtime(IEEE_8023_IFS_BITS/8.0));
+	mac->mhIFS_.schedule(mac->netif_->txtime(int(IEEE_8023_IFS_BITS/8.0)));
 }
 
 void Mac8023HandlerSend::schedule(const Packet *p, double t) {
@@ -238,7 +238,7 @@ void Mac802_3::collision(Packet *p) {
 	Packet::free(p);
 	if (mhIFS_.busy()) mhIFS_.cancel();
 
-	double ifstime= netif_->txtime((IEEE_8023_JAMSIZE+IEEE_8023_IFS_BITS)/8); //jam time + ifs
+	double ifstime= netif_->txtime(int((IEEE_8023_JAMSIZE+IEEE_8023_IFS_BITS)/8.0)); //jam time + ifs
 	mhIFS_.schedule(ifstime);
 
 	switch(state_) {
@@ -290,7 +290,7 @@ void Mac802_3::recv_complete(Packet *p) {
 	uptarget_->recv(p, (Handler*) 0);
 
  done:
-	mhIFS_.schedule(netif_->txtime(IEEE_8023_IFS_BITS/8));// wait for one IFS, then resume
+	mhIFS_.schedule(netif_->txtime(int(IEEE_8023_IFS_BITS/8.0)));// wait for one IFS, then resume
 }
 
 /* we call resume() in these cases:

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.19 2000/07/27 01:29:16 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.20 2000/08/14 15:57:14 johnh Exp $ (LBL)";
 #endif
 
 //
@@ -304,6 +304,8 @@ void
 Tagger::fformat(Flow* f)
 {
         double now = Scheduler::instance().clock();
+	// insane but true: egcs 2.96 doesnt think "int eprops() const"
+	// matches %d
         sprintf(wrk_, "%8.3f %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
                 now,            // 1: time
                 f->flowid(),    // 2: flowid
@@ -314,12 +316,12 @@ Tagger::fformat(Flow* f)
                 f->dst(),       // 7: receiver
                 f->parrivals(), // 8: arrivals this flow (pkts)
                 f->barrivals(), // 9: arrivals this flow (bytes)
-                f->epdrops(),   // 10: early drops this flow (pkts)
-                f->ebdrops(),   // 11: early drops this flow (bytes)
+                int(f->epdrops()),   // 10: early drops this flow (pkts)
+                int(f->ebdrops()),   // 11: early drops this flow (bytes)
                 parrivals(),    // 12: all arrivals (pkts)
                 barrivals(),    // 13: all arrivals (bytes)
-                epdrops(),      // 14: total early drops (pkts)
-                ebdrops(),      // 15: total early drops (bytes)
+                int(epdrops()),      // 14: total early drops (pkts)
+                int(ebdrops()),      // 15: total early drops (bytes)
                 pdrops(),       // 16: total drops (pkts)
                 bdrops(),       // 17: total drops (bytes)
                 f->pdrops(),    // 18: drops this flow (pkts) [includes edrops]

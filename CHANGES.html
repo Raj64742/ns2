@@ -7,7 +7,7 @@
 <!-- Changed by: Sandeep Bajaj, 24-Apr-1998 -->
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.410 2000/08/13 17:28:40 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.411 2000/08/14 15:57:14 johnh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>
 ns: Change History</h1>
 <!--
@@ -22,7 +22,17 @@ of ns-2.1b7</a> [PENDING]</h3>
 
 <ul>
 
-<li>
+<p>
+  <li>
+<b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Tue Aug  1 15:30:30 PDT 2000
+</b><br>
+       Patches to allow ns to build with tcl-8.3
+       (still must specify --with-tcl-version=8.3 and --with-tk-version=8.3
+       in the configure).
+       Validation tests VC and monitor still fail
+       (segfault in tcl code)---this is work in progress.
+       
+<p><li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
 <b>Sun Aug 13 09:48:15 PDT 2000</b>
 <br>
@@ -30,7 +40,7 @@ Added code (on July 18) for correctly tracing early packet drops from RED
 when flow monitors are attached.
 Code from Ratul Mahajan. 
 
-<li>
+<p><li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b>
 <b>Sun Aug 13 09:48:15 PDT 2000</b>
 <br>
@@ -62,12 +72,13 @@ instead.  Code from Ethan Blanton.  Validated in
 "./test-all-tcpOptions".  (August 12)
 </ul>
 
+<p>
   <li>
 <b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Tue Aug  1 15:30:30 PDT 2000
 </b><br>
        Nam section of the documentation started with details about how to make animated gifs.
        
-
+       <p>
   <li>
 <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
 <b>Wed Jul 26 18:11:09 PDT 2000</b><br>
@@ -79,19 +90,19 @@ instead.  Code from Ethan Blanton.  Validated in
 	messages in tcl/lib/ns-lib.tcl
 	</ul>
 
-<li>
+<p><li>
 <b><a href="http://www.isi.edu/~haoboy">[haoboy]</a></b>
 <b>Tue Jul 25 14:59:09 PDT 2000</b><br>
 PLM code contributed by Arnaud Legout at EURECOM.
 
-<li>
+<p><li>
 <b><a href="http://www.isi.edu/~xuanc/">[xuanc]</a></b> <b>Sat Jul 22 16:58:54 PDT 2000
 </b></li>
 <br>(1)New API (channel) added to node-config in ns-lib.tcl to support multiple
 interfaces for wireless node. A demo tcl script also included.
 (2)The URLs in README and CHANGES.html are fixed.
 
-<li>
+<p><li>
 <b><a href="http://netweb.usc.edu/weiye/">[weiye]</a></b> <b>Fri Jul 21
 13:20:59 PDT 2000</b></li>
 
@@ -103,7 +114,7 @@ shadowing deviation represent different propagation environments. This
 statistical model is applicable to both outdoor and indoor. (2) A bug fixed
 in wireless-phy.cc. The bug disabled setting values of bound variables
 from Tcl.
-<li>
+<p><li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> <b>Sun Jul 9 09:38:26
 PDT 2000</b></li>
 
@@ -113,7 +124,7 @@ Wen Shushan. The option "queue-in-bytes_" had been working correctly in
 the validation test in "./test-all-red red_twowaybytes", but in other scripts
 REDQueue::reset() can be called twice, and in this case "queue-in-bytes_"
 had not been working correctly.
-<li>
+<p><li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> <b>Fri Jul 7 17:02:16
 PDT 2000</b></li>
 
@@ -122,33 +133,33 @@ Matt Mathis, Jeff Semke, Jamshid Mahdavi, and Kevin Lahey, from the web
 page ``http://www.psc.edu/networking/ftp/papers/draft-ratehalving.txt''.
 This is partially validated in the validation test "./test-all-tcpVariants",
 for example in "./test-all-tcpVariants/fourdrops_sackRH".
-<li>
+<p><li>
 <b><a href="http://www.aciri.org/floyd/">[floyd]</a></b> <b>Mon Jun 26
 20:07:50 PDT 2000</b></li>
 
 <br>First pass at adding RIO code to NS. This RIO code is from Yun Wang,
 based on the code used by Wenjia Fang, and was ported to ns-2.1b6 by J.
 Scott.
-<li>
+<p><li>
 <b><a href="http://www.cs.berkeley.edu/~tomh/">[tomh]</a></b> <b>Tue Jun
 21 17:44:10 PDT 2000</b></li>
 
 <br>Changes to support <a href="http://www.ee.surrey.ac.uk/Personal/L.Wood/ns/sat-plot-scripts/">Lloyd
 Wood's improved perl scripts</a> for the satellite code.
-<li>
+<p><li>
 <b><a href="http://www.isi.edu/~kclan/">[kclan]</a></b> <b>Tue Jun 21 11:12:54
 PDT 2000</b></li>
 
 <br>Fix to full-tcp reassembly from Matt Sanders and George Riley of Georgia
 Tech.
-<li>
+<p><li>
 <b><a href="http://www.isi.edu/~xuanc/">[xuanc]</a></b> <b>Mon Jun 12 17:13:45
 PDT 2000</b></li>
 
 <br>A single hop, preamble based TDMA mac layer (Mac/Tdma) was added. It
 can be used in wireless / sensor net simulations in the place of 802.11
 mac layer.
-<li>
+<p><li>
 <b><a href="http://www.isi.edu/~johnh/">[johnh]</a></b> <b>Thu Jun 1 13:55:39
 PDT 2000</b></li>
 

@@ -57,6 +57,7 @@
 #undef HAVE_ADDR2ASCII
 
 /* headers */
+#undef STDC_HEADERS
 #undef HAVE_STRING_H
 #undef HAVE_STRINGS_H
 #undef HAVE_ARPA_INET_H
