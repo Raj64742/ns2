@@ -4,7 +4,7 @@
 # INPUT:
 # Fairness.tr:
 # 
-proc append { infile datafile } {
+proc append_old { infile datafile } {
     set awkCode {
 	{
 	    if ($1=="stop-time") {time = $2;}
@@ -23,6 +23,50 @@ proc append { infile datafile } {
     } 
     exec awk $awkCode $infile >> $datafile
 }
+
+# OUTPUT:
+# Fairness.data: CBR arrival rate, CBR goodput, TCP goodput (in KBps)
+#
+# INPUT:
+# temp.tr:
+# class 0 packet-size 100
+# class 0 total_packets_received 364
+# class 3 total_packets_acked 11781
+# cbrs: 3 tcps: 1
+# class 3 arriving_pkts 1489 dropped_pkts 308
+# stop-time 100.0
+#
+proc append { infile datafile cbrs tcps } {
+        set awkCode {
+                {
+                if ($1=="stop-time") {time = $2;}
+                if ($3=="packet-size") {size[$2] = $4;}
+                if ($3=="total_packets_acked") {
+                  packets[$2] += $4;
+                  goodput[1] += (packets[$2]*size[$2]*8)/1000
+                }
+                if ($3=="total_packets_received") {
+                  packets[$2] += $4;
+                  goodput[0] += (packets[$2]*size[$2]*8)/1000
+                }
+                if ($1=="cbrs:"&&$3=="tcps:") {
+                        cbr_fraction = $2/($2+$4)
+                }
+                if ($3=="arriving_pkts") {
+                        if ($2 < cbrs) {
+                          cbrrate += (($4*size[0]*8)/time)/1000
+                        }
+                        if ($2==cbrs-1) {
+                          printf "%8.2f %8.2f %8.2f %8.2f\n", cbrrate, \
+                            goodput[0]/time, goodput[1]/time, cbr_fraction
+                        }
+                }
+                }
+        }
+        exec awk $awkCode cbrs=$cbrs $infile >> $datafile
+}
+
+
 
 #-------------------------------------------------------------------
 
