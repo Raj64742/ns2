@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.93 1998/04/30 21:29:55 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.94 1998/05/04 17:10:59 haldar Exp $
 
 #
 
@@ -177,7 +177,12 @@ Simulator instproc hier-node haddr {
 	if [Simulator set EnableHierRt_] {
 		set hiernode [new HierNode $haddr]
 		set Node_([$hiernode id]) $hiernode
-		### as of now no support for mcasting available
+		if [Simulator set EnableMcast_] {
+			$hiernode hier-enable-mcast $self
+		}
+		return $hiernode
+	} else {
+		error "Hierarchical Routing not enabled"
 	}
 }
 
