@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.251 1998/06/11 01:04:45 heideman Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.252 1998/06/16 01:33:48 kfall Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: Change History</H1>
 
@@ -22,6 +22,18 @@
 	HREF="http://www-mash.cs.berkeley.edu/dist/ns-src-2.1b3.tar.gz">Release of ns-2.1b3</A> [PENDING]
 </H3>
 <UL>
+    <LI><B><A HREF="http://www-nrg.ee.lbl.gov/kfall/">[kfall]</A></B>
+       <b>Mon Jun 15 17:58:06 PDT 1998</b><br>
+       <ul>
+	<li> change error module so that if markecn_ is turned out, you
+		do not also drop the packet if drop_ is set
+	<li> changes to full-tcp (and support in bin directory), adding 
+		tracing of the congestion action bit which is now on all
+		the time, even if ecn is not turned on
+	<li> changes to full-tcp so that the slow-start due to long send idle
+		periods aren't triggered if you are sending just acks
+	<li> Tahoe and NewReno support for full-tcp (a few days back)
+	</ul>
   
     <LI><B><A HREF="http://www.isi.edu/~johnh/">[johnh]</A></B>
        <b>Wed Jun 10 17:58:06 PDT 1998</b><br>
