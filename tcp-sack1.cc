@@ -19,7 +19,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.41 2000/07/23 00:29:33 sfloyd Exp $ (PSC)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sack1.cc,v 1.42 2000/08/08 02:45:30 sfloyd Exp $ (PSC)";
 #endif
 
 #include <stdio.h>
@@ -41,7 +41,6 @@ static const char rcsid[] =
 class Sack1TcpAgent : public TcpAgent {
  public:
 	Sack1TcpAgent();
-	virtual int window();
 	virtual void recv(Packet *pkt, Handler*);
 	void reset();
 	virtual void timeout(int tno);
@@ -62,11 +61,6 @@ public:
 		return (new Sack1TcpAgent());
 	}
 } class_sack;
-
-int Sack1TcpAgent::window()
-{
-	return(cwnd_ < wnd_ ? (int) cwnd_ : (int) wnd_);
-}
 
 Sack1TcpAgent::Sack1TcpAgent() : fastrecov_(FALSE), pipe_(-1)
 {
