@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.78 2003/08/21 18:22:02 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.79 2003/08/26 00:02:24 haldar Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -287,7 +287,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			dst_nodeaddr,
 			dst_portaddr,
 			seqno,flags,sname);
-	} if (show_sctphdr_ && t == PT_SCTP) {
+	} else if (show_sctphdr_ && t == PT_SCTP) {
 		double timestamp;
 		timestamp = Scheduler::instance().clock();
 		
