@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.176 1999/11/24 01:31:51 heideman Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.177 1999/12/04 23:58:21 sfloyd Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -157,7 +157,7 @@ OBJ_CC = \
 	satposition.o satroute.o sattrace.o \
 	rap/raplist.o rap/rap.o rap/media-app.o rap/utilities.o \
 	fsm.o tcp-abs.o \
-	tfrc.o tfrc-sink.o energy-model.o ping.o
+	tfrc.o tfrc-sink.o energy-model.o ping.o tcp-rfc793edu.o
 
 # don't allow comments to follow continuation lines
 

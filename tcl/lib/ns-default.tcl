@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.179 1999/11/29 17:55:24 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.180 1999/12/04 23:58:23 sfloyd Exp $
 
 
 #
@@ -175,6 +175,17 @@ Agent/TCP/Reno/RBP set rbp_inter_pace_delay_ 0
 Agent/TCP/Asym set g_ 0.125
 Agent/TCP/Reno/Asym set g_ 0.125
 Agent/TCP/Newreno/Asym set g_ 0.125
+
+# RFC793eduTcp -- 19990820, fcela@acm.org
+Agent/TCP/RFC793edu set add793expbackoff_  true 
+Agent/TCP/RFC793edu set add793jacobsonrtt_ false
+Agent/TCP/RFC793edu set add793fastrtx_     false
+Agent/TCP/RFC793edu set add793slowstart_   false
+Agent/TCP/RFC793edu set add793additiveinc_ false
+Agent/TCP/RFC793edu set add793karnrtt_     true 
+Agent/TCP/RFC793edu set rto_               60
+Agent/TCP/RFC793edu set syn_               true
+Agent/TCP/RFC793edu set add793exponinc_    false
 
 Agent/TFRC set packetSize_ 1000
 Agent/TFRC set df_ 0.5
