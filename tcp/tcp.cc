@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.81 1998/08/25 19:05:24 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.82 1998/10/20 23:35:18 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -84,6 +84,7 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	bind("overhead_", &overhead_);
 	bind("tcpTick_", &tcp_tick_);
 	bind_bool("ecn_", &ecn_);
+	bind_bool("old_ecn_", &old_ecn_);
         bind("eln_", &eln_);
         bind("eln_rxmit_thresh_", &eln_rxmit_thresh_);
 	bind("packetSize_", &size_);
@@ -701,16 +702,18 @@ void TcpAgent::ecn(int seqno)
 void TcpAgent::recv_newack_helper(Packet *pkt) {
 	//hdr_tcp *tcph = hdr_tcp::access(pkt);
 	newack(pkt);
-	if (ecn_ && !ecn_burst_ && hdr_flags::access(pkt)->ecnecho())
-		ecn_burst_ = TRUE;
-        else {
-		/* This is not the first ACK carrying ECN-Echo
+	if (!ecn_ || !hdr_flags::access(pkt)->ecnecho() ||
+		(old_ecn_ && ecn_burst_)) 
+		/* If "old_ecn", this is not the first ACK carrying ECN-Echo
 		 * after a period of ACKs without ECN-Echo.
 		 * Therefore, open the congestion window. */
 	        opencwnd();
+	if (ecn_) {
+		if (!ecn_burst_ && hdr_flags::access(pkt)->ecnecho())
+			ecn_burst_ = TRUE;
+		else if (ecn_burst_ && ! hdr_flags::access(pkt)->ecnecho())
+			ecn_burst_ = FALSE;
 	}
-	if (ecn_burst_ && ! hdr_flags::access(pkt)->ecnecho())
-		ecn_burst_ = FALSE;
 	/* if the connection is done, call finish() */
 	if ((highest_ack_ >= curseq_-1) && !closed_) {
 		closed_ = 1;
