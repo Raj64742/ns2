@@ -113,6 +113,8 @@
 # 
 ######################################################################################
 
+
+
 Class AddrParams 
 Class AllocAddrBits
 
@@ -138,9 +140,9 @@ Simulator instproc set-address-format {opt args} {
     } elseif {[string compare $opt "hierarchical"] == 0 && $len == 0} {
 	if [Simulator set EnableMcast_] {
 	    
-	    $self set-hieraddress 3 7 8 8
+	    $self set-hieraddress 3 6 8 8
 	} else {
-	    $self set-hieraddress 3 8 8 8
+	    $self set-hieraddress 3 7 8 8
 	}
     } else {
 	if {[string compare $opt "hierarchical"] == 0 && $len > 0} {
@@ -381,18 +383,30 @@ AllocAddrBits instproc set-idbits {nlevel args} {
 }
 
 
+### Hierarchical routing support
 
-AddrParams proc levels-in-nodeaddr dst {
-    for {set i 1} {$i <= [$class set hlevel_]} {incr i} {
-	set tmp [expr dst >> [$class set NodeShift_($i)] & [$class set NodeMask_($i)]]
-	if {$tmp != ""} {
-	    incr count
-	}
+#
+# create a real address from addr string 
+#
+AddrParams proc set-hieraddr addrstr {
+    $class hlevel_ NodeShift_ NodeMask_
+    set L [split $addrstr .]
+    if { [llength $L] != $hlevel_ } {
+	error "set-hieraddr: hierarchical address doesn't match with \# hier.levels\n"
     }
-    assert {$count <= [$class set hlevel_]}
-    return $count
+    set word 0
+    for {set i 1} {$i <= $hlevel_} {incr i} {
+	set word [expr [expr [expr [lindex $L [expr $i-1]] & $NodeMask_($i)] << $NodeShift_($i)] | [expr [expr ~[expr $NodeMask_($i) << $NodeShift_($i)]] & $word]]
+	#TESTING
+	puts "word = $word"
+    }
+    return $word
 }
 	
+
+
+
+    
 
 AddrParams proc get-nodeaddr {level dst} {
     set tmp [expr dst >> [$class set NodeShift_($level)] & [$class set NodeMask_($level)]]
