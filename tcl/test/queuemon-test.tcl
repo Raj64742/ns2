@@ -1,5 +1,9 @@
-source ns-queue.tcl
+source ../lib/ns-queue.tcl
 set ns [new Simulator]
+
+$ns color 0 blue
+$ns color 1 red
+$ns color 2 white
 
 set n1 [$ns node]
 set n2 [$ns node]
@@ -7,9 +11,16 @@ set n3 [$ns node]
 
 set f [open out.tr w]
 $ns trace-all $f
+set nf [open out.nam w]
+$ns namtrace-all $nf
 
 $ns duplex-link $n1 $n2 500kb 2ms DropTail
 $ns duplex-link $n2 $n3 1Mb 10ms DropTail
+
+$ns duplex-link-op $n1 $n2 orient right-down
+$ns duplex-link-op $n2 $n3 orient right
+
+$ns duplex-link-op $n2 $n3 queuePos 0.5
 
 set cbr1 [new Agent/CBR]
 $cbr1 set packetSize 1024
@@ -36,23 +47,21 @@ $ns at 2.0 "$ftp start"
 $ns at 20.0 "finish"
 
 proc do_nam {} {
-	puts "converting output to nam format..."
-	exec awk -f ../nam-demo/nstonam.awk out.tr > simple-nam.tr 
-	exec rm -f out.tr
 	puts "running nam..."
-	exec nam simple-nam &
+	exec nam out.nam &
 }
 
 proc finish {} {
-	global ns f
-	$ns flush-trace
+	global ns f nf
 	close $f
+	close $nf
+	$ns flush-trace
 	do_nam
 	exit 0
 }
 
-$ns monitor-queue $n1 $n2
-set l12 [$n1 get-link $n2]
+$ns monitor-queue $n1 $n2 [$ns get-ns-traceall]
+set l12 [$ns link $n1 $n2]
 $l12 set qBytesEstimate_ 0
 $l12 set qPktsEstimate_ 0
 set queueSampleInterval 0.5
