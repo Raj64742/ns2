@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-red,v 1.1 1997/10/14 23:11:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-all-red,v 1.2 1997/10/15 04:27:51 sfloyd Exp $
 #
 #
 # To run in quiet mode:  "./test-all-red quiet".
@@ -42,7 +42,7 @@ version="v2"
 if [ $# -ge 1 ]
 then
 	flag=$1
-	./test-all-template $file $directory $version $flag
+	./test-all-template1 $file $directory $version $flag
 else
-	./test-all-template $file $directory $version
+	./test-all-template1 $file $directory $version
 fi
