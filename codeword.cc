@@ -54,7 +54,7 @@ CW_PATTERN_t Codeword::irreducible_polynom[Codeword::MAX_DEGREE+1] = {
 };
 
 Codeword::Codeword() :
-    k(1), n(1), cw_index(0), cw_pat(0), cw_saved(0)
+    k(1), n(1), cw_saved(0), cw_index(0), cw_pat(0)
 {
 }
 
@@ -139,7 +139,8 @@ bool Codeword::is_valid(CW_PATTERN_t cw, sb_ulong k)
     //    assert(((CW_PATTERN_t) 1 << 8 * sizeof(CW_PATTERN_t)) - 1 == ~((CW_PATTERN_t) 0));
 
     assert(0 <= k && k <= 8 * sizeof(CW_PATTERN_t));
-    return(0 <= cw && cw <= ((CW_PATTERN_t) 1 << k) - 1); // Ex: for k=8, highest
+    return(0 <= cw && cw <= ((CW_PATTERN_t) 1 << k) - 1); 
+    // Ex: for k=8, highest
     // codword is 255, although according to Reed-Muller order 1, only the odd
     // codewords are valid (but we don't check this for "manual" enhancements made
     // with the set of codewords.
@@ -200,6 +201,7 @@ sb_uint Codeword::minbit(CW_PATTERN_t cw_pat)
         cw_pat >>= 8;
     }
     assert(0);
+    return 0;
 }
 
 sb_uint Codeword::bit_count(CW_PATTERN_t cw_pat)

@@ -38,8 +38,7 @@ typedef struct NM_STATS_SND_t
     sb_ulong NbGroupsInBuf;          // number of groups currently stored in
                                      // the read_ahead_buffer
     Codeword iterator;               // for iteration through sequence of codewords
-    NM_STATS_SND_t() : CurrentGroup(0), MinGroupNbInBuf(0), NbGroupsInBuf(0),
-        CwPat(0), CurrentPass(0) { };
+    NM_STATS_SND_t() : CurrentPass(0), CurrentGroup(0), CwPat(0), MinGroupNbInBuf(0), NbGroupsInBuf(0) { };
 } NM_STATS_SND_t;
 
 
@@ -82,3 +81,7 @@ protected:
 };
 
 #endif
+
+
+
+

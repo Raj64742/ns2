@@ -72,7 +72,7 @@ int MFTPRcvAgent::command(int argc, const char*const* argv)
     Tcl& tcl = Tcl::instance();
     if(strcmp(argv[1], "send") == 0) {
         if(strcmp(argv[2], "nak") == 0) {
-            unsigned long pass_nb, block_lo, block_hi, group_lo, group_hi;
+            sb_ulong pass_nb, block_lo, block_hi, group_lo, group_hi;
             int nb_scanned = 0;
 
             nb_scanned += sscanf(argv[3], "%ul", &pass_nb);
@@ -367,7 +367,7 @@ sb_int MFTPRcvAgent::recv_data(hdr_mftp::Spec::Data& data)
     sb_ulong dtu_nb; /* position (in terms of datagram number) where incoming */
     /* frame is stored in file */
     
-    sb_uchar last_pdu[dtu_size];
+    //sb_uchar last_pdu[dtu_size];
     
     /* read the PDU_DATA_TRANSFER-specific fields: */
     nmstats.CurrentPass  = data.pass_nb;

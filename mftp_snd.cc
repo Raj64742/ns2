@@ -129,8 +129,7 @@ void MFTPSndAgent::recv(Packet* p, Handler* h)
     }
 }
 
-sb_void MFTPSndAgent::send_status_request(sb_ulong pass_nb, sb_ulong block_lo, sb_ulong block_hi,
-                                        double txStatusDelay)
+sb_void MFTPSndAgent::send_status_request(sb_ulong pass_nb, sb_ulong block_lo, sb_ulong block_hi, double txStatusDelay)
 {
     Packet* p = Agent::allocpkt();
     hdr_mftp* hdr = (hdr_mftp*) p->access(off_mftp_);
@@ -143,9 +142,10 @@ sb_void MFTPSndAgent::send_status_request(sb_ulong pass_nb, sb_ulong block_lo, s
     hdr->spec.statReq.block_lo = block_lo;
     hdr->spec.statReq.block_hi = block_hi;
     hdr->spec.statReq.group_lo = 0;
-    hdr->spec.statReq.group_hi = (block_lo == block_hi && block_hi == nb_blocks() ?
-                                  FileDGrams-1 : dtus_per_block-1);// @@@ this is still in error (must be dependent on group-size). Anyway, group_lo and group_hi are currently not used...
-    hdr->spec.statReq.RspBackoffWindow = txStatusDelay_ / 2;
+    hdr->spec.statReq.group_hi = (block_lo == block_hi && block_hi == nb_blocks() ? FileDGrams-1 : dtus_per_block-1);
+    hdr->spec.statReq.RspBackoffWindow = txStatusDelay / 2;
+    // @@@ this is still in error (must be dependent on group-size). 
+    // Anyway, group_lo and group_hi are currently not used...
 
     /* transmit packet */
     hdr_cmn* ch = (hdr_cmn*) p->access(off_cmn_);
@@ -460,7 +460,7 @@ sb_int MFTPSndAgent::send_data()
         /* set, i.e. that were requested for retransmission */
         assert(nmstats.MinGroupNbInBuf <= nmstats.CurrentGroup);
         if(nmstats.CurrentGroup >= nmstats.MinGroupNbInBuf + nmstats.NbGroupsInBuf) {
-            if(result = fill_read_ahead_buf()) {
+            if((result = fill_read_ahead_buf())) {
                 return TCL_ERROR;
             }
         }
