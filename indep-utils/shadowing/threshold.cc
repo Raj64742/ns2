@@ -16,12 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * Calculating the receiving threshold (RXThresh_ for Phy/Wireless) when
- * the shadowing propagation model is used.
- * Input: distance, percentage of correct reception
- *	  (Other parameters can be changed directly in the code.)
- * Output: receiving threshold (RXThresh_)
- * 
+ * Calculating the receiving threshold (RXThresh_ for Phy/Wireless)
  * Wei Ye, weiye@isi.edu, 2000
  */
 
@@ -31,13 +26,13 @@
 #include <iostream.h>
 
 #ifndef M_PI
-#define M_PI 3.14159265358979323846
+#define M_PI 3.14159265359
 #endif
 
-double Friss(double Pt, double Gt, double Gr, double lambda, double L, double d)
+double Friis(double Pt, double Gt, double Gr, double lambda, double L, double d)
 {
         /*
-         * Friss free space propagation equation:
+         * Friis free space propagation equation:
          *
          *       Pt * Gt * Gr * (lambda^2)
          *   P = --------------------------
@@ -47,6 +42,32 @@ double Friss(double Pt, double Gt, double Gr, double lambda, double L, double d)
   return (Pt * Gt * Gr * (M * M)) / L;
 }
 
+double TwoRay(double Pt, double Gt, double Gr, double ht, double hr, double L, double d, double lambda)
+{
+        /*
+         *  if d < crossover_dist, use Friis free space model
+         *  if d >= crossover_dist, use two ray model
+         *
+         *  Two-ray ground reflection model.
+         *
+         *	     Pt * Gt * Gr * (ht^2 * hr^2)
+         *  Pr = ----------------------------
+         *           d^4 * L
+         *
+         * The original equation in Rappaport's book assumes L = 1.
+         * To be consistant with the free space equation, L is added here.
+         */
+
+	double Pr;  // received power
+	double crossover_dist = (4 * M_PI * ht * hr) / lambda;
+
+	if (d < crossover_dist)
+		Pr = Friis(Pt, Gt, Gr, lambda, L, d);
+	else
+		Pr = Pt * Gt * Gr * (hr * hr * ht * ht) / (d * d * d * d * L);
+		
+	return Pr;
+}
 
 // inverse of complementary error function
 // y = erfc(x) --> x = inv_erfc(y)
@@ -102,37 +123,143 @@ double inv_Q(double y)
 }
 
 
-void main(int argc, char** argv)
+int main(int argc, char** argv)
 {
-	double dist0_, sysLoss, Gt, Gr, freq, lambda, Pr0;
-	double Pt, dist, prob, rxThresh_;
-	double pathlossExp_, std_db_;
-	dist = atof(argv[1]);
-	prob = atof(argv[2]);
-	dist0_ = 1.0;  // reference distance
-	sysLoss = 1.0;
-	Gt = 1.0;
-	Gr = 1.0;
-	Pt = 0.2818;
-	freq = 914.0e6;  // frequency
-	lambda = 3.0e8/freq;
-	pathlossExp_ = 2.0;
-	std_db_ = 4.0;
+	
+	// specify default values
+	char** propModel = NULL;       // propagation model
+	double Pt = 0.2818;            // transmit power
+	double Gt = 1.0;               // transmit antenna gain
+	double Gr = 1.0;               // receive antenna
+	double freq = 914.0e6;         // frequency
+	double sysLoss = 1.0;          // system loss
+	
+	// for two-ray model
+	double ht = 0.5;               // transmit antenna height
+	double hr = 0.5;               // receive antenna height
+	
+	// for shadowing model
+	double pathlossExp_ = 2.0;     // path loss exponent
+	double std_db_ = 4.0;          // shadowing deviation
+	double dist0_ = 1.0;           // reference distance
+	double prob = 0.95;            // correct reception rate
+	
+	double rxThresh_;              // receiving threshold
 
+	// check arguments	
+	if (argc < 4) {
+		cout << "USAGE: find receiving threshold for certain communication range (distance)" << endl;
+		cout << endl;
+		cout << "SYNOPSIS: threshold -m <propagation-model> [other-options] distance" << endl;
+		cout << endl;
+		cout << "<propagation-model>: FreeSpace, TwoRayGround or Shadowing" << endl;
+		cout << "[other-options]: set parameters other than default values:" << endl;
+		cout << "-pl <path-loss-exponent>" << endl;
+		cout << "-std <shadowing-deviation>" << endl;
+		cout << "-Pt <transmit-power>" << endl;
+		cout << "-fr <frequency>" << endl;
+		cout << "-Gt <transmit-antenna-gain>" << endl;
+		cout << "-Gr <receive-antenna-gain>" << endl;
+		cout << "-L <system-loss>" << endl;
+		cout << "-d0 <reference-distance>" << endl;
+		return 0;
+	}
+
+	// parse arguments	
+	double dist = atof(argv[argc-1]);
+	cout << "distance = " << dist << endl;
+
+	int argCount = (argc - 2) / 2;   // number of parameters
+	argv++;
+	for (int i = 0; i < argCount; i++) {
+        if(!strcmp(*argv,"-m")) {          // propagation model
+	    	propModel = argv + 1;
+	    	cout << "propagation model: " << *propModel << endl;
+	    }
+        if(!strcmp(*argv,"-r")) {        // rate of correct reception (Shadowing model)
+            prob = atof(*(argv + 1));
+            cout << "receive rate: " << prob << endl;
+        }
+        if(!strcmp(*argv,"-pl")) {        // path loss exponent
+            pathlossExp_ = atof(*(argv + 1));
+            cout << "path loss exp.: " << pathlossExp_ << endl;
+        }
+        if(!strcmp(*argv,"-std")) {        // shadowing deviation
+            std_db_ = atof(*(argv + 1));
+            cout << "shadowing deviation: " << std_db_ << endl;
+        }
+        if(!strcmp(*argv,"-Pt")) {        // transmit power
+            Pt = atof(*(argv + 1));
+            cout << "transmit power: " << Pt << endl;
+        }
+        if(!strcmp(*argv,"-fr")) {        // frequency
+            freq = atof(*(argv + 1));
+            cout << "frequency: " << freq << endl;
+        }
+        if(!strcmp(*argv,"-Gt")) {        // transmit antenna gain
+            Gt = atof(*(argv + 1));
+            cout << "transmit antenna gain: " << Gt << endl;
+        }
+        if(!strcmp(*argv,"-Gr")) {        // receive antenna gain
+            Gr = atof(*(argv + 1));
+            cout << "receive antenna gain: " << Gr << endl;
+        }
+        if(!strcmp(*argv,"-L")) {        // system loss
+            sysLoss = atof(*(argv + 1));
+            cout << "system loss: " << sysLoss << endl;
+	    }
+        if(!strcmp(*argv,"-d0")) {        // close-in reference distance
+            dist0_ = atof(*(argv + 1));
+            cout << "close-in reference distance: " << dist0_ << endl;
+	    }
+        if(!strcmp(*argv,"-ht")) {        // transmit antenna height
+            ht = atof(*(argv + 1));
+            cout << "transmit antenna height: " << ht << endl;
+	    }
+        if(!strcmp(*argv,"-hr")) {        // receive antenna height
+            hr = atof(*(argv + 1));
+            cout << "receive antenna height: " << hr << endl;
+	    }
+	    argv += 2;
+	}
+	
+	if (propModel == NULL) {
+		cout << "Must specify propagation model: -m <propagation model>" << endl;
+		return 0;
+	}
+	
+	double lambda = 3.0e8/freq;
+	
+	// compute threshold	
+	if (!strcmp(*propModel, "FreeSpace")) {
+		rxThresh_ = Friis(Pt, Gt, Gr, lambda, sysLoss, dist);
+	} else if (!strcmp(*propModel, "TwoRayGround")) {
+		rxThresh_ = TwoRay(Pt, Gt, Gr, ht, hr, sysLoss, dist, lambda);
+	} else if (!strcmp(*propModel, "Shadowing")) {
 	// calculate receiving power at reference distance
-	Pr0 = Friss(Pt, Gt, Gr, lambda, sysLoss, dist0_);
-	cout << "Pr0 = " << Pr0 << endl;
+	double Pr0 = Friis(Pt, Gt, Gr, lambda, sysLoss, dist0_);
 
 	// calculate average power loss predicted by path loss model
 	double avg_db = -10.0 * pathlossExp_ * log10(dist/dist0_);
-	cout << "avg_db = " << avg_db << endl;
 
 	// calculate the the threshold
 	double invq = inv_Q(prob);
-	cout << "invq = " << invq << endl;
 	double threshdb = invq * std_db_ + avg_db;
+	
+#ifdef DEBUG
+	cout << "Pr0 = " << Pr0 << endl;
+	cout << "avg_db = " << avg_db << endl;
+	cout << "invq = " << invq << endl;
 	cout << "threshdb = " << threshdb << endl;
+#endif
+	
 	rxThresh_ = Pr0 * pow(10.0, threshdb/10.0);
+    } else {
+    	cout << "Error: unknown propagation model." << endl;
+    	cout << "Available model: FreeSpace, TwoRayGround, Shadowing" << endl;
+    	return 0;
+    }
 
-	cout << "Receiving threshold is: " << rxThresh_ << endl;
+	cout << "Receiving threshold RXThresh_ is: " << rxThresh_ << endl;
+	return 1;
 }
