@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.74 2002/05/01 18:46:28 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.75 2002/05/31 04:47:26 sfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -176,6 +176,8 @@ void REDQueue::initialize_params()
  * the bandwidth and the link propagation delay.  In particular, 
  * the default RTT is assumed to be three times the link delay and 
  * transmission delay, if this gives a default RTT greater than 100 ms. 
+ *
+ * If q_weight=-2, set it to a reasonable value of 1-exp(-10/C).
  */
 	if (edp_.q_w == 0.0) {
 		edp_.q_w = 1.0 - exp(-1.0/edp_.ptc);
@@ -185,7 +187,10 @@ void REDQueue::initialize_params()
 		if (rtt < 0.1) 
 			rtt = 0.1;
 		edp_.q_w = 1.0 - exp(-1.0/(10*rtt*edp_.ptc));
+	} else if (edp_.q_w == -2.0) {
+		edp_.q_w = 1.0 - exp(-10.0/edp_.ptc);
 	}
+
 	// printf("ptc: %7.5f bandwidth: %5.3f pktsize: %d\n", edp_.ptc, link_->bandwidth(), edp_.mean_pktsize);
         // printf("th_min_pkts: %7.5f th_max_pkts: %7.5f\n", edp_.th_min_pkts, edp_.th_max);
 	if (edp_.th_min_pkts == 0) {
