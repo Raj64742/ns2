@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.19 2000/06/21 00:19:44 johnh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.20 2000/07/05 19:07:18 sfloyd Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: TODO list</H1>
 
@@ -38,6 +38,17 @@ test suite for error models
 
 <ul>
 
+  <p>
+  <li>
+       <b>Queueing:</b>
+       Change the Drop-Tail queue size so that it includes the
+       packet currently being transmitted, and add a
+       backward-compatibility mode so that we don't break all of the
+       validation tests.  This will result in Drop-Tail and RED
+       queues having the same size in packets (now they are off by one
+       packet).
+       <em> (<a href="http://www.aciri.org/floyd/">[floyd]</a>
+       Tue Jul  4 15:13:34 PDT 2000</em>
   <p>
   <li>
   	<b> Test suite for error models</b>: Currently we have 8+ different
@@ -393,13 +404,6 @@ bits of code affected by changes.
        in C++ when being forwarded between regions in mixed-model simulations.
        <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
        Wed Jan 19 07:46:49 PST 2000)</em>
-
-  <p>
-  <li> <b>debugging</b> Add a "debug" flag.  
-  From email with "Subject: a though to help
-  with debugging ns" on the ns-users mailing list.
-  <em> (<a href="http://www.aciri.org/floyd/">[floyd]</a>
-  Fri Feb 25 09:06:59 PST 2000) </em>
 
   <p>
     <li> <b>TCP</b> Check the TCP reset function.
