@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.17 1999/08/24 03:23:32 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.18 1999/08/24 05:07:51 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -509,81 +509,6 @@ Test/quiescent_100ms instproc run {} {
 	$self run1 $tcp0
 }
 
-Class Test/quiescent_100ms_fine -superclass TestSuite
-Test/quiescent_100ms_fine instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     net6
-        set test_       quiescent_100ms_fine
-	Agent/TCP set QOption_ 1
-	Test/quiescent_100ms_fine instproc run {} [Test/quiescent_100ms info instbody run ]
-        $self next
-} 
-
-Class Test/quiescent_100ms_coarse -superclass TestSuite
-Test/quiescent_100ms_coarse instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     net6
-        set test_       quiescent_100ms_coarse
-	Agent/TCP set QOption_ 1
-	Agent/TCP set CoarseTimer_ 1
-	Test/quiescent_100ms_coarse instproc run {} [Test/quiescent_100ms info instbody run ]
-        $self next
-} 
-
-Class Test/quiescent_1ms_fine -superclass TestSuite
-Test/quiescent_1ms_fine instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     net6
-        set test_       quiescent_1ms_fine
-	Agent/TCP set QOption_ 1
-	Agent/TCP set tcpTick_ 0.001 
-	Agent/TCP set CoarseTimer_ 0 
-	Test/quiescent_1ms_fine instproc run {} [Test/quiescent_100ms info instbody run ]
-        $self next
-} 
-
-Class Test/quiescent_1ms_coarse -superclass TestSuite
-Test/quiescent_1ms_coarse instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     net6
-        set test_       quiescent_1ms_coarse
-	Agent/TCP set QOption_ 1
-	Agent/TCP set tcpTick_ 0.001 
-	Agent/TCP set CoarseTimer_ 0 
-	Test/quiescent_1ms_coarse instproc run {} [Test/quiescent_100ms info instbody run ]
-        $self next
-} 
-
-Class Test/quiescent_500ms_fine -superclass TestSuite
-Test/quiescent_500ms_fine instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     net6
-        set test_       quiescent_500ms_fine
-	Agent/TCP set QOption_ 1
-	Agent/TCP set tcpTick_ 0.500
-	Agent/TCP set CoarseTimer_ 0 
-	Test/quiescent_500ms_fine instproc run {} [Test/quiescent_100ms info instbody run ]
-        $self next
-} 
-
-Class Test/quiescent_500ms_coarse -superclass TestSuite
-Test/quiescent_500ms_coarse instproc init topo {
-        $self instvar net_ defNet_ test_
-        set net_        $topo
-        set defNet_     net6
-        set test_       quiescent_500ms_coarse
-	Agent/TCP set QOption_ 1
-	Agent/TCP set tcpTick_ 0.500 
-	Agent/TCP set CoarseTimer_ 1 
-	Test/quiescent_500ms_coarse instproc run {} [Test/quiescent_100ms info instbody run ]
-        $self next
-} 
-
 
 TestSuite instproc run2 tcp0 { 
         $self instvar ns_ node_ testName_
@@ -620,6 +545,88 @@ Test/underutilized_100ms instproc run {} {
 	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
 	$self run2 $tcp0
 }
+
+Class Test/quiescent_100ms_fine -superclass TestSuite
+Test/quiescent_100ms_fine instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_100ms_fine(EnblRTTCtr__0)
+	Agent/TCP set QOption_ 1
+	Agent/TCP set control_increase_ 1
+	Agent/TCP set EnblRTTCtr_ 0
+	Test/quiescent_100ms_fine instproc run {} [Test/quiescent_100ms info instbody run ]
+        $self next
+} 
+
+Class Test/quiescent_100ms_coarse -superclass TestSuite
+Test/quiescent_100ms_coarse instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_100ms_coarse(EnblRTTCtr__1)
+	Agent/TCP set QOption_ 1
+	Agent/TCP set control_increase_ 1
+	Agent/TCP set EnblRTTCtr_ 1
+	Test/quiescent_100ms_coarse instproc run {} [Test/quiescent_100ms info instbody run ]
+        $self next
+} 
+
+Class Test/quiescent_1ms_fine -superclass TestSuite
+Test/quiescent_1ms_fine instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_1ms_fine(EnblRTTCtr__0)
+	Agent/TCP set QOption_ 1
+	Agent/TCP set tcpTick_ 0.001 
+	Agent/TCP set control_increase_ 1
+	Agent/TCP set EnblRTTCtr_ 0 
+	Test/quiescent_1ms_fine instproc run {} [Test/quiescent_100ms info instbody run ]
+        $self next
+} 
+
+Class Test/quiescent_1ms_coarse -superclass TestSuite
+Test/quiescent_1ms_coarse instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_1ms_coarse(EnblRTTCtr__1)
+	Agent/TCP set QOption_ 1
+	Agent/TCP set tcpTick_ 0.001 
+	Agent/TCP set control_increase_ 1
+	Agent/TCP set EnblRTTCtr_ 1 
+	Test/quiescent_1ms_coarse instproc run {} [Test/quiescent_100ms info instbody run ]
+        $self next
+} 
+
+Class Test/quiescent_500ms_fine -superclass TestSuite
+Test/quiescent_500ms_fine instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_500ms_fine(EnblRTTCtr__0)
+	Agent/TCP set QOption_ 1
+	Agent/TCP set tcpTick_ 0.500
+	Agent/TCP set control_increase_ 1
+	Agent/TCP set EnblRTTCtr_ 0 
+	Test/quiescent_500ms_fine instproc run {} [Test/quiescent_100ms info instbody run ]
+        $self next
+} 
+
+Class Test/quiescent_500ms_coarse -superclass TestSuite
+Test/quiescent_500ms_coarse instproc init topo {
+        $self instvar net_ defNet_ test_
+        set net_        $topo
+        set defNet_     net6
+        set test_       quiescent_500ms_coarse(EnblRTTCtr__1)
+	Agent/TCP set QOption_ 1
+	Agent/TCP set tcpTick_ 0.500 
+	Agent/TCP set control_increase_ 1
+	Agent/TCP set EnblRTTCtr_ 1 
+	Test/quiescent_500ms_coarse instproc run {} [Test/quiescent_100ms info instbody run ]
+        $self next
+} 
 
 ##############
 
