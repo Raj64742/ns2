@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.1 1996/12/19 03:22:46 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/test-suite.tcl,v 1.2 1997/03/27 01:02:48 kfall Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -181,14 +181,6 @@ proc tcpDumpAll { tcpSrc interval label } {
 	}
 	puts $label:window=[$tcpSrc get window]/packet-size=[$tcpSrc get packet-size]/bug-fix=[$tcpSrc get bug-fix]
 	ns at 0.0 "dump $tcpSrc $interval $label"
-}
-
-proc linkDumpAll { link interval label} {
-        proc dump1 { link interval label} {
-                ns at [expr [ns now] + $interval] "dump1 $link $interval $label"
-                puts class=$label/time=[ns now]/drops=[$link stat $label drops]
-        }
-        ns at 0.0 "dump1 $link $interval $label" 
 }
 
 proc openTrace { stopTime testName } {
@@ -693,13 +685,27 @@ proc test_timers {} {
 	ns run
 }
 
+proc printpkts { label tcp } {
+	puts "tcp $label total_packets_acked [$tcp get ack]"
+}
+
+proc printdrops { label link } {
+	puts "link $label total_drops [$link stat 0 drops]"
+	puts "link $label total_packets [$link stat 0 packets]"
+	puts "link $label total_bytes [$link stat 0 bytes]"
+}
+
+proc printstop { stoptime } {
+	puts "stop-time $stoptime"
+}
+
 proc test_stats {} {
 	global s1 s2 r1 k1
 	create_testnet
+	set stoptime 10.1
 	[ns link $s2 $r1] set delay 200ms
 	[ns link $r1 $s2] set delay 200ms
-	set L1 [ns link $r1 $k1]
-	$L1 set queue-limit 10
+	[ns link $r1 $k1] set queue-limit 10
 	[ns link $k1 $r1] set queue-limit 10
 	
 	set tcp1 [ns_create_connection tcp $s1 tcp-sink $k1 0]
@@ -716,11 +722,14 @@ proc test_stats {} {
 
 	tcpDumpAll $tcp1 5.0 tcp1
 	tcpDumpAll $tcp2 5.0 tcp2
-	linkDumpAll $L1 5.0 0
-	linkDumpAll $L1 5.0 1
+
+	ns at $stoptime "printstop $stoptime" 
+        ns at $stoptime "printpkts 1 $tcp1"
+	ns at $stoptime "printdrops 1 [ns link $r1 $k1]"
+
 
 	# trace only the bottleneck link
-	[ns link $r1 $k1] trace [openTrace 10.0 test_stats]
+	[ns link $r1 $k1] trace [openTrace $stoptime test_stats]
 
 	ns run
 }
