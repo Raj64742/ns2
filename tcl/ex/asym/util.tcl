@@ -1,12 +1,13 @@
 # configure RED parameters
 Queue/RED set setbit_ true
-Queue/RED set drop-tail_ true
+Queue/RED set drop-tail_ false
 Queue/RED set fracthresh_ true
 Queue/RED set fracminthresh_ 0.15
 Queue/RED set fracmaxthresh_ 0.6
-Queue/RED set q_weight_ 0.25
+Queue/RED set q_weight_ 0.01
 Queue/RED set wait_ false
 Queue/RED set linterm_ 10
+#Queue/RED set linterm_ 5
 
 Queue set interleave_ false
 Queue set acksfirst_ false
@@ -78,11 +79,14 @@ proc trace_queue {ns n0 n1 queuetrace} {
 
 proc createTcpSource { type { maxburst 0 } { tcpTick 0.1 } { window 100 } } {
 	set tcp0 [new Agent/$type]
+	puts "$type $maxburst"
 	$tcp0 set class_ 1
 	$tcp0 set maxburst_ $maxburst
 	$tcp0 set tcpTick_ $tcpTick
 	$tcp0 set window_ $window
 	$tcp0 set maxcwnd_ $window
+	$tcp0 set ecn_ 1
+	$tcp0 set g_ 0.125
 	return $tcp0
 } 
 
@@ -98,6 +102,8 @@ proc setupTcpTracing { tcp0 tcptrace } {
 	$tcp0 trace "cwnd_"
 	$tcp0 trace "ssthresh_" 
 	$tcp0 trace "maxseq_" 
+	$tcp0 trace "exact_srtt_"
+	$tcp0 trace "avg_win_"
 }
 
 proc setupGraphing { tcp connGraph connGraphFlag} {
@@ -122,6 +128,7 @@ proc createTcpSink { type sinktrace { ackSize 40 } { maxdelack 25 } } {
 }
 
 proc createFtp { ns n0 tcp0 n1 sink0 } {
+	puts "creating ftp $n0 $n1"
 	$ns attach-agent $n0 $tcp0
 	$ns attach-agent $n1 $sink0
 	$ns connect $tcp0 $sink0
@@ -130,7 +137,7 @@ proc createFtp { ns n0 tcp0 n1 sink0 } {
 	return $ftp0
 }
 
-proc configQueue { ns n0 n1 type trace { size -1 } { nonfifo 0 } { acksfirst false } { filteracks false } { replace_head false } { priority_drop false } { random_drop false } } { 
+proc configQueue { ns n0 n1 type qtrace rtrace { size -1 } { nonfifo 0 } { acksfirst false } { filteracks false } { replace_head false } { priority_drop false } { random_drop false } { reconsacks false } } { 
 	if { $size >= 0 } {
 		$ns queue-limit $n0 $n1 $size
 	}
@@ -141,20 +148,34 @@ proc configQueue { ns n0 n1 type trace { size -1 } { nonfifo 0 } { acksfirst fal
 	if {$nonfifo} {
 		set spq [new PacketQueue/Semantic]
 		$spq set acksfirst_ $acksfirst
+		puts "filteracks $filteracks reconsacks $reconsacks"
 		$spq set filteracks_ $filteracks
 		$spq set replace_head_ $replace_head
 		$spq set priority_drop_ $priority_drop
+		puts "rand $random_drop"
 		$spq set random_drop_ $random_drop
+		if { $reconsacks == "true"} {
+			set recons [new AckReconsControllerClass]
+			# Set queue_ of controller.  This is 
+			# used by the individual reconstructors
+			$recons set queue_ $q01
+			$spq set reconsAcks_ 1
+			$spq ackrecons $recons
+		}
 		$q01 packetqueue-attach $spq
 	}
 	if {[string first "RED" $type] != -1} {
 		configREDQueue $ns $n0 $n1 [$q01 set q_weight_] 1
 	}
 #	$q01 trace $trace
+	if { $qtrace != 0 } {
+		trace_queue $ns $n0 $n1 $qtrace
+	}
 	$q01 reset
 }
 
 proc configREDQueue { ns n0 n1 { q_weight -1 } { fracthresh 0 } { fracminthresh 0.4 } { fracmaxthresh 0.8} } {
+	puts "Configuring reverse RED gateway"
 	set id0 [$n0 id]
 	set id1 [$n1 id]
 	set l01 [$ns set link_($id0:$id1)]
@@ -167,4 +188,5 @@ proc configREDQueue { ns n0 n1 { q_weight -1 } { fracthresh 0 } { fracminthresh 
 		$q01 set thresh_ [expr $fracminthresh*$lim]
 		$q01 set maxthresh_ [expr $fracmaxthresh*$lim]
 	}
+	$q01 set setbit_ true
 }
