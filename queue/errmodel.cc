@@ -34,12 +34,12 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.60 1998/10/15 23:14:07 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.61 1998/10/15 23:34:46 gnguyen Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.60 1998/10/15 23:14:07 gnguyen Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.61 1998/10/15 23:34:46 gnguyen Exp $ (UCB)";
 #endif
 
 #include <stdio.h>
@@ -137,7 +137,7 @@ void ErrorModel::recv(Packet* p, Handler* h)
 	hdr_cmn* ch = hdr_cmn::access(p);
 	int error = corrupt(p);
 
-	if (h && ((error && drop_) || !target())) {
+	if (h && ((error && drop_) || !target_)) {
 		// if we drop or there is no target_, then resume handler
 		double delay = Random::uniform(8.0 * ch->size() / bandwidth_);
 		Scheduler::instance().schedule(h, &intr_, delay);

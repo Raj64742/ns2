@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.37 1998/10/15 23:14:08 gnguyen Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.38 1998/10/15 23:34:44 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -63,14 +63,14 @@ public:
 	virtual void recv(Packet*, Handler*);
 	virtual void reset();
 	virtual int corrupt(Packet*);
-	virtual int CorruptPkt(Packet*);
-	virtual int CorruptTime(Packet*);
-	virtual int CorruptByte(Packet*);
 	inline double rate() { return rate_; }
 	inline ErrorUnit unit() { return unit_; }
 
 protected:
 	virtual int command(int argc, const char*const* argv);
+	int CorruptPkt(Packet*);
+	int CorruptTime(Packet*);
+	int CorruptByte(Packet*);
 	double PktLength(Packet*);
 
 	int enable_;		// true if this error module is turned on
@@ -126,7 +126,7 @@ protected:
 class PeriodicErrorModel : public ErrorModel {
 public:
 	PeriodicErrorModel();
-	int corrupt(Packet*);
+	virtual int corrupt(Packet*);
 protected:
 	int cnt_;
 	double period_;
@@ -145,7 +145,7 @@ public:
 	ListErrorModel() : cnt_(0), droplist_(NULL),
 		dropcnt_(0), cur_(0) { }
 	~ListErrorModel() { if (droplist_) delete droplist_; }
-	int corrupt(Packet*);
+	virtual int corrupt(Packet*);
 	int command(int argc, const char*const* argv);
 protected:
 	int parse_droplist(int argc, const char *const*);
