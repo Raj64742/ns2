@@ -906,7 +906,7 @@ Test/telnet2 instproc init topo {
 	$self instvar net_ defNet_ test_
 	set net_ $topo
 	set defNet_ net0
-	set test_ telnet2(3segperack;600ms-delack)
+	set test_ telnet2(3segperack-600ms-delack)
 	$self next
 }
 Test/telnet2 instproc run {} {
