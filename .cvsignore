@@ -1,4 +1,6 @@
 Makefile
+Makefile-*
+makefile.vc
 .depend
 TAGS
 config.cache
