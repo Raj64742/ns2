@@ -85,11 +85,13 @@ DM instproc handle-wrong-iif { srcID group iface } {
 	set inlink  [$node_ iif2link $iface]
 	set from [$inlink src]
 	$self send-ctrl "prune" $srcID $group [$from id]
+	return "" ;# don't call this method two times
 }
 
 DM instproc handle-cache-miss  { srcID group iface } {
 	DM instvar CacheMissMode
 	$self handle-cache-miss-$CacheMissMode $srcID $group $iface
+	return 1 ;#call again
 }
 
 DM instproc handle-cache-miss-pimdm { srcID group iface } {

@@ -115,6 +115,7 @@ CtrMcast instproc handle-cache-miss { srcID group iface } {
 		$agent_ compute-tree $srcnode $group
 	    }
 	}
+	return 1 ;#call again
 }
 
 CtrMcast instproc drop  { replicator src group iface } {
@@ -123,6 +124,7 @@ CtrMcast instproc drop  { replicator src group iface } {
 
 CtrMcast instproc handle-wrong-iif { srcID group iface } {
 	warn "$self: $proc for <S: $srcID, G: $group, if: $iface>?"
+	return "" ;#call once
 }
 
 CtrMcast instproc notify { dummy } {

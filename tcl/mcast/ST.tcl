@@ -111,7 +111,11 @@ ST instproc join-group  { group {src "*"} } {
 ST instproc leave-group { group {src "*"} } {
 	ST instvar RP_
 	$self next $group
-	$self send-ctrl "prune" $RP_($group) $group
+	# check if the rep is active, then send a prune
+	set r [$node_ getReps "\\*" $group]
+	if ![$r is-active] {
+		$self send-ctrl "prune" $RP_($group) $group
+	}
 }
 
 ST instproc handle-wrong-iif { srcID group iface } {

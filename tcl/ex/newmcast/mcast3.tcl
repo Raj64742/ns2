@@ -7,9 +7,7 @@
 #           |
 #          |2|
 
-set ns [new Simulator]
-Simulator set EnableMcast_ 1
-Simulator set NumberInterfaces_ 1
+set ns [new Simulator -multicast on]
 
 set n0 [$ns node]
 set n1 [$ns node]

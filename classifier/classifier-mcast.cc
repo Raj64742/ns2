@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.19 1998/11/06 02:12:33 polly Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-mcast.cc,v 1.20 1998/11/22 02:37:21 yuriy Exp $";
 #endif
 
 #include <stdlib.h>
@@ -142,7 +142,8 @@ MCastClassifier::lookup_star(nsaddr_t dst, int iface = ANY_IFACE.value()) const
 	int h = hash(0, dst);
 	hashnode* p;
 	for (p = ht_star_[h]; p != 0; p = p->next) {
-		if (p->dst == dst && p->iif == iface)
+		if (p->dst == dst && 
+		    (iface == ANY_IFACE.value() || p->iif == iface))
   		       break;
   	}
 	return (p);
@@ -157,7 +158,7 @@ int MCastClassifier::classify(Packet *const pkt)
 	nsaddr_t dst = ih->dst();
 
 	int iface = h->iface();
-
+	Tcl& tcl = Tcl::instance();
 
 	hashnode* p = lookup(src, dst, iface);
 	//printf("%s, src %d, dst %d, iface %d, p %d\n", name(), src, dst, iface, p);
@@ -169,17 +170,19 @@ int MCastClassifier::classify(Packet *const pkt)
 			p = lookup_star(dst);
 		if (p == 0) {
   			// Didn't find an entry.
-			// Call tcl exactly once to install one.
-			Tcl::instance().evalf("%s new-group %u %u %d cache-miss", 
-					      name(), src, dst, iface);
-			return Classifier::TWICE;
+			tcl.evalf("%s new-group %u %u %d cache-miss", 
+				  name(), src, dst, iface);
+			// XXX see McastProto.tcl for the return values 0 - once, 1 - twice
+			int res= atoi(tcl.result());
+			return (res)? Classifier::TWICE : Classifier::ONCE;
 		}
 		if (p->iif == ANY_IFACE.value() || iface == UNKN_IFACE.value())
 			return p->slot;
 
-		Tcl::instance().evalf("%s new-group %u %u %d wrong-iif", 
-				      name(), src, dst, iface);
-		return Classifier::ONCE; //don't call wrong-iif twice
+		tcl.evalf("%s new-group %u %u %d wrong-iif", 
+			  name(), src, dst, iface);
+		int res= atoi(tcl.result());
+		return (res)? Classifier::TWICE : Classifier::ONCE;
 	}
 	return p->slot;
 }

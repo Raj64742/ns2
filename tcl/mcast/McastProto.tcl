@@ -303,9 +303,20 @@ mrtObject instproc getType { protocolType } {
 
 mrtObject instproc all-mprotos {op args} {
 	$self instvar protocols_
+	set res 0
+	# XXX
+	# do we want certain upcalls to be done once or twice?
+	# see classifier-mcast.cc: evalf("new-group...")
+	# unless some protocol returns a non-empty list, we'll call
+	# new-group just once, so 0 - once ; 1 - twice
+	# XXX
 	foreach proto $protocols_ {
-		eval $proto $op $args
+		set foo [eval $proto $op $args]
+		if {$foo != ""} {
+			set res 1
+		}
 	}
+	return $res
 }
 
 mrtObject instproc start {}	{ $self all-mprotos start	}
