@@ -108,18 +108,18 @@ Trace/Loss instproc init {} {
 #
 # newLAN:  create a LAN from a sete of nodes
 #
-Simulator instproc newLAN {nodelist bw delay {llType LL} args} {
+Simulator instproc newLAN {nodelist bw delay args} {
 	set lan [eval new LanLink $self $args]
 	foreach node $nodelist {
-		$lan addNode $node $bw $delay $llType
+		$lan addNode $node $bw $delay
 	}
 	return $lan
 }
 
 # XXX Depricated:  use newLAN instead of make-lan
 Simulator instproc make-lan {nodelist bw delay {llType LL} {ifqType Queue/DropTail} {macType Mac} {chanType Channel}} {
-	$self newLAN $nodelist $bw $delay $llType \
-		-ifqType $ifqType -macType $macType -chanType $chanType
+	return [$self newLAN $nodelist $bw $delay -llType $llType \
+		-ifqType $ifqType -macType $macType -chanType $chanType]
 }
 
 
@@ -155,17 +155,19 @@ Link/LanDuplex instproc trace {ns f} {
 #
 Class LanLink
 
+LanLink set llType_ LL
 LanLink set ifqType_ Queue/DropTail
 LanLink set macType_ Mac/Csma/Cd
 LanLink set chanType_ Channel
 
+LanLink instproc llType {val} { $self set llType_ $val }
 LanLink instproc ifqType {val} { $self set ifqType_ $val }
 LanLink instproc macType {val} { $self set macType_ $val }
 LanLink instproc chanType {val} { $self set chanType_ $val }
 
 LanLink instproc init {ns args} {
 	eval $self next $args
-	$self instvar ifqType_ macType_ chanType_
+	$self instvar llType_ ifqType_ macType_ chanType_
 	$self instvar ns_ nodelist_ id_ ifq_ mac_ channel_ mcl_ lcl_
 
 	set ns_ $ns
@@ -177,13 +179,16 @@ LanLink instproc init {ns args} {
 	$channel_ target $mcl_
 }
 
-LanLink instproc addNode {src bw delay {llType LL} {ifqType ""} {macType ""}} {
-	$self instvar ifqType_ macType_ chanType_
+# addNode:  add a new node to the LAN by creating LL, IFQ, MAC...
+LanLink instproc addNode {src bw delay {llType ""} {ifqType ""} {macType ""}} {
+	$self instvar llType_ ifqType_ macType_ chanType_
 	$self instvar ns_ nodelist_ id_ ifq_ mac_ channel_ mcl_ lcl_
 	$ns_ instvar link_
 
+	if {$llType == ""} { set llType $llType_ }
 	if {$ifqType == ""} { set ifqType $ifqType_ }
 	if {$macType == ""} { set macType $macType_ }
+
 	set ifq [set ifq_($src) [new $ifqType]]
 	set mac [set mac_($src) [new $macType]]
 	set lcl [set lcl_($src) [new Classifier]]
@@ -205,15 +210,11 @@ LanLink instproc addNode {src bw delay {llType LL} {ifqType ""} {macType ""}} {
 		set link_($did:$sid) [new Link/LanDuplex $dst $src \
 				$bw $delay [new Queue/DropTail] $llType]
 	}
-
 	foreach dst $nodelist_ {
 		set did [$dst id]
 		set macDA [$mac_($dst) set label_]
-		set sll [$link_($sid:$did) link]
-		set dll [$link_($did:$sid) link]
-		$self setupLinkage $src $sll $ifq_($src) $macDA
-		$self setupLinkage $dst $dll $ifq_($dst) $id_
-
+		$self setupLinkage $src [$link_($sid:$did) link] $macDA
+		$self setupLinkage $dst [$link_($did:$sid) link] $id_
 		# setup tracing after setting up linkage
 		$ns_ trace-queue $src $dst
 		$ns_ namtrace-queue $src $dst
@@ -221,10 +222,10 @@ LanLink instproc addNode {src bw delay {llType LL} {ifqType ""} {macType ""}} {
 	lappend nodelist_ $src
 }
 
-LanLink instproc setupLinkage {src sll ifq macDA} {
-	$self instvar lcl_
-	$sll ifq $ifq
-	$sll sendtarget $ifq
+LanLink instproc setupLinkage {src sll macDA} {
+	$self instvar ifq_ lcl_
+	$sll ifq $ifq_($src)
+	$sll sendtarget $ifq_($src)
 	$sll recvtarget [$src entry]
 	$sll set macDA_ $macDA
 	$lcl_($src) install $macDA $sll
