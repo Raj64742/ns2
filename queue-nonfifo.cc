@@ -32,6 +32,8 @@
  */
 
 #include "queue-nonfifo.h"
+#include "ip.h"
+#include "tcp.h"
 
 /* 
  * If a packet needs to be removed because the queue is full, pick the TCP
@@ -78,10 +80,11 @@ Packet* NonFifoPacketQueue::deque_acksfirst(int off_cmn) {
 			p = p->next_;
 		}
 		if (!p) 
-			fprintf(stderr, "In deque_acksfirst(): ack_count: %d but no acks in queue\n", ack_count);
+			fprintf(stderr, "In deque_acksfirst(): ack_count: %d but no acks in queue, length = %d\n", ack_count, length());
 		PacketQueue::remove(p, pp);
-	} else
+	} else {
 		p = deque();
+	}
 	return p;
 }
 
@@ -117,15 +120,11 @@ Packet* NonFifoPacketQueue::deque_interleave(int off_cmn) {
 	if ((acks_to_send || !data_p) && ack_p) {
 		p = ack_p;
 		pp = ack_pp;
-		if (ack_p) 
-			ack_count--;
 		if (ack_p && acks_to_send)
 			acks_to_send--;
 	} else {
 		p = data_p;
 		pp = data_pp;
-		if (data_p)
-			data_count--;
 		if (data_count) {
 			acks_to_send = ack_count/data_count;
 			if (ack_count%data_count)
@@ -137,18 +136,95 @@ Packet* NonFifoPacketQueue::deque_interleave(int off_cmn) {
 	return (p);
 }
 
+int
+NonFifoPacketQueue::compareFlows(hdr_ip *ip1, hdr_ip *ip2)
+{
+	return ((ip1->src() == ip2->src()) && (ip1->dst() == ip2->dst()));
+}
+
+/*
+ * Purge the queue of acks that are older (i.e., have a smaller sequence 
+ * number) than the most recent ack. If replace_head is set, the most recent
+ * ack (pointed to by pkt) takes the place of the oldest ack that is purged. 
+ * Otherwise, it remains at the tail of the queue.
+ */
+void
+NonFifoPacketQueue::filterAcks(Packet *pkt, int replace_head, int off_cmn, int off_tcp, int off_ip) 
+{
+	int done_replacement = 0;
+
+	/* first check for ack */
+	if (!(((hdr_cmn*)pkt->access(off_cmn))->ptype_ == PT_ACK))
+		return;
+
+	Packet *p, *pp, *new_p;
+	hdr_tcp *tcph = (hdr_tcp*) pkt->access(off_tcp);
+	int &ack = tcph->seqno();
+
+	hdr_ip *iph = (hdr_ip*) pkt->access(off_ip);
+	for (p = head(), pp = NULL; p != 0; ) {
+		/* 
+		 * check if the packet in the queue belongs to the same connection as
+		 * the most recent ack
+		 */
+		if (compareFlows((hdr_ip*) p->access(off_ip), iph)) {
+			/* check if it is an ack */
+			if (((hdr_cmn*)p->access(off_cmn))->ptype_ == PT_ACK) {
+				hdr_tcp *th = (hdr_tcp*) p->access(off_tcp);
+				/*
+				 * check if the ack packet in the queue is older than
+				 * the most recent ack
+				 */
+				if ((th->seqno() < ack) ||
+				    (replace_head && th->seqno() == ack)) { 
+					/* 
+					 * if we haven't yet replaced the ack closest
+					 * to the head with the most recent ack, do
+					 * so now
+					 */
+					if (replace_head && !done_replacement && 
+					    pkt != p) {
+						PacketQueue::remove(pkt);
+						pkt->next_ = p;
+						if (pp)
+							pp->next_ = pkt;
+						pp = pkt;
+						done_replacement = 1;
+						continue;
+					}
+					else if (done_replacement || pkt != p) {
+						new_p = p->next_;
+						PacketQueue::remove(p, pp);
+						ack_count--;
+						if (ack_count == 0)
+							fprintf(stderr,"Error: Removed all acks, p=%x head=%x\n", p, head());
+						Packet::free(p); // should really be dropping the packet
+						p = new_p;
+						continue;
+					}
+				}
+			}
+		}
+		pp = p;
+		p = p->next_;
+	}
+}
+	  
 void 
-QueueHelper::enque_helper(NonFifoPacketQueue *npq, Packet *pkt, int off_cmn)
+QueueHelper::enque(NonFifoPacketQueue *npq, Packet *pkt, int off_cmn, int off_tcp, int off_ip)
 {
 	npq->enque(pkt);
 	if (((hdr_cmn*)pkt->access(off_cmn))->ptype_ == PT_ACK)
 		npq->ack_count++;
 	else
 		npq->data_count++;
+	if ((((hdr_cmn*)pkt->access(off_cmn))->ptype_ == PT_ACK) && filteracks_) {
+		npq->filterAcks(pkt, replace_head_, off_cmn, off_tcp, off_ip);
+	}
 }
 
 Packet *
-QueueHelper::deque_helper(NonFifoPacketQueue *npq, int off_cmn)
+QueueHelper::deque(NonFifoPacketQueue *npq, int off_cmn)
 {
 	Packet *pkt;
 
@@ -159,16 +235,19 @@ QueueHelper::deque_helper(NonFifoPacketQueue *npq, int off_cmn)
 	else
 		pkt = npq->deque();
 	
+	if (pkt) {
+		if (((hdr_cmn*)pkt->access(off_cmn))->ptype_ == PT_ACK)
+			npq->ack_count--;
+		else
+			npq->data_count--;
+	}
 	return pkt;
 }
 
 void 
-QueueHelper::remove_helper(NonFifoPacketQueue *npq, Packet *pkt, int off_cmn)
+QueueHelper::remove(NonFifoPacketQueue *npq, Packet *pkt, int off_cmn)
 {
-	if (ackfromfront_) 
-		pkt = npq->remove_ackfromfront(pkt, off_cmn);
-	else
-		((PacketQueue *)npq)->remove(pkt);
+	((PacketQueue *)npq)->remove(pkt);
 	if (pkt) {
 		if (((hdr_cmn*)pkt->access(off_cmn))->ptype_ == PT_ACK)
 			npq->ack_count--;

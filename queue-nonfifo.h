@@ -51,6 +51,16 @@ class NonFifoPacketQueue : public PacketQueue {
 	 * specified pkt (target).
 	 */
 	Packet* remove_ackfromfront(Packet* target, int off_cmn);
+	/* determine whether two packets belong to the same connection */
+	int compareFlows(hdr_ip *ip1, hdr_ip *ip2);
+	/*
+	 * When a new ack is enqued, purge older acks (as determined by the 
+	 * sequence number of the ack field) from the queue. The enqued ack
+	 * remains at the tail of the queue, unless replace_head is true, in 
+	 * which case the new ack takes the place of the old ack closest to
+	 * the head of the queue.
+	 */
+	void filterAcks(Packet *pkt, int replace_head, int off_cmn, int off_tcp, int off_ip); 
 	/* 
 	 * Remove a specific packet given pointers to it and its predecessor
 	 * in the queue. p and/or pp may be NULL.
@@ -68,13 +78,16 @@ class QueueHelper {
   public:
 	QueueHelper() {}
   protected:
-	/* These control (helper) variables are bound in derived objects */
+	/* These indicator variables are bound in derived objects */
 	int interleave_;	/* interleave TCP acks and other data */
 	int acksfirst_;         /* deque TCP acks before any other data */
 	int ackfromfront_;      /* try and drop ack from front of the queue */
-	virtual Packet* deque_helper(NonFifoPacketQueue *, int);
-	virtual void enque_helper(NonFifoPacketQueue *, Packet *, int);
-	virtual void remove_helper(NonFifoPacketQueue *, Packet *, int);
+	int filteracks_;        /* purge queue of old acks when new ack is enqued */
+	int replace_head_;      /* whether new ack should take the place of old ack
+				   closest to the head */
+	virtual Packet* deque(NonFifoPacketQueue *, int);
+	virtual void enque(NonFifoPacketQueue *, Packet *, int, int, int);
+	virtual void remove(NonFifoPacketQueue *, Packet *, int);
 };
 
 #endif
