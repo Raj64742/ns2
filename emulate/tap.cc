@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.9 1998/05/20 22:41:24 kfall Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.10 1998/05/23 02:45:43 kfall Exp $ (UCB)";
 #endif
 
 #include "tclcl.h"
@@ -42,15 +42,19 @@ static const char rcsid[] =
 #include "agent.h"
 
 
-//#define TAPDEBUG 1
+#define TAPDEBUG 1
 #ifdef TAPDEBUG
 #define	TDEBUG(x) { if (TAPDEBUG) fprintf(stderr, (x)); }
 #define	TDEBUG2(x,y) { if (TAPDEBUG) fprintf(stderr, (x), (y)); }
 #define	TDEBUG3(x,y,z) { if (TAPDEBUG) fprintf(stderr, (x), (y), (z)); }
+#define	TDEBUG4(w,x,y,z) { if (TAPDEBUG) fprintf(stderr, (w), (x), (y), (z)); }
+#define	TDEBUG5(v,w,x,y,z) { if (TAPDEBUG) fprintf(stderr, (v), (w), (x), (y), (z)); }
 #else
 #define	TDEBUG(x) { }
 #define	TDEBUG2(x,y) { }
 #define	TDEBUG3(x,y,z) { }
+#define	TDEBUG4(w,x,y,z) { }
+#define	TDEBUG5(v,w,x,y,z) { }
 #endif
 
 #include <errno.h>
@@ -67,6 +71,7 @@ protected:
 	Network* net_;		// live network object
 	int sendpkt(Packet*);
 	void recvpkt();
+	double now() { return Scheduler::instance().clock(); }
 };
 
 static class TapAgentClass : public TclClass {
@@ -97,8 +102,8 @@ TapAgent::linknet()
 		// reading enabled?
 		if (rchan < 0) {
 			fprintf(stderr,
-			"TapAgent(%s): network %s not open for reading\n",
-			    name(), net_->name());
+		"TapAgent(%s): network %s not open for reading (mode:%d)\n",
+			    name(), net_->name(), mode);
 			return (TCL_ERROR);
 		}
 		link(rchan, TCL_READABLE);
@@ -186,20 +191,45 @@ TapAgent::recvpkt()
 
 	// fill up payload
 	sockaddr addr;	// not really used (yet)
-	int cc = net_->recv(p->accessdata(), maxpkt_, addr);
+	double tstamp;
+	int cc = net_->recv(p->accessdata(), maxpkt_, addr, tstamp);
 	if (cc <= 0) {
 		if (cc < 0) {
 			perror("recv");
 		}
+		Packet::free(p);
 		return;
 	}
 
-	TDEBUG3("Tap(%s): recv pkt, cc:%d\n", name(), cc);
+	TDEBUG4("%f: Tap(%s): recvpkt, cc:%d\n", now(), name(), cc);
 
 	// inject into simulator
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
 	ch->size() = cc;
-	target_->recv(p);
+
+	/*
+	 * if the time-stamp on the pkt is sufficiently far in the future,
+	 * put it in the scheduler instead of forwarding it immediately.
+	 * This can happen if we are pulling packet from a trace file
+	 * and we don't want them to be dispatched until later
+	 *
+	 * this agent assumes that the time stamps are in absolute
+	 * time, so adjust it to relative time here
+	 */
+
+	double when = tstamp - now();
+
+	if (when > 0.0) {
+		TDEBUG5("%f: Tap(%s): DEFERRED PACKET %f secs, uid: %d\n",
+			now(), name(), when, p->uid_);
+		ch->timestamp() = when;
+		Scheduler::instance().schedule(target_, p, when);
+	} else {
+		TDEBUG4("%f: Tap(%s): recvpkt, writing to target: %s\n",
+			now(), name(), target_->name());
+		ch->timestamp() = now();
+		target_->recv(p);
+	}
 	return;
 }
 
@@ -212,7 +242,9 @@ TapAgent::dispatch(int)
 	 * if there is a queue in the socket buffer; this allows
 	 * other events to get a chance to slip in...
 	 */
-	Scheduler::instance().sync();	// sim clock gets set to now
+#ifdef notdef
+Scheduler::instance().sync();	// sim clock gets set to now
+#endif
 	recvpkt();
 }
 
