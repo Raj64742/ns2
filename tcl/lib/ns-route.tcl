@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.1 1997/09/10 06:50:38 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.2 1997/10/21 00:54:20 ahelmy Exp $
 #
 
 Simulator instproc rtproto {proto args} {
@@ -137,6 +137,12 @@ RouteLogic instproc notify {} {
 
     foreach i [CtrMcastComp info instances] {
 	$i notify
+    }
+    if { [rtObject info instances] == ""} {
+	foreach node [[Simulator instance] all-nodes-list] {
+		# XXX using dummy 0 for 'changes'
+		$node notify-mcast 0
+	}
     }
 }
 
