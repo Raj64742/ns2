@@ -146,6 +146,18 @@ fi
 
 cd ../
 
+# install nam, ns, xgraph into bin
+mkdir bin
+cd bin
+
+ln -s $CUR_PATH/ns-2/ns ns
+ln -s $CUR_PATH/nam-1/nam nam
+#test xgraph here
+if test -x $CUR_PATH/xgraph/xgraph
+then
+    ln -s $CUR_PATH/xgraph/xgraph xgraph
+endif
+
 echo "Ns-allinone package has been installed successfully !"
 echo "Here are the installation places:"
 echo "ns:	$CUR_PATH/ns-2/ns"
@@ -155,6 +167,9 @@ echo "TclCL:	$CUR_PATH/TclCL"
 echo "tcl8.0:	$CUR_PATH/tcl8.0"
 echo "tk8.0:	$CUR_PATH/tcl8.0"
 echo "xgraph:	$CUR_PATH/xgraph"
+echo "-----------------------------------------------------"
+echo "Please put $CUR_PATH/bin into your PATH environment!"
+echo "Please put $CUR_PATH/otcl into your LD_LIBRARY_PATH environment!"
 
 exit 0
 
