@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.11 2001/12/03 02:44:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.12 2001/12/06 18:18:02 sfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -150,6 +150,28 @@ Topology/net3 instproc init ns {
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 2ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 3ms DropTail
 }   
+
+Class Topology/net4 -superclass Topology
+Topology/net4 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(r2) [$ns node]
+    set node_(s3) [$ns node]
+    set node_(s4) [$ns node]
+
+    $self next 
+
+    $ns duplex-link $node_(s1) $node_(r1) 1000Mb 0ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 1000Mb 1ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 10Mb 10ms RED
+    $ns duplex-link $node_(r2) $node_(r1) 10Mb 10ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 1000
+    $ns queue-limit $node_(r2) $node_(r1) 1000
+    $ns duplex-link $node_(s3) $node_(r2) 1000Mb 2ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 1000Mb 3ms DropTail
+}
 
 Class Topology/netlong -superclass Topology
 Topology/netlong instproc init ns {
@@ -639,5 +661,50 @@ Test/transient2 instproc init {} {
     Test/transient2 instproc run {} [Test/transient info instbody run ]
     $self next
 }
+
+Class Test/notcautious -superclass TestSuite
+Test/notcautious instproc init {} {
+    $self instvar net_ test_
+    set net_ net4
+    set test_ notcautious
+    Queue/RED set cautious_ 0
+    $self next
+}
+Test/notcautious instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    Queue/RED set q_weight_ -1
+    Queue/RED set adaptive_ 1
+    Queue/RED set thresh 0
+    Queue/RED set maxthresh 0
+    $self setTopo
+    set stoptime 5.0
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    $tcp1 set window_ 600
+
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s3) 1]
+    $tcp2 set window_ 600
+
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
+
+    $self enable_tracequeue $ns_
+    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at 1.0 "$ftp2 start"
+
+    $self tcpDump $tcp1 5.0
+    $ns_ at $stoptime "$self cleanupAll $testName_"
+    $ns_ run
+}
+    
+Class Test/cautious -superclass TestSuite
+Test/cautious instproc init {} {
+    $self instvar net_ test_
+    set net_ net4
+    set test_ cautious
+    Queue/RED set cautious_ 1
+    Test/cautious instproc run {} [Test/notcautious info instbody run ]
+    $self next
+}
+
 
 TestSuite runTest
