@@ -449,7 +449,7 @@
 	 set allchan [open all.tr w]
 	 $ns trace-all $allchan
 
-	 proc finish {} \{
+	 proc finish \{\} \{
 	    exit 0
 	 \}
 
@@ -514,7 +514,7 @@
 	 set allchan [open all.tr w]
 	 $ns trace-all $allchan
 
-	 proc finish {} \{
+	 proc finish \{\} \{
 	    exec nam sctp.nam &
 	    exit 0
 	 \}
