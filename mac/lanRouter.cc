@@ -47,6 +47,12 @@ int LanRouter::next_hop(Packet *p) {
 	int next_hopIP;
 	if (enableHrouting_) {
 		routelogic_->lookup_hier(lanaddr_, adst, next_hopIP);
+		char* bdst = Address::instance().print_nodeaddr(next_hopIP);
+		// hacking: get rid of the last "."
+		bdst[strlen(bdst)-1] = '\0';
+		Tcl &tcl = Tcl::instance();
+		tcl.evalf("[Simulator instance] get-node-id-by-addr %s",bdst);
+		sscanf(tcl.result(), "%d", &next_hopIP);
 	} else {
 		routelogic_->lookup_flat(lanaddr_, adst, next_hopIP);
 	}

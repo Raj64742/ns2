@@ -47,6 +47,7 @@ public:
 WiredPhy::WiredPhy(void) : Phy() 
 {
 	propagation_ = 0;
+	bandwidth_ = 10*1e6;		// 10M
 }
 	
 
