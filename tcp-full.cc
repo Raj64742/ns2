@@ -78,7 +78,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.52 1998/06/27 02:01:24 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.53 1998/07/02 02:52:03 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -130,7 +130,7 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	state_(TCPS_CLOSED), last_state_(TCPS_CLOSED),
 	rq_(rcv_nxt_), last_ack_sent_(-1), infinite_send_(0),
 	last_send_time_(-1.0), irs_(-1), ect_(FALSE), recent_ce_(FALSE),
-	sq_(sack_min_)
+	sq_(sack_min_), fastrecov_(FALSE)
 {
 	bind("segsperack_", &segs_per_ack_);
 	bind("segsize_", &maxseg_);
@@ -143,8 +143,7 @@ FullTcpAgent::FullTcpAgent() : delack_timer_(this), flags_(0), closed_(0),
 	bind_bool("close_on_empty_", &close_on_empty_);
 	bind("interval_", &delack_interval_);
 	bind("ts_option_size_", &ts_option_size_);
-	bind_bool("fastrecov_", &fastrecov_);
-	bind_bool("deflate_on_pack_", &deflate_on_pack_);
+	bind_bool("reno_fastrecov_", &reno_fastrecov_);
 	bind_bool("sack_option_", &sack_option_);
 	bind("sack_option_size_", &sack_option_size_);
 	bind("sack_block_size_", &sack_block_size_);
@@ -180,6 +179,7 @@ FullTcpAgent::reset()
 		recent_ = recent_age_ = -1.0;
 
 	sack_max_ = sack_min_ = -1;
+	fastrecov_ = FALSE;
 }
 
 /*
@@ -190,7 +190,41 @@ int
 FullTcpAgent::pack(Packet *pkt)
 {
 	hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
-	return (tcph->ackno() < recover_);
+//printf("%f(%s): pack: ackno: %d, highest: %d, recover: %d\n",
+//now(), name(), tcph->ackno(), int(highest_ack_), int(recover_));
+	return (tcph->ackno() >= highest_ack_ &&
+		tcph->ackno() < recover_);
+	//fastrecov_);
+	//return (tcph->ackno() < recover_);
+}
+
+/*
+ * baseline reno TCP exist fast recovery on a partial ACK
+ */
+
+void
+FullTcpAgent::pack_action(Packet*)
+{
+	if (reno_fastrecov_ && fastrecov_ && cwnd_ > ssthresh_) {
+		cwnd_ = ssthresh_; // retract window if inflated
+	}
+	fastrecov_ = FALSE;
+	dupacks_ = 0;
+}
+
+/*
+ * ack_action
+ */
+
+void
+FullTcpAgent::ack_action(Packet* p)
+{
+	FullTcpAgent::pack_action(p);
+	if (sack_option_) {
+		// fill in the sack queue with everything
+		// ack'd so far
+		sq_.add(iss_, highest_ack_, 0);
+	}
 }
 
 /*
@@ -279,7 +313,7 @@ FullTcpAgent::advance_bytes(int nb)
 	} else if (state_ == TCPS_ESTABLISHED) {
 		closed_ = 0;
 		curseq_ += nb;
-		send_much(0, REASON_NORMAL, 0);
+		send_much(0, REASON_NORMAL, maxburst_);
 	}
 	return;
 }
@@ -822,6 +856,8 @@ FullTcpAgent::predict_ok(Packet* pkt)
 
 void FullTcpAgent::fast_retransmit(int seq)
 {
+//printf("%f TCPF(%s) tcpf fast rtx\n", now(), name());
+
 	int onxt = t_seqno_;		// output() changes t_seqno_
 	recover_ = maxseq_;		// keep a copy of highest sent
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
@@ -981,15 +1017,15 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// not being in fast recovery and not a partial ack.
 			// If we are in fast
 			// recovery, go below so we can remember to deflate
-			// the window
+			// the window if we need to
 			if (ackno > highest_ack_ && ackno < maxseq_ &&
-			    cwnd_ >= wnd_ && !in_recovery() && sq_.empty()) {
-				newack(pkt);
+			    cwnd_ >= wnd_ && !fastrecov_ && sq_.empty()) {
+				newack(pkt);	// update timers,  highest_ack_
 				/* no adjustment of cwnd here */
 				if (((curseq_ + iss_) > highest_ack_) ||
 				    infinite_send_) {
 					/* more to send */
-					send_much(0, REASON_NORMAL, 0);
+					send_much(0, REASON_NORMAL, maxburst_);
 				}
 				Packet::free(pkt);
 				return;
@@ -1014,7 +1050,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			// resulting in a call to tcp_output
 			Packet::free(pkt);
 			if (need_send())
-				send_much(1, REASON_NORMAL, 0);
+				send_much(1, REASON_NORMAL, maxburst_);
 			return;
 		}
 	}
@@ -1387,6 +1423,8 @@ trimthenstep6:
 		//
 		// do fast retransmit/recovery if at/past thresh
 		if (ackno <= highest_ack_) {
+//printf("%f TCPF(%s): ackno(%d) dupacks:%d\n",
+//now(), name(), ackno, int(dupacks_));
 			// an ACK which doesn't advance highest_ack_
 			if (datalen == 0 && (!dupseg_fix_ || !dupseg)) {
                                 /*
@@ -1412,7 +1450,9 @@ trimthenstep6:
 				    ackno != highest_ack_) {
 					// not timed, or re-ordered ACK
 					dupacks_ = 0;
+					fastrecov_ = FALSE;
 				} else if (++dupacks_ == tcprexmtthresh_) {
+					fastrecov_ = TRUE;
 					// possibly trigger fast retransmit
 					dupack_action();
 					if (sack_option_)
@@ -1420,13 +1460,13 @@ trimthenstep6:
 					goto drop;
 				} else if (dupacks_ > tcprexmtthresh_) {
 					// don't to fast recov with sack
-					if (!sack_option_ && fastrecov_) {
+					if (!sack_option_ && reno_fastrecov_) {
 						// we just measure cwnd in
 						// packets, so don't scale by
 						// maxseg_ as real
 						// tcp does
 						cwnd_++;
-						send_much(0, REASON_NORMAL, 0);
+						send_much(0, REASON_NORMAL, maxburst_);
 					}
 					goto drop;
 				}
@@ -1436,6 +1476,7 @@ trimthenstep6:
 				// (or window changed in real TCP).
 				if (dupack_reset_) {
 					dupacks_ = 0;
+					fastrecov_ = FALSE;
 				}
 			}
 			break;	/* take us to "step6" */
@@ -1447,19 +1488,8 @@ trimthenstep6:
 		 * The ACK may be "good" or "partial"
 		 */
 
-                /*
-                 * If the congestion window was inflated to account
-                 * for the other side's cached packets, retract it.
-                 */
+process_ACK:
 
-		if (in_recovery() && cwnd_ > ssthresh_) {
-			// this is where we can get frozen due
-			// to multiple drops in the same window of
-			// data
-			if (deflate_on_pack_ || !pack(pkt))
-				cwnd_ = ssthresh_;
-		}
-		dupacks_ = 0;	// out of reno recovery
 		if (ackno > maxseq_) {
 			// ack more than we sent(!?)
 			fprintf(stderr,
@@ -1467,8 +1497,6 @@ trimthenstep6:
 				now(), name(), int(ackno), int(maxseq_));
 			goto dropafterack;
 		}
-
-process_ACK:
 
                 /*
                  * If we have a timestamp reply, update smoothed
@@ -1483,19 +1511,16 @@ process_ACK:
                  * If there is more data to be acked, restart retransmit
                  * timer, using current (possibly backed-off) value.
                  */
-		newack(pkt);
+		newack(pkt);	// handle timers, update highest_ack_
 
 		/*
 		 * if this is a partial ACK, invoke whatever we should
 		 */
-		if (pack(pkt)) {
-//printf("%f tcp(%s): pack: flags_:0x%x, ack:%d, maxseq_:%d, t_seqno_:%d, highest_ack_:%d, cwnd:%d, recover:%d\n",
-//now(), name(), flags_, int(ackno), int(maxseq_), int(t_seqno_),
-//int(highest_ack_), int(cwnd_), int(recover_));
-			pack_action();
-		} else if (sack_option_) {
-			sq_.add(iss_, highest_ack_, 0);
-		}
+
+		if (pack(pkt))
+			pack_action(pkt);
+		else
+			ack_action(pkt);
 
 		// CHECKME: handling of rtx timer
 		if (ackno == maxseq_) {
@@ -1517,12 +1542,14 @@ process_ACK:
                  * When new data is acked, open the congestion window.
                  * If the window gives us less than ssthresh packets
                  * in flight, open exponentially (maxseg per packet).
-                 * Otherwise open linearly: maxseg per window
+                 * Otherwise open about linearly: maxseg per window
                  * (maxseg^2 / cwnd per packet).
                  */
 		if ((!delay_growth_ || (rcv_nxt_ > 0)) &&
 			last_state_ == TCPS_ESTABLISHED) {
 			opencwnd();
+//printf("%f TCP(%s): opencwnd ssthresh now %d, cwnd: %d,  maxburst_: %d, dupacks:%d\n",
+//now(), name(), int(ssthresh_), int(cwnd_), maxburst_, int(dupacks_));
 		}
 
 		// K: added state check in equal but diff way
@@ -1703,16 +1730,16 @@ step6:
 //now(), name(), needoutput, flags_, int(curseq_), int(iss_));
 
 	if (needoutput || (flags_ & TF_ACKNOW))
-		send_much(1, REASON_NORMAL, 0);
+		send_much(1, REASON_NORMAL, maxburst_);
 	else if (((curseq_ + iss_) > highest_ack_) || infinite_send_)
-		send_much(0, REASON_NORMAL, 0);
+		send_much(0, REASON_NORMAL, maxburst_);
 	// K: which state to return to when nothing left?
 	Packet::free(pkt);
 	return;
 
 dropafterack:
 	flags_ |= TF_ACKNOW;
-	send_much(1, REASON_NORMAL, 0);
+	send_much(1, REASON_NORMAL, maxburst_);
 	goto drop;
 
 dropwithreset:
@@ -1750,6 +1777,7 @@ void
 FullTcpAgent::dupack_action()
 {   
         int recovered = (highest_ack_ > recover_);
+	//int recovered = !fastrecov_;
         if (recovered || (!bug_fix_ && !ecn_) ||
 	    last_cwnd_action_ == CWND_ACTION_DUPACK) {
                 goto full_reno_action;
@@ -1774,6 +1802,8 @@ FullTcpAgent::dupack_action()
     
 full_reno_action:    
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
+//printf("%f TCP(%s): ssthresh now %d, cwnd: %d,  maxburst_: %d\n",
+//now(), name(), int(ssthresh_), int(cwnd_), maxburst_);
 	cancel_rtx_timer();
 	rtt_active_ = FALSE;
 	fast_retransmit(highest_ack_);
@@ -1871,13 +1901,13 @@ void FullTcpAgent::usrclosed()
 		/* fall through */
 	case TCPS_LAST_ACK:
 		flags_ |= TF_NEEDFIN;
-		send_much(1, REASON_NORMAL, 0);
+		send_much(1, REASON_NORMAL, maxburst_);
 		break;
 	case TCPS_SYN_RECEIVED:
 	case TCPS_ESTABLISHED:
 		newstate(TCPS_FIN_WAIT_1);
 		flags_ |= TF_NEEDFIN;
-		send_much(1, REASON_NORMAL, 0);
+		send_much(1, REASON_NORMAL, maxburst_);
 		break;
 	case TCPS_FIN_WAIT_1:
 	case TCPS_FIN_WAIT_2:
@@ -2262,18 +2292,19 @@ void FullTcpAgent::timeout(int tno)
 		slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_RESTART);
 		reset_rtx_timer(1);
 		t_seqno_ = highest_ack_;
+		fastrecov_ = FALSE;
 		dupacks_ = 0;
 		if (sack_option_) {
 			sq_.clear();
 			sack_min_ = highest_ack_;
 		}
-		send_much(1, PF_TIMEOUT);
+		send_much(1, PF_TIMEOUT, maxburst_);
 	} else if (tno == TCP_TIMER_DELSND) {
 		/*
 		 * delayed-send timer, with random overhead
 		 * to avoid phase effects
 		 */
-		send_much(1, PF_TIMEOUT);
+		send_much(1, PF_TIMEOUT, maxburst_);
 	} else if (tno == TCP_TIMER_DELACK) {
 		if (flags_ & TF_DELACK) {
 			flags_ &= ~TF_DELACK;
@@ -2375,9 +2406,19 @@ full_tahoe_action:
         return; 
 }  
 
-int
-NewRenoFullTcpAgent::in_recovery()
+/*
+ * for NewReno, a partial ACK does not exit fast recovery,
+ * and does not reset the dup ACK counter (which might trigger fast
+ * retransmits we don't want)
+ */
+
+void
+NewRenoFullTcpAgent::pack_action(Packet*)
 {
-	return (FullTcpAgent::in_recovery() ||
-		(highest_ack_ < recover_));
+	
+//	send_much(0, REASON_DUPACK, maxburst_);
+	fast_retransmit(highest_ack_);
+	cwnd_ = ssthresh_;
+
+//printf("%f TCP(%s): pack-fastrexmt: %d\n", now(), name(), int(highest_ack_));
 }
