@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.1 2000/06/27 05:19:00 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.2 2000/06/28 22:06:04 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -96,8 +96,8 @@ Topology/net2 instproc init ns {
     $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
     $ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RIO
     #$ns duplex-link $node_(r1) $node_(r2) 1.5Mb 20ms RED
-    $ns queue-limit $node_(r1) $node_(r2) 50
-    $ns queue-limit $node_(r2) $node_(r1) 50
+    $ns queue-limit $node_(r1) $node_(r2) 100
+    $ns queue-limit $node_(r2) $node_(r1) 100
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
  
@@ -183,48 +183,169 @@ TestSuite instproc setTopo {} {
     [$ns_ link $node_(r1) $node_(r2)] trace-dynamics $ns_ stdout
 }
 
-Class Test/rio1 -superclass TestSuite
-Test/rio1 instproc init {} {
+#
+# This test uses priority_method_ 1, so that flows with FlowID 0 have
+# priority over other flows.
+# OUT packets are dropped before any IN packets are dropped.
+#
+Class Test/strict -superclass TestSuite
+Test/strict instproc init {} {
     $self instvar net_ test_
     set net_ net2 
-    set test_ rio1
-    Queue/RIO set in_thresh_ 2
-    Queue/RIO set in_maxthresh_ 5
-    Queue/RIO set out_thresh_ 6
-    Queue/RIO set out_maxthresh_ 10
+    set test_ strict
+    Queue/RIO set in_thresh_ 10
+    Queue/RIO set in_maxthresh_ 20
+    Queue/RIO set out_thresh_ 3
+    Queue/RIO set out_maxthresh_ 9
     Queue/RIO set in_linterm_ 10
-    Queue/RIO set out_linterm_ 5
+    Queue/RIO set linterm_ 10
     Queue/RIO set priority_method_ 1
-    # IN packets have hf->pri_ set to 1.
-    # flowmon.cc:TaggerTBFlow uses TokenBucket to set priority
+    #Queue/RIO set debug_ true
+    Queue/RIO set debug_ false
     $self next
 }
-Test/rio1 instproc run {} {
+Test/strict instproc run {} {
     $self instvar ns_ node_ testName_ net_
     $self setTopo
 
-    set stoptime 10.0
-
+    set stoptime 20.0
     set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
-    $tcp1 set window_ 25
-
+    $tcp1 set window_ 50
     set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s3) 1]
-    $tcp2 set window_ 25
+    $tcp2 set window_ 50
+    set ftp1 [$tcp1 attach-app FTP]
+    set ftp2 [$tcp2 attach-app FTP]
+    $self enable_tracequeue $ns_
+    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at 1.0 "$ftp2 start"
 
+    $self tcpDump $tcp1 5.0
+    # trace only the bottleneck link
+    $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ run
+}
+
+#
+# OUT packets are four times more likely to be dropped than IN packets. 
+#
+Class Test/proportional -superclass TestSuite
+Test/proportional instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ proportional
+    Queue/RIO set in_thresh_ 3
+    Queue/RIO set in_maxthresh_ 15
+    Queue/RIO set out_thresh_ 3
+    Queue/RIO set out_maxthresh_ 15
+    Queue/RIO set in_linterm_ 3
+    Queue/RIO set linterm_ 12
+    Queue/RIO set priority_method_ 1
+    Test/proportional instproc run {} [Test/strict info instbody run]
+    $self next
+}
+
+#
+# OUT packets are four times more likely to be dropped than IN packets. 
+#
+Class Test/gentle -superclass TestSuite
+Test/gentle instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ gentle
+    Queue/RIO set in_thresh_ 3
+    Queue/RIO set in_maxthresh_ 15
+    Queue/RIO set out_thresh_ 3
+    Queue/RIO set out_maxthresh_ 15
+    Queue/RIO set in_linterm_ 50
+    Queue/RIO set linterm_ 200
+    Queue/RIO set priority_method_ 1
+    Queue/RIO set gentle_ false
+    Queue/RIO set in_gentle_ true
+    Queue/RIO set out_gentle_ true
+    Test/gentle instproc run {} [Test/strict info instbody run]
+    $self next
+}
+
+#
+# OUT packets are four times more likely to be dropped than IN packets. 
+#
+Class Test/notGentle -superclass TestSuite
+Test/notGentle instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ notGentle
+    Queue/RIO set in_thresh_ 3
+    Queue/RIO set in_maxthresh_ 15
+    Queue/RIO set out_thresh_ 3
+    Queue/RIO set out_maxthresh_ 15
+    Queue/RIO set in_linterm_ 50
+    Queue/RIO set linterm_ 200
+    Queue/RIO set priority_method_ 1
+    Queue/RIO set gentle_ false
+    Queue/RIO set in_gentle_ false
+    Queue/RIO set out_gentle_ true
+    Test/notGentle instproc run {} [Test/strict info instbody run]
+    $self next
+}
+
+#
+# This test uses priority_method_ 0, with token bucket policing
+# and tagging.
+#
+Class Test/tagging -superclass TestSuite
+Test/tagging instproc init {} {
+    $self instvar net_ test_
+    set net_ net2 
+    set test_ tagging
+    Queue/RIO set in_thresh_ 10
+    Queue/RIO set in_maxthresh_ 20
+    Queue/RIO set out_thresh_ 3
+    Queue/RIO set out_maxthresh_ 9
+    Queue/RIO set in_linterm_ 10
+    Queue/RIO set linterm_ 10
+    Queue/RIO set priority_method_ 0
+    $self next
+}
+Test/tagging instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    $self setTopo
+
+    set stoptime 20.0
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+    $tcp1 set window_ 50
+    set tcp2 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s3) 1]
+    $tcp2 set window_ 50
     set ftp1 [$tcp1 attach-app FTP]
     set ftp2 [$tcp2 attach-app FTP]
 
+    # make token bucket limiter for flow 0
+    # Fill rate 100000 Bps, or 100 packets per second.
+    set link1 [$ns_ link $node_(s1) $node_(r1)]
+    set tcm1 [$ns_ maketbtagger Fid]
+    $ns_ attach-tagger $link1 $tcm1
+    set fcl1 [$tcm1 classifier]; # flow classifier
+    $fcl1 set-flowrate 0 100000 10000 1
+    #target_rate_ (fill rate, in Bps), 
+    #bucket_depth_, 
+    #tbucket_ (current bucket size, in bytes) 
+    
+    # make token bucket limiter for flow 1
+    # Fill rate 1000000 Bps, or 1000 packets per second.
+    set link2 [$ns_ link $node_(s2) $node_(r1)]
+    set tcm2 [$ns_ maketbtagger Fid]
+    $ns_ attach-tagger $link2 $tcm2
+    set fcl2 [$tcm2 classifier]; # flow classifier
+    $fcl2 set-flowrate 1 1000000 10000 1
+
     $self enable_tracequeue $ns_
     $ns_ at 0.0 "$ftp1 start"
-    $ns_ at 3.0 "$ftp2 start"
-
+    $ns_ at 1.0 "$ftp2 start"
 
     $self tcpDump $tcp1 5.0
-
     # trace only the bottleneck link
     $self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
-
     $ns_ run
 }
+
 
 TestSuite runTest
