@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.219 2001/03/02 19:31:01 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.220 2001/03/07 18:30:03 jahn Exp $
 
 #
 # Word of warning to developers:
@@ -300,6 +300,8 @@ Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
 Simulator instproc txPower  {val} { $self set txPower_  $val }
 Simulator instproc rxPower  {val} { $self set rxPower_  $val }
 Simulator instproc idlePower  {val} { $self set idlePower_  $val }
+Simulator instproc errProc  {val} { $self set errProc_  $val }
+Simulator instproc FECProc  {val} { $self set FECProc_  $val }
 Simulator instproc agentTrace  {val} { $self set agentTrace_  $val }
 Simulator instproc routerTrace  {val} { $self set routerTrace_  $val }
 Simulator instproc macTrace  {val} { $self set macTrace_  $val }
@@ -481,7 +483,7 @@ Simulator instproc create-wireless-node args {
         $self instvar routingAgent_ wiredRouting_ propInstance_ llType_ \
 		macType_ ifqType_ ifqlen_ phyType_ chan antType_ energyModel_ \
 		initialEnergy_ txPower_ rxPower_ idlePower_ \
-		topoInstance_ level1_ level2_
+		topoInstance_ level1_ level2_ errProc_ FECProc_
 
 	Simulator set IMEPFlag_ OFF
 
@@ -527,9 +529,19 @@ Simulator instproc create-wireless-node args {
 		    exit
 	    }
 	}
+
+	# errProc_ and FECProc_ are an option unlike other 
+        # parameters for node interface
+	if ![info exist errProc_] {
+		set errProc_ ""
+	}
+	if ![info exist FECProc_] {
+		set FECProc_ ""
+	}
+
 	# Add main node interface
 	$node add-interface $chan $propInstance_ $llType_ $macType_ \
-			$ifqType_ $ifqlen_ $phyType_ $antType_
+			$ifqType_ $ifqlen_ $phyType_ $antType_ $errProc_ $FECProc_
 	# Attach agent
 	if {$routingAgent_ != "DSR"} {
 		$node attach $ragent [Node set rtagent_port_]

@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mobility/dsdv.tcl,v 1.11 2000/09/14 18:19:28 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mobility/dsdv.tcl,v 1.12 2001/03/07 18:30:03 jahn Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 
@@ -151,8 +151,15 @@ proc dsdv-create-mobile-node { id args } {
 	$T set src_ $id
 	$node log-target $T
     
+	if ![info exist opt(err)] {
+		set opt(err) ""
+	}
+	if ![info exist opt(fec)] {
+		set opt(fec) ""
+	}
+
 	$node add-interface $chan $prop $opt(ll) $opt(mac)	\
-			$opt(ifq) $opt(ifqlen) $opt(netif) $opt(ant)
+			$opt(ifq) $opt(ifqlen) $opt(netif) $opt(ant) $opt(err) $opt(fec)
     
 	#
 	# Create a Routing Agent for the Node

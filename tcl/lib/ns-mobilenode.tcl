@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.39 2001/02/07 10:25:37 yaxu Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.40 2001/03/07 18:30:03 jahn Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -347,8 +347,8 @@ Node/MobileNode instproc add-target-rtagent { agent port } {
 # and physical layer structures for the mobile node.
 #
 Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
-		qtype qlen iftype anttype} {
-	$self instvar arptable_ nifs_ netif_ mac_ ifq_ ll_ imep_
+		qtype qlen iftype anttype errproc fecproc} {
+	$self instvar arptable_ nifs_ netif_ mac_ ifq_ ll_ imep_ err_ fec_
 	
 	set ns [Simulator instance]
 	set imepflag [$ns imep-support]
@@ -360,6 +360,15 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	set ifq_($t)	[new $qtype]		;# interface queue
 	set ll_($t)	[new $lltype]		;# link layer
         set ant_($t)    [new $anttype]
+
+	set err_($t) ""
+	if {$errproc != ""} {
+		set err_($t) [$errproc]
+	}
+	set fec_($t) ""
+	if {$fecproc != ""} {
+		set fec_($t) [$fecproc]
+	}
 
 	set namfp [$ns get-nam-traceall]
         if {$imepflag == "ON" } {              
@@ -381,6 +390,9 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	set mac $mac_($t)
 	set ifq $ifq_($t)
 	set ll $ll_($t)
+
+	set err $err_($t)
+	set fec $fec_($t)
 	#
 	# Initialize ARP table only once.
 	#
@@ -430,7 +442,21 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	#
 	$mac netif $netif
 	$mac up-target $ll
-	$mac down-target $netif
+
+	if {$err == "" && $fec == ""} {
+		$mac down-target $netif
+	} elseif {$err != "" && $fec == ""} {
+		$mac down-target $err
+		$err target $netif
+	} elseif {$err == "" && $fec != ""} {
+		$mac down-target $fec
+		$fec down-target $netif
+	} else {
+		$mac down-target $fec
+		$fec down-target $err
+		$err target $netif
+	}
+
 	set god_ [God instance]
         if {$mactype == "Mac/802_11"} {
 		$mac nodes [$god_ num_nodes]
@@ -439,7 +465,13 @@ Node/MobileNode instproc add-interface { channel pmodel lltype mactype \
 	# Network Interface
 	#
 	$netif channel $channel
-	$netif up-target $mac
+	if {$fec == ""} {
+		$netif up-target $mac
+	} else {
+		$netif up-target $fec
+		$fec up-target $mac
+	}
+
 	$netif propagation $pmodel	;# Propagation Model
 	$netif node $self		;# Bind node <---> interface
 	$netif antenna $ant_($t)

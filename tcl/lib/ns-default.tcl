@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.233 2001/03/06 20:49:05 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.234 2001/03/07 18:30:02 jahn Exp $
 
 
 #
@@ -265,6 +265,12 @@ Classifier/Addr/MPLS set enable_reroute_    0
 Classifier/Addr/MPLS set reroute_option_ 0
 Classifier/Addr/MPLS set control_driven_ 0
 Classifier/Addr/MPLS set data_driven_ 0
+
+#
+# FEC models
+#
+
+FECModel set debug_ false
 
 #
 # Error models

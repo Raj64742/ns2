@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.41 2000/09/01 03:04:05 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.42 2001/03/07 18:30:02 jahn Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -44,9 +44,9 @@
 #include "ranvar.h"
 #include "packet.h"
 
-enum ErrorUnit { EU_TIME=0, EU_BYTE, EU_PKT };
-#define EU_NAMES "time", "byte", "pkt"
-#define STR2EU(s) (!strcmp(s,"time") ? EU_TIME : (!strcmp(s,"byte") ? EU_BYTE : EU_PKT))
+enum ErrorUnit { EU_TIME=0, EU_BYTE, EU_PKT, EU_BIT };
+#define EU_NAMES "time", "byte", "pkt", "bit"
+#define STR2EU(s) (!strcmp(s,"time") ? EU_TIME : (!strcmp(s,"byte") ? EU_BYTE : (!strcmp(s, "bit") ? EU_BIT : EU_PKT)))
 
 enum StTypeUnit {ST_TIME=0, ST_PKT };
 #define ST_NAMES "time", "pkt"
@@ -75,7 +75,9 @@ protected:
 	int CorruptPkt(Packet*);
 	int CorruptTime(Packet*);
 	int CorruptByte(Packet*);
+	int CorruptBit(Packet*);
 	double PktLength(Packet*);
+	double * ComputeBitErrProb(int);
 
 	int enable_;		// true if this error module is turned on
 	int markecn_;		// mark ecn instead of dropping on corruption?
@@ -84,6 +86,11 @@ protected:
 	double rate_;		// uniform error rate in pkt or byte
 	double bandwidth_;	// bandwidth of the link
 	RandomVariable *ranvar_;// the underlying random variate generator
+	int FECstrength_;       // indicate how many corrupted bits are corrected
+	int datapktsize_;
+	int cntrlpktsize_;
+	double *cntrlprb_;
+	double *dataprb_;
 	Event intr_;		// set callback to queue
 };
 

@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.68 2000/09/01 03:04:05 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.69 2001/03/07 18:30:02 jahn Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.68 2000/09/01 03:04:05 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.69 2001/03/07 18:30:02 jahn Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -89,8 +89,17 @@ public:
 
 static char* eu_names[] = { EU_NAMES };
 
+inline double comb(int n, int k) {
+	int i;
+	double sum = 1.0;
 
-ErrorModel::ErrorModel() : firstTime_(1), unit_(EU_PKT), ranvar_(0)
+	for(i = 0; i < k; i++) 
+		sum *= (n - i)/(i + 1);
+	return sum;
+}
+
+
+ErrorModel::ErrorModel() : firstTime_(1), unit_(EU_PKT), ranvar_(0), FECstrength_(1) 
 {
 	bind("enable_", &enable_);
 	bind("rate_", &rate_);
@@ -110,7 +119,19 @@ int ErrorModel::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "ranvar") == 0) {
 			ranvar_ = (RandomVariable*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
-		} 
+		}
+		if (strcmp(argv[1], "FECstrength") == 0) {
+			FECstrength_ = atoi(argv[2]);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "datapktsize") == 0) {
+			datapktsize_ = atoi(argv[2]);
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "cntrlpktsize") == 0) {
+			cntrlpktsize_ = atoi(argv[2]);
+			return (TCL_OK);
+		}
 	} else if (argc == 2) {
 		if (strcmp(argv[1], "unit") == 0) {
 			tcl.resultf("%s", eu_names[unit_]);
@@ -118,6 +139,10 @@ int ErrorModel::command(int argc, const char*const* argv)
 		}
 		if (strcmp(argv[1], "ranvar") == 0) {
 			tcl.resultf("%s", ranvar_->name());
+			return (TCL_OK);
+		} 
+		if (strcmp(argv[1], "FECstrength") == 0) {
+			tcl.resultf("%d", FECstrength_);
 			return (TCL_OK);
 		} 
 	}
@@ -149,6 +174,7 @@ void ErrorModel::recv(Packet* p, Handler* h)
 	}
 	if (error) {
 		ch->error() |= error;
+
 		if (markecn_) {
 			hdr_flags* hf = hdr_flags::access(p);
 			hf->ce() = 1;
@@ -166,6 +192,7 @@ void ErrorModel::recv(Packet* p, Handler* h)
 
 int ErrorModel::corrupt(Packet* p)
 {
+	hdr_cmn* ch;
 	if (enable_ == 0)
 		return 0;
 	switch (unit_) {
@@ -173,6 +200,10 @@ int ErrorModel::corrupt(Packet* p)
 		return (CorruptTime(p) != 0);
 	case EU_BYTE:
 		return (CorruptByte(p) != 0);
+	case EU_BIT:
+		ch = hdr_cmn::access(p);
+		ch->errbitcnt() = CorruptBit(p);
+		return (ch->errbitcnt() != 0);
 	default:
 		return (CorruptPkt(p) != 0);
 	}
@@ -187,7 +218,33 @@ double ErrorModel::PktLength(Packet* p)
 	int byte = hdr_cmn::access(p)->size();
 	if (unit_ == EU_BYTE)
 		return byte;
+	if (unit_ == EU_BIT)
+		return 8.0 * byte;
 	return 8.0 * byte / bandwidth_;
+}
+
+double * ErrorModel::ComputeBitErrProb(int size) 
+{
+	double *dptr;
+	int i;
+
+        dptr = (double *)calloc((FECstrength_ + 2), sizeof(double));
+
+        for (i = 0; i < (FECstrength_ + 1) ; i++) 
+		dptr[i] = comb(size, i) * pow(rate_, (double)i) * pow(1.0 - rate_, (double)(size - i));
+
+	// Cumulative probability
+	for (i = 0; i < FECstrength_ ; i++) 
+		dptr[i + 1] += dptr[i];
+
+	dptr[FECstrength_ + 1] = 1.0;
+
+	/*	printf("Size = %d\n", size);
+	for (i = 0; i <(FECstrength_ + 2); i++)
+		printf("Ptr[%d] = %g\n", i, dptr[i]); */
+
+	return dptr;
+
 }
 
 int ErrorModel::CorruptPkt(Packet*) 
@@ -203,6 +260,26 @@ int ErrorModel::CorruptByte(Packet* p)
 	double per = 1 - pow(1.0 - rate_, PktLength(p));
 	double u = ranvar_ ? ranvar_->value() : Random::uniform();
 	return (u < per);
+}
+
+int ErrorModel::CorruptBit(Packet* p)
+{
+	double u, *dptr;
+	int i;
+
+	if (firstTime_ && FECstrength_) {
+		// precompute the probabilies for each bit-error cnts
+		cntrlprb_ = ComputeBitErrProb(cntrlpktsize_);
+		dataprb_ = ComputeBitErrProb(datapktsize_);
+
+		firstTime_ = 0;
+	}	
+
+	u = ranvar_ ? ranvar_->value() : Random::uniform();
+	dptr = (hdr_cmn::access(p)->size() >= datapktsize_) ? dataprb_ : cntrlprb_;
+        for (i = 0; i < (FECstrength_ + 2); i++)
+		if (dptr[i] > u) break;
+	return(i);
 }
 
 int ErrorModel::CorruptTime(Packet *)

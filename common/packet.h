@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.83 2001/02/07 10:25:35 yaxu Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.84 2001/03/07 18:30:02 jahn Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -393,6 +393,8 @@ struct hdr_cmn {
 	int	size_;		// simulated packet size
 	int	uid_;		// unique id
 	int	error_;		// error flag
+	int     errbitcnt_;     // # of corrupted bits jahn
+	int     fecsize_;
 	double	ts_;		// timestamp: for q-delay measurement
 	int	iface_;		// receiving interface (label)
 	dir_t	direction_;	// direction: 0=none, 1=up, -1=down
@@ -434,6 +436,8 @@ struct hdr_cmn {
 	inline int& size() { return (size_); }
 	inline int& uid() { return (uid_); }
 	inline int& error() { return error_; }
+	inline int& errbitcnt() {return errbitcnt_; }
+	inline int& fecsize() {return fecsize_; }
 	inline double& timestamp() { return (ts_); }
 	inline int& iface() { return (iface_); }
 	inline dir_t& direction() { return (direction_); }
