@@ -197,8 +197,15 @@ Test output agrees with reference output
 ../../ns test-suite-full.tcl winlimited QUIET
 Test output agrees with reference output
 All test output agrees with reference output.
+*** ./test-all-monitor
+Tests: tcp tcp-monitor
+../../ns test-suite-monitor.tcl tcp QUIET
+Test output agrees with reference output
+../../ns test-suite-monitor.tcl tcp-monitor QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
 *** ./test-all-red
-Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined ungentle gentle ungentleBadParams gentleBadParams
+Tests: red1 ecn red2 red_twoway red_twowaybytes flows_unforced flows_forced flows_combined ungentle gentle gentleEcn ungentleBadParams gentleBadParams
 ../../ns test-suite-red.tcl red1 QUIET
 Test output agrees with reference output
 ../../ns test-suite-red.tcl ecn QUIET
@@ -220,6 +227,9 @@ total_drops 438 total_packets 7588
 Test output agrees with reference output
 ../../ns test-suite-red.tcl gentle QUIET
 total_drops 370 total_packets 7734
+Test output agrees with reference output
+../../ns test-suite-red.tcl gentleEcn QUIET
+total_drops 201 total_packets 7809
 Test output agrees with reference output
 ../../ns test-suite-red.tcl ungentleBadParams QUIET
 total_drops 677 total_packets 6401
@@ -1189,12 +1199,45 @@ NS EXITING...
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-aimd
-Tests: tcp tcpA tcpB
+Tests: tcp tcpA tcpB tcp_tahoe tcpA_tahoe tcp_reno tcpA_reno tcp_newreno tcpA_newreno
 ../../ns test-suite-aimd.tcl tcp QUIET
 Test output agrees with reference output
 ../../ns test-suite-aimd.tcl tcpA QUIET
 Test output agrees with reference output
 ../../ns test-suite-aimd.tcl tcpB QUIET
+Test output agrees with reference output
+../../ns test-suite-aimd.tcl tcp_tahoe QUIET
+Test output agrees with reference output
+../../ns test-suite-aimd.tcl tcpA_tahoe QUIET
+Test output agrees with reference output
+../../ns test-suite-aimd.tcl tcp_reno QUIET
+Test output agrees with reference output
+../../ns test-suite-aimd.tcl tcpA_reno QUIET
+Test output agrees with reference output
+../../ns test-suite-aimd.tcl tcp_newreno QUIET
+Test output agrees with reference output
+../../ns test-suite-aimd.tcl tcpA_newreno QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-greis
+Tests: example1 example1a example1b example2 example3 example4 ping
+../../ns test-suite-greis.tcl example1 QUIET
+Test output agrees with reference output
+../../ns test-suite-greis.tcl example1a QUIET
+Test output agrees with reference output
+../../ns test-suite-greis.tcl example1b QUIET
+Test output agrees with reference output
+../../ns test-suite-greis.tcl example2 QUIET
+Test output agrees with reference output
+../../ns test-suite-greis.tcl example3 QUIET
+Test output agrees with reference output
+../../ns test-suite-greis.tcl example4 QUIET
+Test output agrees with reference output
+../../ns test-suite-greis.tcl ping QUIET
+node 0 received ping answer from  2 with round-trip-time 42.0 ms.
+node 2 received ping answer from  0 with round-trip-time 42.0 ms.
+node 0 received ping answer from  2 with round-trip-time 42.0 ms.
+node 2 received ping answer from  0 with round-trip-time 42.0 ms.
 Test output agrees with reference output
 All test output agrees with reference output.
 validate overall report: all tests passed
