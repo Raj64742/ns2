@@ -116,8 +116,8 @@ public:
 	int max() { return (tail_ ? (tail_->endseq_) : -1); }
 	int min() { return (head_ ? (head_->startseq_) : -1); }
 	int total() { return total_; }
-	int nexthole(TcpSeq seq, int&);	// find next hole above seq, also
-					// include cnt of following blk
+	int nexthole(TcpSeq seq, int&, int&);	// find next hole above seq, also
+						// include cnt of following blk
 
 	int gensack(int *sacks, int maxsblock);
 
