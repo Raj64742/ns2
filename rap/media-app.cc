@@ -26,7 +26,7 @@
 //
 // Implementation of media application
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.11 1999/10/06 21:25:34 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.cc,v 1.12 1999/11/18 23:14:31 haoboy Exp $
 
 #include <stdarg.h>
 
@@ -332,7 +332,28 @@ MediaSegmentList MediaSegmentList::check_holes(const MediaSegment& s)
 		}
 #endif
 	}
+#if 0
+	check_integrity();
+#endif
 	return res;
+}
+
+void MediaSegmentList::check_integrity()
+{
+	MediaSegment *p, *q;
+	p = (MediaSegment*)head_;
+	while (p != NULL) {
+		q = p; 
+		p = p->next();
+		if (p == NULL)
+			break;
+		if (!q->before(*p)) {
+			fprintf(stderr, 
+				"Invalid segment added: (%d %d), (%d %d)\n", 
+				q->start(), q->end(), p->start(), p->end());
+			abort();
+		}
+	}
 }
 
 // Return the portion in s that is overlap with any segments in this list
@@ -671,6 +692,14 @@ void QA::panic(const char* fmt, ...)
 	abort();
 }
 
+// Stop all timers
+void QA::stop()
+{
+	rap()->stop();
+	if (updTimer_->status() != TIMER_IDLE)
+		updTimer_->cancel();
+}
+
 // Empty for now
 int QA::command(int argc, const char*const* argv)
 {
@@ -817,8 +846,15 @@ TotBuf(avail:%.1f, needed:%.1f), \n",
 		      TotalBuf(layers, buffer_), bufneeded);
 	}
 
-	if (layers == 0) 
-		panic("** layers =0 !!");
+	if (layers == 0) {
+		//		panic("** layers =0 !!");
+		sending_[0] = 1;
+		playing_[0] = 0;
+		if (updTimer_->status() != TIMER_IDLE)
+			updTimer_->cancel();
+		debug("** RESTART Phase, set playing_[0] to 0 to rebuffer data\n");
+		return output(size, 0);
+	}
 
 	// now check to see which phase we are in
 	if (rate >= layers*LAYERBW_) {
@@ -1273,6 +1309,7 @@ double QA::TotalBuf(int n, double *buffer)
 // Get an output data packet from applications above
 AppData* QA::output(int& size, int layer)
 {
+	int i;
 	assert((sending_[layer] == 1) || (startTime_ == -1));
 
 	// In order to send out a segment, all corresponding segments of 
@@ -1294,7 +1331,7 @@ AppData* QA::output(int& size, int layer)
 	HttpMediaData *p = (HttpMediaData *)res; 
 
 	if (p->datasize() <= 0) {
-		// XXX What should we do if the data is not available??
+		// When the data is not available:
 		// Should NOT advance sending data pointer because 
 		// if this is a cache which is downloading from a slow
 		// link, it is possible that the requested data will
@@ -1306,13 +1343,21 @@ AppData* QA::output(int& size, int layer)
 		// is complete and tear down the connection.
 		if (p->is_finished()) {
 			rap()->stop();
+			// XXX Shouldn't this be done inside mcache/mserver??
 			Tcl::instance().evalf("%s finish-stream %s", 
 					      target()->name(), name());
 		} else if (!p->is_last()) {
-			// Move data pointer forward to skip holes when 
-			// data does not exist in cache
-			data_[p->layer()].set_start(q.st()+seg_size_);
-			data_[p->layer()].set_datasize(seg_size_);
+			// If we coulnd't find anything within q, move data 
+			// pointer forward to skip holes.
+			MediaSegment tmp(q.et(), q.et()+seg_size_);
+			check_layers(p->layer(), tmp);
+			// If we can, advance. Otherwise wait for
+			// lower layers to advance first.
+			if (tmp.datasize() > 0) {
+				assert(tmp.datasize() <= seg_size_);
+				data_[p->layer()].set_start(tmp.start());
+				data_[p->layer()].set_end(tmp.end());
+			}
 		}
 		delete p;
 		return NULL;
@@ -1330,8 +1375,27 @@ AppData* QA::output(int& size, int layer)
 // 		if (p->is_last())
 // 			data_[p->layer()].set_last();
 	assert((p->datasize() > 0) && (p->datasize() <= seg_size_));
-	data_[p->layer()].set_start(p->et());
-	data_[p->layer()].set_datasize(seg_size_);
+	// XXX Before we move data pointer forward, make sure we don't violate
+	// layer ordering rules. Note we only need to check end_ because 
+	// start_ is p->et() which is guaranteed to be valid
+	MediaSegment tmp(p->et(), p->et()+seg_size_);
+	check_layers(p->layer(), tmp);
+	if (tmp.datasize() > 0) {
+		assert(tmp.datasize() <= seg_size_);
+		data_[p->layer()].set_start(tmp.start());
+		data_[p->layer()].set_end(tmp.end());
+	} else {
+		// Print error messages, do not send anything and wait for 
+		// next time so that hopefully lower layers will already 
+		// have advanced.
+		fprintf(stderr, "# ERROR We cannot advance pointers for "
+			"segment (%d %d)\n", tmp.start(), tmp.end());
+		for (i = 0; i < layer; i++) 
+			fprintf(stderr, "Layer %d, data ptr (%d %d) \n",
+				i, data_[i].start(), data_[i].end());
+		delete p;
+		return NULL;
+	}
 
 	// Let me know that we've sent out this segment. This is used
 	// later to drain data (DrainBuffers())
@@ -1345,12 +1409,25 @@ AppData* QA::output(int& size, int layer)
 	avgrate_ = rate_weight_*rate() + (1-rate_weight_)*avgrate_;
 
 	// DEBUG check
-	for (int i = 0; i < layer-1; i++)
-		assert(data_[i].end() >= data_[i+1].end());
+	for (i = 0; i < layer-1; i++)
+		if (data_[i].end() < data_[i+1].end()) {
+			for (int j = 0; j < layer; j++)
+				fprintf(stderr, "layer i: (%d %d)\n", 
+					data_[i].start(), data_[i].end());
+			panic("# ERROR Wrong layer sending order!!\n");
+		}
 
 	return res;
 }
 
+void QA::check_layers(int layer, MediaSegment& tmp) {
+	// XXX While we are moving pointer forward, make sure
+	// that we are not violating layer boundary constraint
+	for (int i = layer-1; i >= 0; i--) 
+		// We cannot go faster than a lower layer!!
+		if (tmp.end() > data_[i].end())
+			tmp.set_end(data_[i].end());
+}
 
 //
 // This is optimal buffer distribution for scenario 1.

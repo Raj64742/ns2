@@ -33,7 +33,7 @@
 // transport agent, and contact the above application on behalf of the 
 // transport agent.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.10 1999/10/06 21:25:35 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/media-app.h,v 1.11 1999/11/18 23:14:32 haoboy Exp $
 
 #ifndef ns_media_app_h
 #define ns_media_app_h
@@ -164,6 +164,7 @@ public:
 	// Debug only
 	void print(void);
 	int getsize();
+	void check_integrity();
 
 protected:
 	void merge_seg(MediaSegment* seg);
@@ -347,6 +348,7 @@ public:
 
 protected:
 	virtual int command(int argc, const char*const* argv);
+	virtual void stop();
 
 	// Helper functions
 	void check_availability(int layer, const MediaSegment& s);
@@ -386,6 +388,7 @@ protected:
 	// Debugging output
 	void debug(const char* fmt, ...);
 	void panic(const char* fmt, ...);
+	void check_layers(int layer, MediaSegment& tmp);
 
 	// Data members
 	int layer_;

@@ -26,7 +26,7 @@
 //
 // Multimedia cache implementation
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.9 1999/10/06 21:25:31 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.10 1999/11/18 23:14:33 haoboy Exp $
 
 #include <assert.h>
 #include <stdio.h>
@@ -50,10 +50,8 @@ MediaPage::~MediaPage()
 	int i; 
 	for (i = 0; i < num_layer_; i++) {
 		// Delete hit count list
-		//
-		// XXX This does not reset the head_ and tail_ correctly!! 
-		// Must correct these !!!!
-		// hc_[i]->detach();
+		// These hit count records should have already been removed
+		// from the cache's hit count list. 
 		assert((hc_[i]->prev() == NULL) && (hc_[i]->next() == NULL));
 		delete hc_[i];
 		// Delete media segment list
@@ -74,6 +72,8 @@ void MediaPage::create()
 	assert((num_layer_ >= 0) && (num_layer_ < MAX_LAYER));
 	int i, sz = size_ / num_layer_;
 	for (i = 0; i < num_layer_; i++) {
+		// Delete whatever that was there. 
+		layer_[i].destroy();
 		add_segment(i, MediaSegment(0, sz));
 		set_complete_layer(i);
 	}
@@ -112,14 +112,16 @@ int MediaPage::evict_tail_segment(int layer, int size)
 		return 0;
 
 	assert((layer >= 0) && (layer < MAX_LAYER));
-#ifdef MCACHE_DEBUG
+	//#ifdef MCACHE_DEBUG
+#if 0
 	char buf[20];
 	name(buf);
 	fprintf(stderr, "Page %s evicted layer %d: ", buf, layer);
 #endif
 	int sz = layer_[layer].evict_tail(size);
 	realsize_ -= sz;
-#ifdef MCACHE_DEBUG
+	//#ifdef MCACHE_DEBUG
+#if 0
 	fprintf(stderr, "\n");
 #endif
 	return sz;
@@ -245,13 +247,13 @@ void HitCountList::print()
 	char buf[20];
 	while (p != NULL) {
 		p->page()->name(buf);
-	        printf("(%s %d %f) ", buf, p->layer(), p->hc());
+	        fprintf(stderr, "(%s %d %f) ", buf, p->layer(), p->hc());
 		if (++i % 4 == 0)
 			printf("\n");
 		p = p->next();
 	}
 	if (i % 4 != 0)
-		printf("\n");
+		fprintf(stderr, "\n");
 }
 
 //------------------------------
@@ -265,10 +267,30 @@ public:
 	}
 } class_mclientpagepool_agent;
 
-MClientPagePool::MClientPagePool() : ClientPagePool()
+MClientPagePool::MClientPagePool() : 
+	used_size_(0), repl_style_(FINEGRAIN)
 {
 	bind("max_size_", &max_size_);
 	used_size_ = 0;
+}
+
+int MClientPagePool::command(int argc, const char*const* argv)
+{
+	if (argc == 3) 
+		if (strcmp(argv[1], "set-repl-style") == 0) {
+			// Set replacement style
+			// <obj> set-repl-style <style>
+			if (strcmp(argv[2], "FINEGRAIN") == 0) 
+				repl_style_ = FINEGRAIN;
+			else if (strcmp(argv[2], "ATOMIC") == 0)
+				repl_style_ = ATOMIC;
+			else {
+				fprintf(stderr, "Unknown style %s", argv[3]);
+				return (TCL_ERROR);
+			}
+			return (TCL_OK);
+		}
+	return ClientPagePool::command(argc, argv);
 }
 
 void MClientPagePool::hc_update(const char *name, int max_layer)
@@ -311,15 +333,20 @@ int MClientPagePool::add_segment(const char* name, int layer,
 
 	// Check space availability
 	if (used_size_ + s.datasize() > max_size_) {
+		// If atomic replacement is used, page size is deducted in
+		// remove_page(). If fine-grain is used, evicted size is 
+		// deducted in repl_finegrain().
 		cache_replace(pg, s.datasize());
-#ifdef MCACHE_DEBUG
+		//#ifdef MCACHE_DEBUG
+#if 0
 		fprintf(stderr, 
 			"Replaced for page %s segment (%d %d) layer %d\n",
 			name, s.start(), s.end(), layer);
 #endif
-	} else 
-		// Add page
-		used_size_ += s.datasize();
+	} 
+	// Add new page. When we are doing atomic replacement, the size that
+	// we evicted may be larger than what we add.
+	used_size_ += s.datasize();
 
 	// If this layer was not 'in' before, add its hit count block
 	if (pg->layer_size(layer) == 0)
@@ -329,6 +356,21 @@ int MClientPagePool::add_segment(const char* name, int layer,
 	pg->add_segment(layer, s);
 
 	return 0;
+}
+
+void MClientPagePool::fill_page(const char* pgname)
+{
+	MediaPage *pg = (MediaPage*)get_page(pgname);
+	used_size_ -= pg->realsize();
+	// Lock this page before we do any replacement. 
+	pg->lock();
+	pg->create();
+	// If we cannot hold the nominal size of the page, do replacement
+	if (used_size_ + pg->size() > max_size_)
+		// Size deduction has already been done in remove_page()
+		cache_replace(pg, pg->size());
+	used_size_ += pg->size();
+	pg->unlock();
 }
 
 ClientPage* MClientPagePool::enter_page(int argc, const char*const* argv)
@@ -374,12 +416,91 @@ ClientPage* MClientPagePool::enter_page(int argc, const char*const* argv)
 	return pg;
 }
 
-int MClientPagePool::cache_replace(ClientPage *, int size)
+int MClientPagePool::cache_replace(ClientPage *pg, int size)
+{
+	switch (repl_style_) {
+	case FINEGRAIN:
+		return repl_finegrain(pg, size);
+	case ATOMIC:
+#if 0
+		char tmp[128];
+		pg->name(tmp);
+		fprintf(stderr, "Replaced for page %s size %d\n", tmp, size);
+		fprintf(stderr, "Used size %d, max size %d\n", used_size_, 
+			max_size_);
+#endif
+		return repl_atomic(pg, size);
+	default:
+		fprintf(stderr, "Corrupted replacement style.\n");
+		abort();
+	}
+}
+
+int MClientPagePool::repl_atomic(ClientPage*, int size)
+{
+	// XXX We use standard LRU to determine the stream to be kicked out.
+	// The major problem is that we do not keep discrete hit counts. 
+	// We solve the problem by using hit counts of the base layer as 
+	// a close approximate. Because whenever a stream is accessed, 
+	// it's assumed that the client bw can always afford the base layer,
+	// this should be a fairly good approximation. 
+
+	HitCount *h, *p;
+	int sz, totalsz = 0;
+	// Repeatedly get rid of streams until get enough space
+	h = (HitCount*)hclist_.tail();
+	while (h != NULL) {
+		if (h->layer() != 0) {
+			// We only look for the base layer
+			h = h->prev();
+			continue;
+		}
+		MediaPage *pg = (MediaPage *)h->page();
+		// Don't touch locked pages
+		if (pg->is_tlocked() || pg->is_locked()) {
+			h = h->prev();
+			continue;
+		}
+		sz = pg->realsize();
+		totalsz += sz;
+		char tmp[HTTP_MAXURLLEN];
+		pg->name(tmp);
+		// Before we delete, find the previous hit count record that
+		// does not belong to this page. 
+		p = h->prev(); 
+		while ((p != NULL) && (p->page() == h->page()))
+			p = p->prev();
+		h = p;
+		// XXX Manually remove hit count before deleting it
+		for (int i = 0; i < pg->num_layer(); i++) {
+			p = pg->get_hit_count(i);
+			hclist_.detach(p);
+		}
+		// Delete the page, together with its media segment list
+#if 0
+		fprintf(stderr, "At time %g, atomic replacement evicted page %s\n", 
+			Scheduler::instance().clock(), tmp); 
+		fprintf(stderr, "Hit count list: \n");
+		hclist_.print();
+		fprintf(stderr,"----------------------------------------\n\n");
+#endif		
+		remove_page(tmp);
+		if (sz >= size)
+			return totalsz;
+		// Continue to evict to meet the space requirement
+		size -= sz;
+	}
+	fprintf(stderr, "Cache replacement cannot get enough space.\n");
+	abort();
+	return 0; // Make msvc happy
+}
+
+int MClientPagePool::repl_finegrain(ClientPage *, int size)
 {
 	// Traverse through hit count table, evict segments from the tail
 	// of a layer with minimum hit counts
 	HitCount *h, *p;
-	int sz;
+	int sz, totalsz = 0;
 
 	// Repeatedly evict pages/segments until get enough space
 	h = (HitCount*)hclist_.tail();
@@ -392,6 +513,9 @@ int MClientPagePool::cache_replace(ClientPage *, int size)
 		}
 		// Try to get "size" space by evicting other segments
 		sz = pg->evict_tail_segment(h->layer(), size);
+		// Decrease the cache used space
+		used_size_ -= sz;
+		totalsz += sz;
 		// If we have not got enough space, we must have got rid of 
 		// the entire layer
 		assert((sz == size) || 
@@ -404,25 +528,59 @@ int MClientPagePool::cache_replace(ClientPage *, int size)
 		h = h->prev();
 		if (pg->layer_size(p->layer()) == 0) {
 			// XXX Should NEVER delete a hit count record!!
+			// A hit count record is ONLY deleted when the page
+			// is deleted (evicted from cache: ~MediaPage())
 			hclist_.detach(p);
 			p->reset();
 		}
 		// Furthermore, if the page has nothing left, get rid of it
 		if (pg->realsize() == 0) {
-			// If this page is gone, 
+			// NOTE: we do not manually remove hit counts of 
+			// this page because if its realsize is 0, all 
+			// hit count records must have already been 
+			// detached from the page. 
 			char tmp[HTTP_MAXURLLEN];
 			pg->name(tmp);
+#if 0
+			fprintf(stderr, "At time %g, fine-grain evicted page %s\n",
+				Scheduler::instance().clock(), tmp);
+			fprintf(stderr, "Hit count list: \n");
+			hclist_.print();
+			fprintf(stderr,
+				"---------------------------------------\n\n");
+#endif
+			// Then the hit count record will be deleted in here
 			remove_page(tmp);
 		}
 		// If we've got enough space, return; otherwise continue
-		if (sz == size)
-			return sz;
+		if (sz >= size)
+			return totalsz;
 		size -= sz;	// Evict to fill the rest
 	}
-	fprintf(stderr, "cache_replace: cannot get enough space.\n");
-	Tcl::instance().eval("[Test instance] flush-trace");
+	fprintf(stderr, "Cache replacement cannot get enough space.\n");
 	abort();
 	return 0; // Make msvc happy
+}
+
+// Clean all hit count record of a page regardless of whether it's in the 
+// hit count list. Used when hclist_ is not used at all, e.g., by MediaClient.
+int MClientPagePool::force_remove(const char *name)
+{
+	// XXX Bad hack. Needs to integrate this into ClientPagePool.
+	ClientPage *pg = (ClientPage*)get_page(name);
+	// We should not remove a non-existent page!!
+	assert(pg != NULL);
+	if (pg->type() == MEDIA) {
+		HitCount *p;
+		MediaPage *q = (MediaPage*)pg;
+		used_size_ -= q->realsize();
+		for (int i = 0; i < q->num_layer(); i++) {
+			p = q->get_hit_count(i);
+			hclist_.detach(p);
+		}
+	} else if (pg->type() == HTML)
+		used_size_ -= pg->size();
+	return ClientPagePool::remove_page(name);
 }
 
 int MClientPagePool::remove_page(const char *name)
@@ -439,6 +597,7 @@ int MClientPagePool::remove_page(const char *name)
 }
 
 
+
 //------------------------------------------------------------
 // MediaPagePool
 // Generate requests and pages for clients and servers 
@@ -557,6 +716,29 @@ int MediaPagePool::command(int argc, const char*const* argv)
 
 
 //----------------------------------------------------------------------
+// PagePool that generates requests using the SURGE model
+//
+// Part of the code by Paul Barford (barford@cs.bu.edu).
+// Copyright (c) 1997 Trustees of Boston University
+//
+// Allow two options: (1) setting if all pages are media page or normal
+// HTTP pages; (2) average page size
+//----------------------------------------------------------------------
+//  static class SurgePagePoolClass : public TclClass {
+//  public:
+//          SurgePagePoolClass() : TclClass("PagePool/Surge") {}
+//          TclObject* create(int, const char*const*) {
+//  		return (new SurgePagePool());
+//  	}
+//  } class_surgepagepool_agent;
+
+//  SurgePagePool::SurgePagePool() : PagePool()
+//  {
+//  }
+
+
+
+//----------------------------------------------------------------------
 // Multimedia web applications: cache, etc.
 //----------------------------------------------------------------------
 
@@ -568,7 +750,8 @@ public:
 	}
 } class_mediacache;
 
-MediaCache::MediaCache() : HttpCache()
+// By default we use online prefetching
+MediaCache::MediaCache() : pref_style_(ONLINE_PREF)
 {
 	cmap_ = new Tcl_HashTable;
 	Tcl_InitHashTable(cmap_, TCL_ONE_WORD_KEYS);
@@ -649,12 +832,15 @@ AppData* MediaCache::get_data(int& size, AppData* req)
 		}
 		return p;
 	} else if (r->request() == MEDIAREQ_CHECKSEG) {
+		// If we are not doing online prefetching, return nothing
+		if (pref_style_ != ONLINE_PREF)
+			return NULL;
 		// Check the availability of a new data segment
 		// And refetch if it is not available
 		MediaPage* pg = (MediaPage*)pool_->get_page(r->name());
 		assert(pg != NULL);
 		if (pg->is_locked()) 
-			// If we are still transmitting it, don't prefetch
+			// If we are during the first retrieval, don't prefetch
 			return NULL;
 		MediaSegmentList ul = pg->is_available(r->layer(),
 				      MediaSegment(r->st(),r->et()));
@@ -666,7 +852,7 @@ AppData* MediaCache::get_data(int& size, AppData* req)
 		Tcl::instance().evalf("%s pref-segment %s %s %d %s", name(), 
 				      r->app()->name(), r->name(), 
 				      r->layer(), buf);
-		log("E PREF p %s l %d %s\n", r->name(), r->layer(), buf);
+//  		log("E PREF p %s l %d %s\n", r->name(), r->layer(), buf);
 		delete []buf;
 		ul.destroy();
 
@@ -719,9 +905,11 @@ void MediaCache::process_data(int size, AppData* data)
 			}
 		}
 		// XXX debugging only
-		log("E RSEG p %s l %d s %d e %d z %d f %d\n", 
-		    d->page(), d->layer(), d->st(), d->et(), d->datasize(),
-		    d->is_pref());
+#if 1
+  		log("E RSEG p %s l %d s %d e %d z %d f %d\n", 
+  		    d->page(), d->layer(), d->st(), d->et(), d->datasize(),
+  		    d->is_pref());
+#endif
 		break;
 	} 
 	default:
@@ -732,8 +920,57 @@ void MediaCache::process_data(int size, AppData* data)
 int MediaCache::command(int argc, const char*const* argv) 
 {
 	Tcl& tcl = Tcl::instance();
-	if (argc == 3) {
-		if (strcmp(argv[1], "dump-page") == 0) {
+	if (argc == 2) {
+		if (strcmp(argv[1], "get-pref-style") == 0) {
+			switch (pref_style_) {
+			case NOPREF:
+				tcl.result("NOPREF");
+				break;
+			case ONLINE_PREF:
+				tcl.result("ONLINE_PREF");
+				break;
+			case OFFLINE_PREF:
+				tcl.result("OFFLINE_PREF");
+				break;
+			default:
+				fprintf(stderr, 
+					"Corrupted prefetching style %d", 
+					pref_style_);
+				return TCL_ERROR;
+			}
+			return TCL_OK;
+		}
+	} else if (argc == 3) {
+		if (strcmp(argv[1], "offline-complete") == 0) {
+			// Delete whatever segments in the given page, 
+			// make it complete. Used by offline prefetching
+			ClientPage *pg = mpool()->get_page(argv[2]);
+			if (pg == NULL)
+				// XXX It's possible that we've already kicked
+				// it out of the cache. Do nothing.
+				return TCL_OK;
+			assert(pg->type() == MEDIA);
+			assert(!((MediaPage*)pg)->is_locked());
+			mpool()->fill_page(argv[2]);
+			return TCL_OK;
+		} else if (strcmp(argv[1], "set-pref-style") == 0) {
+			// Set prefetching style
+			// <obj> set-pref-style <style>
+			//
+			// style can be: NOPREF, ONLINE_PREF, OFFLINE_PREF
+			if (strcmp(argv[2], "NOPREF") == 0) 
+				pref_style_ = NOPREF;
+			else if (strcmp(argv[2], "ONLINE_PREF") == 0) 
+				pref_style_ = ONLINE_PREF;
+			else if (strcmp(argv[2], "OFFLINE_PREF") == 0) 
+				pref_style_ = OFFLINE_PREF;
+			else {
+				fprintf(stderr, "Wrong prefetching style %s",
+					argv[2]);
+				return TCL_ERROR;
+			}
+			return TCL_OK;
+		} else if (strcmp(argv[1], "dump-page") == 0) {
 			// Dump segments of a given page
 			ClientPage *p=(ClientPage*)mpool()->get_page(argv[2]);
 			if (p->type() != MEDIA)
@@ -860,16 +1097,18 @@ void MediaClient::process_data(int size, AppData* data)
 	case MEDIA_DATA: {
 		HttpMediaData* d = (HttpMediaData*)data;
 		// XXX Don't pass any data to page pool!!
-//   		if (mpool()->add_segment(d.page(), d.layer(), 
-//   					 MediaSegment(d)) == -1) {
-//   			fprintf(stderr, 
-//  "MediaCache %s gets a segment for an unknown page %s\n", name(), d.page());
-//   			abort();
-//   		}
+   		if (mpool()->add_segment(d->page(), d->layer(), 
+   					 MediaSegment(*d)) == -1) {
+   			fprintf(stderr, 
+  "MediaCache %s gets a segment for an unknown page %s\n", name(), d->page());
+//     			abort();
+   		}
 		// Note: we store the page only to produce some statistics
 		// later so that we need not do postprocessing of traces.
-		log("C RSEG p %s l %d s %d e %d z %d\n", 
-		    d->page(), d->layer(), d->st(), d->et(), d->datasize());
+#if 1
+    		log("C RSEG p %s l %d s %d e %d z %d\n", 
+    		    d->page(), d->layer(), d->st(), d->et(), d->datasize());
+#endif
 		break;
 	}
 	default:
@@ -883,9 +1122,21 @@ int MediaClient::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "stream-received") == 0) {
 			// XXX This is the place to do statistics collection
 			// about quality of received stream.
-			//
+			// 
+			// Dump delivered quality log
+			MediaPage *pg = (MediaPage*)mpool()->get_page(argv[2]);
+			assert(pg != NULL);
+			// Printing out current buffer status of the page
+			char *buf;
+			for (int i = 0; i < pg->num_layer(); i++) {
+				buf = pg->print_layer(i);
+				if (strlen(buf) > 0) 
+					log("C SEGS p %s l %d %s\n", 
+					    argv[2], i, buf);
+				delete []buf;
+			}
 			// then delete the stream from buffer
-			mpool()->remove_page(argv[2]);
+			mpool()->force_remove(argv[2]);
 			return TCL_OK;
 		}
 	}
@@ -938,7 +1189,7 @@ MediaServer::~MediaServer()
 }
 
 // Return the next segment to be sent to a particular application
-MediaSegment MediaServer::get_next_segment(MediaRequest *r)
+MediaSegment MediaServer::get_next_segment(MediaRequest *r, Application*& ci)
 {
 	MediaPage* pg = (MediaPage*)pool_->get_page(r->name());
 	assert(pg != NULL);
@@ -947,17 +1198,37 @@ MediaSegment MediaServer::get_next_segment(MediaRequest *r)
 	// HTTP connections. Should maintain another hash table for this.
 	RegInfo *ri = get_reginfo(r->app());
 	assert(ri != NULL);
-	PrefInfo* pi = get_prefinfo(r->name(), ri->client_);
+	PrefInfoQ* q = get_piq(r->name(), ri->client_);
 
 	// We are not on the prefetching list, send a normal data segment
-	if (pi == NULL) {
+	if ((q == NULL) || (q->is_empty())) {
 		MediaSegment s1(r->st(), r->et());
 		return pg->next_overlap(r->layer(), s1);
+	}
+
+	// Cycle through the prefetched segments that we need to send
+	int found = 0;
+	int searched = 0;
+	PrefInfo *pi; 
+	while (!found) {
+		PrefInfoE *pe = q->dequeue();
+		pi = pe->data();
+		q->enqueue(pe);
+		// If there's a pending segment in any layer, send it
+		for (int i = 0; i < pg->num_layer(); i++) 
+			if (pi->sl_[i].length() > 0) 
+				found = 1;
+		// If no pending prefetched segments, return empty
+		if (searched++ == q->size()) 
+			return MediaSegment(0, 0);
 	}
 
 	// Send a segment from the prefetching list. Only use the data size
 	// included in the request.
 	MediaSegmentList *p = pi->sl_;
+	// Set return conid
+	ci = pi->conid_;
+
 	// Find one available segment in prefetching list if there is none
 	// in the given layer
 	int l = r->layer(), i = 0;
@@ -970,6 +1241,12 @@ MediaSegment MediaServer::get_next_segment(MediaRequest *r)
 		i++;
 		l = (l+1) % pg->num_layer();
 	}
+	// XXX We must do boundary check of the prefetched segments to make
+	// sure that the start and end offsets are valid!
+	if (res.start() < 0) 
+		res.set_start(0);
+	if (res.end() > pg->layer_size(l))
+		res.set_end(pg->layer_size(l));
 	if (res.datasize() > 0) {
 		// XXX We may end up getting data from another layer!!
 		l = (l-1+pg->num_layer()) % pg->num_layer();
@@ -990,10 +1267,11 @@ AppData* MediaServer::get_data(int& size, AppData *req)
 {
 	assert((req != NULL) && (req->type() == MEDIA_REQUEST));
 	MediaRequest *r = (MediaRequest *)req;
+	Application* conid = NULL;
 
 	if (r->request() == MEDIAREQ_GETSEG) {
 		// Get a new data segment
-		MediaSegment s2 = get_next_segment(r);
+		MediaSegment s2 = get_next_segment(r, conid);
 		HttpMediaData *p;
 		if (s2.datasize() == 0) {
 			// No more data available for this layer, most likely
@@ -1015,9 +1293,7 @@ AppData* MediaServer::get_data(int& size, AppData *req)
 		}
 		if (s2.is_pref()) {
 			// Add connection id into returned data
-			RegInfo *ri = get_reginfo(r->app());
-			PrefInfo *pi = get_prefinfo(r->name(), ri->client_);
-			p->set_conid(pi->conid_);
+			p->set_conid(conid);
 			p->set_pref();
 		}
 		return p;
@@ -1046,16 +1322,16 @@ int MediaServer::command(int argc, const char*const* argv)
 				tcl.result("0");
 			return TCL_OK;
 		}
-	} else if (argc == 4) {
+	} else if (argc == 5) { 
 		if (strcmp(argv[1], "stop-prefetching") == 0) {
 			/*
-			 * <server> stop-prefetching <Client> <pagenum>
+			 * <server> stop-prefetching <Client> <conid> <pagenum>
 			 */
 			TclObject *a = TclObject::lookup(argv[2]);
 			assert(a != NULL);
 			int tmp[2];
 			tmp[0] = (int)a;
-			tmp[1] = atoi(argv[3]);
+			tmp[1] = atoi(argv[4]);
 			Tcl_HashEntry *he = 
 				Tcl_FindHashEntry(pref_, (const char*)tmp);
 			if (he == NULL) {
@@ -1063,86 +1339,33 @@ int MediaServer::command(int argc, const char*const* argv)
 				  "Server %d cannot stop prefetching!\n", id_);
 				return TCL_ERROR;
 			}
-			PrefInfo *pi = (PrefInfo*)Tcl_GetHashValue(he);
-			assert(pi != NULL);
+			a = TclObject::lookup(argv[3]);
+			assert(a != NULL);
+			PrefInfoQ *q = (PrefInfoQ*)Tcl_GetHashValue(he);
+			PrefInfoE *pe = find_prefinfo(q, (Application*)a);
+			assert(pe != NULL);
+			PrefInfo *pi = pe->data();
 			MediaSegmentList *p = pi->sl_;
 			assert(p != NULL);
 			for (int i = 0; i < MAX_LAYER; i++)
 				p[i].destroy();
 			delete []p;
 			delete pi;
-			Tcl_DeleteHashEntry(he);
+			q->detach(pe);
+			delete pe;
+			// If no more prefetching streams left for this client,
+			// delete all the information.
+			// Return 0 means that we still have prefetching 
+			// clients left, don't tear down the channel yet. 
+			// Otherwise return 1. 
+			int res = 0;
+			if (q->is_empty()) {
+				delete q;
+				Tcl_DeleteHashEntry(he);
+				res = 1;
+			}
+			tcl.resultf("%d", res);
 			return (TCL_OK);
-		}
-	} else { 
-		if (strcmp(argv[1], "enter-page") == 0) {
-			ClientPage *pg = pool_->enter_page(argc, argv);
-			if (pg == NULL)
-				return TCL_ERROR;
-			if (pg->type() == MEDIA) 
-				((MediaPage*)pg)->create();
-			// Unlock the page after creation
-			((MediaPage*)pg)->unlock(); 
-			return TCL_OK;
-		} else if (strcmp(argv[1], "register-prefetch") == 0) {
-			/*
-			 * <server> register-prefetch <client> <pagenum> 
-			 * 	<conid> <layer> {<segments>}
-			 * Registers a list of segments to be prefetched by 
-			 * <client>, where each <segment> is a pair of 
-			 * (start, end). <pagenum> should be pageid without 
-			 * preceding [server:] prefix.
-			 * 
-			 * <conid> is the OTcl name of the original client 
-			 * who requested the page. This is used for the cache
-			 * to get statistics about a particular connection.
-			 * 
-			 * <client> is the requestor of the stream.
-			 */
-			TclObject *a = TclObject::lookup(argv[2]);
-			assert(a != NULL);
-			int newEntry = 1;
-			int tmp[2];
-			tmp[0] = (int)a;
-			tmp[1] = (int)atoi(argv[3]);
-			// Map <cache_ptr><pageNUM> to a pref entry
-			Tcl_HashEntry *he = Tcl_CreateHashEntry(pref_, 
-					(const char*)tmp, &newEntry);
-			if (he == NULL) {
-				fprintf(stderr, "Cannot create entry.\n");
-				return TCL_ERROR;
-			}
-			PrefInfo *pi;
-			MediaSegmentList *p;
-			if (!newEntry) {
-				pi = (PrefInfo *)Tcl_GetHashValue(he);
-				p = pi->sl_;
-				TclObject *a = tcl.lookup(argv[4]);
-				// We may still get a PREFSEG request after 
-				// the cache disconnected the client, i.e., 
-				// pi->conid_ is no longer valid. 
-				assert((a == NULL) || 
-				       ((a != NULL) && (pi->conid_ == a)));
-			} else {
-				pi = new PrefInfo;
-				p = new MediaSegmentList[MAX_LAYER];
-				pi->sl_ = p;
-				pi->conid_ = (Application*)tcl.lookup(argv[4]);
-				Tcl_SetHashValue(he, (ClientData)pi);
-			}
-			assert((pi != NULL) && (p != NULL));
-
-			// Preempt all old requests because they 
-			// cannot reach the cache "in time"
-			int layer = atoi(argv[5]);
-			p[layer].destroy();
-
-			// Add segments into prefetching list
-			assert(argc % 2 == 0);
-			for (int i = 6; i < argc; i+=2)
-				p[layer].add(MediaSegment(atoi(argv[i]), 
-							  atoi(argv[i+1])));
-			return TCL_OK;
 		} else if (strcmp(argv[1], "register-client") == 0) {
 			// <cache> register-client <app> <client> <pageid>
 			TclObject *a = TclObject::lookup(argv[2]);
@@ -1177,6 +1400,78 @@ int MediaServer::command(int argc, const char*const* argv)
 			RegInfo *p = (RegInfo*)Tcl_GetHashValue(he);
 			delete p;
 			Tcl_DeleteHashEntry(he);
+			return TCL_OK;
+		}
+	} else {
+		if (strcmp(argv[1], "enter-page") == 0) {
+			ClientPage *pg = pool_->enter_page(argc, argv);
+			if (pg == NULL)
+				return TCL_ERROR;
+			if (pg->type() == MEDIA) 
+				((MediaPage*)pg)->create();
+			// Unlock the page after creation
+			((MediaPage*)pg)->unlock(); 
+			return TCL_OK;
+		} else if (strcmp(argv[1], "register-prefetch") == 0) {
+			/*
+			 * <server> register-prefetch <client> <pagenum> 
+			 * 	<conid> <layer> {<segments>}
+			 * Registers a list of segments to be prefetched by 
+			 * <client>, where each <segment> is a pair of 
+			 * (start, end). <pagenum> should be pageid without 
+			 * preceding [server:] prefix.
+			 * 
+			 * <conid> is the OTcl name of the original client 
+			 * who requested the page. This is used for the cache
+			 * to get statistics about a particular connection.
+			 * 
+			 * <client> is the requestor of the stream.
+			 */
+			TclObject *a = TclObject::lookup(argv[2]);
+			assert(a != NULL);
+			int newEntry = 1;
+			int tmp[2];
+			tmp[0] = (int)a;
+			tmp[1] = atoi(argv[3]);
+			// Map <cache_ptr><conid> to a pref entry
+			Tcl_HashEntry *he = Tcl_CreateHashEntry(pref_, 
+					(const char*)tmp, &newEntry);
+			if (he == NULL) {
+				fprintf(stderr, "Cannot create entry.\n");
+				return TCL_ERROR;
+			}
+			PrefInfo *pi;
+			PrefInfoE *pe;
+			PrefInfoQ *q; 
+			MediaSegmentList *p;
+			a = TclObject::lookup(argv[4]);
+			if (newEntry) {
+				q = new PrefInfoQ;
+				Tcl_SetHashValue(he, (ClientData)q);
+				pe = NULL;
+			} else {
+				q = (PrefInfoQ *)Tcl_GetHashValue(he);
+				pe = find_prefinfo(q, (Application*)a);
+			}
+			if (pe == NULL) {
+				pi = new PrefInfo;
+				pi->conid_ = (Application*)a;
+				p = pi->sl_ = new MediaSegmentList[MAX_LAYER];
+				q->enqueue(new PrefInfoE(pi));
+			} else {
+				pi = pe->data();
+				p = pi->sl_;
+			}
+			assert((pi != NULL) && (p != NULL));
+			// Preempt all old requests because they 
+			// cannot reach the cache "in time"
+			int layer = atoi(argv[5]);
+			p[layer].destroy();
+			// Add segments into prefetching list
+			assert(argc % 2 == 0);
+			for (int i = 6; i < argc; i+=2)
+				p[layer].add(MediaSegment(atoi(argv[i]), 
+							  atoi(argv[i+1])));
 			return TCL_OK;
 		}
 	}

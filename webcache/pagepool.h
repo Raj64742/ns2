@@ -17,7 +17,7 @@
 //
 // Definitions for class PagePool
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.13 1999/09/23 20:46:39 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.14 1999/11/18 23:14:35 haoboy Exp $
 
 #ifndef ns_pagepool_h
 #define ns_pagepool_h
@@ -97,6 +97,7 @@ struct PageID {
 class ClientPage : public Page {
 public:
 	ClientPage(const char *n, int s, double mt, double et, double a);
+	virtual ~ClientPage() {}
 
 	virtual WebPageType type() const { return HTML; }
 	virtual void print_info(char* buf);

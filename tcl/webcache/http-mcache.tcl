@@ -26,7 +26,7 @@
 # Implementation of web cache, client and server which support 
 # multimedia objects.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-mcache.tcl,v 1.4 1999/10/06 21:25:36 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/webcache/http-mcache.tcl,v 1.5 1999/11/18 23:14:36 haoboy Exp $
 
 #
 # Multimedia web client
@@ -78,8 +78,8 @@ Http/Client/Media instproc media-connect { server pageid } {
 	$self instvar mmapp_ ns_ node_ 
 	Http instvar MEDIA_TRANSPORT_ MEDIA_APP_
 	if [info exists mmapp_($pageid)] {
-		error "Media client [$self id] got a request for an existing \
-stream"
+		puts "Media client [$self id] got a request for an existing stream"
+		return
 	}
 	set agent [new Agent/$MEDIA_TRANSPORT_]
 	$ns_ attach-agent $node_ $agent
@@ -102,11 +102,11 @@ server [$server id] with page $pageid"
 	set agent [$app agent]
 	$ns_ detach-agent $node_ $agent
 
-	# Disconnect the agent and app at the server side
-	$server media-disconnect $self $pageid
-
 	# DEBUG ONLY
 #	puts "Client [$self id] disconnect from server [$server id]"
+
+	# Disconnect the agent and app at the server side
+	$server media-disconnect $self $pageid
 
 	delete $agent
 	delete $app
@@ -170,8 +170,7 @@ Http/Server/Media instproc alloc-mcon { client pageid dst_agent } {
 			$app log $lf
 		}
 	}
-	#puts "Server [$self id] allocated a connection to client [$client id]\
-# using agent $agent"
+#	puts "Server [$self id] allocated a connection to client [$client id] using agent $agent"
 
 	# Connect two RAP agents and start data transmission
 	$ns_ connect $agent $dst_agent
@@ -182,8 +181,7 @@ Http/Server/Media instproc media-disconnect { client pageid } {
 	$self instvar mmapp_ ns_ node_
 
 	# DEBUG ONLY
-#	puts "At [$ns_ now] Server [$self id] disconnected from \
-#			client [$client id]"
+#	puts "At [$ns_ now] Server [$self id] disconnected from client [$client id]"
 
 	if {![info exists mmapp_($client/$pageid)]} {
 		error "Media server [$self id] disconnect: not connected to \
@@ -196,7 +194,7 @@ client [$client id] with page $pageid"
 	$self unregister-client $app $client $pageid
 
 	# DEBUG ONLY 
-	#puts "Server [$self id] deleting agent $agent"
+#	puts "Server [$self id] deleting agent $agent"
 
 	delete $agent
 	delete $app
@@ -262,18 +260,29 @@ Http/Server/Media instproc get-request { client type pageid args } {
 		set seglist [lrange $args 2 end]
 		eval $self register-prefetch $client $pagenum $conid \
 				$layer $seglist
-		$client start-prefetch $self $pageid
+		$client start-prefetch $self $pageid $conid
 		$self evTrace S PREF p $pageid l $layer [join $seglist]
 		# DEBUG only
-		#$self instvar ns_
-		#puts "At [$ns_ now] server [$self id] prefetches $args"
+#		$self instvar ns_
+#		puts "At [$ns_ now] server [$self id] prefetches $args"
 	} elseif {$type == "STOPPREF"} {
 		set pagenum [lindex [split $pageid :] 1]
-		$self stop-prefetching $client $pagenum
-		$client media-disconnect $self $pageid
+		set conid [lindex $args 0]
 		# DEBUG only
-		$self instvar ns_
-#puts "At [$ns_ now] server [$self id] stops prefetching $pageid"
+#		$self instvar ns_
+#		puts "At [$ns_ now] server [$self id] stops prefetching $pageid conid $conid"
+		if [$self stop-prefetching $client $conid $pagenum] {
+			# Tear down pref channel iff we don't have remaining 
+			# clients sharing the channel
+			$client media-disconnect $self $pageid $conid
+		}
+	} elseif {$type == "OFFLPREF"} {
+		# Simply send the page back through TCP channel
+		if ![$self exist-page $pageid] {
+			error "Server [$self id] offline-prefetch non-existent page $pageid!"
+		}
+		set size [$self get-size $pageid]
+		$self send $client $size "$client offline-complete $pageid"
 	} else {
 		eval $self next $client $type $pageid $args
 	}
@@ -291,35 +300,45 @@ Http/Cache/Media instproc create-pagepool {} {
 	return $pool
 }
 
-Http/Cache/Media instproc start-prefetch { server pageid } {
+Http/Cache/Media instproc start-prefetch { server pageid conid } {
 	$self instvar pref_ ns_
-	# DEBUG
 	if [info exists pref_($server/$pageid)] {
 		# We are already connected to the server
+		if {[lsearch -exact $pref_($server/$pageid) $conid] == -1} {
+#			puts "At [$ns_ now] cache [$self id] RE-REQUESTs prefetching to server [$server id] for page $pageid"
+			lappend pref_($server/$pageid) $conid
+		}
 		return
 	} else {
-		set pref_($server/$pageid) 1
+		# Whenever there is a prefetching request to the server, 
+		# increase the "ref counter" by one. Then we delete it 
+		# when it's 0.
+		lappend pref_($server/$pageid) $conid
 	}
-#	puts "At [$ns_ now] cache [$self id] starts prefetching to [$server id]"
+#	puts "At [$ns_ now] cache [$self id] starts prefetching to [$server id] for page $pageid conid $conid"
 	# XXX Do not use QA for prefetching!!
 	Http instvar MEDIA_APP_
 	set oldapp $MEDIA_APP_
 	# XXX Do not use the default initial RTT of RAP. We must start sending
 	# as soon as possible, then drop our rate if necessary. Instead, set
-	# initial RTT estimation as 100ms.
+	# initial ipg_ and srtt_ to 10ms.
+	set oldipg [Agent/RAP set ipg_]
 	set oldsrtt [Agent/RAP set srtt_]
-	Agent/RAP set srtt_ 0.1
+	Agent/RAP set ipg_ 0.01
+	Agent/RAP set srtt_ 0.01
 	set MEDIA_APP_ MediaApp
 	$self media-connect $server $pageid
 	set MEDIA_APP_ $oldapp
+	Agent/RAP set ipg_ $oldipg
 	Agent/RAP set srtt_ $oldsrtt
 }
 
 Http/Cache/Media instproc media-connect { server pageid } {
-	# DEBUG ONLY
-	#puts "Cache [$self id] media-connect [$server id] $pageid"
-
 	$self instvar s_mmapp_ ns_ node_ 
+
+	# DEBUG ONLY
+#	puts "At [$ns_ now], cache [$self id] connects to [$server id] for page $pageid"
+
 	Http instvar MEDIA_TRANSPORT_ MEDIA_APP_
 	if [info exists s_mmapp_($server/$pageid)] {
 		error "Media client [$self id] got a request for an existing \
@@ -375,10 +394,16 @@ Http/Cache/Media instproc medialog-on {} {
 	set MediaLog_ 1
 }
 
-Http/Cache/Media instproc media-disconnect { host pageid } {
-	$self instvar c_mmapp_ s_mmapp_ ns_ node_
+Http/Cache/Media instproc media-disconnect { host pageid args } {
+	$self instvar c_mmapp_ s_mmapp_ ns_ node_ pref_ c_tbt_
 
-	if [info exists c_mmapp_($host/$pageid)] {
+	# Flags: is it client disconnection or server? 
+	set cntdisco 0 
+	set svrdisco 0
+
+	set server [lindex [split $pageid :] 0]
+
+	if {($host != $server) && [info exists c_mmapp_($host/$pageid)]} {
 		# Disconnect from a client
 		set app $c_mmapp_($host/$pageid)
 		set agent [$app agent]
@@ -387,8 +412,26 @@ Http/Cache/Media instproc media-disconnect { host pageid } {
 		# DEBUG ONLY
 #		puts "At [$ns_ now] Cache [$self id] disconnect from \
 #				client [$host id]"
+
+		# Do NOT delete client-side agent and app until we've 
+		# torn down prefetching connection to the server. 
+		# XXX But first check that this client has indeed been 
+		# involved in prefetching!
+		if {[info exists pref_($server/$pageid)] && \
+			[lsearch -exact $pref_($server/$pageid) $app] != -1} {
+			# If we have concurrent requests and other clients
+			# may still be using this prefetching channel. We
+			# tell the server that this client has stopped so 
+			# that server will remove all related state.
+#			puts "At [$ns_ now] Cache [$self id] stops prefetching for conid $app, page $pageid, from server [$server id]"
+			$self send $server [$self get-reqsize] "$server get-request $self STOPPREF $pageid $app"
+			# Stop application-related timers
+			set c_tbt_($host/$pageid) $app
+			$app stop
+		} else {
+			delete $app
+		}
 		delete $agent
-		delete $app
 		unset c_mmapp_($host/$pageid)
 
 		# Dump status of all pages after serving a client
@@ -396,44 +439,85 @@ Http/Cache/Media instproc media-disconnect { host pageid } {
 		foreach p [lsort [$pool_ list-pages]] {
 			$self dump-page $p
 		}
+		set cntdisco 1
 
 	} elseif [info exists s_mmapp_($host/$pageid)] {
-		# Disconnect from a server
-		set app $s_mmapp_($host/$pageid)
-		set agent [$app agent]
-		$ns_ detach-agent $node_ $agent
-		$host media-disconnect $self $pageid
-
-		# DEBUG ONLY
-#		puts "At [$ns_ now] Cache [$self id] disconnect from \
+		# XXX This assumes that we are NOT connecting to another cache.
+		# Stop prefetching when we requested that at the server. 
+		#
+		# Also, we assume that while the cache is downloading from 
+		# the server during the first retrieval, no prefetching should
+		# be used. This is guaranteed by the way MEDIAREQ_CHECKSEG is 
+		# handled in mcache.cc:680.
+		#
+		# Note that (1) this always happens AFTER client disconnection,
+		# (2) whenever there is a prefetching connection, there's 
+		# always a corresponding entry in s_mmapp_().
+		#
+		# If we are disconnecting a prefetching channel, check if 
+		# we still have other clients sharing the channel. If not,
+		# then we tear down the channel. 
+		set svrdisco 1
+		if [info exists pref_($server/$pageid)] {
+			# By default we don't tear down pref channel
+			set teardown 0
+			# Actually the MediaApp for the client
+			set conid [lindex $args 0]
+			set pos [lsearch -exact $pref_($server/$pageid) $conid]
+			if {$pos == -1} {
+				error "media-disconnect cannot find $conid!!"
+			}
+			set pref_($server/$pageid) [lreplace \
+				$pref_($server/$pageid) $pos $pos]
+			if {[llength $pref_($server/$pageid)] == 0} {
+				$self evTrace E STP s [$server id] p $pageid
+				unset pref_($server/$pageid)
+				# Now we can tear down the pref channel
+				set teardown 1
+			}
+			# Tear down client-side connection (i.e.,conid)
+#			puts "At [$ns_ now] cache [$self id] stops prefetching\
+# to [$server id] for client $conid"
+			delete $conid
+		} else {
+			# If no pref, tear down by default
+			set teardown 1
+		}
+		if {$teardown} {
+			# Disconnect from a server
+			set app $s_mmapp_($host/$pageid)
+			set agent [$app agent]
+			$ns_ detach-agent $node_ $agent
+			$host media-disconnect $self $pageid
+			# DEBUG ONLY
+#			puts "At [$ns_ now] Cache [$self id] disconnect from \
 #				server [$host id]"
-
-		delete $agent
-		delete $app
-		unset s_mmapp_($host/$pageid)
+			delete $agent
+			delete $app
+			unset s_mmapp_($host/$pageid)
+		}
+		# Use the TCP channel between the cache and the server to 
+		# transmit the entire file. Note since we no longer do 
+		# online prefetching, this channel is pretty much empty
+		# and we can occupy it as long as we want. 
+		$self instvar firstreq_
+		if {([$self get-pref-style] == "OFFLINE_PREF") && \
+				[info exists firstreq_($pageid)]} { 
+			$self send $server [$self get-reqsize] \
+				"$server get-request $self OFFLPREF $pageid"
+		}
+		if [info exists firstreq_($pageid)] {
+			unset firstreq_($pageid)
+		}
 	} else {
 		error "At [$ns_ now] Media cache [$self id] tries to \
 			disconnect from a non-connected host [$host id]"
 	}
 
-	# Stop prefetching if there's any
-	$self instvar pref_ ns_
-	set server [lindex [split $pageid :] 0]
-	if [info exists pref_($server/$pageid)] {
-		# Theoretically we should stop our prefetching 
-		# RAP connection now 
-		if {$host == $server} {
-			# If we are disconnected from the server, close 
-			# prefetch
-#			puts "At [$ns_ now] cache [$self id] stops prefetching to [$server id]"
-			$self evTrace E STP s [$server id] p $pageid
-			unset pref_($server/$pageid)
-		} else { 
-			$self send $server [$self get-reqsize] \
-				"$server get-request $self STOPPREF $pageid"
-		}
+	# XXX Only do this when we disconnect from a server. 
+	if {$svrdisco == 1} {
+		$self stream-received $pageid
 	}
-	$self stream-received $pageid
 }
 
 # Tell the client that a stream has been completed. Assume that there is 
@@ -453,10 +537,18 @@ Http/Cache/Media instproc finish-stream { app } {
 }
 
 Http/Cache/Media instproc get-response-GET { server pageid args } {
+	# Whether this is the first request. If offline prefetching is used, 
+	# media-disconnect{} uses this information to decide whether to 
+	# prefetch the entire stream. 
+	$self instvar firstreq_
+	if ![$self exist-page $pageid] {
+		set firstreq_($pageid) 1
+	}
+
 	eval $self next $server $pageid $args
 
 	# DEBUG ONLY
-	#puts "Cache [$self id] gets response"
+#	puts "Cache [$self id] gets response"
 
 	array set data $args
 	if {[info exists data(pgtype)] && ($data(pgtype) == "MEDIA")} {
@@ -490,3 +582,9 @@ Http/Cache/Media instproc pref-segment {conid pageid layer args} {
 	$self send $server $size "$server get-request $self PREFSEG \
 		$pageid $conid $layer [join $args]"
 }
+
+Http/Cache/Media instproc set-repl-style { style } {
+	$self instvar pool_
+	$pool_ set-repl-style $style
+}
+

@@ -26,7 +26,7 @@
 //
 // Multimedia caches
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.5 1999/10/06 21:25:32 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.6 1999/11/18 23:14:34 haoboy Exp $
 
 #ifndef ns_mcache_h
 #define ns_mcache_h
@@ -194,6 +194,7 @@ public:
 
 	virtual ClientPage* enter_page(int argc, const char*const* argv);
 	virtual int remove_page(const char *name);
+	virtual int force_remove(const char *name);
 
 	int add_segment(const char *name, int layer, const MediaSegment& s);
 	void hc_update(const char *name, int max_layer);
@@ -201,16 +202,25 @@ public:
 	int maxsize() { return max_size_; }
 	int usedsize() { return used_size_; }
 
+	void fill_page(const char* pgname);
+
 	// Debug only
 	void dump_hclist() { hclist_.print(); }
 
 protected:
+	virtual int command(int argc, const char*const* argv);
 	virtual int cache_replace(ClientPage* page, int size);
+
+	// Fine-grain replacement
+	int repl_finegrain(ClientPage* p, int size);
+	int repl_atomic(ClientPage* p, int size);
 
 	// XXX Should change to quad_t, or use MB as unit
 	int max_size_; 		// PagePool size
 	int used_size_;		// Available space size
 	HitCountList hclist_; 
+	// Replacement style
+	enum { FINEGRAIN, ATOMIC } repl_style_;
 };
 
 // Provide page data and generate requests for servers and clients
@@ -282,6 +292,9 @@ protected:
 		}
 	};
 	Tcl_HashTable *cmap_;	// client map
+
+	// Prefetching/No-prefetching/Offline-prefetching flag
+	enum {NOPREF, ONLINE_PREF, OFFLINE_PREF} pref_style_;
 };
 
 
@@ -299,6 +312,113 @@ private:
 
 
 
+// Helper data structure
+
+template <class T> class Queue; // forward declaration
+
+template <class T> class QueueElem {
+public:
+        QueueElem(T* d) : next_(0), data_(d) {}
+
+        QueueElem<T>* next() const { return next_; }
+        T* data() const { return data_; }
+        void detachData() { data_ = NULL; }
+        void append(QueueElem<T>* e) {
+                e->next_ = next_;
+                next_ = e;
+        }
+
+protected:
+        QueueElem<T>* next_;
+        T* data_;
+	friend class Queue<T>; 
+};
+
+template <class T> class Queue {
+public:
+        Queue() : head_(0), tail_(0), size_(0) {}
+        virtual ~Queue() {
+                QueueElem<T> *p = head_, *q;
+                while (p != NULL) {
+                        q = p;
+                        p = p->next();
+                        delete q;
+                }
+                head_ = NULL;
+        }
+        virtual void reset() {
+                QueueElem<T> *p = head_, *q;
+                while (p != NULL) {
+                        q = p;
+                        p = p->next();
+                        delete q;
+                }
+                head_ = NULL;
+        }
+        virtual void destroy() {
+                QueueElem<T> *p = head_, *q;
+                while (p != NULL) {
+                        q = p;
+                        p = p->next();
+                        delete q->data();
+                        delete q;
+                }
+                head_ = NULL;
+        }
+
+        void enqueue(QueueElem<T> *e) {
+                if (tail_ == 0)
+                        head_ = tail_ = e;
+                else {
+                        tail_->append(e);
+			tail_ = e;
+		}
+                size_++;
+        }
+        QueueElem<T>* dequeue() {
+                QueueElem<T> *p = head_;
+                if (head_ != 0) 
+                        head_ = head_->next();
+                if (head_ == 0)
+                        tail_ = 0;
+                p->next_ = 0;
+                size_--;
+		if (size_ == 0) 
+			assert((head_ == 0) && (tail_ == 0));
+                return p;
+        }
+	void detach(QueueElem<T>* e) {
+		assert(head_ != 0);
+		if (head_ == e) {
+			dequeue();
+			return;
+		}
+		QueueElem<T> *p = head_;
+		while (p != NULL) {
+			if (p->next_ != e)
+				p = p->next_;
+			else
+				break;
+		}
+		assert(p != NULL);
+		p->next_ = e->next_;
+		if (tail_ == e)
+			tail_ = p;
+		size_--;
+		if (size_ == 0) 
+			assert((head_ == 0) && (tail_ == 0));
+	}
+        QueueElem<T>* getHead() { return head_; }
+	int is_empty() const { return (size_ == 0); }
+	int size() const { return size_; }
+
+protected:
+        QueueElem<T> *head_, *tail_;
+        int size_;
+};
+
+
+
 //----------------------------------------------------------------------
 // Multimedia server
 //----------------------------------------------------------------------
@@ -307,24 +427,33 @@ public:
 	MediaServer();
 	~MediaServer();
 	virtual AppData* get_data(int& size, AppData* d);
+
 protected:
 	virtual int command(int argc, const char*const* argv);
-	MediaSegment get_next_segment(MediaRequest *r);
+	MediaSegment get_next_segment(MediaRequest *r, Application*& ci);
 
 	// Prefetching list
-	Tcl_HashTable *pref_; // Associate one client with one prefetching list
 	struct RegInfo {
 		char name_[20];
 		HttpApp* client_;
 	};
 	struct PrefInfo {
-		Application* conid_;
 		MediaSegmentList* sl_;
+		Application* conid_;
 	};
+	typedef Queue<PrefInfo> PrefInfoQ;
+	typedef QueueElem<PrefInfo> PrefInfoE;
+	PrefInfoE* find_prefinfo(PrefInfoQ* q, Application* conid) {
+		for (PrefInfoE *e = q->getHead(); e != NULL; e = e->next())
+			if (e->data()->conid_ == conid)
+				return e;
+		return NULL;
+	}
+
+	Tcl_HashTable *pref_; // Mapping <cache>:<pagenum> to PrefInfoQ
 	Tcl_HashTable *cmap_; // Mapping MediaApps to clients
 
-	// Helper functions
-	PrefInfo* get_prefinfo(const char* pgname, HttpApp* client) {
+	PrefInfoQ* get_piq(const char* pgname, HttpApp* client) {
 		PageID id;
 		ClientPage::split_name(pgname, id);
 		int tmp[2];
@@ -334,7 +463,7 @@ protected:
 			Tcl_FindHashEntry(pref_, (const char*)tmp);
 		if (he == NULL) 
 			return NULL;
-		return (PrefInfo*)Tcl_GetHashValue(he);
+		return (PrefInfoQ*)Tcl_GetHashValue(he);
 	}
 	RegInfo* get_reginfo(Application* app) {
 		Tcl_HashEntry *he = 
