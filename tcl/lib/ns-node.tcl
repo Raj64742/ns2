@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.14 1997/10/21 00:50:32 ahelmy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.15 1997/10/26 06:03:02 hari Exp $
 #
 
 Class Node
@@ -271,12 +271,12 @@ Node instproc get-vif {} {
 
 Node instproc addCorresHost {addr cw mtu maxcw wndopt } {
 	$self instvar chaddrs_
-	if {[info exists chaddrs_($addr)]} {
-		return $chaddrs_($addr)
-	} else {
+
+	if { ![info exists chaddrs_($addr)] } {
 		set chost [new Agent/Chost $addr $cw $mtu $maxcw $wndopt]
 		set chaddrs_($addr) $chost
 	}
+	return $chaddrs_($addr)
 }
 
 #
