@@ -91,6 +91,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind_bool("printStatus_", &printStatus_);
 	bind_bool("conservative_", &conservative_);
 	bind_bool("ecn_", &ecn_);
+	bind("minrto_", &minrto_);
 	bind("maxHeavyRounds_", &maxHeavyRounds_);
 	bind("SndrType_", &SndrType_); 
 	bind("scmult_", &scmult_);
@@ -271,6 +272,8 @@ void TfrcAgent::update_rtt (double tao, double now)
 	}
 	t_rtxcur_ = (((t_rttvar_ << (rttvar_exp_ + (T_SRTT_BITS - T_RTTVAR_BITS))) + t_srtt_)  >> T_SRTT_BITS ) * tcp_tick_;
 	tzero_=t_rtxcur_;
+	if (tzero_ < minrto_) 
+ 		tzero_ = minrto_;
 
 	/* fine grained RTT estimate for use in the equation */
 	if (rtt_ > 0) {

@@ -192,6 +192,9 @@ protected:
 	int round_id ;		// round id
 	int first_pkt_rcvd ;	// first ack received yet?
 	int ecn_ ;		// Set to 1 for an ECN-capable connection.
+	double minrto_ ;	// for experimental purposes, for a minimum
+				//  RTO value (for use in the TCP-friendly
+				//  equation).
 
 	/* Responses to heavy congestion. */
 	int conservative_;	// set to 1 for an experimental, conservative 
