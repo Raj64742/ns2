@@ -1,7 +1,7 @@
 
 #
 # many_tcp.tcl
-# $Id: many_tcp.tcl,v 1.12 1998/07/06 23:09:10 sfloyd Exp $
+# $Id: many_tcp.tcl,v 1.13 1998/07/10 21:00:56 heideman Exp $
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -533,12 +533,15 @@ Main instproc finish {} {
 		if [file exists ../../bin/raw2xg] {
 			set raw2xg ../../bin/raw2xg
 		}
+		set raw2xg_opts ""
+		if {$opts(graph-join-queueing)} {
+			set raw2xg_opts "$raw2xg_opts -q"
+		}
+		exec $raw2xg -a $raw2xg_opts -n $flow_factor < $trace_filename_.tr >$trace_filename_.xg
 		if {$opts(graph-results)} {
 			if {$opts(graph-join-queueing)} {
-				exec $raw2xg -a -q -n $flow_factor < $trace_filename_.tr >$trace_filename_.xg
 				exec xgraph -t $title  < $trace_filename_.xg &
 			} else {
-				exec $raw2xg -a -n $flow_factor < $trace_filename_.tr >$trace_filename_.xg
 				exec xgraph -tk -nl -m -bb -t $title < $trace_filename_.xg &
 			}
 		}
