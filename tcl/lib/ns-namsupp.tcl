@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.35 1999/10/30 00:10:38 hyunahpa Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.36 2000/04/10 03:29:26 hyunahpa Exp $
 #
 
 #
@@ -295,6 +295,34 @@ Link instproc label-at { str } {
         }
         set attr_(DIRECTION) \"$str\"
     }
+
+#
+# Support for nam snapshot
+#
+
+Simulator instproc snapshot { } {
+    set ns [Simulator instance]
+    $ns puts-nam-config \
+            "v -t [$self now] take_snapshot"
+}
+
+Simulator instproc rewind-nam { } {
+	set ns [Simulator instance]
+	$ns puts-nam-config \
+			"v  -t [$self now] playing_backward"
+}
+
+Simulator instproc re-rewind-nam { } {
+	set ns [Simulator instance]
+	$ns puts-nam-config \
+				"v  -t [$self now] playing_forward"
+}
+
+Simulator instproc terminate-nam { } {
+	set ns [Simulator instance]
+	$ns puts-nam-config \
+				"v  -t [$self now] terminating_nam"
+}
 
 #
 # Support for agent tracing
