@@ -1,12 +1,25 @@
 #!/bin/sh
 #
 # tcpf2xgr -- convert full-tcp trace file to xgraph or gnuplot
-# Usage: tcpf2xgr tracefile <xgraph | gnuplot> [name]
+# Usage: tcpf2xgr [-r] [-m wrap] TclShPath tracefile <xgraph | gnuplot> [name]
 #
 PATH=$PATH:../../bin:.
 PROGNAME=$0
+
+while [ $# -ne 0 ] # loop over arguments
+do
+	case $1 in
+	-[mM])	opts="$opts $1 $2"
+		shift;;
+	-[rR])	opts="$opts $1"
+		shift;;
+	*)	break;;
+	esac
+	shift
+done
+
 if [ $# -lt 3 ]; then
-	echo "Usage: $0 TclshPath tracefile <xgraph | gnuplot> testname"
+	echo "Usage: $PROGNAME TclshPath [-m wrap] [-r] tracefile <xgraph | gnuplot> testname"
 	exit 1;
 fi
 TCLSH=$1; shift
@@ -15,8 +28,9 @@ if [ $# -eq 3 ]; then
 	GNAME=$3;
 fi
 PROGDIR=`dirname $PROGNAME`
-$TCLSH $PROGDIR/tcpfull-summarize.tcl $1 $1
-$TCLSH $PROGDIR/tcpfull-summarize.tcl $1 $1.r reverse
+echo "it is: $TCLSH $PROGDIR/tcpfull-summarize.tcl $opts $1 $1"
+$TCLSH $PROGDIR/tcpfull-summarize.tcl $opts $1 $1
+$TCLSH $PROGDIR/tcpfull-summarize.tcl $opts $1 $1.r reverse
 $TCLSH $PROGDIR/cplot.tcl $2 $GNAME.forw \
 	$1.p "segments sent" \
 	$1.acks "acks w/data rcvd" \
