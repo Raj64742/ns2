@@ -33,46 +33,10 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.13 2000/09/01 03:04:10 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.14 2001/05/15 21:19:27 alefiyah Exp $ (UCB)";
 #endif
 
-#include "tclcl.h"
-#include "net.h"
-#include "packet.h"
-#include "agent.h"
-
-
-//#define TAPDEBUG 1
-#ifdef TAPDEBUG
-#define	TDEBUG(x) { if (TAPDEBUG) fprintf(stderr, (x)); }
-#define	TDEBUG2(x,y) { if (TAPDEBUG) fprintf(stderr, (x), (y)); }
-#define	TDEBUG3(x,y,z) { if (TAPDEBUG) fprintf(stderr, (x), (y), (z)); }
-#define	TDEBUG4(w,x,y,z) { if (TAPDEBUG) fprintf(stderr, (w), (x), (y), (z)); }
-#define	TDEBUG5(v,w,x,y,z) { if (TAPDEBUG) fprintf(stderr, (v), (w), (x), (y), (z)); }
-#else
-#define	TDEBUG(x) { }
-#define	TDEBUG2(x,y) { }
-#define	TDEBUG3(x,y,z) { }
-#define	TDEBUG4(w,x,y,z) { }
-#define	TDEBUG5(v,w,x,y,z) { }
-#endif
-
-#include <errno.h>
-
-class TapAgent : public Agent, public IOHandler {
-public:
-        TapAgent();
-	int command(int, const char*const*);
-	void recv(Packet* p, Handler*);	// sim->live net
-protected:
-	int maxpkt_;		// max size allocated to recv a pkt
-	void dispatch(int);	// invoked via scheduler on I/O event
-	int linknet();		// establish I/O handler
-	Network* net_;		// live network object
-	int sendpkt(Packet*);
-	void recvpkt();
-	double now() { return Scheduler::instance().clock(); }
-};
+#include "tap.h"
 
 static class TapAgentClass : public TclClass {
  public:
