@@ -36,3 +36,9 @@ Steps in doing an ns release:
 8.1. update CHANGES.html with a placeholder for comments for the new
     version
 8.2 commit your changes to the VERSION and CHANGES.html for the next release
+
+B. If making a ns-allinone release
+1. check if all pkgs (tk,tcl, otcl,tclcl,ns, nam etc) are same as the
+   current available version.
+2. follow steps as above.
+3. update install in the cvs under ~ns/allinone
