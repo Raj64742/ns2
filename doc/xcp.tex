@@ -171,7 +171,7 @@ called hdr\_xcp in \ns{} and is defined as follows:
 
     In \ns{}  the
     estimation\_timer is used to maintain this interval which is based on
-    the average rtt values of the flows seen through the router. However
+    the average rtt values of the (xcp) flows seen through the router. However
     there may be better ways of defining this interval. The outstanding
     queue in the router is measured at a separate interval Tq, for which a
     queue\_timer is used. Finally an rtt\_timer is used to measure certain
@@ -243,7 +243,7 @@ called hdr\_xcp in \ns{} and is defined as follows:
   \end{program} %$
 
   The side links connecting source nodes to the bottleneck link have
-  drop-tail queues. 
+  XCP queues as well. 
   The API \code{queue-limit} allows users to set the buffer size in the queue.
   
   The xcp source and sink is created as follows (very similar to tcp):
@@ -383,7 +383,7 @@ called hdr\_xcp in \ns{} and is defined as follows:
   (+) and then dequed (-) at the queue, after which it is transmitted
   over the link to be received by the next node. packet
   type is xcp and it is of size 40 bytes. The xcp flow has an id of 2
-  and the packet header has a source node/port id of 4.2 and dest
+  and the packet header has a source node/port id of 4.0 and dest
   node/port id of 1.2 and the unique packet id is 0.
     
   \section{Test-suites for XCP}
