@@ -14,3 +14,17 @@ rtm_link.tcl		code to build links with router mechanisms
 rtm_tests.tcl		constants and tests used by the mechanisms
 
 At present, this code is experimental and "in-progress".
+
+------------------------------------------------------------
+
+../../ns rtm_reclass.tcl two net3
+  To illustrate the "unfriendly" test.
+
+../../ns rtm_reclass.tcl three net3
+  To test the "unresponsive" test.
+
+Turn off HIGH test:
+rtm_tests.tcl: set High_const_ 120000
+
+
+
