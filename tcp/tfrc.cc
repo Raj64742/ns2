@@ -293,16 +293,22 @@ void TfrcAgent::increase_rate (double p)
 
 	rate_change_ = CONG_AVOID ;
 	if (rate_ < size_/rtt_) {
-		rate_ = rcvrate ; 
+		// The sending rate is less than one pkt/RTT.
+		rate_ = (rcvrate + rate_)/2;
+		if (rate_ > maxrate_)
+			rate_ = maxrate_;
 		last_change_ = now ;
-  }
-	else {
-		if ((rate_ < rcvrate +(size_/rtt_))&&
-				(rate_ < maxrate_+(size_/rtt_))&&
-				(now - last_change_ >= rtt_)) {
+  	}
+	else if (now - last_change_ >= rtt_) {
+		// Increase the sending rate by at most one pkt/RTT.
+		// Increase at most once per RTT.
+		if ((rate_ + (size_/rtt_) < rcvrate )) {
 			rate_ = rate_ + size_/rtt_ ;
-			last_change_ = now ;
-		}
+		} else 
+			rate_ = (rcvrate + rate_)/2;
+		if (rate_ > maxrate_)
+			rate_ = maxrate_;
+		last_change_ = now ;
 	}
 }
 
