@@ -40,10 +40,12 @@
 Class HierNode -superclass Node
 
 
-HierNode instproc init {addr args} {
+HierNode instproc init {args} {
+	$self instvar address_
+	set address_ $args
+	set args [lreplace $args 0 1]
 	eval $self next $args
-	set address_ $addr
-	# puts "node address= $address_"
+	
 }
 
 HierNode instproc mk-default-classifier {} {
