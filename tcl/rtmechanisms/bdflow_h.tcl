@@ -1,3 +1,4 @@
+source bound.tcl
 #
 # Set xgraph to 1 to use xgraph, and to 0 to use S.
 # Set xgraph to 2 to make S-graphs later
@@ -6,15 +7,11 @@ set flowgraphfile fairflow.xgr
 set timegraphfile fairflow1.xgr
 set fracgraphfile fairflow2.xgr
 set friendlygraphfile fairflow3.xgr
+# drop_interval modified in flowDump
 set drop_interval 2.0
-set prob 0.01
-puts "prob=$prob"
-set c 2.0
-puts "c=$c"
 set last_report 0.0
 set cur_report 0.0
 set cur_drops 0
-set report_interval 1.0
 set report_sec [open "fairflow.rpt.sec" w]
 set report_drop [open "fairflow.rpt.drop" w]
 #-------------------------------------------------------------------
@@ -178,10 +175,10 @@ proc flowmonDump { fm dump link stop } {
 }
 
 proc reportDump {} {
-  global ns report_sec report_drop last_report cur_report report_interval cur_drops
+  global ns report_sec report_drop last_report cur_drops
   puts $report_sec "[expr double([$ns now])] [expr [expr double([$ns now])] - $last_report]"
+  set last_report [expr double([$ns now])]
   puts $report_drop "[expr double([$ns now])] $cur_drops"
-  $ns at [expr [expr double([$ns now])] + $report_interval] "reportDump"
 }
 
 proc create_flowstats { link dump stoptime } {
@@ -193,7 +190,6 @@ proc create_flowstats { link dump stoptime } {
     $r1fm attach $flowdesc
     attach-fmon $link $r1fm
     $ns at $drop_interval "flowmonDump $r1fm $dump $link $stoptime"
-    $ns at $report_interval "reportDump"
 }
 
 proc create_flowstats1 { link dump stoptime } {
@@ -205,7 +201,6 @@ proc create_flowstats1 { link dump stoptime } {
     $r1fm attach $flowdesc
     attach-fmon $link $r1fm
     $ns at $drop_interval "flowmonDump $r1fm $dump $link $stoptime"
-    $ns at $report_interval "reportDump"
 }
 
 #------------------------------------------------------------------
@@ -753,33 +748,18 @@ proc tcpDumpAll { tcpSrc interval label } {
     $ns at 0.0 "dump $tcpSrc $interval $label"
 }
 
+# check that number of drops n enough for probability prob given c and p
 proc checkProb {p n} {
-    global c prob
-    if {$p <= 0 || $p >= 1} {
-      return 0
-    }
-    if {$c < 1} {
-      return 0
-    }
-    set cp [expr $c * $p]
-    set lnp [expr [expr log($prob)]]
-    set 1mp [expr 1.0 - $p]
-    set 1mcp [expr 1.0 - $cp]
-    set pdc [expr $p / $c]
-    set 1mpdc [expr 1.0 - $pdc]
-    set 1dc [expr 1.0 / $c]
-    set a [expr [expr pow($1dc,$cp)] * [expr pow([expr $1mp-$1mcp],$1mcp)]]
-    set b [expr [expr pow($c,$pdc)] * [expr pow([expr $1mp/$1mpdc],$1mpdc)]]
-    set n1 [expr $lnp / [expr log($a)]]
-    set n2 [expr $lnp / [expr log($b)]] 
-    if {$n > $n1 && $n > $n2} {
-      return 1
-    }
-    return 0
+  set bound [drop_bound 0.01 2 $p upper]
+
+  if {$n >= $bound} {
+    return 1
+  }
+  return 0
 }
 
 proc flowDump { link fm } {
-  global category drop_interval ns flowdesc last_report cur_report last_drops cur_drops
+  global category drop_interval ns flowdesc cur_drops
 
   if {$category == "combined"} {
     set drops {$f set pdrops_}
@@ -803,15 +783,14 @@ proc flowDump { link fm } {
         set fl $f
       }
     }
-    if {[checkProb [expr [expr double([$fl set barrivals_])] / [expr double([$fm set barrivals_])]] $max]} {
+    if {[checkProb [expr [expr double([$fl set barrivals_])] / [expr double([$fm set barrivals_])]] $max] } {
       $fm dump
+      set cur_drops [$fm set pdrops_]
+      reportDump
       foreach f [$fm flows] {
         $f reset
       }
       set drop_interval 2.0
-      set last_report $cur_report
-      set cur_report [expr double([$ns now])] 
-      set cur_drops [$fm set pdrops_]
       $fm reset
     } else {
       set drop_interval 1.0

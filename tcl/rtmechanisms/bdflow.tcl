@@ -1,9 +1,12 @@
 source bdflow_h.tcl
 source Setred.tcl
 source flowmon.tcl
+source traffic.tcl
 #
 set flowfile fairflow.tr
 set flowgraphfile fairflow.xgr
+set bottleneck_bw 100Mb
+#set bottleneck_bw 1.5Mb
 #------------------------------------------------------------------
 
 #
@@ -13,7 +16,6 @@ proc traffic1 {} {
     global s1 s2 r1 r2 s3 s4
     new_tcp 1.0 $s1 $s3 100 1 1 1000
     new_tcp 4.2 $s2 $s4 100 2 0 50
-#    new_cbr 18.4 $s1 $s4 190 0.00003 3
     new_cbr 18.4 $s1 $s4 190 0.003 3
     new_tcp 65.4 $s1 $s4 4 4 0 2000
     new_tcp 100.2 $s3 $s1 8 5 0 1000
@@ -31,9 +33,19 @@ proc traffic1 {} {
     new_tcp 440.0 $s2 $s4 100 17 0 512
 }
 
+proc traffic2 {} {
+  global s1 s2 r1 r2 s3 s4
+
+  traffic1
+  create_tcps 22 $s1 $s3 TCP/Reno 100 22 1000 1.0 400.0
+  #create_tcps 10 $s1 $s4 TCP/Reno 100 30 1000 1.0 400.0
+  #create_tcps 1 $s2 $s3 TCP/Reno 100 30 1000 1.0 400.0
+  #create_tcps 10 $s2 $s4 TCP/Reno 100 30 1000 1.0 400.0
+}
+
 #------------------------------------------------------------------
 proc create_testnet6 { queuetype }  {
-    global ns s1 s2 r1 r2 s3 s4
+    global ns s1 s2 r1 r2 s3 s4 bottleneck_bw
 
     set s1 [$ns node]
     set s2 [$ns node]
@@ -44,8 +56,8 @@ proc create_testnet6 { queuetype }  {
     
     $ns duplex-link $s1 $r1 10Mb 2ms DropTail
     $ns duplex-link $s2 $r1 10Mb 3ms DropTail
-    $ns simplex-link $r1 $r2 1.5Mb 20ms $queuetype
-    $ns simplex-link $r2 $r1 1.5Mb 20ms $queuetype
+    $ns simplex-link $r1 $r2 $bottleneck_bw 20ms $queuetype
+    $ns simplex-link $r2 $r1 $bottleneck_bw 20ms $queuetype
     set redlink [$ns link $r1 $r2]
     [[$ns link $r2 $r1] queue] set limit_ 25
     [[$ns link $r1 $r2] queue] set limit_ 25    
@@ -83,7 +95,7 @@ proc test {testname seed finishfile label createflows dump queue} {
 	new_tcp 50.2 $s1 $s3 100 21 0 1500
     }
     $createflows $redlink $dump $stoptime
-    traffic1
+    traffic2
     new_tcp 50.2 $s1 $s3 100 18 0 1460
     new_tcp 50.5 $s1 $s3 100 19 0 1460
 
