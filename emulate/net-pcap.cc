@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.14 1998/05/23 02:42:01 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.15 1998/05/29 17:17:07 kfall Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -70,25 +70,25 @@ extern "C" {
 
 /*
  * observations about pcap library
- *	device name is in the ifreq struct sense
+ *	device name is in the ifreq struct sense, should be doc'd
  *	pcap_lookupdev returns a ptr to static data
  *	q: does lookupdev only return devs in the AF_INET addr family?
  *	why does pcap_compile require a netmask? seems odd
  *	would like some way to tell it what buffer to use
- *	arriving packets have the link layer hdr at the beginning
- *	not convenient to open bpf read/write
+ *	arriving packets have the link layer hdr at the beginning, doc
+ *	not convenient/possible to open bpf read/write
  *	no real way to know what file (/dev/bpf?) it is using
  *		would be nice if pcap_lookdev helped out more by
  *		returning ifnet or ifreq or whatever structure
  *	pcap_lookupnet makes calls to get our addr, but
- *		then tosses it anyhow
+ *		then tosses it anyhow, should get us addr and netmask
  *	interface type codes could be via rfc1573
  *		see freebsd net/if_types.h
  *	want a way to set immed mode
  *	pcap_next masks errors by returning 0 if pcap_dispatch fails
  *	a pcap_t carries it's own internal buffer, and
  *		_dispatch gives pointers into it when invoked [eek]
- *	when you open pcap using a trace file, pcap_fileno always
+ *	when you open pcap using a file, pcap_fileno always
  *		returns -1; not so convenient
  *	
  */
@@ -156,6 +156,8 @@ struct NetworkAddress {
 class PcapLiveNetwork : public PcapNetwork {
 public:
 	PcapLiveNetwork() : local_net_(0), dlink_type_(-1) {
+		linkaddr_.len_ = 0;
+		netaddr_.len_ = 0;
 		bindvars(); reset();
 	}
 	NetworkAddress& laddr() { return (linkaddr_); }
@@ -164,6 +166,8 @@ protected:
 	double gents(pcap_pkthdr*) {
 		return Scheduler::instance().clock();
 	}
+
+	int devtonaddr(const char* name, NetworkAddress&);
 
 	int open(int mode);
 	int open(int mode, const char*);
@@ -453,6 +457,8 @@ PcapLiveNetwork::open(int mode, const char *devname)
 		memcpy(linkaddr_.addr_, sa->sa_data, linkaddr_.len_);
 	}
 
+	(void) devtonaddr(devname, netaddr_);
+
 	state_ = PNET_PSTATE_ACTIVE;
 
 	if (pcap_lookupnet(srcname_, &local_net_, &local_netmask_, errbuf_) < 0) {
@@ -506,6 +512,56 @@ PcapLiveNetwork::autodevname()
 	return (dname);	// ptr to static data in pcap library
 }
 
+/*
+ * devtonaddr -- map device name to its IP/Network layer address
+ * this routine wouldn't be necessary if pcap_lookupnet gave
+ * out the info it gets anyhow
+ */
+
+#include <netinet/in.h>
+
+int
+PcapLiveNetwork::devtonaddr(const char *devname, NetworkAddress& na)
+{
+        register int fd;
+        ifreq ifr;
+                                
+        fd = socket(AF_INET, SOCK_DGRAM, 0);
+        if (fd < 0) {       
+                fprintf(stderr,
+			"PcapLiveNet(%s): devtoaddr: couldn't create sock\n",
+			name());
+                return (-1);
+        }
+        memset(&ifr, 0, sizeof(ifr));
+#ifdef linux
+        /* XXX Work around Linux kernel bug */
+        ifr.ifr_addr.sa_family = AF_INET;
+#endif   
+        (void)strncpy(ifr.ifr_name, devname, sizeof(ifr.ifr_name));
+        if (ioctl(fd, SIOCGIFADDR, (char *)&ifr) < 0) {
+                fprintf(stderr, "PcapLiveNetwork(%s): devtoaddr: no addr\n",
+			name());
+                (void)::close(fd);   
+                return (-1);
+        }               
+	sockaddr* sa = &ifr.ifr_addr;
+	if (sa->sa_family != AF_INET) {
+                fprintf(stderr,
+			"PcapLiveNet(%s): af not AF_INET (%d)\n",
+			name(), sa->sa_family);
+	}
+	sockaddr_in* sin = (sockaddr_in*) sa;
+	na.len_ = 4;				// for now, assump IPv4
+	memset(na.addr_, 0, sizeof(na.addr_));
+	int sz = sizeof(na.addr_);
+	if (sizeof(ifr) < sz)
+		sz = sizeof(ifr);
+	memcpy(na.addr_, &sin->sin_addr, sz);
+	return (0);
+}
+
+
 void
 PcapLiveNetwork::bindvars()
 {
@@ -536,6 +592,20 @@ int PcapLiveNetwork::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "linkaddr") == 0) {
 			/// XXX: only for ethernet now
 			tcl.result(Ethernet::etheraddr_string(linkaddr_.addr_));
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "netaddr") == 0) {
+			if (netaddr_.len_ != 4) {
+				fprintf(stderr,
+				  "PcapLive(%s): net addr not len 4 (%d)\n",
+					name(), netaddr_.len_);
+				return (TCL_ERROR);
+			}
+			tcl.resultf("%d.%d.%d.%d",
+				netaddr_.addr_[0],
+				netaddr_.addr_[1],
+				netaddr_.addr_[2],
+				netaddr_.addr_[3]);
 			return (TCL_OK);
 		}
 	} else if (argc == 3) {
