@@ -9,7 +9,7 @@
  *
  * Part of the code comes from Steven Gribble's UCB trace parse code.
  * 
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/ucb/tr-stat.cc,v 1.2 1999/07/09 21:19:10 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/ucb/tr-stat.cc,v 1.3 1999/07/12 17:03:04 haoboy Exp $
  */
 
 #include <stdio.h>
@@ -100,7 +100,7 @@ void sort_url()
 	Tcl_DeleteHashTable(&urlHash);
 
 	/* sort using access frequencies */
-	heapsort((void *)tbl, sz, sizeof(URL*), compare_url);
+	qsort((void *)tbl, sz, sizeof(URL*), compare_url);
 	umap = new int[url];
 	/* write sorted url to page table */
 	for (i = 0; i < sz; i++) {
