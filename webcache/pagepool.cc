@@ -21,7 +21,7 @@
 // Trace statistics file format:
 // <URL> <size> {<modification time>}
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.3 1998/08/22 02:41:35 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.4 1998/08/27 16:50:36 haoboy Exp $
 
 #include <stdio.h>
 #include <limits.h>
@@ -82,7 +82,7 @@ public:
 } class_tracepagepool_agent;
 
 TracePagePool::TracePagePool(const char *fn) : 
-	ranvar_(0), PagePool()
+	PagePool(), ranvar_(0)
 {
 	FILE *fp = fopen(fn, "r");
 	if (fp == NULL) {
