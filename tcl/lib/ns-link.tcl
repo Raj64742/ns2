@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.32 1998/03/04 20:58:26 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.33 1998/03/30 21:45:39 haoboy Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -248,9 +248,10 @@ SimpleLink instproc nam-trace { ns f } {
 SimpleLink instproc trace { ns f {op ""} } {
 
 	$self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
-	$self instvar rcvT_ ttl_
+	$self instvar rcvT_ ttl_ trace_
 	$self instvar drophead_		;# idea stolen from CBQ and Kevin
 
+	set trace_ $f
 	set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_ $op]
 	set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_ $op]
 	set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_ $op]

@@ -27,7 +27,7 @@
 #
 # Author: Haobo Yu (haoboy@isi.edu)
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.10 1998/03/07 00:07:01 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-namsupp.tcl,v 1.11 1998/03/30 21:45:40 haoboy Exp $
 #
 
 #
@@ -48,7 +48,7 @@ Node instproc color { color } {
 
 	if [$ns is-started] {
 		# color must be initialized
-		$ns puts-nam-traceall \
+		$ns puts-nam-config \
 			[eval list "n -t [$ns now] -s $id_ -S COLOR -c $color -o $attr_(COLOR)"]
 		set attr_(COLOR) $color
 	} else {
@@ -66,7 +66,7 @@ Node instproc dump-namconfig {} {
 	if ![info exists attr_(COLOR)] {
 		set attr_(COLOR) "black"
 	}
-	$ns puts-nam-traceall \
+	$ns puts-nam-config \
 		[eval list "n -t * -s $id_ -S UP -v $attr_(SHAPE) -c $attr_(COLOR)"]
 }
 
@@ -93,7 +93,7 @@ Node instproc add-mark { name color {shape "circle"} } {
 	$self instvar id_ markColor_ shape_
 	set ns [Simulator instance]
 
-	$ns puts-nam-traceall "m -t [$ns now] -s $id_ -n $name -c $color -h $shape"
+	$ns puts-nam-config "m -t [$ns now] -s $id_ -n $name -c $color -h $shape"
 	set markColor_($name) $color
 	set shape_($name) $shape
 }
@@ -102,7 +102,7 @@ Node instproc delete-mark { name } {
 	$self instvar id_ markColor_ shape_
 	set ns [Simulator instance]
 
-	$ns puts-nam-traceall \
+	$ns puts-nam-config \
 		"m -t [$ns now] -s $id_ -n $name -c $markColor_($name) -h $shape_($name) -X"
 }
 
@@ -127,7 +127,7 @@ SimpleLink instproc dump-namconfig {} {
 	set bw [$link_ set bandwidth_]
 	set delay [$link_ set delay_]
 
-	$ns puts-nam-traceall \
+	$ns puts-nam-config \
 		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -o $attr_(ORIENTATION)"
 }
 
@@ -140,7 +140,7 @@ Link instproc dump-nam-queueconfig {} {
 
 	set ns [Simulator instance]
 	if [info exists attr_(QUEUE_POS)] {
-		$ns puts-nam-traceall "q -t * -s [$fromNode_ id] -d [$toNode_ id] -a $attr_(QUEUE_POS)"
+		$ns puts-nam-config "q -t * -s [$fromNode_ id] -d [$toNode_ id] -a $attr_(QUEUE_POS)"
 	} else {
 		set attr_(QUEUE_POS) ""
 	}
@@ -173,11 +173,11 @@ Link instproc queuePos { pos } {
 }
 
 Link instproc color { color } {
-	$self instvar attr_ fromNode_ toNode_ 
+	$self instvar attr_ fromNode_ toNode_ trace_
 
 	set ns [Simulator instance]
 	if [$ns is-started] {
-		$ns puts-nam-traceall \
+		$ns puts-nam-config \
 			[eval list "l -t [$ns now] -s [$fromNode_ id] -d [$toNode_ id] -S COLOR -c $color -o $attr_(COLOR)"]
 		set attr_(COLOR) $color
 	} else {
@@ -209,7 +209,7 @@ MultiLink instproc dump-namconfig {} {
 
 	set ns [Simulator instance]
 	# X -t * -n <nodes> -r <band width> -D <delay> -o <orientation>
-	$ns puts-nam-traceall \
+	$ns puts-nam-config \
 		"X -t * -n $id_ -r $bw_ -D $delay_ -o $attr_(ORIENT)"
 	# L -t * -s 10 -d 9 -o <orientation>
 	foreach n $nodes_ {
@@ -217,7 +217,7 @@ MultiLink instproc dump-namconfig {} {
 		if ![info exists attr_($nid)] {
 			set attr_($nid) "down"
 		}
-		$ns puts-nam-traceall \
+		$ns puts-nam-config \
 			"L -t * -s $id_ -d $nid -o $attr_($nid)"
 	}
 }
@@ -263,7 +263,7 @@ DummyLink instproc dump-namconfig {} {
 	set bw [$link_ set bandwidth_]
 	set delay [$link_ set delay_]
 
-	$ns puts-nam-traceall \
+	$ns puts-nam-config \
 		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -o $attr_(ORIENTATION)"
 }
 
@@ -273,9 +273,16 @@ DummyLink instproc dump-namconfig {} {
 
 # This function records agents being traced, so they will be written into nam
 # trace when the simulator starts
-Simulator instproc add-agent-trace { agent name } {
+Simulator instproc add-agent-trace { agent name {f ""} } {
 	$self instvar tracedAgents_
 	set tracedAgents_($name) $agent
+
+	set trace [$self get-nam-traceall]
+	if {$f != ""} {
+		$agent attach-trace $f
+	} elseif {$trace != ""} {
+		$agent attach-trace $trace
+	}
 }
 
 Simulator instproc delete-agent-trace { agent } {
@@ -349,7 +356,7 @@ Agent instproc delete-var-trace { name } {
 Simulator instproc trace-annotate { str } {
 	$self puts-ns-traceall [format \
 		"v %s %s {set sim_annotation {%s}}" [$self now] eval $str]
-	$self puts-nam-traceall "v -t [$self now] sim_annotation [$self now] $str"
+	$self puts-nam-config "v -t [$self now] sim_annotation [$self now] $str"
 }
 
 proc trace_annotate { str } {
@@ -368,5 +375,5 @@ proc flash_annotate { start duration msg } {
 Simulator instproc set-animation-rate { rate } {
 	# time_parse defined in tcl/rtp/session-rtp.tcl
 	set r [time_parse $rate]
-	$self puts-nam-traceall "v -t [$self now] set_rate [expr 10*log10($r)] 1"
+	$self puts-nam-config "v -t [$self now] set_rate [expr 10*log10($r)] 1"
 }

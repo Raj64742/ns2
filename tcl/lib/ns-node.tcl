@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.23 1998/02/25 06:25:21 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.24 1998/03/30 21:45:41 haoboy Exp $
 #
 
 Class Node
@@ -167,18 +167,6 @@ Node instproc attach agent {
     $agent set addr_ [expr $id_ << [Simulator set NodeShift_] | $port]
 
 	$dmux_ install $port $agent
-	#
-	# add trace into attached agent
-	#
-	$self namtrace-agent $agent
-}
-
-Node instproc namtrace-agent { agent } {
-	set ns [Simulator instance]
-	set trace [$ns get-nam-traceall]
-	if {$trace != ""} {
-		$agent attach-trace $trace
-	}
 }
 
 #

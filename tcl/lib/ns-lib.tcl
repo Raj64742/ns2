@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.85 1998/03/18 20:06:01 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.86 1998/03/30 21:45:38 haoboy Exp $
 #
 
 #
@@ -208,7 +208,7 @@ Simulator instproc dump-namcolors {} {
 		return 
 	}
 	foreach id [array names color_] {
-		$self puts-nam-traceall "c -t * -i $id -n $color_($id)"
+		$self puts-nam-config "c -t * -i $id -n $color_($id)"
 	}
 }
 
@@ -526,6 +526,35 @@ Simulator instproc puts-ns-traceall { str } {
 Simulator instproc puts-nam-traceall { str } {
 	$self instvar namtraceAllFile_
 	if [info exists namtraceAllFile_] {
+		puts $namtraceAllFile_ $str
+	}
+}
+
+# namConfigFile is used for writing color/link/node/queue/annotations. 
+# XXX It cannot co-exist with namtraceAll.
+Simulator instproc namtrace-config { f } {
+	$self instvar namConfigFile_
+	set namConfigFile_ $f
+}
+
+Simulator instproc get-nam-config {} {
+	$self instvar namConfigFile_
+	if [info exists namConfigFile_] {
+		return $namConfigFile_
+	} else {
+		return ""
+	}
+}
+
+# Used only for writing nam configurations to trace file(s). This is different
+# from puts-nam-traceall because we may want to separate configuration 
+# informations and actual tracing information
+Simulator instproc puts-nam-config { str } {
+	$self instvar namtraceAllFile_ namConfigFile_
+
+	if [info exists namConfigFile_] {
+		puts $namConfigFile_ $str
+	} elseif [info exists namtraceAllFile_] {
 		puts $namtraceAllFile_ $str
 	}
 }
