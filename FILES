@@ -189,6 +189,7 @@ hb-adc.cc
 heap.h
 indep-utils/cmu-scen-gen/cbrgen.tcl
 indep-utils/cmu-scen-gen/setdest/Makefile
+indep-utils/cmu-scen-gen/setdest/Makefile.in
 indep-utils/cmu-scen-gen/setdest/addrmap-example
 indep-utils/cmu-scen-gen/setdest/calcdest.cc
 indep-utils/cmu-scen-gen/setdest/emulate*
