@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.84 2001/03/07 18:30:02 jahn Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.85 2001/05/23 16:37:10 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -399,6 +399,8 @@ struct hdr_cmn {
 	int	iface_;		// receiving interface (label)
 	dir_t	direction_;	// direction: 0=none, 1=up, -1=down
 	int	ref_count_;	// free the pkt until count to 0
+	// source routing 
+        char src_rt_valid;
 
 	//Monarch extn begins
 	nsaddr_t prev_hop_;     // IP addr of forwarding hop

@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.217 2001/05/21 19:27:31 haldar Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.218 2001/05/23 16:37:10 haldar Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -105,7 +105,8 @@ OBJ_CC = \
 	trace.o trace-ip.o \
 	classifier.o classifier-addr.o classifier-hash.o classifier-virtual.o \
 	classifier-mcast.o classifier-bst.o classifier-mpath.o replicator.o \
-	classifier-mac.o classifier-port.o ump.o \
+	classifier-mac.o classifier-port.o src_rtg/classifier-sr.o \
+        src_rtg/sragent.o src_rtg/hdr_src.o ump.o \
 	app.o telnet.o tcplib-telnet.o \
 	trafgen.o traffictrace.o pareto.o expoo.o cbr_traffic.o \
 	tbf.o resv.o sa.o saack.o \
@@ -339,6 +340,7 @@ NS_TCL_LIB = \
 	tcl/mpls/ns-mpls-node.tcl \
 	tcl/mpls/ns-mpls-simulator.tcl \
 	tcl/lib/ns-pushback.tcl \
+	tcl/lib/ns-srcrt.tcl \
 	@V_NS_TCL_LIB_STL@
 
 $(GEN_DIR)ns_tcl.cc: $(NS_TCL_LIB)

@@ -16,7 +16,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.cc,v 1.7 2001/03/08 18:52:18 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/rtmodule.cc,v 1.8 2001/05/23 16:37:10 haldar Exp $
  */
 
 #include "rtmodule.h"
@@ -64,6 +64,14 @@ public:
 		return (new ManualRoutingModule);
 	}
 } class_manual_routing_module;
+
+static class SourceRoutingModuleClass : public TclClass {
+public:
+        SourceRoutingModuleClass() : TclClass("RtModule/Source") {}
+        TclObject* create(int, const char*const*) {
+                return (new SourceRoutingModule);
+        }
+} class_source_routing_module;
 
 static class VcRoutingModuleClass : public TclClass {
 public:
@@ -117,6 +125,39 @@ int RoutingModule::command(int argc, const char*const* argv)
 }
 
 int BaseRoutingModule::command(int argc, const char*const* argv) {
+	Tcl& tcl = Tcl::instance();
+	if (argc == 3) {
+		if (strcmp(argv[1] , "route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->route_notify(this);
+			return TCL_OK;
+		}
+		if (strcmp(argv[1] , "unreg-route-notify") == 0) {
+			Node *node = (Node *)(TclObject::lookup(argv[2]));
+			if (node == NULL) {
+				tcl.add_errorf("Invalid node object %s", argv[2]);
+				return TCL_ERROR;
+			}
+			if (node != n_) {
+				tcl.add_errorf("Node object %s different from n_", argv[2]);
+				return TCL_ERROR;
+			}
+			n_->unreg_route_notify(this);
+			return TCL_OK;
+		}
+	}
+	return (RoutingModule::command(argc, argv));
+}
+
+int SourceRoutingModule::command(int argc, const char*const* argv) {
 	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
 		if (strcmp(argv[1] , "route-notify") == 0) {
