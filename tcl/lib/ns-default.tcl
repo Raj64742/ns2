@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.98 1998/04/07 23:45:32 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.99 1998/04/15 23:51:53 haoboy Exp $
 
 
 #
@@ -272,6 +272,14 @@ SRMErrorModel set bandwidth_ 2Mb
 SRMErrorModel set pkt_type_ 2
 SRMErrorModel set drop_cycle_ 10
 SRMErrorModel set drop_offset_ 1
+MrouteErrorModel set enable_ 1
+MrouteErrorModel set rate_ 0
+MrouteErrorModel set bandwidth_ 2Mb
+MrouteErrorModel set pkt_type_ 2
+MrouteErrorModel set drop_cycle_ 10
+MrouteErrorModel set drop_offset_ 1
+MrouteErrorModel set good_ 99999999
+MrouteErrorModel set loss_ 0
 
 QueueMonitor set size_ 0
 QueueMonitor set pkts_ 0
