@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.97 1998/03/18 20:06:00 bajaj Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.98 1998/04/07 23:45:32 haldar Exp $
 
 
 #
@@ -331,17 +331,30 @@ networkinterface set intf_label_ -1
 Simulator set NumberInterfaces_ 0		;# to get intfs for mcast
 Node set multiPath_ 0
 
-Simulator set EnableMcast_ 0                    ;# to enable mcast
-SessionSim set rc_ 0                      ;# to enable packet reference count
+
+####  Bits are allocated for different fields like port, nodeid, mcast, hierarchical-levels
+####  All Mask and Shift values are stored in Class AddrParams.
+####  Default and Maximum Address space - leaving the MSB as signed bit
+AllocAddrBits set DEFADDRSIZE_ 16
+AllocAddrBits set MAXADDRSIZE_ 31                ;# leaving the signed bit
+
+Simulator set EnableHierRt_ 0                    ;# to enable hierarchical routing
+
+Simulator set EnableMcast_ 0                     ;# to enable mcast
+
+SessionSim set rc_ 0                             ;# to enable packet reference count
+
 
 # Defaults for unicast addresses
 # While changing these, ensure that the values are consistent in config.h
-Simulator set NodeMask_ 0xffffff
-Simulator set NodeShift_ 8
-Simulator set PortMask_ 0xff
+# Simulator set NodeMask_ 0xffffff
+# Simulator set NodeShift_ 8
+# Simulator set NodeMask_(1) 0xffffff
+# Simulator set NodeShift_(1) 8
+# Simulator set PortMask_ 0xff
 
 # Defaults for multicast addresses
-Simulator set McastShift_ 15
+#Simulator set McastShift_ 15
 Simulator set McastAddr_ 0x8000
 
 # Dynamic routing defaults
@@ -358,8 +371,8 @@ rtModel/Exponential set downInterval_  1.0
 rtModel/Deterministic set upInterval_   2.0
 rtModel/Deterministic set downInterval_ 1.0
 
-#
 # SRM Agent defaults are in ../tcl/mcast/srm.tcl and ../mcast/srm-adaptive.tcl
+
 #
 
 #IntServ Object specific defaults are in ../tcl/lib/ns-intserv.tcl
