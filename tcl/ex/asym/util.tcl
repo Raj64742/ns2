@@ -1,3 +1,8 @@
+# scheduling disciplines for Agent/TCP/Session
+set FINE_ROUND_ROBIN 1
+set COARSE_ROUND_ROBIN 2
+set RANDOM 3
+
 # configure RED parameters
 Queue/RED set setbit_ true
 Queue/RED set drop-tail_ false
@@ -24,14 +29,21 @@ Agent/TCP/Fack set rampdown 0
 Agent/TCP set timestamps_ true
 Agent/TCP set fast_loss_recov_ true
 Agent/TCP set fast_reset_timer_ true
+Agent/TCP set windowOption_ 0
 
 Agent/TCP/Int set rightEdge_ 0
 Agent/TCP/Int set uniqTS_ 1
 Agent/TCP/Int set winInc_ 1
 Agent/TCP/Int set winMult_ 0.5
 
-Agent/TCP/Session set proxyopt_ 0
+Agent/TCP/Session set ownd_ 0
+Agent/TCP/Session set owndCorr_ 0
+Agent/TCP/Session set proxyopt_ false
+Agent/TCP/Session set fixedIw_ false
 Agent/TCP/Session set count_bytes_acked_ false
+Agent/TCP/Session set schedDisp_ $FINE_ROUND_ROBIN
+
+Agent/TCPSink set ts_echo_bugfix_ true
 
 proc plotgraph {graph connGraphFlag midtime turnontime turnofftime { qtraceflag false } { dir "." } } {
 	global env
@@ -60,9 +72,14 @@ proc plotgraph {graph connGraphFlag midtime turnontime turnofftime { qtraceflag 
 		if {$graph || $graphFlag($i)} {
 			set cwndfile [format "%s/cwnd-%s.out" $dir $i]
 			set ssthreshfile [format "%s/ssthresh-%s.out" $dir $i]
+			set owndfile [format "%s/ownd-%s.out" $dir $i]
+			set owndcorrfile [format "%s/owndcorr-%s.out" $dir $i]
 			set srttfile [format "%s/srtt-%s.out" $dir $i]
 			set rttvarfile [format "%s/rttvar-%s.out" $dir $i]
-			exec xgraph -display $env(DISPLAY) -bb -tk -m -x time -y window $cwndfile &
+			set cwnd_meaningful [exec gawk {BEGIN {flag=0;} {if (NR > 2 && $2 != 1) {flag=1; exit;}} END {print flag;}} $cwndfile]
+			if {$cwnd_meaningful == 1} {
+				exec xgraph -display $env(DISPLAY) -bb -tk -m -x time -y window $cwndfile $owndfile $owndcorrfile &
+			}
 		}
 	}
 	close $if
@@ -127,8 +144,11 @@ proc enableTcpTracing { tcp tcptrace } {
 proc setupTcpTracing { tcp tcptrace { sessionFlag false } } {
 	enableTcpTracing $tcp $tcptrace
 	if { $sessionFlag } {
-		set session [[$tcp set node_] createTcpSession [$tcp set dst_]]
+		set dst [expr ([$tcp set dst_]/256)*256]
+		set session [[$tcp set node_] createTcpSession $dst]
 		enableTcpTracing $session $tcptrace
+		$session trace "ownd_"
+		$session trace "owndCorr_"
 	}
 }
 
@@ -143,7 +163,8 @@ proc setupGraphing { tcp connGraph connGraphFlag {sessionFlag false} } {
 	set graphFlag($conn) $connGraph
 
 	if { $sessionFlag } {
-		set session [[$tcp set node_] createTcpSession [$tcp set dst_]]
+		set dst [expr ([$tcp set dst_]/256)*256]
+		set session [[$tcp set node_] createTcpSession $dst]
 		set sport [expr [$session set addr_]%256]
 		set dport 0
 		set conn [format "%d,%d-%d,%d" $saddr $sport $daddr $dport]
@@ -161,9 +182,10 @@ proc createTcpSink { type sinktrace { ackSize 40 } { maxdelack 25 } } {
 	return $sink0
 }
 
-proc setupTcpSession { tcp { count_bytes_acked false } } {
-	if {![[$tcp set node_] existsTcpSession [$tcp set dst_]]} {
-		set session [[$tcp set node_] createTcpSession [$tcp set dst_]]
+proc setupTcpSession { tcp { count_bytes_acked false } { schedDisp $FINE_ROUND_ROBIN}} {
+	set dst [expr ([$tcp set dst_]/256)*256]
+	if {![[$tcp set node_] existsTcpSession $dst]} {
+		set session [[$tcp set node_] createTcpSession $dst]
 		$session set maxburst_ [$tcp set maxburst_]
 		$session set slow_start_restart_ [$tcp set slow_start_restart_]
 		$session set restart_bugfix_ [$tcp set restart_bugfix_]
@@ -173,6 +195,7 @@ proc setupTcpSession { tcp { count_bytes_acked false } } {
 		$session set maxcwnd_ [$tcp set maxcwnd_]
 
 		$session set count_bytes_acked_ $count_bytes_acked
+		$session set schedDisp_ $schedDisp
 	}
 }
 		
