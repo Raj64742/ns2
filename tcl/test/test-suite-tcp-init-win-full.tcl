@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win-full.tcl,v 1.1 2001/05/28 01:05:29 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win-full.tcl,v 1.2 2001/05/28 05:49:30 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -626,26 +626,27 @@ Test/sack3 instproc run {} {
 	$self runall_test $tcp1 10.0 10.0 
 }
 
-Class Test/sack4 -superclass TestSuite
-Test/sack4 instproc init {} {
-	$self instvar net_ test_
-	set net_	net7
-	set test_	sack4(fast_retransmit)
-	Queue/RED set ns1_compat_ true
-	$self next
-}
-Test/sack4 instproc run {} {
-	$self instvar ns_ node_ testName_
-	$self setTopo
-	Agent/TCP set packetSize_ 1000
-	Agent/TCP set windowInitOption_ 2
-	Agent/TCP set syn_ true
-	Agent/TCP set delay_growth_ true
+# This does not work correctly!
 
-        set tcp1 [$self make_tcp s1 k1 0 Sack] 
-        set tcp2 [$self make_tcp s2 k1 1 Sack]
-	$self second_test $tcp1 $tcp2
-}
+# Class Test/sack4 -superclass TestSuite
+# Test/sack4 instproc init {} {
+# 	$self instvar net_ test_
+# 	set net_	net7
+# 	set test_	sack4(fast_retransmit)
+# 	Queue/RED set ns1_compat_ true
+# 	$self next
+# }
+# Test/sack4 instproc run {} {
+# 	$self instvar ns_ node_ testName_
+# 	$self setTopo
+# 	Agent/TCP set packetSize_ 1000
+# 	Agent/TCP set windowInitOption_ 2
+# 	Agent/TCP set syn_ true
+# 	Agent/TCP set delay_growth_ true
+#       set tcp1 [$self make_tcp s1 k1 0 Sack] 
+#       set tcp2 [$self make_tcp s2 k1 1 Sack]
+# 	$self second_test $tcp1 $tcp2
+# }
 
 TestSuite instproc printtimers { tcp time} {
         global quiet
