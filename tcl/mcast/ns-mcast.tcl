@@ -1,4 +1,4 @@
-  #
+ #
  # tcl/mcast/ns-mcast.tcl
  #
  # Copyright (C) 1997 by USC/ISI
@@ -360,7 +360,7 @@ Node instproc leave-group-source { agent group source } {
         if [info exists replicator_($source:$group)] {
                 $replicator_($source:$group) disable $agent
         }
-        $mcastproto leave-group-source $group $source
+        $mcastproto_ leave-group-source $group $source
 }
 
 Node instproc new-group { src group iface code } {
