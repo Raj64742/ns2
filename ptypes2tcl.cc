@@ -19,7 +19,7 @@ lcase(const char *s) {
 	return charbuf;
 }
 
-main() {
+int main() {
 	p_info pinfo;
 
 	printLine("static const char code[] = \"");
@@ -51,4 +51,5 @@ main() {
 	printf("\";\n");
 	printf("#include \"tclcl.h\"\n");
 	printf("EmbeddedTcl et_ns_ptypes(code);\n");
+	return 0;
 }
