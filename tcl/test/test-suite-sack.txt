@@ -48,6 +48,11 @@ two packets dropped early in a large window of data.
 Test "sackB4a" shows the same test when "maxburst_" is set to
 four packets.
 
+FALSEPIPE:
+Test "FalsePipe" shows that, during fast recovery, the pipe_ value
+used by SACK can be over-estimated if partial ACKs are trigered by 
+packet reordering instead of by packet loss.
+
 DELAYEDSACK:
 The "delayedSack" test from the v1 test suite should be included.
 
