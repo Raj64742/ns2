@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.24.2.1 1997/04/14 21:26:10 hari Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.24.2.2 1997/04/20 01:14:53 hari Exp $
 #
 
 if {[info commands debug] == ""} {
@@ -57,6 +57,7 @@ source ns-packet.tcl
 source ns-trace.tcl
 source ns-agent.tcl
 source ns-random.tcl
+source ns-queue.tcl
 source ../rtp/session-rtp.tcl
 source ../rtglib/dynamics.tcl
 source ../rtglib/route-proto.tcl
