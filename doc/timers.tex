@@ -44,13 +44,14 @@ contains the following protected members:
 \begin{tabularx}{\linewidth}{rlX}
 \fcn[Event* e]{virtual void expire} & \code{=0} &
          this method must be filled in by the timer client\\
-\fcn[Event* e]{virtual void handle} & \code{=0} &
-         consumes an event\\
+%changed by ratul.
+\fcn[Event* e]{virtual void handle} & \code{} &
+         consumes an event; invokes {\it expire()} and sets {\it status\_} of the timer appropriately\\
 \code{int status\_} & &  keeps track of the current timer status\\
 \code{Event event\_} & & event to be consumed upon timer expiration\\
 \end{tabularx}
 
-The pure virtual functions must be defined by the timer classes deriving
+The pure virtual function {\it expire()} must be defined by the timer classes deriving
 from this abstract base class.
 
 Finally, two private inline functions are defined:
