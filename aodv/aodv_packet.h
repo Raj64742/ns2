@@ -87,7 +87,9 @@ struct hdr_aodv_request {
         double          rq_timestamp;   // when REQUEST sent;
 					// used to compute route discovery latency
 
-#define RREQ_GRAT_RREP	0x80
+  // This define turns on gratuitous replies- see aodv.cc for implementation contributed by
+  // Anant Utgikar, 09/16/02.
+  //#define RREQ_GRAT_RREP	0x80
 
   inline int size() { 
   int sz = 0;

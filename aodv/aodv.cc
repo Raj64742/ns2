@@ -26,7 +26,7 @@ Carnegie Mellon encourages (but does not require) users of this
 software or intellectual property to return any improvements or
 extensions that they make, and to grant Carnegie Mellon the rights to redistribute these changes without encumbrance.
 
-The AODV code developed by the CMU/MONARCH group was optimized and tuned by Samir Das and Mahesh Marina, University of Cincinnati. The work was partially done in Sun Microsystems.
+The AODV code developed by the CMU/MONARCH group was optimized and tuned by Samir Das and Mahesh Marina, University of Cincinnati. The work was partially done in Sun Microsystems. Modified for gratuitous replies by Anant Utgikar, 09/16/02.
 
 */
 
@@ -772,8 +772,23 @@ rt_update(rt0, rq->rq_src_seqno, rq->rq_hop_count, ih->saddr(),
    // precursor lists of destination and source respectively
    rt->pc_insert(rt0->rt_nexthop); // nexthop to RREQ source
    rt0->pc_insert(rt->rt_nexthop); // nexthop to RREQ destination
-   // TODO: send grat RREP to dst if G flag set in RREQ
-   Packet::free(p);
+
+#ifdef RREQ_GRAT_RREP  
+
+   sendReply(rq->rq_dst,
+             rq->rq_hop_count,
+             rq->rq_src,
+             rq->rq_src_seqno,
+	     (u_int32_t) (rt->rt_expire - CURRENT_TIME),
+	     //             rt->rt_expire - CURRENT_TIME,
+             rq->rq_timestamp);
+#endif
+   
+// TODO: send grat RREP to dst if G flag set in RREQ using rq->rq_src_seqno, rq->rq_hop_counT
+   
+// DONE: Included gratuitous replies to be sent as per IETF aodv draft specification. As of now, G flag has not been dynamically used and is always set or reset in aodv-packet.h --- Anant Utgikar, 09/16/02.
+
+	Packet::free(p);
  }
  /*
   * Can't reply. So forward the  Route Request
