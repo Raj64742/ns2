@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.11 1997/04/30 23:42:36 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.12 1997/05/01 19:14:13 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -143,13 +143,19 @@ public:
 	virtual void	addallot(int prio, double diff) { }
 	Packet*	pending_pkt() const { return (pending_pkt_); }
 	void		sched();
+	int		toplevel() {	// are we using toplevel?
+		return (eligible_ == eligible_toplevel);
+	}
+	void		toplevel_arrival(CBQClass*, double);
 protected:
 	Event		intr_;
 	int		algorithm(const char *);
 	virtual int	insert_class(CBQClass*);
 	int		send_permitted(CBQClass*, double);
 	CBQClass*	find_lender(CBQClass*, double);
+	void		toplevel_departure(CBQClass*, double);
 
+	CBQClass*	last_lender_;
 	Packet*		pending_pkt_;		// queued packet
 	LinkDelay*	link_;			// managed link
 
@@ -159,10 +165,10 @@ protected:
 	int		maxlevel_;		// highest level# seen
 	int		toplevel_;		// for top-level LS
 
-	int (CBQueue::*eligible_)(CBQClass*, int, double); // eligible function
-	int	eligible_formal(CBQClass*, int, double);
-	int	eligible_ancestors(CBQClass*, int, double) { return (1); }
-	int	eligible_toplevel(CBQClass* cl, int, double) {
+	int (CBQueue::*eligible_)(CBQClass*, double); // eligible function
+	int	eligible_formal(CBQClass*, double);
+	int	eligible_ancestors(CBQClass*, double) { return (1); }
+	int	eligible_toplevel(CBQClass* cl, double) {
 		return(cl->level_ <= toplevel_);
 	}
 };
@@ -183,8 +189,8 @@ public:
 	}
 } class_cbqclass;
 
-CBQueue::CBQueue() : pending_pkt_(NULL), link_(NULL),
-	maxprio_(-1), maxlevel_(-1), toplevel_(-1), eligible_(NULL)
+CBQueue::CBQueue() : last_lender_(NULL), pending_pkt_(NULL), link_(NULL),
+	maxprio_(-1), maxlevel_(-1), toplevel_(MAXLEVEL), eligible_(NULL)
 {
 	memset(active_, '\0', sizeof(active_));
 	memset(levels_, '\0', sizeof(levels_));
@@ -235,8 +241,7 @@ CBQueue::algorithm(const char *arg)
 		return (1);
 	} else if (*arg == '1' || (strcmp(arg, "top-level") == 0)) {
 		eligible_ = eligible_toplevel;
-		fprintf(stderr, "CBQ: TL LS not supported\n");
-		return (-1);
+		return (1);
 	} else if (*arg == '2' || (strcmp(arg, "formal") == 0)) {
 		eligible_ = eligible_formal;
 		return (1);
@@ -245,6 +250,38 @@ CBQueue::algorithm(const char *arg)
 		return (-1);
 	}
 	return (-1);
+}
+
+/*
+ *
+ * toplevel_arrival:	called only using TL link sharing on arrival
+ * toplevel_departure:	called only using TL link sharing on departure
+ */
+
+void
+CBQueue::toplevel_departure(CBQClass *cl, double now)
+{
+	if (toplevel_ >= last_lender_->level_) {
+		if ((cl->qmon_->pkts() <= 1) ||
+		    last_lender_->undertime_ > now) {
+			toplevel_ = MAXLEVEL;
+		} else {
+			toplevel_ = last_lender_->level_;
+		}
+	}
+}
+
+void
+CBQueue::toplevel_arrival(CBQClass *cl, double now)
+{
+	if (toplevel_ > 1) {
+		if (cl->undertime_ < now)
+			toplevel_ = 1;
+		else if (toplevel_ > 2 && cl->lender_ != NULL) {
+			if (cl->lender_->undertime_ < now)
+				toplevel_ = 2;
+		}
+	}
 }
 
 /*
@@ -316,8 +353,11 @@ found:
 		active_[eligible->pri_] = eligible->peer_;
 		// eligible->q_->unblock();
 		eligible->q_->resume();	// fills in pending
-		if (pending_pkt_ && !none_found)
+		if (pending_pkt_ && !none_found) {
 			eligible->update(pending_pkt_, now);
+			if (toplevel())
+				toplevel_departure(eligible, now);
+		}
 	}
 	rval = pending_pkt_;
 	pending_pkt_ = NULL;
@@ -337,8 +377,10 @@ int CBQueue::send_permitted(CBQClass* cl, double now)
 {
 	if (cl->undertime_ < now) {
 		cl->delayed_ = 0;
+		last_lender_ = cl;
 		return (1);
 	} else if ((cl = find_lender(cl, now)) != NULL) {
+		last_lender_ = cl;
 		return (1);
 	}
 	return (0);
@@ -355,23 +397,25 @@ int CBQueue::send_permitted(CBQClass* cl, double now)
 CBQClass*
 CBQueue::find_lender(CBQClass* cl, double now)
 {
-	int last_level = LEAF_LEVEL;
-
 	if ((cl = cl->lender_) == NULL)
 		return (NULL);		// no ancestor to borrow from
 
 	while (cl != NULL) {
 		// skip past overlimit ancestors
+		//	if using TL and we're above the TL limit
+		//	do early out
 		if (cl->undertime_ > now) {
+			if (toplevel() && cl->level_ > toplevel_)
+				return (NULL);
 			cl = cl->lender_;
 			continue;
 		}
 
 		// found what may be an eligible
-		// lender
-		if (eligible_(cl, last_level, now))
+		// lender, check using per-algorithm eligibility
+		// criteria
+		if (eligible_(cl, now))
 			return (cl);
-		last_level = cl->level_;
 		cl = cl->lender_;
 	}
 	return (cl);
@@ -384,13 +428,13 @@ CBQueue::find_lender(CBQClass* cl, double now)
  *		and on or above level 'baselevel'
  */
 int
-CBQueue::eligible_formal(CBQClass *cl, int baselevel, double now)
+CBQueue::eligible_formal(CBQClass *cl, double now)
 {
 	int level;
 	CBQClass *p;
 
-	// check from level base to (cl->level - 1)
-	for (level = baselevel; level < cl->level_; level++) {
+	// check from leaf level to (cl->level - 1)
+	for (level = LEAF_LEVEL; level < cl->level_; level++) {
 		p = levels_[level];
 		while (p != NULL) {
 			if (!p->satisfied(now))
@@ -659,6 +703,8 @@ found:
 				next_eligible = eligible;
 			}
 			eligible->update(pending_pkt_, now);
+			if (toplevel())
+				toplevel_departure(eligible, now);
 		}
 		active_[eligible->pri_] = next_eligible;
 	}
@@ -737,6 +783,11 @@ CBQClass::leaf()
 void
 CBQClass::recv(Packet *pkt, Handler *h)
 {
+	if (cbq_->toplevel()) {
+		Scheduler* s;
+		if ((s = &Scheduler::instance()) != NULL)
+			cbq_->toplevel_arrival(this, s->clock());
+	}
 	send(pkt, h);	// queue packet downstream
 	if (!cbq_->blocked()) {
 		cbq_->sched();
