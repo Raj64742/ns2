@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.58 2004/10/22 04:40:25 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.59 2004/10/25 19:17:52 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -1653,5 +1653,74 @@ Test/initRateRFC3390 instproc init {} {
     $self next pktTraceFile
 }
 
+Class Test/voip superclass TestSuite
+Test/voip instproc init {} {
+    $self instvar net_ test_ guide_ voip
+    set net_	net2
+    set test_	voip
+    set guide_  \
+    "One VoIP TFRC flow and one TCP flow, different packet sizes."
+    set voip 1
+    $self next pktTraceFile
+}
+Test/voip instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
+    if {$quiet == "false"} {puts $guide_}
+    $self setTopo
+    $ns_ at 0.0 "$ns_ bandwidth $node_(r1) $node_(r2) 0.2Mbps duplex"
+    $ns_ queue-limit $node_(r1) $node_(r2) 10 
+    set interval_ 0.1
+    set stopTime 5.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+    set pktsize 120
+    set cbrInterval 0.01
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    $tf1 set voip_ $voip
+    $tf1 set packetSize_ $pktsize
+    set cbr [new Application/Traffic/CBR]
+    $cbr set packetSize_ $pktsize
+    $cbr set interval_ $cbrInterval
+    $cbr attach-agent $tf1
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s4) 1]
+    $tcp1 set window_ 10
+    $tcp1 set packetSize_ 1460
+    set ftp1 [$tcp1 attach-app FTP]
+
+    $ns_ at 0.0 "$cbr start"
+    $ns_ at $stopTime0 "$cbr stop"
+    $ns_ at 0.1 "$ftp1 start"
+    $ns_ at $stopTime0 "$ftp1 stop"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp1.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
+Class Test/noVoip superclass TestSuite
+Test/noVoip instproc init {} {
+    $self instvar net_ test_ guide_ voip
+    set net_	net2
+    set test_	noVoip
+    set guide_  \
+    "One TFRC flow (not voip) and one TCP flow, different packet sizes."
+    set voip 0
+    Test/noVoip instproc run {} [Test/voip info instbody run ]
+    $self next pktTraceFile
+}
 TestSuite runTest
 
