@@ -57,7 +57,7 @@ Http rvReplyLen {val} { $self set rvReplyLen_ $val }
 Http rvNumImg {val} { $self set rvNumImg_ $val }
 Http rvImgLen {val} { $self set rvNumImg_ $val }
 
-Http instproc init {ns client server {args ""}} {
+Http instproc init {ns client server args} {
 	eval $self next $args
 	$self instvar srcType_ snkType_ phttp_ maxConnections_
 	$self instvar rvThinkTime_ rvReqLen_ rvRepLen_ rvNumImg_ rvImgLen_
