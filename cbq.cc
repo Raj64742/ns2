@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.9 1997/04/23 01:50:26 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/cbq.cc,v 1.10 1997/04/30 18:28:43 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -199,6 +199,7 @@ void
 CBQueue::sched()
 {
 	Scheduler& s = Scheduler::instance();
+	blocked_ = 1;
 	s.schedule(&qh_, &intr_, 0);
 }
 
@@ -235,7 +236,8 @@ CBQueue::algorithm(const char *arg)
 		return (1);
 	} else if (*arg == '1' || (strcmp(arg, "top-level") == 0)) {
 		eligible_ = eligible_toplevel;
-		return (1);
+		fprintf(stderr, "CBQ: TL LS not supported\n");
+		return (-1);
 	} else if (*arg == '2' || (strcmp(arg, "formal") == 0)) {
 		eligible_ = eligible_formal;
 		return (1);
@@ -737,8 +739,9 @@ void
 CBQClass::recv(Packet *pkt, Handler *h)
 {
 	send(pkt, h);	// queue packet downstream
-	if (!cbq_->blocked())
+	if (!cbq_->blocked()) {
 		cbq_->sched();
+	}
 	return;
 }
 
