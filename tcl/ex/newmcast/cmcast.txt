@@ -1,0 +1,25 @@
+
+source: node 2
+RP    : node 3
+
+Register msgs in   : blue
+native data pkts in: black
+
+time    entity  event
+========================
+0.2	node 2:	starts sending in CBR -> registers
+0.3	node 1: joins (won't see join messages 'cause this is session mcast)
+		but see native data pkts from node 3-> node 1
+0.4	node 0: joins, data pkts from node 3-> node 1-> node 0
+
+*0.45	switch tree type from RP tree to shortest path tree
+	native data pkts from node 2-> node 1-> node 0
+	(slow motion here will see better
+)
+0.6	node 3: joins, data pkt from node 2 -> node 1 -> node 3 and 0
+0.7	node 0: leaves, node 1 stop forwarding to node 0
+
+*0.85	recompute mroutes: pretty much everything stays the same
+
+0.9	node 3: leaves, node 1 stop forwarding to node 3
+1.0	node 1: leaves, node 2 stop forwarding to node 1
