@@ -1268,8 +1268,8 @@ tcl/test/test-output-webcache/ottl-PBtr.Z
 tcl/test/test-output-webcache/ttl-PB.Z
 tcl/test/test-output-webcache/ttl-PBtr.Z
 tcl/test/test-output-wireless-lan
-tcl/test/test-output-wireless-lan/dsdv.gz
-tcl/test/test-output-wireless-lan/dsr.gz
+tcl/test/test-output-wireless-lan/dsdv.Z
+tcl/test/test-output-wireless-lan/dsr.Z
 tcl/test/test-sack-v1
 tcl/test/test-suite-algo-routing.tcl
 tcl/test/test-suite-cbq-v1.tcl
