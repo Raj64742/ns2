@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.186 2000/01/24 17:58:19 klan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.187 2000/05/05 01:26:59 klan Exp $
 
 #
 
@@ -1043,11 +1043,12 @@ Simulator instproc nam-end-wireless {stoptime} {
         }
 }
 
-Simulator instproc initial_node_pos {nodep size} {
-        $self puts-nam-config "n -t * -s [$nodep id] \
-        -x [$nodep set X_] -y [$nodep set Y_] -Z [$nodep set Z_] -z $size \
-        -v circle -c black"
-}
+#Simulator instproc initial_node_pos {nodep size} {
+#
+#          $self puts-nam-config "n -t * -s [$nodep id] \
+#           -x [$nodep set X_] -y [$nodep set Y_] -Z [$nodep set Z_] -z $size \
+#           -v circle -c black"
+#}
 
 Simulator instproc namtrace-some file {
 	$self instvar namtraceSomeFile_
@@ -1067,17 +1068,24 @@ Simulator instproc namtrace-all-wireless {file optx opty} {
         
 Simulator instproc initial_node_pos {nodep size} {
     $self instvar addressType_
+    $self instvar energyModel_ 
+
+    if [info exists energyModel_] {  
+      set nodeColor "green"
+    } else {
+      set nodeColor "black"
+    }
 
     if { [info exists addressType_] && $addressType_ == "hierarchical" } {
 
         #hierarchical addressing
         $self puts-nam-config "n -t * -a [$nodep set address_] -s [$nodep id] \
 -x [$nodep set X_] -y [$nodep set Y_] -Z [$nodep set Z_] -z $size \
--v circle -c black"
+-v circle -c $nodeColor"
     } else { #flat addressing
         $self puts-nam-config "n -t * -s [$nodep id] \
 -x [$nodep set X_] -y [$nodep set Y_] -Z [$nodep set Z_] -z $size \
--v circle -c black"
+-v circle -c $nodeColor"
     }
 }
 
