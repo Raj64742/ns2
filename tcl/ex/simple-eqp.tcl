@@ -113,9 +113,9 @@ proc build-tcp { n0 n1 startTime } {
 proc finish {} {
 	global argv0
 	global ns f nf
+	$ns flush-trace
 	close $f
 	close $nf
-	$ns flush-trace
 
 	if [string match {*.tcl} $argv0] {
 		set prog [string range $argv0 0 [expr [string length $argv0] - 5]]
