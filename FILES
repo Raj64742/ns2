@@ -26,6 +26,7 @@ configure
 configure.in
 connector.cc
 connector.h
+delay.h
 delay.cc
 drop-tail.cc
 dynalink.cc
