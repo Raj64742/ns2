@@ -892,14 +892,14 @@ We can make the following observations from this definition:
 
   --- \code{argv[0]} contains the name of the object.
 
-  --- \code{argv[2\ldots4]} contain
+  --- \code{argv[1\ldots3]} contain
   \code{$self}, \code{$class}, and \code{$proc}.
   Since \code{create} is called
   through the instance procedure \code{create-shadow},
-  \code{argv[4]} contains \code{create-shadow}.
+  \code{argv[3]} contains \code{create-shadow}.
 
-  --- \code{argv[5\ldots]}
-  contain any additional arguments provided by the user.
+  --- \code{argv[4]}
+  contain any additional arguments (passed as a string) provided by the user.
 \end{enumerate}
 The \clsref{Trace}{../ns-2/trace.cc} illustrates
 argument handling by TclClass methods.
