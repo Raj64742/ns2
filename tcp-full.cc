@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.93 2001/08/16 00:08:51 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.94 2001/08/16 00:43:03 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -870,10 +870,15 @@ SackFullTcpAgent::send_allowed(int seq)
 	// not in pipe control, so use regular control
 	if (!pipectrl_)
 		return (FullTcpAgent::send_allowed(seq));
-	// in pipe control, but seq # overshoots receiver's advertised win
-	if (seq > (highest_ack_ + int(wnd_)))
+
+	// don't overshoot receiver's advertised window
+	int topawin = highest_ack_ + int(wnd_) * maxseg_;
+	if (seq > topawin)
 		return FALSE;
-	return (pipe_ < int(cwnd_));
+
+	// don't overshoot cwnd_
+	int cwin = int(cwnd_) * maxseg_;
+	return (pipe_ < cwin);
 }
 
 /*
@@ -2510,7 +2515,7 @@ full_sack_action:
 //printf("%f: FAST-RTX seq:%d, h_seqno_ is now:%d, pipe:%d, cwnd:%d, recover:%d\n",
 //now(), int(highest_ack_), h_seqno_, pipe_, int(cwnd_), recover_);
 
-//send_much(0, REASON_DUPACK, maxburst_);
+send_much(0, REASON_DUPACK, maxburst_);
 
         return;
 }
@@ -2733,6 +2738,9 @@ SackFullTcpAgent::nxt_tseq()
 			return (seq);
 		} else if (fcnt <= 0)
 			break;
+		else {
+			seq += maxseg_;
+		}
 	}
 //if (int(t_seqno_) > 1)
 //printf("%f: nxt_tseq<top> returning %d\n",
