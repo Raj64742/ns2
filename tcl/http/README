@@ -1,3 +1,16 @@
+			HTTP Model based on empirical data
+
+Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
+
+data/Http*.cdf:	empirical data files provided by Bruce Mah
+http.tcl:	class Http implements an HTTP connection
+		Creation in ns:  new Http $ns $client $server
+http-ex.tcl:	an example that use Http module
+		Command line: ns http-ex.tcl -maxConn 4
+
+-----------------------------------------------------------------------------
+		Older HTTP examples (not using the above module)
+
 http-single.tcl and http-mult.tcl were contributed to VINT
 by Curtis Villamizar.
 

@@ -15,14 +15,14 @@ if [info exists env(nshome)] {
 	exit 1
 }
 set env(PATH) "$nshome/bin:$env(PATH)"
-source $nshome/tcl/lan/ns-ll.tcl
 source $nshome/tcl/lan/ns-lan.tcl
 source $nshome/tcl/http/http.tcl
 
 set opt(trsplit) "-"
 set opt(tr)	out
+set opt(namtr)	""
 set opt(stop)	20
-set opt(node)	2
+set opt(node)	3
 set opt(seed)	0
 
 set opt(bw)	1.8Mb
@@ -72,21 +72,6 @@ proc getopt {argc argv} {
 	}
 }
 
-proc swap {upvar1 upvar2} {
-	upvar $upvar1 var1 $upvar2 var2
-	set temp $var1
-	set var1 $var2
-	set var2 $temp
-}
-
-proc cat {filename} {
-	set fd [open $filename r]
-	while {[gets $fd line] >= 0} {
-		puts $line
-	}
-	close $fd
-}
-
 
 proc finish {} {
 	global env nshome pwd
@@ -98,25 +83,34 @@ proc finish {} {
 		lappend comment $opt($key)
 	}
 	exec perl $nshome/bin/trsplit -tt r -pt tcp -c "$comment" \
-			$opt(trsplit) $opt(tr) 2>$opt(tr)-bwt > $opt(tr)-bw
-	cat $opt(tr)-bwt
-	exec cat $opt(tr)-bwt >> $opt(tr)-bw
-	exec rm $opt(tr)-bwt
+			$opt(trsplit) $opt(tr) >& $opt(tr)-bw
+	exec head -1 $opt(tr)-bw >@ stdout
 
 	if [info exists opt(g)] {
-		eval exec xgraph -nl -M -display $env(DISPLAY) \
-				[lsort [glob $opt(tr).*]]
+		catch "exec xgraph -nl -M -display $env(DISPLAY) \
+				[lsort [glob $opt(tr).*]] &"
 	}
 	exit 0
 }
 
 
-proc create-trace {trfile} {
-	if [file exists $trfile] {
-		exec touch $trfile.
-		eval exec rm -f $trfile ${trfile}-bw [glob $trfile.*]
+proc create-trace {} {
+	global ns opt
+
+	if {[info exists opt(f)] || [info exists opt(g)]} {
+		set opt(trsplit) "-f"
 	}
-	return [open $trfile w]
+	if [file exists $opt(tr)] {
+		exec touch $opt(tr).
+		eval exec rm -f $opt(tr) $opt(tr)-bw [glob $opt(tr).*]
+	}
+
+	set trfd [open $opt(tr) w]
+	$ns trace-all $trfd
+	if {$opt(namtr) != ""} {
+		$ns namtrace-all [open $opt(namtr) w]
+	}
+	return $trfd
 }
 
 
@@ -206,25 +200,15 @@ proc new_telnet {i src dst} {
 
 ## MAIN ##
 getopt $argc $argv
-if {[info exists opt(f)] || [info exists opt(g)]} {
-	set opt(trsplit) "-f"
-}
-if {$opt(seed) >= 0} {
-	ns-random $opt(seed)
-}
-if [info exists opt(qsize)] {
-	Queue set limit_ $opt(qsize)
-}
+if {$opt(seed) >= 0} { ns-random $opt(seed) }
+if [info exists opt(qsize)] { Queue set limit_ $opt(qsize) }
 
 set ns [new Simulator]
-
-set trfd [create-trace $opt(tr)]
-$ns trace-all $trfd
+set trfd [create-trace]
 
 create-topology
-create-source
-
 $lan trace $ns $trfd
 
+create-source
 $ns at $opt(stop) "finish"
 $ns run
