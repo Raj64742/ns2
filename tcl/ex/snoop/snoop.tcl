@@ -1,6 +1,53 @@
 #!/bin/sh
 # \
-[ -x ../../ns ] && nshome=../../
+# Test script for the snoop protocol (and other link protocols).
+
+# Example ways of running this script are:
+# ns snoop.tcl -e 0.2 -eu time -stop 20 -ll Snoop -r
+# ns snoop.tcl -e 32768 -eu byte -stop 20 -ll Snoop -r
+# ns snoop.tcl -e 100 -eu pkt -stop 20 -ll Snoop -r
+
+# These are for the time-, byte- and packet-based error models.  
+# In the first case, 0.2 is the mean number for seconds between errors,
+# in the second case 32768 is the mean # of bytes, and in the third
+# case 100 is the mean number of packets between errors.
+# All errors are exponentially distributed according to the specified rates.
+# This uses the error model support in ns-ber.tcl
+
+#
+# Copyright (c) 1996 Regents of the University of California.
+# All rights reserved.
+# 
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+# 1. Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+# 2. Redistributions in binary form must reproduce the above copyright
+#    notice, this list of conditions and the following disclaimer in the
+#    documentation and/or other materials provided with the distribution.
+# 3. All advertising materials mentioning features or use of this software
+#    must display the following acknowledgement:
+# 	This product includes software developed by the Daedalus Research
+# 	Group at the University of California Berkeley.
+# 4. Neither the name of the University nor of the Research Group may be
+#    used to endorse or promote products derived from this software without
+#    specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+# IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+# ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
+# FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
+# DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
+# OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
+# HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+# OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
+# SUCH DAMAGE.
+#
+
+test [ -x ../../ns ] && nshome=../../
 # \
 exec ${nshome}ns "$0" "$@"
 
@@ -11,34 +58,41 @@ if [file executable ../../ns] {
 
 source ${nshome}tcl/lan/ns-mac.tcl
 source ${nshome}tcl/lan/ns-lan.tcl
+source util.tcl
+
 set env(PATH) "${nshome}bin:$env(PATH)"
 
 set opt(tr)	out
+set opt(ltr)    lan
 set opt(stop)	20
-set opt(num)	3
-set opt(seed)	0
-set tcptrace    [open tcp.out w]
+set opt(num)	1
+set tcptrace    [open tcp.tr w]
 
+set opt(seed)   0
 set opt(bw)	2Mb
 set opt(delay)	3ms
-set opt(ll)	LL/Snoop
+set opt(qsize)  20
+set opt(ll)	LL
 set opt(ifq)	Queue/DropTail
 set opt(mac)	Mac/Csma/Ca
-set opt(chan)	Channel/Duplex
+set opt(chan)	Channel
 set opt(tp)	TCP/Reno
 set opt(sink)	TCPSink
 set opt(source)	FTP
 set opt(cbr)	0
-set errorrate   0.1
+set opt(e)      0
+set opt(errmodel) expo
+set opt(eu)     time
 
-LL/Snoop set bandwidth_ 1Mb
-LL/Snoop set delay_ 3ms
+LL/Snoop set snoopTick_ [expr [Agent/TCP set tcpTick_]/5]
+LL/Snoop set bandwidth_ 2Mb
+LL/Snoop set delay_ 0
 LL/Snoop set snoopDisable_ 0
 LL/Snoop set srtt_ 50ms
 LL/Snoop set rttvar_ 100ms
 
 if {$argc == 0} {
-	puts "Usage: $argv0 \[-stop sec\] \[-seed value\] \[-num nodes\]"
+	puts "Usage: $argv0 \[-stop sec\] \[-r value\] \[-num nodes\]"
 	puts "\t\[-tr tracefile\] \[-g\]"
 	puts "\t\[-ll lltype\] \[-ifq ifqtype\] \[-mac mactype\] \[-chan chan\]"
 	puts "\t\[-bw $opt(bw)] \[-delay $opt(delay) \[-e\]"
@@ -47,7 +101,7 @@ if {$argc == 0} {
 
 proc getopt {argc argv} {
 	global opt
-	lappend optlist tr stop num seed
+	lappend optlist tr stop num r
 	lappend optlist bw delay ll ifq mac chan tp sink source cbr
 
 	for {set i 0} {$i < $argc} {incr i} {
@@ -79,17 +133,17 @@ proc cat {filename} {
 
 proc finish {} {
 	global env nshome
-	global ns opt trfd tcptrace
+	global ns opt trfd tcptrace 
 
 	$ns flush-trace
 	close $trfd
 	flush $tcptrace
 	close $tcptrace
 
-	exec perl ${nshome}bin/trsplit -f -tt r -pt tcp -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan) $opt(seed)" $opt(tr) 2>$opt(tr)-bwt >> $opt(tr)-bw
-	exec cat $opt(tr)-bwt >> $opt(tr)-bw
-	cat $opt(tr)-bwt
-	exec rm $opt(tr)-bwt
+#	exec perl ${nshome}bin/trsplit -f -tt r -pt tcp -c "$opt(num) $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan)" $opt(tr) 2>$opt(tr)-bwt >> $opt(tr)-bw
+#	exec cat $opt(tr)-bwt >> $opt(tr)-bw
+#	cat $opt(tr)-bwt
+#	exec rm $opt(tr)-bwt
 
 	if [info exists opt(g)] {
 		eval exec xgraph -nl -M -display $env(DISPLAY) \
@@ -100,7 +154,9 @@ proc finish {} {
 
 
 proc create-trace {trfile} {
-	global trfd
+	# ltrfile is the trace of the LAN events
+	# need LAN id?
+	global trfd ltrfd
 	if [file exists $trfile] {
 		exec touch $trfile.
 		eval exec rm $trfile [glob $trfile.*]
@@ -116,6 +172,10 @@ proc trace-mac {lan trfd} {
 	$channel trace-target $trHop
 }
 
+# Topology
+# s(0) --------- node(0) - - - - node(1)
+# Snoop runs at node(0).  Make sure opt(ll) is set to LL/Snoop
+#
 proc create-topology {num} {
 	global ns opt
 	global lan node s
@@ -125,7 +185,7 @@ proc create-topology {num} {
 		set node($i) [$ns node]
 		lappend nodelist $node($i)
 	}
-	Queue set limit_ 50
+	Queue set limit_ $opt(qsize)
 	set lan [$ns make-lan $nodelist $opt(bw) $opt(delay) \
 			$opt(ll) $opt(ifq) $opt(mac) $opt(chan)]
 #	puts "WLAN: $lan $opt(bw) $opt(delay) $opt(ll) $opt(ifq) $opt(mac) $opt(chan)"
@@ -144,6 +204,9 @@ proc create-source {num} {
 				$s(0) $opt(sink) $node($i) 0]
 		set source($i) [$tp($i) attach-source $opt(source)]
 		$ns at [expr $i/1000.0] "$source($i) start"
+		setupTcpTracing $tp($i) $tcptrace
+		$tp($i) set tcpTick_ 0.5
+		LL/Snoop set snoopTick_ 0.1
 		$tp($i) trace $tcptrace
 	}
 
@@ -158,22 +221,25 @@ proc create-source {num} {
 
 ## MAIN ##
 getopt $argc $argv
-if {$opt(seed) > 0} {
+if { [info exists opt(r)] } {
 	ns-random $opt(seed)
+	$defaultRNG seed 0
 }
+
 set ns [new Simulator]
 
 create-trace $opt(tr)
 $ns trace-all $trfd
 
 create-topology $opt(num)
+
 $lan trace $ns $trfd
 
-if [info exists opt(tracemac)] { trace-mac $lan $trfd }
+if [info exists opt(tracemac)] { trace-mac $lan $ltrfd }
 
-if [info exists opt(e)] { 
+if { $opt(e) > 0 } {
 	source ber.tcl
-	create-error $opt(num) $errorrate
+	create-error $opt(num) $opt(e) $opt(errmodel) $opt(eu)
 }
 
 create-source $opt(num)
