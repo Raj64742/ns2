@@ -1,5 +1,5 @@
 /* dsdv.cc
-   $Id: dsdv.cc,v 1.1 1998/12/08 19:18:11 haldar Exp $
+   $Id: dsdv.cc,v 1.2 1998/12/17 18:47:09 haldar Exp $
 
    */
 
@@ -440,6 +440,7 @@ DSDV_Agent::makeUpdate(int& periodic)
   if (change_count == 0) 
     {
       Packet::free(p); // allocated by us, no drop needed
+      p = 0;
       return NULL; // nothing to advertise
     }
 
@@ -766,6 +767,7 @@ DSDV_Agent::processUpdate (Packet * p)
    * call drop here.
    */
   Packet::free (p);
+  p = 0;
 }
 
 void
@@ -997,7 +999,7 @@ DSDV_Agent::command (int argc, const char *const *argv)
 	   * call drop here.
 	   */
 	Packet::free (p2);
-
+	p2 = 0;
 	  for (table_->InitLoop (); (prte = table_->NextLoop ());)
 	    output_rte ("\t", prte, this);
 

@@ -194,6 +194,7 @@ WirelessChannel::sendUp(Packet* p, Phy *tifp)
 		}
 		s.schedule(rifp, newp, propdelay);
 	}
+	Packet::free(p);
 }
 
 

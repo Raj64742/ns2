@@ -285,6 +285,7 @@ newMac802_11::discard(Packet *p, const char* why)
 	 */
 	if(p->txinfo.Pr < p->txinfo.ant.RXThresh) {
 		Packet::free(p);
+		p = 0;
 		return;
 	}
 #endif 0
@@ -293,6 +294,7 @@ newMac802_11::discard(Packet *p, const char* why)
 	   necessarily read any data from it, so we just toss it now */
 	if(ch->error() != 0) {
 		Packet::free(p);
+		p = 0;
 		return;
 	}
 
@@ -363,6 +365,7 @@ newMac802_11::discard(Packet *p, const char* why)
 		exit(1);
 	}
 	Packet::free(p);
+	p = 0;
 }
 
 
@@ -376,6 +379,7 @@ newMac802_11::capture(Packet *p)
 	set_nav(usec(eifs_ + TX_Time(p)));
 
 	Packet::free(p);
+	p = 0;
 }
 
 
@@ -724,7 +728,7 @@ newMac802_11::sendRTS(int dst)
 {
 	Packet *p = Packet::alloc();
 	hdr_cmn* ch = HDR_CMN(p);
-	struct rts_frame *rf = (struct rts_frame*)p->access(off_newmac_);
+	struct rts_frame *rf = (struct rts_frame*)p->access(newhdr_mac::offset_);
 	
 	assert(pktTx_);
 	assert(pktRTS_ == 0);
@@ -738,6 +742,7 @@ newMac802_11::sendRTS(int dst)
 	if( (u_int32_t) HDR_CMN(pktTx_)->size() < macmib_->RTSThreshold ||
 	    (u_int32_t) dst == MAC_BROADCAST) {
 		Packet::free(p);
+		p = 0;
 		return;
 	}
 
@@ -780,7 +785,7 @@ newMac802_11::sendCTS(int dst, double rts_duration)
 {
 	Packet *p = Packet::alloc();
 	hdr_cmn* ch = HDR_CMN(p);
-	struct cts_frame *cf = (struct cts_frame*)p->access(off_newmac_);
+	struct cts_frame *cf = (struct cts_frame*)p->access(newhdr_mac::offset_);
 
 	assert(pktCTRL_ == 0);
 
@@ -819,7 +824,7 @@ newMac802_11::sendACK(int dst)
 {
 	Packet *p = Packet::alloc();
 	hdr_cmn* ch = HDR_CMN(p);
-	struct ack_frame *af = (struct ack_frame*)p->access(off_newmac_);
+	struct ack_frame *af = (struct ack_frame*)p->access(newhdr_mac::offset_);
 
 	assert(pktCTRL_ == 0);
 
@@ -1251,7 +1256,7 @@ newMac802_11::recv_timer()
 void
 newMac802_11::recvRTS(Packet *p)
 {
-	struct rts_frame *rf = (struct rts_frame*)p->access(off_newmac_);
+	struct rts_frame *rf = (struct rts_frame*)p->access(newhdr_mac::offset_);
 
 	if(tx_state_ != newMAC_IDLE) {
 		discard(p, DROP_MAC_BUSY);

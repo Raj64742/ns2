@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  *
 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.44 1998/12/08 23:43:09 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.45 1998/12/17 18:47:06 haldar Exp $ (LBL)
 
  */
 
@@ -138,6 +138,8 @@ private:
 	unsigned char* bits_;	// header bits
 	unsigned char* data_;	// variable size buffer for 'data'
 	unsigned int datalen_;	// length of variable size buffer
+       //void init();            // initialize pkts getting freed.
+	bool fflag_;
 protected:
 	static Packet* free_;	// packet free list
 public:
@@ -276,8 +278,17 @@ public:
 inline Packet* Packet::alloc()
 {
 	Packet* p = free_;
-	if (p != 0)
+	if (p != 0) {
 		free_ = p->next_;
+		//p->init();
+		if (p->datalen_) {
+		delete[] p->data_;
+		// p->data_ = 0;
+		p->datalen_ = 0;
+		}
+		p->uid_ = 0;
+		p->time_ = 0;
+	}
 	else {
 		p = new Packet;
 		p->bits_ = new unsigned char[hdrlen_];
@@ -286,8 +297,9 @@ inline Packet* Packet::alloc()
 //		p->data_ = 0;
 //		p->datalen_ = 0;
 		bzero(p->bits_, hdrlen_);
-		//p->incoming = 0;
 	}
+	p->fflag_ = 0;
+	p->next_ = NULL;
 	return (p);
 }
 
@@ -312,23 +324,37 @@ inline void Packet::allocdata(int n)
 
 }
 
+/*void Packet::init()
+{
+	if (datalen_) {
+		delete[] data_;
+		// p->data_ = 0;
+		datalen_ = 0;
+	}
+	uid_ = 0;
+	time_ = 0;
+}*/
+
+
 inline void Packet::free(Packet* p)
 {
 	int off_cmn_ = hdr_cmn::offset_;
 	hdr_cmn* ch = (hdr_cmn*)p->access(off_cmn_);
-
-	if (ch->ref_count() == 0) {
-		p->next_ = free_;
-		free_ = p;
-		if (p->datalen_) {
-			delete[] p->data_;
-//			p->data_ = 0;
-			p->datalen_ = 0;
+	if (p->fflag_ == 0) {
+		if (ch->ref_count() == 0) {
+			p->next_ = free_;
+			free_ = p;
+			//init();
+			p->fflag_ = 1;
+		} else {
+			ch->ref_count() = ch->ref_count() - 1;
 		}
-	} else {
-		ch->ref_count() = ch->ref_count() - 1;
 	}
 }
+
+	
+	
+
 
 inline Packet* Packet::copy() const
 {
@@ -339,9 +365,9 @@ inline Packet* Packet::copy() const
 		p->data_ = new unsigned char[datalen_];
 		memcpy(p->data_, data_, datalen_);
 	}
-#ifdef NS_MOBILE
+	//#ifdef NS_MOBILE
 	p->txinfo.init(&txinfo);
-#endif
+	//#endif
 	return (p);
 }
 
