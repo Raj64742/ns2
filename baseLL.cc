@@ -44,7 +44,7 @@ public:
 } class_baseLL;
 
 
-BaseLL::BaseLL() : LinkDelay(), em_(0)
+BaseLL::BaseLL() : LinkDelay(), em_(0), sendtarget_(0), recvtarget_(0)
 {
 }
 
@@ -52,17 +52,32 @@ BaseLL::BaseLL() : LinkDelay(), em_(0)
 int
 BaseLL::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
 		if (strcmp(argv[1], "error") == 0) {
 			em_ = (ErrorModel*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "sendtarget") == 0) {
+		else if (strcmp(argv[1], "sendtarget") == 0) {
 			sendtarget_ = (NsObject*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "recvtarget") == 0) {
+		else if (strcmp(argv[1], "recvtarget") == 0) {
 			recvtarget_ = (NsObject*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+	}
+	if (argc == 2) {
+		if (strcmp(argv[1], "error") == 0) {
+			tcl.resultf("%s", em_->name());
+			return (TCL_OK);
+		}
+		else if (strcmp(argv[1], "sendtarget") == 0) {
+			tcl.resultf("%s", sendtarget_->name());
+			return (TCL_OK);
+		}
+		else if (strcmp(argv[1], "recvtarget") == 0) {
+			tcl.resultf("%s", recvtarget_->name());
 			return (TCL_OK);
 		}
 	}

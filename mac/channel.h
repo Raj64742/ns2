@@ -41,8 +41,8 @@
 class Channel : public Connector {
 public:
 	Channel();
-	void recv(Packet* p, Handler*);
-	int send(Packet* p, NsObject* target, double txstart, double txstop=0);
+	void senseCarrier(Packet* p, Handler*);
+	int send(Packet* p, double txtime, double txstart=0.);
 	int hold(double txtime);
 	void drop(Packet* p);
 
@@ -52,8 +52,6 @@ public:
 	inline int numtx() { return numtx_; }
 
 protected:
-	int command(int argc, const char*const* argv);
-
 	double delay_;		// channel delay, for collision interval
 	double txstop_;		// end of the last transmission
 	double cwstop_;		// end of the contention window

@@ -72,10 +72,10 @@ MacHandlerEoc::handle(Event* e)
 
 CsmaMac::CsmaMac() : Mac(), attempt_(0), mhEoc_(*this)
 {
-	bind("maxAttempt_", &maxAttempt_);
 	bind("slotTime_", &slotTime_);
 	bind("cwmin_", &cwmin_);
 	bind("cwmax_", &cwmax_);
+	bind("maxAttempt_", &maxAttempt_);
 	cw_ = cwmin_;
 }
 
@@ -91,7 +91,7 @@ CsmaMac::send(Packet* p)
 	else if (txstop + ifs_ > now)
 		s.schedule(&mh_, p, txstop + ifs_ - now);
 	else
-		channel_->recv(p, &mhEoc_);
+		channel_->senseCarrier(p, &mhEoc_);
 }
 
 

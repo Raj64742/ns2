@@ -53,9 +53,16 @@ Mac::Mac() : LinkDelay(), callback_(0), channel_(0), mh_(*this)
 int
 Mac::command(int argc, const char*const* argv)
 {
+	Tcl& tcl = Tcl::instance();
 	if (argc == 3) {
 		if (strcmp(argv[1], "channel") == 0) {
 			channel_ = (Channel*) TclObject::lookup(argv[2]);
+			return (TCL_OK);
+		}
+	}
+	else if (argc == 2) {
+		if (strcmp(argv[1], "channel") == 0) {
+			tcl.resultf("%s", channel_->name());
 			return (TCL_OK);
 		}
 	}
@@ -67,7 +74,6 @@ void
 Mac::recv(Packet* p, Handler* h)
 {
 	callback_ = h;
-	target_ = (NsObject*) p->target();
 	send(p);
 }
 
@@ -77,7 +83,7 @@ Mac::send(Packet* p)
 {
 	Scheduler& s = Scheduler::instance();
 	double txt = txtime(p);
-	channel_->send(p, target_, txt + delay_);
+	channel_->send(p, txt + delay_);
 	s.schedule(callback_, &intr_, txt);
 }
 

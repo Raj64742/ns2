@@ -35,13 +35,22 @@
 
 LL/Base set bandwidth_ 10Mb
 LL/Base set delay_ 1ms
-Mac/Base set ifs_ 10us
+
 Mac/Base set bandwidth_ 10Mb
 Mac/Base set delay_ 1ms
+Mac/Base set ifs_ 16us
+Mac/Csma set bandwidth_ 10Mb
+Mac/Csma set delay_ 1ms
+Mac/Csma set ifs_ 16us
+Mac/Csma set slotTime_ 16us
+Mac/Csma set cwmin_ 1
+Mac/Csma set cwmax_ 256
+Mac/Csma set maxAttempt_ 10
+
 Channel set delay_ 1ms
 
 
-Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } { lltype "LL/Base" } { qtype "Queue/Droptail" } { mactype "Mac/Base" } } {
+Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } { lltype "LL/Base" } { ifqtype "Queue/DropTail" } { mactype "Mac/Base" } } {
 	$self instvar link_ queueMap_ nullAgent_ traceAllFile_
 
 	if [info exists queueMap_($qtype)] {
@@ -58,7 +67,7 @@ Simulator instproc shared-duplex-link { nodelist bw delay { qtype "DropTail" } {
 		set mac_($sid) [new $mactype]
 		$mac_($sid) channel $channel_($sid)
 
-		set ifq_($sid) [new $qtype]
+		set ifq_($sid) [new $ifqtype]
 		$ifq_($sid) target $mac_($sid)
 	}
 		
@@ -104,7 +113,7 @@ Link/SharedDuplex instproc init { src dst bw delay qtype lltype } {
 Link/SharedDuplex instproc setuplinkage { src ifq dstlink } {
 	$self instvar link_
 
-	$link_ ifqueue $ifq
+	$link_ target $ifq
 	$link_ recvtarget [$src entry]
 	$link_ sendtarget [$dstlink link]
 }

@@ -51,15 +51,8 @@ Channel::Channel() : txstop_(0), cwstop_(0), numtx_(0)
 }
 
 
-int
-Channel::command(int argc, const char*const* argv)
-{
-	return (Connector::command(argc, argv));
-}
-
-
 void
-Channel::recv(Packet* p, Handler* h)
+Channel::senseCarrier(Packet* p, Handler* h)
 {
 	Scheduler& s = Scheduler::instance();
 	double now = s.clock();
@@ -73,7 +66,7 @@ Channel::recv(Packet* p, Handler* h)
 
 
 int
-Channel::send(Packet* p, NsObject* target, double txtime, double txstart)
+Channel::send(Packet* p, double txtime, double txstart)
 {
 	// without collision, return 0
 	Scheduler& s = Scheduler::instance();
@@ -85,7 +78,7 @@ Channel::send(Packet* p, NsObject* target, double txtime, double txstart)
 		drop(p);
 		return 1;
 	}
-	s.schedule(target, p, txstop_ - s.clock());
+	s.schedule(p->target(), p, txstop_ - s.clock());
 	return 0;
 }
 
