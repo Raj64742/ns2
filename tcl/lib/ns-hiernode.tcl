@@ -103,7 +103,7 @@ HierNode instproc enable-mcast sim {
 }
 
 HierNode instproc add-hroute { dst target } {
-	$self instvar classifiers_
+	$self instvar classifiers_ rtsize_
 	set al [$self split-addrstr $dst]
 	set l [llength $al]
 	for {set i 1} {$i <= $l} {incr i} {
@@ -114,6 +114,10 @@ HierNode instproc add-hroute { dst target } {
 			$classifiers_($i) install $d $classifiers_([expr $i + 1]) 
 		}
 	}
+    #
+    # increase the routing table size counter - keeps track of rtg table size for 
+    # each node
+    set rtsize_ [expr $rtsize_ + 1]
 }
 
 
