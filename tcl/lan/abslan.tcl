@@ -205,6 +205,10 @@ AbsLanNode instproc attach {agent} {
 	# NOTHING
 }
 
+AbsLanNode instproc sp-add-route {args} {
+	# NOTHING: use defRouter to find routes
+}
+
 AbsLanNode instproc add-route {args} {
 	# NOTHING: use defRouter to find routes
 }

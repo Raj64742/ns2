@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.28 2000/12/01 23:38:35 johnh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/node.cc,v 1.29 2001/02/01 22:56:21 haldar Exp $
  *
  * CMU-Monarch project's Mobility extensions ported by Padma Haldar, 
  * 10/98.
@@ -103,6 +103,7 @@ int NixRoutingUsed = -1;
 
 Node::Node() : 
 	address_(-1), nodeid_ (-1), namChan_(0),
+	rtnotif_(NULL),
 #ifdef NIXVECTOR
 	nixnode_(NULL),
 #endif /* NIXVECTOR */
@@ -152,6 +153,8 @@ Node::command(int argc, const char*const* argv)
 			tcl.resultf("%d", address_);
  			return TCL_OK;
 		}
+			
+
 	} else if (argc == 3) {
 #ifdef NIXVECTOR
 		// Mods for Nix-Vector Routing
@@ -211,8 +214,63 @@ Node::command(int argc, const char*const* argv)
 			addNeighbor(node);
 			return TCL_OK;
 		}
+		// this will go away when rtnotif_ becomes
+		// a shared obj across c++/otcl boundary
+		if(strcmp(argv[1], "route_notify") == 0) {
+			RoutingModule * rtmod = ((RoutingModule *)TclObject::lookup(argv[2]));
+			if (rtmod == 0) {
+				tcl.resultf("Invalid rtmodule %s", argv[2]);
+                                 return (TCL_ERROR);
+			}
+			add_to_rtnotif(rtmod);
+			return(TCL_OK);
+		}
+		else if(strcmp(argv[1], "unreg_route_notify") == 0) {
+			RoutingModule * rtmod = ((RoutingModule *)TclObject::lookup(argv[2]));
+			if (rtmod == 0) {
+				tcl.resultf("Invalid rtmodule %s", argv[2]);
+				return (TCL_ERROR);
+			}
+			if (!rem_from_rtnotif(rtmod)) {
+				tcl.resultf("Rtmodule %s not found",argv[2]);
+				return(TCL_ERROR);
+			}
+			return(TCL_OK);
+		}
 	}
+		
 	return TclObject::command(argc,argv);
+}
+
+void Node::add_to_rtnotif(RoutingModule * rtmod) {
+	rtm_node* node = (rtm_node *)malloc(sizeof(rtm_node));
+	node->rtm = rtmod;
+	node->next = rtnotif_;
+	rtnotif_ = node;
+}
+
+int Node::rem_from_rtnotif(RoutingModule * rtmod) {
+	rtm_node *tmp1 = rtnotif_;
+	rtm_node *tmp2 ;
+	while(tmp1) {
+		if (tmp1->rtm == rtmod) {
+			if (rtnotif_ == tmp1) {
+				rtnotif_ = tmp1->next;
+				free (tmp1);
+				return 1;
+			}
+			else {
+				tmp2->next = tmp1->next;
+				free(tmp1);
+				return 1;
+			}
+		}
+		else {
+			tmp2 = tmp1;
+			tmp1 = tmp1->next;
+		}
+	}
+	return 0;
 }
 
 void Node::addNeighbor(Node * neighbor) {

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.35 2000/09/14 18:19:25 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.36 2001/02/01 22:56:21 haldar Exp $";
 #endif
 
 #include <stdlib.h>
@@ -163,6 +163,12 @@ NsObject* Classifier::find(Packet* p)
 	return (node);
 }
 
+int Classifier::install_next(NsObject *node) {
+	int slot = maxslot_ + 1;
+	install(slot, node);
+	return (slot);
+}
+
 int Classifier::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
@@ -196,14 +202,14 @@ int Classifier::command(int argc, const char*const* argv)
 		 * $classifier installNext $node
 		 */
 		if (strcmp(argv[1], "installNext") == 0) {
-			int slot = maxslot_ + 1;
+			//int slot = maxslot_ + 1;
 			NsObject* node = (NsObject*)TclObject::lookup(argv[2]);
 			if (node == NULL) {
 				tcl.resultf("Classifier::installNext attempt "
 		    "to install non-object %s into classifier", argv[2]);
 				return TCL_ERROR;
 			};
-			install(slot, node);
+			int slot = install_next(node);
 			tcl.resultf("%u", slot);
 			return TCL_OK;
 		}

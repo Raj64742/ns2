@@ -26,7 +26,7 @@
 #  Other copyrights might apply to parts of this software and are so
 #  noted when applicable.
 # 
-#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.2 2000/12/01 23:38:38 johnh Exp $
+#  $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-rtmodule.tcl,v 1.3 2001/02/01 22:56:22 haldar Exp $
 #
 # OTcl interface definition for the base routing module. They provide 
 # linkage to Node, hence all derived classes should inherit these interfaces
@@ -70,7 +70,6 @@ RtModule instproc reset {} {
 	# Empty by default
 }
 
-
 #
 # Base routing module
 #
@@ -93,6 +92,9 @@ RtModule/Base instproc register { node } {
 	$classifier_ set shift_ [AddrParams NodeShift 1]
 	# XXX Base should ALWAYS be the first module to be installed.
 	$node install-entry $self $classifier_
+	#XXX this should go away when classifier_ becomes a 
+	#XXX a shared object
+	$self attach-classifier $classifier_
 }
 
 
@@ -106,12 +108,17 @@ RtModule/Base instproc register { node } {
 #
 RtModule/Mcast instproc register { node } {
 	$self next $node
-
+	#debug 1
 	$self instvar classifier_
 
 	# Keep old classifier so we can use RtModule::add-route{}.
 	$self set classifier_ [$node entry]
-
+	
+	if {[$classifier_ info class] != "Classifier/Virtual"} {
+		# donot want to add-route if virtual classifier
+		$self attach-classifier $classifier_
+	}
+	
 	$node set switch_ [new Classifier/Addr]
 
 	# Set up switch to route unicast packet to slot 0 and
@@ -130,7 +137,6 @@ RtModule/Mcast instproc register { node } {
 	[$node set switch_] install 1 [$node set multiclassifier_]
 }
 
-
 #
 # Hierarchical routing module. 
 #
@@ -139,6 +145,7 @@ RtModule/Hier instproc register { node } {
 	$self instvar classifier_
 	set classifier_ [new Classifier/Hier]
 	$node install-entry $self $classifier_
+	$self attach-classifier $classifier_
 }
 
 RtModule/Hier instproc delete-route args {
@@ -193,6 +200,8 @@ RtModule/Manual instproc register { node } {
 	$classifier_ set mask_ [AddrParams NodeMask 1]
 	$classifier_ set shift_ [AddrParams NodeShift 1]
 	$node install-entry $self $classifier_
+	$self attach-classifier $classifier_
+	
 }
 
 RtModule/Manual instproc add-route {dst_address target} {
@@ -245,6 +254,7 @@ RtModule/VC instproc register { node } {
 	$classifier_ set shift_ [AddrParams NodeShift 1]
 	$classifier_ nodeaddr [$node node-addr]
 	$node install-entry $self $classifier_ 
+	$self attach-classifier $classifier_
 }
 
 RtModule/VC instproc add-route { dst target } {
@@ -263,7 +273,6 @@ Classifier/Virtual instproc find dst {
 Classifier/Virtual instproc install {dst target} {
 }
 
-
 # Nix-vector routing
 #RtModule/Nix instproc register { node } {
 #	$self next $node
@@ -273,5 +282,9 @@ Classifier/Virtual instproc install {dst target} {
 #	$classifier_ set-node-id [$node set id_]
 #	#puts "RtModule/Nix set node id to [$node set id_]"
 #	$node install-entry $self $classifier_
+#       $self attach-classifier $classifier_
 #}
+
+
+
 

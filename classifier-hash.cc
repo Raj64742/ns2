@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.26 2000/06/21 05:27:52 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.cc,v 1.27 2001/02/01 22:56:20 haldar Exp $ (LBL)";
 #endif
 
 //
@@ -189,20 +189,37 @@ int DestHashClassifier::classify(Packet *p)
 	return -1;
 } // HashClassifier::classify
 
+void DestHashClassifier::do_install(char* dst, NsObject *target) {
+	nsaddr_t d = atoi(dst);
+	int slot = getnxt(target);
+	install(slot, target); 
+	if (set_hash(0, d, 0, slot) < 0)
+		fprintf(stderr, "DestHashClassifier::set_hash from within DestHashClassifier::do_install returned value < 0");
+}
+
 int DestHashClassifier::command(int argc, const char*const* argv)
 {
 	if (argc == 4) {
 		// $classifier install $dst $node
 		if (strcmp(argv[1], "install") == 0) {
-			nsaddr_t dst = atoi(argv[2]);
+			char dst[SMALL_LEN];
+			strcpy(dst, argv[2]);
 			NsObject *node = (NsObject*)TclObject::lookup(argv[3]);
-			int slot = getnxt(node);
-			install(slot, node);
-			if (set_hash(0, dst, 0, slot) >= 0)
-				return TCL_OK;
-			else
-				return TCL_ERROR;
+			//nsaddr_t dst = atoi(argv[2]);
+			do_install(dst, node); 
+			return TCL_OK;
+			//int slot = getnxt(node);
+			//install(slot, node);
+			//if (set_hash(0, dst, 0, slot) >= 0)
+			//return TCL_OK;
+			//else
+			//return TCL_ERROR;
 		} // if
 	}
 	return(HashClassifier::command(argc, argv));
 } // command
+
+
+
+
+

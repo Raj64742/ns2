@@ -27,7 +27,7 @@
 #
 # These notices must be retained in any copies of any part of this software.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mip.tcl,v 1.8 2000/09/14 18:19:27 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mip.tcl,v 1.9 2001/02/01 22:56:21 haldar Exp $
 
 # XXX It is stupid to have both MIP implementation here and in mobile node. 
 # However, there is no test suite that covers test-suite-mip.tcl, which relies
@@ -51,6 +51,7 @@ Node/Broadcast instproc init {} {
 		$dmux_ set mask_ [AddrParams set ALL_BITS_SET]
                 $dmux_ set shift_ 0
 		$self add-route $address_ $dmux_
+		
         }
         $classifier_ bcast-receiver $dmux_
 }
@@ -58,6 +59,11 @@ Node/Broadcast instproc init {} {
 # XXX The following three instprocs are used to keep this version of MIP
 # work. This is all work-in-progress and everything in this file should 
 # be converted into a routing module and merged with mobile node.
+
+Node/Broadcast instproc sp-add-route { dst target } {
+	[$self set classifier_] install $dst $target
+}
+
 Node/Broadcast instproc add-route { dst target } {
 	[$self set classifier_] install $dst $target
 }

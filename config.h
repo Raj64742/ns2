@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.48 2000/11/06 16:41:53 mehringe Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.49 2001/02/01 22:56:21 haldar Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -109,6 +109,7 @@ struct ns_addr_t {
 
 
 /* some global definitions */
+#define TINY_LEN        8
 #define SMALL_LEN	32
 #define MID_LEN		256
 #define BIG_LEN		4096

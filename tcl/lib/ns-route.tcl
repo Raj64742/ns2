@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.27 2000/12/01 23:38:38 johnh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.28 2001/02/01 22:56:22 haldar Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -258,6 +258,9 @@ Simulator instproc compute-flat-routes {} {
             puts "Using NixVector routing, skipping route computations"
             return
         }
+	#puts "Starting to read link_ array..\
+		time: [clock format [clock seconds] -format %X]"
+	
 	set r [$self get-routelogic]
 	foreach ln [array names link_] {
 		set L [split $ln :]
@@ -269,8 +272,19 @@ Simulator instproc compute-flat-routes {} {
 			$r reset $srcID $dstID
 		}
 	}
+	#puts "Completed reading link_ array.."
+	#puts " and starting route-compute at \
+		time: [clock format [clock seconds] -format %X]"
+
 	$r compute
-	#
+
+	#puts "completed route-compute"
+	#puts "and starting to populate classifiers at \
+		time: [clock format [clock seconds] -format %X]"
+
+	#$god populate-classifiers
+	# all of this should go away
+
 	# Set up each classifer (aka node) to act as a router.
 	# Point each classifer table to the link object that
 	# in turns points to the right node.
@@ -285,18 +299,21 @@ Simulator instproc compute-flat-routes {} {
 		set n1 $Node_($i)
 		set j 0
 		while { $j < $n } {
-			if { $i != $j } {
-				# shortened nexthop to nh, to fit add-route in
-				# a single line
-				set nh [$r lookup $i $j]
-				if { $nh >= 0 } {
-					$n1 add-route $j [$link_($i:$nh) head]
-				}
-			} 
-			incr j
+		    if { $i != $j } {
+			# shortened nexthop to nh, to fit add-route in
+			# a single line
+			#debug 1
+			set nh [$r lookup $i $j]
+			if { $nh >= 0 } {
+			    $n1 sp-add-route $j [$link_($i:$nh) head]
+			}
+		    } 
+		    incr j
 		}
 		incr i
 	}
+	#puts "Completed populating classifiers at \
+		time: [clock format [clock seconds] -format %X]"
 }
 
 #
@@ -415,7 +432,7 @@ Simulator instproc compute-hier-routes {} {
 				}
 				set node [$self get-node-id-by-addr $nh]
 				if { $node >= 0 } {
-					$n1 add-route $str \
+					$n1 sp-add-route $str \
 							[$link_($i:$node) head]
 				}
 			}
@@ -462,7 +479,7 @@ Simulator instproc compute-algo-routes {} {
 			set nh [$r lookup $i $j]
 			# puts "$i $j $nh"
 			if { $nh >= 0 } {
-			    $n1 add-route $j [$link_($i:$nh) head]
+			    $n1 sp-add-route $j [$link_($i:$nh) head]
 			    ###$n1 incr-rtgtable-size
 			}
 		    } 
@@ -471,3 +488,8 @@ Simulator instproc compute-algo-routes {} {
 		incr i
 	}
 }
+
+
+
+
+

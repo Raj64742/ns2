@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.9 2000/10/06 18:47:57 johnh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-virtual.cc,v 1.10 2001/02/01 22:56:21 haldar Exp $";
 #endif
 
 extern "C" {
@@ -56,7 +56,7 @@ public:
 	~VirtualClassifier() {
 		Tcl_DeleteHashTable(&ht_);
 	}
-
+	virtual void do_install(char *dst, NsObject *target) { }
 protected:
 	NsObject* next_;
 	Tcl_HashTable ht_;
@@ -69,7 +69,7 @@ protected:
 		hdr_ip* iph = hdr_ip::access(p);
 		return mshift(iph->daddr());
 	}
-
+	
 	void recv(Packet* p, Handler* h) {
 		if (!routelogic_) {
 			Tcl &tcl = Tcl::instance();

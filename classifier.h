@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.27 2000/09/14 18:19:25 haoboy Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier.h,v 1.28 2001/02/01 22:56:21 haldar Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -42,6 +42,7 @@
 class Packet;
 
 class Classifier : public NsObject {
+	//friend class HierClassifier;
  public:
 	Classifier();
 	virtual ~Classifier();
@@ -62,9 +63,13 @@ class Classifier : public NsObject {
 	virtual int classify(Packet *);
 	virtual void clear(int slot);
 	enum classify_ret {ONCE= -2, TWICE= -1};
-
- protected:
-	void install(int slot, NsObject*);
+	
+	virtual void do_install(char* dst, NsObject *target) {
+		int slot = atoi(dst);
+		install(slot, target); }
+	int install_next(NsObject *node);
+	virtual void install(int slot, NsObject*);
+protected:
 	virtual int getnxt(NsObject *);
 	virtual int command(int argc, const char*const* argv);
 	void alloc(int);

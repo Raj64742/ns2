@@ -17,7 +17,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  * 
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-port.h,v 1.4 2000/02/15 21:20:55 salehi Exp $ (USC/ISI)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-port.h,v 1.5 2001/02/01 22:56:21 haldar Exp $ (USC/ISI)
  */
 
 #ifndef ns_classifier_port_h
@@ -33,7 +33,7 @@ protected:
 	int classify(Packet *p);
 // 	void clear(int slot);
 // 	int getnxt(NsObject *);
-// 	int command(int argc, const char*const* argv);
+//	int command(int argc, const char*const* argv);
 // 	int reserved_;
 };
 

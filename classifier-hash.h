@@ -31,8 +31,11 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.h,v 1.4 2000/09/14 18:19:25 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-hash.h,v 1.5 2001/02/01 22:56:21 haldar Exp $
  */
+
+#include "classifier.h"
+#include "ip.h"
 
 class Flow;
 
@@ -60,7 +63,11 @@ public:
 				      h->flowid()); 
 		return lookup(p);
 	};
-
+	void set_default(int slot) { default_ = slot; } 
+	int do_set_hash(nsaddr_t src, nsaddr_t dst, int fid, int slot) {
+		return (set_hash(src,dst,fid,slot));
+	}
+	
 protected:
 	union hkey {
 		struct {
@@ -114,7 +121,7 @@ protected:
 		return -1;
 	}
 	
-	int command(int argc, const char*const* argv);
+	virtual int command(int argc, const char*const* argv);
 
 
 	int default_;
@@ -163,8 +170,9 @@ protected:
 class DestHashClassifier : public HashClassifier {
 public:
 	DestHashClassifier() : HashClassifier(TCL_ONE_WORD_KEYS) {}
-	int command(int argc, const char*const* argv);
+	virtual int command(int argc, const char*const* argv);
 	int classify(Packet *p);
+	virtual void do_install(char *dst, NsObject *target);
 protected:
 	const char* hashkey(nsaddr_t, nsaddr_t dst, int) {
 		return (const char*) mshift(dst);

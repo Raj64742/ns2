@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.29 2000/12/01 23:38:35 johnh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/node.h,v 1.30 2001/02/01 22:56:21 haldar Exp $
  */
 
 /*
@@ -72,6 +72,7 @@ LIST_HEAD(linklist_head, LinkHead); // declare list head structure
  */
 class Node;
 class NetworkInterface;
+class RoutingModule;
 class LinkHead : public Connector {
 public:
 	LinkHead(); 
@@ -112,6 +113,12 @@ struct neighbor_list_node {
 // Size of the buffer for dumping nam traces.
 const int NODE_NAMLOG_BUFSZ = 256;
 
+//routing module node used for creating rtg module list
+struct rtm_node {
+	RoutingModule* rtm;
+	rtm_node* next;
+};
+
 class Node : public TclObject {
 public:
 	Node(void);
@@ -144,6 +151,10 @@ public:
 	void addNeighbor(Node *node);
 	
 	static Node* get_node_by_address(nsaddr_t);
+	
+	//routines for supporting routing
+	//void add_route (int dst, NsObject *target);
+	//void delete-route (int dst,..);
 
 protected:
 	LIST_ENTRY(Node) entry;  // declare list entry structure
@@ -159,6 +170,12 @@ protected:
 
 	struct if_head ifhead_; // list of phys for this node
 	struct linklist_head linklisthead_; // list of link heads on node
+
+	// pointer to rtmodule list goes here
+	// in future this will be a shared obj
+	struct rtm_node* rtnotif_;
+	void add_to_rtnotif(RoutingModule * );
+	int rem_from_rtnotif(RoutingModule * );
 
 #ifdef NIXVECTOR
 	NixNode* nixnode_;   // used for nix routing (on-demand source routing for simulator performance)

@@ -17,7 +17,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.32 2000/12/20 10:16:44 alefiyah Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lan/vlan.tcl,v 1.33 2001/02/01 22:56:21 haldar Exp $
 
 # LanNode----------------------------------------------------
 #
@@ -221,6 +221,10 @@ LanNode instproc getArbiter {} {
 
 LanNode instproc attach {agent} {
 	# NOTHING
+}
+
+LanNode instproc sp-add-route {args} {
+	# NOTHING: use defRouter to find routes
 }
 
 LanNode instproc add-route {args} {
