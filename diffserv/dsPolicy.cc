@@ -165,12 +165,12 @@ void PolicyClassifier::addPolicyEntry(int argc, const char*const* argv) {
       policyTable[policyTableSize].pir = (double) atof(argv[8]) / 8.0;
       policyTable[policyTableSize].pbs =
 	policyTable[policyTableSize].pBucket = (double) atof(argv[9]);
-    } else if (strcmp(argv[4], "FW") == 0) {
-      if(!policy_pool[FW])
-	policy_pool[FW] = new FWPolicy;
-      policyTable[policyTableSize].policy_index = FW;
-      policyTable[policyTableSize].policer = FWPolicer;
-      policyTable[policyTableSize].meter = fwTagger;
+    } else if (strcmp(argv[4], "SFD") == 0) {
+      if(!policy_pool[SFD])
+	policy_pool[SFD] = new SFDPolicy;
+      policyTable[policyTableSize].policy_index = SFD;
+      policyTable[policyTableSize].policer = SFDPolicer;
+      policyTable[policyTableSize].meter = sfdTagger;
 
       // Use cir as the transmission size threshold for the moment.
       policyTable[policyTableSize].cir = atoi(argv[6]);
@@ -262,11 +262,11 @@ void PolicyClassifier::addPolicerEntry(int argc, const char*const* argv) {
 	policy_pool[TRTCM] = new TRTCMPolicy;
       policerTable[policerTableSize].policer = trTCMPolicer;
       policerTable[policerTableSize].policy_index = TRTCM;      
-    } else if (strcmp(argv[2], "FW") == 0) {
-      if(!policy_pool[FW])
-	policy_pool[FW] = new FWPolicy;
-      policerTable[policerTableSize].policer = FWPolicer;
-      policerTable[policerTableSize].policy_index = FW;      
+    } else if (strcmp(argv[2], "SFD") == 0) {
+      if(!policy_pool[SFD])
+	policy_pool[SFD] = new SFDPolicy;
+      policerTable[policerTableSize].policer = SFDPolicer;
+      policerTable[policerTableSize].policy_index = SFD;      
     } else if (strcmp(argv[2], "EW") == 0) {
       if(!policy_pool[EWP])
 	policy_pool[EWP] = new EWPolicy;
@@ -423,8 +423,8 @@ void PolicyClassifier::printPolicyTable() {
                policyTable[i].cbs, policyTable[i].pir * 8);
 	printf("PBS %.1f bytes.\n", policyTable[i].pbs);
 	break;
-      case FWPolicer:
-	printf("Flow (%d to %d): FW policer, ",
+      case SFDPolicer:
+	printf("Flow (%d to %d): SFD policer, ",
 	       policyTable[i].sourceNode,policyTable[i].destNode);
 	printf("initial code point %d, TH %d bytes.\n",
 	       policyTable[i].codePt, (int)policyTable[i].cir);
@@ -470,8 +470,8 @@ void PolicyClassifier::printPolicerTable() {
       printf("trTCM ");
       threeColor = true;
       break;
-    case FWPolicer:
-      printf("FW ");
+    case SFDPolicer:
+      printf("SFD ");
       //printFlowTable();
       break;
     case EWPolicer:
@@ -792,15 +792,15 @@ int TRTCMPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *polic
 }
 // End of TRTCM
 
-// Beginning of FW
+// Beginning of SFD
 //Constructor.
-FWPolicy::FWPolicy() : Policy() {
+SFDPolicy::SFDPolicy() : Policy() {
   flow_table.head = NULL;
   flow_table.tail = NULL;
 }
 
 //Deconstructor.
-FWPolicy::~FWPolicy(){
+SFDPolicy::~SFDPolicy(){
   struct flow_entry *p, *q;
   p = q = flow_table.head;
   while (p) {
@@ -815,12 +815,12 @@ FWPolicy::~FWPolicy(){
 }
 
 /*-----------------------------------------------------------------------------
- void FWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt)
+ void SFDPolicy::applyMeter(policyTableEntry *policy, Packet *pkt)
  Flow states are kept in a linked list.
  Record how many bytes has been sent per flow and check if there is any flow
  timeout.
 -----------------------------------------------------------------------------*/
-void FWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
+void SFDPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
   int fid;
   struct flow_entry *p, *q, *new_entry;
 
@@ -885,10 +885,10 @@ void FWPolicy::applyMeter(policyTableEntry *policy, Packet *pkt) {
 }
 
 /*-----------------------------------------------------------------------------
-void FWPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt) 
+void SFDPolicy::applyPolicer(policyTableEntry *policy, int initialCodePt, Packet *pkt) 
     Prints the policyTable, one entry per line.
 -----------------------------------------------------------------------------*/
-int FWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
+int SFDPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer, Packet *pkt) {
   struct flow_entry *p;
   hdr_ip* iph = hdr_ip::access(pkt);
   
@@ -946,7 +946,7 @@ int FWPolicy::applyPolicer(policyTableEntry *policy, policerTableEntry *policer,
 }
 
 //    Prints the flowTable, one entry per line.
-void FWPolicy::printFlowTable() {
+void SFDPolicy::printFlowTable() {
   struct flow_entry *p;
   printf("Flow table:\n");
 
@@ -958,7 +958,7 @@ void FWPolicy::printFlowTable() {
   p = NULL;
   printf("\n");
 }
-// End of FW
+// End of SFD
 
 // Beginning of EW Policy
 //Constructor.  

@@ -48,16 +48,16 @@
 #define TB 3
 #define SRTCM 4
 #define TRTCM 5
-#define FW 6
+#define SFD 6
 #define EWP 7
 
 #define EW_MAX_WIN 8
 #define EW_WIN_SIZE 4
 #define EW_A_TH 3
 
-enum policerType {dumbPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, FWPolicer, EWPolicer};
+enum policerType {dumbPolicer, TSW2CMPolicer, TSW3CMPolicer, tokenBucketPolicer, srTCMPolicer, trTCMPolicer, SFDPolicer, EWPolicer};
 
-enum meterType {dumbMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter, fwTagger, ewTagger};
+enum meterType {dumbMeter, tswTagger, tokenBucketMeter, srTCMMeter, trTCMMeter, sfdTagger, ewTagger};
 
 class Policy;
 class TBPolicy;
@@ -205,10 +205,10 @@ struct flow_list {
   struct flow_entry *tail;
 };
 
-class FWPolicy : public Policy {
+class SFDPolicy : public Policy {
 public:
-FWPolicy();
-~FWPolicy();
+SFDPolicy();
+~SFDPolicy();
 
 // Metering and policing methods:
 void applyMeter(policyTableEntry *policy, Packet *pkt);
