@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless-simple-mac.tcl,v 1.1 2003/07/03 17:58:30 xuanc Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/wireless-simple-mac.tcl,v 1.2 2003/07/07 18:21:15 xuanc Exp $
 #
 # Use simple mac rather than 802.11
 #   
@@ -44,17 +44,22 @@ set val(ll)             LL                         ;# link layer type
 set val(ant)            Antenna/OmniAntenna        ;# antenna model
 set val(ifqlen)         50                         ;# max packet in ifq
 set val(nn)             2                          ;# number of mobilenodes
-set val(rp)             DSDV                       ;# routing protocol
-#set val(rp)             DSR                       ;# routing protocol
+
+# routing protocol
+set val(rp)              DumbAgent  
+#set val(rp)             DSDV                     
+#set val(rp)             DSR                      
+#set val(rp)             AODV                     
+
 set val(x)		250
 set val(y)		250
 
 # Initialize Global Variables
 set ns_		[new Simulator]
-set tracefd     [open wireless_simple_mac.tr w]
+set tracefd     [open wireless-simple-mac.tr w]
 $ns_ trace-all $tracefd
 
-set namtrace [open wireless_simple_mac.nam w]
+set namtrace [open wireless-simple-mac.nam w]
 $ns_ namtrace-all-wireless $namtrace $val(x) $val(y)
 
 # set up topography object
