@@ -108,12 +108,16 @@ Trace/Loss instproc init {} {
 # of the various LAN entities (lltype, mactype, etc.)
 # This belongs in ns-lib.tcl -- will move it later
 Simulator instproc make-lan {nodelist bw delay \
-		{lltype LL} {ifqtype Queue/DropTail} \
-		{mactype Mac} {chantype Channel}} {
+		{lltype1 LL} {ifqtype Queue/DropTail} \
+		{mactype Mac} {chantype Channel} {lltype2 ""} } {
 	$self instvar link_ nullAgent_ traceAllFile_ namtraceAllFile_
 
-	set lan [new Link/LanLink $nodelist $bw $delay \
-			$lltype $ifqtype $mactype $chantype]
+	set lan [new Link/LanLink $nodelist $bw $delay $ifqtype \
+			$mactype $chantype]
+
+	if { $lltype2 == "" } {
+		set lltype2 $lltype1
+	}
 
 	foreach src $nodelist {
 		set sid [$src id]
@@ -123,8 +127,13 @@ Simulator instproc make-lan {nodelist bw delay \
 			# this is a dummy queue for unicast routing to work
 			set q($src:$dst) [new Queue/DropTail]
 			$q($src:$dst) drop-target $nullAgent_
+			if { $sid < $did } {
+				set llt $lltype1
+			} else {
+				set llt $lltype2
+			}
 			set link_($sid:$did) [new Link/LanDuplex \
-				$src $dst $bw $delay $q($src:$dst) $lltype]
+					$src $dst $bw $delay $q($src:$dst) $llt]
 			set drpT_ [$self create-trace Loss $traceAllFile_ $src $dst]
 			if [info exists namtraceAllFile_] {
 				$drpT_ attach-nam $namtraceAllFile_
@@ -152,6 +161,13 @@ Simulator instproc make-lan {nodelist bw delay \
 
 	return $lan
 }
+
+
+Simulator instproc get-link { n0 n1 } {
+	$self instvar link_
+	return $link_([$n0 id]:[$n1 id])
+}
+
 
 # A peer-to-peer duplex link on a LAN
 Class Link/LanDuplex -superclass SimpleLink
@@ -181,7 +197,7 @@ Link/LanDuplex instproc trace { ns f } {
 }
 
 Class Link/LanLink
-Link/LanLink instproc init {nodelist bw delay lltype ifqtype mactype chantype} {
+Link/LanLink instproc init {nodelist bw delay ifqtype mactype chantype} {
 	$self instvar nodelist_ channel_ mac_ ifq_ numifaces_
 	$self instvar mclass_
 	set numifaces_ 0
@@ -231,6 +247,33 @@ Link/LanLink instproc install-error {src dst em} {
 	set mclass $mclass_($dst)
 	$em target [$mclass slot $peerlabel]
 	$mclass install $peerlabel $em
+}
+
+Link/LanLink instproc create-error { src dstlist emname rate unit \
+		{trans ""} } {
+
+	if { $trans == "" } {
+		set trans [list 0.5 0.5]
+	}
+	
+	# default is exponential errmodel
+	if { $emname == "uniform" } {
+		set e1 [new ErrorModel/Uniform $rate $unit] 
+		set e2 [new ErrorModel/Uniform $rate $unit] 
+	} elseif { $emname == "2state" } {
+		set e1 [new ErrorModel/MultiState/TwoStateMarkov $rate $trans \
+				$unit]
+		set e2 [new ErrorModel/MultiState/TwoStateMarkov $rate $trans \
+				$unit]
+	} else {
+		set e1 [new ErrorModel/Expo $rate $unit]
+		set e2 [new ErrorModel/Expo $rate $unit]
+	}       
+	
+	foreach dst $dstlist {
+		$self install-error $src $dst $e1
+		$self install-error $dst $src $e2
+	}
 }
 
 Link/LanLink instproc trace {ns f} {
