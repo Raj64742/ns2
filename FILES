@@ -39,6 +39,7 @@ dynalink.cc
 example.tcl
 expoo.cc
 flags.h
+flowmon.cc
 fq.cc
 heap.h
 inet.c
