@@ -54,7 +54,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.11 1998/01/21 05:43:27 padmanab Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-asym.cc,v 1.12 1998/05/02 01:38:06 kfall Exp $ (UCB)";
 #endif
 
 #include "tcp-asym.h"
@@ -113,7 +113,7 @@ void TcpAsymAgent::output_helper(Packet* p)
 	tcpha->highest_ack() = highest_ack_;
 	tcpha->max_left_to_send() = curseq_ - highest_ack_; /* XXXX not needed? */
 
-	flagsh->ecn_ = ecn_to_echo_;
+	flagsh->ecnecho() = ecn_to_echo_;
 	ecn_to_echo_ = 0;
 }
 
@@ -134,7 +134,7 @@ void TcpAsymAgent::send_helper(int maxburst)
 /* check if the received ack has an ECN that needs to be echoed back to the sink */
 void TcpAsymAgent::recv_helper(Packet *pkt) 
 {
-	if (((hdr_flags*)pkt->access(off_flags_))->ecn_to_echo_)
+	if (((hdr_flags*)pkt->access(off_flags_))->ce())
 		ecn_to_echo_ = 1;
 }
 
