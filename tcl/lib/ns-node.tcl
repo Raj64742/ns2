@@ -1,6 +1,6 @@
 # -*-	Mode:tcl; tcl-indent-level:8; tab-width:8; indent-tabs-mode:t -*-
 #
-# Time-stamp: <2000-09-14 14:00:11 haoboy>
+# Time-stamp: <2000-09-22 09:41:04 haoboy>
 #
 # Copyright (c) 1996-2000 Regents of the University of California.
 # All rights reserved.
@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.80 2000/09/16 01:46:01 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.81 2000/09/22 17:56:05 haoboy Exp $
 #
 
 Node set nn_ 0
@@ -99,8 +99,7 @@ Node instproc mk-default-classifier {} {
 	Node instvar module_list_
 	# At minimum we should enable base module
 	foreach modname [Node set module_list_] {
-		set m [new RtModule/$modname]
-		$self register-module $m
+		$self register-module [new RtModule/$modname]
 	}
 }
 
@@ -366,27 +365,16 @@ Node instproc delete-routes {id ifs nullagent} {
 	}
 }
 
-# Enable multicast routing support in this node
+# Enable multicast routing support in this node. 
+# 
+# XXX This instproc should ONLY be used when you want multicast only on a 
+# subset of nodes as a means to save memory. If you want to run multicast on
+# your entire topology, use [new Simulator -multicast on].
 Node instproc enable-mcast args {
-	$self instvar classifier_ multiclassifier_ ns_ switch_ mcastproto_
+	# Do NOT add Mcast using Node enable-module, because the latter 
+	# enables mcast for all nodes that may be created later
+	$self register-module [new RtModule/Mcast]
 	
-	$self set switch_ [new Classifier/Addr]
-	#
-	# set up switch to route unicast packet to slot 0 and
-	# multicast packets to slot 1
-	#
-	[$self set switch_] set mask_ [AddrParams McastMask]
-	[$self set switch_] set shift_ [AddrParams McastShift]
-	#
-	# create a classifier for multicast routing
-	#
-	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
-	[$self set multiclassifier_] set node_ $self
-	
-	$self set mrtObject_ [new mrtObject $self]
-
-	$switch_ install 0 $classifier_
-	$switch_ install 1 $multiclassifier_
 }
 
 #----------------------------------------------------------------------
