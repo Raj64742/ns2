@@ -103,11 +103,15 @@ public:
 	ReassemblyQueue(TcpSeq& rcvnxt) :
 		head_(NULL), tail_(NULL), top_(NULL), bottom_(NULL), rcv_nxt_(rcvnxt) { };
 	int empty() { return (head_ == NULL); }
-	int add(TcpSeq sseq, TcpSeq eseq, TcpFlag pflags, RqFlag rqflags);
+	int add(TcpSeq sseq, TcpSeq eseq, TcpFlag pflags, RqFlag rqflags = 0);
 
 	int gensack(int *sacks, int maxsblock);
 
-	void clear();
+	void clear();		// clear FIFO, LIFO
+	void clearto(TcpSeq);	// clear FIFO, LIFO up to seq #
+	void cleartonxt() { 	// clear FIFO, LIFO to rcv_nxt_
+	    clearto(rcv_nxt_);
+	}
 	void dumplist();	// for debugging
 
 protected:
@@ -122,7 +126,7 @@ protected:
 	// number added [plus 1].  This is the value ordinarily used
 	// within TCP to set rcv_nxt and thus to set the ACK field
 
-	TcpSeq& rcv_nxt_;		// start seq of next expected thing
+	TcpSeq& rcv_nxt_;	// start seq of next expected thing
 	TcpFlag coalesce(seginfo*, seginfo*, seginfo*);
 	void fremove(seginfo*);	// remove from FIFO
 	void sremove(seginfo*); // remove from LIFO
