@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.16 1997/06/03 21:33:39 kannan Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.17 1997/06/11 05:18:38 gnguyen Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -55,10 +55,10 @@ private:
 	u_char* bits_;
 	u_char* data_;  // variable size buffer for 'data'
 	u_int datalen_; // length of variable size buffer
-	Packet* next_;	// for queues and the free list
 protected:
 	static Packet* free_;
 public:
+	Packet* next_;	// for queues and the free list
 	static int hdrlen_;
 	Packet() : bits_(0), datalen_(0), next_(0) { }
 	u_char* const bits() { return (bits_); }
