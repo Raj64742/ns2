@@ -1,5 +1,5 @@
 #
-# $Id: Makefile,v 1.26 2000/11/28 04:37:57 xuanc Exp $
+# $Id: Makefile,v 1.27 2001/01/27 01:42:27 haldar Exp $
 #
 
 # by default, just assume latex2html is in the user's path
@@ -50,7 +50,8 @@ FILES= \
 	plm.tex \
 	propagation.tex \
 	testsuite.tex \
-	diffserv.tex
+	diffserv.tex \
+	educational.tex
 
 all: everything.dvi everything.ps.gz everything.html everything.pdf
 
