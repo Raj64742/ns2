@@ -6,7 +6,7 @@
    <title>ns Change Log</title>
 </head>
 <body>
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.487 2001/11/29 04:47:13 sfloyd Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.488 2001/12/03 22:58:07 sfloyd Exp $-->
 <h1>
 ns: Change History</h1>
 <!--
@@ -18,6 +18,22 @@ with the most recent changes coming first.
 ns-2.1b9 release PENDING</h3>
 
 <ul>
+
+<p>
+<p><li><b><a href="http://www.aciri.org/floyd/">[Sally Floyd]</a></b>
+Mon Dec  3 2001
+<br> Added a patch from Tom Kelly for ECN in FullTCP: 
+An ECN SYN packet has ECE and CWR set; an ECN SYN-ACK packet has ECE set
+and CWR not set; TCP ACKs do not have ECT set; and
+on receiving an ACK with ECE set a receiver does not open the
+congestion window.
+The validation test is in test-all-ecn-full in tcl/test.
+
+<p>
+<p><li><b><a href="http://www.aciri.org/floyd/">[Sally Floyd]</a></b>
+Mon Dec  3 2001
+<br> Corrected one-way TCP so that when "syn_" is used, the first
+40-byte packet consists of header bytes, with no data bytes used.
 
 <p>
 <p><li><b><a href="http://www.aciri.org/floyd/">[Sally Floyd]</a></b>
