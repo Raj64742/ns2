@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.24 1999/01/04 19:45:06 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/ll.h,v 1.25 1999/01/05 00:05:50 haldar Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -83,6 +83,10 @@ public:
 	LL();
 	virtual void recv(Packet* p, Handler* h);
 	void handle(Event* e) { recv((Packet*)e, 0); }
+	inline int initialized() {
+		return (mac_ && uptarget_ && downtarget_);
+	}
+
 	virtual void sendUp(Packet* p);
 	virtual void sendDown(Packet* p);
 	
