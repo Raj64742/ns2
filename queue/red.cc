@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1990-1994 Regents of the University of California.
+ * Copyright (c) 1990-1997 Regents of the University of California.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.6 1997/03/28 20:25:46 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.7 1997/03/28 20:31:04 kfall Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -74,7 +74,7 @@ struct edp {
 	/*
 	 * User supplied.
 	 */
-	int mean_pktsize;
+	int mean_pktsize;	/* avg pkt size, linked into Tcl */
 	int bytes;		/* true if queue in bytes, false if packets */
 	int wait;		/* true for waiting between dropped packets */
 	int setbit;		/* true to set congestion indication bit */
@@ -97,9 +97,11 @@ struct edv {
 	float v_slope;		/* used in computing average queue size */
 	float v_r;			
 	float v_prob;		/* prob. of packet drop */
+	float v_prob1;		/* prob. of packet drop before "count". */
 	float v_a;		/* v_prob = v_a * v_ave + v_b */
 	float v_b;
 	int count;		/* # of packets since last drop */
+	int count_bytes;	/* # of bytes since last drop */
 	int old;		/* 0 when average queue first exceeds thresh */
 };
 
@@ -107,15 +109,14 @@ class REDQueue : public Queue {
  public:	
 	REDQueue();
  protected:
+	int command(int argc, const char*const* argv);
 	void enque(Packet* pkt);
 	Packet* deque();
-	virtual void reset();
-
+	void reset();
 	void run_estimator(int nqueued, int m);
 	void plot();
 	void plot1(int qlen);
 	int drop_early(Packet* pkt);
-
 	PacketQueue q_;
 	/*
 	 * Static state.
@@ -131,6 +132,8 @@ class REDQueue : public Queue {
 	int idle_;
 	double idletime_;
 	edv edv_;
+	void print_edp();
+	void print_edv();
 };
 
 static class REDClass : public TclClass {
@@ -143,38 +146,47 @@ public:
 
 REDQueue::REDQueue()
 {
-	bind("bytes_", &edp_.bytes);
-	bind("thresh_", &edp_.th_min);
-	bind("maxthresh_", &edp_.th_max);
-	bind("meanPacketSize_", &edp_.mean_pktsize);
-	bind("ptc_", &edp_.ptc);
-	bind("queueWeight_", &edp_.q_w);
+	bind("bytes_", &edp_.bytes);			// boolean: use bytes?
+	bind("thresh_", &edp_.th_min);			// minthresh
+	bind("maxthresh_", &edp_.th_max);		// maxthresh
+	bind("mean_pktsize_", &edp_.mean_pktsize);	// avg pkt size
+	bind("ptc_", &edp_.ptc);			// pkt time constant
+	bind("q_weight_", &edp_.q_w);			// for EWMA
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
 	bind_bool("setbit_", &edp_.setbit);
-	bind_bool("dropTail_", &drop_tail_);
+	bind_bool("drop-tail_", &drop_tail_);
 
 	bind_bool("doubleq_", &doubleq_);
 	bind("dqthresh_", &dqthresh_);
 
-
 	reset();
+#ifdef notdef
+print_edp();
+print_edv();
+#endif
 }
 
 void REDQueue::reset()
 {
+	if (edp_.bytes) {
+		edp_.th_min *= edp_.mean_pktsize;
+		edp_.th_max *= edp_.mean_pktsize;
+	}
 	edv_.v_ave = 0.0;
 	edv_.v_slope = 0.0;
 	edv_.count = 0;
+	edv_.count_bytes = 0;
 	edv_.old = 0;
 	edv_.v_a = 1 / (edp_.th_max - edp_.th_min);
 	edv_.v_b = - edp_.th_min / (edp_.th_max - edp_.th_min);
 
 	idle_ = 1;
-#ifdef notdef
-	idletime_ = Scheduler::instance().clock();
-#endif
-	idletime_ = 0.0;	/* sched not instantiated yet */
+	if (&Scheduler::instance() != NULL)
+		idletime_ = Scheduler::instance().clock();
+	else
+		idletime_ = 0.0; /* sched not instantiated yet */
+	Queue::reset();
 }
 
 /*
@@ -257,7 +269,13 @@ Packet* REDQueue::deque()
 #endif
 	} else {
 		idle_ = 1;
-		idletime_ = Scheduler::instance().clock();
+		// deque() may invoked by Queue::reset at init
+		// time (before the scheduler is instantiated).
+		// deal with this case
+		if (&Scheduler::instance() != NULL)
+			idletime_ = Scheduler::instance().clock();
+		else
+			idletime_ = 0.0;
 	}
 	return (p);
 }
@@ -271,27 +289,37 @@ int REDQueue::drop_early(Packet* pkt)
 	} else {
 		double p = edv_.v_a * edv_.v_ave + edv_.v_b;
 		p /= edp_.max_p_inv;
+		edv_.v_prob1 = p;
+		if (edv_.v_prob1 > 1.0)
+			edv_.v_prob1 = 1.0;
+		double count1 = edv_.count;
 		if (edp_.bytes)
-			p *= iph->size() / edp_.mean_pktsize;
+			count1 = (double) (edv_.count_bytes/edp_.mean_pktsize);
 		if (edp_.wait) {
-			if (edv_.count * p < 1)
-				p = 0;
-			else if (edv_.count * p < 2)
-				p /= (2 - edv_.count * p);
+			if (count1 * p < 1.0)
+				p = 0.0;
+			else if (count1 * p < 2.0)
+				p /= (2 - count1 * p);
 			else
-				p = 1;
+				p = 1.0;
 		} else if (!edp_.wait) {
-			if (edv_.count * p < 1)
-				p /= (1 - edv_.count * p);
+			if (count1 * p < 1.0)
+				p /= (1.0 - count1 * p);
 			else
-				p = 1;
+				p = 1.0;
 		}
+		if (edp_.bytes && p < 1.0) {
+			p = p * iph->size() / edp_.mean_pktsize;
+		}
+		if (p > 1.0)
+			p = 1.0;
 		edv_.v_prob = p;
 	}
 	// drop probability is computed, pick random number and act
 	double u = Random::uniform();
 	if (u <= edv_.v_prob) {
 		edv_.count = 0;
+		edv_.count_bytes = 0;
 		if (edp_.setbit) 
 			iph->flags() |= IP_ECN;	// ip ecn bit
 		else
@@ -310,6 +338,7 @@ int REDQueue::drop_early(Packet* pkt)
 void REDQueue::enque(Packet* pkt)
 {
 	double now = Scheduler::instance().clock();
+	IPHeader *iph = IPHeader::access(pkt->bits());
 	int m;
         if (idle_) {
 		/* To account for the period when the queue was empty.  */
@@ -326,13 +355,15 @@ void REDQueue::enque(Packet* pkt)
 #endif
 
 	++edv_.count;
+	edv_.count_bytes += iph->size();
 
 	/*
 	 * if average exceeds the min threshold, we may drop
 	 */
-	if (edv_.v_ave >= edp_.th_min ) { 
+	if (edv_.v_ave >= edp_.th_min && q_.length() > 1) { 
 		if (edv_.old == 0) {
 			edv_.count = 1;
+			edv_.count_bytes = iph->size();
 			edv_.old = 1;
 		} else {
 			/*
@@ -361,6 +392,8 @@ void REDQueue::enque(Packet* pkt)
 		log_packet_arrival(pkt);
 #endif
 		int metric = edp_.bytes ? q_.bcount() : q_.length();
+		int limit = edp_.bytes ?
+			(qlim_ * edp_.mean_pktsize) : qlim_;
 		if (metric > qlim_) {
 			int victim;
 			if (drop_tail_)
@@ -382,4 +415,31 @@ void REDQueue::enque(Packet* pkt)
 #endif
 
 	return;	/* end of enque() */
+}
+int REDQueue::command(int argc, const char*const* argv)
+{
+	if (argc == 2) {
+		if (strcmp(argv[1], "reset") == 0) {
+			reset();
+			return (TCL_OK);
+		}
+	}
+	return (Queue::command(argc, argv));
+}
+/* for debugging help */
+void REDQueue::print_edp()
+{
+        printf("mean_pktsz: %d\n", edp_.mean_pktsize); 
+        printf("bytes: %d, wait: %d, setbit: %d\n",
+                edp_.bytes, edp_.wait, edp_.setbit);
+        printf("minth: %f, maxth: %f\n", edp_.th_min, edp_.th_max);
+        printf("max_p_inv: %f, qw: %f, ptc: %f\n",
+                edp_.max_p_inv, edp_.q_w, edp_.ptc);
+	printf("qlim: %d, idletime: %f\n", qlim_, idletime_);
+	printf("=========\n");
+}
+
+void REDQueue::print_edv()
+{
+	printf("v_a: %f, v_b: %f\n", edv_.v_a, edv_.v_b);
 }
