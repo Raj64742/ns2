@@ -27,8 +27,10 @@ $opt_b = 0;
 $opt_f = -1;
 $opt_e = 0;
 
-require 'getopts.pl';
-(&Getopts('bo:s:d:ef:') && $opt_s != -1) || usage;
+use Getopt::Std;
+#require 'getopts.pl';
+(getopts('bo:s:d:ef:') && $opt_s != -1) || usage;
+#(&Getopts('bo:s:d:ef:') && $opt_s != -1) || usage;
 
 open(STDOUT, ">$opt_o") if ($opt_o);
 while (<>) {
