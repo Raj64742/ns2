@@ -22,6 +22,7 @@ options:
     -c          leave out empty lists
     -f          plot acks from tcp-full
     -p          don't add the x-graph preface
+    -y		fix the y-axis when there are no drops
 
 Traditional ``wrapping'' ns plots (as called from the test scripts)
 can be generated with -s 0.01 -m 90.
@@ -31,7 +32,7 @@ END
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 require 'getopts.pl';
-&Getopts('acefds:m:n:qplvt:') || usage;
+&Getopts('acefds:m:n:qplvt:y') || usage;
 
 $c = 0;
 @p = @pc = @pg = @a = @ac = @ae = @d = @lu = @ld = ();
@@ -47,6 +48,7 @@ $plot_event = defined($opt_v);
 $no_padding = defined($opt_c);
 $plot_full = defined($opt_f);
 $no_title = defined($opt_p);
+$last_line = defined($opt_y);
 
 $file = $acks = '';
 
@@ -244,5 +246,14 @@ if ($plot_ecn && defined($pg[0])) {
     @sorted_pg = sort (@pg);
     print "\n\"cong_act_packets\n", @pg[0..3], @sorted_pg;
 } 
+
+if ($last_line) {
+    # To bring the y-axis up to 2.0
+    if (!$plot_full) {
+        printf "\n\"skip\n0 2\n";
+    } else {
+        printf "\n\"skip\n0 1024\n";
+    }
+}
 
 exit 0;
