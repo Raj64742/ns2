@@ -81,7 +81,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.90 2001/07/18 16:35:26 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-full.cc,v 1.91 2001/08/03 17:34:47 kfall Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -138,7 +138,7 @@ public:
  *	segsize: segment size to use when sending
  */
 FullTcpAgent::FullTcpAgent() :  
-	closed_(0), pipe_(0), fastrecov_(FALSE), 
+	closed_(0), pipe_(-1), fastrecov_(FALSE), 
 	last_send_time_(-1.0), infinite_send_(0), irs_(-1), 
 	delack_timer_(this), flags_(0), 
 	state_(TCPS_CLOSED), ect_(FALSE), recent_ce_(FALSE), 
@@ -170,6 +170,21 @@ FullTcpAgent::delay_bind_init_all()
        
       	reset();
 }
+
+void
+SackFullTcpAgent::delay_bind_init_all()
+{
+        delay_bind_init_one("clear_on_timeout_");
+	FullTcpAgent::delay_bind_init_all();
+}
+
+int
+SackFullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
+{
+        if (delay_bind_bool(varName, localName, "clear_on_timeout_", &clear_on_timeout_, tracer)) return TCL_OK;
+        return FullTcpAgent::delay_bind_dispatch(varName, localName, tracer);
+}
+
 
 int
 FullTcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer)
@@ -422,7 +437,15 @@ FullTcpAgent::reass(Packet* pkt)
 		abort();
 	}
 
+//printf("%f about to add(%d,%d)\n",
+//now(), start, end);
+//rq_.dumplist();
+
 	rval = rq_.add(start, end, tiflags, 0);
+
+//printf("%f after add(%d,%d)\n",
+//now(), start, end);
+//rq_.dumplist();
 
 present:
 	 //
@@ -544,7 +567,8 @@ void FullTcpAgent::cancel_timers()
 
 /*
  * see if we should send a segment, and if so, send it
- * (may be ACK or data)
+ * 	(may be ACK or data)
+ * return the number of data bytes sent (count a SYN or FIN as 1 each)
  *
  * simulator var, desc (name in real TCP)
  * --------------------------------------
@@ -556,8 +580,10 @@ void FullTcpAgent::cancel_timers()
  * seqno, the next seq# we're going to send (snd_nxt), this will
  *	update t_seqno_ (the last thing we sent)
  */
-void FullTcpAgent::output(int seqno, int reason)
+int
+FullTcpAgent::foutput(int seqno, int reason)
 {
+	// if maxseg_ not set, set it appropriately
 	if (maxseg_ == 0) 
 	   	maxseg_ = size_ - headersize();
 	else
@@ -573,6 +599,7 @@ void FullTcpAgent::output(int seqno, int reason)
 	int win = window() * maxseg_;	// window (in bytes)
 	int off = seqno - highest_ack_;	// offset of seg in window
 	int datalen;
+	int amtsent = 0;
 
 	// be careful if we have not received any ACK yet
 	if (highest_ack_ < 0) {
@@ -678,7 +705,7 @@ void FullTcpAgent::output(int seqno, int reason)
         /*      
          * No reason to send a segment, just return.
          */      
-	return;
+	return 0;
 
 send:
 
@@ -709,6 +736,7 @@ send:
 	if (cong_action_ && reliable > 0)
 		cong_action_ = FALSE;
 
+#ifdef notdef
 	/*
 	 * SYNs and FINs each use up one sequence number, but
 	 * there's no reason to advance t_seqno_ by one for a FIN
@@ -717,7 +745,7 @@ send:
 	if (!fin && seqno == t_seqno_) {
 		t_seqno_ += reliable;
 	}
-
+#endif
 
 	// highest: greatest sequence number sent + 1
 	//	and adjusted for SYNs and FINs which use up one number
@@ -757,7 +785,7 @@ send:
 			usrclosed();
 	}
 
-	return;
+	return (reliable);
 }
 
 /*
@@ -802,12 +830,14 @@ FullTcpAgent::send_much(int force, int reason, int maxburst)
 		 * of this loop, we can loop forever at the same
 		 * simulated time instant
 		 */
-		int save = t_seqno_;		// scrawl away current t_seqno
-		output(t_seqno_, reason);	// updates t_seqno for us
-		if (t_seqno_ == save) {		// progress?
+		int amt;
+		int seq = nxt_tseq();
+		if ((amt = foutput(seq, reason)) <= 0)
 			break;
-		}
-		++pipe_;
+		t_seqno_ += amt;
+if ((outflags() & TH_FIN))
+--t_seqno_;
+		pipe_ += amt;
 		force = 0;
 
 		if ((outflags() & (TH_SYN|TH_FIN)) ||
@@ -953,16 +983,17 @@ FullTcpAgent::predict_ok(Packet* pkt)
  *	Also, stash our current location in recover_
  */
 
-void FullTcpAgent::fast_retransmit(int seq)
+void
+FullTcpAgent::fast_retransmit(int seq)
 {
 	// we are now going to fast-retransmit and willtrace that event
 	trace_event("FAST_RETX");
 	
-	int onxt = t_seqno_;		// output() changes t_seqno_
+//int onxt = t_seqno_;		// output() changes t_seqno_
 	recover_ = maxseq_;		// keep a copy of highest sent
 	last_cwnd_action_ = CWND_ACTION_DUPACK;
-	output(seq, REASON_DUPACK);	// send one pkt
-	t_seqno_ = onxt;
+	(void)foutput(seq, REASON_DUPACK);	// send one pkt
+//t_seqno_ = onxt;
 }
 
 /*
@@ -1034,7 +1065,7 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 	int needoutput = FALSE;
 	int ourfinisacked = FALSE;
 	int dupseg = FALSE;
-	int todrop = 0;
+	int todrop = 0;				// duplicate DATA cnt
 
 	last_state_ = state_;
 
@@ -1048,33 +1079,40 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
          * Process options if not in LISTEN state,
          * else do it below
          */
+
 	if (state_ != TCPS_LISTEN)
 		dooptions(pkt);
 
-	//
-	// if we are using delayed-ACK timers and
-	// no delayed-ACK timer is set, set one.
-	// They are set to fire every 'interval_' secs, starting
-	// at time t0 = (0.0 + k * interval_) for some k such
-	// that t0 > now
-	//
+	/*
+	 * if we are using delayed-ACK timers and
+	 * no delayed-ACK timer is set, set one.
+	 * They are set to fire every 'interval_' secs, starting
+	 * at time t0 = (0.0 + k * interval_) for some k such
+	 * that t0 > now
+	 */
+
 	if (delack_interval_ > 0.0 &&
 	    (delack_timer_.status() != TIMER_PENDING)) {
 		int last = int(now() / delack_interval_);
 		delack_timer_.resched(delack_interval_ * (last + 1.0) - now());
 	}
 
-	//
-	// sanity check for ECN: shouldn't be seeing a CE bit if
-	// ECT wasn't set on the packet first.  If we see this, we
-	// probably have a misbehaving router...
-	//
+	/*
+	 * sanity check for ECN: shouldn't be seeing a CE bit if
+	 * ECT wasn't set on the packet first.  If we see this, we
+	 * probably have a misbehaving router...
+	 */
 
 	if (fh->ce() && !fh->ect()) {
 	    fprintf(stderr,
 	    "%f: FullTcpAgent::recv(%s): warning: CE bit on, but ECT false!\n",
 		now(), name());
 	}
+
+	/*
+	 * Try header prediction: in seq data or in seq pure ACK
+	 *	with no funny business
+	 */
 
 	if (!nopredict_ && predict_ok(pkt)) {
                 /*
@@ -1120,8 +1158,8 @@ void FullTcpAgent::recv(Packet *pkt, Handler*)
 			    cwnd_ >= wnd_ && !fastrecov_) {
 				newack(pkt);	// update timers,  highest_ack_
 				/* no adjustment of cwnd here */
-				if (curseq_ >= highest_ack_ || infinite_send_)
-					send_much(0, REASON_NORMAL, maxburst_);
+//if (curseq_ >= highest_ack_ || infinite_send_)
+				send_much(0, REASON_NORMAL, maxburst_);
 				Packet::free(pkt);
 				return;
 			}
@@ -1512,13 +1550,22 @@ trimthenstep6:
                                 recent_ce_ = FALSE;
                 }
 
+		//
+		// If ESTABLISHED or starting to close, process SACKS
+		//
+
+		if (state_ >= TCPS_ESTABLISHED && tcph->sa_length() > 0) {
+			process_sack(tcph);
+		}
+
 		// look for dup ACKs (dup ack numbers, no data)
 		//
 		// do fast retransmit/recovery if at/past thresh
 		if (ackno <= highest_ack_) {
-			// an ACK which doesn't advance highest_ack_
+			// an pure ACK which doesn't advance highest_ack_
 			if (datalen == 0 && (!dupseg_fix_ || !dupseg)) {
-				--pipe_; // ACK indicates pkt cached @ receiver
+
+				pipe_ -= maxseg_; // ACK indicates pkt cached @ receiver
 
                                 /*
                                  * If we have outstanding data
@@ -1549,7 +1596,6 @@ trimthenstep6:
 					
 					/* re-sync the pipe_ estimate */
 					pipe_ = maxseq_ - highest_ack_;
-					pipe_ /= maxseg_;
 					pipe_ -= (dupacks_ + 1);
 
 pipe_ = int(cwnd_) - dupacks_ - 1;
@@ -1567,7 +1613,7 @@ pipe_ = int(cwnd_) - dupacks_ - 1;
 						
 						cwnd_++;
 					}
-					send_much(0, REASON_NORMAL, maxburst_);
+					send_much(0, REASON_DUPACK, maxburst_);
 					goto drop;
 				}
 			} else {
@@ -1580,7 +1626,7 @@ pipe_ = int(cwnd_) - dupacks_ - 1;
 				}
 			}
 			break;	/* take us to "step6" */
-		} /* end of dup acks */
+		} /* end of dup/old acks */
 
 		/*
 		 * we've finished the fast retransmit/recovery period
@@ -1612,7 +1658,9 @@ process_ACK:
                  * timer, using current (possibly backed-off) value.
                  */
 		newack(pkt);	// handle timers, update highest_ack_
-		--pipe_;
+
+//--pipe_;
+
 
 		/*
 		 * if this is a partial ACK, invoke whatever we should
@@ -1723,8 +1771,8 @@ cancel_timers();	// DOES THIS BELONG HERE?, probably (see tcp_cose
 			break;
 
 		/* no case for TIME_WAIT in simulator */
-		}  // inner switch
-	} // outer switch
+		}  // inner state_ switch
+	} // outer state_ switch
 
 step6:
 	/* real TCP handles window updates and URG data here */
@@ -1971,7 +2019,7 @@ void FullTcpAgent::reset_rtx_timer(int /* mild */)
 void FullTcpAgent::connect()
 {
 	newstate(TCPS_SYN_SENT);	// sending a SYN now
-	output(iss_, REASON_NORMAL);
+	t_seqno_ += foutput(iss_, REASON_NORMAL);
 	return;
 }
 
@@ -2157,6 +2205,16 @@ void FullTcpAgent::newstate(int ns)
 	state_ = ns;
 }
 
+//
+// this shouldn't ever happen
+//
+void
+FullTcpAgent::process_sack(hdr_tcp*)
+{
+	fprintf(stderr, "%f: (%s) Non-SACK capable FullTcpAgent received a SACK\n",
+		now(), name());
+}
+
 void DelAckTimer::expire(Event *) {
         a_->timeout(TCP_TIMER_DELACK);
 }
@@ -2269,7 +2327,7 @@ NewRenoFullTcpAgent::ack_action(Packet* p)
  * for Sack, do the following
  */
 
-SackFullTcpAgent::SackFullTcpAgent() : sack_nxt_(-1), sq_(sack_min_)
+SackFullTcpAgent::SackFullTcpAgent() : sack_min_(-1), sq_(sack_min_)
 {
 	bind("sack_option_size_", &sack_option_size_);
 	bind("sack_block_size_", &sack_block_size_);
@@ -2278,19 +2336,23 @@ SackFullTcpAgent::SackFullTcpAgent() : sack_nxt_(-1), sq_(sack_min_)
 
 SackFullTcpAgent::~SackFullTcpAgent()
 {
+	// we're gone... clear out anything hanging around
+	// ~FullTcpAgent() will clear rq_ for us
 	sq_.clear();
 }
 
 void
 SackFullTcpAgent::reset()
 {
-	sq_.clear();
-	sack_max_ = sack_min_ = sack_nxt_ = -1;
+	sq_.clear();			// no SACK blocks
+	sack_min_ = -1;			// no left edge of SACK blocks
 	reno_fastrecov_ = FALSE;	// always F for sack
 	pipectrl_ = FALSE;		// start in window mode
 	FullTcpAgent::reset();
 }
 
+
+#ifdef notdef
 /*
  * override FullTcpAgent::recv() method to parse sack info
  * when it arrives.  Then call standard recv() method.
@@ -2299,7 +2361,6 @@ SackFullTcpAgent::reset()
 void
 SackFullTcpAgent::recv(Packet* pkt, Handler* h)
 {
-#ifdef notdef
 	hdr_tcp* tcph = hdr_tcp::access(pkt);
 	int ackno = tcph->ackno();
 
@@ -2316,15 +2377,15 @@ SackFullTcpAgent::recv(Packet* pkt, Handler* h)
 			sq_.add(tcph->sa_left(i), tcph->sa_right(i), 0);  
 		}
 	}
-#endif
 	FullTcpAgent::recv(pkt, h);
 }
-
+#endif
 
 int
 SackFullTcpAgent::hdrsize(int nsackblocks)
 {
 	int total = FullTcpAgent::headersize();
+	// use base header size plus SACK option size
         if (nsackblocks > 0) {
                 total += ((nsackblocks * sack_block_size_)
                         + sack_option_size_);
@@ -2332,12 +2393,13 @@ SackFullTcpAgent::hdrsize(int nsackblocks)
 	return (total);
 }
 
+#ifdef notdef
 void
 SackFullTcpAgent::ack_action(Packet* p)
 {
 	FullTcpAgent::ack_action(p);
 
-	if (!sq_.empty() && sack_max_ <= highest_ack_) {
+	if (!sq_.empty() && sq_.max() <= highest_ack_) {
 		sq_.clear();
 	}
 
@@ -2345,6 +2407,7 @@ SackFullTcpAgent::ack_action(Packet* p)
 		sack_nxt_ = highest_ack_;
 	pipectrl_ = FALSE;
 }
+#endif
 
 void
 SackFullTcpAgent::dupack_action()
@@ -2381,20 +2444,44 @@ full_sack_action:
         slowdown(CLOSE_SSTHRESH_HALF|CLOSE_CWND_HALF);
         cancel_rtx_timer();
         rtt_active_ = FALSE;
+
+	// these initiate SACK-style "pipe" recovery
 	pipectrl_ = TRUE;
-	recover_ = maxseq_;
-	send_much(1, REASON_DUPACK, maxburst_);
+	recover_ = maxseq_;	// where I am when recovery starts
+
+	// this arranges to retransmit the pkt the receiver
+	// next expects
+	t_seqno_ = highest_ack_;
+	send_much(1, REASON_DUPACK, 1);
         return;
 }
 
 void
-SackFullTcpAgent::pack_action(Packet*)
+SackFullTcpAgent::pack_action(Packet* p)
 {
-	--pipe_;
-	if (sack_nxt_ < highest_ack_)
-		sack_nxt_ = highest_ack_;
+	if (!sq_.empty() && sack_min_ < highest_ack_) {
+//printf("%f SFTCP<pack>: sack_min_ (%d) being reset to highest_ack_(%d)\n",
+//now(), sack_min_, int(highest_ack_));
+		sack_min_ = highest_ack_;
+		sq_.cleartonxt();
+	}
+	FullTcpAgent::pack_action(p);
 }
 
+void
+SackFullTcpAgent::ack_action(Packet* p)
+{
+	pipectrl_ = FALSE;
+//printf("%f SFTCP: sack_min_ (%d) being reset to highest_ack_(%d)\n",
+//now(), sack_min_, int(highest_ack_));
+	if (!sq_.empty() && sack_min_ < highest_ack_) {
+		sack_min_ = highest_ack_;
+		sq_.cleartonxt();
+	}
+	FullTcpAgent::ack_action(p);
+}
+
+#ifdef notdef
 void
 SackFullTcpAgent::send_much(int force, int reason, int maxburst)
 {
@@ -2402,7 +2489,12 @@ SackFullTcpAgent::send_much(int force, int reason, int maxburst)
 		send_holes(force, maxburst);
 	FullTcpAgent::send_much(force, reason, maxburst);
 }
+#endif
 
+//
+// receiver side: if there are things in the reassembly queue,
+// build the appropriate SACK blocks to carry in the SACK
+//
 int
 SackFullTcpAgent::build_options(hdr_tcp* tcph)
 {
@@ -2418,71 +2510,165 @@ SackFullTcpAgent::build_options(hdr_tcp* tcph)
 	return (total);
 }
 
+#ifdef notdef
 void
 SackFullTcpAgent::send_holes(int force, int maxburst)
 {
 
-#ifdef notdef	// for now, don't do anything for SACK
-		// as it is broken... will fix this next
 
-	int npack = 0;
-	int save_tseq = t_seqno_;
-	t_seqno_ = sack_nxt_;
+*******************************************
 
-	if (sq_.empty()) {
-		// no holes, just return
-		return;
-	}
+// for now, don't do anything for SACK
+// as it is broken... will fix this next
 
-        int nxtblk[2]; // left, right of 1 sack block
-	sq_.sync();    // reset to beginning of sack list
+int npack = 0;
+int save_tseq = t_seqno_;
+t_seqno_ = sack_nxt_;
 
-	// skip over old blocks
-	while (sq_.nextblk(nxtblk)) {
-		if (t_seqno_ <= nxtblk[1])
-			break;
-	}
+if (sq_.empty()) {
+	// no holes, just return
+	return;
+}
 
-	while (force || (pipe_ < window())) {
-		force = 0;
-		// don't sent off the top
-		if (t_seqno_ > recover_ || t_seqno_ >= sack_max_)
-			break;
+int nxtblk[2]; // left, right of 1 sack block
+sq_.sync();    // reset to beginning of sack list
 
-		// skip this one if the receiver has it already
-		if (t_seqno_ >= nxtblk[0] && t_seqno_ <= nxtblk[1]) {
-			t_seqno_ = nxtblk[1];
-			if (sq_.nextblk(nxtblk))
-				continue;
-			break;	// no more blocks, finish up
-		}
+// skip over old blocks
+while (sq_.nextblk(nxtblk)) {
+	if (t_seqno_ <= nxtblk[1])
+		break;
+}
 
-		// try to send something, check to see if we did
-		int save = t_seqno_;
-		output(t_seqno_, REASON_SACK);
-		if (t_seqno_ == save) {
-			break;
-		}
-		++pipe_;		// sent something
+while (force || (pipe_ < window())) {
+force = 0;
+// don't sent off the top
+if (t_seqno_ > recover_ || t_seqno_ >= sack_max_)
+	break;
 
-		if ((maxburst && ++npack >= maxburst) ||
-		    (outflags() & (TH_SYN|TH_FIN)))
-			break;
-	}
+// skip this one if the receiver has it already
+if (t_seqno_ >= nxtblk[0] && t_seqno_ <= nxtblk[1]) {
+	t_seqno_ = nxtblk[1];
+	if (sq_.nextblk(nxtblk))
+		continue;
+	break;	// no more blocks, finish up
+}
 
-	sack_nxt_ = t_seqno_;	// update next hole fill
-	t_seqno_ = save_tseq;	// restore t_seqno_
+// try to send something, check to see if we did
+int save = t_seqno_;
+output(t_seqno_, REASON_SACK);
+if (t_seqno_ == save) {
+	break;
+}
+++pipe_;		// sent something
 
-#endif
+if ((maxburst && ++npack >= maxburst) ||
+    (outflags() & (TH_SYN|TH_FIN)))
+	break;
+}
+
+sack_nxt_ = t_seqno_;	// update next hole fill
+t_seqno_ = save_tseq;	// restore t_seqno_
+
+*******************************************
+
 
 	return;
 }
+
+#endif /* send_holes */
 
 void
 SackFullTcpAgent::timeout_action()
 {
 	FullTcpAgent::timeout_action();
-	sq_.clear();
-	sack_min_ = highest_ack_;
-	sack_nxt_ = sack_max_ = -1;
+
+	//
+	// original SACK spec says the sender is
+	// supposed to clear out its knowledge of what
+	// the receiver has in the case of a timeout
+	// (on the chance the receiver has renig'd).
+	// Here, this happens when clear_on_timeout_ is
+	// enabled.
+	//
+
+	if (clear_on_timeout_) {
+		sq_.clear();
+		sack_min_ = highest_ack_;
+	}
+}
+
+void
+SackFullTcpAgent::process_sack(hdr_tcp* tcph)
+{
+	//
+	// Figure out how many sack blocks are
+	// in the pkt.  Insert each block range
+	// into the scoreboard
+	//
+
+	if (max_sack_blocks_ <= 0) {
+		fprintf(stderr,
+		    "%f: FullTcpAgent(%s) warning: received SACK block but I am not SACK enabled\n",
+			now(), name());
+		return;
+	}	
+
+	int slen = tcph->sa_length(), i;
+	for (i = 0; i < slen; ++i) {
+		if (tcph->sa_left(i) >= tcph->sa_right(i)) {
+			fprintf(stderr,
+			    "%f: FullTcpAgent(%s) warning: received illegal SACK block [%d,%d]\n",
+				now(), name(), tcph->sa_left(i), tcph->sa_right(i));
+			continue;
+		}
+
+//printf("%f recv'd SACK: about to add sack data(%d,%d); highest_ack_:%d\n",
+//now(), tcph->sa_left(i), tcph->sa_right(i), int(highest_ack_));
+//sq_.dumplist();
+
+		sq_.add(tcph->sa_left(i), tcph->sa_right(i), 0);  
+
+//printf("%f recv'd SACK: added sack data(%d,%d); highest_ack_:%d\n",
+//now(), tcph->sa_left(i), tcph->sa_right(i), int(highest_ack_));
+//sq_.dumplist();
+
+	}
+}
+
+//
+// Calculate the next seq# to send by send_much.  If we are recovering and
+// we have learned about data cached at the receiver via a SACK,
+// we may want something other than new data (t_seqno)
+//
+
+#define	SACKTHRESH	3	// XXX: to be a parameter
+
+int
+SackFullTcpAgent::nxt_tseq()
+{
+	int fcnt;	// following count-- the
+			// count field in the block
+			// after the seq# we are about
+			// to send
+
+	int seq = t_seqno_;
+
+//printf("%f: nxt_tseq called w/t_seqno:%d\n",
+//now(), int(t_seqno_));
+//sq_.dumplist();
+
+	while ((seq = sq_.nexthole(seq, fcnt)) > 0) {
+		// if we either have a following block
+		// with a large enough count OR we don't
+		// have a following block (fcnt == -1),
+		// we should use the seq# we got
+		if (fcnt > SACKTHRESH || fcnt < 0) {
+//printf("%f: nxt_tseq<1> returning %d\n",
+//now(), int(seq));
+			return (seq);
+		}
+	}
+//printf("%f: nxt_tseq<2> returning %d\n",
+//now(), int(t_seqno_));
+	return (t_seqno_);
 }
