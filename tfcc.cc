@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.11 1998/09/17 00:48:25 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tfcc.cc,v 1.12 1998/09/17 02:04:06 kfall Exp $";
 #endif
 
 /* tfcc.cc -- TCP-friently congestion control protocol */
@@ -120,6 +120,7 @@ protected:
 	virtual void speedup();		// possible opportunity to speed up
 	virtual void nopeer();		// lost ack stream from peer
 	virtual double winchg();	// pkts to speed up by
+	virtual void stop();
 
 	virtual void rtt_timeout(TimerHandler*);	// rtt heartbeat
 	virtual void ack_timeout(TimerHandler*);	// ack sender
@@ -242,8 +243,8 @@ TFCCAgent::recv(Packet* pkt, Handler*)
 
 	++nrcv_;
 
-printf("%f: %s: recv: seq: %d, cseq: %d, expect:%d\n", now(), name(),
-	rh->seqno(), th->cseq(), expected_);
+//printf("%f: %s: recv: seq: %d, cseq: %d, expect:%d\n", now(), name(),
+//	rh->seqno(), th->cseq(), expected_);
 
 	/*
 	 * do the duties of a receiver
@@ -327,6 +328,13 @@ printf("%f %s: loss event: nlost:%d\n", now(), name(), nlost);
 		needresponse_ = 1;
 		last_loss_time_ = now();
 	}
+}
+
+void
+TFCCAgent::stop()
+{
+	rtt_timer_.force_cancel();
+	RTPAgent::stop();
 }
 
 /*
@@ -582,14 +590,16 @@ class ETFCCAgent : public TFCCAgent {
 public:
 	ETFCCAgent() : cseq_save_(0) {
 		bind("efactor_", &efactor_);
-		bind("echkint_", &echkint_);
+		bind("kfactor_", &kfactor_);
 	}
 protected:
-	int echkint_;		// eqn check interval (every k pkts)
 	int cseq_save_;		// saved copy of cseq
 	double efactor_;	// multiplier of eqn
+	double kfactor_;	// slop multiplier on eqn
 	void loss_event(int nlost);
 	double eqn_interval(double);
+	double eqn_droprate(double interv);
+	int echkint();
 	void nopeer();
 };
 
@@ -601,21 +611,34 @@ public:
 	}
 } class_etfcc_agent;
 
+/*
+ * the number of packets (interval) to check for events
+ */
+int
+ETFCCAgent::echkint()
+{
+	int x = int(kfactor_ / eqn_droprate(peer_interval_));
+printf("%f %s: ECHKINT: %d peerint:%f, eqn_dr:%f\n", now(), name(), x,
+peer_interval_, eqn_droprate(peer_interval_));
+	return (x);
+}
+
 void
 ETFCCAgent::loss_event(int nlost)
 {
 	// echkint: equation check interval
 	TFCCAgent::loss_event(nlost);
 	needresponse_ = 0;
-	if (nrcv_ > echkint_) {
+	if (nrcv_ > echkint()) {
 		int newcseq = cseq_ - cseq_save_;
 		if (newcseq > 0) {
 			// this is really a new ce
 			double cerate = double(newcseq) / nrcv_;
 printf("%f %s ECHK: newcseq:%d, cerate: %f, eqn:%f, peerint:%f\n",
 now(), name(), newcseq, cerate, eqn_interval(cerate), peer_interval_);
-			if (peer_interval_ < eqn_interval(cerate)) {
-				// if peer is too fast, tell it to slow down
+			if (cerate > (kfactor_ * eqn_droprate(peer_interval_))) {
+				// see if the actual droprate is > than that
+				// we should see at this sender's rate
 				needresponse_ = 1;
 			}
 			nrcv_ = 0;
@@ -634,6 +657,14 @@ printf("%f eqn_interval(drate:%f) returning %f\n", now(), droprate, 1.0 / pps);
 		return (1.0/pps);
 	}
 	return (10000.);	// large interval
+}
+
+double
+ETFCCAgent::eqn_droprate(double interval)
+{
+	double pp = ((efactor_ * interval) / srtt_);
+	pp *= pp;
+	return (pp);
 }
 
 void
