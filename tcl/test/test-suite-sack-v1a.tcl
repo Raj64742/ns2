@@ -4,6 +4,10 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set bytes_ false              
+# default changed on 10/11/2004.
+Queue/RED set queue_in_bytes_ false
+# default changed on 10/11/2004.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1
@@ -43,7 +47,7 @@ Agent/TCP set exitFastRetrans_ false
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-sack-v1a.tcl,v 1.10 2003/07/29 20:37:24 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/Attic/test-suite-sack-v1a.tcl,v 1.11 2004/10/13 02:29:07 sfloyd Exp $
 #
 
 #

@@ -40,6 +40,10 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set bytes_ false              
+# default changed on 10/11/2004.
+Queue/RED set queue_in_bytes_ false
+# default changed on 10/11/2004.
 Queue/RED set q_weight_ 0.002
 Queue/RED set thresh_ 5 
 Queue/RED set maxthresh_ 15

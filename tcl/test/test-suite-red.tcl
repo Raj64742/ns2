@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.53 2003/07/29 21:10:53 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.54 2004/10/13 02:29:06 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -47,6 +47,10 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set bytes_ false              
+# default changed on 10/11/2004.
+Queue/RED set queue_in_bytes_ false
+# default changed on 10/11/2004.
 Queue/RED set q_weight_ 0.002
 Queue/RED set thresh_ 5 
 Queue/RED set maxthresh_ 15

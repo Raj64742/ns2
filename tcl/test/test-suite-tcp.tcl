@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.33 2003/07/29 21:50:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.34 2004/10/13 02:29:08 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -40,6 +40,10 @@ source misc.tcl
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 # FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set bytes_ false              
+# default changed on 10/11/2004.
+Queue/RED set queue_in_bytes_ false
+# default changed on 10/11/2004.
 Queue/RED set q_weight_ 0.002
 Queue/RED set thresh_ 5 
 Queue/RED set maxthresh_ 15

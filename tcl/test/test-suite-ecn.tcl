@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.38 2003/07/29 21:36:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.39 2004/10/13 02:29:05 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -42,6 +42,10 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set bytes_ false              
+# default changed on 10/11/2004.
+Queue/RED set queue_in_bytes_ false
+# default changed on 10/11/2004.
 Agent/TCP/Newreno set newreno_changes1_ 0
 # The default is being changed to 1 on 5/5/03, to reflect RFC 2582.
 Agent/TCP/Newreno set partial_window_deflation_ 0  

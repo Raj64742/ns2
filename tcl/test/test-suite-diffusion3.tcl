@@ -25,6 +25,11 @@
 
 # This test validates a simple diffusion (ping) application
 
+# FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set bytes_ false
+# default changed on 10/11/2004.
+Queue/RED set queue_in_bytes_ false
+# default changed on 10/11/2004.
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false

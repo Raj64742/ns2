@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.22 2003/01/19 03:54:04 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-sack.tcl,v 1.23 2004/10/13 02:29:08 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -41,6 +41,10 @@ Agent/TCP set rfc2988_ false
 source support.tcl
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Queue/RED set bytes_ false              
+# default changed on 10/11/2004.
+Queue/RED set queue_in_bytes_ false
+# default changed on 10/11/2004.
 Queue/RED set q_weight_ 0.002
 Queue/RED set thresh_ 5 
 Queue/RED set maxthresh_ 15
