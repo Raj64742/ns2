@@ -37,7 +37,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftpc.cc,v 1.2 2001/06/12 17:02:04 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftpc.cc,v 1.3 2001/06/12 18:27:47 haldar Exp $ (LBL)";
 #endif
 
 #include "tcp-full-bay.h"
@@ -49,11 +49,7 @@ static char rcsid[] =
 
 
 
-#ifdef BAYTCP_DEBUG
-FILE* FtpClientAgent::fp_ = fopen("ftpdly.tr", "w");
-#else
-FILE* FtpClientAgent::fp_ = NULL;
-#endif
+//FILE* FtpClientAgent::fp_ = fopen("ftpdly.tr", "w");
 
 static class FtpClientClass : public TclClass {
 public:
@@ -103,9 +99,7 @@ int FtpClientAgent::sendget()
 // ask for another file after a delay to allow connection to close
 void FtpClientAgent::recv(Packet*, BayFullTcpAgent*)
 {
-#ifdef BAYTCP_DEBUG
-  fprintf(fp_, "%g %d %g\n", now(), addr_, now() - start_trans_);
-#endif
+  //fprintf(fp_, "%g %d %g\n", now(), addr_, now() - start_trans_);
 	if(running_)
 		newfile_timer_.resched(.2);
 }

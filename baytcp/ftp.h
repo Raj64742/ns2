@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftp.h,v 1.1 2001/04/05 22:49:46 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/baytcp/ftp.h,v 1.2 2001/06/12 18:27:47 haldar Exp $ (LBL)
  */
 #ifndef ns_ftp_h
 #define ns_ftp_h
@@ -70,7 +70,7 @@ class FtpClientAgent : public BayTcpAppAgent {
 	double start_trans_;
 	int state_;
 	BayFullTcpAgent* tcp_;
-	static FILE* fp_;
+	//static FILE* fp_;
         NewFileTimer newfile_timer_;
 };
 
