@@ -78,9 +78,24 @@ DropTailFilter::DropTailFilter()
 	QueueFilter::off_tcp(off_tcp_);
 }
 
-
 void
 DropTailFilter::recv(Packet* p, Handler* handler)
+{
+	/* First filter packet/queue, and then enque it. */
+	filter(&q_, p);
+	Queue::recv(p);
+}
+
+REDFilter::REDFilter()
+{
+	bind("off_ip_", &off_ip_);
+        bind("off_tcp_", &off_tcp_);
+	QueueFilter::off_ip(off_ip_);
+	QueueFilter::off_tcp(off_tcp_);
+}
+
+void
+REDFilter::recv(Packet* p, Handler* handler)
 {
 	/* First filter packet/queue, and then enque it. */
 	filter(&q_, p);

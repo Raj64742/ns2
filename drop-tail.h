@@ -31,6 +31,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef ns_drop_tail_h
+#define ns_drop_tail_h
+
 #include <string.h>
 #include "queue.h"
 
@@ -53,3 +56,5 @@ public:
 		return (new DropTail);
 	}
 } class_drop_tail;
+
+#endif

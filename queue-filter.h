@@ -35,6 +35,7 @@
 #include "ip.h"
 #include "tcp.h"
 #include "drop-tail.h"
+#include "red.h"
 
 class PacketCompress : public Connector {
 public:
@@ -76,6 +77,8 @@ class DropTailFilter : public QueueFilter, public DropTail {
 	int off_tcp_;
 };
 
+
+
 class DropTailFilterClass : public TclClass {
  public: 
 	DropTailFilterClass() : TclClass("Queue/DropTail/Filter") {}
@@ -83,3 +86,25 @@ class DropTailFilterClass : public TclClass {
                 return (new DropTailFilter);
         }
 } class_drop_tail_filter;
+
+
+class REDFilter: public QueueFilter, public REDQueue {
+  public:
+	REDFilter();
+	int command(int argc, const char*const* argv) {
+		return REDQueue::command(argc, argv);
+//		return QueueFilter::command(argc, argv);
+	}
+	void recv(Packet *, Handler *);
+  private:
+	int off_ip_;
+	int off_tcp_;
+};
+
+class REDFilterClass : public TclClass {
+ public: 
+	REDFilterClass() : TclClass("Queue/RED/Filter") {}
+	TclObject* create(int argc, const char*const* argv) {
+                return (new REDFilter);
+        }
+} class_red_filter;

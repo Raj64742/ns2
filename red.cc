@@ -53,11 +53,6 @@
  *   packets.
  */
 
-#ifndef lint
-static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.cc,v 1.9.2.3 1997/04/27 06:15:13 padmanab Exp $ (LBL)";
-#endif
-
 #include <math.h>
 #include <string.h>
 #include <sys/types.h>
@@ -67,91 +62,7 @@ static char rcsid[] =
 #include "packet.h"
 #include "random.h"
 #include "flags.h"
-
-/*
- * Early drop parameters, supplied by user
- */
-struct edp {
-	/*
-	 * User supplied.
-	 */
-	int mean_pktsize;	/* avg pkt size, linked into Tcl */
-	int bytes;		/* true if queue in bytes, false if packets */
-	int wait;		/* true for waiting between dropped packets */
-	int setbit;		/* true to set congestion indication bit */
-	int fracthresh;         /* true if the thresholds are specified as 
-				   fractions of the max. queue length */
-
-	double th_min;		/* minimum threshold of average queue size */
-	double th_max;		/* maximum threshold of average queue size */
-	double max_p_inv;	/* 1/max_p, for max_p = maximum prob.  */
-	double q_w;		/* queue weight */
-	/*
-	 * Computed as a function of user supplied paramters.
-	 */
-	double ptc;		/* packet time constant in packets/second */
-	/* misc. variables */
-	int adjusted_for_fracthresh_; /* whether we have adjust for threshold
-					 expressed as fractions of the queue size */
-	int adjusted_for_bytes_;      /* whether we have adjusted for byte-counting
-					 instead of packet-counting */
-};
-
-/*
- * Early drop variables, maintained by RED
- */
-struct edv {
-	float v_ave;		/* average queue size */
-	float v_slope;		/* used in computing average queue size */
-	float v_r;			
-	float v_prob;		/* prob. of packet drop */
-	float v_prob1;		/* prob. of packet drop before "count". */
-	float v_a;		/* v_prob = v_a * v_ave + v_b */
-	float v_b;
-	int count;		/* # of packets since last drop */
-	int count_bytes;	/* # of bytes since last drop */
-	int old;		/* 0 when average queue first exceeds thresh */
-};
-
-class REDQueue : public Queue {
- public:	
-	REDQueue();
- protected:
-	int command(int argc, const char*const* argv);
-	void enque(Packet* pkt);
-	Packet* deque();
-	void reset();
-	void run_estimator(int nqueued, int m);
-	void plot();
-	void plot1(int qlen);
-	int drop_early(Packet* pkt);
-	int bcount_;
-
-	/*
-	 * Static state.
-	 */
-	int drop_tail_;
-	edp edp_;
-	int doubleq_;	/* for experiments with priority for small packets */
-	int dqthresh_;	/* for experiments with priority for small packets */
-
-	/*
-	 * Dynamic state.
-	 */
-	int idle_;
-	double idletime_;
-	edv edv_;
-	void print_edp();
-	void print_edv();
-};
-
-static class REDClass : public TclClass {
-public:
-	REDClass() : TclClass("Queue/RED") {}
-	TclObject* create(int argc, const char*const* argv) {
-		return (new REDQueue);
-	}
-} class_red;
+#include "red.h"
 
 REDQueue::REDQueue() : Queue()
 {
@@ -180,6 +91,7 @@ print_edp();
 print_edv();
 #endif
 }
+
 
 void REDQueue::reset()
 {
