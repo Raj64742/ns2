@@ -447,7 +447,6 @@ which may be:
 .nf
   Null                  - Traffic Sink
   LossMonitor           - Traffic Sink that monitors loss parameters
-  TCPSimple             - TCP with basic slow-start and congestion avoidance
   TCP                   - BSD Tahoe TCP
   TCP/Reno              - BSD Reno TCP
   TCP/Newreno           - a modified version of BSD Reno TCP
@@ -628,7 +627,6 @@ The following diagram depicts the object hierarchy:
                Direct
           Null
           LossMonitor
-          TCPSimple
           TCP
                Reno
                Newreno
@@ -924,7 +922,23 @@ is to be performed
 on the specified link(s).
 
 .SH "QUEUE OBJECTS"
-???
+A queue object is a general class of object capable
+of holding and possibly marking or discarding packets as they
+travel through the simulated topology.
+.LP
+.HD
+Configuration Parameters \fP
+.RS
+.IP \fIlimit_\fP
+The queue size in packets.
+.IP \fIblocked_\fP
+Set to false by default,
+this is true if the queue is blocked (unable to send
+a packet to its downstream neighbor).
+.IP \fIunblock_on_resume_\fP
+Set to true by default, indicates a queue should unblock
+itself at the time the last packet packet sent has been
+transmitted (but not necessarily received).
 
 .SH "DROP-TAIL OBJECTS"
 Drop-tail objects are a subclass of Queue objects that implement simple
