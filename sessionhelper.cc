@@ -22,26 +22,28 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.3 1997/08/11 17:39:38 polly Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/sessionhelper.cc,v 1.4 1997/08/12 22:27:46 gnguyen Exp $ (USC/ISI)";
 #endif
 
 #include "packet.h"
+#include "connector.h"
+
 
 struct dstobj {
-  double bw;
-  double delay;
-  nsaddr_t addr;
-  NsObject *obj;
-  dstobj *next;
+	double bw;
+	double delay;
+	nsaddr_t addr;
+	NsObject *obj;
+	dstobj *next;
 };
   
 
 class SessionHelper : public Connector {
- public:
+public:
 	SessionHelper();
 	int command(int, const char*const*);
 	void recv(Packet*, Handler*);
- protected:
+protected:
         nsaddr_t src_;
         dstobj *dstobj_;
 };
@@ -60,22 +62,22 @@ SessionHelper::SessionHelper() : dstobj_(0)
 
 void SessionHelper::recv(Packet* pkt, Handler*)
 {
-  dstobj *tmpdst = dstobj_;
-  Scheduler& s = Scheduler::instance();
-  hdr_cmn* th = (hdr_cmn*)pkt->access(off_cmn_);
-  //printf (" size %d\n", th->size());
+	dstobj *tmpdst = dstobj_;
+	Scheduler& s = Scheduler::instance();
+	hdr_cmn* th = (hdr_cmn*)pkt->access(off_cmn_);
+	//printf (" size %d\n", th->size());
 
-  while (tmpdst != 0) {
-    //printf ("%d ", tmpdst->addr);
-    if (tmpdst->bw == 0) {
-      s.schedule(tmpdst->obj, pkt->copy(), tmpdst->delay);
-    } else {
-      //printf("schedule delay %f\n", th->size()/bw + delay);
-      s.schedule(tmpdst->obj, pkt->copy(), th->size()/tmpdst->bw + tmpdst->delay);
-    }
-    tmpdst = tmpdst->next;
-  }
-  Packet::free(pkt);
+	while (tmpdst != 0) {
+		//printf ("%d ", tmpdst->addr);
+		if (tmpdst->bw == 0) {
+			s.schedule(tmpdst->obj, pkt->copy(), tmpdst->delay);
+		} else {
+			//printf("schedule delay %f\n", th->size()/bw + delay);
+			s.schedule(tmpdst->obj, pkt->copy(), th->size()/tmpdst->bw + tmpdst->delay);
+		}
+		tmpdst = tmpdst->next;
+	}
+	Packet::free(pkt);
 
 }
 
@@ -93,21 +95,17 @@ int SessionHelper::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 	} else if (argc == 6) {
-	  if (strcmp(argv[1], "add-dst") == 0) {
-	    dstobj *tmp = new dstobj;
-	    tmp->bw = atof(argv[2]);
-	    tmp->delay = atof(argv[3]);
-	    tmp->addr = atoi(argv[4]);
-	    tmp->obj = (NsObject*)TclObject::lookup(argv[5]);
-	    //printf ("addr = %d, argv3 = %s, obj = %d\n", tmp->addr, argv[3], tmp->obj);
-	    tmp->next = dstobj_;
-	    dstobj_ = tmp;
-	    return (TCL_OK);
-	  }
+		if (strcmp(argv[1], "add-dst") == 0) {
+			dstobj *tmp = new dstobj;
+			tmp->bw = atof(argv[2]);
+			tmp->delay = atof(argv[3]);
+			tmp->addr = atoi(argv[4]);
+			tmp->obj = (NsObject*)TclObject::lookup(argv[5]);
+			//printf ("addr = %d, argv3 = %s, obj = %d\n", tmp->addr, argv[3], tmp->obj);
+			tmp->next = dstobj_;
+			dstobj_ = tmp;
+			return (TCL_OK);
+		}
 	}
 	return (Connector::command(argc, argv));
 }
-
-
-
-

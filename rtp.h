@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.5 1997/03/29 01:43:03 mccanne Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/rtp.h,v 1.6 1997/08/12 22:27:46 gnguyen Exp $
  */
 
 
@@ -38,6 +38,7 @@
 #define ns_rtp_h
 
 #include "config.h"
+#include "object.h"
 
 /* rtp packet.  For now, just have srcid + seqno. */
 struct hdr_rtp { 
