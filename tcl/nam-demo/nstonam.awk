@@ -1,9 +1,14 @@
-#nam fmt:
+#!/usr/bin/awk
+
+#
+# nam fmt:
 #	eventCode time src dst size attr type conv id
 #
-#ns fmt:
+# ns fmt:
 #	eventCode time src dst pktType size flags class src.sport dst.dport
 #		seqno uid
+#
+
 $2 ~ /testName/ {
   next;
 }
