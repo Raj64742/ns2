@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.35 1999/03/31 21:52:30 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.cc,v 1.36 1999/10/12 15:43:21 sfloyd Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -68,38 +68,57 @@ void Acker::update_ts(int seqno, double ts)
 }
 
 // returns number of bytes that can be "delivered" to application
+// also updates the receive window (i.e. next_, maxseen, and seen_ array)
 int Acker::update(int seq, int numBytes)
 {
 	if (numBytes <= 0)
 		printf("Error, received TCP packet size <= 0\n");
 	int numToDeliver = 0;
 	if (seq - next_ >= MWM) {
-		// Protect seen_ array from overflow.
-		// The missing ACK will ultimately cause sender timeout
-		// and retransmission of packet next_.
+		// next_ is next packet expected; MWM is the maximum
+		// window size minus 1; if somehow the seqno of the
+		// packet is greater than the one we're expecting+MWM, 
+		// then ignore it.
 		return 0;
 	}
 
 	if (seq > maxseen_) {
+		// the packet is the highest one we've seen so far
 		int i;
 		for (i = maxseen_ + 1; i < seq; ++i)
 			seen_[i & MWM] = 0;
+		// we record the packets between the old maximum and
+		// the new max as being "unseen" i.e. 0 bytes of each
+		// packet have been received
 		maxseen_ = seq;
 		seen_[maxseen_ & MWM] = numBytes;
+		// store how many bytes have been seen for this packet
 		seen_[(maxseen_ + 1) & MWM] = 0;
+		// clear the array entry for the packet immediately 
+		// after this one
 	}
 	int next = next_;
 	if (seq >= next && seq <= maxseen_) {
-		/*
-		 * setting the sequence number.
-		 * should be the last in sequence packet seen
-		 */
+		// next is the left edge of the recv window; maxseen_
+		// is the right edge; execute this block if there are
+		// missing packets in the recv window AND if current
+		// packet falls within those gaps
+
 		seen_[seq & MWM] = numBytes;
+		// record the packet as being seen
 		while (seen_[next & MWM]) {
+			// this loop first gets executed if seq==next;
+			// i.e., this is the next packet in order that
+			// we've been waiting for.  the loop sets how
+			// many bytes we can now deliver to the
+			// application, due to this packet arriving
+			// (and the prior arrival of any segments
+			// immediately to the right)
 			numToDeliver += seen_[next & MWM];
 			++next;
 		}
 		next_ = next;
+		// store the new left edge of the window
 	}
 	return numToDeliver;
 }
@@ -140,23 +159,32 @@ void TcpSink::reset()
 void TcpSink::ack(Packet* opkt)
 {
 	Packet* npkt = allocpkt();
+	// opkt is the "old" packet that was received
+	// npkt is the "new" packet being constructed (for the ACK)
 	double now = Scheduler::instance().clock();
 	hdr_flags *sf;
 
 	hdr_tcp *otcp = hdr_tcp::access(opkt);
 	hdr_tcp *ntcp = hdr_tcp::access(npkt);
+	// get the tcp headers
 	ntcp->seqno() = acker_->Seqno();
+	// get the cumulative sequence number to put in the ACK; this
+	// is just the left edge of the receive window - 1
 	ntcp->ts() = now;
+	// timestamp the packet
 
 	if (ts_echo_bugfix_)  /* TCP/IP Illustrated, Vol. 2, pg. 870 */
 		ntcp->ts_echo() = acker_->ts_to_echo();
 	else
 		ntcp->ts_echo() = otcp->ts();
+	// echo the original's time stamp
 
 	hdr_ip* oip = (hdr_ip*)opkt->access(off_ip_);
 	hdr_ip* nip = (hdr_ip*)npkt->access(off_ip_);
+	// get the ip headers
 	nip->flowid() = oip->flowid();
-
+	// copy the flow id
+	
 	hdr_flags* of = (hdr_flags*)opkt->access(off_flags_);
 	hdr_flags* nf = (hdr_flags*)npkt->access(off_flags_);
 	if (save_ != NULL) 
@@ -182,7 +210,10 @@ void TcpSink::ack(Packet* opkt)
 	acker_->append_ack((hdr_cmn*)npkt->access(off_cmn_),
 			   ntcp, otcp->seqno());
 	add_to_ack(npkt);
+	// the above function is used in TcpAsymSink
+	
 	send(npkt, 0);
+	// send it
 }
 
 void TcpSink::add_to_ack(Packet*)
@@ -194,13 +225,22 @@ void TcpSink::recv(Packet* pkt, Handler*)
 {
 	int numToDeliver;
 	int numBytes = ((hdr_cmn*)pkt->access(off_cmn_))->size();
+	// number of bytes in the packet just received
 	hdr_tcp *th = hdr_tcp::access(pkt);
 	acker_->update_ts(th->seqno(),th->ts());
+	// update the timestamp to echo
+	
       	numToDeliver = acker_->update(th->seqno(), numBytes);
+	// update the recv window; figure out how many in-order-bytes
+	// (if any) can be removed from the window and handed to the
+	// application
 	if (numToDeliver)
 		recvBytes(numToDeliver);
+	// send any packets to the application
       	ack(pkt);
+	// ACK the packet
 	Packet::free(pkt);
+	// remove it from the system
 }
 
 static class DelSinkClass : public TclClass {
@@ -226,10 +266,8 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 	numToDeliver = acker_->update(th->seqno(), numBytes);
 	if (numToDeliver)
 		recvBytes(numToDeliver);
-        /*
-         * If there's no timer and the packet is in sequence, set a timer.
-         * Otherwise, send the ack and update the timer.
-         */
+        // If there's no timer and the packet is in sequence, set a timer.
+        // Otherwise, send the ack and update the timer.
         if (delay_timer_.status() != TIMER_PENDING && 
 				th->seqno() == acker_->Seqno()) {
                	// There's no timer, so set one and delay this ack.
@@ -237,9 +275,7 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 		delay_timer_.resched(interval_);
                 return;
         }
-        /*
-         * If there was a timer, turn it off.
-         */
+        // If there was a timer, turn it off.
 	if (delay_timer_.status() == TIMER_PENDING) 
 		delay_timer_.cancel();
 	ack(pkt);
@@ -253,10 +289,7 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 
 void DelAckSink::timeout(int)
 {
-	/*
-	 * The timer expired so we ACK the last packet seen.
-	 * (shouldn't this check for a particular time out#?  -kf)
-	 */
+	// The timer expired so we ACK the last packet seen.
 	Packet* pkt = save_;
 	ack(pkt);
 	save_ = NULL;
@@ -278,11 +311,11 @@ protected:
 		int right_;
 	} *SFE_;
 public:
-	SackStack(int);
+	SackStack(int); 	// create a SackStack of size (int)
 	~SackStack();
 	int& head_right(int n = 0) { return SFE_[n].right_; }
 	int& head_left(int n = 0) { return SFE_[n].left_; }
-	int cnt() { return cnt_; }
+	int cnt() { return cnt_; }  	// how big is the stack
 	void reset() {
 		register int i;
 		for (i = 0; i < cnt_; i++)
@@ -392,6 +425,9 @@ Sacker::~Sacker()
 
 void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 {
+	// ch and h are the common and tcp headers of the Ack being constructed
+	// old_seqno is the sequence # of the packet we just got
+	
         int sack_index, i, sack_right, sack_left;
 	int recent_sack_left, recent_sack_right;
           
@@ -399,16 +435,28 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 
         sack_index = 0;
 	sack_left = sack_right = -1;
+	// initialization; sack_index=0 and sack_{left,right}= -1
 
         if (old_seqno < 0) {
                 printf("Error: invalid packet number %d\n", old_seqno);
         } else if (seqno >= maxseen_ && (sf_->cnt() != 0))
 		sf_->reset();
+	// if the Cumulative ACK seqno is at or beyond the right edge
+	// of the window, and if the SackStack is not empty, reset it
+	// (empty it)
 	else if ((seqno < maxseen_) && (base_nblocks_ > 0)) {
-                /*  Build FIRST SACK block  */
+		// Otherwise, if the received packet is to the left of
+		// the right edge of the receive window (but not at
+		// the right edge), OR if it is a duplicate, AND we
+		// can have 1 or more Sack blocks, then execute the
+		// following, which computes the most recent Sack
+		// block
+		
+                // Build FIRST SACK block  
                 sack_right=-1;
 
-		/* look rightward for first hole */
+		// look rightward for first hole 
+		// start at the current packet 
                 for (i=old_seqno; i<=maxseen_; i++) {
 			if (!seen_[i & MWM]) {
 				sack_right=i;
@@ -416,14 +464,19 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 			}
 		}
 
+		// if there's no hole set the right edge of the sack
+		// to be the next expected packet
                 if (sack_right == -1) {
 			sack_right = maxseen_+1;
                 }
 
+		// if the current packet's seqno is smaller than the
+		// left edge of the window, set the sack_left to 0
 		if (old_seqno <= seqno) {
 			sack_left = 0;
+			// don't record/send the block
 		} else {
-			/* look leftward from right edge for first hole */
+			// look leftward from right edge for first hole 
 	                for (i = sack_right-1; i > seqno; i--) {
 				if (!seen_[i & MWM]) {
 					sack_left = i+1;
@@ -432,31 +485,30 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 	                }
 			h->sa_left(sack_index) = sack_left;
 			h->sa_right(sack_index) = sack_right;
+			// record the block
 			sack_index++;
 		}
 
 		recent_sack_left = sack_left;
 		recent_sack_right = sack_right;
 
-		/* first sack block is built, check the others */
-		/*
-		 * make sure that if max_sack_blocks has been made
-		 * large from tcl we don't over-run the stuff we
-		 * allocated in Sacker::Sacker()
-		 */
-
+		// first sack block is built, check the others 
+		// make sure that if max_sack_blocks has been made
+		// large from tcl we don't over-run the stuff we
+		// allocated in Sacker::Sacker()
 		int k = 0;
                 while (sack_index < base_nblocks_) {
 
 			sack_left = sf_->head_left(k);
 			sack_right = sf_->head_right(k);
 
-			/* no more history */
+			// no more history 
 			if (sack_left < 0 || sack_right < 0 ||
 				sack_right > maxseen_ + 1)
 				break;
 
-			/* newest ack "covers up" this one */
+			// newest ack "covers up" this one 
+
 			if (recent_sack_left <= sack_left &&
 			    recent_sack_right >= sack_right) {
 				sf_->pop(k);
@@ -465,6 +517,7 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 
 			h->sa_left(sack_index) = sack_left;
 			h->sa_right(sack_index) = sack_right;
+			// store the old sack (i.e. move it down one)
 			sack_index++;
 			k++;
 
@@ -473,11 +526,19 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 		if (old_seqno > seqno) {
 		 	/* put most recent block onto stack */
 			sf_->push();
+			// this just moves things down 1 from the
+			// beginning, but it doesn't push any values
+			// on the stack
 			sf_->head_left() = recent_sack_left;
 			sf_->head_right() = recent_sack_right;
+			// this part stores the left/right values at
+			// the top of the stack (slot 0)
 		}
                 
         }
 	h->sa_length() = sack_index;
+	// set the Length of the sack stack in the header
 	ch->size() += sack_index * 8;
+	// change the size of the common header to account for the
+	// Sack strings (2 4-byte words for each element)
 }
