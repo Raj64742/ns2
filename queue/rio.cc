@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.6 2000/07/04 01:59:31 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/rio.cc,v 1.7 2000/07/05 21:05:26 sfloyd Exp $ (LBL)";
 #endif
 
 #include "rio.h"
@@ -169,7 +169,6 @@ Packet* RIOQueue::deque()
 		}
 	} else {
                 in_idle_ = 1;
-		in_idletime_ = idletime_;
 	}
 	return (p);
 }
@@ -291,12 +290,17 @@ void RIOQueue::enque(Packet* pkt)
 	 */
 
 	int m = 0;
+	int m_in = 0;
+	double now = Scheduler::instance().clock();
+        /* To account for the period when the queue was empty.  */
 	if (in_idle_) {
-		double now = Scheduler::instance().clock();
-		/* To account for the period when the queue was empty. */
 		in_idle_ = 0;
-		m = int(edp_.ptc * (now - in_idletime_));
-	}
+		m_in = int(edp_.ptc * (now - idletime_));
+	} 
+	if (idle_) {
+                idle_ = 0;
+                m = int(edp_.ptc * (now - idletime_));
+        }
 
 	/*
 	 * Run the estimator with either 1 new packet arrival, or with
@@ -310,7 +314,7 @@ void RIOQueue::enque(Packet* pkt)
 	edv_.v_ave = REDQueue::estimator(qib_ ? bcount_ : q_->length(), m + 1,
 		edv_.v_ave, edp_.q_w);
 	edv_in_.v_ave = REDQueue::estimator(qib_ ? in_bcount_ : in_len_,
-		m + 1, edv_in_.v_ave, edp_.q_w);
+		m_in + 1, edv_in_.v_ave, edp_.q_w);
 
 	/*
 	 * count and count_bytes keeps a tally of arriving traffic
@@ -433,31 +437,6 @@ void RIOQueue::enque(Packet* pkt)
         }
 
 	else {     /* Out packets and default regular packets */
-          /*
-           * if we were idle, we pretend that m packets arrived during
-           * the idle period.  m is set to be the ptc times the amount
-           * of time we've been idle for
-           */
-
-          int m = 0;
-          if (idle_) {
-                  /* To account for the period when the queue was empty.  */
-                  idle_ = 0;
-                  m = int(edp_.ptc * (now - idletime_));
-          }
-
-          /*
-           * Run the estimator with either 1 new packet arrival, or with
-           * the scaled version above [scaled by m due to idle time]
-           * (bcount_ maintains the byte count in the underlying queue).
-           * If the underlying queue is able to delete packets without
-           * us knowing, then bcount_ will not be maintained properly!
-           */
-
-	  edv_out_.v_ave = REDQueue::estimator(
-		qib_ ? bcount_ - in_bcount_ : q_->length() - in_len_,
-		m + 1, edv_out_.v_ave, edp_.q_w);
-
           /*
            * count and count_bytes keeps a tally of arriving traffic
            * that has not been dropped (i.e. how long, in terms of traffic,
