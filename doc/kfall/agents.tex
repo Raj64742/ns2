@@ -32,12 +32,14 @@ it is sent.
 This state includes the following:
 \begin{quote}
 \begin{itemize}
-        \item[addr\_] - node address of myself
+        \item[addr\_] - node address of myself (source address in packets)
         \item[dst\_] - where I am sending packets to
-        \item[size\_] - size placed into the common packet header
-        \item[type\_] - type of packet (in the common header, used by the trace facility)
-        \item[fid\_] - the IP flow identifier (formerly class in ns-1)
+        \item[size\_] - packet size in bytes (placed into the common packet header)
+        \item[type\_] - type of packet (in the common header, see packet.h)
+        \item[fid\_] - the IP flow identifier (formerly {\em class} in ns-1)
         \item[prio\_] - the IP priority field
+	\item[flags\_] - packet flags (similar to ns-1)
+	\item[defttl\_] - default IP ttl value
 \end{itemize}
 \end{quote}
 The class also keeps an array of timers which may be used
@@ -54,10 +56,11 @@ generally {\em not} over-ridden by derived classes:
 \begin{tt}
 \begin{quote}
 \begin{itemize}
-        \item[void sched(delay, timeout number)] - schedule a time out
-        \item[void cancel(timeout number)] - cancel a time out
-        \item[void handle(Event*)] - dispatcher for time outs
-        \item[Packet* allocpkt()] - allocate new packet and assign its fields
+\item[void sched(delay, timeout number)] - schedule a time out in {\em delay} secs
+\item[void cancel(timeout number)] - cancel a time out
+\item[void handle(Event*)] - dispatcher for time outs
+\item[Packet* allocpkt()] - allocate new packet and assign its fields
+\item[Packet* allocpkt(int)] - allocate new packet with a data payload of n bytes and assign its fields
 \end{itemize}
 \end{quote}
 \end{tt}
@@ -91,7 +94,7 @@ The \code{allocpkt} function is used by derived classes to create
 packets to send.
 The function fills in the following fields in the common packet
 header (see \ref{sec:pformat}): {\tt uid, ptype, size}, and the
-following fields in the IP header: {\tt src, dst, flowid, prio ttl}.
+following fields in the IP header: {\tt src, dst, flowid, prio, ttl}.
 It also zero-fills in the following fields of the Flags header:
 {\tt ecn, pri, usr1, usr2}.
 Any packet header information not included in these lists must
@@ -113,8 +116,17 @@ These are their names in OTcl:
         \item[TCP/Reno] - a ``Reno'' TCP sender  (with fast recovery)
         \item[TCP/NewReno] - a modified Reno TCP sender (changes fast recovery)
         \item[TCP/Sack1] - a SACK TCP sender
-        \item[TCPSink] - a Reno or Tahoe TCP receiver
+        \item[TCP/Fack] - a ``forward'' SACK sender TCP 
+	\item[TCP/FullTcp] - a more full-functioned TCP with 2-way traffic
+	\item[TCP/Vegas] - a ``Vegas'' TCP sender
+	\item[TCP/Vegas/RBP] - a Vegas TCP with ``rate based pacing''
+	\item[TCP/Vegas/RBP] - a Reno TCP with ``rate based pacing''
+	\item[TCP/Asym] - an experimental Tahoe TCP for asymmetric links
+	\item[TCP/Reno/Asym] - an experimental Reno TCP for asymmetric links
+	\item[TCP/Newreno/Asym] - an experimental NewReno TCP for asymmetric links
+        \item[TCPSink] - a Reno or Tahoe TCP receiver (not used for FullTcp)
         \item[TCPSink/DelAck] - a TCP delayed-ACK receiver
+        \item[TCPSink/Asym] - an experimental  TCP sink for asymmetric links
         \item[TCPSink/Sack1] - a SACK TCP receiver
 	\item[TCPSink/Sack1/DelAck] - a delayed-ACK SACK TCP receiver
 
@@ -123,13 +135,22 @@ These are their names in OTcl:
 	\item[CBR/UDP] - UDP with sequence numbers and traffic sources
         \item[RTCP] - an RTCP sender and receiver
 
+	\item[LossMonitor] - a packet sink which checks for losses
+
 	\item[IVS/Source] - an IVS source
 	\item[IVS/Receiver] - an IVS receiver
 
+	\item[CtrMcast/Encap] - a ``centralised multicast'' encapsulator
+	\item[CtrMcast/Decap] - a ``centralised multicast'' de-encapsulator
 	\item[Message] - a protocol to carry textual messages
 	\item[Message/Prune] - processes multicast routing prune messages
 
-	\item[Null] - a degenerate agent
+	\item[SRM] - an SRM agent with non-adaptive timers
+	\item[SRM/Adaptive] - an SRM agent with adaptive timers
+
+	\item[Tap] - interfaces the simulator to a live network
+
+	\item[Null] - a degenerate agent which discards packets
 
 	\item[rtProto/DV] - distance-vector routing protocol agent
 \end{itemize}
@@ -210,9 +231,7 @@ They are as follows:
 
 The class \code{TCP} represents a simplified TCP sender.
 It sends data to a \code{TCPSink} agent and processes its acknowledgments.
-It does not implement the TCP slow-start or congestion avoidance
-algorithms, nor timeouts.
-It does have a separate object associated with it which represents
+It has a separate object associated with it which represents
 an application's demand.
 By looking at the \code{TCPAgent} and \code{TCPSinkAgent} classes
 we may see how relatively complex agents are constructed.
@@ -408,14 +427,7 @@ In the \code{TcpAgent} agent, this is done as follows:
         {
                 hdr_tcp *tcph = (hdr_tcp*)pkt->access(off_tcp_);
                 hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
-#ifdef notdef
-        if (pkt->type_ != PT_ACK) {
-                Tcl::instance().evalf("%s error \"received non-ack\"",
-                                      name());
-                Packet::free(pkt);
-                return;
-        }
-#endif
+                ...
                 if (((hdr_flags*)pkt->access(off_flags_))->ecn_)
                         quench(1);
                 if (tcph->seqno() > last_ack_) {
