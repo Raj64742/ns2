@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.63 2005/03/02 20:08:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.64 2005/03/02 20:58:59 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -1115,7 +1115,7 @@ Test/HighLossShort instproc init {} {
     Agent/TFRCSink set ShortIntervals_ 1
     Agent/TFRC set df_ 0.95
     Agent/TFRC set ca_ 1
-    set stopTime1_ 60
+    set stopTime1_ 80
     Test/HighLossShort instproc run {} [Test/HighLoss info instbody run ]
     $self next pktTraceFile
 }
@@ -1436,13 +1436,13 @@ Test/printLossesShort instproc run {} {
     $tf1Dest set printLosses_ 1
     $tf1Dest set printLoss_ 1
     $ns_ connect $tf1 $tf1Dest
-    #
     $ns_ at 0.0 "$tf1 start"
     set tf2 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 1]
     $ns_ at 0.2 "$tf2 start"
     $ns_ at 2.0 "$tf2 stop"
     set tf3 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 2]
-    $ns_ at 2.2 "$tf3 start"
+    $ns_ at 2.22 "$tf3 start"
+    #$self drop_pkts {80 82 84 160 162 164 166 168 170 250} 
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
