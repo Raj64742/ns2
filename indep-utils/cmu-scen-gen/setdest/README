@@ -1,4 +1,4 @@
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/README,v 1.2 1999/08/12 21:26:52 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/cmu-scen-gen/setdest/README,v 1.3 1999/11/02 17:00:29 haldar Exp $
 
 ********** README for using CMU's node-movement **************
             ************** file generators ************
@@ -16,54 +16,20 @@ make-scen.csh
 
 Steps for creating scenario files for mobility simulations :
 
-1.Create an archive of ns library files by adding the following lines to
-your Makefile under ns directory:
+1. Go to ns directory and run "configure" (you probably have done that
+already while building ns). This creates a makefile for setdest. 
 
-libns.a: $(OBJ)
-        $(RM) $@
-        $(AR) $@ $(OBJ)
-        $(RANLIB) $@
-"make libns.a" to create an archive for ns.  
+2.Go to indep-utils/cmu-scen-gen/setdest. Run "make" , which first creates
+a stand-alone object file for ~ns/rng.cc (the stand-alone version doesnot
+use Tclcl libs) and then creates the executable setdest. 
 
-2. Make the following changes in your Makefile in setdest directory to
-include paths to the ns directory and nslib. Add/edit the following:
-
-INCLUDES = -I. -I/usr/openwin/include \
-        -I/Full/Path/To/ns-2/Directory \
-        -I/Full/Path/To/tclcl \
-        -I/Full/Path/To/otcl \
-        -I/Full/Path/To/tk8.0/tk8.0/include \
-        -I/Full/Path/To/tcl8.0/tcl8.0/include 
-
-Next add path to the libraries:
-LIBS = -L/Full/Path/To/ns-2 -lns \
-        -L/Full/Path/To/tclcl -ltclcl \
-        -L/Full/Path/To/otcl -lotcl \
-        -L/Full/Path/To/tk8.0/tk8.0/lib -ltk80 \
-        -L/Full/Path/To/tcl8.0/tcl8.0/lib -ltcl80 \
-        -lXext -lX11 \
-        -lnsl -ldl \
-        -lm -ldl     
-
-setdest: setdest.o
-        $(CCX) -o setdest $@.o $(LDFLAGS) $(CFLAGS) $(INCLUDES) $(LIBS)
-
-and,
-
-.cc.o:
-        $(CCX) -c $(CFLAGS) $(INCLUDES) -o $@ $*.cc
-
-3. Save your Makefile and run "make" to create executable setdest.
-
-4. Run setdest with arguments in the following way:
-./setdest -n <num_of_nodes> -p <pausetime> -s <maxspeed> -t <simtime> \
-      -x <maxx> -y <maxy> > <outdir>/<scenario-file>
-
+3. Run setdest with arguments as shown below: ./setdest [-n num_of_nodes]
+[-p pausetime] [-s maxspeed] [-t simtime] \
+      [-x maxx] [-y maxy] > [outdir/movement-file]
+ 
 Example: ./setdest -n 20 -p 2.0 -s 10.0 -t 200 -x 500 -y 500 >
 scen-20-test
 and the output will be written in a file called scen-20-test.
 
 4a. OR run make-scen.csh to generate multiple scenario files.
 
-Note: The nodes created are indexed starting from 1. Edit setdest.cc
-incase you want the indexing to start from 0.
