@@ -7,7 +7,7 @@
 </HEAD>
 <BODY>
 
-<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.4 1999/07/02 02:19:30 tomh Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
+<P><!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/TODO.html,v 1.5 1999/08/05 23:04:30 yuriy Exp $--><!-- Changed by: Sandeep Bajaj, 31-Mar-1997 --></P>
 
 <H1>ns: TODO list</H1>
 
@@ -32,6 +32,37 @@ by him/herself.
        then a signature and date.
        <em>(<a href="http://www.isi.edu/~johnh/">[johnh]</a>
        Thu Jun 17 18:04:37 PDT 1999)</em>
+
+  <p>
+  <li>
+       <b>This looks like a bug to look into</b>
+       After I edited mobility/scene/cbr-50-20-4-512 to replace all 
+       <pre> 
+       $cbr_(xx) set packetSize_ 512
+       </pre>
+       with
+       <pre>
+       $cbr_(xx) set packetSize_ 210
+       </pre>
+       and tried to re-run the test-suite-wireless-gridkeeper/dsdv,
+       ns got into a dead loop in DSDV_Agent::processUpdate() right
+       where the XXX-ed comment says it might:
+       <pre>
+	  while ((queued_p = rte.q->deque()))
+	  // XXX possible loop here  
+	  // while ((queued_p = rte.q->deque()))
+	  // Only retry once to avoid looping
+	  // for (int jj = 0; jj < rte.q->length(); jj++){
+	  //  queued_p = rte.q->deque();
+	    recv(queued_p, 0); // give the packets to ourselves to forward
+	  // }
+	  delete rte.q;
+	  rte.q = 0;
+	  table_->AddEntry(rte); // record the now zero'd queue
+	</pre>
+	Yet it works with packetSize_ set to 512.
+       <em>(<a href="mailto:yuri@isi.edu">[yuri]</a>
+       Thu Aug  5 15:58:36 PDT 1999)</em>
 
   <p>
   <li>
