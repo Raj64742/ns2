@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.187 2000/02/03 15:58:20 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.188 2000/02/05 04:08:27 podolsky Exp $
 
 
 #
@@ -313,6 +313,7 @@ PacketQueue/Semantic set random_ecn_ false
 Agent/TCPSink set packetSize_ 40
 Agent/TCPSink set maxSackBlocks_ 3
 Agent/TCPSink set ts_echo_bugfix_ false
+Agent/TCPSink set generateDSacks_ false
 
 Agent/TCPSink/DelAck set interval_ 100ms
 catch {

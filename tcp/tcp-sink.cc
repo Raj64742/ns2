@@ -34,7 +34,7 @@
  
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.39 2000/01/05 00:00:59 heideman Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-sink.cc,v 1.40 2000/02/05 04:08:25 podolsky Exp $ (LBL)";
 #endif
 
 #include "flags.h"
@@ -71,13 +71,16 @@ void Acker::update_ts(int seqno, double ts)
 // also updates the receive window (i.e. next_, maxseen, and seen_ array)
 int Acker::update(int seq, int numBytes)
 {
+	bool just_marked_as_seen = FALSE;
+	is_dup_ = FALSE;
+	// start by assuming the segment hasn't been received before
 	if (numBytes <= 0)
 		printf("Error, received TCP packet size <= 0\n");
 	int numToDeliver = 0;
 	if (seq - next_ >= MWM) {
 		// next_ is next packet expected; MWM is the maximum
 		// window size minus 1; if somehow the seqno of the
-		// packet is greater than the one we're expecting+MWM, 
+		// packet is greater than the one we're expecting+MWM,
 		// then ignore it.
 		return 0;
 	}
@@ -94,16 +97,37 @@ int Acker::update(int seq, int numBytes)
 		seen_[maxseen_ & MWM] = numBytes;
 		// store how many bytes have been seen for this packet
 		seen_[(maxseen_ + 1) & MWM] = 0;
-		// clear the array entry for the packet immediately 
+		// clear the array entry for the packet immediately
 		// after this one
+		just_marked_as_seen = TRUE;
+		// necessary so this packet isn't confused as being a duplicate
 	}
 	int next = next_;
+	if (seq < next) {
+		// Duplicate packet case 1: the packet is to the left edge of
+		// the receive window; therefore we must have seen it
+		// before
+#ifdef DEBUGDSACK
+		printf("%f\t Received duplicate packet %d\n",Scheduler::instance().clock(),seq);
+#endif
+		is_dup_ = TRUE;
+	}
+
 	if (seq >= next && seq <= maxseen_) {
 		// next is the left edge of the recv window; maxseen_
 		// is the right edge; execute this block if there are
 		// missing packets in the recv window AND if current
 		// packet falls within those gaps
 
+		if (seen_[seq & MWM] && !just_marked_as_seen) {
+		// Duplicate case 2: the segment has already been
+		// recorded as being received (AND not because we just
+		// marked it as such)
+			is_dup_ = TRUE;
+#ifdef DEBUGDSACK
+			printf("%f\t Received duplicate packet %d\n",Scheduler::instance().clock(),seq);
+#endif
+		}
 		seen_[seq & MWM] = numBytes;
 		// record the packet as being seen
 		while (seen_[next & MWM]) {
@@ -140,6 +164,7 @@ TcpSink::delay_bind_init_all()
 {
         delay_bind_init_one("packetSize_");
         delay_bind_init_one("ts_echo_bugfix_");
+        delay_bind_init_one("generateDSacks_"); // used only by sack
 #if defined(TCP_DELAY_BIND_ALL) && 0
         delay_bind_init_one("maxSackBlocks_");
 #endif /* TCP_DELAY_BIND_ALL */
@@ -152,6 +177,7 @@ TcpSink::delay_bind_dispatch(const char *varName, const char *localName, TclObje
 {
         if (delay_bind(varName, localName, "packetSize_", &size_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "ts_echo_bugfix_", &ts_echo_bugfix_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "generateDSacks_", &generate_dsacks_, tracer)) return TCL_OK;
 #if defined(TCP_DELAY_BIND_ALL) && 0
         if (delay_bind(varName, localName, "maxSackBlocks_", &max_sack_blocks_, tracer)) return TCL_OK;
 #endif /* TCP_DELAY_BIND_ALL */
@@ -284,6 +310,7 @@ DelAckSink::DelAckSink(Acker* acker) : TcpSink(acker), delay_timer_(this)
 {
 	bind_time("interval_", &interval_);
 }
+
 
 void DelAckSink::recv(Packet* pkt, Handler*)
 {
@@ -421,6 +448,7 @@ void Sacker::configure(TcpSink *sink)
 	sf_ = new SackStack(int(nblocks));
 	nblocks.tracer(this);
 	base_nblocks_ = int(nblocks);
+	dsacks_ = &(sink->generate_dsacks_);
 }
 
 void
@@ -460,6 +488,7 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 	int recent_sack_left, recent_sack_right;
           
 	int seqno = Seqno();
+	// the last in-order packet seen (i.e. the cumulative ACK # - 1)
 
         sack_index = 0;
 	sack_left = sack_right = -1;
@@ -472,15 +501,40 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 	// if the Cumulative ACK seqno is at or beyond the right edge
 	// of the window, and if the SackStack is not empty, reset it
 	// (empty it)
-	else if ((seqno < maxseen_) && (base_nblocks_ > 0)) {
+	else if (( (seqno < maxseen_) || is_dup_ ) && (base_nblocks_ > 0)) {
 		// Otherwise, if the received packet is to the left of
 		// the right edge of the receive window (but not at
 		// the right edge), OR if it is a duplicate, AND we
 		// can have 1 or more Sack blocks, then execute the
 		// following, which computes the most recent Sack
 		// block
-		
-                // Build FIRST SACK block  
+
+		if ((*dsacks_) && is_dup_) {
+			// Record the DSACK Block
+			h->sa_left(sack_index) = old_seqno;
+			h->sa_right(sack_index) = old_seqno+1;
+			// record the block
+			sack_index++;
+#ifdef DEBUGDSACK
+			printf("%f\t Generating D-SACK for packet %d\n", Scheduler::instance().clock(),old_seqno);
+#endif
+
+			
+		}
+
+		//  Build FIRST (traditional) SACK block
+
+		// If we already had a DSACK block due to a duplicate
+		// packet, and if that duplicate packet is in the
+		// receiver's window (i.e. the packet's sequence
+		// number is > than the cumulative ACK) then the
+		// following should find the SACK block it's a subset
+		// of.  If it's <= cum ACK field then the following
+		// shouldn't record a superset SACK block for it.
+
+                if (sack_index >= base_nblocks_) {
+			printf("Error: can't use DSACK with less than 2 SACK blocks\n");
+		} else {
                 sack_right=-1;
 
 		// look rightward for first hole 
@@ -562,7 +616,11 @@ void Sacker::append_ack(hdr_cmn* ch, hdr_tcp* h, int old_seqno) const
 			// this part stores the left/right values at
 			// the top of the stack (slot 0)
 		}
-                
+
+		} // this '}' is for the DSACK base_nblocks_ >= test;
+		  // (didn't feel like re-indenting all the code and 
+		  // causing a large diff)
+		
         }
 	h->sa_length() = sack_index;
 	// set the Length of the sack stack in the header

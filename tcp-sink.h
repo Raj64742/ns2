@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.15 2000/01/05 00:00:59 heideman Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp-sink.h,v 1.16 2000/02/05 04:08:25 podolsky Exp $ (LBL)
  */
  
 #ifndef ns_tcpsink_h
@@ -70,6 +70,7 @@ protected:
 				 * acknowledged. */
 	int seen_[MWS];		/* array of packets seen */
 	double ts_to_echo_;	/* timestamp to echo to peer */
+	int is_dup_;		// A duplicate packet.
 };
 
 // derive Sacker from TclObject to allow for traced variable
@@ -83,6 +84,7 @@ public:
 	void configure(TcpSink*);
 protected:
 	int base_nblocks_;
+	int* dsacks_;		// Generate DSACK blocks.
 	SackStack *sf_;
 	void trace(TracedVar*);
 };
@@ -108,6 +110,7 @@ protected:
 	TracedInt max_sack_blocks_;	/* used only by sack sinks */
 	Packet* save_;		/* place to stash saved packet while delaying */
 				/* used by DelAckSink */
+	int generate_dsacks_;	// used only by sack sinks
 
 };
 
