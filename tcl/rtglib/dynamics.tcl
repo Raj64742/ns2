@@ -120,6 +120,7 @@ Link instproc up? {} {
 
 Link instproc all-connectors op {
     foreach c [$self info vars] {
+	if ![info exists $c] continue
 	foreach var [$self set $c] {
 	    if [catch "$var info class"] {
 		continue
@@ -150,7 +151,7 @@ rtQueue instproc init ns {
     set ns_ $ns
 }
 
-rtQueue instproc insq { interval obj iproc args } {
+rtQueue instproc insq-i { interval obj iproc args } {
     $self instvar rtq_ ns_
     set time [expr $interval + [$ns_ now]]
     if ![info exists rtq_($time)] {
@@ -160,7 +161,7 @@ rtQueue instproc insq { interval obj iproc args } {
     return $time
 }
 
-rtQueue instproc insq-exact { at obj iproc args } {
+rtQueue instproc insq { at obj iproc args } {
     $self instvar rtq_ ns_
     if {[$ns_ now] >= $at} {
 	puts stderr "$proc: Cannot set event in the past"
@@ -211,12 +212,15 @@ rtQueue instproc runq { time } {
 Class rtModel
 
 rtModel set rtq_ ""
-rtModel set quiesceTime_ 0.5
+rtModel set startTime_ 0.5
+rtModel set finishTime_ "-"
 
 rtModel instproc init ns {
     $self next
-    $self instvar ns_ quiesceTime_ upInterval_ downInterval_
+    $self instvar ns_ startTime_ finishTime_
     set ns_ $ns
+    set startTime_ [$class set startTime_]
+    set finishTime_ [$class set finishTime_]
 }
 
 rtModel instproc set-elements args {
@@ -247,10 +251,10 @@ rtModel instproc set-elements args {
 }
 
 rtModel instproc set-parms args {
-    $self instvar quiesceTime_ upInterval_ downInterval_
+    $self instvar startTime_ upInterval_ downInterval_ finishTime_
 
     set cls [$self info class]
-    foreach i {"quiesceTime_" "upInterval_" "downInterval_"} {
+    foreach i {startTime_ upInterval_ downInterval_ finishTime_} {
 	if [catch "$cls set $i" $i] {
 	    set $i [$class set $i]
 	}
@@ -259,8 +263,15 @@ rtModel instproc set-parms args {
     set off "-"
     set up  "-"
     set dn  "-"
+    set fin "-"
 
     switch [llength $args] {
+	4 {
+	    set off [lindex $args 0]
+	    set up  [lindex $args 1]
+	    set dn  [lindex $args 2]
+	    set fin [lindes $args 3]
+	}
 	3 {
 	    set off [lindex $args 0]
 	    set up  [lindex $args 1]
@@ -272,13 +283,16 @@ rtModel instproc set-parms args {
 	}
     }
     if {$off != "-" && $off != ""} {
-	set quiesceTime_ $off
+	set startTime_ $off
     }
     if {$up != "-" && $up != ""} {
 	set upInterval_ $up
     }
     if {$dn != "-" && $dn != ""} {
 	set downInterval_ $dn
+    }
+    if {$fin != "-" && $fin != ""} {
+	set finishTime_ $fin
     }
 }
 
@@ -294,10 +308,21 @@ rtModel instproc configure {} {
     $self set-first-event
 }
 
-rtModel instproc set-first-event {} {
-    $self instvar quiesceTime_ upInterval_
+rtModel instproc set-event {interval op} {
+    $self instvar ns_ finishTime_
+    set fireTime [expr [$ns_ now] + $interval]
+    if {$finishTime_ != "-" && $fireTime > $finishTime_} {
+	if {$op == up} {
+	    [rtModel set rtq_] insq $finishTime_ $self $op
+	}
+    } else {
+	[rtModel set rtq_] insq $fireTime $self $op
+    }
+}
 
-    [rtModel set rtq_] insq [expr $quiesceTime_ + $upInterval_] $self "down"
+rtModel instproc set-first-event {} {
+    $self instvar startTime_ upInterval_
+    $self set-event [expr $startTime_ + $upInterval_] down
 }
 
 rtModel instproc up {} {
@@ -339,24 +364,20 @@ rtModel/Exponential set upInterval_   10.0
 rtModel/Exponential set downInterval_  1.0
 
 rtModel/Exponential instproc set-first-event {} {
-    $self instvar quiesceTime_ upInterval_
-
-    set interval [expr $quiesceTime_ + [exponential] * $upInterval_]
-    [rtModel set rtq_] insq $interval $self "down"
+    $self instvar startTime_ upInterval_
+    $self set-event [expr $startTime_ + [exponential] * $upInterval_] down
 }
 
 rtModel/Exponential instproc up { } {
     $self next
     $self instvar upInterval_
-    set interval [expr [exponential] * $upInterval_]
-    [rtModel set rtq_] insq $interval $self "down"
+    $self set-event [expr [exponential] * $upInterval_] down
 }
 
 rtModel/Exponential instproc down { } {
     $self next
     $self instvar downInterval_
-    set interval [expr [exponential] * $downInterval_]
-    [rtModel set rtq_] insq $interval $self "up"
+    $self set-event [expr [exponential] * $downInterval_] up
 }
 
 #
@@ -371,15 +392,13 @@ rtModel/Deterministic set downInterval_ 1.0
 rtModel/Deterministic instproc up { } {
     $self next
     $self instvar upInterval_
-
-    [rtModel set rtq_] insq $upInterval_ $self "down"
+    $self set-event $upInterval_ down
 }
 
 rtModel/Deterministic instproc down { } {
     $self next
     $self instvar downInterval_
-
-    [rtModel set rtq_] insq $downInterval_ $self "up"
+    $self set-event $downInterval_ up
 }
 
 #
@@ -402,24 +421,20 @@ rtModel/Trace instproc get-next-event {} {
     return ""
 }
 
-rtModel/Trace instproc set-events {} {
+rtModel/Trace instproc set-trace-events {} {
     $self instvar ns_ nextEvent_ evq_
     
     set time [lindex $nextEvent_ 1]
-    set interval [expr $time - [$ns_ now]]
     while {$nextEvent_ != ""} {
 	set nextTime [lindex $nextEvent_ 1]
 	if {$nextTime < $time} {
-	    puts stderr		\
-		    "event $nextEvent_  is before current time $time. ignored."
+	    puts stderr "event $nextEvent_  is before current time $time. ignored."
 	    continue
 	}
-	if {$nextTime > $time} {
-	    break
-	}
+	if {$nextTime > $time} break
 	if ![info exists evq_($time)] {
 	    set op [string range [lindex $nextEvent_ 2] 5 end]
-	    [rtModel set rtq_] insq $interval $self $op
+	    $self set-event $time $op
 	    set evq_($time) 1
 	}
 	set nextEvent_ [$self get-next-event]
@@ -440,17 +455,17 @@ rtModel/Trace instproc set-parms traceFile {
 }
 
 rtModel/Trace instproc set-first-event {} {
-    $self set-events
+    $self set-trace-events
 }
 
 rtModel/Trace instproc up {} {
     $self next
-    $self set-events
+    $self set-trace-events
 }
 
 rtModel/Trace instproc down {} {
     $self next
-    $self set-events
+    $self set-trace-events
 }
 
 #
@@ -465,7 +480,7 @@ Class rtModel/Manual -superclass rtModel
 
 rtModel/Manual instproc set-first-event {} {
     $self instvar op_ at_
-    [rtModel set rtq_] insq-exact $at_ $self $op_
+    $self set-event $at_ $op_		;# you could concievably set a finishTime_?
 }
 
 rtModel/Manual instproc set-parms {op at} {
@@ -476,5 +491,5 @@ rtModel/Manual instproc set-parms {op at} {
 
 rtModel/Manual instproc notify {} {
     $self next
-    delete $self		;# wierd code alert.
+    delete $self		;# XXX wierd code alert.
 }

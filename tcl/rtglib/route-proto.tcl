@@ -130,6 +130,9 @@ RouteLogic instproc notify {} {
     foreach i [array names rtprotos_] {
 	Agent/rtProto/$i compute-all
     }
+    foreach i [CtrMcastComp info instances] {
+	$i compute-mroutes
+    }
 }
 
 
@@ -377,6 +380,18 @@ rtObject instproc compute-routes { } {
     foreach proto [array names rtProtos_] {
 	$rtProtos_($proto) send-updates $changes
     }
+    #
+    # XXX
+    # detailed multicast routing hooks must come here.
+    # My idea for the hook will be something like:
+    # set mrtObject [$node_ mrtObject?]
+    # if {$mrtObject != ""} {
+    #    $mrtObject recompute-mroutes $changes
+    # }
+    # $changes == 0	if only interfaces changed state.  Look at how
+    #			Agent/rtProto/DV handles ifsUp_
+    # $changes > 0	if new unicast routes were installed.
+    #
 }
 
 rtObject instproc intf-changed {} {
