@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.96 1998/05/08 21:48:16 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.97 1998/05/16 01:51:50 kfall Exp $
 
 #
 
@@ -798,6 +798,18 @@ Simulator instproc create-connection {s_type source d_type dest pktClass} {
 	$self connect $s_agent $d_agent
 	
 	return $s_agent
+}
+
+Simulator instproc create-tcp-connection {s_type source d_type dest pktClass} {
+	set s_agent [new Agent/$s_type]
+	set d_agent [new Agent/$d_type]
+	$s_agent set fid_ $pktClass
+	$d_agent set fid_ $pktClass
+	$self attach-agent $source $s_agent
+	$self attach-agent $dest $d_agent
+#	$self connect $s_agent $d_agent
+	
+	return "$s_agent $d_agent"
 }
 
 Classifier instproc no-slot slot {
