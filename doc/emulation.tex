@@ -10,14 +10,22 @@ of introducing live traffic into the simulator and
 injecting traffic from the simulator into the
 live network.
 
-{\bf Note that while the interfaces described below
+\textbf{Emulator caveats:}
+\begin{itemize}
+\item While the interfaces described below
 are not expected to change drastically,
 this facility is still under development and
 should be considered experimental and subject to change.
-Note further that the facility described here has been
+
+\item The facility described here has been
 developed under FreeBSD 2.2.5, and use on other systems
 has not been tested by the author.
-}
+
+\item Because of the currently limited portability of emulation, it
+	 is only compiled into \emph{nse}
+	(build it with ``make nse''),
+	not standard ns.
+\end{itemize}
 
 \section{Introduction}
 
