@@ -386,8 +386,9 @@ above may be found in the following files: \ns/trace.cc,
 
 \subsection{Using Streams for Realtime Applications}
 
-Here is a little tutorial on how to send a nam trace stream to nam to
-make it operate as close to real-time as possible.  First some
+In addtion to reading from files nam can also read from a stream such as
+STDIN. Here is a little tutorial on how to send a nam trace stream to nam to
+make it operate with real-time data.  First some
 background on how nam works internally.  Basically, it thinks it is
 reading from a nam tracefile.  The file has a format to it.  Each line
 is a nam event.  The first character on the line defines the type of
@@ -475,29 +476,57 @@ Since nam has its own internal representation of time which is different
 than current real world time you have to try and synchronize them.
 There is no explicit and totally accurate way to do this but you can
 have a rough synchronization of time by having you application
-periodically send nam events even if nothing has happened.  One such
-event would be to keep changing the color of a node so the following
-would work in trying to keep nam happy as it reads events.  One thing to
-remember is that your application should send these events based on it's
-representation of time from when the application started. Also, when
-sending events to nam they should be unbuffered so you will want to
-fflush(stdout); after each event.
+periodically send nam events even if nothing has happened. We have 
+created a dummy or "no-op" event (T) for this purpose.
 \begin{program}
-n -t 0.03 -s 1 -S COLOR -c black -o black
-n -t 0.04 -s 1 -S COLOR -c black -o black
-n -t 0.05 -s 1 -S COLOR -c black -o black
-n -t 0.06 -s 1 -S COLOR -c black -o black
-n -t 0.07 -s 1 -S COLOR -c black -o black
+T -t 0.5
 \end{program}
 
-It will keep reading the above and update node 1 to the color black even
-though node 1 is already black.  If nam ever gets to the end of you
-event stream it will block and the whole thing will appear as if it
-froze.  The screen will not be updated until it can read another event
+As described above, you MUST feed events to nam in non-decreasing
+timestamp order. Successive events at the same time are OK. 
+Before animating to a given time, nam needs to know that it's got all
+the events for that time, and so it actually has to read an event
+AFTER that time.  Therefore if you're driving nam from an external
+process in real-time it will refuse to animate time t until it sees an
+event at time t+i (for any i > 0).  To make nam play out events
+smoothly, you may therefore need to generate dummy events with
+intermediate timestamps (so that nam knows it can advance).  Events of
+type "T" are dummy events, so this stream would produce jerky
+animatation:
+
+\begin{program}
+n -t 1.0 -s 1 -S COLOR -c green -o black
+n -t 2.0 -s 1 -S COLOR -c black -o green
+n -t 3.0 -s 1 -S COLOR -c black -o black
+\end{program}
+
+while this would be animatated much smoother:
+
+\begin{program}
+T -t 0.0
+T -t 0.5
+n -t 1.0 -s 1 -S COLOR -c green -o black
+T -t 1.5
+n -t 2.0 -s 1 -S COLOR -c black -o green
+T -t 2.5
+n -t 3.0 -s 1 -S COLOR -c black -o black
+T -t 3.5
+T -t 4.0
+...
+\end{program}
+
+If nam ever gets to the end of an
+event stream it will block and the program will appear as if it
+has frozen.  The screen will not be updated until it can read another event
 so you must be sure to feed events to nam faster than or as fast as it
 can read them.  This technique works pretty well and allows nam to look
 as if it is running in real-time although in reality there will be a
 slight delay which is usually acceptable.
+
+One other thing to remember is that your application should send these events
+based on it's representation of time from when the application started.
+Also, when sending events to nam they should be unbuffered so you 
+will want to fflush(stdout); after each event.
 
 Another event which you can keep sending to nam would be an note which
 will show a the bottom of the nam window.
@@ -514,8 +543,7 @@ write and a unique note id.  Notice how I incremented the note id with
 each successive note.   The remaining is what is written to the screen.
 For example "Time is 0.08" followed by "Time is 0.09", etc...
 
-
-That is the basic idea behind making nam work in pseudo real-time.
+That is the basic idea behind making nam work in a real-time fashion.
 Following are two examples on how to generate wireless packet animations
 when using nam.  To make a wireless broadcast which is shown as quickly
 expanding circle you can use the following.
@@ -566,316 +594,15 @@ source using the unix 'tee' command. For example:
 
 Sometimes it is a bug in nam and sometimes it is a problem with the way
 your tracefile is formatted.  You may expect nam to do something that it
-won't do.  I think part of the philosophy with nam is that the detail of
-an animation is handled by the tracefile which makes nam very flexible
+won't do.  Part of the philosophy in the design of nam is that the detail of
+an animation is handled by the tracefile which makes nam more flexible
 but pushes some of the animation complexity on to the programmer
 generating the tracefile. 
 
 \subsection{Nam Trace File Format Lookup Table}
 This is a listing of all possible nam trace event codes and the flags associated with them.  It was taken from the source code in the file parser.cc.  You can generate your own table by running \code{nam -p}.
 
-  \begin{tabular}{llll}
-  \# : & comment -- this line is ignored & & \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  n : & node & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & node id \\
-    &  -v & <shape> & shape (circle, triangle, hexagon) \\
-    &  -c & <color> & color \\
-    &  -z & <double> & size of node \\
-    &  -a & <int> & address \\
-    &  -x & <double> & x location \\
-    &  -y & <double> & y location \\
-    &  -i & <color> & label color \\
-    &  -b & <string> & label \\
-    &  -l & <string> & label \\
-    &  -o & <color> & previous color \\
-    &  -S & <string> & state (UP, DOWN, COLOR) \\
-    &  -L & <string> & previous label \\
-    &  -p & <string> & label location \\
-    &  -P & <string> & previous label location \\
-    &  -i & <color> & inside label color \\
-    &  -I & <color> & previous inside label color \\
-    &  -e & <color> & label color \\
-    &  -E & <color> & previous label color \\
-    &  -u & <string> & x velocity \\
-    &  -U & <string> & x velocity \\
-    &  -V & <string> & y velocity \\
-    &  -T & <string> & node stop time \\
-    &  -w & <flag> & wireless node \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  l : & link & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -r & <double> & transmission rate \\
-    &  -D & <double> & delay \\
-    &  -h & <double> & length \\
-    &  -O & <orientation> & orientation \\
-    &  -b & <string> & label \\
-    &  -c & <color> & color \\
-    &  -o & <color> & previous color \\
-    &  -S & <string> & state (UP, DOWN) \\
-    &  -l & <string l> & label \\
-    &  -L & <string> & previous label \\
-    &  -e & <color> & label color \\
-    &  -E & <color> & previous label color \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  + : & enqueue packet & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -e & <int> & extent \\
-    &  -a & <int> & attribute \\
-    &  -i & <int> & id \\
-    &  -l & <int> & energy \\
-    &  -c & <string> & conversation \\
-    &  -x & <comment> & comment \\
-    &  -p & <string> & packet type \\
-    &  -k & <string> & packet type \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  - : & dequeue packet & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -e & <int> & extent \\
-    &  -a & <int> & attribute \\
-    &  -i & <int> & id \\
-    &  -l & <int> & energy \\
-    &  -c & <string> & conversation \\
-    &  -x & <comment> & comment \\
-    &  -p & <string> & packet type \\
-    &  -k & <string> & packet type \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  h : & hop & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -e & <int> & extent \\
-    &  -a & <int> & attribute \\
-    &  -i & <int> & id \\
-    &  -l & <int> & energy \\
-    &  -c & <string> & conversation \\
-    &  -x & <comment> & comment \\
-    &  -p & <string> & packet type \\
-    &  -k & <string> & packet type \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  r : & receive & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -e & <int> & extent \\
-    &  -a & <int> & attribute \\
-    &  -i & <int> & id \\
-    &  -l & <int> & energy \\
-    &  -c & <string> & conversation \\
-    &  -x & <comment> & comment \\
-    &  -p & <string> & packet type \\
-    &  -k & <string> & packet type \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  d : & drop line & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -e & <int> & extent \\
-    &  -a & <int> & attribute \\
-    &  -i & <int> & id \\
-    &  -l & <int> & energy \\
-    &  -c & <string> & conversation \\
-    &  -x & <comment> & comment \\
-    &  -p & <string> & packet type \\
-    &  -k & <string> & packet type \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  E : & session enqueue & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -e & <int> & extent \\
-    &  -a & <int> & attribute \\
-    &  -i & <int> & id \\
-    &  -l & <int> & energy \\
-    &  -c & <string> & conversation \\
-    &  -x & <comment> & comment \\
-    &  -p & <string> & packet type \\
-    &  -k & <string> & packet type \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  D : & session dequeue & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -e & <int> & extent \\
-    &  -a & <int> & attribute \\
-    &  -i & <int> & id \\
-    &  -l & <int> & energy \\
-    &  -c & <string> & conversation \\
-    &  -x & <comment> & comment \\
-    &  -p & <string> & packet type \\
-    &  -k & <string> & packet type \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  P : & session drop & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -e & <int> & extent \\
-    &  -a & <int> & attribute \\
-    &  -i & <int> & id \\
-    &  -l & <int> & energy \\
-    &  -c & <string> & conversation \\
-    &  -x & <comment> & comment \\
-    &  -p & <string> & packet type \\
-    &  -k & <string> & packet type \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  a : & agent & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -x & <flag> & remove agent \\
-    &  -n & <string> & agent name \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  f : & feature & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -x & <flag> & remove feature \\
-    &  -T & <char> & type \\
-    &  -n & <string> & name \\
-    &  -a & <string> & agent \\
-    &  -v & <string> & value \\
-    &  -o & <string> & previous value \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  G : & group & & \\
-    &  -t & <time> & time \\
-    &  -n & <string> & name \\
-    &  -i & <int> & node id \\
-    &  -a & <int> & group id \\
-    &  -x & <flag> & remove from group \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  L : & lan link & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -o & <orientation> & orientation \\
-    &  -O & <orientation> & orientation \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  m : & mark node & & \\
-    &  -t & <time> & time \\
-    &  -n & <string> & name \\
-    &  -s & <int> & node id \\
-    &  -c & <string> & color \\
-    &  -h & <string> & shape (circle, triange, hexagon) \\
-    &  -X & <flag> & remove mark \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  R : & routing event & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -g & <int> & multicast group \\
-    &  -p & <packet source> & packet source id or * \\
-    &  -n & <flag> & negative cache \\
-    &  -x & <flag> & this route timed out \\
-    &  -T & <double> & timeout \\
-    &  -m & <string> & mode (iif or oif) \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  v : & execute tcl expression & & \\
-    &  -t & <time> & time \\
-    &  -e & <tcl expression> & tcl script \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  V : & set trace file version & & \\
-    &  -t & <time> & time \\
-    &  -v & <string> & time \\
-    &  -a & <int> & time \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  N : & use nam graph & & \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  W : & wireless range & & \\
-    &  -t & <time> & time \\
-    &  -x & <int> & X \\
-    &  -y & <int> & Y \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  g : & energy status -- for future use & & \\
-    &  -t & <time> & time \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  A : & hierarchical address space configuration -- initilization only & & \\
-    &  -t & <time> & time \\
-    &  -n & <int> & hierarchy \\
-    &  -p & <int> & port shift \\
-    &  -o & <hex> & port mask \\
-    &  -c & <int> & mulitcast shift \\
-    &  -a & <int> & multicast mask \\
-    &  -h & <int> & hierarchy \\
-    &  -m & <int> & node shift \\
-    &  -s & <int> & node mask \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  c : & color table configuration -- initialization only & & \\
-    &  -t & <time> & time \\
-    &  -i & <int> & id \\
-    &  -n & <string> & color \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  q : & create packet queue -- initialization only & & \\
-    &  -t & <time> & time \\
-    &  -s & <int> & source id \\
-    &  -d & <int> & destination id \\
-    &  -a & <orientation> & orientaion \\
-  \end{tabular}
-
-  \begin{tabular}{llll}
-  X : & layout lan & & \\
-    &  -t & <time> & time \\
-    &  -n & <string> & name \\
-    &  -r & <double> & rate \\
-    &  -D & <double> & delay \\
-    &  -o & <orientation> & orientation \\
-    &  -O & <orientation> & orientation \\
-  \end{tabular}
-
+\input{nam_trace_format_table}
 
 
 \section{Ns commands for creating and controlling nam animations}
