@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.66 2000/12/01 23:38:35 johnh Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/agent.cc,v 1.67 2001/03/28 06:23:54 xuanc Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -314,7 +314,7 @@ void Agent::monitorAgentTrace()
 	double curTime = (&Scheduler::instance() == NULL ? 0 : 
 			  Scheduler::instance().clock());
 	
-	sprintf(wrk, "v -t %.17f monitor_agent %d %s",
+	sprintf(wrk, "v -t %.17f -e monitor_agent %d %s",
 		curTime, here_.addr_, traceName_);
 	n = strlen(wrk);
 	wrk[n] = '\n';
