@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.60 1997/11/04 02:06:49 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.61 1997/11/04 03:06:49 kfall Exp $
 #
 
 #
@@ -612,14 +612,18 @@ Simulator instproc makeflowmon { cltype { clslots 29 } } {
 }
 
 # attach a flow monitor to a link
-Simulator instproc attach-fmon {lnk fm} {
+# 3rd argument dictates whether early drop support is to be used
+
+Simulator instproc attach-fmon {lnk fm { edrop 0 } } {
     set isnoop [new SnoopQueue/In]
     set osnoop [new SnoopQueue/Out]
     set dsnoop [new SnoopQueue/Drop]
     $lnk attach-monitors $isnoop $osnoop $dsnoop $fm
-    set edsnoop [new SnoopQueue/EDrop]
-    $edsnoop set-monitor $fm
-    [$lnk queue] early-drop-target $edsnoop
+    if { $edrop != 0 } {
+	    set edsnoop [new SnoopQueue/EDrop]
+	    $edsnoop set-monitor $fm
+	    [$lnk queue] early-drop-target $edsnoop
+	    $edsnoop target [$self set nullAgent_]
+    }
     [$lnk queue] drop-target $dsnoop
-    $edsnoop target [$self set nullAgent_]
 }
