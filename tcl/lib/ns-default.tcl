@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.8 1997/02/23 01:28:59 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.9 1997/02/23 06:00:47 mccanne Exp $
 
 
 #
@@ -74,6 +74,9 @@ Agent/TCP set rttvar_ 0
 Agent/TCP set backoff_ 0
 
 Queue set limit_ 10
+
+Queue/SFQ set maxqueue_ 40
+Queue/SFQ set buckets_ 16
 
 Queue/RED set bytes_ false
 Queue/RED set thresh_ 5

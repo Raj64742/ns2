@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.1 1997/02/23 02:53:40 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/ttl.cc,v 1.2 1997/02/23 06:00:46 mccanne Exp $";
 #endif
 
 #include "packet.h"
@@ -47,7 +47,7 @@ public:
 		if (ttl <= 0) {
 			/* XXX should send to a drop object.*/
 			Packet::free(p);
-			printf("ttl exceed\n");
+			printf("ttl exceeded\n");
 			return;
 		}
 		p->ttl_ = ttl;

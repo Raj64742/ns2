@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.5 1997/01/28 02:09:04 mccanne Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/tcp.cc,v 1.6 1997/02/23 06:00:45 mccanne Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -186,6 +186,22 @@ int TcpAgent::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "advance") == 0) {
 			curseq_ += atoi(argv[2]);
 			send(0, 0);
+			return (TCL_OK);
+		}
+		/*
+		 * Curtis Villamizar's trick to transfer tcp connection
+		 * parameters to emulate http persistent connections.
+		 */
+		if (strcmp(argv[1], "persist") == 0) {
+			TcpAgent *other
+			  = (TcpAgent*)TclObject::lookup(argv[2]);
+			cwnd_ = other->cwnd_;
+			awnd_ = other->awnd_;
+			ssthresh_ = other->ssthresh_;
+			t_rtt_ = other->t_rtt_;
+			t_srtt_ = other->t_srtt_;
+			t_rttvar_ = other->t_rttvar_;
+			t_backoff_ = other->t_backoff_;
 			return (TCL_OK);
 		}
 	}

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.10 1997/02/05 00:57:26 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.11 1997/02/23 06:00:47 mccanne Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -125,6 +125,10 @@ OldSim instproc init args {
 	# Queue
 	TclObject set varMap_(limit) limit_
 
+	# Queue/SFQ
+	TclObject set varMap_(limit) maxqueue_
+	TclObject set varMap_(buckets) buckets_
+
 	# Queue/RED
 	TclObject set varMap_(bytes) bytes_
 	TclObject set varMap_(thresh) thresh_
@@ -193,6 +197,7 @@ OldSim instproc init args {
 
 	$self instvar queueMap_
 	set queueMap_(drop-tail) DropTail
+	et queueMap_(sfq) SFQ
 	set queueMap_(red) RED
 }
 
