@@ -1,3 +1,4 @@
+#Create graphs of latency in both directions 
 gnuplot <<!
 set terminal postscript eps 20
 set xlabel "Sequence Number"

@@ -1,3 +1,4 @@
+# Web traffic generator by Sally Floyd
 
 proc add_web_nodes {secondDelay variable} {
   global ns opt

@@ -1,4 +1,5 @@
 #!/usr/bin/awk -f
+# convert from raw2xg output into gnuplot format
 BEGIN {system("rm -f acks packets drops")}
 {if (ack) print $1 " " $2 >>"acks"}
 {if (pkt) print $1 " " $2 >>"packets"}

@@ -1,3 +1,6 @@
+# Simulation scenarios for modeling wireless links for transport protocols
+# Andrei Gurtov
+# ICSI/University of Helsinki
 #####################################################################
 # General Parameters
 #####################################################################
@@ -54,6 +57,8 @@ set opt(interpage) 1	;# interpage parameter for web traffic generator.
 set opt(printRTTs) 0    ;# 1 to print link delays
 set opt(quiet)   0 	;# popup anything?
 set opt(wrap)    90	;# wrap plots?
+set opt(srcTrace) is	;# where to plot traffic
+set opt(dstTrace) bs	;# where to plot traffic
 #####################################################################
 # Link characteristics.
 #####################################################################
@@ -319,17 +324,25 @@ set out $opt(title)
 proc stop {} {
 	global nodes opt
 	set wrap $opt(wrap)
-	set title "test"
+	set sid [$nodes($opt(srcTrace)) id]
+	set did [$nodes($opt(dstTrace)) id]
+	if {$opt(srcTrace) == "bs"} {
+		set a "-a out.tr"
+	} else {
+		set a "out.tr"
+	}
+	set GETRC "../../../bin/getrc"
+        set RAW2XG "../../../bin/raw2xg"
 
-        exec ./getrc -s [$nodes(is) id] -d [$nodes(bs) id] -f 0 out.tr | \
-          ./raw2xg -s 0.01  -m $wrap > plot.xgr
-        exec ./getrc -s  [$nodes(bs) id] -d [$nodes(is) id] -f 0 out.tr | \
-          ./raw2xg -a -s 0.01 -m $wrap >> plot.xgr
+        exec $GETRC -s $sid -d $did -f 0 out.tr | \
+          $RAW2XG -s 0.01  -m $wrap -r > plot.xgr
+        exec $GETRC -s $did -d $sid -f 0 out.tr | \
+          $RAW2XG -a -s 0.01 -m $wrap  >> plot.xgr
 
-        exec ./getrc -s [$nodes(bs) id] -d [$nodes(is) id] -f 1 out.tr | \
-          ./raw2xg -s 0.01 -m $wrap >> plot.xgr
-        exec ./getrc -s [$nodes(is) id] -d [$nodes(bs) id] -f 1 out.tr  | \
-          ./raw2xg -s 0.01 -m $wrap -a >> plot.xgr
+        exec $GETRC -s $sid -d $did -f 1 out.tr | \
+          $RAW2XG -s 0.01 -m $wrap -r >> plot.xgr
+        exec $GETRC -s $did -d $sid -f 1 out.tr  | \
+          $RAW2XG -s 0.01 -m $wrap -a  >> plot.xgr
 
 	exec ./xg2gp.awk plot.xgr
 
