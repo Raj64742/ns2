@@ -139,7 +139,7 @@ while { $i < $argc } {
 
 set adc $ADC
 set est $EST
-puts "Using ADC: $adc EST: $est"
+puts "Using ADC: $adc EST: $est simtime: $simtime s"
 
 ADC/MS set utilization_ [expr $utilization_]
 ADC/ACTO set s_ [expr $s_]
@@ -203,6 +203,12 @@ $ns at $meastime "$l01 trace [expr $ptime*$S_]"
 set r [new Agent/SAack]
 $ns attach-agent $n1 $r
 
+
+proc show-simtime {} {
+	global ns
+	puts [$ns now]
+	$ns at [expr [$ns now]+50.0] "show-simtime"
+}
 
 proc create-source {node rcvr starttime  i} {
 	global ns hold hvar
@@ -300,6 +306,7 @@ $ns at [expr $simtime] "finish $f"
 
 $ns at $meastime "$qmon set bdepartures_ 0;$qmon set bdrops_ 0"
 
-
+$ns at 0.0 "show-simtime"
+puts "Running simulation...."
 $ns run
 
