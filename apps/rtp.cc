@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.20 1998/09/11 21:19:58 kfall Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.21 1998/09/12 00:54:22 kfall Exp $";
 #endif
 
 
@@ -126,7 +126,8 @@ void RTPAgent::timeout(int)
 {
 	if (running_) {
 		sendpkt();
-		session_->localsrc_update(size_);
+		if (session_)
+			session_->localsrc_update(size_);
 		double t = interval_;
 		if (random_)
 			/* add some zero-mean white noise */
@@ -155,7 +156,10 @@ void RTPAgent::advanceby(int delta)
 
 void RTPAgent::recv(Packet* p, Handler*)
 {
-	session_->recv(p, 0);
+	if (session_)
+		session_->recv(p, 0);
+	else
+		Packet::free(p);
 }
 
 int RTPAgent::command(int argc, const char*const* argv)
@@ -221,7 +225,7 @@ void RTPAgent::makepkt(Packet* p)
 	hdr_rtp *rh = (hdr_rtp*)p->access(off_rtp_);
 	/* Fill in srcid_ and seqno */
 	rh->seqno() = seqno_++;
-	rh->srcid() = session_->srcid();
+	rh->srcid() = session_ ? session_->srcid() : 0;
 }
 
 void RTPTimer::expire(Event */*e*/) {
