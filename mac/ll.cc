@@ -1,3 +1,4 @@
+
 /* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
 /*
  * Copyright (c) 1997 Regents of the University of California.
@@ -36,7 +37,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.27 1998/08/28 23:08:35 yuriy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.28 1998/09/04 23:05:01 gnguyen Exp $ (UCB)";
 #endif
 
 #include "errmodel.h"
@@ -64,8 +65,8 @@ public:
 } class_ll;
 
 
-LL::LL() : seqno_(0), ackno_(0), macDA_(0), ifq_(0), sendtarget_(0), recvtarget_(0),
-	lanrouter_(0)
+LL::LL() : seqno_(0), ackno_(0), macDA_(0), ifq_(0),
+	sendtarget_(0), recvtarget_(0), lanrouter_(0)
 {
 	bind("macDA_", &macDA_);
 }
@@ -128,17 +129,18 @@ void LL::recv(Packet* p, Handler* h)
 
 Packet* LL::sendto(Packet* p, Handler* h)
 {	
+	int nh = (lanrouter_) ? lanrouter_->next_hop(p) : -1;
+	hdr_mac::access(p)->macDA_= (nh < 0) ? BCAST_ADDR : arp(nh);
 	hdr_ll::access(p)->seqno_ = ++seqno_;
 
-	int nh= (lanrouter_) ? lanrouter_->next_hop(p) : -1;
-	hdr_mac::access(p)->macDA_= (nh < 0) ? BCAST_ADDR : arp(nh);
-
 	// let mac decide when to take a new packet from the queue.
-	sendtarget_->recv(p,h);
-	//	if (h) {
-	//		Scheduler& s = Scheduler::instance();
-	//		s.schedule(h, &intr_, txtime(p) - delay_);
-	//	}
+	sendtarget_->recv(p);
+#ifdef undef_oldlan
+	if (h) {
+		Scheduler& s = Scheduler::instance();
+		s.schedule(h, &intr_, txtime(p) - delay_);
+	}
+#endif
 	return p;
 }
 
@@ -152,11 +154,3 @@ Packet* LL::recvfrom(Packet* p)
 		s.schedule(recvtarget_, p, delay_);
 	return p;
 }
-
-// redefined to avoid problems with passing pkts from MAC
-// directly to LL (upstack) without an intermediate connector
-void LL::handle(Event* e)
-{
-	recv((Packet*)e, 0);
-}
-
