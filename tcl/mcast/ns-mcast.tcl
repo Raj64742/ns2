@@ -561,15 +561,15 @@ Agent/Mcast/Control set mcounter 0
 
 Agent/Mcast/Control instproc send {type from src group args} {
 	Agent/Mcast/Control instvar mcounter messages
-        set messages($mcounter) [eval list $from $src $group $args]
-        $self cmd send $type $mcounter
+	set messages($mcounter) [concat [list $from $src $group] $args]
+	$self cmd send $type $mcounter
 	incr mcounter
 }
 
 Agent/Mcast/Control instproc recv {type iface m} {
 	Agent/Mcast/Control instvar messages
 	eval $self recv2 $type $iface $messages($m)
-        unset messages($m)
+        #unset messages($m)
 }
 
 Agent/Mcast/Control instproc recv2 {type iface from src group args} {
@@ -578,6 +578,14 @@ Agent/Mcast/Control instproc recv2 {type iface from src group args} {
 }
 
 Node instproc rpf-nbr src {
+	$self instvar ns_ id_
+	if [catch "$src id" srcID] {	
+		set srcID $src
+	}
+	$ns_ get-node-by-id [[$ns_ get-routelogic] lookup $id_ $srcID]
+}
+
+LanNode instproc rpf-nbr src {
 	$self instvar ns_ id_
 	if [catch "$src id" srcID] {	
 		set srcID $src
@@ -686,22 +694,6 @@ Node instproc link2oif link {
 
 Node instproc oif2link oif {
 	$oif set link_
-}
-
-# Timers
-Class Timer/Iface -superclass Timer
-
-Timer/Iface instproc init { protocol source group oiface sim} {
-	$self instvar proto src grp oif ns
-	set proto $protocol
-	set src $source
-	set grp $group
-	set oif $oiface
-	set ns $sim
-}
-
-Timer/Iface instproc schedule {} {
-	$self sched [[$self info class] set timeout]
 }
 
 

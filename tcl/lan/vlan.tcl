@@ -124,7 +124,10 @@ LanNode instproc addNode {nodes bw delay {llType ""} {ifqType ""} {macType ""} }
 		set sid [$src id]
 		set link_($sid:$id_) [new Vlink $ns_ $self $src  $self $bw 0]
 		set link_($id_:$sid) [new Vlink $ns_ $self $self $src  $bw 0]
-		$link_($sid:$id_) set iif_ [$nif set iface_]
+
+		$src add-oif [$link_($sid:$id_) head]  $link_($sid:$id_)
+		$src add-iif [[$nif set iface_] label] $link_($id_:$sid)
+		[$link_($sid:$id_) head] set link_ $link_($sid:$id_)
 
 		$link_($sid:$id_) queue [$nif set ifq_]
 		$link_($id_:$sid) queue [$nif set ifq_]
@@ -224,7 +227,7 @@ LanIface instproc init {node lan args} {
 
 	$self instvar llType_ ifqType_ macType_
 	$self instvar node_ lan_ ifq_ mac_ ll_
-	$self instvar iface_
+	$self instvar iface_ entry_
 
 	set node_ $node
 	set lan_ $lan
@@ -244,7 +247,7 @@ LanIface instproc init {node lan args} {
 	$node addInterface $iface_
 	$iface_ target [$node entry]
 	
-	$self set entry_ $ifq_
+	set entry_ $ifq_
 }
 
 LanIface instproc trace {ns f {op ""}} {

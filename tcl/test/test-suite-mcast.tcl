@@ -382,15 +382,16 @@ Class Topology/net5e -superclass NodeTopology/5nodes
 #               |     |
 #               n0    n1
 #
-# All links are of 1.5Mbps bandwidth with 10ms latency
-#
 
 Topology/net5e instproc init ns {
 	$self next $ns
 	$self instvar node_
-	$ns multi-link-of-interfaces [list $node_(n0) $node_(n1) $node_(n2) $node_(n3)] 1.5Mb 10ms DropTail
-	$ns duplex-link $node_(n3) $node_(n4) 1.5Mb 10ms DropTail
-	$ns duplex-link $node_(n2) $node_(n4) 1.5Mb 10ms DropTail
+	$ns newLan [list $node_(n0) $node_(n3) $node_(n1) $node_(n2)] 1.5Mb 10ms
+
+	$ns duplex-link $node_(n3) $node_(n4) 1.5Mb 3ms DropTail
+	$ns duplex-link-op $node_(n3) $node_(n4) orient right-down
+	$ns duplex-link $node_(n2) $node_(n4) 1.5Mb 3ms DropTail
+	$ns duplex-link-op $node_(n2) $node_(n4) orient left-down
 	if {[$class info instprocs config] != ""} {
 		$self config $ns
 	}
@@ -548,18 +549,10 @@ Test/DM1 instproc run {} {
 	$udp1 set class_ 1
 	set cbr1 [new Application/Traffic/CBR]
 	$cbr1 attach-agent $udp1
-
-	set tcp [new Agent/TCP]
-	set sink [new Agent/TCPSink]
-	$ns_ attach-agent $node_(n0) $tcp
-	$ns_ attach-agent $node_(n3) $sink
-	$ns_ connect $tcp $sink
-	set ftp [new Source/FTP]
-	$ftp set agent_ $tcp
 	
 	set rcvr [new Agent/LossMonitor]
 	$ns_ attach-agent $node_(n2) $rcvr
-	$ns_ at 1.2 "$node_(n2) join-group $rcvr 0x8002; $ftp start"
+	$ns_ at 1.2 "$node_(n2) join-group $rcvr 0x8002"
 	$ns_ at 1.25 "$node_(n2) leave-group $rcvr 0x8002"
 	$ns_ at 1.3 "$node_(n2) join-group $rcvr 0x8002"
 	$ns_ at 1.35 "$node_(n2) join-group $rcvr 0x8001"
@@ -614,24 +607,23 @@ Test/DM2 instproc run {} {
 	$ns_ run
 }
 
-# Testing group join/leave in a richer topology. Testing rcvr join before
-# the source starts sending pkts to the group.
-Class Test/pimDM1 -superclass TestSuite
-Test/pimDM1 instproc init topo {
+#Same as DM2 but with dvmrp-like cache miss rules
+Class Test/DM3 -superclass TestSuite
+Test/DM3 instproc init topo {
 	source ../mcast/DM.tcl
-	source ../mcast/pimDM.tcl
 	$self instvar net_ defNet_ test_
 	set net_	$topo
 	set defNet_	net6a
-	set test_	pimDM1
+	set test_	DM3
 	$self next
 }
-Test/pimDM1 instproc run {} {
+Test/DM3 instproc run {} {
 	$self instvar ns_ node_ testName_
 	
 	### Start multicast configuration
-	pimDM set PruneTimeout 0.3
-	set mproto pimDM
+	DM set PruneTimeout  0.3
+	DM set CacheMissMode dvmrp
+	set mproto DM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 	
@@ -659,23 +651,21 @@ Test/pimDM1 instproc run {} {
 }
 
 # Testing dynamics of links going up/down.
-Class Test/dynamicDM1 -superclass TestSuite
-Test/dynamicDM1 instproc init topo {
+Class Test/DM4 -superclass TestSuite
+Test/DM4 instproc init topo {
 	source ../mcast/DM.tcl
-	source ../mcast/dynamicDM.tcl
 	$self instvar net_ defNet_ test_
 	set net_	$topo
 	set defNet_	net6a
-	set test_	dynamicDM1
+	set test_	DM4
 	$self next
 }
-Test/dynamicDM1 instproc run {} {
+Test/DM4 instproc run {} {
 	$self instvar ns_ node_ testName_
 	$ns_ rtproto Session
 	### Start multicast configuration
-	dynamicDM set PruneTimeout 0.3
-	dynamicDM set ReportRouteTimeout 0.15
-	set mproto dynamicDM
+	DM set PruneTimeout 0.3
+	set mproto DM
 	set mrthandle [$ns_ mrtproto $mproto  {}]
 	### End of multicast  config
 	
@@ -702,6 +692,53 @@ Test/dynamicDM1 instproc run {} {
 	
 	$ns_ at 0.1 "$cbr0 start"
 	$ns_ at 1.6 "$self finish 6a-nam"
+	
+	$ns_ run
+}
+
+Class Test/lanDM1 -superclass TestSuite
+Test/lanDM1 instproc init topo {
+	source ../mcast/DM.tcl
+	source ../mcast/lanDM.tcl
+
+	$self instvar net_ defNet_ test_
+	set net_	$topo
+	set defNet_	net5e
+	set test_	lanDM1
+	$self next
+}
+Test/lanDM1 instproc run {} {
+	$self instvar ns_ node_ testName_
+	$ns_ rtproto Session
+	### Start multicast configuration
+	lanDM set PruneTimeout 0.3
+	#DM set CacheMissMode dvmrp
+	set mproto lanDM
+	set mrthandle [$ns_ mrtproto $mproto  {}]
+	### End of multicast  config
+	
+	set udp0 [new Agent/UDP]
+	$ns_ attach-agent $node_(n4) $udp0
+	$udp0 set dst_ 0x8002
+	set cbr0 [new Application/Traffic/CBR]
+	$cbr0 attach-agent $udp0
+	
+	set rcvr [new Agent/LossMonitor]
+	$ns_ attach-agent $node_(n0) $rcvr
+	$ns_ attach-agent $node_(n1) $rcvr
+	$ns_ attach-agent $node_(n2) $rcvr
+	
+	$ns_ at 0.2 "$node_(n0) join-group  $rcvr 0x8002"
+	$ns_ at 0.3 "$node_(n1) join-group  $rcvr 0x8002"
+	$ns_ at 0.4 "$node_(n1) leave-group $rcvr 0x8002"
+	$ns_ at 0.5 "$node_(n2) join-group  $rcvr 0x8002"
+	$ns_ at 0.6 "$node_(n2) leave-group $rcvr 0x8002"
+	$ns_ at 0.7 "$node_(n0) leave-group $rcvr 0x8002"
+
+	####
+	
+	$ns_ at 0.1 "$cbr0 start"
+	$ns_ at 1.0 "$self finish 5e-nam"
 	
 	$ns_ run
 }

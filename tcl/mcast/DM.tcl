@@ -20,11 +20,10 @@
 # Ported/Modified by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
 # 
 
-# DVMRP - like dense mode
-
 Class DM -superclass McastProtocol
 
-DM set PruneTimeout 0.5
+DM set PruneTimeout  0.5
+DM set CacheMissMode pimdm ;#or dvmrp (lowercase)
 
 DM instproc init { sim node } {
 	$self instvar mctrl_
@@ -46,11 +45,56 @@ DM instproc join-group  { group } {
 	}
 }
 
-DM instproc leave-group { group } {
-        $self next $group
+DM instproc handle-wrong-iif { srcID group iface } {
+	$self instvar node_ ns_
+	set inlink  [$node_ iif2link $iface]
+	set from [$inlink src]
+	$self send-ctrl "prune" $srcID $group [$from id]
 }
 
-DM instproc handle-cache-miss { srcID group iface } {
+DM instproc handle-cache-miss  { srcID group iface } {
+	DM instvar CacheMissMode
+	$self handle-cache-miss-$CacheMissMode $srcID $group $iface
+}
+
+DM instproc handle-cache-miss-pimdm { srcID group iface } {
+        $self instvar node_ ns_
+
+	if { $iface >= 0 } {
+		set rpf_nbr [$node_ rpf-nbr $srcID]
+		set inlink  [$node_ iif2link $iface]
+		set rpflink [$ns_ link $rpf_nbr $node_]
+
+		if { $inlink != $rpflink } {
+			set from [$inlink src]
+			$self send-ctrl "prune" $srcID $group [$from id]
+			return
+		}
+		set rpfoif [$node_ iif2oif $iface]
+	} else {
+		set rpfoif ""
+	}
+	set alloifs [$node_ get-all-oifs]
+	set oiflist ""
+	foreach oif $alloifs {
+		if {$oif == $rpfoif} {
+			continue ;#exclude incoming iface
+		}
+		set dst [[$node_ oif2link $oif] dst]
+		if { [$dst is-lan?] && [$dst rpf-nbr $srcID] != $node_  } {
+			# exclude also lan oifs for which we are not forwarders
+			# this constitutes a form of "centralized" assert mechanism
+			continue 
+		}
+		lappend oiflist $oif
+	}
+	#set idx [lsearch $oiflist $rpfoif]
+	#set oiflist [lreplace $oiflist $idx $idx]
+
+	$node_ add-mfc $srcID $group $iface $oiflist
+}
+
+DM instproc handle-cache-miss-dvmrp { srcID group iface } {
         $self instvar node_ ns_
 
 	set oiflist ""
@@ -75,9 +119,9 @@ DM instproc drop { replicator src dst iface} {
 		# so this function isn't called for every packet.
 		$replicator set ignore_ 1
         } else {
-		set from [[[$node_ iif2link $iface] src] id]
-		$self send-ctrl "prune" $src $dst $from
-        }
+		set from [[$node_ iif2link $iface] src]
+		$self send-ctrl "prune" $src $dst [$from id]
+	}
 }
 
 DM instproc recv-prune { from src group iface} {
@@ -128,19 +172,18 @@ DM instproc recv-graft { from src group iface} {
 # send a graft/prune for src/group up to the source or towards $to
 DM instproc send-ctrl { which src group { to "" } } {
         $self instvar mctrl_ ns_ node_
-	set id [$node_ id]
-	set toid $src 
 	if { $to != "" } {
-		set toid $to
+		set nbr [$ns_ get-node-by-id $to]
+	} else {
+		set nbr [$node_ rpf-nbr $src]
 	}
-	set nbr [$node_ rpf-nbr $toid]
 	$ns_ connect $mctrl_ [[[$nbr getArbiter] getType [$self info class]] set mctrl_]
         if { $which == "prune" } {
                 $mctrl_ set class_ 30
         } else {
                 $mctrl_ set class_ 31
         }        
-        $mctrl_ send $which $id $src $group
+        $mctrl_ send $which [$node_ id] $src $group
 }
 
 DM instproc timeoutPrune { oif src grp } {
@@ -160,8 +203,8 @@ Class Timer/Iface/Prune -superclass Timer/Iface
 Timer/Iface/Prune set timeout 0.5
 
 Timer/Iface/Prune instproc timeout {} {
-	$self instvar proto src grp oif
-	$proto timeoutPrune $oif $src $grp
+	$self instvar proto_ src_ grp_ oif_
+	$proto_ timeoutPrune $oif_ $src_ $grp_
 }
 
 
