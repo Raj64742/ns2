@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.36 2000/08/30 23:27:51 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.37 2000/08/31 02:19:37 yewei Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -486,7 +486,7 @@ Node/MobileNode instproc add-interface { channel pmodel \
 	# Interface Queue
 	#
 	$ifq target $mac
-	$ifq set qlim_ $qlen
+	$ifq set limit_ $qlen
 	if {$imepflag != ""} {
 		set drpT [$self mobility-trace Drop "IFQ"]
 	} else {
