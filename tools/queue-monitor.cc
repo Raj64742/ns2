@@ -185,11 +185,11 @@ public:
  */
 
 #include "ip.h"
-QueueMonitorCompat::QueueMonitorCompat()
+QueueMonitorCompat::QueueMonitorCompat() :
+	bytes_(4), 
+	pkts_(4), 
+	drops_(4)
 {
-	memset(pkts_, '\0', sizeof(pkts_));
-	memset(bytes_, '\0', sizeof(bytes_));
-	memset(drops_, '\0', sizeof(drops_));
 	bind("off_ip_", &off_ip_);
 }
 
@@ -197,13 +197,8 @@ void QueueMonitorCompat::out(Packet* pkt)
 {
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 	int fid = iph->flowid();
-	if (fid < 0 || fid > QM_FIDMAX) {
-		fprintf(stderr, "warning: pkt with fid over qm max %d\n",
-			QM_FIDMAX);
-	} else {
-		bytes_[fid] += ((hdr_cmn*)pkt->access(off_cmn_))->size();
-		pkts_[fid]++;
-	}
+	bytes_[fid] += ((hdr_cmn*)pkt->access(off_cmn_))->size();
+	pkts_[fid]++;
 	QueueMonitor::out(pkt);
 }
 
@@ -221,12 +216,7 @@ void QueueMonitorCompat::drop(Packet* pkt)
 
 	hdr_ip* iph = (hdr_ip*)pkt->access(off_ip_);
 	int fid = iph->flowid();
-	if (fid < 0 || fid > QM_FIDMAX) {
-		fprintf(stderr, "warning: pkt with fid over qm max %d\n",
-			QM_FIDMAX);
-	} else {
-		++drops_[fid];
-	}
+	++drops_[fid];
 	QueueMonitor::drop(pkt);
 }
 
@@ -236,26 +226,21 @@ int QueueMonitorCompat::command(int argc, const char*const* argv)
 	int fid;
 	if (argc == 3) {
 		if (strcmp(argv[1], "bytes") == 0) {
-			if ((fid = atoi(argv[2])) >= 0 && (fid < QM_FIDMAX)) {
+			if (bytes_.viable_range(fid = atoi(argv[2]))) {
 				tcl.resultf("%u", bytes_[fid]);
-				return (TCL_OK);
-			}
-			return (TCL_ERROR);
-		}
-		if (strcmp(argv[1], "pkts") == 0) {
-			if ((fid = atoi(argv[2])) >= 0 && (fid < QM_FIDMAX)) {
+				return TCL_OK;
+			} else return TCL_ERROR;
+		} else if (strcmp(argv[1], "pkts") == 0) {
+			if (pkts_.viable_range(fid = atoi(argv[2]))) {
 				tcl.resultf("%u", pkts_[fid]);
-				return (TCL_OK);
-			}
-			return (TCL_ERROR);
-		}
-		if (strcmp(argv[1], "drops") == 0) {
-			if ((fid = atoi(argv[2])) >= 0 && (fid < QM_FIDMAX)) {
+				return TCL_OK;
+			} else return TCL_ERROR;
+		} else if (strcmp(argv[1], "drops") == 0) {
+			if (drops_.viable_range(fid = atoi(argv[2]))) {
 				tcl.resultf("%u", drops_[fid]);
-				return (TCL_OK);
-			}
-			return (TCL_ERROR);
-		}
+				return TCL_OK;
+			} else return TCL_ERROR;
+		};
 	}
 	return (QueueMonitor::command(argc, argv));
 }

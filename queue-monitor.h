@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.2 1997/04/24 03:10:39 kfall Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/queue-monitor.h,v 1.3 1997/05/23 19:00:21 heideman Exp $ (UCB)
  */
 
 #include "integrator.h"
@@ -121,7 +121,7 @@ class SnoopQueueDrop : public SnoopQueue {
  * a 'QueueMonitorCompat', which is used by the compat
  * code to produce the link statistics available in ns-1
  */
-#define	QM_FIDMAX	13
+#include "lib/int.RVec.h"
 class QueueMonitorCompat : public QueueMonitor {
 public:
 	QueueMonitorCompat();
@@ -131,7 +131,9 @@ public:
         int command(int argc, const char*const* argv);
 protected:
 	int	off_ip_;
-	int	pkts_[QM_FIDMAX];
-	int	bytes_[QM_FIDMAX];
-	int	drops_[QM_FIDMAX];
+
+	void grow(int desired_cap);
+	intRVec	pkts_;
+	intRVec	bytes_;
+	intRVec	drops_;
 };

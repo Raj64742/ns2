@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.23 1997/05/14 00:21:10 heideman Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-compat.tcl,v 1.24 1997/05/23 19:00:26 heideman Exp $
 #
 
 Class OldSim -superclass Simulator
@@ -203,10 +203,6 @@ OldSim instproc init args {
 		$self instvar file_
 		set file_ $f
 	}
- 	traceHelper instproc callback p {
- 		$self instvar callback_
- 		set callback_ $p
- 	}
 
 	#
 	# linkHelper
@@ -238,6 +234,18 @@ OldSim instproc init args {
 		$self instvar node1_ node2_
 		ns trace-queue $node1_ $node2_ [$traceObj set file_]
 	}
+ 	linkHelper instproc callback {fn} {
+		# Reach deep into the guts of the link and twist...
+		# (This code makes assumptions about how
+		# SimpleLink instproc trace works.)
+		# NEEDSWORK: should this be done with attach-monitors?
+ 		$self instvar linkref_
+		foreach part {enqT_ deqT_ drpT_} {
+			set to [$linkref_ set $part]
+			$to set callback_ 1
+			$to proc handle {args} "$fn \$args"
+		}
+ 	}
 	linkHelper instproc set { var val } {
 
 		$self instvar linkref_ queue_

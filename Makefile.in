@@ -17,7 +17,7 @@
 #  WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 #  MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.26 1997/05/22 20:55:53 polly Exp $ (LBL)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Makefile.in,v 1.27 1997/05/23 19:00:20 heideman Exp $ (LBL)
 
 #
 # Various configurable paths (remember to edit Makefile.in, not Makefile)
@@ -50,7 +50,8 @@ INCLUDE = \
 	@V_INCLUDE_TCL@ \
 	@V_INCLUDE_BTCL@ \
 	@V_INCLUDE_OTCL@ \
-	@V_INCLUDE_X11@
+	@V_INCLUDE_X11@ \
+	-I.
 
 DEFINE = @V_DEFINE@ -DNO_TK -Dabort=_ABORT
 STATIC = @V_STATIC@
@@ -88,7 +89,8 @@ OBJ_CC = \
 	dynalink.o rtProtoDV.o cbq.o \
 	udp.o traffictrace.o pareto.o expoo.o \
 	net-interface.o	ctrMcast.o \
-	net.o net-ip.o tap.o
+	net.o net-ip.o tap.o \
+	lib/int.Vec.o lib/int.RVec.o
 
 
 OBJ_C = \
