@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: nr.hh,v 1.3 2001/11/15 22:02:58 haldar Exp $
+// $Id: nr.hh,v 1.4 2001/11/20 22:00:16 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -30,7 +30,7 @@
 #include <vector>
 
 #ifdef NS_DIFFUSION
-#include "autoconf.h"
+#include "config.h"
 #endif
 
 using namespace std;
@@ -43,6 +43,8 @@ typedef char int8_t;
 // conflicts with system declaration of int8_t in solaris
 typedef signed char int8_t;
 #endif
+
+
 
 #define FAIL -1
 #define OK    0

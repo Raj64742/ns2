@@ -3045,6 +3045,7 @@ sparc-sun-sunos*)
 	V_OBJ="$V_OBJ misc/serial.o"
 	;;
 *-*-freebsd*)
+	V_DEFINE="$V_DEFINE -DfreeBSD"
 	V_OBJ="$V_OBJ misc/serial.o"
 	;;
 *-*-netbsd*)

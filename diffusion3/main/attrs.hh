@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: attrs.hh,v 1.1 2001/11/08 17:42:31 haldar Exp $
+// $Id: attrs.hh,v 1.2 2001/11/20 22:00:16 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -23,7 +23,11 @@
 #ifndef ATTRS_HH
 #define ATTRS_HH
 
-#include "netinet/in.h"
+#ifdef freeBSD
+#include <sys/param.h>
+#else
+#include <netinet/in.h>
+#endif
 #include "nr.hh"
 #include "header.hh"
 
