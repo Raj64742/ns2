@@ -34,7 +34,7 @@ Agent/TCP set rfc2988_ false
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.4 2002/03/08 21:55:43 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.5 2002/10/15 01:48:48 buchheim Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -113,7 +113,7 @@ TestSuite instproc init {} {
 }
 
 TestSuite instproc finish file {
-	global env quiet
+	global env quiet PERL
 
 	#
 	# we don't bother checking for the link we're interested in
@@ -165,7 +165,7 @@ TestSuite instproc finish file {
 	set f [open temp.rands w]
 	puts $f "TitleText: $file"
 	puts $f "Device: Postscript"	
-    exec perl -ane $perlCode out.tr >@ $f
+    exec $PERL -ane $perlCode out.tr >@ $f
 	close $f
 	if {$quiet == "false"} {
 	  if {[info exists env(DISPLAY)] && ![info exists env(NOXGRAPH)]} {
