@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.8 1998/06/12 18:06:17 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-agent.tcl,v 1.9 1998/07/02 02:52:40 kfall Exp $
 #
 
 #
@@ -121,12 +121,12 @@ Agent proc set-maxttl {objectOrClass var} {
 
 Agent/TCP/FullTcp/Tahoe instproc init {} {
 	$self next
-	$self instvar fastrecov_
-	set fastrecov_ false
+	$self instvar reno_fastrecov_
+	set reno_fastrecov_ false
 }
 
 Agent/TCP/FullTcp/Newreno instproc init {} {
 	$self next
-	$self instvar deflate_on_pack_
-	set deflate_on_pack_ false
+	$self instvar maxburst_
+	set maxburst_ 2
 }
