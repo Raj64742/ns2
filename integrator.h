@@ -48,4 +48,28 @@ protected:
 	double sum_;
 };
 
+// a set of statistical samples
+class Samples : public TclObject {
+public:
+	Samples() : cnt_(0), sum_(0.0), sqsum_(0.0) { }
+	void newPoint(double val) {
+		cnt_++;
+		sum_ += val;
+		val *= val;
+		sqsum_ += val;
+	}
+	int cnt() const { return (cnt_); }
+	double sum() const { return (sum_); }
+	double mean() const { return (sum_ / cnt_); }
+	double variance() const {
+		// use cnt_-1 degrees of freedom
+		return ((sqsum_ - mean() * sum_) / (cnt_ - 1));
+	}
+	void reset() { cnt_ = 0; sum_ = sqsum_ = 0.0; }
+	int command(int argc, const char*const* argv);
+protected:
+	int	cnt_;	// count of samples
+	double	sum_;	// sum of x_i
+	double	sqsum_;	// sum of (x_i)^2
+};
 #endif

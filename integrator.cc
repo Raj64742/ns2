@@ -33,11 +33,19 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/integrator.cc,v 1.1 1997/02/23 02:53:54 mccanne Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/integrator.cc,v 1.2 1997/04/24 04:52:14 kfall Exp $";
 #endif
 
 #include <stdlib.h>
 #include "integrator.h"
+
+static class IntegratorClass : public TclClass {
+ public:
+        IntegratorClass() : TclClass("Integrator") {}
+        TclObject* create(int argc, const char*const* argv) {
+                return (new Integrator);
+        }
+} integrator_class;
 
 Integrator::Integrator() : lastx_(0.), lasty_(0.), sum_(0.)
 {
@@ -67,6 +75,51 @@ int Integrator::command(int argc, const char*const* argv)
 			double x = atof(argv[2]);
 			double y = atof(argv[3]);
 			newPoint(x, y);
+			return (TCL_OK);
+		}
+	}
+	return (TclObject::command(argc, argv));
+}
+
+/*
+ * interface for the 'Samples' class, will probably want to move
+ * to some sort of "stats" file at some point
+ */
+static class SamplesClass : public TclClass {
+ public:
+        SamplesClass() : TclClass("Samples") {}
+        TclObject* create(int argc, const char*const* argv) {
+                return (new Samples);
+        }
+} samples_class;
+
+int Samples::command(int argc, const char*const* argv)
+{
+	if (argc == 2) {
+		if (strcmp(argv[1], "mean") == 0) {
+			if (cnt_ > 0) {
+				Tcl::instance().resultf("%g", mean());
+				return (TCL_OK);
+			}
+			return (TCL_ERROR);
+		}
+		if (strcmp(argv[1], "cnt") == 0) {
+			Tcl::instance().resultf("%u", cnt());
+			return (TCL_OK);
+		}
+		if (strcmp(argv[1], "variance") == 0) {
+			if (cnt_ == 1) {
+				Tcl::instance().resultf("0.0");
+				return (TCL_OK);
+			}
+			if (cnt_ > 2) {
+				Tcl::instance().resultf("%g", variance());
+				return (TCL_OK);
+			}
+			return (TCL_ERROR);
+		}
+		if (strcmp(argv[1], "reset") == 0) {
+			reset();
 			return (TCL_OK);
 		}
 	}
