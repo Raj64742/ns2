@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.109 2002/03/14 04:31:19 xuanc Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.110 2002/03/21 01:45:19 johnh Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -531,7 +531,8 @@ FullTcpAgent::flagstr(int hflags)
 		"<null>", "<FIN>", "<SYN>", "<SYN,FIN>",	// 0-3
 		"<?>", "<?,FIN>", "<?,SYN>", "<?,SYN,FIN>",	// 4-7
 		"<PSH>", "<PSH,FIN>", "<PSH,SYN>", "<PSH,SYN,FIN>", // 0x08-0x0b
-		"<??>", "<??,FIN>", "<??,SYN>", "<??,SYN,FIN>",	    // 0x0c-0x0f
+		/* do not use <??, in next line because that's an ANSI trigraph */
+		"<?>", "<?,FIN>", "<?,SYN>", "<?,SYN,FIN>",	    // 0x0c-0x0f
 		"<ACK>", "<ACK,FIN>", "<ACK,SYN>", "<ACK,SYN,FIN>", // 0x10-0x13
 		"<ACK>", "<ACK,FIN>", "<ACK,SYN>", "<ACK,SYN,FIN>", // 0x14-0x17
 		"<PSH,ACK>", "<PSH,ACK,FIN>", "<PSH,ACK,SYN>", "<PSH,ACK,SYN,FIN>", // 0x18-0x1b

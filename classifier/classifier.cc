@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.40 2002/01/25 20:22:16 haldar Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.41 2002/03/21 01:46:02 johnh Exp $";
 #endif
 
 #include <stdlib.h>
@@ -78,7 +78,6 @@ void Classifier::set_table_size(int nn)
 
 void Classifier::alloc(int slot)
 {
-	static int i, j;
 	NsObject** old = slot_;
 	int n = nslot_;
 	if (old == 0) 
