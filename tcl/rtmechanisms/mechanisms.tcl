@@ -51,12 +51,14 @@ RTMechanisms instproc vprint args {
 RTMechanisms instproc mmetric { op flows } {
 	$self instvar okboxfm_
 
-	set bdrops [$okboxfm_ set bdrops_] ; # total bytes dropped
-	set pdrops [$okboxfm_ set pdrops_] ; # total pkts dropped
-	set ebdrops [$okboxfm_ set ebdrops_] ; # bytes dropped early (unforced)
-	set epdrops [$okboxfm_ set epdrops_] ; # pkts drooped early (unforced)
-	set fpdrops [expr $pdrops - $epdrops] ; # pkts dropped (forced)
-	set fbdrops [expr $bdrops - $ebdrops] ; # bytes dropped (forced)
+	set tot_bdrops [$okboxfm_ set bdrops_] ; # total bytes dropped
+	set tot_pdrops [$okboxfm_ set pdrops_] ; # total pkts dropped
+	set tot_ebdrops [$okboxfm_ set ebdrops_] ; # bytes dropped early (unforced)
+	set tot_epdrops [$okboxfm_ set epdrops_] ; # pkts drooped early (unforced)
+	set tot_fpdrops [expr $tot_pdrops - $tot_epdrops] ; 
+						# pkts dropped (forced)
+	set tot_fbdrops [expr $tot_bdrops - $tot_ebdrops] ; 
+						# bytes dropped (forced)
 
 	if { $op == "max" } {
 		set op ">"
@@ -68,7 +70,7 @@ RTMechanisms instproc mmetric { op flows } {
 
 	set flow "none"
 
-	set unforced_frac [$self frac $epdrops $pdrops]
+	set unforced_frac [$self frac $tot_epdrops $tot_pdrops]
 	set forced_frac [expr 1 - $unforced_frac ]
 	foreach f $flows {
 		set fepdrops [$f set epdrops_]
@@ -77,8 +79,8 @@ RTMechanisms instproc mmetric { op flows } {
 		set fbdrops [$f set bdrops_]
 		set febdrops [$f set ebdrops_]
 			
-		set forced_metric [$self frac [expr $fbdrops - $febdrops] $fbdrops]
-		set unforced_metric [$self frac $fepdrops $epdrops]
+		set forced_metric [$self frac [expr $fbdrops - $febdrops] $tot_fbdrops]
+		set unforced_metric [$self frac $fepdrops $tot_epdrops]
 		set fmetric [expr $forced_frac * $forced_metric + \
 			$unforced_frac * $unforced_metric]
 		if { [expr $fmetric $op $metric] } {
