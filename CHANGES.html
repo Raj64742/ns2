@@ -1,4 +1,4 @@
-<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.58 1997/04/18 01:00:56 bajaj Exp $-->
+<!-- @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/CHANGES.html,v 1.59 1997/04/24 05:06:43 kfall Exp $-->
 <html><head><title>ns Change Log</title></head><body>
 <!-- Changed by: Sandeep Bajaj, 31-Mar-1997 -->
 <h1>ns: Change History</h1>
@@ -14,6 +14,42 @@
 <hr>
 <h3><a href="http://www-mash.cs.berkeley.edu/dist/ns-src-2.0a17.tar.gz">ns-2.0a17</a>
 [PENDING RELEASE DATE]</h3>
+<ul>
+<li><b><a href="http://www-nrg.ee.lbl.gov/kfall">[KF]</a></b>
+<b>Wed Apr 23 22:00:21 PDT 1997</b><br>
+<ul>
+<li>	CBQ is now part of the simulator</li>
+<br>
+		it works for many of the tests, but Top-Level
+		link sharing is yet to be completed
+<li>	default queue sizes are now 50 [per ns-1 defaults]</li>
+<li>	queue monitors now know the difference between</li>
+<br>
+		drops, arrivals, and departures and
+<br>
+		can monitor these
+<li>	new class called 'Samples' which collects samples</li>
+<br>
+		points  of something and can provide a mean
+		and variance of the points (see integrator.cc)
+<li>	Queues can be flow controlled by forcing them</li>
+<br>
+		to be blocked or unblocked as needed.
+		Also it's possible to make it so that
+		when they send a packet they become
+		blocked rather than unblocked.
+<li>	common packet header</li>
+<br>
+		contains a timestamp field; this is used
+		to compute queueing delay for individual
+		packets at queues
+<li>	classifier-hash</li>
+<br>
+		a classifier to identify 'flows' ... still
+		in development, but presently used by cbq
+</ul>
+</ul>
+
 <ul>
 <li><b><a href="http://www.parc.xerox.com/csl/members/bajaj">[SB]</a></b>
 <b>Thu Apr 17 17:57:53 PDT 1997</b><br>
