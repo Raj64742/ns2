@@ -1,0 +1,41 @@
+
+\chapter{Nam}
+	\label{chap:nam}
+
+[This chapter will hold complete nam documentation.
+For now it's mostly a placeholder.]
+
+%
+% user-interface elements
+%   menus
+%   controls
+% namgraph
+%   filters
+% node layout
+%   relative layout
+%   autolayout
+%   wireless layout
+% input format
+% 
+
+\section{Animations from nam}
+
+Nam animations can be saved and converted to animated gifs or MPEG movies.
+
+To save the frames of your movie, first
+  start nam with your trace and set it up where you want it to start
+  and adjust other parameters (step rate, size, etc.)
+Select ``record animation'' in the File menu to start saving frames.
+Each animation step will be saved in a X-window dump file called ``nam\%d.xwd''
+  where \%d is the frame number.
+
+The following shell script (sh, not csh)
+  converts these files into an animated gif:
+\begin{verbatim}
+for i in *.xwd; do
+	xwdtoppm <$i |
+	ppmtogif -interlace -transparent'#e5e5e5' >`basename $i .xwd`.gif;
+done
+gifmerge -l0 -2 -229,229,229 *.gif >movie.gif
+\end{verbatim}
+
