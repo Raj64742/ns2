@@ -30,7 +30,7 @@
 #	Author:		Kannan Varadhan	<kannan@isi.edu>
 #	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.14 1999/09/09 03:37:05 salehi Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/mcast/srm.tcl,v 1.15 2002/08/07 04:04:56 sundarra Exp $ (USC/ISI)
 #
 
 # THis routine is a temporary hack.  It is likely to dissappear
@@ -660,9 +660,11 @@ SRM/session instproc schedule {} {
 	$self next
 
 	# What is a reasonable interval to schedule session messages?
+
+	set sessionDelay_ [$agent_ set sessionDelay_]
 	set fireTime [expr $sessionDelay_ * [uniform 0.9 1.1]]
 	# set fireTime [expr $sessionDelay_ * [uniform 0.9 1.1] * \
-			(1 + log([$agent_ set groupSize_])) ]
+    #			(1 + log([$agent_ set groupSize_])) ]
 
 	set eventID_ [$ns_ at [expr [$ns_ now] + $fireTime]		\
 			"$self send-session"]

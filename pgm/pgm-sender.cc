@@ -43,6 +43,7 @@
 #include "packet.h"
 #include "ip.h"
 #include "random.h"
+#include "basetrace.h"
 
 #include "pgm.h"
 
@@ -156,6 +157,10 @@ protected:
 
   void display_packet(Packet *pkt); // For debugging.
 
+  void PgmSender::trace_event(char *evType, double evTime); 
+
+  EventTrace * et_; 	//Trace Object for custom Event Traces
+
   Stats stats_; // Keep track of various statistics.
 
   char uname_[16]; // Unique PGM sender name.
@@ -216,6 +221,9 @@ PgmSender::PgmSender() : Agent(PT_PGM), pktSize_(0),
 
   bind_time("spm_interval_", &spm_interval_);
   bind_time("rdata_delay_", &rdata_delay_);
+
+  et_ = (EventTrace *) NULL;
+
 }
 
 // Code that is called when a packet is received.
@@ -285,8 +293,31 @@ int PgmSender::command(int argc, const char*const* argv)
       return (TCL_OK);
     }
   }
+  else if (argc == 3) { 	//If Event Trace is on, set the Event trace handle
+    if (strcmp(argv[1], "eventtrace") == 0) {
+      et_ = (EventTrace *)TclObject::lookup(argv[2]);
+      return (TCL_OK);
+    }
+  }
 
   return (Agent::command(argc, argv));
+}
+
+void PgmSender::trace_event(char *evType, double evTime) {
+
+  if (et_ == NULL) return;
+  char *wrk = et_->buffer();
+
+  if (wrk != NULL) {
+    sprintf(wrk, "E "TIME_FORMAT" %d %d PGM %s "TIME_FORMAT, 
+            et_->round(Scheduler::instance().clock()),   
+            addr(),                    
+            addr(),                   
+            evType,                  
+			evTime);	
+    et_->dump();
+  }
+
 }
 
 // The application calls this function to send out new ODATA (original DATA).
@@ -425,6 +456,9 @@ void PgmSender::handle_nak(Packet *pkt)
 
     // Set the timer to go off at rdata_delay_ seconds from now.
     ritem->rdata_timer().resched(rdata_delay_);
+
+	//Output Event Trace, Repair will be sent after rdata_delay_
+    trace_event("REPAIR BACKOFF", rdata_delay_);
 
     if (hc->iface() < 0) {
       // The NAK was sent from a local agent attached to this node. Keep
@@ -568,6 +602,7 @@ void PgmSender::send_rdata(RdataItem *item)
       if (!flag) {
 	tgt = iface2link(*iter);
 	tgt->recv(item->rdata_pkt());
+    trace_event("SEND RDATA", 0);
 	flag = 1;
       }
       else {

@@ -40,6 +40,7 @@
 #include "packet.h"
 #include "ip.h"
 #include "random.h"
+#include "basetrace.h"
 
 #include "rcvbuf.h"
 
@@ -153,6 +154,10 @@ protected:
   void print_stats();
   void display_packet(Packet *pkt); // For debugging.
 
+  void PgmReceiver::trace_event(char *evType, double evTime);
+
+  EventTrace * et_;  //Trace Object for Custom Event Trace
+
   char uname_[16]; // Unique PGM receiver name, for debugging.
 
   // Various statistical information.
@@ -227,6 +232,9 @@ PgmReceiver::PgmReceiver() : Agent(PT_PGM), have_tsi_state_(false),
   bind_time("nak_bo_ivl_", &nak_bo_ivl_);
   bind_time("nak_rpt_ivl_", &nak_rpt_ivl_);
   bind_time("nak_rdata_ivl_", &nak_rdata_ivl_);
+
+  et_ = (EventTrace *) NULL;
+
 }
 
 // Code to execute when a packet is received.
@@ -299,8 +307,31 @@ int PgmReceiver::command(int argc, const char*const* argv)
       return (TCL_OK);
     }
   }
+  else if (argc == 3) {
+    if (strcmp(argv[1], "eventtrace") == 0) {
+      et_ = (EventTrace *)TclObject::lookup(argv[2]);
+      return (TCL_OK);
+    }
+  }
 
   return (Agent::command(argc, argv));
+}
+
+void PgmReceiver::trace_event(char *evType, double evTime) {
+
+  if (et_ == NULL) return;
+  char *wrk = et_->buffer();
+
+  if (wrk != NULL) {
+    sprintf(wrk, "E "TIME_FORMAT" %d %d PGM %s "TIME_FORMAT, 
+            et_->round(Scheduler::instance().clock()),   
+            addr(),                    
+            addr(),                   
+            evType,                  
+			evTime);	
+    et_->dump();
+  }
+
 }
 
 void PgmReceiver::handle_spm(Packet *pkt)
@@ -544,7 +575,7 @@ void PgmReceiver::generate_Nak(int seqno)
     nitem->nak_timer().resched(backoff);
 
     printf("backoff: %f\n", backoff);
-
+    trace_event("DETECT", backoff); 	//Detected Loss, will send NACK after backoff
   }
   else {
     printf("%s generate_Nak was called with NAK state already established, ignoring.\n", uname_);

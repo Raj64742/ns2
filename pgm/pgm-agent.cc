@@ -43,6 +43,7 @@
 #include "packet.h"
 #include "ip.h"
 #include "random.h"
+#include "basetrace.h"
 
 #include "pgm.h"
 
@@ -275,6 +276,8 @@ protected:
 
   void print_stats();
 
+  void PgmAgent::trace_event(char *evType, double evTime);
+
 #ifdef PGM_DEBUG
   void display_packet(Packet *pkt);
 #endif
@@ -284,6 +287,8 @@ protected:
 
   StateInfo * find_TSI(ns_addr_t &tsi);
   StateInfo * insert_TSI(ns_addr_t &tsi);
+
+  EventTrace * et_; //Trace Object for custom event trace
 
   int pgm_enabled_; // Is this agent enabled? Default is YES.
 
@@ -343,6 +348,8 @@ PgmAgent::PgmAgent() : Agent(PT_PGM), pgm_enabled_(1)
   bind_time("nak_rpt_ival_", &nak_rpt_ival_);
   bind_time("nak_rdata_ival_", &nak_rdata_ival_);
   bind_time("nak_elim_ival_", &nak_elim_ival_);
+
+  et_ = (EventTrace *) NULL;
 }
 
 // Code to execute when a packet is received.
@@ -431,9 +438,32 @@ int PgmAgent::command (int argc, const char*const* argv)
       return (TCL_OK);
     }
   }
+  else if (argc == 3) { //Set the Event Trace handle if Event Tracing is on
+    if (strcmp(argv[1], "eventtrace") == 0) {
+      et_ = (EventTrace *)TclObject::lookup(argv[2]);
+      return (TCL_OK);
+    }
+  }
 
   return (Agent::command(argc, argv));
 }      
+
+void PgmAgent::trace_event(char *evType, double evTime) {
+
+  if (et_ == NULL) return;
+  char *wrk = et_->buffer();
+
+  if (wrk != NULL) {
+    sprintf(wrk, "E "TIME_FORMAT" %d %d PGM %s "TIME_FORMAT, 
+            et_->round(Scheduler::instance().clock()),   
+            addr(),                    
+            addr(),                   
+            evType,                  
+			evTime);	
+    et_->dump();
+  }
+
+}
 
 void PgmAgent::handle_spm(Packet *pkt)
 {
@@ -533,6 +563,8 @@ void PgmAgent::handle_rdata(Packet *pkt)
   NsObject *tgt;
   Packet *new_pkt;
   int flag = 0;
+
+  trace_event("SEND RDATA", 0); //Repair is being forwarded
 
   hdr_cmn *hc = HDR_CMN(pkt);
 
@@ -680,6 +712,8 @@ void PgmAgent::handle_nak(Packet *pkt)
     // Set the nak repeat interval.
     rstate->nak_rpt_timer().resched(nak_rpt_ival_);
 
+    trace_event("SEND NACK", nak_rpt_ival_); //Nack being Sent, Nack will refire after ival
+
     // Don't set the RDATA timer until the NCF is received.
     // Don't set the elimintation timer until the NCF is received.
 
@@ -774,6 +808,8 @@ void PgmAgent::handle_ncf(Packet *pkt)
     Packet::free(pkt);
     return;
   }
+
+  trace_event("SEND NCF", 0);
 
   // Look for the repair state for this NCF packet.
   map<int, RepairState>::iterator result = state->repair().find(hp->seqno_);

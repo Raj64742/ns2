@@ -202,4 +202,24 @@ Simulator instproc detach-lossmodel {lossobj from to} {
 	set link [$self link $from $to]
 	set head [$link head]
 	$head target [$lossobj target]
-} 
+}
+
+Agent/PGM/Sender instproc init {} {
+    eval $self next
+    set ns [Simulator instance]
+    $ns create-eventtrace Event $self
+}
+
+Agent/PGM/Receiver instproc init {} {
+    eval $self next
+    set ns [Simulator instance]
+    $ns create-eventtrace Event $self
+}
+
+Agent/PGM instproc init {} {
+    eval $self next
+    set ns [Simulator instance]
+    $ns create-eventtrace Event $self
+}
+
+ 

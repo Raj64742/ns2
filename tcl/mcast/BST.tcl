@@ -143,6 +143,9 @@ BST instproc leave-group { group {src "x"} } {
 			# propagate
 			$self send-ctrl "prune" $RP_($group) $group
 			$node_ delete-mark m1
+		} else {
+			$node_ delete-mark m1
+			$node_ add-mark m2 red circle
 		}
 	}
 
