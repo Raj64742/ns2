@@ -173,7 +173,7 @@ OBJ_CC = \
 	common/agent.o common/message.o apps/udp.o \
 	common/session-rtp.o apps/rtp.o tcp/rtcp.o \
 	common/ivs.o \
-	common/messpass.o apps/worm.o \
+	common/messpass.o common/tp.o common/tpm.o apps/worm.o \
 	tcp/tcp.o tcp/tcp-sink.o tcp/tcp-reno.o \
 	tcp/tcp-newreno.o \
 	tcp/tcp-vegas.o tcp/tcp-rbp.o tcp/tcp-full.o tcp/rq.o \
@@ -274,7 +274,7 @@ OBJ_CC = \
 	nix/nixroute.o \
 	diffserv/dsred.o diffserv/dsredq.o \
 	diffserv/dsEdge.o diffserv/dsCore.o \
-	diffserv/dsPolicy.o diffserv/ew.o\
+	diffserv/dsPolicy.o diffserv/ew.o diffserv/dewp.o \
 	queue/red-pd.o queue/pi.o queue/vq.o queue/rem.o \
 	queue/gk.o \
 	pushback/rate-limit.o pushback/rate-limit-strategy.o \
