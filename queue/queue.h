@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.16 1997/07/24 08:56:15 padmanab Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/queue.h,v 1.17 1997/07/25 09:13:54 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_queue_h
@@ -40,17 +40,17 @@
 #include "packet.h"
 #include "ip.h"
 
-class PacketQueue {
+class PacketQueue : public TclObject {
 public:
 	PacketQueue() : head_(0), tail_(&head_), len_(0) {}
 	inline int length() const { return (len_); }
-	inline void enque(Packet* p) {
+	virtual inline void enque(Packet* p) {
 		*tail_ = p;
 		tail_ = &p->next_;
 		*tail_ = 0;
 		++len_;
 	}
-	Packet* deque() {
+	virtual Packet* deque() {
 		Packet* p = head_;
 		if (p != 0) {
 			--len_;
@@ -68,7 +68,7 @@ public:
 		return (0);
 	}
 	/* remove a specific packet, which must be in the queue */
-	void remove(Packet*);
+	virtual void remove(Packet*);
 	/* Remove a packet, located after a given packet. Either could be 0. */
 	void remove(Packet *, Packet *);
 protected:
