@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.319 2003/07/29 20:24:28 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.320 2003/08/14 04:26:41 sfloyd Exp $
 
 
 #
@@ -734,6 +734,10 @@ Agent/TCP set packetSize_ 1000
 Agent/TCP set tcpip_base_hdr_size_ 40
 Agent/TCP set ts_option_size_ 10; 	# in bytes
 Agent/TCP set bugFix_ true
+Agent/TCP set bugFix_ack_ false ;       # Variable added on 2003/08/13
+					# To allow some multiple Fast Retransmits
+Agent/TCP set bugFix_ts_ false ;	# Variable added on 2003/08/13
+					# To allow some multiple Fast Retransmits
 Agent/TCP set lessCareful_ false ;	# for the Less Careful variant of
 					# bugFix_, just for illustration.
 Agent/TCP set timestamps_ false
@@ -836,7 +840,8 @@ Agent/TCPSink set dport_        0
 #XXX other kinds of sinks -> should reparent
 Agent/TCPSink set packetSize_ 40
 Agent/TCPSink set maxSackBlocks_ 3
-Agent/TCPSink set ts_echo_bugfix_ false
+Agent/TCPSink set ts_echo_bugfix_ true ;	# default changed, 2003/8/13
+Agent/TCPSink set ts_echo_rfc1323_ false ;	# default added, 2003/8/13
 Agent/TCPSink set generateDSacks_ false
 Agent/TCPSink set qs_enabled_ false
 Agent/TCPSink set RFC2581_immediate_ack_ true

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.112 2003/07/29 20:24:29 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.113 2003/08/14 04:26:42 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -153,6 +153,7 @@ protected:
 class TcpAgent : public Agent {
 public:
 	TcpAgent();
+	~TcpAgent() {free(tss);}
         virtual void recv(Packet*, Handler*);
 	virtual void timeout(int tno);
 	virtual void timeout_nonrtx(int tno);
@@ -196,6 +197,7 @@ protected:
 	virtual void rtt_backoff();		/* double multiplier */
 
 	double ts_peer_;        /* the most recent timestamp the peer sent */
+	double ts_echo_;        /* the most recent timestamp the peer echoed */
 
 	/* connection and packet dynamics */
 	virtual void output(int seqno, int reason = 0);
@@ -270,6 +272,15 @@ protected:
 	int tcpip_base_hdr_size_;  /* size of base TCP/IP header */
 	int ts_option_size_;    // header bytes in a ts option
 	int bug_fix_;		/* 1 for multiple-fast-retransmit fix */
+	int bugfix_ack_;        // 1 to enable ACK heuristic, to allow
+				//  multiple-fast-retransmits in special cases.
+				// From Andrei Gurtov
+	int bugfix_ts_;         // 1 to enable timestamp heuristic, to allow
+				//  multiple-fast-retransmits in special cases.
+				// From Andrei Gurtov
+				// Not implemented yet.
+        double *tss;            // To store sent timestamps, with bugfix_ts_
+        int tss_size_;          // Current capacity of tss
 	int less_careful_;	/* 1 for Less Careful variant of bug_fix_, */
 				/*  for illustration only  */
 	int ts_option_;		/* use RFC1323-like timestamps? */

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.24 2003/07/29 22:08:21 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.25 2003/08/14 04:26:41 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -1187,6 +1187,115 @@ Test/newreno6 instproc run {} {
         $self setup Newreno {14 26 28 33}
 }
 
+##########################################################
+# New validation tests on timestamps, from Andrei Gurtov
+##########################################################
 
+# BugFix prevents a Fast Retransmit for a lost packet.
+Class Test/newreno_rto_loss -superclass TestSuite
+Test/newreno_rto_loss instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno_rto
+	set guide_ "NewReno after timeout, lost packet."
+	$self next pktTraceFile
+}
+Test/newreno_rto_loss instproc run {} {
+	global quiet; $self instvar guide_
+	if {$quiet == "false"} {puts $guide_}
+        $self setup Newreno {15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 37}
+}
+ 
+# The ACK heuristic allows a productive Fast Retransmit.
+Class Test/newreno_rto_loss_ack -superclass TestSuite
+Test/newreno_rto_loss_ack instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno_rto_loss_ack
+	Agent/TCP set bugFix_ack_ true
+	set guide_ "NewReno after timeout, lost packet, ACK heuristic."
+	$self next pktTraceFile
+	Test/newreno_rto_loss_ack instproc run {} [Test/newreno_rto_loss info instbody run]
+}
+ 
+Class Test/newreno_rto_loss_ts -superclass TestSuite
+Test/newreno_rto_loss_ts instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno_rto_loss_ts
+	Agent/TCP set timestamps_ true
+	Agent/TCPSink set ts_echo_rfc1323_ true
+        set guide_ "NewReno after timeout, lost packet, timestamps."
+	$self next pktTraceFile
+	Test/newreno_rto_loss_ts instproc run {} [Test/newreno_rto_loss info instbody run]
+}
+
+Class Test/newreno_rto_loss_tsh -superclass TestSuite
+Test/newreno_rto_loss_tsh instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno_rto_loss_tsh
+	Agent/TCP set bugFix_ts_ true
+	Agent/TCP set timestamps_ true
+	Agent/TCPSink set ts_echo_rfc1323_ true
+	set guide_ "NewReno after timeout, lost packet, timestamp heuristic."
+	$self next pktTraceFile
+	Test/newreno_rto_loss_tsh instproc run {} [Test/newreno_rto_loss info instbody run]
+}
+ 
+Class Test/newreno_rto_dup -superclass TestSuite
+Test/newreno_rto_dup instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       newreno_rto_dup
+        set guide_ "NewReno after timeout, false dupacks"
+        $self next pktTraceFile
+}
+Test/newreno_rto_dup instproc run {} {
+        global quiet; $self instvar guide_
+        if {$quiet == "false"} {puts $guide_}
+        $self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 51}
+}
+ 
+## The ACK heuristic doesn't make any difference in this case,
+## as one would want.
+Class Test/newreno_rto_dup_ack -superclass TestSuite
+Test/newreno_rto_dup_ack instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net4
+        set test_       newreno_rto_dup_ack
+	Agent/TCP set bugFix_ack_ true
+        set guide_ "NewReno after timeout, false dupacks, ACK heuristic"
+        $self next pktTraceFile
+	Test/newreno_rto_dup_ack instproc run {} [Test/newreno_rto_dup info instbody run]
+}
+ 
+Class Test/newreno_rto_dup_ts -superclass TestSuite
+Test/newreno_rto_dup_ts instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno_rto_dup_ts
+	Agent/TCP set timestamps_ true
+	set guide_ "NewReno after timeout, false dupacks, timestamps."
+	$self next pktTraceFile
+	Test/newreno_rto_dup_ts instproc run {} [Test/newreno_rto_dup info instbody run]
+}
+
+## The timestamp heuristic doesn't make any difference in this case,
+## as one would want.
+Class Test/newreno_rto_dup_tsh -superclass TestSuite
+Test/newreno_rto_dup_tsh instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	newreno_rto_dup_tsh
+	Agent/TCP set timestamps_ true
+	Agent/TCP set bugFix_ts_ true
+	set guide_ "NewReno after timeout, false dupacks, timestamp heuristic."
+	$self next pktTraceFile
+	Test/newreno_rto_dup_tsh instproc run {} [Test/newreno_rto_dup info instbody run]
+}
+
+#########################################################################3
+ 
 TestSuite runTest
 

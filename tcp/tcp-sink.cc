@@ -48,7 +48,7 @@ public:
 } class_tcpsink;
 
 Acker::Acker() : next_(0), maxseen_(0), wndmask_(MWM), ecn_unacked_(0), 
-	ts_to_echo_(0)
+	ts_to_echo_(0), last_ack_sent_(0)
 {
 	seen_ = new int[MWS];
 	memset(seen_, 0, (sizeof(int) * (MWS)));
@@ -84,10 +84,15 @@ void Acker::resize_buffers(int sz) {
 	return; 
 }
 
-void Acker::update_ts(int seqno, double ts)
+void Acker::update_ts(int seqno, double ts, int rfc1323 = 0)
 {
-	if (ts >= ts_to_echo_ && seqno <= next_)
-		ts_to_echo_ = ts;
+	// update timestamp if segment advances with ACK.
+        // Code changed by Andrei Gurtov.
+        if (rfc1323 && seqno == last_ack_sent_ + 1)
+               ts_to_echo_ = ts;
+        else if (ts >= ts_to_echo_ && seqno <= last_ack_sent_ + 1)
+               //rfc1323-bis, update timestamps from duplicate segments
+               ts_to_echo_ = ts;
 }
 
 // returns number of bytes that can be "delivered" to application
@@ -191,6 +196,7 @@ TcpSink::delay_bind_init_all()
 {
         delay_bind_init_one("packetSize_");
         delay_bind_init_one("ts_echo_bugfix_");
+	delay_bind_init_one("ts_echo_rfc1323_");
 	delay_bind_init_one("bytes_"); // For throughput measurements in JOBS
         delay_bind_init_one("generateDSacks_"); // used only by sack
 	delay_bind_init_one("qs_enabled_");
@@ -207,6 +213,7 @@ TcpSink::delay_bind_dispatch(const char *varName, const char *localName, TclObje
 {
         if (delay_bind(varName, localName, "packetSize_", &size_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "ts_echo_bugfix_", &ts_echo_bugfix_, tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "ts_echo_rfc1323_", &ts_echo_rfc1323_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "generateDSacks_", &generate_dsacks_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "qs_enabled_", &qs_enabled_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "RFC2581_immediate_ack_", &RFC2581_immediate_ack_, tracer)) return TCL_OK;
@@ -323,6 +330,10 @@ void TcpSink::ack(Packet* opkt)
 			   ntcp, otcp->seqno());
 	add_to_ack(npkt);
 	// the above function is used in TcpAsymSink
+
+        // Andrei Gurtov
+        acker_->last_ack_sent_ = ntcp->seqno();
+        // printf("ACK %d ts %f\n", ntcp->seqno(), ntcp->ts_echo());
 	
 	send(npkt, 0);
 	// send it
@@ -346,7 +357,7 @@ void TcpSink::recv(Packet* pkt, Handler*)
 		Packet::free(pkt);
 		return;
 	}
-	acker_->update_ts(th->seqno(),th->ts());
+	acker_->update_ts(th->seqno(),th->ts(),ts_echo_rfc1323_);
 	// update the timestamp to echo
 	
       	numToDeliver = acker_->update(th->seqno(), numBytes);
@@ -393,7 +404,7 @@ void DelAckSink::recv(Packet* pkt, Handler*)
 		Packet::free(pkt);
 		return;
 	}
-	acker_->update_ts(th->seqno(),th->ts());
+	acker_->update_ts(th->seqno(),th->ts(),ts_echo_rfc1323_);
 	numToDeliver = acker_->update(th->seqno(), numBytes);
 	if (numToDeliver) {
                 bytes_ += numToDeliver; // for JOBS

@@ -56,7 +56,7 @@ class Acker {
 public:
 	Acker();
 	virtual ~Acker() { delete[] seen_; }
-	void update_ts(int seqno, double ts);
+	void update_ts(int seqno, double ts, int rfc1323 = 0);
 	int update(int seqno, int numBytes);
 	void update_ecn_unacked(int value);
 	inline int Seqno() const { return (next_ - 1); }
@@ -76,6 +76,8 @@ protected:
 	int *seen_;		/* array of packets seen */
 	double ts_to_echo_;	/* timestamp to echo to peer */
 	int is_dup_;		// A duplicate packet.
+public:
+        int last_ack_sent_;     // For updating timestamps, from Andrei Gurtov.
 };
 
 // derive Sacker from TclObject to allow for traced variable
@@ -110,6 +112,8 @@ protected:
 
 	Acker* acker_;
 	int ts_echo_bugfix_;
+	int ts_echo_rfc1323_; 	// conforms to rfc1323 for timestamps echo
+				// Added by Andrei Gurtov
 
 	friend void Sacker::configure(TcpSink*);
 	TracedInt max_sack_blocks_;	/* used only by sack sinks */

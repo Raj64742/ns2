@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.149 2003/07/29 20:24:28 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.150 2003/08/14 04:26:42 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -67,7 +67,7 @@ public:
 
 TcpAgent::TcpAgent() : Agent(PT_TCP), 
 	t_seqno_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), 
-	t_backoff_(0), ts_peer_(0), 
+	t_backoff_(0), ts_peer_(0), ts_echo_(0),
 	rtx_timer_(this), delsnd_timer_(this), 
 	burstsnd_timer_(this), 
 	dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
@@ -75,7 +75,8 @@ TcpAgent::TcpAgent() : Agent(PT_TCP),
 	maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
         ect_(0), lastreset_(0.0),
         restart_bugfix_(1), closed_(0), nrexmit_(0),
-	first_decrease_(1), qs_requested_(0), qs_approved_(0)
+	first_decrease_(1), qs_requested_(0), qs_approved_(0), tss(NULL),
+	tss_size_(100)
 {
 #ifdef TCP_DELAY_BIND_ALL
 #else /* ! TCP_DELAY_BIND_ALL */
@@ -127,6 +128,8 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("tcpip_base_hdr_size_");
 	delay_bind_init_one("ts_option_size_");
         delay_bind_init_one("bugFix_");
+	delay_bind_init_one("bugFix_ack_");
+	delay_bind_init_one("bugFix_ts_");
 	delay_bind_init_one("lessCareful_");
         delay_bind_init_one("slow_start_restart_");
         delay_bind_init_one("restart_bugfix_");
@@ -223,6 +226,8 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "tcpip_base_hdr_size_", &tcpip_base_hdr_size_, tracer)) return TCL_OK;
 	if (delay_bind(varName, localName, "ts_option_size_", &ts_option_size_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "bugFix_", &bug_fix_ , tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "bugFix_ack_", &bugfix_ack_, tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "bugFix_ts_", &bugfix_ts_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "lessCareful_", &less_careful_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "timestamps_", &ts_option_ , tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "ts_resetRTO_", &ts_resetRTO_, tracer)) return TCL_OK;
@@ -601,6 +606,31 @@ void TcpAgent::output(int seqno, int reason)
 	int databytes = hdr_cmn::access(p)->size();
 	tcph->seqno() = seqno;
 	tcph->ts() = Scheduler::instance().clock();
+ 
+ 
+        // store timestamps, with bugfix_ts_.  From Andrei Gurtov. 
+	// (A real TCP would use scoreboard for this.)
+        if (bugfix_ts_ && tss==NULL) {
+                tss = (double*) calloc(tss_size_, sizeof(double));
+                if (tss==NULL) exit(1);
+        }
+        //dynamically grow the timestamp array if it's getting full
+        if (bugfix_ts_ && window() > tss_size_* 0.9) {
+                double *ntss;
+                ntss = (double*) calloc(tss_size_*2, sizeof(double));
+                printf("resizing timestamp table\n");
+                if (ntss == NULL) exit(1);
+                for (int i=0; i<tss_size_; i++)
+                        ntss[(highest_ack_ + i) % (tss_size_ * 2)] =
+                                tss[(highest_ack_ + i) % tss_size_];
+                free(tss);
+                tss_size_ *= 2;
+                tss = ntss;
+        }
+ 
+        if (tss!=NULL)
+                tss[seqno % tss_size_] = tcph->ts(); 
+
 	tcph->ts_echo() = ts_peer_;
 	tcph->reason() = reason;
 	tcph->last_rtt() = int(int(t_rtt_)*tcp_tick_*1000);
@@ -1202,6 +1232,7 @@ void TcpAgent::newack(Packet* pkt)
 	hdr_flags *fh = hdr_flags::access(pkt);
 	if (!fh->no_ts_) {
 		if (ts_option_) {
+			ts_echo_=tcph->ts_echo();
 			rtt_update(now - tcph->ts_echo());
 			if (ts_resetRTO_ && (!ect_ || !ecn_backoff_ ||
 			    !hdr_flags::access(pkt)->ecnecho())) { 

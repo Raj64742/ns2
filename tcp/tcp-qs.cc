@@ -382,7 +382,7 @@ void QSTcpSink::recv(Packet* pkt, Handler*)
 		Packet::free(pkt);
 		return;
 	}
-	acker_->update_ts(th->seqno(),th->ts());
+	acker_->update_ts(th->seqno(),th->ts(),ts_echo_rfc1323_);
 	// update the timestamp to echo
 	
 	numToDeliver = acker_->update(th->seqno(), numBytes);
