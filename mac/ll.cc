@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.38 1999/04/29 17:43:40 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.cc,v 1.39 1999/08/11 22:43:17 yaxu Exp $ (UCB)";
 #endif
 
 #include <errmodel.h>
@@ -142,7 +142,11 @@ void LL::recv(Packet* p, Handler* /*h*/)
 	 * Sanity Check
 	 */
 	assert(initialized());
-	
+
+	if(p->incoming) {
+                p->incoming = 0;
+	}
+
 	// If direction = 1, then pass it up the stack
 	// Otherwise, set direction to -1 and pass it down the stack
 	if(ch->direction() == 1) {
@@ -163,6 +167,7 @@ void LL::sendDown(Packet* p)
 {	
 	hdr_cmn *ch = HDR_CMN(p);
 	hdr_ip *ih = HDR_IP(p);
+
 	// XXX HACK for now - Padma, 03/99.
 	nsaddr_t dst = (nsaddr_t)Address::instance().get_nodeaddr(ih->dst());
 	//nsaddr_t dst = ih->dst();

@@ -89,6 +89,7 @@ Node/MobileNode instproc init args {
 Node/MobileNode instproc reset {} {
 	$self instvar arptable_ nifs_
 	$self instvar netif_ mac_ ifq_ ll_
+	$self instvar imep_
 
         for {set i 0} {$i < $nifs_} {incr i} {
 	    $netif_($i) reset
@@ -114,9 +115,11 @@ Node/MobileNode instproc reset {} {
 
 Node/MobileNode instproc add-target {agent port } {
     
-    global RouterTrace AgentTrace
+    global RouterTrace AgentTrace opt
     $self instvar dmux_ classifier_
-    
+    $self instvar imep_
+ 
+
     $agent set sport_ $port
     
     if { $port == 255 } {			# non-routing agents
@@ -130,9 +133,9 @@ Node/MobileNode instproc add-target {agent port } {
                  $agent target $imep_(0)
                  $imep_(0) sendtarget $sndT
 
-                 # need a second tracer to see the actual
+		 # second tracer to see the actual
                  # types of tora packets before imep packs them
-                 if { $opt(debug) == "ON" } {
+                 if { [info exists opt(debug)] && $opt(debug) == "ON" } {
                        set sndT2 [cmu-trace Send "TRP" $self]
                        $sndT2 target $imep_(0)
                        $agent target $sndT2
@@ -150,13 +153,13 @@ Node/MobileNode instproc add-target {agent port } {
 	    set rcvT [cmu-trace Recv "RTR" $self]
 
             if {[info exists opt(imep)] && $opt(imep) == "ON" } {
-                puts "Hacked for tora20 runs!! No RTR revc trace"
-                [$self set ll_(0)] recvtarget $imep_(0)
+            #    puts "Hacked for tora20 runs!! No RTR revc trace"
+                [$self set ll_(0)] up-target $imep_(0)
                 $classifier_ defaulttarget $agent
 
                 # need a second tracer to see the actual
                 # types of tora packets after imep unpacks them
-                if { $opt(debug) == "ON" } {
+                if { [info exists opt(debug)] && $opt(debug) == "ON" } {
                                 set rcvT2 [cmu-trace Recv "TRP" $self]
                                 $rcvT2 target $agent
                                 [$self set classifier_] defaulttarget $rcvT2

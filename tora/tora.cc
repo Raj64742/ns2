@@ -1,6 +1,6 @@
 /*
   tora.cc
-  $Id: tora.cc,v 1.3 1999/08/09 21:11:01 haoboy Exp $
+  $Id: tora.cc,v 1.4 1999/08/11 22:43:24 yaxu Exp $
   */
 
 #include <agent.h>
@@ -223,13 +223,9 @@ toraAgent::recv(Packet *p, Handler *)
 	struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_ip *ih = HDR_IP(p);
 
-	if ( p->incoming == 0) {
-	  printf("OK\n");
-
-        }
 	assert(initialized());
 
-        assert(p->incoming == 0);
+        //assert(p->incoming == 0);
 
 	if(ch->ptype() == PT_TORA) {
 		recvTORA(p);

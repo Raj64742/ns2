@@ -12,8 +12,10 @@ set opt(ant)            Antenna/OmniAntenna
 
 set opt(x)		670		;# X dimension of the topography
 set opt(y)		670		;# Y dimension of the topography
-set opt(cp)		"../mobility/scene/cbr-50-10-4-512"		;# connection pattern file
-set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0"		;# scenario file
+#set opt(cp)		"../mobility/scene/cbr-50-10-4-512"		;# connection pattern file
+#set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0"		;# scenario file
+set opt(sc)		"../mobility/scene/scen-3-test"
+set opt(cp)		"../mobility/scene/cbr-3-test"
 
 set opt(ifqlen)		50		;# max packet in ifq
 set opt(nn)		50		;# number of nodes
@@ -71,7 +73,6 @@ source ../mobility/tora.tcl
 #source cmu/scripts/cmu-trace.tcl
 source ../lib/ns-bsnode.tcl
 source ../mobility/com.tcl
-
 # ======================================================================
 
 proc usage { argv0 }  {
