@@ -87,7 +87,8 @@ IntServLink instproc init { src dst bw delay q arg {lltype "DelayLink"} } {
 	$signalmod_ set dst_ [$dst id]
 	$signalmod_ target $queue_
 	$signalmod_ attach-adc $adc_
-	set head_ $signalmod_
+	#set head_ $signalmod_
+	$head_ target $signalmod_
 	
 	#Create a measurement classifier to decide which packets to measure
 	$self create-meas-classifier

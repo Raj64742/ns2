@@ -23,7 +23,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/ctrMcast.cc,v 1.6 1998/06/27 01:23:39 gnguyen Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/ctrMcast.cc,v 1.6.2.1 1998/07/15 18:34:11 kannan Exp $ (USC/ISI)";
 #endif
 
 #include "agent.h"
@@ -35,7 +35,6 @@ public:
 	CtrMcastEncap() : Agent(PT_CtrMcast_Encap) { 
 		bind("off_CtrMcast_", &off_CtrMcast_);
 	}
-	int command(int argc, const char*const* argv);
 	void recv(Packet* p, Handler*);
 protected:
 	int off_CtrMcast_;
@@ -46,7 +45,6 @@ public:
 	CtrMcastDecap() : Agent(PT_CtrMcast_Decap) { 
 		bind("off_CtrMcast_", &off_CtrMcast_);
 	}
-	int command(int argc, const char*const* argv);
 	void recv(Packet* p, Handler*);
 protected:
 	int off_CtrMcast_;
@@ -74,16 +72,6 @@ public:
 	}
 } class_CtrMcastDecap;
 
-
-int CtrMcastEncap::command(int argc, const char*const* argv)
-{
-	return Agent::command(argc, argv);
-}
-
-int CtrMcastDecap::command(int argc, const char*const* argv)
-{
-	return Agent::command(argc, argv);
-}
 
 void CtrMcastEncap::recv(Packet* p, Handler*)
 {

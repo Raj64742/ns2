@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.32 1998/06/27 01:24:18 gnguyen Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/packet.h,v 1.32.2.1 1998/07/15 18:34:15 kannan Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -40,39 +40,41 @@
 #include "config.h"
 #include "scheduler.h"
 
-#define PT_TCP		0
-#define PT_UDP		1
-#define PT_CBR		2
-#define PT_AUDIO	3
-#define PT_VIDEO	4
-#define PT_ACK		5
-#define PT_START	6
-#define PT_STOP		7
-#define PT_PRUNE	8
-#define PT_GRAFT	9
-#define PT_MESSAGE	10
-#define PT_RTCP		11
-#define PT_RTP		12
-#define PT_RTPROTO_DV	13
-#define PT_CtrMcast_Encap 14
-#define PT_CtrMcast_Decap 15
-#define PT_SRM		16
-/* simple signalling messages */
-#define PT_REQUEST	17
-#define PT_ACCEPT	18
-#define PT_CONFIRM	19
-#define PT_TEARDOWN	20
-#define	PT_LIVE		21		// packet from live network
-#define PT_REJECT	22
+#define PT_TCP          0
+#define PT_TELNET       1
+#define PT_CBR          2
+#define PT_AUDIO        3
+#define PT_VIDEO        4
+#define PT_ACK          5
+#define PT_START        6
+#define PT_STOP         7
+#define PT_MESSAGE      8
+#define PT_RTCP         9
+#define PT_RTP          10
+#define PT_RTPROTO_DV	11
+//multicast messages
+#define PT_PRUNE        12
+#define PT_GRAFT        13
+#define PT_JOIN		14
+#define PT_ASSERT	15
+#define PT_CtrMcast_Encap 16
+#define PT_CtrMcast_Decap 17
+#define PT_SRM		18
+//simple signalling  messages
+#define PT_REQUEST      19
+#define PT_ACCEPT       20
+#define PT_CONFIRM      21
+#define PT_TEARDOWN    	22
+#define	PT_LIVE		23	/* packet from live network */
+#define PT_REJECT       24
 
-#define PT_TELNET	23		// not needed: telnet use TCP
-#define PT_NTYPE	24
+#define PT_NTYPE        25
 
-#define PT_NAMES "tcp", "udp", "cbr", "audio", "video", "ack", \
-	"start", "stop", "prune", "graft", "message", "rtcp", "rtp", \
-	"rtProtoDV", "CtrMcast_Encap", "CtrMcast_Decap", "SRM", \
-	"sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject", \
-	"telnet"
+#define PT_NAMES "tcp", "telnet", "cbr", "audio", "video", "ack",	\
+	"start", "stop", "message", "rtcp", "rtp",  "rtProtoDV",	\
+	"prune", "graft", "join", "assert",				\
+	"CtrMcast_Encap", "CtrMcast_Decap", "SRM",			\
+        "sa_req","sa_accept","sa_conf","sa_teardown", "live", "sa_reject"
 
 #define OFFSET(type, field)	((int) &((type *)0)->field)
 

@@ -19,24 +19,24 @@
  *
  * Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.h,v 1.4 1998/06/27 01:24:21 gnguyen Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/prune.h,v 1.4.2.1 1998/07/15 18:34:16 kannan Exp $
  */
 
 #ifndef ns_prune_h
 #define ns_prune_h
 
 struct hdr_prune {
-	char           type_[15];
+	char           ptype_[15];
         nsaddr_t       from_;
         nsaddr_t       src_;
         nsaddr_t       group_;
 
         /* per-field member functions */
-        char*     type()  { return type_;   }
-        nsaddr_t& from()  { return from_;   }
+        char*     type()  { return ptype_; }
+        nsaddr_t& from()  { return from_;  }
         nsaddr_t& src()   { return src_;   }
-        nsaddr_t& group() { return group_;   }
-	int maxtype()      { return (sizeof(type_)); }
+        nsaddr_t& group() { return group_; }
+	int maxtype()     { return sizeof(ptype_); }
 };
 
 #endif

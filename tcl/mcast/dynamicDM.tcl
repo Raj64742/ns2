@@ -1,43 +1,31 @@
- #
- # tcl/mcast/dynamicDM.tcl
- #
- # Copyright (C) 1997 by USC/ISI
- # All rights reserved.                                            
- #                                                                
- # Redistribution and use in source and binary forms are permitted
- # provided that the above copyright notice and this paragraph are
- # duplicated in all such forms and that any documentation, advertising
- # materials, and other materials related to such distribution and use
- # acknowledge that the software was developed by the University of
- # Southern California, Information Sciences Institute.  The name of the
- # University may not be used to endorse or promote products derived from
- # this software without specific prior written permission.
- # 
- # THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
- # 
- # Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
- # 
- #
+#
+# tcl/mcast/dynamicDM.tcl
+#
+# Copyright (C) 1997 by USC/ISI
+# All rights reserved.                                            
+#                                                                
+# Redistribution and use in source and binary forms are permitted
+# provided that the above copyright notice and this paragraph are
+# duplicated in all such forms and that any documentation, advertising
+# materials, and other materials related to such distribution and use
+# acknowledge that the software was developed by the University of
+# Southern California, Information Sciences Institute.  The name of the
+# University may not be used to endorse or promote products derived from
+# this software without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
+# WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
+# MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+# 
+# Contributed by Polly Huang (USC/ISI), http://www-scf.usc.edu/~bhuang
+# 
+#
 Class dynamicDM -superclass DM
 
 dynamicDM set ReportRouteTimeout 1
 
 dynamicDM instproc init { sim node } {
-	$self instvar ns Node type
-	set ns $sim
-	set Node $node
-	set type "dynamicDM"
-	$self initialize
-        set tracefile [$ns gettraceAllFile]
-        if { $tracefile != 0 } {
-	    $self trace $ns $tracefile $node
-	}
-	set tracefile [$ns getnamtraceAllFile]
-	if { $tracefile != 0 } {
-		$self trace $ns $tracefile $node "nam"
-	}
+	$self next $sim $node
 }
 
 dynamicDM instproc start { } {
@@ -45,19 +33,18 @@ dynamicDM instproc start { } {
 }
 
 dynamicDM instproc periodic-check {} {
-        $self instvar ns
+        $self instvar ns_
         $self check-downstream-list
-        $ns at [expr [$ns now] + [dynamicDM set ReportRouteTimeout]] "$self periodic-check"
+	$ns schedule-after [$class set ReportRouteTimeout] $self $proc
 }
 
 dynamicDM instproc notify changes {
 	$self check-downstream-list
 }
 
-dynamicDM instproc check-downstream-list { } {
-        $self instvar ns DownstreamList_ Node PruneTimer_ iif_
+dynamicDM instproc check-downstream-list {} {
+	$self instvar ns_ downstreamList_ node_ pruneTimer_ iif_
 
-        # puts "[$ns now] check downstream list"
 	set neighbor [$Node set neighbor_]
 	set id [$Node set id_]
 
@@ -147,23 +134,17 @@ dynamicDM instproc check-downstream-list { } {
 	}
 }
 
-dynamicDM instproc handle-cache-miss { argslist } {
-        set srcID [lindex $argslist 0]
-        set group [lindex $argslist 1]
-        set iface [lindex $argslist 2]
-
-        # puts "$self handel-cache-miss $srcID $group $iface"
-        $self instvar Node ns
-	set neighbor [$Node set neighbor_]
+dynamicDM instproc handle-cache-miss { srcID group iface } {
+        $self instvar node_ ns_
         # init a list of lan indexes
         set indexList ""
 	set oiflist ""
-	set id [$Node id]
+	set id [$node_ id]
 
         # in the future this should be foreach iface $interfaces
-        foreach node $neighbor {
+        foreach node [$node_ neighbor] {
            set nbr [$node id]
-           set oifInfo [$Node RPF-interface $srcID $id $nbr]
+           set oifinfo [$node_ RPF-interface $srcID $id $nbr]
            if { $oifInfo != "" } {
                 set index [lindex $oifInfo 0]
                 set oif [lindex $oifInfo 1]
@@ -178,10 +159,10 @@ dynamicDM instproc handle-cache-miss { argslist } {
 	if {$srcID == $id} {
 	    set iif -2
 	} else {
-	    set upstream [$ns upstream-node $id $srcID]	
-	    set iilink [$ns RPF-link $srcID [$upstream id] $id]
+	    set upstream [$ns_ upstream-node $id $srcID]	
+	    set iilink [$ns_ RPF-link $srcID [$upstream id] $id]
 	    set iif [[$iilink set dest_] id]
 	}
-	$Node add-mfc $srcID $group $iif $oiflist
+	$node_ add-mfc $srcID $group $iif $oiflist
 }
 

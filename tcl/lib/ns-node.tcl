@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.38 1998/07/11 00:08:56 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-node.tcl,v 1.38.2.1 1998/07/15 18:34:27 kannan Exp $
 #
 
 Class Node
@@ -63,26 +63,19 @@ Node instproc mk-default-classifier {} {
 }
 
 Node instproc enable-mcast sim {
-	$self instvar classifier_ multiclassifier_ ns_ switch_ mcastproto_
-	$self set ns_ $sim
+	$self instvar classifier_ multiclassifier_ ns_ switch_ mrtObject_
+
+	set ns_ $sim
 	
-	$self set switch_ [new Classifier/Addr]
-	#
-	# set up switch to route unicast packet to slot 0 and
-	# multicast packets to slot 1
-	#
-	
-	[$self set switch_] set mask_ [AddrParams set McastMask_]
-	[$self set switch_] set shift_ [AddrParams set McastShift_]
-	
+	set switch_ [new Classifier/Addr]
+	$switch_ set mask_  [AddrParams set McastMask_]
+	$switch_ set shift_ [AddrParams set McastShift_]
+
 	#
 	# create a classifier for multicast routing
 	#
-	$self set multiclassifier_ [new Classifier/Multicast/Replicator]
-	[$self set multiclassifier_] set node_ $self
-	
-	[$self set switch_] install 0 $classifier_
-	[$self set switch_] install 1 $multiclassifier_
+	set multiclassifier_ [new Classifier/Multicast/Replicator]
+	$multiclassifier_ set node_ $self	;# XXX
 	
 	#
 	# Create a prune agent.  Each multicast routing node
@@ -90,9 +83,20 @@ Node instproc enable-mcast sim {
 	# prune/graft messages and dispatches them to the
 	# appropriate replicator object.
 	#
-	
-	$self set mcastproto_ [new McastProtoArbiter ""]
-	$mcastproto_ set Node $self
+	set mrtObject_ [new mrtObject ""]
+	# XXX $mrtObject_ set Node $self
+
+	#
+	# Finally, set up switch to route unicast packets
+	# to slot 0 and multicast packets to slot 1
+	#
+	$switch_ install 0 $classifier_
+	$switch_ install 1 $multiclassifier_
+}
+
+Node instproc add-out-link l {
+	$self instvar outLink_
+	lappend outLink_ $l
 }
 
 Node instproc add-neighbor p {
@@ -101,10 +105,11 @@ Node instproc add-neighbor p {
 }
 
 Node instproc entry {} {
-    if [info exists router_supp_] {
-	return $router_supp_
-    }
-	if [Simulator set EnableMcast_] {
+	if [info exists router_supp_] {
+		return $router_supp_
+	}
+	$self instvar ns_
+	if { [$ns_ multicast?] } {
 		$self instvar switch_
 		return $switch_
 	}
@@ -158,7 +163,7 @@ Node instproc attach { agent } {
 	set mask [AddrParams set PortMask_]
 	set shift [AddrParams set PortShift_]
 	
-	if {[expr [llength $agents_] - 1] > $mask} {
+	if {[llength $agents_] >= $mask} {
 		error "\# of agents attached to node $self exceeds port-field length of $mask bits\n"
 	}
 
@@ -173,11 +178,9 @@ Node instproc attach { agent } {
 	$agent target [$self entry]
 	$agent set node_ $self
 	
-	
 	#
 	# If a port demuxer doesn't exist, create it.
 	#
-	
 	if { $dmux_ == "" } {
 		set dmux_ [new Classifier/Addr]
 		$dmux_ set mask_ $mask
@@ -201,21 +204,13 @@ Node instproc attach { agent } {
 	
 	if [Simulator set EnableHierRt_] {
 		set nodeaddr [AddrParams set-hieraddr $address_]
-		
 	} else {
-		set nodeaddr [expr ( $address_ &			\
-				[AddrParams set NodeMask_(1)] ) <<	\
-					[AddrParams set NodeShift_(1) ]]
+		set nodeaddr [expr ($address_ & [AddrParams set NodeMask_(1)])\
+				<< [AddrParams set NodeShift_(1)]]
 	}
-	$agent set addr_ [expr (($port & $mask) << $shift) | ( ~($mask << $shift) & $nodeaddr)]
-	
+	$agent set addr_ [expr (($port & $mask) << $shift) |	\
+			( ~($mask << $shift) & $nodeaddr ) ]
 	$dmux_ install $port $agent
-	
-	#TESTING
-	set addr [$agent set addr_]
-	#     puts "node address: $address_"
-	#     puts "Agent addr: $addr" 
-
 }
 
 #
@@ -273,41 +268,6 @@ Node instproc neighbors {} {
 	$self instvar neighbor_
 	return $neighbor_
 }
-
-#
-# Helpers for interface stuff
-#
-Node instproc attachInterfaces ifs {
-	$self instvar ifaces_
-	set ifaces_ $ifs
-	foreach ifc $ifaces_ {
-		$ifc setNode $self
-	}
-}
-
-Node instproc addInterface { iface } {
-	$self instvar ifaces_
-	lappend ifaces_ $iface
-	$iface setNode $self 
-}
-
-Node instproc createInterface { num } {
-	$self instvar ifaces_
-	set newInterface [new NetInterface]
-	if { $num < 0 } { return 0 }
-	$newInterface set-label $num
-	return 1
-}
-
-Node instproc getInterfaces {} {
-	$self instvar ifaces_
-	return $ifaces_
-}
-
-Node instproc getNode {} {  
-	return $self
-}
-
 
 #
 # helpers for PIM stuff
@@ -528,7 +488,7 @@ ManualRtNode instproc add-route-to-adj-node args {
 	}
 	set ns [Simulator instance]
 	set link [$ns nodes-to-link $self $target_node]
-	set target [$link set head_]
+	set target [$link head]
 	# puts "ManualRtNode::add-route-to-adj-node: in $self for addr $dst to target $target"
 	return [$self add-route $dst $target]
 }

@@ -60,7 +60,8 @@ HierNode instproc mk-default-classifier {} {
 }
 
 HierNode instproc entry {} {
-	if [Simulator set EnableMcast_] {
+	$self instvar ns_
+	if { [$ns_ multicast?] } {
 		$self instvar switch_
 		return $switch_
 	}
@@ -70,7 +71,7 @@ HierNode instproc entry {} {
 
 
 HierNode instproc enable-mcast sim {
-	$self instvar classifiers_ multiclassifier_ ns_ switch_ mcastproto_
+	$self instvar classifiers_ multiclassifier_ ns_ switch_ mrtObject_
 	$self set ns_ $sim
 
 	$self set switch_ [new Classifier/Addr]
@@ -98,8 +99,8 @@ HierNode instproc enable-mcast sim {
 	# appropriate replicator object.
 	#
 
-	$self set mcastproto_ [new McastProtoArbiter ""]
-	$mcastproto_ set Node $self
+	$self set mrtObject_ [new mrtObject ""]
+	# $mrtObject_ set Node $self
 }
 
 HierNode instproc add-hroute { dst target } {

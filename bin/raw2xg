@@ -14,6 +14,7 @@ options:
     -n FACTOR	scale flow number by FACTOR
     -m MODULUS  treat TCP sequence numbers as mod MODULUS
     -q		show queueing delay by connecting lines
+    -Q		do not show queueing delay
     -l		show packet length
     -t TITLE    title of test
     -e		plot ecn flags
@@ -26,7 +27,7 @@ END
 $usage = "usage: $progname [-a] [trace files...]\n";
 
 require 'getopts.pl';
-&Getopts('aes:m:n:qlt:') || usage;
+&Getopts('aes:m:n:qlt:Q') || usage;
 
 $c = 0;
 @p = @pc = @pg = @a = @ac = @ae = @d = @lu = @ld = ();
@@ -48,6 +49,7 @@ while (<>) {
     $dfile = $ARGV;
     @F = split;
     /testName/ && ($file = $F[2], next);
+    /^- / && $opt_Q && next;
     /^[\+-] / && do {
 	$c = $F[7] if ($c < $F[7]);
 	$is_ack = ($F[4] eq 'ack');

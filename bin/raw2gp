@@ -3,6 +3,10 @@ eval 'exec perl -I ./bin -S $0 ${1+"$@"}'		#-*-Perl-*-
 
 require 5.001;
 
+sub BEGIN {
+	push(@INC, "/home/kannan/vint/ns-2/bin");
+}
+
 ($progname) = ($0 =~ m!([^/]+)$!);
 sub usage {
     die <<END;
@@ -14,6 +18,7 @@ options:
     -m MODULUS  treat TCP sequence numbers as mod MODULUS
     -g		use gnuplot
     -q		show queueing delay by connecting lines (only for xgraph)
+    -Q		do not show queueing delay
 #    -l		show packet length
 
 Traditional ``wrapping'' ns plots (as called from the test scripts)
@@ -27,7 +32,7 @@ $opt_m = 2 ** 31;		# modulus factor
 $opt_s = 1;			# scale factor
 
 require 'getopts.pl';
-&Getopts('ags:m:ql') || usage;
+&Getopts('ags:m:qQl') || usage;
 ($modulus, $scale, $plot_acks) = ($opt_m, $opt_s, $opt_a); # use meaningful
 				# mnemonics for options.
 # calculate offsets.  Do we need this?
@@ -67,6 +72,7 @@ sub translate_point {
 while (<>) {
     $dfile = $ARGV;
     next if /rtProto/;
+    next if (/^- / && $opt_Q);
     @F = split;
     /testName/ && do {
 	$file = $F[2];

@@ -142,6 +142,13 @@ Link/LanDuplex instproc trace {ns f} {
 	$link_ drop-target $drpT_
 }
 
+Link/LanDuplex instproc isLan? {} {
+	return 1
+}
+
+Link/LanDuplex instproc enable-mcast src {
+	# NOTHING
+}
 
 Class NetIface -superclass Connector
 NetIface set ifqType_ Queue/DropTail

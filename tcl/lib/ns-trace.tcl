@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.16 1998/03/07 04:04:22 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-trace.tcl,v 1.16.2.1 1998/07/15 18:34:29 kannan Exp $
 #
 
 Trace instproc init type {
@@ -148,6 +148,8 @@ Simulator instproc gen-map {} {
 		set n $Node_($i)
 		puts "Node [$n tn]"
 		foreach nc [$n info vars] {
+			# set ocl [$nc info class]
+			# if {[$ocl info heritage Classifier] != "" }
 			switch $nc {
 				ns_		continue
 				id_		continue
@@ -159,8 +161,11 @@ Simulator instproc gen-map {} {
 					if [$n array exists $nc] {
 						puts "\t\t$nc\t[$n array get $nc]"
 					} else {
-						set v [$n set $nc]
-						puts "\t\t$nc${v}([gc $v])"
+						if { [catch "$n set $nc" v] } {
+							puts "\t\t$nc\t$v"
+						} else {
+							puts "\t\t$nc${v}([gc $v])"
+						}
 					}
 				}
 			}
@@ -184,5 +189,17 @@ Simulator instproc gen-map {} {
 			}
 		}
 		puts "---"
+	}
+}
+
+Simulator instproc maybeEnableTraceAll {obj args} {
+	foreach {file tag} {
+		traceAllFile_		{}
+		namtraceAllFile_	nam
+	} {
+		$self instvar $file
+		if [info exists $file] {
+			$obj trace [set $file] $args $tag
+		}
 	}
 }

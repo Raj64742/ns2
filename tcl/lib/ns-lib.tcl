@@ -31,7 +31,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112 1998/07/10 23:21:38 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.112.2.1 1998/07/15 18:34:25 kannan Exp $
 
 #
 
@@ -46,9 +46,22 @@
 proc warn msg {
 	global warned_
 	if ![info exists warned_($msg)] {
-		puts stderr $msg
-		set warned($msg) 1
+		puts stderr "warning: $msg"
+		set warned_($msg) 1
 	}
+}
+
+proc assert args {
+	if [catch "expr $args" ret] {
+		set ret [eval $args]
+	}
+	if {! $ret} {
+		error "assertion failed: $args"
+	}
+}
+
+proc carp-real-bad msg {
+	puts stderr "warning: $msg"
 }
 
 if {[info commands debug] == ""} {
@@ -162,10 +175,18 @@ Simulator instproc dumper obj {
 # Default behavior is changed: consider nam as not initialized if 
 # no shape OR color parameter is given
 Simulator instproc node args {
+	if { [Simulator info vars EnableMcast_] != "" } {
+		warn "Flag variable Simulator::EnableMcast_ discontinued.\n\t\
+		      Use multicast methods as:\n\t\t\
+			% set ns \[new Simulator -multicast on]\n\t\t\
+			% \$ns multicast"
+		$self multicast
+		Simulator unset EnableMcast_
+	}
 	$self instvar Node_
 	set node [new [Simulator set node_factory_] $args]
 	set Node_([$node id]) $node
-	if [Simulator set EnableMcast_] {
+	if { [$self multicast?] } {
 		$node enable-mcast $self
 	}
 	$self check-node-num
@@ -173,7 +194,8 @@ Simulator instproc node args {
 }
 
 Simulator instproc hier-node haddr {
- 	error "now create hier-nodes with just [$ns_ node $haddr]"
+ 	warn {now create hier-nodes with just [$ns_ node $haddr]}
+	$self node $haddr
 }
 
 Simulator instproc now {} {
@@ -189,6 +211,10 @@ Simulator instproc at args {
 Simulator instproc at-now args {
 	$self instvar scheduler_
 	return [eval $scheduler_ at-now $args]
+}
+
+Simulator instproc after {ival args} {
+	eval $self at [expr [$self now] + $ival] $args
 }
 
 Simulator instproc cancel args {
@@ -403,6 +429,11 @@ Simulator instproc clearMemTrace {} {
 }
 
 Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
+	if { [Simulator info vars NumberInterfaces_] != "" } {
+		warn {Flag variable Simulator::NumberInterfaces_ discontinued.}
+		Simulator unset NumberInterfaces_
+	}
+
 	$self instvar link_ queueMap_ nullAgent_
 	set sid [$n1 id]
 	set did [$n2 id]
@@ -410,26 +441,10 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 	if [info exists queueMap_($qtype)] {
 		set qtype $queueMap_($qtype)
 	}
-	if [$class set NumberInterfaces_] {
-		$self instvar interfaces_
-		if ![info exists interfaces_($n1:$n2)] {
-			set interfaces_($n1:$n2) [new DuplexNetInterface]
-			set interfaces_($n2:$n1) [new DuplexNetInterface]
-			$n1 addInterface $interfaces_($n1:$n2)
-			$n2 addInterface $interfaces_($n2:$n1)
-		}
-		set nd1 $interfaces_($n1:$n2)
-		set nd2 $interfaces_($n2:$n1)
-	} else {
-		set nd1 $n1
-		set nd2 $n2
-	}
-
-	
-	# construct the queue
+	# Construct the queue
 	switch -exact $qtype {
 		ErrorModule {
-			if { [llength $args] > 0 } {
+			if {[llength $args] > 0} {
 				set q [eval new $qtype $args]
 			} else {
 				set q [new $qtype Fid]
@@ -443,36 +458,35 @@ Simulator instproc simplex-link { n1 n2 bw delay qtype args } {
 			set q [new Queue/$qtype]
 		}
 	}
-
 	# Now create the link
 	switch -exact $qtype {
 		RTM {
-                        set c [lindex $args 1]
-                        set link_($sid:$did) [new CBQLink       \
-                                        $n1 $n2 $bw $delay $q $c]
-                }
-                CBQ -
-                CBQ/WRR {
-                        # assume we have a string of form "linktype linkarg"
-                        if {[llength $args] == 0} {
-                                # default classifier for cbq is just Fid type
-                                set c [new Classifier/Hash/Fid 33]
-                        } else {
-                                set c [lindex $args 1]
-                        }
-                        set link_($sid:$did) [new CBQLink       \
-                                        $n1 $n2 $bw $delay $q $c]
-                }
-                intserv {
-                        #XX need to clean this up
-                        set link_($sid:$did) [new IntServLink   \
-                                        $n1 $n2 $bw $delay $q $qtype $args]
-                }
-                default {
-                        set link_($sid:$did) [new SimpleLink    \
-                                        $n1 $n2 $bw $delay $q]
-                }
-        }
+			set c [lindex $args 1]
+			set link_($sid:$did) [new CBQLink	\
+					$n1 $n2 $bw $delay $q $c]
+		}
+		CBQ -
+		CBQ/WRR {
+			# assume we have a string of form "linktype linkarg"
+			if {[llength $args] == 0} {
+				# default classifier for cbq is just Fid type
+				set c [new Classifier/Hash/Fid 33]
+			} else {
+				set c [lindex $args 1]
+			}
+			set link_($sid:$did) [new CBQLink	\
+					$n1 $n2 $bw $delay $q $c]
+		}
+		intserv {
+			#XX need to clean this up
+			set link_($sid:$did) [new IntServLink	\
+					$n1 $n2 $bw $delay $q $qtype $args]
+		}
+		default {
+			set link_($sid:$did) [new SimpleLink	\
+					$n1 $n2 $bw $delay $q]
+		}
+	}
 	$n1 add-neighbor $n2
 	
 	#XXX yuck
@@ -519,8 +533,8 @@ Simulator instproc register-nam-linkconfig link {
 	# Check whether the reverse simplex link is registered,
 	# if so, don't register this link again.
 	# We should have a separate object for duplex link.
-	set i1 [[$link fromNode] id]
-	set i2 [[$link toNode] id]
+	set i1 [[$link src] id]
+	set i2 [[$link dst] id]
 	if [info exists link_($i2:$i1)] {
 	    set pos [lsearch $linkConfigList_ $link_($i2:$i1)]
 	    if {$pos >= 0} {
@@ -782,15 +796,15 @@ Simulator instproc delay { n1 n2 delay } {
 }
 
 #XXX need to check that agents are attached to nodes already
-Simulator instproc connect {src dst} {
-	$self simplex-connect $src $dst
-	$self simplex-connect $dst $src
-	return $src
+Simulator instproc connect {srcAgent dstAgent} {
+	$self simplex-connect $srcAgent $dstAgent
+	$self simplex-connect $dstAgent $srcAgent
+	return $srcAgent
 }
 
-Simulator instproc simplex-connect { src dst } {
-	$src set dst_ [$dst set addr_] 
-	return $src
+Simulator instproc simplex-connect { srcAgent dstAgent } {
+	$srcAgent set dst_ [$dstAgent set addr_] 
+	return $srcAgent
 }
 
 #
@@ -827,8 +841,13 @@ Simulator instproc all-nodes-list {} {
 }
 
 Simulator instproc link { n1 n2 } {
-	$self instvar link_
-	set link_([$n1 id]:[$n2 id])
+	$self instvar Node_ link_
+	if { [catch "$n1 info class Node"] } {
+		# $n1 is not a Node object
+		set link_($n1:$n2)
+	} else {
+		set link_([$n1 id]:[$n2 id])
+	}
 }
 
 # Creates connection. First creates a source agent of type s_type and binds
@@ -1202,4 +1221,3 @@ Simulator instproc delay_parse { dspec } {
                 }
         }
 }
-

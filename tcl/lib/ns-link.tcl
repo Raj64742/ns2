@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.35 1998/07/09 18:46:33 kannan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-link.tcl,v 1.35.2.1 1998/07/15 18:34:26 kannan Exp $
 #
 Class Link
 Link instproc init { src dst } {
@@ -38,10 +38,8 @@ Link instproc init { src dst } {
 
         #modified for interface code
 	$self instvar trace_ fromNode_ toNode_ source_ dest_ color_ oldColor_
-	set fromNode_ [$src getNode]
-	set toNode_ [$dst getNode]
-        set source_ $src
-        set dest_ $dst
+	set fromNode_ $src
+	set toNode_   $dst
 	set color_ "black"
 	set oldColor_ "black"
 
@@ -63,31 +61,9 @@ Link instproc link {} {
 	return $link_
 }
 
-Link instproc src {} {
-	$self instvar source_
-	return $source_
-}
-
-Link instproc dst {} {
-	$self instvar dest_
-	return $dest_
-}
-
-Link instproc fromNode {} {
-	$self instvar fromNode_
-	return $fromNode_
-}
-
-Link instproc toNode {} {
-	$self instvar toNode_
-	return $toNode_
-}
-
-Link instproc cost c {
-	$self instvar cost_
-	set cost_ $c
-}
-
+Link instproc src {}	{ $self set fromNode_	}
+Link instproc dst {}	{ $self set toNode_	}
+Link instproc cost c	{ $self set cost_ $c	}
 Link instproc cost? {} {
 	$self instvar cost_
 	if ![info exists cost_] {
@@ -96,6 +72,11 @@ Link instproc cost? {} {
 	set cost_
 }
 
+Link instproc if-label? {} {
+	$self instvar iif_
+	$iif_ label
+}
+	
 Link instproc up { } {
 	$self instvar dynamics_ dynT_
 	if ![info exists dynamics_] return
@@ -139,6 +120,10 @@ Link instproc up? {} {
 	}
 }
 
+Link instproc isLan? {} {
+	return 0
+}
+
 Link instproc all-connectors op {
 	foreach c [$self info vars] {
 		$self instvar $c
@@ -178,10 +163,20 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 	$self instvar link_ queue_ head_ toNode_ ttl_
 	$self instvar drophead_
 
-        #added for interface code
-        $self instvar ifacein_ ifaceout_
-        set ifacein_ 0
-        set ifaceout_ $dst
+	set ns [Simulator instance]
+	set drophead_ [new Connector]
+	$drophead_ target [$ns set nullAgent_]
+
+	set head_ [new Connector]
+	$head_ set link_ $self
+
+	#set head_ $queue_ -> replace by the following
+	# xxx this is hacky
+	if { [[$q info class] info heritage ErrModule] == "ErrorModule" } {
+		$head_ target [$q classifier]
+        } else {
+                $head_ target $q
+        }
 
 	set queue_ $q
 	set link_ [new $lltype]
@@ -190,21 +185,6 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 
 	$queue_ target $link_
 	$link_ target [$dst entry]
-
-	#set head_ $queue_ -> replace by the following
-	# xxx this is hacky
-	if { [[$q info class] info heritage ErrModule] == "ErrorModule" } {
-		set head_ [$q classifier]
-	} elseif { [$src info class] == "DuplexNetInterface" } {
-                set head_ [$src exitpoint]
-                set ifacein_ $head_
-                $head_ target $queue_
-        } else {
-                set head_ $queue_
-        }
-
-	set drophead_ [new Connector]
-	$drophead_ target [[Simulator instance] set nullAgent_]
 	$queue_ drop-target $drophead_
 
 	# XXX
@@ -217,6 +197,25 @@ SimpleLink instproc init { src dst bw delay q {lltype "DelayLink"} } {
 	$ttl_ target [$link_ target]
 	$self ttl-drop-trace
 	$link_ target $ttl_
+
+	# Finally, if running a multicast simulation,
+	# put the iif for the neighbor node...
+	if { [$ns multicast?] } {
+		$self enable-mcast $src
+	}
+}
+
+SimpleLink instproc enable-mcast src {
+	$self instvar iif_ ttl_
+	set iif_ [new networkInterface]
+	$iif_ target [$ttl_ target]
+	$ttl_ target $iif_
+
+	set ifnum [networkInterface set ifnum_]
+	$iif_ label $ifnum
+	networkInterface set ifnum_ [incr ifnum]
+
+	$src add-out-link $self
 }
 
 #
@@ -256,7 +255,6 @@ SimpleLink instproc nam-trace { ns f } {
 # create nam trace files if op == "nam"
 #
 SimpleLink instproc trace { ns f {op ""} } {
-
 	$self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
 	$self instvar rcvT_ ttl_ trace_
 	$self instvar drophead_		;# idea stolen from CBQ and Kevin
@@ -280,17 +278,10 @@ SimpleLink instproc trace { ns f {op ""} } {
 	$deqT_ target [$queue_ target]
 	$queue_ target $deqT_
 
-	#$enqT_ target $head_
-	#set head_ $enqT_       -> replaced by the following
-        if { [$head_ info class] == "networkinterface" } {
-	    $enqT_ target [$head_ target]
-	    $head_ target $enqT_
-	    # puts "head is i/f"
-        } else {
-	    $enqT_ target $head_
-	    set head_ $enqT_
-	    # puts "head is not i/f"
-	}
+	# head is, like the drop-head_ a special connector.
+	# mess not with it.
+	$enqT_ target [$head_ target]
+	$head_ target $enqT_
 
 	# put recv trace after ttl checking, so that only actually 
 	# received packets are recorded
@@ -367,15 +358,14 @@ SimpleLink instproc attach-monitors { insnoop outsnoop dropsnoop qmon } {
 	set snoopOut_ $outsnoop
 	set snoopDrop_ $dropsnoop
 
-	$snoopIn_ target $head_
-	set head_ $snoopIn_
+	$snoopIn_ target [$head_ target]
+	$head_ target $snoopIn_
 
 	$snoopOut_ target [$queue_ target]
 	$queue_ target $snoopOut_
 
-	set nxt [$drophead_ target]
+	$snoopDrop_ target [$drophead_ target]
 	$drophead_ target $snoopDrop_
-	$snoopDrop_ target $nxt
 
 #	if [info exists drpT_] {
 #		$snoopDrop_ target [$drpT_ target]
@@ -493,11 +483,8 @@ SimpleLink instproc errormodule args {
 	set em [lindex $args 0]
 	set errmodule_ $em
 
-	#set h [$queue_ target]
-	set h $head_
-	#$queue_ target $em
-	set head_ $em
-	$em target $h
+	$em target [$head_ target]
+	$head_ target $em
 
 	$em drop-target $drophead_
 }

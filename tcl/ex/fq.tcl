@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.12 1998/04/20 23:52:47 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.12.2.1 1998/07/15 18:34:21 kannan Exp $
 #
 
 set ns [new Simulator]
@@ -75,7 +75,8 @@ FQLink instproc init { src dst bw delay nullAgent } {
 	$queue_ drop-target $nullAgent
 	$link_ target [$toNode_ entry]
 
-	set head_ $classifier_
+	set head_ [new Connector]
+	$head_ target $classifier_
 
 	set drophead_ [new Connector]
 	$drophead_ target [[Simulator instance] set nullAgent_]
@@ -204,9 +205,8 @@ FQLink instproc trace { ns f {op ""} } {
 	set rcvT_ [$ns create-trace Recv $f $fromNode_ $toNode_ $op]
 
 	$self instvar drpT_ drophead_
-	set nxt [$drophead_ target]
+	$drpT_ target [$drophead_ target]
 	$drophead_ target $drpT_
-	$drpT_ target $nxt
 
 	$queue_ drop-target $drophead_
 
@@ -218,15 +218,8 @@ FQLink instproc trace { ns f {op ""} } {
 
 	#$enqT_ target $head_
 	#set head_ $enqT_       -> replaced by the following
-        if { [$head_ info class] == "networkinterface" } {
-	    $enqT_ target [$head_ target]
-	    $head_ target $enqT_
-	    # puts "head is i/f"
-        } else {
-	    $enqT_ target $head_
-	    set head_ $enqT_
-	    # puts "head is not i/f"
-	}
+	$enqT_ target [$head_ target]
+	$head_ target $enqT_
 
 	# put recv trace after ttl checking, so that only actually 
 	# received packets are recorded

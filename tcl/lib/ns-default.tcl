@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.122 1998/07/08 23:40:03 kfall Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.122.2.1 1998/07/15 18:34:24 kannan Exp $
 
 
 #
@@ -334,7 +334,7 @@ Application/Traffic/CBR set rate 448Kb	;# corresponds to interval of 3.75ms
 Application/Traffic/CBR set packet-size 210
 Application/Traffic/CBR set random_ 0
 
-Agent/Mcast/Prune set packetSize_ 80
+Agent/Mcast/Control set packetSize_ 80
 
 RandomVariable/Uniform set min_ 0.0
 RandomVariable/Uniform set max_ 1.0
@@ -353,12 +353,9 @@ SessionHelper set rc_ 0                      ;# just to eliminate warnings
 
 Source/Telnet set interval_ 1.0
 
-networkinterface set intf_label_ -1
-
 #
 # The following are defautls for objects that are not necessarily TclObjects
 #
-Simulator set NumberInterfaces_ 0		;# to get intfs for mcast
 Node set multiPath_ 0
 
 
@@ -369,10 +366,10 @@ Node set multiPath_ 0
 AllocAddrBits set DEFADDRSIZE_ 16
 AllocAddrBits set MAXADDRSIZE_ 31                ;# leaving the signed bit
 
+networkInterface set ifnum_	0
 Simulator set node_factory_ Node
 
 Simulator set EnableHierRt_ 0                    ;# is hierarchical routing on?  (to turn it on, call set-hieraddress)
-Simulator set EnableMcast_ 0                     ;# to enable mcast
 SessionSim set rc_ 0                             ;# to enable packet reference count
 
 
@@ -410,6 +407,16 @@ rtModel/Deterministic set downInterval_ 1.0
 # SRM Agent defaults are in ../tcl/mcast/srm.tcl and ../mcast/srm-adaptive.tcl
 
 #
+Agent/SRM/SSM set ttlGroupScope_ [Agent set ttl_]	;# kinky, no?
+Agent/SRM/SSM set ttlLocalScope_ 2
+Agent/SRM/SSM set scope_flag_  2
+Agent/SRM/SSM set repid_ 0
+Agent/SRM/SSM set repthresh_up_ 100
+Agent/SRM/SSM set repthresh_low_ 7
+Agent/SRM/SSM set Z1_ 1.5
+Agent/SRM/SSM set S1_ 0.0
+Agent/SRM/SSM set S2_ 3.0
+Agent/SRM/SSM set myloc_ 0
 
 #IntServ Object specific defaults are in ../tcl/lib/ns-intserv.tcl
 

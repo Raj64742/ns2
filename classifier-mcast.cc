@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.13 1998/06/27 01:23:32 gnguyen Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/classifier-mcast.cc,v 1.13.2.1 1998/07/15 18:34:11 kannan Exp $";
 #endif
 
 #include <stdlib.h>
@@ -67,9 +67,8 @@ protected:
 	};
 	void clearAll();
 	hashnode* ht_[256];
-	const hashnode* lookup(nsaddr_t src, nsaddr_t dst) const;
-	hashnode* lookupiface(nsaddr_t src, nsaddr_t dst, int iface) const;
-	void change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface);
+	const hashnode* lookup(nsaddr_t src, nsaddr_t dst, int iface = -1) const;
+        void change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface);
 };
 
 static class MCastClassifierClass : public TclClass {
@@ -87,14 +86,7 @@ MCastClassifier::MCastClassifier()
 
 MCastClassifier::~MCastClassifier()
 {
-	for (int i = 0; i < 256; ++i) {
-		hashnode* p = ht_[i];
-		while (p != 0) {
-			hashnode* n = p->next;
-			delete p;
-			p = n;
-		}
-	}
+	clearAll();
 }
 
 void MCastClassifier::clearAll()
@@ -111,12 +103,12 @@ void MCastClassifier::clearAll()
 }
 
 const MCastClassifier::hashnode*
-MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst) const
+MCastClassifier::lookup(nsaddr_t src, nsaddr_t dst, int iface = -1) const
 {
 	int h = hash(src, dst);
 	const hashnode* p;
 	for (p = ht_[h]; p != 0; p = p->next) {
-		if (p->src == src && p->dst == dst)
+		if (p->src == src && p->dst == dst && p->iif == iface)
 			break;
 	}
 	return (p);
@@ -132,7 +124,7 @@ int MCastClassifier::classify(Packet *const pkt)
 
 	int iface = h->iface();
 
-	const hashnode* p = lookupiface(src, dst, iface);
+	const hashnode* p = lookup(src, dst, iface);
 	if (p == 0) {
 		p = lookup(src, dst);
 		/*
@@ -141,14 +133,13 @@ int MCastClassifier::classify(Packet *const pkt)
 		 * If tcl doesn't come through then fail.
 		 */
 		if (p == 0) {
-			Tcl::instance().evalf("%s new-group %u %u %d %s", 
-					      name(), src, dst, iface, "CACHE_MISS");
+			Tcl::instance().evalf("%s new-group %u %u %d cache-miss", 
+					      name(), src, dst, iface);
 			return (-1);
 		}
 		if ( (p->iif != -1) && (p->iif != iface) ) {
-			Tcl::instance().evalf("%s new-group %u %u %d %s", 
-					      name(), src, dst, iface, "WRONG_IIF");
-			//printf ("wrong_iff: %s %u %u %d\n", name(), src, dst, iface);
+			Tcl::instance().evalf("%s new-group %u %u %d wrong-iif", 
+					      name(), src, dst, iface);
 			return (-1);
 		}
 	}
@@ -207,7 +198,7 @@ int MCastClassifier::command(int argc, const char*const* argv)
 			nsaddr_t src = strtol(argv[2], (char**)0, 0);
 			nsaddr_t dst = strtol(argv[3], (char**)0, 0);
 			int iface = atoi(argv[4]);
-			hashnode *p = lookupiface(src, dst, iface);
+			hashnode *p = lookup(src, dst, iface);
 			if ((p == NULL) || (slot_[p->slot] == 0))
 				tcl.resultf("");
 			else 
@@ -224,24 +215,8 @@ int MCastClassifier::command(int argc, const char*const* argv)
 	return (Classifier::command(argc, argv));
 }
 
-
-/* interface look up for the interface code*/
-
-MCastClassifier::hashnode*
-MCastClassifier::lookupiface(nsaddr_t src, nsaddr_t dst, int iface) const
-{
-	int h = hash(src, dst);
-	hashnode* p;
-	for (p = ht_[h]; p != 0; p = p->next) {
-		if (p->src == src && p->dst == dst && p->iif == iface)
-			break;
-	}
-	return (p);
-}
-
 void MCastClassifier::change_iface(nsaddr_t src, nsaddr_t dst, int oldiface, int newiface)
 {
-
-	hashnode* p = lookupiface(src, dst, oldiface);
+        hashnode* p = lookup(src, dst, oldiface);
 	p->iif = newiface;
 }

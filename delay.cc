@@ -34,11 +34,11 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.21 1998/07/09 18:46:28 kannan Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/delay.cc,v 1.21.2.1 1998/07/15 18:34:12 kannan Exp $ (LBL)";
 #endif
 
 #include "delay.h"
-#include "prune.h"
+#include "prune.h"		// ick
 #include "ctrMcast.h"
 
 static class LinkDelayClass : public TclClass {
