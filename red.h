@@ -52,7 +52,7 @@
  * "wait" indicates whether the gateway should wait between dropping
  *   packets.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.7 1997/07/23 02:47:44 kfall Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/red.h,v 1.8 1997/07/25 09:10:33 padmanab Exp $ (LBL)
  */
 
 #ifndef ns_red_h
@@ -113,8 +113,6 @@ struct edv {
 class REDQueue : public Queue {
  public:	
 	REDQueue();
-		// why? -KF
-		virtual PacketQueue *q() { return q_; }
  protected:
 	int command(int argc, const char*const* argv);
 	void enque(Packet* pkt);
@@ -125,16 +123,6 @@ class REDQueue : public Queue {
 	void plot();
 	void plot1(int qlen);
 	int drop_early(Packet* pkt);
-
-		// why? -KF
-		virtual Packet* deque(PacketQueue *q) { return q->deque(); }
-		virtual void enque(PacketQueue *q, Packet *pkt){
-			q->enque(pkt);
-		}
-		virtual void remove(PacketQueue *q, Packet *pkt){
-			q->remove(pkt);
-		}
-		
 
 	LinkDelay* link_;	/* outgoing link */
 	int fifo_;		/* fifo queue? */

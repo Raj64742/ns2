@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.5 1997/07/21 21:33:19 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/drop-tail.cc,v 1.6 1997/07/25 09:09:46 padmanab Exp $ (LBL)";
 #endif
 
 #include "drop-tail.h"
@@ -46,19 +46,33 @@ static class DropTailClass : public TclClass {
 	}
 } class_drop_tail;
 
+int 
+DropTail::command(int argc, const char*const* argv) {
+
+	if (argc == 3) {
+		if (!strcmp(argv[1], "packetqueue-attach")) {
+			delete q_;
+			if (!(q_ = (PacketQueue*) TclObject::lookup(argv[2])))
+				return (TCL_ERROR);
+			else
+				return (TCL_OK);
+		}
+	}
+	return Queue::command(argc, argv);
+}
 /*
  * drop-tail
  */
 void DropTail::enque(Packet* p)
 {
-	enque(q(), p);
-	if (q()->length() >= qlim_) {
-		remove(q(), p);
+	q_->enque(p);
+	if (q_->length() >= qlim_) {
+		q_->remove(p);
 		drop(p);
 	}
 }
 
 Packet* DropTail::deque()
 {
-	return deque(q());
+	return q_->deque();
 }

@@ -56,7 +56,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.22 1997/07/24 03:02:37 padmanab Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.23 1997/07/25 09:10:32 padmanab Exp $ (LBL)";
 #endif
 
 #include "red.h"
@@ -206,7 +206,7 @@ void REDQueue::plot1(int)
 Packet* REDQueue::deque()
 {
 	Packet *p;
-	p = deque(q());
+	p = q_->deque();
 	if (p != 0) {
 		idle_ = 0;
 		bcount_ -= ((hdr_cmn*)p->access(off_cmn_))->size();
@@ -279,8 +279,8 @@ int REDQueue::drop_early(Packet* pkt)
  */
 Packet*
 REDQueue::pickPacketToDrop() {
-	int victim = drop_tail_ ? q()->length() - 1 : Random::integer(q()->length());
-	return(q()->lookup(victim));
+	int victim = drop_tail_ ? q_->length() - 1 : Random::integer(q_->length());
+	return(q_->lookup(victim));
 }
 
 /*
@@ -319,7 +319,7 @@ void REDQueue::enque(Packet* pkt)
 	 * the scaled version above [scaled due to idle time]
 	 * (bcount_ maintains the byte count in the underlying queue)
 	 */
-	run_estimator(qib_ ? bcount_ : q()->length(), m + 1);
+	run_estimator(qib_ ? bcount_ : q_->length(), m + 1);
 
 	/*
 	 * count and count_bytes keeps a tally of arriving traffic
@@ -339,7 +339,7 @@ void REDQueue::enque(Packet* pkt)
 	// see if we drop early
 
 	register double qavg = edv_.v_ave;
-	int qlen = qib_ ? bcount_ : q()->length();
+	int qlen = qib_ ? bcount_ : q_->length();
 	int qlim = qib_ ?  (qlim_ * edp_.mean_pktsize) : qlim_;
 
 	if (qavg >= edp_.th_min && qlen > 1) {
@@ -362,9 +362,9 @@ void REDQueue::enque(Packet* pkt)
 
 	// see if we've exceeded the queue size
 
-	enque(q(), pkt);
+	q_->enque(pkt);
 	bcount_ += ch->size();
-	qlen = qib_ ? bcount_ : q()->length();
+	qlen = qib_ ? bcount_ : q_->length();
 
 	if (qlen > qlim) {
 		droptype = DTYPE_FORCED;
@@ -376,7 +376,7 @@ void REDQueue::enque(Packet* pkt)
 dropv:
 	/* drop random victim or last one */
 	pkt = pickPacketToDrop();
-	remove(q(), pkt);
+	q_->remove(pkt);
 	bcount_ -= ((hdr_cmn*)pkt->access(off_cmn_))->size();
 dropme:
 	if (droptype == DTYPE_UNFORCED && de_drop_ != NULL) {
@@ -424,6 +424,13 @@ int REDQueue::command(int argc, const char*const* argv)
                         de_drop_ = p;
                         return (TCL_OK);
                 }
+		if (!strcmp(argv[1], "packetqueue-attach")) {
+			delete q_;
+			if (!(q_ = (PacketQueue*) TclObject::lookup(argv[2])))
+				return (TCL_ERROR);
+			else
+				return (TCL_OK);
+		}
 	}
 	return (Queue::command(argc, argv));
 }
