@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.93 1998/03/06 21:19:33 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.94 1998/03/11 04:38:02 gnguyen Exp $
 
 
 #
@@ -254,26 +254,21 @@ Agent/LossMonitor set bytes_ 0
 Agent/LossMonitor set lastPktTime_ 0
 Agent/LossMonitor set expected_ 0
 
-ErrorModel set errByte_ 0
-ErrorModel set errPkt_ 0
-ErrorModel set onlink_ 0
+
 ErrorModel set enable_ 1
-ErrorModel set errTime_ 0
+ErrorModel set rate_ 0
+ErrorModel set errorLen_ 0
 ErrorModel/Periodic set period_ 1.0
 ErrorModel/Periodic set offset_ 0.0
-SelectErrorModel set errByte_ 0
-SelectErrorModel set errPkt_ 0
-SelectErrorModel set onlink_ 0
 SelectErrorModel set enable_ 1
-SelectErrorModel set errTime_ 0
+SelectErrorModel set rate_ 0
+SelectErrorModel set errorLen_ 0
 SelectErrorModel set pkt_type_ 2
 SelectErrorModel set drop_cycle_ 10
 SelectErrorModel set drop_offset_ 1
-SRMErrorModel set errByte_ 0
-SRMErrorModel set errPkt_ 0
-SRMErrorModel set onlink_ 0
 SRMErrorModel set enable_ 1
-SRMErrorModel set errTime_ 0
+SRMErrorModel set rate_ 0
+SRMErrorModel set errorLen_ 0
 SRMErrorModel set pkt_type_ 2
 SRMErrorModel set drop_cycle_ 10
 SRMErrorModel set drop_offset_ 1
@@ -323,10 +318,6 @@ RandomVariable/Empirical set minCDF_ 0
 RandomVariable/Empirical set maxCDF_ 1
 RandomVariable/Empirical set interpolation_ 0
 RandomVariable/Empirical set maxEntry_ 32
-
-ErrorModel set rate_ 0.0
-SelectErrorModel set rate_ 0.0               ;# just to eliminate warnings
-SRMErrorModel set rate_ 0.0                  ;# just to eliminate warnings
 
 SessionHelper set rc_ 0                      ;# just to eliminate warnings
 

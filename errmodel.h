@@ -33,7 +33,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.21 1998/02/16 20:37:52 hari Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.h,v 1.22 1998/03/11 04:38:02 gnguyen Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -60,42 +60,43 @@ class ErrorModel : public Connector {
   public:
 	ErrorModel();
 	virtual void recv(Packet *, Handler *);
+	virtual void reset();
 	virtual void copy(ErrorModel *);
 	virtual int corrupt(Packet *);
 	virtual int CorruptPkt(Packet *);
 	virtual int CorruptTime(Packet *);
 	virtual int CorruptByte(Packet *);
-	virtual void em_reset();
 	inline double rate() { return rate_; }
-	virtual int command(int argc, const char*const* argv);
+
   protected:
-	ErrorUnit unit_;	/* error unit in pkts, bytes, or time */
-	RandomVariable *ranvar_;/* the underlying random variate generator */
+	virtual int command(int argc, const char*const* argv);
+	ErrorUnit unit_;	// error unit in pkts, bytes, or time
+	RandomVariable *ranvar_;// the underlying random variate generator
 	double rate_;		/* mean pkts between errors (for EU_PKT), or
 				 * mean bytes between errors (for EU_BYTE), or 
 				 * mean time between errors (for EU_TIME). */
-	int errPkt_;		/* for the packet-based error model */
-	int errByte_;		/* for the byte-based error model */
-	double errTime_;	/* for the time-based error model */
-	int onlink_;		/* true if this is between an ifq and a link */
-	int enable_;		/* true if this error module is turned on */
-
-	int off_mac_;
-	int firstTime_;		/* to not corrupt first packet in byte model */
-	Event intr_;		/* set callback to queue */
-	Packet *pkt_;		/* pointer to incoming packet */
+	double errorLen_;	// current length of error
+	int enable_;		// true if this error module is turned on
+	int firstTime_;		// to not corrupt first packet in byte model
+	Event intr_;		// set callback to queue
 };
 
-class EmpiricalErrorModel : public ErrorModel {
+
+class TwoStateErrorModel : public ErrorModel {
   public:
-	EmpiricalErrorModel() : ErrorModel() { unit_ = EU_TIME; };
+	TwoStateErrorModel() { unit_ = EU_TIME; };
 	virtual int CorruptTime(Packet *);
 	int command(int argc, const char*const* argv);
   protected:
-	RandomVariable *grv_;
-	RandomVariable *brv_;
+	RandomVariable *ranvar_[2];
 	int state_;
 };
+
+class MultiStateErrorModel : public ErrorModel {
+public:
+	virtual int corrupt(Packet *);
+};
+
 
 /* For Selective packet drop */
 class SelectErrorModel : public ErrorModel {
@@ -108,6 +109,7 @@ class SelectErrorModel : public ErrorModel {
         int drop_cycle_;
 	int drop_offset_;
 };
+
 
 /* Error model for srm experiments */
 class SRMErrorModel : public ErrorModel {

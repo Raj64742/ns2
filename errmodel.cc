@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.31 1998/03/06 21:19:32 haoboy Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/Attic/errmodel.cc,v 1.32 1998/03/11 04:38:01 gnguyen Exp $ (UCB)";
 #endif
 
 #include "delay.h"
@@ -52,36 +52,40 @@ public:
 	}
 } class_errormodel;
 
-static class EmpErrorModelClass : public TclClass {
+static class TwoStateErrorModelClass : public TclClass {
 public:
-	EmpErrorModelClass() : TclClass("ErrorModel/Empirical") {}
+	TwoStateErrorModelClass() : TclClass("ErrorModel/TwoState") {}
 	TclObject* create(int, const char*const*) {
-		return (new EmpiricalErrorModel);
+		return (new TwoStateErrorModel);
 	}
-} class_emp_errormodel;
+} class_errormodel_twostate;
+
+static class MultiStateErrorModelClass : public TclClass {
+public:
+	MultiStateErrorModelClass() : TclClass("ErrorModel/MultiState") {}
+	TclObject* create(int, const char*const*) {
+		return (new MultiStateErrorModel);
+	}
+} class_errormodel_multistate;
 
 static char* eu_names[] = { EU_NAMES };
 
 
-ErrorModel::ErrorModel() : Connector(), unit_(EU_PKT), ranvar_(0), 
-	onlink_(0), enable_(1), firstTime_(1)
+ErrorModel::ErrorModel() : unit_(EU_PKT), ranvar_(0), errorLen_(0), firstTime_(1)
 {
 	bind("rate_", &rate_);
-	bind("errPkt_", &errPkt_);
-	bind("errByte_", &errByte_);
-	bind("errTime_", &errTime_);
-	bind("onlink_", &onlink_);
 	bind("enable_", &enable_);
-	bind("off_mac_", &off_mac_);
 }
 
 
 void ErrorModel::copy(ErrorModel* orig)
 {
-	// Only need to copy variables that are not Tcl-bound, OR
-	// 	*this = *orig;
+	*this = *orig;
+/*
+	// OR only copy variables that are not Tcl-bound;
 	unit_ = orig->unit_;
 	ranvar_ = orig->ranvar_;
+*/
 }
 
 
@@ -98,11 +102,6 @@ int ErrorModel::command(int argc, const char*const* argv)
 			ranvar_ = (RandomVariable*) TclObject::lookup(argv[2]);
 			return (TCL_OK);
 		} 
-		if (strcmp(argv[1], "corrupt") == 0) {
-			em = (ErrorModel*)TclObject::lookup(argv[2]);
-			tcl.resultf("%d", corrupt(em->pkt_));
-			return (TCL_OK);
-		}
 		if (strcmp(argv[1], "copy") == 0) {
 			em = (ErrorModel*)TclObject::lookup(argv[2]);
 			copy(em);
@@ -117,85 +116,48 @@ int ErrorModel::command(int argc, const char*const* argv)
 			tcl.resultf("%s", ranvar_->name());
 			return (TCL_OK);
 		} 
-		if (strcmp(argv[1], "onlink") == 0) {
-			/* this model is between a queue and a link */
-			onlink_ = 1;
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "enable") == 0) {
-			enable_ = 1;
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "disable") == 0) {
-			enable_ = 0;
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "enabled?") == 0) {
-			tcl.resultf("%d", enable_);
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "corrupt") == 0) {
-			tcl.resultf("%d", corrupt(pkt_));
-			return (TCL_OK);
-		}
-		if (strcmp(argv[1], "reset") == 0) {
-			em_reset();
-			return (TCL_OK);
-		}
 	}
 	return Connector::command(argc, argv);
 }
 
+
 void ErrorModel::recv(Packet* p, Handler* h)
 {
-	Tcl& tcl = Tcl::instance();
-
-	pkt_ = p;
-	tcl.evalf("%s corrupt", name());
-	if (strcmp(tcl.result(), "0")) { /* corrupt if return value != 0 */
-		((hdr_cmn*)p->access(off_cmn_))->error() |= 1;
-		if (onlink_) {
-			/* Callback to queue: assume next target is link(XXX)*/
-			LinkDelay *link = (LinkDelay *)target_;
-			double txt = link->txtime(p);
-			Scheduler &s = Scheduler::instance();
-			/* XXX drop time is a random time during xmission */
-			s.schedule(h, &intr_, Random::uniform(0, txt));
+	int error = corrupt(p);
+	((hdr_cmn*)p->access(off_cmn_))->error() |= error;
+	if (corrupt && drop_) {
+		// if drop_ target exists, drop the corrupted packet
+		if (h != 0) {
+			// XXX if recv from queue, then resume
+			Scheduler::instance().schedule(h, &intr_, 0);
 		}
-		/*
-		 * If drop_ target exists, drop the corrupted packet,
-		 * else mark the error() flag of the packet and pass it on.
-		 */
-		if (drop_) {
-			drop_->recv(p);
-			return;
-		}
+		drop_->recv(p);
+		return;
 	}
 	if (target_)
 		target_->recv(p, h);
-	/* XXX if no target, assume packet is still used by other object */
+	// XXX if no target, assume packet is still used by other object
 }
 
 int ErrorModel::corrupt(Packet* p)
 {
-	/* If no random var is specified, assume uniform random variable */
-	if (!enable_) 
-		return 0;
-	switch (unit_) {
-	case EU_PKT: 
-		return CorruptPkt(p);
-	case EU_TIME:
-		return CorruptTime(p);
-	case EU_BYTE:
-		return CorruptByte(p);
-	default:
-		break;
+	if (enable_) {
+		switch (unit_) {
+		case EU_PKT: 
+			return CorruptPkt(p);
+		case EU_TIME:
+			return CorruptTime(p);
+		case EU_BYTE:
+			return CorruptByte(p);
+		default:
+			break;
+		}
 	}
 	return 0;
 }
 
 /* Decide whether or not to corrupt this packet, based on a packet-based error
- * model.  The main parameter used in errPkt_, which is the number of
+ * model.  The main parameter used in errorLen_, which is the number of
  * packets to next error, from the last time an error occured on the channel.
  * It is dependent on the random variable being used internally.
  * rate_ is the user-specified mean number of packets between errors.
@@ -203,19 +165,23 @@ int ErrorModel::corrupt(Packet* p)
 int ErrorModel::CorruptPkt(Packet *p) 
 {
 	double rv;
-	int numerrs = 0;
-
-	if (errPkt_ == 0) {
+#ifdef XXX
+	if (errorLen_ == 0) {
 		if (firstTime_)
 			firstTime_ = 0;
 		else		/* corrupt the packet */
 			numerrs++;
 		/* rv is a random variable with mean = rate_ (set up in tcl) */
 		rv = ranvar_ ? ranvar_->value() : Random::uniform(rate_);
-		errPkt_ += (int) rv; /* # pkts to next error */
+		errorLen_ += (int) rv; /* # pkts to next error */
 	} else
-		errPkt_--;	/* count down to next error */
+		errorLen_--;	/* count down to next error */
 	return numerrs;
+#endif
+
+	// If no random var is specified, assume uniform random variable
+	rv = ranvar_ ? ranvar_->value() : Random::uniform();
+	return rv < rate_;
 }
 
 
@@ -237,27 +203,27 @@ int ErrorModel::CorruptTime(Packet *p)
 	 * corrupted the packet during that interval. 
 	 */
 	Scheduler &s = Scheduler::instance();
-	hdr_mac *mh = (hdr_mac*) p->access(off_mac_);
+	hdr_mac *mh = (hdr_mac*) p->access(hdr_mac::offset_);
 	double now = s.clock(), rv;
 	int numerrs = 0;
 	double start = now - mh->txtime();
 
-	while (errTime_ < start) {
+	while (errorLen_ < start) {
 		rv = ranvar_ ? ranvar_->value() : Random::uniform(rate_);
-		errTime_ += rv;
+		errorLen_ += rv;
 	}
 
-	while (errTime_ < now) { /* corrupt the packet */
+	while (errorLen_ < now) { /* corrupt the packet */
 		numerrs++;
 		rv = ranvar_ ? ranvar_->value() : Random::uniform(rate_);
-		errTime_ += rv;
+		errorLen_ += rv;
 	}
 	return numerrs;
 }
 
 /*
  * Decide whether or not to corrupt this packet, based on a byte-based error
- * model.  The main parameter used in errByte_, which is the number of
+ * model.  The main parameter used in errorLen_, which is the number of
  * bytes to next error, from the last time an error occured on the channel.
  * It is dependent on the random variable being used internally.  
  * rate_ is the user-specified mean number of bytes between errors.
@@ -269,62 +235,48 @@ int ErrorModel::CorruptByte(Packet *p)
 	double rv;
 
 	/* The same packet might have multiple errors, so catch them all! */
-	while (errByte_ < size) {
+	while (errorLen_ < size) {
 		if (firstTime_)
 			firstTime_ = 0;
 		else		/* corrupt the packet */
 			numerrs++;
 		/* rv is a random variable with mean = rate_ (set up in tcl) */
 		rv = ranvar_ ? ranvar_->value() : Random::uniform(rate_);
-		errByte_ += (int) rv;
+		errorLen_ += (int) rv;
 
 	}
-	errByte_ -= size;
-	if (errByte_ < 0)	/* XXX this should never happen, actually */
-		errByte_ = 0;
+	errorLen_ -= size;
+	if (errorLen_ < 0)	/* XXX this should never happen, actually */
+		errorLen_ = 0;
 	return numerrs;
 }
 
-void ErrorModel::em_reset()
+void ErrorModel::reset()
 {
-	errByte_ = 0;
-	errTime_ = 0;
+	errorLen_ = 0;
 	firstTime_ = 1;
 	return;
 }
 
-int EmpiricalErrorModel::command(int argc, const char*const* argv)
+int TwoStateErrorModel::command(int argc, const char*const* argv)
 {
 	Tcl& tcl = Tcl::instance();
-
-	if (argc == 3) {
-		if (strcmp(argv[1], "granvar") == 0) {
-			grv_ = (RandomVariable*) TclObject::lookup(argv[2]);
+	if ((argc == 3 || argc == 4) && strcmp(argv[1], "ranvar") == 0) {
+		int i = atoi(argv[2]);
+		if (argc == 3) {
+			tcl.resultf("%s", ranvar_[i]->name());
 			return (TCL_OK);
 		}
-		if (strcmp(argv[1], "branvar") == 0) {
-			brv_ = (RandomVariable*) TclObject::lookup(argv[2]);
-			return (TCL_OK);
-		}
-	}
-	if (argc == 2) {
-		if (strcmp(argv[1], "granvar") == 0) {
-			tcl.resultf("%s", grv_->name());
-			return (TCL_OK);
-		} 
-		if (strcmp(argv[1], "branvar") == 0) {
-			tcl.resultf("%s", brv_->name());
-			return (TCL_OK);
-		}
+		ranvar_[i] = (RandomVariable*)TclObject::lookup(argv[3]);
+		return (TCL_OK);
 	}
 	return ErrorModel::command(argc, argv);
 }
 
 /*
- * Empirical error model based on CDFs of errored and error-free lengths.  
+ * Two-State error model based on CDFs of errored and error-free lengths.  
  */
-int
-EmpiricalErrorModel::CorruptTime(Packet *p)
+int TwoStateErrorModel::CorruptTime(Packet *p)
 {
 	/* 
 	 * First get MAC header.  It has the transmission time (txtime)
@@ -336,30 +288,37 @@ EmpiricalErrorModel::CorruptTime(Packet *p)
 	Scheduler &s = Scheduler::instance();
 	double now = s.clock();
 	int numerrs = 0;
-	double start = now - ((hdr_mac*) p->access(off_mac_))->txtime();
+	double start = now - ((hdr_mac*)p->access(hdr_mac::offset_))->txtime();
 
 	if (firstTime_) {
 		state_ = EM_GOOD;
-		errTime_ = grv_->value();
+		errorLen_ = ranvar_[0]->value();
 		firstTime_ = 0;
 	}
 		
-	while (errTime_ < start) {
+	while (errorLen_ < start) {
 		/* toggle states */
 		if (state_ == EM_GOOD) {
-			errTime_ += brv_->value();
+			errorLen_ += ranvar_[1]->value();
 			state_ = EM_BAD;
 		} else {
-			errTime_ += grv_->value();
+			errorLen_ += ranvar_[0]->value();
 			state_ = EM_GOOD;
 		}
 	}
 
-	if (errTime_ >= now && state_ == EM_GOOD)
+	if (errorLen_ >= now && state_ == EM_GOOD)
 		return 0;
 	return 1;
 }
 
+
+int MultiStateErrorModel::corrupt(Packet* p)
+{
+	Tcl& tcl = Tcl::instance();
+	tcl.evalf("%s corrupt", name());
+	return atoi(tcl.result());
+}
 
 
 static class SelectErrorModelClass : public TclClass {
@@ -370,7 +329,7 @@ public:
 	}
 } class_selecterrormodel;
 
-SelectErrorModel::SelectErrorModel() : ErrorModel()
+SelectErrorModel::SelectErrorModel()
 {
 	bind("pkt_type_", &pkt_type_);
 	bind("drop_cycle_", &drop_cycle_);
@@ -430,8 +389,7 @@ public:
         }
 } class_periodic_error_model;
 
-PeriodicErrorModel::PeriodicErrorModel() : ErrorModel(), cnt_(0),
-	last_time_(0.0), first_time_(-1.0)
+PeriodicErrorModel::PeriodicErrorModel() : cnt_(0), last_time_(0.0), first_time_(-1.0)
 {      
 	bind("period_", &period_);
 	bind("offset_", &offset_);
@@ -483,7 +441,7 @@ public:
 } class_srmerrormodel;
 
 
-SRMErrorModel::SRMErrorModel() : ErrorModel()
+SRMErrorModel::SRMErrorModel()
 {
         bind("off_srm_", &off_srm_);
 }

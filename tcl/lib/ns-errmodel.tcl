@@ -86,6 +86,7 @@ ErrorModel instproc initvars { rate unit } {
 
 Class ErrorModel/Uniform -superclass ErrorModel
 Class ErrorModel/Expo -superclass ErrorModel
+Class ErrorModel/Empirical -superclass ErrorModel/TwoState
 
 ErrorModel/Uniform instproc init { rate unit } {
 	$self instvar rv_
@@ -107,28 +108,25 @@ ErrorModel/Expo instproc init { rate unit } {
 }
 
 ErrorModel/Empirical instproc initrv { files } {
-	$self instvar grv_ brv_
-	
 	set grv_ [new RandomVariable/Empirical]
 	$grv_ loadCDF [lindex $files 0]
-	$self granvar $grv_
+	$self ranvar 0 $grv_
 
 	set brv_ [new RandomVariable/Empirical]
 	$brv_ loadCDF [lindex $files 1]
-	$self branvar $brv_
+	$self ranvar 1 $brv_
 }
 
 Class ErrorModel/MultiState -superclass ErrorModel
 
 ErrorModel/MultiState instproc init { states trans transunit nstates start } {
-	# states_ is an array of states (errmodels), 
+	# states_ is an array of states (errmodels),
 	# transmatrix_ is the transition state model matrix,
 	# nstates_ is the number of states
 	# transunit_ is pkt/byte/time, and curstate_ is the current state
 	# start is the start state, which curstate_ is initialized to
 
 	$self instvar states_ transmatrix_ transunit_ nstates_ curstate_ eu_
-
 	set states_ $states
 	set transmatrix_ $trans
 	set transunit_ $transunit
@@ -142,7 +140,8 @@ ErrorModel/MultiState instproc corrupt { } {
 	$self instvar states_ transmatrix_ transunit_ curstate_
 
 	set cur $curstate_
-	set retval [$curstate_ insert-error $self]
+# XXX
+	set retval [$curstate_ next]
 	set curstate_ [$self transition]
 	if { $cur != $curstate_ } {
 		# If transitioning out, reset erstwhile current state
@@ -153,10 +152,9 @@ ErrorModel/MultiState instproc corrupt { } {
 
 # XXX eventually want to put in expected times of staying in each state 
 # before transition here.  Punt on this for now.
-ErrorModel instproc insert-error { parent } {
-	return [$self corrupt $parent]
-	
-}
+#ErrorModel instproc insert-error { parent } {
+#	return [$self corrupt $parent]
+#}
 
 # Decide whom to transition to
 ErrorModel/MultiState instproc transition { } {
@@ -181,22 +179,23 @@ ErrorModel/MultiState instproc transition { } {
 	return $curstate_
 }
 
-Class ErrorModel/MultiState/TwoStateMarkov -superclass ErrorModel/MultiState
+Class ErrorModel/TwoStateMarkov -superclass ErrorModel/TwoState
 
-ErrorModel/MultiState/TwoStateMarkov instproc init { rate transition eu } {
-	$self instvar states_
+ErrorModel/TwoStateMarkov instproc init {rate eu transition} {
+	set rv0 [new RandomVariable/Exponential]
+	set rv1 [new RandomVariable/Exponential]
+	$rv0 set avg_ [lindex $rate 0]
+	$rv1 set avg_ [lindex $rate 1]
+	$self ranvar 0 $rv0
+	$self ranvar 1 $rv1
 
-	for { set i 0 } { $i < 2 } {incr i} {
-		lappend states_ [new ErrorModel/Expo [lindex $rate $i] $eu]
-	}
-	
-	set p01 [lindex $transition 0]
-	set p10 [lindex $transition 1]
-	set trans [list [list [expr 1 - $p01] $p01] \
-			[list [expr 1 - $p01] $p01]]
-			
-	# state 0 is the start state
-	$self next $states_ $trans $eu $i [lindex $states_ 0]
+#	set p01 [lindex $transition 0]
+#	set p10 [lindex $transition 1]
+#	set trans [list [list [expr 1 - $p01] $p01] \
+#			[list [expr 1 - $p01] $p01]]
+
+#	# state 0 is the start state
+#	$self next $states_ $trans $eu $i [lindex $states_ 0]
 }
 
 
