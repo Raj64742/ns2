@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1997/10/23 20:53:33 $
+# Version Date: $Date: 1997/11/04 21:54:38 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-chain.tcl,v 1.6 1997/10/23 20:53:33 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-chain.tcl,v 1.7 1997/11/04 21:54:38 haoboy Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -41,7 +41,23 @@ source ../mcast/srm-nam.tcl		;# to separate control messages.
 Simulator set NumberInterfaces_ 1
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
+
 $ns trace-all [open out.tr w]
+$ns namtrace-all [open out.nam w]
+
+$ns color 0 white		;# data source
+$ns color 40 blue		;# session
+$ns color 41 red		;# request
+$ns color 42 green		;# repair
+$ns color 1 Khaki		;# source node
+$ns color 2 goldenrod
+$ns color 3 sienna
+$ns color 4 HotPink
+$ns color 5 maroon
+$ns color 6 orchid
+$ns color 7 purple
+$ns color 8 snow4
+$ns color 9 PeachPuff1
 
 # make the nodes
 set nmax 5
@@ -54,9 +70,12 @@ set chainMax [expr $nmax - 1]
 set j 0
 for {set i 1} {$i <= $chainMax} {incr i} {
     $ns duplex-link $n($i) $n($j) 1.5Mb 10ms DropTail
+    $ns duplex-link-op $n($j) $n($i) orient right
     set j $i
 }
 $ns duplex-link $n([expr $nmax - 2]) $n($nmax) 1.5Mb 10ms DropTail
+$ns duplex-link-op $n([expr $nmax - 2]) $n($nmax) orient right-up
+$ns duplex-link-op $n([expr $nmax - 2]) $n([expr $nmax-1]) orient right-down
 
 $ns queue-limit $n(0) $n(1) 2	;# q-limit is 1 more than max #packets in q.
 $ns queue-limit $n(1) $n(0) 2
@@ -123,11 +142,8 @@ proc finish src {
     flush $avg_info
     close $avg_info
 
-    puts "converting output to nam format..."
-    exec awk -f ../nam-demo/nstonam.awk out.tr > $prog-nam.tr 
-    #XXX
     puts "running nam..."
-    exec nam $prog-nam &
+    exec nam out.nam &
     exit 0
 }
 $ns at 4.0 "finish $s"

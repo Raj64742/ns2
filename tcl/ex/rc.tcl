@@ -2,7 +2,7 @@
 # A simple (but not too realistic) rate-based congestion control
 # scheme for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/rc.tcl,v 1.2 1997/03/28 08:52:33 mccanne Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/rc.tcl,v 1.3 1997/11/04 21:54:33 haoboy Exp $
 #
 
 source timer.tcl
@@ -10,12 +10,19 @@ source timer.tcl
 set ns [new Simulator]
 
 proc build_topology { ns which } {
+        $ns color 1 red
+        $ns color 2 white
+
 	foreach i "0 1 2 3" {
 		global n$i
-		set n$i [$ns node]
+		set tmp [$ns node]
+		set n$i $tmp
 	}
 	$ns duplex-link $n0 $n2 5Mb 2ms DropTail
 	$ns duplex-link $n1 $n2 5Mb 2ms DropTail
+	$ns duplex-link-op $n0 $n2 orient right-down
+	$ns duplex-link-op $n1 $n2 orient right-up
+
 	if { $which == "FIFO" } {
 		$ns duplex-link $n2 $n3 1.5Mb 10ms DropTail
 	} elseif { $which == "RED" } {
@@ -23,6 +30,8 @@ proc build_topology { ns which } {
 	} else {
 		$ns duplex-link $n2 $n3 1.5Mb 10ms FQ
 	}
+	$ns duplex-link-op $n2 $n3 orient right
+	$ns duplex-link-op $n2 $n3 queuePos 0.5
 }
 
 Class Agent/Message/Sender -superclass {Agent/Message Timer}
@@ -111,6 +120,8 @@ proc build_conn { from to startTime } {
 
 set f [open out.tr w]
 $ns trace-all $f
+set nf [open out.nam w]
+$ns namtrace-all $nf
 
 build_topology $ns FIFO
 
@@ -122,16 +133,14 @@ $c2 set class_ 2
 $ns at 5.0 "finish"
 
 proc finish {} {
-	global ns f
+	global ns f nf
 	$ns flush-trace
 	close $f
+	close $nf
 
-	puts "converting output to nam format..."
-	exec awk -f ../nam-demo/nstonam.awk out.tr > rc-nam.tr 
-	exec rm -f out
 	#XXX
 	puts "running nam..."
-	exec nam rc-nam &
+	exec nam out.nam &
 	exit 0
 }
 

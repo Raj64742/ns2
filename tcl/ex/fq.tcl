@@ -2,7 +2,7 @@
 # This file contains a preliminary cut at fair-queueing for ns
 # as well as a number of stubs for Homework 3 in CS268.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.9 1997/04/15 23:12:45 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/fq.tcl,v 1.10 1997/11/04 21:54:32 haoboy Exp $
 #
 
 set ns [new Simulator]
@@ -35,6 +35,15 @@ $ns proc simplex-link { n1 n2 bw delay type } {
         if [info exists traceAllFile_] {
                 $self trace-queue $n1 $n2 $traceAllFile_
         }
+
+	set trace [$self get-ns-traceall]
+	if {$trace != ""} {
+		$self trace-queue $n1 $n2 $trace
+	}
+	set trace [$self get-nam-traceall]
+	if {$trace != ""} {
+		$self namtrace-queue $n1 $n2 $trace
+	}
 }
 
 Class Classifier/Flow/FQ -superclass Classifier/Flow
@@ -50,6 +59,8 @@ FQLink instproc init { src dst bw delay nullAgent } {
 	$self next $src $dst
 	$self instvar link_ queue_ head_ toNode_ ttl_ classifier_ \
 		nactive_ drpT_
+	$self instvar drophead_		;# idea stolen from CBQ and Kevin
+
 	set drpT_ $nullAgent
 	set nactive_ 0
 	set queue_ [new Queue/FQ]
@@ -65,6 +76,9 @@ FQLink instproc init { src dst bw delay nullAgent } {
 	$link_ target [$toNode_ entry]
 
 	set head_ $classifier_
+
+	set drophead_ [new Connector]
+	$drophead_ target [[Simulator instance] set nullAgent_]
 
 	# XXX
 	# put the ttl checker after the delay
@@ -109,22 +123,112 @@ FQLink instproc up? { } {
 }
 
 #
+# should be called after SimpleLink::trace
+#
+FQLink instproc nam-trace { ns f } {
+	$self instvar enqT_ deqT_ drpT_ rcvT_ dynT_
+
+	if [info exists enqT_] {
+		$enqT_ namattach $f
+		if [info exists deqT_] {
+			$deqT_ namattach $f
+		}
+		if [info exists drpT_] {
+			$drpT_ namattach $f
+		}
+		if [info exists rcvT_] {
+			$rcvT_ namattach $f
+		}
+		if [info exists dynT_] {
+			foreach tr $dynT_ {
+				$tr namattach $f
+			}
+		}
+	} else {
+		#XXX 
+		# we use enqT_ as a flag of whether tracing has been
+		# initialized
+		$self trace $ns $f "nam"
+	}
+}
+
+#
+# Support for link tracing
+# XXX only SimpleLink (and its children) can dump nam config, because Link
+# doesn't have bandwidth and delay.
+#
+FQLink instproc dump-namconfig {} {
+	# make a duplex link in nam
+	$self instvar link_ attr_ fromNode_ toNode_
+
+	if ![info exists attr_("COLOR")] {
+		set attr_("COLOR") "black"
+	}
+	if ![info exists attr_("ORIENTATION")] {
+		set attr_("ORIENTATION") ""
+	}
+
+	set ns [Simulator instance]
+	set bw [$link_ set bandwidth_]
+	set delay [$link_ set delay_]
+
+	$ns puts-nam-traceall \
+		"l -t * -s [$fromNode_ id] -d [$toNode_ id] -S UP -r $bw -D $delay -o $attr_(\"ORIENTATION\")"
+	if [info exists attr_("QUEUE_POS")] {
+		$ns puts-nam-traceall "q -t * -s [$fromNode_ id] -d [$toNode_ id] -a $attr_(\"QUEUE_POS\")"
+		set attr_("QUEUE_POS") ""
+	}
+}
+#
 # Build trace objects for this link and
 # update the object linkage
 #
-FQLink instproc trace { ns f } {
+# create nam trace files if op == "nam"
+#
+FQLink instproc trace { ns f {op ""} } {
 	$self instvar enqT_ deqT_ drpT_ queue_ link_ head_ fromNode_ toNode_
-	set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_]
-	set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_]
-	set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_]
-	$drpT_ target [$queue_ drop-target]
-	$queue_ drop-target $drpT_
+	$self instvar rcvT_ ttl_
+	$self instvar drophead_		;# idea stolen from CBQ and Kevin
+
+	set enqT_ [$ns create-trace Enque $f $fromNode_ $toNode_ $op]
+	set deqT_ [$ns create-trace Deque $f $fromNode_ $toNode_ $op]
+	set drpT_ [$ns create-trace Drop $f $fromNode_ $toNode_ $op]
+	set rcvT_ [$ns create-trace Recv $f $fromNode_ $toNode_ $op]
+
+	$self instvar drpT_ drophead_
+	set nxt [$drophead_ target]
+	$drophead_ target $drpT_
+	$drpT_ target $nxt
+
+	$queue_ drop-target $drophead_
+
+#	$drpT_ target [$queue_ drop-target]
+#	$queue_ drop-target $drpT_
 
 	$deqT_ target [$queue_ target]
 	$queue_ target $deqT_
 
-	$enqT_ target $head_
-	set head_ $enqT_
+	#$enqT_ target $head_
+	#set head_ $enqT_       -> replaced by the following
+        if { [$head_ info class] == "networkinterface" } {
+	    $enqT_ target [$head_ target]
+	    $head_ target $enqT_
+	    # puts "head is i/f"
+        } else {
+	    $enqT_ target $head_
+	    set head_ $enqT_
+	    # puts "head is not i/f"
+	}
+
+	# put recv trace after ttl checking, so that only actually 
+	# received packets are recorded
+	$rcvT_ target [$ttl_ target]
+	$ttl_ target $rcvT_
+
+	$self instvar dynamics_
+	if [info exists dynamics_] {
+		$self trace-dynamics $ns $f $op
+	}
 }
 
 #
@@ -140,12 +244,19 @@ FQLink instproc init-monitor ns {
 #Queue/RED set maxthresh_ 8
 
 proc build_topology { ns which } {
+        $ns color 1 red
+        $ns color 2 white
+
 	foreach i "0 1 2 3" {
 		global n$i
-		set n$i [$ns node]
+		set tmp [$ns node]
+		set n$i $tmp
 	}
 	$ns duplex-link $n0 $n2 5Mb 2ms DropTail
 	$ns duplex-link $n1 $n2 5Mb 10ms DropTail
+	$ns duplex-link-op $n0 $n2 orient right-down
+	$ns duplex-link-op $n1 $n2 orient right-up
+
 	if { $which == "FIFO" } {
 		$ns duplex-link $n2 $n3 1.5Mb 10ms DropTail
 	} elseif { $which == "RED" } {
@@ -153,6 +264,8 @@ proc build_topology { ns which } {
 	} else {
 		$ns duplex-link $n2 $n3 1.5Mb 10ms FQ
 	}
+	$ns duplex-link-op $n2 $n3 orient right
+	$ns duplex-link-op $n2 $n3 queuePos 0.5
 }
 
 proc build_tcp { from to startTime } {
@@ -232,6 +345,8 @@ proc finish file {
 
 set f [open out.tr w]
 $ns trace-all $f
+set nf [open out.nam w]
+$ns namtrace-all $nf
 
 build_topology $ns FQ
 
@@ -244,16 +359,13 @@ $ns at 40.0 "finish Output"
 #$ns at 8.0 "xfinish"
 
 proc xfinish {} {
-	global ns f
+	global ns f nf
 	$ns flush-trace
 	close $f
+	close $nf
 
-	puts "converting output to nam format..."
-	exec awk -f ../nam-demo/nstonam.awk out.tr > fq-nam.tr 
-	exec rm -f out
-	#XXX
 	puts "running nam..."
-	exec nam fq-nam &
+	exec nam out.nam &
 	exit 0
 }
 

@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1997/10/23 20:53:28 $
+# Version Date: $Date: 1997/11/04 21:54:37 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-rep.tcl,v 1.5 1997/10/23 20:53:28 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-adapt-rep.tcl,v 1.6 1997/11/04 21:54:37 haoboy Exp $ (USC/ISI)
 #
 
 #
@@ -45,18 +45,47 @@ source ../mcast/srm-nam.tcl		;# to separate control messages.
 Simulator set NumberInterfaces_ 1
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
+
 $ns trace-all [open out.tr w]
+$ns namtrace-all [open out.nam w]
+
+$ns color 0 white		;# data packets
+$ns color 40 blue		;# session
+$ns color 41 red		;# request
+$ns color 42 green		;# repair
+$ns color 1 Khaki		;# source node
+$ns color 2 goldenrod
+$ns color 3 sienna
+$ns color 4 HotPink
+$ns color 5 maroon
+$ns color 6 orchid
+$ns color 7 purple
+$ns color 8 snow4
+$ns color 9 PeachPuff1
 
 # make the nodes
 set nmax 8
 for {set i 0} {$i <= $nmax} {incr i} {
     set n($i) [$ns node]
 }
+$n(0) shape "other"
+$n(1) shape "box"
 
 # now the links
 for {set i 1} {$i <= $nmax} {incr i} {
     $ns duplex-link $n($i) $n(0) 1.5Mb 10ms DropTail
 }
+
+$ns duplex-link-op $n(1) $n(0) orient right
+$ns duplex-link-op $n(2) $n(0) orient right-down
+$ns duplex-link-op $n(3) $n(0) orient up
+$ns duplex-link-op $n(4) $n(0) orient left-down
+$ns duplex-link-op $n(5) $n(0) orient left
+$ns duplex-link-op $n(6) $n(0) orient left-up
+$ns duplex-link-op $n(7) $n(0) orient down
+$ns duplex-link-op $n(8) $n(0) orient right-up
+
+$ns duplex-link-op $n(0) $n(1) queuePos 0
 
 # configure multicast
 set group 0x8000

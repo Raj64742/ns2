@@ -1,6 +1,10 @@
 
 set ns [new Simulator]
 
+$ns color 0 blue
+$ns color 1 red
+$ns color 2 white
+
 set n0 [$ns node]
 set n1 [$ns node]
 set n2 [$ns node]
@@ -8,10 +12,18 @@ set n3 [$ns node]
 
 set f [open out.tr w]
 $ns trace-all $f
+set nf [open out.nam w]
+$ns namtrace-all $nf
 
 $ns duplex-link $n0 $n2 5Mb 2ms DropTail
 $ns duplex-link $n1 $n2 5Mb 2ms DropTail
 $ns duplex-link $n2 $n3 1.5Mb 10ms DropTail
+
+$ns duplex-link-op $n0 $n2 orient right-up
+$ns duplex-link-op $n1 $n2 orient right-down
+$ns duplex-link-op $n2 $n3 orient right
+
+$ns duplex-link-op $n2 $n3 queuePos 0.5
 
 set cbr0 [new Agent/CBR]
 $ns attach-agent $n0 $cbr0
@@ -50,16 +62,13 @@ puts [$cbr0 set interval_]
 $ns at 3.0 "finish"
 
 proc finish {} {
-	global ns f
+	global ns f nf
 	$ns flush-trace
 	close $f
+	close $nf
 
-	puts "converting output to nam format..."
-	exec awk -f ../nam-demo/nstonam.awk out.tr > simple-nam.tr 
-	exec rm -f out
-	#XXX
 	puts "running nam..."
-	exec nam simple-nam &
+	exec nam out.nam &
 	exit 0
 }
 

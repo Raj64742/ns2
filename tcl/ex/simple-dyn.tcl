@@ -21,15 +21,24 @@
 #
 
 set ns [new Simulator]
+Simulator set EnableMcast_ 1
 
 set n0 [$ns node]
 set n1 [$ns node]
 
+$ns color 0 blue
+$ns color 1 red
+$ns color 2 white
+
 set f [open out.tr w]
 $ns trace-all $f
+set nf [open out.nam w]
+$ns namtrace-all $nf
 
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns queue-limit $n0 $n1 2
+$ns duplex-link-op $n0 $n1 orient right
+$ns duplex-link-op $n0 $n1 queuePos 0.5
 
 set cbr0 [new Agent/CBR]
 $cbr0 set interval_ 1ms
@@ -44,16 +53,14 @@ $ns rtmodel Deterministic {} $n0
 [$ns link $n0 $n1] trace-dynamics $ns stdout
 
 proc finish {} {
-	global ns f
-	close $f
+	global ns f nf
 	$ns flush-trace
+	close $f
+	close $nf
 
-	puts "converting output to nam format..."
-	exec awk -f ../nam-demo/nstonam.awk out.tr > dynamic-nam.tr 
-	exec rm -f out
 	#XXX
 	puts "running nam..."
-	exec nam dynamic-nam &
+	exec nam -f dynamic-nam.conf out.nam &
 	exit 0
 }
 

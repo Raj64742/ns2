@@ -26,6 +26,8 @@ set n5 [$ns node]
 
 set f [open out.tr w]
 $ns trace-all $f
+set nf [open out.nam w]
+$ns namtrace-all $nf
 
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 
@@ -34,8 +36,15 @@ $ns duplex-link $n0 $n3 10Mb 5ms DropTail
 $ns duplex-link $n0 $n4 10Mb 5ms DropTail
 $ns duplex-link $n0 $n5 10Mb 5ms DropTail
 
-#$ns trace-queue $n0 $n1 $f
+$ns duplex-link-op $n0 $n1 orient right
+$ns duplex-link-op $n0 $n2 orient left-up
+$ns duplex-link-op $n0 $n3 orient left
+$ns duplex-link-op $n0 $n4 orient left-down
+$ns duplex-link-op $n0 $n5 orient down
 
+$ns duplex-link-op $n0 $n1 queuePos 0.5
+
+#$ns trace-queue $n0 $n1 $f
 
 ## set up the exponential on/off source, parameterized by packet size,
 ## ave on time, ave off time and peak rate
@@ -185,9 +194,8 @@ proc finish file {
 	exec rm -f temp.p1 temp.p2 temp.p3 temp.p4
         exec xgraph -bb -tk -nl -m -x time -y "source node" temp.rands &
 
-	exec awk -f ../nam-demo/nstonam.awk out.tr > tg-nam.tr
 	puts "running nam..."
-	exec nam tg-nam &
+	exec nam out.nam &
 
 	exec rm -f out.tr
 

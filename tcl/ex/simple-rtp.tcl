@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/simple-rtp.tcl,v 1.3 1997/09/09 15:33:54 elan Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/simple-rtp.tcl,v 1.4 1997/11/04 21:54:36 haoboy Exp $
 #
 
 set ns [new Simulator]
@@ -41,12 +41,27 @@ set n1 [$ns node]
 set n2 [$ns node]
 set n3 [$ns node]
 
+$ns color 1 red
+# prune/graft packets
+$ns color 30 purple
+$ns color 31 bisque
+# RTCP reports
+$ns color 32 green
+
 set f [open rtp-out.tr w]
 $ns trace-all $f
+set nf [open out.nam w]
+$ns namtrace-all $nf
+
 Simulator set NumberInterfaces_ 1
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
+
+$ns duplex-link-op $n0 $n1 orient right
+$ns duplex-link-op $n1 $n2 orient right-up
+$ns duplex-link-op $n1 $n3 orient right-down
+$ns duplex-link-op $n0 $n1 queuePos 0.5
 
 set mproto DM
 set mrthandle [$ns mrtproto $mproto {}]
@@ -85,15 +100,13 @@ $ns at 2.5 "$s3 transmit 400kb/s"
 $ns at 4.0 "finish"
 
 proc finish {} {
-	puts "converting output to nam format..."
-	global ns f
+	global ns f nf
 	$ns flush-trace
 	close $f
-	exec awk -f ../nam-demo/nstonam.awk rtp-out.tr > rtp-nam.tr
-	#exec rm -f rtp-out.tr
-        #XXX
+	close $nf
+
 	puts "running nam..."
-	exec nam rtp-nam &
+	exec nam out.nam &
 	exit 0
 }
 

@@ -34,7 +34,7 @@ Timer instproc cancel {} {
 }
 
 # resched and expire are added to have a similar API to C++ timers.
-Timer instproc resched delay {} {
+Timer instproc resched delay {
 	$self sched $delay 
 }
 

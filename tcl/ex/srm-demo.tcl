@@ -35,7 +35,7 @@
 # to illustrate the basic srm suppression algorithms.
 # It is not an srm implementation.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.10 1997/09/19 22:28:52 polly Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm-demo.tcl,v 1.11 1997/11/04 21:54:39 haoboy Exp $
 #
 
 Simulator set NumberInterfaces_ 1
@@ -51,6 +51,14 @@ foreach k "0 1 2 3 4 5 6 7 8 9 10 11 12 13 14" {
 
 set f [open out.tr w]
 $ns trace-all $f
+set nf [open out.nam w]
+$ns namtrace-all $nf
+
+$ns color 1 red
+$ns color 2 white
+$ns color 3 blue
+$ns color 4 yellow
+$ns color 5 LightBlue
 
 proc makelinks { bw delay pairs } {
 	global ns node
@@ -58,34 +66,38 @@ proc makelinks { bw delay pairs } {
 		set src $node([lindex $p 0])
 		set dst $node([lindex $p 1])
 		$ns duplex-link $src $dst $bw $delay DropTail
+		$ns duplex-link-op $src $dst orient [lindex $p 2]
 	}
 }
 
 makelinks 1.5Mb 10ms {
-	{ 9 0 }
-	{ 9 1 }
-	{ 9 2 }
-	{ 10 3 }
-	{ 10 4 }
-	{ 10 5 }
-	{ 11 6 }
-	{ 11 7 }
-	{ 11 8 }
+	{ 9 0 right-up }
+	{ 9 1 right }
+	{ 9 2 right-down }
+	{ 10 3 right-up }
+	{ 10 4 right }
+	{ 10 5 right-down }
+	{ 11 6 right-up }
+	{ 11 7 right }
+	{ 11 8 right-down }
 }
 
 makelinks 1.5Mb 40ms {
-	{ 12 9 }
-	{ 12 10 }
-	{ 12 11 }
+	{ 12 9 right-up }
+	{ 12 10 right }
+	{ 12 11 right-down }
 }
 
 makelinks 1.5Mb 10ms {
-	{ 13 12 } 
+	{ 13 12 down } 
 }
 
 makelinks 1.5Mb 50ms {
-	{ 14 12 }
+	{ 14 12 right }
 }
+
+$ns duplex-link-op $node(12) $node(14) queuePos 0.5
+$ns duplex-link-op $node(10) $node(3) queuePos 0.5
 
 set mproto DM
 set mrthandle [$ns mrtproto $mproto {}]
@@ -313,14 +325,8 @@ proc finish {} {
 	$ns flush-trace
 	close $f
 
-	puts "converting output to nam format..."
-#	exec awk -f ../nam-demo/nstonam.awk out.tr > srm-demo-nam.tr 
-	exec tclsh ../../../nam-1/ns_to_nam.tcl out.tr srm-demo-nam.tcl > srm-demo-nam.tr
-exit 0
-	exec rm -f out
-	#XXX
 	puts "running nam..."
-	exec nam srm-demo-nam &
+	exec nam out.nam &
 	exit 0
 }
 

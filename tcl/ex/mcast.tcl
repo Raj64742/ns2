@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.5 1997/10/13 22:24:57 mccanne Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/mcast.tcl,v 1.6 1997/11/04 21:54:32 haoboy Exp $
 #
 
 #
@@ -43,21 +43,31 @@
 
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
+Simulator set NumberInterfaces_ 1
 
 set f [open out.tr w]
 $ns trace-all $f
 $ns namtrace-all [open out.nam w]
+
+$ns color 1 red
+# prune/graft packets
+$ns color 30 purple
+$ns color 31 bisque
 
 set n0 [$ns node]
 set n1 [$ns node]
 set n2 [$ns node]
 set n3 [$ns node]
 
-#$ns trace-all stdout
-Simulator set NumberInterfaces_ 1
+# Use automatic layout 
 $ns duplex-link $n0 $n1 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n2 1.5Mb 10ms DropTail
 $ns duplex-link $n1 $n3 1.5Mb 10ms DropTail
+
+$ns duplex-link-op $n0 $n1 orient right
+$ns duplex-link-op $n1 $n2 orient right-up
+$ns duplex-link-op $n1 $n3 orient right-down
+$ns duplex-link-op $n0 $n1 queuePos 0.5
 
 set mproto DM
 set mrthandle [$ns mrtproto $mproto {}]
@@ -97,14 +107,11 @@ $ns at 1.1 "$cbr1 start"
 $ns at 2.0 "finish"
 
 proc finish {} {
-	puts "converting output to nam format..."
 	global ns
 	$ns flush-trace
-	exec awk -f ../nam-demo/nstonam.awk out.tr > mcast-nam.tr
-	exec rm -f out
-	#XXX
+
 	puts "running nam..."
-	exec nam mcast-nam &
+	exec nam out.nam &
 	exit 0
 }
 

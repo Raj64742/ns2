@@ -18,9 +18,9 @@
 
 #
 # Maintainer: Kannan Varadhan <kannan@isi.edu>
-# Version Date: $Date: 1997/10/23 20:53:36 $
+# Version Date: $Date: 1997/11/04 21:54:39 $
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm.tcl,v 1.4 1997/10/23 20:53:36 kannan Exp $ (USC/ISI)
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/ex/srm.tcl,v 1.5 1997/11/04 21:54:39 haoboy Exp $ (USC/ISI)
 #
 
 if [string match {*.tcl} $argv0] {
@@ -35,17 +35,37 @@ source ../mcast/srm-nam.tcl		;# to separate control messages.
 Simulator set NumberInterfaces_ 1
 set ns [new Simulator]
 Simulator set EnableMcast_ 1
+
 $ns trace-all [open out.tr w]
+$ns namtrace-all [open out.nam w]
+
+$ns color 0 white		;# data source
+$ns color 40 blue		;# session
+$ns color 41 red		;# request
+$ns color 42 green		;# repair
+$ns color 1 Khaki		;# source node
+$ns color 2 goldenrod
+$ns color 3 sienna
+$ns color 4 HotPink
+$ns color 5 maroon
+$ns color 6 orchid
+$ns color 7 purple
+$ns color 8 snow4
+$ns color 9 PeachPuff1
 
 # make the nodes
 for {set i 0} {$i <= 3} {incr i} {
 	set n($i) [$ns node]
 }
+$n(0) shape "other"
 
 # now the links
 for {set i 1} {$i <= 3} {incr i} {
 	$ns duplex-link $n($i) $n(0) 1.5Mb 10ms DropTail
 }
+$ns duplex-link-op $n(0) $n(1) orient left
+$ns duplex-link-op $n(0) $n(2) orient right-up
+$ns duplex-link-op $n(0) $n(3) orient right-down
 
 set group 0x8000
 set mh [$ns mrtproto DM {}]
@@ -106,11 +126,8 @@ proc finish src {
 	close $srmStats
 	close $srmEvents
 
-	puts "converting output to nam format..."
-	exec awk -f ../nam-demo/nstonam.awk out.tr > $prog-nam.tr 
-	#XXX
 	puts "running nam..."
-	exec nam $prog-nam &
+	exec nam out.nam &
 	exit 0
 }
 $ns at 5.0 "finish $s0"
