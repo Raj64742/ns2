@@ -2,8 +2,8 @@
 // tag.cc         : Tag Filter
 // author         : Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tag.cc,v 1.3 2002/05/13 22:33:44 haldar Exp $
+// Copyright (C) 2000-2002 by the Unversity of Southern California
+// $Id: tag.cc,v 1.4 2002/05/29 21:58:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -22,7 +22,7 @@
 
 #include "tag.hh"
 
-TagFilter *app;
+//TagFilter *app;
 
 #ifdef NS_DIFFUSION
 static class TagFilterClass : public TclClass {
@@ -46,13 +46,13 @@ int TagFilter::command(int argc, const char*const* argv) {
 
 void TagFilterReceive::recv(Message *msg, handle h)
 {
-  app->recv(msg, h);
+  app_->recv(msg, h);
 }
 
 void TagFilter::recv(Message *msg, handle h)
 {
-  if (h != filterHandle){
-    fprintf(stderr, "Error: TagFilter::recv received message for handle %ld when subscribing to handle %ld !\n", h, filterHandle);
+  if (h != filter_handle_){
+    DiffPrint(DEBUG_ALWAYS, "Error: TagFilter::recv received message for handle %ld when subscribing to handle %ld !\n", h, filter_handle_);
     return;
   }
 
@@ -69,12 +69,12 @@ void TagFilter::ProcessMessage(Message *msg)
   NRSimpleAttribute<char *> *route = NULL;
 
   // Can't do anything if node id unknown
-  if (!id)
+  if (!id_)
     return;
 
   route = RouteAttr.find(msg->msg_attr_vec_);
   if (!route){
-    fprintf(stderr, "Error: Can't find the route attribute !\n");
+    DiffPrint(DEBUG_ALWAYS, "Error: Can't find the route attribute !\n");
     return;
   }
 
@@ -82,31 +82,31 @@ void TagFilter::ProcessMessage(Message *msg)
   len = strlen(original_route);
 
   if (len == 0){
-    total_len = strlen(id);
+    total_len = strlen(id_);
     // Route is empty, need to allocate memory
     // for our id and the terminating '\0'
     new_route = new char[(total_len + 1)];
-    strcpy(new_route, id);
+    strcpy(new_route, id_);
     if (new_route[total_len] != '\0')
-      fprintf(stderr, "Warning: String must end with NULL !\n");
+      DiffPrint(DEBUG_ALWAYS, "Warning: String must end with NULL !\n");
   }
   else{
     // Route already exists. We need to allocate
     // memory for the current route + ':' + our
     // id + the terminating '\0'
-    total_len = len + strlen(id) + 1;
+    total_len = len + strlen(id_) + 1;
     new_route = new char[(total_len + 1)];
     strcpy(new_route, original_route);
     new_route[len] = ':';
-    strcpy(&new_route[len+1], id);
+    strcpy(&new_route[len+1], id_);
     if (new_route[total_len] != '\0'){
-      fprintf(stderr, "Warning: String must end with NULL !\n");
+      DiffPrint(DEBUG_ALWAYS, "Warning: String must end with NULL !\n");
     }
   }
 
   // Debug
-  fprintf(stderr, "Tag Filter: Original route : %s\n", original_route);
-  fprintf(stderr, "Tag Filter: New route : %s\n", new_route);
+  DiffPrint(DEBUG_ALWAYS, "Tag Filter: Original route : %s\n", original_route);
+  DiffPrint(DEBUG_ALWAYS, "Tag Filter: New route : %s\n", new_route);
 
   route->setVal(new_route);
 
@@ -122,7 +122,8 @@ handle TagFilter::setupFilter()
   // Match all packets with a Route Attribute
   attrs.push_back(RouteAttr.make(NRAttribute::EQ_ANY, ""));
 
-  h = ((DiffusionRouting *)dr_)->addFilter(&attrs, TAG_FILTER_PRIORITY, fcb);
+  h = ((DiffusionRouting *)dr_)->addFilter(&attrs, TAG_FILTER_PRIORITY,
+					   filter_callback_);
 
   ClearAttrs(&attrs);
   return h;
@@ -132,10 +133,10 @@ void TagFilter::run()
 {
 #ifdef NS_DIFFUSION
   // Set up the filter
-  filterHandle = setupFilter();
-  fprintf(stderr, "Tag Filter subscribed to *, received handle %d\n",
-	  (int) filterHandle);
-  fprintf(stderr, "Tag Filter initialized !\n");
+  filter_handle_ = setupFilter();
+  DiffPrint(DEBUG_ALWAYS, "Tag Filter subscribed to *, received handle %d\n",
+	    (int) filter_handle_);
+  DiffPrint(DEBUG_ALWAYS, "Tag Filter initialized !\n");
 #else
   // Doesn't do anything
   while (1){
@@ -146,8 +147,8 @@ void TagFilter::run()
 
 void TagFilter::getNodeId()
 {
-  fprintf(stderr, "Tag Filter: getNodeID function not yet implemented !\n");
-  fprintf(stderr, "Tag Filter: Please set scadds_addr to the node id !\n");
+  DiffPrint(DEBUG_ALWAYS, "Tag Filter: getNodeID function not yet implemented !\n");
+  DiffPrint(DEBUG_ALWAYS, "Tag Filter: Please set scadds_addr to the node id !\n");
   exit(-1);
   // Future implementation for the inter-module API
 }
@@ -161,17 +162,18 @@ TagFilter::TagFilter(int argc, char **argv)
   char *id_env = NULL;
   char buffer[BUFFER_SIZE];
   int flag;
+  int node_id;
 
-  id = NULL;
+  id_ = NULL;
   node_id = 0;
 
   // Create Diffusion Routing class
 #ifndef NS_DIFFUSION
   parseCommandLine(argc, argv);
   dr_ = NR::createNR(diffusion_port_);
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION
 
-  fcb = new TagFilterReceive(this);
+  filter_callback_ = new TagFilterReceive(this);
 
   // Try to figure out the node ID
   id_env = getenv("scadds_addr");
@@ -179,20 +181,21 @@ TagFilter::TagFilter(int argc, char **argv)
     node_id = atoi(id_env);
     flag = snprintf(&buffer[0], BUFFER_SIZE, "%d", node_id);
     if (flag == -1 || flag == BUFFER_SIZE){
-      fprintf(stderr, "Error: Buffer too small !\n");
+      DiffPrint(DEBUG_ALWAYS, "Error: Buffer too small !\n");
       exit(-1);
     }
-    id = strdup(&buffer[0]);
+    id_ = strdup(&buffer[0]);
   }
   else{
     getNodeId();
   }
 #ifndef NS_DIFFUSION
   // Set up the filter
-  filterHandle = setupFilter();
-  fprintf(stderr, "Tag Filter subscribed to *, received handle %ld\n", filterHandle);
-  fprintf(stderr, "Tag Filter initialized !\n");
-#endif // NS_DIFFUSION
+  filter_handle_ = setupFilter();
+  DiffPrint(DEBUG_ALWAYS, "Tag Filter subscribed to *, received handle %ld\n",
+	  filter_handle_);
+  DiffPrint(DEBUG_ALWAYS, "Tag Filter initialized !\n");
+#endif // !NS_DIFFUSION
 }
 
 #ifndef NS_DIFFUSION
@@ -206,4 +209,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION

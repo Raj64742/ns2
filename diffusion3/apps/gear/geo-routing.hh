@@ -1,14 +1,28 @@
-// *********************************************************
 //
 // geo-routing.hh  : GEAR Include File
-// author          : Yan Yu
+// authors         : Yan Yu and Fabio Silva
 //
-// $Id: geo-routing.hh,v 1.7 2002/05/29 18:46:11 haldar Exp $
+// Copyright (C) 2000-2002 by the University of Southern California
+// Copyright (C) 2000-2002 by the University of California
+// $Id: geo-routing.hh,v 1.8 2002/05/29 21:58:09 haldar Exp $
 //
-// *********************************************************
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License,
+// version 2, as published by the Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc.,
+// 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+//
+//
 
-#ifndef GEO_ROUTING_HH
-#define GEO_ROUTING_HH
+#ifndef _GEO_ROUTING_HH_
+#define _GEO_ROUTING_HH_
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -26,253 +40,174 @@
 
 #ifdef NS_DIFFUSION
 #include <mobilenode.h>
-#include <hash_map>
 #endif // NS_DIFFUSION
 
 #include "geo-attr.hh"
+#include "geo-tools.hh"
+
 #include "diffapp.hh"
 
 // Filter priorities for pre-processing and post-processing. The
-// gradient's filter priority has to be between these two values in
+// gradient's filter priority has to be in between these two values in
 // order for GEAR to work properly
-#define GEOROUTING_FILTER_PRE_PRIORITY  8
-#define GEOROUTING_FILTER_POST_PRIORITY 2
+#define GEOROUTING_PRE_FILTER_PRIORITY  8
+#define GEOROUTING_POST_FILTER_PRIORITY 2
+
+// Values used for defining timers
+#define BEACON_REQUEST_TIMER 150
+#define NEIGHBOR_TIMER       151
 
 // Energy values for GEAR
-#define	GEO_INITIAL_ENERGY              1
+#define	GEO_INITIAL_ENERGY          1
 #define	GEO_UNIT_ENERGY_FOR_SEND    0.001
 #define	GEO_UNIT_ENERGY_FOR_RECV    0.001
 
-#define GEO_REQUEST             1
-#define	GEO_REPLY               2
-#define	GEO_H_VALUE_UPDATE      3
+// Various beacon types
+enum geo_beacons {
+  GEO_REQUEST = 1, // Beacon request. Nodes should send a beacon reply
+		   // in response
+  GEO_REPLY,       // Beacon reply. Sent in response to a beacon
+		   // request. It also includes an heuristic value if
+		   // requested on the beacon request
+  GEO_UPDATE       // Includes updates to a particular heuristic value
+		   // (for a given destination). It is send only if
+		   // the new value is sufficiently different from the
+		   // previous one
+};
 
-#define GEO_BEACON_PERIODIC_CHECK_TIMER		150
+// Various actions taken when forwarding interests
+enum geo_actions {
+  BROADCAST = 0,      // We are inside the target region, broadcast
+		      // packet
+  BROADCAST_SUPPRESS, // All our neighbors are outside the target
+		      // region, we should not forward this interest
+		      // message
+  OUTSIDE_REGION      // We are still outside the target region,
+		      // continue forwarding this interest message
+		      // towards the region using unicast
+};
 
-#define	TRUE	1
-#define	FALSE	0
-#define	FAIL	-1
+#define	GEO_BEACON_REPLY_PERIOD	    100 // Sends at most one
+					// beacon_reply message every
+					// GEO_BEACON_REPLY_PERIOS
+					// seconds
+#define GEO_NEIGHBOR_DELAY        30000 // In milli-seconds
 
-//set the following two constant to be negative to avoid it coincidental with actual next hop
-#define	BROADCAST 		-2
-#define	BROADCAST_SUPPRESS	-3
+#define GEO_BEACON_REQUEST_CHECK_PERIOD 100000 // In milli-seconds
+#define GEO_NEIGHBOR_UPDATE                300 // In seconds
+#define GEO_NEIGHBOR_REQUEST_PERIOD (10 * GEO_NEIGHBOR_UPDATE) // In seconds
 
-// Send at most one neighbor beacon every GEO_BEACON_PERIOD seconds
-#define	GEO_BEACON_PERIOD	100
-
-#define GEO_NEIGHBOR_TIMEOUT	1100
-//GEO_NEIGHBOR_TIMEOUT is the lifetime of neighbor table entry
-//when a neighbor entry's age >= GEO_NEIGHBOR_TIMEOUT, it will be deleted.
-
-#define GEO_NEIGHBOR_OUTDATE_TIMEOUT	(GEO_NEIGHBOR_TIMEOUT - 50)
-//GEO_NEIGHBOR_OUTDATE_TIMEOUT  is the age when a neighbor entry is considered as outdated.
-
-#define	GEO_NEI_REQ_GAP_THRE	1000
-//generate at least one neighbor beaconing request every GEO_NEI_REQ_GAP_THRE seconds.
-
-#define	GEO_H_VALUE_UPDATE_THRE	2
-
-#define GEO_BEACON_GENERATE_DELAY   1500        // (msec) bw receive and forward
-#define GEO_BEACON_GENERATE_JITTER  1000        // (msec) jitter
+#define GEO_NEIGHBOR_EXPIRED (5 * GEO_NEIGHBOR_UPDATE) // In seconds,
+					               // this is how
+					               // long a
+					               // neighbor
+					               // entry will
+					               // last before
+					               // being
+					               // deleted
 
 
-#define GEO_BEACON_REQUEST_DELAY   400        // (msec) bw receive and forward
-#define GEO_BEACON_REQUEST_JITTER  200        // (msec) jitter
 
-#define	GEO_GREEDY_MODE		1
-#define	GEO_SEARCH_MODE		2
 
+
+// These values tell GEAR how much time to wait before sending a
+// beacon reply in response to a beacon request message
+#define GEO_BEACON_REPLY_DELAY   1500 // (msec) between receive and forward
+#define GEO_BEACON_REPLY_JITTER  1000 // (msec) jitter
+
+// These values tell GEAR how much to wait before sending a beacon
+// request or a beacon update message
+#define GEO_BEACON_DELAY   400 // (msec) between receive and forward
+#define GEO_BEACON_JITTER  200 // (msec) jitter
 
 #define	INITIAL_ENERGY		1
-#define	DEFAULT_VALID_PERIOD		10
-#define FORWARD_TABLE_SIZE      100
-#define	LEARNED_COST_TABLE_SIZE		1000
-//learned cost is forwarding cache..  FORWARD_TABLE_SIZE * MAX_NUM_NEI;
+#define	DEFAULT_VALID_PERIOD	10
 
-#define	DEFAULT_SCOPE 100
-#define UNICAST_ORI     1
-#define UNICAST_SUB     2
-#define	BROADCAST_TYPE  3
-#define GREEDY_MODE     1
-#define DFS_MODE        2
-#define	MAX_INT         10000
-#define	ABS(x)          ((x) >= 0 ? (x): -(x))
+#define UNICAST_ORIGINAL 1
+#define	BROADCAST_TYPE   2
+#define	MAX_INT          10000
 
 class TimerType {
 public:
-  int   which_timer;
-  void  *param;
-
-  TimerType(int _which_timer) : which_timer(_which_timer)
+  TimerType(int which_timer) : which_timer_(which_timer)
   {
-    param = NULL;
+    param_ = NULL;
   };
 
   ~TimerType() {};
-};
 
-class GeoLocation {
-public:
-  double x;
-  double y;
-
-  void operator= (GeoLocation p) {x = p.x; y = p.y;}
-  void output() {DiffPrint(DEBUG_IMPORTANT, "(%f, %f)", x, y );}
+  int which_timer_;
+  void *param_;
 };
 
 class Region {
 public:
-  GeoLocation center;
-  double radius;
-
-  void operator= (Region p) {center = p.center; radius= p.radius;}
+  void operator= (Region p) {center_ = p.center_; radius_ = p.radius_;}
   void output()
   {
-    center.output();
-    DiffPrint(DEBUG_IMPORTANT, "-%f", radius);
+    center_.output();
+    DiffPrint(DEBUG_IMPORTANT, "-%f", radius_);
   }
+
+  GeoLocation center_;
+  double radius_;
 };
 
-class Geo_Header {
+class GeoHeader {
 public:
-  int path_len;
-  double scope;
-
-  int pkt_type;  // BROADCAST, or UNICAST_ORI, or UNICAST_SUB
-  Region dst_region;
-  Region sub_region;
-  int mode;      // GREEDY or SEARCH
-  double greedy_failed_dist;
+  int16_t pkt_type_;  // BROADCAST or UNICAST_ORIGINAL
+  int16_t path_len_;
+  Region dst_region_;
 };
  
-class Pkt_Header {
+class PktHeader {
 public:
-  // Packet identification
-  int32_t pkt_num;
-  int32_t rdm_id;
-
-  int32_t prev_hop;
-  int path_len;
-  double scope;
-
-  int pkt_type;
-  Region dst_region;
-  Region sub_region;
-  int mode;
-  double greedy_failed_dist;
+  int32_t pkt_num_;
+  int32_t rdm_id_;
+  int32_t prev_hop_;
+  int pkt_type_;
+  int path_len_;
+  Region dst_region_;
 };
 
-#define INITIAL_H_VALUE -1
-
-class H_value {
+class NeighborEntry {
 public:
-  double dst_x;
-  double dst_y;
-  double h_val;
-};
-
-class Neighbor_Entry {
-public:
-  int32_t id;
-
-  double longitude;
-  double latitude;
-  double remaining_energy;
-  struct timeval tv;
-  double valid_period; // in seconds
-
-  Neighbor_Entry() {
-    valid_period = DEFAULT_VALID_PERIOD;
+  NeighborEntry(int32_t id, double longitude, double latitude,
+		double remaining_energy) :
+  id_(id), longitude_(longitude), latitude_(latitude),
+  remaining_energy_(remaining_energy){
+    valid_period_ = DEFAULT_VALID_PERIOD;
+    GetTime(&tv_);
   }
+
+  int32_t id_;
+  double longitude_;
+  double latitude_;
+  double remaining_energy_;
+  struct timeval tv_;
+  double valid_period_; // in seconds
 };
 
 class GeoRoutingFilter;
 
-typedef	hash_map<int, Neighbor_Entry *> Neighbors_Hash;
-typedef list<Pkt_Header *> Packets_List;
+typedef list<NeighborEntry *> NeighborList;
+typedef list<PktHeader *> PacketList;
  
 class GeoFilterReceive : public FilterCallback {
 public:
-  GeoRoutingFilter *app;
-
-  GeoFilterReceive(GeoRoutingFilter *_app) : app(_app) {};
+  GeoFilterReceive(GeoRoutingFilter *app) : app_(app) {};
   void recv(Message *msg, handle h);
+
+  GeoRoutingFilter *app_;
 };
 
 class GeoTimerReceive : public TimerCallbacks {
 public:
-  GeoRoutingFilter *app;
-
-  GeoTimerReceive(GeoRoutingFilter *_app) : app(_app) {};
+  GeoTimerReceive(GeoRoutingFilter *app) : app_(app) {};
   int expire(handle hdl, void *p);
   void del(void *p);
-};
 
-class H_value_entry {
-public:
-  H_value_entry() {
-    h_value = INITIAL_H_VALUE;
-  }
-
-  GeoLocation dst;
-  double h_value;
-};
-
-//local forwarding table at each node
-class H_value_table {
-public:
-  H_value_table() {num_entries = 0; first = -1; last = -1;}
-
-  H_value_entry table[FORWARD_TABLE_SIZE];
-
-  int RetrieveEntry(GeoLocation  *dst);
-  inline int NumEntries() {return num_entries;}
-
-  void AddEntry(GeoLocation dst, double h_val);
-  bool UpdateEntry(GeoLocation dst, double h_val);
-  //the return value of UpdateEntry is if there is significant change
-  //compared to its old value, if there is(i.e., either the change
-  //pass some threshold-GEO_H_VALUE_UPDATE_THRE or it is a new entry),
-  //then return TRUE, o/w return FALSE;
-  int Next(int i) {return ((i+1) % FORWARD_TABLE_SIZE);}
-  int Last() {return last;}
-
-private:
-  int num_entries;
-  int first;
-  int last;
-};
-
-class Learned_cost_entry {
-public:
-  Learned_cost_entry() {
-    l_cost_value = INITIAL_H_VALUE;
-  }
-
-  int node_id;
-  GeoLocation dst;
-  double l_cost_value;
-};
-
-// Local forwarding table
-class Learned_cost_table {
-public:
-  Learned_cost_table() {num_entries = 0; first = -1; last = -1;}
-
-  Learned_cost_entry table[LEARNED_COST_TABLE_SIZE];
-
-  int RetrieveEntry(int neighbor_id, GeoLocation *dst);
-  inline int NumEntries() {return num_entries;}
-
-  void AddEntry(int neighbor_id, GeoLocation dst, double h_val);
-  void UpdateEntry(int neighbor_id, GeoLocation dst, double h_val);
-  int Next(int i) {return ((i+1) % LEARNED_COST_TABLE_SIZE);}
-  int Last() {return last;}
-
-private:
-  int num_entries;
-  int first;
-  int last;
+  GeoRoutingFilter *app_;
 };
 
 class GeoRoutingFilter : public DiffApp {
@@ -291,96 +226,96 @@ public:
 
   void run();
   void recv(Message *msg, handle h);
-  int ProcessTimers(handle hdl, void *p);
+  int processTimers(handle hdl, void *p);
 
 protected:
   // General Variables
-  handle preFilterHandle;
-  handle postFilterHandle;
-  int pkt_count;
-  int rdm_id;
+  handle pre_filter_handle_;
+  handle post_filter_handle_;
+  int pkt_count_;
+  int rdm_id_;
 
-  // Keep track when last beacon was sent
-  struct timeval beacon_tv;
+  // Keep track when last beacon reply was sent
+  struct timeval last_beacon_reply_tv_;
 
-  // Keep track when last neighbor request was sent
-  struct timeval neighbor_req_tv;
+  // Keep track when last beacon request was sent
+  struct timeval last_neighbor_request_tv_;
   
   // Statistical data: location and remaining energy level
-  double geo_longitude;
-  double geo_latitude;
-  int num_pkt_sent;
-  int num_pkt_recv;
-  double initial_energy;
-  double unit_energy_for_send;
-  double unit_energy_for_recv;
+  double geo_longitude_;
+  double geo_latitude_;
+  int num_pkt_sent_;
+  int num_pkt_recv_;
+  double initial_energy_;
+  double unit_energy_for_send_;
+  double unit_energy_for_recv_;
 
-  // Hash table with neighbor information
-  Neighbors_Hash neighbors_table;
+  // List of all known neighbors, containing their location and energy
+  // information
+  NeighborList neighbors_list_;
 
   // List of messages currently being processed
-  Packets_List message_list;
+  PacketList message_list_;
 
   // Forwarding table
-  H_value_table h_value_table;
-  Learned_cost_table learned_cost_table;
+  HeuristicValueTable h_value_table_;
+  LearnedCostTable learned_cost_table_;
   
   // Receive Callback for the filter
-  GeoFilterReceive *fcb;
-  GeoTimerReceive *tcb;
+  GeoFilterReceive *filter_callback_;
+  GeoTimerReceive *timer_callback_;
 
   // Setup the filter
   handle setupPostFilter();
   handle setupPreFilter();
 
   // Message Processing functions
-  void PreProcessMessage(Message *msg, handle h);
-  void PostProcessMessage(Message *msg, handle h);
+  void preProcessMessage(Message *msg);
+  void postProcessMessage(Message *msg);
 
   // Timers
-  void MessageTimeout(Message *msg);
-  void InterestTimeout(Message *msg);
-  void GeoBeaconTimeout();
+  void messageTimeout(Message *msg);
+  void interestTimeout(Message *msg);
+  void beaconTimeout();
+  void neighborTimeout();
   
   // Message processing functions
-  Pkt_Header * PreProcessInterest(Message *msg);
-  Pkt_Header * StripOutHeader(Message *msg);
-  Pkt_Header * RetrievePacketHeader(Message *msg);
-  bool ExtractLocation(Message *msg, float *x1, float *x2, float *y1, float *y2);
-  void CopyGeoHeader(Message *msg, Geo_Header *geo_header, Pkt_Header *pkt_header);
-  void TakeOutAttr(NRAttrVec *attrs, int32_t key);
+  PktHeader * preProcessInterest(Message *msg);
+  PktHeader * stripOutHeader(Message *msg);
+  PktHeader * retrievePacketHeader(Message *msg);
+  bool extractLocation(Message *msg,
+		       float *longitude_min, float *longitude_max,
+		       float *latitude_min, float *latitude_max);
+  GeoHeader * restoreGeoHeader(PktHeader *pkt_header, Message *msg);
+  void takeOutAttr(NRAttrVec *attrs, int32_t key);
 
   // Neighbors related functions
-  bool CheckNeighborsInfo();
-  void DeleteOldNeighbors();
-  void SendNeighborRequest(int32_t neighbor_id, Message *msg);
-  double GeoRemainingEnergy() {return INITIAL_ENERGY;}
-  void UpdateNeighbor(int neighbor_id, double x, double y, double energy);
+  NeighborEntry * findNeighbor(int32_t neighbor_id);
+  void updateNeighbor(int32_t neighbor_id, double neighbor_longitude,
+		      double neighbor_latitude, double neighbor_energy);
+  bool checkNeighbors();
+  void sendNeighborRequest();
+
+  // Energy related functions
+  double remainingEnergy() {return INITIAL_ENERGY;}
 
   // Cost estimation related functions
-  double RetrieveLearnedCost(int neighbor_id, GeoLocation dst);
-  double EstimateCost(int neighbor_id, GeoLocation dst);  
-  double dist(GeoLocation p1, GeoLocation p2);
+  double retrieveLearnedCost(int neighbor_id, GeoLocation dst);
+  double estimateCost(int neighbor_id, GeoLocation dst);
 
   // Routing related functions
-  int32_t GeoFindNextHop(Message *msg);
-  int GreedyNext(Geo_Header *pkt);
-  int NavigateHole(Geo_Header *pkt);
-  int FloodInsideRegion(Geo_Header *pkt);
+  int32_t findNextHop(GeoHeader *geo_header, bool greedy);
+  int floodInsideRegion(GeoHeader *geo_header);
 
-  double RetrieveH_Value(GeoLocation dst);
-  void BroadcastH_Value(GeoLocation dst, double  new_h, int to_id);
+  double retrieveHeuristicValue(GeoLocation dst);
+  void broadcastHeuristicValue(GeoLocation dst, double new_heuristic_value);
 
   // GetNodeLocation --> This will move to the library in the future
-  void GetNodeLocation(double *x, double *y);
+  void getNodeLocation(double *longitude, double *latitude);
 #ifdef NS_DIFFUSION
   // This will also go away in the future
   MobileNode *node_;
 #endif // NS_DIFFUSION
 };
 
-double Distance(double x1, double y1, double x2, double y2);
-bool same_location(GeoLocation src, GeoLocation dst);
-
-#endif // GEO_ROUTING_HH
-
+#endif // !_GEO_ROUTING_HH_

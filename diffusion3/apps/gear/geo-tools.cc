@@ -1,106 +1,134 @@
-#include <math.h>
-#include "geo-routing.hh"
+//
+// geo-tools.cc   : GEAR Tools
+// authors        : Yan Yu and Fabio Silva
+//
+// Copyright (C) 2000-2002 by the University of Southern California
+// Copyright (C) 2000-2002 by the University of California
+// $Id: geo-tools.cc,v 1.4 2002/05/29 21:58:09 haldar Exp $
+//
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License,
+// version 2, as published by the Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc.,
+// 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+//
+//
 
-bool same_location(GeoLocation src, GeoLocation dst)
+#include "geo-tools.hh"
+
+bool IsSameLocation(GeoLocation src, GeoLocation dst)
 {
-  if  ((src.x == dst.x) && (src.y == dst.y))
+  if  ((src.longitude_ == dst.longitude_) &&
+       (src.latitude_ == dst.latitude_))
     return true;
   return false;
 }
 
-double Distance(double x1, double y1, double x2, double y2)
+double Distance(double long1, double lat1, double long2, double lat2)
 {
   double distance;
-  distance = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2));
+ 
+  distance = sqrt((long1 - long2) * (long1 - long2) +
+		  (lat1 - lat2) * (lat1 - lat2));
 
   return distance;
 }
 
 //subregion must clear to be the same as target_region...
-int H_value_table::RetrieveEntry(GeoLocation *dst)
+int HeuristicValueTable::retrieveEntry(GeoLocation *dst)
 {
   int i;
   bool once = true;
 
-  if (first == -1)
+  if (first_ == -1)
     return FAIL;
 
-  for (i = first; (once || (i != Next(last))); i = Next(i)){
-    if (same_location(table[i].dst, *dst))
+  for (i = first_; (once || (i != next(last_))); i = next(i)){
+    if (IsSameLocation(table_[i].dst_, *dst))
       return i;
     once = false;
   }
   return FAIL;
 }
 
-bool H_value_table::UpdateEntry(GeoLocation dst, double  h_val)
+bool HeuristicValueTable::updateEntry(GeoLocation dst,
+				      double heuristic_value)
 {
-  double old_val;
+  double old_heuristic_value;
   int index;
 
-  if ((index = RetrieveEntry(&dst)) == FAIL){
-    AddEntry(dst, h_val);
+  if ((index = retrieveEntry(&dst)) == FAIL){
+    addEntry(dst, heuristic_value);
     return true;
   }
   else{
-    old_val = table[index].h_value;
-    table[index].h_value = h_val;
-    if (ABS(h_val - old_val) >= GEO_H_VALUE_UPDATE_THRE)
+    old_heuristic_value = table_[index].heuristic_value_;
+    table_[index].heuristic_value_ = heuristic_value;
+    if (ABS(heuristic_value - old_heuristic_value)
+	>= GEO_HEURISTIC_VALUE_UPDATE_THRESHOLD)
       return true;
   }
   return false;
 }
 
-void H_value_table::AddEntry(GeoLocation dst, double  h_val)
+void HeuristicValueTable::addEntry(GeoLocation dst, double heuristic_value)
 {
   int i;
 
-  if (num_entries >= FORWARD_TABLE_SIZE){
-    if (((last + 1) % FORWARD_TABLE_SIZE) != first){
-      DiffPrint(DEBUG_IMPORTANT, "GEO: last = %d, first = %d\n", last, first);
+  if (num_entries_ >= FORWARD_TABLE_SIZE){
+    if (((last_ + 1) % FORWARD_TABLE_SIZE) != first_){
+      DiffPrint(DEBUG_IMPORTANT, "GEO: last: %d, first: %d\n", last_, first_);
     }
 
-    assert(((last + 1) % FORWARD_TABLE_SIZE) == first);
+    assert(((last_ + 1) % FORWARD_TABLE_SIZE) == first_);
 
-    first++;
-    first = first % FORWARD_TABLE_SIZE;
+    first_++;
+    first_ = first_ % FORWARD_TABLE_SIZE;
 
-    last++;
-    last = last % FORWARD_TABLE_SIZE;
-    i = last;
+    last_++;
+    last_ = last_ % FORWARD_TABLE_SIZE;
+    i = last_;
 
-    table[i].dst = dst;
-    table[i].h_value = h_val;
+    table_[i].dst_ = dst;
+    table_[i].heuristic_value_ = heuristic_value;
     return;
   }
 
-  if (first == -1){
-    first = 0;
-    last = 0;
+  if (first_ == -1){
+    first_ = 0;
+    last_ = 0;
   }
   else{
-    last++;
-    last = last % FORWARD_TABLE_SIZE;
+    last_++;
+    last_ = last_ % FORWARD_TABLE_SIZE;
   }
-  i = last;
+  i = last_;
 
-  table[i].dst = dst;
-  table[i].h_value = h_val;
+  table_[i].dst_ = dst;
+  table_[i].heuristic_value_ = heuristic_value;
 
-  num_entries++;
+  num_entries_++;
 }
 
 //subregion must clear to be the same as target_region...
-int Learned_cost_table::RetrieveEntry(int neighbor_id, GeoLocation *dst)
+int LearnedCostTable::retrieveEntry(int neighbor_id, GeoLocation *dst)
 {
   int i;
   bool once = true;
 
-  if (first == -1)
+  if (first_ == -1)
     return FAIL;
 
-  for (i = first; (once || (i != Next(last))); i = Next(i)){
-    if (same_location(table[i].dst, *dst) && (neighbor_id == table[i].node_id))
+  for (i = first_; (once || (i != next(last_))); i = next(i)){
+    if (IsSameLocation(table_[i].dst_, *dst) &&
+	(neighbor_id == table_[i].node_id_))
       return i;
     once = false;
   }
@@ -108,54 +136,57 @@ int Learned_cost_table::RetrieveEntry(int neighbor_id, GeoLocation *dst)
   return FAIL;
 }
 
-void Learned_cost_table::UpdateEntry(int neighbor_id, GeoLocation dst, double l_cost)
+void LearnedCostTable::updateEntry(int neighbor_id, GeoLocation dst,
+				   double learned_cost)
 {
   int index;
 
-  if ((index = RetrieveEntry(neighbor_id, &dst)) == FAIL)
-    AddEntry(neighbor_id, dst, l_cost);
+  if ((index = retrieveEntry(neighbor_id, &dst)) == FAIL)
+    addEntry(neighbor_id, dst, learned_cost);
   else
-    table[index].l_cost_value = l_cost;
+    table_[index].learned_cost_value_ = learned_cost;
 }
 
-void Learned_cost_table::AddEntry(int neighbor_id, GeoLocation dst, double l_cost)
+void LearnedCostTable::addEntry(int neighbor_id, GeoLocation dst,
+				double learned_cost)
 {
   int i;
 
-  if (num_entries >= LEARNED_COST_TABLE_SIZE){
-    if (((last + 1) % LEARNED_COST_TABLE_SIZE) != first){
+  if (num_entries_ >= LEARNED_COST_TABLE_SIZE){
+    if (((last_ + 1) % LEARNED_COST_TABLE_SIZE) != first_){
       DiffPrint(DEBUG_IMPORTANT,
-		"GEO: LEARNED cost table ERROR: last = %d, first = %d\n", last, first);
+		"GEO: LEARNED cost table ERROR: last = %d, first = %d\n",
+		last_, first_);
     }
 
-    assert(((last + 1) % LEARNED_COST_TABLE_SIZE) == first);
+    assert(((last_ + 1) % LEARNED_COST_TABLE_SIZE) == first_);
 
-    first++;
-    first = first % LEARNED_COST_TABLE_SIZE;
+    first_++;
+    first_ = first_ % LEARNED_COST_TABLE_SIZE;
 
-    last++;
-    last = last % LEARNED_COST_TABLE_SIZE;
-    i = last;
+    last_++;
+    last_ = last_ % LEARNED_COST_TABLE_SIZE;
+    i = last_;
 
-    table[i].node_id = neighbor_id;
-    table[i].dst = dst;
-    table[i].l_cost_value = l_cost;
+    table_[i].node_id_ = neighbor_id;
+    table_[i].dst_ = dst;
+    table_[i].learned_cost_value_ = learned_cost;
     return;
   }
 
-  if (first == -1){
-    first = 0;
-    last = 0;
+  if (first_ == -1){
+    first_ = 0;
+    last_ = 0;
   }
   else{
-    last++;
-    last = last % LEARNED_COST_TABLE_SIZE;
+    last_++;
+    last_ = last_ % LEARNED_COST_TABLE_SIZE;
   }
-  i = last;
+  i = last_;
 
-  table[i].node_id = neighbor_id;
-  table[i].dst = dst;
-  table[i].l_cost_value = l_cost;
+  table_[i].node_id_ = neighbor_id;
+  table_[i].dst_ = dst;
+  table_[i].learned_cost_value_ = learned_cost;
 
-  num_entries++;
+  num_entries_++;
 }

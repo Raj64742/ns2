@@ -1,13 +1,26 @@
-// *********************************************************
 //
 // geo-routing.cc : GEAR Filter
-// author         : Yan Yu
+// authors        : Yan Yu and Fabio Silva
 //
-// $Id: geo-routing.cc,v 1.8 2002/05/29 18:46:11 haldar Exp $
+// Copyright (C) 2000-2002 by the University of Southern California
+// Copyright (C) 2000-2002 by the University of California
+// $Id: geo-routing.cc,v 1.9 2002/05/29 21:58:09 haldar Exp $
 //
-// *********************************************************
+// This program is free software; you can redistribute it and/or
+// modify it under the terms of the GNU General Public License,
+// version 2, as published by the Free Software Foundation.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along
+// with this program; if not, write to the Free Software Foundation, Inc.,
+// 59 Temple Place, Suite 330, Boston, MA 02111-1307, USA.
+//
+//
 
-#include <math.h>
 #include "geo-routing.hh"
 
 #ifdef NS_DIFFUSION
@@ -20,8 +33,8 @@ public:
     else
       fprintf(stderr, "Insufficient number of args for creating GeoRoutingFilter");
     return (NULL);
-    
   }
+  
 } class_geo_routing_filter;
 
 int GeoRoutingFilter::command(int argc, const char*const* argv) {
@@ -44,12 +57,12 @@ int GeoRoutingFilter::command(int argc, const char*const* argv) {
 
 void GeoFilterReceive::recv(Message *msg, handle h)
 {
-  app->recv(msg, h);
+  app_->recv(msg, h);
 }
 
 int GeoTimerReceive::expire(handle hdl, void *p)
 {
-  return app->ProcessTimers(hdl, p);
+  return app_->processTimers(hdl, p);
 }
 
 //need to change this funciton later..!!!!!!!
@@ -60,11 +73,11 @@ void GeoTimerReceive::del(void *p)
 
   timer = (TimerType *) p;
 
-  switch (timer->which_timer){
+  switch (timer->which_timer_){
 
   case MESSAGE_SEND_TIMER:
 
-    msg = ((Message *) timer->param);
+    msg = ((Message *) timer->param_);
 
     if (msg)
       delete msg;
@@ -76,7 +89,7 @@ void GeoTimerReceive::del(void *p)
   delete timer;
 }
 
-int GeoRoutingFilter::ProcessTimers(handle hdl, void *p)
+int GeoRoutingFilter::processTimers(handle hdl, void *p)
 {
   TimerType *timer;
   Message *msg;
@@ -84,28 +97,36 @@ int GeoRoutingFilter::ProcessTimers(handle hdl, void *p)
 
   timer = (TimerType *) p;
  
-  switch (timer->which_timer){
+  switch (timer->which_timer_){
 
   case MESSAGE_SEND_TIMER:
 
-    msg = ((Message *) timer->param);
+    msg = ((Message *) timer->param_);
 
-    MessageTimeout(msg);
+    messageTimeout(msg);
 
     // Cancel Timer
     timeout = -1;
 
     break;
 
-  case GEO_BEACON_PERIODIC_CHECK_TIMER:
+  case BEACON_REQUEST_TIMER:
 
-    GeoBeaconTimeout();
+    beaconTimeout();
+
+    break;
+
+  case NEIGHBOR_TIMER:
+
+    neighborTimeout();
 
     break;
 
   default:
 
-    printf("Error: ProcessTimers received unknown timer %d !\n", timer->which_timer);
+    DiffPrint(DEBUG_ALWAYS,
+	      "Error: ProcessTimers received unknown timer %d !\n",
+	      timer->which_timer_);
 
     break;
   }
@@ -113,283 +134,337 @@ int GeoRoutingFilter::ProcessTimers(handle hdl, void *p)
   return timeout;
 }
 
-void GeoRoutingFilter::GeoBeaconTimeout()
+void GeoRoutingFilter::beaconTimeout()
 {
-  NRAttrVec *attrs;
+  NRAttrVec attrs;
   Message *beacon_msg;
   struct timeval tv;
 
   GetTime(&tv);
 
-  // This function sends out a beacon at least once every
-  // GEO_NEI_REQ_GAP_THRE milliseconds.
+  DiffPrint(DEBUG_IMPORTANT, "GEO: Beacon Timeout !\n");
 
   // We broadcast the request from time to time, in case a new
-  // neighbor joins in and never gets a chance to get its
-  // informaiton
+  // neighbor joins in and never gets a chance to get its informaiton
 
-  if ((tv.tv_sec - neighbor_req_tv.tv_sec) > GEO_NEI_REQ_GAP_THRE){
+  if ((tv.tv_sec - last_neighbor_request_tv_.tv_sec) >
+      GEO_NEIGHBOR_REQUEST_PERIOD){
+
+    // Update timestamp
+    GetTime(&last_neighbor_request_tv_);
+
     // Sends a beacon to all neighbors
-    attrs = new NRAttrVec;
-    attrs->push_back(GeoBeaconTypeAttr.make(NRAttribute::IS, GEO_REQUEST));
-    attrs->push_back(GeoLatitudeAttr.make(NRAttribute::IS, geo_latitude));
-    attrs->push_back(GeoLongitudeAttr.make(NRAttribute::IS, geo_longitude));
-    attrs->push_back(GeoRemainingEnergyAttr.make(NRAttribute::IS,
-						 GeoRemainingEnergy()));
+    attrs.push_back(GeoBeaconTypeAttr.make(NRAttribute::IS, GEO_REQUEST));
+    attrs.push_back(GeoLatitudeAttr.make(NRAttribute::IS, geo_latitude_));
+    attrs.push_back(GeoLongitudeAttr.make(NRAttribute::IS, geo_longitude_));
+    attrs.push_back(GeoRemainingEnergyAttr.make(NRAttribute::IS,
+						remainingEnergy()));
 
     beacon_msg = new Message(DIFFUSION_VERSION, DATA, 0, 0,
-			     attrs->size(), pkt_count, rdm_id,
+			     attrs.size(), pkt_count_, rdm_id_,
 			     BROADCAST_ADDR, LOCALHOST_ADDR);
     // Don't forget to increment pkt_count
-    pkt_count++;
+    pkt_count_++;
 
-    beacon_msg->msg_attr_vec_ = CopyAttrs(attrs);
+    beacon_msg->msg_attr_vec_ = CopyAttrs(&attrs);
 
-    // For now, send message to all neighbors
-    beacon_msg->last_hop_ = LOCALHOST_ADDR;
-    beacon_msg->next_hop_ = BROADCAST_ADDR;
+    DiffPrint(DEBUG_IMPORTANT, "GEO: Sending Beacon Request...\n");
+    ((DiffusionRouting *)dr_)->sendMessage(beacon_msg, post_filter_handle_);
 
-    DiffPrint(DEBUG_IMPORTANT, "GEO: Broadcast neighbor info request..\n");
-    ((DiffusionRouting *)dr_)->sendMessage(beacon_msg, preFilterHandle);
-
-    ClearAttrs(attrs);
-    delete attrs;
+    ClearAttrs(&attrs);
     delete beacon_msg;
   }
-  else
-    DiffPrint(DEBUG_IMPORTANT,
-	      "GEO: Suppressed Broadcast neighbor info request..\n" );
 }
 
-void GeoRoutingFilter::MessageTimeout(Message *msg)
+void GeoRoutingFilter::neighborTimeout()
+{
+  NeighborList::iterator neighbor_itr;
+  NeighborEntry *neighbor_entry;
+  struct timeval tv;
+
+  GetTime(&tv);
+
+  DiffPrint(DEBUG_IMPORTANT, "GEO: Neighbors Timeout !\n");
+
+  neighbor_itr = neighbors_list_.begin();
+
+  while (neighbor_itr != neighbors_list_.end()){
+    neighbor_entry = *neighbor_itr;
+    DiffPrint(DEBUG_IMPORTANT, "GEO: Check: %d: %d --> %d\n",
+	      neighbor_entry->id_, neighbor_entry->tv_.tv_sec, tv.tv_sec);
+
+    if ((tv.tv_sec - neighbor_entry->tv_.tv_sec) >= GEO_NEIGHBOR_EXPIRED){
+      // Delete timed-out neighbor
+      DiffPrint(DEBUG_IMPORTANT, "GEO: Deleting neighbor %d\n",
+		neighbor_entry->id_);
+      neighbor_itr = neighbors_list_.erase(neighbor_itr);
+      delete neighbor_entry;
+    }
+    else{
+      DiffPrint(DEBUG_IMPORTANT, "GEO: Neighbor %d, (%d,%d)\n",
+		neighbor_entry->id_, neighbor_entry->tv_.tv_sec,
+		neighbor_entry->tv_.tv_usec);
+      neighbor_itr++;
+    }
+  }
+}
+
+void GeoRoutingFilter::messageTimeout(Message *msg)
 {
   // Send message
   DiffPrint(DEBUG_IMPORTANT, "Message Timeout !\n");
 
-  ((DiffusionRouting *)dr_)->sendMessage(msg, preFilterHandle,
-					GEOROUTING_FILTER_POST_PRIORITY);
+  ((DiffusionRouting *)dr_)->sendMessage(msg, post_filter_handle_,
+					 GEOROUTING_POST_FILTER_PRIORITY);
 }
 
 void GeoRoutingFilter::recv(Message *msg, handle h)
 {
-  if (h == preFilterHandle){
-    PreProcessMessage(msg, h);
+  if (h == pre_filter_handle_){
+    preProcessMessage(msg);
     return;
   }
 
-  if (h == postFilterHandle){
-    PostProcessMessage(msg, h);
+  if (h == post_filter_handle_){
+    postProcessMessage(msg);
     return;
   }
 
-  DiffPrint(DEBUG_ALWAYS, "Error: Received a message for the unknown handle %d !\n", h);
+  DiffPrint(DEBUG_ALWAYS,
+	    "Error: Received message for an unknown handle %d !\n", h);
 }
 
-void GeoRoutingFilter::PreProcessMessage(Message *msg, handle h)
+void GeoRoutingFilter::preProcessMessage(Message *msg)
 {
-  NRSimpleAttribute<void *> *geo_blob_attr_p = NULL;
-  NRSimpleAttribute<int> *geo_beacon_type_p = NULL;
-  NRSimpleAttribute<double> *geo_attr_p = NULL;
-  double geo_energy = 0.0;
-  double geo_x = 0.0;
-  double geo_y = 0.0;
-  double new_h = 0.0;
-  int geo_beacon_type, geo_neighbor_id;
-  H_value *h_val_p = NULL;
-  H_value *h_val = NULL;
+  NRSimpleAttribute<void *> *heuristic_value_attribute = NULL;
+  NRSimpleAttribute<int> *beacon_type_attribute = NULL;
+  NRSimpleAttribute<double> *beacon_info_attribute = NULL;
+  double neighbor_energy = 0.0;
+  double neighbor_longitude = 0.0;
+  double neighbor_latitude = 0.0;
+  double new_heuristic_value = 0.0;
+  int32_t neighbor_id;
+  int beacon_type;
   struct timeval tv; 
-  GeoLocation dst_loc;
+  HeuristicValue *heuristic_value = NULL;
+  GeoLocation dst_location;
   TimerType *timer = NULL;
-  NRAttrVec *attrs = NULL;
+  NRAttrVec attrs;
   Message *beacon_msg = NULL;
-  Pkt_Header *pkt_header = NULL;
+  PktHeader *pkt_header = NULL;
 
   switch (msg->msg_type_){
 
   case INTEREST:
 
-    // Check if neighbors info is outdated
-    if (CheckNeighborsInfo()){
-      SendNeighborRequest(0, msg);
+    if (msg->new_message_){
+      // Don't worry about old interests
+
+      // Take out the header
+      pkt_header = preProcessInterest(msg);
+
+      // If we have a packet header, add it to the message list
+      if (pkt_header){
+	sendNeighborRequest();
+      	message_list_.push_back(pkt_header);
+      }
     }
 
-    // Take out the header
-    pkt_header = PreProcessInterest(msg);
-
-    // If we have a packet header, add it to the message list
-    if (pkt_header)
-      message_list.push_back(pkt_header);
-
-    ((DiffusionRouting *)dr_)->sendMessage(msg, h);    
+    ((DiffusionRouting *)dr_)->sendMessage(msg, pre_filter_handle_);
 
     break;
 
   case DATA:
 
-    // Check if message is a beacon
-    geo_beacon_type_p = GeoBeaconTypeAttr.find(msg->msg_attr_vec_);
-    if (geo_beacon_type_p){
-      DiffPrint(DEBUG_IMPORTANT, "GEO: Receive a beacon...\n");
-      // Check if it's a beacon request or reply
-      geo_beacon_type = geo_beacon_type_p->getVal();
+    // Look for a beacon type attribute in the data message
+    beacon_type_attribute = GeoBeaconTypeAttr.find(msg->msg_attr_vec_);
 
-      geo_attr_p = GeoLongitudeAttr.find(msg->msg_attr_vec_);
-      if (geo_attr_p){
-	geo_x = geo_attr_p->getVal();
-      }
+    // If there is no beacon_type attribute, this is not a beacon data
+    // message. So, we just forward it to the next filter
+    if (!beacon_type_attribute){
+      ((DiffusionRouting *)dr_)->sendMessage(msg, pre_filter_handle_);
 
-      geo_attr_p = GeoLatitudeAttr.find(msg->msg_attr_vec_);
-      if (geo_attr_p){
-	geo_y = geo_attr_p->getVal();
-      }
+      break;
+    }
 
-      geo_attr_p = GeoRemainingEnergyAttr.find(msg->msg_attr_vec_);
-      if (geo_attr_p){
-	geo_energy = geo_attr_p->getVal();
-      }
+    // Get neighbor id and time
+    neighbor_id = msg->last_hop_;
+    GetTime(&tv);
 
-      // Get neighbor id and time
-      geo_neighbor_id = msg->last_hop_;
-      GetTime(&tv);
+    if ((neighbor_id == BROADCAST_ADDR) ||
+	(neighbor_id == LOCALHOST_ADDR)){
+      DiffPrint(DEBUG_ALWAYS, "GEO: Neighbor ID Invalid !\n");
+      return;
+    }
 
-      DiffPrint(DEBUG_IMPORTANT, "GEO: %d - %f, %f, %f\n", geo_neighbor_id,
-		geo_x, geo_y, geo_energy);
+    // Look for the rest of the information
+    beacon_type = beacon_type_attribute->getVal();
 
-      UpdateNeighbor(geo_neighbor_id, geo_x, geo_y, geo_energy); 
+    beacon_info_attribute = GeoLongitudeAttr.find(msg->msg_attr_vec_);
+    if (beacon_info_attribute){
+      neighbor_longitude = beacon_info_attribute->getVal();
+    }
 
-      if (geo_beacon_type == GEO_REQUEST){
-	DiffPrint(DEBUG_IMPORTANT, "GEO: Received a beacon request..\n");
-	// If we received a neighbor request, we have to generate a reply and send it
-	// after some random time. But this has to be suppresed if we have recently
-	// generated a beacon reply (since for now we use broadcast beacons)
+    beacon_info_attribute = GeoLatitudeAttr.find(msg->msg_attr_vec_);
+    if (beacon_info_attribute){
+      neighbor_latitude = beacon_info_attribute->getVal();
+    }
 
-	if (beacon_tv.tv_sec > 0){
-	  // Send at most one neighbor beacon every GEO_BEACON_PERIOD seconds
-	  if ((tv.tv_sec - beacon_tv.tv_sec) < GEO_BEACON_PERIOD){
-	    DiffPrint(DEBUG_IMPORTANT, "GEO: Ignore beacon request !\n");
-	    break;
-	  }
-	}
+    beacon_info_attribute = GeoRemainingEnergyAttr.find(msg->msg_attr_vec_);
+    if (beacon_info_attribute){
+      neighbor_energy = beacon_info_attribute->getVal();
+    }
 
-	// Send out a beacon
-	timer = new TimerType(MESSAGE_SEND_TIMER);
-	attrs = new NRAttrVec;
+    // Update our neighbor list with the beacon's information
+    updateNeighbor(neighbor_id, neighbor_longitude,
+		   neighbor_latitude, neighbor_energy);
 
-	attrs->push_back(GeoLongitudeAttr.make(NRAttribute::IS, geo_longitude));
-	attrs->push_back(GeoLatitudeAttr.make(NRAttribute::IS, geo_latitude));
-	attrs->push_back(GeoRemainingEnergyAttr.make(NRAttribute::IS, GeoRemainingEnergy()));
-	attrs->push_back(GeoBeaconTypeAttr.make(NRAttribute::IS, GEO_REPLY));
+    DiffPrint(DEBUG_IMPORTANT, "GEO: Id: %d - Location: %f,%f - Energy: %f\n",
+	      neighbor_id, neighbor_longitude,
+	      neighbor_latitude, neighbor_energy);
 
-	// Add h_value BEGIN
+    if (beacon_type == GEO_REQUEST){
+      DiffPrint(DEBUG_IMPORTANT, "GEO: Received a beacon request...\n");
+      // If we received a neighbor request, we have to generate a
+      // reply and send it after some random time. But this has to be
+      // suppresed if we have recently done it already
 
-	// First we extract out the h_value;
-	geo_blob_attr_p = GeoH_valueAttr.find(msg->msg_attr_vec_);
-
-	if (geo_blob_attr_p){
-	  h_val_p = (H_value *) geo_blob_attr_p->getVal();
-	  dst_loc.x = h_val_p->dst_x;
-	  dst_loc.y = h_val_p->dst_y;
-
-	  // Retrieve h_value
-	  DiffPrint(DEBUG_IMPORTANT, "GEO: Request h-value in BEACON_REQUEST, (%lf, %lf)\n",
-		    dst_loc.x, dst_loc.y); 
-
-	  new_h = RetrieveH_Value(dst_loc);
-	  if (new_h != INITIAL_H_VALUE){
-	    // Put h_value in
-	    
-	    h_val = new H_value;
-	    h_val->dst_x = dst_loc.x;
-	    h_val->dst_y = dst_loc.y;
-	    h_val->h_val = new_h;
-
-	    DiffPrint(DEBUG_IMPORTANT, "GEO: Generated h-value in BEACON_REPLY,(%lf, %lf):%lf\n",
-		      dst_loc.x, dst_loc.y, new_h); 
-	    attrs->push_back(GeoH_valueAttr.make(NRAttribute::IS, (void *) h_val, sizeof(H_value)));
-	  }
-	}
-
-	// Add h_value END
-	
-	beacon_msg = new Message(DIFFUSION_VERSION, DATA, 0, 0, attrs->size(),
-				 pkt_count, rdm_id, msg->last_hop_,
-				 LOCALHOST_ADDR);
-
-	// For now, send this message to broadcast
-	beacon_msg->last_hop_ = LOCALHOST_ADDR;
-	beacon_msg->next_hop_ = BROADCAST_ADDR;
-
-	// Don't forget to update pkt_count
-	pkt_count++;
-	beacon_msg->msg_attr_vec_ = CopyAttrs(attrs);
-
-	timer->param = (void *) CopyMessage(beacon_msg);
-
-	((DiffusionRouting *)dr_)->addTimer(GEO_BEACON_GENERATE_DELAY +
-					    (int) ((GEO_BEACON_GENERATE_JITTER *
-						    (GetRand() * 1.0 / RAND_MAX) -
-						    (GEO_BEACON_GENERATE_JITTER / 2))),
-					    (void *) timer, tcb);
-
-	ClearAttrs(attrs);
-	delete attrs;
-	delete beacon_msg;
-
-	DiffPrint(DEBUG_IMPORTANT, "GEO: Generated a beacon reply in response to beacon request !\n");
-	DiffPrint(DEBUG_IMPORTANT, "GEO: %f, %f, %f\n", geo_longitude, geo_latitude,
-		  GeoRemainingEnergy());
-
-	// Update beacon timestamp
-	beacon_tv.tv_sec= tv.tv_sec;
-	beacon_tv.tv_usec= tv.tv_usec;
-      }
-      else if ((geo_beacon_type == GEO_REPLY) || (geo_beacon_type == GEO_H_VALUE_UPDATE)){
-	DiffPrint(DEBUG_IMPORTANT, "GEO: Received a beacon reply/update ..\n");
-
-	// Update h_value
-
-	if (geo_beacon_type == GEO_REPLY)
-	  DiffPrint(DEBUG_IMPORTANT, "GEO: Received a beacon reply\n");
-	if (geo_beacon_type == GEO_H_VALUE_UPDATE)
-	  DiffPrint(DEBUG_IMPORTANT, "GEO: Received a h_value update\n");
-
-	// Extract the h_value out
-	geo_blob_attr_p = GeoH_valueAttr.find(msg->msg_attr_vec_);
-
-	if (geo_blob_attr_p){
-	  h_val_p = (H_value *) geo_blob_attr_p->getVal();
-
-	  // Update learned cost value table
-	  dst_loc.x = h_val_p->dst_x;
-	  dst_loc.y = h_val_p->dst_y;
-
-	  DiffPrint(DEBUG_IMPORTANT, "GEO: Received h-value update %d: (%f, %f ): %f\n",
-		    geo_neighbor_id, dst_loc.x, dst_loc.y, h_val_p->h_val);
-	  learned_cost_table.UpdateEntry(geo_neighbor_id, dst_loc, h_val_p->h_val);
+      if (last_beacon_reply_tv_.tv_sec > 0){
+	// Send at most one neighbor beacon every
+	// GEO_BEACON_REPLY_PERIOD seconds
+	if ((tv.tv_sec - last_beacon_reply_tv_.tv_sec)
+	    < GEO_BEACON_REPLY_PERIOD){
+	  DiffPrint(DEBUG_IMPORTANT, "GEO: Ignore beacon request !\n");
+	  break;
 	}
       }
+
+      // Send out a beacon
+      timer = new TimerType(MESSAGE_SEND_TIMER);
+
+      attrs.push_back(GeoLongitudeAttr.make(NRAttribute::IS, geo_longitude_));
+      attrs.push_back(GeoLatitudeAttr.make(NRAttribute::IS, geo_latitude_));
+      attrs.push_back(GeoRemainingEnergyAttr.make(NRAttribute::IS,
+						  remainingEnergy()));
+      attrs.push_back(GeoBeaconTypeAttr.make(NRAttribute::IS, GEO_REPLY));
+
+      // Let's try to extract the beacon's heuristic_value
+      heuristic_value_attribute = GeoHeuristicValueAttr.find(msg->msg_attr_vec_);
+
+      if (heuristic_value_attribute){
+	// Heuristic Value attribute found ! Include information about
+	// this destination if we have anything in our table
+	heuristic_value = (HeuristicValue *) heuristic_value_attribute->getVal();
+	dst_location.longitude_ = heuristic_value->dst_longitude_;
+	dst_location.latitude_ = heuristic_value->dst_latitude_;
+
+	// Retrieve heuristic_value
+	DiffPrint(DEBUG_IMPORTANT,
+		  "GEO: Request h-value in BEACON_REQUEST, (%lf, %lf)\n",
+		  dst_location.longitude_, dst_location.latitude_); 
+
+	new_heuristic_value = retrieveHeuristicValue(dst_location);
+
+	if (new_heuristic_value != INITIAL_HEURISTIC_VALUE){
+	  // Add the heuristic_value to the message if we have any
+	  // information about this particular destination
+ 
+	  heuristic_value = new HeuristicValue(dst_location.longitude_,
+					       dst_location.latitude_,
+					       new_heuristic_value);
+
+	  DiffPrint(DEBUG_IMPORTANT,
+		    "GEO: Generated h-value in BEACON_REPLY, (%lf,%lf):%lf\n",
+		    dst_location.longitude_, dst_location.latitude_,
+		    new_heuristic_value);
+
+	  attrs.push_back(GeoHeuristicValueAttr.make(NRAttribute::IS,
+						     (void *) heuristic_value,
+						     sizeof(HeuristicValue)));
+	  delete heuristic_value;
+	}
+      }
+
+      beacon_msg = new Message(DIFFUSION_VERSION, DATA, 0, 0, attrs.size(),
+			       pkt_count_, rdm_id_, BROADCAST_ADDR,
+			       LOCALHOST_ADDR);
+
+      // Don't forget to update pkt_count
+      pkt_count_++;
+      beacon_msg->msg_attr_vec_ = CopyAttrs(&attrs);
+
+      timer->param_ = (void *) CopyMessage(beacon_msg);
+
+      ((DiffusionRouting *)dr_)->addTimer(GEO_BEACON_REPLY_DELAY +
+					  (int) ((GEO_BEACON_REPLY_JITTER *
+						  (GetRand() * 1.0 / RAND_MAX) -
+						  (GEO_BEACON_REPLY_JITTER / 2))),
+					  (void *) timer, timer_callback_);
+
+      ClearAttrs(&attrs);
+      delete beacon_msg;
+
+      DiffPrint(DEBUG_IMPORTANT,
+		"GEO: Sent a beacon reply in response to beacon request !\n");
+      DiffPrint(DEBUG_IMPORTANT,
+		"GEO: Local info: Location: %f,%f - Energy :%f\n",
+		geo_longitude_,	geo_latitude_, remainingEnergy());
+
+      // Update beacon timestamp
+      GetTime(&last_beacon_reply_tv_);
     }
     else{
-      // If this is not a geo_beacon_type data, pass it directly to the next filter
-      ((DiffusionRouting *)dr_)->sendMessage(msg, h);
+      if (beacon_type == GEO_REPLY){
+	DiffPrint(DEBUG_IMPORTANT, "GEO: Received a beacon reply\n");
+      }
+      else{
+	if (beacon_type == GEO_UPDATE){
+	  DiffPrint(DEBUG_IMPORTANT, "GEO: Received a beacon update\n");
+	}
+	else{
+	  DiffPrint(DEBUG_ALWAYS, "GEO: Received an unknown message !\n");
+	  return;
+	}
+      }
+
+      // Extract the heuristic_value from the message
+      heuristic_value_attribute = GeoHeuristicValueAttr.find(msg->msg_attr_vec_);
+
+      if (heuristic_value_attribute){
+	heuristic_value = (HeuristicValue *) heuristic_value_attribute->getVal();
+
+	// Update learned cost value table
+	dst_location.longitude_ = heuristic_value->dst_longitude_;
+	dst_location.latitude_ = heuristic_value->dst_latitude_;
+
+	DiffPrint(DEBUG_IMPORTANT, "GEO: Received h-val update %d: (%f,%f):%f\n",
+		  neighbor_id, dst_location.longitude_,
+		  dst_location.latitude_,
+		  heuristic_value->heuristic_value_);
+
+	learned_cost_table_.updateEntry(neighbor_id, dst_location,
+					heuristic_value->heuristic_value_);
+      }
     }
 
     break;
 
   default:
 
-    // Otherwise, just pass the message to the next filter
-    ((DiffusionRouting *)dr_)->sendMessage(msg, h);
+    // If we do not know about this message, we just pass it to the
+    // next filter
+    ((DiffusionRouting *)dr_)->sendMessage(msg, pre_filter_handle_);
 
     break;
 
   }
 }
 
-void GeoRoutingFilter::PostProcessMessage(Message *msg, handle h)
+void GeoRoutingFilter::postProcessMessage(Message *msg)
 {
-  Pkt_Header *pkt_header = NULL;
-  Geo_Header *geo_header = NULL;
+  PktHeader *pkt_header = NULL;
+  GeoHeader *geo_header = NULL;
+  int action;
   int32_t next_hop;
 
   switch (msg->msg_type_){
@@ -398,68 +473,80 @@ void GeoRoutingFilter::PostProcessMessage(Message *msg, handle h)
 
     if (msg->next_hop_ != LOCALHOST_ADDR){
       // Retrieve packet header from previous stage
-      pkt_header = RetrievePacketHeader(msg);
+      pkt_header = retrievePacketHeader(msg);
 
+      // If we have record of this packet, we restore the previous
+      // geo_header information before forwarding it further
       if (pkt_header){
-	geo_header = new Geo_Header;
-	CopyGeoHeader(msg, geo_header, pkt_header);
-	DiffPrint(DEBUG_IMPORTANT, "GEO: sizeof(Geo_Header): %d\n", sizeof(Geo_Header));
+	geo_header = restoreGeoHeader(pkt_header, msg);
+
+	// Increment path_len
+	geo_header->path_len_++;
 
 	// Add extra attribute to the interest message
 	msg->msg_attr_vec_->push_back(GeoHeaderAttr.make(NRAttribute::IS,
 							 (void *) geo_header,
-							 sizeof(Geo_Header)));
+							 sizeof(GeoHeader)));
 
-	// Delete both geo_header and pkt_header
+	// Check if we have to broadcast this message. We do not need
+	// to check if I have seen this broadcast packet before, since
+	// this is called by PostProcessMessage, so it must be a new
+	// packet. We only need to check if we are inside the target
+	// region
+	action = floodInsideRegion(geo_header);
+
+	// We (along with our neighbors) are inside the target
+	// region. So, we just broadcast this interest message
+	if (action == BROADCAST){
+	  DiffPrint(DEBUG_IMPORTANT,
+		    "GEO: BROADCAST Interest: last_hop: %d!\n",
+		    msg->last_hop_);
+
+	  msg->next_hop_ = BROADCAST_ADDR;
+	  ((DiffusionRouting *)dr_)->sendMessage(msg, post_filter_handle_);
+	}
+
+	if (action == BROADCAST_SUPPRESS){
+	  // We are outside the destination region, do not forward
+	  // this message
+	  DiffPrint(DEBUG_IMPORTANT, "GEO: BROADCAST_SUPPRESS !\n");
+	}
+
+	if (action == OUTSIDE_REGION){
+	  // If we ate still outside the region, we need to route this
+	  // packet towards the region. We first try using a 'greedy
+	  // mode'. If that doesn't work, we probably need to navigate
+	  // around a hole
+	  next_hop = findNextHop(geo_header, true);
+
+	  if (next_hop == BROADCAST_ADDR)
+	    next_hop = findNextHop(geo_header, false);
+
+	  if (next_hop == BROADCAST_ADDR){
+	    DiffPrint(DEBUG_IMPORTANT, "GEO: Cannot find next hop !\n");
+	  }
+	  else{
+	    msg->next_hop_ = next_hop;
+	    DiffPrint(DEBUG_IMPORTANT, "GEO: Next Hop: %d\n", next_hop);
+	    DiffPrint(DEBUG_IMPORTANT, "GEO: Interest: %d\n", msg->last_hop_);
+	    ((DiffusionRouting *)dr_)->sendMessage(msg, post_filter_handle_);
+	  }
+	}
+
+	// Let's not forget to delete both geo_header and pkt_header
 	delete pkt_header;
 	delete geo_header;
-
-	DeleteOldNeighbors();
-
-	next_hop = GeoFindNextHop(msg);
-	msg->last_hop_ = LOCALHOST_ADDR;
-
-	switch (next_hop){
-
-	case BROADCAST:
-	  DiffPrint(DEBUG_IMPORTANT, "GEO: BROADCAST !\n");
-	  msg->next_hop_ = BROADCAST_ADDR;
-	  DiffPrint(DEBUG_IMPORTANT, "GEO: Interest: %d\n", msg->last_hop_);
-	  ((DiffusionRouting *)dr_)->sendMessage(msg, h);
-
-	  break;
-
-	case BROADCAST_SUPPRESS:
-
-	  DiffPrint(DEBUG_IMPORTANT, "GEO: BROADCAST_SUPPRESS !\n");
-
-	  break;
-
-	case  FAIL:
-
-	  DiffPrint(DEBUG_IMPORTANT, "GEO: NEXT HOP FAILS\n");
-
-	  break;
-
-	default:
-	
-	  msg->next_hop_ = next_hop;
-	  DiffPrint(DEBUG_IMPORTANT, "GEO: Next Hop: %d\n", next_hop);
-	  DiffPrint(DEBUG_IMPORTANT, "GEO: Interest: %d\n", msg->last_hop_);
-	  ((DiffusionRouting *)dr_)->sendMessage(msg, h);
-
-	  break;
-	}
       }
       else{
 	// This message has no packet header information, so we just forward it
-	DiffPrint(DEBUG_IMPORTANT, "GEO: Forwarding message without packet header info !\n");
-	((DiffusionRouting *)dr_)->sendMessage(msg, h);
+	DiffPrint(DEBUG_IMPORTANT,
+		  "GEO: Forwarding message without packet header info !\n");
+	((DiffusionRouting *)dr_)->sendMessage(msg, post_filter_handle_);
       }
     }
     else{
       // This is a message from gradient to a local app
-      ((DiffusionRouting *)dr_)->sendMessage(msg, h);
+      ((DiffusionRouting *)dr_)->sendMessage(msg, post_filter_handle_);
     }
 
     break;
@@ -468,7 +555,7 @@ void GeoRoutingFilter::PostProcessMessage(Message *msg, handle h)
 
     // There should not be any other types of messages handled by this function
     DiffPrint(DEBUG_ALWAYS, "GEO: Non-Interest message in post process stage !\n");
-    ((DiffusionRouting *)dr_)->sendMessage(msg, h);
+    ((DiffusionRouting *)dr_)->sendMessage(msg, post_filter_handle_);
 
     break;
   }
@@ -479,11 +566,13 @@ handle GeoRoutingFilter::setupPreFilter()
   NRAttrVec attrs;
   handle h;
 
-  // This is a filter that matches everything coming in
-  attrs.push_back(NRClassAttr.make(NRAttribute::IS, NRAttribute::INTEREST_CLASS));
+  // Set up a filter that matches every packet coming in
+  attrs.push_back(NRClassAttr.make(NRAttribute::IS,
+				   NRAttribute::INTEREST_CLASS));
 
-  h = ((DiffusionRouting *)dr_)->addFilter(&attrs, GEOROUTING_FILTER_PRE_PRIORITY, fcb);
-
+  h = ((DiffusionRouting *)dr_)->addFilter(&attrs,
+					   GEOROUTING_PRE_FILTER_PRIORITY,
+					   filter_callback_);
   ClearAttrs(&attrs);
   return h;
 }
@@ -494,9 +583,12 @@ handle GeoRoutingFilter::setupPostFilter()
   handle h;
 
   // This is a filter that matches all interest messages
-  attrs.push_back(NRClassAttr.make(NRAttribute::EQ, NRAttribute::INTEREST_CLASS));
+  attrs.push_back(NRClassAttr.make(NRAttribute::EQ,
+				   NRAttribute::INTEREST_CLASS));
 
-  h = ((DiffusionRouting *)dr_)->addFilter(&attrs, GEOROUTING_FILTER_POST_PRIORITY, fcb);
+  h = ((DiffusionRouting *)dr_)->addFilter(&attrs,
+					   GEOROUTING_POST_FILTER_PRIORITY,
+					   filter_callback_);
 
   ClearAttrs(&attrs);
   return h;
@@ -505,19 +597,38 @@ handle GeoRoutingFilter::setupPostFilter()
 void GeoRoutingFilter::run()
 {
 #ifdef NS_DIFFUSION
-  // Set up filters
-  preFilterHandle = setupPreFilter();
-  postFilterHandle = setupPostFilter();
+  TimerType *timer;
 
-  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for pre Filter !\n", preFilterHandle);
-  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for post Filter !\n", postFilterHandle);
+  // Set up filters
+  pre_filter_handle_ = setupPreFilter();
+  post_filter_handle_ = setupPostFilter();
+
+  // Add periodic neighbor checking timer
+  timer = new TimerType(NEIGHBOR_TIMER);
+  ((DiffusionRouting *)dr_)->addTimer(GEO_NEIGHBOR_DELAY,
+				      (void *) timer,
+				      timer_callback_);
+
+  // Add periodic beacon request timer
+  timer = new TimerType(BEACON_REQUEST_TIMER);
+  ((DiffusionRouting *)dr_)->addTimer(GEO_BEACON_REQUEST_CHECK_PERIOD,
+				      (void *) timer,
+				      timer_callback_);
+
+  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for pre Filter !\n", pre_filter_handle_);
+  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for post Filter !\n", post_filter_handle_);
   DiffPrint(DEBUG_ALWAYS, "GEAR Initialized !\n");
-#else
+#endif // NS_DIFFUSION
+
+  // Sends a beacon request upon start-up
+  beaconTimeout();
+
+#ifndef NS_DIFFUSION
   // We don't do anything
   while (1){
     sleep(1000);
   }
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION
 }
 
 #ifdef NS_DIFFUSION
@@ -526,6 +637,7 @@ GeoRoutingFilter::GeoRoutingFilter(const char *mnode)
 GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
 #endif // NS_DIFFUSION
 {
+
   struct timeval tv;
 
 #ifndef NS_DIFFUSION
@@ -536,736 +648,570 @@ GeoRoutingFilter::GeoRoutingFilter(int argc, char **argv)
 #endif // !NS_DIFFUSION
 
   // Initialize a few parameters
-  initial_energy = GEO_INITIAL_ENERGY;
-  unit_energy_for_send = GEO_UNIT_ENERGY_FOR_SEND;
-  unit_energy_for_recv = GEO_UNIT_ENERGY_FOR_RECV;
-  num_pkt_sent = 0;
-  num_pkt_recv = 0;
+  initial_energy_ = GEO_INITIAL_ENERGY;
+  unit_energy_for_send_ = GEO_UNIT_ENERGY_FOR_SEND;
+  unit_energy_for_recv_ = GEO_UNIT_ENERGY_FOR_RECV;
+  num_pkt_sent_ = 0;
+  num_pkt_recv_ = 0;
 
   // Initialize beacon timestamp
-  beacon_tv.tv_sec = 0; 
-  beacon_tv.tv_usec = 0; 
-  neighbor_req_tv.tv_sec = 0;
-  neighbor_req_tv.tv_usec = 0;
+  last_beacon_reply_tv_.tv_sec = 0; 
+  last_beacon_reply_tv_.tv_usec = 0; 
+  last_neighbor_request_tv_.tv_sec = 0;
+  last_neighbor_request_tv_.tv_usec = 0;
 
-  GetNodeLocation(&geo_longitude, &geo_latitude);
+  getNodeLocation(&geo_longitude_, &geo_latitude_);
 
-  DiffPrint(DEBUG_ALWAYS, "GEAR: Location: (%f, %f)\n", geo_longitude, geo_latitude);
+  DiffPrint(DEBUG_ALWAYS, "GEAR: Location %f,%f\n",
+	    geo_longitude_, geo_latitude_);
 
   GetTime(&tv);
   SetSeed(&tv);
-  pkt_count = GetRand();
-  rdm_id = GetRand();
+  pkt_count_ = GetRand();
+  rdm_id_ = GetRand();
 
 #ifndef NS_DIFFUSION
   // Create Diffusion Routing class
   dr_ = NR::createNR(diffusion_port_);
 #endif // !NS_DIFFUSION
 
-  fcb = new GeoFilterReceive(this);
-  tcb = new GeoTimerReceive(this);
+  filter_callback_ = new GeoFilterReceive(this);
+  timer_callback_ = new GeoTimerReceive(this);
 
 #ifndef NS_DIFFUSION
   // Set up filters
-  preFilterHandle = setupPreFilter();
-  postFilterHandle = setupPostFilter();
+  pre_filter_handle_ = setupPreFilter();
+  post_filter_handle_ = setupPostFilter();
 
-  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for pre Filter !\n", preFilterHandle);
-  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for post Filter !\n", postFilterHandle);
+  // Add periodic neighbor checking timer
+  timer = new TimerType(NEIGHBOR_TIMER);
+  ((DiffusionRouting *)dr_)->addTimer(GEO_NEIGHBOR_DELAY,
+				      (void *) timer,
+				      timer_callback_);
+
+  // Add periodic beacon request timer
+  timer = new TimerType(BEACON_REQUEST_TIMER);
+  ((DiffusionRouting *)dr_)->addTimer(GEO_BEACON_REQUEST_CHECK_PERIOD,
+				      (void *) timer,
+				      timer_callback_);
+
+  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for pre Filter !\n",
+	    pre_filter_handle_);
+  DiffPrint(DEBUG_ALWAYS, "GEAR Received handle %d for post Filter !\n",
+	    post_filter_handle_);
   DiffPrint(DEBUG_ALWAYS, "GEAR Initialized !\n");
 #endif // !NS_DIFFUSION
 }
 
-void GeoRoutingFilter::GetNodeLocation(double *x, double *y)
+void GeoRoutingFilter::getNodeLocation(double *longitude, double *latitude)
 {
 #ifdef NS_DIFFUSION
   double z;
 
-  node_->getLoc(x, y, &z);
+  node_->getLoc(longitude, latitude, &z);
 #else
-  char *x_env, *y_env;
+  char *longitude_env, *latitude_env;
 
-  x_env = getenv("gear_x");
-  y_env = getenv("gear_y");
+  longitude_env = getenv("gear_longitude");
+  latitude_env = getenv("gear_latitude");
 
-  if (x_env && y_env){
-    *x = atof(x_env);
-    *y = atof(y_env);
+  if (longitude_env && latitude_env){
+    *longitude = atof(longitude_env);
+    *latitude = atof(latitude_env);
   }
   else{
-    DiffPrint(DEBUG_ALWAYS, "Error: Cannot get location from (gear_x, gear_y) !\n");
+    DiffPrint(DEBUG_ALWAYS, "Error: Cannot get location (gear_longitude, gear_latitude) !\n");
     exit(-1);
   }
 #endif // NS_DIFFUSION
 }
 
-void GeoRoutingFilter::SendNeighborRequest(int32_t neighbor_id, Message *msg)
+bool GeoRoutingFilter::checkNeighbors()
 {
-  NRAttrVec *attrs;
+  NeighborList::iterator neighbor_itr;
+  NeighborEntry *neighbor_entry;
   struct timeval tv;
-  NRSimpleAttribute<void *> *geo_header_p;
-  Geo_Header *geo_h_val_p;
-  float x1, x2, y1, y2;
-  Message *beacon_msg;
-  TimerType *timer;
-  H_value *h_val;
-  GeoLocation dst;
 
   GetTime(&tv);
 
-  neighbor_req_tv.tv_sec = tv.tv_sec;
-  neighbor_req_tv.tv_usec = tv.tv_usec;
+  for (neighbor_itr = neighbors_list_.begin();
+       neighbor_itr != neighbors_list_.end(); ++neighbor_itr){
+    neighbor_entry = *neighbor_itr;
 
-  attrs = new NRAttrVec;
-  attrs->push_back(GeoBeaconTypeAttr.make(NRAttribute::IS, GEO_REQUEST));
-  attrs->push_back(GeoLatitudeAttr.make(NRAttribute::IS, geo_latitude));
-  attrs->push_back(GeoLongitudeAttr.make(NRAttribute::IS, geo_longitude));
-  attrs->push_back(GeoRemainingEnergyAttr.make(NRAttribute::IS, GeoRemainingEnergy()));
-	
-  // Also ask for h_value for this destination
-
-  // H_VALUE BEGIN
-  geo_header_p = GeoHeaderAttr.find(msg->msg_attr_vec_);
-
-  if (geo_header_p){
-    // The message includes geo_header
-    geo_h_val_p = (Geo_Header *)(geo_header_p->getVal());
-
-    if (geo_h_val_p->pkt_type == UNICAST_ORI)
-      dst = geo_h_val_p->dst_region.center;
-    else
-      if (geo_h_val_p->pkt_type == UNICAST_SUB)
-	dst = geo_h_val_p->sub_region.center;
+    if ((tv.tv_sec - neighbor_entry->tv_.tv_sec) >= GEO_NEIGHBOR_UPDATE)
+      return true;
   }
-  else{
-    DiffPrint(DEBUG_IMPORTANT, "GEO: A raw interest w/o geo_header coming from a local application !\n" );
-    // This is a fresh interest coming from a local app. geo_header
-    // has not been added to it yet..  We need to extract the target
-    // location info from the location attribute in the original
-    // interest..  Here, (x1, y1), (x2, y2) are border points
-
-    if (ExtractLocation(msg, &x1, &x2, &y1, &y2)){
-      dst.x = (x1 + x2) / 2;
-      dst.y = (y1 + y2) / 2;
-
-      DiffPrint(DEBUG_IMPORTANT, "GEO: Extract location: %f, %f, %f, %f, (%f, %f)\n", x1, x2, y1, y2,
-		dst.x, dst.y);
-
-      // Ask for h_value
-      h_val = new H_value;
-      h_val->dst_x = dst.x;
-      h_val->dst_y = dst.y;
-      h_val->h_val = INITIAL_H_VALUE;
-
-      DiffPrint(DEBUG_IMPORTANT, "GEO: Asking for h-value (%lf, %lf): %lf\n",
-		dst.x, dst.y, h_val->h_val);
-      attrs->push_back(GeoH_valueAttr.make(NRAttribute::IS, (void *) h_val,
-					   sizeof(H_value)));
-
-      // Delete h_value structure
-      delete h_val;
-    }
-
-    // H_VALUE END
-
-    // Neighbor beacon msg is a DATA message
-    beacon_msg = new Message(DIFFUSION_VERSION, DATA, 0, 0,
-			     attrs->size(), pkt_count, rdm_id, neighbor_id,
-			     LOCALHOST_ADDR);
-    // Don't forget to increment pkt_count
-    pkt_count++;
-
-    beacon_msg->msg_attr_vec_ = CopyAttrs(attrs);
-
-    // For now, send message to all neighbors
-    beacon_msg->last_hop_ = LOCALHOST_ADDR;
-    beacon_msg->next_hop_ = BROADCAST_ADDR;
-
-    // Generate a beacon request, add some random jitter before
-    // actually sending it
-    DiffPrint(DEBUG_IMPORTANT, "GEO: Broadcast neighbor info request...\n");
-
-    timer = new TimerType(MESSAGE_SEND_TIMER);
-    timer->param = (void *) CopyMessage(beacon_msg);
- 
-    ((DiffusionRouting *)dr_)->addTimer(GEO_BEACON_REQUEST_DELAY +
-					(int) ((GEO_BEACON_REQUEST_JITTER *
-						(GetRand() * 1.0 / RAND_MAX) -
-						(GEO_BEACON_REQUEST_JITTER / 2))),
-					(void *) timer, tcb);
-
-    ClearAttrs(attrs);
-    delete attrs;
-    delete beacon_msg;
-  }
+  
+  return false;
 }
 
-//use the info. in the incoming beacon to update neighbor list.
-void GeoRoutingFilter::UpdateNeighbor(int neighbor_id, double x, double y,
-				      double energy)
+void GeoRoutingFilter::sendNeighborRequest()
 {
-  Neighbors_Hash::iterator itr;
-  Neighbor_Entry *entry;
+  NRAttrVec attrs;
+  Message *beacon_msg;
+  TimerType *timer;
 
-  if (neighbor_id < 0){
-    DiffPrint(DEBUG_ALWAYS, "GEO: Invalid Neighbor ID !\n");
+  // Check if we need to send a beacon request to update our neighbor
+  // information
+  if (!checkNeighbors())
     return;
-  }
 
-  itr = neighbors_table.find(neighbor_id);
+  // Yes ! Create the beacon message
+  attrs.push_back(GeoBeaconTypeAttr.make(NRAttribute::IS, GEO_REQUEST));
+  attrs.push_back(GeoLatitudeAttr.make(NRAttribute::IS, geo_latitude_));
+  attrs.push_back(GeoLongitudeAttr.make(NRAttribute::IS, geo_longitude_));
+  attrs.push_back(GeoRemainingEnergyAttr.make(NRAttribute::IS,
+					      remainingEnergy()));
 
-  if (itr == neighbors_table.end()){
-    // Insert a new neighbor into the hash table
+  // Neighbor beacon msg is a DATA message
+  beacon_msg = new Message(DIFFUSION_VERSION, DATA, 0, 0,
+			   attrs.size(), pkt_count_, rdm_id_,
+			   BROADCAST_ADDR, LOCALHOST_ADDR);
+  // Don't forget to increment pkt_count
+  pkt_count_++;
+
+  beacon_msg->msg_attr_vec_ = CopyAttrs(&attrs);
+
+  // Generate a beacon request, add some random jitter before actually
+  // sending it
+  DiffPrint(DEBUG_IMPORTANT, "GEO: Broadcast neighbor info request...\n");
+
+  timer = new TimerType(MESSAGE_SEND_TIMER);
+  timer->param_ = (void *) CopyMessage(beacon_msg);
+
+  ((DiffusionRouting *)dr_)->addTimer(GEO_BEACON_DELAY +
+				      (int) ((GEO_BEACON_JITTER *
+					      (GetRand() * 1.0 / RAND_MAX) -
+					      (GEO_BEACON_JITTER / 2))),
+				      (void *) timer, timer_callback_);
+
+  GetTime(&last_neighbor_request_tv_);
+
+  ClearAttrs(&attrs);
+  delete beacon_msg;
+}
+
+void GeoRoutingFilter::updateNeighbor(int32_t neighbor_id,
+				      double neighbor_longitude,
+				      double neighbor_latitude,
+				      double neighbor_energy)
+{
+  NeighborEntry *neighbor_entry;
+
+  // Look for this neighbor in our neighbor's list
+  neighbor_entry = findNeighbor(neighbor_id);
+
+  if (!neighbor_entry){
+    // Insert a new neighbor into our list
     DiffPrint(DEBUG_IMPORTANT, "GEO: Inserting a new neighbor %d !\n",
 	      neighbor_id);
 
-    entry = new Neighbor_Entry;
-    entry->id = neighbor_id;
-    if (x >= 0)
-      entry->longitude = x;
-    if (y >= 0)
-      entry->latitude = y;
-    if (energy > -1)
-      entry->remaining_energy = energy;
-
-    GetTime(&(entry->tv));
+    neighbor_entry = new NeighborEntry(neighbor_id, neighbor_longitude,
+				       neighbor_latitude, neighbor_energy);
 
     // Insert new element with key neighbor_id into the hash map
-    neighbors_table[neighbor_id] = entry;
+    neighbors_list_.push_back(neighbor_entry);
   }
   else{
-    // Update an old neighbor entry
-    (*itr).second->id = neighbor_id;
-    if (x >= 0)
-      (*itr).second->longitude = x;
-    if (y >= 0)
-      (*itr).second->latitude = y;
-    if (energy > -1)
-      (*itr).second->remaining_energy = energy;
+    // Update an existing neighbor entry
+    
+    neighbor_entry->longitude_ = neighbor_longitude;
+    neighbor_entry->latitude_ = neighbor_latitude;
+    neighbor_entry->remaining_energy_ = neighbor_energy;
 
-    GetTime(&(*itr).second->tv);
+    GetTime(&(neighbor_entry->tv_));
   }
 }
 
-bool GeoRoutingFilter::CheckNeighborsInfo()
+PktHeader * GeoRoutingFilter::retrievePacketHeader(Message *msg)
 {
-  // Returns true if there's at least one neighbor whose info is not up to date	
-  Neighbors_Hash::iterator itr;
-  struct timeval tv; 
-  int num_neighbors = 0;
+  PacketList::iterator packet_itr;
+  PktHeader *pkt_header = NULL;
 
-  GetTime(&tv);
-
-  for (itr = neighbors_table.begin(); itr != neighbors_table.end(); ++itr){
-    num_neighbors++;
-
-    // Compare timestamp with GEO_NEIGHBOR_OUTDATE_TIMEOUT
-    if ((tv.tv_sec - (*itr).second->tv.tv_sec) >= GEO_NEIGHBOR_OUTDATE_TIMEOUT)
-      return true;
-  }
-
-  // Also, if neighbor's table is empty, that may mean we just started
-  if (num_neighbors == 0)
-    return true;
-
-  return false;
-}
- 
-Pkt_Header * GeoRoutingFilter::RetrievePacketHeader(Message *msg)
-{
-  Packets_List::iterator itr;
-  Pkt_Header *pkt_header = NULL;
-
-  for (itr = message_list.begin(); itr != message_list.end(); ++itr){
-    pkt_header = *itr;
-    if ((pkt_header->rdm_id == msg->rdm_id_) && (pkt_header->pkt_num == msg->pkt_num_)){
-      itr = message_list.erase(itr);
+  for (packet_itr = message_list_.begin();
+       packet_itr != message_list_.end(); ++packet_itr){
+    pkt_header = *packet_itr;
+    if ((pkt_header->rdm_id_ == msg->rdm_id_) &&
+	(pkt_header->pkt_num_ == msg->pkt_num_)){
+      packet_itr = message_list_.erase(packet_itr);
       return pkt_header;
     }
   }
 
-  // Entry not found
+  // Entry not found in our list
   return NULL;
 }
 
-Pkt_Header * GeoRoutingFilter::PreProcessInterest(Message *msg)
-  {
-  // This function takes out the extra field in interest messages
-  float x1, x2, y1, y2;
-  Pkt_Header *pkt_header = NULL;
+PktHeader * GeoRoutingFilter::preProcessInterest(Message *msg)
+{
+  float longitude_min, longitude_max;
+  float latitude_min, latitude_max;
+  PktHeader *pkt_header = NULL;
 
-  pkt_header = StripOutHeader(msg);
+  pkt_header = stripOutHeader(msg);
 
   if (!pkt_header){
     // This is an interest message coming from a local application
     // So, we must compose the geo_header from the raw msg by
     // trying to extract geographic information from this interest
 
-    if (ExtractLocation(msg, &x1, &x2, &y1, &y2)){
-      DiffPrint(DEBUG_IMPORTANT, "GEO: NEW x--[%f, %f], y--[%f, %f]\n", x1, x2, y1, y2);
+    if (extractLocation(msg, &longitude_min, &longitude_max,
+			&latitude_min, &latitude_max)){
 
       // Create new Packet Header
-      pkt_header = new Pkt_Header;
+      pkt_header = new PktHeader;
 
       // Fill in the new packet header
-      pkt_header->pkt_num = msg->pkt_num_;
-      pkt_header->rdm_id = msg->rdm_id_;
-      pkt_header->prev_hop = msg->last_hop_;
-      pkt_header->path_len = 0;
-      pkt_header->scope = DEFAULT_SCOPE;
-      pkt_header->pkt_type = UNICAST_ORI;
+      pkt_header->pkt_num_ = msg->pkt_num_;
+      pkt_header->rdm_id_ = msg->rdm_id_;
+      pkt_header->prev_hop_ = msg->last_hop_;
+      pkt_header->pkt_type_ = UNICAST_ORIGINAL;
+      pkt_header->path_len_ = 0;
 
-      pkt_header->dst_region.center.x = (x1 + x2) / 2;
-      pkt_header->dst_region.center.y = (y1 + y2) / 2;
+      pkt_header->dst_region_.center_.longitude_ = (longitude_min +
+						    longitude_max) / 2;
+      pkt_header->dst_region_.center_.latitude_ = (latitude_min +
+						   latitude_max) / 2;
 
-      DiffPrint(DEBUG_IMPORTANT, "GEO: ExtractLocation2 %f, %f, %f, %f, (%f, %f)\n", x1, x2, y1, y2,
-		pkt_header->dst_region.center.x, pkt_header->dst_region.center.y);
+      DiffPrint(DEBUG_IMPORTANT, "GEO: ExtractLocation %f,%f, %f,%f (%f,%f)\n",
+		longitude_min, longitude_max, latitude_min, latitude_max,
+		pkt_header->dst_region_.center_.longitude_,
+		pkt_header->dst_region_.center_.latitude_);
 
-      pkt_header->dst_region.radius = Distance(x1, y1, x2, y2) / 2;
-
-      pkt_header->sub_region.center.x = pkt_header->dst_region.center.x;
-      pkt_header->sub_region.center.y = pkt_header->dst_region.center.y;
-      pkt_header->sub_region.radius = pkt_header->dst_region.radius;
-      pkt_header->mode = GREEDY_MODE;
-      pkt_header->greedy_failed_dist = 0;
+      pkt_header->dst_region_.radius_ = Distance(longitude_min, latitude_min,
+						 longitude_max,
+						 latitude_max) / 2;
     }
   }
-
   return pkt_header;
 }
 
-Pkt_Header * GeoRoutingFilter::StripOutHeader(Message *msg)
+PktHeader * GeoRoutingFilter::stripOutHeader(Message *msg)
 {
-  // If the interest message has a geo_header, strip it out and put it the pkt_header
-  NRSimpleAttribute<void *> *geo_header_p;
-  Geo_Header *geo_h_val_p;
-  Pkt_Header *pkt_header = NULL;
+  NRSimpleAttribute<void *> *geo_header_attribute;
+  GeoHeader *geo_header;
+  PktHeader *pkt_header = NULL;
 
-  geo_header_p = GeoHeaderAttr.find(msg->msg_attr_vec_);
+  geo_header_attribute = GeoHeaderAttr.find(msg->msg_attr_vec_);
 
-  if (geo_header_p){
-    geo_h_val_p = (Geo_Header *)(geo_header_p->getVal());
+  if (geo_header_attribute){
+    geo_header = (GeoHeader *)(geo_header_attribute->getVal());
 
     // Create Packet Header structure
-    pkt_header = new Pkt_Header;
+    pkt_header = new PktHeader;
 
-    pkt_header->pkt_num = msg->pkt_num_;
-    pkt_header->rdm_id = msg->rdm_id_;
-    pkt_header->prev_hop = msg->last_hop_;
+    pkt_header->pkt_num_ = msg->pkt_num_;
+    pkt_header->rdm_id_ = msg->rdm_id_;
+    pkt_header->prev_hop_ = msg->last_hop_;
 
-    // Copy the msg from Geo_header to Pkt_Header
-    pkt_header->path_len = geo_h_val_p->path_len;
-    pkt_header->scope = geo_h_val_p->scope;
-    pkt_header->pkt_type = geo_h_val_p->pkt_type;
-    pkt_header->mode = geo_h_val_p->mode;
-    pkt_header->greedy_failed_dist = geo_h_val_p->greedy_failed_dist;
-    pkt_header->dst_region.center.x = geo_h_val_p->dst_region.center.x;
-    pkt_header->dst_region.center.y = geo_h_val_p->dst_region.center.y;
-    pkt_header->dst_region.radius = geo_h_val_p->dst_region.radius;
+    // Copy the msg from Geo_header to PktHeader
+    pkt_header->pkt_type_ = geo_header->pkt_type_;
+    pkt_header->dst_region_.center_.longitude_ = geo_header->dst_region_.center_.longitude_;
+    pkt_header->dst_region_.center_.latitude_ = geo_header->dst_region_.center_.latitude_;
+    pkt_header->dst_region_.radius_ = geo_header->dst_region_.radius_;
+    pkt_header->path_len_ = geo_header->path_len_;
 
-    pkt_header->sub_region.center.x = geo_h_val_p->sub_region.center.x;
-    pkt_header->sub_region.center.y = geo_h_val_p->sub_region.center.y;
-    pkt_header->sub_region.radius = geo_h_val_p->sub_region.radius;
-
-    DiffPrint(DEBUG_IMPORTANT, "GEO: Extra interest field:%d\n", geo_h_val_p->mode);
-
-    TakeOutAttr(msg->msg_attr_vec_, GEO_HEADER_KEY);
-    delete geo_header_p;
+    takeOutAttr(msg->msg_attr_vec_, GEO_HEADER_KEY);
+    delete geo_header_attribute;
   }
   else{
-    DiffPrint(DEBUG_IMPORTANT, "GEO: No extra geo_interest field\n");
+    DiffPrint(DEBUG_IMPORTANT, "GEO: GeoHeader Attribute not present !\n");
   }
   return pkt_header;
 }
 
-void GeoRoutingFilter::TakeOutAttr(NRAttrVec *attrs, int32_t key)
+void GeoRoutingFilter::takeOutAttr(NRAttrVec *attrs, int32_t key)
 {
-  NRAttrVec::iterator itr;
+  NRAttrVec::iterator attr_itr;
 
-  for (itr = attrs->begin(); itr != attrs->end(); ++itr){
-    if ((*itr)->getKey() == key){
+  for (attr_itr = attrs->begin(); attr_itr != attrs->end(); ++attr_itr){
+    if ((*attr_itr)->getKey() == key){
       break;
     }
   }
 
-  if (itr != attrs->end())
-    attrs->erase(itr);
+  if (attr_itr != attrs->end())
+    attrs->erase(attr_itr);
 }
 
-bool GeoRoutingFilter::ExtractLocation(Message *msg, float *x1, float *x2, float *y1, float *y2)
+bool GeoRoutingFilter::extractLocation(Message *msg,
+				       float *longitude_min,
+				       float *longitude_max,
+				       float *latitude_min,
+				       float *latitude_max)
 {
-  // Extract geographic information from a message sent by an application
-  NRSimpleAttribute<float> *latAttr;
-  NRSimpleAttribute<float> *longAttr;
+  NRSimpleAttribute<float> *lat_attr;
+  NRSimpleAttribute<float> *long_attr;
   NRAttrVec::iterator itr;
   NRAttrVec *attrs;
-  bool has_x1 = false;
-  bool has_x2 = false;
-  bool has_y1 = false;
-  bool has_y2 = false;
+  bool has_long_min = false;
+  bool has_long_max = false;
+  bool has_lat_min = false;
+  bool has_lat_max = false;
 
   attrs = msg->msg_attr_vec_;
 
-  // Extract y coordinates of the target region from the interest
+  // Extracts longitude coordinates of the target region from the
+  // interest/data message
   itr = attrs->begin();
+
   for (;;){
-    longAttr = LongitudeAttr.find_from(attrs, itr, &itr);
-    if (!longAttr)
+
+    long_attr = LongitudeAttr.find_from(attrs, itr, &itr);
+
+    if (!long_attr)
       break;
-    if (longAttr->getOp() == NRAttribute::GT){
-      has_y1 = true;
-      *y1 = longAttr->getVal();
-    }
-    if (longAttr->getOp() == NRAttribute::LE){
-      has_y2 = true;
-      *y2 = longAttr->getVal();
+
+    if ((long_attr->getOp() == NRAttribute::GT) ||
+	(long_attr->getOp() == NRAttribute::GE)){
+      has_long_min = true;
+      *longitude_min = long_attr->getVal();
     }
 
-    itr++; // Avoid infinite loops
+    if ((long_attr->getOp() == NRAttribute::LT) ||
+	(long_attr->getOp() == NRAttribute::LE)){
+      has_long_max = true;
+      *longitude_max = long_attr->getVal();
+    }
+
+    itr++; // Avoids infinite loops
   }
 
-  // Extract x coordinates of the target region from the interest
+  // Now we extract x coordinates of the target region from the
+  // interest message
   itr = attrs->begin();
+
   for (;;){
-    latAttr = LatitudeAttr.find_from(attrs, itr, &itr);
-    if (!latAttr)
+
+    lat_attr = LatitudeAttr.find_from(attrs, itr, &itr);
+
+    if (!lat_attr)
       break;
-    if (latAttr->getOp() == NRAttribute::GT){
-      has_x1 = true;
-      *x1 = latAttr->getVal();
+
+    if ((lat_attr->getOp() == NRAttribute::GT) ||
+	(lat_attr->getOp() == NRAttribute::GE)){
+      has_lat_min = true;
+      *latitude_min = lat_attr->getVal();
     }
-    if (latAttr->getOp() == NRAttribute::LE){
-      has_x2 = true;
-      *x2 = latAttr->getVal();
+
+    if ((lat_attr->getOp() == NRAttribute::LT) ||
+	(lat_attr->getOp() == NRAttribute::LE)){
+      has_lat_max = true;
+      *latitude_max = lat_attr->getVal();
     }
-    itr++; // Avoid infinite loops
+
+    itr++; // Avoids infinite loops
   }
 
-  if (has_x1 && has_x2 && has_y1 && has_y2){
-    DiffPrint(DEBUG_IMPORTANT, "GEO: In ExtractLocation %lf, %lf, %lf, %lf\n", *x1, *x2, *y1, *y2);
+  if (has_long_min && has_long_max && has_lat_min && has_lat_min){
+    DiffPrint(DEBUG_IMPORTANT, "GEO: ExtractLocation %lf, %lf, %lf, %lf\n",
+	      *longitude_min, *longitude_max, *latitude_min, *latitude_max);
     return true;
   }
+
   return false;
 }
 
-void GeoRoutingFilter::CopyGeoHeader(Message *msg, Geo_Header *geo_header, Pkt_Header *pkt_header)
+GeoHeader * GeoRoutingFilter::restoreGeoHeader(PktHeader *pkt_header, Message *msg)
 {
-  // Fill in values from pkt_header
-  msg->last_hop_ = pkt_header->prev_hop;
+  GeoHeader *geo_header;
 
-  geo_header->path_len = pkt_header->path_len;
-  geo_header->scope = pkt_header->scope;
-  geo_header->pkt_type = pkt_header->pkt_type;
-  geo_header->mode = pkt_header->mode;
-  geo_header->greedy_failed_dist = pkt_header->greedy_failed_dist;
-  geo_header->dst_region.center.x = pkt_header->dst_region.center.x;
-  geo_header->dst_region.center.y = pkt_header->dst_region.center.y;
-  geo_header->dst_region.radius = pkt_header->dst_region.radius;
+  geo_header = new GeoHeader;
 
-  geo_header->sub_region.center.x = pkt_header->sub_region.center.x;
-  geo_header->sub_region.center.y = pkt_header->sub_region.center.y;
-  geo_header->sub_region.radius = pkt_header->sub_region.radius;
+  msg->last_hop_ = pkt_header->prev_hop_;
+
+  geo_header->pkt_type_ = pkt_header->pkt_type_;
+  geo_header->dst_region_.center_.longitude_ = pkt_header->dst_region_.center_.longitude_;
+  geo_header->dst_region_.center_.latitude_ = pkt_header->dst_region_.center_.latitude_;
+  geo_header->dst_region_.radius_ = pkt_header->dst_region_.radius_;
+  geo_header->path_len_ = pkt_header->path_len_;
+
+  return geo_header;
 }
 
-
-int GeoRoutingFilter::NavigateHole(Geo_Header *pkt)
+int32_t GeoRoutingFilter::findNextHop(GeoHeader *geo_header, bool greedy)
 {
-  Neighbors_Hash::iterator itr;
-  GeoLocation cur_loc, dst, neighbor_loc, min_neighbor_loc;
-  double cur_dist, distance, gap;
-  double cur_l_cost, min_l_cost;
-  int min_cost_id, neighbor_id;
-  double min_dist;
-  int num_neighbors;
-  double new_h;
-
-  cur_loc.x = geo_longitude;
-  cur_loc.y = geo_latitude;
-
-  if (pkt->pkt_type == UNICAST_ORI)
-    dst = pkt->dst_region.center;
-  else
-    if (pkt->pkt_type == UNICAST_SUB)
-      dst = pkt->sub_region.center;
-
-  cur_dist = dist(cur_loc, dst);
-
-  min_dist = MAX_INT;
-  min_l_cost = MAX_INT;
-  num_neighbors = 0;
-
-  for (itr = neighbors_table.begin(); itr != neighbors_table.end(); ++itr){
-    num_neighbors++;
-
-    neighbor_loc.x = (*itr).second->longitude;
-    neighbor_loc.y = (*itr).second->latitude;
-
-    neighbor_id = (*itr).second->id;
-    cur_l_cost = RetrieveLearnedCost(neighbor_id, dst);
-
-    distance = dist(neighbor_loc, dst);
-
-    DiffPrint(DEBUG_IMPORTANT, "Neighbor: %d: l_cost = %f, min_l_cost = %f\n",
-	      neighbor_id, cur_l_cost, min_l_cost);
-
-    if (cur_l_cost < min_l_cost){
-      min_l_cost = cur_l_cost;
-      min_cost_id = (*itr).second->id;
-      min_neighbor_loc.x = neighbor_loc.x;
-      min_neighbor_loc.y = neighbor_loc.y;
-    }
-  }
-
-  DiffPrint(DEBUG_IMPORTANT, "GEO: # of neighbors: %d; cur: (%f, %f), dst: (%f, %f) \n", num_neighbors, cur_loc.x, cur_loc.y, dst.x, dst.y);
-
-  if (min_l_cost < MAX_INT){
-    // Update my h_value
-    gap = dist(min_neighbor_loc, cur_loc);
-    // The gap is one hop cost from me to the picked nexthop neighbor
-    new_h = min_l_cost + gap;
-    if (h_value_table.UpdateEntry(dst, new_h))
-      BroadcastH_Value(dst, new_h, 0);
-    return min_cost_id;
-  }
-  return FAIL;
-}
-
-int GeoRoutingFilter::GreedyNext(Geo_Header *pkt)
-{
-  Neighbors_Hash::iterator itr;
-  GeoLocation cur_loc, dst, neighbor_loc, min_neighbor_loc;
+  NeighborList::iterator neighbor_itr;
+  NeighborEntry *neighbor_entry;
+  GeoLocation destination, min_neighbor_location;
+  double current_learned_cost, min_learned_cost;
+  double current_distance, min_distance;
   double distance, gap;
-  double cur_l_cost, min_l_cost;
-  int min_cost_id, neighbor_id;
-  double cur_dist, min_dist;
+  int32_t min_cost_id, neighbor_id;
   int num_neighbors;
-  double new_h;
+  double new_heuristic_value;
 
-  cur_loc.x = geo_longitude;
-  cur_loc.y = geo_latitude;
+  // Load the destination coordinate from the packet
+  destination = geo_header->dst_region_.center_;
 
-  if (pkt->pkt_type == UNICAST_ORI)
-    dst = pkt->dst_region.center;
-  else
-    if (pkt->pkt_type == UNICAST_SUB)
-      dst = pkt->sub_region.center;
+  current_distance = Distance(geo_longitude_, geo_latitude_,
+			      destination.longitude_, destination.latitude_);
 
-  cur_dist = dist(cur_loc, dst);
-
-  min_dist = MAX_INT;
-  min_l_cost = MAX_INT;
+  min_distance = MAX_INT;
+  min_learned_cost = MAX_INT;
   num_neighbors = 0;
 
-  for (itr = neighbors_table.begin(); itr != neighbors_table.end(); ++itr){
+  for (neighbor_itr = neighbors_list_.begin();
+       neighbor_itr != neighbors_list_.end(); ++neighbor_itr){
+    neighbor_entry = *neighbor_itr;
     num_neighbors++;
 
-    neighbor_loc.x = (*itr).second->longitude;
-    neighbor_loc.y = (*itr).second->latitude;
+    neighbor_id = neighbor_entry->id_;
+    current_learned_cost = retrieveLearnedCost(neighbor_id, destination);
 
-    neighbor_id = (*itr).second->id;
-    cur_l_cost = RetrieveLearnedCost(neighbor_id, dst);
+    // Calculate distance from this neighbor to dst
+    distance = Distance(neighbor_entry->longitude_, neighbor_entry->latitude_,
+			destination.longitude_, destination.latitude_);
 
-    distance = dist(neighbor_loc, dst); // Calculate distance from this neighbor to dst
-
-    if (distance > cur_dist)
+    // If we are in 'greedy mode', we do not want to move away
+    if (greedy && (distance > current_distance))
       continue;
 
-    DiffPrint(DEBUG_IMPORTANT, "GEO: Neighbor: %d: l_cost = %f, min_l_cost = %f\n", neighbor_id, cur_l_cost, min_l_cost);
+    DiffPrint(DEBUG_IMPORTANT, "GEO: Neighbor: %d: cost = %f, min_cost = %f\n",
+	      neighbor_id, current_learned_cost, min_learned_cost);
 
-    if (cur_l_cost < min_l_cost){
-      min_l_cost = cur_l_cost;
-      min_cost_id = (*itr).second->id;
-      min_neighbor_loc.x = neighbor_loc.x;
-      min_neighbor_loc.y = neighbor_loc.y;
+    if (current_learned_cost < min_learned_cost){
+      min_learned_cost = current_learned_cost;
+      min_cost_id = neighbor_entry->id_;
+      min_neighbor_location.longitude_ = neighbor_entry->longitude_;
+      min_neighbor_location.latitude_ = neighbor_entry->latitude_;
     }
   }
 
-  DiffPrint(DEBUG_IMPORTANT, "GEO: # of neighbors: %d; cur: (%f, %f), dst: (%f, %f) \n", num_neighbors, cur_loc.x, cur_loc.y, dst.x, dst.y);
+  DiffPrint(DEBUG_IMPORTANT, "GEO: # neighbors: %d; cur: %f,%f, dst: %f,%f\n",
+	    num_neighbors, geo_longitude_, geo_latitude_, destination.longitude_,
+	    destination.latitude_);
 
-  if (min_l_cost < MAX_INT){
-    // Update my h_value
-    gap = dist(min_neighbor_loc, cur_loc);
-    // Gap is the geographical cost from me to the nexthop neighbor (min_cost_id) 
-    new_h = min_l_cost + gap;
-    if (h_value_table.UpdateEntry(dst, new_h))
-      BroadcastH_Value(dst, new_h, 0);
+  if (min_learned_cost < MAX_INT){
+    // Calculate the cost from me to my next hop neighbor
+    gap = Distance(min_neighbor_location.longitude_,
+		   min_neighbor_location.latitude_,
+		   geo_longitude_, geo_latitude_);
+
+    // Update my heuristic_value
+    new_heuristic_value = min_learned_cost + gap;
+
+    // Broadcast the new heuristic value if it's changed significantly
+    if (h_value_table_.updateEntry(destination, new_heuristic_value))
+      broadcastHeuristicValue(destination, new_heuristic_value);
     return min_cost_id;
   }
-  return FAIL;
+
+  // We have no neighbors to whom we can forward this message !
+  return BROADCAST_ADDR;
 }
 
-void GeoRoutingFilter::BroadcastH_Value(GeoLocation dst, double new_h, int to_id)
+void GeoRoutingFilter::broadcastHeuristicValue(GeoLocation dst,
+					       double new_heuristic_value)
 {
-  NRAttrVec *attrs = new NRAttrVec;
-  H_value *h_val = new H_value;
+  NRAttrVec attrs;
+  HeuristicValue *heuristic_value;
   Message *beacon_msg;
   TimerType *timer;
 
-  attrs->push_back(GeoLongitudeAttr.make(NRAttribute::IS, geo_longitude));
-  attrs->push_back(GeoLatitudeAttr.make(NRAttribute::IS, geo_latitude));
-  attrs->push_back(GeoRemainingEnergyAttr.make(NRAttribute::IS, GeoRemainingEnergy()));
-  attrs->push_back(GeoBeaconTypeAttr.make(NRAttribute::IS, GEO_H_VALUE_UPDATE));
+  attrs.push_back(GeoLongitudeAttr.make(NRAttribute::IS, geo_longitude_));
+  attrs.push_back(GeoLatitudeAttr.make(NRAttribute::IS, geo_latitude_));
+  attrs.push_back(GeoRemainingEnergyAttr.make(NRAttribute::IS,
+					      remainingEnergy()));
+  attrs.push_back(GeoBeaconTypeAttr.make(NRAttribute::IS, GEO_UPDATE));
 
-  h_val->dst_x = dst.x;
-  h_val->dst_y = dst.y;
-  h_val->h_val = new_h;
+  heuristic_value = new HeuristicValue(dst.longitude_,
+				       dst.latitude_, new_heuristic_value);
 
-  attrs->push_back(GeoH_valueAttr.make(NRAttribute::IS, (void *) h_val, sizeof(H_value)));
+  attrs.push_back(GeoHeuristicValueAttr.make(NRAttribute::IS,
+					     (void *) heuristic_value,
+					     sizeof(HeuristicValue)));
 
   beacon_msg = new Message(DIFFUSION_VERSION, DATA, 0, 0,
-			   attrs->size(), pkt_count, rdm_id, to_id,
-			   LOCALHOST_ADDR);
-
-  // For now, send this message to broadcast
-  beacon_msg->last_hop_ = LOCALHOST_ADDR;
-  beacon_msg->next_hop_ = BROADCAST_ADDR;
+			   attrs.size(), pkt_count_, rdm_id_,
+			   BROADCAST_ADDR, LOCALHOST_ADDR);
 
   // Don't forget to increase pkt_count
-  pkt_count++;
+  pkt_count_++;
 
-  beacon_msg->msg_attr_vec_ = CopyAttrs(attrs);
+  beacon_msg->msg_attr_vec_ = CopyAttrs(&attrs);
 
   // Now, we generate a beacon to broadcast triggered h-value update
   // but first we add some random jitter before actually sending it
   timer = new TimerType(MESSAGE_SEND_TIMER);
+  timer->param_ = (void *) CopyMessage(beacon_msg);
 
-  timer->param = (void *) CopyMessage(beacon_msg);
-
-  ((DiffusionRouting *)dr_)->addTimer(GEO_BEACON_REQUEST_DELAY +
-				      (int) ((GEO_BEACON_REQUEST_JITTER *
+  ((DiffusionRouting *)dr_)->addTimer(GEO_BEACON_DELAY +
+				      (int) ((GEO_BEACON_JITTER *
 					      (GetRand() * 1.0 / RAND_MAX) -
-					      (GEO_BEACON_REQUEST_JITTER / 2))),
-				      (void *) timer, tcb);
+					      (GEO_BEACON_JITTER / 2))),
+				      (void *) timer, timer_callback_);
 
   // Delete everything we created here
-  ClearAttrs(attrs);
-  delete attrs;
+  ClearAttrs(&attrs);
   delete beacon_msg;
-  delete h_val;
+  delete heuristic_value;
 }
 
-int32_t	GeoRoutingFilter::GeoFindNextHop(Message *msg)
+int GeoRoutingFilter::floodInsideRegion(GeoHeader *geo_header)
 {
-  NRSimpleAttribute<void *> *geo_header_p;
-  Geo_Header *geo_h_val_p;
-  int32_t next_hop;
-  int flood;
-
-  // The interest message is ready to go out and has been filled with the geo_header field
-
-  geo_header_p = GeoHeaderAttr.find(msg->msg_attr_vec_);
-
-  if (geo_header_p){
-    geo_h_val_p = (Geo_Header *)(geo_header_p->getVal());
-  }
-  else{
-    DiffPrint(DEBUG_ALWAYS, "GEO: Error. Can't find geo_header !\n");
-    return FAIL;
-  }
-
-  // Check if we have to broadcast this message. We do not need to check
-  // if I have seen this broadcast packet before, since this is called
-  // by PostProcessMessage, so it must be a new packet. We only need to
-  // check if we are inside the target region
-
-  flood = FloodInsideRegion(geo_h_val_p);
-
-  if (flood == BROADCAST)
-    return BROADCAST;
-  else
-    if (flood == BROADCAST_SUPPRESS)
-      return  BROADCAST_SUPPRESS;
-
-  // Greedy first
-  next_hop = GreedyNext(geo_h_val_p);
-
-  // If Greedy fails, use RTA* to navigate around holes
-  if (next_hop == FAIL)
-    next_hop = NavigateHole(geo_h_val_p);
-
-  return next_hop;
-}
-
-int GeoRoutingFilter::FloodInsideRegion(Geo_Header *pkt)
-{
-  Neighbors_Hash::iterator itr;
-  GeoLocation cur_loc, neighbor_loc;  
-  GeoLocation dst;
+  NeighborList::iterator neighbor_itr;
+  NeighborEntry *neighbor_entry;
+  GeoLocation destination;
   double radius, distance;
 
-  if (pkt->pkt_type == UNICAST_ORI){
-    dst = pkt->dst_region.center;
-    radius = pkt->dst_region.radius;
-  }
-  else{
-    if (pkt->pkt_type == UNICAST_SUB){
-      dst = pkt->sub_region.center;
-      radius = pkt->sub_region.radius;
-    }
-  }
+  // Load destination coordinates
+  destination = geo_header->dst_region_.center_;
+  radius = geo_header->dst_region_.radius_;
 
-  cur_loc.x = geo_longitude;
-  cur_loc.y = geo_latitude;
+  if (Distance(geo_longitude_, geo_latitude_,
+	       destination.longitude_, destination.latitude_) < radius){
 
-  if (dist(cur_loc, dst) < radius){
-    // We are inside the target region
+    // We are inside the target region, change mode to BROADCAST
+    geo_header->pkt_type_ = BROADCAST_TYPE;
 
-    // Change its mode to BROADCAST
-    pkt->pkt_type = BROADCAST_TYPE;
-
-    // If all my neighbors are outside this region, suppress this broadcast message
-    for (itr = neighbors_table.begin(); itr != neighbors_table.end(); ++itr){
-      neighbor_loc.x = (*itr).second->longitude;
-      neighbor_loc.y = (*itr).second->latitude;
+    // If all my neighbors are outside this region, suppress this
+    // broadcast message
+    for (neighbor_itr = neighbors_list_.begin();
+	 neighbor_itr != neighbors_list_.end(); ++neighbor_itr){
+      neighbor_entry = *neighbor_itr;
 
       // Calculate distance between neighbor and dst
-      distance = dist(neighbor_loc, dst);
+      distance = Distance(neighbor_entry->longitude_,
+			  neighbor_entry->latitude_,
+			  destination.longitude_, destination.latitude_);
 
-      // As long as we have one neighbor inside the region, broadcast the message
-      if  (distance < radius)
+      // As long as we have one neighbor inside the region, broadcast
+      // the message
+      if (distance < radius)
 	return BROADCAST;
     }
     return BROADCAST_SUPPRESS;
   }
-
-  if (pkt->pkt_type == BROADCAST_TYPE)
-    // This is a BROADCAST pkt flooded outside the region
-    return BROADCAST_SUPPRESS;
-
-  // I am not inside the region, just a regular packet
-  return FALSE;
+  else{
+    if (geo_header->pkt_type_ == BROADCAST_TYPE){
+      // This is a BROADCAST packet flooded outside the region
+      return BROADCAST_SUPPRESS;
+    }
+    else{
+      // We are still outside the target region, continue forwading
+      // the packet towards the region
+      return OUTSIDE_REGION;
+    }
+  }
 }
 
-double GeoRoutingFilter::dist(GeoLocation p1, GeoLocation p2)
-{
-  double dist, tmp;
-
-  tmp = p1.x - p2.x;
-  dist = tmp * tmp;
-  tmp = p1.y - p2.y;
-  dist += tmp * tmp;
-
-  return sqrt(dist);
-}
-
-double GeoRoutingFilter::RetrieveLearnedCost(int neighbor_id, GeoLocation dst)
+double GeoRoutingFilter::retrieveLearnedCost(int neighbor_id, GeoLocation dst)
 {
   int index;
 
-  index = learned_cost_table.RetrieveEntry(neighbor_id, &dst);
+  index = learned_cost_table_.retrieveEntry(neighbor_id, &dst);
 
   if (index != FAIL)
-    return learned_cost_table.table[index].l_cost_value;
+    return learned_cost_table_.table_[index].learned_cost_value_;
   else
-    return EstimateCost(neighbor_id, dst);
+    return estimateCost(neighbor_id, dst);
 }
 
-double GeoRoutingFilter::EstimateCost(int neighbor_id, GeoLocation dst)
+double GeoRoutingFilter::estimateCost(int neighbor_id, GeoLocation dst)
 {
-  double x_coor, y_coor;
+  NeighborEntry *neighbor_entry;
   double distance;
-  Neighbors_Hash::iterator itr;
-  GeoLocation cur_loc;
 
   // To get this neighbor's location, we first find the entry with neighbor_id
   // Since right now it is pure geographical routing, the estimated cost is
@@ -1276,84 +1222,50 @@ double GeoRoutingFilter::EstimateCost(int neighbor_id, GeoLocation dst)
     return FAIL;
   }
 
-  itr = neighbors_table.find(neighbor_id);
+  neighbor_entry = findNeighbor(neighbor_id);
 
-  if (itr == neighbors_table.end()){
+  if (!neighbor_entry)
     return FAIL;
-  }
 
-  x_coor = (*itr).second->longitude;
-  y_coor = (*itr).second->latitude;
+  distance = Distance(neighbor_entry->longitude_, neighbor_entry->latitude_,
+		      dst.longitude_, dst.latitude_);
 
-  cur_loc.x = x_coor;
-  cur_loc.y = y_coor;
-
-  distance = dist(cur_loc, dst);
   return distance;
 }
 
-//as long as there are one neighbor info outdated, return TRUE..
-void GeoRoutingFilter::DeleteOldNeighbors()
+NeighborEntry * GeoRoutingFilter::findNeighbor(int32_t neighbor_id)
 {
-  struct timeval tv;
-  int num_neighbors = 0;
-  Neighbors_Hash::iterator itr, itr2;
-  bool deleted_neighbors = false;
+  NeighborList::iterator neighbor_itr;
+  NeighborEntry *neighbor_entry;
 
-  GetTime(&tv);
-
-  while (1){
-    for (itr = neighbors_table.begin(); itr != neighbors_table.end(); ++itr){
-      num_neighbors++;
-      DiffPrint(DEBUG_IMPORTANT, "GEO: Check: %d: %d --> %d\n",
-		(*itr).second->id, (*itr).second->tv.tv_sec, tv.tv_sec);
-
-      if ((tv.tv_sec - (*itr).second->tv.tv_sec) >= GEO_NEIGHBOR_TIMEOUT){
-	// Delete timeout neighbors
-	DiffPrint(DEBUG_IMPORTANT, "GEO: Deleting neighbor %d\n",
-		  (*itr).second->id);
-	itr2 = itr;
-	deleted_neighbors = true;
-	break;
-	// neighbors_table.erase(itr2);
-      }
-    }
-
-    if (deleted_neighbors){
-      // Erase the entry w/ key itr2
-      neighbors_table.erase(itr2);
-      deleted_neighbors = false;
-    }
-    else{
-      break;
-      // We did not find an entry to delete
-    }
-    // This is a stupid hack: since once an entry is deleted, it
-    // messed up the pointer, so I use outer loop while (1) to restart
-    // the search, to delete the other outdated entries.. in order to
-    // solve this problem.. 
+  for (neighbor_itr = neighbors_list_.begin();
+       neighbor_itr != neighbors_list_.end(); ++neighbor_itr){
+    neighbor_entry = *neighbor_itr;
+    if (neighbor_entry->id_ == neighbor_id)
+      return neighbor_entry;
   }
+  return NULL;
 }
 
-double GeoRoutingFilter::RetrieveH_Value(GeoLocation dst)
+double GeoRoutingFilter::retrieveHeuristicValue(GeoLocation dst)
 {
   int index;
 
-  index = h_value_table.RetrieveEntry(&dst);
+  index = h_value_table_.retrieveEntry(&dst);
 
   if (index != FAIL)
-    return h_value_table.table[index].h_value;
+    return h_value_table_.table_[index].heuristic_value_;
 
-  return INITIAL_H_VALUE;
+  return INITIAL_HEURISTIC_VALUE;
 }
 
 #ifndef NS_DIFFUSION
 int main(int argc, char **argv)
 {
-  GeoRoutingFilter *gr_app;
+  GeoRoutingFilter *geo_filter;
 
-  gr_app = new GeoRoutingFilter(argc, argv);
-  gr_app->run();
+  geo_filter = new GeoRoutingFilter(argc, argv);
+  geo_filter->run();
 
   return 0;
 }

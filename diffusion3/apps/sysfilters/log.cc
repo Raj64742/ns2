@@ -2,8 +2,8 @@
 // log.cc         : Log Filter
 // author         : Fabio Silva
 //
-// Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: log.cc,v 1.3 2002/05/13 22:33:44 haldar Exp $
+// Copyright (C) 2000-2002 by the University of Southern California
+// $Id: log.cc,v 1.4 2002/05/29 21:58:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -49,14 +49,14 @@ int LogFilter::command(int argc, const char*const* argv) {
 
 void LogFilterReceive::recv(Message *msg, handle h)
 {
-  app->recv(msg, h);
+  app_->recv(msg, h);
 }
 
 void LogFilter::recv(Message *msg, handle h)
 {
-  if (h != filterHandle){
+  if (h != filter_handle_){
     DiffPrint(DEBUG_ALWAYS,
-	      "Error: recv received message for handle %d when subscribing to handle %d !\n", h, filterHandle);
+	      "Error: recv received message for handle %d when subscribing to handle %d !\n", h, filter_handle_);
     return;
   }
 
@@ -92,7 +92,8 @@ handle LogFilter::setupFilter()
   // This is a dummy attribute for filtering that matches everything
   attrs.push_back(NRClassAttr.make(NRAttribute::IS, NRAttribute::INTEREST_CLASS));
 
-  h = ((DiffusionRouting *)dr_)->addFilter(&attrs, LOG_FILTER_PRIORITY, fcb);
+  h = ((DiffusionRouting *)dr_)->addFilter(&attrs, LOG_FILTER_PRIORITY,
+					   filter_callback_);
 
   ClearAttrs(&attrs);
   return h;
@@ -101,8 +102,9 @@ handle LogFilter::setupFilter()
 void LogFilter::run()
 {
 #ifdef NS_DIFFUSION
-  filterHandle = setupFilter();
-  DiffPrint(DEBUG_ALWAYS, "Log filter subscribed to *, received handle %d\n", filterHandle);
+  filter_handle_ = setupFilter();
+  DiffPrint(DEBUG_ALWAYS, "Log filter subscribed to *, received handle %d\n",
+	    filter_handle_);
   DiffPrint(DEBUG_ALWAYS, "Log filter initialized !\n");
 #else
   // Doesn't do anything
@@ -122,16 +124,16 @@ LogFilter::LogFilter(int argc, char **argv)
 #ifndef NS_DIFFUSION
   parseCommandLine(argc, argv);
   dr_ = NR::createNR(diffusion_port_);
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION
 
-  fcb = new LogFilterReceive(this);
+  filter_callback_ = new LogFilterReceive(this);
 
 #ifndef NS_DIFFUSION
   // Set up the filter
-  filterHandle = setupFilter();
-  DiffPrint(DEBUG_ALWAYS, "Log filter subscribed to *, received handle %d\n", filterHandle);
+  filter_handle_ = setupFilter();
+  DiffPrint(DEBUG_ALWAYS, "Log filter subscribed to *, received handle %d\n", filter_handle_);
   DiffPrint(DEBUG_ALWAYS, "Log filter initialized !\n");
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION
 }
 
 #ifndef NS_DIFFUSION
@@ -145,4 +147,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION

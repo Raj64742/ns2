@@ -2,8 +2,8 @@
 // log.hh         : Log Filter Include File
 // author         : Fabio Silva
 //
-// Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: log.hh,v 1.3 2002/05/13 22:33:44 haldar Exp $
+// Copyright (C) 2000-2002 by the University of Southern California
+// $Id: log.hh,v 1.4 2002/05/29 21:58:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -20,8 +20,8 @@
 //
 //
 
-#ifndef LOG_HH
-#define LOG_HH
+#ifndef _LOG_HH_
+#define _LOG_HH_
 
 #ifdef HAVE_CONFIG_H
 #include "config.h"
@@ -35,12 +35,10 @@ class LogFilter;
 
 class LogFilterReceive : public FilterCallback {
 public:
-  LogFilterReceive(LogFilter *_app) : app(_app)
-  {};
-
-  LogFilter *app;
-
+  LogFilterReceive(LogFilter *app) : app_(app) {};
   void recv(Message *msg, handle h);
+
+  LogFilter *app_;
 };
 
 class LogFilter : public DiffApp {
@@ -57,10 +55,10 @@ public:
 
 protected:
   // General Variables/Functions
-  handle filterHandle;
+  handle filter_handle_;
 
   // Receive Callback for the filter
-  LogFilterReceive *fcb;
+  LogFilterReceive *filter_callback_;
 
   // Setup the filter
   handle setupFilter();
@@ -69,4 +67,4 @@ protected:
   void ProcessMessage(Message *msg);
 };
 
-#endif // LOG_HH
+#endif // !_LOG_HH_

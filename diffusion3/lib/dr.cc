@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: dr.cc,v 1.10 2002/05/13 22:33:45 haldar Exp $
+// $Id: dr.cc,v 1.11 2002/05/29 21:58:12 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -726,12 +726,14 @@ int DiffusionRouting::sendMessage(Message *msg, handle h,
 				    msg->last_hop_, 0,
 				    msg->next_port_);
 
-  originalAttr = OriginalHdrAttr.make(NRAttribute::IS, (void *)originalHdr, sizeof(RedirectMessage));
+  originalAttr = OriginalHdrAttr.make(NRAttribute::IS, (void *)originalHdr,
+				      sizeof(RedirectMessage));
 
   // Create the attribute with the control message
   controlblob = new ControlMessage(SEND_MESSAGE, h, priority);
 
-  ctrlmsg = ControlMsgAttr.make(NRAttribute::IS, (void *)controlblob, sizeof(ControlMessage));
+  ctrlmsg = ControlMsgAttr.make(NRAttribute::IS, (void *)controlblob,
+				sizeof(ControlMessage));
 
   // Copy Attributes and add originalAttr and controlAttr
   attrs = CopyAttrs(msg->msg_attr_vec_);

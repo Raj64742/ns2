@@ -2,8 +2,8 @@
 // srcrt.cc       : Source Route Filter
 // author         : Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: srcrt.cc,v 1.3 2002/05/13 22:33:44 haldar Exp $
+// Copyright (C) 2000-2002 by the Unversity of Southern California
+// $Id: srcrt.cc,v 1.4 2002/05/29 21:58:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -49,15 +49,15 @@ int SrcRtFilter::command(int argc, const char*const* argv) {
 
 void SrcRtFilterReceive::recv(Message *msg, handle h)
 {
-  app->recv(msg, h);
+  app_->recv(msg, h);
 }
 
 void SrcRtFilter::recv(Message *msg, handle h)
 {
   Message *return_msg = NULL;
 
-  if (h != filterHandle){
-    fprintf(stderr, "Error: Received a message for handle %ld when subscribing to handle %ld !\n", h, filterHandle);
+  if (h != filter_handle_){
+    DiffPrint(DEBUG_ALWAYS, "Error: Received a message for handle %ld when subscribing to handle %ld !\n", h, filter_handle_);
     return;
   }
 
@@ -79,7 +79,7 @@ Message * SrcRtFilter::ProcessMessage(Message *msg)
 
   route = SourceRouteAttr.find(msg->msg_attr_vec_);
   if (!route){
-    fprintf(stderr, "Error: Can't find the route attribute !\n");
+    DiffPrint(DEBUG_ALWAYS, "Error: Can't find the route attribute !\n");
     return msg;
   }
 
@@ -106,7 +106,7 @@ Message * SrcRtFilter::ProcessMessage(Message *msg)
     new_route = new char[(len + 1)];
     strncpy(new_route, p, (len + 1));
     if (new_route[len] != '\0')
-      fprintf(stderr, "Warning: String must end with NULL !\n");
+      DiffPrint(DEBUG_ALWAYS, "Warning: String must end with NULL !\n");
   }
 
   route->setVal(new_route);
@@ -116,7 +116,7 @@ Message * SrcRtFilter::ProcessMessage(Message *msg)
 
   // Send the packet to the next hop
   msg->next_hop_ = next_hop;
-  ((DiffusionRouting *)dr_)->sendMessage(msg, filterHandle);
+  ((DiffusionRouting *)dr_)->sendMessage(msg, filter_handle_);
 
   delete msg;
 
@@ -131,7 +131,8 @@ handle SrcRtFilter::setupFilter()
   // Match all packets with a SourceRoute Attribute
   attrs.push_back(SourceRouteAttr.make(NRAttribute::EQ_ANY, ""));
 
-  h = ((DiffusionRouting *)dr_)->addFilter(&attrs, SRCRT_FILTER_PRIORITY, fcb);
+  h = ((DiffusionRouting *)dr_)->addFilter(&attrs, SRCRT_FILTER_PRIORITY,
+					   filter_callback_);
 
   ClearAttrs(&attrs);
   return h;
@@ -140,9 +141,10 @@ handle SrcRtFilter::setupFilter()
 void SrcRtFilter::run()
 {
 #ifdef NS_DIFFUSION
-  filterHandle = setupFilter();
-  fprintf(stderr, "SrcRtFilter filter received handle %ld\n", filterHandle);
-  fprintf(stderr, "SrcRtFilter filter initialized !\n");
+  filter_handle_ = setupFilter();
+  DiffPrint(DEBUG_ALWAYS, "SrcRtFilter filter received handle %ld\n",
+	    filter_handle_);
+  DiffPrint(DEBUG_ALWAYS, "SrcRtFilter filter initialized !\n");
 #else
   // Doesn't do anything
   while (1){
@@ -166,13 +168,14 @@ SrcRtFilter::SrcRtFilter(int argc, char **argv)
   dr_ = NR::createNR(diffusion_port_);
 #endif // !NS_DIFFUSION
 
-  fcb = new SrcRtFilterReceive(this);
+  filter_callback_ = new SrcRtFilterReceive(this);
 
 #ifndef NS_DIFFUSION
   // Set up the filter
-  filterHandle = setupFilter();
-  fprintf(stderr, "SrcRtFilter filter received handle %ld\n", filterHandle);
-  fprintf(stderr, "SrcRtFilter filter initialized !\n");
+  filter_handle_ = setupFilter();
+  DiffPrint(DEBUG_ALWAYS, "SrcRtFilter filter received handle %ld\n",
+	    filter_handle_);
+  DiffPrint(DEBUG_ALWAYS, "SrcRtFilter filter initialized !\n");
 #endif // !NS_DIFFUSION
 }
 
@@ -187,4 +190,4 @@ int main(int argc, char **argv)
 
   return 0;
 }
-#endif // NS_DIFFUSION
+#endif // !NS_DIFFUSION

@@ -2,8 +2,8 @@
 // tag.hh         : Tag Filter Include File
 // author         : Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: tag.hh,v 1.3 2002/05/13 22:33:44 haldar Exp $
+// Copyright (C) 2000-2002 by the Unversity of Southern California
+// $Id: tag.hh,v 1.4 2002/05/29 21:58:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -36,10 +36,10 @@ class TagFilter;
 
 class TagFilterReceive : public FilterCallback {
 public:
-  TagFilter *app;
-
-  TagFilterReceive(TagFilter *_app) : app(_app) {};
+  TagFilterReceive(TagFilter *app) : app_(app) {};
   void recv(Message *msg, handle h);
+
+  TagFilter *app_;
 };
 
 class TagFilter : public DiffApp {
@@ -56,12 +56,11 @@ public:
 
 protected:
   // General Variables
-  handle filterHandle;
-  int node_id;
-  char *id;
+  handle filter_handle_;
+  char *id_;
 
   // Receive Callback for the filter
-  TagFilterReceive *fcb;
+  TagFilterReceive *filter_callback_;
 
   // Filter interface
   handle setupFilter();
@@ -70,4 +69,4 @@ protected:
   // Message Processing
   void ProcessMessage(Message *msg);
 };
-#endif // TAG_HH
+#endif // !TAG_HH

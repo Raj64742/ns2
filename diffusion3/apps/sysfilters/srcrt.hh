@@ -2,8 +2,8 @@
 // srcrt.hh       : Source Route Filter Include File
 // author         : Fabio Silva
 //
-// Copyright (C) 2000-2001 by the Unversity of Southern California
-// $Id: srcrt.hh,v 1.3 2002/05/13 22:33:44 haldar Exp $
+// Copyright (C) 2000-2002 by the Unversity of Southern California
+// $Id: srcrt.hh,v 1.4 2002/05/29 21:58:11 haldar Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -39,10 +39,10 @@ class SrcRtFilter;
 
 class SrcRtFilterReceive : public FilterCallback {
 public:
-  SrcRtFilter *app;
-
-  SrcRtFilterReceive(SrcRtFilter *_app) : app(_app) {};
+  SrcRtFilterReceive(SrcRtFilter *app) : app_(app) {};
   void recv(Message *msg, handle h);
+
+  SrcRtFilter *app_;
 };
 
 class SrcRtFilter : public DiffApp {
@@ -59,10 +59,10 @@ public:
 
 protected:
   // General Variables
-  handle filterHandle;
+  handle filter_handle_;
 
   // Receive Callback for the filter
-  SrcRtFilterReceive *fcb;
+  SrcRtFilterReceive *filter_callback_;
 
   // Filter interface
   handle setupFilter();
@@ -70,4 +70,4 @@ protected:
   // Message Processing
   Message * ProcessMessage(Message *msg);
 };
-#endif // SRCRT_HH
+#endif // !SRCRT_HH
