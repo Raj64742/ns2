@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.h,v 1.19 2003/12/23 17:36:32 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/mobilenode.h,v 1.20 2004/10/11 17:06:42 haldar Exp $
  *
  */
 
@@ -150,6 +150,7 @@ public:
 	inline double destX() { return destX_; }
 	inline double destY() { return destY_; }
 	inline double radius() { return radius_; }
+	inline double getUpdateTime() { return position_update_time_; }
 	//inline double last_routingtime() { return last_rt_time_;}
 
 	void update_position();

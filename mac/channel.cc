@@ -37,8 +37,14 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.42 2004/09/08 17:00:53 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/channel.cc,v 1.43 2004/10/11 17:06:43 haldar Exp $ (UCB)";
 #endif
+
+// Time interval for updating a position of a node in the X-List
+// (can be adjusted by the user, depending on the nodes mobility). /* VAL NAUMOV */
+#define POSITION_UPDATE_INTERVAL 1.0 //seconds
+
+
 
 //#include "template.h"
 #include <float.h>
@@ -509,7 +515,7 @@ WirelessChannel::updateNodesList(class MobileNode *mn, double oldX) {
 	}
 	
 	if ((mn->prevX_ == NULL) && (mn->nextX_ == NULL)) skipX = true; //skip updating if only one element in list
-
+	
 	/*** INSERT ***/
 	//inserting mn in x-list
 	if(!skipX){
@@ -574,7 +580,13 @@ WirelessChannel::getAffectedNodes(MobileNode *mn, double radius,
 	// First allocate as much as possibly needed
 	tmpList = new MobileNode*[numNodes_];
 	
-
+	for(tmp = xListHead_; tmp != NULL; tmp = tmp->nextX_) tmpList[n++] = tmp;
+	for(int i = 0; i < n; ++i)
+		if(tmpList[i]->speed()!=0.0 && (Scheduler::instance().clock() -
+						tmpList[i]->getUpdateTime()) > POSITION_UPDATE_INTERVAL )
+			tmpList[i]->update_position();
+	n=0;
+	
 	for(tmp = mn; tmp != NULL && tmp->X() >= xmin; tmp=tmp->prevX_)
 		if(tmp->Y() >= ymin && tmp->Y() <= ymax){
 			tmpList[n++] = tmp;
