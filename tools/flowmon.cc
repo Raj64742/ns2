@@ -33,7 +33,7 @@
 
 #ifndef lint
 static char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.2 1997/06/06 18:34:10 kfall Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.3 1997/06/06 23:30:43 kfall Exp $ (LBL)";
 #endif
 
 //
@@ -46,19 +46,34 @@ static char rcsid[] =
 #include "config.h"
 #include "queue-monitor.h"
 #include "classifier.h"
+#include "ip.h"
 
 // for convenience, we need most of the stuff in a QueueMonitor
 // plus some flow info which looks like pkt header info
 
 class Flow : public EDQueueMonitor {
 public:
+	Flow() : src_(-1), dst_(-1), fid_(-1), type_(-1) {
+		bind("off_ip_" ,&off_ip_);
+	}
 	nsaddr_t src() const { return (src_); }
 	nsaddr_t dst() const { return (dst_); }
 	int flowid() const { return (fid_); }
+	int ptype() const { return (type_); }
+	void setfields(Packet *p) {
+		hdr_ip* hdr = (hdr_ip*)p->access(off_ip_);
+		hdr_cmn* chdr = (hdr_cmn*)p->access(off_cmn_);
+		src_ = hdr->src();
+		dst_ = hdr->dst();
+		fid_ = hdr->flowid();
+		type_ = chdr->ptype();
+	}
 protected:
+	int		off_ip_;
 	nsaddr_t	src_;
 	nsaddr_t	dst_;
 	int		fid_;
+	int		type_;
 };
 
 /*
@@ -92,39 +107,43 @@ void
 FlowMon::in(Packet *p)
 {
 	Flow* desc;
-printf("FLOWMON(%s)(in): pkt:0x%p\n", name(), p);
 	EDQueueMonitor::in(p);
-	if ((desc = ((Flow*)classifier_->find(p))) != NULL)
+	if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
+		desc->setfields(p);
 		desc->in(p);
+	}
 }
 void
 FlowMon::out(Packet *p)
 {
 	Flow* desc;
-printf("FLOWMON(%s)(out): pkt:0x%p\n", name(), p);
 	EDQueueMonitor::out(p);
-	if ((desc = ((Flow*)classifier_->find(p))) != NULL)
+	if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
+		desc->setfields(p);
 		desc->out(p);
+	}
 }
 
 void
 FlowMon::drop(Packet *p)
 {
 	Flow* desc;
-printf("FLOWMON(%s)(drop): pkt:0x%p\n", name(), p);
 	EDQueueMonitor::drop(p);
-	if ((desc = ((Flow*)classifier_->find(p))) != NULL)
+	if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
+		desc->setfields(p);
 		desc->drop(p);
+	}
 }
 
 void
 FlowMon::edrop(Packet *p)
 {
 	Flow* desc;
-printf("FLOWMON(%s)(edrop): pkt:0x%p\n", name(), p);
 	EDQueueMonitor::edrop(p);
-	if ((desc = ((Flow*)classifier_->find(p))) != NULL)
+	if ((desc = ((Flow*)classifier_->find(p))) != NULL) {
+		desc->setfields(p);
 		desc->edrop(p);
+	}
 }
 
 void
@@ -133,7 +152,7 @@ FlowMon::dumpflows()
 	register i, j = classifier_->maxslot();
 	Flow* f;
 
-	for (i = 0; i < j; i++) {
+	for (i = 0; i <= j; i++) {
 		if ((f = (Flow*)classifier_->find(i)) != NULL)
 			dumpflow(channel_, f);
 	}
@@ -147,7 +166,7 @@ FlowMon::fformat(Flow* f)
 		now,
 		f->flowid(),	// flowid
 		0,		// category
-		0,		// type (from trace header)
+		f->ptype(),	// type (from trace header)
 		f->flowid(),	// flowid (formerly class)
 		f->src(),
 		f->dst(),
