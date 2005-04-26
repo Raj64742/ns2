@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.78 2005/04/26 18:56:35 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.79 2005/04/26 22:54:13 haldar Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.78 2005/04/26 18:56:35 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.79 2005/04/26 22:54:13 haldar Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -117,11 +117,6 @@ ErrorModel::ErrorModel() : et_(0), firstTime_(1), unit_(EU_PKT), ranvar_(0), FEC
 	bind_bw("bandwidth_", &bandwidth_); // required for EU_TIME
 	bind_bool("markecn_", &markecn_);
 	bind_bool("delay_pkt_", &delay_pkt_);
-	for (int n=0; n<31;n++){
-		first_[n] = 1;
-		intrlist[n].uid_ = 0;
-	}
-	
 	
 }
 
