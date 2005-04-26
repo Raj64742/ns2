@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/arp.cc,v 1.11 2000/09/01 03:04:05 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/arp.cc,v 1.12 2005/04/26 18:56:35 haldar Exp $
  */
 
 
@@ -297,6 +297,8 @@ ARPTable::arpinput(Packet *p, LL *ll)
 			fprintf(stderr, "\tsending HELD packet.\n");
 #endif
 			mac_->hdr_dst(mh, ah->arp_sha);
+			//ll->hdr_dst(p, ah->arp_sha);
+			
 			s.schedule(ll->downtarget_, llinfo->hold_, delay_);
 			llinfo->hold_ = 0;
 		}

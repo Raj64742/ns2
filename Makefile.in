@@ -237,6 +237,7 @@ OBJ_CC = \
 	mac/phy.o mac/wired-phy.o mac/wireless-phy.o \
 	mac/mac-timers.o trace/cmu-trace.o mac/varp.o \
 	mac/mac-simple.o \
+	mac/hdlc.o \
 	dsdv/dsdv.o dsdv/rtable.o queue/rtqueue.o \
 	routing/rttable.o \
 	imep/imep.o imep/dest_queue.o imep/imep_api.o \

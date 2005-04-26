@@ -121,8 +121,6 @@ void MacSimple::recv(Packet *p, Handler *h) {
 
 	}
 
-	
-
 	/*
 	 * check to see if we're already receiving a different packet
 	 */
@@ -212,8 +210,8 @@ void MacSimple::send(Packet *p, Handler *h)
 
 	if (rx_state_ == MAC_IDLE ) {
 		// we're idle, so start sending now
-		waitTimer->start(jitter);
-		sendTimer->start(jitter + ch->txtime());
+		waitTimer->restart(jitter);
+		sendTimer->restart(jitter + ch->txtime());
 	} else {
 		// we're currently receiving, so schedule it after
 		// we finish receiving
@@ -231,7 +229,7 @@ void MacSimple::recvHandler()
 	MacState state = rx_state_;
 	pktRx_ = 0;
 
-	busy_ = 0;
+	//busy_ = 0;
 
 	rx_state_ = MAC_IDLE;
 
@@ -244,7 +242,9 @@ void MacSimple::recvHandler()
 		//Packet::free(p);
 	} else if (ch->error()) {
 		// packet has errors, so discard it
-		Packet::free(p);
+		//Packet::free(p);
+		drop(p, DROP_MAC_PACKET_ERROR);
+		
 	} else {
 		uptarget_->recv(p, (Handler*) 0);
 	}
@@ -268,8 +268,10 @@ void MacSimple::sendHandler()
 	tx_state_ = MAC_IDLE;
 	tx_active_ = 0;
 
-	busy_ = 1;
-
+	//busy_ = 1;
+	//busy_ = 0;
+	
+	
 	// I have to let the guy above me know I'm done with the packet
 	h->handle(p);
 }
@@ -279,12 +281,21 @@ void MacSimple::sendHandler()
 
 //  Timers
 
+void MacSimpleTimer::restart(double time)
+{
+	if (busy_)
+		stop();
+	start(time);
+}
+
+	
 
 void MacSimpleTimer::start(double time)
 {
 	Scheduler &s = Scheduler::instance();
 
 	assert(busy_ == 0);
+	
 	busy_ = 1;
 	stime = s.clock();
 	rtime = time;

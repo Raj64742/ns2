@@ -34,7 +34,7 @@
  * Contributed by the Daedalus Research Group, UC Berkeley 
  * (http://daedalus.cs.berkeley.edu)
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.49 2005/03/21 18:51:30 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.h,v 1.50 2005/04/26 18:56:35 haldar Exp $ (UCB)
  */
 
 #ifndef ns_errmodel_h
@@ -102,6 +102,7 @@ protected:
 	double *cntrlprb_;
 	double *dataprb_;
 	Event intr_;		// set callback to queue
+	
 };
 
 class TwoStateErrorModel;

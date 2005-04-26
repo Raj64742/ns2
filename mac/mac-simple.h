@@ -78,6 +78,7 @@ public:
 	  busy_ = 0;
 	}
 	virtual void handle(Event *e) = 0;
+	virtual void restart(double time);
 	virtual void start(double time);
 	virtual void stop(void);
 	inline int busy(void) { return busy_; }

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.96 2004/04/22 20:12:30 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.97 2005/04/26 18:56:35 haldar Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -57,6 +57,7 @@
 #define HDR_MAC_TDMA(p) ((hdr_mac_tdma *)hdr_mac::access(p))
 #define HDR_SMAC(p)     ((hdr_smac *)hdr_mac::access(p))
 #define HDR_LL(p)       (hdr_ll::access(p))
+#define HDR_HDLC(p)     ((hdr_hdlc *)hdr_ll::access(p))
 #define HDR_IP(p)       (hdr_ip::access(p))
 #define HDR_RTP(p)      (hdr_rtp::access(p))
 #define HDR_TCP(p)      (hdr_tcp::access(p))
@@ -162,6 +163,9 @@ enum packet_t {
 
 	// XCP packet
 	PT_XCP,
+	
+	// HDLC packet
+	PT_HDLC,
 
 	// insert new packet types here
 	PT_NTYPE // This MUST be the LAST one
@@ -253,8 +257,12 @@ public:
 		// smac
 		name_[PT_SMAC]="smac";
 
-		name_[PT_XCP]="xcp";
+		// HDLC
+		name_[PT_HDLC]="HDLC";
 
+		// XCP
+		name_[PT_XCP]="xcp";
+		
 		name_[PT_NTYPE]= "undefined";
 	}
 	const char* name(packet_t p) const { 
@@ -269,8 +277,9 @@ public:
 			 (type) == PT_VIDEO || \
 			 (type) == PT_ACK || \
 			 (type) == PT_SCTP || \
-			 (type) == PT_SCTP_APP1 \
-			 );
+			 (type) == PT_SCTP_APP1 || \
+			 (type) == PT_HDLC \
+			);
 	}
 private:
 	static char* name_[PT_NTYPE+1];

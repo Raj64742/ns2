@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.77 2005/03/21 18:51:30 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.78 2005/04/26 18:56:35 haldar Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.77 2005/03/21 18:51:30 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.78 2005/04/26 18:56:35 haldar Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -54,7 +54,8 @@ static const char rcsid[] =
 #include "errmodel.h"
 #include "srm-headers.h"		// to get the hdr_srm structure
 #include "classifier.h"
-
+// temp hack
+#include "hdlc.h"
 static class ErrorModelClass : public TclClass {
 public:
 	ErrorModelClass() : TclClass("ErrorModel") {}
@@ -108,7 +109,7 @@ inline double comb(int n, int k) {
 }
 
 
-ErrorModel::ErrorModel() : et_(0), firstTime_(1), unit_(EU_PKT), ranvar_(0), FECstrength_(1) 
+ErrorModel::ErrorModel() : et_(0), firstTime_(1), unit_(EU_PKT), ranvar_(0), FECstrength_(1)
 {
 	bind("enable_", &enable_);
 	bind("rate_", &rate_);
@@ -116,6 +117,12 @@ ErrorModel::ErrorModel() : et_(0), firstTime_(1), unit_(EU_PKT), ranvar_(0), FEC
 	bind_bw("bandwidth_", &bandwidth_); // required for EU_TIME
 	bind_bool("markecn_", &markecn_);
 	bind_bool("delay_pkt_", &delay_pkt_);
+	for (int n=0; n<31;n++){
+		first_[n] = 1;
+		intrlist[n].uid_ = 0;
+	}
+	
+	
 }
 
 int ErrorModel::command(int argc, const char*const* argv)
@@ -169,7 +176,6 @@ void ErrorModel::reset()
 	firstTime_ = 1;
 }
 
-
 void ErrorModel::recv(Packet* p, Handler* h)
 {
 	// 1.  Determine the error by calling corrupt(p)
@@ -185,7 +191,9 @@ void ErrorModel::recv(Packet* p, Handler* h)
 	if (!markecn_ && !delay_pkt_ && (h && ((error && drop_) || !target_))) {
 		// if we drop or there is no target_, then resume handler
 		double delay = Random::uniform(8.0 * ch->size() / bandwidth_);
-		Scheduler::instance().schedule(h, &intr_, delay);
+		if (intr_.uid_ <= 0 ) 
+			// schedule only if nothing scheduled already
+			Scheduler::instance().schedule(h, &intr_, delay);
 	} 
 	if (error) {
 		ch->error() |= error;
@@ -211,6 +219,10 @@ void ErrorModel::recv(Packet* p, Handler* h)
 int ErrorModel::corrupt(Packet* p)
 {
 	hdr_cmn* ch;
+	// a temp hack
+
+	ch = HDR_CMN(p);
+	
 	if (enable_ == 0)
 		return 0;
 	switch (unit_) {
@@ -254,7 +266,7 @@ double * ErrorModel::ComputeBitErrProb(int size)
 	// Cumulative probability
 	for (i = 0; i < FECstrength_ ; i++) 
 		dptr[i + 1] += dptr[i];
-
+	
 	dptr[FECstrength_ + 1] = 1.0;
 
 	/*	printf("Size = %d\n", size);
@@ -262,7 +274,7 @@ double * ErrorModel::ComputeBitErrProb(int size)
 		printf("Ptr[%d] = %g\n", i, dptr[i]); */
 
 	return dptr;
-
+	
 }
 
 int ErrorModel::CorruptPkt(Packet*) 
@@ -441,12 +453,14 @@ void TwoStateErrorModel::transitionState()
 		state_ = 0;
 		remainLen_ = ranvar_[state_]->value();
 		twoStateTimer_->sched(remainLen_);
+		sprintf (buf,"STATE %d, DURATION %f",state_,remainLen_);
+		trace_event(buf);
 		return;
 	}
 	state_ ^= 1;
 	remainLen_ = ranvar_[state_]->value();
 	twoStateTimer_->resched(remainLen_);
-	sprintf (buf,"STATE TRANSITION to %d",state_);
+	sprintf (buf,"STATE %d, DURATION %f",state_,remainLen_);
 	trace_event(buf);
 	
 }

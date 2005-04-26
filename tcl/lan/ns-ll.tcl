@@ -37,6 +37,10 @@ LL set bandwidth_ 0      ;# not used
 LL set delay_ 1ms
 LL set macDA_ 0
 
+LL/HDLC set window_size_ 8
+LL/HDLC set queue_size_ 1000
+LL/HDLC set timeout_ 1.0  ;# 1000ms
+
 
 if [TclObject is-class LL/Arq] {
 LL/Arq set mode_ 2

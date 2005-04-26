@@ -33,7 +33,7 @@
  *
  * Contributed by the Daedalus Research Group, http://daedalus.cs.berkeley.edu
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.28 2000/09/01 03:04:06 haoboy Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/ll.h,v 1.29 2005/04/26 18:56:35 haldar Exp $ (UCB)
  */
 
 #ifndef ns_ll_h
@@ -93,6 +93,7 @@ public:
 	inline int seqno() { return seqno_; }
 	inline int ackno() { return ackno_; }
 	inline int macDA() { return macDA_; }
+	inline virtual void hdr_dst(Packet *p, int macDA) {}
         inline Queue *ifq() { return ifq_; }
         inline NsObject* downtarget() { return downtarget_; }
         inline NsObject* uptarget() { return uptarget_; }

@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.50 2005/01/25 23:29:15 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.51 2005/04/26 18:56:36 haldar Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -158,6 +158,7 @@ foreach prot {
 	SCTP
 	Smac
 	NV
+	HDLC
 } {
 	add-packet-header $prot
 }

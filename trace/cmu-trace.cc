@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.81 2005/02/02 22:18:29 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.82 2005/04/26 18:56:36 haldar Exp $
  */
 
 #include <packet.h>
@@ -59,6 +59,7 @@
 #include "wpan/p802_15_4trace.h"
 #include "wpan/p802_15_4nam.h"
 //</zheng: add for 802.15.4>
+#include "hdlc.h"
 
 #include "diffusion/diff_header.h" // DIFFUSION -- Chalermek
 
@@ -398,6 +399,121 @@ CMUTrace::format_ip(Packet *p, int offset)
 		ih->ttl_, (ch->next_hop_ < 0) ? 0 : ch->next_hop_);
 	}
 }
+
+void 
+CMUTrace::format_hdlc(Packet *p, int offset)
+{
+	struct hdr_hdlc *hh = HDR_HDLC(p);
+	struct I_frame *ifr = (struct I_frame *)&(hh->hdlc_fc_);
+	struct S_frame *sf = (struct S_frame *)&(hh->hdlc_fc_);
+	struct U_frame *uf = (struct U_frame *)&(hh->hdlc_fc_);
+	
+	switch(hh->fc_type_) {
+	case HDLC_I_frame:
+		if (pt_->tagged()) {
+			sprintf(pt_->buffer() + offset,
+				"-hdlc:sa %d -hdlc:da %d -hdlc:ft I -hdlc:r_seq %d -hdlc:s_seq %d",
+				hh->saddr(),
+				hh->daddr(),
+				ifr->recv_seqno, 
+				ifr->send_seqno);
+			
+		} else if (newtrace_) {
+			sprintf(pt_->buffer() + offset,
+				"-P hdlc -Psa %d -Pda %d -Pft I -Pr_seq %d -Ps_seq %d",
+				hh->saddr(),
+				hh->daddr(),
+				ifr->recv_seqno, 
+				ifr->send_seqno);
+		} else {
+			sprintf(pt_->buffer() + offset,
+				"[%d %d I %d %d]",
+				hh->saddr(),
+				hh->daddr(),
+				ifr->recv_seqno, 
+				ifr->send_seqno);
+		}
+		break;
+		
+	case HDLC_S_frame:
+		if (pt_->tagged()) {
+			sprintf(pt_->buffer() + offset,
+				"-hdlc:sa %d -hdlc:da %d -hdlc:ft S -hdlc:r_seq %d -hdlc:stype %s",
+				hh->saddr(),
+				hh->daddr(),
+				sf->recv_seqno,
+				(sf->stype == RR) ? "RR" :
+				(sf->stype == REJ) ? "REJ" :
+				(sf->stype == RNR) ? "RNR" :
+				(sf->stype == SREJ) ? "SREJ" : "UNKN");
+			
+		} else if (newtrace_) {
+			sprintf(pt_->buffer() + offset,
+				"-P hdlc -Psa %d -Pda %d -Pft S -Pr_seq %d -Pstype %s",
+				hh->saddr(),
+				hh->daddr(),
+				sf->recv_seqno,
+				sf->stype == RR ? "RR" :
+				sf->stype == REJ ? "REJ" :
+				sf->stype == RNR ? "RNR" :
+				sf->stype == SREJ ? "SREJ" : "UNKN");
+			
+		} else {
+			sprintf(pt_->buffer() + offset,
+				"[%d %d S %d %s]",
+				hh->saddr(),
+				hh->daddr(),
+				sf->recv_seqno,
+				sf->stype == RR ? "RR" :
+				sf->stype == REJ ? "REJ" :
+				sf->stype == RNR ? "RNR" :
+				sf->stype == SREJ ? "SREJ" :
+				"UNKN");
+		}
+		break;
+		
+	case HDLC_U_frame:
+		if (pt_->tagged()) {
+			sprintf(pt_->buffer() + offset,
+				"-hdlc:sa %d -hdlc:da %d -hdlc:ft U -hdlc:utype %s",
+				hh->saddr(),
+				hh->daddr(),
+				uf->utype == SABME ? "SABME" :
+				uf->utype == UA ? "UA" :
+				uf->utype == DM ? "DM" :
+				uf->utype == DISC ? "DISC" : "UNKN");
+		
+		} else if (newtrace_) {
+			sprintf(pt_->buffer() + offset,
+				"-P hdlc -Psa %d -Pda %d -Pft U -Putype %s",
+				hh->saddr(),
+				hh->daddr(),
+				uf->utype == SABME ? "SABME" :
+				uf->utype == UA ? "UA" :
+				uf->utype == DM ? "DM" :
+				uf->utype == DISC ? "DISC" : "UNKN");
+			
+		} else {
+			sprintf(pt_->buffer() + offset,
+				"[%d %d U %s]",
+				hh->saddr(),
+				hh->daddr(),
+				uf->utype == SABME ? "SABME" :
+				uf->utype == UA ? "UA" :
+				uf->utype == DM ? "DM" :
+				uf->utype == DISC ? "DISC" : "UNKN");
+		}
+		break;
+		
+	default:
+		
+		fprintf(stderr, "Unknown HDLC frame type\n");
+		exit(1);
+	}
+	
+}
+
+
 
 void
 CMUTrace::format_arp(Packet *p, int offset)
@@ -1126,6 +1242,9 @@ void CMUTrace::format(Packet* p, const char *why)
 	switch(ch->ptype()) {
 	case PT_MAC:
 	case PT_SMAC:
+		break;
+	case PT_HDLC:
+		format_hdlc(p, offset);
 		break;
 	case PT_ARP:
 		format_arp(p, offset);
