@@ -215,8 +215,8 @@ void MacSimple::send(Packet *p, Handler *h)
 	} else {
 		// we're currently receiving, so schedule it after
 		// we finish receiving
-		waitTimer->start(jitter);
-		sendTimer->start(jitter + ch->txtime()
+		waitTimer->restart(jitter);
+		sendTimer->restart(jitter + ch->txtime()
 				 + HDR_CMN(pktRx_)->txtime());
 	}
 }

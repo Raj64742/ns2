@@ -48,18 +48,22 @@ public:
 	}
 } class_hdlc;
 
-void HdlcRtxTimer::expire(Event *)
+void HdlcTimer::expire(Event *)
 {
-	a_->timeout();
+	(*a_.*callback_)();
 	
 }
 
 
-HDLC::HDLC() : LL(), wnd_(0), highest_ack_(-1), t_seqno_(0), seqno_(0), maxseq_(0), closed_(0), nrexmit_(0), ntimeouts_(0), recv_seqno_(0), SABME_req_(0), sent_rej_(0), rtx_timer_(this)
+HDLC::HDLC() : LL(), wnd_(0), highest_ack_(-1), t_seqno_(0), seqno_(0), maxseq_(0), closed_(0), nrexmit_(0), ntimeouts_(0), recv_seqno_(-1), SABME_req_(0), sent_rej_(0), save_(NULL), rtx_timer_(this, &HDLC::timeout), delay_timer_(this, &HDLC::delayTimeout)
 {
 	bind("window_size_", &wnd_);
 	bind("queue_size_", &queueSize_);
 	bind("timeout_", &timeout_);
+	bind("max_timeouts_", &maxTimeouts_);
+	bind("delAck_", &delAck_);
+	bind("delAckVal_", &delAckVal_);
+	
 	
 }
 
@@ -101,11 +105,18 @@ void HDLC::recvOutgoing(Packet* p)
 		// resolve mac address and send
 		sendDown(np);
 		SABME_req_ = 1;
+		// set some timer for SABME?
 		
 	}
         
         // place pkt in outgoing queue
 	inSendBuffer(p);
+	
+	// skip sending the first pkt
+	// which should be sent only after recving UA
+	// in reply to SABME request
+	if (t_seqno_ > 0) 
+		sendMuch();
 	
 }
 
@@ -132,6 +143,26 @@ void HDLC::inSendBuffer(Packet *p)
 	
 }
 
+//Packet *HDLC::dataToSend(Packet *p)
+Packet *HDLC::dataToSend()
+{
+	Packet *dp;
+	//hdr_ip *ih = HDR_IP(p);
+	//nsaddr_t dst = (nsaddr_t)Address::instance().get_nodeaddr(ih->saddr());
+	
+	// if have any data to send
+	if (t_seqno_ <= highest_ack_ + wnd_ && (dp = getPkt(sendBuf_, t_seqno_)) != 0) {
+		
+		// check if the destinations match for data and RR
+		//if (((nsaddr_t)Address::instance().get_nodeaddr(HDR_IP(p)->daddr())) == dst) {
+		Packet *np = dp->copy();
+		return np;
+		//}
+	}
+	return NULL;
+}
+
+
 
 // try to send as much as possible if have any pkts to send
 void HDLC::sendMuch()
@@ -142,6 +173,7 @@ void HDLC::sendMuch()
 		Packet *dp = p->copy();
 		output(dp, t_seqno_);
 		t_seqno_++;
+		
 	} 
 	
 }
@@ -150,7 +182,21 @@ void HDLC::sendMuch()
 void HDLC::output(Packet *p, int seqno)
 {
 	int force_set_rtx_timer = 0;
+	
+	hdr_hdlc* hh = HDR_HDLC(p);
+	struct I_frame* ifr = (struct I_frame *)&(hh->hdlc_fc_);
+	
+        // piggyback the last seqno recvd
+	ifr->recv_seqno = recv_seqno_;
 
+	// cancel the delay timer if pending
+	if (delay_timer_.status() == TIMER_PENDING) 
+		delay_timer_.cancel();
+	if (save_ != NULL) {
+                Packet::free(save_);
+                save_ = NULL;
+        }
+	
 	sendDown(p);
 	
 	// if no outstanding data set rtx timer again
@@ -197,6 +243,7 @@ Packet *HDLC::sendUA(Packet *p, COMMAND_t cmd)
 	switch(cmd) {
 		
 	case SABME:
+	case DISC:
 		// use same dst and src address
 		nih->daddr() = ih->daddr();
 		nih->saddr() = ih->saddr();
@@ -224,7 +271,38 @@ Packet *HDLC::sendUA(Packet *p, COMMAND_t cmd)
 
 
 void HDLC::sendDISC(Packet *p)
-{}
+{
+	sendUA(p, DISC);
+	
+}
+
+void HDLC::delayTimeout()
+{
+	// The delay timer expired so we ACK the last pkt seen
+	if (save_ != NULL) {
+		Packet* pkt = save_;
+		ack(pkt);
+		save_ = NULL;
+		Packet::free(pkt);
+	}
+}
+
+void HDLC::ack(Packet *p)
+//void HDLC::ack()
+{
+	Packet *dp;
+	
+	//if ((dp = dataToSend(p)) != NULL) {
+	if ((dp = dataToSend()) != NULL) {
+		output(dp, t_seqno_);	
+		t_seqno_++;
+		
+	} else {
+		
+		sendRR(p);
+	}
+	
+}
 
 
 void HDLC::sendRR(Packet *p)
@@ -402,25 +480,50 @@ void HDLC::recvIframe(Packet *p)
 	hdr_hdlc* hh = HDR_HDLC(p);
  	hdr_cmn *ch = HDR_CMN(p);
 	struct I_frame *ifr =  (struct I_frame*)&(hh->hdlc_fc_);
+	int rseq;
 	
+	// check if any ack is piggybacking
+	// and update highest_ack_
+	if ((rseq = ifr->recv_seqno) > -1)  // valid ack
+		handlePiggyAck(p);
+	
+	// recvd first data pkt
+	if (ifr->send_seqno == 0 && recv_seqno_ == -1) 
+		recv_seqno_ = 0;
+
+	// recv data in order
 	if(ifr->send_seqno == recv_seqno_) {
 		
 		if (sent_rej_)
 			sent_rej_ = 0;
 		
 		recv_seqno_++;
-		sendRR(p);
 		
                 // strip off hdlc hdr
 		ch->size() -= HDLC_HDR_LEN;
+
+		// send ack back
+		// start a timer to delay the ack so that
+		// we can try and piggyback the ack in some data pkt
+		if (delAck_) {
+			
+			if (delay_timer_.status() != TIMER_PENDING) {
+				assert(save_ == NULL);
+				save_ = p->copy();
+				delay_timer_.sched(delAckVal_);
+			} 
+		} else {
+			ack(p);
+		}
 		
 		uptarget_ ? sendUp(p) : drop(p);
+
 		
 	} else if (ifr->send_seqno > recv_seqno_) {
 		if (!sent_rej_) {
 			sent_rej_ = 1;
-		
-			// send REJ for missing pkt(s)
+			// since GoBackN send REJ for the first
+			// out of order pkt
 			sendREJ(p);
 		}
 		
@@ -429,9 +532,15 @@ void HDLC::recvIframe(Packet *p)
 	} else {
 		// send_seqno < recv_seqno; duplicate data pkts
 		// send ack back as previous RR maybe lost
-		sendRR(p);
+		ack(p);
+		//ack();
 		drop(p, "Duplicate pkt");
 	}
+
+	// if we had got a valid piggy ack
+	// see if we can send more
+	if (rseq > -1)  
+		sendMuch();
 	
 	// FUTURE WORK for SREJ
 	// if recvd missing data, send up all pending data
@@ -502,7 +611,7 @@ void HDLC::handleSABMErequest(Packet *p)
 {
         // got a request to open a connection
         // ack back an UA
-	if (recv_seqno_ == 0) {
+	if (recv_seqno_ == -1) {
 		Packet *np = sendUA(p, UA);
 		sendDown(np);
 	}
@@ -516,6 +625,7 @@ void HDLC::handleDISC(Packet *p)
 	// got request for disconnect
 	// send UA 
 	sendUA(p, UA);
+	reset();
 	Packet::free(p);
 
 }
@@ -526,22 +636,51 @@ void HDLC::handleUA(Packet *p)
 	// if waiting to send, start sending
 	// ?? shouldn't I match the addresses here??
 	if (t_seqno_ == 0) {
+		// cancel the SABME timer??
 		sendMuch();
 		
 	} else { // have I sent a DISCONNECT?
 		if (disconnect_) {
 			// recvd confirmation on disconnect
-			closed_ = 1;
-			finish();
+			reset();
 		}
 	}
 	Packet::free(p);
 	
 }
 
-void HDLC::finish()
-{}
 
+void HDLC::handlePiggyAck(Packet *p)
+{
+	hdr_hdlc* hh = HDR_HDLC(p);
+	struct I_frame *ifr =  (struct I_frame*)&(hh->hdlc_fc_);
+
+	int seqno = ifr->recv_seqno - 1;
+	if (seqno > highest_ack_) {  // recvd a new ack
+		
+		Packet *datapkt = getPkt(sendBuf_, seqno);
+		sendBuf_.remove(datapkt);
+		Packet::free(datapkt);
+
+		// update highest_ack_
+		highest_ack_ = seqno;
+		
+		// set retx_timer
+		if (t_seqno_ > seqno || seqno < maxseq_)
+			set_rtx_timer();
+		
+		else
+			cancel_rtx_timer();
+		
+	} else { // got duplicate acks
+		
+		// do nothing as piggyback ack
+	}
+	
+	// if had timeouts, should reset it now
+	ntimeouts_ = 0;
+	
+}
 
 
 // receiver ready - ack for a pkt successfully recvd by receiver, send next pkt pl
@@ -628,6 +767,16 @@ void HDLC::handleSREJ(Packet *pkt)
 
 void HDLC::reset()
 {
+	Packet *p;
+	
+	// drop pkts in sendBuf
+	while ((p = getPkt(sendBuf_, highest_ack_+ 1)) != NULL) 
+	{
+		sendBuf_.remove(p);
+		Packet::free(p);
+		maxseq_++;
+	}
+	       
 	SABME_req_ = 0; // allowing newer connection to set up
 	t_seqno_ = 0;
 	highest_ack_ = -1;
@@ -635,10 +784,16 @@ void HDLC::reset()
 	maxseq_ = 0;
 	closed_ = 1;
 	nrexmit_ = 0;
-	mtimeouts_ = 0;
+	ntimeouts_ = 0;
 	recv_seqno_ = 0;
 	sent_rej_ = 0;
+	
 }
+
+// void HDLC::set_ack_timer()
+// {
+// 	ack_timer_.sched(DELAY_ACK_VAL);
+// }
 
 
 void HDLC::reset_rtx_timer(int backoff)
@@ -658,7 +813,7 @@ void HDLC::set_rtx_timer()
 void HDLC::timeout()
 {
 	ntimeouts_++;
-	if (ntimeouts_ > MAX_NUM_TIMEOUTS) {
+	if (ntimeouts_ > maxTimeouts_) {
 		reset();
 		return;
 	}

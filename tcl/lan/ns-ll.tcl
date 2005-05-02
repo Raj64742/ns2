@@ -40,7 +40,9 @@ LL set macDA_ 0
 LL/HDLC set window_size_ 8
 LL/HDLC set queue_size_ 1000
 LL/HDLC set timeout_ 1.0  ;# 1000ms
-
+LL/HDLC set max_timeouts_ 20
+LL/HDLC set delAck_ true  ;# ack maybe delayed to allow piggybacking
+LL/HDLC set delAckVal_  0.5  ;# a default val of 500ms chosen arbitrarily
 
 if [TclObject is-class LL/Arq] {
 LL/Arq set mode_ 2

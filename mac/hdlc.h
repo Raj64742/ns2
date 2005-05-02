@@ -50,6 +50,7 @@
 class HDLC;
 
 #define HDLC_HDR_LEN      sizeof(struct hdr_hdlc);
+#define DELAY_ACK_VAL     0.5     // arbitrarily chosen val for which acks are delayed
 
 
 enum SS_t {RR=0, REJ=1, RNR=2, SREJ=3};
@@ -57,14 +58,24 @@ enum COMMAND_t {SNRM, SNRME, SARM, SARME, SABM, SABME, DISC, UA, DM};
 enum HDLCFrameType { HDLC_I_frame, HDLC_S_frame, HDLC_U_frame };
 
 
-class HdlcRtxTimer : public TimerHandler {
+class HdlcTimer : public TimerHandler {
 public:
-	HdlcRtxTimer(HDLC *a) : TimerHandler() { a_ = a; }
+	HdlcTimer(HDLC *a, void (HDLC::*callback)() ) 
+		: a_(a), callback_(callback) {};
+	
 protected:
 	virtual void expire(Event *e);
 	HDLC *a_;
+	void (HDLC::*callback_)();
 };
 
+// class HdlcAckTimer : public TimerHandler {
+// public:
+// 	HdlcAckTimer(HDLC *a) : TimerHandler() { a_ = a; }
+// protected:
+// 	virtual void expire(Event *e);
+// 	HDLC *a_;
+// };
 
 struct HDLCControlFrame {
 	int recv_seq;
@@ -103,6 +114,29 @@ struct hdr_hdlc {
 	
 };
 
+// XXXXXXXXX
+// Currently, we assume the link layer shall have one p-2-p connection
+// at any given time
+
+// If this needs to change the ARQstate defined below should be used
+// to support multiple p-2-p connections, each state for a src-dst pair.
+
+
+struct ARQ_state {
+	int saddr_;
+	int daddr_;
+	HdlcTimer rtx_timer_;
+	PacketQueue sendBuf_;
+	int SABME_req;
+	int t_seqno_;
+	int highest_ack_;
+	int seqno_;
+	int maxseq_;
+	int closed_;
+	int ntimeouts_;
+};
+	
+	
 
 
 // Brief description of HDLC model used :
@@ -123,11 +157,13 @@ struct hdr_hdlc {
 
 
 class HDLC : public LL {
+	friend class HdlcTimer;
 public:
 	HDLC();
 	virtual void recv(Packet* p, Handler* h);
 	inline virtual void hdr_dst(Packet *p, int macDA) { HDR_HDLC(p)->daddr_ = macDA;}
 	virtual void timeout();
+
 protected:
 	// main sending and recving routines
 	void recvIncoming(Packet* p);
@@ -136,11 +172,10 @@ protected:
 	// misc routines
 	void inSendBuffer(Packet *p);
 	int resolveAddr(Packet *p);
-	void finish();
+	void reset();
 	
 	// queue 
 	Packet *getPkt(PacketQueue buf, int seq);
-	//Packet *setPtr(PacketQueue buf, int seq);
 	
 	// rtx timer 
 	void reset_rtx_timer(int backoff);
@@ -148,11 +183,16 @@ protected:
 	void cancel_rtx_timer() { rtx_timer_.force_cancel(); }
 	void rtt_backoff();
 	double rtt_timeout();
+	void delayTimeout();
 	
 	// sending routines
 	void sendDown(Packet *p);
 	void sendMuch();
 	void output(Packet *p, int seqno);
+	//Packet *dataToSend(Packet *p);
+	void ack(Packet *p);
+	Packet *dataToSend();
+	//void ack();
 	Packet *sendUA(Packet *p, COMMAND_t cmd);
 	void sendRR(Packet *p);
 	void sendRNR(Packet *p);
@@ -171,32 +211,39 @@ protected:
 	void handleRNR(Packet *p);
 	void handleREJ(Packet *p);
 	void handleSREJ(Packet *p);
+	void handlePiggyAck(Packet *p);
 	
 	// variables
+	static int uidcnt_;
 	int queueSize_;
+	int timeout_;        // value of timeout
+	int maxTimeouts_;    // max num of timeouts before connection closed
+
 	int wnd_;            // size of window; set from tcl
 	int highest_ack_;    // highest ack recvd so far
 	int t_seqno_;        // tx'ing seq no
 	int seqno_;          // counter of no for seq'ing incoming data pkts
 	int maxseq_;         // highest seq no sent so far
 	
-	int disconnect_;
 	int closed_;         // whether this connection is closed
 	int nrexmit_;        // num of retransmits
 	int ntimeouts_;      // num of retx timeouts
-	int timeout_;        // value of timeout
+	int disconnect_;
 	
 	int recv_seqno_;     // seq no of data pkts recvd by recvr
 	bool SABME_req_;     // whether a SABME request has been sent or not
 	bool sent_rej_;      // to prevent sending dup REJ
-	static int uidcnt_;
+
+	Packet *save_;       // packet saved for delayed ack to allow piggybacking
+	int delAckVal_;      // ack delayed 
+	int delAck_;         // flag for delayed ack
 	
 	
 	// Timers 
-	HdlcRtxTimer rtx_timer_;
+	HdlcTimer rtx_timer_;
+	HdlcTimer delay_timer_;
 	
 	// buffer to hold outgoing the pkts until they are ack'ed 
-	//PacketQueue outQ_;
 	PacketQueue sendBuf_;
 	
 };
