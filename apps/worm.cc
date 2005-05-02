@@ -72,10 +72,10 @@ int WormApp::command(int argc, const char*const* argv) {
 }
 
 // Initialize stats (number of infected hosts) for DN
-int DnhWormApp::infect_total_ = 0;
-int DnhWormApp::addr_high_ = 0;
-int DnhWormApp::addr_low_ = 0;
-int DnhWormApp::default_gw_ = 0;
+unsigned long DnhWormApp::infect_total_ = 0;
+unsigned long DnhWormApp::addr_high_ = 0;
+unsigned long DnhWormApp::addr_low_ = 0;
+unsigned long DnhWormApp::default_gw_ = 0;
 float DnhWormApp::local_p_ = 0;
 
 // class to model vulnerable hosts in detailed network
@@ -88,7 +88,7 @@ public:
 } class_app_worm_dnh;
 
 DnhWormApp::DnhWormApp() : WormApp() {
-  infected_ = 0;
+  infected_ = false;
   timer_ = NULL;
 }
 
@@ -101,7 +101,7 @@ void DnhWormApp::recv(int nbytes) {
         printf("D FP %.2f\n", Scheduler::instance().clock());
     }
 
-    printf("D C %.2f %d %d\n", 
+    printf("D C %.2f %lu %lu\n", 
     	   Scheduler::instance().clock(), infect_total_, my_addr_);
     
     // start to probe other hosts
@@ -115,7 +115,7 @@ void DnhWormApp::timeout() {
 }
 
 void DnhWormApp::probe() {
-  infected_ = 1;
+  infected_ = true;
   infect_total_++;
 
 
@@ -129,7 +129,7 @@ void DnhWormApp::probe() {
 
 void DnhWormApp::send_probe() {
   double range_low, range_high;
-  int d_addr;
+  unsigned long d_addr;
   ns_addr_t dst;
 
   // do not probe myself
@@ -144,7 +144,7 @@ void DnhWormApp::send_probe() {
   }
   
   while (d_addr == my_addr_)
-    d_addr = (int)Random::uniform(range_low, range_high);
+    d_addr = static_cast<unsigned long>(Random::uniform(range_low, range_high));
 
   // probe within my AS
   if (addr_low_ <= d_addr && d_addr <= addr_high_) {
@@ -163,7 +163,7 @@ void DnhWormApp::send_probe() {
 int DnhWormApp::command(int argc, const char*const* argv) {
   if (argc == 3) {
     if (strcmp(argv[1], "gw") == 0) {
-      default_gw_ = atoi(argv[2]);
+      default_gw_ = atol(argv[2]);
       return(TCL_OK);
     }
     if (strcmp(argv[1], "local-p") == 0) {
@@ -173,8 +173,8 @@ int DnhWormApp::command(int argc, const char*const* argv) {
   }
   if (argc == 4) {
     if (strcmp(argv[1], "addr-range") == 0) {
-      addr_low_ = atoi(argv[2]);
-      addr_high_ = atoi(argv[3]);
+      addr_low_ = atol(argv[2]);
+      addr_high_ = atol(argv[3]);
       //printf("DN low: %d, high: %d\n", addr_low_, addr_high_);
       return(TCL_OK);
     }
@@ -284,7 +284,8 @@ void AnWormApp::update() {
 
 void AnWormApp::probe(int times) {
   // send out probes in a batch
-  int i, d_addr;
+  int i;
+  unsigned long d_addr;
   ns_addr_t dst;
 
   i = 0;
@@ -343,8 +344,8 @@ int AnWormApp::command(int argc, const char*const* argv) {
   }
   if (argc == 4) {
     if (strcmp(argv[1], "addr-range") == 0) {
-      addr_low_ = atoi(argv[2]);
-      addr_high_ = atoi(argv[3]);
+      addr_low_ = atol(argv[2]);
+      addr_high_ = atol(argv[3]);
 
       // initialize SIR model states
       n_ = addr_high_ - addr_low_ + 1;

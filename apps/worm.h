@@ -34,7 +34,7 @@ class WormApp : public  Application {
   virtual void recv(int nbytes);
 
   // id of the node attached
-  int my_addr_;
+  unsigned long  my_addr_;
 
   // the toal Internet address space
   static double total_addr_;
@@ -63,8 +63,8 @@ class DnhWormApp : public WormApp {
   void send_probe();
   void probe();
 
-  int infected_;
-  static int infect_total_;
+  bool infected_;
+  static unsigned long infect_total_;
 
   ProbingTimer *timer_;
 
@@ -72,13 +72,13 @@ class DnhWormApp : public WormApp {
   double p_inv_;
 
   // the address space of my networks
-  static int addr_low_, addr_high_;
+  static unsigned long addr_low_, addr_high_;
   
   // the probability to scan local hosts
   static float local_p_;
   
   // the access point to other networks like AN
-  static int default_gw_;
+  static unsigned long default_gw_;
 };
 
 // model a network with SIR model
@@ -104,8 +104,8 @@ class AnWormApp : public WormApp {
   int time_step_;
 
   // the address space of my networks
-  int addr_low_, addr_high_;
-  int dn_low_, dn_high_;
+  unsigned long addr_low_, addr_high_;
+  unsigned long dn_low_, dn_high_;
 
   // SIR model states:
   double s_, i_, r_, s_max_, n_;
