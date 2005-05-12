@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.156 2005/01/06 21:59:57 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.157 2005/05/12 17:40:18 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -1098,9 +1098,15 @@ void TcpAgent::opencwnd()
 		case 2:
 			/* These are window increase algorithms
 			 * for experimental purposes only. */
+			/* This is the Constant-Rate increase algorithm 
+                         *  from the 1991 paper by S. Floyd on "Connections  
+			 *  with Multiple Congested Gateways". 
+			 *  The window is increased by roughly 
+			 *  wnd_const_*RTT^2 packets per round-trip time.  */
 			f = (t_srtt_ >> T_SRTT_BITS) * tcp_tick_;
 			f *= f;
 			f *= wnd_const_;
+			/* f = wnd_const_ * RTT^2 */
 			f += fcnt_;
 			if (f > cwnd_) {
 				fcnt_ = 0;
@@ -1110,6 +1116,9 @@ void TcpAgent::opencwnd()
 			break;
 
 		case 3:
+			/* The window is increased by roughly 
+			 *  awnd_^2 * wnd_const_ packets per RTT,
+			 *  for awnd_ the average congestion window. */
 			f = awnd_;
 			f *= f;
 			f *= wnd_const_;
@@ -1122,6 +1131,9 @@ void TcpAgent::opencwnd()
 			break;
 
                 case 4:
+			/* The window is increased by roughly 
+			 *  awnd_ * wnd_const_ packets per RTT,
+			 *  for awnd_ the average congestion window. */
                         f = awnd_;
                         f *= wnd_const_;
                         f += fcnt_;
@@ -1132,6 +1144,10 @@ void TcpAgent::opencwnd()
                                 fcnt_ = f;
                         break;
 		case 5:
+			/* The window is increased by roughly wnd_const_*RTT 
+			 *  packets per round-trip time, as discussed in
+			 *  the 1992 paper by S. Floyd on "On Traffic 
+			 *  Phase Effects in Packet-Switched Gateways". */
                         f = (t_srtt_ >> T_SRTT_BITS) * tcp_tick_;
                         f *= wnd_const_;
                         f += fcnt_;
@@ -1146,7 +1162,7 @@ void TcpAgent::opencwnd()
                         cwnd_ += increase_num_ / (cwnd_*pow(cwnd_,k_parameter_));                
                         break; 
  		case 8: 
-			/* high-speed TCP */
+			/* high-speed TCP, RFC 3649 */
 			increment = increase_param();
 			if ((last_cwnd_action_ == 0 ||
 			  last_cwnd_action_ == CWND_ACTION_TIMEOUT) 
