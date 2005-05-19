@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.cc,v 1.12 2001/11/06 06:21:47 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.cc,v 1.13 2005/05/19 03:19:02 tomh Exp $";
 #endif
 
 #include "satroute.h"
@@ -449,7 +449,7 @@ void SatRouteObject::dump()
 {
 	int i, src, dst;
 	for (i = 0; i < (size_ * size_); i++) {
-		if (adj_[i].cost != INFINITY) {
+		if (adj_[i].cost != SAT_ROUTE_INFINITY) {
 			src = i / size_ - 1;
 			dst = i % size_ - 1;
 			printf("Found a link from %d to %d with cost %f\n", src, dst, adj_[i].cost);
@@ -479,7 +479,7 @@ void SatRouteObject::node_compute_routes(int node)
         for (v = 1; v < n; ++v) {
                 if (parent[v] != k) {
                         hopcnt[v] = ADJ(k, v);
-                        if (hopcnt[v] != INFINITY) {
+                        if (hopcnt[v] != SAT_ROUTE_INFINITY) {
                                 ROUTE(k, v) = v;
                                 ROUTE_ENTRY(k, v) = ADJ_ENTRY(k, v);
                         }
@@ -492,7 +492,7 @@ void SatRouteObject::node_compute_routes(int node)
                  */
                 int o = 0;
                 /* XXX */
-                hopcnt[0] = INFINITY;
+                hopcnt[0] = SAT_ROUTE_INFINITY;
                 int w;
                 for (w = 1; w < n; w++)
                         if (parent[w] != k && hopcnt[w] < hopcnt[o])

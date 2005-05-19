@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.h,v 1.3 2001/11/06 06:21:48 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satroute.h,v 1.4 2005/05/19 03:19:02 tomh Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -44,6 +44,7 @@
 #include "node.h"
 
 #define ROUTER_PORT      0xff
+#define SAT_ROUTE_INFINITY 0x3fff
 
 // Entry in the forwarding table
 struct slot_entry {
