@@ -1,43 +1,29 @@
 /*
 http_active
 
-Copyright July 5, 2001, The University of North Carolina at Chapel Hill 
+Copyright July 5, 2001, The University of North Carolina at Chapel Hill
 
-All rights reserved.  No part of this software may be sold or
-distributed in any form or by any means without the prior written
-permission of the Department of Computer Science, University of North
-Carolina at Chapel Hill.  Distribution and use of this software is
-subject to the Software License Agreement incorporated in this
-software. By having, retaining or using a copy of this software, you
-agree to be subject to  the terms of the Software License Agreement.
+Redistribution and use in source and binary forms, with or without 
+modification, are permitted provided that the following conditions are met:
 
-*******
+  1. Redistributions of source code must retain the above copyright notice, 
+     this list of conditions and the following disclaimer.
+  2. Redistributions in binary form must reproduce the above copyright 
+     notice, this list of conditions and the following disclaimer in the 
+     documentation and/or other materials provided with the distribution.
+  3. The name of the author may not be used to endorse or promote products 
+     derived from this software without specific prior written permission.
 
-Software License Agreement
-
-Permission is given to copy http_active, and its files (the Software)
-and to use them locally, as long as foregoing Copyright Notice is not
-removed and the Software name is retained unaltered.  By opening,
-possessing, retaining, using, or having a copy of  the Software, you
-are deemed to have agreed to the terms of this Software License
-Agreement.
-
-The Software is provided strictly on an "as is" basis without warranty
-of any kind.   Neither the University of North Carolina at Chapel
-Hill, its faculty, staff or students, nor anyone else who has been
-involved in the creation, production or delivery of the Software
-shall be liable for any direct, indirect, consequential or incidental
-damages arising out of the use or inability to use the Software even
-if such entities or persons may be advised of the possibility of such
-damages.
-
-No part of this software may be sold or distributed in any form or by
-any means without the prior written permission of the Department of
-Computer Science, University of North Carolina at Chapel Hill.  Your
-use of the Software is limited to non-commercial, not-for-profit uses
-and activities.  To secure permission to make any other use of the
-Software, you should contact the person named below.
-
+THIS SOFTWARE IS PROVIDED BY THE AUTHOR ``AS IS'' AND ANY EXPRESS OR IMPLIED 
+WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
+MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO 
+EVENT SHALL THE AUTHOR BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, 
+SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
+PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; 
+OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, 
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR 
+OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF 
+ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
 
 Contact person:
 
