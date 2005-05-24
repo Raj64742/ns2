@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.71 2003/03/04 01:15:42 yuri Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.72 2005/05/24 22:00:17 haldar Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.71 2003/03/04 01:15:42 yuri Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.72 2005/05/24 22:00:17 haldar Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -89,6 +89,7 @@ Scheduler::schedule(Handler* h, Event* e, double delay)
 			"  Don't DO that.\n");
 		abort();
 	};
+	
 	if (e->uid_ > 0) {
 		printf("Scheduler: Event UID not valid!\n\n");
 		abort();

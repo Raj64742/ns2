@@ -55,7 +55,7 @@ void HdlcTimer::expire(Event *)
 }
 
 
-HDLC::HDLC() : LL(), wnd_(0), highest_ack_(-1), t_seqno_(0), seqno_(0), maxseq_(0), closed_(0), nrexmit_(0), ntimeouts_(0), recv_seqno_(-1), SABME_req_(0), sent_rej_(0), save_(NULL), rtx_timer_(this, &HDLC::timeout), delay_timer_(this, &HDLC::delayTimeout)
+HDLC::HDLC() : LL(), highest_ack_(-1), t_seqno_(0), seqno_(0), maxseq_(0), closed_(0), nrexmit_(0), ntimeouts_(0), disconnect_(0), sentDISC_(0), recv_seqno_(-1), SABME_req_(0), sentREJ_(0),  save_(NULL),  rtx_timer_(this, &HDLC::timeout), delay_timer_(this, &HDLC::delayTimeout), next_(0), maxseen_(0)
 {
 	bind("window_size_", &wnd_);
 	bind("queue_size_", &queueSize_);
@@ -63,8 +63,11 @@ HDLC::HDLC() : LL(), wnd_(0), highest_ack_(-1), t_seqno_(0), seqno_(0), maxseq_(
 	bind("max_timeouts_", &maxTimeouts_);
 	bind("delAck_", &delAck_);
 	bind("delAckVal_", &delAckVal_);
+	bind("selRepeat_", &selRepeat_);
 	
-	
+	wndmask_ = HDLC_MWM;
+	seen_ = new Packet*[(HDLC_MWM+1)];
+	memset(seen_, 0, (sizeof(Packet *) * (HDLC_MWM+1)));
 }
 
 
@@ -96,16 +99,32 @@ void HDLC::recv(Packet* p, Handler* h)
 
 void HDLC::recvOutgoing(Packet* p)
 {
+	//if (disconnect_) {
+		
+		// if (!sentDISC_) {
+// 			sendUA(p, DISC);
+// 			sentDISC_ = 1;
+// 			set_rtx_timer();
+// 			drop(p);
+			
+// 			return;
+// 		}
+// 		drop(p);
+// 		return;
+// 	}
+	
 	if (!SABME_req_ && t_seqno_ == 0) {
 		// this is the first pkt being sent
 		// send out SABME request to start connection
 		
-		Packet *np = sendUA(p, SABME);
+		sendUA(p, SABME);
 		
 		// resolve mac address and send
-		sendDown(np);
+		//sendDown(np);
 		SABME_req_ = 1;
+		
 		// set some timer for SABME?
+		set_rtx_timer();
 		
 	}
         
@@ -185,9 +204,12 @@ void HDLC::output(Packet *p, int seqno)
 	
 	hdr_hdlc* hh = HDR_HDLC(p);
 	struct I_frame* ifr = (struct I_frame *)&(hh->hdlc_fc_);
-	
-        // piggyback the last seqno recvd
-	ifr->recv_seqno = recv_seqno_;
+
+	// piggyback the last seqno recvd
+	if (selRepeat_)
+		ifr->recv_seqno = next_;
+	else
+		ifr->recv_seqno = recv_seqno_;
 
 	// cancel the delay timer if pending
 	if (delay_timer_.status() == TIMER_PENDING) 
@@ -214,7 +236,7 @@ void HDLC::output(Packet *p, int seqno)
 }
 
 
-Packet *HDLC::sendUA(Packet *p, COMMAND_t cmd)
+void HDLC::sendUA(Packet *p, COMMAND_t cmd)
 {
 	Packet *np = Packet::alloc();
 	
@@ -265,8 +287,9 @@ Packet *HDLC::sendUA(Packet *p, COMMAND_t cmd)
 	}
 	
 	uf->utype = cmd;
+	sendDown(np);
 	
-	return (np);
+	//return (np);
 }
 
 
@@ -332,7 +355,11 @@ void HDLC::sendRR(Packet *p)
 	
 	nhh->fc_type_ = HDLC_S_frame;
 
-	sf->recv_seqno = recv_seqno_;
+	if (selRepeat_)
+		sf->recv_seqno = next_;
+	else
+		sf->recv_seqno = recv_seqno_;
+	
 	sf->stype = RR;
 	
 	nhh->saddr_ = hh->daddr();
@@ -381,8 +408,41 @@ void HDLC::sendREJ(Packet *p)
 	
 }
 
-void HDLC::sendSREJ(Packet *p)
-{}
+void HDLC::sendSREJ(Packet *p, int seq)
+{
+	Packet *np = Packet::alloc();
+
+	hdr_cmn *ch = HDR_CMN(p);
+	hdr_ip *ih = HDR_IP(p);
+	struct hdr_hdlc *hh = HDR_HDLC(p);
+
+	hdr_cmn *nch = HDR_CMN(np);
+	hdr_ip *nih = HDR_IP(np);
+	struct hdr_hdlc *nhh = HDR_HDLC(np);
+	struct S_frame *sf = (struct S_frame *)&(nhh->hdlc_fc_);
+
+	// common hdr
+	nch->addr_type() = ch->addr_type();
+	nch->uid() = uidcnt_++;
+	nch->ptype() = PT_HDLC;
+	nch->size() = HDLC_HDR_LEN;
+	nch->error() = 0;
+	nch->iface() = -2;
+	
+	nih->daddr() = ih->saddr();
+	nih->saddr() = ih->daddr();
+	
+	nhh->fc_type_ = HDLC_S_frame;
+
+	sf->recv_seqno = seq;
+	sf->stype = SREJ;
+
+	nhh->saddr_ = hh->daddr();
+	nhh->daddr_ = hh->saddr();
+
+	sendDown(np);
+
+}
 
 void HDLC::sendDown(Packet *p)
 {
@@ -472,80 +532,39 @@ void HDLC::recvIncoming(Packet* p)
 	
 }
 
-
+// recv data pkt
 void HDLC::recvIframe(Packet *p) 
 {
-	// recvd a data pkt 
-	// check if data is in sequence, if so send to uptarget
-	hdr_hdlc* hh = HDR_HDLC(p);
- 	hdr_cmn *ch = HDR_CMN(p);
-	struct I_frame *ifr =  (struct I_frame*)&(hh->hdlc_fc_);
-	int rseq;
+	struct I_frame* ifr = (struct I_frame *)&(HDR_HDLC(p)->hdlc_fc_);
+	int rseq = ((struct I_frame*)&(HDR_HDLC(p)->hdlc_fc_))->recv_seqno;
 	
+	// if (closed_) {
+// 		drop(p);
+// 		return;
+// 	}
+
 	// check if any ack is piggybacking
 	// and update highest_ack_
-	if ((rseq = ifr->recv_seqno) > -1)  // valid ack
+	if (rseq > -1)  // valid ack
 		handlePiggyAck(p);
 	
 	// recvd first data pkt
 	if (ifr->send_seqno == 0 && recv_seqno_ == -1) 
 		recv_seqno_ = 0;
 
-	// recv data in order
-	if(ifr->send_seqno == recv_seqno_) {
+	if (selRepeat_) // do selective repeat
+	
+		selectiveRepeatMode(p);
+	else
+		// default to go back N
+		goBackNMode(p);
 		
-		if (sent_rej_)
-			sent_rej_ = 0;
-		
-		recv_seqno_++;
-		
-                // strip off hdlc hdr
-		ch->size() -= HDLC_HDR_LEN;
-
-		// send ack back
-		// start a timer to delay the ack so that
-		// we can try and piggyback the ack in some data pkt
-		if (delAck_) {
-			
-			if (delay_timer_.status() != TIMER_PENDING) {
-				assert(save_ == NULL);
-				save_ = p->copy();
-				delay_timer_.sched(delAckVal_);
-			} 
-		} else {
-			ack(p);
-		}
-		
-		uptarget_ ? sendUp(p) : drop(p);
-
-		
-	} else if (ifr->send_seqno > recv_seqno_) {
-		if (!sent_rej_) {
-			sent_rej_ = 1;
-			// since GoBackN send REJ for the first
-			// out of order pkt
-			sendREJ(p);
-		}
-		
-		drop(p, "Pkt out of order");
-		
-	} else {
-		// send_seqno < recv_seqno; duplicate data pkts
-		// send ack back as previous RR maybe lost
-		ack(p);
-		//ack();
-		drop(p, "Duplicate pkt");
-	}
-
+	
 	// if we had got a valid piggy ack
 	// see if we can send more
 	if (rseq > -1)  
 		sendMuch();
 	
-	// FUTURE WORK for SREJ
-	// if recvd missing data, send up all pending data
-	// if data still missing, send SREJ, if possible
-			
 }
 
 void HDLC::recvSframe(Packet* p)
@@ -612,8 +631,8 @@ void HDLC::handleSABMErequest(Packet *p)
         // got a request to open a connection
         // ack back an UA
 	if (recv_seqno_ == -1) {
-		Packet *np = sendUA(p, UA);
-		sendDown(np);
+		sendUA(p, UA);
+		//closed_ = 0;
 	}
 
 	Packet::free(p);
@@ -624,8 +643,8 @@ void HDLC::handleDISC(Packet *p)
 {
 	// got request for disconnect
 	// send UA 
-	sendUA(p, UA);
 	reset();
+	sendUA(p, UA);
 	Packet::free(p);
 
 }
@@ -638,11 +657,14 @@ void HDLC::handleUA(Packet *p)
 	if (t_seqno_ == 0) {
 		// cancel the SABME timer??
 		sendMuch();
+		//closed_ = 0;
 		
 	} else { // have I sent a DISCONNECT?
 		if (disconnect_) {
 			// recvd confirmation on disconnect
 			reset();
+			// cancel if timer is running
+			cancel_rtx_timer();
 		}
 	}
 	Packet::free(p);
@@ -673,7 +695,6 @@ void HDLC::handlePiggyAck(Packet *p)
 			cancel_rtx_timer();
 		
 	} else { // got duplicate acks
-		
 		// do nothing as piggyback ack
 	}
 	
@@ -691,14 +712,21 @@ void HDLC::handleRR(Packet *p)
 	struct S_frame *sf = (struct S_frame *)&(HDR_HDLC(p)->hdlc_fc_);
 	int seqno = sf->recv_seqno - 1;
 	
+	//if (closed_) {
+	//drop(p);
+	//return;
+	//}
+
 	if (seqno > highest_ack_) {  // recvd a new ack
 		
 		Packet *datapkt = getPkt(sendBuf_, seqno);
-		sendBuf_.remove(datapkt);
-		Packet::free(datapkt);
-
-		// update highest_ack_
-		highest_ack_ = seqno;
+		if (datapkt != NULL) {
+			sendBuf_.remove(datapkt);
+			Packet::free(datapkt);
+			
+			// update highest_ack_
+			highest_ack_ = seqno;
+		}
 		
 		// set retx_timer
 		if (t_seqno_ > seqno || seqno < maxseq_)
@@ -758,11 +786,25 @@ void HDLC::handleREJ(Packet *rejp)
 }
 
 
-// selective reject or a NACK for a data pkt nor recvd from the receiver
-void HDLC::handleSREJ(Packet *pkt)
+// selective reject or a NACK for a data pkt not recvd from the receiver
+void HDLC::handleSREJ(Packet *rejp)
 {
+	
+	struct S_frame *sf = (struct S_frame *)&(HDR_HDLC(rejp)->hdlc_fc_);
+	int seqno = sf->recv_seqno;
+
 	// resend only the pkt that was requested
+	Packet *p = getPkt(sendBuf_, seqno);
+	Packet *dp = p->copy();
+	
+	output(dp, seqno);
+	
+	Packet::free(rejp);
+	
 }
+
+
+
 
 
 void HDLC::reset()
@@ -782,12 +824,15 @@ void HDLC::reset()
 	highest_ack_ = -1;
 	seqno_ = 0;
 	maxseq_ = 0;
-	closed_ = 1;
+	//closed_ = 1;
 	nrexmit_ = 0;
 	ntimeouts_ = 0;
-	recv_seqno_ = 0;
-	sent_rej_ = 0;
-	
+	recv_seqno_ = -1;
+	sentREJ_ = 0;
+	sentDISC_ = 0;
+	//disconnect_ = 0;
+	save_ = NULL;
+	 
 }
 
 // void HDLC::set_ack_timer()
@@ -812,9 +857,16 @@ void HDLC::set_rtx_timer()
 
 void HDLC::timeout()
 {
+	//if (disconnect_) {
+	//sentDISC_ = 0;
+	//return;
+	//}
+
 	ntimeouts_++;
 	if (ntimeouts_ > maxTimeouts_) {
-		reset();
+		//disconnect_ = 1;
+		//sendDISC();
+		//reset();
 		return;
 	}
 	
@@ -840,3 +892,162 @@ void HDLC::rtt_backoff()
 {
 	// no backoff for now
 }
+
+
+// doing GoBAckN error recovery
+void HDLC::goBackNMode(Packet *p)
+{
+	hdr_cmn *ch = HDR_CMN(p);
+	hdr_hdlc* hh = HDR_HDLC(p);
+	struct I_frame* ifr = (struct I_frame *)&(hh->hdlc_fc_);
+	
+	// recv data in order
+	if (ifr->send_seqno == recv_seqno_) {
+		
+		if (sentREJ_)
+			sentREJ_ = 0;
+		
+		recv_seqno_++;
+		
+                // strip off hdlc hdr
+		ch->size() -= HDLC_HDR_LEN;
+
+		// send ack back
+		// start a timer to delay the ack so that
+		// we can try and piggyback the ack in some data pkt
+		if (delAck_) {
+			
+			if (delay_timer_.status() != TIMER_PENDING) {
+				assert(save_ == NULL);
+				save_ = p->copy();
+				delay_timer_.sched(delAckVal_);
+			} 
+			
+		} else {
+			ack(p);
+			
+		}
+		
+		uptarget_ ? sendUp(p) : drop(p);
+
+		
+	} else if (ifr->send_seqno > recv_seqno_) {
+
+		if (!sentREJ_) {
+			sentREJ_ = 1;
+			// since GoBackN send REJ for the first
+			// out of order pkt
+			sendREJ(p);
+		}
+		
+		drop(p, "Pkt out of order");
+		
+	} else {
+		// send_seqno < recv_seqno; duplicate data pkts
+		// send ack back as previous RR maybe lost
+		ack(p);
+		//ack();
+		drop(p, "Duplicate pkt");
+	}
+	
+}
+
+
+// Selective Repeat mode of error recovery
+// in case of a missing pkt, send SREJ for that pkt only
+
+void HDLC::selectiveRepeatMode(Packet* p)
+{
+	hdr_cmn *ch = HDR_CMN(p);
+	int seq =  ((struct I_frame *)&(HDR_HDLC(p)->hdlc_fc_))->send_seqno;
+	bool just_marked_as_seen = FALSE;
+	
+	// resize buffers
+	// while (seq + 1 - next >= wndmask_) {
+	
+// 		resize_buffers((wndmask_+1)*2);
+// 	}
+	
+	// strip off hdlc hdr
+	ch->size() -= HDLC_HDR_LEN;
+	
+	if (seq > maxseen_) {
+		// the packet is the highest we've seen so far
+		int i;
+		for (i = maxseen_ + 1; i < seq; i++) {
+			sendSREJ(p, i);
+		}
+
+		// we record the packets between the old maximum and
+		// the new max as being "unseen" i.e. 0 
+		maxseen_ = seq;
+		
+		// place pkt in buffer
+		seen_[maxseen_ & wndmask_] = p;
+		
+		// necessary so this packet isn't confused as being a duplicate
+		just_marked_as_seen = TRUE;
+		
+	}
+	
+	if (seq < next_) {
+		// Duplicate packet case 1: the packet is to the left edge of
+		// the receive window; therefore we must have seen it
+		// before
+		printf("%f\t Received duplicate packet %d\n",Scheduler::instance().clock(),seq);
+		ack(p);
+		drop(p);
+		return;
+		
+	}
+	
+	int next = next_;
+	
+	if (seq >= next_ && seq <= maxseen_) {
+		// next is the left edge of the recv window; maxseen_
+		// is the right edge; execute this block if there are
+		// missing packets in the recv window AND if current
+		// packet falls within those gaps
+
+		if (seen_[seq & wndmask_] && !just_marked_as_seen) {
+		// Duplicate case 2: the segment has already been
+		// recorded as being received (AND not because we just
+		// marked it as such)
+			
+			printf("%f\t Received duplicate packet %d\n",Scheduler::instance().clock(),seq);
+			ack(p);
+			drop(p);
+			return;
+			
+		}
+
+		// record the packet as being seen
+		seen_[seq & wndmask_] = p;
+
+		while ( seen_[next & wndmask_] != NULL ) {
+			// this loop first gets executed if seq==next;
+			// i.e., this is the next packet in order that
+			// we've been waiting for.  the loop sets how
+			// many pkt we can now deliver to the
+			// application, due to this packet arriving
+			// (and the prior arrival of any pkts
+			// immediately to the right)
+
+			Packet* rpkt = seen_[next & wndmask_];
+			seen_[next & wndmask_] = 0;
+			
+			uptarget_ ? sendUp(rpkt) : drop(rpkt);
+			
+			++next;
+		}
+
+		// store the new left edge of the window
+		next_ = next;
+
+		// send ack 
+		ack(p);
+	}
+	
+}
+
+			

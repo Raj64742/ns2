@@ -49,9 +49,11 @@
 
 class HDLC;
 
+//#define HDLC_MWS  1024
+#define HDLC_MWS  8
+#define HDLC_MWM (HDLC_MWS-1)
 #define HDLC_HDR_LEN      sizeof(struct hdr_hdlc);
 #define DELAY_ACK_VAL     0.5     // arbitrarily chosen val for which acks are delayed
-
 
 enum SS_t {RR=0, REJ=1, RNR=2, SREJ=3};
 enum COMMAND_t {SNRM, SNRME, SARM, SARME, SABM, SABME, DISC, UA, DM};
@@ -193,11 +195,11 @@ protected:
 	void ack(Packet *p);
 	Packet *dataToSend();
 	//void ack();
-	Packet *sendUA(Packet *p, COMMAND_t cmd);
+	void sendUA(Packet *p, COMMAND_t cmd);
 	void sendRR(Packet *p);
 	void sendRNR(Packet *p);
 	void sendREJ(Packet *p);
-	void sendSREJ(Packet *p);
+	void sendSREJ(Packet *p, int seq);
 	void sendDISC(Packet *p);
 	
 	// receive routines
@@ -212,6 +214,12 @@ protected:
 	void handleREJ(Packet *p);
 	void handleSREJ(Packet *p);
 	void handlePiggyAck(Packet *p);
+
+	// go back N error recovery
+	void goBackNMode(Packet *p);
+	
+	// selective repeat  mode
+	void selectiveRepeatMode(Packet *p);
 	
 	// variables
 	static int uidcnt_;
@@ -225,19 +233,21 @@ protected:
 	int seqno_;          // counter of no for seq'ing incoming data pkts
 	int maxseq_;         // highest seq no sent so far
 	
-	int closed_;         // whether this connection is closed
+	bool closed_;        // whether this connection is closed
 	int nrexmit_;        // num of retransmits
 	int ntimeouts_;      // num of retx timeouts
 	int disconnect_;
+	bool sentDISC_;
 	
 	int recv_seqno_;     // seq no of data pkts recvd by recvr
 	bool SABME_req_;     // whether a SABME request has been sent or not
-	bool sent_rej_;      // to prevent sending dup REJ
+	bool sentREJ_;       // to prevent sending dup REJ
 
 	Packet *save_;       // packet saved for delayed ack to allow piggybacking
 	int delAckVal_;      // ack delayed 
-	int delAck_;         // flag for delayed ack
-	
+	int delAck_;        // flag for delayed ack
+	int selRepeat_;     // if this is set then selective repeat mode is used
+	                     // otherwise Go Back N mode is used by default
 	
 	// Timers 
 	HdlcTimer rtx_timer_;
@@ -245,6 +255,14 @@ protected:
 	
 	// buffer to hold outgoing the pkts until they are ack'ed 
 	PacketQueue sendBuf_;
+	
+	// at receiving side hold pkts until they are all recvd in order
+	// and can be fwded to layers above LL
+	Packet** seen_;      // array of pkts seen
+	int next_;       // next packet expected
+	int maxseen_;    // max pkt number seen
+	int wndmask_ ;       // window mask
+	
 	
 };
 
