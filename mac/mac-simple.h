@@ -62,6 +62,7 @@ private:
         MacState        rx_state_;      // incoming state (MAC_RECV or MAC_IDLE)
 	MacState        tx_state_;      // outgoing state
         int             tx_active_;
+	int             fullduplex_mode_;
 	Handler * 	txHandler_;
 	MacSimpleWaitTimer *waitTimer;
 	MacSimpleSendTimer *sendTimer;

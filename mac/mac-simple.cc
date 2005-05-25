@@ -84,6 +84,7 @@ MacSimple::MacSimple() : Mac() {
 	// Added by Sushmita to support event tracing (singal@nunki.usc.edu)
 	et_ = new EventTrace();
 	busy_ = 0;
+	bind("fullduplex_mode_", &fullduplex_mode_);
 }
 
 // Added by Sushmita to support event tracing (singal@nunki.usc.edu)
@@ -114,8 +115,9 @@ void MacSimple::recv(Packet *p, Handler *h) {
 	 * If we are transmitting, then set the error bit in the packet
 	 * so that it will be thrown away
 	 */
-
-	if (tx_active_)
+	
+	// in full duplex mode it can recv and send at the same time
+	if (!fullduplex_mode_ && tx_active_)
 	{
 		hdr->error() = 1;
 
@@ -233,7 +235,9 @@ void MacSimple::recvHandler()
 
 	rx_state_ = MAC_IDLE;
 
-	if (tx_active_) {
+	// in full duplex mode we can send and recv at the same time
+	// as different chanels are used for tx and rx'ing
+	if (!fullduplex_mode_ && tx_active_) {
 		// we are currently sending, so discard packet
 		Packet::free(p);
 	} else if (state == MAC_COLL) {

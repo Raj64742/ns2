@@ -42,6 +42,8 @@ Classifier/Mac set bcast_ 0
 Mac set bandwidth_ 2Mb
 Mac set delay_ 0us
 
+Mac/Simple set fullduplex_mode_ 0
+
 # IEEE 802.11 MAC settings
 if [TclObject is-class Mac/802_11] {
 	Mac/802_11 set delay_ 64us
