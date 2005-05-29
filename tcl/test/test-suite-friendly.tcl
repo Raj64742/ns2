@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.64 2005/03/02 20:58:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.65 2005/05/29 15:37:37 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -1338,6 +1338,57 @@ Test/TFRC_FTP instproc run {} {
     $ftp attach-agent $tf1
     $ns_ at 0 "$ftp produce 100"
     $ns_ at 5 "$ftp producemore 100"
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+  
+Class Test/TFRC_CBR -superclass TestSuite
+Test/TFRC_CBR instproc init {} {
+    $self instvar net_ test_ guide_ stopTime1_
+    set net_	net2
+    set test_ TFRC_CBR	
+    set guide_  \
+    "TFRC with a data source with CBR data."
+    Agent/TFRC set SndrType_ 1 
+    Agent/TFRCSink set smooth_ 1
+    Agent/TFRC set df_ 0.95
+    Agent/TFRC set ca_ 1
+    Agent/TFRC set discount_ 1
+    Agent/TCP set oldCode_ false
+    set stopTime1_ 15
+    $self next pktTraceFile
+}
+Test/TFRC_CBR instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ stopTime1_
+    if {$quiet == "false"} {puts $guide_}
+    $self setTopo
+    set interval_ 1
+    set stopTime $stopTime1_
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    set cbr [new Application/Traffic/CBR]
+    $cbr attach-agent $tf1
+    $cbr set rate_ 10Kb
+    $ns_ at 0 "$cbr start"
 
     $self tfccDump 1 $tf1 $interval_ $dumpfile_
 
