@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/sack.tcl,v 1.1 2000/07/25 18:46:17 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/sack.tcl,v 1.2 2005/05/29 15:35:19 sfloyd Exp $
 #
 
 #
@@ -38,6 +38,15 @@
 # Don't copy this code for use in new simulations,
 # copy the new code with the new interfaces!
 #
+
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
+Agent/TCP/Newreno set newreno_changes1_ 0
+# The default is being changed to 1 on 5/5/03, to reflect RFC 2582.
+Agent/TCP/Newreno set partial_window_deflation_ 0
+# The default is being changed to 1 on 5/5/03, to reflect RFC 2582.
+Agent/TCP set singledup_ 0
+# The default has been changed to 1
 
 #
 # Create a simple four node topology:
