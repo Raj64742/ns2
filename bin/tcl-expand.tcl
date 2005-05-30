@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/tcl-expand.tcl,v 1.3 1999/08/20 16:55:04 haoboy Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/bin/tcl-expand.tcl,v 1.4 2005/05/30 05:25:14 sfloyd Exp $
 #
 
 #
@@ -61,6 +61,7 @@ proc expand_file name {
 }
 
 set startupDir [pwd]
+fconfigure stdout -translation lf
 foreach name $argv {
 	set dirname [file dirname $name]
 	if {$dirname != "."} {
