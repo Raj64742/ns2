@@ -80,7 +80,8 @@ TestSuite instproc finish {file stoptime} {
         if {$quiet == "false"} {
                 exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
         }
-	# csh gnuplotA.com temp.rands quickstart
+	#exec csh gnuplotA.com temp.rands quickstart
+	exec csh gnuplotA2.com temp.rands quickstart
         exit 0
 }
 
@@ -165,14 +166,14 @@ Test/no_quickstart instproc run {} {
     $tcp1 set window_ 8
     set ftp1 [new Application/FTP]
     $ftp1 attach-agent $tcp1
-    $ns_ at 0 "$ftp1 start"
+    $ns_ at 0.0 "$ftp1 start"
 
     set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s3) 1]
     $tcp2 set window_ 1000
     $tcp2 set rate_request_ 20
     set ftp2 [new Application/FTP]
     $ftp2 attach-agent $tcp2
-    $ns_ at 2 "$ftp2 produce 80"
+    $ns_ at 2.0 "$ftp2 produce 80"
 
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
 
@@ -275,7 +276,7 @@ Test/quickstart4full instproc run {} {
     $tcp1 set window_ 8
     set ftp1 [new Application/FTP]
     $ftp1 attach-agent $tcp1
-    $ns_ at 0 "$ftp1 start"
+    $ns_ at 0.0 "$ftp1 start"
 
     set wrap $wrap1
     set fid 1
@@ -294,7 +295,7 @@ Test/quickstart4full instproc run {} {
     $tcp2 set rate_request_ 20
     set ftp2 [new Application/FTP]
     $ftp2 attach-agent $tcp2
-    $ns_ at 2 "$ftp2 produce 80"
+    $ns_ at 2.0 "$ftp2 produce 80"
 
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
 
@@ -331,14 +332,14 @@ Test/high_request instproc run {} {
     $tcp1 set window_ 8
     set ftp1 [new Application/FTP]
     $ftp1 attach-agent $tcp1
-    $ns_ at 0 "$ftp1 start"
+    $ns_ at 0.0 "$ftp1 start"
 
     set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s3) 1]
     $tcp2 set window_ 1000
     $tcp2 set rate_request_ 1000
     set ftp2 [new Application/FTP]
     $ftp2 attach-agent $tcp2
-    $ns_ at 2 "$ftp2 produce 80"
+    $ns_ at 2.0 "$ftp2 produce 80"
 
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
 
@@ -371,14 +372,14 @@ Test/bad_router instproc run {} {
     $tcp1 set window_ 8
     set ftp1 [new Application/FTP]
     $ftp1 attach-agent $tcp1
-    $ns_ at 0 "$ftp1 start"
+    $ns_ at 0.0 "$ftp1 start"
 
     set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s3) 1]
     $tcp2 set window_ 1000
     $tcp2 set rate_request_ 20
     set ftp2 [new Application/FTP]
     $ftp2 attach-agent $tcp2
-    $ns_ at 2 "$ftp2 produce 80"
+    $ns_ at 2.0 "$ftp2 produce 80"
 
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
 
@@ -409,14 +410,14 @@ Test/changing_rtt instproc run {} {
     $tcp1 set window_ 8
     set ftp1 [new Application/FTP]
     $ftp1 attach-agent $tcp1
-    $ns_ at 0 "$ftp1 start"
+    $ns_ at 0.0 "$ftp1 start"
 
     set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s3) 1]
     $tcp2 set window_ 1000
     $tcp2 set rate_request_ 20
     set ftp2 [new Application/FTP]
     $ftp2 attach-agent $tcp2
-    $ns_ at 2 "$ftp2 produce 80"
+    $ns_ at 2.0 "$ftp2 produce 80"
     $ns_ at 3.1 "$ns_ delay $node_(r1) $node_(r2) 100ms duplex"
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
 
@@ -462,14 +463,14 @@ Test/no_acks_back instproc run {} {
     $tcp1 set window_ 8
     set ftp1 [new Application/FTP]
     $ftp1 attach-agent $tcp1
-    $ns_ at 0 "$ftp1 start"
+    $ns_ at 0.0 "$ftp1 start"
 
     set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s4) 1]
     $tcp2 set window_ 1000
     $tcp2 set rate_request_ 20
     set ftp2 [new Application/FTP]
     $ftp2 attach-agent $tcp2
-    $ns_ at 2 "$ftp2 produce 80"
+    $ns_ at 2.0 "$ftp2 produce 80"
     $ns_ at 3.0 "$ns_ delay $node_(r2) $node_(s4) 10000ms duplex"
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
 
@@ -501,7 +502,7 @@ Test/pkt_drops instproc run {} {
     $tcp1 set window_ 8
     set ftp1 [new Application/FTP]
     $ftp1 attach-agent $tcp1
-    $ns_ at 0 "$ftp1 start"
+    $ns_ at 0.0 "$ftp1 start"
 
     set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s4) 1]
     $tcp2 set window_ 1000
@@ -509,7 +510,7 @@ Test/pkt_drops instproc run {} {
     $tcp2 set tcp_qs_recovery_ true
     set ftp2 [new Application/FTP]
     $ftp2 attach-agent $tcp2
-    $ns_ at 2 "$ftp2 produce 80"
+    $ns_ at 2.0 "$ftp2 produce 80"
 
     $self drop_pkts {5 6}
 
