@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.157 2005/05/12 17:40:18 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.158 2005/05/30 05:15:48 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -708,7 +708,6 @@ void TcpAgent::output(int seqno, int reason)
 		    	if (qs_rr > 0) {
 				// QuickStart code from Srikanth Sundarrajan.
 				qsh->flag() = QS_REQUEST;
-				Random::seed_heuristically();
 				qsh->ttl() = Random::integer(256);
 				ttl_diff_ = (iph->ttl() - qsh->ttl()) % 256;
 				qsh->rate() = hdr_qs::Bps_to_rate(qs_rr * 1024);
