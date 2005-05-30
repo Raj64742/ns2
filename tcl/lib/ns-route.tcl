@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.37 2002/04/05 05:43:40 ddutta Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-route.tcl,v 1.38 2005/05/30 05:22:36 sfloyd Exp $
 #
 
 RouteLogic instproc register {proto args} {
@@ -328,7 +328,7 @@ Simulator instproc compute-flat-routes {} {
             return
         }
 	#puts "Starting to read link_ array..\
-		time: [clock format [clock seconds] -format %X]"
+	#	time: [clock format [clock seconds] -format %X]"
 	
 	set r [$self get-routelogic]
 	$self cmd get-routelogic $r  ;# propagate rl in C++
@@ -345,13 +345,13 @@ Simulator instproc compute-flat-routes {} {
 	}
 	#puts "Completed reading link_ array.."
 	#puts " and starting route-compute at \
-		time: [clock format [clock seconds] -format %X]"
+	#	time: [clock format [clock seconds] -format %X]"
 
 	$r compute
 
 	#puts "completed route-compute"
 	#puts "and starting to populate classifiers at \
-		time: [clock format [clock seconds] -format %X]"
+	#	time: [clock format [clock seconds] -format %X]"
 	set n [Node set nn_]
 	
 	# classifier-population part moved to C++: this results in > 50% 
@@ -388,7 +388,7 @@ Simulator instproc compute-flat-routes {} {
 	#}
 
 	#puts "Completed populating classifiers at \
-		time: [clock format [clock seconds] -format %X]"
+	#	time: [clock format [clock seconds] -format %X]"
 }
 
 Simulator instproc get-link-head { n1 n2 } {
