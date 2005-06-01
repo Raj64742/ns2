@@ -81,7 +81,7 @@ TestSuite instproc finish {file stoptime} {
                 exec xgraph -bb -tk -nl -m -x time -y packets temp.rands &
         }
 	#exec csh gnuplotA.com temp.rands quickstart
-	exec csh gnuplotA2.com temp.rands quickstart
+	#exec csh gnuplotA2.com temp.rands quickstart
         exit 0
 }
 
