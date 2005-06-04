@@ -110,6 +110,7 @@ proc usage {} {
     puts stderr "usage: ns $argv0 <tests> "
     puts "Valid Tests: simple-ping 2pp-5n-1s-1r 2pp-10n-4s-1r 2pp-10n-1s-4r\
 push-5n-1s-1r push-10n-4s-1r push-10n-1s-4r 1pp-5n-1s-1r 1pp-10n-4s-1r 1pp-10n-1s-4r gear-2pp-10n-4s-1r gear-push-10n-1s-4r"
+    puts " "
     exit 1
 }
 
