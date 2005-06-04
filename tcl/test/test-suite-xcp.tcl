@@ -25,6 +25,7 @@
 
 # This test-suite validate xcp congestion control scenarios along with xcp-tcp mixed flows through routers.
 
+#source misc_simple.tcl
 # UPDATING GLOBAL DEFAULTS:
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.
@@ -221,7 +222,7 @@ TestSuite instproc post-process {what PlotTime} {
 
 
 TestSuite instproc finish {} {
-	$self instvar ns_ tracefd_ tracedFlows_ src_ qtraces_
+	$self instvar ns_ tracefd_ tracedFlows_ src_ qtraces_ 
 	if [info exists tracedFlows_] {
 		foreach i $tracedFlows_ {
 			set file [[set src_($i)] set tcpTrace_]
@@ -244,6 +245,7 @@ TestSuite instproc finish {} {
 			}
 		}
 	}
+
 	$ns_ halt
 }
 
@@ -339,13 +341,13 @@ Test/simple-xcp instproc init {} {
  	set SimStopTime_	  30
  	set nXCPs_		  3
  	set tracedFlows_	   "0 1 2"
- 	$self next
+ 	$self next 
 }
 
 Test/simple-xcp instproc run {} {
- 	global R1 n all_links Bottleneck
+ 	global R1 n all_links Bottleneck quiet 
  	$self instvar ns_ SimStopTime_ nXCPs_ qSize_ delay_ rtg_ \
- 	    tracedFlows_ src_
+ 	    tracedFlows_ src_ 
 
  	set numsidelinks 3
  	set deltadelay 0.0
@@ -359,6 +361,12 @@ Test/simple-xcp instproc run {} {
  			$queue set-link-capacity [[$link set link_] set bandwidth_];  
  		}
  	}
+	
+	# added for troubleshooting purposes - Sally
+	if {$quiet == "false"} {
+		set allchan_ [open all.tr w]
+		$ns_ trace-all $allchan_
+        }
 
  	# Create sources:
  	set i 0
@@ -383,7 +391,9 @@ Test/simple-xcp instproc run {} {
  	foreach i $tracedFlows_ {
  		[set src_($i)] trace-xcp "cwnd"
  	}
-       
+        if {$quiet == "false"} {
+	       $ns_ at $SimStopTime_ "close $allchan_"
+	}
  	$ns_ at $SimStopTime_ "$self finish"
  	$ns_ run
 	
