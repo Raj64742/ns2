@@ -189,6 +189,7 @@ protected:
 	int bval_;		// value of B for the formula
 	double overhead_;	// if > 0, dither outgoing packets 
 	TracedInt ndatapack_;	// number of packets sent
+	TracedInt ndatabytes_;	// number of bytes sent
 	int UrgentFlag;		// urgent flag
 	int active_;		// have we shut down? 
 	int round_id ;		// round id

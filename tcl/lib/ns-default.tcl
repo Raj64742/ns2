@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.346 2005/03/02 20:01:16 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.347 2005/06/04 21:23:46 sfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1020,6 +1020,7 @@ Agent/TFRC set rate_ 0
 Agent/TFRC set df_ 0.95 ;	# decay factor for accurate RTT estimate
 Agent/TFRC set tcp_tick_ 0.1 ;	
 Agent/TFRC set ndatapack_ 0 ;	# Number of packets sent
+Agent/TFRC set ndatabytes_ 0 ;	# Number of bytes sent
 Agent/TFRC set srtt_init_ 0 ;	# Variables for tracking RTT	
 Agent/TFRC set rttvar_init_ 12  
 Agent/TFRC set rtxcur_init_ 6.0	

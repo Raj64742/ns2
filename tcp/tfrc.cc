@@ -77,6 +77,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("df_", &df_);
 	bind("tcp_tick_", &tcp_tick_);
 	bind("ndatapack_", &ndatapack_);
+	bind("ndatabytes_", &ndatabytes_);
 	bind("srtt_init_", &srtt_init_);
 	bind("rttvar_init_", &rttvar_init_);
 	bind("rtxcur_init_", &rtxcur_init_);
@@ -199,6 +200,7 @@ void TfrcAgent::start()
 	maxrate_ = 0; 
 	ss_maxrate_ = 0;
 	ndatapack_=0;
+	ndatabytes_ = 0;
 	active_ = 1; 
 	round_id = 0;
 	heavyrounds_ = 0;
@@ -553,6 +555,7 @@ void TfrcAgent::sendpkt()
 		tfrch->UrgentFlag=UrgentFlag;
 		tfrch->round_id=round_id;
 		ndatapack_++;
+		ndatabytes_ += size_;
 		last_pkt_time_ = now;
 		send(p, 0);
 	}
