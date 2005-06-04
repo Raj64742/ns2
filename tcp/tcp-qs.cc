@@ -288,7 +288,6 @@ void QSNewRenoTcpAgent::output(int seqno, int reason)
 
 	if (seqno == 0) {
 		qsh->flag() = QS_REQUEST;
-		Random::seed_heuristically();
 		qsh->ttl() = Random::integer(256);
 		ttl_diff_ = (iph->ttl() - qsh->ttl()) % 256;
                 // PS: rate_request_ parameter is in KB/sec
