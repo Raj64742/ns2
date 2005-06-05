@@ -38,11 +38,11 @@ int hdr_qs::offset_;
 
 static class QSHeaderClass : public PacketHeaderClass {
 public:
-	QSHeaderClass() : PacketHeaderClass("PacketHeader/TCP_QS", sizeof(hdr_qs)) {
+	QSHeaderClass() : PacketHeaderClass("PacketHeader/QS", sizeof(hdr_qs)) {
 		bind_offset(&hdr_qs::offset_);
 	}
 
-} class_QShdr;
+} class_qshdr;
 
 
 /*
