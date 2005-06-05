@@ -42,7 +42,7 @@ enum QS_STATE { QS_DISABLE, QS_REQUEST, QS_RESPONSE };
 
 struct hdr_qs {
  
-	int flag_;	// 1 for request, 0 for response all others invalid	
+	int flag_;	// use QS_STATE
 	int ttl_; 
 	int rate_; 
 
