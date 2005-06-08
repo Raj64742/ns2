@@ -1,5 +1,4 @@
-/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */
-/*
+/* -*-	Mode:C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t -*- */ /*
  * Copyright (c) 1991-1997 Regents of the University of California.
  * All rights reserved.
  *
@@ -31,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.117 2004/10/28 01:19:39 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.118 2005/06/08 02:30:07 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -193,31 +192,38 @@ protected:
 	virtual void delay_bind_init_all();
 	virtual int delay_bind_dispatch(const char *varName, const char *localName, TclObject *tracer);
 
+	TracedInt t_seqno_;	/* sequence number */
 	/*
 	 * State encompassing the round-trip-time estimate.
 	 * srtt and rttvar are stored as fixed point;
 	 * srtt has 3 bits to the right of the binary point, rttvar has 2.
 	 */
-	TracedInt t_seqno_;	/* sequence number */
-#define T_RTT_BITS 0
 	TracedInt t_rtt_;      	/* round trip time */
-	int T_SRTT_BITS;        /* exponent of weight for updating t_srtt_ */
 	TracedInt t_srtt_;     	/* smoothed round-trip time */
+	TracedInt t_rttvar_;   	/* variance in round-trip time */
+	TracedInt t_backoff_;	/* current multiplier, 1 if not backed off */
+	#define T_RTT_BITS 0
+	int T_SRTT_BITS;        /* exponent of weight for updating t_srtt_ */
 	int srtt_init_;		/* initial value for computing t_srtt_ */
 	int T_RTTVAR_BITS;      /* exponent of weight for updating t_rttvar_ */ 
 	int rttvar_exp_;        /* exponent of multiple for t_rtxcur_ */
-	TracedInt t_rttvar_;   	/* variance in round-trip time */
 	int rttvar_init_;       /* initial value for computing t_rttvar_ */
 	double t_rtxcur_;	/* current retransmit value */
 	double rtxcur_init_;    /* initial value for t_rtxcur_ */
-	TracedInt t_backoff_;	/* current multiplier, 1 if not backed off */
 	virtual void rtt_init();
 	virtual double rtt_timeout();	/* provide RTO based on RTT estimates */
 	virtual void rtt_update(double tao);	/* update RTT estimate */
 	virtual void rtt_backoff();		/* double multiplier */
+	/* End of state for the round-trip-time estimate. */
 
+	/* Timestamps. */
 	double ts_peer_;        /* the most recent timestamp the peer sent */
 	double ts_echo_;        /* the most recent timestamp the peer echoed */
+	int ts_option_size_;    // header bytes in a ts option
+        double *tss;            // To store sent timestamps, with bugfix_ts_
+        int tss_size_;          // Current capacity of tss
+	int ts_option_;		/* use RFC1323-like timestamps? */
+	/* End of timestamps. */
 
 	/* connection and packet dynamics */
 	virtual void output(int seqno, int reason = 0);
@@ -255,6 +261,7 @@ protected:
 	virtual void recv_frto_helper(Packet*);
 	virtual void recv_newack_helper(Packet*);
 	virtual void partialnewack_helper(Packet*) {};
+	/* End of helper functions. */
 
 	int force_wnd(int num);
 	void spurious_timeout();
@@ -276,6 +283,8 @@ protected:
 	int timerfix_;		/* set to true to update timer *after* */
 				/* update the RTT, instead of before   */
 	int rfc2988_;		/* Use updated RFC 2988 timers */
+	/* End of timers. */ 
+
 	double boot_time_;	/* where between 'ticks' this sytem came up */
 	double overhead_;
 	double wnd_;
@@ -289,14 +298,36 @@ protected:
 				/* 2 for using large initial windows */
 	double decrease_num_;   /* factor for multiplicative decrease */
 	double increase_num_;   /* factor for additive increase */
-	double k_parameter_;     /* k parameter in binomial controls */
-	double l_parameter_;     /* l parameter in binomial controls */
-	int precision_reduce_;  /* non-integer reduction of cwnd */
+	int tcpip_base_hdr_size_;  /* size of base TCP/IP header */
+	int ts_resetRTO_;	/* Un-backoff RTO after any valid RTT, */
+				/*   including from a retransmitted pkt?  */
+				/* The old version was "false". */
+				/* But "true" gives better performance, and */
+                                /* seems conformant with RFC 2988. */
+	int maxcwnd_;		/* max # cwnd can ever be */
+        int numdupacks_;	/* dup ACKs before fast retransmit */
+	int numdupacksFrac_;	/* for a larger numdupacks_ with large */
+				/* windows */
+	double maxrto_;		/* max value of an RTO */
+	double minrto_;         /* min value of an RTO */
+
+	/* For modeling SYN and SYN/ACK packets. */
 	int syn_;		/* 1 for modeling SYN/ACK exchange */
 	int delay_growth_;  	/* delay opening cwnd until 1st data recv'd */
-	int tcpip_base_hdr_size_;  /* size of base TCP/IP header */
-	int ts_option_size_;    // header bytes in a ts option
+	/* End of modeling SYN and SYN/ACK packets. */
+
+	/* F-RTO */
+	int frto_enabled_;	/* != 0 to enable F-RTO */
+	int sfrto_enabled_;	/* != 0 to enabled SACK-based F-RTO */
+	int spurious_response_;	/* Response variant to spurious RTO */
+	/* End of R-RTO */
+
+	/* Parameters for backwards compatility with old code. */ 
 	int bug_fix_;		/* 1 for multiple-fast-retransmit fix */
+	int less_careful_;	/* 1 for Less Careful variant of bug_fix_, */
+				/*  for illustration only  */
+	int exitFastRetrans_;	/* True to clean exits of Fast Retransmit */ 
+				/* False for buggy old behavior */
 	int bugfix_ack_;        // 1 to enable ACK heuristic, to allow
 				//  multiple-fast-retransmits in special cases.
 				// From Andrei Gurtov
@@ -304,33 +335,19 @@ protected:
 				//  multiple-fast-retransmits in special cases.
 				// From Andrei Gurtov
 				// Not implemented yet.
-        double *tss;            // To store sent timestamps, with bugfix_ts_
-        int tss_size_;          // Current capacity of tss
-	int less_careful_;	/* 1 for Less Careful variant of bug_fix_, */
-				/*  for illustration only  */
-	int ts_option_;		/* use RFC1323-like timestamps? */
-	int ts_resetRTO_;	/* Un-backoff RTO after any valid RTT, */
-				/*   including from a retransmitted pkt?  */
-				/* The old version was "false". */
-				/* But "true" gives better performance, and */
-                                /* seems conformant with RFC 2988. */
-	int maxburst_;		/* max # packets can send back-2-back */
-	int aggressive_maxburst_;	/* Send on a non-valid ack? */
-	int maxcwnd_;		/* max # cwnd can ever be */
-        int numdupacks_;	/* dup ACKs before fast retransmit */
-	int numdupacksFrac_;	/* for a larger numdupacks_ with large */
-				/* windows */
-	int exitFastRetrans_;	/* True to clean exits of Fast Retransmit */ 
-				/* False for buggy old behavior */
-	double maxrto_;		/* max value of an RTO */
-	double minrto_;         /* min value of an RTO */
 	int old_ecn_;		/* For backwards compatibility with the 
 				 * old ECN implementation, which never
 				 * reduced the congestion window below
 				 * one packet. */ 
-	int frto_enabled_;	/* != 0 to enable F-RTO */
-	int sfrto_enabled_;	/* != 0 to enabled SACK-based F-RTO */
-	int spurious_response_;	/* Response variant to spurious RTO */
+	/* End of parameters for backwards compatility. */
+
+	/* Parameters for alternate congestion control mechanisms. */
+	double k_parameter_;     /* k parameter in binomial controls */
+	double l_parameter_;     /* l parameter in binomial controls */
+	int precision_reduce_;  /* non-integer reduction of cwnd */
+	int maxburst_;		/* max # packets can send back-2-back */
+	int aggressive_maxburst_;	/* Send on a non-valid ack? */
+	/* End of parameters for alternate congestion control mechanisms. */
 
 	FILE *plotfile_;
 	/*
@@ -338,44 +355,37 @@ protected:
 	 */
 	TracedInt dupacks_;	/* number of duplicate acks */
 	TracedInt curseq_;	/* highest seqno "produced by app" */
+	TracedInt highest_ack_;	/* not frozen during Fast Recovery */
+	TracedDouble cwnd_;	/* current window */
+	TracedInt ssthresh_;	/* slow start threshold */
+	TracedInt maxseq_;	/* used for Karn algorithm */
+				/* highest seqno sent so far */
 	int last_ack_;		/* largest consecutive ACK, frozen during
 				 *		Fast Recovery */
-	TracedInt highest_ack_;	/* not frozen during Fast Recovery */
 	int recover_;		/* highest pkt sent before dup acks, */
 				/*   timeout, or source quench/ecn */
 	int last_cwnd_action_;	/* CWND_ACTION_{TIMEOUT,DUPACK,ECN} */
-	TracedDouble cwnd_;	/* current window */
-	double base_cwnd_;	/* base window (for experimental purposes) */
-	double awnd_;		/* averaged window */
-	TracedInt ssthresh_;	/* slow start threshold */
 	int count_;		/* used in window increment algorithms */
-	double fcnt_;		/* used in window increment algorithms */
 	int rtt_active_;	/* 1 if a rtt sample is pending */
 	int rtt_seq_;		/* seq # of timed seg if rtt_active_ is 1 */
 	double rtt_ts_;		/* time at which rtt_seq_ was sent */
-	TracedInt maxseq_;	/* used for Karn algorithm */
-				/* highest seqno sent so far */
-	int ecn_;		/* Explicit Congestion Notification */
-	int cong_action_;	/* Congestion Action.  True to indicate
-				   that the sender responded to congestion. */
-        int ecn_burst_;		/* True when the previous ACK packet
-				 *  carried ECN-Echo. */
-	int ecn_backoff_;	/* True when retransmit timer should begin
-			  	    to be backed off.  */
-	int ect_;       	/* turn on ect bit now? */
-        int eln_;               /* Explicit Loss Notification (wireless) */
-        int eln_rxmit_thresh_;  /* Threshold for ELN-triggered rxmissions */
-        int eln_last_rxmit_;    /* Last packet rxmitted due to ELN info */
 	double firstsent_;	/* When first packet was sent  --Allman */
 	double lastreset_;	/* W.N. Last time connection was reset - for */
 				/* detecting pkts from previous incarnations */
-	int slow_start_restart_; /* boolean: re-init cwnd after connection 
-				    goes idle.  On by default. */
-	int restart_bugfix_;    /* ssthresh is cut down because of
-				   timeouts during a connection's idle period.
-				   Setting this boolean fixes this problem.
-				   For now, it is off by default. */ 
 	int closed_;            /* whether this connection has closed */
+
+	/* Dynamic state used for alternate congestion control mechanisms */
+	double awnd_;		/* averaged window */
+	int first_decrease_;	/* First decrease of congestion window.  */
+				/* Used for decrease_num_ != 0.5. */
+	double fcnt_;		/* used in window increment algorithms */
+	double base_cwnd_;	/* base window (for experimental purposes) */
+	/* End of state for alternate congestion control mechanisms */
+
+	/* Dynamic state only used for monitoring */
+	int trace_all_oneline_;	/* TCP tracing vars all in one line or not? */
+	int nam_tracevar_;      /* Output nam's variable trace or just plain 
+				   text variable trace? */
         TracedInt ndatapack_;   /* number of data packets sent */
         TracedInt ndatabytes_;  /* number of data bytes sent */
         TracedInt nackpack_;    /* number of ack packets received */
@@ -387,16 +397,38 @@ protected:
 			   	   in response to an ecn packet -- sylvia */
         TracedInt ncwndcuts_; 	/* number of times cwnd was reduced 
 				   for any reason -- sylvia */
-	int trace_all_oneline_;	/* TCP tracing vars all in one line or not? */
-	int nam_tracevar_;      /* Output nam's variable trace or just plain 
-				   text variable trace? */
-	int first_decrease_;	/* First decrease of congestion window.  */
-				/* Used for decrease_num_ != 0.5. */
+	/* end of dynamic state for monitoring */
+
+	/* Specifying variants in TCP algorithms.  */
+	int slow_start_restart_; /* boolean: re-init cwnd after connection 
+				    goes idle.  On by default. */
+	int restart_bugfix_;    /* ssthresh is cut down because of
+				   timeouts during a connection's idle period.
+				   Setting this boolean fixes this problem.
+				   For now, it is off by default. */ 
         TracedInt singledup_;   /* Send on a single dup ack.  */
 	int LimTransmitFix_;	/* To fix a bug in Limited Transmit. */
 	int noFastRetrans_;	/* No Fast Retransmit option.  */
 	int oldCode_;		/* Use old code. */
 	int useHeaders_;	/* boolean: Add TCP/IP header sizes */
+	/* end of specifying variants */
+
+	/* Used for ECN */
+	int ecn_;		/* Explicit Congestion Notification */
+	int cong_action_;	/* Congestion Action.  True to indicate
+				   that the sender responded to congestion. */
+        int ecn_burst_;		/* True when the previous ACK packet
+				 *  carried ECN-Echo. */
+	int ecn_backoff_;	/* True when retransmit timer should begin
+			  	    to be backed off.  */
+	int ect_;       	/* turn on ect bit now? */
+	/* end of ECN */
+
+	/* used for Explicit Loss Notification */
+        int eln_;               /* Explicit Loss Notification (wireless) */
+        int eln_rxmit_thresh_;  /* Threshold for ELN-triggered rxmissions */
+        int eln_last_rxmit_;    /* Last packet rxmitted due to ELN info */
+	/* end of Explicit Loss Notification */
 
 	/* for experimental high-speed TCP */
 	/* These four parameters define the HighSpeed response function. */
@@ -451,10 +483,10 @@ protected:
 	/* these function are now obsolete, see other above */
 	void closecwnd(int how);
 	void quench(int how);
-
+        
+	/* TCP quiescence, reducing cwnd after an idle period */
 	void process_qoption_after_send() ;
 	void process_qoption_after_ack(int seqno) ;
-
 	int QOption_ ; /* TCP quiescence option */
 	int EnblRTTCtr_ ; /* are we using a corase grained timer? */
 	int T_full ; /* last time the window was full */
@@ -469,11 +501,11 @@ protected:
 	int W_timed ;
 	int F_full ; 
 	int Backoffs ;
-
 	int control_increase_ ; /* If true, don't increase cwnd if sender */
 				/*  is not window-limited.  */
 	int prev_highest_ack_ ; /* Used to determine if sender is */
 				/*  window-limited.  */
+   	/* end of TCP quiescence */
 };
 
 /* TCP Reno */

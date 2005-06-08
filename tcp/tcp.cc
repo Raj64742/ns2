@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.158 2005/05/30 05:15:48 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.159 2005/06/08 02:30:07 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -69,14 +69,14 @@ TcpAgent::TcpAgent()
 	: Agent(PT_TCP), 
 	  t_seqno_(0), t_rtt_(0), t_srtt_(0), t_rttvar_(0), 
 	  t_backoff_(0), ts_peer_(0), ts_echo_(0),
-	  rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this), 
 	  tss(NULL), tss_size_(100), 
+	  rtx_timer_(this), delsnd_timer_(this), burstsnd_timer_(this), 
 	  dupacks_(0), curseq_(0), highest_ack_(0), cwnd_(0), ssthresh_(0), 
-	  count_(0), fcnt_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
-	  maxseq_(0), cong_action_(0), ecn_burst_(0), ecn_backoff_(0),
-	  ect_(0), lastreset_(0.0),
-	  restart_bugfix_(1), closed_(0), nrexmit_(0),
-	  first_decrease_(1), qs_requested_(0), qs_approved_(0),
+	  maxseq_(0), count_(0), rtt_active_(0), rtt_seq_(-1), rtt_ts_(0.0), 
+	  lastreset_(0.0), closed_(0), first_decrease_(1), fcnt_(0), 
+	  nrexmit_(0), restart_bugfix_(1), cong_action_(0), 
+	  ecn_burst_(0), ecn_backoff_(0), ect_(0), 
+	  qs_requested_(0), qs_approved_(0),
 	  qs_window_(0), qs_cwnd_(0), frto_(0)
 	
 {
