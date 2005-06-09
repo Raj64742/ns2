@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.7 2005/02/03 18:27:12 haldar Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.8 2005/06/09 15:10:01 sfloyd Exp $";
 #endif
 
 #include <stdio.h>
@@ -528,9 +528,8 @@ void XcpSink::ack(Packet* opkt)
 
 	// XCP Changes
 
-	int off_xcp_ = hdr_xcp::offset();
-	hdr_xcp* oxcp = (hdr_xcp*)opkt->access(off_xcp_);
-	hdr_xcp* nxcp = (hdr_xcp*)npkt->access(off_xcp_);
+	hdr_xcp *oxcp = hdr_xcp::access(opkt);
+	hdr_xcp *nxcp = hdr_xcp::access(npkt);
 	if (oxcp->xcp_enabled_ != hdr_xcp::XCP_DISABLED) {
 		nxcp->xcp_enabled_ = hdr_xcp::XCP_ACK;
 		nxcp->reverse_feedback_ = oxcp->delta_throughput_;
