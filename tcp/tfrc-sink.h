@@ -110,6 +110,7 @@ protected:
 	TfrcNackTimer nack_timer_;
 
 	int psize_;		// size of received packet
+	int fsize_;		// size of large TCP packet, for VoIP mode.
 	double rtt_;		// rtt value reported by sender
 	double tzero_;		// timeout value reported by sender
 	int smooth_;		// for the smoother method for incorporating

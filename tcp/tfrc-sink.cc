@@ -190,6 +190,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	/* for the time being, we will ignore out of order and duplicate 
 	   packets etc. */
 	int seqno = tfrch->seqno ;
+	fsize_ = tfrch->fsize;
 	int oldmaxseq = maxseq;
 	// if this is the highest packet yet, or an unknown packet
 	//   between maxseqList and maxseq  
@@ -313,7 +314,7 @@ double TfrcSinkAgent::est_loss ()
 }
 
 /*
- * compute estimated throughput for report.
+ * compute estimated throughput in packets per RTT for report.
  */
 double TfrcSinkAgent::est_thput () 
 {
@@ -576,7 +577,7 @@ double TfrcSinkAgent::est_loss_WALI ()
 		if (printLoss_ > 0) {
 			print_loss(sample[0], ave_interval1);
 			print_loss_all(sample);
-			if (ShortIntervals_ == 1) {
+			if (ShortIntervals_ > 0) {
 				print_losses_all(losses);
 				print_count_losses_all(count_losses);
 			}
@@ -641,10 +642,20 @@ int TfrcSinkAgent::get_sample(int oldSample, int numLosses)
 //    when it is very large
 // "m[i]" is "mult[]", for old values of "mult_factor_".
 //
-// When ShortIntervals_ is used, the length of a loss interval is
+// When ShortIntervals_ is 1, the length of a loss interval is
 //   "sample[i]/losses[i]" for short intervals, not just "sample[i]".
 //   This is equivalent to a loss event rate of "losses[i]/sample[i]",
 //   instead of "1/sample[i]".
+//
+// When ShortIntervals_ is 2, the length of a loss interval is
+//   "sample[i]/S" for short intervals, not just "sample[i]", for
+//   S = 1460/byte-size-of-small-packets.
+//   The packet size in the TFRC header (in NS) is currently used
+//   in the TCP-friendly equation for adjusting history after
+//   the first loss.
+//   This would have to be added to the protocol.
+//   This is equivalent to a loss event rate of "S/sample[i]",
+//   instead of "1/sample[i]" or "losses[i]/sample[i]".
 //
 double TfrcSinkAgent::weighted_average1(int start, int end, double factor, double *m, double *w, int *sample, int ShortIntervals, int *losses, int *count_losses)
 {
@@ -669,6 +680,10 @@ double TfrcSinkAgent::weighted_average1(int start, int end, double factor, doubl
                         if (ShortIntervals == 1 && count_losses[i] == 1) {
 			       ThisSample = get_sample(sample[i], losses[i]);
                         }
+                        if (ShortIntervals == 2 && count_losses[i] == 1) {
+			       ThisSample = get_sample(sample[i], 7);
+			       // Replace 7 by 1460/packet size.
+                        }
                         if (i==0)
                                 answer += m[i]*w[i+1]*ThisSample/wsum;
                                 //answer += m[i]*w[i+1]*sample[i]/wsum;
@@ -688,6 +703,10 @@ double TfrcSinkAgent::weighted_average1(int start, int end, double factor, doubl
                        ThisSample = sample[i];
                        if (ShortIntervals == 1 && count_losses[i] == 1) {
 			       ThisSample = get_sample(sample[i], losses[i]);
+                       }
+                       if (ShortIntervals == 2 && count_losses[i] == 1) {
+			       ThisSample = get_sample(sample[i], 7);
+			       // Replace 7 by 1460/packet size.
                        }
                        if (i==0)
                                 answer += m[i]*w[i]*ThisSample/wsum;
@@ -741,7 +760,7 @@ double TfrcSinkAgent::adjust_history (double ts)
 	}
 	lastloss = ts; 
 	lastloss_round_id = round_id ;
-	p=b_to_p(est_thput()*psize_, rtt_, tzero_, psize_, 1);
+	p=b_to_p(est_thput()*psize_, rtt_, tzero_, fsize_, 1);
 	false_sample = (int)(1.0/p);
 	sample[1] = false_sample;
 	sample[0] = 0;
