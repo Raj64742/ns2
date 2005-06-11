@@ -30,13 +30,16 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.39 2004/10/13 02:29:05 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.40 2005/06/11 01:52:25 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
 set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false

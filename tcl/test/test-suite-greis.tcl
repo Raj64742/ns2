@@ -1,17 +1,3 @@
-
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set minrto_ 1
-# default changed on 10/14/2004.
-Agent/TCP set useHeaders_ false
-# The default is being changed to useHeaders_ true.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
 #
 # Copyright (c) 1998 University of Southern California.
 # All rights reserved.                                            
@@ -46,6 +32,23 @@ Agent/TCP set singledup_ 0
 # To view a list of available test to run with this script:
 # ns test-suite-greis.tcl
 #
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for TCP
+
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
+# FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
+Agent/TCP set useHeaders_ false
+# The default is being changed to useHeaders_ true.
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.

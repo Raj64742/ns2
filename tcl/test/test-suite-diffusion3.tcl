@@ -25,6 +25,10 @@
 
 # This test validates a simple diffusion (ping) application
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP Diffusion ARP LL Mac 
+# hdrs reqd for validation test
+
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.

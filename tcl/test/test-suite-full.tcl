@@ -38,10 +38,12 @@
 #
 # This test suite is based on test-suite-fulltcp.tcl from ns-1.
 
-
 set dir [pwd]
 catch "cd tcl/test"
 source misc.tcl
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for TCP
+
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false

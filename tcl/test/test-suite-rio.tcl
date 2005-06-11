@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.16 2004/10/13 02:29:07 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-rio.tcl,v 1.17 2005/06/11 01:52:27 sfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -42,11 +42,14 @@
 set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+ 
+# FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
 Queue/RED set bytes_ false              
 # default changed on 10/11/2004.
 Queue/RED set queue_in_bytes_ false

@@ -1,8 +1,4 @@
 #
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
 # Copyright (c) 1995 The Regents of the University of California.
 # All rights reserved.
 #
@@ -34,7 +30,7 @@ Agent/TCP set rfc2988_ false
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.8 2004/10/18 19:42:18 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.9 2005/06/11 01:52:27 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -56,11 +52,18 @@ Agent/TCP set rfc2988_ false
 
 # ns-random 0
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for TCP
+
 # Change wrap from 90 packets to 90040 bytes.
 # Change scale from 0.01 to 0.00001, to change separation between flows. 
 Agent/TCP/FullTcp set segsize_ 960
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.
 Queue/RED set bytes_ false              

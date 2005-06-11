@@ -16,13 +16,15 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-realaudio.tcl,v 1.2 2000/10/04 06:13:50 kclan Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-realaudio.tcl,v 1.3 2005/06/11 01:52:27 sfloyd Exp $
 
 # To run all tests: test-all-realaudio
 #
 # To view a list of available test to run with this script:
 # ns test-suite-realaudio.tcl
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
 
 proc usage {}  {
         global argv0

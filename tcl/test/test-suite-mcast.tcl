@@ -11,6 +11,11 @@
 # ns test-suite-mcast.tcl
 #
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+ 
+# FOR UPDATING GLOBAL DEFAULTS:
+
 Class TestSuite
 
 TestSuite instproc init {} {

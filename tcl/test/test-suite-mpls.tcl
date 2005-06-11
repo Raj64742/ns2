@@ -33,7 +33,12 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mpls.tcl,v 1.4 2000/09/14 18:19:31 haoboy Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mpls.tcl,v 1.5 2005/06/11 01:52:26 sfloyd Exp $
+
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP MPLS LDP ; # hdrs reqd for validation test
+ 
+# FOR UPDATING GLOBAL DEFAULTS:
 
 Class TestSuite
 

@@ -35,7 +35,10 @@
 # IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
 # THE POSSIBILITY OF SUCH DAMAGE.
 #
-# $Id: test-suite-jobs.tcl,v 1.2 2004/10/18 19:42:17 sfloyd Exp $                  
+# $Id: test-suite-jobs.tcl,v 1.3 2005/06/11 01:52:26 sfloyd Exp $                  
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+ 
 # FOR UPDATING GLOBAL DEFAULTS:
 
 #                                                                     

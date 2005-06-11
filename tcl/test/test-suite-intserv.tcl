@@ -18,7 +18,7 @@
 #
 
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.7 1999/12/15 15:55:04 heideman Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.8 2005/06/11 01:52:26 sfloyd Exp $
 #
 
 # 
@@ -50,7 +50,11 @@
 # To run a test:  
 # ns test-suite-intserv.tcl ALG
 # where ALG is one of MS, HB, ACTP, ACTO, Param
-#
+
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+ 
+# FOR UPDATING GLOBAL DEFAULTS:
 
 set meastime 100
 set simtime 300

@@ -10,7 +10,10 @@
 # To view a list of available tests to run with this script:
 # ns test-suite-scheduler.tcl
 #
-
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+ 
+# FOR UPDATING GLOBAL DEFAULTS:
 
 # What does this simple test do?
 #   - it schedules $TIMES batches of events.  Each batch contains $SIMUL events, 

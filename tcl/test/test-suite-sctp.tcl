@@ -80,6 +80,10 @@
 #  ns test-suite-sctp.tcl sctp-timestamp-multihome2-2Rtx3
 #  ns test-suite-sctp.tcl sctp-timestamp-multihome2-2Timeout
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP SCTP ; # hdrs reqd for validation test
+
+
 Class TestSuite
 
 # 2 packets get dropped and their fast rtx gets lost too.... forcing them

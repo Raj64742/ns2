@@ -28,6 +28,10 @@
 # ns test-suite-srm.tcl
 #
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP SRM aSRM SRMEXT; 
+# hdrs reqd for validation test
+
 Class TestSuite
 
 Class Test/srm-chain -superclass TestSuite

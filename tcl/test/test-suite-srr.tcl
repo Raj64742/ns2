@@ -32,6 +32,11 @@
 # SUCH DAMAGE.
 #
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+ 
+# FOR UPDATING GLOBAL DEFAULTS:
+
 Simulator instproc get-link { node1 node2 } {
     $self instvar link_
     set id1 [$node1 id]

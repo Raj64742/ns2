@@ -5,17 +5,20 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.12 2002/03/08 21:55:42 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-mcache.tcl,v 1.13 2005/06/11 01:52:26 sfloyd Exp $
 
 #----------------------------------------------------------------------
 # Related Files
 #----------------------------------------------------------------------
 #source misc.tcl
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP HttpInval ; # hdrs reqd for validation test
+ 
+# FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1

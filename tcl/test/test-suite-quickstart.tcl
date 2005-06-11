@@ -34,6 +34,9 @@
 
 source misc_simple.tcl
 source support.tcl
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP QS ; # hdrs reqd for validation test
+
 # FOR UPDATING GLOBAL DEFAULTS:
 
 set wrap 90

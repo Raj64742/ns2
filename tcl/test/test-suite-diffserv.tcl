@@ -26,6 +26,9 @@
 # ns test-suite-diffserv.tcl
 #
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.

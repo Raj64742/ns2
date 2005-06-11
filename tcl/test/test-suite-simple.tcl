@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.39 2004/10/23 01:27:46 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.40 2005/06/11 01:52:27 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -54,6 +54,9 @@
 
 #source misc_simple.tcl
 #source support.tcl
+
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for TCP
 
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TFRC set ss_changes_ 1 ; 	# Added on 10/21/2004

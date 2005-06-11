@@ -35,6 +35,11 @@
 set dir [pwd]
 catch "cd tcl/test"
 source misc_simple.tcl
+catch "cd $dir"
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+ 
+# FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false
@@ -42,9 +47,6 @@ Agent/TCP set rfc2988_ false
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
 Agent/TCP set overhead_ 0.001
-catch "cd $dir"
-
-# FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.
 Agent/TCP set useHeaders_ false

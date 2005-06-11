@@ -1,16 +1,3 @@
-# This test suite is for validating the algorithmic routing support
-Agent/TCP set tcpTick_ 0.1
-# The default for tcpTick_ is being changed to reflect a changing reality.
-Agent/TCP set rfc2988_ false
-# The default for rfc2988_ is being changed to true.
-# FOR UPDATING GLOBAL DEFAULTS:
-Agent/TCP set minrto_ 1
-# default changed on 10/14/2004.
-Agent/TCP set windowInit_ 1
-# The default is being changed to 2.
-Agent/TCP set singledup_ 0
-# The default is being changed to 1
-# in ns.
 #
 # To run all tests:  test-all-algo-routing
 #
@@ -22,8 +9,22 @@ Agent/TCP set singledup_ 0
 # To view a list of available tests to run with this script:
 # ns test-suite-mixmode.tcl
 #
+remove-all-packet-headers       ; # removes all except common
+#add-packet-header Flags IP TCP rtProtoDV ; # hdrs reqd for validation test
+add-packet-header Flags IP TCP ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
+# This test suite is for validating the algorithmic routing support
+Agent/TCP set tcpTick_ 0.1
+# The default for tcpTick_ is being changed to reflect a changing reality.
+Agent/TCP set rfc2988_ false
+# The default for rfc2988_ is being changed to true.
+Agent/TCP set minrto_ 1
+# default changed on 10/14/2004.
+Agent/TCP set windowInit_ 1
+# The default is being changed to 2.
+Agent/TCP set singledup_ 0
+# The default is being changed to 1 in ns.
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set syn_ false

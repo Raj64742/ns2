@@ -28,6 +28,10 @@
 #
 # run SMAC in a 10-nodes multihop network with DSR routing
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP Diffusion ARP LL Mac SR
+# hdrs reqd for validation test
+
 set opt(chan)           Channel/WirelessChannel
 set opt(prop)           Propagation/TwoRayGround
 set opt(netif)          Phy/WirelessPhy
