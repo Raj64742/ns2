@@ -10,8 +10,7 @@
 # ns test-suite-mixmode.tcl
 #
 remove-all-packet-headers       ; # removes all except common
-#add-packet-header Flags IP TCP rtProtoDV ; # hdrs reqd for validation test
-add-packet-header Flags IP TCP ; # hdrs reqd for validation test
+add-packet-header Flags IP RTP TCP rtProtoDV ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
 # This test suite is for validating the algorithmic routing support

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.33 2005/06/11 01:52:25 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-cbq.tcl,v 1.34 2005/06/11 04:42:09 sfloyd Exp $
 #
 #
 # This test suite reproduces the tests from the following note:
@@ -47,7 +47,7 @@ set dir [pwd]
 catch "cd tcl/test"
 source misc.tcl
 remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+add-packet-header Flags IP RTP TCP  ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
 

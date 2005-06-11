@@ -33,7 +33,7 @@
 # ns test-suite-greis.tcl
 #
 remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP  ; # hdrs reqd for TCP
+add-packet-header Flags IP RTP TCP  ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set tcpTick_ 0.1

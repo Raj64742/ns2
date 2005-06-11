@@ -30,14 +30,13 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.66 2005/06/11 01:52:25 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.67 2005/06/11 04:42:09 sfloyd Exp $
 #
 
 source misc_simple.tcl
 source support.tcl
 remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP TFRC ; # hdrs reqd for validation test
-# Why doesn't this need TFRC_ACK???
+add-packet-header Flags IP RTP TCP TFRC TFRC_ACK ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TFRC set ss_changes_ 0 ; 	# Added on 10/21/2004

@@ -37,7 +37,7 @@ catch "cd tcl/test"
 source misc_simple.tcl
 catch "cd $dir"
 remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+add-packet-header Flags IP RTP TCP  ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
 
