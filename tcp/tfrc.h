@@ -59,13 +59,24 @@
 
 struct hdr_tfrc {
 
+	// RFC 3448 specifies that seqno, timestamp, and rtt
+	//  must be in the data packet header.
 	int seqno;		//data sequence number
-	double rate;		//sender's current rate
-	double rtt;	 	//RTT estimate of sender
-	double tzero;	 	//RTO in Umass eqn
 	double timestamp; 	//time this message was sent
-	int psize;		//packet size	
+	double rtt;	 	//RTT estimate of sender
+	// "rate" is used by one of the experimental algorithms, RBPH.
+	double rate;		//sender's current rate
+	// In a real implementation, tzero, psize, and fsize
+	// would not be in the packet header.
+	// They are here for convenience.
+	double tzero;	 	//RTO in Umass eqn
+	int psize;		//Packet size.  
+	int fsize;		//The default large packet size for VoIP.  
+ 	// UrgentFlag is used to request that a loss report be sent
+	//  immediately.
 	int UrgentFlag;		//Urgent Flag
+	// "round_id" is used by PreciseLoss_, a variant for more
+	//  precise loss events that is on by default.
 	int round_id ; 		//round id.
 
 	static int offset_;	// offset for this header
@@ -180,6 +191,7 @@ protected:
 	int srtt_init_; 
 	int rttvar_init_;
 	double rtxcur_init_;
+	/* End of TCP variables for tracking RTT */
 
 	int InitRate_;		// initial send rate
 	double df_;		// decay factor for accurate RTT estimate
@@ -200,21 +212,30 @@ protected:
 				//  equation).
 	double rate_init_;	// Static value for initial rate, in 
 				//   packets per RTT.
+	/* Variants in the TFRC algorithms.  */
         int rate_init_option_;  /* 1 for using static rate_init_ */
                                 /* 2 for using RFC 3390 */
 	int slow_increase_;	// To use slow increases in the rate during
 				//  slow-start.
 	int ss_changes_;	// To use changes in the slow-start code
 				//  to enable higher initial sending rates.
+	/* End of variants.  */
 
 	/* Responses to heavy congestion. */
 	int conservative_;	// set to 1 for an experimental, conservative 
 				//   response to heavy congestion
 	double scmult_;         // self clocking parameter for conservative_
+	/* End of responses to heavy congestion.  */
+
 	int heavyrounds_;	// the number of RTTs so far when the
 				//  sending rate > 2 * receiving rate
 	int maxHeavyRounds_;	// the number of allowed rounds for
 				//  sending rate > 2 * receiving rate
+
+	/* VoIP mode, for using small packets. */
 	int voip_;		// 1 for voip mode.
 	int voip_max_pkt_rate_ ;	// Max pkt rate in pps, for voip mode.
+	int fsize_;		// Default size for large TCP packets 
+				//  (e.g., 1460 bytes).
+	/* end of VoIP mode. */
 };

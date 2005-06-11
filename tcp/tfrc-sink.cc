@@ -647,15 +647,9 @@ int TfrcSinkAgent::get_sample(int oldSample, int numLosses)
 //   This is equivalent to a loss event rate of "losses[i]/sample[i]",
 //   instead of "1/sample[i]".
 //
-// When ShortIntervals_ is 2, the length of a loss interval is
-//   "sample[i]/S" for short intervals, not just "sample[i]", for
-//   S = 1460/byte-size-of-small-packets.
-//   The packet size in the TFRC header (in NS) is currently used
-//   in the TCP-friendly equation for adjusting history after
-//   the first loss.
-//   This would have to be added to the protocol.
-//   This is equivalent to a loss event rate of "S/sample[i]",
-//   instead of "1/sample[i]" or "losses[i]/sample[i]".
+// When ShortIntervals_ is 2, it is like ShortIntervals_ of 1,
+//   except that the number of losses per loss interval is at
+//   most 1460/byte-size-of-small-packets.
 //
 double TfrcSinkAgent::weighted_average1(int start, int end, double factor, double *m, double *w, int *sample, int ShortIntervals, int *losses, int *count_losses)
 {
@@ -681,8 +675,11 @@ double TfrcSinkAgent::weighted_average1(int start, int end, double factor, doubl
 			       ThisSample = get_sample(sample[i], losses[i]);
                         }
                         if (ShortIntervals == 2 && count_losses[i] == 1) {
-			       ThisSample = get_sample(sample[i], 7);
-			       // Replace 7 by 1460/packet size.
+			       int adjusted_losses = int(fsize_/size_);
+			       if (losses[i] < adjusted_losses) {
+					adjusted_losses = losses[i];
+			       }
+			       ThisSample = get_sample(sample[i], adjusted_losses);
                         }
                         if (i==0)
                                 answer += m[i]*w[i+1]*ThisSample/wsum;

@@ -103,6 +103,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind_bool("ss_changes_", &ss_changes_);
 	bind_bool("voip_", &voip_);
 	bind("voip_max_pkt_rate_", &voip_max_pkt_rate_);
+	bind("fsize_", &fsize_);
 	seqno_ = -1;
 	maxseq_ = 0;
 	datalimited_ = 0;
@@ -317,7 +318,6 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	// double NumFeedback_ = nck->NumFeedback_;
 	double flost = nck->flost; 
 	int losses = nck->losses;
-	int fsize;
 
 	round_id ++ ;
 	UrgentFlag = 0;
@@ -348,15 +348,13 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	update_rtt (ts, now);
 
 	/* .. and estimate of fair rate */
-	if (voip_) {
+	if (voip_ != 1) {
 		// From RFC 3714:
 		// The voip flow gets to send at the same rate as
 		//  a TCP flow with 1460-byte packets.
-		fsize = 1460; 
-	} else {
-		fsize = size_;
+		fsize_ = size_;
 	}
-	rcvrate = p_to_b(flost, rtt_, tzero_, fsize, bval_);
+	rcvrate = p_to_b(flost, rtt_, tzero_, fsize_, bval_);
 	// rcvrate is in bytes per second, based on fairness with a    
 	// TCP connection with the same packet size size_.	      
 	if (voip_) {
@@ -552,6 +550,7 @@ void TfrcAgent::sendpkt()
 		tfrch->tzero=tzero_;
 		tfrch->rate=rate_;
 		tfrch->psize=size_;
+		tfrch->fsize=fsize_;
 		tfrch->UrgentFlag=UrgentFlag;
 		tfrch->round_id=round_id;
 		ndatapack_++;
