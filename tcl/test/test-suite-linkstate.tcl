@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.10 2005/06/11 01:52:26 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.11 2005/06/11 05:51:37 sfloyd Exp $
 
 # Simple test for Link State routing contributed by 
 # Mingzhou Sun <msun@rainfinity.com> based on Kannan's old equal-cost 
@@ -45,8 +45,8 @@ Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
 
-remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+#remove-all-packet-headers       ; # removes all except common
+#add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set tcpTick_ 0.1

@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-lan.tcl,v 1.18 2005/06/11 01:52:26 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-lan.tcl,v 1.19 2005/06/11 05:51:37 sfloyd Exp $
 
 # To run all tests: test-all-lan
 # to run individual test:
@@ -31,8 +31,8 @@
 # To view a list of available tests to run with this script:
 # ns test-suite-lan.tcl
 #
-remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP ARP LL Mac ; # hdrs reqd for validation test
+#remove-all-packet-headers       ; # removes all except common
+#add-packet-header Flags IP TCP ARP LL Mac ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set tcpTick_ 0.1

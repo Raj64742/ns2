@@ -32,8 +32,8 @@
 # To view a list of available test to run with this script:
 # ns test-suite-greis.tcl
 #
-remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP RTP TCP  ; # hdrs reqd for validation test
+#remove-all-packet-headers       ; # removes all except common
+#add-packet-header Flags IP RTP TCP  ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set tcpTick_ 0.1

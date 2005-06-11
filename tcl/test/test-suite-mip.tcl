@@ -30,8 +30,8 @@
 # ns test-suite-mip.tcl
 #
 
-remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP MIP IPinIP ARP LL Mac ; # hdrs reqd for validation test
+#remove-all-packet-headers       ; # removes all except common
+#add-packet-header Flags IP TCP MIP IPinIP ARP LL Mac ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set tcpTick_ 0.1

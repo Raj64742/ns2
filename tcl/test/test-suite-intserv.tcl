@@ -18,7 +18,7 @@
 #
 
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.8 2005/06/11 01:52:26 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-intserv.tcl,v 1.9 2005/06/11 05:51:37 sfloyd Exp $
 #
 
 # 
@@ -51,8 +51,8 @@
 # ns test-suite-intserv.tcl ALG
 # where ALG is one of MS, HB, ACTP, ACTO, Param
 
-remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+#remove-all-packet-headers       ; # removes all except common
+#add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
 

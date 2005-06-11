@@ -41,8 +41,8 @@
 #
 # Every test uses a 10 node hierarchical topology
 
-remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP RTP TCP  ; # hdrs reqd for validation test
+##remove-all-packet-headers       ; # removes all except common
+#add-packet-header Flags IP RTP TCP  ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
 Class TestSuite

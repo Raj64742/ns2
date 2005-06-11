@@ -25,8 +25,8 @@
 # To view a list of available tests to run with this script:
 # ns test-suite-smac.tcl
 
-remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP Diffusion ARP LL Mac  
+#remove-all-packet-headers       ; # removes all except common
+#add-packet-header Flags IP TCP Diffusion ARP LL Mac  
 # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:

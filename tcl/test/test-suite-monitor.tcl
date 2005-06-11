@@ -27,8 +27,8 @@
 # ns test-suite-monitor.tcl
 #
 # Each of the tests uses 6 nodes 
-remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+#remove-all-packet-headers       ; # removes all except common
+#add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set syn_ false
