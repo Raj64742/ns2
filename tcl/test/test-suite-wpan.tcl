@@ -32,7 +32,11 @@
 # LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT 
 # OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP RTP TCP ARP LL Mac LRWPAN AODV ;
+# hdrs reqd for validation
 
+# FOR UPDATING GLOBAL DEFAULTS:
 Class TestSuite
 
 Class Test/wpan -superclass TestSuite
