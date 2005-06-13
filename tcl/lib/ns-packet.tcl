@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.53 2005/06/09 15:03:48 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.54 2005/06/13 18:58:00 sfloyd Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -111,56 +111,56 @@ proc remove-all-packet-headers {} {
 }
 
 foreach prot {
-	AODV
-	ARP
-  	aSRM 
+	AODV 	# routing protocol for ad-hoc networks
+	ARP 	# Address Resolution Protocol, network wireless stack
+  	aSRM 	# mcast/srm.cc
 	Common 
-	CtrMcast 
-	Diffusion
-	Encap
+	CtrMcast 	# Centralized Multicast routing
+	Diffusion 	# diffusion/diffusion.cc
+	Encap 	# common/encap.cc
 	Flags
-	HttpInval
-	IMEP
-	IP
-        IPinIP 
-	IVS
-	LDP
-	LL
-	mcastCtrl
-	MFTP
-	MPLS
-	Mac 
-        LRWPAN  #zheng
-	Message
-        MIP 
-	Ping
-	PGM
-	PGM_SPM
-	PGM_NAK
-	QS
-	RAP 
-	RTP
-	Resv 
-	rtProtoDV
-	rtProtoLS
-	SR
-	Src_rt
-  	SRM 
-  	SRMEXT
-	Snoop
-	TCP
-	TCPA
-	TFRC
-	TFRC_ACK
-	TORA
-	XCP
-	GAF
-	UMP 
-	Pushback
-	SCTP
-	Smac
-	NV
-	HDLC
+	HttpInval 	# HTTP
+	IMEP 	# Internet MANET Encapsulation Protocol, for ad-hoc networks
+	IP 	# IP
+        IPinIP 	# IP encapsulation 
+	IVS 	# IVS sources and receivers, common/ivs.cc
+	LDP 	# mpls/ldp.cc
+	LL 	# network wireless stack
+	mcastCtrl 	# mcast/mcast_ctrl.cc
+	MFTP 	# Multicast File Transfer Protocol
+	MPLS 	# MPLS, MultiProtocol Label Switching
+	Mac 	# network wireless stack
+        LRWPAN  # zheng, wpan/p802_15_4mac.cc
+	Message # a protocol to carry text messages
+        MIP 	# Mobile IP, mobile/mip-reg.cc
+	Ping 	# Ping
+	PGM 	# PGM multicast
+	PGM_SPM # PGM multicast
+	PGM_NAK # PGM multicast
+	QS 	# Quick-Start
+	RAP 	# Rate Adaption Protocol, transport protocol.
+	RTP 	# RTP.  Also used for UPD traffic.
+	Resv 	# Token buckets, for reservations.
+	rtProtoDV 	# distance vector routing protocol
+	rtProtoLS 	# link state routing protocol
+	SR 	# source routing, dsr/hdr_sr.cc
+	Src_rt 	# source routing, src_rtg/hdr_src.cc
+  	SRM 	# SRM, multicast
+  	SRMEXT 	# SRM, multicast
+	Snoop 	# tcp/snoop.cc
+	TCP 	# TCP, transport protocol
+	TCPA 	# Asymmetric TCP, transport protocol
+	TFRC 	# TFRC, transport protocol
+	TFRC_ACK 	# TFRC, transport protocol
+	TORA 	# routing protocol for ad-hoc networks
+	XCP 	# XCP, transport protocol
+	GAF 	# Geographic Adaptive Delity, for ad-hoc networks
+	UMP 	# Admission control, adc/ump.cc
+	Pushback 	# Pushback, router-to-router
+	SCTP 	# SCTP, transport protocol
+	Smac 	# Sensor-MAC
+	NV 	# NixVector classifier for stateless routing 
+	HDLC 	# High Level Data Link Control
 } {
 	add-packet-header $prot
 }
