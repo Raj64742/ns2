@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.82 2005/04/26 18:56:36 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.83 2005/06/13 17:50:42 haldar Exp $
  */
 
 #include <packet.h>
@@ -289,8 +289,15 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 	if (thisnode) {
 		if (thisnode->energy_model()) {
 			sprintf(pt_->buffer() + offset,
-				"[energy %f] ",
-				thisnode->energy_model()->energy());
+//				"[energy %f] ",
+				"[energy %f ei %.3f es %.3f et %.3f er %.3f] ",
+//logging energy consumption in detail...i.e. total energy consumption in SLEEP, IDLE, TRANS and RECV modes
+				thisnode->energy_model()->energy(),
+				thisnode->energy_model()->ei(),
+				thisnode->energy_model()->es(),				
+				thisnode->energy_model()->et(),
+				thisnode->energy_model()->er()				
+				);
 		}
         }
 }

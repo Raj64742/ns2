@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/energy-model.cc,v 1.5 2000/08/31 20:11:49 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/energy-model.cc,v 1.6 2005/06/13 17:50:41 haldar Exp $
  */
 
 // Contributed by Satish Kumar <kkumar@isi.edu>
@@ -69,6 +69,10 @@ void EnergyModel::DecrTxEnergy(double txtime, double P_tx)
 		energy_ = energy_ - dEng;
 	if (energy_ <= 0.0)
 		God::instance()->ComputeRoute();
+//
+	// This variable keeps track of total energy consumption in Transmission..
+	et_=et_+dEng;
+//
 }
 
 
@@ -81,6 +85,10 @@ void EnergyModel::DecrRcvEnergy(double rcvtime, double P_rcv)
 		energy_ = energy_ - dEng;
 	if (energy_ <= 0.0)
 		God::instance()->ComputeRoute();
+//
+	// This variable keeps track of total energy consumption in RECV mode..
+	er_=er_+dEng;
+//
 }
 
 void EnergyModel::DecrIdleEnergy(double idletime, double P_idle) 
@@ -92,7 +100,38 @@ void EnergyModel::DecrIdleEnergy(double idletime, double P_idle)
 		energy_ = energy_ - dEng;
 	if (energy_ <= 0.0)
 		God::instance()->ComputeRoute();
+//
+	// This variable keeps track of total energy consumption in IDLE mode..
+	ei_=ei_+dEng;
+//
 }
+
+//
+void EnergyModel::DecrSleepEnergy(double sleeptime, double P_sleep) 
+{
+	double dEng = P_sleep * sleeptime;
+	if (energy_ <= dEng)
+		energy_ = 0.0;
+	else
+		energy_ = energy_ - dEng;
+	if (energy_ <= 0.0)
+		God::instance()->ComputeRoute();
+
+	// This variable keeps track of total energy consumption in SLEEP mode..
+	es_=es_+dEng;
+}
+
+void EnergyModel::DecrTransitionEnergy(double transitiontime, double P_transition) 
+{
+	double dEng = P_transition * transitiontime;
+	if (energy_ <= dEng)
+		energy_ = 0.0;
+	else
+		energy_ = energy_ - dEng;
+	if (energy_ <= 0.0)
+		God::instance()->ComputeRoute();
+}
+//
 
 // XXX Moved from node.cc. These wireless stuff should NOT stay in the 
 // base node.

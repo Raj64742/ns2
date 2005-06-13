@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.h,v 1.13 2005/02/03 20:15:00 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.h,v 1.14 2005/06/13 17:50:41 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  *
@@ -53,16 +53,15 @@ class Phy;
 class Propagation;
 class WirelessPhy;
 
-// For idle energy consumption -- Chalermek
-
-class Idle_Timer : public TimerHandler {
+class Sleep_Timer : public TimerHandler {
  public:
-	Idle_Timer(WirelessPhy *a) : TimerHandler() { a_ = a; }
+	Sleep_Timer(WirelessPhy *a) : TimerHandler() { a_ = a; }
  protected:
 	virtual void expire(Event *e);
 	WirelessPhy *a_;
 };
 
+//
 class WirelessPhy : public Phy {
 public:
 	WirelessPhy();
@@ -93,11 +92,21 @@ public:
         inline double getFreq() { return freq_; }
         /* End -NEW- */
 
+	void node_sleep();
+	void node_wakeup();
+	inline bool& Is_node_on() { return node_on_; }
+	inline bool Is_sleeping() { if (status_==SLEEP) return(1); else return(0); }
+
 protected:
 	double Pt_;		// transmitted signal power (W)
 	double Pt_consume_;	// power consumption for transmission (W)
 	double Pr_consume_;	// power consumption for reception (W)
 	double P_idle_;         // idle power consumption (W)
+	double P_sleep_;	// sleep power consumption (W)
+	double P_transition_;	// power consumed when transiting from SLEEP mode to IDLE mode and vice versa.
+	double T_transition_;	// time period to transit from SLEEP mode to IDLE mode and vice versa.
+//
+
 	double last_send_time_;	// the last time the node sends somthing.
 	double channel_idle_time_;	// channel idle time.
 	double update_energy_time_;	// the last time we update energy.
@@ -117,19 +126,23 @@ protected:
 	// Why phy has a node_ and this guy has it all over again??
 //  	MobileNode* node_;         	// Mobile Node to which interface is attached .
 
-	Idle_Timer idle_timer_;
-	
-	enum ChannelStatus { IDLE, RECV, SEND };
+ 	enum ChannelStatus { SLEEP, IDLE, RECV, SEND };	
+	bool node_on_; // on-off status of this node
+	Sleep_Timer sleep_timer_;
 	int status_;
+
 private:
 	inline int initialized() {
 		return (node_ && uptarget_ && downtarget_ && propagation_);
 	}
 	void UpdateIdleEnergy();
+	void UpdateSleepEnergy();
+
 	// Convenience method
 	EnergyModel* em() { return node()->energy_model(); }
 
-	friend class Idle_Timer;
+	friend class Sleep_Timer;
+
 };
 
 #endif /* !ns_WirelessPhy_h */

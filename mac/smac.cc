@@ -54,7 +54,8 @@
 //  New features including adaptive listen
 //   See http://www.isi.edu/~weiye/pub/smac_ton.pdf
                                                                                                                                                            
-
+#include "wireless-phy.h"
+//#include "wireless-phy1.h"
 #include "smac.h"
 
 static class MacSmacClass : public TclClass {
@@ -1346,7 +1347,7 @@ void SMAC::handleCTS(Packet *p) {
 
 			if(sendDATA()) {
 				state_ = WAIT_ACK;
-#ifndef JOURNAL_PAPER
+#ifndef JORNAL_PAPER
 				if (!syncFlag_)
 					txData_ = 0;
 				else
@@ -1368,6 +1369,7 @@ void SMAC::handleCTS(Packet *p) {
 }
 
 void SMAC::handleDATA(Packet *p) {
+
 	// internal handler for DATA packet
 	struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_smac * sh = HDR_SMAC(p);
@@ -1502,6 +1504,7 @@ void SMAC::handleACK(Packet *p) {
 #ifdef JOURNAL_PAPER
 void SMAC::handleSYNC(Packet *p) 
 {
+
 	struct smac_sync_frame *sf = (struct smac_sync_frame *)p->access(hdr_mac::offset_);
         int i, j,nodeId, schedId, flag;
         struct SchedTable tempSched;
@@ -1787,6 +1790,7 @@ void SMAC::handleSYNC(Packet *p)
 
 void SMAC::handleSYNC(Packet *p) 
 {
+//printf("node: %d ..............data sent............\n",index_);
 	if ( selfConfigFlag_ == 1) {
 		if(numSched_ == 0) { // in choose_sched state
 			mhGene_.cancel();
@@ -1900,7 +1904,7 @@ void SMAC::transmit(Packet *p) {
 	double transTime = txtime(p);
 	hdr_cmn *ch = hdr_cmn::access(p);
 	ch->txtime() = transTime;
-	
+//	printf("%d MAC sending at %f\n",index_,NOW);	
 	downtarget_->recv(p->copy(), this);
 	//Scheduler::instance().schedule(downtarget_, p, 0.000001);
 	mhSend_.sched(txtime(p));
@@ -1935,6 +1939,7 @@ int SMAC::startBcast()
 
 int SMAC::startUcast()
 {
+printf("node: %d ..............data sent Uni............\n",index_);
 	// start unicast data; send RTS first
 	hdr_smac *mh = HDR_SMAC(dataPkt_);
   
@@ -2112,6 +2117,7 @@ bool SMAC::bcastMsg(Packet *p) {
 }
 
 bool SMAC::unicastMsg(int numfrags, Packet *p) {
+
 	//  if (dataPkt != 0 || p == 0)
 	//return 0;
 
@@ -2179,6 +2185,8 @@ bool SMAC::unicastMsg(int numfrags, Packet *p) {
 
 
 bool SMAC::sendRTS() {
+
+//printf("node: %d ..............data sent............\n",index_);
 	// construct RTS pkt
 	Packet *p = Packet::alloc();
 	struct smac_control_frame *cf = (struct smac_control_frame *)p->access(hdr_mac::offset_);
@@ -2256,6 +2264,7 @@ bool SMAC::sendCTS(double duration) {
 
 
 bool SMAC::sendDATA() {
+
 	// assuming data pkt is already constructed
 	struct hdr_smac * sh = HDR_SMAC(dataPkt_);
   
@@ -2268,6 +2277,7 @@ bool SMAC::sendDATA() {
 	// send DATA
 	if (chkRadio()) {
 		transmit(dataPkt_);
+		
 		return 1;
 
 	} else 
@@ -2341,6 +2351,9 @@ bool SMAC::sendSYNC()
   
   // send SYNC
   if (chkRadio()) {
+//	if(index_==0)
+//	printf("%d Sent SYNC at %.6f\n", index_,Scheduler::instance().clock());
+
     transmit(p);
     //double t = Scheduler::instance().clock();
     //printf("Sent SYNC from %d.....at %.6f\n", cf->srcAddr, t);
@@ -2456,6 +2469,16 @@ void SMAC::sleep()
   //printf("SLEEP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 #endif
   // printf("SLEEP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+//printf("%d SMAC SLEEP: at %.6f\n", index_,Scheduler::instance().clock());
+
+
+// set node state
+	Phy *p;
+	p=netif_;			
+	((WirelessPhy *)p)->node_sleep();
+//	printf("\nnetif\n %d", ((WirelessPhy *)p)->testfun(34));
+//
+
 }
 
 void SMAC::wakeup()
@@ -2472,7 +2495,14 @@ void SMAC::wakeup()
 #ifdef JOURNAL_PAPER
   //printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 #endif
-  // printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+//   printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
+
+	Phy *p;
+	p=netif_;			
+	((WirelessPhy *)p)->node_wakeup();
+
+
+//printf("WAKEUP: ............node %d at %.6f\n", index_, Scheduler::instance().clock());
 }
 
 void SMAC::updateNav(double d ) {

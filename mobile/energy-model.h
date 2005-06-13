@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/energy-model.h,v 1.11 2000/08/31 20:11:49 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/energy-model.h,v 1.12 2005/06/13 17:50:41 haldar Exp $
  */
 
 // Contributed by Satish Kumar (kkumar@isi.edu)
@@ -93,13 +93,19 @@ public:
 		sleep_mode_(0), total_sleeptime_(0), total_rcvtime_(0), 
 		total_sndtime_(0), powersavingflag_(0), 
 		last_time_gosleep(0), max_inroute_time_(300), maxttl_(5), 
-		adaptivefidelity_(0), node_on_(true) 
+		adaptivefidelity_(1), node_on_(true), et_(0), er_(0), ei_(0), es_(0)
 	{
 		neighbor_list.neighbor_cnt_ = 0;
 		neighbor_list.head = NULL;
 	}
 
 	inline double energy() const { return energy_; }
+//
+	inline double et() const { return et_; }
+	inline double er() const { return er_; }
+	inline double ei() const { return ei_; }
+	inline double es() const { return es_; }
+//
 	inline double initialenergy() const { return initialenergy_; }
 	inline double level1() const { return level1_; }
 	inline double level2() const { return level2_; }
@@ -108,6 +114,10 @@ public:
 	virtual void DecrTxEnergy(double txtime, double P_tx);
 	virtual void DecrRcvEnergy(double rcvtime, double P_rcv);
 	virtual void DecrIdleEnergy(double idletime, double P_idle);
+//
+	virtual void DecrSleepEnergy(double sleeptime, double P_sleep);
+	virtual void DecrTransitionEnergy(double transitiontime, double P_transition);
+//	
 	inline virtual double MaxTxtime(double P_tx) {
 		return(energy_/P_tx);
 	}
@@ -134,6 +144,9 @@ public:
 	inline float& total_sndtime() { return total_sndtime_; }
 	inline float& total_rcvtime() { return total_rcvtime_; }
 	inline float& total_sleeptime() { return total_sleeptime_; }
+//
+	inline float& total_idletime()	{	return total_idletime_;}
+//
 	inline AdaptiveFidelityEntity* afe() { return afe_; }
 	inline int& maxttl() { return maxttl_; }
 
@@ -141,7 +154,9 @@ public:
 	virtual void set_node_state(int);
 	virtual void add_rcvtime(float t) {total_rcvtime_ += t;}
 	virtual void add_sndtime(float t) {total_sndtime_ += t;}
-
+//
+	virtual void add_sleeptime(float t) {total_sleeptime_ += t;};
+//
 	void start_powersaving();
 
 	// Sleeping state
@@ -149,6 +164,12 @@ public:
 
 protected:
 	double energy_;
+//
+	double er_; // Total energy consumption in RECV
+	double et_; // Total energy consumption in transmission
+	double ei_; // Total energy consumption in IDLE mode
+	double es_; // Total energy consumption in SLEEP mode
+//	
 	double initialenergy_;
 	double level1_;
 	double level2_;
@@ -172,6 +193,9 @@ protected:
 	float total_sleeptime_;  // total time of radio in off mode
        	float total_rcvtime_;	 // total time in receiving data
 	float total_sndtime_;	 // total time in sending data
+//
+	float total_idletime_;	// total time in idle mode
+//
 	int powersavingflag_;    // Is BECA activated ?
 	float last_time_gosleep; // time when radio is turned off
 	float max_inroute_time_; // maximum time that a node can remaining

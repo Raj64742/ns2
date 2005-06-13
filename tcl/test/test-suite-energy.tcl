@@ -29,14 +29,14 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.10 2004/10/18 19:42:17 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.11 2005/06/13 17:50:42 haldar Exp $
 
 # To run all tests: test-all-energy
 # to run individual test:
 # ns test-suite-energy.tcl dsdv
 # ns test-suite-energy.tcl dsr
 # ns test-suite-energy.tcl aodv
-#
+# ns test-suite-energy.tcl brdcast0
 # To view a list of available test to run with this script:
 # ns test-suite-energy.tcl
 
@@ -62,6 +62,8 @@ set opt(ifqlen)		50		;# max packet in ifq
 set opt(nn)		5		;# number of nodes
 set opt(seed)		0.0
 set opt(stop)		500.0		;# simulation time
+set opt(stop-newf)      700.0	 ;# extended run time for new feature simulations	
+
 set opt(tr)		estudy.tr	;# trace file
 set opt(nam)		temp.rands
 set opt(lm)             "off"           ;# log movement
@@ -116,7 +118,7 @@ Phy/WirelessPhy set L_ 1.0
 proc usage {}  {
         global argv0
 	puts stderr "usage: ns $argv0 <tests> "
-	puts "Valid <tests> : dsdv dsr aodv "
+	puts "Valid <tests> : dsdv dsr aodv brdcast0"
         exit 1
 }
 
@@ -135,6 +137,9 @@ proc getopt {argc argv} {
 }
 
 Class TestSuite
+Class Test/brdcast0 -superclass TestSuite
+# 2 nodes brdcast req/replies to one another
+#This is a test for setting newly added features RADIO SLEEP MODE, Transition Energy Consumption, detailed energy trace
 
 Class Test/dsdv -superclass TestSuite
 Class Test/dsr -superclass TestSuite
@@ -144,9 +149,9 @@ TestSuite instproc init {} {
 global opt
 $self instvar ns_ topo  
 
-set ns_		[new Simulator]
+set ns_	[new Simulator]
 set topo	[new Topography]
-set god_         [new God]
+set god_    [new God]
 
 set tracefd	[open $opt(tr) w]
 set namtrace    [open $opt(nam) w]
@@ -169,6 +174,117 @@ TestSuite instproc finish {} {
             exec nam temp.rands &
         }
         exit 0
+}
+
+Test/brdcast0 instproc init {} {
+    global opt 
+#node_
+#    $self instvar ns_ topo
+#    set opt(chan)           Channel/WirelessChannel    ;# channel type
+#    set opt(prop)           Propagation/TwoRayGround   ;# radio-propagation model
+#    set opt(netif)          Phy/WirelessPhy            ;# network interface type
+    set opt(mac)            Mac/SMAC                   ;# MAC type
+    #set opt(mac)            Mac/802_11                 ;# MAC type
+#    set opt(ifq)            Queue/DropTail/PriQueue    ;# interface queue type
+    set opt(ll)             LL                         ;# link layer type
+#    set opt(ant)            Antenna/OmniAntenna        ;# antenna model
+#    set opt(ifqlen)         50                         ;# max packet in ifq
+    set opt(x)              800
+    set opt(y)              800
+    set opt(rp)             DumbAgent               ;# routing protocol
+    set opt(tr)             temp.rands
+ #   set opt(stop)           5.0
+ #   set opt(stop-sync)      100.0        ;# extended run time for sync simulations
+    set opt(stop)           700.0	 ;# extended run time for new feature simulations	
+    set opt(seed)           1
+ #   set opt(iP)           1.0	;# IDLE Power
+ #   set opt(sP)           1.0	;# SLEEP Power
+ #   set opt(tP)           1.0	;# TRANS Power
+ #   set opt(rP)           1.0	;# RECV Power
+ #   set opt(transT)       0.5	;# TRANSITION Time
+ #   set opt(transP)       0.5	;# TRANSITION Power
+    set opt(initialenergy)  1000     ;# Initial energy in Joules
+ #   set opt(energymodel)    EnergyModel     ;
+    set testname_ brdcast0
+  	set opt(nn) 2
+  
+    create-god $opt(nn)
+ #   $self next
+    
+    
+}
+
+Test/brdcast0 instproc run {} {
+   global opt
+   $self instvar ns_ topo
+#   $self instvar ns_
+     set ns_         [new Simulator]
+      puts "Seeding Random number generator with $opt(seed)\n"
+    ns-random $opt(seed)
+    
+    set tracefd_	[open $opt(tr) w]
+    $ns_ trace-all $tracefd_
+     set topo_	    [new Topography]
+    $topo_ load_flatgrid $opt(x) $opt(y)
+    
+      $ns_ node-config -adhocRouting DumbAgent \
+			 -llType $opt(ll) \
+			 -macType Mac/SMAC \
+			 -ifqType $opt(ifq) \
+			 -ifqLen $opt(ifqlen) \
+			 -antType $opt(ant) \
+			 -propType $opt(prop) \
+			 -phyType $opt(netif) \
+			 -channelType $opt(chan) \
+			 -topoInstance $topo_ \
+			 -agentTrace ON \
+			 -routerTrace ON \
+			 -macTrace ON \
+			 -energyModel $opt(energymodel) \
+			 -idlePower 1.0 \
+			 -rxPower 1.0 \
+			 -txPower 1.0 \
+          		 -sleepPower 1.0 \
+          		 -transitionPower 0.5 \
+          		 -transitionTime 0.5 \
+			 -initialEnergy $opt(initialenergy)
+
+	Mac/SMAC set syncFlag_ 1
+	Mac/SMAC set dutyCycle_ 10
+
+	$ns_ set WirelessNewTrace_ ON
+	for {set i 0} {$i < $opt(nn) } {incr i} {
+		set node_($i) [$ns_ node]	
+		$node_($i) random-motion 0		;# disable random motion
+	}
+
+	set udp_(0) [new Agent/UDP]
+    	$ns_ attach-agent $node_(0) $udp_(0)
+
+	set null_(0) [new Agent/Null]
+	$ns_ attach-agent $node_(1) $null_(0)
+
+	set cbr_(0) [new Application/Traffic/CBR]
+	$cbr_(0) set packetSize_ 512
+	$cbr_(0) set interval_ 10.0
+	$cbr_(0) set random_ 1
+	$cbr_(0) set maxpkts_ 50000
+	$cbr_(0) attach-agent $udp_(0)
+
+	$ns_ connect $udp_(0) $null_(0)
+
+
+
+	$ns_ at 1.00 "$cbr_(0) start"
+#    	$ns_ at 1.0 "$ping1 start-WL-brdcast"
+#
+# Tell all the nodes when the simulation ends
+#
+for {set i 0} {$i < $opt(nn) } {incr i} {
+    $ns_ at $opt(stop) "$node_($i) reset";
+}
+$ns_ at $opt(stop) "puts \"NS EXITING...!!!\" ; $ns_ halt"
+$ns_ run
 }
 
 
@@ -417,8 +533,9 @@ proc runtest {arg} {
 	        usage
         }
 	switch $test {
-	        dsdv -
-	        dsr -
+	      brdcast0 -
+		dsdv -
+	       dsr -
 		aodv {
                      set t [new Test/$test]
                 }

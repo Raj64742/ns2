@@ -31,7 +31,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.52 2005/04/26 18:56:36 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-mobilenode.tcl,v 1.53 2005/06/13 17:50:42 haldar Exp $
 #
 # Ported from CMU-Monarch project's mobility extensions -Padma, 10/98.
 #
@@ -627,7 +627,22 @@ Node/MobileNode instproc setPidle { val } {
 	$self instvar netif_
 	$netif_(0) setIdlePower $val
 }
+#
+Node/MobileNode instproc setPsleep { val } {
+	$self instvar netif_
+	$netif_(0) setSleepPower $val
+}
 
+Node/MobileNode instproc setPtransition { val } {
+	$self instvar netif_
+	$netif_(0) setTransitionPower $val
+}
+
+Node/MobileNode instproc setTtransition { val } {
+	$self instvar netif_
+	$netif_(0) setTransitionTime $val
+}
+#
 # change wrt Mike's code
  Node/MobileNode instproc getMac {param0} {
        $self instvar mac_

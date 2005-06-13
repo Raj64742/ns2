@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.22 2005/02/03 20:15:00 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.23 2005/06/13 17:50:41 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -57,8 +57,8 @@
 
 #define MAX(a,b) (((a)<(b))?(b):(a))
 
-void Idle_Timer::expire(Event *) {
-	a_->UpdateIdleEnergy();
+void Sleep_Timer::expire(Event *) {
+	a_->UpdateSleepEnergy();
 }
 
 
@@ -74,7 +74,7 @@ public:
 } class_WirelessPhy;
 
 
-WirelessPhy::WirelessPhy() : Phy(), idle_timer_(this), status_(IDLE)
+WirelessPhy::WirelessPhy() : Phy(), sleep_timer_(this), status_(IDLE)
 {
 	/*
 	 *  It sounds like 10db should be the capture threshold.
@@ -118,12 +118,16 @@ WirelessPhy::WirelessPhy() : Phy(), idle_timer_(this), status_(IDLE)
 	//	P_idle_ = 0.035; // 1.15 W drained power for idle
 
 	P_idle_ = 0.0;
-
+	P_sleep_ = 0.00;
+	P_transition_ = 0.00;
+	node_on_=1;
+	
 	channel_idle_time_ = NOW;
 	update_energy_time_ = NOW;
 	last_send_time_ = NOW;
 	
-	idle_timer_.resched(1.0);
+	sleep_timer_.resched(1.0);
+
 }
 
 int
@@ -133,6 +137,8 @@ WirelessPhy::command(int argc, const char*const* argv)
 
 	if (argc==2) {
 		if (strcasecmp(argv[1], "NodeOn") == 0) {
+			node_on();
+
 			if (em() == NULL) 
 				return TCL_OK;
 			if (NOW > update_energy_time_) {
@@ -140,6 +146,8 @@ WirelessPhy::command(int argc, const char*const* argv)
 			}
 			return TCL_OK;
 		} else if (strcasecmp(argv[1], "NodeOff") == 0) {
+			node_off();
+
 			if (em() == NULL) 
 				return TCL_OK;
 			if (NOW > update_energy_time_) {
@@ -159,11 +167,20 @@ WirelessPhy::command(int argc, const char*const* argv)
 		} else if (strcasecmp(argv[1], "setIdlePower") == 0) {
 			P_idle_ = atof(argv[2]);
 			return TCL_OK;
-		} else if( (obj = TclObject::lookup(argv[2])) == 0) {
+		}else if (strcasecmp(argv[1], "setSleepPower") == 0) {
+			P_sleep_ = atof(argv[2]);
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "setTransitionPower") == 0) {
+			P_transition_ = atof(argv[2]);
+			return TCL_OK;
+		} else if (strcasecmp(argv[1], "setTransitionTime") == 0) {
+			T_transition_ = atof(argv[2]);
+			return TCL_OK;
+		}else if( (obj = TclObject::lookup(argv[2])) == 0) {
 			fprintf(stderr,"WirelessPhy: %s lookup of %s failed\n", 
 				argv[1], argv[2]);
 			return TCL_ERROR;
-		} else if (strcmp(argv[1], "propagation") == 0) {
+		}else if (strcmp(argv[1], "propagation") == 0) {
 			assert(propagation_ == 0);
 			propagation_ = (Propagation*) obj;
 			return TCL_OK;
@@ -187,18 +204,26 @@ WirelessPhy::sendDown(Packet *p)
 	 */
 	assert(initialized());
 	
-	if (em()) 
-		if ((em()->node_on() != true) || (em()->sleep())) {
+	if (em()) {
+			//node is off here...
+			if (Is_node_on() != true ) {
 			Packet::free(p);
 			return;
-		}
+			}
+			if(Is_node_on() == true && Is_sleeping() == true){
+			em()-> DecrSleepEnergy(NOW-update_energy_time_,
+							P_sleep_);
+			update_energy_time_ = NOW;
 
+			}
+
+	}
 	/*
 	 * Decrease node's energy
 	 */
 	if(em()) {
 		if (em()->energy() > 0) {
-			//double txtime = (8.*hdr_cmn::access(p)->size())/bandwidth_;
+
 		    double txtime = hdr_cmn::access(p)->txtime();
 		    double start_time = MAX(channel_idle_time_, NOW);
 		    double end_time = MAX(channel_idle_time_, NOW+txtime);
@@ -241,10 +266,12 @@ WirelessPhy::sendDown(Packet *p)
 		   }
 
 		   em()->DecrTxEnergy(actual_txtime,Pt_consume_);
-		   if (end_time > channel_idle_time_) {
-			   status_ = SEND;
-		   }
-							
+//		   if (end_time > channel_idle_time_) {
+//			   status_ = SEND;
+//		   }
+//
+		   status_ = IDLE;
+
 		   last_send_time_ = NOW+txtime;
 		   channel_idle_time_ = end_time;
 		   update_energy_time_ = end_time;
@@ -255,6 +282,12 @@ WirelessPhy::sendDown(Packet *p)
 		   }
 
 		} else {
+
+			// log node energy
+			if (em()->energy() > 0) {
+				((MobileNode *)node_)->log_energy(1);
+			} 
+//
 			Packet::free(p);
 			return;
 		}
@@ -264,7 +297,7 @@ WirelessPhy::sendDown(Packet *p)
 	 *  Stamp the packet with the interface arguments
 	 */
 	p->txinfo_.stamp((MobileNode*)node(), ant_->copy(), Pt_, lambda_);
-
+	
 	// Send the packet
 	channel_->recv(p, this);
 }
@@ -282,12 +315,18 @@ WirelessPhy::sendUp(Packet *p)
 	int pkt_recvd = 0;
 	
 	// if the node is in sleeping mode, drop the packet simply
-	if (em()) 
-		if (em()->sleep() || (em()->node_on() != true)) {
+	if (em()) {
+			if (Is_node_on()!= true){
 			pkt_recvd = 0;
 			goto DONE;
-		}
-	
+			}
+
+			if (Is_sleeping()==true && (Is_node_on() == true)) {
+				pkt_recvd = 0;
+				goto DONE;
+			}
+			
+	}
 	// if the energy goes to ZERO, drop the packet simply
 	if (em()) {
 		if (em()->energy() <= 0) {
@@ -345,15 +384,10 @@ DONE:
 	 * Decrease energy if packet successfully received
 	 */
 	if(pkt_recvd && em()) {
-		//double rcvtime = (8. * hdr_cmn::access(p)->size())/bandwidth_;
+
 		double rcvtime = hdr_cmn::access(p)->txtime();
 		// no way to reach here if the energy level < 0
 		
-		/*
-		  node()->add_rcvtime(rcvtime);	  
-		  em()->DecrRcvEnergy(rcvtime,Pr_consume_);
-		*/
-
 		double start_time = MAX(channel_idle_time_, NOW);
 		double end_time = MAX(channel_idle_time_, NOW+rcvtime);
 		double actual_rcvtime = end_time-start_time;
@@ -365,12 +399,15 @@ DONE:
 		}
 		
 		em()->DecrRcvEnergy(actual_rcvtime,Pr_consume_);
-		if (end_time > channel_idle_time_) {
-			status_ = RECV;
-		}
-
+/*
+  if (end_time > channel_idle_time_) {
+  status_ = RECV;
+  }
+*/
 		channel_idle_time_ = end_time;
 		update_energy_time_ = end_time;
+
+		status_ = IDLE;
 
 		/*
 		  hdr_diff *dfh = HDR_DIFF(p);
@@ -378,7 +415,12 @@ DONE:
 		  node()->address(), dfh->sender_id.addr_, 
 		  dfh->sender_id.port_, dfh->pk_num, node()->energy());
 		*/
-		
+
+		// log node energy
+		if (em()->energy() > 0) {
+		((MobileNode *)node_)->log_energy(1);
+        	} 
+
 		if (em()->energy() <= 0) {  
 			// saying node died
 			em()->setenergy(0);
@@ -392,7 +434,11 @@ DONE:
 void
 WirelessPhy::node_on()
 {
-        if (em() == NULL)
+
+        node_on_= TRUE;
+	status_ = IDLE;
+
+       if (em() == NULL)
  	    return;	
    	if (NOW > update_energy_time_) {
       	    update_energy_time_ = NOW;
@@ -402,6 +448,10 @@ WirelessPhy::node_on()
 void 
 WirelessPhy::node_off()
 {
+
+        node_on_= FALSE;
+	status_ = SLEEP;
+
 	if (em() == NULL)
             return;
         if (NOW > update_energy_time_) {
@@ -411,6 +461,64 @@ WirelessPhy::node_off()
 	}
 }
 
+void 
+WirelessPhy::node_wakeup()
+{
+
+	if (status_== IDLE)
+		return;
+
+	if (em() == NULL)
+            return;
+
+        if ( NOW > update_energy_time_ && (status_== SLEEP) ) {
+	//the power consumption when radio goes from SLEEP mode to IDLE mode
+	    em()->DecrTransitionEnergy(T_transition_,P_transition_);
+
+            em()->DecrSleepEnergy(NOW-update_energy_time_,
+                                P_sleep_);
+		status_ = IDLE;
+	        update_energy_time_ = NOW;
+
+		// log node energy
+		if (em()->energy() > 0) {
+			((MobileNode *)node_)->log_energy(1);
+	        } else {
+			((MobileNode *)node_)->log_energy(0);   
+	        }
+	}
+}
+
+void 
+WirelessPhy::node_sleep()
+{
+//
+//        node_on_= FALSE;
+//
+	if (status_== SLEEP)
+		return;
+
+	if (em() == NULL)
+            return;
+
+        if ( NOW > update_energy_time_ && (status_== IDLE) ) {
+	//the power consumption when radio goes from IDLE mode to SLEEP mode
+	    em()->DecrTransitionEnergy(T_transition_,P_transition_);
+
+            em()->DecrIdleEnergy(NOW-update_energy_time_,
+                                P_idle_);
+		status_ = SLEEP;
+	        update_energy_time_ = NOW;
+
+	// log node energy
+		if (em()->energy() > 0) {
+			((MobileNode *)node_)->log_energy(1);
+	        } else {
+			((MobileNode *)node_)->log_energy(0);   
+	        }
+	}
+}
+//
 void
 WirelessPhy::dump(void) const
 {
@@ -428,7 +536,7 @@ void WirelessPhy::UpdateIdleEnergy()
 	if (em() == NULL) {
 		return;
 	}
-	if (NOW > update_energy_time_ && em()->node_on()) {
+	if (NOW > update_energy_time_ && (Is_node_on()==TRUE && status_ == IDLE ) ) {
 		  em()-> DecrIdleEnergy(NOW-update_energy_time_,
 					P_idle_);
 		  update_energy_time_ = NOW;
@@ -441,7 +549,7 @@ void WirelessPhy::UpdateIdleEnergy()
 		((MobileNode *)node_)->log_energy(0);   
         }
 
-	idle_timer_.resched(10.0);
+//	idle_timer_.resched(10.0);
 }
 
 double WirelessPhy::getDist(double Pr, double Pt, double Gt, double Gr,
@@ -452,4 +560,37 @@ double WirelessPhy::getDist(double Pr, double Pt, double Gt, double Gr,
 					     lambda);
 	}
 	return 0;
+}
+
+//
+void WirelessPhy::UpdateSleepEnergy()
+{
+	if (em() == NULL) {
+		return;
+	}
+	if (NOW > update_energy_time_ && ( Is_node_on()==TRUE  && Is_sleeping() == true) ) {
+		  em()-> DecrSleepEnergy(NOW-update_energy_time_,
+					P_sleep_);
+		  update_energy_time_ = NOW;
+		// log node energy
+		if (em()->energy() > 0) {
+			((MobileNode *)node_)->log_energy(1);
+        	} else {
+			((MobileNode *)node_)->log_energy(0);   
+        	}
+	}
+	
+	//A hack to make states consistent with those of in Energy Model for AF
+	int static s=em()->sleep();
+	if(em()->sleep()!=s){
+
+		s=em()->sleep();	
+		if(s==1)
+			node_sleep();
+		else
+			node_wakeup();			
+		printf("\n AF hack %d\n",em()->sleep());	
+	}	
+	
+	sleep_timer_.resched(10.0);
 }

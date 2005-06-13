@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.267 2005/03/21 18:51:30 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.268 2005/06/13 17:50:42 haldar Exp $
 
 
 #
@@ -322,6 +322,9 @@ Simulator instproc dumper obj {
 #                  -rxPower        (in W)
 #                  -txPower        (in W)
 #                  -idlePower      (in W)
+#
+#                  -sleepPower 	   (in W)
+#
 #                  -agentTrace  ON
 #                  -routerTrace ON 
 #                  -macTrace OFF 
@@ -352,6 +355,11 @@ Simulator instproc initialEnergy  {val} { $self set initialEnergy_  $val }
 Simulator instproc txPower  {val} { $self set txPower_  $val }
 Simulator instproc rxPower  {val} { $self set rxPower_  $val }
 Simulator instproc idlePower  {val} { $self set idlePower_  $val }
+#
+Simulator instproc sleepPower  {val} { $self set sleepPower_  $val }
+Simulator instproc transitionPower  {val} { $self set transitionPower_  $val }
+Simulator instproc transitionTime  {val} { $self set transitionTime_  $val }
+#
 Simulator instproc IncomingErrProc  {val} { $self set inerrProc_  $val }
 Simulator instproc OutgoingErrProc  {val} { $self set outerrProc_  $val }
 Simulator instproc FECProc  {val} { $self set FECProc_  $val }
@@ -434,7 +442,7 @@ Simulator instproc node-config args {
 		routerTrace_ agentTrace_ movementTrace_ channelType_ channel_ \
 		chan topoInstance_ propInstance_ mobileIP_ rxPower_ \
 		# change wrt Mike's code
-		txPower_ idlePower_ satNodeType_ eotTrace_
+		txPower_ idlePower_ sleepPower_ transitionPower_ transitionTime_ satNodeType_ eotTrace_
 
         if [info exists macTrace_] {
 		Simulator set MacTrace_ $macTrace_
@@ -578,7 +586,7 @@ Simulator instproc imep-support {} {
 Simulator instproc create-wireless-node args {
         $self instvar routingAgent_ wiredRouting_ propInstance_ llType_ \
 		macType_ ifqType_ ifqlen_ phyType_ chan antType_ energyModel_ \
-		initialEnergy_ txPower_ rxPower_ idlePower_ \
+		initialEnergy_ txPower_ rxPower_ idlePower_ sleepPower_ transitionPower_ transitionTime_ \
 		topoInstance_ level1_ level2_ inerrProc_ outerrProc_ FECProc_
 
 	Simulator set IMEPFlag_ OFF
@@ -712,7 +720,17 @@ Simulator instproc create-wireless-node args {
         if [info exists idlePower_] {
 		$node setPidle $idlePower_
         }
-
+#
+	if [info exists sleepPower_] {
+		$node setPsleep $sleepPower_
+        }
+	if [info exists transitionPower_] {
+		$node setPtransition $transitionPower_
+        }
+	if [info exists transitionTime_] {
+		$node setTtransition $transitionTime_
+        }	
+#
 	$node topography $topoInstance_
 	
 	return $node
