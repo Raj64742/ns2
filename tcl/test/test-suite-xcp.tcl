@@ -26,6 +26,9 @@
 # This test-suite validate xcp congestion control scenarios along with xcp-tcp mixed flows through routers.
 
 #source misc_simple.tcl
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP XCP ; # hdrs reqd for validation
+
 # UPDATING GLOBAL DEFAULTS:
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.

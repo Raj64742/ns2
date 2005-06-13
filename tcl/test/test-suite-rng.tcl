@@ -3,6 +3,11 @@
 # This test-suite uses the random number generator test (class rngtest)
 # See rng.cc for details.
 
+remove-all-packet-headers       ; # removes all except common
+add-packet-header Flags IP TCP  ; # hdrs reqd for validation
+
+# FOR UPDATING GLOBAL DEFAULTS:
+
 Class TestSuite
 
 Class Test/rngtest -superclass TestSuite
