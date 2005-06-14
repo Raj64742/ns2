@@ -1759,7 +1759,7 @@ Running test spikeNDupAck:
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-friendly
-Tests: slowStartDiscount slowStartDiscountCA smooth smoothCA slowStart slowStartCA slowStartEWMA slowStartFixed ecn slowStartTcp impulseDiscount impulseDiscountCA impulse impulseCA impulseMultReportDiscount impulseMultReportDiscountCA impulseMultReport impulseMultReportCA impulseTcp two-friendly two-friendlyCA OnlyTcp randomized randomizedCA randomized1 randomized1CA slow twoDrops manyDrops HighLoss HighLossImprecise HighLossMinRTO HighLossConservative HighLossTCP TFRC_FTP printLosses goodTFRC droppedTFRC delayedTFRC delayedTFRC1 delayedTFRC2 goodTCP droppedTCP delayedTCP delayedTCP2 initRate initRateLarge initRateNo_ss_changes initRateRFC3390 tfrcOnly voip noVoip
+Tests: slowStartDiscount slowStartDiscountCA smooth smoothCA slowStart slowStartCA slowStartEWMA slowStartFixed ecn slowStartTcp impulseDiscount impulseDiscountCA impulse impulseCA impulseMultReportDiscount impulseMultReportDiscountCA impulseMultReport impulseMultReportCA impulseTcp two-friendly two-friendlyCA OnlyTcp randomized randomizedCA randomized1 randomized1CA slow twoDrops manyDrops HighLoss HighLossShort HighLossImprecise HighLossMinRTO HighLossConservative HighLossTCP TFRC_FTP TFRC_CBR printLosses printLossesShort goodTFRC droppedTFRC delayedTFRC delayedTFRC1 delayedTFRC2 goodTCP droppedTCP delayedTCP delayedTCP2 initRate initRateLarge initRateNo_ss_changes initRateRFC3390 tfrcOnly voip noVoip
 Running test slowStartDiscount:
 ../../ns test-suite-friendly.tcl slowStartDiscount QUIET
 Test output agrees with reference output
@@ -1850,6 +1850,9 @@ Test output agrees with reference output
 Running test HighLoss:
 ../../ns test-suite-friendly.tcl HighLoss QUIET
 Test output agrees with reference output
+Running test HighLossShort:
+../../ns test-suite-friendly.tcl HighLossShort QUIET
+Test output agrees with reference output
 Running test HighLossImprecise:
 ../../ns test-suite-friendly.tcl HighLossImprecise QUIET
 Test output agrees with reference output
@@ -1864,6 +1867,9 @@ Running test HighLossTCP:
 Test output agrees with reference output
 Running test TFRC_FTP:
 ../../ns test-suite-friendly.tcl TFRC_FTP QUIET
+Test output agrees with reference output
+Running test TFRC_CBR:
+../../ns test-suite-friendly.tcl TFRC_CBR QUIET
 Test output agrees with reference output
 Running test printLosses:
 ../../ns test-suite-friendly.tcl printLosses QUIET
@@ -1898,6 +1904,97 @@ time: 2.82448 sample 0:   106 loss_rate: 0.00714
 time: 2.95854 loss_rate: 0.00714 
 time: 2.95854 sample 0:   126 loss_rate: 0.00714 
 2.958543: sample 0:   126 1:    26 2:    53 3:   341 4:     0
+Test output agrees with reference output
+Running test printLossesShort:
+../../ns test-suite-friendly.tcl printLossesShort QUIET
+1.704722: sample 0:     0 1:   170 2:     0 3:     0 4:     0
+1.704722: losses 0:     1 1:     0 2:     0 3: 140665992 4:     0
+1.704722: count? 0:     0 1:     0 2:     0 3:     0 4:     0
+time: 1.81672 loss_rate: 0.00588 
+time: 1.81672 sample 0:    29 loss_rate: 0.00588 
+1.816722: sample 0:    29 1:   170 2:     0 3:     0 4:     0
+1.816722: losses 0:     5 1:     0 2:     0 3: 140665992 4:     0
+1.816722: count? 0:     0 1:     0 2:     0 3:     0 4:     0
+time: 1.86472 loss_rate: 0.01143 
+time: 1.86472 sample 0:     1 loss_rate: 0.01143 
+1.864722: sample 0:     1 1:    38 2:   170 3:     0 4:     0
+1.864722: losses 0:     1 1:     7 2:     0 3:     0 4: 140665992
+1.864722: count? 0:     0 1:     1 2:     0 3:     0 4:     0
+time: 1.98739 loss_rate: 0.01143 
+time: 1.98739 sample 0:    34 loss_rate: 0.01143 
+1.987388: sample 0:    34 1:    38 2:   170 3:     0 4:     0
+1.987388: losses 0:    13 1:     7 2:     0 3:     0 4: 140665992
+1.987388: count? 0:     0 1:     1 2:     0 3:     0 4:     0
+time: 2.00339 loss_rate: 0.01695 
+time: 2.00339 sample 0:     1 loss_rate: 0.01695 
+2.003388: sample 0:     1 1:    36 2:    38 3:   170 4:     0
+2.003388: losses 0:     1 1:    14 2:     7 3:     0 4:     0
+2.003388: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+time: 2.15805 loss_rate: 0.01695 
+time: 2.15805 sample 0:    22 loss_rate: 0.01695 
+2.158055: sample 0:    22 1:    36 2:    38 3:   170 4:     0
+2.158055: losses 0:     2 1:    14 2:     7 3:     0 4:     0
+2.158055: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+time: 2.33000 loss_rate: 0.01695 
+time: 2.33000 sample 0:    34 loss_rate: 0.01695 
+2.329999: sample 0:    34 1:    36 2:    38 3:   170 4:     0
+2.329999: losses 0:     2 1:    14 2:     7 3:     0 4:     0
+2.329999: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+time: 2.49721 loss_rate: 0.01695 
+time: 2.49721 sample 0:    45 loss_rate: 0.01695 
+2.497210: sample 0:    45 1:    36 2:    38 3:   170 4:     0
+2.497210: losses 0:     2 1:    14 2:     7 3:     0 4:     0
+2.497210: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+time: 2.65975 loss_rate: 0.01695 
+time: 2.65975 sample 0:    58 loss_rate: 0.01695 
+2.659745: sample 0:    58 1:    36 2:    38 3:   170 4:     0
+2.659745: losses 0:     2 1:    14 2:     7 3:     0 4:     0
+2.659745: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+time: 2.81699 loss_rate: 0.01619 
+time: 2.81699 sample 0:    70 loss_rate: 0.01619 
+2.816986: sample 0:    70 1:    36 2:    38 3:   170 4:     0
+2.816986: losses 0:     2 1:    14 2:     7 3:     0 4:     0
+2.816986: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+time: 2.97165 loss_rate: 0.01562 
+time: 2.97165 sample 0:    79 loss_rate: 0.01562 
+2.971652: sample 0:    79 1:    36 2:    38 3:   170 4:     0
+2.971652: losses 0:     2 1:    14 2:     7 3:     0 4:     0
+2.971652: count? 0:     0 1:     1 2:     1 3:     0 4:     0
+time: 3.06765 loss_rate: 0.01538 
+time: 3.06765 sample 0:     1 loss_rate: 0.01538 
+3.067652: sample 0:     1 1:    83 2:    36 3:    38 4:   170
+3.067652: losses 0:     1 1:     3 2:    14 3:     7 4:     0
+3.067652: count? 0:     0 1:     0 2:     1 3:     1 4:     0
+time: 3.21699 loss_rate: 0.01538 
+time: 3.21699 sample 0:    12 loss_rate: 0.01538 
+3.216986: sample 0:    12 1:    83 2:    36 3:    38 4:   170
+3.216986: losses 0:     2 1:     3 2:    14 3:     7 4:     0
+3.216986: count? 0:     0 1:     0 2:     1 3:     1 4:     0
+time: 3.36929 loss_rate: 0.01538 
+time: 3.36929 sample 0:    25 loss_rate: 0.01538 
+3.369291: sample 0:    25 1:    83 2:    36 3:    38 4:   170
+3.369291: losses 0:     2 1:     3 2:    14 3:     7 4:     0
+3.369291: count? 0:     0 1:     0 2:     1 3:     1 4:     0
+time: 3.51481 loss_rate: 0.01538 
+time: 3.51481 sample 0:    36 loss_rate: 0.01538 
+3.514809: sample 0:    36 1:    83 2:    36 3:    38 4:   170
+3.514809: losses 0:     2 1:     3 2:    14 3:     7 4:     0
+3.514809: count? 0:     0 1:     0 2:     1 3:     1 4:     0
+time: 3.65348 loss_rate: 0.01538 
+time: 3.65348 sample 0:    48 loss_rate: 0.01538 
+3.653476: sample 0:    48 1:    83 2:    36 3:    38 4:   170
+3.653476: losses 0:     2 1:     3 2:    14 3:     7 4:     0
+3.653476: count? 0:     0 1:     0 2:     1 3:     1 4:     0
+time: 3.78681 loss_rate: 0.01538 
+time: 3.78681 sample 0:    60 loss_rate: 0.01538 
+3.786809: sample 0:    60 1:    83 2:    36 3:    38 4:   170
+3.786809: losses 0:     2 1:     3 2:    14 3:     7 4:     0
+3.786809: count? 0:     0 1:     0 2:     1 3:     1 4:     0
+time: 3.92548 loss_rate: 0.01538 
+time: 3.92548 sample 0:    72 loss_rate: 0.01538 
+3.925476: sample 0:    72 1:    83 2:    36 3:    38 4:   170
+3.925476: losses 0:     2 1:     3 2:    14 3:     7 4:     0
+3.925476: count? 0:     0 1:     0 2:     1 3:     1 4:     0
 Test output agrees with reference output
 Running test goodTFRC:
 ../../ns test-suite-friendly.tcl goodTFRC QUIET
@@ -1949,10 +2046,10 @@ fid: 0 packets 1812 _bytes 217440
 Test output agrees with reference output
 Running test voip:
 ../../ns test-suite-friendly.tcl voip QUIET
-fid: 0 drops 372 marks 0
-fid: 0 packets 1042 _bytes 125040
-fid: 1 drops 29 marks 0
-fid: 1 packets 158 _bytes 230680
+fid: 0 drops 368 marks 0
+fid: 0 packets 1059 _bytes 127080
+fid: 1 drops 28 marks 0
+fid: 1 packets 154 _bytes 224840
 Test output agrees with reference output
 Running test noVoip:
 ../../ns test-suite-friendly.tcl noVoip QUIET
@@ -2345,6 +2442,1097 @@ Running test no_acks_back:
 Test output agrees with reference output
 Running test pkt_drops:
 ../../ns test-suite-quickstart.tcl pkt_drops QUIET
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-diffusion3
+Tests: simple-ping 2pp-5n-1s-1r 2pp-10n-4s-1r 2pp-10n-1s-4r push-5n-1s-1r push-10n-1s-4r push-10n-4s-1r 1pp-5n-1s-1r 1pp-10n-4s-1r 1pp-10n-1s-4r gear-2pp-5n-1s-1r gear-2pp-10n-4s-1r gear-push-10n-1s-4r
+Running test simple-ping:
+../../ns test-suite-diffusion3.tcl simple-ping QUIET
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test 2pp-5n-1s-1r:
+../../ns test-suite-diffusion3.tcl 2pp-5n-1s-1r QUIET
+NS EXITING...
+num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test 2pp-10n-4s-1r:
+../../ns test-suite-diffusion3.tcl 2pp-10n-4s-1r QUIET
+NS EXITING...
+num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test 2pp-10n-1s-4r:
+../../ns test-suite-diffusion3.tcl 2pp-10n-1s-4r QUIET
+NS EXITING...
+num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test push-5n-1s-1r:
+../../ns test-suite-diffusion3.tcl push-5n-1s-1r QUIET
+NS EXITING...
+num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test push-10n-1s-4r:
+../../ns test-suite-diffusion3.tcl push-10n-1s-4r QUIET
+NS EXITING...
+num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test push-10n-4s-1r:
+../../ns test-suite-diffusion3.tcl push-10n-4s-1r QUIET
+NS EXITING...
+num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test 1pp-5n-1s-1r:
+../../ns test-suite-diffusion3.tcl 1pp-5n-1s-1r QUIET
+NS EXITING...
+num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test 1pp-10n-4s-1r:
+../../ns test-suite-diffusion3.tcl 1pp-10n-4s-1r QUIET
+NS EXITING...
+num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test 1pp-10n-1s-4r:
+../../ns test-suite-diffusion3.tcl 1pp-10n-1s-4r QUIET
+NS EXITING...
+num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test gear-2pp-5n-1s-1r:
+../../ns test-suite-diffusion3.tcl gear-2pp-5n-1s-1r QUIET
+NS EXITING...
+num_nodes is set 5
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test gear-2pp-10n-4s-1r:
+../../ns test-suite-diffusion3.tcl gear-2pp-10n-4s-1r QUIET
+NS EXITING...
+num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+Running test gear-push-10n-1s-4r:
+../../ns test-suite-diffusion3.tcl gear-push-10n-1s-4r QUIET
+NS EXITING...
+num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-smac
+Tests: brdcast1 brdcast1_sync brdcast2 brdcast2_sync unicast1 unicast1_sync unicast2 unicast2_sync unicast3 unicast3_sync unicast4 unicast4_sync unicast5 unicast5_sync unicast6 unicast6_sync unicast7 unicast7_sync unicast8 unicast8_sync unicast9 unicast9_sync unicast10 unicast10_sync unicast11 unicast11_sync unicast12 unicast12_sync
+Running test brdcast1:
+../../ns test-suite-smac.tcl brdcast1 QUIET
+brdcast1
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+NS EXITING...
+num_nodes is set 2
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 1.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Test output agrees with reference output
+Running test brdcast1_sync:
+../../ns test-suite-smac.tcl brdcast1_sync QUIET
+brdcast1 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+NS EXITING...
+num_nodes is set 2
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 0.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Test output agrees with reference output
+Running test brdcast2:
+../../ns test-suite-smac.tcl brdcast2 QUIET
+brdcast2
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 2.0 from 0.0
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 2.0 from 1.0
+Cancelling CS- node 1
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Cancelling CS- node 1
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 2.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Cancelling CS- node 1
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 2.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Test output agrees with reference output
+Running test brdcast2_sync:
+../../ns test-suite-smac.tcl brdcast2_sync QUIET
+brdcast2 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 2.0 from 0.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 2.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 2.0 from 1.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Test output agrees with reference output
+Running test unicast1:
+../../ns test-suite-smac.tcl unicast1 QUIET
+unicast1
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 399.0 ms.
+NS EXITING...
+num_nodes is set 2
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast1_sync:
+../../ns test-suite-smac.tcl unicast1_sync QUIET
+unicast1 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4615.2 ms.
+NS EXITING...
+num_nodes is set 2
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast2:
+../../ns test-suite-smac.tcl unicast2 QUIET
+unicast2
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 632.1 ms.
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+node: 1 ..............data sent Uni............
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+node: 1 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast2_sync:
+../../ns test-suite-smac.tcl unicast2_sync QUIET
+unicast2 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4462.2 ms.
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+Cancelling CS- node 2
+node: 0 ..............data sent Uni............
+Cancelling CS- node 2
+node: 1 ..............data sent Uni............
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Test output agrees with reference output
+Running test unicast3:
+../../ns test-suite-smac.tcl unicast3 QUIET
+unicast3
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 425.0 ms.
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+Cancelling CS- node 2
+node: 1 ..............data sent Uni............
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Test output agrees with reference output
+Running test unicast3_sync:
+../../ns test-suite-smac.tcl unicast3_sync QUIET
+unicast3 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 10192.2 ms.
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+Cancelling CS- node 0
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 0.0 from 2.0
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+node: 1 ..............data sent Uni............
+Cancelling CS- node 0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 1.0 from 0.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 0.0
+Test output agrees with reference output
+Running test unicast4:
+../../ns test-suite-smac.tcl unicast4 QUIET
+unicast4
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 425.0 ms.
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+Cancelling CS- node 2
+node: 1 ..............data sent Uni............
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Test output agrees with reference output
+Running test unicast4_sync:
+../../ns test-suite-smac.tcl unicast4_sync QUIET
+unicast4 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4462.2 ms.
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+Cancelling CS- node 2
+node: 0 ..............data sent Uni............
+Cancelling CS- node 2
+node: 1 ..............data sent Uni............
+Cancelling CS- node 2
+Recvd brdcast pkt
+Recv BRDCAST Ping REQ : at 1.0 from 2.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 0.0 from 1.0
+Recvd brdcast pkt
+Recv BRDCAST Ping REPLY : at 2.0 from 1.0
+Test output agrees with reference output
+Running test unicast5:
+../../ns test-suite-smac.tcl unicast5 QUIET
+unicast5
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 550.0 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 3
+node: 1 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast5_sync:
+../../ns test-suite-smac.tcl unicast5_sync QUIET
+unicast5 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4467.2 ms.
+node 3 received ping answer from  2 with round-trip-time 11625.2 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 3
+node: 1 ..............data sent Uni............
+Cancelling CS- node 3
+node: 0 ..............data sent Uni............
+Cancelling CS- node 3
+node: 1 ..............data sent Uni............
+Cancelling CS- node 3
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast6:
+../../ns test-suite-smac.tcl unicast6 QUIET
+unicast6
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 476.0 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast6_sync:
+../../ns test-suite-smac.tcl unicast6_sync QUIET
+unicast6 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4458.2 ms.
+node 3 received ping answer from  2 with round-trip-time 5999.2 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 3
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast7:
+../../ns test-suite-smac.tcl unicast7 QUIET
+unicast7
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 492.0 ms.
+node 2 received ping answer from  3 with round-trip-time 939.0 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 2
+node: 1 ..............data sent Uni............
+Cancelling CS- node 2
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+Cancelling CS- node 3
+node: 3 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast7_sync:
+../../ns test-suite-smac.tcl unicast7_sync QUIET
+unicast7 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4458.2 ms.
+node 2 received ping answer from  3 with round-trip-time 7437.2 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 3
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast8:
+../../ns test-suite-smac.tcl unicast8 QUIET
+unicast8
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 1 received ping answer from  0 with round-trip-time 367.0 ms.
+node 2 received ping answer from  3 with round-trip-time 873.0 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 2
+node: 0 ..............data sent Uni............
+Cancelling CS- node 2
+node: 1 ..............data sent Uni............
+Cancelling CS- node 2
+node: 0 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast8_sync:
+../../ns test-suite-smac.tcl unicast8_sync QUIET
+unicast8 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 1 received ping answer from  0 with round-trip-time 4458.2 ms.
+node 2 received ping answer from  3 with round-trip-time 7437.2 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 3
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 1
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast9:
+../../ns test-suite-smac.tcl unicast9 QUIET
+unicast9
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 0 received ping answer from  1 with round-trip-time 550.0 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 3
+node: 1 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast9_sync:
+../../ns test-suite-smac.tcl unicast9_sync QUIET
+unicast9 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4455.2 ms.
+node 3 received ping answer from  2 with round-trip-time 5955.2 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast10:
+../../ns test-suite-smac.tcl unicast10 QUIET
+unicast10
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 3 received ping answer from  2 with round-trip-time 376.0 ms.
+node 0 received ping answer from  1 with round-trip-time 430.0 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+node: 2 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast10_sync:
+../../ns test-suite-smac.tcl unicast10_sync QUIET
+unicast10 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 0 received ping answer from  1 with round-trip-time 4455.2 ms.
+node 3 received ping answer from  2 with round-trip-time 4458.2 ms.
+NS EXITING...
+num_nodes is set 4
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast11:
+../../ns test-suite-smac.tcl unicast11 QUIET
+unicast11
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 2 received ping answer from  0 with round-trip-time 695.0 ms.
+node 1 received ping answer from  2 with round-trip-time 1080.0 ms.
+node 0 received ping answer from  1 with round-trip-time 1199.0 ms.
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 2 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 2
+node: 2 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast11_sync:
+../../ns test-suite-smac.tcl unicast11_sync QUIET
+unicast11 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 2 received ping answer from  0 with round-trip-time 13065.2 ms.
+node 0 received ping answer from  1 with round-trip-time 14494.2 ms.
+node 1 received ping answer from  2 with round-trip-time 15934.2 ms.
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 1 ..............data sent Uni............
+Cancelling CS- node 0
+Cancelling CS- node 2
+node: 2 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 2
+node: 2 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 1 ..............data sent Uni............
+Cancelling CS- node 0
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 2
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 2
+node: 1 ..............data sent Uni............
+Cancelling CS- node 2
+node: 2 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast12:
+../../ns test-suite-smac.tcl unicast12 QUIET
+unicast12
+Seeding Random number generator with 1
+
+5.0
+Starting Simulation...
+node 2 received ping answer from  0 with round-trip-time 695.0 ms.
+node 1 received ping answer from  2 with round-trip-time 1080.0 ms.
+node 0 received ping answer from  1 with round-trip-time 1199.0 ms.
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 2 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 2
+node: 2 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+Cancelling CS- node 1
+node: 1 ..............data sent Uni............
+Test output agrees with reference output
+Running test unicast12_sync:
+../../ns test-suite-smac.tcl unicast12_sync QUIET
+unicast12 sync
+Seeding Random number generator with 1
+
+100.0
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+node 2 received ping answer from  0 with round-trip-time 13065.2 ms.
+node 0 received ping answer from  1 with round-trip-time 14494.2 ms.
+node 1 received ping answer from  2 with round-trip-time 15934.2 ms.
+NS EXITING...
+num_nodes is set 3
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 0
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 1
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 1 ..............data sent Uni............
+Cancelling CS- node 0
+Cancelling CS- node 2
+node: 2 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 2
+node: 2 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 0
+node: 1 ..............data sent Uni............
+Cancelling CS- node 0
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 2
+node: 0 ..............data sent Uni............
+Cancelling CS- node 1
+Cancelling CS- node 2
+node: 1 ..............data sent Uni............
+Cancelling CS- node 2
+node: 2 ..............data sent Uni............
+Test output agrees with reference output
+All test output agrees with reference output.
+*** ./test-all-smac-multihop
+Tests: smac-multihop
+Running test smac-multihop:
+../../ns test-suite-smac-multihop.tcl smac-multihop QUIET
+Valid tests: smac-multihop
+Loading connection pattern...
+Starting Simulation...
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+num_nodes is set 10
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 1
+Cancelling CS- node 3
+Cancelling CS- node 0
+Cancelling CS- node 4
+Cancelling CS- node 8
+Cancelling CS- node 7
+Cancelling CS- node 6
+Cancelling CS- node 7
+Cancelling CS- node 3
+Cancelling CS- node 6
+Cancelling CS- node 6
+Cancelling CS- node 8
+Cancelling CS- node 0
+Cancelling CS- node 6
+Cancelling CS- node 3
+Cancelling CS- node 7
+Cancelling CS- node 9
+Cancelling CS- node 6
+Cancelling CS- node 4
+Cancelling CS- node 7
+Cancelling CS- node 4
+Cancelling CS- node 6
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 2
+Cancelling CS- node 4
+Cancelling CS- node 6
+Cancelling CS- node 7
+Cancelling CS- node 5
+Cancelling CS- node 7
+Cancelling CS- node 7
+Cancelling CS- node 9
+Cancelling CS- node 8
+Cancelling CS- node 8
+node: 8 ..............data sent Uni............
+node: 9 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+Cancelling CS- node 7
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+Cancelling CS- node 7
+node: 7 ..............data sent Uni............
+Cancelling CS- node 6
+node: 6 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+Cancelling CS- node 7
+node: 7 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+Cancelling CS- node 3
+node: 3 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+Cancelling CS- node 3
+node: 3 ..............data sent Uni............
+Cancelling CS- node 2
+node: 2 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node: 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
+node: 0 ..............data sent Uni............
+node: 1 ..............data sent Uni............
+node: 2 ..............data sent Uni............
+node:NS EXITING...
+ 3 ..............data sent Uni............
+node: 4 ..............data sent Uni............
+node: 5 ..............data sent Uni............
+node: 6 ..............data sent Uni............
+node: 7 ..............data sent Uni............
+node: 8 ..............data sent Uni............
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-manual-routing
@@ -3345,7 +4533,165 @@ finishing..
 num_nodes is set 50
 channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
 highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+Test output differs from reference output
+Diagnose with: diff test-output-wireless-tdma/dsdv.test test-output-wireless-tdma/dsdv
+Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
 Running test dsr:
 ../../ns test-suite-wireless-tdma.tcl dsr QUIET
 Loading connection pattern...
@@ -3357,8 +4703,30 @@ finishing..
 num_nodes is set 50
 channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
 highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-All test output agrees with reference output.
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+
+ AF hack 0
+
+ AF hack 1
+Test output differs from reference output
+Diagnose with: diff test-output-wireless-tdma/dsr.test test-output-wireless-tdma/dsr
+Or see URL "http://www.isi.edu/nsnam/ns/ns-problems.html".
+Some test failed.
 *** ./test-all-wireless-gridkeeper
 Tests: dsdv
 Running test dsdv:
@@ -3555,7 +4923,20 @@ highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-energy
-Tests: dsdv dsr aodv
+Tests: brdcast0 dsdv dsr aodv
+Running test brdcast0:
+../../ns test-suite-energy.tcl brdcast0 QUIET
+Seeding Random number generator with 1
+
+
+NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
+
+NS EXITING...!!!
+num_nodes is set 2
+channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
+highestAntennaZ_ = 1.5,  distCST_ = 550.0
+Cancelling CS- node 1
+Test output agrees with reference output
 Running test dsdv:
 ../../ns test-suite-energy.tcl dsdv QUIET
 Loading connection pattern...
@@ -3583,100 +4964,6 @@ Loading scenario file...
 Load complete...
 NS EXITING...
 num_nodes is set 5
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-All test output agrees with reference output.
-*** ./test-all-diffusion3
-Tests: simple-ping 2pp-5n-1s-1r 2pp-10n-4s-1r 2pp-10n-1s-4r push-5n-1s-1r push-10n-1s-4r push-10n-4s-1r 1pp-5n-1s-1r 1pp-10n-4s-1r 1pp-10n-1s-4r gear-2pp-5n-1s-1r gear-2pp-10n-4s-1r gear-push-10n-1s-4r
-Running test simple-ping:
-../../ns test-suite-diffusion3.tcl simple-ping QUIET
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test 2pp-5n-1s-1r:
-../../ns test-suite-diffusion3.tcl 2pp-5n-1s-1r QUIET
-NS EXITING...
-num_nodes is set 5
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test 2pp-10n-4s-1r:
-../../ns test-suite-diffusion3.tcl 2pp-10n-4s-1r QUIET
-NS EXITING...
-num_nodes is set 10
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test 2pp-10n-1s-4r:
-../../ns test-suite-diffusion3.tcl 2pp-10n-1s-4r QUIET
-NS EXITING...
-num_nodes is set 10
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test push-5n-1s-1r:
-../../ns test-suite-diffusion3.tcl push-5n-1s-1r QUIET
-NS EXITING...
-num_nodes is set 5
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test push-10n-1s-4r:
-../../ns test-suite-diffusion3.tcl push-10n-1s-4r QUIET
-NS EXITING...
-num_nodes is set 10
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test push-10n-4s-1r:
-../../ns test-suite-diffusion3.tcl push-10n-4s-1r QUIET
-NS EXITING...
-num_nodes is set 10
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test 1pp-5n-1s-1r:
-../../ns test-suite-diffusion3.tcl 1pp-5n-1s-1r QUIET
-NS EXITING...
-num_nodes is set 5
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test 1pp-10n-4s-1r:
-../../ns test-suite-diffusion3.tcl 1pp-10n-4s-1r QUIET
-NS EXITING...
-num_nodes is set 10
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test 1pp-10n-1s-4r:
-../../ns test-suite-diffusion3.tcl 1pp-10n-1s-4r QUIET
-NS EXITING...
-num_nodes is set 10
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test gear-2pp-5n-1s-1r:
-../../ns test-suite-diffusion3.tcl gear-2pp-5n-1s-1r QUIET
-NS EXITING...
-num_nodes is set 5
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test gear-2pp-10n-4s-1r:
-../../ns test-suite-diffusion3.tcl gear-2pp-10n-4s-1r QUIET
-NS EXITING...
-num_nodes is set 10
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test gear-push-10n-1s-4r:
-../../ns test-suite-diffusion3.tcl gear-push-10n-1s-4r QUIET
-NS EXITING...
-num_nodes is set 10
 channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
 highestAntennaZ_ = 1.5,  distCST_ = 550.0
 Test output agrees with reference output
@@ -3733,802 +5020,6 @@ All test output agrees with reference output.
 Tests: wired
 Running test wired:
 ../../ns test-suite-message.tcl wired QUIET
-Test output agrees with reference output
-All test output agrees with reference output.
-*** ./test-all-smac
-Tests: brdcast1 brdcast1_sync brdcast2 brdcast2_sync unicast1 unicast1_sync unicast2 unicast2_sync unicast3 unicast3_sync unicast4 unicast4_sync unicast5 unicast5_sync unicast6 unicast6_sync unicast7 unicast7_sync unicast8 unicast8_sync unicast9 unicast9_sync unicast10 unicast10_sync unicast11 unicast11_sync unicast12 unicast12_sync
-Running test brdcast1:
-../../ns test-suite-smac.tcl brdcast1 QUIET
-brdcast1
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-NS EXITING...
-num_nodes is set 2
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 1
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 0.0 from 1.0
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Test output agrees with reference output
-Running test brdcast1_sync:
-../../ns test-suite-smac.tcl brdcast1_sync QUIET
-brdcast1 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-NS EXITING...
-num_nodes is set 2
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 1.0 from 0.0
-Cancelling CS- node 1
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 1.0
-Test output agrees with reference output
-Running test brdcast2:
-../../ns test-suite-smac.tcl brdcast2 QUIET
-brdcast2
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 1
-Cancelling CS- node 2
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 2.0 from 0.0
-Cancelling CS- node 2
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 2.0 from 1.0
-Cancelling CS- node 1
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 1.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 0.0 from 2.0
-Cancelling CS- node 1
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 2.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 1.0
-Cancelling CS- node 1
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 2.0
-Cancelling CS- node 1
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 0.0
-Cancelling CS- node 1
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 1.0
-Test output agrees with reference output
-Running test brdcast2_sync:
-../../ns test-suite-smac.tcl brdcast2_sync QUIET
-brdcast2 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 2
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 2.0 from 0.0
-Cancelling CS- node 1
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 2.0
-Cancelling CS- node 1
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 1.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 0.0 from 2.0
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 1.0
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 2.0 from 1.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 1.0
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 0.0
-Test output agrees with reference output
-Running test unicast1:
-../../ns test-suite-smac.tcl unicast1 QUIET
-unicast1
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 0 received ping answer from  1 with round-trip-time 399.0 ms.
-NS EXITING...
-num_nodes is set 2
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test unicast1_sync:
-../../ns test-suite-smac.tcl unicast1_sync QUIET
-unicast1 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 0 received ping answer from  1 with round-trip-time 4615.2 ms.
-NS EXITING...
-num_nodes is set 2
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Test output agrees with reference output
-Running test unicast2:
-../../ns test-suite-smac.tcl unicast2 QUIET
-unicast2
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 0 received ping answer from  1 with round-trip-time 632.1 ms.
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 1.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 0.0 from 2.0
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 1.0
-Cancelling CS- node 1
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 0.0
-Test output agrees with reference output
-Running test unicast2_sync:
-../../ns test-suite-smac.tcl unicast2_sync QUIET
-unicast2 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 0 received ping answer from  1 with round-trip-time 4462.2 ms.
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 2
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 1.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 0.0 from 2.0
-Cancelling CS- node 1
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 1.0
-Test output agrees with reference output
-Running test unicast3:
-../../ns test-suite-smac.tcl unicast3 QUIET
-unicast3
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 0 received ping answer from  1 with round-trip-time 425.0 ms.
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 2
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 0.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 0.0
-Test output agrees with reference output
-Running test unicast3_sync:
-../../ns test-suite-smac.tcl unicast3_sync QUIET
-unicast3 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 0 received ping answer from  1 with round-trip-time 10192.2 ms.
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 0.0 from 2.0
-Cancelling CS- node 1
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 0.0
-Cancelling CS- node 0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 1.0 from 0.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 0.0
-Test output agrees with reference output
-Running test unicast4:
-../../ns test-suite-smac.tcl unicast4 QUIET
-unicast4
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 0 received ping answer from  1 with round-trip-time 425.0 ms.
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 2
-Cancelling CS- node 2
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 1.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 1.0
-Test output agrees with reference output
-Running test unicast4_sync:
-../../ns test-suite-smac.tcl unicast4_sync QUIET
-unicast4 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 0 received ping answer from  1 with round-trip-time 4462.2 ms.
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 2
-Recvd brdcast pkt
-Recv BRDCAST Ping REQ : at 1.0 from 2.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 0.0 from 1.0
-Recvd brdcast pkt
-Recv BRDCAST Ping REPLY : at 2.0 from 1.0
-Test output agrees with reference output
-Running test unicast5:
-../../ns test-suite-smac.tcl unicast5 QUIET
-unicast5
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 0 received ping answer from  1 with round-trip-time 550.0 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 3
-Test output agrees with reference output
-Running test unicast5_sync:
-../../ns test-suite-smac.tcl unicast5_sync QUIET
-unicast5 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 0 received ping answer from  1 with round-trip-time 4467.2 ms.
-node 3 received ping answer from  2 with round-trip-time 11625.2 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 3
-Cancelling CS- node 3
-Cancelling CS- node 3
-Cancelling CS- node 3
-Test output agrees with reference output
-Running test unicast6:
-../../ns test-suite-smac.tcl unicast6 QUIET
-unicast6
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 0 received ping answer from  1 with round-trip-time 476.0 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test unicast6_sync:
-../../ns test-suite-smac.tcl unicast6_sync QUIET
-unicast6 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 0 received ping answer from  1 with round-trip-time 4458.2 ms.
-node 3 received ping answer from  2 with round-trip-time 5999.2 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 3
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 1
-Test output agrees with reference output
-Running test unicast7:
-../../ns test-suite-smac.tcl unicast7 QUIET
-unicast7
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 0 received ping answer from  1 with round-trip-time 492.0 ms.
-node 2 received ping answer from  3 with round-trip-time 939.0 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 3
-Test output agrees with reference output
-Running test unicast7_sync:
-../../ns test-suite-smac.tcl unicast7_sync QUIET
-unicast7 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 0 received ping answer from  1 with round-trip-time 4458.2 ms.
-node 2 received ping answer from  3 with round-trip-time 7437.2 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 3
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 1
-Test output agrees with reference output
-Running test unicast8:
-../../ns test-suite-smac.tcl unicast8 QUIET
-unicast8
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 1 received ping answer from  0 with round-trip-time 367.0 ms.
-node 2 received ping answer from  3 with round-trip-time 873.0 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 2
-Test output agrees with reference output
-Running test unicast8_sync:
-../../ns test-suite-smac.tcl unicast8_sync QUIET
-unicast8 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 1 received ping answer from  0 with round-trip-time 4458.2 ms.
-node 2 received ping answer from  3 with round-trip-time 7437.2 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 3
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 1
-Test output agrees with reference output
-Running test unicast9:
-../../ns test-suite-smac.tcl unicast9 QUIET
-unicast9
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 0 received ping answer from  1 with round-trip-time 550.0 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 3
-Test output agrees with reference output
-Running test unicast9_sync:
-../../ns test-suite-smac.tcl unicast9_sync QUIET
-unicast9 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 0 received ping answer from  1 with round-trip-time 4455.2 ms.
-node 3 received ping answer from  2 with round-trip-time 5955.2 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 1
-Test output agrees with reference output
-Running test unicast10:
-../../ns test-suite-smac.tcl unicast10 QUIET
-unicast10
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 3 received ping answer from  2 with round-trip-time 376.0 ms.
-node 0 received ping answer from  1 with round-trip-time 430.0 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Test output agrees with reference output
-Running test unicast10_sync:
-../../ns test-suite-smac.tcl unicast10_sync QUIET
-unicast10 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 0 received ping answer from  1 with round-trip-time 4455.2 ms.
-node 3 received ping answer from  2 with round-trip-time 4458.2 ms.
-NS EXITING...
-num_nodes is set 4
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Test output agrees with reference output
-Running test unicast11:
-../../ns test-suite-smac.tcl unicast11 QUIET
-unicast11
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 2 received ping answer from  0 with round-trip-time 695.0 ms.
-node 1 received ping answer from  2 with round-trip-time 1080.0 ms.
-node 0 received ping answer from  1 with round-trip-time 1199.0 ms.
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 1
-Cancelling CS- node 1
-Test output agrees with reference output
-Running test unicast11_sync:
-../../ns test-suite-smac.tcl unicast11_sync QUIET
-unicast11 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 2 received ping answer from  0 with round-trip-time 13065.2 ms.
-node 0 received ping answer from  1 with round-trip-time 14494.2 ms.
-node 1 received ping answer from  2 with round-trip-time 15934.2 ms.
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 2
-Test output agrees with reference output
-Running test unicast12:
-../../ns test-suite-smac.tcl unicast12 QUIET
-unicast12
-Seeding Random number generator with 1
-
-5.0
-Starting Simulation...
-node 2 received ping answer from  0 with round-trip-time 695.0 ms.
-node 1 received ping answer from  2 with round-trip-time 1080.0 ms.
-node 0 received ping answer from  1 with round-trip-time 1199.0 ms.
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 1
-Cancelling CS- node 1
-Test output agrees with reference output
-Running test unicast12_sync:
-../../ns test-suite-smac.tcl unicast12_sync QUIET
-unicast12 sync
-Seeding Random number generator with 1
-
-100.0
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-node 2 received ping answer from  0 with round-trip-time 13065.2 ms.
-node 0 received ping answer from  1 with round-trip-time 14494.2 ms.
-node 1 received ping answer from  2 with round-trip-time 15934.2 ms.
-NS EXITING...
-num_nodes is set 3
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 0
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 0
-Cancelling CS- node 0
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 1
-Cancelling CS- node 2
-Cancelling CS- node 2
-Test output agrees with reference output
-All test output agrees with reference output.
-*** ./test-all-smac-multihop
-Tests: smac-multihop
-Running test smac-multihop:
-../../ns test-suite-smac-multihop.tcl smac-multihop QUIET
-Valid tests: smac-multihop
-Loading connection pattern...
-Starting Simulation...
-
-NOTE: SMAC is running with sleep-wakeup cycles on. Please make sure to run yr applications AFTER the nodes get sync'ed which is about 40sec for the default settings.
-
-NS EXITING...
-num_nodes is set 10
-channel.cc:sendUp - Calc highestAntennaZ_ and distCST_
-highestAntennaZ_ = 1.5,  distCST_ = 550.0
-Cancelling CS- node 1
-Cancelling CS- node 3
-Cancelling CS- node 0
-Cancelling CS- node 4
-Cancelling CS- node 8
-Cancelling CS- node 7
-Cancelling CS- node 6
-Cancelling CS- node 7
-Cancelling CS- node 3
-Cancelling CS- node 6
-Cancelling CS- node 6
-Cancelling CS- node 8
-Cancelling CS- node 0
-Cancelling CS- node 6
-Cancelling CS- node 3
-Cancelling CS- node 7
-Cancelling CS- node 9
-Cancelling CS- node 6
-Cancelling CS- node 4
-Cancelling CS- node 7
-Cancelling CS- node 4
-Cancelling CS- node 6
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 2
-Cancelling CS- node 4
-Cancelling CS- node 6
-Cancelling CS- node 7
-Cancelling CS- node 5
-Cancelling CS- node 7
-Cancelling CS- node 7
-Cancelling CS- node 9
-Cancelling CS- node 8
-Cancelling CS- node 8
-Cancelling CS- node 7
-Cancelling CS- node 7
-Cancelling CS- node 6
-Cancelling CS- node 7
-Cancelling CS- node 3
-Cancelling CS- node 3
-Cancelling CS- node 2
 Test output agrees with reference output
 All test output agrees with reference output.
 *** ./test-all-rng
@@ -4706,4 +5197,9 @@ These messages are NOT errors and can be ignored:
     warning: using backward compatibility mode
     This test is not implemented in backward compatibility mode
 
-validate overall report: all tests passed
+
+validate overall report: some tests failed:
+     ./test-all-wireless-tdma
+to re-run a specific test, cd tcl/test; ./test-all-TEST-NAME
+Notice that some tests in webcache will fail on freebsd when -O is turned on.
+This is due to some event reordering, which will disappear when -g is turned on.

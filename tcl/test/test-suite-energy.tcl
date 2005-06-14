@@ -29,7 +29,7 @@ Agent/TCP set singledup_ 0
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.11 2005/06/13 17:50:42 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-energy.tcl,v 1.12 2005/06/14 19:43:48 haldar Exp $
 
 # To run all tests: test-all-energy
 # to run individual test:
@@ -243,10 +243,10 @@ Test/brdcast0 instproc run {} {
 			 -energyModel $opt(energymodel) \
 			 -idlePower 1.0 \
 			 -rxPower 1.0 \
-			 -txPower 1.0 \
-          		 -sleepPower 1.0 \
-          		 -transitionPower 0.5 \
-          		 -transitionTime 0.5 \
+			 -txPower 2.0 \
+          		 -sleepPower 0.001 \
+          		 -transitionPower 0.2 \
+          		 -transitionTime 0.005 \
 			 -initialEnergy $opt(initialenergy)
 
 	Mac/SMAC set syncFlag_ 1

@@ -24,7 +24,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.12 2004/02/06 16:33:52 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.13 2005/06/14 19:43:48 haldar Exp $
 //
 // mac-tdma.cc
 // by Xuan Chen (xuanc@isi.edu), ISI/USC
@@ -41,11 +41,14 @@
 // #define DEBUG
 
 //#include <debug.h>
+
 #include "arp.h"
 #include "ll.h"
 #include "mac.h"
 #include "mac-tdma.h"
+#include "wireless-phy.h"
 #include "cmu-trace.h"
+
 
 #define SET_RX_STATE(x)			\
 {					\
@@ -125,7 +128,7 @@ void TxPktTdmaTimer::handle(Event *e)
 	paused_ = 0;
 	stime = 0.0;
 	rtime = 0.0;
-  
+	
 	mac->sendHandler(e);
 }
 
@@ -432,7 +435,8 @@ void MacTdma::send()
 	src = ETHER_ADDR(dh->dh_sa);
 	size = ch->size();
 	stime = TX_Time(pktTx_);
-
+	ch->txtime() = stime;
+	
 	/* Turn on the radio and transmit! */
 	SET_TX_STATE(MAC_SEND);						     
 	radioSwitch(ON);
@@ -448,19 +452,24 @@ void MacTdma::send()
 void MacTdma::radioSwitch(int i) 
 {
 	radio_active_ = i;
-	EnergyModel *em = netif_->node()->energy_model();
+	//EnergyModel *em = netif_->node()->energy_model();
 	if (i == ON) {
-		if (em && em->sleep())
-			em->set_node_sleep(0);
-		//    printf("<%d>, %f, turn radio ON\n", index_, NOW);
+		//if (em && em->sleep())
+		//em->set_node_sleep(0);
+		//    printf("<%d>, %f, turn radio ON\n", index_, NOW); 
+		Phy *p;
+		p = netif_;
+		((WirelessPhy *)p)->node_wakeup();
 		return;
 	}
 
 	if (i == OFF) {
-		if (em && !em->sleep()) {
-			em->set_node_sleep(1);
-			//    netif_->node()->set_node_state(INROUTE);
-		};
+		//if (em && !em->sleep()) {
+		//em->set_node_sleep(1);
+		//    netif_->node()->set_node_state(INROUTE);
+		Phy *p;
+		p = netif_;
+		((WirelessPhy *)p)->node_sleep();
 		//    printf("<%d>, %f, turn radio OFF\n", index_, NOW);
 		return;
 	}

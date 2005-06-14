@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.23 2005/06/13 17:50:41 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.24 2005/06/14 19:43:48 haldar Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -472,14 +472,14 @@ WirelessPhy::node_wakeup()
             return;
 
         if ( NOW > update_energy_time_ && (status_== SLEEP) ) {
-	//the power consumption when radio goes from SLEEP mode to IDLE mode
-	    em()->DecrTransitionEnergy(T_transition_,P_transition_);
-
-            em()->DecrSleepEnergy(NOW-update_energy_time_,
-                                P_sleep_);
+		//the power consumption when radio goes from SLEEP mode to IDLE mode
+		em()->DecrTransitionEnergy(T_transition_,P_transition_);
+		
+		em()->DecrSleepEnergy(NOW-update_energy_time_,
+				      P_sleep_);
 		status_ = IDLE;
 	        update_energy_time_ = NOW;
-
+		
 		// log node energy
 		if (em()->energy() > 0) {
 			((MobileNode *)node_)->log_energy(1);

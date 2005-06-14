@@ -55,7 +55,6 @@
 //   See http://www.isi.edu/~weiye/pub/smac_ton.pdf
                                                                                                                                                            
 #include "wireless-phy.h"
-//#include "wireless-phy1.h"
 #include "smac.h"
 
 static class MacSmacClass : public TclClass {

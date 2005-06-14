@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-tdma.tcl,v 1.5 2002/07/19 02:35:25 haldar Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-wireless-tdma.tcl,v 1.6 2005/06/14 19:43:49 haldar Exp $
 
 # This test suite is for validating wireless TDMA mac layer protocol 
 # To run all tests: test-all-wireless-tdma
@@ -117,13 +117,15 @@ TestSuite instproc init {} {
 		lappend eilastlevel 1 1 4 1
 		AddrParams set nodes_num_ $eilastlevel
         } 
-	set chan	[new $opt(chan)]
-	set prop	[new $opt(prop)]
+	#set chan	[new $opt(chan)]
+	#set prop	[new $opt(prop)]
 	set topo	[new Topography]
 	set tracefd	[open $opt(tr) w]
 
 	$topo load_flatgrid $opt(x) $opt(y)
-	$prop topography $topo
+	#$prop topography $topo
+	$ns_ trace-all $tracefd
+
 	#
 	# Create God
 	#
@@ -142,76 +144,112 @@ TestSuite instproc init {} {
 
 
 Test/dsdv instproc init {} {
-    global opt node_ god_
+    global opt topo node_ god_
     $self instvar ns_ testName_
     set testName_       dsdv
-    set opt(rp)         dsdv
+    set opt(rp)         DSDV
     set opt(cp)		"../mobility/scene/cbr-50-20-4-512" 
     set opt(sc)		"../mobility/scene/scen-670x670-50-600-20-0" ;
     set opt(nn)		50	      
     set opt(stop)       1000.0
     
-    $self next
-
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$testName_-create-mobile-node $i
-    }
-    puts "Loading connection pattern..."
-    source $opt(cp)
-    
-    puts "Loading scenario file..."
-    source $opt(sc)
-    puts "Load complete..."
-    
-    #
-    # Tell all the nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-	$ns_ at $opt(stop).000000001 "$node_($i) reset";
-    }
-    
-    $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;" 
-    $ns_ at $opt(stop).1 "$self finish"
+	$self next
+	
+	$ns_ node-config -adhocRouting $opt(rp) \
+	-llType $opt(ll) \
+	-macType $opt(mac) \
+	-ifqType $opt(ifq) \
+	-ifqLen $opt(ifqlen) \
+	-antType $opt(ant) \
+	-propType $opt(prop) \
+	-phyType $opt(netif) \
+	-channel [new $opt(chan)] \
+	-topoInstance $topo \
+	-energyModel $opt(energy) \
+	-macTrace ON \
+	-rxPower 0.3 \
+	-txPower 0.6 \
+	-initialEnergy 0.455
+	
+	for {set i 0} {$i < $opt(nn) } {incr i} {
+		set node_($i) [$ns_ node]	
+		$node_($i) random-motion 0		;# disable random motion
+	}
+	
+	puts "Loading connection pattern..."
+	source $opt(cp)
+	
+	puts "Loading scenario file..."
+	source $opt(sc)
+	puts "Load complete..."
+	
+	#
+	# Tell all the nodes when the simulation ends
+	#
+	for {set i 0} {$i < $opt(nn) } {incr i} {
+		$ns_ at $opt(stop).000000001 "$node_($i) reset";
+	}
+	
+	$ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;" 
+	$ns_ at $opt(stop).1 "$self finish"
 }
 
 Test/dsdv instproc run {} {
-    $self instvar ns_
-    puts "Starting Simulation..."
-    $ns_ run
+	$self instvar ns_
+	puts "Starting Simulation..."
+	$ns_ run
 }
 
 Test/dsr instproc init {} {
-    global opt node_ god_
-    $self instvar ns_ testName_
-    set testName_       dsr
-    set opt(rp)         dsr
-    set opt(ifq)        CMUPriQueue
-    set opt(cp)         "../mobility/scene/cbr-50-20-4-512"
-    set opt(sc)         "../mobility/scene/scen-670x670-50-600-20-0" ;
-    set opt(nn)         50
-    set opt(stop)       1000.0
+	global opt topo node_ god_
+	$self instvar ns_ testName_
+	set testName_       dsr
+	set opt(rp)         DSR
+	set opt(ifq)        CMUPriQueue
+	set opt(cp)         "../mobility/scene/cbr-50-20-4-512"
+	set opt(sc)         "../mobility/scene/scen-670x670-50-600-20-0" ;
+	set opt(nn)         50
+	set opt(stop)       1000.0
+	
+	$self next
+	
+	$ns_ node-config -adhocRouting $opt(rp) \
+	    -llType $opt(ll) \
+	    -macType $opt(mac) \
+	    -ifqType $opt(ifq) \
+	    -ifqLen $opt(ifqlen) \
+	    -antType $opt(ant) \
+	    -propType $opt(prop) \
+	    -phyType $opt(netif) \
+	    -channel [new $opt(chan)] \
+	    -topoInstance $topo \
+	    -energyModel $opt(energy) \
+	    -macTrace ON \
+	    -rxPower 0.3 \
+	    -txPower 0.6 \
+	    -initialEnergy 0.455
+	
+	for {set i 0} {$i < $opt(nn) } {incr i} {
+		set node_($i) [$ns_ node]	
+		$node_($i) random-motion 0		;# disable random motion
+	}
+	
+	puts "Loading connection pattern..."
+	source $opt(cp)
 
-    $self next
+	puts "Loading scenario file..."
+	source $opt(sc)
+	puts "Load complete..."
 
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-        $testName_-create-mobile-node $i
-    }
-    puts "Loading connection pattern..."
-    source $opt(cp)
+	#
+	# Tell all the nodes when the simulation ends
+	#
+	for {set i 0} {$i < $opt(nn) } {incr i} {
+		$ns_ at $opt(stop).000000001 "$node_($i) reset";
+	}
 
-    puts "Loading scenario file..."
-    source $opt(sc)
-    puts "Load complete..."
-
-    #
-    # Tell all the nodes when the simulation ends
-    #
-    for {set i 0} {$i < $opt(nn) } {incr i} {
-        $ns_ at $opt(stop).000000001 "$node_($i) reset";
-    }
-
-    $ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;"
-    $ns_ at $opt(stop).1 "$self finish"
+	$ns_ at $opt(stop).000000001 "puts \"NS EXITING...\" ;"
+	$ns_ at $opt(stop).1 "$self finish"
 }
 
 TestSuite instproc finish-dsr {} {

@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/energy-model.h,v 1.12 2005/06/13 17:50:41 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mobile/energy-model.h,v 1.13 2005/06/14 19:43:48 haldar Exp $
  */
 
 // Contributed by Satish Kumar (kkumar@isi.edu)
@@ -88,12 +88,13 @@ class MobileNode;
 class EnergyModel : public TclObject {
 public:
 	EnergyModel(MobileNode* n, double energy, double l1, double l2) :
-		energy_(energy), initialenergy_(energy), 
+		energy_(energy), er_(0), et_(0),ei_(0), es_(0), 
+		initialenergy_(energy), 
 		level1_(l1), level2_(l2), node_(n), 
 		sleep_mode_(0), total_sleeptime_(0), total_rcvtime_(0), 
 		total_sndtime_(0), powersavingflag_(0), 
 		last_time_gosleep(0), max_inroute_time_(300), maxttl_(5), 
-		adaptivefidelity_(1), node_on_(true), et_(0), er_(0), ei_(0), es_(0)
+		adaptivefidelity_(1),  node_on_(true)
 	{
 		neighbor_list.neighbor_cnt_ = 0;
 		neighbor_list.head = NULL;
