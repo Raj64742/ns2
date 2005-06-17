@@ -79,6 +79,8 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	last_timestamp_ = 0;
 	last_arrival_ = 0;
 	last_report_sent=0;
+	total_received_ = 0;
+	total_losses_ = 0;
 
 	maxseq = -1;
 	maxseqList = -1;
@@ -163,6 +165,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	int newdata = 0;	// a new data packet received
 
 	rcvd_since_last_report ++;
+	total_received_ ++;
 	// bytes_ was added by Tom Phelan, for reporting bytes received.
 	bytes_ += hdr_cmn::access(pkt)->size();
 
@@ -211,6 +214,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 		if (hf->ect() == 1 && hf->ce() == 1) {
 			// ECN action
 			lossvec_[seqno%hsz] = ECN_RCVD;
+			++ total_losses_;
 			if (new_loss(seqno, tsvec_[seqno%hsz])) {
 				ecnEvent = 1;
 				lossvec_[seqno%hsz] = ECNLOST;
@@ -228,6 +232,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 			//   in packet sequence space.
 			lossvec_[i%hsz] = UNKNOWN;
 			++ i;
+			++ total_losses_;
 		}
 	}
 	if (seqno > maxseqList && 
@@ -399,6 +404,11 @@ void TfrcSinkAgent::sendpkt(double p)
 			tfrc_ackh->flost = p;
 		tfrc_ackh->rate_since_last_report = est_thput ();
 		tfrc_ackh->losses = losses_since_last_report;
+		if (total_received_ <= 0) 
+			tfrc_ackh->true_loss = 0.0;
+		else 
+			tfrc_ackh->true_loss = 1.0 * 
+			    total_losses_/(total_received_+total_losses_);
 		last_report_sent = now; 
 		rcvd_since_last_report = 0;
 		losses_since_last_report = 0;

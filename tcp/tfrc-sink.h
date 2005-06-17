@@ -115,7 +115,9 @@ protected:
 	double tzero_;		// timeout value reported by sender
 	int smooth_;		// for the smoother method for incorporating
 					//  incorporating new loss intervals
-	int total_received_;	// total # of pkts rcvd by rcvr
+	int total_received_;	// total # of pkts rcvd by rcvr, 
+				//   for statistics only
+	int total_losses_;      // total # of losses, for statistics only
 	int bval_;		// value of B used in the formula
 	double last_report_sent; 	// when was last feedback sent
 	double NumFeedback_; 	// how many feedbacks per rtt
@@ -166,15 +168,15 @@ protected:
 	int algo;		// algo for loss estimation 
 	int discount ;		// emphasize most recent loss interval
 				//  when it is very large
+	int bytes_ ;		// For reporting on received bytes.
 
-	// EWMA
+	// EWMA: optional variants
 	double history ;
 	double avg_loss_int ; 
 	int loss_int ; 
 	
-	// RBPH, EBPH
+	// RBPH, EBPH: optional variants 
 	double sendrate ;
 	int minlc ; 
 
-	int bytes_ ;		// For reporting on received bytes.
 }; 

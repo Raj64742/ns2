@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.348 2005/06/10 02:38:01 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.349 2005/06/17 17:49:33 sfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -1067,6 +1067,7 @@ Agent/TFRC set voip_ 0 ;        # Added on 10/23/2004
 Agent/TFRC set voip_max_pkt_rate_ 100 ;  # Max rate in pps, for voip mode.
 Agent/TFRC set fsize_ 1460 ;	# Default size for large TCP packets. 
 				# Used for VoIP mode.
+Agent/TFRC set true_loss_rate_ 0.0 ; # For statistics only.
 
 Agent/TFRCSink set packetSize_ 40
 Agent/TFRCSink set InitHistorySize_ 100000

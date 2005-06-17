@@ -78,6 +78,7 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind("tcp_tick_", &tcp_tick_);
 	bind("ndatapack_", &ndatapack_);
 	bind("ndatabytes_", &ndatabytes_);
+	bind("true_loss_rate_", &true_loss_rate_);
 	bind("srtt_init_", &srtt_init_);
 	bind("rttvar_init_", &rttvar_init_);
 	bind("rtxcur_init_", &rtxcur_init_);
@@ -202,6 +203,7 @@ void TfrcAgent::start()
 	ss_maxrate_ = 0;
 	ndatapack_=0;
 	ndatabytes_ = 0;
+	true_loss_rate_ = 0;
 	active_ = 1; 
 	round_id = 0;
 	heavyrounds_ = 0;
@@ -318,6 +320,7 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	// double NumFeedback_ = nck->NumFeedback_;
 	double flost = nck->flost; 
 	int losses = nck->losses;
+	true_loss_rate_ = nck->true_loss;
 
 	round_id ++ ;
 	UrgentFlag = 0;

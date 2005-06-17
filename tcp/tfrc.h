@@ -59,8 +59,6 @@
 
 struct hdr_tfrc {
 
-	// RFC 3448 specifies that seqno, timestamp, and rtt
-	//  must be in the data packet header.
 	int seqno;		//data sequence number
 	double timestamp; 	//time this message was sent
 	double rtt;	 	//RTT estimate of sender
@@ -70,7 +68,7 @@ struct hdr_tfrc {
 	// would not be in the packet header.
 	// They are here for convenience.
 	double tzero;	 	//RTO in Umass eqn
-	int psize;		//Packet size.  
+	int psize;		//Packet size.
 	int fsize;		//The default large packet size for VoIP.  
  	// UrgentFlag is used to request that a loss report be sent
 	//  immediately.
@@ -91,14 +89,21 @@ struct hdr_tfrc {
 
 struct hdr_tfrc_ack {
 
-	int seqno;	 	// not sure yet
-	double timestamp;		//time this nack was sent
+	// RFC 3448 specifies that timestamp_echo, timestamp_offset, flost,
+	//  and rate_since_last_report must be in the data packet header.
 	double timestamp_offset;	//offset since we received data packet
 	double timestamp_echo;		//timestamp from the last data packet
-	double flost;		//frequnecy of loss indications
+	double flost;		//frequency of loss indications
 	double rate_since_last_report;	//what it says ...
-	double NumFeedback_;	//number of times/RTT feedback is to be sent 
+	// Used in optional variants:
 	int losses;		// number of losses in last RTT
+	double NumFeedback_;	//number of times/RTT feedback is to be sent 
+	// Used for statistics-reporting only:
+	double true_loss;	// true loss event rate.  
+	// Not used:
+	int seqno;	 	// not sure yet
+	double timestamp;		//time this nack was sent
+
 
 	static int offset_;		 // offset for this header
 	inline static int& offset() { 
@@ -202,6 +207,7 @@ protected:
 	double overhead_;	// if > 0, dither outgoing packets 
 	TracedInt ndatapack_;	// number of packets sent
 	TracedInt ndatabytes_;	// number of bytes sent
+	TracedDouble true_loss_rate_;	// true loss event rate,
 	int UrgentFlag;		// urgent flag
 	int active_;		// have we shut down? 
 	int round_id ;		// round id
@@ -212,6 +218,8 @@ protected:
 				//  equation).
 	double rate_init_;	// Static value for initial rate, in 
 				//   packets per RTT.
+					// for statistics only
+
 	/* Variants in the TFRC algorithms.  */
         int rate_init_option_;  /* 1 for using static rate_init_ */
                                 /* 2 for using RFC 3390 */
