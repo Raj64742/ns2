@@ -33,7 +33,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.54 2005/06/13 18:58:00 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-packet.tcl,v 1.55 2005/06/17 17:41:16 sfloyd Exp $
 #
 # set up the packet format for the simulation
 # (initial version)
@@ -111,55 +111,64 @@ proc remove-all-packet-headers {} {
 }
 
 foreach prot {
-	AODV 	# routing protocol for ad-hoc networks
-	ARP 	# Address Resolution Protocol, network wireless stack
-  	aSRM 	# mcast/srm.cc
+# Common:
 	Common 
-	CtrMcast 	# Centralized Multicast routing
-	Diffusion 	# diffusion/diffusion.cc
-	Encap 	# common/encap.cc
 	Flags
-	HttpInval 	# HTTP
-	IMEP 	# Internet MANET Encapsulation Protocol, for ad-hoc networks
 	IP 	# IP
-        IPinIP 	# IP encapsulation 
-	IVS 	# IVS sources and receivers, common/ivs.cc
-	LDP 	# mpls/ldp.cc
-	LL 	# network wireless stack
-	mcastCtrl 	# mcast/mcast_ctrl.cc
-	MFTP 	# Multicast File Transfer Protocol
-	MPLS 	# MPLS, MultiProtocol Label Switching
-	Mac 	# network wireless stack
-        LRWPAN  # zheng, wpan/p802_15_4mac.cc
-	Message # a protocol to carry text messages
-        MIP 	# Mobile IP, mobile/mip-reg.cc
-	Ping 	# Ping
-	PGM 	# PGM multicast
-	PGM_SPM # PGM multicast
-	PGM_NAK # PGM multicast
-	QS 	# Quick-Start
-	RAP 	# Rate Adaption Protocol, transport protocol.
-	RTP 	# RTP.  Also used for UPD traffic.
-	Resv 	# Token buckets, for reservations.
+# Routing Protocols:
+	NV 	# NixVector classifier for stateless routing 
 	rtProtoDV 	# distance vector routing protocol
 	rtProtoLS 	# link state routing protocol
 	SR 	# source routing, dsr/hdr_sr.cc
 	Src_rt 	# source routing, src_rtg/hdr_src.cc
+# Routers:
+	LDP 	# mpls/ldp.cc
+	MPLS 	# MPLS, MultiProtocol Label Switching
+	Resv 	# Token buckets, for reservations.
+	UMP 	# Admission control, adc/ump.cc
+	Pushback 	# Pushback, router-to-router
+# Multicast:
+  	aSRM 	# mcast/srm.cc
+	CtrMcast 	# Centralized Multicast routing
+	mcastCtrl 	# mcast/mcast_ctrl.cc
+	MFTP 	# Multicast File Transfer Protocol
+	PGM 	# PGM multicast
+	PGM_SPM # PGM multicast
+	PGM_NAK # PGM multicast
   	SRM 	# SRM, multicast
   	SRMEXT 	# SRM, multicast
+# Transport Protocols and related protocols:
+	HttpInval 	# HTTP
+	IVS 	# Inria video conferencing system 
+	QS 	# Quick-Start
+	RAP 	# Rate Adaption Protocol, transport protocol.
+	RTP 	# RTP.  Also used for UPD traffic.
+	SCTP 	# SCTP, transport protocol
 	Snoop 	# tcp/snoop.cc
 	TCP 	# TCP, transport protocol
 	TCPA 	# Asymmetric TCP, transport protocol
 	TFRC 	# TFRC, transport protocol
 	TFRC_ACK 	# TFRC, transport protocol
-	TORA 	# routing protocol for ad-hoc networks
 	XCP 	# XCP, transport protocol
+# Application-Layer Protocols:
+	Message # a protocol to carry text messages
+	Ping 	# Ping
+# Wireless:
+	ARP 	# Address Resolution Protocol, network wireless stack
 	GAF 	# Geographic Adaptive Delity, for ad-hoc networks
-	UMP 	# Admission control, adc/ump.cc
-	Pushback 	# Pushback, router-to-router
-	SCTP 	# SCTP, transport protocol
+	LL 	# network wireless stack
+        LRWPAN  # zheng, wpan/p802_15_4mac.cc
+	Mac 	# network wireless stack
+# Mobility, Ad-Hoc Networks, Sensor Nets:
+	AODV 	# routing protocol for ad-hoc networks
+	Diffusion 	# diffusion/diffusion.cc
+	IMEP 	# Internet MANET Encapsulation Protocol, for ad-hoc networks
+        MIP 	# Mobile IP, mobile/mip-reg.cc
 	Smac 	# Sensor-MAC
-	NV 	# NixVector classifier for stateless routing 
+	TORA 	# routing protocol for ad-hoc networks
+# Other:
+	Encap 	# common/encap.cc
+        IPinIP 	# IP encapsulation 
 	HDLC 	# High Level Data Link Control
 } {
 	add-packet-header $prot
