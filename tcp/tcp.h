@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.118 2005/06/08 02:30:07 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.119 2005/06/17 17:44:31 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -102,6 +102,8 @@ struct hdr_tcp {
 #define THREE_QUARTER_SSTHRESH  0x00000080
 #define CLOSE_CWND_HALF_WAY 	0x00000100
 #define CWND_HALF_WITH_MIN	0x00000200
+#define TCP_IDLE		0x00000400
+#define NO_OUTSTANDING_DATA     0x00000800
 
 /*
  * tcp_tick_:

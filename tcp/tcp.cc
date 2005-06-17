@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.159 2005/06/08 02:30:07 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.160 2005/06/17 17:44:31 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -1192,7 +1192,9 @@ TcpAgent::slowdown(int how)
 	double decrease;  /* added for highspeed - sylvia */
 	double win, halfwin, decreasewin;
 	int slowstart = 0;
-	++ncwndcuts_; 
+	if ((how & TCP_IDLE == 0) && (how & NO_OUTSTANDING_DATA == 0)){
+		++ncwndcuts_; 
+	}
 	// we are in slowstart for sure if cwnd < ssthresh
 	if (cwnd_ < ssthresh_) 
 		slowstart = 1;
@@ -1825,7 +1827,7 @@ void TcpAgent::timeout(int tno)
 				* if there is no outstanding data, don't cut 
 				* down ssthresh_.
 				*/
-				slowdown(CLOSE_CWND_ONE);
+				slowdown(CLOSE_CWND_ONE|NO_OUTSTANDING_DATA);
 			else if (highest_ack_ < recover_ &&
 			  last_cwnd_action_ == CWND_ACTION_ECN) {
 			       /*
@@ -1995,9 +1997,9 @@ void TcpAgent::process_qoption_after_send ()
 	if (!EnblRTTCtr_) {
 		if (tcp_now - T_last >= rto) {
 			// The sender has been idle.
-		 	slowdown(THREE_QUARTER_SSTHRESH) ;
+		 	slowdown(THREE_QUARTER_SSTHRESH|TCP_IDLE) ;
 			for (int i = 0 ; i < (tcp_now - T_last)/rto; i ++) {
-				slowdown(CWND_HALF_WITH_MIN);
+				slowdown(CWND_HALF_WITH_MIN|TCP_IDLE);
 			}
 			T_prev = tcp_now ;
 			W_used = 0 ;
@@ -2014,8 +2016,8 @@ void TcpAgent::process_qoption_after_send ()
 				W_used = tmp ;
 			if (tcp_now - T_prev >= rto) {
 				// The sender has been application-limited.
-				slowdown(THREE_QUARTER_SSTHRESH);
-				slowdown(CLOSE_CWND_HALF_WAY);
+				slowdown(THREE_QUARTER_SSTHRESH|TCP_IDLE);
+				slowdown(CLOSE_CWND_HALF_WAY|TCP_IDLE);
 				T_prev = tcp_now ;
 				W_used = 0 ;
 			}
@@ -2046,9 +2048,9 @@ TcpAgent::rtt_counting()
 		RTTs = RTTs - Backoffs ; 
 		Backoffs = 0 ; 
 		if (RTTs > 0) {
-			slowdown(THREE_QUARTER_SSTHRESH) ;
+			slowdown(THREE_QUARTER_SSTHRESH|TCP_IDLE) ;
 			for (int i = 0 ; i < RTTs ; i ++) {
-				slowdown(CWND_HALF_WITH_MIN);
+				slowdown(CWND_HALF_WITH_MIN|TCP_IDLE);
 				RTT_prev = RTT_count ; 
 				W_used = 0 ;
 			}
@@ -2077,8 +2079,8 @@ TcpAgent::rtt_counting()
 			W_used = tmp ;
 		if (RTT_count - RTT_prev >= 2) {
 			// The sender has been application-limited.
-			slowdown(THREE_QUARTER_SSTHRESH) ;
-			slowdown(CLOSE_CWND_HALF_WAY);
+			slowdown(THREE_QUARTER_SSTHRESH|TCP_IDLE) ;
+			slowdown(CLOSE_CWND_HALF_WAY|TCP_IDLE);
 			RTT_prev = RTT_count ; 
 			Backoffs ++ ; 
 			W_used = 0;
