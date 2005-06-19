@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.115 2003/07/28 20:52:11 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.116 2005/06/19 00:33:27 sfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -558,8 +558,21 @@ FullTcpAgent::flagstr(int hflags)
 		"<ACK>", "<ACK,FIN>", "<ACK,SYN>", "<ACK,SYN,FIN>", // 0x14-0x17
 		"<PSH,ACK>", "<PSH,ACK,FIN>", "<PSH,ACK,SYN>", "<PSH,ACK,SYN,FIN>", // 0x18-0x1b
 	};
-	if (hflags < 0 || (hflags > 28))
-		return ("<invalid>");
+	if (hflags < 0 || (hflags > 28)) {
+		/* Added strings for CWR and ECE  -M. Weigle 6/27/02 */
+		if (hflags == 72) 
+	 		return ("<ECE,PSH>");
+	 	else if (hflags == 80)
+	 		return ("<ECE,ACK>");
+	 	else if (hflags == 88) 
+	 		return ("<ECE,PSH,ACK>");
+	 	else if (hflags == 152) 
+	 		return ("<CWR,PSH,ACK>");
+		else if (hflags == 153)
+			return ("<CWR,PSH,ACK,FIN>");
+		else
+			return ("<invalid>");
+	}
 	return (flagstrs[hflags]);
 }
 
@@ -764,7 +777,8 @@ int
 FullTcpAgent::pack(Packet *pkt)
 {
 	hdr_tcp *tcph = hdr_tcp::access(pkt);
-	return (tcph->ackno() >= highest_ack_ &&
+	/* Added check for fast recovery.  -M. Weigle 5/2/02 */
+	return (fastrecov_ && tcph->ackno() >= highest_ack_ &&
 		tcph->ackno() < recover_);
 }
 
@@ -837,6 +851,10 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
 	if ( datalen > 0 && ecn_ ){
 		fh->ect() = ect_;	// on after mutual agreement on ECT
 	}
+	else {
+		/* Set ect() to 0.  -M. Weigle 1/19/05 */
+		fh->ect() = 0;
+	}
 
         // fill in CWR and ECE bits which don't actually sit in
         // the tcp_flags but in hdr_flags
@@ -848,14 +866,10 @@ FullTcpAgent::sendpacket(int seqno, int ackno, int pflags, int datalen, int reas
         if ( pflags & TH_CWR ) {
                 fh->cong_action() = 1;
         }
-
-	//
-	// although CWR bit is ordinarily associated with ECN,
-	// it utility within the simulator for traces.  Thus, set
-	// it even if we aren't doing ECN
-	//
-	if ( datalen > 0 )
-	 	fh->cwr() =  cong_action_;
+	else {
+		/* Set cong_action() to 0  -M. Weigle 1/19/05 */
+		fh->cong_action() = 0;
+	}
 
 	/* actual size is data length plus header length */
 
@@ -1068,9 +1082,24 @@ send:
                 pflags |= TH_ECE;
                 pflags &= ~TH_CWR;
         }
-  
-        /* set CWR if necessary */
-        if (ecn_ && ect_ && cong_action_) pflags |= TH_CWR;
+	else if (ecn_ && ect_ && cong_action_ && !is_retransmit) 
+		/* 
+		 * Don't set CWR for a retranmitted SYN+ACK (has ecn_ 
+		 * and cong_action_ set) or on any retransmits.
+		 * -M. Weigle 6/19/02
+		 */
+		/* set CWR if necessary */
+		pflags |= TH_CWR;
+
+	/* moved from sendpacket()  -M. Weigle 6/19/02 */
+	//
+	// although CWR bit is ordinarily associated with ECN,
+	// it has utility within the simulator for traces. Thus, set
+	// it even if we aren't doing ECN
+	//
+	if (datalen > 0 && cong_action_ && !is_retransmit) {
+		pflags |= TH_CWR;
+	}
   
         /* set ECE if necessary */
         if (ecn_ && ect_ && recent_ce_ ) pflags |= TH_ECE;
@@ -1107,7 +1136,11 @@ send:
 	 */
 
 	int reliable = datalen + syn + fin; // seq #'s reliably sent
-	if (cong_action_ && reliable > 0)
+	/* 
+	 * Don't reset cong_action_ until we send new data.
+	 * -M. Weigle 6/19/02
+	 */
+	if (cong_action_ && reliable > 0 && !is_retransmit)
 		cong_action_ = FALSE;
 
 	// highest: greatest sequence number sent + 1
@@ -1461,6 +1494,17 @@ FullTcpAgent::recv(Packet *pkt, Handler*)
 //prpkt(pkt);
 //}
 
+	/* 
+	 * Acknowledge FIN from passive closer even in TCPS_CLOSED state
+	 * (since we lack TIME_WAIT state and RST packets,
+	 * the loss of the FIN packet from the passive closer will make that
+	 * endpoint retransmit the FIN forever)
+	 * -F. Hernandez-Campos 8/6/00
+	 */
+	if ( (state_ == TCPS_CLOSED) && (tiflags & TH_FIN) ) {
+		goto dropafterack;
+	}
+
 	/*
 	 * Don't expect to see anything while closed
 	 */
@@ -1784,6 +1828,15 @@ trimthenstep6:
 		goto step6;
 
 	case TCPS_LAST_ACK:
+		/* 
+		 * The only way we're in LAST_ACK is if we've already
+		 * received a FIN, so ignore all retranmitted FINS.
+		 * -M. Weigle 7/23/02
+		 */
+		if (tiflags & TH_FIN) {
+			goto drop;
+		}
+		break;
 	case TCPS_CLOSING:
 		break;
 	} /* end switch(state_) */
@@ -1921,10 +1974,20 @@ trimthenstep6:
 	}
 
 	if ((tiflags & TH_ACK) == 0) {
-		fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (state:%d): ",
-			now(), name(), state_);
-		prpkt(pkt);
-		goto drop;
+		/*
+		 * Added check for state != SYN_RECEIVED.  We will receive a 
+		 * duplicate SYN in SYN_RECEIVED when our SYN/ACK was dropped.
+		 * We should just ignore the duplicate SYN (our timeout for 
+		 * resending the SYN/ACK is about the same as the client's 
+		 * timeout for resending the SYN), but give no error message. 
+		 * -M. Weigle 07/24/01
+		 */
+		if (state_ != TCPS_SYN_RECEIVED) {
+			fprintf(stderr, "%f: FullTcpAgent::recv(%s) got packet lacking ACK (state:%d): ",
+				now(), name(), state_);
+			prpkt(pkt);
+			goto drop;
+		}
 	}
 
 	/*
@@ -2486,7 +2549,11 @@ void
 FullTcpAgent::timeout(int tno)
 {
 
-	if (state_ == TCPS_CLOSED || state_ == TCPS_LISTEN) {
+	/*
+	 * Due to F. Hernandez-Campos' fix in recv(), we may send an ACK
+	 * while in the CLOSED state.  -M. Weigle 7/24/01
+	 */
+	if (state_ == TCPS_LISTEN) {
 	 	// shouldn't be getting timeouts here
 		fprintf(stderr, "%f: FullTcpAgent(%s): unexpected timeout %d in state %s\n",
 			now(), name(), tno, statestr(state_));
@@ -2683,7 +2750,8 @@ void
 SackFullTcpAgent::reset()
 {
 	sq_.clear();			// no SACK blocks
-	sack_min_ = h_seqno_ -1;	// no left edge of SACK blocks
+	/* Fixed typo.  -M. Weigle 6/17/02 */
+	sack_min_ = h_seqno_ = -1;	// no left edge of SACK blocks
 	FullTcpAgent::reset();
 }
 
@@ -2718,12 +2786,20 @@ SackFullTcpAgent::dupack_action()
         }           
 
         if (ecn_ && last_cwnd_action_ == CWND_ACTION_ECN) {
+		/* 
+		 * Received ECN notification and 3 DUPACKs in same 
+		 * window. Don't cut cwnd again, but retransmit lost
+		 * packet.   -M. Weigle  6/19/02
+		 */
 		last_cwnd_action_ = CWND_ACTION_DUPACK;
-                cancel_rtx_timer();
-                rtt_active_ = FALSE;
-		send_much(1, REASON_DUPACK, maxburst_);
-                return; 
-        }               
+		cancel_rtx_timer();
+		rtt_active_ = FALSE;
+		int amt = fast_retransmit(highest_ack_);
+		pipectrl_ = TRUE;
+		h_seqno_ = highest_ack_ + amt;
+		send_much(0, REASON_DUPACK, maxburst_);
+		return; 
+	}
    
         if (bug_fix_) {
                 /*                              
@@ -2781,6 +2857,13 @@ SackFullTcpAgent::ack_action(Packet* p)
                 sq_.cleartonxt();
         }
 	dupacks_ = 0;
+
+	/* 
+	 * Update h_seqno_ on new ACK (same as for partial ACKS)
+	 * -M. Weigle 6/3/05
+	 */
+	if (h_seqno_ < highest_ack_)
+		h_seqno_ = highest_ack_;
 }
 
 //
@@ -2842,7 +2925,9 @@ SackFullTcpAgent::process_sack(hdr_tcp* tcph)
 
 	int slen = tcph->sa_length(), i;
 	for (i = 0; i < slen; ++i) {
-		if (tcph->sa_left(i) >= tcph->sa_right(i)) {
+		/* Added check for FIN   -M. Weigle 5/21/02 */
+		if ((tcph->flags() & TH_FIN == 0) && 
+		    tcph->sa_left(i) >= tcph->sa_right(i)) {
 			fprintf(stderr,
 			    "%f: FullTcpAgent(%s) warning: received illegal SACK block [%d,%d]\n",
 				now(), name(), tcph->sa_left(i), tcph->sa_right(i));
@@ -2868,6 +2953,13 @@ SackFullTcpAgent::send_allowed(int seq)
 //now(), seq, topawin, pipe_, int(cwnd_));
 		return FALSE;
 	}
+
+	/*
+	 * If not in ESTABLISHED, don't send anything we don't have
+	 *   -M. Weigle 7/18/02
+	 */
+	if (state_ != TCPS_ESTABLISHED && seq > curseq_)
+		return FALSE;
 
 	// don't overshoot cwnd_
 	int cwin = int(cwnd_) * maxseg_;

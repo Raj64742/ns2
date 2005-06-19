@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.53 2002/06/28 21:55:56 kclan Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.h,v 1.54 2005/06/19 00:33:27 sfloyd Exp $ (LBL)
  */
 
 #ifndef ns_tcp_full_h
@@ -119,7 +119,7 @@ public:
 		closed_(0), pipe_(-1), rtxbytes_(0), fastrecov_(FALSE),
         	last_send_time_(-1.0), infinite_send_(FALSE), irs_(-1),
         	delack_timer_(this), flags_(0),
-        	state_(TCPS_CLOSED), ect_(FALSE), recent_ce_(FALSE),
+        	state_(TCPS_CLOSED), recent_ce_(FALSE),
         	last_state_(TCPS_CLOSED), rq_(rcv_nxt_), last_ack_sent_(-1) { }
 
 	~FullTcpAgent() { cancel_timers(); rq_.clear(); }
@@ -225,7 +225,6 @@ protected:
 	int maxseg_;        /* MSS */
 	int flags_;     /* controls next output() call */
 	int state_;     /* enumerated type: FSM state */
-	int ect_;	/* turn on ect bit now? */
 	int recent_ce_;	/* last ce bit we saw */
 	int last_state_; /* FSM state at last pkt recv */
 	int rcv_nxt_;       /* next sequence number expected */
