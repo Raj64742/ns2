@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.119 2005/06/17 17:44:31 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.120 2005/06/20 02:39:59 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -424,6 +424,9 @@ protected:
 	int ecn_backoff_;	/* True when retransmit timer should begin
 			  	    to be backed off.  */
 	int ect_;       	/* turn on ect bit now? */
+	int SetCWRonRetransmit_;  /* True to allow setting CWR on */
+				  /*  retransmitted packets.   Affects */
+				  /*  performance for Reno with ECN.  */
 	/* end of ECN */
 
 	/* used for Explicit Loss Notification */

@@ -50,6 +50,8 @@ Agent/TCP set minrto_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
+Agent/TCP set SetCWRonRetransmit_ true
+# Changing the default value.
 
 Class TestSuite
 

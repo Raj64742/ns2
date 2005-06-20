@@ -12,6 +12,9 @@ Agent/TCP set windowInit_ 1
 # The default is being changed to 2.
 Agent/TCP set singledup_ 0
 # The default is being changed to 1
+Agent/TCP set SetCWRonRetransmit_ true
+# Changing the default value.
+#
 # Copyright (c) 1999 Regents of the University of California.
 # All rights reserved.
 #
@@ -43,7 +46,7 @@ Agent/TCP set singledup_ 0
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #    
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-satellite.tcl,v 1.9 2004/10/18 19:42:18 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-satellite.tcl,v 1.10 2005/06/20 02:39:59 sfloyd Exp $
 #
 # Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
 #    

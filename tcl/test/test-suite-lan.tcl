@@ -16,7 +16,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-lan.tcl,v 1.19 2005/06/11 05:51:37 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-lan.tcl,v 1.20 2005/06/20 02:39:59 sfloyd Exp $
 
 # To run all tests: test-all-lan
 # to run individual test:
@@ -50,6 +50,8 @@ Agent/TCP set singledup_ 0
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.
+Agent/TCP set SetCWRonRetransmit_ true
+# Changing the default value.
 
 Class TestSuite
 

@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.160 2005/06/17 17:44:31 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.161 2005/06/20 02:39:59 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -123,6 +123,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("overhead_");
         delay_bind_init_one("tcpTick_");
         delay_bind_init_one("ecn_");
+        delay_bind_init_one("SetCWRonRetransmit_");
         delay_bind_init_one("old_ecn_");
         delay_bind_init_one("eln_");
         delay_bind_init_one("eln_rxmit_thresh_");
@@ -229,6 +230,7 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "overhead_", &overhead_, tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "tcpTick_", &tcp_tick_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "ecn_", &ecn_, tracer)) return TCL_OK;
+        if (delay_bind_bool(varName, localName, "SetCWRonRetransmit_", &SetCWRonRetransmit_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "old_ecn_", &old_ecn_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "eln_", &eln_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "eln_rxmit_thresh_", &eln_rxmit_thresh_ , tracer)) return TCL_OK;
@@ -633,6 +635,7 @@ void TcpAgent::output(int seqno, int reason)
 	int databytes = hdr_cmn::access(p)->size();
 	tcph->seqno() = seqno;
 	tcph->ts() = Scheduler::instance().clock();
+	int is_retransmit = (seqno < maxseq_);
  
 	// Mark packet for diagnosis purposes if we are in Quick-Start Phase
 	if (qs_approved_) {
@@ -669,7 +672,7 @@ void TcpAgent::output(int seqno, int reason)
 	if (ecn_) {
 		hf->ect() = 1;	// ECN-capable transport
 	}
-	if (cong_action_) {
+	if (cong_action_ && (!is_retransmit || SetCWRonRetransmit_)) {
 		hf->cong_action() = TRUE;  // Congestion action.
 		cong_action_ = FALSE;
         }

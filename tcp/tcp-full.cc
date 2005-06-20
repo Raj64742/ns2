@@ -112,7 +112,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.116 2005/06/19 00:33:27 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-full.cc,v 1.117 2005/06/20 02:39:59 sfloyd Exp $ (LBL)";
 #endif
 
 #include "ip.h"
@@ -1082,7 +1082,8 @@ send:
                 pflags |= TH_ECE;
                 pflags &= ~TH_CWR;
         }
-	else if (ecn_ && ect_ && cong_action_ && !is_retransmit) 
+	else if (ecn_ && ect_ && cong_action_ && 
+	             (!is_retransmit || SetCWRonRetransmit_)) 
 		/* 
 		 * Don't set CWR for a retranmitted SYN+ACK (has ecn_ 
 		 * and cong_action_ set) or on any retransmits.
