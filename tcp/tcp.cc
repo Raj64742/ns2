@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.161 2005/06/20 02:39:59 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.162 2005/06/20 16:30:30 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -102,6 +102,7 @@ TcpAgent::TcpAgent()
         bind("nrexmitbytes_", &nrexmitbytes_);
         bind("necnresponses_", &necnresponses_);
         bind("ncwndcuts_", &ncwndcuts_);
+	bind("ncwndcuts1_", &ncwndcuts1_);
 #endif /* TCP_DELAY_BIND_ALL */
 
 }
@@ -209,6 +210,7 @@ TcpAgent::delay_bind_init_all()
         delay_bind_init_one("nrexmitbytes_");
         delay_bind_init_one("necnresponses_");
         delay_bind_init_one("ncwndcuts_");
+	delay_bind_init_one("ncwndcuts1_");
 #endif /* TCP_DELAY_BIND_ALL */
 
 	Agent::delay_bind_init_all();
@@ -316,6 +318,8 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
         if (delay_bind(varName, localName, "nrexmitbytes_", &nrexmitbytes_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "necnresponses_", &necnresponses_ , tracer)) return TCL_OK;
         if (delay_bind(varName, localName, "ncwndcuts_", &ncwndcuts_ , tracer)) return TCL_OK;
+ 	if (delay_bind(varName, localName, "ncwndcuts1_", &ncwndcuts1_ , tracer)) return TCL_OK;
+
 #endif
 
         return Agent::delay_bind_dispatch(varName, localName, tracer);
@@ -472,6 +476,7 @@ TcpAgent::reset()
 	nrexmitpack_ = 0;
 	necnresponses_ = 0;
 	ncwndcuts_ = 0;
+	ncwndcuts1_ = 0;
 
 	if (control_increase_) {
 		prev_highest_ack_ = highest_ack_ ; 
@@ -1195,8 +1200,9 @@ TcpAgent::slowdown(int how)
 	double decrease;  /* added for highspeed - sylvia */
 	double win, halfwin, decreasewin;
 	int slowstart = 0;
+	++ncwndcuts_;
 	if ((how & TCP_IDLE == 0) && (how & NO_OUTSTANDING_DATA == 0)){
-		++ncwndcuts_; 
+		++ncwndcuts1_; 
 	}
 	// we are in slowstart for sure if cwnd < ssthresh
 	if (cwnd_ < ssthresh_) 

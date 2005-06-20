@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.350 2005/06/20 02:39:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.351 2005/06/20 16:30:30 sfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -911,6 +911,7 @@ Agent/TCP set nrexmitpack_ 0
 Agent/TCP set nrexmitbytes_ 0
 Agent/TCP set necnresponses_ 0
 Agent/TCP set ncwndcuts_ 0 
+Agent/TCP set ncwndcuts1_ 0
 
 Agent/TCP set trace_all_oneline_ false
 

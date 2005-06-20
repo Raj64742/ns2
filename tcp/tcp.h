@@ -30,7 +30,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.120 2005/06/20 02:39:59 sfloyd Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.h,v 1.121 2005/06/20 16:30:30 sfloyd Exp $ (LBL)
  */
 #ifndef ns_tcp_h
 #define ns_tcp_h
@@ -399,6 +399,9 @@ protected:
 			   	   in response to an ecn packet -- sylvia */
         TracedInt ncwndcuts_; 	/* number of times cwnd was reduced 
 				   for any reason -- sylvia */
+        TracedInt ncwndcuts1_;     /* number of times cwnd was reduced 
+                                   due to congestion (as opposed to idle
+                                   periods */
 	/* end of dynamic state for monitoring */
 
 	/* Specifying variants in TCP algorithms.  */
