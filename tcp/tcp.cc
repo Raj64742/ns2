@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.162 2005/06/20 16:30:30 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.163 2005/06/21 01:48:24 sfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -1201,7 +1201,7 @@ TcpAgent::slowdown(int how)
 	double win, halfwin, decreasewin;
 	int slowstart = 0;
 	++ncwndcuts_;
-	if ((how & TCP_IDLE == 0) && (how & NO_OUTSTANDING_DATA == 0)){
+	if (!(how & TCP_IDLE) && !(how & NO_OUTSTANDING_DATA)){
 		++ncwndcuts1_; 
 	}
 	// we are in slowstart for sure if cwnd < ssthresh
