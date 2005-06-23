@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.67 2005/06/11 04:42:09 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.68 2005/06/23 18:30:03 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -168,6 +168,28 @@ Topology/net2b instproc init ns {
     # 1.5Mb, 12.5 1500-byte pkts per 100 ms.
     $ns queue-limit $node_(r1) $node_(r2) 12
     $ns queue-limit $node_(r2) $node_(r1) 12
+    $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
+}
+
+Class Topology/net2c -superclass Topology
+Topology/net2c instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(r2) [$ns node]
+    set node_(s3) [$ns node]
+    set node_(s4) [$ns node]
+
+    $self next
+    Queue/RED set gentle_ true
+    $ns duplex-link $node_(s1) $node_(r1) 10Mb 2ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 10Mb 3ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 0.2Mb 20ms RED
+    # 1.5Mb, 12.5 1500-byte pkts per 100 ms.
+    $ns queue-limit $node_(r1) $node_(r2) 50
+    $ns queue-limit $node_(r2) $node_(r1) 50
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
 }
@@ -1941,6 +1963,76 @@ Test/voip instproc run {} {
     # trace only the bottleneck link
     $ns_ run
 }
+
+Class Test/voipEcn superclass TestSuite
+Test/voipEcn instproc init {} {
+    $self instvar net_ test_ guide_ voip
+    set net_	net2c
+    set test_	voipEcn
+    set guide_  \
+    "One ECN VoIP TFRC flow and one TCP flow, different packet sizes."
+    set voip 1
+    #set voip 0
+    Agent/TFRC set ecn_ 1
+    Agent/TCP set ecn_ 1
+    Queue/RED set setbit_ true
+    Queue/RED set thresh_ 5
+    $self next pktTraceFile
+}
+Test/voipEcn instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
+    if {$quiet == "false"} {puts $guide_}
+    $self setTopo
+    set interval_ 0.1
+    set stopTime 20.0
+    set stopTime0 [expr $stopTime - 0.001]
+    set stopTime2 [expr $stopTime + 0.001]
+    set pktsize 120
+    set cbrInterval 0.01
+
+    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon    
+
+    set dumpfile_ [open temp.s w]
+    if {$quiet == "false"} {
+        set tracefile [open all.tr w]
+        $ns_ trace-all $tracefile
+    }
+
+    set tf1 [$ns_ create-connection TFRC $node_(s1) TFRCSink $node_(s3) 0]
+    $tf1 set voip_ $voip
+    $tf1 set packetSize_ $pktsize
+    set cbr [new Application/Traffic/CBR]
+    $cbr set packetSize_ $pktsize
+    $cbr set interval_ $cbrInterval
+    $cbr attach-agent $tf1
+    $ns_ at 2.0 "$cbr start"
+    $ns_ at $stopTime0 "$cbr stop"
+
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s2) TCPSink/Sack1 $node_(s4) 1]
+    $tcp1 set window_ 10
+    $tcp1 set packetSize_ 1460
+    set ftp1 [$tcp1 attach-app FTP]
+    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at $stopTime0 "$ftp1 stop"
+
+    $self tfccDump 1 $tf1 $interval_ $dumpfile_ 
+    $self pktsDump 2 $tcp1 $interval_ $dumpfile_
+
+    $ns_ at $stopTime0 "close $dumpfile_; $self finish_1 $testName_"
+    $ns_ at $stopTime0 "$self printdrops 0 $fmon; $self printdrops 1 $fmon"
+    $ns_ at $stopTime "$self cleanupAll $testName_" 
+    if {$quiet == "false"} {
+	$ns_ at $stopTime2 "close $tracefile"
+    }
+    $ns_ at $stopTime2 "exec cp temp2.rands temp.rands; exit 0"
+
+    # trace only the bottleneck link
+    $ns_ run
+}
+
 
 Class Test/noVoip superclass TestSuite
 Test/noVoip instproc init {} {
