@@ -164,6 +164,9 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 	int UrgentFlag = 0;	// send loss report immediately
 	int newdata = 0;	// a new data packet received
 
+	if (algo == WALI && !init_WALI_flag) {
+		init_WALI () ;
+	}
 	rcvd_since_last_report ++;
 	total_received_ ++;
 	// bytes_ was added by Tom Phelan, for reporting bytes received.
