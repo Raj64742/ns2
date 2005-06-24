@@ -118,6 +118,7 @@ protected:
 	int total_received_;	// total # of pkts rcvd by rcvr, 
 				//   for statistics only
 	int total_losses_;      // total # of losses, for statistics only
+	int total_dropped_;	// total # of drops, for statistics
 	int bval_;		// value of B used in the formula
 	double last_report_sent; 	// when was last feedback sent
 	double NumFeedback_; 	// how many feedbacks per rtt
@@ -134,7 +135,8 @@ protected:
 	int ShortIntervals_ ;	// For calculating loss event rates for short 
 				//  loss intervals:  "0" for counting a
 				// single loss; "1" for counting the actual
-				// number of losses.
+				// number of losses; "2" for counting at
+				// most a large packet of losses.
 
 	// these assist in keep track of incming packets and calculate flost_
 	double last_timestamp_; // timestamp of last new, in-order pkt arrival.

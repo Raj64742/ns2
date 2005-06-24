@@ -81,6 +81,7 @@ TfrcSinkAgent::TfrcSinkAgent() : Agent(PT_TFRC_ACK), nack_timer_(this)
 	last_report_sent=0;
 	total_received_ = 0;
 	total_losses_ = 0;
+	total_dropped_ = 0;
 
 	maxseq = -1;
 	maxseqList = -1;
@@ -218,10 +219,10 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 			// ECN action
 			lossvec_[seqno%hsz] = ECN_RCVD;
 			++ total_losses_;
+			losses_since_last_report++;
 			if (new_loss(seqno, tsvec_[seqno%hsz])) {
 				ecnEvent = 1;
 				lossvec_[seqno%hsz] = ECNLOST;
-				losses_since_last_report++;
 			} 
 			if (algo == WALI) {
                        		++ losses[0];
@@ -236,6 +237,7 @@ void TfrcSinkAgent::recv(Packet *pkt, Handler *)
 			lossvec_[i%hsz] = UNKNOWN;
 			++ i;
 			++ total_losses_;
+			++ total_dropped_;
 		}
 	}
 	if (seqno > maxseqList && 
@@ -411,7 +413,7 @@ void TfrcSinkAgent::sendpkt(double p)
 			tfrc_ackh->true_loss = 0.0;
 		else 
 			tfrc_ackh->true_loss = 1.0 * 
-			    total_losses_/(total_received_+total_losses_);
+			    total_losses_/(total_received_+total_dropped_);
 		last_report_sent = now; 
 		rcvd_since_last_report = 0;
 		losses_since_last_report = 0;
