@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.9 2004/10/22 23:46:53 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.10 2005/06/25 01:05:53 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -38,6 +38,8 @@ Agent/TFRC set ss_changes_ 1 ; 	# Added on 10/21/2004
 Agent/TFRC set slow_increase_ 1 ; 	# Added on 10/20/2004
 Agent/TFRC set rate_init_ 2 ;
 Agent/TFRC set rate_init_option_ 2 ;    # Added on 10/20/2004
+Agent/TFRC set useHeaders_ false ;     # Added on 6/24/2004, default of true
+Agent/TFRC set headersize_ 40 ;         # Changed on 6/24/2004 to 32.
 
 source support.tcl
 Agent/TFRC set SndrType_ 1 

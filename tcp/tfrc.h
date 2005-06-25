@@ -59,6 +59,8 @@
 
 struct hdr_tfrc {
 
+	// RFC 3448 specifies that the data packet include the sequence
+	// number, timestamp, and RTT estimate.
 	int seqno;		//data sequence number
 	double timestamp; 	//time this message was sent
 	double rtt;	 	//RTT estimate of sender
@@ -89,8 +91,9 @@ struct hdr_tfrc {
 
 struct hdr_tfrc_ack {
 
-	// RFC 3448 specifies that timestamp_echo, timestamp_offset, flost,
-	//  and rate_since_last_report must be in the data packet header.
+	// RFC 3448 specifies that feedback packets must include the
+	// timestamp_echo, timestamp_offset, flost, and 
+	// rate_since_last_report. 
 	double timestamp_offset;	//offset since we received data packet
 	double timestamp_echo;		//timestamp from the last data packet
 	double flost;		//frequency of loss indications
@@ -246,4 +249,8 @@ protected:
 	int fsize_;		// Default size for large TCP packets 
 				//  (e.g., 1460 bytes).
 	/* end of VoIP mode. */
+
+        int useHeaders_;        /* boolean: Add DCCP/IP header sizes */  
+        int headersize_;	// Size for packet headers.
+
 };

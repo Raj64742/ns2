@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.68 2005/06/23 18:30:03 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.69 2005/06/25 01:05:53 sfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -39,10 +39,12 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP RTP TCP TFRC TFRC_ACK ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
-Agent/TFRC set ss_changes_ 0 ; 	# Added on 10/21/2004
+Agent/TFRC set ss_changes_ 0 ; 	# Added on 10/21/2004, default of 1
 Agent/TFRC set slow_increase_ 1 ; 	# Added on 10/20/2004
-Agent/TFRC set rate_init_ 1 ;          # Added on 10/20/2004
-Agent/TFRC set rate_init_option_ 1 ;    # Added on 10/20/2004
+Agent/TFRC set rate_init_ 1 ;          # Added on 10/20/2004, default of 2
+Agent/TFRC set rate_init_option_ 1 ;    # Added on 10/20/2004, default of 2
+Agent/TFRC set useHeaders_ false ;     # Added on 6/24/2004, default of true
+Agent/TFRC set headersize_ 40 ;		# Changed on 6/24/2004 to 32.
 Queue/RED set bytes_ false              
 # default changed on 10/11/2004.
 Queue/RED set queue_in_bytes_ false
@@ -1325,7 +1327,7 @@ Test/HighLossTCP instproc run {} {
     # trace only the bottleneck link
     $ns_ run
 }
-
+  
 Class Test/TFRC_FTP -superclass TestSuite
 Test/TFRC_FTP instproc init {} {
     $self instvar net_ test_ guide_ stopTime1_
@@ -1844,7 +1846,7 @@ Test/tfrcOnly instproc init {} {
     set net_	net2b
     set test_	tfrcOnly
     set guide_  \
-    "One VoIP TFRC flow and one TCP flow, different packet sizes."
+    "One VoIP TFRC flow."
     set voip 1
     $self next pktTraceFile
 }
@@ -1964,6 +1966,34 @@ Test/voip instproc run {} {
     $ns_ run
 }
 
+Class Test/voipHeader superclass TestSuite
+Test/voipHeader instproc init {} {
+    $self instvar net_ test_ guide_ voip
+    set net_	net2b
+    set test_	voip
+    set guide_  \
+    "One VoIP TFRC flow with headers, and one TCP flow."
+    set voip 1
+    Agent/TFRC set useHeaders_ true ; 
+    Agent/TFRC set headersize_ 32;
+    Test/voipHeader instproc run {} [Test/voip info instbody run ]
+    $self next pktTraceFile
+}
+
+Class Test/voipNoHeader superclass TestSuite
+Test/voipNoHeader instproc init {} {
+    $self instvar net_ test_ guide_ voip
+    set net_	net2b
+    set test_	voip
+    set guide_  \
+    "One VoIP TFRC flow without headers, and one TCP flow."
+    set voip 1
+    Agent/TFRC set useHeaders_ false ; 
+    Agent/TFRC set headersize_ 32;
+    Test/voipNoHeader instproc run {} [Test/voip info instbody run ]
+    $self next pktTraceFile
+}
+
 Class Test/voipEcn superclass TestSuite
 Test/voipEcn instproc init {} {
     $self instvar net_ test_ guide_ voip
@@ -1972,7 +2002,7 @@ Test/voipEcn instproc init {} {
     set guide_  \
     "One ECN VoIP TFRC flow and one TCP flow, different packet sizes."
     set voip 1
-    #set voip 0
+    Agent/TFRC set useHeaders_ false ; 
     Agent/TFRC set ecn_ 1
     Agent/TCP set ecn_ 1
     Queue/RED set setbit_ true

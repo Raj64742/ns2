@@ -105,6 +105,8 @@ TfrcAgent::TfrcAgent() : Agent(PT_TFRC), send_timer_(this),
 	bind_bool("voip_", &voip_);
 	bind("voip_max_pkt_rate_", &voip_max_pkt_rate_);
 	bind("fsize_", &fsize_);
+	bind_bool("useHeaders_", &useHeaders_);
+	bind("headersize_", &headersize_);
 	seqno_ = -1;
 	maxseq_ = 0;
 	datalimited_ = 0;
@@ -361,8 +363,8 @@ void TfrcAgent::recv(Packet *pkt, Handler *)
 	// rcvrate is in bytes per second, based on fairness with a    
 	// TCP connection with the same packet size size_.	      
 	if (voip_) {
-		// Subtract the bandwidth used by 40-byte headers.
-		double temp = rcvrate*(size_/(40.0+size_));
+		// Subtract the bandwidth used by headers.
+		double temp = rcvrate*(size_/(1.0*headersize_+size_));
 		rcvrate = temp;
 	}
 
@@ -558,6 +560,9 @@ void TfrcAgent::sendpkt()
 		tfrch->round_id=round_id;
 		ndatapack_++;
 		ndatabytes_ += size_;
+		if (useHeaders_ == true) {
+			hdr_cmn::access(p)->size() += headersize_;
+		}
 		last_pkt_time_ = now;
 		send(p, 0);
 	}

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.41 2005/06/11 03:39:32 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.42 2005/06/25 01:05:54 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -63,6 +63,8 @@ Agent/TFRC set ss_changes_ 1 ; 	# Added on 10/21/2004
 Agent/TFRC set slow_increase_ 1 ; 	# Added on 10/20/2004
 Agent/TFRC set rate_init_ 2 ;          # Added on 10/20/2004
 Agent/TFRC set rate_init_option_ 2 ;    # Added on 10/20/2004
+Agent/TFRC set useHeaders_ false ;     # Added on 6/24/2004, default of true
+Agent/TFRC set headersize_ 40 ;         # Changed on 6/24/2004 to 32.
 
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.

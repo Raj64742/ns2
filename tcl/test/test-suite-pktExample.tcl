@@ -38,6 +38,8 @@ Agent/TFRC set ss_changes_ 0 ; 	# Added on 10/21/2004
 Agent/TFRC set slow_increase_ 1 ; 	# Added on 10/20/2004
 Agent/TFRC set rate_init_ 1 ;          # Added on 10/20/2004
 Agent/TFRC set rate_init_option_ 1 ;    # Added on 10/20/2004
+Agent/TFRC set useHeaders_ false ;     # Added on 6/24/2004, default of true
+Agent/TFRC set headersize_ 40 ;         # Changed on 6/24/2004 to 32.
 
 source support.tcl
 
