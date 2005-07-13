@@ -308,7 +308,6 @@ void LmsSender::send_dmcast (hdr_lms* lh, int seqno, int fid)
 	plh->tp_addr_ = lh->tp_addr_;
 	plh->tp_port_ = lh->tp_port_;
 	plh->tp_iface_ = lh->tp_iface_;
-	packet_t t = ch->ptype();
         //const char* nname = packet_info.name(t);
 	
 	target_->recv(p);

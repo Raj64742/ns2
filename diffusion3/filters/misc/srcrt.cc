@@ -3,7 +3,7 @@
 // author         : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the Unversity of Southern California
-// $Id: srcrt.cc,v 1.2 2003/07/10 21:18:57 haldar Exp $
+// $Id: srcrt.cc,v 1.3 2005/07/13 03:51:24 tomh Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -36,7 +36,6 @@ public:
 } class_source_route_filter;
 
 int SrcRtFilter::command(int argc, const char*const* argv) {
-  Tcl& tcl =  Tcl::instance();
   if (argc == 2) {
     if (strcmp(argv[1], "start") == 0) {
       run();

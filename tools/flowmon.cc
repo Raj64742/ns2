@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.24 2004/10/28 01:21:41 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tools/flowmon.cc,v 1.25 2005/07/13 03:51:33 tomh Exp $ (LBL)";
 #endif
 
 //
@@ -167,7 +167,7 @@ Tagger::fformat(Flow* f)
         double now = Scheduler::instance().clock();
 	// insane but true: egcs 2.96 doesnt think "int eprops() const"
 	// matches %d
-        sprintf(wrk_, "%8.3f %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d %d",
+        sprintf(wrk_, "%8.3f %d %d %d %d %d %d %lld %lld %d %d %lld %lld %d %d %d %d %d %d %d",
                 now,            // 1: time
                 f->flowid(),    // 2: flowid
                 0,              // 3: category

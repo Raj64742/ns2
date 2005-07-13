@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.79 2005/04/26 22:54:13 haldar Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.80 2005/07/13 03:51:26 tomh Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.79 2005/04/26 22:54:13 haldar Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.80 2005/07/13 03:51:26 tomh Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -357,7 +357,7 @@ void ErrorModel::trace_event(char *eventtype)
 	char *nwrk = et_->nbuffer();
 	if (wrk != 0)
 		sprintf(wrk,
-			"E "TIME_FORMAT" ErrModelTimer %x %s",
+			"E "TIME_FORMAT" ErrModelTimer %p %s",
 			et_->round(Scheduler::instance().clock()),   // time
 			this,
 			eventtype                    // event type
@@ -365,7 +365,7 @@ void ErrorModel::trace_event(char *eventtype)
 	
 	if (nwrk != 0)
 		sprintf(nwrk,
-			"E -t "TIME_FORMAT" ErrModelTimer %x %s",
+			"E -t "TIME_FORMAT" ErrModelTimer %p %s",
 			et_->round(Scheduler::instance().clock()),   // time
 			this,
 			eventtype                    // event type

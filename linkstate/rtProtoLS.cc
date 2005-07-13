@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.6 2003/10/12 21:13:12 xuanc Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/rtProtoLS.cc,v 1.7 2005/07/13 03:51:25 tomh Exp $
 
 #include "config.h"
 #ifdef HAVE_STL
@@ -168,7 +168,7 @@ int rtProtoLS::findPeerNodeId (ns_addr_t agentAddr)
 	// because the agentAddr is the value, not the key of the map
 	for (PeerAddrMap::iterator itr = peerAddrMap_.begin();
 	     itr != peerAddrMap_.end(); itr++) {
-		if ((*itr).second == agentAddr) {
+		if ((*itr).second.isEqual (agentAddr)) {
 			return (*itr).first;
 		}
 	}

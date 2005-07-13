@@ -1,5 +1,7 @@
 
 #include <stdio.h>
+#include <limits.h>
+#include <assert.h>
 #include "../../../autoconf.h"
 #ifdef STDC_HEADERS
 // for exit()
@@ -53,24 +55,24 @@ const char *ExtensionStrings[] = {
 #define MAX_EXTENSIONS (sizeof(ExtensionStrings)/sizeof(*ExtensionStrings)-1)
 
 const char *MethodStr(int method) {
-
-	if (method < 0 || method > MAX_METHODS)
+        assert (MAX_METHODS < INT_MAX);
+	if (method < 0 || method > ((int)MAX_METHODS))
 		method = MAX_METHODS;
 
 	return MethodStrings[method];
 }
 
 const char *ProtocolStr(int protocol) {
-
-	if (protocol < 0 || protocol > MAX_PROTOCOLS)
+	assert (MAX_PROTOCOLS < INT_MAX);
+	if (protocol < 0 || protocol > ((int)MAX_PROTOCOLS))
 		protocol = MAX_PROTOCOLS;
 
 	return ProtocolStrings[protocol];
 }
 
 const char *ExtensionStr(int type) {
-
-	if (type < 0 || type > MAX_EXTENSIONS)
+	assert (MAX_EXTENSIONS < INT_MAX);
+	if (type < 0 || type > ((int)MAX_EXTENSIONS))
 		type = MAX_EXTENSIONS;
 
 	return ExtensionStrings[type];

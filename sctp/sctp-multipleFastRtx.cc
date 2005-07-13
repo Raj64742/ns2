@@ -42,7 +42,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-multipleFastRtx.cc,v 1.1 2003/08/21 18:29:14 haldar Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-multipleFastRtx.cc,v 1.2 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -153,7 +153,6 @@ void MultipleFastRtxSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
   Node_S *spDeleteNode = NULL;
   Node_S *spCurrNode = sSendBuffer.spHead;
   SctpSendBufferNode_S *spCurrNodeData = NULL;
-  Boolean_E eSkipRttUpdate = FALSE;
 
   /* Only the first TSN that is being dequeued can be used to reset the
    * error cunter on a destination. Why? Well, suppose there are some
@@ -163,14 +162,14 @@ void MultipleFastRtxSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
    * but does not mean that the they can reset the errors on the primary.
    */
   
-  iAssocErrorCount = 0;
+  uiAssocErrorCount = 0;
 
   spCurrNodeData = (SctpSendBufferNode_S *) spCurrNode->vpData;
 
   /* trigger trace ONLY if it was previously NOT 0 */
-  if(spCurrNodeData->spDest->iErrorCount != 0)
+  if(spCurrNodeData->spDest->uiErrorCount != 0)
     {
-      spCurrNodeData->spDest->iErrorCount = 0; // clear error counter
+      spCurrNodeData->spDest->uiErrorCount = 0; // clear error counter
       tiErrorCount++;                          // ... and trace it too!
       spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
       if(spCurrNodeData->spDest == spPrimaryDest &&
@@ -195,18 +194,18 @@ void MultipleFastRtxSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
       if((spCurrNodeData->eGapAcked == FALSE) &&
 	 (spCurrNodeData->eAdvancedAcked == FALSE) )
 	{
-	  spCurrNodeData->spDest->iNumNewlyAckedBytes 
+	  spCurrNodeData->spDest->uiNumNewlyAckedBytes 
 	    += spCurrNodeData->spChunk->sHdr.usLength;
 
 	  /* only add to partial bytes acked if we are in congestion
 	   * avoidance mode and if there was cwnd amount of data
 	   * outstanding on the destination (implementor's guide) 
 	   */
-	  if(spCurrNodeData->spDest->iCwnd >spCurrNodeData->spDest->iSsthresh &&
-	     ( spCurrNodeData->spDest->iOutstandingBytes 
-	       >= spCurrNodeData->spDest->iCwnd) )
+	  if(spCurrNodeData->spDest->uiCwnd >spCurrNodeData->spDest->uiSsthresh &&
+	     ( spCurrNodeData->spDest->uiOutstandingBytes 
+	       >= spCurrNodeData->spDest->uiCwnd) )
 	    {
-	      spCurrNodeData->spDest->iPartialBytesAcked 
+	      spCurrNodeData->spDest->uiPartialBytesAcked 
 		+= spCurrNodeData->spChunk->sHdr.usLength;
 	    }
 	}
@@ -382,7 +381,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		    spCurrNodeData->spChunk->uiTsn DBG_PR;
 		  spCurrNodeData->eGapAcked = FALSE;
-		  spCurrNodeData->spDest->iOutstandingBytes 
+		  spCurrNodeData->spDest->uiOutstandingBytes 
 		    += spCurrNodeData->spChunk->sHdr.usLength;
 
 		  /* section 6.3.2.R4 says that we should restart the
@@ -417,7 +416,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 		  if(spCurrNodeData->eAdvancedAcked == FALSE)
 		    {
-		      spCurrNodeData->spDest->iNumNewlyAckedBytes 
+		      spCurrNodeData->spDest->uiNumNewlyAckedBytes 
 			+= spCurrNodeData->spChunk->sHdr.usLength;
 		    }
 
@@ -425,8 +424,8 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		   * congestion avoidance mode, we have a new cum ack, and
 		   * we haven't already incremented it for this sack
 		   */
-		  if(( spCurrNodeData->spDest->iCwnd 
-		       > spCurrNodeData->spDest->iSsthresh) &&
+		  if(( spCurrNodeData->spDest->uiCwnd 
+		       > spCurrNodeData->spDest->uiSsthresh) &&
 		     eNewCumAck == TRUE &&
 		     spCurrNodeData->eAddedToPartialBytesAcked == FALSE)
 		    {
@@ -435,7 +434,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 		      spCurrNodeData->eAddedToPartialBytesAcked = TRUE; // set
 
-		      spCurrNodeData->spDest->iPartialBytesAcked 
+		      spCurrNodeData->spDest->uiPartialBytesAcked 
 			+= spCurrNodeData->spChunk->sHdr.usLength;
 		    }
 		  /* We update the RTT estimate if the following hold true:
@@ -466,13 +465,13 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		     && spCurrNodeData->spDest->eRtxTimerIsRunning == TRUE)
 		    StopT3RtxTimer(spCurrNodeData->spDest);
 		  
-		  iAssocErrorCount = 0;
+		  uiAssocErrorCount = 0;
 		  
 		  /* trigger trace ONLY if it was previously NOT 0
 		   */
-		  if(spCurrNodeData->spDest->iErrorCount != 0)
+		  if(spCurrNodeData->spDest->uiErrorCount != 0)
 		    {
-		      spCurrNodeData->spDest->iErrorCount = 0; // clear errors
+		      spCurrNodeData->spDest->uiErrorCount = 0; // clear errors
 		      tiErrorCount++;                       // ... and trace it!
 		      spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
 		      if(spCurrNodeData->spDest == spPrimaryDest &&
@@ -517,7 +516,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		    spCurrNodeData->spChunk->uiTsn DBG_PR;
 		  spCurrNodeData->eGapAcked = FALSE;
-		  spCurrNodeData->spDest->iOutstandingBytes 
+		  spCurrNodeData->spDest->uiOutstandingBytes 
 		    += spCurrNodeData->spChunk->sHdr.usLength;
 		  
 		  /* section 6.3.2.R4 says that we should restart the
@@ -555,7 +554,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		     "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		spCurrNodeData->spChunk->uiTsn DBG_PR;
 	      spCurrNodeData->eGapAcked = FALSE;
-	      spCurrNodeData->spDest->iOutstandingBytes 
+	      spCurrNodeData->spDest->uiOutstandingBytes 
 		+= spCurrNodeData->spChunk->sHdr.usLength;
 
 	      /* section 6.3.2.R4 says that we should restart the T3-rtx

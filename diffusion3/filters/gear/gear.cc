@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2003 by the University of Southern California
 // Copyright (C) 2000-2003 by the University of California
-// $Id: gear.cc,v 1.3 2003/09/24 17:45:13 haldar Exp $
+// $Id: gear.cc,v 1.4 2005/07/13 03:51:24 tomh Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -644,7 +644,6 @@ GeoRoutingFilter::GeoRoutingFilter(const char *diffrtg)
   parseCommandLine(argc, argv);
 #endif // NS_DIFFUSION
   
-  TimerCallback *neighbor_timer, *beacon_timer;
   struct timeval tv;
 
   // Initialize a few parameters

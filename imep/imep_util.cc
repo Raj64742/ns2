@@ -35,7 +35,7 @@
 
 /*
   imep_util.cc
-  $Id: imep_util.cc,v 1.3 2000/09/01 03:04:10 haoboy Exp $
+  $Id: imep_util.cc,v 1.4 2005/07/13 03:51:25 tomh Exp $
   */
 
 #include "packet.h"
@@ -135,7 +135,6 @@ imepAgent::findObjectBlock(Packet *p)
 struct imep_response*
 imepAgent::findResponseList(Packet *p)
 {
-	struct hdr_imep *im = HDR_IMEP(p);
 	struct imep_object_block *ob;
 	struct imep_object *object;
 

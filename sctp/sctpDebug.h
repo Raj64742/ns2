@@ -34,11 +34,13 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.h,v 1.1 2003/08/21 20:40:24 haldar Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.h,v 1.2 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctpDebug_h
 #define ns_sctpDebug_h
+
+void sctpDebugEmptyPrintf (char const *format, ...);
 
 #if(DEBUG)
 
@@ -214,7 +216,7 @@
 /* This is a HACK!!! ...but who cares, it's only debugging and gcc should strip
  * it out anyway.
  */
-#define DBG_PL(funcName, format)  if(0) printf(""
+#define DBG_PL(funcName, format)  if(0) sctpDebugEmptyPrintf (""
 #define DBG_PR                    )
 
 #define DBG_F(funcName, debugFuncCall)  { /* empty */ }

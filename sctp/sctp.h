@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.2 2005/01/25 23:29:13 haldar Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.3 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctp_h
@@ -389,8 +389,8 @@ typedef struct SctpDest_S
    */
   Packet    *opRoutingAssistPacket;
 
-  int           iCwnd;                // current congestion window
-  int           iSsthresh;            // current ssthresh value
+  u_int         uiCwnd;                // current congestion window
+  u_int         uiSsthresh;            // current ssthresh value
   Boolean_E     eFirstRttMeasurement; // is this our first RTT measurement?
   double        dRto;                 // current retransmission timeout value
   double        dSrtt;                // current smoothed round trip time
@@ -400,10 +400,10 @@ typedef struct SctpDest_S
   T3RtxTimer   *opT3RtxTimer;         // retransmission timer
   Boolean_E     eRtoPending;          // DATA chunk being used to measure RTT?
 
-  int  iPartialBytesAcked; // helps to modify cwnd in congestion avoidance mode
-  int  iOutstandingBytes;  // outstanding bytes still in flight (unacked)
+  u_int  uiPartialBytesAcked; // helps to modify cwnd in congestion avoidance mode
+  u_int  uiOutstandingBytes;  // outstanding bytes still in flight (unacked)
 
-  int                     iErrorCount;             // destination error counter
+  u_int                   uiErrorCount;             // destination error counter
   SctpDestStatus_E        eStatus;                 // active/inactive
   CwndDegradeTimer       *opCwndDegradeTimer;      // timer to degrade cwnd
   double                  dIdleSince;              // timestamp since idle
@@ -415,7 +415,7 @@ typedef struct SctpDest_S
    */
   Boolean_E  eCcApplied;            // congestion control already applied?
   Boolean_E  eSeenFirstOutstanding; // have we seen the first outstanding yet?
-  int        iNumNewlyAckedBytes;   // counts newly ack'd bytes in a sack
+  u_int      uiNumNewlyAckedBytes;   // counts newly ack'd bytes in a sack
 };
 
 typedef enum NodeType_E
@@ -564,11 +564,11 @@ protected:
 
   /* chunk generation functions
    */
-  int          GenChunk(SctpChunkType_E, u_char *);
+  u_int        GenChunk(SctpChunkType_E, u_char *);
   u_int        GetNextDataChunkSize();
   int          GenOneDataChunk(u_char *);
   int          GenMultipleDataChunks(u_char *, int);
-  virtual int  BundleControlChunks(u_char *);
+  virtual u_int  BundleControlChunks(u_char *);
 
   /* sending functions
    */
@@ -646,7 +646,7 @@ protected:
   SctpDest_S         *spNewTxDest;         // destination for new transmissions
   SctpDest_S         *spReplyDest; // reply with sacks or control chunk replies
   Boolean_E           eForceSource;
-  int                 iAssocErrorCount;  // total error counter for the assoc
+  u_int               uiAssocErrorCount;  // total error counter for the assoc
 
   /* heartbeat variables
    */
@@ -657,7 +657,7 @@ protected:
    */
   T1InitTimer       *opT1InitTimer;    // T1-init timer
   T1CookieTimer     *opT1CookieTimer;  // T1-cookie timer
-  int                iInitTryCount;    // # of unsuccessful INIT attempts
+  u_int              uiInitTryCount;    // # of unsuccessful INIT attempts
   u_int              uiNextTsn;
   u_short            usNextStreamId; // used to round-robin the streams
   SctpOutStream_S   *spOutStreams;
@@ -697,13 +697,13 @@ protected:
   u_int            uiHeartbeatInterval;
   u_int            uiMtu;
   u_int            uiInitialRwnd;
-  int              iInitialSsthresh;
+  u_int            uiInitialSsthresh;
   u_int            uiIpHeaderSize;
   u_int            uiDataChunkSize;
   u_int            uiNumOutStreams;
   Boolean_E        eUseDelayedSacks; // are we using delayed sacks?
   MaxBurstUsage_E  eUseMaxBurst;
-  int              iInitialCwnd;
+  u_int            uiInitialCwnd;
   u_int            uiNumUnrelStreams;
   u_int            uiReliability; // k-rtx on all chunks & all unrel streams
   Boolean_E        eUnordered;    // sets for all chunks on all streams :-(

@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.2 2004/12/10 22:07:14 johnh Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.3 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -231,7 +231,7 @@ int SctpAgent::delay_bind_dispatch(const char *cpVarName,
     return TCL_OK;
 
   if(delay_bind(cpVarName, cpLocalName, 
-		"initialSsthresh_", &iInitialSsthresh, opTracer)) 
+		"initialSsthresh_", &uiInitialSsthresh, opTracer)) 
     return TCL_OK;
   
   if(delay_bind(cpVarName, cpLocalName, 
@@ -255,7 +255,7 @@ int SctpAgent::delay_bind_dispatch(const char *cpVarName,
     return TCL_OK;
 
   if(delay_bind(cpVarName, cpLocalName, 
-		"initialCwnd_", &iInitialCwnd, opTracer)) 
+		"initialCwnd_", &uiInitialCwnd, opTracer)) 
     return TCL_OK;
 
   if(delay_bind(cpVarName, cpLocalName, 
@@ -311,13 +311,13 @@ void SctpAgent::TraceAll()
 	      "assocErrors: %d pathErrors: %d dstatus: %s\n",
 	      dCurrTime,
 	      addr(), port(), spCurrDest->iNsAddr, spCurrDest->iNsPort,
-	      spCurrDest->iCwnd, spCurrDest->iPartialBytesAcked, 
-	      spCurrDest->iOutstandingBytes, spCurrDest->iSsthresh, 
+	      spCurrDest->uiCwnd, spCurrDest->uiPartialBytesAcked, 
+	      spCurrDest->uiOutstandingBytes, spCurrDest->uiSsthresh, 
 	      uiPeerRwnd,
 	      spCurrDest->dRto, spCurrDest->dSrtt, 
 	      spCurrDest->dRttVar,
-	      iAssocErrorCount,
-	      spCurrDest->iErrorCount,
+	      uiAssocErrorCount,
+	      spCurrDest->uiErrorCount,
 	      spCurrDest->eStatus ? "ACTIVE" : "INACTIVE");
       if(channel_)
 	(void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
@@ -349,8 +349,8 @@ void SctpAgent::TraceVar(const char* cpVar)
 		dCurrTime, 
 		addr(), port(), 
 		spCurrDest->iNsAddr, spCurrDest->iNsPort,
-		spCurrDest->iCwnd, spCurrDest->iPartialBytesAcked, 
-		spCurrDest->iOutstandingBytes, spCurrDest->iSsthresh, 
+		spCurrDest->uiCwnd, spCurrDest->uiPartialBytesAcked, 
+		spCurrDest->uiOutstandingBytes, spCurrDest->uiSsthresh, 
 		uiPeerRwnd);
 	if(channel_)
 	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
@@ -390,8 +390,8 @@ void SctpAgent::TraceVar(const char* cpVar)
 		dCurrTime, 
 		addr(), port(), 
 		spCurrDest->iNsAddr, spCurrDest->iNsPort,
-		iAssocErrorCount,
-		spCurrDest->iErrorCount,
+		uiAssocErrorCount,
+		spCurrDest->uiErrorCount,
 		spCurrDest->eStatus ? "ACTIVE" : "INACTIVE");
 	if(channel_)
 	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
@@ -456,14 +456,14 @@ void SctpAgent::Reset()
   DBG_PL(Reset, "uiHeartbeatInterval=%ld"), uiHeartbeatInterval DBG_PR;
   DBG_PL(Reset, "uiMtu=%ld"), uiMtu DBG_PR;
   DBG_PL(Reset, "uiInitialRwnd=%ld"), uiInitialRwnd DBG_PR;
-  DBG_PL(Reset, "iInitialSsthresh=%ld"), iInitialSsthresh DBG_PR;
+  DBG_PL(Reset, "uiInitialSsthresh=%ld"), uiInitialSsthresh DBG_PR;
   DBG_PL(Reset, "uiIpHeaderSize=%ld"), uiIpHeaderSize DBG_PR;
   DBG_PL(Reset, "uiDataChunkSize=%ld"), uiDataChunkSize DBG_PR;
   DBG_PL(Reset, "uiNumOutStreams=%ld"), uiNumOutStreams DBG_PR;
   DBG_PL(Reset, "eUseDelayedSacks=%s"), 
     eUseDelayedSacks ? "TRUE" : "FALSE" DBG_PR;
   DBG_PL(Reset, "eUseMaxBurst=%s"), eUseMaxBurst ? "TRUE" : "FALSE" DBG_PR;
-  DBG_PL(Reset, "iInitialCwnd=%ld"), iInitialCwnd DBG_PR;
+  DBG_PL(Reset, "uiInitialCwnd=%ld"), uiInitialCwnd DBG_PR;
   DBG_PL(Reset, "uiNumUnrelStreams=%ld"), uiNumUnrelStreams DBG_PR;
   DBG_PL(Reset, "uiReliability=%ld"), uiReliability DBG_PR;
   DBG_PL(Reset, "eUnordered=%s"), eUnordered ? "TRUE" : "FALSE" DBG_PR;
@@ -472,8 +472,7 @@ void SctpAgent::Reset()
 
   Node_S *spCurrNode = NULL;
   SctpDest_S *spCurrDest = NULL;
-  int i;
-  double dCurrTime = Scheduler::instance().clock();
+  u_int i;
 
   if(uiInitialRwnd > MAX_RWND_SIZE)
     {
@@ -558,7 +557,7 @@ void SctpAgent::Reset()
 
   eState = SCTP_STATE_CLOSED;
   eForceSource = FALSE;
-  iAssocErrorCount = 0;
+  uiAssocErrorCount = 0;
 
   if(eOneHeartbeatTimer == TRUE && uiHeartbeatInterval != 0)
     {
@@ -568,7 +567,7 @@ void SctpAgent::Reset()
 
   opT1InitTimer->force_cancel();
   opT1CookieTimer->force_cancel();
-  iInitTryCount = 0;
+  uiInitTryCount = 0;
   uiNextTsn = 0;
   usNextStreamId = 0;
 
@@ -611,8 +610,8 @@ void SctpAgent::Reset()
     {
       spCurrDest = (SctpDest_S *) spCurrNode->vpData;
 
-      spCurrDest->iCwnd = iInitialCwnd * uiMaxDataSize; 
-      spCurrDest->iSsthresh = iInitialSsthresh;
+      spCurrDest->uiCwnd = uiInitialCwnd * uiMaxDataSize; 
+      spCurrDest->uiSsthresh = uiInitialSsthresh;
       spCurrDest->eFirstRttMeasurement = TRUE;
       spCurrDest->dRto = INITIAL_RTO;
 
@@ -621,10 +620,10 @@ void SctpAgent::Reset()
       else 
 	spCurrDest->opT3RtxTimer->force_cancel();
 
-      spCurrDest->iOutstandingBytes = 0;
-      spCurrDest->iPartialBytesAcked = 0;
+      spCurrDest->uiOutstandingBytes = 0;
+      spCurrDest->uiPartialBytesAcked = 0;
 
-      spCurrDest->iErrorCount = 0;
+      spCurrDest->uiErrorCount = 0;
       spCurrDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
 
       if(spCurrDest->opCwndDegradeTimer == NULL)
@@ -1077,21 +1076,20 @@ int SctpAgent::ForceSource(int iNsAddr)
 
 /* returns the size of the chunk
  */
-int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
+u_int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 {
   DBG_I(GenChunk);
 
   double dCurrTime = Scheduler::instance().clock();
   AppData_S *spAppMessage = NULL;
-  int iSize = 0;
-  int i;
+  u_int uiSize = 0;
 
   DBG_PL(GenChunk, "spSctpTrace=%p"), spSctpTrace DBG_PR;
 
   switch(eType)
     {
     case SCTP_CHUNK_INIT:
-      iSize = sizeof(SctpInitChunk_S);
+      uiSize = sizeof(SctpInitChunk_S);
       ((SctpInitChunk_S *) ucpChunk)->sHdr.ucType = eType;
       ((SctpInitChunk_S *) ucpChunk)->uiArwnd = uiInitialRwnd; 
       ((SctpInitChunk_S *) ucpChunk)->usNumOutboundStreams = uiNumOutStreams;
@@ -1109,14 +1107,14 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 	    += sizeof(SctpUnrelStreamPair_S);
 
 	  SctpUnrelStreamPair_S *spUnrelStreamPair 
-            = (SctpUnrelStreamPair_S *) (ucpChunk+iSize);
+            = (SctpUnrelStreamPair_S *) (ucpChunk+uiSize);
           spUnrelStreamPair->usStart = 0;
           spUnrelStreamPair->usEnd = uiNumUnrelStreams - 1;
 
-	  iSize += sizeof(SctpUnrelStreamPair_S);
+	  uiSize += sizeof(SctpUnrelStreamPair_S);
  	}
 
-      ((SctpInitChunk_S *) ucpChunk)->sHdr.usLength = iSize;
+      ((SctpInitChunk_S *) ucpChunk)->sHdr.usLength = uiSize;
 
       /* fill in tracing fields too
        */
@@ -1127,7 +1125,7 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
       break;
 
     case SCTP_CHUNK_INIT_ACK:
-      iSize = sizeof(SctpInitAckChunk_S);
+      uiSize = sizeof(SctpInitAckChunk_S);
       ((SctpInitAckChunk_S *) ucpChunk)->sHdr.ucType = eType;
       ((SctpInitAckChunk_S *) ucpChunk)->uiArwnd = uiInitialRwnd; 
       ((SctpInitChunk_S *) ucpChunk)->usNumOutboundStreams = uiNumOutStreams;
@@ -1145,14 +1143,14 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 	    += sizeof(SctpUnrelStreamPair_S);
 
 	  SctpUnrelStreamPair_S *spUnrelStreamPair 
-            = (SctpUnrelStreamPair_S *) (ucpChunk+iSize);
+            = (SctpUnrelStreamPair_S *) (ucpChunk+uiSize);
           spUnrelStreamPair->usStart = 0;
           spUnrelStreamPair->usEnd = uiNumUnrelStreams - 1;
 
-	  iSize += sizeof(SctpUnrelStreamPair_S);
+	  uiSize += sizeof(SctpUnrelStreamPair_S);
 	}
 
-      ((SctpInitAckChunk_S *) ucpChunk)->sHdr.usLength = iSize;
+      ((SctpInitAckChunk_S *) ucpChunk)->sHdr.usLength = uiSize;
 
       /* fill in tracing fields too
        */
@@ -1163,9 +1161,9 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
       break;
 
     case SCTP_CHUNK_COOKIE_ECHO:
-      iSize = sizeof(SctpCookieEchoChunk_S);
+      uiSize = sizeof(SctpCookieEchoChunk_S);
       ((SctpCookieEchoChunk_S *) ucpChunk)->sHdr.ucType = eType;
-      ((SctpCookieEchoChunk_S *) ucpChunk)->sHdr.usLength = iSize;
+      ((SctpCookieEchoChunk_S *) ucpChunk)->sHdr.usLength = uiSize;
 
       /* fill in tracing fields too
        */
@@ -1176,9 +1174,9 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
       break;
       
     case SCTP_CHUNK_COOKIE_ACK:
-      iSize = sizeof(SctpCookieAckChunk_S);
+      uiSize = sizeof(SctpCookieAckChunk_S);
       ((SctpCookieAckChunk_S *) ucpChunk)->sHdr.ucType = eType;
-      ((SctpCookieAckChunk_S *) ucpChunk)->sHdr.usLength = iSize;
+      ((SctpCookieAckChunk_S *) ucpChunk)->sHdr.usLength = uiSize;
 
       /* fill in tracing fields too
        */
@@ -1216,16 +1214,16 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 	    spAppMessage->usReliability DBG_PR;
 	  DBG_PL (GenChunk, "App Message <----------------") DBG_PR;
 
-	  iSize = spAppMessage->uiNumBytes + sizeof(SctpDataChunkHdr_S);
+	  uiSize = spAppMessage->uiNumBytes + sizeof(SctpDataChunkHdr_S);
 	  ((SctpDataChunkHdr_S *) ucpChunk)->sHdr.ucType = SCTP_CHUNK_DATA;
-	  ((SctpDataChunkHdr_S *) ucpChunk)->sHdr.usLength = iSize;
+	  ((SctpDataChunkHdr_S *) ucpChunk)->sHdr.usLength = uiSize;
 
 	  /* DATA chunks must be padded to a 4 byte boundary (section 3.3.1)
 	   * ...but the adjustment should happen after usLength field is set,
 	   * because the field should represent the size before padding.
 	   */
-	  if( (iSize % 4) != 0)
-	    iSize += 4 - (iSize % 4);
+	  if( (uiSize % 4) != 0)
+	    uiSize += 4 - (uiSize % 4);
 
 	  ((SctpDataChunkHdr_S *) ucpChunk)->uiTsn = ++uiNextTsn;
 	  
@@ -1251,7 +1249,7 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 	{
 	  DBG_PL (GenChunk, "eDataSource=DATA_SOURCE_INFINITE") DBG_PR; 
 
-	  iSize = uiDataChunkSize;
+	  uiSize = uiDataChunkSize;
 	  ((SctpDataChunkHdr_S *) ucpChunk)->sHdr.ucType = SCTP_CHUNK_DATA;
 
 	  if(eUnordered == TRUE)
@@ -1264,14 +1262,14 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 	      ((SctpDataChunkHdr_S *) ucpChunk)->sHdr.ucFlags = 0;
 	    }
 
-	  ((SctpDataChunkHdr_S *) ucpChunk)->sHdr.usLength = iSize;
+	  ((SctpDataChunkHdr_S *) ucpChunk)->sHdr.usLength = uiSize;
 
 	  /* DATA chunks must be padded to a 4 byte boundary (section 3.3.1)
 	   * ...but the adjustment should happen after usLength field is set,
 	   * because the field should represent the size before padding.
 	   */
 	  if( (uiDataChunkSize % 4) != 0)
-	    iSize += 4 - (uiDataChunkSize % 4);
+	    uiSize += 4 - (uiDataChunkSize % 4);
 
 	  ((SctpDataChunkHdr_S *) ucpChunk)->uiTsn = ++uiNextTsn;
 	  
@@ -1310,7 +1308,7 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
       break;
 
     case SCTP_CHUNK_SACK:
-      iSize = sizeof(SctpSackChunk_S);
+      uiSize = sizeof(SctpSackChunk_S);
       ((SctpSackChunk_S *) ucpChunk)->sHdr.ucType = eType;
       ((SctpSackChunk_S *) ucpChunk)->uiCumAck = uiCumAck;
       ((SctpSackChunk_S *) ucpChunk)->uiArwnd = uiMyRwnd;
@@ -1324,11 +1322,11 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
        */
       for(Node_S *spCurrFrag = sRecvTsnBlockList.spHead;
 	  (spCurrFrag != NULL) &&
-	    (iSize + sizeof(SctpGapAckBlock_S) < uiMaxDataSize); 
-	  spCurrFrag = spCurrFrag->spNext, iSize += sizeof(SctpGapAckBlock_S) )
+	    (uiSize + sizeof(SctpGapAckBlock_S) < uiMaxDataSize); 
+	  spCurrFrag = spCurrFrag->spNext, uiSize += sizeof(SctpGapAckBlock_S) )
 	{
 	  SctpGapAckBlock_S *spGapAckBlock 
-	    = (SctpGapAckBlock_S *) (ucpChunk+iSize);
+	    = (SctpGapAckBlock_S *) (ucpChunk+uiSize);
 
 	  spGapAckBlock->usStartOffset 
 	    = ((SctpRecvTsnBlock_S *)spCurrFrag->vpData)->uiStartTsn - uiCumAck;
@@ -1344,11 +1342,11 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
        */
       for(Node_S *spPrevDup = NULL, *spCurrDup = sDupTsnList.spHead;
 	  (spCurrDup != NULL) &&
-	    (iSize + sizeof(SctpDupTsn_S) < uiMaxDataSize); 
+	    (uiSize + sizeof(SctpDupTsn_S) < uiMaxDataSize); 
 	  spPrevDup = spCurrDup, spCurrDup = spCurrDup->spNext, 
-	    DeleteNode(&sDupTsnList, spPrevDup), iSize += sizeof(SctpDupTsn_S) )
+	    DeleteNode(&sDupTsnList, spPrevDup), uiSize += sizeof(SctpDupTsn_S) )
 	{
-	  SctpDupTsn_S *spDupTsn = (SctpDupTsn_S *) (ucpChunk+iSize);
+	  SctpDupTsn_S *spDupTsn = (SctpDupTsn_S *) (ucpChunk+uiSize);
 
 	  spDupTsn->uiTsn = ((SctpDupTsn_S *) spCurrDup->vpData)->uiTsn;
 
@@ -1357,7 +1355,7 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 
       /* After all the dynamic appending, we can NOW fill in the chunk size!
        */
-      ((SctpSackChunk_S *) ucpChunk)->sHdr.usLength = iSize;
+      ((SctpSackChunk_S *) ucpChunk)->sHdr.usLength = uiSize;
 
       /* fill in tracing fields too
        */
@@ -1368,10 +1366,10 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
       break;
 
     case SCTP_CHUNK_FORWARD_TSN:
-      iSize = SCTP_CHUNK_FORWARD_TSN_LENGTH;
+      uiSize = SCTP_CHUNK_FORWARD_TSN_LENGTH;
       ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.ucType = eType;
       ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.ucFlags = 0; // flags not used?
-      ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.usLength = iSize;
+      ((SctpForwardTsnChunk_S *) ucpChunk)->sHdr.usLength = uiSize;
       ((SctpForwardTsnChunk_S *) ucpChunk)->uiNewCum = uiAdvancedPeerAckPoint;
 
       /* fill in tracing fields too
@@ -1384,13 +1382,13 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 
     case SCTP_CHUNK_HB:     
     case SCTP_CHUNK_HB_ACK:
-      iSize = sizeof(SctpHeartbeatChunk_S);
+      uiSize = sizeof(SctpHeartbeatChunk_S);
       ((SctpHeartbeatChunk_S *) ucpChunk)->sHdr.ucType = eType;
       ((SctpHeartbeatChunk_S *) ucpChunk)->sHdr.ucFlags = 0;
-      ((SctpHeartbeatChunk_S *) ucpChunk)->sHdr.usLength = iSize;
+      ((SctpHeartbeatChunk_S *) ucpChunk)->sHdr.usLength = uiSize;
       ((SctpHeartbeatChunk_S *) ucpChunk)->usInfoType = 1;
       ((SctpHeartbeatChunk_S *) ucpChunk)->usInfoLength 
-	= iSize - sizeof(SctpChunkHdr_S);
+	= uiSize - sizeof(SctpChunkHdr_S);
       ((SctpHeartbeatChunk_S *) ucpChunk)->dTimestamp = dCurrTime;
       ((SctpHeartbeatChunk_S *) ucpChunk)->spDest = NULL; // caller sets dest
 
@@ -1421,7 +1419,7 @@ int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
   uiNumChunks++;
 
   DBG_X(GenChunk);
-  return iSize;
+  return uiSize;
 }
 
 u_int SctpAgent::GetNextDataChunkSize()
@@ -1468,29 +1466,29 @@ int SctpAgent::GenOneDataChunk(u_char *ucpOutData)
   DBG_I(GenOneDataChunk);
 
   AppData_S *spAppData = NULL;
-  int iChunkSize = GenChunk(SCTP_CHUNK_DATA, ucpOutData);
+  u_int uiChunkSize = GenChunk(SCTP_CHUNK_DATA, ucpOutData);
 
   if(eDataSource == DATA_SOURCE_APPLICATION)
     {
       spAppData = (AppData_S *) sAppLayerBuffer.spHead->vpData;
-      AddToSendBuffer( (SctpDataChunkHdr_S *) ucpOutData, iChunkSize, 
+      AddToSendBuffer( (SctpDataChunkHdr_S *) ucpOutData, uiChunkSize, 
 		       spAppData->usReliability, spNewTxDest);
       DeleteNode(&sAppLayerBuffer, sAppLayerBuffer.spHead);
     }
   else
     {
-      AddToSendBuffer( (SctpDataChunkHdr_S *) ucpOutData, iChunkSize, 
+      AddToSendBuffer( (SctpDataChunkHdr_S *) ucpOutData, uiChunkSize, 
 		       uiReliability, spNewTxDest);
     }
   
   DBG_PL(GenOneDataChunk, "dest=%p"), spNewTxDest DBG_PR;
-  spNewTxDest->iOutstandingBytes 
+  spNewTxDest->uiOutstandingBytes 
     += ((SctpDataChunkHdr_S *) ucpOutData)->sHdr.usLength;
 
   /* rfc2960 section 6.2.1.B
    */
-  if(iChunkSize <= uiPeerRwnd)
-    uiPeerRwnd -= iChunkSize; 
+  if(uiChunkSize <= uiPeerRwnd)
+    uiPeerRwnd -= uiChunkSize; 
   else
     uiPeerRwnd = 0;
 
@@ -1498,7 +1496,7 @@ int SctpAgent::GenOneDataChunk(u_char *ucpOutData)
     StartT3RtxTimer(spNewTxDest); //section 6.3.2.R1
 
   DBG_X(GenOneDataChunk);
-  return iChunkSize;
+  return uiChunkSize;
 }
 
 /* This function fills a packet with as many chunks that can fit into the PMTU 
@@ -1537,7 +1535,7 @@ int SctpAgent::GenMultipleDataChunks(u_char *ucpOutData, int iTotalOutDataSize)
  *
  * returns the aggregate size of the control chunk(s)
  */
-int SctpAgent::BundleControlChunks(u_char *ucpOutData)
+u_int SctpAgent::BundleControlChunks(u_char *ucpOutData)
 {
   DBG_I(BundleControlChunks);
   DBG_PL(BundleControlChunks, "None... returning 0") DBG_PR;
@@ -1670,7 +1668,6 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
   Node_S *spDeleteNode = NULL;
   Node_S *spCurrNode = sSendBuffer.spHead;
   SctpSendBufferNode_S *spCurrNodeData = NULL;
-  Boolean_E eSkipRttUpdate = FALSE;
 
   /* Only the first TSN that is being dequeued can be used to reset the
    * error cunter on a destination. Why? Well, suppose there are some
@@ -1680,14 +1677,14 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
    * but does not mean that the they can reset the errors on the primary.
    */
   
-  iAssocErrorCount = 0;
+  uiAssocErrorCount = 0;
 
   spCurrNodeData = (SctpSendBufferNode_S *) spCurrNode->vpData;
 
   /* trigger trace ONLY if it was previously NOT 0 */
-  if(spCurrNodeData->spDest->iErrorCount != 0)
+  if(spCurrNodeData->spDest->uiErrorCount != 0)
     {
-      spCurrNodeData->spDest->iErrorCount = 0; // clear error counter
+      spCurrNodeData->spDest->uiErrorCount = 0; // clear error counter
       tiErrorCount++;                          // ... and trace it too!
       spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
       if(spCurrNodeData->spDest == spPrimaryDest &&
@@ -1712,18 +1709,18 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
       if((spCurrNodeData->eGapAcked == FALSE) &&
 	 (spCurrNodeData->eAdvancedAcked == FALSE) )
 	{
-	  spCurrNodeData->spDest->iNumNewlyAckedBytes 
+	  spCurrNodeData->spDest->uiNumNewlyAckedBytes 
 	    += spCurrNodeData->spChunk->sHdr.usLength;
 
 	  /* only add to partial bytes acked if we are in congestion
 	   * avoidance mode and if there was cwnd amount of data
 	   * outstanding on the destination (implementor's guide) 
 	   */
-	  if(spCurrNodeData->spDest->iCwnd >spCurrNodeData->spDest->iSsthresh &&
-	     ( spCurrNodeData->spDest->iOutstandingBytes 
-	       >= spCurrNodeData->spDest->iCwnd) )
+	  if(spCurrNodeData->spDest->uiCwnd >spCurrNodeData->spDest->uiSsthresh &&
+	     ( spCurrNodeData->spDest->uiOutstandingBytes 
+	       >= spCurrNodeData->spDest->uiCwnd) )
 	    {
-	      spCurrNodeData->spDest->iPartialBytesAcked 
+	      spCurrNodeData->spDest->uiPartialBytesAcked 
 		+= spCurrNodeData->spChunk->sHdr.usLength;
 	    }
 	}
@@ -1771,7 +1768,7 @@ void SctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
   DBG_X(SendBufferDequeueUpTo);
 }
 
-/* This function uses the iOutstandingBytes variable and assumes that it has NOT
+/* This function uses the uiOutstandingBytes variable and assumes that it has NOT
  * been updated yet to reflect the newly received SACK. Hence, it is the 
  * previously outstanding DATA bytes.
  */
@@ -1779,47 +1776,47 @@ void SctpAgent::AdjustCwnd(SctpDest_S *spDest)
 {
   DBG_I(AdjustCwnd);
 
-  if(spDest->iCwnd <= spDest->iSsthresh) //in slow-start mode?
+  if(spDest->uiCwnd <= spDest->uiSsthresh) //in slow-start mode?
     {
       DBG_PL(AdjustCwnd, "slow start mode") DBG_PR;
-      DBG_PL(AdjustCwnd, "iSsthresh=%d"), spDest->iSsthresh DBG_PR;
+      DBG_PL(AdjustCwnd, "uiSsthresh=%d"), spDest->uiSsthresh DBG_PR;
 
       /* section 7.2.1 (w/ implementor's guide v.02)
        */
-      if(spDest->iOutstandingBytes >= spDest->iCwnd)
+      if(spDest->uiOutstandingBytes >= spDest->uiCwnd)
 	{
-	  spDest->iCwnd += MIN(spDest->iNumNewlyAckedBytes, uiMaxDataSize);
+	  spDest->uiCwnd += MIN(spDest->uiNumNewlyAckedBytes, uiMaxDataSize);
 	  tiCwnd++; // trigger changes for trace to pick up
 	}
     }
   else // congestion avoidance mode
     {
       DBG_PL(AdjustCwnd,"congestion avoidance mode") DBG_PR;
-      DBG_PL(AdjustCwnd,"iPartialBytesAcked=%d iCwnd=%d iOutStandingBytes=%d"),
-	spDest->iPartialBytesAcked, 
-	spDest->iCwnd, 
-	spDest->iOutstandingBytes
+      DBG_PL(AdjustCwnd,"uiPartialBytesAcked=%d uiCwnd=%d iOutStandingBytes=%d"),
+	spDest->uiPartialBytesAcked, 
+	spDest->uiCwnd, 
+	spDest->uiOutstandingBytes
 	DBG_PR;
 
       /* section 7.2.2
        */
-      if(spDest->iPartialBytesAcked >= spDest->iCwnd &&
-	 spDest->iOutstandingBytes >= spDest->iCwnd )
+      if(spDest->uiPartialBytesAcked >= spDest->uiCwnd &&
+	 spDest->uiOutstandingBytes >= spDest->uiCwnd )
 	{
 	  DBG_PL(AdjustCwnd, "adjusting cwnd") DBG_PR;
-	  if(spDest->iCwnd <= spDest->iPartialBytesAcked)
-	      spDest->iPartialBytesAcked -= spDest->iCwnd;
+	  if(spDest->uiCwnd <= spDest->uiPartialBytesAcked)
+	      spDest->uiPartialBytesAcked -= spDest->uiCwnd;
 	  else
-	    spDest->iPartialBytesAcked = 0;
-	  spDest->iCwnd += uiMaxDataSize;
+	    spDest->uiPartialBytesAcked = 0;
+	  spDest->uiCwnd += uiMaxDataSize;
 	  tiCwnd++; // trigger changes for trace to pick up
 	}
     }	
 
   DBG_PL(AdjustCwnd, "pba=%d cwnd=%d out=%d PeerRwnd=%d"),
-    spDest->iPartialBytesAcked, 
-    spDest->iCwnd, 
-    spDest->iOutstandingBytes,
+    spDest->uiPartialBytesAcked, 
+    spDest->uiCwnd, 
+    spDest->uiOutstandingBytes,
     uiPeerRwnd
     DBG_PR;
   DBG_X(AdjustCwnd);
@@ -1906,10 +1903,10 @@ void SctpAgent::FastRtx()
 	{ 
 	  /* section 7.2.3 of rfc2960 (w/ implementor's guide v.02) 
 	   */
-	  spCurrBuffData->spDest->iSsthresh 
-	    = MAX(spCurrBuffData->spDest->iCwnd/2, 2*uiMaxDataSize);
-	  spCurrBuffData->spDest->iCwnd = spCurrBuffData->spDest->iSsthresh;
-	  spCurrBuffData->spDest->iPartialBytesAcked = 0; //reset
+	  spCurrBuffData->spDest->uiSsthresh 
+	    = MAX(spCurrBuffData->spDest->uiCwnd/2, 2*uiMaxDataSize);
+	  spCurrBuffData->spDest->uiCwnd = spCurrBuffData->spDest->uiSsthresh;
+	  spCurrBuffData->spDest->uiPartialBytesAcked = 0; //reset
 	  tiCwnd++; // trigger changes for trace to pick up
 	  spCurrBuffData->spDest->eCcApplied = TRUE;
 	}
@@ -1983,7 +1980,8 @@ void SctpAgent::MarkChunkForRtx(SctpSendBufferNode_S *spNodeData)
 
 	  spNodeData->eAdvancedAcked = TRUE;
 	  spNodeData->eMarkedForRtx = FALSE;
-	  spNodeData->spDest->iOutstandingBytes -= spChunk->sHdr.usLength;
+	  assert (spNodeData->spDest->uiOutstandingBytes >= spChunk->sHdr.usLength);
+	  spNodeData->spDest->uiOutstandingBytes -= spChunk->sHdr.usLength;
 	}
     }
   
@@ -2031,9 +2029,9 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
   u_char ucpOutData[uiMaxPayloadSize]; 
   u_char *ucpCurrOutData = ucpOutData;
-  int iBundledControlChunkSize = 0;
-  int iCurrSize = 0;
-  int iOutDataSize = 0;
+  u_int uiBundledControlChunkSize = 0;
+  u_int uiCurrSize = 0;
+  u_int uiOutDataSize = 0;
   Node_S *spCurrBuffNode = NULL;
   SctpSendBufferNode_S *spCurrBuffNodeData = NULL;
   SctpDataChunkHdr_S  *spCurrChunk;
@@ -2041,11 +2039,7 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
   Node_S *spCurrDestNode = NULL;
   SctpDest_S *spCurrDestNodeData = NULL;
   Boolean_E eFirstOutstanding = FALSE;  
-  Node_S *spSearchBuffNode = NULL;
-  SctpSendBufferNode_S *spSearchBuffNodeData = NULL;
-  int iNumPacketsSent = 0;
-  double dTime = 0;
-  double dCurrTime = Scheduler::instance().clock();
+  u_int uiNumPacketsSent = 0;
 
   memset(ucpOutData, 0, uiMaxPayloadSize);
 
@@ -2100,7 +2094,8 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 		spRtxDest = GetNextDest(spCurrBuffNodeData->spDest);
 	    }
 
-	  spCurrBuffNodeData->spDest->iOutstandingBytes
+	  assert (spCurrBuffNodeData->spDest->uiOutstandingBytes >= spCurrChunk->sHdr.usLength);
+	  spCurrBuffNodeData->spDest->uiOutstandingBytes
 	    -= spCurrChunk->sHdr.usLength;
 	}
     }
@@ -2108,16 +2103,16 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
   spCurrBuffNode = sSendBuffer.spHead;
 
   while( (eLimit == RTX_LIMIT_ONE_PACKET && 
-	  iNumPacketsSent < 1 && 
+	  uiNumPacketsSent < 1 && 
 	  spCurrBuffNode != NULL) ||
 	 (eLimit == RTX_LIMIT_CWND &&
-	  spRtxDest->iOutstandingBytes < spRtxDest->iCwnd &&
+	  spRtxDest->uiOutstandingBytes < spRtxDest->uiCwnd &&
 	  spCurrBuffNode != NULL) )
     {
       DBG_PL(RtxMarkedChunks, 
 	     "eLimit=%s pktsSent=%d out=%d cwnd=%d spCurrBuffNode=%p"),
 	(eLimit == RTX_LIMIT_ONE_PACKET) ? "ONE_PACKET" : "CWND",
-	iNumPacketsSent, spRtxDest->iOutstandingBytes, spRtxDest->iCwnd,
+	uiNumPacketsSent, spRtxDest->uiOutstandingBytes, spRtxDest->uiCwnd,
 	spCurrBuffNode
 	DBG_PR;
       
@@ -2134,9 +2129,9 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	    break;
 	  }
 
-      iBundledControlChunkSize = BundleControlChunks(ucpCurrOutData);
-      ucpCurrOutData += iBundledControlChunkSize;
-      iOutDataSize += iBundledControlChunkSize;
+      uiBundledControlChunkSize = BundleControlChunks(ucpCurrOutData);
+      ucpCurrOutData += uiBundledControlChunkSize;
+      uiOutDataSize += uiBundledControlChunkSize;
 
       /* section 7.2.4.3
        *
@@ -2183,7 +2178,7 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
 	      /* can we fit this chunk into the packet without exceeding MTU?? 
 	       */
-  	      if((iOutDataSize + spCurrChunk->sHdr.usLength) > uiMaxPayloadSize)
+  	      if((uiOutDataSize + spCurrChunk->sHdr.usLength) > uiMaxPayloadSize)
 		{
 		  /* if first outstanding, reset flag the seen flag for next 
 		   * iteration so that we still recognize this tsn as first
@@ -2210,22 +2205,22 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	       * timer.  
 	       */
 	      if(eFirstOutstanding == TRUE &&
-		 spCurrBuffNodeData->spDest->iOutstandingBytes > 0)
+		 spCurrBuffNodeData->spDest->uiOutstandingBytes > 0)
 		{
 		  StartT3RtxTimer(spCurrBuffNodeData->spDest);
 		}
 
 	      memcpy(ucpCurrOutData, spCurrChunk, spCurrChunk->sHdr.usLength);
-	      iCurrSize = spCurrChunk->sHdr.usLength;
+	      uiCurrSize = spCurrChunk->sHdr.usLength;
 
 	      /* the chunk length field does not include the padded bytes,
 	       * so we need to account for these extra bytes.
 	       */
-	      if( (iCurrSize % 4) != 0 ) 
-		iCurrSize += 4 - (iCurrSize % 4);
+	      if( (uiCurrSize % 4) != 0 ) 
+		uiCurrSize += 4 - (uiCurrSize % 4);
 
-	      ucpCurrOutData += iCurrSize;
-	      iOutDataSize += iCurrSize;
+	      ucpCurrOutData += uiCurrSize;
+	      uiOutDataSize += uiCurrSize;
 	      spCurrBuffNodeData->spDest = spRtxDest;
 	      spCurrBuffNodeData->iNumTxs++;
 	      spCurrBuffNodeData->eMarkedForRtx = FALSE;
@@ -2241,10 +2236,10 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
 	      /* the chunk is now outstanding on the alternate destination
 	       */
-	      spCurrBuffNodeData->spDest->iOutstandingBytes
+	      spCurrBuffNodeData->spDest->uiOutstandingBytes
 		+= spCurrChunk->sHdr.usLength;
-	      DBG_PL(RtxMarkedChunks, "spDest->iOutstandingBytes=%d"), 
-		spCurrBuffNodeData->spDest->iOutstandingBytes DBG_PR;
+	      DBG_PL(RtxMarkedChunks, "spDest->uiOutstandingBytes=%d"), 
+		spCurrBuffNodeData->spDest->uiOutstandingBytes DBG_PR;
 
 	      DBG_PL(RtxMarkedChunks, "TSN=%d"), spCurrChunk->uiTsn DBG_PR;
 	    }
@@ -2259,7 +2254,7 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 		   * chunks on this destination, we need to restart timer
 		   * for those.
 		   */
-		  if(spCurrBuffNodeData->spDest->iOutstandingBytes > 0)
+		  if(spCurrBuffNodeData->spDest->uiOutstandingBytes > 0)
 		    StartT3RtxTimer(spCurrBuffNodeData->spDest);
 		  else
 		    StopT3RtxTimer(spCurrBuffNodeData->spDest);
@@ -2269,13 +2264,13 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
       /* Transmit the packet now...
        */
-      if(iOutDataSize > 0)
+      if(uiOutDataSize > 0)
 	{
-	  SendPacket(ucpOutData, iOutDataSize, spRtxDest);
+	  SendPacket(ucpOutData, uiOutDataSize, spRtxDest);
 	  if(spRtxDest->eRtxTimerIsRunning == FALSE)
 	    StartT3RtxTimer(spRtxDest);
-	  iNumPacketsSent++;	  
-	  iOutDataSize = 0; // reset
+	  uiNumPacketsSent++;	  
+	  uiOutDataSize = 0; // reset
 	  ucpCurrOutData = ucpOutData; // reset
 	  memset(ucpOutData, 0, uiMaxPayloadSize); // reset
 
@@ -2295,7 +2290,7 @@ void SctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
       if(spCurrBuffNodeData->eMarkedForRtx == TRUE)
 	{
 	  spCurrChunk = spCurrBuffNodeData->spChunk;
-	  spCurrBuffNodeData->spDest->iOutstandingBytes
+	  spCurrBuffNodeData->spDest->uiOutstandingBytes
 	    += spCurrChunk->sHdr.usLength;
 	}
     }
@@ -2439,8 +2434,6 @@ void SctpAgent::UpdateCumAck()
 {
   DBG_I(UpdateCumAck);
   Node_S *spCurrNode = NULL;
-  SctpStreamBufferNode_S *spCurrNodeData;
-  SctpDataChunkHdr_S *spCurrChunk;
 
   if(sRecvTsnBlockList.uiLength == 0)
     {
@@ -2740,7 +2733,6 @@ void SctpAgent::UpdateAllStreams()
   Node_S *spCurrNode = NULL;
   Node_S *spDeleteNode = NULL;
   SctpDataChunkHdr_S *spBufferedChunk = NULL;
-  SctpInStream_S *spStream;
   int i;
 
   for(i = 0; i < iNumInStreams; i++)
@@ -2878,7 +2870,6 @@ void SctpAgent::ProcessCookieAckChunk(SctpCookieAckChunk_S *spCookieAckChunk)
 void SctpAgent::ProcessDataChunk(SctpDataChunkHdr_S *spChunk)
 {
   DBG_I(ProcessDataChunk);
-  Boolean_E result = FALSE;
 
   /* Is there still room in my receiver window?? We can only process the DATA
    * chunk if there is. Otherwise, we drop it!
@@ -3037,7 +3028,7 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		    spCurrNodeData->spChunk->uiTsn DBG_PR;
 		  spCurrNodeData->eGapAcked = FALSE;
-		  spCurrNodeData->spDest->iOutstandingBytes 
+		  spCurrNodeData->spDest->uiOutstandingBytes 
 		    += spCurrNodeData->spChunk->sHdr.usLength;
 
 		  /* section 6.3.2.R4 says that we should restart the
@@ -3072,7 +3063,7 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 		  if(spCurrNodeData->eAdvancedAcked == FALSE)
 		    {
-		      spCurrNodeData->spDest->iNumNewlyAckedBytes 
+		      spCurrNodeData->spDest->uiNumNewlyAckedBytes 
 			+= spCurrNodeData->spChunk->sHdr.usLength;
 		    }
 		  
@@ -3080,8 +3071,8 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		   * congestion avoidance mode, we have a new cum ack, and
 		   * we haven't already incremented it for this TSN
 		   */
-		  if(( spCurrNodeData->spDest->iCwnd 
-		       > spCurrNodeData->spDest->iSsthresh) &&
+		  if(( spCurrNodeData->spDest->uiCwnd 
+		       > spCurrNodeData->spDest->uiSsthresh) &&
 		     eNewCumAck == TRUE &&
 		     spCurrNodeData->eAddedToPartialBytesAcked == FALSE)
 		    {
@@ -3090,7 +3081,7 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		      
 		      spCurrNodeData->eAddedToPartialBytesAcked = TRUE; // set
 
-		      spCurrNodeData->spDest->iPartialBytesAcked 
+		      spCurrNodeData->spDest->uiPartialBytesAcked 
 			+= spCurrNodeData->spChunk->sHdr.usLength;
 		    }
 
@@ -3122,13 +3113,13 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		     && spCurrNodeData->spDest->eRtxTimerIsRunning == TRUE)
 		    StopT3RtxTimer(spCurrNodeData->spDest);
 		  
-		  iAssocErrorCount = 0;
+		  uiAssocErrorCount = 0;
 		  
 		  /* trigger trace ONLY if it was previously NOT 0
 		   */
-		  if(spCurrNodeData->spDest->iErrorCount != 0)
+		  if(spCurrNodeData->spDest->uiErrorCount != 0)
 		    {
-		      spCurrNodeData->spDest->iErrorCount = 0; // clear errors
+		      spCurrNodeData->spDest->uiErrorCount = 0; // clear errors
 		      tiErrorCount++;                       // ... and trace it!
 		      spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
 		      if(spCurrNodeData->spDest == spPrimaryDest &&
@@ -3173,7 +3164,7 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		    spCurrNodeData->spChunk->uiTsn DBG_PR;
 		  spCurrNodeData->eGapAcked = FALSE;
-		  spCurrNodeData->spDest->iOutstandingBytes 
+		  spCurrNodeData->spDest->uiOutstandingBytes 
 		    += spCurrNodeData->spChunk->sHdr.usLength;
 		  
 		  /* section 6.3.2.R4 says that we should restart the
@@ -3211,7 +3202,7 @@ Boolean_E SctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		     "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		spCurrNodeData->spChunk->uiTsn DBG_PR;
 	      spCurrNodeData->eGapAcked = FALSE;
-	      spCurrNodeData->spDest->iOutstandingBytes 
+	      spCurrNodeData->spDest->uiOutstandingBytes 
 		+= spCurrNodeData->spChunk->sHdr.usLength;
 
 	      /* section 6.3.2.R4 says that we should restart the T3-rtx
@@ -3285,20 +3276,19 @@ void SctpAgent::ProcessSackChunk(u_char *ucpSackChunk)
 
   Boolean_E eFastRtxNeeded = FALSE;
   Boolean_E eNewCumAck = FALSE;
-  Boolean_E eMoreMarkedChunks = TRUE;
   Node_S *spCurrDestNode = NULL;
   SctpDest_S *spCurrDestNodeData = NULL;
   u_int uiTotalOutstanding = 0;
   int i = 0;
 
-  /* make sure we clear all the iNumNewlyAckedBytes before using them!
+  /* make sure we clear all the uiNumNewlyAckedBytes before using them!
    */
   for(spCurrDestNode = sDestList.spHead;
       spCurrDestNode != NULL;
       spCurrDestNode = spCurrDestNode->spNext)
     {
       spCurrDestNodeData = (SctpDest_S *) spCurrDestNode->vpData;
-      spCurrDestNodeData->iNumNewlyAckedBytes = 0;
+      spCurrDestNodeData->uiNumNewlyAckedBytes = 0;
       spCurrDestNodeData->eSeenFirstOutstanding = FALSE;
     }
 
@@ -3334,31 +3324,31 @@ void SctpAgent::ProcessSackChunk(u_char *ucpSackChunk)
        * congestion window BEFORE we update the number of outstanding
        * bytes to reflect the newly acked bytes in received SACK.  
        */
-      if(eNewCumAck == TRUE && spCurrDestNodeData->iNumNewlyAckedBytes > 0)
+      if(eNewCumAck == TRUE && spCurrDestNodeData->uiNumNewlyAckedBytes > 0)
 	AdjustCwnd(spCurrDestNodeData);
 
       /* The number of outstanding bytes is reduced by how many bytes this sack 
        * acknowledges.
        */
-      if(spCurrDestNodeData->iNumNewlyAckedBytes <=
-	 spCurrDestNodeData->iOutstandingBytes)
+      if(spCurrDestNodeData->uiNumNewlyAckedBytes <=
+	 spCurrDestNodeData->uiOutstandingBytes)
 	{
-	  spCurrDestNodeData->iOutstandingBytes 
-	    -= spCurrDestNodeData->iNumNewlyAckedBytes;
+	  spCurrDestNodeData->uiOutstandingBytes 
+	    -= spCurrDestNodeData->uiNumNewlyAckedBytes;
 	}
       else
-	spCurrDestNodeData->iOutstandingBytes = 0;
+	spCurrDestNodeData->uiOutstandingBytes = 0;
 
       DBG_PL(ProcessSackChunk,"Dest #%d (%d:%d) (%p): outstanding=%d, cwnd=%d"),
 	++i, spCurrDestNodeData->iNsAddr, spCurrDestNodeData->iNsPort,
-	spCurrDestNodeData, spCurrDestNodeData->iOutstandingBytes, 
-	spCurrDestNodeData->iCwnd DBG_PR;
+	spCurrDestNodeData, spCurrDestNodeData->uiOutstandingBytes, 
+	spCurrDestNodeData->uiCwnd DBG_PR;
 
-      if(spCurrDestNodeData->iOutstandingBytes == 0)
+      if(spCurrDestNodeData->uiOutstandingBytes == 0)
 	{
 	  /* All outstanding data has been acked
 	   */
-	  spCurrDestNodeData->iPartialBytesAcked = 0;  // section 7.2.2
+	  spCurrDestNodeData->uiPartialBytesAcked = 0;  // section 7.2.2
 
 	  /* section 6.3.2.R2
 	   */
@@ -3374,7 +3364,7 @@ void SctpAgent::ProcessSackChunk(u_char *ucpSackChunk)
        * acknowledged their first outstanding (ie, no timer running) and
        * still have outstanding data in flight.  
        */
-      if(spCurrDestNodeData->iOutstandingBytes > 0 &&
+      if(spCurrDestNodeData->uiOutstandingBytes > 0 &&
 	 spCurrDestNodeData->eRtxTimerIsRunning == FALSE)
 	{
 	  StartT3RtxTimer(spCurrDestNodeData);
@@ -3422,7 +3412,7 @@ void SctpAgent::ProcessForwardTsnChunk(SctpForwardTsnChunk_S *spForwardTsnChunk)
 {
   DBG_I(ProcessForwardTsnChunk);
   
-  int i;
+  u_int i;
   u_int uiNewCum = spForwardTsnChunk->uiNewCum;
 
   /* Although we haven't actually received a DATA chunk, we have received
@@ -3450,13 +3440,13 @@ void SctpAgent::ProcessHeartbeatAckChunk(SctpHeartbeatAckChunk_S
 
   double dTime = 0;
 
-  iAssocErrorCount = 0;
+  uiAssocErrorCount = 0;
 
   /* trigger trace ONLY if it was previously NOT 0
    */
-  if(spHeartbeatAckChunk->spDest->iErrorCount != 0)
+  if(spHeartbeatAckChunk->spDest->uiErrorCount != 0)
     {
-      spHeartbeatAckChunk->spDest->iErrorCount = 0; // clear the error count
+      spHeartbeatAckChunk->spDest->uiErrorCount = 0; // clear the error count
       tiErrorCount++;                               // ...and trace it too!
       spHeartbeatAckChunk->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
       if(spHeartbeatAckChunk->spDest == spPrimaryDest &&
@@ -3769,6 +3759,8 @@ int SctpAgent::ProcessChunk(u_char *ucpInChunk, u_char **ucppOutData)
 	  break;
 	}
       break;
+    default:
+      assert (false);
     }  
 
   DBG_X(ProcessChunk);
@@ -3989,7 +3981,6 @@ void SctpAgent::recv(Packet *opInPkt, Handler*)
   DBG_I(recv);
 
   hdr_ip *spIpHdr = hdr_ip::access(opInPkt);
-  hdr_sctp *spSctpHdr = hdr_sctp::access(opInPkt);
   PacketData *opInPacketData = (PacketData *) opInPkt->userdata();
   u_char *ucpInData = opInPacketData->data();
   u_char *ucpCurrInChunk = ucpInData;
@@ -4096,9 +4087,9 @@ u_int SctpAgent::TotalOutstanding()
       spCurrNode = spCurrNode->spNext)
     {
       spCurrDest = (SctpDest_S *) spCurrNode->vpData;
-      uiTotalOutstanding += spCurrDest->iOutstandingBytes;
-      DBG_PL(TotalOutstanding, "spCurrDest->iOutstandingBytes=%lu"),
-	spCurrDest->iOutstandingBytes DBG_PR;
+      uiTotalOutstanding += spCurrDest->uiOutstandingBytes;
+      DBG_PL(TotalOutstanding, "spCurrDest->uiOutstandingBytes=%lu"),
+	spCurrDest->uiOutstandingBytes DBG_PR;
     }
 
   DBG_PL(TotalOutstanding, "%lu"), uiTotalOutstanding DBG_PR;
@@ -4130,17 +4121,17 @@ void SctpAgent::SendMuch()
    * source used for ftp), check if there is any data buffered from the app 
    * layer. If so, then send as much as we can.
    */
-  while((spNewTxDest->iOutstandingBytes < spNewTxDest->iCwnd) &&
+  while((spNewTxDest->uiOutstandingBytes < spNewTxDest->uiCwnd) &&
 	(eDataSource == DATA_SOURCE_INFINITE || sAppLayerBuffer.uiLength != 0))
     {
       DBG_PL(SendMuch, "uiAdvancedPeerAckPoint=%d uiCumAckPoint=%d"), 
 	uiAdvancedPeerAckPoint, uiCumAckPoint DBG_PR;
       DBG_PL(SendMuch, "uiPeerRwnd=%d"), uiPeerRwnd DBG_PR;
-      DBG_PL(SendMuch, "spNewTxDest->iCwnd=%d"), spNewTxDest->iCwnd DBG_PR;
-      DBG_PL(SendMuch, "spNewTxDest->iPartialBytesAcked=%d"), 
-	spNewTxDest->iPartialBytesAcked DBG_PR;
-      DBG_PL(SendMuch, "spNewTxDest->iOutstandingBytes=%d"), 
-	spNewTxDest->iOutstandingBytes DBG_PR;
+      DBG_PL(SendMuch, "spNewTxDest->uiCwnd=%d"), spNewTxDest->uiCwnd DBG_PR;
+      DBG_PL(SendMuch, "spNewTxDest->uiPartialBytesAcked=%d"), 
+	spNewTxDest->uiPartialBytesAcked DBG_PR;
+      DBG_PL(SendMuch, "spNewTxDest->uiOutstandingBytes=%d"), 
+	spNewTxDest->uiOutstandingBytes DBG_PR;
       DBG_PL(SendMuch, "TotalOutstanding=%lu"), 
 	TotalOutstanding() DBG_PR;
       DBG_PL(SendMuch, "eApplyMaxBurst=%s uiBurstLength=%d"),
@@ -4219,10 +4210,10 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
   DBG_I(sendmsg);
 
   u_char ucpOutData[uiMaxPayloadSize];
-  int iOutDataSize = 0;
+  u_int  uiOutDataSize = 0;
   AppData_S *spAppData = (AppData_S *) cpFlags;
   Node_S *spNewNode = NULL;
-  int iMsgSize = 0;
+  u_int uiMsgSize = 0;
   u_int uiMaxFragSize = uiMaxDataSize - sizeof(SctpDataChunkHdr_S);
 
   if(iNumBytes == -1) 
@@ -4232,12 +4223,14 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
       
   if(eDataSource == DATA_SOURCE_APPLICATION) 
     {
+      assert (iNumBytes >= 0);
+      u_int uiNumBytes = (u_int) iNumBytes;
       if(spAppData != NULL)
 	{
 	  /* This is an SCTP-aware app!! Anything the app passes down
 	   * overrides what we bound from TCL.
 	   */
-	  DBG_PL (sendmsg, "sctp-aware app: iNumBytes=%d"), iNumBytes DBG_PR;
+	  DBG_PL (sendmsg, "sctp-aware app: uiNumBytes=%d"), uiNumBytes DBG_PR;
 	  spNewNode = new Node_S;
 	  uiNumOutStreams = spAppData->usNumStreams;
 	  uiNumUnrelStreams = spAppData->usNumUnreliable;
@@ -4249,7 +4242,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	{
 	  /* This is NOT an SCTP-aware app!! We rely on TCL-bound variables.
 	   */
-	  DBG_PL (sendmsg, "non-sctp-aware app: iNumBytes=%d"),iNumBytes DBG_PR;
+	  DBG_PL (sendmsg, "non-sctp-aware app: uiNumBytes=%d"),uiNumBytes DBG_PR;
 	  uiNumOutStreams = 1; // non-sctp-aware apps only use 1 stream
 	  uiNumUnrelStreams = (uiNumUnrelStreams > 0) ? 1 : 0;
 
@@ -4259,9 +4252,9 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	   * use the B/E bits. Think of this block of code as a shim which
 	   * breaks up the message into useable pieces for SCTP. 
 	   */
-	  for(iMsgSize = iNumBytes; 
-	      iMsgSize > 0; 
-	      iMsgSize -= MIN(iMsgSize, uiMaxFragSize) )
+	  for(uiMsgSize = uiNumBytes; 
+	      uiMsgSize > 0; 
+	      uiMsgSize -= MIN(uiMsgSize, uiMaxFragSize) )
 	    {
 	      spNewNode = new Node_S;
 	      spNewNode->eType = NODE_TYPE_APP_LAYER_BUFFER;
@@ -4271,7 +4264,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	      spAppData->usStreamId = 0;  
 	      spAppData->usReliability = uiReliability;
 	      spAppData->eUnordered = eUnordered;
-	      spAppData->uiNumBytes = MIN(iMsgSize, uiMaxFragSize);
+	      spAppData->uiNumBytes = MIN(uiMsgSize, uiMaxFragSize);
 	      spNewNode->vpData = spAppData;
 	      InsertNode(&sAppLayerBuffer, sAppLayerBuffer.spTail, 
 			 spNewNode, NULL);
@@ -4347,10 +4340,10 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
        * sctp so that our tracing output comes out correctly for scripts, etc
        */
       set_pkttype(PT_SCTP); 
-      iOutDataSize = GenChunk(SCTP_CHUNK_INIT, ucpOutData);
+      uiOutDataSize = GenChunk(SCTP_CHUNK_INIT, ucpOutData);
       opT1InitTimer->resched(spPrimaryDest->dRto);
       eState = SCTP_STATE_COOKIE_WAIT;
-      SendPacket(ucpOutData, iOutDataSize, spPrimaryDest);
+      SendPacket(ucpOutData, uiOutDataSize, spPrimaryDest);
       break;
       
     case SCTP_STATE_ESTABLISHED:
@@ -4388,8 +4381,8 @@ void SctpAgent::T1InitTimerExpiration()
   u_char ucpOutData[uiMaxPayloadSize];
   int iOutDataSize = 0;
 
-  iInitTryCount++;
-  if(iInitTryCount > uiMaxInitRetransmits)
+  uiInitTryCount++;
+  if(uiInitTryCount > uiMaxInitRetransmits)
     {
       Close();
     }
@@ -4420,8 +4413,8 @@ void SctpAgent::T1CookieTimerExpiration()
   u_char ucpOutData[uiMaxPayloadSize];
   int iOutDataSize = 0;
  
-  iInitTryCount++;
-  if(iInitTryCount > uiMaxInitRetransmits)
+  uiInitTryCount++;
+  if(uiInitTryCount > uiMaxInitRetransmits)
     Close();
   else 
     {
@@ -4447,7 +4440,6 @@ void SctpAgent::Close()
 {
   DBG_I(Close);
 
-  Node_S *spDeleteNode = NULL;
   Node_S *spCurrNode = NULL;
   SctpDest_S *spCurrDest = NULL;
 
@@ -4497,7 +4489,6 @@ void SctpAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
     spDest
     DBG_PR;
 
-  SctpHeartbeatChunk_S sHeartbeatChunk;
   double dCurrTime = Scheduler::instance().clock();
 
   DBG_PL(Timeout, "dCurrTime=%f"), dCurrTime DBG_PR;
@@ -4508,11 +4499,11 @@ void SctpAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
       
       /* section 7.2.3 of rfc2960 (w/ implementor's guide v.02)
        */
-      if(spDest->iCwnd > 1*uiMaxDataSize)
+      if(spDest->uiCwnd > 1*uiMaxDataSize)
 	{
-	  spDest->iSsthresh = MAX(spDest->iCwnd/2, 2*uiMaxDataSize);
-	  spDest->iCwnd = 1*uiMaxDataSize;
-	  spDest->iPartialBytesAcked = 0; // reset
+	  spDest->uiSsthresh = MAX(spDest->uiCwnd/2, 2*uiMaxDataSize);
+	  spDest->uiCwnd = 1*uiMaxDataSize;
+	  spDest->uiPartialBytesAcked = 0; // reset
 	  tiCwnd++; // trigger changes for trace to pick up
 	}
 
@@ -4528,12 +4519,12 @@ void SctpAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
 
   if(spDest->eStatus == SCTP_DEST_STATUS_ACTIVE)
     {  
-      spDest->iErrorCount++; // @@@ window probe timeouts should not be counted
-      iAssocErrorCount++;
-      DBG_PL(Timeout, "now spDest->iErrorCount=%d iAssocErrorCount=%d"), 
-	spDest->iErrorCount, iAssocErrorCount DBG_PR;
+      spDest->uiErrorCount++; // @@@ window probe timeouts should not be counted
+      uiAssocErrorCount++;
+      DBG_PL(Timeout, "now spDest->uiErrorCount=%d uiAssocErrorCount=%d"), 
+	spDest->uiErrorCount, uiAssocErrorCount DBG_PR;
 
-      if(spDest->iErrorCount > uiPathMaxRetrans) // Path.Max.Retrans exceeded?
+      if(spDest->uiErrorCount > uiPathMaxRetrans) // Path.Max.Retrans exceeded?
 	{
 	  spDest->eStatus = SCTP_DEST_STATUS_INACTIVE;
 	  if(spDest == spNewTxDest)
@@ -4544,7 +4535,7 @@ void SctpAgent::Timeout(SctpChunkType_E eChunkType, SctpDest_S *spDest)
 	    }
 	}
       tiErrorCount++;       // trace it!
-      if(iAssocErrorCount > uiAssociationMaxRetrans)
+      if(uiAssocErrorCount > uiAssociationMaxRetrans)
 	{
 	  /* abruptly close the association!  (section 8.1)
 	   */
@@ -4584,9 +4575,9 @@ void SctpAgent::CwndDegradeTimerExpiration(SctpDest_S *spDest)
 {
   DBG_I(CwndDegradeTimerExpiration);
   DBG_PL(CwndDegradeTimerExpiration, "spDest=%p"), spDest DBG_PR;
-  if(spDest->iCwnd > 2*uiMaxDataSize)
+  if(spDest->uiCwnd > 2*uiMaxDataSize)
     {
-      spDest->iCwnd = MAX(spDest->iCwnd/2, 2*uiMaxDataSize);
+      spDest->uiCwnd = MAX(spDest->uiCwnd/2, 2*uiMaxDataSize);
       tiCwnd++; // trigger changes for trace to pick up
     }
   spDest->opCwndDegradeTimer->resched(spDest->dRto);
@@ -4740,8 +4731,8 @@ void SctpAgent::DumpSendBuffer()
 	    spCurrNodeData->eAdvancedAcked ? "AdvancedAcked" : ""
 	    DBG_PR;
 	  DBG_PL(DumpSendBuffer, 
-		 "       spCurrNodeData->spDest->iOutstandingBytes=%lu"),
-	    spCurrNodeData->spDest->iOutstandingBytes DBG_PR;
+		 "       spCurrNodeData->spDest->uiOutstandingBytes=%lu"),
+	    spCurrNodeData->spDest->uiOutstandingBytes DBG_PR;
 	}
 
       DBG_X(DumpSendBuffer);

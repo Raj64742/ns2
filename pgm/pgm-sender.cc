@@ -80,7 +80,7 @@ protected:
 class RdataItem {
 public:
   RdataItem(int seqno, PgmSender *a, Packet *rdata_pkt = NULL) :
-    seqno_(seqno), rdata_timer_(a, TIMER_RDATA), rdata_pkt_(rdata_pkt) { }
+    seqno_(seqno), rdata_pkt_(rdata_pkt), rdata_timer_(a, TIMER_RDATA) { }
 
   // Allow direct access to the private data.
   int & seqno() { return seqno_; }
@@ -387,7 +387,7 @@ void PgmSender::handle_nak(Packet *pkt)
   hdr_pgm *hp = HDR_PGM(pkt);
   //hdr_pgm_nak *pnak = HDR_PGM_NAK(pkt);
 
-  if (!(hp->tsi_ == here_)) {
+  if (!(hp->tsi_.isEqual (here_))) {
     printf("%s received NAK with wrong TSI, discarding.\n", uname_);
     return;
   }

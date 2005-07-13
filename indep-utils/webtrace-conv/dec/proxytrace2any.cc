@@ -71,7 +71,6 @@ int main (int argc, char* argv[])
 {
 	int    is_little_endian = 0;
 	TEntry entry;
-	int      ret;
 	double   ctime;
 
 	// Init tcl

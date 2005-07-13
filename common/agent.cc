@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.77 2004/10/28 01:20:10 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/agent.cc,v 1.78 2005/07/13 03:51:23 tomh Exp $ (LBL)";
 #endif
 
 #include <assert.h>
@@ -493,7 +493,7 @@ Agent::initpkt(Packet* p) const
 
  	hdr_nv* nv = hdr_nv::access(p);
  	if (0)
-		printf("Off hdr_nv %d, ip_hdr %d myaddr %ld\n",
+		printf("Off hdr_nv %d, ip_hdr %d myaddr %d\n",
 		       hdr_nv::offset(), hdr_ip::offset(), here_.addr_);
  	NixNode* pNixNode = NixNode::GetNodeObject(here_.addr_);
  	if (0)

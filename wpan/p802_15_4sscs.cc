@@ -13,7 +13,7 @@
 // File:  p802_15_4sscs.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4sscs.cc,v 1.1 2005/01/24 18:34:25 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4sscs.cc,v 1.2 2005/07/13 03:51:33 tomh Exp $
 
 // Functions in this file are out of the scope of 802.15.4.
 // But they elaborate how a higher layer interfaces with 802.15.4.
@@ -147,10 +147,6 @@ char *statusName(MACenum status)
 
 SSCS802_15_4::SSCS802_15_4(Mac802_15_4 *m):assoH(this)
 {
-	Tcl& tcl = Tcl::instance();
-	Node *node;
-	MobileNode* mnode;
-
 	mac = m;
 	neverAsso = true;
 #ifdef ZigBeeIF
@@ -187,8 +183,6 @@ void SSCS802_15_4::MLME_ASSOCIATE_indication(IE3ADDR DeviceAddress,UINT_8 Capabi
 {
 	
 	//we assign the cluster tree address as the MAC short address
-	unsigned int child_num,logAddr;
-	bool noCapacity;
 
 #ifdef ZigBeeIF
 	if (t_isCT)			//need to assign a cluster tree logic address
@@ -499,7 +493,7 @@ void SSCS802_15_4::startDevice(bool isClusterTree,bool isFFD,bool assoPermit,boo
 	SuperframeSpec sfSpec;
 	UINT_8 ch,fstChannel,fstChannel2_4G;
 	char tmpstr[30];
-	int i,k,l,m,n,depth;
+	int i,k,l,n;
 		
 	if (firsttime) checkTaskOverflow(sscsTP_startDevice);
 

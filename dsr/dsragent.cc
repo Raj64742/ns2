@@ -657,7 +657,6 @@ DSRAgent::handlePktWithoutSR(SRPacket& p, bool retry)
   /* obtain a source route to p's destination and send it off.
      this should be a retry if the packet is already in the sendbuffer */
 {
-  hdr_sr *srh =  hdr_sr::access(p.pkt);
   assert(srh->valid());
 
   if (p.dest == net_id)

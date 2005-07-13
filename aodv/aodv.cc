@@ -616,7 +616,6 @@ else if(ih->saddr() == index) {
 void
 AODV::recvAODV(Packet *p) {
 struct hdr_aodv *ah = HDR_AODV(p);
-struct hdr_ip *ih = HDR_IP(p);
 
  assert(ih->sport() == RT_PORT);
  assert(ih->dport() == RT_PORT);
@@ -874,7 +873,7 @@ if (ih->daddr() == index) { // If I am the original source
   // Update the route discovery latency statistics
   // rp->rp_timestamp is the time of request origination
 		
-    rt->rt_disc_latency[rt->hist_indx] = (CURRENT_TIME - rp->rp_timestamp)
+    rt->rt_disc_latency[(unsigned char)rt->hist_indx] = (CURRENT_TIME - rp->rp_timestamp)
                                          / (double) rp->rp_hop_count;
     // increment indx for next time
     rt->hist_indx = (rt->hist_indx + 1) % MAX_HISTORY;
@@ -1014,7 +1013,7 @@ struct hdr_ip *ih = HDR_IP(p);
 
  if (ch->ptype() != PT_AODV && ch->direction() == hdr_cmn::UP &&
 	((u_int32_t)ih->daddr() == IP_BROADCAST)
-		|| ((u_int32_t)ih->daddr() == here_.addr_)) {
+		|| (ih->daddr() == here_.addr_)) {
 	dmux_->recv(p,0);
 	return;
  }

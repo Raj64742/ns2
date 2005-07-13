@@ -13,7 +13,7 @@
 // File:  p802_15_4hlist.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4hlist.cc,v 1.1 2005/01/24 18:34:24 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4hlist.cc,v 1.2 2005/07/13 03:51:33 tomh Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -77,7 +77,7 @@ int addHListLink(HLISTLINK **hlistLink1, HLISTLINK **hlistLink2, UINT_16 hostid,
 int updateHListLink(int oper, HLISTLINK **hlistLink1, HLISTLINK **hlistLink2, UINT_16 hostid, UINT_8 sn)
 {
 	HLISTLINK *tmp;
-	int i, ok;
+	int ok;
 
 	ok = 1;
 

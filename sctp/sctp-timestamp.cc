@@ -40,7 +40,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-timestamp.cc,v 1.1 2003/08/21 18:29:14 haldar Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-timestamp.cc,v 1.2 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -108,7 +108,7 @@ u_int TimestampSctpAgent::ControlChunkReservation()
 /* This function bundles control chunks with data chunks. We copy the timestamp
  * chunk into the outgoing packet and return the size of the timestamp chunk.
  */
-int TimestampSctpAgent::BundleControlChunks(u_char *ucpOutData)
+u_int TimestampSctpAgent::BundleControlChunks(u_char *ucpOutData)
 {
   DBG_I(BundleControlChunks);
   SctpTimestampChunk_S *spTimestampChunk = (SctpTimestampChunk_S *) ucpOutData;
@@ -197,7 +197,6 @@ void TimestampSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
   Node_S *spDeleteNode = NULL;
   Node_S *spCurrNode = sSendBuffer.spHead;
   SctpSendBufferNode_S *spCurrNodeData = NULL;
-  Boolean_E eSkipRttUpdate = FALSE;
 
   /* Only the first TSN that is being dequeued can be used to reset the
    * error cunter on a destination. Why? Well, suppose there are some
@@ -207,14 +206,14 @@ void TimestampSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
    * but does not mean that the they can reset the errors on the primary.
    */
   
-  iAssocErrorCount = 0;
+  uiAssocErrorCount = 0;
 
   spCurrNodeData = (SctpSendBufferNode_S *) spCurrNode->vpData;
 
   /* trigger trace ONLY if it was previously NOT 0 */
-  if(spCurrNodeData->spDest->iErrorCount != 0)
+  if(spCurrNodeData->spDest->uiErrorCount != 0)
     {
-      spCurrNodeData->spDest->iErrorCount = 0; // clear error counter
+      spCurrNodeData->spDest->uiErrorCount = 0; // clear error counter
       tiErrorCount++;                          // ... and trace it too!
       spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
       if(spCurrNodeData->spDest == spPrimaryDest &&
@@ -239,18 +238,18 @@ void TimestampSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
       if((spCurrNodeData->eGapAcked == FALSE) &&
 	 (spCurrNodeData->eAdvancedAcked == FALSE) )
 	{
-	  spCurrNodeData->spDest->iNumNewlyAckedBytes 
+	  spCurrNodeData->spDest->uiNumNewlyAckedBytes 
 	    += spCurrNodeData->spChunk->sHdr.usLength;
 
 	  /* only add to partial bytes acked if we are in congestion
 	   * avoidance mode and if there was cwnd amount of data
 	   * outstanding on the destination (implementor's guide) 
 	   */
-	  if(spCurrNodeData->spDest->iCwnd >spCurrNodeData->spDest->iSsthresh &&
-	     ( spCurrNodeData->spDest->iOutstandingBytes 
-	       >= spCurrNodeData->spDest->iCwnd) )
+	  if(spCurrNodeData->spDest->uiCwnd >spCurrNodeData->spDest->uiSsthresh &&
+	     ( spCurrNodeData->spDest->uiOutstandingBytes 
+	       >= spCurrNodeData->spDest->uiCwnd) )
 	    {
-	      spCurrNodeData->spDest->iPartialBytesAcked 
+	      spCurrNodeData->spDest->uiPartialBytesAcked 
 		+= spCurrNodeData->spChunk->sHdr.usLength;
 	    }
 	}
@@ -311,9 +310,9 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
   u_char ucpOutData[uiMaxPayloadSize];
   u_char *ucpCurrOutData = ucpOutData;
-  int iBundledControlChunkSize = 0;
-  int iCurrSize = 0;
-  int iOutDataSize = 0;
+  u_int uiBundledControlChunkSize = 0;
+  u_int uiCurrSize = 0;
+  u_int uiOutDataSize = 0;
   Node_S *spCurrBuffNode = NULL;
   SctpSendBufferNode_S *spCurrBuffNodeData = NULL;
   SctpDataChunkHdr_S  *spCurrChunk;
@@ -321,11 +320,7 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
   Node_S *spCurrDestNode = NULL;
   SctpDest_S *spCurrDestNodeData = NULL;
   Boolean_E eFirstOutstanding = FALSE;  
-  Node_S *spSearchBuffNode = NULL;
-  SctpSendBufferNode_S *spSearchBuffNodeData = NULL;
   int iNumPacketsSent = 0;
-  double dTime = 0;
-  double dCurrTime = Scheduler::instance().clock();
 
   memset(ucpOutData, 0, uiMaxPayloadSize);
 
@@ -380,7 +375,8 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 		spRtxDest = GetNextDest(spCurrBuffNodeData->spDest);
 	    }
 
-	  spCurrBuffNodeData->spDest->iOutstandingBytes
+	  assert (spCurrBuffNodeData->spDest->uiOutstandingBytes >= spCurrChunk->sHdr.usLength);
+	  spCurrBuffNodeData->spDest->uiOutstandingBytes
 	    -= spCurrChunk->sHdr.usLength;
 	}
     }
@@ -391,13 +387,13 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	  iNumPacketsSent < 1 && 
 	  spCurrBuffNode != NULL) ||
 	 (eLimit == RTX_LIMIT_CWND &&
-	  spRtxDest->iOutstandingBytes < spRtxDest->iCwnd &&
+	  spRtxDest->uiOutstandingBytes < spRtxDest->uiCwnd &&
 	  spCurrBuffNode != NULL) )
     {
       DBG_PL(RtxMarkedChunks, 
 	     "eLimit=%s pktsSent=%d out=%d cwnd=%d spCurrBuffNode=%p"),
 	(eLimit == RTX_LIMIT_ONE_PACKET) ? "ONE_PACKET" : "CWND",
-	iNumPacketsSent, spRtxDest->iOutstandingBytes, spRtxDest->iCwnd,
+	iNumPacketsSent, spRtxDest->uiOutstandingBytes, spRtxDest->uiCwnd,
 	spCurrBuffNode
 	DBG_PR;
       
@@ -414,9 +410,9 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	    break;
 	  }
 
-      iBundledControlChunkSize = BundleControlChunks(ucpCurrOutData);
-      ucpCurrOutData += iBundledControlChunkSize;
-      iOutDataSize += iBundledControlChunkSize;
+      uiBundledControlChunkSize = BundleControlChunks(ucpCurrOutData);
+      ucpCurrOutData += uiBundledControlChunkSize;
+      uiOutDataSize += uiBundledControlChunkSize;
 
       /* section 7.2.4.3
        *
@@ -463,7 +459,7 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
 	      /* can we fit this chunk into the packet without exceeding MTU?? 
 	       */
-  	      if((iOutDataSize + spCurrChunk->sHdr.usLength) > uiMaxPayloadSize)
+  	      if((uiOutDataSize + spCurrChunk->sHdr.usLength) > uiMaxPayloadSize)
 		{
 		  /* if first outstanding, reset flag the seen flag for next 
 		   * iteration so that we still recognize this tsn as first
@@ -490,22 +486,22 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	       * timer.  
 	       */
 	      if(eFirstOutstanding == TRUE &&
-		 spCurrBuffNodeData->spDest->iOutstandingBytes > 0)
+		 spCurrBuffNodeData->spDest->uiOutstandingBytes > 0)
 		{
 		  StartT3RtxTimer(spCurrBuffNodeData->spDest);
 		}
 
 	      memcpy(ucpCurrOutData, spCurrChunk, spCurrChunk->sHdr.usLength);
-	      iCurrSize = spCurrChunk->sHdr.usLength;
+	      uiCurrSize = spCurrChunk->sHdr.usLength;
 
 	      /* the chunk length field does not include the padded bytes,
 	       * so we need to account for these extra bytes.
 	       */
-	      if( (iCurrSize % 4) != 0 ) 
-		iCurrSize += 4 - (iCurrSize % 4);
+	      if( (uiCurrSize % 4) != 0 ) 
+		uiCurrSize += 4 - (uiCurrSize % 4);
 
-	      ucpCurrOutData += iCurrSize;
-	      iOutDataSize += iCurrSize;
+	      ucpCurrOutData += uiCurrSize;
+	      uiOutDataSize += uiCurrSize;
 	      spCurrBuffNodeData->spDest = spRtxDest;
 	      spCurrBuffNodeData->iNumTxs++;
 	      spCurrBuffNodeData->eMarkedForRtx = FALSE;
@@ -525,10 +521,10 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
 	      /* the chunk is now outstanding on the alternate destination
 	       */
-	      spCurrBuffNodeData->spDest->iOutstandingBytes
+	      spCurrBuffNodeData->spDest->uiOutstandingBytes
 		+= spCurrChunk->sHdr.usLength;
-	      DBG_PL(RtxMarkedChunks, "spDest->iOutstandingBytes=%d"), 
-		spCurrBuffNodeData->spDest->iOutstandingBytes DBG_PR;
+	      DBG_PL(RtxMarkedChunks, "spDest->uiOutstandingBytes=%d"), 
+		spCurrBuffNodeData->spDest->uiOutstandingBytes DBG_PR;
 
 	      DBG_PL(RtxMarkedChunks, "TSN=%d"), spCurrChunk->uiTsn DBG_PR;
 	    }
@@ -543,7 +539,7 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 		   * chunks on this destination, we need to restart timer
 		   * for those.
 		   */
-		  if(spCurrBuffNodeData->spDest->iOutstandingBytes > 0)
+		  if(spCurrBuffNodeData->spDest->uiOutstandingBytes > 0)
 		    StartT3RtxTimer(spCurrBuffNodeData->spDest);
 		  else
 		    StopT3RtxTimer(spCurrBuffNodeData->spDest);
@@ -553,13 +549,13 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
       /* Transmit the packet now...
        */
-      if(iOutDataSize > 0)
+      if(uiOutDataSize > 0)
 	{
-	  SendPacket(ucpOutData, iOutDataSize, spRtxDest);
+	  SendPacket(ucpOutData, uiOutDataSize, spRtxDest);
 	  if(spRtxDest->eRtxTimerIsRunning == FALSE)
 	    StartT3RtxTimer(spRtxDest);
 	  iNumPacketsSent++;	  
-	  iOutDataSize = 0; // reset
+	  uiOutDataSize = 0; // reset
 	  ucpCurrOutData = ucpOutData; // reset
 	  memset(ucpOutData, 0, uiMaxPayloadSize); // reset
 
@@ -579,7 +575,7 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
       if(spCurrBuffNodeData->eMarkedForRtx == TRUE)
 	{
 	  spCurrChunk = spCurrBuffNodeData->spChunk;
-	  spCurrBuffNodeData->spDest->iOutstandingBytes
+	  spCurrBuffNodeData->spDest->uiOutstandingBytes
 	    += spCurrChunk->sHdr.usLength;
 	}
     }
@@ -715,7 +711,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		    spCurrNodeData->spChunk->uiTsn DBG_PR;
 		  spCurrNodeData->eGapAcked = FALSE;
-		  spCurrNodeData->spDest->iOutstandingBytes 
+		  spCurrNodeData->spDest->uiOutstandingBytes 
 		    += spCurrNodeData->spChunk->sHdr.usLength;
 
 		  /* section 6.3.2.R4 says that we should restart the
@@ -750,7 +746,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 		  if(spCurrNodeData->eAdvancedAcked == FALSE)
 		    {
-		      spCurrNodeData->spDest->iNumNewlyAckedBytes 
+		      spCurrNodeData->spDest->uiNumNewlyAckedBytes 
 			+= spCurrNodeData->spChunk->sHdr.usLength;
 		    }
 
@@ -758,8 +754,8 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		   * congestion avoidance mode, we have a new cum ack, and
 		   * we haven't already incremented it for this sack
 		   */
-		  if(( spCurrNodeData->spDest->iCwnd 
-		       > spCurrNodeData->spDest->iSsthresh) &&
+		  if(( spCurrNodeData->spDest->uiCwnd 
+		       > spCurrNodeData->spDest->uiSsthresh) &&
 		     eNewCumAck == TRUE &&
 		     spCurrNodeData->eAddedToPartialBytesAcked == FALSE)
 		    {
@@ -768,7 +764,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 		      spCurrNodeData->eAddedToPartialBytesAcked = TRUE; // set
 
-		      spCurrNodeData->spDest->iPartialBytesAcked 
+		      spCurrNodeData->spDest->uiPartialBytesAcked 
 			+= spCurrNodeData->spChunk->sHdr.usLength;
 		    }
 
@@ -800,13 +796,13 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		     && spCurrNodeData->spDest->eRtxTimerIsRunning == TRUE)
 		    StopT3RtxTimer(spCurrNodeData->spDest);
 		  
-		  iAssocErrorCount = 0;
+		  uiAssocErrorCount = 0;
 		  
 		  /* trigger trace ONLY if it was previously NOT 0
 		   */
-		  if(spCurrNodeData->spDest->iErrorCount != 0)
+		  if(spCurrNodeData->spDest->uiErrorCount != 0)
 		    {
-		      spCurrNodeData->spDest->iErrorCount = 0; // clear errors
+		      spCurrNodeData->spDest->uiErrorCount = 0; // clear errors
 		      tiErrorCount++;                       // ... and trace it!
 		      spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
 		      if(spCurrNodeData->spDest == spPrimaryDest &&
@@ -851,7 +847,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		    spCurrNodeData->spChunk->uiTsn DBG_PR;
 		  spCurrNodeData->eGapAcked = FALSE;
-		  spCurrNodeData->spDest->iOutstandingBytes 
+		  spCurrNodeData->spDest->uiOutstandingBytes 
 		    += spCurrNodeData->spChunk->sHdr.usLength;
 		  
 		  /* section 6.3.2.R4 says that we should restart the
@@ -889,7 +885,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		     "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		spCurrNodeData->spChunk->uiTsn DBG_PR;
 	      spCurrNodeData->eGapAcked = FALSE;
-	      spCurrNodeData->spDest->iOutstandingBytes 
+	      spCurrNodeData->spDest->uiOutstandingBytes 
 		+= spCurrNodeData->spChunk->sHdr.usLength;
 
 	      /* section 6.3.2.R4 says that we should restart the T3-rtx

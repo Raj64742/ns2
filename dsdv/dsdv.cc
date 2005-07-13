@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.24 2003/11/19 00:43:57 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/dsdv/dsdv.cc,v 1.25 2005/07/13 03:51:24 tomh Exp $
  */
 
 extern "C" {
@@ -1002,7 +1002,6 @@ DSDV_Agent::recv (Packet * p, Handler *)
   hdr_ip *iph = HDR_IP(p);
   hdr_cmn *cmh = HDR_CMN(p);
   int src = Address::instance().get_nodeaddr(iph->saddr());
-  int dst = cmh->next_hop();
   /*
    *  Must be a packet I'm originating...
    */
@@ -1046,7 +1045,7 @@ DSDV_Agent::recv (Packet * p, Handler *)
 	    //else    
 	    processUpdate(p);
     }
-  else if (iph->daddr() == IP_BROADCAST &&
+  else if (iph->daddr() == ((int)IP_BROADCAST) &&
 	   (iph->dport() != ROUTER_PORT)) 
 	  {
 	     if (src == myaddr_) {

@@ -144,7 +144,8 @@ rtqueue::purge()
         Packet *p;
 
         while((p = head_) && HDR_CMN(p)->ts_ < CURRENT_TIME) {
-                Packet *temp = remove_head();     
+                Packet *temp;
+		temp = remove_head();     
                 assert(p == temp);     
                 drop(p, DROP_RTR_QTIMEOUT);
         }

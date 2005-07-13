@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.83 2005/06/13 17:50:42 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.84 2005/07/13 03:51:33 tomh Exp $
  */
 
 #include <packet.h>
@@ -697,6 +697,9 @@ CMUTrace::format_sctp(Packet* p,int offset)
 			
 		case SCTP_CHUNK_HB_ACK:
 			cChunkType = 'B';
+			break;
+		default:
+			assert (false);
 			break;
 		}
     

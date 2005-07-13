@@ -40,7 +40,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-hbAfterRto.cc,v 1.1 2003/08/21 18:29:14 haldar Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-hbAfterRto.cc,v 1.2 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -93,7 +93,6 @@ void HbAfterRtoSctpAgent::Timeout(SctpChunkType_E eChunkType,
     spDest
     DBG_PR;
 
-  SctpHeartbeatChunk_S sHeartbeatChunk;
   double dCurrTime = Scheduler::instance().clock();
 
   DBG_PL(Timeout, "dCurrTime=%f"), dCurrTime DBG_PR;
@@ -104,11 +103,11 @@ void HbAfterRtoSctpAgent::Timeout(SctpChunkType_E eChunkType,
       
       /* section 7.2.3 of rfc2960 (w/ implementor's guide v.02)
        */
-      if(spDest->iCwnd > 1*uiMaxDataSize)
+      if(spDest->uiCwnd > 1*uiMaxDataSize)
 	{
-	  spDest->iSsthresh = MAX(spDest->iCwnd/2, 2*uiMaxDataSize);
-	  spDest->iCwnd = 1*uiMaxDataSize;
-	  spDest->iPartialBytesAcked = 0; // reset
+	  spDest->uiSsthresh = MAX(spDest->uiCwnd/2, 2*uiMaxDataSize);
+	  spDest->uiCwnd = 1*uiMaxDataSize;
+	  spDest->uiPartialBytesAcked = 0; // reset
 	  tiCwnd++; // trigger changes for trace to pick up
 	}
 
@@ -124,12 +123,12 @@ void HbAfterRtoSctpAgent::Timeout(SctpChunkType_E eChunkType,
 
   if(spDest->eStatus == SCTP_DEST_STATUS_ACTIVE)
     {  
-      spDest->iErrorCount++; // @@@ window probe timeouts should not be counted
-      iAssocErrorCount++;
-      DBG_PL(Timeout, "now spDest->iErrorCount=%d iAssocErrorCount=%d"), 
-	spDest->iErrorCount, iAssocErrorCount DBG_PR;
+      spDest->uiErrorCount++; // @@@ window probe timeouts should not be counted
+      uiAssocErrorCount++;
+      DBG_PL(Timeout, "now spDest->uiErrorCount=%d uiAssocErrorCount=%d"), 
+	spDest->uiErrorCount, uiAssocErrorCount DBG_PR;
 
-      if(spDest->iErrorCount > uiPathMaxRetrans) // Path.Max.Retrans exceeded?
+      if(spDest->uiErrorCount > uiPathMaxRetrans) // Path.Max.Retrans exceeded?
 	{
 	  spDest->eStatus = SCTP_DEST_STATUS_INACTIVE;
 	  if(spDest == spNewTxDest)
@@ -140,7 +139,7 @@ void HbAfterRtoSctpAgent::Timeout(SctpChunkType_E eChunkType,
 	    }
 	}
       tiErrorCount++;       // trace it!
-      if(iAssocErrorCount > uiAssociationMaxRetrans)
+      if(uiAssocErrorCount > uiAssociationMaxRetrans)
 	{
 	  /* abruptly close the association!  (section 8.1)
 	   */

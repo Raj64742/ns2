@@ -366,7 +366,7 @@ void PgmReceiver::handle_spm(Packet *pkt)
   else {
 
     // Check that the TSI is correct.
-    if (!(hp->tsi_ == tsi_)) {
+    if (!(hp->tsi_.isEqual (tsi_))) {
       printf("%s Received SPM with incorrect TSI, discarding.\n", uname_);
       return;
     }
@@ -393,7 +393,7 @@ void PgmReceiver::handle_odata(Packet *pkt)
   hdr_pgm *hp = HDR_PGM(pkt);
 
   // Check that the TSI is correct.
-  if ( (have_tsi_state_ == true) && !(hp->tsi_ == tsi_) ) {
+  if ( (have_tsi_state_ == true) && !(hp->tsi_.isEqual (tsi_)) ) {
     printf("PGM Receiver received ODATA with incorrect TSI, discarding.\n");
     return;
   }
@@ -429,7 +429,7 @@ void PgmReceiver::handle_rdata(Packet *pkt)
   hdr_pgm *hp = HDR_PGM(pkt);
 
   // Check that the TSI is correct.
-  if ( (have_tsi_state_ == true) && !(hp->tsi_ == tsi_) ) {
+  if ( (have_tsi_state_ == true) && !(hp->tsi_.isEqual (tsi_)) ) {
     printf("%s received RDATA with incorrect TSI, discarding.\n", uname_);
     return;
   }
@@ -453,7 +453,7 @@ void PgmReceiver::handle_nak(Packet *pkt)
   hdr_pgm *hp = HDR_PGM(pkt);
 
   // Check that the TSI is correct.
-  if ( (have_tsi_state_ == true) && !(hp->tsi_ == tsi_) ) {
+  if ( (have_tsi_state_ == true) && !(hp->tsi_.isEqual (tsi_)) ) {
     printf("%s received NAK with incorrect TSI, discarding.\n", uname_);
     return;
   }
@@ -501,11 +501,10 @@ void PgmReceiver::handle_nak(Packet *pkt)
 
 void PgmReceiver::handle_ncf(Packet *pkt)
 {
-  hdr_cmn *hc = HDR_CMN(pkt);
   hdr_pgm *hp = HDR_PGM(pkt);
 
   // Check that the TSI is correct.
-  if ( (have_tsi_state_ == true) && !(hp->tsi_ == tsi_) ) {
+  if ( (have_tsi_state_ == true) && !(hp->tsi_.isEqual (tsi_)) ) {
     printf("%s received NCF with incorrect TSI, discarding.\n", uname_);
     return;
   }

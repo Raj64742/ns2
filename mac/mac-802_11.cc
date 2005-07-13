@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.47 2004/04/02 01:00:25 xuanc Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.48 2005/07/13 03:51:25 tomh Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -102,7 +102,6 @@ Mac802_11::transmit(Packet *p, double timeout)
 	 * and hence, must be discarded.
 	 */
 	if(rx_state_ != MAC_IDLE) {
-		struct hdr_mac802_11 *dh = HDR_MAC802_11(p);		
 		assert(dh->dh_fc.fc_type == MAC_Type_Control);
 		assert(dh->dh_fc.fc_subtype == MAC_Subtype_ACK);
 		assert(pktRx_);
@@ -268,7 +267,6 @@ void Mac802_11::trace_event(char *eventtype, Packet *p)
         char *wrk = et_->buffer();
         char *nwrk = et_->nbuffer();
 	
-        hdr_ip *iph = hdr_ip::access(p);
         //char *src_nodeaddr =
 	//       Address::instance().print_nodeaddr(iph->saddr());
         //char *dst_nodeaddr =
@@ -348,7 +346,7 @@ Mac802_11::hdr_dst(char* hdr, int dst )
 	struct hdr_mac802_11 *dh = (struct hdr_mac802_11*) hdr;
 	
        if (dst > -2) {
-               if ((bss_id() == IBSS_ID) || (addr() == bss_id())) {
+               if ((bss_id() == ((int)IBSS_ID)) || (addr() == bss_id())) {
                        /* if I'm AP (2nd condition above!), the dh_3a
                         * is already set by the MAC whilst fwding; if
                         * locally originated pkt, it might make sense
@@ -1534,7 +1532,7 @@ Mac802_11::recvDATA(Packet *p)
 	 * LL to be added back to my queue - accomplish this
 	 * by reversing the direction!*/
 
-	if ((bss_id() == addr()) && ((u_int32_t)ETHER_ADDR(dh->dh_ra)!= MAC_BROADCAST)&& ((u_int32_t)ETHER_ADDR(dh->dh_3a) != addr())) {
+	if ((bss_id() == addr()) && ((u_int32_t)ETHER_ADDR(dh->dh_ra)!= MAC_BROADCAST)&& ((u_int32_t)ETHER_ADDR(dh->dh_3a) != ((u_int32_t)addr()))) {
 		struct hdr_cmn *ch = HDR_CMN(p);
 		u_int32_t dst = ETHER_ADDR(dh->dh_3a);
 		u_int32_t src = ETHER_ADDR(dh->dh_ta);
@@ -1558,8 +1556,6 @@ Mac802_11::recvDATA(Packet *p)
 void
 Mac802_11::recvACK(Packet *p)
 {	
-	struct hdr_cmn *ch = HDR_CMN(p);
-
 	if(tx_state_ != MAC_SEND) {
 		discard(p, DROP_MAC_INVALID_STATE);
 		return;

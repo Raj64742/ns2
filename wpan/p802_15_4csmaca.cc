@@ -13,7 +13,7 @@
 // File:  p802_15_4csmaca.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4csmaca.cc,v 1.1 2005/01/24 18:34:24 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4csmaca.cc,v 1.2 2005/07/13 03:51:33 tomh Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -149,7 +149,6 @@ bool CsmaCA802_15_4::canProceed(double wtime, bool afterCCA)
 {
 	//check if can proceed within the current superframe
 	//(in the case the node acts as both a coordinator and a device, both the superframes from and to this node should be taken into account)
-	hdr_cmn *ch = HDR_CMN(txPkt);	//for debug
 	bool ok;
 	UINT_16 t_bPeriods,t_CAP;
 	double t_fCAP,t_CCATime,t_IFS,t_transacTime,bcnOtherTime,BI2;

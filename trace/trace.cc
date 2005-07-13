@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.80 2004/06/16 17:53:05 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/trace.cc,v 1.81 2005/07/13 03:51:33 tomh Exp $ (LBL)
  */
 
 #include <stdio.h>
@@ -291,7 +291,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 		double timestamp;
 		timestamp = Scheduler::instance().clock();
 		
-		for(int i = 0; i < sctph->NumChunks(); i++) {
+		for(unsigned int i = 0; i < sctph->NumChunks(); i++) {
 			switch(sctph->SctpTrace()[i].eType) {
 			case SCTP_CHUNK_INIT:
 			case SCTP_CHUNK_INIT_ACK:
@@ -319,6 +319,8 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			case SCTP_CHUNK_HB_ACK:
 				flags[7] = 'B';
 				break;
+			default:
+				assert (false);
 			}
 			sprintf(pt_->buffer(),
 				"%c "TIME_FORMAT" %d %d %s %d %s %d %s.%s %s.%s %d %d %d %d %d",
@@ -344,6 +346,7 @@ void Trace::format(int tt, int s, int d, Packet* p)
 			 * but since SCTP needs to dump once per chunk, we
 			 * call dump ourselves for all but the last chunk.
 			 */
+			assert (sctph->NumChunks() >= 1);
 			if(i < sctph->NumChunks() - 1)
 				pt_->dump();
 		}

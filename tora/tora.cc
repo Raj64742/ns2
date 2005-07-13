@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora.cc,v 1.14 2002/03/18 17:32:36 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora.cc,v 1.15 2005/07/13 03:51:33 tomh Exp $
  */
 
 #include <agent.h>
@@ -307,7 +307,6 @@ toraAgent::recv(Packet *p, Handler *)
 void
 toraAgent::recvTORA(Packet *p)
 {
-	struct hdr_ip *ih = HDR_IP(p);
 	struct hdr_tora *th = HDR_TORA(p);
 	TORADest *td;
 	TORANeighbor *tn;

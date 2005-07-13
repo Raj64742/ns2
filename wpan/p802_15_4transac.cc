@@ -13,7 +13,7 @@
 // File:  p802_15_4transac.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4transac.cc,v 1.1 2005/01/24 18:34:25 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4transac.cc,v 1.2 2005/07/13 03:51:34 tomh Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -165,7 +165,6 @@ void dumpDeviceLink(DEVICELINK *deviceLink1, IE3ADDR coorAddr)
 {
 	DEVICELINK *tmp;
 	int i;
-	char tmpstr[81];
 
 	fprintf(stdout, "[%.2f] --- dump associated device list (by coordinator %d) ---\n", Scheduler::instance().clock(), coorAddr);
 	tmp = deviceLink1;
@@ -267,7 +266,7 @@ Packet *getPktFrTransacLink(TRANSACLINK **transacLink1, UINT_8 pendAM, IE3ADDR p
 int updateTransacLink(int oper, TRANSACLINK **transacLink1, TRANSACLINK **transacLink2, UINT_8 pendAM, IE3ADDR pendAddr)
 {
 	TRANSACLINK *tmp;
-	int i, rt;
+	int rt;
 
 	//purge first if (oper == tr_oper_est)
 	if (oper == tr_oper_est)
@@ -337,8 +336,8 @@ int updateTransacLink(int oper, TRANSACLINK **transacLink1, TRANSACLINK **transa
 int updateTransacLinkByPktOrHandle(int oper, TRANSACLINK **transacLink1, TRANSACLINK **transacLink2, Packet *pkt, UINT_8 msduH)
 {
 	TRANSACLINK *tmp;
-	int i, rt;
-
+	int rt;
+	
 	//purge first if (oper == tr_oper_est)
 	if (oper == tr_oper_est)
 		purgeTransacLink(transacLink1,transacLink2);

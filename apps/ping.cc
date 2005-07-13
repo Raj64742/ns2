@@ -22,7 +22,7 @@
 // Other copyrights might apply to parts of this software and are so
 // noted when applicable.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/ping.cc,v 1.6 2003/09/02 22:07:20 sfloyd Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/ping.cc,v 1.7 2005/07/13 03:51:23 tomh Exp $
 
 /*
  * File: Code for a new 'Ping' Agent Class for the ns
@@ -127,7 +127,6 @@ void PingAgent::recv(Packet* pkt, Handler*)
       Packet* pktret = allocpkt();
 
       hdr_ping* hdrret = hdr_ping::access(pktret);
-      hdr_cmn* ch = HDR_CMN(pktret);
       hdr_ip* ipret = hdr_ip::access(pktret);
       
       hdrret->ret = 1;

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.13 2003/08/21 18:22:01 haldar Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.14 2005/07/13 03:51:27 tomh Exp $";
 #endif
 
 #include <stdio.h>
@@ -167,7 +167,7 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 	   double timestamp;
 	   timestamp = Scheduler::instance().clock();
 	   
-	   for(int i = 0; i < sctph->NumChunks(); i++) {
+	   for(unsigned int i = 0; i < sctph->NumChunks(); i++) {
 		   switch(sctph->SctpTrace()[i].eType) {
 			case SCTP_CHUNK_INIT:
 			case SCTP_CHUNK_INIT_ACK:
@@ -194,6 +194,9 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 
 			case SCTP_CHUNK_HB_ACK:
 				flags[7] = 'B';
+				break;
+		        default:
+				assert (false);
 				break;
 			}
 		   sprintf(pt_->buffer(), "%c %.4f %d %d %s %d %s %d %s.%s %s.%s %d %d %d %d %d %.2f %.2f %.2f %.2f",

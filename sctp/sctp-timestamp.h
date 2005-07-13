@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-timestamp.h,v 1.1 2003/08/21 18:29:14 haldar Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-timestamp.h,v 1.2 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)
  */
 
 /* Timestamp extension adds a TIMESTAMP chunk into every packet with DATA
@@ -74,7 +74,7 @@ protected:
 
   /* chunk generation functions
    */
-  virtual int        BundleControlChunks(u_char *);
+  virtual u_int        BundleControlChunks(u_char *);
 
   /* sending functions
    */

@@ -142,7 +142,7 @@ class LmsNak {
 	int		fid_;
 };
 
-LmsNak::LmsNak(LmsReceiver *a, int lo, int hi): a_(a), lo_(lo), hi_(hi), nak_timer_(this)
+LmsNak::LmsNak(LmsReceiver *a, int lo, int hi): nak_timer_(this), lo_(lo), hi_(hi), a_(a)
 {
 	seqn_ = 0;
 }
@@ -208,7 +208,6 @@ void LmsReceiver::send_nak (int sqn, int lo, int hi)
 	ch->size_ = sizeof(struct lms_nak) + sizeof(hdr_lms); 
 	iph->daddr() = upstream_lms_;
 	iph->flowid() = 8;
-	double now= Scheduler::instance().clock();
 #ifdef LMS_DEBUG
 printf("at %f %s send nak to upstream lms %d, size is %d\n\n",
   now,uname_, upstream_lms_, (HDR_CMN(p))->size_);
@@ -408,7 +407,6 @@ printf ("%s LMS_SETUP from %d:%d src %d:%d group 0x%x RTT %f dataSize %d\n\n",
 		case LMS_SPM:
 			{
 			struct lms_spm *spm = (struct lms_spm *)pkt->accessdata ();
-			nsaddr_t adr = spm->spm_path_;
 #ifdef LMS_DEBUG    
 printf ("%s LMS_SPM seqno %d, upstream %d:%d\n\n",
   uname_, spm->spm_seqno_, adr>>8, adr&0xff);
@@ -696,6 +694,7 @@ LmsNak *LmsReceiver::find_nak (int i)
 	// NOT REACHED
 	printf("ERROR: %s nak %d not found\n", uname_, i);
 	abort ();
+	return 0;
 }
 
 void LmsReceiver::delete_nak (LmsNak *n)

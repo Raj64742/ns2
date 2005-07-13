@@ -31,11 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.25 2002/01/25 20:25:39 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.26 2005/07/13 03:51:26 tomh Exp $
  */
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "address.h"
 #include "route.h"
 
@@ -273,8 +274,9 @@ int Address::str2addr(const char *str) const
 		int tmp = atoi(str);		
 		if (tmp < 0)     
 			return (tmp);
-		if (tmp > ((unsigned long)(1 << bpl_[1])) ) {
-			fprintf(stderr, "Error!!\nstr2addr:Address %d outside range of address field length %d\n", tmp, ((unsigned long)(1<< bpl_[1])));
+		u_int uitmp = (u_int) tmp;
+		if (uitmp > ((unsigned long)(1 << bpl_[1])) ) {
+			fprintf(stderr, "Error!!\nstr2addr:Address %u outside range of address field length %d\n", uitmp, ((unsigned long)(1<< bpl_[1])));
 			exit(1);
 		}
 		return tmp;
@@ -291,7 +293,8 @@ int Address::str2addr(const char *str) const
 	
 	RouteLogic::ns_strtok((char*)str, istr);
 	for (int i = 0; i < levels_; i++) {
-		if (--istr[i] > ((unsigned long)(1 << bpl_[i+1])) ) {
+		assert (istr[i] - 1 >= 0);
+		if (((unsigned long)--istr[i]) > ((unsigned long)(1 << bpl_[i+1])) ) {
 			fprintf(stderr, "Error!!\nstr2addr:Address %d outside range of address field length %d\n", istr[i], ((unsigned long)(1<< bpl_[i+1])));
 			exit(1);
 		}

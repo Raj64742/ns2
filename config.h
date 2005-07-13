@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.52 2002/05/22 18:57:09 johnh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.53 2005/07/13 03:51:22 tomh Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -81,13 +81,8 @@ struct ns_addr_t {
 	int32_t addr_;
 	int32_t port_;
 #ifdef __cplusplus
-	ns_addr_t& operator= (const ns_addr_t& n) {
-		addr_ = n.addr_;
-		port_ = n.port_;
-		return (*this);
-	}
-	int operator== (const ns_addr_t& n) {
-		return ((addr_ == n.addr_) && (port_ == n.port_));
+	bool isEqual (ns_addr_t const &o) {
+		return ((addr_ == o.addr_) && (port_ == o.port_))?true:false;
 	}
 #endif // __cplusplus
 };
