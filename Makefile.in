@@ -52,7 +52,7 @@ PERL	= @PERL@
 # for diffusion
 #DIFF_INCLUDES = "./diffusion3/main ./diffusion3/lib ./diffusion3/nr ./diffusion3/ns"
 
-CCOPT	= @V_CCOPT@ -Wall -Werror
+CCOPT	= @V_CCOPT@ 
 STATIC	= @V_STATIC@
 LDFLAGS	= $(STATIC)
 LDOUT	= -o $(BLANK)
