@@ -35,11 +35,13 @@
 
 /* -*- c++ -*-
    tora_neighbor.h
-   $Id: tora_neighbor.h,v 1.2 1999/08/12 21:12:36 yaxu Exp $
+   $Id: tora_neighbor.h,v 1.3 2005/07/27 01:13:45 tomh Exp $
   
    */
 #ifndef __tora_neighbor_h__
 #define __tora_neighbor_h__
+
+class toraAgent;
 
 enum LinkStatus {
 	LINK_UP = 0x0001,	// upstream

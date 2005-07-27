@@ -30,7 +30,7 @@
 // Author:
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.h,v 1.5 1999/09/24 23:44:45 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/utilities.h,v 1.6 2005/07/27 01:13:44 tomh Exp $
 
 #ifndef UTILITIES_H
 #define UTILITIES_H
@@ -62,6 +62,8 @@ class DoubleListElem {
 public:
 	DoubleListElem() : prev_(0), next_(0) {}
 
+	virtual ~DoubleListElem () {}
+
 	DoubleListElem* next() const { return next_; }
 	DoubleListElem* prev() const { return prev_; }
 
@@ -92,6 +94,7 @@ private:
 class DoubleList {
 public:
 	DoubleList() : head_(0), tail_(0) {}
+	virtual ~DoubleList() {}
 	virtual void destroy();
 	DoubleListElem* head() { return head_; }
 	DoubleListElem* tail() { return tail_; }

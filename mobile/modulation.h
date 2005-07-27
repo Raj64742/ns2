@@ -49,6 +49,7 @@
 class Modulation {
 
 public:
+	virtual ~Modulation () {}
 	virtual int BitError(double) = 0;	// success reception?
 
 protected:
@@ -68,6 +69,8 @@ class BPSK : public Modulation {
 public:
 	BPSK(void);
 	BPSK(int);
+
+	virtual ~BPSK () {}
 
 	virtual int BitError(double Pr);
 

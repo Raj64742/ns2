@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.24 2005/04/26 18:56:36 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.h,v 1.25 2005/07/27 01:13:45 tomh Exp $
  */
 
 /* Ported from CMU/Monarch's code, nov'98 -Padma.*/
@@ -43,7 +43,7 @@
 #include "god.h"
 
 #ifndef __PRETTY_FUNCTION__
-#define __PRETTY_FUNCTION__ ((const char *) 0)
+#define __PRETTY_FUNCTION__ ("")
 #endif /* !__PRETTY_FUNCTION__ */
 
 /* ======================================================================

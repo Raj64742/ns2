@@ -33,7 +33,7 @@
  *
  * Contributed by Giao Nguyen, http://daedalus.cs.berkeley.edu/~gnguyen
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.35 2000/12/20 10:11:36 alefiyah Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac.h,v 1.36 2005/07/27 01:13:44 tomh Exp $ (UCB)
  */
 
 #ifndef ns_mac_h
@@ -141,6 +141,7 @@ struct hdr_mac {
 
 class Tap {
 public:
+	virtual ~Tap () {}
 	virtual void tap(const Packet *p) = 0;
 	// tap is given all packets received by the host.
 	// it must not alter or free the pkt.  If you want to frob it, copy it.

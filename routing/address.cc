@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.26 2005/07/13 03:51:26 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/address.cc,v 1.27 2005/07/27 01:13:44 tomh Exp $
  */
 
 #include <stdio.h>
@@ -276,7 +276,8 @@ int Address::str2addr(const char *str) const
 			return (tmp);
 		u_int uitmp = (u_int) tmp;
 		if (uitmp > ((unsigned long)(1 << bpl_[1])) ) {
-			fprintf(stderr, "Error!!\nstr2addr:Address %u outside range of address field length %d\n", uitmp, ((unsigned long)(1<< bpl_[1])));
+			fprintf(stderr, "Error!!\nstr2addr:Address %u outside range of address field length %lu\n", 
+				uitmp, ((unsigned long)(1<< bpl_[1])));
 			exit(1);
 		}
 		return tmp;
@@ -295,7 +296,8 @@ int Address::str2addr(const char *str) const
 	for (int i = 0; i < levels_; i++) {
 		assert (istr[i] - 1 >= 0);
 		if (((unsigned long)--istr[i]) > ((unsigned long)(1 << bpl_[i+1])) ) {
-			fprintf(stderr, "Error!!\nstr2addr:Address %d outside range of address field length %d\n", istr[i], ((unsigned long)(1<< bpl_[i+1])));
+			fprintf(stderr, "Error!!\nstr2addr:Address %d outside range of address field length %lu\n", 
+				istr[i], ((unsigned long)(1<< bpl_[i+1])));
 			exit(1);
 		}
 		addr = set_word_field(addr, istr[i],

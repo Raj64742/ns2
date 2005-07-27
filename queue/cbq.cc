@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.27 2000/09/01 03:04:05 haoboy Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/cbq.cc,v 1.28 2005/07/27 01:13:44 tomh Exp $ (LBL)";
 #endif
 
 
@@ -86,6 +86,8 @@ static const char rcsid[] =
 #define	MAXLEVEL	32	/* max depth of link-share tree(s) */
 #define	LEAF_LEVEL	1	/* level# for leaves */
 #define	POWEROFTWO	16
+
+class CBQueue;
 
 class CBQClass : public Connector {
 public:

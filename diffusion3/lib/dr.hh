@@ -3,7 +3,7 @@
 // authors         : John Heidemann and Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: dr.hh,v 1.15 2004/01/08 23:05:53 haldar Exp $
+// $Id: dr.hh,v 1.16 2005/07/27 01:13:42 tomh Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -68,6 +68,7 @@ typedef list<CallbackEntry *> CallbackList;
 
 class TimerCallbacks {
 public:
+  virtual ~TimerCallbacks () {}
   virtual int expire(handle hdl, void *p) = 0;
   virtual void del(void *p) = 0;
 };

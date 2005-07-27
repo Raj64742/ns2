@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.26 2002/08/02 01:35:20 yuri Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.h,v 1.27 2005/07/27 01:13:42 tomh Exp $ (LBL)
  */
 
 #ifndef ns_scheduler_h
@@ -70,6 +70,7 @@ public:
  */
 class Handler {
  public:
+	virtual ~Handler () {}
 	virtual void handle(Event* event) = 0;
 };
 

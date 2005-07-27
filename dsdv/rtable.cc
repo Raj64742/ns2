@@ -98,8 +98,10 @@ RoutingTable::AddEntry(const rtable_ent &ent)
   
   //if (elts) {
   int i = elts-1;
-  while (i >= max) 
-	  rtab[i+1] = rtab[i--];
+  while (i >= max) {
+	  rtab[i+1] = rtab[i];
+	  i--;
+  }
   //}
   bcopy(&ent, &rtab[max], sizeof(rtable_ent));
   elts++;

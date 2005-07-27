@@ -18,7 +18,7 @@
  * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
  * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.7 2005/02/03 18:27:12 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcpq.h,v 1.8 2005/07/27 01:13:46 tomh Exp $
  */
 
 
@@ -53,6 +53,7 @@ class XCPQueue : public DropTail {
 	friend class XCPTimer;
 public:
 	XCPQueue();
+	virtual ~XCPQueue() {}
 	void Tq_timeout ();  // timeout every propagation delay 
 	void Te_timeout ();  // timeout every avg. rtt
 	void everyRTT();     // timeout every highest rtt seen by rtr or some

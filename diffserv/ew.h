@@ -175,7 +175,7 @@ class TBrateLimitor {
 class EWdetector {
  public:
   EWdetector();
-  //virtual ~EWdetector() = 0;
+  virtual ~EWdetector() {}
 
   // Enable detecting and debugging rate (eg: pkt or bit rate)
   void setDb(int);

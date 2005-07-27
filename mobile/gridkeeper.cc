@@ -233,7 +233,8 @@ int GridKeeper::get_neighbors(MobileNode* mn, MobileNode **output)
   grid_x = aligngrid((int)mn->X(), dim_x_);
   grid_y = aligngrid((int)mn->Y(), dim_y_);
 
-  sqmnr = (mnr = mn->radius())*mnr;
+  mnr = mn->radius();
+  sqmnr = mnr * mnr;
 
   adj = (int)ceil(mnr);
 

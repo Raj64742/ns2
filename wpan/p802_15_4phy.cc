@@ -13,7 +13,7 @@
 // File:  p802_15_4phy.cc
 // Mode:  C++; c-basic-offset:8; tab-width:8; indent-tabs-mode:t
 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4phy.cc,v 1.2 2005/07/13 03:51:33 tomh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/wpan/p802_15_4phy.cc,v 1.3 2005/07/27 01:13:46 tomh Exp $
 
 /*
  * Copyright (c) 2003-2004 Samsung Advanced Institute of Technology and
@@ -201,7 +201,7 @@ void Phy802_15_4::PD_DATA_request(UINT_8 psduLength,Packet *psdu)
 	//check packet length
 	if (psduLength > aMaxPHYPacketSize)
 	{
-		fprintf(stdout,"[%s::%s][%f](node %d) Invalid PSDU/MPDU length: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %ld, size = %d\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,wpan_pName(psdu),p802_15_4macSA(psdu),p802_15_4macDA(psdu),ch->uid(),HDR_LRWPAN(psdu)->uid,ch->size());
+		fprintf(stdout,"[%s::%s][%f](node %d) Invalid PSDU/MPDU length: type = %s, src = %d, dst = %d, uid = %d, mac_uid = %u, size = %d\n",__FILE__,__FUNCTION__,CURRENT_TIME,index_,wpan_pName(psdu),p802_15_4macSA(psdu),p802_15_4macDA(psdu),ch->uid(),HDR_LRWPAN(psdu)->uid,ch->size());
 		Packet::free(psdu);
 		mac->PD_DATA_confirm(p_UNDEFINED);
 		return;

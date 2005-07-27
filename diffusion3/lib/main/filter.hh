@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: filter.hh,v 1.7 2003/07/09 17:50:02 haldar Exp $
+// $Id: filter.hh,v 1.8 2005/07/27 01:13:43 tomh Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -96,6 +96,7 @@ public:
 
 class FilterCallback {
 public:
+  virtual ~FilterCallback () {}
   virtual void recv(Message *msg, handle h) = 0;
 };
 

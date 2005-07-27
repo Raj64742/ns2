@@ -34,7 +34,7 @@
 //  be used to endorse or promote products derived from this software 
 //  without specific prior written permission.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.6 2004/12/10 22:07:13 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/linkstate/ls.h,v 1.7 2005/07/27 01:13:43 tomh Exp $
 
 #ifndef ns_ls_h
 #define ns_ls_h
@@ -519,6 +519,7 @@ inline void LsRetransTimer::expire(Event *e)
 */
 class LsNode {
 public:
+        virtual ~LsNode () {}
 	virtual bool sendMessage(int destId, u_int32_t msgId, 
 				  int msgsz = LS_DEFAULT_MESSAGE_SIZE) = 0;
 	virtual void receiveMessage(int sender, u_int32_t msgId) = 0;

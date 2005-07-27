@@ -4,7 +4,7 @@
 // authors       : Fabio Silva
 // 
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: nr.hh,v 1.11 2005/02/07 20:57:04 haldar Exp $
+// $Id: nr.hh,v 1.12 2005/07/27 01:13:43 tomh Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -346,8 +346,11 @@ class NR {
 public:
   typedef long handle;
 
+  virtual ~NR () {}
+
   class Callback {
   public:
+    virtual ~Callback () {}
     virtual void recv(NRAttrVec *data, handle h) = 0;
   };
 

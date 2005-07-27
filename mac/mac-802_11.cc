@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.48 2005/07/13 03:51:25 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.49 2005/07/27 01:13:43 tomh Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -102,8 +102,8 @@ Mac802_11::transmit(Packet *p, double timeout)
 	 * and hence, must be discarded.
 	 */
 	if(rx_state_ != MAC_IDLE) {
-		assert(dh->dh_fc.fc_type == MAC_Type_Control);
-		assert(dh->dh_fc.fc_subtype == MAC_Subtype_ACK);
+		//assert(dh->dh_fc.fc_type == MAC_Type_Control);
+		//assert(dh->dh_fc.fc_subtype == MAC_Subtype_ACK);
 		assert(pktRx_);
 		struct hdr_cmn *ch = HDR_CMN(pktRx_);
 		ch->error() = 1;        /* force packet discard */

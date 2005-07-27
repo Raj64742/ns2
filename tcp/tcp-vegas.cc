@@ -29,7 +29,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.35 2000/12/14 05:05:21 xuanc Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-vegas.cc,v 1.36 2005/07/27 01:13:45 tomh Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -275,9 +275,9 @@ VegasTcpAgent::recv(Packet *pkt, Handler *)
 		double sendTime = v_sendtime_[tcph->seqno()%v_maxwnd_];
 		int transmits = v_transmits_[tcph->seqno()% v_maxwnd_];
 		int range = tcph->seqno() - oldack;
-		for(int k=((oldack+1) %v_maxwnd_); \
-			k<=(tcph->seqno()%v_maxwnd_) && range >0 ; \
-			k=((++k) % v_maxwnd_), range--) {
+		for(int k=((oldack+1) %v_maxwnd_); 
+			k<=(tcph->seqno()%v_maxwnd_) && range >0 ; 
+			k=((k+1) % v_maxwnd_), range--) {
 			v_sendtime_[k] = -1.0;
 			v_transmits_[k] = 0;
 		}

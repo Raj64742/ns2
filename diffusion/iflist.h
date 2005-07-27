@@ -100,6 +100,8 @@ public:
     agent_addr.addr_=0;
     agent_addr.port_=0;
   }
+
+  virtual ~Agent_List () {}
   
   void InsertFront(Agent_List **, Agent_List *);
   void Remove(Agent_List **, Agent_List *);
@@ -117,6 +119,8 @@ public:
   bool  is_sink;
 
   From_List() : Agent_List() { rank = 0; is_sink = false; }
+
+  virtual ~From_List () {}
 };
 
 
@@ -132,6 +136,7 @@ public:
 
   Out_List() : From_List() { gradient = 0; from=0.0; to=0.0; num_data_send=0; 
                              timeout = 0.0; num_neg_recv = 0; num_pos_recv=0;}
+  virtual ~Out_List () {}
 
   Out_List *WhereToGo();
   void CalRange();
@@ -176,6 +181,8 @@ public:
 
     last_ts_new_sub = -1.0;
   }
+
+  virtual ~In_List () {}
 
   In_List *FindMaxIn();
 };

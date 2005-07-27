@@ -33,7 +33,7 @@
  *
  * Ported from CMU/Monarch's code
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora.cc,v 1.15 2005/07/13 03:51:33 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tora/tora.cc,v 1.16 2005/07/27 01:13:45 tomh Exp $
  */
 
 #include <agent.h>
@@ -182,7 +182,7 @@ toraAgent::dst_dump()
 {
 	TORADest *td = dstlist.lh_first;
 
-	for( ; td; td = td = td->link.le_next)
+	for( ; td; td = td->link.le_next)
 		td->dump();
 }
 

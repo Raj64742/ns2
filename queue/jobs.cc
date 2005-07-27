@@ -46,7 +46,7 @@
  * Grateful acknowledgments to Tarek Abdelzaher for his help and       
  * comments.                                                           
  *                                                                     
- * $Id: jobs.cc,v 1.2 2003/02/04 20:45:55 xuanc Exp $                   
+ * $Id: jobs.cc,v 1.3 2005/07/27 01:13:44 tomh Exp $                   
  * 							              
  */
 
@@ -313,7 +313,7 @@ int JoBS::command(int argc, const char*const* argv) {
 		if (strcmp(argv[1], "copyright-info") == 0) {
 			fprintf(stdout, "\n----------------------------------------------------------\n\n");
 			fprintf(stdout, "JoBS scheduler/dropper [prototype ns-2 implementation]\n");
-			fprintf(stdout, "Version 1.0 (CVS Revision: $Id: jobs.cc,v 1.2 2003/02/04 20:45:55 xuanc Exp $)\n\n");
+			fprintf(stdout, "Version 1.0 (CVS Revision: $Id: jobs.cc,v 1.3 2005/07/27 01:13:44 tomh Exp $)\n\n");
 			fprintf(stdout, "ns-2 implementation by Nicolas Christin <nicolas@cs.virginia.edu>\n");
 			fprintf(stdout, "JoBS algorithms proposed by Nicolas Christin and Jorg Liebeherr.\n");
 			fprintf(stdout, "Grateful acknowledgments to Tarek Abdelzaher for his help and comments.\n");
@@ -672,7 +672,7 @@ double* JoBS::adjustRatesRDC() {
 double* JoBS::assignRateDropsADC() {
 	double* x;
 	//double myRatios[NO_CLASSES+1];
-	double c[NO_CLASSES+1], n[NO_CLASSES];
+	double c[NO_CLASSES+1], n[NO_CLASSES+1];
 	double k[NO_CLASSES+1], target[NO_CLASSES+1];
 	double available[NO_CLASSES+1];
 	double toDrop;

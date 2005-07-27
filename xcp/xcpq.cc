@@ -33,6 +33,16 @@ public:
 } class_droptail_xcpq;
 
 
+const double XCPQueue::BWIDTH;
+const double XCPQueue::ALPHA_;
+const double XCPQueue::BETA_;
+const double XCPQueue::GAMMA_;
+const double XCPQueue::XCP_MAX_INTERVAL;
+const double XCPQueue::XCP_MIN_INTERVAL;
+const int    XCPQueue::BSIZE;
+
+
+
 XCPQueue::XCPQueue(): queue_timer_(NULL), 
 		      estimation_control_timer_(NULL),
 		      rtt_timer_(NULL), effective_rtt_(0.0),

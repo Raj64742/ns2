@@ -3,7 +3,7 @@
 // authors         : Chalermek Intanagonwiwat and Fabio Silva
 //
 // Copyright (C) 2000-2003 by the University of Southern California
-// $Id: filter_core.hh,v 1.1 2003/07/08 17:55:57 haldar Exp $
+// $Id: filter_core.hh,v 1.2 2005/07/27 01:13:42 tomh Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -99,6 +99,7 @@
 class DiffusionCoreAgent;
 class HashEntry;
 class NeighborEntry;
+class DiffRoutingAgent;
 
 typedef list<NeighborEntry *> NeighborList;
 typedef list<Tcl_HashEntry *> HashList;

@@ -45,6 +45,7 @@
 //container class for rate limiter
 class RateLimiter {
  public:  
+  virtual ~RateLimiter () {}
   virtual int rateLimit(Packet * p, double estRate, double targetRate, 
 			int mine, int lowDemand)=0;
   virtual void reset()=0;
@@ -108,6 +109,7 @@ class TokenBucketRateLimiter: public RateLimiter {
   double total_dropped_;
   
   TokenBucketRateLimiter();
+  virtual ~TokenBucketRateLimiter () {}
   int rateLimit(Packet * p, double estRate, double targetRate, int mine, int lowDemand);
   void reset(); 
 };

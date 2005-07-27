@@ -37,7 +37,7 @@
 #define __dem_h__
 
 #ifndef __PRETTY_FUNCTION__
-#define __PRETTY_FUNCTION__ ((const char *) 0)
+#define __PRETTY_FUNCTION__ ("")
 #endif /* !__PRETTY_FUNCTION__ */
 
 struct ARecord {

@@ -17,7 +17,7 @@
 //
 // Definitions for class PagePool
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.14 1999/11/18 23:14:35 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.15 2005/07/27 01:13:45 tomh Exp $
 
 #ifndef ns_pagepool_h
 #define ns_pagepool_h
@@ -34,6 +34,7 @@ enum WebPageType { HTML, MEDIA };
 class Page {
 public:
 	Page(int size) : size_(size) {}
+	virtual ~Page () {}
 	int size() const { return size_; }
 	int& id() { return id_; }
 	virtual WebPageType type() const = 0; 	// Page type: HTML or MEDIA
