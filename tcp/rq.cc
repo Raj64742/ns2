@@ -1,21 +1,17 @@
 /*
  * Copyright (c) Intel Corporation 2001. All rights reserved.
  *
- * License is granted to copy, to use, and to make and to use derivative
- * works for research and evaluation purposes, provided that Intel is
- * acknowledged in all documentation pertaining to any such copy or
- * derivative work. Intel grants no other licenses expressed or
- * implied. The Intel trade name should not be used in any advertising
- * without its written permission. 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *   http://www.apache.org/licenses/LICENSE-2.0
  *
- * INTEL CORPORATION MAKES NO REPRESENTATIONS CONCERNING EITHER THE
- * MERCHANTABILITY OF THIS SOFTWARE OR THE SUITABILITY OF THIS SOFTWARE
- * FOR ANY PARTICULAR PURPOSE.  The software is provided "as is" without
- * express or implied warranty of any kind.
- *
- * These notices must be retained in any copies of any part of this
- * software. 
- */
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+*/
 
 /*
  * Copyright (c) 1991-1997 Regents of the University of California.
