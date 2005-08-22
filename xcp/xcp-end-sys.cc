@@ -22,7 +22,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.8 2005/06/09 15:10:01 sfloyd Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.9 2005/08/22 05:08:35 tomh Exp $";
 #endif
 
 #include <stdio.h>
@@ -487,7 +487,6 @@ void XcpSink::ack(Packet* opkt)
 {
 	Packet* npkt = allocpkt();
 	double now = Scheduler::instance().clock();
-	hdr_flags *sf;
 
 	hdr_tcp *otcp = hdr_tcp::access(opkt);
 	hdr_tcp *ntcp = hdr_tcp::access(npkt);
@@ -505,21 +504,24 @@ void XcpSink::ack(Packet* opkt)
 
 	hdr_flags* of = hdr_flags::access(opkt);
 	hdr_flags* nf = hdr_flags::access(npkt);
+	hdr_flags *sf;
 	if (save_ != NULL) 
 		sf = hdr_flags::access(save_);
+	else
+		sf = 0;
 	// Look at delayed packet being acked. 
 	if ( (save_ != NULL && sf->cong_action()) || of->cong_action() ) 
 		// Sender has responsed to congestion. 
 		acker_->update_ecn_unacked(0);
-	if ( (save_ != NULL && sf->ect() && sf->ce())  || 
+	if ( (sf != 0 && sf->ect() && sf->ce())  || 
 	     (of->ect() && of->ce()) )
 		// New report of congestion.  
 		acker_->update_ecn_unacked(1);
-	if ( (save_ != NULL && sf->ect()) || of->ect() )
+	if ( (sf != 0 && sf->ect()) || of->ect() )
 		// Set EcnEcho bit.  
 		nf->ecnecho() = acker_->ecn_unacked();
 	if (!of->ect() && of->ecnecho() ||
-	    (save_ != NULL && !sf->ect() && sf->ecnecho()) ) 
+	    (sf != 0 && !sf->ect() && sf->ecnecho()) ) 
 		// This is the negotiation for ECN-capability.
 		// We are not checking for of->cong_action() also. 
 		// In this respect, this does not conform to the 

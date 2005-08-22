@@ -31,12 +31,12 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.72 2005/05/24 22:00:17 haldar Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.73 2005/08/22 05:08:32 tomh Exp $
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.72 2005/05/24 22:00:17 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/scheduler.cc,v 1.73 2005/08/22 05:08:32 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -704,7 +704,7 @@ CalendarScheduler::head()
 	if (qsize_ == 0)
 		return NULL;
 
-	int l, i = lastbucket_;
+	int l = -1, i = lastbucket_;
 	int lastbucket_dec = (lastbucket_) ? lastbucket_ - 1 : nbuckets_ - 1;
 	double diff;
 	Event *e, *min_e = NULL;
@@ -754,6 +754,7 @@ do { 								\
 	 * still want to advance lastbucket_ and cal_clock_ to save
 	 * time when deque() follows. 
 	 */
+	assert (l != -1);
 	lastbucket_ = l;
  	cal_clock_  = e->time_;
 	

@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.352 2005/06/25 01:05:52 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.353 2005/08/22 05:08:35 tomh Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -705,6 +705,8 @@ Antenna/OmniAntenna set Z_ 1.5
 Antenna/OmniAntenna set Gt_ 1.0
 Antenna/OmniAntenna set Gr_ 1.0
 
+Phy set debug_ false
+
 # Initialize the SharedMedia interface with parameters to make
 # it work like the 914MHz Lucent WaveLAN DSSS radio interface
 Phy/WirelessPhy set CPThresh_ 10.0
@@ -714,16 +716,8 @@ Phy/WirelessPhy set bandwidth_ 2e6
 Phy/WirelessPhy set Pt_ 0.28183815
 Phy/WirelessPhy set freq_ 914e+6
 Phy/WirelessPhy set L_ 1.0  
-Phy/WirelessPhy set debug_ false
 
 Phy/WiredPhy set bandwidth_ 10e6
-Phy/WiredPhy set debug_ false
-Phy/Repeater set debug_ false
-LanRouter set debug_ false
-
-Phy/Sat set debug_ false
-Mac/Sat set debug_ false
-LL/Sat set debug_ false
 
 # Shadowing propagation model
 Propagation/Shadowing set pathlossExp_ 2.0

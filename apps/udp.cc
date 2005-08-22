@@ -18,7 +18,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.19 2001/11/16 22:29:59 buchheim Exp $ (Xerox)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/udp.cc,v 1.20 2005/08/22 05:08:32 tomh Exp $ (Xerox)";
 #endif
 
 #include "udp.h"
@@ -53,10 +53,9 @@ void UdpAgent::sendmsg(int nbytes, AppData* data, const char* flags)
 	Packet *p;
 	int n;
 
-	if (size_)
-		n = nbytes / size_;
-	else
-		printf("Error: UDP size = 0\n");
+	assert (size_ > 0);
+
+	n = nbytes / size_;
 
 	if (nbytes == -1) {
 		printf("Error:  sendmsg() for UDP should not be -1\n");

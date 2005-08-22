@@ -65,7 +65,6 @@ DiffPacket LocalApp::recvPacket(int fd) {
 
 void LinkLayerAbs::sendPacket(DiffPacket dp, int len, int dst) {
   Packet *p;
-  Handler *h;
   hdr_cmn *ch;
   hdr_ip *iph;
   Message *msg;
@@ -79,7 +78,7 @@ void LinkLayerAbs::sendPacket(DiffPacket dp, int len, int dst) {
   iph->daddr() = msg->next_hop_;  // Use diffusion next_hop_
   iph->dport() = agent_->port();    //RT_PORT;
   ch->next_hop_ = msg->next_hop_;  // populate nexthop in cmn hdr
-  agent_->send(p, h);
+  agent_->send(p, 0);
 
 }
 

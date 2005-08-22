@@ -28,7 +28,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.17 2003/06/03 14:50:56 kclan Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.18 2005/08/22 05:08:33 tomh Exp $
 
 #include <tclcl.h>
 
@@ -283,17 +283,16 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 			printf("HTTP1.1\n");
 		}
 
-		// use theh same connection
+		// use the same connection
+		ctcp = ctcp_;
+		stcp = stcp_;
 		if (fulltcp_) {
-	  		ctcp = ctcp_;
-	  		stcp = stcp_;
+			csnk = 0;
+			ssnk = 0;
 		} else {
-	  		ctcp = ctcp_;
-	  		stcp = stcp_;
 	  		csnk = csnk_;
 	  		ssnk = ssnk_;
 		}
-
 
         } else { //for HTTP1.0 non-consistent connection
 		if (mgr_->isdebug()) {
@@ -310,43 +309,39 @@ void EmpWebTrafSession::launchReq(void* ClntData, int obj, int size, int reqSize
 
 	  	// Choose source and dest TCP agents for both source and destination
 
+		ctcp = mgr_->picktcp(window,m);
+		stcp = mgr_->picktcp(window,m);
+		Tcl::instance().evalf("%s set-fid %d %s %s",
+				      mgr_->name(), mgr_->color_, ctcp->name(), stcp->name());
 		if (fulltcp_) {
-	  		ctcp = mgr_->picktcp(window,m);
-	  		stcp = mgr_->picktcp(window,m);
+			csnk = 0;
+			ssnk = 0;
 		} else {
-	  		ctcp = mgr_->picktcp(window,m);
-	  		stcp = mgr_->picktcp(window,m);
 	  		csnk = mgr_->picksink();
 	  		ssnk = mgr_->picksink();
 		}
-
-//		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->LASTFLOW_-1, ctcp->name(), stcp->name());
-		Tcl::instance().evalf("%s set-fid %d %s %s",                             		mgr_->name(), mgr_->color_, ctcp->name(), stcp->name());
-
 	}
 
 	// Setup new TCP connection and launch request
 	// size and reqSize are in the unit of bytes in fulltcp mode
 	// but in the unit of packet in halftcp mode
 	if (fulltcp_) {
-
-	Tcl::instance().evalf("%s launch-req-full %d %d %s %s %s %s %d %d %d %d",                             mgr_->name(), obj, pg->id(), 
+		Tcl::instance().evalf("%s launch-req-full %d %d %s %s %s %s %d %d %d %d",
+                              mgr_->name(), obj, pg->id(), 
 			      src_->name(), pg->dst()->name(),
 			      ctcp->name(),  
 			      stcp->name(),  
 			      size, reqSize, ClntData,persist);
-
 	} else {
-
-	Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d %d %d",                             mgr_->name(), obj, pg->id(), 
+		assert (csnk != 0 && ssnk != 0);
+		Tcl::instance().evalf("%s launch-req %d %d %s %s %s %s %s %s %d %d %d %d",
+                              mgr_->name(), obj, pg->id(), 
 			      src_->name(), pg->dst()->name(),
 			      ctcp->name(), csnk->name(), 
 			      stcp->name(), ssnk->name(), 
 			      size, reqSize, ClntData,
 			      persist);
 	}
-
-
 
 	if (mgr_->isdebug()) {
 	 	printf("size=%d  obj=%d  page=%d  sess=%d  %g src=%d dst=%d\n", size, obj, pg->id(), id_, Scheduler::instance().clock(), src_->address(), pg->dst()->address());

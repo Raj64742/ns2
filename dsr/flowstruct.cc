@@ -265,16 +265,18 @@ void ARSTable::insert(int uid, u_int16_t fid, int hopsEarly) {
 int ARSTable::findAndClear(int uid, u_int16_t fid) {
 	int i, retval;
 
-	for (i=0; i<size; i++)
-		if (table[i].hopsEarly && table[i].uid == uid)
-			break;
+	for (i=0; i<size; i++) {
+	        if (table[i].hopsEarly && table[i].uid == uid) {
+		        if (table[i].fid == fid) {
+			        retval = table[i].hopsEarly;
+				table[i].hopsEarly = 0;
+				return retval;
+			} else {
+				table[i].hopsEarly = 0;
+				return 0;
+			}
+		}
+	}
 
-	if (i == size)
-		return 0;
-
-	if (table[i].fid == fid)
-		retval = table[i].hopsEarly;
-
-	table[i].hopsEarly = 0;
-	return retval;
+	return 0;
 }

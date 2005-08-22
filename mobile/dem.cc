@@ -73,7 +73,9 @@ DEMFile::read_field()
 
 	bzero(tempbuf, sizeof(tempbuf));
 
-	while(! feof(demfile) && isspace((ch = fgetc(demfile))) );
+	do {
+		ch = fgetc(demfile);
+	} while (ch != EOF && isspace (ch));
 	tempbuf[0] = ch;
 
 	for(i = 1; ; i++) {

@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.20 2002/05/06 22:23:16 difa Exp $ (NCSU/IBM)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp-rbp.cc,v 1.21 2005/08/22 05:08:35 tomh Exp $ (NCSU/IBM)";
 #endif
 
 #include <stdio.h>
@@ -163,6 +163,8 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 			rbwin_vegas = cwnd_ * rbp_scale_;
 			break;
 		default:
+			// quiet the compiler.
+			rbwin_vegas = 0.0;
 			abort();
 		};
 		rbwin_vegas = int(rbwin_vegas + 0.5);   // round
@@ -189,7 +191,7 @@ RBPVegasTcpAgent::send_much(int force, int reason, int maxburst)
 		paced_send_one();
 	} else {
 		VegasTcpAgent::send_much(force,reason, maxburst);
-	};
+	}
 }
 
 void

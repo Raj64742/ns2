@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.14 2005/07/13 03:51:27 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.15 2005/08/22 05:08:34 tomh Exp $";
 #endif
 
 #include <stdio.h>
@@ -142,25 +142,24 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 // XXX what if n is not a SatNode?? Need a dynamic cast here, or make sure that
 // only sat tracing elements go between sat nodes.
 	// SatNode *sn = dynamic_cast<SatNode*>(n);
-	if (n) {
-		lasth = th->last_hop_;
-		nexth = th->next_hop_;
-		for (; n; n = n->nextnode() ) {
-                        SatNode *sn = (SatNode*) n;
-			snadd = sn->address();
-                        if (lasth == snadd) {
-                                s_lat = RAD_TO_DEG(SatGeometry::get_latitude(sn->position()->coord()));
-                                s_lon = RAD_TO_DEG(SatGeometry::get_longitude(sn->position()->coord()));
-                                if (d_lat != -999) 
-                                        break; // Have now found both s and d
-                        }
-                        if (nexth == snadd) {
-                                d_lat = RAD_TO_DEG(SatGeometry::get_latitude(sn->position()->coord())); 
-                                d_lon = RAD_TO_DEG(SatGeometry::get_longitude(sn->position()->coord()));
-                                if (s_lat != -999) 
-                                        break; // Have now found both s and d
-                        }
-                }
+	assert (n != 0);
+	lasth = th->last_hop_;
+	nexth = th->next_hop_;
+	for (; n; n = n->nextnode() ) {
+		SatNode *sn = (SatNode*) n;
+		snadd = sn->address();
+		if (lasth == snadd) {
+			s_lat = RAD_TO_DEG(SatGeometry::get_latitude(sn->position()->coord()));
+			s_lon = RAD_TO_DEG(SatGeometry::get_longitude(sn->position()->coord()));
+			if (d_lat != -999) 
+				break; // Have now found both s and d
+		}
+		if (nexth == snadd) {
+			d_lat = RAD_TO_DEG(SatGeometry::get_latitude(sn->position()->coord())); 
+			d_lon = RAD_TO_DEG(SatGeometry::get_longitude(sn->position()->coord()));
+			if (s_lat != -999) 
+				break; // Have now found both s and d
+		}
 	}
 
 	if (show_sctphdr_ && t == PT_SCTP) {

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.11 2002/03/21 01:41:06 johnh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.12 2005/08/22 05:08:34 tomh Exp $";
 #endif
 
 /*
@@ -385,8 +385,8 @@ void SatMac::sendDown(Packet* p)
 	// information for all layers below IP.  Alternatively, one could
 	// derive this information dynamically from packet headers. 
 	int packetsize_ = HDR_CMN(p)->size() + LINK_HDRSIZE;
-	if (bandwidth_ != 0)
-		txt = txtime(packetsize_);
+	assert (bandwidth_ != 0);
+	txt = txtime(packetsize_);
 	// For convenience, we encode the transmit time in the Mac header
 	// The packet will be held (for collision detection) for txtime 
 	// at the receiving mac.
@@ -499,8 +499,8 @@ void UnslottedAlohaMac::sendDown(Packet* p)
 	
 	// compute transmission delay:
 	int packetsize_ = HDR_CMN(p)->size() + LINK_HDRSIZE;
-	if (bandwidth_ != 0)
-		txt = txtime(packetsize_);
+	assert (bandwidth_ != 0);
+	txt = txtime(packetsize_);
         HDR_MAC(p)->txtime() = txt;
 
 	// Send the packet down 

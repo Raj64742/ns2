@@ -268,10 +268,8 @@ double GAFAgent::myttl()
 
   phyp = (thisnode->ifhead()).lh_first;
 
-  if (phyp) {
-	      maxp = ((WirelessPhy *)phyp)->getPtconsume();
-  } 
-
+  assert (phyp != 0);
+  maxp = ((WirelessPhy *)phyp)->getPtconsume();
   ttl = ce/maxp;
   
   return ttl;

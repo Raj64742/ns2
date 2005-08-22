@@ -20,6 +20,7 @@
 
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 #include "config.h"
 #include "tclcl.h"
@@ -102,6 +103,11 @@ double Line::backoff(int dst)
 		break;
 	case CONSTANT :
 		b = rtt * (det_ +  rand_ * r * 1.);
+		break;
+	default:
+		// quiet compiler
+		b = 0.0;
+		assert (false);
 		break;
 	}
 	return b;
@@ -242,6 +248,11 @@ double BTree::backoff(int id)
 		break;
 	case CONSTANT :
 		b = rtt * (det_ +  rand_ * r * 1.);
+		break;
+	default:
+		// quiet compiler
+		b = 0.0;
+		assert (false);
 		break;
 	}
 	return b;

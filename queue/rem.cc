@@ -198,17 +198,16 @@ void REMQueue::run_updaterule()
 Packet* REMQueue::deque() 
 {
 	Packet *p = q_->deque();
-	hdr_cmn* ch; 
 	if (p != 0) {
-		ch = hdr_cmn::access(p);
-		bcount_ -= ch->size();
+		bcount_ -= hdr_cmn::access(p)->size ();
 	}
 	if (markpkts_) {
 		double u = Random::uniform();
 		if (p!=0) {
 			double pro = remv_.v_prob;
 			if (qib_) {
-				pro = remv_.v_prob*ch->size()/remp_.p_pktsize; 
+				int size = hdr_cmn::access(p)->size ();
+				pro = remv_.v_prob*size/remp_.p_pktsize; 
 			}
    		if ( u <= pro ) {
 				hdr_flags* hf = hdr_flags::access(p);

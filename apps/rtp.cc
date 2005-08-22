@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.26 2000/08/18 18:34:01 haoboy Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/apps/rtp.cc,v 1.27 2005/08/22 05:08:32 tomh Exp $";
 #endif
 
 
@@ -91,11 +91,10 @@ void RTPAgent::sendmsg(int nbytes, const char* /*flags*/)
         Packet *p;
         int n;
 
+	assert (size_ > 0);
+
         if (++seqno_ < maxpkts_) {
-                if (size_)
-                        n = nbytes / size_;
-                else
-                        printf("Error: RTPAgent size = 0\n");
+		n = nbytes / size_;
 
                 if (nbytes == -1) {
                         start();

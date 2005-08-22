@@ -205,8 +205,6 @@ public:
   double get_link_drop(int x){
     assert(x<nLinks);
     return links[x].drop;
-    cout << "Hi there";
-    PrintResults();
   }
 
   double get_link_delay(int x){

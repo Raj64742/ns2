@@ -360,7 +360,11 @@ void dsREDQueue::lookupPHBTable(int codePt, int* queue, int* prec) {
       return;
     }
   }
+  // quiet the compiler
+  *queue = 0;
+  *prec = 0;
   printf("ERROR: No match found for code point %d in PHB Table.\n", codePt);
+  assert (false);
 }
 
 /*-----------------------------------------------------------------------------

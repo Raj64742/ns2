@@ -3,7 +3,7 @@
 // authors         : Fred Stann
 //
 // Copyright (C) 2003 by the University of Southern California
-// $Id: rmst_source.cc,v 1.2 2003/07/10 21:18:56 haldar Exp $
+// $Id: rmst_source.cc,v 1.3 2005/08/22 05:08:32 tomh Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -77,8 +77,6 @@ void RmstSrcReceive::recv(NRAttrVec *data, NR::handle my_handle)
   NRSimpleAttribute<int> *nr_class = NULL;
   NRSimpleAttribute<int> *tsprt_ctl_attr = NULL;
 
-  int class_type;
-  int tsprt_ctl_type;
   timeval cur_time;
 
   printf("RMST-SRC::recv got an attr vector.");
@@ -86,18 +84,13 @@ void RmstSrcReceive::recv(NRAttrVec *data, NR::handle my_handle)
   printf("  time: sec = %d\n", (unsigned int) cur_time.tv_sec);
 
   nr_class = NRClassAttr.find(data);
-  if (nr_class)
-    class_type = nr_class->getVal();
   tsprt_ctl_attr = RmstTsprtCtlAttr.find(data);
-  if (tsprt_ctl_attr)
-    tsprt_ctl_type = tsprt_ctl_attr->getVal();
 
   if (nr_class){
-
-    switch (class_type){
+    switch (nr_class->getVal()){
 
     case NRAttribute::INTEREST_CLASS:
-      if (tsprt_ctl_attr && (tsprt_ctl_type == RMST_RESP)){
+      if (tsprt_ctl_attr && (tsprt_ctl_attr->getVal() == RMST_RESP)){
         printf("  Source received an INTEREST message\n");
         src_->num_subscriptions_++;
       }
@@ -122,7 +115,7 @@ void RmstSrcReceive::recv(NRAttrVec *data, NR::handle my_handle)
   }
 
   if (tsprt_ctl_attr){
-    switch (tsprt_ctl_type){
+    switch (tsprt_ctl_attr->getVal()){
     case RMST_RESP:
       break;
     case RMST_CONT:

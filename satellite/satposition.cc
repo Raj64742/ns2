@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.cc,v 1.8 2000/06/21 17:44:10 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satposition.cc,v 1.9 2005/08/22 05:08:34 tomh Exp $";
 #endif
 
 #include "satposition.h"
@@ -253,21 +253,20 @@ coordinate PolarSatPosition::coord()
 	// Now generate actual spherical coordinates,
 	// with 0 < theta_new < PI and 0 < phi_new < 360
 
-	if (inclination_ < PI) {
-		// asin returns value between -PI/2 and PI/2, so 
-		// theta_new guaranteed to be between 0 and PI
-		theta_new = PI/2 - asin(sin(inclination_) * sin(theta_cur));
-		// if theta_new is between PI/2 and 3*PI/2, must correct
-		// for return value of atan()
-		if (theta_cur > PI/2 && theta_cur < 3*PI/2)
-			phi_new = atan(cos(inclination_) * tan(theta_cur)) + 
-			    phi_cur + PI;
-		else
-			phi_new = atan(cos(inclination_) * tan(theta_cur)) + 
-			    phi_cur;
-		phi_new = fmod(phi_new + 2*PI, 2*PI);
-	} else 
-		printf("ERROR:  inclination_ > PI\n");
+	assert (inclination_ < PI);
+
+	// asin returns value between -PI/2 and PI/2, so 
+	// theta_new guaranteed to be between 0 and PI
+	theta_new = PI/2 - asin(sin(inclination_) * sin(theta_cur));
+	// if theta_new is between PI/2 and 3*PI/2, must correct
+	// for return value of atan()
+	if (theta_cur > PI/2 && theta_cur < 3*PI/2)
+		phi_new = atan(cos(inclination_) * tan(theta_cur)) + 
+			phi_cur + PI;
+	else
+		phi_new = atan(cos(inclination_) * tan(theta_cur)) + 
+			phi_cur;
+	phi_new = fmod(phi_new + 2*PI, 2*PI);
 	
 	current.r = initial_.r;
 	current.theta = theta_new;

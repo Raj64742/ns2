@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.10 2001/11/06 06:21:47 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sathandoff.cc,v 1.11 2005/08/22 05:08:34 tomh Exp $";
 #endif
 
 #include "random.h"
@@ -210,7 +210,7 @@ int TermLinkHandoffMgr::handoff()
 	coordinate sat_coord, earth_coord;
 	SatLinkHead* slhp;
 	SatNode *peer_; // Polar satellite at opposite end of the GSL
-	SatNode *best_peer_; // Best found peer for handoff
+	SatNode *best_peer_ = 0; // Best found peer for handoff
 	Node *nodep;  // Pointer used in searching the list of nodes
 	PolarSatPosition *nextpos_;
 	int link_changes_flag_ = FALSE; // Flag indicating change took place 
@@ -293,7 +293,8 @@ int TermLinkHandoffMgr::handoff()
 					    best_found_elev_ = found_elev_;
 					}
 				}
-				if (best_found_elev_) {
+				if (best_found_elev_ > 0.0) {
+					assert (best_peer_ != 0);
 					peer_ = best_peer_;
 					found_elev_ = best_found_elev_;
 				}

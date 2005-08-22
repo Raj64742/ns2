@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.24 2005/06/14 19:43:48 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/wireless-phy.cc,v 1.25 2005/08/22 05:08:33 tomh Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma Haldar.
  * wireless-phy.cc
@@ -313,6 +313,8 @@ WirelessPhy::sendUp(Packet *p)
 	PacketStamp s;
 	double Pr;
 	int pkt_recvd = 0;
+
+	Pr = p->txinfo_.getTxPr();
 	
 	// if the node is in sleeping mode, drop the packet simply
 	if (em()) {

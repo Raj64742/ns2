@@ -600,33 +600,23 @@ void PgmSender::send_rdata(RdataItem *item)
   stats_.num_rdata_sent_++;
 
   // Send the packet to each of the interfaces.
-  NsObject *tgt;
-  Packet *pkt, *rDataPkt;
-  hdr_ip *rdata_hip; 
-
-  // Used to determine when we need to make additional copies of the packet.
-  int flag = 0;
-
   if (!item->iface_list().empty()) {
     list<int>::iterator iter = item->iface_list().begin();
-
+    int flag = 0;   // Used to determine when we need to make additional copies of the packet.
     while (iter != item->iface_list().end()) {
-      if (!flag) {
-	tgt = iface2link(*iter);
-	tgt->recv(item->rdata_pkt());
-    rDataPkt = item->rdata_pkt();
-    rdata_hip = HDR_IP(pkt);
-    trace_event("SEND RDATA", rdata_hip->daddr(), 0);
-	flag = 1;
-      }
-      else {
+      NsObject *tgt;
+      tgt = iface2link(*iter);
+      Packet *pkt = item->rdata_pkt();
+      if (flag) {
 	// Make a copy of each packet before sending it, so we don't free()
 	// the same packet at the different receivers causing a deallocation
 	// problem.
-	pkt = item->rdata_pkt()->copy();
-	tgt = iface2link(*iter);
-	tgt->recv(pkt);
+	pkt = pkt->copy();
+      } else {
+	trace_event("SEND RDATA", HDR_IP(pkt)->daddr(), 0);
+	flag = 1;
       }
+      tgt->recv(pkt);
 
       iter++;
     }
@@ -635,16 +625,15 @@ void PgmSender::send_rdata(RdataItem *item)
 
   if (!item->agent_list().empty()) {
     list<NsObject *>::iterator iter = item->agent_list().begin();
-
+    int flag = 0;
     while (iter != item->agent_list().end()) {
-      if (!flag) {
-	(*iter)->recv(item->rdata_pkt());
+      Packet *pkt = item->rdata_pkt();
+      if (flag) {
+	pkt = pkt->copy ();
+      } else {
 	flag = 1;
       }
-      else {
-	pkt = item->rdata_pkt()->copy();
-	(*iter)->recv(pkt);
-      }
+      (*iter)->recv(pkt);
 
       iter++;
     }

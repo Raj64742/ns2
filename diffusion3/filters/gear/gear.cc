@@ -4,7 +4,7 @@
 //
 // Copyright (C) 2000-2003 by the University of Southern California
 // Copyright (C) 2000-2003 by the University of California
-// $Id: gear.cc,v 1.4 2005/07/13 03:51:24 tomh Exp $
+// $Id: gear.cc,v 1.5 2005/08/22 05:08:32 tomh Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -1150,6 +1150,11 @@ int32_t GeoRoutingFilter::findNextHop(GeoHeader *geo_header, bool greedy)
   min_distance = MAX_INT;
   min_learned_cost = MAX_INT;
   num_neighbors = 0;
+
+  // this is really to quiet the compiler.
+  min_neighbor_location.longitude_ = 0;
+  min_neighbor_location.latitude_ = 0;
+  min_cost_id = 0;
 
   // Now we go through out list of neighbor and compute the cost to
   // each one

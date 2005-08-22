@@ -33,7 +33,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.14 2001/05/15 21:19:27 alefiyah Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/tap.cc,v 1.15 2005/08/22 05:08:33 tomh Exp $ (UCB)";
 #endif
 
 #include "tap.h"
@@ -183,7 +183,7 @@ TapAgent::recvpkt()
 	double when = tstamp - now();
 
 	if (when > 0.0) {
-		TDEBUG5("%f: Tap(%s): DEFERRED PACKET %f secs, uid: %d\n",
+		TDEBUG5("%f: Tap(%s): DEFERRED PACKET %f secs, uid: "UID_PRINTF_FORMAT"\n",
 			now(), name(), when, p->uid_);
 		ch->timestamp() = when;
 		Scheduler::instance().schedule(target_, p, when);

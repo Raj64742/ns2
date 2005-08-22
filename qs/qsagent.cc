@@ -101,8 +101,9 @@ void QSAgent::recv(Packet* packet, Handler*)
 	hdr_qs *qsh =  hdr_qs::access(packet);
 	hdr_ip *iph = hdr_ip::access(packet);
 
-	if (old_classifier_)  
-		pkt_target = (Classifier *)TclObject::lookup(old_classifier_->name());
+	assert (old_classifier_ != 0);
+
+	pkt_target = (Classifier *)TclObject::lookup(old_classifier_->name());
 
 	if (qs_enabled_) {
 		if (qsh->flag() == QS_REQUEST && qsh->rate() > 0 && iph->daddr() != addr()) {
@@ -129,12 +130,7 @@ void QSAgent::recv(Packet* packet, Handler*)
 		}
 	}
 	
-	if (pkt_target) 
-		pkt_target->recv(packet, 0);
-	else {
-		printf("%d, don't know what to do with the packet\n", addr()); // should never get here.
-		Packet::free(packet);
-	}
+	pkt_target->recv(packet, 0);
 
 	return;
   

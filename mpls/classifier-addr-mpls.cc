@@ -28,7 +28,7 @@
 //
 // Original source contributed by Gaeil Ahn. See below.
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.cc,v 1.5 2001/03/06 20:53:41 haldar Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mpls/classifier-addr-mpls.cc,v 1.6 2005/08/22 05:08:34 tomh Exp $
 
 // XXX
 //
@@ -628,18 +628,12 @@ int MPLSAddressClassifier::command(int argc, const char*const* argv)
 	} else if (argc == 8) {      
 		int addr  = atoi(argv[2]);
 		int LSPid = atoi(argv[3]);
-		int PHB   = LSPid;
-		int LIBptr, PFTnb,ERBnb ;
-		if (LSPid == MPLS_DEFAULT_PHB)   // topology-based LSP
-			PFTnb = PFTlocate(addr,PHB,LIBptr);
-		else                // ER-LSP
-			ERBnb = ERBlocate(LSPid,addr,LIBptr);
-		
-		if (strcmp(argv[1], "LSPrelease") == 0) {
-			// <classifier> LSPrelease <fec> <lspid> <iif> 
-			// 	<ilabel> <oif> <olabel>
-			if (LSPid < 0) {
-				// Topology-based LSP
+		int LIBptr;
+		if (LSPid == MPLS_DEFAULT_PHB)  {
+			// topology-based LSP
+			int PHB   = LSPid;
+			int PFTnb = PFTlocate(addr,PHB,LIBptr);
+			if (strcmp(argv[1], "LSPrelease") == 0) {
 				if (PFTnb >= 0) {
 					// PFT entry exist
 					LIBupdate(LIBptr, atoi(argv[4]), 
@@ -648,25 +642,8 @@ int MPLSAddressClassifier::command(int argc, const char*const* argv)
 					if (LIBisdeleted(LIBptr) == 0)
 						PFTdeleteLIBptr(LIBptr);
 				}
-			} else {
-				// ER-LSP
-				if ( ERBnb >= 0 ) {
-					// ERB entry exist
-					LIBupdate(LIBptr, atoi(argv[4]),
-						  atoi(argv[5]), atoi(argv[6]),
-						  atoi(argv[7]));
-					if (LIBisdeleted(LIBptr) == 0) {
-						ERBdelete(ERBnb);
-						PFTdeleteLIBptr(LIBptr);
-					}
-				}
-			}
-			return (TCL_OK);        
-		} else if (strcmp(argv[1], "LSPsetup") == 0) {
-			// <classifier> LSPsetup <fec> <lspid> <iif> 
-			//     <ilabel> <oif> <olabel>
-			if (LSPid == MPLS_DEFAULT_PHB) {
-				// Topology-based LSP
+				return (TCL_OK);
+			} else if (strcmp(argv[1], "LSPsetup") == 0) {
 				if (PFTnb < 0) {
 					// PFT entry not exist
 					int ptr = LIBinsert(atoi(argv[4]),
@@ -722,35 +699,50 @@ int MPLSAddressClassifier::command(int argc, const char*const* argv)
 				}
 				return (TCL_OK);
 			}
-			// LSPid != MPLS_DEFAULT_PHB
+		} else {
 			// ER-LSP
-			if (ERBnb < 0) {
-				// ERB entry not exist
-				int ptr = LIBinsert(atoi(argv[4]),
-						    atoi(argv[5]),
-						    atoi(argv[6]),
-						    atoi(argv[7]));
-				if (ptr > -1) {
-					ERBinsert(LSPid,addr,ptr);
-					return (TCL_OK);
-				} else
-					return (TCL_ERROR);
-			} 
-			// ERBnb >= 0
-			// ERB entry already exist
-			if (LIBptr > -1)
-				LIBupdate(LIBptr, atoi(argv[4]), atoi(argv[5]),
-					  atoi(argv[6]), atoi(argv[7]));
-			else {
-				int ptr = 
-					LIBinsert(atoi(argv[4]),atoi(argv[5]),
-						  atoi(argv[6]),atoi(argv[7]));
-				if (ptr > -1)
-					ERBupdate(ERBnb, ptr);
-				else
-					return (TCL_ERROR);
+			int ERBnb = ERBlocate(LSPid,addr,LIBptr);
+			if (strcmp(argv[1], "LSPrelease") == 0) {
+				if ( ERBnb >= 0 ) {
+					// ERB entry exist
+					LIBupdate(LIBptr, atoi(argv[4]),
+						  atoi(argv[5]), atoi(argv[6]),
+						  atoi(argv[7]));
+					if (LIBisdeleted(LIBptr) == 0) {
+						ERBdelete(ERBnb);
+						PFTdeleteLIBptr(LIBptr);
+					}
+				}
+				return (TCL_OK);
+			} else if (strcmp(argv[1], "LSPsetup") == 0) {
+				if (ERBnb < 0) {
+					// ERB entry not exist
+					int ptr = LIBinsert(atoi(argv[4]),
+							    atoi(argv[5]),
+							    atoi(argv[6]),
+							    atoi(argv[7]));
+					if (ptr > -1) {
+						ERBinsert(LSPid,addr,ptr);
+						return (TCL_OK);
+					} else
+						return (TCL_ERROR);
+				} 
+				// ERBnb >= 0
+				// ERB entry already exist
+				if (LIBptr > -1)
+					LIBupdate(LIBptr, atoi(argv[4]), atoi(argv[5]),
+						  atoi(argv[6]), atoi(argv[7]));
+				else {
+					int ptr = 
+						LIBinsert(atoi(argv[4]),atoi(argv[5]),
+							  atoi(argv[6]),atoi(argv[7]));
+					if (ptr > -1)
+						ERBupdate(ERBnb, ptr);
+					else
+						return (TCL_ERROR);
+				}
+				return (TCL_OK);
 			}
-			return (TCL_OK);
 		}
 	}
   

@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.84 2005/07/13 03:51:33 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.85 2005/08/22 05:08:35 tomh Exp $
  */
 
 #include <packet.h>
@@ -125,15 +125,9 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 {
 	struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_ip *ih = HDR_IP(p);
-	struct hdr_mac802_11 *mh;
-	struct hdr_smac *sh;
 	char mactype[SMALL_LEN];
 
 	strcpy(mactype, Simulator::instance().macType());
-	if (strcmp (mactype, "Mac/SMAC") == 0)
-		sh = HDR_SMAC(p);
-	else
-		mh = HDR_MAC802_11(p);
 	
 	double x = 0.0, y = 0.0, z = 0.0;
        
@@ -231,6 +225,9 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
         x = 0.0, y = 0.0, z = 0.0;
         node_->getLoc(&x, &y, &z);
 #endif
+
+	struct hdr_mac802_11 *mh = HDR_MAC802_11(p); // valid only if ch->ptype () == PT_MAC
+	struct hdr_smac *sh = HDR_SMAC(p); // valid only if ch->ptype () == PT_SMAC
 
 	sprintf(pt_->buffer() + offset,
 #ifdef LOG_POSITION
@@ -699,6 +696,8 @@ CMUTrace::format_sctp(Packet* p,int offset)
 			cChunkType = 'B';
 			break;
 		default:
+			// quiet compiler
+			cChunkType = ' ';
 			assert (false);
 			break;
 		}

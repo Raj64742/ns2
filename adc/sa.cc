@@ -17,7 +17,7 @@
  * These notices must be retained in any copies of any part of this
  * software. 
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/sa.cc,v 1.14 2000/09/01 03:04:06 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/adc/sa.cc,v 1.15 2005/08/22 05:08:31 tomh Exp $
  */
 
 //packets after it succeeds in a3-way handshake from the receiver
@@ -253,10 +253,9 @@ void SA_Agent::sendmsg(int nbytes, const char* /*flags*/)
         Packet *p;
         int n;
 
-        if (size_)
-                n = nbytes / size_;
-        else
-                printf("Error: SA_Agent size = 0\n");
+	assert (size_ > 0);
+
+	n = nbytes / size_;
 
         if (nbytes == -1) {
                 start();

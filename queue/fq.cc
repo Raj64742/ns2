@@ -34,11 +34,12 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.11 2000/09/01 03:04:05 haoboy Exp $ (ANS)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/fq.cc,v 1.12 2005/08/22 05:08:34 tomh Exp $ (ANS)";
 #endif
 
 #include "config.h"
 #include <stdlib.h>
+#include <float.h>
 #include "queue.h"
 
 /*XXX*/
@@ -130,7 +131,7 @@ Packet* FQ::deque()
 {
 	int nactive = update();
 	int target = -1;
-	double best;
+	double best = DBL_MAX;
 	for (int i = 0; i <= maxflow_; ++i) {
 		if (fs_[i].hol_ != 0) {
 			if (target < 0) { 

@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.3 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.4 2005/08/22 05:08:35 tomh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -2399,6 +2399,15 @@ void SctpAgent::InsertDuplicateTsn(u_int uiTsn)
   Node_S *spPrevNode = NULL;
   Node_S *spNewNode = NULL;
   u_int uiCurrTsn;
+
+  /* We initialize this variable here to quiet the compiler.
+   * This initialization is not necessary because this variable
+   * is read only if spCurrNode != NULL and in this case,
+   * it has been initialized in the for loop. Unfortunatly,
+   * gcc is not smart enough to detect this rather complicated
+   * case.
+   */
+  uiCurrTsn = 0;
 
   /* linear search
    */
