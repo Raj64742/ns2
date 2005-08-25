@@ -613,7 +613,8 @@ else if(ih->saddr() == index) {
 
 void
 AODV::recvAODV(Packet *p) {
-struct hdr_aodv *ah = HDR_AODV(p);
+ struct hdr_ip *ih = HDR_IP(p);
+ struct hdr_aodv *ah = HDR_AODV(p);
 
  assert(ih->sport() == RT_PORT);
  assert(ih->dport() == RT_PORT);
