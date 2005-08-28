@@ -2,7 +2,7 @@
 /*
  * dsragent.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: dsragent.cc,v 1.35 2005/08/25 18:58:04 johnh Exp $
+ * $Id: dsragent.cc,v 1.36 2005/08/28 23:23:03 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -682,8 +682,7 @@ DSRAgent::handlePktWithoutSR(SRPacket& p, bool retry)
   /* obtain a source route to p's destination and send it off.
      this should be a retry if the packet is already in the sendbuffer */
 {
-  hdr_sr *srh =  hdr_sr::access(p.pkt);
-  assert(srh->valid());
+  assert(HDR_SR (p.pkt)->valid());
 
   if (p.dest == net_id)
     { // it doesn't need a source route, 'cause it's for us
