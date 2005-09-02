@@ -26,12 +26,101 @@
 #include <stdlib.h>  // due to definition of NULL
 #include <stdio.h>   // due to printf
 
-static unsigned char minbit_array[256];
-static unsigned char bitcount_array[256];
+class ExtraLongUIntHelper {
+public:
+    static ExtraLongUIntHelper *instance (void) {
+        if (!m_instance) {
+	    m_instance = new ExtraLongUIntHelper ();
+	}
+	return m_instance;
+    }
+    // returns bit position of least significant bit in cw_pat
+    unsigned int minbit(unsigned long val) {
+        unsigned int i;
 
-// because of the lack of static initialization on class-basis in C++,
-// this is a workaround.
-static int dummy = initialize_codeword();
+	assert(val);
+	for(i = 0; val; ++i) {
+	    assert(i < sizeof(CW_PATTERN_t));
+	    if(val & 255) {
+	        return minbit_array[(unsigned int) (val & 255)] + 8*i;
+	    }
+	    val >>= 8;
+	}
+	assert(false); // value is 0
+	return 0;      // compiler, be quiet.
+    }
+
+
+
+    // counts number of bits in cw_pat
+    unsigned int bitcount(unsigned long val) {
+        unsigned int res = 0;
+
+	while(val) {
+	    res += bitcount_array[(unsigned int) (val & 255)];
+	    val >>= 8;
+	}
+	return res;
+    }
+private:
+    ExtraLongUIntHelper () {
+        assert(sizeof(minbit_array) / sizeof(unsigned char) == 256);
+	init_minbit_array(minbit_array, 8);
+	init_bitcount_array(bitcount_array, 8);
+    }
+    void init_bitcount_array(unsigned char* arr, unsigned int nb_bits) {
+        unsigned long bitcount_array_size = ((unsigned long) 1) << nb_bits;
+	unsigned long i;
+	unsigned int bit;
+	int count;
+
+	assert(sizeof(unsigned long) == 4);   // we need this for the following
+	assert(0 < nb_bits && nb_bits <= 32); // or else this function must be revised
+	assert(arr != NULL);
+
+	for(i = 0; i < bitcount_array_size; ++i) {
+	    count = 0;
+	    // to avoid warning: unsigned value >= 0 is always 1
+	    // for(bit = 0; 0 <= bit && bit < nb_bits; bit++) {
+	    for(bit = 0; bit < nb_bits; bit++) {
+	        if(i & ((unsigned long) 1 << bit)) {
+                    count++;
+		}
+	    }
+	    arr[i] = count;
+	}
+    }
+
+    void init_minbit_array(unsigned char* arr, unsigned int minbits) {
+        unsigned int minbit_array_size = (unsigned int) 1 << minbits;
+	unsigned int i;
+	unsigned int bit;
+
+	assert(minbits == 8); // or else minbit(...) needs a revision!
+	assert(arr != NULL);
+
+	for(i = 0; i < minbit_array_size; ++i) {
+	    // to avoid warning: unsigned value >= 0 is always 1
+	    //for(bit = 0; 0 <= bit && bit < minbits; bit++) {
+	    for(bit = 0; bit < minbits; bit++) {
+	        if(i & ((unsigned int) 1 << bit)) {
+                    arr[i] = (unsigned char) bit;
+		    break;
+		}
+	    }
+	}
+    }
+
+
+    unsigned char minbit_array[256];
+    unsigned char bitcount_array[256];
+    static ExtraLongUIntHelper *m_instance;
+};
+
+ExtraLongUIntHelper *ExtraLongUIntHelper::m_instance = 0;
+
+
+
 
 // list of primitive polynomials over GF(2).
 CW_PATTERN_t Codeword::primitive_polynomial[Codeword::MAX_DEGREE+1] = {
@@ -169,88 +258,6 @@ CW_PATTERN_t Codeword::getNextCwPat()
     return ret;
 }
 
-void init_bitcount_array(unsigned char* arr, unsigned int nb_bits)
-{
-    unsigned long bitcount_array_size = ((unsigned long) 1) << nb_bits;
-    unsigned long i;
-    unsigned int bit;
-    int count;
-
-    assert(sizeof(unsigned long) == 4);   // we need this for the following
-    assert(0 < nb_bits && nb_bits <= 32); // or else this function must be revised
-    assert(arr != NULL);
-
-    for(i = 0; i < bitcount_array_size; ++i) {
-        count = 0;
-	// to avoid warning: unsigned value >= 0 is always 1
-	// for(bit = 0; 0 <= bit && bit < nb_bits; bit++) {
-        for(bit = 0; bit < nb_bits; bit++) {
-            if(i & ((unsigned long) 1 << bit)) {
-                count++;
-            }
-        }
-        arr[i] = count;
-    }
-}
-
-void init_minbit_array(unsigned char* arr, unsigned int minbits)
-{
-    unsigned int minbit_array_size = (unsigned int) 1 << minbits;
-    unsigned int i;
-    unsigned int bit;
-
-    assert(minbits == 8); // or else minbit(...) needs a revision!
-    assert(arr != NULL);
-
-    for(i = 0; i < minbit_array_size; ++i) {
-      // to avoid warning: unsigned value >= 0 is always 1
-      //for(bit = 0; 0 <= bit && bit < minbits; bit++) {
-        for(bit = 0; bit < minbits; bit++) {
-            if(i & ((unsigned int) 1 << bit)) {
-                arr[i] = (unsigned char) bit;
-                break;
-            }
-        }
-    }
-}
-
-// returns bit position of least significant bit in cw_pat
-unsigned int minbit(unsigned long val)
-{
-    unsigned int i;
-
-    assert(val);
-    for(i = 0; val; ++i) {
-        assert(i < sizeof(CW_PATTERN_t));
-        if(val & 255) {
-            return minbit_array[(unsigned int) (val & 255)] + 8*i;
-        }
-        val >>= 8;
-    }
-    assert(false); // value is 0
-    return 0;      // compiler, be quiet.
-}
-
-// counts number of bits in cw_pat
-unsigned int bitcount(unsigned long val)
-{
-    unsigned int res = 0;
-
-    while(val) {
-        res += bitcount_array[(unsigned int) (val & 255)];
-        val >>= 8;
-    }
-    return res;
-}
-
-/* function to be called once at the beginning */
-int initialize_codeword()
-{
-    assert(sizeof(minbit_array) / sizeof(unsigned char) == 256);
-    init_minbit_array(minbit_array, 8);
-    init_bitcount_array(bitcount_array, 8);
-    return 0;
-}
 
 
 // constructor:
@@ -527,7 +534,7 @@ unsigned int ExtraLongUInt::bitcount() const
 {
     unsigned int res = 0;
     for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
-        res += ::bitcount(value[i]);
+        res += ExtraLongUIntHelper::instance ()->bitcount(value[i]);
     }
     return res;
 }
@@ -536,7 +543,7 @@ unsigned int ExtraLongUInt::minbit() const
 {
     for(unsigned int i = 0; i < sizeof(value) / sizeof(unsigned long); ++i) {
         if(value[i]) {
-            return i * 8 * sizeof(unsigned long) + ::minbit(value[i]);
+            return i * 8 * sizeof(unsigned long) + ExtraLongUIntHelper::instance ()->minbit(value[i]);
         }
     }
     assert(false); // value is 0
