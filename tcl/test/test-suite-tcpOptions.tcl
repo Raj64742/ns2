@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.18 2005/06/11 01:52:28 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.19 2005/09/05 17:48:12 sfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -503,30 +503,31 @@ Test/onedrop_numdup4_sack instproc init {} {
 	$self next pktTraceFile
 }
 
-#Class Test/onedrop_sack_full -superclass TestSuite
-#Test/onedrop_sack_full instproc init {} {
-#	$self instvar net_ test_ guide_
-#	set net_	net4
-#	set test_	onedrop_sack_full
-#	set guide_      "Sack Full TCP, numdupacks set to 3."
-#	$self next pktTraceFile
-#}
-#Test/onedrop_sack_full instproc run {} {
-#       $self setup FullTcpSack1 {5}
-#}
+# Why does the sender sent two packets for the Fast Restransmit?
+Class Test/onedrop_sack_full -superclass TestSuite
+Test/onedrop_sack_full instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	onedrop_sack_full
+	set guide_      "Sack Full TCP, numdupacks set to 3."
+	$self next pktTraceFile
+}
+Test/onedrop_sack_full instproc run {} {
+       $self setup FullTcpSack1 {4}
+}
 
-# Class Test/onedrop_numdup4_sack_full -superclass TestSuite
-# Test/onedrop_numdup4_sack_full instproc init {} {
-# 	$self instvar net_ test_ guide_
-# 	set net_	net4
-# 	set test_	onedrop_numdup4_sack_full
-#	set guide_      "Sack Full TCP, numdupacks set to 4."
-# 	Agent/TCP/FullTcp set tcprexmtthresh_ 4
-# 	$self next pktTraceFile
-# }
-# Test/onedrop_numdup4_sack_full instproc run {} {
-#         $self setup FullTcpSack1 {5}
-# }
+Class Test/onedrop_numdup4_sack_full -superclass TestSuite
+Test/onedrop_numdup4_sack_full instproc init {} {
+	$self instvar net_ test_ guide_
+	set net_	net4
+	set test_	onedrop_numdup4_sack_full
+	set guide_      "Sack Full TCP, numdupacks set to 4."
+	Agent/TCP/FullTcp set tcprexmtthresh_ 4
+	$self next pktTraceFile
+}
+Test/onedrop_numdup4_sack_full instproc run {} {
+        $self setup FullTcpSack1 {4}
+}
 
 #############################################################
 ##  Tests for aggressive_maxburst_, for sending packets after
