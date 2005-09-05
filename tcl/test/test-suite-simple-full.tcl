@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.9 2005/06/11 01:52:27 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.10 2005/09/05 22:33:35 sfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -872,8 +872,8 @@ Test/telnet instproc run {} {
 	$ns_ run
 }
 
-# # Delayed acks don't seem to work with FullTcp.
-# 
+# Delayed acks don't seem to work with FullTcp.
+
 # Class Test/delayed -superclass TestSuite
 # Test/delayed instproc init topo {
 # 	$self instvar net_ defNet_ test_
@@ -885,7 +885,8 @@ Test/telnet instproc run {} {
 # Test/delayed instproc run {} {
 # 	$self instvar ns_ node_ testName_
 # 
-# 	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCPSink/DelAck $node_(k1) 0]
+# 	set tcp1 [$ns_ create-connection-listen TCP/FullTcp/Tahoe $node_(s1) TCP/FullTcp/Tahoe $node_(k1) 0]
+#         # How to set delayed acknowledgements?
 # 	$tcp1 set window_ 50
 # 
 # 	# lookup up the sink and set it's delay interval
