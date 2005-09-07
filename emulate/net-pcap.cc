@@ -33,7 +33,7 @@
  */
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.22 2002/10/09 23:57:15 difa Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/emulate/net-pcap.cc,v 1.23 2005/09/07 06:35:45 tomh Exp $ (LBL)";
 #endif
 
 #include <stdio.h>
@@ -531,7 +531,7 @@ PcapLiveNetwork::open(int mode, const char *devname)
 		  "warning: pcap/live (%s) couldn't get local IP network info: %s\n",
 		  name(), errbuf_) ;
 	}
-#ifndef __linux__
+#if !defined(__linux__)&&!defined(__APPLE__)
 	{
 		int immed = 1;
 		if (ioctl(pfd_, BIOCIMMEDIATE, &immed) < 0) {

@@ -3686,6 +3686,11 @@ else
 	V_DEFINE="$V_DEFINE -DNDEBUG"
 fi
 
+if test "$CC" = gcc ; then
+      V_CCOPT="$V_CCOPT -Wall"
+fi
+
+
 # XXX Some stupid sh on solaris does not set PWD correctly, i.e.,
 # after chdir $PWD remains at the parent directory. :(
 # We'll just do this every time. Doesn't hurt anyway.
@@ -3701,7 +3706,7 @@ fi
 #	../../Tcl \
 #	../Tcl"
 #for d in $places; do
-#	if test -f $d/Tcl.h ; then
+#	if test -f $d/tclcl.h ; then
 #		V_LIB="$V_LIB $d/libTcl.a"
 #		V_INCLUDE="$V_INCLUDE -I$d"
 #    		break
@@ -4108,7 +4113,7 @@ if test "${with_tcl_ver+set}" = set; then
   withval="$with_tcl_ver"
   TCL_VERS=$withval
 else
-  TCL_VERS=8.4.5
+  TCL_VERS=8.4.1
 fi;
 
 
@@ -4116,7 +4121,7 @@ TCL_HI_VERS=`echo $TCL_VERS | sed 's/^\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1.\2/'
 TCL_MAJOR_VERS=`echo $TCL_VERS | sed 's/^\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1/'`
 TCL_ALT_VERS=`echo $TCL_HI_VERS | sed 's/\.//'`
 
-TCL_OLD_VERS=8.3
+TCL_OLD_VERS=7.6
 TCL_OLD_ALT_VERS=`echo $TCL_OLD_VERS | sed 's/\.//'`
 
 TCL_TCL_PLACES_D="$d \
@@ -4267,6 +4272,33 @@ TCL_LIB_PLACES=" \
                 /usr/lib \
 		"
 
+TCL_PROG_PLACES_D="$d \
+              $d/bin \
+              $d/unix"
+TCL_PROG_PLACES="../tcl$TCL_VERS/unix \
+                ../tcl$TCL_ALT_VERS/unix \
+                /usr/src/local/tcl$TCL_VERS/unix \
+                /usr/src/local/tcl$TCL_ALT_VERS/unix \
+                /usr/contrib/bin \
+                /usr/local/bin/tcl$TCL_VERS \
+                /usr/local/bin/tcl$TCL_ALT_VERS \
+              /usr/bin/tcl$TCL_VERS \
+              /usr/bin/tcl$TCL_ALT_VERS \
+              ../tcl$TCL_OLD_VERS/unix \
+                ../tcl$TCL_OLD_ALT_VERS/unix \
+                /usr/src/local/tcl$TCL_OLD_VERS/unix \
+                /usr/src/local/tcl$TCL_OLD_ALT_VERS/unix \
+                /usr/contrib/bin \
+                /usr/local/bin/tcl$TCL_OLD_VERS \
+                /usr/local/bin/tcl$TCL_OLD_ALT_VERS \
+              /usr/bin/tcl$TCL_OLD_VERS \
+              /usr/bin/tcl$TCL_OLD_ALT_VERS \
+                /usr/local/bin \
+                $prefix/bin \
+                $x_bin/tk \
+                $x_bin \
+                /usr/bin"
+
 
 V_TCL_LIBRARY_FILES="\$(TCL_`echo $TCL_ALT_VERS`_LIBRARY_FILES)"
 test "x$TCL_VERS" = x8.3.5 && V_TCL_LIBRARY_FILES="\$(TCL_835_LIBRARY_FILES)"
@@ -4302,13 +4334,18 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	fi
 
 	V_INCLUDE_TCL=""
+	found=""
 	for dir in $places; do
 		if test -r $dir/tcl.h; then
-			V_INCLUDE_TCL="-I$dir"
+                        found="$dir"
+                        if test "$CC" != "icc" ||
+                                test "$dir" != "/usr/include"; then
+                                V_INCLUDE_TCL="-I$dir"
+                        fi
 			break
 		fi
 	done
-	if test "FAIL$V_INCLUDE_TCL" = "FAIL" ; then
+	if test "FAIL$found" = "FAIL" ; then
 
 NS_PACKAGE_tcl_COMPLETE=false
 
@@ -4364,7 +4401,7 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	for dir in $places; do
 		for file in $full_lib_name $simple_lib_name $other_simple_lib_name $simpler_lib_name
 		do
-			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a -o -r $dir/lib$file.dylib; then
 				V_LIB_TCL="-L$dir -l$file"
 				double_break=true
 				break
@@ -4446,6 +4483,54 @@ echo "${ECHO_T}no" >&6
 echo "${ECHO_T}$V_LIBRARY_TCL" >&6
 	fi
 fi
+
+
+echo "$as_me:$LINENO: checking for tclsh" >&5
+echo $ECHO_N "checking for tclsh... $ECHO_C" >&6
+if test "x$d" = "xno"; then
+	: disable header
+	V_TCLSH_DIR=FAIL
+
+NS_PACKAGE_tcl_COMPLETE=false
+
+	echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+
+else
+	places="$TCL_PROG_PLACES"
+	if test "x$d" != "x" -a "x$d" != xyes; then
+		if test ! -d $d; then
+			{ { echo "$as_me:$LINENO: error: $d is not a directory" >&5
+echo "$as_me: error: $d is not a directory" >&2;}
+   { (exit 1); exit 1; }; }
+		fi
+		places="$TCL_PROG_PLACES_D"
+	fi
+
+	V_TCLSH_DIR=""
+	for dir in $places; do
+		if test -r $dir/tclsh; then
+			V_TCLSH_DIR="$dir"
+			break
+		fi
+	done
+	if test "FAIL$V_TCLSH_DIR" = "FAIL" ; then
+
+NS_PACKAGE_tcl_COMPLETE=false
+
+		echo "$as_me:$LINENO: result: no" >&5
+echo "${ECHO_T}no" >&6
+	else
+
+		NS_PACKAGE_tcl_UNDERWAY=true
+
+		echo "$as_me:$LINENO: result: $V_TCLSH_DIR" >&5
+echo "${ECHO_T}$V_TCLSH_DIR" >&6
+	fi
+fi
+
+
+V_TCLSH=$V_TCLSH_DIR/tclsh
 
 
 #
@@ -4567,7 +4652,7 @@ if test "${with_tk_ver+set}" = set; then
   withval="$with_tk_ver"
   TK_VERS=$withval
 else
-  TK_VERS=8.4.5
+  TK_VERS=8.4.1
 fi;
 
 
@@ -4576,7 +4661,7 @@ TK_HI_VERS=`echo $TK_VERS | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1.\2/'`
 TK_MAJOR_VERS=`echo $TK_VERS | sed 's/\([0-9]*\)\.\([0-9]*\)\.\([0-9]*\)/\1/'`
 TK_ALT_VERS=`echo $TK_VERS | sed 's/\.//'`
 
-TK_OLD_VERS=8.3
+TK_OLD_VERS=4.2
 TK_OLD_ALT_VERS=`echo $TK_OLD_VERS | sed 's/\.//'`
 
 TK_TCL_PLACES_D="$d \
@@ -4739,13 +4824,18 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	fi
 
 	V_INCLUDE_TK=""
+	found=""
 	for dir in $places; do
 		if test -r $dir/tk.h; then
-			V_INCLUDE_TK="-I$dir"
+                        found="$dir"
+                        if test "$CC" != "icc" ||
+                                test "$dir" != "/usr/include"; then
+                                V_INCLUDE_TK="-I$dir"
+                        fi
 			break
 		fi
 	done
-	if test "FAIL$V_INCLUDE_TK" = "FAIL" ; then
+	if test "FAIL$found" = "FAIL" ; then
 
 NS_PACKAGE_tk_COMPLETE=false
 
@@ -4801,7 +4891,7 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	for dir in $places; do
 		for file in $full_lib_name $simple_lib_name $other_simple_lib_name $simpler_lib_name
 		do
-			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a -o -r $dir/lib$file.dylib; then
 				V_LIB_TK="-L$dir -l$file"
 				double_break=true
 				break
@@ -4943,7 +5033,7 @@ else
 fi;
 
 OTCL_VERS=1.9
-OTCL_ALT_VERS=1.0
+OTCL_ALT_VERS=1.9
 
 OTCL_H_PLACES_D="$d \
 		$d/include"
@@ -5001,13 +5091,18 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	fi
 
 	V_INCLUDE_OTCL=""
+	found=""
 	for dir in $places; do
 		if test -r $dir/otcl.h; then
-			V_INCLUDE_OTCL="-I$dir"
+                        found="$dir"
+                        if test "$CC" != "icc" ||
+                                test "$dir" != "/usr/include"; then
+                                V_INCLUDE_OTCL="-I$dir"
+                        fi
 			break
 		fi
 	done
-	if test "FAIL$V_INCLUDE_OTCL" = "FAIL" ; then
+	if test "FAIL$found" = "FAIL" ; then
 
 NS_PACKAGE_otcl_COMPLETE=false
 
@@ -5063,7 +5158,7 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	for dir in $places; do
 		for file in $full_lib_name $simple_lib_name $other_simple_lib_name $simpler_lib_name
 		do
-			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a -o -r $dir/lib$file.dylib; then
 				V_LIB_OTCL="-L$dir -l$file"
 				double_break=true
 				break
@@ -5213,7 +5308,8 @@ TCLCL_PROG_PLACES="\
                 /usr/src/local/Tcl \
                 /usr/src/local/Tcl-1.0 \
                 "
-TCLCL_PROG_PLACES_D="$d"
+TCLCL_PROG_PLACES_D="$d \
+	$d/bin"
 
 
 
@@ -5244,13 +5340,18 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	fi
 
 	V_INCLUDE_TCLCL=""
+	found=""
 	for dir in $places; do
 		if test -r $dir/tclcl.h; then
-			V_INCLUDE_TCLCL="-I$dir"
+                        found="$dir"
+                        if test "$CC" != "icc" ||
+                                test "$dir" != "/usr/include"; then
+                                V_INCLUDE_TCLCL="-I$dir"
+                        fi
 			break
 		fi
 	done
-	if test "FAIL$V_INCLUDE_TCLCL" = "FAIL" ; then
+	if test "FAIL$found" = "FAIL" ; then
 
 NS_PACKAGE_tclcl_COMPLETE=false
 
@@ -5306,7 +5407,7 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	for dir in $places; do
 		for file in $full_lib_name $simple_lib_name $other_simple_lib_name $simpler_lib_name
 		do
-			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a -o -r $dir/lib$file.dylib; then
 				V_LIB_TCLCL="-L$dir -l$file"
 				double_break=true
 				break
@@ -5538,6 +5639,9 @@ _ACEOF
 	;;
 *-*-linux*)
 	V_BROKEN_OBJ=
+	;;
+powerpc-apple-darwin*) # You can use "-fast and -mcpu=7450 on G3/G4 systems, but not on G5's
+	V_CCOPT="-fno-common -fPIC -pipe"
 	;;
 esac
 
@@ -5860,7 +5964,7 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	for dir in $places; do
 		for file in $full_lib_name $simple_lib_name $other_simple_lib_name $simpler_lib_name
 		do
-			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a -o -r $dir/lib$file.dylib; then
 				V_LIB_TCLDEBUG="-L$dir -l$file"
 				double_break=true
 				break
@@ -6025,7 +6129,7 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	for dir in $places; do
 		for file in $full_lib_name $simple_lib_name $other_simple_lib_name $simpler_lib_name
 		do
-			if test -r $dir/lib$file.so -o -r $dir/lib$file.a; then
+			if test -r $dir/lib$file.so -o -r $dir/lib$file.a -o -r $dir/lib$file.dylib; then
 				V_LIB_DMALLOC="-L$dir -l$file"
 				double_break=true
 				break
@@ -6087,13 +6191,18 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	fi
 
 	V_HEADER_DMALLOC=""
+	found=""
 	for dir in $places; do
 		if test -r $dir/dmalloc.h; then
-			V_HEADER_DMALLOC="-I$dir"
+                        found="$dir"
+                        if test "$CC" != "icc" ||
+                                test "$dir" != "/usr/include"; then
+                                V_HEADER_DMALLOC="-I$dir"
+                        fi
 			break
 		fi
 	done
-	if test "FAIL$V_HEADER_DMALLOC" = "FAIL" ; then
+	if test "FAIL$found" = "FAIL" ; then
 
 NS_PACKAGE_dmalloc_COMPLETE=false
 
@@ -6141,13 +6250,18 @@ echo "$as_me: error: $d is not a directory" >&2;}
 	fi
 
 	V_HEADER_RETURN=""
+	found=""
 	for dir in $places; do
 		if test -r $dir/return.h; then
-			V_HEADER_RETURN="-I$dir"
+                        found="$dir"
+                        if test "$CC" != "icc" ||
+                                test "$dir" != "/usr/include"; then
+                                V_HEADER_RETURN="-I$dir"
+                        fi
 			break
 		fi
 	done
-	if test "FAIL$V_HEADER_RETURN" = "FAIL" ; then
+	if test "FAIL$found" = "FAIL" ; then
 
 NS_PACKAGE_dmalloc_COMPLETE=false
 

@@ -54,7 +54,8 @@ PERL	= @PERL@
 
 CCOPT	= @V_CCOPT@ 
 STATIC	= @V_STATIC@
-LDFLAGS	= $(STATIC)
+#LDFLAGS	= $(STATIC)
+LDFLAGS	= @LDFLAGS@
 LDOUT	= -o $(BLANK)
 
 DEFINE	= -DTCP_DELAY_BIND_ALL -DNO_TK @V_DEFINE@ @V_DEFINES@ @DEFS@ -DNS_DIFFUSION -DSMAC_NO_SYNC -DCPP_NAMESPACE=@CPP_NAMESPACE@ -DUSE_SINGLE_ADDRESS_SPACE -Drng_test
@@ -477,13 +478,21 @@ common/ptypes2tcl: common/ptypes2tcl.o
 
 common/ptypes2tcl.o: common/ptypes2tcl.cc common/packet.h
 
-install: force install-ns install-man install-recursive
+dirs:
+	for d in $(DESTDIR)$(MANDEST)/man1; do \
+		if [ ! -d $$d ]; then \
+			mkdir -p $$d ;\
+		fi;\
+	done
+
+
+install: dirs force install-ns install-man
 
 install-ns: force
-	$(INSTALL) -m 555 -o bin -g bin ns $(DESTDIR)$(BINDEST)
+	$(INSTALL) -m 755 ns $(DESTDIR)$(BINDEST)
 
 install-man: force
-	$(INSTALL) -m 444 -o bin -g bin ns.1 $(DESTDIR)$(MANDEST)/man1
+	$(INSTALL) -m 644 ns.1 $(DESTDIR)$(MANDEST)/man1
 
 install-recursive: force
 	for i in $(SUBDIRS); do ( cd $$i; $(MAKE) install; ) done
@@ -520,7 +529,7 @@ tcl/lib/TAGS:	force
 	)
 
 depend: $(SRC)
-	$(MKDEP) $(CFLAGS) $(INCLUDES) $(SRC)
+	$(MKDEP) -- $(CFLAGS) -- -Y $(SRC) >& /dev/null
 
 srctar:
 	@cwd=`pwd` ; dir=`basename $$cwd` ; \

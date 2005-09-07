@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.53 2005/07/13 03:51:22 tomh Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/config.h,v 1.54 2005/09/07 06:35:43 tomh Exp $ (LBL)
  */
 
 #ifndef ns_config_h
@@ -95,7 +95,7 @@ struct ns_addr_t {
 
 #elif defined(HAVE_STRTOQ)
 #define STRTOI64 strtoq
-#define STRTOI64_FMTSTR "%qd"
+#define STRTOI64_FMTSTR "%lld"
 //#define STRTOI64(S) strtoq((S), NULL, 0)
 
 #elif defined(HAVE_STRTOLL)

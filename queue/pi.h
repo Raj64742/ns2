@@ -45,6 +45,8 @@
 #ifndef ns_pi_h
 #define ns_pi_h
 
+#undef setbit
+
 #include "queue.h"
 #include "trace.h"
 #include "timer-handler.h"
