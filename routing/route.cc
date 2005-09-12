@@ -39,7 +39,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.38 2001/02/22 19:45:39 haldar Exp $ (LBL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/routing/route.cc,v 1.39 2005/09/12 04:34:16 tomh Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -174,6 +174,7 @@ int RouteLogic::command(int argc, const char*const* argv)
 					return (TCL_ERROR);
 				}
 			hier_reset(src_addr, dst_addr);
+			return (TCL_OK);
 		} else if (strcmp(argv[1], "hier-lookup") == 0) {
 			int nh;
 			int res = lookup_hier((char*)argv[2], (char*)argv[3],
