@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.41 2005/06/20 02:39:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.42 2005/09/12 21:34:18 sfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -310,14 +310,17 @@ TestSuite instproc setloss {} {
 
 Class Test/ecn -superclass TestSuite
 Test/ecn instproc init {} {
-    $self instvar net_ test_
+    $self instvar net_ test_ guide_
     Queue/RED set setbit_ true
     set net_	net2
     set test_	ecn
+    set guide_ "Two connections using ECN."
     $self next pktTraceFile
 }
 Test/ecn instproc run {} {
-    $self instvar ns_ node_ testName_
+    global quiet
+    $self instvar ns_ node_ testName_ guide_
+    if {$quiet == "false"} {puts $guide_}
     $self setTopo 
 
     Agent/TCP set old_ecn_ 1
@@ -399,7 +402,7 @@ TestSuite instproc ecnsetup { tcptype {stoptime 3.0} { tcp1fid 0 } { delack 0 }}
 }
 
 TestSuite instproc second_tcp { tcptype starttime } {
-    $self instvar ns_ node_
+    $self instvar ns_ node_ 
     if {$tcptype == "Tahoe"} {
       set tcp [$ns_ create-connection TCP $node_(s1) \
 	 TCPSink $node_(s3) 2]    
@@ -450,15 +453,18 @@ TestSuite instproc drop_pkts2 pkts {
 # Plain ECN
 Class Test/ecn_nodrop_tahoe -superclass TestSuite
 Test/ecn_nodrop_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_tahoe
+        set guide_	"Tahoe with ECN."
         $self next pktTraceFile
 }
 Test/ecn_nodrop_tahoe instproc run {} {
-	$self instvar ns_
+	global quiet
+	$self instvar ns_ guide_
+	if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 
 	$self drop_pkt 10000
@@ -468,15 +474,18 @@ Test/ecn_nodrop_tahoe instproc run {} {
 # Two ECNs close together
 Class Test/ecn_twoecn_tahoe -superclass TestSuite
 Test/ecn_twoecn_tahoe instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_tahoe
+	set guide_ 	"Tahoe, two marked packets in one window."
         $self next pktTraceFile
 }
 Test/ecn_twoecn_tahoe instproc run {} {
-	$self instvar ns_ lossmodel
+        global quiet
+	$self instvar ns_ lossmodel guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 
 	$self drop_pkt 243
@@ -487,15 +496,18 @@ Test/ecn_twoecn_tahoe instproc run {} {
 # ECN followed by packet loss.
 Class Test/ecn_drop_tahoe -superclass TestSuite
 Test/ecn_drop_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_tahoe
+        set guide_	"Tahoe, ECN followed by packet loss."
         $self next pktTraceFile
 }
 Test/ecn_drop_tahoe instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0
 	$self drop_pkt 243
@@ -505,15 +517,18 @@ Test/ecn_drop_tahoe instproc run {} {
 # ECN preceded by packet loss.
 Class Test/ecn_drop1_tahoe -superclass TestSuite
 Test/ecn_drop1_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_tahoe
+        set guide_      "Tahoe, ECN preceded by packet loss."
         $self next pktTraceFile
 }
 Test/ecn_drop1_tahoe instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0
 	$self drop_pkt 241
@@ -523,15 +538,18 @@ Test/ecn_drop1_tahoe instproc run {} {
 # ECN preceded by packet loss.
 Class Test/ecn_drop2_tahoe -superclass TestSuite
 Test/ecn_drop2_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop2_tahoe
+        set guide_      "Tahoe, ECN preceded by packet loss."
         $self next pktTraceFile
 }
 Test/ecn_drop2_tahoe instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0
 	$self drop_pkt 235
@@ -541,7 +559,7 @@ Test/ecn_drop2_tahoe instproc run {} {
 # Packet loss only.
 Class Test/ecn_noecn_tahoe -superclass TestSuite
 Test/ecn_noecn_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Queue/RED set thresh_ 1000
 	Queue/RED set maxthresh_ 1000
@@ -549,23 +567,27 @@ Test/ecn_noecn_tahoe instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_noecn_tahoe
 	Test/ecn_noecn_tahoe instproc run {} [Test/ecn_drop_tahoe info instbody run ]
+        set guide_      "Tahoe, packet loss only, no ECN."
         $self next pktTraceFile
 }
 
 # Multiple dup acks with bugFix_
 Class Test/ecn_bursty_tahoe -superclass TestSuite
 Test/ecn_bursty_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Queue/RED set thresh_ 100
 	Queue/RED set maxthresh_ 100
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_bursty_tahoe
+        set guide_      "Tahoe, multiple dup acks, with bugFix."
         $self next pktTraceFile
 }
 Test/ecn_bursty_tahoe instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 
 	$self ecnsetup Tahoe 3.0
         set lossmodel [$self setloss]
@@ -578,20 +600,21 @@ Test/ecn_bursty_tahoe instproc run {} {
 # Multiple dup acks following ECN
 Class Test/ecn_burstyEcn_tahoe -superclass TestSuite
 Test/ecn_burstyEcn_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
 	Agent/TCP set old_ecn_ 1
         set test_	ecn_burstyEcn_tahoe
 	Test/ecn_burstyEcn_tahoe instproc run {} [Test/ecn_bursty_tahoe info instbody run ]   
+        set guide_      "Tahoe, multiple dup acks and ECN, with bugFix."
         $self next pktTraceFile
 }
 
 # Multiple dup acks without bugFix_
 Class Test/ecn_noBugfix_tahoe -superclass TestSuite
 Test/ecn_noBugfix_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
 	Queue/RED set thresh_ 100 
 	Queue/RED set maxthresh_ 100
         Queue/RED set setbit_ true
@@ -600,21 +623,25 @@ Test/ecn_noBugfix_tahoe instproc init {} {
         set test_	ecn_noBugfix_tahoe
 	Test/ecn_noBugfix_tahoe instproc run {} [Test/ecn_bursty_tahoe info instbody run ]
 
+        set guide_      "Tahoe, multiple dup acks, no bugFix."
         $self next pktTraceFile
 }
 
 # ECN followed by timeout.
 Class Test/ecn_timeout_tahoe -superclass TestSuite
 Test/ecn_timeout_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout_tahoe
+        set guide_      "Tahoe, drops and ECN followed by a timeout."
         $self next pktTraceFile
 }
 Test/ecn_timeout_tahoe instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	$self ecnsetup Tahoe 3.0 1
 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -624,17 +651,20 @@ Test/ecn_timeout_tahoe instproc run {} {
 # Only the timeout.
 Class Test/ecn_timeout2_tahoe -superclass TestSuite
 Test/ecn_timeout2_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Queue/RED set thresh_ 100
 	Queue/RED set maxthresh_ 100
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout2_tahoe
+        set guide_      "Tahoe, drops followed by a timeout, no ECN."
         $self next pktTraceFile
 }
 Test/ecn_timeout2_tahoe instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	$self ecnsetup Tahoe 3.0 1
 	$self drop_pkts {241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -644,15 +674,18 @@ Test/ecn_timeout2_tahoe instproc run {} {
 # The timeout with the ECN in the middle of dropped packets.
 Class Test/ecn_timeout3_tahoe -superclass TestSuite
 Test/ecn_timeout3_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout3_tahoe
+        set guide_      "Tahoe, drops and ECN followed by a timeout."
         $self next pktTraceFile
 }
 Test/ecn_timeout3_tahoe instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	$self ecnsetup Tahoe 3.0 1
 	$self drop_pkts {241 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270} 
 
@@ -662,17 +695,20 @@ Test/ecn_timeout3_tahoe instproc run {} {
 # Packet drops with a window of one packet.
 Class Test/ecn_smallwin_tahoe -superclass TestSuite
 Test/ecn_smallwin_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Agent/TCP set bugFix_ true
 	Agent/TCP set timerfix_ false
 	# The default is being changed to true.
         set net_	net2-lossy
         set test_	ecn_smallwin_tahoe
+        set guide_      "Tahoe, packet drops with a window of one."
         $self next pktTraceFile
 }
 Test/ecn_smallwin_tahoe instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 6.0 1
 	$self drop_pkts {4 8 9 10 11 100 115 118 119}
@@ -683,17 +719,20 @@ Test/ecn_smallwin_tahoe instproc run {} {
 # ECN with a window of one packet.
 Class Test/ecn_smallwinEcn_tahoe -superclass TestSuite
 Test/ecn_smallwinEcn_tahoe instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
 	Agent/TCP set timerfix_ false
 	# The default is being changed to true.
         set test_	ecn_smallwinEcn_tahoe
+        set guide_      "Tahoe, ECN with a window of one."
         $self next pktTraceFile
 }
 Test/ecn_smallwinEcn_tahoe instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 151 152 153} 
@@ -709,17 +748,20 @@ Test/ecn_smallwinEcn_tahoe instproc run {} {
 
 Class Test/ecn_smallwin1Ecn_tahoe -superclass TestSuite
 Test/ecn_smallwin1Ecn_tahoe instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net3-lossy
 	Agent/TCP set bugFix_ true
 	Agent/TCP set timerfix_ false
 	# The default is being changed to true.
         set test_	ecn_smallwin1Ecn_tahoe
+        set guide_      "Tahoe, ECN with small windows."
         $self next pktTraceFile
 }
 Test/ecn_smallwin1Ecn_tahoe instproc run {} {
-	$self instvar ns_ errmodel1 errmodel2
+        global quiet
+	$self instvar ns_ guide_ errmodel1 errmodel2
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 153} 
@@ -732,7 +774,7 @@ Test/ecn_smallwin1Ecn_tahoe instproc run {} {
 # ECN with a window of one packet, slow_start_restart_ false.
 Class Test/ecn_smallwin2Ecn_tahoe -superclass TestSuite
 Test/ecn_smallwin2Ecn_tahoe instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
@@ -741,33 +783,38 @@ Test/ecn_smallwin2Ecn_tahoe instproc init {} {
 	# The default is being changed to true.
         set test_	ecn_smallwin2Ecn_tahoe
 	Test/ecn_smallwin2Ecn_tahoe instproc run {} [Test/ecn_smallwinEcn_tahoe info instbody run ]
+        set guide_      "Tahoe, ECN with a window of one, no slow_start_restart."
         $self next pktTraceFile
 }
 
 Class Test/ecn_smallwin3Ecn_tahoe -superclass TestSuite
 Test/ecn_smallwin3Ecn_tahoe instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net3-lossy
 	Agent/TCP set bugFix_ true
 	Agent/TCP set slow_start_restart_ false
         set test_	ecn_smallwin3Ecn_tahoe
 	Test/ecn_smallwin3Ecn_tahoe instproc run {} [Test/ecn_smallwin1Ecn_tahoe info instbody run ]
+        set guide_      "Tahoe, ECN with small windows, no slow_start_restart."
         $self next pktTraceFile
 }
 
 # Packet drops for the second packet.
 Class Test/ecn_secondpkt_tahoe -superclass TestSuite
 Test/ecn_secondpkt_tahoe instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_secondpkt_tahoe
+        set guide_      "Tahoe, with the second packet dropped."
         $self next pktTraceFile
 }
 Test/ecn_secondpkt_tahoe instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 2.0 1
 	$self drop_pkts {1 3} 
@@ -778,32 +825,23 @@ Test/ecn_secondpkt_tahoe instproc run {} {
 # ECN for the second packet.
 Class Test/ecn_secondpktEcn_tahoe -superclass TestSuite
 Test/ecn_secondpktEcn_tahoe instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_secondpktEcn_tahoe
+        set guide_      "Tahoe, with the second packet marked."
         $self next pktTraceFile
 }
 Test/ecn_secondpktEcn_tahoe instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 2.0 1
 	$self drop_pkts {1 3} 
 	$errmodel1 set markecn_ true
 	$ns_ run
-}
-
-# ECN for the second packet.
-Class Test/ecn_secondpkt1Ecn_tahoe -superclass TestSuite
-Test/ecn_secondpkt1Ecn_tahoe instproc init {} {
-        $self instvar net_ test_ 
-        Queue/RED set setbit_ true
-        set net_	net2-lossy
-	Agent/TCP set bugFix_ true
-        set test_	ecn_secondpkt1Ecn_tahoe
-	Test/ecn_secondpkt1Ecn_tahoe instproc run {} [Test/ecn_secondpktEcn_tahoe info instbody run ] 
-        $self next pktTraceFile
 }
 
 #######################################################################
@@ -813,33 +851,39 @@ Test/ecn_secondpkt1Ecn_tahoe instproc init {} {
 # Plain ECN
 Class Test/ecn_nodrop_tahoe_delack -superclass TestSuite
 Test/ecn_nodrop_tahoe_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_tahoe_delack
+        set guide_      "Tahoe with ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_nodrop_tahoe_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 0 1
 	$self drop_pkt 10000
 	$ns_ run
 }
 
-# Two ECNs close together
+# This one doesn't have two ECNs close together..
 Class Test/ecn_twoecn_tahoe_delack -superclass TestSuite
 Test/ecn_twoecn_tahoe_delack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_tahoe_delack
+        set guide_      "Tahoe, ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_twoecn_tahoe_delack instproc run {} {
-	$self instvar ns_ lossmodel
+        global quiet
+	$self instvar ns_ guide_ lossmodel
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 0 1 
 	$self drop_pkt 243
@@ -847,36 +891,42 @@ Test/ecn_twoecn_tahoe_delack instproc run {} {
 	$ns_ run
 }
 
-# ECN followed by packet loss.
+# ECN followed by packet loss?
 Class Test/ecn_drop_tahoe_delack -superclass TestSuite
 Test/ecn_drop_tahoe_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_tahoe_delack
+        set guide_      "Tahoe, ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_drop_tahoe_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 0 1
 	$self drop_pkt 243
 	$ns_ run
 }
 
-# ECN preceded by packet loss.
+# ECN preceded by packet loss?
 Class Test/ecn_drop1_tahoe_delack -superclass TestSuite
 Test/ecn_drop1_tahoe_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_tahoe_delack
+        set guide_      "Tahoe, ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_drop1_tahoe_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 0 1
 	$self drop_pkt 241
@@ -886,17 +936,20 @@ Test/ecn_drop1_tahoe_delack instproc run {} {
 # ECN with a window of one packet.
 Class Test/ecn_smallwinEcn_tahoe_delack -superclass TestSuite
 Test/ecn_smallwinEcn_tahoe_delack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
 	Agent/TCP set timerfix_ false
 	# The default is being changed to true.
         set test_	ecn_smallwinEcn_tahoe_delack
+        set guide_      "Tahoe, ECN with a window of one, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_smallwinEcn_tahoe_delack instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 10.0 1 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 151 152 153} 
@@ -911,15 +964,18 @@ Test/ecn_smallwinEcn_tahoe_delack instproc run {} {
 # Plain ECN
 Class Test/ecn_nodrop_reno -superclass TestSuite
 Test/ecn_nodrop_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_reno
+ 	set guide_      "Reno with ECN."  
         $self next pktTraceFile
 }
 Test/ecn_nodrop_reno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 
 	$self drop_pkt 10000
@@ -929,15 +985,18 @@ Test/ecn_nodrop_reno instproc run {} {
 # Two ECNs close together
 Class Test/ecn_twoecn_reno -superclass TestSuite
 Test/ecn_twoecn_reno instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_reno
+        set guide_      "Reno, two marked packets in one window."
         $self next pktTraceFile
 }
 Test/ecn_twoecn_reno instproc run {} {
-	$self instvar ns_ lossmodel
+        global quiet
+	$self instvar ns_ guide_ lossmodel
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 
 	$self drop_pkt 243
@@ -948,15 +1007,18 @@ Test/ecn_twoecn_reno instproc run {} {
 # ECN followed by packet loss.
 Class Test/ecn_drop_reno -superclass TestSuite
 Test/ecn_drop_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_reno
+        set guide_      "Reno, ECN followed by packet loss."
         $self next pktTraceFile
 }
 Test/ecn_drop_reno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0
 	$self drop_pkt 243
@@ -964,18 +1026,20 @@ Test/ecn_drop_reno instproc run {} {
 }
 
 # ECN preceded by packet loss.
-# NO.
 Class Test/ecn_drop1_reno -superclass TestSuite
 Test/ecn_drop1_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_reno
+        set guide_      "Reno, ECN preceded by packet loss."
         $self next pktTraceFile
 }
 Test/ecn_drop1_reno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0
 	$self drop_pkt 241
@@ -985,7 +1049,7 @@ Test/ecn_drop1_reno instproc run {} {
 # Packet loss only.
 Class Test/ecn_noecn_reno -superclass TestSuite
 Test/ecn_noecn_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Queue/RED set thresh_ 1000
 	Queue/RED set maxthresh_ 1000
@@ -993,23 +1057,27 @@ Test/ecn_noecn_reno instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_noecn_reno
 	Test/ecn_noecn_reno instproc run {} [Test/ecn_drop_reno info instbody run ]
+        set guide_      "Reno, packet loss only, no ECN."
         $self next pktTraceFile
 }
 
 # Multiple dup acks with bugFix_
 Class Test/ecn_bursty_reno -superclass TestSuite
 Test/ecn_bursty_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Queue/RED set thresh_ 100
 	Queue/RED set maxthresh_ 100
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_bursty_reno
+        set guide_      "Reno, multiple dup acks, with bugFix."
         $self next pktTraceFile
 }
 Test/ecn_bursty_reno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 
 	$self ecnsetup Reno 3.0
         set lossmodel [$self setloss]
@@ -1022,19 +1090,20 @@ Test/ecn_bursty_reno instproc run {} {
 # Multiple dup acks following ECN
 Class Test/ecn_burstyEcn_reno -superclass TestSuite
 Test/ecn_burstyEcn_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_burstyEcn_reno
 	Test/ecn_burstyEcn_reno instproc run {} [Test/ecn_bursty_reno info instbody run ]   
+        set guide_      "Reno, multiple dup acks and ECN, with bugFix."
         $self next pktTraceFile
 }
 
 # Multiple dup acks without bugFix_
 Class Test/ecn_noBugfix_reno -superclass TestSuite
 Test/ecn_noBugfix_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
 	Queue/RED set thresh_ 100 
 	Queue/RED set maxthresh_ 100
         Queue/RED set setbit_ true
@@ -1042,22 +1111,26 @@ Test/ecn_noBugfix_reno instproc init {} {
 	Agent/TCP set bugFix_ false
         set test_	ecn_noBugfix_reno
 	Test/ecn_noBugfix_reno instproc run {} [Test/ecn_bursty_reno info instbody run ]
-
+        set guide_      "Reno, multiple dup acks, no bugFix."
         $self next pktTraceFile
 }
 
-# ECN followed by timeout.
+# ECN followed by timeout?.
+# Nope.
 Class Test/ecn_timeout_reno -superclass TestSuite
 Test/ecn_timeout_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout_reno
+        set guide_      "Reno, drops followed by a timeout, no ECN."
         $self next pktTraceFile
 }
 Test/ecn_timeout_reno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	$self ecnsetup Reno 3.0 1
 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -1068,15 +1141,18 @@ Test/ecn_timeout_reno instproc run {} {
 # new instance of congestion.
 Class Test/ecn_timeout1_reno -superclass TestSuite
 Test/ecn_timeout1_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout1_reno
+        set guide_      "Reno, drops and ECN followed by a timeout."
         $self next pktTraceFile
 }
 Test/ecn_timeout1_reno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 1
 	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
@@ -1087,15 +1163,18 @@ Test/ecn_timeout1_reno instproc run {} {
 # Packet drops with a window of one packet.
 Class Test/ecn_smallwin_reno -superclass TestSuite
 Test/ecn_smallwin_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_smallwin_reno
+        set guide_      "Reno, packet drops with a window of one."
         $self next pktTraceFile
 }
 Test/ecn_smallwin_reno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 6.0 1
 	$self drop_pkts {4 8 9 10 11 100 115 118 119 121 122}
@@ -1106,15 +1185,18 @@ Test/ecn_smallwin_reno instproc run {} {
 # ECN with a window of one packet.
 Class Test/ecn_smallwinEcn_reno -superclass TestSuite
 Test/ecn_smallwinEcn_reno instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_reno
+        set guide_      "Reno, ECN with a window of one."
         $self next pktTraceFile
 }
 Test/ecn_smallwinEcn_reno instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 151 152 153} 
@@ -1124,15 +1206,18 @@ Test/ecn_smallwinEcn_reno instproc run {} {
 
 Class Test/ecn_smallwin1Ecn_reno -superclass TestSuite
 Test/ecn_smallwin1Ecn_reno instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net3-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwin1Ecn_reno
+        set guide_      "Reno, ECN with small windows."
         $self next pktTraceFile
 }
 Test/ecn_smallwin1Ecn_reno instproc run {} {
-	$self instvar ns_ errmodel1 errmodel2
+        global quiet
+	$self instvar ns_ guide_ errmodel1 errmodel2
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 153} 
@@ -1145,15 +1230,18 @@ Test/ecn_smallwin1Ecn_reno instproc run {} {
 # Packet drops for the second packet.
 Class Test/ecn_secondpkt_reno -superclass TestSuite
 Test/ecn_secondpkt_reno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_secondpkt_reno
+        set guide_      "Reno, with the second packet dropped."
         $self next pktTraceFile
 }
 Test/ecn_secondpkt_reno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 2.0 1
 	$self drop_pkts {1 3} 
@@ -1164,15 +1252,18 @@ Test/ecn_secondpkt_reno instproc run {} {
 # ECN for the second packet.
 Class Test/ecn_secondpktEcn_reno -superclass TestSuite
 Test/ecn_secondpktEcn_reno instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_secondpktEcn_reno
+        set guide_      "Reno, with the second packet marked."
         $self next pktTraceFile
 }
 Test/ecn_secondpktEcn_reno instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 2.0 1
 	$self drop_pkts {1 3} 
@@ -1187,15 +1278,18 @@ Test/ecn_secondpktEcn_reno instproc run {} {
 # Plain ECN
 Class Test/ecn_nodrop_reno_delack -superclass TestSuite
 Test/ecn_nodrop_reno_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_reno_delack
+        set guide_      "Reno, ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_nodrop_reno_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 0 1 
 	$self drop_pkt 10000
@@ -1205,15 +1299,18 @@ Test/ecn_nodrop_reno_delack instproc run {} {
 # Two ECNs close together
 Class Test/ecn_twoecn_reno_delack -superclass TestSuite
 Test/ecn_twoecn_reno_delack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_reno_delack
+        set guide_      "Reno, ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_twoecn_reno_delack instproc run {} {
-	$self instvar ns_ lossmodel
+        global quiet
+	$self instvar ns_ guide_ lossmodel
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 0 1 
 	$self drop_pkt 243
@@ -1224,15 +1321,18 @@ Test/ecn_twoecn_reno_delack instproc run {} {
 # ECN followed by packet loss.
 Class Test/ecn_drop_reno_delack -superclass TestSuite
 Test/ecn_drop_reno_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_reno_delack
+        set guide_      "Reno, packet loss followed by ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_drop_reno_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 0 1
 	$self drop_pkt 243
@@ -1243,15 +1343,18 @@ Test/ecn_drop_reno_delack instproc run {} {
 # NO.
 Class Test/ecn_drop1_reno_delack -superclass TestSuite
 Test/ecn_drop1_reno_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_reno_delack
+        set guide_      "Reno, packet loss followed by ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_drop1_reno_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 0 1
 	$self drop_pkt 241
@@ -1261,15 +1364,18 @@ Test/ecn_drop1_reno_delack instproc run {} {
 # ECN with a window of one packet.
 Class Test/ecn_smallwinEcn_reno_delack -superclass TestSuite
 Test/ecn_smallwinEcn_reno_delack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_reno_delack
+        set guide_      "Reno, delayed acks, ECN with a window of one."
         $self next pktTraceFile
 }
 Test/ecn_smallwinEcn_reno_delack instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 10.0 1 1
 	$self drop_pkts {4 8 9 11 120 135 143 148 150 151 152 153} 
@@ -1284,15 +1390,18 @@ Test/ecn_smallwinEcn_reno_delack instproc run {} {
 # Plain ECN
 Class Test/ecn_nodrop_sack -superclass TestSuite
 Test/ecn_nodrop_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_sack
+        set guide_      "Sack with ECN."
         $self next pktTraceFile
 }
 Test/ecn_nodrop_sack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 
 	$self drop_pkt 10000
@@ -1302,15 +1411,18 @@ Test/ecn_nodrop_sack instproc run {} {
 # Two ECNs close together
 Class Test/ecn_twoecn_sack -superclass TestSuite
 Test/ecn_twoecn_sack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_sack
+        set guide_      "Sack, two marked packets in one window."
         $self next pktTraceFile
 }
 Test/ecn_twoecn_sack instproc run {} {
-	$self instvar ns_ lossmodel
+        global quiet
+	$self instvar ns_ guide_ lossmodel
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 
 	$self drop_pkt 243
@@ -1321,15 +1433,18 @@ Test/ecn_twoecn_sack instproc run {} {
 # ECN followed by packet loss.
 Class Test/ecn_drop_sack -superclass TestSuite
 Test/ecn_drop_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
 #        Queue/RED set setbit_ true
         set net_        net2-lossy
         Agent/TCP set bugFix_ true  
         set test_       ecn_drop_sack
+        set guide_      "Sack, ECN preceded by packet loss."
         $self next pktTraceFile
 } 
 Test/ecn_drop_sack instproc run {} {
-        $self instvar ns_
+        global quiet
+        $self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
         $self ecnsetup Sack1 3.0
         $self drop_pkt 243
@@ -1339,15 +1454,18 @@ Test/ecn_drop_sack instproc run {} {
 # ECN followed by packet loss.
 Class Test/ecn_drop1_sack -superclass TestSuite
 Test/ecn_drop1_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
 #        Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_sack
+        set guide_      "Sack, ECN preceded by packet loss."
         $self next pktTraceFile
 }
 Test/ecn_drop1_sack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0
 	$self drop_pkt 241
@@ -1357,7 +1475,7 @@ Test/ecn_drop1_sack instproc run {} {
 # Packet loss only.
 Class Test/ecn_noecn_sack -superclass TestSuite
 Test/ecn_noecn_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Queue/RED set thresh_ 1000
 	Queue/RED set maxthresh_ 1000
@@ -1365,23 +1483,27 @@ Test/ecn_noecn_sack instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_noecn_sack
 	Test/ecn_noecn_sack instproc run {} [Test/ecn_drop_sack info instbody run ]
+        set guide_      "Sack, packet loss only, no ECN."
         $self next pktTraceFile
 }
 
 # Multiple dup acks with bugFix_
 Class Test/ecn_bursty_sack -superclass TestSuite
 Test/ecn_bursty_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Queue/RED set thresh_ 100
 	Queue/RED set maxthresh_ 100
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_bursty_sack
+        set guide_      "Sack, multiple dup acks, with bugFix."
         $self next pktTraceFile
 }
 Test/ecn_bursty_sack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 
 	$self ecnsetup Sack1 3.0
         set lossmodel [$self setloss]
@@ -1394,28 +1516,32 @@ Test/ecn_bursty_sack instproc run {} {
 # Multiple dup acks following ECN
 Class Test/ecn_burstyEcn_sack -superclass TestSuite
 Test/ecn_burstyEcn_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
 	Agent/TCP set old_ecn_ 1
         set test_	ecn_burstyEcn_sack
 	Test/ecn_burstyEcn_sack instproc run {} [Test/ecn_bursty_sack info instbody run ]   
+        set guide_      "Sack, multiple dup acks and ECN, with bugFix."
         $self next pktTraceFile
 }
 
 # Multiple dup acks following ECN
 Class Test/ecn_burstyEcn1_sack -superclass TestSuite
 Test/ecn_burstyEcn1_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_burstyEcn1_sack
+        set guide_      "Sack, multiple dup acks and ECN, with bugFix."
         $self next pktTraceFile
 }
 Test/ecn_burstyEcn1_sack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 
 	$self ecnsetup Sack1 3.0
         set lossmodel [$self setloss]
@@ -1428,7 +1554,7 @@ Test/ecn_burstyEcn1_sack instproc run {} {
 # Multiple dup acks without bugFix_
 Class Test/ecn_noBugfix_sack -superclass TestSuite
 Test/ecn_noBugfix_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
 	Queue/RED set thresh_ 100 
 	Queue/RED set maxthresh_ 100
         Queue/RED set setbit_ true
@@ -1437,21 +1563,25 @@ Test/ecn_noBugfix_sack instproc init {} {
         set test_	ecn_noBugfix_sack
 	Test/ecn_noBugfix_sack instproc run {} [Test/ecn_bursty_sack info instbody run ]
 
+        set guide_      "Sack, multiple dup acks, no bugFix."
         $self next pktTraceFile
 }
 
 # ECN followed by timeout.
 Class Test/ecn_timeout_sack -superclass TestSuite
 Test/ecn_timeout_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout_sack
+        set guide_      "Sack, drops and ECN followed by a timeout."
         $self next pktTraceFile
 }
 Test/ecn_timeout_sack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	$self ecnsetup Sack1 3.0 1
 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -1462,15 +1592,18 @@ Test/ecn_timeout_sack instproc run {} {
 # new instance of congestion.
 Class Test/ecn_timeout1_sack -superclass TestSuite
 Test/ecn_timeout1_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout1_sack
+        set guide_      "Sack, drops and ECN followed by a timeout."
         $self next pktTraceFile
 }
 Test/ecn_timeout1_sack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 1
 	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
@@ -1481,15 +1614,18 @@ Test/ecn_timeout1_sack instproc run {} {
 # ECN and packet drops.
 Class Test/ecn_fourdrops_sack -superclass TestSuite
 Test/ecn_fourdrops_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_fourdrops_sack
+        set guide_      "Reno, ECN with four packet drops."
         $self next pktTraceFile
 }
 Test/ecn_fourdrops_sack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	$self ecnsetup Sack1 3.0 1
 	$self drop_pkts {242 244 267 268} 
 
@@ -1499,15 +1635,18 @@ Test/ecn_fourdrops_sack instproc run {} {
 # Packet drops with a window of one packet.
 Class Test/ecn_smallwin_sack -superclass TestSuite
 Test/ecn_smallwin_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_smallwin_sack
+        set guide_      "Sack, packet drops with a window of one."
         $self next pktTraceFile
 }
 Test/ecn_smallwin_sack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 6.0 1
 	$self drop_pkts {4 8 9 10 11 100 115 121 124 126 127 128}
@@ -1518,15 +1657,18 @@ Test/ecn_smallwin_sack instproc run {} {
 # ECN with a window of one packet.
 Class Test/ecn_smallwinEcn_sack -superclass TestSuite
 Test/ecn_smallwinEcn_sack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_sack
+        set guide_      "Sack, ECN with a window of one."
         $self next pktTraceFile
 }
 Test/ecn_smallwinEcn_sack instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 10.0 1
 	$self drop_pkts {4 7 9 10 11 12 13 14 120 135 143 148 150 151 152} 
@@ -1536,15 +1678,18 @@ Test/ecn_smallwinEcn_sack instproc run {} {
 
 Class Test/ecn_smallwin1Ecn_sack -superclass TestSuite
 Test/ecn_smallwin1Ecn_sack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net3-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwin1Ecn_sack
+        set guide_      "Sack, ECN with small windows."
         $self next pktTraceFile
 }
 Test/ecn_smallwin1Ecn_sack instproc run {} {
-	$self instvar ns_ errmodel1 errmodel2
+        global quiet
+	$self instvar ns_ guide_ errmodel1 errmodel2
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 153} 
@@ -1557,15 +1702,18 @@ Test/ecn_smallwin1Ecn_sack instproc run {} {
 # Packet drops for the second packet.
 Class Test/ecn_secondpkt_sack -superclass TestSuite
 Test/ecn_secondpkt_sack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_secondpkt_sack
+        set guide_      "Sack, with the second packet dropped."
         $self next pktTraceFile
 }
 Test/ecn_secondpkt_sack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 2.0 1
 	$self drop_pkts {1 3} 
@@ -1576,15 +1724,18 @@ Test/ecn_secondpkt_sack instproc run {} {
 # ECN for the second packet.
 Class Test/ecn_secondpktEcn_sack -superclass TestSuite
 Test/ecn_secondpktEcn_sack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_secondpktEcn_sack
+        set guide_      "Sack, with the second packet marked."
         $self next pktTraceFile
 }
 Test/ecn_secondpktEcn_sack instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 2.0 1
 	$self drop_pkts {1 3} 
@@ -1599,15 +1750,18 @@ Test/ecn_secondpktEcn_sack instproc run {} {
 # Plain ECN
 Class Test/ecn_nodrop_sack_delack -superclass TestSuite
 Test/ecn_nodrop_sack_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_sack_delack
+        set guide_      "Sack, ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_nodrop_sack_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 0 1 
 	$self drop_pkt 10000
@@ -1617,15 +1771,18 @@ Test/ecn_nodrop_sack_delack instproc run {} {
 # Two ECNs close together
 Class Test/ecn_twoecn_sack_delack -superclass TestSuite
 Test/ecn_twoecn_sack_delack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_sack_delack
+        set guide_      "Sack, ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_twoecn_sack_delack instproc run {} {
-	$self instvar ns_ lossmodel
+        global quiet
+	$self instvar ns_ guide_ lossmodel
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 0 1 
 	$self drop_pkt 243
@@ -1636,15 +1793,18 @@ Test/ecn_twoecn_sack_delack instproc run {} {
 # ECN followed by packet loss.
 Class Test/ecn_drop_sack_delack -superclass TestSuite
 Test/ecn_drop_sack_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
 #        Queue/RED set setbit_ true
         set net_        net2-lossy
         Agent/TCP set bugFix_ true  
         set test_       ecn_drop_sack_delack
+        set guide_      "Sack, packet loss followed by ECN, delayed acks."
         $self next pktTraceFile
 } 
 Test/ecn_drop_sack_delack instproc run {} {
-        $self instvar ns_
+        global quiet
+        $self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
         $self ecnsetup Sack1 3.0 0 1
         $self drop_pkt 243
@@ -1654,15 +1814,18 @@ Test/ecn_drop_sack_delack instproc run {} {
 # ECN followed by packet loss.
 Class Test/ecn_drop1_sack_delack -superclass TestSuite
 Test/ecn_drop1_sack_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
 #        Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_sack_delack
+        set guide_      "Sack, packet loss followed by ECN, delayed acks."
         $self next pktTraceFile
 }
 Test/ecn_drop1_sack_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 0 1
 	$self drop_pkt 241
@@ -1672,15 +1835,18 @@ Test/ecn_drop1_sack_delack instproc run {} {
 # ECN with a window of one packet.
 Class Test/ecn_smallwinEcn_sack_delack -superclass TestSuite
 Test/ecn_smallwinEcn_sack_delack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_sack_delack
+        set guide_      "Sack, delayed ack, ECN with small windows."
         $self next pktTraceFile
 }
 Test/ecn_smallwinEcn_sack_delack instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 10.0 1 1
 	$self drop_pkts {4 7 9 11 12 120 135 143 148 150 151 152} 
@@ -1695,15 +1861,17 @@ Test/ecn_smallwinEcn_sack_delack instproc run {} {
 # Plain ECN
 Class Test/ecn_nodrop_newreno -superclass TestSuite
 Test/ecn_nodrop_newreno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_newreno
+        set guide_      "NewReno with ECN."
         $self next pktTraceFile
 }
 Test/ecn_nodrop_newreno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 
 	$self drop_pkt 10000
@@ -1713,15 +1881,18 @@ Test/ecn_nodrop_newreno instproc run {} {
 # Two ECNs close together
 Class Test/ecn_twoecn_newreno -superclass TestSuite
 Test/ecn_twoecn_newreno instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_newreno
+        set guide_      "NewReno, two marked packets in one window."
         $self next pktTraceFile
 }
 Test/ecn_twoecn_newreno instproc run {} {
-	$self instvar ns_ lossmodel
+        global quiet
+	$self instvar ns_ guide_ lossmodel
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 
 	$self drop_pkt 243
@@ -1732,15 +1903,17 @@ Test/ecn_twoecn_newreno instproc run {} {
 # ECN followed by packet loss.
 Class Test/ecn_drop_newreno -superclass TestSuite
 Test/ecn_drop_newreno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_newreno
+        set guide_      "NewReno, ECN preceded by packet loss."
         $self next pktTraceFile
 }
 Test/ecn_drop_newreno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0
 	$self drop_pkt 243
@@ -1748,18 +1921,20 @@ Test/ecn_drop_newreno instproc run {} {
 }
 
 # ECN preceded by packet loss.
-# NO.
 Class Test/ecn_drop1_newreno -superclass TestSuite
 Test/ecn_drop1_newreno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_newreno
+        set guide_      "NewReno, ECN preceded by packet loss."
         $self next pktTraceFile
 }
 Test/ecn_drop1_newreno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0
 	$self drop_pkt 241
@@ -1769,7 +1944,7 @@ Test/ecn_drop1_newreno instproc run {} {
 # Packet loss only.
 Class Test/ecn_noecn_newreno -superclass TestSuite
 Test/ecn_noecn_newreno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Queue/RED set thresh_ 1000
 	Queue/RED set maxthresh_ 1000
@@ -1777,23 +1952,27 @@ Test/ecn_noecn_newreno instproc init {} {
 	Agent/TCP set bugFix_ true
         set test_	ecn_noecn_newreno
 	Test/ecn_noecn_newreno instproc run {} [Test/ecn_drop_newreno info instbody run ]
+        set guide_      "NewReno, packet loss only, no ECN."
         $self next pktTraceFile
 }
 
 # Multiple dup acks with bugFix_
 Class Test/ecn_bursty_newreno -superclass TestSuite
 Test/ecn_bursty_newreno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Queue/RED set thresh_ 100
 	Queue/RED set maxthresh_ 100
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_bursty_newreno
+        set guide_      "NewReno, multiple dup acks, with bugFix."
         $self next pktTraceFile
 }
 Test/ecn_bursty_newreno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 
 	$self ecnsetup Newreno 3.0
         set lossmodel [$self setloss]
@@ -1806,28 +1985,33 @@ Test/ecn_bursty_newreno instproc run {} {
 # Multiple dup acks following ECN
 Class Test/ecn_burstyEcn_newreno -superclass TestSuite
 Test/ecn_burstyEcn_newreno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
 	Agent/TCP set old_ecn_ 1
         set test_	ecn_burstyEcn_newreno
 	Test/ecn_burstyEcn_newreno instproc run {} [Test/ecn_bursty_newreno info instbody run ]   
+        set guide_      "NewReno, multiple dup acks and ECN, with bugFix."
         $self next pktTraceFile
 }
 
 # ECN followed by timeout.
+# Nope.
 Class Test/ecn_timeout_newreno -superclass TestSuite
 Test/ecn_timeout_newreno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout_newreno
+        set guide_      "NewReno, multiple dup acks"
         $self next pktTraceFile
 }
 Test/ecn_timeout_newreno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	$self ecnsetup Newreno 3.0 1
 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -1838,15 +2022,18 @@ Test/ecn_timeout_newreno instproc run {} {
 # new instance of congestion.
 Class Test/ecn_timeout1_newreno -superclass TestSuite
 Test/ecn_timeout1_newreno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_timeout1_newreno
+        set guide_      "NewReno, drops and ECN followed by a timeout."
         $self next pktTraceFile
 }
 Test/ecn_timeout1_newreno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 1
 	Agent/TCP set old_ecn_ 1
@@ -1858,15 +2045,18 @@ Test/ecn_timeout1_newreno instproc run {} {
 # Packet drops with a window of one packet.
 Class Test/ecn_smallwin_newreno -superclass TestSuite
 Test/ecn_smallwin_newreno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_smallwin_newreno
+        set guide_      "NewReno, packet drops with a window of one."
         $self next pktTraceFile
 }
 Test/ecn_smallwin_newreno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Newreno 6.0 1
 	$self drop_pkts {4 8 9 10 11 100 115 121 124 126 127 128}
@@ -1877,15 +2067,18 @@ Test/ecn_smallwin_newreno instproc run {} {
 # ECN with a window of one packet.
 Class Test/ecn_smallwinEcn_newreno -superclass TestSuite
 Test/ecn_smallwinEcn_newreno instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_newreno
+        set guide_      "NewReno, ECN with a window of one."
         $self next pktTraceFile
 }
 Test/ecn_smallwinEcn_newreno instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Newreno 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 151 152 153} 
@@ -1897,15 +2090,18 @@ Test/ecn_smallwinEcn_newreno instproc run {} {
 # Packet drops for the second packet.
 Class Test/ecn_secondpkt_newreno -superclass TestSuite
 Test/ecn_secondpkt_newreno instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
 	Agent/TCP set bugFix_ true
         set net_	net2-lossy
         set test_	ecn_secondpkt_newreno
+        set guide_      "NewReno, with the second packet dropped."
         $self next pktTraceFile
 }
 Test/ecn_secondpkt_newreno instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Newreno 2.0 1
 	$self drop_pkts {1 3} 
@@ -1916,15 +2112,18 @@ Test/ecn_secondpkt_newreno instproc run {} {
 # ECN for the second packet.
 Class Test/ecn_secondpktEcn_newreno -superclass TestSuite
 Test/ecn_secondpktEcn_newreno instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_secondpktEcn_newreno
+        set guide_      "NewReno, with the second packet marked."
         $self next pktTraceFile
 }
 Test/ecn_secondpktEcn_newreno instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Newreno 2.0 1
 	$self drop_pkts {1 3} 
@@ -1939,15 +2138,18 @@ Test/ecn_secondpktEcn_newreno instproc run {} {
 # Plain ECN
 Class Test/ecn_nodrop_newreno_delack -superclass TestSuite
 Test/ecn_nodrop_newreno_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_nodrop_newreno_delack
+        set guide_      "NewReno, with the second packet marked."
         $self next pktTraceFile
 }
 Test/ecn_nodrop_newreno_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 0 1 
 	$self drop_pkt 10000
@@ -1955,17 +2157,22 @@ Test/ecn_nodrop_newreno_delack instproc run {} {
 }
 
 # Two ECNs close together
+# Nope.
 Class Test/ecn_twoecn_newreno_delack -superclass TestSuite
 Test/ecn_twoecn_newreno_delack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_twoecn_newreno_delack
+        set guide_	"NewReno, delayed acks."
+
         $self next pktTraceFile
 }
 Test/ecn_twoecn_newreno_delack instproc run {} {
-	$self instvar ns_ lossmodel
+        global quiet
+	$self instvar ns_ guide_ lossmodel
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 0 1 
 	$self drop_pkt 243
@@ -1976,15 +2183,18 @@ Test/ecn_twoecn_newreno_delack instproc run {} {
 # ECN followed by packet loss.
 Class Test/ecn_drop_newreno_delack -superclass TestSuite
 Test/ecn_drop_newreno_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_newreno_delack
+
         $self next pktTraceFile
 }
 Test/ecn_drop_newreno_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 0 1
 	$self drop_pkt 243
@@ -1995,15 +2205,18 @@ Test/ecn_drop_newreno_delack instproc run {} {
 # NO.
 Class Test/ecn_drop1_newreno_delack -superclass TestSuite
 Test/ecn_drop1_newreno_delack instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_newreno_delack
+
         $self next pktTraceFile
 }
 Test/ecn_drop1_newreno_delack instproc run {} {
-	$self instvar ns_
+        global quiet
+	$self instvar ns_ guide_
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 0 1
 	$self drop_pkt 241
@@ -2013,15 +2226,18 @@ Test/ecn_drop1_newreno_delack instproc run {} {
 # ECN with a window of one packet.
 Class Test/ecn_smallwinEcn_newreno_delack -superclass TestSuite
 Test/ecn_smallwinEcn_newreno_delack instproc init {} {
-        $self instvar net_ test_ 
+        $self instvar net_ test_ guide_ 
         Queue/RED set setbit_ true
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_newreno_delack
+
         $self next pktTraceFile
 }
 Test/ecn_smallwinEcn_newreno_delack instproc run {} {
-	$self instvar ns_ errmodel1
+        global quiet
+	$self instvar ns_ guide_ errmodel1
+        if {$quiet == "false"} {puts $guide_}
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Newreno 10.0 1 1
 	$self drop_pkts {4 8 9 11 120 135 143 148 150 151 152 153} 
@@ -2058,13 +2274,16 @@ Topology/net6 instproc init ns {
 
 Class Test/ecn1 -superclass TestSuite
 Test/ecn1 instproc init {} {
-        $self instvar net_ test_
+        $self instvar net_ test_ guide_
         set net_        net6
         set test_       ecn1_(one_with_ecn1,_one_without)
+	set guide_ 	"Two TCPs, one with ECN and one without."
         $self next pktTraceFile
 }
 Test/ecn1 instproc run {} {
-        $self instvar ns_ node_ testName_
+        global quiet
+        $self instvar ns_ guide_ node_ guide_ testName_
+        if {$quiet == "false"} {puts $guide_}
         $self setTopo
 	Agent/TCP set old_ecn_ 1
 
