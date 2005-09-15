@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.4 2005/08/22 05:08:35 tomh Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.5 2005/09/15 05:04:36 tomh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -1382,7 +1382,7 @@ u_int SctpAgent::GenChunk(SctpChunkType_E eType, u_char *ucpChunk)
 
     case SCTP_CHUNK_HB:     
     case SCTP_CHUNK_HB_ACK:
-      uiSize = sizeof(SctpHeartbeatChunk_S);
+      uiSize = SCTP_CHUNK_HEARTBEAT_LENGTH;
       ((SctpHeartbeatChunk_S *) ucpChunk)->sHdr.ucType = eType;
       ((SctpHeartbeatChunk_S *) ucpChunk)->sHdr.ucFlags = 0;
       ((SctpHeartbeatChunk_S *) ucpChunk)->sHdr.usLength = uiSize;
@@ -4608,7 +4608,7 @@ void SctpAgent::SendHeartbeat(SctpDest_S *spDest)
 
   GenChunk(SCTP_CHUNK_HB, (u_char *) &sHeartbeatChunk); // doesn't fill dest
   sHeartbeatChunk.spDest = spDest;          // ...so we fill it here :-)
-  SendPacket((u_char *) &sHeartbeatChunk, sizeof(SctpHeartbeatChunk_S), spDest);
+  SendPacket((u_char *) &sHeartbeatChunk, SCTP_CHUNK_HEARTBEAT_LENGTH, spDest);
   if(eOneHeartbeatTimer == TRUE)
     {
       spDest->dIdleSince = dCurrTime;

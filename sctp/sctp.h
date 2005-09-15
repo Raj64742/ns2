@@ -32,7 +32,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.3 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.4 2005/09/15 05:04:36 tomh Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctp_h
@@ -265,6 +265,7 @@ typedef struct SctpForwardTsnChunk_S
 };
 
 typedef struct SctpDest_S;
+#define SCTP_CHUNK_HEARTBEAT_LENGTH  24
 typedef struct SctpHeartbeatChunk_S
 {
 	SctpChunkHdr_S  sHdr;
@@ -272,7 +273,6 @@ typedef struct SctpHeartbeatChunk_S
 	u_short         usInfoLength;    // filled in, but not really used
 	double          dTimestamp;
 	SctpDest_S     *spDest;
-	u_long          ulDummyField;   // only to ensure 2-byte alignment for SPARC
 };
 typedef SctpHeartbeatChunk_S SctpHeartbeatAckChunk_S;
 
