@@ -1,293 +1,42 @@
-The source files in NS variously include the following copyrights (with the
-years varying):
+The source files in NS contain a number of different copyrights and
+software licenses from various individuals and institutions.  In 2005, 
+the code base was relicensed to a collection of GNU GPL compatible, 
+free software licenses.  See
+http://www.gnu.org/philosophy/license-list.html
+for a collection of definitions of these terms.
 
-----------------------------------------------------------------------
-
- * Copyright (c) 1991-1997 Regents of the University of California.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *      This product includes software developed by the Computer Systems
- *      Engineering Group at Lawrence Berkeley Laboratory.
- * 4. Neither the name of the University nor of the Laboratory may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
-
-----------------------------------------------------------------------
-
- * Copyright (c) 1999  International Computer Science Institute
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *      This product includes software developed by ACIRI, the AT&T 
- *      Center for Internet Research at ICSI (the International Computer
- *      Science Institute).
- * 4. Neither the name of ACIRI nor of ICSI may be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY ICSI AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL ICSI OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
-
-----------------------------------------------------------------------
-
- * Copyright (C) 1999 by USC/ISI
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms are permitted
- * provided that the above copyright notice and this paragraph are
- * duplicated in all such forms and that any documentation, advertising
- * materials, and other materials related to such distribution and use
- * acknowledge that the software was developed by the University of
- * Southern California, Information Sciences Institute.  The name of the
- * University may not be used to endorse or promote products derived from
- * this software without specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED
- * WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-
-----------------------------------------------------------------------
-
-// Copyright (c) 2000 by the University of Southern California
-// All rights reserved.
-//
-// Permission to use, copy, modify, and distribute this software and its
-// documentation in source and binary forms for non-commercial purposes
-// and without fee is hereby granted, provided that the above copyright
-// notice appear in all copies and that both the copyright notice and
-// this permission notice appear in supporting documentation. and that
-// any documentation, advertising materials, and other materials related
-// to such distribution and use acknowledge that the software was
-// developed by the University of Southern California, Information
-// Sciences Institute.  The name of the University may not be used to
-// endorse or promote products derived from this software without
-// specific prior written permission.
-//
-// THE UNIVERSITY OF SOUTHERN CALIFORNIA makes no representations about
-// the suitability of this software for any purpose.  THIS SOFTWARE IS
-// PROVIDED "AS IS" AND WITHOUT ANY EXPRESS OR IMPLIED WARRANTIES,
-// INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
-// MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
-//
-// Other copyrights might apply to parts of this software and are so
-// noted when applicable.
-
-
-----------------------------------------------------------------------
-
- * Copyright (c) Xerox Corporation 1997. All rights reserved.
- *
- * License is granted to copy, to use, and to make and to use derivative
- * works for research and evaluation purposes, provided that Xerox is
- * acknowledged in all documentation pertaining to any such copy or
- * derivative work. Xerox grants no other licenses expressed or
- * implied. The Xerox trade name should not be used in any advertising
- * without its written permission. 
- *
- * XEROX CORPORATION MAKES NO REPRESENTATIONS CONCERNING EITHER THE
- * MERCHANTABILITY OF THIS SOFTWARE OR THE SUITABILITY OF THIS SOFTWARE
- * FOR ANY PARTICULAR PURPOSE.  The software is provided "as is" without
- * express or implied warranty of any kind.
- *
- * These notices must be retained in any copies of any part of this
- * software.
-
-----------------------------------------------------------------------
-
- * Copyright (c) Sun Microsystems, Inc. 1998 All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- *
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- *
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *      This product includes software developed by Sun Microsystems, Inc.
- *
- * 4. The name of the Sun Microsystems, Inc nor may not be used to endorse or
- *      promote products derived from this software without specific prior
- *      written permission.
- *
- * SUN MICROSYSTEMS MERCHANTABILITY OF THIS SOFTWARE OR THE SUITABILITY OF THIS
- * SOFTWARE FOR ANY PARTICULAR PURPOSE.  The software is provided "as is"
- * without express or implied warranty of any kind.
- *
- * These notices must be retained in any copies of any part of this software.
-
-----------------------------------------------------------------------
-
-Copyright (c) 1997, 1998 Carnegie Mellon University.  All Rights
-Reserved. 
-
-Permission to use, copy, modify, and distribute this
-software and its documentation is hereby granted (including for
-commercial or for-profit use), provided that both the copyright notice
-and this permission notice appear in all copies of the software,
-derivative works, or modified versions, and any portions thereof, and
-that both notices appear in supporting documentation, and that credit
-is given to Carnegie Mellon University in all publications reporting
-on direct or indirect use of this code or its derivatives.
-
-ALL CODE, SOFTWARE, PROTOCOLS, AND ARCHITECTURES DEVELOPED BY THE CMU
-MONARCH PROJECT ARE EXPERIMENTAL AND ARE KNOWN TO HAVE BUGS, SOME OF
-WHICH MAY HAVE SERIOUS CONSEQUENCES. CARNEGIE MELLON PROVIDES THIS
-SOFTWARE OR OTHER INTELLECTUAL PROPERTY IN ITS ``AS IS'' CONDITION,
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
-THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR
-PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL CARNEGIE MELLON UNIVERSITY
-BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
-CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
-SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR
-BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
-WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE OR
-INTELLECTUAL PROPERTY, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
-DAMAGE.
-
-Carnegie Mellon encourages (but does not require) users of this
-software or intellectual property to return any improvements or
-extensions that they make, and to grant Carnegie Mellon the rights to
-redistribute these changes without encumbrance.
- 
-----------------------------------------------------------------------
-
- * tclAppInit.c --
- *
- *      Provides a default version of the main program and Tcl_AppInit
- *      procedure for Tcl applications (without Tk).
- *
- * Copyright (C) 2000 USC/ISI
- * Copyright (c) 1993 The Regents of the University of California.
- * Copyright (c) 1994-1995 Sun Microsystems, Inc.
- *
- * See the file "license.terms" for information on usage and redistribution
- * of this file, and for a DISCLAIMER OF ALL WARRANTIES.
-
-The "license.terms" file can be found in the tcl distribution.
-
-----------------------------------------------------------------------
-
- *
- * Copyright (c) 2000 Nortel Networks
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- * 1. Redistributions of source code must retain the above copyright
- *    notice, this list of conditions and the following disclaimer.
- * 2. Redistributions in binary form must reproduce the above copyright
- *    notice, this list of conditions and the following disclaimer in the
- *    documentation and/or other materials provided with the distribution.
- * 3. All advertising materials mentioning features or use of this software
- *    must display the following acknowledgement:
- *      This product includes software developed by Nortel Networks.
- * 4. The name of the Nortel Networks may not be used
- *    to endorse or promote products derived from this software without
- *    specific prior written permission.
- * 
- * THIS SOFTWARE IS PROVIDED BY NORTEL AND CONTRIBUTORS ``AS IS'' AND
- * ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED.  IN NO EVENT SHALL NORTEL OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS
- * OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
- * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
- * SUCH DAMAGE.
- *
-
-----------------------------------------------------------------------
-
- * Copyright (c) 2000-2002, by the Rector and Board of Visitors of the 
- * University of Virginia.
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, 
- * with or without modification, are permitted provided 
- * that the following conditions are met:
- *
- * Redistributions of source code must retain the above 
- * copyright notice, this list of conditions and the following 
- * disclaimer. 
- *
- * Redistributions in binary form must reproduce the above 
- * copyright notice, this list of conditions and the following 
- * disclaimer in the documentation and/or other materials provided 
- * with the distribution. 
- *
- * Neither the name of the University of Virginia nor the names 
- * of its contributors may be used to endorse or promote products 
- * derived from this software without specific prior written 
- * permission. 
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND 
- * CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, 
- * INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF 
- * MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE 
- * DISCLAIMED. IN NO EVENT SHALL THE REGENTS OR CONTRIBUTORS BE 
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, 
- * OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, 
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, 
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND 
- * ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT 
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING 
- * IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF 
- * THE POSSIBILITY OF SUCH DAMAGE.
-
-----------------------------------------------------------------------
+Note:  See also the LICENSES file in this directory regarding the
+software licenses..
 
 To find copyright types:
 
-find ./ -name "*.[ch]*" | xargs grep Copyright | \
+find . -print | xargs grep Copyright | \
 	awk '{print $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12;}'   | \
 	sed -e 's/199./XXXX/g' -e 's/200./XXXX/g' | sort | uniq
+
+Copyright holders include:
+- Free Software Foundation,       
+- Regents of the University of California,  
+- Intel Corporation,
+- Sun Microsystems, Inc.,
+- Xerox Corporation,
+- Gaeil Ahn,
+- Mingzhou Sun,
+- Protocol Engineering Lab, University of Delaware,
+- University of Southern California  
+- USC/ISI     
+- International Computer Science Institute   
+- Nortel Networks     
+- Pierre L'Ecuyer,
+- Samsung/CUNY,
+- Tom Kelly, University of Cambridge  
+- Trustees of Boston University,    
+- John Heidemann, 
+- University of Virginia,
+- Samsung Advanced Institute of Technology,
+- Gray Watson,     
+- Digital Equipment Corporation,      
+- Carnegie Mellon University,
+- University of North Carolina at Chapel Hill
+- StarBurst Communications, Inc.
+
