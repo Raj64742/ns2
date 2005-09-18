@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.49 2005/07/27 01:13:43 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-802_11.cc,v 1.50 2005/09/18 23:33:33 tomh Exp $
  *
  * Ported from CMU/Monarch's code, nov'98 -Padma.
  * Contributions by:
@@ -323,9 +323,9 @@ Mac802_11::dump(char *fname)
 		tx_state_, rx_state_, nav_, is_idle());
 
 	fprintf(stderr,
-		"\tpktTx_: %x, pktRx_: %x, pktRTS_: %x, pktCTRL_: %x, callback: %x\n",
-		(int) pktTx_, (int) pktRx_, (int) pktRTS_,
-		(int) pktCTRL_, (int) callback_);
+		"\tpktTx_: %lx, pktRx_: %lx, pktRTS_: %lx, pktCTRL_: %lx, callback: %lx\n",
+		(long) pktTx_, (long) pktRx_, (long) pktRTS_,
+		(long) pktCTRL_, (long) callback_);
 
 	fprintf(stderr,
 		"\tDefer: %d, Backoff: %d (%d), Recv: %d, Timer: %d Nav: %d\n",

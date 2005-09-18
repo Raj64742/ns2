@@ -10,7 +10,7 @@
 //
 // Part of the code comes from Steven Gribble's UCB trace parse codes
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/epa/tr-stat.cc,v 1.2 1999/07/09 21:19:07 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/epa/tr-stat.cc,v 1.3 2005/09/18 23:33:32 tomh Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -147,11 +147,13 @@ double lf_analyze(Entry& lfe)
 	if (!(he = Tcl_FindHashEntry(&cidHash, (const char *)lfe.client))) {
 		// new client, allocate a client id
 		he = Tcl_CreateHashEntry(&cidHash, (const char *)lfe.client, &ne);
-		Tcl_SetHashValue(he, ++client);
+		client++;
+		long clientValue = client;
+		Tcl_SetHashValue(he, clientValue);
 		cid = client;
 	} else {
 		// existing entry, find its client seqno
-		cid = (int)Tcl_GetHashValue(he);
+		cid = (long)Tcl_GetHashValue(he);
 	}
 
 	// only a single server for EPA trace

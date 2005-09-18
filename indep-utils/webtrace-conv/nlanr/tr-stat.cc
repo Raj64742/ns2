@@ -8,7 +8,7 @@
 //
 // Part of the code comes from Steven Gribble's UCB trace parse codes
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/nlanr/tr-stat.cc,v 1.2 1999/07/09 21:19:08 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/nlanr/tr-stat.cc,v 1.3 2005/09/18 23:33:33 tomh Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -131,25 +131,28 @@ double lf_analyze(lf_entry& lfe)
 		return -1;
 
 	// check client id
-	if (!(he = Tcl_FindHashEntry(&cidHash, (const char *)lfe.cid))) {
+	long clientKey = lfe.cid;
+	if (!(he = Tcl_FindHashEntry(&cidHash, (const char *)clientKey))) {
 		// new client, allocate a client id
-		he = Tcl_CreateHashEntry(&cidHash, (const char *)lfe.cid, &ne);
-		Tcl_SetHashValue(he, ++client);
+		he = Tcl_CreateHashEntry(&cidHash, (const char *)clientKey, &ne);
+		Tcl_SetHashValue(he, (long)++client);
 		cid = client;
 	} else {
 		// existing entry, find its client seqno
-		cid = (int)Tcl_GetHashValue(he);
+		cid = (long)Tcl_GetHashValue(he);
 	}
 
 	// check server id
 	if (!(he = Tcl_FindHashEntry(&sidHash, lfe.sid))) {
 		// new server, assign a server id
 		he = Tcl_CreateHashEntry(&sidHash, lfe.sid, &ne);
-		Tcl_SetHashValue(he, ++server);
+		server++;
+		long serverValue = server;
+		Tcl_SetHashValue(he, serverValue);
 		sid = server;
 	} else {
 		// existing entry, find its client seqno
-		sid = (int)Tcl_GetHashValue(he);
+		sid = (long)Tcl_GetHashValue(he);
 	}
 
 	// check url id

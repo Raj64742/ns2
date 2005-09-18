@@ -37,7 +37,7 @@
  * this exception also makes it possible to release a modified version
  * which carries forward this exception.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.15 2005/08/26 05:05:31 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.cc,v 1.16 2005/09/18 23:33:35 tomh Exp $
  */
 
 #include <stdlib.h>
@@ -280,8 +280,9 @@ int TracePagePool::add_page(const char* name, ServerPage *pg)
 		fprintf(stderr, "TracePagePool: Duplicate entry %s\n", 
 			name);
 
+	long key = pg->id();
 	Tcl_HashEntry *hf = 
-		Tcl_CreateHashEntry(idmap_, (const char *)pg->id(), &newEntry);
+		Tcl_CreateHashEntry(idmap_, (const char *)key, &newEntry);
 	if (hf == NULL) {
 		Tcl_DeleteHashEntry(he);
 		return -1;
@@ -299,7 +300,8 @@ ServerPage* TracePagePool::get_page(int id)
 {
 	if ((id < 0) || (id >= num_pages_))
 		return NULL;
-	Tcl_HashEntry *he = Tcl_FindHashEntry(idmap_, (const char *)id);
+	long key = id;
+	Tcl_HashEntry *he = Tcl_FindHashEntry(idmap_, (const char *)key);
 	if (he == NULL)
 		return NULL;
 	return (ServerPage *)Tcl_GetHashValue(he);
@@ -676,12 +678,9 @@ int ClientPagePool::command(int argc, const char*const* argv)
 ClientPage* ClientPagePool::get_page(const char *name)
 {
 	PageID t1;
-	void* t2[2];
 	ClientPage::split_name(name, t1);
-	t2[0] = (void *)t1.s_;
-	t2[1] = (void *)t1.id_;
 
-	Tcl_HashEntry *he = Tcl_FindHashEntry(namemap_, (const char *)t2);
+	Tcl_HashEntry *he = Tcl_FindHashEntry(namemap_, (const char *)&t1);
 	if (he == NULL)
 		return NULL;
 	return (ClientPage *)Tcl_GetHashValue(he);
@@ -767,14 +766,11 @@ int ClientPagePool::add_page(ClientPage* pg)
 	pg->name(buf);
 
 	PageID t1;
-	void* t2[2];
 	ClientPage::split_name(buf, t1);
-	t2[0] = (void *)t1.s_;
-	t2[1] = (void *)t1.id_;
 
 	int newEntry = 1;
 	Tcl_HashEntry *he = Tcl_CreateHashEntry(namemap_, 
-						(const char *)t2,
+						(const char *)&t1,
 						&newEntry);
 	if (he == NULL)
 		return -1;
@@ -801,13 +797,10 @@ int ClientPagePool::add_page(ClientPage* pg)
 int ClientPagePool::remove_page(const char *name)
 {
 	PageID t1;
-	void* t2[2];
 	ClientPage::split_name(name, t1);
-	t2[0] = (void *)t1.s_;
-	t2[1] = (void *)t1.id_;
 
 	// Find out which client we are seeking
-	Tcl_HashEntry *he = Tcl_FindHashEntry(namemap_, (const char *)t2);
+	Tcl_HashEntry *he = Tcl_FindHashEntry(namemap_, (const char *)&t1);
 	if (he == NULL)
 		return -1;
 	ClientPage *pg = (ClientPage *)Tcl_GetHashValue(he);
@@ -1003,12 +996,12 @@ ProxyTracePagePool::ClientRequest* ProxyTracePagePool::load_req(int cid)
 	Tcl_HashEntry *he;
 	ClientRequest *p;
 	int dummy; 
-	
-	if ((he = Tcl_FindHashEntry(req_, (const char*)cid)) == NULL) {
+	long key = cid;
+	if ((he = Tcl_FindHashEntry(req_, (const char*)key)) == NULL) {
 		// New entry
 		p = new ClientRequest();
 		p->seq_ = lastseq_++;
-		he = Tcl_CreateHashEntry(req_, (const char*)cid, &dummy);
+		he = Tcl_CreateHashEntry(req_, (const char*)key, &dummy);
 		Tcl_SetHashValue(he, (const char*)p);
 		// Search from the beginning of file for this new client
 		fseek(reqfile_, 0, SEEK_SET);

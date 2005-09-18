@@ -37,7 +37,7 @@
  * this exception also makes it possible to release a modified version
  * which carries forward this exception.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.20 2005/08/26 05:05:31 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/http.cc,v 1.21 2005/09/18 23:33:35 tomh Exp $
  *
  */
 //
@@ -94,8 +94,9 @@ HttpApp::~HttpApp()
 int HttpApp::add_cnc(HttpApp* client, TcpApp *agt)
 {
 	int newEntry = 1;
+	long key = client->id();
 	Tcl_HashEntry *he = Tcl_CreateHashEntry(tpa_, 
-						(const char *)client->id(),
+						(const char *) key,
 						&newEntry);
 	if (he == NULL) 
 		return -1;
@@ -106,7 +107,8 @@ int HttpApp::add_cnc(HttpApp* client, TcpApp *agt)
 
 void HttpApp::delete_cnc(HttpApp* client)
 {
-	Tcl_HashEntry *he = Tcl_FindHashEntry(tpa_,(const char *)client->id());
+        long key = client->id();
+	Tcl_HashEntry *he = Tcl_FindHashEntry(tpa_,(const char *)key);
 	if (he != NULL) {
 		TcpApp *cnc = (TcpApp *)Tcl_GetHashValue(he);
 		Tcl_DeleteHashEntry(he);
@@ -116,8 +118,9 @@ void HttpApp::delete_cnc(HttpApp* client)
 
 TcpApp* HttpApp::lookup_cnc(HttpApp* client)
 {
+        long key = client->id();
 	Tcl_HashEntry *he = 
-		Tcl_FindHashEntry(tpa_, (const char *)client->id());
+		Tcl_FindHashEntry(tpa_, (const char *)key);
 	if (he == NULL)
 		return NULL;
 	return (TcpApp *)Tcl_GetHashValue(he);
@@ -1042,8 +1045,9 @@ void HttpMInvalCache::check_sstate(int sid, int cid)
 void HttpMInvalCache::add_sstate(int sid, SState *sst)
 {
 	int newEntry = 1;
+	long key = sid;
 	Tcl_HashEntry *he = 
-		Tcl_CreateHashEntry(&sstate_, (const char *)sid, &newEntry);
+		Tcl_CreateHashEntry(&sstate_, (const char *)key, &newEntry);
 	if (he == NULL) 
 		return;
 	if (newEntry)
@@ -1052,7 +1056,8 @@ void HttpMInvalCache::add_sstate(int sid, SState *sst)
 
 HttpMInvalCache::SState* HttpMInvalCache::lookup_sstate(int sid)
 {
-	Tcl_HashEntry *he = Tcl_FindHashEntry(&sstate_, (const char *)sid);
+        long key = sid;
+	Tcl_HashEntry *he = Tcl_FindHashEntry(&sstate_, (const char *)key);
 	if (he == NULL)
 		return NULL;
 	return (SState *)Tcl_GetHashValue(he);
@@ -1060,7 +1065,8 @@ HttpMInvalCache::SState* HttpMInvalCache::lookup_sstate(int sid)
 
 NeighborCache* HttpMInvalCache::lookup_nbr(int id)
 {
-	Tcl_HashEntry *he = Tcl_FindHashEntry(&nbr_, (const char *)id);
+        long key = id;
+	Tcl_HashEntry *he = Tcl_FindHashEntry(&nbr_, (const char *)key);
 	if (he == NULL)
 		return NULL;
 	return (NeighborCache *)Tcl_GetHashValue(he);
@@ -1070,8 +1076,9 @@ NeighborCache* HttpMInvalCache::lookup_nbr(int id)
 void HttpMInvalCache::add_nbr(HttpMInvalCache *cache)
 {
 	int newEntry = 1;
+	long key = cache->id ();
 	Tcl_HashEntry *he = 
-		Tcl_CreateHashEntry(&nbr_, (const char *)cache->id(), 
+		Tcl_CreateHashEntry(&nbr_, (const char *)key, 
 				    &newEntry);
 	if (he == NULL) 
 		return;

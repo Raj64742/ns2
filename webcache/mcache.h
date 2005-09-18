@@ -3,7 +3,7 @@
 /*
  * mcache.h
  * Copyright (C) 1997 by the University of Southern California
- * $Id: mcache.h,v 1.7 2005/08/25 18:58:13 johnh Exp $
+ * $Id: mcache.h,v 1.8 2005/09/18 23:33:35 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -48,7 +48,7 @@
 //
 // Multimedia caches
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.7 2005/08/25 18:58:13 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.h,v 1.8 2005/09/18 23:33:35 tomh Exp $
 
 #ifndef ns_mcache_h
 #define ns_mcache_h
@@ -478,11 +478,9 @@ protected:
 	PrefInfoQ* get_piq(const char* pgname, HttpApp* client) {
 		PageID id;
 		ClientPage::split_name(pgname, id);
-		int tmp[2];
-		tmp[0] = (int)(client);
-		tmp[1] = id.id_;
+		id.s_ = client;
 		Tcl_HashEntry* he = 
-			Tcl_FindHashEntry(pref_, (const char*)tmp);
+			Tcl_FindHashEntry(pref_, (const char*)&id);
 		if (he == NULL) 
 			return NULL;
 		return (PrefInfoQ*)Tcl_GetHashValue(he);

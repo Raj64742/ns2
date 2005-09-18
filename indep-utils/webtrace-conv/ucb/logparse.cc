@@ -99,7 +99,7 @@ int lf_get_next_entry(int logfile_fd, lf_entry *nextentry, int vers)
       free(nextentry->url);
       return 1;
     }
-    fprintf(stderr, "read of %d failed %d\n", (size_t) uln, ret);
+    fprintf(stderr, "read of %d failed %d\n", uln, ret);
     perror("aargh.");
     free(nextentry->url);
     return 2;
@@ -175,7 +175,7 @@ int  lf_write(FILE *outf, lf_entry *writeme)
   uln = ntohs(writeme->urllen);
   ret = fwrite(writeme->url, (size_t) uln, 1, outf);
   if (ret != 1) {
-    fprintf(stderr, "write of %d failed %d\n", (size_t) uln, ret);
+    fprintf(stderr, "write of %d failed %d\n", uln, ret);
     perror("aargh.");
     return 2;
   }

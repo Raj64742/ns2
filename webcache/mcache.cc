@@ -3,7 +3,7 @@
 /*
  * mcache.cc
  * Copyright (C) 1997 by the University of Southern California
- * $Id: mcache.cc,v 1.12 2005/08/25 18:58:13 johnh Exp $
+ * $Id: mcache.cc,v 1.13 2005/09/18 23:33:35 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -48,7 +48,7 @@
 //
 // Multimedia cache implementation
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.12 2005/08/25 18:58:13 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/mcache.cc,v 1.13 2005/09/18 23:33:35 tomh Exp $
 
 #include <assert.h>
 #include <stdio.h>
@@ -1183,8 +1183,15 @@ public:
 
 MediaServer::MediaServer() : HttpServer() 
 {
+	long keySizeInBytes = sizeof (PageID);
+	long keySizeInSizeOfInt;
+	if ((keySizeInBytes % sizeof (int)) == 0) {
+		keySizeInSizeOfInt = keySizeInBytes / sizeof (int);
+	} else {
+		keySizeInSizeOfInt = keySizeInBytes / sizeof (int) + 1;
+	}
 	pref_ = new Tcl_HashTable;
-	Tcl_InitHashTable(pref_, 2);
+	Tcl_InitHashTable(pref_, keySizeInSizeOfInt);
 	cmap_ = new Tcl_HashTable;
 	Tcl_InitHashTable(cmap_, TCL_ONE_WORD_KEYS);
 }
@@ -1351,22 +1358,21 @@ int MediaServer::command(int argc, const char*const* argv)
 			/*
 			 * <server> stop-prefetching <Client> <conid> <pagenum>
 			 */
-			TclObject *a = TclObject::lookup(argv[2]);
-			assert(a != NULL);
-			int tmp[2];
-			tmp[0] = (int)a;
-			tmp[1] = atoi(argv[4]);
+			HttpApp *app = static_cast <HttpApp *> (TclObject::lookup(argv[2]));
+			assert(app != NULL);
+			int id = atoi (argv[4]);
+			PageID pageId (app, id);
 			Tcl_HashEntry *he = 
-				Tcl_FindHashEntry(pref_, (const char*)tmp);
+				Tcl_FindHashEntry(pref_, (const char*)&pageId);
 			if (he == NULL) {
 				tcl.add_errorf(
 				  "Server %d cannot stop prefetching!\n", id_);
 				return TCL_ERROR;
 			}
-			a = TclObject::lookup(argv[3]);
-			assert(a != NULL);
+			TclObject *conId = TclObject::lookup(argv[3]);
+			assert(conId != NULL);
 			PrefInfoQ *q = (PrefInfoQ*)Tcl_GetHashValue(he);
-			PrefInfoE *pe = find_prefinfo(q, (Application*)a);
+			PrefInfoE *pe = find_prefinfo(q, (Application*)conId);
 			assert(pe != NULL);
 			PrefInfo *pi = pe->data();
 			MediaSegmentList *p = pi->sl_;
@@ -1451,15 +1457,13 @@ int MediaServer::command(int argc, const char*const* argv)
 			 * 
 			 * <client> is the requestor of the stream.
 			 */
-			TclObject *a = TclObject::lookup(argv[2]);
-			assert(a != NULL);
+			HttpApp *app = static_cast <HttpApp *> (TclObject::lookup(argv[2]));
+			assert(app != NULL);
+			int id = atoi (argv[3]);
+			PageID pageId (app, id);
 			int newEntry = 1;
-			int tmp[2];
-			tmp[0] = (int)a;
-			tmp[1] = atoi(argv[3]);
-			// Map <cache_ptr><conid> to a pref entry
 			Tcl_HashEntry *he = Tcl_CreateHashEntry(pref_, 
-					(const char*)tmp, &newEntry);
+					(const char*)&pageId, &newEntry);
 			if (he == NULL) {
 				fprintf(stderr, "Cannot create entry.\n");
 				return TCL_ERROR;
@@ -1468,18 +1472,18 @@ int MediaServer::command(int argc, const char*const* argv)
 			PrefInfoE *pe;
 			PrefInfoQ *q; 
 			MediaSegmentList *p;
-			a = TclObject::lookup(argv[4]);
+			TclObject *conId = TclObject::lookup(argv[4]);
 			if (newEntry) {
 				q = new PrefInfoQ;
 				Tcl_SetHashValue(he, (ClientData)q);
 				pe = NULL;
 			} else {
 				q = (PrefInfoQ *)Tcl_GetHashValue(he);
-				pe = find_prefinfo(q, (Application*)a);
+				pe = find_prefinfo(q, (Application*)conId);
 			}
 			if (pe == NULL) {
 				pi = new PrefInfo;
-				pi->conid_ = (Application*)a;
+				pi->conid_ = (Application*)conId;
 				p = pi->sl_ = new MediaSegmentList[MAX_LAYER];
 				q->enqueue(new PrefInfoE(pi));
 			} else {

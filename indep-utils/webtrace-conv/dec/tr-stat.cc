@@ -8,7 +8,7 @@
 //
 // Part of the code comes from Steven Gribble's UCB trace parse codes
 // 
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/dec/tr-stat.cc,v 1.2 1999/07/09 21:19:04 haoboy Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/indep-utils/webtrace-conv/dec/tr-stat.cc,v 1.3 2005/09/18 23:33:32 tomh Exp $
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -136,31 +136,38 @@ double lf_analyze(TEntry& lfe)
 		return -1;
 
 	// check client id
-	if (!(he = Tcl_FindHashEntry(&cidHash, (const char *)lfe.head.client))) {
+	long clientKey = lfe.head.client;
+	if (!(he = Tcl_FindHashEntry(&cidHash, (const char *)clientKey))) {
 		// new client, allocate a client id
-		he = Tcl_CreateHashEntry(&cidHash, (const char *)lfe.head.client, &ne);
-		Tcl_SetHashValue(he, ++client);
+		he = Tcl_CreateHashEntry(&cidHash, (const char *)clientKey, &ne);
+		client++;
+		long clientValue = client;
+		Tcl_SetHashValue(he, clientValue);
 		cid = client;
 	} else {
 		// existing entry, find its client seqno
-		cid = (int)Tcl_GetHashValue(he);
+		cid = (long)Tcl_GetHashValue(he);
 	}
 
 	// check server id
-	if (!(he = Tcl_FindHashEntry(&sidHash, (const char *)lfe.head.server))) {
+	long serverKey = lfe.head.server;
+	if (!(he = Tcl_FindHashEntry(&sidHash, (const char *)serverKey))) {
 		// new client, allocate a client id
-		he = Tcl_CreateHashEntry(&sidHash, (const char *)lfe.head.server, &ne);
-		Tcl_SetHashValue(he, ++server);
+		he = Tcl_CreateHashEntry(&sidHash, (const char *)serverKey, &ne);
+		server++;
+		long serverValue = server;
+		Tcl_SetHashValue(he, serverValue);
 		sid = server;
 	} else {
 		// existing entry, find its client seqno
-		sid = (int)Tcl_GetHashValue(he);
+		sid = (long)Tcl_GetHashValue(he);
 	}
 
 	// check url id
-	if (!(he = Tcl_FindHashEntry(&urlHash, (const char*)lfe.url))) {
+	long urlKey = lfe.url;
+	if (!(he = Tcl_FindHashEntry(&urlHash, (const char*)urlKey))) {
 		// new client, allocate a client id
-		he = Tcl_CreateHashEntry(&urlHash, (const char*)lfe.url, &ne);
+		he = Tcl_CreateHashEntry(&urlHash, (const char*)urlKey, &ne);
 		URL* u = new URL(++url, sid, lfe.head.size);
 		Tcl_SetHashValue(he, (const char*)u);
 		uid = u->id;

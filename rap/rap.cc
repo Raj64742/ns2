@@ -3,7 +3,7 @@
 /*
  * rap.cc
  * Copyright (C) 1997 by the University of Southern California
- * $Id: rap.cc,v 1.13 2005/08/25 18:58:10 johnh Exp $
+ * $Id: rap.cc,v 1.14 2005/09/18 23:33:34 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -52,7 +52,7 @@
 // Author: 
 //   Mohit Talwar (mohit@catarina.usc.edu)
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.13 2005/08/25 18:58:10 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/rap.cc,v 1.14 2005/09/18 23:33:34 tomh Exp $
 
 #include "rap.h"
 
@@ -511,7 +511,7 @@ int EqualStatus(void *i1, void *i2)
 		((TransHistoryEntry *) i2)->status);
 }
 
-void DestroyTransHistoryEntry(int item)
+void DestroyTransHistoryEntry(long item)
 {
 	TransHistoryEntry *entry = (TransHistoryEntry *) item;
 
@@ -521,7 +521,7 @@ void DestroyTransHistoryEntry(int item)
 	delete entry;
 }
 
-void TimerLostPacket(int item)
+void TimerLostPacket(long item)
 {
 	TransHistoryEntry *entry = (TransHistoryEntry *) item;
 
@@ -542,7 +542,7 @@ void TimerLostPacket(int item)
 	}
 }
 
-void AckLostPacket(int item)
+void AckLostPacket(long item)
 {
 	TransHistoryEntry *entry = (TransHistoryEntry *) item;
 
@@ -622,7 +622,7 @@ int RapAgent::LossDetection(RapLossType type, hdr_rap *ackHeader)
 //      Increase IPG. Mark packets INACTIVE. Reschedule rttTimer_.
 //----------------------------------------------------------------------
 
-void MarkInactive(int item)
+void MarkInactive(long item)
 {
 	TransHistoryEntry *entry = (TransHistoryEntry *) item;
 

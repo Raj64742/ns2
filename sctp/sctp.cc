@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.5 2005/09/15 05:04:36 tomh Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.6 2005/09/18 23:33:34 tomh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -4307,7 +4307,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	{
 	  fprintf(stderr, "SCTP ERROR: message size (%d) too big\n",
 		  spAppData->uiNumBytes);
-	  fprintf(stderr, "%s data chunk size (%d) > max (%d)\n",
+	  fprintf(stderr, "%s data chunk size (%ld) > max (%d)\n",
 		  "SCTP ERROR:",
 		  spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S), 
 		  MAX_DATA_CHUNK_SIZE);
@@ -4326,7 +4326,7 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	  fprintf(stderr, "SCTP ERROR: message size (%d) too big\n",
 		  spAppData->uiNumBytes);
 	  fprintf(stderr, 
-		  "%s data chunk size (%d) + SCTP/IP header(%d) > MTU (%d)\n",
+		  "%s data chunk size (%ld) + SCTP/IP header(%d) > MTU (%d)\n",
 		  "SCTP ERROR:",
 		  spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S),
 		  SCTP_HDR_SIZE + uiIpHeaderSize, uiMtu);

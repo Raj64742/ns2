@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-virtual.cc,v 1.12 2001/12/20 00:15:33 haldar Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-virtual.cc,v 1.13 2005/09/18 23:33:31 tomh Exp $";
 #endif
 
 extern "C" {
@@ -92,7 +92,8 @@ protected:
 		delete [] adst;
 
 		int newEntry;
-		Tcl_HashEntry *ep= Tcl_CreateHashEntry(&ht_, (const char*)next_hopIP, 
+		long key = next_hopIP;
+		Tcl_HashEntry *ep= Tcl_CreateHashEntry(&ht_, (const char*)key, 
 						       &newEntry); 
 		if (newEntry) {
 			tcl.evalf("%s find %d", name(), next_hopIP);

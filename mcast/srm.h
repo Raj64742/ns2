@@ -3,7 +3,7 @@
 /*
  * srm.h
  * Copyright (C) 1997 by the University of Southern California
- * $Id: srm.h,v 1.21 2005/08/25 18:58:08 johnh Exp $
+ * $Id: srm.h,v 1.22 2005/09/18 23:33:33 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -49,7 +49,7 @@
 //	Author:		Kannan Varadhan	<kannan@isi.edu>
 //	Version Date:	Mon Jun 30 15:51:33 PDT 1997
 //
-// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.h,v 1.21 2005/08/25 18:58:08 johnh Exp $ (USC/ISI)
+// @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm.h,v 1.22 2005/09/18 23:33:33 tomh Exp $ (USC/ISI)
 //
 
 #ifndef ns_srm_h
@@ -77,6 +77,7 @@ protected:
 
 	virtual void start() {
 		int new_entry = 0;
+		long key = addr();
 
 		sip_->sender_   /* is itself */ = addr();
 		sip_->distance_ /* to itself */ = 0.0;
@@ -85,7 +86,7 @@ protected:
 		siphash_ = new Tcl_HashTable;
 		Tcl_InitHashTable(siphash_, TCL_ONE_WORD_KEYS);
 		Tcl_HashEntry* he = Tcl_CreateHashEntry(siphash_,
-							(char*) addr(),
+							(char*) key,
 							&new_entry);
 		Tcl_SetHashValue(he, (ClientData*)sip_);
 		groupSize_++;
@@ -94,8 +95,9 @@ protected:
 		assert(siphash_);
 
 		int new_entry = 0;
+		long key = sender;
 		Tcl_HashEntry* he = Tcl_CreateHashEntry(siphash_,
-							(char*) sender,
+							(char*) key,
 							&new_entry);
 		if (new_entry) {
 			groupSize_++;

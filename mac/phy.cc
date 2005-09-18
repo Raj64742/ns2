@@ -184,8 +184,8 @@ Phy::dump(void) const
 {
 	fprintf(stdout, "\tINDEX: %d\n",
 		index_);
-	fprintf(stdout, "\tuptarget: %x, channel: %x",
-		(u_int32_t) uptarget_, (u_int32_t) channel_);
+	fprintf(stdout, "\tuptarget: %lx, channel: %lx",
+		(long) uptarget_, (long) channel_);
 
 }
 

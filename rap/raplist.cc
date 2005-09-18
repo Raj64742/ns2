@@ -34,7 +34,7 @@
  * Author:
  *   Mohit Talwar (mohit@catarina.usc.edu)
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/raplist.cc,v 1.3 1999/09/24 23:44:39 haoboy Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/rap/raplist.cc,v 1.4 2005/09/18 23:33:34 tomh Exp $
  * 
  * This is taken from UCB Nachos project
  * 
@@ -180,7 +180,7 @@ void *List::Remove()
 void List::Mapcar(VoidFunctionPtr func)
 {
   for (ListElement *ptr = first; ptr != NULL; ptr = ptr->next)
-    (*func)((int)ptr->item);
+    (*func)((long)ptr->item);
 }
 
 //----------------------------------------------------------------------
@@ -418,7 +418,7 @@ void List::Purge(void *key, CompareFunction eq, VoidFunctionPtr destroy)
 
 	curr = curr->next;
 
-        (* destroy)((int) thing);
+        (* destroy)((long) thing);
         delete temp;
         size--;
       }

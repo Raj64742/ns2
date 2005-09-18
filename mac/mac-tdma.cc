@@ -3,7 +3,7 @@
 /*
  * mac-tdma.cc
  * Copyright (C) 1999 by the University of Southern California
- * $Id: mac-tdma.cc,v 1.14 2005/08/25 18:58:07 johnh Exp $
+ * $Id: mac-tdma.cc,v 1.15 2005/09/18 23:33:33 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -46,7 +46,7 @@
  */
 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.14 2005/08/25 18:58:07 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mac/mac-tdma.cc,v 1.15 2005/09/18 23:33:33 tomh Exp $
 //
 // mac-tdma.cc
 // by Xuan Chen (xuanc@isi.edu), ISI/USC
@@ -263,8 +263,8 @@ void MacTdma::dump(char *fname)
 	
 	fprintf(stderr, "\ttx_state_: %x, rx_state_: %x, idle: %d\n", 
 		tx_state_, rx_state_, is_idle());
-	fprintf(stderr, "\tpktTx_: %x, pktRx_: %x, callback: %x\n", 
-		(int) pktTx_, (int) pktRx_, (int) callback_);
+	fprintf(stderr, "\tpktTx_: %lx, pktRx_: %lx, callback: %lx\n", 
+		(long) pktTx_, (long) pktRx_, (long) callback_);
 }
 
 

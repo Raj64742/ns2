@@ -64,13 +64,13 @@ class DropHashTable {
     count_+=size;
 
     int new_entry;
-    int oldValue;
+    long oldValue;
     packetToKey(p);
     Tcl_HashEntry* he = Tcl_CreateHashEntry(hashTable_, (char*) key, &new_entry);
     if (new_entry) 
       oldValue = 0;
     else 
-      oldValue = (int)Tcl_GetHashValue(he);
+      oldValue = (long)Tcl_GetHashValue(he);
     
     //printf("old value = %d", oldValue);
     oldValue+=size;
@@ -84,8 +84,8 @@ class DropHashTable {
     Tcl_HashEntry * he = Tcl_FirstHashEntry(hashTable_, &searchPtr);
     while (he != NULL) {
       char * key = Tcl_GetHashKey(hashTable_, he);
-      int value = (int)Tcl_GetHashValue(he);
-      printf("%s = %d\n", key, value);
+      long value = (long)Tcl_GetHashValue(he);
+      printf("%s = %ld\n", key, value);
       he = Tcl_NextHashEntry(&searchPtr);
     }
   }

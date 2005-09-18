@@ -637,8 +637,8 @@ Node::Dump()
 
 	for(i = 1; i < NODES; i++) {
 		m = &neighbor[i];
-		fprintf(stdout, "\tNeighbor: %d (%x), Reachable: %d, Transition Time: %.2f\n",
-			m->index, (int) m, m->reachable, m->time_transition);
+		fprintf(stdout, "\tNeighbor: %d (%lx), Reachable: %d, Transition Time: %.2f\n",
+			m->index, (long) m, m->reachable, m->time_transition);
 	}
 }
 

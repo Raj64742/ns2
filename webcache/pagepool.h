@@ -37,7 +37,7 @@
  * this exception also makes it possible to release a modified version
  * which carries forward this exception.
  * 
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.16 2005/08/26 05:05:31 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/pagepool.h,v 1.17 2005/09/18 23:33:35 tomh Exp $
  *
  */
 //
@@ -112,9 +112,14 @@ const int HTTP_MANDATORY_PUSH	= 0x1000; // If the page is mandatory pushed
 
 struct PageID {
 	PageID() : s_(NULL), id_(0) {}
-	PageID(int* t) {
-		s_ = (HttpApp*)t[0];
-		id_ = t[1];
+        PageID(int *buffer) {
+	        PageID *realBuffer = reinterpret_cast <PageID *> (buffer);
+		s_ = realBuffer->s_;
+		id_ = realBuffer->id_;
+	}
+	PageID(HttpApp *app, int id) {
+		s_ = app;
+		id_ = id;
 	}
 	HttpApp* s_;
 	int id_;

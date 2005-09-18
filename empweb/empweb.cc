@@ -3,7 +3,7 @@
 /*
  * empweb.cc
  * Copyright (C) 2001 by the University of Southern California
- * $Id: empweb.cc,v 1.19 2005/08/25 18:58:05 johnh Exp $
+ * $Id: empweb.cc,v 1.20 2005/09/18 23:33:32 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -50,7 +50,7 @@
 // CDF (Cumulative Distribution Function) data derived from live tcpdump trace
 // The structure of this file is largely borrowed from webtraf.cc
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.19 2005/08/25 18:58:05 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/empweb/empweb.cc,v 1.20 2005/09/18 23:33:32 tomh Exp $
 
 #include <tclcl.h>
 
@@ -529,7 +529,7 @@ int EmpWebTrafPool::command(int argc, const char*const* argv)
 			}
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "doneObj") == 0) {
-		        EmpWebPage* p = (EmpWebPage*)atoi(argv[2]);
+		        EmpWebPage* p = (EmpWebPage*)atol(argv[2]);
 			
 			p->doneObject();
                 

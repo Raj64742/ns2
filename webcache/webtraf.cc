@@ -4,7 +4,7 @@
 /*
  * webtraf.cc
  * Copyright (C) 1999 by the University of Southern California
- * $Id: webtraf.cc,v 1.29 2005/08/25 18:58:13 johnh Exp $
+ * $Id: webtraf.cc,v 1.30 2005/09/18 23:33:35 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -49,7 +49,7 @@
 //
 // Incorporation Polly's web traffic module into the PagePool framework
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.29 2005/08/25 18:58:13 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/webcache/webtraf.cc,v 1.30 2005/09/18 23:33:35 tomh Exp $
 
 #include "config.h"
 #include <tclcl.h>
@@ -457,7 +457,7 @@ int WebTrafPool::command(int argc, const char*const* argv) {
 			}
 			return (TCL_OK);
 		} else if (strcmp(argv[1], "doneObj") == 0) {
-			WebPage* p = (WebPage*)atoi(argv[2]);
+			WebPage* p = (WebPage*)atol(argv[2]);
 			// printf("doneObj for Page id: %d\n", p->id());
 			p->doneObject();
 			return (TCL_OK);
@@ -629,7 +629,7 @@ int WebTrafPool::command(int argc, const char*const* argv) {
 			Agent* tcp = (Agent*)lookup_obj(argv[5]);
 			Agent* snk = (Agent*)lookup_obj(argv[6]);
 			int size = atoi(argv[7]);
-			void* data = (void *)atoi(argv[8]);
+			void* data = (void *)atol(argv[8]);
 
 			int sid = svr_->nodeid();
 			int n = find_server(sid);

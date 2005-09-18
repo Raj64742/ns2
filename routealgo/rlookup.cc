@@ -35,7 +35,7 @@ void RLookup::Analyze( // Analyze the next hop table
     }
   // Find the best default
   nodeid_t largest = NODE_NONE;
-  if(0)printf("Pop size %d\n", p.size());
+  if(0)printf("Pop size %ld\n", p.size());
   nodeid_t nonzero = 0; // Number of non-zero entries
   for (i = 0; i < p.size(); i++)
     {
@@ -243,7 +243,7 @@ void BMLookup::Populate(
         }
     } 
   u_long c = l - f + 1; // How many entries we need
-  if(0)printf("BMLookup::Populate..found %d NHN\n", m_NVec.size());
+  if(0)printf("BMLookup::Populate..found %ld NHN\n", m_NVec.size());
   m_pBitMap = new BitMap(c, BitMap::FindBPE(m_NVec.size()));
   
   // And populate the bitmap   

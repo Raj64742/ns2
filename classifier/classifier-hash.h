@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.h,v 1.8 2002/01/25 20:22:15 haldar Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.h,v 1.9 2005/09/18 23:33:31 tomh Exp $
  */
 
 #include "classifier.h"
@@ -51,12 +51,12 @@ public:
 		Tcl_DeleteHashTable(&ht_);
 	};
 	virtual int classify(Packet *p);
-	virtual int lookup(Packet* p) {
+	virtual long lookup(Packet* p) {
 		hdr_ip* h = hdr_ip::access(p);
 		return get_hash(mshift(h->saddr()), mshift(h->daddr()), 
 				h->flowid());
 	}
-	virtual int unknown(Packet* p) {
+	virtual long unknown(Packet* p) {
 		hdr_ip* h = hdr_ip::access(p);
 		Tcl::instance().evalf("%s unknown-flow %u %u %u",
 				      name(), h->saddr(), h->daddr(),
@@ -85,7 +85,7 @@ protected:
 		} SrcDstFid;
 	};
 		
-	int lookup(nsaddr_t src, nsaddr_t dst, int fid) {
+	long lookup(nsaddr_t src, nsaddr_t dst, int fid) {
 		return get_hash(src, dst, fid);
 	}
 	int newflow(Packet* pkt) {
@@ -102,7 +102,7 @@ protected:
 
 	virtual const char* hashkey(nsaddr_t, nsaddr_t, int)=0; 
 
-	int set_hash(nsaddr_t src, nsaddr_t dst, int fid, int slot) {
+	int set_hash(nsaddr_t src, nsaddr_t dst, int fid, long slot) {
 		int newEntry;
 		Tcl_HashEntry *ep= Tcl_CreateHashEntry(&ht_,
 						       hashkey(src, dst, fid),
@@ -113,11 +113,11 @@ protected:
 		}
 		return -1;
 	}
-	int get_hash(nsaddr_t src, nsaddr_t dst, int fid) {
+	long get_hash(nsaddr_t src, nsaddr_t dst, int fid) {
 		Tcl_HashEntry *ep= Tcl_FindHashEntry(&ht_, 
 						     hashkey(src, dst, fid)); 
 		if (ep)
-			return (int)Tcl_GetHashValue(ep);
+			return (long)Tcl_GetHashValue(ep);
 		return -1;
 	}
 	
@@ -163,7 +163,8 @@ public:
 	}
 protected:
 	const char* hashkey(nsaddr_t, nsaddr_t, int fid) {
-		return (const char*) fid;
+		long key = fid;
+		return (const char*) key;
 	}
 };
 
@@ -175,7 +176,8 @@ public:
 	virtual void do_install(char *dst, NsObject *target);
 protected:
 	const char* hashkey(nsaddr_t, nsaddr_t dst, int) {
-		return (const char*) mshift(dst);
+		long key = mshift(dst);
+		return (const char*) key;
 	}
 };
 

@@ -2,7 +2,7 @@
 /*
  * omni_mcast.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: omni_mcast.cc,v 1.12 2005/08/25 18:58:04 johnh Exp $
+ * $Id: omni_mcast.cc,v 1.13 2005/09/18 23:33:31 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -93,13 +93,13 @@ void OmniMcastArpBufferTimer::expire(Event *e)
 {
   a_->ArpBufferCheck();
   resched(ARP_BUFFER_CHECK + ARP_BUFFER_CHECK * 
-	  (double) ((int) e>>5 & 0xff) /256.0);
+	  (double) ((long) e>>5 & 0xff) /256.0);
 }
 
 void OmniMcastSendBufTimer::expire(Event *e)
 {
   a_->SendBufferCheck();
-  resched(SEND_BUFFER_CHECK + SEND_BUFFER_CHECK * (double) ((int) e>>5 & 0xff)/256.0);
+  resched(SEND_BUFFER_CHECK + SEND_BUFFER_CHECK * (double) ((long) e>>5 & 0xff)/256.0);
 }
 
 

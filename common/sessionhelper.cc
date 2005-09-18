@@ -2,7 +2,7 @@
 
 /*
  * Copyright (C) 1997 by the University of Southern California
- * $Id: sessionhelper.cc,v 1.21 2005/08/25 18:58:02 johnh Exp $
+ * $Id: sessionhelper.cc,v 1.22 2005/09/18 23:33:31 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -50,7 +50,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/sessionhelper.cc,v 1.21 2005/08/25 18:58:02 johnh Exp $ (USC/ISI)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/sessionhelper.cc,v 1.22 2005/09/18 23:33:31 tomh Exp $ (USC/ISI)";
 #endif
 
 #include "config.h"
@@ -350,7 +350,7 @@ int SessionHelper::command(int argc, const char*const* argv)
 			return (TCL_OK);
 		}
 		if (strcmp(argv[1], "update-loss-top") == 0) {
-			loss_depobj *tmploss = (loss_depobj*)(atoi(argv[2]));
+			loss_depobj *tmploss = (loss_depobj*)(atol(argv[2]));
 			tmploss->next = loss_dependency_->loss_dep;
 			loss_dependency_->loss_dep = tmploss;
 			return (TCL_OK);
@@ -368,7 +368,7 @@ int SessionHelper::command(int argc, const char*const* argv)
 				tmploss->next = 0;
 				tmploss->rcv_dep = 0;
 				tmploss->loss_dep = 0;
-				tcl.resultf("%d", tmploss);
+				tcl.resultf("%ld", tmploss);
 			} else {
 				tcl.result("0");
 			}
@@ -381,14 +381,14 @@ int SessionHelper::command(int argc, const char*const* argv)
 		if (strcmp(argv[1], "update-loss-loss") == 0) {
 			ErrorModel *tmperrparent = (ErrorModel*)TclObject::lookup(argv[2]);
 			loss_depobj *tmplossparent = find_loss_depobj(tmperrparent);
-			loss_depobj *tmplosschild = (loss_depobj*)(atoi(argv[3]));
+			loss_depobj *tmplosschild = (loss_depobj*)(atol(argv[3]));
 			if (!tmplossparent) {
 				tmplossparent = new loss_depobj;
 				tmplossparent->obj = tmperrparent;
 				tmplossparent->next = 0;
 				tmplossparent->loss_dep = 0;
 				tmplossparent->rcv_dep = 0;
-				tcl.resultf("%d", tmplossparent);
+				tcl.resultf("%ld", tmplossparent);
 			} else {
 				tcl.result("0");
 			}

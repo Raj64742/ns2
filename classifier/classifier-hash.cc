@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.29 2001/12/20 00:15:33 haldar Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier-hash.cc,v 1.30 2005/09/18 23:33:31 tomh Exp $ (LBL)";
 #endif
 
 //
@@ -133,9 +133,9 @@ int HashClassifier::command(int argc, const char*const* argv)
 							     hashkey(src, dst,
 								     fid)); 
 			if (ep) {
-				int slot= (int)Tcl_GetHashValue(ep);
+				long slot = (long)Tcl_GetHashValue(ep);
 				Tcl_DeleteHashEntry(ep);
-				tcl.resultf("%u", slot);
+				tcl.resultf("%lu", slot);
 				return (TCL_OK);
 			}
 			return (TCL_ERROR);

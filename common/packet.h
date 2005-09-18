@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.97 2005/04/26 18:56:35 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/common/packet.h,v 1.98 2005/09/18 23:33:31 tomh Exp $ (LBL)
  */
 
 #ifndef ns_packet_h
@@ -299,7 +299,7 @@ extern p_info packet_info; /* map PT_* to string name */
                             )
 
 
-#define OFFSET(type, field)	((int) &((type *)0)->field)
+#define OFFSET(type, field)	((long) &((type *)0)->field)
 
 class PacketData : public AppData {
 public:

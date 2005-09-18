@@ -2,7 +2,7 @@
 /*
  * diffusion.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: diffusion.cc,v 1.12 2005/08/25 18:58:03 johnh Exp $
+ * $Id: diffusion.cc,v 1.13 2005/09/18 23:33:31 tomh Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -45,7 +45,7 @@
  */
 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.12 2005/08/25 18:58:03 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/diffusion/diffusion.cc,v 1.13 2005/09/18 23:33:31 tomh Exp $
 
 /****************************************************************/
 /* diffusion.cc : Chalermek Intanagonwiwat (USC/ISI)  05/18/99  */
@@ -108,13 +108,13 @@ void ArpBufferTimer::expire(Event *e)
 {
   a_->ArpBufferCheck();
   resched(ARP_BUFFER_CHECK + ARP_BUFFER_CHECK * 
-	  (double) ((int) e>>5 & 0xff) /256.0);
+	  (double) ((long) e>>5 & 0xff) /256.0);
 }
 
 void SendBufTimer::expire(Event *e)
 {
   a_->SendBufferCheck();
-  resched(SEND_BUFFER_CHECK + SEND_BUFFER_CHECK * (double) ((int) e>>5 & 0xff)/256.0);
+  resched(SEND_BUFFER_CHECK + SEND_BUFFER_CHECK * (double) ((long) e>>5 & 0xff)/256.0);
 }
 
 
