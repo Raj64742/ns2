@@ -34,7 +34,7 @@
  * Ported from CMU/Monarch's code, appropriate copyright applies.
  * nov'98 -Padma.
  *
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.85 2005/08/22 05:08:35 tomh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/trace/cmu-trace.cc,v 1.86 2005/09/21 21:40:35 haldar Exp $
  */
 
 #include <packet.h>
@@ -59,7 +59,6 @@
 #include "wpan/p802_15_4trace.h"
 #include "wpan/p802_15_4nam.h"
 //</zheng: add for 802.15.4>
-#include "hdlc.h"
 
 #include "diffusion/diff_header.h" // DIFFUSION -- Chalermek
 
@@ -125,9 +124,15 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 {
 	struct hdr_cmn *ch = HDR_CMN(p);
 	struct hdr_ip *ih = HDR_IP(p);
+	struct hdr_mac802_11 *mh;
+	struct hdr_smac *sh;
 	char mactype[SMALL_LEN];
 
 	strcpy(mactype, Simulator::instance().macType());
+	if (strcmp (mactype, "Mac/SMAC") == 0)
+		sh = HDR_SMAC(p);
+	else
+		mh = HDR_MAC802_11(p);
 	
 	double x = 0.0, y = 0.0, z = 0.0;
        
@@ -226,9 +231,6 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
         node_->getLoc(&x, &y, &z);
 #endif
 
-	struct hdr_mac802_11 *mh = HDR_MAC802_11(p); // valid only if ch->ptype () == PT_MAC
-	struct hdr_smac *sh = HDR_SMAC(p); // valid only if ch->ptype () == PT_SMAC
-
 	sprintf(pt_->buffer() + offset,
 #ifdef LOG_POSITION
 		"%c %.9f %d (%6.2f %6.2f) %3s %4s %d %s %d ",
@@ -286,15 +288,8 @@ CMUTrace::format_mac_common(Packet *p, const char *why, int offset)
 	if (thisnode) {
 		if (thisnode->energy_model()) {
 			sprintf(pt_->buffer() + offset,
-//				"[energy %f] ",
-				"[energy %f ei %.3f es %.3f et %.3f er %.3f] ",
-//logging energy consumption in detail...i.e. total energy consumption in SLEEP, IDLE, TRANS and RECV modes
-				thisnode->energy_model()->energy(),
-				thisnode->energy_model()->ei(),
-				thisnode->energy_model()->es(),				
-				thisnode->energy_model()->et(),
-				thisnode->energy_model()->er()				
-				);
+				"[energy %f] ",
+				thisnode->energy_model()->energy());
 		}
         }
 }
@@ -404,118 +399,119 @@ CMUTrace::format_ip(Packet *p, int offset)
 	}
 }
 
-void 
-CMUTrace::format_hdlc(Packet *p, int offset)
-{
-	struct hdr_hdlc *hh = HDR_HDLC(p);
-	struct I_frame *ifr = (struct I_frame *)&(hh->hdlc_fc_);
-	struct S_frame *sf = (struct S_frame *)&(hh->hdlc_fc_);
-	struct U_frame *uf = (struct U_frame *)&(hh->hdlc_fc_);
+// HDLC format has moved to satellite tracing
+// void 
+// CMUTrace::format_hdlc(Packet *p, int offset)
+// {
+// 	struct hdr_hdlc *hh = HDR_HDLC(p);
+// 	struct I_frame *ifr = (struct I_frame *)&(hh->hdlc_fc_);
+// 	struct S_frame *sf = (struct S_frame *)&(hh->hdlc_fc_);
+// 	struct U_frame *uf = (struct U_frame *)&(hh->hdlc_fc_);
 	
-	switch(hh->fc_type_) {
-	case HDLC_I_frame:
-		if (pt_->tagged()) {
-			sprintf(pt_->buffer() + offset,
-				"-hdlc:sa %d -hdlc:da %d -hdlc:ft I -hdlc:r_seq %d -hdlc:s_seq %d",
-				hh->saddr(),
-				hh->daddr(),
-				ifr->recv_seqno, 
-				ifr->send_seqno);
+// 	switch(hh->fc_type_) {
+// 	case HDLC_I_frame:
+// 		if (pt_->tagged()) {
+// 			sprintf(pt_->buffer() + offset,
+// 				"-hdlc:sa %d -hdlc:da %d -hdlc:ft I -hdlc:r_seq %d -hdlc:s_seq %d",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				ifr->recv_seqno, 
+// 				ifr->send_seqno);
 			
-		} else if (newtrace_) {
-			sprintf(pt_->buffer() + offset,
-				"-P hdlc -Psa %d -Pda %d -Pft I -Pr_seq %d -Ps_seq %d",
-				hh->saddr(),
-				hh->daddr(),
-				ifr->recv_seqno, 
-				ifr->send_seqno);
-		} else {
-			sprintf(pt_->buffer() + offset,
-				"[%d %d I %d %d]",
-				hh->saddr(),
-				hh->daddr(),
-				ifr->recv_seqno, 
-				ifr->send_seqno);
-		}
-		break;
+// 		} else if (newtrace_) {
+// 			sprintf(pt_->buffer() + offset,
+// 				"-P hdlc -Psa %d -Pda %d -Pft I -Pr_seq %d -Ps_seq %d",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				ifr->recv_seqno, 
+// 				ifr->send_seqno);
+// 		} else {
+// 			sprintf(pt_->buffer() + offset,
+// 				"[%d %d I %d %d]",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				ifr->recv_seqno, 
+// 				ifr->send_seqno);
+// 		}
+// 		break;
 		
-	case HDLC_S_frame:
-		if (pt_->tagged()) {
-			sprintf(pt_->buffer() + offset,
-				"-hdlc:sa %d -hdlc:da %d -hdlc:ft S -hdlc:r_seq %d -hdlc:stype %s",
-				hh->saddr(),
-				hh->daddr(),
-				sf->recv_seqno,
-				(sf->stype == RR) ? "RR" :
-				(sf->stype == REJ) ? "REJ" :
-				(sf->stype == RNR) ? "RNR" :
-				(sf->stype == SREJ) ? "SREJ" : "UNKN");
+// 	case HDLC_S_frame:
+// 		if (pt_->tagged()) {
+// 			sprintf(pt_->buffer() + offset,
+// 				"-hdlc:sa %d -hdlc:da %d -hdlc:ft S -hdlc:r_seq %d -hdlc:stype %s",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				sf->recv_seqno,
+// 				(sf->stype == RR) ? "RR" :
+// 				(sf->stype == REJ) ? "REJ" :
+// 				(sf->stype == RNR) ? "RNR" :
+// 				(sf->stype == SREJ) ? "SREJ" : "UNKN");
 			
-		} else if (newtrace_) {
-			sprintf(pt_->buffer() + offset,
-				"-P hdlc -Psa %d -Pda %d -Pft S -Pr_seq %d -Pstype %s",
-				hh->saddr(),
-				hh->daddr(),
-				sf->recv_seqno,
-				sf->stype == RR ? "RR" :
-				sf->stype == REJ ? "REJ" :
-				sf->stype == RNR ? "RNR" :
-				sf->stype == SREJ ? "SREJ" : "UNKN");
+// 		} else if (newtrace_) {
+// 			sprintf(pt_->buffer() + offset,
+// 				"-P hdlc -Psa %d -Pda %d -Pft S -Pr_seq %d -Pstype %s",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				sf->recv_seqno,
+// 				sf->stype == RR ? "RR" :
+// 				sf->stype == REJ ? "REJ" :
+// 				sf->stype == RNR ? "RNR" :
+// 				sf->stype == SREJ ? "SREJ" : "UNKN");
 			
-		} else {
-			sprintf(pt_->buffer() + offset,
-				"[%d %d S %d %s]",
-				hh->saddr(),
-				hh->daddr(),
-				sf->recv_seqno,
-				sf->stype == RR ? "RR" :
-				sf->stype == REJ ? "REJ" :
-				sf->stype == RNR ? "RNR" :
-				sf->stype == SREJ ? "SREJ" :
-				"UNKN");
-		}
-		break;
+// 		} else {
+// 			sprintf(pt_->buffer() + offset,
+// 				"[%d %d S %d %s]",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				sf->recv_seqno,
+// 				sf->stype == RR ? "RR" :
+// 				sf->stype == REJ ? "REJ" :
+// 				sf->stype == RNR ? "RNR" :
+// 				sf->stype == SREJ ? "SREJ" :
+// 				"UNKN");
+// 		}
+// 		break;
 		
-	case HDLC_U_frame:
-		if (pt_->tagged()) {
-			sprintf(pt_->buffer() + offset,
-				"-hdlc:sa %d -hdlc:da %d -hdlc:ft U -hdlc:utype %s",
-				hh->saddr(),
-				hh->daddr(),
-				uf->utype == SABME ? "SABME" :
-				uf->utype == UA ? "UA" :
-				uf->utype == DM ? "DM" :
-				uf->utype == DISC ? "DISC" : "UNKN");
+// 	case HDLC_U_frame:
+// 		if (pt_->tagged()) {
+// 			sprintf(pt_->buffer() + offset,
+// 				"-hdlc:sa %d -hdlc:da %d -hdlc:ft U -hdlc:utype %s",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				uf->utype == SABME ? "SABME" :
+// 				uf->utype == UA ? "UA" :
+// 				uf->utype == DM ? "DM" :
+// 				uf->utype == DISC ? "DISC" : "UNKN");
 		
-		} else if (newtrace_) {
-			sprintf(pt_->buffer() + offset,
-				"-P hdlc -Psa %d -Pda %d -Pft U -Putype %s",
-				hh->saddr(),
-				hh->daddr(),
-				uf->utype == SABME ? "SABME" :
-				uf->utype == UA ? "UA" :
-				uf->utype == DM ? "DM" :
-				uf->utype == DISC ? "DISC" : "UNKN");
+// 		} else if (newtrace_) {
+// 			sprintf(pt_->buffer() + offset,
+// 				"-P hdlc -Psa %d -Pda %d -Pft U -Putype %s",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				uf->utype == SABME ? "SABME" :
+// 				uf->utype == UA ? "UA" :
+// 				uf->utype == DM ? "DM" :
+// 				uf->utype == DISC ? "DISC" : "UNKN");
 			
-		} else {
-			sprintf(pt_->buffer() + offset,
-				"[%d %d U %s]",
-				hh->saddr(),
-				hh->daddr(),
-				uf->utype == SABME ? "SABME" :
-				uf->utype == UA ? "UA" :
-				uf->utype == DM ? "DM" :
-				uf->utype == DISC ? "DISC" : "UNKN");
-		}
-		break;
+// 		} else {
+// 			sprintf(pt_->buffer() + offset,
+// 				"[%d %d U %s]",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				uf->utype == SABME ? "SABME" :
+// 				uf->utype == UA ? "UA" :
+// 				uf->utype == DM ? "DM" :
+// 				uf->utype == DISC ? "DISC" : "UNKN");
+// 		}
+// 		break;
 		
-	default:
+// 	default:
 		
-		fprintf(stderr, "Unknown HDLC frame type\n");
-		exit(1);
-	}
+// 		fprintf(stderr, "Unknown HDLC frame type\n");
+// 		exit(1);
+// 	}
 	
-}
+// }
 
 
 
@@ -694,11 +690,6 @@ CMUTrace::format_sctp(Packet* p,int offset)
 			
 		case SCTP_CHUNK_HB_ACK:
 			cChunkType = 'B';
-			break;
-		default:
-			// quiet compiler
-			cChunkType = ' ';
-			assert (false);
 			break;
 		}
     
@@ -1251,9 +1242,6 @@ void CMUTrace::format(Packet* p, const char *why)
 	switch(ch->ptype()) {
 	case PT_MAC:
 	case PT_SMAC:
-		break;
-	case PT_HDLC:
-		format_hdlc(p, offset);
 		break;
 	case PT_ARP:
 		format_arp(p, offset);
