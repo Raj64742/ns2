@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.12 2005/08/22 05:08:34 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.13 2005/09/21 20:52:47 haldar Exp $";
 #endif
 
 /*
@@ -55,6 +55,7 @@ static const char rcsid[] =
 #include "satnode.h"
 #include "satroute.h"
 #include "errmodel.h"
+#include "sat-hdlc.h"
 
 /*==========================================================================*/
 /*
@@ -183,31 +184,24 @@ int SatLL::command(int argc, const char*const* argv)
 	return LL::command(argc, argv);
 }
 
-// Encode link layer sequence number, type, and mac address fields
-void SatLL::sendDown(Packet* p)
-{	
+int SatLL::getRoute(Packet *p)
+{
 	hdr_cmn *ch = HDR_CMN(p);
-	hdr_ll *llh = HDR_LL(p);
-	char *mh = (char*)p->access(hdr_mac::offset_);
-	int peer_mac_;
-	SatChannel* satchannel_;
-
-	llh->seqno_ = ++seqno_;
-	llh->lltype() = LL_DATA;
-
-	// wired-satellite integration
+        // wired-satellite integration
 	if (SatRouteObject::instance().wiredRouting()) {
+		
+		hdr_ip *ip = HDR_IP(p);
+		RouteLogic *routelogic_;
+		int next_hopIP = -1; // Initialize in case route not found
+		int myaddr_;
 		// Wired/satellite integration
 		// We need to make sure packet headers are set correctly
 		// This code adapted from virtual-classifier.cc
-		RouteLogic *routelogic_;
-		hdr_ip* h = hdr_ip::access(p);
-		int next_hopIP = -1; // Initialize in case route not found
-		int myaddr_;
+		
 		Tcl &tcl = Tcl::instance();
 		tcl.evalc("[Simulator instance] get-routelogic");
 		routelogic_ = (RouteLogic*) TclObject::lookup(tcl.result());
-		char* adst = Address::instance().print_nodeaddr(h->daddr());
+		char* adst = Address::instance().print_nodeaddr(ip->daddr());
 		myaddr_ = satnode()->ragent()->myaddr();
 		//char* asrc = Address::instance().print_nodeaddr(h->saddr());
 		char* asrc = Address::instance().print_nodeaddr(myaddr_);
@@ -223,7 +217,30 @@ void SatLL::sendDown(Packet* p)
 			printf("Error:  LL has no satnode_ pointer set\n");
 			exit(1);
 		}
-        } 
+        }
+	// else (if no wired rtg) next-hop field is populated by rtg agent
+	
+	return ch->next_hop_;
+	
+}
+
+
+// Encode link layer sequence number, type, and mac address fields
+void SatLL::sendDown(Packet* p)
+{	
+	hdr_cmn *ch = HDR_CMN(p);
+	hdr_ll *llh = HDR_LL(p);
+	hdr_hdlc *hh = HDR_HDLC(p);
+	
+	char *mh = (char*)p->access(hdr_mac::offset_);
+	int peer_mac_;
+	SatChannel* satchannel_;
+
+	llh->seqno_ = ++seqno_;
+	llh->lltype() = LL_DATA;
+
+	getRoute(p);
+	
 	// Set mac src, type, and dst
 	mac_->hdr_src(mh, mac_->addr());
 	mac_->hdr_type(mh, ETHERTYPE_IP); // We'll just use ETHERTYPE_IP

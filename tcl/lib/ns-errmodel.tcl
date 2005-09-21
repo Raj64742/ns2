@@ -259,17 +259,23 @@ ErrorModel/TwoStateMarkov instproc init {rate {unit "time"}} {
 	$self next $rate $unit
 }
 
-ErrorModel/ComplexTwoStateMarkov instproc init {avgList {unit "time"}} {
-	
+ErrorModel/ComplexTwoStateMarkov instproc init {avgList {unit "time"} {rng ""}} {
 	$self next
 	$self unit $unit
+	
 	set rv0 [new RandomVariable/Exponential]
 	set rv1 [new RandomVariable/Exponential]
-	$rv0 set avg_ [lindex $avgList 0]
-	$rv1 set avg_ [lindex $avgList 1]
-
 	set rv2 [new RandomVariable/Exponential]
 	set rv3 [new RandomVariable/Exponential]
+	
+	if {$rng != ""} {
+		$rv0 use-rng $rng
+		$rv1 use-rng $rng
+		$rv2 use-rng $rng
+		$rv3 use-rng $rng
+	}
+	$rv0 set avg_ [lindex $avgList 0]
+	$rv1 set avg_ [lindex $avgList 1]
 	$rv2 set avg_ [lindex $avgList 2]
 	$rv3 set avg_ [lindex $avgList 3]
 	$self ranvar 0 0 $rv0 

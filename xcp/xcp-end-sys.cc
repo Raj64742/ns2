@@ -4,7 +4,7 @@
  * Copyright (C) 2004 by the University of Southern California
  * Copyright (C) 2004 by USC/ISI
  *               2002 by Dina Katabi
- * $Id: xcp-end-sys.cc,v 1.10 2005/08/25 18:58:13 johnh Exp $
+ * $Id: xcp-end-sys.cc,v 1.11 2005/09/21 20:52:48 haldar Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -48,7 +48,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.10 2005/08/25 18:58:13 johnh Exp $";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.cc,v 1.11 2005/09/21 20:52:48 haldar Exp $";
 #endif
 
 #include <stdio.h>
@@ -197,7 +197,7 @@ void XcpAgent::output(int seqno, int reason)
 	/* Check if this is the initial SYN packet. */
 	if (seqno == 0) {
 		if (syn_) {
-			hdr_cmn::access(p)->size() = tcpip_base_hdr_size_;
+			hdr_cmn::access(p)->size() = tcpip_base_hdr_size_ + XCP_HDR_LEN;
 		}
 		if (ecn_) {
 			hf->ecnecho() = 1;

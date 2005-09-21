@@ -37,14 +37,14 @@ LL set bandwidth_ 0      ;# not used
 LL set delay_ 1ms
 LL set macDA_ 0
 
-LL/HDLC set window_size_ 8
-LL/HDLC set queue_size_ 1000
-LL/HDLC set timeout_ 1.0  ;# 1000ms
-LL/HDLC set max_timeouts_ 5 ;# set to a very high value to ensure HDLC ARQ connection
+LL/Sat/HDLC set window_size_ 8
+LL/Sat/HDLC set queue_size_ 1000
+LL/Sat/HDLC set timeout_ 0.26
+LL/Sat/HDLC set max_timeouts_ 2 ;# set to a very high value to ensure HDLC ARQ connection
                               # is never reset;  
-LL/HDLC set delAck_ false  ;# ack maybe delayed to allow piggybacking
-LL/HDLC set delAckVal_  0.1  ;# value chosen based on a link delay of 100ms
-LL/HDLC set selRepeat_ false ;# set to GoBackN by default
+LL/Sat/HDLC set delAck_   false  ;# ack maybe delayed to allow piggybacking
+LL/Sat/HDLC set delAckVal_  0.1  ;# value chosen based on a link delay of 100ms
+LL/Sat/HDLC set selRepeat_ false ;# set to GoBackN by default
 
 if [TclObject is-class LL/Arq] {
 LL/Arq set mode_ 2

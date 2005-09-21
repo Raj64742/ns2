@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.268 2005/06/13 17:50:42 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.269 2005/09/21 20:52:47 haldar Exp $
 
 
 #
@@ -439,10 +439,10 @@ Simulator instproc node-config args {
         set args [eval $self init-vars $args]
 
         $self instvar addressType_  routingAgent_ propType_  macTrace_ \
-		routerTrace_ agentTrace_ movementTrace_ channelType_ channel_ \
-		chan topoInstance_ propInstance_ mobileIP_ rxPower_ \
-		# change wrt Mike's code
-		txPower_ idlePower_ sleepPower_ transitionPower_ transitionTime_ satNodeType_ eotTrace_
+	    routerTrace_ agentTrace_ movementTrace_ channelType_ channel_ \
+	    chan topoInstance_ propInstance_ mobileIP_ linkBW_ linkdelay_ \
+	    rxPower_ txPower_ idlePower_ sleepPower_ transitionPower_ \
+	    transitionTime_ satNodeType_ eotTrace_
 
         if [info exists macTrace_] {
 		Simulator set MacTrace_ $macTrace_
@@ -527,18 +527,7 @@ Simulator instproc node args {
                       Setting this variable will not affect simulations."
                 Simulator unset NumberInterfaces_
         }
-	
-	# wireless-ready node
-	if { [info exists routingAgent_] && ($routingAgent_ != "") } {
-		set node [eval $self create-wireless-node $args]
-		# for base node
-		if {[info exists wiredRouting_] && $wiredRouting_ == "ON"} {
-			set Node_([$node id]) $node
-			#simulator's nodelist in C++ space
-			$self add-node $node [$node id] 
-		}
-		return $node
-	}
+
 	# Satellite node
 	if { [info exists satNodeType_] } {
 		set node [eval $self create-satnode]
@@ -551,6 +540,19 @@ Simulator instproc node args {
 		}
 		return $node
 	}
+	
+	# wireless-ready node
+	if { [info exists routingAgent_] && ($routingAgent_ != "") } {
+		set node [eval $self create-wireless-node $args]
+		# for base node
+		if {[info exists wiredRouting_] && $wiredRouting_ == "ON"} {
+			set Node_([$node id]) $node
+			#simulator's nodelist in C++ space
+			$self add-node $node [$node id] 
+		}
+		return $node
+	}
+	
 
 	# Enable-mcast is now done automatically inside Node::init{}
 	# 
@@ -585,9 +587,10 @@ Simulator instproc imep-support {} {
 # of standing here in ns-lib.tcl.
 Simulator instproc create-wireless-node args {
         $self instvar routingAgent_ wiredRouting_ propInstance_ llType_ \
-		macType_ ifqType_ ifqlen_ phyType_ chan antType_ energyModel_ \
-		initialEnergy_ txPower_ rxPower_ idlePower_ sleepPower_ transitionPower_ transitionTime_ \
-		topoInstance_ level1_ level2_ inerrProc_ outerrProc_ FECProc_
+	    macType_ ifqType_ ifqlen_ phyType_ chan antType_ linkBW_ \
+	    linkdelay_ energyModel_ initialEnergy_ txPower_ rxPower_ \
+	    idlePower_ sleepPower_ transitionPower_ transitionTime_ \
+	    topoInstance_ level1_ level2_ inerrProc_ outerrProc_ FECProc_
 
 	Simulator set IMEPFlag_ OFF
 
@@ -635,7 +638,11 @@ Simulator instproc create-wireless-node args {
 	    DumbAgent {
 		    set ragent [$self create-dumb-agent $node]
 	    }
+	    ManualRtg {
+		    set ragent [$self create-manual-rtg-agent $node]
+	    }
 	    default {
+		    eval $node addr $args
 		    puts "Wrong node routing agent!"
 		    exit
 	    }
@@ -658,7 +665,7 @@ Simulator instproc create-wireless-node args {
 	# Add main node interface
 	$node add-interface $chan $propInstance_ $llType_ $macType_ \
 	    $ifqType_ $ifqlen_ $phyType_ $antType_ $topoInstance_ \
-			$inerrProc_ $outerrProc_ $FECProc_
+			$inerrProc_ $outerrProc_ $FECProc_ linkBW_ linkdelay_
 	# Attach agent
 	if {$routingAgent_ != "DSR"} {
 		$node attach $ragent [Node set rtagent_port_]
@@ -798,6 +805,19 @@ Simulator instproc create-dumb-agent { node } {
 	return $ragent
 }
 
+Simulator instproc create-manual-rtg-agent { node } {
+	
+	# create a simple wireless agent
+	# that only forwards packets
+	# used for testing single hop brdcast/unicast mode 
+	# for wireless macs
+
+	set ragent [new Agent/ManualRtgAgent]
+	$node set ragent_ $ragent
+	$node attach $ragent [Node set rtagent_port_]
+	
+	return $ragent
+}
 
 Simulator instproc create-aodv-agent { node } {
         #  Create AODV routing agent

@@ -4,7 +4,7 @@
  * Copyright (C) 2004 by the University of Southern California
  * Copyright (C) 2004 by USC/ISI
  *               2002 by Dina Katabi
- * $Id: xcp-end-sys.h,v 1.7 2005/08/25 18:58:13 johnh Exp $
+ * $Id: xcp-end-sys.h,v 1.8 2005/09/21 20:52:48 haldar Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -47,7 +47,7 @@
  */
 
 /*
- * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.7 2005/08/25 18:58:13 johnh Exp $
+ * $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/xcp/xcp-end-sys.h,v 1.8 2005/09/21 20:52:48 haldar Exp $
  */
 
 #ifndef ns_xcp_end_sys_h
@@ -66,6 +66,8 @@
 
 #include "flags.h"
 #include "tcp-sink.h"
+
+#define XCP_HDR_LEN  20
 
 //-----------  The Congestion Header ------------//
 struct hdr_xcp {

@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.15 2005/08/22 05:08:34 tomh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.cc,v 1.16 2005/09/21 20:54:21 haldar Exp $";
 #endif
 
 #include <stdio.h>
@@ -53,6 +53,7 @@ static const char rcsid[] =
 #include "sattrace.h"
 #include "satposition.h"
 #include "satnode.h"
+#include "sat-hdlc.h"
 
 class SatTraceClass : public TclClass {
 public:
@@ -70,8 +71,123 @@ char* srm_names_[] = {
 	SRM_NAMES
 };
 
+void SatTrace::format_hdlc(Packet *p, int offset)
+{
+	struct hdr_hdlc *hh = HDR_HDLC(p);
+	struct I_frame *ifr = (struct I_frame *)&(hh->hdlc_fc_);
+	struct S_frame *sf = (struct S_frame *)&(hh->hdlc_fc_);
+	struct U_frame *uf = (struct U_frame *)&(hh->hdlc_fc_);
+	
+	switch(hh->fc_type_) {
+	case HDLC_I_frame:
+		if (pt_->tagged()) {
+			sprintf(pt_->buffer() + offset,
+				"-hdlc:sa %d -hdlc:da %d -hdlc:ft I -hdlc:r_seq %d -hdlc:s_seq %d",
+				hh->saddr(),
+				hh->daddr(),
+				ifr->recv_seqno, 
+				ifr->send_seqno);
+			
+		// } else if (newtrace_) {
+// 			sprintf(pt_->buffer() + offset,
+// 				"-P hdlc -Psa %d -Pda %d -Pft I -Pr_seq %d -Ps_seq %d",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				ifr->recv_seqno, 
+// 				ifr->send_seqno);
+		} else {
+			sprintf(pt_->buffer() + offset,
+				"[%d %d I %d %d]",
+				hh->saddr(),
+				hh->daddr(),
+				ifr->recv_seqno, 
+				ifr->send_seqno);
+		}
+		break;
+		
+	case HDLC_S_frame:
+		if (pt_->tagged()) {
+			sprintf(pt_->buffer() + offset,
+				"-hdlc:sa %d -hdlc:da %d -hdlc:ft S -hdlc:r_seq %d -hdlc:stype %s",
+				hh->saddr(),
+				hh->daddr(),
+				sf->recv_seqno,
+				(sf->stype == RR) ? "RR" :
+				(sf->stype == REJ) ? "REJ" :
+				(sf->stype == RNR) ? "RNR" :
+				(sf->stype == SREJ) ? "SREJ" : "UNKN");
+			
+		// } else if (newtrace_) {
+// 			sprintf(pt_->buffer() + offset,
+// 				"-P hdlc -Psa %d -Pda %d -Pft S -Pr_seq %d -Pstype %s",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				sf->recv_seqno,
+// 				sf->stype == RR ? "RR" :
+// 				sf->stype == REJ ? "REJ" :
+// 				sf->stype == RNR ? "RNR" :
+// 				sf->stype == SREJ ? "SREJ" : "UNKN");
+			
+		} else {
+			sprintf(pt_->buffer() + offset,
+				"[%d %d S %d %s]",
+				hh->saddr(),
+				hh->daddr(),
+				sf->recv_seqno,
+				sf->stype == RR ? "RR" :
+				sf->stype == REJ ? "REJ" :
+				sf->stype == RNR ? "RNR" :
+				sf->stype == SREJ ? "SREJ" :
+				"UNKN");
+		}
+		break;
+		
+	case HDLC_U_frame:
+		if (pt_->tagged()) {
+			sprintf(pt_->buffer() + offset,
+				"-hdlc:sa %d -hdlc:da %d -hdlc:ft U -hdlc:utype %s",
+				hh->saddr(),
+				hh->daddr(),
+				uf->utype == SABME ? "SABME" :
+				uf->utype == UA ? "UA" :
+				uf->utype == DM ? "DM" :
+				uf->utype == DISC ? "DISC" : "UNKN");
+		
+		// } else if (newtrace_) {
+// 			sprintf(pt_->buffer() + offset,
+// 				"-P hdlc -Psa %d -Pda %d -Pft U -Putype %s",
+// 				hh->saddr(),
+// 				hh->daddr(),
+// 				uf->utype == SABME ? "SABME" :
+// 				uf->utype == UA ? "UA" :
+// 				uf->utype == DM ? "DM" :
+// 				uf->utype == DISC ? "DISC" : "UNKN");
+			
+		} else {
+			sprintf(pt_->buffer() + offset,
+				"[%d %d U %s]",
+				hh->saddr(),
+				hh->daddr(),
+				uf->utype == SABME ? "SABME" :
+				uf->utype == UA ? "UA" :
+				uf->utype == DM ? "DM" :
+				uf->utype == DISC ? "DISC" : "UNKN");
+		}
+		break;
+		
+	default:
+		
+		fprintf(stderr, "Unknown HDLC frame type\n");
+		exit(1);
+	}
+	
+}
+
+
+
 void SatTrace::format(int tt, int s, int d, Packet* p)
 {
+	int offset = 0;
 	hdr_cmn *th = hdr_cmn::access(p);
 	hdr_ip *iph = hdr_ip::access(p);
 	hdr_tcp *tcph = hdr_tcp::access(p);
@@ -304,6 +420,12 @@ void SatTrace::format(int tt, int s, int d, Packet* p)
 			d_lat,
 			d_lon);
 	}
+
+	offset = strlen(pt_->buffer());
+	if (t == PT_HDLC)
+		format_hdlc(p, offset);
+	
+
 	if (pt_->namchannel() != 0)
 		sprintf(pt_->nbuffer(), 
 			"%c -t %g -s %d -d %d -p %s -e %d -c %d -i %d -a %d -x {%s.%s %s.%s %d %s %s}",

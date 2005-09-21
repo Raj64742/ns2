@@ -2,7 +2,7 @@
 /*
  * mac-simple.cc
  * Copyright (C) 2003 by the University of Southern California
- * $Id: mac-simple.cc,v 1.6 2005/08/25 18:58:07 johnh Exp $
+ * $Id: mac-simple.cc,v 1.7 2005/09/21 20:52:46 haldar Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -251,7 +251,8 @@ void MacSimple::recvHandler()
 	Packet* p = pktRx_;
 	MacState state = rx_state_;
 	pktRx_ = 0;
-
+	int dst = hdr_dst((char*)HDR_MAC(p));
+	
 	//busy_ = 0;
 
 	rx_state_ = MAC_IDLE;
@@ -265,11 +266,18 @@ void MacSimple::recvHandler()
 		// recv collision, so discard the packet
 		drop(p, DROP_MAC_COLLISION);
 		//Packet::free(p);
+	} else if (dst != index_ && (u_int32_t)dst != MAC_BROADCAST) {
+		
+		/*  address filtering
+		 *  We don't want to log this event, so we just free
+		 *  the packet instead of calling the drop routine.
+		 */
+		Packet::free(p);
 	} else if (ch->error()) {
 		// packet has errors, so discard it
 		//Packet::free(p);
 		drop(p, DROP_MAC_PACKET_ERROR);
-		
+	
 	} else {
 		uptarget_->recv(p, (Handler*) 0);
 	}

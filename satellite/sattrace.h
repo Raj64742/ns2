@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.h,v 1.2 1999/10/26 17:35:11 tomh Exp $
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/sattrace.h,v 1.3 2005/09/21 20:52:47 haldar Exp $
  *
  * Contributed by Tom Henderson, UCB Daedalus Research Group, June 1999
  */
@@ -48,6 +48,7 @@ class SatTrace : public Trace {
  public:
         SatTrace(int type) : Trace(type) {}
 	void traceonly(Packet* p);
+	void format_hdlc(Packet *p, int offset);
 };
 
 class SatDequeTrace : public SatTrace {
