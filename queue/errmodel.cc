@@ -37,12 +37,12 @@
  * Multi-state error model patches contributed by Jianping Pan 
  * (jpan@bbcr.uwaterloo.ca).
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.80 2005/07/13 03:51:26 tomh Exp $ (UCB)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.81 2005/09/21 21:45:04 haldar Exp $ (UCB)
  */
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.80 2005/07/13 03:51:26 tomh Exp $ (UCB)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/errmodel.cc,v 1.81 2005/09/21 21:45:04 haldar Exp $ (UCB)";
 #endif
 
 #include "config.h"
@@ -54,8 +54,7 @@ static const char rcsid[] =
 #include "errmodel.h"
 #include "srm-headers.h"		// to get the hdr_srm structure
 #include "classifier.h"
-// temp hack
-#include "hdlc.h"
+
 static class ErrorModelClass : public TclClass {
 public:
 	ErrorModelClass() : TclClass("ErrorModel") {}

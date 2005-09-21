@@ -69,7 +69,7 @@ INCLUDES = \
 	-I./diffusion3/lib/main -I./diffusion3/lib \
 	-I./diffusion3/lib/nr -I./diffusion3/ns \
 	-I./diffusion3/filter_core -I./asim/ -I./qs \
-	-I./diffserv \
+	-I./diffserv -I./satellite \
 	-I./wpan
 
 
@@ -238,7 +238,7 @@ OBJ_CC = \
 	mac/phy.o mac/wired-phy.o mac/wireless-phy.o \
 	mac/mac-timers.o trace/cmu-trace.o mac/varp.o \
 	mac/mac-simple.o \
-	mac/hdlc.o \
+	satellite/sat-hdlc.o \
 	dsdv/dsdv.o dsdv/rtable.o queue/rtqueue.o \
 	routing/rttable.o \
 	imep/imep.o imep/dest_queue.o imep/imep_api.o \

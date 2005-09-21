@@ -36,7 +36,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.13 2005/09/21 20:52:47 haldar Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/satellite/satlink.cc,v 1.14 2005/09/21 21:45:04 haldar Exp $";
 #endif
 
 /*
@@ -230,7 +230,6 @@ void SatLL::sendDown(Packet* p)
 {	
 	hdr_cmn *ch = HDR_CMN(p);
 	hdr_ll *llh = HDR_LL(p);
-	hdr_hdlc *hh = HDR_HDLC(p);
 	
 	char *mh = (char*)p->access(hdr_mac::offset_);
 	int peer_mac_;
