@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.269 2005/09/21 20:52:47 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.270 2005/09/22 18:34:03 haldar Exp $
 
 
 #
@@ -440,7 +440,7 @@ Simulator instproc node-config args {
 
         $self instvar addressType_  routingAgent_ propType_  macTrace_ \
 	    routerTrace_ agentTrace_ movementTrace_ channelType_ channel_ \
-	    chan topoInstance_ propInstance_ mobileIP_ linkBW_ linkdelay_ \
+	    chan topoInstance_ propInstance_ mobileIP_ \
 	    rxPower_ txPower_ idlePower_ sleepPower_ transitionPower_ \
 	    transitionTime_ satNodeType_ eotTrace_
 
@@ -587,8 +587,8 @@ Simulator instproc imep-support {} {
 # of standing here in ns-lib.tcl.
 Simulator instproc create-wireless-node args {
         $self instvar routingAgent_ wiredRouting_ propInstance_ llType_ \
-	    macType_ ifqType_ ifqlen_ phyType_ chan antType_ linkBW_ \
-	    linkdelay_ energyModel_ initialEnergy_ txPower_ rxPower_ \
+	    macType_ ifqType_ ifqlen_ phyType_ chan antType_ \
+	    energyModel_ initialEnergy_ txPower_ rxPower_ \
 	    idlePower_ sleepPower_ transitionPower_ transitionTime_ \
 	    topoInstance_ level1_ level2_ inerrProc_ outerrProc_ FECProc_
 
@@ -665,7 +665,7 @@ Simulator instproc create-wireless-node args {
 	# Add main node interface
 	$node add-interface $chan $propInstance_ $llType_ $macType_ \
 	    $ifqType_ $ifqlen_ $phyType_ $antType_ $topoInstance_ \
-			$inerrProc_ $outerrProc_ $FECProc_ linkBW_ linkdelay_
+			$inerrProc_ $outerrProc_ $FECProc_
 	# Attach agent
 	if {$routingAgent_ != "DSR"} {
 		$node attach $ragent [Node set rtagent_port_]
