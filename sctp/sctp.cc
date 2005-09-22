@@ -35,7 +35,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.6 2005/09/18 23:33:34 tomh Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.cc,v 1.7 2005/09/22 08:33:09 lacage Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -4307,9 +4307,9 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	{
 	  fprintf(stderr, "SCTP ERROR: message size (%d) too big\n",
 		  spAppData->uiNumBytes);
-	  fprintf(stderr, "%s data chunk size (%ld) > max (%d)\n",
+	  fprintf(stderr, "%s data chunk size (%lu) > max (%d)\n",
 		  "SCTP ERROR:",
-		  spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S), 
+		  (unsigned long)(spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S)), 
 		  MAX_DATA_CHUNK_SIZE);
 	  DBG_PL(sendmsg, "ERROR: message size (%d) too big"),
 		 spAppData->uiNumBytes DBG_PR;
@@ -4326,9 +4326,9 @@ void SctpAgent::sendmsg(int iNumBytes, const char *cpFlags)
 	  fprintf(stderr, "SCTP ERROR: message size (%d) too big\n",
 		  spAppData->uiNumBytes);
 	  fprintf(stderr, 
-		  "%s data chunk size (%ld) + SCTP/IP header(%d) > MTU (%d)\n",
+		  "%s data chunk size (%lu) + SCTP/IP header(%d) > MTU (%d)\n",
 		  "SCTP ERROR:",
-		  spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S),
+		  (unsigned long) spAppData->uiNumBytes + sizeof(SctpDataChunkHdr_S),
 		  SCTP_HDR_SIZE + uiIpHeaderSize, uiMtu);
 	  fprintf(stderr, "           %s\n",
 		  "...chunk fragmentation is not yet supported!");
