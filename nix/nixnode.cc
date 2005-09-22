@@ -2,7 +2,7 @@
 /*
  * nixnode.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: nixnode.cc,v 1.8 2005/09/18 23:33:34 tomh Exp $
+ * $Id: nixnode.cc,v 1.9 2005/09/22 07:44:42 lacage Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -202,8 +202,8 @@ RoutingVec_t NextHop;
 
 NixPair_t NixNode::GetNix(nodeid_t t)  // Get neighbor index/length
 {
-  if(0)printf("Node %ld Getnix to target %ld, adjsize %ld\n",
-         m_id, t, m_Adj.size());
+  if(0)printf("Node %ld Getnix to target %ld, adjsize %lu\n",
+         m_id, t, (unsigned long)m_Adj.size());
   Nixl_t l = GetNixl();
   for (unsigned long i = 0; i < m_Adj.size(); i++)
     {
@@ -223,7 +223,7 @@ nodeid_t NixNode::GetNeighbor( Nix_t n, NixVec* pNv)
 { // Reconstruct a neighbor from the neighbor index
 	if (n >= m_Adj.size())
 		{ // Foulup of some sort, print stuff out and abort
-			printf("Nix %ld out of range (0 - %ld\n", n, m_Adj.size());
+			printf("Nix %ld out of range (0 - %lu\n", n, (unsigned long)m_Adj.size());
 			pNv->DBDump();
 			exit(0);
 		}
