@@ -2,7 +2,7 @@
 /*
  * srm-ssm.h
  * Copyright (C) 2000 by the University of Southern California
- * $Id: srm-ssm.h,v 1.5 2005/08/25 18:58:08 johnh Exp $
+ * $Id: srm-ssm.h,v 1.6 2005/09/22 07:43:33 lacage Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -45,7 +45,7 @@
  */
 
 //
-// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-ssm.h,v 1.5 2005/08/25 18:58:08 johnh Exp $
+// $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/mcast/srm-ssm.h,v 1.6 2005/09/22 07:43:33 lacage Exp $
 
 #ifndef ns_ssmsrm_h
 #define ns_ssmsrm_h
@@ -88,7 +88,7 @@ class SSMSRMAgent : public SRMAgent
 
   void recv_data(int sender, int id, int repid, u_char* data);
   //void recv_repr(int sender, int msgid, int repid, u_char* data);
-  void recv_rqst(int requestor, int round, int sender, int repid, int msgid);
+  void recv_rqst(int requestor, int round, int sender, int msgid, int repid);
   void recv_sess(int sessCtr, int* data, Packet *p);
   void recv_glb_sess(int sessCtr, int* data, Packet *p);
   void recv_loc_sess(int sessCtr, int* data, Packet *p);
