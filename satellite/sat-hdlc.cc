@@ -474,8 +474,6 @@ void HDLC::sendSREJ(Packet *p, int seq)
 void HDLC::sendDown(Packet* p)
 {	
 	hdr_cmn *ch = HDR_CMN(p);
-	hdr_ll *llh = HDR_LL(p);
-	hdr_hdlc *hh = HDR_HDLC(p);
 	
 	char *mh = (char*)p->access(hdr_mac::offset_);
 	int peer_mac_;
