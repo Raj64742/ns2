@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.32 2002/01/25 20:22:16 haldar Exp $ (LBL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.h,v 1.33 2005/09/26 09:12:46 lacage Exp $ (LBL)
  */
 
 #ifndef ns_classifier_h
@@ -73,7 +73,8 @@ public:
 	void set_table_size(int nn);
 	// hierarchical specific
 	virtual void set_table_size(int level, int nn) {}
-	
+
+	int allocPort (NsObject *);	
 protected:
 	virtual int getnxt(NsObject *);
 	virtual int command(int argc, const char*const* argv);

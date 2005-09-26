@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.41 2002/03/21 01:46:02 johnh Exp $";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/classifier/classifier.cc,v 1.42 2005/09/26 09:12:46 lacage Exp $";
 #endif
 
 #include <stdlib.h>
@@ -115,6 +115,11 @@ void Classifier::clear(int slot)
 		while (--maxslot_ >= 0 && slot_[maxslot_] == 0)
 			;
 	}
+}
+
+int Classifier::allocPort (NsObject *nullagent)
+{
+	return getnxt (nullagent);
 }
 
 int Classifier::getnxt(NsObject *nullagent)
