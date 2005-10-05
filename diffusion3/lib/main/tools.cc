@@ -3,7 +3,7 @@
 // authors       : Fabio Silva
 //
 // Copyright (C) 2000-2002 by the University of Southern California
-// $Id: tools.cc,v 1.15 2005/09/13 04:53:50 tomh Exp $
+// $Id: tools.cc,v 1.16 2005/10/05 15:16:02 sfloyd Exp $
 //
 // This program is free software; you can redistribute it and/or
 // modify it under the terms of the GNU General Public License,
@@ -59,8 +59,10 @@ void GetTime(struct timeval *tv)
   long sec, usec;
 
   time = Scheduler::instance().clock();
-  sec = lrint (time);
-  usec = lrint ((time - sec) * 1000000);
+  // sec = lrint (time);
+  sec = (long) rint (time);
+  // usec = lrint ((time - sec) * 1000000);
+  usec = (long) rint ((time - sec) * 1000000);
   tv->tv_sec = sec;
   tv->tv_usec = usec;
   DiffPrint(DEBUG_NEVER, "tv->sec = %ld, tv->usec = %ld\n", tv->tv_sec, tv->tv_usec);
