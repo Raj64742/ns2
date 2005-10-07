@@ -1,3 +1,145 @@
+release 3.5 (2005-09-15)
+
+   - fixed problem with HB pkt size being dependent on arch. 32-bit and
+     64-bit architectures had different size HB pkts due to the hack I
+     had with a dest pointer in the packet payload.
+
+   - added new extensions which combines MultipleFastRtx and Timestamp
+     extensions. It's called MfrTimestamp.
+
+   - bug fix. The tcl bindable initial cwnd was only setting the cwnd
+     before data was ever sent, but was not propagated down to other
+     appropriate places, such as after cwnd reductions due to loss or idle
+     periods. 
+
+   - added the two-level threshold algorithm. The changePrimaryThresh_
+     variable can be used in tcl scripts to set the beta threshold for
+     automatically changing the primary destination after some path error
+     count is exceeded.
+
+   - added a new feature to allow us to simulate overheads of reactive
+     routing protocols used in MANETs. The purpose is to be able to see
+     how features like failover, heartbeating, etc function with such
+     routing protocols, without having to actually simulate MANETs in
+     ns. Two TCL bindable variables have been added: routeCalcDelay_ and
+     routeCacheLifetime_. Also, two traceable variables, timeoutCount_ and
+     rcdCount_, have been added to track the occurance and total number of
+     timeouts and route calculation delays.
+     
+   - bug fix. Stephan Baucke noticed that sometimes wrong RTT samples are
+     taken due to a flaw in the implementation of Karn's algorithm. He
+     also provided the fix, which is only two lines of code: 1 in
+     FastRtx() and 1 in Timeout().
+
+   - added a TCL bindable variable, dormantAction_. This variable controls
+     the action the sender takes when in the dormant state (ie, all
+     destinations have failed). The possible choices are DORMANT_HOP (0),
+     DORMANT_PRIMARY (1), and DORMANT_LASTDEST (2). DORMANT_HOP means the
+     sender keeps hopping to different destinations each time a timeout
+     occurs. DORMANT_PRIMARY means that the sender uses only the
+     primary. DORMANT_LASTDEST means that the sender continues to use the
+     last destination used before the dormant state was entered.
+
+   - modified HB interval calculation to reflect the change in the
+     implementer's guide. The jitter applied to a heartbeat was meant to
+     be a small variance of the RTO, but the RFC's wording currently
+     implies a wide variance due. The implementer's guide modifies the
+     wording to be "On an idle destination address that is
+     allowed to heartbeat, a HEARTBEAT chunk is RECOMMENDED to be sent
+     once per RTO of that destination address plus the protocol parameter
+     'HB.interval' , with jittering of +/- 50% of the RTO value"
+
+   - bug fix. HBs with one heartbeat timer wasn't sending another HB
+     immediately after a timed out HB. However, this fix causes another
+     bug, which I can't fix without making signficant changes (which I
+     don't want to do now). The problem is that since not much state is
+     maintained for HBs, an outstanding HB may be forgotten about if
+     another HB is sent to any destination before the outstanding HB gets
+     acked or times out. This behavior may cause some occasional quirks
+     such as incorrect RTT measurements, extended failure periods,
+     etc. I'll need to address this issue at a later point in time.
+
+   - added two traceable variables (frCount_, mfrCount_) which allows you
+     to track the number of times that fast retransmit and multiple fast
+     retransmit get invoked. These counters are incremented each time the
+     algorithm is invoked, and NOT for each tsn. frCount_ will count only
+     the first time a fast rtx is invoked for a tsn(s). mfrCount_ will
+     count subsequent fast rtx of already fast rtx'd tsns. Added by
+     Armando Caro <acaro@@cis,udel,edu> and Keyur Shah
+     <shah@@cis,udel,edu>. 
+
+   - bug fix. The way the code is maintaining state for chunks marked for
+     retransmission sometimes caused failure detection to take longer than
+     Path.Max.Retrans. When a failure occurs, some data may have made it
+     through before the failure, but the sacks got lost. When the sender
+     retransmits the first outstanding to the alternate destination, the
+     receiver will sack all the data whose sacks got lost. We don't want
+     these sacks to clear the error counter, or else failover would take
+     longer, but this is what the code WAS doing. Now, the error counter
+     is cleared by cum acked data ONLY if the TSNs are not marked for
+     timeout retransmission. The side-effect to this change is that SACKs
+     that arrive late due to RTT spikes will not properly reset the error
+     counter. Also, TSNs at the right edge of the window are many times
+     unnecessarily marked for retransmission during timeout; so when the
+     SACKs for these TSNs arrive, they cannot clear the error counter
+     either. These changes also affects RTT updates.
+
+   - bug fix. The recover variables for fast rtx (both for plain fast rtx
+     and multiple fast rtx) were not being set correctly. The code was
+     just using the last tsn in the send buffer, which is not always the
+     highest outstanding at any given point in time.
+
+   - bug fix. HbAfterRto should not send a HB after an RTO if the timeout
+     retransmission is being sent to the same destination. In other words,
+     if there are no active alternate destinations, then the data
+     retransmission must go to the same destination regardless of the
+     retransmission policy. 
+
+   - bug fix. Under some scenarios when the cumack moved, newly acked TSNs
+     were not clearing the error counter for the destination it was
+     sent. Now anytime a TSN is newly acked by either a new cumack or
+     GapAck, the error counter for that TSN's destination is cleared.
+
+   - bug fix. RtxMarkedChunks was controlling the Max.Burst and
+     BundleControlChunks too soon, and could potentially miscount the
+     burst or transmit packets that ONLY had control chunks. We didn't
+     observe any such scenarios, but the change should avoid this
+     possibility. Report and fix by Jana Iyengar <iyengar@@cis,udel,edu>.
+
+   - bug fix. If a TSN is retransmitted to an alternate destination and it
+     is lower than the lowest TSN outstanding on that alternate
+     destination, the timer for that alternate destination should be
+     restarted. This wasn't happening. Report by Jana Iyengar
+     <iyengar@@cis,udel,edu>.
+
+   - bug fix. Heartbeats were not being generated using a jittering
+     interval of 15-45 secs. For some reason, they were being generated at
+     16 sec intervals. 
+
+   - Made initial RTO, min RTO, max RTO, fast rtx trigger, and sack delay
+     tcl bindable variables.
+
+   - bug fix. Retransmissions were not properly calculating the peer
+     rwnd. (I have no clue why this wasn't caught earlier!)
+
+   - added another extension (called MfrHbAfterRto) which combines
+     MultipleFastRtx and HbAfterRto. 
+
+   - added another experimental retransmission policy for multihomed
+     hosts. Setting rtxToAlt_ to 2, fast rtx goes to the same destination
+     and timeout rtx goes to an alternate destination. 
+
+   - merged sctp-newreno extension into the core of sctp. Since the
+     NewReno changes are now in the implementer's guide, it makes sense to
+     make the main version of SCTP include these changes. With NewReno as
+     the base SCTP, I pushed the changes into the SCTP extensions
+     (sctp-hbAfterRto, sctp-multipleFastRtx, sctp-timestamp)
+
+   - first release since SCTP was merged into ns-2's main distribution. We
+     have now dropped support for ns-allinone-2.1b8.
+
+
+--------------------------------------------------------------------------------
 release 3.4 (2003-08-14)
 
    - bug fix. DupTsns were not being deleted properly in

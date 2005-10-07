@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2003 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2001-2004 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
@@ -31,7 +31,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-multipleFastRtx.h,v 1.1 2003/08/21 18:29:14 haldar Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-multipleFastRtx.h,v 1.2 2005/10/07 05:58:29 tomh Exp $ (UD/PEL)
  */
 
 /* MultipleFastRtx extension implements the Caro Multiple Fast Retransmit
@@ -57,6 +57,11 @@ protected:
   virtual int   delay_bind_dispatch(const char *varName, const char *localName,
 				    TclObject *tracer);
 
+  /* tracing functions
+   */
+  virtual void  TraceVar(const char*);
+  virtual void  TraceAll();
+
   /* sending functions
    */
   virtual void  AddToSendBuffer(SctpDataChunkHdr_S *, int, u_int, SctpDest_S *);
@@ -65,6 +70,8 @@ protected:
   /* processing functions
    */
   virtual Boolean_E  ProcessGapAckBlocks(u_char *, Boolean_E);
+
+  TracedInt        tiMfrCount;        // trace each time MFR gets triggered
 };
 
 #endif

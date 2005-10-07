@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2003 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2001-2004 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
@@ -34,7 +34,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.h,v 1.2 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctpDebug.h,v 1.3 2005/10/07 05:58:30 tomh Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctpDebug_h
@@ -62,6 +62,7 @@ void sctpDebugEmptyPrintf (char const *format, ...);
 #define __dbg_GenMultipleDataChunks            0x00000010
 #define __dbg_BundleControlChunks              0x00000010
 
+#define __dbg_GetHighestOutstandingTsn         0x00000020
 #define __dbg_FastRtx                          0x00000020
 #define __dbg_StartT3RtxTimer                  0x00000020
 #define __dbg_StopT3RtxTimer                   0x00000020
@@ -134,6 +135,11 @@ void sctpDebugEmptyPrintf (char const *format, ...);
 /* functions which process optional chunks
  */
 #define __dbg_ProcessTimestampChunk            0x01000000
+
+/* optional functions for simulated reactive routing protocols (for MANETs, etc)
+ */
+#define __dbg_RouteCacheFlushTimerExpiration   0x02000000
+#define __dbg_RouteCalcDelayTimerExpiration    0x02000000
 
 /* verbose debugging functions
  */

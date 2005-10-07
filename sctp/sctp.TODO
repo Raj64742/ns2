@@ -1,15 +1,9 @@
 sctp.TODO - TODO file for NS-2 SCTP module.
    Armando L. Caro Jr. <acaro@@cis,udel,edu>
 
-@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.TODO,v 1.1 2003/08/21 18:29:15 haldar Exp $
+@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.TODO,v 1.2 2005/10/07 05:58:29 tomh Exp $
 
 ------------------------------------------------------------------------------
-
-- add new rtxToAlt option which allows fast rtx to same dest, but timeouts
-  to alt
-
-- update code to implementer's guide 8 (new max burst algorithm and new
-  reno change)
 
 - change trace to use 'C' for COOKIE_ECHO and COOKIE_ACK
 
@@ -22,14 +16,8 @@ sctp.TODO - TODO file for NS-2 SCTP module.
 
 - add support for draft-iyengar-sctp-cacc-00.txt
 
-- add support for two-level threshold recovery mechanism
-
 - add more bundling... currently SACKs, FORWARD TSNs, etc can't be bundled
   with DATA.
-
-- make all sctp parameters tcl bindable
-
-   o include the patch from Stephan Baucke of Ericsson Research
 
 - receiver (and sender) should handle tsn wrap arounds. don't forget about...
 

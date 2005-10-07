@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2003 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2001-2004 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
@@ -40,7 +40,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-timestamp.cc,v 1.2 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-timestamp.cc,v 1.3 2005/10/07 05:58:29 tomh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -108,7 +108,7 @@ u_int TimestampSctpAgent::ControlChunkReservation()
 /* This function bundles control chunks with data chunks. We copy the timestamp
  * chunk into the outgoing packet and return the size of the timestamp chunk.
  */
-u_int TimestampSctpAgent::BundleControlChunks(u_char *ucpOutData)
+int TimestampSctpAgent::BundleControlChunks(u_char *ucpOutData)
 {
   DBG_I(BundleControlChunks);
   SctpTimestampChunk_S *spTimestampChunk = (SctpTimestampChunk_S *) ucpOutData;
@@ -169,7 +169,7 @@ void TimestampSctpAgent::AddToSendBuffer(SctpDataChunkHdr_S *spChunk,
   spNewNodeData->eAddedToPartialBytesAcked = FALSE;
   spNewNodeData->iNumMissingReports = 0;
   spNewNodeData->iUnrelRtxLimit = uiReliability;
-  spNewNodeData->eMarkedForRtx = FALSE;
+  spNewNodeData->eMarkedForRtx = NO_RTX;
   spNewNodeData->eIneligibleForFastRtx = FALSE;
   spNewNodeData->iNumTxs = 1;
   spNewNodeData->spDest = spDest;
@@ -198,33 +198,7 @@ void TimestampSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
   Node_S *spCurrNode = sSendBuffer.spHead;
   SctpSendBufferNode_S *spCurrNodeData = NULL;
 
-  /* Only the first TSN that is being dequeued can be used to reset the
-   * error cunter on a destination. Why? Well, suppose there are some
-   * chunks that were gap acked before the primary had errors. Then the
-   * gap gets filled with a retransmission using an alternate path. The
-   * filled gap will cause the cum ack to move past the gap acked TSNs,
-   * but does not mean that the they can reset the errors on the primary.
-   */
-  
-  uiAssocErrorCount = 0;
-
-  spCurrNodeData = (SctpSendBufferNode_S *) spCurrNode->vpData;
-
-  /* trigger trace ONLY if it was previously NOT 0 */
-  if(spCurrNodeData->spDest->uiErrorCount != 0)
-    {
-      spCurrNodeData->spDest->uiErrorCount = 0; // clear error counter
-      tiErrorCount++;                          // ... and trace it too!
-      spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
-      if(spCurrNodeData->spDest == spPrimaryDest &&
-	 spNewTxDest != spPrimaryDest) 
-	{
-	  DBG_PL(SendBufferDequeueUpTo,
-		 "primary recovered... migrating back from %p to %p"),
-	    spNewTxDest, spPrimaryDest DBG_PR;
-	  spNewTxDest = spPrimaryDest; // return to primary
-	}
-    }
+  iAssocErrorCount = 0;
 
   while(spCurrNode != NULL &&
 	((SctpSendBufferNode_S*)spCurrNode->vpData)->spChunk->uiTsn <= uiTsn)
@@ -238,18 +212,20 @@ void TimestampSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
       if((spCurrNodeData->eGapAcked == FALSE) &&
 	 (spCurrNodeData->eAdvancedAcked == FALSE) )
 	{
-	  spCurrNodeData->spDest->uiNumNewlyAckedBytes 
+	  uiHighestTsnNewlyAcked = spCurrNodeData->spChunk->uiTsn;
+
+	  spCurrNodeData->spDest->iNumNewlyAckedBytes 
 	    += spCurrNodeData->spChunk->sHdr.usLength;
 
 	  /* only add to partial bytes acked if we are in congestion
 	   * avoidance mode and if there was cwnd amount of data
 	   * outstanding on the destination (implementor's guide) 
 	   */
-	  if(spCurrNodeData->spDest->uiCwnd >spCurrNodeData->spDest->uiSsthresh &&
-	     ( spCurrNodeData->spDest->uiOutstandingBytes 
-	       >= spCurrNodeData->spDest->uiCwnd) )
+	  if(spCurrNodeData->spDest->iCwnd >spCurrNodeData->spDest->iSsthresh &&
+	     ( spCurrNodeData->spDest->iOutstandingBytes 
+	       >= spCurrNodeData->spDest->iCwnd) )
 	    {
-	      spCurrNodeData->spDest->uiPartialBytesAcked 
+	      spCurrNodeData->spDest->iPartialBytesAcked 
 		+= spCurrNodeData->spChunk->sHdr.usLength;
 	    }
 	}
@@ -289,6 +265,40 @@ void TimestampSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
       if(spCurrNodeData->spDest->eRtxTimerIsRunning == TRUE)
 	StopT3RtxTimer(spCurrNodeData->spDest);
 
+      /* We don't want to clear the error counter if it's cleared already;
+       * otherwise, we'll unnecessarily trigger a trace event.
+       *
+       * Also, the error counter is cleared by SACKed data ONLY if the
+       * TSNs are not marked for timeout retransmission and has not been
+       * gap acked before. Without this condition, we can run into a
+       * problem for failure detection. When a failure occurs, some data
+       * may have made it through before the failure, but the sacks got
+       * lost. When the sender retransmits the first outstanding, the
+       * receiver will sack all the data whose sacks got lost. We don't
+       * want these sacks to clear the error counter, or else failover
+       * would take longer.
+       */
+      if(spCurrNodeData->spDest->iErrorCount != 0 &&
+	 spCurrNodeData->eMarkedForRtx != TIMEOUT_RTX &&
+	 spCurrNodeData->eGapAcked == FALSE)
+	{
+	  DBG_PL(SendBufferDequeueUpTo, 
+		 "clearing error counter for %p with tsn=%lu"), 
+	    spCurrNodeData->spDest, spCurrNodeData->spChunk->uiTsn DBG_PR;
+
+	  spCurrNodeData->spDest->iErrorCount = 0; // clear error counter
+	  tiErrorCount++;                          // ... and trace it too!
+	  spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
+	  if(spCurrNodeData->spDest == spPrimaryDest &&
+	     spNewTxDest != spPrimaryDest) 
+	    {
+	      DBG_PL(SendBufferDequeueUpTo,
+		     "primary recovered... migrating back from %p to %p"),
+		spNewTxDest, spPrimaryDest DBG_PR;
+	      spNewTxDest = spPrimaryDest; // return to primary
+	    }
+	}
+
       spDeleteNode = spCurrNode;
       spCurrNode = spCurrNode->spNext;
       DeleteNode(&sSendBuffer, spDeleteNode);
@@ -310,30 +320,30 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
   u_char ucpOutData[uiMaxPayloadSize];
   u_char *ucpCurrOutData = ucpOutData;
-  u_int uiBundledControlChunkSize = 0;
-  u_int uiCurrSize = 0;
-  u_int uiOutDataSize = 0;
+  int iBundledControlChunkSize = 0;
+  int iCurrSize = 0;
+  int iOutDataSize = 0;
   Node_S *spCurrBuffNode = NULL;
   SctpSendBufferNode_S *spCurrBuffNodeData = NULL;
   SctpDataChunkHdr_S  *spCurrChunk;
   SctpDest_S *spRtxDest = NULL;
   Node_S *spCurrDestNode = NULL;
   SctpDest_S *spCurrDestNodeData = NULL;
-  Boolean_E eFirstOutstanding = FALSE;  
+  Boolean_E eControlChunkBundled = FALSE;
   int iNumPacketsSent = 0;
 
   memset(ucpOutData, 0, uiMaxPayloadSize);
 
   uiBurstLength = 0;
 
-  /* make sure we clear all the eSeenFirstOutstanding flags before using them!
+  /* make sure we clear all the spFirstOutstanding pointers before using them!
    */
   for(spCurrDestNode = sDestList.spHead;
       spCurrDestNode != NULL;
       spCurrDestNode = spCurrDestNode->spNext)
     {
       spCurrDestNodeData = (SctpDest_S *) spCurrDestNode->vpData;
-      spCurrDestNodeData->eSeenFirstOutstanding = FALSE;
+      spCurrDestNodeData->spFirstOutstanding = NULL;  // reset
     }
 
   /* We need to set the destination address for the retransmission(s). We assume
@@ -354,7 +364,7 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
     {
       spCurrBuffNodeData = (SctpSendBufferNode_S *) spCurrBuffNode->vpData;
 	  
-      if(spCurrBuffNodeData->eMarkedForRtx == TRUE)
+      if(spCurrBuffNodeData->eMarkedForRtx != NO_RTX)
 	{
 	  spCurrChunk = spCurrBuffNodeData->spChunk;
 
@@ -362,21 +372,50 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	    {
 	      /* RFC2960 says that retransmissions should go to an
 	       * alternate destination when available, which is the
-	       * default behavior characterized by eRtxToAlt=TRUE. An
-	       * experimental behavior is to retransmit to the same
-	       * destination, unless it is inactive.  
+	       * default behavior characterized by
+	       * eRtxToAlt=RTX_TO_ALT_ON. 
+	       *
+	       * We add two experimental options:
+	       *    1. rtx all data to same destination (RTX_TO_ALT_OFF)
+	       *    2. rtx only timeouts to alt dest (RTX_TO_ALT_TIMEOUTS_ONLY)
+	       *
+	       * Note: Even with these options, if the same dest is inactive,
+	       * then alt dest is used.
 	       */
-	      if(spCurrBuffNodeData->spDest->eStatus == SCTP_DEST_STATUS_ACTIVE
-		 && eRtxToAlt != TRUE)
+	      switch(eRtxToAlt)
 		{
-		  spRtxDest = spCurrBuffNodeData->spDest;
+		case RTX_TO_ALT_OFF:
+		  if(spCurrBuffNodeData->spDest->eStatus 
+		     == SCTP_DEST_STATUS_ACTIVE)
+		    {
+		      spRtxDest = spCurrBuffNodeData->spDest;
+		    }
+		  else
+		    {
+		      spRtxDest = GetNextDest(spCurrBuffNodeData->spDest);
+		    }
+		  break;
+		  
+		case RTX_TO_ALT_ON:
+		  spRtxDest = GetNextDest(spCurrBuffNodeData->spDest);
+		  break;
+
+		case RTX_TO_ALT_TIMEOUTS_ONLY:
+		  if(spCurrBuffNodeData->eMarkedForRtx == FAST_RTX &&
+		     spCurrBuffNodeData->spDest->eStatus 
+		     == SCTP_DEST_STATUS_ACTIVE)
+		    {
+		      spRtxDest = spCurrBuffNodeData->spDest; 
+		    }
+		  else
+		    {
+		      spRtxDest = GetNextDest(spCurrBuffNodeData->spDest);
+		    }
+		  break;
 		}
-	      else
-		spRtxDest = GetNextDest(spCurrBuffNodeData->spDest);
 	    }
 
-	  assert (spCurrBuffNodeData->spDest->uiOutstandingBytes >= spCurrChunk->sHdr.usLength);
-	  spCurrBuffNodeData->spDest->uiOutstandingBytes
+	  spCurrBuffNodeData->spDest->iOutstandingBytes
 	    -= spCurrChunk->sHdr.usLength;
 	}
     }
@@ -387,89 +426,64 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	  iNumPacketsSent < 1 && 
 	  spCurrBuffNode != NULL) ||
 	 (eLimit == RTX_LIMIT_CWND &&
-	  spRtxDest->uiOutstandingBytes < spRtxDest->uiCwnd &&
+	  spRtxDest->iOutstandingBytes < spRtxDest->iCwnd &&
 	  spCurrBuffNode != NULL) )
     {
       DBG_PL(RtxMarkedChunks, 
 	     "eLimit=%s pktsSent=%d out=%d cwnd=%d spCurrBuffNode=%p"),
 	(eLimit == RTX_LIMIT_ONE_PACKET) ? "ONE_PACKET" : "CWND",
-	iNumPacketsSent, spRtxDest->uiOutstandingBytes, spRtxDest->uiCwnd,
+	iNumPacketsSent, spRtxDest->iOutstandingBytes, spRtxDest->iCwnd,
 	spCurrBuffNode
 	DBG_PR;
       
-      /* This addresses the proposed change to RFC2960 section 7.2.4,
-       * regarding using of Max.Burst. We have an option which allows to
-       * control if Max.Burst is applied.  
-       */
-      if(eUseMaxBurst == MAX_BURST_USAGE_ON)
-	if( (eApplyMaxBurst == TRUE) && (uiBurstLength++ >= MAX_BURST) )
-	  {
-	    /* we've reached Max.Burst limit, so jump out of loop
-	     */
-	    eApplyMaxBurst = FALSE; // reset before jumping out of loop
-	    break;
-	  }
-
-      uiBundledControlChunkSize = BundleControlChunks(ucpCurrOutData);
-      ucpCurrOutData += uiBundledControlChunkSize;
-      uiOutDataSize += uiBundledControlChunkSize;
-
       /* section 7.2.4.3
        *
        * continue filling up the packet with chunks which are marked for
        * rtx. exit loop when we have either run out of chunks or the
        * packet is full.
        *
-       * note: we assume at least on chunk fits in the packet.  
+       * note: we assume at least one data chunk fits in the packet.  
        */
-      for(; spCurrBuffNode != NULL; spCurrBuffNode = spCurrBuffNode->spNext)
+      for(eControlChunkBundled = FALSE; 
+	  spCurrBuffNode != NULL; 
+	  spCurrBuffNode = spCurrBuffNode->spNext)
 	{
 	  spCurrBuffNodeData = (SctpSendBufferNode_S *) spCurrBuffNode->vpData;
 	  
-	  DBG_PL(RtxMarkedChunks, "eSeenFirstOutstanding=%s"),
-	    spCurrBuffNodeData->spDest->eSeenFirstOutstanding ? "TRUE" : "FALSE"
-	    DBG_PR;
-		 
 	  /* is this chunk the first outstanding on its destination?
 	   */
-	  if(spCurrBuffNodeData->spDest->eSeenFirstOutstanding == FALSE &&
+	    if(spCurrBuffNodeData->spDest->spFirstOutstanding == NULL &&
 	     spCurrBuffNodeData->eGapAcked == FALSE &&
 	     spCurrBuffNodeData->eAdvancedAcked == FALSE)
 	    {
 	      /* yes, it is the first!
 	       */
-	      eFirstOutstanding = TRUE;
-	      spCurrBuffNodeData->spDest->eSeenFirstOutstanding = TRUE;
+	      spCurrBuffNodeData->spDest->spFirstOutstanding 
+		= spCurrBuffNodeData;
 	    }
-	  else
-	    {
-	      /* nope, not the first...
-	       */
-	      eFirstOutstanding = FALSE;
-	    }
-
-	  DBG_PL(RtxMarkedChunks, "eFirstOutstanding=%s"),
-	    eFirstOutstanding ? "TRUE" : "FALSE" DBG_PR;
 
 	  /* Only retransmit the chunks which have been marked for rtx.
 	   */
-	  if(spCurrBuffNodeData->eMarkedForRtx == TRUE)
+	  if(spCurrBuffNodeData->eMarkedForRtx != NO_RTX)
 	    {
 	      spCurrChunk = spCurrBuffNodeData->spChunk;
 
+	      /* bundle the control chunk before any data chunks and only
+	       * once per packet
+	       */
+	      if(eControlChunkBundled == FALSE)
+		{
+		  eControlChunkBundled = TRUE;
+		  iBundledControlChunkSize =BundleControlChunks(ucpCurrOutData);
+		  ucpCurrOutData += iBundledControlChunkSize;
+		  iOutDataSize += iBundledControlChunkSize;
+		}
+
 	      /* can we fit this chunk into the packet without exceeding MTU?? 
 	       */
-  	      if((uiOutDataSize + spCurrChunk->sHdr.usLength) > uiMaxPayloadSize)
-		{
-		  /* if first outstanding, reset flag the seen flag for next 
-		   * iteration so that we still recognize this tsn as first
-		   * outstanding for this dest
-		   */
-		  if(eFirstOutstanding == TRUE) 
-		    spCurrBuffNodeData->spDest->eSeenFirstOutstanding = FALSE;
-
+  	      if((iOutDataSize + spCurrChunk->sHdr.usLength) 
+		 > (int) uiMaxPayloadSize)
 		  break;  // doesn't fit in packet... jump out of the for loop
-		}
 
 	      /* If this chunk was being used to measure the RTT, stop using it.
 	       */
@@ -485,26 +499,47 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 	       * outstanding bytes on the destination? if so, restart
 	       * timer.  
 	       */
-	      if(eFirstOutstanding == TRUE &&
-		 spCurrBuffNodeData->spDest->uiOutstandingBytes > 0)
+	      if(spCurrBuffNodeData->spDest->spFirstOutstanding 
+		 == spCurrBuffNodeData)
 		{
-		  StartT3RtxTimer(spCurrBuffNodeData->spDest);
+		  if(spCurrBuffNodeData->spDest->iOutstandingBytes > 0)
+		    StartT3RtxTimer(spCurrBuffNodeData->spDest);
 		}
 
+	      /* JRI, ALC - Bugfix 2004/01/21 - section 6.1 - Whenever a
+	       * transmission or retransmission is made to any address, if
+	       * the T3-rtx timer of that address is not currently
+	       * running, the sender MUST start that timer.  If the timer
+	       * for that address is already running, the sender MUST
+	       * restart the timer if the earliest (i.e., lowest TSN)
+	       * outstanding DATA chunk sent to that address is being
+	       * retransmitted.  Otherwise, the data sender MUST NOT
+	       * restart the timer.  
+	       */
+	      if(spRtxDest->spFirstOutstanding == NULL ||
+		 spCurrChunk->uiTsn <
+		 spRtxDest->spFirstOutstanding->spChunk->uiTsn)
+		{
+		  /* This chunk is now the first outstanding on spRtxDest.
+		   */
+		  spRtxDest->spFirstOutstanding = spCurrBuffNodeData;
+		  StartT3RtxTimer(spRtxDest);
+		}
+	      
 	      memcpy(ucpCurrOutData, spCurrChunk, spCurrChunk->sHdr.usLength);
-	      uiCurrSize = spCurrChunk->sHdr.usLength;
+	      iCurrSize = spCurrChunk->sHdr.usLength;
 
 	      /* the chunk length field does not include the padded bytes,
 	       * so we need to account for these extra bytes.
 	       */
-	      if( (uiCurrSize % 4) != 0 ) 
-		uiCurrSize += 4 - (uiCurrSize % 4);
+	      if( (iCurrSize % 4) != 0 ) 
+		iCurrSize += 4 - (iCurrSize % 4);
 
-	      ucpCurrOutData += uiCurrSize;
-	      uiOutDataSize += uiCurrSize;
+	      ucpCurrOutData += iCurrSize;
+	      iOutDataSize += iCurrSize;
 	      spCurrBuffNodeData->spDest = spRtxDest;
 	      spCurrBuffNodeData->iNumTxs++;
-	      spCurrBuffNodeData->eMarkedForRtx = FALSE;
+	      spCurrBuffNodeData->eMarkedForRtx = NO_RTX;
 	      
 	      // BEGIN -- Timestamp changes to this function
 	      spCurrBuffNodeData->dTxTimestamp = Scheduler::instance().clock();
@@ -521,16 +556,18 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
 	      /* the chunk is now outstanding on the alternate destination
 	       */
-	      spCurrBuffNodeData->spDest->uiOutstandingBytes
+	      spCurrBuffNodeData->spDest->iOutstandingBytes
 		+= spCurrChunk->sHdr.usLength;
-	      DBG_PL(RtxMarkedChunks, "spDest->uiOutstandingBytes=%d"), 
-		spCurrBuffNodeData->spDest->uiOutstandingBytes DBG_PR;
+	      uiPeerRwnd -= spCurrChunk->sHdr.usLength; // 6.2.1.B
+	      DBG_PL(RtxMarkedChunks, "spDest->iOutstandingBytes=%d"), 
+		spCurrBuffNodeData->spDest->iOutstandingBytes DBG_PR;
 
 	      DBG_PL(RtxMarkedChunks, "TSN=%d"), spCurrChunk->uiTsn DBG_PR;
 	    }
 	  else if(spCurrBuffNodeData->eAdvancedAcked == TRUE)
 	    {
-	      if(eFirstOutstanding == TRUE)
+	      if(spCurrBuffNodeData->spDest->spFirstOutstanding 
+		 == spCurrBuffNodeData)
 		{
 		  /* This WAS considered the first outstanding chunk for
 		   * the destination, then stop the timer if there are no
@@ -539,7 +576,7 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 		   * chunks on this destination, we need to restart timer
 		   * for those.
 		   */
-		  if(spCurrBuffNodeData->spDest->uiOutstandingBytes > 0)
+		  if(spCurrBuffNodeData->spDest->iOutstandingBytes > 0)
 		    StartT3RtxTimer(spCurrBuffNodeData->spDest);
 		  else
 		    StopT3RtxTimer(spCurrBuffNodeData->spDest);
@@ -549,17 +586,30 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
 
       /* Transmit the packet now...
        */
-      if(uiOutDataSize > 0)
+      if(iOutDataSize > 0)
 	{
-	  SendPacket(ucpOutData, uiOutDataSize, spRtxDest);
+	  SendPacket(ucpOutData, iOutDataSize, spRtxDest);
 	  if(spRtxDest->eRtxTimerIsRunning == FALSE)
 	    StartT3RtxTimer(spRtxDest);
 	  iNumPacketsSent++;	  
-	  uiOutDataSize = 0; // reset
+	  iOutDataSize = 0; // reset
 	  ucpCurrOutData = ucpOutData; // reset
 	  memset(ucpOutData, 0, uiMaxPayloadSize); // reset
 
 	  spRtxDest->opCwndDegradeTimer->resched(spRtxDest->dRto);
+
+	  /* This addresses the proposed change to RFC2960 section 7.2.4,
+	   * regarding using of Max.Burst. We have an option which allows
+	   * to control if Max.Burst is applied.
+	   */
+	  if(eUseMaxBurst == MAX_BURST_USAGE_ON)
+	    if( (eApplyMaxBurst == TRUE) && (uiBurstLength++ >= MAX_BURST) )
+	      {
+		/* we've reached Max.Burst limit, so jump out of loop
+		 */
+		eApplyMaxBurst = FALSE; // reset before jumping out of loop
+		break;
+	      }
 	}
     } 
 
@@ -572,10 +622,10 @@ void TimestampSctpAgent::RtxMarkedChunks(SctpRtxLimit_E eLimit)
     {
       spCurrBuffNodeData = (SctpSendBufferNode_S *) spCurrBuffNode->vpData;
 	  
-      if(spCurrBuffNodeData->eMarkedForRtx == TRUE)
+      if(spCurrBuffNodeData->eMarkedForRtx != NO_RTX)
 	{
 	  spCurrChunk = spCurrBuffNodeData->spChunk;
-	  spCurrBuffNodeData->spDest->uiOutstandingBytes
+	  spCurrBuffNodeData->spDest->iOutstandingBytes
 	    += spCurrChunk->sHdr.usLength;
 	}
     }
@@ -598,14 +648,13 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
   DBG_I(ProcessGapAckBlocks);
 
   Boolean_E eFastRtxNeeded = FALSE;
-  u_int uiHighestTsnNewlySacked = uiCumAckPoint; // fast rtx (impl guide v.02)
+  u_int uiHighestTsnSacked = uiHighestTsnNewlyAcked;
   u_int uiStartTsn;
   u_int uiEndTsn;
   Node_S *spCurrNode = NULL;
   SctpSendBufferNode_S *spCurrNodeData = NULL;
   Node_S *spCurrDestNode = NULL;
   SctpDest_S *spCurrDestNodeData = NULL;
-  Boolean_E eFirstOutstanding = FALSE;  
 
   SctpSackChunk_S *spSackChunk = (SctpSackChunk_S *) ucpSackChunk;
 
@@ -624,7 +673,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
   
   else // we do have chunks in the rtx buffer
     {
-      /* make sure we clear all the eSeenFirstOutstanding flags before
+      /* make sure we clear all the spFirstOutstanding pointers before
        * using them!  
        */
       for(spCurrDestNode = sDestList.spHead;
@@ -632,7 +681,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	  spCurrDestNode = spCurrDestNode->spNext)
 	{
 	  spCurrDestNodeData = (SctpDest_S *) spCurrDestNode->vpData;
-	  spCurrDestNodeData->eSeenFirstOutstanding = FALSE;
+	  spCurrDestNodeData->spFirstOutstanding = NULL;
 	}
 
       for(spCurrNode = sSendBuffer.spHead;
@@ -642,30 +691,16 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	{
 	  spCurrNodeData = (SctpSendBufferNode_S *) spCurrNode->vpData;
 
-	  DBG_PL(ProcessGapAckBlocks, "eSeenFirstOutstanding=%s"),
-	    spCurrNodeData->spDest->eSeenFirstOutstanding ? "TRUE" : "FALSE"
-	    DBG_PR;
-		 
 	  /* is this chunk the first outstanding on its destination?
 	   */
-	  if(spCurrNodeData->spDest->eSeenFirstOutstanding == FALSE &&
+	  if(spCurrNodeData->spDest->spFirstOutstanding == NULL &&
 	     spCurrNodeData->eGapAcked == FALSE &&
 	     spCurrNodeData->eAdvancedAcked == FALSE)
 	    {
 	      /* yes, it is the first!
 	       */
-	      eFirstOutstanding = TRUE;
-	      spCurrNodeData->spDest->eSeenFirstOutstanding = TRUE;
+	      spCurrNodeData->spDest->spFirstOutstanding = spCurrNodeData;
 	    }
-	  else
-	    {
-	      /* nope, not the first...
-	       */
-	      eFirstOutstanding = FALSE;
-	    }
-
-	  DBG_PL(ProcessGapAckBlocks, "eFirstOutstanding=%s"),
-	    eFirstOutstanding ? "TRUE" : "FALSE" DBG_PR;
 
 	  DBG_PL(ProcessGapAckBlocks, "--> rtx list chunk begin") DBG_PR;
 
@@ -711,7 +746,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		    spCurrNodeData->spChunk->uiTsn DBG_PR;
 		  spCurrNodeData->eGapAcked = FALSE;
-		  spCurrNodeData->spDest->uiOutstandingBytes 
+		  spCurrNodeData->spDest->iOutstandingBytes 
 		    += spCurrNodeData->spChunk->sHdr.usLength;
 
 		  /* section 6.3.2.R4 says that we should restart the
@@ -733,20 +768,28 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		spCurrNodeData->eGapAcked ? "TRUE" : "FALSE" 
 		DBG_PR;
 
+	      /* HTNA algorithm... we need to know the highest TSN
+	       * sacked (even if it isn't new), so that when the sender
+	       * is in Fast Recovery, the outstanding tsns beyond the 
+	       * last sack tsn do not have their missing reports incremented
+	       */
+	      if(uiHighestTsnSacked < spCurrNodeData->spChunk->uiTsn)
+		uiHighestTsnSacked = spCurrNodeData->spChunk->uiTsn;
+
 	      if(spCurrNodeData->eGapAcked == FALSE)
 		{
 		  DBG_PL(ProcessGapAckBlocks, "setting eGapAcked=TRUE") DBG_PR;
 		  spCurrNodeData->eGapAcked = TRUE;
-		  spCurrNodeData->eMarkedForRtx = FALSE; // unmark
 
-		  /* modified fast rtx algorithm (implementor's guide v.02)
+		  /* HTNA algorithm... we need to know the highest TSN
+		   * newly acked
 		   */
-		  if(uiHighestTsnNewlySacked < spCurrNodeData->spChunk->uiTsn)
-		    uiHighestTsnNewlySacked = spCurrNodeData->spChunk->uiTsn;
+		  if(uiHighestTsnNewlyAcked < spCurrNodeData->spChunk->uiTsn)
+		    uiHighestTsnNewlyAcked = spCurrNodeData->spChunk->uiTsn;
 
 		  if(spCurrNodeData->eAdvancedAcked == FALSE)
 		    {
-		      spCurrNodeData->spDest->uiNumNewlyAckedBytes 
+		      spCurrNodeData->spDest->iNumNewlyAckedBytes 
 			+= spCurrNodeData->spChunk->sHdr.usLength;
 		    }
 
@@ -754,8 +797,8 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		   * congestion avoidance mode, we have a new cum ack, and
 		   * we haven't already incremented it for this sack
 		   */
-		  if(( spCurrNodeData->spDest->uiCwnd 
-		       > spCurrNodeData->spDest->uiSsthresh) &&
+		  if(( spCurrNodeData->spDest->iCwnd 
+		       > spCurrNodeData->spDest->iSsthresh) &&
 		     eNewCumAck == TRUE &&
 		     spCurrNodeData->eAddedToPartialBytesAcked == FALSE)
 		    {
@@ -764,7 +807,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 		      spCurrNodeData->eAddedToPartialBytesAcked = TRUE; // set
 
-		      spCurrNodeData->spDest->uiPartialBytesAcked 
+		      spCurrNodeData->spDest->iPartialBytesAcked 
 			+= spCurrNodeData->spChunk->sHdr.usLength;
 		    }
 
@@ -792,17 +835,41 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		   * destination, we'll restart the timer later in
 		   * ProcessSackChunk() 
 		   */
-		  if(eFirstOutstanding == TRUE 
-		     && spCurrNodeData->spDest->eRtxTimerIsRunning == TRUE)
-		    StopT3RtxTimer(spCurrNodeData->spDest);
-		  
-		  uiAssocErrorCount = 0;
-		  
-		  /* trigger trace ONLY if it was previously NOT 0
-		   */
-		  if(spCurrNodeData->spDest->uiErrorCount != 0)
+		  if(spCurrNodeData->spDest->spFirstOutstanding 
+		     == spCurrNodeData)
+		    
 		    {
-		      spCurrNodeData->spDest->uiErrorCount = 0; // clear errors
+		      if(spCurrNodeData->spDest->eRtxTimerIsRunning == TRUE)
+			StopT3RtxTimer(spCurrNodeData->spDest);
+		    }
+		  
+		  iAssocErrorCount = 0;
+		  
+		  /* We don't want to clear the error counter if it's
+		   * cleared already; otherwise, we'll unnecessarily
+		   * trigger a trace event.
+		   *
+		   * Also, the error counter is cleared by SACKed data
+		   * ONLY if the TSNs are not marked for timeout
+		   * retransmission and has not been gap acked
+		   * before. Without this condition, we can run into a
+		   * problem for failure detection. When a failure occurs,
+		   * some data may have made it through before the
+		   * failure, but the sacks got lost. When the sender
+		   * retransmits the first outstanding, the receiver will
+		   * sack all the data whose sacks got lost. We don't want
+		   * these sacks * to clear the error counter, or else
+		   * failover would take longer.
+		   */
+		  if(spCurrNodeData->spDest->iErrorCount != 0 &&
+		     spCurrNodeData->eMarkedForRtx != TIMEOUT_RTX)
+		    {
+		      DBG_PL(ProcessGapAckBlocks,
+			     "clearing error counter for %p with tsn=%lu"), 
+			spCurrNodeData->spDest, 
+			spCurrNodeData->spChunk->uiTsn DBG_PR;
+
+		      spCurrNodeData->spDest->iErrorCount = 0; // clear errors
 		      tiErrorCount++;                       // ... and trace it!
 		      spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
 		      if(spCurrNodeData->spDest == spPrimaryDest &&
@@ -815,6 +882,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			  spNewTxDest = spPrimaryDest; // return to primary
 			}
 		    }
+		  spCurrNodeData->eMarkedForRtx = NO_RTX; // unmark
 		}
 	    }
 	  else if(spCurrNodeData->spChunk->uiTsn > uiEndTsn)
@@ -847,7 +915,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		    spCurrNodeData->spChunk->uiTsn DBG_PR;
 		  spCurrNodeData->eGapAcked = FALSE;
-		  spCurrNodeData->spDest->uiOutstandingBytes 
+		  spCurrNodeData->spDest->iOutstandingBytes 
 		    += spCurrNodeData->spChunk->sHdr.usLength;
 		  
 		  /* section 6.3.2.R4 says that we should restart the
@@ -885,7 +953,7 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		     "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		spCurrNodeData->spChunk->uiTsn DBG_PR;
 	      spCurrNodeData->eGapAcked = FALSE;
-	      spCurrNodeData->spDest->uiOutstandingBytes 
+	      spCurrNodeData->spDest->iOutstandingBytes 
 		+= spCurrNodeData->spChunk->sHdr.usLength;
 
 	      /* section 6.3.2.R4 says that we should restart the T3-rtx
@@ -898,8 +966,8 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	}
 
       DBG_PL(ProcessGapAckBlocks, "now incrementing missing reports...") DBG_PR;
-      DBG_PL(ProcessGapAckBlocks, "uiHighestTsnNewlySacked=%d"), 
-	     uiHighestTsnNewlySacked DBG_PR;
+      DBG_PL(ProcessGapAckBlocks, "uiHighestTsnNewlyAcked=%d"), 
+	     uiHighestTsnNewlyAcked DBG_PR;
 
       for(spCurrNode = sSendBuffer.spHead;
 	  spCurrNode != NULL; 
@@ -914,9 +982,22 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 	  if(spCurrNodeData->eGapAcked == FALSE)
 	    {
-	      /* new fast rtx (implementor's guide v.02) 
+	      /* HTNA (Highest TSN Newly Acked) algorithm from
+	       * implementer's guide. The HTNA increments missing reports
+	       * for TSNs not GapAcked when one of the following
+	       * conditions hold true:
+	       *
+	       *    1. The TSN is less than the highest TSN newly acked.
+	       *
+	       *    2. The TSN is less than the highest TSN sacked so far
+	       *    (not necessarily newly acked), the sender is in Fast
+	       *    Recovery, the cum ack changes, and the new cum ack is less
+	       *    than recover.
 	       */
-	      if(spCurrNodeData->spChunk->uiTsn < uiHighestTsnNewlySacked)
+	      if( (spCurrNodeData->spChunk->uiTsn < uiHighestTsnNewlyAcked) ||
+		  (eNewCumAck == TRUE && 
+		   uiHighestTsnNewlyAcked <= uiRecover &&
+		   spCurrNodeData->spChunk->uiTsn < uiHighestTsnSacked))
 		{
 		  spCurrNodeData->iNumMissingReports++;
 		  DBG_PL(ProcessGapAckBlocks, 
@@ -925,11 +1006,11 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		    spCurrNodeData->iNumMissingReports
 		    DBG_PR;
 
-		  if(spCurrNodeData->iNumMissingReports >= FAST_RTX_TRIGGER &&
+		  if(spCurrNodeData->iNumMissingReports >= iFastRtxTrigger &&
 		     spCurrNodeData->eIneligibleForFastRtx == FALSE &&
 		     spCurrNodeData->eAdvancedAcked == FALSE)
 		    {
-		      MarkChunkForRtx(spCurrNodeData);
+		      MarkChunkForRtx(spCurrNodeData, FAST_RTX);
 		      eFastRtxNeeded = TRUE;
 		      spCurrNodeData->eIneligibleForFastRtx = TRUE;
 		      DBG_PL(ProcessGapAckBlocks, 
@@ -939,6 +1020,9 @@ Boolean_E TimestampSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	    }
 	}
     }
+
+  if(eFastRtxNeeded == TRUE)
+    tiFrCount++;
 
   DBG_PL(ProcessGapAckBlocks, "eFastRtxNeeded=%s"), 
     eFastRtxNeeded ? "TRUE" : "FALSE" DBG_PR;

@@ -4,6 +4,7 @@
 # Armando L. Caro Jr. <acaro@@cis,udel,edu>
 # Janardhan Iyengar   <iyengar@@cis,udel,edu>
 # Gerard J. Heinz II  <heinz@@cis,udel,edu>
+# Keyur Shah          <shah@@cis,udel,edu>
 #
 # Redistribution and use in source and binary forms, with or without
 # modification, are permitted provided that the following conditions
@@ -55,6 +56,8 @@
 #  ns test-suite-sctp.tcl sctp-multihome2-2Rtx1  
 #  ns test-suite-sctp.tcl sctp-multihome2-2Rtx3 
 #  ns test-suite-sctp.tcl sctp-multihome2-2Timeout
+#  ns test-suite-sctp.tcl sctp-multihome2-2TimeoutRta0
+#  ns test-suite-sctp.tcl sctp-multihome2-2TimeoutRta2
 #  ns test-suite-sctp.tcl sctp-multihome2-R-2
 #  ns test-suite-sctp.tcl sctp-multihome3-3Timeout
 #  ns test-suite-sctp.tcl sctp-multipleDropsSameWnd-1 
@@ -64,6 +67,7 @@
 #  ns test-suite-sctp.tcl sctp-multipleDropsTwoWnds-1-delayed 
 #  ns test-suite-sctp.tcl sctp-multipleRtx 
 #  ns test-suite-sctp.tcl sctp-multipleRtx-early 
+#  ns test-suite-sctp.tcl sctp-newReno
 #  ns test-suite-sctp.tcl sctp-noEarlyHBs
 #  ns test-suite-sctp.tcl sctp-smallRwnd 
 #  ns test-suite-sctp.tcl sctp-zeroRtx 
@@ -75,14 +79,11 @@
 #  ns test-suite-sctp.tcl sctp-multipleFastRtx-2packetsTimeout
 #  ns test-suite-sctp.tcl sctp-multipleFastRtx-multihome2-2Timeout
 #
-#  ns test-suite-sctp.tcl sctp-newReno
+#  ns test-suite-sctp.tcl sctp-mfrHbAfterRto-2packetsTimeout
+#  ns test-suite-sctp.tcl sctp-mfrHbAfterRto-multihome2-2Timeout
 #
 #  ns test-suite-sctp.tcl sctp-timestamp-multihome2-2Rtx3
 #  ns test-suite-sctp.tcl sctp-timestamp-multihome2-2Timeout
-
-remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP SCTP ; # hdrs reqd for validation test
-
 
 Class TestSuite
 
@@ -185,6 +186,21 @@ Class Test/sctp-multihome2-2Rtx3 -superclass TestSuite
 # lost and times out, causing yet another retransmission.
 Class Test/sctp-multihome2-2Timeout -superclass TestSuite
 
+# Demonstrates experimental retransmission policies (Rta0 = retransmit on
+# the same path) with multihoming. Two endpoints with 2 interfaces with
+# direct connections between each pair. A packet gets dropped and fast
+# rtx'd on the same path. The retransmit gets lost and times out, causing
+# yet another retransmission on the same path.
+Class Test/sctp-multihome2-2TimeoutRta0 -superclass TestSuite
+
+# Demonstrates experimental retransmission policies (Rta1 = fast rtx on
+# the same path and timeout rtx on the alternate path) with
+# multihoming. Two endpoints with 2 interfaces with direct connections
+# between each pair. A packet gets dropped and fast rtx'd on the same
+# path. The retransmit gets lost and times out, causing yet another
+# retransmission on the alternate path.
+Class Test/sctp-multihome2-2TimeoutRta2 -superclass TestSuite
+
 # Demonstrates multihoming. Two endpoints with 2 interfaces each all
 # connected via a router. In the middle of the association, a change
 # primary is done.
@@ -228,6 +244,9 @@ Class Test/sctp-multipleRtx -superclass TestSuite
 # connection.)
 Class Test/sctp-multipleRtx-early -superclass TestSuite
 
+# Test NewReno changes (fast recovery & HTNA algorithm) in impguide-08
+Class Test/sctp-newReno -superclass TestSuite
+
 # test that HEARTBEATs don't start until the association is established
 Class Test/sctp-noEarlyHBs -superclass TestSuite
 
@@ -255,19 +274,24 @@ Class Test/sctp-hbAfterRto-multihome2-2Timeout -superclass TestSuite
 
 
 # Test MultipleFastRtx extension. 2 packets get dropped and their fast rtx gets
-# lost too.... forcing them to timeout.
+# lost too.... NORMALLY forcing them to timeout, but with this extension
+# they are fast rtx'd again.
 Class Test/sctp-multipleFastRtx-2packetsTimeout -superclass TestSuite
 
 # Test MultipleFastRtx extension. Demonstrates retransmissions with
 # multihoming. Two endpoints with 2 interfaces with direct connections
 # between each pair. A packet gets dropped and fast rtx'd on the alternate
-# path. The retransmit gets lost and times out, causing a retransmission
-# on the original path (primary).
+# path. The retransmit gets lost and fast rtx'd again (instead of
+# timeout!) on the original path (primary).
 Class Test/sctp-multipleFastRtx-multihome2-2Timeout -superclass TestSuite
 
 
-# Test NewReno extension.
-Class Test/sctp-newReno -superclass TestSuite
+# Test MfrHbAfterRto extension with RTA=2. Two endpoints with 2 interfaces
+# with direct connections between each pair. A packet gets dropped and
+# fast rtx'd on the same path. The rtx gets lost, and the packet is fast rtx'd
+# again. Then all packets on primary are lost, so a timeout occurs and the same
+# packet gets retransmitted on alternate path.
+Class Test/sctp-mfrHbAfterRto-Rta2-2FRsTimeout -superclass TestSuite
 
 
 # Test Timestamp extension. Demonstrates retransmissions with timestamps
@@ -1517,6 +1541,164 @@ Test/sctp-multihome2-2Timeout instproc run {} {
     $ns run
 }
 
+Test/sctp-multihome2-2TimeoutRta0 instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName multihome2-2TimeoutRta0
+    $self next
+    
+    set host0_core [$ns node]
+    set host0_if0 [$ns node]
+    set host0_if1 [$ns node]
+
+    $host0_core color Red
+    $host0_if0 color Red
+    $host0_if1 color Red
+
+    $ns multihome-add-interface $host0_core $host0_if0
+    $ns multihome-add-interface $host0_core $host0_if1
+    
+    set host1_core [$ns node]
+    set host1_if0 [$ns node]
+    set host1_if1 [$ns node]
+
+    $host1_core color Blue
+    $host1_if0 color Blue
+    $host1_if1 color Blue
+
+    $ns multihome-add-interface $host1_core $host1_if0
+    $ns multihome-add-interface $host1_core $host1_if1
+    
+    $ns duplex-link $host0_if0 $host1_if0 .5Mb 200ms DropTail
+    $ns duplex-link $host0_if1 $host1_if1 .5Mb 200ms DropTail
+    
+    set err0 [new ErrorModel/List]
+    $err0 droplist {15 28}
+    $ns lossmodel $err0 $host0_if0 $host1_if0
+    
+    set sctp0 [new Agent/SCTP]
+    $ns multihome-attach-agent $host0_core $sctp0
+    $sctp0 set mtu_ 1500
+    $sctp0 set dataChunkSize_ 1468 
+    $sctp0 set numOutStreams_ 1
+    $sctp0 set rtxToAlt_ 0
+
+    if {$quiet == 0} {
+	$sctp0 set debugMask_ -1 
+	$sctp0 set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$sctp0 set trace_all_ 1
+	$sctp0 trace cwnd_
+	$sctp0 trace rto_
+	$sctp0 trace errorCount_
+	$sctp0 attach $trace_ch
+    }
+    
+    set sctp1 [new Agent/SCTP]
+    $ns multihome-attach-agent $host1_core $sctp1
+    $sctp1 set mtu_ 1500
+    $sctp1 set initialRwnd_ 131072
+    $sctp1 set useDelayedSacks_ 1
+    
+    if {$quiet == 0} {
+	$sctp1 set debugMask_ -1
+	$sctp1 set debugFileIndex_ 1
+    }
+    
+    $ns connect $sctp0 $sctp1
+    $sctp0 set-primary-destination $host1_if0
+    
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $sctp0
+}
+
+Test/sctp-multihome2-2TimeoutRta0 instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.5 "$ftp0 start"
+    $ns at 12.0 "$self finish"
+    $ns run
+}
+
+Test/sctp-multihome2-2TimeoutRta2 instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName multihome2-2TimeoutRta2
+    $self next
+    
+    set host0_core [$ns node]
+    set host0_if0 [$ns node]
+    set host0_if1 [$ns node]
+
+    $host0_core color Red
+    $host0_if0 color Red
+    $host0_if1 color Red
+
+    $ns multihome-add-interface $host0_core $host0_if0
+    $ns multihome-add-interface $host0_core $host0_if1
+    
+    set host1_core [$ns node]
+    set host1_if0 [$ns node]
+    set host1_if1 [$ns node]
+
+    $host1_core color Blue
+    $host1_if0 color Blue
+    $host1_if1 color Blue
+
+    $ns multihome-add-interface $host1_core $host1_if0
+    $ns multihome-add-interface $host1_core $host1_if1
+    
+    $ns duplex-link $host0_if0 $host1_if0 .5Mb 200ms DropTail
+    $ns duplex-link $host0_if1 $host1_if1 .5Mb 200ms DropTail
+    
+    set err0 [new ErrorModel/List]
+    $err0 droplist {15 28}
+    $ns lossmodel $err0 $host0_if0 $host1_if0
+    
+    set sctp0 [new Agent/SCTP]
+    $ns multihome-attach-agent $host0_core $sctp0
+    $sctp0 set mtu_ 1500
+    $sctp0 set dataChunkSize_ 1468 
+    $sctp0 set numOutStreams_ 1
+    $sctp0 set rtxToAlt_ 2
+
+    if {$quiet == 0} {
+	$sctp0 set debugMask_ -1 
+	$sctp0 set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$sctp0 set trace_all_ 1
+	$sctp0 trace cwnd_
+	$sctp0 trace rto_
+	$sctp0 trace errorCount_
+	$sctp0 attach $trace_ch
+    }
+    
+    set sctp1 [new Agent/SCTP]
+    $ns multihome-attach-agent $host1_core $sctp1
+    $sctp1 set mtu_ 1500
+    $sctp1 set initialRwnd_ 131072
+    $sctp1 set useDelayedSacks_ 1
+    
+    if {$quiet == 0} {
+	$sctp1 set debugMask_ -1
+	$sctp1 set debugFileIndex_ 1
+    }
+    
+    $ns connect $sctp0 $sctp1
+    $sctp0 set-primary-destination $host1_if0
+    
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $sctp0
+}
+
+Test/sctp-multihome2-2TimeoutRta2 instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.5 "$ftp0 start"
+    $ns at 12.0 "$self finish"
+    $ns run
+}
+
 Test/sctp-multihome2-R-2 instproc init {} {
     $self instvar ns testName host1_if1 sctp0 ftp0
     global quiet
@@ -2085,6 +2267,65 @@ Test/sctp-multipleRtx-early instproc run {} {
     $ns run
 }
 
+Test/sctp-newReno instproc init {} {
+    $self instvar ns testName ftp0
+    global quiet
+    set testName newReno
+    $self next
+
+    set n0 [$ns node]
+    set n1 [$ns node]
+    $ns duplex-link $n0 $n1 .5Mb 200ms DropTail
+    $ns duplex-link-op $n0 $n1 orient right
+
+    set err [new ErrorModel/List]
+    $err droplist {16 28 30}
+    $ns lossmodel $err $n0 $n1
+
+    set sctp0 [new Agent/SCTP]
+    $ns attach-agent $n0 $sctp0
+    $sctp0 set mtu_ 1500
+    $sctp0 set dataChunkSize_ 1468
+    $sctp0 set numOutStreams_ 1
+    $sctp0 set initialCwnd_ 1
+
+    if {$quiet == 0} {
+	$sctp0 set debugMask_ -1 
+	$sctp0 set debugFileIndex_ 0
+
+	set trace_ch [open trace.sctp w]
+	$sctp0 set trace_all_ 1
+	$sctp0 trace cwnd_
+	$sctp0 trace rto_
+	$sctp0 trace errorCount_
+	$sctp0 attach $trace_ch
+    }
+    
+    set sctp1 [new Agent/SCTP]
+    $ns attach-agent $n1 $sctp1
+    $sctp1 set mtu_ 1500
+    $sctp1 set initialRwnd_ 131072
+    $sctp1 set useDelayedSacks_ 0
+   
+    if {$quiet == 0} {
+	$sctp1 set debugMask_ -1 
+	$sctp1 set debugFileIndex_ 1
+    }
+    
+    $ns connect $sctp0 $sctp1
+    
+    set ftp0 [new Application/FTP]
+    $ftp0 attach-agent $sctp0
+}
+
+Test/sctp-newReno instproc run {} {
+    $self instvar ns ftp0
+    $ns at 0.5 "$ftp0 start"
+    $ns at 7.0 "$ftp0 stop"
+    $ns at 10.0 "$self finish"
+    $ns run
+}
+
 Test/sctp-noEarlyHBs instproc init {} {
     $self instvar ns testName ftp0
     global quiet
@@ -2585,27 +2826,43 @@ Test/sctp-multipleFastRtx-multihome2-2Timeout instproc run {} {
     $ns run
 }
 
-Test/sctp-newReno instproc init {} {
+Test/sctp-mfrHbAfterRto-Rta2-2FRsTimeout instproc init {} {
     $self instvar ns testName ftp0
     global quiet
-    set testName newReno
+    set testName mfrHbAfterRto-Rta2-2FRsTimeout
     $self next
 
-    set n0 [$ns node]
-    set n1 [$ns node]
-    $ns duplex-link $n0 $n1 .5Mb 200ms DropTail
-    $ns duplex-link-op $n0 $n1 orient right
+    set host0_core [$ns node]
+    set host0_if0 [$ns node]
+    set host0_if1 [$ns node]
+    $host0_core color Red
+    $host0_if0 color Red
+    $host0_if1 color Red
+    $ns multihome-add-interface $host0_core $host0_if0
+    $ns multihome-add-interface $host0_core $host0_if1
 
-    set err [new ErrorModel/List]
-    $err droplist {16 28 30}
-    $ns lossmodel $err $n0 $n1
+    set host1_core [$ns node]
+    set host1_if0 [$ns node]
+    set host1_if1 [$ns node]
+    $host1_core color Blue
+    $host1_if0 color Blue
+    $host1_if1 color Blue
+    $ns multihome-add-interface $host1_core $host1_if0
+    $ns multihome-add-interface $host1_core $host1_if1
 
-    set sctp0 [new Agent/SCTP/Newreno]
-    $ns attach-agent $n0 $sctp0
+    $ns duplex-link $host0_if0 $host1_if0 .5Mb 200ms DropTail
+    $ns duplex-link $host0_if1 $host1_if1 .5Mb 200ms DropTail
+
+    set err0 [new ErrorModel/List]
+    $err0 droplist {15 28 36 37 38 39 40}
+    $ns lossmodel $err0 $host0_if0 $host1_if0
+
+    set sctp0 [new Agent/SCTP/MultipleFastRtx]
+    $ns multihome-attach-agent $host0_core $sctp0
     $sctp0 set mtu_ 1500
     $sctp0 set dataChunkSize_ 1468
     $sctp0 set numOutStreams_ 1
-    $sctp0 set initialCwnd_ 1
+    $sctp0 set rtxToAlt_ 2
 
     if {$quiet == 0} {
 	$sctp0 set debugMask_ -1 
@@ -2619,11 +2876,11 @@ Test/sctp-newReno instproc init {} {
 	$sctp0 attach $trace_ch
     }
     
-    set sctp1 [new Agent/SCTP/Newreno]
-    $ns attach-agent $n1 $sctp1
+    set sctp1 [new Agent/SCTP/MultipleFastRtx]
+    $ns multihome-attach-agent $host1_core $sctp1
     $sctp1 set mtu_ 1500
-    $sctp1 set initialRwnd_ 131072
-    $sctp1 set useDelayedSacks_ 0
+    $sctp1 set initialRwnd_ 131072 
+    $sctp1 set useDelayedSacks_ 1
    
     if {$quiet == 0} {
 	$sctp1 set debugMask_ -1 
@@ -2631,16 +2888,17 @@ Test/sctp-newReno instproc init {} {
     }
     
     $ns connect $sctp0 $sctp1
+    $sctp0 set-primary-destination $host1_if0
     
     set ftp0 [new Application/FTP]
     $ftp0 attach-agent $sctp0
 }
 
-Test/sctp-newReno instproc run {} {
+Test/sctp-mfrHbAfterRto-Rta2-2FRsTimeout instproc run {} {
     $self instvar ns ftp0
     $ns at 0.5 "$ftp0 start"
-    $ns at 7.0 "$ftp0 stop"
-    $ns at 10.0 "$self finish"
+    $ns at 9.0 "$ftp0 stop"
+    $ns at 12.0 "$self finish"
     $ns run
 }
 
@@ -2834,6 +3092,8 @@ proc runtest {arg} {
 	sctp-multihome2-2Rtx1   -
 	sctp-multihome2-2Rtx3  -
 	sctp-multihome2-2Timeout -
+	sctp-multihome2-2TimeoutRta0 -
+	sctp-multihome2-2TimeoutRta2 -
 	sctp-multihome2-R-2 -
 	sctp-multihome3-3Timeout -
 	sctp-multipleDropsSameWnd-1  -
@@ -2843,6 +3103,7 @@ proc runtest {arg} {
 	sctp-multipleDropsTwoWnds-1-delayed  -
 	sctp-multipleRtx  -
 	sctp-multipleRtx-early  -
+	sctp-newReno -
 	sctp-noEarlyHBs -
 	sctp-smallRwnd  -
 	sctp-zeroRtx  -
@@ -2851,7 +3112,7 @@ proc runtest {arg} {
 	sctp-hbAfterRto-multihome2-2Timeout -
 	sctp-multipleFastRtx-2packetsTimeout -
 	sctp-multipleFastRtx-multihome2-2Timeout -
-	sctp-newReno -
+	sctp-mfrHbAfterRto-Rta2-2FRsTimeout -
 	sctp-timestamp-multihome2-2Rtx3 -
 	sctp-timestamp-multihome2-2Timeout {
 	    set t [new Test/$test]

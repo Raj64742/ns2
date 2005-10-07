@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.353 2005/08/22 05:08:35 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.354 2005/10/07 05:58:30 tomh Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -759,6 +759,7 @@ Agent/SCTP set debugMask_ 0             ;# all debugging off by default
 Agent/SCTP set debugFileIndex_ -1       ;# default outputs to stderr
 Agent/SCTP set associationMaxRetrans_ 10;# 10 attempts
 Agent/SCTP set pathMaxRetrans_ 5        ;# 5 attempts (per destination)
+Agent/SCTP set changePrimaryThresh_ -1  ;# infinite (ie, never change primary
 Agent/SCTP set maxInitRetransmits_ 8    ;# 8 attempts
 Agent/SCTP set oneHeartbeatTimer_ 1     ;# single heartbeat timer for all dests
 Agent/SCTP set heartbeatInterval_ 30    ;# 30 secs
@@ -766,6 +767,10 @@ Agent/SCTP set mtu_ 1500                ;# MTU of ethernet (most common)
 Agent/SCTP set initialRwnd_ 65536       ;# default inital receiver window
 Agent/SCTP set initialSsthresh_ 65536   ;# default inital ssthresh value
 Agent/SCTP set initialCwnd_ 2           ;# default cwnd = 2 * MTU
+Agent/SCTP set initialRto_ 3.0          ;# default initial RTO = 3 secs       
+Agent/SCTP set minRto_ 1.0              ;# default min RTO = 1 sec            
+Agent/SCTP set maxRto_ 60.0             ;# default max RTO = 60 secs          
+Agent/SCTP set fastRtxTrigger_ 4        ;# 4 missing reports trigger fast rtx
 Agent/SCTP set numOutStreams_ 1         ;# single stream default
 Agent/SCTP set numUnrelStreams_ 0       ;# by default all streams are reliable
 Agent/SCTP set reliability_ 0           ;# by default unrel streams have 0 rtx's
@@ -773,8 +778,18 @@ Agent/SCTP set unordered_ 0             ;# by default all chunks are ordered
 Agent/SCTP set ipHeaderSize_ 20         ;# default is IPv4
 Agent/SCTP set dataChunkSize_ 1468      ;# restricted to 4 byte boundaries
 Agent/SCTP set useDelayedSacks_ 1       ;# rfc2960 says SHOULD use delayed sacks
+Agent/SCTP set sackDelay_ 0.200         ;# rfc2960 recommends 200 ms
 Agent/SCTP set useMaxBurst_ 1           ;# sctp implementors guide adds this var
 Agent/SCTP set rtxToAlt_ 1              ;# by default rtxs go to alternate dest
+Agent/SCTP set dormantAction_ 0		;# 0 = change dest, 1 = use primary, 2 = use last dest before dormant;
+                                                                             
+## These variables are for simulating reactive routing overheads (for         
+## MANETs, etc). This feature is turned off is delay is 0. The cache lifetime 
+## by default is just slightly larger than the default min RTO to avoid a "cache                                                                             
+## miss" after a single timeout event.
+Agent/SCTP set routeCalcDelay_ 0        ;# time to calculate a route          
+Agent/SCTP set routeCacheLifetime_ 1.2  ;# how long a route remains cached  
+
 Agent/SCTP set trace_all_ 0             ;# trace all vars ?
 
 ## These variables are set because they have to be bound to be traceable.
@@ -782,6 +797,12 @@ Agent/SCTP set trace_all_ 0             ;# trace all vars ?
 Agent/SCTP set cwnd_ 0                 ; 
 Agent/SCTP set rto_ 0                  ;
 Agent/SCTP set errorCount_ 0           ;
+Agent/SCTP set frCount_ 0              ;                                      
+Agent/SCTP set timeoutCount_ 0         ;                                      
+Agent/SCTP set rcdCount_ 0             ;# total count of route calc delays    
+
+Agent/SCTP/MultipleFastRtx set mfrCount_ 0                                    
+Agent/SCTP/MfrTimestamp set mfrCount_ 0    
 
 
 Agent/TCP set seqno_ 0

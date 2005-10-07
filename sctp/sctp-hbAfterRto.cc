@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2003 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2001-2004 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
@@ -40,7 +40,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-hbAfterRto.cc,v 1.2 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-hbAfterRto.cc,v 1.3 2005/10/07 05:58:29 tomh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -101,45 +101,74 @@ void HbAfterRtoSctpAgent::Timeout(SctpChunkType_E eChunkType,
     {
       spDest->eRtxTimerIsRunning = FALSE;
       
-      /* section 7.2.3 of rfc2960 (w/ implementor's guide v.02)
+      /* section 7.2.3 of rfc2960 (w/ implementor's guide)
        */
-      if(spDest->uiCwnd > 1*uiMaxDataSize)
+      if(spDest->iCwnd > 1 * (int) uiMaxDataSize)
 	{
-	  spDest->uiSsthresh = MAX(spDest->uiCwnd/2, 2*uiMaxDataSize);
-	  spDest->uiCwnd = 1*uiMaxDataSize;
-	  spDest->uiPartialBytesAcked = 0; // reset
+	  spDest->iSsthresh = MAX(spDest->iCwnd/2, 
+				  iInitialCwnd * (int) uiMaxDataSize);
+	  spDest->iCwnd = 1*uiMaxDataSize;
+	  spDest->iPartialBytesAcked = 0; // reset
 	  tiCwnd++; // trigger changes for trace to pick up
 	}
 
       spDest->opCwndDegradeTimer->force_cancel();
+
+      /* Cancel any pending RTT measurement on this destination. Stephan
+       * Baucke suggested (2004-04-27) this action as a fix for the
+       * following simple scenario:
+       *
+       * - Host A sends packets 1, 2 and 3 to host B, and choses 3 for
+       *   an RTT measurement
+       *
+       * - Host B receives all packets correctly and sends ACK1, ACK2,
+       *   and ACK3.
+       *
+       * - ACK2 and ACK3 are lost on the return path
+       *
+       * - Eventually a timeout fires for packet 2, and A retransmits 2
+       *
+       * - Upon receipt of 2, B sends a cumulative ACK3 (since it has
+       *   received 2 & 3 before)
+       *
+       * - Since packet 3 has never been retransmitted, the SCTP code
+       *   actually accepts the ACK for an RTT measurement, although it
+       *   was sent in reply to the retransmission of 2, which results
+       *   in a much too high RTT estimate. Since this case tends to
+       *   happen in case of longer link interruptions, the error is
+       *   often amplified by subsequent timer backoffs.
+       */
+      spDest->eRtoPending = FALSE; // cancel any pending RTT measurement
     }
 
   DBG_PL(Timeout, "was spDest->dRto=%f"), spDest->dRto DBG_PR;
   spDest->dRto *= 2;    // back off the timer
-  if(spDest->dRto > MAX_RTO)
-    spDest->dRto = MAX_RTO;
+  if(spDest->dRto > dMaxRto)
+    spDest->dRto = dMaxRto;
   tdRto++;              // trigger changes for trace to pick up
   DBG_PL(Timeout, "now spDest->dRto=%f"), spDest->dRto DBG_PR;
 
+  spDest->iTimeoutCount++;
+  spDest->iErrorCount++; // @@@ window probe timeouts should not be counted
+  DBG_PL(Timeout, "now spDest->iErrorCount=%d"), spDest->iErrorCount DBG_PR;
+
   if(spDest->eStatus == SCTP_DEST_STATUS_ACTIVE)
     {  
-      spDest->uiErrorCount++; // @@@ window probe timeouts should not be counted
-      uiAssocErrorCount++;
-      DBG_PL(Timeout, "now spDest->uiErrorCount=%d uiAssocErrorCount=%d"), 
-	spDest->uiErrorCount, uiAssocErrorCount DBG_PR;
+      iAssocErrorCount++;
+      DBG_PL(Timeout, "now iAssocErrorCount=%d"), iAssocErrorCount DBG_PR;
 
-      if(spDest->uiErrorCount > uiPathMaxRetrans) // Path.Max.Retrans exceeded?
+      // Path.Max.Retrans exceeded?
+      if(spDest->iErrorCount > (int) uiPathMaxRetrans) 
 	{
 	  spDest->eStatus = SCTP_DEST_STATUS_INACTIVE;
 	  if(spDest == spNewTxDest)
 	    {
-	      spNewTxDest = GetNextDest(spNewTxDest);
+	      spNewTxDest = GetNextDest(spDest);
 	      DBG_PL(Timeout, "failing over from %p to %p"),
 		spDest, spNewTxDest DBG_PR;
 	    }
 	}
-      tiErrorCount++;       // trace it!
-      if(uiAssocErrorCount > uiAssociationMaxRetrans)
+      if(iAssocErrorCount > (int) uiAssociationMaxRetrans)
 	{
 	  /* abruptly close the association!  (section 8.1)
 	   */
@@ -150,17 +179,35 @@ void HbAfterRtoSctpAgent::Timeout(SctpChunkType_E eChunkType,
 	}
     }
 
+  // trace it!
+  tiTimeoutCount++;
+  tiErrorCount++;       
+
+  if(spDest->iErrorCount > (int) uiChangePrimaryThresh &&
+     spDest == spPrimaryDest)
+    {
+      spPrimaryDest = spNewTxDest;
+      DBG_PL(Timeout, "changing primary from %p to %p"),
+	spDest, spNewTxDest DBG_PR;
+    }
+
   if(eChunkType == SCTP_CHUNK_DATA)
     {
       TimeoutRtx(spDest);
 
       // BEGIN -- HbAfterRto changes to this function
-      SendHeartbeat(spDest);  // send HB immediately!
+
+      /* If there is an active alternate destination, then send a HB
+       * immediately to the destination which timed out.
+       */
+      if(GetNextDest(spDest) != spDest)
+	SendHeartbeat(spDest);  
+
       // END -- HbAfterRto changes to this function
     }
   else if(eChunkType == SCTP_CHUNK_HB)
     {
-      if(eOneHeartbeatTimer == FALSE && uiHeartbeatInterval != 0)
+      if(uiHeartbeatInterval != 0)
 	SendHeartbeat(spDest);
     }
 

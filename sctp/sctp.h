@@ -1,9 +1,10 @@
 /*
- * Copyright (c) 2001-2003 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2001-2004 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
  * Janardhan Iyengar   <iyengar@@cis,udel,edu>
+ * Keyur Shah          <shah@@cis,udel,edu>
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -32,7 +33,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  *
- * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.4 2005/09/15 05:04:36 tomh Exp $ (UD/PEL)
+ * @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp.h,v 1.5 2005/10/07 05:58:30 tomh Exp $ (UD/PEL)
  */
 
 #ifndef ns_sctp_h
@@ -52,12 +53,7 @@
 #define MAX_NUM_STREAMS       0x0000ffff
 
 #define DELAYED_SACK_TRIGGER  2      // sack for every 2 data packets
-#define SACK_GEN_TIMEOUT      0.200  // in seconds
 
-#define FAST_RTX_TRIGGER      4
-#define INITIAL_RTO           3      // in seconds
-#define MIN_RTO               1      // in seconds
-#define MAX_RTO               60     // in seconds
 #define RTO_ALPHA             0.125  // RTO.alpha is 1/8
 #define RTO_BETA              0.25   // RTO.Beta is 1/4
 
@@ -75,11 +71,28 @@ typedef enum MaxBurstUsage_E
  */
 #undef FALSE
 #undef TRUE
-typedef enum 
+typedef enum Boolean_E
 {
-	FALSE,
-	TRUE
-}Boolean_E;
+  FALSE,
+  TRUE
+};
+
+typedef enum RtxToAlt_E
+{
+  RTX_TO_ALT_OFF,
+  RTX_TO_ALT_ON,
+  RTX_TO_ALT_TIMEOUTS_ONLY
+};
+
+/* What behavior is used during dormant state (ie, all destinations have
+ * failed) when timeouts persist?
+ */
+typedef enum DormantAction_E
+{
+  DORMANT_HOP,        // keep hopping to another destination
+  DORMANT_PRIMARY,    // goto primary and stay there
+  DORMANT_LASTDEST    // stay at the last destination used before dormant state
+};
 
 /* Who controls the data sending, app layer or the transport layer 
  * (as in the case of infinite data)
@@ -92,46 +105,48 @@ typedef enum DataSource_E
 
 /* SCTP chunk types 
  */
-typedef enum
+typedef enum SctpChunkType_E
 {
-	SCTP_CHUNK_DATA,
-	SCTP_CHUNK_INIT,
-	SCTP_CHUNK_INIT_ACK,
-	SCTP_CHUNK_SACK,
-	SCTP_CHUNK_HB,
-	SCTP_CHUNK_HB_ACK,
-	SCTP_CHUNK_ABORT,
-	SCTP_CHUNK_SHUTDOWN,
-	SCTP_CHUNK_SHUTDOWN_ACK,
-	SCTP_CHUNK_ERROR,
-	SCTP_CHUNK_COOKIE_ECHO,
-	SCTP_CHUNK_COOKIE_ACK,
-	SCTP_CHUNK_ECNE,                  // reserved in rfc2960
-	SCTP_CHUNK_CWR,                   // reserved in rfc2960
-	SCTP_CHUNK_SHUTDOWN_COMPLETE,
-	
-	/* RFC2960 leaves room for later defined chunks */
-	/* for U-SCTP/PR-SCTP
-	 */
-	SCTP_CHUNK_FORWARD_TSN,    // should be 192, but this is a simulation! :-)
-	/* for timestamp option (sctp-timestamp.cc)
-	 */
-	SCTP_CHUNK_TIMESTAMP
-}SctpChunkType_E;
+  SCTP_CHUNK_DATA,
+  SCTP_CHUNK_INIT,
+  SCTP_CHUNK_INIT_ACK,
+  SCTP_CHUNK_SACK,
+  SCTP_CHUNK_HB,
+  SCTP_CHUNK_HB_ACK,
+  SCTP_CHUNK_ABORT,
+  SCTP_CHUNK_SHUTDOWN,
+  SCTP_CHUNK_SHUTDOWN_ACK,
+  SCTP_CHUNK_ERROR,
+  SCTP_CHUNK_COOKIE_ECHO,
+  SCTP_CHUNK_COOKIE_ACK,
+  SCTP_CHUNK_ECNE,                  // reserved in rfc2960
+  SCTP_CHUNK_CWR,                   // reserved in rfc2960
+  SCTP_CHUNK_SHUTDOWN_COMPLETE,
+
+  /* RFC2960 leaves room for later defined chunks */
+
+  /* for U-SCTP/PR-SCTP
+   */
+  SCTP_CHUNK_FORWARD_TSN,    // should be 192, but this is a simulation! :-)
+
+  /* for timestamp option (sctp-timestamp.cc)
+   */
+  SCTP_CHUNK_TIMESTAMP
+};
 
 typedef struct AppData_S 
 {
   /* Parameters needed for establishing an association 
    */
-	u_short usNumStreams;     // Number of streams to associate
-	u_short usNumUnreliable;  // first usNumUnreliable streams will be unreliable
-	
-	/* Parameters needed for app data messages 
-	 */
-	u_short    usStreamId;     // Which stream does this message go on?
-	u_short    usReliability;  // What level of relability does this message have
-	Boolean_E  eUnordered;     // Is this an unordered message?
-	u_int      uiNumBytes;     // Number of databytes in message
+  u_short usNumStreams;     // Number of streams to associate
+  u_short usNumUnreliable;  // first usNumUnreliable streams will be unreliable
+
+  /* Parameters needed for app data messages 
+   */
+  u_short    usStreamId;     // Which stream does this message go on?
+  u_short    usReliability;  // What level of relability does this message have
+  Boolean_E  eUnordered;     // Is this an unordered message?
+  u_int      uiNumBytes;     // Number of databytes in message
 };
 
 /* ns specific header fields used for tracing SCTP traffic
@@ -140,39 +155,39 @@ typedef struct AppData_S
  */
 typedef struct SctpTrace_S
 {
-	SctpChunkType_E  eType;
-	u_int            uiTsn;    // (cum ack for sacks, -1 for other control chunks)
-	u_short          usStreamId;     // -1 for control chunks
-	u_short          usStreamSeqNum; // -1 for control chunks
+  SctpChunkType_E  eType;
+  u_int            uiTsn;    // (cum ack for sacks, -1 for other control chunks)
+  u_short          usStreamId;     // -1 for control chunks
+  u_short          usStreamSeqNum; // -1 for control chunks
 };
 
 struct hdr_sctp
 {
-	/* ns required header fields/methods 
-	 */
-	static int offset_;	// offset for this header
-	inline static int& offset() { return offset_; }
-	inline static hdr_sctp* access(Packet* p) 
-	{
-		return (hdr_sctp*) p->access(offset_);
-	}
-	
-	/* ns specific header fields used for tracing SCTP traffic
-	 * (This was done so that the 'trace' module wouldn't have to look into the
-	 * payload of SCTP packets)
-	 */
-	u_int         uiNumChunks;
-	SctpTrace_S  *spSctpTrace;
-	
-	u_int&        NumChunks() { return uiNumChunks; }
-	SctpTrace_S*& SctpTrace() { return spSctpTrace; }
+  /* ns required header fields/methods 
+   */
+  static int offset_;	// offset for this header
+  inline static int& offset() { return offset_; }
+  inline static hdr_sctp* access(Packet* p) 
+  {
+    return (hdr_sctp*) p->access(offset_);
+  }
+
+  /* ns specific header fields used for tracing SCTP traffic
+   * (This was done so that the 'trace' module wouldn't have to look into the
+   * payload of SCTP packets)
+   */
+  u_int         uiNumChunks;
+  SctpTrace_S  *spSctpTrace;
+
+  u_int&        NumChunks() { return uiNumChunks; }
+  SctpTrace_S*& SctpTrace() { return spSctpTrace; }
 };
 
 typedef struct SctpChunkHdr_S
 {
-	u_char  ucType;
-	u_char  ucFlags;
-	u_short usLength;
+  u_char  ucType;
+  u_char  ucFlags;
+  u_short usLength;
 };
 
 /* INIT paramater types
@@ -180,48 +195,48 @@ typedef struct SctpChunkHdr_S
 #define SCTP_INIT_PARAM_UNREL  0xC000
 typedef struct SctpUnrelStreamsParam_S
 {
-	u_short  usType;
-	u_short  usLength;
-	
-	/* unreliable stream start-end pairs are appended dynamically
-	 */
+  u_short  usType;
+  u_short  usLength;
+
+  /* unreliable stream start-end pairs are appended dynamically
+   */
 };
 
 typedef struct SctpUnrelStreamPair_S
 {
-	u_short  usStart;
-	u_short  usEnd;
+  u_short  usStart;
+  u_short  usEnd;
 };
 
 typedef struct SctpInitChunk_S  // this is used for init ack, too 
 {
-	SctpChunkHdr_S  sHdr;
-	u_int           uiInitTag;		 // tag of mine (not used)
-	u_int           uiArwnd; 	         // referred to as a_rwnd in rfc2960
-	u_short         usNumOutboundStreams;	 // referred to as OS in rfc2960
-	u_short         usMaxInboundStreams;   // referred to as MIS in rfc2960
-	u_int           uiInitialTsn;          
-	
-	SctpUnrelStreamsParam_S  sUnrelStream;	
+  SctpChunkHdr_S  sHdr;
+  u_int           uiInitTag;		 // tag of mine (not used)
+  u_int           uiArwnd; 	         // referred to as a_rwnd in rfc2960
+  u_short         usNumOutboundStreams;	 // referred to as OS in rfc2960
+  u_short         usMaxInboundStreams;   // referred to as MIS in rfc2960
+  u_int           uiInitialTsn;          
+
+  SctpUnrelStreamsParam_S  sUnrelStream;	
 };
 typedef SctpInitChunk_S SctpInitAckChunk_S;
 
 typedef struct SctpCookieEchoChunk_S
 {
-	SctpChunkHdr_S  sHdr;
+  SctpChunkHdr_S  sHdr;
 	
-	/* cookie would go here, but we aren't implementing this at the moment */
+  /* cookie would go here, but we aren't implementing this at the moment */
 };
 typedef SctpCookieEchoChunk_S SctpCookieAckChunk_S;
 
 typedef struct SctpDataChunkHdr_S
 {
-	SctpChunkHdr_S  sHdr;
-	u_int           uiTsn;
-	u_short         usStreamId;
-	u_short         usStreamSeqNum;
-	u_int           uiPayloadType;     // not used
-	
+  SctpChunkHdr_S  sHdr;
+  u_int           uiTsn;
+  u_short         usStreamId;
+  u_short         usStreamSeqNum;
+  u_int           uiPayloadType;     // not used
+
   /* user data must be appended dynamically when filling packets */
 };
 
@@ -236,104 +251,104 @@ typedef struct SctpDataChunkHdr_S
  */
 typedef struct SctpSackChunk_S
 {
-	SctpChunkHdr_S  sHdr;
-	u_int           uiCumAck;
-	u_int           uiArwnd;
-	u_short         usNumGapAckBlocks;
-	u_short         usNumDupTsns;
-	
+  SctpChunkHdr_S  sHdr;
+  u_int           uiCumAck;
+  u_int           uiArwnd;
+  u_short         usNumGapAckBlocks;
+  u_short         usNumDupTsns;
+
   /* Gap Ack Blocks and Duplicate TSNs are appended dynamically
    */
 };
 
 typedef struct SctpGapAckBlock_S
 {
-	u_short  usStartOffset;
-	u_short  usEndOffset;
+  u_short  usStartOffset;
+  u_short  usEndOffset;
 };
 
 typedef struct SctpDupTsn_S
 {
-	u_int  uiTsn;
+  u_int  uiTsn;
 };
 
 #define SCTP_CHUNK_FORWARD_TSN_LENGTH  8
 typedef struct SctpForwardTsnChunk_S
 {
-	SctpChunkHdr_S  sHdr;
-	u_int           uiNewCum;
+  SctpChunkHdr_S  sHdr;
+  u_int           uiNewCum;
 };
 
 typedef struct SctpDest_S;
 #define SCTP_CHUNK_HEARTBEAT_LENGTH  24
 typedef struct SctpHeartbeatChunk_S
 {
-	SctpChunkHdr_S  sHdr;
-	u_short         usInfoType;      // filled in, but not really used
-	u_short         usInfoLength;    // filled in, but not really used
-	double          dTimestamp;
-	SctpDest_S     *spDest;
+  SctpChunkHdr_S  sHdr;
+  u_short         usInfoType;      // filled in, but not really used
+  u_short         usInfoLength;    // filled in, but not really used
+  double          dTimestamp;
+  SctpDest_S     *spDest;
 };
 typedef SctpHeartbeatChunk_S SctpHeartbeatAckChunk_S;
 
 /* SCTP state defines for internal state machine */
 typedef enum SctpState_E
 {
-	SCTP_STATE_UNINITIALIZED,
-	SCTP_STATE_CLOSED,
-	SCTP_STATE_ESTABLISHED,
-	SCTP_STATE_COOKIE_WAIT,
-	SCTP_STATE_COOKIE_ECHOED,
-	SCTP_STATE_SHUTDOWN_SENT,        // not currently used
-	SCTP_STATE_SHUTDOWN_RECEIVED,    // not currently used
-	SCTP_STATE_SHUTDOWN_ACK_SENT,    // not currently used
-	SCTP_STATE_SHUTDOWN_PENDING      // not currently used
+  SCTP_STATE_UNINITIALIZED,
+  SCTP_STATE_CLOSED,
+  SCTP_STATE_ESTABLISHED,
+  SCTP_STATE_COOKIE_WAIT,
+  SCTP_STATE_COOKIE_ECHOED,
+  SCTP_STATE_SHUTDOWN_SENT,        // not currently used
+  SCTP_STATE_SHUTDOWN_RECEIVED,    // not currently used
+  SCTP_STATE_SHUTDOWN_ACK_SENT,    // not currently used
+  SCTP_STATE_SHUTDOWN_PENDING      // not currently used
 };
 
 class SctpAgent;
 
 class T1InitTimer : public TimerHandler 
 {
- public:
-	T1InitTimer(SctpAgent *a) : TimerHandler(), opAgent(a) { }
+public:
+  T1InitTimer(SctpAgent *a) : TimerHandler(), opAgent(a) { }
 	
- protected:
-	virtual void expire(Event *);
-	SctpAgent *opAgent;
+protected:
+  virtual void expire(Event *);
+  SctpAgent *opAgent;
 };
 
 class T1CookieTimer : public TimerHandler 
 {
 public:
-	T1CookieTimer(SctpAgent *a) : TimerHandler(), opAgent(a) { }
+  T1CookieTimer(SctpAgent *a) : TimerHandler(), opAgent(a) { }
 	
- protected:
-	virtual void expire(Event *);
-	SctpAgent *opAgent;
+protected:
+  virtual void expire(Event *);
+  SctpAgent *opAgent;
 };
 
 class T3RtxTimer : public TimerHandler 
 {
 public:
-	T3RtxTimer(SctpAgent *a, SctpDest_S *d) 
-		: TimerHandler(), opAgent(a) {spDest = d;}
+  T3RtxTimer(SctpAgent *a, SctpDest_S *d) 
+    : TimerHandler(), opAgent(a) {spDest = d;}
 	
- protected:
-	virtual void expire(Event *);
-	SctpAgent  *opAgent;
-	SctpDest_S *spDest;  // destination this timer corresponds to
+protected:
+  virtual void expire(Event *);
+  SctpAgent  *opAgent;
+  SctpDest_S *spDest;  // destination this timer corresponds to
 };
 
 class CwndDegradeTimer : public TimerHandler 
 {
 public:
-	CwndDegradeTimer(SctpAgent *a, SctpDest_S *d) 
-		: TimerHandler(), opAgent(a) {spDest = d;}
+  CwndDegradeTimer(SctpAgent *a, SctpDest_S *d) 
+    : TimerHandler(), opAgent(a) {spDest = d;}
 	
- protected:
-	virtual void expire(Event *);
-	SctpAgent  *opAgent;
-	SctpDest_S *spDest;  // destination this timer corresponds to
+protected:
+  virtual void expire(Event *);
+  SctpAgent  *opAgent;
+  SctpDest_S *spDest;  // destination this timer corresponds to
 };
 
 class HeartbeatGenTimer : public TimerHandler 
@@ -363,6 +378,44 @@ protected:
   SctpAgent  *opAgent;
 };
 
+/* This timer simulates the route lifetime in the routing tables of
+ * reactive routing protocols for MANETs, etc. When this timer expires,
+ * the route is flushed and any future data sent to this dest will cause a 
+ * route calculation.
+ *
+ * Note: This timer is not normally used. It's only for our simulated reactive
+ * routing overheads for MANETs, etc. 
+ */
+class RouteCacheFlushTimer : public TimerHandler 
+{
+public:
+  RouteCacheFlushTimer(SctpAgent *a, SctpDest_S *d) 
+    : TimerHandler(), opAgent(a) {spDest = d;}
+	
+protected:
+  virtual void expire(Event *);
+  SctpAgent  *opAgent;
+  SctpDest_S *spDest;  // destination this timer corresponds to
+};
+
+/* This timer simulates the time it takes to calculate a route in
+ * reactive routing protocols for MANETs, etc. 
+ *
+ * Note: This timer is not normally used. It's only for our simulated reactive
+ * routing overheads for MANETs, etc. 
+ */
+class RouteCalcDelayTimer : public TimerHandler 
+{
+public:
+  RouteCalcDelayTimer(SctpAgent *a, SctpDest_S *d) 
+    : TimerHandler(), opAgent(a) {spDest = d;}
+	
+protected:
+  virtual void expire(Event *);
+  SctpAgent  *opAgent;
+  SctpDest_S *spDest;  // destination this timer corresponds to
+};
+
 typedef struct SctpInterface_S
 {
   int        iNsAddr;
@@ -377,47 +430,6 @@ typedef enum SctpDestStatus_E
   SCTP_DEST_STATUS_ACTIVE
 };
 
-typedef struct SctpDest_S
-{
-  int        iNsAddr;  // ns "IP address"
-  int        iNsPort;  // ns "port"
-
-  /* Packet is simply used for determing src addr. The header stores dest addr,
-   * which makes it easy to determine src target using
-   * Connector->find(Packet *). Then with the target, we can determine src 
-   * addr.
-   */
-  Packet    *opRoutingAssistPacket;
-
-  u_int         uiCwnd;                // current congestion window
-  u_int         uiSsthresh;            // current ssthresh value
-  Boolean_E     eFirstRttMeasurement; // is this our first RTT measurement?
-  double        dRto;                 // current retransmission timeout value
-  double        dSrtt;                // current smoothed round trip time
-  double        dRttVar;              // current RTT variance
-  int           iPmtu;                // current known path MTU (not used)
-  Boolean_E     eRtxTimerIsRunning;   // is there a timer running already?
-  T3RtxTimer   *opT3RtxTimer;         // retransmission timer
-  Boolean_E     eRtoPending;          // DATA chunk being used to measure RTT?
-
-  u_int  uiPartialBytesAcked; // helps to modify cwnd in congestion avoidance mode
-  u_int  uiOutstandingBytes;  // outstanding bytes still in flight (unacked)
-
-  u_int                   uiErrorCount;             // destination error counter
-  SctpDestStatus_E        eStatus;                 // active/inactive
-  CwndDegradeTimer       *opCwndDegradeTimer;      // timer to degrade cwnd
-  double                  dIdleSince;              // timestamp since idle
-  HeartbeatGenTimer      *opHeartbeatGenTimer;     // to trigger a heartbeat
-  HeartbeatTimeoutTimer  *opHeartbeatTimeoutTimer; // heartbeat timeout timer
-
-  /* these are temporary variables needed per destination and they should
-   * be cleared for each usage.  
-   */
-  Boolean_E  eCcApplied;            // congestion control already applied?
-  Boolean_E  eSeenFirstOutstanding; // have we seen the first outstanding yet?
-  u_int      uiNumNewlyAckedBytes;   // counts newly ack'd bytes in a sack
-};
-
 typedef enum NodeType_E
 {
   NODE_TYPE_STREAM_BUFFER,
@@ -426,7 +438,8 @@ typedef enum NodeType_E
   NODE_TYPE_SEND_BUFFER,
   NODE_TYPE_APP_LAYER_BUFFER,
   NODE_TYPE_INTERFACE_LIST,
-  NODE_TYPE_DESTINATION_LIST
+  NODE_TYPE_DESTINATION_LIST,
+  NODE_TYPE_PACKET_BUFFER
 };
 
 typedef struct Node_S
@@ -442,6 +455,58 @@ typedef struct List_S
   u_int    uiLength;
   Node_S  *spHead;
   Node_S  *spTail;
+};
+
+typedef struct SctpSendBufferNode_S;
+typedef struct SctpDest_S
+{
+  int        iNsAddr;  // ns "IP address"
+  int        iNsPort;  // ns "port"
+
+  /* Packet is simply used for determing src addr. The header stores dest addr,
+   * which makes it easy to determine src target using
+   * Connector->find(Packet *). Then with the target, we can determine src 
+   * addr.
+   */
+  Packet    *opRoutingAssistPacket;
+
+  int           iCwnd;                // current congestion window
+  int           iSsthresh;            // current ssthresh value
+  Boolean_E     eFirstRttMeasurement; // is this our first RTT measurement?
+  double        dRto;                 // current retransmission timeout value
+  double        dSrtt;                // current smoothed round trip time
+  double        dRttVar;              // current RTT variance
+  int           iPmtu;                // current known path MTU (not used)
+  Boolean_E     eRtxTimerIsRunning;   // is there a timer running already?
+  T3RtxTimer   *opT3RtxTimer;         // retransmission timer
+  Boolean_E     eRtoPending;          // DATA chunk being used to measure RTT?
+
+  int  iPartialBytesAcked; // helps to modify cwnd in congestion avoidance mode
+  int  iOutstandingBytes;  // outstanding bytes still in flight (unacked)
+
+  int                     iTimeoutCount;           // total number of timeouts
+  int                     iErrorCount;             // destination error counter
+  SctpDestStatus_E        eStatus;                 // active/inactive
+  CwndDegradeTimer       *opCwndDegradeTimer;      // timer to degrade cwnd
+  double                  dIdleSince;              // timestamp since idle
+  HeartbeatGenTimer      *opHeartbeatGenTimer;     // to trigger a heartbeat
+  HeartbeatTimeoutTimer  *opHeartbeatTimeoutTimer; // heartbeat timeout timer
+
+  /* these are temporary variables needed per destination and they should
+   * be cleared for each usage.  
+   */
+  Boolean_E              eCcApplied;          // cong control already applied?
+  SctpSendBufferNode_S  *spFirstOutstanding;  // first outstanding on this dest
+  int                    iNumNewlyAckedBytes; // newly ack'd bytes in a sack
+
+  /* These variables are generally not used. They are only for our
+   * simulated reactive routing overheads for MANETs, etc. 
+   */
+  int                    iRcdCount;     // total count of route calc delays
+  Boolean_E              eRouteCached;  // route cache hit or miss?
+  RouteCacheFlushTimer  *opRouteCacheFlushTimer;
+  RouteCalcDelayTimer   *opRouteCalcDelayTimer;  
+  List_S                 sBufferedPackets;
 };
 
 typedef struct SctpRecvTsnBlock_S
@@ -461,6 +526,13 @@ typedef enum SctpRtxLimit_E
   RTX_LIMIT_CWND
 };
 
+typedef enum MarkedForRtx_E
+{
+  NO_RTX,
+  FAST_RTX,
+  TIMEOUT_RTX
+};
+
 typedef struct SctpSendBufferNode_S
 {
   SctpDataChunkHdr_S  *spChunk;
@@ -469,7 +541,7 @@ typedef struct SctpSendBufferNode_S
   Boolean_E            eAddedToPartialBytesAcked; // already accounted for?
   int                  iNumMissingReports; // # times reported missing
   int                  iUnrelRtxLimit;     // limit on # of unreliable rtx's
-  Boolean_E            eMarkedForRtx;      // has it been marked for rtx?
+  MarkedForRtx_E       eMarkedForRtx;      // has it been marked for rtx?
   Boolean_E            eIneligibleForFastRtx; // ineligible for fast rtx??
   int                  iNumTxs;            // # of times transmitted (orig+rtx)
   double               dTxTimestamp;  
@@ -527,9 +599,11 @@ public:
   void          T1InitTimerExpiration();
   void          T1CookieTimerExpiration();
   virtual void  Timeout(SctpChunkType_E, SctpDest_S *);
-  void          CwndDegradeTimerExpiration(SctpDest_S *);
+  virtual void  CwndDegradeTimerExpiration(SctpDest_S *);
   void          HeartbeatGenTimerExpiration(double, SctpDest_S *);
   void          SackGenTimerExpiration();
+  void          RouteCacheFlushTimerExpiration(SctpDest_S *);
+  void          RouteCalcDelayTimerExpiration(SctpDest_S *);
 
 protected:
   virtual void  delay_bind_init_all();
@@ -539,15 +613,15 @@ protected:
   /* initialization stuff
    */
   void           SetDebugOutFile();
-  void           Reset();
+  virtual void   Reset();
   virtual void   OptionReset();
   virtual u_int  ControlChunkReservation();
 
   /* tracing functions
    */
-  void       TraceVar(const char*);
-  void       TraceAll();
-  void       trace(TracedVar*);
+  virtual void  TraceVar(const char*);
+  virtual void  TraceAll();
+  void          trace(TracedVar*);
 
   /* generic list functions
    */
@@ -564,11 +638,11 @@ protected:
 
   /* chunk generation functions
    */
-  u_int        GenChunk(SctpChunkType_E, u_char *);
+  int          GenChunk(SctpChunkType_E, u_char *);
   u_int        GetNextDataChunkSize();
   int          GenOneDataChunk(u_char *);
-  int          GenMultipleDataChunks(u_char *, int);
-  virtual u_int  BundleControlChunks(u_char *);
+  virtual int  GenMultipleDataChunks(u_char *, int);
+  virtual int  BundleControlChunks(u_char *);
 
   /* sending functions
    */
@@ -577,11 +651,12 @@ protected:
   virtual void  AddToSendBuffer(SctpDataChunkHdr_S *, int, u_int, SctpDest_S *);
   void          RttUpdate(double, SctpDest_S *);
   virtual void  SendBufferDequeueUpTo(u_int);
-  void          AdjustCwnd(SctpDest_S *);
+  virtual void  AdjustCwnd(SctpDest_S *);
   void          AdvancePeerAckPoint();
-  virtual void  FastRtx();
+  u_int         GetHighestOutstandingTsn();
+  void          FastRtx();
   void          TimeoutRtx(SctpDest_S *);
-  void          MarkChunkForRtx(SctpSendBufferNode_S *);
+  void          MarkChunkForRtx(SctpSendBufferNode_S *, MarkedForRtx_E);
   Boolean_E     AnyMarkedChunks();
   virtual void  RtxMarkedChunks(SctpRtxLimit_E);
   void          SendHeartbeat(SctpDest_S *);
@@ -592,7 +667,7 @@ protected:
   void          SendPacket(u_char *, int, SctpDest_S *);
   SctpDest_S   *GetReplyDestination(hdr_ip *);
   u_int         TotalOutstanding();
-  void          SendMuch();
+  virtual void  SendMuch();
 
   /* receiving functions
    */
@@ -614,7 +689,7 @@ protected:
   void               ProcessCookieAckChunk(SctpCookieAckChunk_S *);
   void               ProcessDataChunk(SctpDataChunkHdr_S *);
   virtual Boolean_E  ProcessGapAckBlocks(u_char *, Boolean_E);
-  virtual void       ProcessSackChunk(u_char *); /* @@@ */
+  void               ProcessSackChunk(u_char *);
   void               ProcessForwardTsnChunk(SctpForwardTsnChunk_S *);  
   void               ProcessHeartbeatAckChunk(SctpHeartbeatChunk_S *);  
   virtual void       ProcessOptionChunk(u_char *);
@@ -646,7 +721,7 @@ protected:
   SctpDest_S         *spNewTxDest;         // destination for new transmissions
   SctpDest_S         *spReplyDest; // reply with sacks or control chunk replies
   Boolean_E           eForceSource;
-  u_int               uiAssocErrorCount;  // total error counter for the assoc
+  int                 iAssocErrorCount;  // total error counter for the assoc
 
   /* heartbeat variables
    */
@@ -657,13 +732,15 @@ protected:
    */
   T1InitTimer       *opT1InitTimer;    // T1-init timer
   T1CookieTimer     *opT1CookieTimer;  // T1-cookie timer
-  u_int              uiInitTryCount;    // # of unsuccessful INIT attempts
+  int                iInitTryCount;    // # of unsuccessful INIT attempts
   u_int              uiNextTsn;
   u_short            usNextStreamId; // used to round-robin the streams
   SctpOutStream_S   *spOutStreams;
   u_int              uiPeerRwnd;
   u_int              uiCumAckPoint;  
   u_int              uiAdvancedPeerAckPoint;
+  u_int              uiHighestTsnNewlyAcked; // global for HTNA
+  u_int              uiRecover;
   List_S             sSendBuffer;
   Boolean_E          eForwardTsnNeeded;  // is a FORWARD TSN chunk needed?
   Boolean_E          eSendNewDataChunks; // should we send new data chunks too?
@@ -691,27 +768,39 @@ protected:
   u_int            uiDebugMask;     // 32 bits for fine level debugging
   int              iDebugFileIndex; // 1 debug output file per agent 
   u_int            uiPathMaxRetrans;
+  u_int            uiChangePrimaryThresh;
   u_int            uiAssociationMaxRetrans;
   u_int            uiMaxInitRetransmits;
   Boolean_E        eOneHeartbeatTimer;  // one heartbeat timer for all dests?
   u_int            uiHeartbeatInterval;
   u_int            uiMtu;
   u_int            uiInitialRwnd;
-  u_int            uiInitialSsthresh;
+  int              iInitialSsthresh;
   u_int            uiIpHeaderSize;
   u_int            uiDataChunkSize;
   u_int            uiNumOutStreams;
   Boolean_E        eUseDelayedSacks; // are we using delayed sacks?
+  double           dSackDelay;
   MaxBurstUsage_E  eUseMaxBurst;
-  u_int            uiInitialCwnd;
+  int              iInitialCwnd;
+  double           dInitialRto;
+  double           dMinRto;
+  double           dMaxRto;
+  int              iFastRtxTrigger;
   u_int            uiNumUnrelStreams;
   u_int            uiReliability; // k-rtx on all chunks & all unrel streams
   Boolean_E        eUnordered;    // sets for all chunks on all streams :-(
-  Boolean_E        eRtxToAlt;     // rtxs to alternate destination?
+  RtxToAlt_E       eRtxToAlt;     // rtxs to alternate destination?
+  DormantAction_E  eDormantAction;// behavior during dormant state
+  double           dRouteCacheLifetime; 
+  double           dRouteCalcDelay; 
   Boolean_E        eTraceAll;     // trace all variables on one line?
   TracedInt        tiCwnd;        // trace cwnd for all destinations
   TracedDouble     tdRto;         // trace rto for all destinations
   TracedInt        tiErrorCount;  // trace error count for all destinations
+  TracedInt        tiFrCount;     // trace each time a fast rtx gets triggered
+  TracedInt        tiTimeoutCount;// trace each time a timeout occurs
+  TracedInt        tiRcdCount;    // trace each time a route calc delay occurs
 
   /* globally used non-tcl bindable variables, but rely on the tcl bindable
    */

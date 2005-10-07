@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2001-2003 by the Protocol Engineering Lab, U of Delaware
+ * Copyright (c) 2001-2004 by the Protocol Engineering Lab, U of Delaware
  * All rights reserved.
  *
  * Armando L. Caro Jr. <acaro@@cis,udel,edu>
@@ -42,7 +42,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-multipleFastRtx.cc,v 1.2 2005/07/13 03:51:27 tomh Exp $ (UD/PEL)";
+"@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/sctp/sctp-multipleFastRtx.cc,v 1.3 2005/10/07 05:58:29 tomh Exp $ (UD/PEL)";
 #endif
 
 #include "ip.h"
@@ -76,6 +76,7 @@ MultipleFastRtxSctpAgent::MultipleFastRtxSctpAgent() : SctpAgent()
 
 void MultipleFastRtxSctpAgent::delay_bind_init_all()
 {
+  delay_bind_init_one("mfrCount_");
   SctpAgent::delay_bind_init_all();
 }
 
@@ -83,8 +84,210 @@ int MultipleFastRtxSctpAgent::delay_bind_dispatch(const char *cpVarName,
 					  const char *cpLocalName, 
 					  TclObject *opTracer)
 {
+  if(delay_bind(cpVarName, cpLocalName, "mfrCount_", &tiMfrCount, opTracer))
+    return TCL_OK;
+
   return SctpAgent::delay_bind_dispatch(cpVarName, cpLocalName, opTracer);
 }
+
+void MultipleFastRtxSctpAgent::TraceAll()
+{
+  char cpOutString[500];
+  Node_S *spCurrNode = NULL;
+  SctpDest_S *spCurrDest = NULL;
+  double dCurrTime = Scheduler::instance().clock();
+
+  for(spCurrNode = sDestList.spHead;
+      spCurrNode != NULL;
+      spCurrNode = spCurrNode->spNext)
+    {
+      spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+      SetSource(spCurrDest); // gives us the correct source addr & port
+      sprintf(cpOutString,
+	      "time: %-8.5f  "
+	      "saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d "
+	      "cwnd: %d pba: %d out: %d ssthresh: %d peerRwnd: %d "
+	      "rto: %-6.3f srtt: %-6.3f rttvar: %-6.3f "
+	      "assocErrors: %d pathErrors: %d dstatus: %s isPrimary: %s "
+	      "frCount: %d mfrCount: %d timeoutCount: %d rcdCount: %d\n",
+	      dCurrTime,
+	      addr(), port(), spCurrDest->iNsAddr, spCurrDest->iNsPort,
+	      spCurrDest->iCwnd, spCurrDest->iPartialBytesAcked, 
+	      spCurrDest->iOutstandingBytes, spCurrDest->iSsthresh, 
+	      uiPeerRwnd,
+	      spCurrDest->dRto, spCurrDest->dSrtt, 
+	      spCurrDest->dRttVar,
+	      iAssocErrorCount,
+	      spCurrDest->iErrorCount,
+	      spCurrDest->eStatus ? "ACTIVE" : "INACTIVE",
+	      (spCurrDest == spPrimaryDest) ? "TRUE" : "FALSE",
+	      int(tiFrCount),
+	      // BEGIN -- MultipleFastRtx changes to this function  
+	      int(tiMfrCount),
+              // END -- MultipleFastRtx changes to this function  
+	      spCurrDest->iTimeoutCount,
+	      spCurrDest->iRcdCount);
+      if(channel_)
+	(void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+    }
+
+  sprintf(cpOutString, "\n");
+  if(channel_)
+    (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+}
+
+void MultipleFastRtxSctpAgent::TraceVar(const char* cpVar)
+{
+  char cpOutString[500];
+  Node_S *spCurrNode = NULL;
+  SctpDest_S *spCurrDest = NULL;
+  double dCurrTime = Scheduler::instance().clock();
+
+  if(!strcmp(cpVar, "cwnd_"))
+    for(spCurrNode = sDestList.spHead;
+	spCurrNode != NULL;
+	spCurrNode = spCurrNode->spNext)
+      {
+	spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+	SetSource(spCurrDest); // gives us the correct source addr & port
+	sprintf(cpOutString,
+		"time: %-8.5f  "
+		"saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d "
+		"cwnd: %d pba: %d out: %d ssthresh: %d peerRwnd: %d\n",
+		dCurrTime, 
+		addr(), port(), 
+		spCurrDest->iNsAddr, spCurrDest->iNsPort,
+		spCurrDest->iCwnd, spCurrDest->iPartialBytesAcked, 
+		spCurrDest->iOutstandingBytes, spCurrDest->iSsthresh, 
+		uiPeerRwnd);
+	if(channel_)
+	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+      }
+
+  else if(!strcmp(cpVar, "rto_"))
+    for(spCurrNode = sDestList.spHead;
+	spCurrNode != NULL;
+	spCurrNode = spCurrNode->spNext)
+      {
+	spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+	SetSource(spCurrDest); // gives us the correct source addr & port
+	sprintf(cpOutString,
+		"time: %-8.5f  "
+		"saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d "
+		"rto: %-6.3f srtt: %-6.3f rttvar: %-6.3f\n",
+		dCurrTime, 
+		addr(), port(), 
+		spCurrDest->iNsAddr, spCurrDest->iNsPort,
+		spCurrDest->dRto, spCurrDest->dSrtt, 
+		spCurrDest->dRttVar);
+	if(channel_)
+	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+      }
+
+  else if(!strcmp(cpVar, "errorCount_"))
+    for(spCurrNode = sDestList.spHead;
+	spCurrNode != NULL;
+	spCurrNode = spCurrNode->spNext)
+      {
+	spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+	SetSource(spCurrDest); // gives us the correct source addr & port
+	sprintf(cpOutString, 
+		"time: %-8.5f  "
+		"saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d "
+		"assocErrors: %d pathErrors: %d dstatus: %s isPrimary: %s\n",
+		dCurrTime, 
+		addr(), port(), 
+		spCurrDest->iNsAddr, spCurrDest->iNsPort,
+		iAssocErrorCount,
+		spCurrDest->iErrorCount,
+		spCurrDest->eStatus ? "ACTIVE" : "INACTIVE",
+		(spCurrDest == spPrimaryDest) ? "TRUE" : "FALSE");
+	if(channel_)
+	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+      }
+
+  else if(!strcmp(cpVar, "frCount_"))
+    {
+      sprintf(cpOutString, 
+	      "time: %-8.5f  "
+	      "frCount: %d\n",
+	      dCurrTime, 
+	      int(*((TracedInt*) cpVar)) );
+      if(channel_)
+	(void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+    }
+
+  // BEGIN -- MultipleFastRtx changes to this function  
+  else if(!strcmp(cpVar, "mfrCount_"))
+    {
+      sprintf(cpOutString, 
+	      "time: %-8.5f  "
+	      "mfrCount: %d\n",
+	      dCurrTime, 
+	      int(*((TracedInt*) cpVar)) );
+      if(channel_)
+	(void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+    }
+  // END -- MultipleFastRtx changes to this function  
+
+  else if(!strcmp(cpVar, "timeoutCount_"))
+    {
+    for(spCurrNode = sDestList.spHead;
+	spCurrNode != NULL;
+	spCurrNode = spCurrNode->spNext)
+      {
+	spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+	SetSource(spCurrDest); // gives us the correct source addr & port
+	sprintf(cpOutString, 
+		"time: %-8.5f  "
+		"saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d "
+		"timeoutCount: %d\n",
+		dCurrTime, 
+		addr(), port(), 
+		spCurrDest->iNsAddr, spCurrDest->iNsPort,
+		spCurrDest->iTimeoutCount);
+	if(channel_)
+	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+      }
+    }
+
+  else if(!strcmp(cpVar, "rcdCount_"))
+    {
+    for(spCurrNode = sDestList.spHead;
+	spCurrNode != NULL;
+	spCurrNode = spCurrNode->spNext)
+      {
+	spCurrDest = (SctpDest_S *) spCurrNode->vpData;
+	SetSource(spCurrDest); // gives us the correct source addr & port
+	sprintf(cpOutString, 
+		"time: %-8.5f  "
+		"saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d "
+		"rcdCount: %d\n",
+		dCurrTime, 
+		addr(), port(), 
+		spCurrDest->iNsAddr, spCurrDest->iNsPort,
+		spCurrDest->iRcdCount);
+	if(channel_)
+	  (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+      }
+    }
+
+  else
+    {
+      sprintf(cpOutString,
+	      "time: %-8.5f  "
+	      "saddr: %-2d sport: %-2d daddr: %-2d dport: %-2d %s: %s\n",
+	      dCurrTime, addr(), port(), daddr(), dport(),
+	      cpVar, "ERROR (unepected trace variable)"); 
+      if(channel_)
+	(void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+    }
+
+  sprintf(cpOutString, "\n");
+  if(channel_)
+    (void)Tcl_Write(channel_, cpOutString, strlen(cpOutString));
+}
+
 
 void MultipleFastRtxSctpAgent::AddToSendBuffer(SctpDataChunkHdr_S *spChunk, 
 				int iChunkSize,
@@ -114,7 +317,7 @@ void MultipleFastRtxSctpAgent::AddToSendBuffer(SctpDataChunkHdr_S *spChunk,
   spNewNodeData->eAddedToPartialBytesAcked = FALSE;
   spNewNodeData->iNumMissingReports = 0;
   spNewNodeData->iUnrelRtxLimit = uiReliability;
-  spNewNodeData->eMarkedForRtx = FALSE;
+  spNewNodeData->eMarkedForRtx = NO_RTX;
   spNewNodeData->eIneligibleForFastRtx = FALSE;
   spNewNodeData->iNumTxs = 1;
   spNewNodeData->spDest = spDest;
@@ -154,33 +357,7 @@ void MultipleFastRtxSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
   Node_S *spCurrNode = sSendBuffer.spHead;
   SctpSendBufferNode_S *spCurrNodeData = NULL;
 
-  /* Only the first TSN that is being dequeued can be used to reset the
-   * error cunter on a destination. Why? Well, suppose there are some
-   * chunks that were gap acked before the primary had errors. Then the
-   * gap gets filled with a retransmission using an alternate path. The
-   * filled gap will cause the cum ack to move past the gap acked TSNs,
-   * but does not mean that the they can reset the errors on the primary.
-   */
-  
-  uiAssocErrorCount = 0;
-
-  spCurrNodeData = (SctpSendBufferNode_S *) spCurrNode->vpData;
-
-  /* trigger trace ONLY if it was previously NOT 0 */
-  if(spCurrNodeData->spDest->uiErrorCount != 0)
-    {
-      spCurrNodeData->spDest->uiErrorCount = 0; // clear error counter
-      tiErrorCount++;                          // ... and trace it too!
-      spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
-      if(spCurrNodeData->spDest == spPrimaryDest &&
-	 spNewTxDest != spPrimaryDest) 
-	{
-	  DBG_PL(SendBufferDequeueUpTo,
-		 "primary recovered... migrating back from %p to %p"),
-	    spNewTxDest, spPrimaryDest DBG_PR;
-	  spNewTxDest = spPrimaryDest; // return to primary
-	}
-    }
+  iAssocErrorCount = 0;
 
   while(spCurrNode != NULL &&
 	((SctpSendBufferNode_S*)spCurrNode->vpData)->spChunk->uiTsn <= uiTsn)
@@ -194,18 +371,20 @@ void MultipleFastRtxSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
       if((spCurrNodeData->eGapAcked == FALSE) &&
 	 (spCurrNodeData->eAdvancedAcked == FALSE) )
 	{
-	  spCurrNodeData->spDest->uiNumNewlyAckedBytes 
+	  uiHighestTsnNewlyAcked = spCurrNodeData->spChunk->uiTsn;
+
+	  spCurrNodeData->spDest->iNumNewlyAckedBytes 
 	    += spCurrNodeData->spChunk->sHdr.usLength;
 
 	  /* only add to partial bytes acked if we are in congestion
 	   * avoidance mode and if there was cwnd amount of data
 	   * outstanding on the destination (implementor's guide) 
 	   */
-	  if(spCurrNodeData->spDest->uiCwnd >spCurrNodeData->spDest->uiSsthresh &&
-	     ( spCurrNodeData->spDest->uiOutstandingBytes 
-	       >= spCurrNodeData->spDest->uiCwnd) )
+	  if(spCurrNodeData->spDest->iCwnd >spCurrNodeData->spDest->iSsthresh &&
+	     ( spCurrNodeData->spDest->iOutstandingBytes 
+	       >= spCurrNodeData->spDest->iCwnd) )
 	    {
-	      spCurrNodeData->spDest->uiPartialBytesAcked 
+	      spCurrNodeData->spDest->iPartialBytesAcked 
 		+= spCurrNodeData->spChunk->sHdr.usLength;
 	    }
 	}
@@ -237,7 +416,14 @@ void MultipleFastRtxSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
 	 spCurrNodeData->eGapAcked == FALSE &&
 	 spCurrNodeData->eAdvancedAcked == FALSE) 
 	{
-	  RttUpdate(spCurrNodeData->dTxTimestamp, spCurrNodeData->spDest);
+
+	  /* If the chunk is marked for timeout rtx, then the sender is an 
+	   * ambigious state. Were the sacks lost or was there a failure?
+	   * Since we don't clear the error counter below, we also don't
+	   * update the RTT. This could be a problem for late arriving SACKs.
+	   */
+	  if(spCurrNodeData->eMarkedForRtx != TIMEOUT_RTX)
+	    RttUpdate(spCurrNodeData->dTxTimestamp, spCurrNodeData->spDest);
 	  spCurrNodeData->spDest->eRtoPending = FALSE;
 	}
 
@@ -245,6 +431,40 @@ void MultipleFastRtxSctpAgent::SendBufferDequeueUpTo(u_int uiTsn)
        */
       if(spCurrNodeData->spDest->eRtxTimerIsRunning == TRUE)
 	StopT3RtxTimer(spCurrNodeData->spDest);
+
+      /* We don't want to clear the error counter if it's cleared already;
+       * otherwise, we'll unnecessarily trigger a trace event.
+       *
+       * Also, the error counter is cleared by SACKed data ONLY if the
+       * TSNs are not marked for timeout retransmission and has not been
+       * gap acked before. Without this condition, we can run into a
+       * problem for failure detection. When a failure occurs, some data
+       * may have made it through before the failure, but the sacks got
+       * lost. When the sender retransmits the first outstanding, the
+       * receiver will sack all the data whose sacks got lost. We don't
+       * want these sacks to clear the error counter, or else failover
+       * would take longer.
+       */
+      if(spCurrNodeData->spDest->iErrorCount != 0 &&
+	 spCurrNodeData->eMarkedForRtx != TIMEOUT_RTX &&
+	 spCurrNodeData->eGapAcked == FALSE)
+	{
+	  DBG_PL(SendBufferDequeueUpTo, 
+		 "clearing error counter for %p with tsn=%lu"), 
+	    spCurrNodeData->spDest, spCurrNodeData->spChunk->uiTsn DBG_PR;
+
+	  spCurrNodeData->spDest->iErrorCount = 0; // clear error counter
+	  tiErrorCount++;                          // ... and trace it too!
+	  spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
+	  if(spCurrNodeData->spDest == spPrimaryDest &&
+	     spNewTxDest != spPrimaryDest) 
+	    {
+	      DBG_PL(SendBufferDequeueUpTo,
+		     "primary recovered... migrating back from %p to %p"),
+		spNewTxDest, spPrimaryDest DBG_PR;
+	      spNewTxDest = spPrimaryDest; // return to primary
+	    }
+	}
 
       spDeleteNode = spCurrNode;
       spCurrNode = spCurrNode->spNext;
@@ -263,14 +483,13 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
   DBG_I(ProcessGapAckBlocks);
 
   Boolean_E eFastRtxNeeded = FALSE;
-  u_int uiHighestTsnNewlySacked = uiCumAckPoint; // fast rtx (impl guide v.02)
+  u_int uiHighestTsnSacked = uiHighestTsnNewlyAcked;
   u_int uiStartTsn;
   u_int uiEndTsn;
   Node_S *spCurrNode = NULL;
   SctpSendBufferNode_S *spCurrNodeData = NULL;
   Node_S *spCurrDestNode = NULL;
   SctpDest_S *spCurrDestNodeData = NULL;
-  Boolean_E eFirstOutstanding = FALSE;  
 
   SctpSackChunk_S *spSackChunk = (SctpSackChunk_S *) ucpSackChunk;
 
@@ -279,8 +498,12 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
     = (SctpGapAckBlock_S *) (ucpSackChunk + sizeof(SctpSackChunk_S));
 
   // BEGIN -- MultipleFastRtx changes to this function    
-  u_int uiHighestOutstandingTsn
-    = ((SctpSendBufferNode_S *) sSendBuffer.spTail->vpData)->spChunk->uiTsn;
+  u_int uiHighestOutstandingTsn = GetHighestOutstandingTsn();
+
+  /* We want to track any time a regular FR and a MFR is invoked
+   */
+  Boolean_E eFrInvoked = FALSE;
+  Boolean_E eMfrInvoked = FALSE;
   // END -- MultipleFastRtx changes to this function    
 
   DBG_PL(ProcessGapAckBlocks,"CumAck=%d"), spSackChunk->uiCumAck DBG_PR;
@@ -294,7 +517,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
   
   else // we do have chunks in the rtx buffer
     {
-      /* make sure we clear all the eSeenFirstOutstanding flags before
+      /* make sure we clear all the spFirstOutstanding pointers before
        * using them!  
        */
       for(spCurrDestNode = sDestList.spHead;
@@ -302,7 +525,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	  spCurrDestNode = spCurrDestNode->spNext)
 	{
 	  spCurrDestNodeData = (SctpDest_S *) spCurrDestNode->vpData;
-	  spCurrDestNodeData->eSeenFirstOutstanding = FALSE;
+	  spCurrDestNodeData->spFirstOutstanding = NULL;
 	}
 
       for(spCurrNode = sSendBuffer.spHead;
@@ -312,30 +535,16 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	{
 	  spCurrNodeData = (SctpSendBufferNode_S *) spCurrNode->vpData;
 
-	  DBG_PL(ProcessGapAckBlocks, "eSeenFirstOutstanding=%s"),
-	    spCurrNodeData->spDest->eSeenFirstOutstanding ? "TRUE" : "FALSE"
-	    DBG_PR;
-		 
 	  /* is this chunk the first outstanding on its destination?
 	   */
-	  if(spCurrNodeData->spDest->eSeenFirstOutstanding == FALSE &&
+	  if(spCurrNodeData->spDest->spFirstOutstanding == NULL &&
 	     spCurrNodeData->eGapAcked == FALSE &&
 	     spCurrNodeData->eAdvancedAcked == FALSE)
 	    {
 	      /* yes, it is the first!
 	       */
-	      eFirstOutstanding = TRUE;
-	      spCurrNodeData->spDest->eSeenFirstOutstanding = TRUE;
+	      spCurrNodeData->spDest->spFirstOutstanding = spCurrNodeData;
 	    }
-	  else
-	    {
-	      /* nope, not the first...
-	       */
-	      eFirstOutstanding = FALSE;
-	    }
-
-	  DBG_PL(ProcessGapAckBlocks, "eFirstOutstanding=%s"),
-	    eFirstOutstanding ? "TRUE" : "FALSE" DBG_PR;
 
 	  DBG_PL(ProcessGapAckBlocks, "--> rtx list chunk begin") DBG_PR;
 
@@ -381,7 +590,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		    spCurrNodeData->spChunk->uiTsn DBG_PR;
 		  spCurrNodeData->eGapAcked = FALSE;
-		  spCurrNodeData->spDest->uiOutstandingBytes 
+		  spCurrNodeData->spDest->iOutstandingBytes 
 		    += spCurrNodeData->spChunk->sHdr.usLength;
 
 		  /* section 6.3.2.R4 says that we should restart the
@@ -403,20 +612,28 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		spCurrNodeData->eGapAcked ? "TRUE" : "FALSE" 
 		DBG_PR;
 
+	      /* HTNA algorithm... we need to know the highest TSN sacked
+	       * (even if it isn't new), so that when the sender is in
+	       * Fast Recovery, the outstanding tsns beyond the last sack
+	       * tsn do not have their missing reports incremented
+	       */
+	      if(uiHighestTsnSacked < spCurrNodeData->spChunk->uiTsn)
+		uiHighestTsnSacked = spCurrNodeData->spChunk->uiTsn;
+
 	      if(spCurrNodeData->eGapAcked == FALSE)
 		{
 		  DBG_PL(ProcessGapAckBlocks, "setting eGapAcked=TRUE") DBG_PR;
 		  spCurrNodeData->eGapAcked = TRUE;
-		  spCurrNodeData->eMarkedForRtx = FALSE; // unmark
 
-		  /* modified fast rtx algorithm (implementor's guide v.02)
+		  /* HTNA algorithm... we need to know the highest TSN
+		   * newly acked
 		   */
-		  if(uiHighestTsnNewlySacked < spCurrNodeData->spChunk->uiTsn)
-		    uiHighestTsnNewlySacked = spCurrNodeData->spChunk->uiTsn;
+		  if(uiHighestTsnNewlyAcked < spCurrNodeData->spChunk->uiTsn)
+		    uiHighestTsnNewlyAcked = spCurrNodeData->spChunk->uiTsn;
 
 		  if(spCurrNodeData->eAdvancedAcked == FALSE)
 		    {
-		      spCurrNodeData->spDest->uiNumNewlyAckedBytes 
+		      spCurrNodeData->spDest->iNumNewlyAckedBytes 
 			+= spCurrNodeData->spChunk->sHdr.usLength;
 		    }
 
@@ -424,8 +641,8 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		   * congestion avoidance mode, we have a new cum ack, and
 		   * we haven't already incremented it for this sack
 		   */
-		  if(( spCurrNodeData->spDest->uiCwnd 
-		       > spCurrNodeData->spDest->uiSsthresh) &&
+		  if(( spCurrNodeData->spDest->iCwnd 
+		       > spCurrNodeData->spDest->iSsthresh) &&
 		     eNewCumAck == TRUE &&
 		     spCurrNodeData->eAddedToPartialBytesAcked == FALSE)
 		    {
@@ -434,7 +651,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 
 		      spCurrNodeData->eAddedToPartialBytesAcked = TRUE; // set
 
-		      spCurrNodeData->spDest->uiPartialBytesAcked 
+		      spCurrNodeData->spDest->iPartialBytesAcked 
 			+= spCurrNodeData->spChunk->sHdr.usLength;
 		    }
 		  /* We update the RTT estimate if the following hold true:
@@ -449,8 +666,16 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		     spCurrNodeData->iNumTxs == 1 &&
 		     spCurrNodeData->eAdvancedAcked == FALSE) 
 		    {
-		      RttUpdate(spCurrNodeData->dTxTimestamp, 
-				spCurrNodeData->spDest);
+		      /* If the chunk is marked for timeout rtx, then the
+		       * sender is an ambigious state. Were the sacks lost
+		       * or was there a failure?  Since we don't clear the
+		       * error counter below, we also don't update the
+		       * RTT. This could be a problem for late arriving
+		       * SACKs.
+		       */
+		      if(spCurrNodeData->eMarkedForRtx != TIMEOUT_RTX)
+			RttUpdate(spCurrNodeData->dTxTimestamp, 
+				  spCurrNodeData->spDest);
 		      spCurrNodeData->spDest->eRtoPending = FALSE;
 		    }
 
@@ -461,17 +686,41 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		   * destination, we'll restart the timer later in
 		   * ProcessSackChunk() 
 		   */
-		  if(eFirstOutstanding == TRUE 
-		     && spCurrNodeData->spDest->eRtxTimerIsRunning == TRUE)
-		    StopT3RtxTimer(spCurrNodeData->spDest);
-		  
-		  uiAssocErrorCount = 0;
-		  
-		  /* trigger trace ONLY if it was previously NOT 0
-		   */
-		  if(spCurrNodeData->spDest->uiErrorCount != 0)
+		  if(spCurrNodeData->spDest->spFirstOutstanding 
+		     == spCurrNodeData)
+		    
 		    {
-		      spCurrNodeData->spDest->uiErrorCount = 0; // clear errors
+		      if(spCurrNodeData->spDest->eRtxTimerIsRunning == TRUE)
+			StopT3RtxTimer(spCurrNodeData->spDest);
+		    }
+		  
+		  iAssocErrorCount = 0;
+		  
+		  /* We don't want to clear the error counter if it's
+		   * cleared already; otherwise, we'll unnecessarily
+		   * trigger a trace event.
+		   *
+		   * Also, the error counter is cleared by SACKed data
+		   * ONLY if the TSNs are not marked for timeout
+		   * retransmission and has not been gap acked
+		   * before. Without this condition, we can run into a
+		   * problem for failure detection. When a failure occurs,
+		   * some data may have made it through before the
+		   * failure, but the sacks got lost. When the sender
+		   * retransmits the first outstanding, the receiver will
+		   * sack all the data whose sacks got lost. We don't want
+		   * these sacks * to clear the error counter, or else
+		   * failover would take longer.
+		   */
+		  if(spCurrNodeData->spDest->iErrorCount != 0  &&
+		     spCurrNodeData->eMarkedForRtx != TIMEOUT_RTX)
+		    {
+		      DBG_PL(ProcessGapAckBlocks,
+			     "clearing error counter for %p with tsn=%lu"), 
+			spCurrNodeData->spDest, 
+			spCurrNodeData->spChunk->uiTsn DBG_PR;
+
+		      spCurrNodeData->spDest->iErrorCount = 0; // clear errors
 		      tiErrorCount++;                       // ... and trace it!
 		      spCurrNodeData->spDest->eStatus = SCTP_DEST_STATUS_ACTIVE;
 		      if(spCurrNodeData->spDest == spPrimaryDest &&
@@ -484,6 +733,8 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			  spNewTxDest = spPrimaryDest; // return to primary
 			}
 		    }
+
+		  spCurrNodeData->eMarkedForRtx = NO_RTX; // unmark
 		}
 	    }
 	  else if(spCurrNodeData->spChunk->uiTsn > uiEndTsn)
@@ -516,7 +767,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 			 "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		    spCurrNodeData->spChunk->uiTsn DBG_PR;
 		  spCurrNodeData->eGapAcked = FALSE;
-		  spCurrNodeData->spDest->uiOutstandingBytes 
+		  spCurrNodeData->spDest->iOutstandingBytes 
 		    += spCurrNodeData->spChunk->sHdr.usLength;
 		  
 		  /* section 6.3.2.R4 says that we should restart the
@@ -554,7 +805,7 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		     "out of order SACK? setting TSN=%d eGapAcked=FALSE"),
 		spCurrNodeData->spChunk->uiTsn DBG_PR;
 	      spCurrNodeData->eGapAcked = FALSE;
-	      spCurrNodeData->spDest->uiOutstandingBytes 
+	      spCurrNodeData->spDest->iOutstandingBytes 
 		+= spCurrNodeData->spChunk->sHdr.usLength;
 
 	      /* section 6.3.2.R4 says that we should restart the T3-rtx
@@ -567,8 +818,8 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	}
 
       DBG_PL(ProcessGapAckBlocks, "now incrementing missing reports...") DBG_PR;
-      DBG_PL(ProcessGapAckBlocks, "uiHighestTsnNewlySacked=%d"), 
-	     uiHighestTsnNewlySacked DBG_PR;
+      DBG_PL(ProcessGapAckBlocks, "uiHighestTsnNewlyAcked=%d"), 
+	     uiHighestTsnNewlyAcked DBG_PR;
 
       for(spCurrNode = sSendBuffer.spHead;
 	  spCurrNode != NULL; 
@@ -585,10 +836,14 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	    {
 	      // BEGIN -- MultipleFastRtx changes to this function  
 
-	      /* Caro's Multiple Fast Rtx Algorithm
+	      /* Caro's Multiple Fast Rtx Algorithm 
+	       * (in addition to existing HTNA algorithm)
 	       */
-	      if(spCurrNodeData->spChunk->uiTsn < uiHighestTsnNewlySacked &&
-		 uiHighestTsnNewlySacked > spCurrNodeData->uiFastRtxRecover)
+	      if(( (spCurrNodeData->spChunk->uiTsn < uiHighestTsnNewlyAcked) ||
+		   (eNewCumAck == TRUE && 
+		    uiHighestTsnNewlyAcked <= uiRecover &&
+		    spCurrNodeData->spChunk->uiTsn < uiHighestTsnSacked) ) &&
+		 uiHighestTsnNewlyAcked > spCurrNodeData->uiFastRtxRecover)
 		{
 		  spCurrNodeData->iNumMissingReports++;
 		  DBG_PL(ProcessGapAckBlocks, 
@@ -597,11 +852,16 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 		    spCurrNodeData->iNumMissingReports
 		    DBG_PR;
 
-		  if(spCurrNodeData->iNumMissingReports == FAST_RTX_TRIGGER &&
+		  if(spCurrNodeData->iNumMissingReports == iFastRtxTrigger &&
 		     spCurrNodeData->eAdvancedAcked == FALSE)
 		    {
+		      if(spCurrNodeData->uiFastRtxRecover == 0)
+			eFrInvoked = TRUE;
+		      else
+			eMfrInvoked = TRUE;
+
 		      spCurrNodeData->iNumMissingReports = 0;
-		      MarkChunkForRtx(spCurrNodeData);
+		      MarkChunkForRtx(spCurrNodeData, FAST_RTX);
 		      eFastRtxNeeded = TRUE;
 		      spCurrNodeData->uiFastRtxRecover =uiHighestOutstandingTsn;
 			
@@ -619,6 +879,13 @@ Boolean_E MultipleFastRtxSctpAgent::ProcessGapAckBlocks(u_char *ucpSackChunk,
 	    }
 	}
     }
+
+  // BEGIN -- MultipleFastRtx changes to this function    
+  if(eFrInvoked == TRUE)
+    tiFrCount++;
+  if(eMfrInvoked == TRUE)
+    tiMfrCount++;
+  // END -- MultipleFastRtx changes to this function    
 
   DBG_PL(ProcessGapAckBlocks, "eFastRtxNeeded=%s"), 
     eFastRtxNeeded ? "TRUE" : "FALSE" DBG_PR;

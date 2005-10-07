@@ -15,11 +15,8 @@
 
    \begin{itemize}\itemsep0pt
 
-      \item Agent/SCTP - RFC2960 + draft-ietf-tsvwg-sctpimpguide-04.txt +
-      draft-ietf-tsvwg-usctp-01.txt
-
-      \item Agent/SCTP/Newreno - includes Fast Recovery introduced in
-      draft-ietf-tsvwg-sctpimpguide-08.txt
+      \item Agent/SCTP - RFC2960 + draft-ietf-tsvwg-sctpimpguide-09.txt
+       + draft-ietf-tsvwg-usctp-01.txt 
 
       \item Agent/SCTP/HbAfterRto - experimental extension (HEARTBEAT
       after RTO)
@@ -28,6 +25,12 @@
       Multiple Fast Retransmit algorithm)
 
       \item Agent/SCTP/Timestamp - experimental extension (TIMESTAMP chunk)
+
+      \item Agent/SCTP/MfrHbAfterRto - experimental extension that
+      combines MultipleFastRtx and HbAfterRto
+
+      \item Agent/SCTP/MfrTimestamp - experimental extension that
+      combines MultipleFastRtx and Timestamp
 
    \end{itemize}
 
@@ -47,9 +50,7 @@
 
       The base SCTP agent \code{Agent/SCTP} supports the features in the
       following sections of RFC2960, including modifications up to
-      draft-ietf-tsvwg-sctpimpguide-04.txt (the base SCTP agent does not
-      yet support the new max burst or Fast Recovery algorithms in the
-      lastest version of the implementer's guide):
+      draft-ietf-tsvwg-sctpimpguide-13.txt.
 
       \begin{itemize}\itemsep0pt
 
@@ -95,23 +96,32 @@
       when the simulated connection ends. A shutdown procedure may be
       added in a future release.
 
-      \paragraph{Multihoming}  Due to the \ns~architecture, a node cannot
-      actually be multihomed. To get around this limitation, each
-      multihomed node is actually made up of more than one node. As shown
-      in Figure~\ref{fig:multihomedNode}, a multihomed node has a "core
-      node" and an "interface node" for each simulated interface. The SCTP
-      agent resides on all these nodes, but traffic only goes to and from
-      the interface nodes. The core node is used for routing and is
-      connected to each interface node via a uni-directional link towards
-      the interface node, but traffic does not traverse these
-      links. Instead, these links are used to dynamically determine which
-      outgoing interface node to use for sending to a particular
-      destination. Note: the user must configure multihomed nodes using
-      commands in Section~\ref{sec:sctpCommands} (an example is shown in
-      Section~\ref{sec:multihomedExample}).
+      \paragraph{Multihoming} The underlying infrastructure of ns-2
+      does not support multiple interfaces for a single node. To get
+      around this limitation, our approach allows the general support for
+      logically multihoming nodes that have a multihomed transport layer,
+      such as SCTP. Each multihomed node is actually made up of more than
+      one node. As shown in Figure~\ref{fig:multihomedNode}, a logically
+      multihomed node is made up of a single "core node" and multiple
+      "interface nodes", one for each simulated interface. The core node
+      is connected to each interface node via a uni-directional link
+      towards the interface node, but traffic never traverses these
+      links. These links are only in place for the core node to make
+      routing decisions. An SCTP agent simultaneously resides on all these
+      nodes (i.e., the core and interface nodes), but actual traffic only
+      goes to/from the interface nodes.  Whenever the SCTP agent needs to
+      send data to a destination and does not know which outgoing
+      interface to use, the agent firsts consults with the core node for a
+      route lookup. Then, the SCTP agent performs the send from the
+      appropriate interface node. Incoming data is received at one of the
+      interface nodes directly and passed up to the SCTP agent. This
+      solution is applicable to any transport protocol that requires
+      multihoming functionality in ns-2. Note: the user must configure
+      multihomed nodes using commands in Section~\ref{sec:sctpCommands}
+      (an example is shown in Section~\ref{sec:multihomedExample}).
 
       \begin{figure}[tb] 
-	\centerline{\scalebox{.3}{\includegraphics{sctp-multihomedNode}}}
+	\centerline{\includegraphics{sctp-multihomedNode}}
 	\caption{Example of a Multihomed Node}
 	\label{fig:multihomedNode} 
       \end{figure}
@@ -150,6 +160,7 @@
 	 Agent/SCTP set debugFileIndex_ -1 \; specifies debugging output file (see explanation);
 	 Agent/SCTP set associationMaxRetrans_ 10\; RFC2960's Association.Max.Retrans;
 	 Agent/SCTP set pathMaxRetrans_ 5 \; RFC2960's Path.Max.Retrans;
+	 Agent/SCTP set changePrimaryThresh_ -1 \; change primary if error count exeeds thresh (default infinite);
 	 Agent/SCTP set maxInitRetransmits_ 8 \; RFC2960's Max.Init.Retransmits;
 	 Agent/SCTP set oneHeartbeatTimer_ 1 \; toggle HB timer for each dest vs one for all dests;
 	 Agent/SCTP set heartbeatInterval_ 30 \; RFC2960's HB.interval in seconds;
@@ -157,6 +168,10 @@
 	 Agent/SCTP set initialRwnd_ 65536 \; initial receiver window in bytes (set on receiver side);
 	 Agent/SCTP set initialSsthresh_ 65536 \; initial ssthresh value in bytes;
 	 Agent/SCTP set initialCwnd_ 2 \; initial cwnd in multiple of (MTU - SCTP/IP headers);
+	 Agent/SCTP set initialRto_ 3.0 \; default initial RTO = 3 secs;
+	 Agent/SCTP set minRto_ 1.0    \; default min RTO = 1 sec;
+	 Agent/SCTP set maxRto_ 60.0   \; default max RTO = 60 secs;
+	 Agent/SCTP set fastRtxTrigger_ 4 \; 4 missing reports trigger fast rtx;
 	 Agent/SCTP set numOutStreams_ 1 \; number of outgoing streams;
 	 Agent/SCTP set numUnrelStreams_ 0 \; number of partially reliable streams (all grouped starting at stream 0);
 	 Agent/SCTP set reliability_ 0 \; k-rtx value of all partially reliable streams;
@@ -164,8 +179,12 @@
 	 Agent/SCTP set ipHeaderSize_ 20 \; IP header size;
 	 Agent/SCTP set dataChunkSize_ 1468 \; includes data chunk header and restricted to 4 byte boundaries;
 	 Agent/SCTP set useDelayedSacks_ 1 \; toggle on/off delayed sack algorithm (set on receiver side);
+	 Agent/SCTP set sackDelay_ 0.200 \; rfc2960 recommends 200 ms;
 	 Agent/SCTP set useMaxBurst_ 1 \; toggle on/off max burst;
-	 Agent/SCTP set rtxToAlt_ 1 \; toggle rtxs to an alt dest vs same dest;
+	 Agent/SCTP set rtxToAlt_ 1 \; rtxs to which dest?  0 = same, 1 = alt, 2 = fast rtx to same + timeouts to alt;
+	 Agent/SCTP set dormantAction_ 0 \; 0 = change dest, 1 = use primary, 2 = use last dest before dormant; 
+	 Agent/SCTP set routeCalcDelay_ 0 \; time to calculate a route (see explanation);
+	 Agent/SCTP set routeCacheLifetime_ 1.2 \; how long a route remains cached (see explanation);
 	 Agent/SCTP set trace_all_ 0 \; toggle on/off print all variables on a trace event;
 	 \end{program}
 
@@ -192,6 +211,16 @@
 	 reliability options may be overridden by an SCTP-aware
 	 application (see Section~\ref{sec:sctpApps}).
 
+	 The \code{routeCalcDelay_} and \code{routeCacheLifetime_}
+	 parameters are only used to optionally simulate overheads of
+	 reactive routing protocols in MANETs without actually simulating
+	 a MANET. (Do not use this feature if you are actually simulating
+	 a MANET!) The default setting for \code{routeCalcDelay_} is 0
+	 seconds, which means that this feature is turned off. The default
+	 setting for \code{routeCacheLifetime_} is 1.2 seconds (ignored if
+	 this feature is turned off), which is purposely set slightly
+	 larger than the default min RTO to avoid a ``cache miss'' after a
+	 single timeout event.
 
       \subsection{Commands}
       \label{sec:sctpCommands}
@@ -211,6 +240,21 @@
 
 	       \item[] \code{errorCount_} Used to trace the error counters
 	       of all paths.
+
+	       \item[] \code{frCount_} Used to trace the number of times a
+	       fast retransmit is invoked.
+
+	       \item[] \code{mfrCount_} Used to trace the number of times
+	       the multiple fast retransmit algorithm is invoked. This
+	       trace variable can only be used with the MultipleFastRtx
+	       extension agent. (See Section~\ref{ssec:mfr})
+
+	       \item[] \code{timeoutCount_} Used to trace the total number of
+	       times a timeout has occurred on all paths.
+
+	       \item[] \code{rcdCount_} Used to trace the total number of
+	       times a route calculation delay (see
+	       Section~\ref{sec:sctpConfig}) has occurred on all paths.
 
 	    \end{itemize}
 	 Note: the actual value of these trace variables have no
@@ -256,18 +300,6 @@
    \section{Extensions}
    \label{sec:sctpExtensions}
 
-      \subsection{Newreno SCTP} 
-
-	 The Newreno SCTP agent is very similar to the base SCTP agent,
-	 except that it introduces {\em Fast Recovery} mechanism to avoid
-	 multiple cwnd reductions in a single round-trip time. This agent
-	 introduces a new policy which restricts the cwnd from being
-	 increased during Fast Recovery, thus ensuring that the newly
-	 introduced Fast Recovery mechanism maintains conservative
-	 behavior. The NewReno SCTP agent modifies SCTP's HTNA (Highest
-	 TSN Newly Acked) algorithm to ensure that Fast Retransmits are
-	 not unnecessarily delayed~\cite{SCTP_CARO_2003b}.
-
       \subsection{HbAfterRto SCTP}
 
 	 The HbAfterRto SCTP agent extends the current retransmission
@@ -290,6 +322,7 @@
 	 help reduce its recently doubled RTO~\cite{SCTP_CARO_2003e}.
 
       \subsection{MultipleFastRtx SCTP}
+      \label{ssec:mfr}
 
 	 The MultipleFastRtx SCTP agent attempts to minimize the number of
 	 timeouts which occur. Without the Multiple Fast Retransmit
@@ -321,6 +354,17 @@
 	 RTT estimate and keep the RTO value more accurate. With
 	 timestamps, the sender has more samples for updating the RTT
 	 estimate of alternate destination(s)~\cite{SCTP_CARO_2003e}.
+
+      \subsection{MfrHbAfterRto SCTP}
+
+         The MfrHbAfterRto SCTP agent combines the functionality of the
+         HbAfterRto and MultipleFastRtx SCTP agents.
+
+
+      \subsection{MfrHbAfterRto SCTP}
+
+         The MfrTimestamp SCTP agent combines the functionality of the
+         Timestamp and MultipleFastRtx SCTP agents.
 
    \section{Tracing SCTP Dynamics}
    \label{sec:sctpTracing}
@@ -449,7 +493,7 @@
 	 set allchan [open all.tr w]
 	 $ns trace-all $allchan
 
-	 proc finish \{\} \{
+	 proc finish {} \{
 	    exit 0
 	 \}
 
@@ -514,7 +558,7 @@
 	 set allchan [open all.tr w]
 	 $ns trace-all $allchan
 
-	 proc finish \{\} \{
+	 proc finish {} \{
 	    exec nam sctp.nam &
 	    exit 0
 	 \}
