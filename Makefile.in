@@ -189,8 +189,8 @@ OBJ_CC = \
 	tcp/nilist.o \
 	sctp/sctp.o apps/sctp_app1.o\
 	sctp/sctp-timestamp.o sctp/sctp-hbAfterRto.o \
-	sctp/sctp-multipleFastRtx.o sctp/sctp-mfrHbAfterRto.o \
-	sctp/sctp-mfrTimestamp.o \
+	sctp/sctp-multipleFastRtx.o \
+	sctp/sctp-newreno.o \
 	sctp/sctpDebug.o \
 	tools/integrator.o tools/queue-monitor.o \
 	tools/flowmon.o tools/loss-monitor.o \
