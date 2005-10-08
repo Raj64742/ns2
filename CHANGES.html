@@ -16,6 +16,54 @@ with the most recent changes coming first.
 <hr>
 <h3>ns-2.29 PENDING RELEASE</h3>
 <ul>
+<p><li><b>[tomh]</b>Thu Oct 6 22:58:30 PDT 2005: 
+Updated SCTP implementation; patch contributed by
+<a href="mailto:me@armandocaro.net">Armando Caro</a>:
+<ul>
+<li>Added/Deleted new extensions:
+<ul>
+   <li> added MfrTimestamp - combines MultipleFastRtx & Timestamp extensions
+   <li> added MfrHbAfterRto - combines MultipleFastRtx & HbAfterRto extensions
+   <li> deleted NewReno - the sctp-newreno extensions has been merged
+into the core SCTP code since the "newreno" changes are now in the
+SCTP implementer's guide
+</ul>
+
+<li>New Features:
+<ul>
+    <li> added new retransmission policy for sending fast retransmissions
+to the same destination and timeout retransmissions to an alternate
+destination
+   <li> added experimental feature: changePrimaryThresh_ sets a threshold
+for when the primary destination is changed automatically
+   <li> added the ability to specify one of three dormant state actions
+   <li> added the ability to track the number of times fast retransmit,
+multiple fast retransmit, and timeouts are invoked
+   <li> new TCL bindable variables: initial RTO, min RTO, max RTO, fast
+rtx trigger, and sack delay
+</ul>
+
+<li> Bug Fixes:
+<ul>
+   <li>TCL bindable initial cwnd now
+   <li>fixed a flaw in the implementation of Karn's algorithm
+   <li> modified heartbeat interval calculation based on fix in implementer's guide
+   <li> modified the way state is maintained for chunks marked for
+retransmission, so that failure detection is not unnecessarily
+delayed.
+   <li> fast recovery was not exiting properly
+   <li> HbAfterRto algorithm now does not send a heartbeat if the timeout
+retransmission is being sent to the same destination as the original
+transmission
+   <li> now anytime a tsn is newly acked (either by new cumack or
+GapAck), the error counter is cleared for that TSN's destination
+   <li> Max.Burst mechanism now counting control chunks correctly
+   <li> RTO timer is now restarted for an alternate destination when a
+retransmission sent becomes the lowest outstanding on that destination
+   <li> peer rwnd calculation bug fix
+</ul>
+</ul>
+
 <p><li><b>[tomh]</b>Sun Sep 18 16:33:00 PDT 2005
 64-bit patch for ns-2.  From Mathieu Lacage:
 http://mailman.isi.edu/pipermail/ns-developers/2005-September/001874.html
