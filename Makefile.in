@@ -424,9 +424,6 @@ NS_TCL_LIB = \
 	tcl/mcast/srm-ssm.tcl \
 	tcl/mcast/timer.tcl \
 	tcl/mcast/McastMonitor.tcl \
-	tcl/mcast/mftp_snd.tcl \
-	tcl/mcast/mftp_rcv.tcl \
-	tcl/mcast/mftp_rcv_stat.tcl \
 	tcl/mobility/dsdv.tcl \
 	tcl/mobility/dsr.tcl \
         tcl/ctr-mcast/CtrMcast.tcl \
