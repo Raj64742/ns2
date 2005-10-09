@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.270 2005/09/22 18:34:03 haldar Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.271 2005/10/09 19:32:07 tomh Exp $
 
 
 #
@@ -176,9 +176,10 @@ source ../ctr-mcast/CtrRPComp.tcl
 source ../mcast/BST.tcl
 source ../mcast/srm.tcl
 source ../mcast/srm-ssm.tcl
-source ../mcast/mftp_snd.tcl
-source ../mcast/mftp_rcv.tcl
-source ../mcast/mftp_rcv_stat.tcl
+# These files removed due to licensing conflicts
+# source ../mcast/mftp_snd.tcl
+# source ../mcast/mftp_rcv.tcl
+# source ../mcast/mftp_rcv_stat.tcl
 source ../mcast/McastMonitor.tcl
 source ../rlm/rlm.tcl
 source ../rlm/rlm-ns.tcl

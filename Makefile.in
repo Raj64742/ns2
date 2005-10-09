@@ -207,8 +207,6 @@ OBJ_CC = \
 	mcast/ctrMcast.o mcast/mcast_ctrl.o mcast/srm.o \
 	common/sessionhelper.o queue/delaymodel.o \
 	mcast/srm-ssm.o mcast/srm-topo.o \
-	apps/mftp.o apps/mftp_snd.o apps/mftp_rcv.o \
-	apps/codeword.o \
 	routing/alloc-address.o routing/address.o \
 	$(LIB_DIR)int.Vec.o $(LIB_DIR)int.RVec.o \
 	$(LIB_DIR)dmalloc_support.o \
