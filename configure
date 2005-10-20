@@ -5193,7 +5193,7 @@ else
   d=""
 fi;
 
-OTCL_VERS=1.10
+OTCL_VERS=1.11
 OTCL_ALT_VERS=1.0
 
 OTCL_H_PLACES_D="$d \
