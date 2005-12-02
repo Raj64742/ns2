@@ -32,7 +32,7 @@
 # SUCH DAMAGE.
 #
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.271 2005/10/09 19:32:07 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-lib.tcl,v 1.272 2005/12/02 20:59:40 tom_henderson Exp $
 
 
 #
@@ -1844,8 +1844,8 @@ Classifier instproc adjacents {} {
 Classifier instproc in-slot? slot {
 	$self instvar slots_
 	set ret ""
-	if {[array size slots_] < $slot} {
-		set ret slots_($slot)
+	if {[info exists slots_($slot)]} {
+	        set ret $slots_($slot)
 	}
 	set ret
 }
