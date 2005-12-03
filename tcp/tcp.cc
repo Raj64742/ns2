@@ -34,7 +34,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.163 2005/06/21 01:48:24 sfloyd Exp $ (LBL)";
+    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcp/tcp.cc,v 1.164 2005/12/03 04:19:20 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <stdlib.h>
@@ -81,8 +81,8 @@ TcpAgent::TcpAgent()
 	
 {
 #ifdef TCP_DELAY_BIND_ALL
+        // defined since Dec 1999.
 #else /* ! TCP_DELAY_BIND_ALL */
-	// not delay-bound because delay-bound tracevars aren't yet supported
 	bind("t_seqno_", &t_seqno_);
 	bind("rtt_", &t_rtt_);
 	bind("srtt_", &t_srtt_);
@@ -294,7 +294,6 @@ TcpAgent::delay_bind_dispatch(const char *varName, const char *localName, TclObj
 	if (delay_bind_bool(varName, localName, "frto_enabled_", &frto_enabled_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "sfrto_enabled_", &sfrto_enabled_, tracer)) return TCL_OK;
 	if (delay_bind_bool(varName, localName, "spurious_response_", &spurious_response_, tracer)) return TCL_OK;
-
 
 #ifdef TCP_DELAY_BIND_ALL
 	// not if (delay-bound delay-bound tracevars aren't yet supported

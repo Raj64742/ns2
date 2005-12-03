@@ -666,6 +666,11 @@ int TfrcSinkAgent::get_sample(int oldSample, int numLosses)
 //   except that the number of losses per loss interval is at
 //   most 1460/byte-size-of-small-packets.
 //
+// When ShortIntervals_ is 2, it is like ShortIntervals_ of 1,
+//   except that the number of losses per loss interval is at
+//   most 1460/byte-size-of-small-packets, and an interval size is 
+//   at most three RTTs.
+//
 double TfrcSinkAgent::weighted_average1(int start, int end, double factor, double *m, double *w, int *sample, int ShortIntervals, int *losses, int *count_losses)
 {
         int i;
