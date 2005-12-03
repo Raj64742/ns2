@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.16 2005/06/11 01:52:25 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.17 2005/12/03 04:42:11 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -95,14 +95,6 @@ Topology instproc createlinks ns {
     $ns queue-limit $node_(r2) $node_(r1) 25
     $ns duplex-link $node_(s3) $node_(r2) 10Mb 4ms DropTail
     $ns duplex-link $node_(s4) $node_(r2) 10Mb 5ms DropTail
-
-    $ns duplex-link-op $node_(s1) $node_(r1) orient right-down
-    $ns duplex-link-op $node_(s2) $node_(r1) orient right-up
-    $ns duplex-link-op $node_(r1) $node_(r2) orient right
-    $ns duplex-link-op $node_(r1) $node_(r2) queuePos 0
-    $ns duplex-link-op $node_(r2) $node_(r1) queuePos 0
-    $ns duplex-link-op $node_(s3) $node_(r2) orient left-down
-    $ns duplex-link-op $node_(s4) $node_(r2) orient left-up
 }
 
 Class Topology/net2 -superclass Topology
@@ -110,6 +102,15 @@ Topology/net2 instproc init ns {
     $self instvar node_
     $self makenodes $ns
     $self createlinks $ns
+}
+
+Class Topology/net3 -superclass Topology
+Topology/net3 instproc init ns {
+    $self instvar node_
+    $self makenodes $ns
+    $self createlinks $ns
+    $ns queue-limit $node_(r1) $node_(r2) 100
+    $ns queue-limit $node_(r2) $node_(r1) 100
 }
 
 Class Topology/net2-lossy -superclass Topology
@@ -145,8 +146,61 @@ TestSuite instproc finish file {
         if { [info exists cwnd_chan_] && $quiet == "false" } {
                 $self plot_cwnd
         }
+        if { [info exists tchan_] && $quiet == "false" } {
+                $self plotQueue $testName_
+        }
 
 	$ns_ halt
+}
+
+TestSuite instproc enable_tracequeue ns {
+        $self instvar tchan_ node_
+        set redq [[$ns link $node_(r1) $node_(r2)] queue]
+        set tchan_ [open all.q w]
+        $redq trace curq_
+        $redq trace ave_
+        $redq attach $tchan_
+}
+
+TestSuite instproc plotQueue file {   
+        global quiet
+        $self instvar tchan_
+        #
+        # Plot the queue size and average queue size, for RED gateways.
+        #
+        set awkCode {
+                {
+                        if ($1 == "Q" && NF>2) {
+                                print $2, $3 >> "temp.q";
+                                set end $2
+                        }
+                        else if ($1 == "a" && NF>2)
+                                print $2, $3 >> "temp.a";
+                }
+        }
+        set f [open temp.queue w]
+        puts $f "TitleText: $file"
+        puts $f "Device: Postscript"
+         
+        if { [info exists tchan_] } {
+                close $tchan_
+        }
+        exec rm -f temp.q temp.a
+        exec touch temp.a temp.q  
+        
+        exec awk $awkCode all.q  
+        
+        puts $f \"queue 
+        exec cat temp.q >@ $f
+        puts $f \n\"ave_queue
+        exec cat temp.a >@ $f
+        ###puts $f \n"thresh
+        ###puts $f 0 [[ns link $r1 $r2] get thresh]
+        ###puts $f $end [[ns link $r1 $r2] get thresh]
+        close $f
+        if {$quiet == "false"} {
+                exec xgraph -bb -tk -x time -y queue temp.queue &
+        }
 }
 
 TestSuite instproc tcpDumpAll { tcpSrc interval label } {
@@ -261,6 +315,82 @@ Test/ecn_ack instproc run {} {
 	$self ecnsetup Sack1
 	$self drop_pkt 20000
 	$ns_ run
+}
+
+#######################################################################
+# SYN/ACK Packets #
+#######################################################################
+
+# SYN/ACK packet dropped.
+Class Test/synack1 -superclass TestSuite
+Test/synack1 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net3
+        set test_       synack1_
+        set guide_      "SYN/ACK packet dropped."
+        Agent/TCPSink set ecn_syn_ false
+        $self next pktTraceFile
+}
+Test/synack1 instproc run {} {
+        global quiet
+        $self instvar ns_ guide_ node_ guide_ testName_
+        if {$quiet == "false"} {puts $guide_}
+        Agent/TCP set ecn_ 1
+	Queue/RED set setbit_ true
+	Queue/RED set bytes_ false
+	Queue/RED set queue_in_bytes_ false
+    	Queue/RED set thresh_ 5
+	Queue/RED set maxthresh_ 50
+	Queue/RED set linterm_ 0.5
+	Queue/RED set mark_p_ 1.0
+	Queue/RED set use_mark_p_ true
+        $self setTopo
+
+        # Set up forward TCP connection
+        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s4) 0]
+        $tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 start"
+ 
+        # Set up forward UPD connection
+        set udp1 [$ns_ create-connection UDP $node_(s2) LossMonitor $node_(s4) 1 ]
+        set cbr1 [new Application/Traffic/CBR]
+        $cbr1 attach-agent $udp1
+        $cbr1 set packetSize_ 1000
+        $cbr1 set rate_ 2.0Mb 
+        $ns_ at 0.00 "$cbr1 start"
+        $ns_ at 1.30 "$cbr1 stop"
+
+        # Set up reverse TCP connections, so that SYN/ACK could get dropped
+        set tcp2 [$ns_ create-connection TCP $node_(s4) TCPSink $node_(s1) 2]
+        set ftp2 [$tcp2 attach-app FTP]
+        $ns_ at 1.25 "$ftp2 start"
+
+        set tcp3 [$ns_ create-connection TCP $node_(s4) TCPSink $node_(s1) 3]
+        set ftp3 [$tcp3 attach-app FTP]
+        $ns_ at 1.26 "$ftp3 start"
+
+	$self enable_tracequeue $ns_
+ 
+        $self tcpDump $tcp1 5.0
+
+        #$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
+ 
+        $ns_ at 10.0 "$self cleanupAll $testName_"
+
+        $ns_ run
+}
+
+# SYN/ACK packet marked.
+Class Test/synack2 -superclass TestSuite
+Test/synack2 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net3
+        set test_       synack2_
+        set guide_      "SYN/ACK packet marked."
+        Agent/TCPSink set ecn_syn_ true
+	Test/synack2 instproc run {} [Test/synack1 info instbody run ]
+        $self next pktTraceFile
 }
 
 TestSuite runTest
