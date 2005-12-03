@@ -202,6 +202,7 @@ TcpSink::delay_bind_init_all()
         delay_bind_init_one("generateDSacks_"); // used only by sack
 	delay_bind_init_one("qs_enabled_");
 	delay_bind_init_one("RFC2581_immediate_ack_");
+	delay_bind_init_one("ecn_syn_");
 #if defined(TCP_DELAY_BIND_ALL) && 0
         delay_bind_init_one("maxSackBlocks_");
 #endif /* TCP_DELAY_BIND_ALL */
@@ -218,6 +219,7 @@ TcpSink::delay_bind_dispatch(const char *varName, const char *localName, TclObje
         if (delay_bind_bool(varName, localName, "generateDSacks_", &generate_dsacks_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "qs_enabled_", &qs_enabled_, tracer)) return TCL_OK;
         if (delay_bind_bool(varName, localName, "RFC2581_immediate_ack_", &RFC2581_immediate_ack_, tracer)) return TCL_OK;
+	if (delay_bind_bool(varName, localName, "ecn_syn_", &ecn_syn_ ,tracer)) return TCL_OK;
 #if defined(TCP_DELAY_BIND_ALL) && 0
         if (delay_bind(varName, localName, "maxSackBlocks_", &max_sack_blocks_, tracer)) return TCL_OK;
 #endif /* TCP_DELAY_BIND_ALL */
@@ -323,12 +325,15 @@ void TcpSink::ack(Packet* opkt)
 		// Set EcnEcho bit.  
 		nf->ecnecho() = acker_->ecn_unacked();
 	if (!of->ect() && of->ecnecho() ||
-		(sf != 0 && !sf->ect() && sf->ecnecho()) ) 
+		(sf != 0 && !sf->ect() && sf->ecnecho()) ) {
 		 // This is the negotiation for ECN-capability.
 		 // We are not checking for of->cong_action() also. 
 		 // In this respect, this does not conform to the 
 		 // specifications in the internet draft 
 		nf->ecnecho() = 1;
+		if (ecn_syn_) 
+			nf->ect() = 1;
+	}
 	acker_->append_ack(hdr_cmn::access(npkt),
 			   ntcp, otcp->seqno());
 	add_to_ack(npkt);
