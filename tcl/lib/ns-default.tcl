@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.354 2005/10/07 05:58:30 tomh Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.355 2005/12/03 04:27:00 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -127,7 +127,9 @@ Queue/RED set thresh_ 0
 Queue/RED set maxthresh_ 0
 # Queue/RED/maxthresh_ was changed on 12/29/01, for automatic configuration.
 Queue/RED set thresh_queue_ [Queue set limit_]
+# Note from Sally: I don't see that thresh_queue_ is used for anything.
 Queue/RED set minthresh_queue_ [Queue set limit_]
+# Note from Sally: I don't see that minthresh_queue_ is used for anything.
 Queue/RED set mean_pktsize_ 500
 Queue/RED set idle_pktsize_ 100
 # Queue/RED set q_weight_ 0.002
@@ -136,6 +138,8 @@ Queue/RED set q_weight_ -1
 Queue/RED set wait_ true
 Queue/RED set linterm_ 10
 Queue/RED set mark_p_ 0.1
+Queue/RED set use_mark_p_ false
+# Queue/RED/use_mark_p_ was added on 11/23/05.
 Queue/RED set setbit_ false
 Queue/RED set gentle_ true
 ### Queue/RED/gentle_ was changed from false to true on Apr 23, 2001.
@@ -970,6 +974,7 @@ Agent/TCPSink set generateDSacks_ false
 Agent/TCPSink set qs_enabled_ false
 Agent/TCPSink set RFC2581_immediate_ack_ true
 Agent/TCPSink set bytes_ 0
+Agent/TCPSink set ecn_syn_ false ;		# Added 2005/11/21 for SYN/ACK pkts.
 
 Agent/XCPSink set packetSize_ 40
 Agent/XCPSink set ts_echo_bugfix_ true
