@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.57 2005/06/20 02:39:59 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-red.tcl,v 1.58 2005/12/03 04:36:06 sallyfloyd Exp $
 #
 # This test suite reproduces most of the tests from the following note:
 # Floyd, S., 
@@ -945,4 +945,57 @@ Test/q_weight_auto instproc init {} {
 #     $self next
 # }
 
+Class Test/congested -superclass TestSuite
+Test/congested instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ congested
+    Queue/RED set mark_p_ 0.1
+    Queue/RED set use_mark_p_ false
+    $self next
+}
+Test/congested instproc run {} {
+    $self instvar ns_ node_ testName_ net_
+    Agent/TCP set packetSize_ 1500
+    Agent/TCP set window_ 75
+    Agent/TCP set ecn_ 1
+    Queue/RED set bytes_ true
+    Queue/RED set gentle_ false
+    Queue/RED set setbit_ true
+    $self setTopo
+    # The default is being changed to true.
+
+    set stoptime 5.0
+    set slink [$ns_ link $node_(r1) $node_(r2)]; # link to collect stats on
+    set fmon [$ns_ makeflowmon Fid]
+   #$ns_ attach-fmon $slink $fmon
+    $ns_ attach-fmon $slink $fmon 1
+    
+    set tcp1 [$ns_ create-connection TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(s3) 0]
+
+    set ftp1 [$tcp1 attach-app FTP]
+
+    $self enable_tracequeue $ns_
+    $ns_ at 0.0 "$ftp1 start"
+    $ns_ at $stoptime "$self printall $fmon"
+
+    $self tcpDump $tcp1 5.0
+
+    # trace only the bottleneck link
+    #$self traceQueues $node_(r1) [$self openTrace $stoptime $testName_]
+    $ns_ at $stoptime "$self cleanupAll $testName_"
+
+    $ns_ run
+}
+
+Class Test/congested_mark_p -superclass TestSuite
+Test/congested_mark_p instproc init {} {
+    $self instvar net_ test_
+    set net_ net3 
+    set test_ congested_mark_p
+    Queue/RED set mark_p_ 1.0
+    Queue/RED set use_mark_p_ true
+    Test/congested_mark_p instproc run {} [Test/congested info instbody run ]
+    $self next
+}
 TestSuite runTest
