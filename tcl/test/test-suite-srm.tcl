@@ -155,9 +155,13 @@ TestSuite instproc set-mcast {src num time} {
     # Attach a data source to srm(1)
     set packetSize 800
     set s [new Agent/CBR]
-    #set s [new Application/Traffic/CBR]
     $s set interval_ 0.04
+    # Agent/CBR is an old form, used in backward compatibility mode only.
+    # set s [new Application/Traffic/CBR]
+    # 6400 bits/packet, 25 packets per second, 160Kbps
     $s set packetSize_ $packetSize
+    # $s set rate_ 160Kb
+    # $s attach-agent $srm($src)
     $srm($src) traffic-source $s
     $srm($src) set packetSize_ $packetSize
     $s set fid_ 0
