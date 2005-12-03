@@ -15,6 +15,15 @@ with the most recent changes coming first.
 -->
 <hr>
 <h3>ns-2.30 PENDING RELEASE</h3>
+<ul>
+<li><b>[floyd]<b> Fri Dec  2 21:34:26 PST 2005;
+Added a parameter (use_mark_p_) to RED so that mark_p_ can be used
+to explicitly control whether a packet is marked or dropped, even
+when the average queue size exceeds maxthresh.
+<li><b>[floyd]<b> Fri Dec  2 21:34:26 PST 2005;
+Added a parameter (ecn_syn_) to TCP to allow SYN/ACK packets to be
+ECN-Capable.  From a paper by Aleksandar Kuxmanovic.
+</ul>
 <hr>
 <h3>ns-2.29 Released on Oct 19, 2005</h3>
 <ul>
