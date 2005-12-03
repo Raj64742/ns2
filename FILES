@@ -1932,6 +1932,8 @@ tcl/test/test-output-ecn/ecn_twoecn_sack_delack.Z
 tcl/test/test-output-ecn/ecn_twoecn_tahoe.Z
 tcl/test/test-output-ecn/ecn_twoecn_tahoe_delack.Z
 tcl/test/test-output-ecn-ack/ecn_ack.Z
+tcl/test/test-output-ecn-ack/synack1.Z
+tcl/test/test-output-ecn-ack/synack2.Z
 tcl/test/test-output-ecn-full/ecn_burstyEcn_reno_full.Z
 tcl/test/test-output-ecn-full/ecn_bursty_reno_full.Z
 tcl/test/test-output-ecn-full/ecn_drop1_reno_full.Z
@@ -2277,6 +2279,8 @@ tcl/test/test-output-rbp/vegas_pacing_cwnd.Z
 tcl/test/test-output-rbp/vegas_pacing_rate.Z
 tcl/test/test-output-rbp/vegas_slow_start_restart.Z
 tcl/test/test-output-realaudio/realaudio.Z
+tcl/test/test-output-red/congested.Z
+tcl/test/test-output-red/congested_mark_p.Z
 tcl/test/test-output-red/ecn.Z
 tcl/test/test-output-red/flows_combined.Z
 tcl/test/test-output-red/flows_forced.Z
