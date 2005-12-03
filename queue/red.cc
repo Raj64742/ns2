@@ -57,7 +57,7 @@
 
 #ifndef lint
 static const char rcsid[] =
-    "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.80 2004/10/28 23:35:37 haldar Exp $ (LBL)";
+     "@(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/queue/red.cc,v 1.81 2005/12/03 04:30:25 sallyfloyd Exp $ (LBL)";
 #endif
 
 #include <math.h>
@@ -93,7 +93,7 @@ REDQueue::REDQueue() {
 /*
  * modified to enable instantiation with special Trace objects - ratul
  */
-REDQueue::REDQueue(const char * trace) : link_(NULL), de_drop_(NULL), EDTrace(NULL), tchan_(0), idle_(1)
+REDQueue::REDQueue(const char * trace) : link_(NULL), de_drop_(NULL), EDTrace(NULL), tchan_(0), idle_(1), idletime_(0.0)
 {
 	initParams();
 	
@@ -126,6 +126,7 @@ REDQueue::REDQueue(const char * trace) : link_(NULL), de_drop_(NULL), EDTrace(NU
 	bind_bool("wait_", &edp_.wait);
 	bind("linterm_", &edp_.max_p_inv);
 	bind("mark_p_", &edp_.mark_p);
+	bind_bool("use_mark_p_", &edp_.use_mark_p);
 	bind_bool("setbit_", &edp_.setbit);	    // mark instead of drop
 	bind_bool("gentle_", &edp_.gentle);         // increase the packet
 						    // drop prob. slowly
@@ -235,7 +236,6 @@ void REDQueue::initParams()
 	edp_.th_max = 0.0;
 	edp_.th_max_pkts = 0.0;
 	edp_.max_p_inv = 0.0;
-	edp_.mark_p = 0.0;
 	edp_.q_w = 0.0;
 	edp_.adaptive = 0;
 	edp_.cautious = 0;
@@ -625,6 +625,7 @@ void REDQueue::enque(Packet* pkt)
 	 * of time we've been idle for
 	 */
 
+	/*  print_edp(); */
 	int m = 0;
 	if (idle_) {
 		// A packet that arrives to an idle queue will never
@@ -680,7 +681,8 @@ void REDQueue::enque(Packet* pkt)
 	curq_ = qlen;	// helps to trace queue during arrival, if enabled
 
 	if (qavg >= edp_.th_min && qlen > 1) {
-		if ((!edp_.gentle && qavg >= edp_.th_max) ||
+		if (!edp_.use_mark_p && 
+			(!edp_.gentle && qavg >= edp_.th_max) ||
 			(edp_.gentle && qavg >= 2 * edp_.th_max)) {
 			droptype = DTYPE_FORCED;
 		} else if (edv_.old == 0) {
@@ -908,6 +910,7 @@ void REDQueue::print_edp()
 	printf("max_p: %f, qw: %f, ptc: %f\n",
 		(double) edv_.cur_max_p, edp_.q_w, edp_.ptc);
 	printf("qlim: %d, idletime: %f\n", qlim_, idletime_);
+	printf("mark_p: %f, use_mark_p: %d\n", edp_.mark_p, edp_.use_mark_p);
 	printf("=========\n");
 }
 
