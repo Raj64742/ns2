@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.17 2005/12/03 04:42:11 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.18 2005/12/06 20:00:32 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -38,7 +38,7 @@ catch "cd tcl/test"
 catch "cd $dir"
 source misc_simple.tcl
 remove-all-packet-headers       ; # removes all except common
-add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
+add-packet-header Flags IP TCP RTP ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
 Agent/TCP set syn_ false
@@ -353,6 +353,7 @@ Test/synack1 instproc run {} {
         $ns_ at 0.00 "$ftp1 start"
  
         # Set up forward UPD connection
+	Agent/UDP set packetSize_ 1000
         set udp1 [$ns_ create-connection UDP $node_(s2) LossMonitor $node_(s4) 1 ]
         set cbr1 [new Application/Traffic/CBR]
         $cbr1 attach-agent $udp1
