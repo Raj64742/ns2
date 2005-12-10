@@ -2,7 +2,7 @@
 /*
  * smac.cc
  * Copyright (C) 2000 by the University of Southern California
- * $Id: smac.cc,v 1.17 2005/08/25 18:58:07 johnh Exp $
+ * $Id: smac.cc,v 1.18 2005/12/10 17:57:13 liyuan Exp $
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License,
@@ -1063,7 +1063,7 @@ void SMAC::recv(Packet *p, Handler *h) {
   
 	// cancel carrier sense timer and wait for entire pkt
 	if (state_ == CR_SENSE) {
-		printf("Cancelling CS- node %d\n", index_);
+		//printf("Cancelling CS- node %d\n", index_);
 		// cancels only if timer is pending; smac could be in CR_SENSE with timer cancelled
 		// incase it has already received a pkt and receiving again
 		mhCS_.checkToCancel();
