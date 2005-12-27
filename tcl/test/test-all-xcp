@@ -26,4 +26,5 @@ file="test-suite-$f.tcl"
 directory="test-output-$f"
 version="v2"
 ./test-all-template1 $file $directory $version $@
+rm -rf xcp*.tr ft_red*.tr
 
