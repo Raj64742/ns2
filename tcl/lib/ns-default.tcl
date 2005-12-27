@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.355 2005/12/03 04:27:00 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.356 2005/12/27 00:18:25 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -138,8 +138,9 @@ Queue/RED set q_weight_ -1
 Queue/RED set wait_ true
 Queue/RED set linterm_ 10
 Queue/RED set mark_p_ 0.1
-Queue/RED set use_mark_p_ false
+Queue/RED set use_mark_p_ true
 # Queue/RED/use_mark_p_ was added on 11/23/05.
+# Queue/RED/use_mark_p_ was changed to true on 12/22/05.
 Queue/RED set setbit_ false
 Queue/RED set gentle_ true
 ### Queue/RED/gentle_ was changed from false to true on Apr 23, 2001.
