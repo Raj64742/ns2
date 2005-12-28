@@ -333,6 +333,10 @@ void FackTcpAgent::send_much(int force, int reason, int maxburst)
 				 */
 				if (t_seqno_ >= curseq_) 
 					return;
+			        /* if window-limited */
+				if (fastrecov_ && 
+				      t_seqno_>highest_ack_+int(wnd_)) 
+					break;
 				found = 1;
 				xmit_seqno = t_seqno_++;
 #ifdef DEBUGSACK1A
