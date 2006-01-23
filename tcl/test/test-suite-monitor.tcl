@@ -31,6 +31,8 @@
 #add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
+Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set syn_ false
 Agent/TCP set delay_growth_ false
 # In preparation for changing the default values for syn_ and delay_growth_.

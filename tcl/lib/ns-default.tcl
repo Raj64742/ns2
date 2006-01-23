@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.356 2005/12/27 00:18:25 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.357 2006/01/23 23:28:59 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -868,10 +868,11 @@ Agent/TCP set minrto_ 0.2 ;		# Default changed to 200ms on
 					# Set to "0" to give old behavior.
 Agent/TCP set srtt_init_ 0
 Agent/TCP set rttvar_init_ 12
-Agent/TCP set rtxcur_init_ 6.0
+Agent/TCP set rtxcur_init_ 3.0 ;	# Default changed on 2006/01/21		
 Agent/TCP set T_SRTT_BITS 3
 Agent/TCP set T_RTTVAR_BITS 2
 Agent/TCP set rttvar_exp_ 2
+Agent/TCP set updated_rttvar_ true ;	# Variable added on 2006/1/21
 Agent/TCP set timerfix_ true ; 		# Variable added on 2001/05/11
  					# Set to "false" to give the old 
 					#  behavior. 

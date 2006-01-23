@@ -21,7 +21,7 @@ Agent/TCP set rfc2988_ false
 #
 # Contributed by Rishi Bhargava <rishi_bhargava@yahoo.com> May, 2001.
 # 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-source-routing.tcl,v 1.5 2005/06/13 03:55:56 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-source-routing.tcl,v 1.6 2006/01/23 23:29:00 sallyfloyd Exp $
 #
 
 #
@@ -34,6 +34,8 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP SR Src_rt ; # hdrs reqd for validation
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
+Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.
 Agent/TCP set useHeaders_ false

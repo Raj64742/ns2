@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.18 2005/12/06 20:00:32 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.19 2006/01/23 23:28:59 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -104,15 +104,6 @@ Topology/net2 instproc init ns {
     $self createlinks $ns
 }
 
-Class Topology/net3 -superclass Topology
-Topology/net3 instproc init ns {
-    $self instvar node_
-    $self makenodes $ns
-    $self createlinks $ns
-    $ns queue-limit $node_(r1) $node_(r2) 100
-    $ns queue-limit $node_(r2) $node_(r1) 100
-}
-
 Class Topology/net2-lossy -superclass Topology
 Topology/net2-lossy instproc init ns {
     $self instvar node_
@@ -121,6 +112,23 @@ Topology/net2-lossy instproc init ns {
 
     $self instvar lossylink_
     set lossylink_ [$ns link $node_(r1) $node_(r2)]
+    set em [new ErrorModule Fid]
+    set errmodel [new ErrorModel/Periodic]
+    $errmodel unit pkt
+    $lossylink_ errormodule $em
+    $em insert $errmodel
+    $em bind $errmodel 0
+    $em default pass
+}
+
+Class Topology/net2A-lossy -superclass Topology
+Topology/net2A-lossy instproc init ns {
+    $self instvar node_
+    $self makenodes $ns
+    $self createlinks $ns
+
+    $self instvar lossylink_
+    set lossylink_ [$ns link $node_(r2) $node_(r1)]
     set em [new ErrorModule Fid]
     set errmodel [new ErrorModel/Periodic]
     $errmodel unit pkt
@@ -285,6 +293,15 @@ TestSuite instproc drop_pkt { number } {
     $lossmodel set period_ 10000
 }
 
+# Mark the specified packet.
+TestSuite instproc mark_pkt { number } {
+    $self instvar ns_ lossmodel
+    set lossmodel [$self setloss]
+    $lossmodel set offset_ $number
+    $lossmodel set period_ 10000
+    $lossmodel set markecn_ true
+}
+
 TestSuite instproc drop_pkts pkts {
     $self instvar ns_
     set emod [$self emod]
@@ -292,11 +309,10 @@ TestSuite instproc drop_pkts pkts {
     $errmodel1 droplist $pkts
     $emod insert $errmodel1
     $emod bind $errmodel1 1
-
 }
 
 #######################################################################
-# Reno Tests #
+# Reno Test #
 #######################################################################
 
 # ECN followed by packet loss.
@@ -321,11 +337,55 @@ Test/ecn_ack instproc run {} {
 # SYN/ACK Packets #
 #######################################################################
 
+# SYN packet dropped.
+Class Test/synack0 -superclass TestSuite
+Test/synack0 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net2-lossy
+        set test_       synack0_
+        set guide_      "SYN packet dropped."
+        Agent/TCPSink set ecn_syn_ false
+        $self next pktTraceFile
+}
+Test/synack0 instproc run {} {
+        global quiet
+        $self instvar ns_ guide_ node_ guide_ testName_
+        if {$quiet == "false"} {puts $guide_}
+        Agent/TCP set ecn_ 1
+        $self setTopo
+
+        # Set up forward TCP connection
+        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s4) 0]
+        $tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 start"
+
+        $self drop_pkt 1
+	$self enable_tracequeue $ns_
+        $self tcpDump $tcp1 5.0
+        $ns_ at 10.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+# SYN packet dropped, old parameters for RTO.
+Class Test/synack0A -superclass TestSuite
+Test/synack0A instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net2-lossy
+        set test_       synack0A_
+        set guide_      "SYN packet dropped, old parameters for RTO."
+        Agent/TCPSink set ecn_syn_ false
+	Agent/TCP set rtxcur_init_ 6.0 
+	Agent/TCP set updated_rttvar_ false 
+	Test/synack0A instproc run {} [Test/synack0 info instbody run ]
+        $self next pktTraceFile
+}
+
 # SYN/ACK packet dropped.
 Class Test/synack1 -superclass TestSuite
 Test/synack1 instproc init {} {
         $self instvar net_ test_ guide_
-        set net_        net3
+        set net_        net2A-lossy
         set test_       synack1_
         set guide_      "SYN/ACK packet dropped."
         Agent/TCPSink set ecn_syn_ false
@@ -336,14 +396,6 @@ Test/synack1 instproc run {} {
         $self instvar ns_ guide_ node_ guide_ testName_
         if {$quiet == "false"} {puts $guide_}
         Agent/TCP set ecn_ 1
-	Queue/RED set setbit_ true
-	Queue/RED set bytes_ false
-	Queue/RED set queue_in_bytes_ false
-    	Queue/RED set thresh_ 5
-	Queue/RED set maxthresh_ 50
-	Queue/RED set linterm_ 0.5
-	Queue/RED set mark_p_ 1.0
-	Queue/RED set use_mark_p_ true
         $self setTopo
 
         # Set up forward TCP connection
@@ -351,34 +403,11 @@ Test/synack1 instproc run {} {
         $tcp1 set window_ 8
         set ftp1 [$tcp1 attach-app FTP]
         $ns_ at 0.00 "$ftp1 start"
- 
-        # Set up forward UPD connection
-	Agent/UDP set packetSize_ 1000
-        set udp1 [$ns_ create-connection UDP $node_(s2) LossMonitor $node_(s4) 1 ]
-        set cbr1 [new Application/Traffic/CBR]
-        $cbr1 attach-agent $udp1
-        $cbr1 set packetSize_ 1000
-        $cbr1 set rate_ 2.0Mb 
-        $ns_ at 0.00 "$cbr1 start"
-        $ns_ at 1.30 "$cbr1 stop"
 
-        # Set up reverse TCP connections, so that SYN/ACK could get dropped
-        set tcp2 [$ns_ create-connection TCP $node_(s4) TCPSink $node_(s1) 2]
-        set ftp2 [$tcp2 attach-app FTP]
-        $ns_ at 1.25 "$ftp2 start"
-
-        set tcp3 [$ns_ create-connection TCP $node_(s4) TCPSink $node_(s1) 3]
-        set ftp3 [$tcp3 attach-app FTP]
-        $ns_ at 1.26 "$ftp3 start"
-
+        $self drop_pkt 1
 	$self enable_tracequeue $ns_
- 
         $self tcpDump $tcp1 5.0
-
-        #$self traceQueues $node_(r1) [$self openTrace 10.0 $testName_]
- 
         $ns_ at 10.0 "$self cleanupAll $testName_"
-
         $ns_ run
 }
 
@@ -386,12 +415,71 @@ Test/synack1 instproc run {} {
 Class Test/synack2 -superclass TestSuite
 Test/synack2 instproc init {} {
         $self instvar net_ test_ guide_
-        set net_        net3
+        set net_        net2A-lossy
         set test_       synack2_
         set guide_      "SYN/ACK packet marked."
         Agent/TCPSink set ecn_syn_ true
-	Test/synack2 instproc run {} [Test/synack1 info instbody run ]
         $self next pktTraceFile
 }
+Test/synack2 instproc run {} {
+        global quiet
+        $self instvar ns_ guide_ node_ guide_ testName_
+        if {$quiet == "false"} {puts $guide_}
+        Agent/TCP set ecn_ 1
+        $self setTopo
 
+        # Set up forward TCP connection
+        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s4) 0]
+        $tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 start"
+
+        $self mark_pkt 1
+	$self enable_tracequeue $ns_
+        $self tcpDump $tcp1 5.0
+        $ns_ at 10.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+Class Test/synack3 -superclass TestSuite
+Test/synack3 instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net2-lossy
+        set test_       synack3_
+        set guide_      "first forward data packet dropped."
+        Agent/TCPSink set ecn_syn_ false
+        $self next pktTraceFile
+}
+Test/synack3 instproc run {} {
+        global quiet
+        $self instvar ns_ guide_ node_ guide_ testName_
+        if {$quiet == "false"} {puts $guide_}
+        Agent/TCP set ecn_ 1
+        $self setTopo
+
+        # Set up forward TCP connection
+        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s4) 0]
+        $tcp1 set window_ 8
+        set ftp1 [$tcp1 attach-app FTP]
+        $ns_ at 0.00 "$ftp1 start"
+
+        $self drop_pkt 2
+	$self enable_tracequeue $ns_
+        $self tcpDump $tcp1 5.0
+        $ns_ at 10.0 "$self cleanupAll $testName_"
+        $ns_ run
+}
+
+Class Test/synack3A -superclass TestSuite
+Test/synack3A instproc init {} {
+        $self instvar net_ test_ guide_
+        set net_        net2-lossy
+        set test_       synack3A_
+        set guide_      "first forward data packet dropped, old RTO parameters."
+        Agent/TCPSink set ecn_syn_ false
+	Agent/TCP set rtxcur_init_ 6.0 
+	Agent/TCP set updated_rttvar_ false 
+	Test/synack3A instproc run {} [Test/synack3 info instbody run ]
+        $self next pktTraceFile
+}
 TestSuite runTest

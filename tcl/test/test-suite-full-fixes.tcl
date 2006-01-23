@@ -1,4 +1,6 @@
 # Copyright (c) 1995 The Regents of the University of California.
+Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
+Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without

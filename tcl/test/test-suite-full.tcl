@@ -49,6 +49,8 @@ Agent/TCP set tcpTick_ 0.1
 Agent/TCP set rfc2988_ false
 # The default for rfc2988_ is being changed to true.
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
+Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set useHeaders_ false
 # The default is being changed to useHeaders_ true.
 Agent/TCP set windowInit_ 1

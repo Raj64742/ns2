@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.24 2005/06/11 01:52:25 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-adaptive-red.tcl,v 1.25 2006/01/23 23:28:59 sallyfloyd Exp $
 #
 # To run all tests: test-all-adaptive-red
 
@@ -42,6 +42,8 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP  ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
+Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false

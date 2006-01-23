@@ -1,4 +1,6 @@
 # Copyright (c) 2000 by the University of Southern California
+Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
+Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 # All rights reserved.
 #
 #  This program is free software; you can redistribute it and/or

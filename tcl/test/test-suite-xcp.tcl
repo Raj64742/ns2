@@ -30,6 +30,8 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP XCP ; # hdrs reqd for validation
 
 # UPDATING GLOBAL DEFAULTS:
+Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
+Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set minrto_ 1
 # default changed on 10/14/2004.
 Queue/RED set bytes_ false ;

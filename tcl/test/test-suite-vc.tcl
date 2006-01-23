@@ -13,6 +13,8 @@
 #add-packet-header Flags IP RTP TCP rtProtoDV ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
+Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 # This test suite is for validating the algorithmic routing support
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.

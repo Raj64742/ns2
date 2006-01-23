@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.10 2005/09/05 22:33:35 sfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple-full.tcl,v 1.11 2006/01/23 23:29:00 sallyfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -60,6 +60,8 @@ add-packet-header Flags IP TCP  ; # hdrs reqd for TCP
 Agent/TCP/FullTcp set segsize_ 960
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
+Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false

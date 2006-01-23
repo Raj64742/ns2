@@ -15,7 +15,7 @@
 # WARRANTIES, INCLUDING, WITHOUT LIMITATION, THE IMPLIED WARRANTIES OF
 # MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
 #
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.13 2005/06/20 02:39:59 sfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-linkstate.tcl,v 1.14 2006/01/23 23:28:59 sallyfloyd Exp $
 
 # Simple test for Link State routing contributed by 
 # Mingzhou Sun <msun@rainfinity.com> based on Kannan's old equal-cost 
@@ -49,6 +49,8 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP rtProtoLS ; # hdrs reqd for validation test
  
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
+Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set tcpTick_ 0.1
 # The default for tcpTick_ is being changed to reflect a changing reality.
 Agent/TCP set rfc2988_ false
