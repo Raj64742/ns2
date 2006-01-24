@@ -279,7 +279,7 @@ void TcpSink::ack(Packet* opkt)
 	        if (otcp->seqno() == 0 && oqsh->flag() == QS_REQUEST) {
 	                nqsh->flag() = QS_RESPONSE;
 	                nqsh->ttl() = (oiph->ttl() - oqsh->ttl()) % 256;
-	                nqsh->rate() = (oqsh->rate() < MWS) ? oqsh->rate() : MWS;
+	                nqsh->rate() = oqsh->rate(); 
 	        }
 	        else {
 	                nqsh->flag() = QS_DISABLE;
