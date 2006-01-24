@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.19 2006/01/23 23:28:59 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.20 2006/01/24 00:30:11 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -441,45 +441,4 @@ Test/synack2 instproc run {} {
         $ns_ run
 }
 
-Class Test/synack3 -superclass TestSuite
-Test/synack3 instproc init {} {
-        $self instvar net_ test_ guide_
-        set net_        net2-lossy
-        set test_       synack3_
-        set guide_      "first forward data packet dropped."
-        Agent/TCPSink set ecn_syn_ false
-        $self next pktTraceFile
-}
-Test/synack3 instproc run {} {
-        global quiet
-        $self instvar ns_ guide_ node_ guide_ testName_
-        if {$quiet == "false"} {puts $guide_}
-        Agent/TCP set ecn_ 1
-        $self setTopo
-
-        # Set up forward TCP connection
-        set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s4) 0]
-        $tcp1 set window_ 8
-        set ftp1 [$tcp1 attach-app FTP]
-        $ns_ at 0.00 "$ftp1 start"
-
-        $self drop_pkt 2
-	$self enable_tracequeue $ns_
-        $self tcpDump $tcp1 5.0
-        $ns_ at 10.0 "$self cleanupAll $testName_"
-        $ns_ run
-}
-
-Class Test/synack3A -superclass TestSuite
-Test/synack3A instproc init {} {
-        $self instvar net_ test_ guide_
-        set net_        net2-lossy
-        set test_       synack3A_
-        set guide_      "first forward data packet dropped, old RTO parameters."
-        Agent/TCPSink set ecn_syn_ false
-	Agent/TCP set rtxcur_init_ 6.0 
-	Agent/TCP set updated_rttvar_ false 
-	Test/synack3A instproc run {} [Test/synack3 info instbody run ]
-        $self next pktTraceFile
-}
 TestSuite runTest
