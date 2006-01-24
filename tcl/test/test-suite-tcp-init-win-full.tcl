@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win-full.tcl,v 1.14 2006/01/23 23:29:00 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp-init-win-full.tcl,v 1.15 2006/01/24 23:00:08 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -46,6 +46,7 @@ set scale 0.00001
 Agent/TCP/FullTcp set segsize_ 0 ;	# segsize_ will come from packetSize_
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
 Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
 Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Queue/RED set bytes_ false              

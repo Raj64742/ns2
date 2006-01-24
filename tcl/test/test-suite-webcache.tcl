@@ -5,7 +5,7 @@
 # we build this functionality based on byte-stream model of underlying 
 # TCP connection.
 # 
-# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.24 2006/01/23 23:29:00 sallyfloyd Exp $
+# $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-webcache.tcl,v 1.25 2006/01/24 23:00:08 sallyfloyd Exp $
 
 #----------------------------------------------------------------------
 # Related Files
@@ -17,6 +17,7 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP TCP HttpInval ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
 Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
 Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set tcpTick_ 0.1

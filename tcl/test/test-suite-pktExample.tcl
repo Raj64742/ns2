@@ -34,6 +34,7 @@
 
 source misc_simple.tcl
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
 Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
 Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TFRC set ss_changes_ 0 ; 	# Added on 10/21/2004

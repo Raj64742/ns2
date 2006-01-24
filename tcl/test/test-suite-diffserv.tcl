@@ -30,6 +30,7 @@ remove-all-packet-headers       ; # removes all except common
 add-packet-header Flags IP RTP TCP  ; # hdrs reqd for validation test
 
 # FOR UPDATING GLOBAL DEFAULTS:
+Agent/TCP set precisionReduce_ false ;   # default changed on 2006/1/24.
 Agent/TCP set rtxcur_init_ 6.0 ;      # Default changed on 2006/01/21
 Agent/TCP set updated_rttvar_ false ;  # Variable added on 2006/1/21
 Agent/TCP set minrto_ 1
