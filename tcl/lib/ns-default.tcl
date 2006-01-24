@@ -22,7 +22,7 @@
 #    specific prior written permission.
 # 
 
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.357 2006/01/23 23:28:59 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/lib/ns-default.tcl,v 1.358 2006/01/24 23:03:07 sallyfloyd Exp $
 
 # THIS SOFTWARE IS PROVIDED BY THE REGENTS AND CONTRIBUTORS ``AS IS'' AND
 # ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -824,10 +824,8 @@ Agent/TCP set exitFastRetrans_ true ;	# Added 2003/7/28.
 					# For clean exits of Fast Retransmit.
 					# False for old buggy behavior.
 Agent/TCP set window_ 20
-# Agent/TCP set windowInit_ 1
 Agent/TCP set windowInit_ 2 ;		# default changed on 2001/5/26.
 Agent/TCP set windowInitOption_ 1
-# Agent/TCP set syn_ false
 Agent/TCP set syn_ true ;		# default changed on 2001/5/17.
 Agent/TCP set windowOption_ 1
 Agent/TCP set windowConstant_ 4
@@ -844,9 +842,9 @@ Agent/TCP set tcpip_base_hdr_size_ 40
 Agent/TCP set ts_option_size_ 10; 	# in bytes
 Agent/TCP set bugFix_ true
 Agent/TCP set bugFix_ack_ false ;       # Variable added on 2003/08/13
-					# To allow some multiple Fast Retransmits
+					# To allow multiple Fast Retransmits
 Agent/TCP set bugFix_ts_ false ;	# Variable added on 2003/08/13
-					# To allow some multiple Fast Retransmits
+					# To allow multiple Fast Retransmits
 Agent/TCP set lessCareful_ false ;	# for the Less Careful variant of
 					# bugFix_, just for illustration.
 Agent/TCP set timestamps_ false
@@ -855,17 +853,12 @@ Agent/TCP set ts_resetRTO_ false ;	# Added 2003/07/24.
 					#   after any valid RTT measurement.
 Agent/TCP set slow_start_restart_ true
 Agent/TCP set restart_bugfix_ true
-# Agent/TCP set tcpTick_ 0.1
 Agent/TCP set tcpTick_ 0.01 ;		# default changed on 2002/03/07
 					# to reflect a changing reality.
 Agent/TCP set maxrto_ 100000
-#Agent/TCP set minrto_ 0 ;		# Variable added on 2001/05/10
-#Agent/TCP set minrto_ 1 ;              # Default set to 1 on 2001/05/14.
 Agent/TCP set minrto_ 0.2 ;		# Default changed to 200ms on 
 					#  2004/10/14, to match values
 					#  used by many implementations.
-					# Default set to 1 on 2001/05/14.
-					# Set to "0" to give old behavior.
 Agent/TCP set srtt_init_ 0
 Agent/TCP set rttvar_init_ 12
 Agent/TCP set rtxcur_init_ 3.0 ;	# Default changed on 2006/01/21		
@@ -876,7 +869,6 @@ Agent/TCP set updated_rttvar_ true ;	# Variable added on 2006/1/21
 Agent/TCP set timerfix_ true ; 		# Variable added on 2001/05/11
  					# Set to "false" to give the old 
 					#  behavior. 
-# Agent/TCP set rfc2988_ false ;	# Variable added on 2002/03/07.
 Agent/TCP set rfc2988_ true ;		# Default set to "true" on 2002/03/07.
 					# Set rfc2988_ "true" to give RFC2988-
 					#  compliant behavior for timers.
@@ -895,26 +887,20 @@ Agent/TCP set srtt_ 0
 Agent/TCP set rttvar_ 0
 Agent/TCP set backoff_ 0
 Agent/TCP set maxseq_ 0
-# Agent/TCP set singledup_ 0
 Agent/TCP set singledup_ 1 ;		# default changed on 2001/11/28.
 Agent/TCP set LimTransmitFix_ false ;	# added on 2003/03/31.
-#Agent/TCP set LimTransmitFix_ true 
-Agent/TCP set precisionReduce_ false
+Agent/TCP set precisionReduce_ true ;	# default changed on 2006/1/24.
 Agent/TCP set oldCode_ false
 Agent/TCP set useHeaders_ true ;	# default changed on 2001/11/28. 
 
 # These are all variables for experimental high-speed TCP.
-# Agent/TCP set low_window_ 31
-Agent/TCP set low_window_ 38
-# low_window_ was changed on 2002/8/12 from 31 to 38, for low_p_ of 0.001.
-# This should be an undetectable change in performance.
+Agent/TCP set low_window_ 38 ;		# default changed on 2002/8/12.		
 Agent/TCP set high_window_ 83000
 Agent/TCP set high_p_ 0.0000001
 Agent/TCP set high_decrease_ 0.1
 Agent/TCP set max_ssthresh_ 0
 Agent/TCP set cwnd_range_ 0 ;		# cwnd_frac_ deleted on 6/6/04,
 					# replaced by cwnd_range_
-
 # For Quick-Start:
 Agent/TCP set rate_request_ 0
 Agent/TCP set qs_enabled_ false
