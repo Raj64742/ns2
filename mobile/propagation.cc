@@ -32,7 +32,7 @@
  * SUCH DAMAGE.
  * 
  propagation.cc
- $Id: propagation.cc,v 1.7 2005/02/03 20:15:00 haldar Exp $
+ $Id: propagation.cc,v 1.8 2006/01/24 00:36:43 sallyfloyd Exp $
 */
 
 #include <stdio.h>
@@ -155,6 +155,8 @@ double FreeSpace::Pr(PacketStamp *t, PacketStamp *r, WirelessPhy *ifp)
 
 	// calculate receiving power at distance
 	double Pr = Friis(t->getTxPr(), Gt, Gr, lambda, L, d);
+	// warning: use of `l' length character with `f' type character
+	//  - Sally Floyd, FreeBSD.
 	printf("%lf: d: %lf, Pr: %e\n", Scheduler::instance().clock(), d, Pr);
 
 	return Pr;
