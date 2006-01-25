@@ -106,7 +106,7 @@ Test/oneTCP instproc init {} {
 Test/oneTCP instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ stopTime1_ 
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set stopTime $stopTime1_
 
@@ -135,7 +135,7 @@ Test/twoTCPs instproc init {} {
 Test/twoTCPs instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ stopTime1_ 
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set stopTime $stopTime1_
 
@@ -171,7 +171,7 @@ Test/oneTFRC instproc init {} {
 Test/oneTFRC instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ stopTime1_ 
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set stopTime $stopTime1_
 

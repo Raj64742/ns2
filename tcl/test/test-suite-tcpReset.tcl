@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpReset.tcl,v 1.13 2006/01/24 23:00:08 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpReset.tcl,v 1.14 2006/01/25 22:02:05 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -137,7 +137,7 @@ Test/reset instproc init topo {
 Test/reset instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink $node_(k1) 1]
@@ -167,7 +167,7 @@ Test/resetDelAck instproc init topo {
 Test/resetDelAck instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink/DelAck $node_(k1) 1]
@@ -197,7 +197,7 @@ Test/resetDelAck1 instproc init topo {
 Test/resetDelAck1 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink/DelAck $node_(k1) 1]
@@ -227,7 +227,7 @@ Test/reset1 instproc init topo {
 Test/reset1 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink $node_(k1) 1]
@@ -258,7 +258,7 @@ Test/resetDelAck2 instproc init topo {
 Test/resetDelAck2 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink/DelAck $node_(k1) 1]
@@ -288,7 +288,7 @@ Test/resetDelAck3 instproc init topo {
 Test/resetDelAck3 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP $node_(s1) TCPSink/DelAck $node_(k1) 1]
@@ -318,7 +318,7 @@ Test/resetNewreno instproc init topo {
 Test/resetNewreno instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP/Newreno $node_(s1) TCPSink $node_(k1) 1]
@@ -349,7 +349,7 @@ Test/resetSack1 instproc init topo {
 Test/resetSack1 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP/Sack1 $node_(s1) TCPSink/Sack1 $node_(k1) 1]
@@ -380,7 +380,7 @@ Test/resetReno instproc init topo {
 Test/resetReno instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp [$ns_ create-connection-list TCP/Reno $node_(s1) TCPSink $node_(k1) 1]

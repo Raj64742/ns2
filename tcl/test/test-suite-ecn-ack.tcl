@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.21 2006/01/24 23:00:06 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn-ack.tcl,v 1.22 2006/01/25 22:02:05 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn-ack
 set dir [pwd]
@@ -351,7 +351,7 @@ Test/synack0 instproc init {} {
 Test/synack0 instproc run {} {
         global quiet
         $self instvar ns_ guide_ node_ guide_ testName_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         $self setTopo
 
@@ -395,7 +395,7 @@ Test/synack1 instproc init {} {
 Test/synack1 instproc run {} {
         global quiet
         $self instvar ns_ guide_ node_ guide_ testName_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         $self setTopo
 
@@ -425,7 +425,7 @@ Test/synack2 instproc init {} {
 Test/synack2 instproc run {} {
         global quiet
         $self instvar ns_ guide_ node_ guide_ testName_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
         Agent/TCP set ecn_ 1
         $self setTopo
 

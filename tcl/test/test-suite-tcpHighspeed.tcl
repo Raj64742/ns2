@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.19 2006/01/24 23:00:08 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpHighspeed.tcl,v 1.20 2006/01/25 22:02:05 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -135,7 +135,7 @@ Test/tcp instproc init {} {
 Test/tcp instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     Agent/TCP set window_ 512
     set stopTime  150.0

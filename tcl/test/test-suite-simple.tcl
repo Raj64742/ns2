@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.43 2006/01/23 23:29:00 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-simple.tcl,v 1.44 2006/01/25 22:02:05 sallyfloyd Exp $
 #
 #
 # This test suite reproduces most of the tests from the following note:
@@ -523,7 +523,7 @@ Test/tahoe1 instproc init topo {
 Test/tahoe1 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
@@ -605,7 +605,7 @@ Test/tahoe2 instproc init topo {
 Test/tahoe2 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 14
@@ -633,7 +633,7 @@ Test/tahoe3 instproc init topo {
 Test/tahoe3 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 8   
 	$ns_ queue-limit $node_(k1) $node_(r1) 8   
@@ -682,7 +682,7 @@ Test/tahoe4 instproc init topo {
 Test/tahoe4 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ delay $node_(s2) $node_(r1) 200ms
 	$ns_ delay $node_(r1) $node_(s2) 200ms
@@ -719,7 +719,7 @@ Test/no_bug instproc init topo {
 Test/no_bug instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ delay $node_(s1) $node_(r1) 3ms
 	$ns_ delay $node_(r1) $node_(s1) 3ms
@@ -754,7 +754,7 @@ Test/bug instproc init topo {
 Test/bug instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ delay $node_(s1) $node_(r1) 3ms
 	$ns_ delay $node_(r1) $node_(s1) 3ms
@@ -792,7 +792,7 @@ Test/reno1 instproc init topo {
 Test/reno1 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 14
@@ -820,7 +820,7 @@ Test/reno instproc init topo {
 Test/reno instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	set tcp1 [$ns_ create-connection TCP/Reno $node_(s1) TCPSink $node_(k1) 0]
 	$tcp1 set window_ 28
@@ -849,7 +849,7 @@ Test/renoA instproc init topo {
 Test/renoA instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 8
 
@@ -889,7 +889,7 @@ Test/reno2 instproc init topo {
 Test/reno2 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 9
 
@@ -924,7 +924,7 @@ Test/reno3 instproc init topo {
 Test/reno3 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 8
 	$ns_ queue-limit $node_(k1) $node_(r1) 8
@@ -960,7 +960,7 @@ Test/reno4 instproc init topo {
 Test/reno4 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ queue-limit $node_(r1) $node_(r2) 29
 
@@ -991,7 +991,7 @@ Test/reno4a instproc init topo {
 Test/reno4a instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ queue-limit $node_(r1) $node_(r2) 29
 
@@ -1023,7 +1023,7 @@ Test/reno5 instproc init topo {
 Test/reno5 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 9
 
@@ -1074,7 +1074,7 @@ Test/telnet instproc init topo {
 Test/telnet instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ queue-limit $node_(r1) $node_(k1) 8
 	$ns_ queue-limit $node_(k1) $node_(r1) 8
@@ -1116,7 +1116,7 @@ Test/delayed instproc init topo {
 Test/delayed instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink/DelAck $node_(k1) 0]
 	$tcp1 set window_ 50
@@ -1146,7 +1146,7 @@ Test/phase instproc init topo {
 Test/phase instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ delay $node_(s2) $node_(r1) 3ms
 	$ns_ delay $node_(r1) $node_(s2) 3ms
@@ -1183,7 +1183,7 @@ Test/phase1 instproc init topo {
 Test/phase1 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ delay $node_(s2) $node_(r1) 9.5ms
 	$ns_ delay $node_(r1) $node_(s2) 9.5ms
@@ -1221,7 +1221,7 @@ Test/phase2 instproc init topo {
 Test/phase2 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ delay $node_(s2) $node_(r1) 3ms
 	$ns_ delay $node_(r1) $node_(s2) 3ms
@@ -1306,7 +1306,7 @@ Test/manyflows instproc init topo {
 Test/manyflows instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connections
 
@@ -1415,7 +1415,7 @@ Test/stats instproc init topo {
 Test/stats instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_ 
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ delay $node_(s2) $node_(r1) 200ms
 	$ns_ delay $node_(r1) $node_(s2) 200ms
@@ -1470,7 +1470,7 @@ Test/statsECN instproc init topo {
 Test/statsECN instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_ 
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ delay $node_(s2) $node_(r1) 200ms
 	$ns_ delay $node_(r1) $node_(s2) 200ms
@@ -1518,7 +1518,7 @@ Test/stats1 instproc init topo {
 Test/stats1 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_ 
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ delay $node_(s2) $node_(r1) 200ms
 	$ns_ delay $node_(r1) $node_(s2) 200ms
@@ -1636,7 +1636,7 @@ Test/stats2 instproc init topo {
 Test/stats2 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_ 
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	set stoptime 10.1 
 
 	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(s3) 0]
@@ -1678,7 +1678,7 @@ Test/stats3 instproc init topo {
 Test/stats3 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_ 
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	set stoptime 1.1 
 
 	set slink [$ns_ link $node_(r1) $node_(r2)]; 
@@ -1734,7 +1734,7 @@ Test/stats4 instproc init topo {
 Test/stats4 instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_ 
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	set stoptime 1.1 
 	set PeakRateInterval 0.1
 
@@ -1780,7 +1780,7 @@ Test/statsTFRC instproc init topo {
 Test/statsTFRC instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_ test_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	$ns_ delay $node_(s2) $node_(r1) 200ms
 	$ns_ delay $node_(r1) $node_(s2) 200ms

@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.30 2006/01/24 23:00:06 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-newreno.tcl,v 1.31 2006/01/25 22:02:05 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -285,7 +285,7 @@ Test/reno instproc init {} {
 }
 Test/reno instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set bugFix_ false
         $self setup Reno {14 26 28}
 }
@@ -326,7 +326,7 @@ Test/newreno instproc init {} {
 }
 Test/newreno instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set bugFix_ false
         $self setup Newreno {14 26 28}
 }
@@ -393,7 +393,7 @@ Test/newreno_B instproc init {} {
 }
 Test/newreno_B instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set bugFix_ false
 	Agent/TCP/Newreno set newreno_changes1_ 1
 	Agent/TCP/Newreno set partial_window_deflation_ 1
@@ -428,7 +428,7 @@ Test/reno1 instproc init {} {
 }
 Test/reno1 instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set bugFix_ false
         $self setup Reno {14 15 16 17 18 19 20 21 25 }
 }
@@ -456,7 +456,7 @@ Test/newreno1 instproc init {} {
 }
 Test/newreno1 instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
 }
 
@@ -494,7 +494,7 @@ Test/newreno1_A instproc init {} {
 }
 Test/newreno1_A instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP/Newreno set newreno_changes1_ 1
         $self setup Newreno {14 15 16 17 18 19 20 21 25 }
 }
@@ -551,7 +551,7 @@ Test/newreno1_B0 instproc init {} {
 }
 Test/newreno1_B0 instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set bugFix_ false
 	Agent/TCP/Newreno set partial_window_deflation_ 1
 	Agent/TCP/Newreno set exit_recovery_fix_ 1
@@ -572,7 +572,7 @@ Test/newreno1_B instproc init {} {
 }
 Test/newreno1_B instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP/Newreno set newreno_changes1_ 1
 	Agent/TCP/Newreno set partial_window_deflation_ 1
 	Agent/TCP/Newreno set exit_recovery_fix_ 1
@@ -640,7 +640,7 @@ Test/newreno1A_A instproc init {} {
 }
 Test/newreno1A_A instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP/Newreno set newreno_changes1_ 1
         $self setup Newreno {24 25 26 27 28 29 31 33 36 }
 }
@@ -701,7 +701,7 @@ Test/reno2 instproc init {} {
 }
 Test/reno2 instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set bugFix_ false
         $self setup Reno {24 25 26 28 31 35 40 45 46 47 48 }
 }
@@ -730,7 +730,7 @@ Test/reno2_bugfix instproc init {} {
 }
 Test/reno2_bugfix instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set bugFix_ true
         $self setup Reno {24 25 26 28 31 35 40 45 46 47 48 }
 }
@@ -762,7 +762,7 @@ Test/newreno2_A instproc init {} {
 }
 Test/newreno2_A instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
 }
 
@@ -822,7 +822,7 @@ Test/newreno2_B instproc init {} {
 }
 Test/newreno2_B instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	$self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 }
 }
 
@@ -965,7 +965,7 @@ Test/newreno5 instproc init {} {
 Test/newreno5 instproc run {} {
 	global quiet
 	$self instvar guide_ ns_ node_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
         ErrorModel set delay_pkt_ true
         ErrorModel set drop_ false
         ErrorModel set delay_ 0.05
@@ -992,7 +992,7 @@ Test/sack5 instproc init {} {
 Test/sack5 instproc run {} {
 	global quiet
 	$self instvar guide_ ns_ node_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
         ErrorModel set delay_pkt_ true
         ErrorModel set drop_ false
         ErrorModel set delay_ 0.05
@@ -1109,7 +1109,7 @@ Test/reno5 instproc init {} {
 Test/reno5 instproc run {} {
 	global quiet
 	$self instvar guide_ ns_ node_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
         ErrorModel set delay_pkt_ true
         ErrorModel set drop_ false
         ErrorModel set delay_ 0.05
@@ -1172,7 +1172,7 @@ Test/reno5a instproc init {} {
 Test/reno5a instproc run {} {
 	global quiet
 	$self instvar guide_ ns_ node_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
         ErrorModel set delay_pkt_ true
         ErrorModel set drop_ false
         ErrorModel set delay_ 0.05
@@ -1214,7 +1214,7 @@ Test/newreno6 instproc init {} {
 }
 Test/newreno6 instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set bugFix_ false
         $self setup Newreno {14 26 28 33}
 }
@@ -1234,7 +1234,7 @@ Test/newreno_rto_loss instproc init {} {
 }
 Test/newreno_rto_loss instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	$self rfc2582
         $self setup Newreno {15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 37}
 }
@@ -1286,7 +1286,7 @@ Test/newreno_rto_dup instproc init {} {
 }
 Test/newreno_rto_dup instproc run {} {
         global quiet; $self instvar guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
         $self setup Newreno {24 25 26 28 31 35 40 45 46 47 48 51}
 }
  
@@ -1326,7 +1326,7 @@ Test/newreno_rto_loss_ackf instproc init {} {
 Test/newreno_rto_loss_ackf instproc run {} {
         global quiet
         $self instvar guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	$self rfc2582
         $self setTopo
         $self drop_acks {23 24 25 26}
@@ -1376,7 +1376,7 @@ Test/impatient1 instproc init {} {
 }
 Test/impatient1 instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP/Newreno set partial_window_deflation_ 1
 	Agent/TCP set singledup_ 1
         $self setup Newreno {15 16 17 18 19 20 21 22 23 24 25 26 27 } 1 10 16
@@ -1406,7 +1406,7 @@ Test/impatient2 instproc init {} {
 }
 Test/impatient2 instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP/Newreno set partial_window_deflation_ 1
 	Agent/TCP set singledup_ 1
         $self setup Newreno {15 16 17 18 19 } 1 10 16
@@ -1436,7 +1436,7 @@ Test/impatient3 instproc init {} {
 }
 Test/impatient3 instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP/Newreno set partial_window_deflation_ 1
 	Agent/TCP set singledup_ 1
         $self setup Newreno {15 16 17 18 19 22 27 } 1 10 16
@@ -1466,7 +1466,7 @@ Test/impatient4 instproc init {} {
 }
 Test/impatient4 instproc run {} {
 	global quiet; $self instvar guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP/Newreno set partial_window_deflation_ 1
 	Agent/TCP set singledup_ 1
         $self setup Newreno {30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55} 1 20 32

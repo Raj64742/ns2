@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.71 2006/01/24 23:00:06 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-friendly.tcl,v 1.72 2006/01/25 22:02:05 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -416,7 +416,7 @@ Test/slowStartCA instproc init {} {
 Test/slowStart instproc run {} {
     global quiet 
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 40.0
@@ -504,7 +504,7 @@ Test/slowStartTcp instproc init {} {
 Test/slowStartTcp instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 40.0
@@ -604,7 +604,7 @@ Test/impulseCA instproc init {} {
 Test/impulseCA instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 40.0
@@ -703,7 +703,7 @@ Test/impulseMultReportCA instproc init {} {
 Test/impulseMultReport instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 40.0
@@ -749,7 +749,7 @@ Test/impulseTcp instproc init {} {
 Test/impulseTcp instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 40.0
@@ -820,7 +820,7 @@ Test/two-friendlyCA instproc init {} {
 Test/two-friendly instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 30.0
@@ -863,7 +863,7 @@ Test/OnlyTcp instproc init {} {
 Test/OnlyTcp instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 30.0
@@ -968,7 +968,7 @@ Test/slow instproc init {} {
 Test/slow instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
 #    [$ns_ link $node_(r1) $node_(r2)] set bandwidth 0.001Mb
 #    [$ns_ link $node_(r1) $node_(r2)] set queue-limit 5
@@ -1038,7 +1038,7 @@ Test/manyDrops instproc init {} {
 Test/twoDrops instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ drops_ stopTime1_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 1
     set stopTime $stopTime1_
@@ -1097,7 +1097,7 @@ Test/HighLoss instproc init {} {
 Test/HighLoss instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ stopTime1_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 1
     set stopTime $stopTime1_
@@ -1169,7 +1169,7 @@ Test/HighLossImprecise instproc init {} {
 Test/HighLossImprecise instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ stopTime1_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 1
     set stopTime $stopTime1_
@@ -1242,7 +1242,7 @@ Test/HighLossConservative instproc init {} {
 Test/HighLossConservative instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ stopTime1_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 1
     set stopTime $stopTime1_
@@ -1296,7 +1296,7 @@ Test/HighLossTCP instproc init {} {
 Test/HighLossTCP instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ stopTime1_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 1
     set stopTime $stopTime1_
@@ -1350,7 +1350,7 @@ Test/TFRC_FTP instproc init {} {
 Test/TFRC_FTP instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ stopTime1_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 1
     set stopTime $stopTime1_
@@ -1401,7 +1401,7 @@ Test/TFRC_CBR instproc init {} {
 Test/TFRC_CBR instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ stopTime1_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 1
     set stopTime $stopTime1_
@@ -1447,7 +1447,7 @@ Test/printLosses instproc init {} {
 Test/printLosses instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 3.0
@@ -1493,7 +1493,7 @@ Test/printLossesShort instproc init {} {
 Test/printLossesShort instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 4.0
@@ -1560,7 +1560,7 @@ Test/goodTFRC instproc init {} {
 Test/goodTFRC instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ period_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 20.0
@@ -1667,7 +1667,7 @@ Test/goodTCP instproc init {} {
 Test/goodTCP instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ list_ period_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 20.0
@@ -1758,7 +1758,7 @@ Test/initRate instproc init {} {
 Test/initRate instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ period_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 2.0
@@ -1856,7 +1856,7 @@ Test/tfrcOnly instproc init {} {
 Test/tfrcOnly instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 20.0
@@ -1915,7 +1915,7 @@ Test/voip instproc init {} {
 Test/voip instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 20.0
@@ -2015,7 +2015,7 @@ Test/voipEcn instproc init {} {
 Test/voipEcn instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ interval_ dumpfile_ guide_ voip
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set interval_ 0.1
     set stopTime 20.0

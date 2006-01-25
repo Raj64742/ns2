@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.37 2006/01/24 23:00:08 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcp.tcl,v 1.38 2006/01/25 22:02:05 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcp.tcl
@@ -173,7 +173,7 @@ Test/ecn instproc init topo {
 Test/ecn instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	# Set up TCP connection
 	set tcp1 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
@@ -216,7 +216,7 @@ Test/timers instproc init topo {
 Test/timers instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	if {$quiet == "false"} {puts "tcpTICK: [Agent/TCP set tcpTick_]"}
 
@@ -261,7 +261,7 @@ Test/timersA instproc init topo {
 Test/timersA instproc run {} {
 	global quiet
 	$self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	if {$quiet == "false"} {puts "tcpTICK: [Agent/TCP set tcpTick_]"}
 
@@ -365,7 +365,7 @@ Test/timers1 instproc init topo {
 Test/timers1 instproc run {} {
 	global quiet
         $self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	if {$quiet == "false"} {puts "tcpTICK: [Agent/TCP set tcpTick_]"}
         $ns_ queue-limit $node_(r1) $node_(r2) 29
@@ -393,7 +393,7 @@ Test/timers2 instproc init topo {
 Test/timers2 instproc run {} {
 	global quiet
         $self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	set tick 0.5
 	if {$quiet == "false"} {puts "tcpTICK: $tick"}
@@ -422,7 +422,7 @@ Test/timers3 instproc init topo {
 Test/timers3 instproc run {} {
 	global quiet
         $self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	set tick 0.001
 	if {$quiet == "false"} {puts "tcpTICK: $tick"}
@@ -452,7 +452,7 @@ Test/timers4 instproc init topo {
 Test/timers4 instproc run {} {
 	global quiet
         $self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	set tick 0.001
 	if {$quiet == "false"} {puts "tcpTICK: $tick"}
@@ -482,7 +482,7 @@ Test/timers5 instproc init topo {
 Test/timers5 instproc run {} {
 	global quiet
         $self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	set tick 0.001
 	if {$quiet == "false"} {puts "tcpTICK: $tick"}
@@ -521,7 +521,7 @@ Test/stats1 instproc init topo {
 Test/stats1 instproc run {} {
 	global quiet
         $self instvar ns_ node_ testName_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
         $ns_ delay $node_(s2) $node_(r1) 200ms
         $ns_ delay $node_(r1) $node_(s2) 200ms
@@ -603,7 +603,7 @@ Test/quiescent_100ms instproc init topo {
 Test/quiescent_100ms instproc run {} {
 	global quiet
         $self instvar ns_ node_ guide_ 
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set packetSize_ 100 
 	Agent/TCP set window_ 25
 	set tcp0 [$ns_ create-connection TCP $node_(s1) TCPSink $node_(k1) 0]
@@ -624,7 +624,7 @@ Test/quiescentB instproc init topo {
 Test/quiescentB instproc run {} {
 	global quiet
         $self instvar ns_ node_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	$self set_lossylink
 	Agent/TCP set packetSize_ 100 
 	Agent/TCP set window_ 25
@@ -647,7 +647,7 @@ Test/quiescentB_qoption instproc init topo {
 Test/quiescentB_qoption instproc run {} {
 	global quiet
         $self instvar ns_ node_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	$self set_lossylink
 	Agent/TCP set packetSize_ 100 
 	Agent/TCP set window_ 25
@@ -688,7 +688,7 @@ Test/underutilized_100ms instproc init topo {
 Test/underutilized_100ms instproc run {{sender TCP} {receiver TCPSink}} {
 	global quiet
         $self instvar ns_ node_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set packetSize_ 100 
 	Agent/TCP set window_ 100
 	set tcp0 [$ns_ create-connection $sender $node_(s1) $receiver $node_(k1) 0]

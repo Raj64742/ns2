@@ -29,7 +29,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.12 2006/01/24 23:00:07 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-quiescent.tcl,v 1.13 2006/01/25 22:02:05 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -116,7 +116,7 @@ Test/tfrc_onoff instproc init {} {
 Test/tfrc_onoff instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ stopTime1_ sender 
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set stopTime $stopTime1_
 
@@ -176,7 +176,7 @@ Test/tfrc_telnet instproc init {} {
 Test/tfrc_telnet instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ sender 
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set stopTime 10
 
@@ -237,7 +237,7 @@ Test/tfrc_cbr instproc init {} {
 Test/tfrc_cbr instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_ sender 
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     set stopTime 15
 

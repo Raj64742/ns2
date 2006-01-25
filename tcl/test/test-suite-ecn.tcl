@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.44 2006/01/24 23:00:06 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-ecn.tcl,v 1.45 2006/01/25 22:02:05 sallyfloyd Exp $
 #
 # To run all tests: test-all-ecn
 
@@ -323,7 +323,7 @@ Test/ecn instproc init {} {
 Test/ecn instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo 
 
     Agent/TCP set old_ecn_ 1
@@ -467,7 +467,7 @@ Test/ecn_nodrop_tahoe instproc init {} {
 Test/ecn_nodrop_tahoe instproc run {} {
 	global quiet
 	$self instvar ns_ guide_
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 
 	$self drop_pkt 10000
@@ -488,7 +488,7 @@ Test/ecn_twoecn_tahoe instproc init {} {
 Test/ecn_twoecn_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ lossmodel guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 
 	$self drop_pkt 243
@@ -510,7 +510,7 @@ Test/ecn_drop_tahoe instproc init {} {
 Test/ecn_drop_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0
 	$self drop_pkt 243
@@ -531,7 +531,7 @@ Test/ecn_drop1_tahoe instproc init {} {
 Test/ecn_drop1_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0
 	$self drop_pkt 241
@@ -552,7 +552,7 @@ Test/ecn_drop2_tahoe instproc init {} {
 Test/ecn_drop2_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0
 	$self drop_pkt 235
@@ -590,7 +590,7 @@ Test/ecn_bursty_tahoe instproc init {} {
 Test/ecn_bursty_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 
 	$self ecnsetup Tahoe 3.0
         set lossmodel [$self setloss]
@@ -644,7 +644,7 @@ Test/ecn_timeout_tahoe instproc init {} {
 Test/ecn_timeout_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	$self ecnsetup Tahoe 3.0 1
 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -667,7 +667,7 @@ Test/ecn_timeout2_tahoe instproc init {} {
 Test/ecn_timeout2_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	$self ecnsetup Tahoe 3.0 1
 	$self drop_pkts {241 242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -688,7 +688,7 @@ Test/ecn_timeout3_tahoe instproc init {} {
 Test/ecn_timeout3_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	$self ecnsetup Tahoe 3.0 1
 	$self drop_pkts {241 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268 269 270} 
 
@@ -711,7 +711,7 @@ Test/ecn_smallwin_tahoe instproc init {} {
 Test/ecn_smallwin_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 6.0 1
 	$self drop_pkts {4 8 9 10 11 100 115 118 119}
@@ -735,7 +735,7 @@ Test/ecn_smallwinEcn_tahoe instproc init {} {
 Test/ecn_smallwinEcn_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 151 152 153} 
@@ -764,7 +764,7 @@ Test/ecn_smallwin1Ecn_tahoe instproc init {} {
 Test/ecn_smallwin1Ecn_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1 errmodel2
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 153} 
@@ -817,7 +817,7 @@ Test/ecn_secondpkt_tahoe instproc init {} {
 Test/ecn_secondpkt_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 2.0 1
 	$self drop_pkts {1 3} 
@@ -839,7 +839,7 @@ Test/ecn_secondpktEcn_tahoe instproc init {} {
 Test/ecn_secondpktEcn_tahoe instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 2.0 1
 	$self drop_pkts {1 3} 
@@ -865,7 +865,7 @@ Test/ecn_nodrop_tahoe_delack instproc init {} {
 Test/ecn_nodrop_tahoe_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 0 1
 	$self drop_pkt 10000
@@ -886,7 +886,7 @@ Test/ecn_twoecn_tahoe_delack instproc init {} {
 Test/ecn_twoecn_tahoe_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ lossmodel
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 0 1 
 	$self drop_pkt 243
@@ -908,7 +908,7 @@ Test/ecn_drop_tahoe_delack instproc init {} {
 Test/ecn_drop_tahoe_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 0 1
 	$self drop_pkt 243
@@ -929,7 +929,7 @@ Test/ecn_drop1_tahoe_delack instproc init {} {
 Test/ecn_drop1_tahoe_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Tahoe 3.0 0 1
 	$self drop_pkt 241
@@ -952,7 +952,7 @@ Test/ecn_smallwinEcn_tahoe_delack instproc init {} {
 Test/ecn_smallwinEcn_tahoe_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Tahoe 10.0 1 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 151 152 153} 
@@ -978,7 +978,7 @@ Test/ecn_nodrop_reno instproc init {} {
 Test/ecn_nodrop_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 
 	$self drop_pkt 10000
@@ -999,7 +999,7 @@ Test/ecn_twoecn_reno instproc init {} {
 Test/ecn_twoecn_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_ lossmodel
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 
 	$self drop_pkt 243
@@ -1021,7 +1021,7 @@ Test/ecn_drop_reno instproc init {} {
 Test/ecn_drop_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0
 	$self drop_pkt 243
@@ -1042,7 +1042,7 @@ Test/ecn_drop1_reno instproc init {} {
 Test/ecn_drop1_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0
 	$self drop_pkt 241
@@ -1080,7 +1080,7 @@ Test/ecn_bursty_reno instproc init {} {
 Test/ecn_bursty_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 
 	$self ecnsetup Reno 3.0
         set lossmodel [$self setloss]
@@ -1133,7 +1133,7 @@ Test/ecn_timeout_reno instproc init {} {
 Test/ecn_timeout_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	$self ecnsetup Reno 3.0 1
 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -1155,7 +1155,7 @@ Test/ecn_timeout1_reno instproc init {} {
 Test/ecn_timeout1_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 1
 	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
@@ -1177,7 +1177,7 @@ Test/ecn_smallwin_reno instproc init {} {
 Test/ecn_smallwin_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 6.0 1
 	$self drop_pkts {4 8 9 10 11 100 115 118 119 121 122}
@@ -1199,7 +1199,7 @@ Test/ecn_smallwinEcn_reno instproc init {} {
 Test/ecn_smallwinEcn_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 151 152 153} 
@@ -1220,7 +1220,7 @@ Test/ecn_smallwin1Ecn_reno instproc init {} {
 Test/ecn_smallwin1Ecn_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1 errmodel2
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 153} 
@@ -1244,7 +1244,7 @@ Test/ecn_secondpkt_reno instproc init {} {
 Test/ecn_secondpkt_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 2.0 1
 	$self drop_pkts {1 3} 
@@ -1266,7 +1266,7 @@ Test/ecn_secondpktEcn_reno instproc init {} {
 Test/ecn_secondpktEcn_reno instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 2.0 1
 	$self drop_pkts {1 3} 
@@ -1292,7 +1292,7 @@ Test/ecn_nodrop_reno_delack instproc init {} {
 Test/ecn_nodrop_reno_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 0 1 
 	$self drop_pkt 10000
@@ -1313,7 +1313,7 @@ Test/ecn_twoecn_reno_delack instproc init {} {
 Test/ecn_twoecn_reno_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ lossmodel
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 0 1 
 	$self drop_pkt 243
@@ -1335,7 +1335,7 @@ Test/ecn_drop_reno_delack instproc init {} {
 Test/ecn_drop_reno_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 0 1
 	$self drop_pkt 243
@@ -1357,7 +1357,7 @@ Test/ecn_drop1_reno_delack instproc init {} {
 Test/ecn_drop1_reno_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Reno 3.0 0 1
 	$self drop_pkt 241
@@ -1378,7 +1378,7 @@ Test/ecn_smallwinEcn_reno_delack instproc init {} {
 Test/ecn_smallwinEcn_reno_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Reno 10.0 1 1
 	$self drop_pkts {4 8 9 11 120 135 143 148 150 151 152 153} 
@@ -1404,7 +1404,7 @@ Test/ecn_nodrop_sack instproc init {} {
 Test/ecn_nodrop_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 
 	$self drop_pkt 10000
@@ -1425,7 +1425,7 @@ Test/ecn_twoecn_sack instproc init {} {
 Test/ecn_twoecn_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ lossmodel
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 
 	$self drop_pkt 243
@@ -1447,7 +1447,7 @@ Test/ecn_drop_sack instproc init {} {
 Test/ecn_drop_sack instproc run {} {
         global quiet
         $self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
         $self ecnsetup Sack1 3.0
         $self drop_pkt 243
@@ -1468,7 +1468,7 @@ Test/ecn_drop1_sack instproc init {} {
 Test/ecn_drop1_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0
 	$self drop_pkt 241
@@ -1506,7 +1506,7 @@ Test/ecn_bursty_sack instproc init {} {
 Test/ecn_bursty_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 
 	$self ecnsetup Sack1 3.0
         set lossmodel [$self setloss]
@@ -1544,7 +1544,7 @@ Test/ecn_burstyEcn1_sack instproc init {} {
 Test/ecn_burstyEcn1_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 
 	$self ecnsetup Sack1 3.0
         set lossmodel [$self setloss]
@@ -1584,7 +1584,7 @@ Test/ecn_timeout_sack instproc init {} {
 Test/ecn_timeout_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	$self ecnsetup Sack1 3.0 1
 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -1606,7 +1606,7 @@ Test/ecn_timeout1_sack instproc init {} {
 Test/ecn_timeout1_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 1
 	$self drop_pkts {245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265} 
@@ -1628,7 +1628,7 @@ Test/ecn_fourdrops_sack instproc init {} {
 Test/ecn_fourdrops_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	$self ecnsetup Sack1 3.0 1
 	$self drop_pkts {242 244 267 268} 
 
@@ -1649,7 +1649,7 @@ Test/ecn_smallwin_sack instproc init {} {
 Test/ecn_smallwin_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 6.0 1
 	$self drop_pkts {4 8 9 10 11 100 115 121 124 126 127 128}
@@ -1671,7 +1671,7 @@ Test/ecn_smallwinEcn_sack instproc init {} {
 Test/ecn_smallwinEcn_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 10.0 1
 	$self drop_pkts {4 7 9 10 11 12 13 14 120 135 143 148 150 151 152} 
@@ -1692,7 +1692,7 @@ Test/ecn_smallwin1Ecn_sack instproc init {} {
 Test/ecn_smallwin1Ecn_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1 errmodel2
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 153} 
@@ -1716,7 +1716,7 @@ Test/ecn_secondpkt_sack instproc init {} {
 Test/ecn_secondpkt_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 2.0 1
 	$self drop_pkts {1 3} 
@@ -1738,7 +1738,7 @@ Test/ecn_secondpktEcn_sack instproc init {} {
 Test/ecn_secondpktEcn_sack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 2.0 1
 	$self drop_pkts {1 3} 
@@ -1764,7 +1764,7 @@ Test/ecn_nodrop_sack_delack instproc init {} {
 Test/ecn_nodrop_sack_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 0 1 
 	$self drop_pkt 10000
@@ -1785,7 +1785,7 @@ Test/ecn_twoecn_sack_delack instproc init {} {
 Test/ecn_twoecn_sack_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ lossmodel
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 0 1 
 	$self drop_pkt 243
@@ -1807,7 +1807,7 @@ Test/ecn_drop_sack_delack instproc init {} {
 Test/ecn_drop_sack_delack instproc run {} {
         global quiet
         $self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
         $self ecnsetup Sack1 3.0 0 1
         $self drop_pkt 243
@@ -1828,7 +1828,7 @@ Test/ecn_drop1_sack_delack instproc init {} {
 Test/ecn_drop1_sack_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Sack1 3.0 0 1
 	$self drop_pkt 241
@@ -1849,7 +1849,7 @@ Test/ecn_smallwinEcn_sack_delack instproc init {} {
 Test/ecn_smallwinEcn_sack_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Sack1 10.0 1 1
 	$self drop_pkts {4 7 9 11 12 120 135 143 148 150 151 152} 
@@ -1895,7 +1895,7 @@ Test/ecn_twoecn_newreno instproc init {} {
 Test/ecn_twoecn_newreno instproc run {} {
         global quiet
 	$self instvar ns_ guide_ lossmodel
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 
 	$self drop_pkt 243
@@ -1937,7 +1937,7 @@ Test/ecn_drop1_newreno instproc init {} {
 Test/ecn_drop1_newreno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0
 	$self drop_pkt 241
@@ -1975,7 +1975,7 @@ Test/ecn_bursty_newreno instproc init {} {
 Test/ecn_bursty_newreno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 
 	$self ecnsetup Newreno 3.0
         set lossmodel [$self setloss]
@@ -2014,7 +2014,7 @@ Test/ecn_timeout_newreno instproc init {} {
 Test/ecn_timeout_newreno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	$self ecnsetup Newreno 3.0 1
 	$self drop_pkts {242 243 244 245 246 247 248 249 250 251 252 253 254 255 256 257 258 259 260 261 262 263 264 265 266 267 268} 
 
@@ -2036,7 +2036,7 @@ Test/ecn_timeout1_newreno instproc init {} {
 Test/ecn_timeout1_newreno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 1
 	Agent/TCP set old_ecn_ 1
@@ -2059,7 +2059,7 @@ Test/ecn_smallwin_newreno instproc init {} {
 Test/ecn_smallwin_newreno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Newreno 6.0 1
 	$self drop_pkts {4 8 9 10 11 100 115 121 124 126 127 128}
@@ -2081,7 +2081,7 @@ Test/ecn_smallwinEcn_newreno instproc init {} {
 Test/ecn_smallwinEcn_newreno instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Newreno 10.0 1
 	$self drop_pkts {4 8 9 11 12 13 120 135 143 148 150 151 152 153} 
@@ -2104,7 +2104,7 @@ Test/ecn_secondpkt_newreno instproc init {} {
 Test/ecn_secondpkt_newreno instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Newreno 2.0 1
 	$self drop_pkts {1 3} 
@@ -2126,7 +2126,7 @@ Test/ecn_secondpktEcn_newreno instproc init {} {
 Test/ecn_secondpktEcn_newreno instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Newreno 2.0 1
 	$self drop_pkts {1 3} 
@@ -2152,7 +2152,7 @@ Test/ecn_nodrop_newreno_delack instproc init {} {
 Test/ecn_nodrop_newreno_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 0 1 
 	$self drop_pkt 10000
@@ -2173,9 +2173,9 @@ Test/ecn_twoecn_newreno_delack instproc init {} {
         $self next pktTraceFile
 }
 Test/ecn_twoecn_newreno_delack instproc run {} {
-        global quiet
+        global quiet guide_
 	$self instvar ns_ guide_ lossmodel
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 0 1 
 	$self drop_pkt 243
@@ -2191,13 +2191,14 @@ Test/ecn_drop_newreno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop_newreno_delack
+        set guide_  "ECN followed by packet loss."
 
         $self next pktTraceFile
 }
 Test/ecn_drop_newreno_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 0 1
 	$self drop_pkt 243
@@ -2213,13 +2214,13 @@ Test/ecn_drop1_newreno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_drop1_newreno_delack
-
+	set guide_ "ECN preceded by packet loss?"
         $self next pktTraceFile
 }
 Test/ecn_drop1_newreno_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 1
 	$self ecnsetup Newreno 3.0 0 1
 	$self drop_pkt 241
@@ -2234,13 +2235,14 @@ Test/ecn_smallwinEcn_newreno_delack instproc init {} {
         set net_	net2-lossy
 	Agent/TCP set bugFix_ true
         set test_	ecn_smallwinEcn_newreno_delack
+	set guide_ "ECN with a window of one packet."
 
         $self next pktTraceFile
 }
 Test/ecn_smallwinEcn_newreno_delack instproc run {} {
         global quiet
 	$self instvar ns_ guide_ errmodel1
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
 	Agent/TCP set old_ecn_ 0
 	$self ecnsetup Newreno 10.0 1 1
 	$self drop_pkts {4 8 9 11 120 135 143 148 150 151 152 153} 
@@ -2286,7 +2288,7 @@ Test/ecn1 instproc init {} {
 Test/ecn1 instproc run {} {
         global quiet
         $self instvar ns_ guide_ node_ guide_ testName_
-        if {$quiet == "false"} {puts $guide_}
+        puts "Guide: $guide_"
         $self setTopo
 	Agent/TCP set old_ecn_ 1
 

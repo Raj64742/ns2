@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.21 2006/01/24 23:00:08 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-tcpOptions.tcl,v 1.22 2006/01/25 22:02:05 sallyfloyd Exp $
 #
 # To view a list of available tests to run with this script:
 # ns test-suite-tcpVariants.tcl
@@ -172,7 +172,7 @@ TestSuite instproc setup {tcptype list} {
 	global wrap wrap1 quiet
         $self instvar ns_ node_ testName_ guide_
 	$self setTopo 
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
         Agent/TCP set bugFix_ false
 	set fid 1
@@ -253,7 +253,7 @@ TestSuite instproc setup1 {tcptype list delay list1 delay1} {
 	global wrap wrap1 quiet
         $self instvar ns_ node_ testName_ guide_
 	$self setTopo 
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
         Agent/TCP set bugFix_ false
 	set fid 1
@@ -645,7 +645,7 @@ TestSuite instproc setup2 {tcptype list endtime} {
 	global wrap wrap1 quiet
         $self instvar ns_ node_ testName_ guide_
 	$self setTopo 
-	if {$quiet == "false"} {puts $guide_}
+	puts "Guide: $guide_"
 
 	set fid 1
         # Set up TCP connection

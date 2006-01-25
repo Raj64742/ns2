@@ -30,7 +30,7 @@
 # OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
 # SUCH DAMAGE.
 #
-# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.22 2006/01/24 23:00:06 sallyfloyd Exp $
+# @(#) $Header: /home/smtatapudi/Thesis/nsnam/nsnam/ns-2/tcl/test/test-suite-aimd.tcl,v 1.23 2006/01/25 22:02:04 sallyfloyd Exp $
 #
 
 source misc_simple.tcl
@@ -132,7 +132,7 @@ Test/tcp instproc init {} {
 Test/tcp instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     Agent/TCP set window_ 20
     set stopTime  20.0
@@ -260,7 +260,7 @@ Test/ssthresh instproc init {} {
 Test/ssthresh instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     $self set_lossylink
     Agent/TCP set window_ 8
@@ -318,7 +318,7 @@ Test/ssthresh_second instproc init {} {
 Test/ssthresh_second instproc run {} {
     global quiet
     $self instvar ns_ node_ testName_ dumpfile_ sender_ receiver_ guide_
-    if {$quiet == "false"} {puts $guide_}
+    puts "Guide: $guide_"
     $self setTopo
     $self set_lossylink
     Agent/TCP set window_ 8
