@@ -160,13 +160,32 @@ Topology/net3 instproc init ns {
     $ns duplex-link $node_(s4) $node_(r2) 1000Mb 5ms DropTail
 }
 
+Class Topology/net4 -superclass Topology
+Topology/net4 instproc init ns {
+    $self instvar node_
+    set node_(s1) [$ns node]
+    set node_(s2) [$ns node]
+    set node_(r1) [$ns node]
+    set node_(r2) [$ns node]
+    set node_(s3) [$ns node]
+    set node_(s4) [$ns node]
+
+    $self next
+    $ns duplex-link $node_(s1) $node_(r1) 1000Mb 2ms DropTail
+    $ns duplex-link $node_(s2) $node_(r1) 1000Mb 3ms DropTail
+    $ns duplex-link $node_(r1) $node_(r2) 10Mb 200ms RED
+    $ns queue-limit $node_(r1) $node_(r2) 50
+    $ns queue-limit $node_(r2) $node_(r1) 50 
+    $ns duplex-link $node_(s3) $node_(r2) 1000Mb 4ms DropTail
+    $ns duplex-link $node_(s4) $node_(r2) 1000Mb 5ms DropTail
+}
+
 Class Test/no_quickstart -superclass TestSuite
 Test/no_quickstart instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ no_quickstart	
-    set guide_  \
-    "Two TCPs, no quickstart."
+    set guide_  "Two TCPs, no quickstart."
     set sndr TCP/Newreno
     set rcvr TCPSink
     set qs OFF
@@ -204,8 +223,7 @@ Test/quickstart instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ quickstart	
-    set guide_  \
-    "Two TCPs, TCP/Newreno, with QuickStart."
+    set guide_  "Two TCPs, TCP/Newreno, with QuickStart."
     set sndr TCP/Newreno
     set rcvr TCPSink
     set qs ON
@@ -218,8 +236,7 @@ Test/quickstart1 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ quickstart1	
-    set guide_  \
-    "Two TCPs, plain TCP, with QuickStart."
+    set guide_  "Two TCPs, plain TCP, with QuickStart."
     set sndr TCP
     set rcvr TCPSink
     set qs ON
@@ -232,8 +249,7 @@ Test/quickstart2 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ quickstart2	
-    set guide_  \
-    "Two TCPs, Reno TCP, with QuickStart."
+    set guide_  "Two TCPs, Reno TCP, with QuickStart."
     set sndr TCP/Reno
     set rcvr TCPSink
     set qs ON
@@ -246,8 +262,7 @@ Test/quickstart3 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ quickstart3	
-    set guide_  \
-    "Two TCPs, NewReno TCP, with QuickStart."
+    set guide_  "Two TCPs, NewReno TCP, with QuickStart."
     set sndr TCP/Newreno
     set rcvr TCPSink
     set qs ON
@@ -260,8 +275,7 @@ Test/quickstart4 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ quickstart4	
-    set guide_  \
-    "Two TCPs, Sack TCP, with QuickStart."
+    set guide_  "Two TCPs, Sack TCP, with QuickStart."
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     set qs ON
@@ -274,8 +288,7 @@ Test/quickstart4full instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net2
     set test_ quickstart4	
-    set guide_  \
-    "Two TCPs, Sack Full TCP.  QuickStart not added to Full TCP yet."
+    set guide_  "Two TCPs, Sack Full TCP.  QuickStart not added to Full TCP yet."
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     set qs ON
@@ -321,14 +334,12 @@ Test/quickstart4full instproc run {} {
 }
 
 
-## Algorithm 1 gives a different result that it used to...
 Class Test/high_request -superclass TestSuite
 Test/high_request instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ high_request	
-    set guide_  \
-    "A high quickstart request."
+    set guide_  "A high quickstart request."
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     Agent/QSAgent set alloc_rate_ 0.01
@@ -369,8 +380,7 @@ Test/bad_router instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ bad_router	
-    set guide_  \
-    "Not all routers support quickstart."
+    set guide_  "Not all routers support quickstart."
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     set qs ON
@@ -409,8 +419,7 @@ Test/changing_rtt instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ changing_rtt	
-    set guide_  \
-    "Changing round-trip times."
+    set guide_  "Changing round-trip times."
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     set qs ON
@@ -447,8 +456,7 @@ Test/changing_rtt1 instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ changing_rtt1	
-    set guide_  \
-    "Changing round-trip times."
+    set guide_  "Changing round-trip times."
     set sndr TCP/Newreno
     set rcvr TCPSink
     set qs ON
@@ -461,8 +469,7 @@ Test/no_acks_back instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net3
     set test_ no_acks_back	
-    set guide_  \
-    "After the first exchange, sender receives no acks."
+    set guide_  "After the first exchange, sender receives no acks."
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     set qs ON
@@ -500,8 +507,7 @@ Test/pkt_drops instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_	net2
     set test_ pkt_drops	
-    set guide_  \
-    "Packets are dropped in the initial window after quickstart."
+    set guide_  "Packets are dropped in the initial window after quickstart."
     set sndr TCP/Sack1
     set rcvr TCPSink/Sack1
     set qs ON
@@ -537,17 +543,134 @@ Test/pkt_drops instproc run {} {
     $ns_ run
 }
 
+proc printdrops { fid fmon } {
+        set fcl [$fmon classifier]; # flow classifier
+        set flow [$fcl lookup auto 0 0 $fid]
+        if {$flow != ""} {
+          puts "fid: $fid per-link total_packets [$flow set pdepartures_]"
+          puts "fid: $fid per-link total_bytes [$flow set bdepartures_]"
+          puts "fid: $fid per-link total_drops [$flow set pdrops_]"
+          puts "fid: $fid per-link qs_pkts [$flow set qs_pkts_]"
+          puts "fid: $fid per-link qs_bytes [$flow set qs_bytes_]"
+          puts "fid: $fid per-link qs_drops [$flow set qs_drops_]"
+        }
+}
+
+Class Test/many_requests -superclass TestSuite
+Test/many_requests instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net4
+    set test_ many_requests	
+    set guide_  "Many Quick-Start requests."
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    set qs ON
+    $self next pktTraceFile
+}
+Test/many_requests instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 10
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 8
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0.0 "$ftp1 start"
+
+    set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s3) 1]
+    $tcp2 set window_ 1000
+    $tcp2 set rate_request_ 100
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 2.0 "$ftp2 produce 400"
+
+    set tcp3 [$ns_ create-connection $sndr $node_(s2) $rcvr $node_(s4) 2]
+    $tcp3 set window_ 1000
+    $tcp3 set rate_request_ 100
+    set ftp3 [new Application/FTP]
+    $ftp3 attach-agent $tcp3
+    $ns_ at 3.0 "$ftp3 produce 200"
+
+    set tcp4 [$ns_ create-connection $sndr $node_(s2) $rcvr $node_(s4) 3]
+    $tcp4 set window_ 1000
+    $tcp4 set rate_request_ 100
+    set ftp4 [new Application/FTP]
+    $ftp4 attach-agent $tcp4
+    $ns_ at 4.0 "$ftp4 produce 100"
+
+    set tcp5 [$ns_ create-connection $sndr $node_(s2) $rcvr $node_(s4) 4]
+    $tcp5 set window_ 1000
+    $tcp5 set rate_request_ 100
+    set ftp5 [new Application/FTP]
+    $ftp5 attach-agent $tcp5
+    $ns_ at 6.0 "$ftp5 produce 100"
+
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
+
+Class Test/many_requests1 -superclass TestSuite
+Test/many_requests1 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net4
+    set test_ many_requests1
+    set guide_  "Many Quick-Start requests, small approved rates."
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    set qs ON
+    Agent/QSAgent set alloc_rate_ 0.05 ; # maximum rate request.
+    Agent/QSAgent set threshold_ 0.85
+    Test/many_requests1 instproc run {} [Test/many_requests info instbody run ]
+    $self next pktTraceFile
+}
+
+Class Test/many_requests2 -superclass TestSuite
+Test/many_requests2 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net4
+    set test_ many_requests2
+    set guide_  "Many Quick-Start requests, conservative router."
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    set qs ON
+    Agent/QSAgent set alloc_rate_ 0.05 ; # maximum rate request.
+    Agent/QSAgent set threshold_ 0.02
+    Test/many_requests2 instproc run {} [Test/many_requests info instbody run ]
+    $self next pktTraceFile
+}
+
+Class Test/many_requests3 -superclass TestSuite
+Test/many_requests3 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net4
+    set test_ many_requests3
+    set guide_  "Many Quick-Start requests, generous router."
+    set sndr TCP/Newreno
+    set rcvr TCPSink
+    set qs ON
+    Agent/QSAgent set alloc_rate_ 0.90 ; # maximum rate request.
+    Agent/QSAgent set threshold_ 0.99
+    Test/many_requests3 instproc run {} [Test/many_requests info instbody run ]
+    $self next pktTraceFile
+}
+
+# We still need a test that tests state_delay_:
+# Agent/QSAgent set state_delay_  0.3
+
 Class Test/stats -superclass TestSuite
 Test/stats instproc init {} {
     $self instvar net_ test_ guide_ sndr rcvr qs
     set net_  net2
     set test_ stats   
-    set guide_  \
-    "Two TCPs, statistics."
+    set guide_  "Two TCPs, statistics."
     set sndr TCP/Newreno
     set rcvr TCPSink
     set qs ON
-    Agent/QSAgent set qs_enabled_ 0
     $self next pktTraceFile
 }
 Test/stats instproc run {} {
@@ -557,6 +680,10 @@ Test/stats instproc run {} {
     $ns_ node-config -QS $qs
     $self setTopo
     set stopTime 6
+
+    set slink [$ns_ link $node_(r1) $node_(r2)] 
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
 
     set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
     $tcp1 set window_ 8
@@ -571,11 +698,57 @@ Test/stats instproc run {} {
     $ftp2 attach-agent $tcp2
     $ns_ at 2.0 "$ftp2 produce 80"
 
+    $ns_ at $stopTime "printdrops 1 $fmon;"
     $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
 
     $ns_ run
 }
 
+Class Test/stats1 -superclass TestSuite
+Test/stats1 instproc init {} {
+    $self instvar net_ test_ guide_ sndr rcvr qs
+    set net_	net2
+    set test_ stats1	
+    set guide_  "Quick-Start packet drops, statistics."
+    set sndr TCP/Sack1
+    set rcvr TCPSink/Sack1
+    set qs ON
+    $self next pktTraceFile
+}
+
+Test/stats1 instproc run {} {
+    global quiet
+    $self instvar ns_ node_ testName_ guide_ sndr rcvr qs
+    puts "Guide: $guide_"
+    $ns_ node-config -QS $qs
+    $self setTopo
+    set stopTime 20
+
+    set slink [$ns_ link $node_(s1) $node_(r1)] 
+    set fmon [$ns_ makeflowmon Fid]
+    $ns_ attach-fmon $slink $fmon
+
+    set tcp1 [$ns_ create-connection TCP/Newreno $node_(s1) TCPSink $node_(s3) 0]
+    $tcp1 set window_ 8
+    set ftp1 [new Application/FTP]
+    $ftp1 attach-agent $tcp1
+    $ns_ at 0.0 "$ftp1 start"
+
+    set tcp2 [$ns_ create-connection $sndr $node_(s1) $rcvr $node_(s4) 1]
+    $tcp2 set window_ 1000
+    $tcp2 set rate_request_ 20
+    $tcp2 set tcp_qs_recovery_ true
+    set ftp2 [new Application/FTP]
+    $ftp2 attach-agent $tcp2
+    $ns_ at 2.0 "$ftp2 produce 80"
+
+    $self drop_pkts {5 6}
+
+    $ns_ at $stopTime "printdrops 1 $fmon;"
+    $ns_ at $stopTime "$self cleanupAll $testName_ $stopTime" 
+
+    $ns_ run
+}
 
 TestSuite runTest
 
